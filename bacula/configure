@@ -833,9 +833,15 @@ sd_group
 fd_user
 fd_group
 SBINPERM
+SQL_LFLAGS
+SQL_INCLUDE
+SQL_BINDIR
+DBI_DBD_DRIVERDIR
+uncomment_dbi
+DB_PROG
+DB_PROG_LIB
 cats
 DB_TYPE
-uncomment_dbi
 GETCONF
 XMKMF
 X_CFLAGS
@@ -1521,6 +1527,32 @@ Optional Packages:
   --with-fd-user=USER		 specify user for File daemon
   --with-fd-group=GROUP		 specify group for File daemon
   --with-sbin-perm=MODE		 specify permissions for sbin binaries (0754)
+  --with-postgresql[=DIR]      Include PostgreSQL support.  DIR is the PostgreSQL
+                          base install directory, defaults to /usr/local/pgsql
+
+  --with-mysql[=DIR]      Include MySQL support.  DIR is the MySQL base
+                          install directory, default is to search through
+                          a number of common places for the MySQL files.
+
+  --with-embedded-mysql[=DIR] Include MySQL support.  DIR is the MySQL base
+                          install directory, default is to search through
+                          a number of common places for the MySQL files.
+
+  --with-sqlite3[=DIR]    Include SQLite3 support.  DIR is the SQLite3 base
+                          install directory, default is to search through
+                          a number of common places for the SQLite3 files.
+
+  --with-sqlite[=DIR]     Include SQLite support.  DIR is the SQLite base
+                          install directory, default is to search through
+                          a number of common places for the SQLite files.
+
+  --with-dbi[=DIR]     Include DBI support.  DIR is the DBD base
+                          install directory, default is to search through
+                          a number of common places for the DBI files.
+
+  --with-dbi-driver[=DRIVER]     Suport for DBI driver.  DRIVER is
+                          the one DBI driver like Mysql, Postgresql, others.
+                          Default is to not configure any driver.
   --with-x                use the X Window System
 
 Some influential environment variables:
@@ -5592,7 +5624,6 @@ else
   HAVE_DARWIN_OS_TRUE='#'
   HAVE_DARWIN_OS_FALSE=
 fi
-
     cat >>confdefs.h <<\_ACEOF
 #define HAVE_DARWIN_OS 1
 _ACEOF
@@ -5607,7 +5638,6 @@ else
   HAVE_DARWIN_OS_TRUE='#'
   HAVE_DARWIN_OS_FALSE=
 fi
-
 fi
 
 
@@ -17200,17 +17230,1047 @@ fi
 # Bacula check for various SQL database engines
 # ------------------------------------------------
 SQL_LIB=
-BA_CHECK_POSTGRESQL_DB
 
-BA_CHECK_MYSQL_DB
+db_found=no
+{ echo "$as_me:$LINENO: checking for PostgreSQL support" >&5
+echo $ECHO_N "checking for PostgreSQL support... $ECHO_C" >&6; }
 
-BA_CHECK_SQLITE3_DB
+# Check whether --with-postgresql was given.
+if test "${with_postgresql+set}" = set; then
+  withval=$with_postgresql;
+  if test "$withval" != "no"; then
+      if test "$db_found" = "yes"; then
+          { echo "$as_me:$LINENO: result: error" >&5
+echo "${ECHO_T}error" >&6; }
+          { { echo "$as_me:$LINENO: error: \"You can configure for only one database.\"" >&5
+echo "$as_me: error: \"You can configure for only one database.\"" >&2;}
+   { (exit 1); exit 1; }; };
+      fi
+      if test "$withval" = "yes"; then
+          PG_CONFIG=`which pg_config`
+          if test -n "$PG_CONFIG";then
+              POSTGRESQL_INCDIR=`"$PG_CONFIG" --includedir`
+              POSTGRESQL_LIBDIR=`"$PG_CONFIG" --libdir`
+              POSTGRESQL_BINDIR=`"$PG_CONFIG" --bindir`
+          elif test -f /usr/local/include/libpq-fe.h; then
+              POSTGRESQL_INCDIR=/usr/local/include
+              if test -d /usr/local/lib64; then
+                 POSTGRESQL_LIBDIR=/usr/local/lib64
+              else
+                 POSTGRESQL_LIBDIR=/usr/local/lib
+              fi
+              POSTGRESQL_BINDIR=/usr/local/bin
+          elif test -f /usr/include/libpq-fe.h; then
+              POSTGRESQL_INCDIR=/usr/include
+              if test -d /usr/lib64; then
+                 POSTGRESQL_LIBDIR=/usr/lib64
+              else
+                 POSTGRESQL_LIBDIR=/usr/lib
+              fi
+              POSTGRESQL_BINDIR=/usr/bin
+          elif test -f /usr/include/pgsql/libpq-fe.h; then
+              POSTGRESQL_INCDIR=/usr/include/pgsql
+              if test -d /usr/lib64/pgsql; then
+                 POSTGRESQL_LIBDIR=/usr/lib64/pgsql
+              else
+                 POSTGRESQL_LIBDIR=/usr/lib/pgsql
+              fi
+              POSTGRESQL_BINDIR=/usr/bin
+          elif test -f /usr/include/postgresql/libpq-fe.h; then
+              POSTGRESQL_INCDIR=/usr/include/postgresql
+              if test -d /usr/lib64/postgresql; then
+                 POSTGRESQL_LIBDIR=/usr/lib64/postgresql
+              else
+                 POSTGRESQL_LIBDIR=/usr/lib/postgresql
+              fi
+              POSTGRESQL_BINDIR=/usr/bin
+          else
+              { echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6; }
+              { { echo "$as_me:$LINENO: error: Unable to find libpq-fe.h in standard locations" >&5
+echo "$as_me: error: Unable to find libpq-fe.h in standard locations" >&2;}
+   { (exit 1); exit 1; }; }
+          fi
+      elif test -f $withval/include/libpq-fe.h; then
+          POSTGRESQL_INCDIR=$withval/include
+          POSTGRESQL_LIBDIR=$withval/lib
+          POSTGRESQL_BINDIR=$withval/bin
+      elif test -f $withval/include/postgresql/libpq-fe.h; then
+          POSTGRESQL_INCDIR=$withval/include/postgresql
+     if test -d $withval/lib64; then
+         POSTGRESQL_LIBDIR=$withval/lib64
+     else
+         POSTGRESQL_LIBDIR=$withval/lib
+     fi
+          POSTGRESQL_BINDIR=$withval/bin
+      else
+          { echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6; }
+          { { echo "$as_me:$LINENO: error: Invalid PostgreSQL directory $withval - unable to find libpq-fe.h under $withval" >&5
+echo "$as_me: error: Invalid PostgreSQL directory $withval - unable to find libpq-fe.h under $withval" >&2;}
+   { (exit 1); exit 1; }; }
+      fi
+      POSTGRESQL_LFLAGS="-L$POSTGRESQL_LIBDIR -lpq"
+      { echo "$as_me:$LINENO: checking for crypt" >&5
+echo $ECHO_N "checking for crypt... $ECHO_C" >&6; }
+if test "${ac_cv_func_crypt+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+/* Define crypt to an innocuous variant, in case <limits.h> declares crypt.
+   For example, HP-UX 11i <limits.h> declares gettimeofday.  */
+#define crypt innocuous_crypt
 
-BA_CHECK_SQLITE_DB
+/* System header to define __stub macros and hopefully few prototypes,
+    which can conflict with char crypt (); below.
+    Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
+    <limits.h> exists even on freestanding compilers.  */
 
-BA_CHECK_DBI_DB
+#ifdef __STDC__
+# include <limits.h>
+#else
+# include <assert.h>
+#endif
 
-BA_CHECK_DBI_DRIVER
+#undef crypt
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char crypt ();
+/* The GNU C library defines this for functions which it implements
+    to always fail with ENOSYS.  Some functions are actually named
+    something starting with __ and the normal name is an alias.  */
+#if defined __stub_crypt || defined __stub___crypt
+choke me
+#endif
+
+int
+main ()
+{
+return crypt ();
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (ac_try="$ac_link"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_link") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest$ac_exeext &&
+       $as_test_x conftest$ac_exeext; then
+  ac_cv_func_crypt=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+	ac_cv_func_crypt=no
+fi
+
+rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
+      conftest$ac_exeext conftest.$ac_ext
+fi
+{ echo "$as_me:$LINENO: result: $ac_cv_func_crypt" >&5
+echo "${ECHO_T}$ac_cv_func_crypt" >&6; }
+if test $ac_cv_func_crypt = yes; then
+  :
+else
+  { echo "$as_me:$LINENO: checking for crypt in -lcrypt" >&5
+echo $ECHO_N "checking for crypt in -lcrypt... $ECHO_C" >&6; }
+if test "${ac_cv_lib_crypt_crypt+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lcrypt  $LIBS"
+cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char crypt ();
+int
+main ()
+{
+return crypt ();
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (ac_try="$ac_link"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_link") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest$ac_exeext &&
+       $as_test_x conftest$ac_exeext; then
+  ac_cv_lib_crypt_crypt=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+	ac_cv_lib_crypt_crypt=no
+fi
+
+rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
+      conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ echo "$as_me:$LINENO: result: $ac_cv_lib_crypt_crypt" >&5
+echo "${ECHO_T}$ac_cv_lib_crypt_crypt" >&6; }
+if test $ac_cv_lib_crypt_crypt = yes; then
+  POSTGRESQL_LFLAGS="$POSTGRESQL_LFLAGS -lcrypt"
+fi
+
+fi
+
+      SQL_INCLUDE=-I$POSTGRESQL_INCDIR
+      SQL_LFLAGS=$POSTGRESQL_LFLAGS
+      SQL_BINDIR=$POSTGRESQL_BINDIR
+      SQL_LIB=$POSTGRESQL_LIBDIR/libpq.a
+
+      cat >>confdefs.h <<\_ACEOF
+#define HAVE_POSTGRESQL 1
+_ACEOF
+
+      { echo "$as_me:$LINENO: result: yes" >&5
+echo "${ECHO_T}yes" >&6; }
+      db_found=yes
+      support_postgresql=yes
+      db_type=PostgreSQL
+      DB_TYPE=postgresql
+  else
+      { echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6; }
+  fi
+
+else
+
+  { echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6; }
+
+fi
+
+
+
+
+
+
+
+
+db_found=no
+{ echo "$as_me:$LINENO: checking for MySQL support" >&5
+echo $ECHO_N "checking for MySQL support... $ECHO_C" >&6; }
+
+# Check whether --with-mysql was given.
+if test "${with_mysql+set}" = set; then
+  withval=$with_mysql;
+  if test "$withval" != "no"; then
+        if test "$withval" = "yes"; then
+           if test -f /usr/local/mysql/include/mysql/mysql.h; then
+                   MYSQL_INCDIR=/usr/local/mysql/include/mysql
+                   if test -f /usr/local/mysql/lib64/mysql/libmysqlclient_r.a \
+                        -o -f /usr/local/mysql/lib64/mysql/libmysqlclient_r.so; then
+                           MYSQL_LIBDIR=/usr/local/mysql/lib64/mysql
+                   else
+                           MYSQL_LIBDIR=/usr/local/mysql/lib/mysql
+                   fi
+                   MYSQL_BINDIR=/usr/local/mysql/bin
+           elif test -f /usr/include/mysql/mysql.h; then
+                   MYSQL_INCDIR=/usr/include/mysql
+                   if test -f /usr/lib64/mysql/libmysqlclient_r.a \
+                        -o -f /usr/lib64/mysql/libmysqlclient_r.so; then
+                           MYSQL_LIBDIR=/usr/lib64/mysql
+                   elif test -f /usr/lib/mysql/libmysqlclient_r.a \
+                          -o -f /usr/lib/mysql/libmysqlclient_r.so; then
+                           MYSQL_LIBDIR=/usr/lib/mysql
+                   else
+                           MYSQL_LIBDIR=/usr/lib
+                   fi
+                   MYSQL_BINDIR=/usr/bin
+           elif test -f /usr/include/mysql.h; then
+                   MYSQL_INCDIR=/usr/include
+                   if test -f /usr/lib64/libmysqlclient_r.a \
+                        -o -f /usr/lib64/libmysqlclient_r.so; then
+                           MYSQL_LIBDIR=/usr/lib64
+                   else
+                           MYSQL_LIBDIR=/usr/lib
+                   fi
+                   MYSQL_BINDIR=/usr/bin
+           elif test -f /usr/local/include/mysql/mysql.h; then
+                   MYSQL_INCDIR=/usr/local/include/mysql
+                   if test -f /usr/local/lib64/mysql/libmysqlclient_r.a \
+                        -o -f /usr/local/lib64/mysql/libmysqlclient_r.so; then
+                           MYSQL_LIBDIR=/usr/local/lib64/mysql
+                   else
+                           MYSQL_LIBDIR=/usr/local/lib/mysql
+                   fi
+                   MYSQL_BINDIR=/usr/local/bin
+           elif test -f /usr/local/include/mysql.h; then
+                   MYSQL_INCDIR=/usr/local/include
+                   if test -f /usr/local/lib64/libmysqlclient_r.a \
+                        -o -f /usr/local/lib64/libmysqlclient_r.so; then
+                           MYSQL_LIBDIR=/usr/local/lib64
+                   else
+                           MYSQL_LIBDIR=/usr/local/lib
+                   fi
+                   MYSQL_BINDIR=/usr/local/bin
+           else
+              { echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6; }
+              { { echo "$as_me:$LINENO: error: Unable to find mysql.h in standard locations" >&5
+echo "$as_me: error: Unable to find mysql.h in standard locations" >&2;}
+   { (exit 1); exit 1; }; }
+           fi
+        else
+           if test -f $withval/include/mysql/mysql.h; then
+              MYSQL_INCDIR=$withval/include/mysql
+              if test -f $withval/lib64/mysql/libmysqlclient_r.a \
+                   -o -f $withval/lib64/mysql/libmysqlclient_r.so; then
+                 MYSQL_LIBDIR=$withval/lib64/mysql
+              else
+                 MYSQL_LIBDIR=$withval/lib/mysql
+                 # Solaris ...
+                 if test -f $withval/lib/libmysqlclient_r.so; then
+                    MYSQL_LIBDIR=$withval/lib
+                 fi
+              fi
+              MYSQL_BINDIR=$withval/bin
+           elif test -f $withval/include/mysql.h; then
+              MYSQL_INCDIR=$withval/include
+              if test -f $withval/lib64/libmysqlclient_r.a \
+                   -o -f $withval/lib64/libmysqlclient_r.so; then
+                 MYSQL_LIBDIR=$withval/lib64
+              else
+                 MYSQL_LIBDIR=$withval/lib
+              fi
+              MYSQL_BINDIR=$withval/bin
+           else
+              { echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6; }
+              { { echo "$as_me:$LINENO: error: Invalid MySQL directory $withval - unable to find mysql.h under $withval" >&5
+echo "$as_me: error: Invalid MySQL directory $withval - unable to find mysql.h under $withval" >&2;}
+   { (exit 1); exit 1; }; }
+           fi
+        fi
+    SQL_INCLUDE=-I$MYSQL_INCDIR
+    if test -f $MYSQL_LIBDIR/libmysqlclient_r.a \
+         -o -f $MYSQL_LIBDIR/libmysqlclient_r.so; then
+       SQL_LFLAGS="-L$MYSQL_LIBDIR -lmysqlclient_r -lz"
+       cat >>confdefs.h <<\_ACEOF
+#define HAVE_THREAD_SAFE_MYSQL 1
+_ACEOF
+
+    fi
+    SQL_BINDIR=$MYSQL_BINDIR
+    SQL_LIB=$MYSQL_LIBDIR/libmysqlclient_r.a
+
+    cat >>confdefs.h <<\_ACEOF
+#define HAVE_MYSQL 1
+_ACEOF
+
+    { echo "$as_me:$LINENO: result: yes" >&5
+echo "${ECHO_T}yes" >&6; }
+    db_found=yes
+    support_mysql=yes
+    db_type=MySQL
+    DB_TYPE=mysql
+
+  else
+        { echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6; }
+  fi
+
+
+fi
+
+
+
+# Check whether --with-embedded-mysql was given.
+if test "${with_embedded_mysql+set}" = set; then
+  withval=$with_embedded_mysql;
+  if test "$withval" != "no"; then
+        if test "$withval" = "yes"; then
+                if test -f /usr/local/mysql/include/mysql/mysql.h; then
+                        MYSQL_INCDIR=/usr/local/mysql/include/mysql
+                        if test -d /usr/local/mysql/lib64/mysql; then
+                                MYSQL_LIBDIR=/usr/local/mysql/lib64/mysql
+                        else
+                                MYSQL_LIBDIR=/usr/local/mysql/lib/mysql
+                        fi
+                        MYSQL_BINDIR=/usr/local/mysql/bin
+                elif test -f /usr/include/mysql/mysql.h; then
+                        MYSQL_INCDIR=/usr/include/mysql
+                        if test -d /usr/lib64/mysql; then
+                                MYSQL_LIBDIR=/usr/lib64/mysql
+                        else
+                                MYSQL_LIBDIR=/usr/lib/mysql
+                        fi
+                        MYSQL_BINDIR=/usr/bin
+                elif test -f /usr/include/mysql.h; then
+                        MYSQL_INCDIR=/usr/include
+                        if test -d /usr/lib64; then
+                                MYSQL_LIBDIR=/usr/lib64
+                        else
+                                MYSQL_LIBDIR=/usr/lib
+                        fi
+                        MYSQL_BINDIR=/usr/bin
+                elif test -f /usr/local/include/mysql/mysql.h; then
+                        MYSQL_INCDIR=/usr/local/include/mysql
+                        if test -d /usr/local/lib64/mysql; then
+                                MYSQL_LIBDIR=/usr/local/lib64/mysql
+                        else
+                                MYSQL_LIBDIR=/usr/local/lib/mysql
+                        fi
+                        MYSQL_BINDIR=/usr/local/bin
+                elif test -f /usr/local/include/mysql.h; then
+                        MYSQL_INCDIR=/usr/local/include
+                        if test -d /usr/local/lib64; then
+                                MYSQL_LIBDIR=/usr/local/lib64
+                        else
+                                MYSQL_LIBDIR=/usr/local/lib
+                        fi
+                        MYSQL_BINDIR=/usr/local/bin
+                else
+                   { echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6; }
+                   { { echo "$as_me:$LINENO: error: Unable to find mysql.h in standard locations" >&5
+echo "$as_me: error: Unable to find mysql.h in standard locations" >&2;}
+   { (exit 1); exit 1; }; }
+                fi
+        else
+                if test -f $withval/include/mysql/mysql.h; then
+                        MYSQL_INCDIR=$withval/include/mysql
+                        if test -d $withval/lib64/mysql; then
+                                MYSQL_LIBDIR=$withval/lib64/mysql
+                        else
+                                MYSQL_LIBDIR=$withval/lib/mysql
+                        fi
+                        MYSQL_BINDIR=$withval/bin
+                elif test -f $withval/include/mysql.h; then
+                        MYSQL_INCDIR=$withval/include
+                        if test -d $withval/lib64; then
+                                MYSQL_LIBDIR=$withval/lib64
+                        else
+                                MYSQL_LIBDIR=$withval/lib
+                        fi
+                        MYSQL_BINDIR=$withval/bin
+                else
+                   { echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6; }
+                   { { echo "$as_me:$LINENO: error: Invalid MySQL directory $withval - unable to find mysql.h under $withval" >&5
+echo "$as_me: error: Invalid MySQL directory $withval - unable to find mysql.h under $withval" >&2;}
+   { (exit 1); exit 1; }; }
+                fi
+        fi
+    SQL_INCLUDE=-I$MYSQL_INCDIR
+    SQL_LFLAGS="-L$MYSQL_LIBDIR -lmysqld -lz -lm -lcrypt"
+    SQL_BINDIR=$MYSQL_BINDIR
+    SQL_LIB=$MYSQL_LIBDIR/libmysqld.a
+
+    cat >>confdefs.h <<\_ACEOF
+#define HAVE_MYSQL 1
+_ACEOF
+
+    cat >>confdefs.h <<\_ACEOF
+#define HAVE_EMBEDDED_MYSQL 1
+_ACEOF
+
+    { echo "$as_me:$LINENO: result: yes" >&5
+echo "${ECHO_T}yes" >&6; }
+    db_found=yes
+    support_mysql=yes
+    db_type=MySQL
+    DB_TYPE=mysql
+
+  else
+        { echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6; }
+  fi
+
+
+fi
+
+
+
+
+
+
+
+
+
+
+db_found=no
+{ echo "$as_me:$LINENO: checking for SQLite3 support" >&5
+echo $ECHO_N "checking for SQLite3 support... $ECHO_C" >&6; }
+
+# Check whether --with-sqlite3 was given.
+if test "${with_sqlite3+set}" = set; then
+  withval=$with_sqlite3;
+  if test "$withval" != "no"; then
+     if test "$withval" = "yes"; then
+        if test -f /usr/local/include/sqlite3.h; then
+           SQLITE_INCDIR=/usr/local/include
+           if test -d /usr/local/lib64; then
+              SQLITE_LIBDIR=/usr/local/lib64
+           else
+              SQLITE_LIBDIR=/usr/local/lib
+           fi
+           SQLITE_BINDIR=/usr/local/bin
+        elif test -f /usr/include/sqlite3.h; then
+           SQLITE_INCDIR=/usr/include
+           if test -d /usr/lib64; then
+              SQLITE_LIBDIR=/usr/lib64
+           else
+              SQLITE_LIBDIR=/usr/lib
+           fi
+           SQLITE_BINDIR=/usr/bin
+        elif test -f $prefix/include/sqlite3.h; then
+           SQLITE_INCDIR=$prefix/include
+           if test -d $prefix/lib64; then
+              SQLITE_LIBDIR=$prefix/lib64
+           else
+              SQLITE_LIBDIR=$prefix/lib
+           fi
+           SQLITE_BINDIR=$prefix/bin
+        else
+           { echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6; }
+           { { echo "$as_me:$LINENO: error: Unable to find sqlite3.h in standard locations" >&5
+echo "$as_me: error: Unable to find sqlite3.h in standard locations" >&2;}
+   { (exit 1); exit 1; }; }
+        fi
+     else
+        if test -f $withval/sqlite3.h; then
+           SQLITE_INCDIR=$withval
+           SQLITE_LIBDIR=$withval
+           SQLITE_BINDIR=$withval
+        elif test -f $withval/include/sqlite3.h; then
+           SQLITE_INCDIR=$withval/include
+           if test -d $withval/lib64; then
+              SQLITE_LIBDIR=$withval/lib64
+           else
+              SQLITE_LIBDIR=$withval/lib
+           fi
+           SQLITE_BINDIR=$withval/bin
+        else
+           { echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6; }
+           { { echo "$as_me:$LINENO: error: Invalid SQLite3 directory $withval - unable to find sqlite3.h under $withval" >&5
+echo "$as_me: error: Invalid SQLite3 directory $withval - unable to find sqlite3.h under $withval" >&2;}
+   { (exit 1); exit 1; }; }
+        fi
+     fi
+     SQL_INCLUDE=-I$SQLITE_INCDIR
+     SQL_LFLAGS="-L$SQLITE_LIBDIR -lsqlite3"
+     SQL_BINDIR=$SQLITE_BINDIR
+     SQL_LIB=$SQLITE_LIBDIR/libsqlite3.a
+
+     cat >>confdefs.h <<\_ACEOF
+#define HAVE_SQLITE3 1
+_ACEOF
+
+     { echo "$as_me:$LINENO: result: yes" >&5
+echo "${ECHO_T}yes" >&6; }
+     db_found=yes
+     support_sqlite3=yes
+     db_type=SQLite3
+     DB_TYPE=sqlite3
+
+  else
+     { echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6; }
+  fi
+
+else
+
+  { echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6; }
+
+fi
+
+
+
+
+
+
+
+
+db_found=no
+{ echo "$as_me:$LINENO: checking for SQLite support" >&5
+echo $ECHO_N "checking for SQLite support... $ECHO_C" >&6; }
+
+# Check whether --with-sqlite was given.
+if test "${with_sqlite+set}" = set; then
+  withval=$with_sqlite;
+  if test "$withval" != "no"; then
+     if test "$withval" = "yes"; then
+        if test -f /usr/local/include/sqlite.h; then
+           SQLITE_INCDIR=/usr/local/include
+           if test -d /usr/local/lib64; then
+              SQLITE_LIBDIR=/usr/local/lib64
+           else
+              SQLITE_LIBDIR=/usr/local/lib
+           fi
+           SQLITE_BINDIR=/usr/local/bin
+        elif test -f /usr/include/sqlite.h; then
+           SQLITE_INCDIR=/usr/include
+           if test -d /usr/lib64; then
+              SQLITE_LIBDIR=/usr/lib64
+           else
+              SQLITE_LIBDIR=/usr/lib
+           fi
+           SQLITE_BINDIR=/usr/bin
+        elif test -f $prefix/include/sqlite.h; then
+           SQLITE_INCDIR=$prefix/include
+           if test -d $prefix/lib64; then
+              SQLITE_LIBDIR=$prefix/lib64
+           else
+              SQLITE_LIBDIR=$prefix/lib
+           fi
+           SQLITE_BINDIR=$prefix/bin
+        else
+           { echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6; }
+           { { echo "$as_me:$LINENO: error: Unable to find sqlite.h in standard locations" >&5
+echo "$as_me: error: Unable to find sqlite.h in standard locations" >&2;}
+   { (exit 1); exit 1; }; }
+        fi
+     else
+        if test -f $withval/sqlite.h; then
+           SQLITE_INCDIR=$withval
+           SQLITE_LIBDIR=$withval
+           SQLITE_BINDIR=$withval
+        elif test -f $withval/include/sqlite.h; then
+           SQLITE_INCDIR=$withval/include
+           if test -d $withval/lib64; then
+              SQLITE_LIBDIR=$withval/lib64
+           else
+              SQLITE_LIBDIR=$withval/lib
+           fi
+           SQLITE_BINDIR=$withval/bin
+        else
+           { echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6; }
+           { { echo "$as_me:$LINENO: error: Invalid SQLite directory $withval - unable to find sqlite.h under $withval" >&5
+echo "$as_me: error: Invalid SQLite directory $withval - unable to find sqlite.h under $withval" >&2;}
+   { (exit 1); exit 1; }; }
+        fi
+     fi
+     SQL_INCLUDE=-I$SQLITE_INCDIR
+     SQL_LFLAGS="-L$SQLITE_LIBDIR -lsqlite"
+     SQL_BINDIR=$SQLITE_BINDIR
+     SQL_LIB=$SQLITE_LIBDIR/libsqlite.a
+
+     cat >>confdefs.h <<\_ACEOF
+#define HAVE_SQLITE 1
+_ACEOF
+
+     { echo "$as_me:$LINENO: result: yes" >&5
+echo "${ECHO_T}yes" >&6; }
+     db_found=yes
+     support_sqlite=yes
+     db_type=SQLite
+     DB_TYPE=sqlite
+
+  else
+     { echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6; }
+  fi
+
+else
+
+  { echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6; }
+
+fi
+
+
+
+
+
+
+
+
+db_found=no
+{ echo "$as_me:$LINENO: checking for DBI support" >&5
+echo $ECHO_N "checking for DBI support... $ECHO_C" >&6; }
+
+# Check whether --with-dbi was given.
+if test "${with_dbi+set}" = set; then
+  withval=$with_dbi;
+  if test "$withval" != "no"; then
+     if test "$withval" = "yes"; then
+        if test -f /usr/local/include/dbi/dbi.h; then
+           DBI_INCDIR=/usr/local/dbi/include
+           if test -d /usr/local/lib64; then
+              DBI_LIBDIR=/usr/local/lib64
+           else
+              DBI_LIBDIR=/usr/local/lib
+           fi
+           DBI_BINDIR=/usr/local/bin
+        elif test -f /usr/include/dbi/dbi.h; then
+           DBI_INCDIR=/usr/include
+           if test -d /usr/lib64; then
+              DBI_LIBDIR=/usr/lib64
+           else
+              DBI_LIBDIR=/usr/lib
+           fi
+           DBI_BINDIR=/usr/bin
+        elif test -f $prefix/include/dbi/dbi.h; then
+           DBI_INCDIR=$prefix/include
+           if test -d $prefix/lib64; then
+              DBI_LIBDIR=$prefix/lib64
+           else
+              DBI_LIBDIR=$prefix/lib
+           fi
+           DBI_BINDIR=$prefix/bin
+        else
+           { echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6; }
+           { { echo "$as_me:$LINENO: error: Unable to find dbi.h in standard locations" >&5
+echo "$as_me: error: Unable to find dbi.h in standard locations" >&2;}
+   { (exit 1); exit 1; }; }
+        fi
+        if test -d /usr/local/lib/dbd; then
+           DRIVERDIR=/usr/local/lib/dbd
+           if test -d /usr/local/lib64/dbd; then
+              DRIVERDIR=/usr/local/lib64/dbd
+           else
+              DRIVERDIR=/usr/local/lib/dbd
+           fi
+        elif test -d /usr/lib/dbd; then
+           DRIVERDIR=/usr/lib/dbd
+           if test -d /usr/lib64/dbd; then
+              DRIVERDIR=/usr/lib64/dbd
+           else
+              DRIVERDIR=/usr/lib/dbd
+           fi
+        elif test -d $prefix/lib/dbd; then
+           if test -d $prefix/lib64/dbd; then
+              DRIVERDIR=$prefix/lib64/dbd
+           else
+              DRIVERDIR=$prefix/lib/dbd
+           fi
+        else
+           { echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6; }
+           { { echo "$as_me:$LINENO: error: Unable to find DBD drivers in standard locations" >&5
+echo "$as_me: error: Unable to find DBD drivers in standard locations" >&2;}
+   { (exit 1); exit 1; }; }
+        fi
+     else
+        if test -f $withval/dbi.h; then
+           DBI_INCDIR=$withval
+           DBI_LIBDIR=$withval
+           DBI_BINDIR=$withval
+        elif test -f $withval/include/dbi/dbi.h; then
+           DBI_INCDIR=$withval/include
+           if test -d $withval/lib64; then
+              DBI_LIBDIR=$withval/lib64
+           else
+              DBI_LIBDIR=$withval/lib
+           fi
+           DBI_BINDIR=$withval/bin
+        else
+           { echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6; }
+           { { echo "$as_me:$LINENO: error: Invalid DBI directory $withval - unable to find dbi.h under $withval" >&5
+echo "$as_me: error: Invalid DBI directory $withval - unable to find dbi.h under $withval" >&2;}
+   { (exit 1); exit 1; }; }
+        fi
+        if test -d $withval/dbd; then
+           DRIVERDIR=$withval/dbd
+        elif test -d $withval/lib/; then
+           if test -d $withval/lib64/dbd; then
+              DRIVERDIR=$withval/lib64/dbd
+           else
+              DRIVERDIR=$withval/lib/dbd
+           fi
+        else
+           { echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6; }
+           { { echo "$as_me:$LINENO: error: Invalid DBD driver directory $withval - unable to find DBD drivers under $withval" >&5
+echo "$as_me: error: Invalid DBD driver directory $withval - unable to find DBD drivers under $withval" >&2;}
+   { (exit 1); exit 1; }; }
+        fi
+     fi
+     SQL_INCLUDE=-I$DBI_INCDIR
+     SQL_LFLAGS="-L$DBI_LIBDIR -ldbi"
+     SQL_BINDIR=$DBI_BINDIR
+     SQL_LIB=$DBI_LIBDIR/libdbi.a
+     DBI_DBD_DRIVERDIR="-D DBI_DRIVER_DIR=\\\"$DRIVERDIR\\\""
+
+
+cat >>confdefs.h <<\_ACEOF
+#define HAVE_DBI 1
+_ACEOF
+
+     { echo "$as_me:$LINENO: result: yes" >&5
+echo "${ECHO_T}yes" >&6; }
+     db_found=yes
+     support_dbi=yes
+     db_type=DBI
+     DB_TYPE=dbi
+     uncomment_dbi=" "
+
+  else
+     { echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6; }
+  fi
+
+else
+
+  { echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6; }
+
+fi
+
+
+
+
+
+
+
+
+
+
+db_found=no
+db_prog=no
+{ echo "$as_me:$LINENO: checking for DBI drivers support" >&5
+echo $ECHO_N "checking for DBI drivers support... $ECHO_C" >&6; }
+
+# Check whether --with-dbi-driver was given.
+if test "${with_dbi_driver+set}" = set; then
+  withval=$with_dbi_driver;
+  if test "$withval" != "no"; then
+     case $withval in
+        "mysql")
+           db_prog="mysql"
+           if test -f /usr/local/mysql/bin/mysql; then
+              SQL_BINDIR=/usr/local/mysql/bin
+              if test -f /usr/local/mysql/lib64/mysql/libmysqlclient_r.a \
+                 -o -f /usr/local/mysql/lib64/mysql/libmysqlclient_r.so; then
+                 SQL_LIBDIR=/usr/local/mysql/lib64/mysql
+              else
+                 SQL_LIBDIR=/usr/local/mysql/lib/mysql
+              fi
+           elif test -f /usr/bin/mysql; then
+              SQL_BINDIR=/usr/bin
+              if test -f /usr/lib64/mysql/libmysqlclient_r.a \
+                  -o -f /usr/lib64/mysql/libmysqlclient_r.so; then
+                  SQL_LIBDIR=/usr/lib64/mysql
+              elif test -f /usr/lib/mysql/libmysqlclient_r.a \
+                  -o -f /usr/lib/mysql/libmysqlclient_r.so; then
+                  SQL_LIBDIR=/usr/lib/mysql
+              else
+                  SQL_LIBDIR=/usr/lib
+              fi
+           elif test -f /usr/local/bin/mysql; then
+              SQL_BINDIR=/usr/local/bin
+              if test -f /usr/local/lib64/mysql/libmysqlclient_r.a \
+                  -o -f /usr/local/lib64/mysql/libmysqlclient_r.so; then
+                  SQL_LIBDIR=/usr/local/lib64/mysql
+              elif test -f /usr/local/lib/mysql/libmysqlclient_r.a \
+                  -o -f /usr/local/lib/mysql/libmysqlclient_r.so; then
+                  SQL_LIBDIR=/usr/local/lib/mysql
+              else
+                  SQL_LIBDIR=/usr/local/lib
+              fi
+           elif test -f $withval/bin/mysql; then
+              SQL_BINDIR=$withval/bin
+              if test -f $withval/lib64/mysql/libmysqlclient_r.a \
+                  -o -f $withval/lib64/mysql/libmysqlclient_r.so; then
+                  SQL_LIBDIR=$withval/lib64/mysql
+              elif test -f $withval/lib64/libmysqlclient_r.a \
+                  -o -f $withval/lib64/libmysqlclient_r.so; then
+                  SQL_LIBDIR=$withval/lib64
+              elif test -f $withval/lib/libmysqlclient_r.a \
+                  -o -f $withval/lib/libmysqlclient_r.so; then
+                  SQL_LIBDIR=$withval/lib/
+              else
+                  SQL_LIBDIR=$withval/lib/mysql
+              fi
+           else
+              { echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6; }
+              { { echo "$as_me:$LINENO: error: Unable to find mysql in standard locations" >&5
+echo "$as_me: error: Unable to find mysql in standard locations" >&2;}
+   { (exit 1); exit 1; }; }
+           fi
+           DB_PROG_LIB=$SQL_LIBDIR/libmysqlclient_r.a
+        ;;
+        "postgresql")
+           db_prog="postgresql"
+           PG_CONFIG=`which pg_config`
+           if test -n "$PG_CONFIG"; then
+              SQL_BINDIR=`"$PG_CONFIG" --bindir`
+              SQL_LIBDIR=`"$PG_CONFIG" --libdir`
+           elif test -f /usr/local/bin/psql; then
+              SQL_BINDIR=/usr/local/bin
+              if test -d /usr/local/lib64; then
+                 SQL_LIBDIR=/usr/local/lib64
+              else
+                 SQL_LIBDIR=/usr/local/lib
+              fi
+           elif test -f /usr/bin/psql; then
+              SQL_BINDIR=/usr/local/bin
+              if test -d /usr/lib64/postgresql; then
+                 SQL_LIBDIR=/usr/lib64/postgresql
+              elif test -d /usr/lib/postgresql; then
+                 SQL_LIBDIR=/usr/lib/postgresql
+              elif test -d /usr/lib64; then
+                 SQL_LIBDIR=/usr/lib64
+              else
+                 SQL_LIBDIR=/usr/lib
+              fi
+           elif test -f $withval/bin/psql; then
+              SQL_BINDIR=$withval/bin
+              if test -d $withval/lib64; then
+                 SQL_LIBDIR=$withval/lib64
+              else
+                 SQL_LIBDIR=$withval/lib
+              fi
+           else
+              { echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6; }
+              { { echo "$as_me:$LINENO: error: Unable to find psql in standard locations" >&5
+echo "$as_me: error: Unable to find psql in standard locations" >&2;}
+   { (exit 1); exit 1; }; }
+           fi
+           DB_PROG_LIB=$SQL_LIBDIR/libpq.a
+        ;;
+        "sqlite")
+           db_prog="sqlite"
+           if test -f /usr/local/bin/sqlite; then
+              SQL_BINDIR=/usr/local/bin
+              if test -d /usr/local/lib64; then
+                 SQL_LIBDIR=/usr/local/lib64
+              else
+                 SQL_LIBDIR=/usr/local/lib
+              fi
+           elif test -f /usr/bin/sqlite; then
+              SQL_BINDIR=/usr/bin
+              if test -d /usr/lib64; then
+                 SQL_LIBDIR=/usr/lib64
+              else
+                 SQL_LIBDIR=/usr/lib
+              fi
+           elif test -f $withval/bin/sqlite; then
+              SQL_BINDIR=$withval/bin
+              if test -d $withval/lib64; then
+                 SQL_LIBDIR=$withval/lib64
+              else
+                 SQL_LIBDIR=$withval/lib
+              fi
+           else
+              { echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6; }
+              { { echo "$as_me:$LINENO: error: Unable to find sqlite in standard locations" >&5
+echo "$as_me: error: Unable to find sqlite in standard locations" >&2;}
+   { (exit 1); exit 1; }; }
+           fi
+           DB_PROG_LIB=$SQL_LIBDIR/libsqlite.a
+        ;;
+        "sqlite3")
+           db_prog="sqlite3"
+           if test -f /usr/local/bin/sqlite3; then
+              SQL_BINDIR=/usr/local/bin
+              if test -d /usr/local/lib64; then
+                 SQL_LIBDIR=/usr/local/lib64
+              else
+                 SQL_LIBDIR=/usr/local/lib
+              fi
+           elif test -f /usr/bin/sqlite3; then
+              SQL_BINDIR=/usr/bin
+              if test -d /usr/lib64; then
+                 SQL_LIBDIR=/usr/lib64
+              else
+                 SQL_LIBDIR=/usr/lib
+              fi
+           elif test -f $withval/bin/sqlite3; then
+              SQL_BINDIR=$withval/bin
+              if test -d $withval/lib64; then
+                 SQL_LIBDIR=$withval/lib64
+              else
+                 SQL_LIBDIR=$withval/lib
+              fi
+           else
+              { echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6; }
+              { { echo "$as_me:$LINENO: error: Unable to find sqlite in standard locations" >&5
+echo "$as_me: error: Unable to find sqlite in standard locations" >&2;}
+   { (exit 1); exit 1; }; }
+           fi
+           DB_PROG_LIB=$SQL_LIBDIR/libsqlite3.a
+        ;;
+        *)
+           { echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6; }
+           { { echo "$as_me:$LINENO: error: Unable to set DBI driver. $withval is not supported" >&5
+echo "$as_me: error: Unable to set DBI driver. $withval is not supported" >&2;}
+   { (exit 1); exit 1; }; }
+        ;;
+     esac
+
+     { echo "$as_me:$LINENO: result: yes" >&5
+echo "${ECHO_T}yes" >&6; }
+     DB_PROG=$db_prog
+  else
+     { echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6; }
+  fi
+
+else
+
+  { echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6; }
+
+fi
+
+
+
+
+
+
 
 
 
@@ -29681,20 +30741,6 @@ LIBOBJS=$ac_libobjs
 LTLIBOBJS=$ac_ltlibobjs
 
 
-if test -z "${HAVE_DARWIN_OS_TRUE}" && test -z "${HAVE_DARWIN_OS_FALSE}"; then
-  { { echo "$as_me:$LINENO: error: conditional \"HAVE_DARWIN_OS\" was never defined.
-Usually this means the macro was only invoked conditionally." >&5
-echo "$as_me: error: conditional \"HAVE_DARWIN_OS\" was never defined.
-Usually this means the macro was only invoked conditionally." >&2;}
-   { (exit 1); exit 1; }; }
-fi
-if test -z "${HAVE_DARWIN_OS_TRUE}" && test -z "${HAVE_DARWIN_OS_FALSE}"; then
-  { { echo "$as_me:$LINENO: error: conditional \"HAVE_DARWIN_OS\" was never defined.
-Usually this means the macro was only invoked conditionally." >&5
-echo "$as_me: error: conditional \"HAVE_DARWIN_OS\" was never defined.
-Usually this means the macro was only invoked conditionally." >&2;}
-   { (exit 1); exit 1; }; }
-fi
 
 : ${CONFIG_STATUS=./config.status}
 ac_clean_files_save=$ac_clean_files
@@ -30651,9 +31697,15 @@ sd_group!$sd_group$ac_delim
 fd_user!$fd_user$ac_delim
 fd_group!$fd_group$ac_delim
 SBINPERM!$SBINPERM$ac_delim
+SQL_LFLAGS!$SQL_LFLAGS$ac_delim
+SQL_INCLUDE!$SQL_INCLUDE$ac_delim
+SQL_BINDIR!$SQL_BINDIR$ac_delim
+DBI_DBD_DRIVERDIR!$DBI_DBD_DRIVERDIR$ac_delim
+uncomment_dbi!$uncomment_dbi$ac_delim
+DB_PROG!$DB_PROG$ac_delim
+DB_PROG_LIB!$DB_PROG_LIB$ac_delim
 cats!$cats$ac_delim
 DB_TYPE!$DB_TYPE$ac_delim
-uncomment_dbi!$uncomment_dbi$ac_delim
 GETCONF!$GETCONF$ac_delim
 XMKMF!$XMKMF$ac_delim
 X_CFLAGS!$X_CFLAGS$ac_delim
@@ -30680,7 +31732,7 @@ DISTVER!$DISTVER$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 56; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 62; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5
