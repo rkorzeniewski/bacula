@@ -433,7 +433,7 @@ vtape::vtape()
    current_file = 0;
    current_block = -1;
 
-   max_block = 2*1024*2048;      /* 2GB */
+   max_block = VTAPE_MAX_BLOCK;
 }
 
 vtape::~vtape()
