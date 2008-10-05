@@ -19,7 +19,7 @@ cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 messages
 @$out ${cwd}/tmp/log1.out
 label storage=File1 volume=TestVolume001
-setdebug level=50 client=$CLIENT
+@#setdebug level=50 client=$CLIENT
 run job=$JobName storage=File1 yes
 wait
 messages
@@ -27,7 +27,7 @@ quit
 END_OF_DATA
 
 
-run_bacula -d50
+run_bacula
 
 cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 messages
@@ -35,10 +35,11 @@ messages
 @# now do a restore
 @#
 @$out ${cwd}/tmp/log2.out
-@#setdebug level=50 client=$CLIENT
+setdebug level=50 client=$CLIENT
 restore where=${cwd}/tmp  select all storage=File1 done
 yes
 wait
+setdebug level=0 client=$CLIENT
 messages
 @$out
 quit

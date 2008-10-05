@@ -22,6 +22,8 @@ messages
 @$out   tmp/log1.out
 label storage=DDS-4 volume=TestVolume001 slot=0 pool=Default
 @# do a bunch of saves so we have 12 files on the tape
+@#setdebug level=100 dir
+setdebug level=100 storage=DDS-4
 run job=$JobName yes
 run level=Full job=$JobName yes
 run level=Full job=$JobName yes
@@ -34,7 +36,6 @@ run level=Full job=$JobName yes
 run level=Full job=$JobName yes
 run level=Full job=$JobName yes
 run level=Full job=$JobName yes
-@#setdebug level=100 storage=DDS-4
 wait
 messages
 quit

@@ -99,10 +99,10 @@ echo "volume=TestVolume001" >tmp/bscan.bsr
 bscan_libdbi
 
 # If the database has a password pass it to bscan
-if test "x${db_passwd}" = "x"; then
+if test "x${db_password}" = "x"; then
   PASSWD=
 else
-  PASSWD="-P ${db_passwd}"
+  PASSWD="-P ${db_password}"
 fi
 
 if test "$debug" -eq 1 ; then
