@@ -193,6 +193,7 @@ int plugin_save(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
          jcr->plugin_sp = &sp;
          ff_pkt = jcr->ff;
          ff_pkt->fname = sp.fname;
+         ff_pkt->link = sp.link;
          ff_pkt->type = sp.type;
          memcpy(&ff_pkt->statp, &sp.statp, sizeof(ff_pkt->statp));
          Dmsg1(dbglvl, "Save_file: file=%s\n", ff_pkt->fname);
