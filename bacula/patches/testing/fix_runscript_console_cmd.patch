@@ -1,0 +1,199 @@
+Index: src/dird/ua.h
+===================================================================
+--- src/dird/ua.h	(révision 7720)
++++ src/dird/ua.h	(copie de travail)
+@@ -60,6 +60,7 @@
+    bool verbose;                      /* set for normal UA verbosity */
+    bool batch;                        /* set for non-interactive mode */
+    bool gui;                          /* set if talking to GUI program */
++   bool runscript;                    /* set if we are in runscript */
+    uint32_t pint32_val;               /* positive integer */
+    int32_t  int32_val;                /* positive/negative */
+    int64_t  int64_val;                /* big int */
+Index: src/dird/job.c
+===================================================================
+--- src/dird/job.c	(révision 7720)
++++ src/dird/job.c	(copie de travail)
+@@ -1372,6 +1372,8 @@
+    bool ok;
+ 
+    ua = new_ua_context(jcr);
++   /* run from runscript and check if commands are autorized */
++   ua->runscript = true;
+    Mmsg(ua->cmd, "%s", cmd);
+    Dmsg1(100, "Console command: %s\n", ua->cmd);
+    parse_ua_args(ua);
+Index: src/dird/ua_cmds.c
+===================================================================
+--- src/dird/ua_cmds.c	(révision 7720)
++++ src/dird/ua_cmds.c	(copie de travail)
+@@ -96,50 +96,50 @@
+ int quit_cmd(UAContext *ua, const char *cmd);
+ 
+ 
+-struct cmdstruct { const char *key; int (*func)(UAContext *ua, const char *cmd); const char *help; };
+-static struct cmdstruct commands[] = {
+- { NT_("add"),        add_cmd,         _("add media to a pool")},
+- { NT_("autodisplay"), autodisplay_cmd, _("autodisplay [on|off] -- console messages")},
+- { NT_("automount"),   automount_cmd,  _("automount [on|off] -- after label")},
+- { NT_("cancel"),     cancel_cmd,    _("cancel [<jobid=nnn> | <job=name>] -- cancel a job")},
+- { NT_("create"),     create_cmd,    _("create DB Pool from resource")},
+- { NT_("delete"),     delete_cmd,    _("delete [pool=<pool-name> | media volume=<volume-name>]")},
+- { NT_("disable"),    disable_cmd,   _("disable <job=name> -- disable a job")},
+- { NT_("enable"),     enable_cmd,    _("enable <job=name> -- enable a job")},
+- { NT_("estimate"),   estimate_cmd,  _("performs FileSet estimate, listing gives full listing")},
+- { NT_("exit"),       quit_cmd,      _("exit = quit")},
+- { NT_("gui"),        gui_cmd,       _("gui [on|off] -- non-interactive gui mode")},
+- { NT_("help"),       help_cmd,      _("print this command")},
+- { NT_("list"),       list_cmd,      _("list [pools | jobs | jobtotals | media <pool=pool-name> | files <jobid=nn>]; from catalog")},
+- { NT_("label"),      label_cmd,     _("label a tape")},
+- { NT_("llist"),      llist_cmd,     _("full or long list like list command")},
+- { NT_("messages"),   messagescmd,   _("messages")},
+- { NT_("memory"),     memory_cmd,    _("print current memory usage")},
+- { NT_("mount"),      mount_cmd,     _("mount <storage-name>")},
+- { NT_("prune"),      prunecmd,      _("prune expired records from catalog")},
+- { NT_("purge"),      purgecmd,      _("purge records from catalog")},
+- { NT_("python"),     python_cmd,    _("python control commands")},
+- { NT_("quit"),       quit_cmd,      _("quit")},
+- { NT_("query"),      querycmd,      _("query catalog")},
+- { NT_("restore"),    restore_cmd,   _("restore files")},
+- { NT_("relabel"),    relabel_cmd,   _("relabel a tape")},
+- { NT_("release"),    release_cmd,   _("release <storage-name>")},
+- { NT_("reload"),     reload_cmd,    _("reload conf file")},
+- { NT_("run"),        run_cmd,       _("run <job-name>")},
+- { NT_("status"),     status_cmd,    _("status [storage | client]=<name>")},
+- { NT_("setdebug"),   setdebug_cmd,  _("sets debug level")},
+- { NT_("setip"),      setip_cmd,     _("sets new client address -- if authorized")},
+- { NT_("show"),       show_cmd,      _("show (resource records) [jobs | pools | ... | all]")},
+- { NT_("sqlquery"),   sqlquerycmd,   _("use SQL to query catalog")},
+- { NT_("time"),       time_cmd,      _("print current time")},
+- { NT_("trace"),      trace_cmd,     _("turn on/off trace to file")},
+- { NT_("unmount"),    unmount_cmd,   _("unmount <storage-name>")},
+- { NT_("umount"),     unmount_cmd,   _("umount <storage-name> for old-time Unix guys")},
+- { NT_("update"),     update_cmd,    _("update Volume, Pool or slots")},
+- { NT_("use"),        use_cmd,       _("use catalog xxx")},
+- { NT_("var"),        var_cmd,       _("does variable expansion")},
+- { NT_("version"),    version_cmd,   _("print Director version")},
+- { NT_("wait"),       wait_cmd,      _("wait until no jobs are running [<jobname=name> | <jobid=nnn> | <ujobid=complete_name>]")},
++struct cmdstruct { const char *key; int (*func)(UAContext *ua, const char *cmd); const char *help; const bool use_in_rs;};
++static struct cmdstruct commands[] = {                                      /* Can use it in Console RunScript*/
++ { NT_("add"),        add_cmd,         _("add media to a pool"),                      false},
++ { NT_("autodisplay"), autodisplay_cmd, _("autodisplay [on|off] -- console messages"),false},
++ { NT_("automount"),   automount_cmd,  _("automount [on|off] -- after label"),        false},
++ { NT_("cancel"),     cancel_cmd,    _("cancel [<jobid=nnn> | <job=name>] -- cancel a job"), false},
++ { NT_("create"),     create_cmd,    _("create DB Pool from resource"),               false},
++ { NT_("delete"),     delete_cmd,    _("delete [pool=<pool-name> | media volume=<volume-name>]"), true},
++ { NT_("disable"),    disable_cmd,   _("disable <job=name> -- disable a job"),        true},
++ { NT_("enable"),     enable_cmd,    _("enable <job=name> -- enable a job"),          true},
++ { NT_("estimate"),   estimate_cmd,  _("performs FileSet estimate, listing gives full listing"), true},
++ { NT_("exit"),       quit_cmd,      _("exit = quit"),                                false},
++ { NT_("gui"),        gui_cmd,       _("gui [on|off] -- non-interactive gui mode"),   false},
++ { NT_("help"),       help_cmd,      _("print this command"),                         false},
++ { NT_("list"),       list_cmd,      _("list [pools | jobs | jobtotals | media <pool=pool-name> | files <jobid=nn>]; from catalog"), true},
++ { NT_("label"),      label_cmd,     _("label a tape"),                               false},
++ { NT_("llist"),      llist_cmd,     _("full or long list like list command"),        true},
++ { NT_("messages"),   messagescmd,   _("messages"),                                   false},
++ { NT_("memory"),     memory_cmd,    _("print current memory usage"),                 true},
++ { NT_("mount"),      mount_cmd,     _("mount <storage-name>"),                       false},
++ { NT_("prune"),      prunecmd,      _("prune expired records from catalog"),         true},
++ { NT_("purge"),      purgecmd,      _("purge records from catalog"),                 true},
++ { NT_("python"),     python_cmd,    _("python control commands"),                    false},
++ { NT_("quit"),       quit_cmd,      _("quit"),                                       false},
++ { NT_("query"),      querycmd,      _("query catalog"),                              false},
++ { NT_("restore"),    restore_cmd,   _("restore files"),                              false},
++ { NT_("relabel"),    relabel_cmd,   _("relabel a tape"),                             false},
++ { NT_("release"),    release_cmd,   _("release <storage-name>"),                     false},
++ { NT_("reload"),     reload_cmd,    _("reload conf file"),                           true},
++ { NT_("run"),        run_cmd,       _("run <job-name>"),                             false},
++ { NT_("status"),     status_cmd,    _("status [storage | client]=<name>"),           true},
++ { NT_("setdebug"),   setdebug_cmd,  _("sets debug level"),                           true},
++ { NT_("setip"),      setip_cmd,     _("sets new client address -- if authorized"),   false},
++ { NT_("show"),       show_cmd,      _("show (resource records) [jobs | pools | ... | all]"), true},
++ { NT_("sqlquery"),   sqlquerycmd,   _("use SQL to query catalog"),                   false},
++ { NT_("time"),       time_cmd,      _("print current time"),                         true},
++ { NT_("trace"),      trace_cmd,     _("turn on/off trace to file"),                  true},
++ { NT_("unmount"),    unmount_cmd,   _("unmount <storage-name>"),                     false},
++ { NT_("umount"),     unmount_cmd,   _("umount <storage-name> for old-time Unix guys"),false},
++ { NT_("update"),     update_cmd,    _("update Volume, Pool or slots"),               true},
++ { NT_("use"),        use_cmd,       _("use catalog xxx"),                            false},
++ { NT_("var"),        var_cmd,       _("does variable expansion"),                    false},
++ { NT_("version"),    version_cmd,   _("print Director version"),                     true},
++ { NT_("wait"),       wait_cmd,      _("wait until no jobs are running [<jobname=name> | <jobid=nnn> | <ujobid=complete_name>]"), false},
+              };
+ #define comsize (sizeof(commands)/sizeof(struct cmdstruct))
+ 
+@@ -174,6 +174,11 @@
+              !acl_access_ok(ua, Command_ACL, ua->argk[0], len)) {
+             break;
+          }
++         /* Check if this command is authorized in RunScript */
++         if (ua->runscript && !commands[i].use_in_rs) {
++            ua->error_msg(_("Can't use %s command in a runscript"), ua->argk[0]);
++            break;
++         }
+          if (ua->api) user->signal(BNET_CMD_BEGIN);
+          ok = (*commands[i].func)(ua, ua->cmd);   /* go execute command */
+          found = true;
+Index: src/dird/ua_dotcmds.c
+===================================================================
+--- src/dird/ua_dotcmds.c	(révision 7720)
++++ src/dird/ua_dotcmds.c	(copie de travail)
+@@ -69,26 +69,26 @@
+ static bool dot_quit_cmd(UAContext *ua, const char *cmd);
+ static bool dot_help_cmd(UAContext *ua, const char *cmd);
+ 
+-struct cmdstruct { const char *key; bool (*func)(UAContext *ua, const char *cmd); const char *help; };
+-static struct cmdstruct commands[] = {
+- { NT_(".api"),        api_cmd,        NULL},
+- { NT_(".backups"),    backupscmd,     NULL},
+- { NT_(".clients"),    clientscmd,     NULL},
+- { NT_(".defaults"),   defaultscmd,    NULL},
+- { NT_(".die"),        diecmd,         NULL},
+- { NT_(".exit"),       dot_quit_cmd,   NULL},
+- { NT_(".filesets"),   filesetscmd,    NULL},
+- { NT_(".help"),       dot_help_cmd,   NULL},
+- { NT_(".jobs"),       jobscmd,        NULL},
+- { NT_(".levels"),     levelscmd,      NULL},
+- { NT_(".messages"),   getmsgscmd,     NULL},
+- { NT_(".msgs"),       msgscmd,        NULL},
+- { NT_(".pools"),      poolscmd,       NULL},
+- { NT_(".quit"),       dot_quit_cmd,   NULL},
+- { NT_(".sql"),        sql_cmd,        NULL},
+- { NT_(".status"),     dot_status_cmd, NULL},
+- { NT_(".storage"),    storagecmd,     NULL},
+- { NT_(".types"),      typescmd,       NULL} 
++struct cmdstruct { const char *key; bool (*func)(UAContext *ua, const char *cmd); const char *help;const bool use_in_rs;};
++static struct cmdstruct commands[] = { /* help */  /* can be used in runscript */
++ { NT_(".api"),        api_cmd,          NULL,       false},
++ { NT_(".backups"),    backupscmd,       NULL,       false},
++ { NT_(".clients"),    clientscmd,       NULL,       true},
++ { NT_(".defaults"),   defaultscmd,      NULL,       false},
++ { NT_(".die"),        diecmd,           NULL,       false},
++ { NT_(".exit"),       dot_quit_cmd,     NULL,       false},
++ { NT_(".filesets"),   filesetscmd,      NULL,       false},
++ { NT_(".help"),       dot_help_cmd,     NULL,       false},
++ { NT_(".jobs"),       jobscmd,          NULL,       true},
++ { NT_(".levels"),     levelscmd,        NULL,       false},
++ { NT_(".messages"),   getmsgscmd,       NULL,       false},
++ { NT_(".msgs"),       msgscmd,          NULL,       false},
++ { NT_(".pools"),      poolscmd,         NULL,       true},
++ { NT_(".quit"),       dot_quit_cmd,     NULL,       false},
++ { NT_(".sql"),        sql_cmd,          NULL,       false},
++ { NT_(".status"),     dot_status_cmd,   NULL,       false},
++ { NT_(".storage"),    storagecmd,       NULL,       true},
++ { NT_(".types"),      typescmd,         NULL,       false} 
+              };
+ #define comsize ((int)(sizeof(commands)/sizeof(struct cmdstruct)))
+ 
+@@ -116,6 +116,11 @@
+    }
+    for (i=0; i<comsize; i++) {     /* search for command */
+       if (strncasecmp(ua->argk[0],  _(commands[i].key), len) == 0) {
++         /* Check if this command is authorized in RunScript */
++         if (ua->runscript && !commands[i].use_in_rs) {
++            ua->error_msg(_("Can't use %s command in a runscript"), ua->argk[0]);
++            break;
++         }
+          bool gui = ua->gui;
+          /* Check if command permitted, but "quit" is always OK */
+          if (strcmp(ua->argk[0], NT_(".quit")) != 0 &&
