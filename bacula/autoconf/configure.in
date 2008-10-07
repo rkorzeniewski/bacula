@@ -2359,6 +2359,7 @@ AC_OUTPUT([autoconf/Make.common \
 	   src/gnome2-console/bgnome-console.conf \
 	   src/qt-console/bat.conf \
 	   src/qt-console/bat.pro \
+	   src/qt-console/bat.pro.mingw32 \
 	   src/qt-console/install_conf_file \
 	   src/wx-console/Makefile \
 	   src/wx-console/bwx-console.conf \
