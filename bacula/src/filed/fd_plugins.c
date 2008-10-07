@@ -69,7 +69,7 @@ static boffset_t my_plugin_blseek(BFILE *bfd, boffset_t offset, int whence);
 
 /* Bacula info */
 static bInfo binfo = {
-   sizeof(bFuncs),
+   sizeof(bInfo),
    FD_PLUGIN_INTERFACE_VERSION 
 };
 
