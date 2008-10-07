@@ -1,4 +1,38 @@
 -- --------------------------------------------------
+-- Upgrade from 2.4
+-- --------------------------------------------------
+
+delimiter |
+
+DROP FUNCTION IF EXISTS base64_decode_lstat |
+CREATE FUNCTION base64_decode_lstat (field INTEGER, input BLOB)
+   RETURNS BIGINT
+   CONTAINS SQL
+   DETERMINISTIC
+   SQL SECURITY INVOKER
+BEGIN
+   DECLARE first_char BINARY(1);
+   DECLARE accum_value BIGINT UNSIGNED DEFAULT 0;
+
+   -- The number of fields can vary, so we need 2 calls to SUBSTRING_INDEX
+   SET input = SUBSTRING_INDEX(SUBSTRING_INDEX(input, ' ', field),
+                               ' ', -1);
+
+   WHILE LENGTH(input) > 0 DO
+           SET first_char = SUBSTRING(input, 1, 1);
+           SET input = SUBSTRING(input, 2);
+
+           SET accum_value = (accum_value << 6) +
+                INSTR('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/',
+                first_char)-1;
+   END WHILE;
+
+   RETURN accum_value;
+END |
+
+delimiter ;
+
+-- --------------------------------------------------
 -- Upgrade from 2.2
 -- --------------------------------------------------
 
