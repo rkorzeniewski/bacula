@@ -1774,8 +1774,8 @@ int qhelp_cmd(UAContext *ua, const char *cmd)
 #if 1 
 static int version_cmd(UAContext *ua, const char *cmd)
 {
-   ua->send_msg(_("%s Version: %s (%s) %s %s %s\n"), my_name, VERSION, BDATE,
-            HOST_OS, DISTNAME, DISTVER);
+   ua->send_msg(_("%s Version: %s (%s) %s %s %s %s\n"), my_name, VERSION, BDATE,
+                NPRTB(director->verid), HOST_OS, DISTNAME, DISTVER);
    return 1;
 }
 #else

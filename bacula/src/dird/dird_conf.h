@@ -130,7 +130,7 @@ public:
    bool tls_enable;                   /* Enable TLS */
    bool tls_require;                  /* Require TLS */
    bool tls_verify_peer;              /* TLS Verify Client Certificate */
-
+   char *verid;                       /* Custom Id to print in version command */
    /* Methods */
    char *name() const;
 };

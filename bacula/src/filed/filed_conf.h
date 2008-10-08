@@ -103,6 +103,7 @@ struct CLIENT {
    alist *pki_signers;                /* Shared PKI Trusted Signers */
    alist *pki_recipients;             /* Shared PKI Recipients */
    TLS_CONTEXT *tls_ctx;              /* Shared TLS Context */
+   char *verid;                       /* Custom Id to print in version command */
 };
 
 
