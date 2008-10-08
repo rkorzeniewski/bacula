@@ -1138,7 +1138,7 @@ bool db_accurate_get_jobids(JCR *jcr, B_DB *mdb,
    }
 
    /* build a jobid list ie: 1,2,3,4 */
-   Mmsg(query, "SELECT JobId FROM btemp3%s", jobid);
+   Mmsg(query, "SELECT JobId FROM btemp3%s ORDER by JobTDate", jobid);
    db_sql_query(mdb, query.c_str(), db_get_int_handler, jobids);
    Dmsg1(1, "db_accurate_get_jobids=%s\n", jobids);
    ret = true;
