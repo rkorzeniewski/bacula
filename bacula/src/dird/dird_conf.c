@@ -134,6 +134,7 @@ static RES_ITEM dir_items[] = {
    {"tlsdhfile",            store_dir,       ITEM(res_dir.tls_dhfile), 0, 0, 0},
    {"tlsallowedcn",         store_alist_str, ITEM(res_dir.tls_allowed_cns), 0, 0, 0},
    {"statisticsretention",  store_time,      ITEM(res_dir.stats_retention),  0, ITEM_DEFAULT, 60*60*24*31*12*5},
+   {"verid",                store_str,       ITEM(res_dir.verid), 0, 0, 0},
    {NULL, NULL, {0}, 0, 0, 0}
 };
 
@@ -1093,6 +1094,9 @@ void free_resource(RES *sres, int type)
       }
       if (res->res_dir.tls_allowed_cns) {
          delete res->res_dir.tls_allowed_cns;
+      }
+      if (res->res_dir.verid) {
+         free(res->res_dir.verid);
       }
       break;
    case R_DEVICE:

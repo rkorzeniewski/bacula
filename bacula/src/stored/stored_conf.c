@@ -89,6 +89,7 @@ static RES_ITEM store_items[] = {
    {"tlsdhfile",             store_dir,       ITEM(res_store.tls_dhfile), 0, 0, 0},
    {"tlsallowedcn",          store_alist_str, ITEM(res_store.tls_allowed_cns), 0, 0, 0},
    {"clientconnectwait",     store_time,  ITEM(res_store.client_wait), 0, ITEM_DEFAULT, 30 * 60},
+   {"verid",                 store_str,       ITEM(res_store.verid), 0, 0, 0},
    {NULL, NULL, {0}, 0, 0, 0}
 };
 
@@ -482,6 +483,9 @@ void free_resource(RES *sres, int type)
       }
       if (res->res_store.tls_allowed_cns) {
          delete res->res_store.tls_allowed_cns;
+      }
+      if (res->res_store.verid) {
+         free(res->res_store.verid);
       }
       break;
    case R_DEVICE:

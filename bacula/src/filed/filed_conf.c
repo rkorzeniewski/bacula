@@ -116,6 +116,7 @@ static RES_ITEM cli_items[] = {
    {"tlscacertificatedir",   store_dir,       ITEM(res_client.tls_ca_certdir), 0, 0, 0},
    {"tlscertificate",        store_dir,       ITEM(res_client.tls_certfile), 0, 0, 0},
    {"tlskey",                store_dir,       ITEM(res_client.tls_keyfile), 0, 0, 0},
+   {"verid",                 store_str,       ITEM(res_client.verid), 0, 0, 0},
    {NULL, NULL, {0}, 0, 0, 0}
 };
 
@@ -311,6 +312,9 @@ void free_resource(RES *sres, int type)
       }
       if (res->res_client.tls_keyfile) {
          free(res->res_client.tls_keyfile);
+      }
+      if (res->res_client.verid) {
+         free(res->res_client.verid);
       }
       break;
    case R_MSGS:
