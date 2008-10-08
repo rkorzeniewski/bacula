@@ -373,10 +373,11 @@ bool cancel_job(UAContext *ua, JCR *jcr)
 {
    BSOCK *sd, *fd;
    char ed1[50];
+   int32_t old_status = jcr->JobStatus;
 
    set_jcr_job_status(jcr, JS_Canceled);
 
-   switch (jcr->JobStatus) {
+   switch (old_status) {
    case JS_Created:
    case JS_WaitJobRes:
    case JS_WaitClientRes:
