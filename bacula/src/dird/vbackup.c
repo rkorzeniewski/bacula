@@ -126,6 +126,7 @@ bool do_vbackup_init(JCR *jcr)
    }
    memset(&jcr->previous_jr, 0, sizeof(jcr->previous_jr));
    jcr->previous_jr.JobId = str_to_int64(p);
+   Dmsg1(10, "Previous JobId=%s\n", p);
    if (!db_get_job_record(jcr, jcr->db, &jcr->previous_jr)) {
       Jmsg(jcr, M_FATAL, 0, _("Error getting Job record for previous Job: ERR=%s"),
                db_strerror(jcr->db));
