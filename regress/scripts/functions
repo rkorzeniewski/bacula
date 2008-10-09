@@ -110,6 +110,18 @@ check_files_written()
     fi
 }
 
+check_duration()
+{
+    LOG=$1
+    TIME=$2
+    T=`awk 'BEGIN {t["secs"]=1;t["sec"]=1;t["min"]=60;t["mins"]=60}; /Elapsed time:/ { last=$3*t[$4] } END { print last }' $LOG`
+
+    if [ "$T" -gt $TIME ]; then
+        print_debug "Expect less than $TIME sec, get $T"
+        bstat=2
+    fi
+}
+
 run_bacula()
 {
    debug_wait
