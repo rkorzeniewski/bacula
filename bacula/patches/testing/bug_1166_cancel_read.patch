@@ -2,8 +2,15 @@ Index: src/dird/backup.c
 ===================================================================
 --- src/dird/backup.c	(révision 7736)
 +++ src/dird/backup.c	(copie de travail)
-@@ -329,10 +329,10 @@
- /* Come here only after starting SD thread */
+@@ -326,24 +326,26 @@
+    }     
+    return false;
+ 
+-/* Come here only after starting SD thread */
++/* Come here only after starting SD thread 
++ * and we don't expect any EndJob message because the
++ * the client don't have recieve the "backup" command.
++ */
  bail_out:
     set_jcr_job_status(jcr, JS_ErrorTerminated);
 -   Dmsg1(400, "wait for sd. use=%d\n", jcr->use_count());
@@ -12,21 +19,24 @@ Index: src/dird/backup.c
 -   Dmsg1(400, "after wait for sd. use=%d\n", jcr->use_count());
 +   Dmsg1(400, "wait for sd and fd. use=%d\n", jcr->use_count());
 +   /* Get status from SD and FD */
-+   wait_for_job_termination(jcr);   /* TODO: don't expect the EndJob message */
++   wait_for_job_termination(jcr, false /* don't expect EndJob message*/);
 +   Dmsg1(400, "after wait for sd and fd. use=%d\n", jcr->use_count());
     return false;
  }
  
-@@ -343,7 +343,7 @@
+-
+ /*
+  * Here we wait for the File daemon to signal termination,
+  *   then we wait for the Storage daemon.  When both
   *   are done, we return the job status.
   * Also used by restore.c
   */
 -int wait_for_job_termination(JCR *jcr, int timeout)
-+int wait_for_job_termination(JCR *jcr)
++int wait_for_job_termination(JCR *jcr, bool expect_EndJob)
  {
     int32_t n = 0;
     BSOCK *fd = jcr->file_bsock;
-@@ -353,40 +353,43 @@
+@@ -353,40 +355,49 @@
     uint64_t JobBytes = 0;
     int VSS = 0;
     int Encrypt = 0;
@@ -57,19 +67,29 @@ Index: src/dird/backup.c
 +       */
 +      int OK=true;
 +      int ret;
-+      while (OK) {
-+         ret = fd->wait_data_intr(5*60, 0); /* wait for data few minutes */
++      while (OK && expect_EndJob) {
 +
++         /* Even if the job is canceled, we let a chance to FD to 
++          * send EndJob message 
++          */
++         if (job_canceled(jcr)) { 
++            OK=false;
+          }
+-         if (job_canceled(jcr)) {
+-            break;
++         
++         /* wait for data few minutes */
++         ret = fd->wait_data_intr(5*60, 0); 
 +         if (ret == 1) {       /* get data */
 +            n = bget_dirmsg(fd);
-+            if (n >= 0 && !fd_ok && 
++            if (n >= 0 && 
 +                (sscanf(fd->msg, EndJob, &jcr->FDJobStatus, &JobFiles,
 +                        &ReadBytes, &JobBytes, &Errors, &VSS, &Encrypt) == 7 ||
 +                 sscanf(fd->msg, OldEndJob, &jcr->FDJobStatus, &JobFiles,
 +                        &ReadBytes, &JobBytes, &Errors) == 5)) {
-+               OK=false;        /* end of loop */
 +               fd_ok = true;
 +               set_jcr_job_status(jcr, jcr->FDJobStatus);
++               OK=false;        /* end of loop */
 +            } else {
 +               Jmsg(jcr, M_WARNING, 0, _("Unexpected Client Job message: %s\n"),
 +                    fd->msg);
@@ -79,9 +99,6 @@ Index: src/dird/backup.c
 +         if (is_bnet_error(fd)) {
 +            Jmsg(jcr, M_FATAL, 0, _("Network error with FD during %s: ERR=%s\n"),
 +                 job_type_to_str(jcr->get_JobType()), fd->bstrerror());
-          }
-          if (job_canceled(jcr)) {
--            break;
 +            OK=false;
           }
        }
@@ -105,7 +122,7 @@ Index: src/dird/protos.h
  
  /* backup.c */
 -extern int wait_for_job_termination(JCR *jcr, int timeout=0);
-+extern int wait_for_job_termination(JCR *jcr);
++extern int wait_for_job_termination(JCR *jcr, bool expect_EndJob=true);
  extern bool do_backup_init(JCR *jcr);
  extern bool do_backup(JCR *jcr);
  extern void backup_cleanup(JCR *jcr, int TermCode);
