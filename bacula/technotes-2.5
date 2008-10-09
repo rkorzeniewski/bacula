@@ -17,6 +17,12 @@ dbdriver
 remove reader/writer in FOPTS????
 
 General:
+09Oct08
+kes  Add malloc and free Bacula entry points for plugins. Increment
+     FD plugin interface version. Create a bacula plugin context 
+     structure to keep track of whether or not the plugin is disabled.
+kes  Apply FileIndex fix for plugin name stream suggested by James.
+kes  List plugins in FD status report when debug > 0.
 08Oct08
 ebl  Add a new VerId variable that is printed in version command.
 kes  Fix migration SQL not to migrate a job that has not terminated.
