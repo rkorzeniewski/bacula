@@ -147,6 +147,7 @@ typedef enum {
   bVarSinceTime = 8
 } bVariable;
 
+/* Events that are passed to plugin */
 typedef enum {
   bEventJobStart        = 1,
   bEventJobEnd          = 2,
@@ -205,6 +206,9 @@ typedef struct s_baculaFuncs {
        int type, time_t mtime, const char *fmt, ...);     
    bRC (*DebugMessage)(bpContext *ctx, const char *file, int line,
        int level, const char *fmt, ...);
+   void *(*malloc)(bpContext *ctx, const char *file, int line, 
+       size_t size);
+   void (*free)(bpContext *ctx, const char *file, int line, void *mem);
 } bFuncs;
 
 
@@ -223,7 +227,7 @@ typedef enum {
 
 
 #define FD_PLUGIN_MAGIC     "*FDPluginData*" 
-#define FD_PLUGIN_INTERFACE_VERSION  1
+#define FD_PLUGIN_INTERFACE_VERSION  2
 
 typedef struct s_pluginInfo {
    uint32_t size;

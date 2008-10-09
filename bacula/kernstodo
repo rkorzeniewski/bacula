@@ -71,12 +71,26 @@ Professional Needs:
 
 Priority:
 ================
+- Detect deadlocks in reservations.
+- Plugins:
+  - add malloc/restore
+  - Add list during dump
+  - Add in plugin code flag
+  - Add bRC_EndJob -- stops more calls to plugin this job
+  - Add bRC_Term (unload plugin)
+  - remove time_t from Jmsg and use utime_t?
+  - add more doc
+     - distinguish two types of plugins
+- Extended ACLs
 - Deadlock detection, watchdog sees if counter advances when jobs are
   running.  With debug on, can do a "status" command.
 - User options for plugins.
+- Pool Storage override precidence over command line.
 - Autolabel only if Volume catalog information indicates tape not
   written. This will avoid overwriting a tape that gets an I/O
   error on reading the volume label.
+- I/O error, SD thinks it is not the right Volume, should check slot
+  then disable volume, but Asks for mount.
 - Can be posible modify package to create and use configuration files in 
    the Debian manner? 
 

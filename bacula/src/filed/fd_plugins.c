@@ -59,7 +59,14 @@ static bRC baculaJobMsg(bpContext *ctx, const char *file, int line,
   int type, time_t mtime, const char *fmt, ...);
 static bRC baculaDebugMsg(bpContext *ctx, const char *file, int line,
   int level, const char *fmt, ...);
+static void *baculaMalloc(bpContext *ctx, const char *file, int line,
+              size_t size);
+static void baculaFree(bpContext *ctx, const char *file, int line, void *mem);
 
+/*
+ * These will be plugged into the global pointer structure for
+ *  the findlib.
+ */
 static int     my_plugin_bopen(BFILE *bfd, const char *fname, int flags, mode_t mode);
 static int     my_plugin_bclose(BFILE *bfd);
 static ssize_t my_plugin_bread(BFILE *bfd, void *buf, size_t count);
@@ -81,9 +88,20 @@ static bFuncs bfuncs = {
    baculaGetValue,
    baculaSetValue,
    baculaJobMsg,
-   baculaDebugMsg
+   baculaDebugMsg,
+   baculaMalloc,
+   baculaFree
 };
 
+/* 
+ * Bacula private context
+ */
+struct bacula_ctx {
+   JCR *jcr;                             /* jcr for plugin */
+   bRC  rc;                              /* last return code */
+   bool in_plugin;                       /* in plugin code */
+   bool disabled;                        /* set if plugin disabled */
+};
 
 /*
  * Create a plugin event 
@@ -218,11 +236,15 @@ bail_out:
 bool send_plugin_name(JCR *jcr, BSOCK *sd, bool start)
 {
    int stat;
+   int index = jcr->JobFiles;
    struct save_pkt *sp = (struct save_pkt *)jcr->plugin_sp;
   
+   if (start) {
+      index++;                  /* JobFiles not incremented yet */
+   }
    Dmsg1(dbglvl, "send_plugin_name=%s\n", sp->cmd);
    /* Send stream header */
-   if (!sd->fsend("%ld %d 0", jcr->JobFiles+1, STREAM_PLUGIN_NAME)) {
+   if (!sd->fsend("%ld %d 0", index, STREAM_PLUGIN_NAME)) {
      Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
            sd->bstrerror());
      return false;
@@ -231,7 +253,7 @@ bool send_plugin_name(JCR *jcr, BSOCK *sd, bool start)
 
    if (start) {
       /* Send data -- not much */
-      stat = sd->fsend("%ld 1 %d %s%c", jcr->JobFiles+1, sp->portable, sp->cmd, 0);
+      stat = sd->fsend("%ld 1 %d %s%c", index, sp->portable, sp->cmd, 0);
    } else {
       /* Send end of data */
       stat = sd->fsend("0 0");
@@ -484,7 +506,10 @@ void new_plugins(JCR *jcr)
    Dmsg2(dbglvl, "Instantiate plugin_ctx=%p JobId=%d\n", plugin_ctx_list, jcr->JobId);
    foreach_alist(plugin, plugin_list) {
       /* Start a new instance of each plugin */
-      plugin_ctx_list[i].bContext = (void *)jcr;
+      bacula_ctx *b_ctx = (bacula_ctx *)malloc(sizeof(bacula_ctx));
+      memset(b_ctx, 0, sizeof(bacula_ctx));
+      b_ctx->jcr = jcr;
+      plugin_ctx_list[i].bContext = (void *)b_ctx;   /* Bacula private context */
       plugin_ctx_list[i].pContext = NULL;
       plug_func(plugin)->newPlugin(&plugin_ctx_list[i++]);
    }
@@ -504,7 +529,8 @@ void free_plugins(JCR *jcr)
 
    bpContext *plugin_ctx_list = (bpContext *)jcr->plugin_ctx_list;
    Dmsg2(dbglvl, "Free instance plugin_ctx=%p JobId=%d\n", plugin_ctx_list, jcr->JobId);
-   foreach_alist(plugin, plugin_list) {
+   foreach_alist(plugin, plugin_list) {   
+      free(plugin_ctx_list[i].bContext);     /* free Bacula private context */
       /* Free the plugin instance */
       plug_func(plugin)->freePlugin(&plugin_ctx_list[i++]);
    }
@@ -650,7 +676,7 @@ static boffset_t my_plugin_blseek(BFILE *bfd, boffset_t offset, int whence)
  */
 static bRC baculaGetValue(bpContext *ctx, bVariable var, void *value)
 {
-   JCR *jcr = (JCR *)(ctx->bContext);
+   JCR *jcr = ((bacula_ctx *)ctx->bContext)->jcr;
 // Dmsg1(dbglvl, "bacula: baculaGetValue var=%d\n", var);
    if (!value) {
       return bRC_Error;
@@ -700,7 +726,7 @@ static bRC baculaJobMsg(bpContext *ctx, const char *file, int line,
 {
    va_list arg_ptr;
    char buf[2000];
-   JCR *jcr = (JCR *)(ctx->bContext);
+   JCR *jcr = ((bacula_ctx *)ctx->bContext)->jcr;
 
    va_start(arg_ptr, fmt);
    bvsnprintf(buf, sizeof(buf), fmt, arg_ptr);
@@ -721,6 +747,27 @@ static bRC baculaDebugMsg(bpContext *ctx, const char *file, int line,
    d_msg(file, line, level, "%s", buf);
    return bRC_OK;
 }
+
+static void *baculaMalloc(bpContext *ctx, const char *file, int line,
+              size_t size)
+{
+#ifdef SMARTALLOC
+   return sm_malloc(file, line, size);
+#else
+   return malloc(size);
+#endif
+}
+
+static void baculaFree(bpContext *ctx, const char *file, int line, void *mem)
+{
+#ifdef SMARTALLOC
+   sm_free(file, line, mem);
+#else
+   free(mem);
+#endif
+}
+
+
 
 #ifdef TEST_PROGRAM
 

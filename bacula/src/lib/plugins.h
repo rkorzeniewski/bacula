@@ -55,12 +55,13 @@ int readdir_r(DIR *dirp, struct dirent *entry, struct dirent **result);
 
 extern DLL_IMP_EXP alist *plugin_list;
 
-/* Universal return codes from all functions */
+/* Universal return codes from all plugin functions */
 typedef enum {
-  bRC_OK    = 0,                         /* OK */
-  bRC_Stop  = 1,                         /* Stop calling other plugins */
-  bRC_Error = 2,                         /* Some kind of error */
-  bRC_More  = 3,                         /* More files to backup */
+  bRC_OK     = 0,                        /* OK */
+  bRC_Stop   = 1,                        /* Stop calling other plugins */
+  bRC_Error  = 2,                        /* Some kind of error */
+  bRC_More   = 3,                        /* More files to backup */
+  bRC_Term   = 4                         /* Unload me */
 } bRC;
 
 /* Context packet as first argument of all functions */
