@@ -1,118 +1,111 @@
 Index: src/dird/backup.c
 ===================================================================
---- src/dird/backup.c	(revision 7725)
-+++ src/dird/backup.c	(working copy)
-@@ -193,6 +193,7 @@
-    Jmsg(jcr, M_INFO, 0, _("Start Backup JobId %s, Job=%s\n"),
-         edit_uint64(jcr->JobId, ed1), jcr->Job);
- 
-+   jcr->set_owner();            /* we are responsible for this job */
-    set_jcr_job_status(jcr, JS_Running);
-    Dmsg2(100, "JobId=%d JobLevel=%c\n", jcr->jr.JobId, jcr->jr.JobLevel);
-    if (!db_update_job_start_record(jcr, jcr->db, &jcr->jr)) {
-@@ -361,8 +362,10 @@
-       if (timeout) {
-          tid = start_bsock_timer(fd, timeout); /* TODO: New timeout directive??? */
-       }
-+      Dmsg0(1, "======== Wait for a message\n");
-       /* Wait for Client to terminate */
-       while ((n = bget_dirmsg(fd)) >= 0) {
-+         Dmsg1(1, "======= Get client message=%s\n", fd->msg);
-          if (!fd_ok && 
-              (sscanf(fd->msg, EndJob, &jcr->FDJobStatus, &JobFiles,
-                      &ReadBytes, &JobBytes, &Errors, &VSS, &Encrypt) == 7 ||
-Index: src/dird/job.c
-===================================================================
---- src/dird/job.c	(revision 7731)
-+++ src/dird/job.c	(working copy)
-@@ -390,6 +390,14 @@
-       jobq_remove(&job_queue, jcr); /* attempt to remove it from queue */
-       return true;
- 
-+   case JS_Running:
-+      if (jcr->get_JobType() == JT_BACKUP && jcr->file_bsock) {
-+         /* When in JS_Running state, the main thread can wait for
-+          * EndJob message from the Client. We send a signal to the job
-+          * thread to cancel the read() 
-+          */
-+         jcr->send_signal_to_owner(TIMEOUT_SIGNAL);
-+      }
-    default:
-       /* Cancel File daemon */
-       if (jcr->file_bsock) {
-Index: src/jcr.h
-===================================================================
---- src/jcr.h	(revision 7725)
-+++ src/jcr.h	(working copy)
-@@ -180,6 +180,8 @@
-    bool is_job_canceled() {return job_canceled(this); };
-    int32_t get_JobType() { return m_JobType; };
-    int32_t get_JobLevel() { return m_JobLevel; };
-+   void set_owner();
-+   int send_signal_to_owner(int signal);
- 
-    const char *get_OperationName();    /* in lib/jcr.c */
-    const char *get_ActionName(bool past); /* in lib/jcr.c */
-Index: src/lib/jcr.c
-===================================================================
---- src/lib/jcr.c	(revision 7725)
-+++ src/lib/jcr.c	(working copy)
-@@ -303,6 +303,31 @@
+--- src/dird/backup.c	(révision 7736)
++++ src/dird/backup.c	(copie de travail)
+@@ -329,10 +329,10 @@
+ /* Come here only after starting SD thread */
+ bail_out:
+    set_jcr_job_status(jcr, JS_ErrorTerminated);
+-   Dmsg1(400, "wait for sd. use=%d\n", jcr->use_count());
+-   /* Cancel SD */
+-   wait_for_job_termination(jcr, FDConnectTimeout);
+-   Dmsg1(400, "after wait for sd. use=%d\n", jcr->use_count());
++   Dmsg1(400, "wait for sd and fd. use=%d\n", jcr->use_count());
++   /* Get status from SD and FD */
++   wait_for_job_termination(jcr);   /* TODO: don't expect the EndJob message */
++   Dmsg1(400, "after wait for sd and fd. use=%d\n", jcr->use_count());
+    return false;
  }
  
- /*
-+ * Update the my_thread_id variable with the current thread id
-+ */
-+void JCR::set_owner()
-+{
-+   Dmsg1(0, "JCR::set_owner(%p)\n", pthread_self());
-+   this->my_thread_id = pthread_self();
-+}
-+
-+/*
-+ * Send a signal to the JCR thread owner. (to break a system call)
-+ * (Must have use set_owner() before)
-+ */
-+int JCR::send_signal_to_owner(int sig)
-+{
-+   int ret=0;
-+   Dmsg2(0, "Sending TIMEOUT ?? to %p by %p\n", this->my_thread_id, pthread_self());
-+
-+   if (!pthread_equal(this->my_thread_id, pthread_self())) {
-+      Dmsg2(0, "Sending TIMEOUT to %p by %p\n", this->my_thread_id, pthread_self());
-+      ret = pthread_kill(this->my_thread_id, sig);
-+   }
-+   return ret;
-+}
-+
-+/*
-  * Push a subroutine address into the job end callback stack
+@@ -343,7 +343,7 @@
+  *   are done, we return the job status.
+  * Also used by restore.c
   */
- void job_end_push(JCR *jcr, void job_end_cb(JCR *jcr,void *), void *ctx)
-@@ -719,7 +744,7 @@
-     bool set_waittime = false;
-     int oldJobStatus = jcr->JobStatus;
+-int wait_for_job_termination(JCR *jcr, int timeout)
++int wait_for_job_termination(JCR *jcr)
+ {
+    int32_t n = 0;
+    BSOCK *fd = jcr->file_bsock;
+@@ -353,40 +353,43 @@
+    uint64_t JobBytes = 0;
+    int VSS = 0;
+    int Encrypt = 0;
+-   btimer_t *tid=NULL;
+-
+    set_jcr_job_status(jcr, JS_Running);
  
--    Dmsg2(800, "set_jcr_job_status(%s, %c)\n", jcr->Job, JobStatus);
-+    Dmsg2(2, "set_jcr_job_status(%s, %c)\n", jcr->Job, JobStatus);
-     /* if wait state is new, we keep current time for watchdog MaxWaitTime */
-     switch (JobStatus) {
-        case JS_WaitFD:
-@@ -740,7 +765,7 @@
-     * For a set of errors, ... keep the current status
-     *   so it isn't lost. For all others, set it.
-     */
--   Dmsg3(300, "jid=%u OnEntry JobStatus=%c set=%c\n", (uint32_t)jcr->JobId,
-+   Dmsg3(2, "jid=%u OnEntry JobStatus=%c set=%c\n", (uint32_t)jcr->JobId,
-          jcr->JobStatus, JobStatus);
-    switch (jcr->JobStatus) {
-    case JS_ErrorTerminated:
-@@ -781,7 +806,7 @@
+    if (fd) {
+-      if (timeout) {
+-         tid = start_bsock_timer(fd, timeout); /* TODO: New timeout directive??? */
+-      }
+-      /* Wait for Client to terminate */
+-      while ((n = bget_dirmsg(fd)) >= 0) {
+-         if (!fd_ok && 
+-             (sscanf(fd->msg, EndJob, &jcr->FDJobStatus, &JobFiles,
+-                     &ReadBytes, &JobBytes, &Errors, &VSS, &Encrypt) == 7 ||
+-              sscanf(fd->msg, OldEndJob, &jcr->FDJobStatus, &JobFiles,
+-                     &ReadBytes, &JobBytes, &Errors) == 5)) {
+-            fd_ok = true;
+-            set_jcr_job_status(jcr, jcr->FDJobStatus);
+-            Dmsg1(100, "FDStatus=%c\n", (char)jcr->JobStatus);
+-         } else {
+-            Jmsg(jcr, M_WARNING, 0, _("Unexpected Client Job message: %s\n"),
+-                 fd->msg);
++      /* Wait for Client to terminate 
++       * In some conditions, the client isn't able to send
++       * any messages and we should not wait for ages
++       */
++      int OK=true;
++      int ret;
++      while (OK) {
++         ret = fd->wait_data_intr(5*60, 0); /* wait for data few minutes */
++
++         if (ret == 1) {       /* get data */
++            n = bget_dirmsg(fd);
++            if (n >= 0 && !fd_ok && 
++                (sscanf(fd->msg, EndJob, &jcr->FDJobStatus, &JobFiles,
++                        &ReadBytes, &JobBytes, &Errors, &VSS, &Encrypt) == 7 ||
++                 sscanf(fd->msg, OldEndJob, &jcr->FDJobStatus, &JobFiles,
++                        &ReadBytes, &JobBytes, &Errors) == 5)) {
++               OK=false;        /* end of loop */
++               fd_ok = true;
++               set_jcr_job_status(jcr, jcr->FDJobStatus);
++            } else {
++               Jmsg(jcr, M_WARNING, 0, _("Unexpected Client Job message: %s\n"),
++                    fd->msg);
++            }
++         } /* else get timeout or network error */
++
++         if (is_bnet_error(fd)) {
++            Jmsg(jcr, M_FATAL, 0, _("Network error with FD during %s: ERR=%s\n"),
++                 job_type_to_str(jcr->get_JobType()), fd->bstrerror());
+          }
+          if (job_canceled(jcr)) {
+-            break;
++            OK=false;
+          }
        }
+-      if (tid) {
+-         stop_bsock_timer(tid);
+-      }
+ 
+-      if (is_bnet_error(fd)) {
+-         Jmsg(jcr, M_FATAL, 0, _("Network error with FD during %s: ERR=%s\n"),
+-              job_type_to_str(jcr->get_JobType()), fd->bstrerror());
+-      }
+       fd->signal(BNET_TERMINATE);   /* tell Client we are terminating */
     }
-    if (oldJobStatus != jcr->JobStatus) {
--      Dmsg3(200, "jid=%u leave set_old_job_status=%c new_set=%c\n", (uint32_t)jcr->JobId,
-+      Dmsg3(2, "jid=%u leave set_old_job_status=%c new_set=%c\n", (uint32_t)jcr->JobId,
-          oldJobStatus, JobStatus);
- //    generate_plugin_event(jcr, bEventStatusChange, NULL);
-    }
+ 
+Index: src/dird/protos.h
+===================================================================
+--- src/dird/protos.h	(révision 7736)
++++ src/dird/protos.h	(copie de travail)
+@@ -52,7 +52,7 @@
+ extern bool find_recycled_volume(JCR *jcr, bool InChanger, MEDIA_DBR *mr);
+ 
+ /* backup.c */
+-extern int wait_for_job_termination(JCR *jcr, int timeout=0);
++extern int wait_for_job_termination(JCR *jcr);
+ extern bool do_backup_init(JCR *jcr);
+ extern bool do_backup(JCR *jcr);
+ extern void backup_cleanup(JCR *jcr, int TermCode);
