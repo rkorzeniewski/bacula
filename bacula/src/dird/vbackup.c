@@ -61,7 +61,6 @@ void vbackup_cleanup(JCR *jcr, int TermCode);
  */
 bool do_vbackup_init(JCR *jcr)
 {
-   char *p;
 
    if (!get_or_create_fileset_record(jcr)) {
       Dmsg1(dbglevel, "JobId=%d no FileSet\n", (int)jcr->JobId);
@@ -99,6 +98,65 @@ bool do_vbackup_init(JCR *jcr)
    jcr->jr.JobLevel = L_FULL;      /* we want this to appear as a Full backup */
    if (!db_update_job_start_record(jcr, jcr->db, &jcr->jr)) {
       Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db));
+   }
+
+
+   /*
+    * If the original backup pool has a NextPool, make sure a 
+    *  record exists in the database. Note, in this case, we
+    *  will be backing up from pool to pool->NextPool.
+    */
+   if (jcr->pool->NextPool) {
+      jcr->jr.PoolId = get_or_create_pool_record(jcr, jcr->pool->NextPool->name());
+      if (jcr->jr.PoolId == 0) {
+         return false;
+      }
+   }
+   if (!set_migration_wstorage(jcr, jcr->pool)) {
+      return false;
+   }
+   jcr->pool = jcr->pool->NextPool;
+   pm_strcpy(jcr->pool_source, _("Job Pool's NextPool resource"));
+
+   Dmsg2(dbglevel, "Write pool=%s read rpool=%s\n", jcr->pool->name(), jcr->rpool->name());
+
+// create_clones(jcr);
+
+   return true;
+}
+
+/*
+ * Do a virtual backup, which consolidates all previous backups into
+ *  a sort of synthetic Full.
+ *
+ *  Returns:  false on failure
+ *            true  on success
+ */
+bool do_vbackup(JCR *jcr)
+{
+   char ed1[100];
+   BSOCK *sd;
+   char *p;
+
+   Dmsg2(100, "rstorage=%p wstorage=%p\n", jcr->rstorage, jcr->wstorage);
+   Dmsg2(100, "Read store=%s, write store=%s\n", 
+      ((STORE *)jcr->rstorage->first())->name(),
+      ((STORE *)jcr->wstorage->first())->name());
+   /* ***FIXME***  we really should simply verify that the pools are different */
+#ifdef xxx
+   if (((STORE *)jcr->rstorage->first())->name() == ((STORE *)jcr->wstorage->first())->name()) {
+      Jmsg(jcr, M_FATAL, 0, _("Read storage \"%s\" same as write storage.\n"),
+           ((STORE *)jcr->rstorage->first())->name());
+      return false;
+   }
+#endif
+
+   /* Print Job Start message */
+   Jmsg(jcr, M_INFO, 0, _("Start Virtual Backup JobId %s, Job=%s\n"),
+        edit_uint64(jcr->JobId, ed1), jcr->Job);
+   if (!jcr->accurate) {
+      Jmsg(jcr, M_WARNING, 0, 
+_("This Job is not an Accurate backup so is not equivalent to a Full backup.\n"));
    }
 
    POOLMEM *jobids = get_pool_memory(PM_FNAME);
@@ -139,63 +197,6 @@ bool do_vbackup_init(JCR *jcr)
       return false;
    }
    free_pool_memory(jobids);
-
-   /*
-    * If the original backup pool has a NextPool, make sure a 
-    *  record exists in the database. Note, in this case, we
-    *  will be backing up from pool to pool->NextPool.
-    */
-   if (jcr->pool->NextPool) {
-      jcr->jr.PoolId = get_or_create_pool_record(jcr, jcr->pool->NextPool->name());
-      if (jcr->jr.PoolId == 0) {
-         return false;
-      }
-   }
-   if (!set_migration_wstorage(jcr, jcr->pool)) {
-      return false;
-   }
-   jcr->pool = jcr->pool->NextPool;
-   pm_strcpy(jcr->pool_source, _("Job Pool's NextPool resource"));
-
-   Dmsg2(dbglevel, "Write pool=%s read rpool=%s\n", jcr->pool->name(), jcr->rpool->name());
-
-// create_clones(jcr);
-
-   return true;
-}
-
-/*
- * Do a virtual backup, which consolidates all previous backups into
- *  a sort of synthetic Full.
- *
- *  Returns:  false on failure
- *            true  on success
- */
-bool do_vbackup(JCR *jcr)
-{
-   char ed1[100];
-   BSOCK *sd;
-
-   Dmsg2(100, "rstorage=%p wstorage=%p\n", jcr->rstorage, jcr->wstorage);
-   Dmsg2(100, "Read store=%s, write store=%s\n", 
-      ((STORE *)jcr->rstorage->first())->name(),
-      ((STORE *)jcr->wstorage->first())->name());
-   /* ***FIXME***  we really should simply verify that the pools are different */
-#ifdef xxx
-   if (((STORE *)jcr->rstorage->first())->name() == ((STORE *)jcr->wstorage->first())->name()) {
-      Jmsg(jcr, M_FATAL, 0, _("Read storage \"%s\" same as write storage.\n"),
-           ((STORE *)jcr->rstorage->first())->name());
-      return false;
-   }
-#endif
-
-   /* Print Job Start message */
-   Jmsg(jcr, M_INFO, 0, _("Start Virtual Backup JobId %s, Job=%s\n"),
-        edit_uint64(jcr->JobId, ed1), jcr->Job);
-   if (!jcr->accurate) {
-      Jmsg(jcr, M_WARNING, 0, 
-_("This Job is not an Accurate backup so is not equivalent to a Full backup.\n"));
-   }
 
    /*
     * Open a message channel connection with the Storage
