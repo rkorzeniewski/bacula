@@ -30385,9 +30385,6 @@ freebsd)
 	if test ! $? = 0; then
 	   hostname="localhost"
 	fi
-	if `grep -q ubuntu /etc/apt/sources.list`; then
-	   DISTNAME="ubuntu"
-	fi
 	DISTVER=`uname -a |awk '{print $3}'`
 	VER=`echo $DISTVER | cut -c 1`
 	if test x$VER = x4 ; then
@@ -30455,9 +30452,6 @@ redhat)
 	if test ! $? = 0; then
 	   hostname="localhost"
 	fi
-	if `grep -q ubuntu /etc/apt/sources.list`; then
-	   DISTNAME="ubuntu"
-	fi
 	if test -f /etc/whitebox-release ; then
 	   f=/etc/whitebox-release
 	else
@@ -30487,9 +30481,6 @@ mandrake)
 	if test ! $? = 0; then
 	   hostname="localhost"
 	fi
-	if `grep -q ubuntu /etc/apt/sources.list`; then
-	   DISTNAME="ubuntu"
-	fi
 	DISTVER=`cat /etc/mandrake-release | grep release |\
 	   cut -f 5 -d ' '`
 	TAPEDRIVE="/dev/nst0"
@@ -30508,9 +30499,6 @@ gentoo)
 	if test ! $? = 0; then
 	   hostname="localhost"
 	fi
-	if `grep -q ubuntu /etc/apt/sources.list`; then
-	   DISTNAME="ubuntu"
-	fi
 	DISTVER=`awk '/version / {print $5}' < /etc/gentoo-release`
 	TAPEDRIVE="/dev/nst0"
 	PSCMD="ps -e -o pid,command"
@@ -30526,9 +30514,6 @@ slackware)
 	ping -c 1 $hostname 2>&1 1>/dev/null
 	if test ! $? = 0; then
 	   hostname="localhost"
-	fi
-	if `grep -q ubuntu /etc/apt/sources.list`; then
-	   DISTNAME="ubuntu"
 	fi
 	DISTVER=`cat /etc/slackware-version`
 	TAPEDRIVE="/dev/nst0"
@@ -30563,9 +30548,6 @@ suse)
 	if test ! $? = 0; then
 	   hostname="localhost"
 	fi
-	if `grep -q ubuntu /etc/apt/sources.list`; then
-	   DISTNAME="ubuntu"
-	fi
 	DISTVER=`cat /etc/SuSE-release |grep VERSION|\
 	    cut -f 3 -d ' '`
 	TAPEDRIVE="/dev/nst0"
@@ -30583,9 +30565,6 @@ suse5)
 	ping -c 1 $hostname 2>&1 1>/dev/null
 	if test ! $? = 0; then
 	   hostname="localhost"
-	fi
-	if `grep -q ubuntu /etc/apt/sources.list`; then
-	   DISTNAME="ubuntu"
 	fi
 	DISTNAME=suse
 	DISTVER=5.x
