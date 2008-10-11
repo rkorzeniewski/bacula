@@ -71,6 +71,8 @@ EOF
 change_jobname Client1 $JobName
 start_test
 
+when=`perl -MPOSIX -e "print strftime('%F %T', localtime(time+6000))"`
+
 cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @output /dev/null
 messages
@@ -225,12 +227,47 @@ run job=RUN_ERR4 yes
 @sleep 20
 messages
 st dir
+time
 cancel
 yes
 @sleep 5
 messages
 st dir
 wait
+time
+messages
+@$out ${cwd}/tmp/logfile11.out
+@################################################################
+@# Test to cancel the job immediately
+@# Expect: duration < 30
+@################################################################
+label volume=TestVolume005 storage=File pool=Default
+run job=$JobName yes
+time
+cancel
+yes
+@sleep 5
+messages
+st dir
+wait
+time
+messages
+@$out ${cwd}/tmp/logfile12.out
+@################################################################
+@# Test to cancel the job before it starts
+@# Expect: 
+@################################################################
+run job=$JobName when="$when" yes
+@sleep 5
+st dir
+cancel
+yes
+time
+@sleep 5
+messages
+st dir
+wait
+time
 messages
 @$out ${cwd}/tmp/logfile20.out
 @################################################################
@@ -239,9 +276,9 @@ messages
 @# the STOP signal to the FD process
 @# Expect: duration < 400
 @################################################################
-update volume=TestVolume003 volstatus=Used
-label volume=TestVolume004 storage=File pool=Default
-update volume=TestVolume004 MaxVolBytes=1MB
+update volume=TestVolume005 volstatus=Used
+label volume=TestVolume006 storage=File pool=Default
+update volume=TestVolume006 MaxVolBytes=1MB
 run job=$JobName yes
 @sleep 5
 messages
@@ -281,14 +318,14 @@ check_duration ${cwd}/tmp/logfile4.out 30
 check_duration ${cwd}/tmp/logfile5.out 30
 check_duration ${cwd}/tmp/logfile6.out 30
 
-check_duration ${cwd}/tmp/logfile8.out 550 gt
+check_duration ${cwd}/tmp/logfile8.out 550 lt
 grep 'ClientAfterJob "/bin/sleep 600"' tmp/logfile8.out >/dev/null
 if [ $? -ne 0 ]; then
     print_debug "Can't find ClientAfterJob"
     bstat=2
 fi
 
-check_duration ${cwd}/tmp/logfile9.out 550 gt
+check_duration ${cwd}/tmp/logfile9.out 550 lt
 grep 'ClientAfterJob "/bin/sleep 600"' tmp/logfile9.out >/dev/null
 if [ $? -ne 0 ]; then
     print_debug "Can't find ClientAfterJob"
@@ -302,6 +339,6 @@ if [ $? -ne 0 ]; then
 fi
 
 # Verify the broken connection
-check_duration ${cwd}/tmp/logfile20.out 400
+check_duration ${cwd}/tmp/logfile20.out 400 lt
 
 end_test
