@@ -31,6 +31,7 @@
  *  Kern Sibbald, October 2007
  *
  */
+#include "bacula.h"
 #include "fd_plugins.h"
 
 #undef malloc

@@ -142,6 +142,7 @@ struct B_DB;
 struct ATTR_DBR;
 struct Plugin;
 struct save_pkt;
+struct bpContext;
 
 #ifdef FILE_DAEMON
 class htable;
@@ -242,8 +243,8 @@ public:
    guid_list *id_list;                /* User/group id to name list */
    bool accurate;                     /* true if job is accurate */
 
-   void *plugin_ctx_list;             /* list of contexts for plugins */
-   void *plugin_ctx;                  /* current plugin context */
+   bpContext *plugin_ctx_list;        /* list of contexts for plugins */
+   bpContext *plugin_ctx;             /* current plugin context */
    Plugin *plugin;                    /* plugin instance */
    save_pkt *plugin_sp;               /* plugin save packet */
    char *plugin_options;              /* user set options for plugin */

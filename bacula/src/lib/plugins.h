@@ -26,26 +26,12 @@
    Switzerland, email:ftf@fsfeurope.org.
 */
 /*
- * Bacula plugin loader/unloader
+ * Common plugin definitions
  *
  * Kern Sibbald, October 2007
  */
 #ifndef __PLUGINS_H
 #define __PLUGINS_H
-
-#include "bacula.h"
-#include <dlfcn.h>
-#ifdef HAVE_DIRENT_H
-#include <dirent.h>
-#define NAMELEN(dirent) (strlen((dirent)->d_name))
-#endif
-#ifndef HAVE_READDIR_R
-int readdir_r(DIR *dirp, struct dirent *entry, struct dirent **result);
-#endif
-
-#ifndef RTLD_NOW
-#define RTLD_NOW 2
-#endif
 
 /****************************************************************************
  *                                                                          *
@@ -64,11 +50,12 @@ typedef enum {
   bRC_Term   = 4                         /* Unload me */
 } bRC;
 
+
 /* Context packet as first argument of all functions */
-typedef struct s_bpContext {
+struct bpContext {
   void *bContext;                        /* Bacula private context */
   void *pContext;                        /* Plugin private context */
-} bpContext;
+};
 
 extern "C" {
 typedef bRC (*t_loadPlugin)(void *binfo, void *bfuncs, void **pinfo, void **pfuncs);
@@ -82,6 +69,7 @@ public:
    void *pinfo;
    void *pfuncs;
    void *pHandle;
+   bool disabled;
 };
 
 /* Functions */
