@@ -30,7 +30,21 @@
  *
  * Kern Sibbald, October 2007
  */
+
 #include "bacula.h"
+#include <dlfcn.h>
+#ifdef HAVE_DIRENT_H
+#include <dirent.h>
+#define NAMELEN(dirent) (strlen((dirent)->d_name))
+#endif
+#ifndef HAVE_READDIR_R
+int readdir_r(DIR *dirp, struct dirent *entry, struct dirent **result);
+#endif
+
+#ifndef RTLD_NOW
+#define RTLD_NOW 2
+#endif
+
 #include "plugins.h"
 
 static const int dbglvl = 50;
@@ -49,7 +63,6 @@ Plugin *new_plugin()
 
    plugin = (Plugin *)malloc(sizeof(Plugin));
    memset(plugin, 0, sizeof(Plugin));
-   plugin_list->append(plugin);
    return plugin;
 }
 
@@ -61,7 +74,7 @@ bool load_plugins(void *binfo, void *bfuncs, const char *plugin_dir, const char 
 {
    bool found = false;
    t_loadPlugin loadPlugin;
-   Plugin *plugin;
+   Plugin *plugin = NULL;
    DIR* dp = NULL;
    struct dirent *entry = NULL, *result;
    int name_max;
@@ -151,12 +164,18 @@ bool load_plugins(void *binfo, void *bfuncs, const char *plugin_dir, const char 
       }
 
       /* Initialize the plugin */
-      loadPlugin(binfo, bfuncs, &plugin->pinfo, &plugin->pfuncs);
+      if (loadPlugin(binfo, bfuncs, &plugin->pinfo, &plugin->pfuncs) != bRC_OK) {
+         goto get_out;
+      }
 
       found = true;                /* found a plugin */
+      plugin_list->append(plugin);
    }
 
 get_out:
+   if (!found && plugin) {
+      free(plugin);
+   }
    if (entry) {
       free(entry);
    }

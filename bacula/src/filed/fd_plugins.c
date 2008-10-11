@@ -99,9 +99,19 @@ static bFuncs bfuncs = {
 struct bacula_ctx {
    JCR *jcr;                             /* jcr for plugin */
    bRC  rc;                              /* last return code */
-   bool in_plugin;                       /* in plugin code */
    bool disabled;                        /* set if plugin disabled */
 };
+
+static bool is_plugin_disabled(JCR *jcr)
+{
+   bacula_ctx *b_ctx;
+   if (!jcr->plugin_ctx) {
+      return true;
+   }
+   b_ctx = (bacula_ctx *)jcr->plugin_ctx->bContext;
+   return b_ctx->disabled;
+}
+
 
 /*
  * Create a plugin event 
@@ -124,12 +134,19 @@ void generate_plugin_event(JCR *jcr, bEventType eventType, void *value)
    /* Pass event to every plugin */
    foreach_alist(plugin, plugin_list) {
       bRC rc;
-      rc = plug_func(plugin)->handlePluginEvent(&plugin_ctx_list[i++], &event, value);
+      jcr->plugin_ctx = &plugin_ctx_list[i++];
+      jcr->plugin = plugin;
+      if (is_plugin_disabled(jcr)) {
+         continue;
+      }
+      rc = plug_func(plugin)->handlePluginEvent(jcr->plugin_ctx, &event, value);
       if (rc != bRC_OK) {
          break;
       }
    }
 
+   jcr->plugin = NULL;
+   jcr->plugin_ctx = NULL;
    return;
 }
 
@@ -177,15 +194,27 @@ int plugin_save(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
       goto bail_out;
    }
 
+   /* Note, we stop the loop on the first plugin that matches the name */
    foreach_alist(plugin, plugin_list) {
       Dmsg3(dbglvl, "plugin=%s cmd=%s len=%d\n", plugin->file, cmd, len);
       if (strncmp(plugin->file, cmd, len) != 0) {
          i++;
          continue;
       }
+      /* 
+       * We put the current plugin pointer, and the plugin context
+       *  into the jcr, because during save_file(), the plugin
+       *  will be called many times and these values are needed.
+       */
+      jcr->plugin_ctx = &plugin_ctx_list[i];
+      jcr->plugin = plugin;
+      if (is_plugin_disabled(jcr)) {
+         goto bail_out;
+      }
+
       Dmsg1(dbglvl, "Command plugin = %s\n", cmd);
       /* Send the backup command to the right plugin*/
-      if (plug_func(plugin)->handlePluginEvent(&plugin_ctx_list[i], &event, cmd) != bRC_OK) {
+      if (plug_func(plugin)->handlePluginEvent(jcr->plugin_ctx, &event, cmd) != bRC_OK) {
          goto bail_out;
       }
       /* Loop getting filenames to backup then saving them */
@@ -198,7 +227,7 @@ int plugin_save(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
          Dmsg3(dbglvl, "startBackup st_size=%p st_blocks=%p sp=%p\n", &sp.statp.st_size, &sp.statp.st_blocks,
                 &sp);
          /* Get the file save parameters */
-         if (plug_func(plugin)->startBackupFile(&plugin_ctx_list[i], &sp) != bRC_OK) {
+         if (plug_func(plugin)->startBackupFile(jcr->plugin_ctx, &sp) != bRC_OK) {
             goto bail_out;
          }
          if (sp.type == 0 || sp.fname == NULL) {
@@ -206,8 +235,6 @@ int plugin_save(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
                cmd);
             goto bail_out;
          }
-         jcr->plugin_ctx = &plugin_ctx_list[i];
-         jcr->plugin = plugin;
          jcr->plugin_sp = &sp;
          ff_pkt = jcr->ff;
          ff_pkt->fname = sp.fname;
@@ -216,17 +243,20 @@ int plugin_save(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
          memcpy(&ff_pkt->statp, &sp.statp, sizeof(ff_pkt->statp));
          Dmsg1(dbglvl, "Save_file: file=%s\n", ff_pkt->fname);
          save_file(jcr, ff_pkt, true);
-         bRC rc = plug_func(plugin)->endBackupFile(&plugin_ctx_list[i]);
+         bRC rc = plug_func(plugin)->endBackupFile(jcr->plugin_ctx);
          if (rc == bRC_More) {
             continue;
          }
          goto bail_out;
       }
+      goto bail_out;
    }
    Jmsg1(jcr, M_ERROR, 0, "Command plugin \"%s\" not found.\n", cmd);
 
 bail_out:
    jcr->cmd_plugin = false;
+   jcr->plugin = NULL;
+   jcr->plugin_ctx = NULL;
    return 1;
 }
 
@@ -238,6 +268,11 @@ bool send_plugin_name(JCR *jcr, BSOCK *sd, bool start)
    int stat;
    int index = jcr->JobFiles;
    struct save_pkt *sp = (struct save_pkt *)jcr->plugin_sp;
+
+   if (!sp) {
+      Jmsg0(jcr, M_FATAL, 0, _("Plugin save packet not found.\n"));
+      return false;
+   }
   
    if (start) {
       index++;                  /* JobFiles not incremented yet */
@@ -283,7 +318,7 @@ bool plugin_name_stream(JCR *jcr, char *name)
    Plugin *plugin;
    int len;
    int i = 0;
-   bpContext *plugin_ctx_list = (bpContext *)jcr->plugin_ctx_list;
+   bpContext *plugin_ctx_list = jcr->plugin_ctx_list;
 
    Dmsg1(dbglvl, "Read plugin stream string=%s\n", name);
    skip_nonspaces(&p);             /* skip over jcr->JobFiles */
@@ -303,8 +338,7 @@ bool plugin_name_stream(JCR *jcr, char *name)
        */
       Dmsg2(dbglvl, "End plugin data plugin=%p ctx=%p\n", jcr->plugin, jcr->plugin_ctx);
       if (jcr->plugin) {
-         plugin = (Plugin *)jcr->plugin;
-         plug_func(plugin)->endRestoreFile((bpContext *)jcr->plugin_ctx);
+         plug_func(jcr->plugin)->endRestoreFile(jcr->plugin_ctx);
       }
       jcr->plugin_ctx = NULL;
       jcr->plugin = NULL;
@@ -339,17 +373,23 @@ bool plugin_name_stream(JCR *jcr, char *name)
          i++;
          continue;
       }
+      jcr->plugin_ctx = &plugin_ctx_list[i];
+      jcr->plugin = plugin;
+      if (is_plugin_disabled(jcr)) {
+         goto bail_out;
+      }
       Dmsg1(dbglvl, "Restore Command plugin = %s\n", cmd);
       event.eventType = bEventRestoreCommand;     
-      if (plug_func(plugin)->handlePluginEvent(&plugin_ctx_list[i], 
+      if (plug_func(plugin)->handlePluginEvent(jcr->plugin_ctx, 
             &event, cmd) != bRC_OK) {
          goto bail_out;
       }
-      jcr->plugin_ctx = &plugin_ctx_list[i];
-      jcr->plugin = plugin;
+      /* ***FIXME**** check error code */
       plug_func(plugin)->startRestoreFile((bpContext *)jcr->plugin_ctx, cmd);
       goto bail_out;
    }
+   Jmsg1(jcr, M_WARNING, 0, _("Plugin=%s not found.\n"), cmd);
+
 bail_out:
    return start;
 }
@@ -365,13 +405,13 @@ bail_out:
  */
 int plugin_create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
 {
-   bpContext *plugin_ctx = (bpContext *)jcr->plugin_ctx;
-   Plugin *plugin = (Plugin *)jcr->plugin;
+   bpContext *plugin_ctx = jcr->plugin_ctx;
+   Plugin *plugin = jcr->plugin;
    struct restore_pkt rp;
    int flags;
    int rc;
 
-   if (!set_cmd_plugin(bfd, jcr)) {
+   if (!plugin || !plugin_ctx || !set_cmd_plugin(bfd, jcr)) {
       return CF_ERROR;
    }
    rp.pkt_size = sizeof(rp);
@@ -500,7 +540,7 @@ void new_plugins(JCR *jcr)
       return;
    }
 
-   jcr->plugin_ctx_list = (void *)malloc(sizeof(bpContext) * num);
+   jcr->plugin_ctx_list = (bpContext *)malloc(sizeof(bpContext) * num);
 
    bpContext *plugin_ctx_list = (bpContext *)jcr->plugin_ctx_list;
    Dmsg2(dbglvl, "Instantiate plugin_ctx=%p JobId=%d\n", plugin_ctx_list, jcr->JobId);
@@ -511,7 +551,9 @@ void new_plugins(JCR *jcr)
       b_ctx->jcr = jcr;
       plugin_ctx_list[i].bContext = (void *)b_ctx;   /* Bacula private context */
       plugin_ctx_list[i].pContext = NULL;
-      plug_func(plugin)->newPlugin(&plugin_ctx_list[i++]);
+      if (plug_func(plugin)->newPlugin(&plugin_ctx_list[i++]) != bRC_OK) {
+         b_ctx->disabled = true;
+      }
    }
 }
 
@@ -530,9 +572,9 @@ void free_plugins(JCR *jcr)
    bpContext *plugin_ctx_list = (bpContext *)jcr->plugin_ctx_list;
    Dmsg2(dbglvl, "Free instance plugin_ctx=%p JobId=%d\n", plugin_ctx_list, jcr->JobId);
    foreach_alist(plugin, plugin_list) {   
-      free(plugin_ctx_list[i].bContext);     /* free Bacula private context */
       /* Free the plugin instance */
-      plug_func(plugin)->freePlugin(&plugin_ctx_list[i++]);
+      plug_func(plugin)->freePlugin(&plugin_ctx_list[i]);
+      free(plugin_ctx_list[i++].bContext);     /* free Bacula private context */
    }
    free(plugin_ctx_list);
    jcr->plugin_ctx_list = NULL;
@@ -542,8 +584,8 @@ static int my_plugin_bopen(BFILE *bfd, const char *fname, int flags, mode_t mode
 {
    JCR *jcr = bfd->jcr;
    Plugin *plugin = (Plugin *)jcr->plugin;
-   bpContext *plugin_ctx = (bpContext *)jcr->plugin_ctx;
    struct io_pkt io;
+
    Dmsg1(dbglvl, "plugin_bopen flags=%x\n", flags);
    io.pkt_size = sizeof(io);
    io.pkt_end = sizeof(io);
@@ -555,7 +597,7 @@ static int my_plugin_bopen(BFILE *bfd, const char *fname, int flags, mode_t mode
    io.mode = mode;
    io.win32 = false;
    io.lerror = 0;
-   plug_func(plugin)->pluginIO(plugin_ctx, &io);
+   plug_func(plugin)->pluginIO(jcr->plugin_ctx, &io);
    bfd->berrno = io.io_errno;
    if (io.win32) {
       errno = b_errno_win32;
@@ -571,7 +613,6 @@ static int my_plugin_bclose(BFILE *bfd)
 {
    JCR *jcr = bfd->jcr;
    Plugin *plugin = (Plugin *)jcr->plugin;
-   bpContext *plugin_ctx = (bpContext *)jcr->plugin_ctx;
    struct io_pkt io;
    Dmsg0(dbglvl, "===== plugin_bclose\n");
    io.pkt_size = sizeof(io);
@@ -581,7 +622,7 @@ static int my_plugin_bclose(BFILE *bfd)
    io.buf = NULL;
    io.win32 = false;
    io.lerror = 0;
-   plug_func(plugin)->pluginIO(plugin_ctx, &io);
+   plug_func(plugin)->pluginIO(jcr->plugin_ctx, &io);
    bfd->berrno = io.io_errno;
    if (io.win32) {
       errno = b_errno_win32;
@@ -597,7 +638,6 @@ static ssize_t my_plugin_bread(BFILE *bfd, void *buf, size_t count)
 {
    JCR *jcr = bfd->jcr;
    Plugin *plugin = (Plugin *)jcr->plugin;
-   bpContext *plugin_ctx = (bpContext *)jcr->plugin_ctx;
    struct io_pkt io;
    Dmsg0(dbglvl, "plugin_bread\n");
    io.pkt_size = sizeof(io);
@@ -607,7 +647,7 @@ static ssize_t my_plugin_bread(BFILE *bfd, void *buf, size_t count)
    io.buf = (char *)buf;
    io.win32 = false;
    io.lerror = 0;
-   plug_func(plugin)->pluginIO(plugin_ctx, &io);
+   plug_func(plugin)->pluginIO(jcr->plugin_ctx, &io);
    bfd->berrno = io.io_errno;
    if (io.win32) {
       errno = b_errno_win32;
@@ -622,7 +662,6 @@ static ssize_t my_plugin_bwrite(BFILE *bfd, void *buf, size_t count)
 {
    JCR *jcr = bfd->jcr;
    Plugin *plugin = (Plugin *)jcr->plugin;
-   bpContext *plugin_ctx = (bpContext *)jcr->plugin_ctx;
    struct io_pkt io;
    Dmsg0(dbglvl, "plugin_bwrite\n");
    io.pkt_size = sizeof(io);
@@ -632,7 +671,7 @@ static ssize_t my_plugin_bwrite(BFILE *bfd, void *buf, size_t count)
    io.buf = (char *)buf;
    io.win32 = false;
    io.lerror = 0;
-   plug_func(plugin)->pluginIO(plugin_ctx, &io);
+   plug_func(plugin)->pluginIO(jcr->plugin_ctx, &io);
    bfd->berrno = io.io_errno;
    if (io.win32) {
       errno = b_errno_win32;
@@ -647,7 +686,6 @@ static boffset_t my_plugin_blseek(BFILE *bfd, boffset_t offset, int whence)
 {
    JCR *jcr = bfd->jcr;
    Plugin *plugin = (Plugin *)jcr->plugin;
-   bpContext *plugin_ctx = (bpContext *)jcr->plugin_ctx;
    struct io_pkt io;
    Dmsg0(dbglvl, "plugin_bseek\n");
    io.pkt_size = sizeof(io);
@@ -657,7 +695,7 @@ static boffset_t my_plugin_blseek(BFILE *bfd, boffset_t offset, int whence)
    io.whence = whence;
    io.win32 = false;
    io.lerror = 0;
-   plug_func(plugin)->pluginIO(plugin_ctx, &io);
+   plug_func(plugin)->pluginIO(jcr->plugin_ctx, &io);
    bfd->berrno = io.io_errno;
    if (io.win32) {
       errno = b_errno_win32;
@@ -676,9 +714,14 @@ static boffset_t my_plugin_blseek(BFILE *bfd, boffset_t offset, int whence)
  */
 static bRC baculaGetValue(bpContext *ctx, bVariable var, void *value)
 {
-   JCR *jcr = ((bacula_ctx *)ctx->bContext)->jcr;
+   JCR *jcr;
+   jcr = ((bacula_ctx *)ctx->bContext)->jcr;
 // Dmsg1(dbglvl, "bacula: baculaGetValue var=%d\n", var);
-   if (!value) {
+   if (!value || !ctx) {
+      return bRC_Error;
+   }
+   jcr = ((bacula_ctx *)ctx->bContext)->jcr;
+   if (!jcr) {
       return bRC_Error;
    }
 // Dmsg1(dbglvl, "Bacula: jcr=%p\n", jcr); 
@@ -704,6 +747,9 @@ static bRC baculaGetValue(bpContext *ctx, bVariable var, void *value)
 
 static bRC baculaSetValue(bpContext *ctx, bVariable var, void *value)
 {
+   if (!value || !ctx) {
+      return bRC_Error;
+   }
    Dmsg1(dbglvl, "bacula: baculaSetValue var=%d\n", var);
    return bRC_OK;
 }
@@ -712,6 +758,10 @@ static bRC baculaRegisterEvents(bpContext *ctx, ...)
 {
    va_list args;
    uint32_t event;
+
+   if (!ctx) {
+      return bRC_Error;
+   }
 
    va_start(args, ctx);
    while ((event = va_arg(args, uint32_t))) {
@@ -726,7 +776,13 @@ static bRC baculaJobMsg(bpContext *ctx, const char *file, int line,
 {
    va_list arg_ptr;
    char buf[2000];
-   JCR *jcr = ((bacula_ctx *)ctx->bContext)->jcr;
+   JCR *jcr;
+
+   if (ctx) {
+      jcr = ((bacula_ctx *)ctx->bContext)->jcr;
+   } else {
+      jcr = NULL;
+   }
 
    va_start(arg_ptr, fmt);
    bvsnprintf(buf, sizeof(buf), fmt, arg_ptr);

@@ -122,9 +122,9 @@ void new_plugins(JCR *jcr)
       return;
    }
 
-   jcr->plugin_ctx_list = (void *)malloc(sizeof(bpContext) * num);
+   jcr->plugin_ctx_list = (bpContext *)malloc(sizeof(bpContext) * num);
 
-   bpContext *plugin_ctx_list = (bpContext *)jcr->plugin_ctx_list;
+   bpContext *plugin_ctx_list = jcr->plugin_ctx_list;
    Dmsg2(dbglvl, "Instantiate plugin_ctx_list=%p JobId=%d\n", jcr->plugin_ctx_list, jcr->JobId);
    foreach_alist(plugin, plugin_list) {
       /* Start a new instance of each plugin */
