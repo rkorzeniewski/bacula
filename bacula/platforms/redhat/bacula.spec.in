@@ -6,7 +6,7 @@
 # basic defines for every build
 %define _version @VERSION@
 %define _release 1
-%define depkgs_version 22Feb08
+%define depkgs_version 11Sep08
 %define _rescuever @VERSION@
 %define docs_version @VERSION@
 
@@ -2173,7 +2173,6 @@ fi
 %attr(-, root, %{storage_daemon_group}) %{_sbindir}/mtx
 %attr(-, root, %{storage_daemon_group}) %{_sbindir}/scsitape
 %attr(-, root, %{storage_daemon_group}) %{_sbindir}/tapeinfo
-%attr(-, root, %{storage_daemon_group}) %{_sbindir}/nsmhack
 %attr(-, root, %{storage_daemon_group}) %{_sbindir}/scsieject
 %{_mandir}/man1/loaderinfo.1.%{manpage_ext}
 %{_mandir}/man1/mtx.1.%{manpage_ext}
@@ -2429,6 +2428,8 @@ fi
 %endif
 
 %changelog
+* Sat Oct 11 2008 D. Scott Barninger <barninger@fairfieldcomputers.com>
+- release 2.4.3 update depkgs to 11Sep08 remove file nmshack from mtx package
 * Sun Sep 07 2008 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - adjust /opt/bacula install
 - add build switch to supress rescue package
