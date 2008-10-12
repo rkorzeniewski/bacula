@@ -20,7 +20,12 @@ sdport=`expr ${BASEPORT} '+' 2`
 db_name=${db_name:-"regress"}
 db_user=${db_user:-"regress"}
 db_password=${db_password:-""}
-os=`uname -s`-`./scripts/get-os`
+# Drop Linux from OS to shorten name
+if test `uname -s` = "Linux"; then
+  os=`./scripts/get-os`
+else
+  os=`uname -s`-`./scripts/get-os`
+fi
 dbengine=`echo ${WHICHDB} | sed -e 's/--with-//' -e 's/=.*//'`
 bversion=`sed -n -e 's/^.*VERSION.*"\(.*\)"$/\1/p' ${srcdir}/src/version.h`
 bdate=`sed -n -e 's/^.*LSMDATE.*"\(.*\)"$/\1/p' ${srcdir}/src/version.h`
