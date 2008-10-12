@@ -158,6 +158,16 @@ Device {
   Label Type = ansi
 }
 
+Device {
+  Name = FileStorage
+  Device Type = File
+  Media Type = FileMedia
+  Archive Device = @tmpdir@
+  AutomaticMount = yes;               # when device opened, read it
+  AlwaysOpen = yes;
+  RemovableMedia = yes;
+# Maximum File Size = 1000000
+}
 
 # 
 # Send all messages to the Director, 
