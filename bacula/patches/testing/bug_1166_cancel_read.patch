@@ -79,7 +79,7 @@ Index: src/dird/backup.c
 -            break;
 +         
 +         /* wait for data few minutes */
-+         ret = fd->wait_data_intr(5*60, 0); 
++         ret = fd->wait_data_intr(3*60, 0); 
 +         if (ret == 1) {       /* get data */
 +            n = bget_dirmsg(fd);
 +            if (n >= 0 && 
