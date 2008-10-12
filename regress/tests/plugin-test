@@ -19,9 +19,12 @@ cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 messages
 @$out ${cwd}/tmp/log1.out
 label storage=File1 volume=TestVolume001
-@#setdebug level=50 client=$CLIENT
+setdebug level=150 client=$CLIENT
+estimate job=$JobName level=Full
+setdebug level=50 client=$CLIENT
 run job=$JobName storage=File1 yes
 wait
+status client=$CLIENT
 messages
 quit
 END_OF_DATA
