@@ -105,7 +105,8 @@ Viewing the Dashboard
 
 You can view the dashboard at:
 
-http://regress.bacula.org:8081
+http://regress.bacula.org/index.php?project=bacula
+
 
 Results will not be visible as soon as they are submitted to the server.
 Processing is currently done every 10 minutes, so you may have to wait up to 15
