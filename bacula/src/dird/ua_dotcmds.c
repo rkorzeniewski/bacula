@@ -69,26 +69,26 @@ static bool sql_cmd(UAContext *ua, const char *cmd);
 static bool dot_quit_cmd(UAContext *ua, const char *cmd);
 static bool dot_help_cmd(UAContext *ua, const char *cmd);
 
-struct cmdstruct { const char *key; bool (*func)(UAContext *ua, const char *cmd); const char *help; };
-static struct cmdstruct commands[] = {
- { NT_(".api"),        api_cmd,        NULL},
- { NT_(".backups"),    backupscmd,     NULL},
- { NT_(".clients"),    clientscmd,     NULL},
- { NT_(".defaults"),   defaultscmd,    NULL},
- { NT_(".die"),        diecmd,         NULL},
- { NT_(".exit"),       dot_quit_cmd,   NULL},
- { NT_(".filesets"),   filesetscmd,    NULL},
- { NT_(".help"),       dot_help_cmd,   NULL},
- { NT_(".jobs"),       jobscmd,        NULL},
- { NT_(".levels"),     levelscmd,      NULL},
- { NT_(".messages"),   getmsgscmd,     NULL},
- { NT_(".msgs"),       msgscmd,        NULL},
- { NT_(".pools"),      poolscmd,       NULL},
- { NT_(".quit"),       dot_quit_cmd,   NULL},
- { NT_(".sql"),        sql_cmd,        NULL},
- { NT_(".status"),     dot_status_cmd, NULL},
- { NT_(".storage"),    storagecmd,     NULL},
- { NT_(".types"),      typescmd,       NULL} 
+struct cmdstruct { const char *key; bool (*func)(UAContext *ua, const char *cmd); const char *help;const bool use_in_rs;};
+static struct cmdstruct commands[] = { /* help */  /* can be used in runscript */
+ { NT_(".api"),        api_cmd,          NULL,       false},
+ { NT_(".backups"),    backupscmd,       NULL,       false},
+ { NT_(".clients"),    clientscmd,       NULL,       true},
+ { NT_(".defaults"),   defaultscmd,      NULL,       false},
+ { NT_(".die"),        diecmd,           NULL,       false},
+ { NT_(".exit"),       dot_quit_cmd,     NULL,       false},
+ { NT_(".filesets"),   filesetscmd,      NULL,       false},
+ { NT_(".help"),       dot_help_cmd,     NULL,       false},
+ { NT_(".jobs"),       jobscmd,          NULL,       true},
+ { NT_(".levels"),     levelscmd,        NULL,       false},
+ { NT_(".messages"),   getmsgscmd,       NULL,       false},
+ { NT_(".msgs"),       msgscmd,          NULL,       false},
+ { NT_(".pools"),      poolscmd,         NULL,       true},
+ { NT_(".quit"),       dot_quit_cmd,     NULL,       false},
+ { NT_(".sql"),        sql_cmd,          NULL,       false},
+ { NT_(".status"),     dot_status_cmd,   NULL,       false},
+ { NT_(".storage"),    storagecmd,       NULL,       true},
+ { NT_(".types"),      typescmd,         NULL,       false} 
              };
 #define comsize ((int)(sizeof(commands)/sizeof(struct cmdstruct)))
 
@@ -116,6 +116,11 @@ bool do_a_dot_command(UAContext *ua)
    }
    for (i=0; i<comsize; i++) {     /* search for command */
       if (strncasecmp(ua->argk[0],  _(commands[i].key), len) == 0) {
+         /* Check if this command is authorized in RunScript */
+         if (ua->runscript && !commands[i].use_in_rs) {
+            ua->error_msg(_("Can't use %s command in a runscript"), ua->argk[0]);
+            break;
+         }
          bool gui = ua->gui;
          /* Check if command permitted, but "quit" is always OK */
          if (strcmp(ua->argk[0], NT_(".quit")) != 0 &&

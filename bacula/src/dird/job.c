@@ -1368,15 +1368,19 @@ bool create_restore_bootstrap_file(JCR *jcr)
    return true;
 }
 
+/* TODO: redirect command ouput to job log */
 bool run_console_command(JCR *jcr, const char *cmd){
    UAContext *ua;
    bool ok;
-
-   ua = new_ua_context(jcr);
+   JCR *ljcr = new_control_jcr("-RunScript-", JT_CONSOLE);
+   ua = new_ua_context(ljcr);
+   /* run from runscript and check if commands are autorized */
+   ua->runscript = true;
    Mmsg(ua->cmd, "%s", cmd);
    Dmsg1(100, "Console command: %s\n", ua->cmd);
    parse_ua_args(ua);
    ok= do_a_command(ua);
    free_ua_context(ua);
+   free_jcr(ljcr);
    return ok;
 }
