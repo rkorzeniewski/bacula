@@ -206,9 +206,9 @@ typedef struct s_baculaFuncs {
        int type, time_t mtime, const char *fmt, ...);     
    bRC (*DebugMessage)(bpContext *ctx, const char *file, int line,
        int level, const char *fmt, ...);
-   void *(*malloc)(bpContext *ctx, const char *file, int line, 
+   void *(*baculaMalloc)(bpContext *ctx, const char *file, int line, 
        size_t size);
-   void (*free)(bpContext *ctx, const char *file, int line, void *mem);
+   void (*baculaFree)(bpContext *ctx, const char *file, int line, void *mem);
 } bFuncs;
 
 
