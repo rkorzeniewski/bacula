@@ -657,6 +657,8 @@ FALSEPRG
 VERSION
 DATE
 LSMDATE
+BACULA
+post_host
 CC
 CFLAGS
 LDFLAGS
@@ -2130,10 +2132,15 @@ test -n "$FALSEPRG" || FALSEPRG=":"
 
 
 
+post_host=
+if test "x$BACULA" != x; then
+   post_host=`echo -${BACULA} | tr 'A-Z ' 'a-z-'`
+fi
+BACULA=${BACULA-Bacula}
 VERSION=`sed -n -e 's/^.*VERSION.*"\(.*\)"$/\1/p' ${srcdir}/src/version.h`
 DATE=`sed -n -e 's/^.* \t*BDATE.*"\(.*\)"$/\1/p' ${srcdir}/src/version.h`
 LSMDATE=`sed -n -e 's/^.*LSMDATE.*"\(.*\)"$/\1/p' ${srcdir}/src/version.h`
-echo "configuring for bacula $VERSION ($DATE)"
+echo "configuring for ${BACULA} $VERSION ($DATE)"
 
 
 
@@ -31415,6 +31422,8 @@ FALSEPRG!$FALSEPRG$ac_delim
 VERSION!$VERSION$ac_delim
 DATE!$DATE$ac_delim
 LSMDATE!$LSMDATE$ac_delim
+BACULA!$BACULA$ac_delim
+post_host!$post_host$ac_delim
 CC!$CC$ac_delim
 CFLAGS!$CFLAGS$ac_delim
 LDFLAGS!$LDFLAGS$ac_delim
@@ -31463,8 +31472,6 @@ LOCAL_CFLAGS!$LOCAL_CFLAGS$ac_delim
 LOCAL_LDFLAGS!$LOCAL_LDFLAGS$ac_delim
 LOCAL_DEFS!$LOCAL_DEFS$ac_delim
 build!$build$ac_delim
-build_cpu!$build_cpu$ac_delim
-build_vendor!$build_vendor$ac_delim
 _ACEOF
 
   if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 94; then
@@ -31510,6 +31517,8 @@ _ACEOF
 ac_delim='%!_!# '
 for ac_last_try in false false false false false :; do
   cat >conf$$subs.sed <<_ACEOF
+build_cpu!$build_cpu$ac_delim
+build_vendor!$build_vendor$ac_delim
 build_os!$build_os$ac_delim
 host!$host$ac_delim
 host_cpu!$host_cpu$ac_delim
@@ -31605,8 +31614,6 @@ READLINE_SRC!$READLINE_SRC$ac_delim
 PYTHON_LIBS!$PYTHON_LIBS$ac_delim
 PYTHON_INCDIR!$PYTHON_INCDIR$ac_delim
 OPENSSL_LIBS!$OPENSSL_LIBS$ac_delim
-OPENSSL_INC!$OPENSSL_INC$ac_delim
-working_dir!$working_dir$ac_delim
 _ACEOF
 
   if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 97; then
@@ -31648,6 +31655,8 @@ _ACEOF
 ac_delim='%!_!# '
 for ac_last_try in false false false false false :; do
   cat >conf$$subs.sed <<_ACEOF
+OPENSSL_INC!$OPENSSL_INC$ac_delim
+working_dir!$working_dir$ac_delim
 archivedir!$archivedir$ac_delim
 scriptdir!$scriptdir$ac_delim
 plugindir!$plugindir$ac_delim
@@ -31712,7 +31721,7 @@ DISTVER!$DISTVER$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 62; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 64; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5
@@ -32369,8 +32378,8 @@ fi
 echo "
 Configuration on `date`:
 
-  Host: 		      $host -- ${DISTNAME} ${DISTVER}
-  Bacula version:	      ${VERSION} (${DATE})
+  Host: 		      ${host}${post_host} -- ${DISTNAME} ${DISTVER}
+  Bacula version:	      ${BACULA} ${VERSION} (${DATE})
   Source code location:       ${srcdir}
   Install binaries:	      ${sbindir}
   Install config files:       ${sysconfdir}
