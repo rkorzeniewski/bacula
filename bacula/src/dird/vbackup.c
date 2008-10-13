@@ -166,7 +166,7 @@ _("This Job is not an Accurate backup so is not equivalent to a Full backup.\n")
    Dmsg1(10, "Accurate jobids=%s\n", jobids);
    if (*jobids == 0) {
       free_pool_memory(jobids);
-      Jmsg(jcr, M_FATAL, 0, _("Cannot find previous JobIds.\n"));
+      Jmsg(jcr, M_FATAL, 0, _("No previous Jobs found.\n"));
       return false;
    }
 

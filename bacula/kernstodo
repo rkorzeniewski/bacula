@@ -73,14 +73,11 @@ Priority:
 ================
 - Detect deadlocks in reservations.
 - Plugins:
-  - add malloc/restore
   - Add list during dump
   - Add in plugin code flag
   - Add bRC_EndJob -- stops more calls to plugin this job
   - Add bRC_Term (unload plugin)
   - remove time_t from Jmsg and use utime_t?
-  - add more doc
-     - distinguish two types of plugins
 - Extended ACLs
 - Deadlock detection, watchdog sees if counter advances when jobs are
   running.  With debug on, can do a "status" command.
