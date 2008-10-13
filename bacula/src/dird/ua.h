@@ -60,6 +60,7 @@ public:
    bool verbose;                      /* set for normal UA verbosity */
    bool batch;                        /* set for non-interactive mode */
    bool gui;                          /* set if talking to GUI program */
+   bool runscript;                    /* set if we are in runscript */
    uint32_t pint32_val;               /* positive integer */
    int32_t  int32_val;                /* positive/negative */
    int64_t  int64_val;                /* big int */

@@ -96,50 +96,50 @@ int qhelp_cmd(UAContext *ua, const char *cmd);
 int quit_cmd(UAContext *ua, const char *cmd);
 
 
-struct cmdstruct { const char *key; int (*func)(UAContext *ua, const char *cmd); const char *help; };
-static struct cmdstruct commands[] = {
- { NT_("add"),        add_cmd,         _("add media to a pool")},
- { NT_("autodisplay"), autodisplay_cmd, _("autodisplay [on|off] -- console messages")},
- { NT_("automount"),   automount_cmd,  _("automount [on|off] -- after label")},
- { NT_("cancel"),     cancel_cmd,    _("cancel [<jobid=nnn> | <job=name>] -- cancel a job")},
- { NT_("create"),     create_cmd,    _("create DB Pool from resource")},
- { NT_("delete"),     delete_cmd,    _("delete [pool=<pool-name> | media volume=<volume-name>]")},
- { NT_("disable"),    disable_cmd,   _("disable <job=name> -- disable a job")},
- { NT_("enable"),     enable_cmd,    _("enable <job=name> -- enable a job")},
- { NT_("estimate"),   estimate_cmd,  _("performs FileSet estimate, listing gives full listing")},
- { NT_("exit"),       quit_cmd,      _("exit = quit")},
- { NT_("gui"),        gui_cmd,       _("gui [on|off] -- non-interactive gui mode")},
- { NT_("help"),       help_cmd,      _("print this command")},
- { NT_("list"),       list_cmd,      _("list [pools | jobs | jobtotals | media <pool=pool-name> | files <jobid=nn>]; from catalog")},
- { NT_("label"),      label_cmd,     _("label a tape")},
- { NT_("llist"),      llist_cmd,     _("full or long list like list command")},
- { NT_("messages"),   messagescmd,   _("messages")},
- { NT_("memory"),     memory_cmd,    _("print current memory usage")},
- { NT_("mount"),      mount_cmd,     _("mount <storage-name>")},
- { NT_("prune"),      prunecmd,      _("prune expired records from catalog")},
- { NT_("purge"),      purgecmd,      _("purge records from catalog")},
- { NT_("python"),     python_cmd,    _("python control commands")},
- { NT_("quit"),       quit_cmd,      _("quit")},
- { NT_("query"),      querycmd,      _("query catalog")},
- { NT_("restore"),    restore_cmd,   _("restore files")},
- { NT_("relabel"),    relabel_cmd,   _("relabel a tape")},
- { NT_("release"),    release_cmd,   _("release <storage-name>")},
- { NT_("reload"),     reload_cmd,    _("reload conf file")},
- { NT_("run"),        run_cmd,       _("run <job-name>")},
- { NT_("status"),     status_cmd,    _("status [storage | client]=<name>")},
- { NT_("setdebug"),   setdebug_cmd,  _("sets debug level")},
- { NT_("setip"),      setip_cmd,     _("sets new client address -- if authorized")},
- { NT_("show"),       show_cmd,      _("show (resource records) [jobs | pools | ... | all]")},
- { NT_("sqlquery"),   sqlquerycmd,   _("use SQL to query catalog")},
- { NT_("time"),       time_cmd,      _("print current time")},
- { NT_("trace"),      trace_cmd,     _("turn on/off trace to file")},
- { NT_("unmount"),    unmount_cmd,   _("unmount <storage-name>")},
- { NT_("umount"),     unmount_cmd,   _("umount <storage-name> for old-time Unix guys")},
- { NT_("update"),     update_cmd,    _("update Volume, Pool or slots")},
- { NT_("use"),        use_cmd,       _("use catalog xxx")},
- { NT_("var"),        var_cmd,       _("does variable expansion")},
- { NT_("version"),    version_cmd,   _("print Director version")},
- { NT_("wait"),       wait_cmd,      _("wait until no jobs are running [<jobname=name> | <jobid=nnn> | <ujobid=complete_name>]")},
+struct cmdstruct { const char *key; int (*func)(UAContext *ua, const char *cmd); const char *help; const bool use_in_rs;};
+static struct cmdstruct commands[] = {                                      /* Can use it in Console RunScript*/
+ { NT_("add"),        add_cmd,         _("add media to a pool"),                      false},
+ { NT_("autodisplay"), autodisplay_cmd, _("autodisplay [on|off] -- console messages"),false},
+ { NT_("automount"),   automount_cmd,  _("automount [on|off] -- after label"),        false},
+ { NT_("cancel"),     cancel_cmd,    _("cancel [<jobid=nnn> | <job=name>] -- cancel a job"), false},
+ { NT_("create"),     create_cmd,    _("create DB Pool from resource"),               false},
+ { NT_("delete"),     delete_cmd,    _("delete [pool=<pool-name> | media volume=<volume-name>]"), true},
+ { NT_("disable"),    disable_cmd,   _("disable <job=name> -- disable a job"),        true},
+ { NT_("enable"),     enable_cmd,    _("enable <job=name> -- enable a job"),          true},
+ { NT_("estimate"),   estimate_cmd,  _("performs FileSet estimate, listing gives full listing"), true},
+ { NT_("exit"),       quit_cmd,      _("exit = quit"),                                false},
+ { NT_("gui"),        gui_cmd,       _("gui [on|off] -- non-interactive gui mode"),   false},
+ { NT_("help"),       help_cmd,      _("print this command"),                         false},
+ { NT_("list"),       list_cmd,      _("list [pools | jobs | jobtotals | media <pool=pool-name> | files <jobid=nn>]; from catalog"), true},
+ { NT_("label"),      label_cmd,     _("label a tape"),                               false},
+ { NT_("llist"),      llist_cmd,     _("full or long list like list command"),        true},
+ { NT_("messages"),   messagescmd,   _("messages"),                                   false},
+ { NT_("memory"),     memory_cmd,    _("print current memory usage"),                 true},
+ { NT_("mount"),      mount_cmd,     _("mount <storage-name>"),                       false},
+ { NT_("prune"),      prunecmd,      _("prune expired records from catalog"),         true},
+ { NT_("purge"),      purgecmd,      _("purge records from catalog"),                 true},
+ { NT_("python"),     python_cmd,    _("python control commands"),                    false},
+ { NT_("quit"),       quit_cmd,      _("quit"),                                       false},
+ { NT_("query"),      querycmd,      _("query catalog"),                              false},
+ { NT_("restore"),    restore_cmd,   _("restore files"),                              false},
+ { NT_("relabel"),    relabel_cmd,   _("relabel a tape"),                             false},
+ { NT_("release"),    release_cmd,   _("release <storage-name>"),                     false},
+ { NT_("reload"),     reload_cmd,    _("reload conf file"),                           true},
+ { NT_("run"),        run_cmd,       _("run <job-name>"),                             false}, /* need to be check */
+ { NT_("status"),     status_cmd,    _("status [storage | client]=<name>"),           true},
+ { NT_("setdebug"),   setdebug_cmd,  _("sets debug level"),                           true},
+ { NT_("setip"),      setip_cmd,     _("sets new client address -- if authorized"),   false},
+ { NT_("show"),       show_cmd,      _("show (resource records) [jobs | pools | ... | all]"), true},
+ { NT_("sqlquery"),   sqlquerycmd,   _("use SQL to query catalog"),                   false},
+ { NT_("time"),       time_cmd,      _("print current time"),                         true},
+ { NT_("trace"),      trace_cmd,     _("turn on/off trace to file"),                  true},
+ { NT_("unmount"),    unmount_cmd,   _("unmount <storage-name>"),                     false},
+ { NT_("umount"),     unmount_cmd,   _("umount <storage-name> for old-time Unix guys"),false},
+ { NT_("update"),     update_cmd,    _("update Volume, Pool or slots"),               true},
+ { NT_("use"),        use_cmd,       _("use catalog xxx"),                            false},
+ { NT_("var"),        var_cmd,       _("does variable expansion"),                    false},
+ { NT_("version"),    version_cmd,   _("print Director version"),                     true},
+ { NT_("wait"),       wait_cmd,      _("wait until no jobs are running [<jobname=name> | <jobid=nnn> | <ujobid=complete_name>]"), false},
              };
 #define comsize (sizeof(commands)/sizeof(struct cmdstruct))
 
@@ -160,11 +160,9 @@ bool do_a_command(UAContext *ua)
       return false;
    }
 
-#ifdef xxxx
    while (ua->jcr->wstorage->size()) {
       ua->jcr->wstorage->remove(0);
    }
-#endif
 
    len = strlen(ua->argk[0]);
    for (i=0; i<comsize; i++) {     /* search for command */
@@ -172,6 +170,11 @@ bool do_a_command(UAContext *ua)
          /* Check if command permitted, but "quit" is always OK */
          if (strcmp(ua->argk[0], NT_("quit")) != 0 &&
              !acl_access_ok(ua, Command_ACL, ua->argk[0], len)) {
+            break;
+         }
+         /* Check if this command is authorized in RunScript */
+         if (ua->runscript && !commands[i].use_in_rs) {
+            ua->error_msg(_("Can't use %s command in a runscript"), ua->argk[0]);
             break;
          }
          if (ua->api) user->signal(BNET_CMD_BEGIN);
