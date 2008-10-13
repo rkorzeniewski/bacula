@@ -34,8 +34,10 @@
  */
 
 struct RES_ITEM;                    /* Declare forward referenced structure */
+struct RES_ITEM2;                  /* Declare forward referenced structure */
 class RES;                         /* Declare forware referenced structure */
 typedef void (MSG_RES_HANDLER)(LEX *lc, RES_ITEM *item, int index, int pass);
+typedef void (INC_RES_HANDLER)(LEX *lc, RES_ITEM2 *item, int index, int pass, bool exclude);
 
 
 
@@ -63,6 +65,27 @@ struct RES_ITEM {
    uint32_t  flags;                   /* flags: default, required, ... */
    int32_t  default_value;            /* default value */
 };
+
+struct RES_ITEM2 {
+   const char *name;                  /* Resource name i.e. Director, ... */
+   INC_RES_HANDLER *handler;          /* Routine storing the resource item */
+   union {
+      char **value;                   /* Where to store the item */
+      char **charvalue;
+      uint32_t ui32value;
+      int32_t i32value;
+      uint64_t ui64value;
+      int64_t i64value;
+      bool boolvalue;
+      utime_t utimevalue;
+      RES *resvalue;
+      RES **presvalue;
+   };
+   int32_t  code;                     /* item code/additional info */
+   uint32_t  flags;                   /* flags: default, required, ... */
+   int32_t  default_value;            /* default value */
+};
+
 
 /* For storing name_addr items in res_items table */
 #define ITEM(x) {(char **)&res_all.x}

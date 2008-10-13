@@ -491,7 +491,7 @@ struct s_jt migtypes[] = {
    {"oldestvolume",     MT_OLDEST_VOL},
    {"pooloccupancy",    MT_POOL_OCCUPANCY},
    {"pooltime",         MT_POOL_TIME},
-   {"pooluncopiedjobs",	MT_POOL_UNCOPIED_JOBS},
+   {"pooluncopiedjobs", MT_POOL_UNCOPIED_JOBS},
    {"client",           MT_CLIENT},
    {"volume",           MT_VOLUME},
    {"job",              MT_JOB},

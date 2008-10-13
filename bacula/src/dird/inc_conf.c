@@ -52,13 +52,15 @@ static void store_wild(LEX *lc, RES_ITEM *item, int index, int pass);
 static void store_fstype(LEX *lc, RES_ITEM *item, int index, int pass);
 static void store_drivetype(LEX *lc, RES_ITEM *item, int index, int pass);
 static void store_opts(LEX *lc, RES_ITEM *item, int index, int pass);
-static void store_fname(LEX *lc, RES_ITEM *item, int index, int pass);
-static void store_plugin_name(LEX *lc, RES_ITEM *item, int index, int pass);
-static void options_res(LEX *lc, RES_ITEM *item, int index, int pass);
 static void store_base(LEX *lc, RES_ITEM *item, int index, int pass);
 static void store_plugin(LEX *lc, RES_ITEM *item, int index, int pass);
-static void store_ignoredir(LEX *lc, RES_ITEM *item, int index, int pass);
 static void setup_current_opts(void);
+
+/* Include and Exclude items */
+static void store_fname(LEX *lc, RES_ITEM2 *item, int index, int pass, bool exclude);
+static void store_plugin_name(LEX *lc, RES_ITEM2 *item, int index, int pass, bool exclude);
+static void options_res(LEX *lc, RES_ITEM2 *item, int index, int pass, bool exclude);
+static void store_excludedir(LEX *lc, RES_ITEM2 *item, int index, int pass, bool exclude);
 
 
 /* We build the current resource here as we are
@@ -82,10 +84,10 @@ static INCEXE res_incexe;
  * new Include/Exclude items
  *   name             handler     value    code flags default_value
  */
-static RES_ITEM newinc_items[] = {
+static RES_ITEM2 newinc_items[] = {
    {"file",            store_fname,       {0},      0, 0, 0},
    {"plugin",          store_plugin_name, {0},      0, 0, 0},
-   {"ignoredir",       store_ignoredir,   {0},      0, 0, 0},
+   {"excludedircontaining", store_excludedir,  {0}, 0, 0, 0},
    {"options",         options_res,       {0},      0, 0, 0},
    {NULL, NULL, {0}, 0, 0, 0}
 };
@@ -329,7 +331,7 @@ static void scan_include_options(LEX *lc, int keyword, char *opts, int optlen)
 /*
  *
  * Store FileSet Include/Exclude info
- *  NEW style includes are handled in store_newinc()
+ *  new style includes are handled in store_newinc()
  */
 void store_inc(LEX *lc, RES_ITEM *item, int index, int pass)
 {
@@ -350,7 +352,7 @@ void store_inc(LEX *lc, RES_ITEM *item, int index, int pass)
 
 
 /*
- * Store NEW style FileSet FInclude/FExclude info
+ * Store new style FileSet Include/Exclude info
  *
  *  Note, when this routine is called, we are inside a FileSet
  *  resource.  We treat the Include/Execlude like a sort of
@@ -385,7 +387,7 @@ static void store_newinc(LEX *lc, RES_ITEM *item, int index, int pass)
                }
             }
             /* Call item handler */
-            newinc_items[i].handler(lc, &newinc_items[i], i, pass);
+            newinc_items[i].handler(lc, &newinc_items[i], i, pass, item->code);
             i = -1;
             break;
          }
@@ -570,16 +572,17 @@ static void store_fstype(LEX *lc, RES_ITEM *item, int index, int pass)
    scan_to_eol(lc);
 }
 
-/* Store ignoredir info */
-static void store_ignoredir(LEX *lc, RES_ITEM *item, int index, int pass)
+/* Store exclude directory containing  info */
+static void store_excludedir(LEX *lc, RES_ITEM2 *item, int index, int pass, bool exclude)
 {
    int token;
 
+   if (exclude) {
+      scan_err0(lc, _("ExcludeDirContaining directive not permitted in Exclude.\n"));
+      /* NOT REACHED */
+   }
    token = lex_get_token(lc, T_NAME);
    if (pass == 1) {
-      /*
-       * Pickup reader command
-       */
       res_incexe.current_opts->ignoredir = bstrdup(lc->str);
    }
    scan_to_eol(lc);
@@ -613,7 +616,7 @@ static void store_drivetype(LEX *lc, RES_ITEM *item, int index, int pass)
  * always increase the name buffer by 10 items because we expect
  * to add more entries.
  */
-static void store_fname(LEX *lc, RES_ITEM *item, int index, int pass)
+static void store_fname(LEX *lc, RES_ITEM2 *item, int index, int pass, bool exclude)
 {
    int token;
    INCEXE *incexe;
@@ -652,11 +655,15 @@ static void store_fname(LEX *lc, RES_ITEM *item, int index, int pass)
  * always increase the name buffer by 10 items because we expect
  * to add more entries.
  */
-static void store_plugin_name(LEX *lc, RES_ITEM *item, int index, int pass)
+static void store_plugin_name(LEX *lc, RES_ITEM2 *item, int index, int pass, bool exclude)
 {
    int token;
    INCEXE *incexe;
 
+   if (exclude) {
+      scan_err0(lc, _("Plugin directive not permitted in Exclude\n"));
+      /* NOT REACHED */
+   }
    token = lex_get_token(lc, T_SKIP_EOL);
    if (pass == 1) {
       /* Pickup Filename string
@@ -681,6 +688,7 @@ static void store_plugin_name(LEX *lc, RES_ITEM *item, int index, int pass)
          break;
       default:
          scan_err1(lc, _("Expected a filename, got: %s"), lc->str);
+         /* NOT REACHED */
       }
    }
    scan_to_eol(lc);
@@ -691,10 +699,14 @@ static void store_plugin_name(LEX *lc, RES_ITEM *item, int index, int pass)
 /*
  * Come here when Options seen in Include/Exclude
  */
-static void options_res(LEX *lc, RES_ITEM *item, int index, int pass)
+static void options_res(LEX *lc, RES_ITEM2 *item, int index, int pass, bool exclude)
 {
    int token, i;
 
+   if (exclude) {
+      scan_err0(lc, _("Options section not permitted in Exclude\n"));
+      /* NOT REACHED */
+   }
    token = lex_get_token(lc, T_SKIP_EOL);
    if (token != T_BOB) {
       scan_err1(lc, _("Expecting open brace. Got %s"), lc->str);
