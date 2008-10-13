@@ -22,13 +22,20 @@ AC_PATH_PROGS(FALSEPRG, false, :)
 
 
 dnl bacula version
+post_host=
+if test "x$BACULA" != x; then
+   post_host=`echo -${BACULA} | tr 'A-Z ' 'a-z-'`
+fi
+BACULA=${BACULA-Bacula}
 VERSION=`sed -n -e 's/^.*VERSION.*"\(.*\)"$/\1/p' ${srcdir}/src/version.h`
 DATE=`sed -n -e 's/^.*[ \t]*BDATE.*"\(.*\)"$/\1/p' ${srcdir}/src/version.h`
 LSMDATE=`sed -n -e 's/^.*LSMDATE.*"\(.*\)"$/\1/p' ${srcdir}/src/version.h`
 AC_SUBST(VERSION)dnl 
 AC_SUBST(DATE)dnl 
 AC_SUBST(LSMDATE)dnl 
-echo "configuring for bacula $VERSION ($DATE)"
+AC_SUBST(BACULA)dnl
+AC_SUBST(post_host)dnl
+echo "configuring for ${BACULA} $VERSION ($DATE)"
 
 
 dnl -------------------------------------------------------
@@ -2511,8 +2518,8 @@ fi
 echo "
 Configuration on `date`:
 
-  Host: 		      $host -- ${DISTNAME} ${DISTVER}
-  Bacula version:	      ${VERSION} (${DATE})
+  Host: 		      ${host}${post_host} -- ${DISTNAME} ${DISTVER}
+  Bacula version:	      ${BACULA} ${VERSION} (${DATE})
   Source code location:       ${srcdir}
   Install binaries:	      ${sbindir}
   Install config files:       ${sysconfdir}

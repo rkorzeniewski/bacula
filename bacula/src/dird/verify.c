@@ -438,7 +438,7 @@ void verify_cleanup(JCR *jcr, int TermCode)
    jobstatus_to_ascii(jcr->FDJobStatus, fd_term_msg, sizeof(fd_term_msg));
    if (jcr->get_JobLevel() == L_VERIFY_VOLUME_TO_CATALOG) {
       jobstatus_to_ascii(jcr->SDJobStatus, sd_term_msg, sizeof(sd_term_msg));
-      Jmsg(jcr, msg_type, 0, _("Bacula %s %s (%s): %s\n"
+      Jmsg(jcr, msg_type, 0, _("%s %s %s (%s): %s\n"
 "  Build OS:               %s %s %s\n"
 "  JobId:                  %d\n"
 "  Job:                    %s\n"
@@ -455,25 +455,25 @@ void verify_cleanup(JCR *jcr, int TermCode)
 "  FD termination status:  %s\n"
 "  SD termination status:  %s\n"
 "  Termination:            %s\n\n"),
-        my_name, VERSION, LSMDATE, edt,
-        HOST_OS, DISTNAME, DISTVER,
-         jcr->jr.JobId,
-         jcr->jr.Job,
-         jcr->fileset->hdr.name,
-         level_to_str(jcr->get_JobLevel()),
-         jcr->client->hdr.name,
-         jcr->previous_jr.JobId,
-         Name,
-         sdt,
-         edt,
-         edit_uint64_with_commas(jcr->ExpectedFiles, ec1),
-         edit_uint64_with_commas(jcr->JobFiles, ec2),
-         jcr->Errors,
-         fd_term_msg,
-         sd_term_msg,
-         term_msg);
+           BACULA, my_name, VERSION, LSMDATE, edt,
+           HOST_OS, DISTNAME, DISTVER,
+           jcr->jr.JobId,
+           jcr->jr.Job,
+           jcr->fileset->hdr.name,
+           level_to_str(jcr->get_JobLevel()),
+           jcr->client->hdr.name,
+           jcr->previous_jr.JobId,
+           Name,
+           sdt,
+           edt,
+           edit_uint64_with_commas(jcr->ExpectedFiles, ec1),
+           edit_uint64_with_commas(jcr->JobFiles, ec2),
+           jcr->Errors,
+           fd_term_msg,
+           sd_term_msg,
+           term_msg);
    } else {
-      Jmsg(jcr, msg_type, 0, _("Bacula %s %s (%s): %s\n"
+      Jmsg(jcr, msg_type, 0, _("%s %s %s (%s): %s\n"
 "  Build:                  %s %s %s\n"
 "  JobId:                  %d\n"
 "  Job:                    %s\n"
@@ -488,21 +488,21 @@ void verify_cleanup(JCR *jcr, int TermCode)
 "  Non-fatal FD errors:    %d\n"
 "  FD termination status:  %s\n"
 "  Termination:            %s\n\n"),
-        my_name, VERSION, LSMDATE, edt,
-        HOST_OS, DISTNAME, DISTVER,
-         jcr->jr.JobId,
-         jcr->jr.Job,
-         jcr->fileset->hdr.name,
-         level_to_str(jcr->get_JobLevel()),
-         jcr->client->name(),
-         jcr->previous_jr.JobId,
-         Name,
-         sdt,
-         edt,
-         edit_uint64_with_commas(jcr->JobFiles, ec1),
-         jcr->Errors,
-         fd_term_msg,
-         term_msg);
+           BACULA, my_name, VERSION, LSMDATE, edt,
+           HOST_OS, DISTNAME, DISTVER,
+           jcr->jr.JobId,
+           jcr->jr.Job,
+           jcr->fileset->hdr.name,
+           level_to_str(jcr->get_JobLevel()),
+           jcr->client->name(),
+           jcr->previous_jr.JobId,
+           Name,
+           sdt,
+           edt,
+           edit_uint64_with_commas(jcr->JobFiles, ec1),
+           jcr->Errors,
+           fd_term_msg,
+           term_msg);
    }
    Dmsg0(100, "Leave verify_cleanup()\n");
 }

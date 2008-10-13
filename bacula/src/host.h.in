@@ -32,6 +32,8 @@
    Switzerland, email:ftf@fsfeurope.org.
 */
 
-#define HOST_OS  "@host@"
+#define HOST_OS  "@host@@post_host@"
+#define BACULA   "@BACULA@"
 #define DISTNAME "@DISTNAME@"
 #define DISTVER  "@DISTVER@"
+
