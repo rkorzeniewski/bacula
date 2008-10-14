@@ -2583,7 +2583,7 @@ do_tape_cmds()
             found = true;
             break;
          }
-      if (!found) {
+      if (*cmd && !found) {
          Pmsg1(0, _("\"%s\" is an invalid command\n"), cmd);
       }
    }
