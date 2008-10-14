@@ -64,27 +64,27 @@ Makefile: $(srcdir)/Makefile.in $(topdir)/config.status
 	cd $(topdir) \
 	  && CONFIG_FILES=$(thisdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
 
-libtool-install: all
-	$(MKDIR) $(DESTDIR)$(libdir)
-	$(LIBTOOL_INSTALL_FINISH) $(INSTALL_PROGRAM) libbacfind$(DEFAULT_ARCHIVE_TYPE) $(DESTDIR)$(libdir)
-
-libtool-include: all
+install-includes:
 	$(MKDIR) $(DESTDIR)/$(includedir)/bacula/findlib
 	for I in ${INCLUDE_FILES}; do \
 	   $(INSTALL_DATA) $$I $(DESTDIR)$(includedir)/bacula/findlib/`basename $$I`; \
 	done
 
-libtool-uninstall:
-	$(LIBTOOL_UNINSTALL) $(RMF) $(DESTDIR)$(libdir)/libbacfind.la
-
-uninstall-libtool-include: all
+uninstall-includes:
 	for I in ${INCLUDE_FILES}; do \
 	   $(RMF) $(DESTDIR)$(includedir)/bacula/findlib/`basename $$I`; \
 	done
 
-install: @LIBTOOL_INSTALL_TARGET@
+libtool-install: all
+	$(MKDIR) $(DESTDIR)$(libdir)
+	$(LIBTOOL_INSTALL_FINISH) $(INSTALL_PROGRAM) libbacfind$(DEFAULT_ARCHIVE_TYPE) $(DESTDIR)$(libdir)
 
-uninstall: @LIBTOOL_UNINSTALL_TARGET@
+libtool-uninstall:
+	$(LIBTOOL_UNINSTALL) $(RMF) $(DESTDIR)$(libdir)/libbacfind.la
+
+install: @LIBTOOL_INSTALL_TARGET@ @INCLUDE_INSTALL_TARGET@
+
+uninstall: @LIBTOOL_UNINSTALL_TARGET@ @INCLUDE_UNINSTALL_TARGET@
 
 libtool-clean:
 	find . -name '*.lo' -print | xargs $(LIBTOOL_CLEAN) $(RMF)
