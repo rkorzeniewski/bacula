@@ -22,6 +22,11 @@ first_rule: all
 dummy:
 
 #
+# include files installed when using libtool
+#
+INCLUDE_FILES = bdb.h cats.h protos.h sql_cmds.h
+
+#
 SVRSRCS = cats.c sql.c
 SVROBJS = cats.o sql.o
 
@@ -29,12 +34,13 @@ LIBSRCS = mysql.c bdb.c dbi.c \
 	  sql.c sql_cmds.c sql_create.c sql_delete.c sql_find.c \
 	  sql_get.c sql_list.c sql_update.c sqlite.c \
 	  postgresql.c
-LIBOBJS = mysql.o bdb.o dbi.o \
-	  sql.o sql_cmds.o sql_create.o sql_delete.o sql_find.o \
-	  sql_get.o sql_list.o sql_update.o sqlite.o \
-	  postgresql.o
+LIBOBJS = $(LIBSRCS:.c=$(DEFAULT_OBJECT_TYPE))
 
-.SUFFIXES:	.c .o
+LIBBACSQL_LT_CURRENT = 1
+LIBBACSQL_LT_REVISION = 0
+LIBBACSQL_LT_AGE = 0
+
+.SUFFIXES:	.c .o .lo
 .PHONY:
 .DONTCARE:
 
@@ -42,26 +48,38 @@ LIBOBJS = mysql.o bdb.o dbi.o \
 .c.o:
 	@echo "Compiling $<"
 	$(NO_ECHO)$(CXX) $(DEFS) $(DEBUG) -c $(WCFLAGS) $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(SQL_INC) $(DINCLUDE) $(CFLAGS) $<
+
+.c.lo:
+	@echo "Compiling $<"
+	$(NO_ECHO)$(LIBTOOL_COMPILE) $(CXX) $(DEFS) $(DEBUG) -c $(WCFLAGS) $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(SQL_INC) $(DINCLUDE) $(CFLAGS) $<
 #-------------------------------------------------------------------------
-all: Makefile libsql.a
+all: Makefile libbacsql$(DEFAULT_ARCHIVE_TYPE)
 	@echo "==== Make of cats is good ===="
 	@echo " "
 
-libsql.a: $(LIBOBJS)
+libbacsql.a: $(LIBOBJS)
 	@echo "Making $@ ..."	  
 	$(AR) rc  $@ $(LIBOBJS)
 	$(RANLIB) $@
 
-cats: $(SVROBJS) ../findlib/libfind.a
-	$(CC) $(WLDFLAGS) $(LDFLAGS) -L../findlib -L../lib -o $@ $(SVROBJS) $(LIBS) $(DB_LIBS) -lfind -lbac
+libbacsql.la: $(LIBOBJS)
+	@echo "Making $@ ..."	  
+	$(LIBTOOL_LINK) $(CXX) $(DEFS) $(DEBUG) $(LDFLAGS) -o $@ $(LIBOBJS) -export-dynamic -rpath $(libdir) -version-info $(LIBBACSQL_LT_CURRENT):$(LIBBACSQL_LT_REVISION):$(LIBBACSQL_LT_AGE) $(DB_LIBS)
+
+cats: $(SVROBJS) ../findlib/libfind$(DEFAULT_ARCHIVE_TYPE)
+	$(LIBTOOL_LINK) $(CC) $(WLDFLAGS) $(LDFLAGS) -L../findlib -L../lib -o $@ $(SVROBJS) $(LIBS) $(DB_LIBS) -lfind -lbac
 
 Makefile: $(srcdir)/Makefile.in $(topdir)/config.status
 	cd $(topdir) \
 	  && CONFIG_FILES=$(thisdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
 
+libtool-clean:
+	find . -name '*.lo' -print | xargs $(LIBTOOL_CLEAN) $(RMF)
+	$(RMF) *.la
+	$(RMF) -r .libs _libs
 
-clean:
-	$(RMF) cats core a.out *.o *.a *.bak *~ *.intpro *.extpro 1 2 3
+clean: @LIBTOOL_CLEAN_TARGET@
+	$(RMF) cats core a.out *.o *.bak *~ *.intpro *.extpro 1 2 3
 
 realclean: clean
 	$(RMF) tags
@@ -95,7 +113,25 @@ devclean: realclean
 	if test $(srcdir) = .; then $(MAKE) realclean; fi
 	(cd $(srcdir); $(RMF) Makefile)
 
-install:
+libtool-install: all
+	$(MKDIR) $(DESTDIR)$(libdir)
+	$(LIBTOOL_INSTALL_FINISH) $(INSTALL_PROGRAM) libbacsql$(DEFAULT_ARCHIVE_TYPE) $(DESTDIR)$(libdir)
+
+libtool-include: all
+	$(MKDIR) $(DESTDIR)/$(includedir)/bacula/sql
+	for I in ${INCLUDE_FILES}; do \
+	   $(INSTALL_DATA) $$I $(DESTDIR)$(includedir)/bacula/sql/`basename $$I`; \
+	done
+
+libtool-uninstall:
+	$(LIBTOOL_UNINSTALL) $(RMF) $(DESTDIR)$(libdir)/libbacsql.la
+
+uninstall-libtool-include: all
+	for I in ${INCLUDE_FILES}; do \
+	   $(RMF) $(DESTDIR)$(includedir)/bacula/sql/`basename $$I`; \
+	done
+
+install: @LIBTOOL_INSTALL_TARGET@
 	$(INSTALL_SCRIPT) create_@DB_TYPE@_database $(DESTDIR)$(scriptdir)/create_@DB_TYPE@_database
 	$(INSTALL_SCRIPT) update_@DB_TYPE@_tables $(DESTDIR)$(scriptdir)/update_@DB_TYPE@_tables
 	$(INSTALL_SCRIPT) make_@DB_TYPE@_tables $(DESTDIR)$(scriptdir)/make_@DB_TYPE@_tables
@@ -129,7 +165,7 @@ install:
 	   echo "${INSTALL_SCRIPT} $$filename ${DESTDIR}${scriptdir}/$$destname"; \
 	   ${INSTALL_SCRIPT} $$filename ${DESTDIR}${scriptdir}/$$destname
 
-uninstall:
+uninstall: @LIBTOOL_UNINSTALL_TARGET@
 	(cd $(DESTDIR)$(scriptdir); $(RMF) create_@DB_TYPE@_database)
 	(cd $(DESTDIR)$(scriptdir); $(RMF) update_@DB_TYPE@_tables)
 	(cd $(DESTDIR)$(scriptdir); $(RMF) make_@DB_TYPE@_tables)
@@ -146,7 +182,6 @@ uninstall:
 
 	(cd $(DESTDIR)$(scriptdir); $(RMF) make_catalog_backup)
 	(cd $(DESTDIR)$(scriptdir); $(RMF) delete_catalog_backup)
-
 
 # Semi-automatic generation of dependencies:
 # Use gcc -MM because X11 `makedepend' doesn't work on all systems

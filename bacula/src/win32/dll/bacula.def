@@ -594,8 +594,6 @@ _Z9set_tracei
  
 ; pythonlib.o
 _Z21generate_daemon_eventP3JCRPKc
-_Z23init_python_interpreterPKcS0_S0_
-_Z23term_python_interpreterv
  
 ; queue.o
 _Z5qnextP7b_queueS0_

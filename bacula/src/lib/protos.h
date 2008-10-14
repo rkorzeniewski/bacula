@@ -243,15 +243,10 @@ int              net_connect             (int port);
 BSOCK *          bnet_bind               (int port);
 BSOCK *          bnet_accept             (BSOCK *bsock, char *who);
 
-/* python.c */
+/* pythonlib.c */
 typedef int (EVENT_HANDLER)(JCR *jcr, const char *event);
-void init_python_interpreter(const char *progname, const char *scripts,
-                             const char *module);
-void term_python_interpreter();
-//extern EVENT_HANDLER *generate_daemon_event;
+//EVENT_HANDLER *generate_daemon_event;
 int generate_daemon_event(JCR *jcr, const char *event);
-void lock_python();
-void unlock_python();
 
 /* signal.c */
 void             init_signals             (void terminate(int sig));

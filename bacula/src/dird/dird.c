@@ -37,6 +37,19 @@
 #include "bacula.h"
 #include "dird.h"
 
+#ifdef HAVE_PYTHON
+
+#undef _POSIX_C_SOURCE
+#include <Python.h>
+
+#include "lib/pythonlib.h"
+
+/* Imported Functions */
+extern PyObject *job_getattr(PyObject *self, char *attrname);
+extern int job_setattr(PyObject *self, char *attrname, PyObject *value);
+
+#endif /* HAVE_PYTHON */
+
 /* Forward referenced subroutines */
 void terminate_dird(int sig);
 static bool check_resources();
@@ -126,6 +139,9 @@ int main (int argc, char *argv[])
    bool test_config = false;
    char *uid = NULL;
    char *gid = NULL;
+#ifdef HAVE_PYTHON
+   init_python_interpreter_args python_args;
+#endif /* HAVE_PYTHON */
 
    start_heap = sbrk(0);
    setlocale(LC_ALL, "");
@@ -273,8 +289,17 @@ int main (int argc, char *argv[])
 
    init_console_msg(working_directory);
 
-   init_python_interpreter(director->name(), director->scripts_directory, 
-       "DirStartUp");
+#ifdef HAVE_PYTHON
+   python_args.progname = director->name();
+   python_args.scriptdir = director->scripts_directory;
+   python_args.modulename = "DirStartUp";
+   python_args.configfile = configfile;
+   python_args.workingdir = director->working_directory;
+   python_args.job_getattr = job_getattr;
+   python_args.job_setattr = job_setattr;
+
+   init_python_interpreter(&python_args);
+#endif /* HAVE_PYTHON */
 
    set_thread_concurrency(director->MaxConcurrentJobs * 2 +
       4 /* UA */ + 4 /* sched+watchdog+jobsvr+misc */);

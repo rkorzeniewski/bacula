@@ -42,6 +42,19 @@
 #include "bacula.h"
 #include "stored.h"
 
+#ifdef HAVE_PYTHON
+
+#undef _POSIX_C_SOURCE
+#include <Python.h>
+
+#include "lib/pythonlib.h"
+
+/* Imported Functions */
+extern PyObject *job_getattr(PyObject *self, char *attrname);
+extern int job_setattr(PyObject *self, char *attrname, PyObject *value);
+
+#endif /* HAVE_PYTHON */
+
 /* Imported functions */
 extern bool parse_sd_config(CONFIG *config, const char *configfile, int exit_code);
 
@@ -114,6 +127,9 @@ int main (int argc, char *argv[])
    pthread_t thid;
    char *uid = NULL;
    char *gid = NULL;
+#ifdef HAVE_PYTHON
+   init_python_interpreter_args python_args;
+#endif /* HAVE_PYTHON */
 
    start_heap = sbrk(0);
    setlocale(LC_ALL, "");
@@ -250,7 +266,17 @@ int main (int argc, char *argv[])
       Jmsg0(NULL, M_ABORT, 0, _("Volume Session Time is ZERO!\n"));
    }
 
-   init_python_interpreter(me->hdr.name, me->scripts_directory, "SDStartUp");
+#ifdef HAVE_PYTHON
+   python_args.progname = me->hdr.name;
+   python_args.scriptdir = me->scripts_directory;
+   python_args.modulename = "SDStartUp";
+   python_args.configfile = configfile;
+   python_args.workingdir = me->working_directory;
+   python_args.job_getattr = job_getattr;
+   python_args.job_setattr = job_setattr;
+
+   init_python_interpreter(&python_args);
+#endif /* HAVE_PYTHON */
 
    /* Make sure on Solaris we can run concurrent, watch dog + servers + misc */
    set_thread_concurrency(me->max_concurrent_jobs * 2 + 4);
