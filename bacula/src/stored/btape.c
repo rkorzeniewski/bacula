@@ -344,11 +344,11 @@ static void terminate_btape(int stat)
    free_jcr(jcr);
    jcr = NULL;
 
+   free_volume_list();
+
    if (dev) {
       dev->term();
    }
-
-   free_volume_list();
 
    if (debug_level > 10)
       print_memory_pool_stats();
