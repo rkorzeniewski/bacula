@@ -119,15 +119,6 @@ get_duration()
 
 check_duration()
 {
-#    LOG=$1
-#    TIME=$2
-#    OP=${3-gt}
-
-#    T=$(get_duration $LOG)    # this is not a valid "sh" command
-#    if [ "$T" -$OP "$TIME" ]; then
-#        print_debug "Expect $OP than $TIME sec, get $T"
-#        bstat=2
-#    fi
 }
 
 run_bacula()
