@@ -11,6 +11,11 @@
 # even the implied warranty of MERCHANTABILITY or FITNESS FOR A
 # PARTICULAR PURPOSE.
 
+m4_include([libtool/libtool.m4])
+m4_include([libtool/ltoptions.m4])
+m4_include([libtool/ltsugar.m4])
+m4_include([libtool/ltversion.m4])
+m4_include([libtool/lt~obsolete.m4])
 m4_include([gettext-macros/codeset.m4])
 m4_include([gettext-macros/gettext.m4])
 m4_include([gettext-macros/glibc2.m4])

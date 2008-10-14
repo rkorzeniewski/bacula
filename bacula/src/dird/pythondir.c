@@ -42,12 +42,9 @@
 #undef _POSIX_C_SOURCE
 #include <Python.h>
 
-extern char *configfile;
-extern struct s_jl joblevels[];
-extern JCR *get_jcr_from_PyObject(PyObject *self);
-extern PyObject *find_method(PyObject *eventsObject, PyObject *method, 
-         const char *name);
+#include <lib/pythonlib.h>
 
+extern struct s_jl joblevels[];
 
 static PyObject *set_job_events(PyObject *self, PyObject *arg);
 static PyObject *job_run(PyObject *self, PyObject *arg);
@@ -64,7 +61,6 @@ PyMethodDef JobMethods[] = {
     {NULL, NULL, 0, NULL}             /* last item */
 };
  
-
 struct s_vars {
    const char *name;
    const char *fmt;

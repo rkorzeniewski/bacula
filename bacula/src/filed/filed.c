@@ -37,6 +37,19 @@
 #include "bacula.h"
 #include "filed.h"
 
+#ifdef HAVE_PYTHON
+
+#undef _POSIX_C_SOURCE
+#include <Python.h>
+
+#include "lib/pythonlib.h"
+
+/* Imported Functions */
+extern PyObject *job_getattr(PyObject *self, char *attrname);
+extern int job_setattr(PyObject *self, char *attrname, PyObject *value);
+
+#endif /* HAVE_PYTHON */
+
 /* Imported Functions */
 extern void *handle_client_request(void *dir_sock);
 extern bool parse_fd_config(CONFIG *config, const char *configfile, int exit_code);
@@ -49,7 +62,6 @@ static bool check_resources();
 CLIENT *me;                           /* my resource */
 bool no_signals = false;
 void *start_heap;
-
 
 #define CONFIG_FILE "bacula-fd.conf" /* default config file */
 
@@ -95,6 +107,9 @@ int main (int argc, char *argv[])
    bool test_config = false;
    char *uid = NULL;
    char *gid = NULL;
+#ifdef HAVE_PYTHON
+   init_python_interpreter_args python_args;
+#endif /* HAVE_PYTHON */
 
    start_heap = sbrk(0);
    setlocale(LC_ALL, "");
@@ -218,7 +233,17 @@ int main (int argc, char *argv[])
    me += 1000000;
 #endif
 
-   init_python_interpreter(me->hdr.name, me->scripts_directory, "FDStartUp");
+#ifdef HAVE_PYTHON
+   python_args.progname = me->hdr.name;
+   python_args.scriptdir = me->scripts_directory;
+   python_args.modulename = "FDStartUp";
+   python_args.configfile = configfile;
+   python_args.workingdir = me->working_directory;
+   python_args.job_getattr = job_getattr;
+   python_args.job_setattr = job_setattr;
+
+   init_python_interpreter(&python_args);
+#endif /* HAVE_PYTHON */
 
    set_thread_concurrency(10);
 

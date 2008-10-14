@@ -25,6 +25,8 @@ binprefix =
 manprefix =
 datarootdir = @datarootdir@
 sbindir = @sbindir@
+libdir = @libdir@
+includedir = @includedir@
 sysconfdir = @sysconfdir@
 plugindir = @plugindir@
 scriptdir = @scriptdir@
@@ -38,8 +40,8 @@ CC = @CC@
 CPP = @CPP@
 CXX = @CXX@
 MV = @MV@
-RM = @RM@
-RMF = @RM@ -f
+RM = @REMOVE@
+RMF = $(RM) -f
 CP = @CP@
 SED = @SED@
 AWK = @AWK@
@@ -51,10 +53,24 @@ RANLIB = @RANLIB@
 MKDIR = @BUILD_DIR@/autoconf/mkinstalldirs
 INSTALL = @INSTALL@
 # add the -s to the following in PRODUCTION mode
-INSTALL_PROGRAM = @INSTALL@ -m @SBINPERM@
-INSTALL_DATA = @INSTALL@ -m 644
-INSTALL_SCRIPT = @INSTALL@ -m @SBINPERM@
-INSTALL_CONFIG = @INSTALL@ -m 640
+INSTALL_PROGRAM = $(INSTALL) -m @SBINPERM@
+INSTALL_DATA = $(INSTALL) -m 644
+INSTALL_SCRIPT = $(INSTALL) -m @SBINPERM@
+INSTALL_CONFIG = $(INSTALL) -m 640
+
+#
+# Libtool specific settings
+#
+DEFAULT_OBJECT_TYPE = @DEFAULT_OBJECT_TYPE@
+DEFAULT_ARCHIVE_TYPE = @DEFAULT_ARCHIVE_TYPE@
+DEFAULT_SHARED_OBJECT_TYPE = @DEFAULT_SHARED_OBJECT_TYPE@
+LIBTOOL = @BUILD_DIR@/libtool
+LIBTOOL_COMPILE = @LIBTOOL@ --silent --tag=CXX --mode=compile
+LIBTOOL_LINK = @LIBTOOL@ --silent --tag=CXX --mode=link
+LIBTOOL_INSTALL = @LIBTOOL@ --silent --tag=CXX --mode=install
+LIBTOOL_INSTALL_FINISH = @LIBTOOL@ --silent --tag=CXX --finish --mode=install
+LIBTOOL_UNINSTALL = @LIBTOOL@ --silent --tag=CXX --mode=uninstall
+LIBTOOL_CLEAN = @LIBTOOL@ --silent --tag=CXX --mode=clean
 
 # Flags & libs
 CFLAGS = @CFLAGS@ @OPENSSL_INC@

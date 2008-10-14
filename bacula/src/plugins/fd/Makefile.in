@@ -12,11 +12,15 @@ FDDIR=../../filed
 SRCDIR=../..
 LIBDIR=../../lib
 
-.SUFFIXES:    .c .o
+.SUFFIXES:    .c .o .lo
+
 .c.o:
 	$(CXX) $(DEFS) $(DEBUG) $(CPPFLAGS) -I${SRCDIR} -I${FDDIR} -DTEST_PROGRAM -c $<
 
-all: bpipe-fd.so
+.c.lo:
+	$(LIBTOOL_COMPILE) $(CXX) $(DEFS) $(DEBUG) $(CPPFLAGS) -I${SRCDIR} -I${FDDIR} -DTEST_PROGRAM -c $<
+
+all: bpipe-fd$(DEFAULT_SHARED_OBJECT_TYPE)
 
 test: main example-plugin-fd.so
 
@@ -35,14 +39,26 @@ example-plugin-fd.so: example-plugin-fd.o
 bpipe-fd.o: bpipe-fd.c ${FDDIR}/fd_plugins.h
 	$(CXX) $(DEFS) $(DEBUG) $(CPPFLAGS) -fPIC -I../.. -I${FDDIR} -c bpipe-fd.c
 
-bpipe-fd.so: bpipe-fd.o 
-	$(CXX) $(LDFLAGS) -shared bpipe-fd.o -o bpipe-fd.so
+bpipe-fd.lo: bpipe-fd.c ${FDDIR}/fd_plugins.h
+	$(LIBTOOL_COMPILE) $(CXX) $(DEFS) $(DEBUG) $(CFLAGS) -I../.. -I${FDDIR} -c bpipe-fd.c
+
+bpipe-fd.la: bpipe-fd$(DEFAULT_OBJECT_TYPE)
+	$(LIBTOOL_LINK) $(CXX) $(LDFLAGS) -shared bpipe-fd.lo -o $@ -rpath $(plugindir) -module -export-dynamic -avoid-version 
+
+bpipe-fd.so: bpipe-fd.o
+	$(CXX) $(LDFLAGS) -shared bpipe-fd.o -o $@
 
 install: all
 	$(MKDIR) $(DESTDIR)$(plugindir)
-	$(INSTALL_PROGRAM) bpipe-fd.so $(DESTDIR)$(plugindir)/bpipe-fd.so
+	$(LIBTOOL_INSTALL) $(INSTALL_PROGRAM) bpipe-fd$(DEFAULT_SHARED_OBJECT_TYPE) $(DESTDIR)$(plugindir)
+	$(RMF) $(DESTDIR)$(plugindir)/bpipe-fd.la
 
-clean:
+libtool-clean:
+	find . -name '*.lo' -print | xargs $(LIBTOOL_CLEAN) $(RMF)
+	$(RMF) *.la
+	$(RMF) -r .libs _libs
+
+clean: @LIBTOOL_CLEAN_TARGET@
 	rm -f main *.so *.o 1 2 3
 
 distclean: clean

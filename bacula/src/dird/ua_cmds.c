@@ -37,6 +37,19 @@
 #include "bacula.h"
 #include "dird.h"
 
+#ifdef HAVE_PYTHON
+
+#undef _POSIX_C_SOURCE
+#include <Python.h>
+
+#include "lib/pythonlib.h"
+
+/* Imported Functions */
+extern PyObject *job_getattr(PyObject *self, char *attrname);
+extern int job_setattr(PyObject *self, char *attrname, PyObject *value);
+
+#endif /* HAVE_PYTHON */
+
 /* Imported subroutines */
 
 /* Imported variables */
@@ -679,6 +692,7 @@ static int create_cmd(UAContext *ua, const char *cmd)
 
 
 extern DIRRES *director;
+extern char *configfile;
 
 /*
  * Python control command
@@ -686,14 +700,29 @@ extern DIRRES *director;
  */
 static int python_cmd(UAContext *ua, const char *cmd)
 {
+#ifdef HAVE_PYTHON
+   init_python_interpreter_args python_args;
+
    if (ua->argc >= 2 && strcasecmp(ua->argk[1], NT_("restart")) == 0) {
       term_python_interpreter();
-      init_python_interpreter(director->name(), 
-         director->scripts_directory, "DirStartUp");
+
+      python_args.progname = director->name();
+      python_args.scriptdir = director->scripts_directory;
+      python_args.modulename = "DirStartUp";
+      python_args.configfile = configfile;
+      python_args.workingdir = director->working_directory;
+      python_args.job_getattr = job_getattr;
+      python_args.job_setattr = job_setattr;
+
+      init_python_interpreter(&python_args);
+
       ua->send_msg(_("Python interpreter restarted.\n"));
    } else {
+#endif /* HAVE_PYTHON */
       ua->warning_msg(_("Nothing done.\n"));
+#ifdef HAVE_PYTHON
    }
+#endif /* HAVE_PYTHON */
    return 1;
 }
 

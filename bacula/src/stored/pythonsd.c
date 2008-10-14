@@ -43,9 +43,7 @@
 #undef _POSIX_C_SOURCE
 #include <Python.h>
 
-extern JCR *get_jcr_from_PyObject(PyObject *self);
-extern PyObject *find_method(PyObject *eventsObject, PyObject *method, 
-         const char *name);
+#include <lib/pythonlib.h>
 
 static PyObject *set_job_events(PyObject *self, PyObject *arg);
 static PyObject *job_write(PyObject *self, PyObject *arg);
