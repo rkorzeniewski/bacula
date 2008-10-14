@@ -23,33 +23,33 @@ dummy:
 # include files installed when using libtool
 #
 INCLUDE_FILES = ../baconfig.h ../bacula.h ../bc_types.h \
-		../config.h ../jcr.h ../version.h \
-		address_conf.h alist.h attr.h base64.h \
-		berrno.h bits.h bpipe.h breg.h bregex.h \
-		bsock.h btime.h btimers.h crypto.h dlist.h \
-		fnmatch.h guid_to_name.h htable.h lex.h \
-		lib.h md5.h mem_pool.h message.h openssl.h \
-		plugins.h protos.h queue.h rblist.h \
-		runscript.h rwlock.h serial.h sha1.h \
-		smartall.h status.h tls.h tree.h var.h \
-		waitq.h watchdog.h workq.h \
-		parse_conf.h \
-		pythonlib.h
+                ../config.h ../jcr.h ../version.h \
+                address_conf.h alist.h attr.h base64.h \
+                berrno.h bits.h bpipe.h breg.h bregex.h \
+                bsock.h btime.h btimers.h crypto.h dlist.h \
+                fnmatch.h guid_to_name.h htable.h lex.h \
+                lib.h md5.h mem_pool.h message.h openssl.h \
+                plugins.h protos.h queue.h rblist.h \
+                runscript.h rwlock.h serial.h sha1.h \
+                smartall.h status.h tls.h tree.h var.h \
+                waitq.h watchdog.h workq.h \
+                parse_conf.h \
+                pythonlib.h
 
 #
 # libbac
 #
 LIBBAC_SRCS = attr.c base64.c berrno.c bsys.c bget_msg.c \
-	      bnet.c bnet_server.c runscript.c \
-	      bsock.c bpipe.c bsnprintf.c btime.c \
-	      cram-md5.c crc32.c crypto.c daemon.c edit.c fnmatch.c \
-	      guid_to_name.c hmac.c jcr.c lex.c alist.c dlist.c \
-	      md5.c message.c mem_pool.c openssl.c \
-	      plugins.c queue.c bregex.c \
-	      rwlock.c scan.c serial.c sha1.c \
-	      signal.c smartall.c rblist.c tls.c tree.c \
-	      util.c var.c watchdog.c workq.c btimers.c \
-	      address_conf.c breg.c htable.c
+              bnet.c bnet_server.c runscript.c \
+              bsock.c bpipe.c bsnprintf.c btime.c \
+              cram-md5.c crc32.c crypto.c daemon.c edit.c fnmatch.c \
+              guid_to_name.c hmac.c jcr.c lex.c alist.c dlist.c \
+              md5.c message.c mem_pool.c openssl.c \
+              plugins.c queue.c bregex.c \
+              rwlock.c scan.c serial.c sha1.c \
+              signal.c smartall.c rblist.c tls.c tree.c \
+              util.c var.c watchdog.c workq.c btimers.c \
+              address_conf.c breg.c htable.c
 LIBBAC_OBJS = $(LIBBAC_SRCS:.c=$(DEFAULT_OBJECT_TYPE))
 LIBBAC_LT_CURRENT = 1
 LIBBAC_LT_REVISION = 0
@@ -168,31 +168,31 @@ bsnprintf: bsnprintf.o
 	rm -f bsnprintf.o
 	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) bsnprintf.c
 
+install-includes:
+	$(MKDIR) $(DESTDIR)/$(includedir)/bacula
+	for I in ${INCLUDE_FILES}; do \
+	   $(INSTALL_DATA) $$I $(DESTDIR)$(includedir)/bacula/`basename $$I`; \
+	done
+
+uninstall-includes:
+	for I in ${INCLUDE_FILES}; do \
+	   $(RMF) $(DESTDIR)$(includedir)/bacula/`basename $$I`; \
+	done
+
 libtool-install: all
 	$(MKDIR) $(DESTDIR)$(libdir)
 	$(LIBTOOL_INSTALL_FINISH) $(INSTALL_PROGRAM) libbac.la $(DESTDIR)$(libdir)
 	$(LIBTOOL_INSTALL_FINISH) $(INSTALL_PROGRAM) libbaccfg.la $(DESTDIR)$(libdir)
 	$(LIBTOOL_INSTALL_FINISH) $(INSTALL_PROGRAM) libbacpy.la $(DESTDIR)$(libdir)
 
-libtool-include: all
-	$(MKDIR) $(DESTDIR)/$(includedir)/bacula
-	for I in ${INCLUDE_FILES}; do \
-	   $(INSTALL_DATA) $$I $(DESTDIR)$(includedir)/bacula/`basename $$I`; \
-	done
-
 libtool-uninstall:
 	$(LIBTOOL_UNINSTALL) $(RMF) $(DESTDIR)$(libdir)/libbac.la
 	$(LIBTOOL_UNINSTALL) $(RMF) $(DESTDIR)$(libdir)/libbaccfg.la
 	$(LIBTOOL_UNINSTALL) $(RMF) $(DESTDIR)$(libdir)/libbacpy.la
 
-uninstall-libtool-include:
-	for I in ${INCLUDE_FILES}; do \
-	   $(RMF) $(DESTDIR)$(includedir)/bacula/`basename $$I`; \
-	done
+install: @LIBTOOL_INSTALL_TARGET@ @INCLUDE_INSTALL_TARGET@
 
-install: @LIBTOOL_INSTALL_TARGET@
-
-uninstall: @LIBTOOL_UNINSTALL_TARGET@
+uninstall: @LIBTOOL_UNINSTALL_TARGET@ @INCLUDE_UNINSTALL_TARGET@
 
 libtool-clean:
 	find . -name '*.lo' -print | xargs $(LIBTOOL_CLEAN) $(RMF)

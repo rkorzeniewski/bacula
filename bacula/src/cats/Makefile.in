@@ -113,25 +113,25 @@ devclean: realclean
 	if test $(srcdir) = .; then $(MAKE) realclean; fi
 	(cd $(srcdir); $(RMF) Makefile)
 
-libtool-install: all
-	$(MKDIR) $(DESTDIR)$(libdir)
-	$(LIBTOOL_INSTALL_FINISH) $(INSTALL_PROGRAM) libbacsql$(DEFAULT_ARCHIVE_TYPE) $(DESTDIR)$(libdir)
-
-libtool-include: all
+install-includes:
 	$(MKDIR) $(DESTDIR)/$(includedir)/bacula/sql
 	for I in ${INCLUDE_FILES}; do \
 	   $(INSTALL_DATA) $$I $(DESTDIR)$(includedir)/bacula/sql/`basename $$I`; \
 	done
 
-libtool-uninstall:
-	$(LIBTOOL_UNINSTALL) $(RMF) $(DESTDIR)$(libdir)/libbacsql.la
-
-uninstall-libtool-include: all
+uninstall-includes:
 	for I in ${INCLUDE_FILES}; do \
 	   $(RMF) $(DESTDIR)$(includedir)/bacula/sql/`basename $$I`; \
 	done
 
-install: @LIBTOOL_INSTALL_TARGET@
+libtool-install: all
+	$(MKDIR) $(DESTDIR)$(libdir)
+	$(LIBTOOL_INSTALL_FINISH) $(INSTALL_PROGRAM) libbacsql$(DEFAULT_ARCHIVE_TYPE) $(DESTDIR)$(libdir)
+
+libtool-uninstall:
+	$(LIBTOOL_UNINSTALL) $(RMF) $(DESTDIR)$(libdir)/libbacsql.la
+
+install: @LIBTOOL_INSTALL_TARGET@ @INCLUDE_INSTALL_TARGET@
 	$(INSTALL_SCRIPT) create_@DB_TYPE@_database $(DESTDIR)$(scriptdir)/create_@DB_TYPE@_database
 	$(INSTALL_SCRIPT) update_@DB_TYPE@_tables $(DESTDIR)$(scriptdir)/update_@DB_TYPE@_tables
 	$(INSTALL_SCRIPT) make_@DB_TYPE@_tables $(DESTDIR)$(scriptdir)/make_@DB_TYPE@_tables
@@ -165,7 +165,7 @@ install: @LIBTOOL_INSTALL_TARGET@
 	   echo "${INSTALL_SCRIPT} $$filename ${DESTDIR}${scriptdir}/$$destname"; \
 	   ${INSTALL_SCRIPT} $$filename ${DESTDIR}${scriptdir}/$$destname
 
-uninstall: @LIBTOOL_UNINSTALL_TARGET@
+uninstall: @LIBTOOL_UNINSTALL_TARGET@ @INCLUDE_UNINSTALL_TARGET@
 	(cd $(DESTDIR)$(scriptdir); $(RMF) create_@DB_TYPE@_database)
 	(cd $(DESTDIR)$(scriptdir); $(RMF) update_@DB_TYPE@_tables)
 	(cd $(DESTDIR)$(scriptdir); $(RMF) make_@DB_TYPE@_tables)
