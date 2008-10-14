@@ -278,6 +278,7 @@ bool write_ansi_ibm_labels(DCR *dcr, int type, const char *VolName)
 {
    DEVICE *dev = dcr->dev;
    JCR *jcr = dcr->jcr;
+   char ansi_volname[7];              /* 6 char + \0 */
    char label[80];                    /* tape label */
    char date[20];                     /* ansi date buffer */
    time_t now;
@@ -306,10 +307,19 @@ bool write_ansi_ibm_labels(DCR *dcr, int type, const char *VolName)
             VolName);
          return false;
       }
+      /* ANSI labels have 6 characters, and are padded with spaces
+       * 'vol1\0' => 'vol1   \0'
+       */
+      strcpy(ansi_volname, VolName);
+      for(int i=len; i < 6; i++) {
+         ansi_volname[i]=' ';
+      }
+      ansi_volname[6]='\0';     /* only for debug */
+
       if (type == ANSI_VOL_LABEL) {
          ser_begin(label, sizeof(label));
          ser_bytes("VOL1", 4);
-         ser_bytes(VolName, len);
+         ser_bytes(ansi_volname, 6);
          /* Write VOL1 label */
          if (label_type == B_IBM_LABEL) {
             ascii_to_ebcdic(label, label, sizeof(label));
@@ -332,7 +342,7 @@ bool write_ansi_ibm_labels(DCR *dcr, int type, const char *VolName)
       ser_bytes("1", 1);
       ser_bytes("BACULA.DATA", 11);            /* Filename field */
       ser_begin(&label[21], sizeof(label)-21); /* fileset field */
-      ser_bytes(VolName, len);        /* write Vol Ser No. */
+      ser_bytes(ansi_volname, 6);              /* write Vol Ser No. */
       ser_begin(&label[27], sizeof(label)-27);
       ser_bytes("00010001000100", 14);  /* File section, File seq no, Generation no */
       now = time(NULL);
