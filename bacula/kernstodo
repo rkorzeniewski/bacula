@@ -124,7 +124,6 @@ Priority:
   Win32 to avoid patent problems.
 - Implement multiple jobid specification for the cancel command,
   similar to what is permitted on the update slots command.
-- Implement Bacula plugins -- design API
 - modify pruning to keep a fixed number of versions of a file, 
   if requested.
 - the cd-command should allow complete paths
