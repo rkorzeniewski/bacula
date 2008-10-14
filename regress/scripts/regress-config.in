@@ -13,6 +13,7 @@ fi
 CFLAGS="-g -O2 -Wall" \
  ./configure \
     --sbindir=${1}/bin \
+    --libdir=${1}/bin \
     --sysconfdir=${1}/bin \
     --mandir=${1}/bin \
     --with-pid-dir=${1}/working \
@@ -32,5 +33,8 @@ CFLAGS="-g -O2 -Wall" \
     ${TCPWRAPPERS} \
     ${WHICHDB} \
     --with-baseport=${BASEPORT}
+
+LD_LIBRARY_PATH=${1}/bin:${LD_LIBRARY_PATH}
+export LD_LIBRARY_PATH
 
 exit 0
