@@ -110,16 +110,6 @@ check_files_written()
     fi
 }
 
-get_duration()
-{
-    LOG=$1
-    T=`awk 'BEGIN {t["secs"]=1;t["sec"]=1;t["min"]=60;t["mins"]=60}; /Elapsed time:/ { last=$3*t[$4] } END { print last }' $LOG`
-    echo $T    
-}
-
-check_duration()
-{
-}
 
 run_bacula()
 {
