@@ -7,7 +7,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2008 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -32,6 +32,11 @@
    Switzerland, email:ftf@fsfeurope.org.
 */
 
+#include "host.h"
+#undef HOST_OS
+#undef DISTNAME
+#undef DISTVER
+
 #ifdef HAVE_MINGW
 
 #define HOST_OS  "Linux"
@@ -39,6 +44,7 @@
 #define DISTVER  "Win32"
 
 #else
+
 extern DLL_IMP_EXP char WIN_VERSION_LONG[];
 extern DLL_IMP_EXP char WIN_VERSION[];
 
