@@ -227,17 +227,19 @@ if test x${prefix} = xNONE ; then
    fi
 
    if test `eval echo ${libdir}` = NONE/lib ; then
-      sysconfdir=/usr/lib
+      libdir=/usr/lib
    fi
 
    if test `eval echo ${includedir}` = NONE/include ; then
-      sysconfdir=/usr/include
+      includedir=/usr/include
    fi
 
    prefix=
 fi
 sysconfdir=`eval echo ${sysconfdir}`
 datarootdir=`eval echo ${datarootdir}`
+libdir=`eval echo ${libdir}`
+includedir=`eval echo ${includedir}
 localedir=`eval echo ${datarootdir}/locale`
 AC_DEFINE_UNQUOTED(SYSCONFDIR, "$sysconfdir")
 AC_DEFINE_UNQUOTED(LOCALEDIR, "$localedir") 
