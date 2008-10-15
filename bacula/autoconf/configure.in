@@ -239,7 +239,7 @@ fi
 sysconfdir=`eval echo ${sysconfdir}`
 datarootdir=`eval echo ${datarootdir}`
 libdir=`eval echo ${libdir}`
-includedir=`eval echo ${includedir}
+includedir=`eval echo ${includedir}'
 localedir=`eval echo ${datarootdir}/locale`
 AC_DEFINE_UNQUOTED(SYSCONFDIR, "$sysconfdir")
 AC_DEFINE_UNQUOTED(LOCALEDIR, "$localedir") 
