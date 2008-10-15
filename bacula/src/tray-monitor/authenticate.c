@@ -194,7 +194,7 @@ int authenticate_file_daemon(JCR *jcr, MONITOR *monitor, CLIENT* client)
    }
    Dmsg1(110, "<stored: %s", fd->msg);
    stop_bsock_timer(tid);
-   if (strncmp(fd->msg, FDOKhello, sizeof(FDOKhello)) != 0) {
+   if (strncmp(fd->msg, FDOKhello, sizeof(FDOKhello)-1) != 0) {
       Jmsg(jcr, M_FATAL, 0, _("File daemon rejected Hello command\n"));
       return 0;
    }
