@@ -886,8 +886,6 @@ LIBTOOL_INSTALL_TARGET
 LIBTOOL_UNINSTALL_TARGET
 LIBTOOL_CLEAN_TARGET
 QMAKE_LIBTOOL
-INCLUDE_INSTALL_TARGET
-INCLUDE_UNINSTALL_TARGET
 HAVE_SUN_OS_TRUE
 HAVE_SUN_OS_FALSE
 HAVE_OSF1_OS_TRUE
@@ -1635,13 +1633,12 @@ if test -n "$ac_init_help"; then
 Optional Features:
   --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
-  --enable-libtool        enable building using GNU libtool [default=yes]
   --enable-shared[=PKGS]  build shared libraries [default=yes]
   --enable-static[=PKGS]  build static libraries [default=no]
   --enable-fast-install[=PKGS]
                           optimize for fast installation [default=yes]
   --disable-libtool-lock  avoid locking (might break parallel builds)
-  --enable-includes       enable installing of include files [default=yes]
+  --enable-libtool        enable building using GNU libtool [default=yes]
   --disable-nls           do not use Native Language Support
   --disable-rpath         do not hardcode runtime library paths
   --enable-gnome          enable build of bgnome-console GUI [default=no]
@@ -2224,6 +2221,7 @@ ac_config_headers="$ac_config_headers src/config.h:autoconf/config.h.in"
 
 
 
+
 for ac_prog in true
 do
   # Extract the first word of "$ac_prog", so it can be a program name with args.
@@ -2315,6 +2313,7 @@ fi
   test -n "$FALSEPRG" && break
 done
 test -n "$FALSEPRG" || FALSEPRG=":"
+
 
 
 post_host=
@@ -5322,16 +5321,6 @@ MAKE_SHELL=/bin/sh
 
 
 
-# Check whether --enable-libtool was given.
-if test "${enable_libtool+set}" = set; then
-  enableval=$enable_libtool;
-       if test x$enableval = xno; then
-	  use_libtool=no
-       fi
-
-
-fi
-
 case `pwd` in
   *\ * | *\	*)
     { echo "$as_me:$LINENO: WARNING: Libtool does not cope well with whitespace in \`pwd\`" >&5
@@ -5931,13 +5920,13 @@ if test "${lt_cv_nm_interface+set}" = set; then
 else
   lt_cv_nm_interface="BSD nm"
   echo "int some_variable = 0;" > conftest.$ac_ext
-  (eval echo "\"\$as_me:5934: $ac_compile\"" >&5)
+  (eval echo "\"\$as_me:5923: $ac_compile\"" >&5)
   (eval "$ac_compile" 2>conftest.err)
   cat conftest.err >&5
-  (eval echo "\"\$as_me:5937: $NM \\\"conftest.$ac_objext\\\"\"" >&5)
+  (eval echo "\"\$as_me:5926: $NM \\\"conftest.$ac_objext\\\"\"" >&5)
   (eval "$NM \"conftest.$ac_objext\"" 2>conftest.err > conftest.out)
   cat conftest.err >&5
-  (eval echo "\"\$as_me:5940: output\"" >&5)
+  (eval echo "\"\$as_me:5929: output\"" >&5)
   cat conftest.out >&5
   if $GREP 'External.*some_variable' conftest.out > /dev/null; then
     lt_cv_nm_interface="MS dumpbin"
@@ -7158,7 +7147,7 @@ ia64-*-hpux*)
   ;;
 *-*-irix6*)
   # Find out which ABI we are using.
-  echo '#line 7161 "configure"' > conftest.$ac_ext
+  echo '#line 7150 "configure"' > conftest.$ac_ext
   if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   (eval $ac_compile) 2>&5
   ac_status=$?
@@ -9373,11 +9362,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:9376: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:9365: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:9380: \$? = $ac_status" >&5
+   echo "$as_me:9369: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -9712,11 +9701,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:9715: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:9704: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:9719: \$? = $ac_status" >&5
+   echo "$as_me:9708: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -9817,11 +9806,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:9820: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:9809: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:9824: \$? = $ac_status" >&5
+   echo "$as_me:9813: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -9872,11 +9861,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:9875: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:9864: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:9879: \$? = $ac_status" >&5
+   echo "$as_me:9868: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -12628,7 +12617,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 12631 "configure"
+#line 12620 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -12724,7 +12713,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 12727 "configure"
+#line 12716 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -14736,11 +14725,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:14739: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:14728: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:14743: \$? = $ac_status" >&5
+   echo "$as_me:14732: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -14835,11 +14824,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:14838: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:14827: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:14842: \$? = $ac_status" >&5
+   echo "$as_me:14831: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -14887,11 +14876,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:14890: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:14879: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:14894: \$? = $ac_status" >&5
+   echo "$as_me:14883: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -15868,6 +15857,16 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
 
+# Check whether --enable-libtool was given.
+if test "${enable_libtool+set}" = set; then
+  enableval=$enable_libtool;
+       if test x$enableval = xno; then
+          use_libtool=no
+       fi
+
+
+fi
+
 
 if test x$use_libtool != xno; then
    DEFAULT_OBJECT_TYPE=".lo"
@@ -15895,31 +15894,6 @@ fi
 
 
 
-
-
-
-# Check whether --enable-includes was given.
-if test "${enable_includes+set}" = set; then
-  enableval=$enable_includes;
-       if test x$enableval = xno; then
-	  install_includes=no
-       fi
-
-
-fi
-
-
-
-if test x$use_libtool != xno -a x$install_includes != no; then
-   INCLUDE_INSTALL_TARGET="install-includes"
-   INCLUDE_UNINSTALL_TARGET="uninstall-includes"
-else
-   INCLUDE_INSTALL_TARGET=""
-   INCLUDE_UNINSTALL_TARGET=""
-fi
-# Turn off install of includes
-INCLUDE_INSTALL_TARGET=""
-INCLUDE_UNINSTALL_TARGET=""
 
 
 
@@ -18271,21 +18245,10 @@ if test x${prefix} = xNONE ; then
    if test `eval echo ${sysconfdir}` = NONE/etc ; then
       sysconfdir=/etc/bacula
    fi
-
-   if test `eval echo ${libdir}` = NONE/lib ; then
-      libdir=/usr/lib
-   fi
-
-   if test `eval echo ${includedir}` = NONE/include ; then
-      includedir=/usr/include
-   fi
-
    prefix=
 fi
 sysconfdir=`eval echo ${sysconfdir}`
 datarootdir=`eval echo ${datarootdir}`
-libdir=`eval echo ${libdir}`
-includedir=`eval echo ${includedir}'
 localedir=`eval echo ${datarootdir}/locale`
 cat >>confdefs.h <<_ACEOF
 #define SYSCONFDIR "$sysconfdir"
@@ -18304,6 +18267,16 @@ if test x$sbindir = x'${exec_prefix}/sbin' ; then
    sbindir=${exec_prefix}/sbin
 fi
 sbindir=`eval echo ${sbindir}`
+
+if test x$libdir = x'${exec_prefix}/lib' ; then
+   libdir=${exec_prefix}/lib
+fi
+libdir=`eval echo ${libdir}`
+
+if test x$includedir = x'${exec_prefix}/include' ; then
+   includedir=${exec_prefix}/include
+fi
+includedir=`eval echo ${includedir}`
 
 if test x$mandir = x'${prefix}/man' ; then
    mandir=/usr/share/man
@@ -23960,7 +23933,7 @@ DB_TYPE=bdb
 if test "${enable_gnome+set}" = set; then
   enableval=$enable_gnome;
        if test x$enableval = xyes; then
-	  support_gnome=yes
+          support_gnome=yes
        fi
 
 
@@ -23999,7 +23972,7 @@ cat >>confdefs.h <<\_ACEOF
 #define HAVE_BAT 1
 _ACEOF
 
-	  support_bat=yes
+          support_bat=yes
        fi
 
 
@@ -24032,19 +24005,19 @@ echo $ECHO_N "checking for qwt support... $ECHO_C" >&6; }
 # Check whether --with-qwt was given.
 if test "${with_qwt+set}" = set; then
   withval=$with_qwt;
-	  case "$with_qwt" in
-	  no)
-	     no_qwt=yes
-	     ;;
-	  yes|*)
-	     if test -f ${with_qwt}/include/qwt.h; then
-		QWT_INC="${with_qwt}/include"
-		QWT_LDFLAGS="-L${with_qwt}/lib"
-		QWT_LIB="-lqwt"
-		QWT="qwt"
-	     fi
-	     ;;
-	  esac
+          case "$with_qwt" in
+          no)
+             no_qwt=yes
+             ;;
+          yes|*)
+             if test -f ${with_qwt}/include/qwt.h; then
+                QWT_INC="${with_qwt}/include"
+                QWT_LDFLAGS="-L${with_qwt}/lib"
+                QWT_LIB="-lqwt"
+                QWT="qwt"
+             fi
+             ;;
+          esac
 
 
 fi
@@ -24052,24 +24025,24 @@ fi
 
             if test $no_qwt = no; then
       if test x$QWT_INC = x; then
-	 for root in /usr /usr/local; do
-	    for ver in qwt qwt5 qwt-qt4; do
-	       if test -f ${root}/include/${ver}/qwt.h; then
-		  QWT_INC="${root}/include/${ver}"
-		  if test -d ${root}/lib64/; then
-		     QWT_LDFLAGS="-L${root}/lib64"
-		  elif test -d ${root}/lib/64/; then
-		     QWT_LDFLAGS="-L${root}/64"
-		  else
-		     QWT_LDFLAGS="-L${root}/lib"
-		  fi
-		  QWT_LIB="-lqwt"
-		  QWT="qwt"
-		  got_qwt=yes
-		  break;
-	       fi
-	    done
-	 done
+         for root in /usr /usr/local; do
+            for ver in qwt qwt5 qwt-qt4; do
+               if test -f ${root}/include/${ver}/qwt.h; then
+                  QWT_INC="${root}/include/${ver}"
+                  if test -d ${root}/lib64/; then
+                     QWT_LDFLAGS="-L${root}/lib64"
+                  elif test -d ${root}/lib/64/; then
+                     QWT_LDFLAGS="-L${root}/64"
+                  else
+                     QWT_LDFLAGS="-L${root}/lib"
+                  fi
+                  QWT_LIB="-lqwt"
+                  QWT="qwt"
+                  got_qwt=yes
+                  break;
+               fi
+            done
+         done
       fi
    fi
    if test x$QWT_INC = x; then
@@ -24096,7 +24069,7 @@ fi
 if test "${enable_bwx_console+set}" = set; then
   enableval=$enable_bwx_console;
        if test x$enableval = xyes; then
-	  support_wx_console=yes
+          support_wx_console=yes
        fi
 
 
@@ -24128,7 +24101,7 @@ fi
 if test "${enable_tray_monitor+set}" = set; then
   enableval=$enable_tray_monitor;
        if test x$enableval = xyes; then
-	  support_tray_monitor=yes
+          support_tray_monitor=yes
        fi
 
 
@@ -24162,7 +24135,7 @@ fi
 if test "${enable_smartalloc+set}" = set; then
   enableval=$enable_smartalloc;
        if test x$enableval = xno; then
-	  support_smartalloc=no
+          support_smartalloc=no
        fi
 
 
@@ -24181,7 +24154,7 @@ fi
 if test "${enable_static_tools+set}" = set; then
   enableval=$enable_static_tools;
        if test x$enableval = xyes; then
-	  support_static_tools=yes
+          support_static_tools=yes
        fi
 
 
@@ -24198,7 +24171,7 @@ fi
 if test "${enable_static_fd+set}" = set; then
   enableval=$enable_static_fd;
        if test x$enableval = xyes; then
-	  support_static_fd=yes
+          support_static_fd=yes
        fi
 
 
@@ -24215,7 +24188,7 @@ fi
 if test "${enable_static_sd+set}" = set; then
   enableval=$enable_static_sd;
        if test x$enableval = xyes; then
-	  support_static_sd=yes
+          support_static_sd=yes
        fi
 
 
@@ -24232,7 +24205,7 @@ fi
 if test "${enable_static_dir+set}" = set; then
   enableval=$enable_static_dir;
        if test x$enableval = xyes; then
-	  support_static_dir=yes
+          support_static_dir=yes
        fi
 
 
@@ -24249,7 +24222,7 @@ fi
 if test "${enable_static_cons+set}" = set; then
   enableval=$enable_static_cons;
        if test x$enableval = xyes; then
-	  support_static_cons=yes
+          support_static_cons=yes
        fi
 
 
@@ -24272,9 +24245,9 @@ fi
 if test "${enable_client_only+set}" = set; then
   enableval=$enable_client_only;
        if test x$enableval = xyes; then
-	  build_client_only=yes
-	  db_type=None
-	  DB_TYPE=none
+          build_client_only=yes
+          db_type=None
+          DB_TYPE=none
        fi
 
 
@@ -24291,7 +24264,7 @@ fi
 if test "${enable_build_dird+set}" = set; then
   enableval=$enable_build_dird;
        if test x$enableval = xno; then
-	  build_dird=no
+          build_dird=no
        fi
 
 
@@ -24311,7 +24284,7 @@ fi
 if test "${enable_build_stored+set}" = set; then
   enableval=$enable_build_stored;
       if test x$enableval = xno; then
-	 build_stored=no
+         build_stored=no
       fi
 
 
@@ -24328,7 +24301,7 @@ fi
 if test "${enable_conio+set}" = set; then
   enableval=$enable_conio;
        if test x$enableval = xno; then
-	  support_conio=no
+          support_conio=no
        fi
 
 
@@ -24341,7 +24314,7 @@ support_ipv6=yes
 if test "${enable_ipv6+set}" = set; then
   enableval=$enable_ipv6;
        if test x$enableval = xno; then
-	  support_ipv6=no
+          support_ipv6=no
        fi
 
 
@@ -24938,10 +24911,10 @@ fi
 echo "${ECHO_T}$ac_cv_lib_curses_tgetent" >&6; }
 if test $ac_cv_lib_curses_tgetent = yes; then
    CONS_LIBS="-lcurses"
-	 CONS_OBJ="conio.o"
-	 CONS_SRC="conio.c"
-	 got_conio="yes"
-	 support_readline=no
+         CONS_OBJ="conio.o"
+         CONS_SRC="conio.c"
+         got_conio="yes"
+         support_readline=no
 
 cat >>confdefs.h <<\_ACEOF
 #define HAVE_CONIO 1
@@ -24967,7 +24940,7 @@ fi
 if test "${enable_readline+set}" = set; then
   enableval=$enable_readline;
        if test x$enableval = xno; then
-	  support_readline=no
+          support_readline=no
        fi
 
 
@@ -24981,23 +24954,23 @@ if test x$support_readline = xyes; then
 # Check whether --with-readline was given.
 if test "${with_readline+set}" = set; then
   withval=$with_readline;
-	  case "$with_readline" in
-	  no)
-	     :
-	     ;;
-	  yes|*)
-	     if test -f ${with_readline}/readline.h; then
-		CONS_INC="-I${with_readline}"
-		CONS_LDFLAGS="-L$with_readline"
-	     elif test -f ${with_readline}/include/readline/readline.h; then
-		CONS_INC="-I${with_readline}/include/readline"
-		CONS_LDFLAGS="-L${with_readline}/lib"
-		with_readline="${with_readline}/include/readline"
-	     else
-		with_readline="/usr/include/readline"
-	     fi
+          case "$with_readline" in
+          no)
+             :
+             ;;
+          yes|*)
+             if test -f ${with_readline}/readline.h; then
+                CONS_INC="-I${with_readline}"
+                CONS_LDFLAGS="-L$with_readline"
+             elif test -f ${with_readline}/include/readline/readline.h; then
+                CONS_INC="-I${with_readline}/include/readline"
+                CONS_LDFLAGS="-L${with_readline}/lib"
+                with_readline="${with_readline}/include/readline"
+             else
+                with_readline="/usr/include/readline"
+             fi
 
-	     as_ac_Header=`echo "ac_cv_header_${with_readline}/readline.h" | $as_tr_sh`
+             as_ac_Header=`echo "ac_cv_header_${with_readline}/readline.h" | $as_tr_sh`
 if { as_var=$as_ac_Header; eval "test \"\${$as_var+set}\" = set"; }; then
   { echo "$as_me:$LINENO: checking for ${with_readline}/readline.h" >&5
 echo $ECHO_N "checking for ${with_readline}/readline.h... $ECHO_C" >&6; }
@@ -25132,25 +25105,25 @@ cat >>confdefs.h <<\_ACEOF
 #define HAVE_READLINE 1
 _ACEOF
 
-		    CONS_LIBS="-lreadline -lhistory -ltermcap"
-		    got_readline="yes"
+                    CONS_LIBS="-lreadline -lhistory -ltermcap"
+                    got_readline="yes"
 
 else
 
-		    echo " "
-		    echo "readline.h not found. readline turned off ..."
-		    echo " "
+                    echo " "
+                    echo "readline.h not found. readline turned off ..."
+                    echo " "
 
 
 fi
 
 
-	     ;;
-	  esac
+             ;;
+          esac
 
 else
 
-	 	 if test "${ac_cv_header__usr_include_readline_readline_h+set}" = set; then
+                  if test "${ac_cv_header__usr_include_readline_readline_h+set}" = set; then
   { echo "$as_me:$LINENO: checking for /usr/include/readline/readline.h" >&5
 echo $ECHO_N "checking for /usr/include/readline/readline.h... $ECHO_C" >&6; }
 if test "${ac_cv_header__usr_include_readline_readline_h+set}" = set; then
@@ -25282,13 +25255,13 @@ cat >>confdefs.h <<\_ACEOF
 #define HAVE_READLINE 1
 _ACEOF
 
-		got_readline="yes"
-		CONS_INC="-I/usr/include/readline"
-		CONS_LIBS="-lreadline -ltermcap"
+                got_readline="yes"
+                CONS_INC="-I/usr/include/readline"
+                CONS_LIBS="-lreadline -ltermcap"
 
 else
 
-				as_ac_Header=`echo "ac_cv_header_${TOP_DIR}/depkgs/readline/readline.h" | $as_tr_sh`
+                                as_ac_Header=`echo "ac_cv_header_${TOP_DIR}/depkgs/readline/readline.h" | $as_tr_sh`
 if { as_var=$as_ac_Header; eval "test \"\${$as_var+set}\" = set"; }; then
   { echo "$as_me:$LINENO: checking for ${TOP_DIR}/depkgs/readline/readline.h" >&5
 echo $ECHO_N "checking for ${TOP_DIR}/depkgs/readline/readline.h... $ECHO_C" >&6; }
@@ -25423,17 +25396,17 @@ cat >>confdefs.h <<\_ACEOF
 #define HAVE_READLINE 1
 _ACEOF
 
-			got_readline="yes"
-			CONS_INC="-I${TOP_DIR}/depkgs/readline"
-			CONS_LIBS="-lreadline -lhistory -ltermcap"
-			CONS_LDFLAGS="-L${TOP_DIR}/depkgs/readline"
-			PRTREADLINE_SRC="${TOP_DIR}/depkgs/readline"
+                        got_readline="yes"
+                        CONS_INC="-I${TOP_DIR}/depkgs/readline"
+                        CONS_LIBS="-lreadline -lhistory -ltermcap"
+                        CONS_LDFLAGS="-L${TOP_DIR}/depkgs/readline"
+                        PRTREADLINE_SRC="${TOP_DIR}/depkgs/readline"
 
 else
 
-			echo " "
-			echo "readline.h not found. readline turned off ..."
-			echo " "
+                        echo " "
+                        echo "readline.h not found. readline turned off ..."
+                        echo " "
 
 
 fi
@@ -26114,75 +26087,75 @@ if test "${with_python+set}" = set; then
        PYTHON_INCDIR=
        PYTHON_LIBS=
        if test "$withval" != "no"; then
-	  if test "$withval" = "yes"; then
-	     for python_root in /usr /usr/local /usr/sfw; do
-		for ver in python2.2 python2.3 python2.4 python2.5; do
-		   if test -f $python_root/include/${ver}/Python.h; then
-		      PYTHON_INCDIR=-I$python_root/include/${ver}
-		      if test -d $python_root/lib64/${ver}/config; then
-			 PYTHON_LIBS="-L$python_root/lib64/${ver}/config -l${ver}"
-		      else
-			 PYTHON_LIBS="-L$python_root/lib/${ver}/config -l${ver}"
-		      fi
-		      break
-		   fi
-		done
-	     done
+          if test "$withval" = "yes"; then
+             for python_root in /usr /usr/local /usr/sfw; do
+                for ver in python2.2 python2.3 python2.4 python2.5; do
+                   if test -f $python_root/include/${ver}/Python.h; then
+                      PYTHON_INCDIR=-I$python_root/include/${ver}
+                      if test -d $python_root/lib64/${ver}/config; then
+                         PYTHON_LIBS="-L$python_root/lib64/${ver}/config -l${ver}"
+                      else
+                         PYTHON_LIBS="-L$python_root/lib/${ver}/config -l${ver}"
+                      fi
+                      break
+                   fi
+                done
+             done
 
-	     if test x$PYTHON_INCDIR = x; then
-		if test -f $prefix/include/Python.h; then
-		   PYTHON_INCDIR=-I$prefix/include
-		   if test -d $prefix/lib64/config; then
-		      PYTHON_LIBS="-L$prefix/lib64/config -lpython"
-		   else
-		      PYTHON_LIBS="-L$prefix/lib/config -lpython"
-		   fi
-		else
-		   { echo "$as_me:$LINENO: result: no" >&5
+             if test x$PYTHON_INCDIR = x; then
+                if test -f $prefix/include/Python.h; then
+                   PYTHON_INCDIR=-I$prefix/include
+                   if test -d $prefix/lib64/config; then
+                      PYTHON_LIBS="-L$prefix/lib64/config -lpython"
+                   else
+                      PYTHON_LIBS="-L$prefix/lib/config -lpython"
+                   fi
+                else
+                   { echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6; }
-		   { { echo "$as_me:$LINENO: error: Unable to find Python.h in standard locations" >&5
+                   { { echo "$as_me:$LINENO: error: Unable to find Python.h in standard locations" >&5
 echo "$as_me: error: Unable to find Python.h in standard locations" >&2;}
    { (exit 1); exit 1; }; }
-		fi
-	     fi
-	  else
-	     if test -f $withval/Python.h; then
-		PYTHON_INCDIR=-I$withval
-		PYTHON_LIBS="-L$withval/config -lpython"
-	     elif test -f $withval/include/Python.h; then
-		PYTHON_INCDIR=-I$withval/include
-		if test -d $withval/lib64/config; then
-		   PYTHON_LIBS="-L$withval/lib64/config -lpython"
-		else
-		   PYTHON_LIBS="-L$withval/lib/config -lpython"
-		fi
-	     elif test -f $withval/include/python/Python.h; then
-		PYTHON_INCDIR=-I$withval/include/python
-		if test -d $withval/lib64/python/config; then
-		   PYTHON_LIBS="-L$withval/lib64/python/config -lpython"
-		else
-		   PYTHON_LIBS="-L$withval/lib/python/config -lpython"
-		fi
-	     else
-		{ echo "$as_me:$LINENO: result: no" >&5
+                fi
+             fi
+          else
+             if test -f $withval/Python.h; then
+                PYTHON_INCDIR=-I$withval
+                PYTHON_LIBS="-L$withval/config -lpython"
+             elif test -f $withval/include/Python.h; then
+                PYTHON_INCDIR=-I$withval/include
+                if test -d $withval/lib64/config; then
+                   PYTHON_LIBS="-L$withval/lib64/config -lpython"
+                else
+                   PYTHON_LIBS="-L$withval/lib/config -lpython"
+                fi
+             elif test -f $withval/include/python/Python.h; then
+                PYTHON_INCDIR=-I$withval/include/python
+                if test -d $withval/lib64/python/config; then
+                   PYTHON_LIBS="-L$withval/lib64/python/config -lpython"
+                else
+                   PYTHON_LIBS="-L$withval/lib/python/config -lpython"
+                fi
+             else
+                { echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6; }
-		{ { echo "$as_me:$LINENO: error: Invalid Python directory $withval - unable to find Python.h under $withval" >&5
+                { { echo "$as_me:$LINENO: error: Invalid Python directory $withval - unable to find Python.h under $withval" >&5
 echo "$as_me: error: Invalid Python directory $withval - unable to find Python.h under $withval" >&2;}
    { (exit 1); exit 1; }; }
-	     fi
-	  fi
+             fi
+          fi
 
-	  cat >>confdefs.h <<\_ACEOF
+          cat >>confdefs.h <<\_ACEOF
 #define HAVE_PYTHON 1
 _ACEOF
 
-	  { echo "$as_me:$LINENO: result: yes" >&5
+          { echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6; }
-	  support_python=yes
-	  { echo "$as_me:$LINENO: checking for more Python libs" >&5
+          support_python=yes
+          { echo "$as_me:$LINENO: checking for more Python libs" >&5
 echo "$as_me: checking for more Python libs" >&6;}
-	  saved_LIBS="$LIBS"; LIBS=
-	  { echo "$as_me:$LINENO: checking for library containing shm_open" >&5
+          saved_LIBS="$LIBS"; LIBS=
+          { echo "$as_me:$LINENO: checking for library containing shm_open" >&5
 echo $ECHO_N "checking for library containing shm_open... $ECHO_C" >&6; }
 if test "${ac_cv_search_shm_open+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
@@ -26336,10 +26309,10 @@ _ACEOF
 
 fi
 
-	  PYTHON_LIBS="$PYTHON_LIBS $LIBS"
-	  LIBS="$saved_LIBS"
+          PYTHON_LIBS="$PYTHON_LIBS $LIBS"
+          LIBS="$saved_LIBS"
        else
-	  { echo "$as_me:$LINENO: result: no" >&5
+          { echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6; }
        fi
 
@@ -26662,11 +26635,11 @@ WRAPLIBS=""
 if test "${with_tcp_wrappers+set}" = set; then
   withval=$with_tcp_wrappers;
        if test "x$withval" != "xno" ; then
-	  saved_LIBS="$LIBS"
-	  LIBS="$saved_LIBS -lwrap"
-	  { echo "$as_me:$LINENO: checking for libwrap" >&5
+          saved_LIBS="$LIBS"
+          LIBS="$saved_LIBS -lwrap"
+          { echo "$as_me:$LINENO: checking for libwrap" >&5
 echo $ECHO_N "checking for libwrap... $ECHO_C" >&6; }
-	  { echo "$as_me:$LINENO: checking for library containing nanosleep" >&5
+          { echo "$as_me:$LINENO: checking for library containing nanosleep" >&5
 echo $ECHO_N "checking for library containing nanosleep... $ECHO_C" >&6; }
 if test "${ac_cv_search_nanosleep+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
@@ -26749,24 +26722,24 @@ if test "$ac_res" != no; then
 
 fi
 
-	  cat >conftest.$ac_ext <<_ACEOF
+          cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
 _ACEOF
 cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-	       #include <sys/types.h>
-	       #include <tcpd.h>
-	       int deny_severity = 0;
-	       int allow_severity = 0;
-	       struct request_info *req;
+               #include <sys/types.h>
+               #include <tcpd.h>
+               int deny_severity = 0;
+               int allow_severity = 0;
+               struct request_info *req;
 
 int
 main ()
 {
 
-		hosts_access(req);
+                hosts_access(req);
 
   ;
   return 0;
@@ -26791,42 +26764,42 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
 
-		 { echo "$as_me:$LINENO: result: yes" >&5
+                 { echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6; }
 
 cat >>confdefs.h <<\_ACEOF
 #define HAVE_LIBWRAP 1
 _ACEOF
 
-		 TCPW_MSG="yes"
-		 LIBS="$saved_LIBS"
-		 WRAPLIBS="-lwrap"
+                 TCPW_MSG="yes"
+                 LIBS="$saved_LIBS"
+                 WRAPLIBS="-lwrap"
 
 else
   echo "$as_me: failed program was:" >&5
 sed 's/^/| /' conftest.$ac_ext >&5
 
 
-		 LIBS="$saved_LIBS -lwrap -lnsl"
-		 WRAPLIBS="$saved_LIBS -lwrap -lnsl"
-		 cat >conftest.$ac_ext <<_ACEOF
+                 LIBS="$saved_LIBS -lwrap -lnsl"
+                 WRAPLIBS="$saved_LIBS -lwrap -lnsl"
+                 cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
 _ACEOF
 cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-		       #include <sys/types.h>
-		       #include <tcpd.h>
-		       int deny_severity = 0;
-		       int allow_severity = 0;
-		       struct request_info *req;
+                       #include <sys/types.h>
+                       #include <tcpd.h>
+                       int deny_severity = 0;
+                       int allow_severity = 0;
+                       struct request_info *req;
 
 int
 main ()
 {
 
-		       hosts_access(req);
+                       hosts_access(req);
 
   ;
   return 0;
@@ -26851,23 +26824,23 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
 
-		      { echo "$as_me:$LINENO: result: yes" >&5
+                      { echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6; }
 
 cat >>confdefs.h <<\_ACEOF
 #define HAVE_LIBWRAP 1
 _ACEOF
 
-		      TCPW_MSG="yes"
-		      LIBS="$saved_LIBS"
-		      WRAPLIBS="-lwrap"
+                      TCPW_MSG="yes"
+                      LIBS="$saved_LIBS"
+                      WRAPLIBS="-lwrap"
 
 else
   echo "$as_me: failed program was:" >&5
 sed 's/^/| /' conftest.$ac_ext >&5
 
 
-		      { { echo "$as_me:$LINENO: error: *** libwrap missing" >&5
+                      { { echo "$as_me:$LINENO: error: *** libwrap missing" >&5
 echo "$as_me: error: *** libwrap missing" >&2;}
    { (exit 1); exit 1; }; }
 
@@ -26894,7 +26867,7 @@ echo $ECHO_N "checking for OpenSSL... $ECHO_C" >&6; }
 # Check whether --with-openssl was given.
 if test "${with_openssl+set}" = set; then
   withval=$with_openssl;
-	with_openssl_directory=${withval}
+        with_openssl_directory=${withval}
 
 
 fi
@@ -26909,8 +26882,8 @@ if test "x$with_openssl_directory" != "xno"; then
       # Make sure the $with_openssl_directory also makes sense
       #
       if test -d "$with_openssl_directory/lib" -a -d "$with_openssl_directory/include"; then
-	 OPENSSL_LIBS="-L$with_openssl_directory/lib $OPENSSL_LIBS"
-	 OPENSSL_INC="-I$with_openssl_directory/include $OPENSSL_INC"
+         OPENSSL_LIBS="-L$with_openssl_directory/lib $OPENSSL_LIBS"
+         OPENSSL_INC="-I$with_openssl_directory/include $OPENSSL_INC"
       fi
    fi
 
@@ -26926,13 +26899,13 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-	  #include <openssl/ssl.h>
+          #include <openssl/ssl.h>
 
 int
 main ()
 {
 
-	   CRYPTO_set_id_callback(NULL);
+           CRYPTO_set_id_callback(NULL);
 
   ;
   return 0;
@@ -26957,15 +26930,15 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
 
-	  support_tls="yes"
-	  support_crypto="yes"
+          support_tls="yes"
+          support_crypto="yes"
 
 else
   echo "$as_me: failed program was:" >&5
 sed 's/^/| /' conftest.$ac_ext >&5
 
 
-	  support_tls="no"
+          support_tls="no"
 
 
 fi
@@ -26980,13 +26953,13 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-	  #include <openssl/evp.h>
+          #include <openssl/evp.h>
 
 int
 main ()
 {
 
-	  EVP_sha512();
+          EVP_sha512();
 
   ;
   return 0;
@@ -27011,14 +26984,14 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
 
-	  ac_cv_openssl_sha2="yes"
+          ac_cv_openssl_sha2="yes"
 
 else
   echo "$as_me: failed program was:" >&5
 sed 's/^/| /' conftest.$ac_ext >&5
 
 
-	  ac_cv_openssl_sha2="no"
+          ac_cv_openssl_sha2="no"
 
 
 fi
@@ -27033,13 +27006,13 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-	  #include <openssl/evp.h>
+          #include <openssl/evp.h>
 
 int
 main ()
 {
 
-	  EVP_aes_192_cbc();
+          EVP_aes_192_cbc();
 
   ;
   return 0;
@@ -27064,14 +27037,14 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
 
-	  ac_cv_openssl_export="no"
+          ac_cv_openssl_export="no"
 
 else
   echo "$as_me: failed program was:" >&5
 sed 's/^/| /' conftest.$ac_ext >&5
 
 
-	  ac_cv_openssl_export="yes"
+          ac_cv_openssl_export="yes"
 
 
 fi
@@ -27217,7 +27190,7 @@ working_dir=`eval echo ${prefix}/var/bacula/working`
 if test "${with_working_dir+set}" = set; then
   withval=$with_working_dir;
        if test "x$withval" != "xno" ; then
-	 working_dir=$withval
+         working_dir=$withval
        fi
 
 
@@ -27232,7 +27205,7 @@ archive_dir=/tmp
 if test "${with_archivedir+set}" = set; then
   withval=$with_archivedir;
        if test "x$withval" != "xno" ; then
-	  archivedir=$withval
+          archivedir=$withval
        fi
 
 
@@ -27247,7 +27220,7 @@ scriptdir=`eval echo ${sysconfdir}`
 if test "${with_scriptdir+set}" = set; then
   withval=$with_scriptdir;
        if test "x$withval" != "xno" ; then
-	  scriptdir=$withval
+          scriptdir=$withval
        fi
 
 
@@ -27265,7 +27238,7 @@ plugindir=`eval echo ${sysconfdir}`
 if test "${with_plugindir+set}" = set; then
   withval=$with_plugindir;
        if test "x$withval" != "xno" ; then
-	  plugindir=$withval
+          plugindir=$withval
        fi
 
 
@@ -27280,7 +27253,7 @@ dump_email=root@localhost
 if test "${with_dump_email+set}" = set; then
   withval=$with_dump_email;
        if test "x$withval" != "xno" ; then
-	  dump_email=$withval
+          dump_email=$withval
        fi
 
 
@@ -27295,7 +27268,7 @@ job_email=root@localhost
 if test "${with_job_email+set}" = set; then
   withval=$with_job_email;
        if test "x$withval" != "xno" ; then
-	  job_email=$withval
+          job_email=$withval
        fi
 
 
@@ -27310,7 +27283,7 @@ smtp_host=localhost
 if test "${with_smtp_host+set}" = set; then
   withval=$with_smtp_host;
        if test "x$withval" != "xno" ; then
-	  smtp_host=$withval
+          smtp_host=$withval
        fi
 
 
@@ -27325,7 +27298,7 @@ piddir=/var/run
 if test "${with_pid_dir+set}" = set; then
   withval=$with_pid_dir;
        if test "x$withval" != "xno" ; then
-	  piddir=$withval
+          piddir=$withval
        fi
 
 
@@ -27351,7 +27324,7 @@ fi
 if test "${with_subsys_dir+set}" = set; then
   withval=$with_subsys_dir;
        if test "x$withval" != "xno" ; then
-	  subsysdir=$withval
+          subsysdir=$withval
        fi
 
 
@@ -27366,7 +27339,7 @@ baseport=9101
 if test "${with_baseport+set}" = set; then
   withval=$with_baseport;
        if test "x$withval" != "xno" ; then
-	  baseport=$withval
+          baseport=$withval
        fi
 
 
@@ -27388,7 +27361,7 @@ dir_password=
 if test "${with_dir_password+set}" = set; then
   withval=$with_dir_password;
        if test "x$withval" != "xno" ; then
-	  dir_password=$withval
+          dir_password=$withval
        fi
 
 
@@ -27410,7 +27383,7 @@ fd_password=
 if test "${with_fd_password+set}" = set; then
   withval=$with_fd_password;
        if test "x$withval" != "xno" ; then
-	  fd_password=$withval
+          fd_password=$withval
        fi
 
 
@@ -27432,7 +27405,7 @@ sd_password=
 if test "${with_sd_password+set}" = set; then
   withval=$with_sd_password;
        if test "x$withval" != "xno" ; then
-	  sd_password=$withval
+          sd_password=$withval
        fi
 
 
@@ -27454,7 +27427,7 @@ mon_dir_password=
 if test "${with_mon_dir_password+set}" = set; then
   withval=$with_mon_dir_password;
        if test "x$withval" != "xno" ; then
-	  mon_dir_password=$withval
+          mon_dir_password=$withval
        fi
 
 
@@ -27476,7 +27449,7 @@ mon_fd_password=
 if test "${with_mon_fd_password+set}" = set; then
   withval=$with_mon_fd_password;
        if test "x$withval" != "xno" ; then
-	  mon_fd_password=$withval
+          mon_fd_password=$withval
        fi
 
 
@@ -27498,7 +27471,7 @@ mon_sd_password=
 if test "${with_mon_sd_password+set}" = set; then
   withval=$with_mon_sd_password;
        if test "x$withval" != "xno" ; then
-	  mon_sd_password=$withval
+          mon_sd_password=$withval
        fi
 
 
@@ -27527,7 +27500,7 @@ db_name=bacula
 if test "${with_db_name+set}" = set; then
   withval=$with_db_name;
        if test "x$withval" != "x" ; then
-	  db_name=$withval
+          db_name=$withval
        fi
 
 
@@ -27541,7 +27514,7 @@ db_user=bacula
 if test "${with_db_user+set}" = set; then
   withval=$with_db_user;
        if test "x$withval" != "x" ; then
-	  db_user=$withval
+          db_user=$withval
        fi
 
 
@@ -27555,7 +27528,7 @@ db_password=
 if test "${with_db_password+set}" = set; then
   withval=$with_db_password;
        if test "x$withval" != "x" ; then
-	  db_password=$withval
+          db_password=$withval
        fi
 
 
@@ -27569,7 +27542,7 @@ db_port=" "
 if test "${with_db_port+set}" = set; then
   withval=$with_db_port;
        if test "x$withval" != "x" ; then
-	  db_port=$withval
+          db_port=$withval
        fi
 
 
@@ -27586,7 +27559,7 @@ dir_user=
 if test "${with_dir_user+set}" = set; then
   withval=$with_dir_user;
        if test "x$withval" != "x" ; then
-	   dir_user=$withval
+           dir_user=$withval
        fi
 
 
@@ -27599,7 +27572,7 @@ dir_group=
 if test "${with_dir_group+set}" = set; then
   withval=$with_dir_group;
        if test "x$withval" != "x" ; then
-	  dir_group=$withval
+          dir_group=$withval
        fi
 
 
@@ -27612,7 +27585,7 @@ sd_user=
 if test "${with_sd_user+set}" = set; then
   withval=$with_sd_user;
        if test "x$withval" != "x" ; then
-	  sd_user=$withval
+          sd_user=$withval
        fi
 
 
@@ -27625,7 +27598,7 @@ sd_group=
 if test "${with_sd_group+set}" = set; then
   withval=$with_sd_group;
        if test "x$withval" != "x" ; then
-	  sd_group=$withval
+          sd_group=$withval
        fi
 
 
@@ -27638,7 +27611,7 @@ fd_user=
 if test "${with_fd_user+set}" = set; then
   withval=$with_fd_user;
        if test "x$withval" != "x" ; then
-	  fd_user=$withval
+          fd_user=$withval
        fi
 
 
@@ -27651,7 +27624,7 @@ fd_group=
 if test "${with_fd_group+set}" = set; then
   withval=$with_fd_group;
        if test "x$withval" != "x" ; then
-	  fd_group=$withval
+          fd_group=$withval
        fi
 
 
@@ -27671,7 +27644,7 @@ SBINPERM=0754
 if test "${with_sbin_perm+set}" = set; then
   withval=$with_sbin_perm;
        if test "x$withval" != "x" ; then
-	  SBINPERM=$withval
+          SBINPERM=$withval
        fi
 
 
@@ -28734,11 +28707,11 @@ if test $pkg = 0; then
    # Check whether --enable-batch-insert was given.
 if test "${enable_batch_insert+set}" = set; then
   enableval=$enable_batch_insert;
-	  if test x$enableval = xno; then
-	     support_batch_insert=no
-	  else
-	     support_batch_insert=yes
-	  fi
+          if test x$enableval = xno; then
+             support_batch_insert=no
+          else
+             support_batch_insert=yes
+          fi
 
 
 fi
@@ -28776,11 +28749,11 @@ if test x$DB_TYPE = xdbi; then
       # Check whether --enable-batch-insert was given.
 if test "${enable_batch_insert+set}" = set; then
   enableval=$enable_batch_insert;
-	     if test x$enableval = xno; then
-		support_batch_insert=no
-	     else
-		support_batch_insert=yes
-	     fi
+             if test x$enableval = xno; then
+                support_batch_insert=no
+             else
+                support_batch_insert=yes
+             fi
 
 
 fi
@@ -32127,14 +32100,14 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-	      #include <sys/types.h>
-	      #include <utime.h>
+              #include <sys/types.h>
+              #include <utime.h>
 
 int
 main ()
 {
 
-	      struct utimbuf foo
+              struct utimbuf foo
 
   ;
   return 0;
@@ -32158,14 +32131,14 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
 
-	      ba_cv_header_utime_h=yes
+              ba_cv_header_utime_h=yes
 
 else
   echo "$as_me: failed program was:" >&5
 sed 's/^/| /' conftest.$ac_ext >&5
 
 
-	      ba_cv_header_utime_h=no
+              ba_cv_header_utime_h=no
 
 
 fi
@@ -32195,14 +32168,14 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-	      #include <sys/types.h>
-	      #include <sys/socket.h>
+              #include <sys/types.h>
+              #include <sys/socket.h>
 
 int
 main ()
 {
 
-	      socklen_t x
+              socklen_t x
 
   ;
   return 0;
@@ -32226,14 +32199,14 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
 
-	     ba_cv_header_socklen_t=yes
+             ba_cv_header_socklen_t=yes
 
 else
   echo "$as_me: failed program was:" >&5
 sed 's/^/| /' conftest.$ac_ext >&5
 
 
-	     ba_cv_header_socklen_t=no
+             ba_cv_header_socklen_t=no
 
 
 fi
@@ -32257,7 +32230,7 @@ else
 
        if test "$cross_compiling" = yes; then
 
-	     ba_cv_bigendian=no
+             ba_cv_bigendian=no
 
 
 else
@@ -32268,7 +32241,7 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-	      main(){long a=1L; char *p=(char *)&a; exit(*p);}
+              main(){long a=1L; char *p=(char *)&a; exit(*p);}
 
 _ACEOF
 rm -f conftest$ac_exeext
@@ -32292,7 +32265,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); }; }; then
 
-	     ba_cv_bigendian=yes
+             ba_cv_bigendian=yes
 
 else
   echo "$as_me: program exited with status $ac_status" >&5
@@ -32301,7 +32274,7 @@ sed 's/^/| /' conftest.$ac_ext >&5
 
 ( exit $ac_status )
 
-	     ba_cv_bigendian=no
+             ba_cv_bigendian=no
 
 fi
 rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
@@ -32332,7 +32305,7 @@ else
 
        if test "$cross_compiling" = yes; then
 
-	      ba_cv_have_typeof=no
+              ba_cv_have_typeof=no
 
 
 else
@@ -32343,7 +32316,7 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-	      main(){char *a = 0; a = (typeof a)a;}
+              main(){char *a = 0; a = (typeof a)a;}
 
 _ACEOF
 rm -f conftest$ac_exeext
@@ -32367,7 +32340,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); }; }; then
 
-	      ba_cv_have_typeof=yes
+              ba_cv_have_typeof=yes
 
 else
   echo "$as_me: program exited with status $ac_status" >&5
@@ -32376,7 +32349,7 @@ sed 's/^/| /' conftest.$ac_ext >&5
 
 ( exit $ac_status )
 
-	      ba_cv_have_typeof=no
+              ba_cv_have_typeof=no
 
 fi
 rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
@@ -32559,8 +32532,8 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-	  #include <sys/statfs.h>
-	  #include <sys/fstyp.h>
+          #include <sys/statfs.h>
+          #include <sys/fstyp.h>
 
 _ACEOF
 if { (ac_try="$ac_cpp conftest.$ac_ext"
@@ -32601,8 +32574,8 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-	  #include <sys/statfs.h>
-	  #include <sys/vmount.h>
+          #include <sys/statfs.h>
+          #include <sys/vmount.h>
 
 _ACEOF
 if { (ac_try="$ac_cpp conftest.$ac_ext"
@@ -32643,7 +32616,7 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-	  #include <mntent.h>
+          #include <mntent.h>
 
 _ACEOF
 if { (ac_try="$ac_cpp conftest.$ac_ext"
@@ -32704,8 +32677,8 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-	  #include <sys/mount.h>
-	  #include <sys/fs_types.h>
+          #include <sys/mount.h>
+          #include <sys/fs_types.h>
 
 _ACEOF
 if { (ac_try="$ac_cpp conftest.$ac_ext"
@@ -36610,13 +36583,13 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-	      #include <sys/types.h>
+              #include <sys/types.h>
 
 int
 main ()
 {
 
-	      u_int a; a = 1;
+              u_int a; a = 1;
 
   ;
   return 0;
@@ -36640,14 +36613,14 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
 
-	      ac_cv_have_u_int="yes"
+              ac_cv_have_u_int="yes"
 
 else
   echo "$as_me: failed program was:" >&5
 sed 's/^/| /' conftest.$ac_ext >&5
 
 
-	      ac_cv_have_u_int="no"
+              ac_cv_have_u_int="no"
 
 
 fi
@@ -36679,13 +36652,13 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-	      #include <sys/types.h>
+              #include <sys/types.h>
 
 int
 main ()
 {
 
-	      intmax_t a; a = 1;
+              intmax_t a; a = 1;
 
   ;
   return 0;
@@ -36709,27 +36682,27 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
 
-	      ac_cv_have_intmax_t="yes"
+              ac_cv_have_intmax_t="yes"
 
 else
   echo "$as_me: failed program was:" >&5
 sed 's/^/| /' conftest.$ac_ext >&5
 
 
-	      cat >conftest.$ac_ext <<_ACEOF
+              cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
 _ACEOF
 cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-		     #include <stdint.h>
+                     #include <stdint.h>
 
 int
 main ()
 {
 
-		     intmax_t a; a = 1;
+                     intmax_t a; a = 1;
 
   ;
   return 0;
@@ -36753,14 +36726,14 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
 
-		     ac_cv_have_intmax_t="yes"
+                     ac_cv_have_intmax_t="yes"
 
 else
   echo "$as_me: failed program was:" >&5
 sed 's/^/| /' conftest.$ac_ext >&5
 
 
-		     ac_cv_have_intmax_t="no"
+                     ac_cv_have_intmax_t="no"
 
 
 fi
@@ -36797,13 +36770,13 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-	      #include <sys/types.h>
+              #include <sys/types.h>
 
 int
 main ()
 {
 
-	      u_intmax_t a; a = 1;
+              u_intmax_t a; a = 1;
 
   ;
   return 0;
@@ -36827,27 +36800,27 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
 
-	      ac_cv_have_u_intmax_t="yes"
+              ac_cv_have_u_intmax_t="yes"
 
 else
   echo "$as_me: failed program was:" >&5
 sed 's/^/| /' conftest.$ac_ext >&5
 
 
-	      cat >conftest.$ac_ext <<_ACEOF
+              cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
 _ACEOF
 cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-		     #include <stdint.h>
+                     #include <stdint.h>
 
 int
 main ()
 {
 
-		    u_intmax_t a; a = 1;
+                    u_intmax_t a; a = 1;
 
   ;
   return 0;
@@ -36871,14 +36844,14 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
 
-		    ac_cv_have_u_intmax_t="yes"
+                    ac_cv_have_u_intmax_t="yes"
 
 else
   echo "$as_me: failed program was:" >&5
 sed 's/^/| /' conftest.$ac_ext >&5
 
 
-		    ac_cv_have_u_intmax_t="no"
+                    ac_cv_have_u_intmax_t="no"
 
 
 fi
@@ -36915,13 +36888,13 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-	      #include <sys/types.h>
+              #include <sys/types.h>
 
 int
 main ()
 {
 
-	      int8_t a; int16_t b; int32_t c; a = b = c = 1;
+              int8_t a; int16_t b; int32_t c; a = b = c = 1;
 
   ;
   return 0;
@@ -36945,14 +36918,14 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
 
-	      ac_cv_have_intxx_t="yes"
+              ac_cv_have_intxx_t="yes"
 
 else
   echo "$as_me: failed program was:" >&5
 sed 's/^/| /' conftest.$ac_ext >&5
 
 
-	      ac_cv_have_intxx_t="no"
+              ac_cv_have_intxx_t="no"
 
 
 fi
@@ -36984,13 +36957,13 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-	      #include <sys/types.h>
+              #include <sys/types.h>
 
 int
 main ()
 {
 
-	      int64_t a; a = 1;
+              int64_t a; a = 1;
 
   ;
   return 0;
@@ -37014,14 +36987,14 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
 
-	      ac_cv_have_int64_t="yes"
+              ac_cv_have_int64_t="yes"
 
 else
   echo "$as_me: failed program was:" >&5
 sed 's/^/| /' conftest.$ac_ext >&5
 
 
-	      ac_cv_have_int64_t="no"
+              ac_cv_have_int64_t="no"
 
 
 fi
@@ -37053,13 +37026,13 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-	      #include <sys/types.h>
+              #include <sys/types.h>
 
 int
 main ()
 {
 
-	      u_int8_t a; u_int16_t b; u_int32_t c; a = b = c = 1;
+              u_int8_t a; u_int16_t b; u_int32_t c; a = b = c = 1;
 
   ;
   return 0;
@@ -37083,14 +37056,14 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
 
-	     ac_cv_have_u_intxx_t="yes"
+             ac_cv_have_u_intxx_t="yes"
 
 else
   echo "$as_me: failed program was:" >&5
 sed 's/^/| /' conftest.$ac_ext >&5
 
 
-	     ac_cv_have_u_intxx_t="no"
+             ac_cv_have_u_intxx_t="no"
 
 
 fi
@@ -37122,13 +37095,13 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-	      #include <sys/types.h>
+              #include <sys/types.h>
 
 int
 main ()
 {
 
-	      u_int64_t a; a = 1;
+              u_int64_t a; a = 1;
 
   ;
   return 0;
@@ -37152,14 +37125,14 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
 
-	     ac_cv_have_u_int64_t="yes"
+             ac_cv_have_u_int64_t="yes"
 
 else
   echo "$as_me: failed program was:" >&5
 sed 's/^/| /' conftest.$ac_ext >&5
 
 
-	     ac_cv_have_u_int64_t="no"
+             ac_cv_have_u_int64_t="no"
 
 
 fi
@@ -37190,15 +37163,15 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-	  #include <sys/bitypes.h>
+          #include <sys/bitypes.h>
 
 int
 main ()
 {
 
-	  int8_t a; int16_t b; int32_t c;
-	  u_int8_t e; u_int16_t f; u_int32_t g;
-	  a = b = c = e = f = g = 1;
+          int8_t a; int16_t b; int32_t c;
+          u_int8_t e; u_int16_t f; u_int32_t g;
+          a = b = c = e = f = g = 1;
 
   ;
   return 0;
@@ -37222,19 +37195,19 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
 
-	  cat >>confdefs.h <<\_ACEOF
+          cat >>confdefs.h <<\_ACEOF
 #define HAVE_U_INTXX_T 1
 _ACEOF
 
-	  cat >>confdefs.h <<\_ACEOF
+          cat >>confdefs.h <<\_ACEOF
 #define HAVE_INTXX_T 1
 _ACEOF
 
-	  cat >>confdefs.h <<\_ACEOF
+          cat >>confdefs.h <<\_ACEOF
 #define HAVE_SYS_BITYPES_H 1
 _ACEOF
 
-	  { echo "$as_me:$LINENO: result: yes" >&5
+          { echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6; }
 
 else
@@ -37242,7 +37215,7 @@ else
 sed 's/^/| /' conftest.$ac_ext >&5
 
 
-	  { echo "$as_me:$LINENO: result: no" >&5
+          { echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6; }
 
 
@@ -37258,21 +37231,21 @@ if test "${ac_cv_have_uintxx_t+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
 else
 
-	  cat >conftest.$ac_ext <<_ACEOF
+          cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
 _ACEOF
 cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-		 #include <sys/types.h>
+                 #include <sys/types.h>
 
 int
 main ()
 {
 
-		 uint8_t a; uint16_t b;
-		 uint32_t c; a = b = c = 1;
+                 uint8_t a; uint16_t b;
+                 uint32_t c; a = b = c = 1;
 
   ;
   return 0;
@@ -37296,14 +37269,14 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
 
-		ac_cv_have_uintxx_t="yes"
+                ac_cv_have_uintxx_t="yes"
 
 else
   echo "$as_me: failed program was:" >&5
 sed 's/^/| /' conftest.$ac_ext >&5
 
 
-		ac_cv_have_uintxx_t="no"
+                ac_cv_have_uintxx_t="no"
 
 
 fi
@@ -37334,14 +37307,14 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-	  #include <sys/bitypes.h>
+          #include <sys/bitypes.h>
 
 int
 main ()
 {
 
-	  int64_t a; u_int64_t b;
-	  a = b = 1;
+          int64_t a; u_int64_t b;
+          a = b = 1;
 
   ;
   return 0;
@@ -37365,15 +37338,15 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
 
-	  cat >>confdefs.h <<\_ACEOF
+          cat >>confdefs.h <<\_ACEOF
 #define HAVE_U_INT64_T 1
 _ACEOF
 
-	  cat >>confdefs.h <<\_ACEOF
+          cat >>confdefs.h <<\_ACEOF
 #define HAVE_INT64_T 1
 _ACEOF
 
-	  { echo "$as_me:$LINENO: result: yes" >&5
+          { echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6; }
 
 else
@@ -37381,7 +37354,7 @@ else
 sed 's/^/| /' conftest.$ac_ext >&5
 
 
-	  { echo "$as_me:$LINENO: result: no" >&5
+          { echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6; }
 
 
@@ -37402,14 +37375,14 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-	  #include <sys/bitypes.h>
+          #include <sys/bitypes.h>
 
 int
 main ()
 {
 
-	  uint8_t a; uint16_t b;
-	  uint32_t c; a = b = c = 1;
+          uint8_t a; uint16_t b;
+          uint32_t c; a = b = c = 1;
 
   ;
   return 0;
@@ -37433,11 +37406,11 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
 
-	  cat >>confdefs.h <<\_ACEOF
+          cat >>confdefs.h <<\_ACEOF
 #define HAVE_UINTXX_T 1
 _ACEOF
 
-	  { echo "$as_me:$LINENO: result: yes" >&5
+          { echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6; }
 
 else
@@ -37445,7 +37418,7 @@ else
 sed 's/^/| /' conftest.$ac_ext >&5
 
 
-	  { echo "$as_me:$LINENO: result: no" >&5
+          { echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6; }
 
 
@@ -38167,15 +38140,15 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-	      #include <stdarg.h>
-	      void use_va_copy(va_list args){va_list args2; va_copy(args2,args); va_end(args2);}
-	      void call_use_va_copy(int junk,...){va_list args; va_start(args,junk); use_va_copy(args); va_end(args);}
+              #include <stdarg.h>
+              void use_va_copy(va_list args){va_list args2; va_copy(args2,args); va_end(args2);}
+              void call_use_va_copy(int junk,...){va_list args; va_start(args,junk); use_va_copy(args); va_end(args);}
 
 int
 main ()
 {
 
-	      call_use_va_copy(1,2,3)
+              call_use_va_copy(1,2,3)
 
   ;
   return 0;
@@ -38200,14 +38173,14 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
 
-	      ba_cv_va_copy=yes,
+              ba_cv_va_copy=yes,
 
 else
   echo "$as_me: failed program was:" >&5
 sed 's/^/| /' conftest.$ac_ext >&5
 
 
-	      ba_cv_va_copy=no
+              ba_cv_va_copy=no
 
 
 fi
@@ -38859,13 +38832,13 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-	      #include <sys/socket.h>
+              #include <sys/socket.h>
 
 int
 main ()
 {
 
-	      struct sockaddr s; s.sa_len;
+              struct sockaddr s; s.sa_len;
 
   ;
   return 0;
@@ -38889,7 +38862,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
 
-	     ac_cv_struct_sockaddr_sa_len=yes
+             ac_cv_struct_sockaddr_sa_len=yes
 
 else
   echo "$as_me: failed program was:" >&5
@@ -39859,7 +39832,7 @@ cat >>confdefs.h <<\_ACEOF
 _ACEOF
 
 fi
- 	    # AC_FUNC_FNMATCH    dnl use local version
+             # AC_FUNC_FNMATCH    dnl use local version
 
 { echo "$as_me:$LINENO: checking for gettext in -lintl" >&5
 echo $ECHO_N "checking for gettext in -lintl... $ECHO_C" >&6; }
@@ -40489,12 +40462,12 @@ fi
 echo "${ECHO_T}$ac_cv_lib_acl_acl_get_file" >&6; }
 if test $ac_cv_lib_acl_acl_get_file = yes; then
 
-	      have_acl=yes;
-	      FDLIBS="-lacl $FDLIBS"
+              have_acl=yes;
+              FDLIBS="-lacl $FDLIBS"
 
 else
 
-	      { echo "$as_me:$LINENO: checking for acltotext in -lsec" >&5
+              { echo "$as_me:$LINENO: checking for acltotext in -lsec" >&5
 echo $ECHO_N "checking for acltotext in -lsec... $ECHO_C" >&6; }
 if test "${ac_cv_lib_sec_acltotext+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
@@ -40557,8 +40530,8 @@ fi
 echo "${ECHO_T}$ac_cv_lib_sec_acltotext" >&6; }
 if test $ac_cv_lib_sec_acltotext = yes; then
 
-		     have_acl=yes;
-		     FDLIBS="-lsec $FDLIBS"
+                     have_acl=yes;
+                     FDLIBS="-lsec $FDLIBS"
 
 
 fi
@@ -40709,7 +40682,7 @@ if test $ac_cv_lib_pthreads_pthread_create = yes; then
   PTHREAD_LIB="-lpthreads"
 else
 
-	      { echo "$as_me:$LINENO: checking for pthread_create in -lc_r" >&5
+              { echo "$as_me:$LINENO: checking for pthread_create in -lc_r" >&5
 echo $ECHO_N "checking for pthread_create in -lc_r... $ECHO_C" >&6; }
 if test "${ac_cv_lib_c_r_pthread_create+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
@@ -40774,7 +40747,7 @@ if test $ac_cv_lib_c_r_pthread_create = yes; then
   PTHREAD_LIB="-lc_r"
 else
 
-		     { echo "$as_me:$LINENO: checking for pthread_create" >&5
+                     { echo "$as_me:$LINENO: checking for pthread_create" >&5
 echo $ECHO_N "checking for pthread_create... $ECHO_C" >&6; }
 if test "${ac_cv_func_pthread_create+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
@@ -40980,10 +40953,10 @@ debian)
    if test -f /etc/lsb-release ; then
       . /etc/lsb-release
       if test "x$DISTRIB_ID" != "x" ; then
-	 DISTNAME=$DISTRIB_ID
+         DISTNAME=$DISTRIB_ID
       fi
       if test "x$DISTRIB_RELEASE" != "x" ; then
-	 DISTVER=$DISTRIB_RELEASE
+         DISTVER=$DISTRIB_RELEASE
       fi
    fi
    if test "$DISTNAME" = "Ubuntu" ; then
@@ -40993,16 +40966,16 @@ debian)
    PSCMD="ps -e -o pid,command"
    if test "$DISTNAME" = "ubuntu" ; then
       PFILES="${PFILES} \
-	 platforms/ubuntu/Makefile \
-	 platforms/ubuntu/bacula-fd \
-	 platforms/ubuntu/bacula-sd \
-	 platforms/ubuntu/bacula-dir"
+         platforms/ubuntu/Makefile \
+         platforms/ubuntu/bacula-fd \
+         platforms/ubuntu/bacula-sd \
+         platforms/ubuntu/bacula-dir"
    else
       PFILES="${PFILES} \
-	 platforms/debian/Makefile \
-	 platforms/debian/bacula-fd \
-	 platforms/debian/bacula-sd \
-	 platforms/debian/bacula-dir"
+         platforms/debian/Makefile \
+         platforms/debian/bacula-fd \
+         platforms/debian/bacula-sd \
+         platforms/debian/bacula-dir"
    fi
   ;;
 freebsd)
@@ -41082,12 +41055,12 @@ redhat)
       f=/etc/redhat-release
    fi
    if test `cat $f | grep release |\
-	 cut -f 3 -d ' '`x = "Enterprise"x ; then
+         cut -f 3 -d ' '`x = "Enterprise"x ; then
       DISTVER="Enterprise "`cat $f | grep release |\
-	  cut -f 6 -d ' '`
+          cut -f 6 -d ' '`
    else
        DISTVER=`cat /etc/redhat-release | grep release |\
-	   cut -f 5 -d ' '`
+           cut -f 5 -d ' '`
    fi
    TAPEDRIVE="/dev/nst0"
    PSCMD="ps -e -o pid,command"
@@ -42511,8 +42484,6 @@ LIBTOOL_INSTALL_TARGET!$LIBTOOL_INSTALL_TARGET$ac_delim
 LIBTOOL_UNINSTALL_TARGET!$LIBTOOL_UNINSTALL_TARGET$ac_delim
 LIBTOOL_CLEAN_TARGET!$LIBTOOL_CLEAN_TARGET$ac_delim
 QMAKE_LIBTOOL!$QMAKE_LIBTOOL$ac_delim
-INCLUDE_INSTALL_TARGET!$INCLUDE_INSTALL_TARGET$ac_delim
-INCLUDE_UNINSTALL_TARGET!$INCLUDE_UNINSTALL_TARGET$ac_delim
 HAVE_SUN_OS_TRUE!$HAVE_SUN_OS_TRUE$ac_delim
 HAVE_SUN_OS_FALSE!$HAVE_SUN_OS_FALSE$ac_delim
 HAVE_OSF1_OS_TRUE!$HAVE_OSF1_OS_TRUE$ac_delim
@@ -42578,6 +42549,8 @@ QWT_LDFLAGS!$QWT_LDFLAGS$ac_delim
 QWT_LIB!$QWT_LIB$ac_delim
 QWT!$QWT$ac_delim
 WXCONS_CPPFLAGS!$WXCONS_CPPFLAGS$ac_delim
+WXCONS_LDFLAGS!$WXCONS_LDFLAGS$ac_delim
+WX_DIR!$WX_DIR$ac_delim
 _ACEOF
 
   if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 97; then
@@ -42619,8 +42592,6 @@ _ACEOF
 ac_delim='%!_!# '
 for ac_last_try in false false false false false :; do
   cat >conf$$subs.sed <<_ACEOF
-WXCONS_LDFLAGS!$WXCONS_LDFLAGS$ac_delim
-WX_DIR!$WX_DIR$ac_delim
 TRAY_MONITOR_CPPFLAGS!$TRAY_MONITOR_CPPFLAGS$ac_delim
 TRAY_MONITOR_LDFLAGS!$TRAY_MONITOR_LDFLAGS$ac_delim
 TRAY_MONITOR_DIR!$TRAY_MONITOR_DIR$ac_delim
@@ -42710,7 +42681,7 @@ DISTVER!$DISTVER$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 89; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 87; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5
@@ -44095,7 +44066,7 @@ cd ..
 
 c=updatedb
 chmod 755 $c/update_mysql_tables_10_to_11   $c/update_sqlite3_tables_10_to_11
-chmod 755 $c/update_postgresql_tables_10_to_11	 $c/update_sqlite_tables_10_to_11
+chmod 755 $c/update_postgresql_tables_10_to_11   $c/update_sqlite_tables_10_to_11
 
 c=src/cats
 
@@ -44112,7 +44083,7 @@ chmod 755 $c/create_sqlite_database   $c/update_sqlite_tables  $c/make_sqlite_ta
 chmod 755 $c/grant_sqlite_privileges  $c/drop_sqlite_tables    $c/drop_sqlite_database
 
 chmod 755 $c/create_sqlite3_database   $c/update_sqlite3_tables  $c/make_sqlite3_tables
-chmod 755 $c/grant_sqlite3_privileges  $c/drop_sqlite3_tables	 $c/drop_sqlite3_database
+chmod 755 $c/grant_sqlite3_privileges  $c/drop_sqlite3_tables    $c/drop_sqlite3_database
 
 chmod 755 $c/create_postgresql_database  $c/update_postgresql_tables $c/make_postgresql_tables
 chmod 755 $c/grant_postgresql_privileges $c/drop_postgresql_tables   $c/drop_postgresql_database
@@ -44154,69 +44125,69 @@ fi
 echo "
 Configuration on `date`:
 
-   Host:		    ${host}${post_host} -- ${DISTNAME} ${DISTVER}
-   Bacula version:	    ${BACULA} ${VERSION} (${DATE})
+   Host:                    ${host}${post_host} -- ${DISTNAME} ${DISTVER}
+   Bacula version:          ${BACULA} ${VERSION} (${DATE})
    Source code location:    ${srcdir}
-   Install binaries:	    ${sbindir}
-   Install libraries:	    ${libdir}
+   Install binaries:        ${sbindir}
+   Install libraries:       ${libdir}
    Install config files:    ${sysconfdir}
-   Scripts directory:	    ${scriptdir}
-   Archive directory:	    ${archivedir}
-   Working directory:	    ${working_dir}
-   PID directory:	    ${piddir}
-   Subsys directory:	    ${subsysdir}
-   Man directory:	    ${mandir}
-   Data directory:	    ${datarootdir}
-   C Compiler:		    ${CC} ${CCVERSION}
-   C++ Compiler:	    ${CXX} ${CXXVERSION}
-   Compiler flags:	    ${WCFLAGS} ${CFLAGS}
-   Linker flags:	    ${WLDFLAGS} ${LDFLAGS}
-   Libraries:		    ${LIBS}
+   Scripts directory:       ${scriptdir}
+   Archive directory:       ${archivedir}
+   Working directory:       ${working_dir}
+   PID directory:           ${piddir}
+   Subsys directory:        ${subsysdir}
+   Man directory:           ${mandir}
+   Data directory:          ${datarootdir}
+   C Compiler:              ${CC} ${CCVERSION}
+   C++ Compiler:            ${CXX} ${CXXVERSION}
+   Compiler flags:          ${WCFLAGS} ${CFLAGS}
+   Linker flags:            ${WLDFLAGS} ${LDFLAGS}
+   Libraries:               ${LIBS}
    Statically Linked Tools: ${support_static_tools}
    Statically Linked FD:    ${support_static_fd}
    Statically Linked SD:    ${support_static_sd}
    Statically Linked DIR:   ${support_static_dir}
    Statically Linked CONS:  ${support_static_cons}
-   Database type:	    ${db_type}
-   Database port:	    ${db_port}
-   Database lib:	    ${DB_LIBS}
-   Database name:	    ${db_name}
-   Database user:	    ${db_user}
+   Database type:           ${db_type}
+   Database port:           ${db_port}
+   Database lib:            ${DB_LIBS}
+   Database name:           ${db_name}
+   Database user:           ${db_user}
 
-   Job Output Email:	    ${job_email}
-   Traceback Email:	    ${dump_email}
-   SMTP Host Address:	    ${smtp_host}
+   Job Output Email:        ${job_email}
+   Traceback Email:         ${dump_email}
+   SMTP Host Address:       ${smtp_host}
 
-   Director Port:	    ${dir_port}
-   File daemon Port:	    ${fd_port}
+   Director Port:           ${dir_port}
+   File daemon Port:        ${fd_port}
    Storage daemon Port:     ${sd_port}
 
-   Director User:	    ${dir_user}
-   Director Group:	    ${dir_group}
+   Director User:           ${dir_user}
+   Director Group:          ${dir_group}
    Storage Daemon User:     ${sd_user}
    Storage DaemonGroup:     ${sd_group}
-   File Daemon User:	    ${fd_user}
-   File Daemon Group:	    ${fd_group}
+   File Daemon User:        ${fd_user}
+   File Daemon Group:       ${fd_group}
 
    SQL binaries Directory   ${SQL_BINDIR}
 
-   Large file support:	    $largefile_support
+   Large file support:      $largefile_support
    Bacula conio support:    ${got_conio} ${CONS_LIBS}
-   readline support:	    ${got_readline} ${PRTREADLINE_SRC}
+   readline support:        ${got_readline} ${PRTREADLINE_SRC}
    TCP Wrappers support:    ${TCPW_MSG} ${WRAPLIBS}
-   TLS support: 	    ${support_tls}
-   Encryption support:	    ${support_crypto}
-   ZLIB support:	    ${have_zlib}
-   enable-smartalloc:	    ${support_smartalloc}
-   bat support: 	    ${support_bat} ${QWT_LDFLAGS}
-   enable-gnome:	    ${support_gnome} ${gnome_version}
-   enable-bwx-console:	    ${support_wx_console} ${wx_version}
+   TLS support:             ${support_tls}
+   Encryption support:      ${support_crypto}
+   ZLIB support:            ${have_zlib}
+   enable-smartalloc:       ${support_smartalloc}
+   bat support:             ${support_bat} ${QWT_LDFLAGS}
+   enable-gnome:            ${support_gnome} ${gnome_version}
+   enable-bwx-console:      ${support_wx_console} ${wx_version}
    enable-tray-monitor:     ${support_tray_monitor}
-   client-only: 	    ${build_client_only}
-   build-dird:		    ${build_dird}
-   build-stored:	    ${build_stored}
-   ACL support: 	    ${have_acl}
-   Python support:	    ${support_python} ${PYTHON_LIBS}
+   client-only:             ${build_client_only}
+   build-dird:              ${build_dird}
+   build-stored:            ${build_stored}
+   ACL support:             ${have_acl}
+   Python support:          ${support_python} ${PYTHON_LIBS}
    Batch insert enabled:    ${support_batch_insert}
 
   " > config.out
