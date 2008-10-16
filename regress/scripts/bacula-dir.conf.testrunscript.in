@@ -66,6 +66,32 @@ Job {
   }
 }
 
+# first, you need to unzip win32/win32_runscript.zip to c:/temp
+Job {
+  Name = "RUN_WIN32"
+  JobDefs = DefaultJob
+  FileSet = FS_TESTJOB
+  RunScript {                                              # 2.4 | 2.5 | cmd /c
+     Command = "c:\\temp\\test.bat"                        # ok  | ok  | ok
+     Command = "c:/temp/test.bat"                          # ok  | ok  | ok
+     Command = "c:/temp/test space.bat"                    # ok  | ok  | ok
+     Command = "\"c:/temp/dir space/test.bat\""            # ok  | ok  | ok
+     Command = "c:/temp/érïc/test.bat"                     # ERR | ok  | ok
+     Command = "c:/temp/érïc/test space.bat"               # ERR | ok  | ok
+     Command = "c:/temp/testé.bat"                         # ERR | ok  | ok
+     Command = "c:/temp/érïc/testé.bat"                    # ERR | ok  | ok
+     Command = "\"c:/temp/dir space/érïc/test.bat\""       # ERR | ERR | ok 
+     Command = "\"c:/temp/dir space/érïc/test space.bat\"" # ERR | ERR | ok 
+     Command = "c:/temp/dir space/érïc/test.bat"           # ERR | ERR | ERR 
+     Command = "c:/temp/dir space/test.bat"                # ERR | ERR | ERR
+     Command = "'c:/temp/dir space/test.bat'"              # ERR | ERR | ERR
+     Command = "\"c:/temp/éric space/test.bat\""           # ERR | ERR | ERR
+     Command = "c:/temp/éric space/test.bat"               # ERR | ERR | ERR
+     RunsWhen = Before
+     FailJobOnError = no
+  }
+}
+
 Job {
   Name = "RUN_SUBST"
   JobDefs = DefaultJob
