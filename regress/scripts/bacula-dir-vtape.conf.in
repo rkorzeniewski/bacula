@@ -139,7 +139,7 @@ Client {
 Client {
   Name = @hostname@-fd2
   Address = @hostname@
-  FDPort = @fdport@2
+  FDPort = 1@fdport@
   Catalog = MyCatalog
   Password = "xevrjURYoCHhn26RaJoWbeWXEY/a3VqGKp/37tgWiuHc"          # password for FileDaemon
   File Retention = 30d                # 30 days
@@ -152,7 +152,7 @@ Client {
 Client {
   Name = @hostname@-fd3
   Address = @hostname@
-  FDPort = @fdport@3
+  FDPort = 2@fdport@
   Catalog = MyCatalog
   Password = "xevrjURYoCHhn26RaJoWbeWXEY/a3VqGKp/37tgWiuHc"          # password for FileDaemon
   File Retention = 30d                # 30 days
@@ -165,7 +165,7 @@ Client {
 Client {
   Name = @hostname@-fd4
   Address = @hostname@
-  FDPort = @fdport@4
+  FDPort = 3@fdport@
   Catalog = MyCatalog
   Password = "xevrjURYoCHhn26RaJoWbeWXEY/a3VqGKp/37tgWiuHc"          # password for FileDaemon
   File Retention = 30d                # 30 days
@@ -178,7 +178,7 @@ Client {
 Client {
   Name = @hostname@-fd5
   Address = @hostname@
-  FDPort = @fdport@4
+  FDPort = 4@fdport@
   Catalog = MyCatalog
   Password = "xevrjURYoCHhn26RaJoWbeWXEY/a3VqGKp/37tgWiuHc"          # password for FileDaemon
   File Retention = 30d                # 30 days
