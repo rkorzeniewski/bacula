@@ -1847,7 +1847,7 @@ GetApplicationName(const char *cmdline, char **pexe, const char **pargs)
 }
 
 /**
- * Create the process with UTF8 API
+ * Create the process with WCHAR API
  */
 static BOOL
 CreateChildProcessW(const char *comspec, const char *cmdLine,
@@ -1873,11 +1873,11 @@ CreateChildProcessW(const char *comspec, const char *cmdLine,
    POOLMEM *cmdLine_wchar = get_pool_memory(PM_FNAME);
    POOLMEM *comspec_wchar = get_pool_memory(PM_FNAME);
 
-   make_win32_path_UTF8_2_wchar(&cmdLine_wchar, cmdLine);
-   make_win32_path_UTF8_2_wchar(&comspec_wchar, comspec);
+   UTF8_2_wchar(&cmdLine_wchar, cmdLine);
+   UTF8_2_wchar(&comspec_wchar, comspec);
 
    // Create the child process.
-   Dmsg2(150, "Calling CreateProcess(%s, %s, ...)\n", comspec, cmdLine);
+   Dmsg2(150, "Calling CreateProcess(%s, %s, ...)\n", comspec_wchar, cmdLine_wchar);
 
    // try to execute program
    bFuncRetn = p_CreateProcessW((WCHAR*)comspec_wchar,
@@ -1890,7 +1890,6 @@ CreateChildProcessW(const char *comspec, const char *cmdLine,
                                 NULL,      // use parent's current directory
                                 &siStartInfo,  // STARTUPINFO pointer
                                 hProcInfo);   // receives PROCESS_INFORMATION
-
    free_pool_memory(cmdLine_wchar);
    free_pool_memory(comspec_wchar);
 
@@ -1983,7 +1982,7 @@ CreateChildProcess(const char *cmdline, HANDLE in, HANDLE out, HANDLE err)
    free(exeFile);
 
    // New function disabled
-   if (false && p_CreateProcessW && p_MultiByteToWideChar) {
+   if (p_CreateProcessW && p_MultiByteToWideChar) {
       bFuncRetn = CreateChildProcessW(comspec, cmdLine.c_str(), &piProcInfo,
                                       in, out, err);
    } else {
