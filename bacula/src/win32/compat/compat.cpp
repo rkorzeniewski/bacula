@@ -1982,7 +1982,8 @@ CreateChildProcess(const char *cmdline, HANDLE in, HANDLE out, HANDLE err)
 
    free(exeFile);
 
-   if (p_CreateProcessW && p_MultiByteToWideChar) {
+   // New function disabled
+   if (false && p_CreateProcessW && p_MultiByteToWideChar) {
       bFuncRetn = CreateChildProcessW(comspec, cmdLine.c_str(), &piProcInfo,
                                       in, out, err);
    } else {
