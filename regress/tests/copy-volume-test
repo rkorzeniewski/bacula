@@ -18,8 +18,8 @@ echo "${cwd}/build" >${cwd}/tmp/file-list
 #sed "s%# Maximum File Size%  Maximum File Size%" ${cwd}/tmp/1 >${cwd}/bin/bacula-sd.conf
 
 change_jobname NightlySave $JobName
-sed -i 's/migrate/copy/g' ${cwd}/bin/bacula-dir.conf
-sed -i 's/Migrate/Copy/g' ${cwd}/bin/bacula-dir.conf
+sed 's/migrate/copy/g' ${cwd}/bin/bacula-dir.conf > ${cwd}/tmp/1
+sed 's/Migrate/Copy/g' ${cwd}/tmp/1 > ${cwd}/bin/bacula-dir.conf
 rm -f ${cwd}/build/po/test.po >/dev/null
 
 start_test
