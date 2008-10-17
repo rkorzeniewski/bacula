@@ -83,7 +83,7 @@ devclean: realclean
 install: all
 	@if test -f ${DESTDIR}${sbindir}/console; then \
 	   echo " "; \
-	   echo "Warning!!!  ${DESTDIR}${sbindir}console found."; \
+	   echo "Warning!!!  ${DESTDIR}${sbindir}/console found."; \
 	   echo " console has been renamed bconsole, so console"; \
 	   echo " is no longer used, and you might want to delete it."; \
 	   echo " "; \
