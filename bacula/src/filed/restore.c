@@ -346,6 +346,8 @@ void do_restore(JCR *jcr)
          switch (stat) {
          case CF_ERROR:
          case CF_SKIP:
+            pm_strcpy(jcr->last_fname, attr->ofname);
+            jcr->last_type = attr->type;
             break;
          case CF_EXTRACT:        /* File created and we expect file data */
             rctx.extract = true;
@@ -571,6 +573,15 @@ void do_restore(JCR *jcr)
          break;
 
       case STREAM_UNIX_ACCESS_ACL:
+         /*
+          * Do not restore ACLs when
+          * a) The current file is not extracted
+          * b)     and it is not a directory (they are never "extracted")
+          * c) or the file name is empty
+          */
+         if ((!extract && jcr->last_type != FT_DIREND) || (*jcr->last_fname == 0)) {
+            break;
+         }
          if (have_acl) {
             pm_strcpy(jcr->acl_text, sd->msg);
             Dmsg2(400, "Restoring ACL type 0x%2x <%s>\n", BACL_TYPE_ACCESS, jcr->acl_text);
@@ -583,6 +594,9 @@ void do_restore(JCR *jcr)
          break;
 
       case STREAM_UNIX_DEFAULT_ACL:
+         if ((!extract && jcr->last_type != FT_DIREND) || (*jcr->last_fname == 0)) {
+            break;
+         }
          if (have_acl) {
             pm_strcpy(jcr->acl_text, sd->msg);
             Dmsg2(400, "Restoring ACL type 0x%2x <%s>\n", BACL_TYPE_DEFAULT, jcr->acl_text);
