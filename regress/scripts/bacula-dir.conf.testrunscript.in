@@ -73,15 +73,21 @@ Job {
   FileSet = FS_TESTJOB
   RunScript {                                              # 2.4 | 2.5 | cmd /c
      Command = "c:\\temp\\test.bat"                        # ok  | ok  | ok
+     Command = "c:\\temp\\test.bat arg1"                   # ok  | ok  | ok
      Command = "c:/temp/test.bat"                          # ok  | ok  | ok
+     Command = "c:/temp/test.bat arg1"                     # ok  | ok  | ok
      Command = "c:/temp/test space.bat"                    # ok  | ok  | ok
-     Command = "\"c:/temp/dir space/test.bat\""            # ok  | ok  | ok
+     Command = "c:/temp/test2 space.bat"                   # ok  | ok  | ok
+     Command = "\"c:/temp/test space.bat\" arg1"           # ok  | ok  | ok
+     Command = "\"c:/temp/dir space/test.bat\" arg1"       # ok  | ok  | ok
      Command = "c:/temp/érïc/test.bat"                     # ERR | ok  | ok
      Command = "c:/temp/érïc/test space.bat"               # ERR | ok  | ok
      Command = "c:/temp/testé.bat"                         # ERR | ok  | ok
      Command = "c:/temp/érïc/testé.bat"                    # ERR | ok  | ok
      Command = "\"c:/temp/dir space/érïc/test.bat\""       # ERR | ERR | ok 
      Command = "\"c:/temp/dir space/érïc/test space.bat\"" # ERR | ERR | ok 
+     Command = "c:/temp/test space.bat arg1"               # ERR | ERR | ERR
+     Command = "c:/temp/test2 space.bat arg1"              # ERR | ERR | ERR
      Command = "c:/temp/dir space/érïc/test.bat"           # ERR | ERR | ERR 
      Command = "c:/temp/dir space/test.bat"                # ERR | ERR | ERR
      Command = "'c:/temp/dir space/test.bat'"              # ERR | ERR | ERR
