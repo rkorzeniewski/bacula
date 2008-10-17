@@ -191,8 +191,6 @@ bool     mount_next_read_volume(DCR *dcr);
 BSR     *parse_bsr(JCR *jcr, char *lf);
 void     dump_bsr(BSR *bsr, bool recurse);
 void     free_bsr(BSR *bsr);
-VOL_LIST *new_restore_volume();
-int      add_restore_volume(JCR *jcr, VOL_LIST *vol);
 void     free_restore_volume_list(JCR *jcr);
 void     create_restore_volume_list(JCR *jcr);
 

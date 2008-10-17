@@ -858,7 +858,7 @@ void free_bsr(BSR *bsr)
 /*****************************************************************
  * Routines for handling volumes
  */
-VOL_LIST *new_restore_volume()
+static VOL_LIST *new_restore_volume()
 {
    VOL_LIST *vol;
    vol = (VOL_LIST *)malloc(sizeof(VOL_LIST));
@@ -873,30 +873,33 @@ VOL_LIST *new_restore_volume()
  *   returns: 1 if volume added
  *            0 if volume already in list
  */
-int add_restore_volume(JCR *jcr, VOL_LIST *vol)
+static bool add_restore_volume(JCR *jcr, VOL_LIST *vol)
 {
    VOL_LIST *next = jcr->VolList;
 
    if (!next) {                       /* list empty ? */
       jcr->VolList = vol;             /* yes, add volume */
    } else {
+      /* Loop through all but last */
       for ( ; next->next; next=next->next) {
          if (strcmp(vol->VolumeName, next->VolumeName) == 0) {
+            /* Save smallest start file */
             if (vol->start_file < next->start_file) {
                next->start_file = vol->start_file;
             }
-            return 0;                 /* already in list */
+            return false;              /* already in list */
          }
       }
+      /* Check last volume in list */
       if (strcmp(vol->VolumeName, next->VolumeName) == 0) {
          if (vol->start_file < next->start_file) {
             next->start_file = vol->start_file;
          }
-         return 0;                    /* already in list */
+         return false;                /* already in list */
       }
       next->next = vol;               /* add volume */
    }
-   return 1;
+   return true;
 }
 
 void free_restore_volume_list(JCR *jcr)
