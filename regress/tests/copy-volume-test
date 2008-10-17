@@ -166,16 +166,7 @@ check_restore_diff
 
 stop_bacula
 
-################################################################
-# Get information from logs
-get_info()
-{
-    IDX=$1
-    LOG=$2
-    RET=`awk -v idx=$IDX -F: '/Prev Backup JobId/ { pbid[j++]=$2 } /New Backup JobId/  { nbid[i++]=$2 } END { print pbid[idx] " " nbid[idx] }' $LOG`
-}
-
-get_info 0 ${cwd}/tmp/log11.out
+get_mig_info 0 ${cwd}/tmp/log11.out
 set $RET
 
 if [ -z "$2" -o "$2" = 0 ]; then
@@ -183,7 +174,7 @@ if [ -z "$2" -o "$2" = 0 ]; then
     print_debug "The first job must have been copied"
 fi
 
-get_info 1 ${cwd}/tmp/log11.out
+get_mig_info 1 ${cwd}/tmp/log11.out
 set $RET
 
 if [ -z "$2" -o "$2" != 0 ]; then
@@ -191,7 +182,7 @@ if [ -z "$2" -o "$2" != 0 ]; then
     print_debug "The second job have no files, it can't have been copied"
 fi
 
-get_info 0 ${cwd}/tmp/log4.out
+get_mig_info 0 ${cwd}/tmp/log4.out
 set $RET
 
 if [ -z "$2" -o "$2" = 0 ]; then
