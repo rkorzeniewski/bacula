@@ -230,3 +230,10 @@ Pool {
   Volume Retention = 365d             # one year
   Storage = DiskChanger
 }
+
+Pool {
+  Name = Scratch
+  Recycle = yes
+  AutoPrune = yes
+  Pool Type = Scratch
+}
