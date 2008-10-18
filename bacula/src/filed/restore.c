@@ -579,7 +579,7 @@ void do_restore(JCR *jcr)
           * b)     and it is not a directory (they are never "extracted")
           * c) or the file name is empty
           */
-         if ((!extract && jcr->last_type != FT_DIREND) || (*jcr->last_fname == 0)) {
+         if ((!rctx.extract && jcr->last_type != FT_DIREND) || (*jcr->last_fname == 0)) {
             break;
          }
          if (have_acl) {
@@ -594,7 +594,7 @@ void do_restore(JCR *jcr)
          break;
 
       case STREAM_UNIX_DEFAULT_ACL:
-         if ((!extract && jcr->last_type != FT_DIREND) || (*jcr->last_fname == 0)) {
+         if ((!rctx.extract && jcr->last_type != FT_DIREND) || (*jcr->last_fname == 0)) {
             break;
          }
          if (have_acl) {
