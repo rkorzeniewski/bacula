@@ -855,7 +855,36 @@ Item 25:  Archival (removal) of User Files to Tape
 
 
 
-========= Added since the last vote =================
+========= New Items since the last vote =================
+
+Item 26: Add a new directive to bacula-dir.conf which permits inclusion of all subconfiguration files in a given directory
+Date:   18 October 2008
+Origin: Database, Lda. Maputo, Mozambique
+Contact:Cameron Smith / cameron.ord@database.co.mz 
+Status: New request
+
+What: A directive something like "IncludeConf = /etc/bacula/subconfs" Every
+      time Bacula Director restarts or reloads, it will walk the given
+      directory (non-recursively) and include the contents of any files
+      therein, as though they were appended to bacula-dir.conf
+
+Why: Permits simplified and safer configuration for larger installations with
+      many client PCs.  Currently, through judicious use of JobDefs and
+      similar directives, it is possible to reduce the client-specific part of
+      a configuration to a minimum.  The client-specific directives can be
+      prepared according to a standard template and dropped into a known
+      directory.  However it is still necessary to add a line to the "master"
+      (bacula-dir.conf) referencing each new file.  This exposes the master to
+      unnecessary risk of accidental mistakes and makes automation of adding
+      new client-confs, more difficult (it is easier to automate dropping a
+      file into a dir, than rewriting an existing file).  Ken has previously
+      made a convincing argument for NOT including Bacula's core configuration
+      in an RDBMS, but I believe that the present request is a reasonable
+      extension to the current "flat-file-based" configuration philosophy.
+ 
+Notes: There is NO need for any special syntax to these files.  They should
+       contain standard directives which are simply "inlined" to the parent
+       file as already happens when you explicitly reference an external file.
 
  Item n: List inChanger flag when doing restore.
  Origin: Jesper Krogh<jesper@krogh.cc>
