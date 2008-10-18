@@ -857,6 +857,41 @@ Item 25:  Archival (removal) of User Files to Tape
 
 ========= Added since the last vote =================
 
+ Item n: List inChanger flag when doing restore.
+ Origin: Jesper Krogh<jesper@krogh.cc>
+   Date:   17 oct. 2008
+ Status:
+
+   What: When doing a restore the restore selection dialog ends by telling stuff 
+      like this:
+  The job will require the following
+   Volume(s)                 Storage(s)                SD Device(s)
+   ===========================================================================
+    000741L3                  LTO-4                     LTO3 
+    000866L3                  LTO-4                     LTO3 
+    000765L3                  LTO-4                     LTO3 
+    000764L3                  LTO-4                     LTO3 
+    000756L3                  LTO-4                     LTO3 
+    001759L3                  LTO-4                     LTO3 
+    001763L3                  LTO-4                     LTO3 
+    001762L3                  LTO-4                     LTO3 
+    001767L3                  LTO-4                     LTO3 
+
+   When having an autochanger, it would be really nice with an inChanger 
+   column so the operator knew if this restore job would stop waiting for 
+   operator intervention. This is done just by selecting the inChanger flag 
+   from the catalog and printing it in a seperate column.
+
+
+   Why:    This would help getting large restores through minimizing the 
+      time spent waiting for operator to drop by and change tapes in the library.
+
+  Notes: [Kern] I think it would also be good to have the Slot as well,
+      or some indication that Bacula thinks the volume is in the autochanger
+      because it depends on both the InChanger flag and the Slot being
+      valid.
+
+
 Item 1:   Implement an interface between Bacula and Amazon's S3.
   Date:   25 August 2008
   Origin: Soren Hansen <soren@ubuntu.com>

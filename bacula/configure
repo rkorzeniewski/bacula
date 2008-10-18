@@ -885,9 +885,9 @@ DEFAULT_SHARED_OBJECT_TYPE
 LIBTOOL_INSTALL_TARGET
 LIBTOOL_UNINSTALL_TARGET
 LIBTOOL_CLEAN_TARGET
+QMAKE_LIBTOOL
 INCLUDE_INSTALL_TARGET
 INCLUDE_UNINSTALL_TARGET
-QMAKE_LIBTOOL
 HAVE_SUN_OS_TRUE
 HAVE_SUN_OS_FALSE
 HAVE_OSF1_OS_TRUE
@@ -1635,12 +1635,13 @@ if test -n "$ac_init_help"; then
 Optional Features:
   --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
+  --enable-libtool        enable building using GNU libtool [default=yes]
   --enable-shared[=PKGS]  build shared libraries [default=yes]
   --enable-static[=PKGS]  build static libraries [default=no]
   --enable-fast-install[=PKGS]
                           optimize for fast installation [default=yes]
   --disable-libtool-lock  avoid locking (might break parallel builds)
-  --enable-libtool        enable building using GNU libtool [default=yes]
+  --enable-includes       enable installing of include files [default=no]
   --disable-nls           do not use Native Language Support
   --disable-rpath         do not hardcode runtime library paths
   --enable-gnome          enable build of bgnome-console GUI [default=no]
@@ -5323,6 +5324,16 @@ MAKE_SHELL=/bin/sh
 
 
 
+# Check whether --enable-libtool was given.
+if test "${enable_libtool+set}" = set; then
+  enableval=$enable_libtool;
+       if test x$enableval = xno; then
+	  use_libtool=no
+       fi
+
+
+fi
+
 case `pwd` in
   *\ * | *\	*)
     { echo "$as_me:$LINENO: WARNING: Libtool does not cope well with whitespace in \`pwd\`" >&5
@@ -5922,13 +5933,13 @@ if test "${lt_cv_nm_interface+set}" = set; then
 else
   lt_cv_nm_interface="BSD nm"
   echo "int some_variable = 0;" > conftest.$ac_ext
-  (eval echo "\"\$as_me:5925: $ac_compile\"" >&5)
+  (eval echo "\"\$as_me:5936: $ac_compile\"" >&5)
   (eval "$ac_compile" 2>conftest.err)
   cat conftest.err >&5
-  (eval echo "\"\$as_me:5928: $NM \\\"conftest.$ac_objext\\\"\"" >&5)
+  (eval echo "\"\$as_me:5939: $NM \\\"conftest.$ac_objext\\\"\"" >&5)
   (eval "$NM \"conftest.$ac_objext\"" 2>conftest.err > conftest.out)
   cat conftest.err >&5
-  (eval echo "\"\$as_me:5931: output\"" >&5)
+  (eval echo "\"\$as_me:5942: output\"" >&5)
   cat conftest.out >&5
   if $GREP 'External.*some_variable' conftest.out > /dev/null; then
     lt_cv_nm_interface="MS dumpbin"
@@ -7149,7 +7160,7 @@ ia64-*-hpux*)
   ;;
 *-*-irix6*)
   # Find out which ABI we are using.
-  echo '#line 7152 "configure"' > conftest.$ac_ext
+  echo '#line 7163 "configure"' > conftest.$ac_ext
   if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   (eval $ac_compile) 2>&5
   ac_status=$?
@@ -9364,11 +9375,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:9367: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:9378: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:9371: \$? = $ac_status" >&5
+   echo "$as_me:9382: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -9703,11 +9714,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:9706: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:9717: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:9710: \$? = $ac_status" >&5
+   echo "$as_me:9721: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -9808,11 +9819,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:9811: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:9822: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:9815: \$? = $ac_status" >&5
+   echo "$as_me:9826: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -9863,11 +9874,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:9866: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:9877: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:9870: \$? = $ac_status" >&5
+   echo "$as_me:9881: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -12619,7 +12630,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 12622 "configure"
+#line 12633 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -12715,7 +12726,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 12718 "configure"
+#line 12729 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -14727,11 +14738,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:14730: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:14741: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:14734: \$? = $ac_status" >&5
+   echo "$as_me:14745: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -14826,11 +14837,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:14829: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:14840: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:14833: \$? = $ac_status" >&5
+   echo "$as_me:14844: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -14878,11 +14889,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:14881: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:14892: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:14885: \$? = $ac_status" >&5
+   echo "$as_me:14896: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -15859,16 +15870,6 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
 
-# Check whether --enable-libtool was given.
-if test "${enable_libtool+set}" = set; then
-  enableval=$enable_libtool;
-       if test x$enableval = xno; then
-	  use_libtool=no
-       fi
-
-
-fi
-
 
 if test x$use_libtool != xno; then
    DEFAULT_OBJECT_TYPE=".lo"
@@ -15890,8 +15891,6 @@ else
    QMAKE_LIBTOOL="# ${BUILD_DIR}/libtool"
 fi
 
-INCLUDE_INSTALL_TARGET=""
-INCLUDE_UNINSTALL_TARGET=""
 
 
 
@@ -15901,6 +15900,25 @@ INCLUDE_UNINSTALL_TARGET=""
 
 
 
+# Check whether --enable-includes was given.
+if test "${enable_includes+set}" = set; then
+  enableval=$enable_includes;
+       if test x$enableval = xyes; then
+	  install_includes=yes
+       fi
+
+
+fi
+
+
+
+if test x$use_libtool != xno -a x$install_includes = xyes; then
+   INCLUDE_INSTALL_TARGET="install-includes"
+   INCLUDE_UNINSTALL_TARGET="uninstall-includes"
+else
+   INCLUDE_INSTALL_TARGET=""
+   INCLUDE_UNINSTALL_TARGET=""
+fi
 
 
 
@@ -18252,10 +18270,26 @@ if test x${prefix} = xNONE ; then
    if test `eval echo ${sysconfdir}` = NONE/etc ; then
       sysconfdir=/etc/bacula
    fi
+
+   if test `eval echo ${libdir}` = NONE/lib ; then
+      libdir=/usr/lib
+   fi
+
+   if test `eval echo ${includedir}` = NONE/include ; then
+      includedir=/usr/include
+   fi
+
    prefix=
 fi
+
+if test x${exec_prefix} = xNONE ; then
+   exec_prefix=${prefix}
+fi
+
 sysconfdir=`eval echo ${sysconfdir}`
 datarootdir=`eval echo ${datarootdir}`
+libdir=`eval echo ${libdir}`
+includedir=`eval echo ${includedir}`
 localedir=`eval echo ${datarootdir}/locale`
 cat >>confdefs.h <<_ACEOF
 #define SYSCONFDIR "$sysconfdir"
@@ -18266,24 +18300,10 @@ cat >>confdefs.h <<_ACEOF
 _ACEOF
 
 
-if test x${exec_prefix} = xNONE ; then
-   exec_prefix=${prefix}
-fi
-
 if test x$sbindir = x'${exec_prefix}/sbin' ; then
    sbindir=${exec_prefix}/sbin
 fi
 sbindir=`eval echo ${sbindir}`
-
-if test x$libdir = x'${exec_prefix}/lib' ; then
-   libdir=${exec_prefix}/lib
-fi
-libdir=`eval echo ${libdir}`
-
-if test x$includedir = x'${exec_prefix}/include' ; then
-   includedir=${exec_prefix}/include
-fi
-includedir=`eval echo ${includedir}`
 
 if test x$mandir = x'${prefix}/man' ; then
    mandir=/usr/share/man
@@ -23918,6 +23938,7 @@ support_conio=yes
 support_gnome=no
 support_bat=no
 support_wx_console=no
+support_tray_monitor=no
 support_tls=no
 support_crypto=no
 gnome_version=
@@ -42490,9 +42511,9 @@ DEFAULT_SHARED_OBJECT_TYPE!$DEFAULT_SHARED_OBJECT_TYPE$ac_delim
 LIBTOOL_INSTALL_TARGET!$LIBTOOL_INSTALL_TARGET$ac_delim
 LIBTOOL_UNINSTALL_TARGET!$LIBTOOL_UNINSTALL_TARGET$ac_delim
 LIBTOOL_CLEAN_TARGET!$LIBTOOL_CLEAN_TARGET$ac_delim
+QMAKE_LIBTOOL!$QMAKE_LIBTOOL$ac_delim
 INCLUDE_INSTALL_TARGET!$INCLUDE_INSTALL_TARGET$ac_delim
 INCLUDE_UNINSTALL_TARGET!$INCLUDE_UNINSTALL_TARGET$ac_delim
-QMAKE_LIBTOOL!$QMAKE_LIBTOOL$ac_delim
 HAVE_SUN_OS_TRUE!$HAVE_SUN_OS_TRUE$ac_delim
 HAVE_SUN_OS_FALSE!$HAVE_SUN_OS_FALSE$ac_delim
 HAVE_OSF1_OS_TRUE!$HAVE_OSF1_OS_TRUE$ac_delim
