@@ -160,7 +160,9 @@ int32_t sm_sizeof_pool_memory(const char *fname, int lineno, POOLMEM *obuf)
 {
    char *cp = (char *)obuf;
 
-   ASSERT(obuf);
+   if (obuf == NULL) {
+      Emsg0(M_ABORT, 0, _("obuf is NULL\n"));
+   }
    cp -= HEAD_SIZE;
    return ((struct abufhead *)cp)->ablen;
 }
