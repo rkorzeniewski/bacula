@@ -81,7 +81,7 @@ bwx-console.app: bwx-console
 	mv bwx-console bwx-console.app/Contents/MacOS/bwx-console
 	cp bwx-console.conf /Library/Preferences/org.bacula.wxconsole.conf
 
-bwx-console: $(CONSOBJS) @WIN32@ ../lib/libbaccfg$(DEFAULT_ARCHIVE_TYPE) ../lib/libbac$(DEFAULT_ARCHIVE_TYPE)
+bwx-console: Makefile $(CONSOBJS) @WIN32@ ../lib/libbaccfg$(DEFAULT_ARCHIVE_TYPE) ../lib/libbac$(DEFAULT_ARCHIVE_TYPE)
 	$(LIBTOOL_LINK) $(CXX) $(CONSOBJS) $(WIN32RES) -o $@ $(LIBS) -L../lib $(CONS_LDFLAGS) \
 	  -lbaccfg -lbac $(OPENSSL_LIBS)
 

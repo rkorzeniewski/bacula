@@ -62,13 +62,13 @@ support.o:   support.c
 	sed "s%parent = g_object_get_data%parent = \(GtkWidget \*\)g_object_get_data%" support.c.orig >support.c
 	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) $(CONS_INC) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
 
-bgnome-console: $(CONSOBJS) ../lib/libbaccfg$(DEFAULT_ARCHIVE_TYPE) ../lib/libbac$(DEFAULT_ARCHIVE_TYPE) 
+bgnome-console: Makefile $(CONSOBJS) ../lib/libbaccfg$(DEFAULT_ARCHIVE_TYPE) ../lib/libbac$(DEFAULT_ARCHIVE_TYPE) 
 	$(LIBTOOL_LINK) $(CXX) $(LDFLAGS) $(CONS_LDFLAGS) -L../lib -o $@ $(CONSOBJS) \
 	      $(LIBS) $(DLIB) $(CONS_LIBS) -lbaccfg -lbac -lm
 
 static-console: static-bgnome-console
 
-static-bgnome-console: $(CONSOBJS) ../lib/libbaccfg$(DEFAULT_ARCHIVE_TYPE) ../lib/libbac$(DEFAULT_ARCHIVE_TYPE) 
+static-bgnome-console: Makefile $(CONSOBJS) ../lib/libbaccfg$(DEFAULT_ARCHIVE_TYPE) ../lib/libbac$(DEFAULT_ARCHIVE_TYPE) 
 	$(LIBTOOL_LINK) $(CXX) $(LDFLAGS) $(CONS_LDFLAGS) -L../lib -o $@ $(CONSOBJS) \
 	      $(LIBS) $(DLIB) $(CONS_LIBS) -lbaccfg -lbac -lm 
 	strip $@

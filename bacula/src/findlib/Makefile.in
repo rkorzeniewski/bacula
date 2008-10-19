@@ -56,7 +56,7 @@ libbacfind.a: $(LIBOBJS)
 	$(AR) rc  $@ $(LIBOBJS)
 	$(RANLIB) $@
 
-libbacfind.la: $(LIBOBJS) 
+libbacfind.la: Makefile $(LIBOBJS) 
 	@echo "Making $@ ..."
 	$(LIBTOOL_LINK) $(CXX) $(DEFS) $(DEBUG) $(LDFLAGS) -o $@ $(LIBOBJS) -export-dynamic -rpath $(libdir) -version-info $(LIBBACFIND_LT_CURRENT):$(LIBBACFIND_LT_REVISION):$(LIBBACFIND_LT_AGE)
 

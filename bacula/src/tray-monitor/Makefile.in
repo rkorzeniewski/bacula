@@ -43,7 +43,7 @@ all: Makefile bacula-tray-monitor
 	@echo "==== Make of bacula-tray-monitor is good ===="
 	@echo " "
 
-bacula-tray-monitor: $(MONITOROBJS) ../lib/libbaccfg$(DEFAULT_ARCHIVE_TYPE) ../lib/libbac$(DEFAULT_ARCHIVE_TYPE)
+bacula-tray-monitor: Makefile $(MONITOROBJS) ../lib/libbaccfg$(DEFAULT_ARCHIVE_TYPE) ../lib/libbac$(DEFAULT_ARCHIVE_TYPE)
 	$(LIBTOOL_LINK) $(CXX) $(LDFLAGS) $(MONITOR_LDFLAGS) -L../lib -o $@ \
 	  $(MONITOROBJS) $(DLIB) -lbaccfg -lbac -lm $(LIBS) $(OPENSSL_LIBS)
 

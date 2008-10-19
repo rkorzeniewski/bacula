@@ -23,33 +23,33 @@ dummy:
 # include files installed when using libtool
 #
 INCLUDE_FILES = ../baconfig.h ../bacula.h ../bc_types.h \
-                ../config.h ../jcr.h ../version.h \
-                address_conf.h alist.h attr.h base64.h \
-                berrno.h bits.h bpipe.h breg.h bregex.h \
-                bsock.h btime.h btimers.h crypto.h dlist.h \
-                fnmatch.h guid_to_name.h htable.h lex.h \
-                lib.h md5.h mem_pool.h message.h openssl.h \
-                plugins.h protos.h queue.h rblist.h \
-                runscript.h rwlock.h serial.h sha1.h \
-                smartall.h status.h tls.h tree.h var.h \
-                waitq.h watchdog.h workq.h \
-                parse_conf.h \
-                pythonlib.h
+		../config.h ../jcr.h ../version.h \
+		address_conf.h alist.h attr.h base64.h \
+		berrno.h bits.h bpipe.h breg.h bregex.h \
+		bsock.h btime.h btimers.h crypto.h dlist.h \
+		fnmatch.h guid_to_name.h htable.h lex.h \
+		lib.h md5.h mem_pool.h message.h openssl.h \
+		plugins.h protos.h queue.h rblist.h \
+		runscript.h rwlock.h serial.h sha1.h \
+		smartall.h status.h tls.h tree.h var.h \
+		waitq.h watchdog.h workq.h \
+		parse_conf.h \
+		pythonlib.h
 
 #
 # libbac
 #
 LIBBAC_SRCS = attr.c base64.c berrno.c bsys.c bget_msg.c \
-              bnet.c bnet_server.c runscript.c \
-              bsock.c bpipe.c bsnprintf.c btime.c \
-              cram-md5.c crc32.c crypto.c daemon.c edit.c fnmatch.c \
-              guid_to_name.c hmac.c jcr.c lex.c alist.c dlist.c \
-              md5.c message.c mem_pool.c openssl.c \
-              plugins.c queue.c bregex.c \
-              rwlock.c scan.c serial.c sha1.c \
-              signal.c smartall.c rblist.c tls.c tree.c \
-              util.c var.c watchdog.c workq.c btimers.c \
-              address_conf.c breg.c htable.c
+	      bnet.c bnet_server.c runscript.c \
+	      bsock.c bpipe.c bsnprintf.c btime.c \
+	      cram-md5.c crc32.c crypto.c daemon.c edit.c fnmatch.c \
+	      guid_to_name.c hmac.c jcr.c lex.c alist.c dlist.c \
+	      md5.c message.c mem_pool.c openssl.c \
+	      plugins.c queue.c bregex.c \
+	      rwlock.c scan.c serial.c sha1.c \
+	      signal.c smartall.c rblist.c tls.c tree.c \
+	      util.c var.c watchdog.c workq.c btimers.c \
+	      address_conf.c breg.c htable.c
 LIBBAC_OBJS = $(LIBBAC_SRCS:.c=$(DEFAULT_OBJECT_TYPE))
 LIBBAC_LT_CURRENT = 1
 LIBBAC_LT_REVISION = 0
@@ -114,7 +114,7 @@ libbac.a: $(LIBBAC_OBJS)
 	$(AR) rc  $@ $(LIBBAC_OBJS)
 	$(RANLIB) $@
 
-libbac.la: $(LIBBAC_OBJS)
+libbac.la: Makefile $(LIBBAC_OBJS)
 	@echo "Making $@ ..."
 	$(LIBTOOL_LINK) $(CXX) $(DEFS) $(DEBUG) $(LDFLAGS) -o $@ $(LIBBAC_OBJS) -export-dynamic -rpath $(libdir) -version-info $(LIBBAC_LT_CURRENT):$(LIBBAC_LT_REVISION):$(LIBBAC_LT_AGE) $(WRAPLIBS)
 
@@ -123,7 +123,7 @@ libbaccfg.a: $(LIBBACCFG_OBJS)
 	$(AR) rc  $@ $(LIBBACCFG_OBJS)
 	$(RANLIB) $@
 
-libbaccfg.la: $(LIBBACCFG_OBJS) 
+libbaccfg.la: Makefile $(LIBBACCFG_OBJS) 
 	@echo "Making $@ ..."
 	$(LIBTOOL_LINK) $(CXX) $(DEFS) $(DEBUG) $(LDFLAGS) -o $@ $(LIBBACCFG_OBJS) -export-dynamic -rpath $(libdir) -version-info $(LIBBACCFG_LT_CURRENT):$(LIBBACCFG_LT_REVISION):$(LIBBACCFG_LT_AGE)
 
@@ -132,7 +132,7 @@ libbacpy.a: $(LIBBACPY_OBJS)
 	$(AR) rc  $@ $(LIBBACPY_OBJS)
 	$(RANLIB) $@
 
-libbacpy.la: $(LIBBACPY_OBJS) 
+libbacpy.la: Makefile $(LIBBACPY_OBJS) 
 	@echo "Making $@ ..."
 	$(LIBTOOL_LINK) $(CXX) $(DEFS) $(DEBUG) $(LDFLAGS) -o $@ $(LIBBACPY_OBJS) -export-dynamic -rpath $(libdir) -version-info $(LIBBACPY_LT_CURRENT):$(LIBBACPY_LT_REVISION):$(LIBBACPY_LT_AGE) $(PYTHON_LIBS)
 
@@ -140,28 +140,28 @@ Makefile: $(srcdir)/Makefile.in $(topdir)/config.status
 	cd $(topdir) \
 	  && CONFIG_FILES=$(thisdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
 
-rwlock_test:
+rwlock_test: Makefile
 	rm -f rwlock.o
 	$(CXX) -DTEST_RWLOCK $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE)  $(CFLAGS) rwlock.c
 	$(LIBTOOL_LINK) $(CXX) $(LDFLAGS) -L. -o $@ rwlock.o $(LIBS) $(DLIB) -lbac -lm
 	rm -f rwlock.o
 	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) rwlock.c
 
-md5sum: md5.o	
+md5sum: Makefile md5.o	 
 	rm -f md5.o
 	$(CXX) -DMD5_SUM $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE)  $(CFLAGS) md5.c
 	$(LIBTOOL_LINK) $(CXX) $(LDFLAGS) -L. -o $@ md5.o $(LIBS) $(DLIB) -lbac $(OPENSSL_LIBS) -lm
 	rm -f md5.o
 	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) md5.c
 
-sha1sum: sha1.o
+sha1sum: Makefile sha1.o
 	rm -f sha1.o
 	$(CXX) -DSHA1_SUM $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE)	$(CFLAGS) sha1.c
 	$(LIBTOOL_LINK) $(CXX) $(LDFLAGS) -L. -o $@ sha1.o $(LIBS) $(DLIB) -lbac $(OPENSSL_LIBS) -lm
 	rm -f sha1.o
 	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) sha1.c
 
-bsnprintf: bsnprintf.o
+bsnprintf: Makefile bsnprintf.o
 	rm -f bsnprintf.o
 	$(CXX) -DTEST_PROGRAM $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE)  $(CFLAGS) bsnprintf.c
 	$(LIBTOOL_LINK) $(CXX) $(LDFLAGS) -L. -o $@ bsnprintf.o $(LIBS) $(DLIB) -lbac $(OPENSSL_LIBS) -lm
