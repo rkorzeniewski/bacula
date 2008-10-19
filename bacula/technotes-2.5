@@ -19,6 +19,36 @@ libtool
 
 remove reader/writer in FOPTS????
 
+==================   Warning !!!!!! ==========================
+This BETA release of Bacula 2.5.x development code uses libtool
+to generate the Bacula libraries as shared objects rather than
+being directly linked in as in prior versions.  This means that
+the Bacula shared objects, must either be in a shared object 
+directory known to the loader or they must be in the directory
+that may be specified on the ./configure line using the
+--libdir option as:
+
+  ./configure --libdir=/full-path/dir
+
+the default /lib. If --libdir is specified, there should be
+no need to modify your loader configuration provided that
+the shared objects are installed in that directory (Bacula
+does this with the make install command). The shared objects 
+that Bacula references are:
+
+libbaccfg.so
+libbacfind.so
+libbacpy.so
+libbac.so
+
+If you have problems with libtool or you wish to use the old 
+way of building static libraries, you can do so by disabling 
+libtool on the configure command line with:
+
+  ./configure --disable-libtool
+==============================================================
+
+
 General:
 19Oct08
 kes  Add Makefile dependency when using LIBTOOL_LINK so that any
