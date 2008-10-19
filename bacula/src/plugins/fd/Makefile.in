@@ -42,7 +42,7 @@ bpipe-fd.o: bpipe-fd.c ${FDDIR}/fd_plugins.h
 bpipe-fd.lo: bpipe-fd.c ${FDDIR}/fd_plugins.h
 	$(LIBTOOL_COMPILE) $(CXX) $(DEFS) $(DEBUG) $(CFLAGS) -I../.. -I${FDDIR} -c bpipe-fd.c
 
-bpipe-fd.la: bpipe-fd$(DEFAULT_OBJECT_TYPE)
+bpipe-fd.la: Makefile bpipe-fd$(DEFAULT_OBJECT_TYPE)
 	$(LIBTOOL_LINK) $(CXX) $(LDFLAGS) -shared bpipe-fd.lo -o $@ -rpath $(plugindir) -module -export-dynamic -avoid-version 
 
 bpipe-fd.so: bpipe-fd.o

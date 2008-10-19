@@ -86,7 +86,7 @@ autoconf/config.h.in: autoconf/configure.in autoconf/acconfig.h
 	autoconf/configure.in > autoconf/config.h.in
 	chmod 644 autoconf/config.h.in
 
-libtool: $(LIBTOOL_DEPS)
+libtool: Makefile $(LIBTOOL_DEPS)
 	$(SHELL) ./config.status --recheck
 
 installdirs:
