@@ -116,7 +116,7 @@ CREATE TABLE Job (
    );
 
 -- Create a table like Job for long term statistics 
-CREATE TABLE JobStat (LIKE Job);
+CREATE TABLE JobHistory (LIKE Job);
 
 CREATE TABLE Location (
    LocationId INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,

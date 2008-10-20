@@ -76,7 +76,7 @@ CREATE TABLE Job (
 CREATE INDEX inx6 ON Job (Name);
 
 -- Create a table like Job for long term statistics 
-CREATE TABLE JobStat (
+CREATE TABLE JobHistory (
    JobId INTEGER,
    Job VARCHAR(128) NOT NULL,
    Name VARCHAR(128) NOT NULL,
@@ -102,7 +102,7 @@ CREATE TABLE JobStat (
    HasBase TINYINT DEFAULT 0,
    PRIMARY KEY(JobId) 
    );
-CREATE INDEX inx61 ON JobStat (Name);
+CREATE INDEX inx61 ON JobHistory (Name);
 
 CREATE TABLE Location (
    LocationId INTEGER,

@@ -194,12 +194,12 @@ int prune_stats(UAContext *ua, utime_t retention)
    utime_t now = (utime_t)time(NULL);
 
    db_lock(ua->db);
-   Mmsg(query, "DELETE FROM JobStat WHERE JobTDate < %s", 
+   Mmsg(query, "DELETE FROM JobHistory WHERE JobTDate < %s", 
         edit_uint64(now - retention, ed1));
    db_sql_query(ua->db, query.c_str(), NULL, NULL);
    db_unlock(ua->db);
 
-   ua->info_msg(_("Pruned Jobs from JobStat catalog.\n"));
+   ua->info_msg(_("Pruned Jobs from JobHistory catalog.\n"));
 
    return true;
 }

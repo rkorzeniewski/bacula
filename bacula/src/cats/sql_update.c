@@ -137,11 +137,11 @@ db_update_stats(JCR *jcr, B_DB *mdb, utime_t age)
    edit_uint64(now - age, ed1);
 
    Mmsg(mdb->cmd,
-        "INSERT INTO JobStat " 
+        "INSERT INTO JobHistory " 
          "SELECT * " 
           "FROM Job "
          "WHERE JobStatus IN ('T', 'f', 'A', 'E') "
-           "AND JobId NOT IN (SELECT JobId FROM JobStat) "
+           "AND JobId NOT IN (SELECT JobId FROM JobHistory) "
            "AND JobTDate < %s ", ed1);
    QUERY_DB(jcr, mdb, mdb->cmd); /* TODO: get a message ? */
    return sql_affected_rows(mdb);
