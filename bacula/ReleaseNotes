@@ -43,3 +43,10 @@ This release includes large number of new features and changes.
 It should be more or less compatible with previous xx.conf files
 and File daemons providing that you are not using any of the new
 features.
+
+Please see the New Features chapter of the new manual, which documents
+some but not all the new features (we are still working on it):
+
+http://www.bacula.org/manuals/en/concepts/concepts/New_Features.html
+  
+The ChangeLog has more details.
