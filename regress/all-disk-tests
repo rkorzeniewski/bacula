@@ -16,6 +16,9 @@ nice tests/bsr-opt-test
 nice tests/compressed-test
 nice tests/compress-encrypt-test
 nice tests/concurrent-jobs-test
+nice tests/copy-job-test
+nice tests/copy-jobspan-test
+nice tests/copy-volume-test
 nice tests/data-encrypt-test
 nice tests/encrypt-bug-test
 nice tests/fifo-test
