@@ -524,6 +524,7 @@ const char *sql_jobids_from_client =
    "SELECT DISTINCT Job.JobId,Job.StartTime FROM Job,Pool,Client"
    " WHERE Client.Name='%s' AND Pool.Name='%s' AND Job.PoolId=Pool.PoolId"
    " AND Job.ClientId=Client.ClientId AND Job.Type='B'"
+   " AND Job.JobStatus = 'T'"
    " ORDER by Job.StartTime";
 
 /* Get Volume names in Pool */
@@ -537,6 +538,7 @@ const char *sql_jobids_from_vol =
    "SELECT DISTINCT Job.JobId,Job.StartTime FROM Media,JobMedia,Job"
    " WHERE Media.VolumeName='%s' AND Media.MediaId=JobMedia.MediaId"
    " AND JobMedia.JobId=Job.JobId AND Job.Type='B'"
+   " AND Job.JobStatus = 'T' AND Media.Enabled=1"
    " ORDER by Job.StartTime";
 
 const char *sql_smallest_vol = 
@@ -568,13 +570,6 @@ const char *sql_pool_bytes =
    " VolStatus in ('Full','Used','Error','Append') AND Media.Enabled=1 AND"
    " Job.Type='B' AND Job.JobStatus = 'T' AND"
    " JobMedia.JobId=Job.JobId AND Job.PoolId=Media.PoolId)";
-
-#ifdef xxx
-/* Broken */
-   "SELECT SUM(VolBytes) FROM Media,Pool WHERE"
-   " VolStatus in ('Full','Used','Error','Append') AND Media.Enabled=1 AND"
-   " Media.PoolId=Pool.PoolId AND Pool.Name='%s'";
-#endif
 
 /* Get the number of bytes in the Jobs */
 const char *sql_job_bytes =
