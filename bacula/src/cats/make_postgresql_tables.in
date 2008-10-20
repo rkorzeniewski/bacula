@@ -82,7 +82,7 @@ CREATE TABLE job
 CREATE INDEX job_name_idx on job (name);
 
 -- Create a table like Job for long term statistics 
-CREATE TABLE jobstat (LIKE job);
+CREATE TABLE JobHistory (LIKE Job);
 
 CREATE TABLE Location (
    LocationId	      serial	  not null,

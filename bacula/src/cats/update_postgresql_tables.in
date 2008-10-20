@@ -12,11 +12,11 @@ db_name=@db_name@
 if $bindir/psql -f - -d ${db_name} $* <<END-OF-DATA
 
 -- Create a table like Job for long term statistics
-CREATE TABLE jobstat (LIKE job);
+CREATE TABLE JobHistory (LIKE Job);
 
-UPDATE version SET versionid=11;
+UPDATE Version SET VersionId=11;
 
-vacuum analyse;
+-- vacuum analyse;
 
 END-OF-DATA
 then

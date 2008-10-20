@@ -13,7 +13,7 @@ if $bindir/mysql $* -f <<END-OF-DATA
 USE ${db_name};
 
 -- Create a table like Job for long term statistics
-CREATE TABLE JobStat (LIKE Job);
+CREATE TABLE JobHistory (LIKE Job);
 
 -- Fix bad index on Media table
 DROP INDEX inx8;
