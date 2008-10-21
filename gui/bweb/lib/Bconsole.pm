@@ -171,6 +171,8 @@ sub connect
 	    $SIG{__DIE__} = $sav;
 	}
 
+        $self->{bconsole}->slave->stty(qw(-echo));
+
 	unless ($ret) {
 	    return $self->error($self->{bconsole}->error());
 	}
@@ -202,9 +204,9 @@ sub send_cmd
     unless ($self->connect()) {
 	return '';
     }
-    $self->send("$cmd\n");
-    $self->expect_it($cmd);
     $self->{bconsole}->clear_accum();
+    $self->send("$cmd\n");
+#    $self->expect_it($cmd);
     $self->expect_it('-re',qr/^[*]/);
     return $self->before();
 }
@@ -218,9 +220,9 @@ sub send_cmd_yes
     $self->send("$cmd\n");
     $self->expect_it('-re', '[?].+:');
 
-    $self->send("yes\n");
-    $self->expect_it("yes");
     $self->{bconsole}->clear_accum();
+    $self->send("yes\n");
+#    $self->expect_it("yes");
     $self->expect_it('-re',qr/^[*]/);
     return $self->before();
 }
@@ -250,8 +252,8 @@ sub label_barcodes
     $self->expect_it('-re', '[?].+\).*:');
     my $res = $self->before();
     $self->send("yes\n");
-    $self->expect_it("yes");
-    $res .= $self->before();
+#    $self->expect_it("yes");
+#    $res .= $self->before();
     $self->expect_it('-re',qr/^[*]/);
     $res .= $self->before();
     return $res;
@@ -450,6 +452,7 @@ my $c = new Bconsole(pref => {
 print "fileset : ", join(',', $c->list_fileset()), "\n";
 print "job : ",     join(',', $c->list_job()), "\n";
 print "storage : ", join(',', $c->list_storage()), "\n";
+print $c->label_barcodes(pool => 'Scratch', drive => 0, storage => 'LTO3', slots => '45');
 #print "prune : " . $c->prune_volume('000001'), "\n";
 #print "update : " . $c->send_cmd('update slots storage=SDLT-1-2, drive=0'), "\n";
 #print "label : ", join(',', $c->label_barcodes(storage => 'SDLT-1-2',
