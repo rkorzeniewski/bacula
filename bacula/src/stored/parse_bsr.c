@@ -877,6 +877,9 @@ static bool add_restore_volume(JCR *jcr, VOL_LIST *vol)
 {
    VOL_LIST *next = jcr->VolList;
 
+   /* Add volume to volume manager's read list */
+   add_read_volume(jcr, vol->VolumeName);
+
    if (!next) {                       /* list empty ? */
       jcr->VolList = vol;             /* yes, add volume */
    } else {
@@ -904,13 +907,14 @@ static bool add_restore_volume(JCR *jcr, VOL_LIST *vol)
 
 void free_restore_volume_list(JCR *jcr)
 {
-   VOL_LIST *next = jcr->VolList;
+   VOL_LIST *vol = jcr->VolList;
    VOL_LIST *tmp;
 
-   for ( ; next; ) {
-      tmp = next->next;
-      free(next);
-      next = tmp;
+   for ( ; vol; ) {
+      tmp = vol->next;
+      remove_read_volume(jcr, vol->VolumeName);
+      free(vol);
+      vol = tmp;
    }
    jcr->VolList = NULL;
 }

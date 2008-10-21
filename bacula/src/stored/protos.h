@@ -261,13 +261,6 @@ extern int reservations_lock_count;
 #define unlock_reservations() _unlock_reservations()
 #define lock_volumes() _lock_volumes()
 #define unlock_volumes() _unlock_volumes()
-bool    volume_unused(DCR *dcr);
-void    create_volume_list();
-void    free_volume_list();
-void    list_volumes(void sendit(const char *msg, int len, void *sarg), void *arg);
-bool    is_volume_in_use(DCR *dcr);
-void debug_list_volumes(const char *imsg);
-extern int vol_list_lock_count;
 
 #endif
 
@@ -280,6 +273,15 @@ bool    free_volume(DEVICE *dev);
 bool    is_vol_list_empty();
 dlist  *dup_vol_list(JCR *jcr);
 void    free_temp_vol_list(dlist *temp_vol_list);
+bool    volume_unused(DCR *dcr);
+void    create_volume_lists();
+void    free_volume_lists();
+void    list_volumes(void sendit(const char *msg, int len, void *sarg), void *arg);
+bool    is_volume_in_use(DCR *dcr);
+void    debug_list_volumes(const char *imsg);
+extern  int vol_list_lock_count;
+void    add_read_volume(JCR *jcr, const char *VolumeName);
+void    remove_read_volume(JCR *jcr, const char *VolumeName);
 
 
 /* From spool.c */

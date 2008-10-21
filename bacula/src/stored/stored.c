@@ -284,7 +284,7 @@ int main (int argc, char *argv[])
     /*
      * Start the device allocation thread
      */
-   create_volume_list();              /* do before device_init */
+   create_volume_lists();             /* do before device_init */
    if (pthread_create(&thid, NULL, device_initialization, NULL) != 0) {
       berrno be;
       Emsg1(M_ABORT, 0, _("Unable to create thread. ERR=%s\n"), be.bstrerror());
@@ -625,7 +625,7 @@ void terminate_stored(int sig)
 
    Dmsg1(200, "In terminate_stored() sig=%d\n", sig);
 
-   free_volume_list();
+   free_volume_lists();
 
    foreach_res(device, R_DEVICE) {
       Dmsg1(10, "Term device %s\n", device->device_name);
