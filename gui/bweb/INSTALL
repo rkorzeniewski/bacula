@@ -42,7 +42,7 @@ Bweb works well with 1.39 release or later.
  mkdir -m 755 /usr/lib/cgi-bin/bweb
  install -m 755 -o root -g root  bweb/cgi/*.pl /usr/lib/cgi-bin/bweb
 
- # get a config file
+ # get a config file, if you want to use an other place edit lib/Bweb.pm
  mkdir -m 755 /etc/bacula
  chown root:bacula /etc/bacula
  echo '$VAR1 = { template_dir => "/usr/share/bweb/tpl" };' > /etc/bacula/bweb.conf
@@ -315,14 +315,14 @@ GRANT INSERT,UPDATE,DELETE ON bacula.LocationLog
 
 ################ GET MORE STATISTICS ###########################
 
-You keep Jobs informations across retention into a job_old table.
-You have to setup stat_job_table = job_old in bweb configuration.
+You keep Jobs informations across retention into a JobHistory table.
+You have to setup stat_job_table = JobHistory in bweb configuration.
 
-CREATE TABLE job_old (LIKE Job);
+CREATE TABLE JobHistory (LIKE Job);
 
 And run this on crontab when you want :
-INSERT INTO job_old 
-  (SELECT * FROM Job WHERE JobId NOT IN (SELECT JobId FROM job_old) );
+INSERT INTO JobHistory 
+  (SELECT * FROM Job WHERE JobId NOT IN (SELECT JobId FROM JobHistory) );
 
 ################ USE GROUPS WITH BWEB ##########################
 
