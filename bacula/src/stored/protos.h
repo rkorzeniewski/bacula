@@ -216,23 +216,13 @@ void    _lock_reservations();
 void    _unlock_reservations();
 void    _lock_volumes();
 void    _unlock_volumes();
-VOLRES *reserve_volume(DCR *dcr, const char *VolumeName);
-VOLRES *find_volume(const char *VolumeName);
-bool    free_volume(DEVICE *dev);
 void    unreserve_device(DCR *dcr);
-bool    volume_unused(DCR *dcr);
-void    create_volume_list();
-void    free_volume_list();
-void    list_volumes(void sendit(const char *msg, int len, void *sarg), void *arg);
-bool    is_volume_in_use(DCR *dcr);
 void    send_drive_reserve_messages(JCR *jcr, void sendit(const char *msg, int len, void *sarg), void *arg);
 bool    find_suitable_device_for_job(JCR *jcr, RCTX &rctx);
 int     search_res_for_device(RCTX &rctx);
 void    release_reserve_messages(JCR *jcr);
-void debug_list_volumes(const char *imsg);
 
 extern int reservations_lock_count;
-extern int vol_list_lock_count;
 
 #ifdef  SD_DEBUG_LOCK
 
@@ -271,9 +261,25 @@ extern int vol_list_lock_count;
 #define unlock_reservations() _unlock_reservations()
 #define lock_volumes() _lock_volumes()
 #define unlock_volumes() _unlock_volumes()
+bool    volume_unused(DCR *dcr);
+void    create_volume_list();
+void    free_volume_list();
+void    list_volumes(void sendit(const char *msg, int len, void *sarg), void *arg);
+bool    is_volume_in_use(DCR *dcr);
+void debug_list_volumes(const char *imsg);
+extern int vol_list_lock_count;
 
 #endif
 
+/* From vol_mgr.c */
+void    init_vol_list_lock();
+void    term_vol_list_lock();
+VOLRES *reserve_volume(DCR *dcr, const char *VolumeName);
+VOLRES *find_volume(const char *VolumeName);
+bool    free_volume(DEVICE *dev);
+bool    is_vol_list_empty();
+dlist  *dup_vol_list(JCR *jcr);
+void    free_temp_vol_list(dlist *temp_vol_list);
 
 
 /* From spool.c */

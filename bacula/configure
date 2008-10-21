@@ -44139,6 +44139,12 @@ if test X"$GCC" = "Xyes" ; then
    fi
 fi
 
+# clean up any old junk
+echo " "
+echo "Cleaning up"
+echo " "
+make clean
+
 if test "x${db_type}" = "xInternal" ; then
    echo " "
    echo " "
