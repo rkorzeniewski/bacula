@@ -45,6 +45,9 @@ my $conf = new Bweb::Config(config_file => $Bweb::config_file);
 $conf->load();
 
 my $bweb = new Bweb(info => $conf);
+
+print CGI::header('text/html');
+$bweb->display_begin();
 $bweb->can_do('r_view_stat');
 
 my $arg = $bweb->get_form(qw/qnocache qiso_begin qiso_end qusage qpools 
@@ -57,11 +60,9 @@ if (!$arg->{qiso_begin}) {
    $arg->{qiso_end} = strftime('\'%F %H:%M:00\'', localtime(time));
 }
 use Digest::MD5 qw(md5_hex);
+
 my $md5_rep = md5_hex("$arg->{qiso_begin}:$arg->{qiso_end}:$arg->{qusage}:" . 
 		      "$arg->{jclient_groups}:$arg->{qpoolusage};$arg->{qnojob}") ;
-
-print CGI::header('text/html');
-$bweb->display_begin();
 
 if (   !$arg->{qnocache} 
     && $arg->{qiso_begin} 
@@ -150,7 +151,7 @@ FROM  Log INNER JOIN Job USING (JobId) JOIN Pool USING (PoolId)
  ORDER BY Job.JobId,Log.LogId,Log.Time  ";
 
 
-print STDERR $query if (1 || $conf->{debug});
+$bweb->debug($query);
 my $all = $bweb->dbh_selectall_arrayref($query);
 
 my $lastid = 0;
