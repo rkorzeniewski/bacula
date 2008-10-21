@@ -41,7 +41,8 @@ use strict;
      * add catalog = all, !skipped, !saved into Messages Standard (scripts/bacula-dir.conf)
      * add exit 0 to scripts/cleanup
      * run bacula-backup-test
-     * charger bweb-(mysql|postgresql).sql
+     * uncomment job schedule in bacula-dir.conf
+     * load bweb-(mysql|postgresql).sql
      * ./bin/bacula start
      * configure bweb to point to bconsole and the catalog
 
@@ -269,6 +270,11 @@ like($c, qr/"$grp"/, "check if $grp is here");
 
 # view job overview
 ok($agent->follow_link(text_regex=>qr/Jobs overview/), "Go to Job overview");
+ok($agent->success(), "Get it"); $c=$agent->content;
+like($c, qr/"$grp"/, "check if $grp is here");
+
+# get group stats
+ok($agent->follow_link(url_regex=>qr/action=group_stats/), "Go to groups stats");
 ok($agent->success(), "Get it"); $c=$agent->content;
 like($c, qr/"$grp"/, "check if $grp is here");
 
