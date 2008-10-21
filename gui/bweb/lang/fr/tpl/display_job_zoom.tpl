@@ -41,7 +41,6 @@
  <img src='/bweb/zoom.png' alt=''>Voir le fileset associé</button>
  </form>
  </td>
-<!-- Remove this to activate bfileview 
  <td>
  <form name="bfileview" action='bfileview.pl?'>
   <input type='hidden' name='jobid' value='<TMPL_VAR jobid>'>
@@ -52,7 +51,6 @@
    <img src='/bweb/colorscm.png' alt=''> Répartition des fichiers </button>
  </form>
  </td>
--->
 <TMPL_IF wiki_url>
   <td>
    <a href="<TMPL_VAR wiki_url><TMPL_VAR Client>" title='Documentation'><img src='/bweb/doc.png' alt='Documentation'></a>Documentation

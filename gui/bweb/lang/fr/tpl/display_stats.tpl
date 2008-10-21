@@ -8,7 +8,7 @@
  </div>
 
 <script type="text/javascript" language="JavaScript">
-var header = new Array("Nom", "Nb Jobs", "Nb Err", "% Ok", ,  "Nb Resto", 
+var header = new Array("Nom", "Nb Jobs", "Nb Err", "% Ok", "Nb Resto", 
                        "Nb Bytes", "Nb Bytes", "Nb Fichiers");
 
 var data = new Array();
