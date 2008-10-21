@@ -1,3 +1,6 @@
+-- Require > 7.4, else use createlang command
+CREATE PROCEDURAL LANGUAGE plpgsql;
+
 -- --------------------------------------------------
 -- Upgrade from 2.2
 -- --------------------------------------------------
@@ -210,7 +213,6 @@ COMMIT;
 --   
 --   
 
-CREATE PROCEDURAL LANGUAGE plpgsql;
 BEGIN;
 
 CREATE FUNCTION SEC_TO_TIME(timestamp with time zone)

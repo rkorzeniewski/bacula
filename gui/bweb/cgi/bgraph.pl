@@ -55,9 +55,9 @@ my $debug = $bweb->{debug};
 
 # Job table keep use Media or Job retention, so it's quite enought
 # for good statistics
-# CREATE TABLE job_old (LIKE Job);
-# INSERT INTO job_old
-#    (SELECT * FROM Job WHERE JobId NOT IN (SELECT JobId FROM job_old) );
+# CREATE TABLE JobHistory (LIKE Job);
+# INSERT INTO JobHistory
+#    (SELECT * FROM Job WHERE JobId NOT IN (SELECT JobId FROM JobHistory) );
 my $jobt = $bweb->get_stat_table();
 
 my $graph = CGI::param('graph') || 'job_size';

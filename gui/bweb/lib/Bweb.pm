@@ -1876,7 +1876,7 @@ sub get_form
     }
 
     if ($what{storage_cmd}) {
-	if (!grep {/^$ret{storage_cmd}$/} ('mount', 'umount', 'release','status')) {
+	if (!grep {/^\Q$ret{storage_cmd}$/} ('mount', 'umount', 'release','status')) {
 	    delete $ret{storage_cmd};
 	}
     }
@@ -1890,7 +1890,7 @@ sub get_form
     }
 
     if ($what{since}) {
-        my $age = $ret{age} || $opt_i{age};
+        my $age = $ret{age} || human_sec_unit($opt_i{age});
         my $since = CGI::param('since') || strftime('%F %T', localtime(time - $age));
         if ($since =~ /^(\d{4}-\d{2}-\d{2}( \d{2}:\d{2}:\d{2})?)$/) {
             $ret{since} = $1;
