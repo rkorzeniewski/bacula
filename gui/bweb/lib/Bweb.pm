@@ -234,7 +234,7 @@ our %k_re = ( dbi      => qr/^(dbi:(Pg|mysql):(?:\w+=[\w\d\.-]+;?)+)$/i,
 	      display_log_time => qr!^(on)?$!,
 	      enable_security => qr/^(on)?$/,
 	      enable_security_acl => qr/^(on)?$/,
-	      default_age => qr/^(?:\d+(?:[ywdhms]\s*)?)+\s*$/,
+	      default_age => qr/^((?:\d+(?:[ywdhms]\s*?)?)+)\s*$/,
 	      );
 
 =head1 FUNCTION
@@ -2048,7 +2048,7 @@ sub display_graph
 	%$fields,
     }, "graph.tpl");
 
-    if ($fields->{gtype} eq 'balloon') {
+    if ($fields->{gtype} and $fields->{gtype} eq 'balloon') {
 	system("./bgraph.pl");
     }
 }
