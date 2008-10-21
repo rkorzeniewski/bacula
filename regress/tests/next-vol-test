@@ -155,7 +155,7 @@ messages
 quit
 EOF
 
-run_bconsole
+#run_bconsole
 
 check_for_zombie_jobs storage=LTO3
 stop_bacula
