@@ -157,6 +157,7 @@ sub display
     my $lang = $self->{lang} || 'en';
     my $template = HTML::Template->new(filename => $tpl,
 				       path =>["$dir/$lang",
+                                               "$dir/$lang/tpl",
 					       $dir],
 				       die_on_bad_params => 0,
 				       case_sensitive => 0);
@@ -1820,10 +1821,10 @@ sub get_form
 	    my $value = CGI::param($i) || $opt_i{$i} ;
 	    if ($value =~ /^(\d+)$/) {
 		$ret{$i} = $1;
-	    } elsif ($value eq 'age' &&  # can have unit
-		     $i =~ /^(?:\d+(?:[ywdhms]\s*)?)+\s*$/) # 2y1h2m34s
+	    } elsif ($i eq 'age' &&  # can have unit
+		     $value =~ /^(?:\d+(?:[ywdhms]\s*)?)+\s*$/) # 2y1h2m34s
 	    {
-		$ret{$i} = human_sec_unit($i);
+		$ret{$i} = human_sec_unit($value);
 	    }
 	} elsif ($opt_s{$i}) {	# simple string param
 	    my $value = CGI::param($i) || '';
