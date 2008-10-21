@@ -1527,7 +1527,7 @@ sub from_human_sec
 sub get_stat_table
 {
     my ($self) = @_;
-    my $ret = $self->{info}->{stat_job_table} || 'Job';
+    my $ret = $self->{info}->{stat_job_table} || 'JobHistory';
     if ($ret !~ m/^job$/i) {
 	$ret = "(SELECT * FROM Job UNION SELECT * FROM $ret)";
     }
