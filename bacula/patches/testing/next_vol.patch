@@ -54,25 +54,3 @@ Index: src/dird/next_vol.c
           }
  
  
-Index: src/dird/autoprune.c
-===================================================================
---- src/dird/autoprune.c	(revision 7259)
-+++ src/dird/autoprune.c	(working copy)
-@@ -176,6 +176,17 @@
-             prune_list.num_ids = 0;             /* reset count */
-          }
-          ok = is_volume_purged(ua, &lmr);
-+
-+	 /* 
-+	  * Check if this volume is available (InChanger + StorageId) 
-+	  * If not, just skip this volume and try the next one
-+	  */
-+	 if (ok && InChanger) {
-+	    if (!lmr.InChanger || (lmr.StorageId != mr->StorageId)) {
-+	       ok = false;		/* skip this volume, ie not loadable */
-+	    }
-+	 }
-+
-          /*
-           * If purged and not moved to another Pool, 
-           *   then we stop pruning and take this volume.
