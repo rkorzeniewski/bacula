@@ -43,15 +43,38 @@ const int dbglvl =  50;
 
 static dlist *vol_list = NULL;
 static brwlock_t vol_list_lock;
+static dlist *read_vol_list = NULL;
+static pthread_mutex_t read_vol_lock = PTHREAD_MUTEX_INITIALIZER;
 
 /* Forward referenced functions */
 static void free_vol_item(VOLRES *vol);
+static VOLRES *new_vol_item(DCR *dcr, const char *VolumeName);
 
-
+/*
+ * For append volumes the key is the VolumeName.
+ */
 static int my_compare(void *item1, void *item2)
 {
    return strcmp(((VOLRES *)item1)->vol_name, ((VOLRES *)item2)->vol_name);
 }
+
+/*
+ * For read volumes the key is JobId, VolumeName.
+ */
+static int read_compare(void *item1, void *item2)
+{
+   VOLRES *vol1 = (VOLRES *)item1;
+   VOLRES *vol2 = (VOLRES *)item2;
+
+   if (vol1->get_jobid() == vol2->get_jobid()) {
+      return strcmp(vol1->vol_name, vol2->vol_name);
+   }
+   if (vol1->get_jobid() < vol2->get_jobid()) {
+      return -1;
+   }
+   return 1;
+}
+
 
 bool is_vol_list_empty() 
 {
@@ -60,6 +83,9 @@ bool is_vol_list_empty()
 
 int vol_list_lock_count = 0;
 
+/*
+ *  Initialized the main volume list. Note, we are using a recursive lock.
+ */
 void init_vol_list_lock()
 {
    int errstat;
@@ -102,59 +128,62 @@ void _unlock_volumes()
    }
 }
 
-dlist *dup_vol_list(JCR *jcr)
+void lock_read_volumes()
 {
-   dlist *temp_vol_list;
-   VOLRES *vol = NULL;
+   P(read_vol_lock);
+}
 
-   lock_volumes();
-   Dmsg0(dbglvl, "lock volumes\n");                           
+void unlock_read_volumes()
+{
+   V(read_vol_lock);
+}
 
-   /*  
-    * Create a temporary copy of the volume list.  We do this,
-    *   to avoid having the volume list locked during the
-    *   call to reserve_device(), which would cause a deadlock.
-    * Note, we may want to add an update counter on the vol_list
-    *   so that if it is modified while we are traversing the copy
-    *   we can take note and act accordingly (probably redo the 
-    *   search at least a few times).
-    */
-   Dmsg0(dbglvl, "duplicate vol list\n");
-   temp_vol_list = New(dlist(vol, &vol->link));
-   foreach_dlist(vol, vol_list) {
-      VOLRES *nvol;
-      VOLRES *tvol = (VOLRES *)malloc(sizeof(VOLRES));
-      memset(tvol, 0, sizeof(VOLRES));
-      tvol->vol_name = bstrdup(vol->vol_name);
-      tvol->dev = vol->dev;
-      nvol = (VOLRES *)temp_vol_list->binary_insert(tvol, my_compare);
-      if (tvol != nvol) {
-         tvol->dev = NULL;                   /* don't zap dev entry */
-         free_vol_item(tvol);
-         Pmsg0(000, "Logic error. Duplicating vol list hit duplicate.\n");
-         Jmsg(jcr, M_WARNING, 0, "Logic error. Duplicating vol list hit duplicate.\n");
-      }
+/*
+ * Add a volume to the read list.
+ * Note, we use VOLRES because it simplifies the code
+ *   even though, the only part of VOLRES that we need is
+ *   the volume name.  The same volume may be in the list
+ *   multiple times, but each one is distinguished by the 
+ *   JobId.  We use JobId, VolumeName as the key.
+ * We can get called multiple times for the same volume because
+ *   when parsing the bsr, the volume name appears multiple times.
+ */
+void add_read_volume(JCR *jcr, const char *VolumeName)
+{
+   VOLRES *nvol, *vol;
+
+   lock_read_volumes();
+   nvol = new_vol_item(NULL, VolumeName);
+   nvol->set_jobid(jcr->JobId);
+   vol = (VOLRES *)read_vol_list->binary_insert(nvol, read_compare);
+   if (vol != nvol) {
+      free_vol_item(nvol);
+      Dmsg2(1, "read_vol=%s JobId=%d already in list.\n", VolumeName, jcr->JobId);
+   } else {
+      Dmsg2(1, "add read_vol=%s JobId=%d\n", VolumeName, jcr->JobId);
    }
-   Dmsg0(dbglvl, "unlock volumes\n");
-   unlock_volumes();
-   return temp_vol_list;
+   unlock_read_volumes();
 }
 
-void free_temp_vol_list(dlist *temp_vol_list)
+/*
+ * Remove a given volume name from the read list.
+ */
+void remove_read_volume(JCR *jcr, const char *VolumeName)
 {
-   dlist *save_vol_list;
-   
-   lock_volumes();
-   save_vol_list = vol_list;
-   vol_list = temp_vol_list;
-   free_volume_list();                  /* release temp_vol_list */
-   vol_list = save_vol_list;
-   Dmsg0(dbglvl, "deleted temp vol list\n");
-   Dmsg0(dbglvl, "unlock volumes\n");
-   unlock_volumes();
-   debug_list_volumes("after free temp table");
+   VOLRES vol, *fvol;
+   lock_read_volumes();
+   vol.vol_name = bstrdup(VolumeName);
+   vol.set_jobid(jcr->JobId);
+   fvol = (VOLRES *)read_vol_list->binary_search(&vol, read_compare);
+   free(vol.vol_name);
+   Dmsg3(1, "remove_read_vol=%s JobId=%d found=%d\n", VolumeName, jcr->JobId, fvol!=NULL);
+   debug_list_volumes("remove_read_volume");
+   if (fvol) {
+      read_vol_list->remove(fvol);
+      free_vol_item(fvol);
+   }
+   unlock_read_volumes();
 }
-
 
 /*
  * List Volumes -- this should be moved to status.c
@@ -211,6 +240,15 @@ void list_volumes(void sendit(const char *msg, int len, void *sarg), void *arg)
       }
    }
    unlock_volumes();
+
+   lock_read_volumes();
+   foreach_dlist(vol, read_vol_list) {
+      len = Mmsg(msg, "%s read volume JobId=%d\n", vol->vol_name, 
+            vol->get_jobid());
+      sendit(msg.c_str(), len, arg);
+   }
+   unlock_read_volumes();
+
 }
 
 /*
@@ -223,9 +261,11 @@ static VOLRES *new_vol_item(DCR *dcr, const char *VolumeName)
    vol = (VOLRES *)malloc(sizeof(VOLRES));
    memset(vol, 0, sizeof(VOLRES));
    vol->vol_name = bstrdup(VolumeName);
-   vol->dev = dcr->dev;
-   Dmsg3(dbglvl, "new Vol=%s at %p dev=%s\n",
-         VolumeName, vol->vol_name, vol->dev->print_name());
+   if (dcr) {
+      vol->dev = dcr->dev;
+      Dmsg3(dbglvl, "new Vol=%s at %p dev=%s\n",
+            VolumeName, vol->vol_name, vol->dev->print_name());
+   }
    return vol;
 }
 
@@ -545,34 +585,62 @@ bool free_volume(DEVICE *dev)
 
       
 /* Create the Volume list */
-void create_volume_list()
+void create_volume_lists()
 {
    VOLRES *vol = NULL;
    if (vol_list == NULL) {
       vol_list = New(dlist(vol, &vol->link));
    }
+   if (read_vol_list == NULL) {
+      read_vol_list = New(dlist(vol, &vol->link));
+   }
+}
+
+/*
+ * Free normal append volumes list
+ */
+static void free_volume_list()
+{
+   VOLRES *vol;
+   if (vol_list) {
+      lock_volumes();
+      foreach_dlist(vol, vol_list) {
+         if (vol->dev) {
+            Dmsg2(dbglvl, "free vol_list Volume=%s dev=%s\n", vol->vol_name, vol->dev->print_name());
+         } else {
+            Dmsg1(dbglvl, "free vol_list Volume=%s No dev\n", vol->vol_name);
+         }
+         free(vol->vol_name);
+         vol->vol_name = NULL;
+      }
+      delete vol_list;
+      vol_list = NULL;
+      unlock_volumes();
+   }
 }
 
 /* Release all Volumes from the list */
-void free_volume_list()
+void free_volume_lists()
 {
    VOLRES *vol;
-   if (!vol_list) {
-      return;
-   }
-   lock_volumes();
-   foreach_dlist(vol, vol_list) {
-      if (vol->dev) {
-         Dmsg2(dbglvl, "free vol_list Volume=%s dev=%s\n", vol->vol_name, vol->dev->print_name());
-      } else {
-         Dmsg1(dbglvl, "free vol_list Volume=%s No dev\n", vol->vol_name);
+
+   free_volume_list();           /* normal append list */
+
+   if (read_vol_list) {
+      lock_read_volumes();
+      foreach_dlist(vol, read_vol_list) {
+         if (vol->dev) {
+            Dmsg2(dbglvl, "free read_vol_list Volume=%s dev=%s\n", vol->vol_name, vol->dev->print_name());
+         } else {
+            Dmsg1(dbglvl, "free read_vol_list Volume=%s No dev\n", vol->vol_name);
+         }
+         free(vol->vol_name);
+         vol->vol_name = NULL;
       }
-      free(vol->vol_name);
-      vol->vol_name = NULL;
+      delete read_vol_list;
+      read_vol_list = NULL;
+      unlock_read_volumes();
    }
-   delete vol_list;
-   vol_list = NULL;
-   unlock_volumes();
 }
 
 bool DCR::can_i_use_volume()
@@ -609,4 +677,60 @@ get_out:
    unlock_volumes();
    return rtn;
 
+}
+
+/*  
+ * Create a temporary copy of the volume list.  We do this,
+ *   to avoid having the volume list locked during the
+ *   call to reserve_device(), which would cause a deadlock.
+ * Note, we may want to add an update counter on the vol_list
+ *   so that if it is modified while we are traversing the copy
+ *   we can take note and act accordingly (probably redo the 
+ *   search at least a few times).
+ */
+dlist *dup_vol_list(JCR *jcr)
+{
+   dlist *temp_vol_list;
+   VOLRES *vol = NULL;
+
+   lock_volumes();
+   Dmsg0(dbglvl, "lock volumes\n");                           
+
+   Dmsg0(dbglvl, "duplicate vol list\n");
+   temp_vol_list = New(dlist(vol, &vol->link));
+   foreach_dlist(vol, vol_list) {
+      VOLRES *nvol;
+      VOLRES *tvol = (VOLRES *)malloc(sizeof(VOLRES));
+      memset(tvol, 0, sizeof(VOLRES));
+      tvol->vol_name = bstrdup(vol->vol_name);
+      tvol->dev = vol->dev;
+      nvol = (VOLRES *)temp_vol_list->binary_insert(tvol, my_compare);
+      if (tvol != nvol) {
+         tvol->dev = NULL;                   /* don't zap dev entry */
+         free_vol_item(tvol);
+         Pmsg0(000, "Logic error. Duplicating vol list hit duplicate.\n");
+         Jmsg(jcr, M_WARNING, 0, "Logic error. Duplicating vol list hit duplicate.\n");
+      }
+   }
+   Dmsg0(dbglvl, "unlock volumes\n");
+   unlock_volumes();
+   return temp_vol_list;
+}
+
+/*
+ * Free the specified temp list.
+ */
+void free_temp_vol_list(dlist *temp_vol_list)
+{
+   dlist *save_vol_list;
+   
+   lock_volumes();
+   save_vol_list = vol_list;
+   vol_list = temp_vol_list;
+   free_volume_list();                  /* release temp_vol_list */
+   vol_list = save_vol_list;
+   Dmsg0(dbglvl, "deleted temp vol list\n");
+   Dmsg0(dbglvl, "unlock volumes\n");
+   unlock_volumes();
+   debug_list_volumes("after free temp table");
 }

@@ -344,7 +344,7 @@ static void terminate_btape(int stat)
    free_jcr(jcr);
    jcr = NULL;
 
-   free_volume_list();
+   free_volume_lists();
 
    if (dev) {
       dev->term();

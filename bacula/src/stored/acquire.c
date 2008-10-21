@@ -436,6 +436,7 @@ bool release_device(DCR *dcr)
          dev->is_labeled(), vol->VolCatName);
       if (dev->is_labeled() && vol->VolCatName[0] != 0) {
          dir_update_volume_info(dcr, false, false); /* send Volume info to Director */
+         remove_read_volume(jcr, dcr->VolumeName);
          volume_unused(dcr);
       }
    } else if (dev->num_writers > 0) {
