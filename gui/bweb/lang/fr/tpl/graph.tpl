@@ -132,7 +132,7 @@
  </div>
  <div class="otherbox">
 
- <img usemap='imggraph' id='imggraph' 
+ <img usemap='#imggraph' id='imggraph'
       alt='Rien n a afficher, essayer avec une autre période'>
  </div>
 

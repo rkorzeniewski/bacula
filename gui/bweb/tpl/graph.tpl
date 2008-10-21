@@ -133,7 +133,7 @@
  </div>
  <div class="otherbox">
 
- <img usemap='imggraph' id='imggraph' 
+ <img usemap='#imggraph' id='imggraph'
       alt='__Nothing to display, Try a bigger date range__'>
  </div>
 
