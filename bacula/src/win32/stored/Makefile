@@ -51,6 +51,7 @@ COMMON_OBJS = \
 	$(OBJDIR)/scan.o \
 	$(OBJDIR)/spool.o \
 	$(OBJDIR)/stored_conf.o \
+	$(OBJDIR)/vol_mgr.o \
 	$(OBJDIR)/wait.o \
 	$(OBJDIR)/mtops.o
 
