@@ -26,7 +26,7 @@ start_test
 
 cat <<EOF > ${cwd}/tmp/bconcmds
 @$out ${cwd}/tmp/log.out
-label barcodes storage=LTO3 slots=47-59 drive=0 pool=Scratch
+label barcodes storage=LTO3 slots=46-59 drive=0 pool=Scratch
 yes
 update volume=vol47 pool=Test inchanger=no RecyclePool=Test
 update volume=vol59 pool=Test enabled=no
@@ -34,6 +34,9 @@ update volume=vol58 pool=Test volstatus=Recycle
 purge  volume=vol57
 update volume=vol56 pool=Test
 update volume=vol55 pool=Test volstatus=Full volretention=15 
+update volume=vol46 volstatus=Full volretention=15 
+purge volume=vol46
+update volume=vol46 pool=Test
 update volume=vol54 volstatus=Recycle
 purge  volume=vol53
 update volume=vol52 MaxVolJobs=1
@@ -46,7 +49,8 @@ update volume  AllFromPool=Test
 sql
 update Media SET VolJobs=1 WHERE VolumeName='vol52';
 update Media SET LastWritten='2006-01-01 01:00:00';
-
+update Media SET LastWritten='2006-01-01 01:00:01' WHERE VolumeName='vol57';
+update Media SET LastWritten='2006-01-01 01:00:02' WHERE VolumeName='vol53';
 list volume
 EOF
 
@@ -56,38 +60,52 @@ echo $PWD/build/po > tmp/file-list
 
 cat <<EOF > ${cwd}/tmp/bconcmds
 @$out ${cwd}/tmp/log2.out
-list volume
 @# Must choose vol56
+@# Pool + Append + Enabled + InChanger
 run level=full pool=Test NightlySave yes
 wait
 message
 list volume
 @# Must choose vol58
+@# Pool + Recycled + Enabled + InChanger
+run level=full pool=Test NightlySave yes
+wait
+message
+list volume
+@# Must choose vol46
+@# Pool + Purged + Enabled + InChanger
 run level=full pool=Test NightlySave yes
 wait
 message
 list volume
 @# Must choose vol55
+@# Pool + Full + Recycle + Enabled + InChanger
 run level=full pool=Test NightlySave yes
 wait
 message
 list volume
 @# Must choose vol54
+@# No more in Test pool, get from scratch
+@# vol52 is Append, but have 1 job and MaxJob
+@# Scratch + Recycle + Enabled + InChanger
 run level=full pool=Test NightlySave yes
 wait
 message
 list volume
 @# Must choose vol52
-run level=full pool=Test NightlySave yes
-wait
-message
-list volume
-@# Must choose vol53
+@# Scratch + Purged + Enabled + InChanger + LastW
 run level=full pool=Test NightlySave yes
 wait
 message
 list volume
 @# Must choose vol57
+@# Scratch + Purged + Enabled + InChanger + LastW
+run level=full pool=Test NightlySave yes
+wait
+message
+list volume
+@# Must choose vol53
+@# Scratch + Purged + Enabled + InChanger + LastW
 run level=full pool=Test NightlySave yes
 wait
 message
