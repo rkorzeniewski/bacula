@@ -347,8 +347,8 @@ static int read_digest(BFILE *bfd, DIGEST *digest, JCR *jcr)
       /* Check for sparse blocks */
       if (ff_pkt->flags & FO_SPARSE) {
          bool allZeros = false;
-         if (n == bufsiz &&
-             fileAddr+n < (uint64_t)ff_pkt->statp.st_size ||
+         if ((n == bufsiz &&
+              fileAddr+n < (uint64_t)ff_pkt->statp.st_size) ||
              ((ff_pkt->type == FT_RAW || ff_pkt->type == FT_FIFO) &&
                (uint64_t)ff_pkt->statp.st_size == 0)) {
             allZeros = is_buf_zero(buf, bufsiz);

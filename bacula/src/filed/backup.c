@@ -832,8 +832,8 @@ int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest,
       if (ff_pkt->flags & FO_SPARSE) {
          ser_declare;
          bool allZeros = false;
-         if (sd->msglen == rsize &&
-             fileAddr+sd->msglen < (uint64_t)ff_pkt->statp.st_size ||
+         if ((sd->msglen == rsize &&
+              fileAddr+sd->msglen < (uint64_t)ff_pkt->statp.st_size) ||
              ((ff_pkt->type == FT_RAW || ff_pkt->type == FT_FIFO) &&
                (uint64_t)ff_pkt->statp.st_size == 0)) {
             allZeros = is_buf_zero(rbuf, rsize);
