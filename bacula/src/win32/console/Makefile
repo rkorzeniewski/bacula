@@ -16,8 +16,8 @@ DEFINES = \
 	-DUSING_DLL \
 	$(HAVES)
 
-vpath %.c ../../console
-vpath %.cpp ../../console
+vpath %.c $(MAINDIR)/src/console
+vpath %.cpp $(MAINDIR)/src/console
 
 ##########################################################################
 

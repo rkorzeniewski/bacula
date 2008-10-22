@@ -11,7 +11,7 @@ include ../Makefile.inc
 
 INCLUDES = \
 	-I. \
-	-I../../stored \
+	-I$(MAINDIR)/src/stored \
 	$(INCLUDE_DDK) \
 	$(INCLUDE_PTHREADS) \
 	$(INCLUDE_BACULA) \
@@ -25,8 +25,8 @@ DEFINES = \
 	-DWINVER=0x500 \
 	$(HAVES)
 
-vpath %.c ../../stored ../libwin32
-vpath %.cpp ../../stored ../libwin32
+vpath %.c $(MAINDIR)/src/stored $(BUILDDIR)/libwin32
+vpath %.cpp $(MAINDIR)/src/stored $(BUILDDIR)/libwin32
 
 ##########################################################################
 

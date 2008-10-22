@@ -24,13 +24,13 @@ DEFINES = \
 	-D_STAT_DEFINED \
 	$(HAVES)
 
-vpath %.c ../../wx-console
-vpath %.cpp ../../wx-console
-vpath %.rc ../../wx-console
+vpath %.c $(MAINDIR)/src/wx-console
+vpath %.cpp $(MAINDIR)/src/wx-console
+vpath %.rc $(MAINDIR)/src/wx-console
 
 ##########################################################################
 
-# Files in ../../wx-console
+# Files in $(MAINDIR)/src/wx-console
 
 CONSOLE_OBJS = \
 	$(OBJDIR)/authenticate.o \
@@ -81,6 +81,6 @@ $(BINDIR)/bwx-console.exe: $(CONSOLE_OBJS) $(LIBS_BACULA)
 $(OBJDIR)/wx-console_private.res: wx-console_private.rc
 	@echo "Compiling $@"
 	$(call checkdir,$@)
-	$(ECHO_CMD)$(WINDRES) $(INCLUDE_ICONS) -I../../wx-console -O coff $< -o $@
+	$(ECHO_CMD)$(WINDRES) $(INCLUDE_ICONS) -I$(MAINDIR)/src/wx-console -O coff $< -o $@
 
 include ../Makefile.rules

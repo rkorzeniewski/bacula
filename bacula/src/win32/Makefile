@@ -1,4 +1,4 @@
-ECHO_CMD=@
+c+ECHO_CMD=@
 
 DIRS=	dll \
 	cats \
@@ -44,8 +44,10 @@ Makefile.inc: Makefile.inc.in
 		exit 1; \
 	fi ; \
 	$(ECHO_CMD)BUILDDIR=`(pwd)`; \
+	$(ECHO_CMD)MAINDIR=`(cd ../..;pwd)`; \
 	sed \
 		-e "s^@BUILDDIR@^$${BUILDDIR}^" \
+		-e "s^@MAINDIR@^$${MAINDIR}^" \
 		-e "s^@TOPDIR@^$${TOPDIR}^" \
 		-e "s^@BINDIR@^$${BINDIR}^" \
 		-e "s^@INCDIR@^$${INCDIR}^" \

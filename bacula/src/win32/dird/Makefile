@@ -21,8 +21,8 @@ DEFINES = \
 	-DWINVER=0x500 \
 	$(HAVES)
 
-vpath %.c ../../dird ../libwin32
-vpath %.cpp ../../dird ../libwin32
+vpath %.c $(MAINDIR)/src/dird $(BUILDDIR)/libwin32
+vpath %.cpp $(MAINDIR)/src/dird $(BUILDDIR)/libwin32
 
 ##########################################################################
 

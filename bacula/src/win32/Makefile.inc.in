@@ -3,19 +3,29 @@
 # Using MinGW cross-compiler on GNU/Linux
 #
 #  Written by Robert Nelson, June 2006
+#  Absolute paths used in place of relative paths
+#      Kern Sibbald, October 2008
 #
 
 # Global Configuration
 
 ECHO_CMD = @
 
+# Main Bacula source dir
+MAINDIR := @MAINDIR@
+#
+# Build dir -- i.e. normally  src/win32
 BUILDDIR := @BUILDDIR@
+#
+# Dir above Bacula where we find depkgs
 TOPDIR := @TOPDIR@
+#
+# where we find depkgs
 DEPKGS := $(TOPDIR)/depkgs-mingw32
 
 DOCDIR := $(TOPDIR)/docs
-BINDIR := ../release
-LIBDIR := ../release
+BINDIR := $(BUILDDIR)/release
+LIBDIR := $(BUILDDIR)/release
 OBJDIR := .
 
 MINGW_BIN := @BINDIR@
@@ -36,7 +46,7 @@ CFLAGS := -g -Wall -mno-cygwin -m32 -mwin32 -mthreads -O3 -fno-strict-aliasing
 LDFLAGS := -g -Wall -mno-cygwin -Wl,--disable-auto-import
 
 INCLUDE_DDK := -I$(MINGW_INCLUDE)/ddk
-INCLUDE_BACULA := -I../.. -I../compat
+INCLUDE_BACULA := -I$(MAINDIR)/src -I$(BUILDDIR)/compat
 INCLUDE_PTHREADS := -I$(DEPKGS)/include/pthreads
 INCLUDE_ZLIB := -I$(DEPKGS)/include
 INCLUDE_VSS := -I$(DEPKGS)/vss

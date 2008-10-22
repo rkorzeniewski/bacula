@@ -21,8 +21,8 @@ DEFINES = \
 
 LDFLAGS:=$(LDFLAGS) -lstdc++
 
-vpath %.c ../../tools ../../dird
-vpath %.cpp ../../tools ../../dird
+vpath %.c $(MAINDIR)/src/tools $(MAINDIR)/src/dird
+vpath %.cpp $(MAINDIR)/src/tools $(MAINDIR)/src/dird
 
 ##########################################################################
 

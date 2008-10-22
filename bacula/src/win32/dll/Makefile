@@ -16,8 +16,8 @@ INCLUDES = \
 DEFINES = \
 	$(HAVES)
 
-vpath %.c ../compat ../../findlib ../../lib
-vpath %.cpp ../compat ../../findlib ../../lib
+vpath %.c $(BUILDDIR)/compat $(MAINDIR)/src/findlib $(MAINDIR)/src/lib
+vpath %.cpp $(BUILDDIR)/compat $(MAINDIR)/src/findlib $(MAINDIR)/src/lib
 
 ######################################################################
 

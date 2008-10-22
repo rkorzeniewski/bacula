@@ -17,8 +17,8 @@ INCLUDES = \
 DEFINES = \
 	$(HAVES)
 
-vpath %.c ../../cats
-vpath %.cpp ../../cats
+vpath %.c $(MAINDIR)/src/cats
+vpath %.cpp $(MAINDIR)/src/cats
 
 ######################################################################
 
@@ -97,4 +97,3 @@ $(eval $(call Link_Dll,cats_mysql,MYSQL))
 $(eval $(call Link_Dll,cats_postgresql,POSTGRESQL))
 
 $(eval $(call Link_Dll,cats_sqlite3,SQLITE3))
-
