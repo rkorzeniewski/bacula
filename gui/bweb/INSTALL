@@ -336,6 +336,7 @@ Warning, this function is not for production use at this time !
 It will do some basics things on a working bweb/brestore setup.
 
 1) Go to http://extjs.com and download their toolkit (last 1.X release)
+ Or you can get it at http://www.bacula.org/download/extjs-1.1.tar.gz
 
 2) Install files in /bweb/ext web root 
  example on debian : 
