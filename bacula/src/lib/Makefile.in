@@ -170,12 +170,12 @@ bsnprintf: Makefile bsnprintf.o
 
 install-includes:
 	$(MKDIR) $(DESTDIR)/$(includedir)/bacula
-	for I in ${INCLUDE_FILES}; do \
+	for I in $(INCLUDE_FILES); do \
 	   $(INSTALL_DATA) $$I $(DESTDIR)$(includedir)/bacula/`basename $$I`; \
 	done
 
 uninstall-includes:
-	for I in ${INCLUDE_FILES}; do \
+	for I in $(INCLUDE_FILES); do \
 	   $(RMF) $(DESTDIR)$(includedir)/bacula/`basename $$I`; \
 	done
 
@@ -211,7 +211,7 @@ distclean: realclean
 	(cd $(srcdir); $(RMF) Makefile)
 
 # Semi-automatic generation of dependencies:
-# Use gcc -MM because X11 `makedepend' doesn't work on all systems
+# Use gcc -M because X11 `makedepend' doesn't work on all systems
 # and it also includes system headers.
 # `semi'-automatic since dependencies are generated at distribution time.
 
@@ -219,7 +219,9 @@ depend:
 	@$(MV) Makefile Makefile.bak
 	@$(SED) "/^# DO NOT DELETE:/,$$ d" Makefile.bak > Makefile
 	@$(ECHO) "# DO NOT DELETE: nice dependency list follows" >> Makefile
-	@$(CXX) -S -M $(CPPFLAGS) $(XINC) $(PYTHON_INC) -I$(srcdir) -I$(basedir) $(SQL_INC) *.c >>Makefile
+	@for src in $(LIBBAC_SRCS) $(LIBBACCFG_SRCS) $(LIBBACPY_SRCS); do \
+	    $(CXX) -S -M -MT `basename $$src .c`$(DEFAULT_OBJECT_TYPE) $(CPPFLAGS) $(XINC) $(PYTHON_INC) -I$(srcdir) -I$(basedir) $(SQL_INC) $$src >> Makefile; \
+	done
 	@if test -f Makefile ; then \
 	    $(RMF) Makefile.bak; \
 	else \

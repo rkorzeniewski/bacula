@@ -26,10 +26,6 @@ dummy:
 #
 INCLUDE_FILES = bdb.h cats.h protos.h sql_cmds.h
 
-#
-SVRSRCS = cats.c sql.c
-SVROBJS = cats.o sql.o
-
 LIBSRCS = mysql.c bdb.c dbi.c \
 	  sql.c sql_cmds.c sql_create.c sql_delete.c sql_find.c \
 	  sql_get.c sql_list.c sql_update.c sqlite.c \
@@ -54,7 +50,7 @@ LIBBACSQL_LT_AGE = 0
 	$(NO_ECHO)$(LIBTOOL_COMPILE) $(CXX) $(DEFS) $(DEBUG) -c $(WCFLAGS) $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(SQL_INC) $(DINCLUDE) $(CFLAGS) $<
 #-------------------------------------------------------------------------
 all: Makefile libbacsql$(DEFAULT_ARCHIVE_TYPE)
-	@echo "==== Make of cats is good ===="
+	@echo "==== Make of sqllib is good ===="
 	@echo " "
 
 libbacsql.a: $(LIBOBJS)
@@ -66,9 +62,6 @@ libbacsql.la: Makefile $(LIBOBJS)
 	@echo "Making $@ ..."	  
 	$(LIBTOOL_LINK) $(CXX) $(DEFS) $(DEBUG) $(LDFLAGS) -o $@ $(LIBOBJS) -export-dynamic -rpath $(libdir) -version-info $(LIBBACSQL_LT_CURRENT):$(LIBBACSQL_LT_REVISION):$(LIBBACSQL_LT_AGE) $(DB_LIBS)
 
-cats:	Makefile $(SVROBJS) ../findlib/libfind$(DEFAULT_ARCHIVE_TYPE)
-	$(LIBTOOL_LINK) $(CC) $(WLDFLAGS) $(LDFLAGS) -L../findlib -L../lib -o $@ $(SVROBJS) $(LIBS) $(DB_LIBS) -lfind -lbac
-
 Makefile: $(srcdir)/Makefile.in $(topdir)/config.status
 	cd $(topdir) \
 	  && CONFIG_FILES=$(thisdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
@@ -79,7 +72,7 @@ libtool-clean:
 	$(RMF) -r .libs _libs
 
 clean: @LIBTOOL_CLEAN_TARGET@
-	$(RMF) cats core a.out *.o *.bak *~ *.intpro *.extpro 1 2 3
+	$(RMF) core a.out *.o *.bak *~ *.intpro *.extpro 1 2 3
 
 realclean: clean
 	$(RMF) tags
@@ -115,12 +108,12 @@ devclean: realclean
 
 install-includes:
 	$(MKDIR) $(DESTDIR)/$(includedir)/bacula/sql
-	for I in ${INCLUDE_FILES}; do \
+	for I in $(INCLUDE_FILES); do \
 	   $(INSTALL_DATA) $$I $(DESTDIR)$(includedir)/bacula/sql/`basename $$I`; \
 	done
 
 uninstall-includes:
-	for I in ${INCLUDE_FILES}; do \
+	for I in $(INCLUDE_FILES); do \
 	   $(RMF) $(DESTDIR)$(includedir)/bacula/sql/`basename $$I`; \
 	done
 
@@ -147,23 +140,23 @@ install: @LIBTOOL_INSTALL_TARGET@ @INCLUDE_INSTALL_TARGET@
 	$(INSTALL_SCRIPT) drop_bacula_database $(DESTDIR)$(scriptdir)/drop_bacula_database
 
 	@filename=make_catalog_backup; \
-	   if  test -f ${DESTDIR}${scriptdir}/$$filename; then \
+	   if  test -f $(DESTDIR)$(scriptdir)/$$filename; then \
 	      destname=$$filename.new; \
 	      echo "  ==> Found existing $$filename, installing new file as $$destname"; \
 	   else \
 	      destname=$$filename; \
 	   fi; \
-	   echo "${INSTALL_SCRIPT} $$filename ${DESTDIR}${scriptdir}/$$destname"; \
-	   ${INSTALL_SCRIPT} $$filename ${DESTDIR}${scriptdir}/$$destname
+	   echo "$(INSTALL_SCRIPT) $$filename $(DESTDIR)$(scriptdir)/$$destname"; \
+	   $(INSTALL_SCRIPT) $$filename $(DESTDIR)$(scriptdir)/$$destname
 	@filename=delete_catalog_backup; \
-	   if  test -f ${DESTDIR}${scriptdir}/$$filename; then \
+	   if  test -f $(DESTDIR)$(scriptdir)/$$filename; then \
 	      destname=$$filename.new; \
 	      echo "  ==> Found existing $$filename, installing new file as $$destname"; \
 	   else \
 	      destname=$$filename; \
 	   fi; \
-	   echo "${INSTALL_SCRIPT} $$filename ${DESTDIR}${scriptdir}/$$destname"; \
-	   ${INSTALL_SCRIPT} $$filename ${DESTDIR}${scriptdir}/$$destname
+	   echo "$(INSTALL_SCRIPT) $$filename $(DESTDIR)$(scriptdir)/$$destname"; \
+	   $(INSTALL_SCRIPT) $$filename $(DESTDIR)$(scriptdir)/$$destname
 
 uninstall: @LIBTOOL_UNINSTALL_TARGET@ @INCLUDE_UNINSTALL_TARGET@
 	(cd $(DESTDIR)$(scriptdir); $(RMF) create_@DB_TYPE@_database)
@@ -184,7 +177,7 @@ uninstall: @LIBTOOL_UNINSTALL_TARGET@ @INCLUDE_UNINSTALL_TARGET@
 	(cd $(DESTDIR)$(scriptdir); $(RMF) delete_catalog_backup)
 
 # Semi-automatic generation of dependencies:
-# Use gcc -MM because X11 `makedepend' doesn't work on all systems
+# Use gcc -M because X11 `makedepend' doesn't work on all systems
 # and it also includes system headers.
 # `semi'-automatic since dependencies are generated at distribution time.
 
@@ -192,7 +185,9 @@ depend:
 	@$(MV) Makefile Makefile.bak
 	@$(SED) "/^# DO NOT DELETE:/,$$ d" Makefile.bak > Makefile
 	@$(ECHO) "# DO NOT DELETE: nice dependency list follows" >> Makefile
-	@$(CXX) -S -M $(CPPFLAGS) $(XINC) -I$(srcdir) -I$(basedir) $(SQL_INC) *.c >> Makefile
+	@for src in $(LIBSRCS); do \
+	    $(CXX) -S -M -MT `basename $$src .c`$(DEFAULT_OBJECT_TYPE) $(CPPFLAGS) $(XINC) -I$(srcdir) -I$(basedir) $(SQL_INC) $$src >> Makefile; \
+	done
 	@if test -f Makefile ; then \
 	    $(RMF) Makefile.bak; \
 	else \

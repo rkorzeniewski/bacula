@@ -50,6 +50,15 @@ libtool on the configure command line with:
 
 
 General:
+23Oct08
+kes  Apply patch from Marco van Wieringen that implements the new
+     Solaris libsec interface for ACLs so that Bacula can save and
+     restore both the new ACLs and old ACLs.
+kes  Marco's patch also corrects the file dependency generation code
+     so that it works properly both with shared libraries and static
+     libraries.
+kes  Marco's patch also includes a small cleanup of the cats Makefile
+     to remove some references to non-existent files.
 22Oct08
 kes  Modify win32 Makefiles to use full paths in most cases.
      In particular add MAINDIR environment variable that points

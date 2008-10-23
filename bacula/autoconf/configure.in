@@ -2207,6 +2207,7 @@ dnl
 dnl Check for ACL libraries
 dnl
 have_acl=no
+have_extended_acl=no
 AC_CHECK_HEADER(sys/acl.h)
 AC_CHECK_FUNC(acl_get_file, [have_acl=yes],
    [
@@ -2219,6 +2220,12 @@ AC_CHECK_FUNC(acl_get_file, [have_acl=yes],
 		 [
 		     have_acl=yes;
 		     FDLIBS="-lsec $FDLIBS"
+
+		     AC_CHECK_LIB(sec, acl_totext,
+			[
+			    have_extended_acl=yes
+			]
+		     )
 		 ]
 	      )
 	  ]
@@ -2227,6 +2234,10 @@ AC_CHECK_FUNC(acl_get_file, [have_acl=yes],
 )
 if test $have_acl = yes; then
    AC_DEFINE(HAVE_ACL)
+fi
+
+if test $have_extended_acl = yes; then
+   AC_DEFINE(HAVE_EXTENDED_ACL)
 fi
 
 dnl Check for pthread libraries
