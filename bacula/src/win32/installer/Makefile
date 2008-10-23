@@ -15,13 +15,14 @@ DEFINES := \
 	-DSRC_DIR=release \
 	-DBUILD_TOOLS=MinGW \
 
-INSTALL_EXE := ../release/winbacula-$(VERSION).exe
+INSTALL_EXE := $(BUILDDIR)/release/winbacula-$(VERSION).exe
 
 BACULA_BINARIES := \
 	bacula.dll \
 	cats_mysql.dll \
 	cats_postgresql.dll \
 	cats_sqlite3.dll \
+	exchange-fd.dll \
 	bacula-dir.exe \
 	bacula-fd.exe \
 	bacula-sd.exe \
@@ -178,4 +179,4 @@ $(INSTALL_EXE): winbacula.nsi $(addprefix release/,$(BACULA_BINARIES) $(SCRIPT_F
 	NSISDIR=$(NSIS_DIR) \
 	$(NSIS_DIR)/makensis -V3 $(DEFINES) winbacula.nsi
 
-include ../Makefile.rules
+include $(BUILDDIR)/Makefile.rules

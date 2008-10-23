@@ -564,7 +564,7 @@ Section "File Service" SecFileDaemon
   SetOutPath "$INSTDIR\bin"
 
   File "${SRC_DIR}\bacula-fd.exe"
-; File "${SRC_DIR}\exchange-fd.dll"
+  File "${SRC_DIR}\exchange-fd.dll"
 
   ${If} $InstallType = ${MigrateInstall}
   ${AndIf} ${FileExists} "$OldInstallDir\bin\bacula-fd.conf"
