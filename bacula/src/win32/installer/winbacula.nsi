@@ -564,6 +564,7 @@ Section "File Service" SecFileDaemon
   SetOutPath "$INSTDIR\bin"
 
   File "${SRC_DIR}\bacula-fd.exe"
+; File "${SRC_DIR}\exchange-fd.dll"
 
   ${If} $InstallType = ${MigrateInstall}
   ${AndIf} ${FileExists} "$OldInstallDir\bin\bacula-fd.conf"
@@ -919,6 +920,7 @@ Section "Uninstall"
   ${If} $R0 = 1
     ; Remove bacula service
     nsExec::ExecToLog '"$INSTDIR\bin\bacula-fd.exe" /remove'
+    nsExec::ExecToLog '"$INSTDIR\bin\exchange-fd.dll" /remove'
   ${EndIf}
   
   ReadRegDWORD $R0 HKLM "Software\Bacula" "Service_Bacula-sd"

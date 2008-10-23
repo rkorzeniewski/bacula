@@ -3,6 +3,7 @@ c+ECHO_CMD=@
 DIRS=	dll \
 	cats \
 	filed \
+	filed/plugins \
 	dird \
 	stored \
 	console \
