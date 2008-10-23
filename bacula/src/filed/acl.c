@@ -350,6 +350,93 @@ int bacl_set(JCR *jcr, int acltype)
 #elif defined(HAVE_SUN_OS)
 #include <sys/acl.h>
 
+/*
+ * As the new libsec interface with acl_totext and acl_fromtext also handles
+ * the old format from acltotext we can use the new functions even
+ * for acls retrieved and stored in the database with older fd versions. If the
+ * new interface is not defined (Solaris 9 and older we fall back to the old code)
+ */
+#if defined(HAVE_EXTENDED_ACL)
+int bacl_get(JCR *jcr, int acltype)
+{
+   int len, flags;
+   acl_t *aclp;
+   char *acl_text;
+
+   /*
+    * Get ACL info: don't bother allocating space if there is only a trivial ACL.
+    */
+   if (acl_get(jcr->last_fname, ACL_NO_TRIVIAL, &aclp) != 0)
+      return -1;
+
+   if (aclp == NULL) {
+      /* The ACLs simply reflect the (already known) standard permissions */
+      return pm_strcpy(jcr->acl_text, "");
+   }
+
+#if defined(ACL_SID_FMT)
+   /*
+    * New format flag added in newer Solaris versions.
+    */
+   flags = ACL_APPEND_ID | ACL_COMPACT_FMT | ACL_SID_FMT;
+#else
+   flags = ACL_APPEND_ID | ACL_COMPACT_FMT;
+#endif /* ACL_SID_FMT */
+
+   if ((acl_text = acl_totext(aclp, flags)) != NULL) {
+      len = pm_strcpy(jcr->acl_text, acl_text);
+      actuallyfree(acl_text);
+
+      acl_free(aclp);
+
+      return len;
+   }
+
+   acl_free(aclp);
+
+   return -1;
+}
+
+/*
+ * As the header acl.h doesn't seem to define this one we need to.
+ */
+extern "C" {
+char *acl_strerror(int);
+}
+
+int bacl_set(JCR *jcr, int acltype)
+{
+   acl_t *aclp;
+   int error;
+
+   if ((error = acl_fromtext(jcr->acl_text, &aclp)) != 0) {
+      Jmsg2(jcr, M_ERROR, 0, _("acl_fromtext error on file \"%s\": ERR=%s\n"),
+         jcr->last_fname, acl_strerror(error));
+      Dmsg3(100, "acl_fromtext error acl=%s file=%s ERR=%s\n",  
+         jcr->acl_text, jcr->last_fname, acl_strerror(error));
+      return -1;
+   }
+
+   /*
+    * Restore the ACLs, but don't complain about links which really should
+    * not have attributes, and the file it is linked to may not yet be restored.
+    */
+   if ((error = acl_set(jcr->last_fname, aclp)) == -1 && jcr->last_type != FT_LNK) {
+      Jmsg2(jcr, M_ERROR, 0, _("acl_set error on file \"%s\": ERR=%s\n"),
+         jcr->last_fname, acl_strerror(error));
+      Dmsg3(100, "acl_set error acl=%s file=%s ERR=%s\n",  
+         jcr->acl_text, jcr->last_fname, acl_strerror(error));
+
+      acl_free(aclp);
+      return -1;
+   }
+
+   acl_free(aclp);
+   return 0;
+}
+
+#else /* HAVE_EXTENDED_ACL */
+
 int bacl_get(JCR *jcr, int acltype)
 {
    int n, len;
@@ -414,7 +501,8 @@ int bacl_set(JCR *jcr, int acltype)
    return 0;
 }
 
-#endif
+#endif /* HAVE_EXTENDED_ACL */
+#endif /* HAVE_SUN_OS */
 
 
 #ifdef TEST_PROGRAM

@@ -66,12 +66,12 @@ Makefile: $(srcdir)/Makefile.in $(topdir)/config.status
 
 install-includes:
 	$(MKDIR) $(DESTDIR)/$(includedir)/bacula/findlib
-	for I in ${INCLUDE_FILES}; do \
+	for I in $(INCLUDE_FILES); do \
 	   $(INSTALL_DATA) $$I $(DESTDIR)$(includedir)/bacula/findlib/`basename $$I`; \
 	done
 
 uninstall-includes:
-	for I in ${INCLUDE_FILES}; do \
+	for I in $(INCLUDE_FILES); do \
 	   $(RMF) $(DESTDIR)$(includedir)/bacula/findlib/`basename $$I`; \
 	done
 
@@ -114,7 +114,9 @@ depend:
 	@$(MV) Makefile Makefile.bak
 	@$(SED) "/^# DO NOT DELETE:/,$$ d" Makefile.bak > Makefile
 	@$(ECHO) "# DO NOT DELETE: nice dependency list follows" >> Makefile
-	@$(CXX) -S -M $(CPPFLAGS) $(XINC) -I$(srcdir) -I$(basedir) $(SQL_INC) *.c >> Makefile
+	@for src in $(LIBSRCS); do \
+	    $(CXX) -S -M -MT `basename $$src .c`$(DEFAULT_OBJECT_TYPE) $(CPPFLAGS) $(XINC) -I$(srcdir) -I$(basedir) $(SQL_INC) $$src >> Makefile; \
+	done
 	@if test -f Makefile ; then \
 	    $(RMF) Makefile.bak; \
 	else \
