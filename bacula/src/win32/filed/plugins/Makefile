@@ -6,7 +6,12 @@
 #     Patterned after a Makefile by Robert Nelson, June 2006
 #
 
-include ../../Makefile.inc
+#
+# Change the following depending on where this directory is located
+#  in the Bacula tree.	It should point to the src/win32 directory.
+BUILDDIR = ../..
+
+include $(BUILDDIR)/Makefile.inc
 
 INCLUDES = \
 	$(INCLUDE_PTHREADS) \
@@ -80,7 +85,7 @@ $(BINDIR)/exchange-fd.dll: $(EXCHANGE_OBJS) exchange-fd.def
 	$(call checkdir,$@)
 	$(ECHO_CMD)$(CXX) $(LDFLAGS) -mdll -mwindows -Wl,--out-implib,$(OBJDIR)/exchange-fd.a $^ $(LIBS_DLL) -o $@
 
-include ../../Makefile.rules
+include $(BUILDDIR)/Makefile.rules
 
 $(OBJDIR)/%.o: %.c
 	@echo "Compiling $<"
