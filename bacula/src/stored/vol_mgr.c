@@ -498,6 +498,10 @@ void switch_device(DCR *dcr, DEVICE *dev)
 VOLRES *find_volume(const char *VolumeName) 
 {
    VOLRES vol, *fvol;
+
+   if (vol_list->empty()) {
+      return NULL;
+   }
    /* Do not lock reservations here */
    lock_volumes();
    vol.vol_name = bstrdup(VolumeName);
@@ -508,6 +512,31 @@ VOLRES *find_volume(const char *VolumeName)
    unlock_volumes();
    return fvol;
 }
+
+/*
+ * Search for a Volume name in the read Volume list.
+ *
+ *  Returns: VOLRES entry on success
+ *           NULL if the Volume is not in the list
+ */
+static VOLRES *find_read_volume(const char *VolumeName) 
+{
+   VOLRES vol, *fvol;
+
+   if (read_vol_list->empty()) {
+      return NULL;
+   }
+   /* Do not lock reservations here */
+   lock_read_volumes();
+   vol.vol_name = bstrdup(VolumeName);
+   /* Note, we do want a simple my_compare on volume name only here */
+   fvol = (VOLRES *)read_vol_list->binary_search(&vol, my_compare);
+   free(vol.vol_name);
+   Dmsg2(dbglvl, "find_read_vol=%s found=%d\n", VolumeName, fvol!=NULL);
+   unlock_read_volumes();
+   return fvol;
+}
+
 
 /*  
  * Free a Volume from the Volume list if it is no longer used
@@ -643,6 +672,26 @@ void free_volume_lists()
    }
 }
 
+/* 
+ * Determine if caller can write on volume
+ */
+bool DCR::can_i_write_volume()
+{
+   VOLRES *vol;
+
+   lock_read_volumes();
+   vol = find_read_volume(VolumeName);
+   unlock_read_volumes();
+   if (vol) {
+      Dmsg1(100, "Found in read list; cannot write vol=%s\n", VolumeName);
+      return false;
+   }
+   return can_i_use_volume();
+}
+
+/*
+ * Determine if caller can read or write volume
+ */
 bool DCR::can_i_use_volume()
 {
    bool rtn = true;

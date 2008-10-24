@@ -538,7 +538,10 @@ public:
    void clear_reserved();
    void set_reserved();
    void unreserve_device();
+
+   /* Methods in vol_mgr.c */
    bool can_i_use_volume();
+   bool can_i_write_volume();
 
    /* Methods in mount.c */
    bool mount_next_write_volume();

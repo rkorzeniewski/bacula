@@ -195,7 +195,7 @@ int prune_stats(UAContext *ua, utime_t retention)
 
    db_lock(ua->db);
    Mmsg(query, "DELETE FROM JobHistory WHERE JobTDate < %s", 
-        edit_uint64(now - retention, ed1));
+        edit_int64(now - retention, ed1));
    db_sql_query(ua->db, query.c_str(), NULL, NULL);
    db_unlock(ua->db);
 
@@ -237,7 +237,7 @@ int prune_files(UAContext *ua, CLIENT *client)
    now = (utime_t)time(NULL);
 
    /* Select Jobs -- for counting */
-   Mmsg(query, count_select_job, edit_uint64(now - period, ed1), 
+   Mmsg(query, count_select_job, edit_int64(now - period, ed1), 
         edit_int64(cr.ClientId, ed2));
    Dmsg3(050, "select now=%u period=%u sql=%s\n", (uint32_t)now, 
                (uint32_t)period, query.c_str());
@@ -265,7 +265,7 @@ int prune_files(UAContext *ua, CLIENT *client)
    del.JobId = (JobId_t *)malloc(sizeof(JobId_t) * del.max_ids);
 
    /* Now process same set but making a delete list */
-   Mmsg(query, select_job, edit_uint64(now - period, ed1), 
+   Mmsg(query, select_job, edit_int64(now - period, ed1), 
         edit_int64(cr.ClientId, ed2));
    db_sql_query(ua->db, query.c_str(), file_delete_handler, (void *)&del);
 
@@ -355,7 +355,7 @@ int prune_jobs(UAContext *ua, CLIENT *client, int JobType)
     * Select all files that are older than the JobRetention period
     *  and stuff them into the "DeletionCandidates" table.
     */
-   edit_uint64(now - period, ed1);
+   edit_int64(now - period, ed1);
    Mmsg(query, insert_delcand, (char)JobType, ed1, 
         edit_int64(cr.ClientId, ed2));
    if (!db_sql_query(ua->db, query.c_str(), NULL, (void *)NULL)) {
@@ -483,10 +483,10 @@ int get_prune_list_for_volume(UAContext *ua, MEDIA_DBR *mr, del_ctx *del)
    edit_int64(mr->MediaId, ed1); 
    period = mr->VolRetention;
    now = (utime_t)time(NULL);
-   edit_uint64(now-period, ed2);
+   edit_int64(now-period, ed2);
    Mmsg(query, sel_JobMedia, ed1, ed2);
-   Dmsg3(250, "Now=%d period=%d now-period=%d\n", (int)now, (int)period,
-      (int)(now-period));
+   Dmsg3(250, "Now=%d period=%d now-period=%s\n", (int)now, (int)period,
+      ed2);
 
    Dmsg1(050, "Query=%s\n", query.c_str());
    if (!db_sql_query(ua->db, query.c_str(), file_delete_handler, (void *)del)) {

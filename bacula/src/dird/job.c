@@ -662,7 +662,7 @@ bool allow_duplicate_job(JCR *jcr)
          if (strcmp(job->name(), djcr->job->name()) == 0) {
             bool cancel_queued = false;
             if (job->DuplicateJobProximity > 0) {
-               time_t now = time(NULL);
+               utime_t now = (utime_t)time(NULL);
                if ((now - djcr->start_time) > job->DuplicateJobProximity) {
                   continue;               /* not really a duplicate */
                }
