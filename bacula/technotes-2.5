@@ -11,45 +11,20 @@ dbi database driver
 --with-db-port
 enhancement to wait command: wait mount  ...
 parse config
-
 dbport in dbcheck
 dbdriver
 filepattern (restore with regex in bsr)
 libtool
-
 remove reader/writer in FOPTS????
 
-==================   Warning !!!!!! ==========================
-This BETA release of Bacula 2.5.x development code uses libtool
-to generate the Bacula libraries as shared objects rather than
-being directly linked in as in prior versions.  This means that
-the Bacula shared objects, must either be in a shared object 
-directory known to the loader or they must be in the directory
-that may be specified on the ./configure line using the
---libdir option as:
-
-  ./configure --libdir=/full-path/dir
-
-the default /usr/lib. If --libdir is specified, there should be
-no need to modify your loader configuration provided that
-the shared objects are installed in that directory (Bacula
-does this with the make install command). The shared objects 
-that Bacula references are:
-
-libbaccfg.so
-libbacfind.so
-libbacpy.so
-libbac.so
-
-If you have problems with libtool or you wish to use the old 
-way of building static libraries, you can do so by disabling 
-libtool on the configure command line with:
-
-  ./configure --disable-libtool
-==============================================================
-
-
 General:
+24Oct08
+kes  Fix editing of retention time difference to use 64 bit
+     int instead of 64 bit unsigned. This should permit very
+     long retention periods.
+kes  Implement code to prohibit a write job from appending to  a 
+     Volume that will be used for a read operation.  This is
+     new code and could possibly cause some conflicts.
 23Oct08
 kes  Integrate James Harper's Exchange Win32 plugin patch.
 kes  Apply patch from Marco van Wieringen that implements the new

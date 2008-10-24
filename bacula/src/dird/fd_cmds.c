@@ -164,7 +164,7 @@ void get_level_since_time(JCR *jcr, char *since, int since_len)
    bool have_full;
    bool do_full = false;
    bool do_diff = false;
-   time_t now;
+   utime_t now;
    utime_t last_full_time;
    utime_t last_diff_time;
 
@@ -189,7 +189,7 @@ void get_level_since_time(JCR *jcr, char *since, int since_len)
    case L_INCREMENTAL:
       POOLMEM *stime = get_pool_memory(PM_MESSAGE);
       /* Look up start time of last Full job */
-      now = time(NULL);
+      now = (utime_t)time(NULL);
       jcr->jr.JobId = 0;     /* flag to return since time */
       have_full = db_find_job_start_time(jcr, jcr->db, &jcr->jr, &jcr->stime);
       /* If there was a successful job, make sure it is recent enough */
