@@ -53,9 +53,11 @@ quit
 END_OF_DATA
 
 run_bacula
-export dstat=0
-export rstat=0
-export bstat=0
+
+dstat=0
+rstat=0
+bstat=0
+
 check_for_zombie_jobs storage=File
 stop_bacula
 
