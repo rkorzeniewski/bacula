@@ -14,8 +14,8 @@ scripts/cleanup
 scripts/copy-migration-confs
 scripts/prepare-disk-changer
 echo "${cwd}/build" >${cwd}/tmp/file-list
-sed -i 's/migrate/copy/g' ${cwd}/bin/bacula-dir.conf
-sed -i 's/Migrate/Copy/g' ${cwd}/bin/bacula-dir.conf
+sed 's/migrate/copy/g' ${cwd}/bin/bacula-dir.conf > ${cwd}/tmp/1
+sed 's/Migrate/Copy/g' ${cwd}/tmp/1 > ${cwd}/bin/bacula-dir.conf
 
 
 change_jobname NightlySave $JobName
