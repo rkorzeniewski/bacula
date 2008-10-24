@@ -32,12 +32,73 @@
 #ifndef _EXCHANGE_FD_H
 #define _EXCHANGE_FD_H
 
+#if defined(HAVE_WIN32)
+#if defined(HAVE_MINGW)
+#include "mingwconfig.h"
+#else
+#include "winconfig.h"
+#endif
+#else
+#include "config.h"
+#endif
+#define __CONFIG_H
+
+#if defined(BUILDING_DLL)
+#  define DLL_IMP_EXP   _declspec(dllexport)
+#elif defined(USING_DLL)
+#  define DLL_IMP_EXP   _declspec(dllimport)
+#else
+#  define DLL_IMP_EXP
+#endif
+
+enum {
+   /* Keep M_ABORT=1 for dlist.h */
+   M_ABORT = 1,                       /* MUST abort immediately */
+   M_DEBUG,                           /* debug message */
+   M_FATAL,                           /* Fatal error, stopping job */
+   M_ERROR,                           /* Error, but recoverable */
+   M_WARNING,                         /* Warning message */
+   M_INFO,                            /* Informational message */
+   M_SAVED,                           /* Info on saved file */
+   M_NOTSAVED,                        /* Info on notsaved file */
+   M_SKIPPED,                         /* File skipped during backup by option setting */
+   M_MOUNT,                           /* Mount requests */
+   M_ERROR_TERM,                      /* Error termination request (no dump) */
+   M_TERM,                            /* Terminating daemon normally */
+   M_RESTORED,                        /* ls -l of restored files */
+   M_SECURITY,                        /* security violation */
+   M_ALERT,                           /* tape alert messages */
+   M_VOLMGMT                          /* Volume management messages */
+};
+
+
+
+#define _REENTRANT    1
+#define _THREAD_SAFE  1
+#define _POSIX_PTHREAD_SEMANTICS 1
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include "bacula.h"
+#include <sys/types.h>
+#ifdef HAVE_SYS_BITYPES_H
+#include <sys/bitypes.h>
+#endif
+
+//#include "bacula.h"
+#include <windows.h>
+#include "win32/compat/compat.h"
+#include "bc_types.h"
 #include "fd_plugins.h"
 #include "api.h"
+
+#if defined(HAVE_WIN32)
+#include "win32/winapi.h"
+#include "winhost.h"
+#else
+#include "host.h"
+#endif
+
 
 #define EXCHANGE_PLUGIN_VERSION 1
 
