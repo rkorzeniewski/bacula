@@ -64,19 +64,19 @@ stop_bacula
 
 COUNT=`grep FOUND ${cwd}/tmp/log1.out | wc -l`
 if [ $COUNT -ne 1 ]; then
-    print_debug "Bad count in jobstat table"
+    print_debug "Bad count in JobHistory table"
     bstat=1
 fi
 
 COUNT=`grep FOUND ${cwd}/tmp/log2.out | wc -l`
 if [ $COUNT -ne 3 ]; then
-    print_debug "Bad count in jobstat table"
+    print_debug "Bad count in JobHistory table"
     bstat=2
 fi
 
 COUNT=`grep FOUND ${cwd}/tmp/log3.out | wc -l`
 if [ $COUNT -ne 1 ]; then
-    print_debug "Bad count in jobstat table"
+    print_debug "Bad count in JobHistory table"
     bstat=3
 fi
 
