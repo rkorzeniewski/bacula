@@ -50,7 +50,6 @@ list volumes
 END_OF_DATA
 
 run_bacula
-stop_bacula
 
 cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @$out ${cwd}/tmp/log7.out
@@ -74,7 +73,7 @@ messages
 quit
 END_OF_DATA
 
-run_bacula
+run_bconsole
 check_for_zombie_jobs storage=LTO1 $clientname
 check_for_zombie_jobs storage=LTO3 $clientname
 check_for_zombie_jobs storage=LTO1-ANSI_6 $clientname
