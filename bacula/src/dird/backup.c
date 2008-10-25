@@ -444,6 +444,7 @@ void backup_cleanup(JCR *jcr, int TermCode)
 
    if (jcr->get_JobLevel() == L_VIRTUAL_FULL) {
       vbackup_cleanup(jcr, TermCode);
+      return;
    }
 
    Dmsg2(100, "Enter backup_cleanup %d %c\n", TermCode, TermCode);
