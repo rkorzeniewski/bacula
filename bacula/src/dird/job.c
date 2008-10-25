@@ -284,68 +284,63 @@ static void *job_thread(void *arg)
    /* Run any script BeforeJob on dird */
    run_scripts(jcr, jcr->job->RunScripts, "BeforeJob");
 
-   if (job_canceled(jcr)) {
-      update_job_end(jcr, jcr->JobStatus);
+   /*
+    * We re-update the job start record so that the start
+    *  time is set after the run before job.  This avoids
+    *  that any files created by the run before job will
+    *  be saved twice.  They will be backed up in the current
+    *  job, but not in the next one unless they are changed.
+    *  Without this, they will be backed up in this job and
+    *  in the next job run because in that case, their date
+    *   is after the start of this run.
+    */
+   jcr->start_time = time(NULL);
+   jcr->jr.StartTime = jcr->start_time;
+   if (!db_update_job_start_record(jcr, jcr->db, &jcr->jr)) {
+      Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db));
+   }
+   generate_job_event(jcr, "JobRun");
 
-   } else {
-      /*
-       * We re-update the job start record so that the start
-       *  time is set after the run before job.  This avoids
-       *  that any files created by the run before job will
-       *  be saved twice.  They will be backed up in the current
-       *  job, but not in the next one unless they are changed.
-       *  Without this, they will be backed up in this job and
-       *  in the next job run because in that case, their date
-       *   is after the start of this run.
-       */
-      jcr->start_time = time(NULL);
-      jcr->jr.StartTime = jcr->start_time;
-      if (!db_update_job_start_record(jcr, jcr->db, &jcr->jr)) {
-         Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db));
+   switch (jcr->get_JobType()) {
+   case JT_BACKUP:
+      if (!job_canceled(jcr) && do_backup(jcr)) {
+         do_autoprune(jcr);
+      } else {
+         backup_cleanup(jcr, JS_ErrorTerminated);
       }
-      generate_job_event(jcr, "JobRun");
-
-      switch (jcr->get_JobType()) {
-      case JT_BACKUP:
-         if (do_backup(jcr)) {
-            do_autoprune(jcr);
-         } else {
-            backup_cleanup(jcr, JS_ErrorTerminated);
-         }
-         break;
-      case JT_VERIFY:
-         if (do_verify(jcr)) {
-            do_autoprune(jcr);
-         } else {
-            verify_cleanup(jcr, JS_ErrorTerminated);
-         }
-         break;
-      case JT_RESTORE:
-         if (do_restore(jcr)) {
-            do_autoprune(jcr);
-         } else {
-            restore_cleanup(jcr, JS_ErrorTerminated);
-         }
-         break;
-      case JT_ADMIN:
-         if (do_admin(jcr)) {
-            do_autoprune(jcr);
-         } else {
-            admin_cleanup(jcr, JS_ErrorTerminated);
-         }
-         break;
-      case JT_COPY:
-      case JT_MIGRATE:
-         if (do_migration(jcr)) {
-            do_autoprune(jcr);
-         } else {
-            migration_cleanup(jcr, JS_ErrorTerminated);
-         }
-         break;
-      default:
-         Pmsg1(0, _("Unimplemented job type: %d\n"), jcr->get_JobType());
-         break;
+      break;
+   case JT_VERIFY:
+      if (!job_canceled(jcr) && do_verify(jcr)) {
+         do_autoprune(jcr);
+      } else {
+         verify_cleanup(jcr, JS_ErrorTerminated);
       }
+      break;
+   case JT_RESTORE:
+      if (!job_canceled(jcr) && do_restore(jcr)) {
+         do_autoprune(jcr);
+      } else {
+         restore_cleanup(jcr, JS_ErrorTerminated);
+      }
+      break;
+   case JT_ADMIN:
+      if (!job_canceled(jcr) && do_admin(jcr)) {
+         do_autoprune(jcr);
+      } else {
+         admin_cleanup(jcr, JS_ErrorTerminated);
+      }
+      break;
+   case JT_COPY:
+   case JT_MIGRATE:
+      if (!job_canceled(jcr) && do_migration(jcr)) {
+         do_autoprune(jcr);
+      } else {
+         migration_cleanup(jcr, JS_ErrorTerminated);
+      }
+      break;
+   default:
+      Pmsg1(0, _("Unimplemented job type: %d\n"), jcr->get_JobType());
+      break;
    }
 
    run_scripts(jcr, jcr->job->RunScripts, "AfterJob");
