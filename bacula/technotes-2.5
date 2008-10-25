@@ -19,6 +19,9 @@ remove reader/writer in FOPTS????
 
 General:
 25Oct08
+kes  Remove jobq.c constraint that read and write SD must be
+     different. This may lead to more deadlocks in the SD,
+     but they should be resolved there.
 kes  Ensure that job report is always printed even if job is failed
      in the director.
 kes  Don't print job report twice for failed VBackup jobs.
