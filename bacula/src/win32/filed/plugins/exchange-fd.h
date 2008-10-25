@@ -32,6 +32,16 @@
 #ifndef _EXCHANGE_FD_H
 #define _EXCHANGE_FD_H
 
+#define BUILD_PLUGIN
+
+#if defined(BUILDING_DLL)
+#  define DLL_IMP_EXP   __declspec(dllexport)
+#elif defined(USING_DLL)
+#  define DLL_IMP_EXP   __declspec(dllimport)
+#else
+#  define DLL_IMP_EXP
+#endif
+
 #if defined(HAVE_WIN32)
 #if defined(HAVE_MINGW)
 #include "mingwconfig.h"
@@ -42,14 +52,6 @@
 #include "config.h"
 #endif
 #define __CONFIG_H
-
-#if defined(BUILDING_DLL)
-#  define DLL_IMP_EXP   _declspec(dllexport)
-#elif defined(USING_DLL)
-#  define DLL_IMP_EXP   _declspec(dllimport)
-#else
-#  define DLL_IMP_EXP
-#endif
 
 enum {
    /* Keep M_ABORT=1 for dlist.h */
@@ -71,11 +73,15 @@ enum {
    M_VOLMGMT                          /* Volume management messages */
 };
 
+#define FT_REG        3
+#define FT_DIREND     5
 
 
 #define _REENTRANT    1
 #define _THREAD_SAFE  1
 #define _POSIX_PTHREAD_SEMANTICS 1
+
+#include <stdint.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -89,6 +95,11 @@ enum {
 #include <windows.h>
 #include "win32/compat/compat.h"
 #include "bc_types.h"
+
+typedef int64_t   boffset_t;
+//#define bstrdup(str) strcpy((char *)bmalloc(strlen((str))+1),(str))
+#define bstrdup(str) strdup(str)
+
 #include "fd_plugins.h"
 #include "api.h"
 
@@ -101,8 +112,6 @@ enum {
 
 
 #define EXCHANGE_PLUGIN_VERSION 1
-
-#define DLLEXPORT __declspec(dllexport)
 
 #define JOB_TYPE_BACKUP 1
 #define JOB_TYPE_RESTORE 2

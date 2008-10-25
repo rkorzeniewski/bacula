@@ -117,7 +117,7 @@ splitString(char *string, char split, int maxParts, int *count)
   return RetVal;
 }
 
-bRC DLLEXPORT
+bRC DLL_IMP_EXP
 loadPlugin(bInfo *lbinfo, bFuncs *lbfuncs, pInfo **pinfo, pFuncs **pfuncs)
 {
         bRC retval;
@@ -134,14 +134,14 @@ loadPlugin(bInfo *lbinfo, bFuncs *lbfuncs, pInfo **pinfo, pFuncs **pfuncs)
         return retval;
 }
 
-bRC DLLEXPORT
+bRC DLL_IMP_EXP
 unloadPlugin()
 {
         return bRC_OK;
 }
 
 }
-
+/*
 void *
 b_malloc(const char *file, int lone, size_t size)
 {
@@ -153,6 +153,7 @@ sm_malloc(const char *file, int lone, size_t size)
 {
         return NULL;
 }
+*/
 
 static bRC newPlugin(bpContext *ctx)
 {
