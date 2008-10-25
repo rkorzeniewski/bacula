@@ -100,10 +100,33 @@ run_bconsole
 check_for_zombie_jobs storage=LTO1 $clientname
 check_for_zombie_jobs storage=LTO3 $clientname
 check_for_zombie_jobs storage=LTO1-ANSI_6 $clientname
+
+# test update slots
+# remove volume vol20 from autochanger
+grep -v vol20 ${cwd}/working/ach/barcodes > ${cwd}/tmp/1
+cp ${cwd}/tmp/1 ${cwd}/working/ach/barcodes
+
+cat <<END_OF_DATA >${cwd}/tmp/bconcmds
+@$out ${cwd}/tmp/log3.out
+list volume=vol20
+update slots slots=5-40 storage=LTO1 drive=3
+list volume=vol20
+END_OF_DATA
+
+run_bconsole
+
 stop_bacula
 
 check_two_logs
 check_restore_diff
+
+# get InChanger flag
+RES=`awk -F'|' '/vol20.+Append/ { print $11 }' ${cwd}/tmp/log3.out`
+set $RES
+if [ $1 -eq $2 ]; then
+    echo "Error in update slots"
+    bstat=1
+fi
 
 grep LTO1_5 tmp/log1.out > /dev/null
 if test $? = 0; then
