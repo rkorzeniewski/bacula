@@ -527,7 +527,7 @@ static void list_scheduled_jobs(UAContext *ua)
    i = find_arg_with_value(ua, NT_("days"));
    if (i >= 0) {
      days = atoi(ua->argv[i]);
-     if ((days < 0) || (days > 500) && !ua->api) {
+     if (((days < 0) || (days > 500)) && !ua->api) {
        ua->send_msg(_("Ignoring invalid value for days. Max is 500.\n"));
        days = 1;
      }
