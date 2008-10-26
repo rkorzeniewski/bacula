@@ -14,8 +14,8 @@ scripts/cleanup
 scripts/copy-migration-confs
 scripts/prepare-disk-changer
 echo "${cwd}/build" >${cwd}/tmp/file-list
-sed -i 's/migrate/copy/g' ${cwd}/bin/bacula-dir.conf
-sed -i 's/Migrate/Copy/g' ${cwd}/bin/bacula-dir.conf
+sed 's/migrate/copy/g' ${cwd}/bin/bacula-dir.conf > ${cwd}/tmp/1
+sed 's/Migrate/Copy/g' ${cwd}/tmp/1 > ${cwd}/bin/bacula-dir.conf
 
 change_jobname NightlySave $JobName
 start_test
@@ -77,14 +77,16 @@ run_bacula
 check_for_zombie_jobs storage=File
 stop_bacula
 
-print_debug "We must find 3 copy jobs into the log"
-for i in 0 1 2; do
+for i in 1 2 3; do
     get_mig_info $i ${cwd}/tmp/log1.out
-    set $RET >/dev/null
 
-    if [ -n "$1" -a "$1" != 1 ]; then
+    if [ "$i" -eq 1 -a -n "$RET" ]; then
         bstat=2
         print_debug "The first job should not been copied"
+
+    elif [ "$i" -ne 1 -a -z "$RET" ]; then
+        bstat=2
+        print_debug "Other job should have been copied"
     fi
 done
 
