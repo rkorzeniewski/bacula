@@ -39,7 +39,9 @@
  *                                                                          *
  ****************************************************************************/
 
+#ifndef BUILD_PLUGIN
 extern DLL_IMP_EXP alist *plugin_list;
+#endif
 
 /* Universal return codes from all plugin functions */
 typedef enum {
