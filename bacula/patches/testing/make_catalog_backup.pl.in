@@ -41,6 +41,8 @@ use strict;
 
 =cut
 
+$ENV{PATH}="@SQL_BINDIR@:$ENV{PATH}";
+
 my $cat = shift or die "Usage: $0 catalogname";
 my $dir_conf='@sbindir@/dbcheck -B -c @sysconfdir@/bacula-dir.conf';
 my $wd = "@working_dir@";
