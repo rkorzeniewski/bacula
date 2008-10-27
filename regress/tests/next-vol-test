@@ -127,17 +127,17 @@ run_bconsole
 
 awk '/Must choose/ { print $4 } '    tmp/log2.out > tmp/normal
 awk '/Volume name.+:/ { print $3 } ' tmp/log2.out > tmp/real
-if test "$debug" -eq 1; then
+if [ "$debug" -eq 1 ]; then
    diff -ur tmp/normal tmp/real
 else
    diff tmp/normal tmp/real > /dev/null
 fi
-export dstat=$?
+
+dstat=$?
 
 # try to break the old code 
 # in this situation, we have 1 available volume (vol50) and bacula will try to use
 # vol47, vol48 and vol49 and will stop without using vol50.
-
 
 cat <<EOF > ${cwd}/tmp/bconcmds
 @$out ${cwd}/tmp/log1.out
@@ -155,15 +155,14 @@ messages
 quit
 EOF
 
-#run_bconsole
-
-check_for_zombie_jobs storage=LTO3
-stop_bacula
-
+run_bconsole
 grep "Invalid slot=0 defined in catalog for Volume" tmp/log1.out > /dev/null
 if [ $? -ne 0 ]; then
    bstat=$?
 fi
+
+check_for_zombie_jobs storage=LTO3
+stop_bacula
 
 check_two_logs
 
