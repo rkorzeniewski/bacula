@@ -187,7 +187,7 @@ bool do_migration_init(JCR *jcr)
 
    jcr->spool_data = job->spool_data;     /* turn on spooling if requested in job */ 
 
-   /* Create a migation jcr */
+   /* Create a migration jcr */
    mig_jcr = jcr->mig_jcr = new_jcr(sizeof(JCR), dird_free_jcr);
    memcpy(&mig_jcr->previous_jr, &jcr->previous_jr, sizeof(mig_jcr->previous_jr));
 
