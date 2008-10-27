@@ -204,13 +204,6 @@ bool prune_volumes(JCR *jcr, bool InChanger, MEDIA_DBR *mr)
             memcpy(mr, &lmr, sizeof(lmr));
             break;                        /* got a volume */
          }
-         /*
-          * We purged something but did not get a volume in the current pool.
-          *  It must be a scratch volume, so try to get it.
-          */
-         if (ok && get_scratch_volume(jcr, InChanger, mr)) {
-            break;                       /* got a volume */
-         }
          ok = false;                     /* clear OK, in case we fall out */
       } else {
          Dmsg2(050, "Nothing pruned MediaId=%d Volume=%s\n", (int)lmr.MediaId, lmr.VolumeName);
