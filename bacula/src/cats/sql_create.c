@@ -457,13 +457,12 @@ db_create_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
               "WHERE MediaId=%d", dt, mr->MediaId);
          stat = UPDATE_DB(jcr, mdb, mdb->cmd);
       }
+      /*
+       * Make sure that if InChanger is non-zero any other identical slot
+       *   has InChanger zero.
+       */
+      db_make_inchanger_unique(jcr, mdb, mr);
    }
-
-   /*
-    * Make sure that if InChanger is non-zero any other identical slot
-    *   has InChanger zero.
-    */
-   db_make_inchanger_unique(jcr, mdb, mr);
 
    db_unlock(mdb);
    return stat;
