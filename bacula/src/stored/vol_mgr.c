@@ -158,9 +158,9 @@ void add_read_volume(JCR *jcr, const char *VolumeName)
    vol = (VOLRES *)read_vol_list->binary_insert(nvol, read_compare);
    if (vol != nvol) {
       free_vol_item(nvol);
-      Dmsg2(1, "read_vol=%s JobId=%d already in list.\n", VolumeName, jcr->JobId);
+      Dmsg2(dbglvl, "read_vol=%s JobId=%d already in list.\n", VolumeName, jcr->JobId);
    } else {
-      Dmsg2(1, "add read_vol=%s JobId=%d\n", VolumeName, jcr->JobId);
+      Dmsg2(dbglvl, "add read_vol=%s JobId=%d\n", VolumeName, jcr->JobId);
    }
    unlock_read_volumes();
 }
@@ -176,7 +176,9 @@ void remove_read_volume(JCR *jcr, const char *VolumeName)
    vol.set_jobid(jcr->JobId);
    fvol = (VOLRES *)read_vol_list->binary_search(&vol, read_compare);
    free(vol.vol_name);
-   Dmsg3(1, "remove_read_vol=%s JobId=%d found=%d\n", VolumeName, jcr->JobId, fvol!=NULL);
+   if (fvol) {
+      Dmsg3(dbglvl, "remove_read_vol=%s JobId=%d found=%d\n", VolumeName, jcr->JobId, fvol!=NULL);
+   }
    debug_list_volumes("remove_read_volume");
    if (fvol) {
       read_vol_list->remove(fvol);

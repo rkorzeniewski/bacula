@@ -714,10 +714,38 @@ JCR *get_jcr_by_full_name(char *Job)
    return jcr;
 }
 
+/* 
+ * Priority runs from 0 (lowest) to 10 (highest)
+ */
+static int get_status_priority(int JobStatus)
+{
+   int priority = 0;
+   switch (JobStatus) {
+   case JS_ErrorTerminated:
+   case JS_FatalError:
+      priority = 10;
+      break;
+   case JS_Canceled:
+      priority = 9;
+      break;
+   case JS_Error:
+      priority = 8;
+      break;
+   case JS_Differences:
+      priority = 7;
+      break;
+   }
+   return priority;
+}
+
 void set_jcr_job_status(JCR *jcr, int JobStatus)
 {
     bool set_waittime = false;
     int oldJobStatus = jcr->JobStatus;
+    int priority, old_priority;
+
+    priority = get_status_priority(JobStatus);
+    old_priority = get_status_priority(oldJobStatus);
 
     Dmsg2(800, "set_jcr_job_status(%s, %c)\n", jcr->Job, JobStatus);
     /* if wait state is new, we keep current time for watchdog MaxWaitTime */
@@ -742,26 +770,15 @@ void set_jcr_job_status(JCR *jcr, int JobStatus)
     */
    Dmsg3(300, "jid=%u OnEntry JobStatus=%c set=%c\n", (uint32_t)jcr->JobId,
          jcr->JobStatus, JobStatus);
-   switch (jcr->JobStatus) {
-   case JS_ErrorTerminated:
-   case JS_FatalError:
-   case JS_Canceled:
-      break;
-   case JS_Error:
-   case JS_Differences:
-      switch (JobStatus) {
-      case JS_ErrorTerminated:
-      case JS_FatalError:
-      case JS_Canceled:
-         /* Override more minor status */
-         jcr->JobStatus = JobStatus;
-         break;
-      default:
-         break;
-      }
+   if (priority >= old_priority) {
+      jcr->JobStatus = JobStatus;     /* replace with new priority */
+   }
    /*
-    * For a set of Wait situation, keep old time.
+    * If we were previously waiting and are not any more
+    *   we want to update the wait_time variable, which is
+    *   the start of waiting.
     */
+   switch (oldJobStatus) {
    case JS_WaitFD:
    case JS_WaitSD:
    case JS_WaitMedia:
@@ -773,9 +790,7 @@ void set_jcr_job_status(JCR *jcr, int JobStatus)
    case JS_WaitPriority:
        set_waittime = false;    /* keep old time */
    default:
-      jcr->JobStatus = JobStatus;
       if (set_waittime) {
-         /* set it before JobStatus */
          Dmsg0(800, "Setting wait_time\n");
          jcr->wait_time = time(NULL);
       }

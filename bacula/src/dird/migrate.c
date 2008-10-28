@@ -406,14 +406,7 @@ bool do_migration(JCR *jcr)
    }
 
    migration_cleanup(jcr, jcr->JobStatus);
-   if (jcr->get_JobType() == JT_MIGRATE && mig_jcr) {
-      char jobid[50];
-      UAContext *ua = new_ua_context(jcr);
-      edit_uint64(jcr->previous_jr.JobId, jobid);
-      /* Purge all old file records, but leave Job record */
-      purge_files_from_jobs(ua, jobid);
-      free_ua_context(ua);
-   }
+
    return true;
 }
 
@@ -1137,11 +1130,26 @@ void migration_cleanup(JCR *jcr, int TermCode)
          edit_uint64(mig_jcr->jr.JobId, ec2));
       db_sql_query(mig_jcr->db, query.c_str(), NULL, NULL);
 
-      /* Now mark the previous job as migrated if it terminated normally */
+      /*
+       * If we terminated a migration normally:
+       *   - mark the previous job as migrated
+       *   - move any Log records to the new JobId
+       *   - Purge the File records from the previous job
+       */
       if (jcr->get_JobType() == JT_MIGRATE && jcr->JobStatus == JS_Terminated) {
+         char old_jobid[50], new_jobid[50];
          Mmsg(query, "UPDATE Job SET Type='%c' WHERE JobId=%s",
-              (char)JT_MIGRATED_JOB, edit_uint64(jcr->previous_jr.JobId, ec1));
+              (char)JT_MIGRATED_JOB, edit_uint64(jcr->previous_jr.JobId, new_jobid));
          db_sql_query(mig_jcr->db, query.c_str(), NULL, NULL);
+         UAContext *ua = new_ua_context(jcr);
+         /* Move JobLog to new JobId */
+         Mmsg(query, "UPDATE Log SET JobId=%s WHERE JobId=%s",
+           new_jobid,
+           edit_uint64(jcr->previous_jr.JobId, old_jobid));
+         db_sql_query(mig_jcr->db, query.c_str(), NULL, NULL);
+         /* Purge all old file records, but leave Job record */
+         purge_files_from_jobs(ua, old_jobid);
+         free_ua_context(ua);
       } 
 
       if (!db_get_job_record(jcr, jcr->db, &jcr->jr)) {
