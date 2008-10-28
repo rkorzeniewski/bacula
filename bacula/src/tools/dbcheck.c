@@ -1343,7 +1343,7 @@ static bool check_idx(const char *col_name)
    int found = false;
 
    memset(&idx_list, 0, sizeof(idx_list));
-   connst char *query = "SHOW INDEX FROM File";
+   const char *query = "SHOW INDEX FROM File";
    if (!db_sql_query(db, query, check_idx_handler, (void *)col_name)) {
       printf("%s\n", db_strerror(db));
    }
