@@ -60,6 +60,7 @@ messages
 @# now do a restore
 @#
 @$out ${cwd}/tmp/log2.out  
+setdebug level=10 storage=File
 restore fileset=FS_TESTJOB where=${cwd}/tmp/bacula-restores select all done
 yes
 wait
@@ -190,6 +191,7 @@ messages
 @# now do a restore
 @#
 @$out ${cwd}/tmp/log2.out  
+setdebug level=10 storage=File
 restore fileset=FS_TESTJOB where=${cwd}/tmp/bacula-restores select all done
 yes
 wait
@@ -222,6 +224,7 @@ messages
 @# now do a restore
 @#
 @$out ${cwd}/tmp/log2.out  
+setdebug level=10 storage=File
 restore fileset=FS_TESTJOB where=${cwd}/tmp/bacula-restores select all done
 yes
 wait
@@ -289,6 +292,7 @@ messages
 @# now do a restore
 @#
 @$out ${cwd}/tmp/log2.out  
+setdebug level=10 storage=File
 restore fileset=FS_TESTJOB where=${cwd}/tmp/bacula-restores select all done
 yes
 wait
@@ -321,6 +325,7 @@ messages
 @# now do a restore
 @#
 @$out ${cwd}/tmp/log2.out  
+setdebug level=10 storage=File
 restore fileset=FS_TESTJOB_ADVANCE where=${cwd}/tmp/bacula-restores select all done
 yes
 wait
@@ -353,6 +358,7 @@ messages
 @# now do a restore
 @#
 @$out ${cwd}/tmp/log2.out  
+setdebug level=10 storage=File
 restore fileset=FS_TESTJOB_ADVANCE where=${cwd}/tmp/bacula-restores select all done
 yes
 wait
