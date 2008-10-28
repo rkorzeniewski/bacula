@@ -188,7 +188,8 @@ Job {
 FileSet {
   Name = "Full Set"
   Include {  
-     Options { signature=MD5; sparse=yes }
+     Options { signature=MD5; sparse=yes;
+       verify=pins5 }
      File =  <@tmpdir@/file-list
   }
 }

@@ -150,9 +150,11 @@ messages
 @# now do a restore
 @#
 @$out ${cwd}/tmp/log2.out
+setdebug level=10 storage=File
 restore where=${cwd}/tmp/bacula-restores storage=File file=<${cwd}/tmp/restore-list
 yes
 wait
+status storage=File
 messages
 @output
 quit

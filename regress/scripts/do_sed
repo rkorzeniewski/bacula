@@ -63,7 +63,6 @@ sed -f ${out} ${cwd}/scripts/bconsole-2d.conf.in >${cwd}/scripts/bconsole-2d.con
 sed -f ${out} ${cwd}/scripts/regress-config.in >${cwd}/scripts/regress-config
 chmod 755 ${cwd}/scripts/regress-config
 
-scripts/config_dart
 
 # These files have no fancy sed stuff, so we just copy them over
 cp scripts/win32-bacula-sd-tape.conf.in scripts/win32-bacula-sd-tape.conf
@@ -78,6 +77,7 @@ sed "s%^MTX.*$%MTX=${AUTOCHANGER_PATH}%g" ${cwd}/tmp/bac$$ >${cwd}/bin/mtx-chang
 chmod 755 ${cwd}/bin/mtx-changer ${cwd}/scripts/prepare-fake-autochanger
 
 scripts/set_tape_options
+scripts/config_dart
 
 rm -f ${out}
 rm -f ${cwd}/tmp/bac$$
