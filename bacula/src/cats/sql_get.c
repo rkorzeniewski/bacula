@@ -97,6 +97,18 @@ int db_get_file_attributes_record(JCR *jcr, B_DB *mdb, char *fname, JOB_DBR *jr,
  *  Note in this routine, we do not use Jmsg because it may be
  *    called to get attributes of a non-existent file, which is
  *    "normal" if a new file is found during Verify.
+ *
+ *  The following is a bit of a kludge: because we always backup a 
+ *    directory entry, we can end up with two copies of the directory 
+ *    in the backup. One is when we encounter the directory and find 
+ *    we cannot recurse into it, and the other is when we find an 
+ *    explicit mention of the directory. This can also happen if the 
+ *    use includes the directory twice.  In this case, Verify 
+ *    VolumeToCatalog fails because we have two copies in the catalog, 
+ *    and only the first one is marked (twice).  So, when calling from Verify, 
+ *    jr is not NULL and we know jr->FileIndex is the fileindex
+ *    of the version of the directory/file we actually want and do
+ *    a more explicit SQL search.
  */
 static
 int db_get_file_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr, FILE_DBR *fdbr)
@@ -115,6 +127,15 @@ int db_get_file_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr, FILE_DBR *fdbr)
       edit_int64(fdbr->FilenameId, ed2), 
       edit_int64(jr->ClientId,ed3));
 
+   } else if (jr != NULL) {
+      /* Called from Verify so jr->FileIndex is valid */
+      Mmsg(mdb->cmd,
+"SELECT FileId, LStat, MD5 FROM File WHERE File.JobId=%s AND File.PathId=%s AND "
+"File.FilenameId=%s AND FileIndex=%u", 
+      edit_int64(fdbr->JobId, ed1), 
+      edit_int64(fdbr->PathId, ed2), 
+      edit_int64(fdbr->FilenameId,ed3),
+      jr->FileIndex);
    } else {
       Mmsg(mdb->cmd,
 "SELECT FileId, LStat, MD5 FROM File WHERE File.JobId=%s AND File.PathId=%s AND "
@@ -123,7 +144,7 @@ int db_get_file_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr, FILE_DBR *fdbr)
       edit_int64(fdbr->PathId, ed2), 
       edit_int64(fdbr->FilenameId,ed3));
    }
-   Dmsg3(050, "Get_file_record JobId=%u FilenameId=%u PathId=%u\n",
+   Dmsg3(450, "Get_file_record JobId=%u FilenameId=%u PathId=%u\n",
       fdbr->JobId, fdbr->FilenameId, fdbr->PathId);
 
    Dmsg1(100, "Query=%s\n", mdb->cmd);
@@ -134,6 +155,7 @@ int db_get_file_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr, FILE_DBR *fdbr)
       if (mdb->num_rows > 1) {
          Mmsg1(mdb->errmsg, _("get_file_record want 1 got rows=%d\n"),
             mdb->num_rows);
+         Dmsg1(000, "=== Problem!  %s", mdb->errmsg);
       }
       if (mdb->num_rows >= 1) {
          if ((row = sql_fetch_row(mdb)) == NULL) {

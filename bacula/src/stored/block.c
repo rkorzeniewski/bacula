@@ -422,7 +422,7 @@ bool write_block_to_dev(DCR *dcr)
    if (dev->at_weot()) {
       Dmsg0(100, "return write_block_to_dev with ST_WEOT\n");
       dev->dev_errno = ENOSPC;
-      Jmsg(jcr, M_FATAL, 0,  _("Cannot write block. Device at EOM.\n"));
+      Jmsg0(jcr, M_FATAL, 0,  _("Cannot write block. Device at EOM.\n"));
       return false;
    }
    if (!dev->can_append()) {

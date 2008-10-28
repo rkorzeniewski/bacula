@@ -11,6 +11,18 @@ mixed priorities
 
 General:
 28Oct08
+kes  Fix bug #1046 VolumeToCatalog incorrectly reports mounted 
+     filesystems as missing on the Volume.
+kes  Rewrite the set_jcr_job_status() code to include job status
+     priorities so that more important status changes occur but
+     lower priority status changes will not overwrite something
+     more serious.  This could possibly cause reporting incorrect status
+     reporting in some cases.  More testing is needed to ensure
+     I have the right priorities. This vastly simplifies the previous
+     contorted logic.
+     Verify Diff status should now be correctly reported, whereas it
+     was previously lost.
+kes  Reduce some debug output.
 kes  Apply Joao's patch to SQLite tables to make chars work.
 27Oct08
 ebl  Fix #1175 About update slots that don't reset InChanger flag when 

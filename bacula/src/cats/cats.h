@@ -822,6 +822,7 @@ struct JOB_DBR {
    /* Extra stuff not in DB */
    int limit;                         /* limit records to display */
    faddr_t rec_addr;
+   uint32_t FileIndex;                /* added during Verify */
 };
 
 /* Job Media information used to create the media records
