@@ -61,7 +61,7 @@ Job {
   Name = "RUN_MAXWAITTIME"
   JobDefs = DefaultJob
   FileSet = FS_TESTJOB
-  MaxWaitTime = 100sec
+  MaxWaitTime = 2min
 }
 
 Job {
@@ -125,6 +125,7 @@ Pool {
   Recycle = yes                       # Bacula can automatically recycle Volumes
   AutoPrune = yes                     # Prune expired volumes
   Volume Retention = 365d             # one year
+  Maximum Volume Bytes = 1M
 }
 
 
