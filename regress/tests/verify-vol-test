@@ -12,7 +12,11 @@ scripts/cleanup
 scripts/copy-test-confs
 echo "${cwd}/build" >${cwd}/tmp/file-list
 rm -f ${cwd}/build/sparsefile
-dd if=${cwd}/build/configure of=${cwd}/build/sparsefile bs=1 count=1 seek=10M
+#
+# Add this back when verify can handle sparse files
+#  the same way that backup does
+#
+#dd if=${cwd}/build/configure of=${cwd}/build/sparsefile bs=1 count=1 seek=10M
 
 change_jobname NightlySave $JobName
 start_test
