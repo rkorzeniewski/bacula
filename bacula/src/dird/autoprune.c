@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2002-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2002-2008 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -84,10 +84,8 @@ void do_autoprune(JCR *jcr)
  *   catreq.c => next_vol.c when the Storage daemon is asking for another
  *   volume and no appendable volumes are available.
  *
- *  Return: false if nothing pruned
- *          true if pruned, and mr is set to pruned volume
  */
-bool prune_volumes(JCR *jcr, bool InChanger, MEDIA_DBR *mr) 
+void prune_volumes(JCR *jcr, bool InChanger, MEDIA_DBR *mr) 
 {
    int count;
    int i;
@@ -95,14 +93,13 @@ bool prune_volumes(JCR *jcr, bool InChanger, MEDIA_DBR *mr)
    struct del_ctx prune_list;
    POOL_MEM query(PM_MESSAGE);
    UAContext *ua;
-   bool ok = false;
    char ed1[50], ed2[100], ed3[50];
    POOL_DBR spr;
 
-   Dmsg1(050, "Prune volumes PoolId=%d\n", jcr->jr.PoolId);
+   Dmsg1(100, "Prune volumes PoolId=%d\n", jcr->jr.PoolId);
    if (!jcr->job->PruneVolumes && !jcr->pool->AutoPrune) {
       Dmsg0(100, "AutoPrune not set in Pool.\n");
-      return 0;
+      return;
    }
 
    memset(&prune_list, 0, sizeof(prune_list));
@@ -126,7 +123,7 @@ bool prune_volumes(JCR *jcr, bool InChanger, MEDIA_DBR *mr)
    } else {
       ed2[0] = 0;
    }
-   Dmsg1(050, "Scratch pool=%s\n", ed2);
+   Dmsg1(100, "Scratch pool=%s\n", ed2);
    /*
     * ed2 ends up with scratch poolid and current poolid or
     *   just current poolid if there is no scratch pool 
@@ -151,70 +148,86 @@ bool prune_volumes(JCR *jcr, bool InChanger, MEDIA_DBR *mr)
       Mmsg(query, select, ed1, ed2, mr->MediaType, "");
    }
 
-   Dmsg1(050, "query=%s\n", query.c_str());
+   Dmsg1(100, "query=%s\n", query.c_str());
    if (!db_get_query_dbids(ua->jcr, ua->db, query, ids)) {
       Jmsg(jcr, M_ERROR, 0, "%s", db_strerror(jcr->db));
       goto bail_out;
    }
 
-   Dmsg1(050, "num_ids=%d\n", ids.num_ids);
+   Dmsg1(100, "num_ids=%d\n", ids.num_ids);
 
    /* Visit each Volume and Prune it until we find one that is purged */
    for (i=0; i<ids.num_ids; i++) {
       MEDIA_DBR lmr;
       memset(&lmr, 0, sizeof(lmr));
       lmr.MediaId = ids.DBId[i];
-      Dmsg1(050, "Get record MediaId=%d\n", (int)lmr.MediaId);
+      Dmsg1(100, "Get record MediaId=%d\n", (int)lmr.MediaId);
       if (!db_get_media_record(jcr, jcr->db, &lmr)) {
          Jmsg(jcr, M_ERROR, 0, "%s", db_strerror(jcr->db));
          continue;
       }
+      Dmsg1(100, "Examine vol=%s\n", lmr.VolumeName);
       /* Don't prune archived volumes */
       if (lmr.Enabled == 2) {
+         Dmsg1(100, "Vol=%s disabled\n", lmr.VolumeName);
          continue;
       }
       /* Prune only Volumes with status "Full", or "Used" */
       if (strcmp(lmr.VolStatus, "Full")   == 0 ||
           strcmp(lmr.VolStatus, "Used")   == 0) {
-         Dmsg2(050, "Add prune list MediaId=%d Volume %s\n", (int)lmr.MediaId, lmr.VolumeName);
+         Dmsg2(100, "Add prune list MediaId=%d Volume %s\n", (int)lmr.MediaId, lmr.VolumeName);
          count = get_prune_list_for_volume(ua, &lmr, &prune_list);
-         Dmsg1(050, "Num pruned = %d\n", count);
+         Dmsg1(100, "Num pruned = %d\n", count);
          if (count != 0) {
             purge_job_list_from_catalog(ua, prune_list);
             prune_list.num_ids = 0;             /* reset count */
          }
-         ok = is_volume_purged(ua, &lmr);
+         if (!is_volume_purged(ua, &lmr)) {
+            Dmsg1(100, "Vol=%s not pruned\n", lmr.VolumeName);
+            continue;
+         }
 
          /*
-          * Check if this volume is available (InChanger + StorageId)
+          * Since we are also pruning the Scratch pool, continue
+          *   until and check if this volume is available (InChanger + StorageId)
           * If not, just skip this volume and try the next one
           */
-         if (ok && InChanger) {
+         if (InChanger) {
             if (!lmr.InChanger || (lmr.StorageId != mr->StorageId)) {
-               ok = false;             /* skip this volume, ie not loadable */
+               Dmsg1(100, "Vol=%s not inchanger or correct StoreId\n", lmr.VolumeName);
+               continue;                  /* skip this volume, ie not loadable */
             }
+         }
+         if (!lmr.Recycle) {
+            Dmsg1(100, "Vol=%s not recyclable\n", lmr.VolumeName);
+            continue;
+         }
+
+         if (has_volume_expired(jcr, &lmr)) {
+            Dmsg1(100, "Vol=%s has expired\n", lmr.VolumeName);
+            continue;                     /* Volume not usable */
          }
 
          /*
           * If purged and not moved to another Pool, 
           *   then we stop pruning and take this volume.
           */
-         if (ok && lmr.PoolId == mr->PoolId) {
-            Dmsg2(050, "Vol=%s MediaId=%d purged.\n", lmr.VolumeName, (int)lmr.MediaId);
+         if (lmr.PoolId == mr->PoolId) {
+            Dmsg2(100, "Got Vol=%s MediaId=%d purged.\n", lmr.VolumeName, (int)lmr.MediaId);
             memcpy(mr, &lmr, sizeof(lmr));
             break;                        /* got a volume */
          }
-         ok = false;                     /* clear OK, in case we fall out */
       } else {
-         Dmsg2(050, "Nothing pruned MediaId=%d Volume=%s\n", (int)lmr.MediaId, lmr.VolumeName);
+         Dmsg2(100, "Nothing pruned MediaId=%d Volume=%s\n", (int)lmr.MediaId, lmr.VolumeName);
       }
    }
 
 bail_out:
+   Dmsg0(100, "Leave prune volumes\n");
    db_unlock(jcr->db);
    free_ua_context(ua);
    if (prune_list.JobId) {
       free(prune_list.JobId);
    }
-   return ok;
+   return;
 }

@@ -76,7 +76,7 @@ int find_next_volume_for_append(JCR *jcr, MEDIA_DBR *mr, int index,
       ok = db_find_next_volume(jcr, jcr->db, index, InChanger, mr);
 
       if (!ok) {
-         Dmsg4(050, "after find_next_vol ok=%d index=%d InChanger=%d Vstat=%s\n",
+         Dmsg4(150, "after find_next_vol ok=%d index=%d InChanger=%d Vstat=%s\n",
                ok, index, InChanger, mr->VolStatus);
          /*
           * 2. Try finding a recycled volume
@@ -94,30 +94,28 @@ int find_next_volume_for_append(JCR *jcr, MEDIA_DBR *mr, int index,
                 */
                if (prune) {
                   Dmsg0(150, "Call prune_volumes\n");
-                  ok = prune_volumes(jcr, InChanger, mr);
+                  prune_volumes(jcr, InChanger, mr);
                }
-	       if (!ok) {
-		  ok = recycle_oldest_purged_volume(jcr, InChanger, mr);
-		  if (!ok && create) {
-		     Dmsg4(050, "after prune volumes_vol ok=%d index=%d InChanger=%d Vstat=%s\n",
-			   ok, index, InChanger, mr->VolStatus);
-		     /*
-		      * 5. Try pulling a volume from the Scratch pool
-		      */ 
-		     ok = get_scratch_volume(jcr, InChanger, mr);
-		     Dmsg4(050, "after get scratch volume ok=%d index=%d InChanger=%d Vstat=%s\n",
-			   ok, index, InChanger, mr->VolStatus);
-		  }
-		  /*
-		   * If we are using an Autochanger and have not found
-		   * a volume, retry looking for any volume. 
-		   */
-		  if (!ok && InChanger) {
-		     InChanger = false;
-		     continue;           /* retry again accepting any volume */
-		  }
-	       }
-	    }
+               ok = recycle_oldest_purged_volume(jcr, InChanger, mr);
+               if (!ok && create) {
+                  Dmsg4(150, "after prune volumes_vol ok=%d index=%d InChanger=%d Vstat=%s\n",
+                        ok, index, InChanger, mr->VolStatus);
+                  /*
+                   * 5. Try pulling a volume from the Scratch pool
+                   */ 
+                  ok = get_scratch_volume(jcr, InChanger, mr);
+                  Dmsg4(150, "after get scratch volume ok=%d index=%d InChanger=%d Vstat=%s\n",
+                        ok, index, InChanger, mr->VolStatus);
+               }
+               /*
+                * If we are using an Autochanger and have not found
+                * a volume, retry looking for any volume. 
+                */
+               if (!ok && InChanger) {
+                  InChanger = false;
+                  continue;           /* retry again accepting any volume */
+               }
+            }
          }
 
 
@@ -238,11 +236,13 @@ bool has_volume_expired(JCR *jcr, MEDIA_DBR *mr)
    }
    if (expired) {
       /* Need to update media */
+      Dmsg1(150, "Vol=%s has expired update media record\n", mr->VolumeName);
       if (!db_update_media_record(jcr, jcr->db, mr)) {
          Jmsg(jcr, M_ERROR, 0, _("Catalog error updating volume \"%s\". ERR=%s"),
               mr->VolumeName, db_strerror(jcr->db));
       }
    }
+   Dmsg2(150, "Vol=%s expired=%d\n", mr->VolumeName, expired);
    return expired;
 }
 
@@ -257,6 +257,11 @@ void check_if_volume_valid_or_recyclable(JCR *jcr, MEDIA_DBR *mr, const char **r
    int ok;
 
    *reason = NULL;
+
+   if (!mr->Recycle) {
+      *reason = _("volume has recycling disabled");
+      return;
+   }
 
    /*  Check if a duration or limit has expired */
    if (has_volume_expired(jcr, mr)) {

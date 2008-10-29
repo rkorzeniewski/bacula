@@ -183,7 +183,7 @@ bool fixup_device_block_write_error(DCR *dcr)
    Dmsg0(190, "Write overflow block to dev\n");
    if (!write_block_to_dev(dcr)) {
       berrno be;
-      Pmsg1(0, _("write_block_to_device overflow block failed. ERR=%s"),
+      Dmsg1(0, _("write_block_to_device overflow block failed. ERR=%s"),
         be.bstrerror(dev->dev_errno));
       goto bail_out;
    }
