@@ -630,7 +630,7 @@ sub status
 
         #          Storage Element 7:Empty
         #          Storage Element 2:Full :VolumeTag=000002
-	if ($l =~ /Storage Element (\d+):(Empty|Full)(\s+:VolumeTag=([\w\d]+))?/){
+	if ($l =~ /Storage Element (\d+):(Empty|Full)(\s+:VolumeTag=([\w\d.-]+))?/){
 
 	    if ($2 eq 'Empty') {
 		$self->set_empty_slot($1);
@@ -638,7 +638,7 @@ sub status
 		$self->set_slot($1, $4);
 	    }
 
-	} elsif ($l =~ /Data Transfer.+(\d+):(Full|Empty)(\s+.Storage Element (\d+) Loaded.(:VolumeTag = ([\w\d]+))?)?/) {
+	} elsif ($l =~ /Data Transfer.+(\d+):(Full|Empty)(\s+.Storage Element (\d+) Loaded.(:VolumeTag = ([\w\d.-]+))?)?/) {
 
 	    if ($2 eq 'Empty') {
 		$self->set_empty_drive($1);
@@ -646,7 +646,7 @@ sub status
 		$self->set_drive($1, $4, $6);
 	    }
 
-	} elsif ($l =~ /Storage Element (\d+).+IMPORT\/EXPORT:(Empty|Full)( :VolumeTag=([\d\w]+))?/) 
+	} elsif ($l =~ /Storage Element (\d+).+IMPORT\/EXPORT:(Empty|Full)( :VolumeTag=([\d\w.-]+))?/) 
 	{
 	    if ($2 eq 'Empty') {
 		$self->set_empty_io($1);
