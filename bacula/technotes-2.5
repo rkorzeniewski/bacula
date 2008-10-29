@@ -10,6 +10,14 @@ filepattern (restore with regex in bsr)
 mixed priorities
 
 General:
+29Oct08
+kes  Rework next_vol and autoprune a bit due to failure in
+     recycle-test.  prune_volumes() now returns no status,
+     but should prune at least one Volume, if possible.
+kes  Modify check_if_volume_valid_or_recyclable to reject a
+     volume with Recycle set off.
+kes  Modify prune_volumes() to continue if volume Recycle is off
+     or if the volume has expired. Add more debug.
 28Oct08
 kes  Fix bug #1046 VolumeToCatalog incorrectly reports mounted 
      filesystems as missing on the Volume.
