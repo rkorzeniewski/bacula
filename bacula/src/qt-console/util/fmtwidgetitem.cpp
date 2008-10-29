@@ -63,6 +63,24 @@ QString convertJobStatus(const QString &sts)
    return QString(buf);
 }
 
+/*
+ * disable widget updating
+ */
+Freeze::Freeze(QWidget &q):
+qw(&q)
+{
+   QApplication::setOverrideCursor(Qt::WaitCursor);
+   qw->setUpdatesEnabled(false); 
+}
+
+Freeze::~Freeze()
+{
+   if (qw) {
+      qw->setUpdatesEnabled(true); 
+      QApplication::restoreOverrideCursor();
+   }
+}
+
 /***********************************************
  *
  * ItemFormatterBase static members

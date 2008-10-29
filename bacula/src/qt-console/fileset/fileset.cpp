@@ -75,7 +75,7 @@ void FileSet::populateTable()
        return;
    m_populated = true;
 
-   QBrush blackBrush(Qt::black);
+   Freeze frz(*tableWidget); /* disable updating*/
 
    m_checkcurwidget = false;
    tableWidget->clear();

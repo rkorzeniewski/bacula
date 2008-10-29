@@ -115,6 +115,8 @@ void JobList::populateTable()
    prepareFilterWidgets();
    m_populated = true;
 
+   Freeze frz(*mp_tableWidget); /* disable updating*/
+
    /* Set up query */
    QString query;
    fillQueryString(query);

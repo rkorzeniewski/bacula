@@ -80,10 +80,10 @@ void MediaList::populateTree()
       writeExpandedSettings();
    m_populated = true;
 
-   QTreeWidgetItem *pooltreeitem;
-
    if (!m_console->preventInUseConnect())
        return;
+
+   Freeze frz(*mp_treeWidget); /* disable updating*/
 
    QStringList headerlist = (QStringList()
       << tr("Volume Name") << tr("Id") << tr("Status") << tr("Enabled") << tr("Bytes") << tr("Files")
@@ -106,6 +106,7 @@ void MediaList::populateTree()
    settings.beginGroup("MediaListTreeExpanded");
    QString query;
 
+   QTreeWidgetItem *pooltreeitem;
    foreach (QString pool_listItem, m_console->pool_list) {
       pooltreeitem = new QTreeWidgetItem(m_topItem);
       pooltreeitem->setText(0, pool_listItem);
