@@ -76,7 +76,7 @@ void Clients::populateTable()
       return;
    m_populated = true;
 
-   QBrush blackBrush(Qt::black);
+   Freeze frz(*tableWidget); /* disable updating*/
 
    QStringList headerlist = (QStringList() << tr("Client Name") << tr("File Retention")
        << tr("Job Retention") << tr("AutoPrune") << tr("ClientId") << tr("Uname") );

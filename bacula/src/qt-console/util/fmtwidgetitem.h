@@ -33,6 +33,7 @@
  *   TreeView formatting helpers - Riccardo Ghetta, May 2008 
  */
 
+class QWidget;
 class QTreeWidgetItem;
 class QTableWidget;
 class QTableWidgetItem;
@@ -45,6 +46,20 @@ class QBrush;
  *
  */
 QString convertJobStatus(const QString &sts);
+
+/*
+ * disable widget updating
+ */
+class Freeze
+{
+private:
+   QWidget *qw;
+
+ public:
+   Freeze(QWidget &q);
+   ~Freeze();
+};
+
 
 
 /*

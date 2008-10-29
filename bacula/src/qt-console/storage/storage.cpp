@@ -81,6 +81,8 @@ void Storage::populateTree()
       writeExpandedSettings();
    m_populated = true;
 
+   Freeze frz(*mp_treeWidget); /* disable updating*/
+
    m_checkcurwidget = false;
    mp_treeWidget->clear();
    m_checkcurwidget = true;
