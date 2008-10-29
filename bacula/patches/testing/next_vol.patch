@@ -1,86 +1,77 @@
-
- This patch fix #1173 about problems during volume selection.
-
- It can be applied to 2.4.3 (not to previous versions) with:
-
-  cd <bacula-source>
-  patch -p0 <2.4.3-next-vol.patch
-  ./configure <your-options>
-  make
-  ...
-  make install
-
 Index: src/dird/next_vol.c
 ===================================================================
---- src/dird/next_vol.c	(revision 7259)
+--- src/dird/next_vol.c	(revision 7929)
 +++ src/dird/next_vol.c	(working copy)
-@@ -94,28 +94,30 @@
+@@ -94,33 +94,31 @@
                  */
                 if (prune) {
                    Dmsg0(150, "Call prune_volumes\n");
--                  prune_volumes(jcr, InChanger, mr);
-+                  ok = prune_volumes(jcr, InChanger, mr);
+-                  ok = prune_volumes(jcr, InChanger, mr);
++                  prune_volumes(jcr, InChanger, mr);
                 }
--               ok = recycle_oldest_purged_volume(jcr, InChanger, mr);
--               if (!ok && create) {
--                  Dmsg4(050, "after prune volumes_vol ok=%d index=%d InChanger=%d Vstat=%s\n",
--                        ok, index, InChanger, mr->VolStatus);
--                  /*
--                   * 5. Try pulling a volume from the Scratch pool
--                   */ 
--                  ok = get_scratch_volume(jcr, InChanger, mr);
--               }
--               /*
--                * If we are using an Autochanger and have not found
--                * a volume, retry looking for any volume. 
--                */
--               if (InChanger) {
--                  InChanger = false;
--                  if (!ok) {
--                     continue;           /* retry again accepting any volume */
--                  }
--               }
--            }
-+	       if (!ok) {
-+		  ok = recycle_oldest_purged_volume(jcr, InChanger, mr);
-+		  if (!ok && create) {
-+		     Dmsg4(050, "after prune volumes_vol ok=%d index=%d InChanger=%d Vstat=%s\n",
-+			   ok, index, InChanger, mr->VolStatus);
-+		     /*
-+		      * 5. Try pulling a volume from the Scratch pool
-+		      */ 
-+		     ok = get_scratch_volume(jcr, InChanger, mr);
-+		     Dmsg4(050, "after get scratch volume ok=%d index=%d InChanger=%d Vstat=%s\n",
-+			   ok, index, InChanger, mr->VolStatus);
-+		  }
-+		  /*
-+		   * If we are using an Autochanger and have not found
-+		   * a volume, retry looking for any volume. 
-+		   */
-+		  if (!ok && InChanger) {
-+		     InChanger = false;
-+		     continue;           /* retry again accepting any volume */
-+		  }
-+	       }
-+	    }
+-	       if (!ok) {
+-		  ok = recycle_oldest_purged_volume(jcr, InChanger, mr);
+-		  if (!ok && create) {
+-		     Dmsg4(050, "after prune volumes_vol ok=%d index=%d InChanger=%d Vstat=%s\n",
+-			   ok, index, InChanger, mr->VolStatus);
+-		     /*
+-		      * 5. Try pulling a volume from the Scratch pool
+-		      */ 
+-		     ok = get_scratch_volume(jcr, InChanger, mr);
+-		     Dmsg4(050, "after get scratch volume ok=%d index=%d InChanger=%d Vstat=%s\n",
+-			   ok, index, InChanger, mr->VolStatus);
+-		  }
+-		  /*
+-		   * If we are using an Autochanger and have not found
+-		   * a volume, retry looking for any volume. 
+-		   */
+-		  if (!ok && InChanger) {
+-		     InChanger = false;
+-		     continue;           /* retry again accepting any volume */
+-		  }
+-	       }
++
++               ok = recycle_oldest_purged_volume(jcr, InChanger, mr);
++               if (!ok && create) {
++                  Dmsg4(050, "after prune volumes_vol ok=%d index=%d InChanger=%d Vstat=%s\n",
++                        ok, index, InChanger, mr->VolStatus);
++                  /*
++                   * 5. Try pulling a volume from the Scratch pool
++                   */ 
++                  ok = get_scratch_volume(jcr, InChanger, mr);
++                  Dmsg4(050, "after get scratch volume ok=%d index=%d InChanger=%d Vstat=%s\n",
++                        ok, index, InChanger, mr->VolStatus);
++               }
++               /*
++                * If we are using an Autochanger and have not found
++                * a volume, retry looking for any volume. 
++                */
++               if (!ok && InChanger) {
++                  InChanger = false;
++                  continue;           /* retry again accepting any volume */
++               }
+ 	    }
           }
  
- 
+-
+          if (!ok && create) {
+             /*
+              * 6. Try "creating" a new Volume
 Index: src/dird/autoprune.c
 ===================================================================
---- src/dird/autoprune.c	(revision 7895)
+--- src/dird/autoprune.c	(revision 7929)
 +++ src/dird/autoprune.c	(working copy)
-@@ -204,13 +204,6 @@
-             memcpy(mr, &lmr, sizeof(lmr));
-             break;                        /* got a volume */
+@@ -196,6 +196,13 @@
           }
--         /*
--          * We purged something but did not get a volume in the current pool.
--          *  It must be a scratch volume, so try to get it.
--          */
--         if (ok && get_scratch_volume(jcr, InChanger, mr)) {
--            break;                       /* got a volume */
--         }
-          ok = false;                     /* clear OK, in case we fall out */
-       } else {
-          Dmsg2(050, "Nothing pruned MediaId=%d Volume=%s\n", (int)lmr.MediaId, lmr.VolumeName);
+ 
+          /*
++          * Continue if this volume is not usable
++          */
++         if (ok && !lmr.Recycle) {
++            ok = false;
++         }
++
++         /*
+           * If purged and not moved to another Pool, 
+           *   then we stop pruning and take this volume.
+           */
