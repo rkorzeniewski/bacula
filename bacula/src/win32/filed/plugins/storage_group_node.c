@@ -171,7 +171,6 @@ storage_group_node_t::startBackupFile(exchange_fd_context_t *context, struct sav
                                 if (!include_file)
                                 {
                                         tmp_time = (((int64_t)modified_time.dwHighDateTime) << 32) | modified_time.dwLowDateTime;
-                                        //FIXME: this is too big according to mingw
                                         tmp_time -= 116444736000000000LL;
                                         tmp_time /= 10000000;
                                         if (tmp_time > context->job_since)
@@ -413,8 +412,9 @@ storage_group_node_t::createFile(exchange_fd_context_t *context, struct restore_
                         }
                         len = wcslen(restore_environment->m_wszRestoreLogPath) + strlen(file_node->name + i) + 1 + 1;
                         file_node->filename = new WCHAR[len];
-                        // FIXME: %S not supported under mingw
-                        //swprintf(file_node->filename, len, L"%s\\%S", restore_environment->m_wszRestoreLogPath, file_node->name + i);
+			wcscpy(file_node->filename, restore_environment->m_wszRestoreLogPath);
+			wcscat(file_node->filename, L"\\");
+        		mbstowcs(&file_node->filename[wcslen(file_node->filename)], file_node->name + i, strlen(file_node->name + i) + 1);
                         context->current_node = file_node;
                         return bRC_OK;
                 case 3:

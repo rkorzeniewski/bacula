@@ -111,13 +111,15 @@ file_node_t::pluginIoOpen(exchange_fd_context_t *context, struct io_pkt *io)
 {
         HRESULT result;
         HANDLE handle;
+        char *tmp = new char[wcslen(filename) + 1];
+        wcstombs(tmp, filename, wcslen(filename) + 1);
 
-        _DebugMessage(100, "pluginIoOpen_FILE - filename = %S\n", filename);
+        _DebugMessage(0, "pluginIoOpen_FILE - filename = %s\n", tmp);
         io->status = 0;
         io->io_errno = 0;
         if (context->job_type == JOB_TYPE_BACKUP)
         {
-                _DebugMessage(100, "Calling HrESEBackupOpenFile\n");
+                _DebugMessage(10, "Calling HrESEBackupOpenFile\n");
                 result = HrESEBackupOpenFile(hccx, filename, 65535, 1, &backup_file_handle, &section_size);
                 if (result)
                 {
@@ -129,11 +131,12 @@ file_node_t::pluginIoOpen(exchange_fd_context_t *context, struct io_pkt *io)
         }
         else
         {
-                _DebugMessage(100, "Calling HrESERestoreOpenFile\n");
+                _DebugMessage(10, "Calling HrESERestoreOpenFile for '%s'\n", tmp);
                 result = HrESERestoreOpenFile(hccx, filename, 1, &restore_file_handle);
                 if (result == hrRestoreAtFileLevel)
                 {
                         restore_at_file_level = true;
+                	_DebugMessage(100, "Calling CreateFileW for '%s'\n", tmp);
                         handle = CreateFileW(filename, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
                         if (handle == INVALID_HANDLE_VALUE)
                         {
