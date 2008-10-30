@@ -449,6 +449,9 @@ Section "-Initialize"
   ${StrRep} $R2 "$INSTDIR\bin" "\" "\\"
   FileWrite $R1 's;@bin_dir_cmd@;$R2;g$\r$\n'
 
+  ${StrRep} $R2 "$INSTDIR\fdplugins" "\" "\\\\"
+  FileWrite $R1 's;@fdplugins_dir@;$R2;g$\r$\n'
+
   ${StrRep} $R2 "$INSTDIR" "\" "/"
   FileWrite $R1 "s;@BUILD_DIR@;$R2;g$\r$\n"
 
@@ -561,10 +564,12 @@ SectionGroup "Client" SecGroupClient
 Section "File Service" SecFileDaemon
   SectionIn 1 2 3
 
+  SetOutPath "$INSTDIR\fdplugins"
+  File "${SRC_DIR}\exchange-fd.dll"
+
   SetOutPath "$INSTDIR\bin"
 
   File "${SRC_DIR}\bacula-fd.exe"
-  File "${SRC_DIR}\exchange-fd.dll"
 
   ${If} $InstallType = ${MigrateInstall}
   ${AndIf} ${FileExists} "$OldInstallDir\bin\bacula-fd.conf"
