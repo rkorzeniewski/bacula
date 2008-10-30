@@ -107,9 +107,9 @@ chown ${HTTP_USER} ${CONF_DIR}/bweb.conf
 if [ ! -d ${SHARE_DIR}/bweb/tpl/en ] ; then
    mkdir -p ${SHARE_DIR}/bweb/tpl/{en,fr,es}
 fi
-install -m 644 -o root -g root  lang/tpl/en/*.tpl ${SHARE_DIR}/bweb/tpl/en
-install -m 644 -o root -g root  lang/tpl/es/*.tpl ${SHARE_DIR}/bweb/tpl/es
-install -m 644 -o root -g root  lang/tpl/fr/*.tpl ${SHARE_DIR}/bweb/tpl/fr
+install -m 644 -o root -g root  lang/en/tpl/*.tpl ${SHARE_DIR}/bweb/tpl/en
+install -m 644 -o root -g root  lang/es/tpl/*.tpl ${SHARE_DIR}/bweb/tpl/es
+install -m 644 -o root -g root  lang/fr/tpl/*.tpl ${SHARE_DIR}/bweb/tpl/fr
 
 # copy the bweb graphics elements (bweb elements must reside in /bweb)
 if [ ! -d ${WEB_DIR}/bweb ] ; then
