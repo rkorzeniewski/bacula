@@ -449,7 +449,7 @@ Section "-Initialize"
   ${StrRep} $R2 "$INSTDIR\bin" "\" "\\"
   FileWrite $R1 's;@bin_dir_cmd@;$R2;g$\r$\n'
 
-  ${StrRep} $R2 "$INSTDIR\fdplugins" "\" "\\\\"
+  ${StrRep} $R2 "$INSTDIR\bin\fdplugins" "\" "\\\\"
   FileWrite $R1 's;@fdplugins_dir@;$R2;g$\r$\n'
 
   ${StrRep} $R2 "$INSTDIR" "\" "/"
@@ -564,7 +564,7 @@ SectionGroup "Client" SecGroupClient
 Section "File Service" SecFileDaemon
   SectionIn 1 2 3
 
-  SetOutPath "$INSTDIR\fdplugins"
+  SetOutPath "$INSTDIR\bin\fdplugins"
   File "${SRC_DIR}\exchange-fd.dll"
 
   SetOutPath "$INSTDIR\bin"
