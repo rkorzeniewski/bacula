@@ -615,7 +615,7 @@ bail_out:
 
 int my_postgresql_batch_start(JCR *jcr, B_DB *mdb)
 {
-   char *query = "COPY batch FROM STDIN";
+   const char *query = "COPY batch FROM STDIN";
 
    Dmsg0(500, "my_postgresql_batch_start started\n");
 
