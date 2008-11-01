@@ -107,7 +107,6 @@ void prune_volumes(JCR *jcr, bool InChanger, MEDIA_DBR *mr)
    prune_list.JobId = (JobId_t *)malloc(sizeof(JobId_t) * prune_list.max_ids);
 
    ua = new_ua_context(jcr);
-
    db_lock(jcr->db);
 
    /* Edit PoolId */
@@ -154,7 +153,7 @@ void prune_volumes(JCR *jcr, bool InChanger, MEDIA_DBR *mr)
       goto bail_out;
    }
 
-   Dmsg1(100, "num_ids=%d\n", ids.num_ids);
+   Dmsg1(100, "Volume prune num_ids=%d\n", ids.num_ids);
 
    /* Visit each Volume and Prune it until we find one that is purged */
    for (i=0; i<ids.num_ids; i++) {
@@ -217,8 +216,6 @@ void prune_volumes(JCR *jcr, bool InChanger, MEDIA_DBR *mr)
             memcpy(mr, &lmr, sizeof(lmr));
             break;                        /* got a volume */
          }
-      } else {
-         Dmsg2(100, "Nothing pruned MediaId=%d Volume=%s\n", (int)lmr.MediaId, lmr.VolumeName);
       }
    }
 

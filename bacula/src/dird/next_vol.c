@@ -42,6 +42,7 @@
 /*
  *  Items needed:
  *   mr.PoolId must be set
+ *   mr.StorageId should also be set
  *   jcr->wstore
  *   jcr->db
  *   jcr->pool
@@ -134,10 +135,10 @@ int find_next_volume_for_append(JCR *jcr, MEDIA_DBR *mr, int index,
                 jcr->pool->purge_oldest_volume, jcr->pool->recycle_oldest_volume);
             /* Find oldest volume to recycle */
             ok = db_find_next_volume(jcr, jcr->db, -1, InChanger, mr);
-            Dmsg1(400, "Find oldest=%d\n", ok);
+            Dmsg1(200, "Find oldest=%d Volume\n", ok);
             if (ok && prune) {
                UAContext *ua;
-               Dmsg0(400, "Try purge.\n");
+               Dmsg0(200, "Try purge Volume.\n");
                /*
                 * 7.  Try to purging oldest volume only if not UA calling us.
                 */

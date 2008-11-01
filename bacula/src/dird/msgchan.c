@@ -345,7 +345,7 @@ extern "C" void msg_thread_cleanup(void *arg)
    jcr->sd_msg_thread_done = true;
    jcr->SD_msg_chan = 0;
    pthread_cond_broadcast(&jcr->term_wait); /* wakeup any waiting threads */
-   Dmsg1(100, "=== End msg_thread. use=%d\n", jcr->use_count());
+   Dmsg2(100, "=== End msg_thread. JobId=%d usecnt=%d\n", jcr->JobId, jcr->use_count());
    free_jcr(jcr);                     /* release jcr */
    db_thread_cleanup();               /* remove thread specific data */
 }
