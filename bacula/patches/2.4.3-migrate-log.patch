@@ -1,3 +1,17 @@
+
+ This patch should cause all Job Log records to be migrated when the
+ Job is migrated. It fixes the second issue reported in bug #1171.
+
+ Apply it to Bacula 2.4.3 (possibly earlier versions)
+ with:
+
+ cd <bacula-source>
+ patch -p0 <2.4.3-migrate.patch
+ ./configure <your-options>
+ make
+ ...
+ make install
+
 Index: src/dird/migrate.c
 ===================================================================
 --- src/dird/migrate.c	(revision 7926)
