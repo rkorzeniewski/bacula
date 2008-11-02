@@ -123,7 +123,7 @@ bool connect_to_storage_daemon(JCR *jcr, int retry_interval,
  * Here we ask the SD to send us the info for a 
  *  particular device resource.
  */
-#ifdef needed
+#ifdef xxx
 bool update_device_res(JCR *jcr, DEVICE *dev)
 {
    POOL_MEM device_name; 
