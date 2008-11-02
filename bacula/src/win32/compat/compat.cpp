@@ -532,11 +532,6 @@ int fcntl(int fd, int cmd)
    return 0;
 }
 
-int chmod(const char *, mode_t)
-{
-   return 0;
-}
-
 int chown(const char *k, uid_t, gid_t)
 {
    return 0;
@@ -1355,6 +1350,67 @@ WSA_Init(void)
     return 0;
 }
 
+int win32_chmod(const char *path, mode_t mode)
+{
+   DWORD attr = (DWORD)-1;
+
+   if (p_GetFileAttributesW) {
+      POOLMEM* pwszBuf = get_pool_memory(PM_FNAME);
+      make_win32_path_UTF8_2_wchar(&pwszBuf, path);
+
+      attr = p_GetFileAttributesW((LPCWSTR) pwszBuf);
+      if (attr != INVALID_FILE_ATTRIBUTES) {
+         /* Use Bacula mappings define in stat() above */
+         if (mode & (S_IRUSR|S_IRGRP|S_IROTH)) {
+            attr |= FILE_ATTRIBUTE_READONLY;
+         } else {
+            attr &= ~FILE_ATTRIBUTE_READONLY;
+         }
+         if (mode & S_ISVTX) {
+            attr |= FILE_ATTRIBUTE_HIDDEN;
+         } else {
+            attr &= ~FILE_ATTRIBUTE_HIDDEN;
+         }
+         if (mode & S_IRWXO) { 
+            attr |= FILE_ATTRIBUTE_SYSTEM;
+         } else {
+            attr &= ~FILE_ATTRIBUTE_SYSTEM;
+         }
+         attr = p_SetFileAttributesW((LPCWSTR)pwszBuf, attr);
+      }
+      free_pool_memory(pwszBuf);
+   } else if (p_GetFileAttributesA) {
+         if (mode & (S_IRUSR|S_IRGRP|S_IROTH)) {
+            attr |= FILE_ATTRIBUTE_READONLY;
+         } else {
+            attr &= ~FILE_ATTRIBUTE_READONLY;
+         }
+         if (mode & S_ISVTX) {
+            attr |= FILE_ATTRIBUTE_HIDDEN;
+         } else {
+            attr &= ~FILE_ATTRIBUTE_HIDDEN;
+         }
+         if (mode & S_IRWXO) { 
+            attr |= FILE_ATTRIBUTE_SYSTEM;
+         } else {
+            attr &= ~FILE_ATTRIBUTE_SYSTEM;
+         }
+      attr = p_GetFileAttributesA(path);
+      if (attr != INVALID_FILE_ATTRIBUTES) {
+         attr = p_SetFileAttributesA(path, attr);
+      }
+   }
+
+   if (attr == (DWORD)-1) {
+      const char *err = errorString();
+      Dmsg2(99, "Get/SetFileAttributes(%s): %s\n", path, err);
+      LocalFree((void *)err);
+      errno = b_errno_win32;
+      return -1;
+   }
+   return 0;
+}
+
 
 int
 win32_chdir(const char *dir)
@@ -1371,14 +1427,14 @@ win32_chdir(const char *dir)
          errno = b_errno_win32;
          return -1;
       }
-   }
-   else if (p_SetCurrentDirectoryA) {
+   } else if (p_SetCurrentDirectoryA) {
       if (0 == p_SetCurrentDirectoryA(dir)) {
          errno = b_errno_win32;
          return -1;
       }
+   } else {
+      return -1;
    }
-   else return -1;
 
    return 0;
 }
@@ -1537,8 +1593,10 @@ win32_unlink(const char *filename)
 
       nRetCode = _wunlink((LPCWSTR) pwszBuf);
 
-      /* special case if file is readonly,
-      we retry but unset attribute before */
+      /*
+       * special case if file is readonly,
+       * we retry but unset attribute before
+       */
       if (nRetCode == -1 && errno == EACCES && p_SetFileAttributesW && p_GetFileAttributesW) {
          DWORD dwAttr =  p_GetFileAttributesW((LPCWSTR)pwszBuf);
          if (dwAttr != INVALID_FILE_ATTRIBUTES) {
@@ -2419,7 +2477,7 @@ file_dup2(int, int)
  * Emulation of mmap and unmmap for tokyo dbm
  */
 void *mmap(void *start, size_t length, int prot, int flags,
-	   int fd, off_t offset)
+           int fd, off_t offset)
 {
    DWORD fm_access = 0;
    DWORD mv_access = 0;
@@ -2447,20 +2505,20 @@ void *mmap(void *start, size_t length, int prot, int flags,
    }
 
    h = CreateFileMapping((HANDLE)_get_osfhandle (fd), 
-			 NULL /* security */, 
-			 fm_access, 
-			 0 /* MaximumSizeHigh */, 
-			 0 /* MaximumSizeLow */, 
-			 NULL /* name of the file mapping object */);
+                         NULL /* security */, 
+                         fm_access, 
+                         0 /* MaximumSizeHigh */, 
+                         0 /* MaximumSizeLow */, 
+                         NULL /* name of the file mapping object */);
 
    if (!h || h == INVALID_HANDLE_VALUE) {
       return MAP_FAILED;
    }
 
    mv = MapViewOfFile(h, mv_access, 
-		      0 /* offset hi */, 
-		      0 /* offset lo */,
-		      length);
+                      0 /* offset hi */, 
+                      0 /* offset lo */,
+                      length);
    CloseHandle(h);
 
    if (!mv || mv == INVALID_HANDLE_VALUE) {
