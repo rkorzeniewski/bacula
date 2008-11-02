@@ -696,6 +696,7 @@ bool allow_duplicate_job(JCR *jcr)
             }
          }
       }
+      endeach_jcr(djcr);
    }
    return true;   
 }
