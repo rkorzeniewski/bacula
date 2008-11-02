@@ -11,7 +11,7 @@ mixed priorities
 
 General:
 02Nov08
-kes  Fix orphanned jobs (deadlock) while pruning.
+kes  Fix orphaned jobs (possible deadlock) while pruning.
 kes  Use jcr stored in bsock rather than searching in getmsg.c.
      This results in about a 5% speed improvement with four
      concurrent jobs.
@@ -97,7 +97,7 @@ kes  Minor cleanup of create_restore_volume_list() code.
 kes  Fix typo in console Makefile.in
 16Oct08
 ebl  Fix #1110 about RunScript that can't execute a script with
-     Unicode caracters in the path.
+     Unicode characters in the path.
 15Oct08
 kes  Apply tray-monitor patch from Bastian Friedrich to make it
      work with the new FD.
@@ -107,7 +107,7 @@ kes  Apply patch from  Marco van Wieringen <mvw@planets.elm.net>
      that implements libtool to create shared objects out of
      the Bacula libraries.
 kes  Fix tray-monitor so it will speak to new FD.
-ebl  Fix bug with ansi label when volume name length < 6
+ebl  Fix bug with ANSI label when volume name length < 6
 ebl  Fix segfault in debug level > 50 with btape.
 ebl  Remove warning message in btape when command is empty.
 kes  Fix Win32 build to pull in new BACULA define.
@@ -119,7 +119,7 @@ kes  Implement code to prohibit ExcludeDirContaining in an
 ebl  Add field to command list to restrict Runscript console
      command.
 ebl  Use a separate JCR when running Console command with Runscript.
-ebl  Permit to mark version as Beta in some ouputs
+ebl  Permit to mark version as Beta in some outputs
 11Oct08
 kes  Add plugin types in jcr.h to reduce need to cast.
 kes  Do better checking of plugin return values.
@@ -134,7 +134,7 @@ kes  Move generation of bsr file for Virtual Backup to run section
      Suggested by Graham Keeling.
 09Oct08
 kes  Add malloc and free Bacula entry points for plugins. Increment
-     FD plugin interface version. Create a bacula plugin context 
+     FD plugin interface version. Create a Bacula plugin context 
      structure to keep track of whether or not the plugin is disabled.
 kes  Apply FileIndex fix for plugin name stream suggested by James.
 kes  List plugins in FD status report when debug > 0.
@@ -156,7 +156,7 @@ kes  Integrate patch from Kjetil Torgrim Homme <kjetilho@linpro.no>
      It provides FileRegex in bsr files and code to collect regex
      from the user during restore, an Allow Mixed Priorities feature,
      and documentation for the above.
-ebl  Remove db berkeley from configure process
+ebl  Remove db Berkeley from configure process
 kes  Do dirty check on hostname (Linux only) and if not resolvable
      use localhost as default.
 kes  Increase vtape max block to 20GB.
