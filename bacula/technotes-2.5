@@ -10,6 +10,12 @@ filepattern (restore with regex in bsr)
 mixed priorities
 
 General:
+02Nov08
+kes  Use jcr stored in bsock rather than searching in getmsg.c.
+     This results in about a 5% speed improvement with four
+     concurrent jobs.
+kes  Implement win32_chmod that uses wide characters, if possible,
+     to get and set the file attributes.
 29Oct08
 kes  Apply pane freezing during updates patch from Riccardo Ghetta.
 kes  Rework next_vol and autoprune a bit due to failure in
