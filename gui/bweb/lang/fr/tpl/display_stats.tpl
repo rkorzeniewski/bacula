@@ -48,7 +48,7 @@ nrsTable.setup(
  header_color: header_color,
  page_nav: true,
 // disable_sorting: new Array(1),
- rows_per_page: rows_per_page
+ rows_per_page: 100
 }
 );
 </script>
