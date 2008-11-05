@@ -37,8 +37,7 @@ update Volume=TestVolume003 maxvolbytes=200000000
 update Volume=TestVolume004 volretention=10s
 update Volume=TestVolume004 maxvolbytes=200000000
 list volumes
-setdebug level=250 storage=File1
-setdebug level=250 dir
+setdebug level=150 storage=File1
 run job=$JobName storage=File1 level=full yes
 run job=$JobName storage=File1 level=full yes
 run job=$JobName storage=File1 level=full yes
