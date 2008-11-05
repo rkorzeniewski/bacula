@@ -1231,10 +1231,10 @@ static bool scan_command_line_arguments(UAContext *ua, run_ctx &rc)
                kw_ok = true;
                break;
             case 26: /* spooldata */
-	       if (rc.spool_data_set) {
+               if (rc.spool_data_set) {
                   ua->send_msg(_("Spool flag specified twice.\n"));
                   return false;
-	       }
+               }
                if (is_yesno(ua->argv[i], &rc.spool_data)) {
                   rc.spool_data_set = 1;
                   kw_ok = true;
