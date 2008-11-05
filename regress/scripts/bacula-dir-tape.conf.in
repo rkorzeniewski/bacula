@@ -18,7 +18,7 @@ Director {                            # define myself
   QueryFile = "@scriptdir@/query.sql"
   WorkingDirectory = "@working_dir@"
   PidDirectory = "@piddir@"
-  Maximum Concurrent Jobs = 4
+  Maximum Concurrent Jobs = 100
   Password = "pNvX1WiXnwv2C/F7E52LGvw6rKjbbPvu2kyuPa9pVaL3"
   Messages = Daemon
   FD Connect Timeout = 2min 
@@ -36,7 +36,7 @@ Job {
   Messages = Standard
   Pool = Default
   Write Bootstrap = "@working_dir@/NightlySave.bsr"
-  Maximum Concurrent Jobs = 4
+  Maximum Concurrent Jobs = 100
   SpoolData = yes
 # Prefer Mounted Volumes = no
 }
@@ -51,7 +51,7 @@ Job {
   Messages = Standard
   Pool = Default
   Write Bootstrap = "@working_dir@/NightlySave.bsr"
-  Maximum Concurrent Jobs = 4
+  Maximum Concurrent Jobs = 100
   SpoolData = yes
 # Prefer Mounted Volumes = no
   Client Run Before Job = "/bin/sleep 10"
@@ -66,7 +66,7 @@ Job {
   Messages = Standard
   Pool = Default
   Write Bootstrap = "@working_dir@/NightlySave.bsr"
-  Maximum Concurrent Jobs = 4
+  Maximum Concurrent Jobs = 100
   SpoolData = yes
 # Prefer Mounted Volumes = no
 }
@@ -81,7 +81,7 @@ Job {
   Messages = Standard
   Pool = Default
   Write Bootstrap = "@working_dir@/NightlySave.bsr"
-  Maximum Concurrent Jobs = 4
+  Maximum Concurrent Jobs = 100
   SpoolData = yes
 # Prefer Mounted Volumes = no
 }
@@ -95,7 +95,7 @@ Job {
   Messages = Standard
   Pool = Default
   Write Bootstrap = "@working_dir@/NightlySave.bsr"
-  Maximum Concurrent Jobs = 4
+  Maximum Concurrent Jobs = 100
   SpoolData = yes
 # Prefer Mounted Volumes = no
 }
@@ -157,7 +157,7 @@ Client {
   File Retention = 30d                # 30 days
   Job Retention = 180d                # six months
   AutoPrune = yes                     # Prune expired Jobs/Files
-  Maximum Concurrent Jobs = 4
+  Maximum Concurrent Jobs = 100
 }
 
 # Definition of DDS tape storage device
@@ -168,7 +168,7 @@ Storage {
   Password = "ccV3lVTsQRsdIUGyab0N4sMDavui2hOBkmpBU0aQKOr9"          # password for Storage daemon
   Device = DDS-4                      # must be same as Device in Storage daemon
   Media Type = DDS-4                  # must be same as MediaType in Storage daemon
-  Maximum Concurrent Jobs = 4
+  Maximum Concurrent Jobs = 100
 # Autochanger = yes
 }
 
@@ -181,7 +181,7 @@ Storage {
   Password = "ccV3lVTsQRsdIUGyab0N4sMDavui2hOBkmpBU0aQKOr9"          # password for Storage daemon
   Device = FileStorage                # must be same as Device in Storage daemon
   Media Type = FileMedia              # must be same as MediaType in Storage daemon
-  Maximum Concurrent Jobs = 4
+  Maximum Concurrent Jobs = 100
 }
 
 # Definition of Virtual storage device
@@ -192,7 +192,7 @@ Storage {
   Password = "ccV3lVTsQRsdIUGyab0N4sMDavui2hOBkmpBU0aQKOr9"          # password for Storage daemon
   Device = Virtual                    # must be same as Device in Storage daemon
   Media Type = Disk                   # must be same as MediaType in Storage daemon
-  Maximum Concurrent Jobs = 4
+  Maximum Concurrent Jobs = 100
 }
 
 
