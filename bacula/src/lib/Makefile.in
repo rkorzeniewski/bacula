@@ -143,7 +143,7 @@ Makefile: $(srcdir)/Makefile.in $(topdir)/config.status
 rwlock_test: Makefile
 	rm -f rwlock.o
 	$(CXX) -DTEST_RWLOCK $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE)  $(CFLAGS) rwlock.c
-	$(LIBTOOL_LINK) $(CXX) $(LDFLAGS) -L. -o $@ rwlock.o $(LIBS) $(DLIB) -lbac -lm
+	$(LIBTOOL_LINK) $(CXX) $(LDFLAGS) -L. -o $@ rwlock.o $(LIBS) $(DLIB) -lbac $(OPENSSL_LIBS) -lm
 	rm -f rwlock.o
 	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) rwlock.c
 
