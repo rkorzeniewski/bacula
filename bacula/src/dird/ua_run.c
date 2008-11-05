@@ -60,6 +60,8 @@ public:
    int files;
    bool cloned;
    bool mod;
+   int spool_data;
+   bool spool_data_set;
 
    /* Methods */
    run_ctx() { memset(this, 0, sizeof(run_ctx)); 
@@ -174,6 +176,7 @@ try_again:
 start_job:
       Dmsg3(100, "JobId=%u using pool %s priority=%d\n", (int)jcr->JobId, 
             jcr->pool->name(), jcr->JobPriority);
+      Dmsg1(900, "Running a job; its spool_data = %d\n", jcr->spool_data);
       JobId = run_job(jcr);
       Dmsg4(100, "JobId=%u NewJobId=%d using pool %s priority=%d\n", (int)jcr->JobId, 
             JobId, jcr->pool->name(), jcr->JobPriority);
@@ -1008,6 +1011,7 @@ static bool scan_command_line_arguments(UAContext *ua, run_ctx &rc)
       "backupclient",                 /* 23 */
       "restoreclient",                /* 24 */
       "pluginoptions",                /* 25 */
+      "spooldata",                    /* 26 */
       NULL};
 
 #define YES_POS 14
@@ -1021,6 +1025,7 @@ static bool scan_command_line_arguments(UAContext *ua, run_ctx &rc)
    rc.fileset_name = NULL;
    rc.verify_job_name = NULL;
    rc.previous_job_name = NULL;
+   rc.spool_data_set = 0;
 
 
    for (i=1; i<ua->argc; i++) {
@@ -1225,6 +1230,18 @@ static bool scan_command_line_arguments(UAContext *ua, run_ctx &rc)
                }
                kw_ok = true;
                break;
+            case 26: /* spooldata */
+	       if (rc.spool_data_set) {
+                  ua->send_msg(_("Spool flag specified twice.\n"));
+                  return false;
+	       }
+               if (is_yesno(ua->argv[i], &rc.spool_data)) {
+                  rc.spool_data_set = 1;
+                  kw_ok = true;
+               } else {
+                  ua->send_msg(_("Invalid spooldata flag.\n"));
+               }
+               break;
             default:
                break;
             }
@@ -1304,6 +1321,11 @@ static bool scan_command_line_arguments(UAContext *ua, run_ctx &rc)
       return false;
    }
    Dmsg1(100, "Using pool %s\n", rc.pool->name());
+
+   if (rc.spool_data_set) {
+      rc.job->spool_data = rc.spool_data;
+   }
+   Dmsg1(900, "Spooling data: %s\n", (rc.job->spool_data ? "Yes" : "No"));
 
    if (rc.store_name) {
       rc.store->store = GetStoreResWithName(rc.store_name);
