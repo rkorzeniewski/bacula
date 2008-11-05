@@ -25,6 +25,7 @@ FileDaemon {                          # this is me
   Pid Directory = "@piddir@"
   SubSys Directory = "@subsysdir@"
   Plugin Directory = "@sbindir@/plugins"
+  Maximum Concurrent Jobs = 100
 }
 
 # Send all messages except skipped files back to Director
