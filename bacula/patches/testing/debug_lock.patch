@@ -1,0 +1,118 @@
+Index: src/cats/sql.c
+===================================================================
+--- src/cats/sql.c	(revision 7972)
++++ src/cats/sql.c	(working copy)
+@@ -311,6 +311,34 @@
+    return mdb->errmsg;
+ }
+ 
++static void update_lock_dbg(B_DB *mdb) {
++   if (mdb->allow_transactions) { /* batch connection */
++      return;
++   }
++   if (_db_lock_jcr && _db_lock_jcr != mdb->jcr) {
++      Dmsg2(1, "ERROR: not the same jcr %p != %p", _db_lock_jcr, mdb->jcr);
++   }
++   _db_lock_recurse_count++;
++   _db_lock_jobid = mdb->jcr->JobId;
++   _db_lock_time = (utime_t) time(NULL);
++   _db_lock_threadid = pthread_self();
++}
++
++static void update_unlock_dbg(B_DB *mdb) {
++   if (mdb->allow_transactions) { /* batch connection */
++      return;
++   }
++   if (!pthread_equal(_db_lock_threadid, pthread_self())) {
++      Dmsg2(1, "ERROR: not the same threadid %p != %p", _db_lock_threadid, pthread_self());
++   }
++   _db_lock_recurse_count--;
++   if (!_db_lock_recurse_count) {
++      _db_lock_jobid = 0;
++      _db_lock_time = 0;
++      memset(0, _db_lock_threadid, sizeof(_db_lock_threadid));
++   }
++}
++
+ /*
+  * Lock database, this can be called multiple times by the same
+  *   thread without blocking, but must be unlocked the number of
+@@ -324,6 +352,7 @@
+       e_msg(file, line, M_FATAL, 0, "rwl_writelock failure. stat=%d: ERR=%s\n",
+            errstat, be.bstrerror(errstat));
+    }
++   update_lock_dbg(mdb);
+ }
+ 
+ /*
+@@ -334,6 +363,7 @@
+ void _db_unlock(const char *file, int line, B_DB *mdb)
+ {
+    int errstat;
++   update_unlock_dbg(mdb);
+    if ((errstat=rwl_writeunlock(&mdb->lock)) != 0) {
+       berrno be;
+       e_msg(file, line, M_FATAL, 0, "rwl_writeunlock failure. stat=%d: ERR=%s\n",
+Index: src/lib/message.c
+===================================================================
+--- src/lib/message.c	(revision 7972)
++++ src/lib/message.c	(working copy)
+@@ -62,6 +62,26 @@
+ FILE *con_fd = NULL;                  /* Console file descriptor */
+ brwlock_t con_lock;                   /* Console lock structure */
+ 
++
++/*
++ * Global variables to get information about lock/unlock db access
++ */
++JCR *_db_lock_jcr = NULL;
++JobId_t _db_lock_jobid = 0;
++utime_t _db_lock_time = 0;
++int _db_lock_recurse_count = 0;
++pthread_t _db_lock_threadid;
++
++void print_lock_dbg()
++{
++   char buf[128];
++   bstrutime(buf, sizeof(buf), _db_lock_time);
++
++   Dmsg4(1, "lock info: recuse_count=%i jobid=%i time=%s threadid=%p\n",
++         _db_lock_recurse_count, _db_lock_jobid, _db_lock_time, _db_lock_threadid);
++}
++
++
+ /* Forward referenced functions */
+ 
+ /* Imported functions */
+Index: src/lib/message.h
+===================================================================
+--- src/lib/message.h	(revision 7972)
++++ src/lib/message.h	(working copy)
+@@ -163,3 +163,14 @@
+ extern DLL_IMP_EXP int           console_msg_pending;
+ extern DLL_IMP_EXP FILE *        con_fd;                 /* Console file descriptor */
+ extern DLL_IMP_EXP brwlock_t     con_lock;               /* Console lock structure */
++
++/* Used to debug database lock 
++ * which job takes the main DB access 
++ */
++void print_lock_dbg();
++extern DLL_IMP_EXP JCR *        _db_lock_jcr;
++extern DLL_IMP_EXP JobId_t      _db_lock_jobid;
++extern DLL_IMP_EXP utime_t      _db_lock_time;
++extern DLL_IMP_EXP int          _db_lock_recurse_count;
++extern DLL_IMP_EXP pthread_t    _db_lock_threadid;
++
+Index: src/lib/signal.c
+===================================================================
+--- src/lib/signal.c	(revision 7972)
++++ src/lib/signal.c	(working copy)
+@@ -104,6 +104,8 @@
+       pid_t pid;
+       int exelen = strlen(exepath);
+ 
++      print_lock_dbg();
++
+       fprintf(stderr, _("Kaboom! %s, %s got signal %d - %s. Attempting traceback.\n"),
+               exename, my_name, sig, get_signal_name(sig));
+       fprintf(stderr, _("Kaboom! exepath=%s\n"), exepath);
