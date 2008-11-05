@@ -318,9 +318,9 @@ int rwl_writeunlock(brwlock_t *rwl)
 
 #ifdef TEST_RWLOCK
 
-#define THREADS     5
+#define THREADS     50
 #define DATASIZE   15
-#define ITERATIONS 10000
+#define ITERATIONS 100000
 
 /*
  * Keep statics for each thread.
