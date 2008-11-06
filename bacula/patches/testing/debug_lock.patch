@@ -1,8 +1,8 @@
 Index: src/cats/sql.c
 ===================================================================
---- src/cats/sql.c	(revision 7972)
-+++ src/cats/sql.c	(working copy)
-@@ -311,6 +311,34 @@
+--- src/cats/sql.c	(révision 7981)
++++ src/cats/sql.c	(copie de travail)
+@@ -311,6 +311,36 @@
     return mdb->errmsg;
  }
  
@@ -10,11 +10,14 @@ Index: src/cats/sql.c
 +   if (mdb->allow_transactions) { /* batch connection */
 +      return;
 +   }
-+   if (_db_lock_jcr && _db_lock_jcr != mdb->jcr) {
-+      Dmsg2(1, "ERROR: not the same jcr %p != %p", _db_lock_jcr, mdb->jcr);
++   if (_db_lock_recurse_count && !pthread_equal(_db_lock_threadid, pthread_self())) {
++      Dmsg2(1, "ERROR: not the same threadif %p != %p\n", _db_lock_threadid, pthread_self());
 +   }
++//   if (_db_lock_jcr && _db_lock_jcr != mdb->jcr) {
++//      Dmsg2(1, "ERROR: not the same jcr %p != %p", _db_lock_jcr, mdb->jcr);
++//   }
 +   _db_lock_recurse_count++;
-+   _db_lock_jobid = mdb->jcr->JobId;
++//   _db_lock_jobid = mdb->jcr->JobId;
 +   _db_lock_time = (utime_t) time(NULL);
 +   _db_lock_threadid = pthread_self();
 +}
@@ -29,15 +32,14 @@ Index: src/cats/sql.c
 +   _db_lock_recurse_count--;
 +   if (!_db_lock_recurse_count) {
 +      _db_lock_jobid = 0;
-+      _db_lock_time = 0;
-+      memset(0, _db_lock_threadid, sizeof(_db_lock_threadid));
++      memset(&_db_lock_threadid, 0, sizeof(_db_lock_threadid));
 +   }
 +}
 +
  /*
   * Lock database, this can be called multiple times by the same
   *   thread without blocking, but must be unlocked the number of
-@@ -324,6 +352,7 @@
+@@ -324,6 +354,7 @@
        e_msg(file, line, M_FATAL, 0, "rwl_writelock failure. stat=%d: ERR=%s\n",
             errstat, be.bstrerror(errstat));
     }
@@ -45,7 +47,7 @@ Index: src/cats/sql.c
  }
  
  /*
-@@ -334,6 +363,7 @@
+@@ -334,6 +365,7 @@
  void _db_unlock(const char *file, int line, B_DB *mdb)
  {
     int errstat;
@@ -55,9 +57,9 @@ Index: src/cats/sql.c
        e_msg(file, line, M_FATAL, 0, "rwl_writeunlock failure. stat=%d: ERR=%s\n",
 Index: src/lib/message.c
 ===================================================================
---- src/lib/message.c	(revision 7972)
-+++ src/lib/message.c	(working copy)
-@@ -62,6 +62,26 @@
+--- src/lib/message.c	(révision 7981)
++++ src/lib/message.c	(copie de travail)
+@@ -62,6 +62,25 @@
  FILE *con_fd = NULL;                  /* Console file descriptor */
  brwlock_t con_lock;                   /* Console lock structure */
  
@@ -66,7 +68,7 @@ Index: src/lib/message.c
 + * Global variables to get information about lock/unlock db access
 + */
 +JCR *_db_lock_jcr = NULL;
-+JobId_t _db_lock_jobid = 0;
++uint32_t _db_lock_jobid = 0;
 +utime_t _db_lock_time = 0;
 +int _db_lock_recurse_count = 0;
 +pthread_t _db_lock_threadid;
@@ -76,18 +78,17 @@ Index: src/lib/message.c
 +   char buf[128];
 +   bstrutime(buf, sizeof(buf), _db_lock_time);
 +
-+   Dmsg4(1, "lock info: recuse_count=%i jobid=%i time=%s threadid=%p\n",
-+         _db_lock_recurse_count, _db_lock_jobid, _db_lock_time, _db_lock_threadid);
++   fprintf(stderr, "lock info: recurse_count=%i jobid=%i threadid=%i time=%s\n",
++           _db_lock_recurse_count, _db_lock_jobid, (int)_db_lock_threadid, buf);
 +}
-+
 +
  /* Forward referenced functions */
  
  /* Imported functions */
 Index: src/lib/message.h
 ===================================================================
---- src/lib/message.h	(revision 7972)
-+++ src/lib/message.h	(working copy)
+--- src/lib/message.h	(révision 7981)
++++ src/lib/message.h	(copie de travail)
 @@ -163,3 +163,14 @@
  extern DLL_IMP_EXP int           console_msg_pending;
  extern DLL_IMP_EXP FILE *        con_fd;                 /* Console file descriptor */
@@ -98,20 +99,71 @@ Index: src/lib/message.h
 + */
 +void print_lock_dbg();
 +extern DLL_IMP_EXP JCR *        _db_lock_jcr;
-+extern DLL_IMP_EXP JobId_t      _db_lock_jobid;
++extern DLL_IMP_EXP uint32_t     _db_lock_jobid;
 +extern DLL_IMP_EXP utime_t      _db_lock_time;
 +extern DLL_IMP_EXP int          _db_lock_recurse_count;
 +extern DLL_IMP_EXP pthread_t    _db_lock_threadid;
 +
+Index: src/lib/jcr.c
+===================================================================
+--- src/lib/jcr.c	(révision 7981)
++++ src/lib/jcr.c	(copie de travail)
+@@ -836,7 +836,37 @@
+    V(jcr_lock);
+ }
+ 
++/*
++ * This function should be used only after receiving a violent signal
++ * We walk through the JCR chain without doing any lock, bacula should
++ * not be running.
++ */
++void print_jcr_dbg()
++{
++   char buf1[128], buf2[128], buf3[128], buf4[128];
++   FILE *fp = stderr;
+ 
++   if (!jcrs)
++      return;
++
++   for (JCR *jcr = (JCR *)jcrs->first(); jcr ; jcr = (JCR *)jcrs->next(jcr)) {
++      if (!jcr) {
++         continue;
++      }
++      
++      fprintf(fp, "JCR=%p JobId=%i name=%s JobStatus=%c\n", jcr, jcr->JobId, jcr->Job, jcr->JobStatus);
++      fprintf(fp, "\tuse_count=%i threadid=%i\n", jcr->use_count(), (int)jcr->my_thread_id);
++      fprintf(fp, "\tJobType=%i JobLevel=%i\n", jcr->get_JobType(), jcr->get_JobLevel());
++      bstrftime(buf1, sizeof(buf1), jcr->sched_time);
++      bstrftime(buf2, sizeof(buf2), jcr->start_time);
++      bstrftime(buf3, sizeof(buf3), jcr->end_time);
++      bstrftime(buf4, sizeof(buf4), jcr->wait_time);
++      fprintf(fp, "\tsched_time=%s start_time=%s end_time=%s wait_time=%s\n", buf1, buf2, buf3, buf4);
++      fprintf(fp, "\tdequeing=%i\n", jcr->dequeuing);
++      fprintf(fp, "\tdb=%p db_batch=%p batch_started=%i\n", jcr->db, jcr->db_batch, jcr->batch_started);
++   }
++}
++
+ /*
+  * Start walk of jcr chain
+  * The proper way to walk the jcr chain is:
 Index: src/lib/signal.c
 ===================================================================
---- src/lib/signal.c	(revision 7972)
-+++ src/lib/signal.c	(working copy)
-@@ -104,6 +104,8 @@
+--- src/lib/signal.c	(révision 7981)
++++ src/lib/signal.c	(copie de travail)
+@@ -53,6 +53,7 @@
+ extern char my_name[];
+ extern char *exepath;
+ extern char *exename;
++extern void print_jcr_dbg();
+ 
+ static const char *sig_names[BA_NSIG+1];
+ 
+@@ -104,6 +105,9 @@
        pid_t pid;
        int exelen = strlen(exepath);
  
 +      print_lock_dbg();
++      print_jcr_dbg();
 +
        fprintf(stderr, _("Kaboom! %s, %s got signal %d - %s. Attempting traceback.\n"),
                exename, my_name, sig, get_signal_name(sig));
