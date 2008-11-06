@@ -175,6 +175,7 @@ void *handle_connection_request(void *arg)
    if (sscanf(bs->msg, "Hello Start Job %127s", name) == 1) {
       Dmsg1(110, "Got a FD connection at %s\n", bstrftimes(tbuf, sizeof(tbuf), 
             (utime_t)time(NULL)));
+      Dmsg1(50, "%s", bs->msg);
       handle_filed_connection(bs, name);
       return NULL;
    }

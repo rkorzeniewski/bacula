@@ -154,7 +154,7 @@ bool job_cmd(JCR *jcr)
    bsnprintf(seed, sizeof(seed), "%p%d", jcr, JobId);
    make_session_key(auth_key, seed, 1);
    dir->fsend(OKjob, jcr->VolSessionId, jcr->VolSessionTime, auth_key);
-   Dmsg2(100, ">dird jid=%u: %s", (uint32_t)jcr->JobId, dir->msg);
+   Dmsg2(50, ">dird jid=%u: %s", (uint32_t)jcr->JobId, dir->msg);
    jcr->sd_auth_key = bstrdup(auth_key);
    memset(auth_key, 0, sizeof(auth_key));
    generate_daemon_event(jcr, "JobStart");
@@ -186,7 +186,7 @@ bool run_cmd(JCR *jcr)
    timeout.tv_nsec = tv.tv_usec * 1000;
    timeout.tv_sec = tv.tv_sec + me->client_wait;
 
-   Dmsg3(050, "%s waiting %d sec for FD to contact SD key=%s\n",
+   Dmsg3(50, "%s waiting %d sec for FD to contact SD key=%s\n",
          jcr->Job, (int)(timeout.tv_sec-time(NULL)), jcr->sd_auth_key);
 
    /*
@@ -201,14 +201,14 @@ bool run_cmd(JCR *jcr)
          break;
       }
    }
-   Dmsg3(100, "Auth=%d canceled=%d errstat=%d\n", jcr->authenticated,
+   Dmsg3(50, "Auth=%d canceled=%d errstat=%d\n", jcr->authenticated,
       job_canceled(jcr), errstat);
    V(mutex);
 
    memset(jcr->sd_auth_key, 0, strlen(jcr->sd_auth_key));
 
    if (jcr->authenticated && !job_canceled(jcr)) {
-      Dmsg1(100, "Running job %s\n", jcr->Job);
+      Dmsg1(50, "Running job %s\n", jcr->Job);
       run_job(jcr);                   /* Run the job */
    }
    return false;
@@ -230,30 +230,35 @@ void handle_filed_connection(BSOCK *fd, char *job_name)
    if (!(jcr=get_jcr_by_full_name(job_name))) {
       Jmsg1(NULL, M_FATAL, 0, _("FD connect failed: Job name not found: %s\n"), job_name);
       Dmsg1(3, "**** Job \"%s\" not found.\n", job_name);
+      fd->close();
+      return;
+   }
+
+
+   Dmsg1(50, "Found Job %s\n", job_name);
+
+   if (jcr->authenticated) {
+      Jmsg2(jcr, M_FATAL, 0, _("Hey!!!! JobId %u Job %s already authenticated.\n"),
+         (uint32_t)jcr->JobId, jcr->Job);
+      Dmsg2(50, "Hey!!!! JobId %u Job %s already authenticated.\n",
+         (uint32_t)jcr->JobId, jcr->Job);
+      fd->close();
+      free_jcr(jcr);
       return;
    }
 
    jcr->file_bsock = fd;
    jcr->file_bsock->set_jcr(jcr);
 
-   Dmsg1(110, "Found Job %s\n", job_name);
-
-   if (jcr->authenticated) {
-      Jmsg2(jcr, M_FATAL, 0, _("Hey!!!! JobId %u Job %s already authenticated.\n"),
-         (uint32_t)jcr->JobId, jcr->Job);
-      free_jcr(jcr);
-      return;
-   }
-
    /*
     * Authenticate the File daemon
     */
    if (jcr->authenticated || !authenticate_filed(jcr)) {
-      Dmsg1(100, "Authentication failed Job %s\n", jcr->Job);
+      Dmsg1(50, "Authentication failed Job %s\n", jcr->Job);
       Jmsg(jcr, M_FATAL, 0, _("Unable to authenticate File daemon\n"));
    } else {
       jcr->authenticated = true;
-      Dmsg2(110, "OK Authentication jid=%u Job %s\n", (uint32_t)jcr->JobId, jcr->Job);
+      Dmsg2(50, "OK Authentication jid=%u Job %s\n", (uint32_t)jcr->JobId, jcr->Job);
    }
 
    if (!jcr->authenticated) {
