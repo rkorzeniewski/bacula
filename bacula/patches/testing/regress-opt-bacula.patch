@@ -1,20 +1,3 @@
-Index: scripts/copy-tls-confs
-===================================================================
---- scripts/copy-tls-confs	(révision 7895)
-+++ scripts/copy-tls-confs	(copie de travail)
-@@ -1,8 +1,8 @@
- #!/bin/sh
- 
--/bin/cp -f scripts/tls-bacula-dir.conf bin/bacula-dir.conf
--/bin/cp -f scripts/tls-bacula-sd.conf bin/bacula-sd.conf
--/bin/cp -f scripts/tls-bacula-fd.conf bin/bacula-fd.conf
--/bin/cp -f scripts/test-console.conf bin/bconsole.conf
-+/bin/cp -f scripts/tls-bacula-dir.conf $bin/bacula-dir.conf
-+/bin/cp -f scripts/tls-bacula-sd.conf $bin/bacula-sd.conf
-+/bin/cp -f scripts/tls-bacula-fd.conf $bin/bacula-fd.conf
-+/bin/cp -f scripts/test-console.conf $bin/bconsole.conf
- /bin/cp -f scripts/tls-CA.pem bin/tls-CA.pem
- /bin/cp -f scripts/tls-cert.pem bin/tls-cert.pem
 Index: scripts/cleanup-tape.in
 ===================================================================
 --- scripts/cleanup-tape.in	(révision 7895)
@@ -85,60 +68,6 @@ Index: scripts/prepare-two-tapes.in
        ;;
     *)
        echo "Something went wrong. Expected $SLOT1 or $SLOT2, got $slot"
-Index: scripts/copy-2tape-confs
-===================================================================
---- scripts/copy-2tape-confs	(révision 7895)
-+++ scripts/copy-2tape-confs	(copie de travail)
-@@ -1,11 +1,10 @@
- #!/bin/sh
--/bin/cp -f scripts/bacula-dir-tape.conf bin/bacula-dir.conf
--/bin/cp -f scripts/bacula-sd-2tape.conf bin/bacula-sd.conf
--/bin/cp -f scripts/test-bacula-fd.conf bin/bacula-fd.conf
--/bin/cp -f scripts/test-console.conf bin/bconsole.conf
-+/bin/cp -f scripts/bacula-sd-2tape.conf $bin/bacula-sd.conf
-+/bin/cp -f scripts/test-bacula-fd.conf $bin/bacula-fd.conf
-+/bin/cp -f scripts/test-console.conf $bin/bconsole.conf
- outf="tmp/sed_tmp"
- echo "s%# Autochanger = yes%  Autochanger = yes%g" >${outf}
--cp bin/bacula-dir.conf tmp/1
--sed -f ${outf} tmp/1 >bin/bacula-dir.conf
-+cp $bin/bacula-dir.conf tmp/1
-+sed -f ${outf} scripts/bacula-dir-tape.conf > $bin/bacula-dir.conf
- 
- scripts/set_tape_options
-Index: scripts/copy-tls-auth-conf
-===================================================================
---- scripts/copy-tls-auth-conf	(révision 7895)
-+++ scripts/copy-tls-auth-conf	(copie de travail)
-@@ -1,8 +1,8 @@
- #!/bin/sh
- 
--/bin/cp -f scripts/tls-auth-bacula-dir.conf bin/bacula-dir.conf
--/bin/cp -f scripts/tls-auth-bacula-sd.conf bin/bacula-sd.conf
--/bin/cp -f scripts/tls-auth-bacula-fd.conf bin/bacula-fd.conf
--/bin/cp -f scripts/test-console.conf bin/bconsole.conf
-+/bin/cp -f scripts/tls-auth-bacula-dir.conf $bin/bacula-dir.conf
-+/bin/cp -f scripts/tls-auth-bacula-sd.conf $bin/bacula-sd.conf
-+/bin/cp -f scripts/tls-auth-bacula-fd.conf $bin/bacula-fd.conf
-+/bin/cp -f scripts/test-console.conf $bin/bconsole.conf
- /bin/cp -f scripts/tls-CA.pem bin/tls-CA.pem
- /bin/cp -f scripts/tls-cert.pem bin/tls-cert.pem
-Index: scripts/copy-crypto-confs
-===================================================================
---- scripts/copy-crypto-confs	(révision 7895)
-+++ scripts/copy-crypto-confs	(copie de travail)
-@@ -1,7 +1,7 @@
- #!/bin/sh
--/bin/cp -f scripts/new-test-bacula-dir.conf bin/bacula-dir.conf
--/bin/cp -f scripts/test-bacula-sd.conf bin/bacula-sd.conf
--/bin/cp -f scripts/crypto-bacula-fd.conf bin/bacula-fd.conf
--/bin/cp -f scripts/test-console.conf bin/bconsole.conf
-+/bin/cp -f scripts/new-test-bacula-dir.conf $bin/bacula-dir.conf
-+/bin/cp -f scripts/test-bacula-sd.conf $bin/bacula-sd.conf
-+/bin/cp -f scripts/crypto-bacula-fd.conf $bin/bacula-fd.conf
-+/bin/cp -f scripts/test-console.conf $bin/bconsole.conf
- /bin/cp -f scripts/cryptokeypair.pem bin/cryptokeypair.pem
- /bin/cp -f scripts/master2048.cert bin/master2048.cert
 Index: scripts/check_for_zombie_jobs
 ===================================================================
 --- scripts/check_for_zombie_jobs	(révision 7895)
@@ -148,85 +77,10 @@ Index: scripts/check_for_zombie_jobs
  fi
  
 -bin/bconsole -c bin/bconsole.conf <<END_OF_DATA 2>&1 >/dev/null
-+$bin/bconsole -c $bin/bconsole.conf <<END_OF_DATA 2>&1 >/dev/null
++$bin/bconsole -c bin/bconsole.conf <<END_OF_DATA 2>&1 >/dev/null
  @output tmp/dir.out
  status dir
  @output tmp/fd.out
-Index: scripts/copy-2client-confs
-===================================================================
---- scripts/copy-2client-confs	(révision 7895)
-+++ scripts/copy-2client-confs	(copie de travail)
-@@ -1,9 +1,10 @@
- #!/bin/sh
--/bin/cp -f scripts/bacula-dir-2client.conf bin/bacula-dir.conf
--/bin/cp -f scripts/bacula-sd-2disk-drive.conf bin/bacula-sd.conf
--/bin/cp -f scripts/test-bacula-fd.conf bin/bacula-fd.conf
--/bin/cp -f scripts/test-console.conf bin/bconsole.conf
-+
-+/bin/cp -f scripts/bacula-dir-2client.conf $bin/bacula-dir.conf
-+/bin/cp -f scripts/bacula-sd-2disk-drive.conf $bin/bacula-sd.conf
-+/bin/cp -f scripts/test-bacula-fd.conf $bin/bacula-fd.conf
-+/bin/cp -f scripts/test-console.conf $bin/bconsole.conf
- outf="tmp/sed_tmp"
- echo "s%# Autochanger = yes%  Autochanger = yes%g" >${outf}
--cp bin/bacula-dir.conf tmp/1
--sed -f ${outf} tmp/1 >bin/bacula-dir.conf
-+cp $bin/bacula-dir.conf tmp/1
-+sed -f ${outf} tmp/1 >$bin/bacula-dir.conf
-Index: scripts/copy-confs
-===================================================================
---- scripts/copy-confs	(révision 7895)
-+++ scripts/copy-confs	(copie de travail)
-@@ -1,7 +1,7 @@
- #!/bin/sh
--/bin/cp -f scripts/bacula-dir.conf bin/bacula-dir.conf
--/bin/cp -f scripts/bacula-sd.conf bin/bacula-sd.conf
--/bin/cp -f scripts/bacula-fd.conf bin/bacula-fd.conf
--/bin/cp -f scripts/bconsole.conf bin/bconsole.conf
-+/bin/cp -f scripts/bacula-dir.conf $bin/bacula-dir.conf
-+/bin/cp -f scripts/bacula-sd.conf $bin/bacula-sd.conf
-+/bin/cp -f scripts/bacula-fd.conf $bin/bacula-fd.conf
-+/bin/cp -f scripts/bconsole.conf $bin/bconsole.conf
- 
- scripts/set_tape_options
-Index: scripts/copy-win32-confs
-===================================================================
---- scripts/copy-win32-confs	(révision 7895)
-+++ scripts/copy-win32-confs	(copie de travail)
-@@ -1,7 +1,7 @@
- #!/bin/sh
--/bin/cp -f scripts/win32-bacula-dir-tape.conf bin/bacula-dir.conf
--/bin/cp -f scripts/win32-bacula-sd-tape.conf bin/bacula-sd.conf
--/bin/cp -f scripts/win32-bacula-fd.conf bin/bacula-fd.conf
--/bin/cp -f scripts/test-console.conf bin/bconsole.conf
-+/bin/cp -f scripts/win32-bacula-dir-tape.conf $bin/bacula-dir.conf
-+/bin/cp -f scripts/win32-bacula-sd-tape.conf $bin/bacula-sd.conf
-+/bin/cp -f scripts/win32-bacula-fd.conf $bin/bacula-fd.conf
-+/bin/cp -f scripts/test-console.conf $bin/bconsole.conf
- 
- scripts/set_tape_options
-Index: scripts/copy-2disk-confs
-===================================================================
---- scripts/copy-2disk-confs	(révision 7895)
-+++ scripts/copy-2disk-confs	(copie de travail)
-@@ -2,11 +2,11 @@
- #
- # Setup for using the Virtual Disk Changer (simulates tape changer)
- #
--/bin/cp -f scripts/bacula-dir-tape.conf bin/bacula-dir.conf
--/bin/cp -f scripts/bacula-sd-2disk.conf bin/bacula-sd.conf
--/bin/cp -f scripts/test-bacula-fd.conf bin/bacula-fd.conf
--/bin/cp -f scripts/test-console.conf bin/bconsole.conf
-+/bin/cp -f scripts/bacula-dir-tape.conf $bin/bacula-dir.conf
-+/bin/cp -f scripts/bacula-sd-2disk.conf $bin/bacula-sd.conf
-+/bin/cp -f scripts/test-bacula-fd.conf $bin/bacula-fd.conf
-+/bin/cp -f scripts/test-console.conf $bin/bconsole.conf
- outf="tmp/sed_tmp"
- echo "s%# Autochanger = yes%  Autochanger = yes%g" >${outf}
--cp bin/bacula-dir.conf tmp/1
--sed -f ${outf} tmp/1 >bin/bacula-dir.conf
-+cp $bin/bacula-dir.conf tmp/1
-+sed -f ${outf} tmp/1 >$bin/bacula-dir.conf
 Index: scripts/setup
 ===================================================================
 --- scripts/setup	(révision 7895)
@@ -239,141 +93,6 @@ Index: scripts/setup
  rm -rf build bin
  # Copy new source
  echo "Copying source from ${BACULA_SOURCE}"
-Index: scripts/copy-virtual-confs
-===================================================================
---- scripts/copy-virtual-confs	(révision 7895)
-+++ scripts/copy-virtual-confs	(copie de travail)
-@@ -2,7 +2,7 @@
- #
- # Setup for using the Virtual Disk Changer (simulates tape changer)
- #
--/bin/cp -f scripts/bacula-dir-virtual.conf bin/bacula-dir.conf
--/bin/cp -f scripts/bacula-sd-virtual.conf bin/bacula-sd.conf
--/bin/cp -f scripts/test-bacula-fd.conf bin/bacula-fd.conf
--/bin/cp -f scripts/test-console.conf bin/bconsole.conf
-+/bin/cp -f scripts/bacula-dir-virtual.conf $bin/bacula-dir.conf
-+/bin/cp -f scripts/bacula-sd-virtual.conf $bin/bacula-sd.conf
-+/bin/cp -f scripts/test-bacula-fd.conf $bin/bacula-fd.conf
-+/bin/cp -f scripts/test-console.conf $bin/bconsole.conf
-Index: scripts/copy-migration-confs
-===================================================================
---- scripts/copy-migration-confs	(révision 7895)
-+++ scripts/copy-migration-confs	(copie de travail)
-@@ -2,7 +2,7 @@
- #
- # Setup for using the Virtual Disk Changer (simulates tape changer)
- #
--/bin/cp -f scripts/bacula-dir-migration.conf bin/bacula-dir.conf
--/bin/cp -f scripts/bacula-sd-migration.conf bin/bacula-sd.conf
--/bin/cp -f scripts/test-bacula-fd.conf bin/bacula-fd.conf
--/bin/cp -f scripts/test-console.conf bin/bconsole.conf
-+/bin/cp -f scripts/bacula-dir-migration.conf $bin/bacula-dir.conf
-+/bin/cp -f scripts/bacula-sd-migration.conf $bin/bacula-sd.conf
-+/bin/cp -f scripts/test-bacula-fd.conf $bin/bacula-fd.conf
-+/bin/cp -f scripts/test-console.conf $bin/bconsole.conf
-Index: scripts/copy-2drive-confs
-===================================================================
---- scripts/copy-2drive-confs	(révision 7895)
-+++ scripts/copy-2drive-confs	(copie de travail)
-@@ -1,11 +1,9 @@
- #!/bin/sh
--/bin/cp -f scripts/bacula-dir-tape.conf bin/bacula-dir.conf
--/bin/cp -f scripts/bacula-sd-2drive.conf bin/bacula-sd.conf
--/bin/cp -f scripts/test-bacula-fd.conf bin/bacula-fd.conf
--/bin/cp -f scripts/test-console.conf bin/bconsole.conf
-+/bin/cp -f scripts/bacula-sd-2drive.conf $bin/bacula-sd.conf
-+/bin/cp -f scripts/test-bacula-fd.conf $bin/bacula-fd.conf
-+/bin/cp -f scripts/test-console.conf $bin/bconsole.conf
- outf="tmp/sed_tmp"
- echo "s%# Autochanger = yes%  Autochanger = yes%g" >${outf}
--cp bin/bacula-dir.conf tmp/1
--sed -f ${outf} tmp/1 >bin/bacula-dir.conf
-+sed -f ${outf} scripts/bacula-dir-tape.conf > $bin/bacula-dir.conf
- 
- scripts/set_tape_options
-Index: scripts/copy-strip-confs
-===================================================================
---- scripts/copy-strip-confs	(révision 7895)
-+++ scripts/copy-strip-confs	(copie de travail)
-@@ -1,7 +1,7 @@
- #!/bin/sh
--/bin/cp -f scripts/bacula-dir-strip.conf bin/bacula-dir.conf
--/bin/cp -f scripts/test-bacula-sd.conf bin/bacula-sd.conf
--/bin/cp -f scripts/test-bacula-fd.conf bin/bacula-fd.conf
--/bin/cp -f scripts/test-console.conf bin/bconsole.conf
-+/bin/cp -f scripts/bacula-dir-strip.conf $bin/bacula-dir.conf
-+/bin/cp -f scripts/test-bacula-sd.conf $bin/bacula-sd.conf
-+/bin/cp -f scripts/test-bacula-fd.conf $bin/bacula-fd.conf
-+/bin/cp -f scripts/test-console.conf $bin/bconsole.conf
- 
- scripts/set_tape_options
-Index: scripts/copy-test-confs
-===================================================================
---- scripts/copy-test-confs	(révision 7895)
-+++ scripts/copy-test-confs	(copie de travail)
-@@ -1,7 +1,7 @@
- #!/bin/sh
--/bin/cp -f scripts/new-test-bacula-dir.conf bin/bacula-dir.conf
--/bin/cp -f scripts/test-bacula-sd.conf bin/bacula-sd.conf
--/bin/cp -f scripts/test-bacula-fd.conf bin/bacula-fd.conf
--/bin/cp -f scripts/test-console.conf bin/bconsole.conf
-+/bin/cp -f scripts/new-test-bacula-dir.conf $bin/bacula-dir.conf
-+/bin/cp -f scripts/test-bacula-sd.conf $bin/bacula-sd.conf
-+/bin/cp -f scripts/test-bacula-fd.conf $bin/bacula-fd.conf
-+/bin/cp -f scripts/test-console.conf $bin/bconsole.conf
- 
- scripts/set_tape_options
-Index: scripts/copy-2disk-drive-confs
-===================================================================
---- scripts/copy-2disk-drive-confs	(révision 7895)
-+++ scripts/copy-2disk-drive-confs	(copie de travail)
-@@ -1,10 +1,8 @@
- #!/bin/sh
--/bin/cp -f scripts/bacula-dir-tape.conf bin/bacula-dir.conf
--/bin/cp -f scripts/bacula-sd-2disk-drive.conf bin/bacula-sd.conf
--/bin/cp -f scripts/test-bacula-fd.conf bin/bacula-fd.conf
--/bin/cp -f scripts/test-console.conf bin/bconsole.conf
-+/bin/cp -f scripts/bacula-sd-2disk-drive.conf $bin/bacula-sd.conf
-+/bin/cp -f scripts/test-bacula-fd.conf $bin/bacula-fd.conf
-+/bin/cp -f scripts/test-console.conf $bin/bconsole.conf
- outf="tmp/sed_tmp"
- echo "s%# Autochanger = yes%  Autochanger = yes%g" >${outf}
--cp bin/bacula-dir.conf tmp/1
--sed -f ${outf} tmp/1 >bin/bacula-dir.conf
-+sed -f ${outf} scripts/bacula-dir-tape.conf > $bin/bacula-dir.conf
- 
-Index: scripts/copy-fifo-confs
-===================================================================
---- scripts/copy-fifo-confs	(révision 7895)
-+++ scripts/copy-fifo-confs	(copie de travail)
-@@ -1,7 +1,7 @@
- #!/bin/sh
--/bin/cp -f scripts/bacula-dir-fifo.conf bin/bacula-dir.conf
--/bin/cp -f scripts/bacula-sd-fifo.conf bin/bacula-sd.conf
--/bin/cp -f scripts/test-bacula-fd.conf bin/bacula-fd.conf
--/bin/cp -f scripts/test-console.conf bin/bconsole.conf
-+/bin/cp -f scripts/bacula-dir-fifo.conf $bin/bacula-dir.conf
-+/bin/cp -f scripts/bacula-sd-fifo.conf $bin/bacula-sd.conf
-+/bin/cp -f scripts/test-bacula-fd.conf $bin/bacula-fd.conf
-+/bin/cp -f scripts/test-console.conf $bin/bconsole.conf
- 
- scripts/set_tape_options
-Index: scripts/copy-tape-confs
-===================================================================
---- scripts/copy-tape-confs	(révision 7895)
-+++ scripts/copy-tape-confs	(copie de travail)
-@@ -1,7 +1,7 @@
- #!/bin/sh
--/bin/cp -f scripts/bacula-dir-tape.conf bin/bacula-dir.conf
--/bin/cp -f scripts/bacula-sd-tape.conf bin/bacula-sd.conf
--/bin/cp -f scripts/test-bacula-fd.conf bin/bacula-fd.conf
--/bin/cp -f scripts/test-console.conf bin/bconsole.conf
-+/bin/cp -f scripts/bacula-dir-tape.conf $bin/bacula-dir.conf
-+/bin/cp -f scripts/bacula-sd-tape.conf $bin/bacula-sd.conf
-+/bin/cp -f scripts/test-bacula-fd.conf $bin/bacula-fd.conf
-+/bin/cp -f scripts/test-console.conf $bin/bconsole.conf
- 
- scripts/set_tape_options
 Index: scripts/cleanup-2drive.in
 ===================================================================
 --- scripts/cleanup-2drive.in	(révision 7895)
@@ -429,22 +148,6 @@ Index: scripts/cleanup-2drive.in
 -   bin/@changer_script@ @autochanger@ unload $SLOT1 @tape_drive@ 0
 +   $scripts/@changer_script@ @autochanger@ unload $SLOT1 @tape_drive@ 0
  fi
-Index: scripts/copy-testa-confs
-===================================================================
---- scripts/copy-testa-confs	(révision 7895)
-+++ scripts/copy-testa-confs	(copie de travail)
-@@ -1,7 +1,7 @@
- #!/bin/sh
--/bin/cp -f scripts/testa-bacula-dir.conf bin/bacula-dir.conf
--/bin/cp -f scripts/test-bacula-sd.conf bin/bacula-sd.conf
--/bin/cp -f scripts/test-bacula-fd.conf bin/bacula-fd.conf
--/bin/cp -f scripts/test-console.conf bin/bconsole.conf
-+/bin/cp -f scripts/testa-bacula-dir.conf $bin/bacula-dir.conf
-+/bin/cp -f scripts/test-bacula-sd.conf $bin/bacula-sd.conf
-+/bin/cp -f scripts/test-bacula-fd.conf $bin/bacula-fd.conf
-+/bin/cp -f scripts/test-console.conf $bin/bconsole.conf
- 
- scripts/set_tape_options
 Index: scripts/functions
 ===================================================================
 --- scripts/functions	(révision 7895)
@@ -456,12 +159,12 @@ Index: scripts/functions
 -   cp bin/bacula-dir.conf tmp/1
 -   sed -f ${outf} tmp/1 >bin/bacula-dir.conf
 +   cp $bin/bacula-dir.conf tmp/1
-+   sed -f ${outf} tmp/1 >$bin/bacula-dir.conf
++   sed -f ${outf} tmp/1 > bin/bacula-dir.conf
     echo " "
     echo " "
     echo " === Starting $TestName at `date +%R:%S` ==="
 -   echo " === Starting $TestName at `date +%R:%S` ===" >>working/log
-+   echo " === Starting $TestName at `date +%R:%S` ===" >>$working/log
++   echo " === Starting $TestName at `date +%R:%S` ===" >> working/log
     echo " "
     export zstat
  }
@@ -476,13 +179,13 @@ Index: scripts/functions
 +     $bin/bacula-ctl-sd start
 +     $bin/bacula-ctl-fd start $1
 +     $bin/bacula-ctl-dir start
-+     cat tmp/bconcmds | $bin/bconsole -c $bin/bconsole.conf
++     cat tmp/bconcmds | $bin/bconsole -c bin/bconsole.conf
       return $?
     else
 -     bin/bacula start 2>&1 >/dev/null
 -     cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf  2>&1 >/dev/null
 +     $bin/bacula start >/dev/null 2>&1
-+     cat tmp/bconcmds | $bin/bconsole -c $bin/bconsole.conf >/dev/null 2>&1
++     cat tmp/bconcmds | $bin/bconsole -c bin/bconsole.conf >/dev/null 2>&1
       return $?
     fi
  }
@@ -491,10 +194,10 @@ Index: scripts/functions
  {
     if test "$debug" -eq 1 ; then
 -     cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf
-+     cat tmp/bconcmds | $bin/bconsole -c $bin/bconsole.conf
++     cat tmp/bconcmds | $bin/bconsole -c bin/bconsole.conf
     else
 -     cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf  2>&1 >/dev/null
-+     cat tmp/bconcmds | $bin/bconsole -c $bin/bconsole.conf  2>&1 >/dev/null
++     cat tmp/bconcmds | $bin/bconsole -c bin/bconsole.conf  2>&1 >/dev/null
     fi
  }
  
@@ -502,10 +205,10 @@ Index: scripts/functions
  {
     if test "$debug" -eq 1 ; then
 -     cat tmp/bconcmds | bin/btape -c bin/bacula-sd.conf DDS-4 | tee tmp/log1.out
-+     cat tmp/bconcmds | $bin/btape -c $bin/bacula-sd.conf DDS-4 | tee tmp/log1.out
++     cat tmp/bconcmds | $bin/btape -c bin/bacula-sd.conf DDS-4 | tee tmp/log1.out
     else
 -     cat tmp/bconcmds | bin/btape -c bin/bacula-sd.conf DDS-4 2>&1 >tmp/log1.out
-+     cat tmp/bconcmds | $bin/btape -c $bin/bacula-sd.conf DDS-4 >tmp/log1.out 2>&1
++     cat tmp/bconcmds | $bin/btape -c bin/bacula-sd.conf DDS-4 >tmp/log1.out 2>&1
     fi
  }
  
@@ -529,45 +232,16 @@ Index: scripts/functions
  }
  
  check_for_zombie_jobs()
-@@ -218,23 +218,23 @@
-       oldname=$1
-       newname=$2
-    fi
--   rm -f bin/1
--   mv bin/bacula-dir.conf bin/1
-+   rm -f $bin/1
-+   mv $bin/bacula-dir.conf $bin/1
-    echo "s%${oldname}%${newname}%g" >tmp/1
--   sed -f tmp/1 bin/1 >bin/bacula-dir.conf
-+   sed -f tmp/1 $bin/1 >$bin/bacula-dir.conf
- #  echo "Job ${oldname} changed to ${newname}"
- }
- 
- check_two_logs()
- {
-    grep "^  Termination: *Backup OK" tmp/log1.out 2>&1 >/dev/null
--   bstat=${bstat-$?}
-+   bstat=${bstat:-$?}
-    grep "^  Termination: .*Backup Error" tmp/log1.out 2>&1 >/dev/null
-    if test $? -eq 0; then
-       bstat=2
-    fi
-    grep "^  Termination: *Restore OK" tmp/log2.out 2>&1 >/dev/null
--   rstat=${rstat-$?}
-+   rstat=${rstat:-$?}
-    grep "^  Termination: .*Restore Error" tmp/log2.out 2>&1 >/dev/null
-    if test $? -eq 0; then
-       rstat=2
 @@ -356,10 +356,10 @@
  load_slot1() 
  {
  # Get a tape from slot1
 -slot=`bin/$MTX ${AUTOCHANGER} loaded 0 ${TAPE_DRIVE} $DRIVE1`
-+slot=`$bin/$MTX ${AUTOCHANGER} loaded 0 ${TAPE_DRIVE} $DRIVE1`
++slot=`$scripts/$MTX ${AUTOCHANGER} loaded 0 ${TAPE_DRIVE} $DRIVE1`
  case $slot in
   0)
 -    bin/$MTX ${AUTOCHANGER} load $SLOT1 ${TAPE_DRIVE} $DRIVE1
-+    $bin/$MTX ${AUTOCHANGER} load $SLOT1 ${TAPE_DRIVE} $DRIVE1
++    $scripts/$MTX ${AUTOCHANGER} load $SLOT1 ${TAPE_DRIVE} $DRIVE1
      slot=$SLOT1
      ;;
   $SLOT1)
@@ -577,8 +251,8 @@ Index: scripts/functions
      rewind_drive ${TAPE_DRIVE}
 -    bin/$MTX ${AUTOCHANGER} unload $slot  ${TAPE_DRIVE} $DRIVE1
 -    bin/$MTX ${AUTOCHANGER} load   $SLOT1 ${TAPE_DRIVE} $DRIVE1
-+    $bin/$MTX ${AUTOCHANGER} unload $slot  ${TAPE_DRIVE} $DRIVE1
-+    $bin/$MTX ${AUTOCHANGER} load   $SLOT1 ${TAPE_DRIVE} $DRIVE1
++    $scripts/$MTX ${AUTOCHANGER} unload $slot  ${TAPE_DRIVE} $DRIVE1
++    $scripts/$MTX ${AUTOCHANGER} load   $SLOT1 ${TAPE_DRIVE} $DRIVE1
      slot=$SLOT1
      ;;
  esac
@@ -587,21 +261,21 @@ Index: scripts/functions
  case $1 in
   0)
 -    bin/${AUTOCHANGER_SCRIPT} ${AUTOCHANGER} load $SLOT1 ${TAPE_DRIVE} $DRIVE1
-+    $bin/${AUTOCHANGER_SCRIPT} ${AUTOCHANGER} load $SLOT1 ${TAPE_DRIVE} $DRIVE1
++    $scripts/${AUTOCHANGER_SCRIPT} ${AUTOCHANGER} load $SLOT1 ${TAPE_DRIVE} $DRIVE1
      slot=1
      ;;
   $SLOT1)
 -    bin/${AUTOCHANGER_SCRIPT} ${AUTOCHANGER} unload $1 ${TAPE_DRIVE} $DRIVE1
 -    bin/${AUTOCHANGER_SCRIPT} ${AUTOCHANGER} load $SLOT2 ${TAPE_DRIVE} $DRIVE1
-+    $bin/${AUTOCHANGER_SCRIPT} ${AUTOCHANGER} unload $1 ${TAPE_DRIVE} $DRIVE1
-+    $bin/${AUTOCHANGER_SCRIPT} ${AUTOCHANGER} load $SLOT2 ${TAPE_DRIVE} $DRIVE1
++    $scripts/${AUTOCHANGER_SCRIPT} ${AUTOCHANGER} unload $1 ${TAPE_DRIVE} $DRIVE1
++    $scripts/${AUTOCHANGER_SCRIPT} ${AUTOCHANGER} load $SLOT2 ${TAPE_DRIVE} $DRIVE1
      slot=2
      ;;
   $SLOT2)
 -    bin/${AUTOCHANGER_SCRIPT} ${AUTOCHANGER} unload $1 ${TAPE_DRIVE} $DRIVE1
 -    bin/${AUTOCHANGER_SCRIPT} ${AUTOCHANGER} load $SLOT1 ${TAPE_DRIVE} $DRIVE1
-+    $bin/${AUTOCHANGER_SCRIPT} ${AUTOCHANGER} unload $1 ${TAPE_DRIVE} $DRIVE1
-+    $bin/${AUTOCHANGER_SCRIPT} ${AUTOCHANGER} load $SLOT1 ${TAPE_DRIVE} $DRIVE1
++    $scripts/${AUTOCHANGER_SCRIPT} ${AUTOCHANGER} unload $1 ${TAPE_DRIVE} $DRIVE1
++    $scripts/${AUTOCHANGER_SCRIPT} ${AUTOCHANGER} load $SLOT1 ${TAPE_DRIVE} $DRIVE1
      slot=1
      ;;
   *)
@@ -641,97 +315,6 @@ Index: scripts/functions
 +LD_LIBRARY_PATH=$bin
  export LD_LIBRARY_PATH
  
-Index: scripts/copy-plugin-confs
-===================================================================
---- scripts/copy-plugin-confs	(révision 7895)
-+++ scripts/copy-plugin-confs	(copie de travail)
-@@ -1,7 +1,7 @@
- #!/bin/sh
--/bin/cp -f scripts/plugin-test-bacula-dir.conf bin/bacula-dir.conf
--/bin/cp -f scripts/test-bacula-sd.conf bin/bacula-sd.conf
--/bin/cp -f scripts/test-bacula-fd.conf bin/bacula-fd.conf
--/bin/cp -f scripts/test-console.conf bin/bconsole.conf
-+/bin/cp -f scripts/plugin-test-bacula-dir.conf $bin/bacula-dir.conf
-+/bin/cp -f scripts/test-bacula-sd.conf $bin/bacula-sd.conf
-+/bin/cp -f scripts/test-bacula-fd.conf $bin/bacula-fd.conf
-+/bin/cp -f scripts/test-console.conf $bin/bconsole.conf
- 
- scripts/set_tape_options
-Index: tests/maxvol-test
-===================================================================
---- tests/maxvol-test	(révision 7895)
-+++ tests/maxvol-test	(copie de travail)
-@@ -13,8 +13,8 @@
- scripts/copy-test-confs
- echo "${cwd}/build" >${cwd}/tmp/file-list
- 
--cp -f ${cwd}/bin/bacula-dir.conf ${cwd}/tmp/1
--sed "s%# Maximum Volume Jobs%  Maximum Volume Jobs%" ${cwd}/tmp/1 >${cwd}/bin/bacula-dir.conf
-+cp -f $bin/bacula-dir.conf ${cwd}/tmp/1
-+sed "s%# Maximum Volume Jobs%  Maximum Volume Jobs%" ${cwd}/tmp/1 >$bin/bacula-dir.conf
- 
- 
- change_jobname NightlySave $JobName
-Index: tests/eot-fail-tape
-===================================================================
---- tests/eot-fail-tape	(révision 7895)
-+++ tests/eot-fail-tape	(copie de travail)
-@@ -14,8 +14,8 @@
- 
- out="${cwd}/tmp/sed_tmp"
- echo "s%# Maximum File Size%  Maximum File Size%g" >${out}
--cp -f ${cwd}/bin/bacula-sd.conf ${cwd}/tmp/1
--sed -f ${out} ${cwd}/tmp/1 >${cwd}/bin/bacula-sd.conf
-+cp -f $bin/bacula-sd.conf ${cwd}/tmp/1
-+sed -f ${out} ${cwd}/tmp/1 >$bin/bacula-sd.conf
- 
- change_jobname $JobName
- start_test
-Index: tests/two-volume-test
-===================================================================
---- tests/two-volume-test	(révision 7895)
-+++ tests/two-volume-test	(copie de travail)
-@@ -20,8 +20,8 @@
- 
- outf="tmp/sed_tmp"
- echo "s%# Maximum File Size%  Maximum File Size%g" >${outf}
--cp ${cwd}/bin/bacula-sd.conf ${cwd}/tmp/1
--sed -f ${outf} ${cwd}/tmp/1 >${cwd}/bin/bacula-sd.conf
-+cp $bin/bacula-sd.conf ${cwd}/tmp/1
-+sed -f ${outf} ${cwd}/tmp/1 >$bin/bacula-sd.conf
- 
- change_jobname NightlySave $JobName
- start_test
-Index: tests/ansi-label-tape
-===================================================================
---- tests/ansi-label-tape	(révision 7895)
-+++ tests/ansi-label-tape	(copie de travail)
-@@ -15,7 +15,7 @@
- require_tape_drive
- 
- scripts/copy-tape-confs
--/bin/cp -f scripts/ansi-sd-tape.conf bin/bacula-sd.conf
-+cp -f scripts/ansi-sd-tape.conf $bin/bacula-sd.conf
- scripts/cleanup-tape
- 
- echo "${cwd}/build" >${cwd}/tmp/file-list
-Index: tests/2drive-2disk
-===================================================================
---- tests/2drive-2disk	(révision 7895)
-+++ tests/2drive-2disk	(copie de travail)
-@@ -23,10 +23,10 @@
- # Turn off Prefer Mounted Volumes so we use 2 drives
- outf="${cwd}/tmp/sed_tmp"
- echo "s%# Prefer Mounted Volumes%  Prefer Mounted Volumes%g" >${outf}
--cp ${cwd}/bin/bacula-dir.conf ${cwd}/tmp/1
-+cp $bin/bacula-dir.conf ${cwd}/tmp/1
- # Comment the next line out to write everything to one drive
- #  otherwise, it writes the two jobs to different drives
--sed -f ${outf} ${cwd}/tmp/1 >${cwd}/bin/bacula-dir.conf
-+sed -f ${outf} ${cwd}/tmp/1 >$bin/bacula-dir.conf
- 
- # Write out bconsole commands
- cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 Index: tests/btape-fill-full-tape
 ===================================================================
 --- tests/btape-fill-full-tape	(révision 7895)
@@ -741,7 +324,7 @@ Index: tests/btape-fill-full-tape
  start_test
  
 -bin/btape -c bin/bacula-sd.conf DDS-4 <<END_OF_DATA 2>&1 >${cwd}/tmp/log1.out
-+$bin/btape -c $bin/bacula-sd.conf DDS-4 <<END_OF_DATA >${cwd}/tmp/log1.out 2>&1
++$bin/btape -c bin/bacula-sd.conf DDS-4 <<END_OF_DATA >${cwd}/tmp/log1.out 2>&1
  fill
  s
  
@@ -754,67 +337,6 @@ Index: tests/btape-fill-full-tape
  if [ $? != 0 ] ; then
     echo " "
     echo " "
-Index: tests/big-fileset-test
-===================================================================
---- tests/big-fileset-test	(révision 7895)
-+++ tests/big-fileset-test	(copie de travail)
-@@ -11,8 +11,8 @@
- 
- echo "${cwd}/build" >${cwd}/tmp/file-list
- 
--cp ${cwd}/bin/bacula-dir.conf ${cwd}/tmp/1
--sed "s%# Label Format%  Label Format%" ${cwd}/tmp/1 >${cwd}/bin/bacula-dir.conf
-+cp $bin/bacula-dir.conf ${cwd}/tmp/1
-+sed "s%# Label Format%  Label Format%" ${cwd}/tmp/1 >$bin/bacula-dir.conf
- 
- change_jobname MonsterFileSet $JobName
- start_test
-Index: tests/bad-label-changer
-===================================================================
---- tests/bad-label-changer	(révision 7895)
-+++ tests/bad-label-changer	(copie de travail)
-@@ -19,8 +19,8 @@
- 
- #outf="tmp/sed_tmp"
- #echo "s%# Maximum File Size%  Maximum File Size%g" >${outf}
--#cp ${cwd}/bin/bacula-sd.conf ${cwd}/tmp/1
--#sed -f ${outf} ${cwd}/tmp/1 >${cwd}/bin/bacula-sd.conf
-+#cp $bin/bacula-sd.conf ${cwd}/tmp/1
-+#sed -f ${outf} ${cwd}/tmp/1 >$bin/bacula-sd.conf
- 
- change_jobname $JobName
- start_test
-Index: tests/migration-volume-test
-===================================================================
---- tests/migration-volume-test	(révision 7895)
-+++ tests/migration-volume-test	(copie de travail)
-@@ -14,8 +14,8 @@
- scripts/copy-migration-confs
- scripts/prepare-disk-changer
- echo "${cwd}/build" >${cwd}/tmp/file-list
--#cp ${cwd}/bin/bacula-sd.conf ${cwd}/tmp/1
--#sed "s%# Maximum File Size%  Maximum File Size%" ${cwd}/tmp/1 >${cwd}/bin/bacula-sd.conf
-+#cp $bin/bacula-sd.conf ${cwd}/tmp/1
-+#sed "s%# Maximum File Size%  Maximum File Size%" ${cwd}/tmp/1 >$bin/bacula-sd.conf
- 
- change_jobname NightlySave $JobName
- start_test
-Index: tests/dev-test-root
-===================================================================
---- tests/dev-test-root	(révision 7895)
-+++ tests/dev-test-root	(copie de travail)
-@@ -42,9 +42,9 @@
- # More cleanup needed below
- 
- cd /
--${cwd}/bin/testls -e ${cwd}/scripts/exclude-etc-test dev >${cwd}/tmp/original
-+$bin/testls -e ${cwd}/scripts/exclude-etc-test dev >${cwd}/tmp/original
- cd ${cwd}/tmp/bacula-restores
--${cwd}/bin/testls -e ${cwd}/scripts/exclude-etc-test dev >${cwd}/tmp/restored
-+$bin/testls -e ${cwd}/scripts/exclude-etc-test dev >${cwd}/tmp/restored
- cd ${cwd}/tmp
- #
- # Use sed to cut out parts that *always* change
 Index: tests/disk-changer-test
 ===================================================================
 --- tests/disk-changer-test	(révision 7895)
@@ -876,37 +398,10 @@ Index: tests/disk-changer-test
 -bin/disk-changer tmp/disk-changer/conf load 2 tmp/disk-changer/drive0 0
 +$scripts/disk-changer tmp/disk-changer/conf load 2 tmp/disk-changer/drive0 0
  echo "rtn=$?"   
-Index: tests/restore-disk-seek-test
-===================================================================
---- tests/restore-disk-seek-test	(révision 7895)
-+++ tests/restore-disk-seek-test	(copie de travail)
-@@ -42,8 +42,8 @@
- # Enable MaximumFileSize to ensure lots of JobMedia records and thus
- #  lots of seeking
- #
--cp ${cwd}/bin/bacula-sd.conf ${cwd}/tmp/1
--sed "s%# Maximum File Size%  Maximum File Size%" ${cwd}/tmp/1 >${cwd}/bin/bacula-sd.conf
-+cp $bin/bacula-sd.conf ${cwd}/tmp/1
-+sed "s%# Maximum File Size%  Maximum File Size%" ${cwd}/tmp/1 >$bin/bacula-sd.conf
- 
- change_jobname CompressedTest $JobName
- start_test
 Index: tests/bug-fatal-test
 ===================================================================
 --- tests/bug-fatal-test	(révision 7895)
 +++ tests/bug-fatal-test	(copie de travail)
-@@ -10,9 +10,9 @@
- 
- copy_test_confs
- 
--rm -f bin/bacula-dir.conf
-+rm -f $bin/bacula-dir.conf
- rm -f ${cwd}/tmp/RUN*log
--/bin/cp -f scripts/bacula-dir.conf.testrunscript bin/bacula-dir.conf
-+cp -f scripts/bacula-dir.conf.testrunscript $bin/bacula-dir.conf
- 
- rm -f ${cwd}/tmp/file-list
- # ${cwd}/tmp/file-list doesn't exists
 @@ -34,12 +34,11 @@
  END_OF_DATA
  
@@ -924,90 +419,10 @@ Index: tests/bug-fatal-test
 +rstat=0
  
  end_test
-Index: tests/regexwhere-test
-===================================================================
---- tests/regexwhere-test	(révision 7895)
-+++ tests/regexwhere-test	(copie de travail)
-@@ -11,7 +11,7 @@
- scripts/cleanup
- scripts/copy-test-confs
- 
--/bin/cp -f scripts/bacula-dir.conf.regexwhere bin/bacula-dir.conf
-+cp -f scripts/bacula-dir.conf.regexwhere $bin/bacula-dir.conf
- 
- #
- # Remove the !restored from the messages resource because
-@@ -20,8 +20,8 @@
- #
- outf="${cwd}/tmp/sed_tmp"
- echo "s%, \!restored%%g" >${outf}
--cp ${cwd}/bin/bacula-fd.conf ${cwd}/tmp/1
--sed -f ${outf} ${cwd}/tmp/1 >${cwd}/bin/bacula-fd.conf
-+cp $bin/bacula-fd.conf ${cwd}/tmp/1
-+sed -f ${outf} ${cwd}/tmp/1 >$bin/bacula-fd.conf
- 
- echo "${cwd}/build/po" >tmp/file-list
- 
-Index: tests/copy-time-test
-===================================================================
---- tests/copy-time-test	(révision 7912)
-+++ tests/copy-time-test	(copie de travail)
-@@ -14,8 +14,8 @@
- scripts/copy-migration-confs
- scripts/prepare-disk-changer
- echo "${cwd}/build" >${cwd}/tmp/file-list
--sed 's/migrate/copy/g' ${cwd}/bin/bacula-dir.conf > ${cwd}/tmp/1
--sed 's/Migrate/Copy/g' ${cwd}/tmp/1 > ${cwd}/bin/bacula-dir.conf
-+sed 's/migrate/copy/g' $bin/bacula-dir.conf > ${cwd}/tmp/1
-+sed 's/Migrate/Copy/g' ${cwd}/tmp/1 > $bin/bacula-dir.conf
- 
- change_jobname NightlySave $JobName
- start_test
-Index: tests/fixed-block-size-tape
-===================================================================
---- tests/fixed-block-size-tape	(révision 7895)
-+++ tests/fixed-block-size-tape	(copie de travail)
-@@ -14,10 +14,10 @@
- 
- echo "${cwd}/build" >${cwd}/tmp/file-list
- 
--cp ${cwd}/bin/bacula-sd.conf ${cwd}/tmp/1
-+cp $bin/bacula-sd.conf ${cwd}/tmp/1
- echo "s%# Maximum Block Size%  Maximum Block Size%" >${cwd}/tmp/2
- echo "s%# Minimum Block Size%  Minimum Block Size%" >>${cwd}/tmp/2
--sed -f ${cwd}/tmp/2 ${cwd}/tmp/1 >${cwd}/bin/bacula-sd.conf
-+sed -f ${cwd}/tmp/2 ${cwd}/tmp/1 >$bin/bacula-sd.conf
- if [ $? != 0 ] ; then
-    echo " "
-    echo " "
-Index: tests/next-vol-test
-===================================================================
---- tests/next-vol-test	(révision 7937)
-+++ tests/next-vol-test	(copie de travail)
-@@ -17,8 +17,8 @@
- require_linux
- scripts/cleanup
- scripts/copy-tape-confs
--cp scripts/bacula-dir-vtape.conf bin/bacula-dir.conf
--cp scripts/bacula-sd-vtape.conf bin/bacula-sd.conf
-+cp scripts/bacula-dir-vtape.conf $bin/bacula-dir.conf
-+cp scripts/bacula-sd-vtape.conf $bin/bacula-sd.conf
- scripts/prepare-fake-autochanger
- 
- 
 Index: tests/errors-test
 ===================================================================
 --- tests/errors-test	(révision 7895)
 +++ tests/errors-test	(copie de travail)
-@@ -12,7 +12,7 @@
- copy_test_confs
- 
- rm -f ${cwd}/tmp/*.log
--/bin/cp -f scripts/bacula-dir.conf.errors bin/bacula-dir.conf
-+cp -f scripts/bacula-dir.conf.errors $bin/bacula-dir.conf
- echo "${cwd}/build/po" >${cwd}/tmp/file-list
- 
- start_test
 @@ -64,7 +64,7 @@
  
  run_bacula
@@ -1017,85 +432,10 @@ Index: tests/errors-test
  check_for_zombie_jobs storage=File $client
  stop_bacula
  
-Index: tests/three-pool-test
-===================================================================
---- tests/three-pool-test	(révision 7895)
-+++ tests/three-pool-test	(copie de travail)
-@@ -23,10 +23,10 @@
- # Turn off Prefer Mounted Volumes so we use 2 drives
- outf="${cwd}/tmp/sed_tmp"
- echo "s%# Prefer Mounted Volumes%  Prefer Mounted Volumes%g" >${outf}
--cp ${cwd}/bin/bacula-dir.conf ${cwd}/tmp/1
-+cp $bin/bacula-dir.conf ${cwd}/tmp/1
- # Comment the next line out to write everything to one drive
- #  otherwise, it writes the two jobs to different drives
--sed -f ${outf} ${cwd}/tmp/1 >${cwd}/bin/bacula-dir.conf
-+sed -f ${outf} ${cwd}/tmp/1 >$bin/bacula-dir.conf
- 
- # Write out bconsole commands
- cat <<END_OF_DATA >${cwd}/tmp/bconcmds
-Index: tests/copy-job-test
-===================================================================
---- tests/copy-job-test	(révision 7895)
-+++ tests/copy-job-test	(copie de travail)
-@@ -14,8 +14,8 @@
- scripts/copy-migration-confs
- scripts/prepare-disk-changer
- echo "${cwd}/build" >${cwd}/tmp/file-list
--sed 's/migrate/copy/g' ${cwd}/bin/bacula-dir.conf > ${cwd}/tmp/1
--sed 's/Migrate/Copy/g' ${cwd}/tmp/1 > ${cwd}/bin/bacula-dir.conf
-+sed 's/migrate/copy/g' $bin/bacula-dir.conf > ${cwd}/tmp/1
-+sed 's/Migrate/Copy/g' ${cwd}/tmp/1 > $bin/bacula-dir.conf
- 
- 
- change_jobname NightlySave $JobName
-Index: tests/restore-seek-tape
-===================================================================
---- tests/restore-seek-tape	(révision 7895)
-+++ tests/restore-seek-tape	(copie de travail)
-@@ -45,8 +45,8 @@
- # Enable MaximumFileSize to ensure lots of JobMedia records and thus
- #  lots of seeking
- #
--cp ${cwd}/bin/bacula-sd.conf ${cwd}/tmp/1
--sed "s%# Maximum File Size = 1000000%  Maximum File Size = 10KB%" ${cwd}/tmp/1 >${cwd}/bin/bacula-sd.conf
-+cp $bin/bacula-sd.conf ${cwd}/tmp/1
-+sed "s%# Maximum File Size = 1000000%  Maximum File Size = 10KB%" ${cwd}/tmp/1 >$bin/bacula-sd.conf
- 
- change_jobname NightlySave $JobName
- start_test
-Index: tests/2drive-incremental-changer
-===================================================================
---- tests/2drive-incremental-changer	(révision 7895)
-+++ tests/2drive-incremental-changer	(copie de travail)
-@@ -31,10 +31,10 @@
- # Turn off Prefer Mounted Volumes so we use 2 drives
- outf="${cwd}/tmp/sed_tmp"
- echo "s%# Prefer Mounted Volumes%  Prefer Mounted Volumes%g" >${outf}
--cp ${cwd}/bin/bacula-dir.conf ${cwd}/tmp/1
-+cp $bin/bacula-dir.conf ${cwd}/tmp/1
- # Comment the next line out to write everything to one drive
- #  otherwise, it writes the two jobs to different drives
--sed -f ${outf} ${cwd}/tmp/1 >${cwd}/bin/bacula-dir.conf
-+sed -f ${outf} ${cwd}/tmp/1 >$bin/bacula-dir.conf
- 
- start_test
- 
 Index: tests/restore-by-file-tape
 ===================================================================
 --- tests/restore-by-file-tape	(révision 7895)
 +++ tests/restore-by-file-tape	(copie de travail)
-@@ -18,8 +18,8 @@
- echo "${cwd}/build" >${cwd}/tmp/file-list
- sed s%\^%${cwd}% ${cwd}/scripts/flist | sort | uniq >${cwd}/tmp/restore2-list
- 
--cp ${cwd}/bin/bacula-sd.conf ${cwd}/tmp/1
--sed "s%# Maximum File Size%  Maximum File Size%" ${cwd}/tmp/1 >${cwd}/bin/bacula-sd.conf
-+cp $bin/bacula-sd.conf ${cwd}/tmp/1
-+sed "s%# Maximum File Size%  Maximum File Size%" ${cwd}/tmp/1 >$bin/bacula-sd.conf
- 
- change_jobname NightlySave $JobName
- start_test
 @@ -93,7 +93,7 @@
  check_two_logs
  
@@ -1109,17 +449,6 @@ Index: tests/vtape-test-changer
 ===================================================================
 --- tests/vtape-test-changer	(révision 7897)
 +++ tests/vtape-test-changer	(copie de travail)
-@@ -19,8 +19,8 @@
- 
- scripts/cleanup
- scripts/copy-tape-confs
--cp scripts/bacula-dir-vtape.conf bin/bacula-dir.conf
--cp scripts/bacula-sd-vtape.conf bin/bacula-sd.conf
-+cp scripts/bacula-dir-vtape.conf $bin/bacula-dir.conf
-+cp scripts/bacula-sd-vtape.conf $bin/bacula-sd.conf
- scripts/prepare-fake-autochanger
- 
- echo "${cwd}/build" >${cwd}/tmp/file-list
 @@ -30,7 +30,7 @@
  when1=`perl -MPOSIX -e "print strftime('%F %T', localtime(time+30))"`
  when2=`perl -MPOSIX -e "print strftime('%F %T', localtime(time+45))"`
@@ -1129,92 +458,6 @@ Index: tests/vtape-test-changer
  
  # Catalog record for cleaning tape "CLN01" successfully created.
  # CLN01      | Cleaning
-Index: tests/cancel-test
-===================================================================
---- tests/cancel-test	(révision 7895)
-+++ tests/cancel-test	(copie de travail)
-@@ -17,13 +17,13 @@
- #
- outf="tmp/sed_tmp"
- echo "s%  Schedule =%# Schedule =%g" >$outf
--cp ${cwd}/bin/bacula-dir.conf ${cwd}/tmp/1
--sed -f ${outf} ${cwd}/tmp/1 >${cwd}/bin/bacula-dir.conf
-+cp $bin/bacula-dir.conf ${cwd}/tmp/1
-+sed -f ${outf} ${cwd}/tmp/1 >$bin/bacula-dir.conf
- 
- touch tmp/log1.out
- 
- # Add some jobs and fileset for this test
--cat <<EOF >>${cwd}/bin/bacula-dir.conf
-+cat <<EOF >>$bin/bacula-dir.conf
- FileSet {
-   Name = FS_ERR
-   Include {
-Index: tests/bug-897
-===================================================================
---- tests/bug-897	(révision 7895)
-+++ tests/bug-897	(copie de travail)
-@@ -9,13 +9,13 @@
- . scripts/functions
- copy_test_confs
- 
--rm -f bin/bacula-dir.conf
-+rm -f $bin/bacula-dir.conf
- rm -f ${cwd}/tmp/RUN*log
- rm -f ${cwd}/tmp/fifo
- rm -f ${cwd}/tmp/RUN_BUG_897
- rm -f ${cwd}/tmp/RUN_FD_FAILED
- 
--/bin/cp -f scripts/bacula-dir.conf.testrunscript bin/bacula-dir.conf
-+cp -f scripts/bacula-dir.conf.testrunscript $bin/bacula-dir.conf
- 
- echo "${cwd}/build/po" >${cwd}/tmp/file-list
- echo "${cwd}/tmp/fifo" >> ${cwd}/tmp/file-list
-Index: tests/scratch-pool-test
-===================================================================
---- tests/scratch-pool-test	(révision 7895)
-+++ tests/scratch-pool-test	(copie de travail)
-@@ -28,8 +28,8 @@
- 
- outf="${cwd}/tmp/sed_tmp"
- echo "s%# Maximum File Size%  Maximum File Size%g" >${outf}
--cp ${cwd}/bin/bacula-sd.conf ${cwd}/tmp/1
--sed -f ${outf} ${cwd}/tmp/1 >${cwd}/bin/bacula-sd.conf
-+cp $bin/bacula-sd.conf ${cwd}/tmp/1
-+sed -f ${outf} ${cwd}/tmp/1 >$bin/bacula-sd.conf
- 
- change_jobname NightlySave $JobName
- start_test
-Index: tests/six-vol-test
-===================================================================
---- tests/six-vol-test	(révision 7895)
-+++ tests/six-vol-test	(copie de travail)
-@@ -15,7 +15,7 @@
- scripts/cleanup
- scripts/copy-testa-confs
- # copy special conf file
--/bin/cp -f scripts/testb-bacula-dir.conf bin/bacula-dir.conf
-+cp -f scripts/testb-bacula-dir.conf $bin/bacula-dir.conf
- 
- echo "${cwd}/tmp/largefile" >${cwd}/tmp/file-list
- # Create 56MB file with random data
-Index: tests/2drive-swap-test
-===================================================================
---- tests/2drive-swap-test	(révision 7895)
-+++ tests/2drive-swap-test	(copie de travail)
-@@ -22,10 +22,10 @@
- # Turn off Prefer Mounted Volumes so we use 2 drives
- outf="${cwd}/tmp/sed_tmp"
- echo "s%# Prefer Mounted Volumes%  Prefer Mounted Volumes%g" >${outf}
--cp ${cwd}/bin/bacula-dir.conf ${cwd}/tmp/1
-+cp $bin/bacula-dir.conf ${cwd}/tmp/1
- # Comment the next line out to write everything to one drive
- #  otherwise, it writes the two jobs to different drives
--sed -f ${outf} ${cwd}/tmp/1 >${cwd}/bin/bacula-dir.conf
-+sed -f ${outf} ${cwd}/tmp/1 >$bin/bacula-dir.conf
- 
- # Write out bconsole commands
- cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 Index: tests/usr-tape-root
 ===================================================================
 --- tests/usr-tape-root	(révision 7895)
@@ -1239,51 +482,6 @@ Index: tests/usr-tape-root
  cd /
  ${cwd}/bin/testls -e ${cwd}/scripts/exclude-usr-test lib >${cwd}/tmp/original
  cd ${cwd}/tmp/bacula-restores
-Index: tests/multi-client-test
-===================================================================
---- tests/multi-client-test	(révision 7895)
-+++ tests/multi-client-test	(copie de travail)
-@@ -11,7 +11,7 @@
- 
- scripts/cleanup
- scripts/copy-test-confs
--/bin/cp -f scripts/multi-client-bacula-dir.conf bin/bacula-dir.conf
-+cp -f scripts/multi-client-bacula-dir.conf $bin/bacula-dir.conf
- 
- change_jobname NightlySave $JobName
- start_test
-Index: tests/small-file-size-tape
-===================================================================
---- tests/small-file-size-tape	(révision 7895)
-+++ tests/small-file-size-tape	(copie de travail)
-@@ -13,8 +13,8 @@
- scripts/cleanup-tape
- 
- echo "${cwd}/build" >${cwd}/tmp/file-list
--cp ${cwd}/bin/bacula-sd.conf ${cwd}/tmp/1
--sed "s%# Maximum File Size%  Maximum File Size%" ${cwd}/tmp/1 >${cwd}/bin/bacula-sd.conf
-+cp $bin/bacula-sd.conf ${cwd}/tmp/1
-+sed "s%# Maximum File Size%  Maximum File Size%" ${cwd}/tmp/1 >$bin/bacula-sd.conf
- 
- change_jobname NightlySave $JobName
- start_test
-Index: tests/2drive-offline-test
-===================================================================
---- tests/2drive-offline-test	(révision 7895)
-+++ tests/2drive-offline-test	(copie de travail)
-@@ -25,10 +25,10 @@
- # Turn off Prefer Mounted Volumes so we use 2 drives
- outf="${cwd}/tmp/sed_tmp"
- echo "s%# Prefer Mounted Volumes%  Prefer Mounted Volumes%g" >${outf}
--cp ${cwd}/bin/bacula-dir.conf ${cwd}/tmp/1
-+cp $bin/bacula-dir.conf ${cwd}/tmp/1
- # Comment the next line out to write everything to one drive
- #  otherwise, it writes the two jobs to different drives
--sed -f ${outf} ${cwd}/tmp/1 >${cwd}/bin/bacula-dir.conf
-+sed -f ${outf} ${cwd}/tmp/1 >$bin/bacula-dir.conf
- 
- # Write out bconsole commands
- cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 Index: tests/concurrent-jobs-test
 ===================================================================
 --- tests/concurrent-jobs-test	(révision 7895)
@@ -1297,46 +495,16 @@ Index: tests/concurrent-jobs-test
     cat ${cwd}/tmp/1 ${cwd}/tmp/1 ${cwd}/tmp/1 ${cwd}/tmp/1 ${cwd}/tmp/1 >${cwd}/tmp/2
     rm -f ${cwd}/tmp/1
     cat ${cwd}/tmp/2 ${cwd}/tmp/2 ${cwd}/tmp/2 ${cwd}/tmp/2 ${cwd}/tmp/2 >>${cwd}/tmp/3
-Index: tests/2drive-2job-test
-===================================================================
---- tests/2drive-2job-test	(révision 7895)
-+++ tests/2drive-2job-test	(copie de travail)
-@@ -22,10 +22,10 @@
- # Turn off Prefer Mounted Volumes so we use 2 drives
- outf="${cwd}/tmp/sed_tmp"
- echo "s%# Prefer Mounted Volumes%  Prefer Mounted Volumes%g" >${outf}
--cp ${cwd}/bin/bacula-dir.conf ${cwd}/tmp/1
-+cp $bin/bacula-dir.conf ${cwd}/tmp/1
- # Comment the next line out to write everything to one drive
- #  otherwise, it writes the two jobs to different drives
--sed -f ${outf} ${cwd}/tmp/1 >${cwd}/bin/bacula-dir.conf
-+sed -f ${outf} ${cwd}/tmp/1 >$bin/bacula-dir.conf
- 
- # Write out bconsole commands
- cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 Index: tests/accurate-test
 ===================================================================
---- tests/accurate-test	(révision 7895)
-+++ tests/accurate-test	(copie de travail)
-@@ -14,9 +14,9 @@
- scripts/cleanup
- 
- copy_test_confs
--/bin/cp -f scripts/bacula-dir.conf.accurate bin/bacula-dir.conf
--sed s/all,/all,saved,/ bin/bacula-fd.conf > tmp/1
--cp tmp/1 bin/bacula-fd.conf
-+cp -f scripts/bacula-dir.conf.accurate $bin/bacula-dir.conf
-+sed s/all,/all,saved,/ $bin/bacula-fd.conf > tmp/1
-+cp tmp/1 $bin/bacula-fd.conf
- 
- change_jobname Client1 $JobName
- 
+--- tests/accurate-test (r�vision 7895)
++++ tests/accurate-test (copie de travail)
 @@ -156,7 +156,7 @@
  # Check with bls
  ################################################################
  
 -${cwd}/bin/bls -c ${cwd}/bin/bacula-sd.conf -V 'TestVolume001' FileStorage > tmp/bls.out
-+$bin/bls -c $bin/bacula-sd.conf -V 'TestVolume001' FileStorage > tmp/bls.out
++$bin/bls -c bin/bacula-sd.conf -V 'TestVolume001' FileStorage > tmp/bls.out
  grep -- '----' tmp/bls.out | grep xxx > /dev/null
  if [ $? != 0 ] ; then
      bstat=2
@@ -1345,42 +513,10 @@ Index: tests/accurate-test
  bscan_libdbi
  
 -${cwd}/bin/bscan -c ${cwd}/bin/bacula-sd.conf $BSCANLIBDBI -n regress -u regress -m -s -b tmp/bscan.bsr FileStorage 2>&1 > ${cwd}/tmp/bscan.log
-+$bin/bscan -c $bin/bacula-sd.conf $BSCANLIBDBI -n regress -u regress -m -s -b tmp/bscan.bsr FileStorage 2>&1 > ${cwd}/tmp/bscan.log
++$bin/bscan -c bin/bacula-sd.conf $BSCANLIBDBI -n regress -u regress -m -s -b tmp/bscan.bsr FileStorage 2>&1 > ${cwd}/tmp/bscan.log
  
  cat <<END_OF_DATA >${cwd}/tmp/bconcmds
  @$out ${cwd}/tmp/log1.out
-Index: tests/backup-bacula-test
-===================================================================
---- tests/backup-bacula-test	(révision 7895)
-+++ tests/backup-bacula-test	(copie de travail)
-@@ -16,8 +16,8 @@
- #
- outf="tmp/sed_tmp"
- echo "s%  Schedule =%# Schedule =%g" >${outf}
--cp ${cwd}/bin/bacula-dir.conf ${cwd}/tmp/1
--sed -f ${outf} ${cwd}/tmp/1 >${cwd}/bin/bacula-dir.conf
-+cp $bin/bacula-dir.conf ${cwd}/tmp/1
-+sed -f ${outf} ${cwd}/tmp/1 >$bin/bacula-dir.conf
- 
- change_jobname Client1 $JobName
- start_test
-Index: tests/virtual-changer-test
-===================================================================
---- tests/virtual-changer-test	(révision 7895)
-+++ tests/virtual-changer-test	(copie de travail)
-@@ -24,10 +24,10 @@
- # Turn off Prefer Mounted Volumes so we use 2 drives
- outf="${cwd}/tmp/sed_tmp"
- echo "s%# Prefer Mounted Volumes%  Prefer Mounted Volumes%g" >${outf}
--cp ${cwd}/bin/bacula-dir.conf ${cwd}/tmp/1
-+cp $bin/bacula-dir.conf ${cwd}/tmp/1
- # Comment the next line out to write everything to one drive
- #  otherwise, it writes the two jobs to different drives
--sed -f ${outf} ${cwd}/tmp/1 >${cwd}/bin/bacula-dir.conf
-+sed -f ${outf} ${cwd}/tmp/1 >$bin/bacula-dir.conf
- 
- # Write out bconsole commands
- cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 Index: tests/incremental-2disk
 ===================================================================
 --- tests/incremental-2disk	(révision 7895)
@@ -1401,21 +537,6 @@ Index: tests/incremental-2disk
  scripts/copy-2disk-confs
  scripts/prepare-disk-changer
  
-Index: tests/stats-test
-===================================================================
---- tests/stats-test	(révision 7895)
-+++ tests/stats-test	(copie de travail)
-@@ -16,8 +16,8 @@
- outf="tmp/sed_tmp"
- echo "s%  Schedule =%# Schedule =%g" > $outf
- echo "s% DIRport%Statistics Retention = 1 sec; DIRport%g" >> $outf
--cp ${cwd}/bin/bacula-dir.conf ${cwd}/tmp/1
--sed -f ${outf} ${cwd}/tmp/1 >${cwd}/bin/bacula-dir.conf
-+cp $bin/bacula-dir.conf ${cwd}/tmp/1
-+sed -f ${outf} ${cwd}/tmp/1 >$bin/bacula-dir.conf
- 
- change_jobname Client1 $JobName
- start_test
 Index: tests/lib-tape-root
 ===================================================================
 --- tests/lib-tape-root	(révision 7895)
@@ -1458,81 +579,10 @@ Index: tests/lib-tape-root
  cd /
  ${cwd}/bin/testls -e ${cwd}/scripts/exclude-usr-test lib >${cwd}/tmp/original
  cd ${cwd}/tmp/bacula-restores
-Index: tests/three-pool-recycle-test
-===================================================================
---- tests/three-pool-recycle-test	(révision 7895)
-+++ tests/three-pool-recycle-test	(copie de travail)
-@@ -19,8 +19,8 @@
- scripts/prepare-disk-changer
- 
- # remove Client Run Before Job
--cp ${cwd}/bin/bacula-dir.conf ${cwd}/tmp/1
--sed "s%Client Run Before Job%#Client Run Before Job%" ${cwd}/tmp/1 >${cwd}/bin/bacula-dir.conf
-+cp $bin/bacula-dir.conf ${cwd}/tmp/1
-+sed "s%Client Run Before Job%#Client Run Before Job%" ${cwd}/tmp/1 >$bin/bacula-dir.conf
- 
- echo "${cwd}/build" >${cwd}/tmp/file-list
- 
-Index: tests/win32-test
-===================================================================
---- tests/win32-test	(révision 7895)
-+++ tests/win32-test	(copie de travail)
-@@ -9,7 +9,7 @@
- 
- scripts/cleanup
- scripts/copy-test-confs
--cp scripts/win32-bacula-dir.conf bin/bacula-dir.conf
-+cp scripts/win32-bacula-dir.conf $bin/bacula-dir.conf
- 
- change_jobname NightlySave $JobName
- start_test
-Index: tests/maxtime-test
-===================================================================
---- tests/maxtime-test	(révision 7941)
-+++ tests/maxtime-test	(copie de travail)
-@@ -11,7 +11,7 @@
- copy_test_confs
- 
- rm -f ${cwd}/tmp/RUN*log
--cp -f ${cwd}/scripts/bacula-dir.conf.maxtime ${cwd}/bin/bacula-dir.conf
-+cp -f ${cwd}/scripts/bacula-dir.conf.maxtime $bin/bacula-dir.conf
- WHEN=`date '+%Y-%m-%d %H:%M:%S'`
- 
- echo "${cwd}/build/po" >${cwd}/tmp/file-list
-Index: tests/copy-jobspan-test
-===================================================================
---- tests/copy-jobspan-test	(révision 7895)
-+++ tests/copy-jobspan-test	(copie de travail)
-@@ -16,10 +16,10 @@
- scripts/copy-migration-confs
- scripts/prepare-disk-changer
- echo "${cwd}/build" >${cwd}/tmp/file-list
--cp ${cwd}/bin/bacula-sd.conf ${cwd}/tmp/1
--sed "s%# Maximum File Size%  Maximum File Size%" ${cwd}/tmp/1 >${cwd}/bin/bacula-sd.conf
--sed 's/migrate/copy/g' ${cwd}/bin/bacula-dir.conf > ${cwd}/tmp/1
--sed 's/Migrate/Copy/g' ${cwd}/tmp/1 > ${cwd}/bin/bacula-dir.conf
-+cp $bin/bacula-sd.conf ${cwd}/tmp/1
-+sed "s%# Maximum File Size%  Maximum File Size%" ${cwd}/tmp/1 >$bin/bacula-sd.conf
-+sed 's/migrate/copy/g' $bin/bacula-dir.conf > ${cwd}/tmp/1
-+sed 's/Migrate/Copy/g' ${cwd}/tmp/1 > $bin/bacula-dir.conf
- 
- change_jobname NightlySave $JobName
- start_test
 Index: tests/two-volume-changer
 ===================================================================
 --- tests/two-volume-changer	(révision 7895)
 +++ tests/two-volume-changer	(copie de travail)
-@@ -20,8 +20,8 @@
- 
- outf="tmp/sed_tmp"
- echo "s%# Maximum File Size%  Maximum File Size%g" >${outf}
--cp ${cwd}/bin/bacula-sd.conf ${cwd}/tmp/1
--sed -f ${outf} ${cwd}/tmp/1 >${cwd}/bin/bacula-sd.conf
-+cp $bin/bacula-sd.conf ${cwd}/tmp/1
-+sed -f ${outf} ${cwd}/tmp/1 >$bin/bacula-sd.conf
- 
- change_jobname $JobName
- start_test
 @@ -54,7 +54,7 @@
  check_for_zombie_jobs storage=DDS-4
  stop_bacula
@@ -1542,25 +592,6 @@ Index: tests/two-volume-changer
  
  cat <<END_OF_DATA >tmp/bconcmds
  @$out /dev/null
-Index: tests/incremental-2media-tape
-===================================================================
---- tests/incremental-2media-tape	(révision 7895)
-+++ tests/incremental-2media-tape	(copie de travail)
-@@ -15,10 +15,10 @@
- 
- scripts/cleanup
- # Get conf files
--/bin/cp -f scripts/bacula-dir-2d.conf bin/bacula-dir.conf
--/bin/cp -f scripts/bacula-sd-2d.conf bin/bacula-sd.conf
--/bin/cp -f scripts/bacula-fd-2d.conf bin/bacula-fd.conf
--/bin/cp -f scripts/bconsole-2d.conf bin/bconsole.conf
-+cp -f scripts/bacula-dir-2d.conf $bin/bacula-dir.conf
-+cp -f scripts/bacula-sd-2d.conf $bin/bacula-sd.conf
-+cp -f scripts/bacula-fd-2d.conf $bin/bacula-fd.conf
-+cp -f scripts/bconsole-2d.conf $bin/bconsole.conf
- 
- # get proper SD tape definitions
- cp -f scripts/linux_tape_options bin/tape_options
 Index: tests/bextract-test
 ===================================================================
 --- tests/bextract-test	(révision 7895)
@@ -1570,34 +601,13 @@ Index: tests/bextract-test
  mkdir -p ${cwd}/tmp/bacula-restores
  if test "$debug" -eq 1 ; then
 -  bin/bextract -v -b working/restore.bsr -c bin/bacula-sd.conf ${cwd}/tmp ${cwd}/tmp/bacula-restores                
-+  $bin/bextract -v -b working/restore.bsr -c $bin/bacula-sd.conf ${cwd}/tmp ${cwd}/tmp/bacula-restores                
++  $bin/bextract -v -b working/restore.bsr -c bin/bacula-sd.conf ${cwd}/tmp ${cwd}/tmp/bacula-restores                
  else
 -  bin/bextract -b working/restore.bsr -c bin/bacula-sd.conf ${cwd}/tmp ${cwd}/tmp/bacula-restores 2>&1 >/dev/null
-+  $bin/bextract -b working/restore.bsr -c $bin/bacula-sd.conf ${cwd}/tmp ${cwd}/tmp/bacula-restores 2>&1 >/dev/null
++  $bin/bextract -b working/restore.bsr -c bin/bacula-sd.conf ${cwd}/tmp ${cwd}/tmp/bacula-restores 2>&1 >/dev/null
  fi
  rstat=$?
  grep "^  Termination: *Backup OK" ${cwd}/tmp/log1.out 2>&1 >/dev/null
-Index: tests/copy-volume-test
-===================================================================
---- tests/copy-volume-test	(révision 7895)
-+++ tests/copy-volume-test	(copie de travail)
-@@ -14,12 +14,12 @@
- scripts/copy-migration-confs
- scripts/prepare-disk-changer
- echo "${cwd}/build" >${cwd}/tmp/file-list
--#cp ${cwd}/bin/bacula-sd.conf ${cwd}/tmp/1
--#sed "s%# Maximum File Size%  Maximum File Size%" ${cwd}/tmp/1 >${cwd}/bin/bacula-sd.conf
-+#cp $bin/bacula-sd.conf ${cwd}/tmp/1
-+#sed "s%# Maximum File Size%  Maximum File Size%" ${cwd}/tmp/1 >$bin/bacula-sd.conf
- 
- change_jobname NightlySave $JobName
--sed 's/migrate/copy/g' ${cwd}/bin/bacula-dir.conf > ${cwd}/tmp/1
--sed 's/Migrate/Copy/g' ${cwd}/tmp/1 > ${cwd}/bin/bacula-dir.conf
-+sed 's/migrate/copy/g' $bin/bacula-dir.conf > ${cwd}/tmp/1
-+sed 's/Migrate/Copy/g' ${cwd}/tmp/1 > $bin/bacula-dir.conf
- rm -f ${cwd}/build/po/test.po >/dev/null
- 
- start_test
 Index: tests/four-jobs-tape
 ===================================================================
 --- tests/four-jobs-tape	(révision 7895)
@@ -1666,38 +676,6 @@ Index: tests/four-jobs-tape
  
  scripts/check_for_zombie_jobs storage=DDS-4
  echo "Backup 4 done"
-Index: tests/migration-jobspan-test
-===================================================================
---- tests/migration-jobspan-test	(révision 7895)
-+++ tests/migration-jobspan-test	(copie de travail)
-@@ -16,8 +16,8 @@
- scripts/copy-migration-confs
- scripts/prepare-disk-changer
- echo "${cwd}/build" >${cwd}/tmp/file-list
--cp ${cwd}/bin/bacula-sd.conf ${cwd}/tmp/1
--sed "s%# Maximum File Size%  Maximum File Size%" ${cwd}/tmp/1 >${cwd}/bin/bacula-sd.conf
-+cp $bin/bacula-sd.conf ${cwd}/tmp/1
-+sed "s%# Maximum File Size%  Maximum File Size%" ${cwd}/tmp/1 >$bin/bacula-sd.conf
- 
- 
- change_jobname NightlySave $JobName
-Index: tests/2drive-3pool-test
-===================================================================
---- tests/2drive-3pool-test	(révision 7895)
-+++ tests/2drive-3pool-test	(copie de travail)
-@@ -23,10 +23,10 @@
- # Turn off Prefer Mounted Volumes so we use 2 drives
- # outf="tmp/sed_tmp"
- #  echo "s%# Prefer Mounted Volumes%  Prefer Mounted Volumes%g" >${outf}
--# cp ${cwd}/bin/bacula-dir.conf ${cwd}/tmp/1
-+# cp $bin/bacula-dir.conf ${cwd}/tmp/1
- # Comment the next line out to write everything to one drive
- #  otherwise, it writes the two jobs to different drives
--# sed -f ${outf} ${cwd}/tmp/1 >${cwd}/bin/bacula-dir.conf
-+# sed -f ${outf} ${cwd}/tmp/1 >$bin/bacula-dir.conf
- 
- # Write out bconsole commands
- cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 Index: tests/bscan-test
 ===================================================================
 --- tests/bscan-test	(révision 7895)
@@ -1707,70 +685,23 @@ Index: tests/bscan-test
  
  if test "$debug" -eq 1 ; then
 -  bin/bscan -w working $BSCANLIBDBI -u ${db_user} -n ${db_name} $PASSWD -m -s -v -b tmp/bscan.bsr -c bin/bacula-sd.conf ${cwd}/tmp                   
-+  $bin/bscan -w working $BSCANLIBDBI -u ${db_user} -n ${db_name} $PASSWD -m -s -v -b tmp/bscan.bsr -c $bin/bacula-sd.conf ${cwd}/tmp                   
++  $bin/bscan -w working $BSCANLIBDBI -u ${db_user} -n ${db_name} $PASSWD -m -s -v -b tmp/bscan.bsr -c bin/bacula-sd.conf ${cwd}/tmp                   
  else
 -  bin/bscan -w working $BSCANLIBDBI -u ${db_user} -n ${db_name} $PASSWD -m -s -v -b tmp/bscan.bsr -c bin/bacula-sd.conf ${cwd}/tmp 2>&1 >tmp/log3.out
-+  $bin/bscan -w working $BSCANLIBDBI -u ${db_user} -n ${db_name} $PASSWD -m -s -v -b tmp/bscan.bsr -c $bin/bacula-sd.conf ${cwd}/tmp >tmp/log3.out 2>&1
++  $bin/bscan -w working $BSCANLIBDBI -u ${db_user} -n ${db_name} $PASSWD -m -s -v -b tmp/bscan.bsr -c bin/bacula-sd.conf ${cwd}/tmp >tmp/log3.out 2>&1
  fi
  
  cat <<END_OF_DATA >tmp/bconcmds
-Index: tests/2drive-incremental-2disk
-===================================================================
---- tests/2drive-incremental-2disk	(révision 7895)
-+++ tests/2drive-incremental-2disk	(copie de travail)
-@@ -30,10 +30,10 @@
- # Turn off Prefer Mounted Volumes so we use 2 drives
- outf="${cwd}/tmp/sed_tmp"
- echo "s%# Prefer Mounted Volumes%  Prefer Mounted Volumes%g" >${outf}
--cp ${cwd}/bin/bacula-dir.conf ${cwd}/tmp/1
-+cp $bin/bacula-dir.conf ${cwd}/tmp/1
- # Comment the next line out to write everything to one drive
- #  otherwise, it writes the two jobs to different drives
--sed -f ${outf} ${cwd}/tmp/1 >${cwd}/bin/bacula-dir.conf
-+sed -f ${outf} ${cwd}/tmp/1 >$bin/bacula-dir.conf
- 
- # Write out bconsole commands
- cat <<END_OF_DATA >${cwd}/tmp/bconcmds
-Index: tests/runscript-test
-===================================================================
---- tests/runscript-test	(révision 7895)
-+++ tests/runscript-test	(copie de travail)
-@@ -9,12 +9,12 @@
- . scripts/functions
- copy_test_confs
- 
--rm -f bin/bacula-dir.conf
-+rm -f $bin/bacula-dir.conf
- rm -f ${cwd}/tmp/RUN*log
- rm -f ${cwd}/tmp/RUN_FD_FAILED
- 
- touch ${cwd}/tmp/log1.out
--/bin/cp -f scripts/bacula-dir.conf.testrunscript bin/bacula-dir.conf
-+cp -f scripts/bacula-dir.conf.testrunscript $bin/bacula-dir.conf
- 
- echo "${cwd}/build/po" >${cwd}/tmp/file-list
- 
 Index: tests/bscan-fast-tape
 ===================================================================
 --- tests/bscan-fast-tape	(révision 7895)
 +++ tests/bscan-fast-tape	(copie de travail)
-@@ -15,8 +15,8 @@
- 
- echo "${cwd}/build" >${cwd}/tmp/file-list
- 
--cp ${cwd}/bin/bacula-sd.conf ${cwd}/tmp/1
--# sed "s%# Maximum File Size%  Maximum File Size%" ${cwd}/tmp/1 >${cwd}/bin/bacula-sd.conf
-+cp $bin/bacula-sd.conf ${cwd}/tmp/1
-+# sed "s%# Maximum File Size%  Maximum File Size%" ${cwd}/tmp/1 >$bin/bacula-sd.conf
- 
- change_jobname NightlySave $JobName
- start_test
 @@ -34,7 +34,7 @@
  END_OF_DATA
  
  echo "Starting Bacula tape writing"
 -#bin/btape -c bin/bacula-sd.conf /dev/nst0 <<END_OF_DATA
-+#$bin/btape -c $bin/bacula-sd.conf /dev/nst0 <<END_OF_DATA
++#$bin/btape -c bin/bacula-sd.conf /dev/nst0 <<END_OF_DATA
  #rewind
  #label
  #Test001
@@ -1779,65 +710,23 @@ Index: tests/bscan-fast-tape
  bscan_libdbi
  
 -strace -o strace.new bin/bscan -d200 -w working $BSCANLIBDBI -u regress -n regress -m -s -v -b tmp/bscan.bsr -c bin/bacula-sd.conf DDS-4
-+strace -o strace.new $bin/bscan -d200 -w working $BSCANLIBDBI -u regress -n regress -m -s -v -b tmp/bscan.bsr -c $bin/bacula-sd.conf DDS-4
++strace -o strace.new $bin/bscan -d200 -w working $BSCANLIBDBI -u regress -n regress -m -s -v -b tmp/bscan.bsr -c bin/bacula-sd.conf DDS-4
  exit
  cat <<END_OF_DATA >tmp/bconcmds
  @$out /dev/null
-Index: tests/etc-test-root
-===================================================================
---- tests/etc-test-root	(révision 7895)
-+++ tests/etc-test-root	(copie de travail)
-@@ -44,9 +44,9 @@
- # more cleanup needed below
- 
- cd /
--${cwd}/bin/testls -e ${cwd}/scripts/exclude-etc-test etc >${cwd}/tmp/1       
-+$bin/testls -e ${cwd}/scripts/exclude-etc-test etc >${cwd}/tmp/1       
- cd ${cwd}/tmp/bacula-restores
--${cwd}/bin/testls -e ${cwd}/scripts/exclude-etc-test etc >${cwd}/tmp/2
-+$bin/testls -e ${cwd}/scripts/exclude-etc-test etc >${cwd}/tmp/2
- sort <${cwd}/tmp/1 >${cwd}/tmp/original
- sort <${cwd}/tmp/2 >${cwd}/tmp/restored
- rm -f ${cwd}/tmp/1 ${cwd}/tmp/2
 Index: tests/bscan-tape
 ===================================================================
 --- tests/bscan-tape	(révision 7895)
 +++ tests/bscan-tape	(copie de travail)
-@@ -15,8 +15,8 @@
- 
- echo "${cwd}/build" >tmp/file-list
- 
--cp ${cwd}/bin/bacula-sd.conf tmp/1
--sed "s%# Maximum File Size%  Maximum File Size%" tmp/1 >${cwd}/bin/bacula-sd.conf
-+cp $bin/bacula-sd.conf tmp/1
-+sed "s%# Maximum File Size%  Maximum File Size%" tmp/1 >$bin/bacula-sd.conf
- 
- change_jobname NightlySave $JobName
- start_test
 @@ -106,9 +106,9 @@
  fi
  
  if test "$debug" -eq 1 ; then
 -  bin/bscan -w working $BSCANLIBDBI -u ${db_user} -n ${db_name} $PASSWD -m -s -v -b tmp/bscan.bsr -c bin/bacula-sd.conf DDS-4                
-+  $bin/bscan -w working $BSCANLIBDBI -u ${db_user} -n ${db_name} $PASSWD -m -s -v -b tmp/bscan.bsr -c $bin/bacula-sd.conf DDS-4                
++  $bin/bscan -w working $BSCANLIBDBI -u ${db_user} -n ${db_name} $PASSWD -m -s -v -b tmp/bscan.bsr -c bin/bacula-sd.conf DDS-4                
  else
 -  bin/bscan -w working $BSCANLIBDBI -u ${db_user} -n ${db_name} $PASSWD -m -s -v -b tmp/bscan.bsr -c bin/bacula-sd.conf DDS-4 2>&1 >/dev/null
-+  $bin/bscan -w working $BSCANLIBDBI -u ${db_user} -n ${db_name} $PASSWD -m -s -v -b tmp/bscan.bsr -c $bin/bacula-sd.conf DDS-4 >/dev/null 2>&1
++  $bin/bscan -w working $BSCANLIBDBI -u ${db_user} -n ${db_name} $PASSWD -m -s -v -b tmp/bscan.bsr -c bin/bacula-sd.conf DDS-4 >/dev/null 2>&1
  fi
  
  echo $BSCANLIBDBI
-Index: tests/big-files-test
-===================================================================
---- tests/big-files-test	(révision 7895)
-+++ tests/big-files-test	(copie de travail)
-@@ -22,8 +22,8 @@
-     time perl -e 'for($i=0; $i < 2000000; $i++) {open(FP, ">${i}file${i}") or die "$!"; print FP "$i\n"; close(FP); print "." if ($i%10000);}'
- fi
- 
--sed "s%# Label Format%  Label Format%" ${cwd}/bin/bacula-dir.conf > ${cwd}/tmp/1
--sed "s%Type = Backup%Type = Backup; Accurate = yes" ${cwd}/tmp/1 > ${cwd}/bin/bacula-dir.conf
-+sed "s%# Label Format%  Label Format%" $bin/bacula-dir.conf > ${cwd}/tmp/1
-+sed "s%Type = Backup%Type = Backup; Accurate = yes" ${cwd}/tmp/1 > $bin/bacula-dir.conf
- 
- change_jobname MonsterFileSet $JobName
- start_test
