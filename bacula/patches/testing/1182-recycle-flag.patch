@@ -1,0 +1,34 @@
+
+ This patch should fix the bug #1182 about Recycle flag
+ that is not updated after a pool change.
+ Should work for 2.4.3.
+
+ cd <bacula-source>
+ patch -p0 <1182-prune.patch
+ ./configure <your-options>
+ make
+ ...
+ make install
+
+Index: src/cats/sql_update.c
+===================================================================
+--- src/cats/sql_update.c	(révision 7981)
++++ src/cats/sql_update.c	(copie de travail)
+@@ -384,7 +384,7 @@
+         "Slot=%d,InChanger=%d,VolReadTime=%s,VolWriteTime=%s,VolParts=%d,"
+         "LabelType=%d,StorageId=%s,PoolId=%s,VolRetention=%s,VolUseDuration=%s,"
+         "MaxVolJobs=%d,MaxVolFiles=%d,Enabled=%d,LocationId=%s,"
+-        "ScratchPoolId=%s,RecyclePoolId=%s,RecycleCount=%d"
++        "ScratchPoolId=%s,RecyclePoolId=%s,RecycleCount=%d,Recycle=%d"
+         " WHERE VolumeName='%s'",
+         mr->VolJobs, mr->VolFiles, mr->VolBlocks, edit_uint64(mr->VolBytes, ed1),
+         mr->VolMounts, mr->VolErrors, mr->VolWrites,
+@@ -402,7 +402,7 @@
+         mr->Enabled, edit_uint64(mr->LocationId, ed9),
+         edit_uint64(mr->ScratchPoolId, ed10),
+         edit_uint64(mr->RecyclePoolId, ed11),
+-        mr->RecycleCount,
++        mr->RecycleCount,mr->Recycle,
+         mr->VolumeName);
+ 
+    Dmsg1(400, "%s\n", mdb->cmd);
