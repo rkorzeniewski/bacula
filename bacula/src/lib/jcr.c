@@ -836,6 +836,43 @@ static void unlock_jcr_chain()
    V(jcr_lock);
 }
 
+/*
+ * This function should be used only after receiving a violent signal
+ * We walk through the JCR chain without doing any lock, bacula should
+ * not be running.
+ */
+void print_jcr_dbg()
+{
+   char buf1[128], buf2[128], buf3[128], buf4[128];
+
+   if (!jcrs) {
+      return;
+   }
+
+   fprintf(stderr, "Attempt to dump current JCRs\n");
+
+   for (JCR *jcr = (JCR *)jcrs->first(); jcr ; jcr = (JCR *)jcrs->next(jcr)) {
+      if (!jcr) {               /* protect us against something ? */
+         continue;
+      }
+      
+      fprintf(stderr, "JCR=%p JobId=%i name=%s JobStatus=%c\n", 
+              jcr, jcr->JobId, jcr->Job, jcr->JobStatus);
+      fprintf(stderr, "\tuse_count=%i threadid=0x%x\n",
+              jcr->use_count(), (int)jcr->my_thread_id);
+      fprintf(stderr, "\tJobType=%c JobLevel=%c\n",
+              jcr->get_JobType(), jcr->get_JobLevel());
+      bstrftime(buf1, sizeof(buf1), jcr->sched_time);
+      bstrftime(buf2, sizeof(buf2), jcr->start_time);
+      bstrftime(buf3, sizeof(buf3), jcr->end_time);
+      bstrftime(buf4, sizeof(buf4), jcr->wait_time);
+      fprintf(stderr, "\tsched_time=%s start_time=%s\n\tend_time=%s wait_time=%s\n",
+              buf1, buf2, buf3, buf4);
+      fprintf(stderr, "\tdequeing=%i\n", jcr->dequeuing);
+      fprintf(stderr, "\tdb=%p db_batch=%p batch_started=%i\n", 
+              jcr->db, jcr->db_batch, jcr->batch_started);
+   }
+}
 
 /*
  * Start walk of jcr chain
