@@ -146,6 +146,7 @@ static char OKRunBefore[] = "2000 OK RunBefore\n";
 static char OKRunBeforeNow[] = "2000 OK RunBeforeNow\n";
 static char OKRunAfter[]  = "2000 OK RunAfter\n";
 static char OKRunScript[] = "2000 OK RunScript\n";
+static char BADcmd[]      = "2902 Bad %s\n";
 
 
 /* Responses received from Storage Daemon */
@@ -250,7 +251,7 @@ void *handle_client_request(void *dirp)
             Dmsg1(100, "Executing %s command.\n", cmds[i].cmd);
             if (!cmds[i].func(jcr)) {         /* do command */
                quit = true;         /* error or fully terminated, get out */
-               Dmsg1(20, "Quit command loop. Canceled=%d\n", job_canceled(jcr));
+               Dmsg1(100, "Quit command loop. Canceled=%d\n", job_canceled(jcr));
             }
             break;
          }
@@ -1366,7 +1367,7 @@ static int storage_cmd(JCR *jcr)
    if (sscanf(dir->msg, storaddr, &jcr->stored_addr, &stored_port, &enable_ssl) != 3) {
       pm_strcpy(jcr->errmsg, dir->msg);
       Jmsg(jcr, M_FATAL, 0, _("Bad storage command: %s"), jcr->errmsg);
-      return 0;
+      goto bail_out;
    }
    Dmsg3(110, "Open storage: %s:%d ssl=%d\n", jcr->stored_addr, stored_port, enable_ssl);
    /* Open command communications with Storage daemon */
@@ -1378,7 +1379,7 @@ static int storage_cmd(JCR *jcr)
           jcr->stored_addr, stored_port);
       Dmsg2(100, "Failed to connect to Storage daemon: %s:%d\n",
           jcr->stored_addr, stored_port);
-      return 0;
+      goto bail_out;
    }
    Dmsg0(110, "Connection OK to SD.\n");
 
@@ -1387,12 +1388,17 @@ static int storage_cmd(JCR *jcr)
    sd->fsend("Hello Start Job %s\n", jcr->Job);
    if (!authenticate_storagedaemon(jcr)) {
       Jmsg(jcr, M_FATAL, 0, _("Failed to authenticate Storage daemon.\n"));
-      return 0;
+      goto bail_out;
    }
    Dmsg0(110, "Authenticated with SD.\n");
 
    /* Send OK to Director */
    return dir->fsend(OKstore);
+
+bail_out:
+      dir->fsend(BADcmd, "storage");
+      return 0;
+
 }
 
 
@@ -1423,6 +1429,7 @@ static int backup_cmd(JCR *jcr)
 
    if (sd == NULL) {
       Jmsg(jcr, M_FATAL, 0, _("Cannot contact Storage daemon\n"));
+      dir->fsend(BADcmd, "backup");
       goto cleanup;
    }
 
