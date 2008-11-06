@@ -53,6 +53,7 @@
 extern char my_name[];
 extern char *exepath;
 extern char *exename;
+extern void print_jcr_dbg();
 
 static const char *sig_names[BA_NSIG+1];
 
@@ -156,6 +157,7 @@ extern "C" void signal_handler(int sig)
       default:                        /* parent */
          break;
       }
+
       /* Parent continue here, waiting for child */
       sigdefault.sa_flags = 0;
       sigdefault.sa_handler = SIG_DFL;
@@ -165,8 +167,11 @@ extern "C" void signal_handler(int sig)
       if (pid > 0) {
          Dmsg0(500, "Doing waitpid\n");
          waitpid(pid, NULL, 0);       /* wait for child to produce dump */
-         fprintf(stderr, _("Traceback complete, attempting cleanup ...\n"));
          Dmsg0(500, "Done waitpid\n");
+         fprintf(stderr, _("Traceback complete, attempting cleanup ...\n"));
+         /* print information about the current state into stderr */
+         print_lock_dbg();
+         print_jcr_dbg();
          exit_handler(sig);           /* clean up if possible */
          Dmsg0(500, "Done exit_handler\n");
       } else {

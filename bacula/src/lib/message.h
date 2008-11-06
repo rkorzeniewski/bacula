@@ -163,3 +163,12 @@ extern DLL_IMP_EXP time_t        daemon_start_time;
 extern DLL_IMP_EXP int           console_msg_pending;
 extern DLL_IMP_EXP FILE *        con_fd;                 /* Console file descriptor */
 extern DLL_IMP_EXP brwlock_t     con_lock;               /* Console lock structure */
+
+/* Used to debug database lock 
+ * which job takes the main DB access 
+ */
+void print_lock_dbg();
+extern DLL_IMP_EXP utime_t      _db_lock_time;
+extern DLL_IMP_EXP int          _db_lock_recurse_count;
+extern DLL_IMP_EXP pthread_t    _db_lock_threadid;
+
