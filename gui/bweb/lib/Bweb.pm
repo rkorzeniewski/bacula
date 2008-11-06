@@ -1877,7 +1877,7 @@ sub get_form
     }
 
     if ($what{storage_cmd}) {
-	if (!grep {/^\Q$ret{storage_cmd}$/} ('mount', 'umount', 'release','status')) {
+	if (!grep {/^\Q$ret{storage_cmd}\E$/} ('mount', 'umount', 'release','status')) {
 	    delete $ret{storage_cmd};
 	}
     }
