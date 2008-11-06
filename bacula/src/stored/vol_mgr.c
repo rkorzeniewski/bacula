@@ -39,7 +39,7 @@
 #include "bacula.h"
 #include "stored.h"
 
-const int dbglvl =  50;
+const int dbglvl =  150;
 
 static dlist *vol_list = NULL;
 static brwlock_t vol_list_lock;
