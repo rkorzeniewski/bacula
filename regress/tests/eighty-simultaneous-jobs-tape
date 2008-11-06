@@ -21,6 +21,8 @@ cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 messages
 @$out ${cwd}/tmp/log1.out
 label storage=DDS-4 volume=TestVolume001 slot=0 pool=Default
+setdebug level=60 Storage=DDS-4
+setdebug level=60 client
 run job=$JobName level=Full Storage=DDS-4 yes
 run job=$JobName level=Full Storage=DDS-4 yes
 run job=$JobName level=Full Storage=DDS-4 yes
@@ -127,8 +129,6 @@ END_OF_DATA
 run_bacula
 check_for_zombie_jobs storage=DDS-4
 stop_bacula
-
-exit
 
 check_two_logs
 check_restore_diff
