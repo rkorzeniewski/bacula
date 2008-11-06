@@ -62,23 +62,6 @@ char con_fname[500];                  /* Console filename */
 FILE *con_fd = NULL;                  /* Console file descriptor */
 brwlock_t con_lock;                   /* Console lock structure */
 
-
-/*
- * Global variables to get information about lock/unlock db access
- */
-utime_t _db_lock_time = 0;
-int _db_lock_recurse_count = 0;
-pthread_t _db_lock_threadid;
-
-void print_lock_dbg()
-{
-   char buf[128];
-   bstrutime(buf, sizeof(buf), _db_lock_time);
-
-   fprintf(stderr, "lock info: recurse_count=%i threadid=0x%x time=%s\n",
-           _db_lock_recurse_count, (int)_db_lock_threadid, buf);
-}
-
 /* Forward referenced functions */
 
 /* Imported functions */
@@ -1026,8 +1009,6 @@ t_msg(const char *file, int line, int level, const char *fmt,...)
        }
    }
 }
-
-
 
 /* *********************************************************
  *

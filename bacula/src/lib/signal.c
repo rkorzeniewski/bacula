@@ -73,6 +73,50 @@ const char *get_signal_name(int sig)
 }
 
 /*
+ * Global variables to get information about lock/unlock db access
+ */
+utime_t _db_lock_time = 0;
+int _db_lock_recurse_count = 0;
+pthread_t _db_lock_threadid;
+
+static void print_lock_dbg(FILE *fp)
+{
+   char buf[128];
+   bstrutime(buf, sizeof(buf), _db_lock_time);
+
+   fprintf(fp, "lock info: recurse_count=%i threadid=0x%x time=%s\n",
+           _db_lock_recurse_count, (int)_db_lock_threadid, buf);
+}
+
+/* defined in jcr.c */
+extern void _print_jcr_dbg(FILE *fp);
+
+/*
+ * !!! WARNING !!! 
+ *
+ * This function should be used ONLY after a violent signal. We walk through the
+ * JCR chain without doing any lock, bacula should not be running.
+ */
+static void print_bacula_dbg()
+{
+   char buf[512];
+
+   snprintf(buf, sizeof(buf), "%s/bacula.%d.bactrace", 
+            working_directory, getpid());
+   FILE *fp = fopen(buf, "ab") ;
+   if (!fp) {
+      fp = stderr;
+   }
+
+   _print_jcr_dbg(fp);
+   print_lock_dbg(fp);
+
+   if (fp != stderr) {
+      fclose(fp);
+   }
+}
+
+/*
  * Handle signals here
  */
 extern "C" void signal_handler(int sig)
@@ -169,9 +213,8 @@ extern "C" void signal_handler(int sig)
          waitpid(pid, NULL, 0);       /* wait for child to produce dump */
          Dmsg0(500, "Done waitpid\n");
          fprintf(stderr, _("Traceback complete, attempting cleanup ...\n"));
-         /* print information about the current state into stderr */
-         print_lock_dbg();
-         print_jcr_dbg();
+         /* print information about the current state into working/<file>.bactrace */
+         print_bacula_dbg();
          exit_handler(sig);           /* clean up if possible */
          Dmsg0(500, "Done exit_handler\n");
       } else {
