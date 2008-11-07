@@ -45,6 +45,8 @@
 extern "C" {
 #endif
 
+static const int dbglvl = 150;
+
 #define PLUGIN_LICENSE      "GPLv2"
 #define PLUGIN_AUTHOR       "Kern Sibbald"
 #define PLUGIN_DATE         "January 2008"
@@ -210,7 +212,7 @@ static bRC handlePluginEvent(bpContext *ctx, bEvent *event, void *value)
     */
    switch (event->eventType) {
    case bEventJobStart:
-      bfuncs->DebugMessage(ctx, fi, li, 50, "bpipe-fd: JobStart=%s\n", (char *)value);
+      bfuncs->DebugMessage(ctx, fi, li, dbglvl, "bpipe-fd: JobStart=%s\n", (char *)value);
       break;
    case bEventJobEnd:
 //    printf("bpipe-fd: JobEnd\n");
@@ -238,11 +240,11 @@ static bRC handlePluginEvent(bpContext *ctx, bEvent *event, void *value)
 
    /* Plugin command e.g. plugin = <plugin-name>:<name-space>:read command:write command */
    case bEventRestoreCommand:
-      printf("bpipe-fd: EventRestoreCommand cmd=%s\n", (char *)value);
+//    printf("bpipe-fd: EventRestoreCommand cmd=%s\n", (char *)value);
       /* Fall-through wanted */
    case bEventBackupCommand:
       char *p;
-      bfuncs->DebugMessage(ctx, fi, li, 50, "bpipe-fd: pluginEvent cmd=%s\n", (char *)value);
+      bfuncs->DebugMessage(ctx, fi, li, dbglvl, "bpipe-fd: pluginEvent cmd=%s\n", (char *)value);
       p_ctx->cmd = strdup((char *)value);
       p = strchr(p_ctx->cmd, ':');
       if (!p) {
@@ -265,12 +267,12 @@ static bRC handlePluginEvent(bpContext *ctx, bEvent *event, void *value)
       }
       *p++ = 0;           /* terminate reader string */
       p_ctx->writer = p;
-      printf("bpipe-fd: plugin=%s fname=%s reader=%s writer=%s\n", 
+//    printf("bpipe-fd: plugin=%s fname=%s reader=%s writer=%s\n", 
          p_ctx->cmd, p_ctx->fname, p_ctx->reader, p_ctx->writer);
       break;
 
    default:
-      printf("bpipe-fd: unknown event=%d\n", event->eventType);
+//    printf("bpipe-fd: unknown event=%d\n", event->eventType);
    }
    return bRC_OK;
 }
@@ -320,12 +322,12 @@ static bRC pluginIO(bpContext *ctx, struct io_pkt *io)
    io->io_errno = 0;
    switch(io->func) {
    case IO_OPEN:
-      bfuncs->DebugMessage(ctx, fi, li, 50, "bpipe-fd: IO_OPEN\n");
+      bfuncs->DebugMessage(ctx, fi, li, dbglvl, "bpipe-fd: IO_OPEN\n");
       if (io->flags & (O_CREAT | O_WRONLY)) {
          char *writer_codes = apply_rp_codes(p_ctx);
 
          p_ctx->fd = popen(writer_codes, "w");
-         bfuncs->DebugMessage(ctx, fi, li, 50, "bpipe-fd: IO_OPEN fd=%d writer=%s\n", 
+         bfuncs->DebugMessage(ctx, fi, li, dbglvl, "bpipe-fd: IO_OPEN fd=%d writer=%s\n", 
              p_ctx->fd, writer_codes);
          if (!p_ctx->fd) {
             io->io_errno = errno;
@@ -341,7 +343,7 @@ static bRC pluginIO(bpContext *ctx, struct io_pkt *io)
          }
       } else {
          p_ctx->fd = popen(p_ctx->reader, "r");
-         bfuncs->DebugMessage(ctx, fi, li, 50, "bpipe-fd: IO_OPEN fd=%p reader=%s\n", 
+         bfuncs->DebugMessage(ctx, fi, li, dbglvl, "bpipe-fd: IO_OPEN fd=%p reader=%s\n", 
             p_ctx->fd, p_ctx->reader);
          if (!p_ctx->fd) {
             io->io_errno = errno;
@@ -359,11 +361,11 @@ static bRC pluginIO(bpContext *ctx, struct io_pkt *io)
          return bRC_Error;
       }
       io->status = fread(io->buf, 1, io->count, p_ctx->fd);
-//    bfuncs->DebugMessage(ctx, fi, li, 50, "bpipe-fd: IO_READ buf=%p len=%d\n", io->buf, io->status);
+//    bfuncs->DebugMessage(ctx, fi, li, dbglvl, "bpipe-fd: IO_READ buf=%p len=%d\n", io->buf, io->status);
       if (io->status == 0 && ferror(p_ctx->fd)) {
          bfuncs->JobMessage(ctx, fi, li, M_FATAL, 0, 
             "Pipe read error: ERR=%s\n", strerror(errno));
-         bfuncs->DebugMessage(ctx, fi, li, 50, 
+         bfuncs->DebugMessage(ctx, fi, li, dbglvl, 
             "Pipe read error: ERR=%s\n", strerror(errno));
          return bRC_Error;
       }
@@ -380,7 +382,7 @@ static bRC pluginIO(bpContext *ctx, struct io_pkt *io)
       if (io->status == 0 && ferror(p_ctx->fd)) {
          bfuncs->JobMessage(ctx, fi, li, M_FATAL, 0, 
             "Pipe write error\n");
-         bfuncs->DebugMessage(ctx, fi, li, 50, 
+         bfuncs->DebugMessage(ctx, fi, li, dbglvl, 
             "Pipe read error: ERR=%s\n", strerror(errno));
          return bRC_Error;
       }
