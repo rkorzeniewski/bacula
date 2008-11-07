@@ -235,8 +235,11 @@ function percent_finish(value, corr, parent)
    var type;
 
    var nb = parseInt(value*300/100, 10);
-   parent.title = parseInt(value*100,10)/100 + "% finished (approximate " + (corr).toFixed(2) + ")" ;
-
+   var nbp = parseInt(value*100,10)/100;
+   if (nbp > 500) {
+      return;
+   }
+   parent.title = nbp + "% finished (approximate " + (corr).toFixed(2) + ")" ;
    var img=document.createElement('img');
    img.className="pSliceFinished";
    img.src="/bweb/pix.png";
