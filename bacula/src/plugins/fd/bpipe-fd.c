@@ -268,7 +268,7 @@ static bRC handlePluginEvent(bpContext *ctx, bEvent *event, void *value)
       *p++ = 0;           /* terminate reader string */
       p_ctx->writer = p;
 //    printf("bpipe-fd: plugin=%s fname=%s reader=%s writer=%s\n", 
-         p_ctx->cmd, p_ctx->fname, p_ctx->reader, p_ctx->writer);
+//         p_ctx->cmd, p_ctx->fname, p_ctx->reader, p_ctx->writer);
       break;
 
    default:
