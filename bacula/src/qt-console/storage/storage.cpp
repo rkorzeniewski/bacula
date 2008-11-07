@@ -35,9 +35,9 @@
  *
  */ 
 
+#include "bat.h"
 #include <QAbstractEventDispatcher>
 #include <QMenu>
-#include "bat.h"
 #include "storage.h"
 #include "label/label.h"
 #include "mount/mount.h"

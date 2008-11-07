@@ -35,9 +35,9 @@
  *
  */ 
 
+#include "bat.h"
 #include <QAbstractEventDispatcher>
 #include <QMenu>
-#include "bat.h"
 #include "fileset/fileset.h"
 #include "util/fmtwidgetitem.h"
 

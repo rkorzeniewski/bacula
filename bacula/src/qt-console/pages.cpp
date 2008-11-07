@@ -31,8 +31,8 @@
  *   Dirk Bartley, March 2007
  */
 
-#include "pages.h"
 #include "bat.h"
+#include "pages.h"
 
 /* A global function */
 bool isWin32Path(QString &fullPath) 

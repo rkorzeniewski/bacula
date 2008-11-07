@@ -31,9 +31,9 @@
  *   Dirk Bartley, March 2007
  */
  
+#include "bat.h"
 #include <QAbstractEventDispatcher>
 #include <QTableWidgetItem>
-#include "bat.h"
 #include "joblist.h"
 #include "restore.h"
 #include "joblog/joblog.h"

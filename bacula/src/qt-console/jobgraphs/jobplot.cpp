@@ -35,8 +35,8 @@
  *
  */ 
 
-#include <QtGui>
 #include "bat.h"
+#include <QtGui>
 #include "util/comboutil.h"
 #include "jobgraphs/jobplot.h"
 

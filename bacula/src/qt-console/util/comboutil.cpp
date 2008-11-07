@@ -35,10 +35,10 @@
  *
  */
 
+#include "bat.h"
 #include <QComboBox>
 #include <QString>
 #include <QStringList>
-#include "bat.h"
 #include "fmtwidgetitem.h"
 #include "comboutil.h"
 

@@ -35,9 +35,9 @@
  *
  */ 
 
+#include "bat.h"
 #include <QAbstractEventDispatcher>
 #include <QMenu>
-#include "bat.h"
 #include "clients/clients.h"
 #include "run/run.h"
 #include "status/clientstat.h"
