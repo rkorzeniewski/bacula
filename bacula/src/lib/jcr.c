@@ -1012,8 +1012,13 @@ void _print_jcr_dbg(FILE *fp)
       
       fprintf(fp, "JCR=%p JobId=%i name=%s JobStatus=%c\n", 
               jcr, jcr->JobId, jcr->Job, jcr->JobStatus);
+#ifdef HAVE_WIN32
+      fprintf(fp, "\tuse_count=%i\n",
+              jcr->use_count());
+#else
       fprintf(fp, "\tuse_count=%i threadid=0x%x\n",
               jcr->use_count(), (int)jcr->my_thread_id);
+#endif
       fprintf(fp, "\tJobType=%c JobLevel=%c\n",
               jcr->get_JobType(), jcr->get_JobLevel());
       bstrftime(buf1, sizeof(buf1), jcr->sched_time);

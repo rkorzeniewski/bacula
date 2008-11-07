@@ -421,12 +421,14 @@ void MediaList::volumeFromPool()
  */
 void MediaList::writeExpandedSettings()
 {
-   QSettings settings(m_console->m_dir->name(), "bat");
-   settings.beginGroup("MediaListTreeExpanded");
-   int childcount = m_topItem->childCount();
-   for (int cnt=0; cnt<childcount; cnt++) {
-      QTreeWidgetItem *poolitem = m_topItem->child(cnt);
-      settings.setValue(poolitem->text(0), poolitem->isExpanded());
+   if (m_topItem) {
+      QSettings settings(m_console->m_dir->name(), "bat");
+      settings.beginGroup("MediaListTreeExpanded");
+      int childcount = m_topItem->childCount();
+      for (int cnt=0; cnt<childcount; cnt++) {
+         QTreeWidgetItem *poolitem = m_topItem->child(cnt);
+         settings.setValue(poolitem->text(0), poolitem->isExpanded());
+      }
+      settings.endGroup();
    }
-   settings.endGroup();
 }

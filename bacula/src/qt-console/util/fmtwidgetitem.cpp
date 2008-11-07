@@ -78,6 +78,7 @@ Freeze::~Freeze()
    if (qw) {
       qw->setUpdatesEnabled(true); 
       QApplication::restoreOverrideCursor();
+      qw->update();
    }
 }
 
