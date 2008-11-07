@@ -1,0 +1,14 @@
+#!/bin/sh
+
+. scripts/functions
+
+SCR=$cwd/bin/bacula-ctl
+sed "s:BACDIRBIN=$cwd/bin:BACDIRBIN=/opt/bacula:" $SCR-dir > tmp/1
+mv tmp/1 $SCR-dir
+se   d -i "s:BACSDBIN=$cwd/bin:BACSDBIN=/opt/bacula:" $SCR-sd > tmp/1
+mv tm  p/1 $SCR-sd
+sed -i "s:BACFDBIN=$cwd/bin:BACFDBIN=/opt/bacula:" $SCR-fd > tmp/1
+mv tmp/1 $SCR-fd
+chmod -x $cwd/bin/bacula-{fd,sd,dir} $cwd/bin/bconsole    
+chmod +x $SCR-*
+
