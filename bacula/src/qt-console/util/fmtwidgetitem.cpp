@@ -35,6 +35,7 @@
  *
  */ 
 
+#include "bat.h"
 #include <QTreeWidgetItem>
 #include <QTableWidget>
 #include <QTableWidgetItem>
@@ -42,7 +43,6 @@
 #include <QString>
 #include <QStringList>
 #include <math.h>
-#include "bat.h"
 #include "fmtwidgetitem.h"
 
 /***********************************************

@@ -34,11 +34,17 @@
  *   Kern Sibbald, January 2007
  */
 
-#include "config.h"
+#if defined(HAVE_WIN32)
+#if !defined(_STAT_H)
+#define _STAT_H       /* don't pull in MinGW stat.h */
+#define _STAT_DEFINED /* don't pull in MinGW stat.h */
+#endif
+#endif
+
 #include <QtGui>
 #include <QtCore>
-#include "mainwin.h"
 #include "bacula.h"
+#include "mainwin.h"
 #include "bat_conf.h"
 #include "jcr.h"
 #include "console.h"

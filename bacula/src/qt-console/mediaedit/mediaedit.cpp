@@ -31,12 +31,11 @@
  *   Dirk Bartley, March 2007
  */
  
+#include "bat.h"
 #include <QAbstractEventDispatcher>
 #include <QTableWidgetItem>
 #include <QMessageBox>
-#include "bat.h"
 #include "mediaedit.h"
-#include <inttypes.h>
 
 /*
  * A constructor 

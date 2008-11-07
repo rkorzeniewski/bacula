@@ -35,10 +35,10 @@
  *
  */ 
 
+#include "bat.h"
 #include <QAbstractEventDispatcher>
 #include <QMenu>
 #include <math.h>
-#include "bat.h"
 #include "medialist.h"
 #include "mediaedit/mediaedit.h"
 #include "joblist/joblist.h"

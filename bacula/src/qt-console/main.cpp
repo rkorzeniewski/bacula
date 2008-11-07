@@ -35,9 +35,9 @@
  */ 
 
 
+#include "bat.h"
 #include <QApplication>
 #include <QTranslator>
-#include "bat.h"
 
 MainWin *mainWin;
 QApplication *app;
