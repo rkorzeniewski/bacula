@@ -91,7 +91,8 @@ public:
    void writeSettings();
    void readSettings();
    char *msg();
-   void notify(bool enable);
+   bool notify(bool enable); // enables/disables socket notification - returns the previous state
+   bool is_notify_enabled() const;
    QStringList get_list(char *cmd);
    bool get_job_defaults(struct job_defaults &);
    void terminate();

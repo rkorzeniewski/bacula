@@ -145,7 +145,7 @@ void Jobs::PgSeltreeWidgetClicked()
 void Jobs::tableItemChanged(QTableWidgetItem *currentwidgetitem, QTableWidgetItem *previouswidgetitem )
 {
    /* m_checkcurwidget checks to see if this is during a refresh, which will segfault */
-   if (m_checkcurwidget) {
+   if (m_checkcurwidget && currentwidgetitem) {
       /* The Previous item */
       if (previouswidgetitem) { /* avoid a segfault if first time */
          foreach(QAction* jobAction, tableWidget->actions()) {

@@ -43,7 +43,10 @@
 static int tls_pem_callback(char *buf, int size, const void *userdata);
 
 
-Console::Console(QStackedWidget *parent)
+Console::Console(QStackedWidget *parent):
+m_notifier(NULL),
+m_api_set(false),
+m_messages_pending(false)
 {
    QFont font;
    m_parent = parent;
@@ -230,11 +233,14 @@ void Console::connect_dir()
 
    mainWin->set_status(_("Initializing ..."));
 
+#ifndef HAVE_WIN32
    /* Set up input notifier */
    m_notifier = new QSocketNotifier(m_sock->m_fd, QSocketNotifier::Read, 0);
    QObject::connect(m_notifier, SIGNAL(activated(int)), this, SLOT(read_dir(int)));
+#endif
 
    write(".api 1");
+   m_api_set = true;
    displayToPrompt();
 
    beginNewCommand();
@@ -619,14 +625,9 @@ int Console::sock_read()
 {
    int stat;
 #ifdef HAVE_WIN32
-   bool isEnabled = m_notifier->isEnabled();
-   if (isEnabled) {
-      m_notifier->setEnabled(false);
-   }
+   bool wasEnabled = notify(false);
    stat = m_sock->recv();
-   if (isEnabled) {
-      m_notifier->setEnabled(true);
-   }
+   notify(wasEnabled);
 #else
    stat = m_sock->recv();
 #endif
@@ -646,7 +647,7 @@ int Console::read()
             break;
          } 
          app->processEvents();
-         if (m_api_set && m_messages_pending && m_notifier->isEnabled()) {
+         if (m_api_set && m_messages_pending && is_notify_enabled()) {
             write_dir(".messages");
             m_messages_pending = false;
          }
@@ -663,7 +664,7 @@ int Console::read()
       }
       switch (m_sock->msglen) {
       case BNET_MSGS_PENDING :
-         if (m_notifier->isEnabled()) {
+         if (is_notify_enabled()) {
             if (mainWin->m_commDebug) Pmsg0(000, "MSGS PENDING\n");
             write_dir(".messages");
             displayToPrompt();
@@ -758,9 +759,11 @@ int Console::read()
          QBrush redBrush(Qt::red);
          QTreeWidgetItem *item = mainWin->getFromHash(this);
          item->setForeground(0, redBrush);
-         m_notifier->setEnabled(false);
-         delete m_notifier;
-         m_notifier = NULL;
+         if (m_notifier) {
+            m_notifier->setEnabled(false);
+            delete m_notifier;
+            m_notifier = NULL;
+         }
          mainWin->set_status(_("Director disconnected."));
          QApplication::restoreOverrideCursor();
          stat = BNET_HARDEOF;
@@ -789,9 +792,22 @@ void Console::read_dir(int /* fd */)
  * from the Directory, so we set notify to off.
  *    m_console->notifiy(false);
  */
-void Console::notify(bool enable) 
+bool Console::notify(bool enable) 
 { 
-   m_notifier->setEnabled(enable);   
+   bool prev_enabled = false;
+   if (m_notifier) {
+      prev_enabled = m_notifier->isEnabled();   
+      m_notifier->setEnabled(enable);   
+   }
+   return prev_enabled;
+}
+
+bool Console::is_notify_enabled() const
+{
+   bool enabled = false;
+   if (m_notifier)
+      enabled = m_notifier->isEnabled();   
+   return enabled;
 }
 
 void Console::setDirectorTreeItem(QTreeWidgetItem *item)
