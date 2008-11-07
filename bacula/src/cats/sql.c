@@ -313,7 +313,6 @@ char *db_strerror(B_DB *mdb)
 
 static void update_lock_dbg(B_DB *mdb) 
 {
-#ifdef xxx
    if (mdb->allow_transactions) { /* batch connection */
       return;
    }
@@ -323,12 +322,10 @@ static void update_lock_dbg(B_DB *mdb)
    _db_lock_recurse_count++;
    _db_lock_time = (utime_t) time(NULL);
    _db_lock_threadid = pthread_self();
-#endif
 }
 
 static void update_unlock_dbg(B_DB *mdb) 
 {
-#ifdef xxx
    if (mdb->allow_transactions) { /* batch connection */
       return;
    }
@@ -339,7 +336,6 @@ static void update_unlock_dbg(B_DB *mdb)
    if (!_db_lock_recurse_count) {
       memset(&_db_lock_threadid, 0, sizeof(_db_lock_threadid));
    }
-#endif
 }
 
 /*

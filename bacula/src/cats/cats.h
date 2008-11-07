@@ -367,6 +367,7 @@ struct B_DB {
    POOLMEM *cached_path;
    int cached_path_len;               /* length of cached path */
    uint32_t cached_path_id;
+   bool allow_transactions;           /* transactions allowed */ 
    int changes;                       /* changes made to db */
    POOLMEM *fname;                    /* Filename only */
    POOLMEM *path;                     /* Path only */

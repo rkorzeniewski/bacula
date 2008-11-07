@@ -124,6 +124,7 @@ db_init_database(JCR *jcr, const char *db_name, const char *db_user, const char 
    mdb->path = get_pool_memory(PM_FNAME);
    mdb->esc_name = get_pool_memory(PM_FNAME);
    mdb->esc_path = get_pool_memory(PM_FNAME);
+   mdb->allow_transactions = mult_db_connections;
    qinsert(&db_list, &mdb->bq);            /* put db in list */
    Dmsg3(100, "initdb ref=%d connected=%d db=%p\n", mdb->ref_count,
          mdb->connected, mdb->db);
