@@ -445,7 +445,7 @@ package main;
 print "test sans conio\n";
 
 my $c = new Bconsole(pref => {
-    bconsole => '/tmp/bacula/sbin/bconsole -n -c /tmp/bacula/etc/bconsole.conf',
+    bconsole => '/tmp/regress/bin/bconsole -n -c /tmp/regress/bin/bconsole.conf',
 },
 		     debug => 0);
 

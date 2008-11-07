@@ -441,6 +441,9 @@ if ($action eq 'begin') {		# main display
 } elsif ($action eq 'cancel_job') {
     $bweb->cancel_job();
 
+} elsif ($action eq 'cancel_future_job') {
+    $bweb->cancel_future_job();
+
 } elsif  ($action eq 'media_zoom') {
     $bweb->display_media_zoom();
 

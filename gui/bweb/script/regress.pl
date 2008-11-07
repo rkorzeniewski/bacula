@@ -93,6 +93,12 @@ ok($c =~ m!(action=job_zoom;jobid=\d+)!, "Get the first JobId");
 die "Can't get first jobid ($c)" unless $1;
 $job_url=$1;
 
+# check missing view
+ok($agent->follow_link(text_regex=>qr/Missing Jobs/), "Go to Missing Jobs page");
+$c=$agent->content;
+like($c, qr/BackupCatalog/, "Check for BackupCatalog job");
+unlike($c, qr/backup/, "Check for backup job");
+
 # test job_zoom page
 # check for
 #  - job log
@@ -138,7 +144,7 @@ ok($agent->success,"Get job zoom");
 ok($agent->form_name('delete'), "Find form");
 $agent->click(); $c=$agent->content;
 ok($agent->success, "Delete it"); 
-like($c, qr!deleted!, "Check deleted message");
+like($c, qr!deleted from the catalog!, "Check deleted message");
 
 $agent->get("$url?$job_url");
 ok($agent->success,"Get job zoom");

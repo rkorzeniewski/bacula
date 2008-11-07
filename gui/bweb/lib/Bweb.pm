@@ -1868,7 +1868,7 @@ sub get_form
 	    }
 	} elsif (exists $opt_t{$i}) { # 1: hh:min optionnal, 2: hh:min required
 	    my $when = CGI::param($i) || '';
-	    if ($when =~ /(\d{4}-\d{2}-\d{2}( \d{2}:\d{2}:\d{2})?)/) {
+	    if ($when =~ /(\d{4}-\d{2}-\d{2}( \d{2}:\d{2}(:\d{2})?)?)/) {
 		if ($opt_t{$i} == 1 or defined $2) {
 		    $ret{$i} = $1;
 		}
@@ -4554,6 +4554,69 @@ SELECT count(1) AS nbline,
 		 }, 'display_log.tpl');
 }
 
+sub cancel_future_job
+{
+    my ($self) = @_;
+    $self->can_do('r_cancel_job');
+
+    my $arg = $self->get_form(qw/job pool level client when/);
+
+    if ( !$arg->{job} or !$arg->{pool} or !$arg->{level} 
+         or !$arg->{client} or !$arg->{when})
+    {
+        return $self->error("Can't get enough information to mark this job as canceled");
+    }
+
+    $arg->{level} =~ s/^(.).+/$1/; # we keep the first letter
+    my $jobtable = $self->{info}->{stat_job_table} || 'JobHistory';
+
+    if ($jobtable =~ /^Job$/i) {
+        return $self->error("Can add records only in history table");
+    }
+    my $jname = "$arg->{job}.$arg->{when}";
+    $jname =~ s/\s/_/g;
+
+    my $found = $self->dbh_selectrow_hashref("
+SELECT 1
+  FROM $jobtable
+ WHERE JobId = 0
+   AND Job = '$jname'
+   AND Name = '$arg->{job}'
+");
+    if ($found) {
+        return $self->error("$jname is already in history table");
+    }
+
+        $self->dbh_do("
+INSERT INTO $jobtable 
+  (JobId, Name, Job, Type, Level, JobStatus, SchedTime, StartTime, EndTime, 
+   RealEndTime, ClientId, PoolId) 
+ VALUES 
+  (0, '$arg->{job}', '$jname', 'B', '$arg->{level}', 'A',
+   '$arg->{when}', '$arg->{when}', '$arg->{when}', '$arg->{when}',
+   (SELECT ClientId FROM Client WHERE Name = '$arg->{client}'),
+   (SELECT PoolId FROM Pool WHERE Name = '$arg->{pool}')
+  )
+");
+    $self->display({ Filter => "Dummy record for $jname",
+	             ID => 1,
+		     Jobs => 
+                         [{ jobid => 0,
+                            client => $arg->{client},
+                            jobname => $arg->{job},
+                            pool => $arg->{pool},
+                            level => $arg->{level},
+                            starttime => $arg->{when},
+                            duration => '00:00:00',
+                            jobfiles => 0,
+                            jobbytes => 0,
+                            joberrors => 0,
+                            jobstatus => 'A',
+                     }]
+		   },
+		   "display_job.tpl");
+}
+
 sub add_media
 {
     my ($self) = @_ ;
@@ -4738,8 +4801,8 @@ sub enable_disable_job
     my ($self, $what) = @_ ;
     $self->can_do('r_run_job');
 
-    my $name = CGI::param('job') || '';
-    unless ($name =~ /^[\w\d\.\-\s]+$/) {
+    my $arg = $self->get_form('job');
+    if (!$arg->{job}) {
 	return $self->error("Can't find job name");
     }
 
@@ -4753,9 +4816,9 @@ sub enable_disable_job
     }
 
     $self->display({
-	content => $b->send_cmd("$cmd job=\"$name\""),
-	title => "$cmd $name",
-	name => "$cmd job=\"$name\"",
+	content => $b->send_cmd("$cmd job=\"$arg->{job}\""),
+	title => "$cmd $arg->{job}",
+	name => "$cmd job=\"$arg->{job}\"",
     }, "command.tpl");	
 }
 
@@ -4830,14 +4893,15 @@ sub run_job_mod
     $self->can_do('r_run_job');
 
     my $b = $self->get_bconsole();
-    
-    my $job = CGI::param('job') || '';
+    my $arg = $self->get_form(qw/pool level client fileset storage media job/);
+
+    if (!$arg->{job}) {
+        return $self->error("Can't get job name");
+    }
 
     # we take informations from director, and we overwrite with user wish
-    my $info = $b->send_cmd("show job=\"$job\"");
+    my $info = $b->send_cmd("show job=\"$arg->{job}\"");
     my $attr = $self->run_parse_job($info);
-
-    my $arg = $self->get_form(qw/pool level client fileset storage media/);
     
     if (!$arg->{pool} and $arg->{media}) {
 	my $r = $self->dbh_selectrow_hashref("
@@ -4893,15 +4957,17 @@ sub run_job_now
     
     # TODO: check input (don't use pool, level)
 
-    my $arg = $self->get_form('pool', 'level', 'client', 'priority', 'when', 'fileset');
-    my $job = CGI::param('job') || '';
-    my $storage = CGI::param('storage') || '';
+    my $arg = $self->get_form(qw/pool level client priority when 
+                                 fileset job storage/);
+    if (!$arg->{job}) {
+        return $self->error("Can't get your job name");
+    }
 
-    my $jobid = $b->run(job => $job,
+    my $jobid = $b->run(job => $arg->{job},
 			client => $arg->{client},
 			priority => $arg->{priority},
 			level => $arg->{level},
-			storage => $storage,
+			storage => $arg->{storage},
 			pool => $arg->{pool},
 			fileset => $arg->{fileset},
 			when => $arg->{when},
@@ -4983,11 +5049,11 @@ sub check_job
 	$l = $self->get_higher_level($l);
 	my $evts = $sched->get_event($s);
 	my $end = $sched->{end}; # this backup must have start before the next one
-	
 	foreach my $evt (reverse @$evts) {
 	    my $all = $self->dbh_selectrow_hashref("
  SELECT 1
-   FROM Job JOIN Client USING (ClientId) LEFT JOIN Pool USING (PoolId)
+   FROM Job
+   JOIN Client USING (ClientId) LEFT JOIN Pool USING (PoolId)
   WHERE Job.StartTime >= '$evt' 
     AND Job.StartTime <  '$end'
     AND Job.Name = '$job'
@@ -5050,10 +5116,11 @@ sub display_missing_job
 	}
     }
     $self->display({
-	id => $cur_id++,
-	title => "Missing Job (since $arg->{begin} to $arg->{end})",
-	list => $self->{tmp},
-	wiki_url => $self->{info}->{wiki_url},
+        id => $cur_id++,
+        title => "Missing Job (since $arg->{begin} to $arg->{end})",
+        list => $self->{tmp},
+        wiki_url => $self->{info}->{wiki_url},
+        missing_mode => 1,
     }, "scheduled_job.tpl");
 
     delete $self->{tmp};
