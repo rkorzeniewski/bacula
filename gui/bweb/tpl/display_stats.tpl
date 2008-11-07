@@ -17,7 +17,7 @@ var data = new Array();
 
 var nb_job=<TMPL_IF nb_job><TMPL_VAR nb_job><TMPL_ELSE>0</TMPL_IF>;
 var nb_err=<TMPL_IF nb_err><TMPL_VAR nb_err><TMPL_ELSE>0</TMPL_IF>;
-var t_ok = Math.abs((nb_job - nb_err)/(nb_job + nb_err + 0.0001)*100);
+var t_ok = Math.abs(nb_job/(nb_job + nb_err + 0.0001)*100);
 var nb_byte = <TMPL_IF nb_byte><TMPL_VAR nb_byte><TMPL_ELSE>0</TMPL_IF>;
 data.push( 
   new Array( "<TMPL_VAR name>", 
