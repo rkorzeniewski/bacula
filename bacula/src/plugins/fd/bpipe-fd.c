@@ -273,6 +273,7 @@ static bRC handlePluginEvent(bpContext *ctx, bEvent *event, void *value)
 
    default:
 //    printf("bpipe-fd: unknown event=%d\n", event->eventType);
+      break;
    }
    return bRC_OK;
 }
