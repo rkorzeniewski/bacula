@@ -76,9 +76,11 @@ SAVEUPDATEDB=0
 # to override your language shell variable uncomment and edit this
 # export LANG=en_US.UTF-8
 
-# if you have a problem getting bat to build try these (needed on Fedora 8/9)
-# export QTDIR=/usr/lib/qt4
-# export PATH=/usr/lib/qt4/bin;$PATH
+# this is now in the spec file but when building bat on older versions uncomment
+#export QTDIR=$(pkg-config --variable=prefix QtCore)
+#export QTINC=$(pkg-config --variable=includedir QtCore)
+#export QTLIB=$(pkg-config --variable=libdir QtCore)
+#export PATH=${QTDIR}/bin/:${PATH}
 
 # Make no changes below this point without consensus
 
@@ -189,3 +191,4 @@ ls
 # 12 Jan 2008 add fc8
 # 23 May 2008 add fc9
 # 28 Jun 2008 add su110
+# 08 Nov 2008 add use of pkgconfig to obtain QT4 paths

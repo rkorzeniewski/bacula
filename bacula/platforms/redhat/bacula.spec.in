@@ -329,6 +329,9 @@ BuildRequires: python, python-devel
 %if %{gconsole}
 BuildRequires: pkgconfig, pango-devel, atk-devel
 %endif
+%if %{bat}
+BuildRequires: pkgconfig
+%endif
 
 # Rh qt4 packages don't have a provide for, guess what, qt!
 # still broken in fc8, ok in fc9
@@ -1346,6 +1349,13 @@ the client or server packages.
 
 %if %{su9} || %{su10} || %{su102} || %{su103} || %{su110}
 export LDFLAGS="${LDFLAGS} -L/usr/lib/termcap"
+%endif
+
+%if %{bat}
+export QTDIR=$(pkg-config --variable=prefix QtCore)
+export QTINC=$(pkg-config --variable=includedir QtCore)
+export QTLIB=$(pkg-config --variable=libdir QtCore)
+export PATH=${QTDIR}/bin/:${PATH}
 %endif
 
 cwd=${PWD}
@@ -2428,6 +2438,8 @@ fi
 %endif
 
 %changelog
+* Sat Nov 08 2008 D. Scott Barninger <barninger@fairfieldcomputers.com>
+- set paths for QT using pkgconfig
 * Sat Oct 11 2008 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - release 2.4.3 update depkgs to 11Sep08 remove file nmshack from mtx package
 * Sun Sep 07 2008 D. Scott Barninger <barninger@fairfieldcomputers.com>
