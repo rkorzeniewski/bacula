@@ -1,6 +1,6 @@
 Index: scripts/cleanup-tape.in
 ===================================================================
---- scripts/cleanup-tape.in	(révision 7895)
+--- scripts/cleanup-tape.in	(révision 7994)
 +++ scripts/cleanup-tape.in	(copie de travail)
 @@ -12,16 +12,16 @@
  init_slot @tape_drive@ $SLOT1
@@ -25,7 +25,7 @@ Index: scripts/cleanup-tape.in
  fi
 Index: scripts/prepare-two-tapes.in
 ===================================================================
---- scripts/prepare-two-tapes.in	(révision 7895)
+--- scripts/prepare-two-tapes.in	(révision 7994)
 +++ scripts/prepare-two-tapes.in	(copie de travail)
 @@ -18,10 +18,10 @@
  # optimize so we don't unnecessarily unload and load slots
@@ -70,7 +70,7 @@ Index: scripts/prepare-two-tapes.in
        echo "Something went wrong. Expected $SLOT1 or $SLOT2, got $slot"
 Index: scripts/check_for_zombie_jobs
 ===================================================================
---- scripts/check_for_zombie_jobs	(révision 7895)
+--- scripts/check_for_zombie_jobs	(révision 7994)
 +++ scripts/check_for_zombie_jobs	(copie de travail)
 @@ -14,7 +14,7 @@
      client=${HOST}-fd
@@ -81,9 +81,24 @@ Index: scripts/check_for_zombie_jobs
  @output tmp/dir.out
  status dir
  @output tmp/fd.out
+Index: scripts/prepare-other-loc
+===================================================================
+--- scripts/prepare-other-loc	(révision 8011)
++++ scripts/prepare-other-loc	(copie de travail)
+@@ -5,8 +5,8 @@
+ SCR=$cwd/bin/bacula-ctl
+ sed "s:BACDIRBIN=$cwd/bin:BACDIRBIN=$bin:" $SCR-dir > tmp/1
+ mv tmp/1 $SCR-dir
+-se   d -i "s:BACSDBIN=$cwd/bin:BACSDBIN=$bin:" $SCR-sd > tmp/1
+-mv tm  p/1 $SCR-sd
++sed -i "s:BACSDBIN=$cwd/bin:BACSDBIN=$bin:" $SCR-sd > tmp/1
++mv tmp/1 $SCR-sd
+ sed -i "s:BACFDBIN=$cwd/bin:BACFDBIN=$bin:" $SCR-fd > tmp/1
+ mv tmp/1 $SCR-fd
+ chmod -x $cwd/bin/bacula-{fd,sd,dir} $cwd/bin/bconsole    
 Index: scripts/setup
 ===================================================================
---- scripts/setup	(révision 7895)
+--- scripts/setup	(révision 7994)
 +++ scripts/setup	(copie de travail)
 @@ -20,6 +20,7 @@
     exit 1
@@ -95,7 +110,7 @@ Index: scripts/setup
  echo "Copying source from ${BACULA_SOURCE}"
 Index: scripts/cleanup-2drive.in
 ===================================================================
---- scripts/cleanup-2drive.in	(révision 7895)
+--- scripts/cleanup-2drive.in	(révision 7994)
 +++ scripts/cleanup-2drive.in	(copie de travail)
 @@ -6,40 +6,40 @@
  scripts/cleanup
@@ -150,15 +165,13 @@ Index: scripts/cleanup-2drive.in
  fi
 Index: scripts/functions
 ===================================================================
---- scripts/functions	(révision 7895)
+--- scripts/functions	(révision 7994)
 +++ scripts/functions	(copie de travail)
-@@ -9,12 +9,12 @@
-    outf="tmp/sed_tmp"
+@@ -10,11 +10,11 @@
     echo "s%  mail =%# mail = %g" >${outf}
     echo "s%  operator =%# operator =%g" >>${outf}
--   cp bin/bacula-dir.conf tmp/1
+    cp bin/bacula-dir.conf tmp/1
 -   sed -f ${outf} tmp/1 >bin/bacula-dir.conf
-+   cp $bin/bacula-dir.conf tmp/1
 +   sed -f ${outf} tmp/1 > bin/bacula-dir.conf
     echo " "
     echo " "
@@ -168,23 +181,17 @@ Index: scripts/functions
     echo " "
     export zstat
  }
-@@ -144,14 +144,14 @@
-    debug_wait
-    zstat=0
-    if test "$debug" -eq 1 ; then
--     bin/bacula-ctl-sd start
--     bin/bacula-ctl-fd start $1
--     bin/bacula-ctl-dir start
+@@ -147,11 +147,11 @@
+      bin/bacula-ctl-sd start
+      bin/bacula-ctl-fd start $1
+      bin/bacula-ctl-dir start
 -     cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf
-+     $bin/bacula-ctl-sd start
-+     $bin/bacula-ctl-fd start $1
-+     $bin/bacula-ctl-dir start
 +     cat tmp/bconcmds | $bin/bconsole -c bin/bconsole.conf
       return $?
     else
 -     bin/bacula start 2>&1 >/dev/null
 -     cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf  2>&1 >/dev/null
-+     $bin/bacula start >/dev/null 2>&1
++     bin/bacula start >/dev/null 2>&1
 +     cat tmp/bconcmds | $bin/bconsole -c bin/bconsole.conf >/dev/null 2>&1
       return $?
     fi
@@ -223,15 +230,6 @@ Index: scripts/functions
     fi
  }
  
-@@ -201,7 +201,7 @@
- 
- stop_bacula()
- {
--   bin/bacula stop 2>&1 >/dev/null
-+   $bin/bacula stop 2>&1 >/dev/null
- }
- 
- check_for_zombie_jobs()
 @@ -356,10 +356,10 @@
  load_slot1() 
  {
@@ -279,7 +277,15 @@ Index: scripts/functions
      slot=1
      ;;
   *)
-@@ -418,16 +418,23 @@
+@@ -403,7 +403,6 @@
+ esac
+ }
+ 
+-
+ # Save current directory
+ cwd=`pwd`
+ if test "x${REGRESS_DEBUG}" = "x1"; then
+@@ -418,16 +417,23 @@
  db_name=${db_name:-"regress"}
  db_user=${db_user:-"regress"}
  db_password=${db_password:-""}
@@ -307,7 +313,7 @@ Index: scripts/functions
     AUTOCHANGER_SCRIPT=disk-changer
     DRIVE1=0
     DRIVE2=1
-@@ -438,6 +445,6 @@
+@@ -438,6 +444,6 @@
  fi
  
  AUTOCHANGER_SCRIPT=${AUTOCHANGER_SCRIPT:-mtx-changer}
@@ -317,7 +323,7 @@ Index: scripts/functions
  
 Index: tests/btape-fill-full-tape
 ===================================================================
---- tests/btape-fill-full-tape	(révision 7895)
+--- tests/btape-fill-full-tape	(révision 7994)
 +++ tests/btape-fill-full-tape	(copie de travail)
 @@ -14,7 +14,7 @@
  change_jobname $JobName
@@ -339,7 +345,7 @@ Index: tests/btape-fill-full-tape
     echo " "
 Index: tests/disk-changer-test
 ===================================================================
---- tests/disk-changer-test	(révision 7895)
+--- tests/disk-changer-test	(révision 7994)
 +++ tests/disk-changer-test	(copie de travail)
 @@ -3,43 +3,43 @@
  mkdir tmp/disk-changer
@@ -400,7 +406,7 @@ Index: tests/disk-changer-test
  echo "rtn=$?"   
 Index: tests/bug-fatal-test
 ===================================================================
---- tests/bug-fatal-test	(révision 7895)
+--- tests/bug-fatal-test	(révision 7994)
 +++ tests/bug-fatal-test	(copie de travail)
 @@ -34,12 +34,11 @@
  END_OF_DATA
@@ -421,7 +427,7 @@ Index: tests/bug-fatal-test
  end_test
 Index: tests/errors-test
 ===================================================================
---- tests/errors-test	(révision 7895)
+--- tests/errors-test	(révision 7994)
 +++ tests/errors-test	(copie de travail)
 @@ -64,7 +64,7 @@
  
@@ -434,7 +440,7 @@ Index: tests/errors-test
  
 Index: tests/restore-by-file-tape
 ===================================================================
---- tests/restore-by-file-tape	(révision 7895)
+--- tests/restore-by-file-tape	(révision 7994)
 +++ tests/restore-by-file-tape	(copie de travail)
 @@ -93,7 +93,7 @@
  check_two_logs
@@ -447,7 +453,7 @@ Index: tests/restore-by-file-tape
     if [ $? != 0 ] ; then
 Index: tests/vtape-test-changer
 ===================================================================
---- tests/vtape-test-changer	(révision 7897)
+--- tests/vtape-test-changer	(révision 7994)
 +++ tests/vtape-test-changer	(copie de travail)
 @@ -30,7 +30,7 @@
  when1=`perl -MPOSIX -e "print strftime('%F %T', localtime(time+30))"`
@@ -460,7 +466,7 @@ Index: tests/vtape-test-changer
  # CLN01      | Cleaning
 Index: tests/usr-tape-root
 ===================================================================
---- tests/usr-tape-root	(révision 7895)
+--- tests/usr-tape-root	(révision 7994)
 +++ tests/usr-tape-root	(copie de travail)
 @@ -15,8 +15,7 @@
  echo " "
@@ -484,7 +490,7 @@ Index: tests/usr-tape-root
  cd ${cwd}/tmp/bacula-restores
 Index: tests/concurrent-jobs-test
 ===================================================================
---- tests/concurrent-jobs-test	(révision 7895)
+--- tests/concurrent-jobs-test	(révision 7994)
 +++ tests/concurrent-jobs-test	(copie de travail)
 @@ -16,7 +16,7 @@
     dd if=/dev/urandom of=${cwd}/tmp/largefile bs=1024 count=55000
@@ -497,9 +503,9 @@ Index: tests/concurrent-jobs-test
     cat ${cwd}/tmp/2 ${cwd}/tmp/2 ${cwd}/tmp/2 ${cwd}/tmp/2 ${cwd}/tmp/2 >>${cwd}/tmp/3
 Index: tests/accurate-test
 ===================================================================
---- tests/accurate-test (r�vision 7895)
-+++ tests/accurate-test (copie de travail)
-@@ -156,7 +156,7 @@
+--- tests/accurate-test	(révision 7994)
++++ tests/accurate-test	(copie de travail)
+@@ -157,7 +157,7 @@
  # Check with bls
  ################################################################
  
@@ -508,7 +514,7 @@ Index: tests/accurate-test
  grep -- '----' tmp/bls.out | grep xxx > /dev/null
  if [ $? != 0 ] ; then
      bstat=2
-@@ -280,7 +280,7 @@
+@@ -283,7 +283,7 @@
  
  bscan_libdbi
  
@@ -519,7 +525,7 @@ Index: tests/accurate-test
  @$out ${cwd}/tmp/log1.out
 Index: tests/incremental-2disk
 ===================================================================
---- tests/incremental-2disk	(révision 7895)
+--- tests/incremental-2disk	(révision 7994)
 +++ tests/incremental-2disk	(copie de travail)
 @@ -9,14 +9,7 @@
  JobName=Inc2disk
@@ -539,7 +545,7 @@ Index: tests/incremental-2disk
  
 Index: tests/lib-tape-root
 ===================================================================
---- tests/lib-tape-root	(révision 7895)
+--- tests/lib-tape-root	(révision 7994)
 +++ tests/lib-tape-root	(copie de travail)
 @@ -5,13 +5,7 @@
  #
@@ -581,7 +587,7 @@ Index: tests/lib-tape-root
  cd ${cwd}/tmp/bacula-restores
 Index: tests/two-volume-changer
 ===================================================================
---- tests/two-volume-changer	(révision 7895)
+--- tests/two-volume-changer	(révision 7994)
 +++ tests/two-volume-changer	(copie de travail)
 @@ -54,7 +54,7 @@
  check_for_zombie_jobs storage=DDS-4
@@ -594,7 +600,7 @@ Index: tests/two-volume-changer
  @$out /dev/null
 Index: tests/bextract-test
 ===================================================================
---- tests/bextract-test	(révision 7895)
+--- tests/bextract-test	(révision 7994)
 +++ tests/bextract-test	(copie de travail)
 @@ -45,9 +45,9 @@
  
@@ -610,7 +616,7 @@ Index: tests/bextract-test
  grep "^  Termination: *Backup OK" ${cwd}/tmp/log1.out 2>&1 >/dev/null
 Index: tests/four-jobs-tape
 ===================================================================
---- tests/four-jobs-tape	(révision 7895)
+--- tests/four-jobs-tape	(révision 7994)
 +++ tests/four-jobs-tape	(copie de travail)
 @@ -30,13 +30,7 @@
  messages
@@ -678,7 +684,7 @@ Index: tests/four-jobs-tape
  echo "Backup 4 done"
 Index: tests/bscan-test
 ===================================================================
---- tests/bscan-test	(révision 7895)
+--- tests/bscan-test	(révision 7994)
 +++ tests/bscan-test	(copie de travail)
 @@ -67,9 +67,9 @@
  fi
@@ -694,7 +700,7 @@ Index: tests/bscan-test
  cat <<END_OF_DATA >tmp/bconcmds
 Index: tests/bscan-fast-tape
 ===================================================================
---- tests/bscan-fast-tape	(révision 7895)
+--- tests/bscan-fast-tape	(révision 7994)
 +++ tests/bscan-fast-tape	(copie de travail)
 @@ -34,7 +34,7 @@
  END_OF_DATA
@@ -716,7 +722,7 @@ Index: tests/bscan-fast-tape
  @$out /dev/null
 Index: tests/bscan-tape
 ===================================================================
---- tests/bscan-tape	(révision 7895)
+--- tests/bscan-tape	(révision 7994)
 +++ tests/bscan-tape	(copie de travail)
 @@ -106,9 +106,9 @@
  fi
