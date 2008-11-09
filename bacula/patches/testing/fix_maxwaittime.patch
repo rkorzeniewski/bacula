@@ -1,25 +1,34 @@
 Index: src/dird/job.c
 ===================================================================
---- src/dird/job.c	(revision 7939)
-+++ src/dird/job.c	(working copy)
-@@ -549,9 +549,10 @@
+--- src/dird/job.c	(révision 8005)
++++ src/dird/job.c	(copie de travail)
+@@ -545,13 +545,20 @@
+ {
+    bool cancel = false;
+    JOB *job = jcr->job;
++   utime_t current=0;
+ 
     if (!job_waiting(jcr)) {
        return false;
     }
 -   Dmsg3(200, "check maxwaittime %u - %u >= %u\n", watchdog_time, jcr->wait_time, job->MaxWaitTime);
--   if (job->MaxWaitTime != 0 &&
++
++   if (jcr->wait_time) {
++      current = watchdog_time - jcr->wait_time;
++   }
++
++   Dmsg3(200, "check maxwaittime %u >= %u\n", 
++         current + jcr->wait_time_sum, job->MaxWaitTime);
+    if (job->MaxWaitTime != 0 &&
 -       (watchdog_time - jcr->wait_time) >= job->MaxWaitTime) {
-+   Dmsg3(200, "check maxwaittime %u - %u >= %u\n", 
-+         (watchdog_time - jcr->wait_time), jcr->wait_time, job->MaxWaitTime);
-+   if (job->MaxWaitTime != 0 && jcr->wait_time != 0 &&
-+       (watchdog_time - jcr->wait_time + jcr->wait_time_sum) >= job->MaxWaitTime) {
++       (current + jcr->wait_time_sum) >= job->MaxWaitTime) {
        cancel = true;
     }
  
 Index: src/jcr.h
 ===================================================================
---- src/jcr.h	(revision 7939)
-+++ src/jcr.h	(working copy)
+--- src/jcr.h	(révision 8005)
++++ src/jcr.h	(copie de travail)
 @@ -216,7 +216,8 @@
     time_t start_time;                 /* when job actually started */
     time_t run_time;                   /* used for computing speed */
@@ -32,8 +41,8 @@ Index: src/jcr.h
     POOLMEM *stime;                    /* start time for incremental/differential */
 Index: src/lib/jcr.c
 ===================================================================
---- src/lib/jcr.c	(revision 7939)
-+++ src/lib/jcr.c	(working copy)
+--- src/lib/jcr.c	(révision 8005)
++++ src/lib/jcr.c	(copie de travail)
 @@ -738,41 +738,29 @@
     return priority;
  }
