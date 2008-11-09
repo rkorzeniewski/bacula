@@ -252,13 +252,6 @@ int generate_daemon_event(JCR *jcr, const char *event);
 void             init_signals             (void terminate(int sig));
 void             init_stack_dump          (void);
 
-/* Used to debug database lock 
- * which job takes the main DB access 
- */
-extern DLL_IMP_EXP utime_t      _db_lock_time;
-extern DLL_IMP_EXP int          _db_lock_recurse_count;
-extern DLL_IMP_EXP pthread_t    _db_lock_threadid;
-
 /* scan.c */
 void             strip_leading_space     (char *str);
 void             strip_trailing_junk     (char *str);

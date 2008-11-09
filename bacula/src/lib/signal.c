@@ -72,22 +72,6 @@ const char *get_signal_name(int sig)
    }
 }
 
-/*
- * Global variables to get information about lock/unlock db access
- */
-utime_t _db_lock_time = 0;
-int _db_lock_recurse_count = 0;
-pthread_t _db_lock_threadid;
-
-static void print_lock_dbg(FILE *fp)
-{
-   char buf[128];
-   bstrutime(buf, sizeof(buf), _db_lock_time);
-
-   fprintf(fp, "lock info: recurse_count=%i threadid=0x%x time=%s\n",
-           _db_lock_recurse_count, (int)_db_lock_threadid, buf);
-}
-
 /* defined in jcr.c */
 extern void _print_jcr_dbg(FILE *fp);
 
