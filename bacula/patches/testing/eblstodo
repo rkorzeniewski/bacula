@@ -1,6 +1,13 @@
 Idees
 ------
 
+Despool attributes later
+ - use spool_attribute parameter (0,1,2)
+ foreach spool_file (spool_files)
+   ask to director ok/discard
+   despool_attr
+   end_of_despool
+
 Continious Backup Linux
  - stap 
 http://www.redhat.com/magazine/011sep05/features/systemtap/
