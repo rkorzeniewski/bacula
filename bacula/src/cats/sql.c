@@ -311,33 +311,6 @@ char *db_strerror(B_DB *mdb)
    return mdb->errmsg;
 }
 
-static void update_lock_dbg(B_DB *mdb) 
-{
-   if (mdb->allow_transactions) { /* batch connection */
-      return;
-   }
-   if (_db_lock_recurse_count && !pthread_equal(_db_lock_threadid, pthread_self())) {
-      Dmsg2(1, "ERROR: not the same threadif %p != %p\n", _db_lock_threadid, pthread_self());
-   }
-   _db_lock_recurse_count++;
-   _db_lock_time = (utime_t) time(NULL);
-   _db_lock_threadid = pthread_self();
-}
-
-static void update_unlock_dbg(B_DB *mdb) 
-{
-   if (mdb->allow_transactions) { /* batch connection */
-      return;
-   }
-   if (!pthread_equal(_db_lock_threadid, pthread_self())) {
-      Dmsg2(1, "ERROR: not the same threadid %p != %p", _db_lock_threadid, pthread_self());
-   }
-   _db_lock_recurse_count--;
-   if (!_db_lock_recurse_count) {
-      memset(&_db_lock_threadid, 0, sizeof(_db_lock_threadid));
-   }
-}
-
 /*
  * Lock database, this can be called multiple times by the same
  *   thread without blocking, but must be unlocked the number of
@@ -351,7 +324,6 @@ void _db_lock(const char *file, int line, B_DB *mdb)
       e_msg(file, line, M_FATAL, 0, "rwl_writelock failure. stat=%d: ERR=%s\n",
            errstat, be.bstrerror(errstat));
    }
-   update_lock_dbg(mdb);
 }
 
 /*
@@ -362,7 +334,6 @@ void _db_lock(const char *file, int line, B_DB *mdb)
 void _db_unlock(const char *file, int line, B_DB *mdb)
 {
    int errstat;
-   update_unlock_dbg(mdb);
    if ((errstat=rwl_writeunlock(&mdb->lock)) != 0) {
       berrno be;
       e_msg(file, line, M_FATAL, 0, "rwl_writeunlock failure. stat=%d: ERR=%s\n",
