@@ -216,7 +216,8 @@ public:
    time_t start_time;                 /* when job actually started */
    time_t run_time;                   /* used for computing speed */
    time_t end_time;                   /* job end time */
-   time_t wait_time;                  /* when job have started to wait */
+   time_t wait_time_sum;              /* cumulative wait time since job start */
+   time_t wait_time;                  /* timestamp when job have started to wait */
    POOLMEM *client_name;              /* client name */
    POOLMEM *RestoreBootstrap;         /* Bootstrap file to restore */
    POOLMEM *stime;                    /* start time for incremental/differential */

@@ -738,41 +738,29 @@ static int get_status_priority(int JobStatus)
    return priority;
 }
 
-void set_jcr_job_status(JCR *jcr, int JobStatus)
+
+static void update_wait_time(JCR *jcr, int newJobStatus)
 {
-    bool set_waittime = false;
-    int oldJobStatus = jcr->JobStatus;
-    int priority, old_priority;
+   bool enter_in_waittime;
+   int oldJobStatus = jcr->JobStatus;
 
-    priority = get_status_priority(JobStatus);
-    old_priority = get_status_priority(oldJobStatus);
-
-    Dmsg2(800, "set_jcr_job_status(%s, %c)\n", jcr->Job, JobStatus);
-    /* if wait state is new, we keep current time for watchdog MaxWaitTime */
-    switch (JobStatus) {
-       case JS_WaitFD:
-       case JS_WaitSD:
-       case JS_WaitMedia:
-       case JS_WaitMount:
-       case JS_WaitStoreRes:
-       case JS_WaitJobRes:
-       case JS_WaitClientRes:
-       case JS_WaitMaxJobs:
-       case JS_WaitPriority:
-         set_waittime = true;
-       default:
-         break;
-    }
- 
-   /*
-    * For a set of errors, ... keep the current status
-    *   so it isn't lost. For all others, set it.
-    */
-   Dmsg3(300, "jid=%u OnEntry JobStatus=%c set=%c\n", (uint32_t)jcr->JobId,
-         jcr->JobStatus, JobStatus);
-   if (priority >= old_priority) {
-      jcr->JobStatus = JobStatus;     /* replace with new priority */
+   switch (newJobStatus) {
+   case JS_WaitFD:
+   case JS_WaitSD:
+   case JS_WaitMedia:
+   case JS_WaitMount:
+   case JS_WaitStoreRes:
+   case JS_WaitJobRes:
+   case JS_WaitClientRes:
+   case JS_WaitMaxJobs:
+   case JS_WaitPriority:
+      enter_in_waittime = true;
+      break;
+   default:
+      enter_in_waittime = false; /* not a Wait situation */
+      break;
    }
+   
    /*
     * If we were previously waiting and are not any more
     *   we want to update the wait_time variable, which is
@@ -788,13 +776,43 @@ void set_jcr_job_status(JCR *jcr, int JobStatus)
    case JS_WaitClientRes:
    case JS_WaitMaxJobs:
    case JS_WaitPriority:
-       set_waittime = false;    /* keep old time */
+      if (!enter_in_waittime) { /* we get out the wait time */
+         jcr->wait_time_sum += (time(NULL) - jcr->wait_time);
+         jcr->wait_time = 0;
+      }
+      break;
+
+   /* if wait state is new, we keep current time for watchdog MaxWaitTime */
    default:
-      if (set_waittime) {
-         Dmsg0(800, "Setting wait_time\n");
+      if (enter_in_waittime) {
          jcr->wait_time = time(NULL);
       }
+      break;
    }
+}
+
+void set_jcr_job_status(JCR *jcr, int JobStatus)
+{
+   int priority, old_priority;
+   int oldJobStatus = jcr->JobStatus;
+   priority = get_status_priority(JobStatus);
+   old_priority = get_status_priority(oldJobStatus);
+   
+   Dmsg2(800, "set_jcr_job_status(%s, %c)\n", jcr->Job, JobStatus);
+
+   /* Update wait_time depending on newJobStatus and oldJobStatus */
+   update_wait_time(jcr, JobStatus);
+
+   /*
+    * For a set of errors, ... keep the current status
+    *   so it isn't lost. For all others, set it.
+    */
+   Dmsg3(300, "jid=%u OnEntry JobStatus=%c set=%c\n", (uint32_t)jcr->JobId,
+         jcr->JobStatus, JobStatus);
+   if (priority >= old_priority) {
+      jcr->JobStatus = JobStatus;     /* replace with new priority */
+   }
+
    if (oldJobStatus != jcr->JobStatus) {
       Dmsg3(200, "jid=%u leave set_old_job_status=%c new_set=%c\n", (uint32_t)jcr->JobId,
          oldJobStatus, JobStatus);
