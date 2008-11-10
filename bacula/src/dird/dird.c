@@ -282,7 +282,6 @@ int main (int argc, char *argv[])
    FDConnectTimeout = (int)director->FDConnectTimeout;
    SDConnectTimeout = (int)director->SDConnectTimeout;
 
-
 #if !defined(HAVE_WIN32)
    signal(SIGHUP, reload_config);
 #endif
@@ -312,6 +311,8 @@ int main (int argc, char *argv[])
    init_jcr_subsystem();              /* start JCR watchdogs etc. */
 
    init_job_server(director->MaxConcurrentJobs);
+
+   dbg_add_hook(_db_print_dbg); /* used to debug B_DB connexion after fatal signal */
 
 //   init_device_resources();
 
