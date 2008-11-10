@@ -58,6 +58,7 @@ void db_start_transaction(JCR *jcr, B_DB *mdb);
 void db_end_transaction(JCR *jcr, B_DB *mdb);
 int db_int64_handler(void *ctx, int num_fields, char **row);
 void db_thread_cleanup();
+void _db_print_dbg(JCR *jcr, FILE *fp);
 
 /* sql_create.c */
 bool db_create_file_attributes_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar);

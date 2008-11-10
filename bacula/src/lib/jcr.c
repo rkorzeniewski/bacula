@@ -1008,6 +1008,17 @@ extern "C" void timeout_handler(int sig)
    return;                            /* thus interrupting the function */
 }
 
+/* Used to display mdb information after a fatal signal */
+#define MAX_DBG_HOOK 10
+static dbg_jcr_hook *dbg_hooks[MAX_DBG_HOOK];
+static int dbg_jcr_handler_count;
+
+void dbg_add_hook(dbg_jcr_hook *fct)
+{
+   ASSERT(dbg_jcr_handler_count < MAX_DBG_HOOK);
+   dbg_hooks[dbg_jcr_handler_count++] = fct;
+}
+
 /*
  * !!! WARNING !!! 
  *
@@ -1048,6 +1059,11 @@ void _print_jcr_dbg(FILE *fp)
       fprintf(fp, "\tdequeing=%i\n", jcr->dequeuing);
       fprintf(fp, "\tdb=%p db_batch=%p batch_started=%i\n", 
               jcr->db, jcr->db_batch, jcr->batch_started);
+      
+      for(int i=0; i < dbg_jcr_handler_count; i++) {
+         dbg_jcr_hook *fct = dbg_hooks[i];
+         fct(jcr, fp);
+      }
    }
 }
 
