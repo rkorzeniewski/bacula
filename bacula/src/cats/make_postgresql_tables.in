@@ -44,6 +44,11 @@ CREATE INDEX file_jobid_idx on file (jobid);
 CREATE INDEX file_fp_idx on file (filenameid, pathid);
 
 --
+-- Add this if you have a good number of job
+-- that run at the same time
+-- ALTER SEQUENCE file_fileid_seq CACHE 1000;
+
+--
 -- Possibly add one or more of the following indexes
 --  if your Verifies are too slow.
 --
