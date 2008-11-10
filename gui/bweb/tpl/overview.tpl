@@ -48,7 +48,7 @@ infos = new Array();
  <TMPL_LOOP events>
  min_cel=(min_cel< <TMPL_VAR num>)?min_cel:<TMPL_VAR num>;
  infos[<TMPL_VAR num>] = new Array('<TMPL_VAR num>', '<TMPL_VAR status>', 
-                                   <TMPL_VAR joberrors>, '<TMPL_VAR title>');
+                                   '<TMPL_VAR joberrors>', '<TMPL_VAR title>');
  </TMPL_LOOP>
 max_cel=(max_cel>infos.length)?max_cel:infos.length;
 all.push({ name: "<TMPL_VAR name>", values: infos});
