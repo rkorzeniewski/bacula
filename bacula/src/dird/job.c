@@ -555,7 +555,7 @@ static bool job_check_maxwaittime(JCR *jcr)
       current = watchdog_time - jcr->wait_time;
    }
 
-   Dmsg3(200, "check maxwaittime %u >= %u\n", 
+   Dmsg2(200, "check maxwaittime %u >= %u\n", 
          current + jcr->wait_time_sum, job->MaxWaitTime);
    if (job->MaxWaitTime != 0 &&
        (current + jcr->wait_time_sum) >= job->MaxWaitTime) {
