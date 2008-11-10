@@ -545,13 +545,20 @@ static bool job_check_maxwaittime(JCR *jcr)
 {
    bool cancel = false;
    JOB *job = jcr->job;
+   utime_t current=0;
 
    if (!job_waiting(jcr)) {
       return false;
    }
-   Dmsg3(200, "check maxwaittime %u - %u >= %u\n", watchdog_time, jcr->wait_time, job->MaxWaitTime);
+
+   if (jcr->wait_time) {
+      current = watchdog_time - jcr->wait_time;
+   }
+
+   Dmsg3(200, "check maxwaittime %u >= %u\n", 
+         current + jcr->wait_time_sum, job->MaxWaitTime);
    if (job->MaxWaitTime != 0 &&
-       (watchdog_time - jcr->wait_time) >= job->MaxWaitTime) {
+       (current + jcr->wait_time_sum) >= job->MaxWaitTime) {
       cancel = true;
    }
 
