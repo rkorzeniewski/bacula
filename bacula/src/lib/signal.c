@@ -93,7 +93,6 @@ static void print_bacula_dbg()
    }
 
    _print_jcr_dbg(fp);
-   print_lock_dbg(fp);
 
    if (fp != stderr) {
       fclose(fp);
