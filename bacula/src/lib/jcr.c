@@ -1008,24 +1008,26 @@ extern "C" void timeout_handler(int sig)
    return;                            /* thus interrupting the function */
 }
 
-/* Used to display mdb information after a fatal signal */
+/* Used to display specific daemon information after a fatal signal 
+ * (like B_DB in the director)
+ */
 #define MAX_DBG_HOOK 10
-static dbg_jcr_hook *dbg_hooks[MAX_DBG_HOOK];
+static dbg_jcr_hook_t *dbg_jcr_hooks[MAX_DBG_HOOK];
 static int dbg_jcr_handler_count;
 
-void dbg_add_hook(dbg_jcr_hook *fct)
+void dbg_jcr_add_hook(dbg_jcr_hook_t *fct)
 {
    ASSERT(dbg_jcr_handler_count < MAX_DBG_HOOK);
-   dbg_hooks[dbg_jcr_handler_count++] = fct;
+   dbg_jcr_hooks[dbg_jcr_handler_count++] = fct;
 }
 
 /*
  * !!! WARNING !!! 
  *
- * This function should be used ONLY after a violent signal. We walk through the
+ * This function should be used ONLY after a fatal signal. We walk through the
  * JCR chain without doing any lock, bacula should not be running.
  */
-void _print_jcr_dbg(FILE *fp)
+void _dbg_print_jcr(FILE *fp)
 {
    char buf1[128], buf2[128], buf3[128], buf4[128];
    if (!jcrs) {
@@ -1061,7 +1063,7 @@ void _print_jcr_dbg(FILE *fp)
               jcr->db, jcr->db_batch, jcr->batch_started);
       
       for(int i=0; i < dbg_jcr_handler_count; i++) {
-         dbg_jcr_hook *fct = dbg_hooks[i];
+         dbg_jcr_hook_t *fct = dbg_jcr_hooks[i];
          fct(jcr, fp);
       }
    }

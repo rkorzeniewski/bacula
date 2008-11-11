@@ -481,6 +481,21 @@ bool plugin_set_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
    return true;
 }
 
+void dump_fd_plugin(Plugin *plugin, FILE *fp)
+{
+   if (!plugin) {
+      return ;
+   }
+   pInfo *info = (pInfo *) plugin->pinfo;
+   fprintf(fp, "\tversion=%d\n", info->version);
+   fprintf(fp, "\tdate=%s\n", NPRTB(info->plugin_date));
+   fprintf(fp, "\tmagic=%s\n", NPRTB(info->plugin_magic));
+   fprintf(fp, "\tauthor=%s\n", NPRTB(info->plugin_author));
+   fprintf(fp, "\tlicence=%s\n", NPRTB(info->plugin_license));
+   fprintf(fp, "\tversion=%s\n", NPRTB(info->plugin_version));
+   fprintf(fp, "\tdescription=%s\n", NPRTB(info->plugin_description));
+}
+
 /*
  * This entry point is called internally by Bacula to ensure
  *  that the plugin IO calls come into this code.
@@ -516,6 +531,8 @@ void load_fd_plugins(const char *plugin_dir)
       Dmsg1(dbglvl, "Loaded plugin: %s\n", plugin->file);
 
    }
+
+   dbg_plugin_add_hook(dump_fd_plugin);
 }
 
 /*
