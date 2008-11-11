@@ -87,12 +87,14 @@ static void dbg_print_bacula()
 {
    char buf[512];
 
-   snprintf(buf, sizeof(buf), "%s/bacula.%d.bactrace", 
-            working_directory, getpid());
+   snprintf(buf, sizeof(buf), "%s/%s.%d.bactrace", 
+            working_directory, my_name, getpid());
    FILE *fp = fopen(buf, "ab") ;
    if (!fp) {
       fp = stderr;
    }
+   
+   fprintf(stderr, "Dumping: %s\n", buf);
 
    /* Print also B_DB and RWLOCK structure 
     * Can add more info about JCR with dbg_jcr_add_hook()
@@ -212,9 +214,9 @@ extern "C" void signal_handler(int sig)
          bmicrosleep(30, 0);
       }
       fprintf(stderr, _("It looks like the traceback worked ...\n"));
+      dbg_print_bacula();
    }
 #endif
-
    exit_handler(sig);
 }
 
