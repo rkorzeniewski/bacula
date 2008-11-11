@@ -753,11 +753,11 @@ void _dbg_print_db(JCR *jcr, FILE *fp)
       return;
    }
 
-   fprintf(fp, "B_DB %p db_name=%s db_user=%s connected=%i\n",
+   fprintf(fp, "B_DB=%p db_name=%s db_user=%s connected=%i\n",
            mdb, NPRTB(mdb->db_name), NPRTB(mdb->db_user), mdb->connected);
    fprintf(fp, "\tcmd=\"%s\" changes=%i\n", NPRTB(mdb->cmd), mdb->changes);
    if (mdb->lock.valid == RWLOCK_VALID) { 
-      fprintf(fp, "\tRWLOCK %p w_active=%i w_wait=%i\n", &mdb->lock, mdb->lock.w_active, mdb->lock.w_wait);
+      fprintf(fp, "\tRWLOCK=%p w_active=%i w_wait=%i\n", &mdb->lock, mdb->lock.w_active, mdb->lock.w_wait);
 #ifndef HAVE_WIN32
       fprintf(fp, "\t\tthreadid=0x%x mutex=%p\n", (int)mdb->lock.writer_id, &mdb->lock.mutex);
 #endif
