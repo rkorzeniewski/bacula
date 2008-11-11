@@ -73,7 +73,9 @@ const char *get_signal_name(int sig)
 }
 
 /* defined in jcr.c */
-extern void _print_jcr_dbg(FILE *fp);
+extern void _dbg_print_jcr(FILE *fp);
+/* defined in plugin.c */
+extern void _dbg_print_plugin(FILE *fp);
 
 /*
  * !!! WARNING !!! 
@@ -81,7 +83,7 @@ extern void _print_jcr_dbg(FILE *fp);
  * This function should be used ONLY after a violent signal. We walk through the
  * JCR chain without doing any lock, bacula should not be running.
  */
-static void print_bacula_dbg()
+static void dbg_print_bacula()
 {
    char buf[512];
 
@@ -92,7 +94,12 @@ static void print_bacula_dbg()
       fp = stderr;
    }
 
-   _print_jcr_dbg(fp);
+   /* Print also B_DB and RWLOCK structure 
+    * Can add more info about JCR with dbg_jcr_add_hook()
+    */
+   _dbg_print_jcr(fp);
+
+   _dbg_print_plugin(fp);
 
    if (fp != stderr) {
       fclose(fp);
@@ -197,7 +204,7 @@ extern "C" void signal_handler(int sig)
          Dmsg0(500, "Done waitpid\n");
          fprintf(stderr, _("Traceback complete, attempting cleanup ...\n"));
          /* print information about the current state into working/<file>.bactrace */
-         print_bacula_dbg();
+         dbg_print_bacula();
          exit_handler(sig);           /* clean up if possible */
          Dmsg0(500, "Done exit_handler\n");
       } else {

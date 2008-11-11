@@ -466,8 +466,8 @@ extern void b_free_jcr(const char *file, int line, JCR *jcr);
 extern void free_jcr(JCR *jcr);
 #endif
 
-/* Used to display job information after a fatal signal */
-typedef void (dbg_jcr_hook)(JCR *jcr, FILE *fp);
-void dbg_add_hook(dbg_jcr_hook *fct);
+/* Used to display specific job information after a fatal signal */
+typedef void (dbg_jcr_hook_t)(JCR *jcr, FILE *fp);
+void dbg_jcr_add_hook(dbg_jcr_hook_t *fct);
 
 #endif /* __JCR_H_ */

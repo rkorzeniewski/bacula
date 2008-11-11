@@ -207,3 +207,37 @@ void unload_plugins()
    delete plugin_list;
    plugin_list = NULL;
 }
+
+/*
+ * Dump plugin information
+ * Each daemon can register a hook that will be called
+ * after a fatal signal.
+ */
+#define DBG_MAX_HOOK 10
+static dbg_plugin_hook_t *dbg_plugin_hooks[DBG_MAX_HOOK];
+static int dbg_plugin_hook_count=0;
+
+void dbg_plugin_add_hook(dbg_plugin_hook_t *fct)
+{
+   ASSERT(dbg_plugin_hook_count < DBG_MAX_HOOK);
+   dbg_plugin_hooks[dbg_plugin_hook_count++] = fct;
+}
+
+void _dbg_print_plugin(FILE *fp)
+{
+   Plugin *plugin;
+   fprintf(fp, "Attempt to dump plugins\n");
+
+   if (!plugin_list) {
+      return;
+   }
+
+   foreach_alist(plugin, plugin_list) {
+      for(int i=0; i < dbg_plugin_hook_count; i++) {
+         dbg_plugin_hook_t *fct = dbg_plugin_hooks[i];
+         fprintf(fp, "Plugin %p name=\"%s\" disabled=%d\n",
+                 plugin, plugin->file, plugin->disabled);
+         fct(plugin, fp);
+      }
+   }
+}

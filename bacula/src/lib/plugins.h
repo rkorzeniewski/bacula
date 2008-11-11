@@ -79,5 +79,10 @@ extern Plugin *new_plugin();
 extern bool load_plugins(void *binfo, void *bfuncs, const char *plugin_dir, const char *type);
 extern void unload_plugins();
 
+/* Each daemon can register a debug hook that will be called
+ * after a fatal signal
+ */
+typedef void (dbg_plugin_hook_t)(Plugin *plug, FILE *fp);
+extern void dbg_plugin_add_hook(dbg_plugin_hook_t *fct);
 
 #endif /* __PLUGINS_H */
