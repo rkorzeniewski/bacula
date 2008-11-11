@@ -29,8 +29,21 @@ run_bacula
 
 killall -SEGV bacula-dir bacula-sd bacula-fd
 
-grep $JobName working/*dir*bactrace > /dev/null 2>&1
+test -f working/*dir*bactrace
 dstat=$?
+test -f working/*fd*bactrace
+dstat=`expr $dstat + $?`
+test -f working/*sd*bactrace
+dstat=`expr $dstat + $?`
+test -f working/*dir*traceback
+dstat=`expr $dstat + $?`
+test -f working/*fd*traceback
+dstat=`expr $dstat + $?`
+test -f working/*sd*traceback
+dstat=`expr $dstat + $?`
+
+grep $JobName working/*dir*bactrace > /dev/null 2>&1
+dstat=`expr $dstat + $?`
 grep bpipe-fd.so working/*fd*bactrace > /dev/null 2>&1
 dstat=`expr $dstat + $?`
 grep $JobName working/*fd*bactrace > /dev/null 2>&1
