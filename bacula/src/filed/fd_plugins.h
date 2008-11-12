@@ -46,7 +46,7 @@
 #define _FILE_OFFSET_BITS 64
 #define _LARGEFILE_SOURCE 1
 #define _LARGE_FILES 1
-#endif
+#endif  /* ! _BACULA_H */
 
 #include <sys/types.h>
 
@@ -56,7 +56,7 @@
 #else
 #include "winconfig.h"
 #endif
-#else
+#else  /* !HAVE_WIN32 */
 #ifndef __CONFIG_H
 #include "config.h"
 #define __CONFIG_H

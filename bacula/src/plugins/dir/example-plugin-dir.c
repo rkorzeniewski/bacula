@@ -31,7 +31,7 @@
  *  Kern Sibbald, October 2007
  *
  */
-#include <stdio.h>
+#include "bacula.h"
 #include "dir_plugins.h"
 
 #ifdef __cplusplus

@@ -9,7 +9,7 @@
    the code in any way. 
 
 */
-#include <stdio.h>
+#include "bacula.h"
 #include "fd_plugins.h"
 
 #ifdef __cplusplus
@@ -136,10 +136,10 @@ static bRC handlePluginEvent(bpContext *ctx, bEvent *event, void *value)
       printf("plugin: BackupEnd\n");
       break;
    case bEventLevel:
-      printf("plugin: JobLevel=%c %d\n", (int)value, (int)value);
+      printf("plugin: JobLevel=%c %d\n", *(int*)value, *(int*)value);
       break;
    case bEventSince:
-      printf("plugin: since=%d\n", (int)value);
+      printf("plugin: since=%d\n", *(int*)value);
       break;
    case bEventStartRestoreJob:
       printf("plugin: StartRestoreJob\n");
