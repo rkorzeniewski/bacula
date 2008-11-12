@@ -146,7 +146,7 @@ static void  list_status_header(STATUS_PKT *sp)
    if (debug_level > 0 && plugin_list->size() > 0) {
       Plugin *plugin;
       int len;
-      pm_strcpy(msg, "Plugin=");
+      pm_strcpy(msg, "Plugin: ");
       foreach_alist(plugin, plugin_list) {
          len = pm_strcat(msg, plugin->file);
          if (len > 80) {
