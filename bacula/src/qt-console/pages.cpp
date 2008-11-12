@@ -37,10 +37,11 @@
 /* A global function */
 bool isWin32Path(QString &fullPath) 
 {
-   char *buf = fullPath.left(2).toUtf8().data();
+   if (fullPath.size()<2) {
+      return false;
+   }
 
-   //bool toret = B_ISALPHA(buf[1]);
-   bool toret = buf[1] == ':' && B_ISALPHA(buf[0]);
+   bool toret = fullPath[1].toAscii() == ':' && fullPath[0].isLetter();
    if (mainWin->m_miscDebug) {
       if (toret)
          Pmsg1(000, "returning from isWin32Path true %s\n", fullPath.toUtf8().data());

@@ -44,7 +44,9 @@
 #endif
 
 #include <sys/file.h>
+#if !defined(HAVE_WIN32) || defined(HAVE_MINGW)
 #include <sys/param.h>
+#endif
 #if HAVE_UTIME_H
 #include <utime.h>
 #else

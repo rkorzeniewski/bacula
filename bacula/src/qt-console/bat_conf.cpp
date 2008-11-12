@@ -69,11 +69,10 @@ RES **res_head = sres_head;
  * then move it to allocated memory when the resource
  * scan is complete.
  */
-#if defined(MSC_VER)
-extern "C" URES res_all; /* visual c mangles variable names */
-#else
-URES res_all;
+#if defined(_MSC_VER)
+extern "C" URES res_all; /* declare as C to avoid name mangling by visual c */
 #endif
+URES res_all;
 int32_t res_all_size = sizeof(res_all);
 
 /* Definition of records permitted within each
