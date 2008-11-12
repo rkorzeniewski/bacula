@@ -129,12 +129,13 @@ typedef struct s_baculaFuncs {
        int level, const char *msg);
 } bFuncs;
 
-/* Bacula Subroutines */
+/* Bacula Core Routines -- not used within a plugin */
+#ifdef DIRECTOR_DAEMON
 void load_dir_plugins(const char *plugin_dir);
 void new_plugins(JCR *jcr);
 void free_plugins(JCR *jcr);
 void generate_plugin_event(JCR *jcr, bEventType event, void *value=NULL);
-
+#endif
 
 
 /****************************************************************************
