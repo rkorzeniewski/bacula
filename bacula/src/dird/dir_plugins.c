@@ -74,7 +74,7 @@ void generate_plugin_event(JCR *jcr, bEventType eventType, void *value)
    Plugin *plugin;
    int i = 0;
 
-   if (!plugin_list) {
+   if (!plugin_list || !jcr || !jcr->plugin_ctx_list) {
       return;
    }
 
@@ -158,7 +158,7 @@ void free_plugins(JCR *jcr)
    Plugin *plugin;
    int i = 0;
 
-   if (!plugin_list) {
+   if (!plugin_list || !jcr->plugin_ctx_list) {
       return;
    }
 
@@ -180,9 +180,14 @@ void free_plugins(JCR *jcr)
  */
 static bRC baculaGetValue(bpContext *ctx, brVariable var, void *value)
 {
+   bRC ret=bRC_OK;
+
+   if (!ctx) {
+      return bRC_Error;
+   }
    JCR *jcr = (JCR *)(ctx->bContext);
 // Dmsg1(dbglvl, "bacula: baculaGetValue var=%d\n", var);
-   if (!value) {
+   if (!jcr || !value) {
       return bRC_Error;
    }
 // Dmsg1(dbglvl, "Bacula: jcr=%p\n", jcr); 
@@ -191,10 +196,15 @@ static bRC baculaGetValue(bpContext *ctx, brVariable var, void *value)
       *((int *)value) = jcr->JobId;
       Dmsg1(dbglvl, "Bacula: return bVarJobId=%d\n", jcr->JobId);
       break;
+   case bVarJobName:
+      *((char **)value) = jcr->Job;
+      Dmsg1(dbglvl, "Bacula: return bVarJobName=%s\n", jcr->Job);
+      break;
    default:
+      ret = bRC_Error;
       break;
    }
-   return bRC_OK;
+   return ret;
 }
 
 static bRC baculaSetValue(bpContext *ctx, bwVariable var, void *value)
