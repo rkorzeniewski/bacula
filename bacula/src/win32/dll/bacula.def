@@ -70,6 +70,7 @@ utime
 _Z10new_pluginv
 _Z12load_pluginsPvS_PKcS1_
 _Z14unload_pluginsv
+_Z19dbg_plugin_add_hookPFvP6PluginP6_iobufE
 
 ; print.o
 _Z10__snprintfPcjPKcz
@@ -517,6 +518,7 @@ _ZN3JCR12set_JobLevelEi
 _ZN3JCR14get_ActionNameEb
 _ZN3JCR17get_OperationNameEv
 _ZN3JCR8JobReadsEv
+_Z16dbg_jcr_add_hookPFvP3JCRP6_iobufE
 timeout_handler
 
 

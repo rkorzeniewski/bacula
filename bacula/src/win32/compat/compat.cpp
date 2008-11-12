@@ -40,6 +40,7 @@
 #include "bacula.h"
 #include "compat.h"
 #include "jcr.h"
+#include "findlib/find.h"
 
 #define b_errno_win32 (1<<29)
 
@@ -2292,8 +2293,6 @@ close_wpipe(BPIPE *bpipe)
     }
     return result;
 }
-
-#include "findlib/find.h"
 
 int
 utime(const char *fname, struct utimbuf *times)

@@ -75,7 +75,7 @@ extern "C" { // work around visual compiler mangling variables
 #else
 extern URES res_all;
 #endif
-extern int  res_all_size;
+extern int32_t  res_all_size;
 
 /* We build the current new Include and Exclude items here */
 static INCEXE res_incexe;

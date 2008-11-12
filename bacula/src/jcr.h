@@ -468,6 +468,6 @@ extern void free_jcr(JCR *jcr);
 
 /* Used to display specific job information after a fatal signal */
 typedef void (dbg_jcr_hook_t)(JCR *jcr, FILE *fp);
-void dbg_jcr_add_hook(dbg_jcr_hook_t *fct);
+extern void dbg_jcr_add_hook(dbg_jcr_hook_t *fct);
 
 #endif /* __JCR_H_ */
