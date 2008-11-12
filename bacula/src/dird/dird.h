@@ -36,10 +36,10 @@
 #include "lib/runscript.h"
 #include "lib/breg.h"
 #include "dird_conf.h"
-#include "dir_plugins.h"
 
 #define DIRECTOR_DAEMON 1
 
+#include "dir_plugins.h"
 #include "cats/cats.h"
 
 #include "jcr.h"
