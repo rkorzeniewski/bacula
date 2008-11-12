@@ -122,7 +122,7 @@ void generate_plugin_event(JCR *jcr, bEventType eventType, void *value)
    Plugin *plugin;
    int i = 0;
 
-   if (!plugin_list || !jcr->plugin_ctx_list) {
+   if (!plugin_list || !jcr || !jcr->plugin_ctx_list) {
       return;                         /* Return if no plugins loaded */
    }
 

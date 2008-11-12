@@ -505,6 +505,7 @@ bool mark_media_purged(UAContext *ua, MEDIA_DBR *mr)
       }
       pm_strcpy(jcr->VolumeName, mr->VolumeName);
       generate_job_event(jcr, "VolumePurged");
+      generate_plugin_event(jcr, bEventVolumePurged);
       /*
        * If the RecyclePool is defined, move the volume there
        */

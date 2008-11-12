@@ -124,7 +124,7 @@ static bRC handlePluginEvent(bpContext *ctx, bEvent *event, void *value)
 
    switch (event->eventType) {
    case bEventJobStart:
-      printf("plugin: JobStart=%s\n", (char *)value);
+      printf("plugin: JobStart=%s\n", NPRT((char *)value));
       break;
    case bEventJobEnd:
       printf("plugin: JobEnd\n");
@@ -136,10 +136,10 @@ static bRC handlePluginEvent(bpContext *ctx, bEvent *event, void *value)
       printf("plugin: BackupEnd\n");
       break;
    case bEventLevel:
-      printf("plugin: JobLevel=%c %d\n", *(int*)value, *(int*)value);
+      printf("plugin: JobLevel=%c %d\n", (int64_t)value, (int64_t)value);
       break;
    case bEventSince:
-      printf("plugin: since=%d\n", *(int*)value);
+      printf("plugin: since=%d\n", (int64_t)value);
       break;
    case bEventStartRestoreJob:
       printf("plugin: StartRestoreJob\n");
@@ -150,11 +150,11 @@ static bRC handlePluginEvent(bpContext *ctx, bEvent *event, void *value)
 
    /* Plugin command e.g. plugin = <plugin-name>:<name-space>:command */
    case bEventRestoreCommand:
-      printf("plugin: backup command=%s\n", (char *)value);
+      printf("plugin: backup command=%s\n", NPRT((char *)value));
       break;
 
    case bEventBackupCommand:
-      printf("plugin: backup command=%s\n", (char *)value);
+      printf("plugin: backup command=%s\n", NPRT((char *)value));
       break;
 
    default:
