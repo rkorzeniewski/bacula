@@ -31,7 +31,7 @@ main: dir_plugins.o
 	$(CXX) $(LDFLAGS) -L${LIBDIR} dir_plugins.o -o main -lbac -lpthread -lssl -l crypto -ldl
 
 example-plugin-dir.o: example-plugin-dir.c ${DIRDIR}/dir_plugins.h
-	$(CXX) -fPIC -I../.. -I${DIRDIR} -c example-plugin-fd.c
+	$(CXX) -fPIC -I../.. -I${DIRDIR} -c example-plugin-dir.c
 
 example-plugin-dir.so: example-plugin-dir.o 
 	$(CXX) $(LDFLAGS) -shared example-plugin-dir.o -o example-plugin-dir.so
