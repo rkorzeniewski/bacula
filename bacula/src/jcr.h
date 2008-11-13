@@ -201,7 +201,9 @@ public:
    POOLMEM *VolumeName;               /* Volume name desired -- pool_memory */
    POOLMEM *errmsg;                   /* edited error message */
    char Job[MAX_NAME_LENGTH];         /* Unique name of this Job */
-   char event[MAX_NAME_LENGTH];       /* Current event */
+   char event[MAX_NAME_LENGTH];       /* Current event (python) */
+   uint32_t eventType;                /* Current event type (plugin) */
+
    uint32_t JobId;                    /* Director's JobId */
    uint32_t VolSessionId;
    uint32_t VolSessionTime;

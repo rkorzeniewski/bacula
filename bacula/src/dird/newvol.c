@@ -71,8 +71,9 @@ bool newVolume(JCR *jcr, MEDIA_DBR *mr)
       set_pool_dbr_defaults_in_media_dbr(mr, &pr);
       jcr->VolumeName[0] = 0;
       bstrncpy(mr->MediaType, jcr->wstore->media_type, sizeof(mr->MediaType));
-      if (generate_job_event(jcr, "NewVolume") == 1 && jcr->VolumeName[0] &&
-          is_volume_name_legal(NULL, jcr->VolumeName)) {
+      generate_job_event(jcr, "NewVolume"); /* return bool */
+      generate_plugin_event(jcr, bEventNewVolume); /* return void... */
+      if (jcr->VolumeName[0] && is_volume_name_legal(NULL, jcr->VolumeName)) {
          bstrncpy(mr->VolumeName, jcr->VolumeName, sizeof(mr->VolumeName));
       /* Check for special characters */
       } else if (pr.LabelFormat[0] && pr.LabelFormat[0] != '*') {

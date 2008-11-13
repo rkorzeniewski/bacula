@@ -79,7 +79,7 @@ void generate_plugin_event(JCR *jcr, bEventType eventType, void *value)
    }
 
    bpContext *plugin_ctx_list = (bpContext *)jcr->plugin_ctx_list;
-   event.eventType = eventType;
+   jcr->eventType = event.eventType = eventType;
 
    Dmsg2(dbglvl, "plugin_ctx_list=%p JobId=%d\n", jcr->plugin_ctx_list, jcr->JobId);
 
@@ -320,10 +320,70 @@ static bRC baculaGetValue(bpContext *ctx, brVariable var, void *value)
    return ret;
 }
 
+extern struct s_jl joblevels[];
+
 static bRC baculaSetValue(bpContext *ctx, bwVariable var, void *value)
 {
+   bRC ret=bRC_OK;
+
+   if (!ctx || !var || !value) {
+      return bRC_Error;
+   }
+   
+   JCR *jcr = (JCR *)ctx->bContext;
+   int intval = *(int*)value;
+   char *strval = (char *)value;
+   bool ok;
+
+   switch (var) {
+   case bwVarJobReport:
+      Jmsg(jcr, M_INFO, 0, "%s", (char *)value);
+      break;
+   
+   case bwVarVolumeName:
+      /* Make sure VolumeName is valid and we are in VolumeName event */
+      if (jcr->eventType == bEventNewVolume &&
+          is_volume_name_legal(NULL, strval))
+      {
+         pm_strcpy(jcr->VolumeName, strval);
+         Dmsg1(100, "Set Vol=%s\n", strval);
+      } else {
+         jcr->VolumeName[0] = 0;
+         ret = bRC_Error;
+      }
+      break;
+
+   case bwVarPriority:
+      Dmsg1(000, "Set priority=%d\n", intval);
+      if (intval >= 1 && intval <= 100) {
+         jcr->JobPriority = intval;
+      } else {
+         ret = bRC_Error;
+      }
+      break;
+
+   case bwVarJobLevel:
+      ok=true;
+      if (jcr->eventType == bEventJobInit) {
+         for (int i=0; ok && joblevels[i].level_name; i++) {
+            if (strcasecmp(strval, joblevels[i].level_name) == 0) {
+               if (joblevels[i].job_type == jcr->get_JobType()) {
+                  jcr->set_JobLevel(joblevels[i].level);
+                  jcr->jr.JobLevel = jcr->get_JobLevel();
+                  ok = false;
+               }
+            }
+         }
+      } else {
+         ret = bRC_Error;
+      }
+      break;
+   default:
+      ret = bRC_Error;
+      break;
+   }
    Dmsg1(dbglvl, "bacula: baculaSetValue var=%d\n", var);
-   return bRC_OK;
+   return ret;
 }
 
 static bRC baculaRegisterEvents(bpContext *ctx, ...)
@@ -378,6 +438,7 @@ int main(int argc, char *argv[])
 
    generate_plugin_event(jcr1, bEventJobStart, (void *)"Start Job 1");
    generate_plugin_event(jcr1, bEventJobEnd);
+   generate_plugin_event(jcr2, bEventJobInit, (void *)"Start Job 1");
    generate_plugin_event(jcr2, bEventJobStart, (void *)"Start Job 1");
    free_plugins(jcr1);
    generate_plugin_event(jcr2, bEventJobEnd);
