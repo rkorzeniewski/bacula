@@ -69,29 +69,31 @@ extern "C" {
  *                                                                          *
  ****************************************************************************/
 
-/* Bacula Variable Ids */
+/* Bacula Variable Ids */       /* return value */
 typedef enum {
-  bVarJob       = 1,
-  bVarLevel     = 2,
-  bVarType      = 3,
-  bVarJobId     = 4,
-  bVarClient    = 5,
-  bVarNumVols   = 6,
-  bVarPool      = 7,
-  bVarStorage   = 8,
-  bVarCatalog   = 9,
-  bVarMediaType = 10,
-  bVarJobName   = 11,
-  bVarJobStatus = 12,
-  bVarPriority  = 13,
-  bVarVolumeName = 14,
-  bVarCatalogRes = 15,
-  bVarJobErrors  = 16,
-  bVarJobFiles   = 17,
-  bVarSDJobFiles = 18,
-  bVarSDErrors   = 19,
-  bVarFDJobStatus = 20,
-  bVarSDJobStatus = 21
+  bVarJob       = 1,            // string
+  bVarLevel     = 2,            // int   
+  bVarType      = 3,            // int   
+  bVarJobId     = 4,            // int   
+  bVarClient    = 5,            // string
+  bVarNumVols   = 6,            // int   
+  bVarPool      = 7,            // string
+  bVarStorage   = 8,            // string
+  bVarWriteStorage = 9,         // string
+  bVarReadStorage  = 10,        // string
+  bVarCatalog   = 11,           // string
+  bVarMediaType = 12,           // string
+  bVarJobName   = 13,           // string
+  bVarJobStatus = 14,           // int   
+  bVarPriority  = 15,           // int   
+  bVarVolumeName = 16,          // string
+  bVarCatalogRes = 17,          // NYI      
+  bVarJobErrors  = 18,          // int   
+  bVarJobFiles   = 19,          // int   
+  bVarSDJobFiles = 20,          // int   
+  bVarSDErrors   = 21,          // int   
+  bVarFDJobStatus = 22,         // int   
+  bVarSDJobStatus = 23          // int   
 } brVariable;
 
 typedef enum {

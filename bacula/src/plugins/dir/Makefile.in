@@ -31,7 +31,7 @@ main: dir_plugins.o
 	$(CXX) $(LDFLAGS) -L${LIBDIR} dir_plugins.o -o main -lbac -lpthread -lssl -l crypto -ldl
 
 example-plugin-dir.o: example-plugin-dir.c ${DIRDIR}/dir_plugins.h
-	$(CXX) -fPIC -I../.. -I${DIRDIR} -c example-plugin-dir.c
+	$(CXX) $(DEFS) $(DEBUG) $(CPPFLAGS) -fPIC -I../.. -I${DIRDIR} -c example-plugin-dir.c
 
 example-plugin-dir.so: example-plugin-dir.o 
 	$(CXX) $(LDFLAGS) -shared example-plugin-dir.o -o example-plugin-dir.so
@@ -40,7 +40,7 @@ example-plugin-dir.lo: example-plugin-dir.c ${DIRDIR}/dir_plugins.h
 	$(LIBTOOL_COMPILE) $(CXX) $(DEFS) $(DEBUG) $(CFLAGS) -I../.. -I${DIRDIR} -c example-plugin-dir.c
 
 example-plugin-dir.la: Makefile example-plugin-dir$(DEFAULT_OBJECT_TYPE)
-	$(LIBTOOL_COMPILE) $(CXX) $(DEFS) $(DEBUG) $(CFLAGS) -I../.. -I${DIRDIR} -c example-plugin-dir.c
+	$(LIBTOOL_LINK) $(CXX) $(LDFLAGS) -shared example-plugin-dir.lo -o $@ -rpath $(plugindir) -module -export-dynamic -avoid-version
 
 install: all
 	$(MKDIR) $(DESTDIR)$(plugindir)

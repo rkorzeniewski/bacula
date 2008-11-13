@@ -200,6 +200,119 @@ static bRC baculaGetValue(bpContext *ctx, brVariable var, void *value)
       *((char **)value) = jcr->Job;
       Dmsg1(dbglvl, "Bacula: return bVarJobName=%s\n", jcr->Job);
       break;
+   case bVarJob:
+      *((char **)value) = jcr->job->hdr.name;
+      Dmsg1(dbglvl, "Bacula: return bVarJob=%s\n", jcr->job->hdr.name);
+      break;
+   case bVarLevel:
+      *((int *)value) = jcr->get_JobLevel();
+      Dmsg1(dbglvl, "Bacula: return bVarLevel=%c\n", jcr->get_JobLevel());
+      break;
+   case bVarType:
+      *((int *)value) = jcr->get_JobType();
+      Dmsg1(dbglvl, "Bacula: return bVarType=%c\n", jcr->get_JobType());
+      break;
+   case bVarClient:
+      *((char **)value) = jcr->client->hdr.name;
+      Dmsg1(dbglvl, "Bacula: return bVarClient=%s\n", jcr->client->hdr.name);
+      break;
+   case bVarNumVols:
+      POOL_DBR pr;
+      memset(&pr, 0, sizeof(pr));
+      bstrncpy(pr.Name, jcr->pool->hdr.name, sizeof(pr.Name));
+      if (!db_get_pool_record(jcr, jcr->db, &pr)) {
+         ret=bRC_Error;
+      }
+      *((int *)value) = pr.NumVols;
+      Dmsg1(dbglvl, "Bacula: return bVarNumVols=%d\n", pr.NumVols);
+      break;
+   case bVarPool:
+      *((char **)value) = jcr->pool->hdr.name;
+      Dmsg1(dbglvl, "Bacula: return bVarPool=%s\n", jcr->pool->hdr.name);
+      break;
+   case bVarStorage:
+      if (jcr->wstore) {
+         *((char **)value) = jcr->wstore->hdr.name;
+      } else if (jcr->rstore) {
+         *((char **)value) = jcr->rstore->hdr.name;
+      } else {
+         *((char **)value) = NULL;
+         ret=bRC_Error;
+      }
+      Dmsg1(dbglvl, "Bacula: return bVarStorage=%s\n", NPRT(*((char **)value)));
+      break;
+   case bVarWriteStorage:
+      if (jcr->wstore) {
+         *((char **)value) = jcr->wstore->hdr.name;
+      } else {
+         *((char **)value) = NULL;
+         ret=bRC_Error;
+      }
+      Dmsg1(dbglvl, "Bacula: return bVarWriteStorage=%s\n", NPRT(*((char **)value)));
+      break;
+   case bVarReadStorage:
+      if (jcr->rstore) {
+         *((char **)value) = jcr->rstore->hdr.name;
+      } else {
+         *((char **)value) = NULL;
+         ret=bRC_Error;
+      }
+      Dmsg1(dbglvl, "Bacula: return bVarReadStorage=%s\n", NPRT(*((char **)value)));
+      break;
+   case bVarCatalog:
+      *((char **)value) = jcr->catalog->hdr.name;
+      Dmsg1(dbglvl, "Bacula: return bVarCatalog=%s\n", jcr->catalog->hdr.name);
+      break;
+   case bVarMediaType:
+      if (jcr->wstore) {
+         *((char **)value) = jcr->wstore->media_type;
+      } else if (jcr->rstore) {
+         *((char **)value) = jcr->rstore->media_type;
+      } else {
+         *((char **)value) = NULL;
+         ret=bRC_Error;
+      }
+      Dmsg1(dbglvl, "Bacula: return bVarMediaType=%s\n", NPRT(*((char **)value)));
+      break;
+   case bVarJobStatus:
+      *((int *)value) = jcr->JobStatus;
+      Dmsg1(dbglvl, "Bacula: return bVarJobStatus=%c\n", jcr->JobStatus);
+      break;
+   case bVarPriority:
+      *((int *)value) = jcr->JobPriority;
+      Dmsg1(dbglvl, "Bacula: return bVarPriority=%d\n", jcr->JobPriority);
+      break;
+   case bVarVolumeName:
+      *((char **)value) = jcr->VolumeName;
+      Dmsg1(dbglvl, "Bacula: return bVarVolumeName=%s\n", jcr->VolumeName);
+      break;
+   case bVarCatalogRes:
+      ret = bRC_Error;
+      break;
+   case bVarJobErrors:
+      *((int *)value) = jcr->JobErrors;
+      Dmsg1(dbglvl, "Bacula: return bVarErrors=%d\n", jcr->JobErrors);
+      break;
+   case bVarJobFiles:
+      *((int *)value) = jcr->JobFiles;
+      Dmsg1(dbglvl, "Bacula: return bVarFiles=%d\n", jcr->JobFiles);
+      break;
+   case bVarSDJobFiles:
+      *((int *)value) = jcr->SDJobFiles;
+      Dmsg1(dbglvl, "Bacula: return bVarSDFiles=%d\n", jcr->SDJobFiles);
+      break;
+   case bVarSDErrors:
+      *((int *)value) = jcr->SDErrors;
+      Dmsg1(dbglvl, "Bacula: return bVarSDErrors=%d\n", jcr->SDErrors);
+      break;
+   case bVarFDJobStatus:
+      *((int *)value) = jcr->FDJobStatus;
+      Dmsg1(dbglvl, "Bacula: return bVarFDJobStatus=%c\n", jcr->FDJobStatus);
+      break;      
+   case bVarSDJobStatus:
+      *((int *)value) = jcr->SDJobStatus;
+      Dmsg1(dbglvl, "Bacula: return bVarSDJobStatus=%c\n", jcr->SDJobStatus);
+      break;      
    default:
       ret = bRC_Error;
       break;
