@@ -129,12 +129,36 @@ static bRC setPluginValue(bpContext *ctx, pVariable var, void *value)
 static bRC handlePluginEvent(bpContext *ctx, bEvent *event, void *value)
 {
    char *name;
+   int val;
    switch (event->eventType) {
    case bEventJobStart:
       printf("plugin: HandleEvent JobStart\n");
       break;
    case bEventJobEnd:
       printf("plugin: HandleEvent JobEnd\n");
+      bfuncs->getBaculaValue(ctx, bVarJob, (void *)&name);
+      printf("plugin: bVarJob=%s\n", name);
+      bfuncs->getBaculaValue(ctx, bVarJobId, (void *)&val);
+      printf("plugin: bVarJobId=%d\n", val);
+      bfuncs->getBaculaValue(ctx, bVarType, (void *)&val);
+      printf("plugin: bVarType=%c\n", val);
+      bfuncs->getBaculaValue(ctx, bVarLevel, (void *)&val);
+      printf("plugin: bVarLevel=%c\n", val);
+      bfuncs->getBaculaValue(ctx, bVarClient, (void *)&name);
+      printf("plugin: bVarClient=%s\n", name);
+      bfuncs->getBaculaValue(ctx, bVarCatalog, (void *)&name);
+      printf("plugin: bVarCatalog=%s\n", name);
+      bfuncs->getBaculaValue(ctx, bVarPool, (void *)&name);
+      printf("plugin: bVarPool=%s\n", name);
+      bfuncs->getBaculaValue(ctx, bVarStorage, (void *)&name);
+      printf("plugin: bVarStorage=%s\n", name);
+      bfuncs->getBaculaValue(ctx, bVarJobErrors, (void *)&val);
+      printf("plugin: bVarJobErrors=%d\n", val);
+      bfuncs->getBaculaValue(ctx, bVarJobFiles, (void *)&val);
+      printf("plugin: bVarJobFiles=%d\n", val);
+      bfuncs->getBaculaValue(ctx, bVarNumVols, (void *)&val);
+      printf("plugin: bVarNumVols=%d\n", val);
+
       break;
    }
    bfuncs->getBaculaValue(ctx, bVarJobName, (void *)&name);
