@@ -318,6 +318,9 @@ AC_HELP_STRING([--with-mysql@<:@=DIR@:>@], [Include MySQL support. DIR is the My
                    if test -f /usr/lib64/mysql/libmysqlclient_r.a \
                         -o -f /usr/lib64/mysql/libmysqlclient_r.so; then  
                            MYSQL_LIBDIR=/usr/lib64/mysql
+                   elif test -f /usr/lib64/libmysqlclient_r.a \
+                        -o -f /usr/lib64/libmysqlclient_r.so; then
+                           MYSQL_LIBDIR=/usr/lib64
                    elif test -f /usr/lib/mysql/libmysqlclient_r.a \
                           -o -f /usr/lib/mysql/libmysqlclient_r.so; then
                            MYSQL_LIBDIR=/usr/lib/mysql
@@ -362,12 +365,14 @@ AC_HELP_STRING([--with-mysql@<:@=DIR@:>@], [Include MySQL support. DIR is the My
               if test -f $withval/lib64/mysql/libmysqlclient_r.a \
                    -o -f $withval/lib64/mysql/libmysqlclient_r.so; then
                  MYSQL_LIBDIR=$withval/lib64/mysql
+              elif test -f $withval/lib64/libmysqlclient_r.a \
+                   -o -f $withval/lib64/libmysqlclient_r.so; then
+                 MYSQL_LIBDIR=$withval/lib64
+              elif test -f $withval/lib/libmysqlclient_r.a \
+                   -o -f $withval/lib/libmysqlclient_r.so; then
+                 MYSQL_LIBDIR=$withval/lib
               else
                  MYSQL_LIBDIR=$withval/lib/mysql
-                 # Solaris ...
-                 if test -f $withval/lib/libmysqlclient_r.so; then
-                    MYSQL_LIBDIR=$withval/lib
-                 fi
               fi
               MYSQL_BINDIR=$withval/bin
            elif test -f $withval/include/mysql.h; then
