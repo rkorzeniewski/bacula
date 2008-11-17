@@ -39,6 +39,7 @@ sed -f ${out} ${cwd}/scripts/bacula-sd-virtual.conf.in >${cwd}/scripts/bacula-sd
 sed -f ${out} ${cwd}/scripts/bacula-sd-2disk.conf.in >${cwd}/scripts/bacula-sd-2disk.conf
 sed -f ${out} ${cwd}/scripts/bacula-sd-2drive.conf.in >${cwd}/scripts/bacula-sd-2drive.conf
 sed -f ${out} ${cwd}/scripts/bacula-sd-2disk-drive.conf.in >${cwd}/scripts/bacula-sd-2disk-drive.conf
+sed -f ${out} ${cwd}/scripts/broken-media-bug-bacula-dir.conf.in >${cwd}/scripts/broken-media-bug-bacula-dir.conf
 sed -f ${out} ${cwd}/scripts/cleanup-tape.in >${cwd}/scripts/cleanup-tape
 sed -f ${out} ${cwd}/scripts/cleanup-2tape.in >${cwd}/scripts/cleanup-2tape
 sed -f ${out} ${cwd}/scripts/cleanup-2drive.in >${cwd}/scripts/cleanup-2drive
