@@ -95,6 +95,21 @@ void generate_plugin_event(JCR *jcr, bEventType eventType, void *value)
    return;
 }
 
+static void dump_sd_plugin(Plugin *plugin, FILE *fp)
+{
+   if (!plugin) {
+      return ;
+   }
+   pInfo *info = (pInfo *) plugin->pinfo;
+   fprintf(fp, "\tversion=%d\n", info->version);
+   fprintf(fp, "\tdate=%s\n", NPRTB(info->plugin_date));
+   fprintf(fp, "\tmagic=%s\n", NPRTB(info->plugin_magic));
+   fprintf(fp, "\tauthor=%s\n", NPRTB(info->plugin_author));
+   fprintf(fp, "\tlicence=%s\n", NPRTB(info->plugin_license));
+   fprintf(fp, "\tversion=%s\n", NPRTB(info->plugin_version));
+   fprintf(fp, "\tdescription=%s\n", NPRTB(info->plugin_description));
+}
+
 void load_dir_plugins(const char *plugin_dir)
 {
    if (!plugin_dir) {
@@ -103,6 +118,7 @@ void load_dir_plugins(const char *plugin_dir)
 
    plugin_list = New(alist(10, not_owned_by_alist));
    load_plugins((void *)&binfo, (void *)&bfuncs, plugin_dir, plugin_type);
+   dbg_plugin_add_hook(dump_sd_plugin);
 }
 
 /*
