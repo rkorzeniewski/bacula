@@ -182,9 +182,10 @@ void prune_volumes(JCR *jcr, bool InChanger, MEDIA_DBR *mr)
             prune_list.num_ids = 0;             /* reset count */
          }
          if (!is_volume_purged(ua, &lmr)) {
-            Dmsg1(100, "Vol=%s not pruned\n", lmr.VolumeName);
+            Dmsg1(050, "Vol=%s not pruned\n", lmr.VolumeName);
             continue;
          }
+         Dmsg1(050, "Vol=%s is purged\n", lmr.VolumeName);
 
          /*
           * Since we are also pruning the Scratch pool, continue
