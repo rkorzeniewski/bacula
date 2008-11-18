@@ -463,6 +463,9 @@ bool is_volume_purged(UAContext *ua, MEDIA_DBR *mr)
    bool purged = false;
    char ed1[50];
 
+   if (mr->FirstWritten == 0 || mr->LastWritten == 0) {
+      goto bail_out;               /* not written cannot purge */
+   }
    if (strcmp(mr->VolStatus, "Purged") == 0) {
       purged = true;
       goto bail_out;
