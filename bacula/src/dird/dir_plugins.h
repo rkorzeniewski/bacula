@@ -110,7 +110,11 @@ typedef enum {
   bEventJobInit       = 3,
   bEventJobRun        = 4,
   bEventVolumePurged  = 5,
-  bEventNewVolume     = 6
+  bEventNewVolume     = 6,
+  bEventNeedVolume    = 7,
+  bEventVolumeFull    = 8,
+  bEventRecyle        = 9,
+  bEventGetScratch    = 10
 } bEventType;
 
 typedef struct s_bEvent {
