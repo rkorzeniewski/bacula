@@ -283,6 +283,7 @@ int job_delete_handler(void *ctx, int num_fields, char **row);
 int del_count_handler(void *ctx, int num_fields, char **row);
 int file_delete_handler(void *ctx, int num_fields, char **row);
 int get_prune_list_for_volume(UAContext *ua, MEDIA_DBR *mr, del_ctx *del);
+int exclude_running_jobs_from_list(del_ctx *prune_list);
 
 /* ua_purge.c */
 bool is_volume_purged(UAContext *ua, MEDIA_DBR *mr);

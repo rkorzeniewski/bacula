@@ -467,6 +467,7 @@ bool is_volume_purged(UAContext *ua, MEDIA_DBR *mr)
       purged = true;
       goto bail_out;
    }
+
    /* If purged, mark it so */
    cnt.count = 0;
    Mmsg(query, "SELECT count(*) FROM JobMedia WHERE MediaId=%s", 

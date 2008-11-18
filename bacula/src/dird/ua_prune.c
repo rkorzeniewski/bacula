@@ -465,11 +465,8 @@ int get_prune_list_for_volume(UAContext *ua, MEDIA_DBR *mr, del_ctx *del)
 {
    POOL_MEM query(PM_MESSAGE);
    int count = 0;
-   int i;          
    utime_t now, period;
    char ed1[50], ed2[50];
-   JCR *jcr;
-   bool skip;
 
    if (mr->Enabled == 2) {
       return 0;                    /* cannot prune Archived volumes */
@@ -496,27 +493,45 @@ int get_prune_list_for_volume(UAContext *ua, MEDIA_DBR *mr, del_ctx *del)
       Dmsg0(050, "Count failed\n");
       goto bail_out;
    }
+   count = exclude_running_jobs_from_list(del);
+   
+bail_out:
+   db_unlock(ua->db);
+   return count;
+}
+
+/*
+ * We have a list of jobs to prune or purge. If any of them is
+ *   currently running, we set its JobId to zero which effectively
+ *   excludes it.
+ *
+ * Returns the number of jobs that can be prunned or purged.
+ *
+ */
+int exclude_running_jobs_from_list(del_ctx *prune_list)
+{
+   int count = 0;
+   JCR *jcr;
+   bool skip;
+   int i;          
 
    /* Do not prune any job currently running */
-   for (i=0; i < del->num_ids; i++) {
+   for (i=0; i < prune_list->num_ids; i++) {
       skip = false;
       foreach_jcr(jcr) {
-         if (jcr->JobId == del->JobId[i]) {
-            Dmsg2(150, "skip same job JobId[%d]=%d\n", i, (int)del->JobId[i]);
-            del->JobId[i] = 0;
+         if (jcr->JobId == prune_list->JobId[i]) {
+            Dmsg2(050, "skip running job JobId[%d]=%d\n", i, (int)prune_list->JobId[i]);
+            prune_list->JobId[i] = 0;
             skip = true;
             break;
          }
       }
       endeach_jcr(jcr);
       if (skip) {
-         continue;
+         continue;  /* don't increment count */
       }
-      Dmsg2(150, "accept JobId[%d]=%d\n", i, (int)del->JobId[i]);
+      Dmsg2(050, "accept JobId[%d]=%d\n", i, (int)prune_list->JobId[i]);
       count++;
    }
-
-bail_out:
-   db_unlock(ua->db);
    return count;
 }
