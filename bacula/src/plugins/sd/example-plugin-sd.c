@@ -31,8 +31,8 @@
  *  Kern Sibbald, October 2007
  *
  */
-#include <stdio.h>
-#include "dir_plugins.h"
+#include "bacula.h"
+#include "sd_plugins.h"
 
 #ifdef __cplusplus
 extern "C" {

@@ -2730,6 +2730,7 @@ AC_OUTPUT([autoconf/Make.common \
 	   src/findlib/Makefile \
 	   src/tools/Makefile \
 	   src/plugins/fd/Makefile \
+	   src/plugins/sd/Makefile \
 	   src/plugins/dir/Makefile \
 	   po/Makefile.in \
 	   updatedb/update_mysql_tables_10_to_11 \

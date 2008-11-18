@@ -42,6 +42,12 @@
 #include "bacula.h"
 #include "stored.h"
 
+/* TODO: fix problem with bls, bextract
+ * that use findlib and already declare
+ * filed plugins 
+ */
+#include "sd_plugins.h"         
+
 #ifdef HAVE_PYTHON
 
 #undef _POSIX_C_SOURCE
@@ -252,6 +258,8 @@ int main (int argc, char *argv[])
 
    create_pid_file(me->pid_directory, "bacula-sd", get_first_port_host_order(me->sdaddrs));
    read_state_file(me->working_directory, "bacula-sd", get_first_port_host_order(me->sdaddrs));
+
+   load_dir_plugins(me->plugin_directory);
 
    drop(uid, gid);
 
@@ -625,6 +633,7 @@ void terminate_stored(int sig)
 
    Dmsg1(200, "In terminate_stored() sig=%d\n", sig);
 
+   unload_plugins();
    free_volume_lists();
 
    foreach_res(device, R_DEVICE) {
