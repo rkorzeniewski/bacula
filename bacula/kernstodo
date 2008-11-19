@@ -72,6 +72,9 @@ Professional Needs:
 
 Priority:
 ================
+- Possibly allow manual "purge" to purge a Volume that has not
+  yet been written (even if FirstWritten time is zero) see ua_purge.c
+  is_volume_purged().
 - Add disk block detection bsr code (make it work).
 - Remove done bsrs.
 - Add blast attributes to DIR to SD.
