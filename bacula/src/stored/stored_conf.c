@@ -45,6 +45,7 @@ RES **res_head = sres_head;
 
 /* Forward referenced subroutines */
 static void store_devtype(LEX *lc, RES_ITEM *item, int index, int pass);
+static void store_maxblocksize(LEX *lc, RES_ITEM *item, int index, int pass);
 
 
 /* We build the current resource here statically,
@@ -152,7 +153,7 @@ static RES_ITEM dev_items[] = {
    {"volumepollinterval",    store_time,   ITEM(res_dev.vol_poll_interval), 0, 0, 0},
    {"maximumrewindwait",     store_time,   ITEM(res_dev.max_rewind_wait), 0, ITEM_DEFAULT, 5 * 60},
    {"minimumblocksize",      store_pint32,   ITEM(res_dev.min_block_size), 0, 0, 0},
-   {"maximumblocksize",      store_pint32,   ITEM(res_dev.max_block_size), 0, 0, 0},
+   {"maximumblocksize",      store_maxblocksize, ITEM(res_dev.max_block_size), 0, 0, 0},
    {"maximumvolumesize",     store_size,   ITEM(res_dev.max_volume_size), 0, 0, 0},
    {"maximumfilesize",       store_size,   ITEM(res_dev.max_file_size), 0, ITEM_DEFAULT, 1000000000},
    {"volumecapacity",        store_size,   ITEM(res_dev.volume_capacity), 0, 0, 0},
@@ -241,6 +242,22 @@ static void store_devtype(LEX *lc, RES_ITEM *item, int index, int pass)
    }
    scan_to_eol(lc);
    set_bit(index, res_all.hdr.item_present);
+}
+
+/*
+ * Store Maximum Block Size, and check it is not greater than MAX_BLOCK_LENGTH
+ *
+ */
+static void store_maxblocksize(LEX *lc, RES_ITEM *item, int index, int pass)
+{
+   lex_get_token(lc, T_PINT32);
+   if (lc->pint32_val <= MAX_BLOCK_LENGTH) {
+      *(uint32_t *)(item->value) = lc->pint32_val;
+      scan_to_eol(lc);
+      set_bit(index, res_all.hdr.item_present);
+   } else {
+      scan_err2(lc, _("Maximum Block Size configured value %u is greater than allowed maximum: %u"), lc->pint32_val, MAX_BLOCK_LENGTH );
+   }
 }
 
 

@@ -38,7 +38,7 @@
 #ifndef __BLOCK_H
 #define __BLOCK_H 1
 
-#define MAX_BLOCK_LENGTH  (1024*1024 + 1) /* this is a sort of sanity check */
+#define MAX_BLOCK_LENGTH  2000000       /* this is a sort of sanity check */
 #define DEFAULT_BLOCK_SIZE (512 * 126)  /* 64,512 N.B. do not use 65,636 here */
 
 /* Block Header definitions. */
