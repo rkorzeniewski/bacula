@@ -3,6 +3,7 @@
 
 
 Document:
+- package sg3-utils, program sg_map
 - !!! Cannot restore two jobs a the same time that were
   written simultaneously unless they were totally spooled.
 - Document cleaning up the spool files:
@@ -71,6 +72,9 @@ Professional Needs:
 
 Priority:
 ================
+- Add disk block detection bsr code (make it work).
+- Remove done bsrs.
+- Add blast attributes to DIR to SD.
 - Detect deadlocks in reservations.
 - Plugins:
   - Add list during dump
