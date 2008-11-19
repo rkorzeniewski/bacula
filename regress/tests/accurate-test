@@ -20,6 +20,13 @@ cp tmp/1 bin/bacula-fd.conf
 
 change_jobname Client1 $JobName
 
+p() {
+    echo "##############################################" >> ${cwd}/tmp/log1.out
+    echo "$*" >> ${cwd}/tmp/log1.out
+    echo "##############################################" >> ${cwd}/tmp/log2.out
+    echo "$*" >> ${cwd}/tmp/log2.out
+}
+
 # cleanup
 rm -rf ${cwd}/build/accurate.new
 rm -rf ${cwd}/build/accurate
@@ -70,7 +77,7 @@ quit
 END_OF_DATA
 
 ################################################################
-# First :  We just run full and restore to compare if all is ok
+p First :  We just run full and restore to compare if all is ok
 ################################################################
 
 run_bconsole
@@ -82,7 +89,7 @@ check_restore_diff
 rm -rf ${cwd}/tmp/bacula-restores
 
 ################################################################
-# Now do a second backup after making few changes
+p Now do a second backup after making few changes
 ################################################################
 rm ${cwd}/build/accurate/xxx  # delete a file
 rm ${cwd}/build/accurate/dirtest/hello
@@ -97,7 +104,7 @@ check_files_written ${cwd}/tmp/log1.out 4
 rm -rf ${cwd}/tmp/bacula-restores
 
 ################################################################
-# Now do a third backup after making few changes
+p Now do a third backup after making few changes
 ################################################################
 rm ${cwd}/build/accurate/yyyyyy  # delete a file
 rmdir ${cwd}/build/accurate/dirtest
@@ -112,7 +119,7 @@ check_files_written ${cwd}/tmp/log1.out 3
 rm -rf ${cwd}/tmp/bacula-restores
 
 ################################################################
-# Now do a 4 backup after making few changes
+p Now do a 4 backup after making few changes
 ################################################################
 rm ${cwd}/build/accurate/zzzzzz  # delete a file
 
@@ -126,7 +133,7 @@ check_files_written ${cwd}/tmp/log1.out 2
 rm -rf ${cwd}/tmp/bacula-restores
 
 ################################################################
-# Now do a 5 backup after making few changes
+p Now do a 5 backup after making few changes
 ################################################################
 rm ${cwd}/build/accurate/zzzzzzzzz
 
@@ -140,7 +147,7 @@ check_files_written ${cwd}/tmp/log1.out 2
 rm -rf ${cwd}/tmp/bacula-restores
 
 ################################################################
-# Now do a backup after making few changes
+p Now do a backup after making few changes
 ################################################################
 touch ${cwd}/build/accurate/aaaaaa
 
@@ -154,7 +161,7 @@ check_files_written ${cwd}/tmp/log1.out 2
 rm -rf ${cwd}/tmp/bacula-restores
 
 ################################################################
-# Check with bls
+p Check with bls
 ################################################################
 
 ${cwd}/bin/bls -c ${cwd}/bin/bacula-sd.conf -V 'TestVolume001' FileStorage > tmp/bls.out
@@ -164,7 +171,7 @@ if [ $? != 0 ] ; then
 fi
 
 ################################################################
-# Now do a backup after making few changes
+p Now do a backup after making few changes
 ################################################################
 
 # some files will have disappear, others have their old mtime/ctime
@@ -179,7 +186,7 @@ check_restore_diff
 rm -rf ${cwd}/tmp/bacula-restores
 
 ################################################################
-# Now do an other test in differential mode
+p Now do an other test in differential mode
 ################################################################
 
 cat <<END_OF_DATA >${cwd}/tmp/bconcmds
@@ -209,7 +216,7 @@ check_restore_diff
 rm -rf ${cwd}/tmp/bacula-restores
 
 ################################################################
-# Now do an other test in differential mode + incremental
+p Now do an other test in differential mode + incremental
 ################################################################
 
 # make some changes
@@ -242,7 +249,7 @@ check_restore_diff
 rm -rf ${cwd}/tmp/bacula-restores
 
 ################################################################
-# Now do a backup after making few changes
+p Now do a backup after making few changes
 ################################################################
 rm ${cwd}/build/accurate/aaaaaa
 touch ${cwd}/build/accurate/bbbbbb
@@ -255,7 +262,7 @@ check_two_logs
 check_restore_diff
 
 ################################################################
-# Now do a backup after making few changes
+p Now do a backup after making few changes
 ################################################################
 mv ${cwd}/tmp/bacula-restores ${cwd}/build/accurate/
 
@@ -268,7 +275,7 @@ check_restore_diff
 rm -rf ${cwd}/tmp/bacula-restores ${cwd}/build/accurate/bacula-restores
 
 ################################################################
-# Check with bscan
+p Check with bscan
 ################################################################
 
 stop_bacula
@@ -312,7 +319,7 @@ check_restore_diff
 rm -rf ${cwd}/tmp/bacula-restores
 
 ################################################################
-# Now do a test with other attributes (owner, gid, rights)
+p Now do a test with other attributes: owner, gid, rights
 ################################################################
 
 cat <<END_OF_DATA >${cwd}/tmp/bconcmds
@@ -344,7 +351,7 @@ rm -rf ${cwd}/tmp/bacula-restores
 
 
 ################################################################
-# Use the p option for verify
+p Use the p option for verify
 ################################################################
 
 chmod 400 ${cwd}/build/accurate/yyy
@@ -377,7 +384,7 @@ check_files_written ${cwd}/tmp/log1.out 1
 rm -rf ${cwd}/tmp/bacula-restores
 
 ################################################################
-# Test strippath option
+p Test strippath option
 ################################################################
 
 cat <<END_OF_DATA >${cwd}/tmp/bconcmds
