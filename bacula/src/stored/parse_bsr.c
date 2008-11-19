@@ -235,6 +235,7 @@ static BSR *store_vol(LEX *lc, BSR *bsr)
    }
    if (bsr->volume) {
       bsr->next = new_bsr();
+      bsr->next->prev = bsr;
       bsr = bsr->next;
    }
    /* This may actually be more than one volume separated by a |
@@ -828,11 +829,11 @@ static void free_bsr_item(BSR *bsr)
    }
 }
 
-void free_bsr(BSR *bsr)
+/*
+ * Remove a single item from the bsr tree
+ */
+void remove_bsr(BSR *bsr)
 {
-   if (!bsr) {
-      return;
-   }
    free_bsr_item((BSR *)bsr->volume);
    free_bsr_item((BSR *)bsr->client);
    free_bsr_item((BSR *)bsr->sessid);
@@ -844,15 +845,40 @@ void free_bsr(BSR *bsr)
    free_bsr_item((BSR *)bsr->FileIndex);
    free_bsr_item((BSR *)bsr->JobType);
    free_bsr_item((BSR *)bsr->JobLevel);
-   if (bsr->fileregex) bfree(bsr->fileregex);
+   if (bsr->fileregex) {
+      bfree(bsr->fileregex);
+   }
    if (bsr->fileregex_re) {
       regfree(bsr->fileregex_re);
       free(bsr->fileregex_re);
    }
-   if (bsr->attr) free_attr(bsr->attr);
-
-   free_bsr(bsr->next);
+   if (bsr->attr) {
+      free_attr(bsr->attr);
+   }
+   if (bsr->next) {
+      bsr->next->prev = bsr->prev;
+   }
+   if (bsr->prev) {
+      bsr->prev->next = bsr->next;
+   }
    free(bsr);
+}
+
+/*
+ * Free all bsrs in chain
+ */
+void free_bsr(BSR *bsr)
+{
+   BSR *next_bsr;
+
+   if (!bsr) {
+      return;
+   }
+   next_bsr = bsr->next;
+   /* Remove (free) current bsr */
+   remove_bsr(bsr);
+   /* Now get the next one */
+   free_bsr(next_bsr);
 }
 
 /*****************************************************************
