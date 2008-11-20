@@ -1,0 +1,80 @@
+#!/bin/sh
+#
+# Run a backup of a small file, then do several other backups
+#   to expand the size of a volume.  Then do a restore of the first
+#   file, and make sure it does read to the end of the disk.
+#
+TestName="bsr-read-test"
+JobName=bsr-read
+. scripts/functions
+
+scripts/cleanup
+scripts/copy-test-confs
+echo "${cwd}/build/configure" >${cwd}/tmp/file-list
+
+
+
+change_jobname CompressedTest $JobName
+start_test
+
+cat <<END_OF_DATA >${cwd}/tmp/bconcmds
+@$out /dev/null
+messages
+@$out ${cwd}/tmp/log1.out
+label storage=File volume=TestVolume001
+label storage=File volume=TestVolume002
+update Volume=TestVolume001 maxvolbytes=120000
+run job=$JobName yes
+wait
+messages
+list jobs
+@# print the JobMedia records
+sql
+select * from JobMedia;
+
+quit
+END_OF_DATA
+
+run_bacula
+check_for_zombie_jobs storage=File
+stop_bacula
+
+echo "${cwd}/build" >${cwd}/tmp/file-list
+
+cat <<END_OF_DATA >${cwd}/tmp/bconcmds
+@$out /dev/null
+messages
+@$out ${cwd}/tmp/log1.out
+run job=$JobName level=Full yes
+wait
+messages
+@# 
+@# now do a restore
+@#
+@$out ${cwd}/tmp/log2.out
+setdebug level=30 fd     
+setdebug level=500 storage=File
+sql
+@# print the JobMedia records
+select * from JobMedia;
+
+restore
+3
+1
+mark *
+done
+yes
+wait
+messages
+@$out
+quit
+END_OF_DATA
+
+run_bacula
+check_for_zombie_jobs storage=File
+stop_bacula
+
+check_two_logs
+# check_restore_tmp_build_diff
+dstat=0
+end_test

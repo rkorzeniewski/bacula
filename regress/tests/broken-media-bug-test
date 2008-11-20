@@ -37,6 +37,8 @@ setdebug level=150  storage=File
 setdebug level=150  Director
 messages
 @$out tmp/log1.out
+label storage=File volume=TestVolume0001
+label storage=File volume=TestVolume0002
 run job=First yes
 messages
 quit
@@ -52,6 +54,7 @@ setdebug level=150  storage=File
 setdebug level=150  Director
 list volumes
 llist volume=TestVolume0001
+llist volume=TestVolume0002
 messages
 @$out tmp/log2.out
 run job=Second yes
