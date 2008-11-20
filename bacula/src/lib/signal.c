@@ -128,7 +128,10 @@ extern "C" void signal_handler(int sig)
    if (sig == SIGTERM) {
 //    Emsg1(M_TERM, -1, "Shutting down Bacula service: %s ...\n", my_name);
    } else {
-      Emsg2(M_FATAL, -1, _("Bacula interrupted by signal %d: %s\n"), sig, get_signal_name(sig));
+/* ***FIXME*** Display a message without taking any lock in the system
+ *    Emsg2(M_FATAL, -1, _("Bacula interrupted by signal %d: %s\n"), sig, get_signal_name(sig));
+ */
+      fprintf(stderr, _("Bacula interrupted by signal %d: %s\n"), sig, get_signal_name(sig));
    }
 
 #ifdef TRACEBACK
