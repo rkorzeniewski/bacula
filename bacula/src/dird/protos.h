@@ -286,10 +286,10 @@ int get_prune_list_for_volume(UAContext *ua, MEDIA_DBR *mr, del_ctx *del);
 int exclude_running_jobs_from_list(del_ctx *prune_list);
 
 /* ua_purge.c */
-bool is_volume_purged(UAContext *ua, MEDIA_DBR *mr);
+bool is_volume_purged(UAContext *ua, MEDIA_DBR *mr, bool force=false);
 bool mark_media_purged(UAContext *ua, MEDIA_DBR *mr);
-void purge_files_from_volume(UAContext *ua, MEDIA_DBR *mr );
-bool purge_jobs_from_volume(UAContext *ua, MEDIA_DBR *mr);
+void purge_files_from_volume(UAContext *ua, MEDIA_DBR *mr);
+bool purge_jobs_from_volume(UAContext *ua, MEDIA_DBR *mr, bool force=false);
 void purge_files_from_jobs(UAContext *ua, char *jobs);
 void purge_jobs_from_catalog(UAContext *ua, char *jobs);
 void purge_job_list_from_catalog(UAContext *ua, del_ctx &del);

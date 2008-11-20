@@ -259,7 +259,7 @@ int main (int argc, char *argv[])
    create_pid_file(me->pid_directory, "bacula-sd", get_first_port_host_order(me->sdaddrs));
    read_state_file(me->working_directory, "bacula-sd", get_first_port_host_order(me->sdaddrs));
 
-   load_dir_plugins(me->plugin_directory);
+   load_sd_plugins(me->plugin_directory);
 
    drop(uid, gid);
 

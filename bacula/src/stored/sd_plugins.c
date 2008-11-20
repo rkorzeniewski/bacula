@@ -110,7 +110,7 @@ static void dump_sd_plugin(Plugin *plugin, FILE *fp)
    fprintf(fp, "\tdescription=%s\n", NPRTB(info->plugin_description));
 }
 
-void load_dir_plugins(const char *plugin_dir)
+void load_sd_plugins(const char *plugin_dir)
 {
    if (!plugin_dir) {
       return;
@@ -247,7 +247,7 @@ int main(int argc, char *argv[])
    strcpy(my_name, "test-dir");
     
    getcwd(plugin_dir, sizeof(plugin_dir)-1);
-   load_dir_plugins(plugin_dir);
+   load_sd_plugins(plugin_dir);
 
    jcr1->JobId = 111;
    new_plugins(jcr1);

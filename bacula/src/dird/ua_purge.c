@@ -132,7 +132,9 @@ int purgecmd(UAContext *ua, const char *cmd)
          return 1;
       case 1:                         /* Volume */
          if (select_media_dbr(ua, &mr)) {
-            purge_jobs_from_volume(ua, &mr);
+            purge_jobs_from_volume(ua, &mr, /*force*/true);
+            
+purge_jobs_from_volume(ua, &mr);
          }
          return 1;
       }
@@ -140,7 +142,7 @@ int purgecmd(UAContext *ua, const char *cmd)
    case 2:
       while ((i=find_arg(ua, NT_("volume"))) >= 0) {
          if (select_media_dbr(ua, &mr)) {
-            purge_jobs_from_volume(ua, &mr);
+            purge_jobs_from_volume(ua, &mr, /*force*/true);
          }
          *ua->argk[i] = 0;            /* zap keyword already seen */
          ua->send_msg("\n");
@@ -164,7 +166,7 @@ int purgecmd(UAContext *ua, const char *cmd)
       break;
    case 2:                            /* Volume */
       if (select_media_dbr(ua, &mr)) {
-         purge_jobs_from_volume(ua, &mr);
+         purge_jobs_from_volume(ua, &mr, /*force*/true);
       }
       break;
    }
@@ -389,7 +391,7 @@ void purge_files_from_volume(UAContext *ua, MEDIA_DBR *mr )
  * Returns: 1 if Volume purged
  *          0 if Volume not purged
  */
-bool purge_jobs_from_volume(UAContext *ua, MEDIA_DBR *mr)
+bool purge_jobs_from_volume(UAContext *ua, MEDIA_DBR *mr, bool force)
 {
    POOL_MEM query(PM_MESSAGE);
    struct del_ctx del;
@@ -440,7 +442,7 @@ bool purge_jobs_from_volume(UAContext *ua, MEDIA_DBR *mr)
    ua->info_msg(_("%d File%s on Volume \"%s\" purged from catalog.\n"), del.num_del,
       del.num_del==1?"":"s", mr->VolumeName);
 
-   purged = is_volume_purged(ua, mr);
+   purged = is_volume_purged(ua, mr, force); 
 
 bail_out:
    if (del.JobId) {
@@ -455,17 +457,24 @@ bail_out:
  *
  * Returns: true if volume purged
  *          false if not
+ *
+ * Note, we normally will not purge a volume that has Firstor LastWritten
+ *   zero, because it means the volume is most likely being written
+ *   however, if the user manually purges using the purge command in
+ *   the console, he has been warned, and we go ahead and purge
+ *   the volume anyway, if possible).
  */
-bool is_volume_purged(UAContext *ua, MEDIA_DBR *mr)
+bool is_volume_purged(UAContext *ua, MEDIA_DBR *mr, bool force)
 {
    POOL_MEM query(PM_MESSAGE);
    struct s_count_ctx cnt;
    bool purged = false;
    char ed1[50];
 
-   if (mr->FirstWritten == 0 || mr->LastWritten == 0) {
+   if (!force && (mr->FirstWritten == 0 || mr->LastWritten == 0)) {
       goto bail_out;               /* not written cannot purge */
    }
+
    if (strcmp(mr->VolStatus, "Purged") == 0) {
       purged = true;
       goto bail_out;
