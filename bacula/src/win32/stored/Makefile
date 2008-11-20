@@ -67,6 +67,7 @@ SD_OBJS = \
 	$(OBJDIR)/mac.o \
 	$(OBJDIR)/pythonsd.o \
 	$(OBJDIR)/read.o \
+	$(OBJDIR)/sd_plugins.o \
 	$(OBJDIR)/status.o
 
 # bextract
