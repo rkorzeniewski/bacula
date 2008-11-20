@@ -28,6 +28,9 @@ cat <<EOF > ${cwd}/tmp/bconcmds
 @$out ${cwd}/tmp/log.out
 label barcodes storage=LTO3 slots=46-59 drive=0 pool=Scratch
 yes
+sql
+update Media SET FirstWritten='2006-01-01 01:00:00', LastWritten='2006-01-01 01:00:00';
+
 update volume=vol47 pool=Test inchanger=no RecyclePool=Test
 update volume=vol59 pool=Test enabled=no
 update volume=vol58 pool=Test volstatus=Recycle
@@ -39,7 +42,7 @@ purge volume=vol46
 update volume=vol46 pool=Test
 update volume=vol54 volstatus=Recycle
 purge  volume=vol53
-update volume=vol52 MaxVolJobs=1
+update volume=vol52 MaxVolJobs=1 volretention=15
 update volume=vol51 inchanger=no volstatus=Recycle
 purge  volume=vol50
 update volume=vol50 inchanger=no
@@ -48,7 +51,6 @@ update volume=vol48 inchanger=no pool=Test
 update volume  AllFromPool=Test
 sql
 update Media SET VolJobs=1 WHERE VolumeName='vol52';
-update Media SET LastWritten='2006-01-01 01:00:00';
 update Media SET LastWritten='2006-01-01 01:00:01' WHERE VolumeName='vol57';
 update Media SET LastWritten='2006-01-01 01:00:02' WHERE VolumeName='vol53';
 
@@ -151,6 +153,9 @@ label volume=file8 storage=File pool=Test
 label volume=file9 storage=File pool=Scratch
 label volume=file10 storage=File pool=Scratch
 label volume=file11 storage=File pool=Test
+sql
+update Media SET FirstWritten='2006-01-01 01:00:00', LastWritten='2006-01-01 01:00:00';
+
 update volume=file2 enabled=no
 update volume=file3 volstatus=Recycle
 @# volstatus=Purged
@@ -164,7 +169,6 @@ update volume=file9 volstatus=Recycle
 purge volume=file11
 sql
 update Media SET VolJobs=1 WHERE VolumeName='file9';
-update Media SET LastWritten='2006-01-01 01:00:00';
 update Media SET LastWritten='2006-01-01 01:00:01' WHERE VolumeName='file4';
 update Media SET LastWritten='2006-01-01 01:00:02' WHERE VolumeName='file7';
 
@@ -275,7 +279,8 @@ update volume=vol48 pool=Test VolStatus=Used VolRetention=10s inchanger=no Recyc
 update volume=vol49 pool=Test VolStatus=Used VolRetention=10s inchanger=no RecyclePool=Test
 update volume=vol50 pool=Test VolStatus=Used VolRetention=10s inchanger=yes RecyclePool=Test
 sql
-update Media SET LastWritten='2005-01-01 01:00:00' WHERE VolumeName IN ('vol47', 'vol48', 'vol49');
+update Media SET FirstWritten='2005-01-01 01:00:00', LastWritten='2005-01-01 01:00:00' 
+WHERE VolumeName IN ('vol47', 'vol48', 'vol49');
 
 list volume
 run level=full pool=Test NightlySave yes
