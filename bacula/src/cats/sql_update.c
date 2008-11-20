@@ -476,19 +476,19 @@ db_make_inchanger_unique(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
    if (mr->InChanger != 0 && mr->Slot != 0 && mr->StorageId != 0) {
 
        if (mr->MediaId != 0) {
-          Mmsg(mdb->cmd, "UPDATE Media SET InChanger=0 WHERE "
+          Mmsg(mdb->cmd, "UPDATE Media SET InChanger=0, Slot=0 WHERE "
                "Slot=%d AND StorageId=%s AND MediaId!=%s",
                mr->Slot, 
                edit_int64(mr->StorageId, ed1), edit_int64(mr->MediaId, ed2));
 
        } else if (*mr->VolumeName) {
-          Mmsg(mdb->cmd, "UPDATE Media SET InChanger=0 WHERE "
+          Mmsg(mdb->cmd, "UPDATE Media SET InChanger=0, Slot=0 WHERE "
                "Slot=%d AND StorageId=%s AND VolumeName!='%s'",
                mr->Slot, 
                edit_int64(mr->StorageId, ed1), mr->VolumeName);
 
        } else {  /* used by ua_label to reset all volume with this slot */
-          Mmsg(mdb->cmd, "UPDATE Media SET InChanger=0 WHERE "
+          Mmsg(mdb->cmd, "UPDATE Media SET InChanger=0, Slot=0 WHERE "
                "Slot=%d AND StorageId=%s",
                mr->Slot, 
                edit_int64(mr->StorageId, ed1), mr->VolumeName);          
