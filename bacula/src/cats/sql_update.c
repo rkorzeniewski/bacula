@@ -384,7 +384,7 @@ db_update_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
         "Slot=%d,InChanger=%d,VolReadTime=%s,VolWriteTime=%s,VolParts=%d,"
         "LabelType=%d,StorageId=%s,PoolId=%s,VolRetention=%s,VolUseDuration=%s,"
         "MaxVolJobs=%d,MaxVolFiles=%d,Enabled=%d,LocationId=%s,"
-        "ScratchPoolId=%s,RecyclePoolId=%s,RecycleCount=%d"
+        "ScratchPoolId=%s,RecyclePoolId=%s,RecycleCount=%d,Recycle=%d"
         " WHERE VolumeName='%s'",
         mr->VolJobs, mr->VolFiles, mr->VolBlocks, edit_uint64(mr->VolBytes, ed1),
         mr->VolMounts, mr->VolErrors, mr->VolWrites,
@@ -402,7 +402,7 @@ db_update_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
         mr->Enabled, edit_uint64(mr->LocationId, ed9),
         edit_uint64(mr->ScratchPoolId, ed10),
         edit_uint64(mr->RecyclePoolId, ed11),
-        mr->RecycleCount,
+        mr->RecycleCount,mr->Recycle,
         mr->VolumeName);
 
    Dmsg1(400, "%s\n", mdb->cmd);
