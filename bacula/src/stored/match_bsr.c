@@ -346,6 +346,8 @@ bool is_this_bsr_done(BSR *bsr, DEV_RECORD *rec)
          rbsr->count, rbsr->found);
       return true;
    }
+   Dmsg2(dbglevel, "is_end_this_bsr not done count=%d found=%d\n",
+        rbsr->count, rbsr->found);
    return false;
 }
 
@@ -372,30 +374,30 @@ static int match_all(BSR *bsr, DEV_RECORD *rec, VOLUME_LABEL *volrec,
             volrec->VolumeName);
 
    if (!match_volfile(bsr, bsr->volfile, rec, 1)) {
-      Dmsg3(dbglevel, "Fail on file=%d. bsr=%d,%d\n", 
+      Dmsg3(dbglevel, "Fail on file=%u. bsr=%u,%u\n", 
          rec->File, bsr->volfile->sfile, bsr->volfile->efile);
       goto no_match;
    }
-   Dmsg3(dbglevel, "OK bsr file=%d. bsr=%d,%d\n", 
+   Dmsg3(dbglevel, "OK bsr file=%u. bsr=%u,%u\n", 
          rec->File, bsr->volfile->sfile, bsr->volfile->efile);
 
    if (!match_volblock(bsr, bsr->volblock, rec, 1)) {
-      Dmsg3(dbglevel, "Fail on Block=%d. bsr=%d,%d\n", 
+      Dmsg3(dbglevel, "Fail on Block=%u. bsr=%u,%u\n", 
          rec->Block, bsr->volblock->sblock, bsr->volblock->eblock);
       goto no_match;
    }
-   Dmsg3(dbglevel, "OK bsr Block=%d. bsr=%d,%d\n", 
+   Dmsg3(dbglevel, "OK bsr Block=%u. bsr=%u,%u\n", 
       rec->Block, bsr->volblock->sblock, bsr->volblock->eblock);
 
    if (!match_sesstime(bsr, bsr->sesstime, rec, 1)) {
-      Dmsg2(dbglevel, "Fail on sesstime. bsr=%d rec=%d\n",
+      Dmsg2(dbglevel, "Fail on sesstime. bsr=%u rec=%u\n",
          bsr->sesstime->sesstime, rec->VolSessionTime);
       goto no_match;
    }
 
    /* NOTE!! This test MUST come after the sesstime test */
    if (!match_sessid(bsr, bsr->sessid, rec)) {
-      Dmsg2(dbglevel, "Fail on sessid. bsr=%d rec=%d\n",
+      Dmsg2(dbglevel, "Fail on sessid. bsr=%u rec=%u\n",
          bsr->sessid->sessid, rec->VolSessionId);
       goto no_match;
    }
@@ -579,7 +581,7 @@ static int match_volfile(BSR *bsr, BSR_VOLFILE *volfile, DEV_RECORD *rec, bool d
    if (!(rec->state & REC_ISTAPE)) {
       return 1;                       /* All File records OK for this match */
    }
-   Dmsg3(dbglevel, "match_volfile: sfile=%d efile=%d recfile=%d\n",
+   Dmsg3(dbglevel, "match_volfile: sfile=%u efile=%u recfile=%u\n",
              volfile->sfile, volfile->efile, rec->File);
 #endif
    if (volfile->sfile <= rec->File && volfile->efile >= rec->File) {
@@ -597,7 +599,7 @@ static int match_volfile(BSR *bsr, BSR_VOLFILE *volfile, DEV_RECORD *rec, bool d
    if (volfile->done && done) {
       bsr->done = true;
       bsr->root->reposition = true;
-      Dmsg2(dbglevel, "bsr done from volfile rec=%d volefile=%d\n",
+      Dmsg2(dbglevel, "bsr done from volfile rec=%u volefile=%u\n",
          rec->File, volfile->efile);
    }
    return 0;
@@ -620,7 +622,7 @@ static int match_volblock(BSR *bsr, BSR_VOLBLOCK *volblock, DEV_RECORD *rec, boo
    if (rec->state & REC_ISTAPE) {
       return 1;                       /* All File records OK for this match */
    }
-//  Dmsg3(dbglevel, "match_volblock: sblock=%d eblock=%d recblock=%d\n",
+//  Dmsg3(dbglevel, "match_volblock: sblock=%u eblock=%u recblock=%u\n",
 //             volblock->sblock, volblock->eblock, rec->Block);
    if (volblock->sblock <= rec->Block && volblock->eblock >= rec->Block) {
       return 1;
@@ -633,19 +635,13 @@ static int match_volblock(BSR *bsr, BSR_VOLBLOCK *volblock, DEV_RECORD *rec, boo
       return match_volblock(bsr, volblock->next, rec, volblock->done && done);
    }
 
-/*
- * This is turned off because I do not believe that we can mark
- *   the bsr as done at this level.
- */
-#ifdef xxx
    /* If we are done and all prior matches are done, this bsr is finished */
    if (volblock->done && done) {
       bsr->done = true;
       bsr->root->reposition = true;
-      Dmsg2(dbglevel, "bsr done from volblock rec=%d voleblock=%d\n",
+      Dmsg2(dbglevel, "bsr done from volblock rec=%u voleblock=%u\n",
          rec->Block, volblock->eblock);
    }
-#endif
    return 0;
 }
 
@@ -686,6 +682,11 @@ static int match_sesstime(BSR *bsr, BSR_SESSTIME *sesstime, DEV_RECORD *rec, boo
    return 0;
 }
 
+/* 
+ * Note, we cannot mark bsr done based on session id because we may
+ *  have interleaved records, and there may be more of what we want
+ *  later.
+ */
 static int match_sessid(BSR *bsr, BSR_SESSID *sessid, DEV_RECORD *rec)
 {
    if (!sessid) {
