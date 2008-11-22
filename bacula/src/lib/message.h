@@ -135,15 +135,15 @@ enum {
 struct MQUEUE_ITEM {
    dlink link;
    int type;
-   time_t mtime;
+   utime_t mtime;
    char msg[1];
 };
 
  
 void d_msg(const char *file, int line, int level, const char *fmt,...);
 void e_msg(const char *file, int line, int type, int level, const char *fmt,...);
-void Jmsg(JCR *jcr, int type, time_t mtime, const char *fmt,...);
-void Qmsg(JCR *jcr, int type, time_t mtime, const char *fmt,...);
+void Jmsg(JCR *jcr, int type, utime_t mtime, const char *fmt,...);
+void Qmsg(JCR *jcr, int type, utime_t mtime, const char *fmt,...);
 bool get_trace(void);
 
 struct B_DB;
@@ -158,10 +158,9 @@ extern DLL_IMP_EXP bool          dbg_timestamp;          /* print timestamp in d
 extern DLL_IMP_EXP int           verbose;
 extern DLL_IMP_EXP char          my_name[];
 extern DLL_IMP_EXP const char *  working_directory;
-extern DLL_IMP_EXP time_t        daemon_start_time;
+extern DLL_IMP_EXP utime_t       daemon_start_time;
 
 extern DLL_IMP_EXP int           console_msg_pending;
 extern DLL_IMP_EXP FILE *        con_fd;                 /* Console file descriptor */
 extern DLL_IMP_EXP brwlock_t     con_lock;               /* Console lock structure */
-
 

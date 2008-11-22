@@ -38,8 +38,8 @@
 #include "jcr.h"
 
 /* Exported globals */
-time_t watchdog_time = 0;             /* this has granularity of SLEEP_TIME */
-time_t watchdog_sleep_time = 60;      /* examine things every 60 seconds */
+utime_t watchdog_time = 0;            /* this has granularity of SLEEP_TIME */
+utime_t watchdog_sleep_time = 60;     /* examine things every 60 seconds */
 
 /* Locals */
 static pthread_mutex_t timer_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -244,7 +244,7 @@ extern "C" void *watchdog_thread(void *arg)
    struct timespec timeout;
    struct timeval tv;
    struct timezone tz;
-   time_t next_time;
+   utime_t next_time;
 
    Dmsg0(800, "NicB-reworked watchdog thread entered\n");
 

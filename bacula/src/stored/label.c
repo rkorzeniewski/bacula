@@ -923,15 +923,15 @@ void dump_volume_label(DEVICE *dev)
 
    if (dev->VolHdr.VerNum >= 11) {
       char dt[50];
-      bstrftime(dt, sizeof(dt), btime_to_unix(dev->VolHdr.label_btime));
+      bstrftime(dt, sizeof(dt), btime_to_utime(dev->VolHdr.label_btime));
       Pmsg1(-1, _("Date label written: %s\n"), dt);
    } else {
-   dt.julian_day_number   = dev->VolHdr.label_date;
-   dt.julian_day_fraction = dev->VolHdr.label_time;
-   tm_decode(&dt, &tm);
-   Pmsg5(-1,
-_("Date label written: %04d-%02d-%02d at %02d:%02d\n"),
-      tm.tm_year+1900, tm.tm_mon+1, tm.tm_mday, tm.tm_hour, tm.tm_min);
+      dt.julian_day_number   = dev->VolHdr.label_date;
+      dt.julian_day_fraction = dev->VolHdr.label_time;
+      tm_decode(&dt, &tm);
+      Pmsg5(-1,
+            _("Date label written: %04d-%02d-%02d at %02d:%02d\n"),
+              tm.tm_year+1900, tm.tm_mon+1, tm.tm_mday, tm.tm_hour, tm.tm_min);
    }
 
 bail_out:
@@ -992,7 +992,7 @@ static void dump_session_label(DEV_RECORD *rec, const char *type)
    }
    if (label.VerNum >= 11) {
       char dt[50];
-      bstrftime(dt, sizeof(dt), btime_to_unix(label.write_btime));
+      bstrftime(dt, sizeof(dt), btime_to_utime(label.write_btime));
       Pmsg1(-1, _("Date written      : %s\n"), dt);
    } else {
       dt.julian_day_number   = label.write_date;
@@ -1071,7 +1071,7 @@ void dump_label_record(DEVICE *dev, DEV_RECORD *rec, int verbose)
       switch (rec->FileIndex) {
       case SOS_LABEL:
          unser_session_label(&label, rec);
-         bstrftimes(dt, sizeof(dt), btime_to_unix(label.write_btime));
+         bstrftimes(dt, sizeof(dt), btime_to_utime(label.write_btime));
          Pmsg6(-1, _("%s Record: File:blk=%u:%u SessId=%d SessTime=%d JobId=%d\n"),
             type, dev->file, dev->block_num, rec->VolSessionId, rec->VolSessionTime, label.JobId);
          Pmsg4(-1, _("   Job=%s Date=%s Level=%c Type=%c\n"),
@@ -1080,7 +1080,7 @@ void dump_label_record(DEVICE *dev, DEV_RECORD *rec, int verbose)
       case EOS_LABEL:
          char ed1[30], ed2[30];
          unser_session_label(&label, rec);
-         bstrftimes(dt, sizeof(dt), btime_to_unix(label.write_btime));
+         bstrftimes(dt, sizeof(dt), btime_to_utime(label.write_btime));
          Pmsg6(-1, _("%s Record: File:blk=%u:%u SessId=%d SessTime=%d JobId=%d\n"),
             type, dev->file, dev->block_num, rec->VolSessionId, rec->VolSessionTime, label.JobId);
          Pmsg7(-1, _("   Date=%s Level=%c Type=%c Files=%s Bytes=%s Errors=%d Status=%c\n"),

@@ -41,8 +41,6 @@
 #include "jcr.h"
 #include <netdb.h>
 
-extern time_t watchdog_time;
-
 #ifndef   INADDR_NONE
 #define   INADDR_NONE    -1
 #endif

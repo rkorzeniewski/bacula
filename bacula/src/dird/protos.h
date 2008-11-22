@@ -219,7 +219,7 @@ void update_vol_pool(UAContext *ua, char *val, MEDIA_DBR *mr, POOL_DBR *opr);
 /* ua_output.c */
 void prtit(void *ctx, const char *msg);
 bool complete_jcr_for_job(JCR *jcr, JOB *job, POOL *pool);
-RUN *find_next_run(RUN *run, JOB *job, time_t &runtime, int ndays);
+RUN *find_next_run(RUN *run, JOB *job, utime_t &runtime, int ndays);
 
 /* ua_restore.c */
 int get_next_jobid_from_list(char **p, JobId_t *JobId);

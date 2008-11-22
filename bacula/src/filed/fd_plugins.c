@@ -56,7 +56,7 @@ static bRC baculaGetValue(bpContext *ctx, bVariable var, void *value);
 static bRC baculaSetValue(bpContext *ctx, bVariable var, void *value);
 static bRC baculaRegisterEvents(bpContext *ctx, ...);
 static bRC baculaJobMsg(bpContext *ctx, const char *file, int line,
-  int type, time_t mtime, const char *fmt, ...);
+  int type, utime_t mtime, const char *fmt, ...);
 static bRC baculaDebugMsg(bpContext *ctx, const char *file, int line,
   int level, const char *fmt, ...);
 static void *baculaMalloc(bpContext *ctx, const char *file, int line,
@@ -789,7 +789,7 @@ static bRC baculaRegisterEvents(bpContext *ctx, ...)
 }
 
 static bRC baculaJobMsg(bpContext *ctx, const char *file, int line,
-  int type, time_t mtime, const char *fmt, ...)
+  int type, utime_t mtime, const char *fmt, ...)
 {
    va_list arg_ptr;
    char buf[2000];

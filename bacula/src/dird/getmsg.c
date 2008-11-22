@@ -128,7 +128,8 @@ int bget_dirmsg(BSOCK *bs)
    int32_t n;
    char Job[MAX_NAME_LENGTH];
    char MsgType[20];
-   int type, level;
+   int type;
+   utime_t mtime;                     /* message time */
    JCR *jcr = bs->jcr();
    char *msg;
 
@@ -200,10 +201,12 @@ int bget_dirmsg(BSOCK *bs)
       /*
        * Here we are expecting a message of the following format:
        *   Jmsg Job=nnn type=nnn level=nnn Message-string
+       * Note, level should really be mtime, but that changes
+       *   the protocol.
        */
       if (bs->msg[0] == 'J') {           /* Job message */
-         if (sscanf(bs->msg, "Jmsg Job=%127s type=%d level=%d",
-                    Job, &type, &level) != 3) {
+         if (sscanf(bs->msg, "Jmsg Job=%127s type=%d level=%lld",
+                    Job, &type, &mtime) != 3) {
             Jmsg1(jcr, M_ERROR, 0, _("Malformed message: %s\n"), bs->msg);
             continue;
          }
@@ -216,7 +219,7 @@ int bget_dirmsg(BSOCK *bs)
             msg++;                    /* skip leading space */
          }
          Dmsg1(900, "Dispatch msg: %s", msg);
-         dispatch_message(jcr, type, level, msg);
+         dispatch_message(jcr, type, mtime, msg);
          continue;
       }
       /*

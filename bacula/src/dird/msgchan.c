@@ -189,7 +189,7 @@ bool start_storage_daemon_job(JCR *jcr, alist *rstore, alist *wstore)
              jcr->job->SpoolAttributes, jcr->fileset->MD5, jcr->spool_data, 
              jcr->write_part_after_job, jcr->job->PreferMountedVolumes,
              edit_int64(jcr->spool_size, ed2));
-   Dmsg1(100, ">stored: %s\n", sd->msg);
+   Dmsg1(100, ">stored: %s", sd->msg);
    if (bget_dirmsg(sd) > 0) {
        Dmsg1(100, "<stored: %s", sd->msg);
        if (sscanf(sd->msg, OKjob, &jcr->VolSessionId,
