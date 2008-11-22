@@ -445,7 +445,7 @@ static bool list_nextvol(UAContext *ua, int ndays)
    JCR *jcr;          
    USTORE store;
    RUN *run;
-   time_t runtime;
+   utime_t runtime;
    bool found = false;
    MEDIA_DBR mr;
    POOL_DBR pr;
@@ -512,7 +512,7 @@ get_out:
  * For a given job, we examine all his run records
  *  to see if it is scheduled today or tomorrow.
  */
-RUN *find_next_run(RUN *run, JOB *job, time_t &runtime, int ndays)
+RUN *find_next_run(RUN *run, JOB *job, utime_t &runtime, int ndays)
 {
    time_t now, future, endtime;
    SCHED *sched;
@@ -586,7 +586,7 @@ RUN *find_next_run(RUN *run, JOB *job, time_t &runtime, int ndays)
                   runtm.tm_min = run->minute;
                   runtm.tm_sec = 0;
                   runtime = mktime(&runtm);
-                  Dmsg2(200, "now=%d runtime=%d\n", now, runtime);
+                  Dmsg2(200, "now=%d runtime=%lld\n", now, runtime);
                   if ((runtime > now) && (runtime < endtime)) {
                      Dmsg2(200, "Found it level=%d %c\n", run->level, run->level);
                      return run;         /* found it, return run resource */

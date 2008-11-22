@@ -334,7 +334,7 @@ public:
    POOLMEM *acl_text;                 /* text of ACL for backup */
    int32_t last_type;                 /* type of last file saved/verified */
    int incremental;                   /* set if incremental for SINCE */
-   time_t mtime;                      /* begin time for SINCE */
+   utime_t mtime;                     /* begin time for SINCE */
    int listing;                       /* job listing in estimate */
    long Ticket;                       /* Ticket */
    char *big_buf;                     /* I/O buffer */
@@ -441,8 +441,8 @@ struct s_last_job {
    uint32_t VolSessionTime;
    uint32_t JobFiles;
    uint64_t JobBytes;
-   time_t start_time;
-   time_t end_time;
+   utime_t start_time;
+   utime_t end_time;
    char Job[MAX_NAME_LENGTH];
 };
 

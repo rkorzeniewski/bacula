@@ -441,7 +441,7 @@ struct sched_pkt {
    JOB *job;
    int level;
    int priority;
-   time_t runtime;
+   utime_t runtime;
    POOL *pool;
    STORE *store;
 };
@@ -528,7 +528,7 @@ static int my_compare(void *item1, void *item2)
  */
 static void list_scheduled_jobs(UAContext *ua)
 {
-   time_t runtime;
+   utime_t runtime;
    RUN *run;
    JOB *job;
    int level, num_jobs = 0;

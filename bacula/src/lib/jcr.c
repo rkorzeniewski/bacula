@@ -56,7 +56,6 @@
 const int dbglvl = 3400;
 
 /* External variables we reference */
-extern time_t watchdog_time;
 
 /* External referenced functions */
 void free_bregexps(alist *bregexps);
@@ -1068,4 +1067,3 @@ void _dbg_print_jcr(FILE *fp)
       }
    }
 }
-

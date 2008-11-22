@@ -134,10 +134,11 @@ unbash_spaces(POOL_MEM &pm)
    }
 }
 
-char *encode_time(time_t time, char *buf)
+char *encode_time(utime_t utime, char *buf)
 {
    struct tm tm;
    int n = 0;
+   time_t time = utime;
 
 #if defined(HAVE_WIN32)
    /*

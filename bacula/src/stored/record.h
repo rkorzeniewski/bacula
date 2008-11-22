@@ -1,16 +1,7 @@
 /*
- * Record, and label definitions for Bacula
- *  media data format.
- *
- *   Kern Sibbald, MM
- *
- *   Version $Id$
- *
- */
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2008 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -34,6 +25,15 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ * Record, and label definitions for Bacula
+ *  media data format.
+ *
+ *   Kern Sibbald, MM
+ *
+ *   Version $Id$
+ *
+ */
 
 
 #ifndef __RECORD_H

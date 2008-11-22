@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2005-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2005-2008 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -51,7 +51,6 @@
 #include "bacula.h"
 #include <assert.h>
 
-extern time_t watchdog_time;
 
 #ifdef HAVE_TLS /* Is TLS enabled? */
 

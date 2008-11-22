@@ -51,7 +51,7 @@ const char *working_directory = NULL;       /* working directory path stored her
 int verbose = 0;                      /* increase User messages */
 int debug_level = 0;                  /* debug level */
 bool dbg_timestamp = false;           /* print timestamp in debug output */
-time_t daemon_start_time = 0;         /* Daemon start time */
+utime_t daemon_start_time = 0;        /* Daemon start time */
 const char *version = VERSION " (" BDATE ")";
 char my_name[30];                     /* daemon name is stored here */
 char host_name[50];                   /* host machine name */
@@ -600,7 +600,7 @@ static bool open_dest_file(JCR *jcr, DEST *d, const char *mode)
 /*
  * Handle sending the message to the appropriate place
  */
-void dispatch_message(JCR *jcr, int type, time_t mtime, char *msg)
+void dispatch_message(JCR *jcr, int type, utime_t mtime, char *msg)
 {
     DEST *d;
     char dt[MAX_TIME_LENGTH];
@@ -616,7 +616,7 @@ void dispatch_message(JCR *jcr, int type, time_t mtime, char *msg)
      * Most messages are prefixed by a date and time. If mtime is
      *  zero, then we use the current time.  If mtime is 1 (special
      *  kludge), we do not prefix the date and time. Otherwise,
-     *  we assume mtime is a time_t and use it.
+     *  we assume mtime is a utime_t and use it.
      */
     if (mtime == 0) {
        mtime = time(NULL);
@@ -784,7 +784,7 @@ send_to_file:
              case MD_DIRECTOR:
                 Dmsg1(850, "DIRECTOR for following msg: %s", msg);
                 if (jcr && jcr->dir_bsock && !jcr->dir_bsock->errors) {
-                   bnet_fsend(jcr->dir_bsock, "Jmsg Job=%s type=%d level=%d %s",
+                   bnet_fsend(jcr->dir_bsock, "Jmsg Job=%s type=%d level=%lld %s",
                       jcr->Job, type, mtime, msg);
                 }
                 break;
@@ -851,7 +851,7 @@ d_msg(const char *file, int line, int level, const char *fmt,...)
     int       len;
     va_list   arg_ptr;
     bool      details = true;
-    time_t    mtime;
+    utime_t   mtime;
 
     if (level < 0) {
        details = false;
@@ -1083,7 +1083,7 @@ e_msg(const char *file, int line, int type, int level, const char *fmt,...)
  *
  */
 void
-Jmsg(JCR *jcr, int type, time_t mtime, const char *fmt,...)
+Jmsg(JCR *jcr, int type, utime_t mtime, const char *fmt,...)
 {
     char     rbuf[5000];
     va_list   arg_ptr;
@@ -1180,7 +1180,7 @@ Jmsg(JCR *jcr, int type, time_t mtime, const char *fmt,...)
  * If we come here, prefix the message with the file:line-number,
  *  then pass it on to the normal Jmsg routine.
  */
-void j_msg(const char *file, int line, JCR *jcr, int type, time_t mtime, const char *fmt,...)
+void j_msg(const char *file, int line, JCR *jcr, int type, utime_t mtime, const char *fmt,...)
 {
    va_list   arg_ptr;
    int i, len, maxlen;
@@ -1323,7 +1323,7 @@ static pthread_mutex_t msg_queue_mutex = PTHREAD_MUTEX_INITIALIZER;
  *  sending a message, it is a bit messy to recursively call
  *  yourself when the bnet packet is not reentrant).
  */
-void Qmsg(JCR *jcr, int type, time_t mtime, const char *fmt,...)
+void Qmsg(JCR *jcr, int type, utime_t mtime, const char *fmt,...)
 {
    va_list   arg_ptr;
    int len, maxlen;
@@ -1390,7 +1390,7 @@ bail_out:
  * If we come here, prefix the message with the file:line-number,
  *  then pass it on to the normal Qmsg routine.
  */
-void q_msg(const char *file, int line, JCR *jcr, int type, time_t mtime, const char *fmt,...)
+void q_msg(const char *file, int line, JCR *jcr, int type, utime_t mtime, const char *fmt,...)
 {
    va_list   arg_ptr;
    int i, len, maxlen;

@@ -57,7 +57,7 @@ static pthread_cond_t timer = PTHREAD_COND_INITIALIZER;
  *   to recall this routine if he/she REALLY wants to sleep the
  *   requested time.
  */
-int bmicrosleep(time_t sec, long usec)
+int bmicrosleep(int32_t sec, int32_t usec)
 {
    struct timespec timeout;
    struct timeval tv;
@@ -84,7 +84,7 @@ int bmicrosleep(time_t sec, long usec)
       timeout.tv_sec++;
    }
 
-   Dmsg2(200, "pthread_cond_timedwait sec=%d usec=%d\n", sec, usec);
+   Dmsg2(200, "pthread_cond_timedwait sec=%lld usec=%d\n", sec, usec);
    /* Note, this unlocks mutex during the sleep */
    P(timer_mutex);
    stat = pthread_cond_timedwait(&timer, &timer_mutex, &timeout);

@@ -38,8 +38,8 @@ static int dbglvl=200;
 typedef struct PrivateCurFile {
    hlink link;
    char *fname;
-   time_t ctime;
-   time_t mtime;
+   utime_t ctime;
+   utime_t mtime;
    bool seen;
 } CurFile;
 
