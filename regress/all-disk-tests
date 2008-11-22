@@ -45,6 +45,7 @@ nice tests/span-vol-test
 nice tests/maxtime-test
 nice tests/maxvol-test
 nice tests/maxvol2-test
+nice tests/next-vol-test
 nice tests/sparse-compressed-test
 nice tests/sparse-test
 nice tests/strip-test
@@ -83,6 +84,7 @@ nice tests/incremental-2media
 nice tests/three-pool-test
 nice tests/2drive-3pool-test
 nice tests/2drive-swap-test
-nice tests/next-vol-test
+# Turn back on after next_vol.c bug is fixed
+#  nice tests/next-vol-test
 echo "End non-root virtual disk autochanger tests"
 echo "End non-root virtual disk autochanger tests" >>test.out
