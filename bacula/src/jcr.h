@@ -211,6 +211,7 @@ public:
    uint32_t JobErrors;                /* */
    uint64_t JobBytes;                 /* Number of bytes processed this job */
    uint64_t ReadBytes;                /* Bytes read -- before compression */
+   FileId_t FileId;                   /* Last FileId used */
    uint32_t Errors;                   /* Number of non-fatal errors */
    volatile int32_t JobStatus;        /* ready, running, blocked, terminated */
    int32_t JobPriority;               /* Job priority */
@@ -289,7 +290,6 @@ public:
    volatile int32_t FDJobStatus;      /* File daemon Job Status */
    uint32_t ExpectedFiles;            /* Expected restore files */
    uint32_t MediaId;                  /* DB record IDs associated with this job */
-   FileId_t FileId;                   /* Last file id inserted */
    uint32_t FileIndex;                /* Last FileIndex processed */
    POOLMEM *fname;                    /* name to put into catalog */
    JOB_DBR jr;                        /* Job DB record for current job */
@@ -394,8 +394,6 @@ public:
    bool write_part_after_job;         /* Set to write part after job */
    bool PreferMountedVols;            /* Prefer mounted vols rather than new */
    bool need_fd;                      /* set if we need FD connection */
-   
-   uint32_t FileId;                   /* Last file id inserted */
 
    /* Parmaters for Open Read Session */
    BSR *bsr;                          /* Bootstrap record -- has everything */
