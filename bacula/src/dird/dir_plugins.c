@@ -166,7 +166,10 @@ void free_plugins(JCR *jcr)
    Dmsg2(dbglvl, "Free instance plugin_ctx_list=%p JobId=%d\n", jcr->plugin_ctx_list, jcr->JobId);
    foreach_alist(plugin, plugin_list) {
       /* Free the plugin instance */
-      plug_func(plugin)->freePlugin(&plugin_ctx_list[i++]);
+      plug_func(plugin)->freePlugin(&plugin_ctx_list[i]);
+      plugin_ctx_list[i].bContext = NULL;
+      plugin_ctx_list[i].pContext = NULL;
+      i++;
    }
    free(plugin_ctx_list);
    jcr->plugin_ctx_list = NULL;

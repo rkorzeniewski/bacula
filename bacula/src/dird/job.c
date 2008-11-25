@@ -1023,8 +1023,6 @@ void dird_free_jcr(JCR *jcr)
       jcr->rstore_source = NULL;
    }
 
-   free_plugins(jcr);                 /* release instantiated plugins */
-
    /* Delete lists setup to hold storage pointers */
    free_rwstorage(jcr);
 
@@ -1032,6 +1030,8 @@ void dird_free_jcr(JCR *jcr)
 
    if (jcr->JobId != 0)
       write_state_file(director->working_directory, "bacula-dir", get_first_port_host_order(director->DIRaddrs));
+
+   free_plugins(jcr);                 /* release instantiated plugins */
 
    Dmsg0(200, "End dird free_jcr\n");
 }
