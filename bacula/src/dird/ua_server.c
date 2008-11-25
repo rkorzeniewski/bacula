@@ -76,6 +76,7 @@ extern "C"
 void *connect_thread(void *arg)
 {
    pthread_detach(pthread_self());
+   set_jcr_in_tsd(INVALID_JCR);
 
    /* Permit 20 console connections */
    bnet_thread_server((dlist*)arg, 20, &ua_workq, handle_UA_client_request);
@@ -126,7 +127,7 @@ static void *handle_UA_client_request(void *arg)
 
    ua = new_ua_context(jcr);
    ua->UA_sock = user;
-   set_jcr_in_tsd(jcr);
+   set_jcr_in_tsd(INVALID_JCR);
 
    user->recv();             /* Get first message */
    if (!authenticate_user_agent(ua)) {
