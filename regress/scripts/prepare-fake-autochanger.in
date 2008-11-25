@@ -6,9 +6,9 @@
 . scripts/functions
 
 adir=@working_dir@/ach
+rm -rf $adir
 
 mkdir $adir 2> /dev/null
-rm -f $adir/log $adir/barcodes $adir/load* $adir/slot* $adir/drive* 2> /dev/null
 
 # create the autochanger configuration file
 cat > $adir/conf <<EOF
@@ -22,8 +22,8 @@ touch $adir/log
 
 # create 75 volumes
 for i in `seq 1 75`; do
-    echo $i:vol$i >> $adir/barcodes
-    cp /dev/null $adir/slot$i
+   echo $i:vol$i >> $adir/barcodes
+   cp /dev/null $adir/slot$i
 done
 
 # make a cleaning tape
@@ -32,6 +32,5 @@ cp /dev/null $adir/slot76
 
 # keep other empty
 for i in `seq 77 79`; do
-    echo $i:  >> $adir/barcodes
+   echo $i:  >> $adir/barcodes
 done
-
