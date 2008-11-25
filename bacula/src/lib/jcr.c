@@ -474,8 +474,7 @@ static void free_common_jcr(JCR *jcr)
       free_guid_list(jcr->id_list);
       jcr->id_list = NULL;
    }
-   /* Invalidate the tsd jcr data */
-   set_jcr_in_tsd(INVALID_JCR);
+   remove_jcr_from_tsd(jcr);
    free(jcr);
 }
 
@@ -579,6 +578,21 @@ void free_jcr(JCR *jcr)
    Dmsg0(dbglvl, "Exit free_jcr\n");
 }
 
+/*
+ * Remove jcr from thread specific data, but
+ *   but make sure it is us who are attached.
+ */
+void remove_jcr_from_tsd(JCR *jcr)
+{
+   JCR *tjcr = get_gcr_from_tsd();
+   if (tjcr == jcr) { 
+      set_jcr_in_tsd(INVALID_JCR);
+   }
+}
+
+/*
+ * Put this jcr in the thread specifc data 
+ */
 void set_jcr_in_tsd(JCR *jcr)
 {
    int status = pthread_setspecific(jcr_key, (void *)jcr);
@@ -588,6 +602,9 @@ void set_jcr_in_tsd(JCR *jcr)
    }
 }
 
+/*
+ * Give me the jcr that is attached to this thread
+ */
 JCR *get_jcr_from_tsd()
 {
    JCR *jcr = (JCR *)pthread_getspecific(jcr_key);

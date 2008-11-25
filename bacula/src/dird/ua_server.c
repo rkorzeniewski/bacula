@@ -126,6 +126,7 @@ static void *handle_UA_client_request(void *arg)
 
    ua = new_ua_context(jcr);
    ua->UA_sock = user;
+   set_jcr_in_tsd(jcr);
 
    user->recv();             /* Get first message */
    if (!authenticate_user_agent(ua)) {

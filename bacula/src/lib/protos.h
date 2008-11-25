@@ -206,6 +206,7 @@ void jcr_walk_end(JCR *jcr);
 uint32_t get_jobid_from_tsd();             
 JCR *get_jcr_from_tsd();
 void set_jcr_in_tsd(JCR *jcr);
+void remove_jcr_from_tsd(JCR *jcr);
 
 
 /* lex.c */
