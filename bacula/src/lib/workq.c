@@ -58,6 +58,7 @@
  */
 
 #include "bacula.h"
+#include "jcr.h"
 
 /* Forward referenced functions */
 extern "C" void *workq_server(void *arg);
@@ -304,6 +305,7 @@ void *workq_server(void *arg)
    if ((stat = pthread_mutex_lock(&wq->mutex)) != 0) {
       return NULL;
    }
+   set_jcr_in_tsd(INVALID_JCR);
 
    for (;;) {
       struct timeval tv;

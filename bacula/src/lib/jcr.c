@@ -584,7 +584,7 @@ void free_jcr(JCR *jcr)
  */
 void remove_jcr_from_tsd(JCR *jcr)
 {
-   JCR *tjcr = get_gcr_from_tsd();
+   JCR *tjcr = get_jcr_from_tsd();
    if (tjcr == jcr) { 
       set_jcr_in_tsd(INVALID_JCR);
    }

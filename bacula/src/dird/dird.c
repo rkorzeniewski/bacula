@@ -300,6 +300,7 @@ int main (int argc, char *argv[])
    init_python_interpreter(&python_args);
 #endif /* HAVE_PYTHON */
 
+   set_jcr_in_tsd(INVALID_JCR);
    set_thread_concurrency(director->MaxConcurrentJobs * 2 +
       4 /* UA */ + 4 /* sched+watchdog+jobsvr+misc */);
 
@@ -321,6 +322,7 @@ int main (int argc, char *argv[])
    while ( (jcr = wait_for_next_job(runjob)) ) {
       run_job(jcr);                   /* run job */
       free_jcr(jcr);                  /* release jcr */
+      set_jcr_in_tsd(INVALID_JCR);
       if (runjob) {                   /* command line, run a single job? */
          break;                       /* yes, terminate */
       }

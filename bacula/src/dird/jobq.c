@@ -180,6 +180,7 @@ void *sched_wait(void *arg)
    JCR *jcr = ((wait_pkt *)arg)->jcr;
    jobq_t *jq = ((wait_pkt *)arg)->jq;
 
+   set_jcr_in_tsd(jcr);
    Dmsg0(2300, "Enter sched_wait.\n");
    free(arg);
    time_t wtime = jcr->sched_time - time(NULL);
@@ -266,6 +267,8 @@ int jobq_add(jobq_t *jq, JCR *jcr)
    }
    item->jcr = jcr;
 
+   /* While waiting in a queue this job is not attached to a thread */
+   set_jcr_in_tsd(INVALID_JCR);
    if (job_canceled(jcr)) {
       /* Add job to ready queue so that it is canceled quickly */
       jq->ready_jobs->prepend(item);
@@ -398,6 +401,7 @@ void *jobq_server(void *arg)
    bool timedout = false;
    bool work = true;
 
+   set_jcr_in_tsd(INVALID_JCR);
    Dmsg0(2300, "Start jobq_server\n");
    if ((stat = pthread_mutex_lock(&jq->mutex)) != 0) {
       berrno be;
@@ -454,6 +458,8 @@ void *jobq_server(void *arg)
             }
          }
          jq->running_jobs->append(je);
+
+         /* Attach jcr to this thread while we run the job */
          set_jcr_in_tsd(jcr);
          Dmsg1(2300, "Took jobid=%d from ready and appended to run\n", jcr->JobId);
 
@@ -464,6 +470,9 @@ void *jobq_server(void *arg)
          Dmsg2(2300, "Calling user engine for jobid=%d use=%d\n", jcr->JobId,
             jcr->use_count());
          jq->engine(je->jcr);
+
+         /* Job finished detach from thread */
+         set_jcr_in_tsd(INVALID_JCR);
 
          Dmsg2(2300, "Back from user engine jobid=%d use=%d.\n", jcr->JobId,
             jcr->use_count());
