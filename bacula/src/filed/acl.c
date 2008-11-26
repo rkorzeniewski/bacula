@@ -26,44 +26,37 @@
    Switzerland, email:ftf@fsfeurope.org.
 */
 /*
- * Functions to handle ACL for bacula.
+ * Functions to handle ACLs for bacula.
  *
- * We handle two different typers of ACLs: access and default ACLS.
- * Default ACLs only apply to directories.
+ * We handle two different types of ACLs: access and default ACLS.
+ * On most systems that support default ACLs they only apply to directories.
  *
  * On some systems (eg. linux and FreeBSD) we must obtain the two ACLs
  * independently, while others (eg. Solaris) provide both in one call.
  *
- * As for the streams to use, we have two choices:
+ * The Filed saves ACLs in their native format and uses different streams
+ * for all different platforms. Currently we only allow ACLs to be restored
+ * which were saved in the native format of the platform they are extracted
+ * on. Later on we might add conversion functions for mapping from one
+ * platform to an other or allow restores of systems that use the same
+ * native format.
  *
- * 1. Build a generic framework.
- *    With two different types of ACLs, supported differently, we
- *    probably end up encoding and decoding everything ourselves.
+ * Its also interesting to see what the exact format of acl text is on
+ * certain platforms and if they use they same encoding we might allow
+ * different platform streams to be decoded on an other similar platform.
+ * As we implement the decoding/restoring process as a big switch based
+ * on the stream number being passed in extending the switching code is
+ * easy.
  *
- * 2. Take the easy way out.
- *    Just handle each platform individually, assuming that backups
- *    and restores are done on the same (kind of) client.
- *
- * Currently we take the easy way out. We use two kinds of streams, one
- * for access ACLs and one for default ACLs. If an OS mixes the two, we
- * send the mix in the access ACL stream.
- *
- * Looking at more man pages, supporting a framework seems really hard
- * if we want to support HP-UX. Deity knows what AIX is up to.
- *
- *   Written by Preben 'Peppe' Guldberg, December MMIV
+ *   Original written by Preben 'Peppe' Guldberg, December MMIV
+ *   Major rewrite by Marco van Wieringen, November MMVIII
  *
  *   Version $Id$
  */
-
-
-#ifndef TEST_PROGRAM
-
+  
 #include "bacula.h"
 #include "filed.h"
-
-#endif
-
+  
 /*
  * List of supported OSs.
  * Not sure if all the HAVE_XYZ_OS are correct for autoconf.
