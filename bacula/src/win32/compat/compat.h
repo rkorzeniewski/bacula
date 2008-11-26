@@ -106,6 +106,7 @@ typedef UINT32 uid_t;
 typedef UINT32 gid_t;
 typedef UINT32 mode_t;
 typedef INT32  ssize_t;
+typedef UINT32 size_t;
 #define HAVE_SSIZE_T 1
 
 #endif /* HAVE_MINGW */

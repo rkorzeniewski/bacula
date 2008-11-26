@@ -1267,7 +1267,7 @@ static int level_cmd(JCR *jcr)
          goto bail_out;
       }
       since_time = str_to_uint64(buf);  /* this is the since time */
-      Dmsg1(100, "since_time=%d\n", (int)since_time);
+      Dmsg1(100, "since_time=%lld\n", since_time);
       char ed1[50], ed2[50];
       /*
        * Sync clocks by polling him for the time. We take
@@ -1309,10 +1309,10 @@ static int level_cmd(JCR *jcr)
       }
       dir->signal(BNET_EOD);
 
-      Dmsg2(100, "adj = %d since_time=%d\n", (int)adj, (int)since_time);
+      Dmsg2(100, "adj = %d since_time=%lld\n", (int)adj, since_time);
       jcr->incremental = 1;           /* set incremental or decremental backup */
-      jcr->mtime = (time_t)since_time; /* set since time */
-      generate_plugin_event(jcr, bEventSince, (void *)jcr->mtime);
+      jcr->mtime = since_time;        /* set since time */
+      generate_plugin_event(jcr, bEventSince, (void *)(time_t)jcr->mtime);
    } else {
       Jmsg1(jcr, M_FATAL, 0, _("Unknown backup level: %s\n"), level);
       free_memory(level);

@@ -51,6 +51,7 @@ FILED_OBJS = \
 	$(OBJDIR)/service.o \
 	$(OBJDIR)/statusDialog.o \
 	$(OBJDIR)/trayMonitor.o \
+	$(OBJDIR)/xattr.o \
 	$(OBJDIR)/main.o \
 	$(OBJDIR)/bacula.res
 

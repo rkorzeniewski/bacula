@@ -559,6 +559,10 @@ _Z9pm_strcpyPPcPKc
 _Z9pm_strcpyR8POOL_MEMPKc
 _Z9pm_strcpyRPcPKc
 _Z9pm_strcpyRPcR8POOL_MEM
+_Z9pm_memcpyPPcPKvj
+_Z9pm_memcpyR8POOL_MEMPKvj
+_Z9pm_memcpyRPcPKvj
+_Z9pm_memcpyRPcR8POOL_MEMj
 _ZN8POOL_MEM10realloc_pmEi
 _ZN8POOL_MEM6strcatEPKc
 _ZN8POOL_MEM6strcpyEPKc
@@ -576,6 +580,7 @@ _Z16dispatch_messageP3JCRixPc
 _Z16init_console_msgPKc
 _Z25register_message_callbackPFviPcE
 _Z4JmsgP3JCRixPKcz
+_Z4MmsgPPcPKcz
 _Z4MmsgR8POOL_MEMPKcz
 _Z4MmsgRPcPKcz
 _Z4QmsgP3JCRixPKcz
