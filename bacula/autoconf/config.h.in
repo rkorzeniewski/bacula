@@ -152,11 +152,30 @@
 /* Define if you have zlib */
 #undef HAVE_LIBZ
 
+/* Defines if your system have the sys/acl.h header file */
+#undef HAVE_SYS_ACL_H
+
 /* Define if you have libacl */
 #undef HAVE_ACL
 
 /* Define if you have extended acls */
 #undef HAVE_EXTENDED_ACL
+
+/* Defines if your system have the sys/xattr.h header file */
+#undef HAVE_SYS_XATTR_H
+
+/* Define if you have extended attributes */
+#undef HAVE_XATTR
+
+/* Define when you have extended attributes functions starting with l (like lstat) */
+#undef HAVE_LLISTXATTR
+#undef HAVE_LGETXATTR
+#undef HAVE_LSETXATTR
+
+/* Define when you have extended attributes functions not starting with l (like stat) */
+#undef HAVE_LISTXATTR
+#undef HAVE_GETXATTR
+#undef HAVE_SETXATTR
 
 /* General libs */
 #undef LIBS

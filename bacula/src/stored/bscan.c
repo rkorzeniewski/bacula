@@ -791,9 +791,30 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
       }
       break;
 
-   case STREAM_UNIX_ACCESS_ACL:          /* Standard ACL attributes on UNIX */
-   case STREAM_UNIX_DEFAULT_ACL:         /* Default ACL attributes on UNIX */
-      /* Ignore Unix attributes */
+   case STREAM_UNIX_ACCESS_ACL:          /* Deprecated Standard ACL attributes on UNIX */
+   case STREAM_UNIX_DEFAULT_ACL:         /* Deprecated Default ACL attributes on UNIX */
+   case STREAM_ACL_AIX_TEXT:
+   case STREAM_ACL_DARWIN_ACCESS_ACL_T:
+   case STREAM_ACL_FREEBSD_DEFAULT_ACL_T:
+   case STREAM_ACL_FREEBSD_ACCESS_ACL_T:
+   case STREAM_ACL_HPUX_ACL_ENTRY:
+   case STREAM_ACL_IRIX_DEFAULT_ACL_T:
+   case STREAM_ACL_IRIX_ACCESS_ACL_T:
+   case STREAM_ACL_LINUX_DEFAULT_ACL_T:
+   case STREAM_ACL_LINUX_ACCESS_ACL_T:
+   case STREAM_ACL_TRU64_DEFAULT_ACL_T:
+   case STREAM_ACL_TRU64_DEFAULT_DIR_ACL_T:
+   case STREAM_ACL_TRU64_ACCESS_ACL_T:
+   case STREAM_ACL_SOLARIS_ACLENT_T:
+   case STREAM_ACL_SOLARIS_ACE_T:
+      /* Ignore Unix ACL attributes */
+      break;
+
+   case STREAM_XATTR_DARWIN:
+   case STREAM_XATTR_FREEBSD:
+   case STREAM_XATTR_LINUX:
+   case STREAM_XATTR_NETBSD:
+      /* Ignore Unix Extended attributes */
       break;
 
    default:

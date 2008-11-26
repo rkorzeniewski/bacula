@@ -62,6 +62,11 @@ const bool have_acl = false;
    const bool have_sha2 = false;
 #endif
 
+#if defined(HAVE_XATTR)
+const bool have_xattr = true;
+#else
+const bool have_xattr = false;
+#endif
 
 /* Data received from Storage Daemon */
 static char rec_header[] = "rechdr %ld %ld %ld %ld %ld";
@@ -171,6 +176,7 @@ void do_restore(JCR *jcr)
    int non_support_acl = 0;
    int non_support_progname = 0;
    int non_support_crypto = 0;
+   int non_support_xattr = 0;
 
 #ifdef HAVE_DARWIN_OS
    struct attrlist attrList;
@@ -243,9 +249,8 @@ void do_restore(JCR *jcr)
    binit(&rctx.bfd);
    binit(&rctx.forkbfd);
    attr = rctx.attr = new_attr(jcr);
-   jcr->acl_text = get_pool_memory(PM_MESSAGE);
-
-   
+   jcr->acl_data = get_pool_memory(PM_MESSAGE);
+   jcr->xattr_data = get_pool_memory(PM_MESSAGE);
 
    while (bget_msg(sd) >= 0 && !job_canceled(jcr)) {
       /* Remember previous stream type */
@@ -573,6 +578,21 @@ void do_restore(JCR *jcr)
          break;
 
       case STREAM_UNIX_ACCESS_ACL:
+      case STREAM_UNIX_DEFAULT_ACL:
+      case STREAM_ACL_AIX_TEXT:
+      case STREAM_ACL_DARWIN_ACCESS_ACL_T:
+      case STREAM_ACL_FREEBSD_DEFAULT_ACL_T:
+      case STREAM_ACL_FREEBSD_ACCESS_ACL_T:
+      case STREAM_ACL_HPUX_ACL_ENTRY:
+      case STREAM_ACL_IRIX_DEFAULT_ACL_T:
+      case STREAM_ACL_IRIX_ACCESS_ACL_T:
+      case STREAM_ACL_LINUX_DEFAULT_ACL_T:
+      case STREAM_ACL_LINUX_ACCESS_ACL_T:
+      case STREAM_ACL_TRU64_DEFAULT_ACL_T:
+      case STREAM_ACL_TRU64_DEFAULT_DIR_ACL_T:
+      case STREAM_ACL_TRU64_ACCESS_ACL_T:
+      case STREAM_ACL_SOLARIS_ACLENT_T:
+      case STREAM_ACL_SOLARIS_ACE_T:
          /*
           * Do not restore ACLs when
           * a) The current file is not extracted
@@ -583,28 +603,36 @@ void do_restore(JCR *jcr)
             break;
          }
          if (have_acl) {
-            pm_strcpy(jcr->acl_text, sd->msg);
-            Dmsg2(400, "Restoring ACL type 0x%2x <%s>\n", BACL_TYPE_ACCESS, jcr->acl_text);
-            if (bacl_set(jcr, BACL_TYPE_ACCESS) != 0) {
-               Qmsg1(jcr, M_WARNING, 0, _("Can't restore ACL of %s\n"), jcr->last_fname);
+            pm_memcpy(jcr->acl_data, sd->msg, sd->msglen);
+            jcr->acl_data_len = sd->msglen;
+            if (!parse_acl_stream(jcr, rctx.stream)) {
+               Qmsg1(jcr, M_WARNING, 0, _("Can't restore ACLs of %s\n"), jcr->last_fname);
             }
          } else {
             non_support_acl++;
          }
          break;
 
-      case STREAM_UNIX_DEFAULT_ACL:
+      case STREAM_XATTR_DARWIN:
+      case STREAM_XATTR_FREEBSD:
+      case STREAM_XATTR_LINUX:
+         /*
+          * Do not restore Extended Attributes when
+          * a) The current file is not extracted
+          * b)     and it is not a directory (they are never "extracted")
+          * c) or the file name is empty
+          */
          if ((!rctx.extract && jcr->last_type != FT_DIREND) || (*jcr->last_fname == 0)) {
             break;
          }
-         if (have_acl) {
-            pm_strcpy(jcr->acl_text, sd->msg);
-            Dmsg2(400, "Restoring ACL type 0x%2x <%s>\n", BACL_TYPE_DEFAULT, jcr->acl_text);
-            if (bacl_set(jcr, BACL_TYPE_DEFAULT) != 0) {
-               Qmsg1(jcr, M_WARNING, 0, _("Can't restore default ACL of %s\n"), jcr->last_fname);
+         if (have_xattr) {
+            pm_memcpy(jcr->xattr_data, sd->msg, sd->msglen);
+            jcr->xattr_data_len = sd->msglen;
+            if (!parse_xattr_stream(jcr, rctx.stream)) {
+               Qmsg1(jcr, M_WARNING, 0, _("Can't restore Extended Attributes of %s\n"), jcr->last_fname);
             }
          } else {
-            non_support_acl++;
+            non_support_xattr++;
          }
          break;
 
@@ -703,7 +731,8 @@ ok_out:
    bclose(&rctx.forkbfd);
    bclose(&rctx.bfd);
    free_attr(rctx.attr);
-   free_pool_memory(jcr->acl_text);
+   free_pool_memory(jcr->xattr_data);
+   free_pool_memory(jcr->acl_data);
    Dmsg2(10, "End Do Restore. Files=%d Bytes=%s\n", jcr->JobFiles,
       edit_uint64(jcr->JobBytes, ec1));
    if (non_support_data > 1 || non_support_attr > 1) {
@@ -721,6 +750,9 @@ ok_out:
    }
    if (non_support_crypto) {
       Jmsg(jcr, M_INFO, 0, _("%d non-supported crypto streams ignored.\n"), non_support_acl);
+   }
+   if (non_support_xattr) {
+      Jmsg(jcr, M_INFO, 0, _("%d non-supported xattr streams ignored.\n"), non_support_xattr);
    }
 
 }

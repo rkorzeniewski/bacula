@@ -128,6 +128,7 @@ static RES_ITEM options_items[] = {
    {"checkfilechanges",store_opts,    {0},     0, 0, 1},
    {"strippath",       store_opts,    {0},     0, 0, 0},
    {"honornodumpflag", store_opts,    {0},     0, 0, 0},
+   {"xattrsupport",    store_opts,    {0},     0, 0, 0},
    {NULL, NULL, {0}, 0, 0, 0}
 };
 
@@ -157,7 +158,8 @@ enum {
    INC_KW_ENHANCEDWILD,
    INC_KW_CHKCHANGES,
    INC_KW_STRIPPATH,
-   INC_KW_HONOR_NODUMP
+   INC_KW_HONOR_NODUMP,
+   INC_KW_XATTR
 };
 
 /*
@@ -188,8 +190,9 @@ static struct s_kw FS_option_kw[] = {
    {"noatime",     INC_KW_NOATIME},
    {"enhancedwild", INC_KW_ENHANCEDWILD},
    {"checkfilechanges", INC_KW_CHKCHANGES},
-   {"strippath",    INC_KW_STRIPPATH},
-   {"honornodumpflag",    INC_KW_HONOR_NODUMP},
+   {"strippath",   INC_KW_STRIPPATH},
+   {"honornodumpflag", INC_KW_HONOR_NODUMP},
+   {"xattrsupport", INC_KW_XATTR},
    {NULL,          0}
 };
 
@@ -259,6 +262,8 @@ static struct s_fs_opt FS_options[] = {
    {"no",       INC_KW_CHKCHANGES,    "0"},
    {"yes",      INC_KW_HONOR_NODUMP,  "N"},
    {"no",       INC_KW_HONOR_NODUMP,  "0"},
+   {"yes",      INC_KW_XATTR,         "X"},
+   {"no",       INC_KW_XATTR,         "0"},
    {NULL,       0,                      0}
 };
 

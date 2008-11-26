@@ -632,6 +632,9 @@ static void set_options(findFOPTS *fo, const char *opts)
          fo->GZIP_level = *++p - '0';
          Dmsg1(200, "Compression level=%d\n", fo->GZIP_level);
          break;
+      case 'X':
+         fo->flags |= FO_XATTR;
+         break;
       default:
          Emsg1(M_ERROR, 0, _("Unknown include/exclude option: %c\n"), *p);
          break;

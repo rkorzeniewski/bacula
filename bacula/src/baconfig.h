@@ -199,7 +199,7 @@ void InitWinAPIWrapper();
 #define DEFAULT_NETWORK_BUFFER_SIZE (64 * 1024)
 
 /*
- * Stream definitions.  Once defined these must NEVER
+ * Stream definitions. Once defined these must NEVER
  *   change as they go on the storage media.
  * Note, the following streams are passed from the SD to the DIR
  *   so that they may be put into the catalog (actually only the
@@ -218,10 +218,9 @@ void InitWinAPIWrapper();
 #define STREAM_MD5_SIGNATURE               3    /* deprecated */
 #define STREAM_MD5_DIGEST                  3    /* MD5 digest for the file */
 #define STREAM_GZIP_DATA                   4    /* GZip compressed file data */
-/* Extended Unix attributes with Win32 Extended data.  Deprecated. */
-#define STREAM_UNIX_ATTRIBUTES_EX          5    /* Extended Unix attr for Win32 EX */
+#define STREAM_UNIX_ATTRIBUTES_EX          5    /* Extended Unix attr for Win32 EX - Deprecated */
 #define STREAM_SPARSE_DATA                 6    /* Sparse data stream */
-#define STREAM_SPARSE_GZIP_DATA            7
+#define STREAM_SPARSE_GZIP_DATA            7    /* Sparse gzipped data stream */
 #define STREAM_PROGRAM_NAMES               8    /* program names for program data */
 #define STREAM_PROGRAM_DATA                9    /* Data needing program */
 #define STREAM_SHA1_SIGNATURE             10    /* deprecated */
@@ -230,22 +229,75 @@ void InitWinAPIWrapper();
 #define STREAM_WIN32_GZIP_DATA            12    /* Gzipped Win32 BackupRead data */
 #define STREAM_MACOS_FORK_DATA            13    /* Mac resource fork */
 #define STREAM_HFSPLUS_ATTRIBUTES         14    /* Mac OS extra attributes */
-/*** FIXME ***/
-#define STREAM_UNIX_ACCESS_ACL            15   /* Standard ACL attributes on UNIX */
-#define STREAM_UNIX_DEFAULT_ACL           16   /* Default ACL attributes on UNIX */
-/*** FIXME ***/
-#define STREAM_SHA256_DIGEST              17   /* SHA-256 digest for the file */
-#define STREAM_SHA512_DIGEST              18   /* SHA-512 digest for the file */
-#define STREAM_SIGNED_DIGEST              19   /* Signed File Digest, ASN.1, DER Encoded */
-#define STREAM_ENCRYPTED_FILE_DATA        20   /* Encrypted, uncompressed data */
-#define STREAM_ENCRYPTED_WIN32_DATA       21   /* Encrypted, uncompressed Win32 BackupRead data */
-#define STREAM_ENCRYPTED_SESSION_DATA     22   /* Encrypted Session Data, ASN.1, DER Encoded */
-#define STREAM_ENCRYPTED_FILE_GZIP_DATA   23   /* Encrypted, compressed data */
-#define STREAM_ENCRYPTED_WIN32_GZIP_DATA  24   /* Encrypted, compressed Win32 BackupRead data */
-#define STREAM_ENCRYPTED_MACOS_FORK_DATA  25   /* Encrypted, uncompressed Mac resource fork */
-#define STREAM_PLUGIN_NAME                26   /* Plugin "file" string */
-#define STREAM_PLUGIN_DATA                27   /* Plugin specific data */
+#define STREAM_UNIX_ACCESS_ACL            15    /* Standard ACL attributes on UNIX - Deprecated */
+#define STREAM_UNIX_DEFAULT_ACL           16    /* Default ACL attributes on UNIX - Deprecated */
+#define STREAM_SHA256_DIGEST              17    /* SHA-256 digest for the file */
+#define STREAM_SHA512_DIGEST              18    /* SHA-512 digest for the file */
+#define STREAM_SIGNED_DIGEST              19    /* Signed File Digest, ASN.1, DER Encoded */
+#define STREAM_ENCRYPTED_FILE_DATA        20    /* Encrypted, uncompressed data */
+#define STREAM_ENCRYPTED_WIN32_DATA       21    /* Encrypted, uncompressed Win32 BackupRead data */
+#define STREAM_ENCRYPTED_SESSION_DATA     22    /* Encrypted Session Data, ASN.1, DER Encoded */
+#define STREAM_ENCRYPTED_FILE_GZIP_DATA   23    /* Encrypted, compressed data */
+#define STREAM_ENCRYPTED_WIN32_GZIP_DATA  24    /* Encrypted, compressed Win32 BackupRead data */
+#define STREAM_ENCRYPTED_MACOS_FORK_DATA  25    /* Encrypted, uncompressed Mac resource fork */
+#define STREAM_PLUGIN_NAME                26    /* Plugin "file" string */
+#define STREAM_PLUGIN_DATA                27    /* Plugin specific data */
 
+/*
+ * Additional Stream definitions. Once defined these must NEVER
+ *   change as they go on the storage media.
+ *
+ * The Stream numbers from 1000-1999 are reserved for ACL and extended attribute streams.
+ * Each different platform has its own stream id(s), if a platform supports multiple stream types
+ * it should supply different handlers for each type it supports and this should be called
+ * from the stream dispatch function. Currently in this reserved space we allocate the
+ * different acl streams from 1000 on and the different extended attributes streams from
+ * 1999 down. So the two naming spaces grows towards each other.
+ */
+#define STREAM_ACL_AIX_TEXT                1000    /* AIX specific string representation from acl_get */
+#define STREAM_ACL_DARWIN_ACCESS_ACL_T     1001    /* Darwin (OSX) specific acl_t string representation
+                                                    * from acl_to_text (POSIX acl)
+                                                    */
+#define STREAM_ACL_FREEBSD_DEFAULT_ACL_T   1002    /* FreeBSD specific acl_t string representation
+                                                    * from acl_to_text (POSIX acl) for default acls.
+                                                    */
+#define STREAM_ACL_FREEBSD_ACCESS_ACL_T    1003    /* FreeBSD specific acl_t string representation
+                                                    * from acl_to_text (POSIX acl) for access acls.
+                                                    */
+#define STREAM_ACL_HPUX_ACL_ENTRY          1004    /* HPUX specific acl_entry string representation
+                                                    * from acltostr (POSIX acl)
+                                                    */
+#define STREAM_ACL_IRIX_DEFAULT_ACL_T      1005    /* IRIX specific acl_t string representation
+                                                    * from acl_to_text (POSIX acl) for default acls.
+                                                    */
+#define STREAM_ACL_IRIX_ACCESS_ACL_T       1006    /* IRIX specific acl_t string representation
+                                                    * from acl_to_text (POSIX acl) for access acls.
+                                                    */
+#define STREAM_ACL_LINUX_DEFAULT_ACL_T     1007    /* Linux specific acl_t string representation
+                                                    * from acl_to_text (POSIX acl) for default acls.
+                                                    */
+#define STREAM_ACL_LINUX_ACCESS_ACL_T      1008    /* Linux specific acl_t string representation
+                                                    * from acl_to_text (POSIX acl) for access acls.
+                                                    */
+#define STREAM_ACL_TRU64_DEFAULT_ACL_T     1009    /* Tru64 specific acl_t string representation
+                                                    * from acl_to_text (POSIX acl) for default acls.
+                                                    */
+#define STREAM_ACL_TRU64_DEFAULT_DIR_ACL_T 1010    /* Tru64 specific acl_t string representation
+                                                    * from acl_to_text (POSIX acl) for default acls.
+                                                    */
+#define STREAM_ACL_TRU64_ACCESS_ACL_T      1011    /* Tru64 specific acl_t string representation
+                                                    * from acl_to_text (POSIX acl) for access acls.
+                                                    */
+#define STREAM_ACL_SOLARIS_ACLENT_T        1012    /* Solaris specific aclent_t string representation
+                                                    * from acltotext or acl_totext (POSIX acl)
+                                                    */
+#define STREAM_ACL_SOLARIS_ACE_T           1013    /* Solaris specific ace_t string representation from
+                                                    * from acl_totext (NFSv4 or ZFS acl)
+                                                    */
+#define STREAM_XATTR_DARWIN                1996    /* Darwin (OSX) specific extended attributes */
+#define STREAM_XATTR_FREEBSD               1997    /* FreeBSD specific extended attributes */
+#define STREAM_XATTR_LINUX                 1998    /* Linux specific extended attributes */
+#define STREAM_XATTR_NETBSD                1999    /* NetBSD specific extended attributes */
 
 /*
  *  File type (Bacula defined).

@@ -340,8 +340,8 @@ static void sendit(const char *msg, int len, STATUS_PKT *sp)
 {
    if (sp->bs) {
       BSOCK *user = sp->bs;
-      user->msg = check_pool_memory_size(user->msg, len+1);
-      memcpy(user->msg, msg, len+1);
+     
+      pm_memcpy(user->msg, msg, len+1);
       user->msglen = len+1;
       user->send();
    } else {

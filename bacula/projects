@@ -1,29 +1,32 @@
                 
 Projects:
                      Bacula Projects Roadmap 
-                    Status updated 26 August 2008
+                    Status updated 26 November 2008
 
 Items Completed:
-
-Summary:
 Item  1:  Accurate restoration of renamed/deleted files
-Item  2:  Allow FD to initiate a backup
 Item  3:  Merge multiple backups (Synthetic Backup or Consolidation)
 Item  4:  Implement Catalog directive for Pool resource in Director
 Item  5:  Add an item to the restore option where you can select a Pool
+Item  8:  Implement Copy pools
+Item 12:  Add Plug-ins to the FileSet Include statements.
+Item 13:  Restore only file attributes (permissions, ACL, owner, group...)
+Item 18:  Better control over Job execution
+Item 26: Store and restore extended attributes, especially selinux file contexts
+Item 27:  make changing "spooldata=yes|no" possible for
+Item 28:  Implement an option to modify the last written date for volumes
+
+Summary:
+Item  2:  Allow FD to initiate a backup
 Item  6:  Deletion of disk Volumes when pruned
 Item  7:  Implement Base jobs
-Item  8:  Implement Copy pools
 Item  9:  Scheduling syntax that permits more flexibility and options
 Item 10:  Message mailing based on backup types
 Item 11:  Cause daemons to use a specific IP address to source communications
-Item 12:  Add Plug-ins to the FileSet Include statements.
-Item 13:  Restore only file attributes (permissions, ACL, owner, group...)
 Item 14:  Add an override in Schedule for Pools based on backup types
-Item 15:  Implement more Python events and functions
+Item 15:  Implement more Python events and functions  --- Abandoned for plugins
 Item 16:  Allow inclusion/exclusion of files in a fileset by creation/mod times
 Item 17:  Automatic promotion of backup levels based on backup size
-Item 18:  Better control over Job execution
 Item 19:  Automatic disabling of devices
 Item 20:  An option to operate on all pools with update vol parameters
 Item 21:  Include timestamp of job launch in "stat clients" output
@@ -36,7 +39,7 @@ Item 25:  Archival (removal) of User Files to Tape
 Item  1:  Accurate restoration of renamed/deleted files
   Date:   28 November 2005
   Origin: Martin Simmons (martin at lispworks dot com)
-  Status: 
+  Status: Done
 
   What:   When restoring a fileset for a specified date (including "most
           recent"), Bacula should give you exactly the files and directories
@@ -81,7 +84,7 @@ Item  2:  Allow FD to initiate a backup
 Item  3:  Merge multiple backups (Synthetic Backup or Consolidation) 
   Origin: Marc Cousin and Eric Bollengier 
   Date:   15 November 2005
-  Status: 
+  Status: Done
 
   What:   A merged backup is a backup made without connecting to the Client.
           It would be a Merge of existing backups into a single backup.
@@ -116,7 +119,7 @@ Item  3:  Merge multiple backups (Synthetic Backup or Consolidation)
 Item  4:  Implement Catalog directive for Pool resource in Director
   Origin: Alan Davis adavis@ruckus.com
   Date:   6 March 2007
-  Status: Submitted
+  Status: Done, but not tested, and possibly not fully implemented.
  
   What:   The current behavior is for the director to create all pools
           found in the configuration file in all catalogs.  Add a
@@ -134,7 +137,7 @@ Item  4:  Implement Catalog directive for Pool resource in Director
 Item  5:  Add an item to the restore option where you can select a Pool
   Origin: kshatriyak at gmail dot com
     Date: 1/1/2006
-  Status:
+  Status: Done at least via command line
 
     What: In the restore option (Select the most recent backup for a
           client) it would be useful to add an option where you can limit
@@ -219,7 +222,7 @@ Item  7:  Implement Base jobs
 Item  8:  Implement Copy pools
   Date:   27 November 2005
   Origin: David Boyes (dboyes at sinenomine dot net)
-  Status:
+  Status: A trivial version of this is done.
 
   What:   I would like Bacula to have the capability to write copies
           of backed-up data on multiple physical volumes selected
@@ -540,7 +543,7 @@ Status:
 Item 15:  Implement more Python events and functions
   Date:   28 October 2005
   Origin: Kern
-  Status: 
+  Status: Project abandoned in favor of plugins.
 
   What:   Allow Python scripts to be called at more places 
           within Bacula and provide additional access to Bacula
@@ -852,7 +855,73 @@ Item 25:  Archival (removal) of User Files to Tape
           storage pool gets full) data is migrated to Tape.
 
 
+Item 26: Store and restore extended attributes, especially selinux file contexts
+   Date: 28 December 2007
+   Origin: Frank Sweetser <fs@wpi.edu>
+   Status: Done
+   What: The ability to store and restore extended attributes on
+         filesystems that support them, such as ext3.
 
+   Why: Security Enhanced Linux (SELinux) enabled systems make extensive
+        use of extended attributes.  In addition to the standard user,
+        group, and permission, each file has an associated SELinux context
+        stored as an extended attribute.  This context is used to define
+        which operations a given program is permitted to perform on that
+        file.  Storing contexts on an SELinux system is as critical as
+        storing ownership and permissions.  In the case of a full system
+        restore, the system will not even be able to boot until all
+        critical system files have been properly relabeled.
+
+ Notes: Fedora ships with a version of tar that has been patched to handle
+        extended attributes.  The patch has not been integrated upstream
+        yet, so could serve as a good starting point.
+
+        http://linux.die.net/man/2/getxattr
+        http://linux.die.net/man/2/setxattr
+        http://linux.die.net/man/2/listxattr
+        ===
+        http://linux.die.net/man/3/getfilecon
+        http://linux.die.net/man/3/setfilecon
+
+Item 27:  make changing "spooldata=yes|no" possible for
+          manual/interactive jobs
+  Origin: Marc Schiffbauer <marc@schiffbauer.net>
+  Date:   12 April 2007)
+  Status: Done
+
+  What:   Make it possible to modify the spooldata option
+          for a job when being run from within the console.
+          Currently it is possible to modify the backup level
+          and the spooldata setting in a Schedule resource.
+          It is also possible to modify the backup level when using
+          the "run" command in the console. 
+          But it is currently not possible to to the same 
+          with "spooldata=yes|no" like:
+
+          run job=MyJob level=incremental spooldata=yes
+
+  Why:    In some situations it would be handy to be able to switch
+          spooldata on or off for interactive/manual jobs based on
+          which data the admin expects or how fast the LAN/WAN
+          connection currently is.
+
+  Notes:  ./.
+
+Item 28:  Implement an option to modify the last written date for volumes
+Date:     16 September 2008
+Origin:   Franck (xeoslaenor at gmail dot com)
+Status:   Done
+What:     The ability to modify the last written date for a volume
+Why:      It's sometime necessary to jump a volume when you have a pool of volume
+          which recycles the oldest volume at each backup.
+          Sometime, it needs to cancel a set of backup (one day
+          backup, completely) and we want to avoid that bacula
+          choose the volume (which is not written at all) from
+          the cancelled backup (It has to jump to next volume).
+          in this case, we just need to update the written date
+          manually to avoir the "oldest volume" purge.
+Notes:    An option can be add to "update volume" command (like 'written date'
+          choice for example)
 
 
 ========= New Items since the last vote =================
@@ -933,32 +1002,6 @@ Item 1:   Implement an interface between Bacula and Amazon's S3.
           locally and syncing them to S3, and manually fetching them
           again when they're needed. This is very cumbersome.
 
-Item: Store and restore extended attributes, especially selinux file contexts
-   Date: 28 December 2007
-   Origin: Frank Sweetser <fs@wpi.edu>
-   What: The ability to store and restore extended attributes on
-         filesystems that support them, such as ext3.
-
-   Why: Security Enhanced Linux (SELinux) enabled systems make extensive
-        use of extended attributes.  In addition to the standard user,
-        group, and permission, each file has an associated SELinux context
-        stored as an extended attribute.  This context is used to define
-        which operations a given program is permitted to perform on that
-        file.  Storing contexts on an SELinux system is as critical as
-        storing ownership and permissions.  In the case of a full system
-        restore, the system will not even be able to boot until all
-        critical system files have been properly relabeled.
-
- Notes: Fedora ships with a version of tar that has been patched to handle
-        extended attributes.  The patch has not been integrated upstream
-        yet, so could serve as a good starting point.
-
-        http://linux.die.net/man/2/getxattr
-        http://linux.die.net/man/2/setxattr
-        http://linux.die.net/man/2/listxattr
-        ===
-        http://linux.die.net/man/3/getfilecon
-        http://linux.die.net/man/3/setfilecon
 
 Item 1:   enable/disable compression depending on storage device (disk/tape)
   Origin: Ralf Gross ralf-lists@ralfgross.de
@@ -1147,45 +1190,6 @@ Item X:   Add EFS support on Windows
                                                                                                                                                                                               encrypted-file-related callback functions.
 ========== Already implemented ================================
 
-Item  n:  make changing "spooldata=yes|no" possible for
-          manual/interactive jobs
-  Origin: Marc Schiffbauer <marc@schiffbauer.net>
-  Date:   12 April 2007)
-  Status: 
-
-  What:   Make it possible to modify the spooldata option
-          for a job when being run from within the console.
-          Currently it is possible to modify the backup level
-          and the spooldata setting in a Schedule resource.
-          It is also possible to modify the backup level when using
-          the "run" command in the console. 
-          But it is currently not possible to to the same 
-          with "spooldata=yes|no" like:
-
-          run job=MyJob level=incremental spooldata=yes
-
-  Why:    In some situations it would be handy to be able to switch
-          spooldata on or off for interactive/manual jobs based on
-          which data the admin expects or how fast the LAN/WAN
-          connection currently is.
-
-  Notes:  ./.
-
-Item 1:   Implement an option to modify the last written date for volumes
-Date:     16 September 2008
-Origin:   Franck (xeoslaenor at gmail dot com)
-Status:   Proposing
-What:     The ability to modify the last written date for a volume
-Why:      It's sometime necessary to jump a volume when you have a pool of volume
-          which recycles the oldest volume at each backup.
-          Sometime, it needs to cancel a set of backup (one day
-          backup, completely) and we want to avoid that bacula
-          choose the volume (which is not written at all) from
-          the cancelled backup (It has to jump to next volume).
-          in this case, we just need to update the written date
-          manually to avoir the "oldest volume" purge.
-Notes:    An option can be add to "update volume" command (like 'written date'
-          choice for example)
 
 ============= Empty Feature Request form ===========
 Item  n:  One line summary ...

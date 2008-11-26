@@ -195,6 +195,9 @@ void add_fname_to_include_list(FF_PKT *ff, int prefixed, const char *fname)
          case 'K':
             inc->options |= FO_NOATIME;
             break;
+         case 'X':
+            inc->options |= FO_XATTR;
+            break;
          default:
             Emsg1(M_ERROR, 0, _("Unknown include/exclude option: %c\n"), *rp);
             break;
