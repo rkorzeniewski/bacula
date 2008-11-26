@@ -545,28 +545,28 @@ int pm_strcpy(POOL_MEM &pm, const char *str)
  * Copy data into a pool memory buffer pm
  *   Returns: length of data copied
  */
-int pm_memcpy(POOLMEM **pm, const void *data, size_t n)
+int pm_memcpy(POOLMEM **pm, const void *data, int32_t n)
 {
    *pm = check_pool_memory_size(*pm, n);
    memcpy(*pm, data, n);
    return n;
 }
 
-int pm_memcpy(POOLMEM *&pm, const void *data, size_t n)
+int pm_memcpy(POOLMEM *&pm, const void *data, int32_t n)
 {
    pm = check_pool_memory_size(pm, n);
    memcpy(pm, data, n);
    return n;
 }
 
-int pm_memcpy(POOLMEM *&pm, POOL_MEM &data, size_t n)
+int pm_memcpy(POOLMEM *&pm, POOL_MEM &data, int32_t n)
 {
    pm = check_pool_memory_size(pm, n);
    memcpy(pm, data.c_str(), n);
    return n;
 }
 
-int pm_memcpy(POOL_MEM &pm, const void *data, size_t n)
+int pm_memcpy(POOL_MEM &pm, const void *data, int32_t n)
 {
    pm.check_size(n);
    memcpy(pm.c_str(), data, n);

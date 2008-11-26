@@ -202,7 +202,7 @@ static uint32_t serialize_xattr_stream(JCR *jcr, uint32_t expected_serialize_len
 static bool generic_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt, int stream)
 {
    int count = 0;
-   ssize_t xattr_list_len,
+   int32_t xattr_list_len,
            xattr_value_len,
            expected_serialize_len = 0,
            serialize_len = 0;
