@@ -312,7 +312,7 @@ _ZN5BSOCK9wait_dataEii
  
 ; bsys.o
 _Z10b_strerroriPcj
-_Z11bmicrosleepll
+_Z11bmicrosleepii
 _Z15create_pid_filePcPKci
 _Z15delete_pid_filePcPKci
 _Z15escape_filenamePKc
@@ -572,21 +572,20 @@ _Z12add_msg_destP4MSGSiiPcS1_
 _Z12rem_msg_destP4MSGSiiPc
 _Z13free_msgs_resP4MSGS
 _Z16dequeue_messagesP3JCR
-_Z16dispatch_messageP3JCRilPc
+_Z16dispatch_messageP3JCRixPc
 _Z16init_console_msgPKc
 _Z25register_message_callbackPFviPcE
-_Z4JmsgP3JCRilPKcz
-_Z4MmsgPPcPKcz
+_Z4JmsgP3JCRixPKcz
 _Z4MmsgR8POOL_MEMPKcz
 _Z4MmsgRPcPKcz
-_Z4QmsgP3JCRilPKcz
+_Z4QmsgP3JCRixPKcz
 _Z5d_msgPKciiS0_z
 _Z5e_msgPKciiiS0_z
-_Z5j_msgPKciP3JCRilS0_z
+_Z5j_msgPKciP3JCRixS0_z
 _Z5m_msgPKciPPcS0_z
 _Z5m_msgPKciRPcS0_z
 _Z5p_msgPKciiS0_z
-_Z5q_msgPKciP3JCRilS0_z
+_Z5q_msgPKciP3JCRixS0_z
 _Z5t_msgPKciiS0_z
 _Z8init_msgP3JCRP4MSGS
 _Z8term_msgv
@@ -716,7 +715,7 @@ _Z9free_treeP11s_tree_root
 _Z11bash_spacesPc
 _Z11bash_spacesR8POOL_MEM
 _Z11encode_modetPc
-_Z11encode_timelPc
+_Z11encode_timexPc
 _Z11is_buf_zeroPci
 _Z13unbash_spacesPc
 _Z13unbash_spacesR8POOL_MEM

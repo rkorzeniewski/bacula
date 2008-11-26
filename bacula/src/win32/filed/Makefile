@@ -30,6 +30,7 @@ vpath %.cpp $(MAINDIR)/src/filed $(BUILDDIR)/libwin32
 
 FILED_OBJS = \
 	$(OBJDIR)/accurate.o \
+	$(OBJDIR)/acl.o \
 	$(OBJDIR)/authenticate.o \
 	$(OBJDIR)/backup.o \
 	$(OBJDIR)/estimate.o \
