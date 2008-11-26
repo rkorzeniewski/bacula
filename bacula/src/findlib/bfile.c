@@ -143,6 +143,40 @@ const char *stream_to_ascii(int stream)
       return _("Encrypted Win32 GZIP data");
    case STREAM_ENCRYPTED_MACOS_FORK_DATA:
       return _("Encrypted MacOS fork data");
+   case STREAM_ACL_AIX_TEXT:
+      return _("AIX Specific ACL attribs");
+   case STREAM_ACL_DARWIN_ACCESS_ACL_T:
+      return _("Darwin Specific ACL attribs");
+   case STREAM_ACL_FREEBSD_DEFAULT_ACL_T:
+      return _("FreeBSD Specific Default ACL attribs");
+   case STREAM_ACL_FREEBSD_ACCESS_ACL_T:
+      return _("FreeBSD Specific Access ACL attribs");
+   case STREAM_ACL_HPUX_ACL_ENTRY:
+      return _("HPUX Specific ACL attribs");
+   case STREAM_ACL_IRIX_DEFAULT_ACL_T:
+      return _("Irix Specific Default ACL attribs");
+   case STREAM_ACL_IRIX_ACCESS_ACL_T:
+      return _("Irix Specific Access ACL attribs");
+   case STREAM_ACL_LINUX_DEFAULT_ACL_T:
+      return _("Linux Specific Default ACL attribs");
+   case STREAM_ACL_LINUX_ACCESS_ACL_T:
+      return _("Linux Specific Access ACL attribs");
+   case STREAM_ACL_TRU64_DEFAULT_ACL_T:
+      return _("OSF1 Specific Default ACL attribs");
+   case STREAM_ACL_TRU64_ACCESS_ACL_T:
+      return _("OSF1 Specific Access ACL attribs");
+   case STREAM_ACL_SOLARIS_ACLENT_T:
+      return _("Solaris Specific ACL attribs");
+   case STREAM_ACL_SOLARIS_ACE_T:
+      return _("Solaris Specific ACL attribs");
+   case STREAM_XATTR_DARWIN:
+      return _("Darwin Specific Extended attribs");
+   case STREAM_XATTR_FREEBSD:
+      return _("FreeBSD Specific Extended attribs");
+   case STREAM_XATTR_LINUX:
+      return _("Linux Specific Extended attribs");
+   case STREAM_XATTR_NETBSD:
+      return _("NetBSD Specific Extended attribs");
    default:
       sprintf(buf, "%d", stream);
       return (const char *)buf;

@@ -38,39 +38,37 @@
 /* For numeric user/group ids when possible, define BACL_WANT_NUMERIC_IDS */
 /* #define BACL_WANT_NUMERIC_IDS */
 
-/* We support the following types of ACLs */
-#define BACL_TYPE_NONE        0x000
-#define BACL_TYPE_ACCESS      0x001
-#define BACL_TYPE_DEFAULT     0x002
+/*
+ * We support the following types of ACLs
+ */
+typedef enum {
+   BACL_TYPE_NONE = 0,
+   BACL_TYPE_ACCESS = 1,
+   BACL_TYPE_DEFAULT = 2,
+   BACL_TYPE_DEFAULT_DIR = 3,
+   BACL_TYPE_EXTENDED = 4
+} bacl_type;
 
-#define BACL_CAP_NONE         0x000    /* No special capabilities */
-#define BACL_CAP_DEFAULTS     0x001    /* Has default ACLs for directories */
-#define BACL_CAP_DEFAULTS_DIR 0x002    /* Default ACLs must be read separately */
+/*
+ * This value is used as ostype when we encounter a invalid acl type.
+ * The way the code is build this should never happen.
+ */
+#if !defined(ACL_TYPE_NONE)
+#define ACL_TYPE_NONE 0x0
+#endif
 
-/* Set BACL_CAP (always) and BACL_ENOTSUP (when used) for various OS */
 #if defined(HAVE_FREEBSD_OS)
-#define BACL_CAP              (BACL_CAP_DEFAULTS|BACL_CAP_DEFAULTS_DIR)
 #define BACL_ENOTSUP          EOPNOTSUPP
 #elif defined(HAVE_DARWIN_OS)
-#define BACL_CAP              BACL_CAP_NONE
 #define BACL_ENOTSUP          EOPNOTSUPP
 #elif defined(HAVE_HPUX_OS)
-#define BACL_CAP              BACL_CAP_NONE
 #define BACL_ENOTSUP          EOPNOTSUPP
 #elif defined(HAVE_IRIX_OS)
-#define BACL_CAP              (BACL_CAP_DEFAULTS|BACL_CAP_DEFAULTS_DIR)
 #define BACL_ENOTSUP          ENOSYS
 #elif defined(HAVE_LINUX_OS) 
-#define BACL_CAP              (BACL_CAP_DEFAULTS|BACL_CAP_DEFAULTS_DIR)
 #define BACL_ENOTSUP          ENOTSUP
-#elif defined(HAVE_OSF1_OS)
-#define BACL_CAP              (BACL_CAP_DEFAULTS|BACL_CAP_DEFAULTS_DIR)
-/* #define BACL_ENOTSUP       ENOTSUP */     /* Don't know */
-#define BACL_CAP              (BACL_CAP_DEFAULTS|BACL_CAP_DEFAULTS_DIR)
-#elif defined(HAVE_SUN_OS)
-#define BACL_CAP              BACL_CAP_DEFAULTS
-#else
-#define BACL_CAP              BACL_CAP_NONE  /* nothing special */
+#elif defined(HAVE_SUN_OS) 
+#define BACL_ENOTSUP          ENOSYS
 #endif
 
 #endif

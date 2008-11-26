@@ -31,7 +31,7 @@ dummy:
 SVRSRCS = filed.c authenticate.c acl.c backup.c estimate.c \
 	  fd_plugins.c accurate.c \
 	  filed_conf.c heartbeat.c job.c pythonfd.c \
-	  restore.c status.c verify.c verify_vol.c
+	  restore.c status.c verify.c verify_vol.c xattr.c
 SVROBJS = $(SVRSRCS:.c=.o)
 
 # these are the objects that are changed by the .configure process

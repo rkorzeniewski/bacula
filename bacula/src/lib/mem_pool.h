@@ -111,6 +111,9 @@ int pm_strcpy(POOLMEM **pm, const char *str);
 int pm_strcpy(POOLMEM *&pm, const char *str);
 int pm_strcpy(POOL_MEM &pm, const char *str);
 int pm_strcpy(POOLMEM *&pm, POOL_MEM &str);
-
+int pm_memcpy(POOLMEM **pm, const void *data, size_t n);
+int pm_memcpy(POOLMEM *&pm, const void *data, size_t n);
+int pm_memcpy(POOL_MEM &pm, const void *data, size_t n);
+int pm_memcpy(POOLMEM *&pm, POOL_MEM &data, size_t n);
 
 #endif

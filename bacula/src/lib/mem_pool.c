@@ -95,7 +95,6 @@ struct abufhead {
 
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
-
 #ifdef SMARTALLOC
 
 #define HEAD_SIZE BALIGN(sizeof(struct abufhead))
@@ -153,7 +152,6 @@ POOLMEM *sm_get_memory(const char *fname, int lineno, int32_t size)
       pool_ctl[pool].max_used = pool_ctl[pool].in_use;
    return (POOLMEM *)(((char *)buf)+HEAD_SIZE);
 }
-
 
 /* Return the size of a memory buffer */
 int32_t sm_sizeof_pool_memory(const char *fname, int lineno, POOLMEM *obuf)
@@ -233,7 +231,6 @@ void sm_free_pool_memory(const char *fname, int lineno, POOLMEM *obuf)
    V(mutex);
 }
 
-
 #else
 
 /* =========  NO SMARTALLOC  =========================================  */
@@ -284,7 +281,6 @@ POOLMEM *get_memory(int32_t size)
    return (POOLMEM *)(((char *)buf)+HEAD_SIZE);
 }
 
-
 /* Return the size of a memory buffer */
 int32_t sizeof_pool_memory(POOLMEM *obuf)
 {
@@ -294,8 +290,6 @@ int32_t sizeof_pool_memory(POOLMEM *obuf)
    cp -= HEAD_SIZE;
    return ((struct abufhead *)cp)->ablen;
 }
-
-
 
 /* Realloc pool memory buffer */
 POOLMEM *realloc_pool_memory(POOLMEM *obuf, int32_t size)
@@ -320,7 +314,6 @@ POOLMEM *realloc_pool_memory(POOLMEM *obuf, int32_t size)
    V(mutex);
    return (POOLMEM *)(((char *)buf)+HEAD_SIZE);
 }
-
 
 POOLMEM *check_pool_memory_size(POOLMEM *obuf, int32_t size)
 {
@@ -361,9 +354,7 @@ void free_pool_memory(POOLMEM *obuf)
    Dmsg2(1800, "free_pool_memory %p pool=%d\n", buf, pool);
    V(mutex);
 }
-
 #endif /* SMARTALLOC */
-
 
 /*
  * Clean up memory pool periodically
@@ -393,9 +384,6 @@ void garbage_collect_memory_pool()
    }
 }
 
-
-
-
 /* Release all pooled memory */
 void close_memory_pool()
 {
@@ -423,7 +411,6 @@ void close_memory_pool()
 }
 
 #ifdef DEBUG
-
 static const char *pool_name(int pool)
 {
    static const char *name[] = {"NoPool", "NAME  ", "FNAME ", "MSG   ", "EMSG  "};
@@ -451,7 +438,6 @@ void print_memory_pool_stats()
 #else
 void print_memory_pool_stats() {}
 #endif /* DEBUG */
-
 
 /*
  * Concatenate a string (str) onto a pool memory buffer pm
@@ -483,7 +469,6 @@ int pm_strcat(POOLMEM *&pm, const char *str)
    return pmlen + len - 1;
 }
 
-
 int pm_strcat(POOLMEM *&pm, POOL_MEM &str)
 {
    int pmlen = strlen(pm);
@@ -506,7 +491,6 @@ int pm_strcat(POOL_MEM &pm, const char *str)
    memcpy(pm.c_str()+pmlen, str, len);
    return pmlen + len - 1;
 }
-
 
 /*
  * Copy a string (str) into a pool memory buffer pm
@@ -545,7 +529,6 @@ int pm_strcpy(POOLMEM *&pm, POOL_MEM &str)
    return len - 1;
 }
 
-
 int pm_strcpy(POOL_MEM &pm, const char *str)
 {
    int len;
@@ -556,6 +539,38 @@ int pm_strcpy(POOL_MEM &pm, const char *str)
    pm.check_size(len);
    memcpy(pm.c_str(), str, len);
    return len - 1;
+}
+
+/*
+ * Copy data into a pool memory buffer pm
+ *   Returns: length of data copied
+ */
+int pm_memcpy(POOLMEM **pm, const void *data, size_t n)
+{
+   *pm = check_pool_memory_size(*pm, n);
+   memcpy(*pm, data, n);
+   return n;
+}
+
+int pm_memcpy(POOLMEM *&pm, const void *data, size_t n)
+{
+   pm = check_pool_memory_size(pm, n);
+   memcpy(pm, data, n);
+   return n;
+}
+
+int pm_memcpy(POOLMEM *&pm, POOL_MEM &data, size_t n)
+{
+   pm = check_pool_memory_size(pm, n);
+   memcpy(pm, data.c_str(), n);
+   return n;
+}
+
+int pm_memcpy(POOL_MEM &pm, const void *data, size_t n)
+{
+   pm.check_size(n);
+   memcpy(pm.c_str(), data, n);
+   return n;
 }
 
 /* ==============  CLASS POOL_MEM   ============== */
@@ -607,7 +622,6 @@ int POOL_MEM::strcat(const char *str)
    memcpy(mem+pmlen, str, len);
    return pmlen + len - 1;
 }
-
 
 int POOL_MEM::strcpy(const char *str)
 {

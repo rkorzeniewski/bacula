@@ -42,7 +42,6 @@
 int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level);
 static int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest, DIGEST *signature_digest);
 bool encode_and_send_attributes(JCR *jcr, FF_PKT *ff_pkt, int &data_stream);
-static bool read_and_send_acl(JCR *jcr, int acltype, int stream);
 static bool crypto_session_start(JCR *jcr);
 static void crypto_session_end(JCR *jcr);
 static bool crypto_session_send(JCR *jcr, BSOCK *sd);
@@ -145,7 +144,8 @@ bool blast_data_to_storage_daemon(JCR *jcr, char *addr)
    
    start_heartbeat_monitor(jcr);
 
-   jcr->acl_text = get_pool_memory(PM_MESSAGE);
+   jcr->acl_data = get_pool_memory(PM_MESSAGE);
+   jcr->xattr_data = get_pool_memory(PM_MESSAGE);
 
    /* Subroutine save_file() is called for each file */
    if (!find_files(jcr, (FF_PKT *)jcr->ff, save_file, plugin_save)) {
@@ -155,7 +155,8 @@ bool blast_data_to_storage_daemon(JCR *jcr, char *addr)
 
    accurate_send_deleted_list(jcr);              /* send deleted list to SD  */
 
-   free_pool_memory(jcr->acl_text);
+   free_pool_memory(jcr->acl_data);
+   free_pool_memory(jcr->xattr_data);
 
    stop_heartbeat_monitor(jcr);
 
@@ -582,7 +583,7 @@ int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
       Dmsg1(300, "Saving Finder Info for \"%s\"\n", ff_pkt->fname);
       sd->fsend("%ld %d 0", jcr->JobFiles, STREAM_HFSPLUS_ATTRIBUTES);
       Dmsg1(300, "bfiled>stored:header %s\n", sd->msg);
-      memcpy(sd->msg, ff_pkt->hfsinfo.fndrinfo, 32);
+      pm_memcpy(sd->msg, ff_pkt->hfsinfo.fndrinfo, 32);
       sd->msglen = 32;
       if (digest) {
          crypto_digest_update(digest, (uint8_t *)sd->msg, sd->msglen);
@@ -595,17 +596,20 @@ int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
    }
 #endif
 
-   if (ff_pkt->flags & FO_ACL) {
-      /* Read access ACLs for files, dirs and links */
-      if (!read_and_send_acl(jcr, BACL_TYPE_ACCESS, STREAM_UNIX_ACCESS_ACL)) {
+   /*
+    * Save ACLs for anything not being a symlink.
+    */
+   if (ff_pkt->flags & FO_ACL && ff_pkt->type != FT_LNK) {
+      if (!build_acl_streams(jcr, ff_pkt))
          goto bail_out;
-      }
-      /* Directories can have default ACLs too */
-      if (ff_pkt->type == FT_DIREND && (BACL_CAP & BACL_CAP_DEFAULTS_DIR)) {
-         if (!read_and_send_acl(jcr, BACL_TYPE_DEFAULT, STREAM_UNIX_DEFAULT_ACL)) {
-            goto bail_out;
-         }
-      }
+   }
+
+   /*
+    * Save Extended Attributes for all files.
+    */
+   if (ff_pkt->flags & FO_XATTR) {
+      if (!build_xattr_streams(jcr, ff_pkt))
+         goto bail_out;
    }
 
    /* Terminate the signing digest and send it to the Storage daemon */
@@ -1019,61 +1023,6 @@ err:
    sd->msg = msgsave; /* restore bnet buffer */
    sd->msglen = 0;
    return 0;
-}
-
-/*
- * Read and send an ACL for the last encountered file.
- */
-static bool read_and_send_acl(JCR *jcr, int acltype, int stream)
-{
-#ifdef HAVE_ACL
-   BSOCK *sd = jcr->store_bsock;
-   POOLMEM *msgsave;
-   int len;
-#ifdef FD_NO_SEND_TEST
-   return true;
-#endif
-
-   len = bacl_get(jcr, acltype);
-   if (len < 0) {
-      Jmsg1(jcr, M_WARNING, 0, _("Error reading ACL of %s\n"), jcr->last_fname);
-      return true; 
-   }
-   if (len == 0) {
-      return true;                    /* no ACL */
-   }
-
-   /* Send header */
-   if (!sd->fsend("%ld %d 0", jcr->JobFiles, stream)) {
-      Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
-            sd->bstrerror());
-      return false;
-   }
-
-   /* Send the buffer to the storage deamon */
-   Dmsg2(400, "Backing up ACL type 0x%2x <%s>\n", acltype, jcr->acl_text);
-   msgsave = sd->msg;
-   sd->msg = jcr->acl_text;
-   sd->msglen = len + 1;
-   if (!sd->send()) {
-      sd->msg = msgsave;
-      sd->msglen = 0;
-      Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
-            sd->bstrerror());
-      return false;
-   }
-
-   jcr->JobBytes += sd->msglen;
-   sd->msg = msgsave;
-   if (!sd->signal(BNET_EOD)) {
-      Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
-            sd->bstrerror());
-      return false;
-   }
-
-   Dmsg1(200, "ACL of file: %s successfully backed up!\n", jcr->last_fname);
-#endif
-   return true;
 }
 
 bool encode_and_send_attributes(JCR *jcr, FF_PKT *ff_pkt, int &data_stream) 

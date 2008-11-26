@@ -331,7 +331,10 @@ public:
    /* File Daemon specific part of JCR */
    uint32_t num_files_examined;       /* files examined this job */
    POOLMEM *last_fname;               /* last file saved/verified */
-   POOLMEM *acl_text;                 /* text of ACL for backup */
+   POOLMEM *acl_data;                 /* data with ACLs for backup/restore */
+   uint32_t acl_data_len;             /* length of acl data buffer */
+   POOLMEM *xattr_data;               /* data with Extended Attributes for backup/restore */
+   uint32_t xattr_data_len;           /* length of xattr_data buffer */
    int32_t last_type;                 /* type of last file saved/verified */
    int incremental;                   /* set if incremental for SINCE */
    utime_t mtime;                     /* begin time for SINCE */
