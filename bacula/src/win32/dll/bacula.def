@@ -559,10 +559,10 @@ _Z9pm_strcpyPPcPKc
 _Z9pm_strcpyR8POOL_MEMPKc
 _Z9pm_strcpyRPcPKc
 _Z9pm_strcpyRPcR8POOL_MEM
-_Z9pm_memcpyPPcPKvj
-_Z9pm_memcpyR8POOL_MEMPKvj
-_Z9pm_memcpyRPcPKvj
-_Z9pm_memcpyRPcR8POOL_MEMj
+_Z9pm_memcpyPPcPKci
+_Z9pm_memcpyR8POOL_MEMPKci
+_Z9pm_memcpyRPcPKci
+_Z9pm_memcpyRPcR8POOL_MEMi
 _ZN8POOL_MEM10realloc_pmEi
 _ZN8POOL_MEM6strcatEPKc
 _ZN8POOL_MEM6strcpyEPKc
