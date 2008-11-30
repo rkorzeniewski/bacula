@@ -256,7 +256,8 @@ static bool acl_is_trivial(acl_t acl)
    /*
     * acl is trivial if it is empty.
     */
-   return (acl_entries(acl) == 0);
+//   return (acl_entries(acl) == 0);
+   return true;  /* Allow to compile -- KES */
 }
 #else /* FreeBSD, IRIX, OSF1, Linux */
 static bool acl_is_trivial(acl_t acl)
