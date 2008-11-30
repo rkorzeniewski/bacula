@@ -239,7 +239,7 @@ static acl_type_t bac_to_os_acltype(bacl_type acltype)
        * This should never happen, as the per os version function only tries acl
        * types supported on a certain platform.
        */
-      ostype = ACL_TYPE_NONE;
+      ostype = (acl_type_t)ACL_TYPE_NONE;
       break;
    }
 
