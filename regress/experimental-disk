@@ -11,6 +11,7 @@ export REGRESS_DEBUG
 rm -rf Testing
 svn update
 scripts/config_dart
+make setup
 nice ctest -D Experimental -R "^disk:"
 rtn=$?
 i=0

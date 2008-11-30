@@ -12,6 +12,7 @@ rm -rf Testing
 svn update
 make distclean
 scripts/config_dart
+make setup
 nice ctest -D Nightly -R "^disk:"
 rtn=$?
 i=0
