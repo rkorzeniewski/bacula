@@ -46,6 +46,12 @@
 #include "filed.h"
 #include "xattr.h"
 
+/* Klude to fix Darwin build -- KES */
+#ifdef HAVE_DARWIN_OS
+#undef HAVE_XATTR
+#endif
+
+
 /*
  * List of supported OSs.
  */
