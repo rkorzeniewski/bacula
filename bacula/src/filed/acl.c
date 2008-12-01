@@ -246,20 +246,11 @@ static acl_type_t bac_to_os_acltype(bacl_type acltype)
    return ostype;
 }
 
+#if !defined(HAVE_DARWIN_OS)
 /*
  * See if an acl is a trivial one (e.g. just the stat bits encoded as acl.)
  * There is no need to store those acls as we already store the stat bits too.
  */
-#if defined(HAVE_DARWIN_OS)
-static bool acl_is_trivial(acl_t acl)
-{
-   /*
-    * acl is trivial if it is empty.
-    */
-//   return (acl_entries(acl) == 0);
-   return true;  /* Allow to compile -- KES */
-}
-#else /* FreeBSD, IRIX, OSF1, Linux */
 static bool acl_is_trivial(acl_t acl)
 {
   /*
@@ -377,12 +368,11 @@ static int generic_get_acl_from_os(JCR *jcr, bacl_type acltype)
       }
 #endif
 
+#if !defined(HAVE_DARWIN_OS)
       /*
        * Make sure this is not just a trivial ACL.
        */
-      if ((acltype == BACL_TYPE_ACCESS ||
-           acltype == BACL_TYPE_EXTENDED) &&
-           acl_is_trivial(acl)) {
+      if (acltype == BACL_TYPE_ACCESS && acl_is_trivial(acl)) {
          /*
           * The ACLs simply reflect the (already known) standard permissions
           * So we don't send an ACL stream to the SD.
@@ -391,6 +381,7 @@ static int generic_get_acl_from_os(JCR *jcr, bacl_type acltype)
          acl_free(acl);
          return 0;
       }
+#endif
 
       if ((acl_text = acl_to_text(acl, NULL)) != NULL) {
          len = pm_strcpy(jcr->acl_data, acl_text);
@@ -534,12 +525,12 @@ static bool darwin_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
     */
    if ((len = generic_get_acl_from_os(jcr, BACL_TYPE_ACCESS)) < 0)
       return false;
-#endif
 
    if (len > 0) {
       if (!send_acl_stream(jcr, STREAM_ACL_DARWIN_ACCESS_ACL_T, len))
          return false;
    }
+#endif
 
    return true;
 }
