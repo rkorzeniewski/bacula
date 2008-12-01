@@ -46,12 +46,6 @@
 #include "filed.h"
 #include "xattr.h"
 
-/* Klude to fix Darwin build -- KES */
-#ifdef HAVE_DARWIN_OS
-#undef HAVE_XATTR
-#endif
-
-
 /*
  * List of supported OSs.
  */
@@ -80,14 +74,29 @@ bool parse_xattr_stream(JCR *jcr, int stream)
 #include <sys/xattr.h>
 #endif
 
-#if defined(HAVE_GETXATTR) && !defined(HAVE_LGETXATTR)
-#define lgetxattr getxattr
-#endif
-#if defined(HAVE_SETXATTR) && !defined(HAVE_LSETXATTR)
-#define lsetxattr setxattr
-#endif
-#if defined(HAVE_LISTXATTR) && !defined(HAVE_LLISTXATTR)
-#define llistxattr listxattr
+/*
+ * OSX doesn't have llistxattr, lgetxattr and lsetxattr but has
+ * listxattr, getxattr and setxattr with an extra options argument
+ * which mimics the l variants of the functions when we specify
+ * XATTR_NOFOLLOW as the options value.
+ */
+#if defined(HAVE_DARWIN_OS)
+   #define llistxattr(path, list, size) listxattr((path), (list), (size), XATTR_NOFOLLOW)
+   #define lgetxattr(path, name, value, size) getxattr((path), (name), (value), (size), XATTR_NOFOLLOW)
+   #define lsetxattr(path, name, value, size, flags) setxattr((path), (name), (value), (size), (flags), XATTR_NOFOLLOW)
+#else
+   /*
+    * Fallback to the non l-functions when those are not available.
+    */
+   #if defined(HAVE_GETXATTR) && !defined(HAVE_LGETXATTR)
+   #define lgetxattr getxattr
+   #endif
+   #if defined(HAVE_SETXATTR) && !defined(HAVE_LSETXATTR)
+   #define lsetxattr setxattr
+   #endif
+   #if defined(HAVE_LISTXATTR) && !defined(HAVE_LLISTXATTR)
+   #define llistxattr listxattr
+   #endif
 #endif
 
 /*
