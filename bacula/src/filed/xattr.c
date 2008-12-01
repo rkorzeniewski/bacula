@@ -82,7 +82,7 @@ bool parse_xattr_stream(JCR *jcr, int stream)
  */
 #if defined(HAVE_DARWIN_OS)
    #define llistxattr(path, list, size) listxattr((path), (list), (size), XATTR_NOFOLLOW)
-   #define lgetxattr(path, name, value, size) getxattr((path), (name), (value), (size), XATTR_NOFOLLOW)
+   #define lgetxattr(path, name, value, size) getxattr((path), (name), (value), (size), 0, XATTR_NOFOLLOW)
    #define lsetxattr(path, name, value, size, flags) setxattr((path), (name), (value), (size), (flags), XATTR_NOFOLLOW)
 #else
    /*
