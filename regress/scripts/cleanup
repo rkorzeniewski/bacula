@@ -9,6 +9,7 @@ rm -rf ${cwd}/tmp/sed_tmp ${cwd}/tmp/file-list
 rm -rf tmp/*
 rm -rf working/log tmp/TEST-*
 rm -rf working/*.bsr
+rm -rf working/*.trace
 rm -rf ${cwd}/tmp/disk-changer
 find . -name "gigaslam.gif" -exec rm -f {} \;
 
