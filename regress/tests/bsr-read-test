@@ -25,12 +25,7 @@ cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 messages
 @$out ${cwd}/tmp/log1.out
 label storage=DiskChanger volume=ChangerVolume001 slot=1 Pool=Full drive=0
-label storage=DiskChanger volume=ChangerVolume002 slot=2 Pool=Full drive=0
 label storage=File volume=TestVolume001 pool=Default
-label storage=File volume=TestVolume002 pool=Default
-label storage=File volume=TestVolume003 pool=Default
-update Volume=TestVolume001 maxvolbytes=120000
-update Volume=TestVolume002 maxvolbytes=120000
 run job=$JobName yes
 wait
 messages
@@ -58,6 +53,9 @@ messages
 run job=$JobName level=Full yes
 wait
 messages
+run job=$JobName level=Full yes
+wait
+messages
 @# 
 @# now do a restore
 @#
@@ -68,18 +66,9 @@ sql
 @# print the JobMedia records
 select * from JobMedia;
 
-restore
-3
-1
-mark *
-done
-yes
-wait
-messages
 @# 
-@# now do a restore of the second job (to compare offset)
+@# now do a restore
 @#
-@$out ${cwd}/tmp/log3.out
 restore
 3
 2
@@ -88,10 +77,30 @@ done
 yes
 wait
 messages
+@# 
+@# now do a restore
+@#
+@$out ${cwd}/tmp/log3.out
+restore
+3
+1
+mark *
+done
+yes
+wait
+messages
+restore all
+3
+3
+done
+yes
+wait
+messages
 @$out
-update volume=TestVolume003 volstatus=Used
+update volume=TestVolume001 volstatus=Used
 run job=migrate-job jobid=1 yes
 run job=migrate-job jobid=2 yes
+run job=migrate-job jobid=3 yes
 wait
 messages
 quit
