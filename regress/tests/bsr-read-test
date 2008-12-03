@@ -2,7 +2,7 @@
 #
 # Run a backup of a small file, then do several other backups
 #   to expand the size of a volume.  Then do a restore of the first
-#   file, and make sure it does read to the end of the disk.
+#   file, and make sure it doesn't read to the end of the disk.
 #
 TestName="bsr-read-test"
 JobName=bsr-read
@@ -10,8 +10,10 @@ JobName=bsr-read
 
 scripts/cleanup
 scripts/copy-test-confs
-echo "${cwd}/build/configure" >${cwd}/tmp/file-list
-
+cp ${cwd}/build/configure ${cwd}/tmp
+cat ${cwd}/build/configure >> ${cwd}/tmp/configure
+echo "${cwd}/tmp/configure" >${cwd}/tmp/file-list
+echo "${cwd}/build" >>${cwd}/tmp/file-list
 
 
 change_jobname CompressedTest $JobName
@@ -23,7 +25,9 @@ messages
 @$out ${cwd}/tmp/log1.out
 label storage=File volume=TestVolume001
 label storage=File volume=TestVolume002
+label storage=File volume=TestVolume003
 update Volume=TestVolume001 maxvolbytes=120000
+update Volume=TestVolume002 maxvolbytes=120000
 run job=$JobName yes
 wait
 messages
@@ -48,12 +52,15 @@ messages
 run job=$JobName level=Full yes
 wait
 messages
+run job=$JobName level=Full yes
+wait
+messages
 @# 
 @# now do a restore
 @#
 @$out ${cwd}/tmp/log2.out
-setdebug level=30 fd     
-setdebug level=500 storage=File
+setdebug level=30 trace=1 fd
+setdebug level=500 trace=1 storage=File
 sql
 @# print the JobMedia records
 select * from JobMedia;
@@ -61,6 +68,18 @@ select * from JobMedia;
 restore
 3
 1
+mark *
+done
+yes
+wait
+messages
+@# 
+@# now do a restore of the second job (to compare offset)
+@#
+@$out ${cwd}/tmp/log3.out
+restore
+3
+2
 mark *
 done
 yes
