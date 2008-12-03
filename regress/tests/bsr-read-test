@@ -11,11 +11,11 @@ JobName=bsr-read
 scripts/cleanup
 scripts/copy-migration-confs
 scripts/prepare-disk-changer
+
 cp ${cwd}/build/configure ${cwd}/tmp
 cat ${cwd}/build/configure >> ${cwd}/tmp/configure
 echo "${cwd}/tmp/configure" >${cwd}/tmp/file-list
 echo "${cwd}/build" >>${cwd}/tmp/file-list
-
 
 change_jobname NightlySave $JobName
 start_test
@@ -24,6 +24,8 @@ cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @$out /dev/null
 messages
 @$out ${cwd}/tmp/log1.out
+label storage=DiskChanger volume=ChangerVolume001 slot=1 Pool=Full drive=0
+label storage=DiskChanger volume=ChangerVolume002 slot=2 Pool=Full drive=0
 label storage=File volume=TestVolume001 pool=Default
 label storage=File volume=TestVolume002 pool=Default
 label storage=File volume=TestVolume003 pool=Default
@@ -87,8 +89,6 @@ yes
 wait
 messages
 @$out
-label storage=DiskChanger volume=ChangerVolume001 slot=1 Pool=Full drive=0
-label storage=DiskChanger volume=ChangerVolume002 slot=2 Pool=Full drive=0
 update volume=TestVolume003 volstatus=Used
 run job=migrate-job jobid=1 yes
 run job=migrate-job jobid=2 yes
@@ -104,4 +104,37 @@ stop_bacula
 check_two_logs
 # check_restore_tmp_build_diff
 dstat=0
+
+perl -ne '
+sub check_bloc {   
+  $nb = $last_bloc - $last_bsr_bloc;
+  if ($nb > 65000) {
+     print "ERROR: read too much bytes $nb\n";
+  }
+}
+sub print_stat {
+     print "$last_job\nlast_bsr_bloc=$last_bsr_bloc last_bloc_read=$last_bloc\n";
+     check_bloc();
+     $last_bsr_bloc = $last_bloc=0;
+}
+
+if (/dircmd.c.+(JobId=\d+ job=\S+) .+client_name=.+-fd/) {
+  if ($last_job) {
+      print_stat();
+  }
+}
+
+$last_job=$1      if /dircmd.c.+(JobId=\d+ job=\S+)/;
+$last_bsr_bloc=$1 if /fd_cmds.c:.+VolBlock=\d+-(\d+)/;
+$last_bloc=$1     if /read_record.c.+file:block=\d+:(\d+)/;
+END { 
+  print_stat();
+}' working/*-sd.trace > tmp/result
+
+grep ERROR tmp/result > /dev/null
+if [ $? -eq 0 ]; then
+    rstat=2
+    cat tmp/result
+fi
+
 end_test
