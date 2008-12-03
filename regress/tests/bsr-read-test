@@ -9,23 +9,24 @@ JobName=bsr-read
 . scripts/functions
 
 scripts/cleanup
-scripts/copy-test-confs
+scripts/copy-migration-confs
+scripts/prepare-disk-changer
 cp ${cwd}/build/configure ${cwd}/tmp
 cat ${cwd}/build/configure >> ${cwd}/tmp/configure
 echo "${cwd}/tmp/configure" >${cwd}/tmp/file-list
 echo "${cwd}/build" >>${cwd}/tmp/file-list
 
 
-change_jobname CompressedTest $JobName
+change_jobname NightlySave $JobName
 start_test
 
 cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @$out /dev/null
 messages
 @$out ${cwd}/tmp/log1.out
-label storage=File volume=TestVolume001
-label storage=File volume=TestVolume002
-label storage=File volume=TestVolume003
+label storage=File volume=TestVolume001 pool=Default
+label storage=File volume=TestVolume002 pool=Default
+label storage=File volume=TestVolume003 pool=Default
 update Volume=TestVolume001 maxvolbytes=120000
 update Volume=TestVolume002 maxvolbytes=120000
 run job=$JobName yes
@@ -86,6 +87,13 @@ yes
 wait
 messages
 @$out
+label storage=DiskChanger volume=ChangerVolume001 slot=1 Pool=Full drive=0
+label storage=DiskChanger volume=ChangerVolume002 slot=2 Pool=Full drive=0
+update volume=TestVolume003 volstatus=Used
+run job=migrate-job jobid=1 yes
+run job=migrate-job jobid=2 yes
+wait
+messages
 quit
 END_OF_DATA
 
