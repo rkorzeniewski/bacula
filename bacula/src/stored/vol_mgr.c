@@ -681,9 +681,7 @@ bool DCR::can_i_write_volume()
 {
    VOLRES *vol;
 
-   lock_read_volumes();
    vol = find_read_volume(VolumeName);
-   unlock_read_volumes();
    if (vol) {
       Dmsg1(100, "Found in read list; cannot write vol=%s\n", VolumeName);
       return false;
