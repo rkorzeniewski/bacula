@@ -115,6 +115,7 @@ public:
    char *subsys_directory;            /* SubsysDirectory */
    MSGS *messages;                    /* Daemon message handler */
    uint32_t MaxConcurrentJobs;        /* Max concurrent jobs for whole director */
+   uint32_t MaxConsoleConnect;        /* Max concurrent console session */
    utime_t FDConnectTimeout;          /* timeout for connect in seconds */
    utime_t SDConnectTimeout;          /* timeout in seconds */
    utime_t heartbeat_interval;        /* Interval to send heartbeats */
