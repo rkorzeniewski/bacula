@@ -78,8 +78,8 @@ void *connect_thread(void *arg)
    pthread_detach(pthread_self());
    set_jcr_in_tsd(INVALID_JCR);
 
-   /* Permit 20 console connections */
-   bnet_thread_server((dlist*)arg, 20, &ua_workq, handle_UA_client_request);
+   /* Permit MaxConsoleConnect console connections */
+   bnet_thread_server((dlist*)arg, director->MaxConsoleConnect, &ua_workq, handle_UA_client_request);
    return NULL;
 }
 
