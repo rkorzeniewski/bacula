@@ -20,6 +20,7 @@ if [ ! -d ${BACULA_SOURCE} ] ; then
    exit 1
 fi
 
+# we build and setup binaries to the $cwd/bin directory not $bin
 rm -rf build bin
 # Copy new source
 echo "Copying source from ${BACULA_SOURCE}"

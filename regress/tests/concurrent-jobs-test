@@ -16,7 +16,7 @@ if test -c /dev/urandom ; then
    dd if=/dev/urandom of=${cwd}/tmp/largefile bs=1024 count=55000
 else
    echo "Creating a 56MB file with bacula-dir data ..."
-   dd if=bin/bacula-dir of=${cwd}/tmp/1 bs=1024 count=1000
+   dd if=$bin/bacula-dir of=${cwd}/tmp/1 bs=1024 count=1000
    cat ${cwd}/tmp/1 ${cwd}/tmp/1 ${cwd}/tmp/1 ${cwd}/tmp/1 ${cwd}/tmp/1 >${cwd}/tmp/2
    rm -f ${cwd}/tmp/1
    cat ${cwd}/tmp/2 ${cwd}/tmp/2 ${cwd}/tmp/2 ${cwd}/tmp/2 ${cwd}/tmp/2 >>${cwd}/tmp/3

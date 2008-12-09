@@ -30,13 +30,7 @@ wait
 messages
 quit
 END_OF_DATA
-if test "$debug" -eq 1 ; then
-  bin/bacula start
-  cat ${cwd}/tmp/bconcmds | bin/bconsole -c bin/bconsole.conf
-else
-  bin/bacula start 2>&1 >/dev/null
-  cat ${cwd}/tmp/bconcmds | bin/bconsole -c bin/bconsole.conf  2>&1 >/dev/null
-fi
+run_bacula
 
 scripts/check_for_zombie_jobs storage=DDS-4
 echo "Backup 1 done"
@@ -56,13 +50,8 @@ wait
 messages
 quit
 END_OF_DATA
-if test "$debug" -eq 1 ; then
-  bin/bacula start
-  cat ${cwd}/tmp/bconcmds | bin/bconsole -c bin/bconsole.conf
-else
-  bin/bacula start 2>&1 >/dev/null
-  cat ${cwd}/tmp/bconcmds | bin/bconsole -c bin/bconsole.conf  2>&1 >/dev/null
-fi
+
+run_bacula
 
 scripts/check_for_zombie_jobs storage=DDS-4
 echo "Backup 2 done"
@@ -80,13 +69,8 @@ wait
 messages
 quit
 END_OF_DATA
-if test "$debug" -eq 1 ; then
-  bin/bacula start
-  cat ${cwd}/tmp/bconcmds | bin/bconsole -c bin/bconsole.conf
-else
-  bin/bacula start 2>&1 >/dev/null
-  cat ${cwd}/tmp/bconcmds | bin/bconsole -c bin/bconsole.conf  2>&1 >/dev/null
-fi
+
+run_bacula
 
 scripts/check_for_zombie_jobs storage=DDS-4
 echo "Backup 3 done"
@@ -104,13 +88,7 @@ wait
 messages
 quit
 END_OF_DATA
-if test "$debug" -eq 1 ; then
-  bin/bacula start
-  cat ${cwd}/tmp/bconcmds | bin/bconsole -c bin/bconsole.conf
-else
-  bin/bacula start 2>&1 >/dev/null
-  cat ${cwd}/tmp/bconcmds | bin/bconsole -c bin/bconsole.conf  2>&1 >/dev/null
-fi
+run_bacula
 
 scripts/check_for_zombie_jobs storage=DDS-4
 echo "Backup 4 done"

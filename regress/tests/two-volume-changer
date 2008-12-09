@@ -54,7 +54,7 @@ run_bacula
 check_for_zombie_jobs storage=DDS-4
 stop_bacula
 
-bin/${AUTOCHANGER_SCRIPT} ${AUTOCHANGER} unload $SLOT2 ${TAPE_DRIVE} 0
+$scripts/${AUTOCHANGER_SCRIPT} ${AUTOCHANGER} unload $SLOT2 ${TAPE_DRIVE} 0
 
 cat <<END_OF_DATA >tmp/bconcmds
 @$out /dev/null

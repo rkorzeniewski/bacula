@@ -93,7 +93,7 @@ stop_bacula
 check_two_logs
 
 scripts/check_for_zombie_jobs storage=DDS-4
-bin/bacula stop 2>&1 >/dev/null
+stop_bacula
 for i in `cat ${cwd}/tmp/restore2-list`; do
    diff $i ${cwd}/tmp/bacula-restores$i
    if [ $? != 0 ] ; then

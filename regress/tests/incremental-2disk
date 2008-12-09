@@ -9,14 +9,7 @@ TestName="incremental-2disk"
 JobName=Inc2disk
 . scripts/functions
 
-
-stop_bacula
-cd bin
-./drop_bacula_tables >/dev/null 2>&1
-./make_bacula_tables >/dev/null 2>&1
-./grant_bacula_privileges 2>&1 >/dev/null
-cd ..
-
+scripts/cleanup
 scripts/copy-2disk-confs
 scripts/prepare-disk-changer
 
