@@ -20,6 +20,7 @@ CFLAGS="-g -O2 -Wall" \
     --with-subsys-dir=${1}/working \
     --with-plugindir=${1}/bin/plugins \
     --enable-smartalloc \
+    --enable-lockmgr \
     --disable-readline \
     --with-working-dir=${1}/working \
     --with-archivedir=${1}/tmp \
