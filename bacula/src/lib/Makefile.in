@@ -34,7 +34,7 @@ INCLUDE_FILES = ../baconfig.h ../bacula.h ../bc_types.h \
 		smartall.h status.h tls.h tree.h var.h \
 		waitq.h watchdog.h workq.h \
 		parse_conf.h \
-		pythonlib.h
+		pythonlib.h lockmgr.h
 
 #
 # libbac
@@ -49,7 +49,7 @@ LIBBAC_SRCS = attr.c base64.c berrno.c bsys.c bget_msg.c \
 	      rwlock.c scan.c serial.c sha1.c \
 	      signal.c smartall.c rblist.c tls.c tree.c \
 	      util.c var.c watchdog.c workq.c btimers.c \
-	      address_conf.c breg.c htable.c
+	      address_conf.c breg.c htable.c lockmgr.c
 LIBBAC_OBJS = $(LIBBAC_SRCS:.c=$(DEFAULT_OBJECT_TYPE))
 LIBBAC_LT_CURRENT = 1
 LIBBAC_LT_REVISION = 0
@@ -139,6 +139,13 @@ libbacpy.la: Makefile $(LIBBACPY_OBJS)
 Makefile: $(srcdir)/Makefile.in $(topdir)/config.status
 	cd $(topdir) \
 	  && CONFIG_FILES=$(thisdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
+
+lockmgr_test: Makefile
+	rm -f lockmgr.o
+	$(CXX) -D _TEST_IT $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE)  $(CFLAGS) lockmgr.c
+	$(LIBTOOL_LINK) $(CXX) $(LDFLAGS) -L. -o $@ lockmgr.o $(LIBS) $(DLIB) -lbac $(OPENSSL_LIBS) -lm
+	rm -f lockmgr.o
+	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) lockmgr.c
 
 rwlock_test: Makefile
 	rm -f rwlock.o

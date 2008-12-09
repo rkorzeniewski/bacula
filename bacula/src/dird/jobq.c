@@ -119,11 +119,7 @@ int jobq_destroy(jobq_t *jq)
    if (jq->valid != JOBQ_VALID) {
       return EINVAL;
    }
-   if ((stat = pthread_mutex_lock(&jq->mutex)) != 0) {
-      berrno be;
-      Jmsg1(NULL, M_ERROR, 0, _("pthread_mutex_lock: ERR=%s\n"), be.bstrerror(stat));
-      return stat;
-   }
+   P(jq->mutex);
    jq->valid = 0;                      /* prevent any more operations */
 
    /* 
@@ -135,7 +131,7 @@ int jobq_destroy(jobq_t *jq)
          if ((stat = pthread_cond_broadcast(&jq->work)) != 0) {
             berrno be;
             Jmsg1(NULL, M_ERROR, 0, _("pthread_cond_broadcast: ERR=%s\n"), be.bstrerror(stat));
-            pthread_mutex_unlock(&jq->mutex);
+            V(jq->mutex);
             return stat;
          }
       }
@@ -143,16 +139,12 @@ int jobq_destroy(jobq_t *jq)
          if ((stat = pthread_cond_wait(&jq->work, &jq->mutex)) != 0) {
             berrno be;
             Jmsg1(NULL, M_ERROR, 0, _("pthread_cond_wait: ERR=%s\n"), be.bstrerror(stat));
-            pthread_mutex_unlock(&jq->mutex);
+            V(jq->mutex);
             return stat;
          }
       }
    }
-   if ((stat = pthread_mutex_unlock(&jq->mutex)) != 0) {
-      berrno be;
-      Jmsg1(NULL, M_ERROR, 0, _("pthread_mutex_unlock: ERR=%s\n"), be.bstrerror(stat));
-      return stat;
-   }
+   V(jq->mutex);
    stat  = pthread_mutex_destroy(&jq->mutex);
    stat1 = pthread_cond_destroy(&jq->work);
    stat2 = pthread_attr_destroy(&jq->attr);
@@ -254,12 +246,7 @@ int jobq_add(jobq_t *jq, JCR *jcr)
       return stat;
    }
 
-   if ((stat = pthread_mutex_lock(&jq->mutex)) != 0) {
-      berrno be;
-      Jmsg1(jcr, M_ERROR, 0, _("pthread_mutex_lock: ERR=%s\n"), be.bstrerror(stat));
-      free_jcr(jcr);                    /* release jcr */
-      return stat;
-   }
+   P(jq->mutex);
 
    if ((item = (jobq_item_t *)malloc(sizeof(jobq_item_t))) == NULL) {
       free_jcr(jcr);                    /* release jcr */
@@ -296,7 +283,7 @@ int jobq_add(jobq_t *jq, JCR *jcr)
    /* Ensure that at least one server looks at the queue. */
    stat = start_server(jq);
 
-   pthread_mutex_unlock(&jq->mutex);
+   V(jq->mutex);
    Dmsg0(2300, "Return jobq_add\n");
    return stat;
 }
@@ -321,12 +308,7 @@ int jobq_remove(jobq_t *jq, JCR *jcr)
       return EINVAL;
    }
 
-   if ((stat = pthread_mutex_lock(&jq->mutex)) != 0) {
-      berrno be;
-      Jmsg1(NULL, M_ERROR, 0, _("pthread_mutex_lock: ERR=%s\n"), be.bstrerror(stat));
-      return stat;
-   }
-
+   P(jq->mutex);
    foreach_dlist(item, jq->waiting_jobs) {
       if (jcr == item->jcr) {
          found = true;
@@ -334,7 +316,7 @@ int jobq_remove(jobq_t *jq, JCR *jcr)
       }
    }
    if (!found) {
-      pthread_mutex_unlock(&jq->mutex);
+      V(jq->mutex);
       Dmsg2(2300, "jobq_remove jobid=%d jcr=0x%x not in wait queue\n", jcr->JobId, jcr);
       return EINVAL;
    }
@@ -346,7 +328,7 @@ int jobq_remove(jobq_t *jq, JCR *jcr)
 
    stat = start_server(jq);
 
-   pthread_mutex_unlock(&jq->mutex);
+   V(jq->mutex);
    Dmsg0(2300, "Return jobq_remove\n");
    return stat;
 }
@@ -403,11 +385,7 @@ void *jobq_server(void *arg)
 
    set_jcr_in_tsd(INVALID_JCR);
    Dmsg0(2300, "Start jobq_server\n");
-   if ((stat = pthread_mutex_lock(&jq->mutex)) != 0) {
-      berrno be;
-      Jmsg1(NULL, M_ERROR, 0, _("pthread_mutex_lock: ERR=%s\n"), be.bstrerror(stat));
-      return NULL;
-   }
+   P(jq->mutex);
    jq->num_workers++;
 
    for (;;) {
@@ -434,7 +412,7 @@ void *jobq_server(void *arg)
                /* This shouldn't happen */
                Dmsg0(2300, "This shouldn't happen\n");
                jq->num_workers--;
-               pthread_mutex_unlock(&jq->mutex);
+               V(jq->mutex);
                return NULL;
             }
             break;
@@ -453,7 +431,7 @@ void *jobq_server(void *arg)
             Dmsg0(2300, "ready queue not empty start server\n");
             if (start_server(jq) != 0) {
                jq->num_workers--;
-               pthread_mutex_unlock(&jq->mutex);
+               V(jq->mutex);
                return NULL;
             }
          }

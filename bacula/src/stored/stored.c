@@ -664,6 +664,7 @@ void terminate_stored(int sig)
    cleanup_crypto();
    term_reservations_lock();
    close_memory_pool();
+   lmgr_cleanup_main();
 
    sm_dump(false);                    /* dump orphaned buffers */
    exit(sig);

@@ -319,8 +319,6 @@ _Z15escape_filenamePKc
 _Z15read_state_filePcPKci
 _Z16write_state_filePcPKci
 _Z20make_unique_filenamePPciS_
-_Z2_pPP16pthread_mutex_t_
-_Z2_vPP16pthread_mutex_t_
 _Z4dropPcS_
 _Z5bfreePv
 _Z6bfgetsPciP6_iobuf
@@ -754,6 +752,10 @@ _Z14start_watchdogv
 _Z17register_watchdogP12s_watchdog_t
 _Z19unregister_watchdogP12s_watchdog_t
 watchdog_thread
+
+; lockmgr.o
+_Z6lmgr_pPP16pthread_mutex_t_
+_Z6lmgr_vPP16pthread_mutex_t_
 
 console_command DATA
 plugin_list DATA

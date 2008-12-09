@@ -91,7 +91,8 @@ LIB_OBJS = \
 	$(OBJDIR)/util.o \
 	$(OBJDIR)/var.o \
 	$(OBJDIR)/watchdog.o \
-	$(OBJDIR)/workq.o
+	$(OBJDIR)/workq.o \
+	$(OBJDIR)/lockmgr.o
 
 DLL_OBJS = \
 	$(COMPAT_OBJS) $(FIND_OBJS) $(LIB_OBJS)
