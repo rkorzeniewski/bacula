@@ -34,12 +34,11 @@ quit
 END_OF_DATA
 
 
-bin/bacula start
-cat ${cwd}/tmp/bconcmds | bin/bconsole -c bin/bconsole.conf > /dev/null
+run_bacula
 stop_bacula
 
-export dstat=0
-export bstat=0
-export rstat=0
+dstat=0
+bstat=0
+rstat=0
 
 end_test

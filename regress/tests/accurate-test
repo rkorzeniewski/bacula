@@ -164,7 +164,7 @@ rm -rf ${cwd}/tmp/bacula-restores
 p Check with bls
 ################################################################
 
-${cwd}/bin/bls -c ${cwd}/bin/bacula-sd.conf -V 'TestVolume001' FileStorage > tmp/bls.out
+$bin/bls -c bin/bacula-sd.conf -V 'TestVolume001' FileStorage > tmp/bls.out
 grep -- '----' tmp/bls.out | grep xxx > /dev/null
 if [ $? != 0 ] ; then
     bstat=2
@@ -290,7 +290,7 @@ echo "volume=TestVolume001" >tmp/bscan.bsr
 
 bscan_libdbi
 
-${cwd}/bin/bscan -c ${cwd}/bin/bacula-sd.conf $BSCANLIBDBI -n regress -u regress -m -s -b tmp/bscan.bsr FileStorage 2>&1 > ${cwd}/tmp/bscan.log
+$bin/bscan -c bin/bacula-sd.conf $BSCANLIBDBI -n regress -u regress -m -s -b tmp/bscan.bsr FileStorage 2>&1 > ${cwd}/tmp/bscan.log
 
 cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @$out ${cwd}/tmp/log1.out
