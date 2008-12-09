@@ -9,6 +9,6 @@ sed -i "s:BACSDBIN=$cwd/bin:BACSDBIN=$bin:" $SCR-sd > tmp/1
 mv tmp/1 $SCR-sd
 sed -i "s:BACFDBIN=$cwd/bin:BACFDBIN=$bin:" $SCR-fd > tmp/1
 mv tmp/1 $SCR-fd
-chmod -x $cwd/bin/bacula-{fd,sd,dir} $cwd/bin/bconsole    
+chmod -x $cwd/bin/bacula-fd $cwd/bin/bacula-sd $cwd/bin/bacula-dir $cwd/bin/bconsole    
 chmod +x $SCR-*
 
