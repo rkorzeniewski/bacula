@@ -870,6 +870,8 @@ static void terminate_console(int sig)
       con_term();
    }
    (void)WSACleanup();               /* Cleanup Windows sockets */
+   lmgr_cleanup_main();
+
    if (sig != 0) {
       exit(1);
    }

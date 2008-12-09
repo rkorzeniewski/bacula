@@ -76,6 +76,8 @@ const char *get_signal_name(int sig)
 extern void _dbg_print_jcr(FILE *fp);
 /* defined in plugin.c */
 extern void _dbg_print_plugin(FILE *fp);
+/* defined in lockmgr.c */
+extern void dbg_print_lock(FILE *fp);
 
 /*
  * !!! WARNING !!! 
@@ -102,6 +104,7 @@ static void dbg_print_bacula()
    _dbg_print_jcr(fp);
 
    _dbg_print_plugin(fp);
+   dbg_print_lock(fp);
 
    if (fp != stderr) {
       fclose(fp);
@@ -230,6 +233,7 @@ extern "C" void signal_handler(int sig)
 void init_stack_dump(void)
 {
    main_pid = getpid();               /* save main thread's pid */
+   lmgr_init_thread();                /* initialize the lockmanager stack */
 }
 
 /*

@@ -36,6 +36,7 @@
  */
 
 #include "smartall.h"
+#include "lockmgr.h"
 #include "alist.h"
 #include "dlist.h"
 #include "rblist.h"

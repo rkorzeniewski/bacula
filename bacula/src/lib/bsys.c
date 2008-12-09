@@ -375,69 +375,6 @@ int b_strerror(int errnum, char *buf, size_t bufsiz)
     return stat;
 }
 
-/*
- * These are mutex routines that do error checking
- *  for deadlock and such.  Normally not turned on.
- */
-#ifdef DEBUG_MUTEX
-void _p(char *file, int line, pthread_mutex_t *m)
-{
-   int errstat;
-   if ((errstat = pthread_mutex_trylock(m))) {
-      e_msg(file, line, M_ERROR, 0, _("Possible mutex deadlock.\n"));
-      /* We didn't get the lock, so do it definitely now */
-      if ((errstat=pthread_mutex_lock(m))) {
-         berrno be;
-         e_msg(file, line, M_ABORT, 0, _("Mutex lock failure. ERR=%s\n"),
-               be.bstrerror(errstat));
-      } else {
-         e_msg(file, line, M_ERROR, 0, _("Possible mutex deadlock resolved.\n"));
-      }
-
-   }
-}
-
-void _v(char *file, int line, pthread_mutex_t *m)
-{
-   int errstat;
-
-   /* Note, this trylock *should* fail if the mutex is locked */
-   if ((errstat=pthread_mutex_trylock(m)) == 0) {
-      berrno be;
-      e_msg(file, line, M_ERROR, 0, _("Mutex unlock not locked. ERR=%s\n"),
-           be.bstrerror(errstat));
-    }
-    if ((errstat=pthread_mutex_unlock(m))) {
-       berrno be;
-       e_msg(file, line, M_ABORT, 0, _("Mutex unlock failure. ERR=%s\n"),
-              be.bstrerror(errstat));
-    }
-}
-
-#else
-
-void _p(pthread_mutex_t *m)
-{
-   int errstat;
-   if ((errstat=pthread_mutex_lock(m))) {
-      berrno be;
-      e_msg(__FILE__, __LINE__, M_ABORT, 0, _("Mutex lock failure. ERR=%s\n"),
-            be.bstrerror(errstat));
-   }
-}
-
-void _v(pthread_mutex_t *m)
-{
-   int errstat;
-   if ((errstat=pthread_mutex_unlock(m))) {
-      berrno be;
-      e_msg(__FILE__, __LINE__, M_ABORT, 0, _("Mutex unlock failure. ERR=%s\n"),
-            be.bstrerror(errstat));
-   }
-}
-
-#endif /* DEBUG_MUTEX */
-
 #ifdef DEBUG_MEMSET
 /* These routines are not normally turned on */
 #undef memset

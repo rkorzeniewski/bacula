@@ -418,22 +418,6 @@ typedef int64_t   boffset_t;
 typedef off_t     boffset_t;
 #endif
 
-#if defined(DEBUG_MUTEX)
-extern void _p(char *file, int line, pthread_mutex_t *m);
-extern void _v(char *file, int line, pthread_mutex_t *m);
-
-#define P(x) _p(__FILE__, __LINE__, &(x))
-#define V(x) _v(__FILE__, __LINE__, &(x))
-
-#else
-extern void _p(pthread_mutex_t *m);
-extern void _v(pthread_mutex_t *m);
-
-#define P(x) _p(&(x))
-#define V(x) _v(&(x))
-
-#endif /* DEBUG_MUTEX */
-
 /* These probably should be subroutines */
 #define Pw(x) \
    do { int errstat; if ((errstat=rwl_writelock(&(x)))) \

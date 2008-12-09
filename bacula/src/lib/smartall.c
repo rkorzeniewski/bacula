@@ -45,6 +45,8 @@
 
 */
 
+#define _LOCKMGR_COMPLIANT
+
 #include "bacula.h"
 /* Use the real routines here */
 #undef realloc

@@ -385,6 +385,7 @@ void terminate_dird(int sig)
    term_msg();                        /* terminate message handler */
    cleanup_crypto();
    close_memory_pool();               /* release free memory in pool */
+   lmgr_cleanup_main();
    sm_dump(false);
    exit(sig);
 }
