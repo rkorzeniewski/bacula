@@ -30,7 +30,7 @@ start_test
 when1=`perl -MPOSIX -e "print strftime('%F %T', localtime(time+30))"`
 when2=`perl -MPOSIX -e "print strftime('%F %T', localtime(time+45))"`
 
-clientname=`awk '/Name = .*-fd/ { if (!ok) { print $3 ; ok=1 } }' $bin/bacula-dir.conf`
+clientname=`awk '/Name = .*-fd/ { if (!ok) { print $3 ; ok=1 } }' bin/bacula-dir.conf`
 
 # Catalog record for cleaning tape "CLN01" successfully created.
 # CLN01      | Cleaning
