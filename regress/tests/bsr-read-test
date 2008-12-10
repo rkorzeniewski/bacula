@@ -118,7 +118,7 @@ perl -ne '
 sub check_bloc {   
   $nb = $last_bloc - $last_bsr_bloc;
   if ($nb > 65000) {
-     print "ERROR: read too much bytes $nb\n";
+     print "ERROR: read too many bytes $nb\n";
   }
 }
 sub print_stat {
