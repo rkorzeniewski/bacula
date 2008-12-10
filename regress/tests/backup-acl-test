@@ -38,9 +38,12 @@ setfacl -m user:nobody:--- $d/bconsole
 setfacl -m group:nogroup:--x $d/bconsole
 cp ${cwd}/bin/bconsole $d/testdir
 cp ${cwd}/bin/bconsole $d/other
-#setfattr -n bacula -v rulez $d/other
+setfattr -n bacula.test -v rulez $d/other
 
-(cd $cwd/build; getfacl -R acl > $cwd/tmp/org)
+( cd $cwd/build
+  getfacl -R acl > $cwd/tmp/org
+  getfattr -R acl > $cwd/tmp/attr.org
+)
 
 change_jobname Client1 $JobName
 start_test
@@ -69,12 +72,22 @@ run_bacula
 check_for_zombie_jobs storage=File
 stop_bacula
 
-(cd $cwd/tmp/bacula-restores/$cwd/build; getfacl -R acl > $cwd/tmp/new)
+( cd $cwd/tmp/bacula-restores/$cwd/build
+  getfacl -R acl > $cwd/tmp/new
+  getfattr -R acl > $cwd/tmp/attr.new
+)
 
 diff $cwd/tmp/org $cwd/tmp/new
 if [ $? -ne 0 ]; then
    rstat=1
 fi
+
+diff $cwd/tmp/attr.org $cwd/tmp/attr.new
+if [ $? -ne 0 ]; then
+   rstat=1
+fi
+
+rm -rf $d
 
 check_two_logs
 check_restore_diff
