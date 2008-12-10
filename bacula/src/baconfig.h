@@ -255,43 +255,43 @@ void InitWinAPIWrapper();
  * 1999 down. So the two naming spaces grows towards each other.
  */
 #define STREAM_ACL_AIX_TEXT                1000    /* AIX specific string representation from acl_get */
-#define STREAM_ACL_DARWIN_ACCESS_ACL_T     1001    /* Darwin (OSX) specific acl_t string representation
+#define STREAM_ACL_DARWIN_ACCESS_ACL     1001    /* Darwin (OSX) specific acl_t string representation
                                                     * from acl_to_text (POSIX acl)
                                                     */
-#define STREAM_ACL_FREEBSD_DEFAULT_ACL_T   1002    /* FreeBSD specific acl_t string representation
+#define STREAM_ACL_FREEBSD_DEFAULT_ACL   1002    /* FreeBSD specific acl_t string representation
                                                     * from acl_to_text (POSIX acl) for default acls.
                                                     */
-#define STREAM_ACL_FREEBSD_ACCESS_ACL_T    1003    /* FreeBSD specific acl_t string representation
+#define STREAM_ACL_FREEBSD_ACCESS_ACL    1003    /* FreeBSD specific acl_t string representation
                                                     * from acl_to_text (POSIX acl) for access acls.
                                                     */
 #define STREAM_ACL_HPUX_ACL_ENTRY          1004    /* HPUX specific acl_entry string representation
                                                     * from acltostr (POSIX acl)
                                                     */
-#define STREAM_ACL_IRIX_DEFAULT_ACL_T      1005    /* IRIX specific acl_t string representation
+#define STREAM_ACL_IRIX_DEFAULT_ACL      1005    /* IRIX specific acl_t string representation
                                                     * from acl_to_text (POSIX acl) for default acls.
                                                     */
-#define STREAM_ACL_IRIX_ACCESS_ACL_T       1006    /* IRIX specific acl_t string representation
+#define STREAM_ACL_IRIX_ACCESS_ACL       1006    /* IRIX specific acl_t string representation
                                                     * from acl_to_text (POSIX acl) for access acls.
                                                     */
-#define STREAM_ACL_LINUX_DEFAULT_ACL_T     1007    /* Linux specific acl_t string representation
+#define STREAM_ACL_LINUX_DEFAULT_ACL     1007    /* Linux specific acl_t string representation
                                                     * from acl_to_text (POSIX acl) for default acls.
                                                     */
-#define STREAM_ACL_LINUX_ACCESS_ACL_T      1008    /* Linux specific acl_t string representation
+#define STREAM_ACL_LINUX_ACCESS_ACL      1008    /* Linux specific acl_t string representation
                                                     * from acl_to_text (POSIX acl) for access acls.
                                                     */
-#define STREAM_ACL_TRU64_DEFAULT_ACL_T     1009    /* Tru64 specific acl_t string representation
+#define STREAM_ACL_TRU64_DEFAULT_ACL     1009    /* Tru64 specific acl_t string representation
                                                     * from acl_to_text (POSIX acl) for default acls.
                                                     */
-#define STREAM_ACL_TRU64_DEFAULT_DIR_ACL_T 1010    /* Tru64 specific acl_t string representation
+#define STREAM_ACL_TRU64_DEFAULT_DIR_ACL 1010    /* Tru64 specific acl_t string representation
                                                     * from acl_to_text (POSIX acl) for default acls.
                                                     */
-#define STREAM_ACL_TRU64_ACCESS_ACL_T      1011    /* Tru64 specific acl_t string representation
+#define STREAM_ACL_TRU64_ACCESS_ACL      1011    /* Tru64 specific acl_t string representation
                                                     * from acl_to_text (POSIX acl) for access acls.
                                                     */
-#define STREAM_ACL_SOLARIS_ACLENT_T        1012    /* Solaris specific aclent_t string representation
+#define STREAM_ACL_SOLARIS_ACLENT        1012    /* Solaris specific aclent_t string representation
                                                     * from acltotext or acl_totext (POSIX acl)
                                                     */
-#define STREAM_ACL_SOLARIS_ACE_T           1013    /* Solaris specific ace_t string representation from
+#define STREAM_ACL_SOLARIS_ACE           1013    /* Solaris specific ace_t string representation from
                                                     * from acl_totext (NFSv4 or ZFS acl)
                                                     */
 #define STREAM_XATTR_DARWIN                1996    /* Darwin (OSX) specific extended attributes */
