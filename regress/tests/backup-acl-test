@@ -1,0 +1,82 @@
+#!/bin/sh
+#
+# Run a backup of the Bacula build directory with some acls
+#   then restore it.
+#
+# The fs have to be mount with the acl option (mount -o remount,acl,user_xattr /tmp)
+# on ubuntu, it needs the attr package
+#
+TestName="backup-acl-test"
+JobName=backup
+. scripts/functions
+
+require_linux
+scripts/cleanup
+scripts/copy-confs
+
+#
+# Zap out any schedule in default conf file so that
+#  it doesn't start during our test
+#
+outf="tmp/sed_tmp"
+echo "s%  Schedule =%# Schedule =%g" > $outf
+echo "s/Options {/Options { aclsupport=yes/" >> $outf
+cp ${cwd}/bin/bacula-dir.conf  $cwd/tmp/1
+sed -f ${outf} ${cwd}/tmp/1 >${cwd}/bin/bacula-dir.conf
+
+d=${cwd}/build/acl
+
+uid=`id -u`
+rm -rf $d
+mkdir $d
+mkdir $d/testdir
+cp ${cwd}/bin/bconsole $d
+setfacl -m d:user:$uid:r-x $d/testdir
+setfacl -m d:user:root:-wx $d/testdir
+setfacl -m user:nobody:--- $d/testdir
+setfacl -m user:nobody:--- $d/bconsole
+setfacl -m group:nogroup:--x $d/bconsole
+cp ${cwd}/bin/bconsole $d/testdir
+cp ${cwd}/bin/bconsole $d/other
+#setfattr -n bacula -v rulez $d/other
+
+(cd $cwd/build; getfacl -R acl > $cwd/tmp/org)
+
+change_jobname Client1 $JobName
+start_test
+
+cat <<END_OF_DATA >${cwd}/tmp/bconcmds
+@output /dev/null
+messages
+@$out ${cwd}/tmp/log1.out
+label volume=TestVolume001 storage=File pool=Default
+run job=$JobName yes
+wait
+messages
+@# 
+@# now do a restore
+@#
+@$out ${cwd}/tmp/log2.out  
+restore where=${cwd}/tmp/bacula-restores select all done
+yes
+wait
+messages
+@$out
+quit
+END_OF_DATA
+
+run_bacula
+check_for_zombie_jobs storage=File
+stop_bacula
+
+(cd $cwd/tmp/bacula-restores/$cwd/build; getfacl -R acl > $cwd/tmp/new)
+
+diff $cwd/tmp/org $cwd/tmp/new
+if [ $? -ne 0 ]; then
+   rstat=1
+fi
+
+check_two_logs
+check_restore_diff
+
+end_test
