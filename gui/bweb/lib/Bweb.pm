@@ -4543,7 +4543,7 @@ SELECT count(1) AS nbline,
     unless ($log) {
 	return $self->error("Can't get log for jobid $arg->{jobid}");
     }
-
+    $log->{logtxt} =~ s/\0//g;
     $self->display({ lines=> $log->{logtxt},
 		     nbline => $log->{nbline},
 		     jobid => $arg->{jobid},
