@@ -527,7 +527,7 @@ static bool darwin_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
       return false;
 
    if (len > 0) {
-      if (!send_acl_stream(jcr, STREAM_ACL_DARWIN_ACCESS_ACL_T, len))
+      if (!send_acl_stream(jcr, STREAM_ACL_DARWIN_ACCESS_ACL, len))
          return false;
    }
 #endif
@@ -539,7 +539,7 @@ static bool darwin_parse_acl_stream(JCR *jcr, int stream)
 {
    switch (stream) {
    case STREAM_UNIX_ACCESS_ACL:
-   case STREAM_ACL_DARWIN_ACCESS_ACL_T:
+   case STREAM_ACL_DARWIN_ACCESS_ACL:
       return generic_set_acl_on_os(jcr, BACL_TYPE_ACCESS);
    }
 
@@ -557,7 +557,7 @@ static bool freebsd_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
       return false;
 
    if (len > 0) {
-      if (!send_acl_stream(jcr, STREAM_ACL_FREEBSD_ACCESS_ACL_T, len))
+      if (!send_acl_stream(jcr, STREAM_ACL_FREEBSD_ACCESS_ACL, len))
          return false;
    }
 
@@ -569,7 +569,7 @@ static bool freebsd_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
          return false;
 
       if (len > 0) {
-         if (!send_acl_stream(jcr, STREAM_ACL_FREEBSD_DEFAULT_ACL_T, len))
+         if (!send_acl_stream(jcr, STREAM_ACL_FREEBSD_DEFAULT_ACL, len))
             return false;
       }
    }
@@ -581,10 +581,10 @@ static bool freebsd_parse_acl_stream(JCR *jcr, int stream)
 {
    switch (stream) {
    case STREAM_UNIX_ACCESS_ACL:
-   case STREAM_ACL_FREEBSD_ACCESS_ACL_T:
+   case STREAM_ACL_FREEBSD_ACCESS_ACL:
       return generic_set_acl_on_os(jcr, BACL_TYPE_ACCESS);
    case STREAM_UNIX_DEFAULT_ACL:
-   case STREAM_ACL_FREEBSD_DEFAULT_ACL_T:
+   case STREAM_ACL_FREEBSD_DEFAULT_ACL:
       return generic_set_acl_on_os(jcr, BACL_TYPE_DEFAULT);
    }
 
@@ -602,7 +602,7 @@ static bool irix_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
       return false;
 
    if (len > 0) {
-      if (!send_acl_stream(jcr, STREAM_ACL_IRIX_ACCESS_ACL_T, len))
+      if (!send_acl_stream(jcr, STREAM_ACL_IRIX_ACCESS_ACL, len))
          return false;
    }
 
@@ -614,7 +614,7 @@ static bool irix_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
          return false;
 
       if (len > 0) {
-         if (!send_acl_stream(jcr, STREAM_ACL_IRIX_DEFAULT_ACL_T, len))
+         if (!send_acl_stream(jcr, STREAM_ACL_IRIX_DEFAULT_ACL, len))
             return false;
       }
    }
@@ -626,10 +626,10 @@ static bool irix_parse_acl_stream(JCR *jcr, int stream)
 {
    switch (stream) {
    case STREAM_UNIX_ACCESS_ACL:
-   case STREAM_ACL_IRIX_ACCESS_ACL_T:
+   case STREAM_ACL_IRIX_ACCESS_ACL:
       return generic_set_acl_on_os(jcr, BACL_TYPE_ACCESS);
    case STREAM_UNIX_DEFAULT_ACL:
-   case STREAM_ACL_IRIX_DEFAULT_ACL_T:
+   case STREAM_ACL_IRIX_DEFAULT_ACL:
       return generic_set_acl_on_os(jcr, BACL_TYPE_DEFAULT);
    }
 
@@ -647,7 +647,7 @@ static bool linux_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
       return false;
 
    if (len > 0) {
-      if (!send_acl_stream(jcr, STREAM_ACL_LINUX_ACCESS_ACL_T, len))
+      if (!send_acl_stream(jcr, STREAM_ACL_LINUX_ACCESS_ACL, len))
          return false;
    }
 
@@ -659,7 +659,7 @@ static bool linux_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
          return false;
 
       if (len > 0) {
-         if (!send_acl_stream(jcr, STREAM_ACL_LINUX_DEFAULT_ACL_T, len))
+         if (!send_acl_stream(jcr, STREAM_ACL_LINUX_DEFAULT_ACL, len))
             return false;
       }
    }
@@ -671,10 +671,10 @@ static bool linux_parse_acl_stream(JCR *jcr, int stream)
 {
    switch (stream) {
    case STREAM_UNIX_ACCESS_ACL:
-   case STREAM_ACL_LINUX_ACCESS_ACL_T:
+   case STREAM_ACL_LINUX_ACCESS_ACL:
       return generic_set_acl_on_os(jcr, BACL_TYPE_ACCESS);
    case STREAM_UNIX_DEFAULT_ACL:
-   case STREAM_ACL_LINUX_DEFAULT_ACL_T:
+   case STREAM_ACL_LINUX_DEFAULT_ACL:
       return generic_set_acl_on_os(jcr, BACL_TYPE_DEFAULT);
    }
 
@@ -692,7 +692,7 @@ static bool tru64_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
       return false;
 
    if (len > 0) {
-      if (!send_acl_stream(jcr, STREAM_ACL_TRU64_ACCESS_ACL_T, len))
+      if (!send_acl_stream(jcr, STREAM_ACL_TRU64_ACCESS_ACL, len))
          return false;
    }
 
@@ -704,7 +704,7 @@ static bool tru64_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
          return false;
 
       if (len > 0) {
-         if (!send_acl_stream(jcr, STREAM_ACL_TRU64_DEFAULT_ACL_T, len))
+         if (!send_acl_stream(jcr, STREAM_ACL_TRU64_DEFAULT_ACL, len))
             return false;
       }
 
@@ -718,7 +718,7 @@ static bool tru64_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
          return false;
 
       if (len > 0) {
-         if (!send_acl_stream(jcr, STREAM_ACL_TRU64_DEFAULT_DIR_ACL_T, len))
+         if (!send_acl_stream(jcr, STREAM_ACL_TRU64_DEFAULT_DIR_ACL, len))
             return false;
       }
    }
@@ -730,12 +730,12 @@ static bool tru64_parse_acl_stream(JCR *jcr, int stream)
 {
    switch (stream) {
    case STREAM_UNIX_ACCESS_ACL:
-   case STREAM_ACL_TRU64_ACCESS_ACL_T:
+   case STREAM_ACL_TRU64_ACCESS_ACL:
       return generic_set_acl_on_os(jcr, BACL_TYPE_ACCESS);
    case STREAM_UNIX_DEFAULT_ACL:
-   case STREAM_ACL_TRU64_DEFAULT_ACL_T:
+   case STREAM_ACL_TRU64_DEFAULT_ACL:
       return generic_set_acl_on_os(jcr, BACL_TYPE_DEFAULT);
-   case STREAM_ACL_TRU64_DEFAULT_DIR_ACL_T:
+   case STREAM_ACL_TRU64_DEFAULT_DIR_ACL:
       return generic_set_acl_on_os(jcr, BACL_TYPE_DEFAULT_DIR);
 }
 #endif
@@ -976,10 +976,10 @@ static bool solaris_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
 
       switch (acl_type(aclp)) {
       case ACLENT_T:
-         stream_status = send_acl_stream(jcr, STREAM_ACL_SOLARIS_ACLENT_T, len);
+         stream_status = send_acl_stream(jcr, STREAM_ACL_SOLARIS_ACLENT, len);
          break;
       case ACE_T:
-         stream_status = send_acl_stream(jcr, STREAM_ACL_SOLARIS_ACE_T, len);
+         stream_status = send_acl_stream(jcr, STREAM_ACL_SOLARIS_ACE, len);
          break;
       default:
          break;
@@ -998,8 +998,8 @@ static bool solaris_parse_acl_stream(JCR *jcr, int stream)
 
    switch (stream) {
    case STREAM_UNIX_ACCESS_ACL:
-   case STREAM_ACL_SOLARIS_ACLENT_T:
-   case STREAM_ACL_SOLARIS_ACE_T:
+   case STREAM_ACL_SOLARIS_ACLENT:
+   case STREAM_ACL_SOLARIS_ACE:
       if ((error = acl_fromtext(jcr->acl_data, &aclp)) != 0) {
          Jmsg2(jcr, M_ERROR, 0, _("acl_fromtext error on file \"%s\": ERR=%s\n"),
             jcr->last_fname, acl_strerror(error));
@@ -1012,13 +1012,13 @@ static bool solaris_parse_acl_stream(JCR *jcr, int stream)
        * Validate that the conversion gave us the correct acl type.
        */
       switch (stream) {
-      case STREAM_ACL_SOLARIS_ACLENT_T:
+      case STREAM_ACL_SOLARIS_ACLENT:
          if (acl_type(aclp) != ACLENT_T) {
             Jmsg1(jcr, M_ERROR, 0, _("wrong encoding of acl type in acl stream on file \"%s\"\n"),
                jcr->last_fname);
             return false;
          }
-      case STREAM_ACL_SOLARIS_ACE_T:
+      case STREAM_ACL_SOLARIS_ACE:
          if (acl_type(aclp) != ACE_T) {
             Jmsg1(jcr, M_ERROR, 0, _("wrong encoding of acl type in acl stream on file \"%s\"\n"),
                jcr->last_fname);
@@ -1108,7 +1108,7 @@ static bool solaris_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt);
          actuallyfree(acl_text);
          free(acls);
 
-         return send_acl_stream(jcr, STREAM_ACL_SOLARIS_ACLENT_T, len);
+         return send_acl_stream(jcr, STREAM_ACL_SOLARIS_ACLENT, len);
       }
 
       berrno be;
@@ -1210,13 +1210,13 @@ bool parse_acl_stream(JCR *jcr, int stream)
       return aix_parse_acl_stream(jcr, stream);
 #elif defined(HAVE_DARWIN_OS)
    case STREAM_UNIX_ACCESS_ACL:
-   case STREAM_ACL_DARWIN_ACCESS_ACL_T:
+   case STREAM_ACL_DARWIN_ACCESS_ACL:
       return darwin_parse_acl_stream(jcr, stream);
 #elif defined(HAVE_FREEBSD_OS)
    case STREAM_UNIX_ACCESS_ACL:
    case STREAM_UNIX_DEFAULT_ACL:
-   case STREAM_ACL_FREEBSD_DEFAULT_ACL_T:
-   case STREAM_ACL_FREEBSD_ACCESS_ACL_T:
+   case STREAM_ACL_FREEBSD_DEFAULT_ACL:
+   case STREAM_ACL_FREEBSD_ACCESS_ACL:
       return freebsd_parse_acl_stream(jcr, stream);
 #elif defined(HAVE_HPUX_OS)
    case STREAM_UNIX_ACCESS_ACL:
@@ -1225,27 +1225,27 @@ bool parse_acl_stream(JCR *jcr, int stream)
 #elif defined(HAVE_IRIX_OS)
    case STREAM_UNIX_ACCESS_ACL:
    case STREAM_UNIX_DEFAULT_ACL:
-   case STREAM_ACL_IRIX_DEFAULT_ACL_T:
-   case STREAM_ACL_IRIX_ACCESS_ACL_T:
+   case STREAM_ACL_IRIX_DEFAULT_ACL:
+   case STREAM_ACL_IRIX_ACCESS_ACL:
       return irix_parse_acl_stream(jcr, stream);
 #elif defined(HAVE_LINUX_OS)
    case STREAM_UNIX_ACCESS_ACL:
    case STREAM_UNIX_DEFAULT_ACL:
-   case STREAM_ACL_LINUX_DEFAULT_ACL_T:
-   case STREAM_ACL_LINUX_ACCESS_ACL_T:
+   case STREAM_ACL_LINUX_DEFAULT_ACL:
+   case STREAM_ACL_LINUX_ACCESS_ACL:
       return linux_parse_acl_stream(jcr, stream);
 #elif defined(HAVE_OSF1_OS)
    case STREAM_UNIX_ACCESS_ACL:
    case STREAM_UNIX_DEFAULT_ACL:
-   case STREAM_ACL_TRU64_DEFAULT_ACL_T:
-   case STREAM_ACL_TRU64_ACCESS_ACL_T:
-   case STREAM_ACL_TRU64_DEFAULT_DIR_ACL_T:
+   case STREAM_ACL_TRU64_DEFAULT_ACL:
+   case STREAM_ACL_TRU64_ACCESS_ACL:
+   case STREAM_ACL_TRU64_DEFAULT_DIR_ACL:
       return tru64_parse_acl_stream(jcr, stream);
 #elif defined(HAVE_SUN_OS)
    case STREAM_UNIX_ACCESS_ACL:
-   case STREAM_ACL_SOLARIS_ACLENT_T:
+   case STREAM_ACL_SOLARIS_ACLENT:
 #if defined(HAVE_EXTENDED_ACL)
-   case STREAM_ACL_SOLARIS_ACE_T:
+   case STREAM_ACL_SOLARIS_ACE:
 #endif
       return solaris_parse_acl_stream(jcr, stream);
 #endif
