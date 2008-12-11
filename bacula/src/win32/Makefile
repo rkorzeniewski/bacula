@@ -47,9 +47,9 @@ Makefile.inc: Makefile.inc.in
 	$(ECHO_CMD)BUILDDIR=`(pwd)`; \
 	$(ECHO_CMD)MAINDIR=`(cd ../..;pwd)`; \
 	sed \
-		-e "s^@BUILDDIR@^$${BUILDDIR}^" \
-		-e "s^@MAINDIR@^$${MAINDIR}^" \
-		-e "s^@TOPDIR@^$${TOPDIR}^" \
-		-e "s^@BINDIR@^$${BINDIR}^" \
-		-e "s^@INCDIR@^$${INCDIR}^" \
-		-e "s^@DLLDIR@^$${DLLDIR}^" < Makefile.inc.in > $@
+		-e "s^@WIN3wBUILDDIR@^$${BUILDDIR}^" \
+		-e "s^@WIN32MAINDIR@^$${MAINDIR}^" \
+		-e "s^@WIN32TOPDIR@^$${TOPDIR}^" \
+		-e "s^@WIN32BINDIR@^$${BINDIR}^" \
+		-e "s^@WIN32INCDIR@^$${INCDIR}^" \
+		-e "s^@WIN32DLLDIR@^$${DLLDIR}^" < Makefile.inc.in > $@

@@ -161,27 +161,11 @@ bool do_append_data(JCR *jcr)
          break;
       }
 
-      /*
-       * This hand scanning is a bit more complicated than a simple
-       *   sscanf, but it allows us to handle any size integer up to
-       *   int64_t without worrying about whether %d, %ld, %lld, or %q
-       *   is the correct format for each different architecture.
-       * It is a real pity that sscanf() is not portable.
-       */
-      char *p = ds->msg;
-      while (B_ISSPACE(*p)) {
-         p++;
-      }
-      file_index = (int32_t)str_to_int64(p);
-      while (B_ISDIGIT(*p)) {
-         p++;
-      }
-      if (!B_ISSPACE(*p) || !B_ISDIGIT(*(p+1))) {
+      if (sscanf(ds->msg, "%ld %ld", &file_index, &stream) != 2) {
          Jmsg1(jcr, M_FATAL, 0, _("Malformed data header from FD: %s\n"), ds->msg);
          ok = false;
          break;
       }
-      stream = (int32_t)str_to_int64(p);
 
       Dmsg2(890, "<filed: Header FilInx=%d stream=%d\n", file_index, stream);
 

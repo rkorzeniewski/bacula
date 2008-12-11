@@ -12,6 +12,14 @@ AC_SUBST(TOP_DIR)
 AC_CONFIG_AUX_DIR(${BUILD_DIR}/autoconf)
 AC_CONFIG_HEADER(src/config.h:autoconf/config.h.in)
 
+dnl minimal Win32 stuff for "make clean"
+WIN32BUILDDIR=${BUILD_DIR}/src/win32
+WIN32MAINDIR=${BUILD_DIR}
+WIN32TOPDIR=${TOP_DIR}	  
+AC_SUBST(WIN32BUILDDIR)
+AC_SUBST(WIN32MAINDIR)
+AC_SUBST(WIN32TOPDIR)
+
 dnl require a recent autoconf
 AC_PREREQ(2.61)
 
@@ -2240,42 +2248,42 @@ if test x$support_acl = xyes; then
    AC_CHECK_HEADER(sys/acl.h, [ AC_DEFINE(HAVE_SYS_ACL_H,1,[Defines if your system have the sys/acl.h header file])] , )
    AC_CHECK_FUNC(acl_get_file,
       [
-          have_acl=yes
+	  have_acl=yes
       ], [
-          AC_CHECK_LIB(acl, acl_get_file,
+	  AC_CHECK_LIB(acl, acl_get_file,
 	     [
-	         have_acl=yes;
-	         FDLIBS="-lacl $FDLIBS"
+		 have_acl=yes;
+		 FDLIBS="-lacl $FDLIBS"
 	     ], [
-	         AC_CHECK_LIB(pacl, acl_get_file,
-                    [
-	                have_acl=yes;
-	                FDLIBS="-lpacl $FDLIBS"
-                    ], [
-	                AC_CHECK_LIB(sec, acltotext,
-		           [
-		               have_acl=yes;
-		               FDLIBS="-lsec $FDLIBS"
+		 AC_CHECK_LIB(pacl, acl_get_file,
+		    [
+			have_acl=yes;
+			FDLIBS="-lpacl $FDLIBS"
+		    ], [
+			AC_CHECK_LIB(sec, acltotext,
+			   [
+			       have_acl=yes;
+			       FDLIBS="-lsec $FDLIBS"
 
-		               AC_CHECK_LIB(sec, acl_totext,
-			          [
-			              have_extended_acl=yes
-			          ]
-		               )
-		           ]
-	                )
-                    ]
-                 )
-             ]
-          )
+			       AC_CHECK_LIB(sec, acl_totext,
+				  [
+				      have_extended_acl=yes
+				  ]
+			       )
+			   ]
+			)
+		    ]
+		 )
+	     ]
+	  )
       ]
    )
    if test $have_acl = yes; then
-      AC_DEFINE(HAVE_ACL)
+      AC_DEFINE([HAVE_ACL], [], [Normal attribute support])
    fi
 
    if test $have_extended_acl = yes; then
-      AC_DEFINE(HAVE_EXTENDED_ACL)
+      AC_DEFINE([HAVE_EXTENDED_ACL], [], [Extended attribute support])
    fi
 fi
 
@@ -2297,24 +2305,24 @@ if test x$support_xattr = xyes; then
    AC_CHECK_HEADER(sys/xattr.h, [ AC_DEFINE(HAVE_SYS_XATTR_H,1,[Defines if your system have the sys/xattr.h header file])] , )
    AC_CHECK_FUNCS(llistxattr lgetxattr lsetxattr,
       [
-          have_xattr=yes
-          AC_DEFINE(HAVE_LLISTXATTR)
-          AC_DEFINE(HAVE_LGETXATTR)
-          AC_DEFINE(HAVE_LSETXATTR)
+	  have_xattr=yes
+	  AC_DEFINE([HAVE_LLISTXATTR], [], [LLISTXATTR support])
+	  AC_DEFINE([HAVE_LGETXATTR], [], [LGETXATTR support])
+	  AC_DEFINE([HAVE_LSETXATTR], [], [LSETXATTR support])
       ], [
-          AC_CHECK_FUNCS(listxattr getxattr setxattr,
-              [
-                  have_xattr=yes
-                  AC_DEFINE(HAVE_LISTXATTR)
-                  AC_DEFINE(HAVE_GETXATTR)
-                  AC_DEFINE(HAVE_SETXATTR)
-              ]
-          )
+	  AC_CHECK_FUNCS(listxattr getxattr setxattr,
+	      [
+		  have_xattr=yes
+		  AC_DEFINE([HAVE_LLISTXATTR], [], [LLISTXATTR support])
+		  AC_DEFINE([HAVE_LGETXATTR], [], [LGETXATTR support])
+		  AC_DEFINE([HAVE_LSETXATTR], [], [LSETXATTR support])
+	      ]
+	  )
       ]
    )
 
    if test $have_xattr = yes; then
-      AC_DEFINE(HAVE_XATTR)
+      AC_DEFINE([HAVE_XATTR], [], [XATTR support])
    fi
 fi
 
@@ -2812,6 +2820,7 @@ AC_OUTPUT([autoconf/Make.common \
 	   src/plugins/fd/Makefile \
 	   src/plugins/sd/Makefile \
 	   src/plugins/dir/Makefile \
+	   src/win32/Makefile.inc \
 	   po/Makefile.in \
 	   updatedb/update_mysql_tables_10_to_11 \
 	   updatedb/update_sqlite3_tables_10_to_11 \
@@ -2941,7 +2950,7 @@ Configuration on `date`:
    Subsys directory:	    ${subsysdir}
    Man directory:	    ${mandir}
    Data directory:	    ${datarootdir}
-   Plugin directory:        ${plugindir}
+   Plugin directory:	    ${plugindir}
    C Compiler:		    ${CC} ${CCVERSION}
    C++ Compiler:	    ${CXX} ${CXXVERSION}
    Compiler flags:	    ${WCFLAGS} ${CFLAGS} 
@@ -2983,7 +2992,7 @@ Configuration on `date`:
    Encryption support:	    ${support_crypto} 
    ZLIB support:	    ${have_zlib}
    enable-smartalloc:	    ${support_smartalloc} 
-   enable-lockmgr:          ${support_lockmgr}
+   enable-lockmgr:	    ${support_lockmgr}
    bat support: 	    ${support_bat} ${QWT_LDFLAGS}
    enable-gnome:	    ${support_gnome} ${gnome_version}
    enable-bwx-console:	    ${support_wx_console} ${wx_version}
@@ -2992,7 +3001,7 @@ Configuration on `date`:
    build-dird:		    ${build_dird}
    build-stored:	    ${build_stored}
    ACL support: 	    ${have_acl}
-   XATTR support: 	    ${have_xattr}
+   XATTR support:	    ${have_xattr}
    Python support:	    ${support_python} ${PYTHON_LIBS}
    Batch insert enabled:    ${support_batch_insert}
 
