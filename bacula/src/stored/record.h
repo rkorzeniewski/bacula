@@ -125,6 +125,8 @@ struct DEV_RECORD {
 #define SOS_LABEL   -4                /* Start of Session */
 #define EOS_LABEL   -5                /* End of Session */
 #define EOT_LABEL   -6                /* End of physical tape (2 eofs) */
+#define SOB_LABLE   -7                /* Start of object -- file/directory */
+#define EOB_LABEL   -8                /* End of object (after all streams) */
 
 /*
  *   Volume Label Record.  This is the in-memory definition. The

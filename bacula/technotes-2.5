@@ -10,6 +10,16 @@ filepattern (restore with regex in bsr)
 mixed priorities
 
 General:
+11Dec08
+kes  Fix configure to do minimum Win32 configure so that make clean
+     works.
+kes  Tweak modify FD header to use %ld instead of %d.
+kes  Remove hand scanning of FD header in SD and use Bacula's
+     sscanf, which is now OS independent.
+kes  Define new object (file/dir) begin and end Volume label records 
+     in SD.
+kes  Use new method of defining XATTR #defines to avoid need for having
+     them in config.h.in
 10Dec08
 ebl  Rename all STREAM_ACL_..._T into STREAM_ACL_..
 09Dec08

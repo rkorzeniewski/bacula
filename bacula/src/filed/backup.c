@@ -638,7 +638,7 @@ int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
       }
 
       /* Send our header */
-      sd->fsend("%ld %d 0", jcr->JobFiles, STREAM_SIGNED_DIGEST);
+      sd->fsend("%ld %ld 0", jcr->JobFiles, STREAM_SIGNED_DIGEST);
       Dmsg1(300, "bfiled>stored:header %s\n", sd->msg);
 
       /* Encode signature data */
