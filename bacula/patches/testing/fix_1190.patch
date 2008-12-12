@@ -1,66 +1,238 @@
-Index: src/stored/match_bsr.c
+Index: match_bsr.c
 ===================================================================
---- src/stored/match_bsr.c	(révision 8116)
-+++ src/stored/match_bsr.c	(copie de travail)
-@@ -317,6 +317,7 @@
+--- match_bsr.c	(révision 8116)
++++ match_bsr.c	(copie de travail)
+@@ -36,16 +36,7 @@
+ 
+ /*
+  * ***FIXME***
+- * find_smallest_volfile needs to be fixed to only look at items that
+- *   are not marked as done.  Otherwise, it can find a bsr
+- *   that has already been consumed, and this will cause the
+- *   bsr to be used, thus we may seek back and re-read the
+- *   same records, causing an error.  This deficiency must
+- *   be fixed.  For the moment, it has been kludged in 
+- *   read_record.c to avoid seeking back if find_next_bsr
+- *   returns a bsr pointing to a smaller address (file/block).
+- *
+- * Also for efficiency, once a bsr is done, it really should be
++ * For efficiency, once a bsr is done, it really should be
+  *   delinked from the bsr chain.  This will avoid the above 
+  *   problem and make traversal of the bsr chain more efficient.
+  *
+@@ -254,41 +245,72 @@
+    return found_bsr;
+ }
+ 
++
++static bool volfile_min(BSR_VOLFILE *volfile, uint32_t *ret)
++{
++   BSR_VOLFILE *vf;
++   uint32_t bsr_sfile=0;
++
++   /* Find the smallest file in the volfile */
++   bool ok=false;
++   for (vf = volfile; vf ; vf = vf->next) {
++      if (!vf->done) {
++         if (ok) {
++            bsr_sfile = MIN(bsr_sfile, vf->sfile);
++         } else {
++            bsr_sfile = vf->sfile;
++            ok=true;
++         }
++      }
++   }
++
++   *ret = bsr_sfile;
++   return ok;
++}
++
++static bool volblock_min(BSR_VOLBLOCK *volblock, uint32_t *ret)
++{
++   BSR_VOLBLOCK *vb;
++   uint32_t bsr_sblock=0;
++
++   bool ok = false;
++   for (vb = volblock; vb ; vb = vb->next) {
++      if (!vb->done) {
++         if (ok) {
++            bsr_sblock = MIN(bsr_sblock, vb->sblock);
++         } else {
++            bsr_sblock = vb->sblock;
++            ok=true;
++         }
++      }
++   }
++   *ret = bsr_sblock;
++   return ok;
++}
++
++
+ /*
+- * ***FIXME***
+- * This routine needs to be fixed to only look at items that
+- *   are not marked as done.  Otherwise, it can find a bsr
+- *   that has already been consumed, and this will cause the
+- *   bsr to be used, thus we may seek back and re-read the
+- *   same records, causing an error.  This deficiency must
+- *   be fixed.  For the moment, it has been kludged in 
+- *   read_record.c to avoid seeking back if find_next_bsr
+- *   returns a bsr pointing to a smaller address (file/block).
++ * This routine compare 2 bsr and return the one with the
++ * smallest volfile/volblock
+  */
+ static BSR *find_smallest_volfile(BSR *found_bsr, BSR *bsr)
+ {
+    BSR *return_bsr = found_bsr;
+-   BSR_VOLFILE *vf;
+-   BSR_VOLBLOCK *vb;
+-   uint32_t found_bsr_sfile, bsr_sfile;
+-   uint32_t found_bsr_sblock, bsr_sblock;
++   uint32_t found_bsr_sfile=0, bsr_sfile=0;
++   uint32_t found_bsr_sblock=0, bsr_sblock=0;
+ 
+-   /* Find the smallest file in the found_bsr */
+-   vf = found_bsr->volfile;
+-   found_bsr_sfile = vf->sfile;
+-   while ( (vf=vf->next) ) {
+-      if (vf->sfile < found_bsr_sfile) {
+-         found_bsr_sfile = vf->sfile;
+-      }
++   if (!volfile_min(found_bsr->volfile, &found_bsr_sfile)) {
++      /* the found_bsr contains no volfile, it must be mark as done
++       * we can skip it and try the next one
++       */
++      return bsr;               /* No unused volfile in found_bsr, try bsr */
+    }
+ 
+-   /* Find the smallest file in the bsr */
+-   vf = bsr->volfile;
+-   bsr_sfile = vf->sfile;
+-   while ( (vf=vf->next) ) {
+-      if (vf->sfile < bsr_sfile) {
+-         bsr_sfile = vf->sfile;
+-      }
++   if (!volfile_min(bsr->volfile, &bsr_sfile)) {
++      /* the next bsr contains no volfile, it must be mark as done
++       * we can skip it a keep the previous one
++       */
++      return found_bsr;         /* No unused volfile in bsr */
+    }
+     
+    /* if the bsr file is less than the found_bsr file, return bsr */
+@@ -297,26 +319,21 @@
+    } else if (found_bsr_sfile == bsr_sfile) {
+       /* Files are equal */
+       /* find smallest block in found_bsr */
+-      vb = found_bsr->volblock;
+-      found_bsr_sblock = vb->sblock;
+-      while ( (vb=vb->next) ) {
+-         if (vb->sblock < found_bsr_sblock) {
+-            found_bsr_sblock = vb->sblock;
+-         }
++      if (!volblock_min(found_bsr->volblock, &found_bsr_sblock)) {
++         return bsr;            /* should not fail */
+       }
+-      /* Find smallest block in bsr */
+-      vb = bsr->volblock;
+-      bsr_sblock = vb->sblock;
+-      while ( (vb=vb->next) ) {
+-         if (vb->sblock < bsr_sblock) {
+-            bsr_sblock = vb->sblock;
+-         }
++
++      if (!volblock_min(bsr->volblock, &bsr_sblock)) {
++         return found_bsr;      /* should not fail */
+       }
++
+       /* Compare and return the smallest */
+       if (found_bsr_sblock > bsr_sblock) {
           return_bsr = bsr;
        }
     }
-+   Dmsg1(dbglevel, "find_smallest_volfile done=%i\n", return_bsr->done);
++   Dmsg5(dbglevel, "find_smallest_volfile bsr=0x%p %i > %i | %i > %i\n", 
++         return_bsr, found_bsr_sfile, bsr_sfile, found_bsr_sblock, bsr_sblock);
     return return_bsr;
  }
  
-@@ -607,14 +608,6 @@
- 
- static int match_volblock(BSR *bsr, BSR_VOLBLOCK *volblock, DEV_RECORD *rec, bool done)
+@@ -360,7 +377,7 @@
+ static int match_all(BSR *bsr, DEV_RECORD *rec, VOLUME_LABEL *volrec,
+                      SESSION_LABEL *sessrec, bool done, JCR *jcr)
  {
--   /*
--    * Currently block matching does not work correctly for disk
--    * files in all cases, so it is "turned off" by the following 
--    * return statement.
--    */
+-   Dmsg0(050, "Enter match_all\n");
++   Dmsg1(050, "Enter match_all bsr=0x%p\n", bsr);
+    if (bsr->done) {
+ //    Dmsg0(dbglevel, "bsr->done set\n");
+       goto no_match;
+@@ -612,9 +629,7 @@
+     * files in all cases, so it is "turned off" by the following 
+     * return statement.
+     */
 -   return 1;
--
+ 
 -
     if (!volblock) {
        return 1;                       /* no specification matches all */
     }
-Index: src/stored/read_record.c
-===================================================================
---- src/stored/read_record.c	(révision 8116)
-+++ src/stored/read_record.c	(copie de travail)
-@@ -160,7 +160,6 @@
-          }
-       }
-       Dmsg2(dbglvl, "Read new block at pos=%u:%u\n", dev->file, dev->block_num);
--#ifdef if_and_when_FAST_BLOCK_REJECTION_is_working
-       /* this does not stop when file/block are too big */
-       if (!match_bsr_block(jcr->bsr, block)) {
-          if (try_repositioning(jcr, rec, dcr)) {
-@@ -168,7 +167,6 @@
-          }
-          continue;                    /* skip this record */
-       }
--#endif
- 
-       /*
-        * Get a new record for each Job as defined by
-@@ -338,6 +336,7 @@
-       rec->Block = 0;
-       return true;
+@@ -622,8 +637,8 @@
+    if (rec->state & REC_ISTAPE) {
+       return 1;                       /* All File records OK for this match */
     }
-+   Dmsg1(dbglvl, "try_repositioning bsr=0x%p\n", bsr);
-    if (bsr) {
-       /*
-        * ***FIXME*** gross kludge to make disk seeking work.  Remove
-@@ -345,8 +344,8 @@
-        *   completed.
+-//  Dmsg3(dbglevel, "match_volblock: sblock=%u eblock=%u recblock=%u\n",
+-//             volblock->sblock, volblock->eblock, rec->Block);
++   Dmsg3(dbglevel, "match_volblock: sblock=%u eblock=%u recblock=%u\n",
++         volblock->sblock, volblock->eblock, rec->Block);
+    if (volblock->sblock <= rec->Block && volblock->eblock >= rec->Block) {
+       return 1;
+    }
+Index: read_record.c
+===================================================================
+--- read_record.c	(révision 8116)
++++ read_record.c	(copie de travail)
+@@ -346,6 +346,9 @@
         */
        if (dev->file > bsr->volfile->sfile ||             
--         (dev->file == bsr->volfile->sfile && dev->block_num > bsr->volblock->sblock)) {
--         return false;
-+          (dev->file == bsr->volfile->sfile && dev->block_num > bsr->volblock->sblock)) {
-+         Jmsg(jcr, M_ERROR, 0, "Will read back to the media!!! %i > %i || (%i == %i && %i > %i)\n", dev->file, bsr->volfile->sfile, dev->file, bsr->volfile->sfile, dev->block_num, bsr->volblock->sblock);
+          (dev->file == bsr->volfile->sfile && dev->block_num > bsr->volblock->sblock)) {
++         Jmsg(jcr, M_ERROR, 0, _("Reposition from (file:block) %u:%u to %u:%u\n"),
++            dev->file, dev->block_num, bsr->volfile->sfile,
++            bsr->volblock->sblock);
+          return false;
        }
        if (verbose) {
-          Jmsg(jcr, M_INFO, 0, _("Reposition from (file:block) %u:%u to %u:%u\n"),
+Index: parse_bsr.c
+===================================================================
+--- parse_bsr.c	(révision 8116)
++++ parse_bsr.c	(copie de travail)
+@@ -139,7 +139,7 @@
+    BSR *root_bsr = new_bsr();
+    BSR *bsr = root_bsr;
+ 
+-   Dmsg1(300, "Enter parse_bsf %s\n", fname);
++   Dmsg2(300, "Enter parse_bsf %s 0x%p\n", fname, bsr);
+    if ((lc = lex_open_file(lc, fname, s_err)) == NULL) {
+       berrno be;
+       Emsg2(M_ERROR_TERM, 0, _("Cannot open bootstrap file %s: %s\n"),
+@@ -190,6 +190,7 @@
+    for (bsr=root_bsr; bsr; bsr=bsr->next) {
+       bsr->root = root_bsr;
+    }
++   dump_bsr(root_bsr, true);
+    return root_bsr;
+ }
+ 
+Index: bscan.c
+===================================================================
+--- bscan.c	(révision 8136)
++++ bscan.c	(copie de travail)
+@@ -420,9 +420,9 @@
+    }
+ 
+    if (list_records) {
+-      Pmsg5(000, _("Record: SessId=%u SessTim=%u FileIndex=%d Stream=%d len=%u\n"),
++      Pmsg6(000, _("Record: SessId=%u SessTim=%u FileIndex=%d Stream=%d len=%u block=%u\n"),
+             rec->VolSessionId, rec->VolSessionTime, rec->FileIndex,
+-            rec->Stream, rec->data_len);
++            rec->Stream, rec->data_len, rec->Block);
+    }
+    /*
+     * Check for Start or End of Session Record
