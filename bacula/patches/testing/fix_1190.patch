@@ -2,32 +2,68 @@ Index: src/stored/match_bsr.c
 ===================================================================
 --- src/stored/match_bsr.c	(révision 8116)
 +++ src/stored/match_bsr.c	(copie de travail)
-@@ -270,26 +270,42 @@
-    BSR *return_bsr = found_bsr;
-    BSR_VOLFILE *vf;
-    BSR_VOLBLOCK *vb;
+@@ -36,15 +36,6 @@
+ 
+ /*
+  * ***FIXME***
+- * find_smallest_volfile needs to be fixed to only look at items that
+- *   are not marked as done.  Otherwise, it can find a bsr
+- *   that has already been consumed, and this will cause the
+- *   bsr to be used, thus we may seek back and re-read the
+- *   same records, causing an error.  This deficiency must
+- *   be fixed.  For the moment, it has been kludged in 
+- *   read_record.c to avoid seeking back if find_next_bsr
+- *   returns a bsr pointing to a smaller address (file/block).
+- *
+  * Also for efficiency, once a bsr is done, it really should be
+  *   delinked from the bsr chain.  This will avoid the above 
+  *   problem and make traversal of the bsr chain more efficient.
+@@ -255,68 +246,88 @@
+ }
+ 
+ /*
+- * ***FIXME***
+- * This routine needs to be fixed to only look at items that
+- *   are not marked as done.  Otherwise, it can find a bsr
+- *   that has already been consumed, and this will cause the
+- *   bsr to be used, thus we may seek back and re-read the
+- *   same records, causing an error.  This deficiency must
+- *   be fixed.  For the moment, it has been kludged in 
+- *   read_record.c to avoid seeking back if find_next_bsr
+- *   returns a bsr pointing to a smaller address (file/block).
++ * Get the smallest file number from this volfile part
++ * Don't use "done" element in account
+  */
+-static BSR *find_smallest_volfile(BSR *found_bsr, BSR *bsr)
++static bool get_smallest_volfile(BSR_VOLFILE *vf, uint32_t *ret)
+ {
+-   BSR *return_bsr = found_bsr;
+-   BSR_VOLFILE *vf;
+-   BSR_VOLBLOCK *vb;
 -   uint32_t found_bsr_sfile, bsr_sfile;
 -   uint32_t found_bsr_sblock, bsr_sblock;
-+   uint32_t found_bsr_sfile=0, bsr_sfile=0;
-+   uint32_t found_bsr_sblock=0, bsr_sblock=0;
++   bool ok=false;
++   uint32_t min_val=0;
  
-    /* Find the smallest file in the found_bsr */
+-   /* Find the smallest file in the found_bsr */
 -   vf = found_bsr->volfile;
 -   found_bsr_sfile = vf->sfile;
 -   while ( (vf=vf->next) ) {
 -      if (vf->sfile < found_bsr_sfile) {
 -         found_bsr_sfile = vf->sfile;
-+   bool ok=false;
-+   for (vf = found_bsr->volfile; vf ; vf = vf->next) {
++   for (; vf ; vf = vf->next) {
 +      if (!vf->done) {
 +         if (ok) {
-+            found_bsr_sfile = MIN(found_bsr_sfile, vf->sfile);
++            min_val = MIN(min_val, vf->sfile);
 +         } else {
-+            found_bsr_sfile = vf->sfile;
++            min_val = vf->sfile;
 +            ok=true;
 +         }
        }
     }
++   *ret = min_val;
++   return ok;
++}
  
 -   /* Find the smallest file in the bsr */
 -   vf = bsr->volfile;
@@ -35,80 +71,85 @@ Index: src/stored/match_bsr.c
 -   while ( (vf=vf->next) ) {
 -      if (vf->sfile < bsr_sfile) {
 -         bsr_sfile = vf->sfile;
-+   if (!ok) {                   /* No unused volfile in found_bsr */
-+      return NULL;
-+   }
-+   
-+   /* Find the smallest file in the found_bsr */
-+   ok=false;
-+   for (vf = bsr->volfile; vf ; vf = vf->next) {
-+      if (!vf->done) {
++/*
++ * Get the smallest block number from this volblock part
++ * Don't use "done" element in account
++ */
++static bool get_smallest_volblock(BSR_VOLBLOCK *vb, uint32_t *ret)
++{
++   bool ok=false;
++   uint32_t min_val=0;
++
++   for (; vb ; vb = vb->next) {
++      if (!vb->done) {
 +         if (ok) {
-+            bsr_sfile = MIN(bsr_sfile, vf->sfile);
++            min_val = MIN(min_val, vb->sblock);
 +         } else {
-+            bsr_sfile = vf->sfile;
++            min_val = vb->sblock;
 +            ok=true;
 +         }
        }
     }
++   *ret = min_val;
++   return ok;
++}
 +
-+   if (!ok) {                   /* No unused volfile in bsr */
-+      return found_bsr;
++/*
++ *
++ */
++static BSR *find_smallest_volfile(BSR *found_bsr, BSR *bsr)
++{
++   BSR *return_bsr = found_bsr;
++   uint32_t found_bsr_sfile=0, bsr_sfile=0;
++   uint32_t found_bsr_sblock=0, bsr_sblock=0;
++
++   if (!get_smallest_volfile(found_bsr->volfile, &found_bsr_sfile)) {
++      return bsr;               /* found_bsr seems to be done...*/
++   }
++   
++   if (!get_smallest_volfile(bsr->volfile, &bsr_sfile)) {
++      return found_bsr;         /* bsr seems to be done... */
 +   }
      
     /* if the bsr file is less than the found_bsr file, return bsr */
     if (found_bsr_sfile > bsr_sfile) {
-@@ -297,26 +313,39 @@
+       return_bsr = bsr;
     } else if (found_bsr_sfile == bsr_sfile) {
-       /* Files are equal */
-       /* find smallest block in found_bsr */
+-      /* Files are equal */
+-      /* find smallest block in found_bsr */
 -      vb = found_bsr->volblock;
 -      found_bsr_sblock = vb->sblock;
 -      while ( (vb=vb->next) ) {
 -         if (vb->sblock < found_bsr_sblock) {
 -            found_bsr_sblock = vb->sblock;
-+      ok = false;
-+      for (vb = found_bsr->volblock; vb ; vb = vb->next) {
-+         if (!vb->done) {
-+            if (ok) {
-+               found_bsr_sblock = MIN(found_bsr_sblock, vb->sblock);
-+            } else {
-+               found_bsr_sblock = vb->sblock;
-+               ok=true;
-+            }
-          }
+-         }
++      /* Files are equal, use block to find the smallest */
++      if (get_smallest_volblock(found_bsr->volblock, &found_bsr_sblock)) {
++         return bsr;            /* Should not be there */
        }
-+      ASSERT(ok);               /* a file is not done, so we have a bloc... */
-+
-       /* Find smallest block in bsr */
+-      /* Find smallest block in bsr */
 -      vb = bsr->volblock;
 -      bsr_sblock = vb->sblock;
 -      while ( (vb=vb->next) ) {
 -         if (vb->sblock < bsr_sblock) {
 -            bsr_sblock = vb->sblock;
-+      ok = false;
-+      for (vb = bsr->volblock; vb ; vb = vb->next) {
-+         if (!vb->done) {
-+            if (ok) {
-+               bsr_sblock = MIN(bsr_sblock, vb->sblock);
-+            } else {
-+               bsr_sblock = vb->sblock;
-+               ok=true;
-+            }
-          }
+-         }
++
++      if (get_smallest_volblock(bsr->volblock, &bsr_sblock)) {
++         return found_bsr;      /* Should not be there */
        }
-+      ASSERT(ok);
 +
        /* Compare and return the smallest */
        if (found_bsr_sblock > bsr_sblock) {
           return_bsr = bsr;
        }
     }
-+   Dmsg5(dbglevel, "find_smallest_volfile bsr=0x%p %i > %i | %i > %i\n", return_bsr, found_bsr_sfile, bsr_sfile, found_bsr_sblock, bsr_sblock);
++   Dmsg5(dbglevel, "find_smallest_volfile bsr=0x%p %i > %i | %i > %i\n",
++         return_bsr, found_bsr_sfile, bsr_sfile, found_bsr_sblock, bsr_sblock);
     return return_bsr;
  }
  
-@@ -607,14 +636,7 @@
+@@ -607,14 +618,7 @@
  
  static int match_volblock(BSR *bsr, BSR_VOLBLOCK *volblock, DEV_RECORD *rec, bool done)
  {
@@ -123,7 +164,7 @@ Index: src/stored/match_bsr.c
     if (!volblock) {
        return 1;                       /* no specification matches all */
     }
-@@ -622,8 +644,9 @@
+@@ -622,8 +626,9 @@
     if (rec->state & REC_ISTAPE) {
        return 1;                       /* All File records OK for this match */
     }
