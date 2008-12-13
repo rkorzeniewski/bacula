@@ -124,7 +124,7 @@ Index: src/stored/match_bsr.c
 -            found_bsr_sblock = vb->sblock;
 -         }
 +      /* Files are equal, use block to find the smallest */
-+      if (get_smallest_volblock(found_bsr->volblock, &found_bsr_sblock)) {
++      if (!get_smallest_volblock(found_bsr->volblock, &found_bsr_sblock)) {
 +         return bsr;            /* Should not be there */
        }
 -      /* Find smallest block in bsr */
@@ -135,7 +135,7 @@ Index: src/stored/match_bsr.c
 -            bsr_sblock = vb->sblock;
 -         }
 +
-+      if (get_smallest_volblock(bsr->volblock, &bsr_sblock)) {
++      if (!get_smallest_volblock(bsr->volblock, &bsr_sblock)) {
 +         return found_bsr;      /* Should not be there */
        }
 +
