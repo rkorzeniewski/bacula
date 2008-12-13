@@ -1,8 +1,114 @@
-Index: match_bsr.c
+Index: src/stored/match_bsr.c
 ===================================================================
---- match_bsr.c	(revision 8116)
-+++ match_bsr.c	(working copy)
-@@ -607,14 +607,7 @@
+--- src/stored/match_bsr.c	(révision 8116)
++++ src/stored/match_bsr.c	(copie de travail)
+@@ -270,26 +270,42 @@
+    BSR *return_bsr = found_bsr;
+    BSR_VOLFILE *vf;
+    BSR_VOLBLOCK *vb;
+-   uint32_t found_bsr_sfile, bsr_sfile;
+-   uint32_t found_bsr_sblock, bsr_sblock;
++   uint32_t found_bsr_sfile=0, bsr_sfile=0;
++   uint32_t found_bsr_sblock=0, bsr_sblock=0;
+ 
+    /* Find the smallest file in the found_bsr */
+-   vf = found_bsr->volfile;
+-   found_bsr_sfile = vf->sfile;
+-   while ( (vf=vf->next) ) {
+-      if (vf->sfile < found_bsr_sfile) {
+-         found_bsr_sfile = vf->sfile;
++   bool ok=false;
++   for (vf = found_bsr->volfile; vf ; vf = vf->next) {
++      if (!vf->done) {
++         if (ok) {
++            found_bsr_sfile = MIN(found_bsr_sfile, vf->sfile);
++         } else {
++            found_bsr_sfile = vf->sfile;
++            ok=true;
++         }
+       }
+    }
+ 
+-   /* Find the smallest file in the bsr */
+-   vf = bsr->volfile;
+-   bsr_sfile = vf->sfile;
+-   while ( (vf=vf->next) ) {
+-      if (vf->sfile < bsr_sfile) {
+-         bsr_sfile = vf->sfile;
++   if (!ok) {                   /* No unused volfile in found_bsr */
++      return NULL;
++   }
++   
++   /* Find the smallest file in the found_bsr */
++   ok=false;
++   for (vf = bsr->volfile; vf ; vf = vf->next) {
++      if (!vf->done) {
++         if (ok) {
++            bsr_sfile = MIN(bsr_sfile, vf->sfile);
++         } else {
++            bsr_sfile = vf->sfile;
++            ok=true;
++         }
+       }
+    }
++
++   if (!ok) {                   /* No unused volfile in bsr */
++      return found_bsr;
++   }
+     
+    /* if the bsr file is less than the found_bsr file, return bsr */
+    if (found_bsr_sfile > bsr_sfile) {
+@@ -297,26 +313,39 @@
+    } else if (found_bsr_sfile == bsr_sfile) {
+       /* Files are equal */
+       /* find smallest block in found_bsr */
+-      vb = found_bsr->volblock;
+-      found_bsr_sblock = vb->sblock;
+-      while ( (vb=vb->next) ) {
+-         if (vb->sblock < found_bsr_sblock) {
+-            found_bsr_sblock = vb->sblock;
++      ok = false;
++      for (vb = found_bsr->volblock; vb ; vb = vb->next) {
++         if (!vb->done) {
++            if (ok) {
++               found_bsr_sblock = MIN(found_bsr_sblock, vb->sblock);
++            } else {
++               found_bsr_sblock = vb->sblock;
++               ok=true;
++            }
+          }
+       }
++      ASSERT(ok);               /* a file is not done, so we have a bloc... */
++
+       /* Find smallest block in bsr */
+-      vb = bsr->volblock;
+-      bsr_sblock = vb->sblock;
+-      while ( (vb=vb->next) ) {
+-         if (vb->sblock < bsr_sblock) {
+-            bsr_sblock = vb->sblock;
++      ok = false;
++      for (vb = bsr->volblock; vb ; vb = vb->next) {
++         if (!vb->done) {
++            if (ok) {
++               bsr_sblock = MIN(bsr_sblock, vb->sblock);
++            } else {
++               bsr_sblock = vb->sblock;
++               ok=true;
++            }
+          }
+       }
++      ASSERT(ok);
++
+       /* Compare and return the smallest */
+       if (found_bsr_sblock > bsr_sblock) {
+          return_bsr = bsr;
+       }
+    }
++   Dmsg5(dbglevel, "find_smallest_volfile bsr=0x%p %i > %i | %i > %i\n", return_bsr, found_bsr_sfile, bsr_sfile, found_bsr_sblock, bsr_sblock);
+    return return_bsr;
+ }
+ 
+@@ -607,14 +636,7 @@
  
  static int match_volblock(BSR *bsr, BSR_VOLBLOCK *volblock, DEV_RECORD *rec, bool done)
  {
@@ -17,26 +123,22 @@ Index: match_bsr.c
     if (!volblock) {
        return 1;                       /* no specification matches all */
     }
-@@ -622,9 +615,12 @@
+@@ -622,8 +644,9 @@
     if (rec->state & REC_ISTAPE) {
        return 1;                       /* All File records OK for this match */
     }
 -//  Dmsg3(dbglevel, "match_volblock: sblock=%u eblock=%u recblock=%u\n",
 -//             volblock->sblock, volblock->eblock, rec->Block);
--   if (volblock->sblock <= rec->Block && volblock->eblock >= rec->Block) {
 +   Dmsg3(dbglevel, "match_volblock: sblock=%u eblock=%u recblock=%u\n",
 +         volblock->sblock, volblock->eblock, rec->Block);
 +
-+   /* FIXME: find why we need to use sblock - 1 */
-+   uint32_t min = (volblock->sblock)?volblock->sblock-1:0;     /* we don't test with -1 */
-+   if (min <= rec->Block && volblock->eblock >= rec->Block) {
+    if (volblock->sblock <= rec->Block && volblock->eblock >= rec->Block) {
        return 1;
     }
-    /* Once we get past last eblock, we are done */
-Index: bscan.c
+Index: src/stored/bscan.c
 ===================================================================
---- bscan.c	(revision 8146)
-+++ bscan.c	(working copy)
+--- src/stored/bscan.c	(révision 8146)
++++ src/stored/bscan.c	(copie de travail)
 @@ -420,9 +420,9 @@
     }
  
@@ -49,3 +151,16 @@ Index: bscan.c
     }
     /*
      * Check for Start or End of Session Record
+Index: src/stored/block.c
+===================================================================
+--- src/stored/block.c	(révision 8116)
++++ src/stored/block.c	(copie de travail)
+@@ -1116,7 +1116,7 @@
+       dcr->EndBlock = dev->EndBlock;
+       dcr->EndFile  = dev->EndFile;
+    } else {
+-      uint64_t addr = dev->file_addr + block->read_len - 1;
++      uint64_t addr = dev->file_addr + block->read_len;
+       dcr->EndBlock = (uint32_t)addr;
+       dcr->EndFile = (uint32_t)(addr >> 32);
+       dev->block_num = dcr->EndBlock;
