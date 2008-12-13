@@ -129,6 +129,12 @@ bool do_migration_init(JCR *jcr)
 
    Dmsg2(dbglevel, "Read pool=%s (From %s)\n", jcr->rpool->name(), jcr->rpool_source);
 
+   if (!get_or_create_fileset_record(jcr)) {
+      Dmsg1(dbglevel, "JobId=%d no FileSet\n", (int)jcr->JobId);
+      Jmsg(jcr, M_FATAL, 0, _("Could not get or create the FileSet record.\n"));
+      return false;
+   }
+
    /* If we find a job or jobs to migrate it is previous_jr.JobId */
    count = get_job_to_migrate(jcr);
    if (count < 0) {
@@ -144,12 +150,6 @@ bool do_migration_init(JCR *jcr)
       Dmsg1(dbglevel, "JobId=%d no previous JobId\n", (int)jcr->JobId);
       Jmsg(jcr, M_INFO, 0, _("No previous Job found to %s.\n"), jcr->get_ActionName(0));
       return true;                    /* no work */
-   }
-
-   if (!get_or_create_fileset_record(jcr)) {
-      Dmsg1(dbglevel, "JobId=%d no FileSet\n", (int)jcr->JobId);
-      Jmsg(jcr, M_FATAL, 0, _("Could not get or create the FileSet record.\n"));
-      return false;
    }
 
    create_restore_bootstrap_file(jcr);
@@ -1113,6 +1113,11 @@ void migration_cleanup(JCR *jcr, int TermCode)
     *  mig_jcr is jcr of the newly migrated job.
     */
    if (mig_jcr) {
+      char old_jobid[50], new_jobid[50];
+
+      edit_uint64(jcr->previous_jr.JobId, old_jobid);
+      edit_uint64(mig_jcr->jr.JobId, new_jobid);
+
       mig_jcr->JobFiles = jcr->JobFiles = jcr->SDJobFiles;
       mig_jcr->JobBytes = jcr->JobBytes = jcr->SDJobBytes;
       mig_jcr->VolSessionId = jcr->VolSessionId;
@@ -1127,7 +1132,7 @@ void migration_cleanup(JCR *jcr, int TermCode)
                   "JobTDate=%s WHERE JobId=%s", 
          jcr->previous_jr.cStartTime, jcr->previous_jr.cEndTime, 
          edit_uint64(jcr->previous_jr.JobTDate, ec1),
-         edit_uint64(mig_jcr->jr.JobId, ec2));
+         new_jobid);
       db_sql_query(mig_jcr->db, query.c_str(), NULL, NULL);
 
       /*
@@ -1137,15 +1142,13 @@ void migration_cleanup(JCR *jcr, int TermCode)
        *   - Purge the File records from the previous job
        */
       if (jcr->get_JobType() == JT_MIGRATE && jcr->JobStatus == JS_Terminated) {
-         char old_jobid[50], new_jobid[50];
          Mmsg(query, "UPDATE Job SET Type='%c' WHERE JobId=%s",
-              (char)JT_MIGRATED_JOB, edit_uint64(jcr->previous_jr.JobId, new_jobid));
+              (char)JT_MIGRATED_JOB, old_jobid);
          db_sql_query(mig_jcr->db, query.c_str(), NULL, NULL);
          UAContext *ua = new_ua_context(jcr);
          /* Move JobLog to new JobId */
          Mmsg(query, "UPDATE Log SET JobId=%s WHERE JobId=%s",
-           new_jobid,
-           edit_uint64(jcr->previous_jr.JobId, old_jobid));
+           new_jobid, old_jobid);
          db_sql_query(mig_jcr->db, query.c_str(), NULL, NULL);
          /* Purge all old file records, but leave Job record */
          purge_files_from_jobs(ua, old_jobid);
