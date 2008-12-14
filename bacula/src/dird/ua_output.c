@@ -212,6 +212,8 @@ bail_out:
  *  list jobname=name   - same as above 
  *  list jobmedia jobid=<nn>
  *  list jobmedia job=name
+ *  list joblog jobid=<nn>
+ *  list joblog job=name
  *  list files jobid=<nn> - list files saved for job nn
  *  list files job=name
  *  list pools          - list pool records
@@ -336,6 +338,29 @@ static int do_list_cmd(UAContext *ua, const char *cmd, e_list_type llist)
             /* List for all jobs (jobid=0) */
             db_list_jobmedia_records(ua->jcr, ua->db, 0, prtit, ua, llist);
          }
+
+      /* List JOBLOG */
+      } else if (strcasecmp(ua->argk[i], NT_("joblog")) == 0) {
+         int done = FALSE;
+         for (j=i+1; j<ua->argc; j++) {
+            if (strcasecmp(ua->argk[j], NT_("ujobid")) == 0 && ua->argv[j]) {
+               bstrncpy(jr.Job, ua->argv[j], MAX_NAME_LENGTH);
+               jr.JobId = 0;
+               db_get_job_record(ua->jcr, ua->db, &jr);
+               jobid = jr.JobId;
+            } else if (strcasecmp(ua->argk[j], NT_("jobid")) == 0 && ua->argv[j]) {
+               jobid = str_to_int64(ua->argv[j]);
+            } else {
+               continue;
+            }
+            db_list_joblog_records(ua->jcr, ua->db, jobid, prtit, ua, llist);
+            done = TRUE;
+         }
+         if (!done) {
+            /* List for all jobs (jobid=0) */
+            db_list_joblog_records(ua->jcr, ua->db, 0, prtit, ua, llist);
+         }
+
 
       /* List POOLS */
       } else if (strcasecmp(ua->argk[i], NT_("pool")) == 0 ||
