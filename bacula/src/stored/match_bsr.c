@@ -612,7 +612,7 @@ static int match_volblock(BSR *bsr, BSR_VOLBLOCK *volblock, DEV_RECORD *rec, boo
     * files in all cases, so it is "turned off" by the following 
     * return statement.
     */
-   return 1;
+//   return 1;
 
 
    if (!volblock) {
