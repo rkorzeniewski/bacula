@@ -149,6 +149,18 @@ Index: src/stored/match_bsr.c
     return return_bsr;
  }
  
+@@ -360,9 +371,9 @@
+ static int match_all(BSR *bsr, DEV_RECORD *rec, VOLUME_LABEL *volrec,
+                      SESSION_LABEL *sessrec, bool done, JCR *jcr)
+ {
+-   Dmsg0(050, "Enter match_all\n");
++   Dmsg1(050, "Enter match_all bsr=0x%p\n", bsr);
+    if (bsr->done) {
+-//    Dmsg0(dbglevel, "bsr->done set\n");
++      Dmsg1(dbglevel, "bsr->done set bsr=0x%p\n", bsr);
+       goto no_match;
+    }
+    if (!match_volume(bsr, bsr->volume, volrec, 1)) {
 @@ -386,8 +397,6 @@
           rec->Block, bsr->volblock->sblock, bsr->volblock->eblock);
        goto no_match;
@@ -183,7 +195,7 @@ Index: src/stored/match_bsr.c
     if (!volblock) {
        return 1;                       /* no specification matches all */
     }
-@@ -622,8 +627,10 @@
+@@ -622,9 +627,19 @@
     if (rec->state & REC_ISTAPE) {
        return 1;                       /* All File records OK for this match */
     }
@@ -192,34 +204,47 @@ Index: src/stored/match_bsr.c
 +   Dmsg3(dbglevel, "match_volblock: sblock=%u eblock=%u recblock=%u\n",
 +         volblock->sblock, volblock->eblock, rec->Block);
 +
++   /* FIXME */
++   /* Don't reject the call if we are called with a small offset */
 +   uint32_t min = (volblock->sblock)?volblock->sblock-1:0;
++
++   /* We have call where rec->Block is the block after EndBlock 
++    * But, we are already decoding rec->Block-1Block records
++    */
++   uint32_t max = volblock->eblock+DEFAULT_BLOCK_SIZE;
     if (volblock->sblock <= rec->Block && volblock->eblock >= rec->Block) {
++//   if (min <= rec->Block && max >= rec->Block) {
        return 1;
     }
-@@ -641,6 +648,7 @@
-       bsr->root->reposition = true;
-       Dmsg2(dbglevel, "bsr done from volblock rec=%u voleblock=%u\n",
-          rec->Block, volblock->eblock);
-+      dump_bsr(bsr, false)
-    }
-    return 0;
- }
+    /* Once we get past last eblock, we are done */
 Index: src/stored/read_record.c
 ===================================================================
 --- src/stored/read_record.c	(révision 8116)
 +++ src/stored/read_record.c	(copie de travail)
-@@ -346,7 +346,10 @@
+@@ -261,8 +261,8 @@
+                Dmsg2(100, "All done=(file:block) %u:%u\n", dev->file, dev->block_num);
+                break;
+             } else if (rec->match_stat == 0) {  /* no match */
+-               Dmsg4(100, "BSR no match: clear rem=%d FI=%d before set_eof pos %u:%u\n",
+-                  rec->remainder, rec->FileIndex, dev->file, dev->block_num);
++               Dmsg7(100, "BSR no match: clear rem=%d FI=%d rec->Block=%d dev->LastBlock=%d dev->EndBlock=%d before set_eof pos %u:%u\n",
++                     rec->remainder, rec->FileIndex, rec->Block, dev->LastBlock, dev->EndBlock, dev->file, dev->block_num);
+                rec->remainder = 0;
+                rec->state &= ~REC_PARTIAL_RECORD;
+                if (try_repositioning(jcr, rec, dcr)) {
+@@ -346,6 +346,12 @@
         */
        if (dev->file > bsr->volfile->sfile ||             
           (dev->file == bsr->volfile->sfile && dev->block_num > bsr->volblock->sblock)) {
--         return false;
++         Dmsg4(dbglvl, _("Reposition from (file:block) %u:%u to %u:%u\n"),
++            dev->file, dev->block_num, bsr->volfile->sfile,
++            bsr->volblock->sblock);
 +         Jmsg(jcr, M_ERROR, 0, _("Reposition from (file:block) %u:%u to %u:%u\n"),
 +            dev->file, dev->block_num, bsr->volfile->sfile,
 +            bsr->volblock->sblock);
-+         //return false;
+          return false;
        }
        if (verbose) {
-          Jmsg(jcr, M_INFO, 0, _("Reposition from (file:block) %u:%u to %u:%u\n"),
 Index: src/stored/bls.c
 ===================================================================
 --- src/stored/bls.c	(révision 8116)
@@ -235,6 +260,18 @@ Index: src/stored/bls.c
           }
           print_ls_output(jcr, attr);
           num_files++;
+Index: src/stored/parse_bsr.c
+===================================================================
+--- src/stored/parse_bsr.c	(révision 8116)
++++ src/stored/parse_bsr.c	(copie de travail)
+@@ -190,6 +190,7 @@
+    for (bsr=root_bsr; bsr; bsr=bsr->next) {
+       bsr->root = root_bsr;
+    }
++   dump_bsr(root_bsr, true);
+    return root_bsr;
+ }
+ 
 Index: src/stored/bscan.c
 ===================================================================
 --- src/stored/bscan.c	(révision 8146)
@@ -251,25 +288,33 @@ Index: src/stored/bscan.c
     }
     /*
      * Check for Start or End of Session Record
+Index: src/stored/record.c
+===================================================================
+--- src/stored/record.c	(révision 8116)
++++ src/stored/record.c	(copie de travail)
+@@ -452,8 +452,8 @@
+       rec->Block = block->BlockNumber;
+       rec->File = ((DEVICE *)block->dev)->file;
+    } else {
+-      rec->Block = ((DEVICE *)block->dev)->EndBlock;
+-      rec->File = ((DEVICE *)block->dev)->EndFile;
++      rec->Block = ((DEVICE *)block->dev)->block_num;
++      rec->File = ((DEVICE *)block->dev)->file;
+    }   
+ 
+ 
 Index: src/stored/block.c
 ===================================================================
 --- src/stored/block.c	(révision 8116)
 +++ src/stored/block.c	(copie de travail)
-@@ -609,7 +609,7 @@
-       dev->block_num++;
-    } else {
-       /* Save address of block just written */
--      uint64_t addr = dev->file_addr + wlen - 1;
-+      uint64_t addr = dev->file_addr + wlen;
+@@ -1119,8 +1119,8 @@
+       uint64_t addr = dev->file_addr + block->read_len - 1;
        dcr->EndBlock = (uint32_t)addr;
        dcr->EndFile = (uint32_t)(addr >> 32);
-       dev->block_num = dcr->EndBlock;
-@@ -1116,7 +1116,7 @@
-       dcr->EndBlock = dev->EndBlock;
-       dcr->EndFile  = dev->EndFile;
-    } else {
--      uint64_t addr = dev->file_addr + block->read_len - 1;
-+      uint64_t addr = dev->file_addr + block->read_len;
-       dcr->EndBlock = (uint32_t)addr;
-       dcr->EndFile = (uint32_t)(addr >> 32);
-       dev->block_num = dcr->EndBlock;
+-      dev->block_num = dcr->EndBlock;
+-      dev->file = dcr->EndFile;
++      dev->block_num = (uint32_t)(dev->file_addr);
++      dev->file = (uint32_t)(dev->file_addr  >> 32);
+    }
+    dcr->VolMediaId = dev->VolCatInfo.VolMediaId;
+    dev->file_addr += block->read_len;
