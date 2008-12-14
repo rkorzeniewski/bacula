@@ -115,16 +115,17 @@ check_two_logs
 dstat=0
 
 perl -ne '
-sub check_bloc {   
-  $nb = $last_bloc - $last_bsr_bloc;
+sub check_block {   
+  return unless ($last_block || $last_bsr_block);
+  $nb = $last_block - $last_bsr_block;
   if ($nb > 65000) {
      print "ERROR: read too many bytes $nb\n";
   }
 }
 sub print_stat {
-     print "$last_job\nlast_bsr_bloc=$last_bsr_bloc last_bloc_read=$last_bloc\n";
-     check_bloc();
-     $last_bsr_bloc = $last_bloc=0;
+     print "$last_job\nlast_bsr_block=$last_bsr_block last_block_read=$last_block\n";
+     check_block();
+     $last_bsr_block = $last_block=0;
 }
 
 if (/dircmd.c.+(JobId=\d+ job=\S+) .+client_name=.+-fd/) {
@@ -134,8 +135,8 @@ if (/dircmd.c.+(JobId=\d+ job=\S+) .+client_name=.+-fd/) {
 }
 
 $last_job=$1      if /dircmd.c.+(JobId=\d+ job=\S+)/;
-$last_bsr_bloc=$1 if /fd_cmds.c:.+VolBlock=\d+-(\d+)/;
-$last_bloc=$1     if /read_record.c.+file:block=\d+:(\d+)/;
+$last_bsr_block=$1 if /fd_cmds.c:.+VolBlock=\d+-(\d+)/;
+$last_block=$1     if /read_record.c.+file:block=\d+:(\d+)/;
 END { 
   print_stat();
 }' working/*-sd.trace > tmp/result
