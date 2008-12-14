@@ -1116,6 +1116,9 @@ reread:
       dcr->EndBlock = dev->EndBlock;
       dcr->EndFile  = dev->EndFile;
    } else {
+      /* We need to take care about a short block in EndBlock/File
+       * computation 
+       */
       uint32_t len = MIN(block->read_len, block->block_len);
       uint64_t addr = dev->file_addr + len - 1;
       dcr->EndBlock = (uint32_t)addr;
