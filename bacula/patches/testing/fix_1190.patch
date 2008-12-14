@@ -32,7 +32,7 @@ Index: src/stored/match_bsr.c
 - *   read_record.c to avoid seeking back if find_next_bsr
 - *   returns a bsr pointing to a smaller address (file/block).
 + * Get the smallest file number from this volfile part
-+ * Don't use "done" element in account
++ * Don't use "done" elements
   */
 -static BSR *find_smallest_volfile(BSR *found_bsr, BSR *bsr)
 +static bool get_smallest_volfile(BSR_VOLFILE *vf, uint32_t *ret)
@@ -73,7 +73,7 @@ Index: src/stored/match_bsr.c
 -         bsr_sfile = vf->sfile;
 +/*
 + * Get the smallest block number from this volblock part
-+ * Don't use "done" element in account
++ * Don't use "done" elements
 + */
 +static bool get_smallest_volblock(BSR_VOLBLOCK *vb, uint32_t *ret)
 +{
@@ -149,7 +149,26 @@ Index: src/stored/match_bsr.c
     return return_bsr;
  }
  
-@@ -607,14 +618,7 @@
+@@ -386,8 +397,6 @@
+          rec->Block, bsr->volblock->sblock, bsr->volblock->eblock);
+       goto no_match;
+    }
+-   Dmsg3(dbglevel, "OK bsr Block=%u. bsr=%u,%u\n", 
+-      rec->Block, bsr->volblock->sblock, bsr->volblock->eblock);
+ 
+    if (!match_sesstime(bsr, bsr->sesstime, rec, 1)) {
+       Dmsg2(dbglevel, "Fail on sesstime. bsr=%u rec=%u\n",
+@@ -411,6 +420,9 @@
+    Dmsg3(dbglevel, "match on findex=%d. bsr=%d,%d\n",
+          rec->FileIndex, bsr->FileIndex->findex, bsr->FileIndex->findex2);
+ 
++   Dmsg3(dbglevel, "OK bsr Block=%u. bsr=%u,%u\n", 
++      rec->Block, bsr->volblock->sblock, bsr->volblock->eblock);
++
+    if (!match_fileregex(bsr, rec, jcr)) {
+      Dmsg1(dbglevel, "Fail on fileregex='%s'\n", bsr->fileregex);
+      goto no_match;
+@@ -607,14 +619,7 @@
  
  static int match_volblock(BSR *bsr, BSR_VOLBLOCK *volblock, DEV_RECORD *rec, bool done)
  {
@@ -164,7 +183,7 @@ Index: src/stored/match_bsr.c
     if (!volblock) {
        return 1;                       /* no specification matches all */
     }
-@@ -622,8 +626,9 @@
+@@ -622,8 +627,10 @@
     if (rec->state & REC_ISTAPE) {
        return 1;                       /* All File records OK for this match */
     }
@@ -173,9 +192,49 @@ Index: src/stored/match_bsr.c
 +   Dmsg3(dbglevel, "match_volblock: sblock=%u eblock=%u recblock=%u\n",
 +         volblock->sblock, volblock->eblock, rec->Block);
 +
++   uint32_t min = (volblock->sblock)?volblock->sblock-1:0;
     if (volblock->sblock <= rec->Block && volblock->eblock >= rec->Block) {
        return 1;
     }
+@@ -641,6 +648,7 @@
+       bsr->root->reposition = true;
+       Dmsg2(dbglevel, "bsr done from volblock rec=%u voleblock=%u\n",
+          rec->Block, volblock->eblock);
++      dump_bsr(bsr, false)
+    }
+    return 0;
+ }
+Index: src/stored/read_record.c
+===================================================================
+--- src/stored/read_record.c	(révision 8116)
++++ src/stored/read_record.c	(copie de travail)
+@@ -346,7 +346,10 @@
+        */
+       if (dev->file > bsr->volfile->sfile ||             
+          (dev->file == bsr->volfile->sfile && dev->block_num > bsr->volblock->sblock)) {
+-         return false;
++         Jmsg(jcr, M_ERROR, 0, _("Reposition from (file:block) %u:%u to %u:%u\n"),
++            dev->file, dev->block_num, bsr->volfile->sfile,
++            bsr->volblock->sblock);
++         //return false;
+       }
+       if (verbose) {
+          Jmsg(jcr, M_INFO, 0, _("Reposition from (file:block) %u:%u to %u:%u\n"),
+Index: src/stored/bls.c
+===================================================================
+--- src/stored/bls.c	(révision 8116)
++++ src/stored/bls.c	(copie de travail)
+@@ -400,8 +400,8 @@
+ 
+       if (file_is_included(ff, attr->fname) && !file_is_excluded(ff, attr->fname)) {
+          if (verbose) {
+-            Pmsg5(-1, _("FileIndex=%d VolSessionId=%d VolSessionTime=%d Stream=%d DataLen=%d\n"),
+-                  rec->FileIndex, rec->VolSessionId, rec->VolSessionTime, rec->Stream, rec->data_len);
++            Pmsg6(-1, _("FileIndex=%d VolSessionId=%d VolSessionTime=%d Stream=%d DataLen=%d Block=%x\n"),
++                  rec->FileIndex, rec->VolSessionId, rec->VolSessionTime, rec->Stream, rec->data_len, rec->Block);
+          }
+          print_ls_output(jcr, attr);
+          num_files++;
 Index: src/stored/bscan.c
 ===================================================================
 --- src/stored/bscan.c	(révision 8146)
@@ -196,6 +255,15 @@ Index: src/stored/block.c
 ===================================================================
 --- src/stored/block.c	(révision 8116)
 +++ src/stored/block.c	(copie de travail)
+@@ -609,7 +609,7 @@
+       dev->block_num++;
+    } else {
+       /* Save address of block just written */
+-      uint64_t addr = dev->file_addr + wlen - 1;
++      uint64_t addr = dev->file_addr + wlen;
+       dcr->EndBlock = (uint32_t)addr;
+       dcr->EndFile = (uint32_t)(addr >> 32);
+       dev->block_num = dcr->EndBlock;
 @@ -1116,7 +1116,7 @@
        dcr->EndBlock = dev->EndBlock;
        dcr->EndFile  = dev->EndFile;
