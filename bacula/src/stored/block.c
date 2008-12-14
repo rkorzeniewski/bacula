@@ -1116,11 +1116,15 @@ reread:
       dcr->EndBlock = dev->EndBlock;
       dcr->EndFile  = dev->EndFile;
    } else {
-      uint64_t addr = dev->file_addr + block->read_len - 1;
+      uint32_t len = block->read_len;
+      if (len > block->block_len) {
+         len = block->block_len;
+      }
+      uint64_t addr = dev->file_addr + len - 1;
       dcr->EndBlock = (uint32_t)addr;
       dcr->EndFile = (uint32_t)(addr >> 32);
-      dev->block_num = dcr->EndBlock;
-      dev->file = dcr->EndFile;
+      dev->block_num = dev->EndBlock = dcr->EndBlock;
+      dev->file = dev->EndFile = dcr->EndFile;
    }
    dcr->VolMediaId = dev->VolCatInfo.VolMediaId;
    dev->file_addr += block->read_len;
