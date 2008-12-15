@@ -10,6 +10,27 @@ Index: src/dird/ua.h
     char last_jobid[20];
     POOLMEM *JobIds;                   /* User entered string of JobIds */
     STORE  *store;
+Index: src/dird/migrate.c
+===================================================================
+--- src/dird/migrate.c	(revision 8168)
++++ src/dird/migrate.c	(working copy)
+@@ -1160,13 +1160,14 @@
+        *   - copy any Log records to the new JobId
+        */
+       if (jcr->get_JobType() == JT_COPY && jcr->JobStatus == JS_Terminated) {
+-         UAContext *ua = new_ua_context(jcr);
++         Mmsg(query, "UPDATE Job SET Type='%c' WHERE JobId=%s",
++              (char)JT_JOBCOPY, edit_uint64(jcr->jr.JobId, ec1);
++         db_sql_query(mig_jcr->db, query.c_str(), NULL, NULL);
+          /* Copy JobLog to new JobId */
+          Mmsg(query, "INSERT INTO Log (JobId, Time, LogText ) " 
+                       "SELECT %s, Time, LogText FROM Log WHERE JobId=%s",
+               new_jobid, old_jobid);
+          db_sql_query(mig_jcr->db, query.c_str(), NULL, NULL);
+-         free_ua_context(ua);
+       } 
+ 
+       if (!db_get_job_record(jcr, jcr->db, &jcr->jr)) {
 Index: src/dird/ua_restore.c
 ===================================================================
 --- src/dird/ua_restore.c	(revision 8163)
@@ -87,7 +108,7 @@ Index: src/dird/ua_restore.c
     int i;
  
     /* Create temp tables */
-@@ -1196,23 +1216,38 @@
+@@ -1196,23 +1216,43 @@
     }
  
     /* If Pool specified, add PoolId specification */
@@ -107,7 +128,6 @@ Index: src/dird/ua_restore.c
           ua->warning_msg(_("Pool \"%s\" not found, using any pool.\n"), pr.Name);
        }
     }
--
 +   /* use a storage filter */
 +   if (rx->store) {             /* or use storageid ? */
 +      Mmsg(temp_filter, " AND Media.StorageId=%s ", 
@@ -122,6 +142,11 @@ Index: src/dird/ua_restore.c
 +      pm_strcat(other_filter, temp_filter.c_str());
 +      Dmsg1(0, "Use mediatype filter (%s)\n", rx->MediaType);
 +   }
++   if (bstrcmp(other_filter.c_str(), "")) {
++      Dmsg0(0, "Don't use copy jobs\n");
++      pm_strcpy(other_filter, " AND Type='B' ");
++   }
+ 
     /* Find JobId of last Full backup for this client, fileset */
     edit_int64(cr.ClientId, ed1);
     Mmsg(rx->query, uar_last_full, ed1, ed1, date, fsr.FileSet,
@@ -131,7 +156,7 @@ Index: src/dird/ua_restore.c
     if (!db_sql_query(ua->db, rx->query, NULL, NULL)) {
        ua->error_msg("%s\n", db_strerror(ua->db));
        goto bail_out;
-@@ -1238,7 +1273,7 @@
+@@ -1238,7 +1278,7 @@
  
     /* Now find most recent Differental Job after Full save, if any */
     Mmsg(rx->query, uar_dif, edit_uint64(rx->JobTDate, ed1), date,
@@ -140,7 +165,7 @@ Index: src/dird/ua_restore.c
     if (!db_sql_query(ua->db, rx->query, NULL, NULL)) {
        ua->warning_msg("%s\n", db_strerror(ua->db));
     }
-@@ -1254,7 +1289,7 @@
+@@ -1254,7 +1294,7 @@
  
     /* Now find all Incremental Jobs after Full/dif save */
     Mmsg(rx->query, uar_inc, edit_uint64(rx->JobTDate, ed1), date,
@@ -149,3 +174,29 @@ Index: src/dird/ua_restore.c
     if (!db_sql_query(ua->db, rx->query, NULL, NULL)) {
        ua->warning_msg("%s\n", db_strerror(ua->db));
     }
+Index: src/jcr.h
+===================================================================
+--- src/jcr.h	(revision 8163)
++++ src/jcr.h	(working copy)
+@@ -65,6 +65,7 @@
+ #define JT_ADMIN                 'D'  /* admin job */
+ #define JT_ARCHIVE               'A'  /* Archive Job */
+ #define JT_COPY                  'C'  /* Copy Job */
++#define JT_JOBCOPY               'J'  /* Copy Job */
+ #define JT_MIGRATE               'g'  /* Migration Job */
+ #define JT_SCAN                  'S'  /* Scan Job */
+ 
+Index: src/lib/util.c
+===================================================================
+--- src/lib/util.c	(revision 8163)
++++ src/lib/util.c	(working copy)
+@@ -361,6 +361,9 @@
+    case JT_COPY:
+       str = _("Copy");
+       break;
++   case JT_JOBCOPY:
++      str = _("Job Copy");
++      break;
+    case JT_CONSOLE:
+       str = _("Console");
+       break;
