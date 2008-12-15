@@ -153,7 +153,7 @@ sub connect
 	    return $self->error("bconsole string not found");
 	}
 	$self->{bconsole} = new Expect;
-	$self->{bconsole}->raw_pty(0);
+	$self->{bconsole}->raw_pty(1);
 	$self->{bconsole}->debug($self->{debug});
 	$self->{bconsole}->log_stdout($self->{debug} || $self->{log_stdout});
 
@@ -170,8 +170,6 @@ sub connect
 	    $ENV{COLUMNS} = $old if ($old) ;
 	    $SIG{__DIE__} = $sav;
 	}
-
-        $self->{bconsole}->slave->stty(qw(-echo));
 
 	unless ($ret) {
 	    return $self->error($self->{bconsole}->error());
@@ -206,7 +204,6 @@ sub send_cmd
     }
     $self->{bconsole}->clear_accum();
     $self->send("$cmd\n");
-#    $self->expect_it($cmd);
     $self->expect_it('-re','^[*]');
     return $self->before();
 }
@@ -220,10 +217,7 @@ sub send_cmd_yes
     $self->send("$cmd\n");
     $self->expect_it('-re', '[?].+:');
 
-    $self->{bconsole}->clear_accum();
-    $self->send("yes\n");
-#    $self->expect_it("yes");
-    $self->expect_it('-re','^[*]');
+    $self->send_cmd("yes");
     return $self->before();
 }
 
@@ -328,31 +322,31 @@ sub get_fileset
 sub list_job
 {
     my ($self) = @_;
-    return sort split(/\r\n/, $self->send_cmd(".jobs"));
+    return sort split(/\r?\n/, $self->send_cmd(".jobs"));
 }
 
 sub list_fileset
 {
     my ($self) = @_;
-    return sort split(/\r\n/, $self->send_cmd(".filesets"));
+    return sort split(/\r?\n/, $self->send_cmd(".filesets"));
 }
 
 sub list_storage
 {
     my ($self) = @_;
-    return sort split(/\r\n/, $self->send_cmd(".storage"));
+    return sort split(/\r?\n/, $self->send_cmd(".storage"));
 }
 
 sub list_client
 {
     my ($self) = @_;
-    return sort split(/\r\n/, $self->send_cmd(".clients"));
+    return sort split(/\r?\n/, $self->send_cmd(".clients"));
 }
 
 sub list_pool
 {
     my ($self) = @_;
-    return sort split(/\r\n/, $self->send_cmd(".pools"));
+    return sort split(/\r?\n/, $self->send_cmd(".pools"));
 }
 
 use Time::ParseDate qw/parsedate/;

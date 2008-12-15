@@ -1,0 +1,174 @@
+15Dec08
+ebl  Update Bconsole.pm to use raw_pty() instead of using IO::Pty noecho
+10Dec08
+ebl  Fix mysql bug in log output
+07Nov08
+ebl  Fix statistics page
+ebl  Add new "Cancel missing job" feature to be able
+     to mark missing job as failed in history table.
+ebl  Fix a couple of unchecked arguments.
+
+06Nov08
+ebl  Fix a Bconsole.pm with Expect bug on debian lenny
+ebl  Fix in storage command
+
+04Nov08
+ebl  Display all groups in display_stat page
+
+21Oct08
+ebl  Fix lot of small bugs
+
+20Oct08
+ebl  Rename job_old to JobHistory
+
+07Oct08
+ebl  Add base64_decode_lstat() function to Mysql 
+
+22Sep08
+ebl  Add an option to bgraph that shows each levels as different source
+
+21Sep08
+ebl  
+ bfileview: 
+  - Add error message for pruned of uncomputed jobs
+  - Bugfix for looking /
+ Bweb.pm
+  - Add support for age=1w2d40m
+  - Add new configuration variable to modify default age
+ general.tpl
+  - Add hyperlink to failed job count
+ TODO: add C.png (with something like zzZZzzz)
+
+25Aug08
+ebl  Fix #1132 about typo in directory creation in install_bweb
+
+02Jul08
+ebl  Add documentation link on missing job view
+
+31Jun08
+ebl  Fix log display in job zoom view
+
+22Jun08
+ebl  Fix bug in missing job view
+
+20Jun08
+ebl  Update check_bacula.pl documentation
+
+16Jun08
+ebl  Take Recycle volumes from the import/export tool.
+
+03Jun08
+ebl  Add a nagios plugin for bacula script/check_bacula.pl
+
+02Jun08
+ebl  Modify missing job view to handle all kind of job
+
+28Apr08
+ebl  Change We from 45 to 66 hours (from friday 18h to monday 12h)
+
+10Apr08
+ebl  Fix group statistics to use client_group param
+
+03Apr08
+ebl  Tweak progress bar and add Backuped files count to job status
+ebl  Remove progress bar from restore
+
+02Apr08
+ebl  Add group statistics page
+
+10Mar08
+ebl  Use lineal regression to guess backup progress (postgresql)
+
+09Mar08
+ebl  Add progress bar to backup screen (files and bytes estimation)
+
+07Mar08
+ebl  Fix btime.pl
+
+15Feb08
+ebl  Add bcheck.pl script that check various things in
+     you bacula setup. 
+       - Try to connect to each client
+       - Reports you big backup size change
+       - Reports you useless (or unconfigured) Job
+
+14Feb08
+ebl  Cleanup some SQL
+
+13Feb08
+ebl  Can modify client list group for a specific client
+ebl  Disable use of Enabled flag in volume mgnt
+ebl  Add comment field to client_group
+
+09Jan08
+ebl  Adapt btime for bacula 2.2.7
+
+05Jan08
+ebl  Add basic Device managment (mount, umount, release, status)
+
+02Jan08
+ebl  Fix a couple of bug in btime module
+ebl  Keep level param between overview pages
+
+31Dec07
+ebl  Add new r_view_group role to view group content
+
+27Dec07
+ebl  Fix a bug in user edition.
+ebl  Add Jobs -> Missing Job feature. Now, you can
+     check if jobs are missing or have to be re-run.
+ebl  Add begin/end param to Bweb::Sched object
+ebl  Fix a couple of small bug in GBalloon module when
+     we don't find any valid job
+
+23Dec07
+ebl  Each user can have a different template dir (lang).
+ebl  WARNING: now, bweb/tpl contains main tpl files
+     for english version, you have to use bweb/lang/en/tpl
+
+21Dec07
+ebl  Use main tpl for editing, and use scripts to
+     generate other lang.
+
+19Dec07
+ebl  Add a new balloon graphic mode which display
+     time, bytes and number of files on the same graph
+
+13Dec07
+ebl  Try to extract when= from get_form() more smoothly
+
+06Dec07
+ebl  Add Bweb::Schedule Object to parse show schedule output.
+     Now, we can make ical events for example...
+
+05Dec07
+ebl  Add truncate to second function
+ebl  Add btime module
+
+28Nov07
+ebl  Fix the time slice between overview and overview_zoom 
+
+26Nov07
+ebl  Fix overview to works with mysql
+ebl  Add date support to bresto
+ebl  Make bresto works with mysql (no DISTINCT ON (c1,c2))
+ebl  Add the list of media that will be needed for resto
+
+25Nov07
+ebl  Use a automatic rediction when launching a new job
+ebl  Add new overview view.
+
+24Nov07
+ebl  Add ERR= to error log filter
+ebl  Set where_field when selecting a directory in the tree
+ebl  Add a wiki option to integrate a link to jobs documentation
+     directly in bweb.
+ebl  Add a tpl field to bweb_user. (To be able to have a tpl for each
+     user).
+
+23Nov07
+ebl  Add brestore_xxx tables to sql scripts
+ebl  Add a batch=1 option to bresto.pl to fill bresto tables
+ebl  Adapt Bconsole.pm to run a restore job
+ebl  Make bresto.html/js working (you can restore files now)
+ebl  Improve run job from scheduled view and missing view 
