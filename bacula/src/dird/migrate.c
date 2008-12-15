@@ -1155,6 +1155,20 @@ void migration_cleanup(JCR *jcr, int TermCode)
          free_ua_context(ua);
       } 
 
+      /*
+       * If we terminated a copy normally:
+       *   - copy any Log records to the new JobId
+       */
+      if (jcr->get_JobType() == JT_COPY && jcr->JobStatus == JS_Terminated) {
+         UAContext *ua = new_ua_context(jcr);
+         /* Copy JobLog to new JobId */
+         Mmsg(query, "INSERT INTO Log (JobId, Time, LogText ) " 
+                      "SELECT %s, Time, LogText FROM Log WHERE JobId=%s",
+              new_jobid, old_jobid);
+         db_sql_query(mig_jcr->db, query.c_str(), NULL, NULL);
+         free_ua_context(ua);
+      } 
+
       if (!db_get_job_record(jcr, jcr->db, &jcr->jr)) {
          Jmsg(jcr, M_WARNING, 0, _("Error getting Job record for Job report: ERR=%s"),
             db_strerror(jcr->db));
