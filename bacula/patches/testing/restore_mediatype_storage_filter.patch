@@ -110,7 +110,7 @@ Index: src/dird/ua_restore.c
 -
 +   /* use a storage filter */
 +   if (rx->store) {             /* or use storageid ? */
-+      Mmsg(temp_filter, " AND Media.StorageId='%s' ", 
++      Mmsg(temp_filter, " AND Media.StorageId=%s ", 
 +           edit_int64(rx->store->StorageId, ed1));
 +      pm_strcat(other_filter, temp_filter.c_str());
 +      Dmsg2(0, "Use %s StorageId filter (%s)\n",
