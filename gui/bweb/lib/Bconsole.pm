@@ -301,6 +301,25 @@ sub update_slots
     return $self->send_cmd("update slots storage=$storage drive=$drive");
 }
 
+# Return:
+#$VAR1 = {
+#          'I' => [
+#                   {
+#                     'file' => '</tmp/regress/tmp/file-list'
+#                   },
+#                   {
+#                     'file' => '</tmp/regress/tmp/other-file-list'
+#                   }
+#                 ],
+#          'E' => [
+#                   {
+#                     'file' => '</tmp/regress/tmp/efile-list'
+#                   },
+#                   {
+#                     'file' => '</tmp/regress/tmp/other-efile-list'
+#                   }
+#                 ]
+#        };
 sub get_fileset
 {
     my ($self, $fs) = @_;
@@ -309,7 +328,7 @@ sub get_fileset
     
     my $ret = {};
 
-    foreach my $l (split(/\r\n/, $out)) { 
+    foreach my $l (split(/\r?\n/, $out)) { 
         #              I /usr/local
 	if ($l =~ /^\s+([I|E])\s+(.+)$/) { # include
 	    push @{$ret->{$1}}, { file => $2 };
@@ -436,6 +455,7 @@ __END__
 
 package main;
 
+use Data::Dumper qw/Dumper/;
 print "test sans conio\n";
 
 my $c = new Bconsole(pref => {
@@ -446,6 +466,10 @@ my $c = new Bconsole(pref => {
 print "fileset : ", join(',', $c->list_fileset()), "\n";
 print "job : ",     join(',', $c->list_job()), "\n";
 print "storage : ", join(',', $c->list_storage()), "\n";
+my $r = $c->get_fileset($c->list_fileset());
+print Dumper($r);
+print "FS Include:\n", join (",", map { $_->{file} } @{$r->{I}}), "\n";
+print "FS Exclude:\n", join (",", map { $_->{file} } @{$r->{E}}), "\n";
 #print $c->label_barcodes(pool => 'Scratch', drive => 0, storage => 'LTO3', slots => '45');
 #print "prune : " . $c->prune_volume('000001'), "\n";
 #print "update : " . $c->send_cmd('update slots storage=SDLT-1-2, drive=0'), "\n";
