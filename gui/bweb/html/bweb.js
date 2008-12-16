@@ -94,6 +94,7 @@ function human_size(val)
    if (!val) {
       return '';
    }
+   val = parseInt(val);
    var unit = ['B', 'KB', 'MB', 'GB', 'TB'];
    var i=0;
    var format;
@@ -127,6 +128,7 @@ function human_sec(val)
    if (!val) {
       val = 0;
    }
+   val = parseInt(val);
    val /= 60;			// sec -> min
    
    if ((val / 60) <= 1) {
