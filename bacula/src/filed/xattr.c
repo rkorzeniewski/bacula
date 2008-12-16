@@ -504,6 +504,7 @@ static bool darwin_parse_xattr_stream(JCR *jcr, int stream)
    case STREAM_XATTR_DARWIN:
       return generic_xattr_parse_streams(jcr);
    }
+   return false;
 }
 #elif defined(HAVE_FREEBSD_OS)
 static bool freebsd_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
