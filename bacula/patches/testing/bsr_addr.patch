@@ -257,7 +257,7 @@ Index: src/stored/match_bsr.c
 -         rec->Block, bsr->volblock->sblock, bsr->volblock->eblock);
 +   if (!match_voladdr(bsr, bsr->voladdr, rec, 1)) {
 +      Dmsg3(dbglevel, "Fail on Addr=%lld. bsr=%lld,%lld\n", 
-+         rec->Addr, bsr->voladdr->saddr, bsr->voladdr->eaddr);
++            get_record_address(rec), bsr->voladdr->saddr, bsr->voladdr->eaddr);
        goto no_match;
     }
 -   Dmsg3(dbglevel, "OK bsr Block=%u. bsr=%u,%u\n", 
@@ -265,7 +265,7 @@ Index: src/stored/match_bsr.c
  
     if (!match_sesstime(bsr, bsr->sesstime, rec, 1)) {
        Dmsg2(dbglevel, "Fail on sesstime. bsr=%u rec=%u\n",
-@@ -605,42 +649,34 @@
+@@ -605,42 +649,35 @@
     return 0;
  }
  
@@ -291,15 +291,16 @@ Index: src/stored/match_bsr.c
 -//  Dmsg3(dbglevel, "match_volblock: sblock=%u eblock=%u recblock=%u\n",
 -//             volblock->sblock, volblock->eblock, rec->Block);
 -   if (volblock->sblock <= rec->Block && volblock->eblock >= rec->Block) {
-+//  Dmsg3(dbglevel, "match_voladdr: saddr=%q eaddr=%q recaddr=%q\n",
-+//             volblock->saddr, volblock->eaddr, rec->Addr);
-+   if (voladdr->saddr <= rec->Addr && voladdr->eaddr >= rec->Addr) {
++   uint64_t addr = get_record_address(rec);
++//  Dmsg3(dbglevel, "match_voladdr: saddr=%lld eaddr=%lld recaddr=%lld\n",
++//             volblock->saddr, volblock->eaddr, addr);
++   if (voladdr->saddr <= addr && voladdr->eaddr >= addr) {
        return 1;
     }
     /* Once we get past last eblock, we are done */
 -   if (rec->Block > volblock->eblock) {
 -      volblock->done = true;              /* set local done */
-+   if (rec->Addr > voladdr->eaddr) {
++   if (addr > voladdr->eaddr) {
 +      voladdr->done = true;              /* set local done */
     }
 -   if (volblock->next) {
@@ -315,8 +316,8 @@ Index: src/stored/match_bsr.c
        bsr->root->reposition = true;
 -      Dmsg2(dbglevel, "bsr done from volblock rec=%u voleblock=%u\n",
 -         rec->Block, volblock->eblock);
-+      Dmsg2(dbglevel, "bsr done from voladdr rec=%q voleaddr=%q\n",
-+         rec->Addr, voladdr->eaddr);
++      Dmsg2(dbglevel, "bsr done from voladdr rec=%lld voleaddr=%lld\n",
++            addr, voladdr->eaddr);
     }
     return 0;
  }
@@ -436,37 +437,25 @@ Index: src/stored/record.c
 ===================================================================
 --- src/stored/record.c	(révision 8163)
 +++ src/stored/record.c	(copie de travail)
-@@ -210,7 +210,7 @@
+@@ -422,6 +422,10 @@
+    return true;
+ }
  
- void empty_record(DEV_RECORD *rec)
- {
--   rec->File = rec->Block = 0;
-+   rec->Addr = rec->File = rec->Block = 0;
-    rec->VolSessionId = rec->VolSessionTime = 0;
-    rec->FileIndex = rec->Stream = 0;
-    rec->data_len = rec->remainder = 0;
-@@ -455,8 +455,8 @@
-       rec->Block = ((DEVICE *)block->dev)->EndBlock;
++uint64_t get_record_address(DEV_RECORD *rec)
++{
++   return ((uint64_t)rec->File)<<32 | rec->Block;
++}
+ 
+ /*
+  * Read a Record from the block
+@@ -456,7 +460,6 @@
        rec->File = ((DEVICE *)block->dev)->EndFile;
     }   
-+   rec->Addr = ((boffset_t)rec->File)<<32 | rec->Block;
  
 -
     /*
      * Get the header. There is always a full header,
      * otherwise we find it in the next block.
-Index: src/stored/record.h
-===================================================================
---- src/stored/record.h	(révision 8163)
-+++ src/stored/record.h	(copie de travail)
-@@ -97,6 +97,7 @@
-     */
-    uint32_t File;                     /* File number */
-    uint32_t Block;                    /* Block number */
-+   uint64_t Addr;                     /* Block address */
-    uint32_t VolSessionId;             /* sequential id within this session */
-    uint32_t VolSessionTime;           /* session start time */
-    int32_t  FileIndex;                /* sequential file number */
 Index: src/stored/bsr.h
 ===================================================================
 --- src/stored/bsr.h	(révision 8163)
@@ -492,3 +481,15 @@ Index: src/stored/bsr.h
     BSR_SESSTIME *sesstime;
     BSR_SESSID   *sessid;
     BSR_JOBID    *JobId;
+Index: src/stored/protos.h
+===================================================================
+--- src/stored/protos.h	(révision 8163)
++++ src/stored/protos.h	(copie de travail)
+@@ -203,6 +203,7 @@
+ DEV_RECORD *new_record();
+ void        free_record(DEV_RECORD *rec);
+ void        empty_record(DEV_RECORD *rec);
++uint64_t get_record_address(DEV_RECORD *rec);
+ 
+ /* From read_record.c */
+ bool read_records(DCR *dcr,
