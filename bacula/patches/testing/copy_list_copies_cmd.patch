@@ -1,0 +1,149 @@
+Index: src/dird/ua_output.c
+===================================================================
+--- src/dird/ua_output.c	(revision 8163)
++++ src/dird/ua_output.c	(working copy)
+@@ -454,6 +454,15 @@
+             }
+          }
+          list_nextvol(ua, n);
++      } else if (strcasecmp(ua->argk[i], NT_("copies")) == 0) {
++         for (j=i+1; j<ua->argc; j++) {
++            if (strcasecmp(ua->argk[j], NT_("jobid")) == 0 && ua->argv[j]) {
++               jr.JobId = str_to_int64(ua->argv[j]);
++            } else if (strcasecmp(ua->argk[j], NT_("limit")) == 0 && ua->argv[j]) {
++               jr.limit = atoi(ua->argv[j]);
++            } 
++         }
++         db_list_copies_records(ua->jcr, ua->db, &jr, prtit, ua, llist);
+       } else if (strcasecmp(ua->argk[i], NT_("limit")) == 0
+                  || strcasecmp(ua->argk[i], NT_("days")) == 0) {
+          /* Ignore it */
+Index: src/dird/migrate.c
+===================================================================
+--- src/dird/migrate.c	(revision 8179)
++++ src/dird/migrate.c	(working copy)
+@@ -1158,13 +1158,17 @@
+       /*
+        * If we terminated a copy normally:
+        *   - copy any Log records to the new JobId
++       *   - set type="Job Copy" for the new job
+        */
+       if (jcr->get_JobType() == JT_COPY && jcr->JobStatus == JS_Terminated) {
+          /* Copy JobLog to new JobId */
+          Mmsg(query, "INSERT INTO Log (JobId, Time, LogText ) " 
+                       "SELECT %s, Time, LogText FROM Log WHERE JobId=%s",
+-              new_jobid, old_jobid);
++              edit_uint64(mig_jcr->jr.JobId, ec7), old_jobid);
+          db_sql_query(mig_jcr->db, query.c_str(), NULL, NULL);
++         Mmsg(query, "UPDATE Job SET Type='%c' WHERE JobId=%s",
++              (char)JT_JOB_COPY, ec7);
++         db_sql_query(mig_jcr->db, query.c_str(), NULL, NULL);
+       } 
+ 
+       if (!db_get_job_record(jcr, jcr->db, &jcr->jr)) {
+Index: src/dird/ua_cmds.c
+===================================================================
+--- src/dird/ua_cmds.c	(revision 8163)
++++ src/dird/ua_cmds.c	(working copy)
+@@ -123,7 +123,7 @@
+  { NT_("exit"),       quit_cmd,      _("exit = quit"),                                false},
+  { NT_("gui"),        gui_cmd,       _("gui [on|off] -- non-interactive gui mode"),   false},
+  { NT_("help"),       help_cmd,      _("print this command"),                         false},
+- { NT_("list"),       list_cmd,      _("list [pools | jobs | jobtotals | media <pool=pool-name> | files <jobid=nn>]; from catalog"), true},
++ { NT_("list"),       list_cmd,      _("list [pools | jobs | jobtotals | media <pool=pool-name> | files <jobid=nn> | copies <jobid=nn>]; from catalog"), true},
+  { NT_("label"),      label_cmd,     _("label a tape"),                               false},
+  { NT_("llist"),      llist_cmd,     _("full or long list like list command"),        true},
+  { NT_("messages"),   messagescmd,   _("messages"),                                   false},
+Index: src/cats/protos.h
+===================================================================
+--- src/cats/protos.h	(revision 8163)
++++ src/cats/protos.h	(working copy)
+@@ -124,6 +124,7 @@
+ void db_list_joblog_records(JCR *jcr, B_DB *mdb, JobId_t JobId, DB_LIST_HANDLER *sendit, void *ctx, e_list_type type);
+ int  db_list_sql_query(JCR *jcr, B_DB *mdb, const char *query, DB_LIST_HANDLER *sendit, void *ctx, int verbose, e_list_type type);
+ void db_list_client_records(JCR *jcr, B_DB *mdb, DB_LIST_HANDLER *sendit, void *ctx, e_list_type type);
++void db_list_copies_records(JCR *jcr, B_DB *mdb, JOB_DBR *jr, DB_LIST_HANDLER *sendit, void *ctx, e_list_type type);
+ 
+ /* sql_update.c */
+ bool db_update_job_start_record(JCR *jcr, B_DB *db, JOB_DBR *jr);
+Index: src/cats/sql_list.c
+===================================================================
+--- src/cats/sql_list.c	(revision 8163)
++++ src/cats/sql_list.c	(working copy)
+@@ -242,6 +242,43 @@
+ }
+ 
+ 
++void db_list_copies_records(JCR *jcr, B_DB *mdb, JOB_DBR *jr,
++                            DB_LIST_HANDLER *sendit, void *ctx, e_list_type type)
++{
++   char ed1[50];
++   POOL_MEM limit(PM_MESSAGE);
++   POOL_MEM jobids(PM_MESSAGE);
++
++   if (jr->limit > 0) {
++      Mmsg(limit, " LIMIT %d", jr->limit);
++   }
++
++   if (jr->JobId) {
++      Mmsg(jobids, " AND (C.PriorJobId = %s OR C.JobId = %s) ", 
++           edit_int64(jr->JobId, ed1),ed1);      
++   }
++
++   db_lock(mdb);
++   Mmsg(mdb->cmd, 
++   "SELECT C.PriorJobId AS JobId, C.Job, C.JobId AS CopyJobId, M.MediaType "
++     "FROM Job AS C " 
++     "JOIN JobMedia    USING (JobId) "
++     "JOIN Media AS M  USING (MediaId) "
++    "WHERE C.Type = '%c' %s ORDER BY C.PriorJobId DESC %s",
++        (char) JT_JOB_COPY, jobids.c_str(), limit.c_str());
++
++   if (!QUERY_DB(jcr, mdb, mdb->cmd)) {
++      goto bail_out;
++   }
++
++   list_result(jcr, mdb, sendit, ctx, type);
++
++   sql_free_result(mdb);
++
++bail_out:
++   db_unlock(mdb);
++}
++
+ void db_list_joblog_records(JCR *jcr, B_DB *mdb, uint32_t JobId,
+                               DB_LIST_HANDLER *sendit, void *ctx, e_list_type type)
+ {
+Index: src/jcr.h
+===================================================================
+--- src/jcr.h	(revision 8163)
++++ src/jcr.h	(working copy)
+@@ -60,11 +60,12 @@
+ #define JT_MIGRATED_JOB          'M'  /* A previous backup job that was migrated */
+ #define JT_VERIFY                'V'  /* Verify Job */
+ #define JT_RESTORE               'R'  /* Restore Job */
+-#define JT_CONSOLE               'c'  /* console program */
++#define JT_CONSOLE               'U'  /* console program */
+ #define JT_SYSTEM                'I'  /* internal system "job" */
+ #define JT_ADMIN                 'D'  /* admin job */
+ #define JT_ARCHIVE               'A'  /* Archive Job */
+-#define JT_COPY                  'C'  /* Copy Job */
++#define JT_JOB_COPY              'C'  /* Copy of a Job */
++#define JT_COPY                  'c'  /* Copy Job */
+ #define JT_MIGRATE               'g'  /* Migration Job */
+ #define JT_SCAN                  'S'  /* Scan Job */
+ 
+Index: src/lib/util.c
+===================================================================
+--- src/lib/util.c	(revision 8163)
++++ src/lib/util.c	(working copy)
+@@ -361,6 +361,9 @@
+    case JT_COPY:
+       str = _("Copy");
+       break;
++   case JT_JOB_COPY:
++      str = _("Job Copy");
++      break;
+    case JT_CONSOLE:
+       str = _("Console");
+       break;
