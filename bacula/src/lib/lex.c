@@ -351,6 +351,23 @@ static uint32_t scan_pint(LEX *lf, char *str)
    return (uint32_t)val;
 }
 
+static uint64_t scan_pint64(LEX *lf, char *str)
+{
+   uint64_t val = 0;
+   if (!is_a_number(str)) {
+      scan_err1(lf, _("expected a positive integer number, got: %s"), str);
+      /* NOT REACHED */
+   } else {
+      errno = 0;
+      val = str_to_uint64(str);
+      if (errno != 0) {
+         scan_err1(lf, _("expected a positive integer number, got: %s"), str);
+         /* NOT REACHED */
+      }
+   }
+   return val;
+}
+
 /*
  *
  * Get the next token from the input
@@ -726,6 +743,26 @@ lex_get_token(LEX *lf, int expect)
          token = T_ERROR;
       } else {
          token = T_INT64;
+      }
+      break;
+
+   case T_PINT64_RANGE:
+      if (token == T_NUMBER) {
+         lf->pint64_val = scan_pint64(lf, lf->str);
+         lf->pint64_val2 = lf->pint64_val;
+         token = T_PINT64;
+      } else {
+         char *p = strchr(lf->str, '-');
+         if (!p) {
+            scan_err2(lf, _("expected an integer or a range, got %s: %s"),
+               lex_tok_to_str(token), lf->str);
+            token = T_ERROR;
+            break;
+         }
+         *p++ = 0;                       /* terminate first half of range */
+         lf->pint64_val  = scan_pint64(lf, lf->str);
+         lf->pint64_val2 = scan_pint64(lf, p);
+         token = T_PINT64_RANGE;
       }
       break;
 

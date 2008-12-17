@@ -73,6 +73,8 @@
 #define T_INT64                       117  /* 64 bit integer */
 #define T_NAME                        118  /* name max 128 chars */
 #define T_STRING                      119  /* string */
+#define T_PINT64_RANGE                120  /* positive integer range */
+#define T_PINT64                      121  /* positive integer range */
 
 #define T_ALL                           0  /* no expectations */
 
@@ -116,6 +118,8 @@ typedef struct s_lex_context {
    uint32_t pint32_val2;
    int32_t int32_val;
    int64_t int64_val;
+   uint64_t pint64_val;
+   uint64_t pint64_val2;
    void (*scan_error)(const char *file, int line, struct s_lex_context *lc, const char *msg, ...);
    int err_type;                      /* message level for scan_error (M_..) */
    void *caller_ctx;                  /* caller private data */
