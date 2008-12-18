@@ -1,7 +1,7 @@
 Index: src/dird/bsr.c
 ===================================================================
---- src/dird/bsr.c	(révision 8163)
-+++ src/dird/bsr.c	(copie de travail)
+--- src/dird/bsr.c	(revision 8163)
++++ src/dird/bsr.c	(working copy)
 @@ -325,6 +325,7 @@
   */
  static uint32_t write_bsr(UAContext *ua, RESTORE_CTX &rx, FILE *fd)
@@ -10,19 +10,67 @@ Index: src/dird/bsr.c
     uint32_t count = 0;
     uint32_t total_count = 0;
     uint32_t LastIndex = 0;
-@@ -374,6 +375,8 @@
-                fprintf(fd, "VolBlock=%u-%u\n", bsr->VolParams[i].StartBlock,
-                        bsr->VolParams[i].EndBlock);
+@@ -362,18 +363,20 @@
              }
+             fprintf(fd, "VolSessionId=%u\n", bsr->VolSessionId);
+             fprintf(fd, "VolSessionTime=%u\n", bsr->VolSessionTime);
+-            if (bsr->VolParams[i].StartFile == bsr->VolParams[i].EndFile) {
+-               fprintf(fd, "VolFile=%u\n", bsr->VolParams[i].StartFile);
+-            } else {
+-               fprintf(fd, "VolFile=%u-%u\n", bsr->VolParams[i].StartFile,
+-                       bsr->VolParams[i].EndFile);
+-            }
+-            if (bsr->VolParams[i].StartBlock == bsr->VolParams[i].EndBlock) {
+-               fprintf(fd, "VolBlock=%u\n", bsr->VolParams[i].StartBlock);
+-            } else {
+-               fprintf(fd, "VolBlock=%u-%u\n", bsr->VolParams[i].StartBlock,
+-                       bsr->VolParams[i].EndBlock);
+-            }
++//            if (bsr->VolParams[i].StartFile == bsr->VolParams[i].EndFile) {
++//               fprintf(fd, "VolFile=%u\n", bsr->VolParams[i].StartFile);
++//            } else {
++//               fprintf(fd, "VolFile=%u-%u\n", bsr->VolParams[i].StartFile,
++//                       bsr->VolParams[i].EndFile);
++//            }
++//            if (bsr->VolParams[i].StartBlock == bsr->VolParams[i].EndBlock) {
++//               fprintf(fd, "VolBlock=%u\n", bsr->VolParams[i].StartBlock);
++//            } else {
++//               fprintf(fd, "VolBlock=%u-%u\n", bsr->VolParams[i].StartBlock,
++//                       bsr->VolParams[i].EndBlock);
++//            }
 +            fprintf(fd, "VolAddr=%s-%s\n", edit_uint64(bsr->VolParams[i].StartAddr, ed1),
 +                    edit_uint64(bsr->VolParams[i].EndAddr, ed2));
     //       Dmsg2(100, "bsr VolParam FI=%u LI=%u\n",
     //          bsr->VolParams[i].FirstIndex, bsr->VolParams[i].LastIndex);
  
-@@ -440,6 +443,8 @@
-                fprintf(fd, "VolBlock=%u-%u\n", bsr->VolParams[i].StartBlock,
-                        bsr->VolParams[i].EndBlock);
+@@ -428,18 +431,20 @@
              }
+             fprintf(fd, "VolSessionId=%u\n", bsr->VolSessionId);
+             fprintf(fd, "VolSessionTime=%u\n", bsr->VolSessionTime);
+-            if (bsr->VolParams[i].StartFile == bsr->VolParams[i].EndFile) {
+-               fprintf(fd, "VolFile=%u\n", bsr->VolParams[i].StartFile);
+-            } else {
+-               fprintf(fd, "VolFile=%u-%u\n", bsr->VolParams[i].StartFile,
+-                       bsr->VolParams[i].EndFile);
+-            }
+-            if (bsr->VolParams[i].StartBlock == bsr->VolParams[i].EndBlock) {
+-               fprintf(fd, "VolBlock=%u\n", bsr->VolParams[i].StartBlock);
+-            } else {
+-               fprintf(fd, "VolBlock=%u-%u\n", bsr->VolParams[i].StartBlock,
+-                       bsr->VolParams[i].EndBlock);
+-            }
++//            if (bsr->VolParams[i].StartFile == bsr->VolParams[i].EndFile) {
++//               fprintf(fd, "VolFile=%u\n", bsr->VolParams[i].StartFile);
++//            } else {
++//               fprintf(fd, "VolFile=%u-%u\n", bsr->VolParams[i].StartFile,
++//                       bsr->VolParams[i].EndFile);
++//            }
++//            if (bsr->VolParams[i].StartBlock == bsr->VolParams[i].EndBlock) {
++//               fprintf(fd, "VolBlock=%u\n", bsr->VolParams[i].StartBlock);
++//            } else {
++//               fprintf(fd, "VolBlock=%u-%u\n", bsr->VolParams[i].StartBlock,
++//                       bsr->VolParams[i].EndBlock);
++//            }
 +            fprintf(fd, "VolAddr=%s-%s\n", edit_uint64(bsr->VolParams[i].StartAddr, ed1),
 +                    edit_uint64(bsr->VolParams[i].EndAddr, ed2));
     //       Dmsg2(100, "bsr VolParam FI=%u LI=%u\n",
@@ -30,8 +78,8 @@ Index: src/dird/bsr.c
  
 Index: src/cats/cats.h
 ===================================================================
---- src/cats/cats.h	(révision 8163)
-+++ src/cats/cats.h	(copie de travail)
+--- src/cats/cats.h	(revision 8163)
++++ src/cats/cats.h	(working copy)
 @@ -844,6 +844,8 @@
     uint32_t StartBlock;               /* start block on tape */
     uint32_t EndBlock;                 /* last block */
@@ -43,8 +91,8 @@ Index: src/cats/cats.h
  };
 Index: src/cats/sql_get.c
 ===================================================================
---- src/cats/sql_get.c	(révision 8163)
-+++ src/cats/sql_get.c	(copie de travail)
+--- src/cats/sql_get.c	(revision 8163)
++++ src/cats/sql_get.c	(working copy)
 @@ -463,6 +463,8 @@
                 Vols[i].EndFile = str_to_uint64(row[5]);
                 Vols[i].StartBlock = str_to_uint64(row[6]);
@@ -56,8 +104,8 @@ Index: src/cats/sql_get.c
                 StorageId = str_to_uint64(row[10]);
 Index: src/stored/match_bsr.c
 ===================================================================
---- src/stored/match_bsr.c	(révision 8174)
-+++ src/stored/match_bsr.c	(copie de travail)
+--- src/stored/match_bsr.c	(revision 8174)
++++ src/stored/match_bsr.c	(working copy)
 @@ -36,15 +36,6 @@
  
  /*
@@ -321,10 +369,117 @@ Index: src/stored/match_bsr.c
     }
     return 0;
  }
+@@ -733,3 +770,48 @@
+    }
+    return 0;
+ }
++
++uint64_t get_bsr_start_addr(BSR *bsr, uint32_t *file, uint32_t *block)
++{
++   uint64_t bsr_addr = 0;
++   uint32_t sfile = 0, sblock = 0;
++
++   if (bsr) {
++      if (bsr->voladdr) {
++         bsr_addr = bsr->voladdr->saddr;
++         sfile = bsr_addr>>32;
++         sblock = (uint32_t)bsr_addr;
++         
++      } else if (bsr->volfile && bsr->volblock) {
++         bsr_addr = (((uint64_t)bsr->volfile->sfile)<<32)|bsr->volblock->sblock;
++         sfile = bsr->volfile->sfile;
++         sblock = bsr->volblock->sblock;
++      }
++   }
++
++   if (file && block) {
++      file = sfile;
++      block = sblock;
++   }
++
++   return bsr_addr;
++}
++
++/* DEV > BSR => 1
++ * DEV = BSR => 0
++ * DEV < BSR => -1
++ */
++int cmp_device_bsr_position(DEVICE *dev, BSR *bsr)
++{
++   uint64_t bsr_addr = get_bsr_start_addr(bsr);
++
++   /* TODO: replace by file_addr ? */
++   uint64_t dev_addr = ((uint64_t dev->file)<<32) | dev->block_num;
++
++   if (dev_addr > bsr_addr)
++      return 1;
++   else if (dev_addr == bsr_addr)
++      return 0;
++   else
++      return -1;
++}
+Index: src/stored/read_record.c
+===================================================================
+--- src/stored/read_record.c	(revision 8163)
++++ src/stored/read_record.c	(working copy)
+@@ -344,19 +344,21 @@
+        *   when find_next_bsr() is fixed not to return a bsr already
+        *   completed.
+        */
+-      if (dev->file > bsr->volfile->sfile ||             
+-         (dev->file == bsr->volfile->sfile && dev->block_num > bsr->volblock->sblock)) {
++      uint32_t block, file;
++      /* TODO: use dev->file_addr ? */
++      uint64_t dev_addr = ((uint64_t dev->file)<<32) | dev->block_num;
++      uint64_t bsr_addr = get_bsr_start_addr(bsr, &file, &block);
++
++      if (dev_addr > bsr_addr) {
+          return false;
+       }
+       if (verbose) {
+-         Jmsg(jcr, M_INFO, 0, _("Reposition from (file:block) %u:%u to %u:%u\n"),
+-            dev->file, dev->block_num, bsr->volfile->sfile,
+-            bsr->volblock->sblock);
++         Jmsg(jcr, M_INFO,0, _("Reposition from (file:block) %u:%u to %u:%u\n"),
++              dev->file, dev->block_num, file, block);
+       }
+       Dmsg4(10, "Try_Reposition from (file:block) %u:%u to %u:%u\n",
+-            dev->file, dev->block_num, bsr->volfile->sfile,
+-            bsr->volblock->sblock);
+-      dev->reposition(dcr, bsr->volfile->sfile, bsr->volblock->sblock);
++            dev->file, dev->block_num, file, block);
++      dev->reposition(dcr, file, block);
+       rec->Block = 0;
+    }
+    return false;
+@@ -369,6 +371,7 @@
+ {
+    BSR *bsr = NULL;
+    DEVICE *dev = dcr->dev;
++   uint32_t file, block;
+    /*
+     * Now find and position to first file and block
+     *   on this tape.
+@@ -376,11 +379,11 @@
+    if (jcr->bsr) {
+       jcr->bsr->reposition = true;    /* force repositioning */
+       bsr = find_next_bsr(jcr->bsr, dev);
+-      if (bsr && (bsr->volfile->sfile != 0 || bsr->volblock->sblock != 0)) {
++      
++      if (get_bsr_start_addr(bsr, &file, &block) > 0) {
+          Jmsg(jcr, M_INFO, 0, _("Forward spacing Volume \"%s\" to file:block %u:%u.\n"),
+-            dev->VolHdr.VolumeName,
+-            bsr->volfile->sfile, bsr->volblock->sblock);
+-         dev->reposition(dcr, bsr->volfile->sfile, bsr->volblock->sblock);
++              dev->VolHdr.VolumeName, file, block);
++         dev->reposition(dcr, file, block);
+       }
+    }
+    return bsr;
 Index: src/stored/parse_bsr.c
 ===================================================================
---- src/stored/parse_bsr.c	(révision 8163)
-+++ src/stored/parse_bsr.c	(copie de travail)
+--- src/stored/parse_bsr.c	(revision 8163)
++++ src/stored/parse_bsr.c	(working copy)
 @@ -52,6 +52,7 @@
  static BSR *store_sessid(LEX *lc, BSR *bsr);
  static BSR *store_volfile(LEX *lc, BSR *bsr);
@@ -435,8 +590,8 @@ Index: src/stored/parse_bsr.c
     free_bsr_item((BSR *)bsr->FileIndex);
 Index: src/stored/record.c
 ===================================================================
---- src/stored/record.c	(révision 8163)
-+++ src/stored/record.c	(copie de travail)
+--- src/stored/record.c	(revision 8163)
++++ src/stored/record.c	(working copy)
 @@ -422,6 +422,10 @@
     return true;
  }
@@ -458,8 +613,8 @@ Index: src/stored/record.c
      * otherwise we find it in the next block.
 Index: src/stored/bsr.h
 ===================================================================
---- src/stored/bsr.h	(révision 8163)
-+++ src/stored/bsr.h	(copie de travail)
+--- src/stored/bsr.h	(revision 8163)
++++ src/stored/bsr.h	(working copy)
 @@ -106,6 +106,12 @@
     bool done;                         /* local done */
  };
@@ -483,9 +638,21 @@ Index: src/stored/bsr.h
     BSR_JOBID    *JobId;
 Index: src/stored/protos.h
 ===================================================================
---- src/stored/protos.h	(révision 8163)
-+++ src/stored/protos.h	(copie de travail)
-@@ -203,6 +203,7 @@
+--- src/stored/protos.h	(revision 8163)
++++ src/stored/protos.h	(working copy)
+@@ -183,7 +183,11 @@
+ void     position_bsr_block(BSR *bsr, DEV_BLOCK *block);
+ BSR     *find_next_bsr(BSR *root_bsr, DEVICE *dev);
+ bool     is_this_bsr_done(BSR *bsr, DEV_RECORD *rec);
++uint64_t get_bsr_start_addr(BSR *bsr, 
++                            uint32_t *file=NULL,
++                            uint32_t *block=NULL);
+ 
++
+ /* From mount.c */
+ bool     mount_next_read_volume(DCR *dcr);
+ 
+@@ -203,6 +207,7 @@
  DEV_RECORD *new_record();
  void        free_record(DEV_RECORD *rec);
  void        empty_record(DEV_RECORD *rec);
