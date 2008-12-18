@@ -117,7 +117,6 @@ Ext.onReady(function(){
         enableDragDrop: true,
         containerScroll: true,
         title: 'Directories',
-        width: 250,
         minSize: 100      
     });
 
@@ -639,18 +638,18 @@ Ext.onReady(function(){
             {
                 title: 'Directories',
                 region: 'west',
-                width: 250,
-                minSize: 100,
+                width: '25%',
+                minSize: 120,
                 items: tree
             }, {
                 title: 'Directory content',
                 region: 'center',
-                minSize: 100,
+                minSize: '33%',
                 items: file_grid
             }, {
                 title: 'File version',
                 region: 'east',
-                width: 550,
+                width: '42%',
                 minSize: 100,
                 items: file_versions_grid
               
