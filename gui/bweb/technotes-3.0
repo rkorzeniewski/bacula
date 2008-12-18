@@ -1,3 +1,6 @@
+18Dec08
+ebl  Rewrite bresto (bweb restore interface) to work with ExtJS 2.2
+     Fix lots of bug
 15Dec08
 ebl  Update Bconsole.pm to use raw_pty() instead of using IO::Pty noecho
 10Dec08

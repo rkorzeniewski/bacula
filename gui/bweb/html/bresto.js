@@ -1,8 +1,7 @@
-
 //   Bweb - A Bacula web interface
 //   Bacula® - The Network Backup Solution
 //
-//   Copyright (C) 2000-2006 Free Software Foundation Europe e.V.
+//   Copyright (C) 2000-2008 Free Software Foundation Europe e.V.
 //
 //   The main author of Bweb is Eric Bollengier.
 //   The main author of Bacula is Kern Sibbald, with contributions from
@@ -31,21 +30,20 @@
 // render if vol is online/offline
 function rd_vol_is_online(val)
 {
-   return '<img src="/bweb/inflag' + val + '.png">';
+   return '<img src="inflag' + val + '.png">';
 }
 
 // TODO: fichier ou rep
 function rd_file_or_dir(val)
 {
    if (val == 'F') {
-      return '<img src="/bweb/A.png">';
+      return '<img src="A.png">';
    } else {
-      return '<img src="/bweb/R.png">';
+      return '<img src="R.png">';
    }
 }
 
 Ext.namespace('Ext.brestore');
-
 Ext.brestore.jobid=0;            // selected jobid
 Ext.brestore.jobdate='';         // selected date
 Ext.brestore.client='';          // selected client
@@ -53,12 +51,11 @@ Ext.brestore.rclient='';         // selected client for resto
 Ext.brestore.storage='';         // selected storage for resto
 Ext.brestore.path='';            // current path (without user location)
 Ext.brestore.root_path='';       // user location
-
+Ext.brestore.media_store;        // media store 
 Ext.brestore.option_vosb = false;
 Ext.brestore.option_vafv = false;
 Ext.brestore.dlglaunch;
-Ext.BLANK_IMAGE_URL = '/bweb/ext/resources/images/aero/s.gif';  // 1.1
-
+Ext.brestore.use_filerelocation=false;
 function get_node_path(node)
 {
    var temp='';
@@ -74,7 +71,6 @@ function get_node_path(node)
    return Ext.brestore.root_path + temp;
 }
 
-
 function init_params(baseParams)
 {
    baseParams['client']= Ext.brestore.client;
@@ -87,22 +83,42 @@ function init_params(baseParams)
    return baseParams;
 }
 
+function captureEvents(observable) {
+    Ext.util.Observable.capture(
+        observable,
+        function(eventName) {
+            console.info(eventName);
+        },
+        this
+    );		
+}
 
-function ext_init()
-{
-//////////////////////////////////////////////////////////////:
-    var Tree = Ext.tree;
+////////////////////////////////////////////////////////////////
+
+Ext.BLANK_IMAGE_URL = 'ext/resources/images/default/s.gif';
+Ext.onReady(function(){
+    if (!Ext.version || Ext.version < 2.2) {
+        alert("You must upgrade your extjs version to 2.2");
+        return;
+    }
+
+    Ext.QuickTips.init();
+
+    // Init tree for directory selection
     var tree_loader = new Ext.tree.TreeLoader({
             baseParams:{}, 
             dataUrl:'/cgi-bin/bweb/bresto.pl'
         });
 
-    var tree = new Ext.tree.TreePanel('div-tree', {
+    var tree = new Ext.tree.TreePanel({
         animate:true, 
         loader: tree_loader,
         enableDD:true,
         enableDragDrop: true,
-        containerScroll: true
+        containerScroll: true,
+        title: 'Directories',
+        width: 250,
+        minSize: 100      
     });
 
     // set the root node
@@ -112,13 +128,9 @@ function ext_init()
         id:'source'
     });
     tree.setRootNode(root);
-    Ext.brestore.tree = root;
+    Ext.brestore.tree = root;   // shortcut
 
-    // render the tree
-    tree.render();
-//    root.expand();
-
-    click_cb = function(node, event) { 
+    var click_cb = function(node, event) { 
         Ext.brestore.path = get_node_path(node);
         where_field.setValue(Ext.brestore.path);
         file_store.removeAll();
@@ -126,16 +138,16 @@ function ext_init()
         file_store.load({params:init_params({action: 'list_files',
                                              path:Ext.brestore.path,
                                              node:node.id})
-                       });
+                        });
         return true;
     };
+ 
     tree.on('click', click_cb);
 
     tree.on('beforeload', function(e) {
         file_store.removeAll();
         return true;
     });
-
     tree.on('load', function(n,e) {
         if (!n.firstChild) {
            click_cb(n, e);
@@ -143,156 +155,177 @@ function ext_init()
         return true;
     });
 
-////////////////////////////////////////////////////////////////
-
-  var file_store = new Ext.data.Store({
+    ////////////////////////////////////////////////////////////////
+    
+    var file_store = new Ext.data.Store({
         proxy: new Ext.data.HttpProxy({
             url: '/cgi-bin/bweb/bresto.pl',
             method: 'GET',
             params:{}
         }),
-
-        reader: new Ext.data.ArrayReader({
-        }, Ext.data.Record.create([
-   {name: 'fileid'    },
-   {name: 'filenameid'},
-   {name: 'pathid'    },
-   {name: 'jobid'     },
-   {name: 'name'      },
-   {name: 'size',     type: 'int'  },
-   {name: 'mtime',    type: 'date', dateFormat: 'Y-m-d h:i:s'}
+        
+        reader: new Ext.data.ArrayReader({},
+         Ext.data.Record.create([
+          {name: 'fileid'    },
+          {name: 'filenameid'},
+          {name: 'pathid'    },
+          {name: 'jobid'     },
+          {name: 'name'      },
+          {name: 'size',     type: 'int'  },
+          {name: 'mtime',    type: 'date', dateFormat: 'Y-m-d h:i:s'}
         ]))
-   });
-
-   var cm = new Ext.grid.ColumnModel([{
-           id:        'name', // id assigned so we can apply custom css (e.g. .x-grid-col-topic b { color:#333 })
-           header:    'File',
-           dataIndex: 'name',
-           width:     200,
-           css:       'white-space:normal;'
-        },{
-           header:    "Size",
-           dataIndex: 'size',
-           renderer:  human_size,
-           width:     50
-        },{
-           header:    "Date",
-           dataIndex: 'mtime',
-           renderer: Ext.util.Format.dateRenderer('Y-m-d h:i'),
-           width:     100
-        },{
-           dataIndex: 'pathid',
-           hidden: true
-        },{
-           dataIndex: 'filenameid',
-           hidden: true
-        },{
-           dataIndex: 'fileid',
-           hidden: true
-        },{
-           dataIndex: 'jobid',
-           hidden: true
-        }
-        ]);
+    });
+    Ext.brestore.file_store=file_store;
+    var cm = new Ext.grid.ColumnModel([{
+        id:        'cm-id', // id assigned so we can apply custom css 
+                           // (e.g. .x-grid-col-topic b { color:#333 })
+        header:    'File',
+        dataIndex: 'name',
+        width:     200,
+        css:       'white-space:normal;'
+    },{
+        header:    "Size",
+        dataIndex: 'size',
+        renderer:  human_size,
+        width:     60
+    },{
+        header:    "Date",
+        dataIndex: 'mtime',
+        renderer: Ext.util.Format.dateRenderer('Y-m-d h:i'),
+        width:     100
+    },{
+        dataIndex: 'pathid',
+        hidden: true
+    },{
+        dataIndex: 'filenameid',
+        hidden: true
+    },{
+        dataIndex: 'fileid',
+        hidden: true
+    },{
+        dataIndex: 'jobid',
+        hidden: true
+    }]);
 
     // by default columns are sortable
-   cm.defaultSortable = true;
-    // create the grid
-   var files_grid = new Ext.grid.Grid('div-files', {
-        ds: file_store,
-        cm: cm,
-        ddGroup : 'TreeDD',
-        enableDrag: true,
+    cm.defaultSortable = true;
+
+    var file_grid = new Ext.grid.GridPanel({
+        id: 'div-files',
+        store: file_store,
+        colModel: cm,
+        ddGroup: 'TreeDD',
         enableDragDrop: true,
         selModel: new Ext.grid.RowSelectionModel(),
-                loadMask: true,
+        loadMask: true,
         autoSizeColumns: true,
-        enableColLock:false
-        
+        autoShow: true,
+        autoHeight: true,
+        title: 'Directory content',
+	cmargins: '5 0 0 0'
     });
+    Ext.brestore.file_grid=file_grid;
+//    captureEvents(file_grid);
+//    captureEvents(file_store);
     // when we reload the view,
     // we clear the file version box
     file_store.on('beforeload', function(e) {
         file_versions_store.removeAll();
         return true;
     });
+    
+    file_store.on('loadexception', function(obj, options, response, e){
+        console.info('store loadexception, arguments:', arguments);
+        console.info('error = ', e);
+    });
+
+    file_store.on('load', function(store, records, options){
+            //store is loaded, now you can work with it's records, etc.
+            console.info('store load, arguments:', arguments);
+            console.info('Store count = ', store.getCount());
+    });
 
     // TODO: selection only when using dblclick
-    files_grid.selModel.on('rowselect', function(e,i,r) { 
+    file_grid.selModel.on('rowselect', function(e,i,r) { 
         if (r.json[4] == '.') {
-                        return true;
-                }
+            return true;
+        }
         Ext.brestore.filename = r.json[4];
-        file_versions_store.load({params:init_params({action: 'list_versions',
-                                                     vafv: Ext.brestore.option_vafv,
-                                                     pathid: r.json[2],
-                                                     filenameid: r.json[1]
-                                                     })
-                                 });
+        file_versions_store.load({
+            params:init_params({action: 'list_versions',
+                                vafv:   Ext.brestore.option_vafv,
+                                pathid: r.json[2],
+                                filenameid: r.json[1]
+                               })
+        });
         return true;
     });
 
-//////////////////////////////////////////////////////////////:
+    ////////////////////////////////////////////////////////////////
 
-  var file_selection_store = new Ext.data.Store({
+    var file_selection_store = new Ext.data.Store({
         proxy: new Ext.data.MemoryProxy(),
+        
+        reader: new Ext.data.ArrayReader({},
+          Ext.data.Record.create([
+              {name: 'jobid'     },
+              {name: 'fileid'    },
+              {name: 'filenameid'},
+              {name: 'pathid'    },
+              {name: 'name'      },
+              {name: 'size',     type: 'int'  },
+              {name: 'mtime'}//,    type: 'date', dateFormat: 'Y-m-d h:i:s'}
+          ]))
+    });
 
-        reader: new Ext.data.ArrayReader({
-        }, Ext.data.Record.create([
-   {name: 'jobid'     },
-   {name: 'fileid'    },
-   {name: 'filenameid'},
-   {name: 'pathid'    },
-   {name: 'name'      },
-   {name: 'size',     type: 'int'  },
-   {name: 'mtime',    type: 'date', dateFormat: 'Y-m-d h:i:s'}
-        ]))
-   });
-
-   var file_selection_cm = new Ext.grid.ColumnModel([{
-           id:        'name', // id assigned so we can apply custom css (e.g. .x-grid-col-topic b { color:#333 })
-           header:    "Name",
-           dataIndex: 'name',
-           width:     250
+    var file_selection_cm = new Ext.grid.ColumnModel([
+        {
+            id:        'file-selection-id', 
+            header:    "Name",
+            dataIndex: 'name',
+            width:     250
         },{
-           header:    "JobId",
-           width:     50,
-           dataIndex: 'jobid'
+            header:    "JobId",
+            width:     50,
+            dataIndex: 'jobid'
         },{
-           header:    "Size",
-           dataIndex: 'size',
-           renderer:  human_size,
-           width:     50
+            header:    "Size",
+            dataIndex: 'size',
+            renderer:  human_size,
+            width:     50
         },{
-           header:    "Date",
-           dataIndex: 'mtime',
-           renderer: Ext.util.Format.dateRenderer('Y-m-d h:i'),
-           width:     100
+            header:    "Date",
+            dataIndex: 'mtime',
+//            renderer: Ext.util.Format.dateRenderer('Y-m-d h:i'),
+            width:     100
         },{
-           dataIndex: 'pathid',
-           header: 'PathId',
-           hidden: true
+            header: 'PathId',
+            dataIndex: 'pathid',
+            hidden: true
         },{
-           dataIndex: 'filenameid',
-           hidden: true
+            header: 'Filenameid',
+            dataIndex: 'filenameid',
+            hidden: true
         },{
-           dataIndex: 'fileid',
-           header: 'FileId',
-           hidden: true
+            header: 'FileId',
+            dataIndex: 'fileid',
+            hidden: true
         }
-        ]);
-
+    ]);
 
     // create the grid
-   var file_selection_grid = new Ext.grid.Grid('div-file-selection', {
-        cm: file_selection_cm,
-        ds: file_selection_store,
+    var file_selection_grid = new Ext.grid.GridPanel({
+        colModel: file_selection_cm,
+        store: file_selection_store,
         ddGroup : 'TreeDD',
-        enableDrag: false,
-        enableDrop: true,
+        enableDragDrop: false,
         selModel: new Ext.grid.RowSelectionModel(),
         loadMask: true,
-        enableColLock:false
+        height: 200,
+//        autoHeight: true,
+        minSize: 75,
+        maxSize: 250,
+	cmargins: '5 0 0 0'
     });
 
     var file_selection_record = Ext.data.Record.create(
@@ -303,168 +336,113 @@ function ext_init()
       {name: 'size'},
       {name: 'mtime'}
     );
-// data.selections[0].json[]
-// data.node.id
-// http://extjs.com/forum/showthread.php?t=12582&highlight=drag+drop
-    var ddrow = new Ext.dd.DropTarget(file_selection_grid.container, {
-        ddGroup : 'TreeDD',
-        copy:false,
-        notifyDrop : function(dd, e, data){
-           var r;
-           if (data.selections) {
-             if (data.grid.id == 'div-files') {
-                 for(var i=0;i<data.selections.length;i++) {
-                    r = new file_selection_record({
-                      jobid:     data.selections[0].json[3],
-                      fileid:    data.selections[i].json[0],
-                      filenameid:data.selections[i].json[1],
-                      pathid:    data.selections[i].json[2],
-                      name: Ext.brestore.path + data.selections[i].json[4],
-                      size:      data.selections[i].json[5],
-                      mtime:     data.selections[i].json[6]
-                    });
-                    file_selection_store.add(r)
-                 }
-             }
+//    captureEvents(file_selection_grid);
+//    captureEvents(file_selection_store);
 
-             if (data.grid.id == 'div-file-versions') {
-                    r = new file_selection_record({
-                      jobid:     data.selections[0].json[3],
-                      fileid:    data.selections[0].json[0],
-                      filenameid:data.selections[0].json[1],
-                      pathid:    data.selections[0].json[2],
-                      name: Ext.brestore.path + Ext.brestore.filename,
-                      size:      data.selections[0].json[7],
-                      mtime:     data.selections[0].json[8]     
-                    });
-                    file_selection_store.add(r)
-             }
-           }
-  
-           if (data.node) {
-              var path= get_node_path(data.node);
-              r = new file_selection_record({
-                      jobid:     data.node.attributes.jobid,
-                      fileid:    0,
-                      filenameid:0,
-                      pathid:    data.node.id,
-                      name:      path,
-                      size:      4096,
-                      mtime:     0
-              });
-              file_selection_store.add(r)
-           }
-  
-           return true;
-    }});
-
-   file_selection_grid.on('enddrag', function(dd,e) { 
-         alert('enddrag'); alert(e) ; return true;
-    });
-   file_selection_grid.on('notifyDrop', function(dd,e) { 
-        alert('notifyDrop'); alert(e) ; return true;
-    });
-   func1 = function(e,b,c) { 
-      if (e.browserEvent.keyCode == 46) {
+    func1 = function(e,b,c) { 
+        if (e.browserEvent.keyCode == 46) {
             var m = file_selection_grid.getSelections();
             if(m.length > 0) {
-               for(var i = 0, len = m.length; i < len; i++){                    
-                file_selection_store.remove(m[i]); 
-               }
+                for(var i = 0, len = m.length; i < len; i++){                    
+                    file_selection_store.remove(m[i]); 
+                }
             }
-      }
-   };
-   file_selection_grid.on('keypress', func1);
-///////////////////////////////////////////////////////
+        }
+    };
+    file_selection_grid.on('keypress', func1);
+    
+    ////////////////////////////////////////////////////////////////
 
-  var file_versions_store = new Ext.data.Store({
+    var file_versions_store = new Ext.data.Store({
         proxy: new Ext.data.HttpProxy({
             url: '/cgi-bin/bweb/bresto.pl',
             method: 'GET',
             params:{offset:0, limit:50 }
         }),
+        
+        reader: new Ext.data.ArrayReader({},
+           Ext.data.Record.create([
+               {name: 'fileid'    },
+               {name: 'filenameid'},
+               {name: 'pathid'    },
+               {name: 'jobid'     },
+               {name: 'volume'    },
+               {name: 'inchanger' },
+               {name: 'md5'       },
+               {name: 'size',     type: 'int'  },
+               {name: 'mtime',    type: 'date', dateFormat: 'Y-m-d h:i:s'}
+           ]))
+    });
 
-        reader: new Ext.data.ArrayReader({
-        }, Ext.data.Record.create([
-   {name: 'fileid'    },
-   {name: 'filenameid'},
-   {name: 'pathid'    },
-   {name: 'jobid'     },
-   {name: 'volume'    },
-   {name: 'inchanger' },
-   {name: 'md5'       },
-   {name: 'size',     type: 'int'  },
-   {name: 'mtime',    type: 'date', dateFormat: 'Y-m-d h:i:s'}
-        ]))
-   });
-
-   var file_versions_cm = new Ext.grid.ColumnModel([{
-           id:        'name', // id assigned so we can apply custom css (e.g. .x-grid-col-topic b { color:#333 })
-           dataIndex: 'name',
-           hidden: true
-        },{
-           header:    "InChanger",
-           dataIndex: 'inchanger',
-           width:     60,
-           renderer:  rd_vol_is_online
-        },{
-           header:    "Volume",
-           dataIndex: 'volume'
-        },{
-           header:    "JobId",
-           width:     50,
-           dataIndex: 'jobid'
-        },{
-           header:    "Size",
-           dataIndex: 'size',
-           renderer:  human_size,
-           width:     50
-        },{
-           header:    "Date",
-           dataIndex: 'mtime',
-           renderer: Ext.util.Format.dateRenderer('Y-m-d h:i'),
-           width:     100
-        },{
-           header:    "MD5",
-           dataIndex: 'md5',
-           width:     160
-        },{
-           header:    "pathid",
-           dataIndex: 'pathid',
-           hidden: true
-        },{
-           header:    "filenameid",
-           dataIndex: 'filenameid',
-           hidden: true
-        },{
-           header:    "fileid",
-           dataIndex: 'fileid',
-           hidden: true
-        }
-   ]);
+    var file_versions_cm = new Ext.grid.ColumnModel([{
+        id:        'file-version-id',
+        dataIndex: 'name',
+        hidden: true
+    },{
+        header:    "InChanger",
+        dataIndex: 'inchanger',
+        width:     60,
+        renderer:  rd_vol_is_online
+    },{
+        header:    "Volume",
+        dataIndex: 'volume',
+        width:     128
+    },{
+        header:    "JobId",
+        width:     50,
+        dataIndex: 'jobid'
+    },{
+        header:    "Size",
+        dataIndex: 'size',
+        renderer:  human_size,
+        width:     50
+    },{
+        header:    "Date",
+        dataIndex: 'mtime',
+        renderer: Ext.util.Format.dateRenderer('Y-m-d h:i'),
+        width:     100
+    },{
+        header:    "CheckSum",
+        dataIndex: 'md5',
+        width:     160
+    },{
+        header:    "pathid",
+        dataIndex: 'pathid',
+        hidden: true
+    },{
+        header:    "filenameid",
+        dataIndex: 'filenameid',
+        hidden: true
+    },{
+        header:    "fileid",
+        dataIndex: 'fileid',
+        hidden: true
+    }]);
 
     // by default columns are sortable
-   file_versions_cm.defaultSortable = true;
+    file_versions_cm.defaultSortable = true;
 
     // create the grid
-   var file_versions_grid = new Ext.grid.Grid('div-file-versions', {
-        ds: file_versions_store,
-        cm: file_versions_cm,
+    var file_versions_grid = new Ext.grid.GridPanel({
+        id: 'div-file-versions',
+        store: file_versions_store,
+        colModel: file_versions_cm,
         ddGroup : 'TreeDD',
-        enableDrag: true,
-        enableDrop: false,
+        enableDragDrop: true,
         selModel: new Ext.grid.RowSelectionModel(),
         loadMask: true,
-        enableColLock:false
-        
+        autoHeight: true,
+        autoScroll: true,
+        title: 'File version',
+	cmargins: '5 0 0 0'
     });
 
     file_versions_grid.on('rowdblclick', function(e) { 
         alert(e) ; file_versions_store.removeAll(); return true;
     });
 
-//////////////////////////////////////////////////////////////:
 
+    ////////////////////////////////////////////////////////////////
 
     var client_store = new Ext.data.Store({
         proxy: new Ext.data.HttpProxy({
@@ -472,10 +450,10 @@ function ext_init()
             method: 'GET',
             params:{action:'list_client'}
         }),
-
+        
         reader: new Ext.data.ArrayReader({
         }, Ext.data.Record.create([
-           {name: 'name' }
+            {name: 'name' }
         ]))
     });
 
@@ -509,7 +487,7 @@ function ext_init()
         return true;
     });
 
-//////////////////////////////////////////////////////////////:
+    //////////////////////////////////////////////////////////////:
 
     var job_store = new Ext.data.Store({
         proxy: new Ext.data.HttpProxy({
@@ -527,17 +505,17 @@ function ext_init()
     });
 
     var job_combo = new Ext.form.ComboBox({
-        fieldLabel: 'Jobs',
-        store: job_store,
-        displayField:'jobname',
-        typeAhead: true,
-        mode: 'local',
-        triggerAction: 'all',
-        emptyText:'Select a job...',
-        selectOnFocus:true,
-                loadMask: true,
-        forceSelection: true,
-        width:350
+        store:           job_store,
+        fieldLabel:      'Jobs',
+        displayField:    'jobname',
+        mode:            'local',
+        triggerAction:   'all',
+        emptyText:       'Select a job...',
+        typeAhead:       true,
+        selectOnFocus:   true,
+        loadMask:        true,
+        forceSelection:  true,
+        width:           350
     });
 
     job_combo.on('select', function(e,c) {
@@ -549,7 +527,12 @@ function ext_init()
         root.reload();
     });
 
-////////////////////////////////////////////////////////////////
+    var where_field = new Ext.form.TextField({
+            fieldLabel: 'Location',
+            name: 'where',
+            width:275,
+            allowBlank:false
+    });
 
     function sel_option(item, check)
     {
@@ -578,95 +561,204 @@ function ext_init()
             })
         ]
     });
-////////////////////////////////////////////////////////////////:
 
-    // create the primary toolbar
-    var tb2 = new Ext.Toolbar('div-tb-sel');
-
-    var where_field = new Ext.form.TextField({
-            fieldLabel: 'Location',
-            name: 'where',
-            width:175,
-            allowBlank:false
-    });
-
-    var tb = new Ext.Toolbar('div-toolbar', [
-        client_combo,
-        job_combo,
-        '-',
-        {
-          id: 'tb_home',
-//        icon: '/bweb/up.gif',
-          text: 'Change location',
-          cls:'x-btn-text-icon',
-          handler: function() { 
-                var where = where_field.getValue();
-                Ext.brestore.root_path=where;
-                root.setText(where);
-                tree_loader.baseParams = init_params({ action:'list_dirs', path: where });
-                root.reload();
-          }
-        },
-        where_field,
-        '-',
-        {
-            cls: 'x-btn-text-icon bmenu', // icon and text class
-            text:'Options',
-            menu: menu  // assign menu by instance
-        },
-        {
-            icon: '/bweb/mR.png', // icons can also be specified inline
-            cls: 'x-btn-icon',
-            title: 'restore',
-            handler: function() { 
-                if (Ext.brestore.dlglaunch) {
-                   Ext.brestore.dlglaunch.show();
-                   return 0;
+    var tb = new Ext.Toolbar({
+        items: [
+            client_combo,
+            job_combo,
+            '-',
+            { 
+              text: 'Change location',
+              cls:'x-btn-text-icon',
+              handler: function() { 
+                  var where = where_field.getValue();
+                  if (!where) {
+                      Ext.MessageBox.show({
+                          title: 'Bad parameter',
+                          msg: 'Location is empty!',
+                          buttons: Ext.MessageBox.OK,
+                          icon: Ext.MessageBox.ERROR
+                      });
+                      return;
+                  }
+                  Ext.brestore.root_path=where;
+                  root.setText(where);
+                  tree_loader.baseParams = init_params({ 
+                      action:'list_dirs', path: where
+                  });
+                  root.reload();
+              }
+            },
+            where_field,
+            {
+                text:'Options',
+                iconCls: 'bmenu',  // <-- icon
+                menu: menu  // assign menu by instance
+            },
+            '->',                     // Fill
+            {                         // TODO: put this button on south panel
+                icon: '/bweb/mR.png', // icons can also be specified inline
+                cls: 'x-btn-text-icon',
+                tooltip: 'Run restore',
+                text: 'Run restore',
+                handler: function() {
+                    if (!file_selection_store.data.items.length) {
+                        Ext.MessageBox.show({
+                            title: 'Empty selection',
+                            msg: 'Your object selection list is empty!',
+                            buttons: Ext.MessageBox.OK,
+                            icon: Ext.MessageBox.ERROR
+                        });
+                    } else {
+                        display_run_job();
+                    }
                 }
-                Ext.brestore.dlglaunch = new Ext.LayoutDialog("div-resto-dlg", {
-//                        modal:true,
-                        width:600,
-                        height:500,
-                        shadow:true,
-                        minWidth:300,
-                        minHeight:300,
-                        proxyDrag: true,
-//                        west: {
-//                              split:true,
-//                              initialSize: 150,
-//                              minSize: 100,
-//                              maxSize: 250,
-//                              titlebar: true,
-//                              collapsible: true,
-//                              animate: true
-//                          },
-                        center: {
-                                autoScroll:true,
-//                              tabPosition: 'top',
-//                              closeOnTab: true,
-//                              alwaysShowTabs: true
-                        }
+            }]});
+    tb.render('tb-div');
+
+    ////////////////////////////////////////////////////////////////
+    
+    // Define Main interface
+    var MainView = new Ext.Viewport({
+        id:'mainview-panel',
+        title: 'Bacula Web Restore',
+        layout:'border',
+        bodyBorder: false,
+        renderTo: Ext.getBody(),
+        defaults: {
+	    collapsible: false,
+            split: true,
+	    animFloat: false,
+	    autoHide: false,
+            autoScroll: true,
+	    useSplitTips: true
+        },
+        tbar: tb,
+        items: [
+            {
+                title: 'Directories',
+                region: 'west',
+                width: 250,
+                minSize: 100,
+                items: tree
+            }, {
+                title: 'Directory content',
+                region: 'center',
+                minSize: 100,
+                items: file_grid
+            }, {
+                title: 'File version',
+                region: 'east',
+                width: 550,
+                minSize: 100,
+                items: file_versions_grid
+              
+            }, {
+                title: 'Restore selection',
+                region: 'south',
+                height: 200,
+                autoScroll: false,
+                items: file_selection_grid
+            }
+        ]});
+    client_store.load({params:{action: 'list_client'}});
+
+    // data.selections[0].json[]
+    // data.node.id
+    // http://extjs.com/forum/showthread.php?t=12582&highlight=drag+drop
+
+    var horror_show1 = file_selection_grid.getView().el.dom;
+    var ddrow = new Ext.dd.DropTarget(horror_show1, {
+        ddGroup : 'TreeDD',
+        copy:false,
+        notifyDrop : function(dd, e, data){
+            var r;
+            if (data.selections) {
+                if (data.grid.id == 'div-files') {
+                    for(var i=0;i<data.selections.length;i++) {
+                        r = new file_selection_record({
+                            jobid:     data.selections[0].json[3],
+                            fileid:    data.selections[i].json[0],
+                            filenameid:data.selections[i].json[1],
+                            pathid:    data.selections[i].json[2],
+                            name: Ext.brestore.path + data.selections[i].json[4],
+                            size:      data.selections[i].json[5],
+                            mtime:     data.selections[i].json[6]
+                        });
+                        file_selection_store.add(r);
+                    }
+                }
+                
+                if (data.grid.id == 'div-file-versions') {
+                    r = new file_selection_record({
+                        jobid:     data.selections[0].json[3],
+                        fileid:    data.selections[0].json[0],
+                        filenameid:data.selections[0].json[1],
+                        pathid:    data.selections[0].json[2],
+                        name: Ext.brestore.path + Ext.brestore.filename,
+                        size:      data.selections[0].json[7],
+                        mtime:     data.selections[0].json[8]     
+                    });
+                    file_selection_store.add(r)
+                }
+            }
+            
+            if (data.node) {
+                var path= get_node_path(data.node);
+                r = new file_selection_record({
+                    jobid:     data.node.attributes.jobid,
+                    fileid:    0,
+                    filenameid:0,
+                    pathid:    data.node.id,
+                    name:      path,
+                    size:      4096,
+                    mtime:     0
                 });
+                file_selection_store.add(r)
+            }
+            
+            return true;
+        }});
 
-    var fs = new Ext.form.Form({
-        labelAlign: 'right',
-        labelWidth: 80
-    });
+    function reload_media_store() {
+        var items = file_selection_store.data.items;
+        var tab_fileid=new Array();
+        var tab_jobid=new Array();
+        var enable_compute=false;
+        for(var i=0;i<items.length;i++) {
+            if (items[i].data['fileid']) {
+                tab_fileid.push(items[i].data['fileid']);
+            } else {
+                enable_compute=true;
+            }
+            tab_jobid.push(items[i].data['jobid']);
+        }
+        var res = tab_fileid.join(",");
+        var res2 = tab_jobid.join(",");
+        
+        console.info(res);
+        console.info(res2);
 
-//    var resto_store = new Ext.data.Store({
-//        proxy: new Ext.data.HttpProxy({
-//            url: '/cgi-bin/bweb/bresto.pl',
-//            method: 'GET',
-//            params:{action:'list_resto'}
-//        }),
-//
-//        reader: new Ext.data.ArrayReader({
-//        }, Ext.data.Record.create([
-//           {name: 'name' }
-//        ]))
-//    });
+        Ext.brestore.media_store.baseParams = init_params({
+            action: 'get_media', 
+            jobid: res2, 
+            fileid: res
+        });
+        Ext.brestore.media_store.load();
+        if (enable_compute) {
+            Ext.get('reload_media').show();
+        } else {
+            Ext.get('reload_media').hide();
+        }
+    };
 
-    var rclient_combo = new Ext.form.ComboBox({
+    function display_run_job() {
+        if (Ext.brestore.dlglaunch) {
+            reload_media_store();
+            Ext.brestore.dlglaunch.show();
+            return 0;
+        }
+        var rclient_combo = new Ext.form.ComboBox({
             value: Ext.brestore.client,
             fieldLabel: 'Client',
             hiddenName:'client',
@@ -676,341 +768,256 @@ function ext_init()
             mode: 'local',
             triggerAction: 'all',
             emptyText:'Select a client...',
-            selectOnFocus:true,
-            width:190
+            forceSelection: true,
+            value:  Ext.brestore.client,
+            selectOnFocus:true
         });
-    var where_text = new Ext.form.TextField({
+        var where_text = new Ext.form.TextField({
             fieldLabel: 'Where',
             name: 'where',
-            value: '/tmp/bacula-restore',
-            width:190
+            value: '/tmp/bacula-restore'
         });
-    var stripprefix_text = new Ext.form.TextField({
+        var stripprefix_text = new Ext.form.TextField({
             fieldLabel: 'Strip prefix',
             name: 'strip_prefix',
             value: '',
-            disabled: 1,
-            width:190
+            disabled: 1
         });
-    var addsuffix_text = new Ext.form.TextField({
+        var addsuffix_text = new Ext.form.TextField({
             fieldLabel: 'Add suffix',
             name: 'add_suffix',
             value: '',
-            disabled: 1,
-            width:190
+            disabled: 1
         });
-    var addprefix_text = new Ext.form.TextField({
+        var addprefix_text = new Ext.form.TextField({
             fieldLabel: 'Add prefix',
             name: 'add_prefix',
             value: '',
-            disabled: 1,
-            width:190
+            disabled: 1
         });
-    var rwhere_text = new Ext.form.TextField({
+        var rwhere_text = new Ext.form.TextField({
             fieldLabel: 'Where regexp',
             name: 'regexp_where',
             value: '',
-            disabled: 1,
-            width:190
+            disabled: 1
         });
-    var usefilerelocation_bp = new Ext.form.Checkbox({
-            fieldLabel: 'Use file relocation',
-            name: 'use_relocation',
-            checked: 0
-    });
-    var useregexp_bp = new Ext.form.Checkbox({
+        var useregexp_bp = new Ext.form.Checkbox({
             fieldLabel: 'Use regexp',
             name: 'use_regexp',
             disabled: 1,
-            checked: 0 
-    });
-    usefilerelocation_bp.on('check', function(bp,state) {
-       if (state) {
-          where_text.disable();
-          useregexp_bp.enable();
-          if (useregexp_bp.getValue()) {
-             addsuffix_text.disable();
-             addprefix_text.disable();
-             stripprefix_text.disable();
-             rwhere_text.enable();
-          } else {
-             addsuffix_text.enable();
-             addprefix_text.enable();
-             stripprefix_text.enable();
-             rwhere_text.disable();
-          }
-       } else {
-          where_text.enable();
-          addsuffix_text.disable();
-          addprefix_text.disable();
-          stripprefix_text.disable();
-          useregexp_bp.disable();
-          rwhere_text.disable();
-       }
-    }); 
-
-    useregexp_bp.on('check', function(bp,state) {
-       if (state) {
-          addsuffix_text.disable();
-          addprefix_text.disable();
-          stripprefix_text.disable();
-          rwhere_text.enable();
-       } else {
-          addsuffix_text.enable();
-          addprefix_text.enable();
-          stripprefix_text.enable();
-          rwhere_text.disable();
-       }
-    }); 
-
-
-    var storage_store = new Ext.data.Store({
-        proxy: new Ext.data.HttpProxy({
-            url: '/cgi-bin/bweb/bresto.pl',
-            method: 'GET',
-            params:{action:'list_storage'}
-        }),
-
-        reader: new Ext.data.ArrayReader({
-        }, Ext.data.Record.create([
-           {name: 'name' }
-        ]))
-    });
-    var storage_combo = new Ext.form.ComboBox({
-            fieldLabel: 'Storage',
-            hiddenName:'storage',
-            store: storage_store,
-            displayField:'name',
-            typeAhead: true,
-            mode: 'local',
-            triggerAction: 'all',
-            emptyText:'Select a storage...',
-            selectOnFocus:true,
-            width:190
-        });
-////////////////////////////////////////////////////////////////
-  var media_store = new Ext.data.Store({
-        proxy: new Ext.data.HttpProxy({
-            url: '/cgi-bin/bweb/bresto.pl',
-            method: 'GET',
-            params:{offset:0, limit:50 }
-        }),
-
-        reader: new Ext.data.ArrayReader({
-        }, Ext.data.Record.create([
-   {name: 'volumename'},
-   {name: 'enabled'   },
-   {name: 'inchanger' }
-        ]))
-   });
-
-   var media_cm = new Ext.grid.ColumnModel([{
-           header:    "InChanger",
-           dataIndex: 'inchanger',
-           width:     60,
-           renderer:  rd_vol_is_online
-        }, {
-           header:    "Volume",
-           id:        'volumename', 
-           dataIndex: 'volumename',
-           width:     140
-        }
-   ]);
-
-    // create the grid
-   var media_grid = new Ext.grid.Grid('div-media', {
-        ds: media_store,
-        cm: media_cm,
-        enableDrag: false,
-        enableDrop: false,
-        loadMask: true,
-        width: 200,
-        enableColLock:false        
-    });
-
-    var items = file_selection_store.data.items;
-    var tab_fileid=new Array();
-    var tab_jobid=new Array();
-    for(var i=0;i<items.length;i++) {
-       if (items[i].data['fileid']) {
-          tab_fileid.push(items[i].data['fileid']);
-       }
-       tab_jobid.push(items[i].data['jobid']);
-    }
-    var res = tab_fileid.join(",");
-    var res2 = tab_jobid.join(",");
-
-////////////////////////////////////////////////////////////////
-    fs.fieldset(
-        {legend:'Media needed'},
-        media_grid
-    );
-    fs.fieldset(
-        {legend:'Restore options'},
-        new Ext.form.ComboBox({
-            fieldLabel: 'Replace',
-            hiddenName:'replace',
-            store: new Ext.data.SimpleStore({
-                 fields: ['replace'],
-                 data : [['always'],['never'],['if newer']]
-            }),
-            displayField:'replace',
-            typeAhead: true,
-            mode: 'local',
-            triggerAction: 'all',
-            emptyText:'never',
-            selectOnFocus:true,
-            width:190
-        }),
-//
-//        new Ext.form.ComboBox({
-//            fieldLabel: 'job',
-//            hiddenName:'job',
-//            store: resto_store,
-//            displayField:'name',
-//            typeAhead: true,
-//            mode: 'local',
-//            triggerAction: 'all',
-//            emptyText:'Select a job...',
-//            selectOnFocus:true,
-//            width:190
-//        }),
-
-        rclient_combo,
-        storage_combo,
-        where_text
-        );
-    fs.fieldset(
-        {legend:'File relocation'},
-        usefilerelocation_bp,
-        stripprefix_text,
-        addprefix_text,
-        addsuffix_text,
-        useregexp_bp,
-        rwhere_text
-    );
-    media_store.baseParams = init_params({action: 'get_media', jobid: res2, fileid: res});
-    media_store.load();
-    storage_store.load({params:{action: 'list_storage'}});
-//  resto_store.load({params:{action: 'list_resto'}});
-    fs.render('div-resto-form');
-
-//      var f = new Ext.form.BasicForm('div-resto-form', {url: '/bweb/test', method: 'GET',
-//                                                      baseParams: {init: 1}
-//                                                     }
-//                                     );
-
-    var launch_restore = function() {
-        var items = file_selection_store.data.items;
-        var tab_fileid=new Array();
-        var tab_dirid=new Array();
-        var tab_jobid=new Array();
-        for(var i=0;i<items.length;i++) {
-                if (items[i].data['fileid']) {
-                        tab_fileid.push(items[i].data['fileid']);
+            checked: 0,
+            handler: function(bp,state) {
+                if (state) {
+                    addsuffix_text.disable();
+                    addprefix_text.disable();
+                    stripprefix_text.disable();
+                    rwhere_text.enable();
                 } else {
-                        tab_dirid.push(items[i].data['pathid']);
+                    addsuffix_text.enable();
+                    addprefix_text.enable();
+                    stripprefix_text.enable();
+                    rwhere_text.disable();
+                }
+            }
+        }); 
+
+        var use_filerelocation_fieldset = new Ext.form.FieldSet({
+            checkboxToggle : true,
+            title          : 'Use file relocation',
+            autoHeight     : true,
+            defaults       : {width: 210},
+            defaultType    : 'textfield',
+            checkboxName   : 'use_filerelocation',   
+            collapsed      : true,
+            anchor         : '100%',
+            items :[ stripprefix_text, addsuffix_text, addprefix_text,
+                     useregexp_bp, rwhere_text ]
+        });
+        
+        use_filerelocation_fieldset.on('collapse', function(bp) {
+            Ext.brestore.use_filerelocation=false;
+            where_text.enable();
+            addsuffix_text.disable();
+            addprefix_text.disable();
+            stripprefix_text.disable();
+            useregexp_bp.disable();
+            rwhere_text.disable();
+        });
+
+        use_filerelocation_fieldset.on('expand', function(bp) {
+            Ext.brestore.use_filerelocation=true;
+            where_text.disable();
+            useregexp_bp.enable();
+            if (useregexp_bp.getValue()) {
+                addsuffix_text.disable();
+                addprefix_text.disable();
+                stripprefix_text.disable();
+                rwhere_text.enable();
+            } else {
+                addsuffix_text.enable();
+                addprefix_text.enable();
+                stripprefix_text.enable();
+                rwhere_text.disable();
+            }
+        });
+        
+        var media_store = Ext.brestore.media_store = new Ext.data.Store({
+            proxy: new Ext.data.HttpProxy({
+                url: '/cgi-bin/bweb/bresto.pl',
+                method: 'GET',
+                params:{offset:0, limit:50 }
+            }),
+            
+            reader: new Ext.data.ArrayReader({
+            }, Ext.data.Record.create([
+                {name: 'volumename'},
+                {name: 'enabled'   },
+                {name: 'inchanger' }
+            ]))
+        });
+        
+        var media_cm = new Ext.grid.ColumnModel(
+            [{
+                header:    "InChanger",
+                dataIndex: 'inchanger',
+                width:     60,
+                renderer:  rd_vol_is_online
+            }, {
+                header:    "Volume",
+                id:        'volumename', 
+                dataIndex: 'volumename',
+                width:     140
+            }
+            ]);
+        
+        // create the grid
+        var media_grid = new Ext.grid.GridPanel({
+            id: 'div-media-grid',
+            store: media_store,
+            colModel: media_cm,
+            enableDragDrop: false,
+            loadMask: true,
+            width: 200,
+            autoHeight: true,
+            frame: true
+        });
+
+        var form_panel = new Ext.FormPanel({
+            labelWidth : 75, // label settings here cascade unless overridden
+            url        : 'save-form.php',
+            frame      : true,
+            bodyStyle  : 'padding:5px 5px 0',
+            width      : 250,
+//            autoHeight : true,
+            items: [{
+                xtype          : 'fieldset',
+                title          : 'Media needed',
+                autoHeight     : true,
+                defaults       : {width: 210},
+                defaultType    : 'textfield',
+                items :[ media_grid, {xtype: 'button', id: 'reload_media',
+                                      text: 'Compute with directories',
+                                      tooltip: 'Can take long time...',
+                                      handler:reload_media_store}]
+            }, {
+                xtype          : 'fieldset',
+                title          : 'Restore options',
+                autoHeight     : true,
+                defaults       : {width: 210},
+                defaultType    : 'textfield',
+                items :[ rclient_combo, where_text ]
+            }, use_filerelocation_fieldset],
+            
+            buttons: [{
+                text: 'Run',
+                handler: function() { 
+                    if(!form_panel.getForm().isValid()) { alert("invalid") } 
+                    else { launch_restore() }
+                }
+            },{
+                text: 'Cancel',
+                handler: function() { Ext.brestore.dlglaunch.hide(); }
+            }]
+        });
+
+        Ext.brestore.dlglaunch = new Ext.Window({
+            applyTo     : 'resto-div',
+            title       : 'Restore selection',
+            layout      : 'fit',
+            width       : 640,
+            height      : 480,
+            closeAction :'hide',
+            plain       : true,
+            items       : form_panel
+        });
+
+//        Ext.brestore.dlglaunch.addKeyListener(27, 
+//                                              Ext.brestore.dlglaunch.hide, 
+//                                              Ext.brestore.dlglaunch);
+/*        
+ *       var storage_store = new Ext.data.Store({
+ *           proxy: new Ext.data.HttpProxy({
+ *               url: '/cgi-bin/bweb/bresto.pl',
+ *               method: 'GET',
+ *               params:{action:'list_storage'}
+ *           }),
+ *           
+ *           reader: new Ext.data.ArrayReader({
+ *           }, Ext.data.Record.create([
+ *               {name: 'name' }
+ *           ]))
+ *       });
+ */      
+        ////////////////////////////////////////////////////////////////
+
+        function launch_restore() {
+            var items = file_selection_store.data.items;
+            var tab_fileid=new Array();
+            var tab_dirid=new Array();
+            var tab_jobid=new Array();
+            for(var i=0;i<items.length;i++) {
+                if (items[i].data['fileid']) {
+                    tab_fileid.push(items[i].data['fileid']);
+                } else {
+                    tab_dirid.push(items[i].data['pathid']);
                 }
                 tab_jobid.push(items[i].data['jobid']);
-        }
-        var res = ';fileid=' + tab_fileid.join(";fileid=");
-        var res2 = ';dirid=' + tab_dirid.join(";dirid=");
-        var res3 = ';jobid=' + tab_jobid.join(";jobid=");
+            }
+            var res = ';fileid=' + tab_fileid.join(";fileid=");
+            var res2 = ';dirid=' + tab_dirid.join(";dirid=");
+            var res3 = ';jobid=' + tab_jobid.join(";jobid=");
 
-        var res4 = ';client=' + rclient_combo.getValue();
-        if (storage_combo.getValue()) {
-           res4 = res4 + ';storage=' + storage_combo.getValue();
-        }
-        if (usefilerelocation_bp.getValue()) {
-           if (useregexp_bp.getValue()) {
-              res4 = res4 + ';regexwhere=' + rwhere_text.getValue();
-           } else {
-              var reg = new Array();
-              if (stripprefix_text.getValue()) {
-                 reg.push('!' + stripprefix_text.getValue() + '!!i');
-              }
-              if (addprefix_text.getValue()) {
-                 reg.push('!^!' + addprefix_text.getValue() + '!');
-              }
-              if (addsuffix_text.getValue()) {
-                 reg.push('!([^/])$!$1' + addsuffix_text.getValue() + '!');
-              }
-              res4 = res4 + ';regexwhere=' + reg.join(',');
-           }
-        } else {
-           res4 = res4 + ';where=' + where_text.getValue();
-        }
-        window.location='/cgi-bin/bweb/bresto.pl?action=restore' + res + res2 + res3 + res4;
-    } // end launch_restore
+            var res4 = ';client=' + rclient_combo.getValue();
+//            if (storage_combo.getValue()) {
+//                res4 = res4 + ';storage=' + storage_combo.getValue();
+//            }
+            if (Ext.brestore.use_filerelocation) {
+                if (useregexp_bp.getValue()) {
+                    res4 = res4 + ';regexwhere=' + rwhere_text.getValue();
+                } else {
+                    var reg = new Array();
+                    if (stripprefix_text.getValue()) {
+                        reg.push('!' + stripprefix_text.getValue() + '!!i');
+                    }
+                    if (addprefix_text.getValue()) {
+                        reg.push('!^!' + addprefix_text.getValue() + '!');
+                    }
+                    if (addsuffix_text.getValue()) {
+                        reg.push('!([^/])$!$1' + addsuffix_text.getValue() + '!');
+                    }
+                    res4 = res4 + ';regexwhere=' + reg.join(',');
+                }
+            } else {
+                res4 = res4 + ';where=' + where_text.getValue();
+            }
+            //window.location='/cgi-bin/bweb/bresto.pl?action=restore' + res + res2 + res3 + res4;
+            console.info('/cgi-bin/bweb/bresto.pl?action=restore' + res + res2 + res3 + res4);
+        } // end launch_restore
 
-    var dialog = Ext.brestore.dlglaunch;
-    dialog.addKeyListener(27, dialog.hide, dialog);
-    dialog.addButton('Submit', launch_restore);
-    dialog.addButton('Close', dialog.hide, dialog);
-    
-    var layout = dialog.getLayout();
-    layout.beginUpdate();
-    layout.add('center', new Ext.ContentPanel('div-resto-form', {
-                                autoCreate:true, title: 'Third Tab', closable:true, background:true}));
-    layout.endUpdate();
-    dialog.show();
 
+        ////////////////////////////////////////////////////////////////
+        reload_media_store();
+        Ext.brestore.dlglaunch.show();
+//      storage_store.load({params:{action: 'list_storage'}});
     }
-  }
- ]);
-
-////////////////////////////////////////////////////////////////
-
-    var layout = new Ext.BorderLayout(document.body, {
-        north: {
-//            split: true
-        },
-        south: {
-            split: true, initialSize: 300
-        },
-        east: {
-            split: true, initialSize: 550
-        },
-        west: {
-            split: true, initialSize: 300
-        },
-        center: {
-            initialSize: 450
-        }        
-        
-    });
-
-layout.beginUpdate();
-  layout.add('north', new Ext.ContentPanel('div-toolbar', {
-      fitToFrame: true, autoCreate:true,closable: false 
-  }));
-  layout.add('south', new Ext.ContentPanel('div-file-selection', {
-      toolbar: tb2,resizeEl:'div-file-selection',
-      fitToFrame: true, autoCreate:true,closable: false
-  }));
-  layout.add('east', new Ext.ContentPanel('div-file-versions', {
-      fitToFrame: true, autoCreate:true,closable: false
-  }));
-  layout.add('west', new Ext.ContentPanel('div-tree', {
-      autoScroll:true, fitToFrame: true, 
-      autoCreate:true,closable: false
-  }));
-  layout.add('center', new Ext.ContentPanel('div-files', {
-      autoScroll:true,autoCreate:true,fitToFrame: true
-  }));
-layout.endUpdate();     
-
-
-////////////////////////////////////////////////////////////////
-
-//    job_store.load();
-    client_store.load({params:{action: 'list_client'}});
-//    file_store.load({params:{offset:0, limit:50}});
-//    file_versions_store.load({params:{offset:0, limit:50}});
-//    file_selection_store.load();
-   files_grid.render();
-   file_selection_grid.render();
-   file_versions_grid.render();
-
-}
-Ext.onReady( ext_init );
+});
