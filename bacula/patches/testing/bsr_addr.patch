@@ -1,7 +1,7 @@
 Index: src/dird/bsr.c
 ===================================================================
---- src/dird/bsr.c	(revision 8163)
-+++ src/dird/bsr.c	(working copy)
+--- src/dird/bsr.c	(révision 8163)
++++ src/dird/bsr.c	(copie de travail)
 @@ -325,6 +325,7 @@
   */
  static uint32_t write_bsr(UAContext *ua, RESTORE_CTX &rx, FILE *fd)
@@ -78,8 +78,8 @@ Index: src/dird/bsr.c
  
 Index: src/cats/cats.h
 ===================================================================
---- src/cats/cats.h	(revision 8163)
-+++ src/cats/cats.h	(working copy)
+--- src/cats/cats.h	(révision 8163)
++++ src/cats/cats.h	(copie de travail)
 @@ -844,6 +844,8 @@
     uint32_t StartBlock;               /* start block on tape */
     uint32_t EndBlock;                 /* last block */
@@ -91,8 +91,8 @@ Index: src/cats/cats.h
  };
 Index: src/cats/sql_get.c
 ===================================================================
---- src/cats/sql_get.c	(revision 8163)
-+++ src/cats/sql_get.c	(working copy)
+--- src/cats/sql_get.c	(révision 8163)
++++ src/cats/sql_get.c	(copie de travail)
 @@ -463,6 +463,8 @@
                 Vols[i].EndFile = str_to_uint64(row[5]);
                 Vols[i].StartBlock = str_to_uint64(row[6]);
@@ -104,8 +104,8 @@ Index: src/cats/sql_get.c
                 StorageId = str_to_uint64(row[10]);
 Index: src/stored/match_bsr.c
 ===================================================================
---- src/stored/match_bsr.c	(revision 8174)
-+++ src/stored/match_bsr.c	(working copy)
+--- src/stored/match_bsr.c	(révision 8174)
++++ src/stored/match_bsr.c	(copie de travail)
 @@ -36,15 +36,6 @@
  
  /*
@@ -296,16 +296,29 @@ Index: src/stored/match_bsr.c
     return return_bsr;
  }
  
-@@ -381,13 +427,11 @@
-    Dmsg3(dbglevel, "OK bsr file=%u. bsr=%u,%u\n", 
-          rec->File, bsr->volfile->sfile, bsr->volfile->efile);
+@@ -374,20 +420,20 @@
+             volrec->VolumeName);
+ 
+    if (!match_volfile(bsr, bsr->volfile, rec, 1)) {
+-      Dmsg3(dbglevel, "Fail on file=%u. bsr=%u,%u\n", 
+-         rec->File, bsr->volfile->sfile, bsr->volfile->efile);
++      if (bsr->volfile) {
++         Dmsg3(dbglevel, "Fail on file=%u. bsr=%u,%u\n", 
++               rec->File, bsr->volfile->sfile, bsr->volfile->efile);
++      }
+       goto no_match;
+    }
+-   Dmsg3(dbglevel, "OK bsr file=%u. bsr=%u,%u\n", 
+-         rec->File, bsr->volfile->sfile, bsr->volfile->efile);
  
 -   if (!match_volblock(bsr, bsr->volblock, rec, 1)) {
 -      Dmsg3(dbglevel, "Fail on Block=%u. bsr=%u,%u\n", 
 -         rec->Block, bsr->volblock->sblock, bsr->volblock->eblock);
 +   if (!match_voladdr(bsr, bsr->voladdr, rec, 1)) {
-+      Dmsg3(dbglevel, "Fail on Addr=%lld. bsr=%lld,%lld\n", 
-+            get_record_address(rec), bsr->voladdr->saddr, bsr->voladdr->eaddr);
++      if (bsr->voladdr) {
++         Dmsg3(dbglevel, "Fail on Addr=%lld. bsr=%lld,%lld\n", 
++               get_record_address(rec), bsr->voladdr->saddr, bsr->voladdr->eaddr);
++      }
        goto no_match;
     }
 -   Dmsg3(dbglevel, "OK bsr Block=%u. bsr=%u,%u\n", 
@@ -313,7 +326,7 @@ Index: src/stored/match_bsr.c
  
     if (!match_sesstime(bsr, bsr->sesstime, rec, 1)) {
        Dmsg2(dbglevel, "Fail on sesstime. bsr=%u rec=%u\n",
-@@ -605,42 +649,35 @@
+@@ -605,42 +651,35 @@
     return 0;
  }
  
@@ -369,7 +382,7 @@ Index: src/stored/match_bsr.c
     }
     return 0;
  }
-@@ -733,3 +770,48 @@
+@@ -733,3 +772,29 @@
     }
     return 0;
  }
@@ -393,35 +406,16 @@ Index: src/stored/match_bsr.c
 +   }
 +
 +   if (file && block) {
-+      file = sfile;
-+      block = sblock;
++      *file = sfile;
++      *block = sblock;
 +   }
 +
 +   return bsr_addr;
 +}
-+
-+/* DEV > BSR => 1
-+ * DEV = BSR => 0
-+ * DEV < BSR => -1
-+ */
-+int cmp_device_bsr_position(DEVICE *dev, BSR *bsr)
-+{
-+   uint64_t bsr_addr = get_bsr_start_addr(bsr);
-+
-+   /* TODO: replace by file_addr ? */
-+   uint64_t dev_addr = ((uint64_t dev->file)<<32) | dev->block_num;
-+
-+   if (dev_addr > bsr_addr)
-+      return 1;
-+   else if (dev_addr == bsr_addr)
-+      return 0;
-+   else
-+      return -1;
-+}
 Index: src/stored/read_record.c
 ===================================================================
---- src/stored/read_record.c	(revision 8163)
-+++ src/stored/read_record.c	(working copy)
+--- src/stored/read_record.c	(révision 8163)
++++ src/stored/read_record.c	(copie de travail)
 @@ -344,19 +344,21 @@
         *   when find_next_bsr() is fixed not to return a bsr already
         *   completed.
@@ -430,7 +424,7 @@ Index: src/stored/read_record.c
 -         (dev->file == bsr->volfile->sfile && dev->block_num > bsr->volblock->sblock)) {
 +      uint32_t block, file;
 +      /* TODO: use dev->file_addr ? */
-+      uint64_t dev_addr = ((uint64_t dev->file)<<32) | dev->block_num;
++      uint64_t dev_addr = (((uint64_t) dev->file)<<32) | dev->block_num;
 +      uint64_t bsr_addr = get_bsr_start_addr(bsr, &file, &block);
 +
 +      if (dev_addr > bsr_addr) {
@@ -478,8 +472,8 @@ Index: src/stored/read_record.c
     return bsr;
 Index: src/stored/parse_bsr.c
 ===================================================================
---- src/stored/parse_bsr.c	(revision 8163)
-+++ src/stored/parse_bsr.c	(working copy)
+--- src/stored/parse_bsr.c	(révision 8163)
++++ src/stored/parse_bsr.c	(copie de travail)
 @@ -52,6 +52,7 @@
  static BSR *store_sessid(LEX *lc, BSR *bsr);
  static BSR *store_volfile(LEX *lc, BSR *bsr);
@@ -590,8 +584,8 @@ Index: src/stored/parse_bsr.c
     free_bsr_item((BSR *)bsr->FileIndex);
 Index: src/stored/record.c
 ===================================================================
---- src/stored/record.c	(revision 8163)
-+++ src/stored/record.c	(working copy)
+--- src/stored/record.c	(révision 8163)
++++ src/stored/record.c	(copie de travail)
 @@ -422,6 +422,10 @@
     return true;
  }
@@ -613,8 +607,8 @@ Index: src/stored/record.c
      * otherwise we find it in the next block.
 Index: src/stored/bsr.h
 ===================================================================
---- src/stored/bsr.h	(revision 8163)
-+++ src/stored/bsr.h	(working copy)
+--- src/stored/bsr.h	(révision 8163)
++++ src/stored/bsr.h	(copie de travail)
 @@ -106,6 +106,12 @@
     bool done;                         /* local done */
  };
@@ -638,8 +632,8 @@ Index: src/stored/bsr.h
     BSR_JOBID    *JobId;
 Index: src/stored/protos.h
 ===================================================================
---- src/stored/protos.h	(revision 8163)
-+++ src/stored/protos.h	(working copy)
+--- src/stored/protos.h	(révision 8163)
++++ src/stored/protos.h	(copie de travail)
 @@ -183,7 +183,11 @@
  void     position_bsr_block(BSR *bsr, DEV_BLOCK *block);
  BSR     *find_next_bsr(BSR *root_bsr, DEVICE *dev);
