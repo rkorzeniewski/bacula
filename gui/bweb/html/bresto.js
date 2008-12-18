@@ -234,17 +234,18 @@ Ext.onReady(function(){
         return true;
     });
     
-    file_store.on('loadexception', function(obj, options, response, e){
-        console.info('store loadexception, arguments:', arguments);
-        console.info('error = ', e);
-    });
-
-    file_store.on('load', function(store, records, options){
-            //store is loaded, now you can work with it's records, etc.
-            console.info('store load, arguments:', arguments);
-            console.info('Store count = ', store.getCount());
-    });
-
+/*
+ *   file_store.on('loadexception', function(obj, options, response, e){
+ *         console.info('store loadexception, arguments:', arguments);
+ *         console.info('error = ', e);
+ *   });
+ *
+ *   file_store.on('load', function(store, records, options){
+ *         //store is loaded, now you can work with it's records, etc.
+ *         console.info('store load, arguments:', arguments);
+ *         console.info('Store count = ', store.getCount());
+ *   });
+ */
     // TODO: selection only when using dblclick
     file_grid.selModel.on('rowselect', function(e,i,r) { 
         if (r.json[4] == '.') {
@@ -736,9 +737,6 @@ Ext.onReady(function(){
         var res = tab_fileid.join(",");
         var res2 = tab_jobid.join(",");
         
-        console.info(res);
-        console.info(res2);
-
         Ext.brestore.media_store.baseParams = init_params({
             action: 'get_media', 
             jobid: res2, 
@@ -944,8 +942,8 @@ Ext.onReady(function(){
             applyTo     : 'resto-div',
             title       : 'Restore selection',
             layout      : 'fit',
-            width       : 640,
-            height      : 480,
+            width       : 400,
+            height      : 500,
             closeAction :'hide',
             plain       : true,
             items       : form_panel
@@ -1010,8 +1008,7 @@ Ext.onReady(function(){
             } else {
                 res4 = res4 + ';where=' + where_text.getValue();
             }
-            //window.location='/cgi-bin/bweb/bresto.pl?action=restore' + res + res2 + res3 + res4;
-            console.info('/cgi-bin/bweb/bresto.pl?action=restore' + res + res2 + res3 + res4);
+            window.location='/cgi-bin/bweb/bresto.pl?action=restore' + res + res2 + res3 + res4;
         } // end launch_restore
 
 
