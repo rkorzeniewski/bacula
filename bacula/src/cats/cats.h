@@ -844,6 +844,8 @@ struct VOL_PARAMS {
    uint32_t StartBlock;               /* start block on tape */
    uint32_t EndBlock;                 /* last block */
    int32_t Slot;                      /* Slot */
+   uint64_t StartAddr;                /* Start address */
+   uint64_t EndAddr;                  /* End address */
 // uint32_t Copy;                     /* identical copy */
 // uint32_t Stripe;                   /* RAIT strip number */
 };

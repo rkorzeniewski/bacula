@@ -52,6 +52,7 @@ static BSR *store_findex(LEX *lc, BSR *bsr);
 static BSR *store_sessid(LEX *lc, BSR *bsr);
 static BSR *store_volfile(LEX *lc, BSR *bsr);
 static BSR *store_volblock(LEX *lc, BSR *bsr);
+static BSR *store_voladdr(LEX *lc, BSR *bsr);
 static BSR *store_sesstime(LEX *lc, BSR *bsr);
 static BSR *store_include(LEX *lc, BSR *bsr);
 static BSR *store_exclude(LEX *lc, BSR *bsr);
@@ -85,6 +86,7 @@ struct kw_items items[] = {
    {"exclude", store_exclude},
    {"volfile", store_volfile},
    {"volblock", store_volblock},
+   {"voladdr",  store_voladdr},
    {"stream",   store_stream},
    {"slot",     store_slot},
    {"device",   store_device},
@@ -212,16 +214,16 @@ static bool is_positioning_ok(BSR *bsr)
 {
    /*
     * Every bsr should have a volfile entry and a volblock entry
+    * or a VolAddr
     *   if we are going to use positioning
     */
    for ( ; bsr; bsr=bsr->next) {
-      if (!bsr->volfile || !bsr->volblock) {
+      if (!((bsr->volfile && bsr->volblock) || bsr->voladdr)) {
          return false;
       }
    }
    return true;
 }
-
 
 static BSR *store_vol(LEX *lc, BSR *bsr)
 {
@@ -563,6 +565,40 @@ static BSR *store_volblock(LEX *lc, BSR *bsr)
    return bsr;
 }
 
+/*
+ * Routine to handle Volume start/end address
+ */
+static BSR *store_voladdr(LEX *lc, BSR *bsr)
+{
+   int token;
+   BSR_VOLADDR *voladdr;
+
+   for (;;) {
+      token = lex_get_token(lc, T_PINT64_RANGE);
+      if (token == T_ERROR) {
+         return NULL;
+      }
+      voladdr = (BSR_VOLADDR *)malloc(sizeof(BSR_VOLADDR));
+      memset(voladdr, 0, sizeof(BSR_VOLADDR));
+      voladdr->saddr = lc->pint64_val;
+      voladdr->eaddr = lc->pint64_val2;
+      /* Add it to the end of the chain */
+      if (!bsr->voladdr) {
+         bsr->voladdr = voladdr;
+      } else {
+         /* Add to end of chain */
+         BSR_VOLADDR *bs = bsr->voladdr;
+         for ( ;bs->next; bs=bs->next)
+            {  }
+         bs->next = voladdr;
+      }
+      token = lex_get_token(lc, T_ALL);
+      if (token != T_COMMA) {
+         break;
+      }
+   }
+   return bsr;
+}
 
 static BSR *store_sessid(LEX *lc, BSR *bsr)
 {
@@ -705,6 +741,13 @@ void dump_volblock(BSR_VOLBLOCK *volblock)
    }
 }
 
+void dump_voladdr(BSR_VOLADDR *voladdr)
+{
+   if (voladdr) {
+      Pmsg2(-1, _("VolAddr    : %lld-%lld\n"), voladdr->saddr, voladdr->eaddr);
+      dump_voladdr(voladdr->next);
+   }
+}
 
 void dump_findex(BSR_FINDEX *FileIndex)
 {
@@ -795,6 +838,7 @@ void dump_bsr(BSR *bsr, bool recurse)
    dump_sesstime(bsr->sesstime);
    dump_volfile(bsr->volfile);
    dump_volblock(bsr->volblock);
+   dump_voladdr(bsr->voladdr);
    dump_client(bsr->client);
    dump_jobid(bsr->JobId);
    dump_job(bsr->job);
@@ -840,6 +884,7 @@ void remove_bsr(BSR *bsr)
    free_bsr_item((BSR *)bsr->sesstime);
    free_bsr_item((BSR *)bsr->volfile);
    free_bsr_item((BSR *)bsr->volblock);
+   free_bsr_item((BSR *)bsr->voladdr);
    free_bsr_item((BSR *)bsr->JobId);
    free_bsr_item((BSR *)bsr->job);
    free_bsr_item((BSR *)bsr->FileIndex);

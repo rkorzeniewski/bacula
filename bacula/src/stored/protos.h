@@ -183,6 +183,10 @@ int      match_bsr_block(BSR *bsr, DEV_BLOCK *block);
 void     position_bsr_block(BSR *bsr, DEV_BLOCK *block);
 BSR     *find_next_bsr(BSR *root_bsr, DEVICE *dev);
 bool     is_this_bsr_done(BSR *bsr, DEV_RECORD *rec);
+uint64_t get_bsr_start_addr(BSR *bsr, 
+                            uint32_t *file=NULL,
+                            uint32_t *block=NULL);
+
 
 /* From mount.c */
 bool     mount_next_read_volume(DCR *dcr);
@@ -203,6 +207,7 @@ bool        read_record_from_block(DCR *dcr, DEV_BLOCK *block, DEV_RECORD *rec);
 DEV_RECORD *new_record();
 void        free_record(DEV_RECORD *rec);
 void        empty_record(DEV_RECORD *rec);
+uint64_t get_record_address(DEV_RECORD *rec);
 
 /* From read_record.c */
 bool read_records(DCR *dcr,

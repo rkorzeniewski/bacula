@@ -106,6 +106,12 @@ struct BSR_VOLBLOCK {
    bool done;                         /* local done */
 };
 
+struct BSR_VOLADDR {
+   BSR_VOLADDR *next;
+   uint64_t saddr;                   /* start address */
+   uint64_t eaddr;                   /* end address */
+   bool done;                        /* local done */
+};
 
 struct BSR_FINDEX {
    BSR_FINDEX *next;
@@ -157,6 +163,7 @@ struct BSR {
    uint32_t      found;               /* count of restored files this bsr */
    BSR_VOLFILE  *volfile;
    BSR_VOLBLOCK *volblock;
+   BSR_VOLADDR  *voladdr;
    BSR_SESSTIME *sesstime;
    BSR_SESSID   *sessid;
    BSR_JOBID    *JobId;
