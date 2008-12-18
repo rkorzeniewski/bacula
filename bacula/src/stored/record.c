@@ -422,6 +422,10 @@ bool can_write_record_to_block(DEV_BLOCK *block, DEV_RECORD *rec)
    return true;
 }
 
+uint64_t get_record_address(DEV_RECORD *rec)
+{
+   return ((uint64_t)rec->File)<<32 | rec->Block;
+}
 
 /*
  * Read a Record from the block
@@ -455,7 +459,6 @@ bool read_record_from_block(DCR *dcr, DEV_BLOCK *block, DEV_RECORD *rec)
       rec->Block = ((DEVICE *)block->dev)->EndBlock;
       rec->File = ((DEVICE *)block->dev)->EndFile;
    }   
-
 
    /*
     * Get the header. There is always a full header,

@@ -344,19 +344,21 @@ static bool try_repositioning(JCR *jcr, DEV_RECORD *rec, DCR *dcr)
        *   when find_next_bsr() is fixed not to return a bsr already
        *   completed.
        */
-      if (dev->file > bsr->volfile->sfile ||             
-         (dev->file == bsr->volfile->sfile && dev->block_num > bsr->volblock->sblock)) {
+      uint32_t block, file;
+      /* TODO: use dev->file_addr ? */
+      uint64_t dev_addr = (((uint64_t) dev->file)<<32) | dev->block_num;
+      uint64_t bsr_addr = get_bsr_start_addr(bsr, &file, &block);
+
+      if (dev_addr > bsr_addr) {
          return false;
       }
       if (verbose) {
-         Jmsg(jcr, M_INFO, 0, _("Reposition from (file:block) %u:%u to %u:%u\n"),
-            dev->file, dev->block_num, bsr->volfile->sfile,
-            bsr->volblock->sblock);
+         Jmsg(jcr, M_INFO,0, _("Reposition from (file:block) %u:%u to %u:%u\n"),
+              dev->file, dev->block_num, file, block);
       }
       Dmsg4(10, "Try_Reposition from (file:block) %u:%u to %u:%u\n",
-            dev->file, dev->block_num, bsr->volfile->sfile,
-            bsr->volblock->sblock);
-      dev->reposition(dcr, bsr->volfile->sfile, bsr->volblock->sblock);
+            dev->file, dev->block_num, file, block);
+      dev->reposition(dcr, file, block);
       rec->Block = 0;
    }
    return false;
@@ -369,6 +371,7 @@ static BSR *position_to_first_file(JCR *jcr, DCR *dcr)
 {
    BSR *bsr = NULL;
    DEVICE *dev = dcr->dev;
+   uint32_t file, block;
    /*
     * Now find and position to first file and block
     *   on this tape.
@@ -376,11 +379,11 @@ static BSR *position_to_first_file(JCR *jcr, DCR *dcr)
    if (jcr->bsr) {
       jcr->bsr->reposition = true;    /* force repositioning */
       bsr = find_next_bsr(jcr->bsr, dev);
-      if (bsr && (bsr->volfile->sfile != 0 || bsr->volblock->sblock != 0)) {
+      
+      if (get_bsr_start_addr(bsr, &file, &block) > 0) {
          Jmsg(jcr, M_INFO, 0, _("Forward spacing Volume \"%s\" to file:block %u:%u.\n"),
-            dev->VolHdr.VolumeName,
-            bsr->volfile->sfile, bsr->volblock->sblock);
-         dev->reposition(dcr, bsr->volfile->sfile, bsr->volblock->sblock);
+              dev->VolHdr.VolumeName, file, block);
+         dev->reposition(dcr, file, block);
       }
    }
    return bsr;

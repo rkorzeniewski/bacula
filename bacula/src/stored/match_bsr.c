@@ -36,15 +36,6 @@
 
 /*
  * ***FIXME***
- * find_smallest_volfile needs to be fixed to only look at items that
- *   are not marked as done.  Otherwise, it can find a bsr
- *   that has already been consumed, and this will cause the
- *   bsr to be used, thus we may seek back and re-read the
- *   same records, causing an error.  This deficiency must
- *   be fixed.  For the moment, it has been kludged in 
- *   read_record.c to avoid seeking back if find_next_bsr
- *   returns a bsr pointing to a smaller address (file/block).
- *
  * Also for efficiency, once a bsr is done, it really should be
  *   delinked from the bsr chain.  This will avoid the above 
  *   problem and make traversal of the bsr chain more efficient.
@@ -73,7 +64,7 @@ static int match_job_level(BSR *bsr, BSR_JOBLEVEL *job_level, SESSION_LABEL *ses
 static int match_jobid(BSR *bsr, BSR_JOBID *jobid, SESSION_LABEL *sessrec, bool done);
 static int match_findex(BSR *bsr, BSR_FINDEX *findex, DEV_RECORD *rec, bool done);
 static int match_volfile(BSR *bsr, BSR_VOLFILE *volfile, DEV_RECORD *rec, bool done);
-static int match_volblock(BSR *bsr, BSR_VOLBLOCK *volblock, DEV_RECORD *rec, bool done);
+static int match_voladdr(BSR *bsr, BSR_VOLADDR *voladdr, DEV_RECORD *rec, bool done);
 static int match_stream(BSR *bsr, BSR_STREAM *stream, DEV_RECORD *rec, bool done);
 static int match_all(BSR *bsr, DEV_RECORD *rec, VOLUME_LABEL *volrec, SESSION_LABEL *sessrec, bool done, JCR *jcr);
 static int match_block_sesstime(BSR *bsr, BSR_SESSTIME *sesstime, DEV_BLOCK *block);
@@ -255,7 +246,29 @@ BSR *find_next_bsr(BSR *root_bsr, DEVICE *dev)
 }
 
 /*
- * ***FIXME***
+ * Get the smallest address from this voladdr part
+ * Don't use "done" elements
+ */
+static bool get_smallest_voladdr(BSR_VOLADDR *va, uint64_t *ret)
+{
+   bool ok=false;
+   uint64_t min_val=0;
+
+   for (; va ; va = va->next) {
+      if (!va->done) {
+         if (ok) {
+            min_val = MIN(min_val, va->saddr);
+         } else {
+            min_val = va->saddr;
+            ok=true;
+         }
+      }
+   }
+   *ret = min_val;
+   return ok;
+}
+
+/* FIXME
  * This routine needs to be fixed to only look at items that
  *   are not marked as done.  Otherwise, it can find a bsr
  *   that has already been consumed, and this will cause the
@@ -264,6 +277,7 @@ BSR *find_next_bsr(BSR *root_bsr, DEVICE *dev)
  *   be fixed.  For the moment, it has been kludged in 
  *   read_record.c to avoid seeking back if find_next_bsr
  *   returns a bsr pointing to a smaller address (file/block).
+ *
  */
 static BSR *find_smallest_volfile(BSR *found_bsr, BSR *bsr)
 {
@@ -272,6 +286,18 @@ static BSR *find_smallest_volfile(BSR *found_bsr, BSR *bsr)
    BSR_VOLBLOCK *vb;
    uint32_t found_bsr_sfile, bsr_sfile;
    uint32_t found_bsr_sblock, bsr_sblock;
+   uint64_t found_bsr_saddr, bsr_saddr;
+
+   /* if we have VolAddr, use it, else try with File and Block */
+   if (get_smallest_voladdr(found_bsr->voladdr, &found_bsr_saddr)) {
+      if (get_smallest_voladdr(bsr->voladdr, &bsr_saddr)) {
+         if (found_bsr_saddr > bsr_saddr) {
+            return bsr;
+         } else {
+            return found_bsr;
+         }
+      }
+   }
 
    /* Find the smallest file in the found_bsr */
    vf = found_bsr->volfile;
@@ -374,20 +400,20 @@ static int match_all(BSR *bsr, DEV_RECORD *rec, VOLUME_LABEL *volrec,
             volrec->VolumeName);
 
    if (!match_volfile(bsr, bsr->volfile, rec, 1)) {
-      Dmsg3(dbglevel, "Fail on file=%u. bsr=%u,%u\n", 
-         rec->File, bsr->volfile->sfile, bsr->volfile->efile);
+      if (bsr->volfile) {
+         Dmsg3(dbglevel, "Fail on file=%u. bsr=%u,%u\n", 
+               rec->File, bsr->volfile->sfile, bsr->volfile->efile);
+      }
       goto no_match;
    }
-   Dmsg3(dbglevel, "OK bsr file=%u. bsr=%u,%u\n", 
-         rec->File, bsr->volfile->sfile, bsr->volfile->efile);
 
-   if (!match_volblock(bsr, bsr->volblock, rec, 1)) {
-      Dmsg3(dbglevel, "Fail on Block=%u. bsr=%u,%u\n", 
-         rec->Block, bsr->volblock->sblock, bsr->volblock->eblock);
+   if (!match_voladdr(bsr, bsr->voladdr, rec, 1)) {
+      if (bsr->voladdr) {
+         Dmsg3(dbglevel, "Fail on Addr=%lld. bsr=%lld,%lld\n", 
+               get_record_address(rec), bsr->voladdr->saddr, bsr->voladdr->eaddr);
+      }
       goto no_match;
    }
-   Dmsg3(dbglevel, "OK bsr Block=%u. bsr=%u,%u\n", 
-      rec->Block, bsr->volblock->sblock, bsr->volblock->eblock);
 
    if (!match_sesstime(bsr, bsr->sesstime, rec, 1)) {
       Dmsg2(dbglevel, "Fail on sesstime. bsr=%u rec=%u\n",
@@ -605,42 +631,35 @@ static int match_volfile(BSR *bsr, BSR_VOLFILE *volfile, DEV_RECORD *rec, bool d
    return 0;
 }
 
-static int match_volblock(BSR *bsr, BSR_VOLBLOCK *volblock, DEV_RECORD *rec, bool done)
+static int match_voladdr(BSR *bsr, BSR_VOLADDR *voladdr, DEV_RECORD *rec, bool done)
 {
-   /*
-    * Currently block matching does not work correctly for disk
-    * files in all cases, so it is "turned off" by the following 
-    * return statement.
-    */
-   return 1;
-
-
-   if (!volblock) {
+   if (!voladdr) {
       return 1;                       /* no specification matches all */
    }
    /* For the moment, these tests work only with disk. */
    if (rec->state & REC_ISTAPE) {
       return 1;                       /* All File records OK for this match */
    }
-//  Dmsg3(dbglevel, "match_volblock: sblock=%u eblock=%u recblock=%u\n",
-//             volblock->sblock, volblock->eblock, rec->Block);
-   if (volblock->sblock <= rec->Block && volblock->eblock >= rec->Block) {
+   uint64_t addr = get_record_address(rec);
+//  Dmsg3(dbglevel, "match_voladdr: saddr=%lld eaddr=%lld recaddr=%lld\n",
+//             volblock->saddr, volblock->eaddr, addr);
+   if (voladdr->saddr <= addr && voladdr->eaddr >= addr) {
       return 1;
    }
    /* Once we get past last eblock, we are done */
-   if (rec->Block > volblock->eblock) {
-      volblock->done = true;              /* set local done */
+   if (addr > voladdr->eaddr) {
+      voladdr->done = true;              /* set local done */
    }
-   if (volblock->next) {
-      return match_volblock(bsr, volblock->next, rec, volblock->done && done);
+   if (voladdr->next) {
+      return match_voladdr(bsr, voladdr->next, rec, voladdr->done && done);
    }
 
    /* If we are done and all prior matches are done, this bsr is finished */
-   if (volblock->done && done) {
+   if (voladdr->done && done) {
       bsr->done = true;
       bsr->root->reposition = true;
-      Dmsg2(dbglevel, "bsr done from volblock rec=%u voleblock=%u\n",
-         rec->Block, volblock->eblock);
+      Dmsg2(dbglevel, "bsr done from voladdr rec=%lld voleaddr=%lld\n",
+            addr, voladdr->eaddr);
    }
    return 0;
 }
@@ -732,4 +751,30 @@ static int match_findex(BSR *bsr, BSR_FINDEX *findex, DEV_RECORD *rec, bool done
       Dmsg1(dbglevel, "bsr done from findex %d\n", rec->FileIndex);
    }
    return 0;
+}
+
+uint64_t get_bsr_start_addr(BSR *bsr, uint32_t *file, uint32_t *block)
+{
+   uint64_t bsr_addr = 0;
+   uint32_t sfile = 0, sblock = 0;
+
+   if (bsr) {
+      if (bsr->voladdr) {
+         bsr_addr = bsr->voladdr->saddr;
+         sfile = bsr_addr>>32;
+         sblock = (uint32_t)bsr_addr;
+         
+      } else if (bsr->volfile && bsr->volblock) {
+         bsr_addr = (((uint64_t)bsr->volfile->sfile)<<32)|bsr->volblock->sblock;
+         sfile = bsr->volfile->sfile;
+         sblock = bsr->volblock->sblock;
+      }
+   }
+
+   if (file && block) {
+      *file = sfile;
+      *block = sblock;
+   }
+
+   return bsr_addr;
 }
