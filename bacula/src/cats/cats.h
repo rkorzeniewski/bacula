@@ -839,10 +839,6 @@ struct VOL_PARAMS {
    uint32_t VolIndex;                 /* Volume seqence no. */
    uint32_t FirstIndex;               /* First index this Volume */
    uint32_t LastIndex;                /* Last index this Volume */
-   uint32_t StartFile;                /* File for start of data */
-   uint32_t EndFile;                  /* End file on Volume */
-   uint32_t StartBlock;               /* start block on tape */
-   uint32_t EndBlock;                 /* last block */
    int32_t Slot;                      /* Slot */
    uint64_t StartAddr;                /* Start address */
    uint64_t EndAddr;                  /* End address */

@@ -630,7 +630,7 @@ void update_bootstrap_file(JCR *jcr)
 
       VOL_PARAMS *VolParams = NULL;
       int VolCount;
-      char edt[50];
+      char edt[50], ed1[50], ed2[50];
 
       if (*fname == '|') {
          got_pipe = 1;
@@ -664,10 +664,9 @@ void update_bootstrap_file(JCR *jcr)
             }
             fprintf(fd, "VolSessionId=%u\n", jcr->VolSessionId);
             fprintf(fd, "VolSessionTime=%u\n", jcr->VolSessionTime);
-            fprintf(fd, "VolFile=%u-%u\n", VolParams[i].StartFile,
-                         VolParams[i].EndFile);
-            fprintf(fd, "VolBlock=%u-%u\n", VolParams[i].StartBlock,
-                         VolParams[i].EndBlock);
+            fprintf(fd, "VolAddr=%s-%s\n", 
+                    edit_uint64(VolParams[i].StartAddr, ed1),
+                    edit_uint64(VolParams[i].EndAddr, ed2));
             fprintf(fd, "FileIndex=%d-%d\n", VolParams[i].FirstIndex,
                          VolParams[i].LastIndex);
          }
