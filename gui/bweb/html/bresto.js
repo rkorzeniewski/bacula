@@ -193,15 +193,19 @@ Ext.onReady(function(){
         renderer: Ext.util.Format.dateRenderer('Y-m-d h:i'),
         width:     100
     },{
+        header:    "PathId",
         dataIndex: 'pathid',
         hidden: true
     },{
+        header:    "FilenameId",
         dataIndex: 'filenameid',
         hidden: true
     },{
+        header:    "FileId",
         dataIndex: 'fileid',
         hidden: true
     },{
+        header:    "JobId",
         dataIndex: 'jobid',
         hidden: true
     }]);
