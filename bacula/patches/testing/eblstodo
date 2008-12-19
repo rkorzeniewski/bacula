@@ -1,6 +1,9 @@
 Idees
 ------
 
+Addr
+ - Use VolAddr in jobmedia
+
 Despool attributes later
  - use spool_attribute parameter (0,1,2)
  foreach spool_file (spool_files)
