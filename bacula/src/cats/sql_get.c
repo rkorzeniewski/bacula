@@ -455,16 +455,17 @@ int db_get_job_volume_parameters(JCR *jcr, B_DB *mdb, JobId_t JobId, VOL_PARAMS 
                break;
             } else {
                DBId_t StorageId;
+               uint32_t StartBlock, EndBlock, StartFile, EndFile;
                bstrncpy(Vols[i].VolumeName, row[0], MAX_NAME_LENGTH);
                bstrncpy(Vols[i].MediaType, row[1], MAX_NAME_LENGTH);
                Vols[i].FirstIndex = str_to_uint64(row[2]);
                Vols[i].LastIndex = str_to_uint64(row[3]);
-               Vols[i].StartFile = str_to_uint64(row[4]);
-               Vols[i].EndFile = str_to_uint64(row[5]);
-               Vols[i].StartBlock = str_to_uint64(row[6]);
-               Vols[i].EndBlock = str_to_uint64(row[7]);
-               Vols[i].StartAddr = (((uint64_t)Vols[i].StartFile)<<32) | Vols[i].StartBlock;
-               Vols[i].EndAddr =   (((uint64_t)Vols[i].EndFile)<<32) | Vols[i].EndBlock;
+               StartFile = str_to_uint64(row[4]);
+               EndFile = str_to_uint64(row[5]);
+               StartBlock = str_to_uint64(row[6]);
+               EndBlock = str_to_uint64(row[7]);
+               Vols[i].StartAddr = (((uint64_t)StartFile)<<32) | StartBlock;
+               Vols[i].EndAddr =   (((uint64_t)EndFile)<<32) | EndBlock;
 //             Vols[i].Copy = str_to_uint64(row[8]);
                Vols[i].Slot = str_to_uint64(row[9]);
                StorageId = str_to_uint64(row[10]);

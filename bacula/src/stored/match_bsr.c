@@ -409,7 +409,7 @@ static int match_all(BSR *bsr, DEV_RECORD *rec, VOLUME_LABEL *volrec,
 
    if (!match_voladdr(bsr, bsr->voladdr, rec, 1)) {
       if (bsr->voladdr) {
-         Dmsg3(dbglevel, "Fail on Addr=%lld. bsr=%lld,%lld\n", 
+         Dmsg3(dbglevel, "Fail on Addr=%llu. bsr=%llu,%llu\n", 
                get_record_address(rec), bsr->voladdr->saddr, bsr->voladdr->eaddr);
       }
       goto no_match;
@@ -641,7 +641,7 @@ static int match_voladdr(BSR *bsr, BSR_VOLADDR *voladdr, DEV_RECORD *rec, bool d
       return 1;                       /* All File records OK for this match */
    }
    uint64_t addr = get_record_address(rec);
-//  Dmsg3(dbglevel, "match_voladdr: saddr=%lld eaddr=%lld recaddr=%lld\n",
+//  Dmsg3(dbglevel, "match_voladdr: saddr=%llu eaddr=%llu recaddr=%llu\n",
 //             volblock->saddr, volblock->eaddr, addr);
    if (voladdr->saddr <= addr && voladdr->eaddr >= addr) {
       return 1;
@@ -658,7 +658,7 @@ static int match_voladdr(BSR *bsr, BSR_VOLADDR *voladdr, DEV_RECORD *rec, bool d
    if (voladdr->done && done) {
       bsr->done = true;
       bsr->root->reposition = true;
-      Dmsg2(dbglevel, "bsr done from voladdr rec=%lld voleaddr=%lld\n",
+      Dmsg2(dbglevel, "bsr done from voladdr rec=%llu voleaddr=%llu\n",
             addr, voladdr->eaddr);
    }
    return 0;

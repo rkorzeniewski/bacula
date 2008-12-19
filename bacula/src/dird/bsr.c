@@ -363,18 +363,6 @@ static uint32_t write_bsr(UAContext *ua, RESTORE_CTX &rx, FILE *fd)
             }
             fprintf(fd, "VolSessionId=%u\n", bsr->VolSessionId);
             fprintf(fd, "VolSessionTime=%u\n", bsr->VolSessionTime);
-//            if (bsr->VolParams[i].StartFile == bsr->VolParams[i].EndFile) {
-//               fprintf(fd, "VolFile=%u\n", bsr->VolParams[i].StartFile);
-//            } else {
-//               fprintf(fd, "VolFile=%u-%u\n", bsr->VolParams[i].StartFile,
-//                       bsr->VolParams[i].EndFile);
-//            }
-//            if (bsr->VolParams[i].StartBlock == bsr->VolParams[i].EndBlock) {
-//               fprintf(fd, "VolBlock=%u\n", bsr->VolParams[i].StartBlock);
-//            } else {
-//               fprintf(fd, "VolBlock=%u-%u\n", bsr->VolParams[i].StartBlock,
-//                       bsr->VolParams[i].EndBlock);
-//            }
             fprintf(fd, "VolAddr=%s-%s\n", edit_uint64(bsr->VolParams[i].StartAddr, ed1),
                     edit_uint64(bsr->VolParams[i].EndAddr, ed2));
    //       Dmsg2(100, "bsr VolParam FI=%u LI=%u\n",
@@ -431,18 +419,6 @@ static uint32_t write_bsr(UAContext *ua, RESTORE_CTX &rx, FILE *fd)
             }
             fprintf(fd, "VolSessionId=%u\n", bsr->VolSessionId);
             fprintf(fd, "VolSessionTime=%u\n", bsr->VolSessionTime);
-//            if (bsr->VolParams[i].StartFile == bsr->VolParams[i].EndFile) {
-//               fprintf(fd, "VolFile=%u\n", bsr->VolParams[i].StartFile);
-//            } else {
-//               fprintf(fd, "VolFile=%u-%u\n", bsr->VolParams[i].StartFile,
-//                       bsr->VolParams[i].EndFile);
-//            }
-//            if (bsr->VolParams[i].StartBlock == bsr->VolParams[i].EndBlock) {
-//               fprintf(fd, "VolBlock=%u\n", bsr->VolParams[i].StartBlock);
-//            } else {
-//               fprintf(fd, "VolBlock=%u-%u\n", bsr->VolParams[i].StartBlock,
-//                       bsr->VolParams[i].EndBlock);
-//            }
             fprintf(fd, "VolAddr=%s-%s\n", edit_uint64(bsr->VolParams[i].StartAddr, ed1),
                     edit_uint64(bsr->VolParams[i].EndAddr, ed2));
    //       Dmsg2(100, "bsr VolParam FI=%u LI=%u\n",

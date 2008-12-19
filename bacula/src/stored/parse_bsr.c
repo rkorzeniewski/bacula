@@ -744,7 +744,7 @@ void dump_volblock(BSR_VOLBLOCK *volblock)
 void dump_voladdr(BSR_VOLADDR *voladdr)
 {
    if (voladdr) {
-      Pmsg2(-1, _("VolAddr    : %lld-%lld\n"), voladdr->saddr, voladdr->eaddr);
+      Pmsg2(-1, _("VolAddr    : %llu-%llu\n"), voladdr->saddr, voladdr->eaddr);
       dump_voladdr(voladdr->next);
    }
 }
