@@ -1223,7 +1223,6 @@ static bool select_backups_before_date(UAContext *ua, RESTORE_CTX *rx, char *dat
    edit_int64(cr.ClientId, ed1);
    Mmsg(rx->query, uar_last_full, ed1, ed1, date, fsr.FileSet,
         other_filter.c_str());
-   Dmsg1(0, "sql=%s\n", rx->query);
    if (!db_sql_query(ua->db, rx->query, NULL, NULL)) {
       ua->error_msg("%s\n", db_strerror(ua->db));
       goto bail_out;
@@ -1255,7 +1254,6 @@ static bool select_backups_before_date(UAContext *ua, RESTORE_CTX *rx, char *dat
    }
    /* Now update JobTDate to lock onto Differental, if any */
    rx->JobTDate = 0;
-   Dmsg1(0, "sql=%s\n", rx->query);
    if (!db_sql_query(ua->db, uar_sel_all_temp, last_full_handler, (void *)rx)) {
       ua->warning_msg("%s\n", db_strerror(ua->db));
    }
@@ -1267,7 +1265,6 @@ static bool select_backups_before_date(UAContext *ua, RESTORE_CTX *rx, char *dat
    /* Now find all Incremental Jobs after Full/dif save */
    Mmsg(rx->query, uar_inc, edit_uint64(rx->JobTDate, ed1), date,
         edit_int64(cr.ClientId, ed2), fsr.FileSet, other_filter.c_str());
-   Dmsg1(0, "sql=%s\n", rx->query);
    if (!db_sql_query(ua->db, rx->query, NULL, NULL)) {
       ua->warning_msg("%s\n", db_strerror(ua->db));
    }
