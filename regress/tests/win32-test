@@ -22,6 +22,7 @@ status all
 status all
 messages
 label storage=File volume=TestVolume001
+setdebug level=100 dir
 run job=$JobName storage=File yes
 wait
 messages
@@ -29,7 +30,8 @@ messages
 @# now do a restore
 @#
 @$out ${cwd}/tmp/log2.out
-restore where=${cwd}/tmp/bacula-restores select storage=File
+setdebug level=400 trace=1 client=Tibs
+restore where=c:/tmp/xxx select storage=File
 unmark *
 mark *
 done

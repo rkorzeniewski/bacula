@@ -57,7 +57,7 @@ FileSet {
   Include { 
      Options { 
         signature=MD5; portable=no  
-         compression=GZIP
+#      compression=GZIP
      }
      File = "@win32_file@"
   }
@@ -88,28 +88,16 @@ Client {
   Maximum Concurrent Jobs = 4
 }
 
-Client {
-  Name = localhost-fd
-  Address = localhost
-  FDPort = @fdport@
-  Catalog = MyCatalog
-  Password = "xevrjURYoCHhn26RaJoWbeWXEY/a3VqGKp/37tgWiuHc"
-  File Retention = 30d                # 30 days
-  Job Retention = 180d                # six months
-  AutoPrune = yes                     # Prune expired Jobs/Files
-  Maximum Concurrent Jobs = 4
-}
 
-
-# Definition of DDS tape storage device
+# Definition of File storage device
 Storage {
   Name = File
-  Address = @hostname@-sd            # N.B. Use a fully qualified name here
+  Address = @win32_store_addr@       # N.B. Use a fully qualified name here
   SDPort = @sdport@
   Password = "ccV3lVTsQRsdIUGyab0N4sMDavui2hOBkmpBU0aQKOr9"          # password for Storage daemon
-  Device = File                      # must be same as Device in Storage daemon
+  Device = FileStorage               # must be same as Device in Storage daemon
   Media Type = File                  # must be same as MediaType in Storage daemon
-  AutoChanger = yes
+#  AutoChanger = yes
   Maximum Concurrent Jobs = 4
 }
 
