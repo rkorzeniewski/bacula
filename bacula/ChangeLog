@@ -1,7 +1,206 @@
               Technical notes on version 2.5.x
 
 General:
-Release Version 2.5.16
+
+Beta Release Version 2.5.26
+20Dec08
+kes  Correct typo in Win32 Makefile editing
+kes  Correct typos in debug output.
+kes  Improved error detection in creating bsrs.
+kes  Add debug code to Win32 restore
+19Dec08
+kes  Fix Win32 build.
+ebl  Cleanup director VolParam struct
+18Dec08
+ebl  Replace File:Block in BSR by Address to fix #1190
+16Dec08
+kes  Correct missing return in Darwin code.
+15Dec08
+ebl  Copy joblog after a Copy job
+14Dec08
+kes  Tweak block.c read to more closely simulate write for computing
+     block addresses and turn on disk block testing.
+kes  Implement a crude 'list joblog' mostly for debugging.
+13Dec08
+kes  Fix Migration bug #1206 sql error with NULL FileSetId when no jobs
+     to migrate.
+kes  Fix Migration JobLog bug #1171. Get the JobIds correct.
+12Dec08
+ebl  Fix segfault in bscan when using debug mode
+11Dec08
+kes  Fix configure to do minimum Win32 configure so that make clean
+     works.
+kes  Tweak modify FD header to use %ld instead of %d.
+kes  Remove hand scanning of FD header in SD and use Bacula's
+     sscanf, which is now OS independent.
+kes  Define new object (file/dir) begin and end Volume label records 
+     in SD.
+kes  Use new method of defining XATTR #defines to avoid need for having
+     them in config.h.in
+10Dec08
+ebl  Rename all STREAM_ACL_..._T into STREAM_ACL_..
+09Dec08
+ebl  Add a new lock manager that can detect deadlock situation
+     This new option is activated with a --enable-lockmgr configure
+     option.
+ebl  Add new Director->MaxConsoleConnections directive
+03Dec08
+ebl  Fix bacula-sd hanging after tape gets full + unload 
+02Dec08
+ebl  Remove extra db_lock() in get_prune_list_for_volume()
+ebl  Apply 2.4.3-prune-deadlock.patch that fixes a problem when
+     using Catalog as message backend.
+01Dec08
+kes  Apply Marco's Darwin xattr patches.
+28Nov08
+kes  Fix Win32 build.
+26Nov08
+kes  Apply Marco's Extended attribute support patch.
+kes  Update projects file
+25Nov08
+kes  More changes to ensure that during thread switches the jcr
+     is removed from the TSD.
+kes  Ensure that consoles attach jcr to thread, and that only the
+     thread attached is removed from the TSD.
+24Nov08
+kes  Move definition of FileId_t to bc_types and define it once in the jcr.
+22Nov08
+kes  Remove all time_t from arguments in favor of utime_t, which is
+     machine independent.
+kes  Add more debug to match_bsr.c and use %u for unsigned debug editing.
+20Nov08
+ebl  Apply patch for bug #1182  about Recycle flag
+     that is not updated after a pool change.
+kes  Since the user has been warned, allow console purge command 
+     to purge volumes that are in use.
+kes  Fix Win32 build to add new sd_plugins.c
+ebl  Apply patch from bug #1175 that reset the Slot and the Inchanger
+     flag in db_make_inchanger_unique().
+ebl  Remove a Emsg() after recieving a Fatal signal that can lock
+     the catalog.
+19Nov08
+kes  Apply patch from bug #1187. It prints an error message if the
+     Maximum Block Size in the SD is too big.  
+kes  Increase Maximum Block Size to 2,000,000 bytes.
+kes  Use doubly linked bsr list so that consumed bsrs may be
+     removed.  Removing not yet implemented.
+18Nov08
+kes  Implement a fix that very likely fixes the undesired volume
+     purge reported by Graham Keeling.
+kes  Implement bsr block level checking for disk files. However,
+     it does not work correctly in accurate tests, and all the
+     migration and copy tests, so it is turned off.
+ebl  Make SD plugins work.
+14Nov08
+ebl  Apply Riccardo's patch to compile bacula+mysql on mandriva
+13Nov08
+ebl  Add more variables accessible through the director plugin
+     interface.
+12Nov08
+ebl  Do work on plugins
+     - fix compilation of the director plugins
+     - add plugin list to status dir output
+     - add director plugin dump after a fatal signal
+ebl  Apply Riccardo's patch that fix some win32 compilation errors 
+     and a bug with bat version browser.
+11Nov08
+ebl  Add Plugin debug after a fatal signal.
+ebl  Add db and rwlock debug after a fatal signal.
+10Nov08
+ebl  Fix maxwaittime to fit documentation, this time is now counted
+     from the job start and group all wait periods.
+ebl  Add tips for postgresql to improve performance when having
+     multiple batch insert at the same time.
+09Nov08
+ebl  Remove extra debug for db lock.
+07Nov08
+kes  Apply Riccardo's second patch that cleans up the #include
+     file order + a few Win32 particularities to make bat work
+     on Win32.
+ebl  Add allow_transactions flag to mysql db backend.
+kes  Apply win32-fixes patch from Riccardo that makes the Win32
+     bat more stable and faster (but still slow).
+06Nov08
+kes  Fix bug with job name duplication if more than 60 jobs created
+     during a minute.
+kes  Correct some bugs of cleanup in SD if the FD connection fails.
+ebl  Add code to get more information after a fatal signal.
+05Nov08
+ebl  Apply Bastian's patch that add spooldata=yes|no option
+     to run command.
+04Nov08
+ebl  Fix bash shell to sh shell in database creation script
+02Nov08
+kes  Fix orphaned jobs (possible deadlock) while pruning.
+kes  Use jcr stored in bsock rather than searching in getmsg.c.
+     This results in about a 5% speed improvement with four
+     concurrent jobs.
+kes  Implement win32_chmod that uses wide characters, if possible,
+     to get and set the file attributes.
+29Oct08
+kes  Apply pane freezing during updates patch from Riccardo Ghetta.
+kes  Rework next_vol and autoprune a bit due to failure in
+     recycle-test.  prune_volumes() now returns no status,
+     but should prune at least one Volume, if possible.
+kes  Modify check_if_volume_valid_or_recyclable to reject a
+     volume with Recycle set off.
+kes  Modify prune_volumes() to continue if volume Recycle is off
+     or if the volume has expired. Add more debug.
+28Oct08
+kes  Fix bug #1046 VolumeToCatalog incorrectly reports mounted 
+     filesystems as missing on the Volume.
+kes  Rewrite the set_jcr_job_status() code to include job status
+     priorities so that more important status changes occur but
+     lower priority status changes will not overwrite something
+     more serious.  This could possibly cause reporting incorrect status
+     reporting in some cases.  More testing is needed to ensure
+     I have the right priorities. This vastly simplifies the previous
+     contorted logic.
+     Verify Diff status should now be correctly reported, whereas it
+     was previously lost.
+kes  Reduce some debug output.
+kes  Apply Joao's patch to SQLite tables to make chars work.
+27Oct08
+ebl  Fix #1175 About update slots that don't reset InChanger flag when 
+     slot is empty.
+ebl  Fix #1173 where prune_volume() returns a volume from the scratch.
+25Oct08
+kes  Remove jobq.c constraint that read and write SD must be
+     different. This may lead to more deadlocks in the SD,
+     but they should be resolved there.
+kes  Ensure that job report is always printed even if job is failed
+     in the director.
+kes  Don't print job report twice for failed VBackup jobs.
+24Oct08
+kes  Fix editing of retention time difference to use 64 bit
+     int instead of 64 bit unsigned. This should permit very
+     long retention periods.
+kes  Implement code to prohibit a write job from appending to  a 
+     Volume that will be used for a read operation.  This is
+     new code and could possibly cause some conflicts.
+23Oct08
+kes  Integrate James Harper's Exchange Win32 plugin patch.
+kes  Apply patch from Marco van Wieringen that implements the new
+     Solaris libsec interface for ACLs so that Bacula can save and
+     restore both the new ACLs and old ACLs.
+kes  Marco's patch also corrects the file dependency generation code
+     so that it works properly both with shared libraries and static
+     libraries.
+kes  Marco's patch also includes a small cleanup of the cats Makefile
+     to remove some references to non-existent files.
+22Oct08
+kes  Modify win32 Makefiles to use full paths in most cases.
+     In particular add MAINDIR environment variable that points
+     to the main Bacula source directory.
+21Oct08
+kes  Add read volume list code to SD -- not yet used.
+kes  Add James' binutils patch
+kes  Split volume management code out of src/stored/reserve.c into
+     a new file vol_mgr.c 
+kes  Modify configure to do an automatic make clean.  This ensures
+     that any changes to ./configure options are handled correctly.
+
+Beta Release Version 2.5.16
 19Oct08
 kes  Add Makefile dependency when using LIBTOOL_LINK so that any
      change in ./configure options will be accounted for.
@@ -2297,4 +2496,3 @@ kes  Add code to indicate when the SD is spooling, spool wait, and
      despooling as requested by Alan Brown.
 
 Version 2.0.0 released: 4 January 2007
-

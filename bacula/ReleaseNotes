@@ -1,7 +1,7 @@
 
-       Release Notes for Bacula 2.5.16
+       Release Notes for Bacula 2.5.26
 
-  Bacula code: Total files = 517 Total lines = 199,415 (*.h *.c *.in)
+  Bacula code: Total files = 522 Total lines = 203,305 (*.h *.c *.in)
 
 This Director and Storage daemon must be upgraded at the same time,
 but they should be compatible with all 2.4.x File daemons, unless you
