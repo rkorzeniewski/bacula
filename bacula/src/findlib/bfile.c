@@ -473,13 +473,16 @@ int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
       free_pool_memory(win32_fname);
       return bfd->mode == BF_CLOSED ? -1 : 1;
    }
-   Dmsg0(50, "=== NOT plugin\n");
+   Dmsg0(50, "=== NO plugin\n");
 
-   if (!(p_CreateFileA || p_CreateFileW))
+   if (!(p_CreateFileA || p_CreateFileW)) {
+      Dmsg0(50, "No CreateFileA and no CreateFileW!!!!!\n");
       return 0;
+   }
 
-   if (p_CreateFileW && p_MultiByteToWideChar)
+   if (p_CreateFileW && p_MultiByteToWideChar) {
       make_win32_path_UTF8_2_wchar(&win32_fname_wchar, fname);
+   }
 
    if (flags & O_CREAT) {             /* Create */
       if (bfd->use_backup_api) {
@@ -492,6 +495,7 @@ int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
 
       if (p_CreateFileW && p_MultiByteToWideChar) {   
          // unicode open for create write
+         Dmsg1(100, "Create CreateFileW=%s\n", win32_fname);
          bfd->fh = p_CreateFileW((LPCWSTR)win32_fname_wchar,
                 dwaccess,                /* Requested access */
                 0,                       /* Shared mode */
@@ -501,6 +505,7 @@ int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
                 NULL);                   /* TemplateFile */
       } else {
          // ascii open
+         Dmsg1(100, "Create CreateFileA=%s\n", win32_fname);
          bfd->fh = p_CreateFileA(win32_fname,
                 dwaccess,                /* Requested access */
                 0,                       /* Shared mode */
@@ -523,6 +528,7 @@ int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
 
       if (p_CreateFileW && p_MultiByteToWideChar) {   
          // unicode open for open existing write
+         Dmsg1(100, "Write only CreateFileW=%s\n", win32_fname);
          bfd->fh = p_CreateFileW((LPCWSTR)win32_fname_wchar,
                 dwaccess,                /* Requested access */
                 0,                       /* Shared mode */
@@ -532,6 +538,7 @@ int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
                 NULL);                   /* TemplateFile */
       } else {
          // ascii open
+         Dmsg1(100, "Write only CreateFileA=%s\n", win32_fname);
          bfd->fh = p_CreateFileA(win32_fname,
                 dwaccess,                /* Requested access */
                 0,                       /* Shared mode */
@@ -558,6 +565,7 @@ int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
 
       if (p_CreateFileW && p_MultiByteToWideChar) {   
          // unicode open for open existing read
+         Dmsg1(100, "Read CreateFileW=%s\n", win32_fname);
          bfd->fh = p_CreateFileW((LPCWSTR)win32_fname_wchar,
                 dwaccess,                /* Requested access */
                 dwshare,                 /* Share modes */
@@ -567,6 +575,7 @@ int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
                 NULL);                   /* TemplateFile */
       } else {
          // ascii open 
+         Dmsg1(100, "Read CreateFileA=%s\n", win32_fname);
          bfd->fh = p_CreateFileA(win32_fname,
                 dwaccess,                /* Requested access */
                 dwshare,                 /* Share modes */

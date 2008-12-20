@@ -889,7 +889,7 @@ d_msg(const char *file, int line, int level, const char *fmt,...)
        if (trace) {
           if (!trace_fd) {
              char fn[200];
-             bsnprintf(fn, sizeof(fn), "%s/%s.trace", working_directory ? working_directory : ".", my_name);
+             bsnprintf(fn, sizeof(fn), "%s/%s.trace", working_directory ? working_directory : "./", my_name);
              trace_fd = fopen(fn, "a+b");
           }
           if (trace_fd) {

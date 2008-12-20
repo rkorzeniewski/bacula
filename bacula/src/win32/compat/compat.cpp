@@ -651,6 +651,7 @@ statDir(const char *file, struct stat *sb)
       POOLMEM* pwszBuf = get_pool_memory (PM_FNAME);
       make_win32_path_UTF8_2_wchar(&pwszBuf, file);
 
+      Dmsg1(100, "FindFirstFileW=%s\n", file);
       h = p_FindFirstFileW((LPCWSTR)pwszBuf, &info_w);
       free_pool_memory(pwszBuf);
 
@@ -664,6 +665,7 @@ statDir(const char *file, struct stat *sb)
 
    // use ASCII
    } else if (p_FindFirstFileA) {
+      Dmsg1(100, "FindFirstFileA=%s\n", file);
       h = p_FindFirstFileA(file, &info_a);
 
       pdwFileAttributes = &info_a.dwFileAttributes;
@@ -673,11 +675,17 @@ statDir(const char *file, struct stat *sb)
       pftLastAccessTime = &info_a.ftLastAccessTime;
       pftLastWriteTime  = &info_a.ftLastWriteTime;
       pftCreationTime   = &info_a.ftCreationTime;
+   } else {
+      Dmsg0(100, "No findFirstFile A or W found\n");
    }
 
    if (h == INVALID_HANDLE_VALUE) {
       const char *err = errorString();
-      Dmsg2(99, "FindFirstFile(%s):%s\n", file, err);
+      /*
+       * Note, in creating leading paths, it is normal that
+       * the file does not exist.
+       */
+      Dmsg2(2099, "FindFirstFile(%s):%s\n", file, err);
       LocalFree((void *)err);
       errno = b_errno_win32;
       return -1;
@@ -731,7 +739,7 @@ fstat(int fd, struct stat *sb)
 
    if (!GetFileInformationByHandle((HANDLE)fd, &info)) {
        const char *err = errorString();
-       Dmsg1(99, "GetfileInformationByHandle: %s\n", err);
+       Dmsg1(2099, "GetfileInformationByHandle: %s\n", err);
        LocalFree((void *)err);
        errno = b_errno_win32;
        return -1;
@@ -777,7 +785,7 @@ fstat(int fd, struct stat *sb)
 static int
 stat2(const char *file, struct stat *sb)
 {
-   HANDLE h;
+   HANDLE h = INVALID_HANDLE_VALUE;
    int rval = 0;
    char tmpbuf[5000];
    conv_unix_to_win32_path(file, tmpbuf, 5000);
@@ -789,25 +797,31 @@ stat2(const char *file, struct stat *sb)
       make_win32_path_UTF8_2_wchar(&pwszBuf, tmpbuf);
 
       attr = p_GetFileAttributesW((LPCWSTR) pwszBuf);
+      if (p_CreateFileW) {
+         h = CreateFileW((LPCWSTR)pwszBuf, GENERIC_READ,
+                FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
+      }
       free_pool_memory(pwszBuf);
    } else if (p_GetFileAttributesA) {
       attr = p_GetFileAttributesA(tmpbuf);
+      h = CreateFileA(tmpbuf, GENERIC_READ,
+               FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
    }
 
    if (attr == (DWORD)-1) {
       const char *err = errorString();
-      Dmsg2(99, "GetFileAttributes(%s): %s\n", tmpbuf, err);
+      Dmsg2(2099, "GetFileAttributes(%s): %s\n", tmpbuf, err);
       LocalFree((void *)err);
+      if (h != INVALID_HANDLE_VALUE) {
+         CloseHandle(h);
+      }
       errno = b_errno_win32;
       return -1;
    }
 
-   h = CreateFileA(tmpbuf, GENERIC_READ,
-                  FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
-
    if (h == INVALID_HANDLE_VALUE) {
       const char *err = errorString();
-      Dmsg2(99, "Cannot open file for stat (%s):%s\n", tmpbuf, err);
+      Dmsg2(2099, "Cannot open file for stat (%s):%s\n", tmpbuf, err);
       LocalFree((void *)err);
       errno = b_errno_win32;
       return -1;
@@ -818,9 +832,8 @@ stat2(const char *file, struct stat *sb)
 
    if (attr & FILE_ATTRIBUTE_DIRECTORY &&
         file[1] == ':' && file[2] != 0) {
-      statDir(file, sb);
+      rval = statDir(file, sb);
    }
-
    return rval;
 }
 
@@ -1355,6 +1368,7 @@ int win32_chmod(const char *path, mode_t mode)
 {
    DWORD attr = (DWORD)-1;
 
+    Dmsg1(100, "Enter win32_chmod. path=%s\n", path);
    if (p_GetFileAttributesW) {
       POOLMEM* pwszBuf = get_pool_memory(PM_FNAME);
       make_win32_path_UTF8_2_wchar(&pwszBuf, path);
@@ -1380,6 +1394,7 @@ int win32_chmod(const char *path, mode_t mode)
          attr = p_SetFileAttributesW((LPCWSTR)pwszBuf, attr);
       }
       free_pool_memory(pwszBuf);
+      Dmsg0(100, "Leave win32_chmod. AttributesW\n");
    } else if (p_GetFileAttributesA) {
          if (mode & (S_IRUSR|S_IRGRP|S_IROTH)) {
             attr |= FILE_ATTRIBUTE_READONLY;
@@ -1400,7 +1415,11 @@ int win32_chmod(const char *path, mode_t mode)
       if (attr != INVALID_FILE_ATTRIBUTES) {
          attr = p_SetFileAttributesA(path, attr);
       }
+      Dmsg0(100, "Leave win32_chmod did AttributesA\n");
+   } else {
+      Dmsg0(100, "Leave win32_chmod did nothing\n");
    }
+    
 
    if (attr == (DWORD)-1) {
       const char *err = errorString();
@@ -1443,15 +1462,18 @@ win32_chdir(const char *dir)
 int
 win32_mkdir(const char *dir)
 {
+   Dmsg1(100, "enter win32_mkdir. dir=%s\n", dir);
    if (p_wmkdir){
       POOLMEM* pwszBuf = get_pool_memory(PM_FNAME);
       make_win32_path_UTF8_2_wchar(&pwszBuf, dir);
 
       int n = p_wmkdir((LPCWSTR)pwszBuf);
       free_pool_memory(pwszBuf);
+      Dmsg0(100, "Leave win32_mkdir did wmkdir\n");
       return n;
    }
 
+   Dmsg0(100, "Leave win32_mkdir did _mkdir\n");
    return _mkdir(dir);
 }
 

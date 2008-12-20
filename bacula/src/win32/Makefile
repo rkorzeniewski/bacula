@@ -28,7 +28,7 @@ $(DIRS):
 	   fi ; \
 	fi
 
-Makefile.inc: Makefile.inc.in
+Makefile.inc: Makefile.inc.in Makefile
 	@echo Creating $@
 	$(ECHO_CMD)TOPDIR=`(cd ../../..;pwd)`; \
 	if test -e ../../../cross-tools/mingw32/bin/mingw32-gcc; then \
@@ -47,7 +47,7 @@ Makefile.inc: Makefile.inc.in
 	$(ECHO_CMD)BUILDDIR=`(pwd)`; \
 	$(ECHO_CMD)MAINDIR=`(cd ../..;pwd)`; \
 	sed \
-		-e "s^@WIN3wBUILDDIR@^$${BUILDDIR}^" \
+		-e "s^@WIN32BUILDDIR@^$${BUILDDIR}^" \
 		-e "s^@WIN32MAINDIR@^$${MAINDIR}^" \
 		-e "s^@WIN32TOPDIR@^$${TOPDIR}^" \
 		-e "s^@WIN32BINDIR@^$${BINDIR}^" \
