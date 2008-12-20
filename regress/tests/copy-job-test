@@ -48,7 +48,7 @@ list volumes
 run job=copy-job yes
 wait
 messages
-purge volume=FileVolume001
+@#purge volume=FileVolume001
 list jobs 
 list volumes
 wait
