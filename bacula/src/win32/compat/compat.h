@@ -384,14 +384,4 @@ int win32_ftruncate(int fd, int64_t length);
 #undef ftruncate
 #define ftruncate win32_ftruncate
 
-/* mmap implementation for tokyodbm */
-#define PROT_WRITE 0x2             /* Page can be written.  */
-#define PROT_READ  0x1             /* page can be read */
-#define MAP_SHARED 0x01            /* Share changes.  */
-#define MAP_FAILED ((void *) -1)
-
-void *mmap(void *start, size_t length, int prot, int flags,
-           int fd, off_t offset);
-int munmap(void *start, size_t length);
-
 #endif /* __COMPAT_H_ */

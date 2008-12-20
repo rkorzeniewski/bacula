@@ -2494,6 +2494,7 @@ file_dup2(int, int)
 }
 #endif
 
+#ifdef xxx
 /* 
  * Emulation of mmap and unmmap for tokyo dbm
  */
@@ -2557,6 +2558,7 @@ int munmap(void *start, size_t length)
    UnmapViewOfFile(start);
    return 0;
 }
+#endif
 
 #ifdef HAVE_MINGW
 /* syslog function, added by Nicolas Boichat */
