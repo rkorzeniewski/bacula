@@ -1364,20 +1364,25 @@ bool create_restore_bootstrap_file(JCR *jcr)
    rx.JobIds = (char *)"";                       
    rx.bsr->JobId = jcr->previous_jr.JobId;
    ua = new_ua_context(jcr);
-   complete_bsr(ua, rx.bsr);
+   if (!complete_bsr(ua, rx.bsr)) {
+      goto bail_out;
+   }
    rx.bsr->fi = new_findex();
    rx.bsr->fi->findex = 1;
    rx.bsr->fi->findex2 = jcr->previous_jr.JobFiles;
    jcr->ExpectedFiles = write_bsr_file(ua, rx);
    if (jcr->ExpectedFiles == 0) {
-      free_ua_context(ua);
-      free_bsr(rx.bsr);
-      return false;
+      goto bail_out;
    }
    free_ua_context(ua);
    free_bsr(rx.bsr);
    jcr->needs_sd = true;
    return true;
+
+bail_out:
+   free_ua_context(ua);
+   free_bsr(rx.bsr);
+   return false;
 }
 
 /* TODO: redirect command ouput to job log */

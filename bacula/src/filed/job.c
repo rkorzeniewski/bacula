@@ -1437,7 +1437,7 @@ static int backup_cmd(JCR *jcr)
    }
 
    dir->fsend(OKbackup);
-   Dmsg1(110, "bfiled>dird: %s", dir->msg);
+   Dmsg1(110, "filed>dird: %s", dir->msg);
 
    /*
     * Send Append Open Session to Storage daemon
@@ -1629,7 +1629,7 @@ static int verify_cmd(JCR *jcr)
    generate_plugin_event(jcr, bEventLevel, (void *)jcr->get_JobLevel());
    generate_plugin_event(jcr, bEventStartVerifyJob);
 
-   Dmsg1(110, "bfiled>dird: %s", dir->msg);
+   Dmsg1(110, "filed>dird: %s", dir->msg);
 
    switch (jcr->get_JobLevel()) {
    case L_VERIFY_INIT:
@@ -1647,7 +1647,7 @@ static int verify_cmd(JCR *jcr)
        * Send Close session command to Storage daemon
        */
       sd->fsend(read_close, jcr->Ticket);
-      Dmsg1(130, "bfiled>stored: %s", sd->msg);
+      Dmsg1(130, "filed>stored: %s", sd->msg);
 
       /* ****FIXME**** check response */
       bget_msg(sd);                      /* get OK */
@@ -1725,7 +1725,7 @@ static int restore_cmd(JCR *jcr)
    jcr->prefix_links = prefix_links;
 
    dir->fsend(OKrestore);
-   Dmsg1(110, "bfiled>dird: %s", dir->msg);
+   Dmsg1(110, "filed>dird: %s", dir->msg);
 
    jcr->set_JobType(JT_RESTORE);
 
@@ -1756,7 +1756,7 @@ static int restore_cmd(JCR *jcr)
     * Send Close session command to Storage daemon
     */
    sd->fsend(read_close, jcr->Ticket);
-   Dmsg1(130, "bfiled>stored: %s", sd->msg);
+   Dmsg1(130, "filed>stored: %s", sd->msg);
 
    bget_msg(sd);                      /* get OK */
 
@@ -1797,12 +1797,12 @@ static int open_sd_read_session(JCR *jcr)
     * Get ticket number
     */
    if (bget_msg(sd) >= 0) {
-      Dmsg1(110, "bfiled<stored: %s", sd->msg);
+      Dmsg1(110, "filed<stored: %s", sd->msg);
       if (sscanf(sd->msg, OK_open, &jcr->Ticket) != 1) {
          Jmsg(jcr, M_FATAL, 0, _("Bad response to SD read open: %s\n"), sd->msg);
          return 0;
       }
-      Dmsg1(110, "bfiled: got Ticket=%d\n", jcr->Ticket);
+      Dmsg1(110, "filed: got Ticket=%d\n", jcr->Ticket);
    } else {
       Jmsg(jcr, M_FATAL, 0, _("Bad response from stored to read open command\n"));
       return 0;
