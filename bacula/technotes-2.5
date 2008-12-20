@@ -11,6 +11,15 @@ mixed priorities
 
 General:
 20Dec08
+kes  Closed bug #1207 -- 2.4.4-b1 strange volume/device handling
+kes  Closed bug #1204 -- Undescriptive help options
+kes  Closed bug #1202 -- Revise documentation
+kes  Closed bug #1178 -- Bat 2.4.3 tries to double-purge volumes 
+     unable to reproduce.
+kes  Closed bug #1166. Fixed by Eric -- Problem canceling job if 
+     client looses connection while being backed up.
+kes  Fixed bug #1200 -- inconsistent auto purge documention
+kes  Fix documentation for Recyling ambiguity. Fixes bug #1200.
 kes  Remove old mmap code from compat.h/cpp
 kes  Update ChangeLog
 kes  Correct typo in Win32 Makefile editing
@@ -81,7 +90,8 @@ kes  Add more debug to match_bsr.c and use %u for unsigned debug editing.
 ebl  Apply patch for bug #1182  about Recycle flag
      that is not updated after a pool change.
 kes  Since the user has been warned, allow console purge command 
-     to purge volumes that are in use.
+     to purge volumes that are in use. This is a fix for bug
+     #1191 before it was submitted.
 kes  Fix Win32 build to add new sd_plugins.c
 ebl  Apply patch from bug #1175 that reset the Slot and the Inchanger
      flag in db_make_inchanger_unique().

@@ -478,7 +478,7 @@ struct s_state_hdr {
 
 static struct s_state_hdr state_hdr = {
    "Bacula State\n",
-   3,
+   4,
    0
 };
 
