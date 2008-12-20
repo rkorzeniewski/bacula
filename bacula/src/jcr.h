@@ -60,11 +60,12 @@
 #define JT_MIGRATED_JOB          'M'  /* A previous backup job that was migrated */
 #define JT_VERIFY                'V'  /* Verify Job */
 #define JT_RESTORE               'R'  /* Restore Job */
-#define JT_CONSOLE               'c'  /* console program */
+#define JT_CONSOLE               'U'  /* console program */
 #define JT_SYSTEM                'I'  /* internal system "job" */
 #define JT_ADMIN                 'D'  /* admin job */
 #define JT_ARCHIVE               'A'  /* Archive Job */
-#define JT_COPY                  'C'  /* Copy Job */
+#define JT_JOB_COPY              'C'  /* Copy of a Job */
+#define JT_COPY                  'c'  /* Copy Job */
 #define JT_MIGRATE               'g'  /* Migration Job */
 #define JT_SCAN                  'S'  /* Scan Job */
 

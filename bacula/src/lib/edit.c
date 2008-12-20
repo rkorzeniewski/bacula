@@ -407,6 +407,27 @@ bool is_a_number(const char *n)
 }
 
 /*
+ * Check if specified string is a list of number or not
+ */
+bool is_a_number_list(const char *n)
+{
+   bool previous_digit = false; 
+   bool digit_seen = false;
+   while (*n) {
+      if (B_ISDIGIT(*n)) {
+         previous_digit=true;
+         digit_seen = true;
+      } else if (*n == ',' && previous_digit) {
+         previous_digit = false;
+      } else {
+         return false;
+      }
+      n++;
+   }
+   return digit_seen && *n==0; 
+}
+
+/*
  * Check if the specified string is an integer
  */
 bool is_an_integer(const char *n)

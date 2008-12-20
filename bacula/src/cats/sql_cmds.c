@@ -286,7 +286,7 @@ const char *uar_last_full =
    "FROM Client,Job,JobMedia,Media,FileSet WHERE Client.ClientId=%s "
    "AND Job.ClientId=%s "
    "AND Job.StartTime<'%s' "
-   "AND Level='F' AND JobStatus='T' AND Type='B' "
+   "AND Level='F' AND JobStatus='T' "
    "AND JobMedia.JobId=Job.JobId "
    "AND Media.Enabled=1 "
    "AND JobMedia.MediaId=Media.MediaId "
@@ -297,13 +297,14 @@ const char *uar_last_full =
 
 const char *uar_full =
    "INSERT INTO temp SELECT Job.JobId,Job.JobTDate,"
-   "Job.ClientId,Job.Level,Job.JobFiles,Job.JobBytes,"
-   "StartTime,VolumeName,JobMedia.StartFile,VolSessionId,VolSessionTime "
-   "FROM temp1,Job,JobMedia,Media WHERE temp1.JobId=Job.JobId "
-   "AND Level='F' AND JobStatus='T' AND Type='B' "
-   "AND Media.Enabled=1 "
-   "AND JobMedia.JobId=Job.JobId "
-   "AND JobMedia.MediaId=Media.MediaId";
+     "Job.ClientId,Job.Level,Job.JobFiles,Job.JobBytes,"
+     "StartTime,VolumeName,JobMedia.StartFile,VolSessionId,VolSessionTime "
+    "FROM temp1,Job,JobMedia,Media "
+   "WHERE temp1.JobId=Job.JobId "
+     "AND Level='F' AND JobStatus='T' "
+     "AND Media.Enabled=1 "
+     "AND JobMedia.JobId=Job.JobId "
+     "AND JobMedia.MediaId=Media.MediaId";
 
 const char *uar_dif =
    "INSERT INTO temp SELECT Job.JobId,Job.JobTDate,Job.ClientId,"
@@ -316,7 +317,7 @@ const char *uar_dif =
    "AND JobMedia.JobId=Job.JobId "
    "AND Media.Enabled=1 "
    "AND JobMedia.MediaId=Media.MediaId "
-   "AND Job.Level='D' AND JobStatus='T' AND Type='B' "
+   "AND Job.Level='D' AND JobStatus='T' "
    "AND Job.FileSetId=FileSet.FileSetId "
    "AND FileSet.FileSet='%s' "
    "%s"
@@ -333,7 +334,7 @@ const char *uar_inc =
    "AND Media.Enabled=1 "
    "AND JobMedia.JobId=Job.JobId "
    "AND JobMedia.MediaId=Media.MediaId "
-   "AND Job.Level='I' AND JobStatus='T' AND Type='B' "
+   "AND Job.Level='I' AND JobStatus='T' "
    "AND Job.FileSetId=FileSet.FileSetId "
    "AND FileSet.FileSet='%s' "
    "%s";

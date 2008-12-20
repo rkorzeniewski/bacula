@@ -124,6 +124,7 @@ void db_list_jobmedia_records(JCR *jcr, B_DB *mdb, JobId_t JobId, DB_LIST_HANDLE
 void db_list_joblog_records(JCR *jcr, B_DB *mdb, JobId_t JobId, DB_LIST_HANDLER *sendit, void *ctx, e_list_type type);
 int  db_list_sql_query(JCR *jcr, B_DB *mdb, const char *query, DB_LIST_HANDLER *sendit, void *ctx, int verbose, e_list_type type);
 void db_list_client_records(JCR *jcr, B_DB *mdb, DB_LIST_HANDLER *sendit, void *ctx, e_list_type type);
+void db_list_copies_records(JCR *jcr, B_DB *mdb, uint32_t limit, char *jobids, DB_LIST_HANDLER *sendit, void *ctx, e_list_type type);
 
 /* sql_update.c */
 bool db_update_job_start_record(JCR *jcr, B_DB *db, JOB_DBR *jr);

@@ -444,6 +444,7 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
       "add_suffix",   /* 17 */
       "regexwhere",   /* 18 */
       "restoreclient", /* 19 */
+      "copies",        /* 20 */
       NULL
    };
 
@@ -1138,9 +1139,10 @@ static bool select_backups_before_date(UAContext *ua, RESTORE_CTX *rx, char *dat
    bool ok = false;
    FILESET_DBR fsr;
    CLIENT_DBR cr;
+   POOL_MEM other_filter(PM_MESSAGE);
+   POOL_MEM temp_filter(PM_MESSAGE);
    char fileset_name[MAX_NAME_LENGTH];
    char ed1[50], ed2[50];
-   char pool_select[MAX_NAME_LENGTH];
    int i;
 
    /* Create temp tables */
@@ -1196,23 +1198,32 @@ static bool select_backups_before_date(UAContext *ua, RESTORE_CTX *rx, char *dat
    }
 
    /* If Pool specified, add PoolId specification */
-   pool_select[0] = 0;
    if (rx->pool) {
       POOL_DBR pr;
       memset(&pr, 0, sizeof(pr));
       bstrncpy(pr.Name, rx->pool->name(), sizeof(pr.Name));
       if (db_get_pool_record(ua->jcr, ua->db, &pr)) {
-         bsnprintf(pool_select, sizeof(pool_select), "AND Media.PoolId=%s ", 
-            edit_int64(pr.PoolId, ed1));
+         Mmsg(other_filter, " AND Media.PoolId=%s ", 
+              edit_int64(pr.PoolId, ed1));
       } else {
          ua->warning_msg(_("Pool \"%s\" not found, using any pool.\n"), pr.Name);
       }
    }
+   /* include copies or not in job selection */
+   if (find_arg(ua, NT_("copies")) > 0) {
+      Mmsg(temp_filter, "%s AND Job.Type IN ('%c', '%c') ", 
+           other_filter.c_str(), (char)JT_BACKUP, (char)JT_JOB_COPY);
+   } else {
+      Mmsg(temp_filter, "%s AND Job.Type = '%c' ", other_filter.c_str(),
+           (char)JT_BACKUP);
+   }
+   pm_strcpy(other_filter, temp_filter.c_str());
 
    /* Find JobId of last Full backup for this client, fileset */
    edit_int64(cr.ClientId, ed1);
    Mmsg(rx->query, uar_last_full, ed1, ed1, date, fsr.FileSet,
-         pool_select);
+        other_filter.c_str());
+   Dmsg1(0, "sql=%s\n", rx->query);
    if (!db_sql_query(ua->db, rx->query, NULL, NULL)) {
       ua->error_msg("%s\n", db_strerror(ua->db));
       goto bail_out;
@@ -1238,12 +1249,13 @@ static bool select_backups_before_date(UAContext *ua, RESTORE_CTX *rx, char *dat
 
    /* Now find most recent Differental Job after Full save, if any */
    Mmsg(rx->query, uar_dif, edit_uint64(rx->JobTDate, ed1), date,
-        edit_int64(cr.ClientId, ed2), fsr.FileSet, pool_select);
+        edit_int64(cr.ClientId, ed2), fsr.FileSet, other_filter.c_str());
    if (!db_sql_query(ua->db, rx->query, NULL, NULL)) {
       ua->warning_msg("%s\n", db_strerror(ua->db));
    }
    /* Now update JobTDate to lock onto Differental, if any */
    rx->JobTDate = 0;
+   Dmsg1(0, "sql=%s\n", rx->query);
    if (!db_sql_query(ua->db, uar_sel_all_temp, last_full_handler, (void *)rx)) {
       ua->warning_msg("%s\n", db_strerror(ua->db));
    }
@@ -1254,7 +1266,8 @@ static bool select_backups_before_date(UAContext *ua, RESTORE_CTX *rx, char *dat
 
    /* Now find all Incremental Jobs after Full/dif save */
    Mmsg(rx->query, uar_inc, edit_uint64(rx->JobTDate, ed1), date,
-        edit_int64(cr.ClientId, ed2), fsr.FileSet, pool_select);
+        edit_int64(cr.ClientId, ed2), fsr.FileSet, other_filter.c_str());
+   Dmsg1(0, "sql=%s\n", rx->query);
    if (!db_sql_query(ua->db, rx->query, NULL, NULL)) {
       ua->warning_msg("%s\n", db_strerror(ua->db));
    }
@@ -1267,6 +1280,8 @@ static bool select_backups_before_date(UAContext *ua, RESTORE_CTX *rx, char *dat
    }
 
    if (rx->JobIds[0] != 0) {
+      /* Display a list of all copies */
+      db_list_copies_records(ua->jcr, ua->db, 0, rx->JobIds, prtit, ua, HORZ_LIST);
       /* Display a list of Jobs selected for this restore */
       db_list_sql_query(ua->jcr, ua->db, uar_list_temp, prtit, ua, 1, HORZ_LIST);
       ok = true;

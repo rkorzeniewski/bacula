@@ -1158,12 +1158,16 @@ void migration_cleanup(JCR *jcr, int TermCode)
       /*
        * If we terminated a copy normally:
        *   - copy any Log records to the new JobId
+       *   - set type="Job Copy" for the new job
        */
       if (jcr->get_JobType() == JT_COPY && jcr->JobStatus == JS_Terminated) {
          /* Copy JobLog to new JobId */
          Mmsg(query, "INSERT INTO Log (JobId, Time, LogText ) " 
                       "SELECT %s, Time, LogText FROM Log WHERE JobId=%s",
-              new_jobid, old_jobid);
+              edit_uint64(mig_jcr->jr.JobId, ec7), old_jobid);
+         db_sql_query(mig_jcr->db, query.c_str(), NULL, NULL);
+         Mmsg(query, "UPDATE Job SET Type='%c' WHERE JobId=%s",
+              (char)JT_JOB_COPY, ec7);
          db_sql_query(mig_jcr->db, query.c_str(), NULL, NULL);
       } 
 

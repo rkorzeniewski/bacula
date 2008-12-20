@@ -242,6 +242,43 @@ void db_list_jobmedia_records(JCR *jcr, B_DB *mdb, uint32_t JobId,
 }
 
 
+void db_list_copies_records(JCR *jcr, B_DB *mdb, uint32_t limit, char *JobIds,
+                            DB_LIST_HANDLER *sendit, void *ctx, e_list_type type)
+{
+   POOL_MEM str_limit(PM_MESSAGE);
+   POOL_MEM str_jobids(PM_MESSAGE);
+
+   if (limit > 0) {
+      Mmsg(str_limit, " LIMIT %d", limit);
+   }
+
+   if (JobIds && JobIds[0]) {
+      Mmsg(str_jobids, " AND (C.PriorJobId IN (%s) OR C.JobId IN (%s)) ", 
+           JobIds, JobIds);      
+   }
+
+   db_lock(mdb);
+   Mmsg(mdb->cmd, 
+   "SELECT DISTINCT C.PriorJobId AS JobId, C.Job, "
+                   "C.JobId AS CopyJobId, M.MediaType "
+     "FROM Job AS C " 
+     "JOIN JobMedia    USING (JobId) "
+     "JOIN Media AS M  USING (MediaId) "
+    "WHERE C.Type = '%c' %s ORDER BY C.PriorJobId DESC %s",
+        (char) JT_JOB_COPY, str_jobids.c_str(), str_limit.c_str());
+
+   if (!QUERY_DB(jcr, mdb, mdb->cmd)) {
+      goto bail_out;
+   }
+
+   list_result(jcr, mdb, sendit, ctx, type);
+
+   sql_free_result(mdb);
+
+bail_out:
+   db_unlock(mdb);
+}
+
 void db_list_joblog_records(JCR *jcr, B_DB *mdb, uint32_t JobId,
                               DB_LIST_HANDLER *sendit, void *ctx, e_list_type type)
 {

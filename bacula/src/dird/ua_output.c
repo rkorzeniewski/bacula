@@ -223,6 +223,7 @@ bail_out:
  *  list clients        - list clients
  *  list nextvol job=xx  - list the next vol to be used by job
  *  list nextvolume job=xx - same as above.
+ *  list copies jobid=x,y,z
  *
  */
 
@@ -454,6 +455,19 @@ static int do_list_cmd(UAContext *ua, const char *cmd, e_list_type llist)
             }
          }
          list_nextvol(ua, n);
+      } else if (strcasecmp(ua->argk[i], NT_("copies")) == 0) {
+         char *jobids=NULL;
+         uint32_t limit=0;
+         for (j=i+1; j<ua->argc; j++) {
+            if (strcasecmp(ua->argk[j], NT_("jobid")) == 0 && ua->argv[j]) {
+               if (is_a_number_list(ua->argv[j])) {
+                  jobids = ua->argv[j];
+               }
+            } else if (strcasecmp(ua->argk[j], NT_("limit")) == 0 && ua->argv[j]) {
+               limit = atoi(ua->argv[j]);
+            } 
+         }
+         db_list_copies_records(ua->jcr,ua->db,limit,jobids,prtit,ua,llist);
       } else if (strcasecmp(ua->argk[i], NT_("limit")) == 0
                  || strcasecmp(ua->argk[i], NT_("days")) == 0) {
          /* Ignore it */

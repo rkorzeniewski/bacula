@@ -360,6 +360,57 @@ void purge_files_from_job_list(UAContext *ua, del_ctx &del)
 }
 
 /*
+ * Change the type of the next copy job to backup.
+ * We need to upgrade the next copy of a normal job,
+ * and also upgrade the next copy when the normal job
+ * already have been purged.
+ *
+ *   JobId: 1   PriorJobId: 0    (original)
+ *   JobId: 2   PriorJobId: 1    (first copy)
+ *   JobId: 3   PriorJobId: 1    (second copy)
+ *
+ *   JobId: 2   PriorJobId: 1    (first copy, now regular backup)
+ *   JobId: 3   PriorJobId: 1    (second copy)
+ *
+ *  => Search through PriorJobId in jobid and
+ *                    PriorJobId in PriorJobId (jobid)
+ */
+void upgrade_copies(UAContext *ua, char *jobs)
+{
+   POOL_MEM query(PM_MESSAGE);
+   
+   db_lock(ua->db);
+   /* Do it in two times for mysql */
+   Mmsg(query, "CREATE TEMPORARY TABLE cpy_tmp AS "
+                  "SELECT MIN(JobId) AS JobId FROM Job "     /* Choose the oldest job */
+                   "WHERE Type='%c' "
+                     "AND ( PriorJobId IN (%s) "
+                         "OR "
+                          " PriorJobId IN ( "
+                             "SELECT PriorJobId "
+                               "FROM Job "
+                              "WHERE JobId IN (%s) "
+                               " AND Type='B' "
+                            ") "
+                         ") "
+                   "GROUP BY PriorJobId ",           /* one result per copy */
+        JT_JOB_COPY, jobs, jobs);
+   db_sql_query(ua->db, query.c_str(), NULL, (void *)NULL);
+
+   /* Now upgrade first copy to Backup */
+   Mmsg(query, "UPDATE Job SET Type='B' "           /* JT_JOB_COPY => JT_BACKUP  */
+                "WHERE JobId IN ( SELECT JobId FROM cpy_tmp )");
+
+   db_sql_query(ua->db, query.c_str(), NULL, (void *)NULL);
+
+   Mmsg(query, "DROP TABLE cpy_tmp");
+   db_sql_query(ua->db, query.c_str(), NULL, (void *)NULL);
+
+   db_unlock(ua->db);
+   Dmsg1(00, "Upgrade copies Log sql=%s\n", query.c_str());
+}
+
+/*
  * Remove all records from catalog for a list of JobIds
  */
 void purge_jobs_from_catalog(UAContext *ua, char *jobs)
@@ -377,12 +428,14 @@ void purge_jobs_from_catalog(UAContext *ua, char *jobs)
    db_sql_query(ua->db, query.c_str(), NULL, (void *)NULL);
    Dmsg1(050, "Delete Log sql=%s\n", query.c_str());
 
+   upgrade_copies(ua, jobs);
+
    /* Now remove the Job record itself */
    Mmsg(query, "DELETE FROM Job WHERE JobId IN (%s)", jobs);
    db_sql_query(ua->db, query.c_str(), NULL, (void *)NULL);
+
    Dmsg1(050, "Delete Job sql=%s\n", query.c_str());
 }
-
 
 void purge_files_from_volume(UAContext *ua, MEDIA_DBR *mr )
 {} /* ***FIXME*** implement */
