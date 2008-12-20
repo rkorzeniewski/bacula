@@ -123,7 +123,7 @@ static struct cmdstruct commands[] = {                                      /* C
  { NT_("exit"),       quit_cmd,      _("exit = quit"),                                false},
  { NT_("gui"),        gui_cmd,       _("gui [on|off] -- non-interactive gui mode"),   false},
  { NT_("help"),       help_cmd,      _("print this command"),                         false},
- { NT_("list"),       list_cmd,      _("list [pools | jobs | jobtotals | media <pool=pool-name> | files <jobid=nn>]; from catalog"), true},
+ { NT_("list"),       list_cmd,      _("list [pools | jobs | jobtotals | media <pool=pool-name> | files <jobid=nn> | copies <jobid=nn>]; from catalog"), true},
  { NT_("label"),      label_cmd,     _("label a tape"),                               false},
  { NT_("llist"),      llist_cmd,     _("full or long list like list command"),        true},
  { NT_("messages"),   messagescmd,   _("messages"),                                   false},
