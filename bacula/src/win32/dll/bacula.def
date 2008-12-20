@@ -442,6 +442,7 @@ _ZN5dlist7destroyEv
 _ZN5dlist7prependEPv
  
 ; edit.o
+_Z16is_a_number_listPKc
 _Z10add_commasPcS_
 _Z10edit_int64xPc
 _Z10edit_utimexPci
