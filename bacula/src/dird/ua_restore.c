@@ -1268,8 +1268,11 @@ static bool select_backups_before_date(UAContext *ua, RESTORE_CTX *rx, char *dat
    }
 
    if (rx->JobIds[0] != 0) {
-      /* Display a list of all copies */
-      db_list_copies_records(ua->jcr, ua->db, 0, rx->JobIds, prtit, ua, HORZ_LIST);
+      if (find_arg(ua, NT_("copies")) > 0) {
+         /* Display a list of all copies */
+         db_list_copies_records(ua->jcr, ua->db, 0, rx->JobIds, 
+                                prtit, ua, HORZ_LIST);
+      }
       /* Display a list of Jobs selected for this restore */
       db_list_sql_query(ua->jcr, ua->db, uar_list_temp, prtit, ua, 1, HORZ_LIST);
       ok = true;
