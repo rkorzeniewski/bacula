@@ -1164,10 +1164,10 @@ void migration_cleanup(JCR *jcr, int TermCode)
          /* Copy JobLog to new JobId */
          Mmsg(query, "INSERT INTO Log (JobId, Time, LogText ) " 
                       "SELECT %s, Time, LogText FROM Log WHERE JobId=%s",
-              edit_uint64(mig_jcr->jr.JobId, ec7), old_jobid);
+              new_jobid, old_jobid);
          db_sql_query(mig_jcr->db, query.c_str(), NULL, NULL);
          Mmsg(query, "UPDATE Job SET Type='%c' WHERE JobId=%s",
-              (char)JT_JOB_COPY, ec7);
+              (char)JT_JOB_COPY, new_jobid);
          db_sql_query(mig_jcr->db, query.c_str(), NULL, NULL);
       } 
 
