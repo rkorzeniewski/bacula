@@ -386,7 +386,7 @@ bool is_this_bsr_done(BSR *bsr, DEV_RECORD *rec)
 static int match_all(BSR *bsr, DEV_RECORD *rec, VOLUME_LABEL *volrec,
                      SESSION_LABEL *sessrec, bool done, JCR *jcr)
 {
-   Dmsg0(050, "Enter match_all\n");
+   Dmsg0(dbglevel, "Enter match_all\n");
    if (bsr->done) {
 //    Dmsg0(dbglevel, "bsr->done set\n");
       goto no_match;
@@ -458,7 +458,7 @@ static int match_all(BSR *bsr, DEV_RECORD *rec, VOLUME_LABEL *volrec,
     */
    if (bsr->count && bsr->FileIndex) {
       rec->bsr = bsr;
-      Dmsg0(050, "Leave match_all 1\n");
+      Dmsg0(dbglevel, "Leave match_all 1\n");
       return 1;                       /* this is a complete match */
    }
 
@@ -492,7 +492,6 @@ static int match_all(BSR *bsr, DEV_RECORD *rec, VOLUME_LABEL *volrec,
       Dmsg0(dbglevel, "fail on stream\n");
       goto no_match;
    }
-   Dmsg0(050, "Leave match_all 1\n");
    return 1;
 
 no_match:
