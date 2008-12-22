@@ -18,6 +18,7 @@ nice tests/compress-encrypt-test
 nice tests/concurrent-jobs-test
 nice tests/copy-job-test
 nice tests/copy-jobspan-test
+nice tests/copy-upgrade-test
 nice tests/copy-volume-test
 nice tests/data-encrypt-test
 nice tests/encrypt-bug-test

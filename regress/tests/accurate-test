@@ -296,7 +296,7 @@ cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @$out ${cwd}/tmp/log1.out
 messages
 @# 
-@# now do a restore
+@# now do a restore after bscan
 @#
 @$out ${cwd}/tmp/log2.out  
 setdebug level=10 storage=File
