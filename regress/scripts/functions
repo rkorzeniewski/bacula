@@ -275,6 +275,7 @@ end_test()
    if [ $zstat != 0 ] ; then
       echo " "
       echo "  !!!!! $TestName failed!!! `date +%R:%S` !!!!! "
+      echo "   Status: zombie=$zstat backup=$bstat restore=$rstat diff=$dstat"
       echo "  !!!!! $TestName failed!!! `date +%R:%S` !!!!! " >>test.out
       echo "   Status: zombie=$zstat backup=$bstat restore=$rstat diff=$dstat" >>test.out
       echo " "
@@ -284,7 +285,9 @@ end_test()
       echo " "
       echo " "
       echo "  !!!!! $TestName failed!!! `date +%R:%S` !!!!! "
+      echo "   Status: zombie=$zstat backup=$bstat restore=$rstat diff=$dstat"
       echo "  !!!!! $TestName failed!!! `date +%R:%S` !!!!! " >>test.out
+      echo "   Status: zombie=$zstat backup=$bstat restore=$rstat diff=$dstat" >>test.out
       if [ $bstat != 0 -o $rstat != 0 ] ; then
          echo "  !!!!! Bad termination status       !!!!! "
          echo "  !!!!! Bad termination status       !!!!! " >>test.out
@@ -447,4 +450,3 @@ fi
 AUTOCHANGER_SCRIPT=${AUTOCHANGER_SCRIPT:-mtx-changer}
 LD_LIBRARY_PATH=$bin:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH
-

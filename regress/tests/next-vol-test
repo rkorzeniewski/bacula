@@ -135,7 +135,6 @@ if [ "$debug" -eq 1 ]; then
 else
    diff tmp/normal tmp/real > /dev/null
 fi
-
 dstat=$?
 
 
@@ -265,8 +264,13 @@ if [ "$debug" -eq 1 ]; then
 else
    diff tmp/normal4 tmp/real4 > /dev/null
 fi
-
-dstat=`expr $? + $dstat`
+if [ $dstat -eq 0 ] ; then
+   dstat=$?
+   if [ $dstat -ne 0 ] ; then
+      echo "normal4 and real4 differ!!!!!"
+      echo "normal4 and real4 differ!!!!!"  >>test.out
+   fi
+fi
 
 # try to break the old code 
 # in this situation, we have 1 available volume (vol50) and bacula will try to use
