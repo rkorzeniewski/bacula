@@ -407,7 +407,7 @@ void upgrade_copies(UAContext *ua, char *jobs)
    db_sql_query(ua->db, query.c_str(), NULL, (void *)NULL);
 
    db_unlock(ua->db);
-   Dmsg1(00, "Upgrade copies Log sql=%s\n", query.c_str());
+   Dmsg1(050, "Upgrade copies Log sql=%s\n", query.c_str());
 }
 
 /*
