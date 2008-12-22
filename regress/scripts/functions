@@ -158,11 +158,11 @@ run_bacula()
 
 run_bconsole()
 {
-   file=${1:-tmp/bconcmds}
+   bconsole_file=${1:-tmp/bconcmds}
    if test "$debug" -eq 1 ; then
-     cat $file | $bin/bconsole -c bin/bconsole.conf
+     cat $bconsole_file | $bin/bconsole -c bin/bconsole.conf
    else
-     cat $file | $bin/bconsole -c bin/bconsole.conf  2>&1 >/dev/null
+     cat $bconsole_file | $bin/bconsole -c bin/bconsole.conf  2>&1 >/dev/null
    fi
 }
 
