@@ -2668,7 +2668,7 @@ bool dir_get_volume_info(DCR *dcr, enum get_vol_info_rw  writing)
    return 1;
 }
 
-bool dir_create_jobmedia_record(DCR *dcr)
+bool dir_create_jobmedia_record(DCR *dcr, bool zero)
 {
    dcr->WroteVol = false;
    return 1;
