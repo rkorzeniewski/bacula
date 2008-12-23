@@ -71,6 +71,20 @@ Job {
 }
 
 Job {
+  Name = "copy-uncopied"
+  Type = Copy
+  Level = Full
+  Client=@hostname@-fd 
+  FileSet="Full Set"
+  Messages = Standard
+  Storage = DiskChanger
+  Write Bootstrap = "@working_dir@/migratevol.bsr"
+  Pool = Default
+  Maximum Concurrent Jobs = 4
+  Selection Type = PoolUncopiedJobs
+}
+
+Job {
   Name = "migrate-occupancy"
   Type = Migrate
   Level = Full
