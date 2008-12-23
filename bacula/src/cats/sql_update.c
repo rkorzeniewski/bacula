@@ -148,15 +148,6 @@ db_update_stats(JCR *jcr, B_DB *mdb, utime_t age)
 }
 
 /*
- * Given an incoming integer, set the string buffer to either NULL or the value
- *
- */
-static void edit_num_or_null(char *s, size_t n, uint64_t id) {
-   char ed1[50];
-   bsnprintf(s, n, id ? "%s" : "NULL", edit_int64(id, ed1));
-}
-
-/*
  * Update the Job record at end of Job
  *
  *  Returns: 0 on failure
@@ -172,13 +163,7 @@ db_update_job_end_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
    int stat;
    char ed1[30], ed2[30], ed3[50];
    btime_t JobTDate;
-   char PoolId[50], FileSetId[50], ClientId[50], PriorJobId[50];
-
-
-   /* some values are set to zero, which translates to NULL in SQL */
-   edit_num_or_null(PoolId,    sizeof(PoolId),    jr->PoolId);
-   edit_num_or_null(FileSetId, sizeof(FileSetId), jr->FileSetId);
-   edit_num_or_null(ClientId,  sizeof(ClientId),  jr->ClientId);
+   char PriorJobId[50];
 
    if (jr->PriorJobId) {
       bstrncpy(PriorJobId, edit_int64(jr->PriorJobId, ed1), sizeof(PriorJobId));
@@ -202,12 +187,12 @@ db_update_job_end_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
    db_lock(mdb);
    Mmsg(mdb->cmd,
       "UPDATE Job SET JobStatus='%c',EndTime='%s',"
-"ClientId=%s,JobBytes=%s,JobFiles=%u,JobErrors=%u,VolSessionId=%u,"
-"VolSessionTime=%u,PoolId=%s,FileSetId=%s,JobTDate=%s,"
+"ClientId=%u,JobBytes=%s,JobFiles=%u,JobErrors=%u,VolSessionId=%u,"
+"VolSessionTime=%u,PoolId=%u,FileSetId=%u,JobTDate=%s,"
 "RealEndTime='%s',PriorJobId=%s WHERE JobId=%s",
-      (char)(jr->JobStatus), dt, ClientId, edit_uint64(jr->JobBytes, ed1),
+      (char)(jr->JobStatus), dt, jr->ClientId, edit_uint64(jr->JobBytes, ed1),
       jr->JobFiles, jr->JobErrors, jr->VolSessionId, jr->VolSessionTime,
-      PoolId, FileSetId, edit_uint64(JobTDate, ed2), 
+      jr->PoolId, jr->FileSetId, edit_uint64(JobTDate, ed2), 
       rdt,
       PriorJobId,
       edit_int64(jr->JobId, ed3));
