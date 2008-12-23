@@ -1,3 +1,5 @@
+23Dec08
+ebl  Update final restore options box with tabpanel
 18Dec08
 ebl  Rewrite bresto (bweb restore interface) to work with ExtJS 2.2
      Fix lots of bug
@@ -40,7 +42,6 @@ ebl
   - Add new configuration variable to modify default age
  general.tpl
   - Add hyperlink to failed job count
- TODO: add C.png (with something like zzZZzzz)
 
 25Aug08
 ebl  Fix #1132 about typo in directory creation in install_bweb

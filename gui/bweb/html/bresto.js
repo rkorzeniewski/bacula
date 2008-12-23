@@ -143,8 +143,9 @@ Ext.onReady(function(){
  
     tree.on('click', click_cb);
 
-    tree.on('beforeload', function(e) {
-        file_store.removeAll();
+    tree.on('beforeload', function(e,b) {
+//      console.info(b);
+//      file_store.removeAll();
         return true;
     });
     tree.on('load', function(n,e) {
@@ -301,7 +302,7 @@ Ext.onReady(function(){
             header:    "Date",
             dataIndex: 'mtime',
 //            renderer: Ext.util.Format.dateRenderer('Y-m-d h:i'),
-            width:     100
+            width:     120
         },{
             header: 'PathId',
             dataIndex: 'pathid',
@@ -469,6 +470,24 @@ Ext.onReady(function(){
         mode: 'local',
         triggerAction: 'all',
         emptyText:'Select a client...',
+        selectOnFocus:true,
+        forceSelection: true,
+        width:135
+    });
+
+    var replace_store = new Ext.data.SimpleStore({
+        fields: ['value', 'text'],
+        data : [['never', 'Never'],['always', 'Always']]
+    });
+
+    var replace_combo = new Ext.form.ComboBox({
+        fieldLabel: 'Replace',
+        store: replace_store,
+        displayField:'text',
+        typeAhead: true,
+        mode: 'local',
+        triggerAction: 'all',
+        emptyText:'Replace mode...',
         selectOnFocus:true,
         forceSelection: true,
         width:135
@@ -822,34 +841,39 @@ Ext.onReady(function(){
             }
         }); 
 
-        var use_filerelocation_fieldset = new Ext.form.FieldSet({
-            checkboxToggle : true,
-            title          : 'Use file relocation',
-            autoHeight     : true,
-            defaults       : {width: 210},
-            defaultType    : 'textfield',
-            checkboxName   : 'use_filerelocation',   
-            collapsed      : true,
-            anchor         : '100%',
-            items :[ stripprefix_text, addsuffix_text, addprefix_text,
-                     useregexp_bp, rwhere_text ]
+        var usefilerelocation_bp = new Ext.form.Checkbox({
+            fieldLabel: 'Use file relocation',
+            name: 'use_relocation',
+            checked: 0
         });
-        
-        use_filerelocation_fieldset.on('collapse', function(bp) {
-            Ext.brestore.use_filerelocation=false;
-            where_text.enable();
-            addsuffix_text.disable();
-            addprefix_text.disable();
-            stripprefix_text.disable();
-            useregexp_bp.disable();
-            rwhere_text.disable();
-        });
+       
+        usefilerelocation_bp.on('check', function(bp,state) {
+            if (state) {
+                where_text.disable();
+                useregexp_bp.enable();
+                if (useregexp_bp.getValue()) {
+                    addsuffix_text.disable();
+                    addprefix_text.disable();
+                    stripprefix_text.disable();
+                    rwhere_text.enable();
+                } else {
+                    addsuffix_text.enable();
+                    addprefix_text.enable();
+                    stripprefix_text.enable();
+                    rwhere_text.disable();
+                }
+            } else {
+                where_text.enable();
+                addsuffix_text.disable();
+                addprefix_text.disable();
+                stripprefix_text.disable();
+                useregexp_bp.disable();
+                rwhere_text.disable();
+            }
+        }); 
 
-        use_filerelocation_fieldset.on('expand', function(bp) {
-            Ext.brestore.use_filerelocation=true;
-            where_text.disable();
-            useregexp_bp.enable();
-            if (useregexp_bp.getValue()) {
+        useregexp_bp.on('check', function(bp,state) {
+            if (state) {
                 addsuffix_text.disable();
                 addprefix_text.disable();
                 stripprefix_text.disable();
@@ -860,7 +884,7 @@ Ext.onReady(function(){
                 stripprefix_text.enable();
                 rwhere_text.disable();
             }
-        });
+        }); 
         
         var media_store = Ext.brestore.media_store = new Ext.data.Store({
             proxy: new Ext.data.HttpProxy({
@@ -905,29 +929,72 @@ Ext.onReady(function(){
 
         var form_panel = new Ext.FormPanel({
             labelWidth : 75, // label settings here cascade unless overridden
-            url        : 'save-form.php',
             frame      : true,
             bodyStyle  : 'padding:5px 5px 0',
             width      : 250,
-//            autoHeight : true,
+//          autoHeight : true,
             items: [{
-                xtype          : 'fieldset',
-                title          : 'Media needed',
-                autoHeight     : true,
-                defaults       : {width: 210},
-                defaultType    : 'textfield',
-                items :[ media_grid, {xtype: 'button', id: 'reload_media',
-                                      text: 'Compute with directories',
-                                      tooltip: 'Can take long time...',
-                                      handler:reload_media_store}]
-            }, {
-                xtype          : 'fieldset',
-                title          : 'Restore options',
-                autoHeight     : true,
-                defaults       : {width: 210},
-                defaultType    : 'textfield',
-                items :[ rclient_combo, where_text ]
-            }, use_filerelocation_fieldset],
+                xtype       :   'tabpanel',
+                autoTabs    :   true,
+                activeTab   :   0,
+                border      :   false,
+                bodyStyle   :  'padding:5px 5px 0',
+                deferredRender : false,
+                items: [{
+                    xtype   :   'panel',
+                    title   :   'Restore details',
+                    items   :  [{
+                        xtype          : 'fieldset',
+                        title          : 'Restore options',
+                        autoHeight     : true,
+                        defaults       : {width: 210},
+                        bodyStyle  : 'padding:5px 5px 0',
+                        items :[ rclient_combo, where_text, replace_combo ]
+                    }, {
+                        xtype          : 'fieldset',
+                        title          : 'Media needed',
+                        autoHeight     : true,
+                        defaults       : {width: 210},
+                        bodyStyle  : 'padding:5px 5px 0',
+                        items :[ media_grid, 
+                                 {xtype: 'button', id: 'reload_media',
+                                  text: 'Compute with directories',
+                                  tooltip: 'Can take long time...',
+                                  handler:reload_media_store}]
+                    }],
+                }, {
+                    xtype   :   'panel',
+                    title   :   'Advanced',
+                    items   :  [{
+                        xtype          : 'fieldset',
+                        title          : 'File relocation',
+                        autoHeight     : true,
+                        defaults       : {width: 210},
+                        bodyStyle      : 'padding:5px 5px 0',
+                        items :[ usefilerelocation_bp, stripprefix_text, 
+                                 addsuffix_text, addprefix_text,
+                                 useregexp_bp, rwhere_text ]
+                    },{
+                        xtype          : 'fieldset',
+                        title          : 'Other options',
+                        autoHeight     : true,
+                        defaults       : {width: 210},
+                        bodyStyle      : 'padding:5px 5px 0',
+                        defaultType    : 'textfield',
+                        items :[{
+                            name: 'when_text',
+                            fieldLabel: 'When',
+                            disabled: true,
+                            tooltip: 'YYY-MM-DD HH:MM'
+                        }, {
+                            name: 'prio_text',
+                            fieldLabel: 'Priority',
+                            disabled: true,
+                            tooltip: '1-100'
+                        }]
+                    }]
+                }]
+            }],
             
             buttons: [{
                 text: 'Run',
