@@ -590,7 +590,7 @@ const char *sql_jobids_of_pool_uncopied_jobs =
    " AND Job.Type = 'B' AND Job.JobStatus = 'T'"
    " AND Job.JobId NOT IN"
    " (SELECT PriorJobId FROM Job WHERE"
-   " Type = 'B' AND Job.JobStatus = 'T'"
+   " Type IN ('B','C') AND Job.JobStatus = 'T'"
    " AND PriorJobId != 0)"
    " ORDER by Job.StartTime";
 
