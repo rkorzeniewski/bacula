@@ -133,8 +133,6 @@ int purgecmd(UAContext *ua, const char *cmd)
       case 1:                         /* Volume */
          if (select_media_dbr(ua, &mr)) {
             purge_jobs_from_volume(ua, &mr, /*force*/true);
-            
-purge_jobs_from_volume(ua, &mr);
          }
          return 1;
       }
