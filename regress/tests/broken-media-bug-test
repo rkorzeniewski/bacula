@@ -33,10 +33,11 @@ dd if=/dev/urandom of="$hugefile" bs=1M count="$hugefilesize"
 echo "Done"
 
 cat >tmp/bconcmds <<END_OF_DATA
-setdebug level=150  storage=File
-setdebug level=150  Director
+@out /dev/null
 messages
 @$out tmp/log1.out
+setdebug level=150  storage=File
+setdebug level=150  Director
 label storage=File volume=TestVolume0001
 label storage=File volume=TestVolume0002
 run job=First yes
