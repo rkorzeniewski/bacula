@@ -499,10 +499,10 @@ no_match:
       return match_all(bsr->next, rec, volrec, sessrec, bsr->done && done, jcr);
    }
    if (bsr->done && done) {
-      Dmsg0(050, "Leave match all -1\n");
+      Dmsg0(dbglevel, "Leave match all -1\n");
       return -1;
    }
-   Dmsg0(050, "Leave match all 0\n");
+   Dmsg0(dbglevel, "Leave match all 0\n");
    return 0;
 }
 
@@ -512,7 +512,7 @@ static int match_volume(BSR *bsr, BSR_VOLUME *volume, VOLUME_LABEL *volrec, bool
       return 0;                       /* Volume must match */
    }
    if (strcmp(volume->VolumeName, volrec->VolumeName) == 0) {
-      Dmsg1(050, "match_volume=%s\n", volrec->VolumeName);
+      Dmsg1(dbglevel, "match_volume=%s\n", volrec->VolumeName);
       return 1;
    }
    if (volume->next) {
