@@ -303,7 +303,7 @@ static bool despool_data(DCR *dcr, bool commit)
    }
 
    if (!dir_create_jobmedia_record(dcr)) {
-      Jmsg(jcr, M_FATAL, 0, _("Could not create JobMedia record for Volume=\"%s\" Job=%s\n"),
+      Jmsg2(jcr, M_FATAL, 0, _("Could not create JobMedia record for Volume=\"%s\" Job=%s\n"),
          dcr->VolCatInfo.VolCatName, jcr->Job);
    }
    /* Set new file/block parameters for current dcr */

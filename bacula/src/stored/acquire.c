@@ -452,7 +452,7 @@ bool release_device(DCR *dcr)
          Dmsg2(200, "dir_create_jobmedia. Release vol=%s dev=%s\n", 
                dev->VolCatInfo.VolCatName, dev->print_name());
          if (!dev->at_weot() && !dir_create_jobmedia_record(dcr)) {
-            Jmsg(jcr, M_FATAL, 0, _("Could not create JobMedia record for Volume=\"%s\" Job=%s\n"),
+            Jmsg2(jcr, M_FATAL, 0, _("Could not create JobMedia record for Volume=\"%s\" Job=%s\n"),
                dcr->VolCatInfo.VolCatName, jcr->Job);
          }
          /* If no more writers, and no errors, and wrote something, write an EOF */
