@@ -635,13 +635,20 @@ static int match_voladdr(BSR *bsr, BSR_VOLADDR *voladdr, DEV_RECORD *rec, bool d
    if (!voladdr) {
       return 1;                       /* no specification matches all */
    }
+
    /* For the moment, these tests work only with disk. */
    if (rec->state & REC_ISTAPE) {
-      return 1;                       /* All File records OK for this match */
+      uint32_t sFile = (voladdr->saddr)>>32;
+      uint32_t eFile = (voladdr->eaddr)>>32;
+      if (sFile <= rec->File && eFile >= rec->File) {
+         return 1;
+      }
    }
+
    uint64_t addr = get_record_address(rec);
-//  Dmsg3(dbglevel, "match_voladdr: saddr=%llu eaddr=%llu recaddr=%llu\n",
-//             volblock->saddr, volblock->eaddr, addr);
+   Dmsg6(dbglevel, "match_voladdr: saddr=%llu eaddr=%llu recaddr=%llu sfile=%u efile=%u recfile=%u\n",
+         voladdr->saddr, voladdr->eaddr, addr, voladdr->saddr>>32, voladdr->eaddr>>32, addr>>32);
+
    if (voladdr->saddr <= addr && voladdr->eaddr >= addr) {
       return 1;
    }
