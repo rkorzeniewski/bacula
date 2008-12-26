@@ -453,12 +453,9 @@ bool read_record_from_block(DCR *dcr, DEV_BLOCK *block, DEV_RECORD *rec)
    rec->state = 0;
    if (block->dev->is_tape()) {
       rec->state |= REC_ISTAPE;
-      rec->Block = block->BlockNumber;
-      rec->File = ((DEVICE *)block->dev)->file;
-   } else {
-      rec->Block = ((DEVICE *)block->dev)->EndBlock;
-      rec->File = ((DEVICE *)block->dev)->EndFile;
-   }   
+   }
+   rec->Block = ((DEVICE *)block->dev)->EndBlock;
+   rec->File = ((DEVICE *)block->dev)->EndFile;
 
    /*
     * Get the header. There is always a full header,

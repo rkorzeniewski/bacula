@@ -72,6 +72,8 @@ Professional Needs:
 
 Priority:
 ================
+- Why no error message if restore has no permission on the where
+  directory?
 - Possibly allow manual "purge" to purge a Volume that has not
   yet been written (even if FirstWritten time is zero) see ua_purge.c
   is_volume_purged().
