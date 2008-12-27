@@ -636,6 +636,8 @@ static int match_voladdr(BSR *bsr, BSR_VOLADDR *voladdr, DEV_RECORD *rec, bool d
       return 1;                       /* no specification matches all */
    }
 
+#ifdef xxx
+
    /* For the moment, these tests work only with disk. */
    if (rec->state & REC_ISTAPE) {
       uint32_t sFile = (voladdr->saddr)>>32;
@@ -644,6 +646,8 @@ static int match_voladdr(BSR *bsr, BSR_VOLADDR *voladdr, DEV_RECORD *rec, bool d
          return 1;
       }
    }
+
+#endif
 
    uint64_t addr = get_record_address(rec);
    Dmsg6(dbglevel, "match_voladdr: saddr=%llu eaddr=%llu recaddr=%llu sfile=%u efile=%u recfile=%u\n",
