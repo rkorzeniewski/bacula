@@ -118,7 +118,7 @@ void catalog_request(JCR *jcr, BSOCK *bs)
    memset(&mr, 0, sizeof(mr));
    memset(&sdmr, 0, sizeof(sdmr));
    memset(&jm, 0, sizeof(jm));
-   Dsm_check(1);      
+   Dsm_check(100);      
 
    /*
     * Request to find next appendable Volume for this Job
@@ -377,7 +377,6 @@ void catalog_update(JCR *jcr, BSOCK *bs)
    ATTR_DBR *ar = NULL;
    POOLMEM *omsg;
 
-   Dsm_check(1);
    if (job_canceled(jcr) || !jcr->pool->catalog_files) {
       goto bail_out;                  /* user disabled cataloging */
    }
