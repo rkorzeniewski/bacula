@@ -25,17 +25,17 @@ VERSION=2.4.1
 RELEASE=1
 
 # build platform for spec
-# set to one of rh7,rh8,rh9,fc1,fc3,fc4,fc5,fc6,fc7,fc8,fc9,wb3,rhel3,rhel4,rhel5,centos3,centos4,centos5,sl3, sl4,sl5,su9,su10,su102,su103,su110,mdk,mdv
-PLATFORM=su110
+# set to one of rh7,rh8,rh9,fc1,fc3,fc4,fc5,fc6,fc7,fc8,fc9,wb3,rhel3,rhel4,rhel5,centos3,centos4,centos5,sl3, sl4,sl5,su9,su10,su102,su103,su110,su111,mdk,mdv
+PLATFORM=su111
 
 # platform designator for file names
 # for RedHat/Fedora set to one of rh7,rh8,rh9,fc1,fc3,fc4,fc5,fc6,fc7,fc8,fc9 OR
 # for RHEL3/clones wb3, rhel3, sl3 & centos3 set to el3 OR
 # for RHEL4/clones rhel4, sl4 & centos4 set to el4 OR
 # for RHEL5/clones rhel5, sl5 & centos5 set to el5 OR
-# for SuSE set to su90, su91, su92, su100 or su101 or su102 or su103 or su110 OR
+# for SuSE set to su90, su91, su92, su100 or su101 or su102 or su103 or su110 or su111 OR
 # for Mandrake set to 101mdk or 20060mdk
-FILENAME=su110
+FILENAME=su111
 
 # MySQL version
 # set to empty (for MySQL 3), 4 or 5
@@ -192,3 +192,4 @@ ls
 # 23 May 2008 add fc9
 # 28 Jun 2008 add su110
 # 08 Nov 2008 add use of pkgconfig to obtain QT4 paths
+# 31 Dec 2008 add su111
