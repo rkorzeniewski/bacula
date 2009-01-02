@@ -225,7 +225,7 @@ p, li { white-space: pre-wrap; }
     <iconset resource="../main.qrc" >:/images/utilities-terminal.png</iconset>
    </property>
    <property name="text" >
-    <string>Cancel Running Job</string>
+    <string>Cancel Selected Running Jobs</string>
    </property>
   </action>
   <action name="actionDisableScheduledJob" >
