@@ -310,9 +310,6 @@ void DirStat::createConnections()
                    SLOT(consoleCancelJob()));
    connect(actionDisableScheduledJob, SIGNAL(triggered()), this,
                    SLOT(consoleDisableJob()));
-   connect(runningTable, SIGNAL(
-           currentItemChanged(QTableWidgetItem *, QTableWidgetItem *)),
-           this, SLOT(runningTableItemChanged(QTableWidgetItem *, QTableWidgetItem *)));
 
    scheduledTable->setContextMenuPolicy(Qt::ActionsContextMenu);
    scheduledTable->addAction(actionRefresh);
@@ -353,7 +350,21 @@ void DirStat::readSettings()
  */
 void DirStat::consoleCancelJob()
 {
-   foreach( QString job, m_selectedJobsList )
+   QList<int> rowList;
+   QList<QTableWidgetItem *> sitems = runningTable->selectedItems();
+   foreach (QTableWidgetItem *sitem, sitems) {
+      int row = sitem->row();
+      if (!rowList.contains(row)) {
+         rowList.append(row);
+      }
+   }
+
+   QStringList selectedJobsList;
+   foreach(int row, rowList) {
+      QTableWidgetItem * sitem = runningTable->item(row, 0);
+      selectedJobsList.append(sitem->text());
+   }
+   foreach( QString job, selectedJobsList )
    {
       QString cmd("cancel jobid=");
       cmd += job;
@@ -373,30 +384,5 @@ void DirStat::consoleDisableJob()
       QString cmd("disable job=\"");
       cmd += text + '"';
       consoleCommand(cmd);
-   }
-}
-/*
- * Function to fill m_selectedJobsList with selected values
- */
-void DirStat::runningTableItemChanged(QTableWidgetItem * /*currentItem*/, QTableWidgetItem * /*previousItem*/)
-{
-   QList<int> rowList;
-   QList<QTableWidgetItem *> sitems = runningTable->selectedItems();
-   foreach (QTableWidgetItem *sitem, sitems) {
-      int row = sitem->row();
-      if (!rowList.contains(row)) {
-         rowList.append(row);
-      }
-   }
-
-   m_selectedJobsList.clear();
-   foreach(int row, rowList) {
-      QTableWidgetItem * sitem = runningTable->item(row, 0);
-      m_selectedJobsList.append(sitem->text());
-   }
-   if (m_selectedJobsList.count() > 1) {
-      actionCancelRunning->setText(tr("Cancel list of %1 Jobs").arg(m_selectedJobsList.count()));
-   } else {
-      actionCancelRunning->setText(tr("Cancel Single Job"));
    }
 }
