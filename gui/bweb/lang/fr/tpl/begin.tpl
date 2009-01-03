@@ -38,7 +38,7 @@ if ('Accueil' == ('_' + '_Main_' + '_')) {
      <li><a href="bweb.pl?action=job">Historique</a> </li>
      <li><a href="bweb.pl?action=running">Jobs en cours</a>
      <li><a href="bweb.pl?action=next_job">Prochains jobs</a> </li>
-     <li><a href="bweb.pl?action=restore" title="Lancer brestore">Restauration</a> </li>
+<!-- <li><a href="bweb.pl?action=restore" title="Lancer brestore">Restauration</a> </li> -->
      <li><a href="/bweb/bresto.html" title="Try bresto">Web Restore</a> </li>
    </ul>
  </li>

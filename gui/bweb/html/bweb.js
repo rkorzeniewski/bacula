@@ -309,7 +309,7 @@ function percent_usage(value, parent)
    return parent;
 }
 
-function bweb_get_job_img(status, errors)
+function bweb_get_job_img(status, errors, type)
 {
   var ret;
 
@@ -318,9 +318,12 @@ function bweb_get_job_img(status, errors)
         ret = "W.png";
 
      } else {
-        ret = "T.png";
+        if (type == 'B' || type == 'R') { // Backup or Restore
+           ret = "T.png";
+        } else {
+           ret = "AT.png";      // Admin, migration, copy etc...
+        }
      }
-
   } else {
      ret = status + ".png";
   }

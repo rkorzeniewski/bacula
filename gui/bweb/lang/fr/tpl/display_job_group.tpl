@@ -38,7 +38,7 @@ if (<TMPL_VAR nbjoberr>) {
   jobstatus='T';
 }
 
-img.src=bweb_get_job_img(jobstatus, <TMPL_VAR joberrors>);
+img.src=bweb_get_job_img(jobstatus, <TMPL_VAR joberrors>, "B");
 img.title=jobstatus[jobstatus]; 
 
 a.appendChild(img);

@@ -32,7 +32,9 @@ a = document.createElement('A');
 a.href='?action=job_zoom;jobid=<TMPL_VAR JobId>';
 
 img = document.createElement("IMG");
-img.src=bweb_get_job_img("<TMPL_VAR JobStatus>", <TMPL_VAR joberrors>);
+img.src=bweb_get_job_img("<TMPL_VAR JobStatus>", 
+                         <TMPL_VAR joberrors>,
+                         "<TMPL_VAR jobtype>");
 img.title=jobstatus['<TMPL_VAR JobStatus>']; 
 
 a.appendChild(img);

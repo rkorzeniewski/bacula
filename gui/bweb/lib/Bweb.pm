@@ -6,7 +6,7 @@ use strict;
    Bweb - A Bacula web interface
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2009 Free Software Foundation Europe e.V.
 
    The main author of Bweb is Eric Bollengier.
    The main author of Bacula is Kern Sibbald, with contributions from
@@ -2426,6 +2426,7 @@ SELECT  Job.JobId       AS jobid,
         JobFiles        AS jobfiles, 
         JobBytes        AS jobbytes,
 	JobStatus       AS jobstatus,
+        Type            AS jobtype,
      $self->{sql}->{SEC_TO_TIME}(  $self->{sql}->{UNIX_TIMESTAMP}(EndTime)  
                                  - $self->{sql}->{UNIX_TIMESTAMP}(StartTime)) 
                         AS duration,
@@ -2477,6 +2478,7 @@ SELECT DISTINCT Job.JobId       AS jobid,
                 JobBytes        AS jobbytes,
 		JobStatus       AS jobstatus,
                 JobErrors       AS joberrors,
+                Type            AS jobtype,
                 $self->{sql}->{SEC_TO_TIME}(  $self->{sql}->{UNIX_TIMESTAMP}(EndTime)  
                                             - $self->{sql}->{UNIX_TIMESTAMP}(StartTime)) AS duration
 
@@ -2538,7 +2540,7 @@ FROM client_group $filter LEFT JOIN (
     FROM Job JOIN client_group_member ON (Job.ClientId = client_group_member.ClientId)
              JOIN client_group USING (client_group_id)
     
-    WHERE JobStatus = 'T'
+    WHERE Type IN ('B', 'R') AND JobStatus = 'T'
     $where
     $limit
 ) AS jobok USING (client_group_name) LEFT JOIN
@@ -2550,7 +2552,7 @@ FROM client_group $filter LEFT JOIN (
     FROM Job JOIN client_group_member ON (Job.ClientId = client_group_member.ClientId)
              JOIN client_group USING (client_group_id)
     
-    WHERE JobStatus IN ('f','E', 'A')
+    WHERE Type IN ('B', 'R') AND JobStatus IN ('f','E', 'A')
     $where
     $limit
 ) AS joberr USING (client_group_name)

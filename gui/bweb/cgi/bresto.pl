@@ -563,7 +563,7 @@ sub get_all_file_versions
     }
 
     # We have the list of all versions of this file.
-    # We'll sort it by mtime desc, size, md5, inchanger desc
+    # We'll sort it by mtime desc, size, md5, inchanger desc, FileId
     # the rest of the algorithm will be simpler
     # ('FILE:',filename,jobid,fileindex,mtime,size,inchanger,md5,volname)
     @versions = sort { $b->[4] <=> $a->[4]
@@ -591,7 +591,7 @@ sub get_all_file_versions
 	    # we never met this one before...
 	    $allready_seen_by_md5{$ref->[7] .'-'. $ref->[5]}=1;
 	}
-	# Even if it has a md5, we should also work with mtimes
+	# Even if it has a md5, we should also work with mtimes
         # We allready have a (better) version
 	next if ( (not $see_all)
 	          and $allready_seen_by_mtime{$ref->[4] .'-'. $ref->[5]});
@@ -813,6 +813,7 @@ if (!scalar(@jobid) and $args->{qdate} and $args->{client}) {
     @jobid = $bvfs->set_job_ids_for_date($args->{client}, $args->{qdate});
 }
 $bvfs->set_curjobids(@jobid);
+print STDERR "date=$args->{qdate} currentjobids = ", join(",", @jobid), "\n";
 $bvfs->set_limits($args->{limit}, $args->{offset});
 
 if (!scalar(@jobid)) {

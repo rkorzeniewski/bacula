@@ -97,7 +97,7 @@ function add_client(name, infos)
 //	    a=document.createElement("A"); // create a link to action=job
 //	    a.setAttribute('href', "?action=job;client_group=" + name);
             img=document.createElement("IMG");
-            img.setAttribute("src", bweb_get_job_img(infos[j][1],infos[j][2]));
+            img.setAttribute("src", bweb_get_job_img(infos[j][1],infos[j][2], 'B'));
             img.setAttribute("title", infos[j][3]);
 //	    a.appendChild(img);
             td.appendChild(img);

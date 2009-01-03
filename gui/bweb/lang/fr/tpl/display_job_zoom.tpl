@@ -96,7 +96,9 @@ var header = new Array("JobId",
 var data = new Array();
 
 img = document.createElement("IMG");
-img.src=bweb_get_job_img("<TMPL_VAR JobStatus>", <TMPL_VAR joberrors>);
+img.src=bweb_get_job_img("<TMPL_VAR JobStatus>", 
+                         <TMPL_VAR joberrors>,
+                         '<TMPL_VAR jobtype>');
 img.title=jobstatus['<TMPL_VAR JobStatus>']; 
 
 data.push( new Array(
