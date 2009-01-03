@@ -106,6 +106,10 @@
       <option id='jobtype_any' value='all type'>__Any__</option>
       <option id='jobtype_B' value='B'>__Backup__</option>
       <option id='jobtype_R' value='R'>__Restore__</option>
+      <option id='jobtype_m' value='m'>__Migration__</option>
+      <option id='jobtype_M' value='M'>__Migrated job__</option>
+      <option id='jobtype_C' value='C'>__Job copy__</option>
+      <option id='jobtype_c' value='c'>__Copy__</option>
       <option id='jobtype_D' value='D'>__Admin__</option>
     </select>
   </td>

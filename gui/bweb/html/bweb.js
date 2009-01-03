@@ -320,6 +320,10 @@ function bweb_get_job_img(status, errors, type)
      } else {
         if (type == 'B' || type == 'R') { // Backup or Restore
            ret = "T.png";
+
+        } else if (type == 'C') {
+           ret = "CT.png";
+
         } else {
            ret = "AT.png";      // Admin, migration, copy etc...
         }
