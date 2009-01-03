@@ -1,7 +1,7 @@
 Index: src/dird/catreq.c
 ===================================================================
---- src/dird/catreq.c	(revision 8270)
-+++ src/dird/catreq.c	(working copy)
+--- src/dird/catreq.c	(révision 8270)
++++ src/dird/catreq.c	(copie de travail)
 @@ -356,14 +356,7 @@
     return;
  }
@@ -177,8 +177,8 @@ Index: src/dird/catreq.c
 +}
 Index: src/dird/getmsg.c
 ===================================================================
---- src/dird/getmsg.c	(revision 8270)
-+++ src/dird/getmsg.c	(working copy)
+--- src/dird/getmsg.c	(révision 8270)
++++ src/dird/getmsg.c	(copie de travail)
 @@ -135,7 +135,7 @@
  
     for (;;) {
@@ -213,8 +213,8 @@ Index: src/dird/getmsg.c
           mount_request(jcr, bs, msg);
 Index: src/dird/protos.h
 ===================================================================
---- src/dird/protos.h	(revision 8270)
-+++ src/dird/protos.h	(working copy)
+--- src/dird/protos.h	(révision 8270)
++++ src/dird/protos.h	(copie de travail)
 @@ -80,6 +80,7 @@
  /* catreq.c */
  extern void catalog_request(JCR *jcr, BSOCK *bs);
@@ -225,8 +225,8 @@ Index: src/dird/protos.h
  extern const char *level_to_str(int level);
 Index: src/stored/spool.c
 ===================================================================
---- src/stored/spool.c	(revision 8270)
-+++ src/stored/spool.c	(working copy)
+--- src/stored/spool.c	(révision 8270)
++++ src/stored/spool.c	(copie de travail)
 @@ -622,13 +622,40 @@
     V(mutex);
  }
@@ -237,7 +237,7 @@ Index: src/stored/spool.c
 +      jcr->Job, fd);
 +}
 +
-+static bool despool_attr_spool_file(JCR *jcr)
++static bool blast_attr_spool_file(JCR *jcr, boffset_t size)
 +{
 +   /* send full spool file name */
 +   POOLMEM *name  = get_pool_memory(PM_MESSAGE);
@@ -253,7 +253,7 @@ Index: src/stored/spool.c
 +   }
 +   
 +   if (!bstrcmp(jcr->dir_bsock->msg, "1000 OK BlastAttr\n")) {
-+      jcr->dir_bsock->despool(update_attr_spool_size, size);
++      return false;
 +   }
 +   return true;
 +}
@@ -269,19 +269,22 @@ Index: src/stored/spool.c
           ( utime_t)time(NULL)));
     if (are_attributes_spooled(jcr)) {
        if (fseeko(jcr->dir_bsock->m_spool_fd, 0, SEEK_END) != 0) {
-@@ -654,7 +681,10 @@
+@@ -654,7 +681,13 @@
        dir_send_job_status(jcr);
        Jmsg(jcr, M_INFO, 0, _("Sending spooled attrs to the Director. Despooling %s bytes ...\n"),
              edit_uint64_with_commas(size, ec1));
 -      jcr->dir_bsock->despool(update_attr_spool_size, size);
 +
-+      if (!despool_attr_spool_file(jcr)) {
-+         goto bail_out;
++      if (!blast_attr_spool_file(jcr, size)) {
++         /* Can't read spool file from director side,
++          * send content over network.
++          */
++         jcr->dir_bsock->despool(update_attr_spool_size, size);
 +      }
        return close_attr_spool_file(jcr, jcr->dir_bsock);
     }
     return true;
-@@ -664,13 +694,6 @@
+@@ -664,13 +697,6 @@
     return false;
  }
  
