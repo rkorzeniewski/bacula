@@ -15,7 +15,7 @@
        <button type="submit" class="bp" name='action' value='groups' title='View client groups'> <img src='/bweb/zoom.png' alt=''>View groups</button>
        <button type="submit" class="bp" name='action' value='client_status' title='Statistiques'> <img src='/bweb/zoom.png' alt=''>Statut </button>
        <button type="submit" class="bp" name='action' value='client_stats' title='Statistiques'> <img src='/bweb/chart.png' alt=''>Stats </button>
-       <button type="submit" class="bp" name='action' value='client_edit' title='Client groups'> <img src='/bweb/edit.png' alt=''>Modifier </button>
+       <button type="submit" class="bp" name='action' value='client_edit' title='Client groups'> <img src='/bweb/edit.png' alt=''>Edit groups </button>
         </div>
 
 </form>

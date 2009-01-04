@@ -20,19 +20,19 @@
 var header = new Array("__Group Name__", "__Description__", "__Selection__");
 
 var data = new Array();
-var radiobox ;
+var chkbox ;
 
 <TMPL_LOOP client_group>
-radiobox = document.createElement('INPUT');
-radiobox.type  = 'radio';
-radiobox.name = 'client_group';
-radiobox.value = '<TMPL_VAR client_group_name>';
-radiobox.checked = <TMPL_IF here>1<TMPL_ELSE>0</TMPL_IF>;
+chkbox = document.createElement('INPUT');
+chkbox.type  = 'checkbox';
+chkbox.name = 'client_group';
+chkbox.value = '<TMPL_VAR client_group_name>';
+chkbox.checked = <TMPL_IF here>1<TMPL_ELSE>0</TMPL_IF>;
 
 data.push( 
   new Array( "<TMPL_VAR client_group_name>", 
 	     "<TMPL_VAR comment>",
-             radiobox
+             chkbox
               )
 ) ; 
 </TMPL_LOOP>

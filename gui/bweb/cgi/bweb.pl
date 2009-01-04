@@ -373,7 +373,7 @@ if ($action eq 'begin') {		# main display
 } elsif ($action eq 'client_stats') {
 
     foreach my $client (CGI::param('client')) {
-	if ($client =~ m/$client_re/) {
+	if ($client =~ $client_re) {
 	    $bweb->display_client_stats(clientname => $1,
 					age => $arg->{age});
 	}
@@ -422,7 +422,7 @@ if ($action eq 'begin') {		# main display
     $bweb->can_do('r_client_status');
     my $b;
     foreach my $client (CGI::param('client')) {
-	if ($client =~ m/$client_re/) {
+	if ($client =~ $client_re) {
 	    $client = $1;
 	    $b = new Bconsole(pref => $conf) 
 		unless ($b) ;
