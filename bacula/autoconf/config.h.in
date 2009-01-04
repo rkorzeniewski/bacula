@@ -2,9 +2,6 @@
 /* ------------------------------------------------------------------------- */
 /* --                     CONFIGURE SPECIFIED FEATURES                    -- */
 /* ------------------------------------------------------------------------- */
-
-/* Define if you want to use the lock manager */
-#undef _USE_LOCKMGR
    
 /* Define if you want to use MySQL as Catalog database */
 #undef USE_MYSQL_DB
@@ -155,30 +152,8 @@
 /* Define if you have zlib */
 #undef HAVE_LIBZ
 
-/* Defines if your system have the sys/acl.h header file */
-#undef HAVE_SYS_ACL_H
-
 /* Define if you have libacl */
 #undef HAVE_ACL
-
-/* Define if you have extended acls */
-#undef HAVE_EXTENDED_ACL
-
-/* Defines if your system have the sys/xattr.h header file */
-#undef HAVE_SYS_XATTR_H
-
-/* Define if you have extended attributes */
-#undef HAVE_XATTR
-
-/* Define when you have extended attributes functions starting with l (like lstat) */
-#undef HAVE_LLISTXATTR
-#undef HAVE_LGETXATTR
-#undef HAVE_LSETXATTR
-
-/* Define when you have extended attributes functions not starting with l (like stat) */
-#undef HAVE_LISTXATTR
-#undef HAVE_GETXATTR
-#undef HAVE_SETXATTR
 
 /* General libs */
 #undef LIBS
@@ -282,6 +257,9 @@
    language is requested. */
 #undef ENABLE_NLS
 
+/* Normal attribute support */
+#undef HAVE_ACL
+
 /* Define to 1 if you have `alloca', as a function or macro. */
 #undef HAVE_ALLOCA
 
@@ -368,6 +346,9 @@
 /* Define to 1 if you don't have `vprintf' but do have `_doprnt.' */
 #undef HAVE_DOPRNT
 
+/* Extended attribute support */
+#undef HAVE_EXTENDED_ACL
+
 /* Define to 1 if you have the `fchdir' function. */
 #undef HAVE_FCHDIR
 
@@ -428,6 +409,9 @@
 /* Define to 1 if you have the `getuid' function. */
 #undef HAVE_GETUID
 
+/* Define to 1 if you have the `getxattr' function. */
+#undef HAVE_GETXATTR
+
 /* Define to 1 if you have the <grp.h> header file. */
 #undef HAVE_GRP_H
 
@@ -465,6 +449,9 @@
 /* Define if your <locale.h> file defines LC_MESSAGES. */
 #undef HAVE_LC_MESSAGES
 
+/* LGETXATTR support */
+#undef HAVE_LGETXATTR
+
 /* Define to 1 if you have the <libc.h> header file. */
 #undef HAVE_LIBC_H
 
@@ -495,6 +482,12 @@
 /* Define to 1 if you have the <limits.h> header file. */
 #undef HAVE_LIMITS_H
 
+/* Define to 1 if you have the `listxattr' function. */
+#undef HAVE_LISTXATTR
+
+/* LLISTXATTR support */
+#undef HAVE_LLISTXATTR
+
 /* Define to 1 if you have the <locale.h> header file. */
 #undef HAVE_LOCALE_H
 
@@ -506,6 +499,9 @@
 
 /* Define if you have the 'long long' type. */
 #undef HAVE_LONG_LONG
+
+/* LSETXATTR support */
+#undef HAVE_LSETXATTR
 
 /* Define to 1 if you have the `lstat' function. */
 #undef HAVE_LSTAT
@@ -594,6 +590,9 @@
 /* Define to 1 if you have the `setsid' function. */
 #undef HAVE_SETSID
 
+/* Define to 1 if you have the `setxattr' function. */
+#undef HAVE_SETXATTR
+
 /* Define if the SHA-2 family of digest algorithms is available */
 #undef HAVE_SHA2
 
@@ -679,6 +678,9 @@
    `HAVE_STRUCT_STAT_ST_RDEV' instead. */
 #undef HAVE_ST_RDEV
 
+/* Defines if your system have the sys/acl.h header file */
+#undef HAVE_SYS_ACL_H
+
 /* Define to 1 if you have the <sys/bitypes.h> header file. */
 #undef HAVE_SYS_BITYPES_H
 
@@ -728,6 +730,9 @@
 
 /* Define to 1 if you have <sys/wait.h> that is POSIX.1 compatible. */
 #undef HAVE_SYS_WAIT_H
+
+/* Defines if your system have the sys/xattr.h header file */
+#undef HAVE_SYS_XATTR_H
 
 /* Define to 1 if you have the `tcgetattr' function. */
 #undef HAVE_TCGETATTR
@@ -793,6 +798,9 @@
 
 /* Define if you have the 'wint_t' type. */
 #undef HAVE_WINT_T
+
+/* XATTR support */
+#undef HAVE_XATTR
 
 /* Define to 1 if you have the <zlib.h> header file. */
 #undef HAVE_ZLIB_H
@@ -910,6 +918,9 @@
 
 /* Define for large files, on AIX-style hosts. */
 #undef _LARGE_FILES
+
+/* Set if you want Lock Manager enabled */
+#undef _USE_LOCKMGR
 
 /* Define to empty if `const' does not conform to ANSI C. */
 #undef const
