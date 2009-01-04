@@ -1,4 +1,4 @@
-c+ECHO_CMD=@
+ECHO_CMD=@
 
 DIRS=	dll \
 	cats \
@@ -12,7 +12,7 @@ DIRS=	dll \
 	scripts \
 	installer
 
-.PHONY: $(DIRS) clean all
+.PHONY: $(DIRS) clean all Makefile.inc
 
 all: Makefile.inc $(DIRS)
 
@@ -28,7 +28,7 @@ $(DIRS):
 	   fi ; \
 	fi
 
-Makefile.inc: Makefile.inc.in Makefile
+Makefile.inc:
 	@echo Creating $@
 	$(ECHO_CMD)TOPDIR=`(cd ../../..;pwd)`; \
 	if test -e ../../../cross-tools/mingw32/bin/mingw32-gcc; then \
@@ -44,8 +44,8 @@ Makefile.inc: Makefile.inc.in Makefile
 		echo "You must run build-win32-cross-tools and build-dependencies first.\n"; \
 		exit 1; \
 	fi ; \
-	$(ECHO_CMD)BUILDDIR=`(pwd)`; \
-	$(ECHO_CMD)MAINDIR=`(cd ../..;pwd)`; \
+	BUILDDIR=`(pwd)`; \
+	MAINDIR=`(cd ../..;pwd)`; \
 	sed \
 		-e "s^@WIN32BUILDDIR@^$${BUILDDIR}^" \
 		-e "s^@WIN32MAINDIR@^$${MAINDIR}^" \
