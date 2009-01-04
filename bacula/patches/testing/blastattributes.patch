@@ -2,23 +2,25 @@ Index: src/dird/catreq.c
 ===================================================================
 --- src/dird/catreq.c	(révision 8270)
 +++ src/dird/catreq.c	(copie de travail)
-@@ -356,14 +356,7 @@
-    return;
+@@ -357,13 +357,11 @@
  }
  
--/*
+ /*
 - * Update File Attributes in the catalog with data
 - *  sent by the Storage daemon.  Note, we receive the whole
 - *  attribute record, but we select out only the stat packet,
 - *  VolSessionId, VolSessionTime, FileIndex, file type, and 
 - *  file name to store in the catalog.
-- */
++ * Note, we receive the whole attribute record, but we select out only the stat
++ * packet, VolSessionId, VolSessionTime, FileIndex, file type, and file name to
++ * store in the catalog.
+  */
 -void catalog_update(JCR *jcr, BSOCK *bs)
-+static void insert_attribute(JCR *jcr, char *msg, int32_t msglen)
++static void update_attribute(JCR *jcr, char *msg, int32_t msglen)
  {
     unser_declare;
     uint32_t VolSessionId, VolSessionTime;
-@@ -375,20 +368,7 @@
+@@ -375,20 +373,7 @@
     int len;
     char *fname, *attr;
     ATTR_DBR *ar = NULL;
@@ -39,7 +41,7 @@ Index: src/dird/catreq.c
     /* Start transaction allocates jcr->attr and jcr->ar if needed */
     db_start_transaction(jcr, jcr->db);     /* start transaction if not already open */
     ar = jcr->ar;      
-@@ -397,7 +377,7 @@
+@@ -397,7 +382,7 @@
      *  there may be a cached attr so we cannot yet write into
      *  jcr->attr or jcr->ar  
      */
@@ -48,7 +50,7 @@ Index: src/dird/catreq.c
     skip_nonspaces(&p);                /* UpdCat */
     skip_spaces(&p);
     skip_nonspaces(&p);                /* Job=nnn */
-@@ -412,7 +392,7 @@
+@@ -412,7 +397,7 @@
     unser_uint32(data_len);
     p += unser_length(p);
  
@@ -57,7 +59,7 @@ Index: src/dird/catreq.c
     Dmsg5(400, "UpdCat VolSessId=%d VolSessT=%d FI=%d Strm=%d data_len=%d\n",
        VolSessionId, VolSessionTime, FileIndex, Stream, data_len);
  
-@@ -424,9 +404,9 @@
+@@ -424,9 +409,9 @@
           }
        }
        /* Any cached attr is flushed so we can reuse jcr->attr and jcr->ar */
@@ -70,7 +72,7 @@ Index: src/dird/catreq.c
        skip_nonspaces(&p);             /* skip FileIndex */
        skip_spaces(&p);
        filetype = str_to_int32(p);     /* TODO: choose between unserialize and str_to_int32 */
-@@ -510,8 +490,104 @@
+@@ -510,8 +495,110 @@
           }
        }
     }
@@ -78,10 +80,7 @@ Index: src/dird/catreq.c
 +
 +/*
 + * Update File Attributes in the catalog with data
-+ *  sent by the Storage daemon.  Note, we receive the whole
-+ *  attribute record, but we select out only the stat packet,
-+ *  VolSessionId, VolSessionTime, FileIndex, file type, and 
-+ *  file name to store in the catalog.
++ *  sent by the Storage daemon.
 + */
 +void catalog_update(JCR *jcr, BSOCK *bs)
 +{
@@ -100,7 +99,7 @@ Index: src/dird/catreq.c
 +
 +   }
 +
-+   insert_attribute(jcr, bs->msg, bs->msglen);
++   update_attribute(jcr, bs->msg, bs->msglen);
 +
  bail_out:
     if (job_canceled(jcr)) {
@@ -108,6 +107,11 @@ Index: src/dird/catreq.c
     }
  }
 +
++/*
++ * Update File Attributes in the catalog with data read from
++ * the storage daemon spool file. We receive the filename and
++ * we try to read it.
++ */
 +bool despool_attributes_from_file(JCR *jcr, const char *file)
 +{
 +   bool ret=false;
@@ -117,9 +121,13 @@ Index: src/dird/catreq.c
 +   int count = 0;
 +   int32_t msglen;                    /* message length */
 +   POOLMEM *msg = get_pool_memory(PM_MESSAGE);
-+   FILE *spool_fd;
++   FILE *spool_fd=NULL;
 +
 +   Dmsg0(0, "Begin despool_attributes_from_file\n");
++
++   if (job_canceled(jcr) || !jcr->pool->catalog_files || !jcr->db) {
++      goto bail_out;                  /* user disabled cataloging */
++   }
 +
 +   spool_fd = fopen(file, "rb");
 +   if (!spool_fd) {
@@ -152,7 +160,7 @@ Index: src/dird/catreq.c
 +            last = size;
 +         }
 +      }
-+      insert_attribute(jcr, msg, msglen);
++      update_attribute(jcr, msg, msglen);
 +   }
 +   if (ferror(spool_fd)) {
 +      berrno be;
