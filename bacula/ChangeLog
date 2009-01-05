@@ -2,6 +2,24 @@
 
 General:
 
+Beta Release 2.5.28-b1
+02Jan09
+kes  Fix annoying compiler warnings in console/conio.c
+kes  Fix win32 build (depended whether or not ./configure was run).
+28Dec08
+kes  Apply fix suggested by Bruno Friedmann to configure.in to
+     find python2.5
+26Dec08
+kes  Turn on Eric's match_bsr tape block checking code.
+kes  Correct values used for tape block numbers in record.c.
+23Dec08
+ebl  Fix a problem with PoolUncopiedJobs option which was broken
+     by the new JT_JOB_COPY type.
+kes  Fix bug #1206 -- Error: sql_update.c:194, which was probably
+     caused by the user modifying the Bacula DB schema.
+kes  Remove rogue line of C code.
+kes  Fix bug #1208
+
 Beta Release Version 2.5.26
 20Dec08
 kes  Correct typo in Win32 Makefile editing
