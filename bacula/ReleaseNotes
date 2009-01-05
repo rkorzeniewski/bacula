@@ -1,5 +1,5 @@
 
-       Release Notes for Bacula 2.5.26
+       Release Notes for Bacula 2.5.28
 
   Bacula code: Total files = 522 Total lines = 203,305 (*.h *.c *.in)
 
@@ -16,21 +16,9 @@ to generate the Bacula libraries as shared objects rather than
 being directly linked in as in prior versions.  This means that
 the Bacula shared objects, must either be in a shared object 
 directory known to the loader or they must be in the directory
-that may be specified on the ./configure line using the
---libdir option as:
-
-  ./configure --libdir=/full-path/dir
-
-the default /lib. If --libdir is specified, there should be
-no need to modify your loader configuration provided that
-the shared objects are installed in that directory (Bacula
-does this with the make install command). The shared objects 
-that Bacula references are:
-
-libbaccfg.so
-libbacfind.so
-libbacpy.so
-libbac.so
+where the Bacula binaries are installed.  It is also possible
+to explicitly specify the libraries directory on the ./configure
+line (--libdir=/full-path/dir), but this should not be necessary.
 
 If you have problems with libtool or you wish to use the old 
 way of building static libraries, you can do so by disabling 
@@ -50,3 +38,5 @@ some but not all the new features (we are still working on it):
 http://www.bacula.org/manuals/en/concepts/concepts/New_Features.html
   
 The ChangeLog has more details.
+
+
