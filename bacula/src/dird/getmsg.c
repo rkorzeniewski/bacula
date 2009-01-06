@@ -135,7 +135,7 @@ int bget_dirmsg(BSOCK *bs)
 
    for (;;) {
       n = bs->recv();
-      Dmsg2(300, "bget_dirmsg %d: %s\n", n, bs->msg);
+      Dmsg2(100, "bget_dirmsg %d: %s\n", n, bs->msg);
 
       if (is_bnet_stop(bs)) {
          return n;                    /* error or terminate */
@@ -234,6 +234,22 @@ int bget_dirmsg(BSOCK *bs)
       if (bs->msg[0] == 'U') {        /* SD sending attributes */
          Dmsg2(900, "Catalog upd jcr 0x%x: %s", jcr, bs->msg);
          catalog_update(jcr, bs);
+         continue;
+      }
+      if (bs->msg[0] == 'B') {        /* SD sending file spool attributes */
+         Dmsg2(100, "Blast attributes jcr 0x%x: %s", jcr, bs->msg);
+         char filename[256];
+         if (sscanf(bs->msg, "BlastAttr Job=%127s File=%255s", 
+                    Job, filename) != 2) {
+            Jmsg1(jcr, M_ERROR, 0, _("Malformed message: %s\n"), bs->msg);
+            continue;
+         }
+         unbash_spaces(filename);
+         if (despool_attributes_from_file(jcr, filename)) {
+            bs->fsend("1000 OK BlastAttr\n");
+         } else {
+            bs->fsend("1990 ERROR BlastAttr\n");
+         }
          continue;
       }
       if (bs->msg[0] == 'M') {        /* Mount request */

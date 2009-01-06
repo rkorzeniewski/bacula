@@ -80,6 +80,7 @@ void print_bsr(UAContext *ua, RESTORE_CTX &rx);
 /* catreq.c */
 extern void catalog_request(JCR *jcr, BSOCK *bs);
 extern void catalog_update(JCR *jcr, BSOCK *bs);
+extern bool despool_attributes_from_file(JCR *jcr, const char *file);
 
 /* dird_conf.c */
 extern const char *level_to_str(int level);

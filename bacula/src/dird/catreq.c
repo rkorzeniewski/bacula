@@ -357,13 +357,11 @@ void catalog_request(JCR *jcr, BSOCK *bs)
 }
 
 /*
- * Update File Attributes in the catalog with data
- *  sent by the Storage daemon.  Note, we receive the whole
- *  attribute record, but we select out only the stat packet,
- *  VolSessionId, VolSessionTime, FileIndex, file type, and 
- *  file name to store in the catalog.
+ * Note, we receive the whole attribute record, but we select out only the stat
+ * packet, VolSessionId, VolSessionTime, FileIndex, file type, and file name to
+ * store in the catalog.
  */
-void catalog_update(JCR *jcr, BSOCK *bs)
+static void update_attribute(JCR *jcr, char *msg, int32_t msglen)
 {
    unser_declare;
    uint32_t VolSessionId, VolSessionTime;
@@ -375,19 +373,6 @@ void catalog_update(JCR *jcr, BSOCK *bs)
    int len;
    char *fname, *attr;
    ATTR_DBR *ar = NULL;
-   POOLMEM *omsg;
-
-   if (job_canceled(jcr) || !jcr->pool->catalog_files) {
-      goto bail_out;                  /* user disabled cataloging */
-   }
-   if (!jcr->db) {
-      omsg = get_memory(bs->msglen+1);
-      pm_strcpy(omsg, bs->msg);
-      bs->fsend(_("1994 Invalid Catalog Update: %s"), omsg);    
-      Jmsg1(jcr, M_FATAL, 0, _("Invalid Catalog Update; DB not open: %s"), omsg);
-      free_memory(omsg);
-      goto bail_out;
-   }
 
    /* Start transaction allocates jcr->attr and jcr->ar if needed */
    db_start_transaction(jcr, jcr->db);     /* start transaction if not already open */
@@ -397,7 +382,7 @@ void catalog_update(JCR *jcr, BSOCK *bs)
     *  there may be a cached attr so we cannot yet write into
     *  jcr->attr or jcr->ar  
     */
-   p = bs->msg;
+   p = msg;
    skip_nonspaces(&p);                /* UpdCat */
    skip_spaces(&p);
    skip_nonspaces(&p);                /* Job=nnn */
@@ -412,7 +397,7 @@ void catalog_update(JCR *jcr, BSOCK *bs)
    unser_uint32(data_len);
    p += unser_length(p);
 
-   Dmsg1(400, "UpdCat msg=%s\n", bs->msg);
+   Dmsg1(400, "UpdCat msg=%s\n", msg);
    Dmsg5(400, "UpdCat VolSessId=%d VolSessT=%d FI=%d Strm=%d data_len=%d\n",
       VolSessionId, VolSessionTime, FileIndex, Stream, data_len);
 
@@ -424,9 +409,9 @@ void catalog_update(JCR *jcr, BSOCK *bs)
          }
       }
       /* Any cached attr is flushed so we can reuse jcr->attr and jcr->ar */
-      jcr->attr = check_pool_memory_size(jcr->attr, bs->msglen);
-      memcpy(jcr->attr, bs->msg, bs->msglen);
-      p = jcr->attr - bs->msg + p;    /* point p into jcr->attr */
+      jcr->attr = check_pool_memory_size(jcr->attr, msglen);
+      memcpy(jcr->attr, msg, msglen);
+      p = jcr->attr - msg + p;    /* point p into jcr->attr */
       skip_nonspaces(&p);             /* skip FileIndex */
       skip_spaces(&p);
       filetype = str_to_int32(p);     /* TODO: choose between unserialize and str_to_int32 */
@@ -510,8 +495,110 @@ void catalog_update(JCR *jcr, BSOCK *bs)
          }
       }
    }
+}
+
+/*
+ * Update File Attributes in the catalog with data
+ *  sent by the Storage daemon.
+ */
+void catalog_update(JCR *jcr, BSOCK *bs)
+{
+   POOLMEM *omsg;
+
+   if (job_canceled(jcr) || !jcr->pool->catalog_files) {
+      goto bail_out;                  /* user disabled cataloging */
+   }
+   if (!jcr->db) {
+      omsg = get_memory(bs->msglen+1);
+      pm_strcpy(omsg, bs->msg);
+      bs->fsend(_("1994 Invalid Catalog Update: %s"), omsg);    
+      Jmsg1(jcr, M_FATAL, 0, _("Invalid Catalog Update; DB not open: %s"), omsg);
+      free_memory(omsg);
+      goto bail_out;
+
+   }
+
+   update_attribute(jcr, bs->msg, bs->msglen);
+
 bail_out:
    if (job_canceled(jcr)) {
       cancel_storage_daemon_job(jcr);
    }
+}
+
+/*
+ * Update File Attributes in the catalog with data read from
+ * the storage daemon spool file. We receive the filename and
+ * we try to read it.
+ */
+bool despool_attributes_from_file(JCR *jcr, const char *file)
+{
+   bool ret=false;
+   int32_t pktsiz;
+   size_t nbytes;
+   ssize_t last = 0, size = 0;
+   int count = 0;
+   int32_t msglen;                    /* message length */
+   POOLMEM *msg = get_pool_memory(PM_MESSAGE);
+   FILE *spool_fd=NULL;
+
+   Dmsg0(100, "Begin despool_attributes_from_file\n");
+
+   if (job_canceled(jcr) || !jcr->pool->catalog_files || !jcr->db) {
+      goto bail_out;                  /* user disabled cataloging */
+   }
+
+   spool_fd = fopen(file, "rb");
+   if (!spool_fd) {
+      Dmsg0(100, "cancel despool_attributes_from_file\n");
+      /* send an error message */
+      goto bail_out;
+   }
+#if defined(HAVE_POSIX_FADVISE) && defined(POSIX_FADV_WILLNEED)
+   posix_fadvise(fileno(spool_fd), 0, 0, POSIX_FADV_WILLNEED);
+#endif
+
+   while (fread((char *)&pktsiz, 1, sizeof(int32_t), spool_fd) ==
+          sizeof(int32_t)) {
+      size += sizeof(int32_t);
+      msglen = ntohl(pktsiz);
+      if (msglen > 0) {
+         if (msglen > (int32_t) sizeof_pool_memory(msg)) {
+            msg = realloc_pool_memory(msg, msglen + 1);
+         }
+         nbytes = fread(msg, 1, msglen, spool_fd);
+         if (nbytes != (size_t) msglen) {
+            berrno be;
+            Dmsg2(400, "nbytes=%d msglen=%d\n", nbytes, msglen);
+            Qmsg1(jcr, M_FATAL, 0, _("fread attr spool error. ERR=%s\n"),
+                  be.bstrerror());
+            goto bail_out;
+         }
+         size += nbytes;
+         if ((++count & 0x3F) == 0) {
+            last = size;
+         }
+      }
+      update_attribute(jcr, msg, msglen);
+   }
+   if (ferror(spool_fd)) {
+      berrno be;
+      Qmsg1(jcr, M_FATAL, 0, _("fread attr spool error. ERR=%s\n"),
+            be.bstrerror());
+      goto bail_out;
+   }
+   ret = true;
+
+bail_out:
+   if (spool_fd) {
+      fclose(spool_fd);
+   }
+
+   if (job_canceled(jcr)) {
+      cancel_storage_daemon_job(jcr);
+   }
+
+   free_pool_memory(msg);
+   Dmsg1(100, "End despool_attributes_from_file ret=%i\n", ret);
+   return ret;
 }
