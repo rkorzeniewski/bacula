@@ -622,6 +622,33 @@ static void update_attr_spool_size(ssize_t size)
    V(mutex);
 }
 
+static void make_unique_spool_filename(JCR *jcr, POOLMEM **name, int fd)
+{
+   Mmsg(name, "%s/%s.attr.%s.%d.spool", working_directory, my_name,
+      jcr->Job, fd);
+}
+
+static bool blast_attr_spool_file(JCR *jcr, boffset_t size)
+{
+   /* send full spool file name */
+   POOLMEM *name  = get_pool_memory(PM_MESSAGE);
+   make_unique_spool_filename(jcr, &name, jcr->dir_bsock->m_fd);
+   bash_spaces(name);
+   jcr->dir_bsock->fsend("BlastAttr Job=%s File=%s\n",
+                         jcr->Job, name);
+   free_pool_memory(name);
+   
+   if (jcr->dir_bsock->recv() <= 0) {
+      Jmsg(jcr, M_FATAL, 0, _("Network error on BlastAttributes.\n"));
+      return false;
+   }
+   
+   if (!bstrcmp(jcr->dir_bsock->msg, "1000 OK BlastAttr\n")) {
+      return false;
+   }
+   return true;
+}
+
 bool commit_attribute_spool(JCR *jcr)
 {
    boffset_t size;
@@ -654,7 +681,13 @@ bool commit_attribute_spool(JCR *jcr)
       dir_send_job_status(jcr);
       Jmsg(jcr, M_INFO, 0, _("Sending spooled attrs to the Director. Despooling %s bytes ...\n"),
             edit_uint64_with_commas(size, ec1));
-      jcr->dir_bsock->despool(update_attr_spool_size, size);
+
+      if (!blast_attr_spool_file(jcr, size)) {
+         /* Can't read spool file from director side,
+          * send content over network.
+          */
+         jcr->dir_bsock->despool(update_attr_spool_size, size);
+      }
       return close_attr_spool_file(jcr, jcr->dir_bsock);
    }
    return true;
@@ -663,13 +696,6 @@ bail_out:
    close_attr_spool_file(jcr, jcr->dir_bsock);
    return false;
 }
-
-static void make_unique_spool_filename(JCR *jcr, POOLMEM **name, int fd)
-{
-   Mmsg(name, "%s/%s.attr.%s.%d.spool", working_directory, my_name,
-      jcr->Job, fd);
-}
-
 
 bool open_attr_spool_file(JCR *jcr, BSOCK *bs)
 {
