@@ -1,6 +1,6 @@
-diff -Naur pthreads-snap-2004-06-22/GNUmakefile pthreads-snap-2004-06-22_w64+bacula-patch/GNUmakefile
+diff -Naur pthreads-snap-2004-06-22/GNUmakefile pthreads-snap-2004-06-22.new/GNUmakefile
 --- pthreads-snap-2004-06-22/GNUmakefile	2004-05-20 02:56:52.000000000 +0200
-+++ pthreads-snap-2004-06-22_w64+bacula-patch/GNUmakefile	2009-01-06 17:17:19.000000000 +0100
++++ pthreads-snap-2004-06-22.new/GNUmakefile	2009-01-06 21:18:42.000000000 +0100
 @@ -48,9 +48,9 @@
  
  #OPT	= -g
@@ -67,9 +67,9 @@ diff -Naur pthreads-snap-2004-06-22/GNUmakefile pthreads-snap-2004-06-22_w64+bac
  	echo touched > $(GCE_INLINED_STAMP)
  
  clean:
-diff -Naur pthreads-snap-2004-06-22/implement.h pthreads-snap-2004-06-22_w64+bacula-patch/implement.h
+diff -Naur pthreads-snap-2004-06-22/implement.h pthreads-snap-2004-06-22.new/implement.h
 --- pthreads-snap-2004-06-22/implement.h	2004-06-22 08:12:54.000000000 +0200
-+++ pthreads-snap-2004-06-22_w64+bacula-patch/implement.h	2009-01-06 17:21:14.000000000 +0100
++++ pthreads-snap-2004-06-22.new/implement.h	2009-01-06 21:18:42.000000000 +0100
 @@ -38,7 +38,9 @@
  #ifndef _IMPLEMENT_H
  #define _IMPLEMENT_H
@@ -80,9 +80,9 @@ diff -Naur pthreads-snap-2004-06-22/implement.h pthreads-snap-2004-06-22_w64+bac
  
  #include <windows.h>
  
-diff -Naur pthreads-snap-2004-06-22/pthread_cancel.c pthreads-snap-2004-06-22_w64+bacula-patch/pthread_cancel.c
+diff -Naur pthreads-snap-2004-06-22/pthread_cancel.c pthreads-snap-2004-06-22.new/pthread_cancel.c
 --- pthreads-snap-2004-06-22/pthread_cancel.c	2004-05-17 03:38:02.000000000 +0200
-+++ pthreads-snap-2004-06-22_w64+bacula-patch/pthread_cancel.c	2009-01-06 17:17:36.000000000 +0100
++++ pthreads-snap-2004-06-22.new/pthread_cancel.c	2009-01-06 21:18:42.000000000 +0100
 @@ -70,7 +70,7 @@
  }
  
@@ -92,9 +92,21 @@ diff -Naur pthreads-snap-2004-06-22/pthread_cancel.c pthreads-snap-2004-06-22_w6
  {
    ptw32_throw (PTW32_EPS_CANCEL);
  
-diff -Naur pthreads-snap-2004-06-22/pthread_getspecific.c pthreads-snap-2004-06-22_w64+bacula-patch/pthread_getspecific.c
+diff -Naur pthreads-snap-2004-06-22/pthread_exit.c pthreads-snap-2004-06-22.new/pthread_exit.c
+--- pthreads-snap-2004-06-22/pthread_exit.c	2004-05-17 03:38:03.000000000 +0200
++++ pthreads-snap-2004-06-22.new/pthread_exit.c	2009-01-06 21:19:15.000000000 +0100
+@@ -89,7 +89,7 @@
+        */
+ 
+ #if ! defined (__MINGW32__) || defined (__MSVCRT__)
+-      _endthreadex ((unsigned) value_ptr);
++      _endthreadex ((unsigned) ((ULONG_PTR)value_ptr));
+ #else
+       _endthread ();
+ #endif
+diff -Naur pthreads-snap-2004-06-22/pthread_getspecific.c pthreads-snap-2004-06-22.new/pthread_getspecific.c
 --- pthreads-snap-2004-06-22/pthread_getspecific.c	2004-05-17 03:38:03.000000000 +0200
-+++ pthreads-snap-2004-06-22_w64+bacula-patch/pthread_getspecific.c	2009-01-06 17:17:19.000000000 +0100
++++ pthreads-snap-2004-06-22.new/pthread_getspecific.c	2009-01-06 21:18:42.000000000 +0100
 @@ -63,13 +63,18 @@
        * ------------------------------------------------------
        */
@@ -119,9 +131,9 @@ diff -Naur pthreads-snap-2004-06-22/pthread_getspecific.c pthreads-snap-2004-06-
 +  }
    return ptr;
  }
-diff -Naur pthreads-snap-2004-06-22/pthread.h pthreads-snap-2004-06-22_w64+bacula-patch/pthread.h
+diff -Naur pthreads-snap-2004-06-22/pthread.h pthreads-snap-2004-06-22.new/pthread.h
 --- pthreads-snap-2004-06-22/pthread.h	2004-06-22 08:12:54.000000000 +0200
-+++ pthreads-snap-2004-06-22_w64+bacula-patch/pthread.h	2009-01-06 17:17:19.000000000 +0100
++++ pthreads-snap-2004-06-22.new/pthread.h	2009-01-06 21:18:42.000000000 +0100
 @@ -274,10 +274,6 @@
  #endif /* PTW32_LEVEL >= PTW32_LEVEL_MAX */
  
@@ -133,9 +145,9 @@ diff -Naur pthreads-snap-2004-06-22/pthread.h pthreads-snap-2004-06-22_w64+bacul
  #endif /* HAVE_STRUCT_TIMESPEC */
  
  #ifndef SIG_BLOCK
-diff -Naur pthreads-snap-2004-06-22/ptw32_InterlockedCompareExchange.c pthreads-snap-2004-06-22_w64+bacula-patch/ptw32_InterlockedCompareExchange.c
+diff -Naur pthreads-snap-2004-06-22/ptw32_InterlockedCompareExchange.c pthreads-snap-2004-06-22.new/ptw32_InterlockedCompareExchange.c
 --- pthreads-snap-2004-06-22/ptw32_InterlockedCompareExchange.c	2004-05-17 03:38:03.000000000 +0200
-+++ pthreads-snap-2004-06-22_w64+bacula-patch/ptw32_InterlockedCompareExchange.c	2009-01-06 17:17:19.000000000 +0100
++++ pthreads-snap-2004-06-22.new/ptw32_InterlockedCompareExchange.c	2009-01-06 21:18:42.000000000 +0100
 @@ -101,6 +101,19 @@
  #endif
  
@@ -166,9 +178,9 @@ diff -Naur pthreads-snap-2004-06-22/ptw32_InterlockedCompareExchange.c pthreads-
  #endif
  
  /* *INDENT-ON* */
-diff -Naur pthreads-snap-2004-06-22/ptw32_semwait.c pthreads-snap-2004-06-22_w64+bacula-patch/ptw32_semwait.c
+diff -Naur pthreads-snap-2004-06-22/ptw32_semwait.c pthreads-snap-2004-06-22.new/ptw32_semwait.c
 --- pthreads-snap-2004-06-22/ptw32_semwait.c	2004-05-17 09:59:47.000000000 +0200
-+++ pthreads-snap-2004-06-22_w64+bacula-patch/ptw32_semwait.c	2009-01-06 17:17:19.000000000 +0100
++++ pthreads-snap-2004-06-22.new/ptw32_semwait.c	2009-01-06 21:18:42.000000000 +0100
 @@ -41,7 +41,7 @@
  #include "implement.h"
  
@@ -178,9 +190,9 @@ diff -Naur pthreads-snap-2004-06-22/ptw32_semwait.c pthreads-snap-2004-06-22_w64
  ptw32_semwait (sem_t * sem)
       /*
        * ------------------------------------------------------
-diff -Naur pthreads-snap-2004-06-22/ptw32_threadStart.c pthreads-snap-2004-06-22_w64+bacula-patch/ptw32_threadStart.c
+diff -Naur pthreads-snap-2004-06-22/ptw32_threadStart.c pthreads-snap-2004-06-22.new/ptw32_threadStart.c
 --- pthreads-snap-2004-06-22/ptw32_threadStart.c	2004-05-17 03:38:03.000000000 +0200
-+++ pthreads-snap-2004-06-22_w64+bacula-patch/ptw32_threadStart.c	2009-01-06 17:45:27.000000000 +0100
++++ pthreads-snap-2004-06-22.new/ptw32_threadStart.c	2009-01-06 21:18:42.000000000 +0100
 @@ -356,7 +356,7 @@
      }
  
@@ -199,9 +211,9 @@ diff -Naur pthreads-snap-2004-06-22/ptw32_threadStart.c pthreads-snap-2004-06-22
  #endif
  
  }				/* ptw32_threadStart */
-diff -Naur pthreads-snap-2004-06-22/ptw32_throw.c pthreads-snap-2004-06-22_w64+bacula-patch/ptw32_throw.c
+diff -Naur pthreads-snap-2004-06-22/ptw32_throw.c pthreads-snap-2004-06-22.new/ptw32_throw.c
 --- pthreads-snap-2004-06-22/ptw32_throw.c	2004-05-17 03:38:03.000000000 +0200
-+++ pthreads-snap-2004-06-22_w64+bacula-patch/ptw32_throw.c	2009-01-06 17:47:37.000000000 +0100
++++ pthreads-snap-2004-06-22.new/ptw32_throw.c	2009-01-06 21:18:42.000000000 +0100
 @@ -78,10 +78,10 @@
        switch (exception)
  	{
@@ -215,9 +227,9 @@ diff -Naur pthreads-snap-2004-06-22/ptw32_throw.c pthreads-snap-2004-06-22_w64+b
  	  break;
  	}
  
-diff -Naur pthreads-snap-2004-06-22/tests/barrier3.c pthreads-snap-2004-06-22_w64+bacula-patch/tests/barrier3.c
+diff -Naur pthreads-snap-2004-06-22/tests/barrier3.c pthreads-snap-2004-06-22.new/tests/barrier3.c
 --- pthreads-snap-2004-06-22/tests/barrier3.c	2003-08-19 05:31:51.000000000 +0200
-+++ pthreads-snap-2004-06-22_w64+bacula-patch/tests/barrier3.c	2009-01-06 17:17:19.000000000 +0100
++++ pthreads-snap-2004-06-22.new/tests/barrier3.c	2009-01-06 21:18:42.000000000 +0100
 @@ -41,7 +41,7 @@
  #include "test.h"
   
@@ -227,9 +239,9 @@ diff -Naur pthreads-snap-2004-06-22/tests/barrier3.c pthreads-snap-2004-06-22_w6
  
  void * func(void * arg)
  {
-diff -Naur pthreads-snap-2004-06-22/tests/barrier5.c pthreads-snap-2004-06-22_w64+bacula-patch/tests/barrier5.c
+diff -Naur pthreads-snap-2004-06-22/tests/barrier5.c pthreads-snap-2004-06-22.new/tests/barrier5.c
 --- pthreads-snap-2004-06-22/tests/barrier5.c	2003-08-19 05:31:51.000000000 +0200
-+++ pthreads-snap-2004-06-22_w64+bacula-patch/tests/barrier5.c	2009-01-06 17:17:19.000000000 +0100
++++ pthreads-snap-2004-06-22.new/tests/barrier5.c	2009-01-06 21:18:42.000000000 +0100
 @@ -90,7 +90,7 @@
  main()
  {
@@ -248,9 +260,9 @@ diff -Naur pthreads-snap-2004-06-22/tests/barrier5.c pthreads-snap-2004-06-22_w6
          }
  
        assert(serialThreadsTotal == BARRIERS - 1);
-diff -Naur pthreads-snap-2004-06-22/tests/cancel2.c pthreads-snap-2004-06-22_w64+bacula-patch/tests/cancel2.c
+diff -Naur pthreads-snap-2004-06-22/tests/cancel2.c pthreads-snap-2004-06-22.new/tests/cancel2.c
 --- pthreads-snap-2004-06-22/tests/cancel2.c	2003-08-19 05:31:51.000000000 +0200
-+++ pthreads-snap-2004-06-22_w64+bacula-patch/tests/cancel2.c	2009-01-06 17:17:19.000000000 +0100
++++ pthreads-snap-2004-06-22.new/tests/cancel2.c	2009-01-06 21:18:42.000000000 +0100
 @@ -217,7 +217,7 @@
    for (i = 1; i <= NUMTHREADS; i++)
      {
@@ -260,9 +272,9 @@ diff -Naur pthreads-snap-2004-06-22/tests/cancel2.c pthreads-snap-2004-06-22_w64
  
        assert(pthread_join(t[i], (void **) &result) == 0);
        fail = (result != (int) PTHREAD_CANCELED);
-diff -Naur pthreads-snap-2004-06-22/tests/cancel3.c pthreads-snap-2004-06-22_w64+bacula-patch/tests/cancel3.c
+diff -Naur pthreads-snap-2004-06-22/tests/cancel3.c pthreads-snap-2004-06-22.new/tests/cancel3.c
 --- pthreads-snap-2004-06-22/tests/cancel3.c	2004-05-17 03:38:03.000000000 +0200
-+++ pthreads-snap-2004-06-22_w64+bacula-patch/tests/cancel3.c	2009-01-06 17:17:19.000000000 +0100
++++ pthreads-snap-2004-06-22.new/tests/cancel3.c	2009-01-06 21:18:42.000000000 +0100
 @@ -173,7 +173,7 @@
    for (i = 1; i <= NUMTHREADS; i++)
      {
@@ -272,9 +284,9 @@ diff -Naur pthreads-snap-2004-06-22/tests/cancel3.c pthreads-snap-2004-06-22_w64
  
        /*
         * The thread does not contain any cancelation points, so
-diff -Naur pthreads-snap-2004-06-22/tests/cancel4.c pthreads-snap-2004-06-22_w64+bacula-patch/tests/cancel4.c
+diff -Naur pthreads-snap-2004-06-22/tests/cancel4.c pthreads-snap-2004-06-22.new/tests/cancel4.c
 --- pthreads-snap-2004-06-22/tests/cancel4.c	2004-05-17 03:38:03.000000000 +0200
-+++ pthreads-snap-2004-06-22_w64+bacula-patch/tests/cancel4.c	2009-01-06 17:17:19.000000000 +0100
++++ pthreads-snap-2004-06-22.new/tests/cancel4.c	2009-01-06 21:18:42.000000000 +0100
 @@ -173,7 +173,7 @@
    for (i = 1; i <= NUMTHREADS; i++)
      {
@@ -284,9 +296,9 @@ diff -Naur pthreads-snap-2004-06-22/tests/cancel4.c pthreads-snap-2004-06-22_w64
  
        /*
         * The thread does not contain any cancelation points, so
-diff -Naur pthreads-snap-2004-06-22/tests/cancel5.c pthreads-snap-2004-06-22_w64+bacula-patch/tests/cancel5.c
+diff -Naur pthreads-snap-2004-06-22/tests/cancel5.c pthreads-snap-2004-06-22.new/tests/cancel5.c
 --- pthreads-snap-2004-06-22/tests/cancel5.c	2004-05-17 03:38:03.000000000 +0200
-+++ pthreads-snap-2004-06-22_w64+bacula-patch/tests/cancel5.c	2009-01-06 17:17:19.000000000 +0100
++++ pthreads-snap-2004-06-22.new/tests/cancel5.c	2009-01-06 21:18:42.000000000 +0100
 @@ -171,7 +171,7 @@
    for (i = 1; i <= NUMTHREADS; i++)
      {
@@ -296,9 +308,9 @@ diff -Naur pthreads-snap-2004-06-22/tests/cancel5.c pthreads-snap-2004-06-22_w64
  
        /*
         * The thread does not contain any cancelation points, so
-diff -Naur pthreads-snap-2004-06-22/tests/cancel6a.c pthreads-snap-2004-06-22_w64+bacula-patch/tests/cancel6a.c
+diff -Naur pthreads-snap-2004-06-22/tests/cancel6a.c pthreads-snap-2004-06-22.new/tests/cancel6a.c
 --- pthreads-snap-2004-06-22/tests/cancel6a.c	2004-05-17 03:38:03.000000000 +0200
-+++ pthreads-snap-2004-06-22_w64+bacula-patch/tests/cancel6a.c	2009-01-06 17:17:19.000000000 +0100
++++ pthreads-snap-2004-06-22.new/tests/cancel6a.c	2009-01-06 21:18:42.000000000 +0100
 @@ -161,7 +161,7 @@
    for (i = 1; i <= NUMTHREADS; i++)
      {
@@ -308,9 +320,9 @@ diff -Naur pthreads-snap-2004-06-22/tests/cancel6a.c pthreads-snap-2004-06-22_w6
  
        /*
         * The thread does not contain any cancelation points, so
-diff -Naur pthreads-snap-2004-06-22/tests/cancel6d.c pthreads-snap-2004-06-22_w64+bacula-patch/tests/cancel6d.c
+diff -Naur pthreads-snap-2004-06-22/tests/cancel6d.c pthreads-snap-2004-06-22.new/tests/cancel6d.c
 --- pthreads-snap-2004-06-22/tests/cancel6d.c	2004-05-17 03:38:03.000000000 +0200
-+++ pthreads-snap-2004-06-22_w64+bacula-patch/tests/cancel6d.c	2009-01-06 17:17:19.000000000 +0100
++++ pthreads-snap-2004-06-22.new/tests/cancel6d.c	2009-01-06 21:18:42.000000000 +0100
 @@ -165,7 +165,7 @@
    for (i = 1; i <= NUMTHREADS; i++)
      {
@@ -320,9 +332,9 @@ diff -Naur pthreads-snap-2004-06-22/tests/cancel6d.c pthreads-snap-2004-06-22_w6
  
        /*
         * The thread does not contain any cancelation points, so
-diff -Naur pthreads-snap-2004-06-22/tests/cleanup0.c pthreads-snap-2004-06-22_w64+bacula-patch/tests/cleanup0.c
+diff -Naur pthreads-snap-2004-06-22/tests/cleanup0.c pthreads-snap-2004-06-22.new/tests/cleanup0.c
 --- pthreads-snap-2004-06-22/tests/cleanup0.c	2003-08-19 05:31:51.000000000 +0200
-+++ pthreads-snap-2004-06-22_w64+bacula-patch/tests/cleanup0.c	2009-01-06 17:17:19.000000000 +0100
++++ pthreads-snap-2004-06-22.new/tests/cleanup0.c	2009-01-06 21:18:42.000000000 +0100
 @@ -180,7 +180,7 @@
    for (i = 1; i <= NUMTHREADS; i++)
      {
@@ -332,9 +344,9 @@ diff -Naur pthreads-snap-2004-06-22/tests/cleanup0.c pthreads-snap-2004-06-22_w6
  
        assert(pthread_join(t[i], (void **) &result) == 0);
  
-diff -Naur pthreads-snap-2004-06-22/tests/cleanup1.c pthreads-snap-2004-06-22_w64+bacula-patch/tests/cleanup1.c
+diff -Naur pthreads-snap-2004-06-22/tests/cleanup1.c pthreads-snap-2004-06-22.new/tests/cleanup1.c
 --- pthreads-snap-2004-06-22/tests/cleanup1.c	2003-08-19 05:31:51.000000000 +0200
-+++ pthreads-snap-2004-06-22_w64+bacula-patch/tests/cleanup1.c	2009-01-06 17:17:19.000000000 +0100
++++ pthreads-snap-2004-06-22.new/tests/cleanup1.c	2009-01-06 21:18:42.000000000 +0100
 @@ -195,7 +195,7 @@
    for (i = 1; i <= NUMTHREADS; i++)
      {
@@ -344,9 +356,9 @@ diff -Naur pthreads-snap-2004-06-22/tests/cleanup1.c pthreads-snap-2004-06-22_w6
  
        assert(pthread_join(t[i], (void **) &result) == 0);
  
-diff -Naur pthreads-snap-2004-06-22/tests/cleanup2.c pthreads-snap-2004-06-22_w64+bacula-patch/tests/cleanup2.c
+diff -Naur pthreads-snap-2004-06-22/tests/cleanup2.c pthreads-snap-2004-06-22.new/tests/cleanup2.c
 --- pthreads-snap-2004-06-22/tests/cleanup2.c	2003-08-19 05:31:51.000000000 +0200
-+++ pthreads-snap-2004-06-22_w64+bacula-patch/tests/cleanup2.c	2009-01-06 17:17:19.000000000 +0100
++++ pthreads-snap-2004-06-22.new/tests/cleanup2.c	2009-01-06 21:18:42.000000000 +0100
 @@ -169,7 +169,7 @@
    for (i = 1; i <= NUMTHREADS; i++)
      {
@@ -356,9 +368,9 @@ diff -Naur pthreads-snap-2004-06-22/tests/cleanup2.c pthreads-snap-2004-06-22_w6
  
        assert(pthread_join(t[i], (void **) &result) == 0);
  
-diff -Naur pthreads-snap-2004-06-22/tests/cleanup3.c pthreads-snap-2004-06-22_w64+bacula-patch/tests/cleanup3.c
+diff -Naur pthreads-snap-2004-06-22/tests/cleanup3.c pthreads-snap-2004-06-22.new/tests/cleanup3.c
 --- pthreads-snap-2004-06-22/tests/cleanup3.c	2003-08-19 05:31:51.000000000 +0200
-+++ pthreads-snap-2004-06-22_w64+bacula-patch/tests/cleanup3.c	2009-01-06 17:17:19.000000000 +0100
++++ pthreads-snap-2004-06-22.new/tests/cleanup3.c	2009-01-06 21:18:42.000000000 +0100
 @@ -172,7 +172,7 @@
    for (i = 1; i <= NUMTHREADS; i++)
      {
@@ -368,9 +380,9 @@ diff -Naur pthreads-snap-2004-06-22/tests/cleanup3.c pthreads-snap-2004-06-22_w6
  
        assert(pthread_join(t[i], (void **) &result) == 0);
  
-diff -Naur pthreads-snap-2004-06-22/tests/condvar1_2.c pthreads-snap-2004-06-22_w64+bacula-patch/tests/condvar1_2.c
+diff -Naur pthreads-snap-2004-06-22/tests/condvar1_2.c pthreads-snap-2004-06-22.new/tests/condvar1_2.c
 --- pthreads-snap-2004-06-22/tests/condvar1_2.c	2003-08-19 05:31:51.000000000 +0200
-+++ pthreads-snap-2004-06-22_w64+bacula-patch/tests/condvar1_2.c	2009-01-06 17:17:19.000000000 +0100
++++ pthreads-snap-2004-06-22.new/tests/condvar1_2.c	2009-01-06 21:18:42.000000000 +0100
 @@ -89,7 +89,7 @@
  main()
  {
@@ -380,9 +392,9 @@ diff -Naur pthreads-snap-2004-06-22/tests/condvar1_2.c pthreads-snap-2004-06-22_
    pthread_t t;
  
    for (k = 0; k < NUM_LOOPS; k++)
-diff -Naur pthreads-snap-2004-06-22/tests/condvar2_1.c pthreads-snap-2004-06-22_w64+bacula-patch/tests/condvar2_1.c
+diff -Naur pthreads-snap-2004-06-22/tests/condvar2_1.c pthreads-snap-2004-06-22.new/tests/condvar2_1.c
 --- pthreads-snap-2004-06-22/tests/condvar2_1.c	2004-05-20 02:56:52.000000000 +0200
-+++ pthreads-snap-2004-06-22_w64+bacula-patch/tests/condvar2_1.c	2009-01-06 17:17:19.000000000 +0100
++++ pthreads-snap-2004-06-22.new/tests/condvar2_1.c	2009-01-06 21:18:42.000000000 +0100
 @@ -105,7 +105,7 @@
  {
    int i;
@@ -401,9 +413,9 @@ diff -Naur pthreads-snap-2004-06-22/tests/condvar2_1.c pthreads-snap-2004-06-22_
    abstime.tv_nsec = NANOSEC_PER_MILLISEC * currSysTime.millitm;
  
    abstime.tv_sec += 5;
-diff -Naur pthreads-snap-2004-06-22/tests/condvar2.c pthreads-snap-2004-06-22_w64+bacula-patch/tests/condvar2.c
+diff -Naur pthreads-snap-2004-06-22/tests/condvar2.c pthreads-snap-2004-06-22.new/tests/condvar2.c
 --- pthreads-snap-2004-06-22/tests/condvar2.c	2004-05-20 02:56:52.000000000 +0200
-+++ pthreads-snap-2004-06-22_w64+bacula-patch/tests/condvar2.c	2009-01-06 17:17:19.000000000 +0100
++++ pthreads-snap-2004-06-22.new/tests/condvar2.c	2009-01-06 21:18:42.000000000 +0100
 @@ -99,7 +99,7 @@
    /* get current system time */
    _ftime(&currSysTime);
@@ -422,9 +434,9 @@ diff -Naur pthreads-snap-2004-06-22/tests/condvar2.c pthreads-snap-2004-06-22_w6
    if (result != 0)
      {
        fprintf(stderr, "Result = %s\n", error_string[result]);
-diff -Naur pthreads-snap-2004-06-22/tests/condvar3_1.c pthreads-snap-2004-06-22_w64+bacula-patch/tests/condvar3_1.c
+diff -Naur pthreads-snap-2004-06-22/tests/condvar3_1.c pthreads-snap-2004-06-22.new/tests/condvar3_1.c
 --- pthreads-snap-2004-06-22/tests/condvar3_1.c	2004-05-20 02:56:52.000000000 +0200
-+++ pthreads-snap-2004-06-22_w64+bacula-patch/tests/condvar3_1.c	2009-01-06 17:17:19.000000000 +0100
++++ pthreads-snap-2004-06-22.new/tests/condvar3_1.c	2009-01-06 21:18:42.000000000 +0100
 @@ -125,7 +125,7 @@
  {
    int i;
@@ -443,9 +455,9 @@ diff -Naur pthreads-snap-2004-06-22/tests/condvar3_1.c pthreads-snap-2004-06-22_
    abstime.tv_nsec = NANOSEC_PER_MILLISEC * currSysTime.millitm;
  
    abstime.tv_sec += 5;
-diff -Naur pthreads-snap-2004-06-22/tests/condvar3_2.c pthreads-snap-2004-06-22_w64+bacula-patch/tests/condvar3_2.c
+diff -Naur pthreads-snap-2004-06-22/tests/condvar3_2.c pthreads-snap-2004-06-22.new/tests/condvar3_2.c
 --- pthreads-snap-2004-06-22/tests/condvar3_2.c	2004-05-20 02:56:52.000000000 +0200
-+++ pthreads-snap-2004-06-22_w64+bacula-patch/tests/condvar3_2.c	2009-01-06 17:17:19.000000000 +0100
++++ pthreads-snap-2004-06-22.new/tests/condvar3_2.c	2009-01-06 21:18:42.000000000 +0100
 @@ -127,7 +127,7 @@
  {
    int i;
@@ -464,9 +476,9 @@ diff -Naur pthreads-snap-2004-06-22/tests/condvar3_2.c pthreads-snap-2004-06-22_
    abstime.tv_nsec = abstime2.tv_nsec = NANOSEC_PER_MILLISEC * currSysTime.millitm;
  
    assert(pthread_mutex_lock(&mutex) == 0);
-diff -Naur pthreads-snap-2004-06-22/tests/condvar3_3.c pthreads-snap-2004-06-22_w64+bacula-patch/tests/condvar3_3.c
+diff -Naur pthreads-snap-2004-06-22/tests/condvar3_3.c pthreads-snap-2004-06-22.new/tests/condvar3_3.c
 --- pthreads-snap-2004-06-22/tests/condvar3_3.c	2003-08-19 05:31:51.000000000 +0200
-+++ pthreads-snap-2004-06-22_w64+bacula-patch/tests/condvar3_3.c	2009-01-06 17:17:19.000000000 +0100
++++ pthreads-snap-2004-06-22.new/tests/condvar3_3.c	2009-01-06 21:18:42.000000000 +0100
 @@ -96,7 +96,7 @@
     /* get current system time */
     _ftime(&currSysTime);
@@ -485,9 +497,9 @@ diff -Naur pthreads-snap-2004-06-22/tests/condvar3_3.c pthreads-snap-2004-06-22_
     abstime.tv_nsec = NANOSEC_PER_MILLISEC * currSysTime.millitm;
     abstime.tv_sec += 1;
  
-diff -Naur pthreads-snap-2004-06-22/tests/condvar3.c pthreads-snap-2004-06-22_w64+bacula-patch/tests/condvar3.c
+diff -Naur pthreads-snap-2004-06-22/tests/condvar3.c pthreads-snap-2004-06-22.new/tests/condvar3.c
 --- pthreads-snap-2004-06-22/tests/condvar3.c	2003-08-19 05:31:51.000000000 +0200
-+++ pthreads-snap-2004-06-22_w64+bacula-patch/tests/condvar3.c	2009-01-06 17:17:19.000000000 +0100
++++ pthreads-snap-2004-06-22.new/tests/condvar3.c	2009-01-06 21:18:42.000000000 +0100
 @@ -127,7 +127,7 @@
    /* get current system time */
    _ftime(&currSysTime);
@@ -497,9 +509,9 @@ diff -Naur pthreads-snap-2004-06-22/tests/condvar3.c pthreads-snap-2004-06-22_w6
    abstime.tv_nsec = NANOSEC_PER_MILLISEC * currSysTime.millitm;
  
    assert(pthread_create(&t[1], NULL, mythread, (void *) 1) == 0);
-diff -Naur pthreads-snap-2004-06-22/tests/condvar4.c pthreads-snap-2004-06-22_w64+bacula-patch/tests/condvar4.c
+diff -Naur pthreads-snap-2004-06-22/tests/condvar4.c pthreads-snap-2004-06-22.new/tests/condvar4.c
 --- pthreads-snap-2004-06-22/tests/condvar4.c	2003-08-19 05:31:51.000000000 +0200
-+++ pthreads-snap-2004-06-22_w64+bacula-patch/tests/condvar4.c	2009-01-06 17:17:19.000000000 +0100
++++ pthreads-snap-2004-06-22.new/tests/condvar4.c	2009-01-06 21:18:42.000000000 +0100
 @@ -132,7 +132,7 @@
    /* get current system time */
    _ftime(&currSysTime);
@@ -518,9 +530,9 @@ diff -Naur pthreads-snap-2004-06-22/tests/condvar4.c pthreads-snap-2004-06-22_w6
    abstime.tv_nsec = NANOSEC_PER_MILLISEC * currSysTime.millitm;
  
    abstime.tv_sec += 5;
-diff -Naur pthreads-snap-2004-06-22/tests/condvar5.c pthreads-snap-2004-06-22_w64+bacula-patch/tests/condvar5.c
+diff -Naur pthreads-snap-2004-06-22/tests/condvar5.c pthreads-snap-2004-06-22.new/tests/condvar5.c
 --- pthreads-snap-2004-06-22/tests/condvar5.c	2003-08-19 05:31:51.000000000 +0200
-+++ pthreads-snap-2004-06-22_w64+bacula-patch/tests/condvar5.c	2009-01-06 17:17:19.000000000 +0100
++++ pthreads-snap-2004-06-22.new/tests/condvar5.c	2009-01-06 21:18:42.000000000 +0100
 @@ -131,7 +131,7 @@
    /* get current system time */
    _ftime(&currSysTime);
@@ -539,9 +551,9 @@ diff -Naur pthreads-snap-2004-06-22/tests/condvar5.c pthreads-snap-2004-06-22_w6
    abstime.tv_nsec = NANOSEC_PER_MILLISEC * currSysTime.millitm;
  
    abstime.tv_sec += 5;
-diff -Naur pthreads-snap-2004-06-22/tests/condvar6.c pthreads-snap-2004-06-22_w64+bacula-patch/tests/condvar6.c
+diff -Naur pthreads-snap-2004-06-22/tests/condvar6.c pthreads-snap-2004-06-22.new/tests/condvar6.c
 --- pthreads-snap-2004-06-22/tests/condvar6.c	2003-08-19 05:31:51.000000000 +0200
-+++ pthreads-snap-2004-06-22_w64+bacula-patch/tests/condvar6.c	2009-01-06 17:17:19.000000000 +0100
++++ pthreads-snap-2004-06-22.new/tests/condvar6.c	2009-01-06 21:18:42.000000000 +0100
 @@ -159,7 +159,7 @@
  
    _ftime(&currSysTime);
@@ -551,9 +563,9 @@ diff -Naur pthreads-snap-2004-06-22/tests/condvar6.c pthreads-snap-2004-06-22_w6
    abstime.tv_nsec = NANOSEC_PER_MILLISEC * currSysTime.millitm;
  
    abstime.tv_sec += 5;
-diff -Naur pthreads-snap-2004-06-22/tests/condvar7.c pthreads-snap-2004-06-22_w64+bacula-patch/tests/condvar7.c
+diff -Naur pthreads-snap-2004-06-22/tests/condvar7.c pthreads-snap-2004-06-22.new/tests/condvar7.c
 --- pthreads-snap-2004-06-22/tests/condvar7.c	2003-08-19 05:31:51.000000000 +0200
-+++ pthreads-snap-2004-06-22_w64+bacula-patch/tests/condvar7.c	2009-01-06 17:17:19.000000000 +0100
++++ pthreads-snap-2004-06-22.new/tests/condvar7.c	2009-01-06 21:18:42.000000000 +0100
 @@ -169,7 +169,7 @@
  
    _ftime(&currSysTime);
@@ -563,9 +575,9 @@ diff -Naur pthreads-snap-2004-06-22/tests/condvar7.c pthreads-snap-2004-06-22_w6
    abstime.tv_nsec = NANOSEC_PER_MILLISEC * currSysTime.millitm;
  
    abstime.tv_sec += 10;
-diff -Naur pthreads-snap-2004-06-22/tests/condvar8.c pthreads-snap-2004-06-22_w64+bacula-patch/tests/condvar8.c
+diff -Naur pthreads-snap-2004-06-22/tests/condvar8.c pthreads-snap-2004-06-22.new/tests/condvar8.c
 --- pthreads-snap-2004-06-22/tests/condvar8.c	2003-08-19 05:31:51.000000000 +0200
-+++ pthreads-snap-2004-06-22_w64+bacula-patch/tests/condvar8.c	2009-01-06 17:17:19.000000000 +0100
++++ pthreads-snap-2004-06-22.new/tests/condvar8.c	2009-01-06 21:18:42.000000000 +0100
 @@ -166,7 +166,7 @@
  
    _ftime(&currSysTime);
@@ -575,9 +587,9 @@ diff -Naur pthreads-snap-2004-06-22/tests/condvar8.c pthreads-snap-2004-06-22_w6
    abstime.tv_nsec = NANOSEC_PER_MILLISEC * currSysTime.millitm;
  
    abstime.tv_sec += 10;
-diff -Naur pthreads-snap-2004-06-22/tests/condvar9.c pthreads-snap-2004-06-22_w64+bacula-patch/tests/condvar9.c
+diff -Naur pthreads-snap-2004-06-22/tests/condvar9.c pthreads-snap-2004-06-22.new/tests/condvar9.c
 --- pthreads-snap-2004-06-22/tests/condvar9.c	2003-08-19 05:31:51.000000000 +0200
-+++ pthreads-snap-2004-06-22_w64+bacula-patch/tests/condvar9.c	2009-01-06 17:17:19.000000000 +0100
++++ pthreads-snap-2004-06-22.new/tests/condvar9.c	2009-01-06 21:18:42.000000000 +0100
 @@ -172,7 +172,7 @@
  
    _ftime(&currSysTime);
@@ -587,9 +599,9 @@ diff -Naur pthreads-snap-2004-06-22/tests/condvar9.c pthreads-snap-2004-06-22_w6
    abstime.tv_nsec = NANOSEC_PER_MILLISEC * currSysTime.millitm;
  
    abstime.tv_sec += 5;
-diff -Naur pthreads-snap-2004-06-22/tests/context1.c pthreads-snap-2004-06-22_w64+bacula-patch/tests/context1.c
+diff -Naur pthreads-snap-2004-06-22/tests/context1.c pthreads-snap-2004-06-22.new/tests/context1.c
 --- pthreads-snap-2004-06-22/tests/context1.c	2004-05-20 02:56:52.000000000 +0200
-+++ pthreads-snap-2004-06-22_w64+bacula-patch/tests/context1.c	2009-01-06 17:17:19.000000000 +0100
++++ pthreads-snap-2004-06-22.new/tests/context1.c	2009-01-06 21:18:42.000000000 +0100
 @@ -125,7 +125,11 @@
        /*
         *_x86 only!!!
@@ -602,9 +614,9 @@ diff -Naur pthreads-snap-2004-06-22/tests/context1.c pthreads-snap-2004-06-22_w6
        SetThreadContext(hThread, &context);
        ResumeThread(hThread);
      }
-diff -Naur pthreads-snap-2004-06-22/tests/delay2.c pthreads-snap-2004-06-22_w64+bacula-patch/tests/delay2.c
+diff -Naur pthreads-snap-2004-06-22/tests/delay2.c pthreads-snap-2004-06-22.new/tests/delay2.c
 --- pthreads-snap-2004-06-22/tests/delay2.c	2003-08-19 05:31:51.000000000 +0200
-+++ pthreads-snap-2004-06-22_w64+bacula-patch/tests/delay2.c	2009-01-06 17:17:19.000000000 +0100
++++ pthreads-snap-2004-06-22.new/tests/delay2.c	2009-01-06 21:18:42.000000000 +0100
 @@ -65,7 +65,7 @@
  main(int argc, char * argv[])
  {
@@ -614,9 +626,9 @@ diff -Naur pthreads-snap-2004-06-22/tests/delay2.c pthreads-snap-2004-06-22_w64+
  
    assert(pthread_mutex_lock(&mx) == 0);
  
-diff -Naur pthreads-snap-2004-06-22/tests/exception1.c pthreads-snap-2004-06-22_w64+bacula-patch/tests/exception1.c
+diff -Naur pthreads-snap-2004-06-22/tests/exception1.c pthreads-snap-2004-06-22.new/tests/exception1.c
 --- pthreads-snap-2004-06-22/tests/exception1.c	2003-08-19 05:31:51.000000000 +0200
-+++ pthreads-snap-2004-06-22_w64+bacula-patch/tests/exception1.c	2009-01-06 17:17:19.000000000 +0100
++++ pthreads-snap-2004-06-22.new/tests/exception1.c	2009-01-06 21:18:42.000000000 +0100
 @@ -226,7 +226,7 @@
    for (i = 0; i < NUMTHREADS; i++)
      {
@@ -626,9 +638,9 @@ diff -Naur pthreads-snap-2004-06-22/tests/exception1.c pthreads-snap-2004-06-22_
  
  	/* Canceled thread */
        assert(pthread_join(ct[i], (void **) &result) == 0);
-diff -Naur pthreads-snap-2004-06-22/tests/GNUmakefile pthreads-snap-2004-06-22_w64+bacula-patch/tests/GNUmakefile
+diff -Naur pthreads-snap-2004-06-22/tests/GNUmakefile pthreads-snap-2004-06-22.new/tests/GNUmakefile
 --- pthreads-snap-2004-06-22/tests/GNUmakefile	2004-06-22 08:12:55.000000000 +0200
-+++ pthreads-snap-2004-06-22_w64+bacula-patch/tests/GNUmakefile	2009-01-06 17:17:19.000000000 +0100
++++ pthreads-snap-2004-06-22.new/tests/GNUmakefile	2009-01-06 21:18:42.000000000 +0100
 @@ -64,7 +64,7 @@
  DLL	= pthread$(GCX).dll
  QAPC	= ../QueueUserAPCEx/User/quserex.dll
@@ -638,9 +650,9 @@ diff -Naur pthreads-snap-2004-06-22/tests/GNUmakefile pthreads-snap-2004-06-22_w
  
  # If a test case returns a non-zero exit code to the shell, make will
  # stop.
-diff -Naur pthreads-snap-2004-06-22/tests/join0.c pthreads-snap-2004-06-22_w64+bacula-patch/tests/join0.c
+diff -Naur pthreads-snap-2004-06-22/tests/join0.c pthreads-snap-2004-06-22.new/tests/join0.c
 --- pthreads-snap-2004-06-22/tests/join0.c	2003-08-19 05:31:51.000000000 +0200
-+++ pthreads-snap-2004-06-22_w64+bacula-patch/tests/join0.c	2009-01-06 17:17:19.000000000 +0100
++++ pthreads-snap-2004-06-22.new/tests/join0.c	2009-01-06 21:18:42.000000000 +0100
 @@ -53,7 +53,7 @@
  main(int argc, char * argv[])
  {
@@ -650,9 +662,9 @@ diff -Naur pthreads-snap-2004-06-22/tests/join0.c pthreads-snap-2004-06-22_w64+b
  
    /* Create a single thread and wait for it to exit. */
    assert(pthread_create(&id, NULL, func, (void *) 123) == 0);
-diff -Naur pthreads-snap-2004-06-22/tests/join1.c pthreads-snap-2004-06-22_w64+bacula-patch/tests/join1.c
+diff -Naur pthreads-snap-2004-06-22/tests/join1.c pthreads-snap-2004-06-22.new/tests/join1.c
 --- pthreads-snap-2004-06-22/tests/join1.c	2003-08-19 05:31:51.000000000 +0200
-+++ pthreads-snap-2004-06-22_w64+bacula-patch/tests/join1.c	2009-01-06 17:17:19.000000000 +0100
++++ pthreads-snap-2004-06-22.new/tests/join1.c	2009-01-06 21:18:42.000000000 +0100
 @@ -56,7 +56,7 @@
  {
  	pthread_t id[4];
@@ -662,9 +674,9 @@ diff -Naur pthreads-snap-2004-06-22/tests/join1.c pthreads-snap-2004-06-22_w64+b
  
  	/* Create a few threads and then exit. */
  	for (i = 0; i < 4; i++)
-diff -Naur pthreads-snap-2004-06-22/tests/join2.c pthreads-snap-2004-06-22_w64+bacula-patch/tests/join2.c
+diff -Naur pthreads-snap-2004-06-22/tests/join2.c pthreads-snap-2004-06-22.new/tests/join2.c
 --- pthreads-snap-2004-06-22/tests/join2.c	2003-08-19 05:31:51.000000000 +0200
-+++ pthreads-snap-2004-06-22_w64+bacula-patch/tests/join2.c	2009-01-06 17:17:19.000000000 +0100
++++ pthreads-snap-2004-06-22.new/tests/join2.c	2009-01-06 21:18:42.000000000 +0100
 @@ -50,7 +50,7 @@
  {
  	pthread_t id[4];
@@ -674,9 +686,9 @@ diff -Naur pthreads-snap-2004-06-22/tests/join2.c pthreads-snap-2004-06-22_w64+b
  
  	/* Create a few threads and then exit. */
  	for (i = 0; i < 4; i++)
-diff -Naur pthreads-snap-2004-06-22/tests/join3.c pthreads-snap-2004-06-22_w64+bacula-patch/tests/join3.c
+diff -Naur pthreads-snap-2004-06-22/tests/join3.c pthreads-snap-2004-06-22.new/tests/join3.c
 --- pthreads-snap-2004-06-22/tests/join3.c	2004-05-22 03:17:58.000000000 +0200
-+++ pthreads-snap-2004-06-22_w64+bacula-patch/tests/join3.c	2009-01-06 17:17:19.000000000 +0100
++++ pthreads-snap-2004-06-22.new/tests/join3.c	2009-01-06 21:18:42.000000000 +0100
 @@ -50,7 +50,7 @@
  {
  	pthread_t id[4];
@@ -686,9 +698,9 @@ diff -Naur pthreads-snap-2004-06-22/tests/join3.c pthreads-snap-2004-06-22_w64+b
  
  	/* Create a few threads and then exit. */
  	for (i = 0; i < 4; i++)
-diff -Naur pthreads-snap-2004-06-22/tests/mutex6e.c pthreads-snap-2004-06-22_w64+bacula-patch/tests/mutex6e.c
+diff -Naur pthreads-snap-2004-06-22/tests/mutex6e.c pthreads-snap-2004-06-22.new/tests/mutex6e.c
 --- pthreads-snap-2004-06-22/tests/mutex6e.c	2003-08-19 05:31:51.000000000 +0200
-+++ pthreads-snap-2004-06-22_w64+bacula-patch/tests/mutex6e.c	2009-01-06 17:17:19.000000000 +0100
++++ pthreads-snap-2004-06-22.new/tests/mutex6e.c	2009-01-06 21:18:42.000000000 +0100
 @@ -74,7 +74,7 @@
  main()
  {
@@ -698,9 +710,9 @@ diff -Naur pthreads-snap-2004-06-22/tests/mutex6e.c pthreads-snap-2004-06-22_w64
    int mxType = -1;
  
    assert(pthread_mutexattr_init(&mxAttr) == 0);
-diff -Naur pthreads-snap-2004-06-22/tests/mutex6es.c pthreads-snap-2004-06-22_w64+bacula-patch/tests/mutex6es.c
+diff -Naur pthreads-snap-2004-06-22/tests/mutex6es.c pthreads-snap-2004-06-22.new/tests/mutex6es.c
 --- pthreads-snap-2004-06-22/tests/mutex6es.c	2004-06-22 08:12:55.000000000 +0200
-+++ pthreads-snap-2004-06-22_w64+bacula-patch/tests/mutex6es.c	2009-01-06 17:17:19.000000000 +0100
++++ pthreads-snap-2004-06-22.new/tests/mutex6es.c	2009-01-06 21:18:42.000000000 +0100
 @@ -73,7 +73,7 @@
  main()
  {
@@ -710,9 +722,9 @@ diff -Naur pthreads-snap-2004-06-22/tests/mutex6es.c pthreads-snap-2004-06-22_w6
  
    assert(mutex == PTHREAD_ERRORCHECK_MUTEX_INITIALIZER);
  
-diff -Naur pthreads-snap-2004-06-22/tests/mutex6r.c pthreads-snap-2004-06-22_w64+bacula-patch/tests/mutex6r.c
+diff -Naur pthreads-snap-2004-06-22/tests/mutex6r.c pthreads-snap-2004-06-22.new/tests/mutex6r.c
 --- pthreads-snap-2004-06-22/tests/mutex6r.c	2003-08-19 05:31:51.000000000 +0200
-+++ pthreads-snap-2004-06-22_w64+bacula-patch/tests/mutex6r.c	2009-01-06 17:17:19.000000000 +0100
++++ pthreads-snap-2004-06-22.new/tests/mutex6r.c	2009-01-06 21:18:42.000000000 +0100
 @@ -73,7 +73,7 @@
  main()
  {
@@ -722,9 +734,9 @@ diff -Naur pthreads-snap-2004-06-22/tests/mutex6r.c pthreads-snap-2004-06-22_w64
    int mxType = -1;
  
    assert(pthread_mutexattr_init(&mxAttr) == 0);
-diff -Naur pthreads-snap-2004-06-22/tests/mutex6rs.c pthreads-snap-2004-06-22_w64+bacula-patch/tests/mutex6rs.c
+diff -Naur pthreads-snap-2004-06-22/tests/mutex6rs.c pthreads-snap-2004-06-22.new/tests/mutex6rs.c
 --- pthreads-snap-2004-06-22/tests/mutex6rs.c	2004-06-22 08:12:55.000000000 +0200
-+++ pthreads-snap-2004-06-22_w64+bacula-patch/tests/mutex6rs.c	2009-01-06 17:17:19.000000000 +0100
++++ pthreads-snap-2004-06-22.new/tests/mutex6rs.c	2009-01-06 21:18:42.000000000 +0100
 @@ -72,7 +72,7 @@
  main()
  {
@@ -734,9 +746,9 @@ diff -Naur pthreads-snap-2004-06-22/tests/mutex6rs.c pthreads-snap-2004-06-22_w6
  
    assert(mutex == PTHREAD_RECURSIVE_MUTEX_INITIALIZER);
  
-diff -Naur pthreads-snap-2004-06-22/tests/mutex7e.c pthreads-snap-2004-06-22_w64+bacula-patch/tests/mutex7e.c
+diff -Naur pthreads-snap-2004-06-22/tests/mutex7e.c pthreads-snap-2004-06-22.new/tests/mutex7e.c
 --- pthreads-snap-2004-06-22/tests/mutex7e.c	2003-08-19 05:31:51.000000000 +0200
-+++ pthreads-snap-2004-06-22_w64+bacula-patch/tests/mutex7e.c	2009-01-06 17:17:19.000000000 +0100
++++ pthreads-snap-2004-06-22.new/tests/mutex7e.c	2009-01-06 21:18:42.000000000 +0100
 @@ -74,7 +74,7 @@
  main()
  {
@@ -746,9 +758,9 @@ diff -Naur pthreads-snap-2004-06-22/tests/mutex7e.c pthreads-snap-2004-06-22_w64
    int mxType = -1;
  
    assert(pthread_mutexattr_init(&mxAttr) == 0);
-diff -Naur pthreads-snap-2004-06-22/tests/mutex7r.c pthreads-snap-2004-06-22_w64+bacula-patch/tests/mutex7r.c
+diff -Naur pthreads-snap-2004-06-22/tests/mutex7r.c pthreads-snap-2004-06-22.new/tests/mutex7r.c
 --- pthreads-snap-2004-06-22/tests/mutex7r.c	2003-08-19 05:31:51.000000000 +0200
-+++ pthreads-snap-2004-06-22_w64+bacula-patch/tests/mutex7r.c	2009-01-06 17:17:19.000000000 +0100
++++ pthreads-snap-2004-06-22.new/tests/mutex7r.c	2009-01-06 21:18:42.000000000 +0100
 @@ -73,7 +73,7 @@
  main()
  {
@@ -758,9 +770,9 @@ diff -Naur pthreads-snap-2004-06-22/tests/mutex7r.c pthreads-snap-2004-06-22_w64
    int mxType = -1;
  
    assert(pthread_mutexattr_init(&mxAttr) == 0);
-diff -Naur pthreads-snap-2004-06-22/tests/mutex8.c pthreads-snap-2004-06-22_w64+bacula-patch/tests/mutex8.c
+diff -Naur pthreads-snap-2004-06-22/tests/mutex8.c pthreads-snap-2004-06-22.new/tests/mutex8.c
 --- pthreads-snap-2004-06-22/tests/mutex8.c	2002-02-20 05:39:56.000000000 +0100
-+++ pthreads-snap-2004-06-22_w64+bacula-patch/tests/mutex8.c	2009-01-06 17:17:19.000000000 +0100
++++ pthreads-snap-2004-06-22.new/tests/mutex8.c	2009-01-06 21:18:42.000000000 +0100
 @@ -49,7 +49,7 @@
  
    _ftime(&currSysTime);
@@ -770,9 +782,9 @@ diff -Naur pthreads-snap-2004-06-22/tests/mutex8.c pthreads-snap-2004-06-22_w64+
    abstime.tv_nsec = NANOSEC_PER_MILLISEC * currSysTime.millitm;
  
    abstime.tv_sec += 1;
-diff -Naur pthreads-snap-2004-06-22/tests/mutex8e.c pthreads-snap-2004-06-22_w64+bacula-patch/tests/mutex8e.c
+diff -Naur pthreads-snap-2004-06-22/tests/mutex8e.c pthreads-snap-2004-06-22.new/tests/mutex8e.c
 --- pthreads-snap-2004-06-22/tests/mutex8e.c	2002-02-20 05:39:56.000000000 +0100
-+++ pthreads-snap-2004-06-22_w64+bacula-patch/tests/mutex8e.c	2009-01-06 17:17:19.000000000 +0100
++++ pthreads-snap-2004-06-22.new/tests/mutex8e.c	2009-01-06 21:18:42.000000000 +0100
 @@ -57,7 +57,7 @@
  
    _ftime(&currSysTime);
@@ -782,9 +794,9 @@ diff -Naur pthreads-snap-2004-06-22/tests/mutex8e.c pthreads-snap-2004-06-22_w64
    abstime.tv_nsec = NANOSEC_PER_MILLISEC * currSysTime.millitm;
  
    abstime.tv_sec += 1;
-diff -Naur pthreads-snap-2004-06-22/tests/mutex8n.c pthreads-snap-2004-06-22_w64+bacula-patch/tests/mutex8n.c
+diff -Naur pthreads-snap-2004-06-22/tests/mutex8n.c pthreads-snap-2004-06-22.new/tests/mutex8n.c
 --- pthreads-snap-2004-06-22/tests/mutex8n.c	2002-02-20 05:39:56.000000000 +0100
-+++ pthreads-snap-2004-06-22_w64+bacula-patch/tests/mutex8n.c	2009-01-06 17:17:19.000000000 +0100
++++ pthreads-snap-2004-06-22.new/tests/mutex8n.c	2009-01-06 21:18:42.000000000 +0100
 @@ -57,7 +57,7 @@
  
    _ftime(&currSysTime);
@@ -794,9 +806,9 @@ diff -Naur pthreads-snap-2004-06-22/tests/mutex8n.c pthreads-snap-2004-06-22_w64
    abstime.tv_nsec = NANOSEC_PER_MILLISEC * currSysTime.millitm;
  
    abstime.tv_sec += 1;
-diff -Naur pthreads-snap-2004-06-22/tests/mutex8r.c pthreads-snap-2004-06-22_w64+bacula-patch/tests/mutex8r.c
+diff -Naur pthreads-snap-2004-06-22/tests/mutex8r.c pthreads-snap-2004-06-22.new/tests/mutex8r.c
 --- pthreads-snap-2004-06-22/tests/mutex8r.c	2002-02-20 05:39:56.000000000 +0100
-+++ pthreads-snap-2004-06-22_w64+bacula-patch/tests/mutex8r.c	2009-01-06 17:17:19.000000000 +0100
++++ pthreads-snap-2004-06-22.new/tests/mutex8r.c	2009-01-06 21:18:42.000000000 +0100
 @@ -57,7 +57,7 @@
  
    _ftime(&currSysTime);
@@ -806,9 +818,9 @@ diff -Naur pthreads-snap-2004-06-22/tests/mutex8r.c pthreads-snap-2004-06-22_w64
    abstime.tv_nsec = NANOSEC_PER_MILLISEC * currSysTime.millitm;
  
    abstime.tv_sec += 1;
-diff -Naur pthreads-snap-2004-06-22/tests/rwlock2_t.c pthreads-snap-2004-06-22_w64+bacula-patch/tests/rwlock2_t.c
+diff -Naur pthreads-snap-2004-06-22/tests/rwlock2_t.c pthreads-snap-2004-06-22.new/tests/rwlock2_t.c
 --- pthreads-snap-2004-06-22/tests/rwlock2_t.c	2003-08-19 05:31:51.000000000 +0200
-+++ pthreads-snap-2004-06-22_w64+bacula-patch/tests/rwlock2_t.c	2009-01-06 17:17:19.000000000 +0100
++++ pthreads-snap-2004-06-22.new/tests/rwlock2_t.c	2009-01-06 21:18:42.000000000 +0100
 @@ -55,7 +55,7 @@
  
    _ftime(&currSysTime);
@@ -818,9 +830,9 @@ diff -Naur pthreads-snap-2004-06-22/tests/rwlock2_t.c pthreads-snap-2004-06-22_w
    abstime.tv_nsec = NANOSEC_PER_MILLISEC * currSysTime.millitm;
  
    abstime.tv_sec += 1;
-diff -Naur pthreads-snap-2004-06-22/tests/rwlock3_t.c pthreads-snap-2004-06-22_w64+bacula-patch/tests/rwlock3_t.c
+diff -Naur pthreads-snap-2004-06-22/tests/rwlock3_t.c pthreads-snap-2004-06-22.new/tests/rwlock3_t.c
 --- pthreads-snap-2004-06-22/tests/rwlock3_t.c	2003-08-19 05:31:51.000000000 +0200
-+++ pthreads-snap-2004-06-22_w64+bacula-patch/tests/rwlock3_t.c	2009-01-06 17:17:19.000000000 +0100
++++ pthreads-snap-2004-06-22.new/tests/rwlock3_t.c	2009-01-06 21:18:42.000000000 +0100
 @@ -68,7 +68,7 @@
  
    _ftime(&currSysTime);
@@ -830,9 +842,9 @@ diff -Naur pthreads-snap-2004-06-22/tests/rwlock3_t.c pthreads-snap-2004-06-22_w
    abstime.tv_nsec = NANOSEC_PER_MILLISEC * currSysTime.millitm;
  
    abstime.tv_sec += 1;
-diff -Naur pthreads-snap-2004-06-22/tests/rwlock4_t.c pthreads-snap-2004-06-22_w64+bacula-patch/tests/rwlock4_t.c
+diff -Naur pthreads-snap-2004-06-22/tests/rwlock4_t.c pthreads-snap-2004-06-22.new/tests/rwlock4_t.c
 --- pthreads-snap-2004-06-22/tests/rwlock4_t.c	2003-08-19 05:31:51.000000000 +0200
-+++ pthreads-snap-2004-06-22_w64+bacula-patch/tests/rwlock4_t.c	2009-01-06 17:17:19.000000000 +0100
++++ pthreads-snap-2004-06-22.new/tests/rwlock4_t.c	2009-01-06 21:18:42.000000000 +0100
 @@ -68,7 +68,7 @@
  
    _ftime(&currSysTime);
@@ -842,9 +854,9 @@ diff -Naur pthreads-snap-2004-06-22/tests/rwlock4_t.c pthreads-snap-2004-06-22_w
    abstime.tv_nsec = NANOSEC_PER_MILLISEC * currSysTime.millitm;
  
    abstime.tv_sec += 1;
-diff -Naur pthreads-snap-2004-06-22/tests/rwlock5_t.c pthreads-snap-2004-06-22_w64+bacula-patch/tests/rwlock5_t.c
+diff -Naur pthreads-snap-2004-06-22/tests/rwlock5_t.c pthreads-snap-2004-06-22.new/tests/rwlock5_t.c
 --- pthreads-snap-2004-06-22/tests/rwlock5_t.c	2003-08-19 05:31:51.000000000 +0200
-+++ pthreads-snap-2004-06-22_w64+bacula-patch/tests/rwlock5_t.c	2009-01-06 17:17:19.000000000 +0100
++++ pthreads-snap-2004-06-22.new/tests/rwlock5_t.c	2009-01-06 21:18:42.000000000 +0100
 @@ -70,7 +70,7 @@
  
    _ftime(&currSysTime);
@@ -854,9 +866,9 @@ diff -Naur pthreads-snap-2004-06-22/tests/rwlock5_t.c pthreads-snap-2004-06-22_w
    abstime.tv_nsec = NANOSEC_PER_MILLISEC * currSysTime.millitm;
  
    abstime.tv_sec += 1;
-diff -Naur pthreads-snap-2004-06-22/tests/rwlock6.c pthreads-snap-2004-06-22_w64+bacula-patch/tests/rwlock6.c
+diff -Naur pthreads-snap-2004-06-22/tests/rwlock6.c pthreads-snap-2004-06-22.new/tests/rwlock6.c
 --- pthreads-snap-2004-06-22/tests/rwlock6.c	2003-08-19 05:31:51.000000000 +0200
-+++ pthreads-snap-2004-06-22_w64+bacula-patch/tests/rwlock6.c	2009-01-06 17:17:19.000000000 +0100
++++ pthreads-snap-2004-06-22.new/tests/rwlock6.c	2009-01-06 21:18:42.000000000 +0100
 @@ -77,9 +77,9 @@
    pthread_t wrt1;
    pthread_t wrt2;
@@ -870,9 +882,9 @@ diff -Naur pthreads-snap-2004-06-22/tests/rwlock6.c pthreads-snap-2004-06-22_w64
  
    bankAccount = 0;
  
-diff -Naur pthreads-snap-2004-06-22/tests/rwlock6_t2.c pthreads-snap-2004-06-22_w64+bacula-patch/tests/rwlock6_t2.c
+diff -Naur pthreads-snap-2004-06-22/tests/rwlock6_t2.c pthreads-snap-2004-06-22.new/tests/rwlock6_t2.c
 --- pthreads-snap-2004-06-22/tests/rwlock6_t2.c	2003-08-19 05:31:51.000000000 +0200
-+++ pthreads-snap-2004-06-22_w64+bacula-patch/tests/rwlock6_t2.c	2009-01-06 17:17:19.000000000 +0100
++++ pthreads-snap-2004-06-22.new/tests/rwlock6_t2.c	2009-01-06 21:18:42.000000000 +0100
 @@ -86,15 +86,15 @@
    pthread_t wrt1;
    pthread_t wrt2;
@@ -893,9 +905,9 @@ diff -Naur pthreads-snap-2004-06-22/tests/rwlock6_t2.c pthreads-snap-2004-06-22_
    abstime.tv_nsec = NANOSEC_PER_MILLISEC * currSysTime.millitm;
  
    abstime.tv_sec += 1;
-diff -Naur pthreads-snap-2004-06-22/tests/rwlock6_t.c pthreads-snap-2004-06-22_w64+bacula-patch/tests/rwlock6_t.c
+diff -Naur pthreads-snap-2004-06-22/tests/rwlock6_t.c pthreads-snap-2004-06-22.new/tests/rwlock6_t.c
 --- pthreads-snap-2004-06-22/tests/rwlock6_t.c	2003-08-19 05:31:51.000000000 +0200
-+++ pthreads-snap-2004-06-22_w64+bacula-patch/tests/rwlock6_t.c	2009-01-06 17:17:19.000000000 +0100
++++ pthreads-snap-2004-06-22.new/tests/rwlock6_t.c	2009-01-06 21:18:42.000000000 +0100
 @@ -67,7 +67,7 @@
  
    _ftime(&currSysTime);
@@ -920,9 +932,9 @@ diff -Naur pthreads-snap-2004-06-22/tests/rwlock6_t.c pthreads-snap-2004-06-22_w
  
    bankAccount = 0;
  
-diff -Naur pthreads-snap-2004-06-22/tests/semaphore1.c pthreads-snap-2004-06-22_w64+bacula-patch/tests/semaphore1.c
+diff -Naur pthreads-snap-2004-06-22/tests/semaphore1.c pthreads-snap-2004-06-22.new/tests/semaphore1.c
 --- pthreads-snap-2004-06-22/tests/semaphore1.c	2003-08-19 05:31:51.000000000 +0200
-+++ pthreads-snap-2004-06-22_w64+bacula-patch/tests/semaphore1.c	2009-01-06 17:17:19.000000000 +0100
++++ pthreads-snap-2004-06-22.new/tests/semaphore1.c	2009-01-06 21:18:42.000000000 +0100
 @@ -117,7 +117,7 @@
  {
    pthread_t t;
@@ -932,9 +944,9 @@ diff -Naur pthreads-snap-2004-06-22/tests/semaphore1.c pthreads-snap-2004-06-22_
  
    assert(pthread_create(&t, NULL, thr, NULL) == 0);
    assert(pthread_join(t, (void **)&result) == 0);
-diff -Naur pthreads-snap-2004-06-22/tests/spin4.c pthreads-snap-2004-06-22_w64+bacula-patch/tests/spin4.c
+diff -Naur pthreads-snap-2004-06-22/tests/spin4.c pthreads-snap-2004-06-22.new/tests/spin4.c
 --- pthreads-snap-2004-06-22/tests/spin4.c	2003-08-19 05:31:51.000000000 +0200
-+++ pthreads-snap-2004-06-22_w64+bacula-patch/tests/spin4.c	2009-01-06 17:17:19.000000000 +0100
++++ pthreads-snap-2004-06-22.new/tests/spin4.c	2009-01-06 21:18:42.000000000 +0100
 @@ -63,7 +63,7 @@
  int
  main()
@@ -944,9 +956,9 @@ diff -Naur pthreads-snap-2004-06-22/tests/spin4.c pthreads-snap-2004-06-22_w64+b
    pthread_t t;
    int CPUs;
    struct _timeb sysTime;
-diff -Naur pthreads-snap-2004-06-22/tests/tsd1.c pthreads-snap-2004-06-22_w64+bacula-patch/tests/tsd1.c
+diff -Naur pthreads-snap-2004-06-22/tests/tsd1.c pthreads-snap-2004-06-22.new/tests/tsd1.c
 --- pthreads-snap-2004-06-22/tests/tsd1.c	2003-08-19 05:31:51.000000000 +0200
-+++ pthreads-snap-2004-06-22_w64+bacula-patch/tests/tsd1.c	2009-01-06 17:17:19.000000000 +0100
++++ pthreads-snap-2004-06-22.new/tests/tsd1.c	2009-01-06 21:18:42.000000000 +0100
 @@ -171,7 +171,7 @@
     */
    for (i = 1; i < 10; i++)
