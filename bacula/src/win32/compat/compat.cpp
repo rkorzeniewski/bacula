@@ -737,7 +737,7 @@ fstat(int fd, struct stat *sb)
 {
    BY_HANDLE_FILE_INFORMATION info;
 
-   if (!GetFileInformationByHandle((HANDLE)fd, &info)) {
+   if (!GetFileInformationByHandle((HANDLE)_get_osfhandle(fd), &info)) {
        const char *err = errorString();
        Dmsg1(2099, "GetfileInformationByHandle: %s\n", err);
        LocalFree((void *)err);
