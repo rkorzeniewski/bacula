@@ -401,7 +401,7 @@ bool dir_create_jobmedia_record(DCR *dcr, bool zero)
    /* Throw out records where FI is zero -- i.e. nothing done */
    if (!zero && dcr->VolFirstIndex == 0 && 
         (dcr->StartBlock != 0 || dcr->EndBlock != 0)) {
-      Dmsg0(000, "JobMedia problem FI=0 StartBlock!=0\n");
+      Dmsg0(100, "JobMedia FI=0 StartBlock!=0 record suppressed\n");
       return true;
    }
 
