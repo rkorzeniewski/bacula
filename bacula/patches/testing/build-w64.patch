@@ -289,23 +289,26 @@ Index: src/win32/dll/bacula.def
 ===================================================================
 --- src/win32/dll/bacula.def	(révision 8323)
 +++ src/win32/dll/bacula.def	(copie de travail)
-@@ -24,7 +24,6 @@
+@@ -23,8 +23,8 @@
+ _Z17SetVSSPathConvertPFiPKcPciEPFiPKwPwiE
  _Z18CreateChildProcessPKcPvS1_S1_
  _Z18GetApplicationNamePKcPPcPS0_
++_Z18cvt_utime_to_ftimeRKxR9_FILETIME
  _Z18cvt_ftime_to_utimeRK9_FILETIME
 -_Z18cvt_utime_to_ftimeRKlR9_FILETIME
  _Z18unix_name_to_win32PPcS_
  _Z21Win32ConvCleanupCachev
  _Z21make_wchar_win32_pathPcPi
-@@ -37,7 +36,6 @@
+@@ -37,7 +37,7 @@
  _Z5chownPKcjj
  _Z5fcntlii
  _Z5fcntliil
 -_Z5fstatiP4stat
++_Z5fstatxP4stat
  _Z5lstatPKcP4stat
  _Z5sleepi
  _Z6execvpPKcPPc
-@@ -73,10 +71,7 @@
+@@ -73,11 +73,11 @@
  _Z19dbg_plugin_add_hookPFvP6PluginP6_iobufE
  
  ; print.o
@@ -313,10 +316,14 @@ Index: src/win32/dll/bacula.def
  _Z10__vsprintfPcPKcS_
 -_Z11__vsnprintfPcjPKcS_
 -_Z4doprPcjPKcS_PFvS_PjjiE
++_Z11__vsnprintfPcyPKcS_
++_Z10__snprintfPcyPKcz
  _Z9__sprintfPcPKcz
++_Z4doprPcyPKcS_PFvS_PyyiE
   
  ; winapi.o
-@@ -89,12 +84,6 @@
+ _Z17InitWinAPIWrapperv
+@@ -89,12 +89,6 @@
  _Z14set_attributesP3JCRP4ATTRP5BFILE
  _Z16encode_attribsExP3JCRPcP6FF_PKT
  _Z18select_data_streamP6FF_PKT
@@ -329,42 +336,50 @@ Index: src/win32/dll/bacula.def
  _Z9win_errorP3JCRPcS1_
  _Z9win_errorP3JCRPcm
   
-@@ -109,14 +98,11 @@
+@@ -109,15 +103,15 @@
  _Z18is_portable_backupP5BFILE
  _Z19set_portable_backupP5BFILE
  _Z14set_cmd_pluginP5BFILEP3JCR
 -_Z26processWin32BackupAPIBlockP5BFILEPvl
++_Z26processWin32BackupAPIBlockP5BFILEPvx
  _Z27is_restore_stream_supportedi
  _Z5binitP5BFILE
  _Z5bopenP5BFILEPKcit
 -_Z5breadP5BFILEPvj
++_Z5breadP5BFILEPvy
  _Z6bcloseP5BFILE
  _Z6blseekP5BFILExi
 -_Z6bwriteP5BFILEPvj
  _Z8is_bopenP5BFILE
++_Z6bwriteP5BFILEPvy
   
  ; create_file.o
-@@ -133,7 +119,6 @@
+ _Z11create_fileP3JCRP4ATTRP5BFILEi
+@@ -133,7 +127,7 @@
  _Z13is_in_filesetP6FF_PKT
  _Z15init_find_filesv
  _Z15term_find_filesP6FF_PKT
 -_Z16set_find_optionsP6FF_PKTil
++_Z16set_find_optionsP6FF_PKTix
  _Z22get_win32_drivelettersP6FF_PKTPc
  _Z25set_find_changed_functionP6FF_PKTPFbP3JCRS0_E
   
-@@ -269,7 +254,6 @@
+@@ -269,7 +263,7 @@
  _ZN7BREGEXP7replaceEPKc
   
  ; bregex.o
 -_Z24re_registers_to_regmatchP12re_registersP12b_regmatch_tj
++_Z24re_registers_to_regmatchP12re_registersP12b_regmatch_ty
  b_re_compile_fastmap
  b_re_compile_initialize
  b_re_compile_pattern
-@@ -298,12 +282,10 @@
+@@ -298,12 +292,12 @@
  _ZN5BSOCK4initEv
  _ZN5BSOCK4recvEv
  _ZN5BSOCK4sendEv
 -_ZN5BSOCK5_openEP3JCRPKcPcS4_ixPi
++_ZN5BSOCK4openEP3JCRPKcPcS4_ixPi
++_ZN5BSOCK7despoolEPFvxEx
  _ZN5BSOCK5closeEv
  _ZN5BSOCK5fsendEPKcz
  _ZN5BSOCK6signalEi
@@ -373,27 +388,31 @@ Index: src/win32/dll/bacula.def
  _ZN5BSOCK7destroyEv
  _ZN5BSOCK8fin_initEP3JCRiPKcS3_iP8sockaddr
  _ZN5BSOCK8get_peerEPci
-@@ -311,7 +293,6 @@
+@@ -311,7 +305,7 @@
  _ZN5BSOCK9wait_dataEii
   
  ; bsys.o
 -_Z10b_strerroriPcj
++_Z10b_strerroriPcy
  _Z11bmicrosleepii
  _Z15create_pid_filePcPKci
  _Z15delete_pid_filePcPKci
-@@ -322,11 +303,8 @@
+@@ -322,11 +316,11 @@
  _Z4dropPcS_
  _Z5bfreePv
  _Z6bfgetsPciP6_iobuf
 -_Z7bcallocjj
++_Z7bcallocyy
  _Z7bstrcmpPKcS0_
  _Z7cstrlenPKc
 -_Z8b_mallocPKcij
 -_Z8breallocPvj
++_Z8b_mallocPKciy
++_Z8breallocPvy
  _Z8bstrncatPcPKci
  _Z8bstrncatPcR8POOL_MEMi
  _Z8bstrncpyPcPKci
-@@ -349,7 +327,6 @@
+@@ -349,7 +343,6 @@
  _Z17date_time_compareP9date_timeS0_
  _Z17get_current_btimev
  _Z6tm_womii
@@ -401,11 +420,12 @@ Index: src/win32/dll/bacula.def
  _Z9bstrftimePcix
  _Z9bstrutimePcix
  _Z9tm_decodeP9date_timeP2tm
-@@ -359,7 +336,6 @@
+@@ -359,7 +352,7 @@
  _Z16stop_bsock_timerP8btimer_t
  _Z16stop_child_timerP8btimer_t
  _Z17start_bsock_timerP5BSOCKj
 -_Z17start_child_timerP3JCRij
++_Z17start_child_timerP3JCRxj
  _Z17stop_thread_timerP8btimer_t
  _Z18start_thread_timerP3JCRP10pthread_t_j
  
