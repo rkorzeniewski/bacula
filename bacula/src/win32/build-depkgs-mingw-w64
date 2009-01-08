@@ -253,9 +253,9 @@ process_openssl()
 
 if [ "$#" -eq 0 ]
 then
-#   process_zlib
-#   process_pcre
-#   process_pthreads
+   process_zlib
+   process_pcre
+   process_pthreads
    process_openssl
 else
    for dependency in "$@"
