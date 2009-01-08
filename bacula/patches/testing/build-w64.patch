@@ -1,3 +1,29 @@
+Index: src/win32/filed/vss.cpp
+===================================================================
+--- src/win32/filed/vss.cpp	(révision 8323)
++++ src/win32/filed/vss.cpp	(copie de travail)
+@@ -215,7 +215,7 @@
+ const int VSSClient::GetWriterState(int nIndex)
+ {
+    alist* pV = (alist*)m_pAlistWriterState;   
+-   return (int)pV->get(nIndex);
++   return (int)(intptr_t)pV->get(nIndex);
+ }
+ 
+ void VSSClient::AppendWriterInfo(int nState, const char* pszInfo)
+Index: src/win32/filed/Makefile
+===================================================================
+--- src/win32/filed/Makefile	(révision 8323)
++++ src/win32/filed/Makefile	(copie de travail)
+@@ -62,7 +62,7 @@
+ 	$(LIBS_ZLIB) \
+ 	-lole32 \
+ 	-loleaut32 \
+-	-lwsock32 \
++	-lws2_32 \
+ 	-luuid \
+ 	-lcomctl32
+ 
 Index: src/win32/Makefile
 ===================================================================
 --- src/win32/Makefile	(révision 8323)
@@ -52,7 +78,7 @@ Index: src/win32/compat/compat.h
 ===================================================================
 --- src/win32/compat/compat.h	(révision 8323)
 +++ src/win32/compat/compat.h	(copie de travail)
-@@ -57,6 +57,11 @@
+@@ -57,6 +57,15 @@
  
  #include <malloc.h>
  
@@ -61,10 +87,14 @@ Index: src/win32/compat/compat.h
 +#define _declspec __declspec
 +#endif
 +
++#ifdef _WIN64
++# define GWL_USERDATA  GWLP_USERDATA
++#endif
++
  typedef UINT64 u_int64_t;
  typedef UINT64 uint64_t;
  typedef INT64 int64_t;
-@@ -74,8 +79,11 @@
+@@ -74,8 +83,11 @@
  #endif
  
  #if !defined(_MSC_VER) || (_MSC_VER < 1400) // VC8+
@@ -77,7 +107,7 @@ Index: src/win32/compat/compat.h
  
  #if __STDC__ && !defined(HAVE_MINGW)
  typedef _dev_t dev_t;
-@@ -129,10 +137,15 @@
+@@ -129,10 +141,15 @@
  #endif
  #endif
  
@@ -93,8 +123,14 @@ Index: src/win32/compat/compat.h
  int strcasecmp(const char*, const char *);
  int gettimeofday(struct timeval *, struct timezone *);
  
-@@ -247,7 +260,7 @@
- #define open   _open
+@@ -244,10 +261,12 @@
+ ssize_t win32_write(int fd, const void *buffer, size_t count);
+ int win32_ioctl(int fd, unsigned long int req, ...);
+ 
+-#define open   _open
++#if !defined(MINGW64)
++# define open   _open
++#endif
  
  int fcntl(int fd, int cmd, long arg);
 -int fstat(int fd, struct stat *sb);
@@ -102,17 +138,16 @@ Index: src/win32/compat/compat.h
  
  int inet_aton(const char *cp, struct in_addr *inp);
  int kill(int pid, int signo);
-@@ -264,6 +277,10 @@
+@@ -263,6 +282,9 @@
+ #define snprintf _snprintf
  #endif //HAVE_MINGW
- 
  
 +#ifdef MINGW64
 +int utime(const char *filename, struct utimbuf *buf);
 +#endif
-+
+ 
  #define WNOHANG 0
  #define WIFEXITED(x) 0
- #define WEXITSTATUS(x) x
 Index: src/win32/compat/print.cpp
 ===================================================================
 --- src/win32/compat/print.cpp	(révision 8323)
@@ -126,10 +161,115 @@ Index: src/win32/compat/print.cpp
                         flags, outch);
                  break;
              case 'n':
+Index: src/win32/libwin32/statusDialog.cpp
+===================================================================
+--- src/win32/libwin32/statusDialog.cpp	(révision 8323)
++++ src/win32/libwin32/statusDialog.cpp	(copie de travail)
+@@ -110,7 +110,7 @@
+          
+          if (*p == '\n') {
+             SendMessage(statDlg->m_textWin, EM_SETSEL, (WPARAM)-1, (LPARAM)-1);
+-            SendMessage(statDlg->m_textWin, EM_REPLACESEL, 0, (LONG)"\r\n");
++            SendMessage(statDlg->m_textWin, EM_REPLACESEL, 0, (LPARAM)"\r\n");
+          }
+ 
+          if (*p == '\0'){
+@@ -149,7 +149,7 @@
+ {
+    if (show && !m_visible) {
+       DialogBoxParam(appInstance, MAKEINTRESOURCE(IDD_STATUS), NULL,
+-          (DLGPROC)dialogProc, (LONG)this);
++          (DLGPROC)dialogProc, (LPARAM)this);
+    }
+ }
+ 
+Index: src/win32/libwin32/bacula.rc
+===================================================================
+--- src/win32/libwin32/bacula.rc	(révision 8323)
++++ src/win32/libwin32/bacula.rc	(copie de travail)
+@@ -104,15 +104,14 @@
+  * About Dialog
+  */
+ IDD_ABOUT DIALOG  0, 0, 250, 145
+-STYLE DS_SETFONT | DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+ CAPTION "About Bacula"
+ FONT 8, "MS Sans Serif"
+ BEGIN
+-    DEFPUSHBUTTON   "OK",IDOK,190,120,50,15
++//    DEFPUSHBUTTON   "OK",IDOK,190,120,50,15
+ //  CONTROL         "\3", IDC_BACULABMP,"Static",SS_ICON | SS_CENTERIMAGE |
+ //                  SS_SUNKEN,7,5,73,65
+ #ifndef HAVE_MINGW
+-    CONTROL         IDB_BACULABMP,IDB_BACULABMP,"Static",SS_BITMAP|SS_SUNKEN,7,5,32,32
++//    CONTROL         IDB_BACULABMP,IDB_BACULABMP,"Static",SS_BITMAP|SS_SUNKEN,7,5,32,32
+ #endif
+ 
+     LTEXT           "      by Kern Sibbald",-1,134,38,78,10
+@@ -132,10 +131,10 @@
+  * Status Dialog
+  */
+ IDD_STATUS DIALOGEX 0, 0, 411, 244
+-STYLE DS_SETFONT | DS_3DLOOK | DS_CENTER | WS_MINIMIZEBOX | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
++//STYLE DS_SETFONT | DS_3DLOOK | DS_CENTER | WS_MINIMIZEBOX | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
+ CAPTION "Bacula Status"
+ FONT 8, "Courier New"
+ BEGIN
+-    DEFPUSHBUTTON   "&OK",IDOK,355,5,51,15
+-    EDITTEXT        IDC_TEXTDISPLAY, 2, 2, 350, 240, WS_VSCROLL | WS_HSCROLL | WS_BORDER | ES_READONLY | ES_MULTILINE
++//    DEFPUSHBUTTON   "&OK",IDOK,355,5,51,15
++//    EDITTEXT        IDC_TEXTDISPLAY, 2, 2, 350, 240, WS_VSCROLL | WS_HSCROLL | WS_BORDER | ES_READONLY | ES_MULTILINE
+ END
+Index: src/win32/libwin32/main.cpp
+===================================================================
+--- src/win32/libwin32/main.cpp	(révision 8323)
++++ src/win32/libwin32/main.cpp	(copie de travail)
+@@ -53,7 +53,7 @@
+ #include <pthread.h>
+ 
+ #undef  _WIN32_IE
+-#define _WIN32_IE 0x0401
++#define _WIN32_IE 0x0501
+ #undef  _WIN32_WINNT
+ #define _WIN32_WINNT 0x0501
+ #include <commctrl.h>
+Index: src/win32/libwin32/trayMonitor.cpp
+===================================================================
+--- src/win32/libwin32/trayMonitor.cpp	(révision 8323)
++++ src/win32/libwin32/trayMonitor.cpp	(copie de travail)
+@@ -73,7 +73,7 @@
+    }
+ 
+    /* Save our class pointer */
+-   SetWindowLong(m_hwnd, GWL_USERDATA, (LONG)this);
++   SetWindowLong(m_hwnd, GWL_USERDATA, (LPARAM)this);
+ 
+ 
+    // Load the icons for the tray
+Index: src/win32/libwin32/aboutDialog.cpp
+===================================================================
+--- src/win32/libwin32/aboutDialog.cpp	(révision 8323)
++++ src/win32/libwin32/aboutDialog.cpp	(copie de travail)
+@@ -76,6 +76,6 @@
+ {
+    if (show && !m_visible) {
+       DialogBoxParam(appInstance, MAKEINTRESOURCE(IDD_ABOUT), NULL,
+-         (DLGPROC)DialogProc, (LONG)this);
++         (DLGPROC)DialogProc, (LPARAM)this);
+    }
+ }
 Index: src/win32/Makefile.inc.in
 ===================================================================
 --- src/win32/Makefile.inc.in	(révision 8323)
 +++ src/win32/Makefile.inc.in	(copie de travail)
+@@ -9,7 +9,7 @@
+ 
+ # Global Configuration
+ 
+-ECHO_CMD = @
++ECHO_CMD =
+ 
+ # Main Bacula source dir
+ MAINDIR := @WIN32MAINDIR@
 @@ -37,12 +37,12 @@
  AR := $(MINGW_BIN)/mingw32-ar
  RANLIB := $(MINGW_BIN)/mingw32-ranlib
@@ -145,6 +285,130 @@ Index: src/win32/Makefile.inc.in
  LDFLAGS := -g -Wall -mno-cygwin -Wl,--disable-auto-import
  
  INCLUDE_DDK := -I$(MINGW_INCLUDE)/ddk
+Index: src/win32/dll/bacula.def
+===================================================================
+--- src/win32/dll/bacula.def	(révision 8323)
++++ src/win32/dll/bacula.def	(copie de travail)
+@@ -24,7 +24,6 @@
+ _Z18CreateChildProcessPKcPvS1_S1_
+ _Z18GetApplicationNamePKcPPcPS0_
+ _Z18cvt_ftime_to_utimeRK9_FILETIME
+-_Z18cvt_utime_to_ftimeRKlR9_FILETIME
+ _Z18unix_name_to_win32PPcS_
+ _Z21Win32ConvCleanupCachev
+ _Z21make_wchar_win32_pathPcPi
+@@ -37,7 +36,6 @@
+ _Z5chownPKcjj
+ _Z5fcntlii
+ _Z5fcntliil
+-_Z5fstatiP4stat
+ _Z5lstatPKcP4stat
+ _Z5sleepi
+ _Z6execvpPKcPPc
+@@ -73,10 +71,7 @@
+ _Z19dbg_plugin_add_hookPFvP6PluginP6_iobufE
+ 
+ ; print.o
+-_Z10__snprintfPcjPKcz
+ _Z10__vsprintfPcPKcS_
+-_Z11__vsnprintfPcjPKcS_
+-_Z4doprPcjPKcS_PFvS_PjjiE
+ _Z9__sprintfPcPKcz
+  
+ ; winapi.o
+@@ -89,12 +84,6 @@
+ _Z14set_attributesP3JCRP4ATTRP5BFILE
+ _Z16encode_attribsExP3JCRPcP6FF_PKT
+ _Z18select_data_streamP6FF_PKT
+-_Z4plugIjEvRT_y
+-_Z4plugIlEvRT_y
+-_Z4plugImEvRT_y
+-_Z4plugIsEvRT_y
+-_Z4plugItEvRT_y
+-_Z4plugIyEvRT_y
+ _Z9win_errorP3JCRPcS1_
+ _Z9win_errorP3JCRPcm
+  
+@@ -109,14 +98,11 @@
+ _Z18is_portable_backupP5BFILE
+ _Z19set_portable_backupP5BFILE
+ _Z14set_cmd_pluginP5BFILEP3JCR
+-_Z26processWin32BackupAPIBlockP5BFILEPvl
+ _Z27is_restore_stream_supportedi
+ _Z5binitP5BFILE
+ _Z5bopenP5BFILEPKcit
+-_Z5breadP5BFILEPvj
+ _Z6bcloseP5BFILE
+ _Z6blseekP5BFILExi
+-_Z6bwriteP5BFILEPvj
+ _Z8is_bopenP5BFILE
+  
+ ; create_file.o
+@@ -133,7 +119,6 @@
+ _Z13is_in_filesetP6FF_PKT
+ _Z15init_find_filesv
+ _Z15term_find_filesP6FF_PKT
+-_Z16set_find_optionsP6FF_PKTil
+ _Z22get_win32_drivelettersP6FF_PKTPc
+ _Z25set_find_changed_functionP6FF_PKTPFbP3JCRS0_E
+  
+@@ -269,7 +254,6 @@
+ _ZN7BREGEXP7replaceEPKc
+  
+ ; bregex.o
+-_Z24re_registers_to_regmatchP12re_registersP12b_regmatch_tj
+ b_re_compile_fastmap
+ b_re_compile_initialize
+ b_re_compile_pattern
+@@ -298,12 +282,10 @@
+ _ZN5BSOCK4initEv
+ _ZN5BSOCK4recvEv
+ _ZN5BSOCK4sendEv
+-_ZN5BSOCK5_openEP3JCRPKcPcS4_ixPi
+ _ZN5BSOCK5closeEv
+ _ZN5BSOCK5fsendEPKcz
+ _ZN5BSOCK6signalEi
+ _ZN5BSOCK7connectEP3JCRixxPKcPcS4_ii
+-_ZN5BSOCK7despoolEPFvlEl
+ _ZN5BSOCK7destroyEv
+ _ZN5BSOCK8fin_initEP3JCRiPKcS3_iP8sockaddr
+ _ZN5BSOCK8get_peerEPci
+@@ -311,7 +293,6 @@
+ _ZN5BSOCK9wait_dataEii
+  
+ ; bsys.o
+-_Z10b_strerroriPcj
+ _Z11bmicrosleepii
+ _Z15create_pid_filePcPKci
+ _Z15delete_pid_filePcPKci
+@@ -322,11 +303,8 @@
+ _Z4dropPcS_
+ _Z5bfreePv
+ _Z6bfgetsPciP6_iobuf
+-_Z7bcallocjj
+ _Z7bstrcmpPKcS0_
+ _Z7cstrlenPKc
+-_Z8b_mallocPKcij
+-_Z8breallocPvj
+ _Z8bstrncatPcPKci
+ _Z8bstrncatPcR8POOL_MEMi
+ _Z8bstrncpyPcPKci
+@@ -349,7 +327,6 @@
+ _Z17date_time_compareP9date_timeS0_
+ _Z17get_current_btimev
+ _Z6tm_womii
+-_Z6tm_woyl
+ _Z9bstrftimePcix
+ _Z9bstrutimePcix
+ _Z9tm_decodeP9date_timeP2tm
+@@ -359,7 +336,6 @@
+ _Z16stop_bsock_timerP8btimer_t
+ _Z16stop_child_timerP8btimer_t
+ _Z17start_bsock_timerP5BSOCKj
+-_Z17start_child_timerP3JCRij
+ _Z17stop_thread_timerP8btimer_t
+ _Z18start_thread_timerP3JCRP10pthread_t_j
+ 
 Index: src/win32/dll/Makefile
 ===================================================================
 --- src/win32/dll/Makefile	(révision 8323)
