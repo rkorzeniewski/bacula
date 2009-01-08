@@ -1,0 +1,208 @@
+Index: src/win32/Makefile
+===================================================================
+--- src/win32/Makefile	(révision 8323)
++++ src/win32/Makefile	(copie de travail)
+@@ -1,4 +1,4 @@
+-ECHO_CMD=@
++ECHO_CMD=
+ 
+ DIRS=	dll \
+ 	cats \
+Index: src/win32/compat/compat.cpp
+===================================================================
+--- src/win32/compat/compat.cpp	(révision 8323)
++++ src/win32/compat/compat.cpp	(copie de travail)
+@@ -733,7 +733,7 @@
+ }
+ 
+ int
+-fstat(int fd, struct stat *sb)
++fstat(intptr_t fd, struct stat *sb)
+ {
+    BY_HANDLE_FILE_INFORMATION info;
+ 
+@@ -827,7 +827,7 @@
+       return -1;
+    }
+ 
+-   rval = fstat((int)h, sb);
++   rval = fstat((intptr_t)h, sb);
+    CloseHandle(h);
+ 
+    if (attr & FILE_ATTRIBUTE_DIRECTORY &&
+@@ -2201,7 +2201,7 @@
+                                      // process terminates we can
+                                      // detect eof.
+         // ugly but convert WIN32 HANDLE to FILE*
+-        int rfd = _open_osfhandle((long)hChildStdoutRdDup, O_RDONLY | O_BINARY);
++        int rfd = _open_osfhandle((intptr_t)hChildStdoutRdDup, O_RDONLY | O_BINARY);
+         if (rfd >= 0) {
+            bpipe->rfd = _fdopen(rfd, "rb");
+         }
+@@ -2210,7 +2210,7 @@
+         CloseHandle(hChildStdinRd); // close our read side so as not
+                                     // to interfre with child's copy
+         // ugly but convert WIN32 HANDLE to FILE*
+-        int wfd = _open_osfhandle((long)hChildStdinWrDup, O_WRONLY | O_BINARY);
++        int wfd = _open_osfhandle((intptr_t)hChildStdinWrDup, O_WRONLY | O_BINARY);
+         if (wfd >= 0) {
+            bpipe->wfd = _fdopen(wfd, "wb");
+         }
+Index: src/win32/compat/compat.h
+===================================================================
+--- src/win32/compat/compat.h	(révision 8323)
++++ src/win32/compat/compat.h	(copie de travail)
+@@ -57,6 +57,11 @@
+ 
+ #include <malloc.h>
+ 
++#ifdef MINGW64
++#include <direct.h>
++#define _declspec __declspec
++#endif
++
+ typedef UINT64 u_int64_t;
+ typedef UINT64 uint64_t;
+ typedef INT64 int64_t;
+@@ -74,8 +79,11 @@
+ #endif
+ 
+ #if !defined(_MSC_VER) || (_MSC_VER < 1400) // VC8+
+-typedef long time_t;
++#ifndef _TIME_T_DEFINED
++#define _TIME_T_DEFINED
++ typedef long time_t;
+ #endif
++#endif
+ 
+ #if __STDC__ && !defined(HAVE_MINGW)
+ typedef _dev_t dev_t;
+@@ -129,10 +137,15 @@
+ #endif
+ #endif
+ 
++#ifndef _TIMEZONE_DEFINED /* also in sys/time.h */
++#define _TIMEZONE_DEFINED
++
+ struct timezone {
+     int foo;
+ };
+ 
++#endif
++
+ int strcasecmp(const char*, const char *);
+ int gettimeofday(struct timeval *, struct timezone *);
+ 
+@@ -247,7 +260,7 @@
+ #define open   _open
+ 
+ int fcntl(int fd, int cmd, long arg);
+-int fstat(int fd, struct stat *sb);
++int fstat(intptr_t fd, struct stat *sb);
+ 
+ int inet_aton(const char *cp, struct in_addr *inp);
+ int kill(int pid, int signo);
+@@ -264,6 +277,10 @@
+ #endif //HAVE_MINGW
+ 
+ 
++#ifdef MINGW64
++int utime(const char *filename, struct utimbuf *buf);
++#endif
++
+ #define WNOHANG 0
+ #define WIFEXITED(x) 0
+ #define WEXITSTATUS(x) x
+Index: src/win32/compat/print.cpp
+===================================================================
+--- src/win32/compat/print.cpp	(révision 8323)
++++ src/win32/compat/print.cpp	(copie de travail)
+@@ -340,7 +340,7 @@
+             case 'p':
+                 strvalue = (char *) va_arg(args, void *);
+                 flags |= DP_F_UNSIGNED;
+-                fmtint(buffer, &currlen, maxlen, (long) strvalue, 16, min, max,
++                fmtint(buffer, &currlen, maxlen, (INT64) strvalue, 16, min, max,
+                        flags, outch);
+                 break;
+             case 'n':
+Index: src/win32/Makefile.inc.in
+===================================================================
+--- src/win32/Makefile.inc.in	(révision 8323)
++++ src/win32/Makefile.inc.in	(copie de travail)
+@@ -37,12 +37,12 @@
+ AR := $(MINGW_BIN)/mingw32-ar
+ RANLIB := $(MINGW_BIN)/mingw32-ranlib
+ WINDRES := $(MINGW_BIN)/mingw32-windres
+-DLLTOOL := $(MINGW_BIN)/../mingw32/bin/dlltool
++DLLTOOL := $(MINGW_BIN)/mingw32-dlltool
+ OBJCPY := $(MINGW_BIN)/mingw32-objcopy
+ NSIS_DIR := $(DEPKGS)/nsis
+ STAB2CV := $(DEPKGS)/tools/bin/stab2cv
+ 
+-CFLAGS := -g -Wall -mno-cygwin -m32 -mwin32 -mthreads -O3 -fno-strict-aliasing
++CFLAGS := -g -Wall -mno-cygwin -mthreads -O3 -fno-strict-aliasing
+ LDFLAGS := -g -Wall -mno-cygwin -Wl,--disable-auto-import
+ 
+ INCLUDE_DDK := -I$(MINGW_INCLUDE)/ddk
+Index: src/win32/dll/Makefile
+===================================================================
+--- src/win32/dll/Makefile	(révision 8323)
++++ src/win32/dll/Makefile	(copie de travail)
+@@ -109,7 +109,7 @@
+ 	$(LIBS_CRYPTO) \
+ 	$(LIBS_PTHREADS) \
+ 	$(LIBS_ZLIB) \
+-	-lwsock32 \
++	-lws2_32 \
+ 	-lole32 \
+ 	-loleaut32 \
+ 	-luuid
+Index: src/lib/message.c
+===================================================================
+--- src/lib/message.c	(révision 8323)
++++ src/lib/message.c	(copie de travail)
+@@ -370,10 +370,10 @@
+ {
+    if (jcr) {
+       Mmsg(name, "%s/%s.%s.%d.mail", working_directory, my_name,
+-                 jcr->Job, (int)(long)d);
++                 jcr->Job, (int)(intptr_t)d);
+    } else {
+       Mmsg(name, "%s/%s.%s.%d.mail", working_directory, my_name,
+-                 my_name, (int)(long)d);
++                 my_name, (int)(intptr_t)d);
+    }
+    Dmsg1(850, "mailname=%s\n", name);
+ }
+Index: src/lib/smartall.c
+===================================================================
+--- src/lib/smartall.c	(révision 8323)
++++ src/lib/smartall.c	(copie de travail)
+@@ -134,7 +134,7 @@
+       head->ablineno = (sm_ushort)lineno;
+       head->abin_use = true;
+       /* Emplace end-clobber detector at end of buffer */
+-      buf[nbytes - 1] = (uint8_t)((((long) buf) & 0xFF) ^ 0xC5);
++      buf[nbytes - 1] = (uint8_t)((((intptr_t) buf) & 0xFF) ^ 0xC5);
+       buf += HEAD_SIZE;  /* Increment to user data start */
+       if (++sm_buffers > sm_max_buffers) {
+          sm_max_buffers = sm_buffers;
+@@ -212,7 +212,7 @@
+       allocated  space in the buffer by comparing the end of buffer
+       checksum with the address of the buffer.  */
+ 
+-   if (((unsigned char *)cp)[head->ablen - 1] != ((((long) cp) & 0xFF) ^ 0xC5)) {
++   if (((unsigned char *)cp)[head->ablen - 1] != ((((intptr_t) cp) & 0xFF) ^ 0xC5)) {
+       V(mutex);
+       Emsg2(M_ABORT, 0, _("Buffer overrun called from %s:%d\n"), file, line);
+    }
+@@ -463,7 +463,7 @@
+             bad |= 0x2;
+          }
+          if (((unsigned char *) ap)[((struct abufhead *)ap)->ablen - 1] !=
+-              ((((long) ap) & 0xFF) ^ 0xC5)) {
++              ((((intptr_t) ap) & 0xFF) ^ 0xC5)) {
+             bad |= 0x4;
+          }
+       } else {
