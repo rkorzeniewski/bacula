@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2004-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2004-2009 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -51,6 +51,7 @@ const char *berrno::bstrerror()
 {
 #ifdef HAVE_WIN32
    if (m_berrno & b_errno_win32) {
+      format_win32_message();
       return (const char *)m_buf;
    }
 #else
@@ -92,19 +93,16 @@ void berrno::format_win32_message()
 {
 #ifdef HAVE_WIN32
    LPVOID msg;
-   if (m_berrno & b_errno_win32) {
-      FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER |
-          FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-          NULL,
-          GetLastError(),
-          MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-          (LPTSTR)&msg,
-          0,
-          NULL);
-
-      pm_strcpy(&m_buf, (const char *)msg);
-      LocalFree(msg);
-   }
+   FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER |
+       FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+       NULL,
+       GetLastError(),
+       MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+       (LPTSTR)&msg,
+       0,
+       NULL);
+   pm_strcpy(&m_buf, (const char *)msg);
+   LocalFree(msg);
 #endif
 }
 
