@@ -24,6 +24,26 @@ Index: src/win32/filed/Makefile
  	-luuid \
  	-lcomctl32
  
+Index: src/win32/build-depkgs-mingw-w64
+===================================================================
+--- src/win32/build-depkgs-mingw-w64	(révision 8339)
++++ src/win32/build-depkgs-mingw-w64	(copie de travail)
+@@ -246,7 +246,14 @@
+    perl util/mkdef.pl 32 libeay no-static-engine >ms/libeay32.def
+    perl util/mkdef.pl 32 ssleay >ms/ssleay32.def
+    perl util/mkdef.pl crypto ssl NT update
+-   CFLAG=-I${DEPPKG_DIR}/include do_make Makefile all
++   CFLAGS=-I${DEPPKG_DIR}/include do_make Makefile all
++   cd engines
++   touch lib4758cca.bad libaep.bad libatalla.bad libcswift.bad libchil.bad libgmp.bad libnuron.bad libsureware.bad libubsec.bad libcapi.bad
++   cd ..
++   sed -i 's/ cc/ mingw32-gcc/' crypto/comp/Makefile
++   sed -i 's/ ar/ mingw32-ar/'  crypto/comp/Makefile
++   sed -i 's:^CFLAGS=:CFLAGS= -I${DEPPKG_DIR}/include:' crypto/comp/Makefile
++   CFLAGS=-I${DEPPKG_DIR}/include do_make Makefile all
+    echo Installing openssl
+    do_make Makefile install_sw
+ }
 Index: src/win32/Makefile
 ===================================================================
 --- src/win32/Makefile	(révision 8323)
@@ -74,6 +94,22 @@ Index: src/win32/compat/compat.cpp
          if (wfd >= 0) {
             bpipe->wfd = _fdopen(wfd, "wb");
          }
+@@ -2316,6 +2316,7 @@
+     return result;
+ }
+ 
++#ifndef MINGW64
+ int
+ utime(const char *fname, struct utimbuf *times)
+ {
+@@ -2367,6 +2368,7 @@
+     }
+     return rval;
+ }
++#endif
+ 
+ #if 0
+ int
 Index: src/win32/compat/compat.h
 ===================================================================
 --- src/win32/compat/compat.h	(révision 8323)
@@ -138,16 +174,14 @@ Index: src/win32/compat/compat.h
  
  int inet_aton(const char *cp, struct in_addr *inp);
  int kill(int pid, int signo);
-@@ -263,6 +282,9 @@
+@@ -263,7 +282,6 @@
  #define snprintf _snprintf
  #endif //HAVE_MINGW
  
-+#ifdef MINGW64
-+int utime(const char *filename, struct utimbuf *buf);
-+#endif
- 
+-
  #define WNOHANG 0
  #define WIFEXITED(x) 0
+ #define WEXITSTATUS(x) x
 Index: src/win32/compat/print.cpp
 ===================================================================
 --- src/win32/compat/print.cpp	(révision 8323)
