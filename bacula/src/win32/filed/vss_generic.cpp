@@ -111,12 +111,12 @@ class IXMLDOMDocument;
    #include "inc/Win2003/vsbackup.h"
 #endif
    
-   /* In VSSAPI.DLL */
-   typedef HRESULT (STDAPICALLTYPE* t_CreateVssBackupComponents)(OUT IVssBackupComponents **);
-   typedef void (APIENTRY* t_VssFreeSnapshotProperties)(IN VSS_SNAPSHOT_PROP*);
+/* In VSSAPI.DLL */
+typedef HRESULT (STDAPICALLTYPE* t_CreateVssBackupComponents)(OUT IVssBackupComponents **);
+typedef void (APIENTRY* t_VssFreeSnapshotProperties)(IN VSS_SNAPSHOT_PROP*);
    
-   static t_CreateVssBackupComponents p_CreateVssBackupComponents = NULL;
-   static t_VssFreeSnapshotProperties p_VssFreeSnapshotProperties = NULL;
+static t_CreateVssBackupComponents p_CreateVssBackupComponents = NULL;
+static t_VssFreeSnapshotProperties p_VssFreeSnapshotProperties = NULL;
 
 
 
@@ -203,11 +203,13 @@ inline const wchar_t* GetStringFromWriterStatus(VSS_WRITER_STATE eWriterStatus)
 
 // Constructor
 
+#ifdef HAVE_VSS64
+/* 64 bit entrypoint name */
+#define VSSVBACK_ENTRY "?CreateVssBackupComponents@@YAJPEAPEAVIVssBackupComponents@@@Z"
+#else
 /* 32 bit entrypoint name */
 #define VSSVBACK_ENTRY "?CreateVssBackupComponents@@YGJPAPAVIVssBackupComponents@@@Z"
-/* 64 bit entrypoint name */
-#define VSSVBACK64_ENTRY "?CreateVssBackupComponents@@YAJPEAPEAVIVssBackupComponents@@@Z"
-
+#endif
 
 VSSClientGeneric::VSSClientGeneric()
 {
@@ -215,11 +217,6 @@ VSSClientGeneric::VSSClientGeneric()
    if (m_hLib) {      
       p_CreateVssBackupComponents = (t_CreateVssBackupComponents)
          GetProcAddress(m_hLib, VSSVBACK_ENTRY);
-      /* If we don't find it try the 64 bit entry point */
-      if (!p_CreateVssBackupComponents) {
-         p_CreateVssBackupComponents = (t_CreateVssBackupComponents)
-           GetProcAddress(m_hLib, VSSVBACK64_ENTRY);
-      }
       p_VssFreeSnapshotProperties = (t_VssFreeSnapshotProperties)
           GetProcAddress(m_hLib, "VssFreeSnapshotProperties");      
    } 
@@ -287,7 +284,9 @@ BOOL VSSClientGeneric::Initialize(DWORD dwContext, BOOL bDuringRestore)
    // Create the internal backup components object
    hr = p_CreateVssBackupComponents((IVssBackupComponents**) &m_pVssObject);
    if (FAILED(hr)) {
-      Dmsg1(0, "VSSClientGeneric::Initialize: CreateVssBackupComponents returned 0x%08X\n", hr);
+      berrno be;
+      Dmsg2(0, "VSSClientGeneric::Initialize: CreateVssBackupComponents returned 0x%08X. ERR=%s\n",
+            hr, be.bstrerror(b_errno_win32));
       errno = b_errno_win32;
       return FALSE;
    }
