@@ -49,6 +49,7 @@ extern int execvp_errors[];
 
 const char *berrno::bstrerror()
 {
+   *m_buf = 0;
 #ifdef HAVE_WIN32
    if (m_berrno & b_errno_win32) {
       format_win32_message();
@@ -93,7 +94,7 @@ void berrno::format_win32_message()
 {
 #ifdef HAVE_WIN32
    LPVOID msg;
-   FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER |
+   FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER |
        FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
        NULL,
        GetLastError(),
