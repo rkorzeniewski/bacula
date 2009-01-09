@@ -75,6 +75,7 @@ inline berrno::berrno(int pool)
 {
    m_berrno = errno;
    m_buf = get_pool_memory(pool);
+   *m_buf = 0;
    errno = m_berrno;
 }
 
