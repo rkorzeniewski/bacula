@@ -281,7 +281,7 @@ Index: src/win32/Makefile.inc.in
  STAB2CV := $(DEPKGS)/tools/bin/stab2cv
  
 -CFLAGS := -g -Wall -mno-cygwin -m32 -mwin32 -mthreads -O3 -fno-strict-aliasing
-+CFLAGS := -g -Wall -mno-cygwin -mthreads -O3 -fno-strict-aliasing
++CFLAGS := -g -Wall -mno-cygwin -mthreads -O3 -fno-strict-aliasing -DHAVE_VSS64
  LDFLAGS := -g -Wall -mno-cygwin -Wl,--disable-auto-import
  
  INCLUDE_DDK := -I$(MINGW_INCLUDE)/ddk
@@ -444,7 +444,7 @@ Index: src/win32/dll/Makefile
  	-luuid
 Index: src/lib/message.c
 ===================================================================
---- src/lib/message.c	(révision 8323)
+--- src/lib/message.c	(révision 8346)
 +++ src/lib/message.c	(copie de travail)
 @@ -370,10 +370,10 @@
  {
@@ -461,7 +461,7 @@ Index: src/lib/message.c
  }
 Index: src/lib/smartall.c
 ===================================================================
---- src/lib/smartall.c	(révision 8323)
+--- src/lib/smartall.c	(révision 8346)
 +++ src/lib/smartall.c	(copie de travail)
 @@ -134,7 +134,7 @@
        head->ablineno = (sm_ushort)lineno;
