@@ -9,15 +9,32 @@ DIRS=	dll \
 	console \
 	wx-console \
 	tools \
-	scripts \
-	installer
+	scripts
 
-.PHONY: $(DIRS) clean all Makefile.inc
+.PHONY: $(DIRS) clean all Makefile.inc installer newinstaller
 
-all: Makefile.inc $(DIRS)
+all: Makefile.inc $(DIRS) installer newinstaller
 
 clean: $(DIRS)
 	$(ECHO_CMD)-rm -rf release
+
+newinstaller:
+	@if test -f Makefile.inc; then \
+	   if $(MAKE) -C $@ $(MAKECMDGOALS); then \
+		echo "\n===== Make of $@ succeeded =====\n\n" ; \
+	   else  \
+		echo "\n!!!!! Make of $@ failed !!!!!\n\n" ; \
+	   fi ; \
+	fi
+
+installer:
+	@if test -f Makefile.inc; then \
+	   if $(MAKE) -C $@ $(MAKECMDGOALS); then \
+		echo "\n===== Make of $@ succeeded =====\n\n" ; \
+	   else  \
+		echo "\n!!!!! Make of $@ failed !!!!!\n\n" ; \
+	   fi ; \
+	fi
 
 $(DIRS):
 	@if test -f Makefile.inc; then \
