@@ -729,7 +729,7 @@ void win_error(JCR *jcr, char *prefix, POOLMEM *win32_ofile)
                  NULL);
    Dmsg3(100, "Error in %s on file %s: ERR=%s\n", prefix, win32_ofile, msg);
    strip_trailing_junk(msg);
-   Jmsg(jcr, M_ERROR, 0, _("Error in %s file %s: ERR=%s\n"), prefix, win32_ofile, msg);
+   Jmsg3(jcr, M_ERROR, 0, _("Error in %s file %s: ERR=%s\n"), prefix, win32_ofile, msg);
    LocalFree(msg);
 }
 
