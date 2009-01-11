@@ -49,6 +49,7 @@ ECHO = @ECHO@
 CMP = @CMP@
 TBL = @TBL@
 AR = @AR@
+GMAKE = @GMAKE@
 RANLIB = @RANLIB@
 MKDIR = @BUILD_DIR@/autoconf/mkinstalldirs
 INSTALL = @INSTALL@

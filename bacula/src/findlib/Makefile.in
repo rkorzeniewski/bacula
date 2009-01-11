@@ -87,15 +87,15 @@ install: @LIBTOOL_INSTALL_TARGET@ @INCLUDE_INSTALL_TARGET@
 uninstall: @LIBTOOL_UNINSTALL_TARGET@ @INCLUDE_UNINSTALL_TARGET@
 
 libtool-clean:
-	find . -name '*.lo' -print | xargs $(LIBTOOL_CLEAN) $(RMF)
-	$(RMF) *.la
-	$(RMF) -r .libs _libs
+	@find . -name '*.lo' -print | xargs $(LIBTOOL_CLEAN) $(RMF)
+	@$(RMF) *.la
+	@$(RMF) -r .libs _libs
 
 clean: @LIBTOOL_CLEAN_TARGET@
-	$(RMF) find core a.out *.o *.bak *~ *.intpro *.extpro 1 2 3
+	@$(RMF) find core a.out *.o *.bak *~ *.intpro *.extpro 1 2 3
 
 realclean: clean
-	$(RMF) tags
+	@$(RMF) tags
 
 distclean: realclean
 	if test $(srcdir) = .; then $(MAKE) realclean; fi

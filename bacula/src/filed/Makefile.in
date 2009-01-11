@@ -59,20 +59,28 @@ all: Makefile @WIN32@ bacula-fd @STATIC_FD@
 	@echo " "
 
 win32/winlib.a:
-	(cd win32; $(MAKE) DESTDIR=$(DESTDIR))
+	@if test -f win32/Makefile -a "${GMAKE}" != "none"; then \
+	   (cd win32; $(GMAKE) DESTDIR=$(DESTDIR)); \
+	fi
 	@rm -f bacula-fd.exe
 
 win32/winmain.o:
-	(cd win32; $(MAKE) DESTDIR=$(DESTDIR))
+	@if test -f win32/Makefile -a "${GMAKE}" != "none"; then \
+	   (cd win32; $(GMAKE) DESTDIR=$(DESTDIR)); \
+	fi
 	@rm -f bacula-fd.exe
 
 win32/winres.res:
-	(cd win32; $(MAKE) DESTDIR=$(DESTDIR))
+	@if test -f win32/Makefile -a "${GMAKE}" != "none"; then \
+	   (cd win32; $(GMAKE) DESTDIR=$(DESTDIR)); \
+	fi
 	@rm -f bacula-fd.exe
 
 # win32 libraries if needed
 win32:	$(WIN32OBJS)
-	(cd win32; $(MAKE) DESTDIR=$(DESTDIR))
+	@if test -f win32/Makefile -a "${GMAKE}" != "none"; then \
+	   (cd win32; $(GMAKE) DESTDIR=$(DESTDIR)); \
+	fi
 	@rm -f bacula-fd.exe
 
 bacula-fd:  Makefile $(SVROBJS) ../findlib/libbacfind$(DEFAULT_ARCHIVE_TYPE) ../lib/libbacpy$(DEFAULT_ARCHIVE_TYPE) ../lib/libbaccfg$(DEFAULT_ARCHIVE_TYPE) ../lib/libbac$(DEFAULT_ARCHIVE_TYPE) @WIN32@
@@ -97,8 +105,8 @@ libtool-clean:
 clean: @LIBTOOL_CLEAN_TARGET@
 	@$(RMF) bacula-fd filed core core.* a.out *.o *.bak *~ *.intpro *.extpro 1 2 3
 	@$(RMF) static-bacula-fd
-	if test -f win32/Makefile; then \
-	   (cd win32; $(MAKE) clean); \
+	@if test -f win32/Makefile -a "${GMAKE}" != "none"; then \
+	   (cd win32; $(GMAKE) clean); \
 	fi
 
 realclean: clean
@@ -107,15 +115,15 @@ realclean: clean
 distclean: realclean
 	if test $(srcdir) = .; then $(MAKE) realclean; fi
 	(cd $(srcdir); $(RMF) Makefile)
-	if test -f win32/Makefile; then \
-	   (cd win32; $(MAKE) distclean); \
+	@if test -f win32/Makefile -a "${GMAKE}" != "none"; then \
+	   (cd win32; $(GMAKE) distclean); \
 	fi
 
 devclean: realclean
 	if test $(srcdir) = .; then $(MAKE) realclean; fi
 	(cd $(srcdir); $(RMF) Makefile)
-	if test -f win32/Makefile; then \
-	   (cd win32; $(MAKE) devclean); \
+	@if test -f win32/Makefile -a "${GMAKE}" != "none"; then \
+	   (cd win32; $(GMAKE) devclean); \
 	fi
 
 install: all

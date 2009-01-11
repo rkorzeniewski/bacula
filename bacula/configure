@@ -846,6 +846,7 @@ DVDRWFORMAT
 PKGCONFIG
 QMAKE
 QMAKEQT4
+GMAKE
 WXCONFIG
 WXFLAGS
 CDRECORD
@@ -5096,6 +5097,47 @@ echo "${ECHO_T}no" >&6; }
 fi
 
 
+# Extract the first word of "gmake", so it can be a program name with args.
+set dummy gmake; ac_word=$2
+{ echo "$as_me:$LINENO: checking for $ac_word" >&5
+echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6; }
+if test "${ac_cv_path_GMAKE+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  case $GMAKE in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_GMAKE="$GMAKE" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+  for ac_exec_ext in '' $ac_executable_extensions; do
+  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
+    ac_cv_path_GMAKE="$as_dir/$ac_word$ac_exec_ext"
+    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+done
+IFS=$as_save_IFS
+
+  test -z "$ac_cv_path_GMAKE" && ac_cv_path_GMAKE="none"
+  ;;
+esac
+fi
+GMAKE=$ac_cv_path_GMAKE
+if test -n "$GMAKE"; then
+  { echo "$as_me:$LINENO: result: $GMAKE" >&5
+echo "${ECHO_T}$GMAKE" >&6; }
+else
+  { echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6; }
+fi
+
+
 
 if test "x$WXCONFIG" = x; then
    WXCONFIG=wx-config
@@ -5946,13 +5988,13 @@ if test "${lt_cv_nm_interface+set}" = set; then
 else
   lt_cv_nm_interface="BSD nm"
   echo "int some_variable = 0;" > conftest.$ac_ext
-  (eval echo "\"\$as_me:5949: $ac_compile\"" >&5)
+  (eval echo "\"\$as_me:5991: $ac_compile\"" >&5)
   (eval "$ac_compile" 2>conftest.err)
   cat conftest.err >&5
-  (eval echo "\"\$as_me:5952: $NM \\\"conftest.$ac_objext\\\"\"" >&5)
+  (eval echo "\"\$as_me:5994: $NM \\\"conftest.$ac_objext\\\"\"" >&5)
   (eval "$NM \"conftest.$ac_objext\"" 2>conftest.err > conftest.out)
   cat conftest.err >&5
-  (eval echo "\"\$as_me:5955: output\"" >&5)
+  (eval echo "\"\$as_me:5997: output\"" >&5)
   cat conftest.out >&5
   if $GREP 'External.*some_variable' conftest.out > /dev/null; then
     lt_cv_nm_interface="MS dumpbin"
@@ -7173,7 +7215,7 @@ ia64-*-hpux*)
   ;;
 *-*-irix6*)
   # Find out which ABI we are using.
-  echo '#line 7176 "configure"' > conftest.$ac_ext
+  echo '#line 7218 "configure"' > conftest.$ac_ext
   if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   (eval $ac_compile) 2>&5
   ac_status=$?
@@ -9388,11 +9430,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:9391: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:9433: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:9395: \$? = $ac_status" >&5
+   echo "$as_me:9437: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -9727,11 +9769,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:9730: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:9772: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:9734: \$? = $ac_status" >&5
+   echo "$as_me:9776: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -9832,11 +9874,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:9835: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:9877: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:9839: \$? = $ac_status" >&5
+   echo "$as_me:9881: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -9887,11 +9929,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:9890: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:9932: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:9894: \$? = $ac_status" >&5
+   echo "$as_me:9936: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -12643,7 +12685,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 12646 "configure"
+#line 12688 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -12739,7 +12781,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 12742 "configure"
+#line 12784 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -14751,11 +14793,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:14754: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:14796: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:14758: \$? = $ac_status" >&5
+   echo "$as_me:14800: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -14850,11 +14892,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:14853: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:14895: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:14857: \$? = $ac_status" >&5
+   echo "$as_me:14899: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -14902,11 +14944,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:14905: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:14947: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:14909: \$? = $ac_status" >&5
+   echo "$as_me:14951: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -43032,6 +43074,7 @@ DVDRWFORMAT!$DVDRWFORMAT$ac_delim
 PKGCONFIG!$PKGCONFIG$ac_delim
 QMAKE!$QMAKE$ac_delim
 QMAKEQT4!$QMAKEQT4$ac_delim
+GMAKE!$GMAKE$ac_delim
 WXCONFIG!$WXCONFIG$ac_delim
 WXFLAGS!$WXFLAGS$ac_delim
 CDRECORD!$CDRECORD$ac_delim
@@ -43041,7 +43084,6 @@ ARFLAGS!$ARFLAGS$ac_delim
 MAKE_SHELL!$MAKE_SHELL$ac_delim
 LOCAL_LIBS!$LOCAL_LIBS$ac_delim
 LOCAL_CFLAGS!$LOCAL_CFLAGS$ac_delim
-LOCAL_LDFLAGS!$LOCAL_LDFLAGS$ac_delim
 _ACEOF
 
   if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 94; then
@@ -43087,6 +43129,7 @@ _ACEOF
 ac_delim='%!_!# '
 for ac_last_try in false false false false false :; do
   cat >conf$$subs.sed <<_ACEOF
+LOCAL_LDFLAGS!$LOCAL_LDFLAGS$ac_delim
 LOCAL_DEFS!$LOCAL_DEFS$ac_delim
 LIBTOOL!$LIBTOOL$ac_delim
 build!$build$ac_delim
@@ -43183,7 +43226,6 @@ GNOME_LIBS!$GNOME_LIBS$ac_delim
 GNOME_DIR!$GNOME_DIR$ac_delim
 BAT_DIR!$BAT_DIR$ac_delim
 QWT_INC!$QWT_INC$ac_delim
-QWT_LDFLAGS!$QWT_LDFLAGS$ac_delim
 _ACEOF
 
   if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 97; then
@@ -43225,6 +43267,7 @@ _ACEOF
 ac_delim='%!_!# '
 for ac_last_try in false false false false false :; do
   cat >conf$$subs.sed <<_ACEOF
+QWT_LDFLAGS!$QWT_LDFLAGS$ac_delim
 QWT_LIB!$QWT_LIB$ac_delim
 QWT!$QWT$ac_delim
 WXCONS_CPPFLAGS!$WXCONS_CPPFLAGS$ac_delim
@@ -43319,7 +43362,7 @@ DISTVER!$DISTVER$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 92; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 93; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5
