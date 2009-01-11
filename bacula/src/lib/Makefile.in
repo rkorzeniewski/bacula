@@ -202,16 +202,16 @@ install: @LIBTOOL_INSTALL_TARGET@ @INCLUDE_INSTALL_TARGET@
 uninstall: @LIBTOOL_UNINSTALL_TARGET@ @INCLUDE_UNINSTALL_TARGET@
 
 libtool-clean:
-	find . -name '*.lo' -print | xargs $(LIBTOOL_CLEAN) $(RMF)
-	$(RMF) *.la
-	$(RMF) -r .libs _libs
+	@find . -name '*.lo' -print | xargs $(LIBTOOL_CLEAN) $(RMF)
+	@$(RMF) *.la
+	@$(RMF) -r .libs _libs
 
 clean: @LIBTOOL_CLEAN_TARGET@
-	$(RMF) core a.out *.o *.bak *.tex *.pdf *~ *.intpro *.extpro 1 2 3
-	$(RMF) rwlock_test md5sum sha1sum
+	@$(RMF) core a.out *.o *.bak *.tex *.pdf *~ *.intpro *.extpro 1 2 3
+	@$(RMF) rwlock_test md5sum sha1sum
 
 realclean: clean
-	$(RMF) tags
+	@$(RMF) tags
 
 distclean: realclean
 	if test $(srcdir) = .; then $(MAKE) realclean; fi
