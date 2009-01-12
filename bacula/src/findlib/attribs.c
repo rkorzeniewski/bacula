@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2002-2008 Free Software Foundation Europe e.V.
+   Copyright (C) 2002-2009 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -520,6 +520,11 @@ int encode_attribsEx(JCR *jcr, char *attribsEx, FF_PKT *ff_pkt)
     * restore, we can be sure we put back the whole resource.
     */
    char *p;
+
+   *attribsEx = 0;                 /* no extended attributes (yet) */
+   if (jcr->cmd_plugin || ff_pkt->type == FT_DELETED) {
+      return STREAM_UNIX_ATTRIBUTES;
+   }
    p = attribsEx;
    if (ff_pkt->flags & FO_HFSPLUS) {
       p += to_base64((uint64_t)(ff_pkt->hfsinfo.rsrclength), p);
@@ -551,11 +556,7 @@ int encode_attribsEx(JCR *jcr, char *attribsEx, FF_PKT *ff_pkt)
 
    attribsEx[0] = 0;                  /* no extended attributes */
 
-   if (jcr->cmd_plugin) {
-      return STREAM_UNIX_ATTRIBUTES;
-   }
-
-   if (ff_pkt->type == FT_DELETED) {  /* Don't check deleted files */
+   if (jcr->cmd_plugin || ff_pkt->type == FT_DELETED) {
       return STREAM_UNIX_ATTRIBUTES;
    }
 
