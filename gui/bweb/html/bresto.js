@@ -50,12 +50,15 @@ Ext.brestore.client='';          // selected client
 Ext.brestore.rclient='';         // selected client for resto
 Ext.brestore.storage='';         // selected storage for resto
 Ext.brestore.path='';            // current path (without user location)
+Ext.brestore.pathid=0;           // current pathid
 Ext.brestore.root_path='';       // user location
 Ext.brestore.media_store;        // media store 
 Ext.brestore.option_vosb = false;
 Ext.brestore.option_vafv = false;
 Ext.brestore.dlglaunch;
 Ext.brestore.use_filerelocation=false;
+Ext.brestore.limit = 5000;
+Ext.brestore.offset = 0;
 function get_node_path(node)
 {
    var temp='';
@@ -80,6 +83,8 @@ function init_params(baseParams)
    } else {
       baseParams['date'] = Ext.brestore.jobdate;
    }
+   baseParams['offset'] = Ext.brestore.offset;
+   baseParams['limit'] = Ext.brestore.limit;
    return baseParams;
 }
 
@@ -131,6 +136,8 @@ Ext.onReady(function(){
 
     var click_cb = function(node, event) { 
         Ext.brestore.path = get_node_path(node);
+        Ext.brestore.pathid = node.id;
+        Ext.brestore.offset=0;
         where_field.setValue(Ext.brestore.path);
         file_store.removeAll();
         file_versions_store.removeAll();
@@ -213,6 +220,78 @@ Ext.onReady(function(){
 
     // by default columns are sortable
     cm.defaultSortable = true;
+
+    function update_limits() {
+        Ext.get('txt-file-start').setValue(Ext.brestore.offset);
+        Ext.get('txt-file-limit').setValue(Ext.brestore.limit);
+    }
+
+    var file_paging = new Ext.Toolbar({
+        items: [
+            {
+                id: 'bp-file-prev',
+                icon: '/bweb/ext/resources/images/default/grid/page-prev.gif',
+                cls: '.x-btn-icon',
+                tooltip: 'Last',
+                handler: function() {
+                    if (Ext.brestore.offset > 0) {
+                        Ext.brestore.offset -= Ext.brestore.limit;
+                        if (Ext.brestore.offset < 0) {
+                            Ext.brestore.offset=0;
+                        }
+                        file_store.removeAll();
+                        file_versions_store.removeAll();
+                        file_store.load({params:init_params({action: 'list_files',
+                                                             path:Ext.brestore.path,
+                                                             node:Ext.brestore.pathid})
+                                        });                        
+                        update_limits();
+                    }
+                }
+            }, {
+                id: 'txt-file-start',
+                xtype: 'numberfield',
+                width: 60,
+                value: Ext.brestore.offset
+            }, {
+                xtype: 'tbtext',
+                text: '-'
+            }, {
+                id: 'txt-file-limit',
+                xtype: 'numberfield',
+                width: 60,
+                value: Ext.brestore.limit
+            }, {
+                id: 'bp-file-next',
+                icon: '/bweb/ext/resources/images/default/grid/page-next.gif',
+                cls: '.x-btn-icon',
+                tooltip: 'Next',
+                handler: function(a,b,c) {
+                    if (file_store.getCount() >= Ext.brestore.limit) {
+                        Ext.brestore.offset += Ext.brestore.limit;
+                        file_store.removeAll();
+                        file_versions_store.removeAll();
+                        file_store.load({params:init_params({action: 'list_files',
+                                                             path:Ext.brestore.path,
+                                                             node:Ext.brestore.pathid})
+                        });
+                        update_limits();
+                    }
+                }
+            }, '->', {
+                id: 'txt-file-pattern',
+                xtype: 'textfield',
+                text: 'pattern...'
+            }, {
+                id: 'bp-file-match',
+                icon: '/bweb/ext/resources/images/default/grid/refresh.gif',
+                cls: '.x-btn-icon',
+                tooltip: 'Refresh',
+                handler: function(a,b,c) {
+                }
+            }
+        ]
+    });
 
     var file_grid = new Ext.grid.GridPanel({
         id: 'div-files',
@@ -362,7 +441,7 @@ Ext.onReady(function(){
         proxy: new Ext.data.HttpProxy({
             url: '/cgi-bin/bweb/bresto.pl',
             method: 'GET',
-            params:{offset:0, limit:50 }
+            params:{start:0, limit:50 }
         }),
         
         reader: new Ext.data.ArrayReader({},
@@ -498,6 +577,7 @@ Ext.onReady(function(){
         Ext.brestore.jobid=0;
         Ext.brestore.jobdate = '';
         Ext.brestore.root_path='';
+        Ext.brestore.offset=0;
         job_combo.clearValue();
         file_store.removeAll();
         file_versions_store.removeAll();
@@ -516,7 +596,7 @@ Ext.onReady(function(){
         proxy: new Ext.data.HttpProxy({
             url: '/cgi-bin/bweb/bresto.pl',
             method: 'GET',
-            params:{offset:0, limit:50 }
+            params:{start:0, limit:50 }
         }),
 
         reader: new Ext.data.ArrayReader({
@@ -668,7 +748,8 @@ Ext.onReady(function(){
                 title: 'Directory content',
                 region: 'center',
                 minSize: '33%',
-                items: file_grid
+                items: file_grid,
+                bbar: file_paging
             }, {
                 title: 'File version',
                 region: 'east',
@@ -890,7 +971,7 @@ Ext.onReady(function(){
             proxy: new Ext.data.HttpProxy({
                 url: '/cgi-bin/bweb/bresto.pl',
                 method: 'GET',
-                params:{offset:0, limit:50 }
+                params:{start:0, limit:50 }
             }),
             
             reader: new Ext.data.ArrayReader({
