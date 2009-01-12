@@ -555,6 +555,10 @@ int encode_attribsEx(JCR *jcr, char *attribsEx, FF_PKT *ff_pkt)
       return STREAM_UNIX_ATTRIBUTES;
    }
 
+   if (ff_pkt->type == FT_DELETED) {  /* Don't check deleted files */
+      return STREAM_UNIX_ATTRIBUTES;
+   }
+
    unix_name_to_win32(&ff_pkt->sys_fname, ff_pkt->fname);
 
    // try unicode version
