@@ -120,7 +120,7 @@ sub get_pathid
 
 sub set_limits
 {
-    my ($self, $offset, $limit) = @_;
+    my ($self, $limit, $offset) = @_;
     $self->{limit}  = $limit  || 100;
     $self->{offset} = $offset || 0;
 }
@@ -358,9 +358,11 @@ sub ls_files
           AND File.PathId = $inpath
           AND File.JobId IN ($inclause)
         GROUP BY Filename.Name
-        ORDER BY Filename.Name) AS listfiles
+        ORDER BY Filename.Name LIMIT $self->{limit} OFFSET $self->{offset}
+     ) AS listfiles
 WHERE File.FileId = listfiles.id";
 
+    print STDERR $query;
     $self->debug($query);
     my $result = $self->dbh_selectall_arrayref($query);
     $self->debug($result);
@@ -410,9 +412,10 @@ SELECT PathId, Path, JobId, Lstat FROM (
        WHERE File1.FilenameId = $dir_filenameid
        AND File1.JobId IN ($jobclause)) AS listfile1
        ON (listpath1.PathId = listfile1.PathId)
-     ) AS A ORDER BY 2,3 DESC
+     ) AS A ORDER BY 2,3 DESC LIMIT $self->{limit} OFFSET $self->{offset} 
 ";
     $self->debug($query);
+    print STDERR $query;
     $sth=$self->dbh_prepare($query);
     $sth->execute();
     $result = $sth->fetchall_arrayref();
@@ -813,7 +816,7 @@ if (!scalar(@jobid) and $args->{qdate} and $args->{client}) {
     @jobid = $bvfs->set_job_ids_for_date($args->{client}, $args->{qdate});
 }
 $bvfs->set_curjobids(@jobid);
-print STDERR "date=$args->{qdate} currentjobids = ", join(",", @jobid), "\n";
+print STDERR "limit=$args->{limit}:$args->{offset} date=$args->{qdate} currentjobids = ", join(",", @jobid), "\n";
 $bvfs->set_limits($args->{limit}, $args->{offset});
 
 if (!scalar(@jobid)) {
