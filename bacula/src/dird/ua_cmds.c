@@ -111,7 +111,7 @@ int quit_cmd(UAContext *ua, const char *cmd);
 
 struct cmdstruct { const char *key; int (*func)(UAContext *ua, const char *cmd); const char *help; const bool use_in_rs;};
 static struct cmdstruct commands[] = {                                      /* Can use it in Console RunScript*/
- { NT_("add"),        add_cmd,         _("[pool=<pool-name> storage=<storage> jobid=<JobId>] -- add media to a pool"),                      false},
+ { NT_("add"),        add_cmd,         _("add [pool=<pool-name> storage=<storage> jobid=<JobId>] -- add media to a pool"),                      false},
  { NT_("autodisplay"), autodisplay_cmd, _("autodisplay [on|off] -- console messages"),false},
  { NT_("automount"),   automount_cmd,  _("automount [on|off] -- after label"),        false},
  { NT_("cancel"),     cancel_cmd,    _("cancel [jobid=<number> job=<job-name> ujobid=<unique-jobid>] -- cancel a job"), false},
@@ -129,7 +129,7 @@ static struct cmdstruct commands[] = {                                      /* C
  { NT_("memory"),     memory_cmd,    _("print current memory usage"),                 true},
  { NT_("messages"),   messagescmd,   _("messages"),                                   false},
  { NT_("mount"),      mount_cmd,     _("mount storage=<storage-name> [ slot=<num> ] [ drive=<num> ] or mount [ jobid=<id> | job=<job-name> ]"),                       false},
- { NT_("prune"),      prunecmd,      _("files|jobs|volume client=<client-name> volume=<volume-name> prune expired records from catalog"),         true},
+ { NT_("prune"),      prunecmd,      _("prune files|jobs|volume client=<client-name> volume=<volume-name> prune expired records from catalog"),         true},
  { NT_("purge"),      purgecmd,      _("purge records from catalog"),                 true},
  { NT_("python"),     python_cmd,    _("python control commands"),                    false},
  { NT_("quit"),       quit_cmd,      _("quit"),                                       false},
