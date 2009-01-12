@@ -1,7 +1,7 @@
 Index: src/win32/filed/vss.cpp
 ===================================================================
---- src/win32/filed/vss.cpp	(révision 8323)
-+++ src/win32/filed/vss.cpp	(copie de travail)
+--- src/win32/filed/vss.cpp	(revision 8361)
++++ src/win32/filed/vss.cpp	(working copy)
 @@ -215,7 +215,7 @@
  const int VSSClient::GetWriterState(int nIndex)
  {
@@ -13,8 +13,8 @@ Index: src/win32/filed/vss.cpp
  void VSSClient::AppendWriterInfo(int nState, const char* pszInfo)
 Index: src/win32/filed/Makefile
 ===================================================================
---- src/win32/filed/Makefile	(révision 8323)
-+++ src/win32/filed/Makefile	(copie de travail)
+--- src/win32/filed/Makefile	(revision 8361)
++++ src/win32/filed/Makefile	(working copy)
 @@ -62,7 +62,7 @@
  	$(LIBS_ZLIB) \
  	-lole32 \
@@ -26,8 +26,8 @@ Index: src/win32/filed/Makefile
  
 Index: src/win32/build-depkgs-mingw-w64
 ===================================================================
---- src/win32/build-depkgs-mingw-w64	(révision 8339)
-+++ src/win32/build-depkgs-mingw-w64	(copie de travail)
+--- src/win32/build-depkgs-mingw-w64	(revision 8361)
++++ src/win32/build-depkgs-mingw-w64	(working copy)
 @@ -246,7 +246,14 @@
     perl util/mkdef.pl 32 libeay no-static-engine >ms/libeay32.def
     perl util/mkdef.pl 32 ssleay >ms/ssleay32.def
@@ -46,18 +46,34 @@ Index: src/win32/build-depkgs-mingw-w64
  }
 Index: src/win32/Makefile
 ===================================================================
---- src/win32/Makefile	(révision 8323)
-+++ src/win32/Makefile	(copie de travail)
+--- src/win32/Makefile	(revision 8361)
++++ src/win32/Makefile	(working copy)
 @@ -1,4 +1,4 @@
 -ECHO_CMD=@
 +ECHO_CMD=
  
  DIRS=	dll \
  	cats \
+Index: src/win32/compat/winhost.h
+===================================================================
+--- src/win32/compat/winhost.h	(revision 8361)
++++ src/win32/compat/winhost.h	(working copy)
+@@ -41,7 +41,11 @@
+ 
+ #define HOST_OS  "Linux"
+ #define DISTNAME "Cross-compile"
++#ifdef MINGW64
++#define DISTVER "Win64"
++#else
+ #define DISTVER  "Win32"
++#endif
+ 
+ #else
+ 
 Index: src/win32/compat/compat.cpp
 ===================================================================
---- src/win32/compat/compat.cpp	(révision 8323)
-+++ src/win32/compat/compat.cpp	(copie de travail)
+--- src/win32/compat/compat.cpp	(revision 8361)
++++ src/win32/compat/compat.cpp	(working copy)
 @@ -733,7 +733,7 @@
  }
  
@@ -112,8 +128,8 @@ Index: src/win32/compat/compat.cpp
  int
 Index: src/win32/compat/compat.h
 ===================================================================
---- src/win32/compat/compat.h	(révision 8323)
-+++ src/win32/compat/compat.h	(copie de travail)
+--- src/win32/compat/compat.h	(revision 8361)
++++ src/win32/compat/compat.h	(working copy)
 @@ -57,6 +57,15 @@
  
  #include <malloc.h>
@@ -184,8 +200,8 @@ Index: src/win32/compat/compat.h
  #define WEXITSTATUS(x) x
 Index: src/win32/compat/print.cpp
 ===================================================================
---- src/win32/compat/print.cpp	(révision 8323)
-+++ src/win32/compat/print.cpp	(copie de travail)
+--- src/win32/compat/print.cpp	(revision 8361)
++++ src/win32/compat/print.cpp	(working copy)
 @@ -340,7 +340,7 @@
              case 'p':
                  strvalue = (char *) va_arg(args, void *);
@@ -197,8 +213,8 @@ Index: src/win32/compat/print.cpp
              case 'n':
 Index: src/win32/libwin32/statusDialog.cpp
 ===================================================================
---- src/win32/libwin32/statusDialog.cpp	(révision 8323)
-+++ src/win32/libwin32/statusDialog.cpp	(copie de travail)
+--- src/win32/libwin32/statusDialog.cpp	(revision 8361)
++++ src/win32/libwin32/statusDialog.cpp	(working copy)
 @@ -110,7 +110,7 @@
           
           if (*p == '\n') {
@@ -219,8 +235,8 @@ Index: src/win32/libwin32/statusDialog.cpp
  
 Index: src/win32/libwin32/bacula.rc
 ===================================================================
---- src/win32/libwin32/bacula.rc	(révision 8323)
-+++ src/win32/libwin32/bacula.rc	(copie de travail)
+--- src/win32/libwin32/bacula.rc	(revision 8361)
++++ src/win32/libwin32/bacula.rc	(working copy)
 @@ -104,15 +104,14 @@
   * About Dialog
   */
@@ -255,8 +271,8 @@ Index: src/win32/libwin32/bacula.rc
  END
 Index: src/win32/libwin32/main.cpp
 ===================================================================
---- src/win32/libwin32/main.cpp	(révision 8323)
-+++ src/win32/libwin32/main.cpp	(copie de travail)
+--- src/win32/libwin32/main.cpp	(revision 8361)
++++ src/win32/libwin32/main.cpp	(working copy)
 @@ -53,7 +53,7 @@
  #include <pthread.h>
  
@@ -268,8 +284,8 @@ Index: src/win32/libwin32/main.cpp
  #include <commctrl.h>
 Index: src/win32/libwin32/trayMonitor.cpp
 ===================================================================
---- src/win32/libwin32/trayMonitor.cpp	(révision 8323)
-+++ src/win32/libwin32/trayMonitor.cpp	(copie de travail)
+--- src/win32/libwin32/trayMonitor.cpp	(revision 8361)
++++ src/win32/libwin32/trayMonitor.cpp	(working copy)
 @@ -73,7 +73,7 @@
     }
  
@@ -281,8 +297,8 @@ Index: src/win32/libwin32/trayMonitor.cpp
     // Load the icons for the tray
 Index: src/win32/libwin32/aboutDialog.cpp
 ===================================================================
---- src/win32/libwin32/aboutDialog.cpp	(révision 8323)
-+++ src/win32/libwin32/aboutDialog.cpp	(copie de travail)
+--- src/win32/libwin32/aboutDialog.cpp	(revision 8361)
++++ src/win32/libwin32/aboutDialog.cpp	(working copy)
 @@ -76,6 +76,6 @@
  {
     if (show && !m_visible) {
@@ -293,8 +309,8 @@ Index: src/win32/libwin32/aboutDialog.cpp
  }
 Index: src/win32/Makefile.inc.in
 ===================================================================
---- src/win32/Makefile.inc.in	(révision 8323)
-+++ src/win32/Makefile.inc.in	(copie de travail)
+--- src/win32/Makefile.inc.in	(revision 8361)
++++ src/win32/Makefile.inc.in	(working copy)
 @@ -9,7 +9,7 @@
  
  # Global Configuration
@@ -321,8 +337,8 @@ Index: src/win32/Makefile.inc.in
  INCLUDE_DDK := -I$(MINGW_INCLUDE)/ddk
 Index: src/win32/dll/bacula.def
 ===================================================================
---- src/win32/dll/bacula.def	(révision 8323)
-+++ src/win32/dll/bacula.def	(copie de travail)
+--- src/win32/dll/bacula.def	(revision 8361)
++++ src/win32/dll/bacula.def	(working copy)
 @@ -23,8 +23,8 @@
  _Z17SetVSSPathConvertPFiPKcPciEPFiPKwPwiE
  _Z18CreateChildProcessPKcPvS1_S1_
@@ -465,8 +481,8 @@ Index: src/win32/dll/bacula.def
  
 Index: src/win32/dll/Makefile
 ===================================================================
---- src/win32/dll/Makefile	(révision 8323)
-+++ src/win32/dll/Makefile	(copie de travail)
+--- src/win32/dll/Makefile	(revision 8361)
++++ src/win32/dll/Makefile	(working copy)
 @@ -109,7 +109,7 @@
  	$(LIBS_CRYPTO) \
  	$(LIBS_PTHREADS) \
@@ -478,8 +494,8 @@ Index: src/win32/dll/Makefile
  	-luuid
 Index: src/lib/message.c
 ===================================================================
---- src/lib/message.c	(révision 8346)
-+++ src/lib/message.c	(copie de travail)
+--- src/lib/message.c	(revision 8361)
++++ src/lib/message.c	(working copy)
 @@ -370,10 +370,10 @@
  {
     if (jcr) {
@@ -495,8 +511,8 @@ Index: src/lib/message.c
  }
 Index: src/lib/smartall.c
 ===================================================================
---- src/lib/smartall.c	(révision 8346)
-+++ src/lib/smartall.c	(copie de travail)
+--- src/lib/smartall.c	(revision 8361)
++++ src/lib/smartall.c	(working copy)
 @@ -134,7 +134,7 @@
        head->ablineno = (sm_ushort)lineno;
        head->abin_use = true;
