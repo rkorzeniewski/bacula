@@ -28,6 +28,7 @@
            <option value='Read-Only'>Read-Only</option>
            <option value='Used'>Used</option>
 	   <option value='Recycle'>Recycle</option>
+	   <option value='Purged'>Purged</option>
            </select>
         </td>
     </tr>

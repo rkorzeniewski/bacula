@@ -1,3 +1,6 @@
+13Jan09
+ebl  Add Purged status to update_media form even if the
+     update volume console doesn't permit it.
 04Jan09
 ebl  Fix group edition for client
 03Jan09
