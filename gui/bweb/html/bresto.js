@@ -222,7 +222,7 @@ Ext.onReady(function(){
     cm.defaultSortable = true;
 
     function update_limits() {
-        Ext.get('txt-file-start').setValue(Ext.brestore.offset);
+        Ext.get('txt-file-offset').setValue(Ext.brestore.offset);
         Ext.get('txt-file-limit').setValue(Ext.brestore.limit);
     }
 
@@ -249,7 +249,7 @@ Ext.onReady(function(){
                     }
                 }
             }, {
-                id: 'txt-file-start',
+                id: 'txt-file-offset',
                 xtype: 'numberfield',
                 width: 60,
                 value: Ext.brestore.offset
@@ -441,7 +441,7 @@ Ext.onReady(function(){
         proxy: new Ext.data.HttpProxy({
             url: '/cgi-bin/bweb/bresto.pl',
             method: 'GET',
-            params:{start:0, limit:50 }
+            params:{offset:0, limit:50 }
         }),
         
         reader: new Ext.data.ArrayReader({},
@@ -596,7 +596,7 @@ Ext.onReady(function(){
         proxy: new Ext.data.HttpProxy({
             url: '/cgi-bin/bweb/bresto.pl',
             method: 'GET',
-            params:{start:0, limit:50 }
+            params:{offset:0, limit:50 }
         }),
 
         reader: new Ext.data.ArrayReader({
@@ -971,7 +971,7 @@ Ext.onReady(function(){
             proxy: new Ext.data.HttpProxy({
                 url: '/cgi-bin/bweb/bresto.pl',
                 method: 'GET',
-                params:{start:0, limit:50 }
+                params:{offset:0, limit:50 }
             }),
             
             reader: new Ext.data.ArrayReader({
