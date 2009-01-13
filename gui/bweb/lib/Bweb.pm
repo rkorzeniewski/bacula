@@ -3088,14 +3088,14 @@ sub get_roles
     if (not $self->{info}->{enable_security}) {
         return 1;
     }
-    # admin is a special user that can do everything
-    if ($self->{loginname} eq 'admin') {
-        return 1;
-    }
     if (!$self->{loginname}) {
         $self->error("Can't get your login name");
         $self->display_end();
 	exit 0;
+    }
+    # admin is a special user that can do everything
+    if ($self->{loginname} eq 'admin') {
+        return 1;
     }
     # already fill
     if (defined $self->{security}) {

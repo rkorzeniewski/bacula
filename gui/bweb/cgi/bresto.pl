@@ -125,6 +125,12 @@ sub set_limits
     $self->{offset} = $offset || 0;
 }
 
+sub set_pattern
+{
+    my ($self, $pattern) = @_;
+    $self->{pattern} = $pattern;
+}
+
 # fill brestore_xxx tables for speedup
 sub update_cache
 {
@@ -347,6 +353,10 @@ sub ls_files
 
     my $inclause   = $self->{curjobids};
     my $inpath = $self->{cwdid};
+    my $filter = '';
+    if ($self->{pattern}) {
+        $filter = " AND Filename.Name $self->{sql}->{MATCH} $self->{pattern} ";
+    }
 
     my $query =
 "SELECT File.FilenameId, listfiles.id, listfiles.Name, File.LStat, File.JobId
@@ -357,6 +367,7 @@ sub ls_files
           AND Filename.Name != ''
           AND File.PathId = $inpath
           AND File.JobId IN ($inclause)
+          $filter
         GROUP BY Filename.Name
         ORDER BY Filename.Name LIMIT $self->{limit} OFFSET $self->{offset}
      ) AS listfiles
@@ -755,7 +766,7 @@ $bvfs->connect_db();
 my $action = CGI::param('action') || '';
 
 my $args = $bvfs->get_form('pathid', 'filenameid', 'fileid', 'qdate',
-			   'limit', 'offset', 'client');
+			   'limit', 'offset', 'client', 'qpattern');
 
 if ($action eq 'batch') {
     $bvfs->update_cache();
@@ -838,6 +849,11 @@ if ($pathid =~ /^(\d+)$/) {
     $pathid = $bvfs->get_root();
 }
 $bvfs->ch_dir($pathid);
+
+# permit to use a regex filter
+if ($args->{qpattern}) {
+    $bvfs->set_pattern($args->{qpattern});
+}
 
 if ($action eq 'restore') {
 

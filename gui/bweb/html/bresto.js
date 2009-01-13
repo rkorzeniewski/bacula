@@ -56,8 +56,9 @@ Ext.brestore.media_store;        // media store
 Ext.brestore.option_vosb = false;
 Ext.brestore.option_vafv = false;
 Ext.brestore.dlglaunch;
+Ext.brestore.fpattern;
 Ext.brestore.use_filerelocation=false;
-Ext.brestore.limit = 5000;
+Ext.brestore.limit = 2000;
 Ext.brestore.offset = 0;
 function get_node_path(node)
 {
@@ -76,16 +77,21 @@ function get_node_path(node)
 
 function init_params(baseParams)
 {
-   baseParams['client']= Ext.brestore.client;
-
-   if (Ext.brestore.option_vosb) {         
-      baseParams['jobid'] = Ext.brestore.jobid;
-   } else {
-      baseParams['date'] = Ext.brestore.jobdate;
-   }
-   baseParams['offset'] = Ext.brestore.offset;
-   baseParams['limit'] = Ext.brestore.limit;
-   return baseParams;
+    baseParams['client']= Ext.brestore.client;
+    
+    if (Ext.brestore.option_vosb) {         
+        baseParams['jobid'] = Ext.brestore.jobid;
+    } else {
+        baseParams['date'] = Ext.brestore.jobdate;
+    }
+    baseParams['offset'] = Ext.brestore.offset;
+    baseParams['limit'] = Ext.brestore.limit;
+    if (Ext.brestore.fpattern) {
+        if (RegExp(Ext.brestore.fpattern)) {
+            baseParams['pattern'] = Ext.brestore.fpattern;
+        }
+    }
+    return baseParams;
 }
 
 function captureEvents(observable) {
@@ -138,9 +144,9 @@ Ext.onReady(function(){
         Ext.brestore.path = get_node_path(node);
         Ext.brestore.pathid = node.id;
         Ext.brestore.offset=0;
+        Ext.brestore.fpattern = Ext.get('txt-file-pattern').getValue();
         where_field.setValue(Ext.brestore.path);
-        file_store.removeAll();
-        file_versions_store.removeAll();
+        update_limits();       
         file_store.load({params:init_params({action: 'list_files',
                                              path:Ext.brestore.path,
                                              node:node.id})
@@ -221,78 +227,113 @@ Ext.onReady(function(){
     // by default columns are sortable
     cm.defaultSortable = true;
 
+    // reset limits
     function update_limits() {
-        Ext.get('txt-file-offset').setValue(Ext.brestore.offset);
-        Ext.get('txt-file-limit').setValue(Ext.brestore.limit);
+        Ext.get('txt-file-offset').dom.value = Ext.brestore.offset;
+        Ext.get('txt-file-limit').dom.value = Ext.brestore.offset + Ext.brestore.limit;
     }
 
-    var file_paging = new Ext.Toolbar({
-        items: [
-            {
-                id: 'bp-file-prev',
-                icon: '/bweb/ext/resources/images/default/grid/page-prev.gif',
-                cls: '.x-btn-icon',
-                tooltip: 'Last',
-                handler: function() {
-                    if (Ext.brestore.offset > 0) {
-                        Ext.brestore.offset -= Ext.brestore.limit;
-                        if (Ext.brestore.offset < 0) {
-                            Ext.brestore.offset=0;
-                        }
-                        file_store.removeAll();
-                        file_versions_store.removeAll();
-                        file_store.load({params:init_params({action: 'list_files',
-                                                             path:Ext.brestore.path,
-                                                             node:Ext.brestore.pathid})
-                                        });                        
-                        update_limits();
-                    }
-                }
-            }, {
-                id: 'txt-file-offset',
-                xtype: 'numberfield',
-                width: 60,
-                value: Ext.brestore.offset
-            }, {
-                xtype: 'tbtext',
-                text: '-'
-            }, {
-                id: 'txt-file-limit',
-                xtype: 'numberfield',
-                width: 60,
-                value: Ext.brestore.limit
-            }, {
-                id: 'bp-file-next',
-                icon: '/bweb/ext/resources/images/default/grid/page-next.gif',
-                cls: '.x-btn-icon',
-                tooltip: 'Next',
-                handler: function(a,b,c) {
-                    if (file_store.getCount() >= Ext.brestore.limit) {
-                        Ext.brestore.offset += Ext.brestore.limit;
-                        file_store.removeAll();
-                        file_versions_store.removeAll();
-                        file_store.load({params:init_params({action: 'list_files',
-                                                             path:Ext.brestore.path,
-                                                             node:Ext.brestore.pathid})
-                        });
-                        update_limits();
-                    }
-                }
-            }, '->', {
-                id: 'txt-file-pattern',
-                xtype: 'textfield',
-                text: 'pattern...'
-            }, {
-                id: 'bp-file-match',
-                icon: '/bweb/ext/resources/images/default/grid/refresh.gif',
-                cls: '.x-btn-icon',
-                tooltip: 'Refresh',
-                handler: function(a,b,c) {
-                }
-            }
-        ]
-    });
+    // get limits from user input
+    function update_user_limits() {
+        var off = parseInt(Ext.get('txt-file-offset').getValue());
+        var lim = parseInt(Ext.get('txt-file-limit').getValue());
+        if (off >= 0 && lim >= 0 && off < lim) {
+            Ext.brestore.offset = off;
+            Ext.brestore.limit = lim - off;
+        } else {
+            update_limits();
+        }
+        Ext.brestore.fpattern = Ext.get('txt-file-pattern').getValue();
+    }
 
+    var file_paging_next = new Ext.Toolbar.Button({
+        id: 'bp-file-next',
+        icon: '/bweb/ext/resources/images/default/grid/page-next.gif',
+        cls: '.x-btn-icon',
+        tooltip: 'Next',
+        handler: function(a,b,c) {
+            update_user_limits();
+            if (file_store.getCount() >= Ext.brestore.limit) {
+                Ext.brestore.offset += Ext.brestore.limit;
+                file_store.removeAll();
+                file_versions_store.removeAll();
+                file_store.load({params:init_params({action: 'list_files',
+                                                     path:Ext.brestore.path,
+                                                     node:Ext.brestore.pathid})
+                                });
+            }
+        }
+    });
+    var file_paging_prev = new Ext.Toolbar.Button({
+        id: 'bp-file-prev',
+        icon: '/bweb/ext/resources/images/default/grid/page-prev.gif',
+        cls: '.x-btn-icon',
+        tooltip: 'Last',
+        handler: function() {
+            update_user_limits();
+            if (Ext.brestore.offset > 0) {
+                Ext.brestore.offset -= Ext.brestore.limit;
+                if (Ext.brestore.offset < 0) {
+                    Ext.brestore.offset=0;
+                }
+                file_store.removeAll();
+                file_versions_store.removeAll();
+                file_store.load({params:init_params({action: 'list_files',
+                                                     path:Ext.brestore.path,
+                                                     node:Ext.brestore.pathid})
+                                });                        
+            }
+        }
+    });
+    var file_paging_pattern = new Ext.form.TextField({
+        enableKeyEvents: true,           
+        id: 'txt-file-pattern',
+        text: 'pattern...'
+    });
+    file_paging_pattern.on('keyup', function(a, e) {
+        if (e.getKey() == e. ENTER) {
+            var re;
+            var pattern = file_paging_pattern.getValue();
+            if (pattern) {
+                re = new RegExp(pattern, "i");                
+            }
+            if (re) {
+                file_store.filter('name', re);
+            } else {
+                file_store.clearFilter(false);
+            }
+        }
+    });
+    var file_paging = new Ext.Toolbar({
+        items: [file_paging_prev, {
+            id: 'txt-file-offset',
+            xtype: 'numberfield',
+            width: 60,
+            value: Ext.brestore.offset
+        }, {
+            xtype: 'tbtext',
+            text: '-'
+        }, {
+            id: 'txt-file-limit',
+            xtype: 'numberfield',
+            width: 60,
+            value: Ext.brestore.limit          
+        }, file_paging_next, '->', file_paging_pattern, {
+            id: 'bp-file-match',
+            icon: '/bweb/ext/resources/images/default/grid/refresh.gif',
+            cls: '.x-btn-icon',
+            tooltip: 'Refresh',
+            handler: function(a,b,c) {
+                update_user_limits();
+                file_store.removeAll();
+                file_versions_store.removeAll();
+                file_store.load({params:init_params({action: 'list_files',
+                                                     path:Ext.brestore.path,
+                                                     node:Ext.brestore.pathid})
+                                });
+            }
+        }]
+    });
     var file_grid = new Ext.grid.GridPanel({
         id: 'div-files',
         store: file_store,
@@ -308,13 +349,30 @@ Ext.onReady(function(){
 	cmargins: '5 0 0 0'
     });
     Ext.brestore.file_grid=file_grid;
-//    captureEvents(file_grid);
-//    captureEvents(file_store);
     // when we reload the view,
     // we clear the file version box
     file_store.on('beforeload', function(e) {
+        file_store.removeAll();
         file_versions_store.removeAll();
         return true;
+    });
+
+    // If we have more than limit elements, we can
+    // display the next button
+    file_store.on('load', function(e,o) {
+        update_limits();
+        if (e.getCount() >= Ext.brestore.limit) {
+            file_paging_next.enable();
+        } else {
+            file_paging_next.disable();
+        }
+
+        if (Ext.brestore.offset) {
+            file_paging_prev.enable();
+        } else {
+            file_paging_prev.disable();
+        }
+
     });
     
 /*
