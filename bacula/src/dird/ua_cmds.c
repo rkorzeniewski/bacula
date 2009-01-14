@@ -108,7 +108,8 @@ static void delete_job(UAContext *ua);
 int qhelp_cmd(UAContext *ua, const char *cmd);
 int quit_cmd(UAContext *ua, const char *cmd);
 
-
+/* not all in alphabetical order.  New commands are added after existing commands with similar letters
+   to prevent breakage of existing user scripts.  */
 struct cmdstruct { const char *key; int (*func)(UAContext *ua, const char *cmd); const char *help; const bool use_in_rs;};
 static struct cmdstruct commands[] = {                                      /* Can use it in Console RunScript*/
  { NT_("add"),        add_cmd,         _("add [pool=<pool-name> storage=<storage> jobid=<JobId>] -- add media to a pool"),                      false},
@@ -126,8 +127,8 @@ static struct cmdstruct commands[] = {                                      /* C
  { NT_("label"),      label_cmd,     _("label a tape"),                               false},
  { NT_("list"),       list_cmd,      _("list [pools | jobs | jobtotals | media <pool=pool-name> | files <jobid=nn> | copies <jobid=nn>]; from catalog"), true},
  { NT_("llist"),      llist_cmd,     _("full or long list like list command"),        true},
- { NT_("memory"),     memory_cmd,    _("print current memory usage"),                 true},
  { NT_("messages"),   messagescmd,   _("messages"),                                   false},
+ { NT_("memory"),     memory_cmd,    _("print current memory usage"),                 true},
  { NT_("mount"),      mount_cmd,     _("mount storage=<storage-name> [ slot=<num> ] [ drive=<num> ] or mount [ jobid=<id> | job=<job-name> ]"),                       false},
  { NT_("prune"),      prunecmd,      _("prune files|jobs|volume client=<client-name> volume=<volume-name> prune expired records from catalog"),         true},
  { NT_("purge"),      purgecmd,      _("purge records from catalog"),                 true},
@@ -139,10 +140,10 @@ static struct cmdstruct commands[] = {                                      /* C
  { NT_("release"),    release_cmd,   _("release <storage-name>"),                     false},
  { NT_("reload"),     reload_cmd,    _("reload conf file"),                           true},
  { NT_("run"),        run_cmd,       _("run job=<job-name> client=<client-name> fileset=<FileSet-name> level=<level-keyword> storage=<storage-name> where=<directory-prefix> when=<universal-time-specification> yes"),                             false}, /* need to be check */
+ { NT_("status"),     status_cmd,    _("status [all | dir=<dir-name> | director | client=<client-name> | storage=<storage-name> | days=nnn]"),           true},
  { NT_("setdebug"),   setdebug_cmd,  _("setdebug level=nn [trace=0/1 client=<client-name> | dir | director | storage=<storage-name> | all]  -- sets debug level"),                           true},
  { NT_("setip"),      setip_cmd,     _("sets new client address -- if authorized"),   false},
  { NT_("show"),       show_cmd,      _("show (resource records) [jobs | pools | ... | all]"), true},
- { NT_("status"),     status_cmd,    _("status [all | dir=<dir-name> | director | client=<client-name> | storage=<storage-name> | days=nnn]"),           true},
  { NT_("sqlquery"),   sqlquerycmd,   _("use SQL to query catalog"),                   false},
  { NT_("time"),       time_cmd,      _("print current time"),                         true},
  { NT_("trace"),      trace_cmd,     _("turn on/off trace to file"),                  true},
