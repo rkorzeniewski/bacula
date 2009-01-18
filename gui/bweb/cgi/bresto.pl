@@ -120,7 +120,7 @@ sub get_pathid
 
 sub set_limits
 {
-    my ($self, $limit, $offset) = @_;
+    my ($self, $offset, $limit) = @_;
     $self->{limit}  = $limit  || 100;
     $self->{offset} = $offset || 0;
 }
@@ -828,7 +828,7 @@ if (!scalar(@jobid) and $args->{qdate} and $args->{client}) {
 }
 $bvfs->set_curjobids(@jobid);
 print STDERR "limit=$args->{limit}:$args->{offset} date=$args->{qdate} currentjobids = ", join(",", @jobid), "\n";
-$bvfs->set_limits($args->{limit}, $args->{offset});
+$bvfs->set_limits($args->{offset}, $args->{limit});
 
 if (!scalar(@jobid)) {
     exit 0;
