@@ -15,7 +15,7 @@ DIRS=	dll \
 
 all: Makefile.inc $(DIRS) installer newinstaller
 
-clean: $(DIRS)
+clean: $(DIRS) installer newinstaller
 	$(ECHO_CMD)-rm -rf release
 
 newinstaller:
