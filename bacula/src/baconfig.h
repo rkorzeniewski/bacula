@@ -212,36 +212,36 @@ void InitWinAPIWrapper();
  *   STREAM_SHA256_DIGEST
  *   STREAM_SHA512_DIGEST
  */
-#define STREAM_NONE                        0    /* Reserved Non-Stream */
-#define STREAM_UNIX_ATTRIBUTES             1    /* Generic Unix attributes */
-#define STREAM_FILE_DATA                   2    /* Standard uncompressed data */
-#define STREAM_MD5_SIGNATURE               3    /* deprecated */
-#define STREAM_MD5_DIGEST                  3    /* MD5 digest for the file */
-#define STREAM_GZIP_DATA                   4    /* GZip compressed file data */
-#define STREAM_UNIX_ATTRIBUTES_EX          5    /* Extended Unix attr for Win32 EX - Deprecated */
-#define STREAM_SPARSE_DATA                 6    /* Sparse data stream */
-#define STREAM_SPARSE_GZIP_DATA            7    /* Sparse gzipped data stream */
-#define STREAM_PROGRAM_NAMES               8    /* program names for program data */
-#define STREAM_PROGRAM_DATA                9    /* Data needing program */
-#define STREAM_SHA1_SIGNATURE             10    /* deprecated */
-#define STREAM_SHA1_DIGEST                10    /* SHA1 digest for the file */
-#define STREAM_WIN32_DATA                 11    /* Win32 BackupRead data */
-#define STREAM_WIN32_GZIP_DATA            12    /* Gzipped Win32 BackupRead data */
-#define STREAM_MACOS_FORK_DATA            13    /* Mac resource fork */
-#define STREAM_HFSPLUS_ATTRIBUTES         14    /* Mac OS extra attributes */
-#define STREAM_UNIX_ACCESS_ACL            15    /* Standard ACL attributes on UNIX - Deprecated */
-#define STREAM_UNIX_DEFAULT_ACL           16    /* Default ACL attributes on UNIX - Deprecated */
-#define STREAM_SHA256_DIGEST              17    /* SHA-256 digest for the file */
-#define STREAM_SHA512_DIGEST              18    /* SHA-512 digest for the file */
-#define STREAM_SIGNED_DIGEST              19    /* Signed File Digest, ASN.1, DER Encoded */
-#define STREAM_ENCRYPTED_FILE_DATA        20    /* Encrypted, uncompressed data */
-#define STREAM_ENCRYPTED_WIN32_DATA       21    /* Encrypted, uncompressed Win32 BackupRead data */
-#define STREAM_ENCRYPTED_SESSION_DATA     22    /* Encrypted Session Data, ASN.1, DER Encoded */
-#define STREAM_ENCRYPTED_FILE_GZIP_DATA   23    /* Encrypted, compressed data */
-#define STREAM_ENCRYPTED_WIN32_GZIP_DATA  24    /* Encrypted, compressed Win32 BackupRead data */
-#define STREAM_ENCRYPTED_MACOS_FORK_DATA  25    /* Encrypted, uncompressed Mac resource fork */
-#define STREAM_PLUGIN_NAME                26    /* Plugin "file" string */
-#define STREAM_PLUGIN_DATA                27    /* Plugin specific data */
+#define STREAM_NONE                         0    /* Reserved Non-Stream */
+#define STREAM_UNIX_ATTRIBUTES              1    /* Generic Unix attributes */
+#define STREAM_FILE_DATA                    2    /* Standard uncompressed data */
+#define STREAM_MD5_SIGNATURE                3    /* deprecated */
+#define STREAM_MD5_DIGEST                   3    /* MD5 digest for the file */
+#define STREAM_GZIP_DATA                    4    /* GZip compressed file data */
+#define STREAM_UNIX_ATTRIBUTES_EX           5    /* Extended Unix attr for Win32 EX - Deprecated */
+#define STREAM_SPARSE_DATA                  6    /* Sparse data stream */
+#define STREAM_SPARSE_GZIP_DATA             7    /* Sparse gzipped data stream */
+#define STREAM_PROGRAM_NAMES                8    /* program names for program data */
+#define STREAM_PROGRAM_DATA                 9    /* Data needing program */
+#define STREAM_SHA1_SIGNATURE              10    /* deprecated */
+#define STREAM_SHA1_DIGEST                 10    /* SHA1 digest for the file */
+#define STREAM_WIN32_DATA                  11    /* Win32 BackupRead data */
+#define STREAM_WIN32_GZIP_DATA             12    /* Gzipped Win32 BackupRead data */
+#define STREAM_MACOS_FORK_DATA             13    /* Mac resource fork */
+#define STREAM_HFSPLUS_ATTRIBUTES          14    /* Mac OS extra attributes */
+#define STREAM_UNIX_ACCESS_ACL             15    /* Standard ACL attributes on UNIX - Deprecated */
+#define STREAM_UNIX_DEFAULT_ACL            16    /* Default ACL attributes on UNIX - Deprecated */
+#define STREAM_SHA256_DIGEST               17    /* SHA-256 digest for the file */
+#define STREAM_SHA512_DIGEST               18    /* SHA-512 digest for the file */
+#define STREAM_SIGNED_DIGEST               19    /* Signed File Digest, ASN.1, DER Encoded */
+#define STREAM_ENCRYPTED_FILE_DATA         20    /* Encrypted, uncompressed data */
+#define STREAM_ENCRYPTED_WIN32_DATA        21    /* Encrypted, uncompressed Win32 BackupRead data */
+#define STREAM_ENCRYPTED_SESSION_DATA      22    /* Encrypted Session Data, ASN.1, DER Encoded */
+#define STREAM_ENCRYPTED_FILE_GZIP_DATA    23    /* Encrypted, compressed data */
+#define STREAM_ENCRYPTED_WIN32_GZIP_DATA   24    /* Encrypted, compressed Win32 BackupRead data */
+#define STREAM_ENCRYPTED_MACOS_FORK_DATA   25    /* Encrypted, uncompressed Mac resource fork */
+#define STREAM_PLUGIN_NAME                 26    /* Plugin "file" string */
+#define STREAM_PLUGIN_DATA                 27    /* Plugin specific data */
 
 /*
  * Additional Stream definitions. Once defined these must NEVER
@@ -254,50 +254,51 @@ void InitWinAPIWrapper();
  * different acl streams from 1000 on and the different extended attributes streams from
  * 1999 down. So the two naming spaces grows towards each other.
  */
-#define STREAM_ACL_AIX_TEXT                1000    /* AIX specific string representation from acl_get */
+#define STREAM_ACL_AIX_TEXT              1000    /* AIX specific string representation from acl_get */
 #define STREAM_ACL_DARWIN_ACCESS_ACL     1001    /* Darwin (OSX) specific acl_t string representation
-                                                    * from acl_to_text (POSIX acl)
-                                                    */
+                                                  * from acl_to_text (POSIX acl)
+                                                  */
 #define STREAM_ACL_FREEBSD_DEFAULT_ACL   1002    /* FreeBSD specific acl_t string representation
-                                                    * from acl_to_text (POSIX acl) for default acls.
-                                                    */
+                                                  * from acl_to_text (POSIX acl) for default acls.
+                                                  */
 #define STREAM_ACL_FREEBSD_ACCESS_ACL    1003    /* FreeBSD specific acl_t string representation
-                                                    * from acl_to_text (POSIX acl) for access acls.
-                                                    */
-#define STREAM_ACL_HPUX_ACL_ENTRY          1004    /* HPUX specific acl_entry string representation
-                                                    * from acltostr (POSIX acl)
-                                                    */
+                                                  * from acl_to_text (POSIX acl) for access acls.
+                                                  */
+#define STREAM_ACL_HPUX_ACL_ENTRY        1004    /* HPUX specific acl_entry string representation
+                                                  * from acltostr (POSIX acl)
+                                                  */
 #define STREAM_ACL_IRIX_DEFAULT_ACL      1005    /* IRIX specific acl_t string representation
-                                                    * from acl_to_text (POSIX acl) for default acls.
-                                                    */
+                                                  * from acl_to_text (POSIX acl) for default acls.
+                                                  */
 #define STREAM_ACL_IRIX_ACCESS_ACL       1006    /* IRIX specific acl_t string representation
-                                                    * from acl_to_text (POSIX acl) for access acls.
-                                                    */
+                                                  * from acl_to_text (POSIX acl) for access acls.
+                                                  */
 #define STREAM_ACL_LINUX_DEFAULT_ACL     1007    /* Linux specific acl_t string representation
-                                                    * from acl_to_text (POSIX acl) for default acls.
-                                                    */
+                                                  * from acl_to_text (POSIX acl) for default acls.
+                                                  */
 #define STREAM_ACL_LINUX_ACCESS_ACL      1008    /* Linux specific acl_t string representation
-                                                    * from acl_to_text (POSIX acl) for access acls.
-                                                    */
+                                                  * from acl_to_text (POSIX acl) for access acls.
+                                                  */
 #define STREAM_ACL_TRU64_DEFAULT_ACL     1009    /* Tru64 specific acl_t string representation
-                                                    * from acl_to_text (POSIX acl) for default acls.
-                                                    */
+                                                  * from acl_to_text (POSIX acl) for default acls.
+                                                  */
 #define STREAM_ACL_TRU64_DEFAULT_DIR_ACL 1010    /* Tru64 specific acl_t string representation
-                                                    * from acl_to_text (POSIX acl) for default acls.
-                                                    */
+                                                  * from acl_to_text (POSIX acl) for default acls.
+                                                  */
 #define STREAM_ACL_TRU64_ACCESS_ACL      1011    /* Tru64 specific acl_t string representation
-                                                    * from acl_to_text (POSIX acl) for access acls.
-                                                    */
+                                                  * from acl_to_text (POSIX acl) for access acls.
+                                                  */
 #define STREAM_ACL_SOLARIS_ACLENT        1012    /* Solaris specific aclent_t string representation
-                                                    * from acltotext or acl_totext (POSIX acl)
-                                                    */
+                                                  * from acltotext or acl_totext (POSIX acl)
+                                                  */
 #define STREAM_ACL_SOLARIS_ACE           1013    /* Solaris specific ace_t string representation from
-                                                    * from acl_totext (NFSv4 or ZFS acl)
-                                                    */
-#define STREAM_XATTR_DARWIN                1996    /* Darwin (OSX) specific extended attributes */
-#define STREAM_XATTR_FREEBSD               1997    /* FreeBSD specific extended attributes */
-#define STREAM_XATTR_LINUX                 1998    /* Linux specific extended attributes */
-#define STREAM_XATTR_NETBSD                1999    /* NetBSD specific extended attributes */
+                                                  * from acl_totext (NFSv4 or ZFS acl)
+                                                  */
+#define STREAM_XATTR_SOLARIS             1995    /* Solaris specific extented attributes and extensible attributes */
+#define STREAM_XATTR_DARWIN              1996    /* Darwin (OSX) specific extended attributes */
+#define STREAM_XATTR_FREEBSD             1997    /* FreeBSD specific extended attributes */
+#define STREAM_XATTR_LINUX               1998    /* Linux specific extended attributes */
+#define STREAM_XATTR_NETBSD              1999    /* NetBSD specific extended attributes */
 
 /*
  *  File type (Bacula defined).

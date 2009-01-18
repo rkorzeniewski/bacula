@@ -67,8 +67,6 @@ typedef enum {
 #define BACL_ENOTSUP          ENOSYS
 #elif defined(HAVE_LINUX_OS) 
 #define BACL_ENOTSUP          ENOTSUP
-#elif defined(HAVE_SUN_OS) 
-#define BACL_ENOTSUP          ENOSYS
 #endif
 
 #endif
