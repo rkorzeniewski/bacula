@@ -58,7 +58,8 @@
 #include "filed.h"
   
 /*
- * List of supported OSs.
+ * List of supported OSs. Everything outside that gets stub functions.
+ * Also when XATTR support is explicitly disabled.
  * Not sure if all the HAVE_XYZ_OS are correct for autoconf.
  * The ones that says man page, are coded according to man pages only.
  */
@@ -924,32 +925,41 @@ char *acl_strerror(int);
  */
 static bool solaris_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
 {
-   int len, flags;
+   int acl_enabled, len, flags;
    acl_t *aclp;
    char *acl_text;
    bool stream_status = false;
 
    /*
+    * See if filesystem supports acls.
+    */
+   acl_enabled = pathconf(jcr->last_fname, _PC_ACL_ENABLED);
+   switch (acl_enabled) {
+   case 0:
+      pm_strcpy(jcr->acl_data, "");
+
+      return true;
+   case -1:
+      Jmsg2(jcr, M_ERROR, 0, _("pathconf error on file \"%s\": ERR=%s\n"),
+         jcr->last_fname, strerror(errno));
+      Dmsg2(100, "pathconf error file=%s ERR=%s\n",  
+         jcr->last_fname, strerror(errno));
+
+      return false;
+   default:
+      break;
+   }
+
+   /*
     * Get ACL info: don't bother allocating space if there is only a trivial ACL.
     */
    if (acl_get(jcr->last_fname, ACL_NO_TRIVIAL, &aclp) != 0) {
-      switch (errno) {
-#if defined(BACL_ENOTSUP)
-      case BACL_ENOTSUP:
-         /*
-          * Not supported, just pretend there is nothing to see
-          */
-         pm_strcpy(jcr->acl_data, "");
-         return true;
-#endif
-      default:
-         Jmsg2(jcr, M_ERROR, 0, _("acl_get error on file \"%s\": ERR=%s\n"),
-            jcr->last_fname, acl_strerror(errno));
-         Dmsg2(100, "acl_get error file=%s ERR=%s\n",  
-            jcr->last_fname, acl_strerror(errno));
+      Jmsg2(jcr, M_ERROR, 0, _("acl_get error on file \"%s\": ERR=%s\n"),
+         jcr->last_fname, acl_strerror(errno));
+      Dmsg2(100, "acl_get error file=%s ERR=%s\n",  
+         jcr->last_fname, acl_strerror(errno));
 
-         return false;
-      }
+      return false;
    }
 
    if (aclp == NULL) {
@@ -994,12 +1004,63 @@ static bool solaris_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
 static bool solaris_parse_acl_stream(JCR *jcr, int stream)
 {
    acl_t *aclp;
-   int error;
+   int acl_enabled, error;
 
    switch (stream) {
    case STREAM_UNIX_ACCESS_ACL:
    case STREAM_ACL_SOLARIS_ACLENT:
    case STREAM_ACL_SOLARIS_ACE:
+      /*
+       * First make sure the filesystem supports acls.
+       */
+      acl_enabled = pathconf(jcr->last_fname, _PC_ACL_ENABLED);
+      switch (acl_enabled) {
+      case 0:
+         Jmsg1(jcr, M_ERROR, 0, _("Trying to restore acl on file \"%s\" on filesystem without acl support\n"),
+            jcr->last_fname);
+
+         return false;
+      case -1:
+         Jmsg2(jcr, M_ERROR, 0, _("pathconf error on file \"%s\": ERR=%s\n"),
+            jcr->last_fname, strerror(errno));
+         Dmsg3(100, "pathconf error acl=%s file=%s ERR=%s\n",  
+            jcr->acl_data, jcr->last_fname, strerror(errno));
+
+         return false;
+      default:
+         /*
+          * On a filesystem with ACL support make sure this particilar ACL type can be restored.
+          */
+         switch (stream) {
+         case STREAM_ACL_SOLARIS_ACLENT:
+            /*
+             * An aclent can be restored on filesystems with _ACL_ACLENT_ENABLED or _ACL_ACE_ENABLED support.
+             */
+            if ((acl_enabled & (_ACL_ACLENT_ENABLED | _ACL_ACE_ENABLED)) == 0) {
+               Jmsg1(jcr, M_ERROR, 0, _("Trying to restore acl on file \"%s\" on filesystem without aclent acl support\n"),
+                  jcr->last_fname);
+               return false;
+            }
+            break;
+         case STREAM_ACL_SOLARIS_ACE:
+            /*
+             * An ace can only be restored on a filesystem with _ACL_ACE_ENABLED support.
+             */
+            if ((acl_enabled & _ACL_ACE_ENABLED) == 0) {
+               Jmsg1(jcr, M_ERROR, 0, _("Trying to restore acl on file \"%s\" on filesystem without ace acl support\n"),
+                  jcr->last_fname);
+               return false;
+            }
+            break;
+         default:
+            /*
+             * Stream id which doesn't describe the type of acl which is encoded.
+             */
+            break;
+         }
+         break;
+      }
+
       if ((error = acl_fromtext(jcr->acl_data, &aclp)) != 0) {
          Jmsg2(jcr, M_ERROR, 0, _("acl_fromtext error on file \"%s\": ERR=%s\n"),
             jcr->last_fname, acl_strerror(error));
@@ -1018,12 +1079,14 @@ static bool solaris_parse_acl_stream(JCR *jcr, int stream)
                jcr->last_fname);
             return false;
          }
+         break;
       case STREAM_ACL_SOLARIS_ACE:
          if (acl_type(aclp) != ACE_T) {
             Jmsg1(jcr, M_ERROR, 0, _("wrong encoding of acl type in acl stream on file \"%s\"\n"),
                jcr->last_fname);
             return false;
          }
+         break;
       default:
          /*
           * Stream id which doesn't describe the type of acl which is encoded.

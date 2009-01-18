@@ -32,10 +32,11 @@
  * they were saved using a filed on the same platform.
  *
  * Currently we support the following OSes:
- *   - FreeBSD
- *   - Darwin
- *   - Linux
- *   - NetBSD
+ *   - FreeBSD (Extended Attributes)
+ *   - Darwin (Extended Attributes)
+ *   - Linux (Extended Attributes)
+ *   - NetBSD (Extended Attributes)
+ *   - Solaris (Extended Attributes and Extensible Attributes)
  *
  *   Written by Marco van Wieringen, November MMVIII
  *
@@ -47,13 +48,15 @@
 #include "xattr.h"
 
 /*
- * List of supported OSs.
+ * List of supported OSs. Everything outside that gets stub functions.
+ * Also when XATTR support is explicitly disabled.
  */
-#if !defined(HAVE_XATTR)            /* Extended Attributes support is required, of course */ \
-   || !( defined(HAVE_DARWIN_OS) \
-      || defined(HAVE_FREEBSD_OS) \
-      || defined(HAVE_LINUX_OS) \
-      || defined(HAVE_NETBSD_OS) \
+#if !defined(HAVE_XATTR)          /* Extended Attributes support is required, of course */ \
+   || !( defined(HAVE_DARWIN_OS)  /* OSX has XATTR support  using getxattr etc. */ \
+      || defined(HAVE_FREEBSD_OS) /* FreeBSD has XATTR support using lgetxattr etc. */ \
+      || defined(HAVE_LINUX_OS)   /* Linux has XATTR support using the lgetxattr etc. */ \
+      || defined(HAVE_NETBSD_OS)  /* NetBSD has XATTR support using the lgetxattr etc. */ \
+      || defined(HAVE_SUN_OS)     /* Solaris has XATTR support using attropen etc. */ \
         )
 
 bool build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
@@ -70,6 +73,15 @@ bool parse_xattr_stream(JCR *jcr, int stream)
 
 #else
 
+/*
+ * This is a supported OS, See what kind of interface we should use.
+ * Start with the generic interface used by most OS-es.
+ */
+#if defined(HAVE_DARWIN_OS) \
+   || defined(HAVE_FREEBSD_OS) \
+   || defined(HAVE_LINUX_OS) \
+   || defined(HAVE_NETBSD_OS)
+       
 #ifdef HAVE_SYS_XATTR_H
 #include <sys/xattr.h>
 #endif
@@ -503,8 +515,9 @@ static bool darwin_parse_xattr_stream(JCR *jcr, int stream)
    switch (stream) {
    case STREAM_XATTR_DARWIN:
       return generic_xattr_parse_streams(jcr);
+   default:
+      return false;
    }
-   return false;
 }
 #elif defined(HAVE_FREEBSD_OS)
 static bool freebsd_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
@@ -517,6 +530,8 @@ static bool freebsd_parse_xattr_stream(JCR *jcr, int stream)
    switch (stream) {
    case STREAM_XATTR_FREEBSD:
       return generic_xattr_parse_streams(jcr);
+   default:
+      return false;
    }
 }
 #elif defined(HAVE_LINUX_OS)
@@ -530,8 +545,9 @@ static bool linux_parse_xattr_stream(JCR *jcr, int stream)
    switch (stream) {
    case STREAM_XATTR_LINUX:
       return generic_xattr_parse_streams(jcr);
+   default:
+      return false;
    }
-   return false;
 }
 #elif defined(HAVE_NETBSD_OS)
 static bool netbsd_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
@@ -544,14 +560,35 @@ static bool netbsd_parse_xattr_stream(JCR *jcr, int stream)
    switch (stream) {
    case STREAM_XATTR_NETBSD:
       return generic_xattr_parse_streams(jcr);
+   default:
+      return false;
    }
-   return false;
 }
+#endif
+#elif defined(HAVE_SUN_OS)
+
+static bool solaris_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
+{
+   return true;
+}
+
+static bool solaris_parse_xattr_stream(JCR *jcr, int stream)
+{
+   switch (stream) {
+   case STREAM_XATTR_SOLARIS:
+      return true;
+   default:
+      return false;
+   }
+}
+
 #endif
 
 bool build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
 {
-#if defined(HAVE_DARWIN_OS)
+#if defined(HAVE_SUN_OS)
+   return solaris_build_xattr_streams(jcr, ff_pkt);
+#elif defined(HAVE_DARWIN_OS)
    return darwin_build_xattr_streams(jcr, ff_pkt);
 #elif defined(HAVE_FREEBSD_OS)
    return freebsd_build_xattr_streams(jcr, ff_pkt);
@@ -572,7 +609,10 @@ bool parse_xattr_stream(JCR *jcr, int stream)
     * is true per compile we never end up with duplicate switch values.
     */
    switch (stream) {
-#if defined(HAVE_DARWIN_OS)
+#if defined(HAVE_SUN_OS)
+   case STREAM_XATTR_SOLARIS:
+      return solaris_parse_xattr_stream(jcr, stream);
+#elif defined(HAVE_DARWIN_OS)
    case STREAM_XATTR_DARWIN:
       return darwin_parse_xattr_stream(jcr, stream);
 #elif defined(HAVE_FREEBSD_OS)
