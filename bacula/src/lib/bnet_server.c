@@ -42,7 +42,7 @@
 #include <arpa/nameser.h>
 #endif
 #ifdef HAVE_RESOLV_H
-#include <resolv.h>
+//#include <resolv.h>
 #endif
 
 
@@ -238,4 +238,3 @@ bnet_thread_server(dlist *addrs, int max_clients, workq_t *client_wq,
             be.bstrerror());
    }
 }
-

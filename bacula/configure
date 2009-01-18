@@ -30556,7 +30556,6 @@ fi
 
 
 
-
 for ac_header in \
    assert.h \
    fcntl.h \
@@ -30583,7 +30582,6 @@ for ac_header in \
    sys/time.h \
    sys/types.h \
    arpa/nameser.h \
-   resolv.h \
    mtio.h \
    sys/mtio.h \
    sys/tape.h \

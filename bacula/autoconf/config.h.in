@@ -566,9 +566,6 @@
 /* Define to 1 if you have the <regex.h> header file. */
 #undef HAVE_REGEX_H
 
-/* Define to 1 if you have the <resolv.h> header file. */
-#undef HAVE_RESOLV_H
-
 /* Define if sa_len field exists in struct sockaddr */
 #undef HAVE_SA_LEN
 
