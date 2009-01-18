@@ -1695,7 +1695,6 @@ AC_CHECK_HEADERS( \
    sys/time.h \
    sys/types.h \
    arpa/nameser.h \
-   resolv.h \
    mtio.h \
    sys/mtio.h \
    sys/tape.h \

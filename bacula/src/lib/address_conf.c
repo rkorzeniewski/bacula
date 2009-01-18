@@ -39,7 +39,7 @@
 #include <arpa/nameser.h>
 #endif
 #ifdef HAVE_RESOLV_H
-#include <resolv.h>
+//#include <resolv.h>
 #endif
 
 static int add_address(dlist **out, IPADDR::i_type type, unsigned short defaultport, int family,
