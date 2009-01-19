@@ -154,7 +154,7 @@ SELECT count(1) AS nb
   FROM Job $c_filter $g_filter
 
  WHERE JobStatus IN ('R', 'C')
-   AND Type 'B'
+   AND Type = 'B'
    AND JobTDate > $since
    AND JobTDate < $trig
  $where
