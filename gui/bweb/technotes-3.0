@@ -4,11 +4,11 @@ ebl  Work on check_bacula.pl
           Ok = value < warning
           Warning = critical < value >= warning 
           Critical = value >= critical
-      - Add new options -M|-F to specify "max run test" or "count failed"
+      - Add new options -R|-F to specify "max Run test" or "count Failed"
           => nothing will be done by default
+      - remove -a option, now -R and -F take time option
       - Add JobId keyword in the scan of the storage status command
       - Add new level option
-
 
 13Jan09
 ebl  Add Purged status to update_media form even if the

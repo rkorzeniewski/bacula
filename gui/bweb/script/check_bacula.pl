@@ -12,7 +12,6 @@
 
       -l|--level=F/I/D     Specify job level
 
-      -a|--age=i           Age in hours (default 10h)
       -w|--warning=i       warning threshold (jobs)
       -c|--critical=i      critical threshold (jobs)
 
@@ -21,20 +20,20 @@
       -s|--scratch=i       threshold scratch number
       -m|--mediatype=ss    Media type to check for scratch
 
-      -M|--MaxRun          Test for maximum running jobs
-      -F|--Failed          Test for canceled or failed jobs
+      -R|--Running=i       Test for maximum running jobs for a period (in hours)
+      -F|--Failed=i        Test for failed jobs after a period (in mins)
 
 =head3 EXAMPLES
 
    Check :
       - if more than 10 jobs are running for client c1 and c2 for 1 hour
-    check_bacula.pl -M -C c1 -C c2 -w 10 -c 15 -a 1
+    check_bacula.pl -R 1 -C c1 -C c2 -w 10 -c 15
 
       - if more than 10 jobs are running for group g1 for 2 hours
-    check_bacula.pl -M -g g1 -w 10 -c 15 -a 2
+    check_bacula.pl -R 2 -g g1 -w 10 -c 15
 
       - if more than 10 jobs are failed of canceled for 2 hours for group g1
-    check_bacula.pl -F -g g1 -w 10 -c 15 -a 2
+    check_bacula.pl -F 120 -g g1 -w 10 -c 15
 
       - if S1_LTO1 and S1_LTO2 storage deamon are responding to status cmd
     check_bacula.pl -S S1_LTO1 -S S1_LTO2
@@ -47,7 +46,7 @@
    check_bacula.pl -g g1 -w 10 -c 15 -S S1_LTO1 -s 2 -m Tape%
 
       - if we have more than 10 jobs in error or already running for 2 hours
-   check_bacula.pl -M -F -w 10 -c 15 -a 2
+   check_bacula.pl -R 2 -F 20 -w 10 -c 15
 
 =head1 LICENSE
 
@@ -99,7 +98,6 @@ my $mediatype='%';		# check for all mediatype
 my $nb_scratch;                 # check for scratch media
 my $crit = 10;
 my $warn = 5;
-my $age;
 my $res;
 my $ret=0;
 my $level;
@@ -107,7 +105,6 @@ my $timeout=50;			# timeout for storage status command
 
 GetOptions("Client=s@"  => \@client,
 	   "group=s@"   => \@group,
-	   "age=i"     => \$age,
 	   "scratch=i" => \$nb_scratch,
 	   "warning=i" => \$warn,
 	   "critical=i"=> \$crit,
@@ -115,22 +112,13 @@ GetOptions("Client=s@"  => \@client,
 	   "timeout=i" => \$timeout,
 	   "Storage=s@"=> \@storage,
 	   "mediatype=s"=> \$mediatype,
-           "MaxRun"    => \$max_run,
-           "Failed"    => \$test_failed,
+           "Runing:45"  => \$max_run,
+           "Failed:12"  => \$test_failed,
            "level=s"   => \$level,
 	   "help"      => \$help) 
     || Pod::Usage::pod2usage(-exitval => 2, -verbose => 1) ;
 
 Pod::Usage::pod2usage(-verbose => 1) if ( $help ) ;
-
-if ($age) {
-    $age *= 60*60;
-} else {
-    $age = 10*60*60;            # set default to 10h
-}
-
-my $since = time - $age;
-my $trig = time - 2*60*60;
 
 my $conf = new Bweb::Config(config_file => $config_file);
 $conf->load();
@@ -162,25 +150,25 @@ if (@group) {
 # for too long (more than 2 hours) since Y ago
 
 if ($max_run) {
+    my $trig = time - $max_run*60;
+
     $query = "
 SELECT count(1) AS nb
   FROM Job $c_filter $g_filter
 
  WHERE JobStatus IN ('R', 'C')
    AND Type = 'B'
-   AND JobTDate > $since
    AND JobTDate < $trig
  $where
 ";
-
     $res = $bweb->dbh_selectrow_hashref($query);
     if ($res) {
         my $nb = $res->{nb};
         if ($nb >= $crit) {
-            push @msg, "$nb jobs are running";
+            push @msg, "$nb jobs are running (${max_run}m)";
             $ret = 2;
         } elsif ($nb >= $warn) {
-            push @msg, "$nb jobs are running";
+            push @msg, "$nb jobs are running (${max_run}m)";
             $ret = ($ret>1)?$ret:1;
         }
     }
@@ -190,6 +178,8 @@ SELECT count(1) AS nb
 # check failed jobs (more than X) since x time ago
 
 if ($test_failed) {
+    my $since = time - $test_failed*60*60;
+
     $query = "
 SELECT count(1) AS nb
   FROM Job $c_filter $g_filter
@@ -199,15 +189,14 @@ SELECT count(1) AS nb
    AND JobTDate > $since
  $where
 ";
-
     $res = $bweb->dbh_selectrow_hashref($query);
     if ($res) {
         my $nb = $res->{nb};
         if ($nb >= $crit) {
-            push @msg, "$nb jobs are in error";
+            push @msg, "$nb jobs are in error (${test_failed}h)";
             $ret = 2;
         } elsif ($nb >= $warn) {
-            push @msg, "$nb jobs are in error";
+            push @msg, "$nb jobs are in error (${test_failed}h)";
             $ret = ($ret>1)?$ret:1;
         }
     }
