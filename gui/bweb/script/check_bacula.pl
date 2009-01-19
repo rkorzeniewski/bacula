@@ -10,6 +10,8 @@
       -C|--Client=ss       List of clients
       -g|--group=ss        List of groups
 
+      -l|--level=F/I/D     Specify job level
+
       -a|--age=i           Age in hours (default 10h)
       -w|--warning=i       warning threshold (jobs)
       -c|--critical=i      critical threshold (jobs)
@@ -19,37 +21,40 @@
       -s|--scratch=i       threshold scratch number
       -m|--mediatype=ss    Media type to check for scratch
 
+      -M|--MaxRun          Test for maximum running jobs
+      -F|--Failed          Test for canceled or failed jobs
 
 =head3 EXAMPLES
 
    Check :
       - if more than 10 jobs are running for client c1 and c2 for 1 hour
-
-    check_bacula.pl -C c1 -C c2 -w 10 -c 15 -a 1
+    check_bacula.pl -M -C c1 -C c2 -w 10 -c 15 -a 1
 
       - if more than 10 jobs are running for group g1 for 2 hours
+    check_bacula.pl -M -g g1 -w 10 -c 15 -a 2
 
-    check_bacula.pl -g g1 -w 10 -c 15 -a 2
+      - if more than 10 jobs are failed of canceled for 2 hours for group g1
+    check_bacula.pl -F -g g1 -w 10 -c 15 -a 2
 
       - if S1_LTO1 and S1_LTO2 storage deamon are responding to status cmd
-
     check_bacula.pl -S S1_LTO1 -S S1_LTO2
 
       - if the scratch pool contains 5 volumes with mediatype Tape% at minimum
-
     check_bacula.pl -s 2 -m Tape%
-
 
    You can mix all options
 
    check_bacula.pl -g g1 -w 10 -c 15 -S S1_LTO1 -s 2 -m Tape%
+
+      - if we have more than 10 jobs in error or already running for 2 hours
+   check_bacula.pl -M -F -w 10 -c 15 -a 2
 
 =head1 LICENSE
 
    Bweb - A Bacula web interface
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2008 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2009 Free Software Foundation Europe e.V.
 
    The main author of Bweb is Eric Bollengier.
    The main author of Bacula is Kern Sibbald, with contributions from
@@ -88,13 +93,16 @@ use Pod::Usage;
 my $config_file = $Bweb::config_file;
 my (@client, @group, $help, $query, $verbose, @msg, @storage);
 
+my $max_run;
+my $test_failed;
 my $mediatype='%';		# check for all mediatype
-my $nb_scratch=5;		# check for more than 5 scratch media
+my $nb_scratch;                 # check for scratch media
 my $crit = 10;
 my $warn = 5;
 my $age;
 my $res;
 my $ret=0;
+my $level;
 my $timeout=50;			# timeout for storage status command
 
 GetOptions("Client=s@"  => \@client,
@@ -107,6 +115,9 @@ GetOptions("Client=s@"  => \@client,
 	   "timeout=i" => \$timeout,
 	   "Storage=s@"=> \@storage,
 	   "mediatype=s"=> \$mediatype,
+           "MaxRun"    => \$max_run,
+           "Failed"    => \$test_failed,
+           "level=s"   => \$level,
 	   "help"      => \$help) 
     || Pod::Usage::pod2usage(-exitval => 2, -verbose => 1) ;
 
@@ -115,7 +126,7 @@ Pod::Usage::pod2usage(-verbose => 1) if ( $help ) ;
 if ($age) {
     $age *= 60*60;
 } else {
-    $age = 10*60*60;
+    $age = 10*60*60;            # set default to 10h
 }
 
 my $since = time - $age;
@@ -130,8 +141,9 @@ $b->{timeout} = $timeout;
 
 CGI::param(-name=> 'client',-value => \@client);
 CGI::param(-name=> 'client_group', -value => \@group);
+CGI::param(-name=> 'level', -value => $level);
 
-my ($where, undef) = $bweb->get_param(qw/clients client_groups/);
+my ($where, undef) = $bweb->get_param(qw/clients client_groups level/);
 
 my $c_filter ="";
 my $g_filter = "";
@@ -149,7 +161,8 @@ if (@group) {
 # check if more than X jobs are running or just created
 # for too long (more than 2 hours) since Y ago
 
-$query = "
+if ($max_run) {
+    $query = "
 SELECT count(1) AS nb
   FROM Job $c_filter $g_filter
 
@@ -160,22 +173,24 @@ SELECT count(1) AS nb
  $where
 ";
 
-$res = $bweb->dbh_selectrow_hashref($query);
-if ($res) {
-    my $nb = $res->{nb};
-    if ($nb > $crit) {
-	push @msg, "$nb jobs are running";
-	$ret = 2;
-    } elsif ($nb > $warn) {
-	push @msg, "$nb jobs are running";
-	$ret = ($ret>1)?$ret:1;
+    $res = $bweb->dbh_selectrow_hashref($query);
+    if ($res) {
+        my $nb = $res->{nb};
+        if ($nb >= $crit) {
+            push @msg, "$nb jobs are running";
+            $ret = 2;
+        } elsif ($nb >= $warn) {
+            push @msg, "$nb jobs are running";
+            $ret = ($ret>1)?$ret:1;
+        }
     }
 }
 
 ################################################################
 # check failed jobs (more than X) since x time ago
 
-$query = "
+if ($test_failed) {
+    $query = "
 SELECT count(1) AS nb
   FROM Job $c_filter $g_filter
 
@@ -185,15 +200,16 @@ SELECT count(1) AS nb
  $where
 ";
 
-$res = $bweb->dbh_selectrow_hashref($query);
-if ($res) {
-    my $nb = $res->{nb};
-    if ($nb > $crit) {
-	push @msg, "$nb jobs are in error";
-	$ret = 2;
-    } elsif ($nb > $warn) {
-	push @msg, "$nb jobs are in error";
-	$ret = ($ret>1)?$ret:1;
+    $res = $bweb->dbh_selectrow_hashref($query);
+    if ($res) {
+        my $nb = $res->{nb};
+        if ($nb >= $crit) {
+            push @msg, "$nb jobs are in error";
+            $ret = 2;
+        } elsif ($nb >= $warn) {
+            push @msg, "$nb jobs are in error";
+            $ret = ($ret>1)?$ret:1;
+        }
     }
 }
 
@@ -203,8 +219,8 @@ if ($res) {
 foreach my $st (@storage) {
 
     my $out = $b->send_cmd("status storage=\"$st\"");
-    if (!$out || $out !~ /Attr spooling/) {
-	push @msg, "timeout ($timeout s) on status storage $st";
+    if (!$out || $out !~ /Attr spooling|JobId/) {
+	push @msg, "timeout ($timeout s) or bad response on status storage $st";
 	$ret = 2;
     }
 }
@@ -212,7 +228,8 @@ foreach my $st (@storage) {
 ################################################################
 # check for Scratch volume
 
-$query = "
+if ($nb_scratch) {
+    $query = "
   SELECT MediaType AS mediatype, count(MediaId) AS nb
     FROM Media JOIN Pool USING (PoolId)
    WHERE Pool.Name = 'Scratch'
@@ -221,13 +238,17 @@ $query = "
   GROUP BY MediaType
 ";
 
-$res = $bweb->dbh_selectall_hashref($query, 'mediatype');
-if ($res) {
-    foreach my $k (keys %$res) {
-	if ($res->{$k}->{nb} < $nb_scratch) {
-	    push @msg, "no more scratch for $k ($res->{$k}->{nb})";
-	    $ret = 2;
-	}
+    $res = $bweb->dbh_selectall_hashref($query, 'mediatype');
+    if ($res && keys %$res) {
+        foreach my $k (keys %$res) {
+            if ($res->{$k}->{nb} < $nb_scratch) {
+                push @msg, "no more scratch for $k ($res->{$k}->{nb})";
+                $ret = 2;
+            }
+        }
+    } else { # query doesn't report anything...
+        push @msg, "no more scratch for $mediatype";
+        $ret = 2;
     }
 }
 

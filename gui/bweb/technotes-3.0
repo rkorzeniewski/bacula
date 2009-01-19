@@ -1,3 +1,15 @@
+19Jan09
+ebl  Work on check_bacula.pl
+      - Modify warning/critical threshold 
+          Ok = value < warning
+          Warning = critical < value >= warning 
+          Critical = value >= critical
+      - Add new options -M|-F to specify "max run test" or "count failed"
+          => nothing will be done by default
+      - Add JobId keyword in the scan of the storage status command
+      - Add new level option
+
+
 13Jan09
 ebl  Add Purged status to update_media form even if the
      update volume console doesn't permit it.
