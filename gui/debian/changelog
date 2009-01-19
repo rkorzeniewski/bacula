@@ -1,3 +1,14 @@
+bweb (2.4.4-2) stable; urgency=low
+  * Use apache2 instead of apache
+	
+ -- Eric Bollengier <eric@eb.homelinux.org>  Mon,  19 Jan 2009 14:15:47 +0000
+
+bweb (2.4.4-1) stable; urgency=low
+  * Update bresto
+  * bug fix
+	
+ -- Eric Bollengier <eric@eb.homelinux.org>  Sun,  18 Jan 2009 22:15:47 +0000
+
 bweb (2.2.7-1) stable; urgency=low
   * Move /usr/share/bweb/fr/tpl to /usr/share/bweb/tpl/fr
   * Move /usr/share/bweb/es/tpl to /usr/share/bweb/tpl/es

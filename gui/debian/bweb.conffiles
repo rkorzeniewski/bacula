@@ -1,2 +1,2 @@
 /etc/bacula/bweb.conf
-/etc/apache/conf.d/bweb.conf
+/etc/apache2/conf.d/bweb.conf
