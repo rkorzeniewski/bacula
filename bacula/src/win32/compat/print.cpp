@@ -340,7 +340,7 @@ dopr(char *buffer, size_t maxlen, const char *format, va_list args, prfun outch)
             case 'p':
                 strvalue = (char *) va_arg(args, void *);
                 flags |= DP_F_UNSIGNED;
-                fmtint(buffer, &currlen, maxlen, (long) strvalue, 16, min, max,
+                fmtint(buffer, &currlen, maxlen, (INT64) strvalue, 16, min, max,
                        flags, outch);
                 break;
             case 'n':
