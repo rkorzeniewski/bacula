@@ -41,7 +41,11 @@
 
 #define HOST_OS  "Linux"
 #define DISTNAME "Cross-compile"
-#define DISTVER  "Win32"
+#ifdef _WIN64
+# define DISTVER "Win64"
+#else
+# define DISTVER "Win32"
+#endif
 
 #else
 
