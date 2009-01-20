@@ -76,6 +76,6 @@ void aboutDialog::show(bool show)
 {
    if (show && !m_visible) {
       DialogBoxParam(appInstance, MAKEINTRESOURCE(IDD_ABOUT), NULL,
-         (DLGPROC)DialogProc, (LONG)this);
+         (DLGPROC)DialogProc, (LPARAM)this);
    }
 }

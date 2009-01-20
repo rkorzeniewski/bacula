@@ -73,7 +73,7 @@ trayMonitor::trayMonitor()
    }
 
    /* Save our class pointer */
-   SetWindowLong(m_hwnd, GWL_USERDATA, (LONG)this);
+   SetWindowLong(m_hwnd, GWL_USERDATA, (LPARAM)this);
 
 
    // Load the icons for the tray

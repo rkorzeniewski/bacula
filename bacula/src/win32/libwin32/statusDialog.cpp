@@ -110,7 +110,7 @@ static void displayString(const char *msg, int len, void *context)
          
          if (*p == '\n') {
             SendMessage(statDlg->m_textWin, EM_SETSEL, (WPARAM)-1, (LPARAM)-1);
-            SendMessage(statDlg->m_textWin, EM_REPLACESEL, 0, (LONG)"\r\n");
+            SendMessage(statDlg->m_textWin, EM_REPLACESEL, 0, (LPARAM)"\r\n");
          }
 
          if (*p == '\0'){
@@ -149,7 +149,7 @@ void statusDialog::show(bool show)
 {
    if (show && !m_visible) {
       DialogBoxParam(appInstance, MAKEINTRESOURCE(IDD_STATUS), NULL,
-          (DLGPROC)dialogProc, (LONG)this);
+          (DLGPROC)dialogProc, (LPARAM)this);
    }
 }
 
