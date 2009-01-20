@@ -5083,10 +5083,10 @@ sub check_job
 sub display_missing_job
 {
     my ($self) = @_;
-    my $arg = $self->get_form(qw/begin end/);
+    my $arg = $self->get_form(qw/begin end age/);
 
     if (!$arg->{begin}) { # TODO: change this
-	$arg->{begin} = strftime('%F %T', localtime(time - 24*60*60 ));
+	$arg->{begin} = strftime('%F %T', localtime(time - $arg->{age}));
     }
     if (!$arg->{end}) {
 	$arg->{end} = strftime('%F %T', localtime(time));

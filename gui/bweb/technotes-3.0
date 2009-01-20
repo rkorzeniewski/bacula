@@ -1,3 +1,5 @@
+20Jan09
+ebl  Use default age in missing job view
 19Jan09
 ebl  Work on check_bacula.pl
       - Modify warning/critical threshold 
