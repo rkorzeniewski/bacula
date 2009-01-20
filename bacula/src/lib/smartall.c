@@ -134,7 +134,7 @@ static void *smalloc(const char *fname, int lineno, unsigned int nbytes)
       head->ablineno = (sm_ushort)lineno;
       head->abin_use = true;
       /* Emplace end-clobber detector at end of buffer */
-      buf[nbytes - 1] = (uint8_t)((((long) buf) & 0xFF) ^ 0xC5);
+      buf[nbytes - 1] = (uint8_t)((((intptr_t) buf) & 0xFF) ^ 0xC5);
       buf += HEAD_SIZE;  /* Increment to user data start */
       if (++sm_buffers > sm_max_buffers) {
          sm_max_buffers = sm_buffers;
@@ -212,7 +212,7 @@ void sm_free(const char *file, int line, void *fp)
       allocated  space in the buffer by comparing the end of buffer
       checksum with the address of the buffer.  */
 
-   if (((unsigned char *)cp)[head->ablen - 1] != ((((long) cp) & 0xFF) ^ 0xC5)) {
+   if (((unsigned char *)cp)[head->ablen - 1] != ((((intptr_t) cp) & 0xFF) ^ 0xC5)) {
       V(mutex);
       Emsg2(M_ABORT, 0, _("Buffer overrun called from %s:%d\n"), file, line);
    }
@@ -463,7 +463,7 @@ int sm_check_rtn(const char *fname, int lineno, bool bufdump)
             bad |= 0x2;
          }
          if (((unsigned char *) ap)[((struct abufhead *)ap)->ablen - 1] !=
-              ((((long) ap) & 0xFF) ^ 0xC5)) {
+              ((((intptr_t) ap) & 0xFF) ^ 0xC5)) {
             bad |= 0x4;
          }
       } else {
