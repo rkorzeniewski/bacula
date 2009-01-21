@@ -36,6 +36,8 @@
 #define HAVE_UINT64_T 1
 #define HAVE_INTMAX_T 1
 /* #undef HAVE_U_INTMAX_T */
+#define HAVE_UINTPTR_T 1
+#define HAVE_INTPTR_T 1
 
 /* Define if you want TCP Wrappers support */
 /* #undef HAVE_LIBWRAP */
