@@ -21,6 +21,12 @@
 /* Define to `int' if <sys/types.h> doesn't define.  */
 #undef ssize_t
 
+/* Typedef to intxx if <stdint.h> doesn't declare. */
+#undef HAVE_INTPTR_T
+
+/* Typedef to uintxx if <stdint.h> doesn't declare. */
+#undef HAVE_UINTPTR_T
+
 /* Define if you want to use PostgreSQL */
 #undef HAVE_POSTGRESQL
 
