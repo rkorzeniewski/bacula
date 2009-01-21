@@ -161,6 +161,31 @@ typedef u_int64_t u_intmax_t;
 # endif
 #endif
 
+#ifndef HAVE_INTPTR_T
+#define HAVE_INTPTR_T 1
+# if (SIZEOF_INT_P == 4)
+typedef int32_t intptr_t;
+# else
+#  if (SIZEOF_INT_P == 8)
+typedef int64_t intptr_t;
+#  else
+#   error "Can't find sizeof pointer. Required!"
+#  endif
+# endif
+#endif
+
+#ifndef HAVE_UINTPTR_T
+#define HAVE_UINTPTR_T 1
+# if (SIZEOF_INT_P == 4)
+typedef uint32_t uintptr_t;
+# else
+#  if (SIZEOF_INT_P == 8)
+typedef uint64_t uintptr_t;
+#  else
+#   error "Can't find sizeof pointer. Required!"
+#  endif
+# endif
+#endif
 
 /* Limits for the above types. */
 #undef INT8_MIN
