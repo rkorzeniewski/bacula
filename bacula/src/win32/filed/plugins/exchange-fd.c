@@ -206,7 +206,7 @@ static bRC handlePluginEvent(bpContext *ctx, bEvent *event, void *value)
 {
         exchange_fd_context_t *context = (exchange_fd_context_t *)ctx->pContext;
         char *name;
-        int i;
+        int i, intval;
 
         switch (event->eventType) {
         case bEventJobStart:
@@ -244,11 +244,13 @@ static bRC handlePluginEvent(bpContext *ctx, bEvent *event, void *value)
                 _DebugMessage(0, "BackupEnd\n");
                 break;
         case bEventLevel:
-                _DebugMessage(0, "JobLevel=%c %d\n", (int)value, (int)value);
-                context->job_level = (int)value;
+                intval = (intptr_t)value;
+                _DebugMessage(0, "JobLevel=%c %d\n", intval, intval);
+                context->job_level = intval;
                 break;
         case bEventSince:
-                _DebugMessage(0, "since=%d\n", (int)value);
+                intval = (intptr_t)value;
+                _DebugMessage(0, "since=%d\n", intval);
                 context->job_since = (time_t)value;
                 break;
         case bEventStartRestoreJob:
