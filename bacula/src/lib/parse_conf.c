@@ -274,6 +274,7 @@ void store_msgs(LEX *lc, RES_ITEM *item, int index, int pass)
             }
             if (token != T_EQUALS) {
                scan_err1(lc, _("expected an =, got: %s"), lc->str);
+               return;
             }
             break;
          }
@@ -294,6 +295,7 @@ void store_msgs(LEX *lc, RES_ITEM *item, int index, int pass)
          Dmsg1(900, "store_msgs dest=%s:\n", NPRT(dest));
          if (token != T_EQUALS) {
             scan_err1(lc, _("expected an =, got: %s"), lc->str);
+            return;
          }
          scan_types(lc, (MSGS *)(item->value), item->code, dest, NULL);
          free_pool_memory(dest);
@@ -302,7 +304,7 @@ void store_msgs(LEX *lc, RES_ITEM *item, int index, int pass)
 
       default:
          scan_err1(lc, _("Unknown item code: %d\n"), item->code);
-         break;
+         return;
       }
    }
    scan_to_eol(lc);
@@ -342,7 +344,7 @@ static void scan_types(LEX *lc, MSGS *msg, int dest_code, char *where, char *cmd
       }
       if (!found) {
          scan_err1(lc, _("message type: %s not found"), str);
-         /* NOT REACHED */
+         return;
       }
 
       if (msg_type == M_MAX+1) {         /* all? */
@@ -374,12 +376,14 @@ void store_name(LEX *lc, RES_ITEM *item, int index, int pass)
    lex_get_token(lc, T_NAME);
    if (!is_name_valid(lc->str, &msg)) {
       scan_err1(lc, "%s\n", msg);
+      return;
    }
    free_pool_memory(msg);
    /* Store the name both pass 1 and pass 2 */
    if (*(item->value)) {
       scan_err2(lc, _("Attempt to redefine name \"%s\" to \"%s\"."),
          *(item->value), lc->str);
+      return;
    }
    *(item->value) = bstrdup(lc->str);
    scan_to_eol(lc);
@@ -471,10 +475,12 @@ void store_res(LEX *lc, RES_ITEM *item, int index, int pass)
       if (res == NULL) {
          scan_err3(lc, _("Could not find config Resource %s referenced on line %d : %s\n"),
             lc->str, lc->line_no, lc->line);
+         return;
       }
       if (*(item->value)) {
          scan_err3(lc, _("Attempt to redefine resource \"%s\" referenced on line %d : %s\n"),
             item->name, lc->line_no, lc->line);
+         return;
       }
       *(item->value) = (char *)res;
    }
@@ -510,6 +516,7 @@ void store_alist_res(LEX *lc, RES_ITEM *item, int index, int pass)
          if (i >= count) {
             scan_err4(lc, _("Too many %s directives. Max. is %d. line %d: %s\n"),
                lc->str, count, lc->line_no, lc->line);
+            return;
          }
          list = New(alist(10, not_owned_by_alist));
       }
@@ -520,6 +527,7 @@ void store_alist_res(LEX *lc, RES_ITEM *item, int index, int pass)
          if (res == NULL) {
             scan_err3(lc, _("Could not find config Resource \"%s\" referenced on line %d : %s\n"),
                item->name, lc->line_no, lc->line);
+            return;
          }
          Dmsg5(900, "Append %p to alist %p size=%d i=%d %s\n", 
                res, list, list->size(), i, item->name);
@@ -582,6 +590,7 @@ void store_defs(LEX *lc, RES_ITEM *item, int index, int pass)
      if (res == NULL) {
         scan_err3(lc, _("Missing config Resource \"%s\" referenced on line %d : %s\n"),
            lc->str, lc->line_no, lc->line);
+        return;
      }
    }
    scan_to_eol(lc);
@@ -645,12 +654,13 @@ void store_size(LEX *lc, RES_ITEM *item, int index, int pass)
       }
       if (!size_to_uint64(bsize, strlen(bsize), &uvalue)) {
          scan_err1(lc, _("expected a size number, got: %s"), lc->str);
+         return;
       }
       *(uint64_t *)(item->value) = uvalue;
       break;
    default:
       scan_err1(lc, _("expected a size, got: %s"), lc->str);
-      break;
+      return;
    }
    if (token != T_EOL) {
       scan_to_eol(lc);
@@ -687,12 +697,13 @@ void store_time(LEX *lc, RES_ITEM *item, int index, int pass)
       }
       if (!duration_to_utime(period, &utime)) {
          scan_err1(lc, _("expected a time period, got: %s"), period);
+         return;
       }
       *(utime_t *)(item->value) = utime;
       break;
    default:
       scan_err1(lc, _("expected a time period, got: %s"), lc->str);
-      break;
+      return;
    }
    if (token != T_EOL) {
       scan_to_eol(lc);
@@ -711,6 +722,7 @@ void store_bit(LEX *lc, RES_ITEM *item, int index, int pass)
       *(uint32_t *)(item->value) &= ~(item->code);
    } else {
       scan_err2(lc, _("Expect %s, got: %s"), "YES, NO, TRUE, or FALSE", lc->str); /* YES and NO must not be translated */
+      return;
    }
    scan_to_eol(lc);
    set_bit(index, res_all.hdr.item_present);
@@ -726,6 +738,7 @@ void store_bool(LEX *lc, RES_ITEM *item, int index, int pass)
       *(bool *)(item->value) = false;
    } else {
       scan_err2(lc, _("Expect %s, got: %s"), "YES, NO, TRUE, or FALSE", lc->str); /* YES and NO must not be translated */
+      return;
    }
    scan_to_eol(lc);
    set_bit(index, res_all.hdr.item_present);
@@ -751,6 +764,7 @@ void store_label(LEX *lc, RES_ITEM *item, int index, int pass)
    }
    if (i != 0) {
       scan_err1(lc, _("Expected a Tape Label keyword, got: %s"), lc->str);
+      return;
    }
    scan_to_eol(lc);
    set_bit(index, res_all.hdr.item_present);
@@ -947,6 +961,7 @@ bool CONFIG::parse_config()
                Dmsg0(900, "T_EOB => define new resource\n");
                if (res_all.hdr.name == NULL) {
                   scan_err0(lc, _("Name not specified for resource"));
+                  return 0;
                }
                save_resource(res_type, items, pass);  /* save resource */
                break;
