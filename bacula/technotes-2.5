@@ -11,6 +11,11 @@ mixed priorities
 
 General:
 24Jan09
+kes  Modify search for .conf file so that if one is given on
+     the command line, it will be used, otherwise it will use
+     the SYSCONF directory.  It will no longer look in the current
+     directory unless explicitly requested on the command line.
+     This fixes bug #1189.
 kes  Fail a job that references a plugin if no Plugin Directory is
      defined.
 22Jan09

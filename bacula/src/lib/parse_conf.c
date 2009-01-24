@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2008 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2009 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -846,16 +846,17 @@ bool CONFIG::parse_config()
 
    if (first && (errstat=rwl_init(&res_lock)) != 0) {
       berrno be;
-      Emsg1(M_ABORT, 0, _("Unable to initialize resource lock. ERR=%s\n"),
+      Jmsg1(NULL, M_ABORT, 0, _("Unable to initialize resource lock. ERR=%s\n"),
             be.bstrerror(errstat));
    }
    first = false;
 
    char *full_path = (char *)alloca(MAX_PATH + 1);
 
-   if (find_config_file(cf, full_path, MAX_PATH +1)) {
-      cf = full_path;
+   if (!find_config_file(cf, full_path, MAX_PATH +1)) {
+      Jmsg0(NULL, M_ABORT, 0, _("Config filename too long.\n"));
    }
+   cf = full_path;
 
    /* Make two passes. The first builds the name symbol table,
     * and the second picks up the items.
@@ -1022,24 +1023,29 @@ const char *get_default_configdir()
 #endif
 }
 
+/*
+ * Returns false on error
+ *         true  on OK, with full_path set to where config file should be 
+ */
 static bool
 find_config_file(const char *config_file, char *full_path, int max_path)
 {
+   int file_length = strlen(config_file) + 1;
+
+   /* If a full path specified, use it */
    if (first_path_separator(config_file) != NULL) {
-      return false;
+      if (file_length > max_path) {
+         return false;
+      }
+      bstrncpy(full_path, config_file, file_length);
+      return true;
    }
 
-   struct stat st;
-
-   if (stat(config_file, &st) == 0) {
-      return false;
-   }
-
+   /* config_file is default file name, now find default dir */
    const char *config_dir = get_default_configdir();
    int dir_length = strlen(config_dir);
-   int file_length = strlen(config_file);
 
-   if ((dir_length + 1 + file_length + 1) > max_path) {
+   if ((dir_length + 1 + file_length) > max_path) {
       return false;
    }
 
@@ -1049,7 +1055,7 @@ find_config_file(const char *config_file, char *full_path, int max_path)
       full_path[dir_length++] = '/';
    }
 
-   memcpy(&full_path[dir_length], config_file, file_length + 1);
+   memcpy(&full_path[dir_length], config_file, file_length);
 
    return true;
 }
