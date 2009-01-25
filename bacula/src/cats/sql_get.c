@@ -1060,7 +1060,11 @@ bool db_get_file_list(JCR *jcr, B_DB *mdb, char *jobids,
    }
    POOL_MEM buf(PM_MESSAGE);
          
-#define new_db_get_file_list
+/* 
+ * Note! Turned off by KES 25Jan09 because this SELECT fails
+ *   on my system.  Failure message sent to Eric.
+ */
+//#define new_db_get_file_list
 #ifdef new_db_get_file_list
    /* This is broken, at least if called from ua_restore.c */
    Mmsg(buf,
