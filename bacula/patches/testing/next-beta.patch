@@ -1,0 +1,328 @@
+Index: src/dird/job.c
+===================================================================
+--- src/dird/job.c	(révision 8396)
++++ src/dird/job.c	(copie de travail)
+@@ -860,6 +860,7 @@
+    jcr->jr.JobStatus = jcr->JobStatus;
+    jcr->jr.JobFiles = jcr->JobFiles;
+    jcr->jr.JobBytes = jcr->JobBytes;
++   jcr->jr.ReadBytes = jcr->ReadBytes;
+    jcr->jr.VolSessionId = jcr->VolSessionId;
+    jcr->jr.VolSessionTime = jcr->VolSessionTime;
+    jcr->jr.JobErrors = jcr->Errors;
+Index: src/cats/sql_update.c
+===================================================================
+--- src/cats/sql_update.c	(révision 8396)
++++ src/cats/sql_update.c	(copie de travail)
+@@ -161,7 +161,7 @@
+    time_t ttime;
+    struct tm tm;
+    int stat;
+-   char ed1[30], ed2[30], ed3[50];
++   char ed1[30], ed2[30], ed3[50], ed4[50];
+    btime_t JobTDate;
+    char PriorJobId[50];
+ 
+@@ -187,10 +187,11 @@
+    db_lock(mdb);
+    Mmsg(mdb->cmd,
+       "UPDATE Job SET JobStatus='%c',EndTime='%s',"
+-"ClientId=%u,JobBytes=%s,JobFiles=%u,JobErrors=%u,VolSessionId=%u,"
++"ClientId=%u,JobBytes=%s,ReadBytes=%s,JobFiles=%u,JobErrors=%u,VolSessionId=%u,"
+ "VolSessionTime=%u,PoolId=%u,FileSetId=%u,JobTDate=%s,"
+ "RealEndTime='%s',PriorJobId=%s WHERE JobId=%s",
+       (char)(jr->JobStatus), dt, jr->ClientId, edit_uint64(jr->JobBytes, ed1),
++      edit_uint64(jr->ReadBytes, ed4),
+       jr->JobFiles, jr->JobErrors, jr->VolSessionId, jr->VolSessionTime,
+       jr->PoolId, jr->FileSetId, edit_uint64(JobTDate, ed2), 
+       rdt,
+Index: src/cats/update_postgresql_tables.in
+===================================================================
+--- src/cats/update_postgresql_tables.in	(révision 8396)
++++ src/cats/update_postgresql_tables.in	(copie de travail)
+@@ -12,10 +12,15 @@
+ if $bindir/psql -f - -d ${db_name} $* <<END-OF-DATA
+ 
+ -- Create a table like Job for long term statistics
++BEGIN;
++ALTER TABLE file ALTER fileid TYPE bigint ;
++ALTER TABLE basefiles ALTER fileid TYPE bigint;
++ALTER TABLE job ADD COLUMN readbytes bigint default 0;
++UPDATE Version SET VersionId=11;
++COMMIT;
++
+ CREATE TABLE JobHistory (LIKE Job);
+ 
+-UPDATE Version SET VersionId=11;
+-
+ -- vacuum analyse;
+ 
+ END-OF-DATA
+Index: src/cats/make_sqlite3_tables.in
+===================================================================
+--- src/cats/make_sqlite3_tables.in	(révision 8396)
++++ src/cats/make_sqlite3_tables.in	(copie de travail)
+@@ -64,6 +64,7 @@
+    VolSessionTime INTEGER UNSIGNED DEFAULT 0,
+    JobFiles INTEGER UNSIGNED DEFAULT 0,
+    JobBytes BIGINT UNSIGNED DEFAULT 0,
++   ReadBytes BIGINT UNSIGNED DEFAULT 0,
+    JobErrors INTEGER UNSIGNED DEFAULT 0,
+    JobMissingFiles INTEGER UNSIGNED DEFAULT 0,
+    PoolId INTEGER UNSIGNED REFERENCES Pool DEFAULT 0,
+Index: src/cats/cats.h
+===================================================================
+--- src/cats/cats.h	(révision 8396)
++++ src/cats/cats.h	(copie de travail)
+@@ -790,6 +790,7 @@
+    uint32_t JobErrors;
+    uint32_t JobMissingFiles;
+    uint64_t JobBytes;
++   uint64_t ReadBytes;
+    int PurgedFiles;
+    int HasBase;
+ 
+Index: src/cats/update_sqlite3_tables.in
+===================================================================
+--- src/cats/update_sqlite3_tables.in	(révision 8396)
++++ src/cats/update_sqlite3_tables.in	(copie de travail)
+@@ -35,6 +35,7 @@
+    VolSessionTime INTEGER UNSIGNED DEFAULT 0,
+    JobFiles INTEGER UNSIGNED DEFAULT 0,
+    JobBytes BIGINT UNSIGNED DEFAULT 0,
++   ReadBytes BIGINT UNSIGNED DEFAULT 0,
+    JobErrors INTEGER UNSIGNED DEFAULT 0,
+    JobMissingFiles INTEGER UNSIGNED DEFAULT 0,
+    PoolId INTEGER UNSIGNED REFERENCES Pool DEFAULT 0,
+@@ -46,6 +47,47 @@
+    );
+ CREATE INDEX inx61 ON JobHistory (Name);
+ 
++COMMIT;
++
++BEGIN TRANSACTION;
++
++CREATE TEMPORARY TABLE job_backup AS SELECT * FROM Job;
++DROP TABLE Job;
++
++CREATE TABLE Job
++(
++   JobId INTEGER,
++   Job VARCHAR(128) NOT NULL,
++   Name VARCHAR(128) NOT NULL,
++   Type CHAR NOT NULL,
++   Level CHAR NOT NULL,
++   ClientId INTEGER REFERENCES Client DEFAULT 0,
++   JobStatus CHAR NOT NULL,
++   SchedTime DATETIME NOT NULL,
++   StartTime DATETIME DEFAULT 0,
++   EndTime DATETIME DEFAULT 0,
++   RealEndTime DATETIME DEFAULT 0,
++   JobTDate BIGINT UNSIGNED DEFAULT 0,
++   VolSessionId INTEGER UNSIGNED DEFAULT 0,
++   VolSessionTime INTEGER UNSIGNED DEFAULT 0,
++   JobFiles INTEGER UNSIGNED DEFAULT 0,
++   JobBytes BIGINT UNSIGNED DEFAULT 0,
++   ReadBytes BIGINT UNSIGNED DEFAULT 0,
++   JobErrors INTEGER UNSIGNED DEFAULT 0,
++   JobMissingFiles INTEGER UNSIGNED DEFAULT 0,
++   PoolId INTEGER UNSIGNED REFERENCES Pool DEFAULT 0,
++   FileSetId INTEGER UNSIGNED REFERENCES FileSet DEFAULT 0,
++   PriorJobId INTEGER UNSIGNED REFERENCES Job DEFAULT 0,
++   PurgedFiles TINYINT DEFAULT 0,
++   HasBase TINYINT DEFAULT 0,
++   PRIMARY KEY(JobId)
++   );
++CREATE INDEX inx6 ON Job (Name);
++
++INSERT INTO Job SELECT 0 AS ReadBytes, * FROM Job_backup;
++DROP TABLE Job_backup;
++
++
+ UPDATE Version SET VersionId=11;
+ 
+ COMMIT;
+Index: src/cats/make_postgresql_tables.in
+===================================================================
+--- src/cats/make_postgresql_tables.in	(révision 8396)
++++ src/cats/make_postgresql_tables.in	(copie de travail)
+@@ -29,7 +29,7 @@
+ 
+ CREATE TABLE file
+ (
+-    fileid	      serial	  not null,
++    fileid	      bigserial	  not null,
+     fileindex	      integer	  not null  default 0,
+     jobid	      integer	  not null,
+     pathid	      integer	  not null,
+@@ -74,6 +74,7 @@
+     volsessiontime    integer	  default 0,
+     jobfiles	      integer	  default 0,
+     jobbytes	      bigint	  default 0,
++    readbytes        bigint      default 0,
+     joberrors	      integer	  default 0,
+     jobmissingfiles   integer	  default 0,
+     poolid	      integer	  default 0,
+@@ -300,7 +301,7 @@
+ (
+     baseid	      serial		    not null,
+     jobid	      integer		    not null,
+-    fileid	      integer		    not null,
++    fileid	      bigint		    not null,
+     fileindex	      integer			    ,
+     basejobid	      integer			    ,
+     primary key (baseid)
+Index: src/cats/update_sqlite_tables.in
+===================================================================
+--- src/cats/update_sqlite_tables.in	(révision 8396)
++++ src/cats/update_sqlite_tables.in	(copie de travail)
+@@ -36,6 +36,7 @@
+    VolSessionTime INTEGER UNSIGNED DEFAULT 0,
+    JobFiles INTEGER UNSIGNED DEFAULT 0,
+    JobBytes BIGINT UNSIGNED DEFAULT 0,
++   ReadBytes BIGINT UNSIGNED DEFAULT 0,
+    JobErrors INTEGER UNSIGNED DEFAULT 0,
+    JobMissingFiles INTEGER UNSIGNED DEFAULT 0,
+    PoolId INTEGER UNSIGNED REFERENCES Pool DEFAULT 0,
+@@ -46,7 +47,47 @@
+    PRIMARY KEY(JobId) 
+    );
+ CREATE INDEX inx61 ON JobHistory (Name);
++COMMIT;
+ 
++
++BEGIN TRANSACTION;
++
++CREATE TEMPORARY TABLE job_backup AS SELECT * FROM Job;
++DROP TABLE Job;
++
++CREATE TABLE Job
++(
++   JobId INTEGER,
++   Job VARCHAR(128) NOT NULL,
++   Name VARCHAR(128) NOT NULL,
++   Type CHAR NOT NULL,
++   Level CHAR NOT NULL,
++   ClientId INTEGER REFERENCES Client DEFAULT 0,
++   JobStatus CHAR NOT NULL,
++   SchedTime DATETIME NOT NULL,
++   StartTime DATETIME DEFAULT 0,
++   EndTime DATETIME DEFAULT 0,
++   RealEndTime DATETIME DEFAULT 0,
++   JobTDate BIGINT UNSIGNED DEFAULT 0,
++   VolSessionId INTEGER UNSIGNED DEFAULT 0,
++   VolSessionTime INTEGER UNSIGNED DEFAULT 0,
++   JobFiles INTEGER UNSIGNED DEFAULT 0,
++   JobBytes BIGINT UNSIGNED DEFAULT 0,
++   ReadBytes BIGINT UNSIGNED DEFAULT 0,
++   JobErrors INTEGER UNSIGNED DEFAULT 0,
++   JobMissingFiles INTEGER UNSIGNED DEFAULT 0,
++   PoolId INTEGER UNSIGNED REFERENCES Pool DEFAULT 0,
++   FileSetId INTEGER UNSIGNED REFERENCES FileSet DEFAULT 0,
++   PriorJobId INTEGER UNSIGNED REFERENCES Job DEFAULT 0,
++   PurgedFiles TINYINT DEFAULT 0,
++   HasBase TINYINT DEFAULT 0,
++   PRIMARY KEY(JobId)
++   );
++CREATE INDEX inx6 ON Job (Name);
++
++INSERT INTO Job SELECT 0 AS ReadBytes, * FROM Job_backup;
++DROP TABLE Job_backup;
++
+ UPDATE Version SET VersionId=11;
+ 
+ COMMIT;
+Index: src/cats/update_mysql_tables.in
+===================================================================
+--- src/cats/update_mysql_tables.in	(révision 8396)
++++ src/cats/update_mysql_tables.in	(copie de travail)
+@@ -12,13 +12,16 @@
+ if $bindir/mysql $* -f <<END-OF-DATA
+ USE ${db_name};
+ 
+--- Create a table like Job for long term statistics
+-CREATE TABLE JobHistory (LIKE Job);
+-
+ -- Fix bad index on Media table
+ DROP INDEX inx8;
+ CREATE UNIQUE INDEX inx8 ON Media (VolumeName(128));
++ALTER TABLE File CHANGE FileId FileId BIGINT UNSIGNED NOT NULL AUTO_INCREMENT;
++ALTER TABLE BaseFiles CHANGE FileId FileId BIGINT UNSIGNED NOT NULL;
++ALTER TABLE Job ADD ReadBytes BIGINT UNSIGNED DEFAULT 0 AFTER JobBytes; 
+ 
++-- Create a table like Job for long term statistics
++CREATE TABLE JobHistory (LIKE Job);
++
+ DELETE FROM Version;
+ INSERT INTO Version (VersionId) VALUES (11);
+ 
+Index: src/cats/make_sqlite_tables.in
+===================================================================
+--- src/cats/make_sqlite_tables.in	(révision 8396)
++++ src/cats/make_sqlite_tables.in	(copie de travail)
+@@ -64,6 +64,7 @@
+    VolSessionTime INTEGER UNSIGNED DEFAULT 0,
+    JobFiles INTEGER UNSIGNED DEFAULT 0,
+    JobBytes BIGINT UNSIGNED DEFAULT 0,
++   ReadBytes BIGINT UNSIGNED DEFAULT 0,
+    JobErrors INTEGER UNSIGNED DEFAULT 0,
+    JobMissingFiles INTEGER UNSIGNED DEFAULT 0,
+    PoolId INTEGER UNSIGNED REFERENCES Pool DEFAULT 0,
+Index: src/cats/sql_get.c
+===================================================================
+--- src/cats/sql_get.c	(révision 8396)
++++ src/cats/sql_get.c	(copie de travail)
+@@ -297,13 +297,13 @@
+       Mmsg(mdb->cmd, "SELECT VolSessionId,VolSessionTime,"
+ "PoolId,StartTime,EndTime,JobFiles,JobBytes,JobTDate,Job,JobStatus,"
+ "Type,Level,ClientId,Name,PriorJobId,RealEndTime,JobId,FileSetId,"
+-"SchedTime,RealEndTime "
++"SchedTime,RealEndTime,ReadBytes "
+ "FROM Job WHERE Job='%s'", jr->Job);
+     } else {
+       Mmsg(mdb->cmd, "SELECT VolSessionId,VolSessionTime,"
+ "PoolId,StartTime,EndTime,JobFiles,JobBytes,JobTDate,Job,JobStatus,"
+ "Type,Level,ClientId,Name,PriorJobId,RealEndTime,JobId,FileSetId,"
+-"SchedTime,RealEndTime "
++"SchedTime,RealEndTime,ReadBytes "
+ "FROM Job WHERE JobId=%s", 
+           edit_int64(jr->JobId, ed1));
+     }
+@@ -341,6 +341,7 @@
+    jr->FileSetId = str_to_int64(row[17]);
+    bstrncpy(jr->cSchedTime, row[3]!=NULL?row[18]:"", sizeof(jr->cSchedTime));
+    bstrncpy(jr->cRealEndTime, row[3]!=NULL?row[19]:"", sizeof(jr->cRealEndTime));
++   jr->ReadBytes = str_to_int64(row[20]);
+    jr->StartTime = str_to_utime(jr->cStartTime);
+    jr->SchedTime = str_to_utime(jr->cSchedTime);
+    jr->EndTime = str_to_utime(jr->cEndTime);
+Index: src/cats/make_mysql_tables.in
+===================================================================
+--- src/cats/make_mysql_tables.in	(révision 8396)
++++ src/cats/make_mysql_tables.in	(copie de travail)
+@@ -29,7 +29,7 @@
+ 
+ 
+ CREATE TABLE File (
+-   FileId INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,
++   FileId BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    FileIndex INTEGER UNSIGNED DEFAULT 0,
+    JobId INTEGER UNSIGNED NOT NULL REFERENCES Job,
+    PathId INTEGER UNSIGNED NOT NULL REFERENCES Path,
+@@ -104,6 +104,7 @@
+    VolSessionTime INTEGER UNSIGNED DEFAULT 0,
+    JobFiles INTEGER UNSIGNED DEFAULT 0,
+    JobBytes BIGINT UNSIGNED DEFAULT 0,
++   ReadBytes BIGINT UNSIGNED DEFAULT 0,
+    JobErrors INTEGER UNSIGNED DEFAULT 0,
+    JobMissingFiles INTEGER UNSIGNED DEFAULT 0,
+    PoolId INTEGER UNSIGNED DEFAULT 0 REFERENCES Pool,
+@@ -269,7 +270,7 @@
+    BaseId INTEGER UNSIGNED AUTO_INCREMENT,
+    BaseJobId INTEGER UNSIGNED NOT NULL REFERENCES Job,
+    JobId INTEGER UNSIGNED NOT NULL REFERENCES Job,
+-   FileId INTEGER UNSIGNED NOT NULL REFERENCES File,
++   FileId BIGINT UNSIGNED NOT NULL REFERENCES File,
+    FileIndex INTEGER UNSIGNED,
+    PRIMARY KEY(BaseId)
+    );
