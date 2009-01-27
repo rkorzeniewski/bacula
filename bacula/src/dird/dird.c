@@ -945,6 +945,18 @@ static bool check_catalog()
           */
          if (!pool->catalog || pool->catalog == catalog) {
             create_pool(NULL, db, pool, POOL_OP_UPDATE);  /* update request */
+         }
+      }
+
+      /* Once they are created, we can loop over them again, updating
+       * references (RecyclePool)
+       */
+      foreach_res(pool, R_POOL) {
+         /*
+          * If the Pool has a catalog resource update the pool only
+          *   in that catalog.
+          */
+         if (!pool->catalog || pool->catalog == catalog) {
             update_pool_recyclepool(NULL, db, pool);
          }
       }
