@@ -102,7 +102,7 @@ wait
 messages
 @##################################
 @$out tmp/RUN_JobG
-restore strip_prefix="${cwd}" add_prefix="/tmp/bacula-restore"
+restore strip_prefix="${cwd}" add_prefix="/tmp/bacula-restore.$$"
 5
 cd ${cwd}/build/po
 m *.po
@@ -248,7 +248,7 @@ fi
 
 J=JobG
 grep "Restore OK"  tmp/RUN_$J > /dev/null && \
-grep "tmp/bacula-restore/build/po/fr.po" tmp/RUN_$J > /dev/null
+grep "tmp/bacula-restore.$$/build/po/fr.po" tmp/RUN_$J > /dev/null
 if [ $? = 0 ]
 then
     [ "$debug" = 1 ] && echo $J ok
@@ -256,6 +256,7 @@ else
    echo "$J in error"
    rstat=1
 fi
+rm -rf /tmp/bacula-restore.$$
 
 J=JobH
 grep "Restore OK"  tmp/RUN_$J > /dev/null && \
