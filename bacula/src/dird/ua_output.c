@@ -523,6 +523,7 @@ static bool list_nextvol(UAContext *ua, int ndays)
       mr.PoolId = jcr->jr.PoolId;
       get_job_storage(&store, job, run);
       mr.StorageId = store.store->StorageId;
+      /* no need to set ScratchPoolId, since we use fnv_no_create_vol */
       if (!find_next_volume_for_append(jcr, &mr, 1, fnv_no_create_vol, fnv_prune)) {
          ua->error_msg(_("Could not find next Volume for Job %s (Pool=%s, Level=%s).\n"),
             job->name(), pr.Name, level_to_str(run->level));

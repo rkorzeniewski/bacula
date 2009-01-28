@@ -607,16 +607,15 @@ bool db_get_pool_record(JCR *jcr, B_DB *mdb, POOL_DBR *pdbr)
       Mmsg(mdb->cmd,
 "SELECT PoolId,Name,NumVols,MaxVols,UseOnce,UseCatalog,AcceptAnyVolume,"
 "AutoPrune,Recycle,VolRetention,VolUseDuration,MaxVolJobs,MaxVolFiles,"
-"MaxVolBytes,PoolType,LabelType,LabelFormat,RecyclePoolId FROM Pool WHERE Pool.PoolId=%s", 
+"MaxVolBytes,PoolType,LabelType,LabelFormat,RecyclePoolId,ScratchPoolId FROM Pool WHERE Pool.PoolId=%s", 
          edit_int64(pdbr->PoolId, ed1));
    } else {                           /* find by name */
       Mmsg(mdb->cmd,
 "SELECT PoolId,Name,NumVols,MaxVols,UseOnce,UseCatalog,AcceptAnyVolume,"
 "AutoPrune,Recycle,VolRetention,VolUseDuration,MaxVolJobs,MaxVolFiles,"
-"MaxVolBytes,PoolType,LabelType,LabelFormat,RecyclePoolId FROM Pool WHERE Pool.Name='%s'", 
+"MaxVolBytes,PoolType,LabelType,LabelFormat,RecyclePoolId,ScratchPoolId FROM Pool WHERE Pool.Name='%s'", 
          pdbr->Name);
    }
-
    if (QUERY_DB(jcr, mdb, mdb->cmd)) {
       mdb->num_rows = sql_num_rows(mdb);
       if (mdb->num_rows > 1) {
@@ -647,6 +646,7 @@ bool db_get_pool_record(JCR *jcr, B_DB *mdb, POOL_DBR *pdbr)
             pdbr->LabelType = str_to_int64(row[15]);
             bstrncpy(pdbr->LabelFormat, row[16]!=NULL?row[16]:"", sizeof(pdbr->LabelFormat));
             pdbr->RecyclePoolId = str_to_int64(row[17]);
+            pdbr->ScratchPoolId = str_to_int64(row[18]);
             ok = true;
          }
       }

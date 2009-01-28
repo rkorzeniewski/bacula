@@ -562,6 +562,7 @@ public:
    bool  AutoPrune;                   /* default for pool auto prune */
    bool  Recycle;                     /* default for media recycle yes/no */
    POOL  *RecyclePool;                /* RecyclePool destination when media is purged */
+   POOL  *ScratchPool;                /* ScratchPool source when requesting media */
    alist *CopyPool;                   /* List of copy pools */
    CAT *catalog;                      /* Catalog to be used */
    /* Methods */

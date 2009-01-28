@@ -170,7 +170,7 @@ bool
 db_create_pool_record(JCR *jcr, B_DB *mdb, POOL_DBR *pr)
 {
    bool stat;        
-   char ed1[30], ed2[30], ed3[50], ed4[50];
+   char ed1[30], ed2[30], ed3[50], ed4[50], ed5[50];
 
    Dmsg0(200, "In create pool\n");
    db_lock(mdb);
@@ -192,8 +192,9 @@ db_create_pool_record(JCR *jcr, B_DB *mdb, POOL_DBR *pr)
    Mmsg(mdb->cmd,
 "INSERT INTO Pool (Name,NumVols,MaxVols,UseOnce,UseCatalog,"
 "AcceptAnyVolume,AutoPrune,Recycle,VolRetention,VolUseDuration,"
-"MaxVolJobs,MaxVolFiles,MaxVolBytes,PoolType,LabelType,LabelFormat,RecyclePoolId) "
-"VALUES ('%s',%u,%u,%d,%d,%d,%d,%d,%s,%s,%u,%u,%s,'%s',%d,'%s',%s)",
+"MaxVolJobs,MaxVolFiles,MaxVolBytes,PoolType,LabelType,LabelFormat,"
+"RecyclePoolId,ScratchPoolId) "
+"VALUES ('%s',%u,%u,%d,%d,%d,%d,%d,%s,%s,%u,%u,%s,'%s',%d,'%s',%s,%s)",
                   pr->Name,
                   pr->NumVols, pr->MaxVols,
                   pr->UseOnce, pr->UseCatalog,
@@ -204,7 +205,8 @@ db_create_pool_record(JCR *jcr, B_DB *mdb, POOL_DBR *pr)
                   pr->MaxVolJobs, pr->MaxVolFiles,
                   edit_uint64(pr->MaxVolBytes, ed3),
                   pr->PoolType, pr->LabelType, pr->LabelFormat,
-                  edit_int64(pr->RecyclePoolId,ed4));
+                  edit_int64(pr->RecyclePoolId,ed4),
+                  edit_int64(pr->ScratchPoolId,ed5));
    Dmsg1(200, "Create Pool: %s\n", mdb->cmd);
    if (!INSERT_DB(jcr, mdb, mdb->cmd)) {
       Mmsg2(&mdb->errmsg, _("Create db Pool record %s failed: ERR=%s\n"),

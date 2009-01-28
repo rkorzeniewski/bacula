@@ -43,6 +43,7 @@
  *  Items needed:
  *   mr.PoolId must be set
  *   mr.StorageId should also be set
+ *   mr.ScratchPoolId could be set (used if create==true)
  *   jcr->wstore
  *   jcr->db
  *   jcr->pool
@@ -347,9 +348,13 @@ bool get_scratch_volume(JCR *jcr, bool InChanger, MEDIA_DBR *mr)
    P(mutex);
    /* 
     * Get Pool record for Scratch Pool
+    * choose between ScratchPoolId and Scratch
+    * db_get_pool_record will first try ScratchPoolId, 
+    * and then try the pool named Scratch
     */
    memset(&spr, 0, sizeof(spr));
    bstrncpy(spr.Name, "Scratch", sizeof(spr.Name));
+   spr.PoolId = mr->ScratchPoolId;
    if (db_get_pool_record(jcr, jcr->db, &spr)) {
       memset(&smr, 0, sizeof(smr));
       smr.PoolId = spr.PoolId;
