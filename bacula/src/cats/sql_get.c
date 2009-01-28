@@ -1060,11 +1060,7 @@ bool db_get_file_list(JCR *jcr, B_DB *mdb, char *jobids,
    }
    POOL_MEM buf(PM_MESSAGE);
          
-/* 
- * Note! Turned off by KES 25Jan09 because this SELECT fails
- *   on my system.  Failure message sent to Eric.
- */
-//#define new_db_get_file_list
+#define new_db_get_file_list
 #ifdef new_db_get_file_list
    /* This is broken, at least if called from ua_restore.c */
    Mmsg(buf,
@@ -1083,7 +1079,7 @@ bool db_get_file_list(JCR *jcr, B_DB *mdb, char *jobids,
 #else
    /*  
     * I am not sure that this works the same as the code in ua_restore.c
-    *  but it is very similar.
+    *  but it is very similar. The accurate-test fails in a restore. Bad file count.
     */
    Mmsg(buf, uar_sel_files, jobids);
 #endif
