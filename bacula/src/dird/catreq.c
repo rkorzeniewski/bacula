@@ -143,6 +143,7 @@ void catalog_request(JCR *jcr, BSOCK *bs)
       if (ok) {
          mr.PoolId = pr.PoolId;
          mr.StorageId = jcr->wstore->StorageId;
+         mr.ScratchPoolId = pr.ScratchPoolId;
          ok = find_next_volume_for_append(jcr, &mr, index, fnv_create_vol, fnv_prune);
          Dmsg3(050, "find_media ok=%d idx=%d vol=%s\n", ok, index, mr.VolumeName);
       }

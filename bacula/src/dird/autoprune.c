@@ -122,7 +122,14 @@ void prune_volumes(JCR *jcr, bool InChanger, MEDIA_DBR *mr)
    } else {
       ed2[0] = 0;
    }
-   Dmsg1(100, "Scratch pool=%s\n", ed2);
+
+   if(mr->ScratchPoolId) {
+      edit_int64(mr->ScratchPoolId, ed3);
+      bstrncat(ed2, ed3, sizeof(ed2));
+      bstrncat(ed2, ",", sizeof(ed2));
+   }
+
+   Dmsg1(100, "Scratch pool(s)=%s\n", ed2);
    /*
     * ed2 ends up with scratch poolid and current poolid or
     *   just current poolid if there is no scratch pool 

@@ -898,6 +898,7 @@ struct POOL_DBR {
    uint32_t MaxVolFiles;              /* Max files on Volume */
    uint64_t MaxVolBytes;              /* Max bytes on Volume */
    DBId_t RecyclePoolId;              /* RecyclePool destination when media is purged */
+   DBId_t ScratchPoolId;              /* ScratchPool source when media is needed */
    char PoolType[MAX_NAME_LENGTH];
    char LabelFormat[MAX_NAME_LENGTH];
    /* Extra stuff not in DB */

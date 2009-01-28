@@ -957,7 +957,7 @@ static bool check_catalog()
           *   in that catalog.
           */
          if (!pool->catalog || pool->catalog == catalog) {
-            update_pool_recyclepool(NULL, db, pool);
+            update_pool_references(NULL, db, pool);
          }
       }
 

@@ -397,6 +397,7 @@ static RES_ITEM pool_items[] = {
    {"autoprune",     store_bool,      ITEM(res_pool.AutoPrune), 0, ITEM_DEFAULT, true},
    {"recycle",       store_bool,      ITEM(res_pool.Recycle),   0, ITEM_DEFAULT, true},
    {"recyclepool",   store_res,       ITEM(res_pool.RecyclePool), R_POOL, 0, 0},
+   {"scratchpool",   store_res,       ITEM(res_pool.ScratchPool), R_POOL, 0, 0},
    {"copypool",      store_alist_res, ITEM(res_pool.CopyPool), R_POOL, 0, 0},
    {"catalog",       store_res,       ITEM(res_pool.catalog), R_CATALOG, 0, 0},
    {NULL, NULL, {0}, 0, 0, 0}
@@ -951,6 +952,9 @@ next_run:
       if (res->res_pool.RecyclePool) {
          sendit(sock, _("      RecyclePool=%s\n"), res->res_pool.RecyclePool->name());
       }
+      if (res->res_pool.ScratchPool) {
+         sendit(sock, _("      ScratchPool=%s\n"), res->res_pool.ScratchPool->name());
+      }
       if (res->res_pool.catalog) {
          sendit(sock, _("      Catalog=%s\n"), res->res_pool.catalog->name());
       }
@@ -1385,6 +1389,7 @@ void save_resource(int type, RES_ITEM *items, int pass)
          /* Explicitly copy resource pointers from this pass (res_all) */
          res->res_pool.NextPool = res_all.res_pool.NextPool;
          res->res_pool.RecyclePool = res_all.res_pool.RecyclePool;
+         res->res_pool.ScratchPool = res_all.res_pool.ScratchPool;
          res->res_pool.storage    = res_all.res_pool.storage;
          res->res_pool.catalog    = res_all.res_pool.catalog;
          break;

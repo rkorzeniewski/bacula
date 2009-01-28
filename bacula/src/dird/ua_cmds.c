@@ -565,12 +565,12 @@ void set_pooldbr_from_poolres(POOL_DBR *pr, POOL *pool, e_pool_op op)
    }
 }
 
-/* set/update Pool.RecyclePoolId in Catalog */
-int update_pool_recyclepool(JCR *jcr, B_DB *db, POOL *pool)
+/* set/update Pool.RecyclePoolId and Pool.ScratchPoolId in Catalog */
+int update_pool_references(JCR *jcr, B_DB *db, POOL *pool)
 {
    POOL_DBR  pr;
 
-   if (!pool->RecyclePool) {
+   if (!pool->RecyclePool && !pool->ScratchPool) {
       return 1;
    }
 
@@ -583,7 +583,7 @@ int update_pool_recyclepool(JCR *jcr, B_DB *db, POOL *pool)
 
    set_pooldbr_from_poolres(&pr, pool, POOL_OP_UPDATE);
 
-   if (!set_pooldbr_recyclepoolid(jcr, db, &pr, pool)) {
+   if (!set_pooldbr_references(jcr, db, &pr, pool)) {
       return -1;                      /* error */
    }
 
@@ -593,10 +593,10 @@ int update_pool_recyclepool(JCR *jcr, B_DB *db, POOL *pool)
    return 1;
 }
 
-/* set POOL_DBR.RecyclePoolId from Pool resource 
+/* set POOL_DBR.RecyclePoolId and POOL_DBR.ScratchPoolId from Pool resource 
  * works with set_pooldbr_from_poolres
  */
-bool set_pooldbr_recyclepoolid(JCR *jcr, B_DB *db, POOL_DBR *pr, POOL *pool)
+bool set_pooldbr_references(JCR *jcr, B_DB *db, POOL_DBR *pr, POOL *pool)
 {
    POOL_DBR rpool;
    bool ret = true;
@@ -618,6 +618,24 @@ bool set_pooldbr_recyclepoolid(JCR *jcr, B_DB *db, POOL_DBR *pr, POOL *pool)
    } else {                    /* no RecyclePool used, set it to 0 */
       pr->RecyclePoolId = 0;
    }
+
+   if (pool->ScratchPool) {
+      memset(&rpool, 0, sizeof(POOL_DBR));
+
+      bstrncpy(rpool.Name, pool->ScratchPool->name(), sizeof(rpool.Name));
+      if (db_get_pool_record(jcr, db, &rpool)) {
+        pr->ScratchPoolId = rpool.PoolId;
+      } else {
+        Jmsg(jcr, M_WARNING, 0,
+        _("Can't set %s ScratchPool to %s, %s is not in database.\n" \
+          "Try to update it with 'update pool=%s'\n"),
+        pool->name(), rpool.Name, rpool.Name,pool->name());
+        ret = false;
+      }
+   } else {                    /* no ScratchPool used, set it to 0 */
+      pr->ScratchPoolId = 0;
+   }
+ 
    return ret;
 }
 
@@ -642,12 +660,14 @@ int create_pool(JCR *jcr, B_DB *db, POOL *pool, e_pool_op op)
       /* Pool Exists */
       if (op == POOL_OP_UPDATE) {  /* update request */
          set_pooldbr_from_poolres(&pr, pool, op);
+         set_pooldbr_references(jcr, db, &pr, pool);
          db_update_pool_record(jcr, db, &pr);
       }
       return 0;                       /* exists */
    }
 
    set_pooldbr_from_poolres(&pr, pool, op);
+   set_pooldbr_references(jcr, db, &pr, pool);
 
    if (!db_create_pool_record(jcr, db, &pr)) {
       return -1;                      /* error */
