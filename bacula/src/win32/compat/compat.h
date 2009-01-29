@@ -74,7 +74,10 @@ typedef double float64_t;
 #endif
 
 #if !defined(_MSC_VER) || (_MSC_VER < 1400) // VC8+
+#ifndef _TIME_T_DEFINED
+#define _TIME_T_DEFINED
 typedef long time_t;
+#endif
 #endif
 
 #if __STDC__ && !defined(HAVE_MINGW)
@@ -129,9 +132,12 @@ typedef void DIR;
 #endif
 #endif
 
+#ifndef _TIMEZONE_DEFINED /* also in sys/time.h */
+#define _TIMEZONE_DEFINED
 struct timezone {
     int foo;
 };
+#endif
 
 int strcasecmp(const char*, const char *);
 int gettimeofday(struct timeval *, struct timezone *);
