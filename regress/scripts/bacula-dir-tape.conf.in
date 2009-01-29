@@ -242,6 +242,7 @@ Pool {
   Recycle = yes                       # Bacula can automatically recycle Volumes
   AutoPrune = yes                     # Prune expired volumes
   Volume Retention = 365d             # one year
+  RecyclePool=Scratch                 # test forward reference
 }
 
 Pool {
@@ -267,4 +268,23 @@ Pool {
   AutoPrune = yes                     # Prune expired volumes
   Volume Retention = 365d             # one year
   Recycle Pool = Scratch              # recycle back here
+}
+
+Pool {
+  Name = Special
+  Pool Type = Backup
+  Recycle = yes                       # Bacula can automatically recycle Volumes
+  AutoPrune = yes                     # Prune expired volumes
+  Volume Retention = 365d             # one year
+  ScratchPool = SpecialScratch
+  Maximum Volume Jobs = 1
+}
+
+Pool {
+  Name = SpecialScratch
+  Pool Type = Backup
+  Recycle = yes                       # Bacula can automatically recycle Volumes
+  AutoPrune = yes                     # Prune expired volumes
+  Volume Retention = 365d             # one year
+  Recycle Pool = SpecialScratch       # recycle back here
 }
