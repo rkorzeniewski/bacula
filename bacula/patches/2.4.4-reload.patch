@@ -1,3 +1,16 @@
+
+ This patch fixes bug #1211 crash during reload with bad dird.conf file.
+
+ Apply it to version 2.4.4 with:
+
+ cd <bacula-source>
+ patch -p0 <2.4.4-reload.patch
+ ./configure <your options>
+ make
+ ...
+ make install
+
+
 Index: src/lib/parse_conf.c
 ===================================================================
 --- src/lib/parse_conf.c	(revision 8393)
