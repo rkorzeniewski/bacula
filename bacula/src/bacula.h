@@ -34,6 +34,13 @@
 #ifndef _BACULA_H
 #define _BACULA_H 1
 
+/* Disable FORTIFY_SOURCE, because bacula uses is own memory
+ * manager
+ */
+#ifdef _FORTIFY_SOURCE
+#undef _FORTIFY_SOURCE
+#endif
+
 #ifdef __cplusplus
 /* Workaround for SGI IRIX 6.5 */
 #define _LANGUAGE_C_PLUS_PLUS 1
