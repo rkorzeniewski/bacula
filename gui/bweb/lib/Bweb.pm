@@ -4656,7 +4656,7 @@ sub label_barcodes
     my ($self) = @_ ;
     $self->can_do('r_autochanger_mgnt');
 
-    my $arg = $self->get_form('ach', 'slots', 'drive');
+    my $arg = $self->get_form('ach', 'slots', 'drive', 'pool');
 
     unless ($arg->{ach}) {
 	return $self->error("Can't find autochanger name");
@@ -4680,13 +4680,13 @@ sub label_barcodes
 	$slots_sql = " AND Slot IN ($slots) ";
 	$t += 60*scalar( @{ $arg->{slots} }) ;
     }
-
+    my $pool = $arg->{pool} || 'Scratch';
     my $b = new Bconsole(pref => $self->{info}, timeout => $t,log_stdout => 1);
     print "<h1>This command can take long time, be patient...</h1>";
     print "<pre>" ;
     $b->label_barcodes(storage => $storage,
 		       drive => $arg->{drive},
-		       pool  => 'Scratch',
+		       pool  => $pool,
 		       slots => $slots) ;
     $b->close();
     print "</pre>";
