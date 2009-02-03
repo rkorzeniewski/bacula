@@ -2176,10 +2176,16 @@ sub help_intern_compute
     my ($sql, undef) = $self->get_param('pools', 'locations', 'mediatypes');
 
     if (CGI::param('expired')) {
+        # we take only expired volumes or purged/recycle ones
 	$sql = "
-AND (    $self->{sql}->{UNIX_TIMESTAMP}(Media.LastWritten) 
-       + $self->{sql}->{TO_SEC}(Media.VolRetention)
+AND (
+ (  ($self->{sql}->{UNIX_TIMESTAMP}(Media.LastWritten) 
+      + $self->{sql}->{TO_SEC}(Media.VolRetention)
     ) < NOW()
+ ) OR ( 
+  Media.VolStatus IN ('Purged', 'Recycle')
+ )
+)
  " . $sql ;
     }
 

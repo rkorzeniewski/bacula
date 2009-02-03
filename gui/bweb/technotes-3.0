@@ -1,5 +1,6 @@
 03Feb09
 ebl  Add pool parameter to label barcode process
+ebl  Add purged and recycle volume to loading procedure when expired=on
 20Jan09
 ebl  Use default age in missing job view
 19Jan09
