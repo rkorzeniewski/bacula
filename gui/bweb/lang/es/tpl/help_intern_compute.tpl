@@ -12,7 +12,7 @@
     </td><td style='align: right;'>
     <input type="hidden" name='enabled' value='yes'>
     <button type="submit" class="bp" name='action' value='move_media'> 
-     <img src='/bweb/intern.png' alt=''></button>
+     <img src='/bweb/intern.png' alt=''>Load</button>
    </td></tr>
    </form>
  </div>
