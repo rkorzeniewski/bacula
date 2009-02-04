@@ -1686,4 +1686,72 @@ Item  1:  enable persistent naming/number of SQL queries
         than by number.
 
 
+Item n: List inChanger flag when doing restore.
+   Origin: Jesper Krogh<jesper@krogh.cc>
+   Date:   17 oct. 2008
+   Status:
+
+   What:
+        When doing a restore the restore selection dialog ends by telling stuff 
+like this:
+The job will require the following
+    Volume(s)                 Storage(s)                SD Device(s)
+===========================================================================
+
+    000741L3                  LTO-4                     LTO3 
+
+    000866L3                  LTO-4                     LTO3 
+
+    000765L3                  LTO-4                     LTO3 
+
+    000764L3                  LTO-4                     LTO3 
+
+    000756L3                  LTO-4                     LTO3 
+
+    001759L3                  LTO-4                     LTO3 
+
+    001763L3                  LTO-4                     LTO3 
+
+    001762L3                  LTO-4                     LTO3 
+
+    001767L3                  LTO-4                     LTO3 
+
+
+Item 26: Add a new directive to bacula-dir.conf which permits inclusion of all subconfiguration files in a given directory
+Date:   18 October 2008
+Origin: Database, Lda. Maputo, Mozambique
+Contact:Cameron Smith / cameron.ord@database.co.mz 
+Status: New request
+
+What: A directive something like "IncludeConf  = /etc/bacula/subconfs"
+      Every time Bacula Director restarts or reloads, it will walk the given directory (non-recursively) and include the contents of any files therein, as though they were appended to bacula-dir.conf
+
+Why: Permits simplified and safer configuration for larger installations with many client PCs.  
+      Currently, through judicious use of JobDefs and similar directives, it is possible to reduce the client-specific part of a configuration to a minimum.
+      The client-specific directives can be prepared according to a standard template and dropped into a known directory.  However it is still necessary to 
+      add a line to the "master" (bacula-dir.conf) referencing each new file.  
+      This exposes the master to unnecessary risk of accidental mistakes and makes automation of adding new client-confs, more difficult 
+      (it is easier to automate dropping a file into a dir, than rewriting an existing file).
+      Ken has previously made a convincing argument for NOT including Bacula's core configuration in an RDBMS, but I believe that the present request is a reasonable
+      extension to the current "flat-file-based" configuration philosophy.
+ 
+Notes: There is NO need for any special syntax to these files.  
+       They should contain standard directives which are  simply "inlined" to the parent file as already happens when you explicitly reference an external file.
+
+Notes: (kes) this can already be done with scripting
+     From: John Jorgensen <jorgnsn@lcd.uregina.ca>
+     The bacula-dir.conf at our site contains these lines:
+
+   #
+   # Include subfiles associated with configuration of clients.
+   # They define the bulk of the Clients, Jobs, and FileSets.
+   #
+   @|"sh -c 'for f in /etc/bacula/clientdefs/*.conf ; do echo @${f} ; done'"
+
+    and when we get a new client, we just put its configuration into
+    a new file called something like:
+
+    /etc/bacula/clientdefs/clientname.conf
+
+
 
