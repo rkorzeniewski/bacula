@@ -1,9 +1,9 @@
                 
 Projects:
                      Bacula Projects Roadmap 
-                    Status updated 26 November 2008
+                    Status updated 04 February 2009
 
-Items Completed:
+Items Completed for version 3.0.0:
 Item  1:  Accurate restoration of renamed/deleted files
 Item  3:  Merge multiple backups (Synthetic Backup or Consolidation)
 Item  4:  Implement Catalog directive for Pool resource in Director
@@ -1512,3 +1512,178 @@ Item h10: Clustered file-daemons
    Notes: Kern: I don't understand the request enough to be able to
           implement it. A lot more design detail should be presented
           before voting on this project.
+
+      Feature Request Form
+
+Item n:   Data encryption on storage daemon
+  Origin: Tobias Barth <tobias.barth at web-arts.com>
+  Date:   04 February 2009
+  Status: new
+
+  What:   The storage demon should be able to do the data encryption that can currently be done by the file daemon.
+
+  Why:    This would have 2 advantages: 1) one could encrypt the data of unencrypted tapes by doing a migration job, and 2) the storage daemon would be the only machine that would have to keep the encryption keys.
+
+
+Item 1:   "Maximum Concurrent Jobs" for drives when used with changer device
+  Origin: Ralf Gross ralf-lists <at> ralfgross.de
+  Date:   2008-12-12
+  Status: Initial Request
+
+  What:   respect the "Maximum Concurrent Jobs" directive in the _drives_
+          Storage section in addition to the changer section
+
+  Why:    I have a 3 drive changer where I want to be able to let 3 concurrent
+          jobs run in parallel. But only one job per drive at the same time.
+          Right now I don't see how I could limit the number of concurrent jobs
+          per drive in this situation.
+
+  Notes:  Using different priorities for these jobs lead to problems that other
+          jobs are blocked. On the user list I got the advice to use the "Prefer Mounted
+          Volumes" directive, but Kern advised against using "Prefer Mounted
+          Volumes" in an other thread:
+          http://article.gmane.org/gmane.comp.sysutils.backup.bacula.devel/11876/
+
+          In addition I'm not sure if this would be the same as respecting the
+          drive's "Maximum Concurrent Jobs" setting.
+
+          Example:
+
+          Storage {
+            Name = Neo4100
+            Address = ....
+            SDPort = 9103
+            Password = "wiped"
+            Device = Neo4100
+            Media Type = LTO4
+            Autochanger = yes
+            Maximum Concurrent Jobs = 3
+          }
+          
+          Storage {
+            Name = Neo4100-LTO4-D1
+            Address = ....
+            SDPort = 9103
+            Password = "wiped"
+            Device = ULTRIUM-TD4-D1
+            Media Type = LTO4
+            Maximum Concurrent Jobs = 1
+          }
+          
+          [2 more drives] 
+
+          The "Maximum Concurrent Jobs = 1" directive in the drive's section is ignored.
+
+ Item n:   Add MaxVolumeSize/MaxVolumeBytes statement to Storage resource
+   Origin: Bastian Friedrich <bastian.friedrich@collax.com>
+   Date:   2008-07-09
+   Status: -
+
+   What:   SD has a "Maximum Volume Size" statement, which is deprecated
+ and superseded by the Pool resource statement "Maximum Volume Bytes". It
+ would be good if either statement could be used in Storage resources.
+
+   Why:    Pools do not have to be restricted to a single storage
+ type/device; thus, it may be impossible to define Maximum Volume Bytes in
+ the Pool resource. The old MaxVolSize statement is deprecated, as it is
+ SD side only.
+           I am using the same pool for different devices.
+
+   Notes:  State of idea currently unknown. Storage resources in the dir
+ config currently translate to very slim catalog entries; these entries
+ would require extensions to implement what is described here. Quite
+ possibly, numerous other statements that are currently available in Pool
+ resources could be used in Storage resources too quite well.
+
+Item 1:   Start spooling even when waiting on tape
+  Origin: Tobias Barth <tobias.barth@web-arts.com>
+  Date:   25 April 2008
+  Status:
+
+  What:   If a job can be spooled to disk before writing it to tape, it
+should be spooled immediately.
+          Currently, bacula waits until the correct tape is inserted
+into the drive.
+
+  Why:    It could save hours. When bacula waits on the operator who
+must insert the correct tape (e.g. a new
+          tape or a tape from another media pool), bacula could already
+prepare the spooled data in the
+          spooling directory and immediately start despooling when the
+tape was inserted by the operator.
+         
+  2nd step: Use 2 or more spooling directories. When one directory is
+currently despooling, the next (on different
+            disk drives) could already be spooling the next data.
+
+  Notes:  I am using bacula 2.2.8, which has none of those features
+implemented.
+
+Item  1:  enable persistent naming/number of SQL queries
+
+  Date:   24 Jan, 2007 
+  Origin: Mark Bergman 
+  Status: 
+
+  What:  
+        Change the parsing of the query.sql file and the query command so that
+        queries are named/numbered by a fixed value, not their order in the
+        file.
+
+
+  Why:   
+        One of the real strengths of bacula is the ability to query the
+        database, and the fact that complex queries can be saved and
+        referenced from a file is very powerful. However, the choice
+        of query (both for interactive use, and by scripting input
+        to the bconsole command) is completely dependent on the order
+        within the query.sql file. The descriptve labels are helpful for
+        interactive use, but users become used to calling a particular
+        query "by number", or may use scripts to execute queries. This
+        presents a problem if the number or order of queries in the file
+        changes.
+
+        If the query.sql file used the numeric tags as a real value (rather
+        than a comment), then users could have a higher confidence that they
+        are executing the intended query, that their local changes wouldn't
+        conflict with future bacula upgrades.
+
+        For scripting, it's very important that the intended query is
+        what's actually executed. The current method of parsing the
+        query.sql file discourages scripting because the addition or
+        deletion of queries within the file will require corresponding
+        changes to scripts. It may not be obvious to users that deleting
+        query "17" in the query.sql file will require changing all
+        references to higher numbered queries. Similarly, when new
+        bacula distributions change the number of "official" queries,
+        user-developed queries cannot simply be appended to the file
+        without also changing any references to those queries in scripts
+        or procedural documentation, etc.
+
+        In addition, using fixed numbers for queries would encourage more
+        user-initiated development of queries, by supporting conventions
+        such as:
+
+                queries numbered 1-50 are supported/developed/distributed by
+                        with official bacula releases
+                        
+                queries numbered 100-200 are community contributed, and are
+                related to media management
+
+                queries numbered 201-300 are community contributed, and are
+                related to checksums, finding duplicated files across
+                different backups, etc.
+
+                queries numbered 301-400 are community contributed, and are
+                related to backup statistics (average file size, size per
+                client per backup level, time for all clients by backup level,
+                storage capacity by media type, etc.)
+
+                queries numbered 500-999 are locally created
+
+  Notes:
+        Alternatively, queries could be called by keyword (tag), rather
+        than by number.
+
+
+
