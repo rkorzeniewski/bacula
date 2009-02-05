@@ -689,15 +689,17 @@ static void reread_last_block(DCR *dcr)
              * If we wrote block and the block numbers don't agree
              *  we have a possible problem.
              */
-#ifdef xxx
-            if (lblock->VolSessionId == block->VolSessionId &&
-                lblock->VolSessionTime == block->VolSessionTime &&
-                lblock->BlockNumber+1 != block->BlockNumber) {
-#endif
             if (lblock->BlockNumber != dev->LastBlock) {
-               Jmsg(jcr, M_ERROR, 0, _(
+                if (dev->LastBlock > (lblock->BlockNumber + 1)) {
+                   Jmsg(jcr, M_FATAL, 0, _(
+"Re-read of last block: block numbers differ by more than one.\n"
+"Probable tape misconfiguration and data loss. Read block=%u Want block=%u.\n"),
+                       lblock->BlockNumber, dev->LastBlock);
+                 } else {
+                   Jmsg(jcr, M_ERROR, 0, _(
 "Re-read of last block OK, but block numbers differ. Read block=%u Want block=%u.\n"),
-                    lblock->BlockNumber, dev->LastBlock);
+                       lblock->BlockNumber, dev->LastBlock);
+                 }
             } else {
                Jmsg(jcr, M_INFO, 0, _("Re-read of last block succeeded.\n"));
             }
