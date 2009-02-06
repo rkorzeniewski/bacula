@@ -59,7 +59,7 @@
   
 /*
  * List of supported OSs. Everything outside that gets stub functions.
- * Also when XATTR support is explicitly disabled.
+ * Also when ACL support is explicitly disabled.
  * Not sure if all the HAVE_XYZ_OS are correct for autoconf.
  * The ones that says man page, are coded according to man pages only.
  */
@@ -1151,7 +1151,7 @@ static bool solaris_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt);
    char *acl_text;
 
    n = acl(jcr->last_fname, GETACLCNT, 0, NULL);
-   if (n < MIN_ACL_ENTRIES) {
+   if (n < MIN_ACL_ENTRIES)
       return false;
 
    acls = (aclent_t *)malloc(n * sizeof(aclent_t));
