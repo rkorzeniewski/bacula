@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2008 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2009 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -44,7 +44,7 @@ const int dbglvl = 50;
  *   1 10Mar08
  */
 static char OK_hello[]  = "2000 OK Hello 1\n";
-static char Dir_sorry[] = "2999 No go\n";
+static char Dir_sorry[] = "2999 Authentication failed.\n";
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 /*********************************************************************

@@ -147,6 +147,7 @@ char *guid_list::uid_to_name(uid_t uid, char *name, int maxlen)
       }
       fitem = (guitem *)uid_list->binary_insert(item, uid_compare);
       if (fitem != item) {               /* item already there this shouldn't happen */
+         free(item->name);
          free(item);
          item = fitem;   
       }
@@ -172,6 +173,7 @@ char *guid_list::gid_to_name(gid_t gid, char *name, int maxlen)
       }
       fitem = (guitem *)gid_list->binary_insert(item, gid_compare);
       if (fitem != item) {               /* item already there this shouldn't happen */
+         free(item->name);
          free(item);
          item = fitem;   
       }
