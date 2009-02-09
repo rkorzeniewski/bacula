@@ -1,6 +1,6 @@
 Index: src/dird/job.c
 ===================================================================
---- src/dird/job.c	(révision 8396)
+--- src/dird/job.c	(révision 8431)
 +++ src/dird/job.c	(copie de travail)
 @@ -860,6 +860,7 @@
     jcr->jr.JobStatus = jcr->JobStatus;
@@ -12,7 +12,7 @@ Index: src/dird/job.c
     jcr->jr.JobErrors = jcr->Errors;
 Index: src/cats/sql_update.c
 ===================================================================
---- src/cats/sql_update.c	(révision 8396)
+--- src/cats/sql_update.c	(révision 8431)
 +++ src/cats/sql_update.c	(copie de travail)
 @@ -161,7 +161,7 @@
     time_t ttime;
@@ -38,7 +38,7 @@ Index: src/cats/sql_update.c
        rdt,
 Index: src/cats/update_postgresql_tables.in
 ===================================================================
---- src/cats/update_postgresql_tables.in	(révision 8396)
+--- src/cats/update_postgresql_tables.in	(révision 8431)
 +++ src/cats/update_postgresql_tables.in	(copie de travail)
 @@ -12,10 +12,15 @@
  if $bindir/psql -f - -d ${db_name} $* <<END-OF-DATA
@@ -60,7 +60,7 @@ Index: src/cats/update_postgresql_tables.in
  END-OF-DATA
 Index: src/cats/make_sqlite3_tables.in
 ===================================================================
---- src/cats/make_sqlite3_tables.in	(révision 8396)
+--- src/cats/make_sqlite3_tables.in	(révision 8431)
 +++ src/cats/make_sqlite3_tables.in	(copie de travail)
 @@ -64,6 +64,7 @@
     VolSessionTime INTEGER UNSIGNED DEFAULT 0,
@@ -70,10 +70,64 @@ Index: src/cats/make_sqlite3_tables.in
     JobErrors INTEGER UNSIGNED DEFAULT 0,
     JobMissingFiles INTEGER UNSIGNED DEFAULT 0,
     PoolId INTEGER UNSIGNED REFERENCES Pool DEFAULT 0,
+@@ -383,7 +384,7 @@
+ 
+ 
+ -- Initialize Version		 
+-INSERT INTO Version (VersionId) VALUES (10);
++INSERT INTO Version (VersionId) VALUES (11);
+ 
+ 
+ PRAGMA default_cache_size = 100000;
 Index: src/cats/cats.h
 ===================================================================
---- src/cats/cats.h	(révision 8396)
+--- src/cats/cats.h	(révision 8431)
 +++ src/cats/cats.h	(copie de travail)
+@@ -88,7 +88,7 @@
+ #if defined(BUILDING_CATS)
+ #ifdef HAVE_SQLITE
+ 
+-#define BDB_VERSION 10
++#define BDB_VERSION 11
+ 
+ #include <sqlite.h>
+ 
+@@ -208,7 +208,7 @@
+ #ifdef HAVE_SQLITE3
+ 
+ 
+-#define BDB_VERSION 10
++#define BDB_VERSION 11
+ 
+ #include <sqlite3.h>
+ 
+@@ -334,7 +334,7 @@
+ 
+ #ifdef HAVE_MYSQL
+ 
+-#define BDB_VERSION 10
++#define BDB_VERSION 11
+ 
+ #include <mysql.h>
+ 
+@@ -417,7 +417,7 @@
+ 
+ #ifdef HAVE_POSTGRESQL
+ 
+-#define BDB_VERSION 10
++#define BDB_VERSION 11
+ 
+ #include <libpq-fe.h>
+ 
+@@ -531,7 +531,7 @@
+ 
+ #ifdef HAVE_DBI
+ 
+-#define BDB_VERSION 10
++#define BDB_VERSION 11
+ 
+ #include <dbi/dbi.h>
+ 
 @@ -790,6 +790,7 @@
     uint32_t JobErrors;
     uint32_t JobMissingFiles;
@@ -84,7 +138,7 @@ Index: src/cats/cats.h
  
 Index: src/cats/update_sqlite3_tables.in
 ===================================================================
---- src/cats/update_sqlite3_tables.in	(révision 8396)
+--- src/cats/update_sqlite3_tables.in	(révision 8431)
 +++ src/cats/update_sqlite3_tables.in	(copie de travail)
 @@ -35,6 +35,7 @@
     VolSessionTime INTEGER UNSIGNED DEFAULT 0,
@@ -144,7 +198,7 @@ Index: src/cats/update_sqlite3_tables.in
  COMMIT;
 Index: src/cats/make_postgresql_tables.in
 ===================================================================
---- src/cats/make_postgresql_tables.in	(révision 8396)
+--- src/cats/make_postgresql_tables.in	(révision 8431)
 +++ src/cats/make_postgresql_tables.in	(copie de travail)
 @@ -29,7 +29,7 @@
  
@@ -172,9 +226,18 @@ Index: src/cats/make_postgresql_tables.in
      fileindex	      integer			    ,
      basejobid	      integer			    ,
      primary key (baseid)
+@@ -377,7 +378,7 @@
+ INSERT INTO Status (JobStatus,JobStatusLong) VALUES
+    ('i', 'Doing batch insert file records');
+ 
+-INSERT INTO Version (VersionId) VALUES (10);
++INSERT INTO Version (VersionId) VALUES (11);
+ 
+ -- Make sure we have appropriate permissions
+ 
 Index: src/cats/update_sqlite_tables.in
 ===================================================================
---- src/cats/update_sqlite_tables.in	(révision 8396)
+--- src/cats/update_sqlite_tables.in	(révision 8431)
 +++ src/cats/update_sqlite_tables.in	(copie de travail)
 @@ -36,6 +36,7 @@
     VolSessionTime INTEGER UNSIGNED DEFAULT 0,
@@ -234,7 +297,7 @@ Index: src/cats/update_sqlite_tables.in
  COMMIT;
 Index: src/cats/update_mysql_tables.in
 ===================================================================
---- src/cats/update_mysql_tables.in	(révision 8396)
+--- src/cats/update_mysql_tables.in	(révision 8431)
 +++ src/cats/update_mysql_tables.in	(copie de travail)
 @@ -12,13 +12,16 @@
  if $bindir/mysql $* -f <<END-OF-DATA
@@ -258,7 +321,7 @@ Index: src/cats/update_mysql_tables.in
  
 Index: src/cats/make_sqlite_tables.in
 ===================================================================
---- src/cats/make_sqlite_tables.in	(révision 8396)
+--- src/cats/make_sqlite_tables.in	(révision 8431)
 +++ src/cats/make_sqlite_tables.in	(copie de travail)
 @@ -64,6 +64,7 @@
     VolSessionTime INTEGER UNSIGNED DEFAULT 0,
@@ -268,9 +331,18 @@ Index: src/cats/make_sqlite_tables.in
     JobErrors INTEGER UNSIGNED DEFAULT 0,
     JobMissingFiles INTEGER UNSIGNED DEFAULT 0,
     PoolId INTEGER UNSIGNED REFERENCES Pool DEFAULT 0,
+@@ -383,7 +384,7 @@
+ 
+ 
+ -- Initialize Version		 
+-INSERT INTO Version (VersionId) VALUES (10);
++INSERT INTO Version (VersionId) VALUES (11);
+ 
+ 
+ PRAGMA default_synchronous = OFF;
 Index: src/cats/sql_get.c
 ===================================================================
---- src/cats/sql_get.c	(révision 8396)
+--- src/cats/sql_get.c	(révision 8431)
 +++ src/cats/sql_get.c	(copie de travail)
 @@ -297,13 +297,13 @@
        Mmsg(mdb->cmd, "SELECT VolSessionId,VolSessionTime,"
@@ -298,7 +370,7 @@ Index: src/cats/sql_get.c
     jr->EndTime = str_to_utime(jr->cEndTime);
 Index: src/cats/make_mysql_tables.in
 ===================================================================
---- src/cats/make_mysql_tables.in	(révision 8396)
+--- src/cats/make_mysql_tables.in	(révision 8431)
 +++ src/cats/make_mysql_tables.in	(copie de travail)
 @@ -29,7 +29,7 @@
  
@@ -326,3 +398,12 @@ Index: src/cats/make_mysql_tables.in
     FileIndex INTEGER UNSIGNED,
     PRIMARY KEY(BaseId)
     );
+@@ -333,7 +334,7 @@
+    );
+ 
+ -- Initialize Version		 
+-INSERT INTO Version (VersionId) VALUES (10);
++INSERT INTO Version (VersionId) VALUES (11);
+ 
+ END-OF-DATA
+ then
