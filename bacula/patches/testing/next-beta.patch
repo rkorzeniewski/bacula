@@ -1,7 +1,7 @@
 Index: src/dird/job.c
 ===================================================================
---- src/dird/job.c	(révision 8431)
-+++ src/dird/job.c	(copie de travail)
+--- src/dird/job.c	(revision 8431)
++++ src/dird/job.c	(working copy)
 @@ -860,6 +860,7 @@
     jcr->jr.JobStatus = jcr->JobStatus;
     jcr->jr.JobFiles = jcr->JobFiles;
@@ -12,8 +12,8 @@ Index: src/dird/job.c
     jcr->jr.JobErrors = jcr->Errors;
 Index: src/cats/sql_update.c
 ===================================================================
---- src/cats/sql_update.c	(révision 8431)
-+++ src/cats/sql_update.c	(copie de travail)
+--- src/cats/sql_update.c	(revision 8431)
++++ src/cats/sql_update.c	(working copy)
 @@ -161,7 +161,7 @@
     time_t ttime;
     struct tm tm;
@@ -38,8 +38,8 @@ Index: src/cats/sql_update.c
        rdt,
 Index: src/cats/update_postgresql_tables.in
 ===================================================================
---- src/cats/update_postgresql_tables.in	(révision 8431)
-+++ src/cats/update_postgresql_tables.in	(copie de travail)
+--- src/cats/update_postgresql_tables.in	(revision 8431)
++++ src/cats/update_postgresql_tables.in	(working copy)
 @@ -12,10 +12,15 @@
  if $bindir/psql -f - -d ${db_name} $* <<END-OF-DATA
  
@@ -60,8 +60,8 @@ Index: src/cats/update_postgresql_tables.in
  END-OF-DATA
 Index: src/cats/make_sqlite3_tables.in
 ===================================================================
---- src/cats/make_sqlite3_tables.in	(révision 8431)
-+++ src/cats/make_sqlite3_tables.in	(copie de travail)
+--- src/cats/make_sqlite3_tables.in	(revision 8431)
++++ src/cats/make_sqlite3_tables.in	(working copy)
 @@ -64,6 +64,7 @@
     VolSessionTime INTEGER UNSIGNED DEFAULT 0,
     JobFiles INTEGER UNSIGNED DEFAULT 0,
@@ -81,8 +81,8 @@ Index: src/cats/make_sqlite3_tables.in
  PRAGMA default_cache_size = 100000;
 Index: src/cats/cats.h
 ===================================================================
---- src/cats/cats.h	(révision 8431)
-+++ src/cats/cats.h	(copie de travail)
+--- src/cats/cats.h	(revision 8431)
++++ src/cats/cats.h	(working copy)
 @@ -88,7 +88,7 @@
  #if defined(BUILDING_CATS)
  #ifdef HAVE_SQLITE
@@ -138,27 +138,20 @@ Index: src/cats/cats.h
  
 Index: src/cats/update_sqlite3_tables.in
 ===================================================================
---- src/cats/update_sqlite3_tables.in	(révision 8431)
-+++ src/cats/update_sqlite3_tables.in	(copie de travail)
-@@ -35,6 +35,7 @@
-    VolSessionTime INTEGER UNSIGNED DEFAULT 0,
-    JobFiles INTEGER UNSIGNED DEFAULT 0,
-    JobBytes BIGINT UNSIGNED DEFAULT 0,
-+   ReadBytes BIGINT UNSIGNED DEFAULT 0,
-    JobErrors INTEGER UNSIGNED DEFAULT 0,
-    JobMissingFiles INTEGER UNSIGNED DEFAULT 0,
-    PoolId INTEGER UNSIGNED REFERENCES Pool DEFAULT 0,
-@@ -46,6 +47,47 @@
-    );
- CREATE INDEX inx61 ON JobHistory (Name);
+--- src/cats/update_sqlite3_tables.in	(revision 8431)
++++ src/cats/update_sqlite3_tables.in	(working copy)
+@@ -15,9 +15,59 @@
+ db_name=@db_name@
  
-+COMMIT;
+ ${bindir}/${sqlite} $* ${db_name}.db <<END-OF-DATA
++-- Can be replaced by 
++-- ALTER TABLE Job ADD COLUMN (ReadBytes BIGINT UNSIGNED DEFAULT 0);
 +
-+BEGIN TRANSACTION;
-+
+ BEGIN TRANSACTION;
 +CREATE TEMPORARY TABLE job_backup AS SELECT * FROM Job;
 +DROP TABLE Job;
-+
+ 
+--- Create a table like Job for long term statistics
 +CREATE TABLE Job
 +(
 +   JobId INTEGER,
@@ -189,17 +182,46 @@ Index: src/cats/update_sqlite3_tables.in
 +   );
 +CREATE INDEX inx6 ON Job (Name);
 +
-+INSERT INTO Job SELECT 0 AS ReadBytes, * FROM Job_backup;
++INSERT INTO Job (JobId, Job, Name, Type, Level, ClientId, JobStatus,
++SchedTime, StartTime, EndTime, RealEndTime, JobTDate, VolSessionId,
++VolSessionTime, JobFiles, JobBytes, JobErrors, JobMissingFiles,
++PoolId, FileSetId, PriorJobId, PurgedFiles, HasBase) SELECT
++JobId, Job, Name, Type, Level, ClientId, JobStatus, SchedTime, StartTime,
++EndTime, RealEndTime, JobTDate, VolSessionId, VolSessionTime, JobFiles,
++JobBytes, JobErrors, JobMissingFiles, PoolId, FileSetId, PriorJobId,
++PurgedFiles, HasBase FROM Job_backup;
++
 +DROP TABLE Job_backup;
 +
 +
- UPDATE Version SET VersionId=11;
++UPDATE Version SET VersionId=11;
++COMMIT;
++
++BEGIN TRANSACTION;
+ CREATE TABLE JobHistory (
+    JobId INTEGER,
+    Job VARCHAR(128) NOT NULL,
+@@ -35,6 +85,7 @@
+    VolSessionTime INTEGER UNSIGNED DEFAULT 0,
+    JobFiles INTEGER UNSIGNED DEFAULT 0,
+    JobBytes BIGINT UNSIGNED DEFAULT 0,
++   ReadBytes BIGINT UNSIGNED DEFAULT 0,
+    JobErrors INTEGER UNSIGNED DEFAULT 0,
+    JobMissingFiles INTEGER UNSIGNED DEFAULT 0,
+    PoolId INTEGER UNSIGNED REFERENCES Pool DEFAULT 0,
+@@ -46,8 +97,6 @@
+    );
+ CREATE INDEX inx61 ON JobHistory (Name);
  
+-UPDATE Version SET VersionId=11;
+-
  COMMIT;
+ 
+ END-OF-DATA
 Index: src/cats/make_postgresql_tables.in
 ===================================================================
---- src/cats/make_postgresql_tables.in	(révision 8431)
-+++ src/cats/make_postgresql_tables.in	(copie de travail)
+--- src/cats/make_postgresql_tables.in	(revision 8431)
++++ src/cats/make_postgresql_tables.in	(working copy)
 @@ -29,7 +29,7 @@
  
  CREATE TABLE file
@@ -237,28 +259,16 @@ Index: src/cats/make_postgresql_tables.in
  
 Index: src/cats/update_sqlite_tables.in
 ===================================================================
---- src/cats/update_sqlite_tables.in	(révision 8431)
-+++ src/cats/update_sqlite_tables.in	(copie de travail)
-@@ -36,6 +36,7 @@
-    VolSessionTime INTEGER UNSIGNED DEFAULT 0,
-    JobFiles INTEGER UNSIGNED DEFAULT 0,
-    JobBytes BIGINT UNSIGNED DEFAULT 0,
-+   ReadBytes BIGINT UNSIGNED DEFAULT 0,
-    JobErrors INTEGER UNSIGNED DEFAULT 0,
-    JobMissingFiles INTEGER UNSIGNED DEFAULT 0,
-    PoolId INTEGER UNSIGNED REFERENCES Pool DEFAULT 0,
-@@ -46,7 +47,47 @@
-    PRIMARY KEY(JobId) 
-    );
- CREATE INDEX inx61 ON JobHistory (Name);
-+COMMIT;
+--- src/cats/update_sqlite_tables.in	(revision 8431)
++++ src/cats/update_sqlite_tables.in	(working copy)
+@@ -17,8 +17,56 @@
+ ${bindir}/${sqlite} $* ${db_name}.db <<END-OF-DATA
+ BEGIN TRANSACTION;
  
-+
-+BEGIN TRANSACTION;
-+
+--- Create a table like Job for long term statistics
 +CREATE TEMPORARY TABLE job_backup AS SELECT * FROM Job;
 +DROP TABLE Job;
-+
+ 
 +CREATE TABLE Job
 +(
 +   JobId INTEGER,
@@ -289,17 +299,48 @@ Index: src/cats/update_sqlite_tables.in
 +   );
 +CREATE INDEX inx6 ON Job (Name);
 +
-+INSERT INTO Job SELECT 0 AS ReadBytes, * FROM Job_backup;
++INSERT INTO Job (JobId, Job, Name, Type, Level, ClientId, JobStatus,
++SchedTime, StartTime, EndTime, RealEndTime, JobTDate, VolSessionId,
++VolSessionTime, JobFiles, JobBytes, JobErrors, JobMissingFiles,
++PoolId, FileSetId, PriorJobId, PurgedFiles, HasBase) SELECT
++JobId, Job, Name, Type, Level, ClientId, JobStatus, SchedTime, StartTime,
++EndTime, RealEndTime, JobTDate, VolSessionId, VolSessionTime, JobFiles,
++JobBytes, JobErrors, JobMissingFiles, PoolId, FileSetId, PriorJobId,
++PurgedFiles, HasBase FROM Job_backup;
++
 +DROP TABLE Job_backup;
 +
- UPDATE Version SET VersionId=11;
++UPDATE Version SET VersionId=11;
++
++COMMIT;
++
++BEGIN TRANSACTION;
++
+ CREATE TABLE JobHistory (
+    JobId INTEGER,
+    Job VARCHAR(128) NOT NULL,
+@@ -36,6 +84,7 @@
+    VolSessionTime INTEGER UNSIGNED DEFAULT 0,
+    JobFiles INTEGER UNSIGNED DEFAULT 0,
+    JobBytes BIGINT UNSIGNED DEFAULT 0,
++   ReadBytes BIGINT UNSIGNED DEFAULT 0,
+    JobErrors INTEGER UNSIGNED DEFAULT 0,
+    JobMissingFiles INTEGER UNSIGNED DEFAULT 0,
+    PoolId INTEGER UNSIGNED REFERENCES Pool DEFAULT 0,
+@@ -47,8 +96,6 @@
+    );
+ CREATE INDEX inx61 ON JobHistory (Name);
  
+-UPDATE Version SET VersionId=11;
+-
  COMMIT;
+ 
+ END-OF-DATA
 Index: src/cats/update_mysql_tables.in
 ===================================================================
---- src/cats/update_mysql_tables.in	(révision 8431)
-+++ src/cats/update_mysql_tables.in	(copie de travail)
-@@ -12,13 +12,16 @@
+--- src/cats/update_mysql_tables.in	(revision 8431)
++++ src/cats/update_mysql_tables.in	(working copy)
+@@ -12,16 +12,19 @@
  if $bindir/mysql $* -f <<END-OF-DATA
  USE ${db_name};
  
@@ -313,16 +354,19 @@ Index: src/cats/update_mysql_tables.in
 +ALTER TABLE BaseFiles CHANGE FileId FileId BIGINT UNSIGNED NOT NULL;
 +ALTER TABLE Job ADD ReadBytes BIGINT UNSIGNED DEFAULT 0 AFTER JobBytes; 
  
-+-- Create a table like Job for long term statistics
-+CREATE TABLE JobHistory (LIKE Job);
-+
  DELETE FROM Version;
  INSERT INTO Version (VersionId) VALUES (11);
  
++-- Create a table like Job for long term statistics
++CREATE TABLE JobHistory (LIKE Job);
++
+ END-OF-DATA
+ then
+    echo "Update of Bacula MySQL tables succeeded."
 Index: src/cats/make_sqlite_tables.in
 ===================================================================
---- src/cats/make_sqlite_tables.in	(révision 8431)
-+++ src/cats/make_sqlite_tables.in	(copie de travail)
+--- src/cats/make_sqlite_tables.in	(revision 8431)
++++ src/cats/make_sqlite_tables.in	(working copy)
 @@ -64,6 +64,7 @@
     VolSessionTime INTEGER UNSIGNED DEFAULT 0,
     JobFiles INTEGER UNSIGNED DEFAULT 0,
@@ -342,8 +386,8 @@ Index: src/cats/make_sqlite_tables.in
  PRAGMA default_synchronous = OFF;
 Index: src/cats/sql_get.c
 ===================================================================
---- src/cats/sql_get.c	(révision 8431)
-+++ src/cats/sql_get.c	(copie de travail)
+--- src/cats/sql_get.c	(revision 8431)
++++ src/cats/sql_get.c	(working copy)
 @@ -297,13 +297,13 @@
        Mmsg(mdb->cmd, "SELECT VolSessionId,VolSessionTime,"
  "PoolId,StartTime,EndTime,JobFiles,JobBytes,JobTDate,Job,JobStatus,"
@@ -370,8 +414,8 @@ Index: src/cats/sql_get.c
     jr->EndTime = str_to_utime(jr->cEndTime);
 Index: src/cats/make_mysql_tables.in
 ===================================================================
---- src/cats/make_mysql_tables.in	(révision 8431)
-+++ src/cats/make_mysql_tables.in	(copie de travail)
+--- src/cats/make_mysql_tables.in	(revision 8431)
++++ src/cats/make_mysql_tables.in	(working copy)
 @@ -29,7 +29,7 @@
  
  
