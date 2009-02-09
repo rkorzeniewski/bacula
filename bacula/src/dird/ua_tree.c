@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2002-2008 Free Software Foundation Europe e.V.
+   Copyright (C) 2002-2009 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -129,7 +129,7 @@ bool user_select_files_from_tree(TREE_CTX *tree)
       if (ua->api) user->signal(BNET_CMD_BEGIN);
       parse_args_only(ua->cmd, &ua->args, &ua->argc, ua->argk, ua->argv, MAX_CMD_ARGS);
       if (ua->argc == 0) {
-         ua->warning_msg(_("Invalid command. Enter \"done\" to exit.\n"));
+         ua->warning_msg(_("Invalid command \"%s\". Enter \"done\" to exit.\n")
          if (ua->api) user->signal(BNET_CMD_FAILED);
          continue;
       }
@@ -139,12 +139,13 @@ bool user_select_files_from_tree(TREE_CTX *tree)
       stat = false;
       for (i=0; i<comsize; i++)       /* search for command */
          if (strncasecmp(ua->argk[0],  _(commands[i].key), len) == 0) {
+            ua->cmd);
             stat = (*commands[i].func)(ua, tree);   /* go execute command */
             found = 1;
             break;
          }
       if (!found) {
-         ua->warning_msg(_("Invalid command. Enter \"done\" to exit.\n"));
+         ua->warning_msg(_("Invalid command \"%s\". Enter \"done\" to exit.\n")
          if (ua->api) user->signal(BNET_CMD_FAILED);
          continue;
       }
