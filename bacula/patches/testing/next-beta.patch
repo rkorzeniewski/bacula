@@ -40,10 +40,10 @@ Index: src/cats/update_postgresql_tables.in
 ===================================================================
 --- src/cats/update_postgresql_tables.in	(revision 8431)
 +++ src/cats/update_postgresql_tables.in	(working copy)
-@@ -12,10 +12,15 @@
+@@ -11,13 +11,17 @@
+ 
  if $bindir/psql -f - -d ${db_name} $* <<END-OF-DATA
  
- -- Create a table like Job for long term statistics
 +BEGIN;
 +ALTER TABLE file ALTER fileid TYPE bigint ;
 +ALTER TABLE basefiles ALTER fileid TYPE bigint;
@@ -51,13 +51,16 @@ Index: src/cats/update_postgresql_tables.in
 +UPDATE Version SET VersionId=11;
 +COMMIT;
 +
+ -- Create a table like Job for long term statistics
  CREATE TABLE JobHistory (LIKE Job);
  
 -UPDATE Version SET VersionId=11;
 -
  -- vacuum analyse;
- 
+-
  END-OF-DATA
+ then
+    echo "Update of Bacula PostgreSQL tables succeeded."
 Index: src/cats/make_sqlite3_tables.in
 ===================================================================
 --- src/cats/make_sqlite3_tables.in	(revision 8431)
@@ -70,7 +73,33 @@ Index: src/cats/make_sqlite3_tables.in
     JobErrors INTEGER UNSIGNED DEFAULT 0,
     JobMissingFiles INTEGER UNSIGNED DEFAULT 0,
     PoolId INTEGER UNSIGNED REFERENCES Pool DEFAULT 0,
-@@ -383,7 +384,7 @@
+@@ -82,7 +83,7 @@
+    Name VARCHAR(128) NOT NULL,
+    Type CHAR(1) NOT NULL,
+    Level CHAR(1) NOT NULL,
+-   ClientId INTEGER REFERENCES Client DEFAULT 0,
++   ClientId INTEGER DEFAULT 0,
+    JobStatus CHAR(1) NOT NULL,
+    SchedTime DATETIME NOT NULL,
+    StartTime DATETIME DEFAULT 0,
+@@ -95,12 +96,11 @@
+    JobBytes BIGINT UNSIGNED DEFAULT 0,
+    JobErrors INTEGER UNSIGNED DEFAULT 0,
+    JobMissingFiles INTEGER UNSIGNED DEFAULT 0,
+-   PoolId INTEGER UNSIGNED REFERENCES Pool DEFAULT 0,
+-   FileSetId INTEGER UNSIGNED REFERENCES FileSet DEFAULT 0,
+-   PriorJobId INTEGER UNSIGNED REFERENCES Job DEFAULT 0,
++   PoolId INTEGER UNSIGNED DEFAULT 0,
++   FileSetId INTEGER UNSIGNED DEFAULT 0,
++   PriorJobId INTEGER UNSIGNED DEFAULT 0,
+    PurgedFiles TINYINT DEFAULT 0,
+-   HasBase TINYINT DEFAULT 0,
+-   PRIMARY KEY(JobId) 
++   HasBase TINYINT DEFAULT 0
+    );
+ CREATE INDEX inx61 ON JobHistory (Name);
+ 
+@@ -383,7 +383,7 @@
  
  
  -- Initialize Version		 
@@ -140,7 +169,7 @@ Index: src/cats/update_sqlite3_tables.in
 ===================================================================
 --- src/cats/update_sqlite3_tables.in	(revision 8431)
 +++ src/cats/update_sqlite3_tables.in	(working copy)
-@@ -15,9 +15,59 @@
+@@ -15,10 +15,15 @@
  db_name=@db_name@
  
  ${bindir}/${sqlite} $* ${db_name}.db <<END-OF-DATA
@@ -152,8 +181,47 @@ Index: src/cats/update_sqlite3_tables.in
 +DROP TABLE Job;
  
 --- Create a table like Job for long term statistics
+-CREATE TABLE JobHistory (
 +CREATE TABLE Job
 +(
+    JobId INTEGER,
+    Job VARCHAR(128) NOT NULL,
+    Name VARCHAR(128) NOT NULL,
+@@ -35,6 +40,7 @@
+    VolSessionTime INTEGER UNSIGNED DEFAULT 0,
+    JobFiles INTEGER UNSIGNED DEFAULT 0,
+    JobBytes BIGINT UNSIGNED DEFAULT 0,
++   ReadBytes BIGINT UNSIGNED DEFAULT 0,
+    JobErrors INTEGER UNSIGNED DEFAULT 0,
+    JobMissingFiles INTEGER UNSIGNED DEFAULT 0,
+    PoolId INTEGER UNSIGNED REFERENCES Pool DEFAULT 0,
+@@ -42,12 +48,51 @@
+    PriorJobId INTEGER UNSIGNED REFERENCES Job DEFAULT 0,
+    PurgedFiles TINYINT DEFAULT 0,
+    HasBase TINYINT DEFAULT 0,
+-   PRIMARY KEY(JobId) 
++   PRIMARY KEY(JobId)
+    );
+-CREATE INDEX inx61 ON JobHistory (Name);
++CREATE INDEX inx6 ON Job (Name);
+ 
++INSERT INTO Job (JobId, Job, Name, Type, Level, ClientId, JobStatus,
++SchedTime, StartTime, EndTime, RealEndTime, JobTDate, VolSessionId,
++VolSessionTime, JobFiles, JobBytes, JobErrors, JobMissingFiles,
++PoolId, FileSetId, PriorJobId, PurgedFiles, HasBase) SELECT
++JobId, Job, Name, Type, Level, ClientId, JobStatus, SchedTime, StartTime,
++EndTime, RealEndTime, JobTDate, VolSessionId, VolSessionTime, JobFiles,
++JobBytes, JobErrors, JobMissingFiles, PoolId, FileSetId, PriorJobId,
++PurgedFiles, HasBase FROM Job_backup;
++
++DROP TABLE Job_backup;
++
++
+ UPDATE Version SET VersionId=11;
+-
+ COMMIT;
+ 
++CREATE TABLE JobHistory (
 +   JobId INTEGER,
 +   Job VARCHAR(128) NOT NULL,
 +   Name VARCHAR(128) NOT NULL,
@@ -177,46 +245,10 @@ Index: src/cats/update_sqlite3_tables.in
 +   FileSetId INTEGER UNSIGNED REFERENCES FileSet DEFAULT 0,
 +   PriorJobId INTEGER UNSIGNED REFERENCES Job DEFAULT 0,
 +   PurgedFiles TINYINT DEFAULT 0,
-+   HasBase TINYINT DEFAULT 0,
-+   PRIMARY KEY(JobId)
++   HasBase TINYINT DEFAULT 0
 +   );
-+CREATE INDEX inx6 ON Job (Name);
++CREATE INDEX inx61 ON JobHistory (Name);
 +
-+INSERT INTO Job (JobId, Job, Name, Type, Level, ClientId, JobStatus,
-+SchedTime, StartTime, EndTime, RealEndTime, JobTDate, VolSessionId,
-+VolSessionTime, JobFiles, JobBytes, JobErrors, JobMissingFiles,
-+PoolId, FileSetId, PriorJobId, PurgedFiles, HasBase) SELECT
-+JobId, Job, Name, Type, Level, ClientId, JobStatus, SchedTime, StartTime,
-+EndTime, RealEndTime, JobTDate, VolSessionId, VolSessionTime, JobFiles,
-+JobBytes, JobErrors, JobMissingFiles, PoolId, FileSetId, PriorJobId,
-+PurgedFiles, HasBase FROM Job_backup;
-+
-+DROP TABLE Job_backup;
-+
-+
-+UPDATE Version SET VersionId=11;
-+COMMIT;
-+
-+BEGIN TRANSACTION;
- CREATE TABLE JobHistory (
-    JobId INTEGER,
-    Job VARCHAR(128) NOT NULL,
-@@ -35,6 +85,7 @@
-    VolSessionTime INTEGER UNSIGNED DEFAULT 0,
-    JobFiles INTEGER UNSIGNED DEFAULT 0,
-    JobBytes BIGINT UNSIGNED DEFAULT 0,
-+   ReadBytes BIGINT UNSIGNED DEFAULT 0,
-    JobErrors INTEGER UNSIGNED DEFAULT 0,
-    JobMissingFiles INTEGER UNSIGNED DEFAULT 0,
-    PoolId INTEGER UNSIGNED REFERENCES Pool DEFAULT 0,
-@@ -46,8 +97,6 @@
-    );
- CREATE INDEX inx61 ON JobHistory (Name);
- 
--UPDATE Version SET VersionId=11;
--
- COMMIT;
- 
  END-OF-DATA
 Index: src/cats/make_postgresql_tables.in
 ===================================================================
@@ -261,7 +293,7 @@ Index: src/cats/update_sqlite_tables.in
 ===================================================================
 --- src/cats/update_sqlite_tables.in	(revision 8431)
 +++ src/cats/update_sqlite_tables.in	(working copy)
-@@ -17,8 +17,56 @@
+@@ -17,9 +17,11 @@
  ${bindir}/${sqlite} $* ${db_name}.db <<END-OF-DATA
  BEGIN TRANSACTION;
  
@@ -269,8 +301,46 @@ Index: src/cats/update_sqlite_tables.in
 +CREATE TEMPORARY TABLE job_backup AS SELECT * FROM Job;
 +DROP TABLE Job;
  
+-CREATE TABLE JobHistory (
 +CREATE TABLE Job
 +(
+    JobId INTEGER,
+    Job VARCHAR(128) NOT NULL,
+    Name VARCHAR(128) NOT NULL,
+@@ -36,6 +38,7 @@
+    VolSessionTime INTEGER UNSIGNED DEFAULT 0,
+    JobFiles INTEGER UNSIGNED DEFAULT 0,
+    JobBytes BIGINT UNSIGNED DEFAULT 0,
++   ReadBytes BIGINT UNSIGNED DEFAULT 0,
+    JobErrors INTEGER UNSIGNED DEFAULT 0,
+    JobMissingFiles INTEGER UNSIGNED DEFAULT 0,
+    PoolId INTEGER UNSIGNED REFERENCES Pool DEFAULT 0,
+@@ -43,12 +46,51 @@
+    PriorJobId INTEGER UNSIGNED REFERENCES Job DEFAULT 0,
+    PurgedFiles TINYINT DEFAULT 0,
+    HasBase TINYINT DEFAULT 0,
+-   PRIMARY KEY(JobId) 
++   PRIMARY KEY(JobId)
+    );
+-CREATE INDEX inx61 ON JobHistory (Name);
++CREATE INDEX inx6 ON Job (Name);
+ 
++INSERT INTO Job (JobId, Job, Name, Type, Level, ClientId, JobStatus,
++SchedTime, StartTime, EndTime, RealEndTime, JobTDate, VolSessionId,
++VolSessionTime, JobFiles, JobBytes, JobErrors, JobMissingFiles,
++PoolId, FileSetId, PriorJobId, PurgedFiles, HasBase) SELECT
++JobId, Job, Name, Type, Level, ClientId, JobStatus, SchedTime, StartTime,
++EndTime, RealEndTime, JobTDate, VolSessionId, VolSessionTime, JobFiles,
++JobBytes, JobErrors, JobMissingFiles, PoolId, FileSetId, PriorJobId,
++PurgedFiles, HasBase FROM Job_backup;
++
++DROP TABLE Job_backup;
++
+ UPDATE Version SET VersionId=11;
+ 
+ COMMIT;
+ 
++CREATE TABLE JobHistory (
 +   JobId INTEGER,
 +   Job VARCHAR(128) NOT NULL,
 +   Name VARCHAR(128) NOT NULL,
@@ -294,53 +364,16 @@ Index: src/cats/update_sqlite_tables.in
 +   FileSetId INTEGER UNSIGNED REFERENCES FileSet DEFAULT 0,
 +   PriorJobId INTEGER UNSIGNED REFERENCES Job DEFAULT 0,
 +   PurgedFiles TINYINT DEFAULT 0,
-+   HasBase TINYINT DEFAULT 0,
-+   PRIMARY KEY(JobId)
++   HasBase TINYINT DEFAULT 0
 +   );
-+CREATE INDEX inx6 ON Job (Name);
++CREATE INDEX inx61 ON JobHistory (Name);
 +
-+INSERT INTO Job (JobId, Job, Name, Type, Level, ClientId, JobStatus,
-+SchedTime, StartTime, EndTime, RealEndTime, JobTDate, VolSessionId,
-+VolSessionTime, JobFiles, JobBytes, JobErrors, JobMissingFiles,
-+PoolId, FileSetId, PriorJobId, PurgedFiles, HasBase) SELECT
-+JobId, Job, Name, Type, Level, ClientId, JobStatus, SchedTime, StartTime,
-+EndTime, RealEndTime, JobTDate, VolSessionId, VolSessionTime, JobFiles,
-+JobBytes, JobErrors, JobMissingFiles, PoolId, FileSetId, PriorJobId,
-+PurgedFiles, HasBase FROM Job_backup;
-+
-+DROP TABLE Job_backup;
-+
-+UPDATE Version SET VersionId=11;
-+
-+COMMIT;
-+
-+BEGIN TRANSACTION;
-+
- CREATE TABLE JobHistory (
-    JobId INTEGER,
-    Job VARCHAR(128) NOT NULL,
-@@ -36,6 +84,7 @@
-    VolSessionTime INTEGER UNSIGNED DEFAULT 0,
-    JobFiles INTEGER UNSIGNED DEFAULT 0,
-    JobBytes BIGINT UNSIGNED DEFAULT 0,
-+   ReadBytes BIGINT UNSIGNED DEFAULT 0,
-    JobErrors INTEGER UNSIGNED DEFAULT 0,
-    JobMissingFiles INTEGER UNSIGNED DEFAULT 0,
-    PoolId INTEGER UNSIGNED REFERENCES Pool DEFAULT 0,
-@@ -47,8 +96,6 @@
-    );
- CREATE INDEX inx61 ON JobHistory (Name);
- 
--UPDATE Version SET VersionId=11;
--
- COMMIT;
- 
  END-OF-DATA
 Index: src/cats/update_mysql_tables.in
 ===================================================================
 --- src/cats/update_mysql_tables.in	(revision 8431)
 +++ src/cats/update_mysql_tables.in	(working copy)
-@@ -12,16 +12,19 @@
+@@ -12,16 +12,44 @@
  if $bindir/mysql $* -f <<END-OF-DATA
  USE ${db_name};
  
@@ -358,7 +391,32 @@ Index: src/cats/update_mysql_tables.in
  INSERT INTO Version (VersionId) VALUES (11);
  
 +-- Create a table like Job for long term statistics
-+CREATE TABLE JobHistory (LIKE Job);
++CREATE TABLE JobHistory (
++   JobId INTEGER UNSIGNED NOT NULL,
++   Job TINYBLOB NOT NULL,
++   Name TINYBLOB NOT NULL,
++   Type BINARY(1) NOT NULL,
++   Level BINARY(1) NOT NULL,
++   ClientId INTEGER DEFAULT 0,
++   JobStatus BINARY(1) NOT NULL,
++   SchedTime DATETIME DEFAULT 0,
++   StartTime DATETIME DEFAULT 0,
++   EndTime DATETIME DEFAULT 0,
++   RealEndTime DATETIME DEFAULT 0,
++   JobTDate BIGINT UNSIGNED DEFAULT 0,
++   VolSessionId INTEGER UNSIGNED DEFAULT 0,
++   VolSessionTime INTEGER UNSIGNED DEFAULT 0,
++   JobFiles INTEGER UNSIGNED DEFAULT 0,
++   JobBytes BIGINT UNSIGNED DEFAULT 0,
++   ReadBytes BIGINT UNSIGNED DEFAULT 0,
++   JobErrors INTEGER UNSIGNED DEFAULT 0,
++   JobMissingFiles INTEGER UNSIGNED DEFAULT 0,
++   PoolId INTEGER UNSIGNED DEFAULT 0,
++   FileSetId INTEGER UNSIGNED DEFAULT 0,
++   PriorJobId INTEGER UNSIGNED DEFAULT 0,
++   PurgedFiles TINYINT DEFAULT 0,
++   HasBase TINYINT DEFAULT 0
++   );
 +
  END-OF-DATA
  then
@@ -375,7 +433,33 @@ Index: src/cats/make_sqlite_tables.in
     JobErrors INTEGER UNSIGNED DEFAULT 0,
     JobMissingFiles INTEGER UNSIGNED DEFAULT 0,
     PoolId INTEGER UNSIGNED REFERENCES Pool DEFAULT 0,
-@@ -383,7 +384,7 @@
+@@ -82,7 +83,7 @@
+    Name VARCHAR(128) NOT NULL,
+    Type CHAR(1) NOT NULL,
+    Level CHAR(1) NOT NULL,
+-   ClientId INTEGER REFERENCES Client DEFAULT 0,
++   ClientId INTEGER DEFAULT 0,
+    JobStatus CHAR(1) NOT NULL,
+    SchedTime DATETIME NOT NULL,
+    StartTime DATETIME DEFAULT 0,
+@@ -95,12 +96,11 @@
+    JobBytes BIGINT UNSIGNED DEFAULT 0,
+    JobErrors INTEGER UNSIGNED DEFAULT 0,
+    JobMissingFiles INTEGER UNSIGNED DEFAULT 0,
+-   PoolId INTEGER UNSIGNED REFERENCES Pool DEFAULT 0,
+-   FileSetId INTEGER UNSIGNED REFERENCES FileSet DEFAULT 0,
+-   PriorJobId INTEGER UNSIGNED REFERENCES Job DEFAULT 0,
++   PoolId INTEGER UNSIGNED DEFAULT 0,
++   FileSetId INTEGER UNSIGNED DEFAULT 0,
++   PriorJobId INTEGER UNSIGNED DEFAULT 0,
+    PurgedFiles TINYINT DEFAULT 0,
+-   HasBase TINYINT DEFAULT 0,
+-   PRIMARY KEY(JobId) 
++   HasBase TINYINT DEFAULT 0
+    );
+ CREATE INDEX inx61 ON JobHistory (Name);
+ 
+@@ -383,7 +383,7 @@
  
  
  -- Initialize Version		 
@@ -433,7 +517,41 @@ Index: src/cats/make_mysql_tables.in
     JobErrors INTEGER UNSIGNED DEFAULT 0,
     JobMissingFiles INTEGER UNSIGNED DEFAULT 0,
     PoolId INTEGER UNSIGNED DEFAULT 0 REFERENCES Pool,
-@@ -269,7 +270,7 @@
+@@ -116,7 +117,32 @@
+    );
+ 
+ -- Create a table like Job for long term statistics 
+-CREATE TABLE JobHistory (LIKE Job);
++CREATE TABLE JobHistory (
++   JobId INTEGER UNSIGNED NOT NULL,
++   Job TINYBLOB NOT NULL,
++   Name TINYBLOB NOT NULL,
++   Type BINARY(1) NOT NULL,
++   Level BINARY(1) NOT NULL,
++   ClientId INTEGER DEFAULT 0,
++   JobStatus BINARY(1) NOT NULL,
++   SchedTime DATETIME DEFAULT 0,
++   StartTime DATETIME DEFAULT 0,
++   EndTime DATETIME DEFAULT 0,
++   RealEndTime DATETIME DEFAULT 0,
++   JobTDate BIGINT UNSIGNED DEFAULT 0,
++   VolSessionId INTEGER UNSIGNED DEFAULT 0,
++   VolSessionTime INTEGER UNSIGNED DEFAULT 0,
++   JobFiles INTEGER UNSIGNED DEFAULT 0,
++   JobBytes BIGINT UNSIGNED DEFAULT 0,
++   ReadBytes BIGINT UNSIGNED DEFAULT 0,
++   JobErrors INTEGER UNSIGNED DEFAULT 0,
++   JobMissingFiles INTEGER UNSIGNED DEFAULT 0,
++   PoolId INTEGER UNSIGNED DEFAULT 0,
++   FileSetId INTEGER UNSIGNED DEFAULT 0,
++   PriorJobId INTEGER UNSIGNED DEFAULT 0,
++   PurgedFiles TINYINT DEFAULT 0,
++   HasBase TINYINT DEFAULT 0
++   );
+ 
+ CREATE TABLE Location (
+    LocationId INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,
+@@ -269,7 +295,7 @@
     BaseId INTEGER UNSIGNED AUTO_INCREMENT,
     BaseJobId INTEGER UNSIGNED NOT NULL REFERENCES Job,
     JobId INTEGER UNSIGNED NOT NULL REFERENCES Job,
@@ -442,7 +560,7 @@ Index: src/cats/make_mysql_tables.in
     FileIndex INTEGER UNSIGNED,
     PRIMARY KEY(BaseId)
     );
-@@ -333,7 +334,7 @@
+@@ -333,7 +359,7 @@
     );
  
  -- Initialize Version		 
@@ -451,3 +569,16 @@ Index: src/cats/make_mysql_tables.in
  
  END-OF-DATA
  then
+Index: src/bc_types.h
+===================================================================
+--- src/bc_types.h	(revision 8431)
++++ src/bc_types.h	(working copy)
+@@ -57,7 +57,7 @@
+  * In principle, the only field that really should need to be
+  *  64 bits is the FileId_t
+  */
+-typedef uint32_t FileId_t;
++typedef uint64_t FileId_t;
+ typedef uint32_t DBId_t;              /* general DB id type */
+ typedef uint32_t JobId_t;
+ 
