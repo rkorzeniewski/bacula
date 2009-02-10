@@ -10,7 +10,29 @@ not have to upgrade all your File daemons when you upgrade. There is
 no database upgrade needed from version 2.4.x.  However, the next
 BETA release will require a database upgrade.
 
-==================   Warning !!!!!! ==========================
+================== Warning !!!!!! ==========================
+
+New Catalog format :
+--------------------
+
+This BETA release of Bacula uses a new catalog format. We provide a set of
+script that permit to convert a 2.4.x (version 10) catalog to 2.5.x (version
+11). If you are using already a 2.5 version, you need to drop the JobHistory
+table before upgrading your catalog (if you are using the new "long term
+statistics" module, you can upgrade this table like with the Job table, see
+upgrade_<database>_table script).
+
+The upgrade operation will convert an essential field of the File table, and
+this operation will take TIME and will DOUBLE THE SIZE of your
+catalog temporarily. Depending on your catalog backend, you won't be able to run jobs
+during this period. For example, a 3 million files catalog will take 2mins to
+upgrade on a normal machine. Don't forget to backup it before executing the
+script.
+
+
+New configure option :
+----------------------
+
 This BETA release of Bacula 2.5.x development code uses libtool
 to generate the Bacula libraries as shared objects rather than
 being directly linked in as in prior versions.  This means that
