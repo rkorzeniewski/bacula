@@ -1,7 +1,7 @@
 Index: src/dird/job.c
 ===================================================================
---- src/dird/job.c	(revision 8431)
-+++ src/dird/job.c	(working copy)
+--- src/dird/job.c	(révision 8436)
++++ src/dird/job.c	(copie de travail)
 @@ -860,6 +860,7 @@
     jcr->jr.JobStatus = jcr->JobStatus;
     jcr->jr.JobFiles = jcr->JobFiles;
@@ -12,8 +12,8 @@ Index: src/dird/job.c
     jcr->jr.JobErrors = jcr->Errors;
 Index: src/cats/sql_update.c
 ===================================================================
---- src/cats/sql_update.c	(revision 8431)
-+++ src/cats/sql_update.c	(working copy)
+--- src/cats/sql_update.c	(révision 8436)
++++ src/cats/sql_update.c	(copie de travail)
 @@ -161,7 +161,7 @@
     time_t ttime;
     struct tm tm;
@@ -38,9 +38,9 @@ Index: src/cats/sql_update.c
        rdt,
 Index: src/cats/update_postgresql_tables.in
 ===================================================================
---- src/cats/update_postgresql_tables.in	(revision 8431)
-+++ src/cats/update_postgresql_tables.in	(working copy)
-@@ -11,13 +11,17 @@
+--- src/cats/update_postgresql_tables.in	(révision 8436)
++++ src/cats/update_postgresql_tables.in	(copie de travail)
+@@ -11,13 +11,20 @@
  
  if $bindir/psql -f - -d ${db_name} $* <<END-OF-DATA
  
@@ -50,6 +50,9 @@ Index: src/cats/update_postgresql_tables.in
 +ALTER TABLE job ADD COLUMN readbytes bigint default 0;
 +UPDATE Version SET VersionId=11;
 +COMMIT;
++
++-- If you have already this table, you can remove it with:
++-- DROP TABLE JobHistory;
 +
  -- Create a table like Job for long term statistics
  CREATE TABLE JobHistory (LIKE Job);
@@ -63,8 +66,8 @@ Index: src/cats/update_postgresql_tables.in
     echo "Update of Bacula PostgreSQL tables succeeded."
 Index: src/cats/make_sqlite3_tables.in
 ===================================================================
---- src/cats/make_sqlite3_tables.in	(revision 8431)
-+++ src/cats/make_sqlite3_tables.in	(working copy)
+--- src/cats/make_sqlite3_tables.in	(révision 8436)
++++ src/cats/make_sqlite3_tables.in	(copie de travail)
 @@ -64,6 +64,7 @@
     VolSessionTime INTEGER UNSIGNED DEFAULT 0,
     JobFiles INTEGER UNSIGNED DEFAULT 0,
@@ -110,8 +113,8 @@ Index: src/cats/make_sqlite3_tables.in
  PRAGMA default_cache_size = 100000;
 Index: src/cats/cats.h
 ===================================================================
---- src/cats/cats.h	(revision 8431)
-+++ src/cats/cats.h	(working copy)
+--- src/cats/cats.h	(révision 8436)
++++ src/cats/cats.h	(copie de travail)
 @@ -88,7 +88,7 @@
  #if defined(BUILDING_CATS)
  #ifdef HAVE_SQLITE
@@ -167,8 +170,8 @@ Index: src/cats/cats.h
  
 Index: src/cats/update_sqlite3_tables.in
 ===================================================================
---- src/cats/update_sqlite3_tables.in	(revision 8431)
-+++ src/cats/update_sqlite3_tables.in	(working copy)
+--- src/cats/update_sqlite3_tables.in	(révision 8436)
++++ src/cats/update_sqlite3_tables.in	(copie de travail)
 @@ -15,10 +15,15 @@
  db_name=@db_name@
  
@@ -195,7 +198,7 @@ Index: src/cats/update_sqlite3_tables.in
     JobErrors INTEGER UNSIGNED DEFAULT 0,
     JobMissingFiles INTEGER UNSIGNED DEFAULT 0,
     PoolId INTEGER UNSIGNED REFERENCES Pool DEFAULT 0,
-@@ -42,12 +48,51 @@
+@@ -42,12 +48,55 @@
     PriorJobId INTEGER UNSIGNED REFERENCES Job DEFAULT 0,
     PurgedFiles TINYINT DEFAULT 0,
     HasBase TINYINT DEFAULT 0,
@@ -221,6 +224,10 @@ Index: src/cats/update_sqlite3_tables.in
 -
  COMMIT;
  
++-- If you have already this table, you can remove it with:
++-- DROP TABLE JobHistory;
++
++-- Create a table like Job for long term statistics
 +CREATE TABLE JobHistory (
 +   JobId INTEGER,
 +   Job VARCHAR(128) NOT NULL,
@@ -252,8 +259,8 @@ Index: src/cats/update_sqlite3_tables.in
  END-OF-DATA
 Index: src/cats/make_postgresql_tables.in
 ===================================================================
---- src/cats/make_postgresql_tables.in	(revision 8431)
-+++ src/cats/make_postgresql_tables.in	(working copy)
+--- src/cats/make_postgresql_tables.in	(révision 8436)
++++ src/cats/make_postgresql_tables.in	(copie de travail)
 @@ -29,7 +29,7 @@
  
  CREATE TABLE file
@@ -291,8 +298,8 @@ Index: src/cats/make_postgresql_tables.in
  
 Index: src/cats/update_sqlite_tables.in
 ===================================================================
---- src/cats/update_sqlite_tables.in	(revision 8431)
-+++ src/cats/update_sqlite_tables.in	(working copy)
+--- src/cats/update_sqlite_tables.in	(révision 8436)
++++ src/cats/update_sqlite_tables.in	(copie de travail)
 @@ -17,9 +17,11 @@
  ${bindir}/${sqlite} $* ${db_name}.db <<END-OF-DATA
  BEGIN TRANSACTION;
@@ -315,7 +322,7 @@ Index: src/cats/update_sqlite_tables.in
     JobErrors INTEGER UNSIGNED DEFAULT 0,
     JobMissingFiles INTEGER UNSIGNED DEFAULT 0,
     PoolId INTEGER UNSIGNED REFERENCES Pool DEFAULT 0,
-@@ -43,12 +46,51 @@
+@@ -43,12 +46,55 @@
     PriorJobId INTEGER UNSIGNED REFERENCES Job DEFAULT 0,
     PurgedFiles TINYINT DEFAULT 0,
     HasBase TINYINT DEFAULT 0,
@@ -340,6 +347,10 @@ Index: src/cats/update_sqlite_tables.in
  
  COMMIT;
  
++-- If you have already this table, you can remove it with:
++-- DROP TABLE JobHistory;
++
++-- Create a table like Job for long term statistics
 +CREATE TABLE JobHistory (
 +   JobId INTEGER,
 +   Job VARCHAR(128) NOT NULL,
@@ -371,9 +382,9 @@ Index: src/cats/update_sqlite_tables.in
  END-OF-DATA
 Index: src/cats/update_mysql_tables.in
 ===================================================================
---- src/cats/update_mysql_tables.in	(revision 8431)
-+++ src/cats/update_mysql_tables.in	(working copy)
-@@ -12,16 +12,44 @@
+--- src/cats/update_mysql_tables.in	(révision 8436)
++++ src/cats/update_mysql_tables.in	(copie de travail)
+@@ -12,16 +12,47 @@
  if $bindir/mysql $* -f <<END-OF-DATA
  USE ${db_name};
  
@@ -381,7 +392,8 @@ Index: src/cats/update_mysql_tables.in
 -CREATE TABLE JobHistory (LIKE Job);
 -
  -- Fix bad index on Media table
- DROP INDEX inx8;
+-DROP INDEX inx8;
++DROP INDEX inx8 ON Media;
  CREATE UNIQUE INDEX inx8 ON Media (VolumeName(128));
 +ALTER TABLE File CHANGE FileId FileId BIGINT UNSIGNED NOT NULL AUTO_INCREMENT;
 +ALTER TABLE BaseFiles CHANGE FileId FileId BIGINT UNSIGNED NOT NULL;
@@ -390,6 +402,9 @@ Index: src/cats/update_mysql_tables.in
  DELETE FROM Version;
  INSERT INTO Version (VersionId) VALUES (11);
  
++-- If you have already this table, you can remove it with:
++-- DROP TABLE JobHistory;
++
 +-- Create a table like Job for long term statistics
 +CREATE TABLE JobHistory (
 +   JobId INTEGER UNSIGNED NOT NULL,
@@ -423,8 +438,8 @@ Index: src/cats/update_mysql_tables.in
     echo "Update of Bacula MySQL tables succeeded."
 Index: src/cats/make_sqlite_tables.in
 ===================================================================
---- src/cats/make_sqlite_tables.in	(revision 8431)
-+++ src/cats/make_sqlite_tables.in	(working copy)
+--- src/cats/make_sqlite_tables.in	(révision 8436)
++++ src/cats/make_sqlite_tables.in	(copie de travail)
 @@ -64,6 +64,7 @@
     VolSessionTime INTEGER UNSIGNED DEFAULT 0,
     JobFiles INTEGER UNSIGNED DEFAULT 0,
@@ -470,8 +485,8 @@ Index: src/cats/make_sqlite_tables.in
  PRAGMA default_synchronous = OFF;
 Index: src/cats/sql_get.c
 ===================================================================
---- src/cats/sql_get.c	(revision 8431)
-+++ src/cats/sql_get.c	(working copy)
+--- src/cats/sql_get.c	(révision 8436)
++++ src/cats/sql_get.c	(copie de travail)
 @@ -297,13 +297,13 @@
        Mmsg(mdb->cmd, "SELECT VolSessionId,VolSessionTime,"
  "PoolId,StartTime,EndTime,JobFiles,JobBytes,JobTDate,Job,JobStatus,"
@@ -498,8 +513,8 @@ Index: src/cats/sql_get.c
     jr->EndTime = str_to_utime(jr->cEndTime);
 Index: src/cats/make_mysql_tables.in
 ===================================================================
---- src/cats/make_mysql_tables.in	(revision 8431)
-+++ src/cats/make_mysql_tables.in	(working copy)
+--- src/cats/make_mysql_tables.in	(révision 8436)
++++ src/cats/make_mysql_tables.in	(copie de travail)
 @@ -29,7 +29,7 @@
  
  
@@ -571,8 +586,8 @@ Index: src/cats/make_mysql_tables.in
  then
 Index: src/bc_types.h
 ===================================================================
---- src/bc_types.h	(revision 8431)
-+++ src/bc_types.h	(working copy)
+--- src/bc_types.h	(révision 8436)
++++ src/bc_types.h	(copie de travail)
 @@ -57,7 +57,7 @@
   * In principle, the only field that really should need to be
   *  64 bits is the FileId_t
