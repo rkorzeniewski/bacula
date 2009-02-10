@@ -547,7 +547,7 @@ Index: src/cats/make_mysql_tables.in
     JobErrors INTEGER UNSIGNED DEFAULT 0,
     JobMissingFiles INTEGER UNSIGNED DEFAULT 0,
     PoolId INTEGER UNSIGNED DEFAULT 0 REFERENCES Pool,
-@@ -116,7 +117,32 @@
+@@ -116,7 +117,33 @@
     );
  
  -- Create a table like Job for long term statistics 
@@ -576,12 +576,13 @@ Index: src/cats/make_mysql_tables.in
 +   FileSetId INTEGER UNSIGNED DEFAULT 0,
 +   PriorJobId INTEGER UNSIGNED DEFAULT 0,
 +   PurgedFiles TINYINT DEFAULT 0,
-+   HasBase TINYINT DEFAULT 0
++   HasBase TINYINT DEFAULT 0,
++   INDEX (StartTime)
 +   );
  
  CREATE TABLE Location (
     LocationId INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,
-@@ -269,7 +295,7 @@
+@@ -269,7 +296,7 @@
     BaseId INTEGER UNSIGNED AUTO_INCREMENT,
     BaseJobId INTEGER UNSIGNED NOT NULL REFERENCES Job,
     JobId INTEGER UNSIGNED NOT NULL REFERENCES Job,
@@ -590,7 +591,7 @@ Index: src/cats/make_mysql_tables.in
     FileIndex INTEGER UNSIGNED,
     PRIMARY KEY(BaseId)
     );
-@@ -333,7 +359,7 @@
+@@ -333,7 +360,7 @@
     );
  
  -- Initialize Version		 
