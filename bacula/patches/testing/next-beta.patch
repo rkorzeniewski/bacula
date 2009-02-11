@@ -1,7 +1,7 @@
 Index: src/dird/job.c
 ===================================================================
---- src/dird/job.c	(revision 8436)
-+++ src/dird/job.c	(working copy)
+--- src/dird/job.c	(révision 8436)
++++ src/dird/job.c	(copie de travail)
 @@ -860,6 +860,7 @@
     jcr->jr.JobStatus = jcr->JobStatus;
     jcr->jr.JobFiles = jcr->JobFiles;
@@ -12,8 +12,8 @@ Index: src/dird/job.c
     jcr->jr.JobErrors = jcr->Errors;
 Index: src/cats/sql_update.c
 ===================================================================
---- src/cats/sql_update.c	(revision 8436)
-+++ src/cats/sql_update.c	(working copy)
+--- src/cats/sql_update.c	(révision 8436)
++++ src/cats/sql_update.c	(copie de travail)
 @@ -161,7 +161,7 @@
     time_t ttime;
     struct tm tm;
@@ -38,8 +38,8 @@ Index: src/cats/sql_update.c
        rdt,
 Index: src/cats/update_postgresql_tables.in
 ===================================================================
---- src/cats/update_postgresql_tables.in	(revision 8436)
-+++ src/cats/update_postgresql_tables.in	(working copy)
+--- src/cats/update_postgresql_tables.in	(révision 8436)
++++ src/cats/update_postgresql_tables.in	(copie de travail)
 @@ -11,13 +11,24 @@
  
  if $bindir/psql -f - -d ${db_name} $* <<END-OF-DATA
@@ -70,8 +70,8 @@ Index: src/cats/update_postgresql_tables.in
     echo "Update of Bacula PostgreSQL tables succeeded."
 Index: src/cats/make_sqlite3_tables.in
 ===================================================================
---- src/cats/make_sqlite3_tables.in	(revision 8436)
-+++ src/cats/make_sqlite3_tables.in	(working copy)
+--- src/cats/make_sqlite3_tables.in	(révision 8436)
++++ src/cats/make_sqlite3_tables.in	(copie de travail)
 @@ -64,6 +64,7 @@
     VolSessionTime INTEGER UNSIGNED DEFAULT 0,
     JobFiles INTEGER UNSIGNED DEFAULT 0,
@@ -117,8 +117,8 @@ Index: src/cats/make_sqlite3_tables.in
  PRAGMA default_cache_size = 100000;
 Index: src/cats/cats.h
 ===================================================================
---- src/cats/cats.h	(revision 8436)
-+++ src/cats/cats.h	(working copy)
+--- src/cats/cats.h	(révision 8436)
++++ src/cats/cats.h	(copie de travail)
 @@ -88,7 +88,7 @@
  #if defined(BUILDING_CATS)
  #ifdef HAVE_SQLITE
@@ -174,8 +174,8 @@ Index: src/cats/cats.h
  
 Index: src/cats/update_sqlite3_tables.in
 ===================================================================
---- src/cats/update_sqlite3_tables.in	(revision 8436)
-+++ src/cats/update_sqlite3_tables.in	(working copy)
+--- src/cats/update_sqlite3_tables.in	(révision 8436)
++++ src/cats/update_sqlite3_tables.in	(copie de travail)
 @@ -15,10 +15,15 @@
  db_name=@db_name@
  
@@ -263,9 +263,23 @@ Index: src/cats/update_sqlite3_tables.in
  END-OF-DATA
 Index: src/cats/make_postgresql_tables.in
 ===================================================================
---- src/cats/make_postgresql_tables.in	(revision 8436)
-+++ src/cats/make_postgresql_tables.in	(working copy)
-@@ -29,7 +29,7 @@
+--- src/cats/make_postgresql_tables.in	(révision 8436)
++++ src/cats/make_postgresql_tables.in	(copie de travail)
+@@ -15,7 +15,7 @@
+ );
+ 
+ ALTER TABLE filename ALTER COLUMN name SET STATISTICS 1000;
+-CREATE INDEX filename_name_idx on filename (name);
++CREATE UNIQUE INDEX filename_name_idx on filename (name);
+ 
+ CREATE TABLE path
+ (
+@@ -25,11 +25,11 @@
+ );
+ 
+ ALTER TABLE path ALTER COLUMN path SET STATISTICS 1000;
+-CREATE INDEX path_name_idx on path (path);
++CREATE UNIQUE INDEX path_name_idx on path (path);
  
  CREATE TABLE file
  (
@@ -312,8 +326,8 @@ Index: src/cats/make_postgresql_tables.in
  
 Index: src/cats/update_sqlite_tables.in
 ===================================================================
---- src/cats/update_sqlite_tables.in	(revision 8436)
-+++ src/cats/update_sqlite_tables.in	(working copy)
+--- src/cats/update_sqlite_tables.in	(révision 8436)
++++ src/cats/update_sqlite_tables.in	(copie de travail)
 @@ -17,9 +17,11 @@
  ${bindir}/${sqlite} $* ${db_name}.db <<END-OF-DATA
  BEGIN TRANSACTION;
@@ -396,8 +410,8 @@ Index: src/cats/update_sqlite_tables.in
  END-OF-DATA
 Index: src/cats/update_mysql_tables.in
 ===================================================================
---- src/cats/update_mysql_tables.in	(revision 8436)
-+++ src/cats/update_mysql_tables.in	(working copy)
+--- src/cats/update_mysql_tables.in	(révision 8436)
++++ src/cats/update_mysql_tables.in	(copie de travail)
 @@ -12,16 +12,48 @@
  if $bindir/mysql $* -f <<END-OF-DATA
  USE ${db_name};
@@ -453,8 +467,8 @@ Index: src/cats/update_mysql_tables.in
     echo "Update of Bacula MySQL tables succeeded."
 Index: src/cats/make_sqlite_tables.in
 ===================================================================
---- src/cats/make_sqlite_tables.in	(revision 8436)
-+++ src/cats/make_sqlite_tables.in	(working copy)
+--- src/cats/make_sqlite_tables.in	(révision 8436)
++++ src/cats/make_sqlite_tables.in	(copie de travail)
 @@ -64,6 +64,7 @@
     VolSessionTime INTEGER UNSIGNED DEFAULT 0,
     JobFiles INTEGER UNSIGNED DEFAULT 0,
@@ -500,8 +514,8 @@ Index: src/cats/make_sqlite_tables.in
  PRAGMA default_synchronous = OFF;
 Index: src/cats/sql_get.c
 ===================================================================
---- src/cats/sql_get.c	(revision 8436)
-+++ src/cats/sql_get.c	(working copy)
+--- src/cats/sql_get.c	(révision 8436)
++++ src/cats/sql_get.c	(copie de travail)
 @@ -297,13 +297,13 @@
        Mmsg(mdb->cmd, "SELECT VolSessionId,VolSessionTime,"
  "PoolId,StartTime,EndTime,JobFiles,JobBytes,JobTDate,Job,JobStatus,"
@@ -528,8 +542,8 @@ Index: src/cats/sql_get.c
     jr->EndTime = str_to_utime(jr->cEndTime);
 Index: src/cats/make_mysql_tables.in
 ===================================================================
---- src/cats/make_mysql_tables.in	(revision 8436)
-+++ src/cats/make_mysql_tables.in	(working copy)
+--- src/cats/make_mysql_tables.in	(révision 8436)
++++ src/cats/make_mysql_tables.in	(copie de travail)
 @@ -29,7 +29,7 @@
  
  
@@ -602,8 +616,8 @@ Index: src/cats/make_mysql_tables.in
  then
 Index: src/bc_types.h
 ===================================================================
---- src/bc_types.h	(revision 8436)
-+++ src/bc_types.h	(working copy)
+--- src/bc_types.h	(révision 8436)
++++ src/bc_types.h	(copie de travail)
 @@ -57,7 +57,7 @@
   * In principle, the only field that really should need to be
   *  64 bits is the FileId_t
