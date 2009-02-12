@@ -1111,8 +1111,8 @@ Ext.onReady(function(){
                         defaults       : {width: 210},
                         bodyStyle      : 'padding:5px 5px 0',
                         items :[ usefilerelocation_bp, stripprefix_text, 
-                                 addsuffix_text, addprefix_text,
-                                 useregexp_bp, rwhere_text ]
+                                 addprefix_text, addsuffix_text, useregexp_bp,
+                                 rwhere_text ]
                     },{
                         xtype          : 'fieldset',
                         title          : 'Other options',
