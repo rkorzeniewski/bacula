@@ -1025,6 +1025,28 @@ Item  1:  enable persistent naming/number of SQL queries
         Alternatively, queries could be called by keyword (tag), rather
         than by number.
 
+Item 1: Implementation of running Job speed limit.
+Origin: Alex F, alexxzell at yahoo dot com
+Date: 29 January 2009
+
+What: I noticed the need for an integrated bandwidth limiter for
+      running jobs.  It would be very useful just to specify another
+      field in bacula-dir.conf, like speed = how much speed you wish
+      for that specific job to run at
+
+Why: Because of a couple of reasons.  First, it's very hard to implement a
+     traffic shaping utility and also make it reliable.  Second, it is very
+     uncomfortable to have to implement these apps to, let's say 50 clients
+     (including desktops, servers).  This would also be unreliable because you
+     have to make sure that the apps are properly working when needed; users
+     could also disable them (accidentally or not).  It would be very useful
+     to provide Bacula this ability.  All information would be centralized,
+     you would not have to go to 50 different clients in 10 different
+     locations for configuration; eliminating 3rd party additions help in
+     establishing efficiency.  Would also avoid bandwidth congestion,
+     especially where there is little available.
+
+
                                                                                                                                                                                               encrypted-file-related callback functions.
 
 
@@ -1326,4 +1348,3 @@ Item h10: Clustered file-daemons
           before voting on this project.
 
       Feature Request Form
-
