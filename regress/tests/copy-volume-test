@@ -168,22 +168,22 @@ stop_bacula
 
 get_mig_info 1 ${cwd}/tmp/log11.out
 
-if [ -z "$RET" -o "$RET" -eq 0 ]; then
+if [ -z "$RET" -o $RET -eq 0 ]; then
     bstat=2
     print_debug "The first job must have been copied"
 fi
 
 get_mig_info 2 ${cwd}/tmp/log11.out
 
-if [ -z "$RET" -o "$RET" -ne 0 ]; then
+if [ -z "$RET" -o $RET -ne 0 ]; then
     bstat=2
-    print_debug "The second job have no files, it can't have been copied"
+    print_debug "The second job has no files, it can't have been copied"
 fi
 
 JOBID=`awk -F= '/Job queued. JobId/ {if(!f){print $2; f=1;}}' ${cwd}/tmp/log4.out`
 get_mig_info $JOBID ${cwd}/tmp/log4.out
 
-if [ -z "$RET" -o "$RET" -eq 0 ]; then
+if [ -z "$RET" -o $RET -eq 0 ]; then
     bstat=2
     print_debug "The new incremental job must have been copied"
 fi
