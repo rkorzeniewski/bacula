@@ -1,0 +1,63 @@
+#!/bin/sh
+#
+# Test that reproduce bug 1227
+#
+TestName="bug-1227"
+JobName=backuptape
+. scripts/functions
+
+require_tape_drive
+
+scripts/copy-tape-confs
+scripts/cleanup-tape
+
+echo "${cwd}/build" >${cwd}/tmp/file-list
+
+change_jobname NightlySave $JobName
+start_test
+
+
+# Write out bconsole commands
+cat <<END_OF_DATA >${cwd}/tmp/bconcmds
+@output /dev/null
+messages
+@$out ${cwd}/tmp/log1.out
+label storage=DDS-4 volume=TestVolume001 slot=0 pool=Default
+messages
+END_OF_DATA
+
+run_bacula
+stop_bacula
+
+FILE=`awk  '/Archive Device = / { print $4 }' bin/bacula-sd.conf`
+cp /dev/null $FILE
+
+cat <<END_OF_DATA >${cwd}/tmp/bconcmds
+@$out ${cwd}/tmp/log1.out
+messages
+run job=$JobName yes
+@sleep 10
+messages
+label storage=DDS-4 volume=TestVolume002 slot=0 pool=Default
+messages
+@sleep 5
+mount storage=DDS-4 slot=0
+@sleep 2
+messages
+cancel jobid=1
+wait
+messages
+list volumes
+label storage=DDS-4 volume=TestVolume003 slot=0 pool=Default
+messages
+END_OF_DATA
+
+run_bacula
+stop_bacula
+
+bstat=1
+rstat=0
+dstat=0
+zstat=0
+
+end_test
