@@ -1,6 +1,24 @@
+Index: ReleaseNotes
+===================================================================
+--- ReleaseNotes	(révision 8456)
++++ ReleaseNotes	(copie de travail)
+@@ -17,10 +17,9 @@
+ 
+ This BETA release of Bacula uses a new catalog format. We provide a set of
+ script that permit to convert a 2.4.x (version 10) catalog to 2.5.x (version
+-11). If you are using already a 2.5 version, you need to drop the JobHistory
+-table before upgrading your catalog (if you are using the new "long term
+-statistics" module, you can upgrade this table like with the Job table, see
+-upgrade_<database>_table script).
++11). If you are using already a 2.5 version, you can drop the JobHistory
++table (if you are using the new "long term statistics" module, you can copy
++data from this table to the JobHisto, see upgrade_<database>_table script).
+ 
+ The upgrade operation will convert an essential field of the File table, and
+ this operation will take TIME and will DOUBLE THE SIZE of your
 Index: src/dird/job.c
 ===================================================================
---- src/dird/job.c	(révision 8436)
+--- src/dird/job.c	(révision 8456)
 +++ src/dird/job.c	(copie de travail)
 @@ -860,6 +860,7 @@
     jcr->jr.JobStatus = jcr->JobStatus;
@@ -10,10 +28,43 @@ Index: src/dird/job.c
     jcr->jr.VolSessionId = jcr->VolSessionId;
     jcr->jr.VolSessionTime = jcr->VolSessionTime;
     jcr->jr.JobErrors = jcr->Errors;
+Index: src/dird/ua_prune.c
+===================================================================
+--- src/dird/ua_prune.c	(révision 8456)
++++ src/dird/ua_prune.c	(copie de travail)
+@@ -194,12 +194,12 @@
+    utime_t now = (utime_t)time(NULL);
+ 
+    db_lock(ua->db);
+-   Mmsg(query, "DELETE FROM JobHistory WHERE JobTDate < %s", 
++   Mmsg(query, "DELETE FROM JobHisto WHERE JobTDate < %s", 
+         edit_int64(now - retention, ed1));
+    db_sql_query(ua->db, query.c_str(), NULL, NULL);
+    db_unlock(ua->db);
+ 
+-   ua->info_msg(_("Pruned Jobs from JobHistory catalog.\n"));
++   ua->info_msg(_("Pruned Jobs from JobHisto catalog.\n"));
+ 
+    return true;
+ }
 Index: src/cats/sql_update.c
 ===================================================================
---- src/cats/sql_update.c	(révision 8436)
+--- src/cats/sql_update.c	(révision 8456)
 +++ src/cats/sql_update.c	(copie de travail)
+@@ -137,11 +137,11 @@
+    edit_uint64(now - age, ed1);
+ 
+    Mmsg(mdb->cmd,
+-        "INSERT INTO JobHistory " 
++        "INSERT INTO JobHisto " 
+          "SELECT * " 
+           "FROM Job "
+          "WHERE JobStatus IN ('T', 'f', 'A', 'E') "
+-           "AND JobId NOT IN (SELECT JobId FROM JobHistory) "
++           "AND JobId NOT IN (SELECT JobId FROM JobHisto) "
+            "AND JobTDate < %s ", ed1);
+    QUERY_DB(jcr, mdb, mdb->cmd); /* TODO: get a message ? */
+    return sql_affected_rows(mdb);
 @@ -161,7 +161,7 @@
     time_t ttime;
     struct tm tm;
@@ -38,31 +89,31 @@ Index: src/cats/sql_update.c
        rdt,
 Index: src/cats/update_postgresql_tables.in
 ===================================================================
---- src/cats/update_postgresql_tables.in	(révision 8436)
+--- src/cats/update_postgresql_tables.in	(révision 8456)
 +++ src/cats/update_postgresql_tables.in	(copie de travail)
 @@ -11,13 +11,24 @@
  
  if $bindir/psql -f - -d ${db_name} $* <<END-OF-DATA
  
+--- Create a table like Job for long term statistics
+-CREATE TABLE JobHistory (LIKE Job);
 +-- The alter table operation can be faster with a big maintenance_work_mem
 +-- SET maintenance_work_mem = '1G';
-+
+ 
 +BEGIN;
 +ALTER TABLE file ALTER fileid TYPE bigint ;
 +ALTER TABLE basefiles ALTER fileid TYPE bigint;
 +ALTER TABLE job ADD COLUMN readbytes bigint default 0;
-+UPDATE Version SET VersionId=11;
+ UPDATE Version SET VersionId=11;
 +COMMIT;
-+
-+-- If you have already this table, you can remove it with:
-+-- DROP TABLE JobHistory;
-+
- -- Create a table like Job for long term statistics
- CREATE TABLE JobHistory (LIKE Job);
-+CREATE INDEX jobhistory_idx ON jobhistory ( starttime );
  
--UPDATE Version SET VersionId=11;
--
++-- If you have already this table, you can remove it with:
++-- DROP TABLE JobHisto;
++
++-- Create a table like Job for long term statistics
++CREATE TABLE JobHisto (LIKE Job);
++CREATE INDEX jobhistory_idx ON jobhistory ( starttime );
++
  -- vacuum analyse;
 -
  END-OF-DATA
@@ -70,7 +121,7 @@ Index: src/cats/update_postgresql_tables.in
     echo "Update of Bacula PostgreSQL tables succeeded."
 Index: src/cats/make_sqlite3_tables.in
 ===================================================================
---- src/cats/make_sqlite3_tables.in	(révision 8436)
+--- src/cats/make_sqlite3_tables.in	(révision 8456)
 +++ src/cats/make_sqlite3_tables.in	(copie de travail)
 @@ -64,6 +64,7 @@
     VolSessionTime INTEGER UNSIGNED DEFAULT 0,
@@ -80,7 +131,14 @@ Index: src/cats/make_sqlite3_tables.in
     JobErrors INTEGER UNSIGNED DEFAULT 0,
     JobMissingFiles INTEGER UNSIGNED DEFAULT 0,
     PoolId INTEGER UNSIGNED REFERENCES Pool DEFAULT 0,
-@@ -82,7 +83,7 @@
+@@ -76,13 +77,13 @@
+ CREATE INDEX inx6 ON Job (Name);
+ 
+ -- Create a table like Job for long term statistics 
+-CREATE TABLE JobHistory (
++CREATE TABLE JobHisto (
+    JobId INTEGER,
+    Job VARCHAR(128) NOT NULL,
     Name VARCHAR(128) NOT NULL,
     Type CHAR(1) NOT NULL,
     Level CHAR(1) NOT NULL,
@@ -89,7 +147,7 @@ Index: src/cats/make_sqlite3_tables.in
     JobStatus CHAR(1) NOT NULL,
     SchedTime DATETIME NOT NULL,
     StartTime DATETIME DEFAULT 0,
-@@ -95,12 +96,11 @@
+@@ -95,14 +96,13 @@
     JobBytes BIGINT UNSIGNED DEFAULT 0,
     JobErrors INTEGER UNSIGNED DEFAULT 0,
     JobMissingFiles INTEGER UNSIGNED DEFAULT 0,
@@ -104,8 +162,11 @@ Index: src/cats/make_sqlite3_tables.in
 -   PRIMARY KEY(JobId) 
 +   HasBase TINYINT DEFAULT 0
     );
- CREATE INDEX inx61 ON JobHistory (Name);
+-CREATE INDEX inx61 ON JobHistory (Name);
++CREATE INDEX inx61 ON JobHisto (Name);
  
+ CREATE TABLE Location (
+    LocationId INTEGER,
 @@ -383,7 +383,7 @@
  
  
@@ -117,7 +178,7 @@ Index: src/cats/make_sqlite3_tables.in
  PRAGMA default_cache_size = 100000;
 Index: src/cats/cats.h
 ===================================================================
---- src/cats/cats.h	(révision 8436)
+--- src/cats/cats.h	(révision 8456)
 +++ src/cats/cats.h	(copie de travail)
 @@ -88,7 +88,7 @@
  #if defined(BUILDING_CATS)
@@ -174,7 +235,7 @@ Index: src/cats/cats.h
  
 Index: src/cats/update_sqlite3_tables.in
 ===================================================================
---- src/cats/update_sqlite3_tables.in	(révision 8436)
+--- src/cats/update_sqlite3_tables.in	(révision 8456)
 +++ src/cats/update_sqlite3_tables.in	(copie de travail)
 @@ -15,10 +15,15 @@
  db_name=@db_name@
@@ -229,10 +290,10 @@ Index: src/cats/update_sqlite3_tables.in
  COMMIT;
  
 +-- If you have already this table, you can remove it with:
-+-- DROP TABLE JobHistory;
++-- DROP TABLE JobHisto;
 +
 +-- Create a table like Job for long term statistics
-+CREATE TABLE JobHistory (
++CREATE TABLE JobHisto (
 +   JobId INTEGER,
 +   Job VARCHAR(128) NOT NULL,
 +   Name VARCHAR(128) NOT NULL,
@@ -258,12 +319,12 @@ Index: src/cats/update_sqlite3_tables.in
 +   PurgedFiles TINYINT DEFAULT 0,
 +   HasBase TINYINT DEFAULT 0
 +   );
-+CREATE INDEX inx61 ON JobHistory (Name);
++CREATE INDEX inx61 ON JobHisto (Name);
 +
  END-OF-DATA
 Index: src/cats/make_postgresql_tables.in
 ===================================================================
---- src/cats/make_postgresql_tables.in	(révision 8436)
+--- src/cats/make_postgresql_tables.in	(révision 8456)
 +++ src/cats/make_postgresql_tables.in	(copie de travail)
 @@ -15,7 +15,7 @@
  );
@@ -296,10 +357,12 @@ Index: src/cats/make_postgresql_tables.in
      joberrors	      integer	  default 0,
      jobmissingfiles   integer	  default 0,
      poolid	      integer	  default 0,
-@@ -88,7 +89,9 @@
+@@ -87,8 +88,10 @@
+ CREATE INDEX job_name_idx on job (name);
  
  -- Create a table like Job for long term statistics 
- CREATE TABLE JobHistory (LIKE Job);
+-CREATE TABLE JobHistory (LIKE Job);
++CREATE TABLE JobHisto (LIKE Job);
 +CREATE INDEX jobhistory_idx ON jobhistory ( starttime );
  
 +
@@ -326,7 +389,7 @@ Index: src/cats/make_postgresql_tables.in
  
 Index: src/cats/update_sqlite_tables.in
 ===================================================================
---- src/cats/update_sqlite_tables.in	(révision 8436)
+--- src/cats/update_sqlite_tables.in	(révision 8456)
 +++ src/cats/update_sqlite_tables.in	(copie de travail)
 @@ -17,9 +17,11 @@
  ${bindir}/${sqlite} $* ${db_name}.db <<END-OF-DATA
@@ -376,10 +439,10 @@ Index: src/cats/update_sqlite_tables.in
  COMMIT;
  
 +-- If you have already this table, you can remove it with:
-+-- DROP TABLE JobHistory;
++-- DROP TABLE JobHisto;
 +
 +-- Create a table like Job for long term statistics
-+CREATE TABLE JobHistory (
++CREATE TABLE JobHisto (
 +   JobId INTEGER,
 +   Job VARCHAR(128) NOT NULL,
 +   Name VARCHAR(128) NOT NULL,
@@ -405,12 +468,12 @@ Index: src/cats/update_sqlite_tables.in
 +   PurgedFiles TINYINT DEFAULT 0,
 +   HasBase TINYINT DEFAULT 0
 +   );
-+CREATE INDEX inx61 ON JobHistory (Name);
++CREATE INDEX inx61 ON JobHisto (Name);
 +
  END-OF-DATA
 Index: src/cats/update_mysql_tables.in
 ===================================================================
---- src/cats/update_mysql_tables.in	(révision 8436)
+--- src/cats/update_mysql_tables.in	(révision 8456)
 +++ src/cats/update_mysql_tables.in	(copie de travail)
 @@ -12,16 +12,48 @@
  if $bindir/mysql $* -f <<END-OF-DATA
@@ -431,10 +494,10 @@ Index: src/cats/update_mysql_tables.in
  INSERT INTO Version (VersionId) VALUES (11);
  
 +-- If you have already this table, you can remove it with:
-+-- DROP TABLE JobHistory;
++-- DROP TABLE JobHisto;
 +
 +-- Create a table like Job for long term statistics
-+CREATE TABLE JobHistory (
++CREATE TABLE JobHisto (
 +   JobId INTEGER UNSIGNED NOT NULL,
 +   Job TINYBLOB NOT NULL,
 +   Name TINYBLOB NOT NULL,
@@ -467,7 +530,7 @@ Index: src/cats/update_mysql_tables.in
     echo "Update of Bacula MySQL tables succeeded."
 Index: src/cats/make_sqlite_tables.in
 ===================================================================
---- src/cats/make_sqlite_tables.in	(révision 8436)
+--- src/cats/make_sqlite_tables.in	(révision 8456)
 +++ src/cats/make_sqlite_tables.in	(copie de travail)
 @@ -64,6 +64,7 @@
     VolSessionTime INTEGER UNSIGNED DEFAULT 0,
@@ -477,7 +540,14 @@ Index: src/cats/make_sqlite_tables.in
     JobErrors INTEGER UNSIGNED DEFAULT 0,
     JobMissingFiles INTEGER UNSIGNED DEFAULT 0,
     PoolId INTEGER UNSIGNED REFERENCES Pool DEFAULT 0,
-@@ -82,7 +83,7 @@
+@@ -76,13 +77,13 @@
+ CREATE INDEX inx6 ON Job (Name);
+ 
+ -- Create a table like Job for long term statistics 
+-CREATE TABLE JobHistory (
++CREATE TABLE JobHisto (
+    JobId INTEGER,
+    Job VARCHAR(128) NOT NULL,
     Name VARCHAR(128) NOT NULL,
     Type CHAR(1) NOT NULL,
     Level CHAR(1) NOT NULL,
@@ -486,7 +556,7 @@ Index: src/cats/make_sqlite_tables.in
     JobStatus CHAR(1) NOT NULL,
     SchedTime DATETIME NOT NULL,
     StartTime DATETIME DEFAULT 0,
-@@ -95,12 +96,11 @@
+@@ -95,14 +96,13 @@
     JobBytes BIGINT UNSIGNED DEFAULT 0,
     JobErrors INTEGER UNSIGNED DEFAULT 0,
     JobMissingFiles INTEGER UNSIGNED DEFAULT 0,
@@ -501,8 +571,11 @@ Index: src/cats/make_sqlite_tables.in
 -   PRIMARY KEY(JobId) 
 +   HasBase TINYINT DEFAULT 0
     );
- CREATE INDEX inx61 ON JobHistory (Name);
+-CREATE INDEX inx61 ON JobHistory (Name);
++CREATE INDEX inx61 ON JobHisto (Name);
  
+ CREATE TABLE Location (
+    LocationId INTEGER,
 @@ -383,7 +383,7 @@
  
  
@@ -514,7 +587,7 @@ Index: src/cats/make_sqlite_tables.in
  PRAGMA default_synchronous = OFF;
 Index: src/cats/sql_get.c
 ===================================================================
---- src/cats/sql_get.c	(révision 8436)
+--- src/cats/sql_get.c	(révision 8456)
 +++ src/cats/sql_get.c	(copie de travail)
 @@ -297,13 +297,13 @@
        Mmsg(mdb->cmd, "SELECT VolSessionId,VolSessionTime,"
@@ -540,9 +613,22 @@ Index: src/cats/sql_get.c
     jr->StartTime = str_to_utime(jr->cStartTime);
     jr->SchedTime = str_to_utime(jr->cSchedTime);
     jr->EndTime = str_to_utime(jr->cEndTime);
+Index: src/cats/drop_mysql_tables.in
+===================================================================
+--- src/cats/drop_mysql_tables.in	(révision 8456)
++++ src/cats/drop_mysql_tables.in	(copie de travail)
+@@ -16,7 +16,7 @@
+ DROP TABLE IF EXISTS File;
+ DROP TABLE IF EXISTS Client;
+ DROP TABLE IF EXISTS Job;
+-DROP TABLE IF EXISTS JobHistory;
++DROP TABLE IF EXISTS JobHisto;
+ DROP TABLE IF EXISTS Media;
+ DROP TABLE IF EXISTS JobMedia;
+ DROP TABLE IF EXISTS Pool;
 Index: src/cats/make_mysql_tables.in
 ===================================================================
---- src/cats/make_mysql_tables.in	(révision 8436)
+--- src/cats/make_mysql_tables.in	(révision 8456)
 +++ src/cats/make_mysql_tables.in	(copie de travail)
 @@ -29,7 +29,7 @@
  
@@ -566,7 +652,7 @@ Index: src/cats/make_mysql_tables.in
  
  -- Create a table like Job for long term statistics 
 -CREATE TABLE JobHistory (LIKE Job);
-+CREATE TABLE JobHistory (
++CREATE TABLE JobHisto (
 +   JobId INTEGER UNSIGNED NOT NULL,
 +   Job TINYBLOB NOT NULL,
 +   Name TINYBLOB NOT NULL,
@@ -616,7 +702,7 @@ Index: src/cats/make_mysql_tables.in
  then
 Index: src/bc_types.h
 ===================================================================
---- src/bc_types.h	(révision 8436)
+--- src/bc_types.h	(révision 8456)
 +++ src/bc_types.h	(copie de travail)
 @@ -57,7 +57,7 @@
   * In principle, the only field that really should need to be
