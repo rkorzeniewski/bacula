@@ -2,7 +2,7 @@ Idees
 ------
 
 Addr
- - Use VolAddr in jobmedia
+ x Use VolAddr in jobmedia
 
 Despool attributes later
  - use spool_attribute parameter (0,1,2)
@@ -157,7 +157,7 @@ bweb :
   x Voir les groupes d'un client
   - Overview, pouvoir choisir entre la job_old et l'autre
   - utiliser des noms de table plus proche (brestore -> bweb ?)
-  - Balloon
+  x Balloon
 Btw., the vertical axis was the number of files 
 while the size of the ballon is the volume (in MB 
 or GB).  Those could be switched, though, depending on what looks better.
