@@ -271,7 +271,15 @@ void db_list_copies_records(JCR *jcr, B_DB *mdb, uint32_t limit, char *JobIds,
       goto bail_out;
    }
 
-   list_result(jcr, mdb, sendit, ctx, type);
+   if (mdb->result && sql_num_rows(mdb)) {
+      if (JobIds && JobIds[0]) {
+         sendit(ctx, _("These JobIds have copies as follows:\n"));
+      } else {
+         sendit(ctx, _("The catalog contains copies as follows:\n"));
+      }
+
+      list_result(jcr, mdb, sendit, ctx, type);
+   }
 
    sql_free_result(mdb);
 
