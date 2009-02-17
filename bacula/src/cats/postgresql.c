@@ -170,7 +170,7 @@ db_open_database(JCR *jcr, B_DB *mdb)
    int errstat;
    char buf[10], *port;
 
-#ifdef xxx
+#ifdef xxx                      /* require libpq >= 8.2 */
    if (!PQisthreadsafe()) {
       Jmsg(jcr, M_ABORT, 0, _("PostgreSQL configuration problem. "          
            "PostgreSQL library is not thread safe. Cannot continue.\n"));
