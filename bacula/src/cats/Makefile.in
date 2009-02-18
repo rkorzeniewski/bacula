@@ -67,12 +67,12 @@ Makefile: $(srcdir)/Makefile.in $(topdir)/config.status
 	  && CONFIG_FILES=$(thisdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
 
 libtool-clean:
-	find . -name '*.lo' -print | xargs $(LIBTOOL_CLEAN) $(RMF)
-	$(RMF) *.la
-	$(RMF) -r .libs _libs
+	@find . -name '*.lo' -print | xargs $(LIBTOOL_CLEAN) $(RMF)
+	@$(RMF) *.la
+	@$(RMF) -r .libs _libs
 
-clean: @LIBTOOL_CLEAN_TARGET@
-	$(RMF) core a.out *.o *.bak *~ *.intpro *.extpro 1 2 3
+clean:	libtool-clean
+	@$(RMF) core a.out *.o *.bak *~ *.intpro *.extpro 1 2 3
 
 realclean: clean
 	$(RMF) tags

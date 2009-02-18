@@ -91,7 +91,7 @@ libtool-clean:
 	@$(RMF) *.la
 	@$(RMF) -r .libs _libs
 
-clean: @LIBTOOL_CLEAN_TARGET@
+clean:	libtool-clean
 	@$(RMF) find core a.out *.o *.bak *~ *.intpro *.extpro 1 2 3
 
 realclean: clean

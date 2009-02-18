@@ -54,15 +54,15 @@ install: all
 	$(RMF) $(DESTDIR)$(plugindir)/bpipe-fd.la
 
 libtool-clean:
-	find . -name '*.lo' -print | xargs $(LIBTOOL_CLEAN) $(RMF)
-	$(RMF) *.la
-	$(RMF) -r .libs _libs
+	@find . -name '*.lo' -print | xargs $(LIBTOOL_CLEAN) $(RMF)
+	@$(RMF) *.la
+	@$(RMF) -r .libs _libs
 
-clean: @LIBTOOL_CLEAN_TARGET@
-	rm -f main *.so *.o 1 2 3
+clean:	libtool-clean
+	@rm -f main *.so *.o 1 2 3
 
 distclean: clean
-	rm -f Makefile
+	@rm -f Makefile
 
 uninstall:
 	$(RMF) $(DESTDIR)$(plugindir)/bpipe-fd.so

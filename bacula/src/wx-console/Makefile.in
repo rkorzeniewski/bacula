@@ -92,9 +92,9 @@ bwx-console_private.res: bwx-console_private.rc
 	windres.exe -i bwx-console_private.rc -I rc -o bwx-console_private.res -O coff 
 
 libtool-clean:
-	$(RMF) -r .libs _libs
+	@$(RMF) -r .libs _libs
 
-clean: @LIBTOOL_CLEAN_TARGET@
+clean:	libtool-clean
 	@$(RMF) $(CONSOBJS) bwx-console $(WIN32RES)
 
 distclean: clean
