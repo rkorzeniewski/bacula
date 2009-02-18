@@ -210,7 +210,7 @@ Index: src/cats/make_sqlite3_tables.in
 +   HasBase TINYINT DEFAULT 0
     );
 -CREATE INDEX inx61 ON JobHistory (Name);
-+CREATE INDEX inx61 ON JobHisto (Name);
++CREATE INDEX inx61 ON JobHisto (StartTime);
  
  CREATE TABLE Location (
     LocationId INTEGER,
@@ -507,7 +507,7 @@ Index: src/cats/update_sqlite3_tables.in
 +   PurgedFiles TINYINT DEFAULT 0,
 +   HasBase TINYINT DEFAULT 0
 +   );
-+CREATE INDEX inx61 ON JobHisto (Name);
++CREATE INDEX inx61 ON JobHisto (StartTime);
 +
  END-OF-DATA
 Index: src/cats/make_postgresql_tables.in
@@ -799,7 +799,7 @@ Index: src/cats/update_sqlite_tables.in
 +   PurgedFiles TINYINT DEFAULT 0,
 +   HasBase TINYINT DEFAULT 0
 +   );
-+CREATE INDEX inx61 ON JobHisto (Name);
++CREATE INDEX inx61 ON JobHisto (StartTime);
 +
  END-OF-DATA
 Index: src/cats/update_mysql_tables.in
@@ -908,7 +908,7 @@ Index: src/cats/make_sqlite_tables.in
 +   HasBase TINYINT DEFAULT 0
     );
 -CREATE INDEX inx61 ON JobHistory (Name);
-+CREATE INDEX inx61 ON JobHisto (Name);
++CREATE INDEX inx61 ON JobHisto (StartTime);
  
  CREATE TABLE Location (
     LocationId INTEGER,
