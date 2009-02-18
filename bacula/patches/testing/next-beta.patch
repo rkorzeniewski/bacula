@@ -1,3 +1,48 @@
+Index: ReleaseNotes
+===================================================================
+--- ReleaseNotes	(revision 8456)
++++ ReleaseNotes	(working copy)
+@@ -6,8 +6,7 @@
+ This Director and Storage daemon must be upgraded at the same time,
+ but they should be compatible with all 2.4.x File daemons, unless you
+ use some of the new features that affect the FD.  In other words, you should
+-not have to upgrade all your File daemons when you upgrade. There is
+-no database upgrade needed from version 2.4.x.  However, the next
++not have to upgrade all your File daemons when you upgrade. However, the next
+ BETA release will require a database upgrade.
+ 
+ ================== Warning !!!!!! ==========================
+@@ -15,19 +14,18 @@
+ New Catalog format :
+ --------------------
+ 
+-This BETA release of Bacula uses a new catalog format. We provide a set of
+-script that permit to convert a 2.4.x (version 10) catalog to 2.5.x (version
+-11). If you are using already a 2.5 version, you need to drop the JobHistory
+-table before upgrading your catalog (if you are using the new "long term
+-statistics" module, you can upgrade this table like with the Job table, see
+-upgrade_<database>_table script).
++This BETA release of Bacula uses a new catalog version. We provide a set of
++scripts that permit to convert a 2.4.x (version 10) catalog to 2.5.x (version
++11). If you are already using a 2.5 version with the new "long term statistics"
++module, you can copy data from the JobHistory to the new JobHisto table, see
++upgrade_<database>_table script.
+ 
+-The upgrade operation will convert an essential field of the File table, and
+-this operation will take TIME and will DOUBLE THE SIZE of your
+-catalog temporarily. Depending on your catalog backend, you won't be able to run jobs
+-during this period. For example, a 3 million files catalog will take 2mins to
+-upgrade on a normal machine. Don't forget to backup it before executing the
+-script.
++The upgrade operation will convert the FileId index field of the File table
++from 32 bits to 64 bits.. This operation will take TIME and will *temporarily*
++DOUBLE THE SIZE of your catalog. Bacula must be shutdown during this update,
++so, you won't be able to run jobs during this period. For example, a 3 million
++files catalog will take 2mins to upgrade on a normal machine. Don't forget to
++BACKUP IT before executing the script.
+ 
+ 
+ New configure option :
 Index: src/dird/job.c
 ===================================================================
 --- src/dird/job.c	(revision 8456)
