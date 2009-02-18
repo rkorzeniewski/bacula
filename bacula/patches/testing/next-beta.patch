@@ -936,7 +936,7 @@ Index: src/cats/sql_cmds.c
 +           "SchedTime, StartTime, EndTime, RealEndTime, JobTDate, "
 +           "VolSessionId, VolSessionTime, JobFiles, JobBytes, ReadBytes, "
 +           "JobErrors, JobMissingFiles, PoolId, FileSetId, PriorJobId, "
-+           "PurgedFiles, HasBase ) VALUES "
++           "PurgedFiles, HasBase ) "
 +        "SELECT " 
 +           "JobId, Job, Name, Type, Level, ClientId, JobStatus, "
 +           "SchedTime, StartTime, EndTime, RealEndTime, JobTDate, "
