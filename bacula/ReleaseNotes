@@ -1,13 +1,13 @@
 
-       Release Notes for Bacula 2.5.28
+       Release Notes for Bacula 2.5.40
 
-  Bacula code: Total files = 522 Total lines = 203,305 (*.h *.c *.in)
+  Bacula code: Total files = 522 Total lines = 204,340 (*.h *.c *.in)
 
 This Director and Storage daemon must be upgraded at the same time,
 but they should be compatible with all 2.4.x File daemons, unless you
 use some of the new features that affect the FD.  In other words, you should
 not have to upgrade all your File daemons when you upgrade. However, the next
-BETA release will require a database upgrade.
+BETA release (after version 2.5.40) will require a database upgrade.
 
 ================== Warning !!!!!! ==========================
 
@@ -59,4 +59,3 @@ some but not all the new features (we are still working on it):
 http://www.bacula.org/manuals/en/concepts/concepts/New_Features.html
   
 The ChangeLog has more details.
-
