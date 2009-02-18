@@ -206,7 +206,7 @@ libtool-clean:
 	@$(RMF) *.la
 	@$(RMF) -r .libs _libs
 
-clean: @LIBTOOL_CLEAN_TARGET@
+clean:	libtool-clean
 	@$(RMF) core a.out *.o *.bak *.tex *.pdf *~ *.intpro *.extpro 1 2 3
 	@$(RMF) rwlock_test md5sum sha1sum
 

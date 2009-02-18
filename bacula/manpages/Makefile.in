@@ -40,7 +40,7 @@ uninstall:
 	done
 
 clean:
-	$(RMF) *~ 1 2 3 *.bak
+	@$(RMF) *~ 1 2 3 *.bak
 	@find . -name .#* -exec $(RMF) {} \;
 
 depend:      

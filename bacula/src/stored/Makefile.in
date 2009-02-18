@@ -180,9 +180,9 @@ uninstall:
 	(cd $(DESTDIR)$(sysconfdir); $(RMF) bacula-sd.conf bacula-sd.conf.new)
 
 libtool-clean:
-	$(RMF) -r .libs _libs
+	@$(RMF) -r .libs _libs
 
-clean: @LIBTOOL_CLEAN_TARGET@
+clean:	libtool-clean
 	@$(RMF) bacula-sd stored bls bextract bpool btape shmfree core core.* a.out *.o *.bak *~ *.intpro *.extpro 1 2 3
 	@$(RMF) bscan bcopy static-bacula-sd
 

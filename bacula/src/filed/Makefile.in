@@ -100,9 +100,9 @@ Makefile: $(srcdir)/Makefile.in $(topdir)/config.status
 	  && CONFIG_FILES=$(thisdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
 
 libtool-clean:
-	$(RMF) -r .libs _libs
+	@$(RMF) -r .libs _libs
 
-clean: @LIBTOOL_CLEAN_TARGET@
+clean:	libtool-clean
 	@$(RMF) bacula-fd filed core core.* a.out *.o *.bak *~ *.intpro *.extpro 1 2 3
 	@$(RMF) static-bacula-fd
 	@if test -f win32/Makefile -a "${GMAKE}" != "none"; then \
