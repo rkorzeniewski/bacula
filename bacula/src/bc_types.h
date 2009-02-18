@@ -57,7 +57,7 @@
  * In principle, the only field that really should need to be
  *  64 bits is the FileId_t
  */
-typedef uint32_t FileId_t;
+typedef uint64_t FileId_t;
 typedef uint32_t DBId_t;              /* general DB id type */
 typedef uint32_t JobId_t;
 

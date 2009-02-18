@@ -88,7 +88,7 @@ typedef int (DB_RESULT_HANDLER)(void *, int, char **);
 #if defined(BUILDING_CATS)
 #ifdef HAVE_SQLITE
 
-#define BDB_VERSION 10
+#define BDB_VERSION 11
 
 #include <sqlite.h>
 
@@ -208,7 +208,7 @@ extern const char* my_sqlite_batch_fill_path_query;
 #ifdef HAVE_SQLITE3
 
 
-#define BDB_VERSION 10
+#define BDB_VERSION 11
 
 #include <sqlite3.h>
 
@@ -334,7 +334,7 @@ extern const char* my_sqlite_batch_fill_path_query;
 
 #ifdef HAVE_MYSQL
 
-#define BDB_VERSION 10
+#define BDB_VERSION 11
 
 #include <mysql.h>
 
@@ -417,7 +417,7 @@ extern void  my_mysql_free_result(B_DB *mdb);
 
 #ifdef HAVE_POSTGRESQL
 
-#define BDB_VERSION 10
+#define BDB_VERSION 11
 
 #include <libpq-fe.h>
 
@@ -531,7 +531,7 @@ extern const char* my_pg_batch_fill_path_query;
 
 #ifdef HAVE_DBI
 
-#define BDB_VERSION 10
+#define BDB_VERSION 11
 
 #include <dbi/dbi.h>
 
@@ -790,6 +790,7 @@ struct JOB_DBR {
    uint32_t JobErrors;
    uint32_t JobMissingFiles;
    uint64_t JobBytes;
+   uint64_t ReadBytes;
    int PurgedFiles;
    int HasBase;
 
