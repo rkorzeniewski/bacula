@@ -1,21 +1,3 @@
-Index: ReleaseNotes
-===================================================================
---- ReleaseNotes	(revision 8456)
-+++ ReleaseNotes	(working copy)
-@@ -17,10 +17,9 @@
- 
- This BETA release of Bacula uses a new catalog format. We provide a set of
- script that permit to convert a 2.4.x (version 10) catalog to 2.5.x (version
--11). If you are using already a 2.5 version, you need to drop the JobHistory
--table before upgrading your catalog (if you are using the new "long term
--statistics" module, you can upgrade this table like with the Job table, see
--upgrade_<database>_table script).
-+11). If you are using already a 2.5 version, you can drop the JobHistory
-+table (if you are using the new "long term statistics" module, you can copy
-+data from this table to the JobHisto, see upgrade_<database>_table script).
- 
- The upgrade operation will convert an essential field of the File table, and
- this operation will take TIME and will DOUBLE THE SIZE of your
 Index: src/dird/job.c
 ===================================================================
 --- src/dird/job.c	(revision 8456)
@@ -51,21 +33,22 @@ Index: src/cats/sql_update.c
 ===================================================================
 --- src/cats/sql_update.c	(revision 8456)
 +++ src/cats/sql_update.c	(working copy)
-@@ -137,11 +137,11 @@
+@@ -136,13 +136,7 @@
+    utime_t now = (utime_t)time(NULL);
     edit_uint64(now - age, ed1);
  
-    Mmsg(mdb->cmd,
+-   Mmsg(mdb->cmd,
 -        "INSERT INTO JobHistory " 
-+        "INSERT INTO JobHisto " 
-          "SELECT * " 
-           "FROM Job "
-          "WHERE JobStatus IN ('T', 'f', 'A', 'E') "
+-         "SELECT * " 
+-          "FROM Job "
+-         "WHERE JobStatus IN ('T', 'f', 'A', 'E') "
 -           "AND JobId NOT IN (SELECT JobId FROM JobHistory) "
-+           "AND JobId NOT IN (SELECT JobId FROM JobHisto) "
-            "AND JobTDate < %s ", ed1);
+-           "AND JobTDate < %s ", ed1);
++   Mmsg(mdb->cmd, fill_jobhisto, ed1);
     QUERY_DB(jcr, mdb, mdb->cmd); /* TODO: get a message ? */
     return sql_affected_rows(mdb);
-@@ -161,7 +161,7 @@
+ }
+@@ -161,7 +155,7 @@
     time_t ttime;
     struct tm tm;
     int stat;
@@ -74,7 +57,7 @@ Index: src/cats/sql_update.c
     btime_t JobTDate;
     char PriorJobId[50];
  
-@@ -187,10 +187,11 @@
+@@ -187,10 +181,11 @@
     db_lock(mdb);
     Mmsg(mdb->cmd,
        "UPDATE Job SET JobStatus='%c',EndTime='%s',"
@@ -87,6 +70,19 @@ Index: src/cats/sql_update.c
        jr->JobFiles, jr->JobErrors, jr->VolSessionId, jr->VolSessionTime,
        jr->PoolId, jr->FileSetId, edit_uint64(JobTDate, ed2), 
        rdt,
+Index: src/cats/drop_postgresql_tables.in
+===================================================================
+--- src/cats/drop_postgresql_tables.in	(revision 8456)
++++ src/cats/drop_postgresql_tables.in	(working copy)
+@@ -11,7 +11,7 @@
+ drop table jobmedia;
+ drop table file;
+ drop table job;
+-drop table jobhistory;
++drop table jobhisto;
+ drop table media;
+ drop table client;
+ drop table pool;
 Index: src/cats/update_postgresql_tables.in
 ===================================================================
 --- src/cats/update_postgresql_tables.in	(revision 8456)
@@ -150,8 +146,11 @@ Index: src/cats/make_sqlite3_tables.in
     JobStatus CHAR(1) NOT NULL,
     SchedTime DATETIME NOT NULL,
     StartTime DATETIME DEFAULT 0,
-@@ -95,14 +96,13 @@
+@@ -93,16 +94,16 @@
+    VolSessionTime INTEGER UNSIGNED DEFAULT 0,
+    JobFiles INTEGER UNSIGNED DEFAULT 0,
     JobBytes BIGINT UNSIGNED DEFAULT 0,
++   ReadBytes BIGINT UNSIGNED DEFAULT 0,
     JobErrors INTEGER UNSIGNED DEFAULT 0,
     JobMissingFiles INTEGER UNSIGNED DEFAULT 0,
 -   PoolId INTEGER UNSIGNED REFERENCES Pool DEFAULT 0,
@@ -170,7 +169,7 @@ Index: src/cats/make_sqlite3_tables.in
  
  CREATE TABLE Location (
     LocationId INTEGER,
-@@ -183,6 +183,7 @@
+@@ -183,6 +184,7 @@
     VolStatus VARCHAR(20) NOT NULL,
     Enabled TINYINT DEFAULT 1,
     Recycle TINYINT DEFAULT 0,
@@ -178,7 +177,7 @@ Index: src/cats/make_sqlite3_tables.in
     VolRetention BIGINT UNSIGNED DEFAULT 0,
     VolUseDuration BIGINT UNSIGNED DEFAULT 0,
     MaxVolJobs INTEGER UNSIGNED DEFAULT 0,
-@@ -256,6 +257,7 @@
+@@ -256,6 +258,7 @@
     MaxVolBytes BIGINT UNSIGNED DEFAULT 0,
     AutoPrune TINYINT DEFAULT 0,
     Recycle TINYINT DEFAULT 0,
@@ -186,7 +185,7 @@ Index: src/cats/make_sqlite3_tables.in
     PoolType VARCHAR(20) NOT NULL,
     LabelType TINYINT DEFAULT 0,
     LabelFormat VARCHAR(128) NOT NULL,
-@@ -383,7 +385,7 @@
+@@ -383,7 +386,7 @@
  
  
  -- Initialize Version		 
@@ -507,7 +506,7 @@ Index: src/cats/make_postgresql_tables.in
  -- Create a table like Job for long term statistics 
 -CREATE TABLE JobHistory (LIKE Job);
 +CREATE TABLE JobHisto (LIKE Job);
-+CREATE INDEX jobhistory_idx ON jobhistory ( starttime );
++CREATE INDEX jobhisto_idx ON jobhisto ( starttime );
  
 +
  CREATE TABLE Location (
@@ -845,8 +844,11 @@ Index: src/cats/make_sqlite_tables.in
     JobStatus CHAR(1) NOT NULL,
     SchedTime DATETIME NOT NULL,
     StartTime DATETIME DEFAULT 0,
-@@ -95,14 +96,13 @@
+@@ -93,16 +94,16 @@
+    VolSessionTime INTEGER UNSIGNED DEFAULT 0,
+    JobFiles INTEGER UNSIGNED DEFAULT 0,
     JobBytes BIGINT UNSIGNED DEFAULT 0,
++   ReadBytes BIGINT UNSIGNED DEFAULT 0,
     JobErrors INTEGER UNSIGNED DEFAULT 0,
     JobMissingFiles INTEGER UNSIGNED DEFAULT 0,
 -   PoolId INTEGER UNSIGNED REFERENCES Pool DEFAULT 0,
@@ -865,7 +867,7 @@ Index: src/cats/make_sqlite_tables.in
  
  CREATE TABLE Location (
     LocationId INTEGER,
-@@ -183,6 +183,7 @@
+@@ -183,6 +184,7 @@
     VolStatus VARCHAR(20) NOT NULL,
     Enabled TINYINT DEFAULT 1,
     Recycle TINYINT DEFAULT 0,
@@ -873,7 +875,7 @@ Index: src/cats/make_sqlite_tables.in
     VolRetention BIGINT UNSIGNED DEFAULT 0,
     VolUseDuration BIGINT UNSIGNED DEFAULT 0,
     MaxVolJobs INTEGER UNSIGNED DEFAULT 0,
-@@ -256,6 +257,7 @@
+@@ -256,6 +258,7 @@
     MaxVolBytes BIGINT UNSIGNED DEFAULT 0,
     AutoPrune TINYINT DEFAULT 0,
     Recycle TINYINT DEFAULT 0,
@@ -881,7 +883,7 @@ Index: src/cats/make_sqlite_tables.in
     PoolType VARCHAR(20) NOT NULL,
     LabelType TINYINT DEFAULT 0,
     LabelFormat VARCHAR(128) NOT NULL,
-@@ -383,7 +385,7 @@
+@@ -383,7 +386,7 @@
  
  
  -- Initialize Version		 
@@ -918,6 +920,37 @@ Index: src/cats/sql_get.c
     jr->StartTime = str_to_utime(jr->cStartTime);
     jr->SchedTime = str_to_utime(jr->cSchedTime);
     jr->EndTime = str_to_utime(jr->cEndTime);
+Index: src/cats/sql_cmds.c
+===================================================================
+--- src/cats/sql_cmds.c	(revision 8456)
++++ src/cats/sql_cmds.c	(working copy)
+@@ -44,6 +44,26 @@
+ #include "bacula.h"
+ #include "cats.h"
+ 
++
++/* For sql_update.c db_update_stats */
++const char *fill_jobhisto =
++        "INSERT INTO JobHisto (" 
++           "JobId, Job, Name, Type, Level, ClientId, JobStatus, "
++           "SchedTime, StartTime, EndTime, RealEndTime, JobTDate, "
++           "VolSessionId, VolSessionTime, JobFiles, JobBytes, ReadBytes, "
++           "JobErrors, JobMissingFiles, PoolId, FileSetId, PriorJobId, "
++           "PurgedFiles, HasBase ) VALUES "
++        "SELECT " 
++           "JobId, Job, Name, Type, Level, ClientId, JobStatus, "
++           "SchedTime, StartTime, EndTime, RealEndTime, JobTDate, "
++           "VolSessionId, VolSessionTime, JobFiles, JobBytes, ReadBytes, "
++           "JobErrors, JobMissingFiles, PoolId, FileSetId, PriorJobId, "
++           "PurgedFiles, HasBase "
++          "FROM Job "
++         "WHERE JobStatus IN ('T', 'f', 'A', 'E') "
++           "AND JobId NOT IN (SELECT JobId FROM JobHisto) "
++           "AND JobTDate < %s ";
++
+ /* For ua_update.c */
+ const char *list_pool = "SELECT * FROM Pool WHERE PoolId=%s";
+ 
 Index: src/cats/drop_mysql_tables.in
 ===================================================================
 --- src/cats/drop_mysql_tables.in	(revision 8456)
@@ -931,6 +964,32 @@ Index: src/cats/drop_mysql_tables.in
  DROP TABLE IF EXISTS Media;
  DROP TABLE IF EXISTS JobMedia;
  DROP TABLE IF EXISTS Pool;
+Index: src/cats/sql_cmds.h
+===================================================================
+--- src/cats/sql_cmds.h	(revision 8456)
++++ src/cats/sql_cmds.h	(working copy)
+@@ -26,7 +26,7 @@
+    Switzerland, email:ftf@fsfeurope.org.
+ */
+ 
+-
++extern const char CATS_IMP_EXP *fill_jobhisto;
+ extern const char CATS_IMP_EXP *client_backups;
+ extern const char CATS_IMP_EXP *list_pool;
+ extern const char CATS_IMP_EXP *drop_deltabs[];
+Index: src/cats/grant_postgresql_privileges.in
+===================================================================
+--- src/cats/grant_postgresql_privileges.in	(revision 8456)
++++ src/cats/grant_postgresql_privileges.in	(working copy)
+@@ -32,7 +32,7 @@
+ grant all on location	  to ${db_user};
+ grant all on locationlog  to ${db_user};
+ grant all on log	  to ${db_user};
+-grant all on jobhistory	  to ${db_user};
++grant all on jobhisto	  to ${db_user};
+ 
+ -- for sequences on those tables
+ 
 Index: src/cats/make_mysql_tables.in
 ===================================================================
 --- src/cats/make_mysql_tables.in	(revision 8456)
