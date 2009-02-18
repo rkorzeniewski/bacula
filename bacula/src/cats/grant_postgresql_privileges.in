@@ -32,7 +32,7 @@ grant all on status	  to ${db_user};
 grant all on location	  to ${db_user};
 grant all on locationlog  to ${db_user};
 grant all on log	  to ${db_user};
-grant all on jobhistory	  to ${db_user};
+grant all on jobhisto	  to ${db_user};
 
 -- for sequences on those tables
 

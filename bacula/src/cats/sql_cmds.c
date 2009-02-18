@@ -44,6 +44,26 @@
 #include "bacula.h"
 #include "cats.h"
 
+
+/* For sql_update.c db_update_stats */
+const char *fill_jobhisto =
+        "INSERT INTO JobHisto (" 
+           "JobId, Job, Name, Type, Level, ClientId, JobStatus, "
+           "SchedTime, StartTime, EndTime, RealEndTime, JobTDate, "
+           "VolSessionId, VolSessionTime, JobFiles, JobBytes, ReadBytes, "
+           "JobErrors, JobMissingFiles, PoolId, FileSetId, PriorJobId, "
+           "PurgedFiles, HasBase ) "
+        "SELECT " 
+           "JobId, Job, Name, Type, Level, ClientId, JobStatus, "
+           "SchedTime, StartTime, EndTime, RealEndTime, JobTDate, "
+           "VolSessionId, VolSessionTime, JobFiles, JobBytes, ReadBytes, "
+           "JobErrors, JobMissingFiles, PoolId, FileSetId, PriorJobId, "
+           "PurgedFiles, HasBase "
+          "FROM Job "
+         "WHERE JobStatus IN ('T', 'f', 'A', 'E') "
+           "AND JobId NOT IN (SELECT JobId FROM JobHisto) "
+           "AND JobTDate < %s ";
+
 /* For ua_update.c */
 const char *list_pool = "SELECT * FROM Pool WHERE PoolId=%s";
 

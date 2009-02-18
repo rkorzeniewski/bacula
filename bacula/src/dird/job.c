@@ -860,6 +860,7 @@ void update_job_end_record(JCR *jcr)
    jcr->jr.JobStatus = jcr->JobStatus;
    jcr->jr.JobFiles = jcr->JobFiles;
    jcr->jr.JobBytes = jcr->JobBytes;
+   jcr->jr.ReadBytes = jcr->ReadBytes;
    jcr->jr.VolSessionId = jcr->VolSessionId;
    jcr->jr.VolSessionTime = jcr->VolSessionTime;
    jcr->jr.JobErrors = jcr->Errors;
