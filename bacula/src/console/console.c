@@ -344,7 +344,6 @@ static int tls_pem_callback(char *buf, int size, const void *userdata)
 
 #ifdef HAVE_READLINE
 #define READLINE_LIBRARY 1
-#undef free
 #include "readline.h"
 #include "history.h"
 
@@ -372,6 +371,9 @@ get_cmd(FILE *input, const char *prompt, BSOCK *sock, int sec)
    if (line == NULL) {
       do_history = 0;
       rl_catch_signals = 0;              /* do it ourselves */
+      /* Here, readline does ***real*** malloc
+       * so, be we have to use the real free
+       */
       line = readline((char *)prompt);   /* cast needed for old readlines */
       if (!line) {
          exit(1);
@@ -412,7 +414,7 @@ get_cmd(FILE *input, const char *prompt, BSOCK *sock, int sec)
       if (do_history) {
         add_history(line);
       }
-      free(line);
+      actuallyfree(line);       /* allocated by readline() malloc */
       line = NULL;
    }
    return 1;
