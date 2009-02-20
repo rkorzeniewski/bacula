@@ -1,12 +1,10 @@
 #!/bin/sh
 #
-# Shell script to update MySQL tables from version 1.38 to 2.0	
+# Shell script to update MySQL tables from version 2.0 to 3.0	
 #
 echo " "
-echo "This script will update a Bacula MySQL database from version 9 to 10"
-echo " which is needed to convert from Bacula version 1.38.x to 2.0.x or higher"
-echo "Depending on the size of your database,"
-echo "this script may take several minutes to run."
+echo "This script will update a Bacula MySQL database from version 10 to 11"
+echo " which is needed to convert from Bacula version 2.0.x to 3.0.x or higher"
 echo " "
 bindir=@SQL_BINDIR@
 db_name=@db_name@
@@ -14,59 +12,49 @@ db_name=@db_name@
 if $bindir/mysql $* -f <<END-OF-DATA
 USE ${db_name};
 
-DROP TABLE IF EXISTS MAC;
-DROP TABLE IF EXISTS Log;
-DROP TABLE IF EXISTS Location;
-DROP TABLE IF EXISTS LocationLog;
-
-CREATE TABLE Log (
-   LogId INTEGER UNSIGNED AUTO_INCREMENT,
-   JobId INTEGER UNSIGNED DEFAULT 0 REFERENCES Job,
-   Time DATETIME DEFAULT 0,
-   LogText BLOB NOT NULL,
-   PRIMARY KEY(LogId),
-   INDEX (JobId)
-   );
-
-CREATE TABLE Location (
-   LocationId INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,
-   Location TINYBLOB NOT NULL,
-   Cost INTEGER DEFAULT 0,
-   Enabled TINYINT,
-   PRIMARY KEY(LocationId)
-   );
-
-CREATE TABLE LocationLog (
-   LocLogId INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,
-   Date DATETIME DEFAULT 0,
-   Comment BLOB,
-   MediaId INTEGER UNSIGNED DEFAULT 0 REFERENCES Media,
-   LocationId INTEGER UNSIGNED DEFAULT 0 REFERENCES Location,
-   NewVolStatus ENUM('Full', 'Archive', 'Append', 'Recycle', 'Purged',
-    'Read-Only', 'Disabled', 'Error', 'Busy', 'Used', 'Cleaning') NOT NULL,
-   NewEnabled TINYINT,
-   PRIMARY KEY(LocLogId)
-);
-
-ALTER TABLE Media ADD COLUMN MediaTypeId INTEGER UNSIGNED DEFAULT 0 REFERENCES MediaType;
-ALTER TABLE Media ADD COLUMN DeviceId INTEGER UNSIGNED DEFAULT 0 REFERENCES Device;
-ALTER TABLE Media ADD COLUMN LocationId INTEGER UNSIGNED DEFAULT 0 REFERENCES Location;
-ALTER TABLE Media ADD COLUMN RecycleCount INTEGER UNSIGNED DEFAULT 0;
-ALTER TABLE Media ADD COLUMN InitialWrite DATETIME DEFAULT 0;
-ALTER TABLE Media ADD COLUMN ScratchPoolId INTEGER UNSIGNED DEFAULT 0 REFERENCES Pool;
-ALTER TABLE Media ADD COLUMN RecyclePoolId INTEGER UNSIGNED DEFAULT 0 REFERENCES Pool;
-ALTER TABLE Media ADD COLUMN Enabled TINYINT DEFAULT 1;
-ALTER TABLE Media ADD COLUMN Comment BLOB;
-
-ALTER TABLE JobMedia DROP COLUMN Stripe;
-
-ALTER TABLE Job ADD COLUMN PriorJobId INTEGER UNSIGNED DEFAULT 0 REFERENCES Job;
-ALTER TABLE Job ADD COLUMN RealEndTime DATETIME DEFAULT 0;
-
-
+-- Fix bad index on Media table
+DROP INDEX inx8 ON Media;
+CREATE UNIQUE INDEX inx8 ON Media (VolumeName(128));
+ALTER TABLE File CHANGE FileId FileId BIGINT UNSIGNED NOT NULL AUTO_INCREMENT;
+ALTER TABLE BaseFiles CHANGE FileId FileId BIGINT UNSIGNED NOT NULL;
+ALTER TABLE Job ADD ReadBytes BIGINT UNSIGNED DEFAULT 0 AFTER JobBytes; 
+ALTER TABLE Media ADD ActionOnPurge TINYINT DEFAULT 0 AFTER Recycle;
+ALTER TABLE Pool ADD ActionOnPurge TINYINT DEFAULT 0 AFTER Recycle;
 
 DELETE FROM Version;
-INSERT INTO Version (VersionId) VALUES (10);
+INSERT INTO Version (VersionId) VALUES (11);
+
+-- If you have already this table, you can remove it with:
+-- DROP TABLE JobHistory;
+
+-- Create a table like Job for long term statistics
+CREATE TABLE JobHisto (
+   JobId INTEGER UNSIGNED NOT NULL,
+   Job TINYBLOB NOT NULL,
+   Name TINYBLOB NOT NULL,
+   Type BINARY(1) NOT NULL,
+   Level BINARY(1) NOT NULL,
+   ClientId INTEGER DEFAULT 0,
+   JobStatus BINARY(1) NOT NULL,
+   SchedTime DATETIME DEFAULT 0,
+   StartTime DATETIME DEFAULT 0,
+   EndTime DATETIME DEFAULT 0,
+   RealEndTime DATETIME DEFAULT 0,
+   JobTDate BIGINT UNSIGNED DEFAULT 0,
+   VolSessionId INTEGER UNSIGNED DEFAULT 0,
+   VolSessionTime INTEGER UNSIGNED DEFAULT 0,
+   JobFiles INTEGER UNSIGNED DEFAULT 0,
+   JobBytes BIGINT UNSIGNED DEFAULT 0,
+   ReadBytes BIGINT UNSIGNED DEFAULT 0,
+   JobErrors INTEGER UNSIGNED DEFAULT 0,
+   JobMissingFiles INTEGER UNSIGNED DEFAULT 0,
+   PoolId INTEGER UNSIGNED DEFAULT 0,
+   FileSetId INTEGER UNSIGNED DEFAULT 0,
+   PriorJobId INTEGER UNSIGNED DEFAULT 0,
+   PurgedFiles TINYINT DEFAULT 0,
+   HasBase TINYINT DEFAULT 0,
+   INDEX (StartTime)
+   );
 
 END-OF-DATA
 then
