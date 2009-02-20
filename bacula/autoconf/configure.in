@@ -2824,6 +2824,10 @@ AC_OUTPUT([autoconf/Make.common \
 	   src/plugins/dir/Makefile \
 	   src/win32/Makefile.inc \
 	   po/Makefile.in \
+	   updatedb/update_mysql_tables_9_to_10 \
+	   updatedb/update_sqlite3_tables_9_to_10 \
+	   updatedb/update_postgresql_tables_9_to_10 \
+	   updatedb/update_sqlite_tables_9_to_10 \
 	   updatedb/update_mysql_tables_10_to_11 \
 	   updatedb/update_sqlite3_tables_10_to_11 \
 	   updatedb/update_postgresql_tables_10_to_11 \
