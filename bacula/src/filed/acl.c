@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2004-2008 Free Software Foundation Europe e.V.
+   Copyright (C) 2004-2009 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -58,7 +58,7 @@
 #include "filed.h"
   
 /*
- * List of supported OSs. Everything outside that gets stub functions.
+ * List of supported OSes. Everything outside that gets stub functions.
  * Also when ACL support is explicitly disabled.
  * Not sure if all the HAVE_XYZ_OS are correct for autoconf.
  * The ones that says man page, are coded according to man pages only.
@@ -94,7 +94,7 @@ bool parse_acl_stream(JCR *jcr, int stream)
 /*
  * Send an ACL stream to the SD.
  */
-static bool send_acl_stream(JCR *jcr, int stream, int len)
+static bool send_acl_stream(JCR *jcr, int stream)
 {
    BSOCK *sd = jcr->store_bsock;
    POOLMEM *msgsave;
@@ -118,7 +118,7 @@ static bool send_acl_stream(JCR *jcr, int stream, int len)
    Dmsg1(400, "Backing up ACL <%s>\n", jcr->acl_data);
    msgsave = sd->msg;
    sd->msg = jcr->acl_data;
-   sd->msglen = len + 1;
+   sd->msglen = jcr->acl_data_len + 1;
    if (!sd->send()) {
       sd->msg = msgsave;
       sd->msglen = 0;
@@ -149,13 +149,12 @@ static bool send_acl_stream(JCR *jcr, int stream, int len)
 static bool aix_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
 {
    char *acl_text;
-   int len;
 
    if ((acl_text = acl_get(jcr->last_fname)) != NULL) {
-      len = pm_strcpy(jcr->acl_data, acl_text);
+      jcr->acl_data_len = pm_strcpy(jcr->acl_data, acl_text);
       actuallyfree(acl_text);
 
-      return send_acl_stream(jcr, STREAM_ACL_AIX_TEXT, len);
+      return send_acl_stream(jcr, STREAM_ACL_AIX_TEXT);
    }
 
    return false;
@@ -506,8 +505,6 @@ static bool generic_set_acl_on_os(JCR *jcr, bacl_type acltype)
 #if defined(HAVE_DARWIN_OS)
 static bool darwin_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
 {
-   int len;
-
 #if defined(ACL_TYPE_EXTENDED)
    /*
     * On MacOS X, acl_get_file (name, ACL_TYPE_ACCESS)
@@ -518,17 +515,17 @@ static bool darwin_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
     *
     * Read access ACLs for files, dirs and links
     */
-   if ((len = generic_get_acl_from_os(jcr, BACL_TYPE_EXTENDED)) < 0)
+   if ((jcr->acl_data_len = generic_get_acl_from_os(jcr, BACL_TYPE_EXTENDED)) < 0)
       return false;
 #else
    /*
     * Read access ACLs for files, dirs and links
     */
-   if ((len = generic_get_acl_from_os(jcr, BACL_TYPE_ACCESS)) < 0)
+   if ((jcr->acl_data_len = generic_get_acl_from_os(jcr, BACL_TYPE_ACCESS)) < 0)
       return false;
 
-   if (len > 0) {
-      if (!send_acl_stream(jcr, STREAM_ACL_DARWIN_ACCESS_ACL, len))
+   if (jcr->acl_data_len > 0) {
+      if (!send_acl_stream(jcr, STREAM_ACL_DARWIN_ACCESS_ACL))
          return false;
    }
 #endif
@@ -549,16 +546,14 @@ static bool darwin_parse_acl_stream(JCR *jcr, int stream)
 #elif defined(HAVE_FREEBSD_OS)
 static bool freebsd_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
 {
-   int len;
-
    /*
     * Read access ACLs for files, dirs and links
     */
-   if ((len = generic_get_acl_from_os(jcr, BACL_TYPE_ACCESS)) < 0)
+   if ((jcr->acl_data_len = generic_get_acl_from_os(jcr, BACL_TYPE_ACCESS)) < 0)
       return false;
 
-   if (len > 0) {
-      if (!send_acl_stream(jcr, STREAM_ACL_FREEBSD_ACCESS_ACL, len))
+   if (jcr->acl_data_len > 0) {
+      if (!send_acl_stream(jcr, STREAM_ACL_FREEBSD_ACCESS_ACL))
          return false;
    }
 
@@ -566,11 +561,11 @@ static bool freebsd_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
     * Directories can have default ACLs too
     */
    if (ff_pkt->type == FT_DIREND) {
-      if ((len = generic_get_acl_from_os(jcr, BACL_TYPE_DEFAULT)) < 0)
+      if ((jcr->acl_data_len = generic_get_acl_from_os(jcr, BACL_TYPE_DEFAULT)) < 0)
          return false;
 
-      if (len > 0) {
-         if (!send_acl_stream(jcr, STREAM_ACL_FREEBSD_DEFAULT_ACL, len))
+      if (jcr->acl_data_len > 0) {
+         if (!send_acl_stream(jcr, STREAM_ACL_FREEBSD_DEFAULT_ACL))
             return false;
       }
    }
@@ -594,16 +589,14 @@ static bool freebsd_parse_acl_stream(JCR *jcr, int stream)
 #elif defined(HAVE_IRIX_OS)
 static bool irix_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
 {
-   int len;
-
    /*
     * Read access ACLs for files, dirs and links
     */
-   if ((len = generic_get_acl_from_os(jcr, BACL_TYPE_ACCESS)) < 0)
+   if ((jcr->acl_data_len = generic_get_acl_from_os(jcr, BACL_TYPE_ACCESS)) < 0)
       return false;
 
-   if (len > 0) {
-      if (!send_acl_stream(jcr, STREAM_ACL_IRIX_ACCESS_ACL, len))
+   if (jcr->acl_data_len > 0) {
+      if (!send_acl_stream(jcr, STREAM_ACL_IRIX_ACCESS_ACL))
          return false;
    }
 
@@ -611,11 +604,11 @@ static bool irix_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
     * Directories can have default ACLs too
     */
    if (ff_pkt->type == FT_DIREND) {
-      if ((len = generic_get_acl_from_os(jcr, BACL_TYPE_DEFAULT)) < 0)
+      if ((jcr->acl_data_len = generic_get_acl_from_os(jcr, BACL_TYPE_DEFAULT)) < 0)
          return false;
 
-      if (len > 0) {
-         if (!send_acl_stream(jcr, STREAM_ACL_IRIX_DEFAULT_ACL, len))
+      if (jcr->acl_data_len > 0) {
+         if (!send_acl_stream(jcr, STREAM_ACL_IRIX_DEFAULT_ACL))
             return false;
       }
    }
@@ -639,16 +632,14 @@ static bool irix_parse_acl_stream(JCR *jcr, int stream)
 #elif defined(HAVE_LINUX_OS)
 static bool linux_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
 {
-   int len;
-
    /*
     * Read access ACLs for files, dirs and links
     */
-   if ((len = generic_get_acl_from_os(jcr, BACL_TYPE_ACCESS)) < 0)
+   if ((jcr->acl_data_len = generic_get_acl_from_os(jcr, BACL_TYPE_ACCESS)) < 0)
       return false;
 
-   if (len > 0) {
-      if (!send_acl_stream(jcr, STREAM_ACL_LINUX_ACCESS_ACL, len))
+   if (jcr->acl_data_len > 0) {
+      if (!send_acl_stream(jcr, STREAM_ACL_LINUX_ACCESS_ACL))
          return false;
    }
 
@@ -656,11 +647,11 @@ static bool linux_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
     * Directories can have default ACLs too
     */
    if (ff_pkt->type == FT_DIREND) {
-      if ((len = generic_get_acl_from_os(jcr, BACL_TYPE_DEFAULT)) < 0)
+      if ((jcr->acl_data_len = generic_get_acl_from_os(jcr, BACL_TYPE_DEFAULT)) < 0)
          return false;
 
-      if (len > 0) {
-         if (!send_acl_stream(jcr, STREAM_ACL_LINUX_DEFAULT_ACL, len))
+      if (jcr->acl_data_len > 0) {
+         if (!send_acl_stream(jcr, STREAM_ACL_LINUX_DEFAULT_ACL))
             return false;
       }
    }
@@ -684,16 +675,14 @@ static bool linux_parse_acl_stream(JCR *jcr, int stream)
 #elif defined(HAVE_OSF1_OS)
 static bool tru64_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
 {
-   int len;
-
    /*
     * Read access ACLs for files, dirs and links
     */
-   if ((len = generic_get_acl_from_os(jcr, BACL_TYPE_ACCESS)) < 0)
+   if ((jcr->acl_data_len = generic_get_acl_from_os(jcr, BACL_TYPE_ACCESS)) < 0)
       return false;
 
-   if (len > 0) {
-      if (!send_acl_stream(jcr, STREAM_ACL_TRU64_ACCESS_ACL, len))
+   if (jcr->acl_data_len > 0) {
+      if (!send_acl_stream(jcr, STREAM_ACL_TRU64_ACCESS_ACL))
          return false;
    }
 
@@ -701,11 +690,11 @@ static bool tru64_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
     * Directories can have default ACLs too
     */
    if (ff_pkt->type == FT_DIREND) {
-      if ((len = generic_get_acl_from_os(jcr, BACL_TYPE_DEFAULT)) < 0)
+      if ((jcr->acl_data_len = generic_get_acl_from_os(jcr, BACL_TYPE_DEFAULT)) < 0)
          return false;
 
-      if (len > 0) {
-         if (!send_acl_stream(jcr, STREAM_ACL_TRU64_DEFAULT_ACL, len))
+      if (jcr->acl_data_len > 0) {
+         if (!send_acl_stream(jcr, STREAM_ACL_TRU64_DEFAULT_ACL))
             return false;
       }
 
@@ -715,11 +704,11 @@ static bool tru64_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
        * See http://www.helsinki.fi/atk/unix/dec_manuals/DOC_40D/AQ0R2DTE/DOCU_018.HTM
        * Section 21.5 Default ACLs 
        */
-      if ((len = generic_get_acl_from_os(jcr, BACL_TYPE_DEFAULT_DIR)) < 0)
+      if ((jcr->acl_data_len = generic_get_acl_from_os(jcr, BACL_TYPE_DEFAULT_DIR)) < 0)
          return false;
 
-      if (len > 0) {
-         if (!send_acl_stream(jcr, STREAM_ACL_TRU64_DEFAULT_DIR_ACL, len))
+      if (jcr->acl_data_len > 0) {
+         if (!send_acl_stream(jcr, STREAM_ACL_TRU64_DEFAULT_DIR_ACL))
             return false;
       }
    }
@@ -779,7 +768,7 @@ static bool acl_is_trivial(int count, struct acl_entry *entries, struct stat sb)
  */
 static bool hpux_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
 {
-   int n, len;
+   int n;
    struct acl_entry acls[NACLENTRIES];
    char *acl_text;
 
@@ -821,10 +810,10 @@ static bool hpux_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
       }
 
       if ((acl_text = acltostr(n, acls, FORM_SHORT)) != NULL) {
-         len = pm_strcpy(jcr->acl_data, acl_text);
+         jcr->acl_data_len = pm_strcpy(jcr->acl_data, acl_text);
          actuallyfree(acl_text);
 
-         return send_acl_stream(jcr, STREAM_ACL_HPUX_ACL_ENTRY, len);
+         return send_acl_stream(jcr, STREAM_ACL_HPUX_ACL_ENTRY);
       }
 
       berrno be;
@@ -925,10 +914,11 @@ char *acl_strerror(int);
  */
 static bool solaris_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
 {
-   int acl_enabled, len, flags;
+   int acl_enabled, flags;
    acl_t *aclp;
    char *acl_text;
    bool stream_status = false;
+   berrno be;
 
    /*
     * See if filesystem supports acls.
@@ -941,9 +931,9 @@ static bool solaris_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
       return true;
    case -1:
       Jmsg2(jcr, M_ERROR, 0, _("pathconf error on file \"%s\": ERR=%s\n"),
-         jcr->last_fname, strerror(errno));
+         jcr->last_fname, be.bstrerror());
       Dmsg2(100, "pathconf error file=%s ERR=%s\n",  
-         jcr->last_fname, strerror(errno));
+         jcr->last_fname, be.bstrerror());
 
       return false;
    default:
@@ -962,7 +952,7 @@ static bool solaris_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
       return false;
    }
 
-   if (aclp == NULL) {
+   if (!aclp) {
       /*
        * The ACLs simply reflect the (already known) standard permissions
        * So we don't send an ACL stream to the SD.
@@ -981,15 +971,15 @@ static bool solaris_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
 #endif /* ACL_SID_FMT */
 
    if ((acl_text = acl_totext(aclp, flags)) != NULL) {
-      len = pm_strcpy(jcr->acl_data, acl_text);
+      jcr->acl_data_len = pm_strcpy(jcr->acl_data, acl_text);
       actuallyfree(acl_text);
 
       switch (acl_type(aclp)) {
       case ACLENT_T:
-         stream_status = send_acl_stream(jcr, STREAM_ACL_SOLARIS_ACLENT, len);
+         stream_status = send_acl_stream(jcr, STREAM_ACL_SOLARIS_ACLENT);
          break;
       case ACE_T:
-         stream_status = send_acl_stream(jcr, STREAM_ACL_SOLARIS_ACE, len);
+         stream_status = send_acl_stream(jcr, STREAM_ACL_SOLARIS_ACE);
          break;
       default:
          break;
@@ -1005,6 +995,7 @@ static bool solaris_parse_acl_stream(JCR *jcr, int stream)
 {
    acl_t *aclp;
    int acl_enabled, error;
+   berrno be;
 
    switch (stream) {
    case STREAM_UNIX_ACCESS_ACL:
@@ -1022,9 +1013,9 @@ static bool solaris_parse_acl_stream(JCR *jcr, int stream)
          return false;
       case -1:
          Jmsg2(jcr, M_ERROR, 0, _("pathconf error on file \"%s\": ERR=%s\n"),
-            jcr->last_fname, strerror(errno));
+            jcr->last_fname, be.bstrerror());
          Dmsg3(100, "pathconf error acl=%s file=%s ERR=%s\n",  
-            jcr->acl_data, jcr->last_fname, strerror(errno));
+            jcr->acl_data, jcr->last_fname, be.bstrerror());
 
          return false;
       default:
@@ -1146,7 +1137,7 @@ static bool acl_is_trivial(int count, aclent_t *entries)
  */
 static bool solaris_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt);
 {
-   int n, len;
+   int n;
    aclent_t *acls;
    char *acl_text;
 
@@ -1167,11 +1158,11 @@ static bool solaris_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt);
       }
 
       if ((acl_text = acltotext(acls, n)) != NULL) {
-         len = pm_strcpy(jcr->acl_data, acl_text);
+         jcr->acl_data_len = pm_strcpy(jcr->acl_data, acl_text);
          actuallyfree(acl_text);
          free(acls);
 
-         return send_acl_stream(jcr, STREAM_ACL_SOLARIS_ACLENT, len);
+         return send_acl_stream(jcr, STREAM_ACL_SOLARIS_ACLENT);
       }
 
       berrno be;
