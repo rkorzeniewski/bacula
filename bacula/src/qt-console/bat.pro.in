@@ -23,7 +23,7 @@ LIBTOOL_LINK = @QMAKE_LIBTOOL@ --silent --tag=CXX --mode=link
 LIBTOOL_INSTALL = @QMAKE_LIBTOOL@ --silent --mode=install
 QMAKE_LINK   = $${LIBTOOL_LINK} $(CXX)
 QMAKE_INSTALL_PROGRAM = $${LIBTOOL_INSTALL} install -m 0754 -p
-QMAKE_CLEAN += .libs/bat 
+QMAKE_CLEAN += .libs/*
 
 qwt {
   INCLUDEPATH += @QWT_INC@ 
