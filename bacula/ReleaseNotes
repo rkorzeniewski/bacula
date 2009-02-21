@@ -19,7 +19,7 @@ scripts that permit to convert a 2.4.x (version 10) catalog to 2.5.x (version
 11). If you are using already a 2.5 version, you can drop the JobHistory
 table before upgrading your catalog (if you are using the new "long term
 statistics" module, you can upgrade this table the same way we do with 
-the Job table, see upgrade_<database>_table script).
+the Job table, see the src/cats/update_bacula_table script).
 
 The upgrade operation will convert the FileId index field of the File table
 from 32 bits to 64 bits.  This operation will take TIME and will *temporarily* 
@@ -27,6 +27,15 @@ DOUBLE THE SIZE of your catalog. Bacula must be shutdown during this update,
 so, won't be able to run jobs during this period.  For example, a 3 million files
 catalog will take 2 mins to upgrade on a normal machine.  Don't forget to
 backup it before executing the script.
+
+If you start from scratch, you don't need to run the update_bacula_tables
+script.  However, if you are using a version of Bacula older than 2.5.40,
+then you need to run the update_bacula_tables script that will be found
+in the <bacula>/src/cats directory after you run the ./configure command.
+As mentioned above, before running this script, please backup your 
+catalog database, and when you do running it, be sure shutdown
+Bacula and be aware that running the script can take some time depending
+on your database size.
 
 
 New configure option :
