@@ -588,6 +588,7 @@ const char *sql_jobids_of_pool_uncopied_jobs =
    "SELECT DISTINCT Job.JobId,Job.StartTime FROM Job,Pool"
    " WHERE Pool.Name = '%s' AND Pool.PoolId = Job.PoolId"
    " AND Job.Type = 'B' AND Job.JobStatus = 'T'"
+   " AND Job.jobBytes > 0"
    " AND Job.JobId NOT IN"
    " (SELECT PriorJobId FROM Job WHERE"
    " Type IN ('B','C') AND Job.JobStatus = 'T'"
