@@ -4876,7 +4876,7 @@ sub run_parse_job
     my ($self, $ouput) = @_;
 
     my %arg;
-    foreach my $l (split(/\r\n/, $ouput)) {
+    foreach my $l (split(/\r?\n/, $ouput)) {
 	if ($l =~ /(\w+): name=([\w\d\.\s-]+?)(\s+\w+=.+)?$/) {
 	    $arg{$1} = $2;
 	    $l = $3 
@@ -4892,7 +4892,6 @@ sub run_parse_job
     foreach my $k (keys %arg) {
 	$lowcase{lc($k)} = $arg{$k} ;
     }
-
     return \%lowcase;
 }
 
