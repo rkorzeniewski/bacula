@@ -25,6 +25,14 @@ filepattern (restore with regex in bsr)
 mixed priorities
 
 General:
+28Feb09
+mvw  Implemented xattr support for Solaris 9 and above and extensible
+     attributes for OpenSolaris.
+mvw  Added some limits to the xattr code so that we don't blow up the
+     filed on big xattrs.
+mvw  Fixed some comments which changed due to xattrs being implemented.
+mvw  Changed xattr support checking in configure to test first for
+     generic solutions and when not found for specific OS functions.
 25Feb09
 mvw  Don't try to copy empty jobs (e.g. with jobbytes == 0)
      which gives Unable to get Job Volume Parameters errors.

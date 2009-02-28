@@ -229,8 +229,9 @@ void do_restore(JCR *jcr)
     *        d. Alternate data stream (e.g. Resource Fork)
     *        e. Finder info
     *        f. ACLs
-    *        g. Possibly a cryptographic signature
-    *        h. Possibly MD5 or SHA1 record
+    *        g. XATTRs
+    *        h. Possibly a cryptographic signature
+    *        i. Possibly MD5 or SHA1 record
     *   3. Repeat step 1
     *
     * NOTE: We keep track of two bacula file descriptors:
@@ -613,6 +614,8 @@ void do_restore(JCR *jcr)
          }
          break;
 
+      case STREAM_XATTR_SOLARIS_SYS:
+      case STREAM_XATTR_SOLARIS:
       case STREAM_XATTR_DARWIN:
       case STREAM_XATTR_FREEBSD:
       case STREAM_XATTR_LINUX:
@@ -728,11 +731,19 @@ ok_out:
       jcr->compress_buf = NULL;
       jcr->compress_buf_size = 0;
    }
+
+   if (jcr->xattr_data) {
+      free_pool_memory(jcr->xattr_data);
+      jcr->xattr_data = NULL;
+   }
+   if (jcr->acl_data) {
+      free_pool_memory(jcr->acl_data);
+      jcr->acl_data = NULL;
+   }
+
    bclose(&rctx.forkbfd);
    bclose(&rctx.bfd);
    free_attr(rctx.attr);
-   free_pool_memory(jcr->xattr_data);
-   free_pool_memory(jcr->acl_data);
    Dmsg2(10, "End Do Restore. Files=%d Bytes=%s\n", jcr->JobFiles,
       edit_uint64(jcr->JobBytes, ec1));
    if (non_support_data > 1 || non_support_attr > 1) {

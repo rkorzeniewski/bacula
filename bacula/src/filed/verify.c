@@ -165,7 +165,7 @@ static int verify_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
    }
 
    /* Encode attributes and possibly extend them */
-   encode_stat(attribs, ff_pkt, 0);
+   encode_stat(attribs, &ff_pkt->statp, ff_pkt->LinkFI, 0);
    encode_attribsEx(jcr, attribsEx, ff_pkt);
 
    jcr->lock();

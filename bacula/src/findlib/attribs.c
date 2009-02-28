@@ -162,10 +162,10 @@ int select_data_stream(FF_PKT *ff_pkt)
  *   them in the encode_attribsEx() subroutine, but this is
  *   not recommended.
  */
-void encode_stat(char *buf, FF_PKT *ff_pkt, int data_stream)
+void encode_stat(char *buf, struct stat *statp, int32_t LinkFI, int data_stream)
 {
    char *p = buf;
-   struct stat *statp = &ff_pkt->statp;
+
    /*
     *  Encode a stat packet.  I should have done this more intelligently
     *   with a length so that it could be easily expanded.
@@ -203,7 +203,7 @@ void encode_stat(char *buf, FF_PKT *ff_pkt, int data_stream)
    *p++ = ' ';
    p += to_base64((int64_t)statp->st_ctime, p);
    *p++ = ' ';
-   p += to_base64((int64_t)ff_pkt->LinkFI, p);
+   p += to_base64((int64_t)LinkFI, p);
    *p++ = ' ';
 
 #ifdef HAVE_CHFLAGS

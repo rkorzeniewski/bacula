@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2004-2008 Free Software Foundation Europe e.V.
+   Copyright (C) 2004-2009 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -45,5 +45,19 @@ typedef struct xattr {
    uint32_t value_length;
    char *value;
 } xattr_t;
+
+/*
+ * Internal representation of an extended attribute hardlinked file.
+ */
+typedef struct xattr_link_cache_entry {
+   uint32_t inum;
+   char target[PATH_MAX];
+   struct xattr_link_cache_entry *next;
+} xattr_link_cache_entry_t;
+
+/*
+ * Maximum size of the XATTR stream this prevents us from blowing up the filed.
+ */
+#define MAX_XATTR_STREAM  (1 * 1024 * 1024) /* 1 Mb */
 
 #endif
