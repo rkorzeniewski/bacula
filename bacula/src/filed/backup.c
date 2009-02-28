@@ -155,13 +155,18 @@ bool blast_data_to_storage_daemon(JCR *jcr, char *addr)
 
    accurate_send_deleted_list(jcr);              /* send deleted list to SD  */
 
-   free_pool_memory(jcr->acl_data);
-   free_pool_memory(jcr->xattr_data);
-
    stop_heartbeat_monitor(jcr);
 
    sd->signal(BNET_EOD);            /* end of sending data */
 
+   if (jcr->acl_data) {
+      free_pool_memory(jcr->acl_data);
+      jcr->acl_data = NULL;
+   }
+   if (jcr->xattr_data) {
+      free_pool_memory(jcr->xattr_data);
+      jcr->xattr_data = NULL;
+   }
    if (jcr->big_buf) {
       free(jcr->big_buf);
       jcr->big_buf = NULL;
@@ -706,8 +711,8 @@ bail_out:
  * Currently this is not a problem as the only other stream, resource forks,
  * are not handled as sparse files.
  */
-int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest, 
-              DIGEST *signing_digest)
+static int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest, 
+                     DIGEST *signing_digest)
 {
    BSOCK *sd = jcr->store_bsock;
    uint64_t fileAddr = 0;             /* file address */
@@ -1043,7 +1048,7 @@ bool encode_and_send_attributes(JCR *jcr, FF_PKT *ff_pkt, int &data_stream)
       Jmsg0(jcr, M_FATAL, 0, _("Invalid file flags, no supported data stream type.\n"));
       return false;
    }
-   encode_stat(attribs, ff_pkt, data_stream);
+   encode_stat(attribs, &ff_pkt->statp, ff_pkt->LinkFI, data_stream);
 
    /* Now possibly extend the attributes */
    attr_stream = encode_attribsEx(jcr, attribsEx, ff_pkt);

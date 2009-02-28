@@ -2297,7 +2297,7 @@ AC_ARG_ENABLE(xattr,
    AC_HELP_STRING([--disable-xattr], [disable xattr support @<:@default=auto@:>@]),
    [
        if test x$enableval = xno; then
-	  support_acl=no
+	  support_xattr=no
        fi
    ]
 )
@@ -2311,17 +2311,50 @@ if test x$support_xattr = xyes; then
 	  AC_DEFINE([HAVE_LLISTXATTR], [], [LLISTXATTR support])
 	  AC_DEFINE([HAVE_LGETXATTR], [], [LGETXATTR support])
 	  AC_DEFINE([HAVE_LSETXATTR], [], [LSETXATTR support])
-      ], [
-	  AC_CHECK_FUNCS(listxattr getxattr setxattr,
-	      [
-		  have_xattr=yes
-		  AC_DEFINE([HAVE_LLISTXATTR], [], [LLISTXATTR support])
-		  AC_DEFINE([HAVE_LGETXATTR], [], [LGETXATTR support])
-		  AC_DEFINE([HAVE_LSETXATTR], [], [LSETXATTR support])
-	      ]
-	  )
       ]
    )
+
+   #
+   # OSX specific
+   #
+   if test $have_xattr = no; then
+      AC_CHECK_FUNCS(listxattr getxattr setxattr,
+	 [
+             have_xattr=yes
+             AC_DEFINE([HAVE_LLISTXATTR], [], [LLISTXATTR support])
+             AC_DEFINE([HAVE_LGETXATTR], [], [LGETXATTR support])
+             AC_DEFINE([HAVE_LSETXATTR], [], [LSETXATTR support])
+         ]
+      )
+   fi
+
+   #
+   # Solaris specific
+   #
+   if test $have_xattr = no; then
+      AC_CHECK_HEADER(sys/attr.h, [ AC_DEFINE(HAVE_SYS_ATTR_H,1,[Defines if your system have the sys/attr.h header file])] , )
+      AC_CHECK_HEADER(sys/nvpair.h, [ AC_DEFINE(HAVE_SYS_NVPAIR_H,1,[Defines if your system have the sys/nvpair.h header file])] , )
+      AC_CHECK_HEADER(attr.h, [ AC_DEFINE(HAVE_ATTR_H,1,[Defines if your system have the attr.h header file])] , )
+
+      AC_CHECK_FUNCS(openat fstatat unlinkat fchownat futimesat,
+         [
+             have_xattr=yes
+             AC_DEFINE([HAVE_OPENAT], [], [OPENAT support])
+             AC_DEFINE([HAVE_FSTATAT], [], [FSTATAT support])
+             AC_DEFINE([HAVE_UNLINKAT], [], [UNLINKAT support])
+             AC_DEFINE([HAVE_FCHOWNAT], [], [FCHOWNAT support])
+             AC_DEFINE([HAVE_FUTIMESAT], [], [FUTIMESAT support])
+         ]
+      )
+
+      if test $have_xattr = yes; then
+         AC_CHECK_LIB(nvpair, nvlist_next_nvpair,
+            [
+                FDLIBS="-lnvpair $FDLIBS"
+            ]
+         )
+      fi
+   fi
 
    if test $have_xattr = yes; then
       AC_DEFINE([HAVE_XATTR], [], [XATTR support])

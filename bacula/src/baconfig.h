@@ -294,7 +294,10 @@ void InitWinAPIWrapper();
 #define STREAM_ACL_SOLARIS_ACE           1013    /* Solaris specific ace_t string representation from
                                                   * from acl_totext (NFSv4 or ZFS acl)
                                                   */
-#define STREAM_XATTR_SOLARIS             1995    /* Solaris specific extented attributes and extensible attributes */
+#define STREAM_XATTR_SOLARIS_SYS         1994    /* Solaris specific extensible attributes or
+                                                  * otherwise named extended system attributes.
+                                                  */
+#define STREAM_XATTR_SOLARIS             1995    /* Solaris specific extented attributes */
 #define STREAM_XATTR_DARWIN              1996    /* Darwin (OSX) specific extended attributes */
 #define STREAM_XATTR_FREEBSD             1997    /* FreeBSD specific extended attributes */
 #define STREAM_XATTR_LINUX               1998    /* Linux specific extended attributes */

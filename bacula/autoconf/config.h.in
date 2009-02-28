@@ -21,12 +21,6 @@
 /* Define to `int' if <sys/types.h> doesn't define.  */
 #undef ssize_t
 
-/* Typedef to intxx if <stdint.h> doesn't declare. */
-#undef HAVE_INTPTR_T
-
-/* Typedef to uintxx if <stdint.h> doesn't declare. */
-#undef HAVE_UINTPTR_T
-
 /* Define if you want to use PostgreSQL */
 #undef HAVE_POSTGRESQL
 
@@ -285,6 +279,9 @@
 /* Define to 1 if you have the <assert.h> header file. */
 #undef HAVE_ASSERT_H
 
+/* Defines if your system have the attr.h header file */
+#undef HAVE_ATTR_H
+
 /* Set if Bacula bat Qt4 GUI support enabled */
 #undef HAVE_BAT
 
@@ -436,6 +433,9 @@
 /* Define if you have the 'intmax_t' type in <stdint.h> or <inttypes.h>. */
 #undef HAVE_INTMAX_T
 
+/* Define to 1 if the system has the type `intptr_t'. */
+#undef HAVE_INTPTR_T
+
 /* Define if <inttypes.h> exists and doesn't clash with <sys/types.h>. */
 #undef HAVE_INTTYPES_H
 
@@ -541,6 +541,9 @@
 
 /* Define to 1 if you have the <nl_types.h> header file. */
 #undef HAVE_NL_TYPES_H
+
+/* OPENAT support */
+#undef HAVE_OPENAT
 
 /* Define if OpenSSL library is available */
 #undef HAVE_OPENSSL
@@ -684,6 +687,9 @@
 /* Defines if your system have the sys/acl.h header file */
 #undef HAVE_SYS_ACL_H
 
+/* Defines if your system have the sys/attr.h header file */
+#undef HAVE_SYS_ATTR_H
+
 /* Define to 1 if you have the <sys/bitypes.h> header file. */
 #undef HAVE_SYS_BITYPES_H
 
@@ -703,6 +709,9 @@
 /* Define to 1 if you have the <sys/ndir.h> header file, and it defines `DIR'.
    */
 #undef HAVE_SYS_NDIR_H
+
+/* Defines if your system have the sys/nvpair.h header file */
+#undef HAVE_SYS_NVPAIR_H
 
 /* Define to 1 if you have the <sys/param.h> header file. */
 #undef HAVE_SYS_PARAM_H
@@ -768,6 +777,9 @@
 
 /* Define if you have the 'uintmax_t' type in <stdint.h> or <inttypes.h>. */
 #undef HAVE_UINTMAX_T
+
+/* Define to 1 if the system has the type `uintptr_t'. */
+#undef HAVE_UINTPTR_T
 
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
@@ -946,6 +958,10 @@
 /* Define to `unsigned long' if <sys/types.h> does not define. */
 #undef ino_t
 
+/* Define to the type of a signed integer type wide enough to hold a pointer,
+   if such a type exists, and if the system does not define it. */
+#undef intptr_t
+
 /* Define to `int' if <sys/types.h> does not define. */
 #undef major_t
 
@@ -980,3 +996,7 @@
 /* Define to unsigned long or unsigned long long if <stdint.h> and
    <inttypes.h> don't define. */
 #undef uintmax_t
+
+/* Define to the type of an unsigned integer type wide enough to hold a
+   pointer, if such a type exists, and if the system does not define it. */
+#undef uintptr_t
