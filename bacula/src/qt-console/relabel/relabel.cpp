@@ -53,9 +53,36 @@ relabelDialog::relabelDialog(Console *console, QString &fromVolume)
    QString fromText(tr("From Volume : "));
    fromText += fromVolume;
    fromLabel->setText(fromText);
+   QStringList defFields;
+   if (getDefs(defFields) >= 1) {
+      poolCombo->setCurrentIndex(poolCombo->findText(defFields[1], Qt::MatchExactly));
+      storageCombo->setCurrentIndex(storageCombo->findText(defFields[0], Qt::MatchExactly));
+   }
    this->show();
 }
 
+/*
+ * Use an sql statment to get some defaults
+ */
+int relabelDialog::getDefs(QStringList &fieldlist)
+{
+   QString job, client, fileset;
+   QString query("");
+   query = "SELECT mediatype AS MediaType, pool.name AS PoolName"
+   " FROM media"
+   " LEFT OUTER JOIN pool ON media.poolid = pool.poolid"
+   " WHERE volumename = \'" + m_fromVolume  + "\'";
+   if (mainWin->m_sqlDebug) { Pmsg1(000, "query = %s\n", query.toUtf8().data()); }
+   QStringList results;
+   if (m_console->sql_cmd(query, results)) {
+      QString field;
+      /* Iterate through the lines of results, there should only be one. */
+      foreach (QString resultline, results) {
+         fieldlist = resultline.split("\t");
+      } /* foreach resultline */
+   } /* if results from query */
+   return results.count();
+}
 
 void relabelDialog::accept()
 {
