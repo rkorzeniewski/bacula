@@ -43,6 +43,9 @@ class relabelDialog : public QDialog, public Ui::relabelForm
 public:
    relabelDialog(Console *console, QString &fromVolume);
 
+private:
+   int getDefs(QStringList &fieldlist);
+
 private slots:
    void accept();
    void reject();
