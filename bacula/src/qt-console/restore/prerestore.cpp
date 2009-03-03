@@ -251,7 +251,10 @@ int prerestorePage::jobdefsFromJob(QStringList &fieldlist, QString &jobId)
          fieldlist = resultline.split("\t");
       } /* foreach resultline */
    } /* if results from query */
-   return results.count();
+
+   /* FIXME This should not be getting more than one ever */
+   if(results.count() >= 1) return 1;
+   else return 0;
 }
 
 /*
