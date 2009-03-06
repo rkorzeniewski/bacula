@@ -468,6 +468,10 @@ static int sql_handler(void *ctx, int num_field, char **row)
    UAContext *ua = (UAContext *)ctx;
    POOL_MEM rows(PM_MESSAGE);
 
+   /* Check for nonsense */
+   if (num_field == 0 || row == NULL || row[0] == NULL) {
+      return 0;                       /* nothing returned */
+   }
    for (int i=0; num_field--; i++) {
       if (i == 0) {
          pm_strcpy(rows, NPRT(row[0]));

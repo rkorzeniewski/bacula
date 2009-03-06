@@ -538,7 +538,7 @@ void free_jcr(JCR *jcr)
          num_jobs_run++;
          je = (struct s_last_job *)malloc(sizeof(struct s_last_job));
          memset(je, 0, sizeof(struct s_last_job));  /* zero in case unset fields */
-         je->Errors = jcr->Errors;
+         je->Errors = jcr->JobErrors;
          je->JobType = jcr->get_JobType();
          je->JobId = jcr->JobId;
          je->VolSessionId = jcr->VolSessionId;

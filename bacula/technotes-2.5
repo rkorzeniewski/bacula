@@ -25,6 +25,12 @@ filepattern (restore with regex in bsr)
 mixed priorities
 
 General:
+06Mar09
+kes  Move src/win32/dll to src/win32/lib, which is much more logical.
+kes  Fix the Win32 build.
+kes  Fix broken casting in src/compat/print.cpp.
+kes  Eliminate jcr Errors and always use jcr JobErrors.  This should
+     ensure that SD and FD errors are correctly reported.
 28Feb09
 mvw  Implemented xattr support for Solaris 9 and above and extensible
      attributes for OpenSolaris.

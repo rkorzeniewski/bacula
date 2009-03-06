@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2004-2008 Free Software Foundation Europe e.V.
+   Copyright (C) 2004-2009 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -397,7 +397,7 @@ bool do_migration(JCR *jcr)
    set_jcr_job_status(mig_jcr, JS_Running);
 
    /* Pickup Job termination data */
-   /* Note, the SD stores in jcr->JobFiles/ReadBytes/JobBytes/Errors */
+   /* Note, the SD stores in jcr->JobFiles/ReadBytes/JobBytes/JobErrors */
    wait_for_storage_daemon_termination(jcr);
    set_jcr_job_status(jcr, jcr->SDJobStatus);
    db_write_batch_file_records(jcr);    /* used by bulk batch file insert */
@@ -1210,7 +1210,7 @@ void migration_cleanup(JCR *jcr, int TermCode)
 
       switch (jcr->JobStatus) {
       case JS_Terminated:
-         if (jcr->Errors || jcr->SDErrors) {
+         if (jcr->JobErrors || jcr->SDErrors) {
             term_msg = _("%s OK -- with warnings");
          } else {
             term_msg = _("%s OK");

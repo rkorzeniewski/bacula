@@ -276,7 +276,7 @@ void *handle_client_request(void *dirp)
       /* Send termination status back to Dir */
       dir->fsend(EndJob, jcr->JobStatus, jcr->JobFiles,
                  edit_uint64(jcr->ReadBytes, ed1),
-                 edit_uint64(jcr->JobBytes, ed2), jcr->Errors, jcr->VSS,
+                 edit_uint64(jcr->JobBytes, ed2), jcr->JobErrors, jcr->VSS,
                  jcr->crypto.pki_encrypt);
       Dmsg1(110, "End FD msg: %s\n", dir->msg);
    }
@@ -1491,21 +1491,21 @@ static int backup_cmd(JCR *jcr)
             Jmsg(jcr, M_INFO, 0, _("Generate VSS snapshots. Driver=\"%s\", Drive(s)=\"%s\"\n"), g_pVSSClient->GetDriverName(), szWinDriveLetters);
             if (!g_pVSSClient->CreateSnapshots(szWinDriveLetters)) {               
                Jmsg(jcr, M_WARNING, 0, _("Generate VSS snapshots failed.\n"));
-               jcr->Errors++;
+               jcr->JobErrors++;
             } else {
                /* tell user if snapshot creation of a specific drive failed */
                int i;
                for (i=0; i < (int)strlen(szWinDriveLetters); i++) {
                   if (islower(szWinDriveLetters[i])) {
                      Jmsg(jcr, M_WARNING, 0, _("Generate VSS snapshot of drive \"%c:\\\" failed. VSS support is disabled on this drive.\n"), szWinDriveLetters[i]);
-                     jcr->Errors++;
+                     jcr->JobErrors++;
                   }
                }
                /* inform user about writer states */
                for (i=0; i < (int)g_pVSSClient->GetWriterCount(); i++)                
                   if (g_pVSSClient->GetWriterState(i) < 1) {
                      Jmsg(jcr, M_WARNING, 0, _("VSS Writer (PrepareForBackup): %s\n"), g_pVSSClient->GetWriterInfo(i));                    
-                     jcr->Errors++;
+                     jcr->JobErrors++;
                   }                            
             }
         } else {
@@ -1584,7 +1584,7 @@ cleanup:
             int msg_type = M_INFO;
             if (g_pVSSClient->GetWriterState(i) < 1) {
                msg_type = M_WARNING;
-               jcr->Errors++;
+               jcr->JobErrors++;
             }
             Jmsg(jcr, msg_type, 0, _("VSS Writer (BackupComplete): %s\n"), g_pVSSClient->GetWriterInfo(i));
          }
@@ -1770,7 +1770,7 @@ static int restore_cmd(JCR *jcr)
 
 bail_out:
 
-   if (jcr->Errors) {
+   if (jcr->JobErrors) {
       set_jcr_job_status(jcr, JS_ErrorTerminated);
    }
 

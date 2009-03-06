@@ -1144,7 +1144,7 @@ Jmsg(JCR *jcr, int type, utime_t mtime, const char *fmt,...)
     case M_ERROR:
        len = bsnprintf(rbuf, sizeof(rbuf), _("%s JobId %u: Error: "), my_name, JobId);
        if (jcr) {
-          jcr->Errors++;
+          jcr->JobErrors++;
        }
        break;
     case M_WARNING:

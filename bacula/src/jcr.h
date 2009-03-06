@@ -209,11 +209,10 @@ public:
    uint32_t VolSessionId;
    uint32_t VolSessionTime;
    uint32_t JobFiles;                 /* Number of files written, this job */
-   uint32_t JobErrors;                /* */
+   uint32_t JobErrors;                /* Number of non-fatal errors this job */
    uint64_t JobBytes;                 /* Number of bytes processed this job */
    uint64_t ReadBytes;                /* Bytes read -- before compression */
    FileId_t FileId;                   /* Last FileId used */
-   uint32_t Errors;                   /* Number of non-fatal errors */
    volatile int32_t JobStatus;        /* ready, running, blocked, terminated */
    int32_t JobPriority;               /* Job priority */
    time_t sched_time;                 /* job schedule time, i.e. when it should start */
