@@ -244,8 +244,8 @@ static bool generic_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt, int stream)
 {
    int count = 0;
    int32_t xattr_list_len,
-           xattr_value_len,
-           expected_serialize_len = 0;
+           xattr_value_len;
+   uint32_t expected_serialize_len = 0;
    char *xattr_list, *bp;
    xattr_t *xattr_value_list, *current_xattr;
 

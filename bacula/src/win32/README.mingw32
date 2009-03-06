@@ -222,7 +222,7 @@ Exporting functions is now more or less automated.  If you find that
 a function name has been added, changed, or an argument modified,    
 simply do the following:
 
-   cd .../bacula/src/win32/dll 
+   cd .../bacula/src/win32/lib
    make                  (to build the .o files, note the link will fail)
    ./make_def >bacula.def
 
@@ -237,24 +237,24 @@ If you want to do it manually, please see below:
 Exporting a function requires a bit more work.  You must determine the
 C++ mangled name of the new function.
 
-   strings .../bacula/src/win32/dll/<file>.o | grep <symbol>
+   strings .../bacula/src/win32/lib/<file>.o | grep <symbol>
 
 Note, strings often will not show the desired symbol. In that case,
 use:
    
-   nm .../bacula/src/win32/dll/<file>.o
+   nm .../bacula/src/win32/lib/<file>.o
 
 Replace <file> with the base part of the name of the source code file
 which contains the new function.  Replace <symbol> with the name of
 the new function.  Remove the leading underscore and place the result
 in the file
 
-   .../bacula/src/win32/dll/bacula.def
+   .../bacula/src/win32/lib/bacula.def
 === end manual changing of bacula.def ==========
 
 If you add a new file, you will need to specify its name in
 
-   .../bacula/src/win32/dll/Makefile
+   .../bacula/src/win32/lib/Makefile
 and
    .../bacula/src/win32/libbac/Makefile
 
@@ -299,7 +299,7 @@ C++ mangled name of the new function.
 Note, strings often will not show the desired symbol. In that case,
 use:
 
-   nm .../bacula/src/win32/dll/<file>.o
+   nm .../bacula/src/win32/lib/<file>.o
 
 Replace <file> with the base part of the name of the source code file
 which contains the new function.  Replace <symbol> with the name of

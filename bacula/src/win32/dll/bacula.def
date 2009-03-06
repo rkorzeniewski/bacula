@@ -84,7 +84,7 @@ _Z17InitWinAPIWrapperv
  
 ; attribs.o
 _Z11decode_statPcP4statPi
-_Z11encode_statPcP6FF_PKTi
+_Z11encode_statPcP4statii
 _Z13decode_LinkFIPcP4stat
 _Z14set_attributesP3JCRP4ATTRP5BFILE
 _Z16encode_attribsExP3JCRPcP6FF_PKT

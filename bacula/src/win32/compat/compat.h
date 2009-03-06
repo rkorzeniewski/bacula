@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2004-2008 Free Software Foundation Europe e.V.
+   Copyright (C) 2004-2009 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -57,6 +57,10 @@
 
 #include <malloc.h>
 
+#ifndef INT64
+#define INT64 long long int
+#endif
+
 typedef UINT64 u_int64_t;
 typedef UINT64 uint64_t;
 typedef INT64 int64_t;
@@ -67,6 +71,7 @@ typedef unsigned short uint16_t;
 typedef signed short int16_t;
 typedef signed char int8_t;
 typedef int __daddr_t;
+
 #if !defined(HAVE_MINGW)
 typedef long int32_t;
 typedef float float32_t;

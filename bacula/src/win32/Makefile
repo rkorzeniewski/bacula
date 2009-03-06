@@ -1,6 +1,6 @@
 ECHO_CMD=@
 
-DIRS=	dll \
+DIRS=	lib \
 	cats \
 	filed \
 	filed/plugins \

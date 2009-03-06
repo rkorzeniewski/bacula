@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2008 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2009 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -367,21 +367,21 @@ int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
       berrno be;
       Jmsg(jcr, M_NOTSAVED, 0, _("     Could not access \"%s\": ERR=%s\n"), ff_pkt->fname,
          be.bstrerror(ff_pkt->ff_errno));
-      jcr->Errors++;
+      jcr->JobErrors++;
       return 1;
    }
    case FT_NOFOLLOW: {
       berrno be;
       Jmsg(jcr, M_NOTSAVED, 0, _("     Could not follow link \"%s\": ERR=%s\n"), 
            ff_pkt->fname, be.bstrerror(ff_pkt->ff_errno));
-      jcr->Errors++;
+      jcr->JobErrors++;
       return 1;
    }
    case FT_NOSTAT: {
       berrno be;
       Jmsg(jcr, M_NOTSAVED, 0, _("     Could not stat \"%s\": ERR=%s\n"), ff_pkt->fname,
          be.bstrerror(ff_pkt->ff_errno));
-      jcr->Errors++;
+      jcr->JobErrors++;
       return 1;
    }
    case FT_DIRNOCHG:
@@ -395,13 +395,13 @@ int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
       berrno be;
       Jmsg(jcr, M_NOTSAVED, 0, _("     Could not open directory \"%s\": ERR=%s\n"), 
            ff_pkt->fname, be.bstrerror(ff_pkt->ff_errno));
-      jcr->Errors++;
+      jcr->JobErrors++;
       return 1;
    }
    default:
       Jmsg(jcr, M_NOTSAVED, 0,  _("     Unknown file type %d; not saved: %s\n"), 
            ff_pkt->type, ff_pkt->fname);
-      jcr->Errors++;
+      jcr->JobErrors++;
       return 1;
    }
 
@@ -455,7 +455,7 @@ int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
          if (signing_digest == NULL) {
             Jmsg(jcr, M_NOTSAVED, 0, _("%s signature digest initialization failed\n"),
                stream_to_ascii(signing_algorithm));
-            jcr->Errors++;
+            jcr->JobErrors++;
             goto good_rtn;
          }
       }
@@ -527,7 +527,7 @@ int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
          berrno be;
          Jmsg(jcr, M_NOTSAVED, 0, _("     Cannot open \"%s\": ERR=%s.\n"), ff_pkt->fname,
               be.bstrerror());
-         jcr->Errors++;
+         jcr->JobErrors++;
          if (tid) {
             stop_thread_timer(tid);
             tid = NULL;
@@ -564,7 +564,7 @@ int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
             berrno be;
             Jmsg(jcr, M_NOTSAVED, -1, _("     Cannot open resource fork for \"%s\": ERR=%s.\n"), 
                  ff_pkt->fname, be.bstrerror());
-            jcr->Errors++;
+            jcr->JobErrors++;
             if (is_bopen(&ff_pkt->bfd)) {
                bclose(&ff_pkt->bfd);
             }
@@ -977,7 +977,7 @@ static int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest,
       berrno be;
       Jmsg(jcr, M_ERROR, 0, _("Read error on file %s. ERR=%s\n"),
          ff_pkt->fname, be.bstrerror(ff_pkt->bfd.berrno));
-      if (jcr->Errors++ > 1000) {       /* insanity check */
+      if (jcr->JobErrors++ > 1000) {       /* insanity check */
          Jmsg(jcr, M_FATAL, 0, _("Too many errors.\n"));
       }
    } else if (ff_pkt->flags & FO_ENCRYPT) {

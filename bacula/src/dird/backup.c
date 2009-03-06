@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2008 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2009 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -348,7 +348,7 @@ int wait_for_job_termination(JCR *jcr, int timeout)
    int32_t n = 0;
    BSOCK *fd = jcr->file_bsock;
    bool fd_ok = false;
-   uint32_t JobFiles, Errors;
+   uint32_t JobFiles, JobErrors;
    uint64_t ReadBytes = 0;
    uint64_t JobBytes = 0;
    int VSS = 0;
@@ -365,9 +365,9 @@ int wait_for_job_termination(JCR *jcr, int timeout)
       while ((n = bget_dirmsg(fd)) >= 0) {
          if (!fd_ok && 
              (sscanf(fd->msg, EndJob, &jcr->FDJobStatus, &JobFiles,
-                     &ReadBytes, &JobBytes, &Errors, &VSS, &Encrypt) == 7 ||
+                     &ReadBytes, &JobBytes, &JobErrors, &VSS, &Encrypt) == 7 ||
               sscanf(fd->msg, OldEndJob, &jcr->FDJobStatus, &JobFiles,
-                     &ReadBytes, &JobBytes, &Errors) == 5)) {
+                     &ReadBytes, &JobBytes, &JobErrors) == 5)) {
             fd_ok = true;
             set_jcr_job_status(jcr, jcr->FDJobStatus);
             Dmsg1(100, "FDStatus=%c\n", (char)jcr->JobStatus);
@@ -395,13 +395,13 @@ int wait_for_job_termination(JCR *jcr, int timeout)
       cancel_storage_daemon_job(jcr);
    }
 
-   /* Note, the SD stores in jcr->JobFiles/ReadBytes/JobBytes/Errors */
+   /* Note, the SD stores in jcr->JobFiles/ReadBytes/JobBytes/JobErrors */
    wait_for_storage_daemon_termination(jcr);
 
    /* Return values from FD */
    if (fd_ok) {
       jcr->JobFiles = JobFiles;
-      jcr->Errors = Errors;
+      jcr->JobErrors += JobErrors;       /* Keep total errors */
       jcr->ReadBytes = ReadBytes;
       jcr->JobBytes = JobBytes;
       jcr->VSS = VSS;
@@ -476,7 +476,7 @@ void backup_cleanup(JCR *jcr, int TermCode)
 
    switch (jcr->JobStatus) {
       case JS_Terminated:
-         if (jcr->Errors || jcr->SDErrors) {
+         if (jcr->JobErrors || jcr->SDErrors) {
             term_msg = _("Backup OK -- with warnings");
          } else {
             term_msg = _("Backup OK");
@@ -608,7 +608,7 @@ void backup_cleanup(JCR *jcr, int TermCode)
         jcr->VolSessionTime,
         edit_uint64_with_commas(mr.VolBytes, ec7),
         edit_uint64_with_suffix(mr.VolBytes, ec8),
-        jcr->Errors,
+        jcr->JobErrors,
         jcr->SDErrors,
         fd_term_msg,
         sd_term_msg,
