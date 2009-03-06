@@ -68,10 +68,10 @@ int relabelDialog::getDefs(QStringList &fieldlist)
 {
    QString job, client, fileset;
    QString query("");
-   query = "SELECT mediatype AS MediaType, pool.name AS PoolName"
-   " FROM media"
-   " LEFT OUTER JOIN pool ON media.poolid = pool.poolid"
-   " WHERE volumename = \'" + m_fromVolume  + "\'";
+   query = "SELECT MediaType AS MediaType, Pool.Name AS PoolName"
+   " FROM Media"
+   " LEFT OUTER JOIN Pool ON Media.PoolId = Pool.PoolId"
+   " WHERE VolumeName = \'" + m_fromVolume  + "\'";
    if (mainWin->m_sqlDebug) { Pmsg1(000, "query = %s\n", query.toUtf8().data()); }
    QStringList results;
    if (m_console->sql_cmd(query, results)) {
