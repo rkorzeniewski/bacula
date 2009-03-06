@@ -64,7 +64,7 @@ static char OK_device[]  = "3000 OK use device device=%s\n";
 /* Storage Daemon requests */
 static char Job_start[]  = "3010 Job %127s start\n";
 static char Job_end[]    =
-   "3099 Job %127s end JobStatus=%d JobFiles=%d JobBytes=%" lld "\n";
+   "3099 Job %127s end JobStatus=%d JobFiles=%d JobBytes=%lld JobErrors=%u\n";
 
 /* Forward referenced functions */
 extern "C" void *msg_thread(void *arg);
@@ -361,9 +361,8 @@ extern "C" void *msg_thread(void *arg)
    BSOCK *sd;
    int JobStatus;
    char Job[MAX_NAME_LENGTH];
-   uint32_t JobFiles;
+   uint32_t JobFiles, JobErrors;
    uint64_t JobBytes;
-   int stat;
 
    pthread_detach(pthread_self());
    set_jcr_in_tsd(jcr);
@@ -379,14 +378,15 @@ extern "C" void *msg_thread(void *arg)
       if (sscanf(sd->msg, Job_start, Job) == 1) {
          continue;
       }
-      if ((stat=sscanf(sd->msg, Job_end, Job, &JobStatus, &JobFiles,
-                 &JobBytes)) == 4) {
+      if (sscanf(sd->msg, Job_end, Job, &JobStatus, &JobFiles,
+                 &JobBytes, &JobErrors) == 5) {
          jcr->SDJobStatus = JobStatus; /* termination status */
          jcr->SDJobFiles = JobFiles;
          jcr->SDJobBytes = JobBytes;
+         jcr->SDErrors = JobErrors;
          break;
       }
-      Dmsg2(400, "end loop stat=%d use=%d\n", stat, jcr->use_count());
+      Dmsg1(400, "end loop use=%d\n", jcr->use_count());
    }
    if (is_bnet_error(sd)) {
       jcr->SDJobStatus = JS_ErrorTerminated;

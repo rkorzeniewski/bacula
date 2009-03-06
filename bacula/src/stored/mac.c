@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2006-2008 Free Software Foundation Europe e.V.
+   Copyright (C) 2006-2009 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -174,7 +174,7 @@ ok_out:
    }
    generate_daemon_event(jcr, "JobEnd");
    dir->fsend(Job_end, jcr->Job, jcr->JobStatus, jcr->JobFiles,
-      edit_uint64(jcr->JobBytes, ec1));
+      edit_uint64(jcr->JobBytes, ec1), jcr->JobErrors);
    Dmsg4(100, Job_end, jcr->Job, jcr->JobStatus, jcr->JobFiles, ec1); 
        
    dir->signal(BNET_EOD);             /* send EOD to Director daemon */
