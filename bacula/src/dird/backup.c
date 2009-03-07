@@ -349,6 +349,7 @@ int wait_for_job_termination(JCR *jcr, int timeout)
    BSOCK *fd = jcr->file_bsock;
    bool fd_ok = false;
    uint32_t JobFiles, JobErrors;
+   uint32_t JobWarnings = 0;
    uint64_t ReadBytes = 0;
    uint64_t JobBytes = 0;
    int VSS = 0;
@@ -404,6 +405,7 @@ int wait_for_job_termination(JCR *jcr, int timeout)
       jcr->JobErrors += JobErrors;       /* Keep total errors */
       jcr->ReadBytes = ReadBytes;
       jcr->JobBytes = JobBytes;
+      jcr->JobWarnings = JobWarnings;
       jcr->VSS = VSS;
       jcr->Encrypt = Encrypt;
    } else {
@@ -481,6 +483,9 @@ void backup_cleanup(JCR *jcr, int TermCode)
          } else {
             term_msg = _("Backup OK");
          }
+         break;
+      case JS_Warnings:
+         term_msg = _("Backup OK -- with warnings");
          break;
       case JS_FatalError:
       case JS_ErrorTerminated:

@@ -450,11 +450,11 @@ void close_msg(JCR *jcr)
             }
             if (
                 (d->dest_code == MD_MAIL_ON_ERROR && jcr &&
-                 jcr->JobStatus == JS_Terminated) 
+                  (jcr->JobStatus == JS_Terminated || jcr->JobStatus == JS_Warnings)) 
                 ||
                 (d->dest_code == MD_MAIL_ON_SUCCESS && jcr &&
                  jcr->JobStatus == JS_ErrorTerminated)
-                ){
+                ) {
                goto rem_temp_file;
             }
 
@@ -1149,6 +1149,9 @@ Jmsg(JCR *jcr, int type, utime_t mtime, const char *fmt,...)
        break;
     case M_WARNING:
        len = bsnprintf(rbuf, sizeof(rbuf), _("%s JobId %u: Warning: "), my_name, JobId);
+       if (jcr) {
+          jcr->JobWarnings++;
+       }
        break;
     case M_SECURITY:
        len = bsnprintf(rbuf, sizeof(rbuf), _("%s JobId %u: Security violation: "), 

@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2008 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2009 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -74,6 +74,7 @@
 #define JS_Running               'R'  /* running */
 #define JS_Blocked               'B'  /* blocked */
 #define JS_Terminated            'T'  /* terminated normally */
+#define JS_Warnings              'W'  /* Terminated normally with warnings */
 #define JS_ErrorTerminated       'E'  /* Job terminated in error */
 #define JS_Error                 'e'  /* Non-fatal error */
 #define JS_FatalError            'f'  /* Fatal error */
@@ -210,6 +211,7 @@ public:
    uint32_t VolSessionTime;
    uint32_t JobFiles;                 /* Number of files written, this job */
    uint32_t JobErrors;                /* Number of non-fatal errors this job */
+   uint32_t JobWarnings;              /* Number of warning messages */
    uint64_t JobBytes;                 /* Number of bytes processed this job */
    uint64_t ReadBytes;                /* Bytes read -- before compression */
    FileId_t FileId;                   /* Last FileId used */

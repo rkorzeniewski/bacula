@@ -157,7 +157,8 @@ int run_scripts(JCR *jcr, alist *runscripts, const char *label)
       }
 
       if ((script->when & SCRIPT_After) && (when & SCRIPT_After)) {
-         if ((script->on_success && (jcr->JobStatus == JS_Terminated))
+         if ((script->on_success &&
+              (jcr->JobStatus == JS_Terminated || jcr->JobStatus == JS_Warnings))
              || (script->on_failure && job_canceled(jcr))
             )
          {

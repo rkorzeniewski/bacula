@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2008 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2009 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -195,6 +195,9 @@ void jobstatus_to_ascii(int JobStatus, char *msg, int maxlen)
    case JS_Error:
       jobstat = _("Non-fatal error");
       break;
+   case JS_Warnings:
+      jobstat = _("OK -- with warnings");
+      break;
    case JS_Canceled:
       jobstat = _("Canceled");
       break;
@@ -266,6 +269,9 @@ void jobstatus_to_ascii_gui(int JobStatus, char *msg, int maxlen)
    case JS_Terminated:
       cnv = _("Completed successfully");
       break;
+   case JS_Warnings:
+      cnv = _("Completed with warnings");
+      break;
    case JS_ErrorTerminated:
       cnv = _("Terminated with errors");
       break;
@@ -298,7 +304,7 @@ void jobstatus_to_ascii_gui(int JobStatus, char *msg, int maxlen)
    if (cnv) {
       bstrncpy(msg, cnv, maxlen);
    } else {
-     jobstatus_to_ascii( JobStatus, msg, maxlen);
+     jobstatus_to_ascii(JobStatus, msg, maxlen);
    }
 }
 
@@ -313,6 +319,9 @@ const char *job_status_to_str(int stat)
    switch (stat) {
    case JS_Terminated:
       str = _("OK");
+      break;
+   case JS_Warnings:
+      str = _("OK -- with warnings");
       break;
    case JS_ErrorTerminated:
    case JS_Error:

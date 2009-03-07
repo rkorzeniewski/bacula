@@ -16,7 +16,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2004-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2004-2009 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -66,7 +66,7 @@
  */
 class wxbArrayString: public wxArrayString, public wxObject {
    public:
-      wxbArrayString(int n = 1);
+      wxbArrayString(int n = 2000);
       virtual ~wxbArrayString();
 };
 
