@@ -570,11 +570,11 @@ int select_media_dbr(UAContext *ua, MEDIA_DBR *mr)
       }
       mr->PoolId = pr.PoolId;
       db_list_media_records(ua->jcr, ua->db, mr, prtit, ua, HORZ_LIST);
-      if (!get_cmd(ua, _("Enter MediaId or Volume name: "))) {
+      if (!get_cmd(ua, _("Enter *MediaId or Volume name: "))) {
          return 0;
       }
-      if (is_a_number(ua->cmd)) {
-         mr->MediaId = str_to_int64(ua->cmd);
+      if (ua->cmd[0] == '*' && is_a_number(ua->cmd+1)) {
+         mr->MediaId = str_to_int64(ua->cmd+1);
       } else {
          bstrncpy(mr->VolumeName, ua->cmd, sizeof(mr->VolumeName));
       }
