@@ -1167,6 +1167,9 @@ static int update_job_record(B_DB *db, JOB_DBR *jr, SESSION_LABEL *elabel,
       case JS_Terminated:
          term_msg = _("Backup OK");
          break;
+      case JS_Warnings:
+         term_msg = _("Backup OK -- with warnings");
+         break;
       case JS_FatalError:
       case JS_ErrorTerminated:
          term_msg = _("*** Backup Error ***");

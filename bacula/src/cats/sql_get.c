@@ -121,7 +121,7 @@ int db_get_file_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr, FILE_DBR *fdbr)
       Mmsg(mdb->cmd,
 "SELECT FileId, LStat, MD5 FROM File,Job WHERE "
 "File.JobId=Job.JobId AND File.PathId=%s AND "
-"File.FilenameId=%s AND Job.Type='B' AND Job.JobStatus='T' AND "
+"File.FilenameId=%s AND Job.Type='B' AND Job.JobStatus IN ('T','W') AND "
 "ClientId=%s ORDER BY StartTime DESC LIMIT 1",
       edit_int64(fdbr->PathId, ed1), 
       edit_int64(fdbr->FilenameId, ed2), 
@@ -1111,7 +1111,7 @@ bool db_accurate_get_jobids(JCR *jcr, B_DB *mdb,
  "SELECT JobId, StartTime, EndTime, JobTDate, PurgedFiles "
    "FROM Job JOIN FileSet USING (FileSetId) "
   "WHERE ClientId = %s "
-    "AND Level='F' AND JobStatus='T' AND Type='B' "
+    "AND Level='F' AND JobStatus IN ('T','W') AND Type='B' "
     "AND StartTime<'%s' "
     "AND FileSet.FileSet=(SELECT FileSet FROM FileSet WHERE FileSetId = %s) "
   "ORDER BY Job.JobTDate DESC LIMIT 1",
@@ -1131,7 +1131,7 @@ bool db_accurate_get_jobids(JCR *jcr, B_DB *mdb,
  "SELECT JobId, StartTime, EndTime, JobTDate, PurgedFiles "
    "FROM Job JOIN FileSet USING (FileSetId) "
   "WHERE ClientId = %s "
-    "AND Level='D' AND JobStatus='T' AND Type='B' "
+    "AND Level='D' AND JobStatus IN ('T','W') AND Type='B' "
     "AND StartTime > (SELECT EndTime FROM btemp3%s ORDER BY EndTime DESC LIMIT 1) "
     "AND FileSet.FileSet= (SELECT FileSet FROM FileSet WHERE FileSetId = %s) "
   "ORDER BY Job.JobTDate DESC LIMIT 1 ",
@@ -1150,7 +1150,7 @@ bool db_accurate_get_jobids(JCR *jcr, B_DB *mdb,
  "SELECT JobId, StartTime, EndTime, JobTDate, PurgedFiles "
    "FROM Job JOIN FileSet USING (FileSetId) "
   "WHERE ClientId = %s "
-    "AND Level='I' AND JobStatus='T' AND Type='B' "
+    "AND Level='I' AND JobStatus IN ('T','W') AND Type='B' "
     "AND StartTime > (SELECT EndTime FROM btemp3%s ORDER BY EndTime DESC LIMIT 1) "
     "AND FileSet.FileSet= (SELECT FileSet FROM FileSet WHERE FileSetId = %s) "
   "ORDER BY Job.JobTDate DESC ",

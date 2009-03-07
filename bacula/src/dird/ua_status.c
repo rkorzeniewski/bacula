@@ -651,6 +651,9 @@ static void list_running_jobs(UAContext *ua)
       case JS_Terminated:
          msg = _("has terminated");
          break;
+      case JS_Warnings:
+         msg = _("has terminated with warnings");
+         break;
       case JS_ErrorTerminated:
          msg = _("has erred");
          break;
@@ -859,6 +862,9 @@ static void list_terminated_jobs(UAContext *ua)
          break;
       case JS_Terminated:
          termstat = _("OK");
+         break;
+      case JS_Warnings:
+         termstat = _("OK -- with warnings");
          break;
       default:
          termstat = _("Other");

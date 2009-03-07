@@ -162,7 +162,8 @@ bool do_verify(JCR *jcr)
               db_strerror(jcr->db));
          return false;
       }
-      if (jcr->previous_jr.JobStatus != 'T') {
+      if (!(jcr->previous_jr.JobStatus == JS_Terminated ||
+            jcr->previous_jr.JobStatus == JS_Warnings)) {
          Jmsg(jcr, M_FATAL, 0, _("Last Job %d did not terminate normally. JobStatus=%c\n"),
             verify_jobid, jcr->previous_jr.JobStatus);
          return false;

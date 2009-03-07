@@ -77,7 +77,7 @@ db_find_job_start_time(JCR *jcr, B_DB *mdb, JOB_DBR *jr, POOLMEM **stime)
    if (jr->JobId == 0) {
          /* Differential is since last Full backup */
          Mmsg(mdb->cmd,
-"SELECT StartTime FROM Job WHERE JobStatus='T' AND Type='%c' AND "
+"SELECT StartTime FROM Job WHERE JobStatus IN ('T','W') AND Type='%c' AND "
 "Level='%c' AND Name='%s' AND ClientId=%s AND FileSetId=%s "
 "ORDER BY StartTime DESC LIMIT 1",
            jr->JobType, L_FULL, jr->Name, 
@@ -107,7 +107,7 @@ db_find_job_start_time(JCR *jcr, B_DB *mdb, JOB_DBR *jr, POOLMEM **stime)
          sql_free_result(mdb);
          /* Now edit SQL command for Incremental Job */
          Mmsg(mdb->cmd,
-"SELECT StartTime FROM Job WHERE JobStatus='T' AND Type='%c' AND "
+"SELECT StartTime FROM Job WHERE JobStatus IN ('T','W') AND Type='%c' AND "
 "Level IN ('%c','%c','%c') AND Name='%s' AND ClientId=%s "
 "AND FileSetId=%s ORDER BY StartTime DESC LIMIT 1",
             jr->JobType, L_INCREMENTAL, L_DIFFERENTIAL, L_FULL, jr->Name,
@@ -168,7 +168,7 @@ db_find_last_job_start_time(JCR *jcr, B_DB *mdb, JOB_DBR *jr, POOLMEM **stime, i
    pm_strcpy(stime, "0000-00-00 00:00:00");   /* default */
 
    Mmsg(mdb->cmd,
-"SELECT StartTime FROM Job WHERE JobStatus='T' AND Type='%c' AND "
+"SELECT StartTime FROM Job WHERE JobStatus IN ('T','W') AND Type='%c' AND "
 "Level='%c' AND Name='%s' AND ClientId=%s AND FileSetId=%s "
 "ORDER BY StartTime DESC LIMIT 1",
       jr->JobType, JobLevel, jr->Name, 
@@ -257,7 +257,7 @@ db_find_last_jobid(JCR *jcr, B_DB *mdb, const char *Name, JOB_DBR *jr)
    if (jr->JobLevel == L_VERIFY_CATALOG) {
       Mmsg(mdb->cmd,
 "SELECT JobId FROM Job WHERE Type='V' AND Level='%c' AND "
-" JobStatus='T' AND Name='%s' AND "
+" JobStatus IN ('T','W') AND Name='%s' AND "
 "ClientId=%s ORDER BY StartTime DESC LIMIT 1",
            L_VERIFY_INIT, jr->Name, 
            edit_int64(jr->ClientId, ed1));
@@ -266,11 +266,11 @@ db_find_last_jobid(JCR *jcr, B_DB *mdb, const char *Name, JOB_DBR *jr)
               jr->JobType == JT_BACKUP) {
       if (Name) {
          Mmsg(mdb->cmd,
-"SELECT JobId FROM Job WHERE Type='B' AND JobStatus='T' AND "
+"SELECT JobId FROM Job WHERE Type='B' AND JobStatus IN ('T','W') AND "
 "Name='%s' ORDER BY StartTime DESC LIMIT 1", Name);
       } else {
          Mmsg(mdb->cmd,
-"SELECT JobId FROM Job WHERE Type='B' AND JobStatus='T' AND "
+"SELECT JobId FROM Job WHERE Type='B' AND JobStatus IN ('T','W') AND "
 "ClientId=%s ORDER BY StartTime DESC LIMIT 1", 
            edit_int64(jr->ClientId, ed1));
       }
@@ -342,7 +342,7 @@ db_find_next_volume(JCR *jcr, B_DB *mdb, int item, bool InChanger, MEDIA_DBR *mr
       /* Find next available volume */
       if (InChanger) {
          Mmsg(changer, "AND InChanger=1 AND StorageId=%s",
-	      edit_int64(mr->StorageId, ed1));
+              edit_int64(mr->StorageId, ed1));
       }
       if (strcmp(mr->VolStatus, "Recycle") == 0 ||
           strcmp(mr->VolStatus, "Purged") == 0) {

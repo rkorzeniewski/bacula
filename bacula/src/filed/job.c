@@ -1530,8 +1530,8 @@ static int backup_cmd(JCR *jcr)
       Dmsg0(110, "Error in blast_data.\n");
    } else {
       set_jcr_job_status(jcr, JS_Terminated);
-
-      if (jcr->JobStatus != JS_Terminated) {
+      /* Note, the above set status will not override an error */
+      if (!(jcr->JobStatus == JS_Terminated || jcr->JobStatus == JS_Warnings)) {
          bnet_suppress_error_messages(sd, 1);
          goto cleanup;                /* bail out now */
       }
@@ -1567,7 +1567,7 @@ static int backup_cmd(JCR *jcr)
          Jmsg(jcr, M_FATAL, 0, _("Append Close with SD failed.\n"));
          goto cleanup;
       }
-      if (SDJobStatus != JS_Terminated) {
+      if (!(SDJobStatus == JS_Terminated || SDJobStatus == JS_Warnings)) {
          Jmsg(jcr, M_FATAL, 0, _("Bad status %d returned from Storage Daemon.\n"),
             SDJobStatus);
       }

@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2008 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2009 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -320,7 +320,7 @@ static int do_list_cmd(UAContext *ua, const char *cmd, e_list_type llist)
 
       /* List JOBMEDIA */
       } else if (strcasecmp(ua->argk[i], NT_("jobmedia")) == 0) {
-         int done = FALSE;
+         bool done = false;
          for (j=i+1; j<ua->argc; j++) {
             if (strcasecmp(ua->argk[j], NT_("ujobid")) == 0 && ua->argv[j]) {
                bstrncpy(jr.Job, ua->argv[j], MAX_NAME_LENGTH);
@@ -333,7 +333,7 @@ static int do_list_cmd(UAContext *ua, const char *cmd, e_list_type llist)
                continue;
             }
             db_list_jobmedia_records(ua->jcr, ua->db, jobid, prtit, ua, llist);
-            done = TRUE;
+            done = true;
          }
          if (!done) {
             /* List for all jobs (jobid=0) */
@@ -342,7 +342,7 @@ static int do_list_cmd(UAContext *ua, const char *cmd, e_list_type llist)
 
       /* List JOBLOG */
       } else if (strcasecmp(ua->argk[i], NT_("joblog")) == 0) {
-         int done = FALSE;
+         bool done = false;
          for (j=i+1; j<ua->argc; j++) {
             if (strcasecmp(ua->argk[j], NT_("ujobid")) == 0 && ua->argv[j]) {
                bstrncpy(jr.Job, ua->argv[j], MAX_NAME_LENGTH);
@@ -355,7 +355,7 @@ static int do_list_cmd(UAContext *ua, const char *cmd, e_list_type llist)
                continue;
             }
             db_list_joblog_records(ua->jcr, ua->db, jobid, prtit, ua, llist);
-            done = TRUE;
+            done = true;
          }
          if (!done) {
             /* List for all jobs (jobid=0) */

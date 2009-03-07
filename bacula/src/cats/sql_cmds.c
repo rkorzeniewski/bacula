@@ -60,7 +60,7 @@ const char *fill_jobhisto =
            "JobErrors, JobMissingFiles, PoolId, FileSetId, PriorJobId, "
            "PurgedFiles, HasBase "
           "FROM Job "
-         "WHERE JobStatus IN ('T', 'f', 'A', 'E') "
+         "WHERE JobStatus IN ('T','W','f','A','E') "
            "AND JobId NOT IN (SELECT JobId FROM JobHisto) "
            "AND JobTDate < %s ";
 
@@ -75,7 +75,7 @@ const char *client_backups =
    " WHERE Client.Name='%s'"
    " AND FileSet='%s'"
    " AND Client.ClientId=Job.ClientId"
-   " AND JobStatus='T' AND Type='B'" 
+   " AND JobStatus IN ('T','W') AND Type='B'" 
    " AND JobMedia.JobId=Job.JobId AND JobMedia.MediaId=Media.MediaId"
    " AND Job.FileSetId=FileSet.FileSetId"
    " ORDER BY Job.StartTime";
@@ -139,10 +139,10 @@ const char *select_backup_del =
    "SELECT DISTINCT DelCandidates.JobId,DelCandidates.PurgedFiles "
    "FROM Job,DelCandidates "
    "WHERE (Job.JobTDate<%s AND ((DelCandidates.JobFiles=0) OR "
-   "(DelCandidates.JobStatus!='T'))) OR "
+   "(DelCandidates.JobStatus NOT IN ('T','W')))) OR "
    "(Job.JobTDate>%s "
    "AND Job.ClientId=%s "
-   "AND Job.Level='F' AND Job.JobStatus='T' AND Job.Type IN ('B','M') "
+   "AND Job.Level='F' AND Job.JobStatus IN ('T','W') AND Job.Type IN ('B','M') "
    "AND Job.FileSetId=DelCandidates.FileSetId)";
 
 /* Select Jobs from the DelCandidates table that have a
@@ -152,10 +152,10 @@ const char *select_backup_del =
 const char *select_verify_del =
    "SELECT DISTINCT DelCandidates.JobId,DelCandidates.PurgedFiles "
    "FROM Job,DelCandidates "
-   "WHERE (Job.JobTdate<%s AND DelCandidates.JobStatus!='T') OR "
+   "WHERE (Job.JobTdate<%s AND DelCandidates.JobStatus NOT IN ('T','W')) OR "
    "(Job.JobTDate>%s "
    "AND Job.ClientId=%s "
-   "AND Job.Type='V' AND Job.Level='V' AND Job.JobStatus='T' "
+   "AND Job.Type='V' AND Job.Level='V' AND Job.JobStatus IN ('T','W') "
    "AND Job.FileSetId=DelCandidates.FileSetId)";
 
 
@@ -165,7 +165,7 @@ const char *select_verify_del =
 const char *select_restore_del =
    "SELECT DISTINCT DelCandidates.JobId,DelCandidates.PurgedFiles "
    "FROM Job,DelCandidates "
-   "WHERE (Job.JobTdate<%s AND DelCandidates.JobStatus!='T') OR "
+   "WHERE (Job.JobTdate<%s AND DelCandidates.JobStatus NOT IN ('T','W')) OR "
    "(Job.JobTDate>%s "
    "AND Job.ClientId=%s "
    "AND Job.Type='R')";
@@ -176,7 +176,7 @@ const char *select_restore_del =
 const char *select_admin_del =
    "SELECT DISTINCT DelCandidates.JobId,DelCandidates.PurgedFiles "
    "FROM Job,DelCandidates "
-   "WHERE (Job.JobTdate<%s AND DelCandidates.JobStatus!='T') OR "
+   "WHERE (Job.JobTdate<%s AND DelCandidates.JobStatus NOT IN ('T','W')) OR "
    "(Job.JobTDate>%s "
    "AND Job.ClientId=%s "
    "AND Job.Type='D')";
@@ -188,7 +188,7 @@ const char *select_admin_del =
 const char *select_migrate_del =
    "SELECT DISTINCT DelCandidates.JobId,DelCandidates.PurgedFiles "
    "FROM Job,DelCandidates "
-   "WHERE (Job.JobTdate<%s AND DelCandidates.JobStatus!='T') OR "
+   "WHERE (Job.JobTdate<%s AND DelCandidates.JobStatus NOT IN ('T','W')) OR "
    "(Job.JobTDate>%s "
    "AND Job.ClientId=%s "
    "AND Job.Type='g')";
@@ -200,7 +200,7 @@ const char *select_migrate_del =
 const char *select_copy_del =
    "SELECT DISTINCT DelCandidates.JobId,DelCandidates.PurgedFiles "
    "FROM Job,DelCandidates "
-   "WHERE (Job.JobTdate<%s AND DelCandidates.JobStatus!='T') OR "
+   "WHERE (Job.JobTdate<%s AND DelCandidates.JobStatus NOT IN ('T','W')) OR "
    "(Job.JobTDate>%s "
    "AND Job.ClientId=%s "
    "AND Job.Type='C')";
@@ -212,10 +212,10 @@ const char *select_backup_del =
    "SELECT DISTINCT DelCandidates.JobId,DelCandidates.PurgedFiles "
    "FROM Job,DelCandidates "
    "WHERE (Job.JobId=DelCandidates.JobId AND ((DelCandidates.JobFiles=0) OR "
-   "(DelCandidates.JobStatus!='T'))) OR "
+   "(DelCandidates.JobStatus NOT IN ('T','W')))) OR "
    "(Job.JobTDate>%s "
    "AND Job.ClientId=%s "
-   "AND Job.Level='F' AND Job.JobStatus='T' AND Job.Type IN ('B','M') "
+   "AND Job.Level='F' AND Job.JobStatus IN ('T','W') AND Job.Type IN ('B','M') "
    "AND Job.FileSetId=DelCandidates.FileSetId)";
 
 /* Select Jobs from the DelCandidates table that have a
@@ -225,10 +225,10 @@ const char *select_backup_del =
 const char *select_verify_del =
    "SELECT DISTINCT DelCandidates.JobId,DelCandidates.PurgedFiles "
    "FROM Job,DelCandidates "
-   "WHERE (Job.JobId=DelCandidates.JobId AND DelCandidates.JobStatus!='T') OR "
+   "WHERE (Job.JobId=DelCandidates.JobId AND DelCandidates.JobStatus NOT IN ('T','W')) OR "
    "(Job.JobTDate>%s "
    "AND Job.ClientId=%s "
-   "AND Job.Type='V' AND Job.Level='V' AND Job.JobStatus='T' "
+   "AND Job.Type='V' AND Job.Level='V' AND Job.JobStatus IN ('T','W') "
    "AND Job.FileSetId=DelCandidates.FileSetId)";
 
 
@@ -238,7 +238,7 @@ const char *select_verify_del =
 const char *select_restore_del =
    "SELECT DISTINCT DelCandidates.JobId,DelCandidates.PurgedFiles "
    "FROM Job,DelCandidates "
-   "WHERE (Job.JobId=DelCandidates.JobId AND DelCandidates.JobStatus!='T') OR "
+   "WHERE (Job.JobId=DelCandidates.JobId AND DelCandidates.JobStatus NOT IN ('T','W')) OR "
    "(Job.JobTDate>%s "
    "AND Job.ClientId=%s "
    "AND Job.Type='R')";
@@ -249,7 +249,7 @@ const char *select_restore_del =
 const char *select_admin_del =
    "SELECT DISTINCT DelCandidates.JobId,DelCandidates.PurgedFiles "
    "FROM Job,DelCandidates "
-   "WHERE (Job.JobId=DelCandidates.JobId AND DelCandidates.JobStatus!='T') OR "
+   "WHERE (Job.JobId=DelCandidates.JobId AND DelCandidates.JobStatus NOT IN ('T','W')) OR "
    "(Job.JobTDate>%s "
    "AND Job.ClientId=%s "
    "AND Job.Type='D')";
@@ -261,7 +261,7 @@ const char *select_admin_del =
 const char *select_migrate_del =
    "SELECT DISTINCT DelCandidates.JobId,DelCandidates.PurgedFiles "
    "FROM Job,DelCandidates "
-   "WHERE (Job.JobId=DelCandidates.JobId AND DelCandidates.JobStatus!='T') OR "
+   "WHERE (Job.JobId=DelCandidates.JobId AND DelCandidates.JobStatus NOT IN ('T','W')) OR "
    "(Job.JobTDate>%s "
    "AND Job.ClientId=%s "
    "AND Job.Type='g')";
@@ -269,7 +269,7 @@ const char *select_migrate_del =
 const char *select_copy_del =
    "SELECT DISTINCT DelCandidates.JobId,DelCandidates.PurgedFiles "
    "FROM Job,DelCandidates "
-   "WHERE (Job.JobId=DelCandidates.JobId AND DelCandidates.JobStatus!='T') OR "
+   "WHERE (Job.JobId=DelCandidates.JobId AND DelCandidates.JobStatus NOT IN ('T','W')) OR "
    "(Job.JobTDate>%s "
    "AND Job.ClientId=%s "
    "AND Job.Type='C')";
@@ -285,7 +285,7 @@ const char *uar_count_files =
 const char *uar_list_jobs =
    "SELECT JobId,Client.Name as Client,StartTime,Level as "
    "JobLevel,JobFiles,JobBytes "
-   "FROM Client,Job WHERE Client.ClientId=Job.ClientId AND JobStatus='T' "
+   "FROM Client,Job WHERE Client.ClientId=Job.ClientId AND JobStatus IN ('T','W') "
    "AND Type='B' ORDER BY StartTime DESC LIMIT 20";
 
 /*
@@ -306,7 +306,7 @@ const char *uar_last_full =
    "FROM Client,Job,JobMedia,Media,FileSet WHERE Client.ClientId=%s "
    "AND Job.ClientId=%s "
    "AND Job.StartTime<'%s' "
-   "AND Level='F' AND JobStatus='T' AND Type='B' "
+   "AND Level='F' AND JobStatus IN ('T','W') AND Type='B' "
    "AND JobMedia.JobId=Job.JobId "
    "AND Media.Enabled=1 "
    "AND JobMedia.MediaId=Media.MediaId "
@@ -320,7 +320,7 @@ const char *uar_full =
    "Job.ClientId,Job.Level,Job.JobFiles,Job.JobBytes,"
    "StartTime,VolumeName,JobMedia.StartFile,VolSessionId,VolSessionTime "
    "FROM temp1,Job,JobMedia,Media WHERE temp1.JobId=Job.JobId "
-   "AND Level='F' AND JobStatus='T' AND Type='B' "
+   "AND Level='F' AND JobStatus IN ('T','W') AND Type='B' "
    "AND Media.Enabled=1 "
    "AND JobMedia.JobId=Job.JobId "
    "AND JobMedia.MediaId=Media.MediaId";
@@ -336,7 +336,7 @@ const char *uar_dif =
    "AND JobMedia.JobId=Job.JobId "
    "AND Media.Enabled=1 "
    "AND JobMedia.MediaId=Media.MediaId "
-   "AND Job.Level='D' AND JobStatus='T' AND Type='B' "
+   "AND Job.Level='D' AND JobStatus IN ('T','W') AND Type='B' "
    "AND Job.FileSetId=FileSet.FileSetId "
    "AND FileSet.FileSet='%s' "
    "%s"
@@ -353,7 +353,7 @@ const char *uar_inc =
    "AND Media.Enabled=1 "
    "AND JobMedia.JobId=Job.JobId "
    "AND JobMedia.MediaId=Media.MediaId "
-   "AND Job.Level='I' AND JobStatus='T' AND Type='B' "
+   "AND Job.Level='I' AND JobStatus IN ('T','W') AND Type='B' "
    "AND Job.FileSetId=FileSet.FileSetId "
    "AND FileSet.FileSet='%s' "
    "%s";

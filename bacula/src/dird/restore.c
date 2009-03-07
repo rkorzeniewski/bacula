@@ -258,6 +258,9 @@ void restore_cleanup(JCR *jcr, int TermCode)
          term_msg = _("Restore OK");
       }
       break;
+   case JS_Warnings:
+         term_msg = _("Restore OK -- with warnings");
+         break;
    case JS_FatalError:
    case JS_ErrorTerminated:
       term_msg = _("*** Restore Error ***");

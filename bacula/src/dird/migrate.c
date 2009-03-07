@@ -517,7 +517,7 @@ const char *sql_jobids_from_client =
    "SELECT DISTINCT Job.JobId,Job.StartTime FROM Job,Pool,Client"
    " WHERE Client.Name='%s' AND Pool.Name='%s' AND Job.PoolId=Pool.PoolId"
    " AND Job.ClientId=Client.ClientId AND Job.Type='B'"
-   " AND Job.JobStatus = 'T'"
+   " AND Job.JobStatus IN ('T','W')"
    " ORDER by Job.StartTime";
 
 /* Get Volume names in Pool */
@@ -531,7 +531,7 @@ const char *sql_jobids_from_vol =
    "SELECT DISTINCT Job.JobId,Job.StartTime FROM Media,JobMedia,Job"
    " WHERE Media.VolumeName='%s' AND Media.MediaId=JobMedia.MediaId"
    " AND JobMedia.JobId=Job.JobId AND Job.Type='B'"
-   " AND Job.JobStatus = 'T' AND Media.Enabled=1"
+   " AND Job.JobStatus IN ('T','W') AND Media.Enabled=1"
    " ORDER by Job.StartTime";
 
 const char *sql_smallest_vol = 
@@ -552,7 +552,7 @@ const char *sql_oldest_vol =
 const char *sql_jobids_from_mediaid =
    "SELECT DISTINCT Job.JobId,Job.StartTime FROM JobMedia,Job"
    " WHERE JobMedia.JobId=Job.JobId AND JobMedia.MediaId IN (%s)"
-   " AND Job.Type='B' AND Job.JobStatus = 'T'"
+   " AND Job.Type='B' AND Job.JobStatus IN ('T','W')"
    " ORDER by Job.StartTime";
 
 /* Get the number of bytes in the pool */
@@ -561,7 +561,7 @@ const char *sql_pool_bytes =
    " (SELECT DISTINCT Job.JobId from Pool,Job,Media,JobMedia WHERE"
    " Pool.Name='%s' AND Media.PoolId=Pool.PoolId AND"
    " VolStatus in ('Full','Used','Error','Append') AND Media.Enabled=1 AND"
-   " Job.Type='B' AND Job.JobStatus = 'T' AND"
+   " Job.Type='B' AND Job.JobStatus IN ('T','W') AND"
    " JobMedia.JobId=Job.JobId AND Job.PoolId=Media.PoolId)";
 
 /* Get the number of bytes in the Jobs */
@@ -578,8 +578,8 @@ const char *sql_mediaids =
 const char *sql_pool_time = 
    "SELECT DISTINCT Job.JobId FROM Pool,Job,Media,JobMedia WHERE"
    " Pool.Name='%s' AND Media.PoolId=Pool.PoolId AND"
-   " VolStatus in ('Full','Used','Error') AND Media.Enabled=1 AND"
-   " Job.Type='B' AND Job.JobStatus = 'T' AND"
+   " VolStatus IN ('Full','Used','Error') AND Media.Enabled=1 AND"
+   " Job.Type='B' AND Job.JobStatus IN ('T','W') AND"
    " JobMedia.JobId=Job.JobId AND Job.PoolId=Media.PoolId"
    " AND Job.RealEndTime<='%s'";
 
@@ -587,11 +587,11 @@ const char *sql_pool_time =
 const char *sql_jobids_of_pool_uncopied_jobs =
    "SELECT DISTINCT Job.JobId,Job.StartTime FROM Job,Pool"
    " WHERE Pool.Name = '%s' AND Pool.PoolId = Job.PoolId"
-   " AND Job.Type = 'B' AND Job.JobStatus = 'T'"
+   " AND Job.Type = 'B' AND Job.JobStatus IN ('T','W')"
    " AND Job.jobBytes > 0"
    " AND Job.JobId NOT IN"
    " (SELECT PriorJobId FROM Job WHERE"
-   " Type IN ('B','C') AND Job.JobStatus = 'T'"
+   " Type IN ('B','C') AND Job.JobStatus IN ('T','W')"
    " AND PriorJobId != 0)"
    " ORDER by Job.StartTime";
 

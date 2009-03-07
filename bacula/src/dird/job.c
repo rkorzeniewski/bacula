@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2008 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2009 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -1387,7 +1387,8 @@ bail_out:
 }
 
 /* TODO: redirect command ouput to job log */
-bool run_console_command(JCR *jcr, const char *cmd){
+bool run_console_command(JCR *jcr, const char *cmd)
+{
    UAContext *ua;
    bool ok;
    JCR *ljcr = new_control_jcr("-RunScript-", JT_CONSOLE);
