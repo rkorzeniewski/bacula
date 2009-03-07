@@ -407,7 +407,9 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
          num_files++;
       }
    } else if (rec->Stream == STREAM_PLUGIN_NAME) {
-      Pmsg0(000, "Plugin stream\n");
+      if (strncmp("0 0", rec->data, 3) != 0) {
+         Pmsg1(000, "Plugin data: %s\n", rec->data);
+      }
    }
       
    return true;
