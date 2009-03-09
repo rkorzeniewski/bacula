@@ -2328,7 +2328,7 @@ sub get_param
 	    if ($1 eq 'f') {
 		$limit .= "AND Job.JobStatus IN ('f','E') ";		
 	    } elsif ($1 eq 'W') {
-		$limit .= "AND Job.JobStatus = 'T' AND Job.JobErrors > 0 ";		
+		$limit .= "AND Job.JobStatus IN ('T', 'W') OR Job.JobErrors > 0 ";		
             } else {
 		$limit .= "AND Job.JobStatus = '$1' ";		
 	    }
@@ -2547,7 +2547,7 @@ FROM client_group $filter LEFT JOIN (
     FROM Job JOIN client_group_member ON (Job.ClientId = client_group_member.ClientId)
              JOIN client_group USING (client_group_id)
     
-    WHERE Type IN ('B', 'R') AND JobStatus = 'T'
+    WHERE Type IN ('B', 'R') AND JobStatus IN ('T', 'W')
     $where
     $limit
 ) AS jobok USING (client_group_name) LEFT JOIN
@@ -3787,7 +3787,7 @@ FROM (
     JOIN Client              USING (ClientId)  $filter
     JOIN Status              USING (JobStatus)
    WHERE client_group_name IN ($arg->{jclient_groups})
-     AND JobStatus IN ('T', 'f', 'A', 'e', 'E')
+     AND JobStatus IN ('T', 'W', 'f', 'A', 'e', 'E')
          $limit $filter2
    GROUP BY Client.Name, date
 ) AS sub JOIN Status USING (severity)
@@ -3822,7 +3822,7 @@ FROM (
     JOIN client_group_member USING (ClientId)
     JOIN client_group        USING (client_group_id) $filter3
     JOIN Status              USING (JobStatus)
-   WHERE JobStatus IN ('T', 'f', 'A', 'e', 'E')
+   WHERE JobStatus IN ('T', 'W', 'f', 'A', 'e', 'E')
        $filter1 $filter2
    GROUP BY client_group_name, date
 ) AS sub JOIN Status USING (severity)
@@ -3975,7 +3975,7 @@ AND Job.StartTime > (
    FROM Job 
   WHERE Job.Name = '$job' 
     AND Job.Level = 'F' 
-    AND Job.JobStatus = 'T' 
+    AND Job.JobStatus IN ('T', 'W') 
 ORDER BY Job.StartTime DESC LIMIT 1
 ) ";
     }
@@ -3989,7 +3989,7 @@ FROM (
    FROM Job INNER JOIN Client USING (ClientId) $filter
    WHERE Job.Name = '$job'
      AND Job.Level = '$level'
-     AND Job.JobStatus = 'T'
+     AND Job.JobStatus IN ('T', 'W')
      $filter2
    ORDER BY StartTime DESC
    LIMIT 4
@@ -4109,7 +4109,7 @@ SELECT client_group_name AS name, nb_byte, nb_file, nb_job, nb_err, nb_resto
            count(1) AS nb_job, client_group_name 
       FROM $jobt AS Job JOIN client_group_member USING (ClientId) 
       JOIN client_group USING (client_group_id) $filter
-     WHERE JobStatus = 'T' AND Type IN ('M', 'B', 'g') 
+     WHERE JobStatus IN ('T', 'W') AND Type IN ('M', 'B', 'g') 
            $where $limit
     GROUP BY client_group_name ORDER BY client_group_name
 
@@ -4127,7 +4127,7 @@ SELECT client_group_name AS name, nb_byte, nb_file, nb_job, nb_err, nb_resto
     SELECT count(1) AS nb_resto, client_group_name 
       FROM $jobt AS Job JOIN client_group_member USING (ClientId) 
       JOIN client_group USING (client_group_id)
-     WHERE JobStatus = 'T' AND Type = 'R'
+     WHERE JobStatus IN ('T','W') AND Type = 'R'
            $where $limit
     GROUP BY client_group_name ORDER BY client_group_name
 
@@ -4876,7 +4876,9 @@ sub run_parse_job
     my ($self, $ouput) = @_;
 
     my %arg;
+    $self->debug($ouput);
     foreach my $l (split(/\r?\n/, $ouput)) {
+        $self->debug($l);
 	if ($l =~ /(\w+): name=([\w\d\.\s-]+?)(\s+\w+=.+)?$/) {
 	    $arg{$1} = $2;
 	    $l = $3 
@@ -4892,6 +4894,7 @@ sub run_parse_job
     foreach my $k (keys %arg) {
 	$lowcase{lc($k)} = $arg{$k} ;
     }
+    $self->debug(\%lowcase);
     return \%lowcase;
 }
 
@@ -5066,7 +5069,7 @@ sub check_job
     AND Job.StartTime <  '$end'
     AND Job.Name = '$job'
     AND Job.Type = '$type'
-    AND Job.JobStatus = 'T'
+    AND Job.JobStatus IN ('T', 'W')
     AND Job.Level IN ($l)
 " . ($pool?" AND Pool.Name = '$pool' ":'') . "
     AND Client.Name = '$client'

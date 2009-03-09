@@ -1,3 +1,5 @@
+09Mar09
+ebl  Add 'W' JobStatus type (for warning)
 27Feb09
 ebl  Should fix #1240 about job output parsing
 04Feb09
