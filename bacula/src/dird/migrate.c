@@ -66,6 +66,7 @@ static bool find_jobids_from_mediaid_list(JCR *jcr, idpkt *ids, const char *type
 static bool find_jobids_of_pool_uncopied_jobs(JCR *jcr, idpkt *ids);
 static void start_migration_job(JCR *jcr);
 static int get_next_dbid_from_list(char **p, DBId_t *DBId);
+static bool set_migration_next_pool(JCR *jcr, POOL **pool);
 
 /* 
  * Called here before the job is run to do the job
@@ -97,9 +98,7 @@ static int get_next_dbid_from_list(char **p, DBId_t *DBId);
  */
 bool do_migration_init(JCR *jcr)
 {
-   POOL_DBR pr;
-   POOL *pool;
-   char ed1[100];
+   POOL *pool = NULL;
    JOB *job, *prev_job;
    JCR *mig_jcr;                   /* newly migrated job */
    int count;
@@ -141,7 +140,8 @@ bool do_migration_init(JCR *jcr)
       return false;
    }
    if (count == 0) {
-      return true;
+      set_migration_next_pool(jcr, &pool);
+      return true;                    /* no work */
    }
 
    Dmsg1(dbglevel, "Back from get_job_to_migrate JobId=%d\n", (int)jcr->JobId);
@@ -149,6 +149,7 @@ bool do_migration_init(JCR *jcr)
    if (jcr->previous_jr.JobId == 0) {
       Dmsg1(dbglevel, "JobId=%d no previous JobId\n", (int)jcr->JobId);
       Jmsg(jcr, M_INFO, 0, _("No previous Job found to %s.\n"), jcr->get_ActionName(0));
+      set_migration_next_pool(jcr, &pool);
       return true;                    /* no work */
    }
 
@@ -162,6 +163,7 @@ bool do_migration_init(JCR *jcr)
       } else {
          Jmsg(jcr, M_INFO, 0, _("Previous Job has no data to %s.\n"), jcr->get_ActionName(0));
       }
+      set_migration_next_pool(jcr, &pool);
       return true;                    /* no work */
    }
 
@@ -211,12 +213,37 @@ bool do_migration_init(JCR *jcr)
       mig_jcr->jr.Name, (int)mig_jcr->jr.JobId, 
       mig_jcr->jr.JobType, mig_jcr->jr.JobLevel);
 
+   if (set_migration_next_pool(jcr, &pool)) {
+      /* If pool storage specified, use it for restore */
+      copy_rstorage(mig_jcr, pool->storage, _("Pool resource"));
+      copy_rstorage(jcr, pool->storage, _("Pool resource"));
+
+      mig_jcr->pool = jcr->pool;
+      mig_jcr->jr.PoolId = jcr->jr.PoolId;
+   }
+
+   return true;
+}
+
+
+/*
+ * set_migration_next_pool() called by do_migration_init()
+ * at differents stages.
+ * The  idea here is tofactorize the NextPool's search code and
+ * to permit do_migration_init() to return with NextPool set in jcr struct.
+ */
+static bool set_migration_next_pool(JCR *jcr, POOL **retpool)
+{
+   POOL_DBR pr;
+   POOL *pool;
+   char ed1[100];
+
    /*
     * Get the PoolId used with the original job. Then
     *  find the pool name from the database record.
     */
    memset(&pr, 0, sizeof(pr));
-   pr.PoolId = mig_jcr->previous_jr.PoolId;
+   pr.PoolId = jcr->jr.PoolId;
    if (!db_get_pool_record(jcr, jcr->db, &pr)) {
       Jmsg(jcr, M_FATAL, 0, _("Pool for JobId %s not in database. ERR=%s\n"),
             edit_int64(pr.PoolId, ed1), db_strerror(jcr->db));
@@ -224,14 +251,11 @@ bool do_migration_init(JCR *jcr)
    }
    /* Get the pool resource corresponding to the original job */
    pool = (POOL *)GetResWithName(R_POOL, pr.Name);
+   *retpool = pool;
    if (!pool) {
       Jmsg(jcr, M_FATAL, 0, _("Pool resource \"%s\" not found.\n"), pr.Name);
       return false;
    }
-
-   /* If pool storage specified, use it for restore */
-   copy_rstorage(mig_jcr, pool->storage, _("Pool resource"));
-   copy_rstorage(jcr, pool->storage, _("Pool resource"));
 
    /*
     * If the original backup pool has a NextPool, make sure a 
@@ -247,13 +271,14 @@ bool do_migration_init(JCR *jcr)
    if (!set_migration_wstorage(jcr, pool)) {
       return false;
    }
-   mig_jcr->pool = jcr->pool = pool->NextPool;
+   jcr->pool = pool->NextPool;
    pm_strcpy(jcr->pool_source, _("Job Pool's NextPool resource"));
-   mig_jcr->jr.PoolId = jcr->jr.PoolId;
 
    Dmsg2(dbglevel, "Write pool=%s read rpool=%s\n", jcr->pool->name(), jcr->rpool->name());
+
    return true;
 }
+
 
 /*
  * Do a Migration of a previous job
