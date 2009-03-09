@@ -469,7 +469,7 @@ if test x$support_wx_console = xyes; then
 
       AC_SUBST(WXCONS_CPPFLAGS)
       AC_SUBST(WXCONS_LDFLAGS)
-      WX_DIR=src/wx-console
+      WX_DIR="src/wx-console"
    else
       echo " "
       echo "wx-config program not found. bwx-console disabled."
@@ -2320,11 +2320,11 @@ if test x$support_xattr = xyes; then
    if test $have_xattr = no; then
       AC_CHECK_FUNCS(listxattr getxattr setxattr,
 	 [
-             have_xattr=yes
-             AC_DEFINE([HAVE_LLISTXATTR], [], [LLISTXATTR support])
-             AC_DEFINE([HAVE_LGETXATTR], [], [LGETXATTR support])
-             AC_DEFINE([HAVE_LSETXATTR], [], [LSETXATTR support])
-         ]
+	     have_xattr=yes
+	     AC_DEFINE([HAVE_LLISTXATTR], [], [LLISTXATTR support])
+	     AC_DEFINE([HAVE_LGETXATTR], [], [LGETXATTR support])
+	     AC_DEFINE([HAVE_LSETXATTR], [], [LSETXATTR support])
+	 ]
       )
    fi
 
@@ -2337,22 +2337,22 @@ if test x$support_xattr = xyes; then
       AC_CHECK_HEADER(attr.h, [ AC_DEFINE(HAVE_ATTR_H,1,[Defines if your system have the attr.h header file])] , )
 
       AC_CHECK_FUNCS(openat fstatat unlinkat fchownat futimesat,
-         [
-             have_xattr=yes
-             AC_DEFINE([HAVE_OPENAT], [], [OPENAT support])
-             AC_DEFINE([HAVE_FSTATAT], [], [FSTATAT support])
-             AC_DEFINE([HAVE_UNLINKAT], [], [UNLINKAT support])
-             AC_DEFINE([HAVE_FCHOWNAT], [], [FCHOWNAT support])
-             AC_DEFINE([HAVE_FUTIMESAT], [], [FUTIMESAT support])
-         ]
+	 [
+	     have_xattr=yes
+	     AC_DEFINE([HAVE_OPENAT], [], [OPENAT support])
+	     AC_DEFINE([HAVE_FSTATAT], [], [FSTATAT support])
+	     AC_DEFINE([HAVE_UNLINKAT], [], [UNLINKAT support])
+	     AC_DEFINE([HAVE_FCHOWNAT], [], [FCHOWNAT support])
+	     AC_DEFINE([HAVE_FUTIMESAT], [], [FUTIMESAT support])
+	 ]
       )
 
       if test $have_xattr = yes; then
-         AC_CHECK_LIB(nvpair, nvlist_next_nvpair,
-            [
-                FDLIBS="-lnvpair $FDLIBS"
-            ]
-         )
+	 AC_CHECK_LIB(nvpair, nvlist_next_nvpair,
+	    [
+		FDLIBS="-lnvpair $FDLIBS"
+	    ]
+	 )
       fi
    fi
 

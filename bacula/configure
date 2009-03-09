@@ -24171,7 +24171,7 @@ if test x$support_wx_console = xyes; then
 
 
 
-      WX_DIR=src/wx-console
+      WX_DIR="src/wx-console"
    else
       echo " "
       echo "wx-config program not found. bwx-console disabled."
@@ -40019,7 +40019,7 @@ if test "$ac_res" != no; then
   ac_cv_func_getmntent=yes
 
 cat >>confdefs.h <<\_ACEOF
-#define HAVE_GETMNTENT
+#define HAVE_GETMNTENT 1
 _ACEOF
 
 else
@@ -41423,7 +41423,7 @@ if test `eval echo '${'$as_ac_var'}'` = yes; then
 #define `echo "HAVE_$ac_func" | $as_tr_cpp` 1
 _ACEOF
 
-             have_xattr=yes
+	     have_xattr=yes
 
 cat >>confdefs.h <<\_ACEOF
 #define HAVE_LLISTXATTR
@@ -41948,7 +41948,7 @@ if test `eval echo '${'$as_ac_var'}'` = yes; then
 #define `echo "HAVE_$ac_func" | $as_tr_cpp` 1
 _ACEOF
 
-             have_xattr=yes
+	     have_xattr=yes
 
 cat >>confdefs.h <<\_ACEOF
 #define HAVE_OPENAT
@@ -41981,7 +41981,7 @@ done
 
 
       if test $have_xattr = yes; then
-         { echo "$as_me:$LINENO: checking for nvlist_next_nvpair in -lnvpair" >&5
+	 { echo "$as_me:$LINENO: checking for nvlist_next_nvpair in -lnvpair" >&5
 echo $ECHO_N "checking for nvlist_next_nvpair in -lnvpair... $ECHO_C" >&6; }
 if test "${ac_cv_lib_nvpair_nvlist_next_nvpair+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
@@ -42044,7 +42044,7 @@ fi
 echo "${ECHO_T}$ac_cv_lib_nvpair_nvlist_next_nvpair" >&6; }
 if test $ac_cv_lib_nvpair_nvlist_next_nvpair = yes; then
 
-                FDLIBS="-lnvpair $FDLIBS"
+		FDLIBS="-lnvpair $FDLIBS"
 
 
 fi

@@ -355,6 +355,9 @@
 /* Define to 1 if you have the `fchdir' function. */
 #undef HAVE_FCHDIR
 
+/* FCHOWNAT support */
+#undef HAVE_FCHOWNAT
+
 /* Define to 1 if you have the <fcntl.h> header file. */
 #undef HAVE_FCNTL_H
 
@@ -366,6 +369,12 @@
 
 /* Define to 1 if you have the `fseeko' function. */
 #undef HAVE_FSEEKO
+
+/* FSTATAT support */
+#undef HAVE_FSTATAT
+
+/* FUTIMESAT support */
+#undef HAVE_FUTIMESAT
 
 /* Define to 1 if you have the `fwprintf' function. */
 #undef HAVE_FWPRINTF
@@ -783,6 +792,9 @@
 
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
+
+/* UNLINKAT support */
+#undef HAVE_UNLINKAT
 
 /* Define if you have the 'unsigned long long' type. */
 #undef HAVE_UNSIGNED_LONG_LONG
