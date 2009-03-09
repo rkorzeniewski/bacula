@@ -24,7 +24,18 @@ dbport in dbcheck
 filepattern (restore with regex in bsr)
 mixed priorities
 
+Code to be completed before 3.0.0 is released:
+1. Fix bug #1221 problem with NODUMP flag
+2. Fix Exchange plugin bugs 1234,1235,1236,1237
+3. Resolve bug #1227
+4. Finish documentation (some noted above)
+5. Diff 2.4.4 to current SVN and check differences
+
+
 General:
+09Mar09
+kes  On 03Mar08 (a year ago) applied patch from bug #1059 (kardel)
+     to implement the NODUMP flag on FreeBSD.
 07Mar09
 kes  When deleting a Volume by MediaId require the Id to be
      prefixed by a * to avoid confusing with an integer volume
