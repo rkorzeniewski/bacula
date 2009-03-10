@@ -47,7 +47,7 @@ LIBS_DLL = \
 	$(LIBS_CRYPTO) \
 	$(LIBS_PTHREADS) \
 	$(LIBS_ZLIB) \
-	-lwsock32 \
+        $(LIBS_NETWORK) \
 	-lole32 \
 	-loleaut32 \
 	-luuid
