@@ -95,9 +95,9 @@ ALL_OBJS = \
 
 LIBS_STORED = \
 	$(LIBS_PTHREADS) \
+        $(LIBS_NETWORK) \
 	-lole32 \
 	-loleaut32 \
-	-lwsock32 \
 	-luuid \
 	-lcomctl32
 

@@ -79,9 +79,9 @@ ALL_OBJS = $(DIRD_OBJS)
 
 DIRD_LIBS = \
 	$(LIBS_PTHREADS) \
+	$(LIBS_NETWORK) \
 	-lole32 \
 	-loleaut32 \
-	-lwsock32 \
 	-luuid \
 	-lcomctl32
 

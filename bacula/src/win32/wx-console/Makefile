@@ -52,8 +52,8 @@ ALL_OBJS = $(CONSOLE_OBJS)
 
 CONSOLE_LIBS = \
 	$(LIBS_WX) \
+        $(LIBS_NETWORK) \
 	-lcomctl32 \
-	-lwsock32 \
 	-lole32 \
 	-loleaut32 \
 	-luuid

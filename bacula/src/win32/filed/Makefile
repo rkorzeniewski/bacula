@@ -60,9 +60,9 @@ ALL_OBJS = $(FILED_OBJS)
 FILED_LIBS = \
 	$(LIBS_PTHREADS) \
 	$(LIBS_ZLIB) \
+        $(LIBS_NETWORK) \
 	-lole32 \
 	-loleaut32 \
-	-lwsock32 \
 	-luuid \
 	-lcomctl32
 

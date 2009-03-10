@@ -28,8 +28,7 @@ CONSOLE_OBJS = \
 
 ALL_OBJS = $(CONSOLE_OBJS)
 
-CONSOLE_LIBS = \
-	-lwsock32
+CONSOLE_LIBS = $(LIBS_NETWORK) 
 
 ######################################################################
 

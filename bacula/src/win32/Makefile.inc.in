@@ -89,6 +89,8 @@ LIBS_CATS := \
 LIBS_BACULA := \
         $(LIBDIR)/libbacula.a
 
+LIBS_NETWORK := -lwsock32
+
 HAVES := \
         -DHAVE_WIN32 \
         -DHAVE_MINGW \
