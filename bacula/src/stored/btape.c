@@ -359,8 +359,9 @@ static void terminate_btape(int stat)
 
    stop_watchdog();
    term_msg();
-   close_memory_pool();               /* free memory in pool */
    term_last_jobs_list();
+   close_memory_pool();               /* free memory in pool */
+   lmgr_cleanup_main();
 
    sm_dump(false);
    exit(stat);
