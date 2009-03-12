@@ -38,6 +38,7 @@ install: installdirs
 	$(INSTALL_SCRIPT) bconsole $(DESTDIR)$(scriptdir)/bconsole
 	$(INSTALL_SCRIPT) gconsole $(DESTDIR)$(scriptdir)/gconsole
 	$(INSTALL_SCRIPT) bacula $(DESTDIR)$(scriptdir)/bacula
+	$(INSTALL_SCRIPT) bacula $(DESTDIR)$(sbindir)/bacula
 	$(INSTALL_SCRIPT) bacula-ctl-dir $(DESTDIR)$(scriptdir)/bacula-ctl-dir
 	$(INSTALL_SCRIPT) bacula-ctl-fd $(DESTDIR)$(scriptdir)/bacula-ctl-fd
 	$(INSTALL_SCRIPT) bacula-ctl-sd $(DESTDIR)$(scriptdir)/bacula-ctl-sd
@@ -75,6 +76,7 @@ uninstall:
 	(cd $(DESTDIR)$(scriptdir); $(RMF) bconsole)
 	(cd $(DESTDIR)$(scriptdir); $(RMF) gconsole)
 	(cd $(DESTDIR)$(scriptdir); $(RMF) bacula)
+	(cd $(DESTDIR)$(sbindir);   $(RMF) bacula)
 	(cd $(DESTDIR)$(scriptdir); $(RMF) bacula-ctl-dir)
 	(cd $(DESTDIR)$(scriptdir); $(RMF) bacula-ctl-fd)
 	(cd $(DESTDIR)$(scriptdir); $(RMF) bacula-ctl-sd)
@@ -84,7 +86,7 @@ uninstall:
 	(cd $(DESTDIR)$(scriptdir); $(RMF) dvd-handler)  
 	(cd $(DESTDIR)$(scriptdir); $(RMF) btraceback.gdb)
 	(cd $(DESTDIR)$(scriptdir); $(RMF) btraceback.dbx)
-	(cd $(DESTDIR)$(sbindir); $(RMF) btraceback)
+	(cd $(DESTDIR)$(sbindir);   $(RMF) btraceback)
 
 Makefile: Makefile.in
 	cd $(topdir) \

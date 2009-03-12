@@ -2337,7 +2337,7 @@ post_host=
 if test "x$BACULA" != x; then
    post_host=`echo -${BACULA} | tr 'A-Z ' 'a-z-'`
 fi
-BACULA=${BACULA-Bacula}
+BACULA=${BACULA:-Bacula}
 VERSION=`sed -n -e 's/^.*VERSION.*"\(.*\)"$/\1/p' ${srcdir}/src/version.h`
 DATE=`sed -n -e 's/^.* \t*BDATE.*"\(.*\)"$/\1/p' ${srcdir}/src/version.h`
 LSMDATE=`sed -n -e 's/^.*LSMDATE.*"\(.*\)"$/\1/p' ${srcdir}/src/version.h`
