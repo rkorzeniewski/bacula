@@ -647,7 +647,7 @@ int Console::read()
             break;
          } 
          app->processEvents();
-         if (m_api_set && m_messages_pending && is_notify_enabled()) {
+         if (m_api_set && m_messages_pending && is_notify_enabled() && hasFocus()) {
             write_dir(".messages");
             m_messages_pending = false;
          }
@@ -664,7 +664,7 @@ int Console::read()
       }
       switch (m_sock->msglen) {
       case BNET_MSGS_PENDING :
-         if (is_notify_enabled()) {
+         if (is_notify_enabled() && hasFocus()) {
             if (mainWin->m_commDebug) Pmsg0(000, "MSGS PENDING\n");
             write_dir(".messages");
             displayToPrompt();
@@ -949,4 +949,14 @@ void Console::getStatusList(QStringList &statusLongList)
          statusLongList.append(fieldlist[0]);
       } /* foreach resultline */
    } /* if results from statusquery */
+}
+
+/* For suppressing .messages
+ * This may be rendered not needed if the multiple connections feature gets working */
+bool Console::hasFocus()
+{
+   if (mainWin->stackedWidget->currentIndex() == mainWin->stackedWidget->indexOf(this))
+      return true;
+   else
+      return false;
 }

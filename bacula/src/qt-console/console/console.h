@@ -145,6 +145,7 @@ private:
    bool m_api_set;
    bool m_messages_pending;
    QTimer *m_timer;
+   bool hasFocus();
 };
 
 #endif /* _CONSOLE_H_ */
