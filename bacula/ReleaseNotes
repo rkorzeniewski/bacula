@@ -3,6 +3,9 @@
 
   Bacula code: Total files = 522 Total lines = 204,340 (*.h *.c *.in)
 
+The diff between 2.4.4 and 2.5.x is 208,340 lines, so this release
+represents an enormous effort.
+
 This Director and Storage daemon must be upgraded at the same time,
 but they should be compatible with all 2.4.x File daemons, unless you
 use some of the new features that affect the FD.  In other words, you should
