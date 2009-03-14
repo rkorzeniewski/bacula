@@ -25,6 +25,9 @@ rm -rf build bin
 # Copy new source
 echo "Copying source from ${BACULA_SOURCE}"
 cp -rp ${BACULA_SOURCE} build
+cd build
+rm -rf txt src/testprogs
+cd ..
 check_exit_code
 scripts/create_sed
 sed -f tmp/sed_tmp scripts/regress-config.in >scripts/regress-config
