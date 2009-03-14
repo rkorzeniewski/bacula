@@ -45,10 +45,11 @@ static int tls_pem_callback(char *buf, int size, const void *userdata);
 
 Console::Console(QStackedWidget *parent):
 m_notifier(NULL),
-m_api_set(false),
-m_messages_pending(false)
+m_api_set(false)
 {
    QFont font;
+   Pmsg0(000, "initializing m_messages_pending to false\n");
+   m_messages_pending = false;
    m_parent = parent;
    m_closeable = false;
    m_console = this;
@@ -92,13 +93,16 @@ void Console::stopTimer()
       m_timer = NULL;
    }
 }
-      
+
+/* slot connected to the timer
+ * requires preferences of check messages and operates at interval */
 void Console::poll_messages()
 {
-   m_messages_pending = true;
-   if ((m_at_main_prompt) && (mainWin->m_checkMessages)){
+   if (  mainWin->m_checkMessages && m_at_main_prompt && hasFocus()){
+      messagesPending(true);
       write(".messages");
       displayToPrompt();
+      messagesPending(false);
    }
 }
 
@@ -476,11 +480,13 @@ void Console::status_dir()
 
 /*
  * Slot for responding to messages button on button bar
+ * Here we want to bring the console to the front so use pages' consoleCommand
  */
 void Console::messages()
 {
    QString cmd(".messages");
    consoleCommand(cmd);
+   messagesPending(false);
 }
 
 /*
@@ -595,12 +601,12 @@ void Console::displayToPrompt()
    if (mainWin->m_commDebug) Pmsg0(000, "DisplaytoPrompt\n");
    while (!m_at_prompt) {
       if ((stat=read()) > 0) {
-        buf += msg();
-        if (buf.size() >= 8196 || m_messages_pending) {
-           display_text(buf);
-           buf.clear();
-           m_messages_pending = false;
-        }
+         buf += msg();
+         if (buf.size() >= 8196 || m_messages_pending) {
+            display_text(buf);
+            buf.clear();
+            messagesPending(false);
+         }
       }
    }
    display_text(buf);
@@ -649,7 +655,7 @@ int Console::read()
          app->processEvents();
          if (m_api_set && m_messages_pending && is_notify_enabled() && hasFocus()) {
             write_dir(".messages");
-            m_messages_pending = false;
+            messagesPending(false);
          }
       }
       m_sock->msg[0] = 0;
@@ -668,9 +674,9 @@ int Console::read()
             if (mainWin->m_commDebug) Pmsg0(000, "MSGS PENDING\n");
             write_dir(".messages");
             displayToPrompt();
-            m_messages_pending = false;
+            messagesPending(false);
          }
-         m_messages_pending = true;
+         messagesPending(true);
          continue;
       case BNET_CMD_OK:
          if (mainWin->m_commDebug) Pmsg0(000, "CMD OK\n");
@@ -959,4 +965,14 @@ bool Console::hasFocus()
       return true;
    else
       return false;
+}
+
+/* For adding feature to have the gui's messages button change when 
+ * messages are pending */
+bool Console::messagesPending(bool pend)
+{
+   bool prev = m_messages_pending;
+   m_messages_pending = pend;
+   mainWin->setMessageIcon();
+   return prev;
 }

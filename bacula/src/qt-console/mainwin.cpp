@@ -397,6 +397,7 @@ void MainWin::treeItemChanged(QTreeWidgetItem *currentitem, QTreeWidgetItem *pre
          connect(actionSelectFont, SIGNAL(triggered()), m_currentConsole, SLOT(set_font()));
          connect(actionStatusDir, SIGNAL(triggered()), m_currentConsole, SLOT(status_dir()));
          connect(actionMessages, SIGNAL(triggered()), m_currentConsole, SLOT(messages()));
+         setMessageIcon();
          /* Set director's tree widget background to magenta for ease of identification */
          QTreeWidgetItem *dirItem = m_currentConsole->directorTreeItem();
          QBrush magentaBrush(Qt::magenta);
@@ -840,4 +841,12 @@ void MainWin::readPreferences()
    m_rtRestore2Debug = settings.value("rtRestore2Debug", false).toBool();
    m_rtRestore3Debug = settings.value("rtRestore3Debug", false).toBool();
    settings.endGroup();
+}
+
+void MainWin::setMessageIcon()
+{
+   if (m_currentConsole->is_messagesPending())
+      actionMessages->setIcon(QIcon(QString::fromUtf8(":/images/mail-message-pending.png")));
+   else
+      actionMessages->setIcon(QIcon(QString::fromUtf8(":/images/mail-message-new.png")));
 }

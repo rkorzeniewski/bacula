@@ -107,6 +107,7 @@ public:
    void stopTimer();
    void getVolumeList(QStringList &);
    void getStatusList(QStringList &);
+   bool is_messagesPending() { return m_messages_pending; };
 
    QStringList job_list;
    QStringList client_list;
@@ -146,6 +147,7 @@ private:
    bool m_messages_pending;
    QTimer *m_timer;
    bool hasFocus();
+   bool messagesPending(bool pend);
 };
 
 #endif /* _CONSOLE_H_ */
