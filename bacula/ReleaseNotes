@@ -1,7 +1,7 @@
 
-       Release Notes for Bacula 2.5.40
+       Release Notes for Bacula 2.5.42
 
-  Bacula code: Total files = 522 Total lines = 204,340 (*.h *.c *.in)
+  Bacula code: Total files = 521 Total lines = 204,881 (*.h *.c *.in)
 
 The diff between 2.4.4 and 2.5.x is 208,340 lines, so this release
 represents an enormous effort.
@@ -9,8 +9,8 @@ represents an enormous effort.
 This Director and Storage daemon must be upgraded at the same time,
 but they should be compatible with all 2.4.x File daemons, unless you
 use some of the new features that affect the FD.  In other words, you should
-not have to upgrade all your File daemons when you upgrade. However, the next
-BETA release (after version 2.5.40) will require a database upgrade.
+not have to upgrade all your File daemons when you upgrade. However, any
+release of version 2.5.40 or greater requires a database upgrade.
 
 ================== Warning !!!!!! ==========================
 
@@ -22,7 +22,20 @@ scripts that permit to convert a 2.4.x (version 10) catalog to 2.5.x (version
 11). If you are using already a 2.5 version, you can drop the JobHistory
 table before upgrading your catalog (if you are using the new "long term
 statistics" module, you can upgrade this table the same way we do with 
-the Job table, see the src/cats/update_bacula_table script).
+the Job table, see the src/cats/update_bacula_tables script).
+
+The simplest way to:
+1. Stop any current version of Bacula from running.
+2. Save a copy of your existing database.
+3. Configure, build, and install the 2.5.42 version of Bacula
+4. cd <your-scripts-installation-directory>
+5. ./update_bacula_tables
+6. If you have multiple catalogs, edit the update_bacula_tables
+   script and put the name of another database, and then
+   execute the script again. Repeat this until all Bacula
+   catalogs have been updated.
+7. Start the new Bacula.  If everything worked, it should
+   not print any error messages.
 
 The upgrade operation will convert the FileId index field of the File table
 from 32 bits to 64 bits.  This operation will take TIME and will *temporarily* 
@@ -54,8 +67,8 @@ to explicitly specify the libraries directory on the ./configure
 line (--libdir=/full-path/dir), but this should not be necessary.
 
 If you have problems with libtool or you wish to use the old 
-way of building static libraries, you can do so by disabling 
-libtool on the configure command line with:
+way of building libraries and linking them into Bacula, you 
+can do so by disabling libtool on the configure command line with:
 
   ./configure --disable-libtool
 ==============================================================

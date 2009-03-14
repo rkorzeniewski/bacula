@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2004-2008 Free Software Foundation Europe e.V.
+   Copyright (C) 2004-2009 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -276,7 +276,7 @@ static bool despool_data(DCR *dcr, bool commit)
 #endif
 
    /* Add run time, to get current wait time */
-   time_t despool_start = time(NULL) - jcr->run_time;
+   int32_t despool_start = time(NULL) - jcr->run_time;
 
    set_new_file_parameters(dcr);
 
@@ -309,8 +309,12 @@ static bool despool_data(DCR *dcr, bool commit)
    /* Set new file/block parameters for current dcr */
    set_new_file_parameters(dcr);
 
-   /* Subtracting run_time give us elapsed time - wait_time since we started despooling */
-   time_t despool_elapsed = time(NULL) - despool_start - jcr->run_time;
+   /*
+    * Subtracting run_time give us elapsed time - wait_time since 
+    * we started despooling. Note, don't use time_t as it is 32 or 64
+    * bits depending on the OS and doesn't edit with %d
+    */
+   int32_t despool_elapsed = time(NULL) - despool_start - jcr->run_time;
 
    if (despool_elapsed <= 0) {
       despool_elapsed = 1;
@@ -656,7 +660,7 @@ bool commit_attribute_spool(JCR *jcr)
    char tbuf[100];
 
    Dmsg1(100, "Commit attributes at %s\n", bstrftimes(tbuf, sizeof(tbuf),
-         ( utime_t)time(NULL)));
+         (utime_t)time(NULL)));
    if (are_attributes_spooled(jcr)) {
       if (fseeko(jcr->dir_bsock->m_spool_fd, 0, SEEK_END) != 0) {
          berrno be;
@@ -724,7 +728,7 @@ bool close_attr_spool_file(JCR *jcr, BSOCK *bs)
    char tbuf[100];
 
    Dmsg1(100, "Close attr spool file at %s\n", bstrftimes(tbuf, sizeof(tbuf),
-         ( utime_t)time(NULL)));
+         (utime_t)time(NULL)));
    if (!bs->m_spool_fd) {
       return true;
    }

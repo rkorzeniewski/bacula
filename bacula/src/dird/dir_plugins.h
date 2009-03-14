@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2007-2008 Free Software Foundation Europe e.V.
+   Copyright (C) 2007-2009 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -134,7 +134,7 @@ typedef struct s_baculaFuncs {
    bRC (*getBaculaValue)(bpContext *ctx, brVariable var, void *value);
    bRC (*setBaculaValue)(bpContext *ctx, bwVariable var, void *value);
    bRC (*JobMessage)(bpContext *ctx, const char *file, int line, 
-       int type, time_t mtime, const char *msg);     
+       int type, utime_t mtime, const char *msg);     
    bRC (*DebugMessage)(bpContext *ctx, const char *file, int line,
        int level, const char *msg);
 } bFuncs;
