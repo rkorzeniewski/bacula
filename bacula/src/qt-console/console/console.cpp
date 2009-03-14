@@ -48,7 +48,6 @@ m_notifier(NULL),
 m_api_set(false)
 {
    QFont font;
-   Pmsg0(000, "initializing m_messages_pending to false\n");
    m_messages_pending = false;
    m_parent = parent;
    m_closeable = false;
