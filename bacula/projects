@@ -864,6 +864,13 @@ Item n:   Data encryption on storage daemon
 
   Why:    This would have 2 advantages: 1) one could encrypt the data of unencrypted tapes by doing a migration job, and 2) the storage daemon would be the only machine that would have to keep the encryption keys.
 
+  Notes from Landon:
+          As an addendum to the feature request, here are some crypto  
+          implementation details I wrote up regarding SD-encryption back in Jan  
+          2008:
+          http://www.mail-archive.com/bacula-users@lists.sourceforge.net/msg28860.html
+
+
 
 Item 1:   "Maximum Concurrent Jobs" for drives when used with changer device
   Origin: Ralf Gross ralf-lists <at> ralfgross.de
@@ -1046,8 +1053,94 @@ Why: Because of a couple of reasons.  First, it's very hard to implement a
      establishing efficiency.  Would also avoid bandwidth congestion,
      especially where there is little available.
 
+Item n: Restore from volumes on multiple storage daemons
 
-                                                                                                                                                                                              encrypted-file-related callback functions.
+Origin: Graham Keeling (graham@equiinet.com)
+
+Date: 12 March 2009
+
+Status: Proposing
+
+What: The ability to restore from volumes held by multiple storage daemons
+would be very useful.
+
+Why: It is useful to be able to backup to any number of different storage
+daemons. For example, your first storage daemon may run out of space, so you
+switch to your second and carry on. Bacula will currently let you do this.
+However, once you come to restore, bacula cannot cope when volumes on different
+storage daemons are required.
+
+Notes: The director knows that more than one storage daemon is needed, as
+bconsole outputs something like the following table.
+
+The job will require the following
+   Volume(s)                 Storage(s)                SD Device(s)
+===========================================================================
+   
+   backup-0001               Disk 1                    Disk 1.0                 
+   backup-0002               Disk 2                    Disk 2.0             
+
+However, the bootstrap file that it creates gets sent to the first storage
+daemon only, which then stalls for a long time, 'waiting for a mount request'
+for the volume that it doesn't have.
+The bootstrap file contains no knowledge of the storage daemon.
+Under the current design:
+
+        The director connects to the storage daemon, and gets an sd_auth_key.
+        The director then connects to the file daemon, and gives it the
+                sd_auth_key with the 'jobcmd'.
+        (restoring of files happens)
+        The director does a 'wait_for_storage_daemon_termination()'.
+        The director waits for the file daemon to indicate the end of the job.
+
+With my idea:
+
+The director connects to the file daemon.
+Then, for each storage daemon in the .bsr file...  {
+        The director connects to the storage daemon, and gets an sd_auth_key.
+        The director then connects to the file daemon, and gives it the
+                sd_auth_key with the 'storaddr' command.
+        (restoring of files happens)
+        The director does a 'wait_for_storage_daemon_termination()'.
+        The director waits for the file daemon to indicate the end of the
+                work on this storage.
+}
+The director tells the file daemon that there are no more storages to contact.
+The director waits for the file daemon to indicate the end of the job.
+
+As you can see, each restore between the file daemon and storage daemon is
+handled in the same way that it is currently handled, using the same method
+for authentication, except that the sd_auth_key is moved from the 'jobcmd' to
+the 'storaddr' command - where it logically belongs.
+
+Item n: 'restore' menu: enter a JobId, automatically select dependents 
+
+Origin: Graham Keeling (graham@equiinet.com)
+
+Date: 13 March 2009
+
+Status: Proposing
+
+What: Add to the bconsole 'restore' menu the ability to select a job 
+by JobId, and have bacula automatically select all the dependent jobs.
+
+Why: Currently, you either have to...
+a) laboriously type in a date that is greater than the date of the backup that
+you want and is less than the subsequent backup (bacula then figures out the
+dependent jobs), or
+b) manually figure out all the JobIds that you want and laboriously type them
+all in.
+It would be extremely useful (in a programmatical sense, as well as for humans)
+to be able to just give it a single JobId and let bacula do the hard work (work
+that it already knows how to do).
+
+Notes (Kern): I think this should either be modified to have Bacula print
+a list of dates that the user can choose from as is done in bwx-console and
+bat or the name of this command must be carefully chosen so that the user
+clearly understands that the JobId is being used to specify what Job and the
+date to which he wishes the restore to happen.
+
+
 
 
 ============= Empty Feature Request form ===========
