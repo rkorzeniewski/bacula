@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2008 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2009 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -921,8 +921,8 @@ static bool update_job(UAContext *ua)
          return false;
       }
       delta_start = StartTime - jr.StartTime;
-      Dmsg3(200, "ST=%d jr.ST=%d delta=%d\n", (time_t)StartTime, 
-            (time_t)jr.StartTime, (time_t)delta_start);
+      Dmsg3(200, "ST=%lld jr.ST=%lld delta=%lld\n", StartTime, 
+            (utime_t)jr.StartTime, delta_start);
       jr.StartTime = (time_t)StartTime;
       jr.SchedTime += (time_t)delta_start;
       jr.EndTime += (time_t)delta_start;

@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2008 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2009 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -253,8 +253,11 @@ bool do_append_data(JCR *jcr)
    ds->fsend(OK_append);
    do_fd_commands(jcr);               /* finish dialog with FD */
 
-
-   time_t job_elapsed = time(NULL) - jcr->run_time;
+   /*
+    * Don't use time_t for job_elapsed as time_t can be 32 or 64 bits,
+    *   and the subsequent Jmsg() editing will break
+    */
+   int32_t job_elapsed = time(NULL) - jcr->run_time;
 
    if (job_elapsed <= 0) {
       job_elapsed = 1;

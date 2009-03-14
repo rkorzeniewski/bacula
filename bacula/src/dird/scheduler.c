@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2009 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -383,19 +383,15 @@ static void add_job(JOB *job, RUN *run, time_t now, time_t runtime)
     */
    if (((runtime - run->last_run) < 61) || ((runtime+59) < now)) {
 #ifdef SCHED_DEBUG
-      char dt[50], dt1[50], dt2[50];
-      bstrftime_nc(dt, sizeof(dt), runtime);
-      bstrftime_nc(dt1, sizeof(dt1), run->last_run);
-      bstrftime_nc(dt2, sizeof(dt2), now);
-      Dmsg7(000, "Drop: Job=\"%s\" run=%s(%x). last_run=%s(%x). now=%s(%x)\n", job->hdr.name, 
-            dt, runtime, dt1, run->last_run, dt2, now);
+      Dmsg4(000, "Drop: Job=\"%s\" run=%lld. last_run=%lld. now=%lld\n", job->hdr.name, 
+            (utime_t)runtime, (utime_t)run->last_run, (utime_t)now);
       fflush(stdout);
 #endif
       return;
    }
 #ifdef SCHED_DEBUG
-   Dmsg4(000, "Add: Job=\"%s\" run=%x last_run=%x now=%x\n", job->hdr.name, 
-            runtime, run->last_run, now);
+   Dmsg4(000, "Add: Job=\"%s\" run=%lld last_run=%lld now=%lld\n", job->hdr.name, 
+            (utime_t)runtime, (utime_t)run->last_run, (utime_t)now);
 #endif
    /* accept to run this job */
    job_item *je = (job_item *)malloc(sizeof(job_item));
