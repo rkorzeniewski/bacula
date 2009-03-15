@@ -47,22 +47,6 @@ static void crypto_session_end(JCR *jcr);
 static bool crypto_session_send(JCR *jcr, BSOCK *sd);
 
 /*
- * check for BSD nodump flag
- */
-static bool no_dump(JCR *jcr, FF_PKT *ff_pkt)
-{
-#if defined(HAVE_CHFLAGS) && defined(UF_NODUMP)
-   if ( (ff_pkt->flags & FO_HONOR_NODUMP) &&
-        (ff_pkt->statp.st_flags & UF_NODUMP) ) {
-      Jmsg(jcr, M_INFO, 1, _("     NODUMP flag set - will not process %s\n"),
-           ff_pkt->fname);
-      return true;                    /* do not backup this file */
-   }
-#endif
-   return false;                      /* do backup */
-}
-
-/*
  * Find all the requested files and send them
  * to the Storage daemon.
  *
@@ -305,14 +289,10 @@ int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
       break;
    case FT_REGE:
       Dmsg1(130, "FT_REGE saving: %s\n", ff_pkt->fname);
-      if (no_dump(jcr, ff_pkt))
-          return 1;
       has_file_data = true;
       break;
    case FT_REG:
       Dmsg1(130, "FT_REG saving: %s\n", ff_pkt->fname);
-      if (no_dump(jcr, ff_pkt))
-          return 1;
       has_file_data = true;
       break;
    case FT_LNK:
@@ -320,8 +300,6 @@ int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
       break;
    case FT_DIRBEGIN:
       jcr->num_files_examined--;      /* correct file count */
-      if (no_dump(jcr, ff_pkt))       /* disable recursion on nodump directories */
-          ff_pkt->flags |= FO_NO_RECURSION;
       return 1;                       /* not used */
    case FT_NORECURSE:
       Jmsg(jcr, M_INFO, 1, _("     Recursion turned off. Will not descend from %s into %s\n"),
