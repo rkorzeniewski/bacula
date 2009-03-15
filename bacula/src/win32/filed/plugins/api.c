@@ -136,6 +136,8 @@ ESEErrorMessage(HRESULT result)
                 return "Exchange backup already in progress.";
         case hrLogfileNotContiguous:
                 return "Existing log file is not contiguous. Check that no stale files are left in the Exchange data/log directories.";
+	case hrCBDatabaseNotFound:
+                return "Database not found. Check that the Database you are trying to restore actually exists in the Storage Group you are restoring to.";
         default:
                 return "Unknown error.";
         }

@@ -252,12 +252,13 @@ loadExchangeApi();
 char *
 ESEErrorMessage(HRESULT result);
 
-#define hrLogfileHasBadSignature        (HRESULT)0xC8000262L
-#define hrLogfileNotContiguous          (HRESULT)0xC8000263L
-#define hrCBDatabaseInUse                       (HRESULT)0xC7FE1F41L
+#define hrLogfileHasBadSignature    (HRESULT)0xC8000262L
+#define hrLogfileNotContiguous      (HRESULT)0xC8000263L
+#define hrCBDatabaseInUse           (HRESULT)0xC7FE1F41L
 #define hrRestoreAtFileLevel        (HRESULT)0xC7FF0FA5L
 #define hrMissingFullBackup         (HRESULT)0xC8000230L
 #define hrBackupInProgress          (HRESULT)0xC80001F9L
+#define hrCBDatabaseNotFound        (HRESULT)0xC7FE1F42L
 
 extern HrESEBackupRestoreGetNodes_t HrESEBackupRestoreGetNodes;
 extern HrESEBackupPrepare_t HrESEBackupPrepare;
