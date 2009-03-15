@@ -323,12 +323,20 @@ bool Console::sql_cmd(const char *query, QStringList &results)
    pm_strcat(cmd, "\"");
    write(cmd.c_str());
    while ((stat = read()) > 0) {
+      bool first = true;
       if (mainWin->m_displayAll) {
          display_text(msg());
          display_text("\n");
       }
       strip_trailing_junk(msg());
-      results << msg();
+      bool doappend = true;
+      if (first) {
+         QString dum = msg();
+         if ((dum.left(6) == "*None*")) doappend = false;
+      }
+      if (doappend)
+         results << msg();
+      first = false;
    }
    notify(true);
    discardToPrompt();
