@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2008 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2009 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -211,6 +211,22 @@ static bool volume_has_attrlist(const char *fname)
    return false;
 }
 
+/*
+ * check for BSD nodump flag
+ */
+static bool no_dump(JCR *jcr, FF_PKT *ff_pkt)
+{
+#if defined(HAVE_CHFLAGS) && defined(UF_NODUMP)
+   if ( (ff_pkt->flags & FO_HONOR_NODUMP) &&
+        (ff_pkt->statp.st_flags & UF_NODUMP) ) {
+      Jmsg(jcr, M_INFO, 1, _("     NODUMP flag set - will not process %s\n"),
+           ff_pkt->fname);
+      return true;                    /* do not backup this file */
+   }
+#endif
+   return false;                      /* do backup */
+}
+
 /* check if a file have changed during backup and display an error */
 bool has_file_changed(JCR *jcr, FF_PKT *ff_pkt)
 {
@@ -353,6 +369,16 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt,
       }
       ff_pkt->volhas_attrlist = volume_has_attrlist(fname);
    }
+
+   /*
+    * Ignore this entry if no_dump() returns true
+    */
+   if (no_dump(jcr, ff_pkt)) {
+           Dmsg1(100, "'%s' ignored (NODUMP flag set)\n",
+                 ff_pkt->fname);
+           return 1;
+   }
+
    /*
     * If this is an Incremental backup, see if file was modified
     * since our last "save_time", presumably the last Full save

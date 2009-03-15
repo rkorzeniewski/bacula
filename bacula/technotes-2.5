@@ -34,15 +34,21 @@ Allow Mixed Priorities
 Eliminated license problems with OpenSSL.
 
 Code to be completed before 3.0.0 is released:
-1. Fix bug #1221 problem with NODUMP flag
+*1. Fix bug #1221 problem with NODUMP flag
 2. Fix Exchange plugin bugs 1234,1235,1236,1237
+   *1234 fixed.
 3. Resolve bug #1227
 4. Finish documentation (some noted above)
-5. Diff 2.4.4 to current SVN and check differences
+*5. Diff 2.4.4 to current SVN and check differences
 
 
 General:
 15Mar09
+jh   Fix by James Harper to print error code when attempting to
+     restore two databases (only one is permitted). This responds
+     to bug #1234.
+kes  Apply the nodump patch supplied by Frank Kardel that fixes
+     the NODUMP flag problem. This fixes bug #1221
 kes  Add more output if a user attempts to clone a job but does not
      uniquely specify the Job name.  This responds to bug #1248 which
      was not a bug, but improves user feedback.
