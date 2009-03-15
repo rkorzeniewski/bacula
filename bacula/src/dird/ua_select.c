@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2001-2008 Free Software Foundation Europe e.V.
+   Copyright (C) 2001-2009 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -762,7 +762,13 @@ int do_prompt(UAContext *ua, const char *automsg, const char *msg,
    }
    /* If running non-interactive, bail out */
    if (ua->batch) {
-      ua->send_msg(_("Cannot select %s in batch mode.\n"), automsg);
+      /* First print the choices he wanted to make */
+      ua->send_msg(ua->prompt[0]);
+      for (i=1; i < ua->num_prompts; i++) {
+         ua->send_msg("%6d: %s\n", i, ua->prompt[i]);
+      }
+      /* Now print error message */
+      ua->send_msg(_("Your request has multiple choices for \"%s\". Selection is not possible in batch mode.\n"), automsg);
       item = -1;
       goto done;
    }
