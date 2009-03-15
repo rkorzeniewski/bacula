@@ -1342,7 +1342,8 @@ void create_clones(JCR *jcr)
          parse_ua_args(ua);                 /* parse command */
          int stat = run_cmd(ua, ua->cmd);
          if (stat == 0) {
-            Jmsg(jcr, M_ERROR, 0, _("Could not start clone job.\n"));
+            Jmsg(jcr, M_ERROR, 0, _("Could not start clone job: \"%s\".\n"),
+                 ua->cmd);
          } else {
             Jmsg(jcr, M_INFO, 0, _("Clone JobId %d started.\n"), stat);
          }
