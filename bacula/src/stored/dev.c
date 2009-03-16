@@ -2111,8 +2111,8 @@ bool DEVICE::do_mount(int mount, int dotimeout)
    Dmsg2(100, "do_mount: cmd=%s mounted=%d\n", ocmd.c_str(), !!is_mounted());
 
    if (dotimeout) {
-      /* Try at most 1 time to (un)mount the device. This should perhaps be configurable. */
-      timeout = 1;
+      /* Try at most 10 times to (un)mount the device. This should perhaps be configurable. */
+      timeout = 10;
    } else {
       timeout = 0;
    }
