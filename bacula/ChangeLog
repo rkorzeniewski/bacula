@@ -2,6 +2,161 @@
 
 General:
 
+Beta Release 2.5.42-b2
+16Mar09
+kes  Increase timeout for unmounting DVD as suggested by reporter
+     of bug #1250.
+15Mar09
+jh   Fix by James Harper to print error code when attempting to
+     restore two databases (only one is permitted). This responds
+     to bug #1234.
+kes  Apply the nodump patch supplied by Frank Kardel that fixes
+     the NODUMP flag problem. This fixes bug #1221
+kes  Add more output if a user attempts to clone a job but does not
+     uniquely specify the Job name.  This responds to bug #1248 which
+     was not a bug, but improves user feedback.
+14Mar09
+kes  Fix problems with bug #1247 and 64 bit time_t OSes by not 
+     editing (printf) time_t values.
+12Mar09
+kes  Install bacula (start/stop script) in sbindir in addition to
+     scripts dir.
+ebl  Tweak configure to remove bash specific code
+ebl  Remove TCABD reference
+11Mar09
+ebl  Free lock manager in when btape exits
+09Mar09
+kes  Apply patch from bug #1224, which fixes waiting on max Storage
+     jobs during migration.  Submitted by Alexandre Simon.
+kes  On 03Mar08 (a year ago) applied patch from bug #1059 (kardel)
+     to implement the NODUMP flag on FreeBSD.
+07Mar09
+kes  When deleting a Volume by MediaId require the Id to be
+     prefixed by a * to avoid confusing with an integer volume
+     name.
+kes  Prevent bls from printing binary data when a plugin stream
+     encountered. This fixes bug #1238
+kes  Prepare to add JS_Warnings termination status.
+kes  Attempt to resolve bwx-console Win32 crash. Not likely to
+     work.
+06Mar09
+kes  Move src/win32/dll to src/win32/lib, which is much more logical.
+kes  Fix the Win32 build.
+kes  Fix broken casting in src/compat/print.cpp.
+kes  Eliminate jcr Errors and always use jcr JobErrors.  This should
+     ensure that SD and FD errors are correctly reported.  Also add
+     JobErrors to SD returned values. This should fix bug #1242.
+28Feb09
+mvw  Implemented xattr support for Solaris 9 and above and extensible
+     attributes for OpenSolaris.
+mvw  Added some limits to the xattr code so that we don't blow up the
+     filed on big xattrs.
+mvw  Fixed some comments which changed due to xattrs being implemented.
+mvw  Changed xattr support checking in configure to test first for
+     generic solutions and when not found for specific OS functions.
+25Feb09
+mvw  Don't try to copy empty jobs (e.g. with jobbytes == 0)
+     which gives Unable to get Job Volume Parameters errors.
+     Which leads to copying the same job over and over again.
+21Feb09
+kes  Ensure that src/qt-console/.libs is cleaned properly
+20Feb09
+mvw  Use acl_data_len instead of seperate var for length
+     of acl stream.
+ebl  Add database update scripts to updatedb dir
+19Feb09
+ebl  Fix #1226 about bconsole segfault when using readline()
+18Feb09
+kes  Apply Eric's next-beta.patch that enables 64 bit FileIds and
+     adds new columns to the catalog.
+kes  Ensure that libtool directory always cleaned + reduce 
+     unnecessary output during make clean.
+15Feb09
+ebl  Check postgresql database encoding that should be SQL_ASCII
+     and print a warning if it's something else.
+08Feb09
+kes  Free name item in guid_to_name.c when already in list.
+kes  Add more info to error message in ua_tree.c
+05Feb09
+kes  Make re-read last block fatal if block numbers differ by
+     more than one.
+30Jan09
+ebl  Try to disable _FORTIFY_SOURCE by default
+29Jan09
+ebl  Tweak compat.h for new mingw
+28Jan09
+ebl  Add new ScratchPool directive to Pool. Thanks to Graham
+ebl  Turn on db_get_file_list() single SQL because the failure
+     was due to a full FS. And the accurate test fails with the
+     other code.
+27Jan09
+ebl  Fix a bug that doesn't update RecyclePool all the time 
+     during the first startup.
+25Jan09
+kes  Turn off db_get_file_list() giant SQL because if fails on
+     my production machine.
+kes  Fix bat.pro.in so that bat is properly installed rather
+     than just copied.
+24Jan09
+kes  Modify search for .conf file so that if one is given on
+     the command line, it will be used, otherwise it will use
+     the SYSCONF directory.  It will no longer look in the current
+     directory unless explicitly requested on the command line.
+     This fixes bug #1189.
+kes  Fail a job that references a plugin if no Plugin Directory is
+     defined.
+22Jan09
+kes  Fix bug #1211 crash during reload with bad dird.conf file.
+21Jan09
+ebl  Add detection of intptr_t and uintptr_t to configure process
+20Jan09
+ebl  Change some cast to use intptr_t instead of long
+18Jan09
+kes  Apply acl_solaris_update.patch submitted by Marco (thanks).
+kes  Remove configure check for resolv.h -- it is apparently not needed
+     and causes build warnings on FreeBSD.
+kes  Ensure that the installer and newinstaller Makefiles are called
+     during a make clean.
+12Jan09
+kes  Apply Eric's fix for suppressing extended attributes error messages
+     when dealing with deleted files.
+11Jan09
+kes  Add src/win32/newinstaller -- single file installer
+kes  Attempt to explicitly call gmake when needed, or if not found
+     skip the calls.  This should fix the FreeBSD regression/build.
+10Jan09
+kes  Fix bat.pro.in so that bat will install.
+09Jan09
+kes  Add more debug output to VSS init.
+kes  Attempt to correct win32 debug in berrno.
+09Jan09
+kes  Fix bug reported by Dan where make fails in clean of src/win32. 
+07Jan09
+kes  Fix bug #1212, SD is unable to recycle purged volumes. fstat()
+     was broken.
+06Jan09
+ebl  Despool attributes directly from the director if attribute
+     spool file is present
+Beta Release 2.5.28-b1
+05Jan09
+kes  Fix bat install broken by $DESTDIR change.
+02Jan09
+kes  Fix annoying compiler warnings in console/conio.c
+kes  Fix win32 build (depended whether or not ./configure was run).
+28Dec08
+kes  Apply fix suggested by Bruno Friedmann to configure.in to
+     find python2.5
+26Dec08
+kes  Turn on Eric's match_bsr tape block checking code.
+kes  Correct values used for tape block numbers in record.c.
+23Dec08
+ebl  Fix a problem with PoolUncopiedJobs option which was broken
+     by the new JT_JOB_COPY type.
+kes  Fix bug #1206 -- Error: sql_update.c:194, which was probably
+     caused by the user modifying the Bacula DB schema.
+kes  Remove rogue line of C code.
+kes  Fix bug #1208
+
 Beta Release 2.5.28-b1
 02Jan09
 kes  Fix annoying compiler warnings in console/conio.c
