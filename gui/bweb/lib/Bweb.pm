@@ -2326,7 +2326,7 @@ sub get_param
 	if ($status =~ /^(\w)$/) {
 	    $ret{status} = $1;
 	    if ($1 eq 'f') {
-		$limit .= "AND Job.JobStatus IN ('f','E') ";		
+		$limit .= "AND Job.JobStatus IN ('E','e','f','A') ";		
 	    } elsif ($1 eq 'W') {
 		$limit .= "AND Job.JobStatus IN ('T', 'W') OR Job.JobErrors > 0 ";		
             } else {
