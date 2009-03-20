@@ -354,6 +354,12 @@ storage_group_node_t::createFile(exchange_fd_context_t *context, struct restore_
                 switch (state)
                 {
                 case 0:
+                        if (context->path_bits[level + 2] == NULL)
+			{
+                                _JobMessage(M_ERROR, "Unexpected log file '%s%s' - expecting database\n", full_path, context->path_bits[level + 1]);
+                                state = 999;
+                                break;
+			}
                         service_name = new WCHAR[strlen(parent->name) + 1];
                         storage_group_name = new WCHAR[strlen(name) + 1];
                         mbstowcs(service_name, parent->name, strlen(parent->name) + 1);
