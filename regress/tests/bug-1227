@@ -38,6 +38,7 @@ messages
 run job=$JobName yes
 @sleep 10
 messages
+setdebug storage=DDS-4 level=200
 label storage=DDS-4 volume=TestVolume002 slot=0 pool=Default
 messages
 @sleep 5
