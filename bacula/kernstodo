@@ -72,6 +72,7 @@ Professional Needs:
 
 Priority:
 ================
+
 - Why no error message if restore has no permission on the where
   directory?
 - Possibly allow manual "purge" to purge a Volume that has not
@@ -141,6 +142,11 @@ Priority:
      its faster to enter the specified directory
 - Make tree walk routines like cd, ls, ... more user friendly
   by handling spaces better.
+- When doing a restore, if the user does an "update slots"
+  after the job started in order to add a restore volume, the
+   values prior to the update slots will be put into the catalog.
+   Must retrieve catalog record merge it then write it back at the
+   end of the restore job, if we want to do this right.
 === rate design
   jcr->last_rate
   jcr->last_runtime
