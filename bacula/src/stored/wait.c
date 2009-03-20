@@ -62,8 +62,14 @@ int wait_for_sysop(DCR *dcr)
 
    dev->dlock();  
    Dmsg1(dbglvl, "Enter blocked=%s\n", dev->print_blocked());
-   unmounted = is_device_unmounted(dev);
 
+   /*
+    * Since we want to mount a tape, make sure current one is
+    *  not marked as using this drive.
+    */
+   volume_unused(dcr);
+
+   unmounted = is_device_unmounted(dev);
    dev->poll = false;
    /*
     * Wait requested time (dev->rem_wait_sec).  However, we also wake up every

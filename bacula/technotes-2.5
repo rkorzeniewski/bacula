@@ -23,15 +23,21 @@ bpipe fd plugin
 Exchange plugin
 
 
-New features to be documented:
-Update src/plugins/README
-command separator in console (!$%&'()*+,-/:;<>?[]^`{|}~)
-examples/database/dbcheck.sql
-enhancement to wait command: wait mount  ...
-dbport in dbcheck
-filepattern (restore with regex in bsr)
-Allow Mixed Priorities
-Eliminated license problems with OpenSSL.
+-New features to be documented:
+-Update src/plugins/README
+-command separator in console (!$%&'()*+,-/:;<>?[]^`{|}~)
+-examples/database/dbcheck.sql
+-enhancement to wait command: wait mount  ...
+-dbport in dbcheck
+-filepattern (restore with regex in bsr)
+-Allow Mixed Priorities  Kjetil Torgrim Homme <kjetilho@linpro.no> 30Jun08
+-Eliminated license problems with OpenSSL.
+- The exchange plugin truncates the exchange logs as soon as it has
+sent the data to the sd.  If the sd is spooling and something
+goes wrong and the data doesn't make it to the backup medium then
+the logs are lost, which could be a problem under some
+restore scenarios.
+- Regex filtered bsrs Kjetil Torgrim Homme <kjetilho@linpro.no> 15Aug08
 
 Code to be completed before 3.0.0 is released:
 *1. Fix bug #1221 problem with NODUMP flag
@@ -43,6 +49,10 @@ Code to be completed before 3.0.0 is released:
 
 
 General:
+20Mar09
+kes  Proposed fix for bug #1227 Job and labeling new tape.
+
+Beta release 2.5.42-b2
 16Mar09
 kes  Increase timeout for unmounting DVD as suggested by reporter
      of bug #1250.
