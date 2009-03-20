@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2008 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2009 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -380,9 +380,12 @@ VOLRES *reserve_volume(DCR *dcr, const char *VolumeName)
             goto get_out;
          }
          Dmsg2(dbglvl, "reserve_vol free vol=%s at %p\n", vol->vol_name, vol->vol_name);
-         free_volume(dev);
-         Dmsg0(50, "set_unload\n");
-         dev->set_unload();             /* have to unload current volume */
+         /* If old Volume is still mounted, must unload it */
+         if (strcmp(vol->vol_name, dev->VolHdr.VolumeName) == 0) {
+            Dmsg0(50, "set_unload\n");
+            dev->set_unload();          /* have to unload current volume */
+         }
+         free_volume(dev);              /* Release old volume entry */
          debug_list_volumes("reserve_vol free");
       }
    }
