@@ -38,10 +38,15 @@ messages
 run job=$JobName yes
 @sleep 10
 messages
-setdebug storage=DDS-4 level=200
+setdebug level=400 storage=DDS-4 trace=1
+setdebug level=400 director trace=1
 label storage=DDS-4 volume=TestVolume002 slot=0 pool=Default
 messages
 @sleep 5
+mount storage=DDS-4 slot=0
+@sleep 2
+messages
+@sleep 2
 mount storage=DDS-4 slot=0
 @sleep 2
 messages
@@ -49,8 +54,6 @@ cancel jobid=1
 wait
 messages
 list volumes
-label storage=DDS-4 volume=TestVolume003 slot=0 pool=Default
-messages
 END_OF_DATA
 
 run_bacula
