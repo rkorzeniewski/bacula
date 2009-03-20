@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2008 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2009 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -398,6 +398,7 @@ bool write_new_volume_label_to_dev(DCR *dcr, const char *VolName,
    if (reserve_volume(dcr, VolName) == NULL) {
       Mmsg2(dcr->jcr->errmsg, _("Could not reserve volume %s on %s\n"),
            dev->VolHdr.VolumeName, dev->print_name());
+      Dmsg1(100, "%s", dcr->jcr->errmsg);
       goto bail_out;
    }
    dev = dcr->dev;                    /* may have changed in reserve_volume */
