@@ -57,11 +57,11 @@ list volumes
 END_OF_DATA
 
 run_bacula
+check_for_zombie_jobs storage=DDS-4
 stop_bacula
 
-bstat=1
-rstat=0
-dstat=0
-zstat=0
+touch ${cwd}/tmp/log2.out
+check_two_logs
+check_restore_diff
 
 end_test
