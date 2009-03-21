@@ -243,7 +243,7 @@ int DirComm::write(const char *msg)
    m_sock->msglen = pm_strcpy(m_sock->msg, msg);
    m_at_prompt = false;
    m_at_main_prompt = false;
-   if (mainWin->m_commDebug) Pmsg1(000, "send: %s\n", msg);
+   if (mainWin->m_commDebug) Pmsg2(000, "conn %i send: %s\n", m_conn, msg);
    return m_sock->send();
 }
 
@@ -281,7 +281,7 @@ int DirComm::read()
       m_sock->msg[0] = 0;
       stat = sock_read();
       if (stat >= 0) {
-         if (mainWin->m_commDebug) Pmsg1(000, "got: %s\n", m_sock->msg);
+         if (mainWin->m_commDebug) Pmsg2(000, "conn %i got: %s\n", m_conn, m_sock->msg);
          if (m_at_prompt) {
             m_console->display_text("\n");
             m_at_prompt = false;
@@ -291,7 +291,7 @@ int DirComm::read()
       switch (m_sock->msglen) {
       case BNET_MSGS_PENDING :
          if (is_notify_enabled() && m_console->hasFocus()) {
-            if (mainWin->m_commDebug) Pmsg0(000, "MSGS PENDING\n");
+            if (mainWin->m_commDebug) Pmsg1(000, "conn %i MSGS PENDING\n", m_conn);
             m_console->write_dir(m_conn, ".messages");
             m_console->displayToPrompt(m_conn);
             m_console->messagesPending(false);
@@ -299,7 +299,7 @@ int DirComm::read()
          m_console->messagesPending(true);
          continue;
       case BNET_CMD_OK:
-         if (mainWin->m_commDebug) Pmsg0(000, "CMD OK\n");
+         if (mainWin->m_commDebug) Pmsg1(000, "conn %i CMD OK\n", m_conn);
          m_at_prompt = false;
          m_at_main_prompt = false;
 //       Pmsg1(000, "before dec m_in_command=%d\n", m_in_command);
@@ -310,7 +310,7 @@ int DirComm::read()
          mainWin->set_status(_("Command completed ..."));
          continue;
       case BNET_CMD_BEGIN:
-         if (mainWin->m_commDebug) Pmsg0(000, "CMD BEGIN\n");
+         if (mainWin->m_commDebug) Pmsg1(000, "conn %i CMD BEGIN\n", m_conn);
          m_at_prompt = false;
          m_at_main_prompt = false;
          m_in_command++;
@@ -318,21 +318,21 @@ int DirComm::read()
          mainWin->set_status(_("Processing command ..."));
          continue;
       case BNET_MAIN_PROMPT:
-         if (mainWin->m_commDebug) Pmsg0(000, "MAIN PROMPT\n");
+         if (mainWin->m_commDebug) Pmsg1(000, "conn %i MAIN PROMPT\n", m_conn);
          m_at_prompt = true;
          m_at_main_prompt = true;
          mainWin->set_status(_("At main prompt waiting for input ..."));
          QApplication::restoreOverrideCursor();
          break;
       case BNET_PROMPT:
-         if (mainWin->m_commDebug) Pmsg0(000, "PROMPT\n");
+         if (mainWin->m_commDebug) Pmsg1(000, "conn %i PROMPT\n", m_conn);
          m_at_prompt = true;
          m_at_main_prompt = false;
          mainWin->set_status(_("At prompt waiting for input ..."));
          QApplication::restoreOverrideCursor();
          break;
       case BNET_CMD_FAILED:
-         if (mainWin->m_commDebug) Pmsg0(000, "CMD FAILED\n");
+         if (mainWin->m_commDebug) Pmsg1(000, "CMD FAILED\n", m_conn);
          if (--m_in_command < 0) {
 //          Pmsg0(000, "m_in_command < 0\n");
             m_in_command = 0;
@@ -342,7 +342,7 @@ int DirComm::read()
          break;
       /* We should not get this one */
       case BNET_EOD:
-         if (mainWin->m_commDebug) Pmsg0(000, "EOD\n");
+         if (mainWin->m_commDebug) Pmsg1(000, "conn %i EOD\n", m_conn);
          mainWin->set_status_ready();
          QApplication::restoreOverrideCursor();
          if (!m_api_set) {
@@ -350,45 +350,45 @@ int DirComm::read()
          }
          continue;
       case BNET_START_SELECT:
-         if (mainWin->m_commDebug) Pmsg0(000, "START SELECT\n");
+         if (mainWin->m_commDebug) Pmsg1(000, "conn %i START SELECT\n", m_conn);
          new selectDialog(m_console);
          break;
       case BNET_YESNO:
-         if (mainWin->m_commDebug) Pmsg0(000, "YESNO\n");
+         if (mainWin->m_commDebug) Pmsg1(000, "conn %i YESNO\n", m_conn);
          new yesnoPopUp(m_console, m_conn);
          break;
       case BNET_RUN_CMD:
-         if (mainWin->m_commDebug) Pmsg0(000, "RUN CMD\n");
+         if (mainWin->m_commDebug) Pmsg1(000, "conn %i RUN CMD\n", m_conn);
          new runCmdPage();
          break;
       case BNET_START_RTREE:
-         if (mainWin->m_commDebug) Pmsg0(000, "START RTREE CMD\n");
+         if (mainWin->m_commDebug) Pmsg1(000, "conn %i START RTREE CMD\n", m_conn);
          new restorePage(m_conn);
          break;
       case BNET_END_RTREE:
-         if (mainWin->m_commDebug) Pmsg0(000, "END RTREE CMD\n");
+         if (mainWin->m_commDebug) Pmsg1(000, "conn %i END RTREE CMD\n", m_conn);
          break;
       case BNET_ERROR_MSG:
-         if (mainWin->m_commDebug) Pmsg0(000, "ERROR MSG\n");
+         if (mainWin->m_commDebug) Pmsg1(000, "conn %i ERROR MSG\n", m_conn);
          stat = sock_read();          /* get the message */
          m_console->display_text(msg());
          QMessageBox::critical(m_console, "Error", msg(), QMessageBox::Ok);
          break;
       case BNET_WARNING_MSG:
-         if (mainWin->m_commDebug) Pmsg0(000, "WARNING MSG\n");
+         if (mainWin->m_commDebug) Pmsg1(000, "conn %i WARNING MSG\n", m_conn);
          stat = sock_read();          /* get the message */
          m_console->display_text(msg());
          QMessageBox::critical(m_console, "Warning", msg(), QMessageBox::Ok);
          break;
       case BNET_INFO_MSG:
-         if (mainWin->m_commDebug) Pmsg0(000, "INFO MSG\n");
+         if (mainWin->m_commDebug) Pmsg1(000, "conn %i INFO MSG\n", m_conn);
          stat = sock_read();          /* get the message */
          m_console->display_text(msg());
          mainWin->set_status(msg());
          break;
       }
       if (is_bnet_stop(m_sock)) {         /* error or term request */
-         if (mainWin->m_commDebug) Pmsg0(000, "BNET STOP\n");
+         if (mainWin->m_commDebug) Pmsg1(000, "conn %i BNET STOP\n", m_conn);
          m_console->stopTimer();
          m_sock->close();
          m_sock = NULL;
@@ -413,7 +413,7 @@ int DirComm::read()
 /* Called by signal when the Director has output for us */
 void DirComm::read_dir(int /* fd */)
 {
-   if (mainWin->m_commDebug) Pmsg0(000, "read_dir\n");
+   if (mainWin->m_commDebug) Pmsg1(000, "conn %i read_dir\n", m_conn);
    while (read() >= 0) {
       m_console->display_text(msg());
    }
