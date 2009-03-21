@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2007-2008 Free Software Foundation Europe e.V.
+   Copyright (C) 2007-2009 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -176,11 +176,12 @@ bool Console::dir_cmd(const char *cmd, QStringList &results)
       Pmsg2(000, "dir_cmd conn %i %s\n", conn, cmd);
    notify(conn, false);
    dircomm->write(cmd);
-   while ((stat = dircomm->read()) > 0) {
+   while ((stat = dircomm->read()) > 0 && dircomm->is_in_command()) {
       if (mainWin->m_displayAll) display_text(dircomm->msg());
       strip_trailing_junk(dircomm->msg());
       results << dircomm->msg();
    }
+   if (stat > 0 && mainWin->m_displayAll) display_text(dircomm->msg());
    notify(conn, true);
    discardToPrompt(conn);
    return true;              /* ***FIXME*** return any command error */
