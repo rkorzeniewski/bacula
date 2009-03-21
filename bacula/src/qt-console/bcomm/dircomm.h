@@ -3,7 +3,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2007-2008 Free Software Foundation Europe e.V.
+   Copyright (C) 2007-2009 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -64,6 +64,7 @@ public:
    char *msg();
    bool notify(bool enable); // enables/disables socket notification - returns the previous state
    bool is_notify_enabled() const;
+   bool is_in_command() const { return m_in_command > 0; };
    void terminate();
    bool connect_dir();                     
    int read(void);
@@ -77,6 +78,7 @@ private:
    BSOCK *m_sock;   
    bool m_at_prompt;
    bool m_at_main_prompt;
+   int  m_in_command;
    QSocketNotifier *m_notifier;
    bool m_api_set;
    int m_conn;

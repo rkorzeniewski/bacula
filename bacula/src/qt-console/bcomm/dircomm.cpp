@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2007-2008 Free Software Foundation Europe e.V.
+   Copyright (C) 2007-2009 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -51,6 +51,7 @@ m_api_set(false)
    m_at_prompt = false;
    m_at_main_prompt = false;
    m_conn = conn;
+   m_in_command = 0;
 }
 
 DirComm::~DirComm()
@@ -301,12 +302,19 @@ int DirComm::read()
          if (mainWin->m_commDebug) Pmsg0(000, "CMD OK\n");
          m_at_prompt = false;
          m_at_main_prompt = false;
+//       Pmsg1(000, "before dec m_in_command=%d\n", m_in_command);
+         if (--m_in_command < 0) {
+//          Pmsg0(000, "m_in_command < 0\n");
+            m_in_command = 0;
+         }
          mainWin->set_status(_("Command completed ..."));
          continue;
       case BNET_CMD_BEGIN:
          if (mainWin->m_commDebug) Pmsg0(000, "CMD BEGIN\n");
          m_at_prompt = false;
          m_at_main_prompt = false;
+         m_in_command++;
+//       Pmsg1(000, "after inc m_in_command=%d\n", m_in_command);
          mainWin->set_status(_("Processing command ..."));
          continue;
       case BNET_MAIN_PROMPT:
@@ -325,6 +333,9 @@ int DirComm::read()
          break;
       case BNET_CMD_FAILED:
          if (mainWin->m_commDebug) Pmsg0(000, "CMD FAILED\n");
+         if (--m_in_command < 0) {
+            Pmsg0(000, "m_in_command < 0\n");
+         }
          mainWin->set_status(_("Command failed."));
          QApplication::restoreOverrideCursor();
          break;
