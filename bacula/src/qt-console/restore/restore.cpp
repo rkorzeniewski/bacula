@@ -38,9 +38,11 @@
 #include "bat.h"
 #include "restore.h"
 
+static const int dbglvl = 100;
+
 restorePage::restorePage(int conn)
 {
-   Pmsg1(000, "Construcing restorePage Instance connection %i\n", conn);
+   Pmsg1(dbglvl, "Construcing restorePage Instance connection %i\n", conn);
    m_conn = conn;
    QStringList titles;
 
@@ -192,13 +194,13 @@ void restorePage::addDirectory(QString &newdirr)
                     .arg(m_cwd)
                     .arg(newdir)
                     .arg(fullpath);
-      Pmsg0(000, msg.toUtf8().data());
+      Pmsg0(dbglvl, msg.toUtf8().data());
    }
 
    if (isWin32Path(newdir)) {
       /* this is a windows drive */
       if (mainWin->m_miscDebug) {
-         Pmsg0(000, "Found windows drive\n");
+         Pmsg0(dbglvl, "Found windows drive\n");
       }
       windrive = true;
    }
@@ -213,7 +215,7 @@ void restorePage::addDirectory(QString &newdirr)
          item->setIcon(0,QIcon(QString::fromUtf8(":images/folder.png")));
          item->setText(0, fullpath.toUtf8().data());
          if (mainWin->m_miscDebug) {
-            Pmsg1(000, "Pre Inserting %s\n",fullpath.toUtf8().data());
+            Pmsg1(dbglvl, "Pre Inserting %s\n",fullpath.toUtf8().data());
          }
          m_dirPaths.insert(fullpath, item);
          m_dirTreeItems.insert(item, fullpath);
@@ -228,7 +230,7 @@ void restorePage::addDirectory(QString &newdirr)
          QString text("/");
          item->setText(0, text.toUtf8().data());
          if (mainWin->m_miscDebug) {
-            Pmsg1(000, "Pre Inserting %s\n",text.toUtf8().data());
+            Pmsg1(dbglvl, "Pre Inserting %s\n",text.toUtf8().data());
          }
          m_dirPaths.insert(text, item);
          m_dirTreeItems.insert(item, text);
@@ -257,14 +259,14 @@ void restorePage::addDirectory(QString &newdirr)
                QString msg = QString(tr("In else of if parent cwd \"%1\" newdir \"%2\"\n"))
                     .arg(m_cwd)
                     .arg(newdir);
-               Pmsg0(000, msg.toUtf8().data());
+               Pmsg0(dbglvl, msg.toUtf8().data());
             }
          }
       }
       /* insert into both forward and reverse hash */
       if (ok) {
          if (mainWin->m_miscDebug) {
-            Pmsg1(000, "Inserting %s\n",fullpath.toUtf8().data());
+            Pmsg1(dbglvl, "Inserting %s\n",fullpath.toUtf8().data());
          }
          m_dirPaths.insert(fullpath, item);
          m_dirTreeItems.insert(item, fullpath);
@@ -345,7 +347,7 @@ void restorePage::fileDoubleClicked(QTreeWidgetItem *item, int column)
          QString msg = QString("DoubleClick else of item column %1 fullpath %2\n")
               .arg(column,10)
               .arg(fullpath);
-         Pmsg0(000, msg.toUtf8().data());
+         Pmsg0(dbglvl, msg.toUtf8().data());
       }
    }
 }
@@ -383,7 +385,7 @@ void restorePage::markButtonPushed()
          strip_trailing_junk(m_console->msg(m_conn));
          statusLine->setText(m_console->msg(m_conn));
       }
-      Dmsg1(100, "cmd=%s\n", cmd);
+      Dmsg1(dbglvl, "cmd=%s\n", cmd);
       m_console->discardToPrompt(m_conn);
    }
    if (count == 0) {
@@ -412,7 +414,7 @@ void restorePage::unmarkButtonPushed()
          strip_trailing_junk(m_console->msg(m_conn));
          statusLine->setText(m_console->msg(m_conn));
       }
-      Dmsg1(100, "cmd=%s\n", cmd);
+      Dmsg1(dbglvl, "cmd=%s\n", cmd);
       m_console->discardToPrompt(m_conn);
    }
    if (count == 0) {
@@ -432,15 +434,15 @@ bool restorePage::cwd(const char *dir)
 
    statusLine->setText("");
    bsnprintf(cd_cmd, sizeof(cd_cmd), "cd \"%s\"", dir);
-   Dmsg2(100, "dir=%s cmd=%s\n", dir, cd_cmd);
+   Dmsg2(dbglvl, "dir=%s cmd=%s\n", dir, cd_cmd);
    m_console->write_dir(m_conn, cd_cmd);
    lineEdit->clear();
    if ((stat = m_console->read(m_conn)) > 0) {
       m_cwd = m_console->msg(m_conn);
       lineEdit->insert(m_cwd);
-      Dmsg2(100, "cwd=%s msg=%s\n", m_cwd.toUtf8().data(), m_console->msg(m_conn));
+      Dmsg2(dbglvl, "cwd=%s msg=%s\n", m_cwd.toUtf8().data(), m_console->msg(m_conn));
    } else {
-      Dmsg1(000, "stat=%d\n", stat);
+      Dmsg1(dbglvl, "stat=%d\n", stat);
       QMessageBox::critical(this, "Error", tr("cd command failed"), QMessageBox::Ok);
    }
    m_console->discardToPrompt(m_conn);
@@ -454,12 +456,12 @@ char *restorePage::get_cwd()
 {
    int stat;
    m_console->write_dir(m_conn, ".pwd");
-   Dmsg0(100, "send: .pwd\n");
+   Dmsg0(dbglvl, "send: .pwd\n");
    if ((stat = m_console->read(m_conn)) > 0) {
       m_cwd = m_console->msg(m_conn);
-      Dmsg2(100, "cwd=%s msg=%s\n", m_cwd.toUtf8().data(), m_console->msg(m_conn));
+      Dmsg2(dbglvl, "cwd=%s msg=%s\n", m_cwd.toUtf8().data(), m_console->msg(m_conn));
    } else {
-      Dmsg1(000, "Something went wrong read stat=%d\n", stat);
+      Dmsg1(dbglvl, "Something went wrong read stat=%d\n", stat);
       QMessageBox::critical(this, "Error", tr(".pwd command failed"), QMessageBox::Ok);
    }
    m_console->discardToPrompt(m_conn); 
