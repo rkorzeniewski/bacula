@@ -53,10 +53,10 @@ runCmdPage::runCmdPage()
    setupUi(this);
    QTreeWidgetItem* thisitem = mainWin->getFromHash(this);
    thisitem->setIcon(0,QIcon(QString::fromUtf8(":images/restore.png")));
-   m_console->notify(false);
+   m_conn = m_console->notifyOff();
 
    fill();
-   m_console->discardToPrompt();
+   m_console->discardToPrompt(m_conn);
 
    connect(okButton, SIGNAL(pressed()), this, SLOT(okButtonPushed()));
    connect(cancelButton, SIGNAL(pressed()), this, SLOT(cancelButtonPushed()));
@@ -80,8 +80,8 @@ void runCmdPage::fill()
    storageCombo->addItems(m_console->storage_list);
    dateTimeEdit->setDisplayFormat(mainWin->m_dtformat);
 
-   m_console->read();
-   item = m_console->msg();
+   m_console->read(m_conn);
+   item = m_console->msg(m_conn);
    items = item.split("\n");
    label->setText(items[0]);
    Dmsg1(200, "Title=%s\n", items[0].toUtf8().data());
@@ -161,22 +161,22 @@ void runCmdPage::okButtonPushed()
    m_console->display_html(displayhtml);
    m_console->display_text("\n");
    m_console->write_dir(cmd.toUtf8().data());
-   m_console->displayToPrompt();
+   m_console->displayToPrompt(m_conn);
 //   consoleCommand(cmd); ***FIXME set back to consoleCommand when connection issue is resolved
 
-   m_console->notify(true);
+   m_console->notify(m_conn, true);
    closeStackPage();
 }
 
 
 void runCmdPage::cancelButtonPushed()
 {
-   m_console->displayToPrompt();
+   m_console->displayToPrompt(m_conn);
    m_console->write_dir(".");
-   m_console->displayToPrompt();
+   m_console->displayToPrompt(m_conn);
    mainWin->set_status(tr(" Canceled"));
    this->hide();
-   m_console->notify(true);
+   m_console->notify(m_conn, true);
    closeStackPage();
    mainWin->resetFocus();
 }

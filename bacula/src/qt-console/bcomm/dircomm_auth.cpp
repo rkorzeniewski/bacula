@@ -39,7 +39,6 @@
 
 
 #include "bat.h"
-#include "dircomm.h"
 
 
 /* Commands sent to Director */
@@ -59,6 +58,7 @@ bool DirComm::authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons,
    BSOCK *dir = jcr->dir_bsock;
    int tls_local_need = BNET_TLS_NONE;
    int tls_remote_need = BNET_TLS_NONE;
+   bool tls_authenticate;
    int compatible = true;
    char bashed_name[MAX_NAME_LENGTH];
    char *password;
@@ -80,6 +80,7 @@ bool DirComm::authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons,
             tls_local_need = BNET_TLS_OK;
          }
       }
+      tls_authenticate = cons->tls_authenticate;
       tls_ctx = cons->tls_ctx;
    } else {
       bstrncpy(bashed_name, "*UserAgent*", sizeof(bashed_name));
@@ -93,8 +94,13 @@ bool DirComm::authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons,
          }
       }
 
+      tls_authenticate = director->tls_authenticate;
       tls_ctx = director->tls_ctx;
    }
+   if (tls_authenticate) {
+      tls_local_need = BNET_TLS_REQUIRED;
+   }
+
    /* Timeout Hello after 15 secs */
    dir->start_timer(15);
    dir->fsend(hello, bashed_name);
@@ -126,14 +132,15 @@ bool DirComm::authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons,
    }
 
    /* Is TLS Enabled? */
-   if (have_tls) {
-      if (tls_local_need >= BNET_TLS_OK && tls_remote_need >= BNET_TLS_OK) {
-         /* Engage TLS! Full Speed Ahead! */
-         if (!bnet_tls_client(tls_ctx, dir, NULL)) {
-            bsnprintf(errmsg, errmsg_len, _("TLS negotiation failed with Director at \"%s:%d\"\n"),
-               dir->host(), dir->port());
-            goto bail_out;
-         }
+   if (tls_local_need >= BNET_TLS_OK && tls_remote_need >= BNET_TLS_OK) {
+      /* Engage TLS! Full Speed Ahead! */
+      if (!bnet_tls_client(tls_ctx, dir, NULL)) {
+         bsnprintf(errmsg, errmsg_len, _("TLS negotiation failed with Director at \"%s:%d\"\n"),
+            dir->host(), dir->port());
+         goto bail_out;
+      }
+      if (tls_authenticate) {               /* authenticate only? */
+         dir->free_tls();                   /* Yes, shutdown tls */
       }
    }
 

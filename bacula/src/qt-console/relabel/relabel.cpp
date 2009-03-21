@@ -45,7 +45,7 @@ relabelDialog::relabelDialog(Console *console, QString &fromVolume)
 {
    m_console = console;
    m_fromVolume = fromVolume;
-   m_console->notify(false);
+   m_conn = m_console->notifyOff();
    setupUi(this);
    storageCombo->addItems(console->storage_list);
    poolCombo->addItems(console->pool_list);
@@ -110,8 +110,8 @@ void relabelDialog::accept()
       Pmsg1(000, "sending command : %s\n",scmd.toUtf8().data());
    }
    m_console->write_dir(scmd.toUtf8().data());
-   m_console->displayToPrompt();
-   m_console->notify(true);
+   m_console->displayToPrompt(m_conn);
+   m_console->notify(m_conn, true);
    delete this;
    mainWin->resetFocus();
 }
@@ -119,7 +119,7 @@ void relabelDialog::accept()
 void relabelDialog::reject()
 {
    this->hide();
-   m_console->notify(true);
+   m_console->notify(m_conn, true);
    delete this;
    mainWin->resetFocus();
 }

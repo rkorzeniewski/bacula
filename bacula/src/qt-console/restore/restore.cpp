@@ -38,8 +38,10 @@
 #include "bat.h"
 #include "restore.h"
 
-restorePage::restorePage()
+restorePage::restorePage(int conn)
 {
+   Pmsg1(000, "Construcing restorePage Instance connection %i\n", conn);
+   m_conn = conn;
    QStringList titles;
 
    setupUi(this);
@@ -48,7 +50,7 @@ restorePage::restorePage()
    QTreeWidgetItem* thisitem = mainWin->getFromHash(this);
    thisitem->setIcon(0,QIcon(QString::fromUtf8(":images/restore.png")));
 
-   m_console->notify(false);          /* this should already be off */
+   m_console->notify(m_conn, false);          /* this should already be off */
    m_closeable = true;
 
    connect(fileWidget, SIGNAL(itemDoubleClicked(QTreeWidgetItem*, int)), 
@@ -69,7 +71,7 @@ restorePage::restorePage()
    connect(actionUnMark, SIGNAL(triggered()), this, SLOT(unmarkButtonPushed()));
 
    setFont(m_console->get_font());
-   m_console->displayToPrompt();
+   m_console->displayToPrompt(m_conn);
 
    titles << tr("Mark") << tr("File") << tr("Mode") << tr("User") 
           << tr("Group") << tr("Size") << tr("Date");
@@ -101,11 +103,11 @@ void restorePage::fillDirectory()
    POOLMEM *path = get_pool_memory(PM_FNAME);
 
    fileWidget->clear();
-   m_console->write_dir("dir");
+   m_console->write_dir(m_conn, "dir");
    QList<QTreeWidgetItem *> treeItemList;
    QStringList item;
-   while (m_console->read() > 0) {
-      char *p = m_console->msg();
+   while (m_console->read(m_conn) > 0) {
+      char *p = m_console->msg(m_conn);
       char *l;
       strip_trailing_junk(p);
       if (*p == '$' || !*p) {
@@ -289,8 +291,8 @@ void restorePage::okButtonPushed()
 {
 // printf("In restorePage::okButtonPushed\n");
    this->hide();
-   m_console->write("done");
-   m_console->notify(true);
+   m_console->write(m_conn, "done");
+   m_console->notify(m_conn, true);
    setConsoleCurrent();
    closeStackPage();
    mainWin->resetFocus();
@@ -300,11 +302,11 @@ void restorePage::okButtonPushed()
 void restorePage::cancelButtonPushed()
 {
    this->hide();
-   m_console->write("quit");
-   m_console->displayToPrompt();
+   m_console->write(m_conn, "quit");
+   m_console->displayToPrompt(m_conn);
    mainWin->set_status(tr("Canceled"));
    closeStackPage();
-   m_console->notify(true);
+   m_console->notify(m_conn, true);
    mainWin->resetFocus();
 }
 
@@ -322,12 +324,12 @@ void restorePage::fileDoubleClicked(QTreeWidgetItem *item, int column)
          item->setIcon(0, QIcon(QString::fromUtf8(":images/check.png")));
          item->setData(0, Qt::UserRole, true);
       }
-      m_console->write_dir(cmd);
-      if (m_console->read() > 0) {
-         strip_trailing_junk(m_console->msg());
-         statusLine->setText(m_console->msg());
+      m_console->write_dir(m_conn, cmd);
+      if (m_console->read(m_conn) > 0) {
+         strip_trailing_junk(m_console->msg(m_conn));
+         statusLine->setText(m_console->msg(m_conn));
       }
-      m_console->displayToPrompt();
+      m_console->displayToPrompt(m_conn);
       return;
    }    
    /* 
@@ -376,13 +378,13 @@ void restorePage::markButtonPushed()
       count++;
       bsnprintf(cmd, sizeof(cmd), "mark \"%s\"", item->text(1).toUtf8().data());
       item->setIcon(0, QIcon(QString::fromUtf8(":images/check.png")));
-      m_console->write_dir(cmd);
-      if (m_console->read() > 0) {
-         strip_trailing_junk(m_console->msg());
-         statusLine->setText(m_console->msg());
+      m_console->write_dir(m_conn, cmd);
+      if (m_console->read(m_conn) > 0) {
+         strip_trailing_junk(m_console->msg(m_conn));
+         statusLine->setText(m_console->msg(m_conn));
       }
       Dmsg1(100, "cmd=%s\n", cmd);
-      m_console->discardToPrompt();
+      m_console->discardToPrompt(m_conn);
    }
    if (count == 0) {
       mainWin->set_status("Nothing selected, nothing done");
@@ -405,13 +407,13 @@ void restorePage::unmarkButtonPushed()
       count++;
       bsnprintf(cmd, sizeof(cmd), "unmark \"%s\"", item->text(1).toUtf8().data());
       item->setIcon(0, QIcon(QString::fromUtf8(":images/unchecked.png")));
-      m_console->write_dir(cmd);
-      if (m_console->read() > 0) {
-         strip_trailing_junk(m_console->msg());
-         statusLine->setText(m_console->msg());
+      m_console->write_dir(m_conn, cmd);
+      if (m_console->read(m_conn) > 0) {
+         strip_trailing_junk(m_console->msg(m_conn));
+         statusLine->setText(m_console->msg(m_conn));
       }
       Dmsg1(100, "cmd=%s\n", cmd);
-      m_console->discardToPrompt();
+      m_console->discardToPrompt(m_conn);
    }
    if (count == 0) {
       mainWin->set_status(tr("Nothing selected, nothing done"));
@@ -431,17 +433,17 @@ bool restorePage::cwd(const char *dir)
    statusLine->setText("");
    bsnprintf(cd_cmd, sizeof(cd_cmd), "cd \"%s\"", dir);
    Dmsg2(100, "dir=%s cmd=%s\n", dir, cd_cmd);
-   m_console->write_dir(cd_cmd);
+   m_console->write_dir(m_conn, cd_cmd);
    lineEdit->clear();
-   if ((stat = m_console->read()) > 0) {
-      m_cwd = m_console->msg();
+   if ((stat = m_console->read(m_conn)) > 0) {
+      m_cwd = m_console->msg(m_conn);
       lineEdit->insert(m_cwd);
-      Dmsg2(100, "cwd=%s msg=%s\n", m_cwd.toUtf8().data(), m_console->msg());
+      Dmsg2(100, "cwd=%s msg=%s\n", m_cwd.toUtf8().data(), m_console->msg(m_conn));
    } else {
       Dmsg1(000, "stat=%d\n", stat);
       QMessageBox::critical(this, "Error", tr("cd command failed"), QMessageBox::Ok);
    }
-   m_console->discardToPrompt();
+   m_console->discardToPrompt(m_conn);
    return true;  /* ***FIXME*** return real status */
 }
 
@@ -451,16 +453,16 @@ bool restorePage::cwd(const char *dir)
 char *restorePage::get_cwd()
 {
    int stat;
-   m_console->write_dir(".pwd");
+   m_console->write_dir(m_conn, ".pwd");
    Dmsg0(100, "send: .pwd\n");
-   if ((stat = m_console->read()) > 0) {
-      m_cwd = m_console->msg();
-      Dmsg2(100, "cwd=%s msg=%s\n", m_cwd.toUtf8().data(), m_console->msg());
+   if ((stat = m_console->read(m_conn)) > 0) {
+      m_cwd = m_console->msg(m_conn);
+      Dmsg2(100, "cwd=%s msg=%s\n", m_cwd.toUtf8().data(), m_console->msg(m_conn));
    } else {
       Dmsg1(000, "Something went wrong read stat=%d\n", stat);
       QMessageBox::critical(this, "Error", tr(".pwd command failed"), QMessageBox::Ok);
    }
-   m_console->discardToPrompt(); 
+   m_console->discardToPrompt(m_conn); 
    return m_cwd.toUtf8().data();
 }
 

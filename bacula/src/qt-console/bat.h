@@ -49,7 +49,6 @@
 #include "jcr.h"
 #include "console.h"
 
-
 extern MainWin *mainWin;
 extern QApplication *app;
 

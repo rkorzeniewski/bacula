@@ -74,9 +74,6 @@ Storage::~Storage()
  */
 void Storage::populateTree()
 {
-   if (!m_console->preventInUseConnect())
-       return;
-
    if (m_populated)
       writeExpandedSettings();
    m_populated = true;

@@ -75,9 +75,6 @@ void JobLog::getFont()
  */
 void JobLog::populateText()
 {
-   if (!m_console->preventInUseConnect())
-      return;
-     
    QString query;
    query = "SELECT Time, LogText FROM Log WHERE JobId='" + m_jobId + "' order by Time";
 

@@ -51,14 +51,15 @@ selectDialog::selectDialog(Console *console)
    setupUi(this);
    connect(listBox, SIGNAL(currentRowChanged(int)), this, SLOT(index_change(int)));
    setAttribute(Qt::WA_DeleteOnClose);
-   m_console->read();                 /* get title */
-   labelWidget->setText(m_console->msg());
-   while ((stat=m_console->read()) > 0) {
+   m_conn = m_console->notifyOff();
+   m_console->read(m_conn);                 /* get title */
+   labelWidget->setText(m_console->msg(m_conn));
+   while ((stat=m_console->read(m_conn)) > 0) {
       item = new QListWidgetItem;
-      item->setText(m_console->msg());
+      item->setText(m_console->msg(m_conn));
       listBox->insertItem(row++, item);
    }
-   m_console->displayToPrompt();
+   m_console->displayToPrompt(m_conn);
    this->show();
 }
 
@@ -69,10 +70,10 @@ void selectDialog::accept()
    this->hide();
    bsnprintf(cmd, sizeof(cmd), "%d", m_index+1);
    m_console->write_dir(cmd);
-   m_console->displayToPrompt();
+   m_console->displayToPrompt(m_conn);
    this->close();
    mainWin->resetFocus();
-   m_console->displayToPrompt();
+   m_console->displayToPrompt(m_conn);
 
 }
 
@@ -83,7 +84,7 @@ void selectDialog::reject()
    mainWin->set_status(tr(" Canceled"));
    this->close();
    mainWin->resetFocus();
-   m_console->beginNewCommand();
+   m_console->beginNewCommand(m_conn);
 }
 
 /*
@@ -102,16 +103,16 @@ void selectDialog::index_change(int index)
 /*
  * Read the items for the selection
  */
-yesnoPopUp::yesnoPopUp(Console *console) 
+yesnoPopUp::yesnoPopUp(Console *console, int conn) 
 {
    QMessageBox msgBox;
 
    setAttribute(Qt::WA_DeleteOnClose);
-   console->read();                 /* get yesno question */
+   console->read(conn);                 /* get yesno question */
    msgBox.setWindowTitle(tr("Bat Question"));
-   msgBox.setText(console->msg());
+   msgBox.setText(console->msg(conn));
    msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
-   console->displayToPrompt();
+   console->displayToPrompt(conn);
    switch (msgBox.exec()) {
    case QMessageBox::Yes:
       console->write_dir("yes");
@@ -120,6 +121,6 @@ yesnoPopUp::yesnoPopUp(Console *console)
       console->write_dir("no");
       break;
    }
-   console->displayToPrompt();
+   console->displayToPrompt(conn);
    mainWin->resetFocus();
 }

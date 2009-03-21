@@ -75,6 +75,7 @@ public:
    QString m_dtformat;
    /* Begin Preferences variables */
    bool m_commDebug;
+   bool m_connDebug;
    bool m_displayAll;
    bool m_sqlDebug;
    bool m_commandDebug;

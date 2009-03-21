@@ -63,9 +63,6 @@ MediaEdit::MediaEdit(QTreeWidgetItem *parentWidget, QString &mediaId)
    m_status = "";
    m_slot = 0;
 
-   if (!m_console->preventInUseConnect())
-      return;
-
    /* The media's pool */
    poolCombo->addItems(m_console->pool_list);
 

@@ -22,6 +22,7 @@ public slots:
    void job_name_change(int index);
 
 private:
+   int m_conn;
 };
 
 class runCmdPage : public Pages, public Ui::runCmdForm
@@ -37,6 +38,7 @@ public slots:
 
 private:
    void fill();
+   int m_conn;
 };
 
 class estimatePage : public Pages, public Ui::estimateForm
@@ -52,6 +54,7 @@ public slots:
    void job_name_change(int index);
 
 private:
+   int m_conn;
 };
 
 class prunePage : public Pages, public Ui::pruneForm
@@ -68,6 +71,7 @@ public slots:
    void clientChanged();
 
 private:
+   int m_conn;
 };
 
 #endif /* _RUN_H_ */

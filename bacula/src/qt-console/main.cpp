@@ -183,28 +183,6 @@ PROG_COPYRIGHT
    exit(1);
 }
 
-#ifdef xxx
-/*
- * Call-back for reading a passphrase for an encrypted PEM file
- * This function uses getpass(), which uses a static buffer and is NOT thread-safe.
- */
-static int tls_pem_callback(char *buf, int size, const void *userdata)
-{
-#ifdef HAVE_TLS
-   const char *prompt = (const char *) userdata;
-   char *passwd;
-
-   passwd = getpass(prompt);
-   bstrncpy(buf, passwd, size);
-   return (strlen(buf));
-#else
-   buf[0] = 0;
-   return 0;
-#endif
-}
-#endif
-
-
 /*
  * Make a quick check to see that we have all the
  * resources needed.

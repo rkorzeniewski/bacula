@@ -50,6 +50,7 @@ private slots:
 private:
    Console *m_console;
    QString m_storageName;
+   int m_conn;
 };
 
 #endif /* _MOUNT_H_ */

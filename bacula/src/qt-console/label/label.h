@@ -53,6 +53,7 @@ private slots:
    void automountOffButtonPushed();
 
 private:
+   int m_conn;
 };
 
 #endif /* _LABEL_H_ */

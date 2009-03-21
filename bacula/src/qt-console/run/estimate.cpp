@@ -47,9 +47,9 @@ estimatePage::estimatePage()
    m_name = tr("Estimate");
    pgInitialize();
    setupUi(this);
-   m_console->notify(false);
+   m_conn = m_console->notifyOff();
 
-   m_console->beginNewCommand();
+   m_console->beginNewCommand(m_conn);
    jobCombo->addItems(m_console->job_list);
    filesetCombo->addItems(m_console->fileset_list);
    levelCombo->addItems(m_console->level_list);
@@ -84,7 +84,7 @@ void estimatePage::okButtonPushed()
    }
 
    consoleCommand(cmd);
-   m_console->notify(true);
+   m_console->notify(m_conn, true);
    closeStackPage();
    mainWin->resetFocus();
 }
@@ -94,7 +94,7 @@ void estimatePage::cancelButtonPushed()
 {
    mainWin->set_status(" Canceled");
    this->hide();
-   m_console->notify(true);
+   m_console->notify(m_conn, true);
    closeStackPage();
    mainWin->resetFocus();
 }
