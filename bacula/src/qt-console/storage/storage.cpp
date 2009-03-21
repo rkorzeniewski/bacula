@@ -78,7 +78,7 @@ void Storage::populateTree()
       writeExpandedSettings();
    m_populated = true;
 
-   Freeze frz(*mp_treeWidget); /* disable updating*/
+   Freeze frz(*mp_treeWidget); /* disable updating */
 
    m_checkcurwidget = false;
    mp_treeWidget->clear();
@@ -99,20 +99,27 @@ void Storage::populateTree()
    QSettings settings(m_console->m_dir->name(), "bat");
    settings.beginGroup("StorageTreeExpanded");
 
-   foreach(QString storageName, m_console->storage_list){
-      TreeItemFormatter storageItem(*m_topItem, 1);
-      storageItem.setTextFld(0, storageName);
-      if(settings.contains(storageName)) {
-         storageItem.widget()->setExpanded(settings.value(storageName).toBool());
-      } else {
-         storageItem.widget()->setExpanded(true);
+   bool first = true;
+   QString storage_comsep("");
+   QString storageName;
+   foreach(storageName, m_console->storage_list){
+      if (first) {
+         storage_comsep += "'" + storageName + "'";
+         first = false;
       }
+      else
+         storage_comsep += ",'" + storageName + "'";
+   }
+   if (storage_comsep != "") {
 
       /* Set up query QString and header QStringList */
-      QString query("SELECT StorageId AS ID, AutoChanger AS Changer"
-               " FROM Storage WHERE");
-      query += " Name='" + storageName + "'"
-               " ORDER BY Name";
+      QString query("SELECT"
+               " Name AS StorageName,"
+               " StorageId AS ID, AutoChanger AS Changer"
+               " FROM Storage "
+               " WHERE StorageId IN (SELECT MAX(StorageId) FROM Storage WHERE");
+      query += " Name IN (" + storage_comsep + ")";
+      query += " GROUP BY Name) ORDER BY Name";
 
       QStringList results;
       /* This could be a log item */
@@ -120,25 +127,31 @@ void Storage::populateTree()
          Pmsg1(000, "Storage query cmd : %s\n",query.toUtf8().data());
       }
       if (m_console->sql_cmd(query, results)) {
-         int resultCount = results.count();
-         if (resultCount == 1){
-            QString resultline;
-            QString field;
-            QStringList fieldlist;
-            /* there will only be one of these */
-            foreach (resultline, results) {
-               fieldlist = resultline.split("\t");
-               int index = 1;
- 	       QStringListIterator fld(fieldlist);
+
+         QStringList fieldlist;
+         int cnter = 1;
+         foreach (QString resultline, results) {
+            fieldlist = resultline.split("\t");
+            storageName = fieldlist.takeFirst();
+            TreeItemFormatter storageItem(*m_topItem, 1);
+            storageItem.setTextFld(0, storageName);
+            if(settings.contains(storageName))
+               storageItem.widget()->setExpanded(settings.value(storageName).toBool());
+            else
+               storageItem.widget()->setExpanded(true);
+
+            int index = 1;
+            QStringListIterator fld(fieldlist);
  
- 	       /* storage id */
- 	       storageItem.setNumericFld(index++, fld.next() );
- 
- 	       /* changer */
- 	       storageItem.setBoolFld(index++, fld.next() );
- 
- 	       mediaList(storageItem.widget(), fieldlist.first());
-            }
+            /* storage id */
+            storageItem.setNumericFld(index++, fld.next() );
+
+            /* changer */
+            QString changer = fld.next();
+            storageItem.setBoolFld(index++, changer);
+
+            if (changer == "1")
+               mediaList(storageItem.widget(), fieldlist.first());
          }
       }
    }
@@ -147,16 +160,20 @@ void Storage::populateTree()
       mp_treeWidget->resizeColumnToContents(cnter);
    }
 }
+
+/*
+ * For autochangers    A query to show the tapes in the changer.
+ */
 void Storage::mediaList(QTreeWidgetItem *parent, const QString &storageID)
 {
    QString query("SELECT Media.VolumeName AS Media, Media.Slot AS Slot,"
                  " Media.VolStatus AS VolStatus, Media.Enabled AS Enabled,"
-		 " Pool.Name AS MediaPool, Media.MediaType AS MediaType" 
+                 " Pool.Name AS MediaPool, Media.MediaType AS MediaType" 
                  " From Media"
-		 " JOIN Pool ON (Media.PoolId=Pool.PoolId)"
-		 " WHERE Media.StorageId='" + storageID + "'"
-		 " AND Media.InChanger<>0"
-		 " ORDER BY Media.Slot");
+                 " JOIN Pool ON (Media.PoolId=Pool.PoolId)"
+                 " WHERE Media.StorageId='" + storageID + "'"
+                 " AND Media.InChanger<>0"
+                 " ORDER BY Media.Slot");
 
    QStringList results;
    /* This could be a log item */
@@ -170,25 +187,25 @@ void Storage::mediaList(QTreeWidgetItem *parent, const QString &storageID)
  
       foreach (resultline, results) {
          fieldlist = resultline.split("\t");
-	 if (fieldlist.size() < 6)
- 	    continue; 
+         if (fieldlist.size() < 6)
+             continue; 
 
          /* Iterate through fields in the record */
          QStringListIterator fld(fieldlist);
          int index = 0;
-	 TreeItemFormatter fmt(*parent, 2);
+         TreeItemFormatter fmt(*parent, 2);
 
          /* volname */
          fmt.setTextFld(index++, fld.next()); 
  
-	 /* skip the next two columns, unused by media */
-	 index += 2;
+         /* skip the next two columns, unused by media */
+         index += 2;
 
-	 /* slot */
-	 fmt.setNumericFld(index++, fld.next());
+         /* slot */
+         fmt.setNumericFld(index++, fld.next());
 
-	 /* status */
-	 fmt.setVolStatusFld(index++, fld.next());
+         /* status */
+         fmt.setVolStatusFld(index++, fld.next());
 
          /* enabled */
          fmt.setBoolFld(index++, fld.next()); 

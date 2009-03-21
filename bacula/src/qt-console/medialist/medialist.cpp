@@ -104,17 +104,22 @@ void MediaList::populateTree()
    QString query;
 
    QTreeWidgetItem *pooltreeitem;
-   foreach (QString pool_listItem, m_console->pool_list) {
-      pooltreeitem = new QTreeWidgetItem(m_topItem);
-      pooltreeitem->setText(0, pool_listItem);
-      pooltreeitem->setData(0, Qt::UserRole, 1);
-      if(settings.contains(pool_listItem)) {
-         pooltreeitem->setExpanded(settings.value(pool_listItem).toBool());
-      } else {
-         pooltreeitem->setExpanded(true);
-      }
 
-      query =  "SELECT Media.VolumeName AS Media, "
+   /* Comma separated list of pools first */
+   bool first = true;
+   QString pool_comsep("");
+   foreach (QString pool_listItem, m_console->pool_list) {
+      if (first) {
+         pool_comsep += "'" + pool_listItem + "'";
+         first = false;
+      }
+      else
+         pool_comsep += ",'" + pool_listItem + "'";
+   }
+   /* Now use pool_comsep list to perform just one query */
+   if (pool_comsep != "") {
+      query =  "SELECT Pool.Name AS pul,"
+         " Media.VolumeName AS Media, "
          " Media.MediaId AS Id, Media.VolStatus AS VolStatus,"
          " Media.Enabled AS Enabled, Media.VolBytes AS Bytes,"
          " Media.VolFiles AS FileCount, Media.VolJobs AS JobCount,"
@@ -127,59 +132,74 @@ void MediaList::populateTree()
          " FROM Media"
          " JOIN Pool ON (Media.PoolId=Pool.PoolId)"
          " LEFT OUTER JOIN Pool AS Pol ON (Media.RecyclePoolId=Pol.PoolId)"
-         " WHERE";
-      query += " Pool.Name='" + pool_listItem + "'";
-      query += " ORDER BY Media";
-   
+         " WHERE ";
+      query += " Pool.Name IN (" + pool_comsep + ")";
+      query += " ORDER BY Pool.Name, Media";
+
       if (mainWin->m_sqlDebug) {
          Pmsg1(000, "MediaList query cmd : %s\n",query.toUtf8().data());
       }
       QStringList results;
+      int counter = 0;
       if (m_console->sql_cmd(query, results)) {
          QStringList fieldlist;
+         QString prev_pool("");
+         QString this_pool("");
 
          /* Iterate through the lines of results. */
          foreach (QString resultline, results) {
             fieldlist = resultline.split("\t");
+            this_pool = fieldlist.takeFirst();
+            if (prev_pool != this_pool) {
+               prev_pool = this_pool;
+               pooltreeitem = new QTreeWidgetItem(m_topItem);
+               pooltreeitem->setText(0, this_pool);
+               pooltreeitem->setData(0, Qt::UserRole, 1);
+            }
+            if(settings.contains(this_pool)) {
+               pooltreeitem->setExpanded(settings.value(this_pool).toBool());
+            } else {
+               pooltreeitem->setExpanded(true);
+            }
 
-	    if (fieldlist.size() < 18)
-	       continue; // some fields missing, ignore row
+            if (fieldlist.size() < 18)
+               continue; // some fields missing, ignore row
 
             int index = 0;
-	    TreeItemFormatter mediaitem(*pooltreeitem, 2);
+            TreeItemFormatter mediaitem(*pooltreeitem, 2);
   
             /* Iterate through fields in the record */
-	    QStringListIterator fld(fieldlist);
+            QStringListIterator fld(fieldlist);
 
-	    /* volname */
+            /* volname */
             mediaitem.setTextFld(index++, fld.next()); 
 
-	    /* id */
+            /* id */
             mediaitem.setNumericFld(index++, fld.next()); 
 
-	    /* status */
+            /* status */
             mediaitem.setVolStatusFld(index++, fld.next());
 
-	    /* enabled */
- 	    mediaitem.setBoolFld(index++, fld.next());
+            /* enabled */
+            mediaitem.setBoolFld(index++, fld.next());
 
             /* bytes */
- 	    mediaitem.setBytesFld(index++, fld.next());
+            mediaitem.setBytesFld(index++, fld.next());
 
-	    /* files */
+            /* files */
             mediaitem.setNumericFld(index++, fld.next()); 
 
-	    /* jobs */
+            /* jobs */
             mediaitem.setNumericFld(index++, fld.next()); 
 
-	    /* retention */
-	    mediaitem.setDurationFld(index++, fld.next());
+            /* retention */
+            mediaitem.setDurationFld(index++, fld.next());
 
-	    /* media type */
+            /* media type */
             mediaitem.setTextFld(index++, fld.next()); 
 
-	    /* inchanger + slot */
-	    int inchanger = fld.next().toInt();
+            /* inchanger + slot */
+            int inchanger = fld.next().toInt();
             if (inchanger) {
                mediaitem.setNumericFld(index++, fld.next()); 
             }
@@ -187,30 +207,31 @@ void MediaList::populateTree()
                /* volume not in changer, show blank slot */
                mediaitem.setNumericFld(index++, ""); 
                fld.next();
-	    }
+            }
 
-	    /* use duration */
-	    mediaitem.setDurationFld(index++, fld.next());
+            /* use duration */
+            mediaitem.setDurationFld(index++, fld.next());
 
-	    /* max jobs */
+            /* max jobs */
             mediaitem.setNumericFld(index++, fld.next()); 
 
-	    /* max files */
+            /* max files */
             mediaitem.setNumericFld(index++, fld.next()); 
 
             /* max bytes */
- 	    mediaitem.setBytesFld(index++, fld.next());
+            mediaitem.setBytesFld(index++, fld.next());
 
-	    /* recycle */
- 	    mediaitem.setBoolFld(index++, fld.next());
+            /* recycle */
+            mediaitem.setBoolFld(index++, fld.next());
 
-	    /* recycle pool */
+            /* recycle pool */
             mediaitem.setTextFld(index++, fld.next()); 
 
-	    /* last written */
+            /* last written */
             mediaitem.setTextFld(index++, fld.next()); 
 
          } /* foreach resultline */
+         counter += 1;
       } /* if results from query */
    } /* foreach pool_listItem */
    settings.endGroup();
