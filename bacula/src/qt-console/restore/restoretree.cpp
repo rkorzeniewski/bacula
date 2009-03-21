@@ -66,6 +66,7 @@ restoreTree::restoreTree()
    area->setWidgetResizable(true);
    m_splitter->addWidget(splitter);
    m_splitter->addWidget(area);
+   splitter->setCollapsible(0, false);
 
    gridLayout->addWidget(m_splitter, 0, 0, 1, 1);
 
@@ -689,7 +690,8 @@ void restoreTree::writeSettings()
 {
    QSettings settings(m_console->m_dir->name(), "bat");
    settings.beginGroup(m_groupText);
-   settings.setValue(m_splitText, m_splitter->saveState());
+   settings.setValue(m_splitText1, m_splitter->saveState());
+   settings.setValue(m_splitText2, splitter->saveState());
    settings.endGroup();
 }
 
@@ -699,10 +701,12 @@ void restoreTree::writeSettings()
 void restoreTree::readSettings()
 {
    m_groupText = tr("RestoreTreePage");
-   m_splitText = "splitterSizes_1";
+   m_splitText1 = "splitterSizes1_2";
+   m_splitText2 = "splitterSizes2_2";
    QSettings settings(m_console->m_dir->name(), "bat");
    settings.beginGroup(m_groupText);
-   m_splitter->restoreState(settings.value(m_splitText).toByteArray());
+   m_splitter->restoreState(settings.value(m_splitText1).toByteArray());
+   splitter->restoreState(settings.value(m_splitText2).toByteArray());
    settings.endGroup();
 }
 
