@@ -460,8 +460,6 @@ bool restoreTree::addDirectory(QString &m_cwd, QString &newdirr)
 void restoreTree::currentStackItem()
 {
    if(!m_populated) {
-      if (!m_console->preventInUseConnect())
-         return;
       setupPage();
       m_populated = true;
    }

@@ -68,6 +68,7 @@ private slots:
    void jobIdEditFinished();
 
 private:
+   int m_conn;
    int jobdefsFromJob(QStringList &, QString &);
    void buildPage();
    bool checkJobIdList();
@@ -85,7 +86,7 @@ class restorePage : public Pages, public Ui::restoreForm
    Q_OBJECT 
 
 public:
-   restorePage();
+   restorePage(int conn);
    ~restorePage();
    void fillDirectory();
    char *get_cwd();
@@ -102,6 +103,7 @@ private slots:
    void addDirectory(QString &);
 
 private:
+   int m_conn;
    void writeSettings();
    void readSettings();
    QString m_cwd;

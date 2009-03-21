@@ -87,8 +87,6 @@ DirStat::~DirStat()
  */
 void DirStat::populateAll()
 {
-   if (!m_console->preventInUseConnect())
-       return;
    populateHeader();
    populateTerminated();
    populateScheduled();
@@ -102,8 +100,7 @@ void DirStat::timerTriggered()
 {
    bool iscurrent = mainWin->stackedWidget->currentIndex() == mainWin->stackedWidget->indexOf(this);
    if (((isDocked() && iscurrent) || (!isDocked())) && mainWin->m_refreshStatusDir) {
-      if (m_console->is_ready())
-         populateAll();
+      populateAll();
    }
 }
 

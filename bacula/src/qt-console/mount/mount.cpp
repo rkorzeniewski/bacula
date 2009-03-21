@@ -44,7 +44,7 @@ mountDialog::mountDialog(Console *console, QString &storageName)
 {
    m_console = console;
    m_storageName = storageName;
-   m_console->notify(false);
+   m_conn = m_console->notifyOff();
    setupUi(this);
    this->show();
 
@@ -74,8 +74,8 @@ void mountDialog::accept()
    m_console->display_text(tr("Director Response :\n\n"));
 
    m_console->write_dir(scmd.toUtf8().data());
-   m_console->displayToPrompt();
-   m_console->notify(true);
+   m_console->displayToPrompt(m_conn);
+   m_console->notify(m_conn, true);
    delete this;
    mainWin->resetFocus();
 }
@@ -83,7 +83,7 @@ void mountDialog::accept()
 void mountDialog::reject()
 {
    this->hide();
-   m_console->notify(true);
+   m_console->notify(m_conn, true);
    delete this;
    mainWin->resetFocus();
 }

@@ -47,7 +47,7 @@ prunePage::prunePage(const QString &volume, const QString &client)
    m_name = tr("Prune");
    pgInitialize();
    setupUi(this);
-   m_console->notify(false);
+   m_conn = m_console->notifyOff();
 
    QString query("SELECT VolumeName AS Media FROM Media ORDER BY Media");
    if (mainWin->m_sqlDebug) {
@@ -113,7 +113,7 @@ void prunePage::okButtonPushed()
    }
 
    consoleCommand(cmd);
-   m_console->notify(true);
+   m_console->notify(m_conn, true);
    closeStackPage();
    mainWin->resetFocus();
 }
@@ -123,7 +123,7 @@ void prunePage::cancelButtonPushed()
 {
    mainWin->set_status(tr(" Canceled"));
    this->hide();
-   m_console->notify(true);
+   m_console->notify(m_conn, true);
    closeStackPage();
    mainWin->resetFocus();
 }

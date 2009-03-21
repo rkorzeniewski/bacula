@@ -101,8 +101,6 @@ StorStat::~StorStat()
  */
 void StorStat::populateAll()
 {
-   if (!m_console->preventInUseConnect())
-       return;
    populateTerminated();
    populateCurrentTab(tabWidget->currentIndex());
 }
@@ -114,8 +112,7 @@ void StorStat::timerTriggered()
 {
    bool iscurrent = mainWin->stackedWidget->currentIndex() == mainWin->stackedWidget->indexOf(this);
    if (((isDocked() && iscurrent) || (!isDocked())) && (checkBox->checkState() == Qt::Checked)) {
-      if (m_console->is_ready())
-         populateAll();
+      populateAll();
    }
 }
 

@@ -49,9 +49,9 @@ runPage::runPage(const QString &defJob)
    setupUi(this);
    QTreeWidgetItem* thisitem = mainWin->getFromHash(this);
    thisitem->setIcon(0,QIcon(QString::fromUtf8(":images/run.png")));
-   m_console->notify(false);
+   m_conn = m_console->notifyOff();
 
-   m_console->beginNewCommand();
+   m_console->beginNewCommand(m_conn);
    jobCombo->addItems(m_console->job_list);
    filesetCombo->addItems(m_console->fileset_list);
    levelCombo->addItems(m_console->level_list);
@@ -106,7 +106,7 @@ void runPage::okButtonPushed()
    }
 
    consoleCommand(cmd);
-   m_console->notify(true);
+   m_console->notify(m_conn, true);
    closeStackPage();
    mainWin->resetFocus();
 }
@@ -116,7 +116,7 @@ void runPage::cancelButtonPushed()
 {
    mainWin->set_status(tr(" Canceled"));
    this->hide();
-   m_console->notify(true);
+   m_console->notify(m_conn, true);
    closeStackPage();
    mainWin->resetFocus();
 }

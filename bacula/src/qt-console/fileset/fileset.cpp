@@ -71,8 +71,6 @@ FileSet::~FileSet()
  */
 void FileSet::populateTable()
 {
-   if (!m_console->preventInUseConnect())
-       return;
    m_populated = true;
 
    Freeze frz(*tableWidget); /* disable updating*/

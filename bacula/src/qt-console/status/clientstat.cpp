@@ -87,8 +87,6 @@ ClientStat::~ClientStat()
  */
 void ClientStat::populateAll()
 {
-   if (!m_console->preventInUseConnect())
-       return;
    populateHeader();
    populateTerminated();
    populateRunning();
@@ -101,8 +99,7 @@ void ClientStat::timerTriggered()
 {
    bool iscurrent = mainWin->stackedWidget->currentIndex() == mainWin->stackedWidget->indexOf(this);
    if (((isDocked() && iscurrent) || (!isDocked())) && mainWin->m_refreshStatusDir) {
-      if (m_console->is_ready())
-         populateAll();
+      populateAll();
    }
 }
 

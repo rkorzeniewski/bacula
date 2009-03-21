@@ -108,9 +108,6 @@ JobList::~JobList()
  */
 void JobList::populateTable()
 {
-   if (!m_console->preventInUseConnect())
-       return;
-
    /* Can't do this in constructor because not neccesarily conected in constructor */
    prepareFilterWidgets();
    m_populated = true;

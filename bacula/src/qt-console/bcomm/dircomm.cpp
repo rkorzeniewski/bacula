@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2007-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2007-2008 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -28,9 +28,9 @@
 /*
  *   Version $Id$
  *
- *  Bacula Communications class that is at a higher level than BSOCK
+ *  Console Class
  *
- *   Kern Sibbald, May MMVII
+ *   Kern Sibbald, January MMVII
  *
  */ 
 
@@ -39,58 +39,33 @@
 #include "restore.h"
 #include "select.h"
 #include "run/run.h"
-#include "dircomm.h"
 
 static int tls_pem_callback(char *buf, int size, const void *userdata);
 
-
-DirComm::DirComm(Console *console)
+DirComm::DirComm(Console *parent, int conn):
+m_notifier(NULL),
+m_api_set(false)
 {
-   m_console = console;
+   m_console = parent;
    m_sock = NULL;
    m_at_prompt = false;
    m_at_main_prompt = false;
-   m_timer = NULL;
+   m_conn = conn;
 }
 
 DirComm::~DirComm()
 {
-   if (m_timer) {
-      stopTimer();
-   }
-}
-
-void DirComm::startTimer()
-{
-   m_timer = new QTimer(m_console);
-   QWidget::connect(m_timer, SIGNAL(timeout()), this, SLOT(poll_messages()));
-   m_timer->start(mainWin->m_checkMessagesInterval*1000);
-}
-
-void DirComm::stopTimer()
-{
-   if (m_timer) {
-      QWidget::disconnect(m_timer, SIGNAL(timeout()), this, SLOT(poll_messages()));
-      m_timer->stop();
-      delete m_timer;
-      m_timer = NULL;
-   }
-}
-      
-void DirComm::poll_messages()
-{
-   m_messages_pending = true;
-   if ((m_at_main_prompt) && (mainWin->m_checkMessages)){
-      write(".messages");
-      displayToPrompt();
-   }
 }
 
 /* Terminate any open socket */
 void DirComm::terminate()
 {
    if (m_sock) {
-      stopTimer();
+      if (m_notifier) {
+         m_notifier->setEnabled(false);
+         delete m_notifier;
+         m_notifier = NULL;
+      }
       m_sock->close();
       m_sock = NULL;
    }
@@ -99,30 +74,37 @@ void DirComm::terminate()
 /*
  * Connect to Director. 
  */
-void DirComm::connect_dir(DIRRES *dir, CONRES *cons)
+bool DirComm::connect_dir()
 {
-   JCR jcr;
+   JCR *jcr = new JCR;
    utime_t heart_beat;
    char buf[1024];
+   CONRES *cons;
+      
+   buf[0] = 0;
 
-   m_dir = dir;
-   if (!m_dir) {          
-      mainWin->set_status( tr("No Director found.") );
-      return;
-   }
    if (m_sock) {
-      mainWin->set_status( tr("Already connected.") );
-      return;
+      mainWin->set_status( tr("Already connected."));
+      m_console->display_textf(_("Already connected\"%s\".\n"),
+            m_console->m_dir->name());
+      if (mainWin->m_connDebug)
+         Pmsg1(000, "DirComm %i BAILING already connected\n", m_conn);
+      goto bail_out;
    }
 
-   memset(&jcr, 0, sizeof(jcr));
+   memset(jcr, 0, sizeof(JCR));
 
-   mainWin->set_statusf(_("Connecting to Director %s:%d"), m_dir->address, m_dir->DIRport);
-   m_console->display_textf(_("Connecting to Director %s:%d\n\n"), m_dir->address, m_dir->DIRport);
+   mainWin->set_statusf(_("Connecting to Director %s:%d"), m_console->m_dir->address, m_console->m_dir->DIRport);
+   m_console->display_textf(_("Connecting to Director %s:%d\n\n"), m_console->m_dir->address, m_console->m_dir->DIRport);
 
    /* Give GUI a chance */
    app->processEvents();
    
+   LockRes();
+   /* If cons==NULL, default console will be used */
+   cons = (CONRES *)GetNextRes(R_CONSOLE, NULL);
+   UnlockRes();
+
    /* Initialize Console TLS context once */
    if (cons && !cons->tls_ctx && (cons->tls_enable || cons->tls_require)) {
       /* Generate passphrase prompt */
@@ -139,34 +121,38 @@ void DirComm::connect_dir(DIRRES *dir, CONRES *cons)
 
       if (!cons->tls_ctx) {
          m_console->display_textf(_("Failed to initialize TLS context for Console \"%s\".\n"),
-            m_dir->name());
-         return;
+            m_console->m_dir->name());
+         if (mainWin->m_connDebug)
+            Pmsg1(000, "DirComm %i BAILING Failed to initialize TLS context for Console \n", m_conn);
+         goto bail_out;
       }
    }
 
    /* Initialize Director TLS context once */
-   if (!m_dir->tls_ctx && (m_dir->tls_enable || m_dir->tls_require)) {
+   if (!m_console->m_dir->tls_ctx && (m_console->m_dir->tls_enable || m_console->m_dir->tls_require)) {
       /* Generate passphrase prompt */
       bsnprintf(buf, sizeof(buf), "Passphrase for Director \"%s\" TLS private key: ", 
-                m_dir->name());
+                m_console->m_dir->name());
 
       /* Initialize TLS context:
        * Args: CA certfile, CA certdir, Certfile, Keyfile,
        * Keyfile PEM Callback, Keyfile CB Userdata, DHfile, Verify Peer */
-      m_dir->tls_ctx = new_tls_context(m_dir->tls_ca_certfile,
-                          m_dir->tls_ca_certdir, m_dir->tls_certfile,
-                          m_dir->tls_keyfile, tls_pem_callback, &buf, NULL, true);
+      m_console->m_dir->tls_ctx = new_tls_context(m_console->m_dir->tls_ca_certfile,
+                          m_console->m_dir->tls_ca_certdir, m_console->m_dir->tls_certfile,
+                          m_console->m_dir->tls_keyfile, tls_pem_callback, &buf, NULL, true);
 
-      if (!m_dir->tls_ctx) {
+      if (!m_console->m_dir->tls_ctx) {
          m_console->display_textf(_("Failed to initialize TLS context for Director \"%s\".\n"),
-            m_dir->name());
+            m_console->m_dir->name());
          mainWin->set_status("Connection failed");
-         return;
+         if (mainWin->m_connDebug)
+            Pmsg1(000, "DirComm %i BAILING Failed to initialize TLS context for Director \n", m_conn);
+         goto bail_out;
       }
    }
 
-   if (m_dir->heartbeat_interval) {
-      heart_beat = m_dir->heartbeat_interval;
+   if (m_console->m_dir->heartbeat_interval) {
+      heart_beat = m_console->m_dir->heartbeat_interval;
    } else if (cons) {
       heart_beat = cons->heartbeat_interval;
    } else {
@@ -174,25 +160,30 @@ void DirComm::connect_dir(DIRRES *dir, CONRES *cons)
    }        
 
    m_sock = bnet_connect(NULL, 5, 15, heart_beat,
-                          _("Director daemon"), m_dir->address,
-                          NULL, m_dir->DIRport, 0);
+                          _("Director daemon"), m_console->m_dir->address,
+                          NULL, m_console->m_dir->DIRport, 0);
    if (m_sock == NULL) {
-     mainWin->set_status( tr("Connection failed") );
-      return;
+      mainWin->set_status("Connection failed");
+      if (mainWin->m_connDebug)
+         Pmsg1(000, "DirComm %i BAILING Connection failed\n", m_conn);
+      goto bail_out;
    } else {
       /* Update page selector to green to indicate that Console is connected */
       mainWin->actionConnect->setIcon(QIcon(":images/connected.png"));
       QBrush greenBrush(Qt::green);
-      QTreeWidgetItem *item = mainWin->getFromHash(this);
+      QTreeWidgetItem *item = mainWin->getFromHash(m_console);
       item->setForeground(0, greenBrush);
    }
 
-   jcr.dir_bsock = m_sock;
+   jcr->dir_bsock = m_sock;
 
-   if (!authenticate_director(&jcr, m_dir, cons, buf, sizeof(buf))) {
+   if (!authenticate_director(jcr, m_console->m_dir, cons, buf, sizeof(buf))) {
       m_console->display_text(buf);
-      return;
+      if (mainWin->m_connDebug)
+         Pmsg1(000, "DirComm %i BAILING Connection failed\n", m_conn);
+      goto bail_out;
    }
+
    if (buf[0]) {
       m_console->display_text(buf);
    }
@@ -202,72 +193,29 @@ void DirComm::connect_dir(DIRRES *dir, CONRES *cons)
 
    mainWin->set_status(_("Initializing ..."));
 
+#ifndef HAVE_WIN32
    /* Set up input notifier */
    m_notifier = new QSocketNotifier(m_sock->m_fd, QSocketNotifier::Read, 0);
    QObject::connect(m_notifier, SIGNAL(activated(int)), this, SLOT(read_dir(int)));
+#endif
+
+   write(".api 1");
+   m_api_set = true;
+   m_console->displayToPrompt(m_conn);
+
+   m_console->beginNewCommand(m_conn);
 
    mainWin->set_status(_("Connected"));
-   startTimer();                      /* start message timer */
-   return;
-}
 
-bool DirComm::dir_cmd(QString &cmd, QStringList &results)
-{
-   return dir_cmd(cmd.toUtf8().data(), results);
-}
+   if (mainWin->m_connDebug)
+      Pmsg1(000, "Returning TRUE from DirComm->connect_dir : %i\n", m_conn);
+   return true;
 
-/*
- * Send a command to the Director, and return the
- *  results in a QStringList.  
- */
-bool DirComm::dir_cmd(const char *cmd, QStringList &results)
-{
-   int stat;
-
-   notify(false);
-   write(cmd);
-   while ((stat = read()) > 0) {
-      if (mainWin->m_displayAll) m_console->display_text(msg());
-      strip_trailing_junk(msg());
-      results << msg();
-   }
-   notify(true);
-   discardToPrompt();
-   return true;              /* ***FIXME*** return any command error */
-}
-
-bool DirComm::sql_cmd(QString &query, QStringList &results)
-{
-   return sql_cmd(query.toUtf8().data(), results);
-}
-
-/*
- * Send an sql query to the Director, and return the
- *  results in a QStringList.  
- */
-bool DirComm::sql_cmd(const char *query, QStringList &results)
-{
-   int stat;
-   POOL_MEM cmd(PM_MESSAGE);
-
-   if (!is_connectedGui()) {
-      return false;
-   }
-
-   notify(false);
-   
-   pm_strcpy(cmd, ".sql query=\"");
-   pm_strcat(cmd, query);
-   pm_strcat(cmd, "\"");
-   write(cmd.c_str());
-   while ((stat = read()) > 0) {
-      if (mainWin->m_displayAll) m_console->display_text(msg());
-      strip_trailing_junk(msg());
-      results << msg();
-   }
-   notify(true);
-   discardToPrompt();
-   return true;              /* ***FIXME*** return any command error */
+bail_out:
+   if (mainWin->m_connDebug)
+      Pmsg1(000, "Returning FALSE from DirComm->connect_dir : %i\n", m_conn);
+   delete jcr;
+   return false;
 }
 
 /* 
@@ -279,24 +227,6 @@ char *DirComm::msg()
       return m_sock->msg;
    }
    return NULL;
-}
-
-/* Send a command to the Director */
-void DirComm::write_dir(const char *msg)
-{
-   if (m_sock) {
-      mainWin->set_status(_("Processing command ..."));
-      QApplication::setOverrideCursor(Qt::WaitCursor);
-      write(msg);
-   } else {
-      mainWin->set_status( tr(" Director not connected. Click on connect button.") );
-      mainWin->actionConnect->setIcon(QIcon(":images/disconnected.png"));
-      QBrush redBrush(Qt::red);
-      QTreeWidgetItem *item = mainWin->getFromHash(this);
-      item->setForeground(0, redBrush);
-      m_at_prompt = false;
-      m_at_main_prompt = false;
-   }
 }
 
 int DirComm::write(const QString msg)
@@ -314,57 +244,20 @@ int DirComm::write(const char *msg)
    m_at_main_prompt = false;
    if (mainWin->m_commDebug) Pmsg1(000, "send: %s\n", msg);
    return m_sock->send();
-
 }
 
-/*
- * Get to main command prompt -- i.e. abort any suDirCommand
- */
-void DirComm::beginNewCommand()
+int DirComm::sock_read()
 {
-   for (int i=0; i < 3; i++) {
-      write(".\n");
-      while (read() > 0) {
-         if (mainWin->m_displayAll) m_console->display_text(msg());
-      }
-      if (m_at_main_prompt) {
-         break;
-      }
-   }
-   m_console->display_text("\n");
+   int stat;
+#ifdef HAVE_WIN32
+   bool wasEnabled = notify(false);
+   stat = m_sock->recv();
+   notify(wasEnabled);
+#else
+   stat = m_sock->recv();
+#endif
+   return stat;
 }
-
-void DirComm::displayToPrompt()
-{ 
-   int stat = 0;
-   QString buf;
-   if (mainWin->m_commDebug) Pmsg0(000, "DisplaytoPrompt\n");
-   while (!m_at_prompt) {
-      if ((stat=read()) > 0) {
-	buf += msg();
-	if (buf.size() >= 8196 || m_messages_pending) {
-	   m_console->display_text(buf);
-	   buf.clear();
-	   m_messages_pending = false;
-	}
-      }
-   }
-   m_console->display_text(buf);
-   if (mainWin->m_commDebug) Pmsg1(000, "endDisplaytoPrompt=%d\n", stat);
-}
-
-void DirComm::discardToPrompt()
-{ 
-   int stat = 0;
-   if (mainWin->m_commDebug) Pmsg0(000, "discardToPrompt\n");
-   while (!m_at_prompt) {
-      if ((stat=read()) > 0) {
-         if (mainWin->m_displayAll) m_console->display_text(msg());
-      }
-   }
-   if (mainWin->m_commDebug) Pmsg1(000, "endDisplayToPrompt=%d\n", stat);
-}
-
 
 /* 
  * Blocking read from director
@@ -374,18 +267,18 @@ int DirComm::read()
    int stat = 0;
    while (m_sock) {
       for (;;) {
-         stat = bnet_wait_data_intr(m_sock, 1);
+         stat = m_sock->wait_data_intr(0, 50000);
          if (stat > 0) {
             break;
          } 
          app->processEvents();
-         if (m_api_set && m_messages_pending) {
-            write_dir(".messages");
-            m_messages_pending = false;
+         if (m_api_set && m_console->is_messagesPending() && is_notify_enabled() && m_console->hasFocus()) {
+            m_console->write_dir(m_conn, ".messages");
+            m_console->messagesPending(false);
          }
       }
       m_sock->msg[0] = 0;
-      stat = m_sock->recv();
+      stat = sock_read();
       if (stat >= 0) {
          if (mainWin->m_commDebug) Pmsg1(000, "got: %s\n", m_sock->msg);
          if (m_at_prompt) {
@@ -396,13 +289,13 @@ int DirComm::read()
       }
       switch (m_sock->msglen) {
       case BNET_MSGS_PENDING :
-         if (m_notifier->isEnabled()) {
+         if (is_notify_enabled() && m_console->hasFocus()) {
             if (mainWin->m_commDebug) Pmsg0(000, "MSGS PENDING\n");
-            write_dir(".messages");
-            displayToPrompt();
-            m_messages_pending = false;
+            m_console->write_dir(m_conn, ".messages");
+            m_console->displayToPrompt(m_conn);
+            m_console->messagesPending(false);
          }
-         m_messages_pending = true;
+         m_console->messagesPending(true);
          continue;
       case BNET_CMD_OK:
          if (mainWin->m_commDebug) Pmsg0(000, "CMD OK\n");
@@ -450,43 +343,52 @@ int DirComm::read()
          break;
       case BNET_YESNO:
          if (mainWin->m_commDebug) Pmsg0(000, "YESNO\n");
-         new yesnoPopUp(m_console);
+         new yesnoPopUp(m_console, m_conn);
          break;
       case BNET_RUN_CMD:
          if (mainWin->m_commDebug) Pmsg0(000, "RUN CMD\n");
          new runCmdPage();
          break;
+      case BNET_START_RTREE:
+         if (mainWin->m_commDebug) Pmsg0(000, "START RTREE CMD\n");
+         new restorePage(m_conn);
+         break;
+      case BNET_END_RTREE:
+         if (mainWin->m_commDebug) Pmsg0(000, "END RTREE CMD\n");
+         break;
       case BNET_ERROR_MSG:
          if (mainWin->m_commDebug) Pmsg0(000, "ERROR MSG\n");
-         m_sock->recv();              /* get the message */
+         stat = sock_read();          /* get the message */
          m_console->display_text(msg());
-         QMessageBox::critical(this, "Error", msg(), QMessageBox::Ok);
+         QMessageBox::critical(m_console, "Error", msg(), QMessageBox::Ok);
          break;
       case BNET_WARNING_MSG:
          if (mainWin->m_commDebug) Pmsg0(000, "WARNING MSG\n");
-         m_sock->recv();              /* get the message */
+         stat = sock_read();          /* get the message */
          m_console->display_text(msg());
-         QMessageBox::critical(this, "Warning", msg(), QMessageBox::Ok);
+         QMessageBox::critical(m_console, "Warning", msg(), QMessageBox::Ok);
          break;
       case BNET_INFO_MSG:
          if (mainWin->m_commDebug) Pmsg0(000, "INFO MSG\n");
-         m_sock->recv();              /* get the message */
+         stat = sock_read();          /* get the message */
          m_console->display_text(msg());
          mainWin->set_status(msg());
          break;
       }
       if (is_bnet_stop(m_sock)) {         /* error or term request */
          if (mainWin->m_commDebug) Pmsg0(000, "BNET STOP\n");
-         stopTimer();
+         m_console->stopTimer();
          m_sock->close();
          m_sock = NULL;
          mainWin->actionConnect->setIcon(QIcon(":images/disconnected.png"));
          QBrush redBrush(Qt::red);
-         QTreeWidgetItem *item = mainWin->getFromHash(this);
+         QTreeWidgetItem *item = mainWin->getFromHash(m_console);
          item->setForeground(0, redBrush);
-         m_notifier->setEnabled(false);
-         delete m_notifier;
-         m_notifier = NULL;
+         if (m_notifier) {
+            m_notifier->setEnabled(false);
+            delete m_notifier;
+            m_notifier = NULL;
+         }
          mainWin->set_status(_("Director disconnected."));
          QApplication::restoreOverrideCursor();
          stat = BNET_HARDEOF;
@@ -515,21 +417,28 @@ void DirComm::read_dir(int /* fd */)
  * from the Directory, so we set notify to off.
  *    m_console->notifiy(false);
  */
-void DirComm::notify(bool enable) 
+bool DirComm::notify(bool enable) 
 { 
-   m_notifier->setEnabled(enable);   
+   bool prev_enabled = false;
+   if (m_notifier) {
+      prev_enabled = m_notifier->isEnabled();   
+      m_notifier->setEnabled(enable);
+      if (mainWin->m_connDebug)
+         if (prev_enabled && !enable)
+            Pmsg1(000, "m_notifier Disabling notifier: %i\n", m_conn);
+         else if (!prev_enabled && enable)
+            Pmsg1(000, "m_notifier Enabling notifier: %i\n", m_conn); 
+    } else if (mainWin->m_connDebug)
+       Pmsg1(000, "m_notifier does not exist: %i\n", m_conn);
+   return prev_enabled;
 }
 
-bool DirComm::is_connectedGui()
+bool DirComm::is_notify_enabled() const
 {
-   if (is_connected()) {
-      return true;
-   } else {
-     QString message( tr("Director is currently disconnected\n  Please reconnect!"));
-     QMessageBox::warning(this, "Bat",
-         message.toUtf8().data(), QMessageBox::Ok );
-      return false;
-   }
+   bool enabled = false;
+   if (m_notifier)
+      enabled = m_notifier->isEnabled();   
+   return enabled;
 }
 
 /*

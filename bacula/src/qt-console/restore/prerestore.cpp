@@ -62,13 +62,10 @@ void prerestorePage::buildPage()
    m_name = tr("Restore");
    setupUi(this);
    pgInitialize();
-   m_console->notify(false);
+   m_conn = m_console->notifyOff();
    m_closeable = true;
    QTreeWidgetItem* thisitem = mainWin->getFromHash(this);
    thisitem->setIcon(0,QIcon(QString::fromUtf8(":images/restore.png")));
-
-   if (!m_console->preventInUseConnect())
-       return;
 
    jobCombo->addItems(m_console->job_list);
    filesetCombo->addItems(m_console->fileset_list);
@@ -170,7 +167,7 @@ void prerestorePage::okButtonPushed()
    if (mainWin->m_commandDebug) {
       Pmsg1(000, "preRestore command \'%s\'\n", cmd.toUtf8().data());
    }
-   m_console->write_dir(cmd.toUtf8().data());
+   m_console->write_dir(m_conn, cmd.toUtf8().data());
 
    /* Note, do not turn notifier back on here ... */
    if (selectFilesRadio->isChecked()) {
@@ -180,7 +177,7 @@ void prerestorePage::okButtonPushed()
       closeStackPage();
       mainWin->resetFocus();
    }
-   m_console->notify(true);
+   m_console->notify(m_conn, true);
 }
 
 
@@ -191,7 +188,7 @@ void prerestorePage::cancelButtonPushed()
 {
    mainWin->set_status(tr("Canceled"));
    this->hide();
-   m_console->notify(true);
+   m_console->notify(m_conn, true);
    closeStackPage();
 }
 

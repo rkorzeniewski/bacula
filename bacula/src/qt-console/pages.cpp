@@ -230,11 +230,6 @@ void Pages::treeWidgetName(QString &name)
  */
 void Pages::consoleCommand(QString &command)
 {
-   /*if (!m_console->is_connectedGui())
-       return;*/
-   if (!m_console->preventInUseConnect()) {
-       return;
-   }
    consoleInput(command);
 }
 
@@ -245,14 +240,15 @@ void Pages::consoleCommand(QString &command)
  */
 void Pages::consoleInput(QString &command)
 {
+   int conn;
    /* Bring this director's console to the front of the stack */
    setConsoleCurrent();
    QString displayhtml("<font color=\"blue\">");
    displayhtml += command + "</font>\n";
    m_console->display_html(displayhtml);
    m_console->display_text("\n");
-   m_console->write_dir(command.toUtf8().data());
-   m_console->displayToPrompt();
+   conn = m_console->write_dir(command.toUtf8().data());
+   m_console->displayToPrompt(conn);
 }
 
 /*

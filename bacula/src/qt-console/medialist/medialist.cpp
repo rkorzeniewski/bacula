@@ -80,9 +80,6 @@ void MediaList::populateTree()
       writeExpandedSettings();
    m_populated = true;
 
-   if (!m_console->preventInUseConnect())
-       return;
-
    Freeze frz(*mp_treeWidget); /* disable updating*/
 
    QStringList headerlist = (QStringList()

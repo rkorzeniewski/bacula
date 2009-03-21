@@ -651,6 +651,7 @@ void MainWin::setPreferences()
 {
    prefsDialog prefs;
    prefs.commDebug->setCheckState(m_commDebug ? Qt::Checked : Qt::Unchecked);
+   prefs.connDebug->setCheckState(m_connDebug ? Qt::Checked : Qt::Unchecked);
    prefs.displayAll->setCheckState(m_displayAll ? Qt::Checked : Qt::Unchecked);
    prefs.sqlDebug->setCheckState(m_sqlDebug ? Qt::Checked : Qt::Unchecked);
    prefs.commandDebug->setCheckState(m_commandDebug ? Qt::Checked : Qt::Unchecked);
@@ -706,6 +707,7 @@ void prefsDialog::accept()
 {
    this->hide();
    mainWin->m_commDebug = this->commDebug->checkState() == Qt::Checked;
+   mainWin->m_connDebug = this->connDebug->checkState() == Qt::Checked;
    mainWin->m_displayAll = this->displayAll->checkState() == Qt::Checked;
    mainWin->m_sqlDebug = this->sqlDebug->checkState() == Qt::Checked;
    mainWin->m_commandDebug = this->commandDebug->checkState() == Qt::Checked;
@@ -746,6 +748,7 @@ void prefsDialog::accept()
    QSettings settings("www.bacula.org", "bat");
    settings.beginGroup("Debug");
    settings.setValue("commDebug", mainWin->m_commDebug);
+   settings.setValue("connDebug", mainWin->m_connDebug);
    settings.setValue("displayAll", mainWin->m_displayAll);
    settings.setValue("sqlDebug", mainWin->m_sqlDebug);
    settings.setValue("commandDebug", mainWin->m_commandDebug);
@@ -784,9 +787,6 @@ void prefsDialog::accept()
    settings.setValue("rtRestore2Debug", mainWin->m_rtRestore2Debug);
    settings.setValue("rtRestore3Debug", mainWin->m_rtRestore3Debug);
    settings.endGroup();
-   foreach(Console *console, mainWin->m_consoleHash) {
-      console->startTimer();
-   }
 }
 
 void prefsDialog::reject()
@@ -801,6 +801,7 @@ void MainWin::readPreferences()
    QSettings settings("www.bacula.org", "bat");
    settings.beginGroup("Debug");
    m_commDebug = settings.value("commDebug", false).toBool();
+   m_connDebug = settings.value("connDebug", false).toBool();
    m_displayAll = settings.value("displayAll", false).toBool();
    m_sqlDebug = settings.value("sqlDebug", false).toBool();
    m_commandDebug = settings.value("commandDebug", false).toBool();

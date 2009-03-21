@@ -53,6 +53,7 @@ private slots:
 private:
    Console *m_console;
    QString m_fromVolume;
+   int m_conn;
 };
 
 #endif /* _RELABEL_H_ */

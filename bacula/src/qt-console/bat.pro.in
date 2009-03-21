@@ -67,7 +67,7 @@ SOURCES += bcomm/dircomm.cpp bcomm/dircomm_auth.cpp
 
 # Console
 HEADERS += console/console.h
-SOURCES += console/authenticate.cpp console/console.cpp
+SOURCES += console/console.cpp
 
 # Restore
 HEADERS += restore/restore.h
