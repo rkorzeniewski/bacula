@@ -80,9 +80,10 @@ public:
    int notifyOff(); // enables/disables socket notification - returns the previous state
    bool notify(int conn, bool enable); // enables/disables socket notification - returns the previous state
    bool is_notify_enabled(int conn) const;
-   int availableDirComm();
+   bool availableDirComm(int &conn);
    void displayToPrompt(int conn);
 
+   bool dir_cmd(int conn, const char *cmd, QStringList &results);
    bool dir_cmd(const char *cmd, QStringList &results);
    bool dir_cmd(QString &cmd, QStringList &results);
    bool sql_cmd(const char *cmd, QStringList &results);
@@ -114,7 +115,7 @@ private:
    void update_cursor(void);
    void stopTimer();
    bool is_connectedGui();
-   int newDirComm();
+   bool newDirComm(int &conn);
 
 public:
    QStringList job_list;

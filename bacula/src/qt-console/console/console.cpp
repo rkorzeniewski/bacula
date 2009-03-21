@@ -91,7 +91,9 @@ void Console::stopTimer()
  * requires preferences of check messages and operates at interval */
 void Console::poll_messages()
 {
-   int conn = availableDirComm();
+   int conn;
+   if (!availableDirComm(conn))
+      return;
    DirComm *dircomm = m_dircommHash.value(conn);
 
    if (mainWin->m_checkMessages && dircomm->m_at_main_prompt && hasFocus()){
@@ -120,6 +122,13 @@ void Console::connect_dir()
       if (mainWin->m_connDebug)
          Pmsg0(000, "DirComm 0 Seems to have Connected\n");
       beginNewCommand(0);
+   }
+   
+   int ndc;
+   if (newDirComm(ndc)) {
+      if (mainWin->m_connDebug)
+         Pmsg1(000, "DirComm %i Seems to have Connected\n", ndc);
+      dircomm = m_dircommHash.value(ndc);
       job_list.clear();
       client_list.clear();
       fileset_list.clear();
@@ -129,48 +138,61 @@ void Console::connect_dir()
       storage_list.clear();
       type_list.clear();
       level_list.clear();
-      int jl = 0;
-      bool done = false;
-      /* this was added because I was getting job lists with 0 count, but not consistently*/
-      while (!done) {
-        dir_cmd(".jobs", job_list);
-        jl++;
-        if ((jl > 10) || job_list.count() > 0) done = true;
-      }
-      dir_cmd(".clients", client_list);
-      dir_cmd(".filesets", fileset_list);  
-      dir_cmd(".msgs", messages_list);
-      dir_cmd(".pools", pool_list);
-      dir_cmd(".storage", storage_list);
-      dir_cmd(".types", type_list);
-      dir_cmd(".levels", level_list);
+      dir_cmd(ndc, ".jobs", job_list);
+      dir_cmd(ndc, ".clients", client_list);
+      dir_cmd(ndc, ".filesets", fileset_list);  
+      dir_cmd(ndc, ".msgs", messages_list);
+      dir_cmd(ndc, ".pools", pool_list);
+      dir_cmd(ndc, ".storage", storage_list);
+      dir_cmd(ndc, ".types", type_list);
+      dir_cmd(ndc, ".levels", level_list);
 
       if (mainWin->m_connDebug) {
          QString dbgmsg = QString("jobs=%1 clients=%2 filesets=%3 msgs=%4 pools=%5 storage=%6 types=%7 levels=%8\n")
            .arg(job_list.count()).arg(client_list.count()).arg(fileset_list.count()).arg(messages_list.count())
            .arg(pool_list.count()).arg(storage_list.count()).arg(type_list.count()).arg(level_list.count());
          Pmsg1(000, "%s\n", dbgmsg.toUtf8().data());
-      }
+      } else
+         if (mainWin->m_connDebug)
+            Pmsg0(000, "DirComm 1 Seems to Failed\n");
    
       mainWin->set_status(_("Connected"));
       startTimer();                      /* start message timer */
    }
 }
 
+/*
+ *  Overload function for dir_cmd with a QString
+ *  Ease of use
+ */
 bool Console::dir_cmd(QString &cmd, QStringList &results)
 {
    return dir_cmd(cmd.toUtf8().data(), results);
 }
 
 /*
- * Send a command to the Director, and return the
- *  results in a QStringList.  
+ *  Overload function for dir_cmd, this is if connection is not worried about
  */
 bool Console::dir_cmd(const char *cmd, QStringList &results)
 {
-   int conn = availableDirComm();
-   int stat;
+   int conn;
+   if(availableDirComm(conn)) {
+      dir_cmd(conn, cmd, results);
+      return true;
+   } else {
+      Pmsg0(000, "dir_cmd Seems to Failed to find a connection\n");
+      return false;
+   }
+}
+
+/*
+ * Send a command to the Director, and return the
+ *  results in a QStringList.  
+ */
+bool Console::dir_cmd(int conn, const char *cmd, QStringList &results)
+{
    DirComm *dircomm = m_dircommHash.value(conn);
+   int stat;
 
    if (mainWin->m_connDebug)
       Pmsg2(000, "dir_cmd conn %i %s\n", conn, cmd);
@@ -198,7 +220,10 @@ bool Console::sql_cmd(QString &query, QStringList &results)
  */
 bool Console::sql_cmd(const char *query, QStringList &results)
 {
-   int conn = availableDirComm();
+   int conn;
+   if (!availableDirComm(conn))
+      return false;
+
    DirComm *dircomm = m_dircommHash.value(conn);
    int stat;
    POOL_MEM cmd(PM_MESSAGE);
@@ -239,8 +264,9 @@ bool Console::sql_cmd(const char *query, QStringList &results)
 /* Send a command to the Director */
 int Console::write_dir(const char *msg)
 {
-   int conn = availableDirComm();
-   write_dir(conn, msg);
+   int conn;
+   if(availableDirComm(conn))
+      write_dir(conn, msg);
    return conn;
 }
 
@@ -527,8 +553,9 @@ void Console::discardToPrompt(int conn)
 /* dual purpose function to turn notify off and return an available connection */
 int Console::notifyOff()
 { 
-   int conn = availableDirComm();
-   notify(conn, false);
+   int conn = 0;
+   if(availableDirComm(conn))
+      notify(conn, false);
    return conn;
 }
 
@@ -702,24 +729,30 @@ bool Console::is_connected(int conn)
 /*
  * Need an available connection.  Check existing connections or create one
  */
-int Console::availableDirComm()
+bool Console::availableDirComm(int &conn)
 {
    QHash<int, DirComm*>::const_iterator iter = m_dircommHash.constBegin();
    while (iter != m_dircommHash.constEnd()) {
       DirComm *dircomm = iter.value();
-      if (dircomm->m_at_prompt && dircomm->m_at_main_prompt && dircomm->is_notify_enabled())
-         return dircomm->m_conn;
+      if (dircomm->m_at_prompt && dircomm->m_at_main_prompt && dircomm->is_notify_enabled()) {
+         conn = dircomm->m_conn;
+         return true;
+      }
       ++iter;
    }
-   return newDirComm();
+   if (newDirComm(conn))
+      return true;
+   else
+      return false;
 }
 
 /*
  *  Create a new connection
  */
-int Console::newDirComm()
+bool Console::newDirComm(int &conn)
 {
    m_dircommCounter += 1;
+   conn = m_dircommCounter;
    if (mainWin->m_connDebug)
       Pmsg1(000, "DirComm %i About to Create and Connect\n", m_dircommCounter);
    DirComm *dircomm = new DirComm(this, m_dircommCounter);
@@ -727,8 +760,8 @@ int Console::newDirComm()
    bool success = dircomm->connect_dir();
    if (mainWin->m_connDebug)
       if (success)
-         Pmsg1(000, "DirComm %i Connected\n", m_dircommCounter);
+         Pmsg1(000, "DirComm %i Connected\n", conn);
       else
-         Pmsg1(000, "DirComm %i NOT Connected\n", m_dircommCounter);
-   return m_dircommCounter;
+         Pmsg1(000, "DirComm %i NOT Connected\n", conn);
+   return success;
 }
