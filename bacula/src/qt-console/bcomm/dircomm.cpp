@@ -335,6 +335,7 @@ int DirComm::read()
          if (mainWin->m_commDebug) Pmsg0(000, "CMD FAILED\n");
          if (--m_in_command < 0) {
             Pmsg0(000, "m_in_command < 0\n");
+            m_in_command = 0;
          }
          mainWin->set_status(_("Command failed."));
          QApplication::restoreOverrideCursor();
