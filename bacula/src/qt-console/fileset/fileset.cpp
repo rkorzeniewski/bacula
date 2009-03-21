@@ -90,28 +90,38 @@ void FileSet::populateTable()
    tableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
    tableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
    tableWidget->setSortingEnabled(false); /* rows move on insert if sorting enabled */
-   int row = 0;
 
+   QString fileset_comsep("");
+   bool first = true;
    foreach(QString filesetName, m_console->fileset_list) {
+      if (first) {
+         fileset_comsep += "'" + filesetName + "'";
+         first = false;
+      }
+      else
+         fileset_comsep += ",'" + filesetName + "'";
+   }
 
+   if (fileset_comsep != "") {
       /* Set up query QString and header QStringList */
       QString query("");
       query += "SELECT FileSet AS Name, FileSetId AS Id, CreateTime"
            " FROM FileSet"
-           " WHERE ";
-      query += " FileSet='" + filesetName + "'";
-      query += " ORDER BY CreateTime DESC LIMIT 1";
+           " WHERE FileSetId IN (SELECT MAX(FileSetId) FROM FileSet WHERE";
+      query += " FileSet IN (" + fileset_comsep + ")";
+      query += " GROUP BY FileSet) ORDER BY FileSet";
 
       QStringList results;
       if (mainWin->m_sqlDebug) {
          Pmsg1(000, "FileSet query cmd : %s\n",query.toUtf8().data());
       }
       if (m_console->sql_cmd(query, results)) {
-         int resultCount = results.count();
-         if (resultCount) {
-            /* only use the last one */
-            QString resultline = results[resultCount - 1];
-            QStringList fieldlist = resultline.split("\t");
+         int row = 0;
+         QStringList fieldlist;
+
+         /* Iterate through the record returned from the query */
+         foreach (QString resultline, results) {
+            fieldlist = resultline.split("\t");
 
 	    TableItemFormatter item(*tableWidget, row);
   
@@ -128,9 +138,9 @@ void FileSet::populateTable()
 	    /* creation time */
 	    item.setTextFld(col++, fld.next());
 
+            row++;
          }
       }
-      row++;
    }
    /* set default sorting */
    tableWidget->sortByColumn(headerlist.indexOf(tr("Create Time")), Qt::DescendingOrder);

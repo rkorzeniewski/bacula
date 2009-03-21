@@ -98,27 +98,33 @@ void Clients::populateTable()
    tableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
    tableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
    tableWidget->setSortingEnabled(false); /* rows move on insert if sorting enabled */
-   int row = 0;
-
+   bool first = true;
+   QString client_comsep("");
    foreach (QString clientName, m_console->client_list){
-      /* Set up query QString and header QStringList */
+      if (first) {
+         client_comsep += "'" + clientName + "'";
+         first = false;
+      }
+      else
+         client_comsep += ",'" + clientName + "'";
+   }
+
+   if (client_comsep != "") {
       QString query("");
       query += "SELECT Name, FileRetention, JobRetention, AutoPrune, ClientId, Uname"
            " FROM Client"
-           " WHERE ";
-      query += " Name='" + clientName + "'";
-      query += " ORDER BY ClientId LIMIT 1";
+           " WHERE ClientId IN (SELECT MAX(ClientId) FROM Client WHERE";
+      query += " Name IN (" + client_comsep + ")";
+      query += " GROUP BY Name) ORDER BY Name";
 
       QStringList results;
-      /* This could be a log item */
-      if (mainWin->m_sqlDebug) {
+      if (mainWin->m_sqlDebug)
          Pmsg1(000, "Clients query cmd : %s\n",query.toUtf8().data());
-      }
       if (m_console->sql_cmd(query, results)) {
-         int resultCount = results.count();
-         if (resultCount){
-            /* only use the last one */
-            QString resultline = results[resultCount - 1];
+         int row = 0;
+
+         /* Iterate through the record returned from the query */
+         foreach (QString resultline, results) {
             QStringList fieldlist = resultline.split("\t");
 
 	    TableItemFormatter item(*tableWidget, row);
@@ -145,9 +151,9 @@ void Clients::populateTable()
 	    /* uname */
 	    item.setTextFld(col++, fld.next());
 
+            row++;
          }
       }
-      row ++;
    }
    /* set default sorting */
    tableWidget->sortByColumn(sortcol, sortord);
