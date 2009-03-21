@@ -97,7 +97,8 @@ private:
 
    QSplitter *m_splitter;
    QString m_groupText;
-   QString m_splitText;
+   QString m_splitText1;
+   QString m_splitText2;
    bool m_populated;
    bool m_dropdownChanged;
    QRegExp m_winRegExpDrive;
