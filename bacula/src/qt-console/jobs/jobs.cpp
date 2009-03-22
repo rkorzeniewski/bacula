@@ -123,6 +123,16 @@ void Jobs::populateTable()
    /* Resize rows and columns */
    tableWidget->resizeColumnsToContents();
    tableWidget->resizeRowsToContents();
+
+   /* make read only */
+   int rcnt = tableWidget->rowCount();
+   int ccnt = tableWidget->columnCount();
+   for(int r=0; r < rcnt; r++) {
+      for(int c=0; c < ccnt; c++) {
+         QTableWidgetItem* item = tableWidget->item(r, c);
+         item->setFlags(Qt::ItemFlags(item->flags() & (~Qt::ItemIsEditable)));
+      }
+   }
 }
 
 /*
