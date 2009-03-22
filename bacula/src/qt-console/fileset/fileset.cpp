@@ -85,7 +85,6 @@ void FileSet::populateTable()
    tableWidget->setColumnCount(headerlist.count());
    tableWidget->setHorizontalHeaderLabels(headerlist);
    tableWidget->horizontalHeader()->setHighlightSections(false);
-   tableWidget->setRowCount(m_console->fileset_list.count());
    tableWidget->verticalHeader()->hide();
    tableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
    tableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
@@ -118,6 +117,7 @@ void FileSet::populateTable()
       if (m_console->sql_cmd(query, results)) {
          int row = 0;
          QStringList fieldlist;
+         tableWidget->setRowCount(results.count());
 
          /* Iterate through the record returned from the query */
          foreach (QString resultline, results) {
