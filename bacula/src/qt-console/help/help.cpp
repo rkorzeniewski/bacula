@@ -63,6 +63,12 @@ void Help::updateTitle()
 
 void Help::displayFile(const QString &file)
 {
-   QString path = QApplication::applicationDirPath() + "/help";
+   QRegExp rx;
+   rx.setPattern("/\\.libs");
+   QString path = QApplication::applicationDirPath();
+   int pos = rx.indexIn(path);
+   if (pos)
+      path = path.remove(pos, 6);
+   path += "/help";
    new Help(path, file);
 }
