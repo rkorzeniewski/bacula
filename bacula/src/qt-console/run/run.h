@@ -30,7 +30,7 @@ class runCmdPage : public Pages, public Ui::runCmdForm
    Q_OBJECT 
 
 public:
-   runCmdPage();
+   runCmdPage(int conn);
 
 public slots:
    void okButtonPushed();
