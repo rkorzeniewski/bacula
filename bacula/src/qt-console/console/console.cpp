@@ -209,21 +209,36 @@ bool Console::dir_cmd(int conn, const char *cmd, QStringList &results)
    return true;              /* ***FIXME*** return any command error */
 }
 
+/*
+ * OverLoads for sql_cmd
+ */
+bool Console::sql_cmd(int &conn, QString &query, QStringList &results)
+{
+   return sql_cmd(conn, query.toUtf8().data(), results, false);
+}
+
 bool Console::sql_cmd(QString &query, QStringList &results)
 {
-   return sql_cmd(query.toUtf8().data(), results);
+   int conn;
+   if (!availableDirComm(conn))
+      return false;
+   return sql_cmd(conn, query.toUtf8().data(), results, true);
+}
+
+bool Console::sql_cmd(const char *query, QStringList &results)
+{
+   int conn;
+   if (!availableDirComm(conn))
+      return false;
+   return sql_cmd(conn, query, results, true);
 }
 
 /*
  * Send an sql query to the Director, and return the
  *  results in a QStringList.  
  */
-bool Console::sql_cmd(const char *query, QStringList &results)
+bool Console::sql_cmd(int &conn, const char *query, QStringList &results, bool donotify)
 {
-   int conn;
-   if (!availableDirComm(conn))
-      return false;
-
    DirComm *dircomm = m_dircommHash.value(conn);
    int stat;
    POOL_MEM cmd(PM_MESSAGE);
@@ -234,7 +249,8 @@ bool Console::sql_cmd(const char *query, QStringList &results)
 
    if (mainWin->m_connDebug)
       Pmsg2(000, "sql_cmd conn %i %s\n", conn, query);
-   notify(conn, false);
+   if (donotify)
+      dircomm->notify(false);
    
    pm_strcpy(cmd, ".sql query=\"");
    pm_strcat(cmd, query);
@@ -256,7 +272,8 @@ bool Console::sql_cmd(const char *query, QStringList &results)
          results << dircomm->msg();
       first = false;
    }
-   notify(conn, true);
+   if (donotify)
+      dircomm->notify(true);
    discardToPrompt(conn);
    return true;              /* ***FIXME*** return any command error */
 }
@@ -290,17 +307,32 @@ void Console::write_dir(int conn, const char *msg)
    }
 }
 
+/*
+ * get_job_defaults overload
+ */
+bool Console::get_job_defaults(struct job_defaults &job_defs)
+{
+   int conn;
+   return get_job_defaults(conn, job_defs, true);
+}
+
+bool Console::get_job_defaults(int &conn, struct job_defaults &job_defs)
+{
+   return get_job_defaults(conn, job_defs, false);
+}
+
 /*  
  * Send a job name to the director, and read all the resulting
  *  defaults. 
  */
-bool Console::get_job_defaults(struct job_defaults &job_defs)
+bool Console::get_job_defaults(int &conn, struct job_defaults &job_defs, bool donotify)
 {
    QString scmd;
    int stat;
    char *def;
 
-   int conn = notifyOff();
+   if (donotify)
+      conn = notifyOff();
    beginNewCommand(conn);
    DirComm *dircomm = m_dircommHash.value(conn);
    if (mainWin->m_connDebug)
@@ -365,11 +397,13 @@ bool Console::get_job_defaults(struct job_defaults &job_defs)
       }
    }
 
-   notify(conn, true);
+   if (donotify)
+      notify(conn, true);
    return true;
 
 bail_out:
-   notify(conn, true);
+   if (donotify)
+      notify(conn, true);
    return false;
 }
 

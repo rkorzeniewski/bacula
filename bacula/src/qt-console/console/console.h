@@ -88,6 +88,8 @@ public:
    bool dir_cmd(QString &cmd, QStringList &results);
    bool sql_cmd(const char *cmd, QStringList &results);
    bool sql_cmd(QString &cmd, QStringList &results);
+   bool sql_cmd(int &conn, QString &cmd, QStringList &results);
+   bool sql_cmd(int &conn, const char *cmd, QStringList &results, bool donotify);
    int write_dir(const char *buf);
    void write_dir(int conn, const char *buf);
    void getDirResName(QString &);
@@ -106,12 +108,14 @@ public:
    void display_textf(const char *fmt, ...);
    void display_html(const QString buf);
    bool get_job_defaults(struct job_defaults &);
+   bool get_job_defaults(int &conn, struct job_defaults &);
    const QFont get_font();
    void beginNewCommand(int conn);
    void getVolumeList(QStringList &);
    void getStatusList(QStringList &);
 
 private:
+   bool get_job_defaults(int &conn, struct job_defaults &, bool donotify);
    void update_cursor(void);
    void stopTimer();
    bool is_connectedGui();
