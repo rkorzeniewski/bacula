@@ -359,7 +359,7 @@ int DirComm::read()
          break;
       case BNET_RUN_CMD:
          if (mainWin->m_commDebug) Pmsg1(000, "conn %i RUN CMD\n", m_conn);
-         new runCmdPage();
+         new runCmdPage(m_conn);
          break;
       case BNET_START_RTREE:
          if (mainWin->m_commDebug) Pmsg1(000, "conn %i START RTREE CMD\n", m_conn);

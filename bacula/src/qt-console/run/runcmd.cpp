@@ -46,14 +46,15 @@
 /*
  * Setup all the combo boxes and display the dialog
  */
-runCmdPage::runCmdPage()
+runCmdPage::runCmdPage(int conn)
 {
    m_name = tr("Restore Run");
    pgInitialize();
    setupUi(this);
    QTreeWidgetItem* thisitem = mainWin->getFromHash(this);
    thisitem->setIcon(0,QIcon(QString::fromUtf8(":images/restore.png")));
-   m_conn = m_console->notifyOff();
+   m_conn = conn;
+   m_console->notify(conn, false);
 
    fill();
    m_console->discardToPrompt(m_conn);
@@ -160,7 +161,7 @@ void runCmdPage::okButtonPushed()
    displayhtml += cmd + "</font>\n";
    m_console->display_html(displayhtml);
    m_console->display_text("\n");
-   m_console->write_dir(cmd.toUtf8().data());
+   m_console->write_dir(m_conn, cmd.toUtf8().data());
    m_console->displayToPrompt(m_conn);
 //   consoleCommand(cmd); ***FIXME set back to consoleCommand when connection issue is resolved
 
