@@ -202,7 +202,7 @@ void prerestorePage::job_name_change(int index)
 
    (void)index;
    job_defs.job_name = jobCombo->currentText();
-   if (m_console->get_job_defaults(job_defs)) {
+   if (m_console->get_job_defaults(m_conn, job_defs)) {
       filesetCombo->setCurrentIndex(filesetCombo->findText(job_defs.fileset_name, Qt::MatchExactly));
       clientCombo->setCurrentIndex(clientCombo->findText(job_defs.client_name, Qt::MatchExactly));
       poolCombo->setCurrentIndex(poolCombo->findText(tr("Any"), Qt::MatchExactly));
@@ -240,7 +240,7 @@ int prerestorePage::jobdefsFromJob(QStringList &fieldlist, QString &jobId)
    " AND JobId=\'" + jobId + "\'";
    if (mainWin->m_sqlDebug) { Pmsg1(000, "query = %s\n", query.toUtf8().data()); }
    QStringList results;
-   if (m_console->sql_cmd(query, results)) {
+   if (m_console->sql_cmd(m_conn, query, results)) {
       QString field;
 
       /* Iterate through the lines of results, there should only be one. */

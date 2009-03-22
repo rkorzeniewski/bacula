@@ -218,6 +218,16 @@ void JobList::populateTable()
           tr("The Jobs query returned no results.\n"
          "Press OK to continue?"), QMessageBox::Ok );
    }
+
+   /* make read only */
+   int rcnt = mp_tableWidget->rowCount();
+   int ccnt = mp_tableWidget->columnCount();
+   for(int r=0; r < rcnt; r++) {
+      for(int c=0; c < ccnt; c++) {
+         QTableWidgetItem* item = mp_tableWidget->item(r, c);
+         item->setFlags(Qt::ItemFlags(item->flags() & (~Qt::ItemIsEditable)));
+      }
+   }
 }
 
 void JobList::prepareFilterWidgets()
