@@ -827,7 +827,7 @@ stat2(const char *file, struct stat *sb)
       return -1;
    }
 
-   rval = fstat((intprt_t)h, sb);
+   rval = fstat((intptr_t)h, sb);
    CloseHandle(h);
 
    if (attr & FILE_ATTRIBUTE_DIRECTORY &&
