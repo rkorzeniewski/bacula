@@ -247,5 +247,11 @@ enum {
    CF_CREATED                         /* file created, no data to extract */
 };
 
+#ifndef MAX
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
+#endif
+#ifndef MIN
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
+#endif
 
 #endif /* __bc_types_INCLUDED */
