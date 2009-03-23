@@ -172,7 +172,7 @@ dbi_node_t::pluginIoRead(exchange_fd_context_t *context, struct io_pkt *io)
         io->status = 0;
         io->io_errno = 0;
 
-        io->status = min(io->count, (int)(buffer_size - buffer_pos));
+        io->status = MIN(io->count, (int)(buffer_size - buffer_pos));
         if (io->status == 0)
                 return bRC_OK;
         memcpy(io->buf, buffer + buffer_pos, io->status);

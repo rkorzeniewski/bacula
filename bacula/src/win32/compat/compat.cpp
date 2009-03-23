@@ -733,7 +733,7 @@ statDir(const char *file, struct stat *sb)
 }
 
 int
-fstat(int fd, struct stat *sb)
+fstat(intptr_t fd, struct stat *sb)
 {
    BY_HANDLE_FILE_INFORMATION info;
 
@@ -827,7 +827,7 @@ stat2(const char *file, struct stat *sb)
       return -1;
    }
 
-   rval = fstat((int)h, sb);
+   rval = fstat((intprt_t)h, sb);
    CloseHandle(h);
 
    if (attr & FILE_ATTRIBUTE_DIRECTORY &&
@@ -2201,7 +2201,7 @@ open_bpipe(char *prog, int wait, const char *mode)
                                      // process terminates we can
                                      // detect eof.
         // ugly but convert WIN32 HANDLE to FILE*
-        int rfd = _open_osfhandle((long)hChildStdoutRdDup, O_RDONLY | O_BINARY);
+        int rfd = _open_osfhandle((intptr_t)hChildStdoutRdDup, O_RDONLY | O_BINARY);
         if (rfd >= 0) {
            bpipe->rfd = _fdopen(rfd, "rb");
         }
@@ -2210,7 +2210,7 @@ open_bpipe(char *prog, int wait, const char *mode)
         CloseHandle(hChildStdinRd); // close our read side so as not
                                     // to interfre with child's copy
         // ugly but convert WIN32 HANDLE to FILE*
-        int wfd = _open_osfhandle((long)hChildStdinWrDup, O_WRONLY | O_BINARY);
+        int wfd = _open_osfhandle((intptr_t)hChildStdinWrDup, O_WRONLY | O_BINARY);
         if (wfd >= 0) {
            bpipe->wfd = _fdopen(wfd, "wb");
         }
@@ -2316,6 +2316,7 @@ close_wpipe(BPIPE *bpipe)
     return result;
 }
 
+#ifndef MINGW64
 int
 utime(const char *fname, struct utimbuf *times)
 {
@@ -2367,6 +2368,7 @@ utime(const char *fname, struct utimbuf *times)
     }
     return rval;
 }
+#endif
 
 #if 0
 int

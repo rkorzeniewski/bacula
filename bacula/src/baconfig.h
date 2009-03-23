@@ -43,13 +43,6 @@
 #define TRUE  1
 #define FALSE 0
 
-#ifndef MAX
-#define MAX(a, b) ((a) > (b) ? (a) : (b))
-#endif
-#ifndef MIN
-#define MIN(a, b) ((a) < (b) ? (a) : (b))
-#endif
-
 #ifdef HAVE_TLS
 #define have_tls 1
 #else

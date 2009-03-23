@@ -57,6 +57,15 @@
 
 #include <malloc.h>
 
+#ifdef MINGW64
+#include <direct.h>
+#define _declspec __declspec
+#endif
+
+#ifdef _WIN64
+# define GWL_USERDATA  GWLP_USERDATA
+#endif
+
 #ifndef INT64
 #define INT64 long long int
 #endif
@@ -255,10 +264,12 @@ ssize_t win32_read(int fd, void *buffer, size_t count);
 ssize_t win32_write(int fd, const void *buffer, size_t count);
 int win32_ioctl(int fd, unsigned long int req, ...);
 
+#ifndef MINGW64
 #define open   _open
+#endif
 
 int fcntl(int fd, int cmd, long arg);
-int fstat(int fd, struct stat *sb);
+int fstat(intptr_t fd, struct stat *sb);
 
 int inet_aton(const char *cp, struct in_addr *inp);
 int kill(int pid, int signo);
