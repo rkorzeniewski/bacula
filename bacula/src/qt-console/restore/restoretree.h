@@ -101,8 +101,6 @@ private:
    QString m_splitText2;
    bool m_populated;
    bool m_dropdownChanged;
-   QRegExp m_winRegExpDrive;
-   QRegExp m_winRegExpPath;
    bool m_slashTrap;
    QHash<QString, QTreeWidgetItem *> m_dirPaths;
    QString m_checkedJobs, m_prevJobCombo, m_prevClientCombo, m_prevFileSetCombo;
