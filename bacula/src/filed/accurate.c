@@ -177,12 +177,17 @@ bool accurate_check_file(JCR *jcr, FF_PKT *ff_pkt)
       goto bail_out;
    }
 
+   /*
+    * We check only mtime/ctime like with the normal
+    * incremental/differential mode
+    */
    if (elt.mtime != ff_pkt->statp.st_mtime) {
 //   Jmsg(jcr, M_SAVED, 0, _("%s      st_mtime differs\n"), fname);
       Dmsg3(dbglvl, "%s      st_mtime differs (%i!=%i)\n", 
             fname, elt.mtime, ff_pkt->statp.st_mtime);
      stat = true;
-   } else if (elt.ctime != ff_pkt->statp.st_ctime) {
+   } else if (!(ff_pkt->flags & FO_MTIMEONLY) 
+              && (elt.ctime != ff_pkt->statp.st_ctime)) {
 //   Jmsg(jcr, M_SAVED, 0, _("%s      st_ctime differs\n"), fname);
       Dmsg3(dbglvl, "%s      st_ctime differs\n", 
             fname, elt.ctime, ff_pkt->statp.st_ctime);
