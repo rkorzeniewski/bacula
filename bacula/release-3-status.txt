@@ -136,3 +136,7 @@ Features that will not be completed:
   separate Configuration manual.
 - Not all new features are tested or tested well
   enough
+- Normal (as opposed to command) plugins are not yet 
+  implemented (these are plugins can register to receive
+  specific backup/restore events).
+  See section 3.1 of the manual for more details.
