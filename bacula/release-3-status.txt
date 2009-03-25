@@ -1,5 +1,8 @@
                    Release 3.0 Status
 
+Target:
+  Release before 15 April
+
 New features implemented:
 - Accurate Backup
 - Copy Jobs
@@ -59,7 +62,8 @@ New features implemented:
 - TLS Authenticate
 - Console (in RunScript)
 
-Project Items Completed for version 3.0.0:
+New features from Project Items Completed for version 3.0.0
+    also listed above:
 Item  1:  Accurate restoration of renamed/deleted files
 Item  3:  Merge multiple backups (Synthetic Backup or Consolidation)
 Item  4:  Implement Catalog directive for Pool resource in Director
@@ -73,7 +77,7 @@ Item 27:  make changing "spooldata=yes|no" possible for
 Item 28:  Implement an option to modify the last written date for volumes
 Item  n:  Split documentation into several books
 
-New features to be documented:
+New features needing documentation:
 - Update src/plugins/README
 - command separator in console (!$%&'()*+,-/:;<>?[]^`{|}~)
 - examples/database/dbcheck.sql
@@ -90,19 +94,23 @@ New features to be documented:
 - Added FD bVarAccurate and bVarFileSeen variables
 - Added plugin entrypoint checkFile
 
-
 Code to be completed before 3.0.0 is released:
-2. Fix Exchange plugin bugs 1234,1235,1236,1237
+1. Fix Exchange plugin bugs 1234,1235,1236,1237
    *1234 fixed.
-4. Finish documentation (some noted above)
-6. Make plugins work with Accurate -- needs two new API calls
+2. Finish documentation (some noted above)
+3. Make plugins work with Accurate -- needs two new API calls
    - mark file not deleted
    - is file deleted (at end of job)
    - Pass accurate flag to Plugin
-7. Proper installation of bat files
-8. Turn off plugin options code until fully implemented.
-9. Review whether or not plugins co-exist with encryption,
+   * code implemented not yet intgrated into Exchange plugin
+4. Proper installation of bat files (see below)
+5. Turn off plugin options code until fully implemented.
+5. Review whether or not plugins co-exist with encryption,
    compression, ...
+7. Plugin checks
+   - check plugin entry point definitions
+   - check plugin license, author, ...
+
 
 Bat help files:
 /usr/share/doc/bat/help (default)
