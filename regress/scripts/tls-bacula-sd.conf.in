@@ -11,7 +11,7 @@
 #
 
 Storage {                             # definition of myself
-  Name = @hostname@-sd
+  Name = localhost-sd
   SDPort = @sdport@                  # Director's port      
   WorkingDirectory = "@working_dir@"
   Pid Directory = "@piddir@"
@@ -26,7 +26,7 @@ Storage {                             # definition of myself
 # List Directors who are permitted to contact Storage daemon
 #
 Director {
-  Name = @hostname@-dir
+  Name = localhost-dir
   Password = "ccV3lVTsQRsdIUGyab0N4sMDavui2hOBkmpBU0aQKOr9"
   TLS Require = yes
   TLS Certificate = "@scriptdir@/tls-cert.pem"
@@ -111,5 +111,5 @@ Device {
 #
 Messages {
   Name = Standard
-  director = @hostname@-dir = all, !terminate
+  director = localhost-dir = all, !terminate
 }

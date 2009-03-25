@@ -13,7 +13,7 @@
 #
 
 Director {                            # define myself
-  Name = @hostname@-dir
+  Name = localhost-dir
   DIRPort = @dirport@                # where we listen for UA connections
   QueryFile = "@scriptdir@/query.sql"
   WorkingDirectory = "@working_dir@"
@@ -30,7 +30,7 @@ Director {                            # define myself
 Job {
   Name = "NightlySave"
   Type = Backup
-  Client=@hostname@-fd 
+  Client=localhost-fd 
   FileSet="Full Set"
   Storage = File
   Messages = Standard
@@ -43,7 +43,7 @@ Job {
 Job {
   Name = "MonsterSave"
   Type = Backup
-  Client=@hostname@-fd 
+  Client=localhost-fd 
   FileSet="Full Set"
   Storage = File1
   Messages = Standard
@@ -56,7 +56,7 @@ Job {
   Name = "VerifyVolume"
   Type = Verify
   Level = VolumeToCatalog
-  Client=@hostname@-fd 
+  Client=localhost-fd 
   FileSet="Full Set"
   Storage = File
   Messages = Standard
@@ -68,7 +68,7 @@ Job {
 Job {
   Name = "SparseTest"
   Type = Backup
-  Client=@hostname@-fd 
+  Client=localhost-fd 
   FileSet="SparseSet"
   Storage = File
   Messages = Standard
@@ -79,7 +79,7 @@ Job {
 Job {
   Name = "CompressedTest"
   Type = Backup
-  Client=@hostname@-fd 
+  Client=localhost-fd 
   FileSet="CompressedSet"
   Storage = File
   Messages = Standard
@@ -91,7 +91,7 @@ Job {
 Job {
   Name = "SparseCompressedTest"
   Type = Backup
-  Client=@hostname@-fd 
+  Client=localhost-fd 
   FileSet="SparseCompressedSet"
   Storage = File
   Messages = Standard
@@ -102,7 +102,7 @@ Job {
 Job {
   Name = "FIFOTest"
   Type = Backup
-  Client=@hostname@-fd 
+  Client=localhost-fd 
   FileSet="FIFOSet"
   Storage = File
   Messages = Standard
@@ -117,7 +117,7 @@ Job {
 Job {
   Name = "BackupCatalog"
   Type = Backup
-  Client=@hostname@-fd 
+  Client=localhost-fd 
   FileSet="Catalog"
 #  Schedule = "WeeklyCycleAfterBackup"
   Storage = File
@@ -142,7 +142,7 @@ JobDefs {
 Job {
   JobDefs = "BackupJob"
   Name = "bug621-job-1"
-  Client = @hostname@-fd
+  Client = localhost-fd
   FileSet="Full Set"
   ClientRunBeforeJob = "/bin/sleep 60"
 }
@@ -150,7 +150,7 @@ Job {
 Job {
   JobDefs = "BackupJob"
   Name = "bug621-job-2"
-  Client = @hostname@-fd
+  Client = localhost-fd
   FileSet = "Full Set"
   Max Run Time = 30
   Priority = 15
@@ -161,7 +161,7 @@ Job {
 Job {
   Name = "RestoreFiles"
   Type = Restore
-  Client=@hostname@-fd 
+  Client=localhost-fd 
   FileSet="Full Set"
   Storage = File
   Messages = Standard
@@ -256,8 +256,8 @@ FileSet {
 
 # Client (File Services) to backup
 Client {
-  Name = @hostname@-fd
-  Address = @hostname@
+  Name = localhost-fd
+  Address = localhost
   FDPort = @fdport@
   Catalog = MyCatalog
   Password = "xevrjURYoCHhn26RaJoWbeWXEY/a3VqGKp/37tgWiuHc"          # password for FileDaemon
@@ -274,7 +274,7 @@ Client {
 # Definiton of file storage device
 Storage {
   Name = File
-  Address = @hostname@                # N.B. Use a fully qualified name here
+  Address = localhost                # N.B. Use a fully qualified name here
   SDPort = @sdport@
   Password = "ccV3lVTsQRsdIUGyab0N4sMDavui2hOBkmpBU0aQKOr9"
   Device = FileStorage
@@ -288,7 +288,7 @@ Storage {
 
 Storage {
   Name = File1
-  Address = @hostname@                # N.B. Use a fully qualified name here
+  Address = localhost                # N.B. Use a fully qualified name here
   SDPort = @sdport@
   Password = "ccV3lVTsQRsdIUGyab0N4sMDavui2hOBkmpBU0aQKOr9"
   Device = FileStorage1
@@ -304,7 +304,7 @@ Storage {
 # Definition of DLT tape storage device
 #Storage {
 #  Name = DLTDrive
-#  Address = @hostname@                # N.B. Use a fully qualified name here
+#  Address = localhost                # N.B. Use a fully qualified name here
 #  SDPort = @sdport@
 #  Password = "ccV3lVTsQRsdIUGyab0N4sMDavui2hOBkmpBU0aQKOr9"          # password for Storage daemon
 #  Device = "HP DLT 80"                # must be same as Device in Storage daemon
@@ -314,7 +314,7 @@ Storage {
 # Definition of DDS tape storage device
 #Storage {
 #  Name = SDT-10000
-#  Address = @hostname@                # N.B. Use a fully qualified name here
+#  Address = localhost                # N.B. Use a fully qualified name here
 #  SDPort = @sdport@
 #  Password = "ccV3lVTsQRsdIUGyab0N4sMDavui2hOBkmpBU0aQKOr9"          # password for Storage daemon
 #  Device = SDT-10000                  # must be same as Device in Storage daemon
@@ -324,7 +324,7 @@ Storage {
 # Definition of 8mm tape storage device
 #Storage {
 #  Name = "8mmDrive"
-#  Address = @hostname@                # N.B. Use a fully qualified name here
+#  Address = localhost                # N.B. Use a fully qualified name here
 #  SDPort = @sdport@
 #  Password = "ccV3lVTsQRsdIUGyab0N4sMDavui2hOBkmpBU0aQKOr9"
 #  Device = "Exabyte 8mm"
