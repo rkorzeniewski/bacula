@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2008 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2009 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -42,6 +42,19 @@ typedef struct PrivateCurFile {
    utime_t mtime;
    bool seen;
 } CurFile;
+
+bool accurate_mark_file_as_seen(JCR *jcr, char *fname)
+{
+   if (!jcr->accurate || !jcr->file_list) {
+      return false;
+   }
+   /* TODO: just use elt->seen = 1 */
+   CurFile *temp = (CurFile *)jcr->file_list->lookup(fname);
+   if (temp) {
+      temp->seen = 1;              /* records are in memory */
+   }
+   return true;
+}
 
 static bool accurate_mark_file_as_seen(JCR *jcr, CurFile *elt)
 {
@@ -98,14 +111,15 @@ bool accurate_send_deleted_list(JCR *jcr)
    ff_pkt->type = FT_DELETED;
 
    foreach_htable(elt, jcr->file_list) {
-      if (!elt->seen) { /* already seen */
-         Dmsg2(dbglvl, "deleted fname=%s seen=%i\n", elt->fname, elt->seen);
-         ff_pkt->fname = elt->fname;
-         ff_pkt->statp.st_mtime = elt->mtime;
-         ff_pkt->statp.st_ctime = elt->ctime;
-         encode_and_send_attributes(jcr, ff_pkt, stream);
+      if (elt->seen || plugin_check_file(jcr, elt->fname)) {
+         continue;
       }
-//      free(elt->fname);
+      Dmsg2(dbglvl, "deleted fname=%s seen=%i\n", elt->fname, elt->seen);
+      ff_pkt->fname = elt->fname;
+      ff_pkt->statp.st_mtime = elt->mtime;
+      ff_pkt->statp.st_ctime = elt->ctime;
+      encode_and_send_attributes(jcr, ff_pkt, stream);
+//    free(elt->fname);
    }
 
    term_find_files(ff_pkt);

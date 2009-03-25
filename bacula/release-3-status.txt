@@ -1,0 +1,130 @@
+                   Release 3.0 Status
+
+New features implemented:
+- Accurate Backup
+- Copy Jobs
+- ACL code overhaul
+- Solaris ZFS/NFSv4 ACL support
+- Extended Attribute support
+- Shared Objects
+- Virtual Backup
+- Catalog Format Enhancements
+  - Support for more than 4 Billion file entries
+  - New stats tables
+- Duplicate Job Control
+- TLS Authentication
+- bextract non-portable Win32 data
+- State File updated at Job Termination
+- Bacula Plugins
+  - FD bpipe plugin
+  - FD Exchange plugin
+- libdbi DB driver
+- Console Enhancements
+  - status slots
+  - list joblog
+  - command separator
+- Bootstrap regex
+- Restore seek optimization
+- Virtual Tape Emulation
+- Bat Enhancements
+- RunScript Enhancements
+- Status enhancements
+- FD connect timeout default to 3 minutes
+- ftruncate implemented for NFS Volumes
+- FD Version compatibily flag
+- Statistics Enhancements
+- Faster Attribute despooling
+- Document split into 6 manuals
+- GPLv2 license now compatible with OpenSSL
+- Win64 File daemon
+- Postmortum dump improvements in SD
+- Deadlock mutex detection in SD
+ New Directives:
+- Max Full Interval
+- Max Diff Interval
+- Honor No Dump Flag
+- Exclude Dirs Containing
+- Recycle Pool
+- Max Run Sched Time
+- Max Wait Time
+- Full/Diff/Incr Max Run Time
+- Scratch Pool
+- Max Console Connections
+- Spool Size (in Job resource)
+- Allow Mixed Priorities
+- Allow Duplicate Jobs
+- Allow Higher Duplicates
+- Cancel Queued Duplicates
+- Cancel Running Duplicates
+- TLS Authenticate
+- Console (in RunScript)
+
+Project Items Completed for version 3.0.0:
+Item  1:  Accurate restoration of renamed/deleted files
+Item  3:  Merge multiple backups (Synthetic Backup or Consolidation)
+Item  4:  Implement Catalog directive for Pool resource in Director
+Item  5:  Add an item to the restore option where you can select a Pool
+Item  8:  Implement Copy pools
+Item 12:  Add Plug-ins to the FileSet Include statements.
+Item 13:  Restore only file attributes (permissions, ACL, owner, group...)
+Item 18:  Better control over Job execution
+Item 26:  Store and restore extended attributes, especially selinux file contexts
+Item 27:  make changing "spooldata=yes|no" possible for
+Item 28:  Implement an option to modify the last written date for volumes
+Item  n:  Split documentation into several books
+
+New features to be documented:
+- Update src/plugins/README
+- command separator in console (!$%&'()*+,-/:;<>?[]^`{|}~)
+- examples/database/dbcheck.sql
+- dbport in dbcheck
+- filepattern (restore with regex in bsr)
+- Allow Mixed Priorities  Kjetil Torgrim Homme <kjetilho@linpro.no> 30Jun08
+- Eliminated license problems with OpenSSL.
+- The exchange plugin truncates the exchange logs as soon as it has
+  sent the data to the sd.  If the sd is spooling and something
+  goes wrong and the data doesn't make it to the backup medium then
+  the logs are lost, which could be a problem under some
+  restore scenarios.
+- Regex filtered bsrs Kjetil Torgrim Homme <kjetilho@linpro.no> 15Aug08
+- Added FD bVarAccurate and bVarFileSeen variables
+- Added plugin entrypoint checkFile
+
+
+Code to be completed before 3.0.0 is released:
+2. Fix Exchange plugin bugs 1234,1235,1236,1237
+   *1234 fixed.
+4. Finish documentation (some noted above)
+6. Make plugins work with Accurate -- needs two new API calls
+   - mark file not deleted
+   - is file deleted (at end of job)
+   - Pass accurate flag to Plugin
+7. Proper installation of bat files
+8. Turn off plugin options code until fully implemented.
+9. Review whether or not plugins co-exist with encryption,
+   compression, ...
+
+Bat help files:
+/usr/share/doc/bat/help (default)
+Typical /usr/share/doc/xxx
+  changelog.Debian.gz
+  changelog.gz
+  CHANGES.txt.gz
+  copyright
+  CREDITS.txt
+  examples
+  FAQ.txt
+  help
+  README.Debian
+  README.txt
+
+Features that will not be completed:
+- Plugin Options
+- Dir plugin implementation somewhat minimal
+- No example Dir plugin
+- SD plugin implementation somewhat minimal
+- No example SD plugin
+- Install manual should be split into Install a
+  separate Configuration manual.
+- Not all new features are tested or tested well
+  enough

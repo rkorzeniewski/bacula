@@ -1,53 +1,18 @@
               Technical notes on version 2.5
 
           
-Projecs features implemented:
-Items Completed for version 3.0.0:
-Item  1:  Accurate restoration of renamed/deleted files
-Item  3:  Merge multiple backups (Synthetic Backup or Consolidation)
-Item  4:  Implement Catalog directive for Pool resource in Director
-Item  5:  Add an item to the restore option where you can select a Pool
-Item  8:  Implement Copy pools
-Item 12:  Add Plug-ins to the FileSet Include statements.
-Item 13:  Restore only file attributes (permissions, ACL, owner, group...)
-Item 18:  Better control over Job execution
-Item 26:  Store and restore extended attributes, especially selinux file contexts
-Item 27:  make changing "spooldata=yes|no" possible for
-Item 28:  Implement an option to modify the last written date for volumes
-Item  n:  Split documentation into several books
-
-New techical changes:
-libtool
-plugins
-bpipe fd plugin
-Exchange plugin
-
-
-New features to be documented:
-- Update src/plugins/README
-- command separator in console (!$%&'()*+,-/:;<>?[]^`{|}~)
-- examples/database/dbcheck.sql
-- enhancement to wait command: wait mount  ...
-- dbport in dbcheck
-- Allow Mixed Priorities  Kjetil Torgrim Homme <kjetilho@linpro.no> 30Jun08
-- Eliminated license problems with OpenSSL.
-- The exchange plugin truncates the exchange logs as soon as it has
-  sent the data to the sd.  If the sd is spooling and something
-  goes wrong and the data doesn't make it to the backup medium then
-  the logs are lost, which could be a problem under some
-  restore scenarios.
-- Regex filtered bsrs Kjetil Torgrim Homme <kjetilho@linpro.no> 15Aug08
-
-Code to be completed before 3.0.0 is released:
-*1. Fix bug #1221 problem with NODUMP flag
-2. Fix Exchange plugin bugs 1234,1235,1236,1237
-   *1234 fixed.
-3. Resolve bug #1227
-4. Finish documentation (some noted above)
-*5. Diff 2.4.4 to current SVN and check differences
-
-
 General:
+25Mar09
+kes  Added the following to provide solutions to the plugin/Accurate
+     problem -- bug #1236 Cannot restore incremental backups with 
+     the Exchange plugin.
+     - New Bacula read-only variable bVarAccurate -- returns accurate flag
+     - New Bacula write-only variable bVarFileSeen -- marks a file as seen
+     - New plugin entry point -- checkFile that is called at the end
+       of an Accurate job and allows the plugin to mark a file as seen.
+24Mar09
+kes  Temporarly turn off comm timers because it causes bat to seg fault.
+     Must research making SIGUSR2 work with bat and Qt.
 24Mar09
 ebl  Use MTIMEONLY fileset option in accurate check
 23Mar09

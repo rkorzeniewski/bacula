@@ -40,7 +40,7 @@
  *
  *   Written by Marco van Wieringen, November MMVIII
  *
- *   Version $Id: xattr.c 7879 2008-10-23 10:12:36Z kerns $
+ *   Version $Id$
  */
 
 #include "bacula.h"
