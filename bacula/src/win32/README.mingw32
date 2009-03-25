@@ -224,7 +224,7 @@ simply do the following:
 
    cd .../bacula/src/win32/lib
    make                  (to build the .o files, note the link will fail)
-   ./make_def >bacula.def
+   ./make_def >bacula32.def           # or >bacula64.def
 
 This should rebuild the bacula.def file, but it uses relative paths
 and assumes you have the directory structure noted above. If you 
@@ -232,7 +232,7 @@ are using something different, you can set the NM variable at the
 top of the make_def file to use an absolute path to the correct
 directory.
 
-===== manual changing of bacula.def no longer necessary =====
+===== manual changing of bacula32.def or bacula64.def no longer necessary =====
 If you want to do it manually, please see below:
 Exporting a function requires a bit more work.  You must determine the
 C++ mangled name of the new function.
@@ -249,8 +249,8 @@ which contains the new function.  Replace <symbol> with the name of
 the new function.  Remove the leading underscore and place the result
 in the file
 
-   .../bacula/src/win32/lib/bacula.def
-=== end manual changing of bacula.def ==========
+   .../bacula/src/win32/lib/bacula32.def
+=== end manual changing of bacula32.def or bacula64.def ==========
 
 If you add a new file, you will need to specify its name in
 

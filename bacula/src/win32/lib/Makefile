@@ -126,7 +126,7 @@ clean:
 	@echo "Cleaning `pwd`"
 	$(call clean_obj,$(ALL_OBJS))
 	$(call clean_exe,$(BINDIR)/bacula.dll)
-	$(ECHO_CMD)rm -f $(OBJDIR)/bacula.a $(LIBDIR)/libbacula.a
+	$(ECHO_CMD)rm -f $(OBJDIR)/bacula.a $(LIBDIR)/libbacula.a bacula.def
 
 #
 # Rules for generating from ../lib
@@ -147,8 +147,8 @@ $(BINDIR)/bacula.dll: $(DLL_OBJS) bacula.def
 	$(call checkdir,$@)
 	$(ECHO_CMD)$(CXX) $(LDFLAGS) -mdll -mwindows -Wl,--out-implib,$(OBJDIR)/bacula.a $^ $(LIBS_DLL) -o $@
 
-bacula.def: bacula32.def
-	$(ECHO_CMD)cp bacula32.def bacula.def
+bacula.def: bacula$(WIN_VERSION).def
+	$(ECHO_CMD)cp bacula$(WIN_VERSION).def bacula.def
 
 include ../Makefile.rules
 
