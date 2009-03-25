@@ -241,7 +241,7 @@ INSERT INTO brestore_pathvisibility (PathId, JobId) (
     }
 }
 
-# compute the parent directorie
+# compute the parent directory
 sub parent_dir
 {
     my ($path) = @_;
