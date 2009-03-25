@@ -212,7 +212,9 @@ static long tz_offset(time_t lnow, struct tm &tm)
 #if defined(HAVE_MINGW)
 __MINGW_IMPORT long     _dstbias;
 #endif
-
+#if defined(MINGW64)
+# define _tzset tzset
+#endif
    /* Win32 code */
    long offset;
    _tzset();
