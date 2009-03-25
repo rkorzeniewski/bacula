@@ -1219,6 +1219,8 @@ static bool scan_command_line_arguments(UAContext *ua, run_ctx &rc)
                kw_ok = true;
                break;
             case 25: /* pluginoptions */
+               ua->send_msg(_("Plugin Options not yet implemented.\n"));
+               return false;
                if (rc.plugin_options) {
                   ua->send_msg(_("Plugin Options specified twice.\n"));
                   return false;
