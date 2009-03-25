@@ -147,6 +147,9 @@ $(BINDIR)/bacula.dll: $(DLL_OBJS) bacula.def
 	$(call checkdir,$@)
 	$(ECHO_CMD)$(CXX) $(LDFLAGS) -mdll -mwindows -Wl,--out-implib,$(OBJDIR)/bacula.a $^ $(LIBS_DLL) -o $@
 
+bacula.def: bacula32.def
+	$(ECHO_CMD)cp bacula32.def bacula.def
+
 include ../Makefile.rules
 
 $(OBJDIR)/%.o: %.c
