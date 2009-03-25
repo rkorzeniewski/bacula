@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2008 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2009 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -53,6 +53,7 @@ bool parse_acl_stream(JCR *jcr, int stream);
 /* from accurate.c */
 bool accurate_send_deleted_list(JCR *jcr);
 bool accurate_check_file(JCR *jcr, FF_PKT *ff_pkt);
+bool accurate_mark_file_as_seen(JCR *jcr, char *fname);
 
 /* from backup.c */
 bool encode_and_send_attributes(JCR *jcr, FF_PKT *ff_pkt, int &data_stream);

@@ -150,6 +150,45 @@ void generate_plugin_event(JCR *jcr, bEventType eventType, void *value)
    return;
 }
 
+/*
+ * Check if file was seen for accurate
+ */
+bool plugin_check_file(JCR *jcr, char *fname)
+{
+   Plugin *plugin;
+   bool ok = false;
+   int i = 0;
+
+   if (!plugin_list || !jcr || !jcr->plugin_ctx_list) {
+      return false;                      /* Return if no plugins loaded */
+   }
+
+   bpContext *plugin_ctx_list = (bpContext *)jcr->plugin_ctx_list;
+
+   Dmsg2(dbglvl, "plugin_ctx=%p JobId=%d\n", jcr->plugin_ctx_list, jcr->JobId);
+
+   /* Pass event to every plugin */
+   foreach_alist(plugin, plugin_list) {
+      jcr->plugin_ctx = &plugin_ctx_list[i++];
+      jcr->plugin = plugin;
+      if (is_plugin_disabled(jcr)) {
+         continue;
+      }
+      if (plug_func(plugin)->checkFile == NULL) {
+         continue;
+      }
+      ok = plug_func(plugin)->checkFile(jcr->plugin_ctx, fname);
+      if (ok) {
+         break;
+      }
+   }
+
+   jcr->plugin = NULL;
+   jcr->plugin_ctx = NULL;
+   return ok;
+}
+
+
 /*   
  * Sequence of calls for a backup:
  * 1. plugin_save() here is called with ff_pkt
@@ -732,11 +771,11 @@ static boffset_t my_plugin_blseek(BFILE *bfd, boffset_t offset, int whence)
 static bRC baculaGetValue(bpContext *ctx, bVariable var, void *value)
 {
    JCR *jcr;
-   jcr = ((bacula_ctx *)ctx->bContext)->jcr;
-// Dmsg1(dbglvl, "bacula: baculaGetValue var=%d\n", var);
    if (!value || !ctx) {
       return bRC_Error;
    }
+   jcr = ((bacula_ctx *)ctx->bContext)->jcr;
+// Dmsg1(dbglvl, "bacula: baculaGetValue var=%d\n", var);
    jcr = ((bacula_ctx *)ctx->bContext)->jcr;
    if (!jcr) {
       return bRC_Error;
@@ -752,22 +791,61 @@ static bRC baculaGetValue(bpContext *ctx, bVariable var, void *value)
       Dmsg1(dbglvl, "Bacula: return my_name=%s\n", my_name);
       break;
    case bVarLevel:
-   case bVarType:
-   case bVarClient:
-   case bVarJobName:
-   case bVarJobStatus:
-   case bVarSinceTime:
+      *((int *)value) = jcr->get_JobLevel();
+      Dmsg1(dbglvl, "Bacula: return bVarJobLevel=%d\n", jcr->get_JobLevel());
       break;
+   case bVarType:
+      *((int *)value) = jcr->get_JobType();
+      Dmsg1(dbglvl, "Bacula: return bVarJobType=%d\n", jcr->get_JobType());
+      break;
+   case bVarClient:
+      *((char **)value) = jcr->client_name;
+      Dmsg1(dbglvl, "Bacula: return Client_name=%s\n", jcr->client_name);
+      break;
+   case bVarJobName:
+      *((char **)value) = jcr->Job;
+      Dmsg1(dbglvl, "Bacula: return Job name=%s\n", jcr->Job);
+      break;
+   case bVarJobStatus:
+      *((int *)value) = jcr->JobStatus;
+      Dmsg1(dbglvl, "Bacula: return bVarJobStatus=%d\n", jcr->JobStatus);
+      break;
+   case bVarSinceTime:
+      *((int *)value) = (int)jcr->mtime;
+      Dmsg1(dbglvl, "Bacula: return since=%d\n", (int)jcr->mtime);
+      break;
+   case bVarAccurate:
+      *((int *)value) = (int)jcr->accurate;
+      Dmsg1(dbglvl, "Bacula: return accurate=%d\n", (int)jcr->accurate);
+      break;
+   case bVarFileSeen:
+      break;                 /* a write only variable, ignore read request */
    }
    return bRC_OK;
 }
 
 static bRC baculaSetValue(bpContext *ctx, bVariable var, void *value)
 {
+   JCR *jcr;
    if (!value || !ctx) {
       return bRC_Error;
    }
-   Dmsg1(dbglvl, "bacula: baculaSetValue var=%d\n", var);
+   jcr = ((bacula_ctx *)ctx->bContext)->jcr;
+// Dmsg1(dbglvl, "bacula: baculaGetValue var=%d\n", var);
+   jcr = ((bacula_ctx *)ctx->bContext)->jcr;
+   if (!jcr) {
+      return bRC_Error;
+   }
+// Dmsg1(dbglvl, "Bacula: jcr=%p\n", jcr); 
+   switch (var) {
+   case bVarFileSeen:
+      if (!accurate_mark_file_as_seen(jcr, (char *)value)) {
+         return bRC_Error;
+      } 
+      break;
+   default:
+      break;
+   }
    return bRC_OK;
 }
 
