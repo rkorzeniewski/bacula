@@ -58,7 +58,7 @@ The new directory structure is:
       mingw32            |-- .../bacula/src/win32/build-win32-cross-tools
       mingw-utils        |
       source           --
-      mingw-w64/x86_64-pc-mingw32  \ Take from http://sf.net/projects/mingw-w64
+      mingw-w64/x86_64-pc-mingw32  \ Taked from http://sf.net/projects/mingw-w64
       mingw-w64/bin/               / 
 
 
