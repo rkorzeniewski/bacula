@@ -177,7 +177,11 @@ AC_HELP_STRING([--with-dbi-driver@<:@=DRIVER@:>@], [Suport for DBI driver. DRIVE
               AC_MSG_RESULT(no)
               AC_MSG_ERROR(Unable to find mysql in standard locations)
            fi
-           DB_PROG_LIB=$SQL_LIBDIR/libmysqlclient_r.a
+           if test -f $SQL_LIBDIR/libmysqlclient_r.so; then
+              DB_PROG_LIB=$SQL_LIBDIR/libmysqlclient_r.so
+           else
+              DB_PROG_LIB=$SQL_LIBDIR/libmysqlclient_r.a
+           fi
         ;;
         "postgresql")
            db_prog="postgresql"
@@ -214,7 +218,11 @@ AC_HELP_STRING([--with-dbi-driver@<:@=DRIVER@:>@], [Suport for DBI driver. DRIVE
               AC_MSG_RESULT(no)
               AC_MSG_ERROR(Unable to find psql in standard locations)
            fi
-           DB_PROG_LIB=$SQL_LIBDIR/libpq.a
+           if test -f $SQL_LIBDIR/libpq.so; then
+              DB_PROG_LIB=$SQL_LIBDIR/libpq.so
+           else
+              DB_PROG_LIB=$SQL_LIBDIR/libpq.a
+           fi
         ;;
         "sqlite")
            db_prog="sqlite"
@@ -243,7 +251,11 @@ AC_HELP_STRING([--with-dbi-driver@<:@=DRIVER@:>@], [Suport for DBI driver. DRIVE
               AC_MSG_RESULT(no)
               AC_MSG_ERROR(Unable to find sqlite in standard locations)
            fi
-           DB_PROG_LIB=$SQL_LIBDIR/libsqlite.a
+           if test -f $SQL_LIBDIR/libsqlite.so; then
+              DB_PROG_LIB=$SQL_LIBDIR/libsqlite.so
+           else
+              DB_PROG_LIB=$SQL_LIBDIR/libsqlite.a
+           fi
         ;;
         "sqlite3")
            db_prog="sqlite3"
@@ -272,7 +284,11 @@ AC_HELP_STRING([--with-dbi-driver@<:@=DRIVER@:>@], [Suport for DBI driver. DRIVE
               AC_MSG_RESULT(no)
               AC_MSG_ERROR(Unable to find sqlite in standard locations)
            fi
-           DB_PROG_LIB=$SQL_LIBDIR/libsqlite3.a
+           if test -f $SQL_LIBDIR/libsqlite3.so; then
+              DB_PROG_LIB=$SQL_LIBDIR/libsqlite3.so
+           else
+              DB_PROG_LIB=$SQL_LIBDIR/libsqlite3.a
+           fi
         ;;                
         *)
            AC_MSG_RESULT(no)
