@@ -134,8 +134,10 @@ protected:
 private:
    void connectConsole();
    void createPages();
-   void createConnections(); 
-   void disconnectConnections(); 
+   void connectSignals(); 
+   void disconnectSignals(); 
+   void connectConsoleSignals();
+   void disconnectConsoleSignals(Console *console);
 
 private:
    Console *m_currentConsole;
