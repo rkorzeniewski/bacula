@@ -541,7 +541,7 @@ const char *sql_client =
 const char *sql_jobids_from_client =
    "SELECT DISTINCT Job.JobId,Job.StartTime FROM Job,Pool,Client"
    " WHERE Client.Name='%s' AND Pool.Name='%s' AND Job.PoolId=Pool.PoolId"
-   " AND Job.ClientId=Client.ClientId AND Job.Type='B'"
+   " AND Job.ClientId=Client.ClientId AND Job.Type IN ('B','C')"
    " AND Job.JobStatus IN ('T','W')"
    " ORDER by Job.StartTime";
 
@@ -555,7 +555,7 @@ const char *sql_vol =
 const char *sql_jobids_from_vol =
    "SELECT DISTINCT Job.JobId,Job.StartTime FROM Media,JobMedia,Job"
    " WHERE Media.VolumeName='%s' AND Media.MediaId=JobMedia.MediaId"
-   " AND JobMedia.JobId=Job.JobId AND Job.Type='B'"
+   " AND JobMedia.JobId=Job.JobId AND Job.Type IN ('B','C')"
    " AND Job.JobStatus IN ('T','W') AND Media.Enabled=1"
    " ORDER by Job.StartTime";
 
@@ -577,7 +577,7 @@ const char *sql_oldest_vol =
 const char *sql_jobids_from_mediaid =
    "SELECT DISTINCT Job.JobId,Job.StartTime FROM JobMedia,Job"
    " WHERE JobMedia.JobId=Job.JobId AND JobMedia.MediaId IN (%s)"
-   " AND Job.Type='B' AND Job.JobStatus IN ('T','W')"
+   " AND Job.Type IN ('B','C') AND Job.JobStatus IN ('T','W')"
    " ORDER by Job.StartTime";
 
 /* Get the number of bytes in the pool */
@@ -586,7 +586,7 @@ const char *sql_pool_bytes =
    " (SELECT DISTINCT Job.JobId from Pool,Job,Media,JobMedia WHERE"
    " Pool.Name='%s' AND Media.PoolId=Pool.PoolId AND"
    " VolStatus in ('Full','Used','Error','Append') AND Media.Enabled=1 AND"
-   " Job.Type='B' AND Job.JobStatus IN ('T','W') AND"
+   " Job.Type IN ('B','C') AND Job.JobStatus IN ('T','W') AND"
    " JobMedia.JobId=Job.JobId AND Job.PoolId=Media.PoolId)";
 
 /* Get the number of bytes in the Jobs */
@@ -604,7 +604,7 @@ const char *sql_pool_time =
    "SELECT DISTINCT Job.JobId FROM Pool,Job,Media,JobMedia WHERE"
    " Pool.Name='%s' AND Media.PoolId=Pool.PoolId AND"
    " VolStatus IN ('Full','Used','Error') AND Media.Enabled=1 AND"
-   " Job.Type='B' AND Job.JobStatus IN ('T','W') AND"
+   " Job.Type IN ('B','C') AND Job.JobStatus IN ('T','W') AND"
    " JobMedia.JobId=Job.JobId AND Job.PoolId=Media.PoolId"
    " AND Job.RealEndTime<='%s'";
 
@@ -1290,6 +1290,7 @@ void migration_cleanup(JCR *jcr, int TermCode)
    Jmsg(jcr, msg_type, 0, _("%s %s %s (%s): %s\n"
 "  Build OS:               %s %s %s\n"
 "  Prev Backup JobId:      %s\n"
+"  Prev Backup Job:        %s\n"
 "  New Backup JobId:       %s\n"
 "  Current JobId:          %s\n"
 "  Current Job:            %s\n"
@@ -1318,6 +1319,7 @@ void migration_cleanup(JCR *jcr, int TermCode)
         BACULA, my_name, VERSION, LSMDATE, edt,
         HOST_OS, DISTNAME, DISTVER,
         edit_uint64(jcr->previous_jr.JobId, ec6),
+        jcr->previous_jr.Job,
         mig_jcr ? edit_uint64(mig_jcr->jr.JobId, ec7) : "0",
         edit_uint64(jcr->jr.JobId, ec8),
         jcr->jr.Job,
