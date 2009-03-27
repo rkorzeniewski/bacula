@@ -288,6 +288,7 @@ void MainWin::waitEnter()
 {
    app->setOverrideCursor(QCursor(Qt::WaitCursor));
    disconnectSignals();
+   m_waitTreeItem = treeWidget->currentItem();
 }
 
 /*
@@ -296,6 +297,8 @@ void MainWin::waitEnter()
 void MainWin::waitExit()
 {
    app->restoreOverrideCursor();
+   if (m_waitTreeItem != treeWidget->currentItem())
+      treeWidget->setCurrentItem(m_waitTreeItem);
    connectSignals();
 }
 
