@@ -81,7 +81,7 @@ MainWin::MainWin(QWidget *parent) : QMainWindow(parent)
 
    resetFocus();
 
-   createConnections();
+   connectSignals();
 
 #ifndef HAVE_QWT
    actionJobPlot->setEnabled(false);
@@ -97,6 +97,7 @@ MainWin::MainWin(QWidget *parent) : QMainWindow(parent)
    }
    m_currentConsole = (Console*)getFromHash(m_firstItem);
    m_currentConsole->setCurrent();
+   connectConsoleSignals();
    if (m_miscDebug) {
       QString directoryResourceName;
       m_currentConsole->getDirResName(directoryResourceName);
@@ -230,7 +231,7 @@ void MainWin::keyPressEvent(QKeyEvent *event)
    lineEdit->setText(m_cmd_history[m_cmd_last]);
 }
 
-void MainWin::createConnections()
+void MainWin::connectSignals()
 {
    /* Connect signals to slots */
    connect(lineEdit, SIGNAL(returnPressed()), this, SLOT(input_line()));
@@ -255,7 +256,7 @@ void MainWin::createConnections()
    connect(actionPreferences, SIGNAL(triggered()), this,  SLOT(setPreferences()));
 }
 
-void MainWin::disconnectConnections()
+void MainWin::disconnectSignals()
 {
    /* Connect signals to slots */
    disconnect(lineEdit, SIGNAL(returnPressed()), this, SLOT(input_line()));
@@ -286,7 +287,7 @@ void MainWin::disconnectConnections()
 void MainWin::waitEnter()
 {
    app->setOverrideCursor(QCursor(Qt::WaitCursor));
-   disconnectConnections();
+   disconnectSignals();
 }
 
 /*
@@ -295,7 +296,23 @@ void MainWin::waitEnter()
 void MainWin::waitExit()
 {
    app->restoreOverrideCursor();
-   createConnections();
+   connectSignals();
+}
+
+void MainWin::connectConsoleSignals()
+{
+   connect(actionConnect, SIGNAL(triggered()), m_currentConsole, SLOT(connect_dir()));
+   connect(actionSelectFont, SIGNAL(triggered()), m_currentConsole, SLOT(set_font()));
+   connect(actionStatusDir, SIGNAL(triggered()), m_currentConsole, SLOT(status_dir()));
+   connect(actionMessages, SIGNAL(triggered()), m_currentConsole, SLOT(messages()));
+}
+
+void MainWin::disconnectConsoleSignals(Console *console)
+{
+   disconnect(actionConnect, SIGNAL(triggered()), console, SLOT(connect_dir()));
+   disconnect(actionStatusDir, SIGNAL(triggered()), console, SLOT(status_dir()));
+   disconnect(actionMessages, SIGNAL(triggered()), console, SLOT(messages()));
+   disconnect(actionSelectFont, SIGNAL(triggered()), console, SLOT(set_font()));
 }
 
 /* 
@@ -415,10 +432,7 @@ void MainWin::treeItemChanged(QTreeWidgetItem *currentitem, QTreeWidgetItem *pre
       if ((previousPage) || (previousConsole)) {
          if (nextConsole != previousConsole) {
             /* remove connections to the current console */
-            disconnect(actionConnect, SIGNAL(triggered()), previousConsole, SLOT(connect_dir()));
-            disconnect(actionStatusDir, SIGNAL(triggered()), previousConsole, SLOT(status_dir()));
-            disconnect(actionMessages, SIGNAL(triggered()), previousConsole, SLOT(messages()));
-            disconnect(actionSelectFont, SIGNAL(triggered()), previousConsole, SLOT(set_font()));
+            disconnectConsoleSignals(previousConsole);
             QTreeWidgetItem *dirItem = previousConsole->directorTreeItem();
             QBrush greyBrush(Qt::lightGray);
             dirItem->setBackground(0, greyBrush);
@@ -432,10 +446,7 @@ void MainWin::treeItemChanged(QTreeWidgetItem *currentitem, QTreeWidgetItem *pre
       if (nextConsole != previousConsole) {
          /* make connections to the current console */
          m_currentConsole = nextConsole;
-         connect(actionConnect, SIGNAL(triggered()), m_currentConsole, SLOT(connect_dir()));
-         connect(actionSelectFont, SIGNAL(triggered()), m_currentConsole, SLOT(set_font()));
-         connect(actionStatusDir, SIGNAL(triggered()), m_currentConsole, SLOT(status_dir()));
-         connect(actionMessages, SIGNAL(triggered()), m_currentConsole, SLOT(messages()));
+         connectConsoleSignals();
          setMessageIcon();
          /* Set director's tree widget background to magenta for ease of identification */
          QTreeWidgetItem *dirItem = m_currentConsole->directorTreeItem();
