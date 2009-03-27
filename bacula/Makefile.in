@@ -189,6 +189,8 @@ Makefiles:
 	 chmod 755 create_@DB_TYPE@_database   update_@DB_TYPE@_tables	make_@DB_TYPE@_tables; \
 	 chmod 755 grant_@DB_TYPE@_privileges  drop_@DB_TYPE@_tables	drop_@DB_TYPE@_database; \
 	 chmod 755 make_catalog_backup delete_catalog_backup)
+	(cd src/qt-console; \
+	 chmod 755 install_conf_file build-depkgs-qt-console)
 
 clean:
 	@for I in ${all_subdirs} ; \

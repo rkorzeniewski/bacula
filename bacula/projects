@@ -1054,93 +1054,133 @@ Why: Because of a couple of reasons.  First, it's very hard to implement a
      especially where there is little available.
 
 Item n: Restore from volumes on multiple storage daemons
-
 Origin: Graham Keeling (graham@equiinet.com)
-
-Date: 12 March 2009
-
+Date:   12 March 2009
 Status: Proposing
 
-What: The ability to restore from volumes held by multiple storage daemons
-would be very useful.
+What:   The ability to restore from volumes held by multiple storage daemons
+        would be very useful.
 
-Why: It is useful to be able to backup to any number of different storage
-daemons. For example, your first storage daemon may run out of space, so you
-switch to your second and carry on. Bacula will currently let you do this.
-However, once you come to restore, bacula cannot cope when volumes on different
-storage daemons are required.
+Why:    It is useful to be able to backup to any number of different storage
+        daemons. For example, your first storage daemon may run out of space, so you
+        switch to your second and carry on. Bacula will currently let you do this.
+        However, once you come to restore, bacula cannot cope when volumes on different
+        storage daemons are required.
 
-Notes: The director knows that more than one storage daemon is needed, as
-bconsole outputs something like the following table.
+        Notes: The director knows that more than one storage daemon is needed, as
+        bconsole outputs something like the following table.
 
-The job will require the following
-   Volume(s)                 Storage(s)                SD Device(s)
-===========================================================================
-   
-   backup-0001               Disk 1                    Disk 1.0                 
-   backup-0002               Disk 2                    Disk 2.0             
+        The job will require the following
+           Volume(s)                 Storage(s)                SD Device(s)
+        ===========================================================================
+           
+           backup-0001               Disk 1                    Disk 1.0                 
+           backup-0002               Disk 2                    Disk 2.0             
 
-However, the bootstrap file that it creates gets sent to the first storage
-daemon only, which then stalls for a long time, 'waiting for a mount request'
-for the volume that it doesn't have.
-The bootstrap file contains no knowledge of the storage daemon.
-Under the current design:
+        However, the bootstrap file that it creates gets sent to the first storage
+        daemon only, which then stalls for a long time, 'waiting for a mount request'
+        for the volume that it doesn't have.
+        The bootstrap file contains no knowledge of the storage daemon.
+        Under the current design:
 
-        The director connects to the storage daemon, and gets an sd_auth_key.
-        The director then connects to the file daemon, and gives it the
-                sd_auth_key with the 'jobcmd'.
-        (restoring of files happens)
-        The director does a 'wait_for_storage_daemon_termination()'.
+                The director connects to the storage daemon, and gets an sd_auth_key.
+                The director then connects to the file daemon, and gives it the
+                        sd_auth_key with the 'jobcmd'.
+                (restoring of files happens)
+                The director does a 'wait_for_storage_daemon_termination()'.
+                The director waits for the file daemon to indicate the end of the job.
+
+        With my idea:
+
+        The director connects to the file daemon.
+        Then, for each storage daemon in the .bsr file...  {
+                The director connects to the storage daemon, and gets an sd_auth_key.
+                The director then connects to the file daemon, and gives it the
+                        sd_auth_key with the 'storaddr' command.
+                (restoring of files happens)
+                The director does a 'wait_for_storage_daemon_termination()'.
+                The director waits for the file daemon to indicate the end of the
+                        work on this storage.
+        }
+        The director tells the file daemon that there are no more storages to contact.
         The director waits for the file daemon to indicate the end of the job.
 
-With my idea:
+        As you can see, each restore between the file daemon and storage daemon is
+        handled in the same way that it is currently handled, using the same method
+        for authentication, except that the sd_auth_key is moved from the 'jobcmd' to
+        the 'storaddr' command - where it logically belongs.
 
-The director connects to the file daemon.
-Then, for each storage daemon in the .bsr file...  {
-        The director connects to the storage daemon, and gets an sd_auth_key.
-        The director then connects to the file daemon, and gives it the
-                sd_auth_key with the 'storaddr' command.
-        (restoring of files happens)
-        The director does a 'wait_for_storage_daemon_termination()'.
-        The director waits for the file daemon to indicate the end of the
-                work on this storage.
-}
-The director tells the file daemon that there are no more storages to contact.
-The director waits for the file daemon to indicate the end of the job.
-
-As you can see, each restore between the file daemon and storage daemon is
-handled in the same way that it is currently handled, using the same method
-for authentication, except that the sd_auth_key is moved from the 'jobcmd' to
-the 'storaddr' command - where it logically belongs.
-
-Item n: 'restore' menu: enter a JobId, automatically select dependents 
-
+Item n:'restore' menu: enter a JobId, automatically select dependents 
 Origin: Graham Keeling (graham@equiinet.com)
-
-Date: 13 March 2009
+Date:   13 March 2009
 
 Status: Proposing
 
-What: Add to the bconsole 'restore' menu the ability to select a job 
-by JobId, and have bacula automatically select all the dependent jobs.
+What:   Add to the bconsole 'restore' menu the ability to select a job 
+        by JobId, and have bacula automatically select all the dependent jobs.
 
-Why: Currently, you either have to...
-a) laboriously type in a date that is greater than the date of the backup that
-you want and is less than the subsequent backup (bacula then figures out the
-dependent jobs), or
-b) manually figure out all the JobIds that you want and laboriously type them
-all in.
-It would be extremely useful (in a programmatical sense, as well as for humans)
-to be able to just give it a single JobId and let bacula do the hard work (work
-that it already knows how to do).
+        Why: Currently, you either have to...
+        a) laboriously type in a date that is greater than the date of the backup that
+        you want and is less than the subsequent backup (bacula then figures out the
+        dependent jobs), or
+        b) manually figure out all the JobIds that you want and laboriously type them
+        all in.
+        It would be extremely useful (in a programmatical sense, as well as for humans)
+        to be able to just give it a single JobId and let bacula do the hard work (work
+        that it already knows how to do).
 
-Notes (Kern): I think this should either be modified to have Bacula print
-a list of dates that the user can choose from as is done in bwx-console and
-bat or the name of this command must be carefully chosen so that the user
-clearly understands that the JobId is being used to specify what Job and the
-date to which he wishes the restore to happen.
+        Notes (Kern): I think this should either be modified to have Bacula print
+        a list of dates that the user can choose from as is done in bwx-console and
+        bat or the name of this command must be carefully chosen so that the user
+        clearly understands that the JobId is being used to specify what Job and the
+        date to which he wishes the restore to happen.
+
+Item 1: Bacula Dir, FD and SD to support proxies
+Origin: Karl Grindley @ MIT Lincoln Laboratory <kgrindley at ll dot mit dot edu>
+Date:   25 March 2009
+Status: proposed
+
+What:   Support alternate methods for nailing up a TCP session such
+        as SOCKS5, SOCKS4 and HTTP (CONNECT) proxies.  Such a feature
+        would allow tunneling of bacula traffic in and out of proxied
+        networks.
+
+Why:    Currently, bacula is architected to only function on a flat network, with
+        no barriers or limitations.  Due to the large configuration states of
+        any network and the infinite configuration where file daemons and
+        storage daemons may sit in relation to one another, bacula often is
+        not usable on a network where filtered or air-gaped networks exist.
+        While often solutions such as ACL modifications to firewalls or port
+        redirection via SNAT or DNAT will solve the issue, often however,
+        these solutions are not adequate or not allowed by hard policy.
+
+        In an air-gapped network with only a highly locked down proxy services
+        are provided (SOCKS4/5 and/or HTTP and/or SSH outbound) ACLs or
+        iptable rules will not work.
+
+Notes:  Director resource tunneling: This configuration option to utilize a
+        proxy to connect to a client should be specified in the client
+        resource Client resource tunneling: should be configured in the client
+        resource in the director config file?  Or configured on the bacula-fd
+        configuration file on the fd host itself?  If the ladder, this would
+        allow only certain clients to use a proxy, where others do not when
+        establishing the TCP connection to the storage server.  Storage
+        resource tunneling: right now bacula does not initiate TCP session
+        from the storage resource, however, if Item 2 is implemented, proxy
+        support would be highly desired here as well.
+
+        Also worth noting, there are other 3rd party, light weight apps that
+        could be utilized to bootstrap this.  Instead of sockifing bacula
+        itself, use an external program to broker proxy authentication, and
+        connection to the remote host.  OpenSSH does this by using the
+        "ProxyCommand" syntax in the client configuration and uses stdin and
+        stdout to the command.  Connect.c is a very popular one.
+        (http://bent.latency.net/bent/darcs/goto-san-connect-1.85/src/connect.html).
+        One could also possibly use stunnel, netcat, etc.
 
 
+
+========= Add new items above this line =================
 
 
 ============= Empty Feature Request form ===========
