@@ -101,30 +101,24 @@ Code to be completed before 3.0.0 is released:
 3. Make plugins work with Accurate -- needs two new API calls
    - mark file not deleted
    - is file deleted (at end of job)
-   - Pass accurate flag to Plugin
+   - Pass accurate flag to Plugin (* this works)
    * code implemented not yet intgrated into Exchange plugin
-4. Proper installation of bat files (see below)
-5. Turn off plugin options code until fully implemented.
-5. Review whether or not plugins co-exist with encryption,
-   compression, ...
 7. Plugin checks
    - check plugin entry point definitions
    - check plugin license, author, ...
-
-
-Bat help files:
-/usr/share/doc/bat/help (default)
-Typical /usr/share/doc/xxx
-  changelog.Debian.gz
-  changelog.gz
-  CHANGES.txt.gz
-  copyright
-  CREDITS.txt
-  examples
-  FAQ.txt
-  help
-  README.Debian
-  README.txt
+8. Install similar files to below ...
+   /usr/share/doc/bat/help (default)
+   Typical /usr/share/doc/xxx
+     changelog.Debian.gz
+     changelog.gz
+     CHANGES.txt.gz
+     copyright
+     CREDITS.txt
+     examples
+     FAQ.txt
+     help
+     README.Debian
+     README.txt
 
 Features that will not be completed:
 - Plugin Options
