@@ -124,15 +124,18 @@ public slots:
    void closePage();
    void setPreferences();
    void readPreferences();
+   void waitEnter();
+   void waitExit();
 
 protected:
    void closeEvent(QCloseEvent *event);
    void keyPressEvent(QKeyEvent *event);
 
 private:
-   void createConnections(); 
    void connectConsole();
    void createPages();
+   void createConnections(); 
+   void disconnectConnections(); 
 
 private:
    Console *m_currentConsole;

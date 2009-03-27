@@ -191,6 +191,7 @@ bool Console::dir_cmd(const char *cmd, QStringList &results)
  */
 bool Console::dir_cmd(int conn, const char *cmd, QStringList &results)
 {
+   mainWin->waitEnter();
    DirComm *dircomm = m_dircommHash.value(conn);
    int stat;
 
@@ -206,6 +207,7 @@ bool Console::dir_cmd(int conn, const char *cmd, QStringList &results)
    if (stat > 0 && mainWin->m_displayAll) display_text(dircomm->msg());
    notify(conn, true);
    discardToPrompt(conn);
+   mainWin->waitExit();
    return true;              /* ***FIXME*** return any command error */
 }
 
@@ -251,6 +253,7 @@ bool Console::sql_cmd(int &conn, const char *query, QStringList &results, bool d
       Pmsg2(000, "sql_cmd conn %i %s\n", conn, query);
    if (donotify)
       dircomm->notify(false);
+   mainWin->waitEnter();
    
    pm_strcpy(cmd, ".sql query=\"");
    pm_strcat(cmd, query);
@@ -275,6 +278,7 @@ bool Console::sql_cmd(int &conn, const char *query, QStringList &results, bool d
    if (donotify)
       dircomm->notify(true);
    discardToPrompt(conn);
+   mainWin->waitExit();
    return true;              /* ***FIXME*** return any command error */
 }
 
@@ -294,8 +298,9 @@ void Console::write_dir(int conn, const char *msg)
 
    if (dircomm->m_sock) {
       mainWin->set_status(_("Processing command ..."));
-      QApplication::setOverrideCursor(Qt::WaitCursor);
+      mainWin->waitEnter();
       dircomm->write(msg);
+      mainWin->waitExit();
    } else {
       mainWin->set_status( tr(" Director not connected. Click on connect button."));
       mainWin->actionConnect->setIcon(QIcon(":images/disconnected.png"));
@@ -733,13 +738,19 @@ char *Console::msg(int conn)
 int Console::write(int conn, const QString msg)
 {
    DirComm *dircomm = m_dircommHash.value(conn);
-   return dircomm->write(msg);
+   mainWin->waitEnter();
+   int ret = dircomm->write(msg);
+   mainWin->waitExit();
+   return ret;
 }
 
 int Console::write(int conn, const char *msg)
 {
    DirComm *dircomm = m_dircommHash.value(conn);
-   return dircomm->write(msg);
+   mainWin->waitEnter();
+   int ret = dircomm->write(msg);
+   mainWin->waitExit();
+   return ret;
 }
 
 /* This checks to see if any is connected */

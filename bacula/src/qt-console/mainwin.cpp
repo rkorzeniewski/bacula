@@ -236,13 +236,9 @@ void MainWin::createConnections()
    connect(lineEdit, SIGNAL(returnPressed()), this, SLOT(input_line()));
    connect(actionAbout_bat, SIGNAL(triggered()), this, SLOT(about()));
    connect(actionBat_Help, SIGNAL(triggered()), this, SLOT(help()));
-   connect(treeWidget, SIGNAL(itemClicked(QTreeWidgetItem *, int)), this, 
-           SLOT(treeItemClicked(QTreeWidgetItem *, int)));
-   connect(treeWidget, SIGNAL(
-           currentItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)),
-           this, SLOT(treeItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)));
-   connect(stackedWidget, SIGNAL(currentChanged(int)),
-           this, SLOT(stackItemChanged(int)));
+   connect(treeWidget, SIGNAL(itemClicked(QTreeWidgetItem *, int)), this, SLOT(treeItemClicked(QTreeWidgetItem *, int)));
+   connect(treeWidget, SIGNAL( currentItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)), this, SLOT(treeItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)));
+   connect(stackedWidget, SIGNAL(currentChanged(int)), this, SLOT(stackItemChanged(int)));
    connect(actionQuit, SIGNAL(triggered()), app, SLOT(closeAllWindows()));
    connect(actionLabel, SIGNAL(triggered()), this,  SLOT(labelButtonClicked()));
    connect(actionRun, SIGNAL(triggered()), this,  SLOT(runButtonClicked()));
@@ -257,6 +253,49 @@ void MainWin::createConnections()
    connect(actionToggleDock, SIGNAL(triggered()), this,  SLOT(toggleDockContextWindow()));
    connect(actionClosePage, SIGNAL(triggered()), this,  SLOT(closePage()));
    connect(actionPreferences, SIGNAL(triggered()), this,  SLOT(setPreferences()));
+}
+
+void MainWin::disconnectConnections()
+{
+   /* Connect signals to slots */
+   disconnect(lineEdit, SIGNAL(returnPressed()), this, SLOT(input_line()));
+   disconnect(actionAbout_bat, SIGNAL(triggered()), this, SLOT(about()));
+   disconnect(actionBat_Help, SIGNAL(triggered()), this, SLOT(help()));
+   disconnect(treeWidget, SIGNAL(itemClicked(QTreeWidgetItem *, int)), this, SLOT(treeItemClicked(QTreeWidgetItem *, int)));
+   disconnect(treeWidget, SIGNAL( currentItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)), this, SLOT(treeItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)));
+   disconnect(stackedWidget, SIGNAL(currentChanged(int)), this, SLOT(stackItemChanged(int)));
+   disconnect(actionQuit, SIGNAL(triggered()), app, SLOT(closeAllWindows()));
+   disconnect(actionLabel, SIGNAL(triggered()), this,  SLOT(labelButtonClicked()));
+   disconnect(actionRun, SIGNAL(triggered()), this,  SLOT(runButtonClicked()));
+   disconnect(actionEstimate, SIGNAL(triggered()), this,  SLOT(estimateButtonClicked()));
+   disconnect(actionBrowse, SIGNAL(triggered()), this,  SLOT(browseButtonClicked()));
+   disconnect(actionStatusDirPage, SIGNAL(triggered()), this,  SLOT(statusPageButtonClicked()));
+#ifdef HAVE_QWT
+   disconnect(actionJobPlot, SIGNAL(triggered()), this,  SLOT(jobPlotButtonClicked()));
+#endif
+   disconnect(actionRestore, SIGNAL(triggered()), this,  SLOT(restoreButtonClicked()));
+   disconnect(actionUndock, SIGNAL(triggered()), this,  SLOT(undockWindowButton()));
+   disconnect(actionToggleDock, SIGNAL(triggered()), this,  SLOT(toggleDockContextWindow()));
+   disconnect(actionClosePage, SIGNAL(triggered()), this,  SLOT(closePage()));
+   disconnect(actionPreferences, SIGNAL(triggered()), this,  SLOT(setPreferences()));
+}
+
+/*
+ *  Enter wait state
+ */
+void MainWin::waitEnter()
+{
+   app->setOverrideCursor(QCursor(Qt::WaitCursor));
+   disconnectConnections();
+}
+
+/*
+ *  Leave wait state
+ */
+void MainWin::waitExit()
+{
+   app->restoreOverrideCursor();
+   createConnections();
 }
 
 /* 
