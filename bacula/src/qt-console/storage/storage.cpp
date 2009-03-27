@@ -129,7 +129,6 @@ void Storage::populateTree()
       if (m_console->sql_cmd(query, results)) {
 
          QStringList fieldlist;
-         int cnter = 1;
          foreach (QString resultline, results) {
             fieldlist = resultline.split("\t");
             storageName = fieldlist.takeFirst();

@@ -212,11 +212,6 @@ dnl Suppport for gettext (translations)
 dnl By default, $datarootdir is ${prefix}/share
 dnl --------------------------------------------------
 AM_GNU_GETTEXT([external])
-if test x${prefix} = xNONE ; then
-   if test `eval echo ${datarootdir}` = NONE/share ; then
-      datarootdir=/usr/share
-   fi
-fi
 
 dnl ------------------------------------------------------------------
 dnl If the user has not set --prefix, we set our default to nothing.
@@ -243,6 +238,9 @@ if test x${prefix} = xNONE ; then
       includedir=/usr/include
    fi
 
+   if test `eval echo ${datarootdir}` = NONE/share ; then
+      datarootdir=/usr/share
+   fi
    prefix=
 fi
 
@@ -255,6 +253,8 @@ fi
 
 sysconfdir=`eval echo ${sysconfdir}`
 datarootdir=`eval echo ${datarootdir}`
+docdir=`eval echo ${docdir}`
+htmldir=`eval echo ${htmldir}`
 libdir=`eval echo ${libdir}`
 includedir=`eval echo ${includedir}`
 localedir=`eval echo ${datarootdir}/locale`
@@ -275,6 +275,23 @@ dnl -------------------------------------------------------------------------
 if test x$mandir = x'${prefix}/man' ; then
    mandir=/usr/share/man
 fi
+
+dnl -------------------------------------------------------------------------
+dnl  If the user has not set --htmldir, we default to /usr/share/doc/bacula-xx.xx/html
+dnl -------------------------------------------------------------------------
+dnl z
+if test x$htmldir = x${docdir} ; then
+   htmldir=`eval echo ${docdir}bacula-${VERSION}/html`
+fi
+
+dnl -------------------------------------------------------------------------
+dnl  If the user has not set --docdir, we default to /usr/share/doc/
+dnl -------------------------------------------------------------------------
+dnl z
+if test x$docdir = x'/usr/share/doc/' ; then
+   docdir=`eval echo ${docdir}bacula-${VERSION}`
+fi
+
 	    
 AC_PATH_PROGS(MSGFMT, msgfmt, no)
 if test "$MSGFMT" = "no"
@@ -2882,7 +2899,6 @@ if test "${support_bat}" = "yes" ; then
    fi
   
    cd src/qt-console
-   chmod 755 install_conf_file build-depkgs-qt-console
    echo "Creating bat Makefile"
    $QMAKEBIN
    make clean
@@ -2897,6 +2913,10 @@ if test X"$GCC" = "Xyes" ; then
   echo "Doing make of dependencies"
   ${MAKE:-make} depend
 fi
+
+cd src/qt-console
+chmod 755 install_conf_file build-depkgs-qt-console
+cd ${BUILD_DIR}
 
 cd scripts
 chmod 755 startmysql stopmysql bacula startit stopit btraceback mtx-changer

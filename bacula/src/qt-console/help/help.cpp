@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2007-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2007-2009 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -45,7 +45,7 @@ Help::Help(const QString &path, const QString &file, QWidget *parent) :
 
    setupUi(this);                          /* create window */
 
-   textBrowser->setSearchPaths(QStringList() << path << ":/images");
+   textBrowser->setSearchPaths(QStringList() << HELPDIR << path << ":/images");
    textBrowser->setSource(file);
    //textBrowser->setCurrentFont(mainWin->m_consoleHash.values()[0]->get_font());
 

@@ -18315,11 +18315,6 @@ _ACEOF
 
 
 
-if test x${prefix} = xNONE ; then
-   if test `eval echo ${datarootdir}` = NONE/share ; then
-      datarootdir=/usr/share
-   fi
-fi
 
 if test x${prefix} = xNONE ; then
    if test `eval echo ${sysconfdir}` = NONE/etc ; then
@@ -18334,6 +18329,9 @@ if test x${prefix} = xNONE ; then
       includedir=/usr/include
    fi
 
+   if test `eval echo ${datarootdir}` = NONE/share ; then
+      datarootdir=/usr/share
+   fi
    prefix=
 fi
 
@@ -18343,6 +18341,8 @@ fi
 
 sysconfdir=`eval echo ${sysconfdir}`
 datarootdir=`eval echo ${datarootdir}`
+docdir=`eval echo ${docdir}`
+htmldir=`eval echo ${htmldir}`
 libdir=`eval echo ${libdir}`
 includedir=`eval echo ${includedir}`
 localedir=`eval echo ${datarootdir}/locale`
@@ -18363,6 +18363,15 @@ sbindir=`eval echo ${sbindir}`
 if test x$mandir = x'${prefix}/man' ; then
    mandir=/usr/share/man
 fi
+
+if test x$htmldir = x${docdir} ; then
+   htmldir=`eval echo ${docdir}bacula-${VERSION}/html`
+fi
+
+if test x$docdir = x'/usr/share/doc/' ; then
+   docdir=`eval echo ${docdir}bacula-${VERSION}`
+fi
+
 
 for ac_prog in msgfmt
 do
@@ -28669,7 +28678,11 @@ echo "${ECHO_T}no" >&6; }
 echo "$as_me: error: Unable to find mysql in standard locations" >&2;}
    { (exit 1); exit 1; }; }
            fi
-           DB_PROG_LIB=$SQL_LIBDIR/libmysqlclient_r.a
+           if test -f $SQL_LIBDIR/libmysqlclient_r.so; then
+              DB_PROG_LIB=$SQL_LIBDIR/libmysqlclient_r.so
+           else
+              DB_PROG_LIB=$SQL_LIBDIR/libmysqlclient_r.a
+           fi
         ;;
         "postgresql")
            db_prog="postgresql"
@@ -28709,7 +28722,11 @@ echo "${ECHO_T}no" >&6; }
 echo "$as_me: error: Unable to find psql in standard locations" >&2;}
    { (exit 1); exit 1; }; }
            fi
-           DB_PROG_LIB=$SQL_LIBDIR/libpq.a
+           if test -f $SQL_LIBDIR/libpq.so; then
+              DB_PROG_LIB=$SQL_LIBDIR/libpq.so
+           else
+              DB_PROG_LIB=$SQL_LIBDIR/libpq.a
+           fi
         ;;
         "sqlite")
            db_prog="sqlite"
@@ -28741,7 +28758,11 @@ echo "${ECHO_T}no" >&6; }
 echo "$as_me: error: Unable to find sqlite in standard locations" >&2;}
    { (exit 1); exit 1; }; }
            fi
-           DB_PROG_LIB=$SQL_LIBDIR/libsqlite.a
+           if test -f $SQL_LIBDIR/libsqlite.so; then
+              DB_PROG_LIB=$SQL_LIBDIR/libsqlite.so
+           else
+              DB_PROG_LIB=$SQL_LIBDIR/libsqlite.a
+           fi
         ;;
         "sqlite3")
            db_prog="sqlite3"
@@ -28773,7 +28794,11 @@ echo "${ECHO_T}no" >&6; }
 echo "$as_me: error: Unable to find sqlite in standard locations" >&2;}
    { (exit 1); exit 1; }; }
            fi
-           DB_PROG_LIB=$SQL_LIBDIR/libsqlite3.a
+           if test -f $SQL_LIBDIR/libsqlite3.so; then
+              DB_PROG_LIB=$SQL_LIBDIR/libsqlite3.so
+           else
+              DB_PROG_LIB=$SQL_LIBDIR/libsqlite3.a
+           fi
         ;;
         *)
            { echo "$as_me:$LINENO: result: no" >&5
@@ -45569,7 +45594,6 @@ if test "${support_bat}" = "yes" ; then
    fi
 
    cd src/qt-console
-   chmod 755 install_conf_file build-depkgs-qt-console
    echo "Creating bat Makefile"
    $QMAKEBIN
    make clean
@@ -45580,6 +45604,10 @@ if test X"$GCC" = "Xyes" ; then
   echo "Doing make of dependencies"
   ${MAKE:-make} depend
 fi
+
+cd src/qt-console
+chmod 755 install_conf_file build-depkgs-qt-console
+cd ${BUILD_DIR}
 
 cd scripts
 chmod 755 startmysql stopmysql bacula startit stopit btraceback mtx-changer

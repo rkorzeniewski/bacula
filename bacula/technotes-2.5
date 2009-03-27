@@ -2,6 +2,19 @@
 
           
 General:
+27Mar09
+kes  Implement installation of bat help files
+     The help files are installed in the htmldoc dir and can be set
+     by --htmldoc=xxx on the ./configure. Default is:
+     /usr/share/doc/bacula-version/html
+kes  Update projects file
+kes  Apply patch from  Pasi Karkkainen <pasik@iki.fi> that adds
+     Previous Job name to migrate job report.
+26Mar09
+kes  Apply bacula-autoconf-db-m4.patch from Kjetil Torgrim Homme 
+     <kjetilho@linpro.no> that doesn't *require* the static libraries
+     for the SQL database engine. Fixes a build problem if the static
+     libraries are not loaded.
 25Mar09
 ebl  Update Makefiles to compile win64 using "make WIN64=yes"
 kes  Disable plugin options in ua_run.c
