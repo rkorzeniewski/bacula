@@ -145,6 +145,7 @@ private:
    QStringList m_cmd_history;
    int m_cmd_last;
    QTreeWidgetItem *m_firstItem;
+   QTreeWidgetItem *m_waitTreeItem;
    bool m_isClosing;
 };
 
