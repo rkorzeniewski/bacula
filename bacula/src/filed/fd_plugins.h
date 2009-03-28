@@ -230,7 +230,7 @@ typedef enum {
 
 
 #define FD_PLUGIN_MAGIC     "*FDPluginData*" 
-#define FD_PLUGIN_INTERFACE_VERSION  3
+#define FD_PLUGIN_INTERFACE_VERSION  4
 
 typedef struct s_pluginInfo {
    uint32_t size;
@@ -262,7 +262,7 @@ typedef struct s_pluginFuncs {
    bRC (*pluginIO)(bpContext *ctx, struct io_pkt *io);
    bRC (*createFile)(bpContext *ctx, struct restore_pkt *rp);
    bRC (*setFileAttributes)(bpContext *ctx, struct restore_pkt *rp);
-   bool (*checkFile)(bpContext *ctx, char *fname);
+   bRC (*checkFile)(bpContext *ctx, char *fname);
 } pFuncs;
 
 #define plug_func(plugin) ((pFuncs *)(plugin->pfuncs))

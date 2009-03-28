@@ -156,7 +156,7 @@ void generate_plugin_event(JCR *jcr, bEventType eventType, void *value)
 bool plugin_check_file(JCR *jcr, char *fname)
 {
    Plugin *plugin;
-   bool ok = false;
+   int rc = bRC_OK;
    int i = 0;
 
    if (!plugin_list || !jcr || !jcr->plugin_ctx_list) {
@@ -177,15 +177,15 @@ bool plugin_check_file(JCR *jcr, char *fname)
       if (plug_func(plugin)->checkFile == NULL) {
          continue;
       }
-      ok = plug_func(plugin)->checkFile(jcr->plugin_ctx, fname);
-      if (ok) {
+      rc = plug_func(plugin)->checkFile(jcr->plugin_ctx, fname);
+      if (rc == bRC_Seen) {
          break;
       }
    }
 
    jcr->plugin = NULL;
    jcr->plugin_ctx = NULL;
-   return ok;
+   return rc == bRC_Seen;
 }
 
 
