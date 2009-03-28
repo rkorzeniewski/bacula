@@ -254,6 +254,7 @@ void MainWin::connectSignals()
    connect(actionToggleDock, SIGNAL(triggered()), this,  SLOT(toggleDockContextWindow()));
    connect(actionClosePage, SIGNAL(triggered()), this,  SLOT(closePage()));
    connect(actionPreferences, SIGNAL(triggered()), this,  SLOT(setPreferences()));
+   connect(actionRepopLists, SIGNAL(triggered()), this,  SLOT(repopLists()));
 }
 
 void MainWin::disconnectSignals()
@@ -279,6 +280,7 @@ void MainWin::disconnectSignals()
    disconnect(actionToggleDock, SIGNAL(triggered()), this,  SLOT(toggleDockContextWindow()));
    disconnect(actionClosePage, SIGNAL(triggered()), this,  SLOT(closePage()));
    disconnect(actionPreferences, SIGNAL(triggered()), this,  SLOT(setPreferences()));
+   disconnect(actionRepopLists, SIGNAL(triggered()), this,  SLOT(repopLists()));
 }
 
 /*
@@ -288,6 +290,7 @@ void MainWin::waitEnter()
 {
    app->setOverrideCursor(QCursor(Qt::WaitCursor));
    disconnectSignals();
+   disconnectConsoleSignals(m_currentConsole);
    m_waitTreeItem = treeWidget->currentItem();
 }
 
@@ -300,6 +303,7 @@ void MainWin::waitExit()
    if (m_waitTreeItem != treeWidget->currentItem())
       treeWidget->setCurrentItem(m_waitTreeItem);
    connectSignals();
+   connectConsoleSignals();
 }
 
 void MainWin::connectConsoleSignals()
@@ -316,6 +320,11 @@ void MainWin::disconnectConsoleSignals(Console *console)
    disconnect(actionStatusDir, SIGNAL(triggered()), console, SLOT(status_dir()));
    disconnect(actionMessages, SIGNAL(triggered()), console, SLOT(messages()));
    disconnect(actionSelectFont, SIGNAL(triggered()), console, SLOT(set_font()));
+}
+
+void MainWin::repopLists()
+{
+   m_currentConsole->populateLists(false);
 }
 
 /* 
@@ -693,6 +702,7 @@ Console *MainWin::currentConsole()
 {
    return m_currentConsole;
 }
+
 /* Quick function to return the tree item for the director */
 QTreeWidgetItem *MainWin::currentTopItem()
 {

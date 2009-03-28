@@ -111,6 +111,7 @@ public:
    bool get_job_defaults(int &conn, struct job_defaults &);
    const QFont get_font();
    void beginNewCommand(int conn);
+   void populateLists(bool forcenew);
 
 private:
    bool get_job_defaults(int &conn, struct job_defaults &, bool donotify);
@@ -118,6 +119,7 @@ private:
    void stopTimer();
    bool is_connectedGui();
    bool newDirComm(int &conn);
+   void populateLists(int conn);
 
 public:
    QStringList job_list;
