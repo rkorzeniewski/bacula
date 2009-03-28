@@ -284,6 +284,9 @@ int plugin_save(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
          Dmsg1(dbglvl, "Save_file: file=%s\n", ff_pkt->fname);
          save_file(jcr, ff_pkt, true);
          bRC rc = plug_func(plugin)->endBackupFile(jcr->plugin_ctx);
+         if (rc == bRC_More || rc == bRC_OK) {
+            accurate_mark_file_as_seen(jcr, ff_pkt->fname);
+         }
          if (rc == bRC_More) {
             continue;
          }
