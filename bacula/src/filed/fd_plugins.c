@@ -62,6 +62,7 @@ static bRC baculaDebugMsg(bpContext *ctx, const char *file, int line,
 static void *baculaMalloc(bpContext *ctx, const char *file, int line,
               size_t size);
 static void baculaFree(bpContext *ctx, const char *file, int line, void *mem);
+static bool is_plugin_compatible(Plugin *plugin);
 
 /*
  * These will be plugged into the global pointer structure for
@@ -435,6 +436,7 @@ bail_out:
 
 /*
  * Tell the plugin to create the file.  Return values are
+ *   This is called only during Restore
  *
  *  CF_ERROR    -- error
  *  CF_SKIP     -- skip processing this file
@@ -509,6 +511,7 @@ int plugin_create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
  * Reset the file attributes after all file I/O is done -- this allows
  *  the previous access time/dates to be set properly, and it also allows
  *  us to properly set directory permissions.
+ *  Not currently Implemented.
  */
 bool plugin_set_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
 {
@@ -520,12 +523,15 @@ bool plugin_set_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
    return true;
 }
 
+/*
+ * Print to file the plugin info.
+ */
 void dump_fd_plugin(Plugin *plugin, FILE *fp)
 {
    if (!plugin) {
       return ;
    }
-   pInfo *info = (pInfo *) plugin->pinfo;
+   pInfo *info = (pInfo *)plugin->pinfo;
    fprintf(fp, "\tversion=%d\n", info->version);
    fprintf(fp, "\tdate=%s\n", NPRTB(info->plugin_date));
    fprintf(fp, "\tmagic=%s\n", NPRTB(info->plugin_magic));
@@ -549,7 +555,8 @@ void load_fd_plugins(const char *plugin_dir)
    }
 
    plugin_list = New(alist(10, not_owned_by_alist));
-   if (!load_plugins((void *)&binfo, (void *)&bfuncs, plugin_dir, plugin_type)) {
+   if (!load_plugins((void *)&binfo, (void *)&bfuncs, plugin_dir, plugin_type,
+                     is_plugin_compatible)) {
       /* Either none found, or some error */
       if (plugin_list->size() == 0) {
          delete plugin_list;
@@ -565,14 +572,57 @@ void load_fd_plugins(const char *plugin_dir)
    plugin_bread  = my_plugin_bread;
    plugin_bwrite = my_plugin_bwrite;
    plugin_blseek = my_plugin_blseek;
+
+   /* 
+    * Verify that the plugin is acceptable, and print information
+    *  about it.
+    */
    foreach_alist(plugin, plugin_list) {
       Jmsg(NULL, M_INFO, 0, _("Loaded plugin: %s\n"), plugin->file);
       Dmsg1(dbglvl, "Loaded plugin: %s\n", plugin->file);
-
    }
 
    dbg_plugin_add_hook(dump_fd_plugin);
 }
+
+/*
+ * Check if a plugin is compatible.  Called by the load_plugin function
+ *  to allow us to verify the plugin.
+ */
+static bool is_plugin_compatible(Plugin *plugin)
+{
+   pInfo *info = (pInfo *)plugin->pinfo;
+   Dmsg0(50, "is_plugin_compatible called\n");
+   if (debug_level >= 50) {
+      dump_fd_plugin(plugin, stdin);
+   }
+   if (strcmp(info->plugin_magic, FD_PLUGIN_MAGIC) != 0) {
+      Jmsg(NULL, M_ERROR, 0, _("Plugin magic wrong. Plugin=%s wanted=%s got=%s\n"),
+           plugin->file, FD_PLUGIN_MAGIC, info->plugin_magic);
+      Dmsg3(50, "Plugin magic wrong. Plugin=%s wanted=%s got=%s\n",
+           plugin->file, FD_PLUGIN_MAGIC, info->plugin_magic);
+
+      return false;
+   }
+   if (info->version != FD_PLUGIN_INTERFACE_VERSION) {
+      Jmsg(NULL, M_ERROR, 0, _("Plugin version incorrect. Plugin=%s wanted=%d got=%d\n"),
+           plugin->file, FD_PLUGIN_INTERFACE_VERSION, info->version);
+      Dmsg3(50, "Plugin version incorrect. Plugin=%s wanted=%d got=%d\n",
+           plugin->file, FD_PLUGIN_INTERFACE_VERSION, info->version);
+      return false;
+   }
+   if (strcmp(info->plugin_license, "Bacula GPLv2") != 0 &&
+       strcmp(info->plugin_license, "GPLv2") != 0) {
+      Jmsg(NULL, M_ERROR, 0, _("Plugin license incompatible. Plugin=%s license=%s\n"),
+           plugin->file, info->plugin_license);
+      Dmsg2(50, "Plugin license incompatible. Plugin=%s license=%s\n",
+           plugin->file, info->plugin_license);
+      return false;
+   }
+      
+   return true;
+}
+
 
 /*
  * Create a new instance of each plugin for this Job

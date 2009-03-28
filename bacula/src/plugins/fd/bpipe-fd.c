@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2007-2008 Free Software Foundation Europe e.V.
+   Copyright (C) 2007-2009 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -47,7 +47,7 @@ extern "C" {
 
 static const int dbglvl = 150;
 
-#define PLUGIN_LICENSE      "GPLv2"
+#define PLUGIN_LICENSE      "Bacula GPLv2"
 #define PLUGIN_AUTHOR       "Kern Sibbald"
 #define PLUGIN_DATE         "January 2008"
 #define PLUGIN_VERSION      "1"

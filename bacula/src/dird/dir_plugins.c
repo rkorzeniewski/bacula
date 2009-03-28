@@ -116,7 +116,7 @@ void load_dir_plugins(const char *plugin_dir)
    }
 
    plugin_list = New(alist(10, not_owned_by_alist));
-   load_plugins((void *)&binfo, (void *)&bfuncs, plugin_dir, plugin_type);
+   load_plugins((void *)&binfo, (void *)&bfuncs, plugin_dir, plugin_type, NULL);
    dbg_plugin_add_hook(dump_dir_plugin);
 }
 
