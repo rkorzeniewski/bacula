@@ -1,8 +1,9 @@
-              Technical notes on version 2.5
-
+              Technical notes for current SVN
           
 General:
 28Mar09
+kes  Add checks on the plugin version and the plugin license. Currently
+     only implemented for FD plugins.
 kes  Add installation of /usr/share/doc/bacula-VERSION
 kes  Modify plugin checkFile to return bRC_Seen to cause file
      to remain.  Previously was true/false.
