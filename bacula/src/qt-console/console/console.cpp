@@ -137,17 +137,18 @@ void Console::connect_dir()
 void Console::populateLists(bool forcenew)
 {
    int conn;
-   if (forcenew)
+   if (forcenew) {
       if (!newDirComm(conn)) {
          Pmsg0(000, "newDirComm Seems to Failed to create a connection for populateLists\n");
          return;
       }
-   else
+   } else {
       if(!availableDirComm(conn)) {
          Pmsg0(000, "availableDirComm Seems to Failed to find a connection for populateLists\n");
          return;
       }
-  populateLists(conn);
+   }
+   populateLists(conn);
 }
 
 void Console::populateLists(int conn)
@@ -171,9 +172,10 @@ void Console::populateLists(int conn)
    dir_cmd(conn, ".levels", level_list);
 
    if (mainWin->m_connDebug) {
-      QString dbgmsg = QString("jobs=%1 clients=%2 filesets=%3 msgs=%4 pools=%5 storage=%6 types=%7 levels=%8\n")
+      QString dbgmsg = QString("jobs=%1 clients=%2 filesets=%3 msgs=%4 pools=%5 storage=%6 types=%7 levels=%8 conn=%9\n")
         .arg(job_list.count()).arg(client_list.count()).arg(fileset_list.count()).arg(messages_list.count())
-        .arg(pool_list.count()).arg(storage_list.count()).arg(type_list.count()).arg(level_list.count());
+        .arg(pool_list.count()).arg(storage_list.count()).arg(type_list.count()).arg(level_list.count())
+        .arg(conn);
       Pmsg1(000, "%s\n", dbgmsg.toUtf8().data());
    }
 }
