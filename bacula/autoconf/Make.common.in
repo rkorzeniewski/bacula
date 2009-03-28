@@ -24,6 +24,7 @@ exec_prefix = @exec_prefix@
 binprefix =
 manprefix =
 datarootdir = @datarootdir@
+docdir = @docdir@
 sbindir = @sbindir@
 libdir = @libdir@
 includedir = @includedir@

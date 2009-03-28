@@ -34,6 +34,9 @@ DIST_CFG = autoconf/aclocal.m4 autoconf/configure.in \
 	autoconf/config.h.in  autoconf/acconfig.h  autoconf/Make.common.in \
 	autoconf/install-sh autoconf/mkinstalldirs
 
+doc_files = VERIFYING technotes ChangeLog README ReleaseNotes LICENSE \
+	    INSTALL
+
 MKDIR = $(srcdir)/autoconf/mkinstalldirs
 LIBTOOL_DEPS = @LIBTOOL_DEPS@
 
@@ -93,6 +96,7 @@ installdirs:
 	$(MKDIR) $(DESTDIR)$(sbindir)
 	$(MKDIR) $(DESTDIR)$(sysconfdir)
 	$(MKDIR) $(DESTDIR)$(scriptdir)
+	$(MKDIR) $(DESTDIR)$(docdir)
 	-if test ! -d $(DESTDIR)$(working_dir) ; then \
 	   $(MKDIR) $(DESTDIR)$(working_dir); \
 	   chmod 770 $(DESTDIR)$(working_dir); \
@@ -130,6 +134,7 @@ install-menu-consolehelper: gnomedirs
 	ln -s $(DESTDIR)/usr/bin/consolehelper $(DESTDIR)/usr/bin/gnome-console
 
 install: installdirs
+	@for I in $(doc_files) ; do $(INSTALL_DATA) $$I $(DESTDIR)${docdir}; done
 	@for I in $(all_subdirs); do (cd $$I && $(MAKE) DESTDIR=$(DESTDIR) $@ || exit 1); done
 
 uninstall:

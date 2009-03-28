@@ -9,7 +9,10 @@ New features implemented:
 - ACL code overhaul
 - Solaris ZFS/NFSv4 ACL support
 - Extended Attribute support
+  --disable-xattr (default=auto)
 - Shared Objects
+  --enable-libtool (default)
+  --disable-libtool 
 - Virtual Backup
 - Catalog Format Enhancements
   - Support for more than 4 Billion file entries
@@ -42,6 +45,9 @@ New features implemented:
 - Win64 File daemon
 - Postmortum dump improvements in SD
 - Deadlock mutex detection in SD
+- New configure install options
+  --docdir=  (default=/usr/share/doc/bacula-VERSION)
+  --htmldir= (default=/usr/share/doc/bacula-VERSION/html -- bat help files)
  New Directives:
 - Max Full Interval
 - Max Diff Interval
@@ -103,19 +109,6 @@ Code to be completed before 3.0.0 is released:
    - check plugin version
    - check plugin entry point definitions
    - check plugin license, author, ...
-5. Install similar files to below ...
-   /usr/share/doc/bat/help (default)
-   Typical /usr/share/doc/xxx
-     changelog.Debian.gz
-     changelog.gz
-     CHANGES.txt.gz
-     copyright
-     CREDITS.txt
-     examples
-     FAQ.txt
-     help
-     README.Debian
-     README.txt
 
 Features that will not be completed:
 - Plugin Options
