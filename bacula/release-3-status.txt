@@ -95,6 +95,7 @@ New features needing documentation:
   restore scenarios.
 - Regex filtered bsrs Kjetil Torgrim Homme <kjetilho@linpro.no> 15Aug08
 - Allow Mixed Priorities  Kjetil Torgrim Homme <kjetilho@linpro.no> 30Jun08
+- New configure options --disable-libtool, --docdir, --htmldir, ...
 
 Code to be completed before 3.0.0 is released:
 1. Fix Exchange plugin bugs 1234,1235,1236,1237
