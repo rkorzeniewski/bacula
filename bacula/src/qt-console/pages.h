@@ -72,6 +72,8 @@ public:
    void consoleCommand(QString &);
    void consoleInput(QString &);
    QString &name() { return m_name; };
+   void getVolumeList(QStringList &);
+   void getStatusList(QStringList &);
 
 public slots:
    /* closeEvent is a virtual function inherited from QWidget */
