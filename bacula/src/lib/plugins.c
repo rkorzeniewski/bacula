@@ -70,7 +70,8 @@ Plugin *new_plugin()
 /*
  * Load all the plugins in the specified directory.
  */
-bool load_plugins(void *binfo, void *bfuncs, const char *plugin_dir, const char *type)
+bool load_plugins(void *binfo, void *bfuncs, const char *plugin_dir, 
+        const char *type, bool is_plugin_compatible(Plugin *plugin))
 {
    bool found = false;
    t_loadPlugin loadPlugin;
@@ -167,6 +168,11 @@ bool load_plugins(void *binfo, void *bfuncs, const char *plugin_dir, const char 
       if (loadPlugin(binfo, bfuncs, &plugin->pinfo, &plugin->pfuncs) != bRC_OK) {
          goto get_out;
       }
+      if (!is_plugin_compatible) {
+         Dmsg0(50, "Plugin compatibility pointer not set.\n");   
+      } else if (!is_plugin_compatible(plugin)) {
+         goto get_out;
+      }
 
       found = true;                /* found a plugin */
       plugin_list->append(plugin);
@@ -174,6 +180,18 @@ bool load_plugins(void *binfo, void *bfuncs, const char *plugin_dir, const char 
 
 get_out:
    if (!found && plugin) {
+      if (plugin->file) {
+         Dmsg1(50, "Got plugin=%s but not accepted.\n", plugin->file);
+      }
+      if (plugin->unloadPlugin) {
+         plugin->unloadPlugin();
+      }
+      if (plugin->pHandle) {
+         dlclose(plugin->pHandle);
+      }
+      if (plugin->file) {
+         free(plugin->file);
+      }
       free(plugin);
    }
    if (entry) {

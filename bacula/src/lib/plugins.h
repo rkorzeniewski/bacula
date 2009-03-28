@@ -80,7 +80,8 @@ public:
 
 /* Functions */
 extern Plugin *new_plugin();
-extern bool load_plugins(void *binfo, void *bfuncs, const char *plugin_dir, const char *type);
+extern bool load_plugins(void *binfo, void *bfuncs, const char *plugin_dir, 
+        const char *type, bool is_plugin_compatible(Plugin *plugin));
 extern void unload_plugins();
 
 /* Each daemon can register a debug hook that will be called
