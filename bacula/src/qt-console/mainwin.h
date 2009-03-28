@@ -126,6 +126,7 @@ public slots:
    void readPreferences();
    void waitEnter();
    void waitExit();
+   void repopLists();
 
 protected:
    void closeEvent(QCloseEvent *event);

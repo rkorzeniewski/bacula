@@ -105,7 +105,8 @@ void Console::poll_messages()
 }
 
 /*
- * Connect to Director. 
+ * Connect to Director.  This does not connect to the director, dircomm does.
+ * This creates the first and possibly 2nd dircomm instance
  */
 void Console::connect_dir()
 {
@@ -123,41 +124,57 @@ void Console::connect_dir()
          Pmsg0(000, "DirComm 0 Seems to have Connected\n");
       beginNewCommand(0);
    }
+   populateLists(true);
+   mainWin->set_status(_("Connected"));
    
-   int ndc;
-   if (newDirComm(ndc)) {
-      if (mainWin->m_connDebug)
-         Pmsg1(000, "DirComm %i Seems to have Connected\n", ndc);
-      dircomm = m_dircommHash.value(ndc);
-      job_list.clear();
-      client_list.clear();
-      fileset_list.clear();
-      fileset_list.clear();
-      messages_list.clear();
-      pool_list.clear();
-      storage_list.clear();
-      type_list.clear();
-      level_list.clear();
-      dir_cmd(ndc, ".jobs", job_list);
-      dir_cmd(ndc, ".clients", client_list);
-      dir_cmd(ndc, ".filesets", fileset_list);  
-      dir_cmd(ndc, ".msgs", messages_list);
-      dir_cmd(ndc, ".pools", pool_list);
-      dir_cmd(ndc, ".storage", storage_list);
-      dir_cmd(ndc, ".types", type_list);
-      dir_cmd(ndc, ".levels", level_list);
+   startTimer();                      /* start message timer */
+}
 
-      if (mainWin->m_connDebug) {
-         QString dbgmsg = QString("jobs=%1 clients=%2 filesets=%3 msgs=%4 pools=%5 storage=%6 types=%7 levels=%8\n")
-           .arg(job_list.count()).arg(client_list.count()).arg(fileset_list.count()).arg(messages_list.count())
-           .arg(pool_list.count()).arg(storage_list.count()).arg(type_list.count()).arg(level_list.count());
-         Pmsg1(000, "%s\n", dbgmsg.toUtf8().data());
-      } else
-         if (mainWin->m_connDebug)
-            Pmsg0(000, "DirComm 1 Seems to Failed\n");
-   
-      mainWin->set_status(_("Connected"));
-      startTimer();                      /* start message timer */
+/*
+ * A function created to separate out the population of the lists
+ * from the Console::connect_dir function
+ */
+void Console::populateLists(bool forcenew)
+{
+   int conn;
+   if (forcenew)
+      if (!newDirComm(conn)) {
+         Pmsg0(000, "newDirComm Seems to Failed to create a connection for populateLists\n");
+         return;
+      }
+   else
+      if(!availableDirComm(conn)) {
+         Pmsg0(000, "availableDirComm Seems to Failed to find a connection for populateLists\n");
+         return;
+      }
+  populateLists(conn);
+}
+
+void Console::populateLists(int conn)
+{
+   job_list.clear();
+   client_list.clear();
+   fileset_list.clear();
+   fileset_list.clear();
+   messages_list.clear();
+   pool_list.clear();
+   storage_list.clear();
+   type_list.clear();
+   level_list.clear();
+   dir_cmd(conn, ".jobs", job_list);
+   dir_cmd(conn, ".clients", client_list);
+   dir_cmd(conn, ".filesets", fileset_list);  
+   dir_cmd(conn, ".msgs", messages_list);
+   dir_cmd(conn, ".pools", pool_list);
+   dir_cmd(conn, ".storage", storage_list);
+   dir_cmd(conn, ".types", type_list);
+   dir_cmd(conn, ".levels", level_list);
+
+   if (mainWin->m_connDebug) {
+      QString dbgmsg = QString("jobs=%1 clients=%2 filesets=%3 msgs=%4 pools=%5 storage=%6 types=%7 levels=%8\n")
+        .arg(job_list.count()).arg(client_list.count()).arg(fileset_list.count()).arg(messages_list.count())
+        .arg(pool_list.count()).arg(storage_list.count()).arg(type_list.count()).arg(level_list.count());
+      Pmsg1(000, "%s\n", dbgmsg.toUtf8().data());
    }
 }
 
