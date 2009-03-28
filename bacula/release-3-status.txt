@@ -78,12 +78,9 @@ Item 28:  Implement an option to modify the last written date for volumes
 Item  n:  Split documentation into several books
 
 New features needing documentation:
-- Update src/plugins/README
 - command separator in console (!$%&'()*+,-/:;<>?[]^`{|}~)
 - examples/database/dbcheck.sql
 - dbport in dbcheck
-- filepattern (restore with regex in bsr)
-- Allow Mixed Priorities  Kjetil Torgrim Homme <kjetilho@linpro.no> 30Jun08
 - Eliminated license problems with OpenSSL.
 - The exchange plugin truncates the exchange logs as soon as it has
   sent the data to the sd.  If the sd is spooling and something
@@ -91,8 +88,7 @@ New features needing documentation:
   the logs are lost, which could be a problem under some
   restore scenarios.
 - Regex filtered bsrs Kjetil Torgrim Homme <kjetilho@linpro.no> 15Aug08
-- Added FD bVarAccurate and bVarFileSeen variables
-- Added plugin entrypoint checkFile
+- Allow Mixed Priorities  Kjetil Torgrim Homme <kjetilho@linpro.no> 30Jun08
 
 Code to be completed before 3.0.0 is released:
 1. Fix Exchange plugin bugs 1234,1235,1236,1237
@@ -103,10 +99,11 @@ Code to be completed before 3.0.0 is released:
    - is file deleted (at end of job)
    - Pass accurate flag to Plugin (* this works)
    * code implemented not yet intgrated into Exchange plugin
-7. Plugin checks
+4. Plugin checks
+   - check plugin version
    - check plugin entry point definitions
    - check plugin license, author, ...
-8. Install similar files to below ...
+5. Install similar files to below ...
    /usr/share/doc/bat/help (default)
    Typical /usr/share/doc/xxx
      changelog.Debian.gz

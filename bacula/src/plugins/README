@@ -1,8 +1,12 @@
 
-This is a first cut of a plugins implementation for Bacula.
-The current code is simply a test program named main, which
-when executed will load the plugin named plugin.so and then
-call it with a few calls, then exit.
+This is the plugins implementation for Bacula.
+The current plugins for the DIR and SD are untested.
+For the File daemon, there are three plugins.  The 
+first is purely experimental. The second is quite functional
+and useful -- bpipe, and the third is the Exchange plugin
+
+For more details on plugins please see the New Features
+chapter of the Concepts document.
 
 What is implemented:
 - load a plugin
@@ -22,15 +26,10 @@ What is implemented:
 - Figure out a way to deal with 3 types of plugins (Director,
   File daemon, Storage daemon).
 - Pass Version information in plugin Initialize
-
-What is not yet implemented:
 - Document the interface
 - Test Win32 plugins
 - Print all plugins loaded when Bacula starts
 - Print all plugins loaded during traceback
-- Implement plugin license/version checking
-- Some better method to pass variables
-- Define more functionality (Bacula entry points, ...)
 - Make libbac.a into a shared object and allow plugin
   to call functions in directly so that plugins can use
   the same "safe" system utilities that Bacula uses.
@@ -39,3 +38,9 @@ What is not yet implemented:
 - Error handling must be much improved and brought into Bacula
   programming style. It currently just printf()s a message then
   exits (partially done).
+
+What is not yet implemented:
+- Implement plugin license/version checking
+- Some better method to pass variables
+- Define more functionality (Bacula entry points, ...)
+  especially for DIR and SD plugins
