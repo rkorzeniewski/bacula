@@ -238,7 +238,7 @@ void JobList::prepareFilterWidgets()
       comboSel(clientComboBox, m_clientName);
 
       QStringList volumeList;
-      m_console->getVolumeList(volumeList);
+      getVolumeList(volumeList);
       volumeComboBox->addItem(tr("Any"));
       volumeComboBox->addItems(volumeList);
       comboSel(volumeComboBox, m_mediaName);

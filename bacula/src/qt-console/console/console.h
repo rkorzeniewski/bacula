@@ -111,8 +111,6 @@ public:
    bool get_job_defaults(int &conn, struct job_defaults &);
    const QFont get_font();
    void beginNewCommand(int conn);
-   void getVolumeList(QStringList &);
-   void getStatusList(QStringList &);
 
 private:
    bool get_job_defaults(int &conn, struct job_defaults &, bool donotify);

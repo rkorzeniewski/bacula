@@ -156,7 +156,7 @@ void JobPlot::setupControls()
    controls->clientComboBox->addItems(m_console->client_list);
 
    QStringList volumeList;
-   m_console->getVolumeList(volumeList);
+   getVolumeList(volumeList);
    controls->volumeComboBox->addItem(tr("Any"));
    controls->volumeComboBox->addItems(volumeList);
    controls->jobComboBox->addItem(tr("Any"));
@@ -169,7 +169,7 @@ void JobPlot::setupControls()
    controls->fileSetComboBox->addItem(tr("Any"));
    controls->fileSetComboBox->addItems(m_console->fileset_list);
    QStringList statusLongList;
-   m_console->getStatusList(statusLongList);
+   getStatusList(statusLongList);
    controls->statusComboBox->addItem(tr("Any"));
    controls->statusComboBox->addItems(statusLongList);
 
