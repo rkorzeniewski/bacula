@@ -1,3 +1,4 @@
+
 History:
 The original Bacula code was Copyright Kern Sibbald and John Walker.
 After November 2004, it became Copyright Kern Sibbald, and finally,
@@ -45,9 +46,9 @@ the Bacula Project at: license@bacula.org
 What follows is information from the authors of the code:
 
 License:
-To the best of our knowledge, all code used in Bacula that is 
-copyrighted by a third party has licenses that are compatible
-with the OpenSSL license, and so with the exception that we have 
+To the best of our knowledge, all code used in Bacula, which is 
+copyrighted by a third party, has licenses that are compatible
+with the OpenSSL license, and so given the exception that we have 
 made to the GPLv2 above, Bacula can be freely linked and distributed
 with the OpenSSL libraries.
 
