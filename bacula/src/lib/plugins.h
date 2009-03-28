@@ -49,8 +49,12 @@ typedef enum {
   bRC_Stop   = 1,                        /* Stop calling other plugins */
   bRC_Error  = 2,                        /* Some kind of error */
   bRC_More   = 3,                        /* More files to backup */
-  bRC_Term   = 4                         /* Unload me */
+  bRC_Term   = 4,                        /* Unload me */
+  bRC_Seen   = 5,                        /* Return code from checkFiles */
+
+  bRC_Max    = 9999                      /* Max code Bacula can use */
 } bRC;
+
 
 
 /* Context packet as first argument of all functions */
