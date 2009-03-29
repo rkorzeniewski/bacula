@@ -14,17 +14,10 @@ New features needing documentation:
 - Regex filtered bsrs Kjetil Torgrim Homme <kjetilho@linpro.no> 15Aug08
 - Allow Mixed Priorities  Kjetil Torgrim Homme <kjetilho@linpro.no> 30Jun08
 - New configure options --disable-libtool, --docdir, --htmldir, ...
+- Virtual Full and Pools
 
 Code to be completed before 3.0.0 is released:
-1. Fix Exchange plugin bugs 1234,1235,1236,1237
-   *1234 fixed.
 2. Finish documentation (some noted above)
-3. Make plugins work with Accurate -- needs two new API calls
-   - mark file not deleted
-   - is file deleted (at end of job)
-   - Pass accurate flag to Plugin (* this works)
-   * code implemented not yet intgrated into Exchange plugin
-4. Possibly change VirtualFull to use same input and output pool.
 
 New features implemented:
 - Accurate Backup

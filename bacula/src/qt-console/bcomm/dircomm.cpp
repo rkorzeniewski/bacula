@@ -42,9 +42,7 @@
 
 static int tls_pem_callback(char *buf, int size, const void *userdata);
 
-DirComm::DirComm(Console *parent, int conn):
-m_notifier(NULL),
-m_api_set(false)
+DirComm::DirComm(Console *parent, int conn):  m_notifier(NULL),  m_api_set(false)
 {
    m_console = parent;
    m_sock = NULL;
@@ -267,7 +265,11 @@ int DirComm::sock_read()
  */
 int DirComm::read()
 {
-   int stat = 0;
+   int stat = -1;
+
+   if (!m_sock) {
+      return -1;
+   }
    while (m_sock) {
       for (;;) {
          if (!m_sock) break;
@@ -282,7 +284,7 @@ int DirComm::read()
          }
       }
       if (!m_sock) {
-         return BNET_HARDEOF;
+         return -1;
       }
       m_sock->msg[0] = 0;
       stat = sock_read();

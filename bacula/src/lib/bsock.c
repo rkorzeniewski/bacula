@@ -809,6 +809,9 @@ int BSOCK::wait_data_intr(int sec, int usec)
    fd_set fdset;
    struct timeval tv;
 
+   if (this == NULL) {
+      return -1;
+   }
    FD_ZERO(&fdset);
    FD_SET((unsigned)m_fd, &fdset);
    tv.tv_sec = sec;
