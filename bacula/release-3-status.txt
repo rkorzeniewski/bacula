@@ -24,6 +24,7 @@ Code to be completed before 3.0.0 is released:
    - is file deleted (at end of job)
    - Pass accurate flag to Plugin (* this works)
    * code implemented not yet intgrated into Exchange plugin
+4. Possibly change VirtualFull to use same input and output pool.
 
 New features implemented:
 - Accurate Backup

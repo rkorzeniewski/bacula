@@ -1,6 +1,10 @@
               Technical notes for current SVN
           
 General:
+29Mar09
+kes  Correct bacula32.def entry point as specified by James.
+kes  Add code to FD plugin driver to make a copy of the plugin
+     filename to be saved to avoid save_file from zaping it.
 28Mar09
 kes  Directly mark all files saved by plugin as being seen for Accurate.
 kes  Add checks on the plugin version and the plugin license. Currently
