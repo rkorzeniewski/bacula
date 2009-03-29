@@ -123,31 +123,31 @@ struct exchange_fd_context_t;
 #include "node.h"
 
 struct exchange_fd_context_t {
-        struct bpContext *bpContext;
-        WCHAR *computer_name;
-        char *path_bits[6];
-        root_node_t *root_node;
-        node_t *current_node;
-        int job_type;
-        int job_level;
-        time_t job_since;
-        bool notrunconfull_option;
-        bool truncate_logs;
-        bool accurate;
+   struct bpContext *bpContext;
+   WCHAR *computer_name;
+   char *path_bits[6];
+   root_node_t *root_node;
+   node_t *current_node;
+   int job_type;
+   int job_level;
+   time_t job_since;
+   bool notrunconfull_option;
+   bool truncate_logs;
+   bool accurate;
 };
 
 static inline char *tocharstring(WCHAR *src)
 {
-        char *tmp = new char[wcslen(src) + 1];
-        wcstombs(tmp, src, wcslen(src) + 1);
-        return tmp;
+   char *tmp = new char[wcslen(src) + 1];
+   wcstombs(tmp, src, wcslen(src) + 1);
+   return tmp;
 }
 
 static inline WCHAR *towcharstring(char *src)
 {
-        WCHAR *tmp = new WCHAR[strlen(src) + 1];
-        mbstowcs(tmp, src, strlen(src) + 1);
-        return tmp;
+   WCHAR *tmp = new WCHAR[strlen(src) + 1];
+   mbstowcs(tmp, src, strlen(src) + 1);
+   return tmp;
 }
 
 
