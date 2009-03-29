@@ -194,7 +194,7 @@ bool Console::dir_cmd(QString &cmd, QStringList &results)
 bool Console::dir_cmd(const char *cmd, QStringList &results)
 {
    int conn;
-   if(availableDirComm(conn)) {
+   if (availableDirComm(conn)) {
       dir_cmd(conn, cmd, results);
       return true;
    } else {
@@ -306,7 +306,7 @@ bool Console::sql_cmd(int &conn, const char *query, QStringList &results, bool d
 int Console::write_dir(const char *msg)
 {
    int conn;
-   if(availableDirComm(conn))
+   if (availableDirComm(conn))
       write_dir(conn, msg);
    return conn;
 }
@@ -600,7 +600,10 @@ void Console::discardToPrompt(int conn)
       displayToPrompt(conn);
    } else {
       while (!dircomm->m_at_prompt) {
-         stat=dircomm->read();
+         stat = dircomm->read();
+         if (stat < 0) {
+            break;
+         }
       }
    }
    if (mainWin->m_commDebug) Pmsg2(000, "endDiscardToPrompt=%d %s\n", stat, m_dir->name());
@@ -621,7 +624,7 @@ void Console::discardToPrompt(int conn)
 int Console::notifyOff()
 { 
    int conn = 0;
-   if(availableDirComm(conn))
+   if (availableDirComm(conn))
       notify(conn, false);
    return conn;
 }
