@@ -787,7 +787,7 @@ send_to_file:
                    bnet_fsend(jcr->dir_bsock, "Jmsg Job=%s type=%d level=%lld %s",
                       jcr->Job, type, mtime, msg);
                 } else {
-                   Dmsg1(000, "no jcr for following msg: %s", msg);
+                   Dmsg1(800, "no jcr for following msg: %s", msg);
                 }
                 break;
              case MD_STDOUT:
