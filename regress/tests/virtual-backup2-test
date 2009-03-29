@@ -26,13 +26,15 @@ start_test
 
 # Write out bconsole commands
 cat <<END_OF_DATA >${cwd}/tmp/bconcmds
-@output
+@output /dev/null
 messages
 @$out ${cwd}/tmp/log1.out
 setdebug level=150 storage=DiskChanger
 label storage=DiskChanger volume=ChangerVolume001 slot=1 Pool=Default drive=0
-label storage=DiskChanger volume=ChangerVolume002 slot=2 Pool=Full drive=0
-label storage=DiskChanger volume=ChangerVolume003 slot=3 Pool=Full drive=0
+label storage=DiskChanger volume=ChangerVolume002 slot=2 Pool=Default drive=0
+label storage=DiskChanger volume=ChangerVolume003 slot=3 Pool=Default drive=0
+label storage=DiskChanger volume=ChangerVolume004 slot=4 Pool=Full drive=0
+label storage=DiskChanger volume=ChangerVolume005 slot=5 Pool=Full drive=0
 setdebug level=0 storage=DiskChanger
 @# run several jobs
 @exec "sh -c 'date > ${cwd}/build/date'"
@@ -40,16 +42,19 @@ run job=$JobName level=Full storage=DiskChanger yes
 wait
 messages
 list jobs
+list volumes
 @exec "sh -c 'touch ${cwd}/build/src/dird/*.c'"
 run job=$JobName level=Incremental storage=DiskChanger yes
 wait
 messages
 list jobs
+list volumes
 @exec "sh -c 'touch ${cwd}/build/src/dird/*.o'"
 run job=$JobName level=Differential storage=DiskChanger yes
 wait
 messages
 list jobs
+list volumes
 @exec "sh -c 'date > ${cwd}/build/date'"
 @exec "sh -c 'touch ${cwd}/build/src/dird/*.o'"
 run job=$JobName level=Incremental storage=DiskChanger yes
@@ -67,6 +72,7 @@ mark *
 done
 yes
 wait
+list jobs
 list volumes
 @#setdebug level=100 dir
 @#
@@ -76,8 +82,8 @@ setdebug level=151 storage=DiskChanger
 run job=$JobName level=VirtualFull storage=DiskChanger yes
 wait
 messages
-list volumes
 list jobs
+list volumes
 @# 
 @# now do a restore of the Virtual backup
 @#
@@ -92,8 +98,8 @@ wait
 update Volume=ChangerVolume002
 11
 Default
-list volumes
 list jobs
+list volumes
 messages
 @exec "sh -c 'touch ${cwd}/build/src/dird/*.o'"
 @#
@@ -124,8 +130,8 @@ mark *
 done
 yes
 wait
-list volumes
 list jobs
+list volumes
 messages
 @output
 quit
