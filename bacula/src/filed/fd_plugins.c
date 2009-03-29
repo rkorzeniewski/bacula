@@ -214,6 +214,8 @@ int plugin_save(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
    char *cmd = ff_pkt->top_fname;
    struct save_pkt sp;
    bEvent event;
+   POOL_MEM fname(PM_FNAME);
+   POOL_MEM link(PM_FNAME);
 
    if (!plugin_list || !jcr->plugin_ctx_list) {
       return 1;                            /* Return if no plugins loaded */
@@ -277,15 +279,21 @@ int plugin_save(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
          }
          jcr->plugin_sp = &sp;
          ff_pkt = jcr->ff;
-         ff_pkt->fname = sp.fname;
-         ff_pkt->link = sp.link;
+         /*
+          * Copy fname and link because save_file() zaps them.  This 
+          *  avoids zaping the plugin's strings.
+          */
+         pm_strcpy(fname, sp.fname);
+         pm_strcpy(link, sp.link);
+         ff_pkt->fname = fname.c_str();
+         ff_pkt->link = link.c_str();
          ff_pkt->type = sp.type;
          memcpy(&ff_pkt->statp, &sp.statp, sizeof(ff_pkt->statp));
-         Dmsg1(dbglvl, "Save_file: file=%s\n", ff_pkt->fname);
+         Dmsg1(dbglvl, "Save_file: file=%s\n", fname.c_str());
          save_file(jcr, ff_pkt, true);
          bRC rc = plug_func(plugin)->endBackupFile(jcr->plugin_ctx);
          if (rc == bRC_More || rc == bRC_OK) {
-            accurate_mark_file_as_seen(jcr, ff_pkt->fname);
+            accurate_mark_file_as_seen(jcr, fname.c_str());
          }
          if (rc == bRC_More) {
             continue;
