@@ -258,10 +258,10 @@ bool read_records(DCR *dcr,
             rec->match_stat = match_bsr(jcr->bsr, rec, &dev->VolHdr, &sessrec, jcr);
             if (rec->match_stat == -1) { /* no more possible matches */
                done = true;   /* all items found, stop */
-               Dmsg2(100, "All done=(file:block) %u:%u\n", dev->file, dev->block_num);
+               Dmsg2(dbglvl, "All done=(file:block) %u:%u\n", dev->file, dev->block_num);
                break;
             } else if (rec->match_stat == 0) {  /* no match */
-               Dmsg4(100, "BSR no match: clear rem=%d FI=%d before set_eof pos %u:%u\n",
+               Dmsg4(dbglvl, "BSR no match: clear rem=%d FI=%d before set_eof pos %u:%u\n",
                   rec->remainder, rec->FileIndex, dev->file, dev->block_num);
                rec->remainder = 0;
                rec->state &= ~REC_PARTIAL_RECORD;

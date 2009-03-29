@@ -52,6 +52,9 @@ bool accurate_mark_file_as_seen(JCR *jcr, char *fname)
    CurFile *temp = (CurFile *)jcr->file_list->lookup(fname);
    if (temp) {
       temp->seen = 1;              /* records are in memory */
+      Dmsg1(dbglvl, "marked <%s> as seen\n", fname);
+   } else {
+      Dmsg1(dbglvl, "<%s> not found to be marked as seen\n", fname);
    }
    return true;
 }
