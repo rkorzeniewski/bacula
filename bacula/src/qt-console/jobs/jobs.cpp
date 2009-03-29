@@ -70,6 +70,7 @@ Jobs::~Jobs()
 void Jobs::populateTable()
 {
    m_populated = true;
+   mainWin->waitEnter();
 
    Freeze frz(*tableWidget); /* disable updating*/
 
@@ -133,6 +134,7 @@ void Jobs::populateTable()
          item->setFlags(Qt::ItemFlags(item->flags() & (~Qt::ItemIsEditable)));
       }
    }
+   mainWin->waitExit();
 }
 
 /*

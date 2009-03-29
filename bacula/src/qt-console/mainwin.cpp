@@ -66,7 +66,9 @@ void message_callback(int /* type */, char *msg)
 
 MainWin::MainWin(QWidget *parent) : QMainWindow(parent)
 {
+   app->setOverrideCursor(QCursor(Qt::WaitCursor));
    m_isClosing = false;
+   m_waitState = false;
    m_dtformat = "yyyy-MM-dd HH:mm:ss";
    mainWin = this;
    setupUi(this);                     /* Setup UI defined by main.ui (designer) */
@@ -79,9 +81,7 @@ MainWin::MainWin(QWidget *parent) : QMainWindow(parent)
 
    createPages();
 
-   resetFocus();
-
-   connectSignals();
+   resetFocus(); /* lineEdit->setFocus() */
 
 #ifndef HAVE_QWT
    actionJobPlot->setEnabled(false);
@@ -92,17 +92,25 @@ MainWin::MainWin(QWidget *parent) : QMainWindow(parent)
 
    readSettings();
 
-   foreach(Console *console, m_consoleHash) {
+   foreach(Console *console, m_consoleHash)
       console->connect_dir();
-   }
    m_currentConsole = (Console*)getFromHash(m_firstItem);
    m_currentConsole->setCurrent();
-   connectConsoleSignals();
+   QTimer::singleShot(2000, this, SLOT(popLists()));
    if (m_miscDebug) {
       QString directoryResourceName;
       m_currentConsole->getDirResName(directoryResourceName);
       Pmsg1(100, "Setting initial window to %s\n", directoryResourceName.toUtf8().data());
    }
+}
+
+void MainWin::popLists()
+{
+   foreach(Console *console, m_consoleHash)
+      console->populateLists(true);
+   connectConsoleSignals();
+   connectSignals();
+   app->restoreOverrideCursor();
 }
 
 void MainWin::createPages()
@@ -288,6 +296,9 @@ void MainWin::disconnectSignals()
  */
 void MainWin::waitEnter()
 {
+   m_waitState = true;
+   if (mainWin->m_connDebug)
+      Pmsg0(000, "Entering Wait State\n");
    app->setOverrideCursor(QCursor(Qt::WaitCursor));
    disconnectSignals();
    disconnectConsoleSignals(m_currentConsole);
@@ -299,6 +310,9 @@ void MainWin::waitEnter()
  */
 void MainWin::waitExit()
 {
+   m_waitState = false;
+   if (mainWin->m_connDebug)
+      Pmsg0(000, "Exiting Wait State\n");
    app->restoreOverrideCursor();
    if (m_waitTreeItem != treeWidget->currentItem())
       treeWidget->setCurrentItem(m_waitTreeItem);
