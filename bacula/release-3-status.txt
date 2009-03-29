@@ -68,6 +68,7 @@ New features implemented:
 - Win64 File daemon
 - Postmortum dump improvements in SD
 - Deadlock mutex detection in SD
+- Improved Volume management in SD to avoid deadlocks.
 - New configure install options
   --docdir=  (default=/usr/share/doc/bacula-VERSION)
   --htmldir= (default=/usr/share/doc/bacula-VERSION/html -- bat help files)
