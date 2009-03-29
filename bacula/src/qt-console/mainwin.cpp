@@ -69,6 +69,7 @@ MainWin::MainWin(QWidget *parent) : QMainWindow(parent)
    app->setOverrideCursor(QCursor(Qt::WaitCursor));
    m_isClosing = false;
    m_waitState = false;
+   m_doConnect = false;
    m_dtformat = "yyyy-MM-dd HH:mm:ss";
    mainWin = this;
    setupUi(this);                     /* Setup UI defined by main.ui (designer) */
@@ -95,8 +96,7 @@ MainWin::MainWin(QWidget *parent) : QMainWindow(parent)
    foreach(Console *console, m_consoleHash)
       console->connect_dir();
    m_currentConsole = (Console*)getFromHash(m_firstItem);
-   m_currentConsole->setCurrent();
-   QTimer::singleShot(2000, this, SLOT(popLists()));
+   QTimer::singleShot(750, this, SLOT(popLists()));
    if (m_miscDebug) {
       QString directoryResourceName;
       m_currentConsole->getDirResName(directoryResourceName);
@@ -108,9 +108,11 @@ void MainWin::popLists()
 {
    foreach(Console *console, m_consoleHash)
       console->populateLists(true);
+   app->restoreOverrideCursor();
+   m_currentConsole->setCurrent();
+   m_doConnect = true;
    connectConsoleSignals();
    connectSignals();
-   app->restoreOverrideCursor();
 }
 
 void MainWin::createPages()
@@ -316,8 +318,10 @@ void MainWin::waitExit()
    app->restoreOverrideCursor();
    if (m_waitTreeItem != treeWidget->currentItem())
       treeWidget->setCurrentItem(m_waitTreeItem);
-   connectSignals();
-   connectConsoleSignals();
+   if (m_doConnect) {
+      connectSignals();
+      connectConsoleSignals();
+   }
 }
 
 void MainWin::connectConsoleSignals()
