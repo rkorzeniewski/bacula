@@ -65,17 +65,21 @@ file_node_t::startBackupFile(exchange_fd_context_t *context, struct save_pkt *sp
         time_t now = time(NULL);
         _DebugMessage(100, "startBackupNode_FILE state = %d\n", state);
 
-        sp->fname = full_path;
-        sp->link = full_path;
-        _DebugMessage(100, "fname = %s\n", sp->fname);
-        sp->statp.st_mode = 0700 | S_IFREG;
-        sp->statp.st_ctime = now;
-        sp->statp.st_mtime = now;
-        sp->statp.st_atime = now;
-        sp->statp.st_size = (uint64_t)-1;
-        sp->type = FT_REG;
-
-        return bRC_OK;
+	if (context->job_level == 'F' || parent->type == NODE_TYPE_STORAGE_GROUP) {
+	        sp->fname = full_path;
+        	sp->link = full_path;
+        	_DebugMessage(100, "fname = %s\n", sp->fname);
+        	sp->statp.st_mode = 0700 | S_IFREG;
+        	sp->statp.st_ctime = now;
+        	sp->statp.st_mtime = now;
+        	sp->statp.st_atime = now;
+        	sp->statp.st_size = (uint64_t)-1;
+        	sp->type = FT_REG;
+        	return bRC_OK;
+        } else {
+                bfuncs->setBaculaValue(context->bpContext, bVarFileSeen, (void *)full_path);
+        	return bRC_Seen;
+        }
 }
 
 bRC

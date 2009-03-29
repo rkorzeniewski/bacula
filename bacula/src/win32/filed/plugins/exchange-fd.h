@@ -76,7 +76,6 @@ enum {
 #define FT_REG        3
 #define FT_DIREND     5
 
-
 #define _REENTRANT    1
 #define _THREAD_SAFE  1
 #define _POSIX_PTHREAD_SEMANTICS 1
@@ -110,7 +109,6 @@ typedef int64_t   boffset_t;
 #include "host.h"
 #endif
 
-
 #define EXCHANGE_PLUGIN_VERSION 1
 
 #define JOB_TYPE_BACKUP 1
@@ -135,6 +133,7 @@ struct exchange_fd_context_t {
         time_t job_since;
         bool notrunconfull_option;
         bool truncate_logs;
+        bool accurate;
 };
 
 static inline char *tocharstring(WCHAR *src)

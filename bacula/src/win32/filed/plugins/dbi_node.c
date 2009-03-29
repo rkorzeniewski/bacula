@@ -55,16 +55,22 @@ dbi_node_t::startBackupFile(exchange_fd_context_t *context, struct save_pkt *sp)
 
         _DebugMessage(100, "startBackupNode_DBI state = %d\n", state);
 
-        sp->fname = full_path;
-        sp->link = full_path;
-        sp->statp.st_mode = 0700 | S_IFREG;
-        sp->statp.st_ctime = now;
-        sp->statp.st_mtime = now;
-        sp->statp.st_atime = now;
-        sp->statp.st_size = (uint64_t)-1;
-        sp->type = FT_REG;
-
-        return bRC_OK;
+        if (context->job_level == 'F') {
+                sp->fname = full_path;
+                sp->link = full_path;
+       		sp->statp.st_mode = 0700 | S_IFREG;
+        	sp->statp.st_ctime = now;
+        	sp->statp.st_mtime = now;
+        	sp->statp.st_atime = now;
+        	sp->statp.st_size = (uint64_t)-1;
+        	sp->type = FT_REG;
+        	return bRC_OK;
+        }
+        else
+        {
+                bfuncs->setBaculaValue(context->bpContext, bVarFileSeen, (void *)full_path);
+        	return bRC_Seen;
+        }
 }
 
 bRC

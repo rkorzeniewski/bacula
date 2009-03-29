@@ -71,19 +71,23 @@ storage_group_node_t::startBackupFile(exchange_fd_context_t *context, struct sav
                         logfile_ptr = NULL;
                         if (context->job_level == 'F')
                         {
-                                _DebugMessage(100, "Calling HrESEBackupSetup\n");
+                                _DebugMessage(100, "Calling HrESEBackupSetup (BACKUP_TYPE_FULL)\n");
                                 result = HrESEBackupSetup(hccx, ibi->hInstanceId, BACKUP_TYPE_FULL);
-                                state = 1;
+                        	state = 1;
                         }
                         else
                         {
-                                _DebugMessage(100, "Calling HrESEBackupSetup\n");
+                                _DebugMessage(100, "Calling HrESEBackupSetup (BACKUP_TYPE_LOGS_ONLY)\n");
                                 result = HrESEBackupSetup(hccx, ibi->hInstanceId, BACKUP_TYPE_LOGS_ONLY);
-                                state = 2;
+                        	if (context->accurate)
+					state = 1;
+                                else
+					state = 2;
                         }
                         if (result != 0)
                         {
                                 _JobMessage(M_ERROR, "HrESEBackupSetup failed with error 0x%08x - %s\n", result, ESEErrorMessage(result));
+                                state = 999;
                                 return bRC_Error;
                         }
                         break;
@@ -186,7 +190,14 @@ storage_group_node_t::startBackupFile(exchange_fd_context_t *context, struct sav
                                 }
                                 else
                                 {
-                                        //_DebugMessage(100, "NOT including file %S\n", logfile_ptr);
+					if (context->accurate) {
+                                                tmp = new char[strlen(full_path) + wcslen(tmp_logfile_ptr) + 1];
+						strcpy(tmp, full_path);
+                        			wcstombs(tmp + strlen(full_path), tmp_logfile_ptr, wcslen(tmp_logfile_ptr) + 1);
+                                                _JobMessage(M_WARNING, "Marking '%s' as seen\n", tmp);
+						bfuncs->setBaculaValue(context->bpContext, bVarFileSeen, (void *)tmp);
+						delete tmp;
+                                        }
                                 }
 
                                 if (handle != INVALID_HANDLE_VALUE)

@@ -207,6 +207,7 @@ static bRC handlePluginEvent(bpContext *ctx, bEvent *event, void *value)
         exchange_fd_context_t *context = (exchange_fd_context_t *)ctx->pContext;
         char *name;
         int i, intval;
+        int accurate;
 
         switch (event->eventType) {
         case bEventJobStart:
@@ -217,6 +218,8 @@ static bRC handlePluginEvent(bpContext *ctx, bEvent *event, void *value)
                 break;
         case bEventStartBackupJob:
                 _DebugMessage(0, "BackupStart\n");
+                bfuncs->getBaculaValue(ctx, bVarAccurate, (void *)&accurate);
+                context->accurate = accurate;
                 context->job_type = JOB_TYPE_BACKUP;
                 // level should have been specified by now - check it
                 // if level is D or I, since should have been specified too
@@ -342,6 +345,8 @@ startBackupFile(bpContext *ctx, struct save_pkt *sp)
         do {
                 current_node  = context->current_node;
                 retval = current_node->startBackupFile(context, sp);
+                if (retval == bRC_Seen)
+			endBackupFile(ctx);
         } while (current_node != context->current_node);
         _DebugMessage(100, "startBackupFile done - type = %d, fname = %s, retval = %d\n", sp->type, sp->fname, retval);
         return retval;
