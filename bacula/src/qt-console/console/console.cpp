@@ -121,10 +121,9 @@ void Console::connect_dir()
 
    if (dircomm->connect_dir()) {
       if (mainWin->m_connDebug)
-         Pmsg0(000, "DirComm 0 Seems to have Connected\n");
+         Pmsg1(000, "DirComm 0 Seems to have Connected %s\n", m_dir->name());
       beginNewCommand(0);
    }
-   populateLists(true);
    mainWin->set_status(_("Connected"));
    
    startTimer();                      /* start message timer */
@@ -139,12 +138,12 @@ void Console::populateLists(bool forcenew)
    int conn;
    if (forcenew) {
       if (!newDirComm(conn)) {
-         Pmsg0(000, "newDirComm Seems to Failed to create a connection for populateLists\n");
+         Pmsg1(000, "newDirComm Seems to Failed to create a connection for populateLists %s\n", m_dir->name());
          return;
       }
    } else {
       if(!availableDirComm(conn)) {
-         Pmsg0(000, "availableDirComm Seems to Failed to find a connection for populateLists\n");
+         Pmsg1(000, "availableDirComm Seems to Failed to find a connection for populateListsi %s\n", m_dir->name());
          return;
       }
    }
@@ -172,11 +171,11 @@ void Console::populateLists(int conn)
    dir_cmd(conn, ".levels", level_list);
 
    if (mainWin->m_connDebug) {
-      QString dbgmsg = QString("jobs=%1 clients=%2 filesets=%3 msgs=%4 pools=%5 storage=%6 types=%7 levels=%8 conn=%9\n")
+      QString dbgmsg = QString("jobs=%1 clients=%2 filesets=%3 msgs=%4 pools=%5 storage=%6 types=%7 levels=%8 conn=%9 %10\n")
         .arg(job_list.count()).arg(client_list.count()).arg(fileset_list.count()).arg(messages_list.count())
         .arg(pool_list.count()).arg(storage_list.count()).arg(type_list.count()).arg(level_list.count())
-        .arg(conn);
-      Pmsg1(000, "%s\n", dbgmsg.toUtf8().data());
+        .arg(conn).arg(m_dir->name());
+      Pmsg1(000, "%s", dbgmsg.toUtf8().data());
    }
 }
 
@@ -199,7 +198,7 @@ bool Console::dir_cmd(const char *cmd, QStringList &results)
       dir_cmd(conn, cmd, results);
       return true;
    } else {
-      Pmsg0(000, "dir_cmd Seems to Failed to find a connection\n");
+      Pmsg1(000, "dir_cmd Seems to Failed to find a connection %s\n", m_dir->name());
       return false;
    }
 }
@@ -214,8 +213,10 @@ bool Console::dir_cmd(int conn, const char *cmd, QStringList &results)
    DirComm *dircomm = m_dircommHash.value(conn);
    int stat;
 
-   if (mainWin->m_connDebug)
-      Pmsg2(000, "dir_cmd conn %i %s\n", conn, cmd);
+   if (mainWin->m_connDebug) {
+      QString dbgmsg = QString("dir_cmd conn %1 %2 %3\n").arg(conn).arg(m_dir->name()).arg(cmd);
+      Pmsg1(000, "%s", dbgmsg.toUtf8().data());
+   }
    notify(conn, false);
    dircomm->write(cmd);
    while ((stat = dircomm->read()) > 0 && dircomm->is_in_command()) {
@@ -359,8 +360,11 @@ bool Console::get_job_defaults(int &conn, struct job_defaults &job_defs, bool do
       conn = notifyOff();
    beginNewCommand(conn);
    DirComm *dircomm = m_dircommHash.value(conn);
+   bool prevWaitState = mainWin->getWaitState();
+   if (!prevWaitState)
+      mainWin->waitEnter();
    if (mainWin->m_connDebug)
-      Pmsg1(000, "job_defaults conn %i\n", conn);
+      Pmsg2(000, "job_defaults conn %i %s\n", conn, m_dir->name());
    scmd = QString(".defaults job=\"%1\"").arg(job_defs.job_name);
    dircomm->write(scmd);
    while ((stat = dircomm->read()) > 0) {
@@ -423,11 +427,15 @@ bool Console::get_job_defaults(int &conn, struct job_defaults &job_defs, bool do
 
    if (donotify)
       notify(conn, true);
+   if (!prevWaitState)
+      mainWin->waitExit();
    return true;
 
 bail_out:
    if (donotify)
       notify(conn, true);
+   if (!prevWaitState)
+      mainWin->waitExit();
    return false;
 }
 
@@ -539,7 +547,7 @@ void Console::display_html(const QString buf)
 /* Position cursor to end of screen */
 void Console::update_cursor()
 {
-   QApplication::restoreOverrideCursor();
+//   QApplication::restoreOverrideCursor();
    m_textEdit->moveCursor(QTextCursor::End);
    m_textEdit->ensureCursorVisible();
 }
@@ -551,6 +559,7 @@ void Console::beginNewCommand(int conn)
    for (int i=0; i < 3; i++) {
       dircomm->write(".");
       while (dircomm->read() > 0) {
+         Pmsg2(000, "begin new command loop %i %s\n", i, m_dir->name());
          if (mainWin->m_displayAll) display_text(dircomm->msg());
       }
       if (dircomm->m_at_main_prompt) {
@@ -566,7 +575,7 @@ void Console::displayToPrompt(int conn)
 
    int stat = 0;
    QString buf;
-   if (mainWin->m_commDebug) Pmsg0(000, "DisplaytoPrompt\n");
+   if (mainWin->m_commDebug) Pmsg1(000, "DisplaytoPrompt %s\n", m_dir->name());
    while (!dircomm->m_at_prompt) {
       if ((stat=dircomm->read()) > 0) {
          buf += dircomm->msg();
@@ -578,7 +587,7 @@ void Console::displayToPrompt(int conn)
       }
    }
    display_text(buf);
-   if (mainWin->m_commDebug) Pmsg1(000, "endDisplaytoPrompt=%d\n", stat);
+   if (mainWin->m_commDebug) Pmsg2(000, "endDisplaytoPrompt=%d %s\n", stat, m_dir->name());
 }
 
 void Console::discardToPrompt(int conn)
@@ -586,7 +595,7 @@ void Console::discardToPrompt(int conn)
    DirComm *dircomm = m_dircommHash.value(conn);
 
    int stat = 0;
-   if (mainWin->m_commDebug) Pmsg0(000, "discardToPrompt\n");
+   if (mainWin->m_commDebug) Pmsg1(000, "discardToPrompt %s\n", m_dir->name());
    if (mainWin->m_displayAll) {
       displayToPrompt(conn);
    } else {
@@ -594,7 +603,7 @@ void Console::discardToPrompt(int conn)
          stat=dircomm->read();
       }
    }
-   if (mainWin->m_commDebug) Pmsg1(000, "endDiscardToPrompt=%d\n", stat);
+   if (mainWin->m_commDebug) Pmsg2(000, "endDiscardToPrompt=%d %s\n", stat, m_dir->name());
 }
 
 /*
@@ -780,14 +789,15 @@ bool Console::newDirComm(int &conn)
    m_dircommCounter += 1;
    conn = m_dircommCounter;
    if (mainWin->m_connDebug)
-      Pmsg1(000, "DirComm %i About to Create and Connect\n", m_dircommCounter);
+      Pmsg2(000, "DirComm %i About to Create and Connect %s\n", m_dircommCounter, m_dir->name());
    DirComm *dircomm = new DirComm(this, m_dircommCounter);
    m_dircommHash.insert(m_dircommCounter, dircomm);
    bool success = dircomm->connect_dir();
-   if (mainWin->m_connDebug)
+   if (mainWin->m_connDebug) {
       if (success)
-         Pmsg1(000, "DirComm %i Connected\n", conn);
+         Pmsg2(000, "DirComm %i Connected %s\n", conn, m_dir->name());
       else
-         Pmsg1(000, "DirComm %i NOT Connected\n", conn);
+         Pmsg2(000, "DirComm %i NOT Connected %s\n", conn, m_dir->name());
+   }
    return success;
 }

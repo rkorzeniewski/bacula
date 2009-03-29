@@ -67,6 +67,8 @@ void DirComm::terminate()
          delete m_notifier;
          m_notifier = NULL;
       }
+      if (mainWin->m_connDebug)
+         Pmsg2(000, "DirComm %i terminating connections %s\n", m_conn, m_console->m_dir->name());
       m_sock->close();
       m_sock = NULL;
    }
@@ -89,7 +91,7 @@ bool DirComm::connect_dir()
       m_console->display_textf(_("Already connected\"%s\".\n"),
             m_console->m_dir->name());
       if (mainWin->m_connDebug)
-         Pmsg1(000, "DirComm %i BAILING already connected\n", m_conn);
+         Pmsg2(000, "DirComm %i BAILING already connected %s\n", m_conn, m_console->m_dir->name());
       goto bail_out;
    }
 
@@ -124,7 +126,7 @@ bool DirComm::connect_dir()
          m_console->display_textf(_("Failed to initialize TLS context for Console \"%s\".\n"),
             m_console->m_dir->name());
          if (mainWin->m_connDebug)
-            Pmsg1(000, "DirComm %i BAILING Failed to initialize TLS context for Console \n", m_conn);
+            Pmsg2(000, "DirComm %i BAILING Failed to initialize TLS context for Console %s\n", m_conn, m_console->m_dir->name());
          goto bail_out;
       }
    }
@@ -147,7 +149,7 @@ bool DirComm::connect_dir()
             m_console->m_dir->name());
          mainWin->set_status("Connection failed");
          if (mainWin->m_connDebug)
-            Pmsg1(000, "DirComm %i BAILING Failed to initialize TLS context for Director \n", m_conn);
+            Pmsg2(000, "DirComm %i BAILING Failed to initialize TLS context for Director %s\n", m_conn, m_console->m_dir->name());
          goto bail_out;
       }
    }
@@ -166,7 +168,7 @@ bool DirComm::connect_dir()
    if (m_sock == NULL) {
       mainWin->set_status("Connection failed");
       if (mainWin->m_connDebug)
-         Pmsg1(000, "DirComm %i BAILING Connection failed\n", m_conn);
+         Pmsg2(000, "DirComm %i BAILING Connection failed %s\n", m_conn, m_console->m_dir->name());
       goto bail_out;
    } else {
       /* Update page selector to green to indicate that Console is connected */
@@ -181,7 +183,7 @@ bool DirComm::connect_dir()
    if (!authenticate_director(jcr, m_console->m_dir, cons, buf, sizeof(buf))) {
       m_console->display_text(buf);
       if (mainWin->m_connDebug)
-         Pmsg1(000, "DirComm %i BAILING Connection failed\n", m_conn);
+         Pmsg2(000, "DirComm %i BAILING Connection failed %s\n", m_conn, m_console->m_dir->name());
       goto bail_out;
    }
 
@@ -209,12 +211,12 @@ bool DirComm::connect_dir()
    mainWin->set_status(_("Connected"));
 
    if (mainWin->m_connDebug)
-      Pmsg1(000, "Returning TRUE from DirComm->connect_dir : %i\n", m_conn);
+      Pmsg2(000, "Returning TRUE from DirComm->connect_dir : %i %s\n", m_conn, m_console->m_dir->name());
    return true;
 
 bail_out:
    if (mainWin->m_connDebug)
-      Pmsg1(000, "Returning FALSE from DirComm->connect_dir : %i\n", m_conn);
+      Pmsg2(000, "Returning FALSE from DirComm->connect_dir : %i %s\n", m_conn, m_console->m_dir->name());
    delete jcr;
    return false;
 }
@@ -322,29 +324,24 @@ int DirComm::read()
          m_at_prompt = true;
          m_at_main_prompt = true;
          mainWin->set_status(_("At main prompt waiting for input ..."));
-         QApplication::restoreOverrideCursor();
          break;
       case BNET_PROMPT:
          if (mainWin->m_commDebug) Pmsg1(000, "conn %i PROMPT\n", m_conn);
          m_at_prompt = true;
          m_at_main_prompt = false;
          mainWin->set_status(_("At prompt waiting for input ..."));
-         QApplication::restoreOverrideCursor();
          break;
       case BNET_CMD_FAILED:
          if (mainWin->m_commDebug) Pmsg1(000, "CMD FAILED\n", m_conn);
          if (--m_in_command < 0) {
-//          Pmsg0(000, "m_in_command < 0\n");
             m_in_command = 0;
          }
          mainWin->set_status(_("Command failed."));
-         QApplication::restoreOverrideCursor();
          break;
       /* We should not get this one */
       case BNET_EOD:
          if (mainWin->m_commDebug) Pmsg1(000, "conn %i EOD\n", m_conn);
          mainWin->set_status_ready();
-         QApplication::restoreOverrideCursor();
          if (!m_api_set) {
             break;
          }
@@ -402,7 +399,7 @@ int DirComm::read()
             m_notifier = NULL;
          }
          mainWin->set_status(_("Director disconnected."));
-         QApplication::restoreOverrideCursor();
+//         QApplication::restoreOverrideCursor();
          stat = BNET_HARDEOF;
       }
       break;
@@ -435,13 +432,14 @@ bool DirComm::notify(bool enable)
    if (m_notifier) {
       prev_enabled = m_notifier->isEnabled();   
       m_notifier->setEnabled(enable);
-      if (mainWin->m_connDebug)
+      if (mainWin->m_connDebug) {
          if (prev_enabled && !enable)
-            Pmsg1(000, "m_notifier Disabling notifier: %i\n", m_conn);
+            Pmsg2(000, "m_notifier Disabling notifier: %i %s\n", m_conn, m_console->m_dir->name());
          else if (!prev_enabled && enable)
-            Pmsg1(000, "m_notifier Enabling notifier: %i\n", m_conn); 
-    } else if (mainWin->m_connDebug)
-       Pmsg1(000, "m_notifier does not exist: %i\n", m_conn);
+            Pmsg2(000, "m_notifier Enabling notifier: %i %s\n", m_conn, m_console->m_dir->name());
+      }
+   } else if (mainWin->m_connDebug)
+      Pmsg2(000, "m_notifier does not exist: %i %s\n", m_conn, m_console->m_dir->name());
    return prev_enabled;
 }
 

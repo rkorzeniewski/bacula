@@ -60,6 +60,7 @@ public:
    void hashRemove(Pages *);
    void hashRemove(QTreeWidgetItem *, Pages *);
    void setMessageIcon();
+   bool getWaitState() {return m_waitState; };
    Console *currentConsole();
    QTreeWidgetItem *currentTopItem();
    Pages* getFromHash(QTreeWidgetItem *);
@@ -127,6 +128,7 @@ public slots:
    void waitEnter();
    void waitExit();
    void repopLists();
+   void popLists();
 
 protected:
    void closeEvent(QCloseEvent *event);
@@ -148,6 +150,7 @@ private:
    QTreeWidgetItem *m_firstItem;
    QTreeWidgetItem *m_waitTreeItem;
    bool m_isClosing;
+   bool m_waitState;
 };
 
 #include "ui_prefs.h"

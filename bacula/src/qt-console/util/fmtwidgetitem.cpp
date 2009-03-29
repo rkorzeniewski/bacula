@@ -69,7 +69,6 @@ QString convertJobStatus(const QString &sts)
 Freeze::Freeze(QWidget &q):
 qw(&q)
 {
-   QApplication::setOverrideCursor(Qt::WaitCursor);
    qw->setUpdatesEnabled(false); 
 }
 
@@ -77,7 +76,6 @@ Freeze::~Freeze()
 {
    if (qw) {
       qw->setUpdatesEnabled(true); 
-      QApplication::restoreOverrideCursor();
       qw->update();
    }
 }
