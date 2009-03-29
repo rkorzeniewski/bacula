@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2007-2008 Free Software Foundation Europe e.V.
+   Copyright (C) 2007-2009 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -123,20 +123,20 @@ void FileSet::populateTable()
          foreach (QString resultline, results) {
             fieldlist = resultline.split("\t");
 
-	    TableItemFormatter item(*tableWidget, row);
+            TableItemFormatter item(*tableWidget, row);
   
-	    /* Iterate through fields in the record */
-	    QStringListIterator fld(fieldlist);
-	    int col = 0;
+            /* Iterate through fields in the record */
+            QStringListIterator fld(fieldlist);
+            int col = 0;
 
-	    /* name */
-	    item.setTextFld(col++, fld.next());
+            /* name */
+            item.setTextFld(col++, fld.next());
 
-	    /* id */
-	    item.setNumericFld(col++, fld.next());
+            /* id */
+            item.setNumericFld(col++, fld.next());
 
-	    /* creation time */
-	    item.setTextFld(col++, fld.next());
+            /* creation time */
+            item.setTextFld(col++, fld.next());
 
             row++;
          }
@@ -156,7 +156,9 @@ void FileSet::populateTable()
    for(int r=0; r < rcnt; r++) {
       for(int c=0; c < ccnt; c++) {
          QTableWidgetItem* item = tableWidget->item(r, c);
-         item->setFlags(Qt::ItemFlags(item->flags() & (~Qt::ItemIsEditable)));
+         if (item) {
+            item->setFlags(Qt::ItemFlags(item->flags() & (~Qt::ItemIsEditable)));
+         }
       }
    }
 }

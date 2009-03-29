@@ -206,6 +206,7 @@ void *handle_client_request(void *dirp)
    bool found, quit;
    JCR *jcr;
    BSOCK *dir = (BSOCK *)dirp;
+   const char jobname[12] = "*Director*";
 
    jcr = new_jcr(sizeof(JCR), filed_free_jcr); /* create JCR */
    jcr->dir_bsock = dir;
@@ -216,6 +217,7 @@ void *handle_client_request(void *dirp)
    jcr->last_fname[0] = 0;
    jcr->client_name = get_memory(strlen(my_name) + 1);
    pm_strcpy(jcr->client_name, my_name);
+   bstrncpy(jcr->Job, jobname, sizeof(jobname));  /* dummy */
    jcr->crypto.pki_sign = me->pki_sign;
    jcr->crypto.pki_encrypt = me->pki_encrypt;
    jcr->crypto.pki_keypair = me->pki_keypair;
@@ -1310,11 +1312,11 @@ static int level_cmd(JCR *jcr)
          } else {
             type = M_INFO;
          }
-         Jmsg(jcr, type, 0, _("DIR and FD clocks differ by %d seconds, FD automatically compensating.\n"), adj);
+         Jmsg(jcr, type, 0, _("DIR and FD clocks differ by %lld seconds, FD automatically compensating.\n"), adj);
       }
       dir->signal(BNET_EOD);
 
-      Dmsg2(100, "adj = %d since_time=%lld\n", (int)adj, since_time);
+      Dmsg2(100, "adj=%lld since_time=%lld\n", adj, since_time);
       jcr->incremental = 1;           /* set incremental or decremental backup */
       jcr->mtime = since_time;        /* set since time */
       generate_plugin_event(jcr, bEventSince, (void *)(time_t)jcr->mtime);
