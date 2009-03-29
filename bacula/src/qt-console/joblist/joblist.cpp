@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2007-2008 Free Software Foundation Europe e.V.
+   Copyright (C) 2007-2009 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -159,45 +159,45 @@ void JobList::populateTable()
       foreach (resultline, results) {
          fieldlist = resultline.split("\t");
          if (fieldlist.size() < 12)
-  	    continue; /* some fields missing, ignore row */
+            continue; /* some fields missing, ignore row */
 
-	 TableItemFormatter jobitem(*mp_tableWidget, row);
+         TableItemFormatter jobitem(*mp_tableWidget, row);
   
          /* Iterate through fields in the record */
-	 QStringListIterator fld(fieldlist);
+         QStringListIterator fld(fieldlist);
          int col = 0;
 
-	 /* job id */
+         /* job id */
          jobitem.setNumericFld(col++, fld.next());
 
-	 /* job name */
+         /* job name */
          jobitem.setTextFld(col++, fld.next());
 
-	 /* client */
+         /* client */
          jobitem.setTextFld(col++, fld.next());
 
-	 /* job starttime */
+         /* job starttime */
          jobitem.setTextFld(col++, fld.next(), true);
 
-	 /* job type */
+         /* job type */
          jobitem.setJobTypeFld(col++, fld.next());
 
-	 /* job level */
+         /* job level */
          jobitem.setJobLevelFld(col++, fld.next());
 
-	 /* job files */
+         /* job files */
          jobitem.setNumericFld(col++, fld.next());
 
-	 /* job bytes */
+         /* job bytes */
          jobitem.setBytesFld(col++, fld.next());
 
-	 /* job status */
+         /* job status */
          jobitem.setJobStatusFld(col++, fld.next());
 
-	 /* purged */
-	 jobitem.setBoolFld(col++, fld.next());
+         /* purged */
+         jobitem.setBoolFld(col++, fld.next());
 
-	 /* fileset */
+         /* fileset */
          jobitem.setTextFld(col++, fld.next());
 
          row++;
@@ -225,7 +225,9 @@ void JobList::populateTable()
    for(int r=0; r < rcnt; r++) {
       for(int c=0; c < ccnt; c++) {
          QTableWidgetItem* item = mp_tableWidget->item(r, c);
-         item->setFlags(Qt::ItemFlags(item->flags() & (~Qt::ItemIsEditable)));
+         if (item) {
+            item->setFlags(Qt::ItemFlags(item->flags() & (~Qt::ItemIsEditable)));
+         }
       }
    }
 }

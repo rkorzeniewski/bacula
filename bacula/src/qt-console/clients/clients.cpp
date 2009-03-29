@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2007-2008 Free Software Foundation Europe e.V.
+   Copyright (C) 2007-2009 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -127,29 +127,29 @@ void Clients::populateTable()
          foreach (QString resultline, results) {
             QStringList fieldlist = resultline.split("\t");
 
-	    TableItemFormatter item(*tableWidget, row);
+            TableItemFormatter item(*tableWidget, row);
 
-	    /* Iterate through fields in the record */
-	    QStringListIterator fld(fieldlist);
-	    int col = 0;
+            /* Iterate through fields in the record */
+            QStringListIterator fld(fieldlist);
+            int col = 0;
 
-	    /* name */
-	    item.setTextFld(col++, fld.next());
+            /* name */
+            item.setTextFld(col++, fld.next());
 
-	    /* file retention */
-	    item.setDurationFld(col++, fld.next());
+            /* file retention */
+            item.setDurationFld(col++, fld.next());
 
-	    /* job retention */
-	    item.setDurationFld(col++, fld.next());
+            /* job retention */
+            item.setDurationFld(col++, fld.next());
 
-	    /* autoprune */
-	    item.setBoolFld(col++, fld.next());
+            /* autoprune */
+            item.setBoolFld(col++, fld.next());
 
-	    /* client id */
-	    item.setNumericFld(col++, fld.next());
+            /* client id */
+            item.setNumericFld(col++, fld.next());
 
-	    /* uname */
-	    item.setTextFld(col++, fld.next());
+            /* uname */
+            item.setTextFld(col++, fld.next());
 
             row++;
          }
@@ -169,7 +169,9 @@ void Clients::populateTable()
    for(int r=0; r < rcnt; r++) {
       for(int c=0; c < ccnt; c++) {
          QTableWidgetItem* item = tableWidget->item(r, c);
-         item->setFlags(Qt::ItemFlags(item->flags() & (~Qt::ItemIsEditable)));
+         if (item) {
+            item->setFlags(Qt::ItemFlags(item->flags() & (~Qt::ItemIsEditable)));
+         }
       }
    }
 }
@@ -294,9 +296,9 @@ void Clients::consolePurgeJobs()
 " you are doing.\n\n"
 " Is there any way I can get you to click Cancel here?  You really don't want to do"
 " this\n\n"
-	 "Press OK to proceed with the purge operation?").arg(m_currentlyselected),
-	 QMessageBox::Ok | QMessageBox::Cancel,
-	 QMessageBox::Cancel)
+         "Press OK to proceed with the purge operation?").arg(m_currentlyselected),
+         QMessageBox::Ok | QMessageBox::Cancel,
+         QMessageBox::Cancel)
       == QMessageBox::Cancel) { return; }
 
    QString cmd("purge jobs client=");
@@ -320,4 +322,3 @@ void Clients::statusClientWindow()
    QTreeWidgetItem *parentItem = mainWin->getFromHash(this);
    new ClientStat(m_currentlyselected, parentItem);
 }
-

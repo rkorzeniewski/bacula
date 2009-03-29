@@ -102,8 +102,7 @@ bool DirComm::authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons,
    }
 
    /* Timeout Hello after 15 secs */
-// Temp turn this off until we workout how to make sigusr2 work with Qt
-//   dir->start_timer(15);
+   dir->start_timer(15);
    dir->fsend(hello, bashed_name);
 
    /* respond to Dir challenge */

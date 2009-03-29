@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2007-2008 Free Software Foundation Europe e.V.
+   Copyright (C) 2007-2009 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -100,19 +100,19 @@ void Jobs::populateTable()
       job_defaults job_defs;
       job_defs.job_name = jobName;
       if (m_console->get_job_defaults(job_defs)) {
-	 int col = 0;
-	 TableItemFormatter jobsItem(*tableWidget, row);
-	 jobsItem.setTextFld(col++, jobName); 
-	 jobsItem.setTextFld(col++, job_defs.pool_name);
-	 jobsItem.setTextFld(col++, job_defs.messages_name);
-	 jobsItem.setTextFld(col++, job_defs.client_name);
-	 jobsItem.setTextFld(col++, job_defs.store_name);
-	 jobsItem.setTextFld(col++, job_defs.level);
-	 jobsItem.setTextFld(col++, job_defs.type);
-	 jobsItem.setTextFld(col++, job_defs.fileset_name);
-	 jobsItem.setTextFld(col++, job_defs.catalog_name);
-	 jobsItem.setBoolFld(col++, job_defs.enabled);
-	 jobsItem.setTextFld(col++, job_defs.where);
+         int col = 0;
+         TableItemFormatter jobsItem(*tableWidget, row);
+         jobsItem.setTextFld(col++, jobName); 
+         jobsItem.setTextFld(col++, job_defs.pool_name);
+         jobsItem.setTextFld(col++, job_defs.messages_name);
+         jobsItem.setTextFld(col++, job_defs.client_name);
+         jobsItem.setTextFld(col++, job_defs.store_name);
+         jobsItem.setTextFld(col++, job_defs.level);
+         jobsItem.setTextFld(col++, job_defs.type);
+         jobsItem.setTextFld(col++, job_defs.fileset_name);
+         jobsItem.setTextFld(col++, job_defs.catalog_name);
+         jobsItem.setBoolFld(col++, job_defs.enabled);
+         jobsItem.setTextFld(col++, job_defs.where);
 
       }
       row++;
@@ -131,7 +131,9 @@ void Jobs::populateTable()
    for(int r=0; r < rcnt; r++) {
       for(int c=0; c < ccnt; c++) {
          QTableWidgetItem* item = tableWidget->item(r, c);
-         item->setFlags(Qt::ItemFlags(item->flags() & (~Qt::ItemIsEditable)));
+         if (item) {
+            item->setFlags(Qt::ItemFlags(item->flags() & (~Qt::ItemIsEditable)));
+         }
       }
    }
    mainWin->waitExit();
