@@ -151,6 +151,7 @@ private:
    QTreeWidgetItem *m_waitTreeItem;
    bool m_isClosing;
    bool m_waitState;
+   bool m_doConnect;
 };
 
 #include "ui_prefs.h"
