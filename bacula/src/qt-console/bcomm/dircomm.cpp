@@ -270,6 +270,7 @@ int DirComm::read()
    int stat = 0;
    while (m_sock) {
       for (;;) {
+         if (!m_sock) break;
          stat = m_sock->wait_data_intr(0, 50000);
          if (stat > 0) {
             break;
@@ -279,6 +280,9 @@ int DirComm::read()
             m_console->write_dir(m_conn, ".messages");
             m_console->messagesPending(false);
          }
+      }
+      if (!m_sock) {
+         return BNET_HARDEOF;
       }
       m_sock->msg[0] = 0;
       stat = sock_read();
