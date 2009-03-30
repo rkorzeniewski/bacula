@@ -12,7 +12,6 @@ New features needing documentation:
   restore scenarios.
 - New configure options --disable-libtool, --docdir, --htmldir, ...
 - Virtual Full and Pools
-- Regex filtered bsrs Kjetil Torgrim Homme <kjetilho@linpro.no> 15Aug08 (miss an example)
 
 Code to be completed before 3.0.0 is released:
 2. Finish documentation (some noted above)
