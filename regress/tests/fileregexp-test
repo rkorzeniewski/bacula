@@ -1,7 +1,7 @@
 #!/bin/sh
 #
 # Run a simple backup of the Bacula build directory
-#   then restore it.
+#   prune file records, then restore only README files.
 #
 TestName="fileregexp-test"
 JobName=backup
