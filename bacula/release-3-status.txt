@@ -10,10 +10,9 @@ New features needing documentation:
   goes wrong and the data doesn't make it to the backup medium then
   the logs are lost, which could be a problem under some
   restore scenarios.
-- Regex filtered bsrs Kjetil Torgrim Homme <kjetilho@linpro.no> 15Aug08
-- Allow Mixed Priorities  Kjetil Torgrim Homme <kjetilho@linpro.no> 30Jun08
 - New configure options --disable-libtool, --docdir, --htmldir, ...
 - Virtual Full and Pools
+- Regex filtered bsrs Kjetil Torgrim Homme <kjetilho@linpro.no> 15Aug08 (miss an example)
 
 Code to be completed before 3.0.0 is released:
 2. Finish documentation (some noted above)
