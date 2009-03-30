@@ -1,6 +1,8 @@
               Technical notes for current SVN
           
 General:
+30Mar09
+ebl  Fix small memory leak in fileregexp bsr code
 29Mar09
 kes  Correct bacula32.def entry point as specified by James.
 kes  Add code to FD plugin driver to make a copy of the plugin
