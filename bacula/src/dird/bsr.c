@@ -152,6 +152,9 @@ void free_bsr(RBSR *bsr)
       if (bsr->VolParams) {
          free(bsr->VolParams);
       }
+      if (bsr->fileregex) {
+         free(bsr->fileregex);
+      }
       next = bsr->next;
       free(bsr);
    }
