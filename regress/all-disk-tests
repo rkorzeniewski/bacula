@@ -24,6 +24,7 @@ nice tests/copy-volume-test
 nice tests/data-encrypt-test
 nice tests/encrypt-bug-test
 nice tests/fifo-test
+nice tests/fileregexp-test
 nice tests/backup-to-null
 nice tests/regexwhere-test
 # The following two can uses *lots* of disk space
