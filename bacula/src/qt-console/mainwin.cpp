@@ -109,10 +109,10 @@ void MainWin::popLists()
    foreach(Console *console, m_consoleHash)
       console->populateLists(true);
    app->restoreOverrideCursor();
-   m_currentConsole->setCurrent();
    m_doConnect = true;
    connectConsoleSignals();
    connectSignals();
+   m_currentConsole->setCurrent();
 }
 
 void MainWin::createPages()
