@@ -230,25 +230,23 @@ void Pages::treeWidgetName(QString &name)
  */
 void Pages::consoleCommand(QString &command)
 {
-   consoleInput(command);
-}
-
-/*
- * Function to simplify executing a console command, but does not
- *  check for the connection in use.  We need this so that we can
- *  *always* enter command from the command line.
- */
-void Pages::consoleInput(QString &command)
-{
    int conn;
+   if (m_console->availableDirComm(conn))  {
+      consoleCommand(command, conn);
+   }
+}
+void Pages::consoleCommand(QString &command, int conn)
+{
    /* Bring this director's console to the front of the stack */
    setConsoleCurrent();
    QString displayhtml("<font color=\"blue\">");
    displayhtml += command + "</font>\n";
    m_console->display_html(displayhtml);
    m_console->display_text("\n");
-   conn = m_console->write_dir(command.toUtf8().data());
+   mainWin->waitEnter();
+   m_console->write_dir(conn, command.toUtf8().data(), false);
    m_console->displayToPrompt(conn);
+   mainWin->waitExit();
 }
 
 /*

@@ -173,6 +173,8 @@ void prerestorePage::okButtonPushed()
    if (selectFilesRadio->isChecked()) {
       setConsoleCurrent();
       closeStackPage();
+      /* wait will be exited in the restore page constructor */
+      mainWin->waitEnter();
    } else {
       closeStackPage();
       mainWin->resetFocus();

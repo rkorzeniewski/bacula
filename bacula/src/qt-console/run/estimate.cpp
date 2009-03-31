@@ -55,6 +55,7 @@ estimatePage::estimatePage()
    levelCombo->addItems(m_console->level_list);
    clientCombo->addItems(m_console->client_list);
    job_name_change(0);
+   Pmsg1(000, "connecting estimate buttons : %i\n", m_conn);
    connect(jobCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(job_name_change(int)));
    connect(okButton, SIGNAL(pressed()), this, SLOT(okButtonPushed()));
    connect(cancelButton, SIGNAL(pressed()), this, SLOT(cancelButtonPushed()));
@@ -64,10 +65,13 @@ estimatePage::estimatePage()
    dockPage();
    setCurrent();
    this->show();
+   m_aButtonPushed = false;
 }
 
 void estimatePage::okButtonPushed()
 {
+   if (m_aButtonPushed) return;
+   m_aButtonPushed = true;
    this->hide();
    QString cmd;
    QTextStream(&cmd) << "estimate" << 
@@ -83,7 +87,7 @@ void estimatePage::okButtonPushed()
       Pmsg1(000, "command : %s\n", cmd.toUtf8().data());
    }
 
-   consoleCommand(cmd);
+   consoleCommand(cmd, m_conn);
    m_console->notify(m_conn, true);
    closeStackPage();
    mainWin->resetFocus();
@@ -92,6 +96,8 @@ void estimatePage::okButtonPushed()
 
 void estimatePage::cancelButtonPushed()
 {
+   if (m_aButtonPushed) return;
+   m_aButtonPushed = true;
    mainWin->set_status(" Canceled");
    this->hide();
    m_console->notify(m_conn, true);
@@ -110,7 +116,7 @@ void estimatePage::job_name_change(int index)
 
    (void)index;
    job_defs.job_name = jobCombo->currentText();
-   if (m_console->get_job_defaults(job_defs)) {
+   if (m_console->get_job_defaults(m_conn, job_defs)) {
       filesetCombo->setCurrentIndex(filesetCombo->findText(job_defs.fileset_name, Qt::MatchExactly));
       levelCombo->setCurrentIndex(levelCombo->findText(job_defs.level, Qt::MatchExactly));
       clientCombo->setCurrentIndex(clientCombo->findText(job_defs.client_name, Qt::MatchExactly));

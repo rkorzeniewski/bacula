@@ -70,7 +70,7 @@ public:
    void setContextMenuDockText();
    void setTreeWidgetItemDockColor();
    void consoleCommand(QString &);
-   void consoleInput(QString &);
+   void consoleCommand(QString &, int conn);
    QString &name() { return m_name; };
    void getVolumeList(QStringList &);
    void getStatusList(QStringList &);

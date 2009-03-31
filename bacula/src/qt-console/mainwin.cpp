@@ -298,6 +298,11 @@ void MainWin::disconnectSignals()
  */
 void MainWin::waitEnter()
 {
+   if (m_waitState){ 
+      if (mainWin->m_connDebug)
+         Pmsg0(000, "Should Never Get Here DANGER DANGER, for now I'll return\n");
+      return;
+   }
    m_waitState = true;
    if (mainWin->m_connDebug)
       Pmsg0(000, "Entering Wait State\n");
@@ -566,8 +571,8 @@ void MainWin::input_line()
    QString cmdStr = lineEdit->text();    /* Get the text */
    lineEdit->clear();                    /* clear the lineEdit box */
    if (m_currentConsole->is_connected()) {
-      /* Use consoleInput to allow typing anything */
-      m_currentConsole->consoleInput(cmdStr);
+      /* Use consoleCommand to allow typing anything */
+      m_currentConsole->consoleCommand(cmdStr);
    } else {
       set_status(tr("Director not connected. Click on connect button."));
    }
