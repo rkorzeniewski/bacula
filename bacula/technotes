@@ -11,14 +11,14 @@ kes  Add code to FD plugin driver to make a copy of the plugin
 kes  Directly mark all files saved by plugin as being seen for Accurate.
 kes  Add checks on the plugin version and the plugin license. Currently
      only implemented for FD plugins.
-kes  Add installation of /usr/share/doc/bacula-VERSION
+kes  Add installation of /usr/share/doc/bacula
 kes  Modify plugin checkFile to return bRC_Seen to cause file
      to remain.  Previously was true/false.
 27Mar09
 kes  Implement installation of bat help files
      The help files are installed in the htmldoc dir and can be set
      by --htmldoc=xxx on the ./configure. Default is:
-     /usr/share/doc/bacula-version/html
+     /usr/share/doc/bacula/html
 kes  Update projects file
 kes  Apply patch from  Pasi Karkkainen <pasik@iki.fi> that adds
      Previous Job name to migrate job report.
