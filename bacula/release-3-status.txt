@@ -4,11 +4,7 @@ Target:
   Release before 15 April
 
 New features needing documentation:
-- The exchange plugin truncates the exchange logs as soon as it has
-  sent the data to the sd.  If the sd is spooling and something
-  goes wrong and the data doesn't make it to the backup medium then
-  the logs are lost, which could be a problem under some
-  restore scenarios.
+done !
 
 New features implemented:
 - Accurate Backup
