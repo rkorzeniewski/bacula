@@ -17,7 +17,7 @@ Bweb works well with 1.39 release or later.
 11) setting mysql read-only account
 12) get more statistics
 13) use groups with bweb
-14) setup restoration in bweb (not yet working)
+14) setup restoration in bweb
 
 ################ FILE COPY #####################################
  # you must get bweb svn files
@@ -332,7 +332,6 @@ For postgresql, it will be done with bweb/script/bweb-postgresql.sql (already do
 
 ################ MADE RESTORATION WITH BWEB ####################
 
-Warning, this function is not for production use at this time !
 It will do some basics things on a working bweb/brestore setup.
 
 1) Go to http://extjs.com and download their toolkit (last 2.2 release)
