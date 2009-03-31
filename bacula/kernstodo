@@ -1,6 +1,14 @@
                     Kern's ToDo List
                     02 May 2008
 
+Rescue:
+Add to USB key:
+  gftp sshfs kile kate lsssci m4 mtx nfs-common nfs-server
+  patch squashfs-tools strace sg3-utils screen scsiadd
+  system-tools-backend telnet dpkg traceroute urar usbutils
+  whois apt-file autofs busybox chkrootkit clamav dmidecode
+  manpages-dev manpages-posix manpages-posix-dev
+
 
 Document:
 - package sg3-utils, program sg_map

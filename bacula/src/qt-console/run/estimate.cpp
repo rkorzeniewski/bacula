@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2007-2008 Free Software Foundation Europe e.V.
+   Copyright (C) 2007-2009 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -55,7 +55,7 @@ estimatePage::estimatePage()
    levelCombo->addItems(m_console->level_list);
    clientCombo->addItems(m_console->client_list);
    job_name_change(0);
-   Pmsg1(000, "connecting estimate buttons : %i\n", m_conn);
+   Pmsg1(100, "connecting estimate buttons : %i\n", m_conn);
    connect(jobCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(job_name_change(int)));
    connect(okButton, SIGNAL(pressed()), this, SLOT(okButtonPushed()));
    connect(cancelButton, SIGNAL(pressed()), this, SLOT(cancelButtonPushed()));
