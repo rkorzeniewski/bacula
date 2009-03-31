@@ -1202,6 +1202,7 @@ void restoreTree::updateFileTableChecks()
    int rcnt = fileTable->rowCount();
    for (int row=0; row<rcnt; row++) {
       QTableWidgetItem* item = fileTable->item(row, 0);
+      if (!item) return;
 
       Qt::CheckState curState = item->checkState();
       Qt::CheckState newState = Qt::PartiallyChecked;
@@ -1243,6 +1244,7 @@ void restoreTree::updateVersionTableChecks()
 
    /* deterimine the default state from the state of the file */
    QTableWidgetItem *fileTableItem = fileTable->item(fileTable->currentRow(), 0);
+   if (!fileTableItem) return;
    Qt::CheckState fileState = fileTableItem->checkState();
    QString file = fileTableItem->text();
    QString fullPath = dirName + file;
@@ -1252,6 +1254,7 @@ void restoreTree::updateVersionTableChecks()
    int cnt = versionTable->rowCount();
    for (int row=0; row<cnt; row++) {
       QTableWidgetItem* item = versionTable->item(row, 0);
+      if (!item) break;
 
       Qt::CheckState curState = item->checkState();
       Qt::CheckState newState = Qt::Unchecked;
