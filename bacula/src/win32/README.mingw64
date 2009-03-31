@@ -121,6 +121,8 @@ should be compiled by hand with host=x86_64-pc-linux and target=x86_64-pc-mingw3
 For that, use this configure line :
 
 ./configure --host=x86_64-pc-linux --target=x86_64-pc-mingw32 --prefix=$ROOT/cross-tools
+or
+./configure --host=x86_64-pc-linux --target=x86_64-pc-mingw32 --prefix=$ROOT/depkgs-mingw64
 
 (It can work with other setup). We are using binutils-2.19, gcc-4.3.2,
 gmp-4.2.4, mpfr-2.3.2. The mingw64 project delivers binaries that should do the
