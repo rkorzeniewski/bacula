@@ -4,17 +4,11 @@ Target:
   Release before 15 April
 
 New features needing documentation:
-- Eliminated license problems with OpenSSL.
 - The exchange plugin truncates the exchange logs as soon as it has
   sent the data to the sd.  If the sd is spooling and something
   goes wrong and the data doesn't make it to the backup medium then
   the logs are lost, which could be a problem under some
   restore scenarios.
-- New configure options --disable-libtool, --docdir, --htmldir, ...
-- Virtual Full and Pools
-
-Code to be completed before 3.0.0 is released:
-2. Finish documentation (some noted above)
 
 New features implemented:
 - Accurate Backup
