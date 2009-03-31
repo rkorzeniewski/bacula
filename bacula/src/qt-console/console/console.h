@@ -91,7 +91,9 @@ public:
    bool sql_cmd(int &conn, QString &cmd, QStringList &results);
    bool sql_cmd(int &conn, const char *cmd, QStringList &results, bool donotify);
    int write_dir(const char *buf);
+   int write_dir(const char *buf, bool dowait);
    void write_dir(int conn, const char *buf);
+   void write_dir(int conn, const char *buf, bool dowait);
    void getDirResName(QString &);
    void setDirRes(DIRRES *dir);
    void writeSettings();

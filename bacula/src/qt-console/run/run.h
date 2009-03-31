@@ -55,6 +55,7 @@ public slots:
 
 private:
    int m_conn;
+   bool m_aButtonPushed;
 };
 
 class prunePage : public Pages, public Ui::pruneForm

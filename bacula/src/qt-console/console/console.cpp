@@ -96,7 +96,7 @@ void Console::poll_messages()
       return;
    DirComm *dircomm = m_dircommHash.value(conn);
 
-   if (mainWin->m_checkMessages && dircomm->m_at_main_prompt && hasFocus()){
+   if (mainWin->m_checkMessages && dircomm->m_at_main_prompt && hasFocus() && !mainWin->getWaitState()){
       messagesPending(true);
       dircomm->write(".messages");
       displayToPrompt(conn);
@@ -302,7 +302,10 @@ bool Console::sql_cmd(int &conn, const char *query, QStringList &results, bool d
    return true;              /* ***FIXME*** return any command error */
 }
 
-/* Send a command to the Director */
+/* 
+ * Overloads for
+ * Sending a command to the Director
+ */
 int Console::write_dir(const char *msg)
 {
    int conn;
@@ -311,16 +314,33 @@ int Console::write_dir(const char *msg)
    return conn;
 }
 
-/* Send a command to the Director */
+int Console::write_dir(const char *msg, bool dowait)
+{
+   int conn;
+   if (availableDirComm(conn))
+      write_dir(conn, msg, dowait);
+   return conn;
+}
+
 void Console::write_dir(int conn, const char *msg)
+{
+   write_dir(conn, msg, true);
+}
+
+/*
+ * Send a command to the Director
+ */
+void Console::write_dir(int conn, const char *msg, bool dowait)
 {
    DirComm *dircomm = m_dircommHash.value(conn);
 
    if (dircomm->m_sock) {
       mainWin->set_status(_("Processing command ..."));
-      mainWin->waitEnter();
+      if (dowait)
+         mainWin->waitEnter();
       dircomm->write(msg);
-      mainWin->waitExit();
+      if (dowait)
+         mainWin->waitExit();
    } else {
       mainWin->set_status( tr(" Director not connected. Click on connect button."));
       mainWin->actionConnect->setIcon(QIcon(":images/disconnected.png"));
@@ -547,7 +567,6 @@ void Console::display_html(const QString buf)
 /* Position cursor to end of screen */
 void Console::update_cursor()
 {
-//   QApplication::restoreOverrideCursor();
    m_textEdit->moveCursor(QTextCursor::End);
    m_textEdit->ensureCursorVisible();
 }

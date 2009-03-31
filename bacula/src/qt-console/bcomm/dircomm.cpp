@@ -279,7 +279,7 @@ int DirComm::read()
          } 
          app->processEvents();
          if (m_api_set && m_console->is_messagesPending() && is_notify_enabled() && m_console->hasFocus()) {
-            m_console->write_dir(m_conn, ".messages");
+            m_console->write_dir(m_conn, ".messages", false);
             m_console->messagesPending(false);
          }
       }
@@ -300,7 +300,7 @@ int DirComm::read()
       case BNET_MSGS_PENDING :
          if (is_notify_enabled() && m_console->hasFocus()) {
             if (mainWin->m_commDebug) Pmsg1(000, "conn %i MSGS PENDING\n", m_conn);
-            m_console->write_dir(m_conn, ".messages");
+            m_console->write_dir(m_conn, ".messages", false);
             m_console->displayToPrompt(m_conn);
             m_console->messagesPending(false);
          }
