@@ -116,21 +116,18 @@ it is relatively obvious when looking at the src directory.
 In that directory, you should find a make.log, which has the full details
 of the compiles, links, and installs done for that package.
 
-The mingw64 environment and all dependencies should be compiled with host
-x86_64-pc-linux and target x86_64-pc-mingw32.
+When building the mingw64 environment and all dependencies (cross-tools, and depkgs-mingw64)
+should be compiled by hand with host=x86_64-pc-linux and target=x86_64-pc-mingw32.
+For that, use this configure line :
 
----8<------8<-------8<--------
-
-./configure --host=x86_64-pc-linux --target=x86_64-pc-mingw32 
-
----8<------8<-------8<--------
+./configure --host=x86_64-pc-linux --target=x86_64-pc-mingw32 --prefix=$ROOT/cross-tools
 
 (It can work with other setup). We are using binutils-2.19, gcc-4.3.2,
 gmp-4.2.4, mpfr-2.3.2. The mingw64 project delivers binaries that should do the
 work.
 
 Internal scripts and patches are using mingw32-xxx binaries, so you need to
-make links in the gcc bin directory.
+make links in the gcc bin ($ROOT/cross-tools/mingw-w64/bin) directory.
 
 ---8<------8<-------8<--------
 
