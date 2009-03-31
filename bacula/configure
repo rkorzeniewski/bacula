@@ -18365,11 +18365,11 @@ if test x$mandir = x'${prefix}/man' ; then
 fi
 
 if test x$htmldir = x${docdir} ; then
-   htmldir=`eval echo ${docdir}bacula-${VERSION}/html`
+   htmldir=`eval echo ${docdir}bacula/html`
 fi
 
 if test x$docdir = x'/usr/share/doc/' ; then
-   docdir=`eval echo ${docdir}bacula-${VERSION}`
+   docdir=`eval echo ${docdir}bacula`
 fi
 
 
