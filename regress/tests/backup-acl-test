@@ -20,7 +20,7 @@ scripts/copy-confs
 #
 outf="tmp/sed_tmp"
 echo "s%  Schedule =%# Schedule =%g" > $outf
-echo "s/Options {/Options { aclsupport=yes/" >> $outf
+echo "s/Options {/Options { aclsupport=yes; xattrsupport = yes/" >> $outf
 cp ${cwd}/bin/bacula-dir.conf  $cwd/tmp/1
 sed -f ${outf} ${cwd}/tmp/1 >${cwd}/bin/bacula-dir.conf
 
