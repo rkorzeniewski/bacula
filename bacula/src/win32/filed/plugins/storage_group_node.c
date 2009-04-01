@@ -194,7 +194,6 @@ storage_group_node_t::startBackupFile(exchange_fd_context_t *context, struct sav
                   tmp = new char[strlen(full_path) + wcslen(tmp_logfile_ptr) + 1];
                   strcpy(tmp, full_path);
                   wcstombs(tmp + strlen(full_path), tmp_logfile_ptr, wcslen(tmp_logfile_ptr) + 1);
-                  _JobMessage(M_WARNING, "Marking '%s' as seen\n", tmp);
                   bfuncs->setBaculaValue(context->bpContext, bVarFileSeen, (void *)tmp);
                   delete tmp;
                }
