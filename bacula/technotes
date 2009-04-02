@@ -1,6 +1,9 @@
               Technical notes for current SVN
           
 General:
+04Apr09
+kes  Enhance Job messages from SD when the FD->SD protocol is incorrect
+     and the SD hangs up. Previously this looked like a comm error.
 02Apr09
 mvw  Fixed problem in xattr and acl code trying to send empty acl or xattr
      streams.

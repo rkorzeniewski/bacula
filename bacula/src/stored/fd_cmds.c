@@ -162,7 +162,15 @@ void do_fd_commands(JCR *jcr)
       for (i=0; fd_cmds[i].cmd; i++) {
          if (strncmp(fd_cmds[i].cmd, fd->msg, strlen(fd_cmds[i].cmd)) == 0) {
             found = true;               /* indicate command found */
+            jcr->errmsg[0] = 0;
             if (!fd_cmds[i].func(jcr) || job_canceled(jcr)) {    /* do command */
+               /* Note fd->msg command may be destroyed by comm activity */
+               if (jcr->errmsg[0]) {
+                  Jmsg1(jcr, M_FATAL, 0, _("Command error with FD, hanging up. %s\n"),
+                        jcr->errmsg);
+               } else {
+                  Jmsg0(jcr, M_FATAL, 0, _("Command error with FD, hanging up.\n"));
+               }
                set_jcr_job_status(jcr, JS_ErrorTerminated);
                quit = true;
             }
@@ -170,6 +178,7 @@ void do_fd_commands(JCR *jcr)
          }
       }
       if (!found) {                   /* command not found */
+         Jmsg1(jcr, M_FATAL, 0, _("FD command not found: %s\n"), fd->msg);
          Dmsg1(110, "<filed: Command not found: %s\n", fd->msg);
          fd->fsend(ferrmsg);
          break;
@@ -194,10 +203,12 @@ static bool append_data_cmd(JCR *jcr)
       if (do_append_data(jcr)) {
          return true;
       } else {
+         pm_strcpy(jcr->errmsg, _("Append data error.\n"));
          bnet_suppress_error_messages(fd, 1); /* ignore errors at this point */
          fd->fsend(ERROR_append);
       }
    } else {
+      pm_strcpy(jcr->errmsg, _("Attempt to append on non-open session.\n"));
       fd->fsend(NOT_opened);
    }
    return false;
@@ -209,6 +220,7 @@ static bool append_end_session(JCR *jcr)
 
    Dmsg1(120, "store<file: %s", fd->msg);
    if (!jcr->session_opened) {
+      pm_strcpy(jcr->errmsg, _("Attempt to close non-open session.\n"));
       fd->fsend(NOT_opened);
       return false;
    }
@@ -226,6 +238,7 @@ static bool append_open_session(JCR *jcr)
 
    Dmsg1(120, "Append open session: %s", fd->msg);
    if (jcr->session_opened) {
+      pm_strcpy(jcr->errmsg, _("Attempt to open already open session.\n"));
       fd->fsend(NO_open);
       return false;
    }
@@ -250,6 +263,7 @@ static bool append_close_session(JCR *jcr)
 
    Dmsg1(120, "<filed: %s", fd->msg);
    if (!jcr->session_opened) {
+      pm_strcpy(jcr->errmsg, _("Attempt to close non-open session.\n"));
       fd->fsend(NOT_opened);
       return false;
    }
@@ -278,6 +292,7 @@ static bool read_data_cmd(JCR *jcr)
       Dmsg1(120, "<bfiled: %s", fd->msg);
       return do_read_data(jcr);
    } else {
+      pm_strcpy(jcr->errmsg, _("Attempt to read on non-open session.\n"));
       fd->fsend(NOT_opened);
       return false;
    }
@@ -295,6 +310,7 @@ static bool read_open_session(JCR *jcr)
 
    Dmsg1(120, "%s\n", fd->msg);
    if (jcr->session_opened) {
+      pm_strcpy(jcr->errmsg, _("Attempt to open read on non-open session.\n"));
       fd->fsend(NO_open);
       return false;
    }
@@ -303,6 +319,7 @@ static bool read_open_session(JCR *jcr)
          &jcr->read_VolSessionTime, &jcr->read_StartFile, &jcr->read_EndFile,
          &jcr->read_StartBlock, &jcr->read_EndBlock) == 7) {
       if (jcr->session_opened) {
+         pm_strcpy(jcr->errmsg, _("Attempt to open read on non-open session.\n"));
          fd->fsend(NOT_opened);
          return false;
       }
