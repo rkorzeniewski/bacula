@@ -24267,6 +24267,10 @@ fi
 if test "${enable_static_tools+set}" = set; then
   enableval=$enable_static_tools;
        if test x$enableval = xyes; then
+          if test x$use_libtool = xyes; then
+             echo "Libtool is enabled, not compatible with static tools, please rerun configure with --disable-libtool"
+             exit 1
+          fi
 	  support_static_tools=yes
        fi
 
@@ -24284,6 +24288,10 @@ fi
 if test "${enable_static_fd+set}" = set; then
   enableval=$enable_static_fd;
        if test x$enableval = xyes; then
+          if test x$use_libtool = xyes; then
+             echo "Libtool is enabled, not compatible with static tools, please rerun configure with --disable-libtool"
+             exit 1
+          fi
 	  support_static_fd=yes
        fi
 
@@ -24301,6 +24309,10 @@ fi
 if test "${enable_static_sd+set}" = set; then
   enableval=$enable_static_sd;
        if test x$enableval = xyes; then
+          if test x$use_libtool = xyes; then
+             echo "Libtool is enabled, not compatible with static tools, please rerun configure with --disable-libtool"
+             exit 1
+          fi
 	  support_static_sd=yes
        fi
 
@@ -24318,6 +24330,10 @@ fi
 if test "${enable_static_dir+set}" = set; then
   enableval=$enable_static_dir;
        if test x$enableval = xyes; then
+          if test x$use_libtool = xyes; then
+             echo "Libtool is enabled, not compatible with static tools, please rerun configure with --disable-libtool"
+             exit 1
+          fi
 	  support_static_dir=yes
        fi
 
@@ -24335,6 +24351,10 @@ fi
 if test "${enable_static_cons+set}" = set; then
   enableval=$enable_static_cons;
        if test x$enableval = xyes; then
+          if test x$use_libtool = xyes; then
+             echo "Libtool is enabled, not compatible with static tools, please rerun configure with --disable-libtool"
+             exit 1
+          fi
 	  support_static_cons=yes
        fi
 
