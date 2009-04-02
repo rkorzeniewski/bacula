@@ -248,8 +248,7 @@ static uint32_t serialize_xattr_stream(JCR *jcr, uint32_t expected_serialize_len
 
 static bool generic_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt, int stream)
 {
-   bool retval = true;
-   int count;
+   int count = 0;
    int32_t xattr_list_len,
            xattr_value_len;
    uint32_t expected_serialize_len = 0;
@@ -302,13 +301,25 @@ static bool generic_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt, int stream)
    /*
     * Count the number of extended attributes on a file.
     */
-   count = 0;
    bp = xattr_list;
    while ((bp - xattr_list) + 1 < xattr_list_len) {
+#if defined(HAVE_LINUX_OS)
+      /*
+       * On Linux you also get the acls in the extented attribute list.
+       * So we check if we are already backing up acls and if we do we
+       * don't store the extended attribute with the same info.
+       */
+      if ((ff_pkt->flags & FO_ACL) == 0 || strcmp(bp, "system.posix_acl_access"))
+         count++;
+#else
       count++;
+#endif
 
       bp = strchr(bp, '\0') + 1;
    }
+
+   if (count == 0)
+      return true;
 
    /*
     * Allocate enough room to hold all extended attributes.
@@ -325,16 +336,10 @@ static bool generic_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt, int stream)
     * Walk the list of extended attributes names and retrieve the data.
     * We already count the bytes needed for serializing the stream later on.
     */
-   count = 0;
    current_xattr = xattr_value_list;
    bp = xattr_list;
    while ((bp - xattr_list) + 1 < xattr_list_len) {
 #if defined(HAVE_LINUX_OS)
-      /*
-       * On Linux you also get the acls in the extented attribute list.
-       * So we check if we are already backing up acls and if we do we
-       * don't store the extended attribute with the same info.
-       */
       if (ff_pkt->flags & FO_ACL && !strcmp(bp, "system.posix_acl_access")) {
          bp = strchr(bp, '\0') + 1;
 
@@ -415,34 +420,29 @@ static bool generic_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt, int stream)
       /*
        * Next attribute.
        */
-      count++;
       current_xattr++;
       bp = strchr(bp, '\0') + 1;
    }
 
-   if (count != 0) {
-      /*
-       * Serialize the datastream.
-       */
-      if (serialize_xattr_stream(jcr, expected_serialize_len, xattr_value_list) < expected_serialize_len) {
-         Jmsg1(jcr, M_ERROR, 0, _("Failed to serialize extended attributes on file \"%s\"\n"),
-            jcr->last_fname);
-         Dmsg1(100, "Failed to serialize extended attributes on file \"%s\"\n",
-            jcr->last_fname);
+   /*
+    * Serialize the datastream.
+    */
+   if (serialize_xattr_stream(jcr, expected_serialize_len, xattr_value_list) < expected_serialize_len) {
+      Jmsg1(jcr, M_ERROR, 0, _("Failed to serialize extended attributes on file \"%s\"\n"),
+         jcr->last_fname);
+      Dmsg1(100, "Failed to serialize extended attributes on file \"%s\"\n",
+         jcr->last_fname);
 
-         goto bail_out;
-      }
-
-      /*
-       * Send the datastream to the SD.
-       */
-      retval = send_xattr_stream(jcr, stream);
+      goto bail_out;
    }
 
    xattr_drop_internal_table(xattr_value_list);
    free(xattr_list);
 
-   return retval;
+   /*
+    * Send the datastream to the SD.
+    */
+   return send_xattr_stream(jcr, stream);
 
 bail_out:
    xattr_drop_internal_table(xattr_value_list);
