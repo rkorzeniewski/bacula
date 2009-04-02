@@ -103,6 +103,12 @@ static bool send_acl_stream(JCR *jcr, int stream)
 #endif
 
    /*
+    * Sanity check
+    */
+   if (jcr->acl_data_len <= 0)
+      return true;
+
+   /*
     * Send header
     */
    if (!sd->fsend("%ld %d 0", jcr->JobFiles, stream)) {

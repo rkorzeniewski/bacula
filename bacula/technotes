@@ -1,6 +1,13 @@
               Technical notes for current SVN
           
 General:
+02Apr09
+mvw  Fixed problem in xattr and acl code trying to send empty acl or xattr
+     streams.
+mvw  Fix for bug #1261 where we send out a null stream when a file only an
+     acl and xattr support is also turned on.
+mvw  Added some warnings to configure when using libtool and static in
+     one configure.
 30Mar09
 ebl  Fix small memory leak in fileregexp bsr code
 29Mar09
