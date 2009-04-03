@@ -48,7 +48,7 @@ static bool uid_set = false;
 /* Forward referenced subroutines */
 static bool set_win32_attributes(JCR *jcr, ATTR *attr, BFILE *ofd);
 void unix_name_to_win32(POOLMEM **win32_name, char *name);
-void win_error(JCR *jcr, char *prefix, POOLMEM *ofile);
+void win_error(JCR *jcr, const char *prefix, POOLMEM *ofile);
 HANDLE bget_handle(BFILE *bfd);
 #endif /* HAVE_WIN32 */
 
@@ -720,7 +720,7 @@ static bool set_win32_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
    return true;
 }
 
-void win_error(JCR *jcr, char *prefix, POOLMEM *win32_ofile)
+void win_error(JCR *jcr, const char *prefix, POOLMEM *win32_ofile)
 {
    DWORD lerror = GetLastError();
    LPTSTR msg;
@@ -738,7 +738,7 @@ void win_error(JCR *jcr, char *prefix, POOLMEM *win32_ofile)
    LocalFree(msg);
 }
 
-void win_error(JCR *jcr, char *prefix, DWORD lerror)
+void win_error(JCR *jcr, const char *prefix, DWORD lerror)
 {
    LPTSTR msg;
    FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER|

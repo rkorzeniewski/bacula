@@ -1,10 +1,13 @@
               Technical notes for current SVN
           
 General:
-04Apr09
+
+03Apr09
+kes  Implement more automatic build of Win64 client. Note, there are still
+     lots of warning messages, but it seems to build a correct binary.
+02Apr09
 kes  Enhance Job messages from SD when the FD->SD protocol is incorrect
      and the SD hangs up. Previously this looked like a comm error.
-02Apr09
 mvw  Fixed problem in xattr and acl code trying to send empty acl or xattr
      streams.
 mvw  Fix for bug #1261 where we send out a null stream when a file only an
