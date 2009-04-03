@@ -408,7 +408,7 @@ fmtstr(char *buffer, size_t *currlen, size_t maxlen,
     int cnt = 0;
   
     if (value == NULL) 
-        value = "<NULL>";
+        value = (char *)"<NULL>";
 
     for (strln = 0; value[strln]; ++strln); /* strlen */
     padlen = min - strln;

@@ -48,13 +48,16 @@ ALL_OBJS = \
 
 # Targets
 
-.PHONY: all clean
+.PHONY: all clean bsmtp
 
 all: \
 	$(BINDIR)/bsmtp.exe $(BINDIR)/dbcheck.exe  $(BINDIR)/scsilist.exe \
 	$(BINDIR)/drivetype.exe $(BINDIR)/fstype.exe \
 	$(BINDIR)/testfind.exe $(BINDIR)/testls.exe \
 	$(BINDIR)/bregex.exe $(BINDIR)/bwild.exe
+
+bsmtp: \
+	$(BINDIR)/bsmtp.exe
 
 clean:
 	@echo "Cleaning `pwd`"

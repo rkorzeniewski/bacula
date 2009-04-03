@@ -1,10 +1,14 @@
 ECHO_CMD=@
 
 ifeq ($(WIN64),yes)
- DIRS=  lib \
-        filed \
-        filed/plugins \
-        scripts
+ DIRS=	lib \
+	filed \
+	filed/plugins \
+	scripts
+
+  INSTALLER=win64_installer
+
+  SPECIAL=bsmtp
 else
  DIRS=	lib \
 	cats \
@@ -16,14 +20,17 @@ else
 	wx-console \
 	tools \
 	scripts 
+
+  INSTALLER=win32_installer newinstaller
+
+  SPECIAL=
 endif
 
-.PHONY: $(DIRS) clean all Makefile.inc installer newinstaller
+.PHONY: $(DIRS) clean all Makefile.inc win32_installer newinstaller win64_installer bsmtp
 
-all: Makefile.inc $(DIRS) installer newinstaller
+all: Makefile.inc $(DIRS) $(SPECIAL) $(INSTALLER)
 
-
-clean: $(DIRS) installer newinstaller
+clean: $(DIRS) win32_installer newinstaller win64_installer
 	$(ECHO_CMD)-rm -rf release
 
 newinstaller:
@@ -35,7 +42,7 @@ newinstaller:
 	   fi ; \
 	fi
 
-installer:
+win32_installer:
 	@if test -f Makefile.inc; then \
 	   if $(MAKE) -C $@ $(MAKECMDGOALS); then \
 		echo "\n===== Make of $@ succeeded =====\n\n" ; \
@@ -43,6 +50,16 @@ installer:
 		echo "\n!!!!! Make of $@ failed !!!!!\n\n" ; \
 	   fi ; \
 	fi
+
+win64_installer:
+	@if test -f Makefile.inc; then \
+	   if $(MAKE) -C $@ $(MAKECMDGOALS); then \
+		echo "\n===== Make of $@ succeeded =====\n\n" ; \
+	   else  \
+		echo "\n!!!!! Make of $@ failed !!!!!\n\n" ; \
+	   fi ; \
+	fi
+
 
 $(DIRS):
 	@if test -f Makefile.inc; then \
@@ -53,16 +70,25 @@ $(DIRS):
 	   fi ; \
 	fi
 
+bsmtp:
+	@if test -f Makefile.inc; then \
+	   if $(MAKE) -C tools bsmtp $(MAKECMDGOALS); then \
+		echo "\n===== Make of tools/bsmtp succeeded =====\n\n" ; \
+	   else  \
+		echo "\n!!!!! Make of tools/bsmtp failed !!!!!\n\n" ; \
+	   fi ; \
+	fi
+
 Makefile.inc:
 	@echo Creating $@
 	$(ECHO_CMD)TOPDIR=`(cd ../../..;pwd)`; \
-	if test "$(WIN64)" = yes -a -e ../../../cross-tools/mingw-w64/bin/x86_64-pc-mingw32-gcc; then \
+	if test "$(WIN64)" = yes -a -e $${TOPDIR}/cross-tools/mingw-w64/bin/x86_64-pc-mingw32-gcc; then \
 		BINDIR=$${TOPDIR}/cross-tools/mingw-w64/bin; \
 		INCDIR=$${TOPDIR}/cross-tools/mingw-w64/x86_64-pc-mingw32/include; \
 		DLLDIR=$${TOPDIR}/cross-tools/mingw-w64/x86_64-pc-mingw32/bin; \
 		DEPKGSDIR=depkgs-mingw-w64; \
 		DEPKGSDIR32=depkgs-mingw32; \
-	elif test -e ../../../cross-tools/mingw32/bin/mingw32-gcc; then \
+	elif test -e $${TOPDIR}/cross-tools/mingw32/bin/mingw32-gcc; then \
 		BINDIR=$${TOPDIR}/cross-tools/mingw32/bin; \
 		INCDIR=$${TOPDIR}/cross-tools/mingw32/mingw32/include; \
 		DLLDIR=$${TOPDIR}/cross-tools/mingw32/mingw32/bin; \

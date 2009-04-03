@@ -95,8 +95,8 @@ _Z4plugImEvRT_y
 _Z4plugIsEvRT_y
 _Z4plugItEvRT_y
 _Z4plugIyEvRT_y
-_Z9win_errorP3JCRPcS1_
-_Z9win_errorP3JCRPcm
+_Z9win_errorP3JCRPKcm
+_Z9win_errorP3JCRPKcPc
  
 ; bfile.o
 _Z11bget_handleP5BFILE

@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2007-2008 Free Software Foundation Europe e.V.
+   Copyright (C) 2007-2009 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -34,7 +34,7 @@
 #define log_error_message(msg) LogErrorMsg((msg), __FILE__, __LINE__)
 
 extern int BaculaAppMain();
-extern void LogErrorMsg(char *msg, char *fname, int lineno);
+extern void LogErrorMsg(const char *msg, const char *fname, int lineno);
 
 extern int BaculaMain(int argc, char *argv[]);
 extern BOOL ReportStatus(DWORD state, DWORD exitcode, DWORD waithint);

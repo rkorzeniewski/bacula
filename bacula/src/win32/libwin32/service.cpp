@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2007-2008 Free Software Foundation Europe e.V.
+   Copyright (C) 2007-2009 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -471,11 +471,11 @@ BOOL ReportStatus(DWORD state, DWORD exitcode, DWORD waithint)
 }
 
 /* Log an error message */
-void LogErrorMsg(char *message, char *fname, int lineno)
+void LogErrorMsg(const char *message, const char *fname, int lineno)
 {
    char msgbuf[500];
    HANDLE eventHandler;
-   char *strings[3];
+   const char *strings[3];
    LPTSTR msg;
 
    service_error = GetLastError();

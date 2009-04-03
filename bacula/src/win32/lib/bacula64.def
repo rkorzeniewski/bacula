@@ -68,7 +68,7 @@ utime
  
 ; plugins.o
 _Z10new_pluginv
-_Z12load_pluginsPvS_PKcS1_
+_Z12load_pluginsPvS_PKcS1_PFbP6PluginE
 _Z14unload_pluginsv
 _Z19dbg_plugin_add_hookPFvP6PluginP6_iobufE
 
@@ -89,8 +89,8 @@ _Z13decode_LinkFIPcP4stat
 _Z14set_attributesP3JCRP4ATTRP5BFILE
 _Z16encode_attribsExP3JCRPcP6FF_PKT
 _Z18select_data_streamP6FF_PKT
-_Z9win_errorP3JCRPcS1_
-_Z9win_errorP3JCRPcm
+_Z9win_errorP3JCRPKcm
+_Z9win_errorP3JCRPKcPc
  
 ; bfile.o
 _Z11bget_handleP5BFILE

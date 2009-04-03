@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2003-2008 Free Software Foundation Europe e.V.
+   Copyright (C) 2003-2009 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -63,10 +63,10 @@ int enable_backup_privileges(JCR *jcr, int ignore_errors)
 
 #if defined(HAVE_WIN32)
 
-void win_error(JCR *jcr, char *prefix, DWORD lerror);
+void win_error(JCR *jcr, const char *prefix, DWORD lerror);
 
 static int
-enable_priv(JCR *jcr, HANDLE hToken, char *name, int ignore_errors)
+enable_priv(JCR *jcr, HANDLE hToken, const char *name, int ignore_errors)
 {
     TOKEN_PRIVILEGES tkp;
     DWORD lerror;
