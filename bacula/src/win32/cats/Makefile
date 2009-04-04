@@ -56,6 +56,7 @@ clean:
 	$(ECHO_CMD)rm -f $(OBJDIR)/libcats.exp $(LIBDIR)/libcats.a
 
 $(LIBDIR)/libcats.a $(OBJDIR)/libcats.exp: bacula_cats.def
+	$(call checkdir,$@)
 	$(DLLTOOL) --dllname bacula_cats.dll --no-export-all-symbols --input-def bacula_cats.def --output-exp $(OBJDIR)/libcats.exp --output-lib $(LIBDIR)/libcats.a $^
 
 $(BINDIR)/cats_mysql.dll: $(addprefix $(OBJDIR)/cats_mysql/,mysql.o $(SQL_OBJS)) $(OBJDIR)/libcats.exp

@@ -109,7 +109,7 @@ LIBS_DLL = \
 	$(LIBS_CRYPTO) \
 	$(LIBS_PTHREADS) \
 	$(LIBS_ZLIB) \
-        $(LIBS_NETWORK) \
+	$(LIBS_NETWORK) \
 	-lole32 \
 	-loleaut32 \
 	-luuid
@@ -126,7 +126,7 @@ clean:
 	@echo "Cleaning `pwd`"
 	$(call clean_obj,$(ALL_OBJS))
 	$(call clean_exe,$(BINDIR)/bacula.dll)
-	$(ECHO_CMD)rm -f $(OBJDIR)/bacula.a $(LIBDIR)/libbacula.a bacula.def
+	$(ECHO_CMD)rm -f $(OBJDIR)/bacula.a $(LIBDIR)/libbacula.a
 
 #
 # Rules for generating from ../lib
@@ -142,13 +142,10 @@ $(LIBDIR)/libbacula.a: $(BINDIR)/bacula.dll $(STATIC_OBJS)
 
 $(BINDIR)/bacula.dll: DLL_DEFINE=BUILDING_DLL
 
-$(BINDIR)/bacula.dll: $(DLL_OBJS) bacula.def
+$(BINDIR)/bacula.dll: $(DLL_OBJS) bacula$(WIN_VERSION).def
 	@echo "Linking $@"
 	$(call checkdir,$@)
 	$(ECHO_CMD)$(CXX) $(LDFLAGS) -mdll -mwindows -Wl,--out-implib,$(OBJDIR)/bacula.a $^ $(LIBS_DLL) -o $@
-
-bacula.def: bacula$(WIN_VERSION).def
-	$(ECHO_CMD)cp bacula$(WIN_VERSION).def bacula.def
 
 include ../Makefile.rules
 

@@ -25,9 +25,6 @@ DEPKGS := $(TOPDIR)/@WIN32DEPKGS@
 DEPKGS32 := $(TOPDIR)/@WIN32DEPKGS32@
 
 DOCDIR := $(TOPDIR)/docs
-BINDIR := $(BUILDDIR)/release
-LIBDIR := $(BUILDDIR)/release
-OBJDIR := .
 
 MINGW_BIN := @WIN32BINDIR@
 MINGW_INCLUDE := @WIN32INCDIR@
@@ -42,16 +39,23 @@ DLLTOOL := $(MINGW_BIN)/mingw32-dlltool
 OBJCPY := $(MINGW_BIN)/mingw32-objcopy
 NSIS_DIR := $(DEPKGS32)/nsis
 STAB2CV := $(DEPKGS32)/tools/bin/stab2cv
+
 WIN64=@WIN64@
 
 ifeq ($(WIN64),yes)
-        CFLAGS := -g -Wall -mno-cygwin -mthreads -O3 -fno-strict-aliasing -DHAVE_VSS64
-	LIBS_NETWORK := -lws2_32
-	WIN_VERSION := 64
+   CFLAGS := -g -Wall -mno-cygwin -mthreads -O3 -fno-strict-aliasing -DHAVE_VSS64
+   LIBS_NETWORK := -lws2_32
+   WIN_VERSION := 64
+   BINDIR := $(BUILDDIR)/release64
+   LIBDIR := $(BUILDDIR)/release64
+   OBJDIR := obj64
 else
-        CFLAGS := -g -Wall -mno-cygwin -m32 -mwin32 -mthreads -O3 -fno-strict-aliasing
-	LIBS_NETWORK := -lwsock32
-	WIN_VERSION := 32
+   CFLAGS := -g -Wall -mno-cygwin -m32 -mwin32 -mthreads -O3 -fno-strict-aliasing
+   LIBS_NETWORK := -lwsock32
+   WIN_VERSION := 32
+   BINDIR := $(BUILDDIR)/release32
+   LIBDIR := $(BUILDDIR)/release32
+   OBJDIR := obj32
 endif
 
 LDFLAGS := -g -Wall -mno-cygwin -Wl,--disable-auto-import

@@ -12,12 +12,12 @@ VERSION := $(shell sed -ne 's/.*[ \t]VERSION[ \t][ \t]*"\(.*\)"/\1/p' < ../../ve
 
 DEFINES := \
 	-DVERSION=$(VERSION) \
-	-DOUT_DIR=..\\release \
-	-DSRC_DIR=release \
+	-DOUT_DIR=..\\release64 \
+	-DSRC_DIR=release64 \
 	-DWINVER=64 \
 	-DBUILD_TOOLS=MinGW64 \
 
-INSTALL_EXE := $(BUILDDIR)/release/winbacula-$(VERSION).exe
+INSTALL_EXE := $(BUILDDIR)/release64/winbacula-$(VERSION).exe
 
 BACULA_BINARIES := \
 	bacula.dll \
@@ -107,27 +107,27 @@ installer:	$(INSTALL_EXE)
 clean:
 	@echo "Cleaning `pwd`"
 	$(CMD_ECHO)-rm -f $(INSTALL_EXE)
-	$(CMD_ECHO)-rm -rf release
+	$(CMD_ECHO)-rm -rf release64
 
 #
 # Rules
 #
 
 define Convert_Binary
-release/$$(notdir $(1)): $(1)
+release64/$$(notdir $(1)): $(1)
 	$$(call checkdir,$$@)
 	$(ECHO_CMD)cp -f $$^ $$@ ; \
 	$(STAB2CV) $$@
 endef
 
 define Copy_Binary
-release/$$(notdir $(1)): $(1)
+release64/$$(notdir $(1)): $(1)
 	$$(call checkdir,$$@)
 	$(ECHO_CMD)cp -f $$^ $$@
 endef
 
 define Copy_Docs
-release/$(1): $(DOCDIR)/$(1)
+release64/$(1): $(DOCDIR)/$(1)
 	$$(call checkdir,$$@)
 	$(ECHO_CMD)cp -f $$^ $$(dir $$@)
 endef
@@ -154,7 +154,7 @@ $(foreach file,$(addprefix $(DEPKGS32)/ssl/, $(SSL_FILES)),$(eval $(call Copy_Bi
 
 #$(foreach file,$(DOC_FILES),$(eval $(call Copy_Docs,$(file))))
 
-$(INSTALL_EXE): winbacula.nsi $(addprefix release/,$(BACULA_BINARIES) $(DEPKGS_BINARIES) $(DEPKGS32_BINARIES) $(SSL_FILES) )
+$(INSTALL_EXE): winbacula.nsi $(addprefix release64/,$(BACULA_BINARIES) $(DEPKGS_BINARIES) $(DEPKGS32_BINARIES) $(SSL_FILES) )
 	NSISDIR=$(NSIS_DIR) \
 	$(NSIS_DIR)/makensis -V3 $(DEFINES) winbacula.nsi
 

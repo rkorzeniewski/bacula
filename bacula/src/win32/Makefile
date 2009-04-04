@@ -22,7 +22,7 @@ else
 	tools \
 	scripts 
 
-  INSTALLER=win32_installer newinstaller
+  INSTALLER=win32_installer
 
   SPECIAL=
 endif

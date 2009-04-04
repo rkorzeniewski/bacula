@@ -3,6 +3,7 @@
 General:
 
 04Apr09
+kes  Separate object/binaries in Win32 and Win64 builds. More to be done.
 kes  Add bconsole to Win64 installer.
 03Apr09
 kes  Implement more automatic build of Win64 client. Note, there are still
