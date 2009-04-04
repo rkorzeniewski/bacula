@@ -2,6 +2,8 @@
           
 General:
 
+04Apr09
+kes  Add bconsole to Win64 installer.
 03Apr09
 kes  Implement more automatic build of Win64 client. Note, there are still
      lots of warning messages, but it seems to build a correct binary.
