@@ -25,7 +25,7 @@ Function EnterConfigPage2
     ${Else}
       IntOp $R8 $R7 + 26
     ${EndIf}
-    FileWrite $R5 '[Field $R6]$\r$\nType="GroupBox"$\r$\nText="Remote Director"$\r$\nLeft=0$\r$\nTop=$R7$\r$\nRight=300$\r$\nBottom=$R8$\r$\n$\r$\n'
+    FileWrite $R5 '[Field $R6]$\r$\nType="GroupBox"$\r$\nText="Enter data for Director Allowed to access this Client"$\r$\nLeft=0$\r$\nTop=$R7$\r$\nRight=300$\r$\nBottom=$R8$\r$\n$\r$\n'
   ${EndIf}
 
   IntOp $R6 $R6 + 1
@@ -219,6 +219,7 @@ Function EnterConfigPage2
 
   ${If} $AutomaticInstall = 0
     IntOp $R0 $NewComponents & ${ComponentsFileAndStorageAndDirector}
+    IntOp $R0 0 & 0
     ${If} $R0 <> 0
       IntOp $R8 $R7 + 42
 

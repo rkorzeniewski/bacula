@@ -3,6 +3,7 @@
 General:
 
 04Apr09
+kes  Cleanup Win installer dialog messages a bit ...
 kes  Separate object/binaries in Win32 and Win64 builds. More to be done.
 kes  Add bconsole to Win64 installer.
 03Apr09

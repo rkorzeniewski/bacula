@@ -45,13 +45,13 @@ Function EnterInstallType
       StrCpy $R2 "$OldInstallDir\Doc"
 
       WriteINIStr "$PLUGINSDIR\InstallType.ini" "Field 1" "Text" "An old installation has been found in $OldInstallDir.  The Configuration will be migrated.  Please choose the installation type for any additional components you select."
-      WriteINIStr "$PLUGINSDIR\InstallType.ini" "Field 5" "Text" "The software will be installed in the default directory $\"$PROGRAMFILES\Bacula$\".  The configuration files for additional components will be generated using defaults applicable to most installations."
+      WriteINIStr "$PLUGINSDIR\InstallType.ini" "Field 5" "Text" "The software will be installed in the default directory $\"C:\Program Files\Bacula$\".  The configuration files for additional components will be generated using defaults applicable to most installations."
       WriteINIStr "$PLUGINSDIR\InstallType.ini" "Field 6" "Text" "You may choose the installation directory.  The configuration defaults will be displayed and you will be given the chance to make changes before the configuration files are written."
     ${EndIf}
   ${Else}
     ; New Install
     StrCpy $InstallType ${NewInstall}
-    WriteINIStr "$PLUGINSDIR\InstallType.ini" "Field 5" "Text" "The software will be installed in the default directory $\"$PROGRAMFILES\Bacula$\".  The configuration files will be generated using defaults applicable to most installations."
+    WriteINIStr "$PLUGINSDIR\InstallType.ini" "Field 5" "Text" "The software will be installed in the default directory $\"C:\Program Files\Bacula$\".  The configuration files will be generated using defaults applicable to most installations."
   ${EndIf}
 
   ${If} $InstallType <> ${NewInstall}

@@ -1,4 +1,4 @@
-; winbsclient.nsi
+; winbacula.nsi
 ;
 ; Began as a version written by Michel Meyers (michel@tcnnet.dyndns.org)
 ;
@@ -35,6 +35,9 @@
 ; Eric Bollengier March 2009
 ; Updated to handle Win64 installation
 ;
+; Kern Sibbald April 2009
+; Correct some Win64 install problems
+;
 ; Version $Id: winbacula.nsi 7074 2008-05-31 18:43:21Z kerns $
 ;
 ; Command line options:
@@ -64,10 +67,12 @@ Name "Bacula"
 OutFile "${OUT_DIR}\win${WINVER}bacula-${VERSION}.exe"
 SetCompressor lzma
 
-InstallDir "$PROGRAMFILES\bacula"
+InstallDir "C:\Program Files\Bacula"
 InstallDirRegKey HKLM "Software\Bacula" "InstallLocation"
 
 InstType "Client"
+;InstType "Server"
+;InstType "Full"
 
 !insertmacro GetParent
 
@@ -552,7 +557,7 @@ LangString TITLE_InstallType ${LANG_ENGLISH} "Installation Type"
 LangString SUBTITLE_InstallType ${LANG_ENGLISH} "Choose installation type."
 
 LangString TITLE_WriteTemplates ${LANG_ENGLISH} "Create Templates"
-LangString SUBTITLE_WriteTemplates ${LANG_ENGLISH} "Create resource templates for inclusion in the Director's configuration file."
+LangString SUBTITLE_WriteTemplates ${LANG_ENGLISH} "Create a resource template for inclusion in the Director's configuration file."
 
 !InsertMacro MUI_FUNCTION_DESCRIPTION_BEGIN
   !InsertMacro MUI_DESCRIPTION_TEXT ${SecFileDaemon} $(DESC_SecFileDaemon)
@@ -564,7 +569,7 @@ LangString SUBTITLE_WriteTemplates ${LANG_ENGLISH} "Create resource templates fo
 
 ; Uninstall section
 
-UninstallText "This will uninstall Bacula. Hit next to continue."
+UninstallText "This will uninstall Bacula. Click Uninstall to continue."
 
 Section "Uninstall"
   ; Shutdown any baculum that could be running
@@ -810,7 +815,7 @@ Function EnterWriteTemplates
     WriteINIStr "$PLUGINSDIR\WriteTemplates.ini" "Field 2" State 1
     DeleteINIStr "$PLUGINSDIR\WriteTemplates.ini" "Field 2" Flags
     WriteINIStr "$PLUGINSDIR\WriteTemplates.ini" "Field 3" State "C:\$ConfigClientName.conf"
-    WriteINIStr "$PLUGINSDIR\WriteTemplates.ini" "Field 5" Flags REQ_SAVE|FILE_EXPLORER|WARN_IF_EXIST
+;    WriteINIStr "$PLUGINSDIR\WriteTemplates.ini" "Field 5" Flags REQ_SAVE|FILE_EXPLORER|WARN_IF_EXIST
   ${EndIf}
 
 

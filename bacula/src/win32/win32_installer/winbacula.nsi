@@ -248,7 +248,7 @@ Function .onInit
 
   StrCpy $ConfigClientName               "$HostName-fd"
   StrCpy $ConfigClientPort               9102
-  StrCpy $ConfigClientMaxJobs            2
+  StrCpy $ConfigClientMaxJobs            5
   ;StrCpy $ConfigClientPassword
   StrCpy $ConfigClientInstallService     "$OptService"
   StrCpy $ConfigClientStartService       "$OptStart"
