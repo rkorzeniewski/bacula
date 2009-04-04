@@ -4,6 +4,7 @@ ifeq ($(WIN64),yes)
  DIRS=	lib \
 	filed \
 	filed/plugins \
+	console \
 	scripts
 
   INSTALLER=win64_installer
@@ -26,7 +27,8 @@ else
   SPECIAL=
 endif
 
-.PHONY: $(DIRS) clean all Makefile.inc win32_installer newinstaller win64_installer bsmtp
+.PHONY: $(DIRS) clean all Makefile.inc win32_installer newinstaller \
+	 win64_installer bsmtp
 
 all: Makefile.inc $(DIRS) $(SPECIAL) $(INSTALLER)
 
@@ -78,6 +80,8 @@ bsmtp:
 		echo "\n!!!!! Make of tools/bsmtp failed !!!!!\n\n" ; \
 	   fi ; \
 	fi
+
+
 
 Makefile.inc:
 	@echo Creating $@

@@ -45,7 +45,7 @@
 ; netsh firewall add portopening protocol=tcp port=9102 name="Bacula-FD"
 
 
-!define PRODUCT "Bacula Systems"
+!define PRODUCT "Bacula"
 
 ;
 ; Include the Modern UI
@@ -61,7 +61,7 @@
 ; Basics
 ;
 Name "Bacula"
-OutFile "${OUT_DIR}\win${WINVER}baculasystems-${VERSION}.exe"
+OutFile "${OUT_DIR}\win${WINVER}bacula-${VERSION}.exe"
 SetCompressor lzma
 
 InstallDir "$PROGRAMFILES\bacula"
@@ -113,7 +113,7 @@ Page custom EnterWriteTemplates
 !InsertMacro GetParameters
 !InsertMacro GetOptions
 
-DirText "Setup will install Bacula Systems ${VERSION} to the directory specified below. To install in a different folder, click Browse and select another folder."
+DirText "Setup will install Bacula ${VERSION} to the directory specified below. To install in a different folder, click Browse and select another folder."
 
 !InsertMacro MUI_RESERVEFILE_INSTALLOPTIONS
 ;
@@ -466,6 +466,47 @@ SectionEnd
 
 SectionGroupEnd
 
+SectionGroup "Consoles" SecGroupConsoles
+
+Section "Command Console" SecConsole
+  SectionIn 1 2 3
+
+  SetOutPath "$INSTDIR"
+
+  File "${SRC_DIR}\bconsole.exe"
+  Call InstallCommonFiles
+
+  CreateShortCut "$SMPROGRAMS\Bacula\bconsole.lnk" "$INSTDIR\bconsole.exe" '-c "$INSTDIR\bconsole.conf"' "$INSTDIR\bconsole.exe" 0
+  CreateShortCut "$SMPROGRAMS\Bacula\Configuration\Edit Command Console Configuration.lnk" "write.exe" '"$INSTDIR\bconsole.conf"'
+
+SectionEnd
+
+Section "Graphical Console" SecWxConsole
+  SectionIn 1 2 3
+  
+  SetOutPath "$INSTDIR"
+
+;  Call InstallCommonFiles
+;!if "${BUILD_TOOLS}" == "MinGW64"
+;  File "${SRC_DIR}\wxbase28_gcc_bacula.dll"
+;  File "${SRC_DIR}\wxmsw28_core_gcc_bacula.dll"
+;!endif
+
+;  File "${SRC_DIR}\bwx-console.exe"
+
+;    File "/oname=$PLUGINSDIR\bwx-console.conf" "bwx-console.conf.in"
+;    StrCpy $0 "$INSTDIR"
+;    StrCpy $1 bwx-console.conf
+;    Call ConfigEditAndCopy
+
+  ; Create Start Menu entry
+;  CreateShortCut "$SMPROGRAMS\Bacula\bwx-console.lnk" "$INSTDIR\bwx-console.exe" '-c "$INSTDIR\bwx-console.conf"' "$INSTDIR\bwx-console.exe" 0
+;  CreateShortCut "$SMPROGRAMS\Bacula\Configuration\Edit Graphical Console Configuration.lnk" "write.exe" '"$INSTDIR\bwx-console.conf"'
+SectionEnd
+
+SectionGroupEnd
+
+
 Section "-Finish"
   Push $R0
 
@@ -484,9 +525,9 @@ Section "-Finish"
   WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Bacula" "VersionMinor" $R0
   WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Bacula" "NoModify" 1
   WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Bacula" "NoRepair" 1
-  WriteRegStr   HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Bacula" "URLUpdateInfo" "http://www.baculasystems.com"
-  WriteRegStr   HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Bacula" "URLInfoAbout" "http://www.baculasystems.com"
-  WriteRegStr   HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Bacula" "HelpLink" "https://www.baculasystems.com/rt/"
+  WriteRegStr   HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Bacula" "URLUpdateInfo" "http://www.bacula.org"
+  WriteRegStr   HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Bacula" "URLInfoAbout" "http://www.bacula.org"
+  WriteRegStr   HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Bacula" "HelpLink" "http://www.bacula.org?page=support"
   WriteRegStr   HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Bacula" "UninstallString" '"$INSTDIR\uninstall.exe"'
   WriteUninstaller "$INSTDIR\Uninstall.exe"
   CreateShortCut "$SMPROGRAMS\Bacula\Uninstall Bacula.lnk" "$INSTDIR\Uninstall.exe" "" "$INSTDIR\Uninstall.exe" 0
@@ -495,11 +536,11 @@ SectionEnd
 
 ; Extra Page descriptions
 
-LangString DESC_SecFileDaemon ${LANG_ENGLISH} "Install Bacula Systems File Daemon on this system."
+LangString DESC_SecFileDaemon ${LANG_ENGLISH} "Install Bacula File Daemon on this system."
 LangString DESC_SecConsole ${LANG_ENGLISH} "Install command console program on this system."
-LangString DESC_SecWxConsole ${LANG_ENGLISH} "Install graphical console program on this system."
-LangString DESC_SecDocPdf ${LANG_ENGLISH} "Install documentation in Acrobat format on this system."
-LangString DESC_SecDocHtml ${LANG_ENGLISH} "Install documentation in HTML format on this system."
+;LangString DESC_SecWxConsole ${LANG_ENGLISH} "Install graphical console program on this system."
+;LangString DESC_SecDocPdf ${LANG_ENGLISH} "Install documentation in Acrobat format on this system."
+;LangString DESC_SecDocHtml ${LANG_ENGLISH} "Install documentation in HTML format on this system."
 
 LangString TITLE_ConfigPage1 ${LANG_ENGLISH} "Configuration"
 LangString SUBTITLE_ConfigPage1 ${LANG_ENGLISH} "Set installation configuration."
@@ -516,9 +557,9 @@ LangString SUBTITLE_WriteTemplates ${LANG_ENGLISH} "Create resource templates fo
 !InsertMacro MUI_FUNCTION_DESCRIPTION_BEGIN
   !InsertMacro MUI_DESCRIPTION_TEXT ${SecFileDaemon} $(DESC_SecFileDaemon)
   !InsertMacro MUI_DESCRIPTION_TEXT ${SecConsole} $(DESC_SecConsole)
-  !InsertMacro MUI_DESCRIPTION_TEXT ${SecWxConsole} $(DESC_SecWxConsole)
-  !InsertMacro MUI_DESCRIPTION_TEXT ${SecDocPdf} $(DESC_SecDocPdf)
-  !InsertMacro MUI_DESCRIPTION_TEXT ${SecDocHtml} $(DESC_SecDocHtml)
+;  !InsertMacro MUI_DESCRIPTION_TEXT ${SecWxConsole} $(DESC_SecWxConsole)
+;  !InsertMacro MUI_DESCRIPTION_TEXT ${SecDocPdf} $(DESC_SecDocPdf)
+;  !InsertMacro MUI_DESCRIPTION_TEXT ${SecDocHtml} $(DESC_SecDocHtml)
 !InsertMacro MUI_FUNCTION_DESCRIPTION_END
 
 ; Uninstall section
@@ -712,15 +753,15 @@ Function GetSelectedComponents
   ${If} ${SectionIsSelected} ${SecConsole}
     IntOp $R0 $R0 | ${ComponentTextConsole}
   ${EndIf}
-  ${If} ${SectionIsSelected} ${SecWxConsole}
-    IntOp $R0 $R0 | ${ComponentGUIConsole}
-  ${EndIf}
-  ${If} ${SectionIsSelected} ${SecDocPdf}
-    IntOp $R0 $R0 | ${ComponentPDFDocs}
-  ${EndIf}
-  ${If} ${SectionIsSelected} ${SecDocHtml}
-    IntOp $R0 $R0 | ${ComponentHTMLDocs}
-  ${EndIf}
+;  ${If} ${SectionIsSelected} ${SecWxConsole}
+;    IntOp $R0 $R0 | ${ComponentGUIConsole}
+;  ${EndIf}
+;  ${If} ${SectionIsSelected} ${SecDocPdf}
+;    IntOp $R0 $R0 | ${ComponentPDFDocs}
+;  ${EndIf}
+;  ${If} ${SectionIsSelected} ${SecDocHtml}
+;    IntOp $R0 $R0 | ${ComponentHTMLDocs}
+;  ${EndIf}
   Exch $R0
 FunctionEnd
 
@@ -810,30 +851,30 @@ Function SelectPreviousComponents
       !InsertMacro UnselectSection ${SecConsole}
       !InsertMacro ClearSectionFlag ${SecConsole} ${SF_RO}
     ${EndIf}
-    IntOp $R1 $PreviousComponents & ${ComponentGUIConsole}
-    ${If} $R1 <> 0
-      !InsertMacro SelectSection ${SecWxConsole}
-      !InsertMacro SetSectionFlag ${SecWxConsole} ${SF_RO}
-    ${Else}
-      !InsertMacro UnselectSection ${SecWxConsole}
-      !InsertMacro ClearSectionFlag ${SecWxConsole} ${SF_RO}
-    ${EndIf}
-    IntOp $R1 $PreviousComponents & ${ComponentPDFDocs}
-    ${If} $R1 <> 0
-      !InsertMacro SelectSection ${SecDocPdf}
-      !InsertMacro SetSectionFlag ${SecDocPdf} ${SF_RO}
-    ${Else}
-      !InsertMacro UnselectSection ${SecDocPdf}
-      !InsertMacro ClearSectionFlag ${SecDocPdf} ${SF_RO}
-    ${EndIf}
-    IntOp $R1 $PreviousComponents & ${ComponentHTMLDocs}
-    ${If} $R1 <> 0
-      !InsertMacro SelectSection ${SecDocHtml}
-      !InsertMacro SetSectionFlag ${SecDocHtml} ${SF_RO}
-    ${Else}
-      !InsertMacro UnselectSection ${SecDocHtml}
-      !InsertMacro ClearSectionFlag ${SecDocHtml} ${SF_RO}
-    ${EndIf}
+;    IntOp $R1 $PreviousComponents & ${ComponentGUIConsole}
+;    ${If} $R1 <> 0
+;      !InsertMacro SelectSection ${SecWxConsole}
+;      !InsertMacro SetSectionFlag ${SecWxConsole} ${SF_RO}
+;    ${Else}
+;      !InsertMacro UnselectSection ${SecWxConsole}
+;      !InsertMacro ClearSectionFlag ${SecWxConsole} ${SF_RO}
+;    ${EndIf}
+;    IntOp $R1 $PreviousComponents & ${ComponentPDFDocs}
+;    ${If} $R1 <> 0
+;      !InsertMacro SelectSection ${SecDocPdf}
+;      !InsertMacro SetSectionFlag ${SecDocPdf} ${SF_RO}
+;    ${Else}
+;      !InsertMacro UnselectSection ${SecDocPdf}
+;      !InsertMacro ClearSectionFlag ${SecDocPdf} ${SF_RO}
+;    ${EndIf}
+;    IntOp $R1 $PreviousComponents & ${ComponentHTMLDocs}
+;    ${If} $R1 <> 0
+;      !InsertMacro SelectSection ${SecDocHtml}
+;      !InsertMacro SetSectionFlag ${SecDocHtml} ${SF_RO}
+;    ${Else}
+;      !InsertMacro UnselectSection ${SecDocHtml}
+;      !InsertMacro ClearSectionFlag ${SecDocHtml} ${SF_RO}
+;    ${EndIf}
   ${EndIf}
 FunctionEnd
 
@@ -860,24 +901,24 @@ Function UpdateComponentUI
     ${Else}
       !InsertMacro ClearSectionFlag ${SecConsole} ${SF_BOLD}
     ${EndIf}
-    IntOp $R1 $NewComponents & ${ComponentGUIConsole}
-    ${If} $R1 <> 0
-      !InsertMacro SetSectionFlag ${SecWxConsole} ${SF_BOLD}
-    ${Else}
-      !InsertMacro ClearSectionFlag ${SecWxConsole} ${SF_BOLD}
-    ${EndIf}
-    IntOp $R1 $NewComponents & ${ComponentPDFDocs}
-    ${If} $R1 <> 0
-      !InsertMacro SetSectionFlag ${SecDocPdf} ${SF_BOLD}
-    ${Else}
-      !InsertMacro ClearSectionFlag ${SecDocPdf} ${SF_BOLD}
-    ${EndIf}
-    IntOp $R1 $NewComponents & ${ComponentHTMLDocs}
-    ${If} $R1 <> 0
-      !InsertMacro SetSectionFlag ${SecDocHtml} ${SF_BOLD}
-    ${Else}
-      !InsertMacro ClearSectionFlag ${SecDocHtml} ${SF_BOLD}
-    ${EndIf}
+;    IntOp $R1 $NewComponents & ${ComponentGUIConsole}
+;    ${If} $R1 <> 0
+;      !InsertMacro SetSectionFlag ${SecWxConsole} ${SF_BOLD}
+;    ${Else}
+;      !InsertMacro ClearSectionFlag ${SecWxConsole} ${SF_BOLD}
+;    ${EndIf}
+;    IntOp $R1 $NewComponents & ${ComponentPDFDocs}
+;    ${If} $R1 <> 0
+;      !InsertMacro SetSectionFlag ${SecDocPdf} ${SF_BOLD}
+;    ${Else}
+;      !InsertMacro ClearSectionFlag ${SecDocPdf} ${SF_BOLD}
+;    ${EndIf}
+;    IntOp $R1 $NewComponents & ${ComponentHTMLDocs}
+;    ${If} $R1 <> 0
+;      !InsertMacro SetSectionFlag ${SecDocHtml} ${SF_BOLD}
+;    ${Else}
+;      !InsertMacro ClearSectionFlag ${SecDocHtml} ${SF_BOLD}
+;    ${EndIf}
   ${EndIf}
 
   GetDlgItem $R0 $HWNDPARENT 1

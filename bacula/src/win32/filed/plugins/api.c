@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2008-2008 Free Software Foundation Europe e.V.
+   Copyright (C) 2008-2009 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -117,11 +117,10 @@ printf("Got value %S\n", buf);
    return bRC_OK;
 }
 
-char *
+const char *
 ESEErrorMessage(HRESULT result)
 {
-   switch (result)
-   {
+   switch (result) {
    case 0:
       return "No error.";
    case hrLogfileHasBadSignature:
@@ -142,4 +141,3 @@ ESEErrorMessage(HRESULT result)
       return "Unknown error.";
    }
 }
-

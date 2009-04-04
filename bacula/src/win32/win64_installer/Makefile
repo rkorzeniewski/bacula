@@ -24,6 +24,7 @@ BACULA_BINARIES := \
 	exchange-fd.dll \
 	bsleep.exe \
 	bsmtp.exe \
+	bconsole.exe \
 	bacula-fd.exe
 
 DEPKGS32_BINARIES := \
