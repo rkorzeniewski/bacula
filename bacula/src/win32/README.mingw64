@@ -1,4 +1,5 @@
-Instructions to build Bacula using the MinGW64 on Linux
+
+Instructions to build Bacula using the Mingw on Linux
 =======================================================
 
 This file documents the tools (scripts) we use for building Bacula for
@@ -94,6 +95,8 @@ make, ...  However a few that you may not have are:
 NB: On Debian, I had to remove /usr/bin/lorder for
 postresql to build correctly.
 
+Build the 32 bit cross-tools and mingw32:
+
 Once the source is on your system, change to the win32 directory
         cd .../bacula/src/win32
 
@@ -116,10 +119,12 @@ it is relatively obvious when looking at the src directory.
 In that directory, you should find a make.log, which has the full details
 of the compiles, links, and installs done for that package.
 
-When building the mingw64 environment and all dependencies (cross-tools, and depkgs-mingw64)
-should be compiled by hand with host=x86_64-pc-linux and target=x86_64-pc-mingw32.
-For that, use this configure line :
+Build the 64 bit cross-tools and mingw64:
+When building the mingw64 environment and all dependencies
+(cross-tools, and depkgs-mingw64) should be compiled by hand with
+host=x86_64-pc-linux and target=x86_64-pc-mingw32.  
 
+For that, use this configure line :
 ./configure --host=x86_64-pc-linux --target=x86_64-pc-mingw32 --prefix=$ROOT/cross-tools
 or
 ./configure --host=x86_64-pc-linux --target=x86_64-pc-mingw32 --prefix=$ROOT/depkgs-mingw64
@@ -196,22 +201,17 @@ Finally, to build the Microsoft Windows version of Bacula, do the following:
 
    cd .../bacula/src/win32
    make clean
-   make WIN64=yes
+   ./makeall
 
-At this time, the installer doesn't work, binaries are located in 
-.../bacula/src/win32/release
+or
+  cd .../bacula/src/win32
+  make clean
+  make
+  make WIN64=yes
 
-If you have an older build environment, you might do the following
-to ensure that you pick up all the new Win32 changes:
+This builds both the 32 bit version and the 64 bit version.
+The binaries are in the release32 and release64 directories.
 
-   cd .../bacula
-   make clean
-   svn update
-   cd src/win32
-   make WIN64=yes
-
-To build the win32 version (director/storage/filed) you need to clean all
-objects from a previous build.
 
 
 Updating the 3rd party package patches
@@ -256,7 +256,7 @@ simply do the following:
 
    cd .../bacula/src/win32/lib
    make                  (to build the .o files, note the link will fail)
-   ./make_def >bacula64.def
+   ./make_def >bacula64.def   or >bacula64.def
 
 This should rebuild the bacula.def file, but it uses relative paths
 and assumes you have the directory structure noted above. If you 
