@@ -1,4 +1,4 @@
-lal
+dnl
 dnl
 dnl Process this file with autoconf to produce a configure script.
 dnl
@@ -567,10 +567,10 @@ AC_ARG_ENABLE(static-tools,
    AC_HELP_STRING([--enable-static-tools], [enable static tape tools @<:@default=no@:>@]),
    [
        if test x$enableval = xyes; then
-          if test x$use_libtool = xyes; then
-             echo "Libtool is enabled, not compatible with static tools, please rerun configure with --disable-libtool"
-             exit 1
-          fi
+	  if test x$use_libtool = xyes; then
+	     echo "Libtool is enabled, not compatible with static tools, please rerun configure with --disable-libtool"
+	     exit 1
+	  fi
 	  support_static_tools=yes
        fi
    ]
@@ -589,10 +589,10 @@ AC_ARG_ENABLE(static-fd,
    AC_HELP_STRING([--enable-static-fd], [enable static File daemon @<:@default=no@:>@]),
    [
        if test x$enableval = xyes; then
-          if test x$use_libtool = xyes; then
-             echo "Libtool is enabled, not compatible with static tools, please rerun configure with --disable-libtool"
-             exit 1
-          fi
+	  if test x$use_libtool = xyes; then
+	     echo "Libtool is enabled, not compatible with static tools, please rerun configure with --disable-libtool"
+	     exit 1
+	  fi
 	  support_static_fd=yes
        fi
    ]
@@ -611,10 +611,10 @@ AC_ARG_ENABLE(static-sd,
    AC_HELP_STRING([--enable-static-sd], [enable static Storage daemon @<:@default=no@:>@]),
    [
        if test x$enableval = xyes; then
-          if test x$use_libtool = xyes; then
-             echo "Libtool is enabled, not compatible with static tools, please rerun configure with --disable-libtool"
-             exit 1
-          fi
+	  if test x$use_libtool = xyes; then
+	     echo "Libtool is enabled, not compatible with static tools, please rerun configure with --disable-libtool"
+	     exit 1
+	  fi
 	  support_static_sd=yes
        fi
    ]
@@ -633,10 +633,10 @@ AC_ARG_ENABLE(static-dir,
    AC_HELP_STRING([--enable-static-dir], [enable static Director @<:@default=no@:>@]),
    [
        if test x$enableval = xyes; then
-          if test x$use_libtool = xyes; then
-             echo "Libtool is enabled, not compatible with static tools, please rerun configure with --disable-libtool"
-             exit 1
-          fi
+	  if test x$use_libtool = xyes; then
+	     echo "Libtool is enabled, not compatible with static tools, please rerun configure with --disable-libtool"
+	     exit 1
+	  fi
 	  support_static_dir=yes
        fi
    ]
@@ -655,10 +655,10 @@ AC_ARG_ENABLE(static-cons,
    AC_HELP_STRING([--enable-static-cons], [enable static Console @<:@default=no@:>@]),
    [
        if test x$enableval = xyes; then
-          if test x$use_libtool = xyes; then
-             echo "Libtool is enabled, not compatible with static tools, please rerun configure with --disable-libtool"
-             exit 1
-          fi
+	  if test x$use_libtool = xyes; then
+	     echo "Libtool is enabled, not compatible with static tools, please rerun configure with --disable-libtool"
+	     exit 1
+	  fi
 	  support_static_cons=yes
        fi
    ]
