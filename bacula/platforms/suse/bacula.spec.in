@@ -1615,7 +1615,7 @@ mkdir -p $RPM_BUILD_ROOT/usr/bin
 mkdir -p $RPM_BUILD_ROOT%{sqlite_bindir}
 %endif
 
-%makeinstall
+make DESTDIR=$RPM_BUILD_ROOT install
 
 %if ! %{client_only} && %{mtx}
 cd %{depkgs}
