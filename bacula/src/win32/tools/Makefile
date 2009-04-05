@@ -71,6 +71,7 @@ clean:
 	$(call clean_exe,$(BINDIR)/testls.exe)
 	$(call clean_exe,$(BINDIR)/bregex.exe)
 	$(call clean_exe,$(BINDIR)/bwild.exe)
+	$(ECHO_CMD)rm -rf $(OBJDIRS)
 
 #
 # Rules

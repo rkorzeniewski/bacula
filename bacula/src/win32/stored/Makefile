@@ -95,7 +95,7 @@ ALL_OBJS = \
 
 LIBS_STORED = \
 	$(LIBS_PTHREADS) \
-        $(LIBS_NETWORK) \
+	$(LIBS_NETWORK) \
 	-lole32 \
 	-loleaut32 \
 	-luuid \
@@ -119,6 +119,7 @@ clean:
 	$(call clean_exe,$(BINDIR)/bls.exe)
 	$(call clean_exe,$(BINDIR)/bscan.exe)
 	$(call clean_exe,$(BINDIR)/btape.exe)
+	$(ECHO_CMD)rm -rf $(OBJDIRS)
 
 realclean: clean
 	rm -f tags bacula-sd.conf

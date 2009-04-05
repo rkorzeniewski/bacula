@@ -2,8 +2,10 @@
           
 General:
 
-04Apr09
+05Apr09
+kes  Fix Win32 make clean to clean correctly 
 kes  Cleanup Win installer dialog messages a bit ...
+04Apr09
 kes  Separate object/binaries in Win32 and Win64 builds. More to be done.
 kes  Add bconsole to Win64 installer.
 03Apr09

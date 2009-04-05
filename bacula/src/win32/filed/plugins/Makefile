@@ -47,7 +47,7 @@ LIBS_DLL = \
 	$(LIBS_CRYPTO) \
 	$(LIBS_PTHREADS) \
 	$(LIBS_ZLIB) \
-        $(LIBS_NETWORK) \
+	$(LIBS_NETWORK) \
 	-lole32 \
 	-loleaut32 \
 	-luuid
@@ -65,6 +65,7 @@ clean:
 	$(call clean_obj,$(EXCHANGE_OBJS))
 	$(call clean_exe,$(BINDIR)/exchange-fd.dll)
 	$(ECHO_CMD)rm -f $(OBJDIR)/exchange-fd.a $(LIBDIR)/libexchange-fd.a
+	$(ECHO_CMD)rm -rf $(OBJDIRS)
 
 #
 # Rules for generating from ../lib

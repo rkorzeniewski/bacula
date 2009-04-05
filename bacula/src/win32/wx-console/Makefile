@@ -52,7 +52,7 @@ ALL_OBJS = $(CONSOLE_OBJS)
 
 CONSOLE_LIBS = \
 	$(LIBS_WX) \
-        $(LIBS_NETWORK) \
+	$(LIBS_NETWORK) \
 	-lcomctl32 \
 	-lole32 \
 	-loleaut32 \
@@ -70,6 +70,7 @@ clean:
 	$(call clean_obj,$(ALL_OBJS))
 	$(call clean_exe,$(BINDIR)/bwx-console.exe)
 	$(call clean_exe,$(BINDIR)/wx-console.exe)
+	$(ECHO_CMD)rm -rf $(OBJDIRS)
 
 #
 # Rules

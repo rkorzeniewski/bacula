@@ -127,6 +127,7 @@ clean:
 	$(call clean_obj,$(ALL_OBJS))
 	$(call clean_exe,$(BINDIR)/bacula.dll)
 	$(ECHO_CMD)rm -f $(OBJDIR)/bacula.a $(LIBDIR)/libbacula.a
+	$(ECHO_CMD)rm -rf $(OBJDIRS)
 
 #
 # Rules for generating from ../lib

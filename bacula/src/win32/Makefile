@@ -33,7 +33,7 @@ endif
 all: Makefile.inc $(DIRS) $(SPECIAL) $(INSTALLER)
 
 clean: $(DIRS) win32_installer newinstaller win64_installer
-	$(ECHO_CMD)-rm -rf release
+	$(ECHO_CMD)-rm -rf release32 release64
 
 newinstaller:
 	@if test -f Makefile.inc; then \

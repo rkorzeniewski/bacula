@@ -60,7 +60,7 @@ ALL_OBJS = $(FILED_OBJS)
 FILED_LIBS = \
 	$(LIBS_PTHREADS) \
 	$(LIBS_ZLIB) \
-        $(LIBS_NETWORK) \
+	$(LIBS_NETWORK) \
 	-lole32 \
 	-loleaut32 \
 	-luuid \
@@ -78,6 +78,7 @@ clean:
 	@echo "Cleaning `pwd`"
 	$(call clean_obj,$(ALL_OBJS))
 	$(call clean_exe,$(BINDIR)/bacula-fd.exe)
+	$(ECHO_CMD)rm -rf $(OBJDIRS)
 
 #
 # Rules
