@@ -2,6 +2,78 @@
 
 General:
 
+05Apr09
+kes  Fix Win32 make clean to clean correctly 
+kes  Cleanup Win installer dialog messages a bit ...
+04Apr09
+kes  Separate object/binaries in Win32 and Win64 builds. More to be done.
+kes  Add bconsole to Win64 installer.
+03Apr09
+kes  Implement more automatic build of Win64 client. Note, there are still
+     lots of warning messages, but it seems to build a correct binary.
+02Apr09
+kes  Enhance Job messages from SD when the FD->SD protocol is incorrect
+     and the SD hangs up. Previously this looked like a comm error.
+mvw  Fixed problem in xattr and acl code trying to send empty acl or xattr
+     streams.
+mvw  Fix for bug #1261 where we send out a null stream when a file only an
+     acl and xattr support is also turned on.
+mvw  Added some warnings to configure when using libtool and static in
+     one configure.
+30Mar09
+ebl  Fix small memory leak in fileregexp bsr code
+29Mar09
+kes  Correct bacula32.def entry point as specified by James.
+kes  Add code to FD plugin driver to make a copy of the plugin
+     filename to be saved to avoid save_file from zaping it.
+28Mar09
+kes  Directly mark all files saved by plugin as being seen for Accurate.
+kes  Add checks on the plugin version and the plugin license. Currently
+     only implemented for FD plugins.
+kes  Add installation of /usr/share/doc/bacula
+kes  Modify plugin checkFile to return bRC_Seen to cause file
+     to remain.  Previously was true/false.
+27Mar09
+kes  Implement installation of bat help files
+     The help files are installed in the htmldoc dir and can be set
+     by --htmldoc=xxx on the ./configure. Default is:
+     /usr/share/doc/bacula/html
+kes  Update projects file
+kes  Apply patch from  Pasi Karkkainen <pasik@iki.fi> that adds
+     Previous Job name to migrate job report.
+26Mar09
+kes  Apply bacula-autoconf-db-m4.patch from Kjetil Torgrim Homme 
+     <kjetilho@linpro.no> that doesn't *require* the static libraries
+     for the SQL database engine. Fixes a build problem if the static
+     libraries are not loaded.
+25Mar09
+ebl  Update Makefiles to compile win64 using "make WIN64=yes"
+kes  Disable plugin options in ua_run.c
+kes  Added the following to provide solutions to the plugin/Accurate
+     problem -- bug #1236 Cannot restore incremental backups with 
+     the Exchange plugin.
+     - New Bacula read-only variable bVarAccurate -- returns accurate flag
+     - New Bacula write-only variable bVarFileSeen -- marks a file as seen
+     - New plugin entry point -- checkFile that is called at the end
+       of an Accurate job and allows the plugin to mark a file as seen.
+24Mar09
+kes  Temporarly turn off comm timers because it causes bat to seg fault.
+     Must research making SIGUSR2 work with bat and Qt.
+24Mar09
+ebl  Use MTIMEONLY fileset option in accurate check
+23Mar09
+ebl  Tweak code to compile win64 version with mingw
+21Mar09
+Kes  Attempt to correct timing problems with starting bat and obtaining
+     lists. Maintain in_command counter to know when a list is coming.
+20Mar09
+kes  Convert seconds.seq separator into seconds_seq so that Bacula
+     editing of the Job name from the full Job name works. This fixes
+     bug #1255 'variable %n changed'.
+kes  Second half of proposed fix for bug #1227 that does not
+     mark virtual volumes for unloading.
+kes  Proposed fix for bug #1227 Job and labeling new tape.
+
 Beta Release 2.5.42-b2
 16Mar09
 kes  Increase timeout for unmounting DVD as suggested by reporter

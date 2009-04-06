@@ -49,6 +49,8 @@ New features implemented:
 - New configure install options
   --docdir=  (default=/usr/share/doc/bacula-VERSION)
   --htmldir= (default=/usr/share/doc/bacula-VERSION/html -- bat help files)
+  --plugindir= (default=sysconfdir, where plugins will be installed)
+- New Bare Metal Recovery with USB key. See rescue/linux/usb
  New Directives:
 - Max Full Interval
 - Max Diff Interval
