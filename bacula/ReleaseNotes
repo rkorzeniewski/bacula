@@ -1,7 +1,7 @@
 
-       Release Notes for Bacula 2.5.42
+       Release Notes for Bacula 3.0.0
 
-  Bacula code: Total files = 521 Total lines = 204,881 (*.h *.c *.in)
+  Bacula code: Total files = 520 Total lines = 205,459 (*.h *.c *.in)
 
 The diff between 2.4.4 and 2.5.x is 208,340 lines, so this release
 represents an enormous effort.
@@ -14,20 +14,23 @@ release of version 2.5.40 or greater requires a database upgrade.
 
 ================== Warning !!!!!! ==========================
 
-New Catalog format in version 2.5.40
-------------------------------------
+New Catalog format in version 3.0.0 (2.5.40 or later)
+-----------------------------------------------------
 
 This BETA release of Bacula uses a new catalog format. We provide a set of
-scripts that permit to convert a 2.4.x (version 10) catalog to 2.5.x (version
-11). If you are using already a 2.5 version, you can drop the JobHistory
-table before upgrading your catalog (if you are using the new "long term
-statistics" module, you can upgrade this table the same way we do with 
-the Job table, see the src/cats/update_bacula_tables script).
+scripts that permit to convert a 2.4.x (version 10) catalog to 3.0.0 (version
+11).  The Bacula project rpms distributed on Source Forge will automatically
+detect the database change and do the upgrade for you.  We strongly
+recommend that you save a copy of your existing database before upgrading
+using rpms.
 
-The simplest way to:
+The simplest way to upgrad the database assuming you are building from
+source:
 1. Stop any current version of Bacula from running.
 2. Save a copy of your existing database.
-3. Configure, build, and install the 2.5.42 version of Bacula
+3. Configure, build, and install the 3.0.0 version of Bacula
+   Note the new ./configure options in the manuals see the link
+   at the bottom of this file.
 4. cd <your-scripts-installation-directory>
 5. ./update_bacula_tables
 6. If you have multiple catalogs, edit the update_bacula_tables
@@ -45,19 +48,20 @@ catalog will take 2 mins to upgrade on a normal machine.  Don't forget to
 backup it before executing the script.
 
 If you start from scratch, you don't need to run the update_bacula_tables
-script.  However, if you are using a version of Bacula older than 2.5.40,
-then you need to run the update_bacula_tables script that will be found
-in the <bacula>/src/cats directory after you run the ./configure command.
-As mentioned above, before running this script, please backup your 
-catalog database, and when you do running it, be sure shutdown
-Bacula and be aware that running the script can take some time depending
-on your database size.
+script because the create_bacula_tables script automatically creates the new
+table format.  However, if you are using a version of Bacula older than 2.5.40
+(e.g.  2.4.4) then you need to run the update_bacula_tables script that will
+be found in the <bacula>/src/cats directory after you run the ./configure
+command.  As mentioned above, before running this script, please backup your
+catalog database, and when you do running it, be sure shutdown Bacula and be
+aware that running the script can take some time depending on your database
+size.
 
 
-New configure option :
+Important New configure options :
 ----------------------
 
-This BETA release of Bacula 2.5.x development code uses libtool
+This release of Bacula 3.0.0 uses libtool by default
 to generate the Bacula libraries as shared objects rather than
 being directly linked in as in prior versions.  This means that
 the Bacula shared objects, must either be in a shared object 
@@ -71,6 +75,20 @@ way of building libraries and linking them into Bacula, you
 can do so by disabling libtool on the configure command line with:
 
   ./configure --disable-libtool
+
+During the installation of Bacula 3.0.0, it will now install
+bat help files (if you have configured bat).  These files
+are placed in /usr/share/doc/bacula/html by default. If you
+want to put them elsewhere use:
+
+  ./configure --htmldir=<full-path>
+
+During the installation of Bacula, it will now install the
+ReleaseNotes, License, technotes, ChangeLog, and similar
+files in /usr/share/doc/bacula by default.  If you
+want to put them elsewhere use:
+
+  ./configure --docdir=<full-path>
 ==============================================================
 
 This release includes large number of new features and changes.
