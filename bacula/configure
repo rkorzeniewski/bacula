@@ -27365,7 +27365,7 @@ fi
 # ------------------------------------------
 # Where to place plugindir (plugin files)
 # ------------------------------------------
-plugindir=`eval echo ${sysconfdir}`
+plugindir=`eval echo ${libdir}`
 
 # Check whether --with-plugindir was given.
 if test "${with_plugindir+set}" = set; then
