@@ -1215,7 +1215,7 @@ AC_SUBST(scriptdir)
 # ------------------------------------------
 # Where to place plugindir (plugin files)
 # ------------------------------------------
-plugindir=`eval echo ${sysconfdir}`
+plugindir=`eval echo ${libdir}`
 AC_ARG_WITH(plugindir,
    AC_HELP_STRING([--with-plugindir=PATH], [specify path of Bacula plugins directory]),
    [

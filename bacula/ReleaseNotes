@@ -70,6 +70,8 @@ where the Bacula binaries are installed.  It is also possible
 to explicitly specify the libraries directory on the ./configure
 line (--libdir=/full-path/dir), but this should not be necessary.
 
+  ./configure --libdir=<full-path>
+
 If you have problems with libtool or you wish to use the old 
 way of building libraries and linking them into Bacula, you 
 can do so by disabling libtool on the configure command line with:
@@ -89,6 +91,14 @@ files in /usr/share/doc/bacula by default.  If you
 want to put them elsewhere use:
 
   ./configure --docdir=<full-path>
+
+During the installation of Bacula, any plugins will be
+installed in the plugindir, which is by default the
+same as libdir (/usr/lib).  You can specify an alternate
+location with:
+
+  ./configure --with-plugindir=<full-path>
+
 ==============================================================
 
 This release includes large number of new features and changes.

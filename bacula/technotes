@@ -2,6 +2,8 @@
           
 General:
 
+06Apr09
+kes  Change default plugins dir to /usr/lib.
 05Apr09
 kes  Fix Win32 make clean to clean correctly 
 kes  Cleanup Win installer dialog messages a bit ...
