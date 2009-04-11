@@ -144,10 +144,12 @@ bool update_device_res(JCR *jcr, DEVICE *dev)
 }
 #endif
 
+static char OKbootstrap[] = "3000 OK bootstrap\n";
+
 /*
  * Start a job with the Storage daemon
  */
-bool start_storage_daemon_job(JCR *jcr, alist *rstore, alist *wstore)
+bool start_storage_daemon_job(JCR *jcr, alist *rstore, alist *wstore, bool send_bsr)
 {
    bool ok = true;
    STORE *storage;
@@ -196,7 +198,7 @@ bool start_storage_daemon_job(JCR *jcr, alist *rstore, alist *wstore)
                   &jcr->VolSessionTime, &auth_key) != 3) {
           Dmsg1(100, "BadJob=%s\n", sd->msg);
           Jmsg(jcr, M_FATAL, 0, _("Storage daemon rejected Job command: %s\n"), sd->msg);
-          return 0;
+          return false;
        } else {
           jcr->sd_auth_key = bstrdup(auth_key);
           Dmsg1(150, "sd_auth_key=%s\n", jcr->sd_auth_key);
@@ -204,7 +206,12 @@ bool start_storage_daemon_job(JCR *jcr, alist *rstore, alist *wstore)
    } else {
       Jmsg(jcr, M_FATAL, 0, _("<stored: bad response to Job command: %s\n"),
          sd->bstrerror());
-      return 0;
+      return false;
+   }
+
+   if (send_bsr && (!send_bootstrap_file(jcr, sd) ||
+       !response(jcr, sd, OKbootstrap, "Bootstrap", DISPLAY_ERROR))) {
+      return false;
    }
 
    /*

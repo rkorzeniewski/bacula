@@ -371,6 +371,8 @@ void stored_free_jcr(JCR *jcr)
       free_bsr(jcr->bsr);
       jcr->bsr = NULL;
    }
+   /* Free any restore volume list created */
+   free_restore_volume_list(jcr);
    if (jcr->RestoreBootstrap) {
       unlink(jcr->RestoreBootstrap);
       free_pool_memory(jcr->RestoreBootstrap);

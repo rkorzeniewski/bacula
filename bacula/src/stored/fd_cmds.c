@@ -388,6 +388,8 @@ bool get_bootstrap_file(JCR *jcr, BSOCK *sock)
    if (debug_level >= 10) {
       dump_bsr(jcr->bsr, true);
    }
+   /* If we got a bootstrap, we are reading, so create read volume list */
+   create_restore_volume_list(jcr);
    ok = true;
 
 bail_out:

@@ -155,7 +155,8 @@ extern void mount_request(JCR *jcr, BSOCK *bs, char *buf);
 /* msgchan.c */
 extern bool connect_to_storage_daemon(JCR *jcr, int retry_interval,
                               int max_retry_time, int verbose);
-extern bool start_storage_daemon_job(JCR *jcr, alist *rstore, alist *wstore);
+extern bool start_storage_daemon_job(JCR *jcr, alist *rstore, alist *wstore,
+              bool send_bsr=false);
 extern bool start_storage_daemon_message_thread(JCR *jcr);
 extern int bget_dirmsg(BSOCK *bs);
 extern void wait_for_storage_daemon_termination(JCR *jcr);

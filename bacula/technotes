@@ -2,6 +2,12 @@
           
 General:
 
+11Apr09
+kes  Modify insertion of read Volumes in SD to be done before the
+     drive reservation. This ensures that a Volume to be read will not
+     be reserved for writing.
+
+Release Version 3.0.0
 06Apr09
 kes  Change default plugins dir to /usr/lib.
 05Apr09
