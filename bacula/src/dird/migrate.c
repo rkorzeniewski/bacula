@@ -55,7 +55,6 @@
 
 static const int dbglevel = 10;
 
-static char OKbootstrap[] = "3000 OK bootstrap\n";
 static int get_job_to_migrate(JCR *jcr);
 struct idpkt;
 static bool regex_find_jobids(JCR *jcr, idpkt *ids, const char *query1,
@@ -353,15 +352,11 @@ bool do_migration(JCR *jcr)
            ((STORE *)jcr->rstorage->first())->name());
       return false;
    }
-   if (!start_storage_daemon_job(jcr, jcr->rstorage, jcr->wstorage)) {
+   if (!start_storage_daemon_job(jcr, jcr->rstorage, jcr->wstorage, /*send_bsr*/true)) {
       return false;
    }
    Dmsg0(150, "Storage daemon connection OK\n");
 
-   if (!send_bootstrap_file(jcr, sd) ||
-       !response(jcr, sd, OKbootstrap, "Bootstrap", DISPLAY_ERROR)) {
-      return false;
-   }
 
    /*    
     * We re-update the job start record so that the start
