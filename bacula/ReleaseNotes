@@ -17,7 +17,7 @@ release of version 2.5.40 or greater requires a database upgrade.
 New Catalog format in version 3.0.0 (2.5.40 or later)
 -----------------------------------------------------
 
-This BETA release of Bacula uses a new catalog format. We provide a set of
+This release of Bacula uses a new catalog format. We provide a set of
 scripts that permit to convert a 2.4.x (version 10) catalog to 3.0.0 (version
 11).  The Bacula project rpms distributed on Source Forge will automatically
 detect the database change and do the upgrade for you.  We strongly

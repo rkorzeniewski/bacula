@@ -48,7 +48,7 @@ kes  Apply bacula-autoconf-db-m4.patch from Kjetil Torgrim Homme
      for the SQL database engine. Fixes a build problem if the static
      libraries are not loaded.
 25Mar09
-ebl  Update Makefiles to compile win64 using "make WIN64=yes"
+ebl  Update Makefiles to compile win64 using make WIN64=yes
 kes  Disable plugin options in ua_run.c
 kes  Added the following to provide solutions to the plugin/Accurate
      problem -- bug #1236 Cannot restore incremental backups with 
