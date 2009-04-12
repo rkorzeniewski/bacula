@@ -153,6 +153,7 @@ static bool check_database_encoding(JCR *jcr, B_DB *mdb)
               _("Encoding error for database \"%s\". Wanted SQL_ASCII, got %s\n"),
               mdb->db_name, row[0]);
          Jmsg(jcr, M_WARNING, 0, "%s", mdb->errmsg);
+         Dmsg1(50, "%s", mdb->errmsg);
       } 
    }
    return ret;
