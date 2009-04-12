@@ -3,8 +3,18 @@
 #
 
 
+check_encoding()
+{
+   $bin/bacula-dir -d50 -t -c bin/bacula-dir.conf 2>&1 | grep 'Wanted SQL_ASCII, got UTF8' >/dev/null
+   if [ $? = 0 ]; then
+       echo "Found database encoding problem, please modify the database encoding (SQL_ASCII)"
+       exit 1
+   fi
+}
+
 start_test()
 {
+   check_encoding
    # Turn off email
    outf="tmp/sed_tmp"
    echo "s%  mail =%# mail = %g" >${outf}
