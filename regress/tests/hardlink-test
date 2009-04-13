@@ -32,7 +32,7 @@ cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @$out /dev/null
 messages
 @$out ${cwd}/tmp/log1.out
-label storage=File
+label storage=File pool=Default
 TestVolume001
 run job=$JobName    
 yes

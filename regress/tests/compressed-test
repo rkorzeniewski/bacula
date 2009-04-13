@@ -21,7 +21,7 @@ messages
 status all
 status all
 messages
-label storage=File volume=TestVolume001
+label storage=File volume=TestVolume001 pool=Default
 run job=$JobName storage=File yes
 wait
 messages
