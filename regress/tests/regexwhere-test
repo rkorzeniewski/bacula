@@ -30,7 +30,7 @@ start_test
 cat <<END_OF_DATA >tmp/bconcmds
 @$out tmp/RUN_backup
 messages
-label volume=TestVolume001
+label volume=TestVolume001 pool=Default
 run job=backup yes
 wait
 messages
