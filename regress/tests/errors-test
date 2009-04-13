@@ -21,7 +21,7 @@ cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @output /dev/null
 messages
 @output ${cwd}/tmp/LOCAL_INC_ERR.log
-label storage=File volume=TestVolume001
+label storage=File volume=TestVolume001 pool=Default
 add storage=File2
 1
 File2
