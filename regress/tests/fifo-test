@@ -22,7 +22,7 @@ cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @$out /dev/null
 messages
 @$out ${cwd}/tmp/log1.out
-label storage=File1 volume=TestVolume001
+label storage=File1 volume=TestVolume001 pool=Default
 run job=$JobName storage=File1 yes
 wait
 messages

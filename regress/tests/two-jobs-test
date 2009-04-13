@@ -25,7 +25,7 @@ estimate job=$JobName
 estimate job=$JobName
 messages
 @$out tmp/log1.out
-label storage=File volume=TestVolume001
+label storage=File volume=TestVolume001 pool=Default
 run job=$JobName yes
 wait
 messages

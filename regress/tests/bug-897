@@ -32,7 +32,7 @@ start_test
 cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @$out /dev/null
 messages
-label volume=TestVolume001
+label volume=TestVolume001 pool=Default
 @$out ${cwd}/tmp/RUN_FD_FAILED.log
 run job=RUN_FD_FAILED yes
 wait
