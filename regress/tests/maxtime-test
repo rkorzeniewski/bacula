@@ -26,6 +26,7 @@ label volume=TestVolume001 pool=PoolA
 @# no media => have to wait
 run job=RUN_MAXWAITTIME pool=Default yes
 @sleep 2
+wait
 @# storage is used by RUN_MAXWAITTIME => have to wait
 run job=RUN_MAXSTARTDELAY pool=PoolA when="$WHEN" yes
 @sleep 60
@@ -33,6 +34,7 @@ label volume=TestVolume002 pool=Default
 mount
 wait
 messages
+setdebug level=200 dir
 run job=RUN_MAXRUNTIME pool=PoolA yes
 wait
 messages
