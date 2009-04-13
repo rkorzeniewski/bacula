@@ -324,7 +324,7 @@ And run this on crontab when you want :
 INSERT INTO JobHistory 
   (SELECT * FROM Job WHERE JobId NOT IN (SELECT JobId FROM JobHistory) );
 
-################ USE GROUPS WITH BWEB ##########################
+################ USE USERS AND GROUPS WITH BWEB ##########################
 
 It works with postgresql and mysql5 (4 not tested).
 With mysql, load bweb/script/bweb-mysql.sql into your catalog
