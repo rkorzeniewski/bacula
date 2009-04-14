@@ -38,8 +38,8 @@ messages
 @$out tmp/log1.out
 setdebug level=150  storage=File
 setdebug level=150  Director
-label storage=File volume=TestVolume0001 pool=Default
-label storage=File volume=TestVolume0002 pool=Default
+label storage=File volume=TestVolume0001
+label storage=File volume=TestVolume0002
 run job=First yes
 messages
 quit

@@ -20,10 +20,10 @@ cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @output /dev/null
 messages
 @$out ${cwd}/tmp/log1.out
-label storage=File1 volume=TestVolume004 pool=Default
-label storage=File1 volume=TestVolume003 pool=Default
-label storage=File1 volume=TestVolume002 pool=Default
-label storage=File1 volume=TestVolume001 pool=Default
+label storage=File1 volume=TestVolume004
+label storage=File1 volume=TestVolume003
+label storage=File1 volume=TestVolume002
+label storage=File1 volume=TestVolume001
 update Volume=TestVolume004 MaxVolBytes=3000000
 update Volume=TestVolume003 MaxVolBytes=3000000
 update Volume=TestVolume002 MaxVolBytes=3000000

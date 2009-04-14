@@ -25,10 +25,10 @@ cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @output /dev/null
 messages
 @$out ${cwd}/tmp/log1.out
-label storage=File1 volume=TestVolume001 pool=Default
-label storage=File1 volume=TestVolume002 pool=Default
-label storage=File1 volume=TestVolume003 pool=Default
-label storage=File1 volume=TestVolume004 pool=Default
+label storage=File1 volume=TestVolume001
+label storage=File1 volume=TestVolume002
+label storage=File1 volume=TestVolume003
+label storage=File1 volume=TestVolume004
 @# Note, this is going to fail if the pruning gets
 @#  to tight because the saved volume is too large.
 @#  In that case, either add another volume, or

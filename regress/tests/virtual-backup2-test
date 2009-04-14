@@ -5,7 +5,7 @@
 #
 # This script uses the virtual disk autochanger
 #
-TestName="virtual-backup2-test"
+TestName="virtual-backup-test"
 JobName=Vbackup
 . scripts/functions
 
