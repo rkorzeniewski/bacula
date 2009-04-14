@@ -27,9 +27,9 @@ status client=${hostname1}-fd
 status client=${hostname2}-fd
 status client=${hostname3}-fd
 setdebug level=1 dir
-label storage=File1 pool=Default
+label storage=File1
 TestVolume001
-label storage=File1 pool=Default
+label storage=File1
 TestVolume002
 update Volume=TestVolume001 MaxVolBytes=900000000
 status storage=File1

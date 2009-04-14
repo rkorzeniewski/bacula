@@ -23,7 +23,7 @@ start_test
 cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @$out /dev/null
 messages
-label volume=TestVolume001 pool=Default
+label volume=TestVolume001
 @$out ${cwd}/tmp/RUN_BUG_FATAL.log
 run job=BUG_FATAL yes
 wait

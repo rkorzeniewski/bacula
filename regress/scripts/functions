@@ -5,7 +5,7 @@
 
 check_encoding()
 {
-   $bin/bacula-dir -d50 -t -c $cwd/scripts/bacula-dir.conf 2>&1 | grep 'Wanted SQL_ASCII, got UTF8' >/dev/null
+   $bin/bacula-dir -d50 -t -c bin/bacula-dir.conf 2>&1 | grep 'Wanted SQL_ASCII, got UTF8' >/dev/null
    if [ $? = 0 ]; then
        echo "Found database encoding problem, please modify the database encoding (SQL_ASCII)"
        exit 1
