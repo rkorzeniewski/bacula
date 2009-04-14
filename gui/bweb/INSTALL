@@ -315,14 +315,14 @@ GRANT INSERT,UPDATE,DELETE ON bacula.LocationLog
 
 ################ GET MORE STATISTICS ###########################
 
-You keep Jobs informations across retention into a JobHistory table.
-You have to setup stat_job_table = JobHistory in bweb configuration.
+You keep Jobs informations across retention into a JobHisto table.
+You have to setup stat_job_table = JobHisto in bweb configuration.
 
-CREATE TABLE JobHistory (LIKE Job);
+CREATE TABLE JobHisto (LIKE Job);
 
 And run this on crontab when you want :
-INSERT INTO JobHistory 
-  (SELECT * FROM Job WHERE JobId NOT IN (SELECT JobId FROM JobHistory) );
+INSERT INTO JobHisto 
+  (SELECT * FROM Job WHERE JobId NOT IN (SELECT JobId FROM JobHisto) );
 
 ################ USE USERS AND GROUPS WITH BWEB ##########################
 
