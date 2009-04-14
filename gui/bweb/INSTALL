@@ -16,7 +16,7 @@ Bweb works well with 2.0 release or later.
 10) accessing to bweb
 11) setting mysql read-only account
 12) get more statistics
-13) use groups with bweb
+13) use users and groups with bweb
 14) setup restoration in bweb
 
 ################ FILE COPY #####################################
