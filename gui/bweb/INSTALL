@@ -2,7 +2,7 @@
 #               INSTALL NOTES                                  #
 ################################################################
 
-Bweb works well with 1.39 release or later.
+Bweb works well with 2.0 release or later.
 
 1) install Perl lib
 2) copy your files
@@ -270,7 +270,7 @@ tpl/en/display_job_zoom.tpl.
 Add (or configure) a writable location to the parameters in bweb.conf 
    'fv_write_path' => '/var/spool/bweb',
 
-You MUST use brestore.pl -b to initialize the database, and
+You MUST use brestore.pl -b or bresto.pl action=batch to initialize the database, and
 you CAN use bfileview.pl mode=batch jobid=xxx where=/ to compute tree size.
 
 At this time, it's a good idea to schedule brestore.pl -b after your 
@@ -283,7 +283,7 @@ Job {
   RunBeforeJob = "/opt/bacula/etc/make_catalog_backup bacula bacula Pei0ahm9"
   # This deletes the copy of the catalog
   RunAfterJob  = "/opt/bacula/etc/delete_catalog_backup"
-  RunAfterJob  = "/usr/local/bin/brestore.pl -b"
+  RunAfterJob  = "/usr/lib/cgi-bin/bweb/bresto.pl action=batch"
 }
 
 To upgrade from an old installation, you can use :
