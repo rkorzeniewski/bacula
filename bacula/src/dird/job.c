@@ -578,6 +578,7 @@ static bool job_check_maxruntime(JCR *jcr)
 {
    bool cancel = false;
    JOB *job = jcr->job;
+   utime_t run_time;
 
    if (job_canceled(jcr) || jcr->JobStatus == JS_Created) {
       return false;
@@ -586,20 +587,25 @@ static bool job_check_maxruntime(JCR *jcr)
        job->IncMaxRunTime == 0 && job->DiffMaxRunTime == 0) {
       return false;
    }
-   Dmsg6(200, "check_maxruntime %u - %u >= %u|%u|%u|%u\n\n",
-         watchdog_time, jcr->start_time, job->MaxRunTime, job->FullMaxRunTime, 
+   run_time = watchdog_time - jcr->start_time;
+   Dmsg7(200, "check_maxruntime %llu-%u=%llu >= %llu|%llu|%llu|%llu\n",
+         watchdog_time, jcr->start_time, run_time, job->MaxRunTime, job->FullMaxRunTime, 
          job->IncMaxRunTime, job->DiffMaxRunTime);
 
    if (jcr->get_JobLevel() == L_FULL && job->FullMaxRunTime != 0 &&
-         (watchdog_time - jcr->start_time) >= job->FullMaxRunTime) {
+         run_time >= job->FullMaxRunTime) {
+      Dmsg0(200, "check_maxwaittime: FullMaxcancel\n");
       cancel = true;
    } else if (jcr->get_JobLevel() == L_DIFFERENTIAL && job->DiffMaxRunTime != 0 &&
-         (watchdog_time - jcr->start_time) >= job->DiffMaxRunTime) {
+         run_time >= job->DiffMaxRunTime) {
+      Dmsg0(200, "check_maxwaittime: DiffMaxcancel\n");
       cancel = true;
    } else if (jcr->get_JobLevel() == L_INCREMENTAL && job->IncMaxRunTime != 0 &&
-         (watchdog_time - jcr->start_time) >= job->IncMaxRunTime) {
+         run_time >= job->IncMaxRunTime) {
+      Dmsg0(200, "check_maxwaittime: IncMaxcancel\n");
       cancel = true;
-   } else if ((watchdog_time - jcr->start_time) >= job->MaxRunTime) {
+   } else if (job->MaxRunTime > 0 && run_time >= job->MaxRunTime) {
+      Dmsg0(200, "check_maxwaittime: Maxcancel\n");
       cancel = true;
    }
  

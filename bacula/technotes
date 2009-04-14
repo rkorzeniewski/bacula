@@ -2,6 +2,8 @@
           
 General:
 
+14Apr09
+kes  Fix bug #1268 Full Max Run Time cancels jobs (when Max Run Time = 0).
 11Apr09
 kes  Modify insertion of read Volumes in SD to be done before the
      drive reservation. This ensures that a Volume to be read will not
