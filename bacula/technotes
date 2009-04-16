@@ -3,6 +3,8 @@
 General:
 
 14Apr09
+kes  Fix bug #1246 Sometimes access denied with VSS enabled. UCS
+     conversion cache was not properly flushed at the end of a Job.
 kes  Fix bug #1268 Full Max Run Time cancels jobs (when Max Run Time = 0).
 11Apr09
 kes  Modify insertion of read Volumes in SD to be done before the
