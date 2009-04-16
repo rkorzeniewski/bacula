@@ -2,6 +2,9 @@
           
 General:
 
+16Apr09
+kes  Add additional mysql connection debug code submitted by:
+     "Chandranshu ." <chandranshu@gmail.com>
 14Apr09
 kes  Fix bug #1246 Sometimes access denied with VSS enabled. UCS
      conversion cache was not properly flushed at the end of a Job.
