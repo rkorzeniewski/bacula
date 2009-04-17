@@ -110,5 +110,22 @@ Please see the New Features chapter of the new manual, which documents
 some but not all the new features (we are still working on it):
 
 http://www.bacula.org/manuals/en/concepts/concepts/New_Features.html
+
+============ Documentation improvements needed ==================
+
+Note!!!!! The documentation needs rather extensive modifications in the
+following areas:
+
+1. Missing documentation.
+2. Correction of links within various manuals -- most fail.
+3. Integration of the new features into the main documents.
+4. Much more.
+
+The documentation will not be completed in the near future due to lack
+manpower.  If you are unhappy with this situation as we are, we suggest
+you help by submitting patches to the documentation.  Thanks.
+=====
+
+
   
 The ChangeLog has more details.
