@@ -2,6 +2,9 @@
           
 General:
 
+21Apr09
+ebl  Tweak version string to display versionid field at the end
+     and keep fields order.
 16Apr09
 kes  Add additional mysql connection debug code submitted by:
      "Chandranshu ." <chandranshu@gmail.com>
