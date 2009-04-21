@@ -1829,7 +1829,7 @@ int qhelp_cmd(UAContext *ua, const char *cmd)
 static int version_cmd(UAContext *ua, const char *cmd)
 {
    ua->send_msg(_("%s Version: %s (%s) %s %s %s %s\n"), my_name, VERSION, BDATE,
-                NPRTB(director->verid), HOST_OS, DISTNAME, DISTVER);
+                HOST_OS, DISTNAME, DISTVER, NPRTB(director->verid));
    return 1;
 }
 #else
