@@ -2142,7 +2142,7 @@ FROM Media
  LEFT  JOIN Location ON (Media.LocationId = Location.LocationId)
 
 WHERE Media.InChanger = 1
-  AND Media.VolStatus IN ('Disabled', 'Error', 'Full')
+  AND Media.VolStatus IN ('Disabled', 'Error', 'Full', 'Used')
   $sql
 ORDER BY expire DESC, recycle, Media.VolMounts DESC
 LIMIT $number
