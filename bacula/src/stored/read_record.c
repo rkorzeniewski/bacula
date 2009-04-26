@@ -352,10 +352,6 @@ static bool try_repositioning(JCR *jcr, DEV_RECORD *rec, DCR *dcr)
       if (dev_addr > bsr_addr) {
          return false;
       }
-      if (verbose) {
-         Jmsg(jcr, M_INFO,0, _("Reposition from (file:block) %u:%u to %u:%u\n"),
-              dev->file, dev->block_num, file, block);
-      }
       Dmsg4(10, "Try_Reposition from (file:block) %u:%u to %u:%u\n",
             dev->file, dev->block_num, file, block);
       dev->reposition(dcr, file, block);

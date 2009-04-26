@@ -3,6 +3,7 @@
 General:
 
 26Apr09
+ebl  Remove "Reposition" message when restoring
 kes  Fix platform scripts not to clean configured files during
      'make clean' use 'make distclean' to clean everything. Fixes
      bug #1272.
