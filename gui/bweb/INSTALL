@@ -117,6 +117,7 @@ It could be a good idea to protect your bweb installation (optional).
 
 Put this in your httpd.conf, and add user with htpasswd
 
+ScriptAlias /cgi-bin/bweb /usr/lib/cgi-bin/bweb
 <Directory /usr/lib/cgi-bin/bweb>
         Options ExecCGI -MultiViews +SymLinksIfOwnerMatch
         AuthType Basic
