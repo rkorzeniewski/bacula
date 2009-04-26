@@ -454,15 +454,17 @@ if [ x$USE_VTAPE = xyes ]; then
    mkdir -p $working/ach
    SLOT1=1
    SLOT2=2
-   TAPE_DRIVE=$working/ach/drive1
+   TAPE_DRIVE=$working/ach/drive0
    TAPE_DRIVE1=$working/ach/drive1
    AUTOCHANGER=$working/ach/config
    AUTOCHANGER_SCRIPT=disk-changer
    DRIVE1=0
    DRIVE2=1
+   cp /dev/null $working/ach/slot$SLOT1
+   cp /dev/null $working/ach/slot$SLOT2
    cat > $AUTOCHANGER <<EOF
-maxdrive=2
-maxslot=60
+maxdrive=8
+maxslot=80
 EOF
 fi
 

@@ -24,3 +24,7 @@ then
   ./grant_bacula_privileges >/dev/null 2>&1
   cd ..
 fi
+
+if [ x$USE_VTAPE = xyes ]; then
+   rm -rf working/ach
+fi
