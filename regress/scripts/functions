@@ -462,7 +462,7 @@ if [ x$USE_VTAPE = xyes ]; then
    DRIVE2=1
    cat > $AUTOCHANGER <<EOF
 maxdrive=2
-maxslot=10
+maxslot=60
 EOF
 fi
 
