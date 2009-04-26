@@ -2,12 +2,18 @@
           
 General:
 
+26Apr09
+kes  Fix platform scripts not to clean configured files during
+     'make clean' use 'make distclean' to clean everything. Fixes
+     bug #1272.
+kes  Update projects file
+=======
 21Apr09
 ebl  Tweak version string to display versionid field at the end
      and keep fields order.
 16Apr09
 kes  Add additional mysql connection debug code submitted by:
-     "Chandranshu ." <chandranshu@gmail.com>
+     Chandranshu <chandranshu@gmail.com>
 14Apr09
 kes  Fix bug #1246 Sometimes access denied with VSS enabled. UCS
      conversion cache was not properly flushed at the end of a Job.
@@ -65,7 +71,7 @@ kes  Apply bacula-autoconf-db-m4.patch from Kjetil Torgrim Homme
      for the SQL database engine. Fixes a build problem if the static
      libraries are not loaded.
 25Mar09
-ebl  Update Makefiles to compile win64 using "make WIN64=yes"
+ebl  Update Makefiles to compile win64 using 'make WIN64=yes'
 kes  Disable plugin options in ua_run.c
 kes  Added the following to provide solutions to the plugin/Accurate
      problem -- bug #1236 Cannot restore incremental backups with 
@@ -250,7 +256,7 @@ kes  Fix bug #1208
 Beta Release 2.5.16-b1
 20Dec08
 ebl  Work on copy jobs
-     - Add "list copies" command
+     - Add 'list copies' command
      - Add JT_JOB_COPY type for job copies
      - Don't allow copy jobs in automatic restore
      - Promote next copy job as backup when original job is deleted
