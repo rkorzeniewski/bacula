@@ -353,8 +353,9 @@ int DirComm::read()
          }
          continue;
       case BNET_START_SELECT:
+         notify(false);
          if (mainWin->m_commDebug) Pmsg1(000, "conn %i START SELECT\n", m_conn);
-         new selectDialog(m_console);
+         new selectDialog(m_console, m_conn);
          break;
       case BNET_YESNO:
          if (mainWin->m_commDebug) Pmsg1(000, "conn %i YESNO\n", m_conn);
