@@ -208,6 +208,9 @@ bool do_migration_init(JCR *jcr)
    mig_jcr->jr.PoolId = jcr->jr.PoolId;
    mig_jcr->jr.JobId = mig_jcr->JobId;
 
+   /* Don't let WatchDog checks Max*Time value on this Job */
+   mig_jcr->no_maxtime = true;
+
    Dmsg4(dbglevel, "mig_jcr: Name=%s JobId=%d Type=%c Level=%c\n",
       mig_jcr->jr.Name, (int)mig_jcr->jr.JobId, 
       mig_jcr->jr.JobType, mig_jcr->jr.JobLevel);

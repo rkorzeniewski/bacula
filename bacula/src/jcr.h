@@ -326,6 +326,7 @@ public:
    bool VSS;                          /* VSS used by FD */
    bool Encrypt;                      /* Encryption used by FD */
    bool stats_enabled;                /* Keep all job records in a table for long term statistics */
+   bool no_maxtime;                   /* Don't check Max*Time for this JCR */
 #endif /* DIRECTOR_DAEMON */
 
 

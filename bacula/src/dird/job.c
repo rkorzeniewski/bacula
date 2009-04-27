@@ -506,7 +506,7 @@ static void job_monitor_watchdog(watchdog_t *self)
    foreach_jcr(jcr) {
       bool cancel = false;
 
-      if (jcr->JobId == 0 || job_canceled(jcr)) {
+      if (jcr->JobId == 0 || job_canceled(jcr) || jcr->no_maxtime) {
          Dmsg2(800, "Skipping JCR=%p Job=%s\n", jcr, jcr->Job);
          continue;
       }
