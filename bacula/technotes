@@ -3,8 +3,9 @@
 General:
 
 28Apr09
+dirk Correct bat Select dialog. Fixes bug #1276.
 kes  Check for job_canceled() in fd_plugin code.
-kes  Update Win32/64 table creation to have new DB version 11 format
+kes  Update Win32 table creation to have new DB version 11 format
 kes  Remove illegal Options in Exclude of default Win32/64 bacula-dir.conf
 27Apr09
 ebl  Fix bug #1274 where a migration job can be canceled like the
@@ -17,7 +18,6 @@ kes  Fix platform scripts not to clean configured files during
      'make clean' use 'make distclean' to clean everything. Fixes
      bug #1272.
 kes  Update projects file
-=======
 21Apr09
 ebl  Tweak version string to display versionid field at the end
      and keep fields order.
@@ -31,7 +31,7 @@ kes  Fix bug #1268 Full Max Run Time cancels jobs (when Max Run Time = 0).
 11Apr09
 kes  Modify insertion of read Volumes in SD to be done before the
      drive reservation. This ensures that a Volume to be read will not
-     be reserved for writing.
+     be reserved for writing. Significant enhancement.
 
 Release Version 3.0.0
 06Apr09
