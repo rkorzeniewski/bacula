@@ -3,6 +3,7 @@
 General:
 
 28Apr09
+kes  Update Win32/64 table creation to have new DB version 11 format
 kes  Remove illegal Options in Exclude of default Win32/64 bacula-dir.conf
 27Apr09
 ebl  Fix bug #1274 where a migration job can be canceled like the
