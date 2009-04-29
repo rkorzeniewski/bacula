@@ -990,6 +990,9 @@ static void split_path_and_filename(UAContext *ua, RESTORE_CTX *rx, char *name)
 
 static bool ask_for_fileregex(UAContext *ua, RESTORE_CTX *rx)
 {
+   if (find_arg(ua, NT_("all"))) {       /* if user enters all on command line */
+       return true;                      /* select everything */
+   }
    ua->send_msg(_("\nThere were no files inserted into the tree, so file selection\n"
                   "is not possible.Most likely your retention policy pruned the files\n"));
    if (get_yesno(ua, _("\nDo you want to restore all the files? (yes|no): "))) {
