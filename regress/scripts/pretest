@@ -21,7 +21,7 @@ start_test
 
 run_bacula
 if [ $? -ne 0 ]; then
-   echo "Error: bconsole error"
+   echo "Error: Starting Bacula Failed in pretest"
    make distclean
    make setup
    exit 1
