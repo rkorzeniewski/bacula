@@ -39,6 +39,9 @@
       <input type='checkbox' 
              <TMPL_IF qnojob>checked</TMPL_IF> 
              name="nojob"> Hide Job<br/>
+      <input type='checkbox' 
+             <TMPL_IF qbypool>checked</TMPL_IF> 
+             name="bypool"> Order by Pool<br/>
 <TMPL_IF db_client_groups>
 <tr>
   <td valign='top'>

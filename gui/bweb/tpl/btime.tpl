@@ -39,6 +39,9 @@
       <input type='checkbox' 
              <TMPL_IF qnojob>checked</TMPL_IF> 
              name="nojob"> __Hide Job__<br/>
+      <input type='checkbox' 
+             <TMPL_IF qbypool>checked</TMPL_IF> 
+             name="bypool"> __Order by Pool__<br/>
 <TMPL_IF db_client_groups>
 <tr>
   <td valign='top'>
