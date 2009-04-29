@@ -51,7 +51,7 @@ $bweb->display_begin();
 $bweb->can_do('r_view_stat');
 
 my $arg = $bweb->get_form(qw/qnocache qiso_begin qiso_end qusage qpools 
-			     qpoolusage qnojob jclient_groups 
+			     qpoolusage qnojob jclient_groups qbypool
 			     db_client_groups qclient_groups/);
 my ($filter1, undef) = $bweb->get_param('pool');
 
@@ -148,7 +148,7 @@ FROM  Log INNER JOIN Job USING (JobId) JOIN Pool USING (PoolId)
   AND ( $filter )
   AND Job.Type = 'B'
   $filter1
- ORDER BY Job.JobId,Log.LogId,Log.Time  ";
+ ORDER BY " . ($arg->{qbypool}?"Pool.Name,":""). "Job.JobId,Log.LogId,Log.Time";
 
 
 $bweb->debug($query);
@@ -163,8 +163,17 @@ my $pool = {};
 my $drive = "";
 my $end;
 my $begin;
+my $last_pool='';
 foreach my $elt (@$all)
 {
+    # if bypool is used, we display pool usage after each job block
+    if ($arg->{qbypool} && $last_pool ne $elt->[4]) {
+        foreach my $i (sort keys %$pool) {
+            $top->add_job(label => $i,
+                          data => $pool->{$i});
+        }
+        $pool = {};
+    }
     if ($lastid && $lastid ne $elt->[3]) {
 	if (!$arg->{qnojob}) {
 	    $top->add_job(label => $last_name,
@@ -190,7 +199,7 @@ foreach my $elt (@$all)
 #	    end   => $elt->[1],
 #	};
 #
-    } elsif ($elt->[2] =~ /(?:$regs{get_drive}) "([\w\d]+)"/) {
+    } elsif ($elt->[2] =~ /(?:$regs{get_drive}) "([\w\d\s-\.]+)"/) {
 	$drive = $1;
 
     } elsif ($elt->[2] =~ /(?:$regs{data_despool_time}).*? = (\d+):(\d+):(\d+)/) {
@@ -263,13 +272,14 @@ foreach my $elt (@$all)
     $begin = $elt->[1];
     $last_name = $elt->[0];
     $lastid = $elt->[3];
+    $last_pool = $elt->[4];
 }
 
 if (!$arg->{qnojob} && $last_name) {
     $top->add_job(label => $last_name,
 		  data => $data);
 }
-if ($arg->{qpoolusage}) {
+if ($arg->{qpoolusage} or $arg->{qbypool}) {
     foreach my $d (sort keys %$pool) {
 	$top->add_job(label => $d,
 		      data => $pool->{$d});
@@ -283,7 +293,7 @@ if ($arg->{qusage}) {
     }
 }
 
-#print STDERR Data::Dumper::Dumper($top);
+$bweb->debug($top);
 $top->finalize();
 
 open(FP, ">$conf->{fv_write_path}/$md5_rep.png");
