@@ -2,6 +2,7 @@
           
 General:
 
+Release Version 3.0.1:
 29Apr09
 kes  Fix bug #1282 Setting job.Priority in python crashes director by
      checking if string addr is NULL.  Not tested.

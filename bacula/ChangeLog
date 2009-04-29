@@ -3,6 +3,11 @@
 General:
 
 Release Version 3.0.1:
+29Apr09
+kes  Fix bug #1282 Setting job.Priority in python crashes director by
+     checking if string addr is NULL.  Not tested.
+kes  Fix bug #1281 allow all on restore command line to restore
+     pruned JobIds without prompting.
 28Apr09
 dirk Correct bat Select dialog. Fixes bug #1276.
 kes  Check for job_canceled() in fd_plugin code.
