@@ -231,8 +231,14 @@ void Pages::treeWidgetName(QString &name)
 void Pages::consoleCommand(QString &command)
 {
    int conn;
+   bool donotify = false;
    if (m_console->availableDirComm(conn))  {
+      if (m_console->is_notify_enabled(conn)) {
+         donotify = true;
+         m_console->notify(conn, false);
+      }
       consoleCommand(command, conn);
+      if (donotify) { m_console->notify(conn, true); }
    }
 }
 void Pages::consoleCommand(QString &command, int conn)
