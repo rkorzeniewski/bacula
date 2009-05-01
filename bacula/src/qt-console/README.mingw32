@@ -50,11 +50,11 @@ $ wine qt-win-opensource-4.4.0-mingw.exe
  * Install under c:\Qt (no space)
  * no worry about mingw installation
 
-$ cp -r ~/.wine/drive_c/Qt/4.4.0/src/    depkgs-mingw32/include
-$ cp -r ~/.wine/drive_c/Qt/4.4.0/include depkgs-mingw32/include/qt
-$ cp -r ~/.wine/drive_c/Qt/4.4.0/lib     depkgs-mingw32/lib/qt
-# copy ~/.wine/drive_c/Qt/4.4.0/bin/QtCore4.dll to src/win32/release
-# copy ~/.wine/drive_c/Qt/4.4.0/bin/QtGui4.dll to src/win32/release
+$ cp -r ~/.wine/drive_c/Qt/4.4.1/src/    depkgs-mingw32/include
+$ cp -r ~/.wine/drive_c/Qt/4.4.1/include depkgs-mingw32/include/qt
+$ cp -r ~/.wine/drive_c/Qt/4.4.1/lib     depkgs-mingw32/lib/qt
+# cp ~/.wine/drive_c/Qt/4.4.1/bin/QtCore4.dll src/win32/release32
+# cp ~/.wine/drive_c/Qt/4.4.1/bin/QtGui4.dll src/win32/release32
 
 MINGW setup
 -----------
