@@ -87,11 +87,14 @@ select JobId,MediaId,StartFile,StartBlock,EndFile,EndBlock from JobMedia;
 
 
 @$out   ${cwd}/tmp/log2.out
+status storage=File1
+setdebug level=100 Storage=File1
 restore where=${cwd}/tmp/bacula-restores select storage=File1
 unmark *
 mark *
 done
 yes
+wait
 run job=$JobName level=Full Storage=File1 yes
 wait
 @#reload
