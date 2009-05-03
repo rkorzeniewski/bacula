@@ -335,6 +335,15 @@ function bweb_get_job_img(status, errors, type)
   return bweb_root + ret;
 }
 
+function toggle_display(id) 
+{
+   var e = document.getElementById(id);
+   if(e.style.display == 'block')
+      e.style.display = 'none';
+   else
+      e.style.display = 'block';
+}
+
 function search_media()
 {
  var what = document.getElementById('searchbox').value;
