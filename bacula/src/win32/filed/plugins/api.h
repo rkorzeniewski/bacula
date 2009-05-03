@@ -278,6 +278,7 @@ extern HrESERestoreSaveEnvironment_t HrESERestoreSaveEnvironment;
 extern HrESERestoreAddDatabase_t HrESERestoreAddDatabase;
 extern HrESERestoreOpenFile_t HrESERestoreOpenFile;
 
+#if !defined(MINGW64)
 typedef enum _COMPUTER_NAME_FORMAT {
    ComputerNameNetBIOS,
    ComputerNameDnsHostname,
@@ -295,5 +296,6 @@ BOOL WINAPI GetComputerNameExW(
    LPWSTR lpBuffer,
    LPDWORD lpnSize
 );
+#endif
 
 }
