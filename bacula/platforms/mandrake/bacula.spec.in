@@ -1899,6 +1899,10 @@ rm -f $RPM_BUILD_ROOT%{script_dir}/mtx-changer
 rm -f $RPM_BUILD_ROOT%{script_dir}/startmysql
 rm -f $RPM_BUILD_ROOT%{script_dir}/stopmysql
 rm -rf $RPM_BUILD_ROOT%{script_dir}/updatedb
+rm -f $RPM_BUILD_ROOT%{script_dir}/bconsole
+rm -f $RPM_BUILD_ROOT%{script_dir}/bpipe-fd.so
+rm -f $RPM_BUILD_ROOT%{script_dir}/mtx-changer.conf
+rm -f $RPM_BUILD_ROOT%{_sbindir}/bacula
 %endif
 
 %clean
@@ -2351,7 +2355,10 @@ fi
 %{_mandir}/man8/bacula.8.%{manpage_ext}
 %{_mandir}/man8/bconsole.8.%{manpage_ext}
 %{_mandir}/man8/btraceback.8.%{manpage_ext}
-%{_libdir}/libbac*
+%{_libdir}/libbac.*
+%{_libdir}/libbaccfg.*
+%{_libdir}/libbacfind.*
+%{_libdir}/libbacpy.*
 
 
 %pre client
@@ -2572,6 +2579,9 @@ fi
 %endif
 
 %changelog
+* Sun May 03 2009 D. Scott Barninger <barninger@fairfieldcomputers.com>
+- remove more files installed by client-only build not needed by client package
+- remove libbacsql files from client package
 * Sat May 02 2009 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - 3.0.1
 - update for new docs configuration
