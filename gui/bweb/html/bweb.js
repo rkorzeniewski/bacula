@@ -335,13 +335,17 @@ function bweb_get_job_img(status, errors, type)
   return bweb_root + ret;
 }
 
-function toggle_display(id) 
+function toggle_display(id, arrow) 
 {
+   var a = document.getElementById(arrow);
    var e = document.getElementById(id);
-   if(e.style.display == 'block')
+   if(e.style.display == 'block') {
       e.style.display = 'none';
-   else
+      a.src = '/bweb/right.gif';
+   } else {
       e.style.display = 'block';
+      a.src = '/bweb/down.gif';
+   }
 }
 
 function search_media()
