@@ -1,3 +1,15 @@
+bweb (3.0.1-1) stable; urgency=low
+  * Add View copies option to bresto
+  * Tweak command output to add hide/display button
+  * add bypool option to btime
+  * Should fix #1240 about job output parsing
+  * Fix new Purged status from update_media
+  * Add pool parameter to label barcode process
+  * Add purged and recycle volume to loading procedure when expired=on
+  * Use default age in missing job view
+	
+ -- Eric Bollengier <eric@eb.homelinux.org>  Mon,  04 Apr 2009 14:15:47 +0000
+
 bweb (2.4.4-2) stable; urgency=low
   * Use apache2 instead of apache
 	
