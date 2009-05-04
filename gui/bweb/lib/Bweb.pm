@@ -867,7 +867,7 @@ sub send_to_io
     my ($self, $slot) = @_;
 
     unless ($self->slot_is_full($slot)) {
-	print "Autochanger $self->{name} slot $slot is empty\n";
+	print "Autochanger $self->{name} slot $slot is empty<br>\n";
 	return 1;		# ok
     }
 
@@ -875,20 +875,21 @@ sub send_to_io
     if ($self->is_slot_loaded($slot)) {
 	# bconsole->umount
 	# self->eject
-	print "Autochanger $self->{name} $slot is currently in use\n";
+	print "Autochanger $self->{name} $slot is currently in use<br>\n";
 	return 0;
     }
 
     # autochanger must have I/O
     unless ($self->have_io()) {
-	print "Autochanger $self->{name} don't have I/O, you can take media yourself\n";
+	print "Autochanger $self->{name} don't have I/O, you can take media yourself<br>\n";
 	return 0;
     }
 
     my $dst = $self->io_get_first_free();
 
     unless ($dst) {
-	print "Autochanger $self->{name} you must empty I/O first\n";
+	print "Autochanger $self->{name} mailbox is full, you must empty I/O first<br>\n";
+        return 0;
     }
 
     $self->transfer($slot, $dst);
@@ -929,30 +930,32 @@ sub clear_io
 {
     my ($self) = @_;
 
+    print "<table><tr>\n";
     for my $slot (@{$self->{io}})
     {
 	if ($self->is_slot_loaded($slot)) {
-	    print "$slot is currently loaded\n";
+	    print "<td></td><td>Slot $slot is currently loaded</td></tr>\n";
 	    next;
 	}
 
 	if ($self->slot_is_full($slot))
 	{
 	    my $free = $self->slot_get_first_free() ;
-	    print "move $slot to $free :\n";
+	    print "</tr><tr><td>move slot $slot to $free :</td>";
 
 	    if ($free) {
 		if ($self->transfer($slot, $free)) {
-		    print "<img src='/bweb/T.png' alt='ok'><br/>\n";
+		    print "<td><img src='/bweb/T.png' alt='ok'></td>\n";
 		} else {
-		    print "<img src='/bweb/E.png' alt='ok' title='$self->{error}'><br/>\n";
+		    print "<td><img src='/bweb/E.png' alt='ok' title='$self->{error}'></td>\n";
 		}
 		
 	    } else {
-		$self->{error} = "<img src='/bweb/E.png' alt='ok' title='E : Can t find free slot'><br/>\n";
+		$self->{error} = "<td><img src='/bweb/E.png' alt='ok' title='E : Can t find free slot'></td>\n";
 	    }
 	}
     }
+    print "</tr></table>\n";
 }
 
 # TODO : this is with mtx status output,

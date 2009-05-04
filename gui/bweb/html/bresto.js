@@ -724,9 +724,9 @@ Ext.onReady(function(){
                 text: 'View all file versions',
                 checked: Ext.brestore.option_vafv,
                 checkHandler: sel_option
-            })
+              }),
            new Ext.menu.CheckItem({
-                id: 'id_vafv',
+                id: 'id_copies',
                 text: 'View copies version',
                 checked: Ext.brestore.option_vcopies,
                 checkHandler: sel_option
