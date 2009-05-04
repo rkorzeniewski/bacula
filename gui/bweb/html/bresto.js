@@ -55,6 +55,7 @@ Ext.brestore.root_path='';       // user location
 Ext.brestore.media_store;        // media store 
 Ext.brestore.option_vosb = false;
 Ext.brestore.option_vafv = false;
+Ext.brestore.option_vcopies = false;
 Ext.brestore.dlglaunch;
 Ext.brestore.fpattern;
 Ext.brestore.use_filerelocation=false;
@@ -396,6 +397,7 @@ Ext.onReady(function(){
         file_versions_store.load({
             params:init_params({action: 'list_versions',
                                 vafv:   Ext.brestore.option_vafv,
+                                vcopies: Ext.brestore.option_vcopies,
                                 pathid: r.json[2],
                                 filenameid: r.json[1]
                                })
@@ -703,6 +705,9 @@ Ext.onReady(function(){
         if (item.id == 'id_vafv') {
            Ext.brestore.option_vafv = check;
         }
+        if (item.id == 'id_vcopies') {
+           Ext.brestore.option_vcopies = check;
+        }
     }
 
     var menu = new Ext.menu.Menu({
@@ -718,6 +723,12 @@ Ext.onReady(function(){
                 id: 'id_vafv',
                 text: 'View all file versions',
                 checked: Ext.brestore.option_vafv,
+                checkHandler: sel_option
+            })
+           new Ext.menu.CheckItem({
+                id: 'id_vafv',
+                text: 'View copies version',
+                checked: Ext.brestore.option_vcopies,
                 checkHandler: sel_option
             })
         ]

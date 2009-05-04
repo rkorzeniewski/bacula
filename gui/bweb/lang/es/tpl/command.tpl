@@ -1,9 +1,11 @@
+<TMPL_UNLESS nohead>
 <br/>
  <div class='titlediv'>
-  <h1 class='newstitle'> <TMPL_VAR title> : <TMPL_VAR name></h1>
+  <h1 class='newstitle'> <TMPL_VAR title> : <TMPL_VAR name> &nbsp;</h1>
  </div>
  <div class='bodydiv'>
-  <pre id='log' style='font-size: 10px'>
+ <label onclick="toggle_display('log', 'arrow')"><img src="/bweb/right.gif" id='arrow' title="See output" > Command output</label><br>
+  <pre id='log' style='font-size: 10px;display:none'></TMPL_UNLESS>
 <TMPL_VAR content>
-  </pre>
- </div>
+  <TMPL_UNLESS notail></pre>
+ </div></TMPL_UNLESS>

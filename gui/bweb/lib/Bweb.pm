@@ -806,6 +806,7 @@ sub set_drive
 {
     my ($self, $drive, $slot, $tag) = @_;
     $self->{drive}->[$drive] = $tag || $slot;
+    $self->{drive_slot}->[$drive] = $slot;
 
     $self->{slot}->[$slot] = $tag || 'loaded';
 
@@ -4482,10 +4483,17 @@ sub update_slots
 	return $self->error("Bad autochanger name");
     }
 
-    print "<pre>";
+    $self->display({
+	title => "Scanning autochanger content ",
+	name => "update slots",
+        notail => 1,
+    }, "command.tpl");	
     my $b = new Bconsole(pref => $self->{info},timeout => 60,log_stdout => 1);
     $b->update_slots($ach->{name});
-    print "</pre>\n" 
+
+    $self->display({
+        nohead => 1,
+    }, "command.tpl");	
 }
 
 sub get_job_log

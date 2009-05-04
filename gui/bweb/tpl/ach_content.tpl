@@ -24,7 +24,7 @@ __Autochanger:__ <TMPL_VAR Name> (<TMPL_VAR nb_drive> __Drives__
 <button type="submit" class="bp" name='action' value='eject'
  title='__put selected media on i/o__'><img src='/bweb/extern.png' alt=''>__Eject__</button>
 <button type="submit" class="bp" name='action' value='clear_io'
- title='__Clear I/O__'> <img src='/bweb/intern.png' alt=''>__Clear I/O__</button>
+ title='__clear I/O__'> <img src='/bweb/intern.png' alt=''>__Clear I/O__</button>
 </TMPL_IF>
 <button type="submit" class="bp" name='action' value='update_slots'
  title='__run update slots__'> <img src='/bweb/update.png' alt=''>__Update__</button>

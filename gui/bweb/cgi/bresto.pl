@@ -540,9 +540,13 @@ sub dbh_selectrow_arrayref
 # there will be only one jobid in the array of jobids...
 sub get_all_file_versions
 {
-    my ($self,$pathid,$fileid,$client,$see_all)=@_;
+    my ($self,$pathid,$fileid,$client,$see_all,$see_copies)=@_;
 
     defined $see_all or $see_all=0;
+    my $backup_type=" AND Job.Type = 'B' ";
+    if ($see_copies) {
+        $backup_type=" AND Job.Type IN ('C', 'B') ";
+    }
 
     my @versions;
     my $query;
@@ -558,7 +562,9 @@ sub get_all_file_versions
    AND File.FileIndex >= JobMedia.FirstIndex
    AND File.FileIndex <= JobMedia.LastIndex
    AND JobMedia.MediaId = Media.MediaId
-   AND Client.Name = '$client'";
+   AND Client.Name = '$client'
+   $backup_type
+";
 
     $self->debug($query);
     my $result = $self->dbh_selectall_arrayref($query);
@@ -994,10 +1000,13 @@ if ($action eq 'list_files') {
     my $vafv = CGI::param('vafv') || 'false'; # view all file versions
     $vafv = ($vafv eq 'false')?0:1;
 
+    my $vcopies = CGI::param('vcopies') || 'false'; # view copies file versions
+    $vcopies = ($vcopies eq 'false')?0:1;
+
     print "[";
     #   0       1       2        3   4       5      6           7      8
     #($pathid,$fileid,$jobid, $fid, $mtime, $size, $inchanger, $md5, $volname);
-    my $files = $bvfs->get_all_file_versions($args->{pathid}, $args->{filenameid}, $args->{client}, $vafv);
+    my $files = $bvfs->get_all_file_versions($args->{pathid}, $args->{filenameid}, $args->{client}, $vafv, $vcopies);
     print join(',',
 	       map { "[ $_->[3], $_->[1], $_->[0], $_->[2], '$_->[8]', $_->[6], '$_->[7]', $_->[5],'" . strftime('%Y-%m-%d %H:%m:%S', localtime($_->[4])) . "']" }
 	       @$files);
