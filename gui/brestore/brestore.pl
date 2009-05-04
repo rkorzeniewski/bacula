@@ -2739,6 +2739,7 @@ sub get_all_file_versions
    AND File.FileIndex >= JobMedia.FirstIndex
    AND File.FileIndex <= JobMedia.LastIndex
    AND JobMedia.MediaId = Media.MediaId
+   AND Job.Type = 'B'
    AND Client.Name = '$client'";
 	
     $self->debug($query);
