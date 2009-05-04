@@ -33,5 +33,5 @@ __Thanks__
 <input class='formulaire' type='submit' name='action' value='move_email'>
 </form>
 <br>
-<a href="<TMPL_VAR url>"><img alt='__Update now__' src='/bweb/update.png'>__Update now__</a>
+<a href="<TMPL_VAR url>"><img alt='__Acknolege this action__' src='/bweb/update.png'>__Acknolege this action__</a>
 </div>

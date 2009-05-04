@@ -33,5 +33,5 @@ Thanks
 <input class='formulaire' type='submit' name='action' value='move_email'>
 </form>
 <br>
-<a href="<TMPL_VAR url>"><img alt='Update now' src='/bweb/update.png'>Update now</a>
+<a href="<TMPL_VAR url>"><img alt='Acknolege this action' src='/bweb/update.png'>Acknolege this action</a>
 </div>
