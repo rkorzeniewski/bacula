@@ -2266,9 +2266,8 @@ if [ -d %{sysconf_dir} ]; then
                 done
         done
 fi
-%endif
-
 /sbin/ldconfig
+%endif
 
 %if %{mysql}
 %preun mysql
@@ -2291,15 +2290,16 @@ fi
 
 %if %{mysql}
 %postun mysql
+/sbin/ldconfig
 %endif
 %if %{sqlite}
 %postun sqlite
+/sbin/ldconfig
 %endif
 %if %{postgresql}
 %postun postgresql
-%endif
-
 /sbin/ldconfig
+%endif
 
 
 %if ! %{client_only} && %{mtx}
@@ -2579,6 +2579,8 @@ fi
 %endif
 
 %changelog
+* Mon May 04 2009 D. Scott Barninger <barninger@fairfieldcomputers.com>
+- Fix post ldconfig problem in client only build
 * Sun May 03 2009 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - remove more files installed by client-only build not needed by client package
 - remove libbacsql files from client package
