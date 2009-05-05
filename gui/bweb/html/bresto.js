@@ -61,6 +61,8 @@ Ext.brestore.fpattern;
 Ext.brestore.use_filerelocation=false;
 Ext.brestore.limit = 2000;
 Ext.brestore.offset = 0;
+Ext.brestore.force_reload = 0;
+
 function get_node_path(node)
 {
    var temp='';
@@ -845,6 +847,7 @@ Ext.onReady(function(){
         ddGroup : 'TreeDD',
         copy:false,
         notifyDrop : function(dd, e, data){
+            console.info("DropTarget");
             var r;
             if (data.selections) {
                 if (data.grid.id == 'div-files') {
@@ -893,26 +896,37 @@ Ext.onReady(function(){
             return true;
         }});
 
+    function force_reload_media_store() {
+       Ext.brestore.force_reload = 1;
+       reload_media_store();
+       Ext.brestore.force_reload = 0;
+    }
+
     function reload_media_store() {
         var items = file_selection_store.data.items;
         var tab_fileid=new Array();
+        var tab_dirid=new Array();
         var tab_jobid=new Array();
         var enable_compute=false;
         for(var i=0;i<items.length;i++) {
             if (items[i].data['fileid']) {
-                tab_fileid.push(items[i].data['fileid']);
+               tab_fileid.push(items[i].data['fileid']);
             } else {
-                enable_compute=true;
+               tab_dirid.push(items[i].data['pathid']);
+               enable_compute=true;
             }
             tab_jobid.push(items[i].data['jobid']);
         }
         var res = tab_fileid.join(",");
         var res2 = tab_jobid.join(",");
-        
+        var res3 = tab_dirid.join(",");
+
         Ext.brestore.media_store.baseParams = init_params({
             action: 'get_media', 
             jobid: res2, 
-            fileid: res
+            fileid: res,
+            dirid: res3,
+            force: Ext.brestore.force_reload
         });
         Ext.brestore.media_store.load();
         if (enable_compute) {
@@ -1061,7 +1075,7 @@ Ext.onReady(function(){
                 header:    "Volume",
                 id:        'volumename', 
                 dataIndex: 'volumename',
-                width:     140
+                width:     200
             }
             ]);
         
@@ -1072,8 +1086,8 @@ Ext.onReady(function(){
             colModel: media_cm,
             enableDragDrop: false,
             loadMask: true,
-            width: 200,
-            autoHeight: true,
+            width: 400,
+            height: 180,
             frame: true
         });
 
@@ -1104,13 +1118,13 @@ Ext.onReady(function(){
                         xtype          : 'fieldset',
                         title          : 'Media needed',
                         autoHeight     : true,
-                        defaults       : {width: 210},
+                        defaults       : {width: 280},
                         bodyStyle  : 'padding:5px 5px 0',
                         items :[ media_grid, 
                                  {xtype: 'button', id: 'reload_media',
                                   text: 'Compute with directories',
                                   tooltip: 'Can take long time...',
-                                  handler:reload_media_store}]
+                                  handler:force_reload_media_store}]
                     }],
                 }, {
                     xtype   :   'panel',

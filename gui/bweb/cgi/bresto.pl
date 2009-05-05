@@ -794,7 +794,9 @@ if ($action eq 'list_client') {	# list all client [ ['c1'],['c2']..]
     print "]\n";
     exit 0;
     
-} elsif ($action eq 'list_job') { # list jobs for a client [[jobid,endtime,'desc'],..]
+} elsif ($action eq 'list_job') {
+    # list jobs for a client [[jobid,endtime,'desc'],..]
+
     print CGI::header('application/x-javascript');
     
     my $filter = $bvfs->get_client_filter();
@@ -826,50 +828,9 @@ if ($action eq 'list_client') {	# list all client [ ['c1'],['c2']..]
     exit 0;
 }
 
-# get jobid param and apply user filter
-my @jobid = $bvfs->get_jobids(grep { /^\d+(,\d+)*$/ } CGI::param('jobid'));
-# get jobid from date arg
-if (!scalar(@jobid) and $args->{qdate} and $args->{client}) {
-    @jobid = $bvfs->set_job_ids_for_date($args->{client}, $args->{qdate});
-}
-$bvfs->set_curjobids(@jobid);
-print STDERR "limit=$args->{limit}:$args->{offset} date=$args->{qdate} currentjobids = ", join(",", @jobid), "\n";
-$bvfs->set_limits($args->{offset}, $args->{limit});
-
-if (!scalar(@jobid)) {
-    exit 0;
-}
-
-if (CGI::param('init')) { # used when choosing a job
-    $bvfs->update_brestore_table(@jobid);
-}
-
-my $pathid = CGI::param('node') || '';
-my $path = CGI::param('path');
-
-if ($pathid =~ /^(\d+)$/) {
-    $pathid = $1;
-} elsif ($path) {
-    $pathid = $bvfs->get_pathid($path);
-} else {
-    $pathid = $bvfs->get_root();
-}
-$bvfs->ch_dir($pathid);
-
-# permit to use a regex filter
-if ($args->{qpattern}) {
-    $bvfs->set_pattern($args->{qpattern});
-}
-
-if ($action eq 'restore') {
-
-    # TODO: pouvoir choisir le replace et le jobname
-    my $arg = $bvfs->get_form(qw/client storage regexwhere where/);
-
-    if (!$arg->{client}) {
-	print "ERROR: missing client\n";
-	exit 1;
-    }
+sub fill_table_for_restore
+{
+    my (@jobid) = @_;
 
     my $fileid = join(',', grep { /^\d+$/ } CGI::param('fileid'));
     my @dirid = grep { /^\d+$/ } CGI::param('dirid');
@@ -931,6 +892,81 @@ FROM (
 )");
     }
 
+    return "b2$$";
+}
+
+sub get_media_list
+{
+    my ($jobid, $fileid) = @_;
+    my $q="
+ SELECT DISTINCT VolumeName, Enabled, InChanger
+   FROM File,
+    ( -- Get all media from this job
+      SELECT MIN(FirstIndex) AS FirstIndex, MAX(LastIndex) AS LastIndex,
+             VolumeName, Enabled, Inchanger
+        FROM JobMedia JOIN Media USING (MediaId)
+       WHERE JobId IN ($jobid)
+       GROUP BY VolumeName,Enabled,InChanger
+    ) AS allmedia
+  WHERE File.FileId IN ($fileid)
+    AND File.FileIndex >= allmedia.FirstIndex
+    AND File.FileIndex <= allmedia.LastIndex
+";
+    my $lst = $bvfs->dbh_selectall_arrayref($q);
+    return $lst;
+}
+
+# get jobid param and apply user filter
+my @jobid = $bvfs->get_jobids(grep { /^\d+(,\d+)*$/ } CGI::param('jobid'));
+
+# get jobid from date arg
+if (!scalar(@jobid) and $args->{qdate} and $args->{client}) {
+    @jobid = $bvfs->set_job_ids_for_date($args->{client}, $args->{qdate});
+}
+
+$bvfs->set_curjobids(@jobid);
+$bvfs->set_limits($args->{offset}, $args->{limit});
+
+if (!scalar(@jobid)) {
+    exit 0;
+}
+
+if (CGI::param('init')) { # used when choosing a job
+    $bvfs->update_brestore_table(@jobid);
+}
+
+my $pathid = CGI::param('node') || '';
+my $path = CGI::param('path');
+
+if ($pathid =~ /^(\d+)$/) {
+    $pathid = $1;
+} elsif ($path) {
+    $pathid = $bvfs->get_pathid($path);
+} else {
+    $pathid = $bvfs->get_root();
+}
+$bvfs->ch_dir($pathid);
+
+# permit to use a regex filter
+if ($args->{qpattern}) {
+    $bvfs->set_pattern($args->{qpattern});
+}
+
+if ($action eq 'restore') {
+
+    # TODO: pouvoir choisir le replace et le jobname
+    my $arg = $bvfs->get_form(qw/client storage regexwhere where/);
+
+    if (!$arg->{client}) {
+	print "ERROR: missing client\n";
+	exit 1;
+    }
+
+    my $table = fill_table_for_restore(@jobid);
+    if (!$table) {
+        exit 1;
+    }
+
     my $bconsole = $bvfs->get_bconsole();
     # TODO: pouvoir choisir le replace et le jobname
     my $jobid = $bconsole->run(client    => $arg->{client},
@@ -938,9 +974,9 @@ FROM (
 			       where     => $arg->{where},
 			       regexwhere=> $arg->{regexwhere},
 			       restore   => 1,
-			       file      => "?b2$$");
+			       file      => "?$table");
     
-    $bvfs->dbh_do("DROP TABLE b2$$");
+    $bvfs->dbh_do("DROP TABLE $table");
 
     if (!$jobid) {
 	print CGI::header('text/html');
@@ -1013,28 +1049,31 @@ if ($action eq 'list_files') {
     print "]\n";
 
 } elsif ($action eq 'get_media') {
+    my ($jobid, $fileid, $table);
 
-    my $jobid = join(',', @jobid);
-    my $fileid = join(',', grep { /^\d+(,\d+)*$/ } CGI::param('fileid'));
+    # in this mode, we compute the result to get all needed media
+    if (CGI::param('force')) {
+        $table = fill_table_for_restore(@jobid);
+        if (!$table) {
+            exit 1;
+        }
 
-    my $q="
- SELECT DISTINCT VolumeName, Enabled, InChanger
-   FROM File,
-    ( -- Get all media from this job
-      SELECT MIN(FirstIndex) AS FirstIndex, MAX(LastIndex) AS LastIndex,
-             VolumeName, Enabled, Inchanger
-        FROM JobMedia JOIN Media USING (MediaId)
-       WHERE JobId IN ($jobid)
-       GROUP BY VolumeName,Enabled,InChanger
-    ) AS allmedia
-  WHERE File.FileId IN ($fileid)
-    AND File.FileIndex >= allmedia.FirstIndex
-    AND File.FileIndex <= allmedia.LastIndex
-";
-    my $lst = $bvfs->dbh_selectall_arrayref($q);
+        $jobid = "SELECT DISTINCT JobId FROM $table";
+        $fileid = "SELECT FileId FROM $table";
+
+    } else {
+        $jobid = join(',', @jobid);
+        $fileid = join(',', grep { /^\d+(,\d+)*$/ } CGI::param('fileid'));
+    }        
+
+    my $lst = get_media_list($jobid, $fileid);
     print "[";
     print join(',', map { "['$_->[0]',$_->[1],$_->[2]]" } @$lst);
     print "]\n";
+
+    if ($table) {
+        $bvfs->dbh_do("DROP TABLE $table");
+    }
 
 }
 
