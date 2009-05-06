@@ -1212,6 +1212,38 @@ AC_ARG_WITH(scriptdir,
 
 AC_SUBST(scriptdir)
 
+
+dnl ------------------------------------------
+dnl Where to place bsrdir (bsr files)
+dnl ------------------------------------------
+bsrdir=/tmp
+AC_ARG_WITH(bsrdir,
+   AC_HELP_STRING([--with-bsrdir=PATH], [specify path of Bacula bsrs directory]),
+   [
+       if test "x$withval" != "xno" ; then     
+	  bsrdir=$withval
+       fi
+   ]
+)
+
+AC_SUBST(bsrdir)
+
+dnl ------------------------------------------
+dnl Where to place logdir (bsr files)
+dnl ------------------------------------------
+logdir=/tmp
+AC_ARG_WITH(logdir,
+   AC_HELP_STRING([--with-logdir=PATH], [specify path of Bacula logs directory]),
+   [
+       if test "x$withval" != "xno" ; then     
+	  logdir=$withval
+       fi
+   ]
+)
+
+AC_SUBST(logdir)
+
+
 # ------------------------------------------
 # Where to place plugindir (plugin files)
 # ------------------------------------------

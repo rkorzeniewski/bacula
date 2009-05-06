@@ -26,7 +26,7 @@ Item 19: Archival (removal) of User Files to Tape
 Item 20: Include all conf files in specified directory
 Item 21: Implement an interface between Bacula and Amazon's S3.
 Item 22: Enable/disable compression depending on storage device (disk/tape)
-Item 23: Add EFS support on Windows
+Item 23: Backup and Restore of Windows Encrypted Files using Win raw encryption
 Item 24: Data encryption on storage daemon
 Item 25: "Maximum Concurrent Jobs" for drives when used with changer device
 Item 26: Add MaxVolumeSize/MaxVolumeBytes statement to Storage resource
@@ -34,8 +34,7 @@ Item 27: Start spooling even when waiting on tape
 Item 28: Enable persistent naming/number of SQL queries
 Item 29: Implementation of running Job speed limit.
 Item 30: Restore from volumes on multiple storage daemons
-Item 28:'restore' menu: enter a JobId, automatically select dependents
-Item 31: Backup and Restore of Windows Encrypted Files using Win raw encryption
+Item 31: 'restore' menu: enter a JobId, automatically select dependents
 Item 32: Possibilty to schedule Jobs on last Friday of the month
 Item 33: Add Minumum Spool Size directive
 Item 34: Cause daemons to use a specific IP address to source communications
@@ -661,27 +660,32 @@ Item 22: Enable/disable compression depending on storage device (disk/tape)
          be well defined.
 
 
+Item 31: Backup and Restore of Windows Encrypted Files using Win raw encryption
+  Origin: Michael Mohr, SAG  Mohr.External@infineon.com
+  Date:  22 February 2008
+  Origin: Alex Ehrlich (Alex.Ehrlich-at-mail.ee)
+  Date:  05 August 2008
+  Status:
 
-Item 23: Add EFS support on Windows
-   Origin: Alex Ehrlich (Alex.Ehrlich-at-mail.ee)
-   Date:  05 August 2008
-   Status:
+  What: Make it possible to backup and restore Encypted Files from and to
+          Windows systems without the need to decrypt it by using the raw
+          encryption functions API (see:
+          http://msdn2.microsoft.com/en-us/library/aa363783.aspx)
+          that is provided for that reason by Microsoft.
+          If a file ist encrypted could be examined by evaluating the 
+          FILE_ATTRIBUTE_ENCRYTED flag of the GetFileAttributes
+          function.
+          For each file backed up or restored by FD on Windows, check if
+          the file is encrypted; if so then use OpenEncryptedFileRaw,
+          ReadEncryptedFileRaw, WriteEncryptedFileRaw,
+          CloseEncryptedFileRaw instead of BackupRead and BackupWrite
+          API calls.
 
-   What:  For each file backed up or restored by FD on Windows, check if
-           the file is encrypted; if so then use OpenEncryptedFileRaw,
-           ReadEncryptedFileRaw, WriteEncryptedFileRaw,
-           CloseEncryptedFileRaw instead of BackupRead and BackupWrite
-           API calls.
-
-   Why:   Many laptop users utilize the EFS functionality today; so do.
-           some non-laptop ones, too.
-           Currently files encrypted by means of EFS cannot be backed up.
-           It means a Windows boutique cannot rely on Bacula as its
-           backup solution, at least when using Windows 2K, XPP,
-           "better" Vista etc on workstations, unless EFS is
-           forbidden by policies.
-           The current situation might result into "false sense of
-           security" among the end-users.
+  Why:   Without the usage of this interface the fd-daemon running
+          under the system account can't read encypted Files because
+          the key needed for the decrytion is missed by them. As a result 
+          actually encrypted files are not backed up
+          by bacula and also no error is shown while missing these files.
 
    Notes: Using xxxEncryptedFileRaw API would allow to backup and
            restore EFS-encrypted files without decrypting their data.
@@ -956,7 +960,7 @@ Why:   It is useful to be able to backup to any number of different storage
         the 'storaddr' command - where it logically belongs.
 
 
-Item 28:'restore' menu: enter a JobId, automatically select dependents 
+Item 31: 'restore' menu: enter a JobId, automatically select dependents 
 Origin: Graham Keeling (graham@equiinet.com)
 Date:  13 March 2009
 
@@ -982,28 +986,6 @@ What:  Add to the bconsole 'restore' menu the ability to select a job
         date to which he wishes the restore to happen.
 
 
-Item 31: Backup and Restore of Windows Encrypted Files using Win raw encryption
-  Origin: Michael Mohr, SAG  Mohr.External@infineon.com
-  Date:  22 February 2008
-  Status:
-
-  What: Make it possible to backup and restore Encypted Files from and to
-          Windows systems without the need to decrypt it by using the raw
-          encryption functions API (see:
-          http://msdn2.microsoft.com/en-us/library/aa363783.aspx)
-
-          that is provided for that reason by Microsoft.
-          If a file ist encrypted could be examined by evaluating the 
-          FILE_ATTRIBUTE_ENCRYTED flag of the GetFileAttributes
-          function.
-
-  Why:   Without the usage of this interface the fd-daemon running
-          under the system account can't read encypted Files because
-          the key needed for the decrytion is missed by them. As a result 
-          actually encrypted files are not backed up
-          by bacula and also no error is shown while missing these files.
-
-  Notes: ./.
 
 Item 32: Possibilty to schedule Jobs on last Friday of the month
 Origin: Carsten Menke <bootsy52 at gmx dot net>
@@ -1296,286 +1278,3 @@ Item  n: One line summary ...
 
 
 ========== Items put on hold by Kern ============================
-
-Item h2: Implement support for stacking arbitrary stream filters, sinks.
-Date:    23 November 2006
-Origin:  Landon Fuller <landonf@threerings.net>
-Status:  Planning. Assigned to landonf.
-
-  What:  Implement support for the following:
-          - Stacking arbitrary stream filters (eg, encryption, compression,  
-            sparse data handling))
-          - Attaching file sinks to terminate stream filters (ie, write out  
-            the resultant data to a file)
-          - Refactor the restoration state machine accordingly
-
-   Why: The existing stream implementation suffers from the following: - All
-           state (compression, encryption, stream restoration), is
-             global across the entire restore process, for all streams. There are  
-             multiple entry and exit points in the restoration state machine, and  
-             thus multiple places where state must be allocated, deallocated,  
-             initialized, or reinitialized. This results in exceptional complexity  
-             for the author of a stream filter.
-           - The developer must enumerate all possible combinations of filters  
-             and stream types (ie, win32 data with encryption, without encryption,  
-             with encryption AND compression, etc).
-
-  Notes: This feature request only covers implementing the stream filters/
-          sinks, and refactoring the file daemon's restoration
-          implementation accordingly.  If I have extra time, I will also
-          rewrite the backup implementation.  My intent in implementing the
-          restoration first is to solve pressing bugs in the restoration
-          handling, and to ensure that the new restore implementation
-          handles existing backups correctly.
-
-          I do not plan on changing the network or tape data structures to  
-          support defining arbitrary stream filters, but supporting that  
-          functionality is the ultimate goal.
-
-          Assistance with either code or testing would be fantastic.
-
-  Notes: Kern: this project has a lot of merit, and we need to do it, but
-          it is really an issue for developers rather than a new feature
-          for users, so I have removed it from the voting list, but kept it
-          here, but at some point, it will be implemented.
-
-Item h3: Filesystem watch triggered backup.
-  Date:  31 August 2006
-  Origin: Jesper Krogh <jesper@krogh.cc>
-  Status: 
-
-  What:  With inotify and similar filesystem triggeret notification
-          systems is it possible to have the file-daemon to monitor
-          filesystem changes and initiate backup.
-
-  Why:   There are 2 situations where this is nice to have.
-          1) It is possible to get a much finer-grained backup than
-             the fixed schedules used now.. A file created and deleted
-             a few hours later, can automatically be caught.
-
-          2) The introduced load on the system will probably be
-             distributed more even on the system.
-
-  Notes: This can be combined with configration that specifies
-          something like: "at most every 15 minutes or when changes
-          consumed XX MB".
-
-Kern Notes: I would rather see this implemented by an external program
-          that monitors the Filesystem changes, then uses the console
-
-
-Item h4: Directive/mode to backup only file changes, not entire file
-  Date:  11 November 2005
-  Origin: Joshua Kugler <joshua dot kugler at uaf dot edu>
-          Marek Bajon <mbajon at bimsplus dot com dot pl>
-  Status: 
-
-  What:  Currently when a file changes, the entire file will be backed up in
-          the next incremental or full backup.  To save space on the tapes
-          it would be nice to have a mode whereby only the changes to the
-          file would be backed up when it is changed.
-
-  Why:   This would save lots of space when backing up large files such as 
-          logs, mbox files, Outlook PST files and the like.
-
-  Notes: This would require the usage of disk-based volumes as comparing 
-          files would not be feasible using a tape drive.
-
-  Notes: Kern: I don't know how to implement this. Put on hold until someone
-          provides a detailed implementation plan.
-
-
-Item h5: Implement multiple numeric backup levels as supported by dump
-Date:    3 April 2006
-Origin:  Daniel Rich <drich@employees.org>
-Status:
-What: Dump allows specification of backup levels numerically instead of just
-          "full", "incr", and "diff".  In this system, at any given level,
-          all files are backed up that were were modified since the last
-          backup of a higher level (with 0 being the highest and 9 being the
-          lowest).  A level 0 is therefore equivalent to a full, level 9 an
-          incremental, and the levels 1 through 8 are varying levels of
-          differentials.  For bacula's sake, these could be represented as
-          "full", "incr", and "diff1", "diff2", etc.
-
-Why: Support of multiple backup levels would provide for more advanced
-          backup rotation schemes such as "Towers of Hanoi".  This would
-          allow better flexibility in performing backups, and can lead to
-          shorter recover times.
-
-Notes:   Legato Networker supports a similar system with full, incr, and 1-9 as
-          levels.
-
-Notes:   Kern: I don't see the utility of this, and it would be a *huge* 
-          modification to existing code.
-
-Item h6: Implement NDMP protocol support
-  Origin: Alan Davis
-  Date:  06 March 2007
-  Status: 
-
-  What:  Network Data Management Protocol is implemented by a number of
-          NAS filer vendors to enable backups using third-party
-          software.
-
-  Why:   This would allow NAS filer backups in Bacula without incurring
-          the overhead of NFS or SBM/CIFS.
-
-  Notes: Further information is available:
-          http://www.ndmp.org
-          http://www.ndmp.org/wp/wp.shtml
-          http://www.traakan.com/ndmjob/index.html
-
-          There are currently no viable open-source NDMP
-          implementations.  There is a reference SDK and example
-          app available from ndmp.org but it has problems
-          compiling on recent Linux and Solaris OS'.  The ndmjob
-          reference implementation from Traakan is known to
-          compile on Solaris 10.
-
-  Notes: Kern: I am not at all in favor of this until NDMP becomes
-          an Open Standard or until there are Open Source libraries
-          that interface to it.
-
-Item h7: Commercial database support
-  Origin: Russell Howe <russell_howe dot wreckage dot org>
-  Date:  26 July 2006
-  Status:
-
-  What: It would be nice for the database backend to support more databases.
-          I'm thinking of SQL Server at the moment, but I guess Oracle, DB2,
-          MaxDB, etc are all candidates.  SQL Server would presumably be
-          implemented using FreeTDS or maybe an ODBC library?
-
-  Why: We only really have one database server, which is MS SQL Server 2000.
-          Maintaining a second one for the backup software (we grew out of
-          SQLite, which I liked, but which didn't work so well with our
-          database size).  We don't really have a machine with the resources
-          to run postgres, and would rather only maintain a single DBMS.
-          We're stuck with SQL Server because pretty much all the company's
-          custom applications (written by consultants) are locked into SQL
-          Server 2000.  I can imagine this scenario is fairly common, and it
-          would be nice to use the existing properly specced database server
-          for storing Bacula's catalog, rather than having to run a second
-          DBMS.
-
-  Notes: This might be nice, but someone other than me will probably need to
-          implement it, and at the moment, proprietary code cannot legally
-          be mixed with Bacula GPLed code.  This would be possible only
-          providing the vendors provide GPLed (or OpenSource) interface
-          code.
-
-Item h8: Incorporation of XACML2/SAML2 parsing
-   Date:  19 January 2006
-   Origin: Adam Thornton <athornton@sinenomine.net>
-   Status: Blue sky
-
-   What: XACML is "eXtensible Access Control Markup Language" and "SAML is
-          the "Security Assertion Markup Language"--an XML standard for
-          making statements about identity and authorization.  Having these
-          would give us a framework to approach ACLs in a generic manner,
-          and in a way flexible enough to support the four major sorts of
-          ACLs I see as a concern to Bacula at this point, as well as
-          (probably) to deal with new sorts of ACLs that may appear in the
-          future.
-
-   Why: Bacula is beginning to need to back up systems with ACLs that do not
-          map cleanly onto traditional Unix permissions.  I see four sets of
-          ACLs--in general, mutually incompatible with one another--that
-          we're going to need to deal with.  These are: NTFS ACLs, POSIX
-          ACLs, NFSv4 ACLS, and AFS ACLS. (Some may question the relevance
-          of AFS; AFS is one of Sine Nomine's core consulting businesses,
-          and having a reputable file-level backup and restore technology
-          for it (as Tivoli is probably going to drop AFS support soon since
-          IBM no longer supports AFS) would be of huge benefit to our
-          customers; we'd most likely create the AFS support at Sine Nomine
-          for inclusion into the Bacula (and perhaps some changes to the
-          OpenAFS volserver) core code.)
-
-          Now, obviously, Bacula already handles NTFS just fine.  However, I
-          think there's a lot of value in implementing a generic ACL model,
-          so that it's easy to support whatever particular instances of ACLs
-          come down the pike: POSIX ACLS (think SELinux) and NFSv4 are the
-          obvious things arriving in the Linux world in a big way in the
-          near future.  XACML, although overcomplicated for our needs,
-          provides this framework, and we should be able to leverage other
-          people's implementations to minimize the amount of work *we* have
-          to do to get a generic ACL framework.  Basically, the costs of
-          implementation are high, but they're largely both external to
-          Bacula and already sunk.
-
-   Notes: As you indicate this is a bit of "blue sky" or in other words,
-          at the moment, it is a bit esoteric to consider for Bacula.
-
-Item h9: Archive data
-  Date:  15/5/2006
-  Origin: calvin streeting calvin at absentdream dot com
-  Status:
-
-  What:  The abilty to archive to media (dvd/cd) in a uncompressed format
-          for dead filing (archiving not backing up)
-
-    Why: At work when jobs are finished and moved off of the main
-          file servers (raid based systems) onto a simple Linux
-          file server (ide based system) so users can find old
-          information without contacting the IT dept.
-
-          So this data dosn't realy change it only gets added to,
-          But it also needs backing up.  At the moment it takes
-          about 8 hours to back up our servers (working data) so
-          rather than add more time to existing backups i am trying
-          to implement a system where we backup the acrhive data to
-          cd/dvd these disks would only need to be appended to
-          (burn only new/changed files to new disks for off site
-          storage).  basialy understand the differnce between
-          achive data and live data.
-
-  Notes: Scan the data and email me when it needs burning divide
-          into predefined chunks keep a recored of what is on what
-          disk make me a label (simple php->mysql=>pdf stuff) i
-          could do this bit ability to save data uncompresed so
-          it can be read in any other system (future proof data)
-          save the catalog with the disk as some kind of menu
-          system 
-
-   Notes: Kern: I don't understand this item, and in any case, if it
-          is specific to DVD/CDs, which we do not recommend using, 
-          it is unlikely to be implemented except as a user 
-          submitted patch.
-
-
-Item h10: Clustered file-daemons
-  Origin: Alan Brown ajb2 at mssl dot ucl dot ac dot uk
-  Date:  24 July 2006
-  Status:
-  What:  A "virtual" filedaemon, which is actually a cluster of real ones.
-
-  Why:   In the case of clustered filesystems (SAN setups, GFS, or OCFS2, etc)
-          multiple machines may have access to the same set of filesystems
-
-          For performance reasons, one may wish to initate backups from
-          several of these machines simultaneously, instead of just using
-          one backup source for the common clustered filesystem.
-
-          For obvious reasons, normally backups of $A-FD/$PATH and
-          B-FD/$PATH are treated as different backup sets. In this case
-          they are the same communal set.
-
-          Likewise when restoring, it would be easier to just specify
-          one of the cluster machines and let bacula decide which to use.
-
-          This can be faked to some extent using DNS round robin entries
-          and a virtual IP address, however it means "status client" will
-          always give bogus answers. Additionally there is no way of
-          spreading the load evenly among the servers.
-
-          What is required is something similar to the storage daemon
-          autochanger directives, so that Bacula can keep track of
-          operating backups/restores and direct new jobs to a "free"
-          client.
-
-   Notes: Kern: I don't understand the request enough to be able to
-          implement it. A lot more design detail should be presented
-          before voting on this project.
-
-      Feature Request Form

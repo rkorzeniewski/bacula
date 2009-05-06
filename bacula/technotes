@@ -2,6 +2,12 @@
           
 General:
 
+06Apr09
+kes  Update projects file.
+04Apr09
+kes  Add --with-bsrdir and --with-logdir for placement of Bacula bsr
+     files and Bacula log files.
+
 Release Version 3.0.1:
 29Apr09
 kes  Fix bug #1282 Setting job.Priority in python crashes director by
