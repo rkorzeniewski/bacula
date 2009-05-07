@@ -1141,7 +1141,7 @@ static bool acl_is_trivial(int count, aclent_t *entries)
 /*
  * OS specific functions for handling different types of acl streams.
  */
-static bool solaris_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt);
+static bool solaris_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
 {
    int n;
    aclent_t *acls;
