@@ -1260,6 +1260,31 @@ Item 40: Multiple threads in file daemon for the same job
   Why:   Multiple concurrent backups of a large fileserver with many
           disks and controllers will be much faster.
 
+========= End items voted on May 2009 ==================
+
+========= New items after last vote ====================
+
+Item 1:   Relabel disk volume after recycling
+  Origin: Pasi Kärkkäinen <pasik@iki.fi>
+  Date:   07 May 2009.
+  Status: Not implemented yet, no code written.
+
+  What:   The ability to relabel the disk volume (and thus rename the file on the disk) 
+          after it has been recycled. Useful when you have a single job per disk volume, 
+          and you use a custom Label format, for example: 
+          Label Format = "${Client}-${Level}-${NumVols:p/4/0/r}-${Year}_${Month}_${Day}-${Hour}_${Minute}"
+
+  Why:    Disk volumes in Bacula get the label/filename when they are used for the first time.
+          If you use recycling and custom label format like above, the disk
+          volume name doesn't match the contents after it has been recycled.
+          This feature makes it possible to keep the label/filename in sync
+          with the content and thus makes it easy to check/monitor the backups
+          from the shell and/or normal file management tools, because the filenames 
+          of the disk volumes match the content.
+
+  Notes:  The configuration option could be "Relabel after Recycling = Yes".
+
+
 ========= Add new items above this line =================
 
 
