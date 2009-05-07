@@ -1532,7 +1532,7 @@ sub from_human_sec
 sub get_stat_table
 {
     my ($self) = @_;
-    my $ret = $self->{info}->{stat_job_table} || 'JobHistory';
+    my $ret = $self->{info}->{stat_job_table} || 'JobHisto';
     if ($ret !~ m/^job$/i) {
 	$ret = "(SELECT * FROM Job UNION SELECT * FROM $ret)";
     }
@@ -4588,7 +4588,7 @@ sub cancel_future_job
     }
 
     $arg->{level} =~ s/^(.).+/$1/; # we keep the first letter
-    my $jobtable = $self->{info}->{stat_job_table} || 'JobHistory';
+    my $jobtable = $self->{info}->{stat_job_table} || 'JobHisto';
 
     if ($jobtable =~ /^Job$/i) {
         return $self->error("Can add records only in history table");
