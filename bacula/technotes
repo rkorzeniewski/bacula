@@ -2,9 +2,12 @@
           
 General:
 
-06Apr09
+07May09
+kes  Fix typo in Solaris acl code.
+kes  Remove junk from configure.in
+06May09
 kes  Update projects file.
-04Apr09
+04May09
 kes  Add --with-bsrdir and --with-logdir for placement of Bacula bsr
      files and Bacula log files.
 
