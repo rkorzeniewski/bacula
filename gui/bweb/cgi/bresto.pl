@@ -868,7 +868,7 @@ sub fill_table_for_restore
     # for each file of btemp
     if ($bvfs->dbh_is_mysql()) {
        $bvfs->dbh_do("CREATE TEMPORARY TABLE btemp2 AS (
-SELECT max(JobId) as JobId, PathId, FilenameId
+SELECT max(JobId) as JobId, PathId, FilenameId, FileIndex
   FROM btemp
  GROUP BY PathId, FilenameId
  HAVING FileIndex > 0
