@@ -4,9 +4,9 @@
 #
 cwd=`pwd`
 . ${cwd}/scripts/functions
-mkdir -p ${cwd}/bin
-mkdir -p ${cwd}/tmp
-out="${cwd}/tmp/sed_tmp"
+mkdir -p ${bin}
+mkdir -p ${tmp}
+out="${tmp}/sed_tmp"
 
 # set ports and other default parameters
 BASEPORT=${BASEPORT:-8101}
@@ -30,24 +30,24 @@ fi
 dbengine=`echo ${WHICHDB} | sed -e 's/--with-//' -e 's/=.*//'`
 bversion=`sed -n -e 's/^.*VERSION.*"\(.*\)"$/\1/p' ${srcdir}/src/version.h`
 bdate=`sed -n -e 's/^.*LSMDATE.*"\(.*\)"$/\1/p' ${srcdir}/src/version.h`
-builddir="${cwd}/build"
+builddir="${src}"
 
 # Create sed command script
-echo "s%@sbindir@%${cwd}/bin%g" >${out}
-echo "s%@scriptdir@%${cwd}/bin%g" >>${out}
-echo "s%@working_dir@%${cwd}/working%g" >>${out}
-echo "s%@piddir@%${cwd}/working%g" >>${out}
-echo "s%@subsysdir@%${cwd}/working%g" >>${out}
+echo "s%@sbindir@%${bin}%g" >${out}
+echo "s%@scriptdir@%${scripts}%g" >>${out}
+echo "s%@working_dir@%${working}%g" >>${out}
+echo "s%@piddir@%${working}%g" >>${out}
+echo "s%@subsysdir@%${working}%g" >>${out}
 echo "s%@job_email@%${EMAIL}%g" >>${out}
 echo "s%@tape_drive@%${TAPE_DRIVE}%g" >>${out}
 echo "s%@autochanger@%${AUTOCHANGER}%g" >>${out}
 echo "s%@changer_script@%${AUTOCHANGER_SCRIPT}%g" >>${out}
-echo "s%@tmpdir@%${cwd}/tmp%g" >>${out}
+echo "s%@tmpdir@%${tmp}%g" >>${out}
 echo "s%@hostname@%${HOST}%g" >>${out}
 echo "s%@changer_path@%${AUTOCHANGER_PATH}%g" >>${out}
 echo "s%@tape_drive1@%${TAPE_DRIVE1}%g" >>${out}
 echo "s%@smtp_host@%${SMTP_HOST}%g" >>${out}
-echo "s%@disk_drive@%${cwd}/tmp/disk-changer%g" >>${out}
+echo "s%@disk_drive@%${tmp}/disk-changer%g" >>${out}
 echo "s%@hostname@%${hostname}%g" >>${out}
 echo "s%@hostname1@%${hostname1}%g" >>${out}
 echo "s%@hostname2@%${hostname2}%g" >>${out}

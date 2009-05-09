@@ -2,29 +2,29 @@
 #
 # Cleanup left over files -- both before and after test run
 #
+. scripts/functions
 cwd=`pwd`
-rm -rf ${cwd}/tmp/FileVolume*
-rm -rf ${cwd}/tmp/TestVolume001 ${cwd}/tmp/bacula-restores ${cwd}/tmp/Small*
-rm -rf ${cwd}/tmp/sed_tmp ${cwd}/tmp/file-list
-rm -rf tmp/*
-rm -rf working/log tmp/TEST-*
-rm -rf working/*.bsr
-rm -rf working/*.trace
-rm -rf ${cwd}/tmp/disk-changer
+rm -rf ${tmp}/FileVolume*
+rm -rf ${tmp}/TestVolume001 ${tmp}bacula-restores ${tmp}/Small*
+rm -rf ${tmp}/sed_tmp ${tmp}/file-list
+rm -rf ${tmp}/*
+rm -rf ${working}/log ${tmp}/TEST-*
+rm -rf ${working}/*.bsr
+rm -rf ${working}/*.trace
+rm -rf ${tmp}disk-changer
 find . -name "gigaslam.gif" -exec rm -f {} \;
 
 
 # bin directory does not always exist
-if [ -d bin ]
-then
-  bin/bacula stop 2>&1 >/dev/null
-  cd bin
+if [ -d ${bin} ] ; then
+  ${bin}/bacula stop 2>&1 >/dev/null
+  cd ${scripts}
   ./drop_bacula_tables      >/dev/null 2>&1
   ./make_bacula_tables      >/dev/null 2>&1
   ./grant_bacula_privileges >/dev/null 2>&1
-  cd ..
+  cd ${cwd}
 fi
 
 if [ x$USE_VTAPE = xyes ]; then
-   rm -rf working/ach
+   rm -rf ${working}/ach
 fi

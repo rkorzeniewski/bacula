@@ -24,7 +24,7 @@ start_test()
    echo " "
    echo " "
    echo " === Starting $TestName at `date +%R:%S` ==="
-   echo " === Starting $TestName at `date +%R:%S` ===" >> working/log
+   echo " === Starting $TestName at `date +%R:%S` ===" >> ${working}/log
    echo " "
    export zstat
 }
@@ -442,12 +442,20 @@ db_user=${db_user:-"regress"}
 db_password=${db_password:-""}
 working=${working:-"$cwd/working"}
 bin=${bin:-"$cwd/bin"}
+
 # Bacula scripts
 scripts=${scripts:-"$bin"}
+
 # Regress scripts
 rscripts=${rscripts:-"$cwd/scripts"}
+
 tmp=${tmp:-"$cwd/tmp"}
+
+# Bacula source directory when copied here
+#  also build directory
 src=${src:-"$cwd/build"}
+
+# Temp source directory so we don't mess up $src
 tmpsrc=${tmpsrc:-"$cwd/tmp/build"}
 
 export bin
