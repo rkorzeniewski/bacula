@@ -14,19 +14,19 @@ scripts/copy-confs
 # Zap out any schedule in default conf file so that
 #  it doesn't start during our test
 #
-outf="tmp/sed_tmp"
+outf="${tmp}/sed_tmp"
 echo "s%  Schedule =%# Schedule =%g" >${outf}
 echo "s%File Retention =%File Retention = 2 #%" >>  ${outf}
-cp ${cwd}/bin/bacula-dir.conf ${cwd}/tmp/1
-sed -f ${outf} ${cwd}/tmp/1 >${cwd}/bin/bacula-dir.conf
+cp ${scripts}/bacula-dir.conf ${tmp}/1
+sed -f ${outf} ${tmp}/1 >${scripts}/bacula-dir.conf
 
 change_jobname Client1 $JobName
 start_test
 
-cat <<END_OF_DATA >${cwd}/tmp/bconcmds
+cat <<END_OF_DATA >${tmp}/bconcmds
 @output /dev/null
 messages
-@$out ${cwd}/tmp/log1.out
+@$out ${tmp}/log1.out
 label volume=TestVolume001 storage=File pool=Default
 run job=$JobName yes
 wait
@@ -36,8 +36,8 @@ prune files yes
 @# 
 @# now do a restore
 @#
-@$out ${cwd}/tmp/log2.out  
-restore where=${cwd}/tmp/bacula-restores
+@$out ${tmp}/log2.out  
+restore where=${tmp}/bacula-restores
 5
 no
 README
@@ -52,17 +52,17 @@ run_bacula
 check_for_zombie_jobs storage=File
 stop_bacula
 
-COUNT_OTHER=`find ${cwd}/tmp/bacula-restores -type f | grep -v README | wc -l`
-COUNT_README=`find ${cwd}/tmp/bacula-restores -type f | grep README | wc -l`
+COUNT_OTHER=`find ${tmp}/bacula-restores -type f | grep -v README | wc -l`
+COUNT_README=`find ${tmp}/bacula-restores -type f | grep README | wc -l`
 
 if [ $COUNT_OTHER -gt 0 -o $COUNT_README -lt 15 ]; then
     print_debug "Found non matching files"
-    print_debug `find ${cwd}/tmp/bacula-restores -type f | grep -v README`
+    print_debug `find ${tmp}/bacula-restores -type f | grep -v README`
     rstat=2
 fi
 
 #check_two_logs         # don't work because of "warning file count mismatch"
-grep "Backup OK" ${cwd}/tmp/log1.out > /dev/null
+grep "Backup OK" ${tmp}/log1.out > /dev/null
 if [ $? -ne 0 ]; then
     print_debug "Found error on backup"
     bstat=2

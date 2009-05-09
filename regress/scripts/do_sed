@@ -1,87 +1,89 @@
 #!/bin/sh
 #
 cwd=`pwd`
-. ${cwd}/scripts/functions
-mkdir -p ${cwd}/bin
-out="${cwd}/tmp/sed_tmp"
+. scripts/functions
+mkdir -p ${bin}
+out="${tmp}/sed_tmp"
 
-scripts/create_sed
+${rscripts}/create_sed
 
 # process .in files with sed script
-sed -f ${out} ${cwd}/scripts/bacula-dir.conf.errors.in >${cwd}/scripts/bacula-dir.conf.errors
-sed -f ${out} ${cwd}/scripts/bacula-dir.conf.accurate.in >${cwd}/scripts/bacula-dir.conf.accurate
-sed -f ${out} ${cwd}/scripts/test-bacula-dir.conf.in >${cwd}/scripts/test-bacula-dir.conf
-sed -f ${out} ${cwd}/scripts/multi-client-bacula-dir.conf.in >${cwd}/scripts/multi-client-bacula-dir.conf
-sed -f ${out} ${cwd}/scripts/bacula-dir.conf.regexwhere.in >${cwd}/scripts/bacula-dir.conf.regexwhere
-sed -f ${out} ${cwd}/scripts/bacula-dir.conf.maxtime.in >${cwd}/scripts/bacula-dir.conf.maxtime
-sed -f ${out} ${cwd}/scripts/bacula-dir.conf.maxruntime.in >${cwd}/scripts/bacula-dir.conf.maxruntime
-sed -f ${out} ${cwd}/scripts/new-test-bacula-dir.conf.in >${cwd}/scripts/new-test-bacula-dir.conf
-sed -f ${out} ${cwd}/scripts/plugin-test-bacula-dir.conf.in >${cwd}/scripts/plugin-test-bacula-dir.conf
-sed -f ${out} ${cwd}/scripts/testa-bacula-dir.conf.in >${cwd}/scripts/testa-bacula-dir.conf
-sed -f ${out} ${cwd}/scripts/testb-bacula-dir.conf.in >${cwd}/scripts/testb-bacula-dir.conf
-sed -f ${out} ${cwd}/scripts/test-bacula-fd.conf.in >${cwd}/scripts/test-bacula-fd.conf
-sed -f ${out} ${cwd}/scripts/test-bacula-sd.conf.in >${cwd}/scripts/test-bacula-sd.conf
-sed -f ${out} ${cwd}/scripts/test-console.conf.in >${cwd}/scripts/test-console.conf
-sed -f ${out} ${cwd}/scripts/crypto-bacula-fd.conf.in >${cwd}/scripts/crypto-bacula-fd.conf
-sed -f ${out} ${cwd}/scripts/bacula-dir-tape.conf.in >${cwd}/scripts/bacula-dir-tape.conf
-sed -f ${out} ${cwd}/scripts/bacula-dir-2client.conf.in >${cwd}/scripts/bacula-dir-2client.conf
-sed -f ${out} ${cwd}/scripts/bacula-dir-fifo.conf.in >${cwd}/scripts/bacula-dir-fifo.conf
-sed -f ${out} ${cwd}/scripts/bacula-dir-strip.conf.in >${cwd}/scripts/bacula-dir-strip.conf
-sed -f ${out} ${cwd}/scripts/bacula-dir-migration.conf.in >${cwd}/scripts/bacula-dir-migration.conf
-sed -f ${out} ${cwd}/scripts/bacula-dir-virtual.conf.in >${cwd}/scripts/bacula-dir-virtual.conf
-sed -f ${out} ${cwd}/scripts/win32-bacula-dir-tape.conf.in >${cwd}/scripts/win32-bacula-dir-tape.conf
-sed -f ${out} ${cwd}/scripts/win32-bacula-dir.conf.in >${cwd}/scripts/win32-bacula-dir.conf
-sed -f ${out} ${cwd}/scripts/bacula-sd-tape.conf.in >${cwd}/scripts/bacula-sd-tape.conf
-sed -f ${out} ${cwd}/scripts/ansi-sd-tape.conf.in >${cwd}/scripts/ansi-sd-tape.conf
-sed -f ${out} ${cwd}/scripts/bacula-sd-fifo.conf.in >${cwd}/scripts/bacula-sd-fifo.conf
-sed -f ${out} ${cwd}/scripts/bacula-sd-2tape.conf.in >${cwd}/scripts/bacula-sd-2tape.conf
-sed -f ${out} ${cwd}/scripts/bacula-sd-migration.conf.in >${cwd}/scripts/bacula-sd-migration.conf
-sed -f ${out} ${cwd}/scripts/bacula-sd-virtual.conf.in >${cwd}/scripts/bacula-sd-virtual.conf
-sed -f ${out} ${cwd}/scripts/bacula-sd-2disk.conf.in >${cwd}/scripts/bacula-sd-2disk.conf
-sed -f ${out} ${cwd}/scripts/bacula-sd-2drive.conf.in >${cwd}/scripts/bacula-sd-2drive.conf
-sed -f ${out} ${cwd}/scripts/bacula-sd-2disk-drive.conf.in >${cwd}/scripts/bacula-sd-2disk-drive.conf
-sed -f ${out} ${cwd}/scripts/broken-media-bug-bacula-dir.conf.in >${cwd}/scripts/broken-media-bug-bacula-dir.conf
-sed -f ${out} ${cwd}/scripts/broken-media-bug-2-bacula-dir.conf.in >${cwd}/scripts/broken-media-bug-2-bacula-dir.conf
-sed -f ${out} ${cwd}/scripts/broken-media-bug-2-bacula-sd.conf.in >${cwd}/scripts/broken-media-bug-2-bacula-sd.conf
-sed -f ${out} ${cwd}/scripts/cleanup-tape.in >${cwd}/scripts/cleanup-tape
-sed -f ${out} ${cwd}/scripts/cleanup-2tape.in >${cwd}/scripts/cleanup-2tape
-sed -f ${out} ${cwd}/scripts/cleanup-2drive.in >${cwd}/scripts/cleanup-2drive
-sed -f ${out} ${cwd}/scripts/prepare-two-tapes.in >${cwd}/scripts/prepare-two-tapes
-sed -f ${out} ${cwd}/scripts/bacula-dir.conf.testrunscript.in >${cwd}/scripts/bacula-dir.conf.testrunscript
-sed -f ${out} ${cwd}/scripts/bacula-dir-vtape.conf.in >${cwd}/scripts/bacula-dir-vtape.conf
-sed -f ${out} ${cwd}/scripts/bacula-sd-vtape.conf.in >${cwd}/scripts/bacula-sd-vtape.conf
-sed -f ${out} ${cwd}/scripts/prepare-fake-autochanger.in >${cwd}/scripts/prepare-fake-autochanger
-sed -f ${out} ${cwd}/scripts/tls-bacula-fd.conf.in >${cwd}/scripts/tls-bacula-fd.conf
-sed -f ${out} ${cwd}/scripts/tls-bacula-sd.conf.in >${cwd}/scripts/tls-bacula-sd.conf
-sed -f ${out} ${cwd}/scripts/tls-bacula-dir.conf.in >${cwd}/scripts/tls-bacula-dir.conf
+sed -f ${out} ${rscripts}/bacula-dir.conf.errors.in >${rscripts}/bacula-dir.conf.errors
+sed -f ${out} ${rscripts}/bacula-dir.conf.accurate.in >${rscripts}/bacula-dir.conf.accurate
+sed -f ${out} ${rscripts}/test-bacula-dir.conf.in >${rscripts}/test-bacula-dir.conf
+sed -f ${out} ${rscripts}/multi-client-bacula-dir.conf.in >${rscripts}/multi-client-bacula-dir.conf
+sed -f ${out} ${rscripts}/bacula-dir.conf.regexwhere.in >${rscripts}/bacula-dir.conf.regexwhere
+sed -f ${out} ${rscripts}/bacula-dir.conf.maxtime.in >${rscripts}/bacula-dir.conf.maxtime
+sed -f ${out} ${rscripts}/bacula-dir.conf.maxruntime.in >${rscripts}/bacula-dir.conf.maxruntime
+sed -f ${out} ${rscripts}/new-test-bacula-dir.conf.in >${rscripts}/new-test-bacula-dir.conf
+sed -f ${out} ${rscripts}/plugin-test-bacula-dir.conf.in >${rscripts}/plugin-test-bacula-dir.conf
+sed -f ${out} ${rscripts}/testa-bacula-dir.conf.in >${rscripts}/testa-bacula-dir.conf
+sed -f ${out} ${rscripts}/testb-bacula-dir.conf.in >${rscripts}/testb-bacula-dir.conf
+sed -f ${out} ${rscripts}/test-bacula-fd.conf.in >${rscripts}/test-bacula-fd.conf
+sed -f ${out} ${rscripts}/test-bacula-sd.conf.in >${rscripts}/test-bacula-sd.conf
+sed -f ${out} ${rscripts}/test-console.conf.in >${rscripts}/test-console.conf
+sed -f ${out} ${rscripts}/crypto-bacula-fd.conf.in >${rscripts}/crypto-bacula-fd.conf
+sed -f ${out} ${rscripts}/bacula-dir-tape.conf.in >${rscripts}/bacula-dir-tape.conf
+sed -f ${out} ${rscripts}/bacula-dir-2client.conf.in >${rscripts}/bacula-dir-2client.conf
+sed -f ${out} ${rscripts}/bacula-dir-fifo.conf.in >${rscripts}/bacula-dir-fifo.conf
+sed -f ${out} ${rscripts}/bacula-dir-strip.conf.in >${rscripts}/bacula-dir-strip.conf
+sed -f ${out} ${rscripts}/bacula-dir-migration.conf.in >${rscripts}/bacula-dir-migration.conf
+sed -f ${out} ${rscripts}/bacula-dir-virtual.conf.in >${rscripts}/bacula-dir-virtual.conf
+sed -f ${out} ${rscripts}/win32-bacula-dir-tape.conf.in >${rscripts}/win32-bacula-dir-tape.conf
+sed -f ${out} ${rscripts}/win32-bacula-dir.conf.in >${rscripts}/win32-bacula-dir.conf
+sed -f ${out} ${rscripts}/bacula-sd-tape.conf.in >${rscripts}/bacula-sd-tape.conf
+sed -f ${out} ${rscripts}/ansi-sd-tape.conf.in >${rscripts}/ansi-sd-tape.conf
+sed -f ${out} ${rscripts}/bacula-sd-fifo.conf.in >${rscripts}/bacula-sd-fifo.conf
+sed -f ${out} ${rscripts}/bacula-sd-2tape.conf.in >${rscripts}/bacula-sd-2tape.conf
+sed -f ${out} ${rscripts}/bacula-sd-migration.conf.in >${rscripts}/bacula-sd-migration.conf
+sed -f ${out} ${rscripts}/bacula-sd-virtual.conf.in >${rscripts}/bacula-sd-virtual.conf
+sed -f ${out} ${rscripts}/bacula-sd-2disk.conf.in >${rscripts}/bacula-sd-2disk.conf
+sed -f ${out} ${rscripts}/bacula-sd-2drive.conf.in >${rscripts}/bacula-sd-2drive.conf
+sed -f ${out} ${rscripts}/bacula-sd-2disk-drive.conf.in >${rscripts}/bacula-sd-2disk-drive.conf
+sed -f ${out} ${rscripts}/broken-media-bug-bacula-dir.conf.in >${rscripts}/broken-media-bug-bacula-dir.conf
+sed -f ${out} ${rscripts}/broken-media-bug-2-bacula-dir.conf.in >${rscripts}/broken-media-bug-2-bacula-dir.conf
+sed -f ${out} ${rscripts}/broken-media-bug-2-bacula-sd.conf.in >${rscripts}/broken-media-bug-2-bacula-sd.conf
+sed -f ${out} ${rscripts}/cleanup-tape.in >${rscripts}/cleanup-tape
+sed -f ${out} ${rscripts}/cleanup-2tape.in >${rscripts}/cleanup-2tape
+sed -f ${out} ${rscripts}/cleanup-2drive.in >${rscripts}/cleanup-2drive
+sed -f ${out} ${rscripts}/prepare-two-tapes.in >${rscripts}/prepare-two-tapes
+sed -f ${out} ${rscripts}/bacula-dir.conf.testrunscript.in >${rscripts}/bacula-dir.conf.testrunscript
+sed -f ${out} ${rscripts}/bacula-dir-vtape.conf.in >${rscripts}/bacula-dir-vtape.conf
+sed -f ${out} ${rscripts}/bacula-sd-vtape.conf.in >${rscripts}/bacula-sd-vtape.conf
+sed -f ${out} ${rscripts}/prepare-fake-autochanger.in >${rscripts}/prepare-fake-autochanger
+sed -f ${out} ${rscripts}/tls-bacula-fd.conf.in >${rscripts}/tls-bacula-fd.conf
+sed -f ${out} ${rscripts}/tls-bacula-sd.conf.in >${rscripts}/tls-bacula-sd.conf
+sed -f ${out} ${rscripts}/tls-bacula-dir.conf.in >${rscripts}/tls-bacula-dir.conf
 
-sed -f ${out} ${cwd}/scripts/tls-auth-bacula-fd.conf.in >${cwd}/scripts/tls-auth-bacula-fd.conf
-sed -f ${out} ${cwd}/scripts/tls-auth-bacula-sd.conf.in >${cwd}/scripts/tls-auth-bacula-sd.conf
-sed -f ${out} ${cwd}/scripts/tls-auth-bacula-dir.conf.in >${cwd}/scripts/tls-auth-bacula-dir.conf
+sed -f ${out} ${rscripts}/tls-auth-bacula-fd.conf.in >${rscripts}/tls-auth-bacula-fd.conf
+sed -f ${out} ${rscripts}/tls-auth-bacula-sd.conf.in >${rscripts}/tls-auth-bacula-sd.conf
+sed -f ${out} ${rscripts}/tls-auth-bacula-dir.conf.in >${rscripts}/tls-auth-bacula-dir.conf
 
 
-sed -f ${out} ${cwd}/scripts/bacula-fd-2d.conf.in >${cwd}/scripts/bacula-fd-2d.conf
-sed -f ${out} ${cwd}/scripts/bacula-sd-2d.conf.in >${cwd}/scripts/bacula-sd-2d.conf
-sed -f ${out} ${cwd}/scripts/bacula-dir-2d.conf.in >${cwd}/scripts/bacula-dir-2d.conf
-sed -f ${out} ${cwd}/scripts/bconsole-2d.conf.in >${cwd}/scripts/bconsole-2d.conf
-sed -f ${out} ${cwd}/scripts/regress-config.in >${cwd}/scripts/regress-config
-chmod 755 ${cwd}/scripts/regress-config
+sed -f ${out} ${rscripts}/bacula-fd-2d.conf.in >${rscripts}/bacula-fd-2d.conf
+sed -f ${out} ${rscripts}/bacula-sd-2d.conf.in >${rscripts}/bacula-sd-2d.conf
+sed -f ${out} ${rscripts}/bacula-dir-2d.conf.in >${rscripts}/bacula-dir-2d.conf
+sed -f ${out} ${rscripts}/bconsole-2d.conf.in >${rscripts}/bconsole-2d.conf
+sed -f ${out} ${rscripts}/regress-config.in >${rscripts}/regress-config
+chmod 755 ${rscripts}/regress-config
 
 
 # These files have no fancy sed stuff, so we just copy them over
-cp scripts/win32-bacula-sd-tape.conf.in scripts/win32-bacula-sd-tape.conf
-cp scripts/win32-bacula-fd.conf.in      scripts/win32-bacula-fd.conf
+cp ${rscripts}/win32-bacula-sd-tape.conf.in ${rscripts}/win32-bacula-sd-tape.conf
+cp ${rscripts}/win32-bacula-fd.conf.in      ${rscripts}/win32-bacula-fd.conf
 
-cp ${cwd}/bin/bacula-sd.conf ${cwd}/tmp/bac$$
-sed s%/tmp%${cwd}/tmp%g ${cwd}/tmp/bac$$ >${cwd}/bin/bacula-sd.conf
-chmod 755 ${cwd}/scripts/cleanup-*tape ${cwd}/scripts/cleanup-*drive ${cwd}/scripts/prepare-two-tapes 
-rm -f ${cwd}/tmp/bac$$
-cp ${cwd}/bin/mtx-changer ${cwd}/tmp/bac$$
-sed "s%^MTX.*$%MTX=${AUTOCHANGER_PATH}%g" ${cwd}/tmp/bac$$ >${cwd}/bin/mtx-changer
-chmod 755 ${cwd}/bin/mtx-changer ${cwd}/scripts/prepare-fake-autochanger
+if test -f ${scripts}/bacula-sd.conf ; then
+  cp ${scripts}/bacula-sd.conf ${tmp}/bac$$
+  sed "s% /tmp%${tmp}%g" ${tmp}/bac$$ >${scripts}/bacula-sd.conf
+fi
+chmod 755 ${rscripts}/cleanup-*tape ${rscripts}/cleanup-*drive ${rscripts}/prepare-two-tapes 
+rm -f ${tmp}/tmp/bac$$
+cp ${scripts}/mtx-changer ${tmp}/bac$$
+sed "s%^MTX.*$%MTX=${AUTOCHANGER_PATH}%g" ${tmp}/bac$$ >${scripts}/mtx-changer
+chmod 755 ${scripts}/mtx-changer ${rscripts}/prepare-fake-autochanger
 
-scripts/set_tape_options
-scripts/config_dart
+${rscripts}/set_tape_options
+${rscripts}/config_dart
 
 rm -f ${out}
-rm -f ${cwd}/tmp/bac$$
+rm -f ${tmp}/bac$$
