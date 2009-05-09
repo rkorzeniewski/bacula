@@ -272,9 +272,9 @@ check_two_logs()
 check_restore_diff()
 {
    if test "$debug" -eq 1 ; then
-      diff -ur build ${tmp}/bacula-restores${cwd}/build
+      diff -ur ${src} ${tmp}/bacula-restores${src}
    else 
-      diff -ur build ${tmp}/bacula-restores${cwd}/build 2>&1 >/dev/null
+      diff -ur ${src} ${tmp}/bacula-restores${src} 2>&1 >/dev/null
    fi
    dstat=$?
 }
@@ -282,9 +282,9 @@ check_restore_diff()
 check_restore_tmp_build_diff()
 {
    if test "$debug" -eq 1 ; then
-      diff -ur ${tmp}/build ${tmp}/bacula-restores${cwd}/tmp/build
+      diff -ur ${tmpsrc} ${tmp}/bacula-restores${tmpsrc}
    else
-      diff -ur ${tmp}/build ${tmp}/bacula-restores${cwd}/tmp/build 2>&1 >/dev/null
+      diff -ur ${tmpsrc} ${tmp}/bacula-restores${tmpsrc} 2>&1 >/dev/null
    fi
    dstat=$?
 }
@@ -447,12 +447,16 @@ scripts=${scripts:-"$bin"}
 # Regress scripts
 rscripts=${rscripts:-"$cwd/scripts"}
 tmp=${tmp:-"$cwd/tmp"}
+src=${src:-"$cwd/build"}
+tmpsrc=${tmpsrc:-"$cwd/tmp/build"}
 
 export bin
 export working
 export scripts
 export rscripts
 export tmp
+export src
+export tmpsrc
 
 touch ${tmp}/dir.out ${tmp}/fd.out ${tmp}/sd.out
 

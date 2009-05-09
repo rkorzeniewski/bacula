@@ -9,12 +9,12 @@ JobName=Incremental
 
 ${rscripts}/cleanup
 ${rscripts}/copy-test-confs
-echo "${tmp}/build" >${tmp}/file-list
-mkdir ${tmp}/build
-cp -p ${cwd}/build/src/dird/*.c ${tmp}/build
-cd ${cwd}/tmp
-echo "${tmp}/build/ficheriro1.txt" >restore-list
-echo "${tmp}/build/ficheriro2.txt" >>restore-list
+echo "${tmpsrc}" >${tmp}/file-list
+mkdir -p ${tmpsrc}
+cp -p ${src}/src/dird/*.c ${tmpsrc}
+cd ${tmp}
+echo "${tmpsrc}/ficheriro1.txt" >restore-list
+echo "${tmpsrc}/ficheriro2.txt" >>restore-list
 cd ${cwd}
 
 change_jobname CompressedTest $JobName
@@ -39,8 +39,8 @@ check_for_zombie_jobs storage=File
 # Now create two new files to be restored later
 #
 sleep 1
-echo "ficheriro1.txt" >${tmp}/build/ficheriro1.txt
-cp -f ${tmp}/build/dird.c ${tmp}/build/ficheriro2.txt
+echo "ficheriro1.txt" >${tmpsrc}/ficheriro1.txt
+cp -f ${tmpsrc}/dird.c ${tmpsrc}/ficheriro2.txt
 
 cat <<END_OF_DATA >${tmp}/bconcmds
 @output /dev/null
@@ -57,8 +57,8 @@ END_OF_DATA
 run_bconsole
 
 sleep 1
-touch ${tmp}/build/ficheriro1.txt
-touch ${tmp}/build/ficheriro2.txt
+touch ${tmpsrc}/ficheriro1.txt
+touch ${tmpsrc}/ficheriro2.txt
 
 cat <<END_OF_DATA >${tmp}/bconcmds
 @output /dev/null
@@ -73,7 +73,7 @@ END_OF_DATA
 run_bconsole
 
 sleep 1
-cd ${tmp}/build
+cd ${tmpsrc}
 cp -f ficheriro2.txt 1
 sed "s%a%b%g" 1 >ficheriro2.txt
 rm -f 1
@@ -91,8 +91,8 @@ END_OF_DATA
 run_bconsole
 
 sleep 1
-touch ${tmp}/build/ficheriro1.txt
-touch ${tmp}/build/ficheriro2.txt
+touch ${tmpsrc}/ficheriro1.txt
+touch ${tmpsrc}/ficheriro2.txt
 cat <<END_OF_DATA >${tmp}/bconcmds
 @output /dev/null
 messages
@@ -106,8 +106,8 @@ END_OF_DATA
 run_bconsole
 
 sleep 1
-touch ${tmp}/build/ficheriro1.txt
-touch ${tmp}/build/ficheriro2.txt
+touch ${tmpsrc}/ficheriro1.txt
+touch ${tmpsrc}/ficheriro2.txt
 cat <<END_OF_DATA >${tmp}/bconcmds
 @output /dev/null
 messages
@@ -121,8 +121,8 @@ END_OF_DATA
 run_bconsole
 
 sleep 1
-touch ${tmp}/build/ficheriro1.txt
-touch ${tmp}/build/ficheriro2.txt
+touch ${tmpsrc}/ficheriro1.txt
+touch ${tmpsrc}/ficheriro2.txt
 cat <<END_OF_DATA >${tmp}/bconcmds
 @output /dev/null
 messages
@@ -135,8 +135,8 @@ END_OF_DATA
 
 run_bconsole
 sleep 1
-touch ${tmp}/build/ficheriro1.txt
-touch ${tmp}/build/ficheriro2.txt
+touch ${tmpsrc}/ficheriro1.txt
+touch ${tmpsrc}/ficheriro2.txt
 
 cat <<END_OF_DATA >${tmp}/bconcmds
 @output /dev/null
@@ -168,6 +168,6 @@ check_two_logs
 #
 # Delete .c files because we will only restored the txt files
 #
-rm -f ${tmp}/build/*.c
+rm -f ${tmpsrc}/*.c
 check_restore_tmp_build_diff
 end_test
