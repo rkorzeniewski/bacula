@@ -1,5 +1,4 @@
 #!/bin/sh
-#  /home/kern/bacula/bin/startmysql
 nice make setup
 echo " " >test.out
 cat build/config.out >>test.out
