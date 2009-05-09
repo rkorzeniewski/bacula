@@ -5,7 +5,7 @@
 
 check_encoding()
 {
-   $bin/bacula-dir -d50 -t -c bin/bacula-dir.conf 2>&1 | grep 'Wanted SQL_ASCII, got UTF8' >/dev/null
+   ${bin}/bacula-dir -d50 -t -c ${scripts}/bacula-dir.conf 2>&1 | grep 'Wanted SQL_ASCII, got UTF8' >/dev/null
    if [ $? = 0 ]; then
        echo "Found database encoding problem, please modify the database encoding (SQL_ASCII)"
        exit 1
@@ -16,11 +16,11 @@ start_test()
 {
    check_encoding
    # Turn off email
-   outf="tmp/sed_tmp"
+   outf="${tmp}/sed_tmp"
    echo "s%  mail =%# mail = %g" >${outf}
    echo "s%  operator =%# operator =%g" >>${outf}
-   cp bin/bacula-dir.conf tmp/1
-   sed -f ${outf} tmp/1 > bin/bacula-dir.conf
+   cp ${scripts}/bacula-dir.conf ${tmp}/1
+   sed -f ${outf} ${tmp}/1 > ${scripts}/bacula-dir.conf
    echo " "
    echo " "
    echo " === Starting $TestName at `date +%R:%S` ==="
@@ -154,43 +154,43 @@ run_bacula()
    debug_wait
    zstat=0
    if test "$debug" -eq 1 ; then
-     bin/bacula-ctl-sd start
-     bin/bacula-ctl-fd start $1
-     bin/bacula-ctl-dir start
-     cat tmp/bconcmds | $bin/bconsole -c bin/bconsole.conf
+     ${scripts}/bacula-ctl-sd start
+     ${scripts}/bacula-ctl-fd start $1
+     ${scripts}/bacula-ctl-dir start
+     cat ${tmp}/bconcmds | ${bin}/bconsole -c ${scripts}/bconsole.conf
      return $?
    else
-     bin/bacula start >/dev/null 2>&1
-     cat tmp/bconcmds | $bin/bconsole -c bin/bconsole.conf >/dev/null 2>&1
+     ${bin}/bacula start >/dev/null 2>&1
+     cat ${tmp}/bconcmds | ${bin}/bconsole -c ${scripts}/bconsole.conf >/dev/null 2>&1
      return $?
    fi
 }
 
 run_bconsole()
 {
-   bconsole_file=${1:-tmp/bconcmds}
+   bconsole_file=${1:-${tmp}/bconcmds}
    if test "$debug" -eq 1 ; then
-     cat $bconsole_file | $bin/bconsole -c bin/bconsole.conf
+     cat $bconsole_file | ${bin}/bconsole -c ${scripts}/bconsole.conf
    else
-     cat $bconsole_file | $bin/bconsole -c bin/bconsole.conf  2>&1 >/dev/null
+     cat $bconsole_file | ${bin}/bconsole -c ${scripts}/bconsole.conf  2>&1 >/dev/null
    fi
 }
 
 run_btape()
 {
    if test "$debug" -eq 1 ; then
-     cat tmp/bconcmds | $bin/btape -c bin/bacula-sd.conf DDS-4 | tee tmp/log1.out
+     cat ${tmp}/bconcmds | ${bin}/btape -c ${scripts}/bacula-sd.conf DDS-4 | tee ${tmp}/log1.out
    else
-     cat tmp/bconcmds | $bin/btape -c bin/bacula-sd.conf DDS-4 >tmp/log1.out 2>&1
+     cat ${tmp}/bconcmds | ${bin}/btape -c ${scripts}/bacula-sd.conf DDS-4 >${tmp}/log1.out 2>&1
    fi
 }
 
 run_bscan()
 {
    if test "$debug" -eq 1 ; then
-      $bin/bscan $* | tee tmp/log.out
+      ${bin}/bscan $* | tee ${tmp}/log.out
    else
-      $bin/bscan $* 2>&1 >/dev/null
+      ${bin}/bscan $* 2>&1 >/dev/null
    fi
 }
 
@@ -212,7 +212,7 @@ bscan_libdbi()
 
 stop_bacula()
 {
-   bin/bacula stop 2>&1 >/dev/null
+   ${bin}/bacula stop 2>&1 >/dev/null
    zstat=0
    bstat=0
    rstat=0
@@ -221,7 +221,7 @@ stop_bacula()
 
 check_for_zombie_jobs()
 {
-   scripts/check_for_zombie_jobs $*
+   ${rscripts}/check_for_zombie_jobs $*
 }
 
 change_jobname()
@@ -233,36 +233,36 @@ change_jobname()
       oldname=$1
       newname=$2
    fi
-   rm -f bin/1
-   mv bin/bacula-dir.conf bin/1
-   echo "s%${oldname}%${newname}%g" >tmp/1
-   sed -f tmp/1 bin/1 >bin/bacula-dir.conf
+   rm -f ${bin}/1
+   mv ${scripts}/bacula-dir.conf ${bin}/1
+   echo "s%${oldname}%${newname}%g" >${tmp}/1
+   sed -f ${tmp}/1 ${bin}/1 >${scripts}/bacula-dir.conf
 #  echo "Job ${oldname} changed to ${newname}"
 }
 
 check_two_logs()
 {
-   grep "^  Termination: *Backup OK" tmp/log1.out 2>&1 >/dev/null
+   grep "^  Termination: *Backup OK" ${tmp}/log1.out 2>&1 >/dev/null
    bstat=${bstat:-$?}
-   grep "^  Termination: .*Backup Error" tmp/log1.out 2>&1 >/dev/null
+   grep "^  Termination: .*Backup Error" ${tmp}/log1.out 2>&1 >/dev/null
    if test $? -eq 0; then
       bstat=2
    fi
-   grep "^  Termination: *Restore OK" tmp/log2.out 2>&1 >/dev/null
+   grep "^  Termination: *Restore OK" ${tmp}/log2.out 2>&1 >/dev/null
    rstat=${rstat:-$?}
-   grep "^  Termination: .*Restore Error" tmp/log2.out 2>&1 >/dev/null
+   grep "^  Termination: .*Restore Error" ${tmp}/log2.out 2>&1 >/dev/null
    if test $? -eq 0; then
       rstat=2
    fi
-   grep "^  Termination: *Restore OK -- warning file count mismatch" tmp/log2.out 2>&1 >/dev/null
+   grep "^  Termination: *Restore OK -- warning file count mismatch" ${tmp}/log2.out 2>&1 >/dev/null
    if test $? -eq 0; then
       rstat=3
    fi
-   grep "^  Termination: .*Verify Differences" tmp/log2.out 2>&1 >/dev/null
+   grep "^  Termination: .*Verify Differences" ${tmp}/log2.out 2>&1 >/dev/null
    if test $? -eq 0; then
       rstat=4
    fi
-   grep "Encoding error for database" tmp/log1.out > /dev/null
+   grep "Encoding error for database" ${tmp}/log1.out > /dev/null
    if test $? -eq 0; then
       print_debug "Found database encoding error"
       bstat=2
@@ -272,9 +272,9 @@ check_two_logs()
 check_restore_diff()
 {
    if test "$debug" -eq 1 ; then
-      diff -ur build tmp/bacula-restores${cwd}/build
+      diff -ur build ${tmp}/bacula-restores${cwd}/build
    else 
-      diff -ur build tmp/bacula-restores${cwd}/build 2>&1 >/dev/null
+      diff -ur build ${tmp}/bacula-restores${cwd}/build 2>&1 >/dev/null
    fi
    dstat=$?
 }
@@ -282,9 +282,9 @@ check_restore_diff()
 check_restore_tmp_build_diff()
 {
    if test "$debug" -eq 1 ; then
-      diff -ur tmp/build tmp/bacula-restores${cwd}/tmp/build
+      diff -ur ${tmp}/build ${tmp}/bacula-restores${cwd}/tmp/build
    else
-      diff -ur tmp/build tmp/bacula-restores${cwd}/tmp/build 2>&1 >/dev/null
+      diff -ur ${tmp}/build ${tmp}/bacula-restores${cwd}/tmp/build 2>&1 >/dev/null
    fi
    dstat=$?
 }
@@ -322,21 +322,21 @@ end_test()
       echo "  ===== $TestName OK `date +%R:%S` ===== "
       echo "  ===== $TestName OK `date +%R:%S` ===== " >>test.out
       if test "$debug" -eq 0 ; then
-         scripts/cleanup
+         ${rscripts}/cleanup
       fi
    fi
 }
 
 copy_tape_confs()
 {
-   scripts/copy-tape-confs
-   scripts/cleanup-tape
+   ${rscripts}/copy-tape-confs
+   ${rscripts}/cleanup-tape
 }
 
 copy_test_confs()
 {
-   scripts/copy-test-confs
-   scripts/cleanup
+   ${rscripts}/copy-test-confs
+   ${rscripts}/cleanup
 }
 
 debug_wait()
@@ -379,10 +379,10 @@ rewind_drive()
 load_slot1() 
 {
 # Get a tape from slot1
-slot=`$scripts/$MTX ${AUTOCHANGER} loaded 0 ${TAPE_DRIVE} $DRIVE1`
+slot=`${scripts}/$MTX ${AUTOCHANGER} loaded 0 ${TAPE_DRIVE} $DRIVE1`
 case $slot in
  0)
-    $scripts/$MTX ${AUTOCHANGER} load $SLOT1 ${TAPE_DRIVE} $DRIVE1
+    ${scripts}/$MTX ${AUTOCHANGER} load $SLOT1 ${TAPE_DRIVE} $DRIVE1
     slot=$SLOT1
     ;;
  $SLOT1)
@@ -390,8 +390,8 @@ case $slot in
     ;;
  *)
     rewind_drive ${TAPE_DRIVE}
-    $scripts/$MTX ${AUTOCHANGER} unload $slot  ${TAPE_DRIVE} $DRIVE1
-    $scripts/$MTX ${AUTOCHANGER} load   $SLOT1 ${TAPE_DRIVE} $DRIVE1
+    ${scripts}/$MTX ${AUTOCHANGER} unload $slot  ${TAPE_DRIVE} $DRIVE1
+    ${scripts}/$MTX ${AUTOCHANGER} load   $SLOT1 ${TAPE_DRIVE} $DRIVE1
     slot=$SLOT1
     ;;
 esac
@@ -406,17 +406,17 @@ load_other_slot()
 rewind_drive ${TAPE_DRIVE}
 case $1 in
  0)
-    $scripts/${AUTOCHANGER_SCRIPT} ${AUTOCHANGER} load $SLOT1 ${TAPE_DRIVE} $DRIVE1
+    ${scripts}/${AUTOCHANGER_SCRIPT} ${AUTOCHANGER} load $SLOT1 ${TAPE_DRIVE} $DRIVE1
     slot=1
     ;;
  $SLOT1)
-    $scripts/${AUTOCHANGER_SCRIPT} ${AUTOCHANGER} unload $1 ${TAPE_DRIVE} $DRIVE1
-    $scripts/${AUTOCHANGER_SCRIPT} ${AUTOCHANGER} load $SLOT2 ${TAPE_DRIVE} $DRIVE1
+    ${scripts}/${AUTOCHANGER_SCRIPT} ${AUTOCHANGER} unload $1 ${TAPE_DRIVE} $DRIVE1
+    ${scripts}/${AUTOCHANGER_SCRIPT} ${AUTOCHANGER} load $SLOT2 ${TAPE_DRIVE} $DRIVE1
     slot=2
     ;;
  $SLOT2)
-    $scripts/${AUTOCHANGER_SCRIPT} ${AUTOCHANGER} unload $1 ${TAPE_DRIVE} $DRIVE1
-    $scripts/${AUTOCHANGER_SCRIPT} ${AUTOCHANGER} load $SLOT1 ${TAPE_DRIVE} $DRIVE1
+    ${scripts}/${AUTOCHANGER_SCRIPT} ${AUTOCHANGER} unload $1 ${TAPE_DRIVE} $DRIVE1
+    ${scripts}/${AUTOCHANGER_SCRIPT} ${AUTOCHANGER} load $SLOT1 ${TAPE_DRIVE} $DRIVE1
     slot=1
     ;;
  *)
@@ -442,11 +442,19 @@ db_user=${db_user:-"regress"}
 db_password=${db_password:-""}
 working=${working:-"$cwd/working"}
 bin=${bin:-"$cwd/bin"}
+# Bacula scripts
 scripts=${scripts:-"$bin"}
+# Regress scripts
+rscripts=${rscripts:-"$cwd/scripts"}
+tmp=${tmp:-"$cwd/tmp"}
 
 export bin
 export working
 export scripts
+export rscripts
+export tmp
+
+touch ${tmp}/dir.out ${tmp}/fd.out ${tmp}/sd.out
 
 CLIENT=${HOST}-fd
 

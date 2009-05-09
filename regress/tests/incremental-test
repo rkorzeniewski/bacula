@@ -7,23 +7,23 @@ TestName="incremental-test"
 JobName=Incremental 
 . scripts/functions
 
-scripts/cleanup
-scripts/copy-test-confs
-echo "${cwd}/tmp/build" >${cwd}/tmp/file-list
-mkdir ${cwd}/tmp/build
-cp -p ${cwd}/build/src/dird/*.c ${cwd}/tmp/build
+${rscripts}/cleanup
+${rscripts}/copy-test-confs
+echo "${tmp}/build" >${tmp}/file-list
+mkdir ${tmp}/build
+cp -p ${cwd}/build/src/dird/*.c ${tmp}/build
 cd ${cwd}/tmp
-echo "${cwd}/tmp/build/ficheriro1.txt" >restore-list
-echo "${cwd}/tmp/build/ficheriro2.txt" >>restore-list
+echo "${tmp}/build/ficheriro1.txt" >restore-list
+echo "${tmp}/build/ficheriro2.txt" >>restore-list
 cd ${cwd}
 
 change_jobname CompressedTest $JobName
 start_test
 
-cat <<END_OF_DATA >${cwd}/tmp/bconcmds
+cat <<END_OF_DATA >${tmp}/bconcmds
 @output /dev/null
 messages
-@$out ${cwd}/tmp/log1.out
+@$out ${tmp}/log1.out
 @#setdebug level=100 storage=File
 label storage=File volume=TestVolume001
 label storage=File volume=TestVolume002
@@ -39,13 +39,13 @@ check_for_zombie_jobs storage=File
 # Now create two new files to be restored later
 #
 sleep 1
-echo "ficheriro1.txt" >${cwd}/tmp/build/ficheriro1.txt
-cp -f ${cwd}/tmp/build/dird.c ${cwd}/tmp/build/ficheriro2.txt
+echo "ficheriro1.txt" >${tmp}/build/ficheriro1.txt
+cp -f ${tmp}/build/dird.c ${tmp}/build/ficheriro2.txt
 
-cat <<END_OF_DATA >${cwd}/tmp/bconcmds
+cat <<END_OF_DATA >${tmp}/bconcmds
 @output /dev/null
 messages
-@$out ${cwd}/tmp/log1.out
+@$out ${tmp}/log1.out
 @# Force Incremental on the second Volume
 update volume=TestVolume001 VolStatus=Used
 run level=Differential job=$JobName yes
@@ -57,13 +57,13 @@ END_OF_DATA
 run_bconsole
 
 sleep 1
-touch ${cwd}/tmp/build/ficheriro1.txt
-touch ${cwd}/tmp/build/ficheriro2.txt
+touch ${tmp}/build/ficheriro1.txt
+touch ${tmp}/build/ficheriro2.txt
 
-cat <<END_OF_DATA >${cwd}/tmp/bconcmds
+cat <<END_OF_DATA >${tmp}/bconcmds
 @output /dev/null
 messages
-@$out ${cwd}/tmp/log1.out
+@$out ${tmp}/log1.out
 run level=Incremental job=$JobName yes
 wait
 messages
@@ -73,15 +73,15 @@ END_OF_DATA
 run_bconsole
 
 sleep 1
-cd ${cwd}/tmp/build
+cd ${tmp}/build
 cp -f ficheriro2.txt 1
 sed "s%a%b%g" 1 >ficheriro2.txt
 rm -f 1
 cd ${cwd}
-cat <<END_OF_DATA >${cwd}/tmp/bconcmds
+cat <<END_OF_DATA >${tmp}/bconcmds
 @output /dev/null
 messages
-@$out ${cwd}/tmp/log1.out
+@$out ${tmp}/log1.out
 run level=Differential job=$JobName yes
 wait
 messages
@@ -91,12 +91,12 @@ END_OF_DATA
 run_bconsole
 
 sleep 1
-touch ${cwd}/tmp/build/ficheriro1.txt
-touch ${cwd}/tmp/build/ficheriro2.txt
-cat <<END_OF_DATA >${cwd}/tmp/bconcmds
+touch ${tmp}/build/ficheriro1.txt
+touch ${tmp}/build/ficheriro2.txt
+cat <<END_OF_DATA >${tmp}/bconcmds
 @output /dev/null
 messages
-@$out ${cwd}/tmp/log1.out
+@$out ${tmp}/log1.out
 run level=Incremental job=$JobName yes
 wait
 messages
@@ -106,12 +106,12 @@ END_OF_DATA
 run_bconsole
 
 sleep 1
-touch ${cwd}/tmp/build/ficheriro1.txt
-touch ${cwd}/tmp/build/ficheriro2.txt
-cat <<END_OF_DATA >${cwd}/tmp/bconcmds
+touch ${tmp}/build/ficheriro1.txt
+touch ${tmp}/build/ficheriro2.txt
+cat <<END_OF_DATA >${tmp}/bconcmds
 @output /dev/null
 messages
-@$out ${cwd}/tmp/log1.out
+@$out ${tmp}/log1.out
 run level=Incremental job=$JobName yes
 wait
 messages
@@ -121,12 +121,12 @@ END_OF_DATA
 run_bconsole
 
 sleep 1
-touch ${cwd}/tmp/build/ficheriro1.txt
-touch ${cwd}/tmp/build/ficheriro2.txt
-cat <<END_OF_DATA >${cwd}/tmp/bconcmds
+touch ${tmp}/build/ficheriro1.txt
+touch ${tmp}/build/ficheriro2.txt
+cat <<END_OF_DATA >${tmp}/bconcmds
 @output /dev/null
 messages
-@$out ${cwd}/tmp/log1.out
+@$out ${tmp}/log1.out
 run level=Incremental job=$JobName yes
 wait
 messages
@@ -135,13 +135,13 @@ END_OF_DATA
 
 run_bconsole
 sleep 1
-touch ${cwd}/tmp/build/ficheriro1.txt
-touch ${cwd}/tmp/build/ficheriro2.txt
+touch ${tmp}/build/ficheriro1.txt
+touch ${tmp}/build/ficheriro2.txt
 
-cat <<END_OF_DATA >${cwd}/tmp/bconcmds
+cat <<END_OF_DATA >${tmp}/bconcmds
 @output /dev/null
 messages
-@$out ${cwd}/tmp/log1.out
+@$out ${tmp}/log1.out
 setdebug level=200 storage=File
 run level=Incremental job=$JobName yes
 wait
@@ -149,9 +149,9 @@ messages
 @# 
 @# now do a restore
 @#
-@$out ${cwd}/tmp/log2.out
+@$out ${tmp}/log2.out
 setdebug level=10 storage=File
-restore where=${cwd}/tmp/bacula-restores storage=File file=<${cwd}/tmp/restore-list
+restore where=${tmp}/bacula-restores storage=File file=<${tmp}/restore-list
 yes
 wait
 status storage=File
@@ -168,6 +168,6 @@ check_two_logs
 #
 # Delete .c files because we will only restored the txt files
 #
-rm -f ${cwd}/tmp/build/*.c
+rm -f ${tmp}/build/*.c
 check_restore_tmp_build_diff
 end_test

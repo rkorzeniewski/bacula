@@ -4,8 +4,6 @@
 # Also scan logs for ERROR messages
 #
 
-. ./config         
-
 # check_for_zombie_jobs storage=STORAGE [client=localhost-fd]
 
 if [ $# = 2 ] ; then
@@ -14,19 +12,19 @@ else
     client=${HOST}-fd
 fi
 
-$bin/bconsole -c bin/bconsole.conf <<END_OF_DATA 2>&1 >/dev/null
-@output tmp/dir.out
+${bin}/bconsole -c ${scripts}/bconsole.conf <<END_OF_DATA 2>&1 >/dev/null
+@output ${tmp}/dir.out
 status dir
-@output tmp/fd.out
+@output ${tmp}/fd.out
 status client=${client}
-@output tmp/sd.out
+@output ${tmp}/sd.out
 status $1
 @output
 quit
 END_OF_DATA
 
 export zstat
-grep "No Jobs running." tmp/dir.out 2>&1 >/dev/null
+grep "No Jobs running." ${tmp}/dir.out 2>&1 >/dev/null
 if [ $? != 0 ] ; then
   echo " "
   echo "  !!!! Zombie Jobs in Director !!!!"
@@ -35,7 +33,7 @@ if [ $? != 0 ] ; then
   zstat=1
   exit 1
 fi
-grep "No Jobs running." tmp/fd.out 2>&1 >/dev/null
+grep "No Jobs running." ${tmp}/fd.out 2>&1 >/dev/null
 if [ $? != 0 ] ; then
   echo " "
   echo "  !!!! Zombie Jobs in File daemon !!!!"
@@ -44,7 +42,7 @@ if [ $? != 0 ] ; then
   zstat=1
   exit 1
 fi
-grep "No Jobs running." tmp/sd.out 2>&1 >/dev/null
+grep "No Jobs running." ${tmp}/sd.out 2>&1 >/dev/null
 if [ $? != 0 ] ; then
   echo " "
   echo "  !!!! Zombie Jobs in Storage daemon !!!!"
@@ -53,33 +51,33 @@ if [ $? != 0 ] ; then
   zstat=1
   exit 1
 fi
-grep "ERROR" tmp/log*.out 2>&1 >/dev/null
+grep "ERROR" ${tmp}/log*.out 2>&1 >/dev/null
 if [ $? = 0 ] ; then
   echo " "
   echo "  !!!! ERROR in log output !!!!"
   echo "  !!!! ERROR in log output !!!!" >>test.out
-  grep "ERROR" tmp/log*.out
+  grep "ERROR" ${tmp}/log*.out
   echo " "
   zstat=1
   exit 1
 fi
-grep "Fatal Error" tmp/log*.out 2>&1 >/dev/null
+grep "Fatal Error" ${tmp}/log*.out 2>&1 >/dev/null
 if [ $? = 0 ] ; then
   echo " "
   echo "  !!!! Fatal Error in log output !!!!"
   echo "  !!!! Fatal Error in log output !!!!" >>test.out
-  grep "Fatal Error" tmp/log*.out
+  grep "Fatal Error" ${tmp}/log*.out
   echo " "
   zstat=1
   exit 1
 fi
 
-grep "glibc detected" tmp/log*.out 2>&1 >/dev/null
+grep "glibc detected" ${tmp}/log*.out 2>&1 >/dev/null
 if [ $? = 0 ] ; then
   echo " "
   echo "  !!!! glibc detected Error in log output !!!!"
   echo "  !!!! glibc detected Error in log output !!!!" >>test.out
-  grep "glibc detected" tmp/log*.out
+  grep "glibc detected" ${tmp}/log*.out
   echo " "
   zstat=1
   exit 1
