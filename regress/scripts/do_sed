@@ -72,9 +72,9 @@ chmod 755 ${rscripts}/regress-config
 cp ${rscripts}/win32-bacula-sd-tape.conf.in ${rscripts}/win32-bacula-sd-tape.conf
 cp ${rscripts}/win32-bacula-fd.conf.in      ${rscripts}/win32-bacula-fd.conf
 
-if test -f ${scripts}/bacula-sd.conf ; then
-  cp ${scripts}/bacula-sd.conf ${tmp}/bac$$
-  sed "s% /tmp%${tmp}%g" ${tmp}/bac$$ >${scripts}/bacula-sd.conf
+if test -f ${conf}/bacula-sd.conf ; then
+  cp ${conf}/bacula-sd.conf ${tmp}/bac$$
+  sed "s% /tmp%${tmp}%g" ${tmp}/bac$$ >${conf}/bacula-sd.conf
 fi
 chmod 755 ${rscripts}/cleanup-*tape ${rscripts}/cleanup-*drive ${rscripts}/prepare-two-tapes 
 rm -f ${tmp}/tmp/bac$$
