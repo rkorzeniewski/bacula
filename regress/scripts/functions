@@ -5,7 +5,7 @@
 
 check_encoding()
 {
-   ${bin}/bacula-dir -d50 -t -c ${scripts}/bacula-dir.conf 2>&1 | grep 'Wanted SQL_ASCII, got UTF8' >/dev/null
+   ${bin}/bacula-dir -d50 -t -c ${conf}/bacula-dir.conf 2>&1 | grep 'Wanted SQL_ASCII, got UTF8' >/dev/null
    if [ $? = 0 ]; then
        echo "Found database encoding problem, please modify the database encoding (SQL_ASCII)"
        exit 1
@@ -19,8 +19,8 @@ start_test()
    outf="${tmp}/sed_tmp"
    echo "s%  mail =%# mail = %g" >${outf}
    echo "s%  operator =%# operator =%g" >>${outf}
-   cp ${scripts}/bacula-dir.conf ${tmp}/1
-   sed -f ${outf} ${tmp}/1 > ${scripts}/bacula-dir.conf
+   cp ${conf}/bacula-dir.conf ${tmp}/1
+   sed -f ${outf} ${tmp}/1 > ${conf}/bacula-dir.conf
    echo " "
    echo " "
    echo " === Starting $TestName at `date +%R:%S` ==="
@@ -157,11 +157,11 @@ run_bacula()
      ${scripts}/bacula-ctl-sd start
      ${scripts}/bacula-ctl-fd start $1
      ${scripts}/bacula-ctl-dir start
-     cat ${tmp}/bconcmds | ${bin}/bconsole -c ${scripts}/bconsole.conf
+     cat ${tmp}/bconcmds | ${bin}/bconsole -c ${conf}/bconsole.conf
      return $?
    else
      ${bin}/bacula start >/dev/null 2>&1
-     cat ${tmp}/bconcmds | ${bin}/bconsole -c ${scripts}/bconsole.conf >/dev/null 2>&1
+     cat ${tmp}/bconcmds | ${bin}/bconsole -c ${conf}/bconsole.conf >/dev/null 2>&1
      return $?
    fi
 }
@@ -170,18 +170,18 @@ run_bconsole()
 {
    bconsole_file=${1:-${tmp}/bconcmds}
    if test "$debug" -eq 1 ; then
-     cat $bconsole_file | ${bin}/bconsole -c ${scripts}/bconsole.conf
+     cat $bconsole_file | ${bin}/bconsole -c ${conf}/bconsole.conf
    else
-     cat $bconsole_file | ${bin}/bconsole -c ${scripts}/bconsole.conf  2>&1 >/dev/null
+     cat $bconsole_file | ${bin}/bconsole -c ${conf}/bconsole.conf  2>&1 >/dev/null
    fi
 }
 
 run_btape()
 {
    if test "$debug" -eq 1 ; then
-     cat ${tmp}/bconcmds | ${bin}/btape -c ${scripts}/bacula-sd.conf DDS-4 | tee ${tmp}/log1.out
+     cat ${tmp}/bconcmds | ${bin}/btape -c ${conf}/bacula-sd.conf DDS-4 | tee ${tmp}/log1.out
    else
-     cat ${tmp}/bconcmds | ${bin}/btape -c ${scripts}/bacula-sd.conf DDS-4 >${tmp}/log1.out 2>&1
+     cat ${tmp}/bconcmds | ${bin}/btape -c ${conf}/bacula-sd.conf DDS-4 >${tmp}/log1.out 2>&1
    fi
 }
 
@@ -234,9 +234,9 @@ change_jobname()
       newname=$2
    fi
    rm -f ${bin}/1
-   mv ${scripts}/bacula-dir.conf ${bin}/1
+   mv ${conf}/bacula-dir.conf ${bin}/1
    echo "s%${oldname}%${newname}%g" >${tmp}/1
-   sed -f ${tmp}/1 ${bin}/1 >${scripts}/bacula-dir.conf
+   sed -f ${tmp}/1 ${bin}/1 >${conf}/bacula-dir.conf
 #  echo "Job ${oldname} changed to ${newname}"
 }
 
@@ -446,6 +446,9 @@ bin=${bin:-"$cwd/bin"}
 # Bacula scripts
 scripts=${scripts:-"$bin"}
 
+# Bacula conf files
+conf=${conf:-"$bin"}
+
 # Regress scripts
 rscripts=${rscripts:-"$cwd/scripts"}
 
@@ -459,6 +462,7 @@ src=${src:-"$cwd/build"}
 tmpsrc=${tmpsrc:-"$cwd/tmp/build"}
 
 export bin
+export conf
 export working
 export scripts
 export rscripts
