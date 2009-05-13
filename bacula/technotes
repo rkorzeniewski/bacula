@@ -2,6 +2,8 @@
           
 General:
 
+13May09
+ebl  Turn on lockmanager when using DEVELOPER flag
 07May09
 kes  Fix typo in Solaris acl code.
 kes  Remove junk from configure.in
