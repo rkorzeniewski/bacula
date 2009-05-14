@@ -3,6 +3,8 @@
 General:
 
 14May09
+kes  Add new nagios_plugin_check_bacula.tgz from
+     Masopust, Christian <christian.masopust at siemens.com>
 kes  Reduce bconsole help to fit in 80 columns
 kes  Add bconsole @help command
 kes  Fix Show FileSet command to handle spaces
