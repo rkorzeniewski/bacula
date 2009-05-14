@@ -49,7 +49,7 @@ static int check_resources();
 
 extern bool parse_bat_config(CONFIG *config, const char *configfile, int exit_code);
 
-#define CONFIG_FILE "./bat.conf"   /* default configuration file */
+#define CONFIG_FILE "bat.conf"     /* default configuration file */
 
 /* Static variables */
 static CONFIG *config;
