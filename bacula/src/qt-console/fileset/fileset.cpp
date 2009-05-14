@@ -218,7 +218,7 @@ void FileSet::createContextMenu()
    connect(actionRefreshFileSet, SIGNAL(triggered()), this,
                 SLOT(populateTable()));
    connect(actionStatusFileSetInConsole, SIGNAL(triggered()), this,
-                SLOT(consoleStatusFileSet()));
+                SLOT(consoleShowFileSet()));
    connect(actionShowJobs, SIGNAL(triggered()), this,
                 SLOT(showJobs()));
 }
@@ -227,10 +227,10 @@ void FileSet::createContextMenu()
  * Function responding to actionListJobsofFileSet which calls mainwin function
  * to create a window of a list of jobs of this fileset.
  */
-void FileSet::consoleStatusFileSet()
+void FileSet::consoleShowFileSet()
 {
-   QString cmd("status fileset=");
-   cmd += m_currentlyselected;
+   QString cmd("show fileset=\"");
+   cmd += m_currentlyselected + "\"";
    consoleCommand(cmd);
 }
 
