@@ -3,9 +3,9 @@
  */
 
 #undef  VERSION
-#define VERSION "3.0.1"
-#define BDATE   "13 May 2009"
-#define LSMDATE "13May09"
+#define VERSION "3.0.2"
+#define BDATE   "14 May 2009"
+#define LSMDATE "14May09"
 
 #define PROG_COPYRIGHT "Copyright (C) %d-2009 Free Software Foundation Europe e.V.\n"
 #define BYEAR "2009"       /* year for copyright messages in progs */
@@ -46,7 +46,7 @@
 #define TRACE_FILE 1
 
 /* If this is set stdout will not be closed on startup */
-/* #define DEVELOPER 1 */
+#define DEVELOPER 1
 
 /*
  * SMCHECK does orphaned buffer checking (memory leaks)
