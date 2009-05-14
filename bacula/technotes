@@ -3,6 +3,8 @@
 General:
 
 14May09
+kes  Allow specification of base daemon resource name.
+     --with-basename=<name>
 kes  Fix bat to automatically use installed bat.conf
 kes  bat was not installed even if configured. Fix by working
      around apparent bug in qmake.

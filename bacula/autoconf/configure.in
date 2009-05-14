@@ -1195,6 +1195,22 @@ AC_ARG_WITH(archivedir,
 
 AC_SUBST(archivedir)
 
+dnl ------------------------------------------------------------------
+dnl Allow the user to specify the daemon resource name default hostname
+dnl ------------------------------------------------------------------
+basename=`hostname`
+AC_ARG_WITH(basename,
+   AC_HELP_STRING([--with-basename=RESNAME], [specify base resource name for daemons]),
+   [
+       if test "x$withval" != "xno" ; then     
+	  basename=$withval
+       fi
+   ]
+)
+
+AC_SUBST(basename)
+
+
 dnl ------------------------------------------
 dnl Where to place scriptdir (script files)
 dnl ------------------------------------------
