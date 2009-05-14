@@ -3,7 +3,8 @@
 General:
 
 14May09
-kes  bat not installed even if configured. Fix by working
+kes  Fix bat to automatically use installed bat.conf
+kes  bat was not installed even if configured. Fix by working
      around apparent bug in qmake.
 13May09
 ebl  Turn on lockmanager when using DEVELOPER flag
