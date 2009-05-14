@@ -13,7 +13,7 @@
 #
 
 Director {                            # define myself
-  Name = @hostname@-dir
+  Name = @basename@-dir
   DIRport = @dir_port@                # where we listen for UA connections
   QueryFile = "@scriptdir@/query.sql"
   WorkingDirectory = "@working_dir@"
@@ -27,7 +27,7 @@ JobDefs {
   Name = "DefaultJob"
   Type = Backup
   Level = Incremental
-  Client = @hostname@-fd 
+  Client = @basename@-fd 
   FileSet = "Full Set"
   Schedule = "WeeklyCycle"
   Storage = File
@@ -48,7 +48,7 @@ Job {
 
 #Job {
 #  Name = "Client2"
-#  Client = @hostname@2-fd
+#  Client = @basename@2-fd
 #  JobDefs = "DefaultJob"
 #  Write Bootstrap = "@working_dir@/Client2.bsr"
 #}
@@ -79,7 +79,7 @@ Job {
 Job {
   Name = "RestoreFiles"
   Type = Restore
-  Client=@hostname@-fd                 
+  Client=@basename@-fd                 
   FileSet="Full Set"                  
   Storage = File                      
   Pool = Default
@@ -154,7 +154,7 @@ FileSet {
 
 # Client (File Services) to backup
 Client {
-  Name = @hostname@-fd
+  Name = @basename@-fd
   Address = @hostname@
   FDPort = @fd_port@
   Catalog = MyCatalog
@@ -169,7 +169,7 @@ Client {
 #  You should change Name, Address, and Password before using
 #
 #Client {
-#  Name = @hostname@2-fd                
+#  Name = @basename@2-fd                
 #  Address = @hostname@2
 #  FDPort = @fd_port@
 #  Catalog = MyCatalog
@@ -298,7 +298,7 @@ Pool {
 # Restricted console used by tray-monitor to get the status of the director
 #
 Console {
-  Name = @hostname@-mon
+  Name = @basename@-mon
   Password = "@mon_dir_password@"
   CommandACL = status, .status
 }
