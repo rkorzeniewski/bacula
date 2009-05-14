@@ -3,6 +3,9 @@
 General:
 
 14May09
+kes  Reduce bconsole help to fit in 80 columns
+kes  Add bconsole @help command
+kes  Fix Show FileSet command to handle spaces
 kes  Allow specification of base daemon resource name.
      --with-basename=<name>
 kes  Fix bat to automatically use installed bat.conf
