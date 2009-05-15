@@ -2,6 +2,10 @@
           
 General:
 
+15May09
+kes  Yet another attempt to get qmake to generate valid Makefiles
+     that installs the binaries. It seems to require the binary to
+     exist at qmake time :-(
 14May09
 kes  Apply fix to sql_cmds.c suggested by
      Ulrich Leodolter <ulrich.leodolter at obvsg.at>
