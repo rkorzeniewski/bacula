@@ -399,6 +399,7 @@ const char *uar_jobid_fileindex =
    "AND Job.ClientId=Client.ClientId "
    "AND Path.PathId=File.PathId "
    "AND Filename.FilenameId=File.FilenameId "
+   "AND JobStatus IN ('T','W') AND Type='B' "
    "ORDER BY Job.StartTime DESC LIMIT 1";
 
 const char *uar_jobids_fileindex =
