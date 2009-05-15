@@ -847,7 +847,6 @@ Ext.onReady(function(){
         ddGroup : 'TreeDD',
         copy:false,
         notifyDrop : function(dd, e, data){
-            console.info("DropTarget");
             var r;
             if (data.selections) {
                 if (data.grid.id == 'div-files') {
