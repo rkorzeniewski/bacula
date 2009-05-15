@@ -873,6 +873,7 @@ SELECT max(JobId) as JobId, PathId, FilenameId, FileIndex
  GROUP BY PathId, FilenameId
  HAVING FileIndex > 0
 )");
+       $bvfs->dbh_do("CREATE INDEX btemp2_idx ON btemp2 (JobId, PathId, FilenameId)");
        $bvfs->dbh_do("CREATE TABLE b2$$ AS (
 SELECT btemp.JobId, btemp.FileIndex, btemp.FilenameId, btemp.PathId
   FROM btemp, btemp2
