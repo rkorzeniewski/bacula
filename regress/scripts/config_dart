@@ -3,21 +3,21 @@
 # Configure the dart files
 #
 cwd=`pwd`
+. ${cwd}/config
 
-mkdir -p ${bin}
-out="${tmp}/sed_tmp"
+mkdir -p ${cwd}/bin
+out="${cwd}/tmp/sed_tmp"
 
 # pull in latest Bacula version
-cd ${src}
+cd ${BACULA_SOURCE}
 svn update src/version.h
 cd ${cwd}
 
 scripts/create_sed
 
 
-if test -f ${cwd}/DartConfiguration.tcl.in ; then
-  sed -f ${out} ${cwd}/DartConfiguration.tcl.in >${cwd}/DartConfiguration.tcl
-  sed -f ${out} ${cwd}/DartTestfile.txt.in >${cwd}/DartTestfile.txt
-  sed -f ${out} ${cwd}/scripts/update-ctest.in >${cwd}/scripts/update-ctest
-  chmod +x ${cwd}/scripts/update-ctest
-fi
+sed -f ${out} ${cwd}/DartConfiguration.tcl.in >${cwd}/DartConfiguration.tcl
+sed -f ${out} ${cwd}/DartTestfile.txt.in >${cwd}/DartTestfile.txt
+
+sed -f ${out} ${cwd}/scripts/update-ctest.in >${cwd}/scripts/update-ctest
+chmod +x ${cwd}/scripts/update-ctest
