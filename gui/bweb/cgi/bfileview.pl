@@ -120,7 +120,7 @@ if ($fnid and $pathid)
 	exit 0;
     }
 
-} else {
+} elsif ($where ne '/') {
 
     my $attribs = fv_get_file_attribute($jobid, $where);
     if ($attribs->{found}) {
@@ -280,15 +280,13 @@ sub fv_list_dirs
 sub fv_get_file_attribute
 {
     my ($jobid, $full_name) = @_;
-    
-    # default to /
-    my $path = "'/'";
-    my $filename = "''";
-    
-    if ($full_name ne '/') {
-	$filename = $bweb->dbh_quote(basename($full_name));
-	$path     = $bweb->dbh_quote(dirname($full_name) . "/");
+
+    if ($full_name eq '/') {
+        return {found => 0};
     }
+    
+    my $filename = $bweb->dbh_quote(basename($full_name));
+    my $path     = $bweb->dbh_quote(dirname($full_name) . "/");
 
     my $attr = $bweb->dbh_selectrow_hashref("
  SELECT 1    AS found,
