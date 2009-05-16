@@ -323,8 +323,11 @@ Distribution: %{_dist}
 
 BuildRequires: gcc, gcc-c++, make, autoconf
 BuildRequires: ncurses-devel, perl
-BuildRequires: libstdc++-devel = %{gccver}-%{gccrel}, libxml2-devel, zlib-devel
+BuildRequires: libstdc++-devel = %{gccver}-%{gccrel}, zlib-devel
 BuildRequires: openssl-devel
+%if ! %{rh7}
+BuildRequires: libxml2-devel
+%endif
 %if %{python}
 BuildRequires: python, python-devel
 %{expand: %%define pyver %(python -c 'import sys;print(sys.version[0:3])')}
@@ -353,6 +356,7 @@ BuildRequires: qt4-devel >= 4.2
 %if %{rh7}
 BuildRequires: libtermcap-devel
 BuildRequires: glibc-devel >= 2.2
+BuildRequires: libxml-devel
 %endif
 %if %{su9}
 BuildRequires: termcap
@@ -2579,6 +2583,8 @@ fi
 %endif
 
 %changelog
+* Sat May 16 2009 D. Scott Barninger <barninger@fairfieldcomputers.com>
+- fix libxml dependency for rh7 per Pasi Kärkkäinen <pasik@iki.fi>
 * Mon May 04 2009 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - Fix post ldconfig problem in client only build
 * Sun May 03 2009 D. Scott Barninger <barninger@fairfieldcomputers.com>
