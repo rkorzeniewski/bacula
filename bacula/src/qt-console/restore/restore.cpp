@@ -42,7 +42,7 @@ static const int dbglvl = 100;
 
 restorePage::restorePage(int conn)
 {
-   Pmsg1(dbglvl, "Construcing restorePage Instance connection %i\n", conn);
+   Dmsg1(dbglvl, "Construcing restorePage Instance connection %i\n", conn);
    m_conn = conn;
    QStringList titles;
 
