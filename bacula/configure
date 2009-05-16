@@ -27338,7 +27338,7 @@ fi
 
 
 
-archive_dir=/tmp
+archivedir=/tmp
 
 # Check whether --with-archivedir was given.
 if test "${with_archivedir+set}" = set; then

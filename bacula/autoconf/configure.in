@@ -1183,7 +1183,7 @@ AC_SUBST(working_dir)
 dnl ------------------------------------------------------------------
 dnl If the user has not set archivedir, we set our default as /tmp
 dnl ------------------------------------------------------------------
-archive_dir=/tmp
+archivedir=/tmp
 AC_ARG_WITH(archivedir,
    AC_HELP_STRING([--with-archivedir=PATH], [specify path of SD archive directory]),
    [
