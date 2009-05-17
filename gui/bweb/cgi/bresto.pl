@@ -832,6 +832,9 @@ sub fill_table_for_restore
 {
     my (@jobid) = @_;
 
+    # in "force" mode, we need the FileId to compute media list
+    my $FileId = CGI::param('force')?",FileId":"";
+
     my $fileid = join(',', grep { /^\d+$/ } CGI::param('fileid'));
     my @dirid = grep { /^\d+$/ } CGI::param('dirid');
     my $inclause = join(',', @jobid);
@@ -840,7 +843,8 @@ sub fill_table_for_restore
 
     if ($fileid) {
       push @union,
-      "(SELECT JobId, FileIndex, FilenameId, PathId FROM File WHERE FileId IN ($fileid))";
+      "(SELECT JobId, FileIndex, FilenameId, PathId $FileId
+          FROM File WHERE FileId IN ($fileid))";
     }
 
     # using this is not good because the sql engine doesn't know
@@ -848,7 +852,7 @@ sub fill_table_for_restore
     # but it doesn't work with accents... :(
     foreach my $dirid (@dirid) {
       push @union, "
-  (SELECT File.JobId, File.FileIndex, File.FilenameId, File.PathId
+  (SELECT File.JobId, File.FileIndex, File.FilenameId, File.PathId $FileId
     FROM Path JOIN File USING (PathId)
    WHERE Path.Path LIKE
         (SELECT ". $bvfs->dbh_strcat('Path',"'\%'") ." FROM Path
@@ -873,9 +877,11 @@ SELECT max(JobId) as JobId, PathId, FilenameId, FileIndex
  GROUP BY PathId, FilenameId
  HAVING FileIndex > 0
 )");
-       $bvfs->dbh_do("CREATE INDEX btemp2_idx ON btemp2 (JobId, PathId, FilenameId)");
+       $bvfs->dbh_do("CREATE INDEX btemp2_idx ON btemp2 " .
+                        "(JobId, PathId, FilenameId)");
+
        $bvfs->dbh_do("CREATE TABLE b2$$ AS (
-SELECT btemp.JobId, btemp.FileIndex, btemp.FilenameId, btemp.PathId
+SELECT btemp.JobId, btemp.FileIndex, btemp.FilenameId, btemp.PathId $FileId
   FROM btemp, btemp2
   WHERE btemp2.JobId = btemp.JobId
     AND btemp2.PathId= btemp.PathId
@@ -883,9 +889,9 @@ SELECT btemp.JobId, btemp.FileIndex, btemp.FilenameId, btemp.PathId
 )");
    } else { # postgresql have distinct with more than one criteria...
         $bvfs->dbh_do("CREATE TABLE b2$$ AS (
-SELECT JobId, FileIndex
+SELECT JobId, FileIndex $FileId
 FROM (
- SELECT DISTINCT ON (PathId, FilenameId) JobId, FileIndex
+ SELECT DISTINCT ON (PathId, FilenameId) JobId, FileIndex $FileId
    FROM btemp
   ORDER BY PathId, FilenameId, JobId DESC
  ) AS T
@@ -1049,6 +1055,8 @@ if ($action eq 'list_files') {
 	       @$files);
     print "]\n";
 
+# this action is used when the restore box appear, we can display
+# the media list that will be needed for restore
 } elsif ($action eq 'get_media') {
     my ($jobid, $fileid, $table);
 
@@ -1058,7 +1066,10 @@ if ($action eq 'list_files') {
         if (!$table) {
             exit 1;
         }
-
+        # mysql is very slow without this index...
+        if ($bvfs->dbh_is_mysql()) {
+            $bvfs->dbh_do("CREATE INDEX idx_$table ON $table (FileId)");
+        }
         $jobid = "SELECT DISTINCT JobId FROM $table";
         $fileid = "SELECT FileId FROM $table";
 
@@ -1066,11 +1077,13 @@ if ($action eq 'list_files') {
         $jobid = join(',', @jobid);
         $fileid = join(',', grep { /^\d+(,\d+)*$/ } CGI::param('fileid'));
     }        
-
-    my $lst = get_media_list($jobid, $fileid);
-    print "[";
-    print join(',', map { "['$_->[0]',$_->[1],$_->[2]]" } @$lst);
-    print "]\n";
+    
+    if ($jobid and $fileid) {
+        my $lst = get_media_list($jobid, $fileid);
+        print "[";
+        print join(',', map { "['$_->[0]',$_->[1],$_->[2]]" } @$lst);
+        print "]\n";
+    }
 
     if ($table) {
         $bvfs->dbh_do("DROP TABLE $table");

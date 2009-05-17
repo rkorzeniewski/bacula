@@ -1,3 +1,8 @@
+15Apr05
+ebl  speed up mysql to compute restore table
+ebl  speed up mysql when computing media list
+ebl  fix media list display
+ebl  fix bresto problem with drag&drop
 05Apr05
 ebl  Make working the "compute with directories" option 
 04Apr05
