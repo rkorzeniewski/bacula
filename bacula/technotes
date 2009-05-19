@@ -2,6 +2,9 @@
           
 General:
 
+19May09
+kes  During jcr destruction hold jcr_chaing lock only for minimum
+     time necessary.  This should fix the SD deadlock in bug #1287.
 18May09
 kes  Simplify messages printed by SD when reserve fails. This
      should fix bug #1285.

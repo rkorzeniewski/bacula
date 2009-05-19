@@ -518,6 +518,7 @@ void free_jcr(JCR *jcr)
             jcr->JobId, jcr->use_count(), jcr->Job);
    }
    remove_jcr(jcr);                   /* remove Jcr from chain */
+   unlock_jcr_chain();
 
    dequeue_messages(jcr);
    job_end_pop(jcr);                  /* pop and call hooked routines */
@@ -571,7 +572,6 @@ void free_jcr(JCR *jcr)
       jcr->daemon_free_jcr(jcr);      /* call daemon free routine */
    }
 
-   unlock_jcr_chain();
    free_common_jcr(jcr);
    close_msg(NULL);                   /* flush any daemon messages */
    garbage_collect_memory_pool();
