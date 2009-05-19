@@ -2,6 +2,9 @@
           
 General:
 
+18May09
+kes  Simplify messages printed by SD when reserve fails. This
+     should fix bug #1285.
 16May09
 kes  Create archivedir.
 15May09

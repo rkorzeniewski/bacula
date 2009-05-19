@@ -353,10 +353,8 @@ static bool use_storage_cmd(JCR *jcr)
           */
          unbash_spaces(dir->msg);
          pm_strcpy(jcr->errmsg, dir->msg);
-         Jmsg(jcr, M_INFO, 0, _("Failed command: %s\n"), jcr->errmsg);
-         Jmsg(jcr, M_FATAL, 0, _("\n"
-            "     Device \"%s\" with MediaType \"%s\" requested by DIR not found in SD Device resources.\n"),
-              dev_name.c_str(), media_type.c_str());
+         Jmsg(jcr, M_FATAL, 0, _("Device reservation failed for JobId=%d: %s\n"), 
+              jcr->JobId, jcr->errmsg);
          dir->fsend(NO_device, dev_name.c_str());
 
          Dmsg1(dbglvl, ">dird: %s", dir->msg);
