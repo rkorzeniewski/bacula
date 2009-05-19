@@ -16,14 +16,14 @@ maxdrive=8
 maxslot=80
 dbgfile=$adir/log
 
-case $2 in
-list|slots)
-   sleep 2
-   ;;
-*)
-   sleep 5
-   ;;
-esac
+#case $2 in
+#list|slots)
+#   sleep 2
+#   ;;
+#*)
+#   sleep 5
+#   ;;
+#esac
 EOF
 
 # turn on ach debug
