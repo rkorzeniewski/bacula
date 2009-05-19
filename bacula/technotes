@@ -4,7 +4,7 @@ General:
 
 19May09
 ebl  Fix #1029 about IPV6/IPV4 address resolution order with help
-     of David.
+     of David Steinn Geirsson.
 kes  During jcr destruction hold jcr_chaing lock only for minimum
      time necessary.  This should fix the SD deadlock in bug #1287.
 18May09
