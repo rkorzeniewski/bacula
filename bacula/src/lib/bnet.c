@@ -495,13 +495,16 @@ dlist *bnet_host2ipaddrs(const char *host, int family, const char **errstr)
             return 0;
          }
       } else {
-         errmsg = resolv_host(AF_INET, host, addr_list);
 #ifdef HAVE_IPV6
-         if (errmsg) {
-            errmsg = resolv_host(AF_INET6, host, addr_list);
-         }
+         /* We try to resolv host for ipv6 and ipv4, the connection procedure
+          * will try to reach the host for each protocols. We report only "Host
+          * not found" ipv4 message (no need to have ipv6 and ipv4 messages).
+          */
+         resolv_host(AF_INET6, host, addr_list);
 #endif
-         if (errmsg) {
+         errmsg = resolv_host(AF_INET, host, addr_list);
+
+         if (addr_list->size() == 0) {
             *errstr = errmsg;
             free_addresses(addr_list);
             return 0;
