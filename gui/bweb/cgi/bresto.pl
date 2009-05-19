@@ -881,7 +881,7 @@ SELECT max(JobId) as JobId, PathId, FilenameId, FileIndex
                         "(JobId, PathId, FilenameId)");
 
        $bvfs->dbh_do("CREATE TABLE b2$$ AS (
-SELECT btemp.JobId, btemp.FileIndex, btemp.FilenameId, btemp.PathId $FileId
+SELECT btemp.JobId, btemp.FileIndex $FileId
   FROM btemp, btemp2
   WHERE btemp2.JobId = btemp.JobId
     AND btemp2.PathId= btemp.PathId
@@ -900,6 +900,26 @@ FROM (
     }
 
     return "b2$$";
+}
+
+sub get_media_list_with_dir
+{
+    my ($table) = @_;
+    my $q="
+ SELECT DISTINCT VolumeName, Enabled, InChanger
+   FROM $table,
+    ( -- Get all media from this job
+      SELECT MIN(FirstIndex) AS FirstIndex, MAX(LastIndex) AS LastIndex,
+             VolumeName, Enabled, Inchanger
+        FROM JobMedia JOIN Media USING (MediaId)
+       WHERE JobId IN (SELECT DISTINCT JobId FROM $table)
+       GROUP BY VolumeName,Enabled,InChanger
+    ) AS allmedia
+  WHERE $table.FileIndex >= allmedia.FirstIndex
+    AND $table.FileIndex <= allmedia.LastIndex
+";
+    my $lst = $bvfs->dbh_selectall_arrayref($q);
+    return $lst;
 }
 
 sub get_media_list
@@ -1059,6 +1079,7 @@ if ($action eq 'list_files') {
 # the media list that will be needed for restore
 } elsif ($action eq 'get_media') {
     my ($jobid, $fileid, $table);
+    my $lst;
 
     # in this mode, we compute the result to get all needed media
     if (CGI::param('force')) {
@@ -1067,19 +1088,17 @@ if ($action eq 'list_files') {
             exit 1;
         }
         # mysql is very slow without this index...
-        if ($bvfs->dbh_is_mysql()) {
-            $bvfs->dbh_do("CREATE INDEX idx_$table ON $table (FileId)");
-        }
-        $jobid = "SELECT DISTINCT JobId FROM $table";
-        $fileid = "SELECT FileId FROM $table";
-
+#        if ($bvfs->dbh_is_mysql()) {
+#            $bvfs->dbh_do("CREATE INDEX idx_$table ON $table (FileId)");
+#        }
+        $lst = get_media_list_with_dir($table);
     } else {
         $jobid = join(',', @jobid);
         $fileid = join(',', grep { /^\d+(,\d+)*$/ } CGI::param('fileid'));
+        $lst = get_media_list($jobid, $fileid);
     }        
     
-    if ($jobid and $fileid) {
-        my $lst = get_media_list($jobid, $fileid);
+    if ($lst) {
         print "[";
         print join(',', map { "['$_->[0]',$_->[1],$_->[2]]" } @$lst);
         print "]\n";

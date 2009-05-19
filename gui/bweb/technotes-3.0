@@ -1,11 +1,14 @@
-15Apr09
+19May09
+ebl  Speed up media list generation when using
+     "compute with directories" option
+15May09
 ebl  speed up mysql to compute restore table
 ebl  speed up mysql when computing media list
 ebl  fix media list display
 ebl  fix bresto problem with drag&drop
-05Apr09
+05May09
 ebl  Make working the "compute with directories" option 
-04Apr09
+04May09
 ebl  Add View copies option to bresto
 ebl  Tweak command output to add hide/display button
 29Mar09
