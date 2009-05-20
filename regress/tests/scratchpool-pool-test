@@ -58,9 +58,9 @@ messages
 @########################
 @# no more volume in SpecialScratch (but Scrach have one)
 run job=$JobName pool=Special level=Full yes
-@sleep 10
+wait mount
+@sleep 1
 cancel jobid=3
-wait
 messages
 @$out ${cwd}/tmp/log4.out
 list volume pool=Special
