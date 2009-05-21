@@ -2,10 +2,12 @@
           
 General:
 
+21May09
+kes  Add Catalog = all to the default Messages resource.
 19May09
 ebl  Fix #1029 about IPV6/IPV4 address resolution order with help
      of David Steinn Geirsson.
-kes  During jcr destruction hold jcr_chaing lock only for minimum
+kes  During jcr destruction hold jcr_chain lock only for minimum
      time necessary.  This should fix the SD deadlock in bug #1287.
 18May09
 kes  Simplify messages printed by SD when reserve fails. This
