@@ -263,6 +263,7 @@ Messages {
 #          also keep all your messages if they scroll off the console.
 #
   append = "@working_dir@/log" = all, !skipped
+  catalog = all
 }
 
 
