@@ -3,6 +3,9 @@
 General:
 
 23May09
+kes  When doing a tree selection restore, look at the PurgedFiles column
+     in the first JobId, and if non-zero, the Job was purged, so do
+     not do selection.
 kes  Yet another try to get qmake to install bat correctly. It looks
      like the trick is to have an executable bat file when qmake is
      run during ./configure.
