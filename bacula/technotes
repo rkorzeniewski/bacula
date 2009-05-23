@@ -2,6 +2,10 @@
           
 General:
 
+23May09
+kes  Yet another try to get qmake to install bat correctly. It looks
+     like the trick is to have an executable bat file when qmake is
+     run during ./configure.
 21May09
 kes  Add Catalog = all to the default Messages resource.
 19May09

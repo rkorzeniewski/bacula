@@ -2967,6 +2967,7 @@ if test "${support_bat}" = "yes" ; then
    cd src/qt-console
    echo "Creating bat Makefile"
    touch bat
+   chmod 755 bat
    $QMAKEBIN
    make clean
    cd ${BUILD_DIR}
