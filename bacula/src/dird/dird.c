@@ -961,10 +961,22 @@ static bool check_catalog()
          }
       }
 
+      /* Ensure basic client record is in DB */
+      CLIENT *client;
+      foreach_res(client, R_CLIENT) {
+         CLIENT_DBR cr;
+         memset(&cr, 0, sizeof(cr));
+         bstrncpy(cr.Name, client->name(), sizeof(cr.Name));
+         db_create_client_record(NULL, db, &cr);
+      }
+
+      /* Ensure basic storage record is in DB */
       STORE *store;
       foreach_res(store, R_STORAGE) {
          STORAGE_DBR sr;
          MEDIATYPE_DBR mr;
+         memset(&sr, 0, sizeof(sr));
+         memset(&mr, 0, sizeof(mr));
          if (store->media_type) {
             bstrncpy(mr.MediaType, store->media_type, sizeof(mr.MediaType));
             mr.ReadOnly = 0;

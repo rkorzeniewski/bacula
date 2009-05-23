@@ -3,8 +3,8 @@
 General:
 
 23May09
+kes  Create Client record in database at startup -- makes bat work better.
 kes  Turn off useless End of file message during restore.
-=======
 kes  When doing a tree selection restore, look at the PurgedFiles column
      in the first JobId, and if non-zero, the Job was purged, so do
      not do selection.
