@@ -993,7 +993,7 @@ static bool ask_for_fileregex(UAContext *ua, RESTORE_CTX *rx)
    if (find_arg(ua, NT_("all")) >= 0) {  /* if user enters all on command line */
       return true;                       /* select everything */
    }
-   ua->send_msg(_("\nThere were no files inserted into the tree, so file selection\n"
+   ua->send_msg(_("\n\nThere were no files inserted into the tree, so file selection\n"
                   "is not possible. Most likely your retention policy pruned the files\n"));
    if (get_yesno(ua, _("\nDo you want to restore all the files? (yes|no): "))) {
       if (ua->pint32_val == 1)
@@ -1090,17 +1090,14 @@ static bool build_directory_tree(UAContext *ua, RESTORE_CTX *rx)
     *  the Job was pruned, so the tree is incomplete.
     */
    if (tree.FileCount != 0) {
-      p = rx->JobIds;
-      if (get_next_jobid_from_list(&p, &JobId) > 0) {
-         /* Find out if first Job is purged */
-         Mmsg(rx->query, "SELECT PurgedFiles from Job WHERE JobId=%s", edit_int64(JobId, ed1));
-         if (!db_sql_query(ua->db, rx->query, restore_count_handler, (void *)rx)) {
-            ua->error_msg("%s\n", db_strerror(ua->db));
-         }
-         /* rx->JobId is the PurgedFiles flag */
-         if (rx->found && rx->JobId > 0) {
-            tree.FileCount = 0;           /* set count to zero, no tree selection */
-         }
+      /* Find out if any Job is purged */
+      Mmsg(rx->query, "SELECT SUM(PurgedFiles) FROM Job WHERE JobId IN (%s)", rx->JobIds);
+      if (!db_sql_query(ua->db, rx->query, restore_count_handler, (void *)rx)) {
+         ua->error_msg("%s\n", db_strerror(ua->db));
+      }
+      /* rx->JobId is the PurgedFiles flag */
+      if (rx->found && rx->JobId > 0) {
+         tree.FileCount = 0;           /* set count to zero, no tree selection */
       }
    }
    if (tree.FileCount == 0) {
