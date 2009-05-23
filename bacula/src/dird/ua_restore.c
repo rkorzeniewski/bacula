@@ -993,8 +993,9 @@ static bool ask_for_fileregex(UAContext *ua, RESTORE_CTX *rx)
    if (find_arg(ua, NT_("all")) >= 0) {  /* if user enters all on command line */
       return true;                       /* select everything */
    }
-   ua->send_msg(_("\n\nThere were no files inserted into the tree, so file selection\n"
-                  "is not possible. Most likely your retention policy pruned the files\n"));
+   ua->send_msg(_("\n\nFor one or more of the JobIds selected, no files were found,\n"
+                 "so file selection is not possible.\n"
+                 "Most likely your retention policy pruned the files.\n"));
    if (get_yesno(ua, _("\nDo you want to restore all the files? (yes|no): "))) {
       if (ua->pint32_val == 1)
          return true;
@@ -1008,8 +1009,9 @@ static bool ask_for_fileregex(UAContext *ua, RESTORE_CTX *rx)
 
             fileregex_re = (regex_t *)bmalloc(sizeof(regex_t));
             rc = regcomp(fileregex_re, ua->cmd, REG_EXTENDED|REG_NOSUB);
-            if (rc != 0)
+            if (rc != 0) {
                regerror(rc, fileregex_re, errmsg, sizeof(errmsg));
+            }
             regfree(fileregex_re);
             free(fileregex_re);
             if (*errmsg) {
