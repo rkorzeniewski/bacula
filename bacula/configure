@@ -24274,8 +24274,11 @@ if test "${enable_static_tools+set}" = set; then
   enableval=$enable_static_tools;
        if test x$enableval = xyes; then
 	  if test x$use_libtool = xyes; then
-	     echo "Libtool is enabled, not compatible with static tools, please rerun configure with --disable-libtool"
-	     exit 1
+	     { { echo "$as_me:$LINENO: error: Libtool is enabled, not compatible with static tools,
+  please rerun configure with --disable-libtool" >&5
+echo "$as_me: error: Libtool is enabled, not compatible with static tools,
+  please rerun configure with --disable-libtool" >&2;}
+   { (exit 1); exit 1; }; }
 	  fi
 	  support_static_tools=yes
        fi
@@ -24295,8 +24298,11 @@ if test "${enable_static_fd+set}" = set; then
   enableval=$enable_static_fd;
        if test x$enableval = xyes; then
 	  if test x$use_libtool = xyes; then
-	     echo "Libtool is enabled, not compatible with static tools, please rerun configure with --disable-libtool"
-	     exit 1
+	     { { echo "$as_me:$LINENO: error: Libtool is enabled, not compatible with static tools,
+  please rerun configure with --disable-libtool" >&5
+echo "$as_me: error: Libtool is enabled, not compatible with static tools,
+  please rerun configure with --disable-libtool" >&2;}
+   { (exit 1); exit 1; }; }
 	  fi
 	  support_static_fd=yes
        fi
@@ -24316,8 +24322,11 @@ if test "${enable_static_sd+set}" = set; then
   enableval=$enable_static_sd;
        if test x$enableval = xyes; then
 	  if test x$use_libtool = xyes; then
-	     echo "Libtool is enabled, not compatible with static tools, please rerun configure with --disable-libtool"
-	     exit 1
+	     { { echo "$as_me:$LINENO: error: Libtool is enabled, not compatible with static tools,
+  please rerun configure with --disable-libtool" >&5
+echo "$as_me: error: Libtool is enabled, not compatible with static tools,
+  please rerun configure with --disable-libtool" >&2;}
+   { (exit 1); exit 1; }; }
 	  fi
 	  support_static_sd=yes
        fi
@@ -24337,8 +24346,11 @@ if test "${enable_static_dir+set}" = set; then
   enableval=$enable_static_dir;
        if test x$enableval = xyes; then
 	  if test x$use_libtool = xyes; then
-	     echo "Libtool is enabled, not compatible with static tools, please rerun configure with --disable-libtool"
-	     exit 1
+	     { { echo "$as_me:$LINENO: error: Libtool is enabled, not compatible with static tools,
+  please rerun configure with --disable-libtool" >&5
+echo "$as_me: error: Libtool is enabled, not compatible with static tools,
+  please rerun configure with --disable-libtool" >&2;}
+   { (exit 1); exit 1; }; }
 	  fi
 	  support_static_dir=yes
        fi
@@ -24358,8 +24370,11 @@ if test "${enable_static_cons+set}" = set; then
   enableval=$enable_static_cons;
        if test x$enableval = xyes; then
 	  if test x$use_libtool = xyes; then
-	     echo "Libtool is enabled, not compatible with static tools, please rerun configure with --disable-libtool"
-	     exit 1
+	     { { echo "$as_me:$LINENO: error: Libtool is enabled, not compatible with static tools,
+  please rerun configure with --disable-libtool" >&5
+echo "$as_me: error: Libtool is enabled, not compatible with static tools,
+  please rerun configure with --disable-libtool" >&2;}
+   { (exit 1); exit 1; }; }
 	  fi
 	  support_static_cons=yes
        fi
@@ -40623,11 +40638,13 @@ _ACEOF
    have_zlib=yes
 fi
 
-support_acl=yes
+support_acl=auto
 # Check whether --enable-acl was given.
 if test "${enable_acl+set}" = set; then
   enableval=$enable_acl;
-       if test x$enableval = xno; then
+       if test x$enableval = xyes; then
+	  support_acl=yes
+       elif test x$enableval = xno; then
 	  support_acl=no
        fi
 
@@ -40637,7 +40654,7 @@ fi
 
 have_acl=no
 have_extended_acl=no
-if test x$support_acl = xyes; then
+if test x$support_acl = xyes -o x$support_acl = xauto; then
    if test "${ac_cv_header_sys_acl_h+set}" = set; then
   { echo "$as_me:$LINENO: checking for sys/acl.h" >&5
 echo $ECHO_N "checking for sys/acl.h... $ECHO_C" >&6; }
@@ -41145,28 +41162,39 @@ fi
 
 fi
 
-   if test $have_acl = yes; then
+
+   if test x$support_acl = xyes -a $have_acl != yes; then
+      { { echo "$as_me:$LINENO: error: acl support explicitly enabled but no supported acl implementation found,
+  please either load the acl libraries or rerun configure without --enable-acl" >&5
+echo "$as_me: error: acl support explicitly enabled but no supported acl implementation found,
+  please either load the acl libraries or rerun configure without --enable-acl" >&2;}
+   { (exit 1); exit 1; }; }
+   else
+      if test $have_acl = yes; then
 
 cat >>confdefs.h <<\_ACEOF
 #define HAVE_ACL
 _ACEOF
 
-   fi
+      fi
 
-   if test $have_extended_acl = yes; then
+      if test $have_extended_acl = yes; then
 
 cat >>confdefs.h <<\_ACEOF
 #define HAVE_EXTENDED_ACL
 _ACEOF
 
+      fi
    fi
 fi
 
-support_xattr=yes
+support_xattr=auto
 # Check whether --enable-xattr was given.
 if test "${enable_xattr+set}" = set; then
   enableval=$enable_xattr;
-       if test x$enableval = xno; then
+       if test x$enableval = xyes; then
+	  support_xattr=yes
+       elif test x$enableval = xno; then
 	  support_xattr=no
        fi
 
@@ -41175,7 +41203,7 @@ fi
 
 
 have_xattr=no
-if test x$support_xattr = xyes; then
+if test x$support_xattr = xyes -o x$support_xattr = xauto; then
    if test "${ac_cv_header_sys_xattr_h+set}" = set; then
   { echo "$as_me:$LINENO: checking for sys/xattr.h" >&5
 echo $ECHO_N "checking for sys/xattr.h... $ECHO_C" >&6; }
@@ -42151,12 +42179,20 @@ fi
       fi
    fi
 
-   if test $have_xattr = yes; then
+   if test x$support_xattr = xyes -a $have_xattr != yes; then
+      { { echo "$as_me:$LINENO: error: xattr support explicitly enabled but no supported xattr implementation found,
+  please either load the xattr libraries or rerun configure without --enable-xatt" >&5
+echo "$as_me: error: xattr support explicitly enabled but no supported xattr implementation found,
+  please either load the xattr libraries or rerun configure without --enable-xatt" >&2;}
+   { (exit 1); exit 1; }; }
+   else
+      if test $have_xattr = yes; then
 
 cat >>confdefs.h <<\_ACEOF
 #define HAVE_XATTR
 _ACEOF
 
+      fi
    fi
 fi
 
@@ -45658,8 +45694,9 @@ fi
 
 if test "${support_bat}" = "yes" ; then
    if test "x$QMAKE" = "xnone" && test "x$QMAKEQT4" = "xnone"; then
-      echo "Could not find qmake or qmake-qt4 in $PATH. Check your Qt installation"
-      exit 1
+      { { echo "$as_me:$LINENO: error: Could not find qmake or qmake-qt4 in $PATH. Check your Qt installation" >&5
+echo "$as_me: error: Could not find qmake or qmake-qt4 in $PATH. Check your Qt installation" >&2;}
+   { (exit 1); exit 1; }; }
    fi
 
    QMAKEBIN="qmake"
