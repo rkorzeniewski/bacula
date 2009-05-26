@@ -122,7 +122,8 @@ void JobList::populateTable()
    QStringList headerlist = (QStringList()
       << tr("Job Id") << tr("Job Name") << tr("Client") << tr("Job Starttime") 
       << tr("Job Type") << tr("Job Level") << tr("Job Files") 
-      << tr("Job Bytes") << tr("Job Status")  << tr("Purged") << tr("File Set"));
+      << tr("Job Bytes") << tr("Job Status")  << tr("Purged") << tr("File Set")
+      << tr("Pool Name"));
 
    m_jobIdIndex = headerlist.indexOf(tr("Job Id"));
    m_purgedIndex = headerlist.indexOf(tr("Purged"));
@@ -158,7 +159,7 @@ void JobList::populateTable()
       QString resultline;
       foreach (resultline, results) {
          fieldlist = resultline.split("\t");
-         if (fieldlist.size() < 12)
+         if (fieldlist.size() < 13)
             continue; /* some fields missing, ignore row */
 
          TableItemFormatter jobitem(*mp_tableWidget, row);
@@ -200,6 +201,8 @@ void JobList::populateTable()
          /* fileset */
          jobitem.setTextFld(col++, fld.next());
 
+         /* pool name */
+         jobitem.setTextFld(col++, fld.next());
          row++;
       }
    } 
@@ -257,6 +260,9 @@ void JobList::prepareFilterWidgets()
       fileSetComboBox->addItems(m_console->fileset_list);
       comboSel(fileSetComboBox, m_filesetName);
 
+      poolComboBox->addItem(tr("Any"));
+      poolComboBox->addItems(m_console->pool_list);
+
       jobStatusComboFill(statusComboBox);
    }
 }
@@ -274,10 +280,12 @@ void JobList::fillQueryString(QString &query)
             " Job.Starttime AS JobStart, Job.Type AS JobType,"
             " Job.Level AS BackupLevel, Job.Jobfiles AS FileCount,"
             " Job.JobBytes AS Bytes, Job.JobStatus AS Status,"
-            " Job.PurgedFiles AS Purged, FileSet.FileSet"
+            " Job.PurgedFiles AS Purged, FileSet.FileSet,"
+            " Pool.Name AS Pool"
             " FROM Job"
             " JOIN Client ON (Client.ClientId=Job.ClientId)"
-            " LEFT OUTER JOIN FileSet ON (FileSet.FileSetId=Job.FileSetId) ";
+            " LEFT OUTER JOIN FileSet ON (FileSet.FileSetId=Job.FileSetId) "
+            " LEFT OUTER JOIN pool ON Job.PoolId = Pool.PoolId ";
    QStringList conditions;
    if (m_mediaName != tr("Any")) {
       query += " LEFT OUTER JOIN JobMedia ON (JobMedia.JobId=Job.JobId) "
@@ -291,6 +299,7 @@ void JobList::fillQueryString(QString &query)
    jobStatusComboCond(conditions, statusComboBox, "Job.JobStatus");
    boolComboCond(conditions, purgedComboBox, "Job.PurgedFiles");
    comboCond(conditions, fileSetComboBox, "FileSet.FileSet");
+   comboCond(conditions, poolComboBox, "Pool.Name");
 
    /* If Limit check box For limit by days is checked  */
    if (daysCheckBox->checkState() == Qt::Checked) {

@@ -87,8 +87,6 @@ public:
    int m_daysLimitVal;
    bool m_checkMessages;
    int m_checkMessagesInterval;
-   bool m_refreshStatusDir;
-   int m_refreshStatusDirInterval;
    bool m_longList;
    bool m_rtPopDirDebug;
    bool m_rtDirCurICDebug;
@@ -128,6 +126,7 @@ public slots:
    void waitEnter();
    void waitExit();
    void repopLists();
+   void reloadRepopLists();
    void popLists();
 
 protected:

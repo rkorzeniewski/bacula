@@ -61,8 +61,10 @@ private slots:
 
 private:
    void createContextMenu();
+   void settingsOpenStatus(QString& client);
    QString m_currentlyselected;
    bool m_populated;
+   bool m_firstpopulation;
    bool m_checkcurwidget;
 };
 
