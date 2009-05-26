@@ -55,7 +55,7 @@ stop_bacula
 COUNT_OTHER=`find ${tmp}/bacula-restores -type f | grep -v README | wc -l`
 COUNT_README=`find ${tmp}/bacula-restores -type f | grep README | wc -l`
 
-if [ $COUNT_OTHER -gt 0 -o $COUNT_README -lt 15 ]; then
+if [ $COUNT_OTHER -gt 0 -o $COUNT_README -lt 11 ]; then
     print_debug "Found non matching files"
     print_debug `find ${tmp}/bacula-restores -type f | grep -v README`
     rstat=2
