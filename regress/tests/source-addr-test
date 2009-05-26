@@ -1,0 +1,110 @@
+#!/bin/sh
+#
+# Run a simple backup of the Bacula build directory
+#   then restore it.
+#
+TestName="source-addr-test"
+JobName=backup
+. scripts/functions
+
+scripts/cleanup
+scripts/copy-confs
+
+#
+# Zap out any schedule in default conf file so that
+#  it doesn't start during our test
+#
+outf="tmp/sed_tmp"
+echo "s%  Schedule =%# Schedule =%g" >${outf}
+cp $scripts/bacula-dir.conf $tmp/1
+sed -f ${outf} $tmp/1 >$scripts/bacula-dir.conf
+
+PATH=$PATH:/sbin:/usr/sbin
+#
+# Deduce a primary IP address by examining
+#  the interface defined by INTERFACE=
+#
+os=`uname`
+if [ $os = 'FreeBSD' ]; then
+   INTERFACE=bge0
+   IP=`ifconfig ${INTERFACE} | perl -ne '/inet (.+?) / && print $1'`
+elif [ $os = 'Linux' ]; then
+   INTERFACE=eth0
+   IP=`ifconfig ${INTERFACE} | perl -ne '/inet addr:(.+?) / && print $1'`
+else
+   echo "Can't run this test on $os"
+   exit 0
+fi
+outf="tmp/sed_tmp"
+echo "s/PidDirectory/DirSourceAddress=$IP; PidDirectory/g" > $outf
+echo "s/Address =/Address = 127.0.0.1 #/g" >> $outf 
+cp $scripts/bacula-dir.conf $tmp/1
+sed -f ${outf} ${cwd}/tmp/1 > $scripts/bacula-dir.conf 
+
+# Set source address on the FD as well
+echo "s/Pid Directory/FDSourceAddress=$IP; Pid Directory/g" >$outf
+cp $scripts/bacula-fd.conf $tmp/2
+sed -f ${outf} ${cwd}/tmp/2 > $scripts/bacula-fd.conf
+
+DIRPORT=$BASEPORT
+FDPORT=$(($BASEPORT + 1))
+SDPORT=$(($BASEPORT + 2))
+
+change_jobname Client1 $JobName
+start_test
+
+cat <<END_OF_DATA >${cwd}/tmp/bconcmds
+@output /dev/null
+messages
+@$out ${cwd}/tmp/log1.out
+@#label volume=TestVolume001 storage=File pool=Default
+@#setdebug level=100 storage=File
+run job=$JobName yes
+@sleep 3
+messages
+quit
+END_OF_DATA
+
+run_bacula
+
+print_debug "Connections to SD sourced from ${IP}:"
+netstat -tan | grep -e "127.0.0.1(.|:)$SDPORT .* ${IP}" > $tmp/log3.out
+if [ $? -ne 0 ]; then
+   bstat=2
+   print_debug "Couldn't detect a connection to the SD sourced from SourceAddress ${IP}" 
+fi
+
+print_debug "Connections to FD sourced from ${IP}:"
+netstat -tan | grep -e "127.0.0.1(.|:)$FDPORT .* ${IP}" >> $tmp/log3.out
+if [ $? -ne 0 ]; then
+   bstat=2
+   print_debug "Couldn't detect a connection to the FD sourced from SourceAddress ${IP}"
+fi
+
+
+cat <<END_OF_DATA >${cwd}/tmp/bconcmds
+@output /dev/null
+messages
+@$out ${cwd}/tmp/log1.out
+label volume=TestVolume001 storage=File pool=Default
+@#setdebug level=100 storage=File
+wait
+messages
+@# 
+@# now do a restore
+@#
+@$out ${cwd}/tmp/log2.out  
+restore where=${cwd}/tmp/bacula-restores select all done
+yes
+wait
+messages
+@$out
+quit
+END_OF_DATA
+
+run_bconsole
+check_for_zombie_jobs storage=File
+stop_bacula
+check_two_logs
+check_restore_diff
+end_test
