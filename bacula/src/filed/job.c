@@ -1371,7 +1371,7 @@ static int storage_cmd(JCR *jcr)
    int stored_port;                /* storage daemon port */
    int enable_ssl;                 /* enable ssl to sd */
    BSOCK *dir = jcr->dir_bsock;
-   BSOCK *sd;                         /* storage daemon bsock */
+   BSOCK *sd = new_bsock();        /* storage daemon bsock */
 
    Dmsg1(100, "StorageCmd: %s", dir->msg);
    if (sscanf(dir->msg, storaddr, &jcr->stored_addr, &stored_port, &enable_ssl) != 3) {
@@ -1382,8 +1382,14 @@ static int storage_cmd(JCR *jcr)
    Dmsg3(110, "Open storage: %s:%d ssl=%d\n", jcr->stored_addr, stored_port, enable_ssl);
    /* Open command communications with Storage daemon */
    /* Try to connect for 1 hour at 10 second intervals */
-   sd = bnet_connect(jcr, 10, (int)me->SDConnectTimeout, me->heartbeat_interval,
-                      _("Storage daemon"), jcr->stored_addr, NULL, stored_port, 1);
+
+   sd->set_source_address(me->FDsrc_addr);
+   if (!sd->connect(jcr, 10, (int)me->SDConnectTimeout, me->heartbeat_interval,
+                _("Storage daemon"), jcr->stored_addr, NULL, stored_port, 1)) {
+     sd->destroy();
+     sd = NULL;
+   }
+
    if (sd == NULL) {
       Jmsg(jcr, M_FATAL, 0, _("Failed to connect to Storage daemon: %s:%d\n"),
           jcr->stored_addr, stored_port);

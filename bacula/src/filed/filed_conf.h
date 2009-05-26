@@ -76,6 +76,7 @@ struct DIRRES {
 struct CLIENT {
    RES   hdr;
    dlist *FDaddrs;
+   dlist *FDsrc_addr;                 /* address to source connections from */
    char *working_directory;
    char *pid_directory;
    char *subsys_directory;

@@ -89,6 +89,7 @@ public:
    FILE *m_spool_fd;                  /* spooling file */
    struct sockaddr client_addr;       /* client's IP address */
    struct sockaddr_in peer_addr;      /* peer's IP address */
+   IPADDR *src_addr;                  /* IP address to source connections from */
 
    /* methods -- in bsock.c */
    void init();
@@ -116,6 +117,7 @@ public:
                   TLS_CONTEXT *tls_ctx, char *msg, int msglen);
    bool set_locking();                /* in bsock.c */
    void clear_locking();              /* in bsock.c */
+   void set_source_address(dlist *src_addr_list);
 
    /* Inline functions */
    void set_jcr(JCR *jcr) { m_jcr = jcr; };

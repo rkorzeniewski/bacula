@@ -2,6 +2,9 @@
           
 General:
 
+26May09
+ebl  Apply Steve Polyack patch to add DirSourceAddress and FDSourceAddress
+     directives. That permits to choose the outgoing interface.
 25May09
 mvw  Allow acl and xattr to be explicitly enabled and fail the configure
      if we are asked to enable acl or xattr support and the OS doesn't support

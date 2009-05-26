@@ -106,6 +106,7 @@ class DIRRES {
 public:
    RES   hdr;
    dlist *DIRaddrs;
+   dlist *DIRsrc_addr;                /* address to source connections from */
    char *password;                    /* Password for UA access */
    char *query_file;                  /* SQL query file */
    char *working_directory;           /* WorkingDirectory */

@@ -80,7 +80,7 @@ extern int FDConnectTimeout;
 int connect_to_file_daemon(JCR *jcr, int retry_interval, int max_retry_time,
                            int verbose)
 {
-   BSOCK   *fd;
+   BSOCK   *fd = new_bsock();
    char ed1[30];
    utime_t heart_beat;
 
@@ -94,8 +94,14 @@ int connect_to_file_daemon(JCR *jcr, int retry_interval, int max_retry_time,
       char name[MAX_NAME_LENGTH + 100];
       bstrncpy(name, _("Client: "), sizeof(name));
       bstrncat(name, jcr->client->name(), sizeof(name));
-      fd = bnet_connect(jcr, retry_interval, max_retry_time, heart_beat,
-           name, jcr->client->address, NULL, jcr->client->FDport, verbose);
+
+      fd->set_source_address(director->DIRsrc_addr);
+      if (!fd->connect(jcr,retry_interval,max_retry_time, heart_beat, name, jcr->client->address,
+           NULL, jcr->client->FDport, verbose)) {
+        fd->destroy();
+        fd = NULL;
+      }
+
       if (fd == NULL) {
          set_jcr_job_status(jcr, JS_ErrorTerminated);
          return 0;

@@ -112,6 +112,7 @@ static RES_ITEM dir_items[] = {
    {"dirport",     store_addresses_port,    ITEM(res_dir.DIRaddrs),  0, ITEM_DEFAULT, 9101},
    {"diraddress",  store_addresses_address, ITEM(res_dir.DIRaddrs),  0, ITEM_DEFAULT, 9101},
    {"diraddresses",store_addresses,         ITEM(res_dir.DIRaddrs),  0, ITEM_DEFAULT, 9101},
+   {"dirsourceaddress",store_addresses_address, ITEM(res_dir.DIRsrc_addr),  0, ITEM_DEFAULT, 0},
    {"queryfile",   store_dir,      ITEM(res_dir.query_file), 0, ITEM_REQUIRED, 0},
    {"workingdirectory", store_dir, ITEM(res_dir.working_directory), 0, ITEM_REQUIRED, 0},
    {"plugindirectory",  store_dir, ITEM(res_dir.plugin_directory),  0, 0, 0},
@@ -1078,6 +1079,9 @@ void free_resource(RES *sres, int type)
       }
       if (res->res_dir.DIRaddrs) {
          free_addresses(res->res_dir.DIRaddrs);
+      }
+      if (res->res_dir.DIRsrc_addr) {
+         free_addresses(res->res_dir.DIRsrc_addr);
       }
       if (res->res_dir.tls_ctx) { 
          free_tls_context(res->res_dir.tls_ctx);
