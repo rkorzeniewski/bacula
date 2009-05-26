@@ -55,6 +55,7 @@ Clients::Clients()
    m_populated = false;
    m_checkcurwidget = true;
    m_closeable = false;
+   m_firstpopulation = true;
    /* add context sensitive menu items specific to this classto the page
     * selector tree. m_contextActions is QList of QActions */
    m_contextActions.append(actionRefreshClients);
@@ -126,6 +127,11 @@ void Clients::populateTable()
          /* Iterate through the record returned from the query */
          foreach (QString resultline, results) {
             QStringList fieldlist = resultline.split("\t");
+
+            if (m_firstpopulation) {
+               m_firstpopulation = false;
+               settingsOpenStatus(fieldlist[0]);
+            }
 
             TableItemFormatter item(*tableWidget, row);
 
@@ -319,6 +325,39 @@ void Clients::prune()
  */
 void Clients::statusClientWindow()
 {
-   QTreeWidgetItem *parentItem = mainWin->getFromHash(this);
-   new ClientStat(m_currentlyselected, parentItem);
+   /* if one exists, then just set it current */
+   bool found = false;
+   foreach(Pages *page, mainWin->m_pagehash) {
+      if (mainWin->currentConsole() == page->console()) {
+         if (page->name() == tr("Client Status %1").arg(m_currentlyselected)) {
+            found = true;
+            page->setCurrent();
+         }
+      }
+   }
+   if (!found) {
+      QTreeWidgetItem *parentItem = mainWin->getFromHash(this);
+      new ClientStat(m_currentlyselected, parentItem);
+   }
+}
+
+/*
+ * If first time, then check to see if there were status pages open the last time closed
+ * if so open
+ */
+void Clients::settingsOpenStatus(QString &client)
+{
+   QSettings settings(m_console->m_dir->name(), "bat");
+
+   settings.beginGroup("OpenOnExit");
+   QString toRead = "ClientStatus_" + client;
+   if (settings.value(toRead) == 1) {
+      Pmsg1(000, "Do open Client Status window for : %s\n", client.toUtf8().data());
+      new ClientStat(client, mainWin->getFromHash(this));
+      setCurrent();
+      mainWin->getFromHash(this)->setExpanded(true);
+   } else {
+      Pmsg1(000, "Do NOT open Client Status window for : %s\n", client.toUtf8().data());
+   }
+   settings.endGroup();
 }

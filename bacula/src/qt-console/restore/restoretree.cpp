@@ -1555,7 +1555,6 @@ void restoreTree::restoreButtonPushed()
               " INNER JOIN Job ON (Job.JobId=File.JobId)"
               " WHERE File.PathId=" + QString("%1").arg(pathid) +
               " AND Job.Jobid IN (" + m_checkedJobs + ")"
-              " AND File.FilenameId!=" + QString("%1").arg(m_nullFileNameId) +
               " GROUP BY File.FilenameId"
             ") t1, File "
               " INNER JOIN Filename on (Filename.FilenameId=File.FilenameId)"

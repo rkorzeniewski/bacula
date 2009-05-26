@@ -65,9 +65,11 @@ private slots:
 private:
    void createContextMenu();
    void mediaList(QTreeWidgetItem *parent, const QString &storageID);
+   void settingsOpenStatus(QString& storage);
    QString m_currentStorage;
    bool m_currentAutoChanger;
    bool m_populated;
+   bool m_firstpopulation;
    bool m_checkcurwidget;
    void writeExpandedSettings();
    QTreeWidgetItem *m_topItem;

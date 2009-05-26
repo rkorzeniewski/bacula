@@ -265,6 +265,7 @@ void MainWin::connectSignals()
    connect(actionClosePage, SIGNAL(triggered()), this,  SLOT(closePage()));
    connect(actionPreferences, SIGNAL(triggered()), this,  SLOT(setPreferences()));
    connect(actionRepopLists, SIGNAL(triggered()), this,  SLOT(repopLists()));
+   connect(actionReloadRepop, SIGNAL(triggered()), this,  SLOT(reloadRepopLists()));
 }
 
 void MainWin::disconnectSignals()
@@ -291,6 +292,7 @@ void MainWin::disconnectSignals()
    disconnect(actionClosePage, SIGNAL(triggered()), this,  SLOT(closePage()));
    disconnect(actionPreferences, SIGNAL(triggered()), this,  SLOT(setPreferences()));
    disconnect(actionRepopLists, SIGNAL(triggered()), this,  SLOT(repopLists()));
+   disconnect(actionReloadRepop, SIGNAL(triggered()), this,  SLOT(reloadRepopLists()));
 }
 
 /*
@@ -345,8 +347,19 @@ void MainWin::disconnectConsoleSignals(Console *console)
    disconnect(actionSelectFont, SIGNAL(triggered()), console, SLOT(set_font()));
 }
 
+
+/* 
+ * Two functions to respond to menu items to repop lists and execute reload and repopulate
+ * the lists for jobs, clients, filesets .. ..
+ */
 void MainWin::repopLists()
 {
+   m_currentConsole->populateLists(false);
+}
+void MainWin::reloadRepopLists()
+{
+   QString cmd = "reload";
+   m_currentConsole->consoleCommand(cmd);
    m_currentConsole->populateLists(false);
 }
 
@@ -357,6 +370,13 @@ void MainWin::closeEvent(QCloseEvent *event)
 {
    m_isClosing = true;
    writeSettings();
+   /* Remove all groups from settings for OpenOnExit so that we can start some of the status windows */
+   foreach(Console *console, m_consoleHash){
+      QSettings settings(console->m_dir->name(), "bat");
+      settings.beginGroup("OpenOnExit");
+      settings.remove("");
+      settings.endGroup();
+   }
    /* close all non console pages, this will call settings in destructors */
    while (m_consoleHash.count() < m_pagehash.count()) {
       foreach(Pages *page, m_pagehash) {
@@ -386,6 +406,7 @@ void MainWin::writeSettings()
    settings.setValue("winPos", pos());
    settings.setValue("state", saveState());
    settings.endGroup();
+
 }
 
 void MainWin::readSettings()
@@ -748,8 +769,6 @@ void MainWin::setPreferences()
    prefs.daysSpinBox->setValue(m_daysLimitVal);
    prefs.checkMessages->setCheckState(m_checkMessages ? Qt::Checked : Qt::Unchecked);
    prefs.checkMessagesSpin->setValue(m_checkMessagesInterval);
-   prefs.refreshStatusDir->setCheckState(m_refreshStatusDir ? Qt::Checked : Qt::Unchecked);
-   prefs.refreshStatusDirSpin->setValue(m_refreshStatusDirInterval);
    prefs.executeLongCheckBox->setCheckState(m_longList ? Qt::Checked : Qt::Unchecked);
    prefs.rtPopDirCheckBox->setCheckState(m_rtPopDirDebug ? Qt::Checked : Qt::Unchecked);
    prefs.rtDirCurICCheckBox->setCheckState(m_rtDirCurICDebug ? Qt::Checked : Qt::Unchecked);
@@ -804,8 +823,6 @@ void prefsDialog::accept()
    mainWin->m_daysLimitVal = this->daysSpinBox->value();
    mainWin->m_checkMessages = this->checkMessages->checkState() == Qt::Checked;
    mainWin->m_checkMessagesInterval = this->checkMessagesSpin->value();
-   mainWin->m_refreshStatusDir = this->refreshStatusDir->checkState() == Qt::Checked;
-   mainWin->m_refreshStatusDirInterval = this->refreshStatusDirSpin->value();
    mainWin->m_longList = this->executeLongCheckBox->checkState() == Qt::Checked;
 
    mainWin->m_rtPopDirDebug = this->rtPopDirCheckBox->checkState() == Qt::Checked;
@@ -849,8 +866,6 @@ void prefsDialog::accept()
    settings.beginGroup("Timers");
    settings.setValue("checkMessages", mainWin->m_checkMessages);
    settings.setValue("checkMessagesInterval", mainWin->m_checkMessagesInterval);
-   settings.setValue("refreshStatusDir", mainWin->m_refreshStatusDir);
-   settings.setValue("refreshStatusDirInterval", mainWin->m_refreshStatusDirInterval);
    settings.endGroup();
    settings.beginGroup("Misc");
    settings.setValue("longList", mainWin->m_longList);
@@ -902,8 +917,6 @@ void MainWin::readPreferences()
    settings.beginGroup("Timers");
    m_checkMessages = settings.value("checkMessages", false).toBool();
    m_checkMessagesInterval = settings.value("checkMessagesInterval", 28).toInt();
-   m_refreshStatusDir = settings.value("refreshStatusDir", false).toBool();
-   m_refreshStatusDirInterval = settings.value("refreshStatusDirInterval", 28).toInt();
    settings.endGroup();
    settings.beginGroup("Misc");
    m_longList = settings.value("longList", false).toBool();
