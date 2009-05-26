@@ -76,7 +76,7 @@ extern "C" void *msg_thread(void *arg);
 bool connect_to_storage_daemon(JCR *jcr, int retry_interval,
                               int max_retry_time, int verbose)
 {
-   BSOCK *sd;
+   BSOCK *sd = new_bsock();
    STORE *store;
    utime_t heart_beat;    
 
@@ -102,9 +102,13 @@ bool connect_to_storage_daemon(JCR *jcr, int retry_interval,
     */
    Dmsg2(100, "bnet_connect to Storage daemon %s:%d\n", store->address,
       store->SDport);
-   sd = bnet_connect(jcr, retry_interval, max_retry_time, heart_beat,
-          _("Storage daemon"), store->address,
-          NULL, store->SDport, verbose);
+   sd->set_source_address(director->DIRsrc_addr);
+   if (!sd->connect(jcr, retry_interval, max_retry_time, heart_beat, _("Storage daemon"),
+         store->address, NULL, store->SDport, verbose)) {
+      sd->destroy();
+      sd = NULL;
+   }
+
    if (sd == NULL) {
       return false;
    }

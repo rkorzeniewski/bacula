@@ -702,6 +702,9 @@ BSOCK *dup_bsock(BSOCK *osock)
    if (osock->host()) {
       bsock->set_host(bstrdup(osock->host()));
    }
+   if (osock->src_addr) {
+      bsock->src_addr = New( IPADDR( *(osock->src_addr)) );
+   }
    bsock->set_duped();
    return bsock;
 }

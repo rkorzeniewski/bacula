@@ -53,6 +53,7 @@
 #include "lex.h"
 #include "parse_conf.h"
 #include "tls.h"
+#include "address_conf.h"
 #include "bsock.h"
 #include "workq.h"
 #ifndef HAVE_FNMATCH
@@ -67,7 +68,6 @@
 #include "bpipe.h"
 #include "attr.h"
 #include "var.h"
-#include "address_conf.h"
 #include "guid_to_name.h"
 
 #include "protos.h"
