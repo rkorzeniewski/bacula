@@ -871,23 +871,13 @@ sub fill_table_for_restore
     # now we have to choose the file with the max(jobid)
     # for each file of btemp
     if ($bvfs->dbh_is_mysql()) {
-       $bvfs->dbh_do("CREATE TEMPORARY TABLE btemp2 AS (
-SELECT max(JobId) as JobId, PathId, FilenameId, FileIndex
+       $bvfs->dbh_do("CREATE TABLE b2$$ AS (
+SELECT max(JobId) as JobId, FileIndex $FileId
   FROM btemp
  GROUP BY PathId, FilenameId
  HAVING FileIndex > 0
 )");
-       $bvfs->dbh_do("CREATE INDEX btemp2_idx ON btemp2 " .
-                        "(JobId, PathId, FilenameId)");
-
-       $bvfs->dbh_do("CREATE TABLE b2$$ AS (
-SELECT btemp.JobId, btemp.FileIndex $FileId
-  FROM btemp, btemp2
-  WHERE btemp2.JobId = btemp.JobId
-    AND btemp2.PathId= btemp.PathId
-    AND btemp2.FilenameId = btemp.FilenameId
-)");
-   } else { # postgresql have distinct with more than one criteria...
+   } else { # postgresql have distinct with more than one criteria
         $bvfs->dbh_do("CREATE TABLE b2$$ AS (
 SELECT JobId, FileIndex $FileId
 FROM (
@@ -1088,9 +1078,9 @@ if ($action eq 'list_files') {
             exit 1;
         }
         # mysql is very slow without this index...
-#        if ($bvfs->dbh_is_mysql()) {
-#            $bvfs->dbh_do("CREATE INDEX idx_$table ON $table (FileId)");
-#        }
+        if ($bvfs->dbh_is_mysql()) {
+            $bvfs->dbh_do("CREATE INDEX idx_$table ON $table (JobId)");
+        }
         $lst = get_media_list_with_dir($table);
     } else {
         $jobid = join(',', @jobid);
