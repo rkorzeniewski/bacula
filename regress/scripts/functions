@@ -353,6 +353,9 @@ init_slot()
    SLOT=$2
    if test -n "$DRIVE" -a -n "$SLOT"; then
       if test ! -c $DRIVE -a ! -b $DRIVE -a x$USE_VTAPE != x ; then
+         if [ ! -d "$dir" ]; then
+            mkdir -p "$dir"
+         fi
          dir=`dirname $DRIVE`
          touch $dir/slot$SLOT
       fi

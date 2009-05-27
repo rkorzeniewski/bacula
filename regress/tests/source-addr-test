@@ -31,10 +31,15 @@ if [ $os = 'FreeBSD' ]; then
 elif [ $os = 'Linux' ]; then
    INTERFACE=eth0
    IP=`ifconfig ${INTERFACE} | perl -ne '/inet addr:(.+?) / && print $1'`
-else
-   echo "Can't run this test on $os"
-   exit 0
 fi
+
+if [ "$IP" = '' ]; then
+    echo "Can't detect ip address"
+    exit 0
+fi
+
+print_debug "Detected ip address is $IP"
+
 outf="tmp/sed_tmp"
 echo "s/PidDirectory/DirSourceAddress=$IP; PidDirectory/g" > $outf
 echo "s/Address =/Address = 127.0.0.1 #/g" >> $outf 
@@ -68,16 +73,16 @@ END_OF_DATA
 run_bacula
 
 print_debug "Connections to SD sourced from ${IP}:"
-netstat -tan | grep -e "127.0.0.1(.|:)$SDPORT .* ${IP}" > $tmp/log3.out
+netstat -tan | grep -E "127.0.0.1(.|:)$SDPORT .* ${IP}" > $tmp/log3.out
 if [ $? -ne 0 ]; then
-   bstat=2
+   stat=2
    print_debug "Couldn't detect a connection to the SD sourced from SourceAddress ${IP}" 
 fi
 
 print_debug "Connections to FD sourced from ${IP}:"
-netstat -tan | grep -e "127.0.0.1(.|:)$FDPORT .* ${IP}" >> $tmp/log3.out
+netstat -tan | grep -E "127.0.0.1(.|:)$FDPORT .* ${IP}" >> $tmp/log3.out
 if [ $? -ne 0 ]; then
-   bstat=2
+   stat=2
    print_debug "Couldn't detect a connection to the FD sourced from SourceAddress ${IP}"
 fi
 
@@ -107,4 +112,10 @@ check_for_zombie_jobs storage=File
 stop_bacula
 check_two_logs
 check_restore_diff
+
+if [ "$stat" = 2 ]; then
+    print_debug `cat $tmp/log3.out`
+    bstat=$stat
+fi
+
 end_test
