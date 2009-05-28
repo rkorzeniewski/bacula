@@ -109,6 +109,7 @@ private:
    QString m_cwd;
    QHash<QString, QTreeWidgetItem *> m_dirPaths;
    QHash<QTreeWidgetItem *,QString> m_dirTreeItems;
+   QRegExp m_rx;
 };
 
 
