@@ -129,7 +129,6 @@ void Clients::populateTable()
             QStringList fieldlist = resultline.split("\t");
 
             if (m_firstpopulation) {
-               m_firstpopulation = false;
                settingsOpenStatus(fieldlist[0]);
             }
 
@@ -180,6 +179,7 @@ void Clients::populateTable()
          }
       }
    }
+   m_firstpopulation = false;
 }
 
 /*

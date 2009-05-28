@@ -134,7 +134,6 @@ void Storage::populateTree()
             fieldlist = resultline.split("\t");
             storageName = fieldlist.takeFirst();
             if (m_firstpopulation) {
-               m_firstpopulation = false;
                settingsOpenStatus(storageName);
             }
             TreeItemFormatter storageItem(*m_topItem, 1);
@@ -163,6 +162,7 @@ void Storage::populateTree()
    for(int cnter=0; cnter<headerlist.size(); cnter++) {
       mp_treeWidget->resizeColumnToContents(cnter);
    }
+   m_firstpopulation = false;
 }
 
 /*
