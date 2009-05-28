@@ -112,12 +112,16 @@ void restorePage::fillDirectory()
    m_console->write_dir(m_conn, "dir", false);
    QList<QTreeWidgetItem *> treeItemList;
    QStringList item;
+   m_rx.setPattern("has no children\\.$");
+   bool first = true;
    while (m_console->read(m_conn) > 0) {
       char *p = m_console->msg(m_conn);
       char *l;
       strip_trailing_junk(p);
-      if (*p == '$' || !*p) {
-         continue;
+      if (*p == '$' || !*p) { continue; }
+      if (first) {
+         if (m_rx.indexIn(QString(p)) != -1) { continue; }
+         first = false;
       }
       l = p;
       skip_nonspaces(&p);             /* permissions */
