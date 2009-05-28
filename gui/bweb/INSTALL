@@ -249,9 +249,7 @@ www-data ALL = (root) NOPASSWD: /usr/sbin/mtx -f /dev/changer status
 www-data ALL = (root) NOPASSWD: /usr/sbin/mtx -f /dev/changer load *
 www-data ALL = (root) NOPASSWD: /usr/sbin/mtx -f /dev/changer unload *
 
-################ BFILEVIEW SETUP ###############################
-
-At this time, bfileview works only with PostgreSQL.
+################ BFILEVIEW AND BTIME SETUP ###############################
 
 Alias /bweb/fv /var/spool/bweb
 <Directory "/var/spool/bweb">
@@ -265,11 +263,13 @@ mkdir /var/spool/bweb
 chmod 700 /var/spool/bweb
 chown www-data /var/spool/bweb
 
-You have to remove "<!-- Remove this to activate bfileview" and "-->" from
-tpl/en/display_job_zoom.tpl.
-
 Add (or configure) a writable location to the parameters in bweb.conf 
    'fv_write_path' => '/var/spool/bweb',
+
+###### BFILEVIEW only part
+
+You have to remove "<!-- Remove this to activate bfileview" and "-->" from
+tpl/en/display_job_zoom.tpl.
 
 You MUST use brestore.pl -b or bresto.pl action=batch to initialize the database, and
 you CAN use bfileview.pl mode=batch jobid=xxx where=/ to compute tree size.
