@@ -226,7 +226,7 @@ our %k_re = ( dbi      => qr/^(dbi:(Pg|mysql):(?:\w+=[\w\d\.-]+;?)+)$/i,
 	      debug    => qr/^(on)?$/,
 	      lang     => qr/^(\w\w)?$/,
 	      email_media => qr/^([\w\d\.-]+@[\d\w\.-]+)$/,
-	      graph_font  => qr!^([/\w\d\.-]+.ttf)$!,
+	      graph_font  => qr!^([/\w\d\.-]+.ttf)?$!,
 	      bconsole    => qr!^(.+)?$!,
 	      syslog_file => qr!^(.+)?$!,
 	      log_dir     => qr!^(.+)?$!,
@@ -4376,6 +4376,7 @@ sub delete
 	    content => $ret,
 	    title => "Delete a job ",
 	    name => "delete jobid=$arg->{jobid}",
+            id => $cur_id++,
 	}, "command.tpl");	
     }
 }
@@ -4448,6 +4449,7 @@ sub do_update_media
 	content => $b->send_cmd($update),
 	title => "Update a volume ",
 	name => $update,
+        id => $cur_id++,
     }, "command.tpl");	
 
 
@@ -4490,6 +4492,7 @@ sub update_slots
 	title => "Scanning autochanger content ",
 	name => "update slots",
         notail => 1,
+        id => $cur_id++,
     }, "command.tpl");	
     my $b = new Bconsole(pref => $self->{info},timeout => 60,log_stdout => 1);
     $b->update_slots($ach->{name});
@@ -4738,6 +4741,7 @@ sub purge
 	    content => $b->purge_volume($v),
 	    title => "Purge media",
 	    name => "purge volume=$v",
+            id => $cur_id++,
 	}, "command.tpl");
     }	
     $b->close();
@@ -4760,6 +4764,7 @@ sub prune
 	    content => $b->prune_volume($v),
 	    title => "Prune volume",
 	    name => "prune volume=$v",
+            id => $cur_id++,
 	}, "command.tpl");
     }
     $b->close();
@@ -4780,6 +4785,7 @@ sub cancel_job
 	content => $b->cancel($arg->{jobid}),
 	title => "Cancel job",
 	name => "cancel jobid=$arg->{jobid}",
+        id => $cur_id++,
     }, "command.tpl");	
 }
 
@@ -4839,6 +4845,7 @@ sub enable_disable_job
 	content => $b->send_cmd("$cmd job=\"$arg->{job}\""),
 	title => "$cmd $arg->{job}",
 	name => "$cmd job=\"$arg->{job}\"",
+        id => $cur_id++,
     }, "command.tpl");	
 }
 
@@ -4863,6 +4870,7 @@ sub cmd_storage
 	    content => $ret,
 	    title => "Storage ",
 	    name => $cmd,
+	    id => $cur_id++,
 	}, "command.tpl");		
     } else {
 	my $storages= [ map { { name => $_ } } $b->list_storage()];
