@@ -113,7 +113,6 @@ void Jobs::populateTable()
          jobsItem.setTextFld(col++, job_defs.catalog_name);
          jobsItem.setBoolFld(col++, job_defs.enabled);
          jobsItem.setTextFld(col++, job_defs.where);
-
       }
       row++;
    }
@@ -173,6 +172,7 @@ void Jobs::tableItemChanged(QTableWidgetItem *currentwidgetitem, QTableWidgetIte
       if (m_currentlyselected.length() != 0) {
          /* set a hold variable to the client name in case the context sensitive
           * menu is used */
+         tableWidget->addAction(actionRefreshJobs);
          tableWidget->addAction(actionConsoleListFiles);
          tableWidget->addAction(actionConsoleListVolumes);
          tableWidget->addAction(actionConsoleListNextVolume);
