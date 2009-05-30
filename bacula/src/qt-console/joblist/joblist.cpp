@@ -285,7 +285,7 @@ void JobList::fillQueryString(QString &query)
             " FROM Job"
             " JOIN Client ON (Client.ClientId=Job.ClientId)"
             " LEFT OUTER JOIN FileSet ON (FileSet.FileSetId=Job.FileSetId) "
-            " LEFT OUTER JOIN pool ON Job.PoolId = Pool.PoolId ";
+            " LEFT OUTER JOIN Pool ON Job.PoolId = Pool.PoolId ";
    QStringList conditions;
    if (m_mediaName != tr("Any")) {
       query += " LEFT OUTER JOIN JobMedia ON (JobMedia.JobId=Job.JobId) "
