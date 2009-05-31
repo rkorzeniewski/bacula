@@ -53,8 +53,7 @@ public:
 public slots:
    void populateTable();
    virtual void treeWidgetName(QString &);
-   void tableItemChanged(QTableWidgetItem *, QTableWidgetItem *);
-   void selectedJobsGet();
+   void selectionChanged();
 
 private slots:
    void consoleListJobid();
@@ -95,6 +94,7 @@ private:
    int m_filesIndex;
    int m_selectedJobsCount;
    QString m_selectedJobs;
+   QStringList m_selectedJobsList;
 };
 
 #endif /* _JOBLIST_H_ */
