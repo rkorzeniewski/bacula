@@ -155,7 +155,6 @@ void Console::populateLists(int conn)
    job_list.clear();
    client_list.clear();
    fileset_list.clear();
-   fileset_list.clear();
    messages_list.clear();
    pool_list.clear();
    storage_list.clear();
@@ -177,6 +176,14 @@ void Console::populateLists(int conn)
         .arg(conn).arg(m_dir->name());
       Pmsg1(000, "%s", dbgmsg.toUtf8().data());
    }
+   job_list.sort();
+   client_list.sort();
+   fileset_list.sort();
+   messages_list.sort();
+   pool_list.sort();
+   storage_list.sort();
+   type_list.sort();
+   level_list.sort();
 }
 
 /*
