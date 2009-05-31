@@ -27,8 +27,8 @@
     <rect>
      <x>20</x>
      <y>220</y>
-     <width>545</width>
-     <height>154</height>
+     <width>565</width>
+     <height>146</height>
     </rect>
    </property>
    <property name="maximumSize" >
@@ -368,6 +368,18 @@
     </item>
     <item row="0" column="4" >
      <layout class="QVBoxLayout" >
+      <property name="leftMargin" >
+       <number>3</number>
+      </property>
+      <property name="topMargin" >
+       <number>3</number>
+      </property>
+      <property name="rightMargin" >
+       <number>3</number>
+      </property>
+      <property name="bottomMargin" >
+       <number>3</number>
+      </property>
       <item>
        <layout class="QVBoxLayout" >
         <property name="spacing" >
