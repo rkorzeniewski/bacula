@@ -658,11 +658,13 @@ void JobList::selectionChanged()
       /* include restore from time and job action or not */
       jobitem = mp_tableWidget->item(row, m_typeIndex);
       QString type = jobitem->text();
-      mp_tableWidget->removeAction(actionRestoreFromJob);
-      mp_tableWidget->removeAction(actionRestoreFromTime);
-      if (type == tr("Backup")) {
-         mp_tableWidget->addAction(actionRestoreFromJob);
-         mp_tableWidget->addAction(actionRestoreFromTime);
+      if (m_selectedJobsCount == 1) {
+         mp_tableWidget->removeAction(actionRestoreFromJob);
+         mp_tableWidget->removeAction(actionRestoreFromTime);
+         if (type == tr("Backup")) {
+            mp_tableWidget->addAction(actionRestoreFromJob);
+            mp_tableWidget->addAction(actionRestoreFromTime);
+         }
       }
       /* include cancel action or not */
       jobitem = mp_tableWidget->item(row, m_statusIndex);
