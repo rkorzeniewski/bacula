@@ -37,7 +37,7 @@ Item 30: Restore from volumes on multiple storage daemons
 Item 31: 'restore' menu: enter a JobId, automatically select dependents
 Item 32: Possibilty to schedule Jobs on last Friday of the month
 Item 33: Add Minumum Spool Size directive
-Item 34: Cause daemons to use a specific IP address to source communications
+Item 34:*Cause daemons to use a specific IP address to source communications
 Item 35: Add ability to Verify any specified Job.
 Item 36: Automatic disabling of devices
 Item 37: An option to operate on all pools with update vol parameters
@@ -1054,7 +1054,7 @@ Origin: Frank Sweetser <fs@wpi.edu>
 Item 34: Cause daemons to use a specific IP address to source communications
  Origin: Bill Moran <wmoran@collaborativefusion.com>
  Date:   18 Dec 2006
- Status:
+ Status: Done
  What:   Cause Bacula daemons (dir, fd, sd) to always use the ip address
           specified in the [DIR|DF|SD]Addr directive as the source IP
           for initiating communication.
