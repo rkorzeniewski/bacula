@@ -38,8 +38,6 @@ if [ "$IP" = '' ]; then
     exit 0
 fi
 
-print_debug "Detected ip address is $IP"
-
 outf="tmp/sed_tmp"
 echo "s/PidDirectory/DirSourceAddress=$IP; PidDirectory/g" > $outf
 echo "s/Address =/Address = 127.0.0.1 #/g" >> $outf 
@@ -72,20 +70,23 @@ END_OF_DATA
 
 run_bacula
 
-print_debug "Connections to SD sourced from ${IP}:"
+print_debug "Detecting connections to SD sourced from ${IP}"
 netstat -tan | grep -E "127.0.0.1(.|:)$SDPORT .* ${IP}" > $tmp/log3.out
 if [ $? -ne 0 ]; then
    stat=2
    print_debug "Couldn't detect a connection to the SD sourced from SourceAddress ${IP}" 
 fi
 
-print_debug "Connections to FD sourced from ${IP}:"
+print_debug "and connections to FD sourced from ${IP}"
 netstat -tan | grep -E "127.0.0.1(.|:)$FDPORT .* ${IP}" >> $tmp/log3.out
 if [ $? -ne 0 ]; then
    stat=2
    print_debug "Couldn't detect a connection to the FD sourced from SourceAddress ${IP}"
 fi
 
+if [ "$debug" = 1 ] ; then
+    cat $tmp/log3.out
+fi
 
 cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @output /dev/null
