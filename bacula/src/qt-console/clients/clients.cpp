@@ -352,12 +352,9 @@ void Clients::settingsOpenStatus(QString &client)
    settings.beginGroup("OpenOnExit");
    QString toRead = "ClientStatus_" + client;
    if (settings.value(toRead) == 1) {
-      Pmsg1(000, "Do open Client Status window for : %s\n", client.toUtf8().data());
       new ClientStat(client, mainWin->getFromHash(this));
       setCurrent();
       mainWin->getFromHash(this)->setExpanded(true);
-   } else {
-      Pmsg1(000, "Do NOT open Client Status window for : %s\n", client.toUtf8().data());
    }
    settings.endGroup();
 }
