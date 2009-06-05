@@ -51,7 +51,7 @@ bconsole: Makefile $(CONSOBJS) ../lib/libbac$(DEFAULT_ARCHIVE_TYPE) ../lib/libba
 	      $(DLIB) $(CONS_LIBS) -lbaccfg -lbac -lm $(LIBS) $(GETTEXT_LIBS) \
 	      $(OPENSSL_LIBS)
 
-static-bconsole: Makefile $(CONSOBJS) ../lib/libbac.a../lib/libbaccfg$(DEFAULT_ARCHIVE_TYPE)
+static-bconsole: Makefile $(CONSOBJS) ../lib/libbac.a ../lib/libbaccfg$(DEFAULT_ARCHIVE_TYPE)
 	$(LIBTOOL_LINK) $(CXX) -static $(LDFLAGS) $(CONS_LDFLAGS) -L../lib -L../cats -o $@ $(CONSOBJS) \
 	      $(DLIB) $(CONS_LIBS) -lbaccfg -lbac -lm $(LIBS) $(GETTEXT_LIBS) \
 	      $(OPENSSL_LIBS)

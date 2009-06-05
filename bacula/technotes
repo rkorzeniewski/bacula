@@ -2,6 +2,8 @@
           
 General:
 
+05Jun09
+ebl  Fix #1306 about a problem when building the static bconsole
 26May09
 ebl  Apply Steve Polyack patch to add DirSourceAddress and FDSourceAddress
      directives. That permits to choose the outgoing interface.
