@@ -2,7 +2,9 @@
           
 General:
 
-05Jun09
+08Jun09
+kes  Attempt to get bat conf file installation to work with DESTDIR
+05uun09
 kes  Improve error messages when a migration sql query is used and correct
      the problem identified in bug #1303 with starting Job names
      containing spaces.
