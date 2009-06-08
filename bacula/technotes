@@ -3,7 +3,7 @@
 General:
 
 05Jun09
-kes  Improve  error messages when a migration sql query is used and correct
+kes  Improve error messages when a migration sql query is used and correct
      the problem identified in bug #1303 with starting Job names
      containing spaces.
 ebl  Fix #1306 about a problem when building the static bconsole
