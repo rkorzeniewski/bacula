@@ -313,7 +313,13 @@ void JobList::fillQueryString(QString &query)
    if (daysCheckBox->checkState() == Qt::Checked) {
       QDateTime stamp = QDateTime::currentDateTime().addDays(-daysSpinBox->value());
       QString since = stamp.toString(Qt::ISODate);
-      conditions.append("Job.Starttime>'" + since + "'");
+      conditions.append("Job.Starttime > '" + since + "'");
+   }
+   if (filterCopyCheckBox->checkState() == Qt::Checked) {
+      conditions.append("Job.Type != 'c'" );
+   }
+   if (filterMigrationCheckBox->checkState() == Qt::Checked) {
+      conditions.append("Job.Type != 'g'" );
    }
    bool first = true;
    foreach (QString condition, conditions) {
@@ -570,6 +576,8 @@ void JobList::writeSettings()
    QSettings settings(m_console->m_dir->name(), "bat");
    settings.beginGroup(m_groupText);
    settings.setValue(m_splitText, m_splitter->saveState());
+   settings.setValue("FilterCopyCheckState", filterCopyCheckBox->checkState());
+   settings.setValue("FilterMigrationCheckState", filterMigrationCheckBox->checkState());
    settings.endGroup();
 }
 
@@ -583,6 +591,8 @@ void JobList::readSettings()
    QSettings settings(m_console->m_dir->name(), "bat");
    settings.beginGroup(m_groupText);
    m_splitter->restoreState(settings.value(m_splitText).toByteArray());
+   filterCopyCheckBox->setCheckState((Qt::CheckState)settings.value("FilterCopyCheckState").toInt());
+   filterMigrationCheckBox->setCheckState((Qt::CheckState)settings.value("FilterMigrationCheckState").toInt());
    settings.endGroup();
 }
 
