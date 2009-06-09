@@ -27,8 +27,8 @@
     <rect>
      <x>20</x>
      <y>220</y>
-     <width>565</width>
-     <height>146</height>
+     <width>573</width>
+     <height>149</height>
     </rect>
    </property>
    <property name="maximumSize" >
@@ -485,17 +485,18 @@
        </layout>
       </item>
       <item>
-       <spacer>
-        <property name="orientation" >
-         <enum>Qt::Vertical</enum>
+       <widget class="QCheckBox" name="filterCopyCheckBox" >
+        <property name="text" >
+         <string>Filter Copy Jobs</string>
         </property>
-        <property name="sizeHint" >
-         <size>
-          <width>20</width>
-          <height>40</height>
-         </size>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="filterMigrationCheckBox" >
+        <property name="text" >
+         <string>Filter Migration Jobs</string>
         </property>
-       </spacer>
+       </widget>
       </item>
      </layout>
     </item>
