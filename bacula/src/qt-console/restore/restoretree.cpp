@@ -153,6 +153,8 @@ void restoreTree::updateRefresh()
  */
 void restoreTree::populateDirectoryTree()
 {
+   m_debugTrap = true;
+   m_debugCnt = 0;
    m_slashTrap = false;
    m_dirPaths.clear();
    directoryTree->clear();
@@ -350,10 +352,11 @@ void restoreTree::parseDirectory(QString &dir_in)
                     .arg(dir_in.length()).arg(index).arg(path).arg(direct);
          Pmsg0(000, msg.toUtf8().data());
       }
-      if (addDirectory(path, direct)) done = true;
+      if (addDirectory(path, direct)) { done = true; }
       else {
-         if ((mainWin->m_miscDebug) && (m_debugTrap))
+         if ((mainWin->m_miscDebug) && (m_debugTrap)) {
             Pmsg0(000, "Saving for later\n");
+         }
          pathAfter.prepend(path);
          dirAfter.prepend(direct);
       }
@@ -407,6 +410,7 @@ bool restoreTree::addDirectory(QString &m_cwd, QString &newdirr)
       /* no need to check for windows drive if unix */
       if (isWin32Path(m_cwd)) {
          if (!m_dirPaths.contains(m_cwd)) {
+            if (m_cwd.count('/') > 1) { return false; }
             /* this is a windows drive add the base widget */
             QTreeWidgetItem *item = new QTreeWidgetItem(directoryTree);
             item->setText(0, m_cwd);
