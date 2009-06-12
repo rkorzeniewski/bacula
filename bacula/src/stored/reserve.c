@@ -755,6 +755,9 @@ static bool reserve_device_for_read(DCR *dcr)
    bool ok = false;
 
    ASSERT(dcr);
+   if (job_canceled(jcr)) {
+      return false;
+   }
 
    dev->dlock();  
 
@@ -809,6 +812,9 @@ static bool reserve_device_for_append(DCR *dcr, RCTX &rctx)
    bool ok = false;
 
    ASSERT(dcr);
+   if (job_canceled(jcr)) {
+      return false;
+   }
 
    dev->dlock();
 

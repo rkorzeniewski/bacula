@@ -2,6 +2,9 @@
           
 General:
 
+12Jun09
+kes  Create patch that may fix bug #1298 and bug #1304, which causes
+     an SD crash after canceling a job.
 08Jun09
 kes  Attempt to get bat conf file installation to work with DESTDIR
 05uun09

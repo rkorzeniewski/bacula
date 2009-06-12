@@ -494,6 +494,9 @@ bool dir_ask_sysop_to_create_appendable_volume(DCR *dcr)
    JCR *jcr = dcr->jcr;
    bool got_vol = false;
 
+   if (job_canceled(jcr)) {
+      return false;
+   }
    Dmsg0(400, "enter dir_ask_sysop_to_create_appendable_volume\n");
    ASSERT(dev->blocked());
    for ( ;; ) {
