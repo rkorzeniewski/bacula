@@ -1063,8 +1063,8 @@ void _dbg_print_jcr(FILE *fp)
       fprintf(fp, "\tuse_count=%i\n",
               jcr->use_count());
 #else
-      fprintf(fp, "\tuse_count=%i threadid=0x%x\n",
-              jcr->use_count(), (int)jcr->my_thread_id);
+      /* KES -- removed non-portable code referencing pthread_t */
+      fprintf(fp, "\tuse_count=%d\n", jcr->use_count());
 #endif
       fprintf(fp, "\tJobType=%c JobLevel=%c\n",
               jcr->get_JobType(), jcr->get_JobLevel());
