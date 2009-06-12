@@ -3,6 +3,7 @@
 General:
 
 12Jun09
+kes  Remove non-portable code referencing pthread_t
 kes  Create patch that may fix bug #1298 and bug #1304, which causes
      an SD crash after canceling a job.
 08Jun09
