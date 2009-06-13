@@ -71,6 +71,8 @@ public:
    void setTreeWidgetItemDockColor();
    void consoleCommand(QString &);
    void consoleCommand(QString &, int conn);
+   void consoleCommand(QString &, bool setCurrent);
+   void consoleCommand(QString &, int conn, bool setCurrent);
    QString &name() { return m_name; };
    void getVolumeList(QStringList &);
    void getStatusList(QStringList &);

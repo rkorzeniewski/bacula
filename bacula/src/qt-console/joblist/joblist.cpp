@@ -486,7 +486,8 @@ void JobList::consoleDeleteJob()
 
    QString cmd("delete job jobid=");
    cmd += m_selectedJobs;
-   consoleCommand(cmd);
+   consoleCommand(cmd, false);
+   populateTable();
 }
 void JobList::consolePurgeFiles()
 {
@@ -505,8 +506,9 @@ void JobList::consolePurgeFiles()
    foreach(QString job, m_selectedJobsList) {
       QString cmd("purge files jobid=");
       cmd += job;
-      consoleCommand(cmd);
+      consoleCommand(cmd, false);
    }
+   populateTable();
 }
 
 /*

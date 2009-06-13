@@ -230,6 +230,10 @@ void Pages::treeWidgetName(QString &name)
  */
 void Pages::consoleCommand(QString &command)
 {
+   consoleCommand(command, true);
+}
+void Pages::consoleCommand(QString &command, bool setCurrent)
+{
    int conn;
    bool donotify = false;
    if (m_console->availableDirComm(conn))  {
@@ -237,14 +241,18 @@ void Pages::consoleCommand(QString &command)
          donotify = true;
          m_console->notify(conn, false);
       }
-      consoleCommand(command, conn);
+      consoleCommand(command, conn, setCurrent);
       if (donotify) { m_console->notify(conn, true); }
    }
 }
 void Pages::consoleCommand(QString &command, int conn)
 {
+   consoleCommand(command, conn, true);
+}
+void Pages::consoleCommand(QString &command, int conn, bool setCurrent)
+{
    /* Bring this director's console to the front of the stack */
-   setConsoleCurrent();
+   if (setCurrent) { setConsoleCurrent(); }
    QString displayhtml("<font color=\"blue\">");
    displayhtml += command + "</font>\n";
    m_console->display_html(displayhtml);
