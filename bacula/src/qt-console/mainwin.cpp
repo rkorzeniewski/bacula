@@ -70,6 +70,7 @@ MainWin::MainWin(QWidget *parent) : QMainWindow(parent)
    m_isClosing = false;
    m_waitState = false;
    m_doConnect = false;
+   m_treeStackTrap = false;
    m_dtformat = "yyyy-MM-dd HH:mm:ss";
    mainWin = this;
    setupUi(this);                     /* Setup UI defined by main.ui (designer) */
@@ -248,7 +249,7 @@ void MainWin::connectSignals()
    connect(actionAbout_bat, SIGNAL(triggered()), this, SLOT(about()));
    connect(actionBat_Help, SIGNAL(triggered()), this, SLOT(help()));
    connect(treeWidget, SIGNAL(itemClicked(QTreeWidgetItem *, int)), this, SLOT(treeItemClicked(QTreeWidgetItem *, int)));
-   connect(treeWidget, SIGNAL( currentItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)), this, SLOT(treeItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)));
+   connect(treeWidget, SIGNAL(currentItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)), this, SLOT(treeItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)));
    connect(stackedWidget, SIGNAL(currentChanged(int)), this, SLOT(stackItemChanged(int)));
    connect(actionQuit, SIGNAL(triggered()), app, SLOT(closeAllWindows()));
    connect(actionLabel, SIGNAL(triggered()), this,  SLOT(labelButtonClicked()));
@@ -266,6 +267,7 @@ void MainWin::connectSignals()
    connect(actionPreferences, SIGNAL(triggered()), this,  SLOT(setPreferences()));
    connect(actionRepopLists, SIGNAL(triggered()), this,  SLOT(repopLists()));
    connect(actionReloadRepop, SIGNAL(triggered()), this,  SLOT(reloadRepopLists()));
+   connect(actionBack, SIGNAL(triggered()), this,  SLOT(goToPreviousPage()));
 }
 
 void MainWin::disconnectSignals()
@@ -293,6 +295,7 @@ void MainWin::disconnectSignals()
    disconnect(actionPreferences, SIGNAL(triggered()), this,  SLOT(setPreferences()));
    disconnect(actionRepopLists, SIGNAL(triggered()), this,  SLOT(repopLists()));
    disconnect(actionReloadRepop, SIGNAL(triggered()), this,  SLOT(reloadRepopLists()));
+   disconnect(actionBack, SIGNAL(triggered()), this,  SLOT(goToPreviousPage()));
 }
 
 /*
@@ -477,6 +480,9 @@ void MainWin::treeItemChanged(QTreeWidgetItem *currentitem, QTreeWidgetItem *pre
 
    /* this condition prevents a segfault.  The first time there is no previousitem*/
    if (previousitem) {
+      if (m_treeStackTrap == false) { /* keep track of previous items for going Back */
+         m_treeWidgetStack.append(previousitem);
+      }
       /* knowing the treeWidgetItem, get the page from the hash */
       previousPage = getFromHash(previousitem);
       previousConsole = m_consoleHash.value(previousitem);
@@ -949,4 +955,31 @@ void MainWin::setMessageIcon()
       actionMessages->setIcon(QIcon(QString::fromUtf8(":/images/mail-message-pending.png")));
    else
       actionMessages->setIcon(QIcon(QString::fromUtf8(":/images/mail-message-new.png")));
+}
+
+void MainWin::goToPreviousPage()
+{
+   m_treeStackTrap = true;
+   bool done = false;
+   while (!done) {
+      /* If stack list is emtpty, then done */
+      if (m_treeWidgetStack.isEmpty()) {
+         done = true;
+      } else {
+         QTreeWidgetItem* testItem = m_treeWidgetStack.takeLast();
+         QTreeWidgetItemIterator it(treeWidget);
+         /* lets avoid a segfault by setting an item current that no longer exists */
+         while (*it) {
+            if (*it == testItem) {
+               if (testItem != treeWidget->currentItem()) {
+                  treeWidget->setCurrentItem(testItem);
+                  done = true;
+               }
+               break;
+            }
+            ++it;
+         }
+      }
+   }
+   m_treeStackTrap = false;
 }

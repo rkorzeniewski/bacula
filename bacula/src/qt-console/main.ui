@@ -81,7 +81,7 @@
      <x>0</x>
      <y>0</y>
      <width>882</width>
-     <height>24</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuEdit" >
@@ -159,6 +159,7 @@
    <addaction name="actionBrowse" />
    <addaction name="actionJobPlot" />
    <addaction name="actionUndock" />
+   <addaction name="actionBack" />
   </widget>
   <widget class="QDockWidget" name="dockWidget" >
    <property name="sizePolicy" >
@@ -650,6 +651,20 @@
    </property>
    <property name="text" >
     <string>Reload and Repop</string>
+   </property>
+  </action>
+  <action name="actionBack" >
+   <property name="icon" >
+    <iconset resource="main.qrc" >:/images/go-jump.png</iconset>
+   </property>
+   <property name="text" >
+    <string>back</string>
+   </property>
+   <property name="toolTip" >
+    <string>Previous Page</string>
+   </property>
+   <property name="statusTip" >
+    <string>Previous Page</string>
    </property>
   </action>
  </widget>

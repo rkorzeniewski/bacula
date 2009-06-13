@@ -128,6 +128,7 @@ public slots:
    void repopLists();
    void reloadRepopLists();
    void popLists();
+   void goToPreviousPage();
 
 protected:
    void closeEvent(QCloseEvent *event);
@@ -151,6 +152,8 @@ private:
    bool m_isClosing;
    bool m_waitState;
    bool m_doConnect;
+   QList<QTreeWidgetItem *> m_treeWidgetStack;
+   bool m_treeStackTrap;
 };
 
 #include "ui_prefs.h"
