@@ -406,31 +406,35 @@ static int generic_get_acl_from_os(JCR *jcr, bacl_type acltype)
       pm_strcpy(jcr->acl_data, "");
       acl_free(acl);
 
-      return -1;
+      return 0;                       /* non-fatal error */
    }
 
    /*
     * Handle errors gracefully.
     */
-   switch (errno) {
+   if (acl == (acl_t)NULL) {
+      switch (errno) {
 #if defined(BACL_ENOTSUP)
-   case BACL_ENOTSUP:
-      /*
-       * Not supported, just pretend there is nothing to see
-       */
-      pm_strcpy(jcr->acl_data, "");
-      return 0;
+      case BACL_ENOTSUP:
+         break;                       /* not supported */
 #endif
-   default:
-      berrno be;
-      Jmsg2(jcr, M_ERROR, 0, _("acl_get_file error on file \"%s\": ERR=%s\n"),
-         jcr->last_fname, be.bstrerror());
-      Dmsg2(100, "acl_get_file error file=%s ERR=%s\n",  
-         jcr->last_fname, be.bstrerror());
+      default:
+         berrno be;
+         /* Some real error */
+         Jmsg2(jcr, M_ERROR, 0, _("acl_get_file error on file \"%s\": ERR=%s\n"),
+            jcr->last_fname, be.bstrerror());
+         Dmsg2(100, "acl_get_file error file=%s ERR=%s\n",  
+            jcr->last_fname, be.bstrerror());
 
-      pm_strcpy(jcr->acl_data, "");
-      return -1;
+         pm_strcpy(jcr->acl_data, "");
+         return 0;                    /* non-fatal error */
+      }
    }
+   /*
+    * Not supported, just pretend there is nothing to see
+    */
+   pm_strcpy(jcr->acl_data, "");
+   return 0;
 }
 
 /*
