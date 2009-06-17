@@ -3,6 +3,7 @@
 General:
 
 17Jun09
+kes  Fix bug #1305 make errors obtaining acl during backup non-fatal
 kes  Fix bug #1309 inappropriate error message during btape fill command
 kes  Fix bug #1307 AllowHigherDuplicates=no prevents automatic job escalation
 12Jun09
