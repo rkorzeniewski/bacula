@@ -672,6 +672,9 @@ bool allow_duplicate_job(JCR *jcr)
    if (!job->AllowHigherDuplicates) {
       foreach_jcr(djcr) {
          char ec1[50];
+         if (jcr == djcr) {
+            continue;                   /* do not cancel this job */
+         }
          if (strcmp(job->name(), djcr->job->name()) == 0) {
             bool cancel_queued = false;
             if (job->DuplicateJobProximity > 0) {
