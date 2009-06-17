@@ -414,7 +414,6 @@ static void labelcmd()
       }
    }
    dev->rewind(dcr);
-   dev->weof(1);
    write_new_volume_label_to_dev(dcr, cmd, "Default", false,/*no relabel*/ true /* label dvd now */);
    Pmsg1(-1, _("Wrote Volume label for volume \"%s\".\n"), cmd);
 }
