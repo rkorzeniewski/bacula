@@ -3,6 +3,7 @@
 General:
 
 17Jun09
+kes  Fix bug #1309 inappropriate error message during btape fill command
 kes  Fix bug #1307 AllowHigherDuplicates=no prevents automatic job escalation
 12Jun09
 kes  Remove non-portable code referencing pthread_t fixes bug #1308.
