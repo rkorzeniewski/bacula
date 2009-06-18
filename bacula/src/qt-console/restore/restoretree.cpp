@@ -617,7 +617,7 @@ void restoreTree::fileCurrentItemChanged(QTableWidgetItem *currentFileTableItem,
    QBrush blackBrush(Qt::black);
 
    QStringList headerlist = (QStringList() 
-      << tr("Job Id") << tr("Type") << tr("End Time") << tr("Hash") << tr("FileId"));
+      << tr("Job Id") << tr("Type") << tr("End Time") << tr("Hash") << tr("FileId") << tr("Job Type") << tr("First Volume"));
    versionTable->clear();
    versionTable->setColumnCount(headerlist.size());
    versionTable->setHorizontalHeaderLabels(headerlist);
@@ -626,7 +626,10 @@ void restoreTree::fileCurrentItemChanged(QTableWidgetItem *currentFileTableItem,
    int pathid = m_directoryPathIdHash.value(directory, -1);
    if ((pathid != -1) && (fileNameId != -1)) {
       QString cmd = 
-         "SELECT Job.JobId AS JobId,Job.Level AS Type,Job.EndTime AS EndTime,File.MD5 AS MD5,File.FileId AS FileId"
+         "SELECT Job.JobId AS JobId, Job.Level AS Type,"
+           " Job.EndTime AS EndTime, File.MD5 AS MD5,"
+           " File.FileId AS FileId, Job.Type AS JobType,"
+           " (SELECT Media.VolumeName FROM JobMedia JOIN Media ON JobMedia.MediaId=Media.MediaId WHERE JobMedia.JobId=Job.JobId ORDER BY JobMediaId LIMIT 1) AS FirstVolume"
          " FROM File"
          " INNER JOIN Filename on (Filename.FilenameId=File.FilenameId)"
          " INNER JOIN Path ON (Path.PathId=File.PathId)"
@@ -657,6 +660,12 @@ void restoreTree::fileCurrentItemChanged(QTableWidgetItem *currentFileTableItem,
                /* Iterate through fields in the record */
                foreach (field, fieldlist) {
                   field = field.trimmed();  /* strip leading & trailing spaces */
+                  if (column == 5 ) {
+                     QByteArray jtype(field.trimmed().toAscii());
+                     if (jtype.size()) {
+                        field = job_type_to_str(jtype[0]);
+                     }
+                  }
                   tableItem = new QTableWidgetItem(field, 1);
                   tableItem->setFlags(0);
                   tableItem->setForeground(blackBrush);
