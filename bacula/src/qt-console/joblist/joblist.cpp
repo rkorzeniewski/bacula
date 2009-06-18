@@ -288,7 +288,7 @@ void JobList::fillQueryString(QString &query)
             " Job.JobBytes AS Bytes, Job.JobStatus AS Status,"
             " Job.PurgedFiles AS Purged, FileSet.FileSet,"
             " Pool.Name AS Pool,"
-            " (SELECT Media.VolumeName FROM JobMedia JOIN Media ON JobMedia.MediaId=Media.MediaId WHERE JobMedia.JobId=Job.JobId ORDER BY JobMediaId LIMIT 1) AS FirdtVolume,"
+            " (SELECT Media.VolumeName FROM JobMedia JOIN Media ON JobMedia.MediaId=Media.MediaId WHERE JobMedia.JobId=Job.JobId ORDER BY JobMediaId LIMIT 1) AS FirstVolume,"
             " (SELECT count(DISTINCT MediaId) FROM JobMedia WHERE JobMedia.JobId=Job.JobId) AS Volumes"
             " FROM Job"
             " JOIN Client ON (Client.ClientId=Job.ClientId)"
