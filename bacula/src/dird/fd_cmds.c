@@ -198,29 +198,22 @@ void get_level_since_time(JCR *jcr, char *since, int since_len)
       now = (utime_t)time(NULL);
       jcr->jr.JobId = 0;     /* flag to return since time */
       have_full = db_find_job_start_time(jcr, jcr->db, &jcr->jr, &jcr->stime);
-      if (have_full) {
-         last_full_time = str_to_utime(jcr->stime);
-      }
-      /* Make sure the last diff is recent enough */
-      if (have_full && jcr->get_JobLevel() == L_INCREMENTAL && jcr->job->MaxDiffInterval > 0) {
+      /* If there was a successful job, make sure it is recent enough */
+      if (jcr->get_JobLevel() == L_INCREMENTAL && have_full && jcr->job->MaxDiffInterval > 0) {
          /* Lookup last diff job */
          if (db_find_last_job_start_time(jcr, jcr->db, &jcr->jr, &stime, L_DIFFERENTIAL)) {
             last_diff_time = str_to_utime(stime);
-         } else {
-            /* No last differential, so use last full time */
-            last_diff_time = last_full_time;
+            do_diff = ((now - last_diff_time) >= jcr->job->MaxDiffInterval);
          }
-         do_diff = ((now - last_diff_time) >= jcr->job->MaxDiffInterval);
       }
-      /* Note, do_full takes precedence over do_diff */
-      if (have_full && jcr->job->MaxFullInterval > 0) {
+      if (have_full && jcr->job->MaxFullInterval > 0 &&
+         db_find_last_job_start_time(jcr, jcr->db, &jcr->jr, &stime, L_FULL)) {
+         last_full_time = str_to_utime(stime);
          do_full = ((now - last_full_time) >= jcr->job->MaxFullInterval);
-      } else {
-         do_full = true;
       }
       free_pool_memory(stime);
 
-      if (do_full) {
+      if (!have_full || do_full) {
          /* No recent Full job found, so upgrade this one to Full */
          Jmsg(jcr, M_INFO, 0, "%s", db_strerror(jcr->db));
          Jmsg(jcr, M_INFO, 0, _("No prior or suitable Full backup found in catalog. Doing FULL backup.\n"));
@@ -228,7 +221,7 @@ void get_level_since_time(JCR *jcr, char *since, int since_len)
             level_to_str(jcr->get_JobLevel()));
          jcr->set_JobLevel(jcr->jr.JobLevel = L_FULL);
        } else if (do_diff) {
-         /* No recent diff job found, so upgrade this one to Diff */
+         /* No recent diff job found, so upgrade this one to Full */
          Jmsg(jcr, M_INFO, 0, _("No prior or suitable Differential backup found in catalog. Doing Differential backup.\n"));
          bsnprintf(since, since_len, _(" (upgraded from %s)"),
             level_to_str(jcr->get_JobLevel()));
