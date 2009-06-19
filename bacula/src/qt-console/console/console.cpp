@@ -47,6 +47,7 @@ Console::Console(QStackedWidget *parent)
    m_parent = parent;
    m_closeable = false;
    m_console = this;
+   m_warningPrevent = false;
    m_dircommCounter = 0;
    m_dircommHash.insert(m_dircommCounter, new DirComm(this, m_dircommCounter));
 

@@ -503,11 +503,13 @@ void JobList::consolePurgeFiles()
       QMessageBox::Ok | QMessageBox::Cancel)
       == QMessageBox::Cancel) { return; }
 
+   m_console->m_warningPrevent = true;
    foreach(QString job, m_selectedJobsList) {
       QString cmd("purge files jobid=");
       cmd += job;
       consoleCommand(cmd, false);
    }
+   m_console->m_warningPrevent = false;
    populateTable();
 }
 

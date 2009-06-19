@@ -381,7 +381,9 @@ int DirComm::read()
       case BNET_WARNING_MSG:
          if (mainWin->m_commDebug) Pmsg1(000, "conn %i WARNING MSG\n", m_conn);
          stat = sock_read();          /* get the message */
-         /* QMessageBox::critical(m_console, "Warning", msg(), QMessageBox::Ok); */
+         if (!m_console->m_warningPrevent) {
+            QMessageBox::critical(m_console, "Warning", msg(), QMessageBox::Ok);
+         }
          break;
       case BNET_INFO_MSG:
          if (mainWin->m_commDebug) Pmsg1(000, "conn %i INFO MSG\n", m_conn);
