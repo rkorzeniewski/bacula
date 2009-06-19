@@ -144,6 +144,7 @@ public slots:
 
 public:
    DIRRES *m_dir;                  /* so various pages can reference it */
+   bool m_warningPrevent;
 
 private:
    QTextEdit *m_textEdit;
