@@ -1848,12 +1848,6 @@ cp -p src/filed/static-bacula-fd $RPM_BUILD_ROOT%{script_dir}/rescue/linux/cdrom
 rm -f src/filed/static-bacula-fd
 %endif
 
-# install bat since make doesn't at the moment
-%if %{bat}
-cp -p src/qt-console/bat $RPM_BUILD_ROOT%{_sbindir}/bat
-cp -p src/qt-console/bat.conf $RPM_BUILD_ROOT%{sysconf_dir}/bat.conf
-%endif
-
 # remove the docs installed by make
 %if ! %{single_dir}
 rm -rf $RPM_BUILD_ROOT/usr/share/doc
@@ -2583,6 +2577,8 @@ fi
 %endif
 
 %changelog
+* Sat Jun 20 2009 D. Scott Barninger <barninger@fairfieldcomputers.com>
+- Fix bat install which is now handled by make and uses shared libs
 * Sat May 16 2009 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - fix libxml dependency for rh7 per Pasi Kärkkäinen <pasik@iki.fi>
 * Mon May 04 2009 D. Scott Barninger <barninger@fairfieldcomputers.com>
