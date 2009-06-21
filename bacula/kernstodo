@@ -1,5 +1,5 @@
                     Kern's ToDo List
-                    02 May 2008
+                    21 June 2009
 
 Rescue:
 Add to USB key:
@@ -81,6 +81,12 @@ Professional Needs:
 Priority:
 ================
 
+- Fix restore of acls and extended attributes to count ERROR
+  messages and make errors non-fatal.
+- Put save/restore various platform acl/xattrs on a pointer to simplify
+  the code.
+  
+
 - Why no error message if restore has no permission on the where
   directory?
 - Possibly allow manual "purge" to purge a Volume that has not
@@ -96,11 +102,10 @@ Priority:
   - Add bRC_EndJob -- stops more calls to plugin this job
   - Add bRC_Term (unload plugin)
   - remove time_t from Jmsg and use utime_t?
-- Extended ACLs
 - Deadlock detection, watchdog sees if counter advances when jobs are
   running.  With debug on, can do a "status" command.
 - User options for plugins.
-- Pool Storage override precidence over command line.
+- Pool Storage override precedence over command line.
 - Autolabel only if Volume catalog information indicates tape not
   written. This will avoid overwriting a tape that gets an I/O
   error on reading the volume label.

@@ -2,6 +2,8 @@
           
 General:
 
+21Jun09
+kes  Re-fix bug #1311 if MaxDiffInterval exceeded ensure job upgraded
 18Jun09
 kes  Add all Job Types to job_type_to_str() for bat.
 kes  Fix bug #1311 if MaxDiffInterval exceeded ensure job upgraded
