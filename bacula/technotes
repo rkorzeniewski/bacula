@@ -3,6 +3,7 @@
 General:
 
 23Jun09
+ebl  Update FileSetId when initializing job.
 ebl  Fix compilation problem with message.c
 ebl  Add '*' when volume is online when displaying volume list in restore. Should
      complete project 31.
