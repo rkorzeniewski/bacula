@@ -784,7 +784,7 @@ send_to_file:
              case MD_DIRECTOR:
                 Dmsg1(850, "DIRECTOR for following msg: %s", msg);
                 if (jcr && jcr->dir_bsock && !jcr->dir_bsock->errors) {
-                   jcr->bsock->fsend("Jmsg Job=%s type=%d level=%lld %s",
+                   jcr->dir_bsock->fsend("Jmsg Job=%s type=%d level=%lld %s",
                       jcr->Job, type, mtime, msg);
                 } else {
                    Dmsg1(800, "no jcr for following msg: %s", msg);
