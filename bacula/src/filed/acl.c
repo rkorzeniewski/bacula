@@ -533,12 +533,12 @@ static bool darwin_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
     */
    if ((jcr->acl_data_len = generic_get_acl_from_os(jcr, BACL_TYPE_ACCESS)) < 0)
       return false;
+#endif
 
    if (jcr->acl_data_len > 0) {
       if (!send_acl_stream(jcr, STREAM_ACL_DARWIN_ACCESS_ACL))
          return false;
    }
-#endif
 
    return true;
 }

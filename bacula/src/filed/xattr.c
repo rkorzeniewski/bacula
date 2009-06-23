@@ -318,8 +318,11 @@ static bool generic_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt, int stream)
       bp = strchr(bp, '\0') + 1;
    }
 
-   if (count == 0)
+   if (count == 0) {
+      free(xattr_list);
+
       return true;
+   }
 
    /*
     * Allocate enough room to hold all extended attributes.
@@ -740,6 +743,8 @@ static void add_xattr_link_cache_entry(ino_t inum, char *target)
       strncpy(ptr->target, target, sizeof(ptr->target));
       if (xattr_link_cache_head == NULL)
          xattr_link_cache_head = ptr;
+      if (xattr_link_cache_tail != NULL)
+         xattr_link_cache_tail->next = ptr;
       xattr_link_cache_tail = ptr;
    }
 }
