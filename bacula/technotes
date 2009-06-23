@@ -3,6 +3,8 @@
 General:
 
 23Jun09
+mvw  Fix 2 rather big bugs in the xattr and acl code and fix a small
+     memory leak on a particular code path for Linux xattr/acl handling.
 ebl  Update FileSetId when initializing job.
 ebl  Fix compilation problem with message.c
 ebl  Add '*' when volume is online when displaying volume list in restore. Should
