@@ -2,6 +2,9 @@
           
 General:
 
+23Jun09
+ebl  Add '*' when volume is online when displaying volume list in restore. Should
+     complete project 31.
 21Jun09
 kes  Re-fix bug #1311 if MaxDiffInterval exceeded ensure job upgraded
 18Jun09
