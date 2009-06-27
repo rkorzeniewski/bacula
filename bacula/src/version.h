@@ -4,8 +4,8 @@
 
 #undef  VERSION
 #define VERSION "3.0.2"
-#define BDATE   "21 June 2009"
-#define LSMDATE "21Jun09"
+#define BDATE   "27 June 2009"
+#define LSMDATE "27Jun09"
 
 #define PROG_COPYRIGHT "Copyright (C) %d-2009 Free Software Foundation Europe e.V.\n"
 #define BYEAR "2009"       /* year for copyright messages in progs */
@@ -62,10 +62,14 @@
  *   it can always be turned on, but we advise to use it only
  *   for debug
  */
-#ifdef DEVELOPER
+#if DEVELOPER
 # ifndef _USE_LOCKMGR
 #  define _USE_LOCKMGR
 # endif
+#endif
+
+#if !HAVE_LINUX_OS
+# undef _USE_LOCKMGR
 #endif
 
 /*
