@@ -2,6 +2,8 @@
           
 General:
 
+27Jun09
+kes  Fix Win32 build -- turn off lockmgr and remove lockmgr defs
 25Jun09
 kes  Modify xattr.c and acl.c not to fail the job on errors. This should
      fix bug #1305.
