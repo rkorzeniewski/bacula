@@ -2,6 +2,8 @@
           
 General:
 
+28Jun09
+mvw  Fix missing case for NetBSD xattr restores.
 27Jun09
 kes  Fix Win32 build -- turn off lockmgr and remove lockmgr defs
 25Jun09
