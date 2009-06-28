@@ -619,6 +619,7 @@ void do_restore(JCR *jcr)
       case STREAM_XATTR_DARWIN:
       case STREAM_XATTR_FREEBSD:
       case STREAM_XATTR_LINUX:
+      case STREAM_XATTR_NETBSD:
          /*
           * Do not restore Extended Attributes when
           * a) The current file is not extracted
