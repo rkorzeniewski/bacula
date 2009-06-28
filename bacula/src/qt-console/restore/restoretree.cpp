@@ -748,17 +748,19 @@ void restoreTree::populateJobTable()
 
    if (mainWin->m_rtPopDirDebug) Pmsg0(000, "Repopulating the Job Table\n");
    QStringList headerlist = (QStringList() 
-      << tr("Job Id") << tr("End Time") << tr("Level") 
+      << tr("Job Id") << tr("End Time") << tr("Level") << tr("Type")
       << tr("Name") << tr("Purged") << tr("TU") << tr("TD"));
    m_toggleUpIndex = headerlist.indexOf(tr("TU"));
    m_toggleDownIndex = headerlist.indexOf(tr("TD"));
    int purgedIndex = headerlist.indexOf(tr("Purged"));
+   int typeIndex = headerlist.indexOf(tr("Type"));
    jobTable->clear();
    jobTable->setColumnCount(headerlist.size());
    jobTable->setHorizontalHeaderLabels(headerlist);
    QString jobQuery =
-      "SELECT Job.Jobid AS Id,Job.EndTime AS EndTime,Job.Level AS Level,"
-      "Job.Name AS JobName,Job.purgedfiles AS Purged"
+      "SELECT Job.Jobid AS Id, Job.EndTime AS EndTime,"
+      " Job.Level AS Level, Job.Type AS Type,"
+      " Job.Name AS JobName, Job.purgedfiles AS Purged"
       " FROM Job"
       /* INNER JOIN FileSet eliminates all restore jobs */
       " INNER JOIN Client ON (Job.ClientId=Client.ClientId)"
@@ -807,6 +809,12 @@ void restoreTree::populateJobTable()
             foreach (field, fieldlist) {
                field = field.trimmed();  /* strip leading & trailing spaces */
                if (field != "") {
+                  if (column == typeIndex) {
+                     QByteArray jtype(field.trimmed().toAscii());
+                     if (jtype.size()) {
+                        field = job_type_to_str(jtype[0]);
+                     }
+                  }
                   tableItem = new QTableWidgetItem(field, 1);
                   tableItem->setFlags(0);
                   tableItem->setForeground(blackBrush);
