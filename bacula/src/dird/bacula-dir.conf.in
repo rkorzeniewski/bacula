@@ -41,13 +41,13 @@ JobDefs {
 # Define the main nightly save backup job
 #   By default, this job will back up to disk in @archivedir@
 Job {
-  Name = "Client1"
+  Name = "BackupClient1"
   JobDefs = "DefaultJob"
   Write Bootstrap = "@working_dir@/Client1.bsr"
 }
 
 #Job {
-#  Name = "Client2"
+#  Name = "BackupClient2"
 #  Client = @basename@2-fd
 #  JobDefs = "DefaultJob"
 #  Write Bootstrap = "@working_dir@/Client2.bsr"

@@ -2,6 +2,8 @@
           
 General:
 
+29Jun09
+kes  Change bacula-dir.conf default job name from Client1 to BackupClient1.
 28Jun09
 mvw  Fix missing case for NetBSD xattr restores.
 27Jun09
