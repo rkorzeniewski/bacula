@@ -676,9 +676,8 @@ bool allow_duplicate_job(JCR *jcr)
    }
    if (!job->AllowHigherDuplicates) {
       foreach_jcr(djcr) {
-         char ec1[50];
-         if (jcr == djcr) {
-            continue;                   /* do not cancel this job */
+         if (jcr == djcr || djcr->JobId == 0) {
+            continue;                   /* do not cancel this job or consoles */
          }
          if (strcmp(job->name(), djcr->job->name()) == 0) {
             bool cancel_queued = false;
@@ -689,12 +688,6 @@ bool allow_duplicate_job(JCR *jcr)
                }
             }
             /* Cancel */
-            if (!(job->CancelQueuedDuplicates || job->CancelRunningDuplicates)) {
-               /* Zap current job */
-               Jmsg(jcr, M_FATAL, 0, _("Duplicate job not allowed. JobId=%s\n"),
-                  edit_uint64(djcr->JobId, ec1));
-               return false;
-            }
             /* If CancelQueuedDuplicates is set do so only if job is queued */
             if (job->CancelQueuedDuplicates) {
                 switch (djcr->JobStatus) {
@@ -713,13 +706,17 @@ bool allow_duplicate_job(JCR *jcr)
             }
             if (cancel_queued || job->CancelRunningDuplicates) {
                UAContext *ua = new_ua_context(djcr);
-               Jmsg(jcr, M_INFO, 0, _("Cancelling duplicate JobId=%s.\n"), 
-                  edit_uint64(djcr->JobId, ec1));
+               Jmsg(jcr, M_INFO, 0, _("Cancelling duplicate JobId=%d.\n"), djcr->JobId);
                ua->jcr = djcr;
                cancel_job(ua, djcr);
                free_ua_context(ua);
-               Dmsg2(800, "Have cancelled JCR %p Job=%d\n", djcr, djcr->JobId);
+               Dmsg2(800, "Have cancelled JCR %p JobId=%d\n", djcr, djcr->JobId);
+            } else {
+               /* Zap current job */
+               Jmsg(jcr, M_FATAL, 0, _("JobId %d already running. Duplicate job not allowed.\n"),
+                  djcr->JobId);
             }
+            break;                 /* did our work, get out */
          }
       }
       endeach_jcr(djcr);
