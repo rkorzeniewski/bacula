@@ -2,16 +2,16 @@
 # Traducciones al español para el paquete branch.
 # Copyright (C) 2006 Free Software Foundation Europe e.V.
 # This file is distributed under the same license as the branch package.
-#  <kern@sibbald.com>, 2006.
 #
+#  <kern@sibbald.com>, 2006, 2009.
 msgid ""
 msgstr ""
 "Project-Id-Version: branch 1.38\n"
 "Report-Msgid-Bugs-To: bacula-devel@lists.sourceforge.net\n"
 "POT-Creation-Date: 2007-08-10 23:23+0200\n"
-"PO-Revision-Date: 2006-04-13 08:14+0200\n"
+"PO-Revision-Date: 2009-06-12 18:08-0400\n"
 "Last-Translator:  <kern@sibbald.com>\n"
-"Language-Team: Spanish\n"
+"Language-Team: Spanish <>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=ISO-8859-1\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -19,21 +19,21 @@ msgstr ""
 
 #: src/cats/bdb.c:161
 msgid "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
-msgstr ""
+msgstr "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
 
 #: src/cats/bdb.c:162
 msgid "WARNING!!!! The Internal Database is NOT OPERATIONAL!\n"
-msgstr ""
+msgstr "ATENCION!!! La BD Interna NO ESTA OPERACIONAL!\n"
 
 #: src/cats/bdb.c:163
 msgid "You should use SQLite, PostgreSQL, or MySQL\n"
-msgstr ""
+msgstr "Usted debe usar SQLite, PostgreSQL o MySQL\n"
 
 #: src/cats/bdb.c:185 src/cats/mysql.c:152 src/cats/postgresql.c:161
 #: src/cats/sqlite.c:160
 #, c-format
 msgid "Unable to initialize DB lock. ERR=%s\n"
-msgstr ""
+msgstr "No se puede inicializar el bloqueo de la BD. ERR=%s\n"
 
 #: src/cats/bdb.c:195
 #, c-format
@@ -55,16 +55,16 @@ msgstr ""
 #: src/cats/bdb_update.c:88 src/cats/bdb_update.c:119
 #, c-format
 msgid "Error updating DB Job file. ERR=%s\n"
-msgstr ""
+msgstr "Error al actualizar el archivo de BD de Trabajos. ERR=%s\n"
 
 #: src/cats/bdb_update.c:158 src/cats/bdb_update.c:194
 #, c-format
 msgid "Error updating DB Media file. ERR=%s\n"
-msgstr ""
+msgstr "Error al actualizar el archivo de BD de medias. ERR=%s\n"
 
 #: src/cats/mysql.c:82
 msgid "A user name for MySQL must be supplied.\n"
-msgstr ""
+msgstr "Un nombre de usuario para MySQL debe de ser suministrado.\n"
 
 #: src/cats/mysql.c:190
 #, c-format
@@ -74,15 +74,17 @@ msgid ""
 "MySQL connect failed either server not running or your authorization is "
 "incorrect.\n"
 msgstr ""
+"No se puede conectar al servidor MySQL.\n"
+"Base de Datos=%s Usuario=%s\n"
 
 #: src/cats/mysql.c:367 src/cats/postgresql.c:304 src/cats/sqlite.c:351
 #, c-format
 msgid "Query failed: %s: ERR=%s\n"
-msgstr ""
+msgstr "Consulta fallida: %s: ERR=%s\n"
 
 #: src/cats/postgresql.c:85
 msgid "A user name for PostgreSQL must be supplied.\n"
-msgstr ""
+msgstr "Un nombre de usuario para PostgreSQL debe de ser suministrado.\n"
 
 #: src/cats/postgresql.c:148
 msgid ""
