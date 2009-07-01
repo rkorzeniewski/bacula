@@ -2,6 +2,8 @@
           
 General:
 
+01Jul09
+kes  Add debug code to MaxDiffInterval
 29Jun09
 kes  Change bacula-dir.conf default job name from Client1 to BackupClient1.
 28Jun09
