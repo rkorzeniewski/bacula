@@ -71,7 +71,7 @@ Item  2: 'restore' menu: enter a JobId, automatically select dependents
 Origin: Graham Keeling (graham@equiinet.com)
 Date:  13 March 2009
 
-Status: Proposing
+Status: Implementation available on http://github.com/ebl/bacula/tree/restore-menu
 
 What:  Add to the bconsole 'restore' menu the ability to select a job 
         by JobId, and have bacula automatically select all the dependent jobs.
