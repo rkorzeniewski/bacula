@@ -171,7 +171,7 @@ void get_level_since_time(JCR *jcr, char *since, int since_len)
    bool do_full = false;
    bool do_diff = false;
    utime_t now;
-   utime_t last_full_time;
+   utime_t last_full_time = 0;
    utime_t last_diff_time;
 
    since[0] = 0;
@@ -203,6 +203,8 @@ void get_level_since_time(JCR *jcr, char *since, int since_len)
       } else {
          do_full = true;               /* No full, upgrade to one */
       }
+      Dmsg4(50, "have_full=%d do_full=%d now=%lld full_time=%lld\n", have_full, 
+            do_full, now, last_full_time);
       /* Make sure the last diff is recent enough */
       if (have_full && jcr->get_JobLevel() == L_INCREMENTAL && jcr->job->MaxDiffInterval > 0) {
          /* Lookup last diff job */
@@ -212,11 +214,15 @@ void get_level_since_time(JCR *jcr, char *since, int since_len)
             if (last_diff_time < last_full_time) {
                last_diff_time = last_full_time;
             }
+            Dmsg2(50, "last_diff_time=%lld last_full_time=%lld\n", last_diff_time,
+                  last_full_time);
          } else {
             /* No last differential, so use last full time */
             last_diff_time = last_full_time;
+            Dmsg1(50, "No last_diff_time setting to full_time=%lld\n", last_full_time);
          }
          do_diff = ((now - last_diff_time) >= jcr->job->MaxDiffInterval);
+         Dmsg2(50, "do_diff=%d diffInter=%lld\n", do_diff, jcr->job->MaxDiffInterval);
       }
       /* Note, do_full takes precedence over do_diff */
       if (have_full && jcr->job->MaxFullInterval > 0) {
