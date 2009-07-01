@@ -3,6 +3,7 @@
 General:
 
 01Jul09
+kes  Fix bug #1317 Allow duplicate jobs = no does not work
 kes  Eliminate double job report when do_xxx_init() returns failure
 kes  Add debug code to MaxDiffInterval
 29Jun09
