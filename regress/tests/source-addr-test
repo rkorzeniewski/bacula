@@ -53,7 +53,7 @@ DIRPORT=$BASEPORT
 FDPORT=$(($BASEPORT + 1))
 SDPORT=$(($BASEPORT + 2))
 
-change_jobname Client1 $JobName
+change_jobname BackupClient1 $JobName
 start_test
 
 cat <<END_OF_DATA >${cwd}/tmp/bconcmds

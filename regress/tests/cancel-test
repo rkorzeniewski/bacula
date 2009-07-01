@@ -68,7 +68,7 @@ Job {
 }
 EOF
 
-change_jobname Client1 $JobName
+change_jobname BackupClient1 $JobName
 start_test
 
 when=`perl -MPOSIX -e "print strftime('%F %T', localtime(time+6000))"`

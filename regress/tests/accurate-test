@@ -18,7 +18,7 @@ copy_test_confs
 sed s/all,/all,saved,/ bin/bacula-fd.conf > tmp/1
 cp tmp/1 bin/bacula-fd.conf
 
-change_jobname Client1 $JobName
+change_jobname BackupClient1 $JobName
 
 p() {
     echo "##############################################" >> ${cwd}/tmp/log1.out
