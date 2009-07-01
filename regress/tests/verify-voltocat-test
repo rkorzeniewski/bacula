@@ -2,16 +2,6 @@
 #
 # Run a simple backup of the Bacula build directory
 #   then verify the Volume to the catalog.           
-# This test should not be in the normal tests run since it
-#   requires creating a mount point.
-#
-# To run this test
-#    cd regress
-#    mkdir xx
-#    mkdir xx/boot
-#    mount -t ext3 /dev/sda1 xx/boot
-#      (where /dev/sda1 is your boot partion, or some other small partition)
-#    cp regress/* xx
 #
 TestName="verify-voltocat-test"
 JobName=VerifyVol
@@ -20,8 +10,10 @@ JobName=VerifyVol
 cwd=`pwd`
 scripts/cleanup
 scripts/copy-test-confs
-echo "${cwd}/xx" >${cwd}/tmp/file-list
-echo "${cwd}/xx/boot" >>${cwd}/tmp/file-list
+echo "${cwd}/build" >${cwd}/tmp/file-list
+echo "${cwd}/build/po" >>${cwd}/tmp/file-list
+cp $conf/bacula-dir.conf $tmp/1
+sed 's/"VerifyVol"/"VerifyVol"; Accurate = yes/' $tmp/1 > $conf/bacula-dir.conf
 
 change_jobname NightlySave $JobName
 start_test
@@ -50,7 +42,34 @@ END_OF_DATA
 
 run_bacula
 
-sleep 2
+# we make a test in accurate mode
+mv $cwd/build/po/fr.po $cwd/build/po/fr.po.old
+
+cat <<END_OF_DATA >tmp/bconcmds
+@$out /dev/null
+messages
+@$out tmp/log11.out
+run level=incremental job=$JobName yes
+wait
+messages
+@# 
+@# now do a verify to catalog
+@#
+@$out ${cwd}/tmp/log22.out
+@# The fr.po file shouldn't be appear as new file
+setdebug level=12 dir
+run job=VerifyVolume level=VolumeToCatalog
+yes
+wait
+messages
+@$out
+quit
+END_OF_DATA
+
+run_bconsole
+mv $cwd/build/po/fr.po.old $cwd/build/po/fr.po
+
+sleep 1
 check_for_zombie_jobs storage=File 
 stop_bacula
 
@@ -58,5 +77,11 @@ grep "^  Termination: *Backup OK" tmp/log1.out 2>&1 >/dev/null
 bstat=$?
 grep "^  Termination: *Verify OK" tmp/log2.out 2>&1 >/dev/null
 rstat=$?
+
+grep "^  Termination: *Backup OK" tmp/log11.out 2>&1 >/dev/null
+bstat=$(($bstat + $?))
+grep "^  Termination: *Verify OK" tmp/log22.out 2>&1 >/dev/null
+rstat=$(($bstat + $?))
+
 dstat=0
 end_test
