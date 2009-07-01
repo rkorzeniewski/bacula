@@ -4,6 +4,8 @@
 # Also scan logs for ERROR messages
 #
 
+. ./config
+
 # check_for_zombie_jobs storage=STORAGE [client=localhost-fd]
 
 if [ $# = 2 ] ; then
