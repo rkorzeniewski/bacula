@@ -200,33 +200,38 @@ bool setup_job(JCR *jcr)
    case JT_BACKUP:
       if (!do_backup_init(jcr)) {
          backup_cleanup(jcr, JS_ErrorTerminated);
+         goto bail_out;
       }
       break;
    case JT_VERIFY:
       if (!do_verify_init(jcr)) {
          verify_cleanup(jcr, JS_ErrorTerminated);
+         goto bail_out;
       }
       break;
    case JT_RESTORE:
       if (!do_restore_init(jcr)) {
          restore_cleanup(jcr, JS_ErrorTerminated);
+         goto bail_out;
       }
       break;
    case JT_ADMIN:
       if (!do_admin_init(jcr)) {
          admin_cleanup(jcr, JS_ErrorTerminated);
+         goto bail_out;
       }
       break;
    case JT_COPY:
    case JT_MIGRATE:
       if (!do_migration_init(jcr)) { 
          migration_cleanup(jcr, JS_ErrorTerminated);
+         goto bail_out;
       }
       break;
    default:
       Pmsg1(0, _("Unimplemented job type: %d\n"), jcr->get_JobType());
       set_jcr_job_status(jcr, JS_ErrorTerminated);
-      break;
+      goto bail_out;
    }
 
    generate_job_event(jcr, "JobInit");
