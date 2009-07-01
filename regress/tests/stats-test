@@ -19,7 +19,7 @@ echo "s% DIRport%Statistics Retention = 1 sec; DIRport%g" >> $outf
 cp ${cwd}/bin/bacula-dir.conf ${cwd}/tmp/1
 sed -f ${outf} ${cwd}/tmp/1 >${cwd}/bin/bacula-dir.conf
 
-change_jobname Client1 $JobName
+change_jobname BackupClient1 $JobName
 start_test
 
 cat <<END_OF_DATA >${cwd}/tmp/bconcmds

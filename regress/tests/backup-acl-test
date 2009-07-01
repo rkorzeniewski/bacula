@@ -49,7 +49,7 @@ setfattr -n bacula.test -v rulez $d/other
   getfattr -R acl > $cwd/tmp/attr.org
 )
 
-change_jobname Client1 $JobName
+change_jobname BackupClient1 $JobName
 start_test
 
 cat <<END_OF_DATA >${cwd}/tmp/bconcmds
