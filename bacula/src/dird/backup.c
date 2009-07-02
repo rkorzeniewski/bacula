@@ -144,8 +144,9 @@ bool send_accurate_current_files(JCR *jcr)
       Jmsg(jcr, M_FATAL, 0, _("Cannot find previous jobids.\n"));
       return false;
    }
-   Jmsg(jcr, M_INFO, 0, _("Sending Accurate information.\n"));
-
+   if (jcr->JobId) {            /* display the message only for real jobs */
+      Jmsg(jcr, M_INFO, 0, _("Sending Accurate information.\n"));
+   }
    /* to be able to allocate the right size for htable */
    POOLMEM *nb = get_pool_memory(PM_FNAME);
    *nb = 0;                           /* clear buffer */

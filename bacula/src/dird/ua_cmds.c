@@ -1274,6 +1274,15 @@ static int estimate_cmd(UAContext *ua, const char *cmd)
       goto bail_out;
    }
 
+   /*
+    * If the job is in accurate mode, we send the list of
+    * all files to FD.
+    */
+   jcr->accurate = job->accurate;
+   if (!send_accurate_current_files(jcr)) {
+      goto bail_out;
+   }
+
    bnet_fsend(jcr->file_bsock, "estimate listing=%d\n", listing);
    while (bnet_recv(jcr->file_bsock) >= 0) {
       ua->send_msg("%s", jcr->file_bsock->msg);
