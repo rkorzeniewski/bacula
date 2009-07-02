@@ -122,7 +122,8 @@ static struct cmdstruct commands[] = {                                      /* C
  { NT_("delete"),     delete_cmd,    _("delete [volume=<vol-name> pool=<pool-name> job jobid=<id>]"), true},
  { NT_("disable"),    disable_cmd,   _("disable <job=name> -- disable a job"),        true},
  { NT_("enable"),     enable_cmd,    _("enable <job=name> -- enable a job"),          true},
- { NT_("estimate"),   estimate_cmd,  _("performs FileSet estimate, listing gives full listing"), true},
+ { NT_("estimate"),   estimate_cmd,  _("performs FileSet estimate, listing gives full listing"
+       "\n               you can make it more accurate with accurate=yes/no"), true},
  { NT_("exit"),       quit_cmd,      _("exit = quit"),                                false},
  { NT_("gui"),        gui_cmd,       _("gui [on|off] -- non-interactive gui mode"),   false},
  { NT_("help"),       help_cmd,      _("print this command"),                         false},
