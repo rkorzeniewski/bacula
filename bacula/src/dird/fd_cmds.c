@@ -197,9 +197,16 @@ void get_level_since_time(JCR *jcr, char *since, int since_len)
       /* Look up start time of last Full job */
       now = (utime_t)time(NULL);
       jcr->jr.JobId = 0;     /* flag to return since time */
-      have_full = db_find_job_start_time(jcr, jcr->db, &jcr->jr, &jcr->stime);
+      /*
+       * This is probably redundant, but some of the code below
+       * uses jcr->stime, so don't remove unless you are sure.
+       */
+      if (!db_find_job_start_time(jcr, jcr->db, &jcr->jr, &jcr->stime)) {
+         do_full = true;
+      }
+      have_full = db_find_last_job_start_time(jcr, jcr->db, &jcr->jr, &stime, L_FULL);
       if (have_full) {
-         last_full_time = str_to_utime(jcr->stime);
+         last_full_time = str_to_utime(stime);
       } else {
          do_full = true;               /* No full, upgrade to one */
       }
