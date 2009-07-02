@@ -57,6 +57,8 @@ extern bool do_backup_init(JCR *jcr);
 extern bool do_backup(JCR *jcr);
 extern void backup_cleanup(JCR *jcr, int TermCode);
 extern void update_bootstrap_file(JCR *jcr);
+extern bool send_accurate_current_files(JCR *jcr);
+
 
 /* vbackup.c */
 extern bool do_vbackup_init(JCR *jcr);

@@ -128,12 +128,17 @@ bool accurate_send_deleted_list(JCR *jcr)
    term_find_files(ff_pkt);
 bail_out:
    /* TODO: clean htable when this function is not reached ? */
+   accurate_free(jcr);
+   return true;
+}
+
+void accurate_free(JCR *jcr)
+{
    if (jcr->file_list) {
       jcr->file_list->destroy();
       free(jcr->file_list);
       jcr->file_list = NULL;
    }
-   return true;
 }
 
 static bool accurate_add_file(JCR *jcr, char *fname, char *lstat)
@@ -231,7 +236,6 @@ int accurate_cmd(JCR *jcr)
    if (!jcr->accurate || job_canceled(jcr) || jcr->get_JobLevel()==L_FULL) {
       return true;
    }
-
    if (sscanf(dir->msg, "accurate files=%ld", &nb) != 1) {
       dir->fsend(_("2991 Bad accurate command\n"));
       return false;
