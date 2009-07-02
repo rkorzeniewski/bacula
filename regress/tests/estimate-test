@@ -62,15 +62,37 @@ END_OF_DATA
 
 run_bconsole
 
+cat <<END_OF_DATA >$tmp/bconcmds
+@output /dev/null
+messages
+@$out $tmp/log4.out
+estimate listing job=$JobName level=incremental accurate=yes
+messages
+quit
+END_OF_DATA
+
+run_bconsole
+
 cp $scripts/bacula-dir.conf $tmp/1
 sed 's/JobDefs {/JobDefs { Accurate=yes/' $tmp/1>$scripts/bacula-dir.conf
 
 cat <<END_OF_DATA >$tmp/bconcmds
 @output /dev/null
 messages
-@$out $tmp/log4.out
+@$out $tmp/log5.out
 reload
 estimate listing job=$JobName level=incremental
+messages
+quit
+END_OF_DATA
+
+run_bconsole
+
+cat <<END_OF_DATA >$tmp/bconcmds
+@output /dev/null
+messages
+@$out $tmp/log6.out
+estimate listing job=$JobName level=incremental accurate=no
 messages
 quit
 END_OF_DATA
@@ -87,7 +109,19 @@ fi
 
 grep test1 $tmp/log4.out > /dev/null
 if [ $? != 0 ]; then
-    print_debug "Accurate estimate should detect test1 file in $tmp/log4.out"
+    print_debug "Accurate=yes estimate should detect test1 file in $tmp/log4.out"
+    dstat=2
+fi
+
+grep test1 $tmp/log5.out > /dev/null
+if [ $? != 0 ]; then
+    print_debug "Accurate estimate should detect test1 file in $tmp/log5.out"
+    dstat=2
+fi
+
+grep test1 $tmp/log6.out > /dev/null
+if [ $? = 0 ]; then
+    print_debug "Accurate=no estimate shouldn't detect test1 file in $tmp/log6.out"
     dstat=2
 fi
 
