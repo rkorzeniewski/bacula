@@ -1137,6 +1137,7 @@ static int estimate_cmd(UAContext *ua, const char *cmd)
    int listing = 0;
    char since[MAXSTRING];
    JCR *jcr = ua->jcr;
+   int accurate=-1;
 
    jcr->set_JobLevel(L_FULL);
    for (int i=1; i<ua->argc; i++) {
@@ -1202,6 +1203,12 @@ static int estimate_cmd(UAContext *ua, const char *cmd)
          } else {
            ua->error_msg(_("Level value missing.\n"));
            return 1;
+         }
+      }
+      if (strcasecmp(ua->argk[i], NT_("accurate")) == 0) {
+         if (!is_yesno(ua->argv[i], &accurate)) {
+            ua->error_msg(_("Invalid value for accurate. " 
+                            "It must be yes or no.\n"));
          }
       }
    }
@@ -1270,6 +1277,13 @@ static int estimate_cmd(UAContext *ua, const char *cmd)
       goto bail_out;
    }
 
+   /* The level string change if accurate mode is enabled */
+   if (accurate >= 0) {
+      jcr->accurate = accurate;
+   } else {
+      jcr->accurate = job->accurate;
+   }
+
    if (!send_level_command(jcr)) {
       goto bail_out;
    }
@@ -1278,7 +1292,7 @@ static int estimate_cmd(UAContext *ua, const char *cmd)
     * If the job is in accurate mode, we send the list of
     * all files to FD.
     */
-   jcr->accurate = job->accurate;
+   Dmsg1(40, "estimate accurate=%i\n", jcr->accurate);
    if (!send_accurate_current_files(jcr)) {
       goto bail_out;
    }
