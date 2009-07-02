@@ -5,6 +5,8 @@ General:
 02Jul09
 kes  Another fix for bug #1311 to get the correct last_full_time
 ebl  Make estimate command accurate compatible. Should fix #1318
+ebl  Add estimate accurate=yes/no
+ebl  Change the code to check jcr->accurate and not jcr->job->accurate
 01Jul09
 kes  Fix bug #1317 Allow duplicate jobs = no does not work
 kes  Eliminate double job report when do_xxx_init() returns failure
