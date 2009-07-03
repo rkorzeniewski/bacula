@@ -482,7 +482,7 @@ const char *uar_file[4] = {
    "StartTime,Type as JobType,JobStatus,JobFiles,JobBytes "
    "FROM Client,Job,File,Filename,Path WHERE Client.Name='%s' "
    "AND Client.ClientId=Job.ClientId "
-   "AND Job.JobId=File.JobId "
+   "AND Job.JobId=File.JobId AND File.FileIndex > 0 "
    "AND Path.PathId=File.PathId AND Filename.FilenameId=File.FilenameId "
    "AND Filename.Name='%s' ORDER BY StartTime DESC LIMIT 20",
    /* Postgresql */
@@ -491,7 +491,7 @@ const char *uar_file[4] = {
    "StartTime,Type as JobType,JobStatus,JobFiles,JobBytes "
    "FROM Client,Job,File,Filename,Path WHERE Client.Name='%s' "
    "AND Client.ClientId=Job.ClientId "
-   "AND Job.JobId=File.JobId "
+   "AND Job.JobId=File.JobId AND File.FileIndex > 0 "
    "AND Path.PathId=File.PathId AND Filename.FilenameId=File.FilenameId "
    "AND Filename.Name='%s' ORDER BY StartTime DESC LIMIT 20",
    /* SQLite */
@@ -500,7 +500,7 @@ const char *uar_file[4] = {
    "StartTime,Type as JobType,JobStatus,JobFiles,JobBytes "
    "FROM Client,Job,File,Filename,Path WHERE Client.Name='%s' "
    "AND Client.ClientId=Job.ClientId "
-   "AND Job.JobId=File.JobId "
+   "AND Job.JobId=File.JobId AND File.FileIndex > 0 "
    "AND Path.PathId=File.PathId AND Filename.FilenameId=File.FilenameId "
    "AND Filename.Name='%s' ORDER BY StartTime DESC LIMIT 20",
    /* SQLite3 */
@@ -509,7 +509,7 @@ const char *uar_file[4] = {
    "StartTime,Type as JobType,JobStatus,JobFiles,JobBytes "
    "FROM Client,Job,File,Filename,Path WHERE Client.Name='%s' "
    "AND Client.ClientId=Job.ClientId "
-   "AND Job.JobId=File.JobId "
+   "AND Job.JobId=File.JobId AND File.FileIndex > 0 "
    "AND Path.PathId=File.PathId AND Filename.FilenameId=File.FilenameId "
    "AND Filename.Name='%s' ORDER BY StartTime DESC LIMIT 20"};
 
