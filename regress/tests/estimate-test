@@ -21,6 +21,7 @@ sed -f ${outf} $tmp/1 >$scripts/bacula-dir.conf
 
 start_test
 
+rm -rf ${cwd}/build/src/test ${cwd}/build/po/test
 mkdir ${cwd}/build/src/test
 touch ${cwd}/build/src/test/test1 ${cwd}/build/src/test/test2
 
