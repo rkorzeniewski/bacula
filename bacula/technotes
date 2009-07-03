@@ -2,6 +2,9 @@
           
 General:
 
+03Jul09
+ebl  Should fix the first part #1323 about the restore option
+     "List Jobs where a given File is saved" wich display deleted files
 02Jul09
 kes  Another fix for bug #1311 to get the correct last_full_time
 ebl  Make estimate command accurate compatible. Should fix #1318
