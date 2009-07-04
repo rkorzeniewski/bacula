@@ -47,32 +47,20 @@
 #include "filed.h"
 #include "xattr.h"
 
+#if !defined(HAVE_XATTR)
 /*
- * List of supported OSes. Everything outside that gets stub functions.
- * Also when XATTR support is explicitly disabled.
+ * Entry points when compiled without support for XATTRs or on an unsupported platform.
  */
-#if !defined(HAVE_XATTR)          /* Extended Attributes support is required, of course */ \
-   || !( defined(HAVE_DARWIN_OS)  /* OSX has XATTR support  using getxattr etc. */ \
-      || defined(HAVE_FREEBSD_OS) /* FreeBSD has XATTR support using lgetxattr etc. */ \
-      || defined(HAVE_LINUX_OS)   /* Linux has XATTR support using the lgetxattr etc. */ \
-      || defined(HAVE_NETBSD_OS)  /* NetBSD has XATTR support using the lgetxattr etc. */ \
-      || defined(HAVE_SUN_OS)     /* Solaris has XATTR support using attropen etc. */ \
-        )
-
 bool build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
 {
-   Jmsg(jcr, M_FATAL, 0, _("XATTR support not configured for your machine.\n"));
    return false;
 }
 
 bool parse_xattr_stream(JCR *jcr, int stream)
 {
-   Jmsg(jcr, M_FATAL, 0, _("XATTR support not configured for your machine.\n"));
    return false;
 }
-
 #else
-
 /*
  * Send a XATTR stream to the SD.
  */
@@ -713,7 +701,7 @@ static void add_xattr_link_cache_entry(ino_t inum, char *target)
    if (xattr_link_cache_head == NULL) {
       xattr_link_cache_head = ptr;
    }
-   if (xattr_link_cache_tail != NULL)
+   if (xattr_link_cache_tail != NULL) {
       xattr_link_cache_tail->next = ptr;
    }
 }
@@ -1383,8 +1371,8 @@ static bool solaris_restore_xattr_acl(JCR *jcr, int fd, const char *attrname, ch
    acl_t *aclp = NULL;
 
    if ((error = acl_fromtext(acl_text, &aclp)) != 0) {
-      Jmsg1(jcr, M_ERROR, 0, _("Unable to convert acl from text on file \"%s\"\n"
-               jcr->last_fname));
+      Jmsg1(jcr, M_ERROR, 0, _("Unable to convert acl from text on file \"%s\"\n"),
+               jcr->last_fname);
       return true;                    /* non-fatal */
    }
 

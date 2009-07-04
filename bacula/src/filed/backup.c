@@ -38,6 +38,18 @@
 #include "bacula.h"
 #include "filed.h"
 
+#if defined(HAVE_ACL)
+const bool have_acl = true;
+#else
+const bool have_acl = false;
+#endif
+
+#if defined(HAVE_XATTR)
+const bool have_xattr = true;
+#else
+const bool have_xattr = false;
+#endif
+
 /* Forward referenced functions */
 int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level);
 static int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest, DIGEST *signature_digest);
@@ -128,8 +140,12 @@ bool blast_data_to_storage_daemon(JCR *jcr, char *addr)
    
    start_heartbeat_monitor(jcr);
 
-   jcr->acl_data = get_pool_memory(PM_MESSAGE);
-   jcr->xattr_data = get_pool_memory(PM_MESSAGE);
+   if (have_acl) {
+      jcr->acl_data = get_pool_memory(PM_MESSAGE);
+   }
+   if (have_xattr) {
+      jcr->xattr_data = get_pool_memory(PM_MESSAGE);
+   }
 
    /* Subroutine save_file() is called for each file */
    if (!find_files(jcr, (FF_PKT *)jcr->ff, save_file, plugin_save)) {
@@ -143,11 +159,11 @@ bool blast_data_to_storage_daemon(JCR *jcr, char *addr)
 
    sd->signal(BNET_EOD);            /* end of sending data */
 
-   if (jcr->acl_data) {
+   if (have_acl && jcr->acl_data) {
       free_pool_memory(jcr->acl_data);
       jcr->acl_data = NULL;
    }
-   if (jcr->xattr_data) {
+   if (have_xattr && jcr->xattr_data) {
       free_pool_memory(jcr->xattr_data);
       jcr->xattr_data = NULL;
    }
@@ -580,23 +596,21 @@ int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
 #endif
 
    /*
-    * Save ACLs for anything not being a symlink and not being a plugin.
+    * Save ACLs when requested and available for anything not being a symlink and not being a plugin.
     */
-   if (!ff_pkt->cmd_plugin) {
-      if (ff_pkt->flags & FO_ACL && ff_pkt->type != FT_LNK) {
-         if (!build_acl_streams(jcr, ff_pkt))
-            goto bail_out;
-      }
+   if (ff_pkt->flags & FO_ACL && have_acl &&
+       ff_pkt->type != FT_LNK && !ff_pkt->cmd_plugin) {
+      if (!build_acl_streams(jcr, ff_pkt))
+         goto bail_out;
    }
 
    /*
-    * Save Extended Attributes for all files not being a plugin.
+    * Save Extended Attributes when requested and available for all files not being a plugin.
     */
-   if (!ff_pkt->cmd_plugin) {
-      if (ff_pkt->flags & FO_XATTR) {
-         if (!build_xattr_streams(jcr, ff_pkt))
-            goto bail_out;
-      }
+   if (ff_pkt->flags & FO_XATTR && have_xattr &&
+       !ff_pkt->cmd_plugin) {
+      if (!build_xattr_streams(jcr, ff_pkt))
+         goto bail_out;
    }
 
    /* Terminate the signing digest and send it to the Storage daemon */
