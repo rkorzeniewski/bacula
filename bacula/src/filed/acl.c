@@ -57,40 +57,20 @@
 #include "bacula.h"
 #include "filed.h"
   
-/*
- * List of supported OSes. Everything outside that gets stub functions.
- * Also when ACL support is explicitly disabled.
- * Not sure if all the HAVE_XYZ_OS are correct for autoconf.
- * The ones that says man page, are coded according to man pages only.
- */
-#if !defined(HAVE_ACL)              /* ACL support is required, of course */ \
-   || !( defined(HAVE_AIX_OS)       /* man page -- may need flags         */ \
-      || defined(HAVE_DARWIN_OS)    /* tested   -- compile without flags  */ \
-      || defined(HAVE_FREEBSD_OS)   /* tested   -- compile without flags  */ \
-      || defined(HAVE_HPUX_OS)      /* man page -- may need flags         */ \
-      || defined(HAVE_IRIX_OS)      /* man page -- compile without flags  */ \
-      || defined(HAVE_LINUX_OS)     /* tested   -- compile with -lacl     */ \
-      || defined(HAVE_OSF1_OS)      /* man page -- may need -lpacl        */ \
-      || defined(HAVE_SUN_OS)       /* tested   -- compile with -lsec     */ \
-       )
-
+#if !defined(HAVE_ACL)
 /*
  * Entry points when compiled without support for ACLs or on an unsupported platform.
  */
 bool build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
 {
-   Jmsg(jcr, M_FATAL, 0, _("ACL support not configured for your machine.\n"));
    return false;
 }
-
+-
 bool parse_acl_stream(JCR *jcr, int stream)
 {
-   Jmsg(jcr, M_FATAL, 0, _("ACL support not configured for your machine.\n"));
    return false;
 }
-
 #else
-
 /*
  * Send an ACL stream to the SD.
  */

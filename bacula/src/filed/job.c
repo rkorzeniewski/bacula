@@ -44,6 +44,22 @@ static pthread_mutex_t vss_mutex = PTHREAD_MUTEX_INITIALIZER;
 static int enable_vss = 0;
 #endif
 
+/*
+ * As Windows saves ACLs as part of the standard backup stream
+ * we just pretend here that is has implicit acl support.
+ */
+#if defined(HAVE_ACL) || defined(HAVE_WIN32)
+const bool have_acl = true;
+#else
+const bool have_acl = false;
+#endif
+
+#if defined(HAVE_XATTR)
+const bool have_xattr = true;
+#else
+const bool have_xattr = false;
+#endif
+
 extern CLIENT *me;                    /* our client resource */
 
 /* Imported functions */
@@ -196,7 +212,7 @@ static char read_close[]   = "read close session %d\n";
  *  5. FD gets/runs ClientRunBeforeJob and sends ClientRunAfterJob
  *  6. Dir sends include/exclude
  *  7. FD sends data to SD
- *  8. SD/FD disconnects while SD despools data and attributes (optionnal)
+ *  8. SD/FD disconnects while SD despools data and attributes (optional)
  *  9. FD runs ClientRunAfterJob
  */
 
@@ -1438,6 +1454,19 @@ static int backup_cmd(JCR *jcr)
       P(vss_mutex);
    }
 #endif
+
+   /*
+    * Validate some options given to the backup make sense for the compiled in
+    * options of this filed.
+    */
+   if (jcr->ff->flags & FO_ACL && !have_acl) {
+      Jmsg(jcr, M_FATAL, 0, _("ACL support not configured for your machine.\n"));
+      goto cleanup;
+   }
+   if (jcr->ff->flags & FO_XATTR && !have_xattr) {
+      Jmsg(jcr, M_FATAL, 0, _("XATTR support not configured for your machine.\n"));
+      goto cleanup;
+   }
 
    set_jcr_job_status(jcr, JS_Blocked);
    jcr->set_JobType(JT_BACKUP);

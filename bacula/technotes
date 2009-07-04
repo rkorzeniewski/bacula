@@ -2,6 +2,12 @@
           
 General:
 
+04Jul09
+mvw  Change checking for acl and xattr support from first file to
+     job level.
+mvw  Call acl and xattr function only when requested for fileset
+     and filed has support for acl or xattr
+mvw  Fix typo introduces by fix for bug #1305
 03Jul09
 ebl  Should fix the first part #1323 about the restore option
      "List Jobs where a given File is saved" wich display deleted files
