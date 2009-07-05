@@ -50,9 +50,3 @@
 #endif
 
 extern CLIENT *me;                    /* "Global" Client resource */
-
-typedef enum {
-   bsub_exit_fatal = -1,
-   bsub_exit_nok = 0,
-   bsub_exit_ok = 1
-} bsub_exit_code;
