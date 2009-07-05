@@ -598,19 +598,21 @@ int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
    /*
     * Save ACLs when requested and available for anything not being a symlink and not being a plugin.
     */
-   if (ff_pkt->flags & FO_ACL && have_acl &&
-       ff_pkt->type != FT_LNK && !ff_pkt->cmd_plugin) {
-      if (!build_acl_streams(jcr, ff_pkt))
-         goto bail_out;
+   if (have_acl) {
+      if (ff_pkt->flags & FO_ACL && ff_pkt->type != FT_LNK && !ff_pkt->cmd_plugin) {
+         if (!build_acl_streams(jcr, ff_pkt))
+            goto bail_out;
+      }
    }
 
    /*
     * Save Extended Attributes when requested and available for all files not being a plugin.
     */
-   if (ff_pkt->flags & FO_XATTR && have_xattr &&
-       !ff_pkt->cmd_plugin) {
-      if (!build_xattr_streams(jcr, ff_pkt))
-         goto bail_out;
+   if (have_xattr) {
+      if (ff_pkt->flags & FO_XATTR && !ff_pkt->cmd_plugin) {
+         if (!build_xattr_streams(jcr, ff_pkt))
+            goto bail_out;
+      }
    }
 
    /* Terminate the signing digest and send it to the Storage daemon */
