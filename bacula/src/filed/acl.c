@@ -461,7 +461,7 @@ static bsub_exit_code generic_set_acl_on_os(JCR *jcr, bacl_type acltype)
     */
    if (acl_valid(acl) != 0) {
       berrno be;
-      Jmsg2(jcr, M_ERROR, 0, _("ac_valid error on file \"%s\": ERR=%s\n"),
+      Jmsg2(jcr, M_ERROR, 0, _("acl_valid error on file \"%s\": ERR=%s\n"),
          jcr->last_fname, be.bstrerror());
       Dmsg3(100, "acl_valid error acl=%s file=%s ERR=%s\n",  
          jcr->acl_data, jcr->last_fname, be.bstrerror());
