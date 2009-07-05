@@ -451,12 +451,16 @@ void Storage::settingsOpenStatus(QString &storage)
    settings.beginGroup("OpenOnExit");
    QString toRead = "StorageStatus_" + storage;
    if (settings.value(toRead) == 1) {
-      Pmsg1(000, "Do open Storage Status window for : %s\n", storage.toUtf8().data());
+      if (mainWin->m_sqlDebug) {
+         Pmsg1(000, "Do open Storage Status window for : %s\n", storage.toUtf8().data());
+      }
       new StorStat(storage, mainWin->getFromHash(this));
       setCurrent();
       mainWin->getFromHash(this)->setExpanded(true);
    } else {
-      Pmsg1(000, "Do NOT open Storage Status window for : %s\n", storage.toUtf8().data());
+      if (mainWin->m_sqlDebug) {
+         Pmsg1(000, "Do NOT open Storage Status window for : %s\n", storage.toUtf8().data());
+      }
    }
    settings.endGroup();
 }

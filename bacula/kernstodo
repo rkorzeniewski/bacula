@@ -81,6 +81,12 @@ Professional Needs:
 Priority:
 ================
 
+- When reserving a device to read, check to see if the Volume
+  is already in use, if so wait.  Probably will need to pass the
+  Volume.  See bug #1313.  Create a regression test to simulate
+  this problem and see if VolumePollInterval fixes it. Possibly turn
+  it on by default.
+
 - Fix restore of acls and extended attributes to count ERROR
   messages and make errors non-fatal.
 - Put save/restore various platform acl/xattrs on a pointer to simplify
