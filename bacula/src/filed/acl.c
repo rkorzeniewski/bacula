@@ -65,7 +65,7 @@ bool build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
 {
    return false;
 }
--
+
 bool parse_acl_stream(JCR *jcr, int stream)
 {
    return false;
