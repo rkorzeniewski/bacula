@@ -127,6 +127,19 @@ static bsub_exit_code send_xattr_stream(JCR *jcr, int stream)
 #endif
 
 /*
+ * All these os-es have 1 xattr stream.
+ */
+#if defined(HAVE_DARWIN_OS)
+static int os_default_xattr_streams[1] = { STREAM_XATTR_DARWIN };
+#elif defined(HAVE_FREEBSD_OS)
+static int os_default_xattr_streams[1] = { STREAM_XATTR_FREEBSD };
+#elif defined(HAVE_LINUX_OS)
+static int os_default_xattr_streams[1] = { STREAM_XATTR_LINUX };
+#elif defined(HAVE_NETBSD_OS)
+static int os_default_xattr_streams[1] = { STREAM_XATTR_NETBSD };
+#endif
+
+/*
  * OSX doesn't have llistxattr, lgetxattr and lsetxattr but has
  * listxattr, getxattr and setxattr with an extra options argument
  * which mimics the l variants of the functions when we specify
@@ -522,19 +535,6 @@ static bsub_exit_code generic_xattr_parse_streams(JCR *jcr, int stream)
 static bsub_exit_code (*os_build_xattr_streams)(JCR *jcr, FF_PKT *ff_pkt, int default_stream) = generic_xattr_build_streams;
 static bsub_exit_code (*os_parse_xattr_streams)(JCR *jcr, int stream) = generic_xattr_parse_streams;
 
-/*
- * All these os-es have 1 xattr stream.
- */
-#if defined(HAVE_DARWIN_OS)
-static int os_default_xattr_streams[1] = { STREAM_XATTR_DARWIN };
-#elif defined(HAVE_FREEBSD_OS)
-static int os_default_xattr_streams[1] = { STREAM_XATTR_FREEBSD };
-#elif defined(HAVE_LINUX_OS)
-static int os_default_xattr_streams[1] = { STREAM_XATTR_LINUX };
-#elif defined(HAVE_NETBSD_OS)
-static int os_default_xattr_streams[1] = { STREAM_XATTR_NETBSD };
-#endif
-
 #elif defined(HAVE_SUN_OS)
 /*
  * Solaris extended attributes were introduced in Solaris 9
@@ -630,6 +630,15 @@ static int os_default_xattr_streams[1] = { STREAM_XATTR_NETBSD };
 #ifdef HAVE_SYS_ACL_H
 #include <sys/acl.h>
 #endif
+
+/*
+ * Number of xattr streams this OS supports and an array with integers with the actual stream numbers.
+ */
+#if defined(HAVE_SYS_NVPAIR_H) && defined(_PC_SATTR_ENABLED)
+static int os_default_xattr_streams[2] = { STREAM_XATTR_SOLARIS, STREAM_XATTR_SOLARIS_SYS};
+#else
+static int os_default_xattr_streams[1] = { STREAM_XATTR_SOLARIS };
+#endif /* defined(HAVE_SYS_NVPAIR_H) && defined(_PC_SATTR_ENABLED) */
 
 /*
  * This is the count of xattrs saved on a certain file, it gets reset
@@ -1848,15 +1857,6 @@ static bsub_exit_code solaris_parse_xattr_streams(JCR *jcr, int stream)
  */
 static bsub_exit_code (*os_build_xattr_streams)(JCR *jcr, FF_PKT *ff_pkt, int default_stream) = solaris_build_xattr_streams;
 static bsub_exit_code (*os_parse_xattr_streams)(JCR *jcr, int stream) = solaris_parse_xattr_streams;
-
-/*
- * Number of xattr streams this OS supports and an array with integers with the actual stream numbers.
- */
-#if defined(HAVE_SYS_NVPAIR_H) && defined(_PC_SATTR_ENABLED)
-static int os_default_xattr_streams[2] = { STREAM_XATTR_SOLARIS, STREAM_XATTR_SOLARIS_SYS};
-#else
-static int os_default_xattr_streams[1] = { STREAM_XATTR_SOLARIS };
-#endif /* defined(HAVE_SYS_NVPAIR_H) && defined(_PC_SATTR_ENABLED) */
 
 #endif /* defined(HAVE_SUN_OS) */
 
