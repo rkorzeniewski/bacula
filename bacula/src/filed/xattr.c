@@ -502,11 +502,11 @@ static bsub_exit_code generic_xattr_parse_streams(JCR *jcr, int stream)
        * we try to restore the other extended attributes too.
        */
       if (lsetxattr(jcr->last_fname, current_xattr.name, current_xattr.value,
+                    current_xattr.value_length, 0) != 0) {
          switch (errno) {
          case ENOENT:
             break;
          default:
-            current_xattr.value_length, 0) != 0) {
             Jmsg2(jcr, M_ERROR, 0, _("lsetxattr error on file \"%s\": ERR=%s\n"),
                jcr->last_fname, be.bstrerror());
             Dmsg2(100, "lsetxattr error file=%s ERR=%s\n",
