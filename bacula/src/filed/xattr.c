@@ -117,10 +117,10 @@ static bsub_exit_code send_xattr_stream(JCR *jcr, int stream)
  * This is a supported OS, See what kind of interface we should use.
  * Start with the generic interface used by most OS-es.
  */
-#if defined(HAVE_DARWIN_OS) \
-   || defined(HAVE_FREEBSD_OS) \
-   || defined(HAVE_LINUX_OS) \
-   || defined(HAVE_NETBSD_OS)
+#if defined(HAVE_DARWIN_OS) || \
+    defined(HAVE_FREEBSD_OS) || \
+    defined(HAVE_LINUX_OS) || \
+    defined(HAVE_NETBSD_OS)
        
 #ifdef HAVE_SYS_XATTR_H
 #include <sys/xattr.h>

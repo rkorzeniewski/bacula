@@ -158,11 +158,11 @@ static bsub_exit_code aix_parse_acl_streams(JCR *jcr, int stream)
 static bsub_exit_code (*os_build_acl_streams)(JCR *jcr, FF_PKT *ff_pkt) = aix_build_acl_streams;
 static bsub_exit_code (*os_parse_acl_streams)(JCR *jcr, int stream) = aix_parse_acl_streams;
 
-#elif defined(HAVE_DARWIN_OS) \
-   || defined(HAVE_FREEBSD_OS) \
-   || defined(HAVE_IRIX_OS) \
-   || defined(HAVE_OSF1_OS) \
-   || defined(HAVE_LINUX_OS)
+#elif defined(HAVE_DARWIN_OS) || \
+      defined(HAVE_FREEBSD_OS) || \
+      defined(HAVE_IRIX_OS) || \
+      defined(HAVE_OSF1_OS) || \
+      defined(HAVE_LINUX_OS)
 
 #include <sys/types.h>
 
@@ -249,7 +249,8 @@ static bool acl_is_trivial(acl_t acl)
    */
    acl_entry_t ace;
    acl_tag_t tag;
-#if defined(HAVE_FREEBSD_OS) || defined(HAVE_LINUX_OS)
+#if defined(HAVE_FREEBSD_OS) || \
+    defined(HAVE_LINUX_OS)
    int entry_available;
 
    entry_available = acl_get_entry(acl, ACL_FIRST_ENTRY, &ace);
@@ -544,7 +545,9 @@ static bsub_exit_code darwin_parse_acl_streams(JCR *jcr, int stream)
 static bsub_exit_code (*os_build_acl_streams)(JCR *jcr, FF_PKT *ff_pkt) = darwin_build_acl_streams;
 static bsub_exit_code (*os_parse_acl_streams)(JCR *jcr, int stream) = darwin_parse_acl_streams;
 
-#elif defined(HAVE_FREEBSD_OS) || defined(HAVE_IRIX_OS) || defined(HAVE_LINUX_OS)
+#elif defined(HAVE_FREEBSD_OS) || \
+      defined(HAVE_IRIX_OS) || \
+      defined(HAVE_LINUX_OS)
 
 /*
  * Define the supported ACL streams for these OSes
