@@ -1586,10 +1586,10 @@ static bsub_exit_code solaris_restore_xattrs(JCR *jcr, bool is_extensible)
 
          unlinkat(attrdirfd, target_attrname, 0);
          if (link(linked_target, target_attrname) < 0) {
-            Jmsg4(jcr, M_ERROR, 0, _("Unable to link xattr %s to %s on file \"%s\": ERR=%s\n"),
-               target_attrname, linked_target, jcr->last_fname, be.bstrerror());
+            Mmsg4(jcr->errmsg, _("Unable to link xattr %s to %s on file \"%s\": ERR=%s\n"),
+                  target_attrname, linked_target, jcr->last_fname, be.bstrerror());
             Dmsg4(100, "Unable to link xattr %s to %s on file \"%s\": ERR=%s\n",
-               target_attrname, linked_target, jcr->last_fname, be.bstrerror());
+                  target_attrname, linked_target, jcr->last_fname, be.bstrerror());
             goto cleanup;
          }
 
@@ -1665,10 +1665,10 @@ static bsub_exit_code solaris_restore_xattrs(JCR *jcr, bool is_extensible)
       linked_target = bp;
 
       if (symlink(linked_target, target_attrname) < 0) {
-         Jmsg4(jcr, M_ERROR, 0, _("Unable to symlink xattr %s to %s on file \"%s\": ERR=%s\n"),
-            target_attrname, linked_target, jcr->last_fname, be.bstrerror());
+         Mmsg4(jcr->errmsg, _("Unable to symlink xattr %s to %s on file \"%s\": ERR=%s\n"),
+               target_attrname, linked_target, jcr->last_fname, be.bstrerror());
          Dmsg4(100, "Unable to symlink xattr %s to %s on file \"%s\": ERR=%s\n",
-            target_attrname, linked_target, jcr->last_fname, be.bstrerror());
+               target_attrname, linked_target, jcr->last_fname, be.bstrerror());
          goto cleanup;
       }
 
