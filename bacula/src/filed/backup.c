@@ -611,7 +611,7 @@ int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
     */
    if (have_acl) {
       if (ff_pkt->flags & FO_ACL && ff_pkt->type != FT_LNK && !ff_pkt->cmd_plugin) {
-         switch (build_acl_streams(jcr, ff_pkt))
+         switch (build_acl_streams(jcr, ff_pkt)) {
          case bsub_exit_fatal:
             goto bail_out;
          case bsub_exit_nok:
@@ -650,6 +650,7 @@ int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
             break;
          case bsub_exit_ok:
             break;
+         }
       }
    }
 
