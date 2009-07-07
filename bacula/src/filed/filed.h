@@ -50,3 +50,8 @@
 #endif
 
 extern CLIENT *me;                    /* "Global" Client resource */
+
+/*
+ * Number of acl errors to report per job.
+ */
+#define ACL_REPORT_ERR_MAX_PER_JOB	25
