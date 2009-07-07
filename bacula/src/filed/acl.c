@@ -373,10 +373,10 @@ static bsub_exit_code generic_get_acl_from_os(JCR *jcr, bacl_type acltype)
          return bsub_exit_ok;
       }
 
-      Jmsg2(jcr, M_ERROR, 0, _("acl_to_text error on file \"%s\": ERR=%s\n"),
-         jcr->last_fname, be.bstrerror());
+      Mmsg2(jcr->errmsg, _("acl_to_text error on file \"%s\": ERR=%s\n"),
+            jcr->last_fname, be.bstrerror());
       Dmsg2(100, "acl_to_text error file=%s ERR=%s\n",  
-         jcr->last_fname, be.bstrerror());
+            jcr->last_fname, be.bstrerror());
 
       pm_strcpy(jcr->acl_data, "");
       jcr->acl_data_len = 0;
@@ -399,10 +399,10 @@ static bsub_exit_code generic_get_acl_from_os(JCR *jcr, bacl_type acltype)
          return bsub_exit_ok;
       default:
          /* Some real error */
-         Jmsg2(jcr, M_ERROR, 0, _("acl_get_file error on file \"%s\": ERR=%s\n"),
-            jcr->last_fname, be.bstrerror());
+         Mmsg2(jcr->errmsg, _("acl_get_file error on file \"%s\": ERR=%s\n"),
+               jcr->last_fname, be.bstrerror());
          Dmsg2(100, "acl_get_file error file=%s ERR=%s\n",  
-            jcr->last_fname, be.bstrerror());
+               jcr->last_fname, be.bstrerror());
 
          pm_strcpy(jcr->acl_data, "");
          jcr->acl_data_len = 0;
@@ -438,16 +438,16 @@ static bsub_exit_code generic_set_acl_on_os(JCR *jcr, bacl_type acltype)
       case ENOENT:
          return bsub_exit_ok;
       default:
-         Jmsg2(jcr, M_ERROR, 0, _("acl_delete_def_file error on file \"%s\": ERR=%s\n"),
-            jcr->last_fname, be.bstrerror());
+         Mmsg2(jcr->errmsg, _("acl_delete_def_file error on file \"%s\": ERR=%s\n"),
+               jcr->last_fname, be.bstrerror());
          return bsub_exit_nok;
       }
    }
 
    acl = acl_from_text(jcr->acl_data);
    if (acl == NULL) {
-      Jmsg2(jcr, M_ERROR, 0, _("acl_from_text error on file \"%s\": ERR=%s\n"),
-         jcr->last_fname, be.bstrerror());
+      Mmsg2(jcr->errmsg, _("acl_from_text error on file \"%s\": ERR=%s\n"),
+            jcr->last_fname, be.bstrerror());
       Dmsg3(100, "acl_from_text error acl=%s file=%s ERR=%s\n",  
          jcr->acl_data, jcr->last_fname, be.bstrerror());
       return bsub_exit_nok;
@@ -459,8 +459,8 @@ static bsub_exit_code generic_set_acl_on_os(JCR *jcr, bacl_type acltype)
     * As it does the right thing, given valid input, just ignore acl_valid().
     */
    if (acl_valid(acl) != 0) {
-      Jmsg2(jcr, M_ERROR, 0, _("acl_valid error on file \"%s\": ERR=%s\n"),
-         jcr->last_fname, be.bstrerror());
+      Mmsg2(jcr->errmsg, _("acl_valid error on file \"%s\": ERR=%s\n"),
+            jcr->last_fname, be.bstrerror());
       Dmsg3(100, "acl_valid error acl=%s file=%s ERR=%s\n",  
          jcr->acl_data, jcr->last_fname, be.bstrerror());
       acl_free(acl);
@@ -480,10 +480,10 @@ static bsub_exit_code generic_set_acl_on_os(JCR *jcr, bacl_type acltype)
          acl_free(acl);
          return bsub_exit_nok;
       default:
-         Jmsg2(jcr, M_ERROR, 0, _("acl_set_file error on file \"%s\": ERR=%s\n"),
-            jcr->last_fname, be.bstrerror());
+         Mmsg2(jcr->errmsg, _("acl_set_file error on file \"%s\": ERR=%s\n"),
+               jcr->last_fname, be.bstrerror());
          Dmsg3(100, "acl_set_file error acl=%s file=%s ERR=%s\n",
-            jcr->acl_data, jcr->last_fname, be.bstrerror());
+               jcr->acl_data, jcr->last_fname, be.bstrerror());
          acl_free(acl);
          return bsub_exit_nok;
       }
@@ -753,10 +753,10 @@ static bsub_exit_code hpux_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
          jcr->acl_data_len = 0;
          return bsub_exit_ok;
       default:
-         Jmsg2(jcr, M_ERROR, 0, _("getacl error on file \"%s\": ERR=%s\n"),
-            jcr->last_fname, be.bstrerror());
+         Mmsg2(jcr->errmsg, _("getacl error on file \"%s\": ERR=%s\n"),
+               jcr->last_fname, be.bstrerror());
          Dmsg2(100, "getacl error file=%s ERR=%s\n",  
-            jcr->last_fname, be.bstrerror());
+               jcr->last_fname, be.bstrerror());
 
          pm_strcpy(jcr->acl_data, "");
          jcr->acl_data_len = 0;
@@ -784,10 +784,10 @@ static bsub_exit_code hpux_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
 
          return send_acl_stream(jcr, STREAM_ACL_HPUX_ACL_ENTRY);
       }
-      Jmsg2(jcr, M_ERROR, 0, _("acltostr error on file \"%s\": ERR=%s\n"),
-         jcr->last_fname, be.bstrerror());
+      Mmsg2(jcr->errmsg, _("acltostr error on file \"%s\": ERR=%s\n"),
+            jcr->last_fname, be.bstrerror());
       Dmsg3(100, "acltostr error acl=%s file=%s ERR=%s\n",  
-         jcr->acl_data, jcr->last_fname, be.bstrerror());
+            jcr->acl_data, jcr->last_fname, be.bstrerror());
       return bsub_exit_nok;
    }
    return bsub_exit_nok;
@@ -801,17 +801,17 @@ static bsub_exit_code hpux_parse_acl_streams(JCR *jcr, int stream)
 
    n = strtoacl(jcr->acl_data, 0, NACLENTRIES, acls, ACL_FILEOWNER, ACL_FILEGROUP);
    if (n <= 0) {
-      Jmsg2(jcr, M_ERROR, 0, _("strtoacl error on file \"%s\": ERR=%s\n"),
-         jcr->last_fname, be.bstrerror());
+      Mmsg2(jcr->errmsg, _("strtoacl error on file \"%s\": ERR=%s\n"),
+            jcr->last_fname, be.bstrerror());
       Dmsg3(100, "strtoacl error acl=%s file=%s ERR=%s\n",  
-         jcr->acl_data, jcr->last_fname, be.bstrerror());
+            jcr->acl_data, jcr->last_fname, be.bstrerror());
       return bsub_exit_nok;
    }
    if (strtoacl(jcr->acl_data, n, NACLENTRIES, acls, ACL_FILEOWNER, ACL_FILEGROUP) != n) {
-      Jmsg2(jcr, M_ERROR, 0, _("strtoacl error on file \"%s\": ERR=%s\n"),
-         jcr->last_fname, be.bstrerror());
+      Mmsg2(jcr->errmsg, _("strtoacl error on file \"%s\": ERR=%s\n"),
+            jcr->last_fname, be.bstrerror());
       Dmsg3(100, "strtoacl error acl=%s file=%s ERR=%s\n",  
-         jcr->acl_data, jcr->last_fname, be.bstrerror());
+            jcr->acl_data, jcr->last_fname, be.bstrerror());
 
       return bsub_exit_nok;
    }
@@ -826,10 +826,10 @@ static bsub_exit_code hpux_parse_acl_streams(JCR *jcr, int stream)
       case ENOENT:
          return bsub_exit_nok;
       default:
-         Jmsg2(jcr, M_ERROR, 0, _("setacl error on file \"%s\": ERR=%s\n"),
-            jcr->last_fname, be.bstrerror());
+         Mmsg2(jcr->errmsg, _("setacl error on file \"%s\": ERR=%s\n"),
+               jcr->last_fname, be.bstrerror());
          Dmsg3(100, "setacl error acl=%s file=%s ERR=%s\n",
-            jcr->acl_data, jcr->last_fname, be.bstrerror());
+               jcr->acl_data, jcr->last_fname, be.bstrerror());
          return bsub_exit_nok;
       }
    }
@@ -907,10 +907,10 @@ static bsub_exit_code solaris_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
       jcr->acl_data_len = 0;
       return bsub_exit_ok;
    case -1:
-      Jmsg2(jcr, M_ERROR, 0, _("pathconf error on file \"%s\": ERR=%s\n"),
-         jcr->last_fname, be.bstrerror());
+      Mmsg2(jcr->errmsg, _("pathconf error on file \"%s\": ERR=%s\n"),
+            jcr->last_fname, be.bstrerror());
       Dmsg2(100, "pathconf error file=%s ERR=%s\n",  
-         jcr->last_fname, be.bstrerror());
+            jcr->last_fname, be.bstrerror());
       return bsub_exit_nok;
    default:
       break;
@@ -920,10 +920,10 @@ static bsub_exit_code solaris_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
     * Get ACL info: don't bother allocating space if there is only a trivial ACL.
     */
    if (acl_get(jcr->last_fname, ACL_NO_TRIVIAL, &aclp) != 0) {
-      Jmsg2(jcr, M_ERROR, 0, _("acl_get error on file \"%s\": ERR=%s\n"),
-         jcr->last_fname, acl_strerror(errno));
+      Mmsg2(jcr->errmsg, _("acl_get error on file \"%s\": ERR=%s\n"),
+            jcr->last_fname, acl_strerror(errno));
       Dmsg2(100, "acl_get error file=%s ERR=%s\n",  
-         jcr->last_fname, acl_strerror(errno));
+            jcr->last_fname, acl_strerror(errno));
       return bsub_exit_nok;
    }
 
@@ -982,14 +982,14 @@ static bsub_exit_code solaris_parse_acl_streams(JCR *jcr, int stream)
       acl_enabled = pathconf(jcr->last_fname, _PC_ACL_ENABLED);
       switch (acl_enabled) {
       case 0:
-         Jmsg1(jcr, M_ERROR, 0, _("Trying to restore acl on file \"%s\" on filesystem without acl support\n"),
-            jcr->last_fname);
+         Mmsg1(jcr->errmsg, _("Trying to restore acl on file \"%s\" on filesystem without acl support\n"),
+               jcr->last_fname);
          return bsub_exit_nok;
       case -1:
-         Jmsg2(jcr, M_ERROR, 0, _("pathconf error on file \"%s\": ERR=%s\n"),
-            jcr->last_fname, be.bstrerror());
+         Mmsg2(jcr->errmsg, _("pathconf error on file \"%s\": ERR=%s\n"),
+               jcr->last_fname, be.bstrerror());
          Dmsg3(100, "pathconf error acl=%s file=%s ERR=%s\n",  
-            jcr->acl_data, jcr->last_fname, be.bstrerror());
+               jcr->acl_data, jcr->last_fname, be.bstrerror());
          return bsub_exit_nok;
       default:
          /*
@@ -1001,8 +1001,8 @@ static bsub_exit_code solaris_parse_acl_streams(JCR *jcr, int stream)
              * An aclent can be restored on filesystems with _ACL_ACLENT_ENABLED or _ACL_ACE_ENABLED support.
              */
             if ((acl_enabled & (_ACL_ACLENT_ENABLED | _ACL_ACE_ENABLED)) == 0) {
-               Jmsg1(jcr, M_ERROR, 0, _("Trying to restore acl on file \"%s\" on filesystem without aclent acl support\n"),
-                  jcr->last_fname);
+               Mmsg1(jcr->errmsg, _("Trying to restore acl on file \"%s\" on filesystem without aclent acl support\n"),
+                     jcr->last_fname);
                return bsub_exit_nok;
             }
             break;
@@ -1011,8 +1011,8 @@ static bsub_exit_code solaris_parse_acl_streams(JCR *jcr, int stream)
              * An ace can only be restored on a filesystem with _ACL_ACE_ENABLED support.
              */
             if ((acl_enabled & _ACL_ACE_ENABLED) == 0) {
-               Jmsg1(jcr, M_ERROR, 0, _("Trying to restore acl on file \"%s\" on filesystem without ace acl support\n"),
-                  jcr->last_fname);
+               Mmsg1(jcr->errmsg, _("Trying to restore acl on file \"%s\" on filesystem without ace acl support\n"),
+                     jcr->last_fname);
                return bsub_exit_nok;
             }
             break;
@@ -1026,10 +1026,10 @@ static bsub_exit_code solaris_parse_acl_streams(JCR *jcr, int stream)
       }
 
       if ((error = acl_fromtext(jcr->acl_data, &aclp)) != 0) {
-         Jmsg2(jcr, M_ERROR, 0, _("acl_fromtext error on file \"%s\": ERR=%s\n"),
-            jcr->last_fname, acl_strerror(error));
+         Mmsg2(jcr->errmsg, _("acl_fromtext error on file \"%s\": ERR=%s\n"),
+               jcr->last_fname, acl_strerror(error));
          Dmsg3(100, "acl_fromtext error acl=%s file=%s ERR=%s\n",  
-            jcr->acl_data, jcr->last_fname, acl_strerror(error));
+               jcr->acl_data, jcr->last_fname, acl_strerror(error));
          return bsub_exit_nok;
       }
 
@@ -1039,15 +1039,15 @@ static bsub_exit_code solaris_parse_acl_streams(JCR *jcr, int stream)
       switch (stream) {
       case STREAM_ACL_SOLARIS_ACLENT:
          if (acl_type(aclp) != ACLENT_T) {
-            Jmsg1(jcr, M_ERROR, 0, _("wrong encoding of acl type in acl stream on file \"%s\"\n"),
-               jcr->last_fname);
+            Mmsg1(jcr->errmsg, _("wrong encoding of acl type in acl stream on file \"%s\"\n"),
+                  jcr->last_fname);
             return bsub_exit_nok;
          }
          break;
       case STREAM_ACL_SOLARIS_ACE:
          if (acl_type(aclp) != ACE_T) {
-            Jmsg1(jcr, M_ERROR, 0, _("wrong encoding of acl type in acl stream on file \"%s\"\n"),
-               jcr->last_fname);
+            Mmsg1(jcr->errmsg, _("wrong encoding of acl type in acl stream on file \"%s\"\n"),
+                  jcr->last_fname);
             return bsub_exit_nok;
          }
          break;
@@ -1065,10 +1065,10 @@ static bsub_exit_code solaris_parse_acl_streams(JCR *jcr, int stream)
        * don't save acls of symlinks (which cannot have acls anyhow)
        */
       if ((error = acl_set(jcr->last_fname, aclp)) == -1 && jcr->last_type != FT_LNK) {
-         Jmsg2(jcr, M_ERROR, 0, _("acl_set error on file \"%s\": ERR=%s\n"),
-            jcr->last_fname, acl_strerror(error));
+         Mmsg2(jcr->errmsg, _("acl_set error on file \"%s\": ERR=%s\n"),
+               jcr->last_fname, acl_strerror(error));
          Dmsg3(100, "acl_set error acl=%s file=%s ERR=%s\n",  
-            jcr->acl_data, jcr->last_fname, acl_strerror(error));
+               jcr->acl_data, jcr->last_fname, acl_strerror(error));
 
          acl_free(aclp);
          return bsub_exit_nok;
@@ -1144,10 +1144,10 @@ static bsub_exit_code solaris_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
          return send_acl_stream(jcr, STREAM_ACL_SOLARIS_ACLENT);
       }
 
-      Jmsg2(jcr, M_ERROR, 0, _("acltotext error on file \"%s\": ERR=%s\n"),
-         jcr->last_fname, be.bstrerror());
+      Mmsg2(jcr->errmsg, _("acltotext error on file \"%s\": ERR=%s\n"),
+            jcr->last_fname, be.bstrerror());
       Dmsg3(100, "acltotext error acl=%s file=%s ERR=%s\n",  
-         jcr->acl_data, jcr->last_fname, be.bstrerror());
+            jcr->acl_data, jcr->last_fname, be.bstrerror());
    }
 
    free(acls);
@@ -1162,10 +1162,10 @@ static bsub_exit_code solaris_parse_acl_streams(JCR *jcr, int stream)
 
    acls = aclfromtext(jcr->acl_data, &n);
    if (!acls) {
-      Jmsg2(jcr, M_ERROR, 0, _("aclfromtext error on file \"%s\": ERR=%s\n"),
-         jcr->last_fname, be.bstrerror());
+      Mmsg2(jcr->errmsg, _("aclfromtext error on file \"%s\": ERR=%s\n"),
+            jcr->last_fname, be.bstrerror());
       Dmsg3(100, "aclfromtext error acl=%s file=%s ERR=%s\n",  
-         jcr->acl_data, jcr->last_fname, be.bstrerror());
+            jcr->acl_data, jcr->last_fname, be.bstrerror());
       return bsub_exit_nok;
    }
 
@@ -1179,10 +1179,10 @@ static bsub_exit_code solaris_parse_acl_streams(JCR *jcr, int stream)
          actuallyfree(acls);
          return bsub_exit_nok;
       default:
-         Jmsg2(jcr, M_ERROR, 0, _("acl(SETACL) error on file \"%s\": ERR=%s\n"),
-            jcr->last_fname, be.bstrerror());
+         Mmsg2(jcr->errmsg, _("acl(SETACL) error on file \"%s\": ERR=%s\n"),
+               jcr->last_fname, be.bstrerror());
          Dmsg3(100, "acl(SETACL) error acl=%s file=%s ERR=%s\n",
-            jcr->acl_data, jcr->last_fname, be.bstrerror());
+               jcr->acl_data, jcr->last_fname, be.bstrerror());
          actuallyfree(acls);
          return bsub_exit_nok;
       }

@@ -349,6 +349,7 @@ public:
    POOLMEM *last_fname;               /* last file saved/verified */
    POOLMEM *acl_data;                 /* data with ACLs for backup/restore */
    uint32_t acl_data_len;             /* length of acl data buffer */
+   uint32_t total_acl_errors;         /* numbers of errors encountered for acl backup/restore */
    POOLMEM *xattr_data;               /* data with Extended Attributes for backup/restore */
    uint32_t xattr_data_len;           /* length of xattr_data buffer */
    int32_t last_type;                 /* type of last file saved/verified */
