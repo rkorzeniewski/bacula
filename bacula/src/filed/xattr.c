@@ -672,7 +672,7 @@ static void add_xattr_link_cache_entry(ino_t inum, char *target)
    ptr = (xattr_link_cache_entry_t *)malloc(sizeof(struct xattr_link_cache_entry));
    memset((caddr_t)ptr, 0, sizeof(struct xattr_link_cache_entry));
    ptr->inum = inum;
-   strncpy(ptr->target, target, sizeof(ptr->target));
+   bstrncpy(ptr->target, target, sizeof(ptr->target));
    xattr_link_cache->append(ptr);
 }
 
@@ -1200,11 +1200,11 @@ static bsub_exit_code solaris_save_xattrs(JCR *jcr, const char *xattr_namespace,
          snprintf(current_xattr_namespace, sizeof(current_xattr_namespace), "%s%s/",
                   xattr_namespace, attr_parent);
       } else {
-         strncpy(current_xattr_namespace, "/", sizeof(current_xattr_namespace));
+         bstrncpy(current_xattr_namespace, "/", sizeof(current_xattr_namespace));
       }
    } else {
       name = jcr->last_fname;
-      strncpy(current_xattr_namespace, "/", sizeof(current_xattr_namespace));
+      bstrncpy(current_xattr_namespace, "/", sizeof(current_xattr_namespace));
    }
 
    /*
