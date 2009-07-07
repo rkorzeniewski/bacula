@@ -915,7 +915,7 @@ static bsub_exit_code solaris_save_xattr(JCR *jcr, int fd, const char *xattr_nam
    bsub_exit_code retval = bsub_exit_nok;
    berrno be;
 
-   snprintf(target_attrname, sizeof(target_attrname), "%s%s", xattr_namespace, attrname);
+   bsnprintf(target_attrname, sizeof(target_attrname), "%s%s", xattr_namespace, attrname);
 
    /*
     * Get the stats of the extended or extensible attribute.
@@ -953,7 +953,7 @@ static bsub_exit_code solaris_save_xattr(JCR *jcr, int fd, const char *xattr_nam
        * Encode the stat struct into an ASCII representation.
        */
       encode_stat(attribs, &st, 0, stream);
-      cnt = snprintf(buffer, sizeof(buffer), "%s%c%s%c%s%c",
+      cnt = bsnprintf(buffer, sizeof(buffer), "%s%c%s%c%s%c",
                      target_attrname, 0, attribs, 0, (acl_text) ? acl_text : "", 0);
       break;
 
@@ -973,11 +973,11 @@ static bsub_exit_code solaris_save_xattr(JCR *jcr, int fd, const char *xattr_nam
           * Encode the stat struct into an ASCII representation and jump out of the function.
           */
          encode_stat(attribs, &st, 0, stream);
-         toplevel_hidden_dir_xattr_data_len = snprintf(toplevel_hidden_dir_xattr_data,
-                                                       sizeof(toplevel_hidden_dir_xattr_data),
-                                                       "%s%c%s%c%s%c",
-                                                       target_attrname, 0, attribs, 0,
-                                                       (acl_text) ? acl_text : "", 0);
+         toplevel_hidden_dir_xattr_data_len = bsnprintf(toplevel_hidden_dir_xattr_data,
+                                                        sizeof(toplevel_hidden_dir_xattr_data),
+                                                        "%s%c%s%c%s%c",
+                                                        target_attrname, 0, attribs, 0,
+                                                        (acl_text) ? acl_text : "", 0);
          goto cleanup;
       } else {
          /*
@@ -985,9 +985,9 @@ static bsub_exit_code solaris_save_xattr(JCR *jcr, int fd, const char *xattr_nam
           * Encode the stat struct into an ASCII representation.
           */
          encode_stat(attribs, &st, 0, stream);
-         cnt = snprintf(buffer, sizeof(buffer),
-                        "%s%c%s%c%s%c",
-                        target_attrname, 0, attribs, 0, (acl_text) ? acl_text : "", 0);
+         cnt = bsnprintf(buffer, sizeof(buffer),
+                         "%s%c%s%c%s%c",
+                         target_attrname, 0, attribs, 0, (acl_text) ? acl_text : "", 0);
       }
       break;
    case S_IFREG:
@@ -1003,9 +1003,9 @@ static bsub_exit_code solaris_save_xattr(JCR *jcr, int fd, const char *xattr_nam
              * Generate a xattr encoding with the reference to the target in there.
              */
             encode_stat(attribs, &st, st.st_ino, stream);
-            cnt = snprintf(buffer, sizeof(buffer),
-                           "%s%c%s%c%s%c",
-                           target_attrname, 0, attribs, 0, xlce->target, 0);
+            cnt = bsnprintf(buffer, sizeof(buffer),
+                            "%s%c%s%c%s%c",
+                            target_attrname, 0, attribs, 0, xlce->target, 0);
             pm_memcpy(jcr->xattr_data, buffer, cnt);
             jcr->xattr_data_len = cnt;
             retval = send_xattr_stream(jcr, stream);
@@ -1034,7 +1034,7 @@ static bsub_exit_code solaris_save_xattr(JCR *jcr, int fd, const char *xattr_nam
        * Encode the stat struct into an ASCII representation.
        */
       encode_stat(attribs, &st, 0, stream);
-      cnt = snprintf(buffer, sizeof(buffer),
+      cnt = bsnprintf(buffer, sizeof(buffer),
                      "%s%c%s%c%s%c",
                      target_attrname, 0, attribs, 0, (acl_text) ? acl_text : "", 0);
 
@@ -1077,9 +1077,9 @@ static bsub_exit_code solaris_save_xattr(JCR *jcr, int fd, const char *xattr_nam
        * Generate a xattr encoding with the reference to the target in there.
        */
       encode_stat(attribs, &st, st.st_ino, stream);
-      cnt = snprintf(buffer, sizeof(buffer),
-                     "%s%c%s%c%s%c",
-                     target_attrname, 0, attribs, 0, link_source, 0);
+      cnt = bsnprintf(buffer, sizeof(buffer),
+                      "%s%c%s%c%s%c",
+                      target_attrname, 0, attribs, 0, link_source, 0);
       pm_memcpy(jcr->xattr_data, buffer, cnt);
       jcr->xattr_data_len = cnt;
       retval = send_xattr_stream(jcr, stream);
@@ -1197,8 +1197,8 @@ static bsub_exit_code solaris_save_xattrs(JCR *jcr, const char *xattr_namespace,
    if (attr_parent) {
       name = attr_parent;
       if (xattr_namespace) {
-         snprintf(current_xattr_namespace, sizeof(current_xattr_namespace), "%s%s/",
-                  xattr_namespace, attr_parent);
+         bsnprintf(current_xattr_namespace, sizeof(current_xattr_namespace), "%s%s/",
+                   xattr_namespace, attr_parent);
       } else {
          bstrncpy(current_xattr_namespace, "/", sizeof(current_xattr_namespace));
       }
