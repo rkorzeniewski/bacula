@@ -241,7 +241,7 @@ static uint32_t serialize_xattr_stream(JCR *jcr, uint32_t expected_serialize_len
    return jcr->xattr_data_len;
 }
 
-static bsub_exit_code generic_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt, int default_stream)
+static bsub_exit_code generic_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
 {
    int count = 0;
    int32_t xattr_list_len,
@@ -433,7 +433,7 @@ static bsub_exit_code generic_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt, int 
    /*
     * Send the datastream to the SD.
     */
-   return send_xattr_stream(jcr, default_stream);
+   return send_xattr_stream(jcr, os_default_xattr_streams[0]);
 
 bail_out:
    xattr_drop_internal_table(xattr_value_list);
@@ -529,7 +529,7 @@ static bsub_exit_code generic_xattr_parse_streams(JCR *jcr, int stream)
 /*
  * For all these os-es setup the build and parse function pointer to the generic functions.
  */
-static bsub_exit_code (*os_build_xattr_streams)(JCR *jcr, FF_PKT *ff_pkt, int default_stream) = generic_xattr_build_streams;
+static bsub_exit_code (*os_build_xattr_streams)(JCR *jcr, FF_PKT *ff_pkt) = generic_xattr_build_streams;
 static bsub_exit_code (*os_parse_xattr_streams)(JCR *jcr, int stream) = generic_xattr_parse_streams;
 
 #elif defined(HAVE_SUN_OS)
@@ -1753,7 +1753,7 @@ cleanup:
    return retval;
 }
 
-static bsub_exit_code solaris_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt, int default_stream)
+static bsub_exit_code solaris_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
 {
    char cwd[PATH_MAX];
    bsub_exit_code retval = bsub_exit_ok;
@@ -1831,7 +1831,7 @@ static bsub_exit_code solaris_parse_xattr_streams(JCR *jcr, int stream)
 /*
  * Function pointers to the build and parse function to use for these xattrs.
  */
-static bsub_exit_code (*os_build_xattr_streams)(JCR *jcr, FF_PKT *ff_pkt, int default_stream) = solaris_build_xattr_streams;
+static bsub_exit_code (*os_build_xattr_streams)(JCR *jcr, FF_PKT *ff_pkt) = solaris_build_xattr_streams;
 static bsub_exit_code (*os_parse_xattr_streams)(JCR *jcr, int stream) = solaris_parse_xattr_streams;
 
 #endif /* defined(HAVE_SUN_OS) */
@@ -1839,7 +1839,7 @@ static bsub_exit_code (*os_parse_xattr_streams)(JCR *jcr, int stream) = solaris_
 bsub_exit_code build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
 {
    if (os_build_xattr_streams) {
-      return (*os_build_xattr_streams)(jcr, ff_pkt, os_default_xattr_streams[0]);
+      return (*os_build_xattr_streams)(jcr, ff_pkt);
    }
    return bsub_exit_nok;
 }
