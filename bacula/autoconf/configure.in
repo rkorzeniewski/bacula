@@ -1210,6 +1210,24 @@ AC_ARG_WITH(basename,
 
 AC_SUBST(basename)
 
+dnl ------------------------------------------------------------------
+dnl Allow the user to override the hostname (default = machine hostname)
+dnl ------------------------------------------------------------------
+hostname=`uname -n | cut -d '.' -f 1`
+if test x${hostname} = x ; then
+  hostname="localhost"
+fi
+AC_ARG_WITH(hostname,
+   AC_HELP_STRING([--with-hostname=RESNAME], [specify host name for daemons]),
+   [
+       if test "x$withval" != "xno" ; then
+	 hostname=$withval
+       fi
+   ]
+)
+
+AC_SUBST(hostname)
+
 
 dnl ------------------------------------------
 dnl Where to place scriptdir (script files)
