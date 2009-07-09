@@ -478,7 +478,7 @@ static bsub_exit_code generic_set_acl_on_os(JCR *jcr, bacl_type acltype)
       switch (errno) {
       case ENOENT:
          acl_free(acl);
-         return bsub_exit_nok;
+         return bsub_exit_ok;
       default:
          Mmsg2(jcr->errmsg, _("acl_set_file error on file \"%s\": ERR=%s\n"),
                jcr->last_fname, be.bstrerror());
@@ -824,7 +824,7 @@ static bsub_exit_code hpux_parse_acl_streams(JCR *jcr, int stream)
    if (setacl(jcr->last_fname, n, acls) != 0 && jcr->last_type != FT_LNK) {
       switch (errno) {
       case ENOENT:
-         return bsub_exit_nok;
+         return bsub_exit_ok;
       default:
          Mmsg2(jcr->errmsg, _("setacl error on file \"%s\": ERR=%s\n"),
                jcr->last_fname, be.bstrerror());
@@ -1177,7 +1177,7 @@ static bsub_exit_code solaris_parse_acl_streams(JCR *jcr, int stream)
       switch (errno) {
       case ENOENT:
          actuallyfree(acls);
-         return bsub_exit_nok;
+         return bsub_exit_ok;
       default:
          Mmsg2(jcr->errmsg, _("acl(SETACL) error on file \"%s\": ERR=%s\n"),
                jcr->last_fname, be.bstrerror());
