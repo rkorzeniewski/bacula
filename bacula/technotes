@@ -3,8 +3,12 @@
 General:
 
 09Jul09
+<<<<<<< HEAD:bacula/technotes
 mvw  Changed ACL_OTHER into ACL_OTHER_OBJ as IRIX doesn't seem to have
      ACL_OTHER. Fixes bug #1333
+=======
+kes  Add --with-hostname to ./configure
+>>>>>>> Add --with-hostname to ./configure:bacula/technotes
 04Jul09
 mvw  Change checking for acl and xattr support from first file to
      job level.
