@@ -283,7 +283,7 @@ static bool acl_is_trivial(acl_t acl)
        */
       if (tag != ACL_USER_OBJ &&
           tag != ACL_GROUP_OBJ &&
-          tag != ACL_OTHER)
+          tag != ACL_OTHER_OBJ)
          return false;
    }
 
