@@ -3,6 +3,7 @@
 General:
 
 10Jul09
+ebl  Print correct JobId in bls, should fix #1331
 kes  Apply python detect patch from Bastian Friedrich <bastian.friedrich@collax.com>
 09Jul09
 kes  Add --with-hostname to ./configure
