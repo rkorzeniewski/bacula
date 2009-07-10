@@ -2,6 +2,8 @@
           
 General:
 
+10Jul09
+kes  Apply python detect patch from Bastian Friedrich <bastian.friedrich@collax.com>
 09Jul09
 kes  Add --with-hostname to ./configure
 mvw  Changed ACL_OTHER into ACL_OTHER_OBJ as IRIX doesn't seem to have
