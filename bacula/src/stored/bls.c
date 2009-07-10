@@ -420,6 +420,7 @@ static void get_session_record(DEVICE *dev, DEV_RECORD *rec, SESSION_LABEL *sess
 {
    const char *rtype;
    memset(sessrec, 0, sizeof(sessrec));
+   jcr->JobId = 0;
    switch (rec->FileIndex) {
    case PRE_LABEL:
       rtype = _("Fresh Volume Label");
@@ -431,6 +432,7 @@ static void get_session_record(DEVICE *dev, DEV_RECORD *rec, SESSION_LABEL *sess
    case SOS_LABEL:
       rtype = _("Begin Job Session");
       unser_session_label(sessrec, rec);
+      jcr->JobId = sessrec->JobId;
       break;
    case EOS_LABEL:
       rtype = _("End Job Session");
