@@ -1846,6 +1846,9 @@ static bsub_exit_code (*os_parse_xattr_streams)(JCR *jcr, int stream) = solaris_
 
 #endif /* defined(HAVE_SUN_OS) */
 
+/*
+ * Entry points when compiled with support for XATTRs on a supported platform.
+ */
 bsub_exit_code build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
 {
    if (os_build_xattr_streams) {
