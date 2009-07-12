@@ -248,7 +248,7 @@ static bsub_exit_code generic_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
            xattr_value_len;
    uint32_t expected_serialize_len = 0;
    char *xattr_list, *bp;
-   xattr_t *xattr_value_list, *current_xattr;
+   xattr_t *xattr_value_list = NULL, *current_xattr;
    berrno be;
 
    /*
@@ -317,8 +317,8 @@ static bsub_exit_code generic_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
    }
 
    if (count == 0) {
-      free(xattr_list);
-      return bsub_exit_ok;
+      retval = bsub_exit_ok;
+      goto bail_out;
    }
 
    /*
@@ -336,6 +336,11 @@ static bsub_exit_code generic_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
    bp = xattr_list;
    while ((bp - xattr_list) + 1 < xattr_list_len) {
 #if defined(HAVE_LINUX_OS)
+      /*
+       * On Linux you also get the acls in the extented attribute list.
+       * So we check if we are already backing up acls and if we do we
+       * don't store the extended attribute with the same info.
+       */
       if (ff_pkt->flags & FO_ACL && !strcmp(bp, "system.posix_acl_access")) {
          bp = strchr(bp, '\0') + 1;
          continue;
@@ -436,7 +441,9 @@ static bsub_exit_code generic_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
    return send_xattr_stream(jcr, os_default_xattr_streams[0]);
 
 bail_out:
-   xattr_drop_internal_table(xattr_value_list);
+   if (xattr_value_list) {
+      xattr_drop_internal_table(xattr_value_list);
+   }
    free(xattr_list);
    return bsub_exit_nok;
 }
