@@ -1701,6 +1701,9 @@ static bsub_exit_code solaris_restore_xattrs(JCR *jcr, bool is_extensible)
              */
             retval = bsub_exit_ok;
             break;
+         case ENOENT:
+            retval = bsub_exit_ok;
+            break;
          default:
             Mmsg3(jcr->errmsg, _("Unable to restore owner of xattr %s on file \"%s\": ERR=%s\n"),
                   target_attrname, jcr->last_fname, be.bstrerror());
