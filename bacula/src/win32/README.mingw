@@ -1,5 +1,5 @@
 
-Instructions to build Bacula using the Mingw on Linux
+Instructions for cross compiling the Win32/64 FD on Linux
 =======================================================
 
 This file documents the tools (scripts) we use for building Bacula for
@@ -119,7 +119,9 @@ it is relatively obvious when looking at the src directory.
 In that directory, you should find a make.log, which has the full details
 of the compiles, links, and installs done for that package.
 
-Build the 64 bit cross-tools and mingw64:
+===
+Building the 64 bit cross-tools and mingw64:
+
 When building the mingw64 environment and all dependencies
 (cross-tools, and depkgs-mingw64) should be compiled by hand with
 host=x86_64-pc-linux and target=x86_64-pc-mingw32.  
