@@ -2,6 +2,8 @@
           
 General:
 
+13Jul09
+kes  Create build scripts for Win64 somewhat equilavent to the Win32 ones.
 10Jul09
 ebl  Print correct JobId in bls, should fix #1331
 kes  Apply python detect patch from Bastian Friedrich <bastian.friedrich@collax.com>
