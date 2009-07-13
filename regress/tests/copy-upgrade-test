@@ -176,7 +176,7 @@ awk '/You have selected the following JobIds:/ { print $7 }' \
 awk '/should restore with/ { print $5 }' \
       ${cwd}/tmp/log2.out > ${cwd}/tmp/should
 
-diff ${cwd}/tmp/real ${cwd}/tmp/should
+diff -u ${cwd}/tmp/real ${cwd}/tmp/should
 if [ $? -ne 0 ]; then
     print_debug "Bad job selection!!!"
     rstat=2
