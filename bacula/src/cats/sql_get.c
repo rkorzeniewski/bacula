@@ -33,7 +33,7 @@
  *
  *    Kern Sibbald, March 2000
  *
- *    Version $Id$
+ *    Version $Id: sql_get.c 8918 2009-06-23 11:56:35Z ricozz $
  */
 
 
