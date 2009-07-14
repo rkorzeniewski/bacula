@@ -183,9 +183,9 @@ public:
    bool is_job_canceled() {return job_canceled(this); };
    int32_t get_JobType() { return m_JobType; };
    int32_t get_JobLevel() { return m_JobLevel; };
-   bool no_client_used() { 
+   bool no_client_used() {
       return (m_JobType == JT_MIGRATE || m_JobType == JT_COPY ||
-              m_JobLevel == L_VIRTUAL_FULL); 
+              m_JobLevel == L_VIRTUAL_FULL);
    };
    const char *get_OperationName();    /* in lib/jcr.c */
    const char *get_ActionName(bool past); /* in lib/jcr.c */
