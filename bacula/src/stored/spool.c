@@ -221,6 +221,10 @@ static bool despool_data(DCR *dcr, bool commit)
    char ec1[50];
 
    Dmsg0(100, "Despooling data\n");
+   if (jcr->dcr->job_spool_size == 0) {
+      Jmsg(jcr, M_WARNING, 0, _("Despooling zero bytes. Your disk is probably FULL!\n"));
+   }
+
    /*
     * Commit means that the job is done, so we commit, otherwise, we
     *  are despooling because of user spool size max or some error  
@@ -515,6 +519,9 @@ static bool write_spool_header(DCR *dcr)
               be.bstrerror());
       }
       if (stat != (ssize_t)sizeof(hdr)) {
+         Jmsg(dcr->jcr, M_ERROR, 0, _("Error writing header to spool file."
+              " Disk probably full. Attempting recovery. Wanted to write=%d got=%d\n"),
+              (int)stat, (int)sizeof(hdr));
          /* If we wrote something, truncate it, then despool */
          if (stat != -1) {
 #if defined(HAVE_WIN32)
