@@ -2,6 +2,8 @@
           
 General:
 
+14Jul09
+kes  More cleanup of bootstrap
 13Jul09
 kes  Send bootstrap directly from DIR to SD
 kes  Create build scripts for Win64 somewhat equilavent to the Win32 ones.
