@@ -146,7 +146,6 @@ bool job_cmd(JCR *jcr)
    jcr->PreferMountedVols = PreferMountedVols;
 
    jcr->authenticated = false;
-   jcr->need_fd = true;
 
    /*
     * Pass back an authorization key for the File daemon
@@ -174,7 +173,7 @@ bool run_cmd(JCR *jcr)
    /* If we do not need the FD, we are doing a migrate, copy, or virtual
     *   backup.
     */
-   if (!jcr->need_fd) {
+   if (jcr->no_client_used()) {
       do_mac(jcr);
       return false;
    }

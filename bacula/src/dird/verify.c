@@ -53,7 +53,9 @@ static char storaddr[]     = "storage address=%s port=%d ssl=0\n";
 /* Responses received from File daemon */
 static char OKverify[]    = "2000 OK verify\n";
 static char OKstore[]     = "2000 OK storage\n";
-static char OKbootstrap[] = "2000 OK bootstrap\n";
+
+/* Responses received from the Storage daemon */
+static char OKbootstrap[] = "3000 OK bootstrap\n";
 
 /* Forward referenced functions */
 static void prt_fname(JCR *jcr);
@@ -201,6 +203,7 @@ bool do_verify(JCR *jcr)
       edit_uint64(jcr->JobId, ed1), level_to_str(jcr->get_JobLevel()), jcr->Job);
 
    if (jcr->get_JobLevel() == L_VERIFY_VOLUME_TO_CATALOG) {
+      BSOCK *sd;
       /*
        * Start conversation with Storage daemon
        */
@@ -214,7 +217,15 @@ bool do_verify(JCR *jcr)
       if (!start_storage_daemon_job(jcr, jcr->rstorage, NULL)) {
          return false;
       }
-      if (!jcr->store_bsock->fsend("run")) {
+      sd = jcr->store_bsock;
+      /*
+       * Send the bootstrap file -- what Volumes/files to restore
+       */
+      if (!send_bootstrap_file(jcr, sd) ||
+          !response(jcr, sd, OKbootstrap, "Bootstrap", DISPLAY_ERROR)) {
+         goto bail_out;
+      }
+      if (!sd->fsend("run")) {
          return false;
       }
       /*
@@ -269,14 +280,6 @@ bool do_verify(JCR *jcr)
       }
       bnet_fsend(fd, storaddr, jcr->rstore->address, jcr->rstore->SDDport);
       if (!response(jcr, fd, OKstore, "Storage", DISPLAY_ERROR)) {
-         goto bail_out;
-      }
-
-      /*
-       * Send the bootstrap file -- what Volumes/files to restore
-       */
-      if (!send_bootstrap_file(jcr, fd) ||
-          !response(jcr, fd, OKbootstrap, "Bootstrap", DISPLAY_ERROR)) {
          goto bail_out;
       }
 

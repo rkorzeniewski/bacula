@@ -439,6 +439,43 @@ void wait_for_storage_daemon_termination(JCR *jcr)
    set_jcr_job_status(jcr, JS_Terminated);
 }
 
+/*
+ * Send bootstrap file to Storage daemon.
+ *  This is used for restore, verify VolumeToCatalog, migration,
+ *    and copy Jobs.
+ */
+bool send_bootstrap_file(JCR *jcr, BSOCK *sd)
+{
+   FILE *bs;
+   char buf[1000];
+   const char *bootstrap = "bootstrap\n";
+
+   Dmsg1(400, "send_bootstrap_file: %s\n", jcr->RestoreBootstrap);
+   if (!jcr->RestoreBootstrap) {
+      return true;
+   }
+   bs = fopen(jcr->RestoreBootstrap, "rb");
+   if (!bs) {
+      berrno be;
+      Jmsg(jcr, M_FATAL, 0, _("Could not open bootstrap file %s: ERR=%s\n"),
+         jcr->RestoreBootstrap, be.bstrerror());
+      set_jcr_job_status(jcr, JS_ErrorTerminated);
+      return false;
+   }
+   sd->fsend(bootstrap);
+   while (fgets(buf, sizeof(buf), bs)) {
+      sd->fsend("%s", buf);
+   }
+   sd->signal(BNET_EOD);
+   fclose(bs);
+   if (jcr->unlink_bsr) {
+      unlink(jcr->RestoreBootstrap);
+      jcr->unlink_bsr = false;
+   }                         
+   return true;
+}
+
+
 #ifdef needed
 #define MAX_TRIES 30
 #define WAIT_TIME 2
