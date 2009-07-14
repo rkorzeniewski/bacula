@@ -1103,7 +1103,7 @@ bool db_accurate_get_jobids(JCR *jcr, B_DB *mdb,
    char clientid[50], jobid[50], filesetid[50];
    char date[MAX_TIME_LENGTH];
    POOL_MEM query(PM_FNAME);
-   bstrutime(date, sizeof(date),  time(NULL) + 1);
+   bstrutime(date, sizeof(date),  jr->JobTDate + 1);
    jobids[0]='\0';
 
    /* First, find the last good Full backup for this job/client/fileset */
@@ -1134,11 +1134,13 @@ bool db_accurate_get_jobids(JCR *jcr, B_DB *mdb,
   "WHERE ClientId = %s "
     "AND Level='D' AND JobStatus IN ('T','W') AND Type='B' "
     "AND StartTime > (SELECT EndTime FROM btemp3%s ORDER BY EndTime DESC LIMIT 1) "
+    "AND StartTime < '%s' "
     "AND FileSet.FileSet= (SELECT FileSet FROM FileSet WHERE FileSetId = %s) "
   "ORDER BY Job.JobTDate DESC LIMIT 1 ",
            jobid,
            clientid,
            jobid,
+           date,
            filesetid);
 
       if (!db_sql_query(mdb, query.c_str(), NULL, NULL)) {
@@ -1153,11 +1155,13 @@ bool db_accurate_get_jobids(JCR *jcr, B_DB *mdb,
   "WHERE ClientId = %s "
     "AND Level='I' AND JobStatus IN ('T','W') AND Type='B' "
     "AND StartTime > (SELECT EndTime FROM btemp3%s ORDER BY EndTime DESC LIMIT 1) "
+    "AND StartTime < '%s' "
     "AND FileSet.FileSet= (SELECT FileSet FROM FileSet WHERE FileSetId = %s) "
   "ORDER BY Job.JobTDate DESC ",
            jobid,
            clientid,
            jobid,
+           date,
            filesetid);
       if (!db_sql_query(mdb, query.c_str(), NULL, NULL)) {
          goto bail_out;
