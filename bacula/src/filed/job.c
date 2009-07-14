@@ -118,7 +118,7 @@ static struct s_cmds cmds[] = {
    {".status",      qstatus_cmd,   1},
    {"storage ",     storage_cmd,   0},
    {"verify",       verify_cmd,    0},
-   {"bootstrap",    bootstrap_cmd, 0},
+// {"bootstrap",    bootstrap_cmd, 0},
    {"RunBeforeNow", runbeforenow_cmd, 0},
    {"RunBeforeJob", runbefore_cmd, 0},
    {"RunAfterJob",  runafter_cmd,  0},
