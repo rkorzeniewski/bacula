@@ -109,7 +109,7 @@ FileSet {
 #    directory to give a reasonable FileSet to backup to
 #    disk storage during initial testing.
 #
-    File = @BUILD_DIR@
+    File = @sbindir@
   }
 
 #
