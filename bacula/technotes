@@ -6,6 +6,7 @@ General:
 kes  More cleanup of bootstrap
 ebl  Implement the project 'restore' menu: enter a JobId, automatically 
      select dependents
+ebl  Should fix #1323 about verify accurate jobs and deleted files.
 13Jul09
 kes  Send bootstrap directly from DIR to SD
 kes  Create build scripts for Win64 somewhat equilavent to the Win32 ones.
