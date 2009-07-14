@@ -299,8 +299,7 @@ if [ $? -ne 0 ]; then
    bstat=$?
 fi
 
-check_for_zombie_jobs storage=LTO3
-exit 1
+check_for_zombie_jobs storage=LTO3 client=${HOST}-fd
 stop_bacula
 
 check_two_logs
