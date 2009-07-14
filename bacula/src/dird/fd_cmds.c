@@ -543,43 +543,6 @@ bool send_exclude_list(JCR *jcr)
    return true;
 }
 
-
-/*
- * Send bootstrap file if any to the socket given (FD or SD).
- *  This is used for restore, verify VolumeToCatalog, and
- *  for migration.
- */
-bool send_bootstrap_file(JCR *jcr, BSOCK *sock)
-{
-   FILE *bs;
-   char buf[1000];
-   const char *bootstrap = "bootstrap\n";
-
-   Dmsg1(400, "send_bootstrap_file: %s\n", jcr->RestoreBootstrap);
-   if (!jcr->RestoreBootstrap) {
-      return true;
-   }
-   bs = fopen(jcr->RestoreBootstrap, "rb");
-   if (!bs) {
-      berrno be;
-      Jmsg(jcr, M_FATAL, 0, _("Could not open bootstrap file %s: ERR=%s\n"),
-         jcr->RestoreBootstrap, be.bstrerror());
-      set_jcr_job_status(jcr, JS_ErrorTerminated);
-      return false;
-   }
-   sock->fsend(bootstrap);
-   while (fgets(buf, sizeof(buf), bs)) {
-      sock->fsend("%s", buf);
-   }
-   sock->signal(BNET_EOD);
-   fclose(bs);
-   if (jcr->unlink_bsr) {
-      unlink(jcr->RestoreBootstrap);
-      jcr->unlink_bsr = false;
-   }                         
-   return true;
-}
-
 /* TODO: drop this with runscript.old_proto in bacula 1.42 */
 static char runbefore[]   = "RunBeforeJob %s\n";
 static char runafter[]    = "RunAfterJob %s\n";

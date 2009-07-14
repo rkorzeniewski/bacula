@@ -3,6 +3,7 @@
 General:
 
 13Jul09
+kes  Send bootstrap directly from DIR to SD
 kes  Create build scripts for Win64 somewhat equilavent to the Win32 ones.
 10Jul09
 ebl  Print correct JobId in bls, should fix #1331
@@ -11,7 +12,6 @@ kes  Apply python detect patch from Bastian Friedrich <bastian.friedrich@collax.
 kes  Add --with-hostname to ./configure
 mvw  Changed ACL_OTHER into ACL_OTHER_OBJ as IRIX doesn't seem to have
      ACL_OTHER. Fixes bug #1333
-=======
 04Jul09
 mvw  Change checking for acl and xattr support from first file to
      job level.
