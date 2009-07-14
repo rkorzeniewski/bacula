@@ -402,7 +402,7 @@ POSTGRESQL_ROW my_postgresql_fetch_row(B_DB *mdb)
    }
 
    // if still within the result set
-   if (mdb->row_number < mdb->num_rows) {
+   if (mdb->row_number >= 0 && mdb->row_number < mdb->num_rows) {
       Dmsg2(500, "my_postgresql_fetch_row row number '%d' is acceptable (0..%d)\n", mdb->row_number, mdb->num_rows);
       // get each value from this row
       for (j = 0; j < mdb->num_fields; j++) {
@@ -538,7 +538,8 @@ int my_postgresql_query(B_DB *mdb, const char *query)
       mdb->num_rows = PQntuples(mdb->result);
       Dmsg1(500, "we have %d rows\n", mdb->num_rows);
 
-      mdb->status = 0;                  /* succeed */
+      mdb->row_number = 0;      /* we can start to fetch something */
+      mdb->status = 0;          /* succeed */
    } else {
       Dmsg1(50, "Result status failed: %s\n", query);
       goto bail_out;
