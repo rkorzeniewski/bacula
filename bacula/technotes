@@ -3,6 +3,7 @@
 General:
 
 14Jul09
+kes  Tweak debug print in accurate
 kes  Apply patch in bug #1315 by McMichaeli that fixes scripts/logwatch
 kes  Add more output when spooling and no space left
 ebl  Fix postgresql driver bug that displayed <NULL> rows from time to time.
