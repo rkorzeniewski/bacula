@@ -31,12 +31,13 @@ Enhancements:
  - Add a restore menu that contructs a full restore when entering a JobId
  - Add new Nagios plugin
 
-Note, both the Director and Storage daemons must be upgraded at the
-same time. The 3.0.2 File daemons are compatible with 3.0.1 file
-daemons and as noted below in the 3.0.2 release notes the Director
-and Storage daemon should be compatible with 2.4.x File daemons.  
-We do not expect any of the 3.0.2 File daemons to work with older
-Directors and Storage daemons.
+Compatibility:
+Like always, both the Director and Storage daemons must be upgraded at
+the same time.
+
+Older 3.0.x and possibly 2.4.x File Daemons are compatible with the 3.0.2
+Director and Storage daemons. It should be no need to upgrade older File
+Daemon.
 
 ============ Documentation improvements needed ==================
 
