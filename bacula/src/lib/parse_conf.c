@@ -788,11 +788,11 @@ CONFIG *new_config_parser()
 void CONFIG::init(
    const char *cf,
    LEX_ERROR_HANDLER *scan_error,
-   int err_type,
+   int32_t err_type,
    void *vres_all,
-   int res_all_size,
-   int r_first,
-   int r_last,
+   int32_t res_all_size,
+   int32_t r_first,
+   int32_t r_last,
    RES_TABLE *resources,
    RES **res_head)
 {
