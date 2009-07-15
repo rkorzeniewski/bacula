@@ -1241,18 +1241,29 @@ Item 38: Backup and Restore of Windows Encrypted Files using Win raw encryption
            encrypted-file-related callback functions.
 
 
-Item 39: Implement an interface between Bacula and Amazon's S3.
+Item 39: Implement an interface between Bacula and Storage clould like Amazon's S3.
   Date:  25 August 2008
   Origin: Soren Hansen <soren@ubuntu.com>
   Status: Not started.
   What:  Enable the storage daemon to store backup data on Amazon's
           S3 service.
 
-  Why:   Amazon's S3 is a cheap way to store data off-site. Current
-          ways to integrate Bacula and S3 involve storing all the data
-          locally and syncing them to S3, and manually fetching them
-          again when they're needed. This is very cumbersome.
+  Why:   Amazon's S3 is a cheap way to store data off-site. 
 
+  Notes: If we configure the Pool to put only one job per volume (they don't
+         support append operation), and the volume size isn't to big (100MB?),
+         it should be easy to adapt the disk-changer script to add get/put
+         procedure with curl. So, the data would be safetly copied during the
+         Job. 
+
+         Cloud should be only used with Copy jobs, users should always have
+         a copy of their data on their site.
+
+         We should also think to have our own cache, trying always to have
+         cloud volume on the local disk. (I don't know if users want to store
+         100GB on cloud, so it shouldn't be a disk size problem). For example,
+         if bacula want to recycle a volume, it will start by downloading the
+         file to truncate it few seconds later, if we can avoid that...
 
 Item 40: Convert Bacula existing tray monitor on Windows to a stand alone program
    Date: 26 April 2009
