@@ -2,6 +2,8 @@
           
 General:
 
+15Jul09
+kes  Add more example SD Device configurations.
 14Jul09
 kes  Tweak debug print in accurate
 kes  Apply patch in bug #1315 by McMichaeli that fixes scripts/logwatch
