@@ -43,6 +43,7 @@ make clean
 make -j3
 check_exit_code
 make install
+rm -rf examples patches
 check_exit_code
 # eliminate non-essential directories to reduce
 #   size.  Otherwise regress run too long
