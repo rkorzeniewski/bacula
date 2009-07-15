@@ -148,7 +148,12 @@ static bool check_database_encoding(JCR *jcr, B_DB *mdb)
       Jmsg(jcr, M_ERROR, 0, "Can't check database encoding %s", mdb->errmsg);
    } else {
       ret = bstrcmp(row[0], "SQL_ASCII");
-      if (!ret) {
+
+      if (ret) {
+         /* if we are in SQL_ASCII, we can force the client_encoding to SQL_ASCII too */
+         db_sql_query(mdb, "SET client_encoding TO 'SQL_ASCII'", NULL, NULL);
+
+      } else {                  /* something is wrong with database encoding */
          Mmsg(mdb->errmsg, 
               _("Encoding error for database \"%s\". Wanted SQL_ASCII, got %s\n"),
               mdb->db_name, row[0]);
