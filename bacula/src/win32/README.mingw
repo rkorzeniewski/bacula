@@ -15,17 +15,21 @@ We expect that there may be problems on systems other than Linux where you
 are pretty much on your own.  However, we will try to provide responses to
 your questions on the bacula-devel list, but we can't guarantee anything.
 
+Note: the environment variable DEPKGS must point to a directory that
+contains: depkgs-mingw32 depkgs-mingw-w64 and cross-tools
+
 Directory Structure
 =====================
 The new directory structure is:
 
-  bacula-top                 Top level directory -- any name
+ xxx  (any directory)
     bacula                   Top level Bacula source directory -- any name
       src
         win32                Main directory where Windows version is built.
 
     docs                     Top level Bacula documentation directory
 
+ yyy (any directory, but pointed to by the DEPKGS environment variable)
     depkgs-mingw32 (MinGW32) 3rd Party Dependencies for MinGW32 build
       bin              --    NOTE!  depkgs-msvc is no longer suppored
       include            |
