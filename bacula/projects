@@ -71,11 +71,11 @@ Item  1: Ability to restart failed jobs
 Item  2: 'restore' menu: enter a JobId, automatically select dependents 
 Origin: Graham Keeling (graham@equiinet.com)
 Date:  13 March 2009
-
 Status: Done in 3.0.2
 
-What:  Add to the bconsole 'restore' menu the ability to select a job 
-        by JobId, and have bacula automatically select all the dependent jobs.
+What:   Add to the bconsole 'restore' menu the ability to select a job
+        by JobId, and have bacula automatically select all the
+        dependent jobs.
 
         Why: Currently, you either have to...
         a) laboriously type in a date that is greater than the date of the backup that
@@ -981,7 +981,7 @@ Item 30: Automatic disabling of devices
 Item 31: List InChanger flag when doing restore.
  Origin: Jesper Krogh<jesper@krogh.cc>
    Date: 17 Oct 2008
- Status:
+ Status: Done in version 3.0.2
 
    What: When doing a restore the restore selection dialog ends by telling stuff 
       like this:
