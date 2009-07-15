@@ -3,6 +3,8 @@
 General:
 
 15Jul09
+kes  Make CONF::init header and .c file agree about types.
+     Reported by "Eli Shemer" <elish@consist.co.il>
 kes  Fix Win64 build
 kes  Add more example SD Device configurations.
 ebl  Force the client_encoding to SQL_ASCII when database is already
