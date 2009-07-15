@@ -44,6 +44,11 @@
 #include "bacula.h"
 #include "cats.h"
 
+const char *cleanup_created_job =
+   "UPDATE Job SET JobStatus='f', StartTime=SchedTime, EndTime=SchedTime "
+   "WHERE JobStatus = 'C'";
+const char *cleanup_running_job = 
+   "UPDATE Job SET JobStatus='f', EndTime=StartTime WHERE JobStatus = 'R'";
 
 /* For sql_update.c db_update_stats */
 const char *fill_jobhisto =
