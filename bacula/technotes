@@ -7,6 +7,8 @@ kes  Fix Win64 build
 kes  Add more example SD Device configurations.
 ebl  Cleanup old job records when starting the director 
      (Created/Running -> Failed)
+ebl  Force the client_encoding to SQL_ASCII when database is already
+     using this mode.
 14Jul09
 kes  Tweak debug print in accurate
 kes  Apply patch in bug #1315 by McMichaeli that fixes scripts/logwatch
