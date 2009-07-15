@@ -3,6 +3,7 @@
 General:
 
 15Jul09
+kes  Fix Win64 build
 kes  Add more example SD Device configurations.
 ebl  Cleanup old job records when starting the director 
      (Created/Running -> Failed)
