@@ -1,50 +1,51 @@
                 
 Projects:
                      Bacula Projects Roadmap 
-                    Status updated 04 Jun 2009
+                    Status updated 14 Jun 2009
 
 Summary:
+* => item complete
 
-Item  1: Ability to restart failed jobs
-Item  2: 'restore' menu: enter a JobId, automatically select dependents
-Item  3: Scheduling syntax that permits more flexibility and options
-Item  4: Data encryption on storage daemon
-Item  5: Deletion of disk Volumes when pruned
-Item  6: Implement Base jobs
-Item  7: Add ability to Verify any specified Job.
-Item  8: Improve Bacula's tape and drive usage and cleaning management
-Item  9: Allow FD to initiate a backup
-Item 10: Restore from volumes on multiple storage daemons
-Item 11: Implement Storage daemon compression
-Item 12: Reduction of communications bandwidth for a backup
-Item 13: Ability to reconnect a disconnected comm line
-Item 14: Start spooling even when waiting on tape
-Item 15: Enable/disable compression depending on storage device (disk/tape)
-Item 16: Include all conf files in specified directory
-Item 17: Multiple threads in file daemon for the same job
-Item 18: Possibilty to schedule Jobs on last Friday of the month
-Item 19: Include timestamp of job launch in "stat clients" output
-Item 20: Cause daemons to use a specific IP address to source communications
-Item 21: Message mailing based on backup types
-Item 22: Ability to import/export Bacula database entities
-Item 23: "Maximum Concurrent Jobs" for drives when used with changer device
-Item 24: Implementation of running Job speed limit.
-Item 25: Add an override in Schedule for Pools based on backup types
-Item 26: Automatic promotion of backup levels based on backup size
-Item 27: Allow inclusion/exclusion of files in a fileset by creation/mod times
-Item 28: Archival (removal) of User Files to Tape
-Item 29: An option to operate on all pools with update vol parameters
-Item 30: Automatic disabling of devices
-Item 31: List InChanger flag when doing restore.
-Item 32: Ability to defer Batch Insert to a later time
-Item 33: Add MaxVolumeSize/MaxVolumeBytes statement to Storage resource
-Item 34: Enable persistent naming/number of SQL queries
-Item 35: Port bat to Win32
-Item 36: Bacula Dir, FD and SD to support proxies
-Item 37: Add Minumum Spool Size directive
-Item 38: Backup and Restore of Windows Encrypted Files using Win raw encryption
-Item 39: Implement an interface between Bacula and Amazon's S3.
-Item 40: Convert Bacula existing tray monitor on Windows to a stand alone program
+ Item  1: Ability to restart failed jobs
+*Item  2: 'restore' menu: enter a JobId, automatically select dependents
+ Item  3: Scheduling syntax that permits more flexibility and options
+ Item  4: Data encryption on storage daemon
+ Item  5: Deletion of disk Volumes when pruned
+ Item  6: Implement Base jobs
+ Item  7: Add ability to Verify any specified Job.
+ Item  8: Improve Bacula's tape and drive usage and cleaning management
+ Item  9: Allow FD to initiate a backup
+ Item 10: Restore from volumes on multiple storage daemons
+ Item 11: Implement Storage daemon compression
+ Item 12: Reduction of communications bandwidth for a backup
+ Item 13: Ability to reconnect a disconnected comm line
+ Item 14: Start spooling even when waiting on tape
+ Item 15: Enable/disable compression depending on storage device (disk/tape)
+ Item 16: Include all conf files in specified directory
+ Item 17: Multiple threads in file daemon for the same job
+ Item 18: Possibilty to schedule Jobs on last Friday of the month
+ Item 19: Include timestamp of job launch in "stat clients" output
+ Item 20: Cause daemons to use a specific IP address to source communications
+ Item 21: Message mailing based on backup types
+ Item 22: Ability to import/export Bacula database entities
+ Item 23: "Maximum Concurrent Jobs" for drives when used with changer device
+ Item 24: Implementation of running Job speed limit.
+ Item 25: Add an override in Schedule for Pools based on backup types
+ Item 26: Automatic promotion of backup levels based on backup size
+ Item 27: Allow inclusion/exclusion of files in a fileset by creation/mod times
+ Item 28: Archival (removal) of User Files to Tape
+ Item 29: An option to operate on all pools with update vol parameters
+ Item 30: Automatic disabling of devices
+*Item 31: List InChanger flag when doing restore.
+ Item 32: Ability to defer Batch Insert to a later time
+ Item 33: Add MaxVolumeSize/MaxVolumeBytes statement to Storage resource
+ Item 34: Enable persistent naming/number of SQL queries
+ Item 35: Port bat to Win32
+ Item 36: Bacula Dir, FD and SD to support proxies
+ Item 37: Add Minumum Spool Size directive
+ Item 38: Backup and Restore of Windows Encrypted Files using Win raw encryption
+ Item 39: Implement an interface between Bacula and Amazon's S3.
+ Item 40: Convert Bacula existing tray monitor on Windows to a stand alone program
 
 Item  1: Ability to restart failed jobs
    Date: 26 April 2009
