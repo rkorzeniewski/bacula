@@ -53,7 +53,6 @@ extern int job_setattr(PyObject *self, char *attrname, PyObject *value);
 /* Forward referenced subroutines */
 void terminate_dird(int sig);
 static bool check_resources();
-static bool check_catalog();
 static void dir_sql_query(JCR *jcr, const char *cmd);
   
 /* Exported subroutines */
@@ -96,7 +95,15 @@ extern "C" { // work around visual compiler mangling variables
 extern URES res_all;
 #endif
 
+typedef enum {
+   CHECK_CONNECTION,  /* Check catalog connection */
+   UPDATE_CATALOG,    /* Ensure that catalog is ok with conf */
+   UPDATE_AND_FIX     /* Ensure that catalog is ok, and fix old jobs */
+} cat_op;
+static bool check_catalog(cat_op mode);
+
 #define CONFIG_FILE "bacula-dir.conf" /* default configuration file */
+
 
 static void usage()
 {
@@ -265,11 +272,14 @@ int main (int argc, char *argv[])
 
    drop(uid, gid);                    /* reduce privileges if requested */
 
-   if (!check_catalog()) {
+   /* If we are in testing mode, we don't try to fix the catalog */
+   cat_op mode=(test_config)?CHECK_CONNECTION:UPDATE_AND_FIX;
+
+   if (!check_catalog(mode)) {
       Jmsg((JCR *)NULL, M_ERROR_TERM, 0, _("Please correct configuration file: %s\n"), configfile);
    }
-
-   if (test_config) {
+   
+   if (test_config) {      
       terminate_dird(0);
    }
 
@@ -513,7 +523,7 @@ void reload_config(int sig)
    ok = parse_dir_config(config, configfile, M_ERROR);
 
    Dmsg0(100, "Reloaded config file\n");
-   if (!ok || !check_resources() || !check_catalog()) {
+   if (!ok || !check_resources() || !check_catalog(UPDATE_CATALOG)) {
       rtable = find_free_reload_table_entry();    /* save new, bad table */
       if (rtable < 0) {
          Jmsg(NULL, M_ERROR, 0, _("Please correct configuration file: %s\n"), configfile);
@@ -905,7 +915,13 @@ static bool check_resources()
    return OK;
 }
 
-static bool check_catalog()
+/* 
+ * In this routine, 
+ *  - we can check the connection (mode=CHECK_CONNECTION)
+ *  - we can synchronize the catalog with the configuration (mode=UPDATE_CATALOG)
+ *  - we can synchronize, and fix old job records (mode=UPDATE_AND_FIX)
+ */
+static bool check_catalog(cat_op mode)
 {
    bool OK = true;
    bool need_tls;
@@ -933,6 +949,12 @@ static bool check_catalog()
             db_close_database(NULL, db);
          }
          OK = false;
+         continue;
+      }
+
+      /* we are in testing mode, so don't touch anything in the catalog */
+      if (mode == CHECK_CONNECTION) {
+         db_close_database(NULL, db);
          continue;
       }
 
@@ -1055,6 +1077,12 @@ static bool check_catalog()
             counter->CurrentValue = counter->MinValue;  /* default value */
          }
       }
+      /* cleanup old job records */
+      if (mode == UPDATE_AND_FIX) {
+         db_sql_query(db, cleanup_created_job, NULL, NULL);
+         db_sql_query(db, cleanup_running_job, NULL, NULL);
+      }
+
       db_close_database(NULL, db);
    }
    /* Set type in global for debugging */
