@@ -710,6 +710,7 @@ int my_postgresql_batch_end(JCR *jcr, B_DB *mdb, const char *error)
 {
    int res;
    int count=30;
+   PGresult *result;
    Dmsg0(500, "my_postgresql_batch_end started\n");
 
    if (!mdb) {                  /* no files ? */
@@ -730,7 +731,15 @@ int my_postgresql_batch_end(JCR *jcr, B_DB *mdb, const char *error)
       mdb->status = 0;
       Mmsg1(&mdb->errmsg, _("error ending batch mode: %s"), PQerrorMessage(mdb->db));
    }
-   
+
+   /* Check command status and return to normal libpq state */
+   result = PQgetResult(mdb->db);
+   if (PQresultStatus(result) != PGRES_COMMAND_OK) {
+      Mmsg1(&mdb->errmsg, _("error ending batch mode: %s"), PQerrorMessage(mdb->db));
+      mdb->status = 0;
+   }
+   PQclear(result); 
+
    Dmsg0(500, "my_postgresql_batch_end finishing\n");
 
    return mdb->status;
@@ -775,7 +784,7 @@ int my_postgresql_batch_insert(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
    if (res <= 0) {
       Dmsg0(500, "we failed\n");
       mdb->status = 0;
-      Mmsg1(&mdb->errmsg, _("error ending batch mode: %s"), PQerrorMessage(mdb->db));
+      Mmsg1(&mdb->errmsg, _("error copying in batch mode: %s"), PQerrorMessage(mdb->db));
    }
 
    Dmsg0(500, "my_postgresql_batch_insert finishing\n");
