@@ -30,6 +30,12 @@ sed -i 's!Client Run Before Job = "/bin/sleep 2"!!' bin/bacula-dir.conf
 scripts/prepare-fake-autochanger
 
 echo "${cwd}/build" >${cwd}/tmp/file-list
+echo "${cwd}/build" >>${cwd}/tmp/file-list
+echo "${cwd}/build" >>${cwd}/tmp/file-list
+echo "${cwd}/build" >>${cwd}/tmp/file-list
+echo "${cwd}/build" >>${cwd}/tmp/file-list
+echo "${cwd}/build" >>${cwd}/tmp/file-list
+echo "${cwd}/build" >>${cwd}/tmp/file-list
 
 start_test
 
