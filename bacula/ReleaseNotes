@@ -6,14 +6,14 @@
 Note, if you are not already running 3.0.x, read the 3.0.x release notes 
 below.  Important!!!
 
-Version 3.0.2 is primarily a minor bug fix update to version 3.0.1 with
+Version 3.0.2 is primarily a important bug fix update to version 3.0.1 with
 some enhancements (see below).
 
 Changes since 3.0.1:
 
 Bug fixes:
   1029, 1285, 1298, 1303, 1304, 1305, 1306, 1307, 1308, 1309, 1311, 1315
-  1317, 1318, 1323, 1331, 1333, 1335
+  1317, 1318, 1323, 1325, 1331, 1333, 1335
 
 Fixed:
  - Fix problem with the Postgresql driver that sometime displays <NULL> values
