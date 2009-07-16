@@ -44,23 +44,11 @@ cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @$out ${cwd}/tmp/log1.out
 messages
 @#label barcodes slots=1-10 pool=Scratch storage=LTO3 drive=0
-add pool=Inc storage=LTO3 drive=0
-1
-vol
-1
-1
-yes
-add pool=Inc storage=LTO3 drive=0
-1
-vol
-2
-2
-yes
 list volumes
 @$out ${cwd}/tmp/log1.out
-run storage=LTO3 when="$when1" job=NightlySave  pool=Inc     yes
-run storage=LTO3 when="$when1" job=NightlySave2 pool=Inc     yes
-run storage=LTO3 when="$when1" job=NightlySave1 pool=Inc     yes
+run storage=File when="$when1" job=NightlySave  pool=Inc     yes
+run storage=File when="$when1" job=NightlySave2 pool=Inc     yes
+run storage=File when="$when1" job=NightlySave1 pool=Inc     yes
 @sleep 6
 messages
 wait
@@ -69,7 +57,7 @@ quit
 END_OF_DATA
 
 run_bacula
-check_for_zombie_jobs storage=LTO3 $clientname
+check_for_zombie_jobs storage=File $clientname
 
 
 stop_bacula
