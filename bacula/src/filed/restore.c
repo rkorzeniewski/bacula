@@ -610,7 +610,7 @@ void do_restore(JCR *jcr)
          if (have_acl) {
             pm_memcpy(jcr->acl_data, sd->msg, sd->msglen);
             jcr->acl_data_len = sd->msglen;
-            if (!parse_acl_stream(jcr, rctx.stream)) {
+            if (parse_acl_streams(jcr, rctx.stream) != bsub_exit_ok) {
                Qmsg1(jcr, M_WARNING, 0, _("Can't restore ACLs of %s\n"), jcr->last_fname);
             }
          } else {
@@ -636,7 +636,7 @@ void do_restore(JCR *jcr)
          if (have_xattr) {
             pm_memcpy(jcr->xattr_data, sd->msg, sd->msglen);
             jcr->xattr_data_len = sd->msglen;
-            if (!parse_xattr_stream(jcr, rctx.stream)) {
+            if (parse_xattr_streams(jcr, rctx.stream) != bsub_exit_ok) {
                Qmsg1(jcr, M_WARNING, 0, _("Can't restore Extended Attributes of %s\n"), jcr->last_fname);
             }
          } else {

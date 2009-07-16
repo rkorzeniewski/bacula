@@ -600,7 +600,7 @@ int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
     */
    if (have_acl) {
       if (ff_pkt->flags & FO_ACL && ff_pkt->type != FT_LNK && !ff_pkt->cmd_plugin) {
-         if (!build_acl_streams(jcr, ff_pkt))
+         if (build_acl_streams(jcr, ff_pkt) == bsub_exit_fatal)
             goto bail_out;
       }
    }
@@ -610,7 +610,7 @@ int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
     */
    if (have_xattr) {
       if (ff_pkt->flags & FO_XATTR && !ff_pkt->cmd_plugin) {
-         if (!build_xattr_streams(jcr, ff_pkt))
+         if (build_xattr_streams(jcr, ff_pkt) == bsub_exit_fatal)
             goto bail_out;
       }
    }

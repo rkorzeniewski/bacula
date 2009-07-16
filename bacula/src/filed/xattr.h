@@ -52,7 +52,6 @@ typedef struct xattr {
 typedef struct xattr_link_cache_entry {
    uint32_t inum;
    char target[PATH_MAX];
-   struct xattr_link_cache_entry *next;
 } xattr_link_cache_entry_t;
 
 /*
