@@ -3,6 +3,7 @@
 General:
 
 16Jul09
+ebl  Replace info_msg by send_msg in status slots command.
 ebl  Fix #1323 about a problem when mounting a requested volume
      during a restore.
 15Jul09
