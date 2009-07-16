@@ -18,6 +18,9 @@
      <tr><td>Drive number (if any):</td> 
          <td><input size='3' type='text' name='drive' value='0' class='formulaire'></td>
      </tr>
+     <tr><td>Slot number (if any):</td> 
+         <td><input size='3' type='text' name='slot' value='0' class='formulaire'></td>
+     </tr>
      <tr><td>Action:</td> 
          <td>
 <button type="submit" class="bp" name='storage_cmd' value='mount'

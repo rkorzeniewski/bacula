@@ -4450,6 +4450,7 @@ sub do_update_media
         title => "Update a volume ",
         name => $update,
         id => $cur_id++,
+        hide_output => 1,
     }, "command.tpl");  
 
 
@@ -4859,11 +4860,11 @@ sub cmd_storage
 {
     my ($self) = @_;
     $self->can_do('r_storage_mgnt');
-    my $arg = $self->get_form(qw/storage storage_cmd drive/);
+    my $arg = $self->get_form(qw/storage storage_cmd drive slot/);
     my $b = $self->get_bconsole();
 
     if ($arg->{storage} and $arg->{storage_cmd}) {
-        my $cmd = "$arg->{storage_cmd} storage=\"$arg->{storage}\" drive=$arg->{drive}";
+        my $cmd = "$arg->{storage_cmd} storage=\"$arg->{storage}\" drive=$arg->{drive} slot=$arg->{slot}";
         my $ret = $b->send_cmd($cmd);
 
         $self->display({

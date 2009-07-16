@@ -18,16 +18,19 @@
      <tr><td>Drive number (if any):</td> 
          <td><input size='3' type='text' name='drive' value='0' class='formulaire'></td>
      </tr>
+     <tr><td>Slot number (if any):</td> 
+         <td><input size='3' type='text' name='slot' value='0' class='formulaire'></td>
+     </tr>
      <tr><td>Action:</td> 
          <td>
 <button type="submit" class="bp" name='storage_cmd' value='mount'
- title='Charger un lecteur'> <img src='/bweb/load.png' alt=''>Mount</button>
+ title='mount drive'> <img src='/bweb/load.png' alt=''>Mount</button>
 <button type="submit" class="bp" name='storage_cmd' value='umount'
- title='Décharger un lecteur'> <img src='/bweb/unload.png' alt=''>Umount</button>
+ title='umount drive'> <img src='/bweb/unload.png' alt=''>Umount</button>
 <button type="submit" class="bp" name='storage_cmd' value='release'
  title='release drive'> <img src='/bweb/unload.png' alt=''>Release</button>
 <button type="submit" class="bp" name='storage_cmd' value='status'
- title='status drive'> <img src='/bweb/zoom.png' alt=''>Statut</button>
+ title='status drive'> <img src='/bweb/zoom.png' alt=''>Status</button>
          </td>
      </tr>
     </table>
