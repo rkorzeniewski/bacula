@@ -91,11 +91,10 @@
     <property name="title" >
      <string>&amp;File</string>
     </property>
-    <addaction name="actionPrint" />
-    <addaction name="actionSave" />
-    <addaction name="actionQuit" />
     <addaction name="actionRepopLists" />
     <addaction name="actionReloadRepop" />
+    <addaction name="separator" />
+    <addaction name="actionQuit" />
    </widget>
    <addaction name="menuFile" />
    <addaction name="menuSettings" />
