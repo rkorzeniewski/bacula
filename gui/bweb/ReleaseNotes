@@ -1,3 +1,8 @@
+          Release Notes for bweb 3.0.2
+
+ - Fix graph_font parameter to work with graph module
+ - Avoid warning messages in apache log with graph module
+
           Release Notes for bweb 3.0
 
  - Support Copy and Migration jobs

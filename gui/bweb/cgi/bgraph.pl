@@ -218,16 +218,20 @@ sub get_graph
 		'x_number_format' => sub { strftime('%D', localtime($_[0])) },
 		'x_tick_number' => 5*$arg->{width}/800,
                 'overwrite' => 1,
-                dclrs => [ add_colour("#afd8f8"), add_colour("#f6bd0f"),
+                dclrs => [ add_colour("#008e8e"), 
+                           add_colour("#afd8f8"), add_colour("#f6bd0f"),
                            add_colour("#8bba00"), add_colour("#ff8e46"),
-                           add_colour("#008e8e"), add_colour("#d64646"),
+                           add_colour("#d64646"),
                            add_colour("#8e468e"), add_colour("#588526"),
                            add_colour("#b3aa00"), add_colour("#008ed6"),
                            add_colour("#9d080d"), add_colour("#a186be"),
                 ],
 		@options,
 		);
-
+    if (-f $conf->{graph_font}) {
+        $graph->set_title_font([$conf->{graph_font}], 12);
+        $graph->set_legend_font([$conf->{graph_font}], 11);
+    }
     return $graph;
 }
 
@@ -243,7 +247,7 @@ sub make_tab
     foreach my $row (@$all_row) {
 	my $label = $row->[1] . "/" . $row->[2] ; # client/backup name
 
-	if ($arg->{level} eq 'All') {		  # can separate level
+	if ($arg->{level} && $arg->{level} eq 'All') {  # can separate level
 	    $label = $row->[4] . ': ' . $label;	  # if users ask for
 	}
 
