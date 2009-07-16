@@ -34,7 +34,7 @@ Enhancements:
  - Add new Nagios plugin
 
 Compatibility:
-Like always, both the Director and Storage daemons must be upgraded at
+Like always, both the Director and Storage daemon must be upgraded at
 the same time.
 
 Older 3.0.x and possibly 2.4.x File Daemons are compatible with the 3.0.2
