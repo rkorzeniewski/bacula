@@ -93,7 +93,7 @@ MediaEdit::MediaEdit(QTreeWidgetItem *parentWidget, QString &mediaId)
    }
    query += " FROM Media"
             " JOIN Pool ON (Media.PoolId=Pool.PoolId)"
-            " LEFT OUTER JOIN Pool AS Pol ON (Media.recyclepoolid=Pol.PoolId)"
+            " LEFT OUTER JOIN Pool AS Pol ON (Media.RecyclePoolId=Pol.PoolId)"
             " WHERE Media.MediaId='" + mediaId + "'";
 
    if (mainWin->m_sqlDebug) {
