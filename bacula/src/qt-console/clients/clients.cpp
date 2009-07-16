@@ -208,7 +208,6 @@ void Clients::tableItemChanged(QTableWidgetItem *currentwidgetitem, QTableWidget
       /* The Previous item */
       if (previouswidgetitem) { /* avoid a segfault if first time */
          tableWidget->removeAction(actionListJobsofClient);
-         tableWidget->removeAction(actionStatusClientInConsole);
          tableWidget->removeAction(actionStatusClientWindow);
          tableWidget->removeAction(actionPurgeJobs);
          tableWidget->removeAction(actionPrune);
@@ -218,7 +217,6 @@ void Clients::tableItemChanged(QTableWidgetItem *currentwidgetitem, QTableWidget
          /* set a hold variable to the client name in case the context sensitive
           * menu is used */
          tableWidget->addAction(actionListJobsofClient);
-         tableWidget->addAction(actionStatusClientInConsole);
          tableWidget->addAction(actionStatusClientWindow);
          tableWidget->addAction(actionPurgeJobs);
          tableWidget->addAction(actionPrune);
@@ -245,8 +243,6 @@ void Clients::createContextMenu()
                 SLOT(populateTable()));
    connect(actionListJobsofClient, SIGNAL(triggered()), this,
                 SLOT(showJobs()));
-   connect(actionStatusClientInConsole, SIGNAL(triggered()), this,
-                SLOT(consoleStatusClient()));
    connect(actionStatusClientWindow, SIGNAL(triggered()), this,
                 SLOT(statusClientWindow()));
    connect(actionPurgeJobs, SIGNAL(triggered()), this,
