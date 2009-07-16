@@ -191,6 +191,8 @@ sub get_graph
 {
     my (@options) = @_;
     my $graph;
+    use GD::Graph::colour qw(:colours);
+
     if ($gtype eq 'lines') {
 	use GD::Graph::lines;
 	$graph = GD::Graph::lines->new ( $arg->{width}, $arg->{height} );
@@ -216,6 +218,13 @@ sub get_graph
 		'x_number_format' => sub { strftime('%D', localtime($_[0])) },
 		'x_tick_number' => 5*$arg->{width}/800,
                 'overwrite' => 1,
+                dclrs => [ add_colour("#afd8f8"), add_colour("#f6bd0f"),
+                           add_colour("#8bba00"), add_colour("#ff8e46"),
+                           add_colour("#008e8e"), add_colour("#d64646"),
+                           add_colour("#8e468e"), add_colour("#588526"),
+                           add_colour("#b3aa00"), add_colour("#008ed6"),
+                           add_colour("#9d080d"), add_colour("#a186be"),
+                ],
 		@options,
 		);
 
