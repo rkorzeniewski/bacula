@@ -143,7 +143,7 @@ void Console::populateLists(bool forcenew)
          return;
       }
    } else {
-      if(!availableDirComm(conn)) {
+      if (!availableDirComm(conn)) {
          Pmsg1(000, "availableDirComm Seems to Failed to find a connection for populateListsi %s\n", m_dir->name());
          return;
       }
@@ -639,11 +639,11 @@ void Console::discardToPrompt(int conn)
 /*
  * When the notifier is enabled, read_dir() will automatically be
  * called by the Qt event loop when ever there is any output 
- * from the Directory, and read_dir() will then display it on
+ * from the Director, and read_dir() will then display it on
  * the console.
  *
  * When we are in a bat dialog, we want to control *all* output
- * from the Directory, so we set notify to off.
+ * from the Director, so we set notify to off.
  *    m_console->notifiy(false);
  */
 
