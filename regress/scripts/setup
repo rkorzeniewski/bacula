@@ -25,11 +25,15 @@ rm -rf build bin
 # Copy new source
 echo "Copying source from ${BACULA_SOURCE}"
 cp -rp ${BACULA_SOURCE} build
-cd build
-rm -rf txt src/testprogs
-cd ..
-check_exit_code
 scripts/create_sed
+# In default bacula-dir.conf.in, change default file 
+# to backup to be build directory
+echo "s%File = @sbindir@%File = @BUILD_DIR@%g" >tmp/t$$
+sed -f tmp/t$$ build/src/dird/bacula-dir.conf.in >tmp/o$$
+cp tmp/o$$ build/src/dird/bacula-dir.conf.in
+rm -f tmp/t$$ tmp/o$$
+# remove unneeded directories
+rm -rf build/txt build/src/testprogs
 sed -f tmp/sed_tmp scripts/regress-config.in >scripts/regress-config
 chmod 755 scripts/regress-config
 cp scripts/regress-config build
