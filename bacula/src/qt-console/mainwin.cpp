@@ -267,7 +267,6 @@ void MainWin::connectSignals()
    connect(actionPreferences, SIGNAL(triggered()), this,  SLOT(setPreferences()));
    connect(actionRepopLists, SIGNAL(triggered()), this,  SLOT(repopLists()));
    connect(actionReloadRepop, SIGNAL(triggered()), this,  SLOT(reloadRepopLists()));
-   connect(actionBack, SIGNAL(triggered()), this,  SLOT(goToPreviousPage()));
 }
 
 void MainWin::disconnectSignals()
@@ -295,7 +294,6 @@ void MainWin::disconnectSignals()
    disconnect(actionPreferences, SIGNAL(triggered()), this,  SLOT(setPreferences()));
    disconnect(actionRepopLists, SIGNAL(triggered()), this,  SLOT(repopLists()));
    disconnect(actionReloadRepop, SIGNAL(triggered()), this,  SLOT(reloadRepopLists()));
-   disconnect(actionBack, SIGNAL(triggered()), this,  SLOT(goToPreviousPage()));
 }
 
 /*
@@ -338,14 +336,12 @@ void MainWin::connectConsoleSignals()
 {
    connect(actionConnect, SIGNAL(triggered()), m_currentConsole, SLOT(connect_dir()));
    connect(actionSelectFont, SIGNAL(triggered()), m_currentConsole, SLOT(set_font()));
-   connect(actionStatusDir, SIGNAL(triggered()), m_currentConsole, SLOT(status_dir()));
    connect(actionMessages, SIGNAL(triggered()), m_currentConsole, SLOT(messages()));
 }
 
 void MainWin::disconnectConsoleSignals(Console *console)
 {
    disconnect(actionConnect, SIGNAL(triggered()), console, SLOT(connect_dir()));
-   disconnect(actionStatusDir, SIGNAL(triggered()), console, SLOT(status_dir()));
    disconnect(actionMessages, SIGNAL(triggered()), console, SLOT(messages()));
    disconnect(actionSelectFont, SIGNAL(triggered()), console, SLOT(set_font()));
 }
