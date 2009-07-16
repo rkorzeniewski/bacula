@@ -2,6 +2,9 @@
           
 General:
 
+16Jul09
+ebl  Fix #1323 about a problem when mounting a requested volume
+     during a restore.
 15Jul09
 kes  Make CONF::init header and .c file agree about types.
      Reported by "Eli Shemer" <elish@consist.co.il>

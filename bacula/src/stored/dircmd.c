@@ -660,8 +660,9 @@ static bool mount_cmd(JCR *jcr)
             /* Someone is waiting, wake him */
             Dmsg0(100, "Waiting for mount. Attempting to wake thread\n");
             dev->set_blocked(BST_MOUNT);
-            dir->fsend("3001 OK mount. Device=%s\n", 
-               dev->print_name());
+            dir->fsend("3001 OK mount requested. %sDevice=%s\n", 
+                       slot>0?_("Specified slot ignored. "):"",
+                       dev->print_name());
             pthread_cond_broadcast(&dev->wait_next_vol);
             Dmsg1(100, "JobId=%u broadcast wait_device_release\n", (uint32_t)dcr->jcr->JobId);
             pthread_cond_broadcast(&wait_device_release);
