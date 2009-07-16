@@ -218,7 +218,7 @@ sub get_graph
 		'x_number_format' => sub { strftime('%D', localtime($_[0])) },
 		'x_tick_number' => 5*$arg->{width}/800,
                 'overwrite' => 1,
-                dclrs => [ add_colour("#008e8e"), 
+                dclrs => [ "lred", add_colour("#008e8e"), 
                            add_colour("#afd8f8"), add_colour("#f6bd0f"),
                            add_colour("#8bba00"), add_colour("#ff8e46"),
                            add_colour("#d64646"),
