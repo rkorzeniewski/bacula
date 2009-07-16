@@ -111,9 +111,9 @@ void ClientStat::timerTriggered()
 void ClientStat::populateCurrentTab(int index)
 {
    if (index == 0)
-      populateHeader();
-   if (index == 1)
       populateRunning();
+   if (index == 1)
+      populateHeader();
 }
 
 /*
