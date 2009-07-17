@@ -2,6 +2,8 @@
           
 General:
 
+17Jul09
+ebl  Fix sql query for sqlite on suse10 on copy job
 16Jul09
 ebl  tweak some bat screens
 ebl  Replace info_msg by send_msg in status slots command.
