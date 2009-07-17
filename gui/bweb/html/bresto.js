@@ -1033,6 +1033,7 @@ Ext.onReady(function(){
                 useregexp_bp.disable();
                 rwhere_text.disable();
             }
+            Ext.brestore.use_filerelocation = state;
         }); 
 
         useregexp_bp.on('check', function(bp,state) {
