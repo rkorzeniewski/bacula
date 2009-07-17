@@ -4021,13 +4021,14 @@ sub display_running_job
 
     my $query = "
 SELECT Client.Name AS name, Job.Name AS jobname, 
-       Job.Level AS level, Type AS type
+       Job.Level AS level, Type AS type, JobStatus AS jobstatus
 FROM Job INNER JOIN Client USING (ClientId) $filter
 WHERE Job.JobId = $arg->{jobid}
 ";
 
     my $row = $self->dbh_selectrow_hashref($query);
-    
+    my $status = $row->{jobstatus};
+
     if ($row) {
         $arg->{client} = $row->{name};
     } else {
@@ -4052,8 +4053,10 @@ SELECT  corr_jobbytes, jobbytes, corr_jobfiles, jobfiles
             $row->{jobbytes} = $row->{jobfiles} = 0;
         }
     }
-    my $cli = new Bweb::Client(name => $arg->{client});
-    $cli->display_running_job($self, $arg->{jobid}, $row);
+    if ($status =~ /[RBSmMsjlL]/) {
+        my $cli = new Bweb::Client(name => $arg->{client});
+        $cli->display_running_job($self, $arg->{jobid}, $row);
+    }
     if ($arg->{jobid}) {
         $self->get_job_log();
     }
