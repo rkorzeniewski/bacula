@@ -55,7 +55,8 @@ list volumes
 run storage=File when="$when1" job=NightlySave  pool=Inc     yes
 run storage=File when="$when1" job=NightlySave2 pool=Inc     yes
 run storage=File when="$when1" job=NightlySave1 pool=Inc     yes
-@sleep 6
+#
+#@sleep 6
 messages
 wait
 messages
