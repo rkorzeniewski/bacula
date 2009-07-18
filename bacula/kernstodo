@@ -1,5 +1,5 @@
                     Kern's ToDo List
-                    21 June 2009
+                     17 July 2009
 
 Rescue:
 Add to USB key:
@@ -57,14 +57,11 @@ Professional Needs:
 - Detect state change of system (verify)
 - Synthetic Full, Diff, Inc (Virtual, Reconstructed)
 - SD to SD
-- Modules for Databases, Exchange, ...
 - Novell NSS backup http://www.novell.com/coolsolutions/tools/18952.html
 - Compliance norms that compare restored code hash code.
 - When glibc crash, get address with
     info symbol 0x809780c
 - How to sync remote offices.
-- Exchange backup:
-  http://www.microsoft.com/technet/itshowcase/content/exchbkup.mspx
 - David's priorities
    Copypools
    Extract capability (#25)
@@ -91,7 +88,6 @@ Priority:
   messages and make errors non-fatal.
 - Put save/restore various platform acl/xattrs on a pointer to simplify
   the code.
-  
 
 - Why no error message if restore has no permission on the where
   directory?
