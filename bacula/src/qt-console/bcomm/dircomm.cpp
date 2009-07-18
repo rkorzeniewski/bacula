@@ -96,7 +96,9 @@ bool DirComm::connect_dir()
    memset(jcr, 0, sizeof(JCR));
 
    mainWin->set_statusf(_("Connecting to Director %s:%d"), m_console->m_dir->address, m_console->m_dir->DIRport);
-   m_console->display_textf(_("Connecting to Director %s:%d\n\n"), m_console->m_dir->address, m_console->m_dir->DIRport);
+   if (m_conn == 0) {
+      m_console->display_textf(_("Connecting to Director %s:%d\n\n"), m_console->m_dir->address, m_console->m_dir->DIRport);
+   }
 
    /* Give GUI a chance */
    app->processEvents();

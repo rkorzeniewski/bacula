@@ -160,7 +160,9 @@ bool DirComm::authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons,
          dir->host(), dir->port());
       return false;
    } else {
-      bsnprintf(errmsg, errmsg_len, "%s", dir->msg);
+      if (m_conn == 0) { 
+         bsnprintf(errmsg, errmsg_len, "%s", dir->msg);
+      }
    }
    return true;
 
