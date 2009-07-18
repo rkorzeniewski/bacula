@@ -1,0 +1,28 @@
+#!/bin/sh
+
+# start bweb with lighttpd
+
+BASE=$(dirname $0)
+
+if [ -f $PWD/html/bweb.js ]; then
+   BWEBBASE=$PWD
+
+elif [ -f $PWD/../html/bweb.js ]; then
+    BWEBBASE=$(dirname $PWD)
+
+elif [ -f $BASE/html/bweb.js ]; then
+    BWEBBASE=$BASE
+
+else
+    echo "Can't determine bweb installation directory"
+    exit 1
+fi
+
+host=$(awk -F'"' '/bind/ { print $2 }' $BWEBBASE/script/httpd.conf)
+port=$(awk '/port/ { print $3 }' $BWEBBASE/script/httpd.conf)
+
+echo "Using bweb on $BWEBBASE,  use firefox http://$host:$port"
+export BWEBBASE
+export PERL5LIB=$BWEBBASE/lib
+
+lighttpd -f $BWEBBASE/script/httpd.conf

@@ -5,67 +5,21 @@
 Bweb works well with 2.0 release or later.
 
 1) install Perl lib
-2) copy your files
-3) initialize your configuration file
-4) do some sql stuff (for postgresql or mysql 5 users)
-5) use the -n option on bconsole so that it works with Expect
-6) get bacula log more useful
-7) bweb limitation
-8) using sudo with autochanger
-9) using bfileview.pl
-10) accessing to bweb
-11) setting mysql read-only account
-12) get more statistics
-13) use users and groups with bweb
-14) setup restoration in bweb
+2) using lighttpd
+3) copy your files (using apache)
+4) initialize your configuration file
+5) do some sql stuff (for postgresql or mysql 5 users)
+6) use the -n option on bconsole so that it works with Expect
+7) get bacula log more useful
+8) bweb limitation
+9) using sudo with autochanger
+10) using bfileview.pl
+11) accessing to bweb
+12) setting mysql read-only account
+13) get more statistics
+14) use users and groups with bweb
+15) setup restoration in bweb
 
-################ FILE COPY #####################################
- # you must get bweb svn files
- svn checkout https://bacula.svn.sourceforge.net/svnroot/bacula/trunk/gui/bweb bweb
-
- # or get them from the released tar files or from the apt or rpms.
-
- #
- # Once you have the gui directory loaded, follow the instructions below
- #  or edit the environment variables in the file install_bweb
- #  then execute it. install_web does everything to the next
- #  set of #######'s.
- #
-
- # first, copy the bweb Perl library into your PERL5 INC path
- perl Makefile.PL
- make install
- # or
- install -m 644 -o root -g root  bweb/lib/*.pm /usr/share/perl5
-
- # copy the bweb perl program to your cgi location
- mkdir -m 755 /usr/lib/cgi-bin/bweb
- install -m 755 -o root -g root  bweb/cgi/*.pl /usr/lib/cgi-bin/bweb
-
- # get a config file, if you want to use an other place edit lib/Bweb.pm
- mkdir -m 755 /etc/bacula
- chown root:bacula /etc/bacula
- echo '$VAR1 = { template_dir => "/usr/share/bweb/tpl" };' > /etc/bacula/bweb.conf
- chown www-data /etc/bacula/bweb.conf
-
- # copy the bweb template file
- mkdir -p /usr/share/bweb/tpl/en
- install -m 644 -o root -g root  bweb/lang/en/tpl/*.tpl /usr/share/bweb/tpl/en
-
- # copy the bweb graphics elements (bweb elements must reside in /bweb)
- mkdir /var/www/bweb
- install -m 644 -o root -g root  bweb/html/*.{js,png,css,gif,ico,html} /var/www/bweb
-
- # done !
-
- WARNING : Your www-data (or wwwrun on SuSE) user must be able to execute bconsole and able 
-           to read the bconsole.conf file!
-           You can create an bconsole group for that.
-
-################ USE FRENCH/SPANISH VERSION ####################
-
-Simply copy lang/fr/tpl/*.tpl files to .../tpl/fr/*.tpl and choose
-your language in the configuration panel.
 
 ################ INSTALL PERL LIBRARY ##########################
 
@@ -110,6 +64,81 @@ your language in the configuration panel.
 
  If you experience problems, always consult the Apache error_log
  file.
+
+
+################# USE LIGHTTPD WITH BWEB #######################
+
+In this example, bweb files are in /home/bacula/bweb
+
+bacula:~$ cd bweb
+bacula:~/bweb$ sed -i "s:/etc/bacula/bweb.conf:$PWD/bweb.conf:" lib/Bweb.pm
+bacula:~/bweb$ cat > bweb.conf <<EOF
+$VAR1 = { template_dir => '$PWD/lang',
+          fv_write_path => '/tmp/',
+ };
+EOF
+
+
+# You can start the web server from the bweb directory
+bacula@localhost:~/bweb$ ./script/starthttp
+ Using bweb on /home/eric/dev/git/gui/bweb,  use firefox http://localhost:9180
+ 2009-07-18 22:23:12: (log.c.75) server started
+
+
+By default, only the loopback interface is binded, you can change that
+in the bweb/script/httpd.conf file.
+
+
+################ FILE COPY (Full Apache methode) ###############
+ # you must get bweb svn files
+ svn checkout https://bacula.svn.sourceforge.net/svnroot/bacula/trunk/gui/bweb bweb
+
+ # or get them from the released tar files or from the apt or rpms.
+
+ #
+ # Once you have the gui directory loaded, follow the instructions below
+ #  or edit the environment variables in the file install_bweb
+ #  then execute it. install_web does everything to the next
+ #  set of #######'s.
+ #
+
+ # first, copy the bweb Perl library into your PERL5 INC path
+ perl Makefile.PL
+ make install
+ # or
+ install -m 644 -o root -g root  bweb/lib/*.pm /usr/share/perl5
+
+
+
+ # copy the bweb perl program to your cgi location
+ mkdir -m 755 /usr/lib/cgi-bin/bweb
+ install -m 755 -o root -g root  bweb/cgi/*.pl /usr/lib/cgi-bin/bweb
+
+ # get a config file, if you want to use an other place edit lib/Bweb.pm
+ mkdir -m 755 /etc/bacula
+ chown root:bacula /etc/bacula
+ echo '$VAR1 = { template_dir => "/usr/share/bweb/tpl" };' > /etc/bacula/bweb.conf
+ chown www-data /etc/bacula/bweb.conf
+
+ # copy the bweb template file
+ mkdir -p /usr/share/bweb/tpl/en
+ install -m 644 -o root -g root  bweb/lang/en/tpl/*.tpl /usr/share/bweb/tpl/en
+
+ # copy the bweb graphics elements (bweb elements must reside in /bweb)
+ mkdir /var/www/bweb
+ install -m 644 -o root -g root  bweb/html/*.{js,png,css,gif,ico,html} /var/www/bweb
+
+ # done !
+
+ WARNING : Your www-data (or wwwrun on SuSE) user must be able to execute bconsole and able 
+           to read the bconsole.conf file!
+           You can create an bconsole group for that.
+
+################ USE FRENCH/SPANISH VERSION ####################
+
+Simply copy lang/fr/tpl/*.tpl files to .../tpl/fr/*.tpl and choose
+your language in the configuration panel.
+
 
 ################ APACHE CONFIGURATION ##########################
 
