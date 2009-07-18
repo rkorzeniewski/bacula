@@ -2,6 +2,8 @@
           
 General:
 
+18Jul09
+kes  Fix bat command line input bug
 17Jul09
 ebl  Fix sql query for sqlite on suse10 on copy job
 16Jul09

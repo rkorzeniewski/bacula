@@ -811,6 +811,24 @@ bool Console::availableDirComm(int &conn)
       return false;
 }
 
+
+/*
+ * Need current connection.
+ */
+bool Console::currentDirComm(int &conn)
+{
+   QHash<int, DirComm*>::const_iterator iter = m_dircommHash.constBegin();
+   while (iter != m_dircommHash.constEnd()) {
+      DirComm *dircomm = iter.value();
+      if (dircomm->m_at_prompt && !dircomm->m_at_main_prompt && dircomm->is_notify_enabled()) {
+         conn = dircomm->m_conn;
+         return true;
+      }
+      ++iter;
+   }
+   return false;
+}
+
 /*
  *  Create a new connection
  */

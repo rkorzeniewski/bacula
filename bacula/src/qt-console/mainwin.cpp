@@ -321,8 +321,7 @@ void MainWin::waitEnter()
 void MainWin::waitExit()
 {
    m_waitState = false;
-   if (mainWin->m_connDebug)
-      Pmsg0(000, "Exiting Wait State\n");
+   if (mainWin->m_connDebug) Pmsg0(000, "Exiting Wait State\n");
    app->restoreOverrideCursor();
    if (m_waitTreeItem != treeWidget->currentItem())
       treeWidget->setCurrentItem(m_waitTreeItem);
@@ -591,11 +590,16 @@ void MainWin::jobPlotButtonClicked()
  */
 void MainWin::input_line()
 {
+   int conn;
    QString cmdStr = lineEdit->text();    /* Get the text */
    lineEdit->clear();                    /* clear the lineEdit box */
    if (m_currentConsole->is_connected()) {
-      /* Use consoleCommand to allow typing anything */
-      m_currentConsole->consoleCommand(cmdStr);
+      if (m_currentConsole->currentDirComm(conn)) {
+         m_currentConsole->consoleCommand(cmdStr, conn);
+      } else {
+         /* Use consoleCommand to allow typing anything */
+         m_currentConsole->consoleCommand(cmdStr);
+      }
    } else {
       set_status(tr("Director not connected. Click on connect button."));
    }
