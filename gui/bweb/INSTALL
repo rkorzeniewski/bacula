@@ -46,12 +46,12 @@ Bweb works well with 2.0 release or later.
  Note: the best way to test if you have all the dependencies
  fullfilled for Perl is to:
   
-    cd /var/www/cgi-bin/bweb
-    ./bweb.pl 
+    cd bweb/lib
+    ../cgi/bweb.pl 
 
  you might also want to try:
 
-    ./bgraph.pl 
+    ../cgi/bgraph.pl 
 
  To make sure the graphing modules are loaded.  However, running it
  will spray binary graphics data on your terminal.  Otherwise, you will
