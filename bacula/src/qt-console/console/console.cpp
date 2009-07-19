@@ -636,6 +636,23 @@ void Console::discardToPrompt(int conn)
    if (mainWin->m_commDebug) Pmsg2(000, "endDiscardToPrompt=%d %s\n", stat, m_dir->name());
 }
 
+QString Console::returnFromPrompt(int conn)
+{ 
+   DirComm *dircomm = m_dircommHash.value(conn);
+   QString text("");
+
+   int stat = 0;
+   text = "";
+   if (mainWin->m_commDebug) Pmsg1(000, "returnFromPrompt %s\n", m_dir->name());
+   while (!dircomm->m_at_prompt) {
+      if ((stat=dircomm->read()) > 0) {
+         text += dircomm->msg();
+      }
+   }
+   if (mainWin->m_commDebug) Pmsg2(000, "endreturnFromPrompt=%d %s\n", stat, m_dir->name());
+   return text;
+}
+
 /*
  * When the notifier is enabled, read_dir() will automatically be
  * called by the Qt event loop when ever there is any output 

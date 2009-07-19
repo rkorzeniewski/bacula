@@ -47,7 +47,7 @@ FORMS += console/console.ui
 FORMS += restore/restore.ui restore/prerestore.ui restore/brestore.ui
 FORMS += restore/restoretree.ui
 FORMS += run/run.ui run/runcmd.ui run/estimate.ui run/prune.ui
-FORMS += select/select.ui
+FORMS += select/select.ui select/textinput.ui
 FORMS += medialist/medialist.ui mediaedit/mediaedit.ui joblist/joblist.ui
 FORMS += clients/clients.ui storage/storage.ui fileset/fileset.ui
 FORMS += joblog/joblog.ui jobs/jobs.ui
@@ -92,8 +92,8 @@ HEADERS += run/run.h
 SOURCES += run/run.cpp run/runcmd.cpp run/estimate.cpp run/prune.cpp
 
 # Select dialog
-HEADERS += select/select.h
-SOURCES += select/select.cpp
+HEADERS += select/select.h select/textinput.h
+SOURCES += select/select.cpp select/textinput.cpp
 
 ## MediaList
 HEADERS += medialist/medialist.h
