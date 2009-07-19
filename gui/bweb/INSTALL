@@ -6,7 +6,7 @@ Bweb works well with 2.0 release or later.
 
 1) install Perl lib
 2) using lighttpd
-3) copy your files (using apache)
+3) using apache 
 4) initialize your configuration file
 5) do some sql stuff (for postgresql or mysql 5 users)
 6) use the -n option on bconsole so that it works with Expect
@@ -73,7 +73,7 @@ In this example, bweb files are in /home/bacula/bweb
 bacula:~$ cd bweb
 bacula:~/bweb$ sed -i "s:/etc/bacula/bweb.conf:$PWD/bweb.conf:" lib/Bweb.pm
 bacula:~/bweb$ cat > bweb.conf <<EOF
-$VAR1 = { template_dir => '$PWD/lang',
+\$VAR1 = { template_dir => '$PWD/lang',
           fv_write_path => '/tmp/',
  };
 EOF
