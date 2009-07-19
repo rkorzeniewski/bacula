@@ -38,6 +38,7 @@
 #include "console.h"
 #include "restore.h"
 #include "select.h"
+#include "textinput.h"
 #include "run/run.h"
 
 static int tls_pem_callback(char *buf, int size, const void *userdata);
@@ -50,6 +51,7 @@ DirComm::DirComm(Console *parent, int conn):  m_notifier(NULL),  m_api_set(false
    m_at_main_prompt = false;
    m_conn = conn;
    m_in_command = 0;
+   m_in_select = false;
 }
 
 DirComm::~DirComm()
@@ -334,10 +336,16 @@ int DirComm::read()
          mainWin->set_status(_("At main prompt waiting for input ..."));
          break;
       case BNET_PROMPT:
-         if (mainWin->m_commDebug) Pmsg1(000, "conn %i PROMPT\n", m_conn);
+         if (mainWin->m_commDebug) Pmsg2(000, "conn %i PROMPT m_in_select %i\n", m_conn, m_in_select);
          m_at_prompt = true;
          m_at_main_prompt = false;
          mainWin->set_status(_("At prompt waiting for input ..."));
+         /* commented out until the prompt communication issue with the director is resolved 
+            This is where I call a new text input dialog class to prevent the connection issues
+            when a text input is requited.
+         if (! m_in_select) {
+            new textInputDialog(m_console, m_conn);
+         } */
          break;
       case BNET_CMD_FAILED:
          if (mainWin->m_commDebug) Pmsg1(000, "CMD FAILED\n", m_conn);
@@ -357,7 +365,9 @@ int DirComm::read()
       case BNET_START_SELECT:
          notify(false);
          if (mainWin->m_commDebug) Pmsg1(000, "conn %i START SELECT\n", m_conn);
+         m_in_select = true;
          new selectDialog(m_console, m_conn);
+         m_in_select = false;
          break;
       case BNET_YESNO:
          if (mainWin->m_commDebug) Pmsg1(000, "conn %i YESNO\n", m_conn);

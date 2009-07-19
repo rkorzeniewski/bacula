@@ -83,6 +83,7 @@ public:
    bool availableDirComm(int &conn);
    bool currentDirComm(int &conn);
    void displayToPrompt(int conn);
+   QString returnFromPrompt(int conn);
 
    bool dir_cmd(int conn, const char *cmd, QStringList &results);
    bool dir_cmd(const char *cmd, QStringList &results);
