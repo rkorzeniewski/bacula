@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: de\n"
 "Report-Msgid-Bugs-To: bacula-devel@lists.sourceforge.net\n"
-"POT-Creation-Date: 2009-07-19 15:48+0200\n"
+"POT-Creation-Date: 2009-07-19 17:13+0200\n"
 "PO-Revision-Date: 2007-06-25 20:38+0200\n"
 "Last-Translator: Philipp Storz <philipp.storz@dass-it.de>\n"
 "Language-Team: \n"
@@ -32,6 +32,359 @@ msgstr ""
 #: src/tools/bregtest.c:137
 #, c-format
 msgid "Could not open data file: %s\n"
+msgstr ""
+
+#: src/testprogs/testfind.map.c:48 src/testprogs/testfind.c:46
+#, c-format
+msgid ""
+"\n"
+"Usage: testfind [-d debug_level] [-] [pattern1 ...]\n"
+"       -a          print extended attributes (Win32 debug)\n"
+"       -dnn        set debug level to nn\n"
+"       -e          specify file of exclude patterns\n"
+"       -i          specify file of include patterns\n"
+"       -           read pattern(s) from stdin\n"
+"       -?          print this message.\n"
+"\n"
+"Patterns are file inclusion -- normally directories.\n"
+"Debug level >= 1 prints each file found.\n"
+"Debug level >= 10 prints path/file for catalog.\n"
+"Errors always printed.\n"
+"Files/paths truncated is number with len > 255.\n"
+"Truncation is only in catalog.\n"
+"\n"
+msgstr ""
+
+#: src/testprogs/testfind.map.c:160 src/testprogs/testfind.c:155
+#, c-format
+msgid ""
+"Total files    : %d\n"
+"Max file length: %d\n"
+"Max path length: %d\n"
+"Files truncated: %d\n"
+"Paths truncated: %d\n"
+"Hard links     : %d\n"
+msgstr ""
+
+#: src/testprogs/testfind.map.c:256 src/testprogs/testfind.c:292
+#: src/tools/testfind.c:316 src/tools/testls.c:194
+#, c-format
+msgid "Err: Could not access %s: %s\n"
+msgstr ""
+
+#: src/testprogs/testfind.map.c:259 src/testprogs/testfind.c:295
+#: src/tools/testfind.c:319 src/tools/testls.c:197
+#, c-format
+msgid "Err: Could not follow ff->link %s: %s\n"
+msgstr ""
+
+#: src/testprogs/testfind.map.c:262 src/testprogs/testfind.c:298
+#: src/tools/testfind.c:322 src/tools/testls.c:200
+#, c-format
+msgid "Err: Could not stat %s: %s\n"
+msgstr ""
+
+#: src/testprogs/testfind.map.c:265 src/testprogs/testfind.c:301
+#: src/tools/testfind.c:325 src/tools/testls.c:203
+#, c-format
+msgid "Skip: File not saved. No change. %s\n"
+msgstr ""
+
+#: src/testprogs/testfind.map.c:268 src/testprogs/testfind.c:304
+#: src/tools/testfind.c:328 src/tools/testls.c:206
+#, c-format
+msgid "Err: Attempt to backup archive. Not saved. %s\n"
+msgstr ""
+
+#: src/testprogs/testfind.map.c:271 src/testprogs/testfind.c:307
+#: src/tools/testls.c:209
+#, c-format
+msgid "Recursion turned off. Directory not entered. %s\n"
+msgstr ""
+
+#: src/testprogs/testfind.map.c:274 src/testprogs/testfind.c:310
+#: src/tools/testls.c:212
+#, c-format
+msgid "Skip: File system change prohibited. Directory not entered. %s\n"
+msgstr ""
+
+#: src/testprogs/testfind.map.c:277 src/testprogs/testfind.c:313
+#: src/tools/testfind.c:331 src/tools/testls.c:215
+#, c-format
+msgid "Err: Could not open directory %s: %s\n"
+msgstr ""
+
+#: src/testprogs/testfind.map.c:280 src/testprogs/testfind.c:316
+#: src/tools/testfind.c:334 src/tools/testls.c:218
+#, c-format
+msgid "Err: Unknown file ff->type %d: %s\n"
+msgstr ""
+
+#: src/testprogs/testfind.map.c:330 src/testprogs/testfind.c:366
+#: src/tools/testfind.c:384
+#, c-format
+msgid "===== Filename truncated to 255 chars: %s\n"
+msgstr ""
+
+#: src/testprogs/testfind.map.c:347 src/testprogs/testfind.c:383
+#: src/tools/testfind.c:401
+#, c-format
+msgid "========== Path name truncated to 255 chars: %s\n"
+msgstr ""
+
+#: src/testprogs/testfind.map.c:356 src/testprogs/testfind.c:392
+#: src/tools/testfind.c:410
+#, c-format
+msgid "========== Path length is zero. File=%s\n"
+msgstr ""
+
+#: src/testprogs/schedule.c:37 src/console/console.c:120
+#, c-format
+msgid ""
+"\n"
+"Version: "
+msgstr ""
+
+#: src/testprogs/schedule.c:192 src/dird/dird.c:597
+#, c-format
+msgid ""
+"No Director resource defined in %s\n"
+"Without that I don't know who I am :-(\n"
+msgstr ""
+"Keine Director resource definiert in %s\n"
+"Ohne dies weiss ich nicht wer ich bin :-(\n"
+
+#: src/testprogs/schedule.c:197
+msgid "No working directory specified. Cannot continue.\n"
+msgstr ""
+
+#: src/testprogs/schedule.c:204 src/dird/dird.c:605 src/filed/filed.c:332
+#, c-format
+msgid "No Messages resource defined in %s\n"
+msgstr "Keine Messages resource definiert in %s\n"
+
+#: src/testprogs/schedule.c:209 src/dird/dird.c:610
+#, c-format
+msgid "Only one Director resource permitted in %s\n"
+msgstr "Nur eine Director resource erlaubt in %s\n"
+
+#: src/testprogs/schedule.c:216 src/dird/dird.c:667
+#, c-format
+msgid "No Job records defined in %s\n"
+msgstr "Keine Job records definiert in %s\n"
+
+#: src/testprogs/schedule.c:221
+#, fuzzy, c-format
+msgid "No Client record defined for job %s\n"
+msgstr "Keine Job records definiert in %s\n"
+
+#: src/testprogs/schedule.c:225
+#, fuzzy, c-format
+msgid "No FileSet record defined for job %s\n"
+msgstr "Keine Job records definiert in %s\n"
+
+#: src/testprogs/schedule.c:229
+#, fuzzy, c-format
+msgid "No Storage resource defined for job %s\n"
+msgstr "Keine Messages resource definiert in %s\n"
+
+#: src/testprogs/schedule.c:233
+#, fuzzy, c-format
+msgid "No Pool resource defined for job %s\n"
+msgstr "Keine %s resource definiert\n"
+
+#: src/testprogs/schedule.c:242
+#, fuzzy, c-format
+msgid "No Catalog resource defined for client %s\n"
+msgstr "Keine Messages resource definiert in %s\n"
+
+#: src/testprogs/window.c:608
+msgid "Folder"
+msgstr ""
+
+#: src/testprogs/window.c:744 src/testprogs/window.c:753
+#: src/testprogs/window.c:2449 src/testprogs/window.c:4167
+msgid "File Roller"
+msgstr ""
+
+#: src/testprogs/window.c:752
+msgid "[read only]"
+msgstr ""
+
+#: src/testprogs/window.c:846
+#, c-format
+msgid "1 file (%s)"
+msgstr ""
+
+#: src/testprogs/window.c:849
+#, fuzzy, c-format
+msgid "%d files (%s)"
+msgstr "%s -- keine Dateien zur Migration."
+
+#: src/testprogs/window.c:857
+#, c-format
+msgid "1 file selected (%s)"
+msgstr ""
+
+#: src/testprogs/window.c:860
+#, c-format
+msgid "%d files selected (%s)"
+msgstr ""
+
+#: src/testprogs/window.c:1149
+msgid "Reading archive"
+msgstr ""
+
+#: src/testprogs/window.c:1152
+msgid "Deleting files from archive"
+msgstr ""
+
+#: src/testprogs/window.c:1155
+msgid "Adding files to archive"
+msgstr ""
+
+#: src/testprogs/window.c:1158
+msgid "Extracting files from archive"
+msgstr ""
+
+#: src/testprogs/window.c:1161
+msgid "Testing archive"
+msgstr ""
+
+#: src/testprogs/window.c:1167
+msgid "wait please..."
+msgstr ""
+
+#: src/testprogs/window.c:1253
+msgid "Operation stopped"
+msgstr ""
+
+#: src/testprogs/window.c:1271
+#, fuzzy
+msgid "An error occurred while extracting files."
+msgstr "Fehler beim schreiben der bsr Datei.\n"
+
+#: src/testprogs/window.c:1275
+msgid "An error occurred while loading the archive."
+msgstr ""
+
+#: src/testprogs/window.c:1279
+msgid "An error occurred while deleting files from the archive."
+msgstr ""
+
+#: src/testprogs/window.c:1283
+msgid "An error occurred while adding files to the archive."
+msgstr ""
+
+#: src/testprogs/window.c:1287
+msgid "An error occurred while testing archive."
+msgstr ""
+
+#: src/testprogs/window.c:1293
+#, fuzzy
+msgid "Command not found."
+msgstr "Job nicht gefunden: %s\n"
+
+#: src/testprogs/window.c:1296
+msgid "Command exited abnormally."
+msgstr ""
+
+#: src/testprogs/window.c:1588
+msgid "You don't have permissions to add files to this archive."
+msgstr ""
+
+#: src/testprogs/window.c:1610
+msgid "You can't add an archive to itself."
+msgstr ""
+
+#: src/testprogs/window.c:1770
+msgid ""
+"Do you want to add this file to the current archive or open it as a new "
+"archive?"
+msgstr ""
+
+#: src/testprogs/window.c:1813
+msgid "Do you want to create a new archive with these files?"
+msgstr ""
+
+#: src/testprogs/window.c:1815
+msgid "Create _Archive"
+msgstr ""
+
+#: src/testprogs/window.c:2158
+msgid "Name"
+msgstr ""
+
+#: src/testprogs/window.c:2617
+msgid "_Up"
+msgstr ""
+
+#: src/testprogs/window.c:2639
+msgid "Current Location:"
+msgstr ""
+
+#: src/testprogs/window.c:2671 src/wx-console/wxbrestorepanel.cpp:263
+#: src/wx-console/wxbrestorepanel.cpp:317
+msgid "Add"
+msgstr ""
+
+#: src/testprogs/window.c:2672
+msgid "Add files to the archive"
+msgstr ""
+
+#: src/testprogs/window.c:2682
+msgid "Extract"
+msgstr ""
+
+#: src/testprogs/window.c:2683
+msgid "Extract files from the archive"
+msgstr ""
+
+#: src/testprogs/window.c:2693
+msgid "View"
+msgstr ""
+
+#: src/testprogs/window.c:2694
+msgid "View selected file"
+msgstr ""
+
+#: src/testprogs/window.c:3093
+msgid "File type not supported."
+msgstr ""
+
+#: src/testprogs/window.c:3162
+msgid "Cannot load archive."
+msgstr ""
+
+#: src/testprogs/window.c:3227
+msgid "Destination folder does not exist.  Do you want to create it?"
+msgstr ""
+
+#: src/testprogs/window.c:3229
+msgid "Create _Folder"
+msgstr ""
+
+#: src/testprogs/window.c:3249
+#, c-format
+msgid ""
+"Could not create the destination folder: %s.\n"
+"Extraction not performed."
+msgstr ""
+
+#: src/testprogs/window.c:3264
+msgid "Extraction not performed."
+msgstr ""
+
+#: src/testprogs/window.c:3576
+msgid "Last Output"
+msgstr ""
+
+#: src/testprogs/window.c:4102
+msgid "Add files to an archive"
+msgstr ""
+
+#: src/testprogs/window.c:4127
+msgid "Extract archive"
 msgstr ""
 
 #: src/gnome2-console/support.c:60 src/gnome2-console/support.c:85
@@ -930,13 +1283,6 @@ msgstr ""
 
 #: src/findlib/bfile.c:183
 msgid "NetBSD Specific Extended attribs"
-msgstr ""
-
-#: src/console/console.c:120
-#, c-format
-msgid ""
-"\n"
-"Version: "
 msgstr ""
 
 #: src/console/console.c:169
@@ -3990,25 +4336,6 @@ msgstr "Keine reload table Einträge übrig. Gebe auf.\n"
 msgid "Resetting previous configuration.\n"
 msgstr "Vorherige Konfiguration zurückgesetzt.\n"
 
-#: src/dird/dird.c:597
-#, c-format
-msgid ""
-"No Director resource defined in %s\n"
-"Without that I don't know who I am :-(\n"
-msgstr ""
-"Keine Director resource definiert in %s\n"
-"Ohne dies weiss ich nicht wer ich bin :-(\n"
-
-#: src/dird/dird.c:605 src/filed/filed.c:332
-#, c-format
-msgid "No Messages resource defined in %s\n"
-msgstr "Keine Messages resource definiert in %s\n"
-
-#: src/dird/dird.c:610
-#, c-format
-msgid "Only one Director resource permitted in %s\n"
-msgstr "Nur eine Director resource erlaubt in %s\n"
-
 #: src/dird/dird.c:627 src/stored/stored.c:431 src/filed/filed.c:508
 #, c-format
 msgid "\"TLS Certificate\" file not defined for Director \"%s\" in %s.\n"
@@ -4034,11 +4361,6 @@ msgstr ""
 #, c-format
 msgid "Failed to initialize TLS context for Director \"%s\" in %s.\n"
 msgstr "Konnte TLS context für Director nicht initialisieren \"%s\" in %s.\n"
-
-#: src/dird/dird.c:667
-#, c-format
-msgid "No Job records defined in %s\n"
-msgstr "Keine Job records definiert in %s\n"
 
 #: src/dird/dird.c:725 src/dird/dird.c:738
 #, c-format
@@ -7377,56 +7699,6 @@ msgstr ""
 msgid "\t[will not descend: disallowed drive type]"
 msgstr ""
 
-#: src/tools/testfind.c:316 src/tools/testls.c:194
-#, c-format
-msgid "Err: Could not access %s: %s\n"
-msgstr ""
-
-#: src/tools/testfind.c:319 src/tools/testls.c:197
-#, c-format
-msgid "Err: Could not follow ff->link %s: %s\n"
-msgstr ""
-
-#: src/tools/testfind.c:322 src/tools/testls.c:200
-#, c-format
-msgid "Err: Could not stat %s: %s\n"
-msgstr ""
-
-#: src/tools/testfind.c:325 src/tools/testls.c:203
-#, c-format
-msgid "Skip: File not saved. No change. %s\n"
-msgstr ""
-
-#: src/tools/testfind.c:328 src/tools/testls.c:206
-#, c-format
-msgid "Err: Attempt to backup archive. Not saved. %s\n"
-msgstr ""
-
-#: src/tools/testfind.c:331 src/tools/testls.c:215
-#, c-format
-msgid "Err: Could not open directory %s: %s\n"
-msgstr ""
-
-#: src/tools/testfind.c:334 src/tools/testls.c:218
-#, c-format
-msgid "Err: Unknown file ff->type %d: %s\n"
-msgstr ""
-
-#: src/tools/testfind.c:384
-#, c-format
-msgid "===== Filename truncated to 255 chars: %s\n"
-msgstr ""
-
-#: src/tools/testfind.c:401
-#, c-format
-msgid "========== Path name truncated to 255 chars: %s\n"
-msgstr ""
-
-#: src/tools/testfind.c:410
-#, c-format
-msgid "========== Path length is zero. File=%s\n"
-msgstr ""
-
 #: src/tools/testfind.c:413
 #, c-format
 msgid "Path: %s\n"
@@ -7481,16 +7753,6 @@ msgstr ""
 #: src/tools/testls.c:159
 #, c-format
 msgid "Could not open exclude file: %s\n"
-msgstr ""
-
-#: src/tools/testls.c:209
-#, c-format
-msgid "Recursion turned off. Directory not entered. %s\n"
-msgstr ""
-
-#: src/tools/testls.c:212
-#, c-format
-msgid "Skip: File system change prohibited. Directory not entered. %s\n"
 msgstr ""
 
 #: src/tools/drivetype.c:47
@@ -17006,11 +17268,6 @@ msgstr ""
 
 #: src/wx-console/wxbrestorepanel.cpp:237
 msgid "Cancel restore"
-msgstr ""
-
-#: src/wx-console/wxbrestorepanel.cpp:263
-#: src/wx-console/wxbrestorepanel.cpp:317
-msgid "Add"
 msgstr ""
 
 #: src/wx-console/wxbrestorepanel.cpp:265
