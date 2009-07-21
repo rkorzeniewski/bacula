@@ -56,7 +56,6 @@ Jobs::Jobs()
     * selector tree. m_contextActions is QList of QActions */
    m_contextActions.append(actionRefreshJobs);
    createContextMenu();
-   dockPage();
 }
 
 Jobs::~Jobs()
@@ -136,6 +135,7 @@ void Jobs::populateTable()
       }
    }
    mainWin->waitExit();
+   dockPage();
 }
 
 /*

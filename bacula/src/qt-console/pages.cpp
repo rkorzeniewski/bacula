@@ -59,19 +59,24 @@ bool isWin32Path(QString &fullPath)
 
 void Pages::dockPage()
 {
+   if (isDocked()) {
+      return;
+   }
+
    /* These two lines are for making sure if it is being changed from a window
     * that it has the proper window flag and parent.
     */
    setWindowFlags(Qt::Widget);
 
    /* This was being done already */
-   m_parent->addWidget(this);
+   m_parent->addTab(this, m_name);
 
    /* Set docked flag */
    m_docked = true;
-   mainWin->stackedWidget->setCurrentWidget(this);
+   mainWin->tabWidget->setCurrentWidget(this);
    /* lets set the page selectors action for docking or undocking */
    setContextMenuDockText();
+
 }
 
 /*
@@ -82,8 +87,12 @@ void Pages::dockPage()
 
 void Pages::undockPage()
 {
+   if (!isDocked()) {
+      return;
+   }
+
    /* Change from a stacked widget to a normal window */
-   m_parent->removeWidget(this);
+   m_parent->removeTab(m_parent->indexOf(this));
    setWindowFlags(Qt::Window);
    show();
    /* Clear docked flag */
@@ -197,10 +206,11 @@ void Pages::pgInitialize(const QString &name)
 
 void Pages::pgInitialize(const QString &tname, QTreeWidgetItem *parentTreeWidgetItem)
 {
+   m_docked = false;
    if (tname.size()) {
       m_name = tname;
    }
-   m_parent = mainWin->stackedWidget;
+   m_parent = mainWin->tabWidget;
    m_console = mainWin->currentConsole();
 
    if (!parentTreeWidgetItem) {

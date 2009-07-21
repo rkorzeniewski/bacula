@@ -99,7 +99,7 @@ void ClientStat::timerTriggered()
    value -= 1;
    if (value == 0) {
       value = spinBox->value();
-      bool iscurrent = mainWin->stackedWidget->currentIndex() == mainWin->stackedWidget->indexOf(this);
+      bool iscurrent = mainWin->tabWidget->currentIndex() == mainWin->tabWidget->indexOf(this);
       if (((isDocked() && iscurrent) || (!isDocked())) && (checkBox->checkState() == Qt::Checked)) {
          populateAll();
       }

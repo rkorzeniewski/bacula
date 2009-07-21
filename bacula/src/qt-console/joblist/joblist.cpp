@@ -73,7 +73,6 @@ JobList::JobList(const QString &mediaName, const QString &clientName,
    limitSpinBox->setValue(mainWin->m_recordLimitVal);
    daysCheckBox->setCheckState(mainWin->m_daysLimitCheck ? Qt::Checked : Qt::Unchecked);
    daysSpinBox->setValue(mainWin->m_daysLimitVal);
-   dockPage();
 
    QGridLayout *gridLayout = new QGridLayout(this);
    gridLayout->setSpacing(6);
@@ -349,6 +348,7 @@ void JobList::PgSeltreeWidgetClicked()
    if (!m_populated) {
       populateTable();
    }
+   dockPage();
 }
 
 /*
@@ -405,8 +405,6 @@ void JobList::createConnections()
    /* setContextMenuPolicy is required */
    mp_tableWidget->setContextMenuPolicy(Qt::ActionsContextMenu);
 
-   connect(actionListJobid, SIGNAL(triggered()), this,
-                SLOT(consoleListJobid()));
    connect(actionListFilesOnJob, SIGNAL(triggered()), this,
                 SLOT(consoleListFilesOnJob()));
    connect(actionListJobMedia, SIGNAL(triggered()), this,
@@ -436,13 +434,6 @@ void JobList::createConnections()
  * Functions to respond to local context sensitive menu sending console commands
  * If I could figure out how to make these one function passing a string, Yaaaaaa
  */
-void JobList::consoleListJobid()
-{
-   QString cmd("list jobid=");
-   cmd += m_currentJob;
-   if (mainWin->m_longList) { cmd.prepend("l"); }
-   consoleCommand(cmd);
-}
 void JobList::consoleListFilesOnJob()
 {
    QString cmd("list files jobid=");
@@ -643,7 +634,6 @@ void JobList::selectionChanged()
    /* Add Actions */
    mp_tableWidget->addAction(actionRefreshJobList);
    if (m_selectedJobsCount == 1) {
-      mp_tableWidget->addAction(actionListJobid);
       mp_tableWidget->addAction(actionListFilesOnJob);
       mp_tableWidget->addAction(actionListJobMedia);
       mp_tableWidget->addAction(actionListVolumes);

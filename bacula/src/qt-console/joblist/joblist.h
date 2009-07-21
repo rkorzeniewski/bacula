@@ -56,7 +56,6 @@ public slots:
    void selectionChanged();
 
 private slots:
-   void consoleListJobid();
    void consoleListFilesOnJob();
    void consoleListJobMedia();
    void consoleListVolumes();
