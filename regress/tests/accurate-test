@@ -11,12 +11,12 @@
 TestName="accurate-test"
 JobName=backup
 . scripts/functions
-scripts/cleanup
+$rscripts/cleanup
 
 copy_test_confs
-/bin/cp -f scripts/bacula-dir.conf.accurate bin/bacula-dir.conf
-sed s/all,/all,saved,/ bin/bacula-fd.conf > tmp/1
-cp tmp/1 bin/bacula-fd.conf
+cp -f $rscripts/bacula-dir.conf.accurate $conf/bacula-dir.conf
+sed s/all,/all,saved,/ $conf/bacula-fd.conf > tmp/1
+cp tmp/1 $conf/bacula-fd.conf
 
 change_jobname BackupClient1 $JobName
 
@@ -164,8 +164,8 @@ rm -rf ${cwd}/tmp/bacula-restores
 p Check with bls
 ################################################################
 
-$bin/bls -c bin/bacula-sd.conf -V 'TestVolume001' FileStorage > tmp/bls.out
-grep -- '----' tmp/bls.out | grep xxx > /dev/null
+$bin/bls -c $conf/bacula-sd.conf -V 'TestVolume001' FileStorage > $tmp/bls.out
+grep -- '----' $tmp/bls.out | grep xxx > /dev/null
 if [ $? != 0 ] ; then
     bstat=2
 fi
@@ -280,7 +280,7 @@ p Check with bscan
 
 stop_bacula
 
-cd ${cwd}/bin
+cd $bin
   ./drop_bacula_tables      >/dev/null 2>&1
   ./make_bacula_tables      >/dev/null 2>&1
   ./grant_bacula_privileges >/dev/null 2>&1
@@ -290,7 +290,7 @@ echo "volume=TestVolume001" >tmp/bscan.bsr
 
 bscan_libdbi
 
-$bin/bscan -c bin/bacula-sd.conf $BSCANLIBDBI -n regress -u regress -m -s -b tmp/bscan.bsr FileStorage 2>&1 > ${cwd}/tmp/bscan.log
+$bin/bscan -c $conf/bacula-sd.conf $BSCANLIBDBI -n regress -u regress -m -s -b $tmp/bscan.bsr FileStorage 2>&1 > $tmp/bscan.log
 
 cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @$out ${cwd}/tmp/log1.out
