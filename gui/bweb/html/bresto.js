@@ -1,7 +1,7 @@
 //   Bweb - A Bacula web interface
 //   Bacula® - The Network Backup Solution
 //
-//   Copyright (C) 2000-2008 Free Software Foundation Europe e.V.
+//   Copyright (C) 2000-2009 Free Software Foundation Europe e.V.
 //
 //   The main author of Bweb is Eric Bollengier.
 //   The main author of Bacula is Kern Sibbald, with contributions from
@@ -36,11 +36,40 @@ function rd_vol_is_online(val)
 // TODO: fichier ou rep
 function rd_file_or_dir(val)
 {
-   if (val == 'F') {
-      return '<img src="A.png">';
+   if (val > 0) {
+      return '<img src="file_f.png">';
    } else {
-      return '<img src="R.png">';
+      return '<img src="file_d.png">';
    }
+}
+
+function push_path()
+{
+    Ext.brestore.path_stack.push(Ext.brestore.path);
+    Ext.brestore.pathid_stack.push(Ext.brestore.pathid);
+    Ext.ComponentMgr.get('prevbp').enable();
+}
+function pop_path()
+{
+    var pathid = Ext.brestore.pathid_stack.pop();
+    var path = Ext.brestore.path_stack.pop();
+    if (!pathid) {
+        Ext.ComponentMgr.get('prevbp').disable();
+        return false;
+    }
+    Ext.ComponentMgr.get('wherefield').setValue(path);
+
+    Ext.brestore.pathid = pathid;
+    Ext.brestore.path = path;
+    return true;
+}
+
+function dirname(path) {
+    var a = path.match( /(^.*\/).+\// );
+    if (a) {
+        return a[1];
+    }
+    return path;
 }
 
 Ext.namespace('Ext.brestore');
@@ -59,9 +88,11 @@ Ext.brestore.option_vcopies = false;
 Ext.brestore.dlglaunch;
 Ext.brestore.fpattern;
 Ext.brestore.use_filerelocation=false;
-Ext.brestore.limit = 2000;
+Ext.brestore.limit = 500;
 Ext.brestore.offset = 0;
 Ext.brestore.force_reload = 0;
+Ext.brestore.path_stack = Array();
+Ext.brestore.pathid_stack = Array();
 
 function get_node_path(node)
 {
@@ -144,13 +175,15 @@ Ext.onReady(function(){
     Ext.brestore.tree = root;   // shortcut
 
     var click_cb = function(node, event) { 
+        push_path();
+
         Ext.brestore.path = get_node_path(node);
         Ext.brestore.pathid = node.id;
         Ext.brestore.offset=0;
         Ext.brestore.fpattern = Ext.get('txt-file-pattern').getValue();
         where_field.setValue(Ext.brestore.path);
         update_limits();       
-        file_store.load({params:init_params({action: 'list_files',
+        file_store.load({params:init_params({action: 'list_files_dirs',
                                              path:Ext.brestore.path,
                                              node:node.id})
                         });
@@ -188,11 +221,20 @@ Ext.onReady(function(){
           {name: 'jobid'     },
           {name: 'name'      },
           {name: 'size',     type: 'int'  },
-          {name: 'mtime',    type: 'date', dateFormat: 'Y-m-d h:i:s'}
+          {name: 'mtime',    type: 'date', dateFormat: 'Y-m-d h:i:s'},
+          {name: 'type'}
         ]))
     });
+    
     Ext.brestore.file_store=file_store;
     var cm = new Ext.grid.ColumnModel([{
+        id:        'type',
+        header:    'Type',
+        dataIndex: 'filenameid',
+        width:     30,
+        css:       'white-space:normal;',
+        renderer:   rd_file_or_dir
+    },{
         id:        'cm-id', // id assigned so we can apply custom css 
                            // (e.g. .x-grid-col-topic b { color:#333 })
         header:    'File',
@@ -251,7 +293,7 @@ Ext.onReady(function(){
 
     var file_paging_next = new Ext.Toolbar.Button({
         id: 'bp-file-next',
-        icon: '/bweb/ext/resources/images/default/grid/page-next.gif',
+        icon: 'ext/resources/images/default/grid/page-next.gif',
         cls: '.x-btn-icon',
         tooltip: 'Next',
         handler: function(a,b,c) {
@@ -260,7 +302,7 @@ Ext.onReady(function(){
                 Ext.brestore.offset += Ext.brestore.limit;
                 file_store.removeAll();
                 file_versions_store.removeAll();
-                file_store.load({params:init_params({action: 'list_files',
+                file_store.load({params:init_params({action: 'list_files_dirs',
                                                      path:Ext.brestore.path,
                                                      node:Ext.brestore.pathid})
                                 });
@@ -269,7 +311,7 @@ Ext.onReady(function(){
     });
     var file_paging_prev = new Ext.Toolbar.Button({
         id: 'bp-file-prev',
-        icon: '/bweb/ext/resources/images/default/grid/page-prev.gif',
+        icon: 'ext/resources/images/default/grid/page-prev.gif',
         cls: '.x-btn-icon',
         tooltip: 'Last',
         handler: function() {
@@ -281,7 +323,7 @@ Ext.onReady(function(){
                 }
                 file_store.removeAll();
                 file_versions_store.removeAll();
-                file_store.load({params:init_params({action: 'list_files',
+                file_store.load({params:init_params({action: 'list_files_dirs',
                                                      path:Ext.brestore.path,
                                                      node:Ext.brestore.pathid})
                                 });                        
@@ -323,14 +365,14 @@ Ext.onReady(function(){
             value: Ext.brestore.limit          
         }, file_paging_next, '->', file_paging_pattern, {
             id: 'bp-file-match',
-            icon: '/bweb/ext/resources/images/default/grid/refresh.gif',
+            icon: 'ext/resources/images/default/grid/refresh.gif',
             cls: '.x-btn-icon',
             tooltip: 'Refresh',
             handler: function(a,b,c) {
                 update_user_limits();
                 file_store.removeAll();
                 file_versions_store.removeAll();
-                file_store.load({params:init_params({action: 'list_files',
+                file_store.load({params:init_params({action: 'list_files_dirs',
                                                      path:Ext.brestore.path,
                                                      node:Ext.brestore.pathid})
                                 });
@@ -390,11 +432,38 @@ Ext.onReady(function(){
  *         console.info('Store count = ', store.getCount());
  *   });
  */
+    file_grid.on('celldblclick', function(e) {
+        var r = e.selModel.getSelected();
+
+        if (r.json[1] == 0) {   // select a directory
+           push_path();
+
+           if (r.json[4] == '..') {
+              Ext.brestore.path = dirname(Ext.brestore.path);
+           } else if (r.json[4] == '/') {
+              Ext.brestore.path = '/';
+           } else if (r.json[4] != '.') {
+              Ext.brestore.path = Ext.brestore.path + r.json[4] + '/';
+           }
+           Ext.brestore.pathid = r.json[2];
+           Ext.brestore.filename = '';
+           Ext.brestore.offset=0;
+           Ext.brestore.fpattern = Ext.get('txt-file-pattern').getValue();
+           where_field.setValue(Ext.brestore.path);
+           update_limits();
+           file_store.load({params:init_params({action: 'list_files_dirs',
+                          path:Ext.brestore.path,
+                          node:Ext.brestore.pathid})
+                    });
+        }
+        return true;
+    });
     // TODO: selection only when using dblclick
     file_grid.selModel.on('rowselect', function(e,i,r) { 
-        if (r.json[4] == '.') {
-            return true;
+        if (r.json[1] == 0) {   // select a directory
+           return true;
         }
+
         Ext.brestore.filename = r.json[4];
         file_versions_store.load({
             params:init_params({action: 'list_versions',
@@ -686,14 +755,19 @@ Ext.onReady(function(){
     job_combo.on('select', function(e,c) {
         Ext.brestore.jobid = c.json[0];
         Ext.brestore.jobdate = c.json[1];
-        Ext.brestore.root_path='';
         root.setText("Root");
         tree_loader.baseParams = init_params({init:1, action: 'list_dirs'});
         root.reload();
+
+        file_store.load({params:init_params({action: 'list_files_dirs',
+                                             path:Ext.brestore.path,
+                                             node:Ext.brestore.pathid})
+                        });
     });
 
     var where_field = new Ext.form.TextField({
             fieldLabel: 'Location',
+            id: 'wherefield',
             name: 'where',
             width:275,
             allowBlank:false
@@ -741,6 +815,24 @@ Ext.onReady(function(){
             client_combo,
             job_combo,
             '-',
+            {
+                id: 'prevbp',
+                cls: 'x-btn-icon',
+                icon: 'prev.png',
+                disabled: true,
+                handler: function() { 
+                    if (!pop_path()) {
+                        return;
+                    }
+                    Ext.brestore.offset=0;
+                    update_limits();       
+                    file_store.load({params:init_params({action: 'list_files_dirs',
+                                                         node:Ext.brestore.pathid})
+                                    });
+                    
+                }
+
+            },
             { 
               text: 'Change location',
               cls:'x-btn-text-icon',
@@ -771,7 +863,7 @@ Ext.onReady(function(){
             },
             '->',                     // Fill
             {                         // TODO: put this button on south panel
-                icon: '/bweb/mR.png', // icons can also be specified inline
+                icon: 'mR.png', // icons can also be specified inline
                 cls: 'x-btn-text-icon',
                 tooltip: 'Run restore',
                 text: 'Run restore',
@@ -851,12 +943,17 @@ Ext.onReady(function(){
             if (data.selections) {
                 if (data.grid.id == 'div-files') {
                     for(var i=0;i<data.selections.length;i++) {
+                        var name = data.selections[i].json[4];
+                        var fnid = data.selections[i].json[1];
+                        if (fnid == 0 && name != '..') {
+                            name = name + '/';
+                        }
                         r = new file_selection_record({
                             jobid:     data.selections[0].json[3],
                             fileid:    data.selections[i].json[0],
                             filenameid:data.selections[i].json[1],
                             pathid:    data.selections[i].json[2],
-                            name: Ext.brestore.path + data.selections[i].json[4],
+                            name: Ext.brestore.path + ((name=='..')?'':name),
                             size:      data.selections[i].json[5],
                             mtime:     data.selections[i].json[6]
                         });
@@ -902,6 +999,7 @@ Ext.onReady(function(){
     }
 
     function reload_media_store() {
+        Ext.brestore.media_store.removeAll();
         var items = file_selection_store.data.items;
         var tab_fileid=new Array();
         var tab_dirid=new Array();

@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-
+use strict;
 my $bresto_enable = 1;
 die "bresto is not enabled" if (not $bresto_enable);
 
@@ -373,12 +373,74 @@ sub ls_files
      ) AS listfiles
 WHERE File.FileId = listfiles.id";
 
-    print STDERR $query;
+#    print STDERR $query;
     $self->debug($query);
     my $result = $self->dbh_selectall_arrayref($query);
     $self->debug($result);
 
     return $result;
+}
+
+sub ls_special_dirs
+{
+    my ($self) = @_;
+    return undef unless ($self->{curjobids});
+
+    my $pathid = $self->{cwdid};
+    my $jobclause = $self->{curjobids};
+    my $dir_filenameid = $self->get_dir_filenameid();
+
+    my $sq1 =  
+"((SELECT PPathId AS PathId, '..' AS Path
+    FROM  brestore_pathhierarchy 
+   WHERE  PathId = $pathid)
+UNION
+ (SELECT $pathid AS PathId, '.' AS Path))";
+
+    my $sq2 = "
+SELECT tmp.PathId, tmp.Path, Lstat, JobId 
+  FROM $sq1 AS tmp  LEFT JOIN ( -- get attributes if any
+       SELECT File1.PathId, File1.JobId, File1.Lstat FROM File AS File1
+       WHERE File1.FilenameId = $dir_filenameid
+       AND File1.JobId IN ($jobclause)) AS listfile1
+  ON (tmp.PathId = listfile1.PathId)
+  ORDER BY tmp.Path, JobId DESC
+";
+
+    my $result = $self->dbh_selectall_arrayref($sq2);
+
+    my @return_list;
+    my $prev_dir='';
+    foreach my $refrow (@{$result})
+    {
+	my $dirid = $refrow->[0];
+        my $dir = $refrow->[1];
+        my $lstat = $refrow->[3];
+        my $jobid = $refrow->[2] || 0;
+        next if ($dirid eq $prev_dir);
+        my @return_array = ($dirid,$dir,$lstat,$jobid);
+        push @return_list,(\@return_array);
+        $prev_dir = $dirid;
+    }
+ 
+    return \@return_list;
+}
+
+# Let's retrieve the list of the visible dirs in this dir ...
+# First, I need the empty filenameid to locate efficiently
+# the dirs in the file table
+sub get_dir_filenameid
+{
+    my ($self) = @_;
+    if ($self->{dir_filenameid}) {
+        return $self->{dir_filenameid};
+    }
+    my $query = "SELECT FilenameId FROM Filename WHERE Name = ''";
+    my $sth = $self->dbh_prepare($query);
+    $sth->execute();
+    my $result = $sth->fetchrow_arrayref();
+    $sth->finish();
+    return $self->{dir_filenameid} = $result->[0];
 }
 
 # list all directories in a directory, accross curjobids
@@ -395,15 +457,10 @@ sub ls_dirs
     # Let's retrieve the list of the visible dirs in this dir ...
     # First, I need the empty filenameid to locate efficiently
     # the dirs in the file table
-    my $query = "SELECT FilenameId FROM Filename WHERE Name = ''";
-    my $sth = $self->dbh_prepare($query);
-    $sth->execute();
-    my $result = $sth->fetchrow_arrayref();
-    $sth->finish();
-    my $dir_filenameid = $result->[0];
+    my $dir_filenameid = $self->get_dir_filenameid();
 
     # Then we get all the dir entries from File ...
-    $query = "
+    my $query = "
 SELECT PathId, Path, JobId, Lstat FROM (
 
     SELECT Path1.PathId, Path1.Path, lower(Path1.Path),
@@ -418,18 +475,18 @@ SELECT PathId, Path, JobId, Lstat FROM (
        WHERE brestore_pathhierarchy1.PPathId = $pathid
        AND brestore_pathvisibility1.jobid IN ($jobclause)) AS listpath1
    JOIN Path AS Path1 ON (listpath1.PathId = Path1.PathId)
-   LEFT JOIN (
+
+   LEFT JOIN ( -- get attributes if any
        SELECT File1.PathId, File1.JobId, File1.Lstat FROM File AS File1
        WHERE File1.FilenameId = $dir_filenameid
        AND File1.JobId IN ($jobclause)) AS listfile1
        ON (listpath1.PathId = listfile1.PathId)
      ) AS A ORDER BY 2,3 DESC LIMIT $self->{limit} OFFSET $self->{offset} 
 ";
-    $self->debug($query);
-    print STDERR $query;
-    $sth=$self->dbh_prepare($query);
+#    print STDERR $query;
+    my $sth=$self->dbh_prepare($query);
     $sth->execute();
-    $result = $sth->fetchall_arrayref();
+    my $result = $sth->fetchall_arrayref();
     my @return_list;
     my $prev_dir='';
     foreach my $refrow (@{$result})
@@ -836,7 +893,8 @@ sub fill_table_for_restore
     my $FileId = CGI::param('force')?",FileId":"";
 
     my $fileid = join(',', grep { /^\d+$/ } CGI::param('fileid'));
-    my @dirid = grep { /^\d+$/ } CGI::param('dirid');
+    # can get dirid=("10,11", 10, 11)
+    my @dirid = grep { /^\d+$/ } map { split(/,/) } CGI::param('dirid') ;
     my $inclause = join(',', @jobid);
 
     my @union;
@@ -952,7 +1010,7 @@ if (CGI::param('init')) { # used when choosing a job
     $bvfs->update_brestore_table(@jobid);
 }
 
-my $pathid = CGI::param('node') || '';
+my $pathid = CGI::param('node') || CGI::param('pathid') || '';
 my $path = CGI::param('path');
 
 if ($pathid =~ /^(\d+)$/) {
@@ -963,6 +1021,8 @@ if ($pathid =~ /^(\d+)$/) {
     $pathid = $bvfs->get_root();
 }
 $bvfs->ch_dir($pathid);
+
+#print STDERR "pathid=$pathid\n";
 
 # permit to use a regex filter
 if ($args->{qpattern}) {
@@ -1010,13 +1070,71 @@ if ($action eq 'restore') {
 sub escape_quote
 {
     my ($str) = @_;
+    if (!$str) {
+        return '';
+    }
     $str =~ s/'/\\'/g;
     return $str;
 }
 
 print CGI::header('application/x-javascript');
 
-if ($action eq 'list_files') {
+
+if ($action eq 'list_files_dirs') {
+# fileid, filenameid, pathid, jobid, name, size, mtime
+    my $jids = join(",", @jobid);
+
+    my $files = $bvfs->ls_special_dirs();
+    # return ($dirid,$dir_basename,$lstat,$jobid)
+    print "[\n";
+    print join(',',
+	       map { my @p=Bvfs::parse_lstat($_->[3]); 
+		     '[' . join(',', 
+				0, # fileid
+				0, # filenameid
+				$_->[0], # pathid
+				"'$jids'", # jobid
+				"'" . escape_quote($_->[1]) . "'", # name
+				"'" . $p[7] . "'",                 # size
+				"'" . strftime('%Y-%m-%d %H:%m:%S', localtime($p[11])) .  "'") .
+		    ']'; 
+	       } @$files);
+
+    print "," if (@$files);
+
+    $files = $bvfs->ls_dirs();
+    # return ($dirid,$dir_basename,$lstat,$jobid)
+    print join(',',
+	       map { my @p=Bvfs::parse_lstat($_->[3]); 
+		     '[' . join(',', 
+				0, # fileid
+				0, # filenameid
+				$_->[0], # pathid
+				"'$jids'", # jobid
+				"'" . escape_quote($_->[1]) . "'", # name
+				"'" . $p[7] . "'",                 # size
+				"'" . strftime('%Y-%m-%d %H:%m:%S', localtime($p[11])) .  "'") .
+		    ']'; 
+	       } @$files);
+
+    print "," if (@$files);
+ 
+    $files = $bvfs->ls_files();
+    print join(',',
+	       map { my @p=Bvfs::parse_lstat($_->[3]); 
+		     '[' . join(',', 
+				$_->[1],
+				$_->[0],
+				$pathid,
+				$_->[4],
+				"'" . escape_quote($_->[2]) . "'",
+				"'" . $p[7] . "'",
+				"'" . strftime('%Y-%m-%d %H:%m:%S', localtime($p[11])) .  "'") .
+		    ']'; 
+	       } @$files);
+    print "]\n";
+
+} elsif ($action eq 'list_files') {
     print "[[0,0,0,0,'.',4096,'1970-01-01 00:00:00'],";
     my $files = $bvfs->ls_files();
 #	[ 1, 2, 3, "Bill",  10, '2007-01-01 00:00:00'],
@@ -1072,6 +1190,7 @@ if ($action eq 'list_files') {
     my $lst;
 
     # in this mode, we compute the result to get all needed media
+#    print STDERR "force=", CGI::param('force'), "\n";
     if (CGI::param('force')) {
         $table = fill_table_for_restore(@jobid);
         if (!$table) {
@@ -1095,7 +1214,7 @@ if ($action eq 'list_files') {
     }
 
     if ($table) {
-        $bvfs->dbh_do("DROP TABLE $table");
+        #$bvfs->dbh_do("DROP TABLE $table");
     }
 
 }

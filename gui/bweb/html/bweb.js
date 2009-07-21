@@ -88,7 +88,6 @@ function bweb_refresh() {
 function bweb_add_refresh(){
 	window.setInterval("bweb_refresh()",refresh_time);
 }
-
 function human_size(val)
 {   
    if (!val) {
