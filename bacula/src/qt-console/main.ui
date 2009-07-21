@@ -35,28 +35,7 @@
      <number>6</number>
     </property>
     <item row="0" column="0" >
-     <widget class="QStackedWidget" name="stackedWidget" >
-      <property name="sizePolicy" >
-       <sizepolicy vsizetype="Expanding" hsizetype="Expanding" >
-        <horstretch>1</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="sizeIncrement" >
-       <size>
-        <width>1</width>
-        <height>0</height>
-       </size>
-      </property>
-      <property name="focusPolicy" >
-       <enum>Qt::StrongFocus</enum>
-      </property>
-      <property name="toolTip" >
-       <string/>
-      </property>
-      <property name="statusTip" >
-       <string/>
-      </property>
+     <widget class="QTabWidget" name="tabWidget" >
       <property name="currentIndex" >
        <number>-1</number>
       </property>
@@ -228,6 +207,9 @@
         <string>Use items in this tree to select what window is in panel</string>
        </property>
        <property name="autoFillBackground" >
+        <bool>true</bool>
+       </property>
+       <property name="headerHidden" >
         <bool>true</bool>
        </property>
        <column>

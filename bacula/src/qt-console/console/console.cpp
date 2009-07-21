@@ -40,9 +40,10 @@
 #include "select.h"
 #include "run/run.h"
 
-Console::Console(QStackedWidget *parent)
+Console::Console(QTabWidget *parent)
 {
    QFont font;
+   m_name = tr("Console");
    m_messages_pending = false;
    m_parent = parent;
    m_closeable = false;
@@ -723,7 +724,7 @@ void Console::consoleReload()
  * This may be rendered not needed if the multiple connections feature gets working */
 bool Console::hasFocus()
 {
-   if (mainWin->stackedWidget->currentIndex() == mainWin->stackedWidget->indexOf(this))
+   if (mainWin->tabWidget->currentIndex() == mainWin->tabWidget->indexOf(this))
       return true;
    else
       return false;

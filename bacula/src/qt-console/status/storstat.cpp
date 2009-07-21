@@ -67,11 +67,12 @@ StorStat::StorStat(QString &storage, QTreeWidgetItem *parentTreeWidgetItem)
 
    m_timer = new QTimer(this);
    readSettings();
-   dockPage();
 
    createConnections();
    m_timer->start(1000);
    setCurrent();
+
+   dockPage();
 }
 
 void StorStat::getFont()
@@ -115,7 +116,7 @@ void StorStat::timerTriggered()
    value -= 1;
    if (value == 0) {
       value = spinBox->value();
-      bool iscurrent = mainWin->stackedWidget->currentIndex() == mainWin->stackedWidget->indexOf(this);
+      bool iscurrent = mainWin->tabWidget->currentIndex() == mainWin->tabWidget->indexOf(this);
       if (((isDocked() && iscurrent) || (!isDocked())) && (checkBox->checkState() == Qt::Checked)) {
          populateAll();
       }

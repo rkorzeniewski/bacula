@@ -70,7 +70,7 @@ class Console : public Pages, public Ui::ConsoleForm
    friend class DirComm;
 
 public:
-   Console(QStackedWidget *parent);
+   Console(QTabWidget *parent);
    ~Console();
    int read(int conn);
    char *msg(int conn);

@@ -60,7 +60,7 @@ public:
    void togglePageDocking();
    bool isDocked();
    bool isCloseable();
-   QStackedWidget *m_parent;
+   QTabWidget *m_parent;
    QList<QAction*> m_contextActions;
    virtual void PgSeltreeWidgetClicked();
    virtual void currentStackItem();
