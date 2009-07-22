@@ -3,6 +3,7 @@
 General:
 
 22Jul09
+kes  Apply idea of part of Graham's tidy-bsr-source.patch, but modified
 kes  Fix bug #1337 Console tries to build with SSL when libssl-dev not installed. 
 21Jul09
 kes  Add setJobStatus method to JCR class.
