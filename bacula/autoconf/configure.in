@@ -1164,6 +1164,11 @@ else
    OPENSSL_INC=""
 fi
 
+if test "$support_tls" = "no"; then
+   OPENSSL_LIBS=""
+   OPENSSL_INC=""
+fi  
+
 AC_MSG_RESULT([$support_tls])
 AC_SUBST(OPENSSL_LIBS)
 AC_SUBST(OPENSSL_INC)

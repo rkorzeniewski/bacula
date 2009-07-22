@@ -27258,6 +27258,11 @@ else
    OPENSSL_INC=""
 fi
 
+if test "$support_tls" = "no"; then
+   OPENSSL_LIBS=""
+   OPENSSL_INC=""
+fi
+
 { echo "$as_me:$LINENO: result: $support_tls" >&5
 echo "${ECHO_T}$support_tls" >&6; }
 

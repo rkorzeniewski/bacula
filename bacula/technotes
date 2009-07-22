@@ -2,6 +2,8 @@
           
 General:
 
+22Jul09
+kes  Fix bug #1337 Console tries to build with SSL when libssl-dev not installed. 
 21Jul09
 kes  Add setJobStatus method to JCR class.
 kes  Modify setJobStatus so cancel has same priority as fatal errors
