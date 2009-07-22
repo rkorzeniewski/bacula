@@ -2,6 +2,10 @@
           
 General:
 
+20Jul09
+kes  Fix Solaris compiler warning in signal.c
+
+Release version 3.0.2:
 18Jul09
 kes  Fix bat command line input bug
 17Jul09
