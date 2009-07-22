@@ -739,10 +739,8 @@ static int get_status_priority(int JobStatus)
    switch (JobStatus) {
    case JS_ErrorTerminated:
    case JS_FatalError:
-      priority = 10;
-      break;
    case JS_Canceled:
-      priority = 9;
+      priority = 10;
       break;
    case JS_Error:
       priority = 8;
@@ -809,22 +807,28 @@ static void update_wait_time(JCR *jcr, int newJobStatus)
 
 void set_jcr_job_status(JCR *jcr, int JobStatus)
 {
+   jcr->setJobStatus(JobStatus);
+}
+
+void JCR::setJobStatus(int JobStatus)
+{
+   JCR *jcr = this;
    int priority, old_priority;
-   int oldJobStatus = jcr->JobStatus;
+   int oldJobStatus = JobStatus;
    priority = get_status_priority(JobStatus);
    old_priority = get_status_priority(oldJobStatus);
    
-   Dmsg2(800, "set_jcr_job_status(%s, %c)\n", jcr->Job, JobStatus);
+   Dmsg2(800, "set_jcr_job_status(%s, %c)\n", Job, JobStatus);
 
    /* Update wait_time depending on newJobStatus and oldJobStatus */
-   update_wait_time(jcr, JobStatus);
+   update_wait_time(this, JobStatus);
 
    /*
     * For a set of errors, ... keep the current status
     *   so it isn't lost. For all others, set it.
     */
-   Dmsg3(300, "jid=%u OnEntry JobStatus=%c set=%c\n", (uint32_t)jcr->JobId,
-         jcr->JobStatus, JobStatus);
+   Dmsg3(300, "jid=%u OnEntry JobStatus=%c set=%c\n", (uint32_t)JobId,
+         JobStatus, JobStatus);
    if (priority >= old_priority) {
       jcr->JobStatus = JobStatus;     /* replace with new priority */
    }

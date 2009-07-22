@@ -2,6 +2,9 @@
           
 General:
 
+21Jul09
+kes  Add setJobStatus method to JCR class.
+kes  Modify setJobStatus so cancel has same priority as fatal errors
 20Jul09
 kes  Fix Solaris compiler warning in signal.c
 
