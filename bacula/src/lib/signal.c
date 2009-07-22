@@ -90,7 +90,7 @@ static void dbg_print_bacula()
    char buf[512];
 
    snprintf(buf, sizeof(buf), "%s/%s.%d.bactrace", 
-            working_directory, my_name, getpid());
+            working_directory, my_name, (int)getpid());
    FILE *fp = fopen(buf, "ab") ;
    if (!fp) {
       fp = stderr;
