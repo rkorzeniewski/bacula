@@ -206,6 +206,8 @@ void DirStat::populateScheduled()
 
    scheduledTable->setColumnCount(headerlist.size());
    scheduledTable->setHorizontalHeaderLabels(headerlist);
+   scheduledTable->setSelectionBehavior(QAbstractItemView::SelectRows);
+   scheduledTable->setSelectionMode(QAbstractItemView::SingleSelection);
 
    if (m_console->dir_cmd(command, results)) {
       int row = 0;
@@ -221,7 +223,6 @@ void DirStat::populateScheduled()
             field = field.trimmed();  /* strip leading & trailing spaces */
             p_tableitem = new QTableWidgetItem(field, 1);
             p_tableitem->setForeground(blackBrush);
-            p_tableitem->setFlags(0);
             scheduledTable->setItem(row, column, p_tableitem);
             column += 1;
          }
@@ -250,6 +251,7 @@ void DirStat::populateRunning()
 
    runningTable->setColumnCount(headerlist.size());
    runningTable->setHorizontalHeaderLabels(headerlist);
+   runningTable->setSelectionBehavior(QAbstractItemView::SelectRows);
 
    if (m_console->dir_cmd(command, results)) {
       int row = 0;
@@ -265,7 +267,6 @@ void DirStat::populateRunning()
             field = field.trimmed();  /* strip leading & trailing spaces */
             p_tableitem = new QTableWidgetItem(field, 1);
             p_tableitem->setForeground(blackBrush);
-            p_tableitem->setFlags(Qt::ItemIsSelectable);
             runningTable->setItem(row, column, p_tableitem);
             column += 1;
          }
