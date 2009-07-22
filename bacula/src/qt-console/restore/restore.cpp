@@ -491,7 +491,8 @@ void restorePage::writeSettings()
 {
    QSettings settings(m_console->m_dir->name(), "bat");
    settings.beginGroup("RestorePage");
-   settings.setValue("splitterSizes", splitter->saveState());
+   m_splitText = "splitterSizes_2";
+   settings.setValue(m_splitText, splitter->saveState());
    settings.endGroup();
 }
 
@@ -502,6 +503,6 @@ void restorePage::readSettings()
 {
    QSettings settings(m_console->m_dir->name(), "bat");
    settings.beginGroup("RestorePage");
-   splitter->restoreState(settings.value("splitterSizes").toByteArray());
+   if (settings.contains(m_splitText)) { splitter->restoreState(settings.value(m_splitText).toByteArray()); }
    settings.endGroup();
 }

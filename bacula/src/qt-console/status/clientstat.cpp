@@ -277,7 +277,7 @@ void ClientStat::readSettings()
    m_splitText = "splitterSizes_1";
    QSettings settings(m_console->m_dir->name(), "bat");
    settings.beginGroup(m_groupText);
-   splitter->restoreState(settings.value(m_splitText).toByteArray());
+   if (settings.contains(m_splitText)) { splitter->restoreState(settings.value(m_splitText).toByteArray()); }
    spinBox->setValue(settings.value("refreshInterval", 28).toInt());
    checkBox->setCheckState((Qt::CheckState)settings.value("refreshCheck", Qt::Checked).toInt());
    settings.endGroup();

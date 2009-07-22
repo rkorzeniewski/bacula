@@ -50,7 +50,7 @@ JobList::JobList(const QString &mediaName, const QString &clientName,
           const QString &jobName, const QString &filesetName, QTreeWidgetItem *parentTreeWidgetItem)
 {
    setupUi(this);
-   m_name = ""; /* treeWidgetName has a virtual override in this class */
+   m_name = "Jobs Run"; /* treeWidgetName has a virtual override in this class */
    m_mediaName = mediaName;
    m_clientName = clientName;
    m_jobName = jobName;
@@ -84,8 +84,8 @@ JobList::JobList(const QString &mediaName, const QString &clientName,
    area->setObjectName(QString::fromUtf8("area"));
    area->setWidget(frame);
    area->setWidgetResizable(true);
-   m_splitter->addWidget(mp_tableWidget);
    m_splitter->addWidget(area);
+   m_splitter->addWidget(mp_tableWidget);
 
    gridLayout->addWidget(m_splitter, 0, 0, 1, 1);
    readSettings();
@@ -367,15 +367,15 @@ void JobList::currentStackItem()
 void JobList::treeWidgetName(QString &desc)
 {
    if (m_mediaName != "" ) {
-     desc = tr("JobList of Volume %1").arg(m_mediaName);
+     desc = tr("Jobs Run on Volume %1").arg(m_mediaName);
    } else if (m_clientName != "" ) {
-     desc = tr("JobList of Client %1").arg(m_clientName);
+     desc = tr("Jobs Run from Client %1").arg(m_clientName);
    } else if (m_jobName != "" ) {
-     desc = tr("JobList of Job %1").arg(m_jobName);
+     desc = tr("Jobs Run of Job %1").arg(m_jobName);
    } else if (m_filesetName != "" ) {
-     desc = tr("JobList of fileset %1").arg(m_filesetName);
+     desc = tr("Jobs Run with fileset %1").arg(m_filesetName);
    } else {
-     desc = tr("JobList");
+     desc = tr("Jobs Run");
    }
 }
 
@@ -582,10 +582,10 @@ void JobList::writeSettings()
 void JobList::readSettings()
 {
    m_groupText = "JobListPage";
-   m_splitText = "splitterSizes_1";
+   m_splitText = "splitterSizes_2";
    QSettings settings(m_console->m_dir->name(), "bat");
    settings.beginGroup(m_groupText);
-   m_splitter->restoreState(settings.value(m_splitText).toByteArray());
+   if (settings.contains(m_splitText)) { m_splitter->restoreState(settings.value(m_splitText).toByteArray()); }
    filterCopyCheckBox->setCheckState((Qt::CheckState)settings.value("FilterCopyCheckState").toInt());
    filterMigrationCheckBox->setCheckState((Qt::CheckState)settings.value("FilterMigrationCheckState").toInt());
    settings.endGroup();
