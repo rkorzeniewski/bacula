@@ -571,6 +571,6 @@ void JobPlot::readSplitterSettings()
 {
    QSettings settings(m_console->m_dir->name(), "bat");
    settings.beginGroup("JobPlot");
-   m_splitter->restoreState(settings.value("m_splitterSizes").toByteArray());
+   if (settings.contains("m_splitterSizes")) { m_splitter->restoreState(settings.value("m_splitterSizes").toByteArray()); }
    settings.endGroup();
 }

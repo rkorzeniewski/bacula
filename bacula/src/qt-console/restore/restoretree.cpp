@@ -714,12 +714,12 @@ void restoreTree::writeSettings()
 void restoreTree::readSettings()
 {
    m_groupText = tr("RestoreTreePage");
-   m_splitText1 = "splitterSizes1_2";
-   m_splitText2 = "splitterSizes2_2";
+   m_splitText1 = "splitterSizes1_3";
+   m_splitText2 = "splitterSizes2_3";
    QSettings settings(m_console->m_dir->name(), "bat");
    settings.beginGroup(m_groupText);
-   m_splitter->restoreState(settings.value(m_splitText1).toByteArray());
-   splitter->restoreState(settings.value(m_splitText2).toByteArray());
+   if (settings.contains(m_splitText1)) { m_splitter->restoreState(settings.value(m_splitText1).toByteArray()); }
+   if (settings.contains(m_splitText2)) { splitter->restoreState(settings.value(m_splitText2).toByteArray()); }
    settings.endGroup();
 }
 
