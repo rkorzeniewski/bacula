@@ -453,6 +453,11 @@ sub ls_dirs
 
     my $pathid = $self->{cwdid};
     my $jobclause = $self->{curjobids};
+    my $filter ='';
+
+    if ($self->{pattern}) {
+        $filter = " AND Path2.Path $self->{sql}->{MATCH} $self->{pattern} ";
+    }
 
     # Let's retrieve the list of the visible dirs in this dir ...
     # First, I need the empty filenameid to locate efficiently
@@ -473,7 +478,9 @@ SELECT PathId, Path, JobId, Lstat FROM (
        JOIN brestore_pathvisibility AS brestore_pathvisibility1
            ON (brestore_pathhierarchy1.PathId = brestore_pathvisibility1.PathId)
        WHERE brestore_pathhierarchy1.PPathId = $pathid
-       AND brestore_pathvisibility1.jobid IN ($jobclause)) AS listpath1
+       AND brestore_pathvisibility1.jobid IN ($jobclause)
+           $limit
+     ) AS listpath1
    JOIN Path AS Path1 ON (listpath1.PathId = Path1.PathId)
 
    LEFT JOIN ( -- get attributes if any
