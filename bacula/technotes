@@ -2,6 +2,8 @@
           
 General:
 
+23Jul09
+kes  Remove Qt 4.4 code so it compiles on 4.3 (setHeaderHidden).
 22Jul09
 kes  Apply idea of part of Graham's tidy-bsr-source.patch, but modified
 kes  Fix bug #1337 Console tries to build with SSL when libssl-dev not installed. 
