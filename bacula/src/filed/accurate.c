@@ -146,7 +146,7 @@ static bool accurate_add_file(JCR *jcr, char *fname, char *lstat)
    bool ret = true;
    CurFile elt;
    struct stat statp;
-   int LinkFIc;
+   int32_t LinkFIc;
    decode_stat(lstat, &statp, &LinkFIc); /* decode catalog stat */
    elt.ctime = statp.st_ctime;
    elt.mtime = statp.st_mtime;
