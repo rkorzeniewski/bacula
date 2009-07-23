@@ -80,6 +80,7 @@
 #define JS_FatalError            'f'  /* Fatal error */
 #define JS_Differences           'D'  /* Verify differences */
 #define JS_Canceled              'A'  /* canceled by user */
+#define JS_Incomplete            'I'  /* Incomplete Job */
 #define JS_WaitFD                'F'  /* waiting on File daemon */
 #define JS_WaitSD                'S'  /* waiting on the Storage daemon */
 #define JS_WaitMedia             'm'  /* waiting for new media */
@@ -111,7 +112,9 @@ enum {
 #define job_canceled(jcr) \
   (jcr->JobStatus == JS_Canceled || \
    jcr->JobStatus == JS_ErrorTerminated || \
-   jcr->JobStatus == JS_FatalError)
+   jcr->JobStatus == JS_FatalError ||
+   jcr->JobStatus == JS_Incomplete \
+  )
 
 #define job_waiting(jcr) \
   (jcr->JobStatus == JS_WaitFD       || \
