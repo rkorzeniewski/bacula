@@ -64,9 +64,9 @@ restoreTree::restoreTree()
    area->setObjectName(QString::fromUtf8("area"));
    area->setWidget(widget);
    area->setWidgetResizable(true);
-   m_splitter->addWidget(splitter);
    m_splitter->addWidget(area);
-   splitter->setCollapsible(0, false);
+   m_splitter->addWidget(splitter);
+   splitter->setChildrenCollapsible(false);
 
    gridLayout->addWidget(m_splitter, 0, 0, 1, 1);
 
