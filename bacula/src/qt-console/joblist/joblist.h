@@ -67,6 +67,7 @@ private slots:
    void showLogForJob();
    void consoleCancelJob();
    void graphTable();
+   void splitterMoved(int pos, int index);
 
 private:
    void createConnections();
