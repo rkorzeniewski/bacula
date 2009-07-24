@@ -2628,7 +2628,8 @@ get_cmd(const char *prompt)
 {
    int i = 0;
    int ch;
-   fprintf(stdout, prompt);
+
+   fprintf(stdout, "%s", prompt);
 
    /* We really should turn off echoing and pretty this
     * up a bit.
@@ -2639,8 +2640,9 @@ get_cmd(const char *prompt)
          strip_trailing_junk(cmd);
          return 1;
       } else if (ch == 4 || ch == 0xd3 || ch == 0x8) {
-         if (i > 0)
+         if (i > 0) {
             cmd[--i] = 0;
+         }
          continue;
       }
 
