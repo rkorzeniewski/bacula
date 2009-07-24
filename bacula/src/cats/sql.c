@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2008 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2009 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -562,6 +562,21 @@ void split_path_and_file(JCR *jcr, B_DB *mdb, const char *fname)
 }
 
 /*
+ * Set maximum field length to something reasonable
+ */
+static int max_length(int max_length)
+{
+   int max_len = max_length;
+   /* Sanity check */
+   if (max_len < 0) {
+      max_len = 2;
+   } else if (max_len > 100) {
+      max_len = 100;
+   }
+   return max_len;
+}
+
+/*
  * List dashes as part of header for listing SQL results in a table
  */
 void
@@ -569,6 +584,7 @@ list_dashes(B_DB *mdb, DB_LIST_HANDLER *send, void *ctx)
 {
    SQL_FIELD  *field;
    int i, j;
+   int len;
 
    sql_field_seek(mdb, 0);
    send(ctx, "+");
@@ -577,7 +593,8 @@ list_dashes(B_DB *mdb, DB_LIST_HANDLER *send, void *ctx)
       if (!field) {
          break;
       }
-      for (j = 0; j < (int)field->max_length + 2; j++) {
+      len = max_length(field->max_length + 2);
+      for (j = 0; j < len; j++) {
          send(ctx, "-");
       }
       send(ctx, "+");
@@ -646,7 +663,8 @@ list_result(JCR *jcr, B_DB *mdb, DB_LIST_HANDLER *send, void *ctx, e_list_type t
       if (!field) {
          break;
       }
-      bsnprintf(buf, sizeof(buf), " %-*s |", (int)field->max_length, field->name);
+      max_len = max_length(field->max_length);
+      bsnprintf(buf, sizeof(buf), " %-*s |", max_len, field->name);
       send(ctx, buf);
    }
    send(ctx, "\n");
@@ -661,13 +679,14 @@ list_result(JCR *jcr, B_DB *mdb, DB_LIST_HANDLER *send, void *ctx, e_list_type t
          if (!field) {
             break;
          }
+         max_len = max_length(field->max_length);
          if (row[i] == NULL) {
-            bsnprintf(buf, sizeof(buf), " %-*s |", (int)field->max_length, "NULL");
+            bsnprintf(buf, sizeof(buf), " %-*s |", max_len, "NULL");
          } else if (IS_NUM(field->type) && !jcr->gui && is_an_integer(row[i])) {
-            bsnprintf(buf, sizeof(buf), " %*s |", (int)field->max_length,
+            bsnprintf(buf, sizeof(buf), " %*s |", max_len,
                       add_commas(row[i], ewc));
          } else {
-            bsnprintf(buf, sizeof(buf), " %-*s |", (int)field->max_length, row[i]);
+            bsnprintf(buf, sizeof(buf), " %-*s |", max_len, row[i]);
          }
          send(ctx, buf);
       }
