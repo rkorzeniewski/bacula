@@ -171,11 +171,11 @@ print OUT $CCircle::gd->png;
 close(OUT) ;
 
 open(OUT, ">$base_fich/$md5_rep.tpl") or die "$base_fich/$md5_rep.tpl $!";
-print OUT "
+print OUT "<br/>
  <form action='$url_action' method='get'>
-  <div align='right'>
+  <div align='left'>
    <input title='jobids' type='hidden' name='jobid' value='$jobid'>
-   <input title='repertoire' type='text' name='where' value='$where'/>
+   <input title='directory' type='text' name='where' value='$where'/>
    <input type='submit' size='256' name='go' value='go'/>
   </div>
  </form>
