@@ -121,7 +121,7 @@ db_init_database(JCR *jcr, const char *db_name, const char *db_user, const char 
    mdb = (B_DB *) malloc(sizeof(B_DB));
    memset(mdb, 0, sizeof(B_DB));
    mdb->db_name = bstrdup(db_name);
-   mdb->have_insert_id = TRUE;
+   mdb->have_insert_id = true;
    mdb->errmsg = get_pool_memory(PM_EMSG); /* get error message buffer */
    *mdb->errmsg = 0;
    mdb->cmd = get_pool_memory(PM_EMSG);    /* get command buffer */
@@ -445,18 +445,22 @@ void my_sqlite_field_seek(B_DB *mdb, int field)
          mdb->fields[i]->type = 0;
          mdb->fields[i]->flags = 1;        /* not null */
       }
-      mdb->fields_defined = TRUE;
+      mdb->fields_defined = true;
    }
-   if (field > sql_num_fields(mdb)) {
-      field = sql_num_fields(mdb);
+   if (field > sql_num_fields(mdb) - 1) {
+      field = sql_num_fields(mdb) - 1;
     }
     mdb->field = field;
-
 }
 
 SQL_FIELD *my_sqlite_fetch_field(B_DB *mdb)
 {
-   return mdb->fields[mdb->field++];
+   if (mdb->fields_defined && mdb->field < sql_num_fields(mdb)) {
+      return mdb->fields[mdb->field++];
+   } else {
+      mdb->field = 0;
+      return NULL;
+   }
 }
 
 #ifdef HAVE_BATCH_FILE_INSERT

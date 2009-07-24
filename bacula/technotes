@@ -2,6 +2,8 @@
           
 General:
 
+24Jul09
+kes  Attempt to fix SQLite seg fault problem
 23Jul09
 kes  Fix int/int32_t problem in accurate_add_file 
      reported by "Eli Shemer" <elish@consist.co.il>
