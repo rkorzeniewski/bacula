@@ -148,7 +148,7 @@ bool do_append_data(JCR *jcr)
        *  The stream header consists of the following:
        *    file_index (sequential Bacula file index, base 1)
        *    stream     (Bacula number to distinguish parts of data)
-       *    info       (Info for Storage daemon -- compressed, encryped, ...)
+       *    info       (Info for Storage daemon -- compressed, encrypted, ...)
        *       info is not currently used, so is read, but ignored!
        */
      if ((n=bget_msg(ds)) <= 0) {
