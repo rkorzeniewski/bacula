@@ -70,15 +70,8 @@ extern void   free_pool_memory(POOLMEM *buf);
 
 #endif
 
-/* Function to simplify free/reset pointers */
-inline void bfree_and_null(POOLMEM *&a) {
-   if (a) { 
-      free_pool_memory(a);
-      a = NULL;
-   } 
-}
-
-#define free_and_null_pool_memory(a) bfree_and_null((a))
+/* Macro to simplify free/reset pointers */
+#define bfree_and_null_pool_memory(a) do{if(a){free_pool_memory(a); (a)=NULL;}} while(0)
 
 extern void garbage_collect_memory_pool();
 extern void  close_memory_pool();

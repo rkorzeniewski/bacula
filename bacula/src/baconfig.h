@@ -612,8 +612,8 @@ int  m_msg(const char *file, int line, POOLMEM *&pool_buf, const char *fmt, ...)
 #define bmalloc(size) b_malloc(__FILE__, __LINE__, (size))
 #endif
 
-/* Function to simplify free/reset pointers */
-inline void bfree_and_null(void *&a) { if (a) { free(a); a = NULL; } }
+/* Macro to simplify free/reset pointers */
+#define bfree_and_null(a) do{if(a){free(a); (a)=NULL;}} while(0)
 
 /*
  * Replace codes needed in both file routines and non-file routines
