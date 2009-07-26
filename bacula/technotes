@@ -2,6 +2,8 @@
           
 General:
 
+26Jul09
+kes  Tweak RedHat spec files
 24Jul09
 kes  Add format to a fprintf
 kes  Attempt to fix SQLite seg fault problem
