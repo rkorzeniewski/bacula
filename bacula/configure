@@ -42564,10 +42564,16 @@ PFILES="platforms/Makefile"
 PSCMD="ps -e"
 WIN32=
 MACOSX=
+
 hostname=`uname -n | cut -d '.' -f 1`
 if test x${hostname} = x ; then
    hostname="localhost"
 fi
+ping -c 1 $hostname 2>/dev/null 1>/dev/null
+if test ! $? = 0; then
+  hostname="localhost"
+fi
+
 case "$DISTNAME" in
 aix)
    DISTVER=`uname -r`
@@ -42619,10 +42625,6 @@ darwin)
       platforms/darwin/Makefile"
   ;;
 debian)
-      ping -c 1 $hostname 2>&1 1>/dev/null
-   if test ! $? = 0; then
-      hostname="localhost"
-   fi
    if `test -f /etc/apt/sources.list && grep -q ubuntu /etc/apt/sources.list`; then
       DISTNAME="ubuntu"
    fi
@@ -42656,10 +42658,6 @@ debian)
    fi
   ;;
 freebsd)
-      ping -c 1 $hostname 2>&1 1>/dev/null
-   if test ! $? = 0; then
-      hostname="localhost"
-   fi
    DISTVER=`uname -a |awk '{print $3}'`
    VER=`echo $DISTVER | cut -c 1`
    if test x$VER = x4 ; then
@@ -42722,10 +42720,6 @@ openbsd)
        platforms/openbsd/bacula-dir"
   ;;
 redhat)
-      ping -c 1 $hostname 2>&1 1>/dev/null
-   if test ! $? = 0; then
-      hostname="localhost"
-   fi
    if test -f /etc/whitebox-release ; then
       f=/etc/whitebox-release
    else
@@ -42747,13 +42741,10 @@ redhat)
        platforms/redhat/bacula-sd \
        platforms/redhat/bacula-dir \
        platforms/redhat/bacula.spec \
+       platforms/redhat/bsys.spec \
        "
   ;;
 mandrake)
-      ping -c 1 $hostname 2>&1 1>/dev/null
-   if test ! $? = 0; then
-      hostname="localhost"
-   fi
    DISTVER=`cat /etc/mandrake-release | grep release |\
       cut -f 5 -d ' '`
    TAPEDRIVE="/dev/nst0"
@@ -42767,10 +42758,6 @@ mandrake)
        "
   ;;
 gentoo)
-      ping -c 1 $hostname 2>&1 1>/dev/null
-   if test ! $? = 0; then
-      hostname="localhost"
-   fi
    DISTVER=`awk '/version / {print $5}' < /etc/gentoo-release`
    TAPEDRIVE="/dev/nst0"
    PSCMD="ps -e -o pid,command"
@@ -42782,10 +42769,6 @@ gentoo)
        platforms/gentoo/bacula-dir"
   ;;
 slackware)
-      ping -c 1 $hostname 2>&1 1>/dev/null
-   if test ! $? = 0; then
-      hostname="localhost"
-   fi
    DISTVER=`cat /etc/slackware-version`
    TAPEDRIVE="/dev/nst0"
    PSCMD="ps -e -o pid,command"
@@ -42814,10 +42797,6 @@ _ACEOF
    LIBS="$LIBS -lresolv"
   ;;
 suse)
-      ping -c 1 $hostname 2>&1 1>/dev/null
-   if test ! $? = 0; then
-      hostname="localhost"
-   fi
    DISTVER=`cat /etc/SuSE-release |grep VERSION|\
        cut -f 3 -d ' '`
    TAPEDRIVE="/dev/nst0"
@@ -42831,10 +42810,6 @@ suse)
        platforms/suse/bacula.spec"
   ;;
 suse5)
-      ping -c 1 $hostname 2>&1 1>/dev/null
-   if test ! $? = 0; then
-      hostname="localhost"
-   fi
    DISTNAME=suse
    DISTVER=5.x
    TAPEDRIVE="/dev/nst0"

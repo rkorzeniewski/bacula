@@ -1,7 +1,168 @@
 # Bacula RPM spec file
+#
 # Copyright (C) 2000-2009 Free Software Foundation Europe e.V.
 
 # Platform Build Configuration
+
+
+BuildRequires: libacl-devel
+
+# probems with mandriva build: 
+
+# nothing provides libbonobo2_0-devel, nothing provides libbonoboui2_0-devel
+
+# set Macros by opensuse_bs, see http://en.opensuse.org/Build_Service/cross_distribution_package_how_to
+#openSUSE 11.1   %if 0%{?suse_version} == 1110  
+#openSUSE 11.0  %if 0%{?suse_version} == 1100   
+#openSUSE 10.3  %if 0%{?suse_version} == 1030   
+#openSUSE 10.2  %if 0%{?suse_version} == 1020   
+#SUSE Linux 10.1        %if 0%{?suse_version} == 1010   
+#SUSE Linux 10.0        %if 0%{?suse_version} == 1000   
+#SUSE Linux 9.3         %if 0%{?suse_version} == 930    
+#SLES 9         %if 0%{?sles_version} == 9      also set: %if 0%{?suse_version} == 910
+#SLE 10         %if 0%{?sles_version} == 10     also set: %if 0%{?suse_version} == 1010
+#SLE 11         %if 0%{?sles_version} == 11     also set: %if 0%{?suse_version} == 1110
+#CentOS 5       %if 0%{?centos_version} == 501  
+#RHEL 4         %if 0%{?rhel_version} == 406    
+#RHEL 5         %if 0%{?rhel_version} == 501    
+#Fedora 6 with Extras   %if 0%{?fedora_version} == 6    
+#Fedora 7 with Extras   %if 0%{?fedora_version} == 7    
+#Fedora 8 with Extras   %if 0%{?fedora_version} == 8    
+#Fedora 9 with Extras   %if 0%{?fedora_version} == 9    
+#Fedora 10 with Extras  %if 0%{?fedora_version} == 10   
+#Mandriva 2006  %if 0%{?mandriva_version} == 2006       
+#Mandriva 2007  %if 0%{?mandriva_version} == 2007       
+#Mandriva 2008  %if 0%{?mandriva_version} == 2008       
+
+
+%if 0%{?opensuse_bs}
+# am I running in opensuse build service?
+# TODO: seems to make problems
+
+# choose database backend here
+# postgres, mysql, sqlite
+%define build_postgresql 1
+
+# Build Service: Determine Distribution
+
+%ifarch x86_64
+ %define build_x86_64 1
+%endif
+
+
+%if 0%{?fedora_version} || 0%{?rhel_version} || 0%{?centos_version}
+BuildRequires: GConf2-devel
+BuildRequires: freetype-devel
+BuildRequires: libtermcap-devel
+BuildRequires: shadow-utils
+%endif
+
+
+
+
+%if 0%{?mandriva_version} == 2007
+%define build_mdv 1
+%define _dist "Mandriva 2007"
+# %define gconsole 0 
+%endif
+
+%if 0%{?fedora_version} == 8
+%define build_fc8 1
+%define _dist "Fedora Core 8"
+BuildRequires: redhat-release
+%endif
+
+%if 0%{?fedora_version} == 9
+%define build_fc9 1
+%define _dist "Fedora Core 9"
+BuildRequires: redhat-release
+%endif
+
+
+%if 0%{?fedora_version} == 10
+%define build_fc9 1
+%define _dist "Fedora Core 10"
+BuildRequires: PolicyKit-gnome
+BuildRequires: fedora-release
+%endif
+
+%if 0%{?fedora_version} == 11
+%define build_fc9 1
+%define _dist "Fedora Core 11"
+BuildRequires: PolicyKit-gnome
+BuildRequires: fedora-release
+%endif
+
+
+
+
+%if 0%{?rhel_version} == 501
+%define build_rhel5 1
+%define _dist "Red Hat Enterprise Linux Server release 5"
+BuildRequires: redhat-release
+%endif
+
+%if 0%{?rhel_version} == 406
+%define build_rhel4 1
+%define _dist "Red Hat Enterprise Linux Server release 4"
+BuildRequires: redhat-release
+%endif
+
+
+%if 0%{?centos_version} == 501
+%define build_centos5 1
+%define _dist "CentOS 5"
+BuildRequires: redhat-release
+%endif
+
+
+%if 0%{?suse_version} == 1020
+%define build_su102 1
+%define _dist "OpenSUSE 10.2"
+BuildRequires: suse-release
+%endif
+
+
+%if 0%{?suse_version} == 1030
+%define build_su103 1
+%define _dist "OpenSUSE 10.3"
+BuildRequires: suse-release
+%endif
+
+%if 0%{?suse_version} == 1100
+%define build_su110 1
+%define _dist "SUSE 11"
+BuildRequires: suse-release
+%endif
+
+
+%if 0%{?suse_version} == 1110
+%define build_su111 1
+%define _dist "SUSE 11"
+%endif
+
+
+%if 0%{?sles_version} == 9
+%define build_su9 1
+%define _dist "SLES 9"
+%endif
+
+
+%if 0%{?sles_version} == 10
+%define build_su10 1
+%define _dist "SLE 10"
+%endif
+
+
+%if 0%{?sles_version} == 11
+%define build_su111 1
+%define _dist "SLES 11"
+%endif
+
+
+
+%endif 
+# opensuse-bs?
 
 # basic defines for every build
 %define _version @VERSION@
@@ -240,6 +401,24 @@ exit 1
 %if %{mdk}
 %define _dist %(grep Mand /etc/mandrake-release)
 %endif
+
+# opensuse build service start
+%if 0%{?sles_version} == 9
+%define _dist "SLES 9"
+%endif
+
+%if 0%{?sles_version} == 10
+%define _dist "SLE 10"
+%endif
+
+
+%if 0%{?sles_version} == 11
+%define _dist "SLE 11"
+%endif
+
+# opensuse build service end
+
+%{?DISTNAME:%define _dist %{DISTNAME}}
 Distribution: %{_dist}
 
 # Should we build gconsole, possible only if gtk= >= 2.4 available.
@@ -302,14 +481,11 @@ Distribution: %{_dist}
 %define wxconsole 0
 %endif
 
-%{expand: %%define gccver %(rpm -q --queryformat %%{version} gcc)}
-%{expand: %%define gccrel %(rpm -q --queryformat %%{release} gcc)}
-
-#BuildRequires: libattr-devel for 3.0
+BuildRequires: libattr-devel
 BuildRequires: libacl-devel
 BuildRequires: gcc, gcc-c++, make, autoconf
 BuildRequires: ncurses-devel, perl
-BuildRequires: libstdc++-devel = %{gccver}-%{gccrel}, libxml2-devel, zlib-devel
+BuildRequires: libstdc++-devel, libxml2-devel, zlib-devel
 BuildRequires: openssl-devel
 %if %{python}
 BuildRequires: python, python-devel
