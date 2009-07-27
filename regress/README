@@ -221,3 +221,35 @@ free_addresses(dlist*) + 53 in section .text
 info symbol 0x8082d58
 add_address(dlist**, IPADDR::i_type, unsigned short, int, char const*, char 
 const*, char**) + 568 in section .text
+
+Testing a Binary Installation:
+
+If you have installed your Bacula from a binary release such as (rpms or
+debs), you can still run regression tests on it.  First, make sure that your
+regression config file uses the same catalog backend as your installed
+binaries.  Then define the variables bin and scripts variables in your config
+file.
+
+Example:
+bin=/opt/bacula/bin
+scripts=/opt/bacula/scripts
+
+The ./scripts/prepare-other-loc will tweak the regress scripts to use
+your binary location. You will need to run it manually once before you run any
+regression tests.
+
+$ ./scripts/prepare-other-loc
+$ ./tests/backup-bacula-test
+...
+
+All regression scripts must be run by hand or by calling the test scripts.  
+These are principally scripts that begin with all_... such as all_disk_tests},
+./all_tests
+
+None of the 
+./do_disk, ./do_all, ./nightly...  scripts will work.
+
+If you want to switch back to running the regression scripts from source, first
+remove the bin and scripts variables from your config file and
+rerun the make setup step.
+
