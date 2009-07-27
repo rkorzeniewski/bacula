@@ -127,7 +127,7 @@ static bsub_exit_code send_xattr_stream(JCR *jcr, int stream)
 #endif
 
 /*
- * All these os-es have 1 xattr stream.
+ * Define the supported XATTR streams for this OS
  */
 #if defined(HAVE_DARWIN_OS)
 static int os_default_xattr_streams[1] = { STREAM_XATTR_DARWIN };
@@ -639,7 +639,7 @@ static bsub_exit_code (*os_parse_xattr_streams)(JCR *jcr, int stream) = generic_
 #endif
 
 /*
- * Number of xattr streams this OS supports and an array with integers with the actual stream numbers.
+ * Define the supported XATTR streams for this OS
  */
 #if defined(HAVE_SYS_NVPAIR_H) && defined(_PC_SATTR_ENABLED)
 static int os_default_xattr_streams[2] = { STREAM_XATTR_SOLARIS, STREAM_XATTR_SOLARIS_SYS};
