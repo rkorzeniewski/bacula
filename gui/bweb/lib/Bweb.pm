@@ -4027,12 +4027,19 @@ WHERE Job.JobId = $arg->{jobid}
 ";
 
     my $row = $self->dbh_selectrow_hashref($query);
-    my $status = $row->{jobstatus};
 
     if ($row) {
         $arg->{client} = $row->{name};
     } else {
         return $self->error("Can't get client");
+    }
+
+    my $status = $row->{jobstatus};
+
+    if ($status =~ /[TfAaEWD]/) {
+	$bweb->display_job_zoom($arg->{jobid});
+	$bweb->get_job_log();
+        return;
     }
 
     if ($row->{type} eq 'B') {
