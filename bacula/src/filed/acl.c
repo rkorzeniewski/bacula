@@ -907,11 +907,16 @@ static bsub_exit_code solaris_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
       jcr->acl_data_len = 0;
       return bsub_exit_ok;
    case -1:
-      Mmsg2(jcr->errmsg, _("pathconf error on file \"%s\": ERR=%s\n"),
-            jcr->last_fname, be.bstrerror());
-      Dmsg2(100, "pathconf error file=%s ERR=%s\n",  
-            jcr->last_fname, be.bstrerror());
-      return bsub_exit_nok;
+      switch (errno) {
+      case ENOENT:
+         return bsub_exit_ok;
+      default:
+         Mmsg2(jcr->errmsg, _("pathconf error on file \"%s\": ERR=%s\n"),
+               jcr->last_fname, be.bstrerror());
+         Dmsg2(100, "pathconf error file=%s ERR=%s\n",  
+               jcr->last_fname, be.bstrerror());
+         return bsub_exit_nok;
+      }
    default:
       break;
    }
@@ -920,11 +925,16 @@ static bsub_exit_code solaris_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
     * Get ACL info: don't bother allocating space if there is only a trivial ACL.
     */
    if (acl_get(jcr->last_fname, ACL_NO_TRIVIAL, &aclp) != 0) {
-      Mmsg2(jcr->errmsg, _("acl_get error on file \"%s\": ERR=%s\n"),
-            jcr->last_fname, acl_strerror(errno));
-      Dmsg2(100, "acl_get error file=%s ERR=%s\n",  
-            jcr->last_fname, acl_strerror(errno));
-      return bsub_exit_nok;
+      switch (errno) {
+      case ENOENT:
+         return bsub_exit_ok;
+      default:
+         Mmsg2(jcr->errmsg, _("acl_get error on file \"%s\": ERR=%s\n"),
+               jcr->last_fname, acl_strerror(errno));
+         Dmsg2(100, "acl_get error file=%s ERR=%s\n",  
+               jcr->last_fname, acl_strerror(errno));
+         return bsub_exit_nok;
+      }
    }
 
    if (!aclp) {
@@ -986,11 +996,16 @@ static bsub_exit_code solaris_parse_acl_streams(JCR *jcr, int stream)
                jcr->last_fname);
          return bsub_exit_nok;
       case -1:
-         Mmsg2(jcr->errmsg, _("pathconf error on file \"%s\": ERR=%s\n"),
-               jcr->last_fname, be.bstrerror());
-         Dmsg3(100, "pathconf error acl=%s file=%s ERR=%s\n",  
-               jcr->acl_data, jcr->last_fname, be.bstrerror());
-         return bsub_exit_nok;
+         switch (errno) {
+         case ENOENT:
+            return bsub_exit_ok;
+         default:
+            Mmsg2(jcr->errmsg, _("pathconf error on file \"%s\": ERR=%s\n"),
+                  jcr->last_fname, be.bstrerror());
+            Dmsg3(100, "pathconf error acl=%s file=%s ERR=%s\n",  
+                  jcr->acl_data, jcr->last_fname, be.bstrerror());
+            return bsub_exit_nok;
+         }
       default:
          /*
           * On a filesystem with ACL support make sure this particilar ACL type can be restored.
@@ -1065,13 +1080,18 @@ static bsub_exit_code solaris_parse_acl_streams(JCR *jcr, int stream)
        * don't save acls of symlinks (which cannot have acls anyhow)
        */
       if ((error = acl_set(jcr->last_fname, aclp)) == -1 && jcr->last_type != FT_LNK) {
-         Mmsg2(jcr->errmsg, _("acl_set error on file \"%s\": ERR=%s\n"),
-               jcr->last_fname, acl_strerror(error));
-         Dmsg3(100, "acl_set error acl=%s file=%s ERR=%s\n",  
-               jcr->acl_data, jcr->last_fname, acl_strerror(error));
-
-         acl_free(aclp);
-         return bsub_exit_nok;
+         switch (errno) {
+         case ENOENT:
+            acl_free(aclp);
+            return bsub_exit_ok;
+         default:
+            Mmsg2(jcr->errmsg, _("acl_set error on file \"%s\": ERR=%s\n"),
+                  jcr->last_fname, acl_strerror(error));
+            Dmsg3(100, "acl_set error acl=%s file=%s ERR=%s\n",  
+                  jcr->acl_data, jcr->last_fname, acl_strerror(error));
+            acl_free(aclp);
+            return bsub_exit_nok;
+         }
       }
 
       acl_free(aclp);
