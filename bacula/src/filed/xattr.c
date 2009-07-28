@@ -1282,7 +1282,7 @@ static bsub_exit_code solaris_save_xattrs(JCR *jcr, const char *xattr_namespace,
     */
    if (!attr_parent)
       solaris_save_xattr(jcr, attrdirfd, current_xattr_namespace, ".",
-                            true, STREAM_XATTR_SOLARIS);
+                         true, STREAM_XATTR_SOLARIS);
 
    if ((fd = dup(attrdirfd)) == -1 ||
        (dirp = fdopendir(fd)) == (DIR *)NULL) {
@@ -1343,7 +1343,7 @@ static bsub_exit_code solaris_save_xattrs(JCR *jcr, const char *xattr_namespace,
           * Save the xattr.
           */
          solaris_save_xattr(jcr, attrdirfd, current_xattr_namespace, dp->d_name,
-                               false, STREAM_XATTR_SOLARIS_SYS);
+                            false, STREAM_XATTR_SOLARIS_SYS);
          continue;
       }
 #endif /* HAVE_SYS_NVPAIR_H && _PC_SATTR_ENABLED */
@@ -1352,7 +1352,7 @@ static bsub_exit_code solaris_save_xattrs(JCR *jcr, const char *xattr_namespace,
        * Save the xattr.
        */
       solaris_save_xattr(jcr, attrdirfd, current_xattr_namespace, dp->d_name,
-                            false, STREAM_XATTR_SOLARIS);
+                         false, STREAM_XATTR_SOLARIS);
    }
 
    closedir(dirp);
