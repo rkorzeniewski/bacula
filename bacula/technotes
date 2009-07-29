@@ -3,6 +3,7 @@
 General:
 
 29Jul09
+ebl  Change time_t by utime_t in accurate function
 kes  Start reworking 3.0.2 bacula.spec file
      - Add SuSE build codes
      - Add depkgs-qt so bat can build on any system

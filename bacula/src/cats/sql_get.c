@@ -1108,7 +1108,7 @@ bool db_accurate_get_jobids(JCR *jcr, B_DB *mdb,
    POOL_MEM query(PM_FNAME);
    
    /* Take the current time as upper limit if nothing else specified */
-   time_t StartTime = (jr->StartTime)?jr->StartTime:time(NULL);
+   utime_t StartTime = (jr->StartTime)?jr->StartTime:time(NULL);
 
    bstrutime(date, sizeof(date),  StartTime + 1);
    jobids[0]='\0';
