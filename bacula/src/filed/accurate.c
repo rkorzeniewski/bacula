@@ -111,7 +111,7 @@ static bool accurate_send_base_file_list(JCR *jcr)
 
    foreach_htable(elt, jcr->file_list) {
       if (elt->seen) {
-         Dmsg2(0, "base file fname=%s seen=%i\n", elt->fname, elt->seen);
+         Dmsg2(dbglvl, "base file fname=%s seen=%i\n", elt->fname, elt->seen);
          ff_pkt->fname = elt->fname;
          ff_pkt->statp.st_mtime = elt->mtime;
          ff_pkt->statp.st_ctime = elt->ctime;
