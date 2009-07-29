@@ -1113,23 +1113,23 @@ bool db_write_batch_file_records(JCR *jcr)
 const char *create_temp_basefile[4] = {
    /* MySQL */
    "CREATE TEMPORARY TABLE basefile%lld ("
-   "Name BLOB NOT NULL,"
-   "FileName BLOB NOT NULL)",
+   "Path BLOB NOT NULL,"
+   "Name BLOB NOT NULL)",
 
    /* Postgresql */
    "CREATE TEMPORARY TABLE basefile%lld (" 
-   "Name TEXT,"
-   "FileName TEXT)",
+   "Path TEXT,"
+   "Name TEXT)",
 
    /* SQLite */
    "CREATE TEMPORARY TABLE basefile%lld (" 
-   "Name TEXT,"
-   "FileName TEXT)",
+   "Path TEXT,"
+   "Name TEXT)",
 
    /* SQLite3 */
    "CREATE TEMPORARY TABLE basefile%lld (" 
-   "Name TEXT,"
-   "FileName TEXT)"
+   "Path TEXT,"
+   "Name TEXT)"
 };
 
 boot db_init_base_file(JCR *jcr, B_DB *mdb)
@@ -1168,7 +1168,7 @@ bool db_create_base_file_attributes_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
    mdb->esc_path = check_pool_memory_size(mdb->esc_path, mdb->pnl*2+1);
    db_escape_string(jcr, mdb, mdb->esc_path, mdb->path, mdb->pnl);
    
-   len = Mmsg(mdb->cmd, "INSERT INTO basefile%lld VALUES ('%s','%s')",
+   len = Mmsg(mdb->cmd, "INSERT INTO basefile%lld (Path, Name) VALUES ('%s','%s')",
               (uint64_t)jcr->JobId, mdb->esc_path, mdb->esc_name);
    
    boot ret = INSERT_DB(jcr, mdb, mdb->cmd);
@@ -1185,13 +1185,13 @@ bool db_commit_base_file_attributes_record(JCR *jcr, B_DB *mdb)
    POOL_MEM buf(PM_MESSAGE);
 
    Mmsg(buf, 
-  "INSERT INTO BaseFile (BaseJobId, JobId, FileId, FileIndex) ( "
-   "SELECT A.JobId AS BaseJobId, %s AS JobId, "
-          "A.FileId, A.FileIndex "
+  "INSERT INTO BaseFiles (BaseJobId, JobId, FileId, FileIndex) ( "
+   "SELECT B.JobId AS BaseJobId, %s AS JobId, "
+          "B.FileId, B.FileIndex "
      "FROM basefile%s AS A, new_basefile%s AS B "
     "WHERE A.Path = B.Path "
-      "AND A.Filename = B.Filename "
-    "ORDER BY FileId)", 
+      "AND A.Name = B.Name "
+    "ORDER BY B.FileId)", 
         edit_uint64(ed1, jcr->JobId), ed1, ed1);
 
    return db_sql_query(mdb, buf.c_str(), NULL, NULL);
@@ -1227,8 +1227,8 @@ bool db_create_base_file_list(JCR *jcr, B_DB *mdb, char *jobids)
    POOL_MEM buf(PM_MESSAGE);
          
    Mmsg(buf,
- "CREATE TEMPORARY new_basefile%lld AS ( "
-   "SELECT Path.Path AS Path, Filename.Name AS Filename, File.FileIndex AS FileIndex, "
+ "CREATE TEMPORARY TABLE new_basefile%lld AS ( "
+   "SELECT Path.Path AS Path, Filename.Name AS Name, File.FileIndex AS FileIndex, "
           "File.JobId AS JobId, File.LStat AS LStat, File.FileId AS FileId "
    "FROM ( "
     "SELECT max(FileId) as FileId, PathId, FilenameId "
