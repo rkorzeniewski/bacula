@@ -33,7 +33,7 @@
 #include "bacula.h"
 #include "filed.h"
 
-static int dbglvl=200;
+static int dbglvl=20;
 
 typedef struct PrivateCurFile {
    hlink link;
@@ -368,7 +368,7 @@ bool accurate_check_file(JCR *jcr, FF_PKT *ff_pkt)
    }
 
    accurate_mark_file_as_seen(jcr, &elt);
-//   Dmsg2(dbglvl, "accurate %s = %d\n", fname, stat);
+   Dmsg2(dbglvl, "accurate %s = %d\n", fname, stat);
 
 bail_out:
    unstrip_path(ff_pkt);

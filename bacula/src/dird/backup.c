@@ -182,6 +182,10 @@ bool send_accurate_current_files(JCR *jcr)
       goto bail_out;
    }
 
+   if (jcr->get_JobLevel() == L_FULL && *jobids != 0) {
+      db_init_base_file(jcr, jcr->db);
+   }
+
    /* For Incr/Diff level, we search for older jobs */
    if (jcr->get_JobLevel() != L_FULL) {
       db_accurate_get_jobids(jcr, jcr->db, &jcr->jr, jobids);

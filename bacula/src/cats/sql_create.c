@@ -41,7 +41,7 @@
 #include "bacula.h"
 #include "cats.h"
 
-static const int dbglevel = 500;
+static const int dbglevel = 10;
 
 #if    HAVE_SQLITE3 || HAVE_MYSQL || HAVE_SQLITE || HAVE_POSTGRESQL || HAVE_DBI
 
@@ -1146,8 +1146,8 @@ bool db_init_base_file(JCR *jcr, B_DB *mdb)
 bool db_create_base_file_attributes_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
 {
    bool ret;
-   Dmsg1(dbglevel, "Fname=%s\n", ar->fname);
-   Dmsg0(dbglevel, "put_file_into_catalog\n");
+   Dmsg1(dbglevel, "create_base_file Fname=%s\n", ar->fname);
+   Dmsg0(dbglevel, "put_base_file_into_catalog\n");
 
    /*
     * Make sure we have an acceptable attributes record.
