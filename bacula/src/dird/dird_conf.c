@@ -338,6 +338,7 @@ RES_ITEM job_items[] = {
    {"cancelqueuedduplicates",  store_bool, ITEM(res_job.CancelQueuedDuplicates), 0, ITEM_DEFAULT, false},
    {"cancelrunningduplicates", store_bool, ITEM(res_job.CancelRunningDuplicates), 0, ITEM_DEFAULT, false},
    {"pluginoptions", store_str, ITEM(res_job.PluginOptions), 0, 0, 0},
+   {"base", store_alist_res, ITEM(res_job.base),  R_JOB, 0, 0},
    {NULL, NULL, {0}, 0, 0, 0}
 };
 
@@ -698,6 +699,12 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
          foreach_alist(store, res->res_job.storage) {
             sendit(sock, _("  --> "));
             dump_resource(-R_STORAGE, (RES *)store, sendit, sock);
+         }
+      }
+      if (res->res_job.base) {
+         JOB *job;
+         foreach_alist(job, res->res_job.base) {
+            sendit(sock, _("  --> Base %s\n"), job->name());
          }
       }
       if (res->res_job.RunScripts) {
@@ -1294,6 +1301,9 @@ void free_resource(RES *sres, int type)
       if (res->res_job.storage) {
          delete res->res_job.storage;
       }
+      if (res->res_job.base) {
+         delete res->res_job.base;
+      }
       if (res->res_job.RunScripts) {
          free_runscripts(res->res_job.RunScripts);
          delete res->res_job.RunScripts;
@@ -1429,6 +1439,7 @@ void save_resource(int type, RES_ITEM *items, int pass)
          res->res_job.client     = res_all.res_job.client;
          res->res_job.fileset    = res_all.res_job.fileset;
          res->res_job.storage    = res_all.res_job.storage;
+         res->res_job.base       = res_all.res_job.base;
          res->res_job.pool       = res_all.res_job.pool;
          res->res_job.full_pool  = res_all.res_job.full_pool;
          res->res_job.inc_pool   = res_all.res_job.inc_pool;
