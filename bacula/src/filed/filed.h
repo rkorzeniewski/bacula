@@ -33,6 +33,24 @@
  *   Version $Id$
  */
 
+/*
+ * Number of acl errors to report per job.
+ */
+#define ACL_REPORT_ERR_MAX_PER_JOB	25
+
+/*
+ * Number of xattr errors to report per job.
+ */
+#define XATTR_REPORT_ERR_MAX_PER_JOB	25
+
+/*
+ * Return codes from acl and xattr subroutines.
+ */
+typedef enum {
+   bsub_exit_fatal = -1,
+   bsub_exit_nok = 0,
+   bsub_exit_ok = 1
+} bsub_exit_code;
 
 #define FILE_DAEMON 1
 #include "lib/htable.h"
@@ -50,13 +68,3 @@
 #endif
 
 extern CLIENT *me;                    /* "Global" Client resource */
-
-/*
- * Number of acl errors to report per job.
- */
-#define ACL_REPORT_ERR_MAX_PER_JOB	25
-
-/*
- * Number of xattr errors to report per job.
- */
-#define XATTR_REPORT_ERR_MAX_PER_JOB	25
