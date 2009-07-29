@@ -1158,7 +1158,7 @@ static bool build_directory_tree(UAContext *ua, RESTORE_CTX *rx)
          for (TREE_NODE *node=first_tree_node(tree.root); node; node=next_tree_node(node)) {
             Dmsg2(400, "FI=%d node=0x%x\n", node->FileIndex, node);
             if (node->extract || node->extract_dir) {
-               Dmsg2(400, "type=%d FI=%d\n", node->type, node->FileIndex);
+               Dmsg3(0, "JobId=%lld type=%d FI=%d\n", (uint64_t)node->JobId, node->type, node->FileIndex);
                add_findex(rx->bsr, node->JobId, node->FileIndex);
                if (node->extract && node->type != TN_NEWDIR) {
                   rx->selected_files++;  /* count only saved files */

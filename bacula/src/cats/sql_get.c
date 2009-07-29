@@ -1085,7 +1085,6 @@ bool db_get_file_list(JCR *jcr, B_DB *mdb, char *jobids,
 "WHERE File.FileIndex > 0 ORDER BY JobId, FileIndex ASC",/* Return sorted by JobId, */
                                                          /* FileIndex for restore code */ 
         jobids, jobids);
-   Dmsg1(0, "q=%s\n", buf.c_str());
 #else
    /*  
     * I am not sure that this works the same as the code in ua_restore.c
@@ -1186,7 +1185,7 @@ bool db_accurate_get_jobids(JCR *jcr, B_DB *mdb,
    /* build a jobid list ie: 1,2,3,4 */
    Mmsg(query, "SELECT JobId FROM btemp3%s ORDER by JobTDate", jobid);
    db_sql_query(mdb, query.c_str(), db_get_int_handler, jobids);
-   Dmsg1(1, "db_accurate_get_jobids=%s\n", jobids);
+   Dmsg1(10, "db_accurate_get_jobids=%s\n", jobids);
    ret = true;
 
 bail_out:
@@ -1236,13 +1235,13 @@ bool db_get_base_jobid(JCR *jcr, B_DB *mdb, JOB_DBR *jr, JobId_t *jobid)
 //      edit_uint64(jr->FileSetId, filesetid));
         date);
 
-   Dmsg1(1, "db_get_base_jobid q=%s\n", query.c_str());
+   Dmsg1(10, "db_get_base_jobid q=%s\n", query.c_str());
    if (!db_sql_query(mdb, query.c_str(), db_int64_handler, &id)) {
       goto bail_out;
    }
    *jobid = (JobId_t) id;
 
-   Dmsg1(1, "db_get_base_jobid=%lld\n", id);
+   Dmsg1(10, "db_get_base_jobid=%lld\n", id);
    return true;
 
 bail_out:
