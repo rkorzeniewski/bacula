@@ -337,6 +337,7 @@ public:
    bool stats_enabled;                /* Keep all job records in a table for long term statistics */
    bool no_maxtime;                   /* Don't check Max*Time for this JCR */
    bool keep_sd_auth_key;             /* Clear or not the SD auth key after connection*/
+   bool HasBase;                      /* True if job use base jobs */
 #endif /* DIRECTOR_DAEMON */
 
 
