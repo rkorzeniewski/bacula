@@ -140,4 +140,13 @@ int  db_mark_file_record(JCR *jcr, B_DB *mdb, FileId_t FileId, JobId_t JobId);
 void db_make_inchanger_unique(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr);
 int db_update_stats(JCR *jcr, B_DB *mdb, utime_t age);
 
+
+
+boot db_init_base_file(JCR *jcr, B_DB *mdb);
+bool db_create_base_file_attributes_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar);
+bool db_commit_base_file_attributes_record(JCR *jcr, B_DB *mdb);
+void db_cleanup_base_file(JCR *jcr, B_DB *mdb);
+bool db_create_base_file_list(JCR *jcr, B_DB *mdb, char *jobids);
+
+
 #endif /* __SQL_PROTOS_H */
