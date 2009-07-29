@@ -1256,6 +1256,8 @@ static int level_cmd(JCR *jcr)
 
    level = get_memory(dir->msglen+1);
    Dmsg1(100, "level_cmd: %s", dir->msg);
+
+   /* keep compatibility with older directors */
    if (strstr(dir->msg, "accurate")) {
       jcr->accurate = true;
    }

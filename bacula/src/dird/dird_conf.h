@@ -436,7 +436,7 @@ public:
    bool AllowHigherDuplicates;        /* Permit Higher Level */
    bool CancelQueuedDuplicates;       /* Cancel queued jobs */
    bool CancelRunningDuplicates;      /* Cancel Running jobs */
-   
+   alist *base;                       /* Base jobs */   
 
    /* Methods */
    char *name() const;
