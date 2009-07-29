@@ -52,9 +52,6 @@
 %define storage_daemon_group    disk
 
 
-
-BuildRequires: libacl-devel
-
 # probems with mandriva build: 
 # nothing provides libbonobo2_0-devel, nothing provides libbonoboui2_0-devel
 
@@ -108,7 +105,7 @@ BuildRequires: shadow-utils
 %if 0%{?mandriva_version} == 2007
 %define build_mdv 1
 %define _dist "Mandriva 2007"
-# %define gconsole 0 
+%define gconsole 0 
 %endif
 
 %if 0%{?fedora_version} == 8
@@ -422,7 +419,7 @@ Distribution: %{_dist}
 # su10, fc3 and fc4 now nobuild, tray monitor fails to build as of 2.2.1 
 # release as it needs 2.10
 
-%define gconsole 1
+%define gconsole 0
 %if %{rh7} || %{rh8} || %{rh9} || %{wb3} || %{fc1} || %{fc3} || %{fc4} || %{su9} || %{su10}
 %define gconsole 0
 %endif
@@ -477,13 +474,12 @@ Distribution: %{_dist}
 %define wxconsole 0
 %endif
 
-%{expand: %%define gccver %(rpm -q --queryformat %%{version} gcc)}
-%{expand: %%define gccrel %(rpm -q --queryformat %%{release} gcc)}
-
 BuildRequires: gcc, gcc-c++, make, autoconf
 BuildRequires: ncurses-devel, perl
-BuildRequires: libstdc++-devel = %{gccver}-%{gccrel}, zlib-devel
+BuildRequires: libstdc++-devel, zlib-devel
 BuildRequires: openssl-devel
+BuildRequires: libacl-devel
+BuildRequires: pkgconfig
 %if ! %{rh7}
 BuildRequires: libxml2-devel
 %endif
@@ -493,23 +489,6 @@ BuildRequires: python, python-devel
 %endif
 %if %{gconsole}
 BuildRequires: pkgconfig, pango-devel, atk-devel
-%endif
-%if %{bat}
-BuildRequires: pkgconfig
-%endif
-
-# Rh qt4 packages don't have a provide for, guess what, qt!
-# still broken in fc8, ok in fc9
-# so fix for broken rh
-%define broken_rh 0
-%if %{rhel5} || %{centos5} || %{sl5} || %{fc5} || %{fc6} || %{fc7} || %{fc8}
-%define broken_rh 1
-%endif
-%if %{bat} && ! %{broken_rh}
-BuildRequires: qt-devel >= 4.2
-%endif
-%if %{bat} && %{broken_rh}
-BuildRequires: qt4-devel >= 4.2
 %endif
 
 %if %{rh7}
