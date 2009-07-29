@@ -183,6 +183,7 @@ bool send_accurate_current_files(JCR *jcr)
          goto bail_out;
       }
       db_create_base_file_list(jcr, jcr->db, jobids);
+      jcr->HasBase = true;
 
    } else {
       /* For Incr/Diff level, we search for older jobs */
