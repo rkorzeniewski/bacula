@@ -1195,6 +1195,18 @@ bail_out:
    return ret;
 }
 
+bool db_get_base_file_list(JCR *jcr, B_DB *mdb,
+                           DB_RESULT_HANDLER *result_handler, void *ctx)
+{
+   POOL_MEM buf(PM_MESSAGE);
+         
+   Mmsg(buf,
+ "SELECT Path, Name, FileIndex, JobId, LStat "
+   "FROM new_basefile%lld ORDER BY JobId, FileIndex ASC",
+        (uint64_t) jcr->JobId);
+
+   return db_sql_query(mdb, buf.c_str(), result_handler, ctx);
+}
 bool db_get_base_jobid(JCR *jcr, B_DB *mdb, JOB_DBR *jr, JobId_t *jobid)
 {
    char date[MAX_TIME_LENGTH];

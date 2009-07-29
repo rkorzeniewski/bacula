@@ -1117,7 +1117,8 @@ const char *create_temp_basefile[4] = {
    "Name BLOB NOT NULL)",
 
    /* Postgresql */
-   "CREATE TEMPORARY TABLE basefile%lld (" 
+//   "CREATE TEMPORARY TABLE basefile%lld (" 
+   "CREATE TABLE basefile%lld (" 
    "Path TEXT,"
    "Name TEXT)",
 
@@ -1131,13 +1132,6 @@ const char *create_temp_basefile[4] = {
    "Path TEXT,"
    "Name TEXT)"
 };
-
-bool db_init_base_file(JCR *jcr, B_DB *mdb)
-{
-   POOL_MEM q(PM_MESSAGE);
-   Mmsg(q, create_temp_basefile[db_type], (uint64_t) jcr->JobId);
-   return db_sql_query(mdb, q.c_str(), NULL, NULL);
-}
 
 /*
  * Create Base File record in B_DB
@@ -1205,10 +1199,10 @@ void db_cleanup_base_file(JCR *jcr, B_DB *mdb)
 {
    POOL_MEM buf(PM_MESSAGE);
    Mmsg(buf, "DROP TABLE new_basefile%lld", (uint64_t) jcr->JobId);
-   db_sql_query(mdb, buf.c_str(), NULL, NULL);
+//   db_sql_query(mdb, buf.c_str(), NULL, NULL);
 
    Mmsg(buf, "DROP TABLE basefile%lld", (uint64_t) jcr->JobId);
-   db_sql_query(mdb, buf.c_str(), NULL, NULL);
+//   db_sql_query(mdb, buf.c_str(), NULL, NULL);
 }
 
 /*
@@ -1220,16 +1214,23 @@ void db_cleanup_base_file(JCR *jcr, B_DB *mdb)
  */
 bool db_create_base_file_list(JCR *jcr, B_DB *mdb, char *jobids)
 {
+   POOL_MEM buf(PM_MESSAGE);
+
    if (!*jobids) {
       db_lock(mdb);
       Mmsg(mdb->errmsg, _("ERR=JobIds are empty\n"));
       db_unlock(mdb);
       return false;
    }
-   POOL_MEM buf(PM_MESSAGE);
-         
+
+   Mmsg(buf, create_temp_basefile[db_type], (uint64_t) jcr->JobId);
+   if (!db_sql_query(mdb, buf.c_str(), NULL, NULL)) {
+      return false;
+   }
+     
    Mmsg(buf,
- "CREATE TEMPORARY TABLE new_basefile%lld AS ( "
+// "CREATE TEMPORARY TABLE new_basefile%lld AS ( "
+ "CREATE TABLE new_basefile%lld AS ( "
    "SELECT Path.Path AS Path, Filename.Name AS Name, File.FileIndex AS FileIndex, "
           "File.JobId AS JobId, File.LStat AS LStat, File.FileId AS FileId "
    "FROM ( "

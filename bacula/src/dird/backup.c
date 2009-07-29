@@ -106,7 +106,7 @@ bool do_backup_init(JCR *jcr)
 /* Take all base jobs from job resource and find the
  * last L_BASE jobid.
  */
-static void get_base_jobids(JCR *jcr, POOLMEM *jobids)
+static bool get_base_jobids(JCR *jcr, POOLMEM *jobids)
 {
    JOB_DBR jr;
    JOB *job;
@@ -114,7 +114,7 @@ static void get_base_jobids(JCR *jcr, POOLMEM *jobids)
    char str_jobid[50];
 
    if (!jcr->job->base) {
-      return;
+      return false;             /* no base job, stop accurate */
    }
 
    memset(&jr, 0, sizeof(JOB_DBR));
@@ -131,6 +131,8 @@ static void get_base_jobids(JCR *jcr, POOLMEM *jobids)
          pm_strcat(jobids, edit_uint64(id, str_jobid));
       }
    }
+
+   return *jobids != '\0';
 }
 
 /*
@@ -175,21 +177,18 @@ bool send_accurate_current_files(JCR *jcr)
    POOLMEM *jobids = get_pool_memory(PM_FNAME);
    nb[0] = jobids[0] = '\0';
 
-   get_base_jobids(jcr, jobids);
+   if (jcr->get_JobLevel() == L_FULL) {
+      /* On Full mode, if no previous base job, no accurate things */
+      if (!get_base_jobids(jcr, jobids)) {
+         goto bail_out;
+      }
+      db_create_base_file_list(jcr, jcr->db, jobids);
 
-   /* On Full mode, if no previous base job, no accurate things */
-   if (jcr->get_JobLevel() == L_FULL && *jobids == 0) {
-      goto bail_out;
-   }
-
-   if (jcr->get_JobLevel() == L_FULL && *jobids != 0) {
-      db_init_base_file(jcr, jcr->db);
-   }
-
-   /* For Incr/Diff level, we search for older jobs */
-   if (jcr->get_JobLevel() != L_FULL) {
+   } else {
+      /* For Incr/Diff level, we search for older jobs */
       db_accurate_get_jobids(jcr, jcr->db, &jcr->jr, jobids);
 
+      /* We are in Incr/Diff, but no Full to build the accurate list... */
       if (*jobids == 0) {
          ret=false;
          Jmsg(jcr, M_FATAL, 0, _("Cannot find previous jobids.\n"));
@@ -206,14 +205,18 @@ bool send_accurate_current_files(JCR *jcr)
    db_sql_query(jcr->db, buf.c_str(), db_get_int_handler, nb);
    Dmsg2(200, "jobids=%s nb=%s\n", jobids, nb);
    jcr->file_bsock->fsend("accurate files=%s\n", nb); 
+   
+   if (jcr->get_JobLevel() == L_FULL) {
+      db_get_base_file_list(jcr, jcr->db, accurate_list_handler, (void *)jcr);
 
-   if (!db_open_batch_connexion(jcr, jcr->db)) {
-      ret = false;
-      Jmsg0(jcr, M_FATAL, 0, "Can't get dedicate sql connexion");
-      goto bail_out;
-   }
-
-   db_get_file_list(jcr, jcr->db_batch, jobids, accurate_list_handler, (void *)jcr);
+   } else {
+      if (!db_open_batch_connexion(jcr, jcr->db)) {
+         ret = false;
+         Jmsg0(jcr, M_FATAL, 0, "Can't get dedicate sql connexion");
+         goto bail_out;
+      }
+      db_get_file_list(jcr, jcr->db_batch, jobids, accurate_list_handler, (void *)jcr);
+   } 
 
    /* TODO: close the batch connexion ? (can be used very soon) */
 
@@ -375,6 +378,12 @@ bool do_backup(JCR *jcr)
    /* Pickup Job termination data */
    stat = wait_for_job_termination(jcr);
    db_write_batch_file_records(jcr);    /* used by bulk batch file insert */
+
+   if (jcr->get_JobLevel() == L_FULL && jcr->job->base) {
+      db_commit_base_file_attributes_record(jcr, jcr->db);
+      db_cleanup_base_file(jcr, jcr->db);
+   }
+
    if (stat == JS_Terminated) {
       backup_cleanup(jcr, stat);
       return true;
