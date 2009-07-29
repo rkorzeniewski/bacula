@@ -415,7 +415,6 @@ static void update_attribute(JCR *jcr, char *msg, int32_t msglen)
       skip_nonspaces(&p);             /* skip FileIndex */
       skip_spaces(&p);
       ar->FileType = str_to_int32(p);     /* TODO: choose between unserialize and str_to_int32 */
-      Dmsg1(0, "FileType=%i\n", ar->FileType);
       skip_nonspaces(&p);             /* skip FileType */
       skip_spaces(&p);
       fname = p;
