@@ -143,11 +143,12 @@ int db_update_stats(JCR *jcr, B_DB *mdb, utime_t age);
 
 
 
-bool db_init_base_file(JCR *jcr, B_DB *mdb);
 bool db_create_base_file_attributes_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar);
 bool db_commit_base_file_attributes_record(JCR *jcr, B_DB *mdb);
 void db_cleanup_base_file(JCR *jcr, B_DB *mdb);
 bool db_create_base_file_list(JCR *jcr, B_DB *mdb, char *jobids);
+bool db_get_base_file_list(JCR *jcr, B_DB *mdb, DB_RESULT_HANDLER *result_handler, 
+                           void *ctx);
 
 
 #endif /* __SQL_PROTOS_H */
