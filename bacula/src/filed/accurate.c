@@ -92,22 +92,56 @@ static bool accurate_init(JCR *jcr, int nbfile)
    return true;
 }
 
+static bool accurate_send_base_file_list(JCR *jcr)
+{
+   CurFile *elt;
+   FF_PKT *ff_pkt;
+   int stream = STREAM_UNIX_ATTRIBUTES;
+
+   if (!jcr->accurate || jcr->get_JobLevel != L_FULL) {
+      return true;
+   }
+
+   if (jcr->file_list == NULL) {
+      return true;
+   }
+
+   ff_pkt = init_find_files();
+   ff_pkt->type = FT_BASE;
+
+   foreach_htable(elt, jcr->file_list) {
+      if (!elt->seen || !plugin_check_file(jcr, elt->fname)) {
+         continue;
+      }
+      Dmsg2(dbglvl, "base file fname=%s seen=%i\n", elt->fname, elt->seen);
+      ff_pkt->fname = elt->fname;
+      ff_pkt->statp.st_mtime = elt->mtime;
+      ff_pkt->statp.st_ctime = elt->ctime;
+      encode_and_send_attributes(jcr, ff_pkt, stream);
+//    free(elt->fname);
+   }
+
+   term_find_files(ff_pkt);
+   return true;
+}
+
+
 /* This function is called at the end of backup
  * We walk over all hash disk element, and we check
  * for elt.seen.
  */
-bool accurate_send_deleted_list(JCR *jcr)
+static bool accurate_send_deleted_list(JCR *jcr)
 {
    CurFile *elt;
    FF_PKT *ff_pkt;
    int stream = STREAM_UNIX_ATTRIBUTES;
 
    if (!jcr->accurate) {
-      goto bail_out;
+      return true;
    }
 
    if (jcr->file_list == NULL) {
-      goto bail_out;
+      return true;
    }
 
    ff_pkt = init_find_files();
@@ -126,19 +160,32 @@ bool accurate_send_deleted_list(JCR *jcr)
    }
 
    term_find_files(ff_pkt);
-bail_out:
-   /* TODO: clean htable when this function is not reached ? */
-   accurate_free(jcr);
    return true;
 }
 
-void accurate_free(JCR *jcr)
+static void accurate_free(JCR *jcr)
 {
    if (jcr->file_list) {
       jcr->file_list->destroy();
       free(jcr->file_list);
       jcr->file_list = NULL;
    }
+}
+
+/* Send the deleted or the base file list and cleanup  */
+bool accurate_finish(JCR *jcr)
+{
+   bool ret=true;
+   if (jcr->accurate) {
+      if (jcr->get_JobLevel == L_FULL) {
+         ret = accurate_send_base_file_list(jcr);
+      } else {
+         ret = accurate_send_deleted_list(jcr);
+      }
+      
+      accurate_free(jcr);
+   } 
+   return ret;
 }
 
 static bool accurate_add_file(JCR *jcr, char *fname, char *lstat)

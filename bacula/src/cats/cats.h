@@ -859,6 +859,7 @@ struct ATTR_DBR {
    char *attr;                        /* attributes statp */
    uint32_t FileIndex;
    uint32_t Stream;
+   uint32_t FileType;
    JobId_t  JobId;
    DBId_t ClientId;
    DBId_t PathId;
