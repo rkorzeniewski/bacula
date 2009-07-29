@@ -33,7 +33,7 @@
 #include "bacula.h"
 #include "filed.h"
 
-static int dbglvl=20;
+static int dbglvl=100;
 
 typedef struct PrivateCurFile {
    hlink link;
