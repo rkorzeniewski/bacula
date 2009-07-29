@@ -103,6 +103,36 @@ bool do_backup_init(JCR *jcr)
    return true;
 }
 
+/* Take all base jobs from job resource and find the
+ * last L_BASE jobid.
+ */
+static void get_base_jobids(JCR *jcr, POOLMEM *jobids)
+{
+   JOB_DBR jr;
+   JOB *job;
+   JobId_t id;
+   char str_jobid[50];
+
+   if (!jcr->job->base) {
+      return;
+   }
+
+   memset(&jr, 0, sizeof(JOB_DBR));
+   jr.StartTime = jcr->jr.StartTime;
+
+   foreach_alist(job, jcr->job->base) {
+      bstrncpy(jr.Name, job->name(), sizeof(jr.Name));
+      db_get_base_jobid(jcr, jcr->db, &jr, &id);
+
+      if (id) {
+         if (jobids[0]) {
+            pm_strcat(jobids, ",");
+         }
+         pm_strcat(jobids, edit_uint64(id, str_jobid));
+      }
+   }
+}
+
 /*
  * Foreach files in currrent list, send "/path/fname\0LStat" to FD
  */
@@ -131,45 +161,65 @@ static int accurate_list_handler(void *ctx, int num_fields, char **row)
 bool send_accurate_current_files(JCR *jcr)
 {
    POOL_MEM buf;
+   bool ret=true;
 
-   if (!jcr->accurate || job_canceled(jcr) || jcr->get_JobLevel()==L_FULL) {
+   if (!jcr->accurate || job_canceled(jcr)) {
       return true;
    }
-   POOLMEM *jobids = get_pool_memory(PM_FNAME);
-
-   db_accurate_get_jobids(jcr, jcr->db, &jcr->jr, jobids);
-
-   if (*jobids == 0) {
-      free_pool_memory(jobids);
-      Jmsg(jcr, M_FATAL, 0, _("Cannot find previous jobids.\n"));
-      return false;
+   /* In base level, no previous job is used */
+   if (jcr->get_JobLevel() == L_BASE) {
+      return true;
    }
+
+   POOLMEM *nb = get_pool_memory(PM_FNAME);
+   POOLMEM *jobids = get_pool_memory(PM_FNAME);
+   nb[0] = jobids[0] = '\0';
+
+   get_base_jobids(jcr, jobids);
+
+   /* On Full mode, if no previous base job, no accurate things */
+   if (jcr->get_JobLevel() == L_FULL && *jobids == 0) {
+      goto bail_out;
+   }
+
+   /* For Incr/Diff level, we search for older jobs */
+   if (jcr->get_JobLevel() != L_FULL) {
+      db_accurate_get_jobids(jcr, jcr->db, &jcr->jr, jobids);
+
+      if (*jobids == 0) {
+         ret=false;
+         Jmsg(jcr, M_FATAL, 0, _("Cannot find previous jobids.\n"));
+         goto bail_out;
+      }
+   }
+
    if (jcr->JobId) {            /* display the message only for real jobs */
       Jmsg(jcr, M_INFO, 0, _("Sending Accurate information.\n"));
    }
+
    /* to be able to allocate the right size for htable */
-   POOLMEM *nb = get_pool_memory(PM_FNAME);
-   *nb = 0;                           /* clear buffer */
    Mmsg(buf, "SELECT sum(JobFiles) FROM Job WHERE JobId IN (%s)",jobids);
    db_sql_query(jcr->db, buf.c_str(), db_get_int_handler, nb);
    Dmsg2(200, "jobids=%s nb=%s\n", jobids, nb);
    jcr->file_bsock->fsend("accurate files=%s\n", nb); 
 
    if (!db_open_batch_connexion(jcr, jcr->db)) {
+      ret = false;
       Jmsg0(jcr, M_FATAL, 0, "Can't get dedicate sql connexion");
-      return false;
+      goto bail_out;
    }
 
    db_get_file_list(jcr, jcr->db_batch, jobids, accurate_list_handler, (void *)jcr);
 
    /* TODO: close the batch connexion ? (can be used very soon) */
 
+   jcr->file_bsock->signal(BNET_EOD);
+
+bail_out:
    free_pool_memory(jobids);
    free_pool_memory(nb);
 
-   jcr->file_bsock->signal(BNET_EOD);
-
-   return true;
+   return ret;
 }
 
 /*

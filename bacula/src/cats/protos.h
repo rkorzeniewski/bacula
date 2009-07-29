@@ -106,6 +106,7 @@ int db_get_client_record(JCR *jcr, B_DB *mdb, CLIENT_DBR *cdbr);
 int db_get_counter_record(JCR *jcr, B_DB *mdb, COUNTER_DBR *cr);
 bool db_get_query_dbids(JCR *jcr, B_DB *mdb, POOL_MEM &query, dbid_list &ids);
 bool db_get_file_list(JCR *jcr, B_DB *mdb, char *jobids, DB_RESULT_HANDLER *result_handler, void *ctx);
+bool db_get_base_jobid(JCR *jcr, B_DB *mdb, JOB_DBR *jr, JobId_t *jobid);
 bool db_accurate_get_jobids(JCR *jcr, B_DB *mdb, JOB_DBR *jr, POOLMEM *jobids);
 int db_get_int_handler(void *ctx, int num_fields, char **row);
 
@@ -142,7 +143,7 @@ int db_update_stats(JCR *jcr, B_DB *mdb, utime_t age);
 
 
 
-boot db_init_base_file(JCR *jcr, B_DB *mdb);
+bool db_init_base_file(JCR *jcr, B_DB *mdb);
 bool db_create_base_file_attributes_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar);
 bool db_commit_base_file_attributes_record(JCR *jcr, B_DB *mdb);
 void db_cleanup_base_file(JCR *jcr, B_DB *mdb);
