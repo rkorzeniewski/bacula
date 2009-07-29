@@ -1045,7 +1045,8 @@ bool db_get_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
 
 /*
  * Find the last "accurate" backup state (that can take deleted files in account)
- * 1) Get all files with jobid in list (F subquery) 
+ * 1) Get all files with jobid in list (F subquery)
+ *    Get all files in BaseFiles with jobid in list
  * 2) Take only the last version of each file (Temp subquery) => accurate list is ok
  * 3) Join the result to file table to get fileindex, jobid and lstat information
  *
@@ -1069,15 +1070,21 @@ bool db_get_file_list(JCR *jcr, B_DB *mdb, char *jobids,
  "SELECT Path.Path, Filename.Name, File.FileIndex, File.JobId, File.LStat "
  "FROM ( "
   "SELECT max(FileId) as FileId, PathId, FilenameId "
-    "FROM (SELECT FileId, PathId, FilenameId FROM File WHERE JobId IN (%s)) AS F "
+    "FROM (SELECT FileId, PathId, FilenameId FROM File WHERE JobId IN (%s) "
+           "UNION "
+          "SELECT File.FileId, PathId, FilenameId "
+            "FROM BaseFiles JOIN File USING (FileId) "
+           "WHERE BaseFiles.JobId IN (%s) "
+          ") AS F "
    "GROUP BY PathId, FilenameId "
   ") AS Temp "
  "JOIN Filename ON (Filename.FilenameId = Temp.FilenameId) "
  "JOIN Path ON (Path.PathId = Temp.PathId) "
  "JOIN File ON (File.FileId = Temp.FileId) "
-"WHERE File.FileIndex > 0 ORDER BY JobId, FileIndex ASC",     /* Return sorted by JobId, */
-                                                              /* FileIndex for restore code */ 
-             jobids);
+"WHERE File.FileIndex > 0 ORDER BY JobId, FileIndex ASC",/* Return sorted by JobId, */
+                                                         /* FileIndex for restore code */ 
+        jobids, jobids);
+   Dmsg1(0, "q=%s\n", buf.c_str());
 #else
    /*  
     * I am not sure that this works the same as the code in ua_restore.c
@@ -1186,6 +1193,47 @@ bail_out:
    db_sql_query(mdb, query.c_str(), NULL, NULL);
 
    return ret;
+}
+
+bool db_get_base_jobid(JCR *jcr, B_DB *mdb, JOB_DBR *jr, JobId_t *jobid)
+{
+   char date[MAX_TIME_LENGTH];
+   int64_t id = *jobid = 0;
+   POOL_MEM query(PM_FNAME);
+
+// char clientid[50], filesetid[50];
+
+   utime_t StartTime = (jr->StartTime)?jr->StartTime:time(NULL);
+   bstrutime(date, sizeof(date),  StartTime + 1);
+
+   /* we can take also client name, fileset, etc... */
+
+   Mmsg(query,
+ "SELECT JobId, Job, StartTime, EndTime, JobTDate, PurgedFiles "
+   "FROM Job "
+// "JOIN FileSet USING (FileSetId) JOIN Client USING (ClientId) "
+  "WHERE Job.Name = '%s' "
+    "AND Level='B' AND JobStatus IN ('T','W') AND Type='B' "
+//    "AND FileSet.FileSet= '%s' "
+//    "AND Client.Name = '%s' "
+    "AND StartTime<'%s' "
+  "ORDER BY Job.JobTDate DESC LIMIT 1",
+        jr->Name,
+//      edit_uint64(jr->ClientId, clientid),
+//      edit_uint64(jr->FileSetId, filesetid));
+        date);
+
+   Dmsg1(1, "db_get_base_jobid q=%s\n", query.c_str());
+   if (!db_sql_query(mdb, query.c_str(), db_int64_handler, &id)) {
+      goto bail_out;
+   }
+   *jobid = (JobId_t) id;
+
+   Dmsg1(1, "db_get_base_jobid=%lld\n", id);
+   return true;
+
+bail_out:
+   return false;
 }
 
 /*

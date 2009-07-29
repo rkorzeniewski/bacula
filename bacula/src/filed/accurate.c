@@ -98,7 +98,7 @@ static bool accurate_send_base_file_list(JCR *jcr)
    FF_PKT *ff_pkt;
    int stream = STREAM_UNIX_ATTRIBUTES;
 
-   if (!jcr->accurate || jcr->get_JobLevel != L_FULL) {
+   if (!jcr->accurate || jcr->get_JobLevel() != L_FULL) {
       return true;
    }
 
@@ -163,7 +163,7 @@ static bool accurate_send_deleted_list(JCR *jcr)
    return true;
 }
 
-static void accurate_free(JCR *jcr)
+void accurate_free(JCR *jcr)
 {
    if (jcr->file_list) {
       jcr->file_list->destroy();
@@ -177,7 +177,7 @@ bool accurate_finish(JCR *jcr)
 {
    bool ret=true;
    if (jcr->accurate) {
-      if (jcr->get_JobLevel == L_FULL) {
+      if (jcr->get_JobLevel() == L_FULL) {
          ret = accurate_send_base_file_list(jcr);
       } else {
          ret = accurate_send_deleted_list(jcr);

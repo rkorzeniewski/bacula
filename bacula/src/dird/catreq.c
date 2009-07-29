@@ -488,7 +488,7 @@ static void update_attribute(JCR *jcr, char *msg, int32_t msglen)
 
             /* Update BaseFile table */
             if (ar->FileType == FT_BASE) {
-               if (!db_create_base_file_attributes_record(jcr, jcr->mdb, ar)) {
+               if (!db_create_base_file_attributes_record(jcr, jcr->db, ar)) {
                   Jmsg1(jcr, M_FATAL, 0, _("Base attribute create error. %s"),
                         db_strerror(jcr->db));
                }

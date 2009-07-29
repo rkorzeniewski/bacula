@@ -1132,7 +1132,7 @@ const char *create_temp_basefile[4] = {
    "Name TEXT)"
 };
 
-boot db_init_base_file(JCR *jcr, B_DB *mdb)
+bool db_init_base_file(JCR *jcr, B_DB *mdb)
 {
    POOL_MEM q(PM_MESSAGE);
    Mmsg(q, create_temp_basefile[db_type], (uint64_t) jcr->JobId);
@@ -1145,6 +1145,7 @@ boot db_init_base_file(JCR *jcr, B_DB *mdb)
  */
 bool db_create_base_file_attributes_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
 {
+   bool ret;
    Dmsg1(dbglevel, "Fname=%s\n", ar->fname);
    Dmsg0(dbglevel, "put_file_into_catalog\n");
 
@@ -1160,7 +1161,7 @@ bool db_create_base_file_attributes_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
    }
 
    db_lock(mdb); 
-   split_path_and_file(jcr, bdb, ar->fname);
+   split_path_and_file(jcr, mdb, ar->fname);
    
    mdb->esc_name = check_pool_memory_size(mdb->esc_name, mdb->fnl*2+1);
    db_escape_string(jcr, mdb, mdb->esc_name, mdb->fname, mdb->fnl);
@@ -1168,10 +1169,10 @@ bool db_create_base_file_attributes_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
    mdb->esc_path = check_pool_memory_size(mdb->esc_path, mdb->pnl*2+1);
    db_escape_string(jcr, mdb, mdb->esc_path, mdb->path, mdb->pnl);
    
-   len = Mmsg(mdb->cmd, "INSERT INTO basefile%lld (Path, Name) VALUES ('%s','%s')",
-              (uint64_t)jcr->JobId, mdb->esc_path, mdb->esc_name);
+   Mmsg(mdb->cmd, "INSERT INTO basefile%lld (Path, Name) VALUES ('%s','%s')",
+        (uint64_t)jcr->JobId, mdb->esc_path, mdb->esc_name);
    
-   boot ret = INSERT_DB(jcr, mdb, mdb->cmd);
+   ret = INSERT_DB(jcr, mdb, mdb->cmd);
    db_unlock(mdb);
 
    return ret;
@@ -1192,7 +1193,7 @@ bool db_commit_base_file_attributes_record(JCR *jcr, B_DB *mdb)
     "WHERE A.Path = B.Path "
       "AND A.Name = B.Name "
     "ORDER BY B.FileId)", 
-        edit_uint64(ed1, jcr->JobId), ed1, ed1);
+        edit_uint64(jcr->JobId, ed1), ed1, ed1);
 
    return db_sql_query(mdb, buf.c_str(), NULL, NULL);
 }
@@ -1202,6 +1203,7 @@ bool db_commit_base_file_attributes_record(JCR *jcr, B_DB *mdb)
  */
 void db_cleanup_base_file(JCR *jcr, B_DB *mdb)
 {
+   POOL_MEM buf(PM_MESSAGE);
    Mmsg(buf, "DROP TABLE new_basefile%lld", (uint64_t) jcr->JobId);
    db_sql_query(mdb, buf.c_str(), NULL, NULL);
 
