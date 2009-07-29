@@ -2729,9 +2729,7 @@ redhat)
        platforms/redhat/Makefile \
        platforms/redhat/bacula-fd \
        platforms/redhat/bacula-sd \
-       platforms/redhat/bacula-dir \
-       platforms/redhat/bacula.spec \
-       platforms/redhat/bsys.spec \
+       platforms/redhat/bacula-dir
        "
   ;;
 mandrake)
