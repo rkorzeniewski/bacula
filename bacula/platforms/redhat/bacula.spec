@@ -4,35 +4,33 @@
 
 # Platform Build Configuration
 
-
 BuildRequires: libacl-devel
 
 # probems with mandriva build: 
-
 # nothing provides libbonobo2_0-devel, nothing provides libbonoboui2_0-devel
 
 # set Macros by opensuse_bs, see http://en.opensuse.org/Build_Service/cross_distribution_package_how_to
-#openSUSE 11.1   %if 0%{?suse_version} == 1110  
-#openSUSE 11.0  %if 0%{?suse_version} == 1100   
-#openSUSE 10.3  %if 0%{?suse_version} == 1030   
-#openSUSE 10.2  %if 0%{?suse_version} == 1020   
+#openSUSE 11.1          %if 0%{?suse_version} == 1110  
+#openSUSE 11.0          %if 0%{?suse_version} == 1100   
+#openSUSE 10.3          %if 0%{?suse_version} == 1030   
+#openSUSE 10.2          %if 0%{?suse_version} == 1020   
 #SUSE Linux 10.1        %if 0%{?suse_version} == 1010   
 #SUSE Linux 10.0        %if 0%{?suse_version} == 1000   
 #SUSE Linux 9.3         %if 0%{?suse_version} == 930    
-#SLES 9         %if 0%{?sles_version} == 9      also set: %if 0%{?suse_version} == 910
-#SLE 10         %if 0%{?sles_version} == 10     also set: %if 0%{?suse_version} == 1010
-#SLE 11         %if 0%{?sles_version} == 11     also set: %if 0%{?suse_version} == 1110
-#CentOS 5       %if 0%{?centos_version} == 501  
-#RHEL 4         %if 0%{?rhel_version} == 406    
-#RHEL 5         %if 0%{?rhel_version} == 501    
+#SLES 9                 %if 0%{?sles_version} == 9      also set: %if 0%{?suse_version} == 910
+#SLE 10                 %if 0%{?sles_version} == 10     also set: %if 0%{?suse_version} == 1010
+#SLE 11                 %if 0%{?sles_version} == 11     also set: %if 0%{?suse_version} == 1110
+#CentOS 5               %if 0%{?centos_version} == 501  
+#RHEL 4                 %if 0%{?rhel_version} == 406    
+#RHEL 5                 %if 0%{?rhel_version} == 501    
 #Fedora 6 with Extras   %if 0%{?fedora_version} == 6    
 #Fedora 7 with Extras   %if 0%{?fedora_version} == 7    
 #Fedora 8 with Extras   %if 0%{?fedora_version} == 8    
 #Fedora 9 with Extras   %if 0%{?fedora_version} == 9    
 #Fedora 10 with Extras  %if 0%{?fedora_version} == 10   
-#Mandriva 2006  %if 0%{?mandriva_version} == 2006       
-#Mandriva 2007  %if 0%{?mandriva_version} == 2007       
-#Mandriva 2008  %if 0%{?mandriva_version} == 2008       
+#Mandriva 2006          %if 0%{?mandriva_version} == 2006       
+#Mandriva 2007          %if 0%{?mandriva_version} == 2007       
+#Mandriva 2008          %if 0%{?mandriva_version} == 2008       
 
 
 %if 0%{?opensuse_bs}
@@ -56,8 +54,6 @@ BuildRequires: freetype-devel
 BuildRequires: libtermcap-devel
 BuildRequires: shadow-utils
 %endif
-
-
 
 
 %if 0%{?mandriva_version} == 2007
@@ -92,9 +88,6 @@ BuildRequires: fedora-release
 BuildRequires: PolicyKit-gnome
 BuildRequires: fedora-release
 %endif
-
-
-
 
 %if 0%{?rhel_version} == 501
 %define build_rhel5 1
@@ -159,17 +152,56 @@ BuildRequires: suse-release
 %define _dist "SLES 11"
 %endif
 
-
-
 %endif 
 # opensuse-bs?
 
 # basic defines for every build
-%define _version @VERSION@
+%define _version 3.0.2
 %define _release 1
 %define depkgs_version 18Feb09
-%define _rescuever @VERSION@
-%define docs_version @VERSION@
+%define depkgs_qt_version 28Jul09
+%define _rescuever 3.0.2
+%define docs_version 3.0.2
+%define _packager D. Scott Barninger <barninger@fairfieldcomputers.com>
+
+%define single_dir 0
+%{?single_dir_install:%define single_dir 1}
+
+# Installation Directory locations
+%if %{single_dir}
+%define _prefix        /opt/bacula
+%define _sbindir       /opt/bacula/bin
+%define _subsysdir     /opt/bacula/working
+%define sqlite_bindir  /opt/bacula/sqlite
+%define _mandir        /usr/share/man
+%define sysconf_dir    /opt/bacula/etc
+%define script_dir     /opt/bacula/scripts
+%define working_dir    /opt/bacula/working
+%define pid_dir        /opt/bacula/working
+%define plugin_dir     /opt/bacula/plugins
+%define lib_dir        /opt/bacula/lib
+%else
+%define _prefix        /usr
+%define _sbindir       %_prefix/sbin
+%define _subsysdir     /var/lock/subsys
+%define sqlite_bindirf %_libdir/bacula/sqlite
+%define _mandir        %_prefix/share/man
+%define sysconf_dir    /etc/bacula
+%define script_dir     %_libdir/bacula
+%define working_dir    /var/lib/bacula
+%define pid_dir        /var/run
+%define plugin_dir     %_libdir/bacula/plugins
+%define lib_dir        %_libdir/bacula/lib
+%endif
+
+# Daemon user:group Don't change them unless you know what you are doing
+%define director_daemon_user    bacula
+%define storage_daemon_user     bacula
+%define file_daemon_user        root
+%define daemon_group            bacula
+# group that has write access to tape devices, usually disk on Linux
+%define storage_daemon_group    disk
+
 
 # any patches for this release
 # be sure to check the setup section for patch macros
@@ -179,16 +211,6 @@ BuildRequires: suse-release
 # except for patch macros in the setup section
 #--------------------------------------------------------------------------
 
-%define single_dir 0
-%{?single_dir_install:%define single_dir 1}
-%if %{single_dir}
-%define _prefix /opt/bacula
-%else
-%define _prefix /usr
-%endif
-
-# third party packagers
-%define _packager D. Scott Barninger <barninger@fairfieldcomputers.com>
 %{?contrib_packager:%define _packager %{contrib_packager}}
 
 Summary: Bacula - The Network Backup Solution
@@ -203,6 +225,7 @@ Source2: Release_Notes-%{version}-%{release}.tar.gz
 Source3: http://www.prdownloads.sourceforge.net/bacula/%{name}-docs-%{docs_version}.tar.gz
 Source4: http://www.prdownloads.sourceforge.net/bacula/%{name}-rescue-%{_rescuever}.tar.gz
 Source5: bacula-2.2.7-postgresql.patch
+Source6: depkgs-qt-%{depkgs_qt_version}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-root
 URL: http://www.bacula.org/
 Vendor: The Bacula Team
@@ -219,47 +242,19 @@ Prefix: %{_prefix}
 %define blurb7 features that make it easy to find and recover lost or damaged files.
 %define blurb8 Bacula source code has been released under the GPL version 2 license.
 
-# source directory locations
+# Source directory locations
 %define _docsrc ../%{name}-docs-%{docs_version}
 %define _rescuesrc ../%{name}-rescue-%{_rescuever}
 %define depkgs ../depkgs
+%define depkgs_qt ../depkgs-qt
 
-# directory locations
-%if %{single_dir}
-%define _sbindir /opt/bacula
-%define _subsysdir /opt/bacula/working
-%define sqlite_bindir /opt/bacula/sqlite
-%define _mandir /usr/share/man
-%define sysconf_dir /opt/bacula
-%define script_dir /opt/bacula/scripts
-%define working_dir /opt/bacula/working
-%define pid_dir /opt/bacula/working
-%else
-%define _sbindir %_prefix/sbin
-%define _subsysdir /var/lock/subsys
-%define sqlite_bindir %_libdir/bacula/sqlite
-%define _mandir %_prefix/share/man
-%define sysconf_dir /etc/bacula
-%define script_dir %_libdir/bacula
-%define working_dir /var/lib/bacula
-%define pid_dir /var/run
-%endif
-
-# NOTE these defines are used in some rather complex useradd and groupadd
-# commands. If you change them examine the post scripts for consequences.
-%define director_daemon_user bacula
-%define storage_daemon_user bacula
-%define file_daemon_user root
-%define daemon_group bacula
-# group that has write access to tape devices, usually disk on Linux
-%define storage_daemon_group disk
 %define user_file /etc/passwd
 %define group_file /etc/group
 
 # program locations
-%define useradd /usr/sbin/useradd
+%define useradd  /usr/sbin/useradd
 %define groupadd /usr/sbin/groupadd
-%define usermod /usr/sbin/usermod
+%define usermod  /usr/sbin/usermod
 
 # platform defines - set one below or define the build_xxx on the command line
 # RedHat builds
@@ -416,23 +411,6 @@ exit 1
 %if %{mdk}
 %define _dist %(grep Mand /etc/mandrake-release)
 %endif
-
-# opensuse build service start
-%if 0%{?sles_version} == 9
-%define _dist "SLES 9"
-%endif
-
-%if 0%{?sles_version} == 10
-%define _dist "SLE 10"
-%endif
-
-
-%if 0%{?sles_version} == 11
-%define _dist "SLE 11"
-%endif
-
-# opensuse build service end
-
 %{?DISTNAME:%define _dist %{DISTNAME}}
 Distribution: %{_dist}
 
@@ -471,7 +449,7 @@ Distribution: %{_dist}
 %{?build_python:%define python 1}
 
 # specifically disallow build of mtx package if desired
-%define mtx 1
+%define mtx 0
 %{?nobuild_mtx:%define mtx 0}
 
 # do we need to patch for old postgresql version?
@@ -496,9 +474,12 @@ Distribution: %{_dist}
 %define wxconsole 0
 %endif
 
+%{expand: %%define gccver %(rpm -q --queryformat %%{version} gcc)}
+%{expand: %%define gccrel %(rpm -q --queryformat %%{release} gcc)}
+
 BuildRequires: gcc, gcc-c++, make, autoconf
 BuildRequires: ncurses-devel, perl
-BuildRequires: libstdc++-devel, zlib-devel
+BuildRequires: libstdc++-devel = %{gccver}-%{gccrel}, zlib-devel
 BuildRequires: openssl-devel
 %if ! %{rh7}
 BuildRequires: libxml2-devel
@@ -850,7 +831,7 @@ Obsoletes: bacula-rescue
 Conflicts: bacula
 %endif
 
-Requires: ncurses, libstdc++, zlib, openssl, mtx
+Requires: ncurses, libstdc++, zlib, openssl
 
 %if %{rh7}
 Requires: glibc >= 2.2
@@ -1594,6 +1575,8 @@ the client or server packages.
 %setup -T -D -b 2
 %setup -T -D -b 3
 %setup -T -D -b 4
+%setup -T -D -b 5
+%setup -T -D -b 6
 
 %build
 
@@ -1601,23 +1584,30 @@ the client or server packages.
 export LDFLAGS="${LDFLAGS} -L/usr/lib/termcap"
 %endif
 
+cwd=${PWD}
 %if %{bat}
-export QTDIR=$(pkg-config --variable=prefix QtCore)
-export QTINC=$(pkg-config --variable=includedir QtCore)
-export QTLIB=$(pkg-config --variable=libdir QtCore)
-export PATH=${QTDIR}/bin/:${PATH}
+#export QTDIR=$(pkg-config --variable=prefix QtCore)
+#export QTINC=$(pkg-config --variable=includedir QtCore)
+#export QTLIB=$(pkg-config --variable=libdir QtCore)
+#export PATH=${QTDIR}/bin/:${PATH}
+cd %{depkgs_qt}
+make qt4 <<EOF
+yes
+EOF
+qtdir=${PWD}
+export PATH=${qtdir}/qt4/bin:$PATH
+export QTDIR=${qtdir}/qt4/
+export QTINC=${qtdir}/qt4/include/
+export QTLIB=${qtdir}/qt4/lib/
+cd ${cwd}
 %endif
 
-cwd=${PWD}
 cd %{depkgs}
 %if %{sqlite}
 make sqlite3
 %endif
 %if ! %{client_only} && %{mtx}
 make mtx
-%endif
-%if %{bat}
-make qwt
 %endif
 cd ${cwd}
 
@@ -1680,12 +1670,12 @@ export LDFLAGS="${LDFLAGS} -L/usr/lib64/python%{pyver}"
 %if %{rhel5} || %{centos5} || %{sl5}
 %define qt_path 1
 %endif
-%if %{bat} && %{qt_path} && %{x86_64}
-export PATH=/usr/lib64/qt4/bin/:$PATH
-export QTDIR=/usr/lib64/qt4/
-export QTINC=/usr/lib64/qt4/include/
-export QTLIB=/usr/lib64/qt4/
-%endif
+#%if %{bat} && %{qt_path} && %{x86_64}
+#export PATH=/usr/lib64/qt4/bin/:$PATH
+#export QTDIR=/usr/lib64/qt4/
+#export QTINC=/usr/lib64/qt4/include/
+#export QTLIB=/usr/lib64/qt4/
+#%endif
 
 %if %{rescue}
 %configure \
@@ -1700,18 +1690,24 @@ export QTLIB=/usr/lib64/qt4/
         %if %{mdk}
         --disable-nls \
         %endif
-        --enable-static-fd
+        --enable-static-fd \
+        --without-openssl \
+        --disable-libtool
 
 make
 %endif
 
+# Main Bacula configuration
 %configure \
         --prefix=%{_prefix} \
         --sbindir=%{_sbindir} \
         --sysconfdir=%{sysconf_dir} \
+        --mandir=%{_mandir} \
         --with-scriptdir=%{script_dir} \
         --with-working-dir=%{working_dir} \
+        --with-plugindir=%{script_dir} \
         --with-pid-dir=%{pid_dir} \
+        --with-subsys-dir=%{_subsysdir} \
         --enable-smartalloc \
 %if %{gconsole}
         --enable-gnome \
@@ -1733,7 +1729,7 @@ make
 %endif
 %if %{bat}
         --enable-bat \
-        --with-qwt=${cwd}/%{depkgs}/qwt \
+        --without-qwt \
 %endif
 %if %{python}
         --with-python \
@@ -1744,9 +1740,6 @@ make
 %if %{rh7} || %{rh8} || %{rh9} || %{fc1} || %{fc3} || %{wb3} 
         --disable-batch-insert \
 %endif
-        --mandir=%{_mandir} \
-        --with-plugindir=%{script_dir} \
-        --with-subsys-dir=%{_subsysdir} \
         --with-dir-user=%{director_daemon_user} \
         --with-dir-group=%{daemon_group} \
         --with-sd-user=%{storage_daemon_user} \
@@ -2192,7 +2185,6 @@ rm -f $RPM_BUILD_DIR/Release_Notes-%{version}-%{release}.txt
 %{_mandir}/man8/dbcheck.8.%{manpage_ext}
 %{_mandir}/man1/bsmtp.1.%{manpage_ext}
 %{_libdir}/libbac*
-
 %endif
 
 %if ! %{client_only} && %{rescue}
@@ -2440,9 +2432,8 @@ if [ -d %{sysconf_dir} ]; then
                 done
         done
 fi
-%endif
-
 /sbin/ldconfig
+%endif
 
 %if %{mysql}
 %preun mysql
@@ -2457,22 +2448,25 @@ fi
 %if ! %{client_only}
 # delete our links
 if [ $1 = 0 ]; then
-  /sbin/chkconfig --del bacula-dir
-  /sbin/chkconfig --del bacula-fd
-  /sbin/chkconfig --del bacula-sd
+/sbin/chkconfig --del bacula-dir
+/sbin/chkconfig --del bacula-fd
+/sbin/chkconfig --del bacula-sd
 fi
 %endif
 
 %if %{mysql}
 %postun mysql
+/sbin/ldconfig
 %endif
 %if %{sqlite}
+%postun sqlite
+/sbin/ldconfig
 %endif
 %if %{postgresql}
 %postun postgresql
+/sbin/ldconfig
 %endif
 
-/sbin/ldconfig
 
 %if ! %{client_only} && %{mtx}
 %files mtx

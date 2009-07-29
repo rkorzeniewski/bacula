@@ -2,6 +2,11 @@
           
 General:
 
+29Jul09
+kes  Start reworking 3.0.2 bacula.spec file
+     - Add SuSE build codes
+     - Add depkgs-qt so bat can build on any system
+     - Reoganize defines
 26Jul09
 kes  Tweak RedHat spec files
 24Jul09
