@@ -370,7 +370,6 @@ static void update_attribute(JCR *jcr, char *msg, int32_t msglen)
    uint32_t FileIndex;
    uint32_t data_len;
    char *p;
-   int filetype;
    int len;
    char *fname, *attr;
    ATTR_DBR *ar = NULL;
@@ -415,7 +414,7 @@ static void update_attribute(JCR *jcr, char *msg, int32_t msglen)
       p = jcr->attr - msg + p;    /* point p into jcr->attr */
       skip_nonspaces(&p);             /* skip FileIndex */
       skip_spaces(&p);
-      filetype = str_to_int32(p);     /* TODO: choose between unserialize and str_to_int32 */
+      ar->FileType = str_to_int32(p);     /* TODO: choose between unserialize and str_to_int32 */
       skip_nonspaces(&p);             /* skip FileType */
       skip_spaces(&p);
       fname = p;
@@ -426,7 +425,7 @@ static void update_attribute(JCR *jcr, char *msg, int32_t msglen)
       Dmsg1(400, "dird<stored: attr=%s\n", attr);
       ar->attr = attr;
       ar->fname = fname;
-      if (filetype == FT_DELETED) {
+      if (ar->FileType == FT_DELETED) {
          ar->FileIndex = 0;     /* special value */
       } else {
          ar->FileIndex = FileIndex;
@@ -479,14 +478,28 @@ static void update_attribute(JCR *jcr, char *msg, int32_t msglen)
          }
 
          bin_to_base64(digestbuf, sizeof(digestbuf), fname, len, true);
-         Dmsg3(400, "DigestLen=%d Digest=%s type=%d\n", strlen(digestbuf), digestbuf, Stream);
+         Dmsg3(400, "DigestLen=%d Digest=%s type=%d\n", strlen(digestbuf),
+               digestbuf, Stream);
          if (jcr->cached_attribute) {
             ar->Digest = digestbuf;
             ar->DigestType = type;
-            Dmsg2(400, "Cached attr with digest. Stream=%d fname=%s\n", ar->Stream, ar->fname);
-            if (!db_create_file_attributes_record(jcr, jcr->db, ar)) {
-               Jmsg1(jcr, M_FATAL, 0, _("Attribute create error. %s"), db_strerror(jcr->db));
+            Dmsg2(400, "Cached attr with digest. Stream=%d fname=%s\n",
+                  ar->Stream, ar->fname);
+
+            /* Update BaseFile table */
+            if (ar->FileType == FT_BASE) {
+               if (!db_create_base_file_attributes_record(jcr, jcr->mdb, ar)) {
+                  Jmsg1(jcr, M_FATAL, 0, _("Base attribute create error. %s"),
+                        db_strerror(jcr->db));
+               }
+
+            } else { /* Regular files */
+               if (!db_create_file_attributes_record(jcr, jcr->db, ar)) {
+                  Jmsg1(jcr, M_FATAL, 0, _("Attribute create error. %s"),
+                        db_strerror(jcr->db));
+               }
             }
+
             jcr->cached_attribute = false; 
          } else {
             if (!db_add_digest_to_file_record(jcr, jcr->db, ar->FileId, digestbuf, type)) {

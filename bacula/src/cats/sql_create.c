@@ -1108,4 +1108,139 @@ bool db_write_batch_file_records(JCR *jcr)
 
 #endif /* ! HAVE_BATCH_FILE_INSERT */
 
+
+/* List of SQL commands to create temp table and indicies  */
+const char *create_temp_basefile[4] = {
+   /* MySQL */
+   "CREATE TEMPORARY TABLE basefile%lld ("
+   "Name BLOB NOT NULL,"
+   "FileName BLOB NOT NULL)",
+
+   /* Postgresql */
+   "CREATE TEMPORARY TABLE basefile%lld (" 
+   "Name TEXT,"
+   "FileName TEXT)",
+
+   /* SQLite */
+   "CREATE TEMPORARY TABLE basefile%lld (" 
+   "Name TEXT,"
+   "FileName TEXT)",
+
+   /* SQLite3 */
+   "CREATE TEMPORARY TABLE basefile%lld (" 
+   "Name TEXT,"
+   "FileName TEXT)"
+};
+
+boot db_init_base_file(JCR *jcr, B_DB *mdb)
+{
+   POOL_MEM q(PM_MESSAGE);
+   Mmsg(q, create_temp_basefile[db_type], (uint64_t) jcr->JobId);
+   return db_sql_query(mdb, q.c_str(), NULL, NULL);
+}
+
+/*
+ * Create Base File record in B_DB
+ *
+ */
+bool db_create_base_file_attributes_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
+{
+   Dmsg1(dbglevel, "Fname=%s\n", ar->fname);
+   Dmsg0(dbglevel, "put_file_into_catalog\n");
+
+   /*
+    * Make sure we have an acceptable attributes record.
+    */
+   if (!(ar->Stream == STREAM_UNIX_ATTRIBUTES ||
+         ar->Stream == STREAM_UNIX_ATTRIBUTES_EX)) {
+      Mmsg1(&mdb->errmsg, _("Attempt to put non-attributes into catalog. Stream=%d\n"),
+         ar->Stream);
+      Jmsg(jcr, M_FATAL, 0, "%s", mdb->errmsg);
+      return false;
+   }
+
+   db_lock(mdb); 
+   split_path_and_file(jcr, bdb, ar->fname);
+   
+   mdb->esc_name = check_pool_memory_size(mdb->esc_name, mdb->fnl*2+1);
+   db_escape_string(jcr, mdb, mdb->esc_name, mdb->fname, mdb->fnl);
+   
+   mdb->esc_path = check_pool_memory_size(mdb->esc_path, mdb->pnl*2+1);
+   db_escape_string(jcr, mdb, mdb->esc_path, mdb->path, mdb->pnl);
+   
+   len = Mmsg(mdb->cmd, "INSERT INTO basefile%lld VALUES ('%s','%s')",
+              (uint64_t)jcr->JobId, mdb->esc_path, mdb->esc_name);
+   
+   boot ret = INSERT_DB(jcr, mdb, mdb->cmd);
+   db_unlock(mdb);
+
+   return ret;
+}
+/*
+ * Put all base file seen in the backup to the BaseFile table
+ */
+bool db_commit_base_file_attributes_record(JCR *jcr, B_DB *mdb)
+{
+   char ed1[50];
+   POOL_MEM buf(PM_MESSAGE);
+
+   Mmsg(buf, 
+  "INSERT INTO BaseFile (BaseJobId, JobId, FileId, FileIndex) ( "
+   "SELECT A.JobId AS BaseJobId, %s AS JobId, "
+          "A.FileId, A.FileIndex "
+     "FROM basefile%s AS A, new_basefile%s AS B "
+    "WHERE A.Path = B.Path "
+      "AND A.Filename = B.Filename "
+    "ORDER BY FileId)", 
+        edit_uint64(ed1, jcr->JobId), ed1, ed1);
+
+   return db_sql_query(mdb, buf.c_str(), NULL, NULL);
+}
+
+/* 
+ * Cleanup the base file temporary tables
+ */
+void db_cleanup_base_file(JCR *jcr, B_DB *mdb)
+{
+   Mmsg(buf, "DROP TABLE new_basefile%lld", (uint64_t) jcr->JobId);
+   db_sql_query(mdb, buf.c_str(), NULL, NULL);
+
+   Mmsg(buf, "DROP TABLE basefile%lld", (uint64_t) jcr->JobId);
+   db_sql_query(mdb, buf.c_str(), NULL, NULL);
+}
+
+/*
+ * Find the last "accurate" backup state with Base jobs
+ * 1) Get all files with jobid in list (F subquery) 
+ * 2) Take only the last version of each file (Temp subquery) => accurate list is ok
+ * 3) Put the result in a temporary table for the end of job
+ *
+ */
+bool db_create_base_file_list(JCR *jcr, B_DB *mdb, char *jobids)
+{
+   if (!*jobids) {
+      db_lock(mdb);
+      Mmsg(mdb->errmsg, _("ERR=JobIds are empty\n"));
+      db_unlock(mdb);
+      return false;
+   }
+   POOL_MEM buf(PM_MESSAGE);
+         
+   Mmsg(buf,
+ "CREATE TEMPORARY new_basefile%lld AS ( "
+   "SELECT Path.Path AS Path, Filename.Name AS Filename, File.FileIndex AS FileIndex, "
+          "File.JobId AS JobId, File.LStat AS LStat, File.FileId AS FileId "
+   "FROM ( "
+    "SELECT max(FileId) as FileId, PathId, FilenameId "
+      "FROM (SELECT FileId, PathId, FilenameId FROM File WHERE JobId IN (%s)) AS F "
+     "GROUP BY PathId, FilenameId "
+    ") AS Temp "
+   "JOIN Filename ON (Filename.FilenameId = Temp.FilenameId) "
+   "JOIN Path ON (Path.PathId = Temp.PathId) "
+   "JOIN File ON (File.FileId = Temp.FileId) "
+  "WHERE File.FileIndex > 0)",
+        (uint64_t)jcr->JobId, jobids);
+   return db_sql_query(mdb, buf.c_str(), NULL, NULL);
+}
+
 #endif /* HAVE_SQLITE3 || HAVE_MYSQL || HAVE_SQLITE || HAVE_POSTGRESQL || HAVE_DBI */

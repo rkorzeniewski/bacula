@@ -153,7 +153,7 @@ bool blast_data_to_storage_daemon(JCR *jcr, char *addr)
       set_jcr_job_status(jcr, JS_ErrorTerminated);
    }
 
-   accurate_send_deleted_list(jcr);              /* send deleted list to SD  */
+   accurate_finish(jcr);              /* send deleted or base file list to SD */
 
    stop_heartbeat_monitor(jcr);
 
