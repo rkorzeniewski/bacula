@@ -5,12 +5,12 @@
 # Platform Build Configuration
 
 # basic defines for every build
-%define _version 3.0.2
-%define _release 1
-%define depkgs_version 18Feb09
-%define depkgs_qt_version 28Jul09
-%define _rescuever 3.0.2
-%define docs_version 3.0.2
+%define _release           2
+%define _version           3.0.2
+%define _rescuever         3.0.2
+%define docs_version       3.0.2
+%define depkgs_version     18Feb09
+%define depkgs_qt_version  28Jul09
 %define _packager D. Scott Barninger <barninger@fairfieldcomputers.com>
 
 %define single_dir 0
