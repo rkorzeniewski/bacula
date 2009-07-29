@@ -29,12 +29,6 @@
  *   Version $Id$
  */
 
-typedef enum {
-   bsub_exit_fatal = -1,
-   bsub_exit_nok = 0,
-   bsub_exit_ok = 1
-} bsub_exit_code;
-
 extern bool blast_data_to_storage_daemon(JCR *jcr, char *addr);
 extern void do_verify_volume(JCR *jcr);
 extern void do_restore(JCR *jcr);
