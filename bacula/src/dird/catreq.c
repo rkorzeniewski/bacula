@@ -404,7 +404,7 @@ static void update_attribute(JCR *jcr, char *msg, int32_t msglen)
    if (Stream == STREAM_UNIX_ATTRIBUTES || Stream == STREAM_UNIX_ATTRIBUTES_EX) {
       if (jcr->cached_attribute) {
          Dmsg2(400, "Cached attr. Stream=%d fname=%s\n", ar->Stream, ar->fname);
-         if (!db_create_file_attributes_record(jcr, jcr->db, ar)) {
+         if (!db_create_attributes_record(jcr, jcr->db, ar)) {
             Jmsg1(jcr, M_FATAL, 0, _("Attribute create error. %s"), db_strerror(jcr->db));
          }
       }
@@ -415,6 +415,7 @@ static void update_attribute(JCR *jcr, char *msg, int32_t msglen)
       skip_nonspaces(&p);             /* skip FileIndex */
       skip_spaces(&p);
       ar->FileType = str_to_int32(p);     /* TODO: choose between unserialize and str_to_int32 */
+      Dmsg1(0, "FileType=%i\n", ar->FileType);
       skip_nonspaces(&p);             /* skip FileType */
       skip_spaces(&p);
       fname = p;
@@ -487,19 +488,10 @@ static void update_attribute(JCR *jcr, char *msg, int32_t msglen)
                   ar->Stream, ar->fname);
 
             /* Update BaseFile table */
-            if (ar->FileType == FT_BASE) {
-               if (!db_create_base_file_attributes_record(jcr, jcr->db, ar)) {
-                  Jmsg1(jcr, M_FATAL, 0, _("Base attribute create error. %s"),
+            if (!db_create_attributes_record(jcr, jcr->db, ar)) {
+               Jmsg1(jcr, M_FATAL, 0, _("attribute create error. %s"),
                         db_strerror(jcr->db));
-               }
-
-            } else { /* Regular files */
-               if (!db_create_file_attributes_record(jcr, jcr->db, ar)) {
-                  Jmsg1(jcr, M_FATAL, 0, _("Attribute create error. %s"),
-                        db_strerror(jcr->db));
-               }
             }
-
             jcr->cached_attribute = false; 
          } else {
             if (!db_add_digest_to_file_record(jcr, jcr->db, ar->FileId, digestbuf, type)) {

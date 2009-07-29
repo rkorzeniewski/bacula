@@ -1133,6 +1133,21 @@ const char *create_temp_basefile[4] = {
    "Name TEXT)"
 };
 
+/* 
+ * Create file attributes record, or base file attributes record
+ */
+bool db_create_attributes_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
+{
+   bool ret;
+   if (ar->FileType == FT_BASE) {
+      ret = db_create_base_file_attributes_record(jcr, mdb, ar);
+   } else {
+      ret = db_create_file_attributes_record(jcr, mdb, ar);
+   }
+
+   return ret;
+}
+
 /*
  * Create Base File record in B_DB
  *
@@ -1165,7 +1180,8 @@ bool db_create_base_file_attributes_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
    
    Mmsg(mdb->cmd, "INSERT INTO basefile%lld (Path, Name) VALUES ('%s','%s')",
         (uint64_t)jcr->JobId, mdb->esc_path, mdb->esc_name);
-   
+   Dmsg1(0, "%s\n", mdb->cmd);
+
    ret = INSERT_DB(jcr, mdb, mdb->cmd);
    db_unlock(mdb);
 
@@ -1188,7 +1204,7 @@ bool db_commit_base_file_attributes_record(JCR *jcr, B_DB *mdb)
       "AND A.Name = B.Name "
     "ORDER BY B.FileId)", 
         edit_uint64(jcr->JobId, ed1), ed1, ed1);
-
+   Dmsg1(0, "%s\n", buf.c_str());
    return db_sql_query(mdb, buf.c_str(), NULL, NULL);
 }
 

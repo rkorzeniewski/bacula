@@ -110,15 +110,14 @@ static bool accurate_send_base_file_list(JCR *jcr)
    ff_pkt->type = FT_BASE;
 
    foreach_htable(elt, jcr->file_list) {
-      if (!elt->seen || !plugin_check_file(jcr, elt->fname)) {
-         continue;
+      if (elt->seen) {
+         Dmsg2(0, "base file fname=%s seen=%i\n", elt->fname, elt->seen);
+         ff_pkt->fname = elt->fname;
+         ff_pkt->statp.st_mtime = elt->mtime;
+         ff_pkt->statp.st_ctime = elt->ctime;
+         encode_and_send_attributes(jcr, ff_pkt, stream);
+//       free(elt->fname);
       }
-      Dmsg2(dbglvl, "base file fname=%s seen=%i\n", elt->fname, elt->seen);
-      ff_pkt->fname = elt->fname;
-      ff_pkt->statp.st_mtime = elt->mtime;
-      ff_pkt->statp.st_ctime = elt->ctime;
-      encode_and_send_attributes(jcr, ff_pkt, stream);
-//    free(elt->fname);
    }
 
    term_find_files(ff_pkt);
