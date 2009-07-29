@@ -33,7 +33,7 @@
 %define _prefix        /usr
 %define _sbindir       %_prefix/sbin
 %define _subsysdir     /var/lock/subsys
-%define sqlite_bindirf %_libdir/bacula/sqlite
+%define sqlite_bindir  %_libdir/bacula/sqlite
 %define _mandir        %_prefix/share/man
 %define sysconf_dir    /etc/bacula
 %define script_dir     %_libdir/bacula
@@ -221,18 +221,19 @@ Version: %{_version}
 Release: %{_release}
 Group: System Environment/Daemons
 License: GPL v2
-Source0: http://www.prdownloads.sourceforge.net/bacula/%{name}-%{version}.tar.gz
-Source1: http://www.prdownloads.sourceforge.net/bacula/depkgs-%{depkgs_version}.tar.gz
-Source2: Release_Notes-%{version}-%{release}.tar.gz
-Source3: http://www.prdownloads.sourceforge.net/bacula/%{name}-docs-%{docs_version}.tar.gz
-Source4: http://www.prdownloads.sourceforge.net/bacula/%{name}-rescue-%{_rescuever}.tar.gz
-Source5: bacula-2.2.7-postgresql.patch
-Source6: depkgs-qt-%{depkgs_qt_version}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-root
 URL: http://www.bacula.org/
 Vendor: The Bacula Team
 Packager: %{_packager}
 Prefix: %{_prefix}
+
+Source0: http://www.prdownloads.sourceforge.net/bacula/%{name}-%{version}.tar.gz
+Source1: Release_Notes-%{version}-%{release}.tar.gz
+Source2: http://www.prdownloads.sourceforge.net/bacula/%{name}-docs-%{docs_version}.tar.gz
+Source3: http://www.prdownloads.sourceforge.net/bacula/%{name}-rescue-%{_rescuever}.tar.gz
+Source4: http://www.prdownloads.sourceforge.net/bacula/depkgs-%{depkgs_version}.tar.gz
+Source5: http://www.prdownloads.sourceforge.net/bacula/depkgs-qt-%{depkgs_qt_version}.tar.gz
+Source6: bacula-2.2.7-postgresql.patch
 
 # define the basic package description
 %define blurb Bacula - It comes by night and sucks the vital essence from your computers.
