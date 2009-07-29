@@ -384,8 +384,7 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt,
     * since our last "save_time", presumably the last Full save
     * or Incremental.
     */
-   if (   ff_pkt->incremental 
-       && !S_ISDIR(ff_pkt->statp.st_mode) 
+   if (   !S_ISDIR(ff_pkt->statp.st_mode) 
        && !check_changes(jcr, ff_pkt)) 
    {
       Dmsg1(500, "Non-directory incremental: %s\n", ff_pkt->fname);
@@ -581,8 +580,8 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt,
       link[len] = 0;
 
       ff_pkt->link = link;
-      if (ff_pkt->incremental && !check_changes(jcr, ff_pkt)) {
-         /* Incremental option, directory entry not changed */
+      if (!check_changes(jcr, ff_pkt)) {
+         /* Incremental/Full+Base option, directory entry not changed */
          ff_pkt->type = FT_DIRNOCHG;
       } else {
          ff_pkt->type = FT_DIRBEGIN;
