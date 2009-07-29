@@ -191,8 +191,8 @@ db_update_job_end_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
       jr->PoolId, jr->FileSetId, edit_uint64(JobTDate, ed2), 
       rdt,
       PriorJobId,
-      edit_int64(jr->JobId, ed3),
-      jr->HasBase);
+      jr->HasBase,
+      edit_int64(jr->JobId, ed3));
 
    stat = UPDATE_DB(jcr, mdb, mdb->cmd);
 
