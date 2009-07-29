@@ -1117,8 +1117,7 @@ const char *create_temp_basefile[4] = {
    "Name BLOB NOT NULL)",
 
    /* Postgresql */
-//   "CREATE TEMPORARY TABLE basefile%lld (" 
-   "CREATE TABLE basefile%lld (" 
+   "CREATE TEMPORARY TABLE basefile%lld (" 
    "Path TEXT,"
    "Name TEXT)",
 
@@ -1180,7 +1179,6 @@ bool db_create_base_file_attributes_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
    
    Mmsg(mdb->cmd, "INSERT INTO basefile%lld (Path, Name) VALUES ('%s','%s')",
         (uint64_t)jcr->JobId, mdb->esc_path, mdb->esc_name);
-   Dmsg1(0, "%s\n", mdb->cmd);
 
    ret = INSERT_DB(jcr, mdb, mdb->cmd);
    db_unlock(mdb);
@@ -1204,7 +1202,6 @@ bool db_commit_base_file_attributes_record(JCR *jcr, B_DB *mdb)
       "AND A.Name = B.Name "
     "ORDER BY B.FileId)", 
         edit_uint64(jcr->JobId, ed1), ed1, ed1);
-   Dmsg1(0, "%s\n", buf.c_str());
    return db_sql_query(mdb, buf.c_str(), NULL, NULL);
 }
 
@@ -1215,10 +1212,10 @@ void db_cleanup_base_file(JCR *jcr, B_DB *mdb)
 {
    POOL_MEM buf(PM_MESSAGE);
    Mmsg(buf, "DROP TABLE new_basefile%lld", (uint64_t) jcr->JobId);
-//   db_sql_query(mdb, buf.c_str(), NULL, NULL);
+   db_sql_query(mdb, buf.c_str(), NULL, NULL);
 
    Mmsg(buf, "DROP TABLE basefile%lld", (uint64_t) jcr->JobId);
-//   db_sql_query(mdb, buf.c_str(), NULL, NULL);
+   db_sql_query(mdb, buf.c_str(), NULL, NULL);
 }
 
 /*
@@ -1245,8 +1242,7 @@ bool db_create_base_file_list(JCR *jcr, B_DB *mdb, char *jobids)
    }
      
    Mmsg(buf,
-// "CREATE TEMPORARY TABLE new_basefile%lld AS ( "
- "CREATE TABLE new_basefile%lld AS ( "
+ "CREATE TEMPORARY TABLE new_basefile%lld AS ( "
    "SELECT Path.Path AS Path, Filename.Name AS Name, File.FileIndex AS FileIndex, "
           "File.JobId AS JobId, File.LStat AS LStat, File.FileId AS FileId "
    "FROM ( "
