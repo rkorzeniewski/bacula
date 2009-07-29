@@ -1150,6 +1150,10 @@ static int estimate_cmd(UAContext *ua, const char *cmd)
                ua->error_msg(_("Client \"%s\" not found.\n"), ua->argv[i]);
                return 1;
             }
+            if (!acl_access_ok(ua, Client_ACL, client->name())) {
+               ua->error_msg(_("No authorization for Client \"%s\"\n"), client->name());
+               return 1;
+            }
             continue;
          } else {
             ua->error_msg(_("Client name missing.\n"));
@@ -1293,7 +1297,7 @@ static int estimate_cmd(UAContext *ua, const char *cmd)
     * If the job is in accurate mode, we send the list of
     * all files to FD.
     */
-   Dmsg1(40, "estimate accurate=%i\n", jcr->accurate);
+   Dmsg1(40, "estimate accurate=%d\n", jcr->accurate);
    if (!send_accurate_current_files(jcr)) {
       goto bail_out;
    }
