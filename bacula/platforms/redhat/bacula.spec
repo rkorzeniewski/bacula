@@ -5,7 +5,7 @@
 # Platform Build Configuration
 
 # basic defines for every build
-%define _release           2
+%define _release           1
 %define _version           3.0.2
 %define _rescuever         3.0.2
 %define docs_version       3.0.2
@@ -20,6 +20,7 @@
 %if %{single_dir}
 %define _prefix        /opt/bacula
 %define _sbindir       /opt/bacula/bin
+%define _bindir        /opt/bacula/bin
 %define _subsysdir     /opt/bacula/working
 %define sqlite_bindir  /opt/bacula/sqlite
 %define _mandir        /usr/share/man
@@ -32,6 +33,7 @@
 %else
 %define _prefix        /usr
 %define _sbindir       %_prefix/sbin
+%define _bindir        %_prefix/bin
 %define _subsysdir     /var/lock/subsys
 %define sqlite_bindir  %_libdir/bacula/sqlite
 %define _mandir        %_prefix/share/man
@@ -807,7 +809,6 @@ Summary: Bacula - The Network Backup Solution
 Group: System Environment/Daemons
 Provides: bacula-dir, bacula-sd, bacula-fd, bacula-server
 Conflicts: bacula-client
-Obsoletes: bacula-rescue
 
 %if %{su9} || %{su10} || %{su102} || %{su103} || %{su110} || %{su111}
 Conflicts: bacula
@@ -960,17 +961,6 @@ This build incorporates sqlite3 as the catalog database, statically compiled.
 This build includes python scripting support.
 %endif
 
-%if ! %{client_only} && %{mtx}
-%package mtx
-Summary: Bacula - The Network Backup Solution
-Group: System Environment/Daemons
-Provides: mtx
-
-%description mtx
-This is Bacula's version of mtx tape utilities for Linux distributions that
-do not provide their own mtx package
-%endif
-
 %package client
 Summary: Bacula - The Network Backup Solution
 Group: System Environment/Daemons
@@ -978,7 +968,6 @@ Provides: bacula-fd
 Conflicts: bacula-mysql
 Conflicts: bacula-sqlite
 Conflicts: bacula-postgresql
-Obsoletes: bacula-rescue
 
 %if %{su9} || %{su10} || %{su102} || %{su103} || %{su110} || %{su111}
 Provides: bacula
@@ -1539,8 +1528,8 @@ Requires: zlib
 %{blurb7}
 %{blurb8}
 
-This is the Bacula Administration Tool package. It is an add-on to 
-the client or server packages.
+This is the Bacula Administration Tool (bat) graphical user interface package. 
+It is an add-on to the client or server packages.
 %endif
 
 # SuSE turns off stripping of binaries by default. In order to get
@@ -1587,9 +1576,6 @@ cd ${cwd}
 cd %{depkgs}
 %if %{sqlite}
 make sqlite3
-%endif
-%if ! %{client_only} && %{mtx}
-make mtx
 %endif
 cd ${cwd}
 
@@ -1658,26 +1644,6 @@ export LDFLAGS="${LDFLAGS} -L/usr/lib64/python%{pyver}"
 #export QTINC=/usr/lib64/qt4/include/
 #export QTLIB=/usr/lib64/qt4/
 #%endif
-
-%if %{rescue}
-%configure \
-        --prefix=%{_prefix} \
-        --sbindir=%{_sbindir} \
-        --sysconfdir=%{sysconf_dir} \
-        --with-scriptdir=%{script_dir} \
-        --with-working-dir=%{working_dir} \
-        --with-pid-dir=%{pid_dir} \
-        --enable-smartalloc \
-        --enable-client-only \
-        %if %{mdk}
-        --disable-nls \
-        %endif
-        --enable-static-fd \
-        --without-openssl \
-        --disable-libtool
-
-make
-%endif
 
 # Main Bacula configuration
 %configure \
@@ -1763,7 +1729,8 @@ mkdir -p $RPM_BUILD_ROOT/usr/share/pixmaps
 %if %{usermode_iftrick} && ! %{su9} && ! %{su10} && ! %{su102} && ! %{su103} && ! %{su110} && ! %{su111}
 mkdir -p $RPM_BUILD_ROOT/etc/pam.d
 mkdir -p $RPM_BUILD_ROOT/etc/security/console.apps
-mkdir -p $RPM_BUILD_ROOT/usr/bin
+mkdir -p $RPM_BUILD_ROOT%{_sbindir}
+#mkdir -p $RPM_BUILD_ROOT%{_bindir}
 %endif
 
 %if %{sqlite}
@@ -1772,32 +1739,22 @@ mkdir -p $RPM_BUILD_ROOT%{sqlite_bindir}
 
 make DESTDIR=$RPM_BUILD_ROOT install
 
-%if ! %{client_only} && %{mtx}
-cd %{depkgs}
-make \
-        prefix=$RPM_BUILD_ROOT%{_prefix} \
-        sbindir=$RPM_BUILD_ROOT%{_sbindir} \
-        sysconfdir=$RPM_BUILD_ROOT%{sysconf_dir} \
-        scriptdir=$RPM_BUILD_ROOT%{script_dir} \
-        working_dir=$RPM_BUILD_ROOT%{working_dir} \
-        piddir=$RPM_BUILD_ROOT%{pid_dir} \
-        mandir=$RPM_BUILD_ROOT%{_mandir} \
-        mtx-install
-cd ${cwd}
-%endif
 
 # make install in manpages installs _everything_ shotgun style
 # so now delete what we will not be packaging
 %if ! %{wxconsole}
 rm -f $RPM_BUILD_ROOT%{_mandir}/man1/bacula-bwxconsole.1.%{manpage_ext}
 %endif
+
 %if ! %{bat}
 rm -f $RPM_BUILD_ROOT%{_mandir}/man1/bat.1.%{manpage_ext}
 %endif
+
 %if ! %{gconsole}
 rm -f $RPM_BUILD_ROOT%{_mandir}/man1/bacula-bgnome-console.1.%{manpage_ext}
 rm -f $RPM_BUILD_ROOT%{_mandir}/man1/bacula-tray-monitor.1.%{manpage_ext}
 %endif
+
 %if %{client_only}
 rm -f $RPM_BUILD_ROOT%{_mandir}/man1/bsmtp.1.%{manpage_ext}
 rm -f $RPM_BUILD_ROOT%{_mandir}/man8/bacula-dir.8.%{manpage_ext}
@@ -1935,7 +1892,7 @@ cp -p scripts/bacula.png $RPM_BUILD_ROOT/usr/share/pixmaps/bacula.png
 cp -p scripts/bacula.desktop.gnome2.consolehelper $RPM_BUILD_ROOT/usr/share/applications/bacula.desktop
 cp -p scripts/bgnome-console.console_apps $RPM_BUILD_ROOT/etc/security/console.apps/bgnome-console
 cp -p scripts/bgnome-console.pamd $RPM_BUILD_ROOT/etc/pam.d/bgnome-console
-ln -sf consolehelper $RPM_BUILD_ROOT/usr/bin/bgnome-console
+ln -sf consolehelper $RPM_BUILD_ROOT%{_sbindir}/bgnome-console
 %endif
 %if %{gconsole} && ! %{rh8}
 cp -p src/tray-monitor/generic.xpm $RPM_BUILD_ROOT/usr/share/pixmaps/bacula-tray-monitor.xpm
@@ -1946,14 +1903,14 @@ cp -p src/wx-console/wxwin16x16.xpm $RPM_BUILD_ROOT/usr/share/pixmaps/wxwin16x16
 cp -p scripts/wxconsole.desktop.consolehelper $RPM_BUILD_ROOT/usr/share/applications/wxconsole.desktop
 cp -p scripts/wxconsole.console_apps $RPM_BUILD_ROOT/etc/security/console.apps/bwx-console
 cp -p scripts/wxconsole.pamd $RPM_BUILD_ROOT/etc/pam.d/bwx-console
-ln -sf consolehelper $RPM_BUILD_ROOT/usr/bin/bwx-console
+ln -sf consolehelper $RPM_BUILD_ROOT%{_sbindir}/bwx-console
 %endif
 %if %{bat} && %{iftrick}
 cp -p src/qt-console/images/bat_icon.png $RPM_BUILD_ROOT/usr/share/pixmaps/bat_icon.png
 cp -p scripts/bat.desktop.consolehelper $RPM_BUILD_ROOT/usr/share/applications/bat.desktop
 cp -p scripts/bat.console_apps $RPM_BUILD_ROOT/etc/security/console.apps/bat
 cp -p scripts/bat.pamd $RPM_BUILD_ROOT/etc/pam.d/bat
-ln -sf consolehelper $RPM_BUILD_ROOT/usr/bin/bat
+ln -sf consolehelper $RPM_BUILD_ROOT/%{_sbindir}/bat
 %endif
 
 # install sqlite
@@ -1977,25 +1934,6 @@ cp -p scripts/logwatch/services.bacula.conf $RPM_BUILD_ROOT/etc/log.d/conf/servi
 chmod 755 $RPM_BUILD_ROOT/etc/log.d/scripts/services/bacula
 chmod 644 $RPM_BUILD_ROOT/etc/log.d/conf/logfiles/bacula.conf
 chmod 644 $RPM_BUILD_ROOT/etc/log.d/conf/services/bacula.conf
-%endif
-
-# install the rescue files
-%if %{rescue}
-mkdir $RPM_BUILD_ROOT%{script_dir}/rescue
-mkdir $RPM_BUILD_ROOT%{script_dir}/rescue/freebsd
-mkdir $RPM_BUILD_ROOT%{script_dir}/rescue/solaris
-cp -p %{_rescuesrc}/Makefile* $RPM_BUILD_ROOT%{script_dir}/rescue/
-cp -p %{_rescuesrc}/freebsd/Makefile* $RPM_BUILD_ROOT%{script_dir}/rescue/freebsd/
-cp -p %{_rescuesrc}/solaris/Makefile* $RPM_BUILD_ROOT%{script_dir}/rescue/solaris/
-cp -p %{_rescuesrc}/README $RPM_BUILD_ROOT%{script_dir}/rescue/
-cp -p %{_rescuesrc}/configure $RPM_BUILD_ROOT%{script_dir}/rescue/
-cp -p %{_rescuesrc}/version.h $RPM_BUILD_ROOT%{script_dir}/rescue/
-cp -pr %{_rescuesrc}/linux $RPM_BUILD_ROOT%{script_dir}/rescue/
-cp -pr %{_rescuesrc}/autoconf $RPM_BUILD_ROOT%{script_dir}/rescue/
-cp -pr %{_rescuesrc}/knoppix $RPM_BUILD_ROOT%{script_dir}/rescue/
-touch $RPM_BUILD_ROOT%{script_dir}/rescue/linux/cdrom/rpm_release
-cp -p src/filed/static-bacula-fd $RPM_BUILD_ROOT%{script_dir}/rescue/linux/cdrom/bacula/bin/bacula-fd
-rm -f src/filed/static-bacula-fd
 %endif
 
 # remove the docs installed by make
@@ -2169,10 +2107,6 @@ rm -f $RPM_BUILD_DIR/Release_Notes-%{version}-%{release}.txt
 %{_libdir}/libbac*
 %endif
 
-%if ! %{client_only} && %{rescue}
-%attr(-, root, %{daemon_group}) %{script_dir}/rescue
-%endif
-
 %if ! %{client_only} && ! %{single_dir}
 %doc COPYING ChangeLog ReleaseNotes LICENSE VERIFYING kernstodo ../Release_Notes-%{version}-%{release}.txt
 %doc %{_docsrc}/manuals/en/catalog/catalog %{_docsrc}/manuals/en/catalog/catalog.pdf
@@ -2328,7 +2262,7 @@ DB_VER=`mysql 2>/dev/null bacula -e 'select * from Version;'|tail -n 1`
 
 # grant privileges and create tables if they do not exist
 if [ -z "$DB_VER" ]; then
-        echo "Hmm, doesn't look like you have an existing database."
+        echo "Hmm, it doesn't look like you have an existing database."
         echo "Granting privileges for MySQL user bacula..."
         %{script_dir}/grant_mysql_privileges
         echo "Creating MySQL bacula database..."
@@ -2363,12 +2297,12 @@ if [ -s %{working_dir}/bacula.db ]; then
         fi
 else
         # create the database and tables
-        echo "Hmm, doesn't look like you have an existing database."
+        echo "Hmm, it doesn't look like you have an existing database."
         echo "Creating SQLite database..."
         %{script_dir}/create_sqlite3_database
-        chown %{director_daemon_user}.%{daemon_group} %{working_dir}/bacula.db
         echo "Creating the SQLite tables..."
         %{script_dir}/make_sqlite3_tables
+        chown %{director_daemon_user}.%{daemon_group} %{working_dir}/bacula.db
 fi
 %endif
 
@@ -2430,9 +2364,9 @@ fi
 %if ! %{client_only}
 # delete our links
 if [ $1 = 0 ]; then
-/sbin/chkconfig --del bacula-dir
-/sbin/chkconfig --del bacula-fd
-/sbin/chkconfig --del bacula-sd
+  /sbin/chkconfig --del bacula-dir
+  /sbin/chkconfig --del bacula-fd
+  /sbin/chkconfig --del bacula-sd
 fi
 %endif
 
@@ -2449,30 +2383,11 @@ fi
 /sbin/ldconfig
 %endif
 
-
-%if ! %{client_only} && %{mtx}
-%files mtx
-%defattr(-,root,root)
-%attr(-, root, %{storage_daemon_group}) %{_sbindir}/loaderinfo
-%attr(-, root, %{storage_daemon_group}) %{_sbindir}/mtx
-%attr(-, root, %{storage_daemon_group}) %{_sbindir}/scsitape
-%attr(-, root, %{storage_daemon_group}) %{_sbindir}/tapeinfo
-%attr(-, root, %{storage_daemon_group}) %{_sbindir}/scsieject
-%{_mandir}/man1/loaderinfo.1.%{manpage_ext}
-%{_mandir}/man1/mtx.1.%{manpage_ext}
-%{_mandir}/man1/scsitape.1.%{manpage_ext}
-%{_mandir}/man1/tapeinfo.1.%{manpage_ext}
-%{_mandir}/man1/scsieject.1.%{manpage_ext}
-%endif
-
 %files client
 %defattr(-,root,root)
 %attr(-, root, %{daemon_group}) %dir %{script_dir}
 %{script_dir}/bacula-ctl-fd
 /etc/init.d/bacula-fd
-%if %{rescue}
-%attr(-, root, %{daemon_group}) %{script_dir}/rescue
-%endif
 
 %if ! %{single_dir}
 %doc COPYING ChangeLog ReleaseNotes LICENSE VERIFYING kernstodo ../Release_Notes-%{version}-%{release}.txt
@@ -2696,7 +2611,7 @@ fi
 # add the console helper files
 %config(noreplace,missingok) /etc/pam.d/bat
 %config(noreplace,missingok) /etc/security/console.apps/bat
-/usr/bin/bat
+%{_sbindir}/bat
 %endif
 
 %if %{bat}
@@ -3036,7 +2951,6 @@ fi
 - corrected permissions on init scripts
 * Sat Feb 28 2004 D. Scott Barninger <barninger at fairfieldcomputers.com>
 - corrected creation of sqlite_bindir in install from !mysql to sqlite
--
 - various cleanup patches from Michael K. Johnson:
 - corrected post install routines for nicer chkconfig
 - removed chmod changes in post routines and moved to install section
