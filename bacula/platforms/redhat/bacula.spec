@@ -4,6 +4,55 @@
 
 # Platform Build Configuration
 
+# basic defines for every build
+%define _version 3.0.2
+%define _release 1
+%define depkgs_version 18Feb09
+%define depkgs_qt_version 28Jul09
+%define _rescuever 3.0.2
+%define docs_version 3.0.2
+%define _packager D. Scott Barninger <barninger@fairfieldcomputers.com>
+
+%define single_dir 0
+%{?single_dir_install:%define single_dir 1}
+
+# Installation Directory locations
+%if %{single_dir}
+%define _prefix        /opt/bacula
+%define _sbindir       /opt/bacula/bin
+%define _subsysdir     /opt/bacula/working
+%define sqlite_bindir  /opt/bacula/sqlite
+%define _mandir        /usr/share/man
+%define sysconf_dir    /opt/bacula/etc
+%define script_dir     /opt/bacula/scripts
+%define working_dir    /opt/bacula/working
+%define pid_dir        /opt/bacula/working
+%define plugin_dir     /opt/bacula/plugins
+%define lib_dir        /opt/bacula/lib
+%else
+%define _prefix        /usr
+%define _sbindir       %_prefix/sbin
+%define _subsysdir     /var/lock/subsys
+%define sqlite_bindirf %_libdir/bacula/sqlite
+%define _mandir        %_prefix/share/man
+%define sysconf_dir    /etc/bacula
+%define script_dir     %_libdir/bacula
+%define working_dir    /var/lib/bacula
+%define pid_dir        /var/run
+%define plugin_dir     %_libdir/bacula/plugins
+%define lib_dir        %_libdir/bacula/lib
+%endif
+
+# Daemon user:group Don't change them unless you know what you are doing
+%define director_daemon_user    bacula
+%define storage_daemon_user     bacula
+%define file_daemon_user        root
+%define daemon_group            bacula
+# group that has write access to tape devices, usually disk on Linux
+%define storage_daemon_group    disk
+
+
+
 BuildRequires: libacl-devel
 
 # probems with mandriva build: 
@@ -154,53 +203,6 @@ BuildRequires: suse-release
 
 %endif 
 # opensuse-bs?
-
-# basic defines for every build
-%define _version 3.0.2
-%define _release 1
-%define depkgs_version 18Feb09
-%define depkgs_qt_version 28Jul09
-%define _rescuever 3.0.2
-%define docs_version 3.0.2
-%define _packager D. Scott Barninger <barninger@fairfieldcomputers.com>
-
-%define single_dir 0
-%{?single_dir_install:%define single_dir 1}
-
-# Installation Directory locations
-%if %{single_dir}
-%define _prefix        /opt/bacula
-%define _sbindir       /opt/bacula/bin
-%define _subsysdir     /opt/bacula/working
-%define sqlite_bindir  /opt/bacula/sqlite
-%define _mandir        /usr/share/man
-%define sysconf_dir    /opt/bacula/etc
-%define script_dir     /opt/bacula/scripts
-%define working_dir    /opt/bacula/working
-%define pid_dir        /opt/bacula/working
-%define plugin_dir     /opt/bacula/plugins
-%define lib_dir        /opt/bacula/lib
-%else
-%define _prefix        /usr
-%define _sbindir       %_prefix/sbin
-%define _subsysdir     /var/lock/subsys
-%define sqlite_bindirf %_libdir/bacula/sqlite
-%define _mandir        %_prefix/share/man
-%define sysconf_dir    /etc/bacula
-%define script_dir     %_libdir/bacula
-%define working_dir    /var/lib/bacula
-%define pid_dir        /var/run
-%define plugin_dir     %_libdir/bacula/plugins
-%define lib_dir        %_libdir/bacula/lib
-%endif
-
-# Daemon user:group Don't change them unless you know what you are doing
-%define director_daemon_user    bacula
-%define storage_daemon_user     bacula
-%define file_daemon_user        root
-%define daemon_group            bacula
-# group that has write access to tape devices, usually disk on Linux
-%define storage_daemon_group    disk
 
 
 # any patches for this release
