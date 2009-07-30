@@ -182,7 +182,6 @@ bool send_accurate_current_files(JCR *jcr)
       if (!get_base_jobids(jcr, jobids)) {
          goto bail_out;
       }
-      db_create_base_file_list(jcr, jcr->db, jobids);
       jcr->HasBase = true;
 
    } else {
@@ -206,17 +205,21 @@ bool send_accurate_current_files(JCR *jcr)
    db_sql_query(jcr->db, buf.c_str(), db_get_int_handler, nb);
    Dmsg2(200, "jobids=%s nb=%s\n", jobids, nb);
    jcr->file_bsock->fsend("accurate files=%s\n", nb); 
+
+   if (!db_open_batch_connexion(jcr, jcr->db)) {
+      ret = false;
+      Jmsg0(jcr, M_FATAL, 0, "Can't get dedicate sql connexion");
+      goto bail_out;
+   }
    
    if (jcr->get_JobLevel() == L_FULL) {
-      db_get_base_file_list(jcr, jcr->db, accurate_list_handler, (void *)jcr);
+      db_create_base_file_list(jcr, jcr->db_batch, jobids);
+      db_get_base_file_list(jcr, jcr->db_batch, 
+                            accurate_list_handler, (void *)jcr);
 
    } else {
-      if (!db_open_batch_connexion(jcr, jcr->db)) {
-         ret = false;
-         Jmsg0(jcr, M_FATAL, 0, "Can't get dedicate sql connexion");
-         goto bail_out;
-      }
-      db_get_file_list(jcr, jcr->db_batch, jobids, accurate_list_handler, (void *)jcr);
+      db_get_file_list(jcr, jcr->db_batch, jobids, 
+                       accurate_list_handler, (void *)jcr);
    } 
 
    /* TODO: close the batch connexion ? (can be used very soon) */
@@ -380,9 +383,9 @@ bool do_backup(JCR *jcr)
    stat = wait_for_job_termination(jcr);
    db_write_batch_file_records(jcr);    /* used by bulk batch file insert */
 
-   if (jcr->get_JobLevel() == L_FULL && jcr->job->base) {
-      db_commit_base_file_attributes_record(jcr, jcr->db);
-      db_cleanup_base_file(jcr, jcr->db);
+   if (jcr->HasBase) {
+      db_commit_base_file_attributes_record(jcr, jcr->db_batch);
+      db_cleanup_base_file(jcr, jcr->db_batch);
    }
 
    if (stat == JS_Terminated) {
