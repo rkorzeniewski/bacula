@@ -1108,7 +1108,7 @@ bool db_get_used_base_jobids(JCR *jcr, B_DB *mdb, POOLMEM *jobids, POOLMEM *resu
  "  FROM Job JOIN BaseFiles USING (JobId) "
  " WHERE Job.HasBase = 1 "
  "   AND JobId IN (%s) ", jobids);
-   return db_sql_query(mdb, buf.c_str(), db_get_int_handler, jobids);
+   return db_sql_query(mdb, buf.c_str(), db_get_int_handler, result);
 }
 
 /* The decision do change an incr/diff was done before

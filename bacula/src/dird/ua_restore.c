@@ -90,6 +90,7 @@ int restore_cmd(UAContext *ua, const char *cmd)
    rx.path = get_pool_memory(PM_FNAME);
    rx.fname = get_pool_memory(PM_FNAME);
    rx.JobIds = get_pool_memory(PM_FNAME);
+   rx.BaseJobIds = get_pool_memory(PM_FNAME);
    rx.query = get_pool_memory(PM_FNAME);
    rx.bsr = new_bsr();
 
@@ -310,6 +311,10 @@ static void free_rx(RESTORE_CTX *rx)
       free_pool_memory(rx->JobIds);
       rx->JobIds = NULL;
    }
+   if (rx->BaseJobIds) {
+      free_pool_memory(rx->BaseJobIds);
+      rx->BaseJobIds = NULL;
+   }
    if (rx->fname) {
       free_pool_memory(rx->fname);
       rx->fname = NULL;
@@ -449,7 +454,7 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
       NULL
    };
 
-   *rx->JobIds = 0;
+   rx->BaseJobIds[0] = rx->JobIds[0] = 0;
 
    for (i=1; i<ua->argc; i++) {       /* loop through arguments */
       bool found_kw = false;
@@ -809,6 +814,7 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
       ua->warning_msg(_("No Jobs selected.\n"));
       return 0;
    }
+
    if (strchr(rx->JobIds,',')) {
       ua->info_msg(_("You have selected the following JobIds: %s\n"), rx->JobIds);
    } else {
@@ -1091,9 +1097,9 @@ static bool build_directory_tree(UAContext *ua, RESTORE_CTX *rx)
    if (!db_get_file_list(ua->jcr, ua->db, rx->JobIds, insert_tree_handler, (void *)&tree)) {
       ua->error_msg("%s", db_strerror(ua->db));
    }
-   /* we concat the base job list to the current jobids list */
-   if (!db_get_used_base_jobids(ua->jcr, ua->db, rx->JobIds, rx->JobIds)) {
-      ua->error_msg("%s", db_strerror(ua->db));
+   if (*rx->BaseJobIds) {
+      pm_strcat(rx->JobIds, ",");
+      pm_strcat(rx->JobIds, rx->BaseJobIds);
    }
 #else
    for (p=rx->JobIds; get_next_jobid_from_list(&p, &JobId) > 0; ) {
@@ -1308,8 +1314,8 @@ static bool select_backups_before_date(UAContext *ua, RESTORE_CTX *rx, char *dat
    }
 
    /* Get the JobIds from that list */
-   rx->JobIds[0] = 0;
-   rx->last_jobid[0] = 0;
+   rx->last_jobid[0] = rx->BaseJobIds[0] = rx->JobIds[0] = 0;
+
    if (!db_sql_query(ua->db, uar_sel_jobid_temp, jobid_handler, (void *)rx)) {
       ua->warning_msg("%s\n", db_strerror(ua->db));
    }
@@ -1323,6 +1329,18 @@ static bool select_backups_before_date(UAContext *ua, RESTORE_CTX *rx, char *dat
       /* Display a list of Jobs selected for this restore */
       db_list_sql_query(ua->jcr, ua->db, uar_list_temp, prtit, ua, 1, HORZ_LIST);
       ok = true;
+
+      if (!db_get_used_base_jobids(ua->jcr, ua->db, rx->JobIds, rx->BaseJobIds)) {
+         ua->warning_msg("%s", db_strerror(ua->db));
+      }
+
+      if (*rx->BaseJobIds) {
+         POOL_MEM buf;
+         Mmsg(buf, uar_print_jobs, rx->BaseJobIds);
+         ua->send_msg(_("The restore will use the following jobs as Base\n"));
+         db_list_sql_query(ua->jcr, ua->db, buf.c_str(), prtit, ua, 1, HORZ_LIST);
+      }
+
    } else {
       ua->warning_msg(_("No jobs found.\n"));
    }
