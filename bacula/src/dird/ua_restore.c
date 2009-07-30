@@ -328,26 +328,11 @@ static void free_rx(RESTORE_CTX *rx)
 {
    free_bsr(rx->bsr);
    rx->bsr = NULL;
-   if (rx->JobIds) {
-      free_pool_memory(rx->JobIds);
-      rx->JobIds = NULL;
-   }
-   if (rx->BaseJobIds) {
-      free_pool_memory(rx->BaseJobIds);
-      rx->BaseJobIds = NULL;
-   }
-   if (rx->fname) {
-      free_pool_memory(rx->fname);
-      rx->fname = NULL;
-   }
-   if (rx->path) {
-      free_pool_memory(rx->path);
-      rx->path = NULL;
-   }
-   if (rx->query) {
-      free_pool_memory(rx->query);
-      rx->query = NULL;
-   }
+   free_and_null_pool_memory(rx->JobIds);
+   free_and_null_pool_memory(rx->BaseJobIds);
+   free_and_null_pool_memory(rx->fname);
+   free_and_null_pool_memory(rx->path);
+   free_and_null_pool_memory(rx->query);
    free_name_list(&rx->name_list);
 }
 
@@ -1471,10 +1456,7 @@ static void free_name_list(NAME_LIST *name_list)
    for (int i=0; i < name_list->num_ids; i++) {
       free(name_list->name[i]);
    }
-   if (name_list->name) {
-      free(name_list->name);
-      name_list->name = NULL;
-   }
+   bfree_and_null(name_list->name);
    name_list->max_ids = 0;
    name_list->num_ids = 0;
 }
