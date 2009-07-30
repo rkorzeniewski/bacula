@@ -293,6 +293,12 @@ const char *uar_list_jobs =
    "FROM Client,Job WHERE Client.ClientId=Job.ClientId AND JobStatus IN ('T','W') "
    "AND Type='B' ORDER BY StartTime DESC LIMIT 20";
 
+const char *uar_print_jobs = 
+   "SELECT DISTINCT JobId,Level,JobFiles,JobBytes,StartTime,VolumeName"
+   " FROM Job JOIN JobMedia USING (JobId) JOIN Media USING (MediaId) "
+   " WHERE JobId IN (%s) "
+   " ORDER BY StartTime ASC";
+
 /*
  * Find all files for a particular JobId and insert them into
  *  the tree during a restore.
