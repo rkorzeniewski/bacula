@@ -38,8 +38,7 @@ static int dbglvl=100;
 typedef struct PrivateCurFile {
    hlink link;
    char *fname;
-   utime_t ctime;               /* can be replaced by struct stat */
-   utime_t mtime;
+   char *lstat;
    bool seen;
 } CurFile;
 
@@ -95,6 +94,8 @@ static bool accurate_init(JCR *jcr, int nbfile)
 static bool accurate_send_base_file_list(JCR *jcr)
 {
    CurFile *elt;
+   struct stat statc;
+   int32_t LinkFIc;
    FF_PKT *ff_pkt;
    int stream = STREAM_UNIX_ATTRIBUTES;
 
@@ -112,9 +113,9 @@ static bool accurate_send_base_file_list(JCR *jcr)
    foreach_htable(elt, jcr->file_list) {
       if (elt->seen) {
          Dmsg2(dbglvl, "base file fname=%s seen=%i\n", elt->fname, elt->seen);
+         decode_stat(elt->lstat, &statc, &LinkFIc); /* decode catalog stat */      
          ff_pkt->fname = elt->fname;
-         ff_pkt->statp.st_mtime = elt->mtime;
-         ff_pkt->statp.st_ctime = elt->ctime;
+         ff_pkt->statp = statc;
          encode_and_send_attributes(jcr, ff_pkt, stream);
 //       free(elt->fname);
       }
@@ -132,6 +133,8 @@ static bool accurate_send_base_file_list(JCR *jcr)
 static bool accurate_send_deleted_list(JCR *jcr)
 {
    CurFile *elt;
+   struct stat statc;
+   int32_t LinkFIc;
    FF_PKT *ff_pkt;
    int stream = STREAM_UNIX_ATTRIBUTES;
 
@@ -151,9 +154,10 @@ static bool accurate_send_deleted_list(JCR *jcr)
          continue;
       }
       Dmsg2(dbglvl, "deleted fname=%s seen=%i\n", elt->fname, elt->seen);
+      decode_stat(elt->lstat, &statc, &LinkFIc); /* decode catalog stat */
       ff_pkt->fname = elt->fname;
-      ff_pkt->statp.st_mtime = elt->mtime;
-      ff_pkt->statp.st_ctime = elt->ctime;
+      ff_pkt->statp.st_mtime = statc.st_mtime;
+      ff_pkt->statp.st_ctime = statc.st_ctime;
       encode_and_send_attributes(jcr, ff_pkt, stream);
 //    free(elt->fname);
    }
@@ -191,19 +195,16 @@ static bool accurate_add_file(JCR *jcr, char *fname, char *lstat)
 {
    bool ret = true;
    CurFile elt;
-   struct stat statp;
-   int32_t LinkFIc;
-   decode_stat(lstat, &statp, &LinkFIc); /* decode catalog stat */
-   elt.ctime = statp.st_ctime;
-   elt.mtime = statp.st_mtime;
    elt.seen = 0;
 
    CurFile *item;
    /* we store CurFile, fname and ctime/mtime in the same chunk */
-   item = (CurFile *)jcr->file_list->hash_malloc(sizeof(CurFile)+strlen(fname)+1);
+   item = (CurFile *)jcr->file_list->hash_malloc(sizeof(CurFile)+strlen(fname)+strlen(lstat)+2);
    memcpy(item, &elt, sizeof(CurFile));
    item->fname  = (char *)item+sizeof(CurFile);
    strcpy(item->fname, fname);
+   item->fname  = item->fname+strlen(item->fname)+1;
+   strcpy(item->lstat, lstat);
    jcr->file_list->insert(item->fname, item); 
 
    Dmsg2(dbglvl, "add fname=<%s> lstat=%s\n", fname, lstat);
@@ -221,6 +222,8 @@ static bool accurate_add_file(JCR *jcr, char *fname, char *lstat)
  */
 bool accurate_check_file(JCR *jcr, FF_PKT *ff_pkt)
 {
+   struct stat statc;
+   int32_t LinkFIc;
    bool stat = false;
    char *fname;
    CurFile elt;
@@ -247,6 +250,8 @@ bool accurate_check_file(JCR *jcr, FF_PKT *ff_pkt)
       Dmsg1(dbglvl, "accurate %s (already seen)\n", fname);
       goto bail_out;
    }
+
+   decode_stat(elt.lstat, &statc, &LinkFIc); /* decode catalog stat */
 
 #if 0
    /*
@@ -354,15 +359,20 @@ bool accurate_check_file(JCR *jcr, FF_PKT *ff_pkt)
     * We check only mtime/ctime like with the normal
     * incremental/differential mode
     */
-   if (elt.mtime != ff_pkt->statp.st_mtime) {
+   if (statc.st_mtime != ff_pkt->statp.st_mtime) {
 //   Jmsg(jcr, M_SAVED, 0, _("%s      st_mtime differs\n"), fname);
       Dmsg3(dbglvl, "%s      st_mtime differs (%lld!=%lld)\n", 
             fname, elt.mtime, (utime_t)ff_pkt->statp.st_mtime);
      stat = true;
    } else if (!(ff_pkt->flags & FO_MTIMEONLY) 
-              && (elt.ctime != ff_pkt->statp.st_ctime)) {
+              && (statc.st_ctime != ff_pkt->statp.st_ctime)) {
 //   Jmsg(jcr, M_SAVED, 0, _("%s      st_ctime differs\n"), fname);
       Dmsg1(dbglvl, "%s      st_ctime differs\n", fname);
+      stat = true;
+
+   } else if (statc.st_size != ff_pkt->statp.st_size) {
+//   Jmsg(jcr, M_SAVED, 0, _("%s      st_size differs\n"), fname);
+      Dmsg1(dbglvl, "%s      st_size differs\n", fname);
       stat = true;
    }
 
