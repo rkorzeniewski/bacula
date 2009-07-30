@@ -803,7 +803,7 @@ static void do_en_disable_cmd(UAContext *ua, bool setting)
 
    i = find_arg_with_value(ua, NT_("job")); 
    if (i < 0) { 
-      job = select_job_resource(ua);
+      job = select_enable_disable_job_resource(ua, setting);
       if (!job) {
          return;
       }

@@ -2,6 +2,9 @@
           
 General:
 
+30Jul09
+kes  Add 'show disabled' command that lists the disabled jobs.
+kes  Modify enable/disable commands to show only appropriate Jobs.
 29Jul09
 kes  Add ACL check for client in estimate commande
 ebl  Change time_t by utime_t in accurate function

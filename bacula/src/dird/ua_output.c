@@ -96,7 +96,29 @@ int gui_cmd(UAContext *ua, const char *cmd)
    return 1;
 }
 
-
+/* 
+ * Enter with Resources locked 
+ */
+static void show_disabled_jobs(UAContext *ua)
+{
+   JOB *job;
+   bool first = true;
+   foreach_res(job, R_JOB) {   
+      if (!acl_access_ok(ua, Job_ACL, job->name())) {
+         continue;
+      }
+      if (!job->enabled) {
+         if (first) {
+            first = false;
+            ua->send_msg(_("Disabled Jobs:\n"));
+         }
+         ua->send_msg("   %s\n", job->name());
+     }
+  }
+  if (first) {
+     ua->send_msg(_("No disabled Jobs.\n"));
+  }
+}
 
 struct showstruct {const char *res_name; int type;};
 static struct showstruct reses[] = {
@@ -123,6 +145,7 @@ static struct showstruct reses[] = {
  *  show all
  *  show <resource-keyword-name>  e.g. show directors
  *  show <resource-keyword-name>=<name> e.g. show director=HeadMan
+ *  show disabled    shows disabled jobs
  *
  */
 int show_cmd(UAContext *ua, const char *cmd)
@@ -137,6 +160,10 @@ int show_cmd(UAContext *ua, const char *cmd)
 
    LockRes();
    for (i=1; i<ua->argc; i++) {
+      if (strcasecmp(ua->argk[i], _("disabled")) == 0) {
+         show_disabled_jobs(ua);
+         goto bail_out;
+      }
       type = 0;
       res_name = ua->argk[i];
       if (!ua->argv[i]) {             /* was a name given? */
