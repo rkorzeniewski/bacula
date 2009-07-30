@@ -1091,7 +1091,7 @@ static bool build_directory_tree(UAContext *ua, RESTORE_CTX *rx)
    if (!db_get_file_list(ua->jcr, ua->db, rx->JobIds, insert_tree_handler, (void *)&tree)) {
       ua->error_msg("%s", db_strerror(ua->db));
    }
-   
+   /* we concat the base job list to the current jobids list */
    if (!db_get_used_base_jobids(ua->jcr, ua->db, rx->JobIds, rx->JobIds)) {
       ua->error_msg("%s", db_strerror(ua->db));
    }
