@@ -187,18 +187,18 @@ static int verify_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
    /* Send file attributes to Director (note different format than for Storage) */
    Dmsg2(400, "send ATTR inx=%d fname=%s\n", jcr->JobFiles, ff_pkt->fname);
    if (ff_pkt->type == FT_LNK || ff_pkt->type == FT_LNKSAVED) {
-      stat = bnet_fsend(dir, "%d %d %s %s%c%s%c%s%c", jcr->JobFiles,
-            STREAM_UNIX_ATTRIBUTES, ff_pkt->VerifyOpts, ff_pkt->fname,
-            0, attribs, 0, ff_pkt->link, 0);
+      stat = dir->fsend("%d %d %s %s%c%s%c%s%c", jcr->JobFiles,
+                        STREAM_UNIX_ATTRIBUTES, ff_pkt->VerifyOpts, ff_pkt->fname,
+                        0, attribs, 0, ff_pkt->link, 0);
    } else if (ff_pkt->type == FT_DIREND || ff_pkt->type == FT_REPARSE) {
-         /* Here link is the canonical filename (i.e. with trailing slash) */
-         stat = bnet_fsend(dir,"%d %d %s %s%c%s%c%c", jcr->JobFiles,
-               STREAM_UNIX_ATTRIBUTES, ff_pkt->VerifyOpts, ff_pkt->link,
-               0, attribs, 0, 0);
+      /* Here link is the canonical filename (i.e. with trailing slash) */
+      stat = dir->fsend("%d %d %s %s%c%s%c%c", jcr->JobFiles,
+                        STREAM_UNIX_ATTRIBUTES, ff_pkt->VerifyOpts, ff_pkt->link,
+                        0, attribs, 0, 0);
    } else {
-      stat = bnet_fsend(dir,"%d %d %s %s%c%s%c%c", jcr->JobFiles,
-            STREAM_UNIX_ATTRIBUTES, ff_pkt->VerifyOpts, ff_pkt->fname,
-            0, attribs, 0, 0);
+      stat = dir->fsend("%d %d %s %s%c%s%c%c", jcr->JobFiles,
+                        STREAM_UNIX_ATTRIBUTES, ff_pkt->VerifyOpts, ff_pkt->fname,
+                        0, attribs, 0, 0);
    }
    Dmsg2(20, "bfiled>bdird: attribs len=%d: msg=%s\n", dir->msglen, dir->msg);
    if (!stat) {
@@ -260,10 +260,10 @@ static int verify_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
 
             bin_to_base64(digest_buf, BASE64_SIZE(size), md, size, true);
             Dmsg3(400, "send inx=%d %s=%s\n", jcr->JobFiles, digest_name, digest_buf);
-            bnet_fsend(dir, "%d %d %s *%s-%d*", jcr->JobFiles, digest_stream, digest_buf,
+            dir->fsend("%d %d %s *%s-%d*", jcr->JobFiles, digest_stream, digest_buf,
                        digest_name, jcr->JobFiles);
             Dmsg3(20, "bfiled>bdird: %s len=%d: msg=%s\n", digest_name,
-            dir->msglen, dir->msg);
+                  dir->msglen, dir->msg);
 
             free(digest_buf);
          }

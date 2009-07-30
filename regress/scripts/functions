@@ -350,6 +350,14 @@ copy_test_confs()
    ${rscripts}/cleanup
 }
 
+disable_pluguins()
+{
+   for i in ${conf}/bacula-fd.conf; do
+      sed 's/Plugin/#Plugin/i' $i > $tmp/1
+      cp -f $tmp/1 $i
+   done
+}
+
 debug_wait()
 {
   if test "x${REGRESS_WAIT}" = "x1"; then
