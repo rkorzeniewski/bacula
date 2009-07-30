@@ -203,7 +203,7 @@ static bool accurate_add_file(JCR *jcr, char *fname, char *lstat)
    memcpy(item, &elt, sizeof(CurFile));
    item->fname  = (char *)item+sizeof(CurFile);
    strcpy(item->fname, fname);
-   item->fname  = item->fname+strlen(item->fname)+1;
+   item->lstat  = item->fname+strlen(item->fname)+1;
    strcpy(item->lstat, lstat);
    jcr->file_list->insert(item->fname, item); 
 
@@ -362,7 +362,7 @@ bool accurate_check_file(JCR *jcr, FF_PKT *ff_pkt)
    if (statc.st_mtime != ff_pkt->statp.st_mtime) {
 //   Jmsg(jcr, M_SAVED, 0, _("%s      st_mtime differs\n"), fname);
       Dmsg3(dbglvl, "%s      st_mtime differs (%lld!=%lld)\n", 
-            fname, elt.mtime, (utime_t)ff_pkt->statp.st_mtime);
+            fname, statc.st_mtime, (utime_t)ff_pkt->statp.st_mtime);
      stat = true;
    } else if (!(ff_pkt->flags & FO_MTIMEONLY) 
               && (statc.st_ctime != ff_pkt->statp.st_ctime)) {
