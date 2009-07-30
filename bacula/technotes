@@ -3,7 +3,8 @@
 General:
 
 30Jul09
-ebl  Add restore from multiple storage functionnality
+ebl  Add restore from multiple storage functionnality with
+     a part of Graham's patch.
 kes  Add 'show disabled' command that lists the disabled jobs.
 kes  Modify enable/disable commands to show only appropriate Jobs.
 29Jul09
