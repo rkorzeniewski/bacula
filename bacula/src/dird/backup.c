@@ -212,7 +212,7 @@ bool send_accurate_current_files(JCR *jcr)
       goto bail_out;
    }
    
-   if (jcr->get_JobLevel() == L_FULL) {
+   if (jcr->HasBase) {
       db_create_base_file_list(jcr, jcr->db_batch, jobids);
       db_get_base_file_list(jcr, jcr->db_batch, 
                             accurate_list_handler, (void *)jcr);
@@ -383,9 +383,10 @@ bool do_backup(JCR *jcr)
    stat = wait_for_job_termination(jcr);
    db_write_batch_file_records(jcr);    /* used by bulk batch file insert */
 
-   if (jcr->HasBase) {
-      db_commit_base_file_attributes_record(jcr, jcr->db_batch);
-      db_cleanup_base_file(jcr, jcr->db_batch);
+   if (jcr->HasBase && 
+       !db_commit_base_file_attributes_record(jcr, jcr->db_batch)) 
+   {
+         Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db_batch));
    }
 
    if (stat == JS_Terminated) {

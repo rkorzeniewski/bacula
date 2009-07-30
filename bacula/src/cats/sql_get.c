@@ -1096,6 +1096,21 @@ bool db_get_file_list(JCR *jcr, B_DB *mdb, char *jobids,
    return db_sql_query(mdb, buf.c_str(), result_handler, ctx);
 }
 
+/*
+ * This procedure gets the base jobid list used by jobids,
+ * You can specify jobids == result to concat base jobids to current jobids
+ */
+bool db_get_used_base_jobids(JCR *jcr, B_DB *mdb, POOLMEM *jobids, POOLMEM *result)
+{
+   POOL_MEM buf;
+   Mmsg(buf,
+ "SELECT DISTINCT BaseJobId "
+ "  FROM Job JOIN BaseFiles USING (JobId) "
+ " WHERE Job.HasBase = 1 "
+ "   AND JobId IN (%s) ", jobids);
+   return db_sql_query(mdb, buf.c_str(), db_get_int_handler, jobids);
+}
+
 /* The decision do change an incr/diff was done before
  * Full : do nothing
  * Differential : get the last full id

@@ -198,7 +198,7 @@ int insert_tree_handler(void *ctx, int num_fields, char **row)
    node = insert_tree_node(row[0], row[1], type, tree->root, NULL);
    JobId = str_to_int64(row[3]);
    FileIndex = str_to_int64(row[2]);
-   Dmsg2(0, "JobId=%s FileIndex=%s\n", row[3], row[2]);
+   Dmsg2(400, "JobId=%s FileIndex=%s\n", row[3], row[2]);
    /*
     * - The first time we see a file (node->inserted==true), we accept it.
     * - In the same JobId, we accept only the first copy of a

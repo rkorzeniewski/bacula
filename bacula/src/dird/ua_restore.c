@@ -1091,6 +1091,10 @@ static bool build_directory_tree(UAContext *ua, RESTORE_CTX *rx)
    if (!db_get_file_list(ua->jcr, ua->db, rx->JobIds, insert_tree_handler, (void *)&tree)) {
       ua->error_msg("%s", db_strerror(ua->db));
    }
+   
+   if (!db_get_used_base_jobids(ua->jcr, ua->db, rx->JobIds, rx->JobIds)) {
+      ua->error_msg("%s", db_strerror(ua->db));
+   }
 #else
    for (p=rx->JobIds; get_next_jobid_from_list(&p, &JobId) > 0; ) {
       char ed1[50];
@@ -1158,7 +1162,7 @@ static bool build_directory_tree(UAContext *ua, RESTORE_CTX *rx)
          for (TREE_NODE *node=first_tree_node(tree.root); node; node=next_tree_node(node)) {
             Dmsg2(400, "FI=%d node=0x%x\n", node->FileIndex, node);
             if (node->extract || node->extract_dir) {
-               Dmsg3(0, "JobId=%lld type=%d FI=%d\n", (uint64_t)node->JobId, node->type, node->FileIndex);
+               Dmsg3(400, "JobId=%lld type=%d FI=%d\n", (uint64_t)node->JobId, node->type, node->FileIndex);
                add_findex(rx->bsr, node->JobId, node->FileIndex);
                if (node->extract && node->type != TN_NEWDIR) {
                   rx->selected_files++;  /* count only saved files */

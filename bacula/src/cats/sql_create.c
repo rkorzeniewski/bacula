@@ -843,6 +843,8 @@ bool db_write_batch_file_records(JCR *jcr)
  */
 bool db_create_file_attributes_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
 {
+   ASSERT(ar->FileType != FT_BASE);
+
    Dmsg1(dbglevel, "Fname=%s\n", ar->fname);
    Dmsg0(dbglevel, "put_file_into_catalog\n");
 
@@ -1118,6 +1120,7 @@ const char *create_temp_basefile[4] = {
 
    /* Postgresql */
    "CREATE TEMPORARY TABLE basefile%lld (" 
+//   "CREATE TABLE basefile%lld (" 
    "Path TEXT,"
    "Name TEXT)",
 
@@ -1139,7 +1142,7 @@ bool db_create_attributes_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
 {
    bool ret;
    if (ar->FileType == FT_BASE) {
-      ret = db_create_base_file_attributes_record(jcr, mdb, ar);
+      ret = db_create_base_file_attributes_record(jcr, jcr->db_batch, ar);
    } else {
       ret = db_create_file_attributes_record(jcr, mdb, ar);
    }
@@ -1185,11 +1188,27 @@ bool db_create_base_file_attributes_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
 
    return ret;
 }
+
+/* 
+ * Cleanup the base file temporary tables
+ */
+static void db_cleanup_base_file(JCR *jcr, B_DB *mdb)
+{
+   POOL_MEM buf(PM_MESSAGE);
+   Mmsg(buf, "DROP TABLE new_basefile%lld", (uint64_t) jcr->JobId);
+   db_sql_query(mdb, buf.c_str(), NULL, NULL);
+
+   Mmsg(buf, "DROP TABLE basefile%lld", (uint64_t) jcr->JobId);
+   db_sql_query(mdb, buf.c_str(), NULL, NULL);
+}
+
 /*
  * Put all base file seen in the backup to the BaseFile table
+ * and cleanup temporary tables
  */
 bool db_commit_base_file_attributes_record(JCR *jcr, B_DB *mdb)
 {
+   bool ret;
    char ed1[50];
    POOL_MEM buf(PM_MESSAGE);
 
@@ -1202,20 +1221,9 @@ bool db_commit_base_file_attributes_record(JCR *jcr, B_DB *mdb)
       "AND A.Name = B.Name "
     "ORDER BY B.FileId)", 
         edit_uint64(jcr->JobId, ed1), ed1, ed1);
-   return db_sql_query(mdb, buf.c_str(), NULL, NULL);
-}
-
-/* 
- * Cleanup the base file temporary tables
- */
-void db_cleanup_base_file(JCR *jcr, B_DB *mdb)
-{
-   POOL_MEM buf(PM_MESSAGE);
-   Mmsg(buf, "DROP TABLE new_basefile%lld", (uint64_t) jcr->JobId);
-   db_sql_query(mdb, buf.c_str(), NULL, NULL);
-
-   Mmsg(buf, "DROP TABLE basefile%lld", (uint64_t) jcr->JobId);
-   db_sql_query(mdb, buf.c_str(), NULL, NULL);
+   ret = db_sql_query(mdb, buf.c_str(), NULL, NULL);
+   db_cleanup_base_file(jcr, mdb);
+   return ret;
 }
 
 /*
@@ -1242,18 +1250,19 @@ bool db_create_base_file_list(JCR *jcr, B_DB *mdb, char *jobids)
    }
      
    Mmsg(buf,
- "CREATE TEMPORARY TABLE new_basefile%lld AS ( "
-   "SELECT Path.Path AS Path, Filename.Name AS Name, File.FileIndex AS FileIndex, "
-          "File.JobId AS JobId, File.LStat AS LStat, File.FileId AS FileId "
-   "FROM ( "
-    "SELECT max(FileId) as FileId, PathId, FilenameId "
-      "FROM (SELECT FileId, PathId, FilenameId FROM File WHERE JobId IN (%s)) AS F "
-     "GROUP BY PathId, FilenameId "
-    ") AS Temp "
-   "JOIN Filename ON (Filename.FilenameId = Temp.FilenameId) "
-   "JOIN Path ON (Path.PathId = Temp.PathId) "
-   "JOIN File ON (File.FileId = Temp.FileId) "
-  "WHERE File.FileIndex > 0)",
+"CREATE TEMPORARY TABLE new_basefile%lld AS ( "
+//"CREATE TABLE new_basefile%lld AS ( "
+  "SELECT Path.Path AS Path, Filename.Name AS Name, File.FileIndex AS FileIndex,"
+         "File.JobId AS JobId, File.LStat AS LStat, File.FileId AS FileId "
+  "FROM ( "
+   "SELECT max(FileId) as FileId, PathId, FilenameId "
+     "FROM (SELECT FileId, PathId, FilenameId FROM File WHERE JobId IN (%s)) AS F "
+    "GROUP BY PathId, FilenameId "
+   ") AS Temp "
+  "JOIN Filename ON (Filename.FilenameId = Temp.FilenameId) "
+  "JOIN Path ON (Path.PathId = Temp.PathId) "
+  "JOIN File ON (File.FileId = Temp.FileId) "
+ "WHERE File.FileIndex > 0)",
         (uint64_t)jcr->JobId, jobids);
    return db_sql_query(mdb, buf.c_str(), NULL, NULL);
 }
