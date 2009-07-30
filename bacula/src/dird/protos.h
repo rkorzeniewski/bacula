@@ -241,6 +241,7 @@ void free_ua_context(UAContext *ua);
 /* ua_select.c */
 STORE   *select_storage_resource(UAContext *ua);
 JOB     *select_job_resource(UAContext *ua);
+JOB     *select_enable_disable_job_resource(UAContext *ua, bool enable);
 JOB     *select_restore_job_resource(UAContext *ua);
 CLIENT  *select_client_resource(UAContext *ua);
 FILESET *select_fileset_resource(UAContext *ua);
