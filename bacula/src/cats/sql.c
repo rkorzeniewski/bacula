@@ -441,7 +441,7 @@ void db_end_transaction(JCR *jcr, B_DB *mdb)
 
    if (jcr && jcr->cached_attribute) {
       Dmsg0(400, "Flush last cached attribute.\n");
-      if (!db_create_file_attributes_record(jcr, mdb, jcr->ar)) {
+      if (!db_create_attributes_record(jcr, mdb, jcr->ar)) {
          Jmsg1(jcr, M_FATAL, 0, _("Attribute create error. %s"), db_strerror(jcr->db));
       }
       jcr->cached_attribute = false;
