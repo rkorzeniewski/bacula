@@ -1337,7 +1337,7 @@ static bool select_backups_before_date(UAContext *ua, RESTORE_CTX *rx, char *dat
       if (*rx->BaseJobIds) {
          POOL_MEM buf;
          Mmsg(buf, uar_print_jobs, rx->BaseJobIds);
-         ua->send_msg(_("The restore will use the following jobs as Base\n"));
+         ua->send_msg(_("The restore will use the following job(s) as Base\n"));
          db_list_sql_query(ua->jcr, ua->db, buf.c_str(), prtit, ua, 1, HORZ_LIST);
       }
 
