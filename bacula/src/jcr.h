@@ -336,6 +336,7 @@ public:
    bool Encrypt;                      /* Encryption used by FD */
    bool stats_enabled;                /* Keep all job records in a table for long term statistics */
    bool no_maxtime;                   /* Don't check Max*Time for this JCR */
+   bool keep_sd_auth_key;             /* Clear or not the SD auth key after connection*/
 #endif /* DIRECTOR_DAEMON */
 
 
@@ -372,6 +373,7 @@ public:
    CRYPTO_CTX crypto;                 /* Crypto ctx */
    DIRRES* director;                  /* Director resource */
    bool VSS;                          /* VSS used by FD */
+   bool multi_restore;                /* Dir can do multiple storage restore */
    htable *file_list;                 /* Previous file list (accurate mode) */
 #endif /* FILE_DAEMON */
 

@@ -47,12 +47,12 @@
 #include "findlib/find.h"
 
 /* Commands sent to File daemon */
-static char verifycmd[]    = "verify level=%s\n";
-static char storaddr[]     = "storage address=%s port=%d ssl=0\n";
+static char verifycmd[] = "verify level=%s\n";
+static char storaddr[]  = "storage address=%s port=%d ssl=0 Authorization=%s\n";
 
 /* Responses received from File daemon */
-static char OKverify[]    = "2000 OK verify\n";
-static char OKstore[]     = "2000 OK storage\n";
+static char OKverify[]  = "2000 OK verify\n";
+static char OKstore[]   = "2000 OK storage\n";
 
 /* Responses received from the Storage daemon */
 static char OKbootstrap[] = "3000 OK bootstrap\n";
@@ -278,7 +278,8 @@ bool do_verify(JCR *jcr)
       if (jcr->rstore->SDDport == 0) {
          jcr->rstore->SDDport = jcr->rstore->SDport;
       }
-      bnet_fsend(fd, storaddr, jcr->rstore->address, jcr->rstore->SDDport);
+      bnet_fsend(fd, storaddr, jcr->rstore->address, 
+                 jcr->rstore->SDDport, jcr->sd_auth_key);
       if (!response(jcr, fd, OKstore, "Storage", DISPLAY_ERROR)) {
          goto bail_out;
       }

@@ -79,6 +79,7 @@ static int fileset_cmd(JCR *jcr);
 static int level_cmd(JCR *jcr);
 static int verify_cmd(JCR *jcr);
 static int restore_cmd(JCR *jcr);
+static int end_restore_cmd(JCR *jcr);
 static int storage_cmd(JCR *jcr);
 static int session_cmd(JCR *jcr);
 static int response(JCR *jcr, BSOCK *sd, char *resp, const char *cmd);
@@ -90,7 +91,7 @@ static int runbefore_cmd(JCR *jcr);
 static int runafter_cmd(JCR *jcr);
 static int runbeforenow_cmd(JCR *jcr);
 static void set_options(findFOPTS *fo, const char *opts);
-
+static void set_storage_auth_key(JCR *jcr, char *key);
 
 /* Exported functions */
 
@@ -113,6 +114,7 @@ static struct s_cmds cmds[] = {
    {"JobId=",       job_cmd,       0},
    {"level = ",     level_cmd,     0},
    {"restore",      restore_cmd,   0},
+   {"endrestore",   end_restore_cmd, 0},
    {"session",      session_cmd,   0},
    {"status",       status_cmd,    1},
    {".status",      qstatus_cmd,   1},
@@ -129,7 +131,8 @@ static struct s_cmds cmds[] = {
 
 /* Commands received from director that need scanning */
 static char jobcmd[]      = "JobId=%d Job=%127s SDid=%d SDtime=%d Authorization=%100s";
-static char storaddr[]    = "storage address=%s port=%d ssl=%d";
+static char storaddr[]    = "storage address=%s port=%d ssl=%d Authorization=%100s";
+static char storaddr_v1[] = "storage address=%s port=%d ssl=%d";
 static char sessioncmd[]  = "session %127s %ld %ld %ld %ld %ld %ld\n";
 static char restorecmd[]  = "restore replace=%c prelinks=%d where=%s\n";
 static char restorecmd1[] = "restore replace=%c prelinks=%d where=\n";
@@ -153,6 +156,7 @@ static char OKverify[]    = "2000 OK verify\n";
 static char OKrestore[]   = "2000 OK restore\n";
 static char OKsession[]   = "2000 OK session\n";
 static char OKstore[]     = "2000 OK storage\n";
+static char OKstoreend[]  = "2000 OK storage end\n";
 static char OKjob[]       = "2000 OK Job %s (%s) %s,%s,%s";
 static char OKsetdebug[]  = "2000 OK setdebug=%d\n";
 static char BADjob[]      = "2901 Bad Job\n";
@@ -473,20 +477,18 @@ static int estimate_cmd(JCR *jcr)
 static int job_cmd(JCR *jcr)
 {
    BSOCK *dir = jcr->dir_bsock;
-   POOLMEM *sd_auth_key;
+   POOL_MEM sd_auth_key(PM_MESSAGE);
+   sd_auth_key.check_size(dir->msglen);
 
-   sd_auth_key = get_memory(dir->msglen);
    if (sscanf(dir->msg, jobcmd,  &jcr->JobId, jcr->Job,
-              &jcr->VolSessionId, &jcr->VolSessionTime,
-              sd_auth_key) != 5) {
+              &jcr->VolSessionId, &jcr->VolSessionTime, 
+              sd_auth_key.c_str()) != 5) {
       pm_strcpy(jcr->errmsg, dir->msg);
       Jmsg(jcr, M_FATAL, 0, _("Bad Job Command: %s"), jcr->errmsg);
       dir->fsend(BADjob);
-      free_pool_memory(sd_auth_key);
       return 0;
    }
-   jcr->sd_auth_key = bstrdup(sd_auth_key);
-   free_pool_memory(sd_auth_key);
+   set_storage_auth_key(jcr, sd_auth_key.c_str());
    Dmsg2(120, "JobId=%d Auth=%s\n", jcr->JobId, jcr->sd_auth_key);
    Mmsg(jcr->errmsg, "JobId=%d Job=%s", jcr->JobId, jcr->Job);
    new_plugins(jcr);                  /* instantiate plugins for this jcr */
@@ -1378,6 +1380,36 @@ static int session_cmd(JCR *jcr)
    return dir->fsend(OKsession);
 }
 
+static void set_storage_auth_key(JCR *jcr, char *key)
+{
+   /* if no key don't update anything */
+   if (!*key) {                
+      return;
+   }
+
+   /* We can be contacting multiple storage daemons.
+    * So, make sure that any old jcr->store_bsock is cleaned up. 
+    */
+   if (jcr->store_bsock) {
+      jcr->store_bsock->destroy();
+      jcr->store_bsock = NULL;
+   }
+
+   /* We can be contacting multiple storage daemons.
+    *   So, make sure that any old jcr->sd_auth_key is cleaned up. 
+    */
+   if (jcr->sd_auth_key) {
+      /* If we already have a Authorization key, director can do multi
+       * storage restore
+       */
+      Dmsg0(5, "set multi_restore=true\n");
+      jcr->multi_restore = true;
+      bfree(jcr->sd_auth_key);
+   }
+
+   jcr->sd_auth_key = bstrdup(key);
+}
+
 /*
  * Get address of storage daemon from Director
  *
@@ -1386,16 +1418,29 @@ static int storage_cmd(JCR *jcr)
 {
    int stored_port;                /* storage daemon port */
    int enable_ssl;                 /* enable ssl to sd */
+   POOL_MEM sd_auth_key(PM_MESSAGE);
    BSOCK *dir = jcr->dir_bsock;
    BSOCK *sd = new_bsock();        /* storage daemon bsock */
 
+
    Dmsg1(100, "StorageCmd: %s", dir->msg);
-   if (sscanf(dir->msg, storaddr, &jcr->stored_addr, &stored_port, &enable_ssl) != 3) {
-      pm_strcpy(jcr->errmsg, dir->msg);
-      Jmsg(jcr, M_FATAL, 0, _("Bad storage command: %s"), jcr->errmsg);
-      goto bail_out;
+   sd_auth_key.check_size(dir->msglen);
+   if (sscanf(dir->msg, storaddr, &jcr->stored_addr, &stored_port, 
+              &enable_ssl, sd_auth_key.c_str()) != 4)
+   {
+      if (sscanf(dir->msg, storaddr_v1, &jcr->stored_addr,
+                 &stored_port, &enable_ssl) != 3)
+      {
+         pm_strcpy(jcr->errmsg, dir->msg);
+         Jmsg(jcr, M_FATAL, 0, _("Bad storage command: %s"), jcr->errmsg);
+         goto bail_out;
+      }
    }
-   Dmsg3(110, "Open storage: %s:%d ssl=%d\n", jcr->stored_addr, stored_port, enable_ssl);
+
+   set_storage_auth_key(jcr, sd_auth_key.c_str());
+
+   Dmsg3(110, "Open storage: %s:%d ssl=%d\n", jcr->stored_addr, stored_port, 
+         enable_ssl);
    /* Open command communications with Storage daemon */
    /* Try to connect for 1 hour at 10 second intervals */
 
@@ -1428,8 +1473,8 @@ static int storage_cmd(JCR *jcr)
    return dir->fsend(OKstore);
 
 bail_out:
-      dir->fsend(BADcmd, "storage");
-      return 0;
+   dir->fsend(BADcmd, "storage");
+   return 0;
 
 }
 
@@ -1807,12 +1852,29 @@ static int restore_cmd(JCR *jcr)
    sd->signal(BNET_TERMINATE);
 
 bail_out:
+   bfree_and_null(jcr->where);
 
    if (jcr->JobErrors) {
       set_jcr_job_status(jcr, JS_ErrorTerminated);
    }
 
    Dmsg0(130, "Done in job.c\n");
+
+   int ret;
+   if (jcr->multi_restore) {
+      dir->fsend(OKstoreend);
+      ret = 1;     /* we continue the loop, waiting for next part */
+   } else {
+      end_restore_cmd(jcr);
+      ret = 0;     /* we stop here */
+   }
+
+   return ret;
+}
+
+static int end_restore_cmd(JCR *jcr) 
+{
+   Dmsg0(5, "end_restore_cmd\n");
    generate_plugin_event(jcr, bEventEndRestoreJob);
    return 0;                          /* return and terminate command loop */
 }

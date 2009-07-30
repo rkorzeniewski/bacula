@@ -204,6 +204,7 @@ bool start_storage_daemon_job(JCR *jcr, alist *rstore, alist *wstore, bool send_
           Jmsg(jcr, M_FATAL, 0, _("Storage daemon rejected Job command: %s\n"), sd->msg);
           return false;
        } else {
+          bfree_and_null(jcr->sd_auth_key);
           jcr->sd_auth_key = bstrdup(auth_key);
           Dmsg1(150, "sd_auth_key=%s\n", jcr->sd_auth_key);
        }
