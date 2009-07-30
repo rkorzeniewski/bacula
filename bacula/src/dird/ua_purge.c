@@ -283,6 +283,10 @@ void purge_files_from_jobs(UAContext *ua, char *jobs)
    db_sql_query(ua->db, query.c_str(), NULL, (void *)NULL);
    Dmsg1(050, "Delete File sql=%s\n", query.c_str());
 
+   Mmsg(query, "DELETE FROM BaseFiles WHERE JobId IN (%s)", jobs);
+   db_sql_query(ua->db, query.c_str(), NULL, (void *)NULL);
+   Dmsg1(050, "Delete BaseFiles sql=%s\n", query.c_str());
+
    /*
     * Now mark Job as having files purged. This is necessary to
     * avoid having too many Jobs to process in future prunings. If
