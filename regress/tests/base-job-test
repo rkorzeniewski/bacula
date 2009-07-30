@@ -93,6 +93,7 @@ run job=base_backup level=base yes
 wait
 messages
 update volume=TestVolume001 volstatus=Used
+@$out ${cwd}/tmp/log4.out
 label volume=TestVolume002 storage=File pool=Default
 run job=backup level=full yes
 wait
@@ -172,6 +173,13 @@ if [ $? -ne 0 ]; then
     print_debug "Can't purge the base job"
     dstat=2
 fi
+
+grep -e 'FD Bytes Written: *0' ${cwd}/tmp/log4.out > /dev/null
+if [ $? -ne 0 ]; then
+    print_debug "The first full job should have 0 byte in log4.out"
+    bstat=2
+fi
+
 
 stop_bacula
 end_test
