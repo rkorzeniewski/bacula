@@ -254,6 +254,8 @@ public:
    B_DB *db;                          /* database pointer */
    B_DB *db_batch;                    /* database pointer for batch and accurate */
    bool batch_started;                /* is batch mode already started ? */
+   bool HasBase;                      /* True if job use base jobs */
+
    ATTR_DBR *ar;                      /* DB attribute record */
    guid_list *id_list;                /* User/group id to name list */
    bool accurate;                     /* true if job is accurate */
@@ -337,7 +339,6 @@ public:
    bool stats_enabled;                /* Keep all job records in a table for long term statistics */
    bool no_maxtime;                   /* Don't check Max*Time for this JCR */
    bool keep_sd_auth_key;             /* Clear or not the SD auth key after connection*/
-   bool HasBase;                      /* True if job use base jobs */
 #endif /* DIRECTOR_DAEMON */
 
 
