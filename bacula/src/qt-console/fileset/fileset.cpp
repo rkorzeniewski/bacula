@@ -153,7 +153,7 @@ void FileSet::populateTable()
    }
    
    /* set default sorting */
-   tableWidget->sortByColumn(headerlist.indexOf(tr("Create Time")), Qt::DescendingOrder);
+   tableWidget->sortByColumn(headerlist.indexOf(tr("FileSet Name")), Qt::AscendingOrder);
    tableWidget->setSortingEnabled(true);
    
    /* Resize rows and columns */
