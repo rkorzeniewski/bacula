@@ -68,8 +68,22 @@ void Pages::dockPage()
     */
    setWindowFlags(Qt::Widget);
 
+   /* calculate the index that the tab should be inserted into */
+   int tabPos = 0;
+   QTreeWidgetItemIterator it(mainWin->treeWidget);
+   while (*it) {
+      Pages *somepage = mainWin->getFromHash(*it);
+      if (this == somepage) {
+         tabPos += 1;
+         break;
+      }
+      int pageindex = mainWin->tabWidget->indexOf(somepage);
+      if (pageindex != -1) { tabPos = pageindex; }
+      ++it;
+   }
+
    /* This was being done already */
-   m_parent->addTab(this, m_name);
+   m_parent->insertTab(tabPos, this, m_name);
 
    /* Set docked flag */
    m_docked = true;
