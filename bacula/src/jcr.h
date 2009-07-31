@@ -255,6 +255,8 @@ public:
    B_DB *db_batch;                    /* database pointer for batch and accurate */
    bool batch_started;                /* is batch mode already started ? */
    bool HasBase;                      /* True if job use base jobs */
+   uint64_t nb_base_files;            /* Number of base files */
+   uint64_t nb_base_files_used;       /* Number of useful files in base */
 
    ATTR_DBR *ar;                      /* DB attribute record */
    guid_list *id_list;                /* User/group id to name list */
