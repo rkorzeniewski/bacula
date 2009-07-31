@@ -11,7 +11,7 @@
 %define docs_version       3.0.2
 %define depkgs_version     18Feb09
 %define depkgs_qt_version  28Jul09
-%define _packager D. Scott Barninger <barninger@fairfieldcomputers.com>
+%define _packager Kern Sibbald <kern@sibbald.com>
 
 %define single_dir 0
 %{?single_dir_install:%define single_dir 1}
@@ -2278,13 +2278,12 @@ elif [ "$DB_VER" -lt "11" ]; then
         echo "Upgrading bacula database ..."
         %{script_dir}/update_mysql_tables
         echo "If bacula works correctly you can remove the backup file %{working_dir}/bacula_backup.sql.bz2"
-
 fi
 %endif
 
 %if %{sqlite}
 # test for an existing database
-if [ -s %{working_dir}/bacula.db ]; then
+if [ -f %{working_dir}/bacula.db ]; then
         DB_VER=`echo "select * from Version;" | %{sqlite_bindir}/sqlite3 2>/dev/null %{working_dir}/bacula.db | tail -n 1`
         # check to see if we need to upgrade a 2.x database
         if [ "$DB_VER" -lt "11" ] && [ "$DB_VER" -ge "10" ]; then
@@ -2337,16 +2336,26 @@ fi
 # generate passwords if needed
 if [ -d %{sysconf_dir} ]; then
         cd %{sysconf_dir}
-        for file in *.conf; do
                 for string in XXX_REPLACE_WITH_DIRECTOR_PASSWORD_XXX XXX_REPLACE_WITH_CLIENT_PASSWORD_XXX XXX_REPLACE_WITH_STORAGE_PASSWORD_XXX XXX_REPLACE_WITH_DIRECTOR_MONITOR_PASSWORD_XXX XXX_REPLACE_WITH_CLIENT_MONITOR_PASSWORD_XXX XXX_REPLACE_WITH_STORAGE_MONITOR_PASSWORD_XXX; do
-                        need_password=`grep $string $file 2>/dev/null`
-                        if [ -n "$need_password" ]; then
                                 pass=`openssl rand -base64 33`
-                                sed "s-$string-$pass-g" $file > $file.new
+      for file in *.conf; do
+         need_password=`grep ${string} $file 2>/dev/null`
+         if [ -n "$need_password" ]; then
+            sed "s@${string}@${pass}@g" $file > $file.new
                                 cp -f $file.new $file; rm -f $file.new
                         fi
                 done
         done
+# put actual hostname in conf file
+   host=`hostname`
+   string="XXX_HOSTNAME_XXX"
+   for file in *.conf; do
+      need_host=`grep ${string} $file 2>/dev/null`
+      if [ -n "$need_host" ]; then
+         sed "s@${string}@${host}@g" $file >$file.new
+         cp -f $file.new $file; rm -f $file.new
+      fi
+   done
 fi
 /sbin/ldconfig
 %endif
@@ -2456,16 +2465,26 @@ fi
 # generate passwords if needed
 if [ -d %{sysconf_dir} ]; then
         cd %{sysconf_dir}
-        for file in *.conf; do
                 for string in XXX_REPLACE_WITH_DIRECTOR_PASSWORD_XXX XXX_REPLACE_WITH_CLIENT_PASSWORD_XXX XXX_REPLACE_WITH_STORAGE_PASSWORD_XXX XXX_REPLACE_WITH_DIRECTOR_MONITOR_PASSWORD_XXX XXX_REPLACE_WITH_CLIENT_MONITOR_PASSWORD_XXX XXX_REPLACE_WITH_STORAGE_MONITOR_PASSWORD_XXX; do
-                        need_password=`grep $string $file 2>/dev/null`
-                        if [ -n "$need_password" ]; then
                                 pass=`openssl rand -base64 33`
-                                sed "s-$string-$pass-g" $file > $file.new
+      for file in *.conf; do
+         need_password=`grep ${string} $file 2>/dev/null`
+         if [ -n "$need_password" ]; then
+            sed "s@${string}@${pass}@g" $file > $file.new
                                 cp -f $file.new $file; rm -f $file.new
                         fi
                 done
         done
+# put actual hostname in conf file
+   host=`hostname`
+   string="XXX_HOSTNAME_XXX"
+   for file in *.conf; do
+      need_host=`grep ${string} $file 2>/dev/null`
+      if [ -n "$need_host" ]; then
+         sed "s@${string}@${host}@g" $file >$file.new
+         cp -f $file.new $file; rm -f $file.new
+      fi
+   done
 fi
 
 /sbin/ldconfig
@@ -2538,16 +2557,26 @@ fi
 # generate passwords if needed
 if [ -d %{sysconf_dir} ]; then
         cd %{sysconf_dir}
-        for file in *.conf; do
                 for string in XXX_REPLACE_WITH_DIRECTOR_PASSWORD_XXX XXX_REPLACE_WITH_CLIENT_PASSWORD_XXX XXX_REPLACE_WITH_STORAGE_PASSWORD_XXX XXX_REPLACE_WITH_DIRECTOR_MONITOR_PASSWORD_XXX XXX_REPLACE_WITH_CLIENT_MONITOR_PASSWORD_XXX XXX_REPLACE_WITH_STORAGE_MONITOR_PASSWORD_XXX; do
-                        need_password=`grep $string $file 2>/dev/null`
-                        if [ -n "$need_password" ]; then
                                 pass=`openssl rand -base64 33`
-                                sed "s-$string-$pass-g" $file > $file.new
+      for file in *.conf; do
+         need_password=`grep ${string} $file 2>/dev/null`
+         if [ -n "$need_password" ]; then
+            sed "s@${string}@${pass}@g" $file > $file.new
                                 cp -f $file.new $file; rm -f $file.new
                         fi
                 done
         done
+# put actual hostname in conf file
+   host=`hostname`
+   string="XXX_HOSTNAME_XXX"
+   for file in *.conf; do
+      need_host=`grep ${string} $file 2>/dev/null`
+      if [ -n "$need_host" ]; then
+         sed "s@${string}@${host}@g" $file >$file.new
+         cp -f $file.new $file; rm -f $file.new
+      fi
+   done
 fi
 %endif
 
@@ -2583,16 +2612,26 @@ fi
 # generate passwords if needed
 if [ -d %{sysconf_dir} ]; then
         cd %{sysconf_dir}
-        for file in *.conf; do
                 for string in XXX_REPLACE_WITH_DIRECTOR_PASSWORD_XXX XXX_REPLACE_WITH_CLIENT_PASSWORD_XXX XXX_REPLACE_WITH_STORAGE_PASSWORD_XXX XXX_REPLACE_WITH_DIRECTOR_MONITOR_PASSWORD_XXX XXX_REPLACE_WITH_CLIENT_MONITOR_PASSWORD_XXX XXX_REPLACE_WITH_STORAGE_MONITOR_PASSWORD_XXX; do
-                        need_password=`grep $string $file 2>/dev/null`
-                        if [ -n "$need_password" ]; then
                                 pass=`openssl rand -base64 33`
-                                sed "s-$string-$pass-g" $file > $file.new
+      for file in *.conf; do
+         need_password=`grep ${string} $file 2>/dev/null`
+         if [ -n "$need_password" ]; then
+            sed "s@${string}@${pass}@g" $file > $file.new
                                 cp -f $file.new $file; rm -f $file.new
                         fi
                 done
         done
+# put actual hostname in conf file
+   host=`hostname`
+   string="XXX_HOSTNAME_XXX"
+   for file in *.conf; do
+      need_host=`grep ${string} $file 2>/dev/null`
+      if [ -n "$need_host" ]; then
+         sed "s@${string}@${host}@g" $file >$file.new
+         cp -f $file.new $file; rm -f $file.new
+      fi
+   done
 fi
 %endif
 
@@ -2628,16 +2667,26 @@ fi
 # generate passwords if needed
 if [ -d %{sysconf_dir} ]; then
         cd %{sysconf_dir}
-        for file in *.conf; do
                 for string in XXX_REPLACE_WITH_DIRECTOR_PASSWORD_XXX XXX_REPLACE_WITH_CLIENT_PASSWORD_XXX XXX_REPLACE_WITH_STORAGE_PASSWORD_XXX XXX_REPLACE_WITH_DIRECTOR_MONITOR_PASSWORD_XXX XXX_REPLACE_WITH_CLIENT_MONITOR_PASSWORD_XXX XXX_REPLACE_WITH_STORAGE_MONITOR_PASSWORD_XXX; do
-                        need_password=`grep $string $file 2>/dev/null`
-                        if [ -n "$need_password" ]; then
                                 pass=`openssl rand -base64 33`
-                                sed "s-$string-$pass-g" $file > $file.new
+      for file in *.conf; do
+         need_password=`grep ${string} $file 2>/dev/null`
+         if [ -n "$need_password" ]; then
+            sed "s@${string}@${pass}@g" $file > $file.new
                                 cp -f $file.new $file; rm -f $file.new
                         fi
                 done
         done
+# put actual hostname in conf file
+   host=`hostname`
+   string="XXX_HOSTNAME_XXX"
+   for file in *.conf; do
+      need_host=`grep ${string} $file 2>/dev/null`
+      if [ -n "$need_host" ]; then
+         sed "s@${string}@${host}@g" $file >$file.new
+         cp -f $file.new $file; rm -f $file.new
+      fi
+   done
 fi
 %endif
 
