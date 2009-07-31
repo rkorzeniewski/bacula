@@ -55,8 +55,6 @@ DirStat::DirStat()
 
    createConnections();
    setCurrent();
-
-   dockPage();
 }
 
 void DirStat::getFont()
@@ -288,6 +286,7 @@ void DirStat::PgSeltreeWidgetClicked()
       populateAll();
       m_populated=true;
    }
+   dockPage();
 }
 
 /*
