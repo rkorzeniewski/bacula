@@ -4037,9 +4037,9 @@ WHERE Job.JobId = $arg->{jobid}
     my $status = $row->{jobstatus};
 
     if ($status =~ /[TfAaEWD]/) {
-	$bweb->display_job_zoom($arg->{jobid});
-	$bweb->get_job_log();
-        return;
+	$self->display_job_zoom($arg->{jobid});
+        $self->get_job_log();
+	return;
     }
 
     if ($row->{type} eq 'B') {
