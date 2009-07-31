@@ -183,6 +183,7 @@ bool send_accurate_current_files(JCR *jcr)
          goto bail_out;
       }
       jcr->HasBase = true;
+      Jmsg1(jcr, M_INFO, 0, _("Using BaseJobId(s) %s\n"), jobids);
 
    } else {
       /* For Incr/Diff level, we search for older jobs */
