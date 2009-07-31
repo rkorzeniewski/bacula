@@ -7,11 +7,10 @@
 # basic defines for every build
 %define _release           1
 %define _version           3.0.2
-%define _rescuever         3.0.2
 %define docs_version       3.0.2
 %define depkgs_version     18Feb09
 %define depkgs_qt_version  28Jul09
-%define _packager Kern Sibbald <kern@sibbald.com>
+%define _packager D. Scott Barninger <barninger@fairfieldcomputers.com>
 
 %define single_dir 0
 %{?single_dir_install:%define single_dir 1}
@@ -107,7 +106,6 @@ BuildRequires: shadow-utils
 %if 0%{?mandriva_version} == 2007
 %define build_mdv 1
 %define _dist "Mandriva 2007"
-%define gconsole 0 
 %endif
 
 %if 0%{?fedora_version} == 8
@@ -229,10 +227,9 @@ Prefix: %{_prefix}
 Source0: http://www.prdownloads.sourceforge.net/bacula/%{name}-%{version}.tar.gz
 Source1: Release_Notes-%{version}-%{release}.tar.gz
 Source2: http://www.prdownloads.sourceforge.net/bacula/%{name}-docs-%{docs_version}.tar.gz
-Source3: http://www.prdownloads.sourceforge.net/bacula/%{name}-rescue-%{_rescuever}.tar.gz
-Source4: http://www.prdownloads.sourceforge.net/bacula/depkgs-%{depkgs_version}.tar.gz
-Source5: http://www.prdownloads.sourceforge.net/bacula/depkgs-qt-%{depkgs_qt_version}.tar.gz
-Source6: bacula-2.2.7-postgresql.patch
+Source3: http://www.prdownloads.sourceforge.net/bacula/depkgs-%{depkgs_version}.tar.gz
+Source4: http://www.prdownloads.sourceforge.net/bacula/depkgs-qt-%{depkgs_qt_version}.tar.gz
+Source5: bacula-2.2.7-postgresql.patch
 
 # define the basic package description
 %define blurb Bacula - It comes by night and sucks the vital essence from your computers.
@@ -246,7 +243,6 @@ Source6: bacula-2.2.7-postgresql.patch
 
 # Source directory locations
 %define _docsrc ../%{name}-docs-%{docs_version}
-%define _rescuesrc ../%{name}-rescue-%{_rescuever}
 %define depkgs ../depkgs
 %define depkgs_qt ../depkgs-qt
 
@@ -416,31 +412,6 @@ exit 1
 %{?DISTNAME:%define _dist %{DISTNAME}}
 Distribution: %{_dist}
 
-# Should we build gconsole, possible only if gtk= >= 2.4 available.
-# leaving all the BuildRequires and Requires in place below for now.
-# su10, fc3 and fc4 now nobuild, tray monitor fails to build as of 2.2.1 
-# release as it needs 2.10
-
-%define gconsole 0
-%if %{rh7} || %{rh8} || %{rh9} || %{wb3} || %{fc1} || %{fc3} || %{fc4} || %{su9} || %{su10}
-%define gconsole 0
-%endif
-%if %{mdk} && ! %{mdv}
-%define gconsole 0
-%endif
-
-# specifically disallow gconsole if desired
-%{?nobuild_gconsole:%define gconsole 0}
-
-# specifically disallow rescue files
-%define rescue 0
-%{?build_rescue:%define rescue 1}
-
-# Should we build wxconsole, only wxWidgets >=2.6 is supported
-# SuSE 10 and FC4 and newer
-%define wxconsole 0
-%{?build_wxconsole:%define wxconsole 1}
-
 # Should we build bat
 # requires >= Qt-4.2
 %define bat 0
@@ -472,11 +443,10 @@ Distribution: %{_dist}
 %define mysql5 0
 %define postgresql 0
 %define sqlite 0
-%define gconsole 0
-%define wxconsole 0
 %endif
 
 BuildRequires: gcc, gcc-c++, make, autoconf
+BuildRequires: glibc, glibc-devel
 BuildRequires: ncurses-devel, perl
 BuildRequires: libstdc++-devel, zlib-devel
 BuildRequires: openssl-devel
@@ -489,275 +459,24 @@ BuildRequires: libxml2-devel
 BuildRequires: python, python-devel
 %{expand: %%define pyver %(python -c 'import sys;print(sys.version[0:3])')}
 %endif
-%if %{gconsole}
-BuildRequires: pkgconfig, pango-devel, atk-devel
-%endif
 
 %if %{rh7}
 BuildRequires: libtermcap-devel
-BuildRequires: glibc-devel >= 2.2
 BuildRequires: libxml-devel
 %endif
-%if %{su9}
+%if %{su9} || %{su10} || %{su102} || %{su103} || %{su110} || %{su111}
 BuildRequires: termcap
-BuildRequires: glibc-devel >= 2.3
-%endif
-%if %{su9} && %{gconsole}
-BuildRequires: libgnome >= 2.0
-BuildRequires: gtk2-devel >= 2.0
-BuildRequires: libgnomeui-devel >= 2.0
-BuildRequires: ORBit2-devel
-BuildRequires: libart_lgpl-devel >= 2.0
-BuildRequires: libbonobo-devel >= 2.0
-BuildRequires: libbonoboui-devel >= 2.0
-BuildRequires: bonobo-activation-devel
-BuildRequires: gconf2-devel
-BuildRequires: linc-devel
-BuildRequires: freetype2-devel
-%endif
-%if %{su10}
-BuildRequires: termcap
-BuildRequires: glibc-devel >= 2.3
-%endif
-%if %{su10} && %{gconsole}
-BuildRequires: libgnome >= 2.12
-BuildRequires: gtk2-devel >= 2.8
-BuildRequires: libgnomeui-devel >= 2.12
-BuildRequires: ORBit2-devel
-BuildRequires: libart_lgpl-devel >= 2.3
-BuildRequires: libbonobo-devel >= 2.10
-BuildRequires: libbonoboui-devel >= 2.10
-BuildRequires: bonobo-activation-devel
-BuildRequires: gconf2-devel
-BuildRequires: freetype2-devel
-BuildRequires: cairo-devel
-BuildRequires: fontconfig-devel >= 2.3
-BuildRequires: gnome-vfs2-devel >= 2.12
-BuildRequires: libpng-devel
-%endif
-%if %{su102}
-BuildRequires: termcap
-BuildRequires: glibc-devel >= 2.5
-%endif
-%if %{su102} && %{gconsole}
-BuildRequires: libgnome >= 2.16
-BuildRequires: gtk2-devel >= 2.10
-BuildRequires: libgnomeui-devel >= 2.16
-BuildRequires: ORBit2-devel
-BuildRequires: libart_lgpl-devel >= 2.3
-BuildRequires: libbonobo-devel >= 2.16
-BuildRequires: libbonoboui-devel >= 2.16
-BuildRequires: bonobo-activation-devel
-BuildRequires: gconf2-devel
-BuildRequires: freetype2-devel
-BuildRequires: cairo-devel
-BuildRequires: fontconfig-devel >= 2.4
-BuildRequires: gnome-vfs2-devel >= 2.16
-BuildRequires: libpng-devel
-%endif
-%if %{su103}
-BuildRequires: termcap
-BuildRequires: glibc-devel >= 2.6
-%endif
-%if %{su103} && %{gconsole}
-BuildRequires: libgnome >= 2.20
-BuildRequires: gtk2-devel >= 2.12
-BuildRequires: libgnomeui-devel >= 2.20
-BuildRequires: ORBit2-devel
-BuildRequires: libart_lgpl-devel >= 2.3
-BuildRequires: libbonobo-devel >= 2.20
-BuildRequires: libbonoboui-devel >= 2.20
-BuildRequires: bonobo-activation-devel
-BuildRequires: gconf2-devel
-BuildRequires: freetype2-devel
-BuildRequires: cairo-devel
-BuildRequires: fontconfig-devel >= 2.4
-BuildRequires: gnome-vfs2-devel >= 2.20
-BuildRequires: libpng-devel
-%endif
-%if %{su110}
-BuildRequires: termcap
-BuildRequires: glibc-devel >= 2.8
-%endif
-%if %{su110} && %{gconsole}
-BuildRequires: libgnome >= 2.22
-BuildRequires: gtk2-devel >= 2.12
-BuildRequires: libgnomeui-devel >= 2.22
-BuildRequires: ORBit2-devel
-BuildRequires: libart_lgpl-devel >= 2.3
-BuildRequires: libbonobo-devel >= 2.22
-BuildRequires: libbonoboui-devel >= 2.22
-BuildRequires: bonobo-activation-devel
-BuildRequires: gconf2-devel
-BuildRequires: freetype2-devel
-BuildRequires: cairo-devel
-BuildRequires: fontconfig-devel >= 2.4
-BuildRequires: gnome-vfs2-devel >= 2.22
-BuildRequires: libpng-devel
-%endif
-%if %{su111}
-BuildRequires: termcap
-BuildRequires: glibc-devel >= 2.9
-%endif
-%if %{su111} && %{gconsole}
-BuildRequires: libgnome >= 2.24
-BuildRequires: gtk2-devel >= 2.14
-BuildRequires: libgnomeui-devel >= 2.24
-BuildRequires: ORBit2-devel
-BuildRequires: libart_lgpl-devel >= 2.3
-BuildRequires: libbonobo-devel >= 2.24
-BuildRequires: libbonoboui-devel >= 2.24
-BuildRequires: bonobo-activation-devel
-BuildRequires: gconf2-devel
-BuildRequires: freetype2-devel
-BuildRequires: cairo-devel
-BuildRequires: fontconfig-devel >= 2.6
-BuildRequires: gnome-vfs2-devel >= 2.24
-BuildRequires: libpng-devel
 %endif
 %if %{mdk}
 BuildRequires: libtermcap-devel
 BuildRequires: libstdc++-static-devel
 BuildRequires: glibc-static-devel
-BuildRequires: glibc-devel >= 2.3
 %endif
-%if %{mdk} && !%{mdv} && %{gconsole}
-BuildRequires: gtk2-devel >= 2.0
-BuildRequires: libgnomeui2-devel >= 2.0
-BuildRequires: libORBit2-devel
-BuildRequires: libart_lgpl-devel >= 2.0
-BuildRequires: libbonobo2_0-devel
-BuildRequires: libbonoboui2_0-devel
-BuildRequires: libbonobo-activation-devel
-BuildRequires: libGConf2-devel
-BuildRequires: freetype2-devel
-%endif
-%if %{mdv} && %{gconsole}
-BuildRequires: gtk2-devel >= 2.8
-BuildRequires: libgnomeui2-devel >= 2.10
-BuildRequires: libORBit2-devel
-BuildRequires: libart_lgpl-devel >= 2.3
-BuildRequires: libbonobo2_0-devel
-BuildRequires: libbonoboui2_0-devel
-BuildRequires: libbonobo-activation-devel
-BuildRequires: libGConf2-devel
-BuildRequires: freetype2-devel
-%endif
-%if %{fc3}
+%if %{fc1} || %{fc3} || %{fc4} || %{fc5} || %{fc7} || %{fc8} || %{fc9}
 BuildRequires: libtermcap-devel
-BuildRequires: glibc-devel >= 2.3
-%endif
-%if %{fc3} && %{gconsole}
-BuildRequires: gtk2-devel >= 2.4
-BuildRequires: libgnomeui-devel >= 2.8
-BuildRequires: ORBit2-devel
-BuildRequires: libart_lgpl-devel >= 2.3
-BuildRequires: libbonobo-devel >= 2.8
-BuildRequires: libbonoboui-devel >= 2.8
-BuildRequires: bonobo-activation-devel
-BuildRequires: GConf2-devel
-BuildRequires: freetype-devel
-%endif
-%if %{fc4}
-BuildRequires: libtermcap-devel
-BuildRequires: glibc-devel >= 2.3
-%endif
-%if %{fc4} && %{gconsole}
-BuildRequires: gtk2-devel >= 2.6
-BuildRequires: libgnomeui-devel >= 2.10
-BuildRequires: ORBit2-devel
-BuildRequires: libart_lgpl-devel >= 2.3
-BuildRequires: libbonobo-devel >= 2.8
-BuildRequires: libbonoboui-devel >= 2.8
-BuildRequires: bonobo-activation-devel
-BuildRequires: GConf2-devel
-BuildRequires: freetype-devel
-%endif
-%if %{fc5}
-BuildRequires: libtermcap-devel
-BuildRequires: glibc-devel >= 2.4
-%endif
-%if %{fc5} && %{gconsole}
-BuildRequires: gtk2-devel >= 2.8
-BuildRequires: libgnomeui-devel >= 2.14
-BuildRequires: ORBit2-devel
-BuildRequires: libart_lgpl-devel >= 2.3
-BuildRequires: libbonobo-devel >= 2.14
-BuildRequires: libbonoboui-devel >= 2.14
-BuildRequires: GConf2-devel
-BuildRequires: freetype-devel
-%endif
-%if %{fc6}
-BuildRequires: libtermcap-devel
-BuildRequires: glibc-devel >= 2.5
-%endif
-%if %{fc6} && %{gconsole}
-BuildRequires: gtk2-devel >= 2.10
-BuildRequires: libgnomeui-devel >= 2.16
-BuildRequires: ORBit2-devel
-BuildRequires: libart_lgpl-devel >= 2.3
-BuildRequires: libbonobo-devel >= 2.16
-BuildRequires: libbonoboui-devel >= 2.16
-BuildRequires: GConf2-devel
-BuildRequires: freetype-devel
-%endif
-%if %{fc7}
-BuildRequires: libtermcap-devel
-BuildRequires: glibc-devel >= 2.5
-%endif
-%if %{fc7} && %{gconsole}
-BuildRequires: gtk2-devel >= 2.10
-BuildRequires: libgnomeui-devel >= 2.18
-BuildRequires: ORBit2-devel
-BuildRequires: libart_lgpl-devel >= 2.3
-BuildRequires: libbonobo-devel >= 2.18
-BuildRequires: libbonoboui-devel >= 2.18
-BuildRequires: GConf2-devel
-BuildRequires: freetype-devel
-%endif
-%if %{fc8}
-BuildRequires: libtermcap-devel
-BuildRequires: glibc-devel >= 2.7
-%endif
-%if %{fc8} && %{gconsole}
-BuildRequires: gtk2-devel >= 2.12
-BuildRequires: libgnomeui-devel >= 2.20
-BuildRequires: ORBit2-devel
-BuildRequires: libart_lgpl-devel >= 2.3
-BuildRequires: libbonobo-devel >= 2.20
-BuildRequires: libbonoboui-devel >= 2.20
-BuildRequires: GConf2-devel
-BuildRequires: freetype-devel
-%endif
-%if %{fc9}
-BuildRequires: glibc-devel >= 2.8
-BuildRequires: zlib-static
-%endif
-%if %{fc9} && %{gconsole}
-BuildRequires: gtk2-devel >= 2.12
-BuildRequires: libgnomeui-devel >= 2.22
-BuildRequires: ORBit2-devel
-BuildRequires: libart_lgpl-devel >= 2.3
-BuildRequires: libbonobo-devel >= 2.22
-BuildRequires: libbonoboui-devel >= 2.22
-BuildRequires: GConf2-devel
-BuildRequires: freetype-devel
 %endif
 %if !%{rh7} && !%{su9} && !%{su10} && !%{su102} && !%{su103} && !%{su110} && !%{su111} && !%{mdk} && !%{fc3} && !%{fc4} && !%{fc5} && !%{fc6} && !%{fc7} && !%{fc8} && !%{fc9}
 BuildRequires: libtermcap-devel
-BuildRequires: glibc-devel >= 2.3
-%endif
-%if !%{rh7} && !%{su9} && !%{su10} && !%{su102} && !%{su103} && !%{su110} && !%{su111} && !%{mdk} && !%{fc3} && !%{fc4} && !%{fc5} && !%{fc6} && !%{fc7} && !%{fc8} && !%{fc9} && %{gconsole}
-BuildRequires: gtk2-devel >= 2.0
-BuildRequires: libgnomeui-devel >= 2.0
-BuildRequires: ORBit2-devel
-BuildRequires: libart_lgpl-devel >= 2.0
-BuildRequires: libbonobo-devel >= 2.0
-BuildRequires: libbonoboui-devel >= 2.0
-BuildRequires: bonobo-activation-devel
-BuildRequires: GConf2-devel
-BuildRequires: linc-devel
-BuildRequires: freetype-devel
 %endif
 
 %if %{mysql} && ! %{mysql4} && ! %{mysql5}
@@ -778,10 +497,6 @@ BuildRequires: rh-postgresql-devel >= 7
 
 %if %{postgresql} && ! %{wb3}
 BuildRequires: postgresql-devel >= 7
-%endif
-
-%if %{wxconsole}
-BuildRequires: wxGTK-devel >= 2.6
 %endif
 
 %description
@@ -1061,335 +776,6 @@ This package installs scripts for updating older versions of the bacula
 database.
 %endif
 
-%if %{gconsole}
-%package gconsole
-Summary: Bacula - The Network Backup Solution
-Group: System Environment/Daemons
-Requires: atk, libstdc++, zlib, pango, libxml2, bacula-fd, openssl
-%endif
-
-%if %{gconsole} && %{su9}
-Requires: gtk2 >= 2.0
-Requires: libgnome >= 2.0
-Requires: libgnomeui >= 2.0
-Requires: glibc >= 2.3
-Requires: ORBit2
-Requires: libart_lgpl >= 2.0
-Requires: libbonobo >= 2.0
-Requires: libbonoboui >= 2.0
-Requires: bonobo-activation
-Requires: gconf2
-Requires: linc
-Requires: freetype2
-%endif
-%if %{gconsole} && %{su10}
-Requires: gtk2 >= 2.8
-Requires: libgnome >= 2.12
-Requires: libgnomeui >= 2.12
-Requires: glibc >= 2.3
-Requires: ORBit2
-Requires: libart_lgpl >= 2.3
-Requires: libbonobo >= 2.10
-Requires: libbonoboui >= 2.10
-Requires: bonobo-activation
-Requires: gconf2
-Requires: freetype2
-Requires: cairo
-Requires: fontconfig >= 2.3
-Requires: gnome-vfs2 >= 2.12
-Requires: libpng
-%endif
-%if %{gconsole} && %{su102}
-Requires: gtk2 >= 2.10
-Requires: libgnome >= 2.16
-Requires: libgnomeui >= 2.16
-Requires: glibc >= 2.5
-Requires: ORBit2
-Requires: libart_lgpl >= 2.3
-Requires: libbonobo >= 2.16
-Requires: libbonoboui >= 2.16
-Requires: bonobo-activation
-Requires: gconf2
-Requires: freetype2
-Requires: cairo
-Requires: fontconfig >= 2.4
-Requires: gnome-vfs2 >= 2.16
-Requires: libpng
-%endif
-%if %{gconsole} && %{su103}
-Requires: gtk2 >= 2.12
-Requires: libgnome >= 2.20
-Requires: libgnomeui >= 2.20
-Requires: glibc >= 2.6
-Requires: ORBit2
-Requires: libart_lgpl >= 2.3
-Requires: libbonobo >= 2.20
-Requires: libbonoboui >= 2.20
-Requires: bonobo-activation
-Requires: gconf2
-Requires: freetype2
-Requires: cairo
-Requires: fontconfig >= 2.4
-Requires: gnome-vfs2 >= 2.20
-Requires: libpng
-%endif
-%if %{gconsole} && %{su110}
-Requires: gtk2 >= 2.12
-Requires: libgnome >= 2.22
-Requires: libgnomeui >= 2.22
-Requires: glibc >= 2.8
-Requires: ORBit2
-Requires: libart_lgpl >= 2.3
-Requires: libbonobo >= 2.22
-Requires: libbonoboui >= 2.22
-Requires: bonobo-activation
-Requires: gconf2
-Requires: freetype2
-Requires: cairo
-Requires: fontconfig >= 2.4
-Requires: gnome-vfs2 >= 2.22
-Requires: libpng
-%endif
-%if %{gconsole} && %{su111}
-Requires: gtk2 >= 2.14
-Requires: libgnome >= 2.24
-Requires: libgnomeui >= 2.24
-Requires: glibc >= 2.9
-Requires: ORBit2
-Requires: libart_lgpl >= 2.3
-Requires: libbonobo >= 2.24
-Requires: libbonoboui >= 2.24
-Requires: bonobo-activation
-Requires: gconf2
-Requires: freetype2
-Requires: cairo
-Requires: fontconfig >= 2.6
-Requires: gnome-vfs2 >= 2.24
-Requires: libpng
-%endif
-%if %{gconsole} && %{mdk} && !%{mdv}
-Requires: gtk2 >= 2.0
-Requires: libgnomeui2
-Requires: glibc >= 2.3
-Requires: ORBit2
-Requires: libart_lgpl >= 2.0
-Requires: libbonobo >= 2.0
-Requires: libbonoboui >= 2.0
-Requires: GConf2
-Requires: freetype2
-%endif
-%if %{gconsole} && %{mdv}
-Requires: gtk2 >= 2.8
-Requires: libgnomeui2
-Requires: glibc >= 2.3
-Requires: ORBit2
-Requires: libart_lgpl >= 2.3
-Requires: libbonobo >= 2.10
-Requires: libbonoboui >= 2.10
-Requires: GConf2
-Requires: freetype2
-%endif
-%if %{gconsole} && %{fc3}  
-Requires: gtk2 >= 2.4
-Requires: libgnomeui >= 2.8
-Requires: glibc >= 2.3
-Requires: ORBit2
-Requires: libart_lgpl >= 2.3
-Requires: libbonobo >= 2.8
-Requires: libbonoboui >= 2.8
-Requires: bonobo-activation
-Requires: GConf2
-Requires: freetype
-%endif
-%if %{gconsole} && %{fc4}  
-Requires: gtk2 >= 2.6
-Requires: libgnomeui >= 2.10
-Requires: glibc >= 2.3
-Requires: ORBit2
-Requires: libart_lgpl >= 2.3
-Requires: libbonobo >= 2.8
-Requires: libbonoboui >= 2.8
-Requires: bonobo-activation
-Requires: GConf2
-Requires: freetype
-%endif
-%if %{gconsole} && %{fc5}  
-Requires: gtk2 >= 2.8
-Requires: libgnomeui >= 2.14
-Requires: glibc >= 2.4
-Requires: ORBit2
-Requires: libart_lgpl >= 2.3
-Requires: libbonobo >= 2.14
-Requires: libbonoboui >= 2.14
-Requires: GConf2
-Requires: freetype
-%endif
-%if %{gconsole} && %{fc6}  
-Requires: gtk2 >= 2.10
-Requires: libgnomeui >= 2.16
-Requires: glibc >= 2.5
-Requires: ORBit2
-Requires: libart_lgpl >= 2.3
-Requires: libbonobo >= 2.16
-Requires: libbonoboui >= 2.16
-Requires: GConf2
-Requires: freetype
-%endif
-%if %{gconsole} && %{fc7}  
-Requires: gtk2 >= 2.10
-Requires: libgnomeui >= 2.18
-Requires: glibc >= 2.5
-Requires: ORBit2
-Requires: libart_lgpl >= 2.3
-Requires: libbonobo >= 2.18
-Requires: libbonoboui >= 2.18
-Requires: GConf2
-Requires: freetype
-%endif
-%if %{gconsole} && %{fc8}  
-Requires: gtk2 >= 2.12
-Requires: libgnomeui >= 2.20
-Requires: glibc >= 2.7
-Requires: ORBit2
-Requires: libart_lgpl >= 2.3
-Requires: libbonobo >= 2.20
-Requires: libbonoboui >= 2.20
-Requires: GConf2
-Requires: freetype
-%endif
-%if %{gconsole} && %{fc9}  
-Requires: gtk2 >= 2.12
-Requires: libgnomeui >= 2.22
-Requires: glibc >= 2.8
-Requires: ORBit2
-Requires: libart_lgpl >= 2.3
-Requires: libbonobo >= 2.22
-Requires: libbonoboui >= 2.22
-Requires: GConf2
-Requires: freetype
-%endif
-%if %{gconsole} && !%{su9} && !%{su10} && !%{su102} && !%{su103} && !%{su110} && !%{su111} && !%{mdk} && !%{fc3} && !%{fc4} && !%{fc5} && !%{fc6} && !%{fc7} && !%{fc8} && !%{fc9}
-Requires: gtk2 >= 2.0
-Requires: libgnomeui >= 2.0
-Requires: glibc >= 2.3
-Requires: ORBit2
-Requires: libart_lgpl >= 2.0
-Requires: libbonobo >= 2.0
-Requires: libbonoboui >= 2.0
-Requires: bonobo-activation
-Requires: GConf2
-Requires: linc
-Requires: freetype
-%endif
-%if %{gconsole} && %{su9}
-Requires: xsu
-%endif
-%if %{gconsole} && %{su10}
-Requires: xsu
-%endif
-%if %{gconsole} && %{su102}
-Requires: xsu
-%endif
-%if %{gconsole} && %{su103}
-Requires: xsu
-%endif
-%if %{gconsole} && %{su110}
-Requires: xsu
-%endif
-%if %{gconsole} && %{su111}
-Requires: xsu
-%endif
-%if %{gconsole} && ! %{su9} && ! %{su10} && ! %{su102} && ! %{su103} && ! %{su110} && ! %{su111}
-Requires: usermode
-%endif
-
-%if %{gconsole}
-%description gconsole
-%{blurb}
-
-%{blurb2}
-%{blurb3}
-%{blurb4}
-%{blurb5}
-%{blurb6}
-%{blurb7}
-%{blurb8}
-
-This is the Gnome Console package. It is an add-on to the client or
-server packages.
-%endif
-
-%if %{wxconsole}
-%package wxconsole
-Summary: Bacula - The Network Backup Solution
-Group: System Environment/Daemons
-Requires: wxGTK >= 2.6, libstdc++, openssl
-%endif
-
-%if %{wxconsole} && %{su10}
-Requires: gtk2 >= 2.8
-%endif
-
-%if %{wxconsole} && %{su102}
-Requires: gtk2 >= 2.10
-%endif
-
-%if %{wxconsole} && %{su103}
-Requires: gtk2 >= 2.12
-%endif
-
-%if %{wxconsole} && %{su110}
-Requires: gtk2 >= 2.12
-%endif
-
-%if %{wxconsole} && %{su111}
-Requires: gtk2 >= 2.14
-%endif
-
-%if %{wxconsole} && %{fc3}  
-Requires: gtk2 >= 2.4
-%endif
-
-%if %{wxconsole} && %{fc4}  
-Requires: gtk2 >= 2.6
-%endif
-
-%if %{wxconsole} && %{fc5}  
-Requires: gtk2 >= 2.8
-%endif
-
-%if %{wxconsole} && %{fc6}  
-Requires: gtk2 >= 2.10
-%endif
-
-%if %{wxconsole} && %{fc7}  
-Requires: gtk2 >= 2.10
-%endif
-
-%if %{wxconsole} && %{fc8}  
-Requires: gtk2 >= 2.12
-%endif
-
-%if %{wxconsole} && %{fc9}  
-Requires: gtk2 >= 2.12
-%endif
-
-%if %{wxconsole}
-%description wxconsole
-%{blurb}
-
-%{blurb2}
-%{blurb3}
-%{blurb4}
-%{blurb5}
-%{blurb6}
-%{blurb7}
-%{blurb8}
-
-This is the WXWindows Console package. It is an add-on to the client or
-server packages.
-%endif
-
 %if %{bat}
 %package bat
 Summary: Bacula - The Network Backup Solution
@@ -1532,11 +918,10 @@ This is the Bacula Administration Tool (bat) graphical user interface package.
 It is an add-on to the client or server packages.
 %endif
 
-# SuSE turns off stripping of binaries by default. In order to get
-# stripped packages we must generate debug package. RedHat and Mandriva
-# turn debug packages on by default but strip binaries regardless.
+# Must explicitly enable debug pkg on SuSE
 %if %{su9} || %{su10} || %{su102} || %{su103} || %{su110} || %{su111}
 %debug_package
+export LDFLAGS="${LDFLAGS} -L/usr/lib/termcap"
 %endif
 
 %prep
@@ -1547,13 +932,8 @@ It is an add-on to the client or server packages.
 %setup -T -D -b 3
 %setup -T -D -b 4
 %setup -T -D -b 5
-%setup -T -D -b 6
 
 %build
-
-%if %{su9} || %{su10} || %{su102} || %{su103} || %{su110} || %{su111}
-export LDFLAGS="${LDFLAGS} -L/usr/lib/termcap"
-%endif
 
 cwd=${PWD}
 %if %{bat}
@@ -1657,12 +1037,6 @@ export LDFLAGS="${LDFLAGS} -L/usr/lib64/python%{pyver}"
         --with-pid-dir=%{pid_dir} \
         --with-subsys-dir=%{_subsysdir} \
         --enable-smartalloc \
-%if %{gconsole}
-        --enable-gnome \
-%endif
-%if %{gconsole} && ! %{rh8}
-        --enable-tray-monitor \
-%endif
 %if %{mysql}
         --with-mysql \
 %endif
@@ -1671,9 +1045,6 @@ export LDFLAGS="${LDFLAGS} -L/usr/lib64/python%{pyver}"
 %endif
 %if %{postgresql}
         --with-postgresql \
-%endif
-%if %{wxconsole}
-        --enable-bwx-console \
 %endif
 %if %{bat}
         --enable-bat \
@@ -1715,12 +1086,9 @@ mkdir -p $RPM_BUILD_ROOT/etc/log.d/conf/services
 mkdir -p $RPM_BUILD_ROOT/etc/log.d/scripts/services
 mkdir -p $RPM_BUILD_ROOT%{script_dir}/updatedb
 
-%if %{gconsole} || %{wxconsole} || %{bat}
+%if %{bat}
 mkdir -p $RPM_BUILD_ROOT/usr/share/applications
 mkdir -p $RPM_BUILD_ROOT/usr/share/pixmaps
-%endif
-
-%if %{gconsole} || %{wxconsole} || %{bat}
 %define usermode_iftrick 1
 %else
 %define usermode_iftrick 0
@@ -1742,18 +1110,14 @@ make DESTDIR=$RPM_BUILD_ROOT install
 
 # make install in manpages installs _everything_ shotgun style
 # so now delete what we will not be packaging
-%if ! %{wxconsole}
 rm -f $RPM_BUILD_ROOT%{_mandir}/man1/bacula-bwxconsole.1.%{manpage_ext}
-%endif
 
 %if ! %{bat}
 rm -f $RPM_BUILD_ROOT%{_mandir}/man1/bat.1.%{manpage_ext}
 %endif
 
-%if ! %{gconsole}
 rm -f $RPM_BUILD_ROOT%{_mandir}/man1/bacula-bgnome-console.1.%{manpage_ext}
 rm -f $RPM_BUILD_ROOT%{_mandir}/man1/bacula-tray-monitor.1.%{manpage_ext}
-%endif
 
 %if %{client_only}
 rm -f $RPM_BUILD_ROOT%{_mandir}/man1/bsmtp.1.%{manpage_ext}
@@ -1780,11 +1144,7 @@ rm -f $RPM_BUILD_ROOT%{script_dir}/startmysql
 rm -f $RPM_BUILD_ROOT%{script_dir}/stopmysql
 %endif
 
-# fixme - make installs gconsole script for build without gconsole
-%if ! %{gconsole}
 rm -f $RPM_BUILD_ROOT%{script_dir}/gconsole
-%endif
-
 rm -f $RPM_BUILD_ROOT%{_sbindir}/static-bacula-fd
 
 # install the init scripts
@@ -1810,62 +1170,6 @@ rm -f $RPM_BUILD_ROOT/etc/init.d/bacula-sd
 %endif
 
 # install the menu stuff
-%if %{gconsole} && %{su9}
-cp -p scripts/bacula.png $RPM_BUILD_ROOT/usr/share/pixmaps/bacula.png
-cp -p scripts/bacula.desktop.gnome2.xsu $RPM_BUILD_ROOT/usr/share/applications/bacula.desktop
-cp -p src/tray-monitor/generic.xpm $RPM_BUILD_ROOT/usr/share/pixmaps/bacula-tray-monitor.xpm
-cp -p scripts/bacula-tray-monitor.desktop $RPM_BUILD_ROOT/usr/share/applications/bacula-tray-monitor.desktop
-%endif
-%if %{gconsole} && %{su10}
-cp -p scripts/bacula.png $RPM_BUILD_ROOT/usr/share/pixmaps/bacula.png
-cp -p scripts/bacula.desktop.gnome2.xsu $RPM_BUILD_ROOT/usr/share/applications/bacula.desktop
-cp -p src/tray-monitor/generic.xpm $RPM_BUILD_ROOT/usr/share/pixmaps/bacula-tray-monitor.xpm
-cp -p scripts/bacula-tray-monitor.desktop $RPM_BUILD_ROOT/usr/share/applications/bacula-tray-monitor.desktop
-%endif
-%if %{gconsole} && %{su102}
-cp -p scripts/bacula.png $RPM_BUILD_ROOT/usr/share/pixmaps/bacula.png
-cp -p scripts/bacula.desktop.gnome2.xsu $RPM_BUILD_ROOT/usr/share/applications/bacula.desktop
-cp -p src/tray-monitor/generic.xpm $RPM_BUILD_ROOT/usr/share/pixmaps/bacula-tray-monitor.xpm
-cp -p scripts/bacula-tray-monitor.desktop $RPM_BUILD_ROOT/usr/share/applications/bacula-tray-monitor.desktop
-%endif
-%if %{gconsole} && %{su103}
-cp -p scripts/bacula.png $RPM_BUILD_ROOT/usr/share/pixmaps/bacula.png
-cp -p scripts/bacula.desktop.gnome2.xsu $RPM_BUILD_ROOT/usr/share/applications/bacula.desktop
-cp -p src/tray-monitor/generic.xpm $RPM_BUILD_ROOT/usr/share/pixmaps/bacula-tray-monitor.xpm
-cp -p scripts/bacula-tray-monitor.desktop $RPM_BUILD_ROOT/usr/share/applications/bacula-tray-monitor.desktop
-%endif
-%if %{gconsole} && %{su110}
-cp -p scripts/bacula.png $RPM_BUILD_ROOT/usr/share/pixmaps/bacula.png
-cp -p scripts/bacula.desktop.gnome2.xsu $RPM_BUILD_ROOT/usr/share/applications/bacula.desktop
-cp -p src/tray-monitor/generic.xpm $RPM_BUILD_ROOT/usr/share/pixmaps/bacula-tray-monitor.xpm
-cp -p scripts/bacula-tray-monitor.desktop $RPM_BUILD_ROOT/usr/share/applications/bacula-tray-monitor.desktop
-%endif
-%if %{gconsole} && %{su111}
-cp -p scripts/bacula.png $RPM_BUILD_ROOT/usr/share/pixmaps/bacula.png
-cp -p scripts/bacula.desktop.gnome2.xsu $RPM_BUILD_ROOT/usr/share/applications/bacula.desktop
-cp -p src/tray-monitor/generic.xpm $RPM_BUILD_ROOT/usr/share/pixmaps/bacula-tray-monitor.xpm
-cp -p scripts/bacula-tray-monitor.desktop $RPM_BUILD_ROOT/usr/share/applications/bacula-tray-monitor.desktop
-%endif
-%if %{wxconsole} && %{su10}
-cp -p src/wx-console/wxwin16x16.xpm $RPM_BUILD_ROOT/usr/share/pixmaps/wxwin16x16.xpm
-cp -p scripts/wxconsole.desktop.xsu $RPM_BUILD_ROOT/usr/share/applications/wxconsole.desktop
-%endif
-%if %{wxconsole} && %{su102}
-cp -p src/wx-console/wxwin16x16.xpm $RPM_BUILD_ROOT/usr/share/pixmaps/wxwin16x16.xpm
-cp -p scripts/wxconsole.desktop.xsu $RPM_BUILD_ROOT/usr/share/applications/wxconsole.desktop
-%endif
-%if %{wxconsole} && %{su103}
-cp -p src/wx-console/wxwin16x16.xpm $RPM_BUILD_ROOT/usr/share/pixmaps/wxwin16x16.xpm
-cp -p scripts/wxconsole.desktop.xsu $RPM_BUILD_ROOT/usr/share/applications/wxconsole.desktop
-%endif
-%if %{wxconsole} && %{su110}
-cp -p src/wx-console/wxwin16x16.xpm $RPM_BUILD_ROOT/usr/share/pixmaps/wxwin16x16.xpm
-cp -p scripts/wxconsole.desktop.xsu $RPM_BUILD_ROOT/usr/share/applications/wxconsole.desktop
-%endif
-%if %{wxconsole} && %{su111}
-cp -p src/wx-console/wxwin16x16.xpm $RPM_BUILD_ROOT/usr/share/pixmaps/wxwin16x16.xpm
-cp -p scripts/wxconsole.desktop.xsu $RPM_BUILD_ROOT/usr/share/applications/wxconsole.desktop
-%endif
 %if %{bat} && %{su102}
 cp -p src/qt-console/images/bat_icon.png $RPM_BUILD_ROOT/usr/share/pixmaps/bat_icon.png
 cp -p scripts/bat.desktop.xsu $RPM_BUILD_ROOT/usr/share/applications/bat.desktop
@@ -1886,24 +1190,6 @@ cp -p scripts/bat.desktop.xsu $RPM_BUILD_ROOT/usr/share/applications/bat.desktop
 %define iftrick 1
 %else
 %define iftrick 0
-%endif
-%if %{gconsole} && %{iftrick}
-cp -p scripts/bacula.png $RPM_BUILD_ROOT/usr/share/pixmaps/bacula.png
-cp -p scripts/bacula.desktop.gnome2.consolehelper $RPM_BUILD_ROOT/usr/share/applications/bacula.desktop
-cp -p scripts/bgnome-console.console_apps $RPM_BUILD_ROOT/etc/security/console.apps/bgnome-console
-cp -p scripts/bgnome-console.pamd $RPM_BUILD_ROOT/etc/pam.d/bgnome-console
-ln -sf consolehelper $RPM_BUILD_ROOT%{_sbindir}/bgnome-console
-%endif
-%if %{gconsole} && ! %{rh8}
-cp -p src/tray-monitor/generic.xpm $RPM_BUILD_ROOT/usr/share/pixmaps/bacula-tray-monitor.xpm
-cp -p scripts/bacula-tray-monitor.desktop $RPM_BUILD_ROOT/usr/share/applications/bacula-tray-monitor.desktop
-%endif
-%if %{wxconsole} && %{iftrick}
-cp -p src/wx-console/wxwin16x16.xpm $RPM_BUILD_ROOT/usr/share/pixmaps/wxwin16x16.xpm
-cp -p scripts/wxconsole.desktop.consolehelper $RPM_BUILD_ROOT/usr/share/applications/wxconsole.desktop
-cp -p scripts/wxconsole.console_apps $RPM_BUILD_ROOT/etc/security/console.apps/bwx-console
-cp -p scripts/wxconsole.pamd $RPM_BUILD_ROOT/etc/pam.d/bwx-console
-ln -sf consolehelper $RPM_BUILD_ROOT%{_sbindir}/bwx-console
 %endif
 %if %{bat} && %{iftrick}
 cp -p src/qt-console/images/bat_icon.png $RPM_BUILD_ROOT/usr/share/pixmaps/bat_icon.png
@@ -1969,10 +1255,6 @@ cp ../Release_Notes-%{version}-%{release}.txt $RPM_BUILD_ROOT%{_prefix}/doc/
 
 # now clean up permissions that are left broken by the install
 chmod o-rwx $RPM_BUILD_ROOT%{working_dir}
-%if %{gconsole} && ! %{rh8}
-chmod 755 $RPM_BUILD_ROOT%{_sbindir}/bacula-tray-monitor
-chmod 644 $RPM_BUILD_ROOT%{sysconf_dir}/tray-monitor.conf
-%endif
 
 # fix me - building enable-client-only installs files not included in bacula-client package
 %if %{client_only}
@@ -1994,7 +1276,6 @@ rm -f $RPM_BUILD_ROOT%{_sbindir}/bacula
 %clean
 [ "$RPM_BUILD_ROOT" != "/" ] && rm -rf "$RPM_BUILD_ROOT"
 rm -rf $RPM_BUILD_DIR/%{name}-docs-%{docs_version}
-rm -rf $RPM_BUILD_DIR/%{name}-rescue-%{_rescuever}
 rm -rf $RPM_BUILD_DIR/depkgs
 rm -f $RPM_BUILD_DIR/Release_Notes-%{version}-%{release}.txt
 
@@ -2278,12 +1559,13 @@ elif [ "$DB_VER" -lt "11" ]; then
         echo "Upgrading bacula database ..."
         %{script_dir}/update_mysql_tables
         echo "If bacula works correctly you can remove the backup file %{working_dir}/bacula_backup.sql.bz2"
+
 fi
 %endif
 
 %if %{sqlite}
 # test for an existing database
-if [ -f %{working_dir}/bacula.db ]; then
+if [ -s %{working_dir}/bacula.db ]; then
         DB_VER=`echo "select * from Version;" | %{sqlite_bindir}/sqlite3 2>/dev/null %{working_dir}/bacula.db | tail -n 1`
         # check to see if we need to upgrade a 2.x database
         if [ "$DB_VER" -lt "11" ] && [ "$DB_VER" -ge "10" ]; then
@@ -2336,26 +1618,16 @@ fi
 # generate passwords if needed
 if [ -d %{sysconf_dir} ]; then
         cd %{sysconf_dir}
+        for file in *.conf; do
                 for string in XXX_REPLACE_WITH_DIRECTOR_PASSWORD_XXX XXX_REPLACE_WITH_CLIENT_PASSWORD_XXX XXX_REPLACE_WITH_STORAGE_PASSWORD_XXX XXX_REPLACE_WITH_DIRECTOR_MONITOR_PASSWORD_XXX XXX_REPLACE_WITH_CLIENT_MONITOR_PASSWORD_XXX XXX_REPLACE_WITH_STORAGE_MONITOR_PASSWORD_XXX; do
+                        need_password=`grep $string $file 2>/dev/null`
+                        if [ -n "$need_password" ]; then
                                 pass=`openssl rand -base64 33`
-      for file in *.conf; do
-         need_password=`grep ${string} $file 2>/dev/null`
-         if [ -n "$need_password" ]; then
-            sed "s@${string}@${pass}@g" $file > $file.new
+                                sed "s-$string-$pass-g" $file > $file.new
                                 cp -f $file.new $file; rm -f $file.new
                         fi
                 done
         done
-# put actual hostname in conf file
-   host=`hostname`
-   string="XXX_HOSTNAME_XXX"
-   for file in *.conf; do
-      need_host=`grep ${string} $file 2>/dev/null`
-      if [ -n "$need_host" ]; then
-         sed "s@${string}@${host}@g" $file >$file.new
-         cp -f $file.new $file; rm -f $file.new
-      fi
-   done
 fi
 /sbin/ldconfig
 %endif
@@ -2465,26 +1737,16 @@ fi
 # generate passwords if needed
 if [ -d %{sysconf_dir} ]; then
         cd %{sysconf_dir}
+        for file in *.conf; do
                 for string in XXX_REPLACE_WITH_DIRECTOR_PASSWORD_XXX XXX_REPLACE_WITH_CLIENT_PASSWORD_XXX XXX_REPLACE_WITH_STORAGE_PASSWORD_XXX XXX_REPLACE_WITH_DIRECTOR_MONITOR_PASSWORD_XXX XXX_REPLACE_WITH_CLIENT_MONITOR_PASSWORD_XXX XXX_REPLACE_WITH_STORAGE_MONITOR_PASSWORD_XXX; do
+                        need_password=`grep $string $file 2>/dev/null`
+                        if [ -n "$need_password" ]; then
                                 pass=`openssl rand -base64 33`
-      for file in *.conf; do
-         need_password=`grep ${string} $file 2>/dev/null`
-         if [ -n "$need_password" ]; then
-            sed "s@${string}@${pass}@g" $file > $file.new
+                                sed "s-$string-$pass-g" $file > $file.new
                                 cp -f $file.new $file; rm -f $file.new
                         fi
                 done
         done
-# put actual hostname in conf file
-   host=`hostname`
-   string="XXX_HOSTNAME_XXX"
-   for file in *.conf; do
-      need_host=`grep ${string} $file 2>/dev/null`
-      if [ -n "$need_host" ]; then
-         sed "s@${string}@${host}@g" $file >$file.new
-         cp -f $file.new $file; rm -f $file.new
-      fi
-   done
 fi
 
 /sbin/ldconfig
@@ -2514,125 +1776,6 @@ fi
 
 %post updatedb
 echo "The database update scripts were installed to %{script_dir}/updatedb"
-%endif
-
-%if %{gconsole}
-%files gconsole
-%defattr(-,root,root)
-%{_sbindir}/bgnome-console
-%attr(-, root, %{daemon_group}) %dir %{script_dir}
-%attr(-, root, %{daemon_group}) %{script_dir}/gconsole
-%attr(-, root, %{daemon_group}) %config(noreplace) %{sysconf_dir}/bgnome-console.conf
-/usr/share/pixmaps/bacula.png
-/usr/share/applications/bacula.desktop
-%{_mandir}/man1/bacula-bgnome-console.1.%{manpage_ext}
-%endif
-
-%if %{gconsole} && ! %{rh8}
-%{_sbindir}/bacula-tray-monitor
-%config(noreplace) %{sysconf_dir}/tray-monitor.conf
-/usr/share/pixmaps/bacula-tray-monitor.xpm
-/usr/share/applications/bacula-tray-monitor.desktop
-%{_mandir}/man1/bacula-tray-monitor.1.%{manpage_ext}
-%endif
-
-%if %{gconsole} && ! %{su9} && ! %{su10} && ! %{su102} && ! %{su103} && ! %{su110} && ! %{su111}
-# add the console helper files
-%config(noreplace,missingok) /etc/pam.d/bgnome-console
-%config(noreplace,missingok) /etc/security/console.apps/bgnome-console
-/usr/bin/bgnome-console
-%endif
-
-%if %{gconsole}
-%pre gconsole
-# create the daemon group
-HAVE_BACULA=`grep %{daemon_group} %{group_file} 2>/dev/null`
-if [ -z "$HAVE_BACULA" ]; then
-        %{groupadd} -r %{daemon_group} > /dev/null 2>&1
-        echo "The group %{daemon_group} has been added to %{group_file}."
-        echo "See the manual chapter \"Running Bacula\" for details."
-fi
-
-%post gconsole
-# generate passwords if needed
-if [ -d %{sysconf_dir} ]; then
-        cd %{sysconf_dir}
-                for string in XXX_REPLACE_WITH_DIRECTOR_PASSWORD_XXX XXX_REPLACE_WITH_CLIENT_PASSWORD_XXX XXX_REPLACE_WITH_STORAGE_PASSWORD_XXX XXX_REPLACE_WITH_DIRECTOR_MONITOR_PASSWORD_XXX XXX_REPLACE_WITH_CLIENT_MONITOR_PASSWORD_XXX XXX_REPLACE_WITH_STORAGE_MONITOR_PASSWORD_XXX; do
-                                pass=`openssl rand -base64 33`
-      for file in *.conf; do
-         need_password=`grep ${string} $file 2>/dev/null`
-         if [ -n "$need_password" ]; then
-            sed "s@${string}@${pass}@g" $file > $file.new
-                                cp -f $file.new $file; rm -f $file.new
-                        fi
-                done
-        done
-# put actual hostname in conf file
-   host=`hostname`
-   string="XXX_HOSTNAME_XXX"
-   for file in *.conf; do
-      need_host=`grep ${string} $file 2>/dev/null`
-      if [ -n "$need_host" ]; then
-         sed "s@${string}@${host}@g" $file >$file.new
-         cp -f $file.new $file; rm -f $file.new
-      fi
-   done
-fi
-%endif
-
-%if %{wxconsole}
-%files wxconsole
-%defattr(-,root,root)
-%{_sbindir}/bwx-console
-%attr(-, root, %{daemon_group}) %dir %{sysconf_dir}
-%attr(-, root, %{daemon_group}) %config(noreplace) %{sysconf_dir}/bwx-console.conf
-/usr/share/pixmaps/wxwin16x16.xpm
-/usr/share/applications/wxconsole.desktop
-%{_mandir}/man1/bacula-bwxconsole.1.%{manpage_ext}
-%endif
-
-%if %{wxconsole} && ! %{su9} && ! %{su10} && ! %{su102} && ! %{su103} && ! %{su110} && ! %{su111}
-# add the console helper files
-%config(noreplace,missingok) /etc/pam.d/bwx-console
-%config(noreplace,missingok) /etc/security/console.apps/bwx-console
-/usr/bin/bwx-console
-%endif
-
-%if %{wxconsole}
-%pre wxconsole
-# create the daemon group
-HAVE_BACULA=`grep %{daemon_group} %{group_file} 2>/dev/null`
-if [ -z "$HAVE_BACULA" ]; then
-        %{groupadd} -r %{daemon_group} > /dev/null 2>&1
-        echo "The group %{daemon_group} has been added to %{group_file}."
-        echo "See the manual chapter \"Running Bacula\" for details."
-fi
-
-%post wxconsole
-# generate passwords if needed
-if [ -d %{sysconf_dir} ]; then
-        cd %{sysconf_dir}
-                for string in XXX_REPLACE_WITH_DIRECTOR_PASSWORD_XXX XXX_REPLACE_WITH_CLIENT_PASSWORD_XXX XXX_REPLACE_WITH_STORAGE_PASSWORD_XXX XXX_REPLACE_WITH_DIRECTOR_MONITOR_PASSWORD_XXX XXX_REPLACE_WITH_CLIENT_MONITOR_PASSWORD_XXX XXX_REPLACE_WITH_STORAGE_MONITOR_PASSWORD_XXX; do
-                                pass=`openssl rand -base64 33`
-      for file in *.conf; do
-         need_password=`grep ${string} $file 2>/dev/null`
-         if [ -n "$need_password" ]; then
-            sed "s@${string}@${pass}@g" $file > $file.new
-                                cp -f $file.new $file; rm -f $file.new
-                        fi
-                done
-        done
-# put actual hostname in conf file
-   host=`hostname`
-   string="XXX_HOSTNAME_XXX"
-   for file in *.conf; do
-      need_host=`grep ${string} $file 2>/dev/null`
-      if [ -n "$need_host" ]; then
-         sed "s@${string}@${host}@g" $file >$file.new
-         cp -f $file.new $file; rm -f $file.new
-      fi
-   done
-fi
 %endif
 
 %if %{bat}
@@ -2667,26 +1810,16 @@ fi
 # generate passwords if needed
 if [ -d %{sysconf_dir} ]; then
         cd %{sysconf_dir}
+        for file in *.conf; do
                 for string in XXX_REPLACE_WITH_DIRECTOR_PASSWORD_XXX XXX_REPLACE_WITH_CLIENT_PASSWORD_XXX XXX_REPLACE_WITH_STORAGE_PASSWORD_XXX XXX_REPLACE_WITH_DIRECTOR_MONITOR_PASSWORD_XXX XXX_REPLACE_WITH_CLIENT_MONITOR_PASSWORD_XXX XXX_REPLACE_WITH_STORAGE_MONITOR_PASSWORD_XXX; do
+                        need_password=`grep $string $file 2>/dev/null`
+                        if [ -n "$need_password" ]; then
                                 pass=`openssl rand -base64 33`
-      for file in *.conf; do
-         need_password=`grep ${string} $file 2>/dev/null`
-         if [ -n "$need_password" ]; then
-            sed "s@${string}@${pass}@g" $file > $file.new
+                                sed "s-$string-$pass-g" $file > $file.new
                                 cp -f $file.new $file; rm -f $file.new
                         fi
                 done
         done
-# put actual hostname in conf file
-   host=`hostname`
-   string="XXX_HOSTNAME_XXX"
-   for file in *.conf; do
-      need_host=`grep ${string} $file 2>/dev/null`
-      if [ -n "$need_host" ]; then
-         sed "s@${string}@${host}@g" $file >$file.new
-         cp -f $file.new $file; rm -f $file.new
-      fi
-   done
 fi
 %endif
 
