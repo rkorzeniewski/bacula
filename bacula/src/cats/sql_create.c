@@ -1141,10 +1141,15 @@ const char *create_temp_basefile[4] = {
 bool db_create_attributes_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
 {
    bool ret;
-   if (ar->FileType == FT_BASE) {
-      ret = db_create_base_file_attributes_record(jcr, jcr->db_batch, ar);
-   } else {
+   if (ar->FileType != FT_BASE) {
       ret = db_create_file_attributes_record(jcr, mdb, ar);
+
+   } else if (jcr->HasBase) {
+      ret = db_create_base_file_attributes_record(jcr, jcr->db_batch, ar);
+
+   } else {
+      Jmsg0(jcr, M_FATAL, 0, _("Can't Copy/Migrate job using BaseJob"));
+      ret = true;               /* in copy/migration what do we do ? */
    }
 
    return ret;
