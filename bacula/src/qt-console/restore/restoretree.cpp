@@ -50,7 +50,6 @@ restoreTree::restoreTree()
    m_closeable = true;
    m_populated = false;
 
-   dockPage();
    m_debugCnt = 0;
    m_debugTrap = true;
 
@@ -1856,4 +1855,10 @@ int restoreTree::queryFileIndex(QString &fullPath, int jobId)
       }
    } /* if (index != -1) */
    return qfileIndex;
+}
+
+
+void restoreTree::PgSeltreeWidgetClicked()
+{
+   dockPage();
 }
