@@ -64,8 +64,9 @@ JobList::JobList(const QString &mediaName, const QString &clientName,
    m_resultCount = 0;
    m_populated = false;
    m_closeable = false;
-   if ((m_mediaName != "") || (m_clientName != "") || (m_jobName != "") || (m_filesetName != ""))
+   if ((m_mediaName != "") || (m_clientName != "") || (m_jobName != "") || (m_filesetName != "")) {
       m_closeable=true;
+   }
    m_checkCurrentWidget = true;
 
    /* Set Defaults for check and spin for limits */
@@ -90,6 +91,7 @@ JobList::JobList(const QString &mediaName, const QString &clientName,
    gridLayout->addWidget(m_splitter, 0, 0, 1, 1);
    createConnections();
    readSettings();
+   if (m_closeable) { dockPage(); }
 }
 
 /*
@@ -409,7 +411,7 @@ void JobList::createConnections()
 #endif
    /* for the selectionChanged to maintain m_currentJob and a delete selection */
    connect(mp_tableWidget, SIGNAL(itemSelectionChanged()), this, SLOT(selectionChanged()));
-   connect(mp_tableWidget, SIGNAL(itemDoubleClicked()), this, SLOT(showInfoForJob()));
+   connect(mp_tableWidget, SIGNAL(itemDoubleClicked(QTableWidgetItem*)), this, SLOT(showInfoForJob()));
 
    /* Do what is required for the local context sensitive menu */
 
