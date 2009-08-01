@@ -58,7 +58,6 @@ public slots:
 private slots:
    void consoleListFilesOnJob();
    void consoleListJobMedia();
-   void consoleListVolumes();
    void consoleListJobTotals();
    void consoleDeleteJob();
    void consolePurgeFiles();
