@@ -538,7 +538,7 @@ void JobList::showLogForJob()
 /*
  * Subroutine to call class to show the log in the database from that job
  */
-void JobList::showInfoForJob()
+void JobList::showInfoForJob(QTableWidgetItem * item)
 {
    QTreeWidgetItem* pageSelectorTreeWidgetItem = mainWin->getFromHash(this);
    new Job(m_currentJob, pageSelectorTreeWidgetItem);
