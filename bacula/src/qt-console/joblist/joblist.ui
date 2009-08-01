@@ -442,6 +442,15 @@
     <string>Show Log for Job</string>
    </property>
   </action>
+  <action name="actionShowInfoForJob">
+   <property name="icon">
+    <iconset resource="../main.qrc">
+     <normaloff>:/images/joblog.png</normaloff>:/images/joblog.png</iconset>
+   </property>
+   <property name="text">
+    <string>Show Info for Job</string>
+   </property>
+  </action>
   <action name="actionCancelJob">
    <property name="icon">
     <iconset resource="../main.qrc">

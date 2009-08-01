@@ -65,6 +65,7 @@ private slots:
    void preRestoreFromJob();
    void preRestoreFromTime();
    void showLogForJob();
+   void showInfoForJob();
    void consoleCancelJob();
    void graphTable();
    void splitterMoved(int pos, int index);
