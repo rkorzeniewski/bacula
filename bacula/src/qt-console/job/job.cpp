@@ -50,11 +50,33 @@ Job::Job(QString &jobId, QTreeWidgetItem *parentTreeWidgetItem)
 
    m_jobId = jobId;
    getFont();
-   populateText();
-   populateForm();
-   populateVolumes();
+
+   connect(pbRefresh, SIGNAL(clicked()), this, SLOT(populateAll()));
+   connect(pbDelete, SIGNAL(clicked()), this, SLOT(deleteJob()));
+
+   populateAll();
    dockPage();
    setCurrent();
+}
+
+void Job::deleteJob()
+{
+   if (QMessageBox::warning(this, "Bat",
+      tr("Are you sure you want to delete??  !!!.\n"
+"This delete command is used to delete a Job record and all associated catalog"
+" records that were created. This command operates only on the Catalog"
+" database and has no effect on the actual data written to a Volume. This"
+" command can be dangerous and we strongly recommend that you do not use"
+" it unless you know what you are doing.  The Job and all its associated"
+" records (File and JobMedia) will be deleted from the catalog."
+      "Press OK to proceed with delete operation.?"),
+      QMessageBox::Ok | QMessageBox::Cancel)
+      == QMessageBox::Cancel) { return; }
+
+   QString cmd("delete job jobid=");
+   cmd += m_jobId;
+   consoleCommand(cmd, false);
+   closeStackPage();
 }
 
 void Job::getFont()
@@ -72,11 +94,20 @@ void Job::getFont()
    textJobLog->setFont(font);
 }
 
+void Job::populateAll()
+{
+   Pmsg0(0, "populateAll()\n");
+   populateText();
+   populateForm();
+   populateVolumes();
+}
+
 /*
  * Populate the text in the window
  */
 void Job::populateText()
 {
+   textJobLog->clear();
    QString query;
    query = "SELECT Time, LogText FROM Log WHERE JobId='" + m_jobId + "' order by Time";
 
