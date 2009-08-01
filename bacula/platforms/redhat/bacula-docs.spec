@@ -2,7 +2,9 @@
 #
 # Copyright (C) 2000-2009 Free Software Foundation Europe e.V.
 
-# Basic defines for every build
+# Platform Build Configuration
+
+# basic defines for every build
 %define _release           1
 %define _version           3.0.2
 %define _packager D. Scott Barninger <barninger@fairfieldcomputers.com>
