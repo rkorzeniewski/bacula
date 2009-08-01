@@ -40,6 +40,8 @@ public:
    Job(QString &jobId, QTreeWidgetItem *parentTreeWidgetItem);
 
 public slots:
+   void populateAll();
+   void deleteJob();
 
 private slots:
 
