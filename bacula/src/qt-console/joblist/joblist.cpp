@@ -36,6 +36,7 @@
 #include <QTableWidgetItem>
 #include "joblist.h"
 #include "restore.h"
+#include "job/job.h"
 #include "joblog/joblog.h"
 #ifdef HAVE_QWT
 #include "jobgraphs/jobplot.h"
@@ -408,6 +409,7 @@ void JobList::createConnections()
 #endif
    /* for the selectionChanged to maintain m_currentJob and a delete selection */
    connect(mp_tableWidget, SIGNAL(itemSelectionChanged()), this, SLOT(selectionChanged()));
+   connect(mp_tableWidget, SIGNAL(itemDoubleClicked()), this, SLOT(showInfoForJob()));
 
    /* Do what is required for the local context sensitive menu */
 
@@ -423,6 +425,7 @@ void JobList::createConnections()
    connect(actionRestoreFromJob, SIGNAL(triggered()), this, SLOT(preRestoreFromJob()));
    connect(actionRestoreFromTime, SIGNAL(triggered()), this, SLOT(preRestoreFromTime()));
    connect(actionShowLogForJob, SIGNAL(triggered()), this, SLOT(showLogForJob()));
+   connect(actionShowInfoForJob, SIGNAL(triggered()), this, SLOT(showInfoForJob()));
    connect(actionCancelJob, SIGNAL(triggered()), this, SLOT(consoleCancelJob()));
    connect(actionListJobTotals, SIGNAL(triggered()), this, SLOT(consoleListJobTotals()));
    connect(m_splitter, SIGNAL(splitterMoved(int, int)), this, SLOT(splitterMoved(int, int)));
@@ -528,6 +531,15 @@ void JobList::showLogForJob()
 {
    QTreeWidgetItem* pageSelectorTreeWidgetItem = mainWin->getFromHash(this);
    new JobLog(m_currentJob, pageSelectorTreeWidgetItem);
+}
+
+/*
+ * Subroutine to call class to show the log in the database from that job
+ */
+void JobList::showInfoForJob()
+{
+   QTreeWidgetItem* pageSelectorTreeWidgetItem = mainWin->getFromHash(this);
+   new Job(m_currentJob, pageSelectorTreeWidgetItem);
 }
 
 /*
@@ -643,6 +655,7 @@ void JobList::selectionChanged()
       mp_tableWidget->addAction(actionRestoreFromJob);
       mp_tableWidget->addAction(actionRestoreFromTime);
       mp_tableWidget->addAction(actionShowLogForJob);
+      mp_tableWidget->addAction(actionShowInfoForJob);
    }
    if (m_selectedJobsCount >= 1) {
       mp_tableWidget->addAction(actionDeleteJob);
