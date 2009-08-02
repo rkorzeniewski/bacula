@@ -7,9 +7,6 @@
 # basic defines for every build
 %define _release           1
 %define _version           3.0.2
-%define docs_version       3.0.2
-%define depkgs_version     18Feb09
-%define depkgs_qt_version  28Jul09
 %define _packager D. Scott Barninger <barninger@fairfieldcomputers.com>
 
 %define single_dir 0
@@ -226,10 +223,7 @@ Prefix: %{_prefix}
 
 Source0: http://www.prdownloads.sourceforge.net/bacula/%{name}-%{version}.tar.gz
 Source1: Release_Notes-%{version}-%{release}.tar.gz
-Source2: http://www.prdownloads.sourceforge.net/bacula/%{name}-docs-%{docs_version}.tar.gz
-Source3: http://www.prdownloads.sourceforge.net/bacula/depkgs-%{depkgs_version}.tar.gz
-Source4: http://www.prdownloads.sourceforge.net/bacula/depkgs-qt-%{depkgs_qt_version}.tar.gz
-Source5: bacula-2.2.7-postgresql.patch
+Source2: bacula-2.2.7-postgresql.patch
 
 # define the basic package description
 %define blurb Bacula - It comes by night and sucks the vital essence from your computers.
@@ -240,11 +234,6 @@ Source5: bacula-2.2.7-postgresql.patch
 %define blurb6 easy to use and efficient, while offering many advanced storage management
 %define blurb7 features that make it easy to find and recover lost or damaged files.
 %define blurb8 Bacula source code has been released under the GPL version 2 license.
-
-# Source directory locations
-%define _docsrc   ../%{name}-docs-%{docs_version}
-%define depkgs    ../depkgs
-%define depkgs_qt ../depkgs-qt
 
 %define user_file  /etc/passwd
 %define group_file /etc/group
@@ -427,11 +416,6 @@ exit 1
 %endif
 %{?DISTNAME:%define _dist %{DISTNAME}}
 Distribution: %{_dist}
-
-# Should we build bat
-# requires >= Qt-4.2
-%define bat 0
-%{?build_bat:%define bat 1}
 
 # should we turn on python support
 %define python 0
@@ -696,46 +680,6 @@ Group: System Environment/Daemons
 
 This package installs the Bacula pdf and html documentation.
 
-%if %{bat}
-%package bat
-Summary: Bacula - The Network Backup Solution
-Group: System Environment/Daemons
-
-%if %{suse}
-Requires: openssl
-Requires: glibc
-Requires: fontconfig
-Requires: freetype2
-Requires: libgcc
-Requires: libpng
-Requires: libstdc++
-Requires: zlib
-%else
-Requires: openssl
-Requires: glibc
-Requires: fontconfig
-Requires: freetype
-Requires: libgcc
-Requires: libpng
-Requires: libstdc++
-Requires: zlib
-%endif
-
-%description bat
-%{blurb}
-
-%{blurb2}
-%{blurb3}
-%{blurb4}
-%{blurb5}
-%{blurb6}
-%{blurb7}
-%{blurb8}
-
-This is the Bacula Administration Tool (bat) graphical user interface package. 
-It is an add-on to the client or server packages.
-%endif
-
 # Must explicitly enable debug pkg on SuSE
 %if %{suse}
 %debug_package
@@ -743,33 +687,11 @@ export LDFLAGS="${LDFLAGS} -L/usr/lib/termcap"
 %endif
 
 %prep
-
 %setup
 %setup -T -D -b 1
 %setup -T -D -b 2
-%setup -T -D -b 3
-%setup -T -D -b 4
-%setup -T -D -b 5
 
 %build
-
-cwd=${PWD}
-%if %{bat}
-#export QTDIR=$(pkg-config --variable=prefix QtCore)
-#export QTINC=$(pkg-config --variable=includedir QtCore)
-#export QTLIB=$(pkg-config --variable=libdir QtCore)
-#export PATH=${QTDIR}/bin/:${PATH}
-cd %{depkgs_qt}
-make qt4 <<EOF
-yes
-EOF
-qtdir=${PWD}
-export PATH=${qtdir}/qt4/bin:$PATH
-export QTDIR=${qtdir}/qt4/
-export QTINC=${qtdir}/qt4/include/
-export QTLIB=${qtdir}/qt4/lib/
-cd ${cwd}
-%endif
 
 %if %{wb3} || %{old_pgsql}
 patch -p3 src/cats/postgresql.c < %SOURCE5
@@ -830,12 +752,6 @@ export LDFLAGS="${LDFLAGS} -L/usr/lib64/python%{pyver}"
 %if %{rhel5} || %{centos5} || %{sl5}
 %define qt_path 1
 %endif
-#%if %{bat} && %{qt_path} && %{x86_64}
-#export PATH=/usr/lib64/qt4/bin/:$PATH
-#export QTDIR=/usr/lib64/qt4/
-#export QTINC=/usr/lib64/qt4/include/
-#export QTLIB=/usr/lib64/qt4/
-#%endif
 
 # Main Bacula configuration
 %configure \
@@ -849,6 +765,9 @@ export LDFLAGS="${LDFLAGS} -L/usr/lib64/python%{pyver}"
         --with-pid-dir=%{pid_dir} \
         --with-subsys-dir=%{_subsysdir} \
         --enable-smartalloc \
+        --disable-gome \
+        --disable-bwx-console \
+        --disable-tray-monitor \
 %if %{mysql}
         --with-mysql \
 %endif
@@ -858,10 +777,8 @@ export LDFLAGS="${LDFLAGS} -L/usr/lib64/python%{pyver}"
 %if %{postgresql}
         --with-postgresql \
 %endif
-%if %{bat}
-        --enable-bat \
+        --disable-bat \
         --without-qwt \
-%endif
 %if %{python}
         --with-python \
 %endif
@@ -885,7 +802,7 @@ export LDFLAGS="${LDFLAGS} -L/usr/lib64/python%{pyver}"
         --with-mon-sd-password="XXX_REPLACE_WITH_STORAGE_MONITOR_PASSWORD_XXX" \
         --with-openssl
 
-make
+make -j3
 
 %install
  
@@ -898,20 +815,9 @@ mkdir -p $RPM_BUILD_ROOT/etc/log.d/conf/services
 mkdir -p $RPM_BUILD_ROOT/etc/log.d/scripts/services
 mkdir -p $RPM_BUILD_ROOT%{script_dir}/updatedb
 
-%if %{bat}
-mkdir -p $RPM_BUILD_ROOT/usr/share/applications
-mkdir -p $RPM_BUILD_ROOT/usr/share/pixmaps
-%define usermode_iftrick 1
-%else
-%define usermode_iftrick 0
-%endif
-
-%if %{usermode_iftrick} && ! %{su9} && ! %{su10} && ! %{su102} && ! %{su103} && ! %{su110} && ! %{su111}
 mkdir -p $RPM_BUILD_ROOT/etc/pam.d
-mkdir -p $RPM_BUILD_ROOT/etc/security/console.apps
 mkdir -p $RPM_BUILD_ROOT%{_sbindir}
 #mkdir -p $RPM_BUILD_ROOT%{_bindir}
-%endif
 
 %if %{sqlite}
 mkdir -p $RPM_BUILD_ROOT%{sqlite_bindir}
@@ -919,19 +825,8 @@ mkdir -p $RPM_BUILD_ROOT%{sqlite_bindir}
 
 make DESTDIR=$RPM_BUILD_ROOT install
 
-
-# make install in manpages installs _everything_ shotgun style
-# so now delete what we will not be packaging
-rm -f $RPM_BUILD_ROOT%{_mandir}/man1/bacula-bwxconsole.1.%{manpage_ext}
-rm -f $RPM_BUILD_ROOT%{_mandir}/man1/bacula-bgnome-console.1.%{manpage_ext}
-rm -f $RPM_BUILD_ROOT%{_mandir}/man1/bacula-tray-monitor.1.%{manpage_ext}
-
-%if ! %{bat}
-rm -f $RPM_BUILD_ROOT%{_mandir}/man1/bat.1.%{manpage_ext}
-%endif
-
 %if %{client_only}
-rm -f $RPM_BUILD_ROOT%{_mandir}/man1/bsmtp.1.%{manpage_ext}
+# Program docs not installed on client
 rm -f $RPM_BUILD_ROOT%{_mandir}/man8/bacula-dir.8.%{manpage_ext}
 rm -f $RPM_BUILD_ROOT%{_mandir}/man8/bacula-sd.8.%{manpage_ext}
 rm -f $RPM_BUILD_ROOT%{_mandir}/man8/bcopy.8.%{manpage_ext}
@@ -940,11 +835,16 @@ rm -f $RPM_BUILD_ROOT%{_mandir}/man8/bls.8.%{manpage_ext}
 rm -f $RPM_BUILD_ROOT%{_mandir}/man8/bscan.8.%{manpage_ext}
 rm -f $RPM_BUILD_ROOT%{_mandir}/man8/btape.8.%{manpage_ext}
 rm -f $RPM_BUILD_ROOT%{_mandir}/man8/dbcheck.8.%{manpage_ext}
+rm -f $RPM_BUILD_ROOT%{_mandir}/man1/bsmtp.1.%{manpage_ext}
 %endif
+# Docs for programs that are depreciated
+rm -f $RPM_BUILD_ROOT%{_mandir}/man1/bacula-bgnome-console.1.%{manpage_ext}
+rm -f $RPM_BUILD_ROOT%{_mandir}/man1/bacula-bwxconsole.1.%{manpage_ext}
+rm -f $RPM_BUILD_ROOT%{_mandir}/man1/bacula-tray-monitor.1.%{manpage_ext}
+rm -f $RPM_BUILD_ROOT%{script_dir}/gconsole
 
 # fixme - make installs the mysql scripts for sqlite build
 %if %{sqlite}
-rm -f $RPM_BUILD_ROOT%{script_dir}/startmysql
 rm -f $RPM_BUILD_ROOT%{script_dir}/stopmysql
 rm -f $RPM_BUILD_ROOT%{script_dir}/grant_mysql_privileges
 %endif
@@ -954,9 +854,6 @@ rm -f $RPM_BUILD_ROOT%{script_dir}/grant_mysql_privileges
 rm -f $RPM_BUILD_ROOT%{script_dir}/startmysql
 rm -f $RPM_BUILD_ROOT%{script_dir}/stopmysql
 %endif
-
-rm -f $RPM_BUILD_ROOT%{script_dir}/gconsole
-rm -f $RPM_BUILD_ROOT%{_sbindir}/static-bacula-fd
 
 # install the init scripts
 %if %{suse}
@@ -980,31 +877,6 @@ rm -f $RPM_BUILD_ROOT/etc/init.d/bacula-dir
 rm -f $RPM_BUILD_ROOT/etc/init.d/bacula-sd
 %endif
 
-# install the menu stuff
-%if %{bat}
-cp -p src/qt-console/images/bat_icon.png $RPM_BUILD_ROOT/usr/share/pixmaps/bat_icon.png
-cp -p scripts/bat.desktop.xsu $RPM_BUILD_ROOT/usr/share/applications/bat.desktop
-%endif
-%if %{rh8} || %{rh9} || %{wb3} || %{fc1} || %{fc3} || %{fc4} || %{fc5} || %{fc6} || %{fc7} || %{fc8} || %{fc9} || %{mdk}
-%define iftrick 1
-%else
-%define iftrick 0
-%endif
-%if %{bat} && %{iftrick}
-cp -p src/qt-console/images/bat_icon.png $RPM_BUILD_ROOT/usr/share/pixmaps/bat_icon.png
-cp -p scripts/bat.desktop.consolehelper $RPM_BUILD_ROOT/usr/share/applications/bat.desktop
-cp -p scripts/bat.console_apps $RPM_BUILD_ROOT/etc/security/console.apps/bat
-cp -p scripts/bat.pamd $RPM_BUILD_ROOT/etc/pam.d/bat
-ln -sf consolehelper $RPM_BUILD_ROOT/%{_sbindir}/bat
-%endif
-
-# install sqlite
-%if %{sqlite}
-cp -p %{depkgs}/sqlite3/sqlite3 $RPM_BUILD_ROOT%{sqlite_bindir}/sqlite3
-cp -p %{depkgs}/sqlite3/sqlite3.h $RPM_BUILD_ROOT%{sqlite_bindir}/sqlite3.h
-cp -p %{depkgs}/sqlite3/libsqlite3.a $RPM_BUILD_ROOT%{sqlite_bindir}/libsqlite3.a
-%endif
-
 # install the logrotate file
 cp -p scripts/logrotate $RPM_BUILD_ROOT/etc/logrotate.d/bacula
 
@@ -1020,30 +892,6 @@ chmod 755 $RPM_BUILD_ROOT/etc/log.d/scripts/services/bacula
 chmod 644 $RPM_BUILD_ROOT/etc/log.d/conf/logfiles/bacula.conf
 chmod 644 $RPM_BUILD_ROOT/etc/log.d/conf/services/bacula.conf
 %endif
-
-# install docs for single dir installation
-mkdir $RPM_BUILD_ROOT%{_prefix}/doc
-cp COPYING $RPM_BUILD_ROOT%{_prefix}/doc/
-cp ChangeLog $RPM_BUILD_ROOT%{_prefix}/doc/
-cp ReleaseNotes $RPM_BUILD_ROOT%{_prefix}/doc/
-cp VERIFYING $RPM_BUILD_ROOT%{_prefix}/doc/
-cp LICENSE $RPM_BUILD_ROOT%{_prefix}/doc/
-cp kernstodo $RPM_BUILD_ROOT%{_prefix}/doc/
-cp -r %{_docsrc}/manuals/en/catalog/catalog $RPM_BUILD_ROOT%{_prefix}/doc/
-cp %{_docsrc}/manuals/en/catalog/catalog.pdf $RPM_BUILD_ROOT%{_prefix}/doc/
-cp -r %{_docsrc}/manuals/en/concepts/concepts $RPM_BUILD_ROOT%{_prefix}/doc/
-cp %{_docsrc}/manuals/en/concepts/concepts.pdf $RPM_BUILD_ROOT%{_prefix}/doc/
-cp -r %{_docsrc}/manuals/en/console/console $RPM_BUILD_ROOT%{_prefix}/doc/
-cp %{_docsrc}/manuals/en/console/console.pdf $RPM_BUILD_ROOT%{_prefix}/doc/
-cp -r %{_docsrc}/manuals/en/developers/developers $RPM_BUILD_ROOT%{_prefix}/doc/
-cp %{_docsrc}/manuals/en/developers/developers.pdf $RPM_BUILD_ROOT%{_prefix}/doc/
-cp -r %{_docsrc}/manuals/en/install/install $RPM_BUILD_ROOT%{_prefix}/doc/
-cp %{_docsrc}/manuals/en/install/install.pdf $RPM_BUILD_ROOT%{_prefix}/doc/
-cp -r %{_docsrc}/manuals/en/problems/problems $RPM_BUILD_ROOT%{_prefix}/doc/
-cp %{_docsrc}/manuals/en/problems/problems.pdf $RPM_BUILD_ROOT%{_prefix}/doc/
-cp -r %{_docsrc}/manuals/en/utility/utility $RPM_BUILD_ROOT%{_prefix}/doc/
-cp %{_docsrc}/manuals/en/utility/utility.pdf $RPM_BUILD_ROOT%{_prefix}/doc/
-cp ../Release_Notes-%{version}-%{release}.txt $RPM_BUILD_ROOT%{_prefix}/doc/
 
 # now clean up permissions that are left broken by the install
 chmod o-rwx $RPM_BUILD_ROOT%{working_dir}
@@ -1067,8 +915,6 @@ rm -f $RPM_BUILD_ROOT%{_sbindir}/bacula
 
 %clean
 [ "$RPM_BUILD_ROOT" != "/" ] && rm -rf "$RPM_BUILD_ROOT"
-rm -rf $RPM_BUILD_DIR/%{name}-docs-%{docs_version}
-rm -rf $RPM_BUILD_DIR/depkgs
 rm -f $RPM_BUILD_DIR/Release_Notes-%{version}-%{release}.txt
 
 %if %{mysql}
@@ -1177,6 +1023,7 @@ rm -f $RPM_BUILD_DIR/Release_Notes-%{version}-%{release}.txt
 %{_mandir}/man8/btraceback.8.%{manpage_ext}
 %{_mandir}/man8/dbcheck.8.%{manpage_ext}
 %{_mandir}/man1/bsmtp.1.%{manpage_ext}
+%{_mandir}/man1/bat.1.%{manpage_ext}
 %{_libdir}/libbac*
 /usr/share/doc/*
 %endif
@@ -1472,6 +1319,7 @@ fi
 %{_mandir}/man8/bacula.8.%{manpage_ext}
 %{_mandir}/man8/bconsole.8.%{manpage_ext}
 %{_mandir}/man8/btraceback.8.%{manpage_ext}
+%{_mandir}/man1/bat.1.%{manpage_ext}
 %{_libdir}/libbac.*
 %{_libdir}/libbaccfg.*
 %{_libdir}/libbacfind.*
@@ -1559,71 +1407,6 @@ fi
 
 %post updatedb
 echo "The database update scripts were installed to %{script_dir}/updatedb"
-%endif
-
-%files docs
-%doc COPYING ChangeLog ReleaseNotes LICENSE VERIFYING kernstodo ../Release_Notes-%{version}-%{release}.txt
-%doc %{_docsrc}/manuals/en/catalog/catalog %{_docsrc}/manuals/en/catalog/catalog.pdf
-%doc %{_docsrc}/manuals/en/concepts/concepts %{_docsrc}/manuals/en/concepts/concepts.pdf
-%doc %{_docsrc}/manuals/en/console/console %{_docsrc}/manuals/en/console/console.pdf
-%doc %{_docsrc}/manuals/en/developers/developers %{_docsrc}/manuals/en/developers/developers.pdf
-%doc %{_docsrc}/manuals/en/install/install %{_docsrc}/manuals/en/install/install.pdf
-%doc %{_docsrc}/manuals/en/problems/problems %{_docsrc}/manuals/en/problems/problems.pdf
-%doc %{_docsrc}/manuals/en/utility/utility %{_docsrc}/manuals/en/utility/utility.pdf
-%{_prefix}/doc/*
-
-%if %{bat}
-%files bat
-%defattr(-,root,root)
-%{_sbindir}/bat
-%attr(-, root, %{daemon_group}) %dir %{sysconf_dir}
-%attr(-, root, %{daemon_group}) %config(noreplace) %{sysconf_dir}/bat.conf
-/usr/share/pixmaps/bat_icon.png
-/usr/share/applications/bat.desktop
-%{_mandir}/man1/bat.1.%{manpage_ext}
-%endif
-
-%if %{bat} && ! %{su9} && ! %{su10} && ! %{su102} && ! %{su103} && ! %{su110} && ! %{su111}
-# add the console helper files
-%config(noreplace,missingok) /etc/pam.d/bat
-%config(noreplace,missingok) /etc/security/console.apps/bat
-%endif
-
-%if %{bat}
-%pre bat
-# create the daemon group
-HAVE_BACULA=`grep %{daemon_group} %{group_file} 2>/dev/null`
-if [ -z "$HAVE_BACULA" ]; then
-    %{groupadd} -r %{daemon_group} > /dev/null 2>&1
-    echo "The group %{daemon_group} has been added to %{group_file}."
-    echo "See the manual chapter \"Running Bacula\" for details."
-fi
-
-%post bat
-if [ -d %{sysconf_dir} ]; then
-   cd %{sysconf_dir}
-   for string in XXX_REPLACE_WITH_DIRECTOR_PASSWORD_XXX XXX_REPLACE_WITH_CLIENT_PASSWORD_XXX XXX_REPLACE_WITH_STORAGE_PASSWORD_XXX XXX_REPLACE_WITH_DIRECTOR_MONITOR_PASSWORD_XXX XXX_REPLACE_WITH_CLIENT_MONITOR_PASSWORD_XXX XXX_REPLACE_WITH_STORAGE_MONITOR_PASSWORD_XXX; do
-      pass=`openssl rand -base64 33`
-      for file in *.conf; do
-         need_password=`grep ${string} $file 2>/dev/null`
-         if [ -n "$need_password" ]; then
-            sed "s@${string}@${pass}@g" $file > $file.new
-            cp -f $file.new $file; rm -f $file.new
-         fi
-      done
-   done
-# put actual hostname in conf file
-   host=`hostname`
-   string="XXX_HOSTNAME_XXX"
-   for file in *.conf; do
-      need_host=`grep ${string} $file 2>/dev/null`
-      if [ -n "$need_host" ]; then
-         sed "s@${string}@${host}@g" $file >$file.new
-         cp -f $file.new $file; rm -f $file.new
-      fi
-   done
-fi
-
 %endif
 
 %changelog
