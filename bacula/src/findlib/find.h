@@ -205,6 +205,7 @@ struct FF_PKT {
    bool null_output_device;           /* using null output device */
    bool incremental;                  /* incremental save */
    char VerifyOpts[20];
+   char AccurateOpts[20];
    struct s_included_file *included_files_list;
    struct s_excluded_file *excluded_files_list;
    struct s_excluded_file *excluded_paths_list;
