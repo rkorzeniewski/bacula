@@ -73,7 +73,6 @@ uninstall:
 	(cd $(DESTDIR)$(scriptdir); $(RMF) startmysql)
 	(cd $(DESTDIR)$(scriptdir); $(RMF) stopmysql)
 	(cd $(DESTDIR)$(scriptdir); $(RMF) bconsole)
-	(cd $(DESTDIR)$(scriptdir); $(RMF) gconsole)
 	(cd $(DESTDIR)$(scriptdir); $(RMF) bacula)
 	(cd $(DESTDIR)$(sbindir);   $(RMF) bacula)
 	(cd $(DESTDIR)$(scriptdir); $(RMF) bacula-ctl-dir)
