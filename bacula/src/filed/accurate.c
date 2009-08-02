@@ -113,7 +113,8 @@ static bool accurate_send_base_file_list(JCR *jcr)
    foreach_htable(elt, jcr->file_list) {
       if (elt->seen) {
          Dmsg2(dbglvl, "base file fname=%s seen=%i\n", elt->fname, elt->seen);
-         decode_stat(elt->lstat, &statc, &LinkFIc); /* decode catalog stat */      
+         /* TODO: skip the decode and use directly the lstat field */
+         decode_stat(elt->lstat, &statc, &LinkFIc); /* decode catalog stat */  
          ff_pkt->fname = elt->fname;
          ff_pkt->statp = statc;
          encode_and_send_attributes(jcr, ff_pkt, stream);
@@ -154,6 +155,7 @@ static bool accurate_send_deleted_list(JCR *jcr)
          continue;
       }
       Dmsg2(dbglvl, "deleted fname=%s seen=%i\n", elt->fname, elt->seen);
+      /* TODO: skip the decode and use directly the lstat field */
       decode_stat(elt->lstat, &statc, &LinkFIc); /* decode catalog stat */
       ff_pkt->fname = elt->fname;
       ff_pkt->statp.st_mtime = statc.st_mtime;
@@ -376,13 +378,18 @@ bool accurate_check_file(JCR *jcr, FF_PKT *ff_pkt)
    }
 #endif
 
-   /* compute space saved with basefile */
-   if (jcr->get_JobLevel() == L_FULL && !stat) {
-      jcr->base_size += ff_pkt->statp.st_size;
+   /* In Incr/Diff accurate mode, we mark all files as seen
+    * When in Full+Base mode, we mark only if the file match exactly
+    */
+   if (jcr->get_JobLevel() == L_FULL) {
+      if (!stat) {               
+         /* compute space saved with basefile */
+         jcr->base_size += ff_pkt->statp.st_size;
+         accurate_mark_file_as_seen(jcr, &elt);
+      }
+   } else {
+      accurate_mark_file_as_seen(jcr, &elt);
    }
-
-   accurate_mark_file_as_seen(jcr, &elt);
-//   Dmsg2(dbglvl, "accurate %s = %d\n", fname, stat);
 
 bail_out:
    unstrip_path(ff_pkt);
