@@ -33,7 +33,7 @@
 #include "bacula.h"
 #include "filed.h"
 
-static int dbglvl=100;
+static int dbglvl=0;
 
 typedef struct PrivateCurFile {
    hlink link;
@@ -253,108 +253,103 @@ bool accurate_check_file(JCR *jcr, FF_PKT *ff_pkt)
 
    decode_stat(elt.lstat, &statc, &LinkFIc); /* decode catalog stat */
 
-#if 0
+//#if 0
    /*
     * Loop over options supplied by user and verify the
     * fields he requests.
     */
-   for (p=Opts_Digest; *p; p++) {
+   for (char *p=ff_pkt->AccurateOpts; *p; p++) {
       char ed1[30], ed2[30];
       switch (*p) {
       case 'i':                /* compare INODEs */
-         if (statc.st_ino != statf.st_ino) {
-            prt_fname(jcr);
-            Jmsg(jcr, M_INFO, 0, _("      st_ino   differ. Cat: %s File: %s\n"),
-                 edit_uint64((uint64_t)statc.st_ino, ed1),
-                 edit_uint64((uint64_t)statf.st_ino, ed2));
-            set_jcr_job_status(jcr, JS_Differences);
+         if (statc.st_ino != ff_pkt->statp.st_ino) {
+            Dmsg3(dbglvl, "%s      st_ino   differ. Cat: %s File: %s\n",
+                  fname,
+                  edit_uint64((uint64_t)statc.st_ino, ed1),
+                  edit_uint64((uint64_t)ff_pkt->statp.st_ino, ed2));
+            stat = true;
          }
          break;
       case 'p':                /* permissions bits */
-         if (statc.st_mode != statf.st_mode) {
-            prt_fname(jcr);
-            Jmsg(jcr, M_INFO, 0, _("      st_mode  differ. Cat: %x File: %x\n"),
-                 (uint32_t)statc.st_mode, (uint32_t)statf.st_mode);
-            set_jcr_job_status(jcr, JS_Differences);
+         if (statc.st_mode != ff_pkt->statp.st_mode) {
+            Dmsg3(dbglvl, "%s     st_mode  differ. Cat: %x File: %x\n",
+                  fname,
+                  (uint32_t)statc.st_mode, (uint32_t)ff_pkt->statp.st_mode);
+            stat = true;
          }
          break;
       case 'n':                /* number of links */
-         if (statc.st_nlink != statf.st_nlink) {
-            prt_fname(jcr);
-            Jmsg(jcr, M_INFO, 0, _("      st_nlink differ. Cat: %d File: %d\n"),
-                 (uint32_t)statc.st_nlink, (uint32_t)statf.st_nlink);
-            set_jcr_job_status(jcr, JS_Differences);
+         if (statc.st_nlink != ff_pkt->statp.st_nlink) {
+            Dmsg3(dbglvl, "%s      st_nlink differ. Cat: %d File: %d\n",
+                  fname,
+                  (uint32_t)statc.st_nlink, (uint32_t)ff_pkt->statp.st_nlink);
+            stat = true;
          }
          break;
       case 'u':                /* user id */
-         if (statc.st_uid != statf.st_uid) {
-            prt_fname(jcr);
-            Jmsg(jcr, M_INFO, 0, _("      st_uid   differ. Cat: %u File: %u\n"),
-                 (uint32_t)statc.st_uid, (uint32_t)statf.st_uid);
-            set_jcr_job_status(jcr, JS_Differences);
+         if (statc.st_uid != ff_pkt->statp.st_uid) {
+            Dmsg3(dbglvl, "%s      st_uid   differ. Cat: %u File: %u\n",
+                  fname,
+                  (uint32_t)statc.st_uid, (uint32_t)ff_pkt->statp.st_uid);
+            stat = true;
          }
          break;
       case 'g':                /* group id */
-         if (statc.st_gid != statf.st_gid) {
-            prt_fname(jcr);
-            Jmsg(jcr, M_INFO, 0, _("      st_gid   differ. Cat: %u File: %u\n"),
-                 (uint32_t)statc.st_gid, (uint32_t)statf.st_gid);
-            set_jcr_job_status(jcr, JS_Differences);
+         if (statc.st_gid != ff_pkt->statp.st_gid) {
+            Dmsg3(dbglvl, "%s      st_gid   differ. Cat: %u File: %u\n",
+                  fname,
+                  (uint32_t)statc.st_gid, (uint32_t)ff_pkt->statp.st_gid);
+            stat = true;
          }
          break;
       case 's':                /* size */
-         if (statc.st_size != statf.st_size) {
-            prt_fname(jcr);
-            Jmsg(jcr, M_INFO, 0, _("      st_size  differ. Cat: %s File: %s\n"),
-                 edit_uint64((uint64_t)statc.st_size, ed1),
-                 edit_uint64((uint64_t)statf.st_size, ed2));
-            set_jcr_job_status(jcr, JS_Differences);
+         if (statc.st_size != ff_pkt->statp.st_size) {
+            Dmsg3(dbglvl, "%s      st_size  differ. Cat: %s File: %s\n",
+                  fname,
+                  edit_uint64((uint64_t)statc.st_size, ed1),
+                  edit_uint64((uint64_t)ff_pkt->statp.st_size, ed2));
+            stat = true;
          }
          break;
       case 'a':                /* access time */
-         if (statc.st_atime != statf.st_atime) {
-            prt_fname(jcr);
-            Jmsg(jcr, M_INFO, 0, _("      st_atime differs\n"));
-            set_jcr_job_status(jcr, JS_Differences);
+         if (statc.st_atime != ff_pkt->statp.st_atime) {
+            Dmsg1(dbglvl, "%s      st_atime differs\n", fname);
+            stat = true;
          }
          break;
       case 'm':
-         if (statc.st_mtime != statf.st_mtime) {
-            prt_fname(jcr);
-            Jmsg(jcr, M_INFO, 0, _("      st_mtime differs\n"));
-            set_jcr_job_status(jcr, JS_Differences);
+         if (statc.st_mtime != ff_pkt->statp.st_mtime) {
+            Dmsg1(dbglvl, "%s      st_mtime differs\n", fname);
+            stat = true;
          }
          break;
       case 'c':                /* ctime */
-         if (statc.st_ctime != statf.st_ctime) {
-            prt_fname(jcr);
-            Jmsg(jcr, M_INFO, 0, _("      st_ctime differs\n"));
-            set_jcr_job_status(jcr, JS_Differences);
+         if (statc.st_ctime != ff_pkt->statp.st_ctime) {
+            Dmsg1(dbglvl, "      st_ctime differs\n", fname);
+            stat = true;
          }
          break;
       case 'd':                /* file size decrease */
-         if (statc.st_size > statf.st_size) {
-            prt_fname(jcr);
-            Jmsg(jcr, M_INFO, 0, _("      st_size  decrease. Cat: %s File: %s\n"),
-                 edit_uint64((uint64_t)statc.st_size, ed1),
-                 edit_uint64((uint64_t)statf.st_size, ed2));
-            set_jcr_job_status(jcr, JS_Differences);
+         if (statc.st_size > ff_pkt->statp.st_size) {
+            Dmsg3(dbglvl, "%s      st_size  decrease. Cat: %s File: %s\n",
+                  fname,
+                  edit_uint64((uint64_t)statc.st_size, ed1),
+                  edit_uint64((uint64_t)ff_pkt->statp.st_size, ed2));
+            stat = true;
          }
          break;
       case '5':                /* compare MD5 */
-         Dmsg1(500, "set Do_MD5 for %s\n", jcr->fname);
-         do_Digest = CRYPTO_DIGEST_MD5;
          break;
       case '1':                 /* compare SHA1 */
-         do_Digest = CRYPTO_DIGEST_SHA1;
-               break;
+         break;
       case ':':
-      case 'V':
+      case 'C':
       default:
          break;
             }
    }
-#endif
+//#endif
+#if 0
    /*
     * We check only mtime/ctime like with the normal
     * incremental/differential mode
@@ -375,6 +370,7 @@ bool accurate_check_file(JCR *jcr, FF_PKT *ff_pkt)
       Dmsg1(dbglvl, "%s      st_size differs\n", fname);
       stat = true;
    }
+#endif
 
    accurate_mark_file_as_seen(jcr, &elt);
 //   Dmsg2(dbglvl, "accurate %s = %d\n", fname, stat);
