@@ -33,7 +33,7 @@
 #include "bacula.h"
 #include "filed.h"
 
-static int dbglvl=0;
+static int dbglvl=100;
 
 typedef struct PrivateCurFile {
    hlink link;
@@ -263,7 +263,7 @@ bool accurate_check_file(JCR *jcr, FF_PKT *ff_pkt)
       switch (*p) {
       case 'i':                /* compare INODEs */
          if (statc.st_ino != ff_pkt->statp.st_ino) {
-            Dmsg3(dbglvl, "%s      st_ino   differ. Cat: %s File: %s\n",
+            Dmsg3(dbglvl-1, "%s      st_ino   differ. Cat: %s File: %s\n",
                   fname,
                   edit_uint64((uint64_t)statc.st_ino, ed1),
                   edit_uint64((uint64_t)ff_pkt->statp.st_ino, ed2));
@@ -272,7 +272,7 @@ bool accurate_check_file(JCR *jcr, FF_PKT *ff_pkt)
          break;
       case 'p':                /* permissions bits */
          if (statc.st_mode != ff_pkt->statp.st_mode) {
-            Dmsg3(dbglvl, "%s     st_mode  differ. Cat: %x File: %x\n",
+            Dmsg3(dbglvl-1, "%s     st_mode  differ. Cat: %x File: %x\n",
                   fname,
                   (uint32_t)statc.st_mode, (uint32_t)ff_pkt->statp.st_mode);
             stat = true;
@@ -280,7 +280,7 @@ bool accurate_check_file(JCR *jcr, FF_PKT *ff_pkt)
          break;
       case 'n':                /* number of links */
          if (statc.st_nlink != ff_pkt->statp.st_nlink) {
-            Dmsg3(dbglvl, "%s      st_nlink differ. Cat: %d File: %d\n",
+            Dmsg3(dbglvl-1, "%s      st_nlink differ. Cat: %d File: %d\n",
                   fname,
                   (uint32_t)statc.st_nlink, (uint32_t)ff_pkt->statp.st_nlink);
             stat = true;
@@ -288,7 +288,7 @@ bool accurate_check_file(JCR *jcr, FF_PKT *ff_pkt)
          break;
       case 'u':                /* user id */
          if (statc.st_uid != ff_pkt->statp.st_uid) {
-            Dmsg3(dbglvl, "%s      st_uid   differ. Cat: %u File: %u\n",
+            Dmsg3(dbglvl-1, "%s      st_uid   differ. Cat: %u File: %u\n",
                   fname,
                   (uint32_t)statc.st_uid, (uint32_t)ff_pkt->statp.st_uid);
             stat = true;
@@ -296,7 +296,7 @@ bool accurate_check_file(JCR *jcr, FF_PKT *ff_pkt)
          break;
       case 'g':                /* group id */
          if (statc.st_gid != ff_pkt->statp.st_gid) {
-            Dmsg3(dbglvl, "%s      st_gid   differ. Cat: %u File: %u\n",
+            Dmsg3(dbglvl-1, "%s      st_gid   differ. Cat: %u File: %u\n",
                   fname,
                   (uint32_t)statc.st_gid, (uint32_t)ff_pkt->statp.st_gid);
             stat = true;
@@ -304,7 +304,7 @@ bool accurate_check_file(JCR *jcr, FF_PKT *ff_pkt)
          break;
       case 's':                /* size */
          if (statc.st_size != ff_pkt->statp.st_size) {
-            Dmsg3(dbglvl, "%s      st_size  differ. Cat: %s File: %s\n",
+            Dmsg3(dbglvl-1, "%s      st_size  differ. Cat: %s File: %s\n",
                   fname,
                   edit_uint64((uint64_t)statc.st_size, ed1),
                   edit_uint64((uint64_t)ff_pkt->statp.st_size, ed2));
@@ -313,25 +313,25 @@ bool accurate_check_file(JCR *jcr, FF_PKT *ff_pkt)
          break;
       case 'a':                /* access time */
          if (statc.st_atime != ff_pkt->statp.st_atime) {
-            Dmsg1(dbglvl, "%s      st_atime differs\n", fname);
+            Dmsg1(dbglvl-1, "%s      st_atime differs\n", fname);
             stat = true;
          }
          break;
       case 'm':
          if (statc.st_mtime != ff_pkt->statp.st_mtime) {
-            Dmsg1(dbglvl, "%s      st_mtime differs\n", fname);
+            Dmsg1(dbglvl-1, "%s      st_mtime differs\n", fname);
             stat = true;
          }
          break;
       case 'c':                /* ctime */
          if (statc.st_ctime != ff_pkt->statp.st_ctime) {
-            Dmsg1(dbglvl, "      st_ctime differs\n", fname);
+            Dmsg1(dbglvl-1, "      st_ctime differs\n", fname);
             stat = true;
          }
          break;
       case 'd':                /* file size decrease */
          if (statc.st_size > ff_pkt->statp.st_size) {
-            Dmsg3(dbglvl, "%s      st_size  decrease. Cat: %s File: %s\n",
+            Dmsg3(dbglvl-1, "%s      st_size  decrease. Cat: %s File: %s\n",
                   fname,
                   edit_uint64((uint64_t)statc.st_size, ed1),
                   edit_uint64((uint64_t)ff_pkt->statp.st_size, ed2));
