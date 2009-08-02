@@ -80,7 +80,6 @@ do not provide their own mtx package
 
 %prep
 %setup -T -n depkgs -b 0
-%setup -T -D -n depkgs -b 1
 
 %build
 
