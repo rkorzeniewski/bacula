@@ -55,37 +55,11 @@ END_OF_DATA
 
 run_bacula
 
-cat <<END_OF_DATA >${cwd}/tmp/bconcmds
-@$out ${cwd}/tmp/log1.out
-run job=backup level=full yes
-wait
-messages
-@# 
-@# now do a restore
-@#
-@$out ${cwd}/tmp/log2.out  
-restore fileset=FS_TESTJOB where=${cwd}/tmp/bacula-restores select all done
-yes
-wait
-messages
-@$out
-END_OF_DATA
-
-################################################################
-p First :  We just run a full backup and restore
-################################################################
-
-run_bconsole
-check_for_zombie_jobs storage=File
-
-check_two_logs
-check_restore_diff
-
-rm -rf ${cwd}/tmp/bacula-restores
-
 ################################################################
 p Now do a second backup using base backup
 ################################################################
+
+echo ${cwd}/bin >> ${cwd}/tmp/file-list
 
 cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @$out ${cwd}/tmp/log1.out
@@ -93,6 +67,13 @@ run job=base_backup level=base yes
 wait
 messages
 update volume=TestVolume001 volstatus=Used
+END_OF_DATA
+
+run_bconsole
+
+echo ${cwd}/build > ${cwd}/tmp/file-list
+
+cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @$out ${cwd}/tmp/log4.out
 label volume=TestVolume002 storage=File pool=Default
 run job=backup level=full yes
