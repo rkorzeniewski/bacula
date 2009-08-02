@@ -3,6 +3,7 @@
 General:
 
 02Aug09
+kes  Remove old sqlite3 build from bacula.spec
 kes  Move bat from bacula.spec to bacula-bat.spec
 kes  Remove installing gconsole start script from Makefile.in
 01Aug09
