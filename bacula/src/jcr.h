@@ -379,6 +379,7 @@ public:
    bool VSS;                          /* VSS used by FD */
    bool multi_restore;                /* Dir can do multiple storage restore */
    htable *file_list;                 /* Previous file list (accurate mode) */
+   uint64_t base_size;                /* compute space saved with base job */
 #endif /* FILE_DAEMON */
 
 
