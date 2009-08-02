@@ -3,7 +3,7 @@
 General:
 
 02Aug09
-kes  Move bat from bacula.spec to bacula-bat.spec.
+kes  Move bat from bacula.spec to bacula-bat.spec
 kes  Remove installing gconsole start script from Makefile.in
 01Aug09
 ebl  Add Job Info panel to bat
