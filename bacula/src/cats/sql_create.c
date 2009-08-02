@@ -1215,9 +1215,10 @@ bool db_commit_base_file_attributes_record(JCR *jcr, B_DB *mdb)
 {
    bool ret;
    char ed1[50];
-   POOL_MEM buf(PM_MESSAGE);
 
-   Mmsg(buf, 
+   db_lock(mdb);
+
+   Mmsg(mdb->cmd, 
   "INSERT INTO BaseFiles (BaseJobId, JobId, FileId, FileIndex) ( "
    "SELECT B.JobId AS BaseJobId, %s AS JobId, "
           "B.FileId, B.FileIndex "
@@ -1226,8 +1227,11 @@ bool db_commit_base_file_attributes_record(JCR *jcr, B_DB *mdb)
       "AND A.Name = B.Name "
     "ORDER BY B.FileId)", 
         edit_uint64(jcr->JobId, ed1), ed1, ed1);
-   ret = db_sql_query(mdb, buf.c_str(), NULL, NULL);
+   ret = INSERT_DB(jcr, mdb, mdb->cmd);
+   Dmsg1(0, "commit_base_file_list = %lld\n", (uint64_t) mdb->num_rows);
    db_cleanup_base_file(jcr, mdb);
+
+   db_unlock(mdb);
    return ret;
 }
 
@@ -1240,21 +1244,21 @@ bool db_commit_base_file_attributes_record(JCR *jcr, B_DB *mdb)
  */
 bool db_create_base_file_list(JCR *jcr, B_DB *mdb, char *jobids)
 {
-   POOL_MEM buf(PM_MESSAGE);
+   bool ret=false;
+
+   db_lock(mdb);   
 
    if (!*jobids) {
-      db_lock(mdb);
       Mmsg(mdb->errmsg, _("ERR=JobIds are empty\n"));
-      db_unlock(mdb);
-      return false;
+      goto bail_out;
    }
 
-   Mmsg(buf, create_temp_basefile[db_type], (uint64_t) jcr->JobId);
-   if (!db_sql_query(mdb, buf.c_str(), NULL, NULL)) {
-      return false;
+   Mmsg(mdb->cmd, create_temp_basefile[db_type], (uint64_t) jcr->JobId);
+   if (!QUERY_DB(jcr, mdb, mdb->cmd)) {
+      goto bail_out;
    }
      
-   Mmsg(buf,
+   Mmsg(mdb->cmd,
 "CREATE TEMPORARY TABLE new_basefile%lld AS ( "
 //"CREATE TABLE new_basefile%lld AS ( "
   "SELECT Path.Path AS Path, Filename.Name AS Name, File.FileIndex AS FileIndex,"
@@ -1269,7 +1273,11 @@ bool db_create_base_file_list(JCR *jcr, B_DB *mdb, char *jobids)
   "JOIN File ON (File.FileId = Temp.FileId) "
  "WHERE File.FileIndex > 0)",
         (uint64_t)jcr->JobId, jobids);
-   return db_sql_query(mdb, buf.c_str(), NULL, NULL);
+   ret = INSERT_DB(jcr, mdb, mdb->cmd);
+   Dmsg1(0, "create_base_file_list = %lld\n", (uint64_t) mdb->num_rows);
+bail_out:
+   db_unlock(mdb);
+   return ret;
 }
 
 #endif /* HAVE_SQLITE3 || HAVE_MYSQL || HAVE_SQLITE || HAVE_POSTGRESQL || HAVE_DBI */
