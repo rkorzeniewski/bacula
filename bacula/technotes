@@ -2,6 +2,8 @@
           
 General:
 
+02Aug09
+kes  Remove installing gconsole start script from Makefile.in
 01Aug09
 ebl  Add Job Info panel to bat
 30Jul09

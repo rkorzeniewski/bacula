@@ -36,7 +36,6 @@ install: installdirs
 	$(INSTALL_SCRIPT) startmysql $(DESTDIR)$(scriptdir)/startmysql
 	$(INSTALL_SCRIPT) stopmysql $(DESTDIR)$(scriptdir)/stopmysql
 	$(INSTALL_SCRIPT) bconsole $(DESTDIR)$(scriptdir)/bconsole
-	$(INSTALL_SCRIPT) gconsole $(DESTDIR)$(scriptdir)/gconsole
 	$(INSTALL_SCRIPT) bacula $(DESTDIR)$(scriptdir)/bacula
 	$(INSTALL_SCRIPT) bacula $(DESTDIR)$(sbindir)/bacula
 	$(INSTALL_SCRIPT) bacula-ctl-dir $(DESTDIR)$(scriptdir)/bacula-ctl-dir
