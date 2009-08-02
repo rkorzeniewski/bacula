@@ -18,7 +18,6 @@
 %define _sbindir       /opt/bacula/bin
 %define _bindir        /opt/bacula/bin
 %define _subsysdir     /opt/bacula/working
-%define sqlite_bindir  /opt/bacula/sqlite
 %define _mandir        /usr/share/man
 %define sysconf_dir    /opt/bacula/etc
 %define script_dir     /opt/bacula/scripts
@@ -31,7 +30,6 @@
 %define _sbindir       %_prefix/sbin
 %define _bindir        %_prefix/bin
 %define _subsysdir     /var/lock/subsys
-%define sqlite_bindir  %_libdir/bacula/sqlite
 %define _mandir        %_prefix/share/man
 %define sysconf_dir    /etc/bacula
 %define script_dir     %_libdir/bacula
@@ -483,16 +481,8 @@ BuildRequires: libtermcap-devel
 BuildRequires: sqlite-devel
 %endif
 
-%if %{mysql} && ! %{mysql4} && ! %{mysql5}
-BuildRequires: mysql-devel >= 3.23
-%endif
-
-%if %{mysql} && %{mysql4}
-BuildRequires: mysql-devel >= 4.0
-%endif
-
-%if %{mysql} && %{mysql5}
-BuildRequires: mysql-devel >= 5.0
+%if %{mysql}
+BuildRequires: mysql-devel
 %endif
 
 %if %{postgresql} && %{wb3}
@@ -819,10 +809,6 @@ mkdir -p $RPM_BUILD_ROOT/etc/pam.d
 mkdir -p $RPM_BUILD_ROOT%{_sbindir}
 #mkdir -p $RPM_BUILD_ROOT%{_bindir}
 
-%if %{sqlite}
-mkdir -p $RPM_BUILD_ROOT%{sqlite_bindir}
-%endif
-
 make DESTDIR=$RPM_BUILD_ROOT install
 
 %if %{client_only}
@@ -940,9 +926,6 @@ rm -f $RPM_BUILD_DIR/Release_Notes-%{version}-%{release}.txt
 %attr(-, root, %{daemon_group}) %{script_dir}/make_sqlite3_tables
 %attr(-, root, %{daemon_group}) %{script_dir}/drop_sqlite3_tables
 %attr(-, root, %{daemon_group}) %{script_dir}/update_sqlite3_tables
-%{sqlite_bindir}/libsqlite3.a
-%{sqlite_bindir}/sqlite3.h
-%{sqlite_bindir}/sqlite3
 %endif
 
 %if %{postgresql}
@@ -1037,31 +1020,10 @@ DB_VER=`mysql 2>/dev/null bacula -e 'select * from Version;'|tail -n 1`
 
 %if %{sqlite}
 %pre sqlite
-# are we upgrading from sqlite to sqlite3?
-if [ -s %{working_dir}/bacula.db ] && [ -s %{sqlite_bindir}/sqlite ];then
-    echo "This version of bacula-sqlite involves an upgrade to sqlite3."
-    echo "Your catalog database file is not compatible with sqlite3, thus"
-    echo "you will need to dump the data, delete the old file, and re-run"
-    echo "this rpm upgrade."
-    echo ""
-    echo "Backing up your current database..."
-    echo ".dump" | %{sqlite_bindir}/sqlite %{working_dir}/bacula.db > %{working_dir}/bacula_backup.sql
-    mv %{working_dir}/bacula.db %{working_dir}/bacula.db.old
-    echo "Your catalog data has been saved in %{working_dir}/bacula_backup.sql and your"
-    echo "catalog file has been renamed %{working_dir}/bacula.db.old."
-    echo ""
-    echo "Please re-run this rpm package upgrade."
-    echo "After the upgrade is complete, restore your catalog"
-    echo "with the following commands:"
-    echo "%{script_dir}/drop_sqlite3_tables"
-    echo "cd %{working_dir}"
-    echo "%{sqlite_bindir}/sqlite3 $* bacula.db < bacula_backup.sql"
-    echo "chown bacula.bacula bacula.db"
-    exit 1
-fi
 # test for bacula database older than version 10 and sqlite3
-if [ -s %{working_dir}/bacula.db ] && [ -s %{sqlite_bindir}/sqlite3 ];then
-        DB_VER=`echo "select * from Version;" | %{sqlite_bindir}/sqlite3 2>/dev/null %{working_dir}/bacula.db | tail -n 1`
+if [ -s %{working_dir}/bacula.db ]; then
+        DB_VER=`echo "select * from Version;" | sqlite3 2>/dev/null %{working_dir}/bacula.db | tail -n 1`
+fi
 %endif
 
 %if %{postgresql}
@@ -1081,9 +1043,6 @@ if [ -n "$DB_VER" ] && [ "$DB_VER" -lt "10" ]; then
 fi
 %endif
 
-%if %{sqlite}
-fi
-%endif
 
 %if ! %{client_only}
 # check for and copy %{sysconf_dir}/console.conf to bconsole.conf
@@ -1191,12 +1150,12 @@ fi
 %if %{sqlite}
 # test for an existing database
 if [ -s %{working_dir}/bacula.db ]; then
-    DB_VER=`echo "select * from Version;" | %{sqlite_bindir}/sqlite3 2>/dev/null %{working_dir}/bacula.db | tail -n 1`
+    DB_VER=`echo "select * from Version;" | sqlite3 2>/dev/null %{working_dir}/bacula.db | tail -n 1`
     # check to see if we need to upgrade a 2.x database
     if [ "$DB_VER" -lt "11" ] && [ "$DB_VER" -ge "10" ]; then
         echo "This release requires an upgrade to your bacula database."
         echo "Backing up your current database..."
-        echo ".dump" | %{sqlite_bindir}/sqlite3 %{working_dir}/bacula.db | bzip2 > %{working_dir}/bacula_backup.sql.bz2
+        echo ".dump" | sqlite3 %{working_dir}/bacula.db | bzip2 > %{working_dir}/bacula_backup.sql.bz2
         echo "Upgrading bacula database ..."
         %{script_dir}/update_sqlite3_tables
         echo "If bacula works correctly you can remove the backup file %{working_dir}/bacula_backup.sql.bz2"
@@ -1283,18 +1242,6 @@ if [ $1 = 0 ]; then
   /sbin/chkconfig --del bacula-fd
   /sbin/chkconfig --del bacula-sd
 fi
-%endif
-
-%if %{mysql}
-%postun mysql
-/sbin/ldconfig
-%endif
-%if %{sqlite}
-%postun sqlite
-/sbin/ldconfig
-%endif
-%if %{postgresql}
-%postun postgresql
 /sbin/ldconfig
 %endif
 
