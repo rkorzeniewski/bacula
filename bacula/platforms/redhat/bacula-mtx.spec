@@ -10,6 +10,8 @@
 %define depkgs_version     18Feb09
 %define _packager D. Scott Barninger <barninger@fairfieldcomputers.com>
 
+%define manpage_ext gz
+
 %define single_dir 0
 %{?single_dir_install:%define single_dir 1}
 
@@ -47,8 +49,7 @@ Packager: %{_packager}
 Prefix: %{_prefix}
 Distribution: Bacula Bat
 
-Source0: http://www.prdownloads.sourceforge.net/bacula/bacula-%{version}.tar.gz
-Source1: http://www.prdownloads.sourceforge.net/bacula/depkgs-%{depkgs_version}.tar.gz
+Source: http://www.prdownloads.sourceforge.net/bacula/depkgs-%{depkgs_version}.tar.gz
 
 # define the basic package description
 %define blurb Bacula - It comes by night and sucks the vital essence from your computers.
@@ -79,7 +80,6 @@ do not provide their own mtx package
 
 %prep
 %setup -T -n depkgs -b 0
-%setup -T -D -n depkgs -b 1
 
 %build
 
