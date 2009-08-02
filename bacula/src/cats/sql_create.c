@@ -1145,7 +1145,7 @@ bool db_create_attributes_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
       ret = db_create_file_attributes_record(jcr, mdb, ar);
 
    } else if (jcr->HasBase) {
-      ret = db_create_base_file_attributes_record(jcr, jcr->db_batch, ar);
+      ret = db_create_base_file_attributes_record(jcr, mdb, ar);
 
    } else {
       Jmsg0(jcr, M_FATAL, 0, _("Can't Copy/Migrate job using BaseJob"));
@@ -1227,8 +1227,8 @@ bool db_commit_base_file_attributes_record(JCR *jcr, B_DB *mdb)
       "AND A.Name = B.Name "
     "ORDER BY B.FileId)", 
         edit_uint64(jcr->JobId, ed1), ed1, ed1);
-   ret = INSERT_DB(jcr, mdb, mdb->cmd);
-   Dmsg1(0, "commit_base_file_list = %lld\n", (uint64_t) mdb->num_rows);
+   ret = QUERY_DB(jcr, mdb, mdb->cmd);
+   jcr->nb_base_files_used = sql_affected_rows(mdb);
    db_cleanup_base_file(jcr, mdb);
 
    db_unlock(mdb);
@@ -1273,8 +1273,7 @@ bool db_create_base_file_list(JCR *jcr, B_DB *mdb, char *jobids)
   "JOIN File ON (File.FileId = Temp.FileId) "
  "WHERE File.FileIndex > 0)",
         (uint64_t)jcr->JobId, jobids);
-   ret = INSERT_DB(jcr, mdb, mdb->cmd);
-   Dmsg1(0, "create_base_file_list = %lld\n", (uint64_t) mdb->num_rows);
+   ret = QUERY_DB(jcr, mdb, mdb->cmd);
 bail_out:
    db_unlock(mdb);
    return ret;

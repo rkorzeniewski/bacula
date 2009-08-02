@@ -187,7 +187,11 @@ bool accurate_finish(JCR *jcr)
       }
       
       accurate_free(jcr);
-   } 
+      if (jcr->get_JobLevel() == L_FULL) {
+         Dmsg1(0, "Space saved with Base jobs: %lld MB\n", 
+               jcr->base_size/(1024*1024));
+      }
+   }
    return ret;
 }
 
@@ -371,6 +375,11 @@ bool accurate_check_file(JCR *jcr, FF_PKT *ff_pkt)
       stat = true;
    }
 #endif
+
+   /* compute space saved with basefile */
+   if (jcr->get_JobLevel() == L_FULL && !stat) {
+      jcr->base_size += ff_pkt->statp.st_size;
+   }
 
    accurate_mark_file_as_seen(jcr, &elt);
 //   Dmsg2(dbglvl, "accurate %s = %d\n", fname, stat);

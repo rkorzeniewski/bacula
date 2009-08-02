@@ -214,8 +214,9 @@ bool send_accurate_current_files(JCR *jcr)
    }
    
    if (jcr->HasBase) {
-      db_create_base_file_list(jcr, jcr->db_batch, jobids);
-      db_get_base_file_list(jcr, jcr->db_batch, 
+      jcr->nb_base_files = str_to_int64(nb);
+      db_create_base_file_list(jcr, jcr->db, jobids);
+      db_get_base_file_list(jcr, jcr->db, 
                             accurate_list_handler, (void *)jcr);
 
    } else {
@@ -385,9 +386,9 @@ bool do_backup(JCR *jcr)
    db_write_batch_file_records(jcr);    /* used by bulk batch file insert */
 
    if (jcr->HasBase && 
-       !db_commit_base_file_attributes_record(jcr, jcr->db_batch)) 
+       !db_commit_base_file_attributes_record(jcr, jcr->db)) 
    {
-         Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db_batch));
+         Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db));
    }
 
    if (stat == JS_Terminated) {
@@ -617,6 +618,11 @@ void backup_cleanup(JCR *jcr, int TermCode)
    jobstatus_to_ascii(jcr->FDJobStatus, fd_term_msg, sizeof(fd_term_msg));
    jobstatus_to_ascii(jcr->SDJobStatus, sd_term_msg, sizeof(sd_term_msg));
 
+   if (jcr->HasBase) {
+      Dmsg3(0, "Base files/Used files %lld/%lld=%.2f%%\n", jcr->nb_base_files, 
+            jcr->nb_base_files_used, 
+            jcr->nb_base_files_used*100.0/jcr->nb_base_files);
+   }
 // bmicrosleep(15, 0);                /* for debugging SIGHUP */
 
    Jmsg(jcr, msg_type, 0, _("%s %s %s (%s): %s\n"
