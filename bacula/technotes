@@ -2,6 +2,8 @@
           
 General:
 
+03Aug09
+ebl  Add new media info panel to bat
 02Aug09
 kes  Remove old sqlite3 build from bacula.spec
 kes  Move bat from bacula.spec to bacula-bat.spec

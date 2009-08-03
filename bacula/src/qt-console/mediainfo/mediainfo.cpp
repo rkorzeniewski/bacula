@@ -1,9 +1,7 @@
-#ifndef _MEDIALIST_H_
-#define _MEDIALIST_H_
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2007-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2007-2009 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -27,51 +25,23 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+ 
+#include "bat.h"
+#include <QAbstractEventDispatcher>
+#include <QTableWidgetItem>
+#include <QMessageBox>
+#include "mediainfo.h"
+
 /*
- *   Version $Id$
- *
- *   Dirk Bartley, March 2007
+ * A constructor 
  */
-
-#include <QtGui>
-#include "ui_medialist.h"
-#include "console.h"
-#include <qstringlist.h>
-
-class MediaList : public Pages, public Ui::MediaListForm
+MediaInfo::MediaInfo(QTreeWidgetItem *parentWidget, QString &mediaId)
 {
-   Q_OBJECT 
-
-public:
-   MediaList();
-   ~MediaList();
-   virtual void PgSeltreeWidgetClicked();
-   virtual void currentStackItem();
-
-public slots:
-   void treeItemChanged(QTreeWidgetItem *, QTreeWidgetItem *);
-
-private slots:
-   void populateTree();
-   void showJobs();
-   void viewVolume();
-   void editVolume();
-   void deleteVolume();
-   void purgeVolume();
-   void pruneVolume();
-   void relabelVolume();
-   void allVolumesFromPool();
-   void allVolumes();
-   void volumeFromPool();
-
-private:
-   void createContextMenu();
-   void writeExpandedSettings();
-   QString m_currentVolumeName;
-   QString m_currentVolumeId;
-   bool m_populated;
-   bool m_checkcurwidget;
-   QTreeWidgetItem *m_topItem;
-};
-
-#endif /* _MEDIALIST_H_ */
+   setupUi(this);
+   pgInitialize(tr("Media Info"), parentWidget);
+   QTreeWidgetItem* thisitem = mainWin->getFromHash(this);
+   thisitem->setIcon(0,QIcon(QString::fromUtf8(":images/cartridge-edit.png")));
+   m_closeable = true;
+   dockPage();
+   setCurrent();
+}
