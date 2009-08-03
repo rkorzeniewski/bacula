@@ -50,7 +50,7 @@ FORMS += run/run.ui run/runcmd.ui run/estimate.ui run/prune.ui
 FORMS += select/select.ui
 FORMS += medialist/medialist.ui mediaedit/mediaedit.ui joblist/joblist.ui
 FORMS += clients/clients.ui storage/storage.ui fileset/fileset.ui
-FORMS += joblog/joblog.ui jobs/jobs.ui
+FORMS += joblog/joblog.ui jobs/jobs.ui job/job.ui
 FORMS += help/help.ui
 FORMS += status/dirstat.ui
 FORMS += status/clientstat.ui
@@ -126,6 +126,10 @@ SOURCES += joblog/joblog.cpp
 ## Jobs
 HEADERS += jobs/jobs.h
 SOURCES += jobs/jobs.cpp
+
+## Job
+HEADERS += job/job.h
+SOURCES += job/job.cpp
 
 ## RestoreTree
 HEADERS += restore/restoretree.h
