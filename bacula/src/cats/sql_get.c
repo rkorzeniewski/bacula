@@ -1066,13 +1066,12 @@ bool db_get_file_list(JCR *jcr, B_DB *mdb, char *jobids,
          
 #define new_db_get_file_list
 #ifdef new_db_get_file_list
-   /* This is broken, at least if called from ua_restore.c */
    Mmsg(buf,
  "SELECT Path.Path, Filename.Name, File.FileIndex, File.JobId, File.LStat "
  "FROM ( "
   "SELECT max(FileId) as FileId, PathId, FilenameId "
     "FROM (SELECT FileId, PathId, FilenameId FROM File WHERE JobId IN (%s) "
-           "UNION "
+           "UNION ALL "         /* we already sort after */
           "SELECT File.FileId, PathId, FilenameId "
             "FROM BaseFiles JOIN File USING (FileId) "
            "WHERE BaseFiles.JobId IN (%s) "

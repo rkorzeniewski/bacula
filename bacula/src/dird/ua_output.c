@@ -326,6 +326,25 @@ static int do_list_cmd(UAContext *ua, const char *cmd, e_list_type llist)
          jr.JobId = 0;
          db_list_job_records(ua->jcr, ua->db, &jr, prtit, ua, llist);
 
+      /* List Base files */
+      } else if (strcasecmp(ua->argk[i], NT_("basefiles")) == 0) {
+         /* TODO: cleanup this block */
+         for (j=i+1; j<ua->argc; j++) {
+            if (strcasecmp(ua->argk[j], NT_("ujobid")) == 0 && ua->argv[j]) {
+               bstrncpy(jr.Job, ua->argv[j], MAX_NAME_LENGTH);
+               jr.JobId = 0;
+               db_get_job_record(ua->jcr, ua->db, &jr);
+               jobid = jr.JobId;
+            } else if (strcasecmp(ua->argk[j], NT_("jobid")) == 0 && ua->argv[j]) {
+               jobid = str_to_int64(ua->argv[j]);
+            } else {
+               continue;
+            }
+            if (jobid > 0) {
+               db_list_base_files_for_job(ua->jcr, ua->db, jobid, prtit, ua);
+            }
+         }
+      
       /* List FILES */
       } else if (strcasecmp(ua->argk[i], NT_("files")) == 0) {
 
