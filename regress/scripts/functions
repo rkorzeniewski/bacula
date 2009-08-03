@@ -27,6 +27,10 @@ start_test()
    echo " === Starting $TestName at `date +%R:%S` ===" >> ${working}/log
    echo " "
    export zstat
+   zstat=0
+   bstat=0
+   rstat=0
+   dstat=0
 }
 
 require_root()
@@ -213,10 +217,6 @@ bscan_libdbi()
 stop_bacula()
 {
    ${bin}/bacula stop 2>&1 >/dev/null
-   zstat=0
-   bstat=0
-   rstat=0
-   dstat=0
 }
 
 check_for_zombie_jobs()
