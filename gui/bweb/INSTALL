@@ -5,7 +5,7 @@
 Bweb works well with 2.0 release or later.
 
 1) install Perl lib
-2) using lighttpd
+2) using lighttpd (quick install)
 3) using apache 
 4) initialize your configuration file
 5) do some sql stuff (for postgresql or mysql 5 users)
