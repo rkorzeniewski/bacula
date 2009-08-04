@@ -10,5 +10,5 @@ TriggerSite: http://regress.bacula.org
 NightlyStartTime: 23:00:00 CET
 MakeCommand: @regressdir@/scripts/update-ctest
 ConfigureCommand: true
-UpdateCommand: svn
+UpdateCommand: true
 TimeOut: 1800

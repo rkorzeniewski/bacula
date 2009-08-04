@@ -11,11 +11,11 @@ fi
 
 cd @regressdir@/build 
 
-cur=`svn info | grep Revision: | awk '{print $2'}`
+cur=`cat git-version`
 
 cd @srcdir@
 
-new=`svn info | grep Revision: | awk '{print $2'}`
+new=`git show HEAD | grep -m 1 commit | awk '{print $2}'`
 
 cd @regressdir@
 
