@@ -16,35 +16,7 @@
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_2" >
      <item>
-      <widget class="QPushButton" name="pushButton" >
-       <property name="text" >
-        <string>Load</string>
-       </property>
-       <property name="icon" >
-        <iconset resource="../main.qrc" >
-         <normaloff>:/images/intern.png</normaloff>:/images/intern.png</iconset>
-       </property>
-       <property name="flat" >
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="pushButton_6" >
-       <property name="text" >
-        <string>Unload</string>
-       </property>
-       <property name="icon" >
-        <iconset resource="../main.qrc" >
-         <normaloff>:/images/extern.png</normaloff>:/images/extern.png</iconset>
-       </property>
-       <property name="flat" >
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="pushButton_2" >
+      <widget class="QPushButton" name="pbEdit" >
        <property name="text" >
         <string>Edit</string>
        </property>
@@ -58,7 +30,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="pushButton_3" >
+      <widget class="QPushButton" name="pbPurge" >
        <property name="text" >
         <string>Purge</string>
        </property>
@@ -72,7 +44,21 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="pushButton_4" >
+      <widget class="QPushButton" name="pbDelete" >
+       <property name="text" >
+        <string>Delete</string>
+       </property>
+       <property name="icon" >
+        <iconset resource="../main.qrc" >
+         <normaloff>:/images/purge.png</normaloff>:/images/purge.png</iconset>
+       </property>
+       <property name="flat" >
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="pbPrune" >
        <property name="text" >
         <string>Prune</string>
        </property>
@@ -86,13 +72,33 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="pushButton_5" >
+      <widget class="QPushButton" name="pbLoad" >
+       <property name="enabled" >
+        <bool>false</bool>
+       </property>
        <property name="text" >
-        <string>Delete</string>
+        <string>Load</string>
        </property>
        <property name="icon" >
         <iconset resource="../main.qrc" >
-         <normaloff>:/images/purge.png</normaloff>:/images/purge.png</iconset>
+         <normaloff>:/images/intern.png</normaloff>:/images/intern.png</iconset>
+       </property>
+       <property name="flat" >
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="pbUnload" >
+       <property name="enabled" >
+        <bool>false</bool>
+       </property>
+       <property name="text" >
+        <string>Unload</string>
+       </property>
+       <property name="icon" >
+        <iconset resource="../main.qrc" >
+         <normaloff>:/images/extern.png</normaloff>:/images/extern.png</iconset>
        </property>
        <property name="flat" >
         <bool>true</bool>
@@ -640,7 +646,7 @@
      </property>
      <layout class="QHBoxLayout" name="horizontalLayout" >
       <item>
-       <widget class="QTableWidget" name="tableWidget" >
+       <widget class="QTableWidget" name="tableJob" >
         <column>
          <property name="text" >
           <string>JobId</string>

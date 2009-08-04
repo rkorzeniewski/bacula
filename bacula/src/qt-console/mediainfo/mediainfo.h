@@ -45,10 +45,16 @@ public:
    MediaInfo(QTreeWidgetItem *parentWidget, QString &mediaId);
 
 private slots:
+   void pruneVol();
+   void purgeVol();
+   void deleteVol();
+   void editVol();
+   void showInfoForJob(QTableWidgetItem * item);
 
 private:
    void populateForm();
    QString m_mediaName;
+   QString m_mediaId;
 };
 
 #endif /* _MEDIAINFO_H_ */
