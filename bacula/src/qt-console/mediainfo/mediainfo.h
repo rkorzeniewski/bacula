@@ -47,6 +47,7 @@ public:
 private slots:
 
 private:
+   void populateForm();
    QString m_mediaName;
 };
 
