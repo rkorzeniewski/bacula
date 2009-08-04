@@ -1,10 +1,13 @@
 <br/>
  <div class='titlediv'>
-  <h1 class='newstitle'> Log : <TMPL_VAR name> sur <TMPL_VAR client> (<TMPL_VAR jobid>)</h1>
+  <h1 class='newstitle'> Log: <TMPL_VAR name> on <TMPL_VAR client> (<TMPL_VAR jobid>)</h1>
  </div>
  <div class='bodydiv'>
   <pre id='log'>
-<TMPL_VAR lines>
+<TMPL_IF lines><TMPL_VAR lines><TMPL_ELSE>
+__No log found, please be sure to have :
+ catalog = all, !skipped, !saved
+in your Messages resources.__</TMPL_IF>
   </pre>
 
 <a id='prev'><img border='0' src='/bweb/prev.png'></a>

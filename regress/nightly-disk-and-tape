@@ -9,7 +9,7 @@ save_debug=${REGRESS_DEBUG}
 REGRESS_DEBUG=1
 export REGRESS_DEBUG
 rm -rf Testing
-svn update
+git pull
 make distclean
 scripts/config_dart
 nice ctest -D Experimental -R "^(disk|tape):"
