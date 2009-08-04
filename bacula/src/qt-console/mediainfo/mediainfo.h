@@ -1,9 +1,9 @@
-#ifndef _JOB_H_
-#define _JOB_H_
+#ifndef _MEDIAINFO_H_
+#define _MEDIAINFO_H_
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2007-2009 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -27,33 +27,34 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ *   Version $Id$
+ *
+ */
 
 #include <QtGui>
-#include "ui_job.h"
+#include "ui_mediainfo.h"
 #include "console.h"
+#include "pages.h"
 
-class Job : public Pages, public Ui::JobForm
+class MediaInfo : public Pages, public Ui::mediaInfoForm
 {
    Q_OBJECT 
 
 public:
-   Job(QString &jobId, QTreeWidgetItem *parentTreeWidgetItem);
-
-public slots:
-   void populateAll();
-   void deleteJob();
-   void showInfoVolume(QListWidgetItem *);
+   MediaInfo(QTreeWidgetItem *parentWidget, QString &mediaId);
 
 private slots:
+   void pruneVol();
+   void purgeVol();
+   void deleteVol();
+   void editVol();
+   void showInfoForJob(QTableWidgetItem * item);
 
 private:
-   void populateText();
    void populateForm();
-   void populateVolumes();
-
-   void getFont();
-   QTextCursor *m_cursor;
-   QString m_jobId;
+   QString m_mediaName;
+   QString m_mediaId;
 };
 
-#endif /* _JOB_H_ */
+#endif /* _MEDIAINFO_H_ */

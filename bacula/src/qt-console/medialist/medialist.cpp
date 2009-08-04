@@ -41,6 +41,7 @@
 #include <math.h>
 #include "medialist.h"
 #include "mediaedit/mediaedit.h"
+#include "mediainfo/mediainfo.h"
 #include "joblist/joblist.h"
 #include "relabel/relabel.h"
 #include "run/run.h"
@@ -280,6 +281,17 @@ void MediaList::showJobs()
 }
 
 /*
+ * Called from the signal of the context sensitive menu!
+ */
+void MediaList::viewVolume()
+{
+   QTreeWidgetItem *parentItem = mainWin->getFromHash(this);
+   MediaInfo* view = new MediaInfo(parentItem, m_currentVolumeName);
+   connect(view, SIGNAL(destroyed()), this, SLOT(populateTree()));
+
+}
+
+/*
  * When the treeWidgetItem in the page selector tree is singleclicked, Make sure
  * The tree has been populated.
  */
@@ -333,6 +345,7 @@ void MediaList::treeItemChanged(QTreeWidgetItem *currentwidgetitem, QTreeWidgetI
 void MediaList::createContextMenu()
 {
    mp_treeWidget->setContextMenuPolicy(Qt::ActionsContextMenu);
+   connect(mp_treeWidget, SIGNAL(itemDoubleClicked(QTreeWidgetItem *, int)), this, SLOT(viewVolume()));
    connect(actionEditVolume, SIGNAL(triggered()), this, SLOT(editVolume()));
    connect(actionListJobsOnVolume, SIGNAL(triggered()), this, SLOT(showJobs()));
    connect(actionDeleteVolume, SIGNAL(triggered()), this, SLOT(deleteVolume()));

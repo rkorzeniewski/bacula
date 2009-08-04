@@ -26,18 +26,10 @@
    Switzerland, email:ftf@fsfeurope.org.
 */
  
-/*
- *   Version $Id$
- *
- *  Job Class
- *
- *   Dirk Bartley, March 2007
- *
- */ 
-
 #include "bat.h"
 #include "job.h"
 #include "util/fmtwidgetitem.h"
+#include "mediainfo/mediainfo.h"
 
 Job::Job(QString &jobId, QTreeWidgetItem *parentTreeWidgetItem)
 {
@@ -50,11 +42,43 @@ Job::Job(QString &jobId, QTreeWidgetItem *parentTreeWidgetItem)
 
    m_jobId = jobId;
    getFont();
-   populateText();
-   populateForm();
-   populateVolumes();
+
+   connect(pbRefresh, SIGNAL(clicked()), this, SLOT(populateAll()));
+   connect(pbDelete, SIGNAL(clicked()), this, SLOT(deleteJob()));
+   connect(list_Volume, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this, SLOT(showInfoVolume(QListWidgetItem *)));
+
+   populateAll();
    dockPage();
    setCurrent();
+}
+
+void Job::showInfoVolume(QListWidgetItem *item)
+{
+   QString s= item->text();
+   QTreeWidgetItem* pageSelectorTreeWidgetItem = mainWin->getFromHash(this);
+
+   MediaInfo *m = new MediaInfo(pageSelectorTreeWidgetItem, s);
+   connect(m, SIGNAL(destroyed()), this, SLOT(populateTree()));
+}
+
+void Job::deleteJob()
+{
+   if (QMessageBox::warning(this, "Bat",
+      tr("Are you sure you want to delete??  !!!.\n"
+"This delete command is used to delete a Job record and all associated catalog"
+" records that were created. This command operates only on the Catalog"
+" database and has no effect on the actual data written to a Volume. This"
+" command can be dangerous and we strongly recommend that you do not use"
+" it unless you know what you are doing.  The Job and all its associated"
+" records (File and JobMedia) will be deleted from the catalog."
+      "Press OK to proceed with delete operation.?"),
+      QMessageBox::Ok | QMessageBox::Cancel)
+      == QMessageBox::Cancel) { return; }
+
+   QString cmd("delete job jobid=");
+   cmd += m_jobId;
+   consoleCommand(cmd, false);
+   closeStackPage();
 }
 
 void Job::getFont()
@@ -72,11 +96,20 @@ void Job::getFont()
    textJobLog->setFont(font);
 }
 
+void Job::populateAll()
+{
+   Pmsg0(0, "populateAll()\n");
+   populateText();
+   populateForm();
+   populateVolumes();
+}
+
 /*
  * Populate the text in the window
  */
 void Job::populateText()
 {
+   textJobLog->clear();
    QString query;
    query = "SELECT Time, LogText FROM Log WHERE JobId='" + m_jobId + "' order by Time";
 
@@ -162,52 +195,6 @@ void Job::populateText()
 
    } /* if results from query */
   
-}
-
-// Need to use the fmtwidgetitem helper instead
-QString convertBytesSI(qint64 qfld)
-{
-   static const qint64 KB = Q_INT64_C(1000);
-   static const qint64 MB = (KB * KB);
-   static const qint64 GB = (MB * KB);
-   static const qint64 TB = (GB * KB);
-   static const qint64 PB = (TB * KB);
-   static const qint64 EB = (PB * KB);
-
-   /* note: division is integer, so to have some decimals we divide for a
-      smaller unit (e.g. GB for a TB number and so on) */
-   char suffix;
-   if (qfld >= EB) {
-      qfld /= PB; 
-      suffix = 'E';
-   }
-   else if (qfld >= PB) {
-      qfld /= TB; 
-      suffix = 'P';
-   }
-   else if (qfld >= TB) {
-      qfld /= GB; 
-      suffix = 'T';
-   }
-   else if (qfld >= GB) {
-      qfld /= MB;
-      suffix = 'G';
-   }
-   else if (qfld >= MB) {
-      qfld /= KB;
-      suffix = 'M';
-   }
-   else if (qfld >= KB) {
-      suffix = 'k'; /* SI uses lowercase k */
-   }
-   else  {
-      /* plain bytes, no need to reformat */
-      return QString("%1 B").arg(qfld); 
-   }
-
-   /* having divided for a smaller unit, now we can safely convert to double and
-      use the extra room for decimals */
-   return QString("%1 %2B").arg(qfld / 1000.0, 0, 'f', 2).arg(suffix);
 }
 
 /*
