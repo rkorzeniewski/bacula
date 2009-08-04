@@ -147,7 +147,7 @@ SOURCES += help/help.cpp
 
 # Media info dialog
 HEADERS += mediainfo/mediainfo.h
-HEADERS += mediainfo/mediainfo.cpp
+SOURCES += mediainfo/mediainfo.cpp
 
 ## Status Dir
 HEADERS += status/dirstat.h

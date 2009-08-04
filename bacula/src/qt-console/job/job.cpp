@@ -26,18 +26,10 @@
    Switzerland, email:ftf@fsfeurope.org.
 */
  
-/*
- *   Version $Id$
- *
- *  Job Class
- *
- *   Dirk Bartley, March 2007
- *
- */ 
-
 #include "bat.h"
 #include "job.h"
 #include "util/fmtwidgetitem.h"
+#include "mediainfo/mediainfo.h"
 
 Job::Job(QString &jobId, QTreeWidgetItem *parentTreeWidgetItem)
 {
@@ -53,10 +45,20 @@ Job::Job(QString &jobId, QTreeWidgetItem *parentTreeWidgetItem)
 
    connect(pbRefresh, SIGNAL(clicked()), this, SLOT(populateAll()));
    connect(pbDelete, SIGNAL(clicked()), this, SLOT(deleteJob()));
+   connect(list_Volume, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this, SLOT(showInfoVolume(QListWidgetItem *)));
 
    populateAll();
    dockPage();
    setCurrent();
+}
+
+void Job::showInfoVolume(QListWidgetItem *item)
+{
+   QString s= item->text();
+   QTreeWidgetItem* pageSelectorTreeWidgetItem = mainWin->getFromHash(this);
+
+   MediaInfo *m = new MediaInfo(pageSelectorTreeWidgetItem, s);
+   connect(m, SIGNAL(destroyed()), this, SLOT(populateTree()));
 }
 
 void Job::deleteJob()
