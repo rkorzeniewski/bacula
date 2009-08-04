@@ -18,15 +18,15 @@ else
     exit 1
 fi
 
-grep /etc/bacula/bweb.conf $BASE/lib/Bweb.pm > /dev/null
+grep /etc/bacula/bweb.conf $BWEBBASE/lib/Bweb.pm > /dev/null
 if [ $? -eq 0 ]; then
     echo "Adjusting bweb.conf path"
-    sed -i~ "s:/etc/bacula/bweb.conf:$BASE/bweb.conf:" $BASE/lib/Bweb.pm
+    sed -i~ "s:/etc/bacula/bweb.conf:$BWEBBASE/bweb.conf:" $BWEBBASE/lib/Bweb.pm
 fi
 
-if [ ! -f $BASE/bweb.conf ]; then
-    echo "Making configuration template in $BASE/bweb.conf"
-    cat > $BASE/bweb.conf <<EOF
+if [ ! -f $BWEBBASE/bweb.conf ]; then
+    echo "Making configuration template in $BWEBBASE/bweb.conf"
+    cat > $BWEBBASE/bweb.conf <<EOF
 \$VAR1 = { template_dir => '$PWD/lang',
            fv_write_path => '/tmp/',
  };
@@ -46,4 +46,8 @@ if [ x$1 = x -o x$1 = xstart ]; then
         echo "Something is wrong with lighttpd, be sure that it is installed"
         exit $?
     fi
+fi
+
+if [ x$1 = xstop ]; then
+    killall lighttpd
 fi
