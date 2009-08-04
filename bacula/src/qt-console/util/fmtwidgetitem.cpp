@@ -88,7 +88,7 @@ Freeze::~Freeze()
 
 ItemFormatterBase::BYTES_CONVERSION ItemFormatterBase::cnvFlag(BYTES_CONVERSION_IEC);
 
-QString ItemFormatterBase::convertBytesIEC(qint64 qfld)
+QString convertBytesIEC(qint64 qfld)
 {
    static const qint64 KB = Q_INT64_C(1024);
    static const qint64 MB = (KB * KB);
@@ -133,7 +133,7 @@ QString ItemFormatterBase::convertBytesIEC(qint64 qfld)
    return QString("%1 %2iB").arg(qfld / 1000.0, 0, 'f', 2).arg(suffix);
 }
 
-QString ItemFormatterBase::convertBytesSI(qint64 qfld)
+QString convertBytesSI(qint64 qfld)
 {
    static const qint64 KB = Q_INT64_C(1000);
    static const qint64 MB = (KB * KB);

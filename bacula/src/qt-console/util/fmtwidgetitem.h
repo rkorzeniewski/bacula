@@ -47,6 +47,12 @@ class QBrush;
  */
 QString convertJobStatus(const QString &sts);
 
+/* bytes formatted as power-of-two with IEC suffixes (KiB, MiB, and so on) */
+QString convertBytesIEC(qint64 fld);
+
+/* bytes formatted as power-of-ten with SI suffixes (kB, MB, and so on) */
+QString convertBytesSI(qint64 fld);
+
 /*
  * disable widget updating
  */
@@ -127,14 +133,6 @@ protected:
 
    /* sets the *optional* value used for sorting */
    virtual void setSortValue(int index, const QVariant &value) = 0;
-
-private:
-
-   /* bytes formatted as power-of-two with IEC suffixes (KiB, MiB, and so on) */
-   static QString convertBytesIEC(qint64 fld);
-
-   /* bytes formatted as power-of-ten with SI suffixes (kB, MB, and so on) */
-   static QString convertBytesSI(qint64 fld);
 
 private:
    static BYTES_CONVERSION cnvFlag;

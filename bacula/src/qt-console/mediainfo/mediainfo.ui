@@ -16,35 +16,7 @@
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_2" >
      <item>
-      <widget class="QPushButton" name="pushButton" >
-       <property name="text" >
-        <string>Load</string>
-       </property>
-       <property name="icon" >
-        <iconset resource="../main.qrc" >
-         <normaloff>:/images/intern.png</normaloff>:/images/intern.png</iconset>
-       </property>
-       <property name="flat" >
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="pushButton_6" >
-       <property name="text" >
-        <string>Unload</string>
-       </property>
-       <property name="icon" >
-        <iconset resource="../main.qrc" >
-         <normaloff>:/images/extern.png</normaloff>:/images/extern.png</iconset>
-       </property>
-       <property name="flat" >
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="pushButton_2" >
+      <widget class="QPushButton" name="pbEdit" >
        <property name="text" >
         <string>Edit</string>
        </property>
@@ -58,7 +30,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="pushButton_3" >
+      <widget class="QPushButton" name="pbPurge" >
        <property name="text" >
         <string>Purge</string>
        </property>
@@ -72,7 +44,21 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="pushButton_4" >
+      <widget class="QPushButton" name="pbDelete" >
+       <property name="text" >
+        <string>Delete</string>
+       </property>
+       <property name="icon" >
+        <iconset resource="../main.qrc" >
+         <normaloff>:/images/purge.png</normaloff>:/images/purge.png</iconset>
+       </property>
+       <property name="flat" >
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="pbPrune" >
        <property name="text" >
         <string>Prune</string>
        </property>
@@ -86,13 +72,33 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="pushButton_5" >
+      <widget class="QPushButton" name="pbLoad" >
+       <property name="enabled" >
+        <bool>false</bool>
+       </property>
        <property name="text" >
-        <string>Delete</string>
+        <string>Load</string>
        </property>
        <property name="icon" >
         <iconset resource="../main.qrc" >
-         <normaloff>:/images/purge.png</normaloff>:/images/purge.png</iconset>
+         <normaloff>:/images/intern.png</normaloff>:/images/intern.png</iconset>
+       </property>
+       <property name="flat" >
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="pbUnload" >
+       <property name="enabled" >
+        <bool>false</bool>
+       </property>
+       <property name="text" >
+        <string>Unload</string>
+       </property>
+       <property name="icon" >
+        <iconset resource="../main.qrc" >
+         <normaloff>:/images/extern.png</normaloff>:/images/extern.png</iconset>
        </property>
        <property name="flat" >
         <bool>true</bool>
@@ -143,31 +149,41 @@
         <string>Information</string>
        </property>
        <layout class="QFormLayout" name="formLayout_3" >
-         <property name="labelAlignment" >
-          <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-         </property>
-         <property name="formAlignment" >
-          <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-         </property>
         <property name="fieldGrowthPolicy" >
          <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
         </property>
-        <item row="0" column="0" >
+        <property name="labelAlignment" >
+         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+        </property>
+        <property name="formAlignment" >
+         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+        </property>
+        <item row="1" column="0" >
          <widget class="QLabel" name="label" >
           <property name="text" >
            <string>Pool:</string>
           </property>
          </widget>
         </item>
-        <item row="1" column="0" >
+        <item row="1" column="1" >
+         <widget class="QLabel" name="label_Pool" >
+          <property name="text" >
+           <string>Default</string>
+          </property>
+          <property name="textInteractionFlags" >
+           <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0" >
          <widget class="QLabel" name="label_2" >
           <property name="text" >
            <string>Online:</string>
           </property>
          </widget>
         </item>
-        <item row="1" column="1" >
-         <widget class="QLabel" name="label_17" >
+        <item row="2" column="1" >
+         <widget class="QLabel" name="label_Online" >
           <property name="text" >
            <string/>
           </property>
@@ -176,73 +192,68 @@
           </property>
          </widget>
         </item>
-        <item row="2" column="0" >
+        <item row="3" column="0" >
          <widget class="QLabel" name="label_3" >
           <property name="text" >
            <string>Enabled:</string>
           </property>
          </widget>
         </item>
-        <item row="2" column="1" >
-         <widget class="QLabel" name="label_18" >
+        <item row="3" column="1" >
+         <widget class="QLabel" name="label_Enabled" >
           <property name="text" >
            <string>yes</string>
           </property>
          </widget>
         </item>
-        <item row="3" column="0" >
+        <item row="4" column="0" >
          <widget class="QLabel" name="label_4" >
           <property name="text" >
            <string>Location:</string>
           </property>
          </widget>
         </item>
-        <item row="3" column="1" >
-         <widget class="QLabel" name="label_19" >
+        <item row="4" column="1" >
+         <widget class="QLabel" name="label_Location" >
           <property name="text" >
            <string>Vault</string>
           </property>
+          <property name="textInteractionFlags" >
+           <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+          </property>
          </widget>
         </item>
-        <item row="4" column="0" >
+        <item row="5" column="0" >
          <widget class="QLabel" name="label_5" >
           <property name="text" >
            <string>Status:</string>
           </property>
          </widget>
         </item>
-        <item row="4" column="1" >
-         <widget class="QLabel" name="label_20" >
+        <item row="5" column="1" >
+         <widget class="QLabel" name="label_VolStatus" >
           <property name="text" >
            <string>Append</string>
           </property>
+          <property name="textInteractionFlags" >
+           <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+          </property>
          </widget>
         </item>
-        <item row="5" column="0" >
+        <item row="6" column="0" >
          <widget class="QLabel" name="label_33" >
           <property name="text" >
            <string>Media Type:</string>
           </property>
          </widget>
         </item>
-        <item row="5" column="1" >
-         <widget class="QLabel" name="label_34" >
+        <item row="6" column="1" >
+         <widget class="QLabel" name="label_MediaType" >
           <property name="text" >
            <string>File</string>
           </property>
-         </widget>
-        </item>
-        <item row="6" column="0" >
-         <widget class="QLabel" name="label_7" >
-          <property name="text" >
-           <string>Expire:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="6" column="1" >
-         <widget class="QLabel" name="label_22" >
-          <property name="text" >
-           <string>2010-08-03 23:10:03</string>
+          <property name="textInteractionFlags" >
+           <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
           </property>
          </widget>
         </item>
@@ -254,36 +265,33 @@
          </widget>
         </item>
         <item row="7" column="1" >
-         <widget class="QLabel" name="label_36" >
+         <widget class="QLabel" name="label_RecyclePool" >
           <property name="text" >
            <string>Scratch</string>
+          </property>
+          <property name="textInteractionFlags" >
+           <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="0" >
+         <widget class="QLabel" name="label_17" >
+          <property name="text" >
+           <string>Name:</string>
           </property>
          </widget>
         </item>
         <item row="0" column="1" >
-         <widget class="QLabel" name="label_16" >
+         <widget class="QLabel" name="label_VolumeName" >
           <property name="text" >
-           <string>Default</string>
+           <string>Vol0001</string>
+          </property>
+          <property name="textInteractionFlags" >
+           <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
           </property>
          </widget>
         </item>
        </layout>
-       <zorder>label</zorder>
-       <zorder>label_2</zorder>
-       <zorder>label_3</zorder>
-       <zorder>label_4</zorder>
-       <zorder>label_5</zorder>
-       <zorder>label_7</zorder>
-       <zorder>label_17</zorder>
-       <zorder>label_18</zorder>
-       <zorder>label_19</zorder>
-       <zorder>label_20</zorder>
-       <zorder>label_22</zorder>
-       <zorder>label_33</zorder>
-       <zorder>label_34</zorder>
-       <zorder>label_35</zorder>
-       <zorder>label_36</zorder>
-       <zorder>label_16</zorder>
       </widget>
      </item>
      <item>
@@ -310,19 +318,29 @@
         <string>Statistics</string>
        </property>
        <layout class="QFormLayout" name="formLayout_2" >
-         <property name="labelAlignment" >
-          <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-         </property>
-         <property name="formAlignment" >
-          <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-         </property>
         <property name="fieldGrowthPolicy" >
          <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+        </property>
+        <property name="labelAlignment" >
+         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+        </property>
+        <property name="formAlignment" >
+         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
         </property>
         <item row="0" column="0" >
          <widget class="QLabel" name="label_6" >
           <property name="text" >
            <string>Vol Bytes:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1" >
+         <widget class="QLabel" name="label_VolBytes" >
+          <property name="text" >
+           <string>19.8 MB</string>
+          </property>
+          <property name="textInteractionFlags" >
+           <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
           </property>
          </widget>
         </item>
@@ -334,9 +352,12 @@
          </widget>
         </item>
         <item row="1" column="1" >
-         <widget class="QLabel" name="label_26" >
+         <widget class="QLabel" name="label_VolMounts" >
           <property name="text" >
            <string>10</string>
+          </property>
+          <property name="textInteractionFlags" >
+           <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
           </property>
          </widget>
         </item>
@@ -348,9 +369,12 @@
          </widget>
         </item>
         <item row="2" column="1" >
-         <widget class="QLabel" name="label_27" >
+         <widget class="QLabel" name="label_RecycleCount" >
           <property name="text" >
            <string>5</string>
+          </property>
+          <property name="textInteractionFlags" >
+           <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
           </property>
          </widget>
         </item>
@@ -362,9 +386,12 @@
          </widget>
         </item>
         <item row="3" column="1" >
-         <widget class="QLabel" name="label_28" >
+         <widget class="QLabel" name="label_VolReadTime" >
           <property name="text" >
            <string>10 mins</string>
+          </property>
+          <property name="textInteractionFlags" >
+           <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
           </property>
          </widget>
         </item>
@@ -376,9 +403,12 @@
          </widget>
         </item>
         <item row="4" column="1" >
-         <widget class="QLabel" name="label_29" >
+         <widget class="QLabel" name="label_VolWriteTime" >
           <property name="text" >
            <string>20 mins</string>
+          </property>
+          <property name="textInteractionFlags" >
+           <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
           </property>
          </widget>
         </item>
@@ -390,9 +420,12 @@
          </widget>
         </item>
         <item row="5" column="1" >
-         <widget class="QLabel" name="label_30" >
+         <widget class="QLabel" name="label_VolErrors" >
           <property name="text" >
            <string>0</string>
+          </property>
+          <property name="textInteractionFlags" >
+           <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
           </property>
          </widget>
         </item>
@@ -404,34 +437,33 @@
          </widget>
         </item>
         <item row="6" column="1" >
-         <widget class="QLabel" name="label_32" >
+         <widget class="QLabel" name="label_LastWritten" >
           <property name="text" >
            <string>2009-07-05 12:23:00</string>
           </property>
+          <property name="textInteractionFlags" >
+           <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+          </property>
          </widget>
         </item>
-        <item row="0" column="1" >
-         <widget class="QLabel" name="label_21" >
+        <item row="7" column="0" >
+         <widget class="QLabel" name="label_16" >
           <property name="text" >
-           <string>19.8 MB</string>
+           <string>First Writtern:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="7" column="1" >
+         <widget class="QLabel" name="label_FirstWritten" >
+          <property name="text" >
+           <string>2009-06-05 10:00:00</string>
+          </property>
+          <property name="textInteractionFlags" >
+           <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
           </property>
          </widget>
         </item>
        </layout>
-       <zorder>label_14</zorder>
-       <zorder>label_15</zorder>
-       <zorder>label_11</zorder>
-       <zorder>label_12</zorder>
-       <zorder>label_13</zorder>
-       <zorder>label_26</zorder>
-       <zorder>label_27</zorder>
-       <zorder>label_28</zorder>
-       <zorder>label_29</zorder>
-       <zorder>label_30</zorder>
-       <zorder>label_6</zorder>
-       <zorder>label_31</zorder>
-       <zorder>label_32</zorder>
-       <zorder>label_21</zorder>
       </widget>
      </item>
      <item>
@@ -458,23 +490,26 @@
         <string>Limits</string>
        </property>
        <layout class="QFormLayout" name="formLayout" >
-         <property name="labelAlignment" >
-          <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-         </property>
-         <property name="formAlignment" >
-          <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-         </property>
+        <property name="labelAlignment" >
+         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+        </property>
+        <property name="formAlignment" >
+         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+        </property>
         <item row="0" column="0" >
          <widget class="QLabel" name="label_9" >
           <property name="text" >
-           <string>Max use duration:</string>
+           <string>Use duration:</string>
           </property>
          </widget>
         </item>
         <item row="0" column="1" >
-         <widget class="QLabel" name="label_25" >
+         <widget class="QLabel" name="label_VolUseDuration" >
           <property name="text" >
            <string>0</string>
+          </property>
+          <property name="textInteractionFlags" >
+           <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
           </property>
          </widget>
         </item>
@@ -486,9 +521,12 @@
          </widget>
         </item>
         <item row="1" column="1" >
-         <widget class="QLabel" name="label_24" >
+         <widget class="QLabel" name="label_MaxVolJobs" >
           <property name="text" >
            <string>0</string>
+          </property>
+          <property name="textInteractionFlags" >
+           <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
           </property>
          </widget>
         </item>
@@ -500,9 +538,12 @@
          </widget>
         </item>
         <item row="2" column="1" >
-         <widget class="QLabel" name="label_39" >
+         <widget class="QLabel" name="label_MaxVolFiles" >
           <property name="text" >
            <string>0</string>
+          </property>
+          <property name="textInteractionFlags" >
+           <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
           </property>
          </widget>
         </item>
@@ -514,9 +555,12 @@
          </widget>
         </item>
         <item row="3" column="1" >
-         <widget class="QLabel" name="label_40" >
+         <widget class="QLabel" name="label_MaxVolBytes" >
           <property name="text" >
            <string>0</string>
+          </property>
+          <property name="textInteractionFlags" >
+           <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
           </property>
          </widget>
         </item>
@@ -528,7 +572,10 @@
          </widget>
         </item>
         <item row="4" column="1" >
-         <widget class="QCheckBox" name="checkBox" >
+         <widget class="QCheckBox" name="chkbox_Recycle" >
+          <property name="enabled" >
+           <bool>false</bool>
+          </property>
           <property name="text" >
            <string/>
           </property>
@@ -542,9 +589,29 @@
          </widget>
         </item>
         <item row="5" column="1" >
-         <widget class="QLabel" name="label_23" >
+         <widget class="QLabel" name="label_VolRetention" >
           <property name="text" >
            <string>365 days</string>
+          </property>
+          <property name="textInteractionFlags" >
+           <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+          </property>
+         </widget>
+        </item>
+        <item row="6" column="0" >
+         <widget class="QLabel" name="label_7" >
+          <property name="text" >
+           <string>Expire:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="6" column="1" >
+         <widget class="QLabel" name="label_Expire" >
+          <property name="text" >
+           <string>2010-08-03 23:10:03</string>
+          </property>
+          <property name="textInteractionFlags" >
+           <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
           </property>
          </widget>
         </item>
@@ -579,7 +646,7 @@
      </property>
      <layout class="QHBoxLayout" name="horizontalLayout" >
       <item>
-       <widget class="QTableWidget" name="tableWidget" >
+       <widget class="QTableWidget" name="tableJob" >
         <column>
          <property name="text" >
           <string>JobId</string>
