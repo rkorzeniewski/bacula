@@ -197,52 +197,6 @@ void Job::populateText()
   
 }
 
-// Need to use the fmtwidgetitem helper instead
-static QString convertBytesSI(qint64 qfld)
-{
-   static const qint64 KB = Q_INT64_C(1000);
-   static const qint64 MB = (KB * KB);
-   static const qint64 GB = (MB * KB);
-   static const qint64 TB = (GB * KB);
-   static const qint64 PB = (TB * KB);
-   static const qint64 EB = (PB * KB);
-
-   /* note: division is integer, so to have some decimals we divide for a
-      smaller unit (e.g. GB for a TB number and so on) */
-   char suffix;
-   if (qfld >= EB) {
-      qfld /= PB; 
-      suffix = 'E';
-   }
-   else if (qfld >= PB) {
-      qfld /= TB; 
-      suffix = 'P';
-   }
-   else if (qfld >= TB) {
-      qfld /= GB; 
-      suffix = 'T';
-   }
-   else if (qfld >= GB) {
-      qfld /= MB;
-      suffix = 'G';
-   }
-   else if (qfld >= MB) {
-      qfld /= KB;
-      suffix = 'M';
-   }
-   else if (qfld >= KB) {
-      suffix = 'k'; /* SI uses lowercase k */
-   }
-   else  {
-      /* plain bytes, no need to reformat */
-      return QString("%1 B").arg(qfld); 
-   }
-
-   /* having divided for a smaller unit, now we can safely convert to double and
-      use the extra room for decimals */
-   return QString("%1 %2B").arg(qfld / 1000.0, 0, 'f', 2).arg(suffix);
-}
-
 /*
  * Populate the text in the window
  */
