@@ -198,7 +198,7 @@ void Job::populateText()
 }
 
 // Need to use the fmtwidgetitem helper instead
-QString convertBytesSI(qint64 qfld)
+static QString convertBytesSI(qint64 qfld)
 {
    static const qint64 KB = Q_INT64_C(1000);
    static const qint64 MB = (KB * KB);
