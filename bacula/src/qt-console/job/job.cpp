@@ -26,18 +26,10 @@
    Switzerland, email:ftf@fsfeurope.org.
 */
  
-/*
- *   Version $Id$
- *
- *  Job Class
- *
- *   Dirk Bartley, March 2007
- *
- */ 
-
 #include "bat.h"
 #include "job.h"
 #include "util/fmtwidgetitem.h"
+#include "mediainfo/mediainfo.h"
 
 Job::Job(QString &jobId, QTreeWidgetItem *parentTreeWidgetItem)
 {
@@ -53,10 +45,20 @@ Job::Job(QString &jobId, QTreeWidgetItem *parentTreeWidgetItem)
 
    connect(pbRefresh, SIGNAL(clicked()), this, SLOT(populateAll()));
    connect(pbDelete, SIGNAL(clicked()), this, SLOT(deleteJob()));
+   connect(list_Volume, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this, SLOT(showInfoVolume(QListWidgetItem *)));
 
    populateAll();
    dockPage();
    setCurrent();
+}
+
+void Job::showInfoVolume(QListWidgetItem *item)
+{
+   QString s= item->text();
+   QTreeWidgetItem* pageSelectorTreeWidgetItem = mainWin->getFromHash(this);
+
+   MediaInfo *m = new MediaInfo(pageSelectorTreeWidgetItem, s);
+   connect(m, SIGNAL(destroyed()), this, SLOT(populateTree()));
 }
 
 void Job::deleteJob()
@@ -193,52 +195,6 @@ void Job::populateText()
 
    } /* if results from query */
   
-}
-
-// Need to use the fmtwidgetitem helper instead
-QString convertBytesSI(qint64 qfld)
-{
-   static const qint64 KB = Q_INT64_C(1000);
-   static const qint64 MB = (KB * KB);
-   static const qint64 GB = (MB * KB);
-   static const qint64 TB = (GB * KB);
-   static const qint64 PB = (TB * KB);
-   static const qint64 EB = (PB * KB);
-
-   /* note: division is integer, so to have some decimals we divide for a
-      smaller unit (e.g. GB for a TB number and so on) */
-   char suffix;
-   if (qfld >= EB) {
-      qfld /= PB; 
-      suffix = 'E';
-   }
-   else if (qfld >= PB) {
-      qfld /= TB; 
-      suffix = 'P';
-   }
-   else if (qfld >= TB) {
-      qfld /= GB; 
-      suffix = 'T';
-   }
-   else if (qfld >= GB) {
-      qfld /= MB;
-      suffix = 'G';
-   }
-   else if (qfld >= MB) {
-      qfld /= KB;
-      suffix = 'M';
-   }
-   else if (qfld >= KB) {
-      suffix = 'k'; /* SI uses lowercase k */
-   }
-   else  {
-      /* plain bytes, no need to reformat */
-      return QString("%1 B").arg(qfld); 
-   }
-
-   /* having divided for a smaller unit, now we can safely convert to double and
-      use the extra room for decimals */
-   return QString("%1 %2B").arg(qfld / 1000.0, 0, 'f', 2).arg(suffix);
 }
 
 /*

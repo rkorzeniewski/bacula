@@ -285,7 +285,8 @@ void MediaList::showJobs()
  */
 void MediaList::viewVolume()
 {
-   MediaInfo* view = new MediaInfo(mainWin->getFromHash(this), m_currentVolumeId);
+   QTreeWidgetItem *parentItem = mainWin->getFromHash(this);
+   MediaInfo* view = new MediaInfo(parentItem, m_currentVolumeName);
    connect(view, SIGNAL(destroyed()), this, SLOT(populateTree()));
 
 }
