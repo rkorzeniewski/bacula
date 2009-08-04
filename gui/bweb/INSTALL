@@ -71,12 +71,6 @@ Bweb works well with 2.0 release or later.
 In this example, bweb files are in /home/bacula/bweb
 
 bacula:~$ cd bweb
-bacula:~/bweb$ sed -i "s:/etc/bacula/bweb.conf:$PWD/bweb.conf:" lib/Bweb.pm
-bacula:~/bweb$ cat > bweb.conf <<EOF
-\$VAR1 = { template_dir => '$PWD/lang',
-          fv_write_path => '/tmp/',
- };
-EOF
 
 # configure the database
 bacula:~/bweb$ mysql bacula < script/bweb-mysql.sql
@@ -85,12 +79,17 @@ bacula:~/bweb$ psql bacula < script/bweb-postgresql.sql
 
 # You can start the web server from the bweb directory
 bacula@localhost:~/bweb$ ./script/starthttp
- Using bweb on /home/eric/dev/git/gui/bweb,  use firefox http://localhost:9180
+ Making configuration template in /home/bacula/bweb/bweb.conf
+ Adjusting bweb.conf path
+ Using bweb on /home/bacula/bweb,  use firefox http://localhost:9180
  2009-07-18 22:23:12: (log.c.75) server started
 
 
 By default, only the loopback interface is binded, you can change that
 in the bweb/script/httpd.conf file.
+
+You will have to configure bweb with your database and bconsole info, it
+can be done in the web interface.
 
 
 ################ FILE COPY (Full Apache methode) ###############
