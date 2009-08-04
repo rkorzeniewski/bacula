@@ -421,7 +421,6 @@ void JobList::createConnections()
 
    connect(actionListFilesOnJob, SIGNAL(triggered()), this, SLOT(consoleListFilesOnJob()));
    connect(actionListJobMedia, SIGNAL(triggered()), this, SLOT(consoleListJobMedia()));
-   connect(actionListVolumes, SIGNAL(triggered()), this, SLOT(consoleListVolumes()));
    connect(actionDeleteJob, SIGNAL(triggered()), this, SLOT(consoleDeleteJob()));
    connect(actionPurgeFiles, SIGNAL(triggered()), this, SLOT(consolePurgeFiles()));
    connect(actionRestoreFromJob, SIGNAL(triggered()), this, SLOT(preRestoreFromJob()));
@@ -454,13 +453,7 @@ void JobList::consoleListJobMedia()
    if (mainWin->m_longList) { cmd.prepend("l"); }
    consoleCommand(cmd);
 }
-void JobList::consoleListVolumes()
-{
-   QString cmd("list volumes jobid=");
-   cmd += m_currentJob;
-   if (mainWin->m_longList) { cmd.prepend("l"); }
-   consoleCommand(cmd);
-}
+
 void JobList::consoleListJobTotals()
 {
    QString cmd("list jobtotals");
@@ -538,7 +531,7 @@ void JobList::showLogForJob()
 /*
  * Subroutine to call class to show the log in the database from that job
  */
-void JobList::showInfoForJob()
+void JobList::showInfoForJob(QTableWidgetItem * item)
 {
    QTreeWidgetItem* pageSelectorTreeWidgetItem = mainWin->getFromHash(this);
    new Job(m_currentJob, pageSelectorTreeWidgetItem);
@@ -653,7 +646,6 @@ void JobList::selectionChanged()
    if (m_selectedJobsCount == 1) {
       mp_tableWidget->addAction(actionListFilesOnJob);
       mp_tableWidget->addAction(actionListJobMedia);
-      mp_tableWidget->addAction(actionListVolumes);
       mp_tableWidget->addAction(actionRestoreFromJob);
       mp_tableWidget->addAction(actionRestoreFromTime);
       mp_tableWidget->addAction(actionShowLogForJob);
