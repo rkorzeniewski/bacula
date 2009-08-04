@@ -51,7 +51,7 @@ FORMS += select/select.ui select/textinput.ui
 FORMS += medialist/medialist.ui mediaedit/mediaedit.ui joblist/joblist.ui
 FORMS += clients/clients.ui storage/storage.ui fileset/fileset.ui
 FORMS += joblog/joblog.ui jobs/jobs.ui job/job.ui
-FORMS += help/help.ui
+FORMS += help/help.ui mediainfo/mediainfo.ui
 FORMS += status/dirstat.ui
 FORMS += status/clientstat.ui
 FORMS += status/storstat.ui
@@ -144,6 +144,10 @@ qwt {
 # Help dialog
 HEADERS += help/help.h
 SOURCES += help/help.cpp
+
+# Media info dialog
+HEADERS += mediainfo/mediainfo.h
+HEADERS += mediainfo/mediainfo.cpp
 
 ## Status Dir
 HEADERS += status/dirstat.h

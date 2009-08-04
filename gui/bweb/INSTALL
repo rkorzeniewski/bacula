@@ -78,6 +78,10 @@ bacula:~/bweb$ cat > bweb.conf <<EOF
  };
 EOF
 
+# configure the database
+bacula:~/bweb$ mysql bacula < script/bweb-mysql.sql
+# or
+bacula:~/bweb$ psql bacula < script/bweb-postgresql.sql
 
 # You can start the web server from the bweb directory
 bacula@localhost:~/bweb$ ./script/starthttp

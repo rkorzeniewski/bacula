@@ -479,7 +479,7 @@ SELECT PathId, Path, JobId, Lstat FROM (
            ON (brestore_pathhierarchy1.PathId = brestore_pathvisibility1.PathId)
        WHERE brestore_pathhierarchy1.PPathId = $pathid
        AND brestore_pathvisibility1.jobid IN ($jobclause)
-           $limit
+           $filter
      ) AS listpath1
    JOIN Path AS Path1 ON (listpath1.PathId = Path1.PathId)
 
