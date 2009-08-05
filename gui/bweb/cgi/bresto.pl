@@ -1221,7 +1221,7 @@ if ($action eq 'list_files_dirs') {
     }
 
     if ($table) {
-        #$bvfs->dbh_do("DROP TABLE $table");
+        $bvfs->dbh_do("DROP TABLE $table");
     }
 
 }
