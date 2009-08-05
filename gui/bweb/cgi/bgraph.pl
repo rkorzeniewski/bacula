@@ -228,7 +228,7 @@ sub get_graph
                 ],
 		@options,
 		);
-    if (-f $conf->{graph_font}) {
+    if ($conf->{graph_font} && -f $conf->{graph_font}) {
         $graph->set_title_font([$conf->{graph_font}], 12);
         $graph->set_legend_font([$conf->{graph_font}], 11);
     }
