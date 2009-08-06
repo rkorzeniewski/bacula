@@ -398,9 +398,9 @@ UNION
  (SELECT $pathid AS PathId, '.' AS Path))";
 
     my $sq2 = "
-SELECT tmp.PathId, tmp.Path, Lstat, JobId 
+SELECT tmp.PathId, tmp.Path, LStat, JobId 
   FROM $sq1 AS tmp  LEFT JOIN ( -- get attributes if any
-       SELECT File1.PathId, File1.JobId, File1.Lstat FROM File AS File1
+       SELECT File1.PathId, File1.JobId, File1.LStat FROM File AS File1
        WHERE File1.FilenameId = $dir_filenameid
        AND File1.JobId IN ($jobclause)) AS listfile1
   ON (tmp.PathId = listfile1.PathId)
@@ -466,10 +466,10 @@ sub ls_dirs
 
     # Then we get all the dir entries from File ...
     my $query = "
-SELECT PathId, Path, JobId, Lstat FROM (
+SELECT PathId, Path, JobId, LStat FROM (
 
     SELECT Path1.PathId, Path1.Path, lower(Path1.Path),
-           listfile1.JobId, listfile1.Lstat
+           listfile1.JobId, listfile1.LStat
     FROM (
        SELECT DISTINCT brestore_pathhierarchy1.PathId
        FROM brestore_pathhierarchy AS brestore_pathhierarchy1
@@ -484,7 +484,7 @@ SELECT PathId, Path, JobId, Lstat FROM (
    JOIN Path AS Path1 ON (listpath1.PathId = Path1.PathId)
 
    LEFT JOIN ( -- get attributes if any
-       SELECT File1.PathId, File1.JobId, File1.Lstat FROM File AS File1
+       SELECT File1.PathId, File1.JobId, File1.LStat FROM File AS File1
        WHERE File1.FilenameId = $dir_filenameid
        AND File1.JobId IN ($jobclause)) AS listfile1
        ON (listpath1.PathId = listfile1.PathId)
@@ -615,7 +615,7 @@ sub get_all_file_versions
     my @versions;
     my $query;
     $query =
-"SELECT File.JobId, File.FileId, File.Lstat,
+"SELECT File.JobId, File.FileId, File.LStat,
         File.Md5, Media.VolumeName, Media.InChanger
  FROM File, Job, Client, JobMedia, Media
  WHERE File.FilenameId = $fileid
