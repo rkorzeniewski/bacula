@@ -62,7 +62,8 @@ PROG_COPYRIGHT
 "       -w <working>      specify working directory\n"
 "       -j <jobids>       specify jobids\n"
 "       -p <path>         specify path\n"
-"       -f <file>         specify file\n"
+//"       -f <file>         specify file\n"
+"       -T                truncate cache table before starting\n"
 "       -v                verbose\n"
 "       -?                print this message\n\n"), 2001, VERSION, BDATE);
    exit(1);
@@ -98,6 +99,7 @@ int main (int argc, char *argv[])
 {
    int ch;
    char *jobids="1", *path=NULL, *file=NULL;
+   bool clean=false;
    setlocale(LC_ALL, "");
    bindtextdomain("bacula", LOCALEDIR);
    textdomain("bacula");
@@ -110,7 +112,7 @@ int main (int argc, char *argv[])
 
    OSDependentInit();
 
-   while ((ch = getopt(argc, argv, "h:c:d:n:P:Su:vf:w:?j:p:f:")) != -1) {
+   while ((ch = getopt(argc, argv, "h:c:d:n:P:Su:vf:w:?j:p:f:T")) != -1) {
       switch (ch) {
       case 'd':                    /* debug level */
          if (*optarg == 't') {
@@ -159,6 +161,10 @@ int main (int argc, char *argv[])
          jobids = optarg;
          break;
 
+      case 'T':
+         clean = true;
+         break;
+
       case '?':
       default:
          usage();
@@ -196,12 +202,15 @@ int main (int argc, char *argv[])
    }
    
    bjcr->db = db;
-   
-   db_sql_query(db, "DELETE FROM brestore_pathhierarchy", NULL, NULL);
-   db_sql_query(db, "DELETE FROM brestore_knownjobid", NULL, NULL);
-   db_sql_query(db, "DELETE FROM brestore_pathvisibility", NULL, NULL);
 
-   bvfs_update_cache(bjcr, db);
+   if (clean) {
+      Pmsg0(0, "Clean old table");
+      db_sql_query(db, "DELETE FROM brestore_pathhierarchy", NULL, NULL);
+      db_sql_query(db, "DELETE FROM brestore_knownjobid", NULL, NULL);
+      db_sql_query(db, "DELETE FROM brestore_pathvisibility", NULL, NULL);
+      bvfs_update_cache(bjcr, db);
+   }
+
    Bvfs fs(bjcr, db);
    fs.set_handler(result_handler, &fs);
 
