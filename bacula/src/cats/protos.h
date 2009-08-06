@@ -59,8 +59,10 @@ void db_end_transaction(JCR *jcr, B_DB *mdb);
 int db_int64_handler(void *ctx, int num_fields, char **row);
 void db_thread_cleanup();
 void _dbg_print_db(JCR *jcr, FILE *fp);
+int db_int_handler(void *ctx, int num_fields, char **row);
 
 /* sql_create.c */
+int db_create_path_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar);
 bool db_create_file_attributes_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar);
 bool db_create_job_record(JCR *jcr, B_DB *db, JOB_DBR *jr);
 int db_create_media_record(JCR *jcr, B_DB *db, MEDIA_DBR *media_dbr);
@@ -89,6 +91,7 @@ int db_find_next_volume(JCR *jcr, B_DB *mdb, int index, bool InChanger, MEDIA_DB
 bool db_find_failed_job_since(JCR *jcr, B_DB *mdb, JOB_DBR *jr, POOLMEM *stime, int &JobLevel);
 
 /* sql_get.c */
+int db_get_path_record(JCR *jcr, B_DB *mdb);
 bool db_get_pool_record(JCR *jcr, B_DB *db, POOL_DBR *pdbr);
 int db_get_client_record(JCR *jcr, B_DB *mdb, CLIENT_DBR *cr);
 bool db_get_job_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr);

@@ -179,6 +179,7 @@ struct B_DB {
 #define sql_fetch_field(x)    my_sqlite_fetch_field(x)
 #define sql_num_fields(x)     ((x)->ncolumn)
 #define SQL_ROW               char**
+#define SQL_MATCH             "MATCH"
 
 #define sql_batch_start(x,y)    my_batch_start(x,y)
 #define sql_batch_end(x,y,z)    my_batch_end(x,y,z)
@@ -313,6 +314,7 @@ struct B_DB {
 #define sql_batch_end(x,y,z)    my_batch_end(x,y,z)
 #define sql_batch_insert(x,y,z) my_batch_insert(x,y,z)
 #define SQL_ROW               char**
+#define SQL_MATCH             "MATCH"
 #define sql_batch_lock_path_query       my_sqlite_batch_lock_query
 #define sql_batch_lock_filename_query   my_sqlite_batch_lock_query
 #define sql_batch_unlock_tables_query   my_sqlite_batch_unlock_query
@@ -396,6 +398,7 @@ struct B_DB {
 #define sql_num_fields(x)     (int)mysql_num_fields((x)->result)
 #define SQL_ROW               MYSQL_ROW
 #define SQL_FIELD             MYSQL_FIELD
+#define SQL_MATCH             "MATCH"
 
 #define sql_batch_start(x,y)    my_batch_start(x,y)
 #define sql_batch_end(x,y,z)    my_batch_end(x,y,z)
@@ -527,6 +530,7 @@ extern const char* my_pg_batch_fill_path_query;
 
 #define SQL_ROW               POSTGRESQL_ROW
 #define SQL_FIELD             POSTGRESQL_FIELD
+#define SQL_MATCH             "~"
 
 #else
 
@@ -634,6 +638,7 @@ extern const char* my_dbi_batch_lock_filename_query[4];
 extern const char* my_dbi_batch_unlock_tables_query[4];
 extern const char* my_dbi_batch_fill_filename_query[4];
 extern const char* my_dbi_batch_fill_path_query[4];
+extern const char* my_dbi_match[4];
 
 /* "Generic" names for easier conversion */
 #define sql_store_result(x)   (x)->result
@@ -644,6 +649,7 @@ extern const char* my_dbi_batch_fill_path_query[4];
 #define sql_strerror(x)       my_dbi_strerror(x)
 #define sql_num_rows(x)       dbi_result_get_numrows((x)->result)
 #define sql_data_seek(x, i)   my_dbi_data_seek((x), (i))
+#define SQL_MATCH             my_dbi_match[db_type]
 /* #define sql_affected_rows(x)  dbi_result_get_numrows_affected((x)->result) */
 #define sql_affected_rows(x)  1
 #define sql_insert_id(x,y)    my_dbi_sql_insert_id((x), (y))
