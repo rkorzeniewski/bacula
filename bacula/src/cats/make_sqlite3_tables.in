@@ -24,7 +24,9 @@ CREATE TABLE Path (
 
 CREATE INDEX inx2 ON Path (Path);
 
-
+-- In File table
+-- FileIndex can be 0 for FT_DELETED files
+-- FileNameId can link to Filename.Name='' for directories
 CREATE TABLE File (
    FileId INTEGER,
    FileIndex INTEGER UNSIGNED NOT NULL,

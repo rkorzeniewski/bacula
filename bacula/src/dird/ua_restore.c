@@ -1346,42 +1346,6 @@ bail_out:
    return ok;
 }
 
-
-/* 
- * Return next JobId from comma separated list   
- *
- * Returns:
- *   1 if next JobId returned
- *   0 if no more JobIds are in list
- *  -1 there is an error
- */
-int get_next_jobid_from_list(char **p, JobId_t *JobId)
-{
-   const int maxlen = 30;
-   char jobid[maxlen+1];
-   char *q = *p;
-
-   jobid[0] = 0;
-   for (int i=0; i<maxlen; i++) {
-      if (*q == 0) {
-         break;
-      } else if (*q == ',') {
-         q++;
-         break;
-      }
-      jobid[i] = *q++;
-      jobid[i+1] = 0;
-   }
-   if (jobid[0] == 0) {
-      return 0;
-   } else if (!is_a_number(jobid)) {
-      return -1;                      /* error */
-   }
-   *p = q;
-   *JobId = str_to_int64(jobid);
-   return 1;
-}
-
 static int restore_count_handler(void *ctx, int num_fields, char **row)
 {
    RESTORE_CTX *rx = (RESTORE_CTX *)ctx;
