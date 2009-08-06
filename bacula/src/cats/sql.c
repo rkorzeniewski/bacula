@@ -112,7 +112,7 @@ dbid_list::~dbid_list()
 /*
  * Called here to retrieve an integer from the database
  */
-static int int_handler(void *ctx, int num_fields, char **row)
+int db_int_handler(void *ctx, int num_fields, char **row)
 {
    uint32_t *val = (uint32_t *)ctx;
 
@@ -156,7 +156,7 @@ bool check_tables_version(JCR *jcr, B_DB *mdb)
    const char *query = "SELECT VersionId FROM Version";
 
    bacula_db_version = 0;
-   if (!db_sql_query(mdb, query, int_handler, (void *)&bacula_db_version)) {
+   if (!db_sql_query(mdb, query, db_int_handler, (void *)&bacula_db_version)) {
       Jmsg(jcr, M_FATAL, 0, "%s", mdb->errmsg);
       return false;
    }
