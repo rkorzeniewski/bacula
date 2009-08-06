@@ -166,14 +166,15 @@ struct B_DB {
 #ifdef HAVE_SQLITE3
 #define sql_insert_id(x,y)    sqlite3_last_insert_rowid((x)->db)
 #define sql_close(x)          sqlite3_close((x)->db)
+#define sql_affected_rows(x)  sqlite3_changes((x)->db)
 #else
 #define sql_insert_id(x,y)    sqlite_last_insert_rowid((x)->db)
 #define sql_close(x)          sqlite_close((x)->db)
+#define sql_affected_rows(x)  1
 #endif
 #define sql_strerror(x)       (x)->sqlite_errmsg?(x)->sqlite_errmsg:"unknown"
 #define sql_num_rows(x)       (x)->nrow
 #define sql_data_seek(x, i)   (x)->row = (i)
-#define sql_affected_rows(x)  1
 #define sql_field_seek(x, y)  my_sqlite_field_seek((x), (y))
 #define sql_fetch_field(x)    my_sqlite_fetch_field(x)
 #define sql_num_fields(x)     ((x)->ncolumn)
@@ -304,7 +305,7 @@ struct B_DB {
 #define sql_strerror(x)       (x)->sqlite_errmsg?(x)->sqlite_errmsg:"unknown"
 #define sql_num_rows(x)       (x)->nrow
 #define sql_data_seek(x, i)   (x)->row = (i)
-#define sql_affected_rows(x)  1
+#define sql_affected_rows(x)  sqlite3_changes((x)->db)
 #define sql_field_seek(x, y)  my_sqlite_field_seek((x), (y))
 #define sql_fetch_field(x)    my_sqlite_fetch_field(x)
 #define sql_num_fields(x)     ((x)->ncolumn)
