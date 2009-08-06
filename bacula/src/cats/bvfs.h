@@ -42,26 +42,27 @@
  * fs.ls_files();
  */
 
+/* Helper for result handler */
+typedef enum {
+   BVFS_FILE_RECORD  = 5,
+   BVFS_DIR_RECORD   = 4,
+   BVFS_FILE_VERSION = 6
+} bvfs_handler_type;
+
+typedef enum {
+   BVFS_Id      = 0,
+   BVFS_Name    = 1,
+   BVFS_JobId   = 2,
+   BVFS_LStat   = 3,
+
+   BVFS_FileId  = 4,         /* Only if File record */
+} bvfs_row_index;
+
 class Bvfs {
 
 public:
-   Bvfs(JCR *j, B_DB *mdb) {
-      jcr = j;
-      jcr->inc_use_count();
-      db = mdb;                 /* need to inc ref count */
-      jobids = get_pool_memory(PM_NAME);
-      pattern = get_pool_memory(PM_NAME);
-      *pattern = *jobids = 0;
-      dir_filenameid = pwd_id = offset = 0;
-      see_copies = see_all_version = false;
-      limit = 1000;
-   }
-
-   virtual ~Bvfs() {
-      free_pool_memory(jobids);
-      free_pool_memory(pattern);
-      jcr->dec_use_count();
-   }
+   Bvfs(JCR *j, B_DB *mdb);
+   virtual ~Bvfs();
 
    void set_jobid(JobId_t id) {
       Mmsg(jobids, "%lld", (uint64_t)id);
@@ -115,6 +116,19 @@ public:
       see_copies = val;
    }
 
+   void set_handler(DB_RESULT_HANDLER *h, void *ctx) {
+      list_entries = h;
+      user_data = ctx;
+   }
+
+   ATTR *get_attr() {
+      return attr;
+   }
+
+   JCR *get_jcr() {
+      return jcr;
+   }
+
 private:   
    JCR *jcr;
    B_DB *db;
@@ -124,11 +138,15 @@ private:
    POOLMEM *pattern;
    DBId_t pwd_id;
    DBId_t dir_filenameid;
+   ATTR *attr;
 
    bool see_all_version;
    bool see_copies;
 
    DBId_t get_dir_filenameid();
+   
+   DB_RESULT_HANDLER *list_entries;
+   void *user_data;
 };
 
 void bvfs_update_path_hierarchy_cache(JCR *jcr, B_DB *mdb, char *jobids);

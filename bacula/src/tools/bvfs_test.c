@@ -38,6 +38,7 @@
 #include "bacula.h"
 #include "cats/cats.h"
 #include "cats/bvfs.h"
+#include "findlib/find.h"
  
 /* Local variables */
 static B_DB *db;
@@ -59,16 +60,44 @@ PROG_COPYRIGHT
 "       -P <password      specify database password (default none)\n"
 "       -h <host>         specify database host (default NULL)\n"
 "       -w <working>      specify working directory\n"
+"       -j <jobids>       specify jobids\n"
+"       -p <path>         specify path\n"
+"       -f <file>         specify file\n"
 "       -v                verbose\n"
 "       -?                print this message\n\n"), 2001, VERSION, BDATE);
    exit(1);
 }
+
+static int result_handler(void *ctx, int fields, char **row)
+{
+   Bvfs *vfs = (Bvfs *)ctx;
+   ATTR *attr = vfs->get_attr();
+   char *empty = "";
+
+   if (fields == BVFS_DIR_RECORD || fields == BVFS_FILE_RECORD) {
+      decode_stat((row[BVFS_LStat])?row[BVFS_LStat]:empty,
+                  &attr->statp, &attr->LinkFI);
+      if (fields == BVFS_DIR_RECORD) {
+         pm_strcpy(attr->ofname, bvfs_basename_dir(row[BVFS_Name]));   
+      } else {
+         pm_strcpy(attr->ofname, row[BVFS_Name]);   
+      }
+      print_ls_output(vfs->get_jcr(), attr);
+
+   } else {
+      Pmsg6(0, "%s\t%s\t%s\t%s\t%s\t%s",
+            row[0], row[1], row[2], row[3], row[4], row[5]);
+   }
+   return 0;
+}
+
 
 /* number of thread started */
 
 int main (int argc, char *argv[])
 {
    int ch;
+   char *jobids="1", *path=NULL, *file=NULL;
    setlocale(LC_ALL, "");
    bindtextdomain("bacula", LOCALEDIR);
    textdomain("bacula");
@@ -81,7 +110,7 @@ int main (int argc, char *argv[])
 
    OSDependentInit();
 
-   while ((ch = getopt(argc, argv, "h:c:d:n:P:Su:vf:w:?")) != -1) {
+   while ((ch = getopt(argc, argv, "h:c:d:n:P:Su:vf:w:?j:p:f:")) != -1) {
       switch (ch) {
       case 'd':                    /* debug level */
          if (*optarg == 't') {
@@ -116,6 +145,18 @@ int main (int argc, char *argv[])
 
       case 'v':
          verbose++;
+         break;
+
+      case 'p':
+         path = optarg;
+         break;
+
+      case 'f':
+         path = optarg;
+         break;
+
+      case 'j':
+         jobids = optarg;
          break;
 
       case '?':
@@ -162,30 +203,44 @@ int main (int argc, char *argv[])
 
    bvfs_update_cache(bjcr, db);
    Bvfs fs(bjcr, db);
+   fs.set_handler(result_handler, &fs);
 
-   fs.set_jobids("1");
+   fs.set_jobids(jobids);
    fs.update_cache();
-   fs.ch_dir("");
-   fs.ls_files();
-   fs.ls_dirs();
 
+   if (path) {
+      fs.ch_dir(path);
+      fs.ls_special_dirs();
+      fs.ls_dirs();
+      fs.ls_files();
+      exit (0);
+   }
+
+   
+   Pmsg0(0, "list /\n");
    fs.ch_dir("/");
-   fs.ls_files();
-   fs.ls_dirs();
-
-   fs.ch_dir("/tmp/");
-   fs.ls_files();
-   fs.ls_dirs();
-
-   fs.ch_dir("/tmp/regress/");
-   fs.ls_files();
-   fs.ls_dirs();
-
-   fs.set_jobid(1);
-   fs.ch_dir("/tmp/regress/build/");
-   fs.ls_files();
-   fs.ls_dirs();
    fs.ls_special_dirs();
+   fs.ls_dirs();
+   fs.ls_files();
+
+   Pmsg0(0, "list /tmp/\n");
+   fs.ch_dir("/tmp/");
+   fs.ls_special_dirs();
+   fs.ls_dirs();
+   fs.ls_files();
+
+   Pmsg0(0, "list /tmp/regress/\n");
+   fs.ch_dir("/tmp/regress/");
+   fs.ls_special_dirs();
+   fs.ls_files();
+   fs.ls_dirs();
+
+   Pmsg0(0, "list /tmp/regress/build/\n");
+   fs.ch_dir("/tmp/regress/build/");
+   fs.ls_special_dirs();
+   fs.ls_dirs();
+   fs.ls_files();
+
    fs.get_all_file_versions(1, 347, "zog4-fd");
 
    char p[200];

@@ -36,6 +36,46 @@
 #define dbglevel 10
 #define dbglevel_sql 15
 
+static int result_handler(void *ctx, int fields, char **row)
+{
+   if (fields == 4) {
+      Pmsg4(0, "%s\t%s\t%s\t%s\n", 
+            row[0], row[1], row[2], row[3]);
+   } else if (fields == 5) {
+      Pmsg5(0, "%s\t%s\t%s\t%s\t%s\n", 
+            row[0], row[1], row[2], row[3], row[4]);
+   } else if (fields == 6) {
+      Pmsg6(0, "%s\t%s\t%s\t%s\t%s\t%s\n", 
+            row[0], row[1], row[2], row[3], row[4], row[5]);
+   } else if (fields == 7) {
+      Pmsg7(0, "%s\t%s\t%s\t%s\t%s\t%s\t%s\n", 
+            row[0], row[1], row[2], row[3], row[4], row[5], row[6]);
+   }
+   return 0;
+}
+
+Bvfs::Bvfs(JCR *j, B_DB *mdb) {
+   jcr = j;
+   jcr->inc_use_count();
+   db = mdb;                 /* need to inc ref count */
+   jobids = get_pool_memory(PM_NAME);
+   pattern = get_pool_memory(PM_NAME);
+   *pattern = *jobids = 0;
+   dir_filenameid = pwd_id = offset = 0;
+   see_copies = see_all_version = false;
+   limit = 1000;
+   attr = new_attr(jcr);
+   list_entries = result_handler;
+   user_data = this;
+}
+
+Bvfs::~Bvfs() {
+   free_pool_memory(jobids);
+   free_pool_memory(pattern);
+   free_attr(attr);
+   jcr->dec_use_count();
+}
+
 /* 
  * TODO: Find a way to let the user choose how he wants to display
  * files and directories
@@ -116,9 +156,7 @@ char *bvfs_parent_dir(char *path)
    return path;
 }
 
-
-
-/* Return the basename of the with the trailing /  (update the given string)
+/* Return the basename of the with the trailing /
  * TODO: see in the rest of bacula if we don't have
  * this function already
  */
@@ -302,7 +340,6 @@ bail_out:
    db_unlock(mdb);
 }
 
-
 /* 
  * Find an store the filename descriptor for empty directories Filename.Name=''
  */
@@ -388,33 +425,6 @@ void Bvfs::update_cache()
    bvfs_update_path_hierarchy_cache(jcr, db, jobids);
 }
 
-static int result_handler(void *ctx, int fields, char **row)
-{
-   if (fields == 4) {
-      Dmsg4(0, "%s\t%s\t%s\t%s\n", 
-            row[0], row[1], row[2], row[3]);
-   } else if (fields == 5) {
-      Dmsg5(0, "%s\t%s\t%s\t%s\t%s\n", 
-            row[0], row[1], row[2], row[3], row[4]);
-   } else if (fields == 6) {
-      Dmsg6(0, "%s\t%s\t%s\t%s\t%s\t%s\n", 
-            row[0], row[1], row[2], row[3], row[4], row[5]);
-   } else if (fields == 7) {
-      Dmsg7(0, "%s\t%s\t%s\t%s\t%s\t%s\t%s\n", 
-            row[0], row[1], row[2], row[3], row[4], row[5], row[6]);
-   }
-   return 0;
-}
-
-static int result_path_handler(void *ctx, int fields, char **row)
-{
-   if (fields == 4) {
-      Dmsg4(0, "%s\t%s\t%s\t%s\n", 
-            row[0], bvfs_basename_dir(row[1]), row[2], row[3]);
-   }
-   return 0;
-}
-
 /* Change the current directory, returns true if the path exists */
 bool Bvfs::ch_dir(char *path)
 {
@@ -458,7 +468,7 @@ void Bvfs::get_all_file_versions(DBId_t pathid, DBId_t fnid, char *client)
         ,edit_uint64(fnid, ed1), edit_uint64(pathid, ed2), client, q.c_str(),
         limit, offset);
 
-   db_sql_query(db, query.c_str(), result_handler, this);
+   db_sql_query(db, query.c_str(), list_entries, user_data);
 }
 
 DBId_t Bvfs::get_root()
@@ -492,7 +502,7 @@ void Bvfs::ls_special_dirs()
 
    POOL_MEM query2;
    Mmsg(query2, 
-"SELECT tmp.PathId, tmp.Path, LStat, JobId "
+"SELECT tmp.PathId, tmp.Path, JobId, LStat "
   "FROM %s AS tmp  LEFT JOIN ( " // get attributes if any
        "SELECT File1.PathId AS PathId, File1.JobId AS JobId, "
               "File1.LStat AS LStat FROM File AS File1 "
@@ -503,7 +513,7 @@ void Bvfs::ls_special_dirs()
         query.c_str(), edit_uint64(dir_filenameid, ed2), jobids);
 
    Dmsg1(dbglevel_sql, "q=%s\n", query.c_str());
-   db_sql_query(db, query2.c_str(), result_handler, this);
+   db_sql_query(db, query2.c_str(), list_entries, user_data);
 }
 
 void Bvfs::ls_dirs()
@@ -530,7 +540,8 @@ void Bvfs::ls_dirs()
     */
    /* Then we get all the dir entries from File ... */
    POOL_MEM query;
-   Mmsg(query, 
+   Mmsg(query,
+//        0     1      2      3
 "SELECT PathId, Path, JobId, LStat FROM ( "
     "SELECT Path1.PathId AS PathId, Path1.Path AS Path, "
            "lower(Path1.Path) AS lpath, "
@@ -563,7 +574,7 @@ void Bvfs::ls_dirs()
         limit, offset);
 
    Dmsg1(dbglevel_sql, "q=%s\n", query.c_str());
-   db_sql_query(db, query.c_str(), result_path_handler, this);
+   db_sql_query(db, query.c_str(), list_entries, user_data);
 }
 
 void Bvfs::ls_files()
@@ -584,8 +595,8 @@ void Bvfs::ls_files()
    }
 
    POOL_MEM query;
-   Mmsg(query, // 0         1            2                3            4
-"SELECT File.FilenameId, listfiles.id, listfiles.Name, File.LStat, File.JobId "
+   Mmsg(query, // 0         1              2             3          4
+"SELECT File.FilenameId, listfiles.Name, File.JobId, File.LStat, listfiles.id "
 "FROM File, ( "
        "SELECT Filename.Name as Name, max(File.FileId) as id "
 	 "FROM File, Filename "
@@ -604,5 +615,5 @@ void Bvfs::ls_files()
         limit,
         offset);
    Dmsg1(dbglevel_sql, "q=%s\n", query.c_str());
-   db_sql_query(db, query.c_str(), result_handler, this);
+   db_sql_query(db, query.c_str(), list_entries, user_data);
 }
