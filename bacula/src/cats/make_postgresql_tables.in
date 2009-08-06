@@ -27,6 +27,9 @@ CREATE TABLE path
 ALTER TABLE path ALTER COLUMN path SET STATISTICS 1000;
 CREATE UNIQUE INDEX path_name_idx on path (path);
 
+-- In File table
+-- FileIndex can be 0 for FT_DELETED files
+-- FileNameId can link to Filename.Name='' for directories
 CREATE TABLE file
 (
     fileid	      bigserial	  not null,

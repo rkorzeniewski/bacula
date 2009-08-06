@@ -3,6 +3,7 @@
 General:
 
 06Aug09
+ebl  Document FT_DELETED FileIndex=0 special value in database Schema
 ebl  Add a new Bvfs class that implements brestore instant navigation
      cache inside Bacula. Works for Mysql, Postgresql and Sqlite3
 kes  bat: fix compiler warning for unreferenced argument
