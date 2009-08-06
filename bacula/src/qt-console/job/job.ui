@@ -211,126 +211,110 @@
        <property name="title" >
         <string>Basic Information</string>
        </property>
-       <widget class="QWidget" name="layoutWidget" >
-        <property name="geometry" >
-         <rect>
-          <x>10</x>
-          <y>20</y>
-          <width>211</width>
-          <height>152</height>
-         </rect>
-        </property>
-        <layout class="QFormLayout" name="formLayout" >
-         <property name="labelAlignment" >
-          <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-         </property>
-         <property name="formAlignment" >
-          <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-         </property>
-         <item row="0" column="0" >
-          <widget class="QLabel" name="label" >
-           <property name="text" >
-            <string>JobId:</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="1" >
-          <widget class="QLabel" name="label_JobId" >
-           <property name="text" >
-            <string>2</string>
-           </property>
-           <property name="textInteractionFlags" >
-            <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="0" >
-          <widget class="QLabel" name="label_2" >
-           <property name="text" >
-            <string>Job Name:</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="1" >
-          <widget class="QLabel" name="label_Name" >
-           <property name="text" >
-            <string>Test</string>
-           </property>
-           <property name="textInteractionFlags" >
-            <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="0" >
-          <widget class="QLabel" name="label_3" >
-           <property name="text" >
-            <string>Level:</string>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="1" >
-          <widget class="QLabel" name="label_Level" >
-           <property name="text" >
-            <string>VirtualFull</string>
-           </property>
-           <property name="textInteractionFlags" >
-            <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="0" >
-          <widget class="QLabel" name="label_28" >
-           <property name="text" >
-            <string>Client:</string>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="1" >
-          <widget class="QLabel" name="label_Client" >
-           <property name="text" >
-            <string>client-fd</string>
-           </property>
-           <property name="textInteractionFlags" >
-            <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
-           </property>
-          </widget>
-         </item>
-         <item row="4" column="0" >
-          <widget class="QLabel" name="label_7" >
-           <property name="text" >
-            <string>FileSet:</string>
-           </property>
-          </widget>
-         </item>
-         <item row="4" column="1" >
-          <widget class="QLabel" name="label_FileSet" >
-           <property name="text" >
-            <string>TheFileSet</string>
-           </property>
-           <property name="textInteractionFlags" >
-            <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
-           </property>
-          </widget>
-         </item>
-         <item row="5" column="0" >
-          <widget class="QLabel" name="label_11" >
-           <property name="text" >
-            <string>Pool:</string>
-           </property>
-          </widget>
-         </item>
-         <item row="5" column="1" >
-          <widget class="QLabel" name="label_Pool" >
-           <property name="text" >
-            <string>ThePool</string>
-           </property>
-           <property name="textInteractionFlags" >
-            <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </widget>
+       <layout class="QGridLayout" name="gridLayout_2" >
+        <item row="0" column="0" >
+         <widget class="QLabel" name="label" >
+          <property name="text" >
+           <string>JobId:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1" >
+         <widget class="QLabel" name="label_JobId" >
+          <property name="text" >
+           <string>2</string>
+          </property>
+          <property name="textInteractionFlags" >
+           <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0" >
+         <widget class="QLabel" name="label_2" >
+          <property name="text" >
+           <string>Job Name:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1" >
+         <widget class="QLabel" name="label_Name" >
+          <property name="text" >
+           <string>Test</string>
+          </property>
+          <property name="textInteractionFlags" >
+           <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0" >
+         <widget class="QLabel" name="label_3" >
+          <property name="text" >
+           <string>Level:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1" >
+         <widget class="QLabel" name="label_Level" >
+          <property name="text" >
+           <string>VirtualFull</string>
+          </property>
+          <property name="textInteractionFlags" >
+           <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="0" >
+         <widget class="QLabel" name="label_28" >
+          <property name="text" >
+           <string>Client:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="1" >
+         <widget class="QLabel" name="label_Client" >
+          <property name="text" >
+           <string>client-fd</string>
+          </property>
+          <property name="textInteractionFlags" >
+           <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="0" >
+         <widget class="QLabel" name="label_7" >
+          <property name="text" >
+           <string>FileSet:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="1" >
+         <widget class="QLabel" name="label_FileSet" >
+          <property name="text" >
+           <string>TheFileSet</string>
+          </property>
+          <property name="textInteractionFlags" >
+           <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="0" >
+         <widget class="QLabel" name="label_11" >
+          <property name="text" >
+           <string>Pool:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="1" >
+         <widget class="QLabel" name="label_Pool" >
+          <property name="text" >
+           <string>ThePool</string>
+          </property>
+          <property name="textInteractionFlags" >
+           <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </widget>
      </item>
      <item>
@@ -356,118 +340,99 @@
        <property name="title" >
         <string>Status</string>
        </property>
-       <widget class="QWidget" name="layoutWidget" >
-        <property name="geometry" >
-         <rect>
-          <x>10</x>
-          <y>20</y>
-          <width>141</width>
-          <height>151</height>
-         </rect>
-        </property>
-        <layout class="QFormLayout" name="formLayout_2" >
-         <property name="fieldGrowthPolicy" >
-          <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
-         </property>
-         <property name="labelAlignment" >
-          <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-         </property>
-         <property name="formAlignment" >
-          <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-         </property>
-         <item row="0" column="0" >
-          <widget class="QLabel" name="label_8" >
-           <property name="text" >
-            <string>Files:</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="1" >
-          <widget class="QLabel" name="label_JobFiles" >
-           <property name="text" >
-            <string>1,924</string>
-           </property>
-           <property name="textInteractionFlags" >
-            <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="0" >
-          <widget class="QLabel" name="label_9" >
-           <property name="text" >
-            <string>Bytes:</string>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="0" >
-          <widget class="QLabel" name="label_10" >
-           <property name="text" >
-            <string>Errors:</string>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="1" >
-          <widget class="QLabel" name="label_JobErrors" >
-           <property name="text" >
-            <string>0</string>
-           </property>
-           <property name="textInteractionFlags" >
-            <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="0" >
-          <widget class="QLabel" name="label_6" >
-           <property name="text" >
-            <string>Status:</string>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="1" >
-          <widget class="QLabel" name="label_JobStatus" >
-           <property name="text" >
-            <string/>
-           </property>
-           <property name="pixmap" >
-            <pixmap resource="../main.qrc" >:/images/T.png</pixmap>
-           </property>
-           <property name="scaledContents" >
-            <bool>false</bool>
-           </property>
-          </widget>
-         </item>
-         <item row="4" column="0" >
-          <widget class="QLabel" name="label_25" >
-           <property name="text" >
-            <string>Purged:</string>
-           </property>
-          </widget>
-         </item>
-         <item row="4" column="1" >
-          <widget class="QCheckBox" name="chkbox_PurgedFiles" >
-           <property name="enabled" >
-            <bool>false</bool>
-           </property>
-           <property name="text" >
-            <string/>
-           </property>
-           <property name="checkable" >
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="1" >
-          <widget class="QLabel" name="label_JobBytes" >
-           <property name="text" >
-            <string>109 MB</string>
-           </property>
-           <property name="textInteractionFlags" >
-            <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </widget>
+       <layout class="QGridLayout" name="gridLayout" >
+        <item row="0" column="0" >
+         <widget class="QLabel" name="label_8" >
+          <property name="text" >
+           <string>Files:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1" >
+         <widget class="QLabel" name="label_JobFiles" >
+          <property name="text" >
+           <string>1,924</string>
+          </property>
+          <property name="textInteractionFlags" >
+           <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0" >
+         <widget class="QLabel" name="label_9" >
+          <property name="text" >
+           <string>Bytes:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1" >
+         <widget class="QLabel" name="label_JobBytes" >
+          <property name="text" >
+           <string>109 MB</string>
+          </property>
+          <property name="textInteractionFlags" >
+           <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0" >
+         <widget class="QLabel" name="label_10" >
+          <property name="text" >
+           <string>Errors:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1" >
+         <widget class="QLabel" name="label_JobErrors" >
+          <property name="text" >
+           <string>0</string>
+          </property>
+          <property name="textInteractionFlags" >
+           <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="0" >
+         <widget class="QLabel" name="label_6" >
+          <property name="text" >
+           <string>Status:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="1" >
+         <widget class="QLabel" name="label_JobStatus" >
+          <property name="text" >
+           <string/>
+          </property>
+          <property name="pixmap" >
+           <pixmap resource="../main.qrc" >:/images/T.png</pixmap>
+          </property>
+          <property name="scaledContents" >
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="0" >
+         <widget class="QLabel" name="label_25" >
+          <property name="text" >
+           <string>Purged:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="1" >
+         <widget class="QCheckBox" name="chkbox_PurgedFiles" >
+          <property name="enabled" >
+           <bool>false</bool>
+          </property>
+          <property name="text" >
+           <string/>
+          </property>
+          <property name="checkable" >
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </widget>
      </item>
      <item>
@@ -493,95 +458,76 @@
        <property name="title" >
         <string>Times</string>
        </property>
-       <widget class="QWidget" name="layoutWidget" >
-        <property name="geometry" >
-         <rect>
-          <x>10</x>
-          <y>20</y>
-          <width>247</width>
-          <height>151</height>
-         </rect>
-        </property>
-        <layout class="QFormLayout" name="formLayout_3" >
-         <property name="fieldGrowthPolicy" >
-          <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
-         </property>
-         <property name="labelAlignment" >
-          <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-         </property>
-         <property name="formAlignment" >
-          <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-         </property>
-         <item row="0" column="0" >
-          <widget class="QLabel" name="label_26" >
-           <property name="text" >
-            <string>Sched Time:</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="1" >
-          <widget class="QLabel" name="label_SchedTime" >
-           <property name="text" >
-            <string>2009-07-31 00:10:00</string>
-           </property>
-           <property name="textInteractionFlags" >
-            <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="0" >
-          <widget class="QLabel" name="label_5" >
-           <property name="text" >
-            <string>Start Time:</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="1" >
-          <widget class="QLabel" name="label_StartTime" >
-           <property name="text" >
-            <string>2009-07-31 00:10:00</string>
-           </property>
-           <property name="textInteractionFlags" >
-            <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="0" >
-          <widget class="QLabel" name="label_19" >
-           <property name="text" >
-            <string>End Time:</string>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="1" >
-          <widget class="QLabel" name="label_EndTime" >
-           <property name="text" >
-            <string>2009-07-31 00:20:00</string>
-           </property>
-           <property name="textInteractionFlags" >
-            <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="0" >
-          <widget class="QLabel" name="label_4" >
-           <property name="text" >
-            <string>Duration:</string>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="1" >
-          <widget class="QLabel" name="label_Duration" >
-           <property name="text" >
-            <string>00:10:00</string>
-           </property>
-           <property name="textInteractionFlags" >
-            <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </widget>
+       <layout class="QGridLayout" name="gridLayout_3" >
+        <item row="0" column="0" >
+         <widget class="QLabel" name="label_26" >
+          <property name="text" >
+           <string>Sched Time:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1" >
+         <widget class="QLabel" name="label_SchedTime" >
+          <property name="text" >
+           <string>2009-07-31 00:10:00</string>
+          </property>
+          <property name="textInteractionFlags" >
+           <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0" >
+         <widget class="QLabel" name="label_5" >
+          <property name="text" >
+           <string>Start Time:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1" >
+         <widget class="QLabel" name="label_StartTime" >
+          <property name="text" >
+           <string>2009-07-31 00:10:00</string>
+          </property>
+          <property name="textInteractionFlags" >
+           <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0" >
+         <widget class="QLabel" name="label_19" >
+          <property name="text" >
+           <string>End Time:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1" >
+         <widget class="QLabel" name="label_EndTime" >
+          <property name="text" >
+           <string>2009-07-31 00:20:00</string>
+          </property>
+          <property name="textInteractionFlags" >
+           <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="0" >
+         <widget class="QLabel" name="label_4" >
+          <property name="text" >
+           <string>Duration:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="1" >
+         <widget class="QLabel" name="label_Duration" >
+          <property name="text" >
+           <string>00:10:00</string>
+          </property>
+          <property name="textInteractionFlags" >
+           <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </widget>
      </item>
      <item>
@@ -675,8 +621,8 @@
       <string>&lt;!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd">
 &lt;html>&lt;head>&lt;meta name="qrichtext" content="1" />&lt;style type="text/css">
 p, li { white-space: pre-wrap; }
-&lt;/style>&lt;/head>&lt;body style=" font-family:'DejaVu Sans'; font-size:10pt; font-weight:400; font-style:normal;">
-&lt;p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">&lt;/p>&lt;/body>&lt;/html></string>
+&lt;/style>&lt;/head>&lt;body style=" font-family:'DejaVu Sans'; font-size:9pt; font-weight:400; font-style:normal;">
+&lt;p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:10pt;">&lt;/p>&lt;/body>&lt;/html></string>
      </property>
     </widget>
    </item>

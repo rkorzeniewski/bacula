@@ -6,7 +6,7 @@
     <x>0</x>
     <y>0</y>
     <width>828</width>
-    <height>852</height>
+    <height>814</height>
    </rect>
   </property>
   <property name="windowTitle" >
@@ -148,16 +148,24 @@
        <property name="title" >
         <string>Information</string>
        </property>
-       <layout class="QFormLayout" name="formLayout_3" >
-        <property name="fieldGrowthPolicy" >
-         <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
-        </property>
-        <property name="labelAlignment" >
-         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-        </property>
-        <property name="formAlignment" >
-         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-        </property>
+       <layout class="QGridLayout" name="gridLayout" >
+        <item row="0" column="0" >
+         <widget class="QLabel" name="label_17" >
+          <property name="text" >
+           <string>Name:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1" >
+         <widget class="QLabel" name="label_VolumeName" >
+          <property name="text" >
+           <string>Vol0001</string>
+          </property>
+          <property name="textInteractionFlags" >
+           <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+          </property>
+         </widget>
+        </item>
         <item row="1" column="0" >
          <widget class="QLabel" name="label" >
           <property name="text" >
@@ -274,23 +282,6 @@
           </property>
          </widget>
         </item>
-        <item row="0" column="0" >
-         <widget class="QLabel" name="label_17" >
-          <property name="text" >
-           <string>Name:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="1" >
-         <widget class="QLabel" name="label_VolumeName" >
-          <property name="text" >
-           <string>Vol0001</string>
-          </property>
-          <property name="textInteractionFlags" >
-           <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
-          </property>
-         </widget>
-        </item>
        </layout>
       </widget>
      </item>
@@ -317,16 +308,7 @@
        <property name="title" >
         <string>Statistics</string>
        </property>
-       <layout class="QFormLayout" name="formLayout_2" >
-        <property name="fieldGrowthPolicy" >
-         <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
-        </property>
-        <property name="labelAlignment" >
-         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-        </property>
-        <property name="formAlignment" >
-         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-        </property>
+       <layout class="QGridLayout" name="gridLayout_2" >
         <item row="0" column="0" >
          <widget class="QLabel" name="label_6" >
           <property name="text" >
@@ -489,13 +471,7 @@
        <property name="title" >
         <string>Limits</string>
        </property>
-       <layout class="QFormLayout" name="formLayout" >
-        <property name="labelAlignment" >
-         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-        </property>
-        <property name="formAlignment" >
-         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-        </property>
+       <layout class="QGridLayout" name="gridLayout_3" >
         <item row="0" column="0" >
          <widget class="QLabel" name="label_9" >
           <property name="text" >
