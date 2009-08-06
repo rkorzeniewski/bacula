@@ -226,7 +226,6 @@ bool complete_jcr_for_job(JCR *jcr, JOB *job, POOL *pool);
 RUN *find_next_run(RUN *run, JOB *job, utime_t &runtime, int ndays);
 
 /* ua_restore.c */
-int get_next_jobid_from_list(char **p, JobId_t *JobId);
 void find_storage_resource(UAContext *ua, RESTORE_CTX &rx, char *Storage, char *MediaType);
 
 /* ua_server.c */

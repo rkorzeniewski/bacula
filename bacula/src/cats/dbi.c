@@ -1282,6 +1282,17 @@ const char *my_dbi_batch_unlock_tables_query[4] = {
    /* SQLite3 */
    "COMMIT"};
 
+const char *my_dbi_match[4] = {
+   /* Mysql */
+   "MATCH",
+   /* Postgresql */
+   "~",
+   /* SQLite */
+   "MATCH",
+   /* SQLite3 */
+   "MATCH"
+};
+
 const char *my_dbi_batch_fill_path_query[4] = {
    /* Mysql */
    "INSERT INTO Path (Path) "

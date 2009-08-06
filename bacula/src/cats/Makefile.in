@@ -29,7 +29,7 @@ INCLUDE_FILES = bdb.h cats.h protos.h sql_cmds.h
 LIBSRCS = mysql.c bdb.c dbi.c \
 	  sql.c sql_cmds.c sql_create.c sql_delete.c sql_find.c \
 	  sql_get.c sql_list.c sql_update.c sqlite.c \
-	  postgresql.c
+	  postgresql.c bvfs.c
 LIBOBJS = $(LIBSRCS:.c=$(DEFAULT_OBJECT_TYPE))
 
 LIBBACSQL_LT_CURRENT = 1

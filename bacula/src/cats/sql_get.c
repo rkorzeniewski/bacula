@@ -57,7 +57,6 @@
 /* Forward referenced functions */
 static int db_get_file_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr, FILE_DBR *fdbr);
 static int db_get_filename_record(JCR *jcr, B_DB *mdb);
-static int db_get_path_record(JCR *jcr, B_DB *mdb);
 
 
 /*
@@ -229,7 +228,7 @@ static int db_get_filename_record(JCR *jcr, B_DB *mdb)
  *
  *   DO NOT use Jmsg in this routine (see notes for get_file_record)
  */
-static int db_get_path_record(JCR *jcr, B_DB *mdb)
+int db_get_path_record(JCR *jcr, B_DB *mdb)
 {
    SQL_ROW row;
    uint32_t PathId = 0;
