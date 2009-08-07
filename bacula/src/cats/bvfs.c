@@ -358,9 +358,49 @@ DBId_t Bvfs::get_dir_filenameid()
 
 void bvfs_update_cache(JCR *jcr, B_DB *mdb)
 {
-   uint32_t nb;
+   uint32_t nb=0;
    db_lock(mdb);
    db_start_transaction(jcr, mdb);
+
+   Mmsg(mdb->cmd, "SELECT 1 from brestore_knownjobid LIMIT 1");
+   /* TODO: Add this code in the make_bacula_table script */
+   if (!QUERY_DB(jcr, mdb, mdb->cmd)) {
+      Dmsg0(dbglevel, "Creating cache table\n");
+      Mmsg(mdb->cmd,
+           "CREATE TABLE brestore_knownjobid ("
+           "JobId integer NOT NULL, "
+           "CONSTRAINT brestore_knownjobid_pkey PRIMARY KEY (JobId))");
+      QUERY_DB(jcr, mdb, mdb->cmd);
+
+      Mmsg(mdb->cmd,
+           "CREATE TABLE brestore_pathhierarchy ( "
+           "PathId integer NOT NULL, "
+           "PPathId integer NOT NULL, "
+           "CONSTRAINT brestore_pathhierarchy_pkey "
+           "PRIMARY KEY (PathId))");
+      QUERY_DB(jcr, mdb, mdb->cmd); 
+
+      Mmsg(mdb->cmd,
+           "CREATE INDEX brestore_pathhierarchy_ppathid "
+           "ON brestore_pathhierarchy (PPathId)");
+      QUERY_DB(jcr, mdb, mdb->cmd);
+
+      Mmsg(mdb->cmd, 
+           "CREATE TABLE brestore_pathvisibility ("
+           "PathId integer NOT NULL, "
+           "JobId integer NOT NULL, "
+           "Size int8 DEFAULT 0, "
+           "Files int4 DEFAULT 0, "
+           "CONSTRAINT brestore_pathvisibility_pkey "
+           "PRIMARY KEY (JobId, PathId))");
+      QUERY_DB(jcr, mdb, mdb->cmd);
+
+      Mmsg(mdb->cmd, 
+           "CREATE INDEX brestore_pathvisibility_jobid "
+           "ON brestore_pathvisibility (JobId)");
+      QUERY_DB(jcr, mdb, mdb->cmd);
+
+   }
 
    POOLMEM *jobids = get_pool_memory(PM_NAME);
    *jobids = 0;
@@ -377,6 +417,7 @@ void bvfs_update_cache(JCR *jcr, B_DB *mdb)
 
    db_end_transaction(jcr, mdb);
    db_start_transaction(jcr, mdb);
+   Dmsg0(dbglevel, "Cleaning pathvisibility\n");
    Mmsg(mdb->cmd, 
         "DELETE FROM brestore_pathvisibility "
          "WHERE NOT EXISTS "
@@ -384,6 +425,7 @@ void bvfs_update_cache(JCR *jcr, B_DB *mdb)
    nb = DELETE_DB(jcr, mdb, mdb->cmd);
    Dmsg1(dbglevel, "Affected row(s) = %d\n", nb);
 
+   Dmsg0(dbglevel, "Cleaning knownjobid\n");
    Mmsg(mdb->cmd,         
         "DELETE FROM brestore_knownjobid "
          "WHERE NOT EXISTS "
@@ -412,7 +454,7 @@ bvfs_update_path_hierarchy_cache(JCR *jcr, B_DB *mdb, char *jobids)
       if (stat == 0) {
          break;
       }
-
+      Dmsg1(dbglevel, "Updating cache for %lld\n", (uint64_t) JobId);
       update_path_hierarchy_cache(jcr, mdb, ppathid_cache, JobId);
    }
 }
