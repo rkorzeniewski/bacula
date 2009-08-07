@@ -42,7 +42,8 @@
  
 /* Local variables */
 static B_DB *db;
-
+static char *file="COPYRIGHT";
+static DBId_t fnid=0;
 static const char *db_name = "regress";
 static const char *db_user = "regress";
 static const char *db_password = "";
@@ -62,7 +63,8 @@ PROG_COPYRIGHT
 "       -w <working>      specify working directory\n"
 "       -j <jobids>       specify jobids\n"
 "       -p <path>         specify path\n"
-//"       -f <file>         specify file\n"
+"       -f <file>         specify file\n"
+"       -l <limit>        maximum tuple to fetch\n"
 "       -T                truncate cache table before starting\n"
 "       -v                verbose\n"
 "       -?                print this message\n\n"), 2001, VERSION, BDATE);
@@ -73,21 +75,33 @@ static int result_handler(void *ctx, int fields, char **row)
 {
    Bvfs *vfs = (Bvfs *)ctx;
    ATTR *attr = vfs->get_attr();
-   char *empty = "";
+   char *empty = "A A A A A A A A A A A A A A";
+
+   memset(&attr->statp, 0, sizeof(struct stat));
+   decode_stat((row[BVFS_LStat] && row[BVFS_LStat][0])?row[BVFS_LStat]:empty,
+               &attr->statp, &attr->LinkFI);
 
    if (fields == BVFS_DIR_RECORD || fields == BVFS_FILE_RECORD) {
-      decode_stat((row[BVFS_LStat])?row[BVFS_LStat]:empty,
-                  &attr->statp, &attr->LinkFI);
+      /* display clean stuffs */
+
       if (fields == BVFS_DIR_RECORD) {
          pm_strcpy(attr->ofname, bvfs_basename_dir(row[BVFS_Name]));   
       } else {
+         /* if we see the requested file, note his filenameid */
+         if (bstrcmp(row[BVFS_Name], file)) {
+            fnid = str_to_int64(row[BVFS_Id]);
+         }
          pm_strcpy(attr->ofname, row[BVFS_Name]);   
       }
       print_ls_output(vfs->get_jcr(), attr);
 
    } else {
-      Pmsg6(0, "%s\t%s\t%s\t%s\t%s\t%s",
-            row[0], row[1], row[2], row[3], row[4], row[5]);
+      Pmsg5(0, "JobId=%s FileId=%s\tMd5=%s\tVolName=%s\tVolInChanger=%s\n",
+            row[BVFS_JobId], row[BVFS_Id], row[BVFS_Md5], row[BVFS_VolName],
+            row[BVFS_VolInchanger]);
+
+      pm_strcpy(attr->ofname, file);
+      print_ls_output(vfs->get_jcr(), attr);
    }
    return 0;
 }
@@ -98,7 +112,8 @@ static int result_handler(void *ctx, int fields, char **row)
 int main (int argc, char *argv[])
 {
    int ch;
-   char *jobids="1", *path=NULL, *file=NULL;
+   char *jobids="1", *path=NULL, *client=NULL;
+   uint64_t limit=0;
    bool clean=false;
    setlocale(LC_ALL, "");
    bindtextdomain("bacula", LOCALEDIR);
@@ -112,7 +127,7 @@ int main (int argc, char *argv[])
 
    OSDependentInit();
 
-   while ((ch = getopt(argc, argv, "h:c:d:n:P:Su:vf:w:?j:p:f:T")) != -1) {
+   while ((ch = getopt(argc, argv, "h:c:l:d:n:P:Su:vf:w:?j:p:f:T")) != -1) {
       switch (ch) {
       case 'd':                    /* debug level */
          if (*optarg == 't') {
@@ -123,6 +138,13 @@ int main (int argc, char *argv[])
                debug_level = 1;
             }
          }
+         break;
+      case 'l':
+         limit = str_to_int64(optarg);
+         break;
+
+      case 'c':
+         client = optarg;
          break;
 
       case 'h':
@@ -154,7 +176,7 @@ int main (int argc, char *argv[])
          break;
 
       case 'f':
-         path = optarg;
+         file = optarg;
          break;
 
       case 'j':
@@ -216,12 +238,23 @@ int main (int argc, char *argv[])
 
    fs.set_jobids(jobids);
    fs.update_cache();
+   if (limit)
+      fs.set_limit(limit);
 
    if (path) {
       fs.ch_dir(path);
       fs.ls_special_dirs();
       fs.ls_dirs();
-      fs.ls_files();
+      while (fs.ls_files()) {
+         fs.next_offset();
+      }
+
+      if (fnid && client) {
+         Pmsg0(0, "---------------------------------------------\n");
+         Pmsg1(0, "Getting file version for %s\n", file);
+         fs.get_all_file_versions(fs.get_pwd(), fnid, client);
+      }
+
       exit (0);
    }
 
