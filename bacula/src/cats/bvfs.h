@@ -55,7 +55,13 @@ typedef enum {
    BVFS_JobId   = 2,
    BVFS_LStat   = 3,
 
-   BVFS_FileId  = 4,         /* Only if File record */
+   /* Only if File record */
+   BVFS_FileId  = 4,
+
+   /* Only if File Version record */
+   BVFS_Md5     = 1,
+   BVFS_VolName = 4,
+   BVFS_VolInchanger = 5
 } bvfs_row_index;
 
 class Bvfs {
@@ -93,6 +99,7 @@ public:
     * avoids mistakes with string encoding
     */
    void ch_dir(DBId_t pathid) {
+      reset_offset();
       pwd_id = pathid;
    }
 
@@ -101,8 +108,8 @@ public:
     */
    bool ch_dir(char *path);
 
-   void ls_files();
-   void ls_dirs();
+   bool ls_files();             /* Returns true if we have more files to read */
+   bool ls_dirs();              /* Returns true if we have more dir to read */
    void ls_special_dirs();      /* get . and .. */
    void get_all_file_versions(DBId_t pathid, DBId_t fnid, char *client);
 
@@ -121,6 +128,10 @@ public:
       user_data = ctx;
    }
 
+   DBId_t get_pwd() {
+      return pwd_id;
+   }
+
    ATTR *get_attr() {
       return attr;
    }
@@ -129,22 +140,35 @@ public:
       return jcr;
    }
 
+   void reset_offset() {
+      offset=0;
+   }
+
+   void next_offset() {
+      offset+=limit;
+   }
+
+   /* for internal use */
+   int _handle_path(void *, int, char **);
+   
 private:   
    JCR *jcr;
    B_DB *db;
    POOLMEM *jobids;
    uint32_t limit;
    uint32_t offset;
+   uint32_t nb_record;          /* number of records of the last query */
    POOLMEM *pattern;
-   DBId_t pwd_id;
-   DBId_t dir_filenameid;
-   ATTR *attr;
+   DBId_t pwd_id;               /* Current pathid */
+   DBId_t dir_filenameid;       /* special FilenameId where Name='' */
+   POOLMEM *prev_dir; /* ls_dirs query returns all versions, take the 1st one */
+   ATTR *attr;        /* Can be use by handler to call decode_stat() */
 
    bool see_all_version;
    bool see_copies;
 
    DBId_t get_dir_filenameid();
-   
+
    DB_RESULT_HANDLER *list_entries;
    void *user_data;
 };

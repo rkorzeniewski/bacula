@@ -58,9 +58,10 @@ Bvfs::Bvfs(JCR *j, B_DB *mdb) {
    jcr = j;
    jcr->inc_use_count();
    db = mdb;                 /* need to inc ref count */
+   prev_dir = get_pool_memory(PM_NAME);
    jobids = get_pool_memory(PM_NAME);
    pattern = get_pool_memory(PM_NAME);
-   *pattern = *jobids = 0;
+   *prev_dir = *pattern = *jobids = 0;
    dir_filenameid = pwd_id = offset = 0;
    see_copies = see_all_version = false;
    limit = 1000;
@@ -72,6 +73,7 @@ Bvfs::Bvfs(JCR *j, B_DB *mdb) {
 Bvfs::~Bvfs() {
    free_pool_memory(jobids);
    free_pool_memory(pattern);
+   free_pool_memory(prev_dir);
    free_attr(attr);
    jcr->dec_use_count();
 }
@@ -174,7 +176,9 @@ char *bvfs_basename_dir(char *path)
       while (p > path && !IsPathSeparator(*p)) {
          p--;
       }
-      p = p+1;                  /* skip first / */
+      if (*p == '/') {
+         p++;                  /* skip first / */
+      }
    } 
    return p;
 }
@@ -358,9 +362,49 @@ DBId_t Bvfs::get_dir_filenameid()
 
 void bvfs_update_cache(JCR *jcr, B_DB *mdb)
 {
-   uint32_t nb;
+   uint32_t nb=0;
    db_lock(mdb);
    db_start_transaction(jcr, mdb);
+
+   Mmsg(mdb->cmd, "SELECT 1 from brestore_knownjobid LIMIT 1");
+   /* TODO: Add this code in the make_bacula_table script */
+   if (!QUERY_DB(jcr, mdb, mdb->cmd)) {
+      Dmsg0(dbglevel, "Creating cache table\n");
+      Mmsg(mdb->cmd,
+           "CREATE TABLE brestore_knownjobid ("
+           "JobId integer NOT NULL, "
+           "CONSTRAINT brestore_knownjobid_pkey PRIMARY KEY (JobId))");
+      QUERY_DB(jcr, mdb, mdb->cmd);
+
+      Mmsg(mdb->cmd,
+           "CREATE TABLE brestore_pathhierarchy ( "
+           "PathId integer NOT NULL, "
+           "PPathId integer NOT NULL, "
+           "CONSTRAINT brestore_pathhierarchy_pkey "
+           "PRIMARY KEY (PathId))");
+      QUERY_DB(jcr, mdb, mdb->cmd); 
+
+      Mmsg(mdb->cmd,
+           "CREATE INDEX brestore_pathhierarchy_ppathid "
+           "ON brestore_pathhierarchy (PPathId)");
+      QUERY_DB(jcr, mdb, mdb->cmd);
+
+      Mmsg(mdb->cmd, 
+           "CREATE TABLE brestore_pathvisibility ("
+           "PathId integer NOT NULL, "
+           "JobId integer NOT NULL, "
+           "Size int8 DEFAULT 0, "
+           "Files int4 DEFAULT 0, "
+           "CONSTRAINT brestore_pathvisibility_pkey "
+           "PRIMARY KEY (JobId, PathId))");
+      QUERY_DB(jcr, mdb, mdb->cmd);
+
+      Mmsg(mdb->cmd, 
+           "CREATE INDEX brestore_pathvisibility_jobid "
+           "ON brestore_pathvisibility (JobId)");
+      QUERY_DB(jcr, mdb, mdb->cmd);
+
+   }
 
    POOLMEM *jobids = get_pool_memory(PM_NAME);
    *jobids = 0;
@@ -377,6 +421,7 @@ void bvfs_update_cache(JCR *jcr, B_DB *mdb)
 
    db_end_transaction(jcr, mdb);
    db_start_transaction(jcr, mdb);
+   Dmsg0(dbglevel, "Cleaning pathvisibility\n");
    Mmsg(mdb->cmd, 
         "DELETE FROM brestore_pathvisibility "
          "WHERE NOT EXISTS "
@@ -384,6 +429,7 @@ void bvfs_update_cache(JCR *jcr, B_DB *mdb)
    nb = DELETE_DB(jcr, mdb, mdb->cmd);
    Dmsg1(dbglevel, "Affected row(s) = %d\n", nb);
 
+   Dmsg0(dbglevel, "Cleaning knownjobid\n");
    Mmsg(mdb->cmd,         
         "DELETE FROM brestore_knownjobid "
          "WHERE NOT EXISTS "
@@ -412,7 +458,7 @@ bvfs_update_path_hierarchy_cache(JCR *jcr, B_DB *mdb, char *jobids)
       if (stat == 0) {
          break;
       }
-
+      Dmsg1(dbglevel, "Updating cache for %lld\n", (uint64_t) JobId);
       update_path_hierarchy_cache(jcr, mdb, ppathid_cache, JobId);
    }
 }
@@ -430,7 +476,7 @@ bool Bvfs::ch_dir(char *path)
 {
    pm_strcpy(db->path, path);
    db->pnl = strlen(db->path);
-   pwd_id = db_get_path_record(jcr, db); 
+   ch_dir(db_get_path_record(jcr, db)); 
    return pwd_id != 0;
 }
 
@@ -451,9 +497,10 @@ void Bvfs::get_all_file_versions(DBId_t pathid, DBId_t fnid, char *client)
 
    POOL_MEM query;
 
-   Mmsg(query, 
-"SELECT File.JobId, File.FileId, File.LStat, "
-       "File.Md5, Media.VolumeName, Media.InChanger "
+   Mmsg(query,//0       1           2          3
+"SELECT File.FileId, File.Md5, File.JobId, File.LStat, "
+//         4                5          
+       "Media.VolumeName, Media.InChanger "
 "FROM File, Job, Client, JobMedia, Media "
 "WHERE File.FilenameId = %s "
   "AND File.PathId=%s "
@@ -467,7 +514,7 @@ void Bvfs::get_all_file_versions(DBId_t pathid, DBId_t fnid, char *client)
   "%s ORDER BY FileId LIMIT %d OFFSET %d"
         ,edit_uint64(fnid, ed1), edit_uint64(pathid, ed2), client, q.c_str(),
         limit, offset);
-
+   Dmsg1(dbglevel_sql, "q=%s\n", query.c_str());
    db_sql_query(db, query.c_str(), list_entries, user_data);
 }
 
@@ -475,6 +522,24 @@ DBId_t Bvfs::get_root()
 {
    *db->path = 0;
    return db_get_path_record(jcr, db);
+}
+
+static int path_handler(void *ctx, int fields, char **row)
+{
+   Bvfs *fs = (Bvfs *) ctx;
+   return fs->_handle_path(ctx, fields, row);
+}
+
+int Bvfs::_handle_path(void *ctx, int fields, char **row)
+{
+   if (fields == BVFS_DIR_RECORD) {
+      /* can have the same path 2 times */
+      if (strcmp(row[BVFS_Name], prev_dir)) {
+         pm_strcpy(prev_dir, row[BVFS_Name]);
+         return list_entries(user_data, fields, row);
+      }
+   }
+   return 0;
 }
 
 /* 
@@ -490,6 +555,9 @@ void Bvfs::ls_special_dirs()
    if (!dir_filenameid) {
       get_dir_filenameid();
    }
+
+   /* Will fetch directories  */
+   *prev_dir = 0;
 
    POOL_MEM query;
    Mmsg(query, 
@@ -512,16 +580,17 @@ void Bvfs::ls_special_dirs()
   "ORDER BY tmp.Path, JobId DESC ",
         query.c_str(), edit_uint64(dir_filenameid, ed2), jobids);
 
-   Dmsg1(dbglevel_sql, "q=%s\n", query.c_str());
-   db_sql_query(db, query2.c_str(), list_entries, user_data);
+   Dmsg1(dbglevel_sql, "q=%s\n", query2.c_str());
+   db_sql_query(db, query2.c_str(), path_handler, this);
 }
 
-void Bvfs::ls_dirs()
+/* Returns true if we have dirs to read */
+bool Bvfs::ls_dirs()
 {
    Dmsg1(dbglevel, "ls_dirs(%lld)\n", (uint64_t)pwd_id);
    char ed1[50], ed2[50];
    if (!*jobids) {
-      return;
+      return false;
    }
 
    POOL_MEM filter;
@@ -532,6 +601,9 @@ void Bvfs::ls_dirs()
    if (!dir_filenameid) {
       get_dir_filenameid();
    }
+
+   /* the sql query displays same directory multiple time, take the first one */
+   *prev_dir = 0;
 
    /* Let's retrieve the list of the visible dirs in this dir ...
     * First, I need the empty filenameid to locate efficiently
@@ -574,15 +646,22 @@ void Bvfs::ls_dirs()
         limit, offset);
 
    Dmsg1(dbglevel_sql, "q=%s\n", query.c_str());
-   db_sql_query(db, query.c_str(), list_entries, user_data);
+
+   db_lock(db);
+   db_sql_query(db, query.c_str(), path_handler, this);
+   nb_record = db->num_rows;
+   db_unlock(db);
+
+   return nb_record == limit;
 }
 
-void Bvfs::ls_files()
+/* Returns true if we have files to read */
+bool Bvfs::ls_files()
 {
    Dmsg1(dbglevel, "ls_files(%lld)\n", (uint64_t)pwd_id);
    char ed1[50];
    if (!*jobids) {
-      return ;
+      return false;
    }
 
    if (!pwd_id) {
@@ -615,5 +694,11 @@ void Bvfs::ls_files()
         limit,
         offset);
    Dmsg1(dbglevel_sql, "q=%s\n", query.c_str());
+
+   db_lock(db);
    db_sql_query(db, query.c_str(), list_entries, user_data);
+   nb_record = db->num_rows;
+   db_unlock(db);
+
+   return nb_record == limit;
 }
