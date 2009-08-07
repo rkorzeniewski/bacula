@@ -204,7 +204,7 @@ int main (int argc, char *argv[])
    bjcr->db = db;
 
    if (clean) {
-      Pmsg0(0, "Clean old table");
+      Pmsg0(0, "Clean old table\n");
       db_sql_query(db, "DELETE FROM brestore_pathhierarchy", NULL, NULL);
       db_sql_query(db, "DELETE FROM brestore_knownjobid", NULL, NULL);
       db_sql_query(db, "DELETE FROM brestore_pathvisibility", NULL, NULL);

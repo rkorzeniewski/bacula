@@ -2,6 +2,8 @@
           
 General:
 
+07Aug09
+ebl  Create cache tables on the fly when using Bvfs object (for testing)
 06Aug09
 ebl  Document FT_DELETED FileIndex=0 special value in database Schema
 ebl  Add a new Bvfs class that implements brestore instant navigation
