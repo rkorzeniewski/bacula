@@ -219,25 +219,26 @@ bool do_append_data(JCR *jcr)
          if (stream == STREAM_UNIX_ATTRIBUTES || stream == STREAM_UNIX_ATTRIBUTES_EX ||
              crypto_digest_stream_type(stream) != CRYPTO_DIGEST_NONE) {
             if (!jcr->no_attributes) {
+               BSOCK *dir = jcr->dir_bsock;
                if (are_attributes_spooled(jcr)) {
-                  jcr->dir_bsock->set_spooling();
+                  dir->set_spooling();
                }
                Dmsg0(850, "Send attributes to dir.\n");
                if (!dir_update_file_attributes(dcr, &rec)) {
-                  jcr->dir_bsock->clear_spooling();
+                  dir->clear_spooling();
                   Jmsg(jcr, M_FATAL, 0, _("Error updating file attributes. ERR=%s\n"),
-                     jcr->dir_bsock->bstrerror());
+                     dir->bstrerror());
                   ok = false;
                   break;
                }
-               jcr->dir_bsock->clear_spooling();
+               dir->clear_spooling();
             }
          }
          Dmsg0(650, "Enter bnet_get\n");
       }
       Dmsg1(650, "End read loop with FD. Stat=%d\n", n);
 
-      if (is_bnet_error(ds)) {
+      if (ds->is_error()) {
          Dmsg1(350, "Network read error from FD. ERR=%s\n", ds->bstrerror());
          Jmsg1(jcr, M_FATAL, 0, _("Network error on data channel. ERR=%s\n"),
                ds->bstrerror());
