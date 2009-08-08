@@ -231,7 +231,7 @@ static bool check_for_new_storage(JCR *jcr, struct bootstrap_info &info)
 static bool send_bootstrap_file(JCR *jcr, BSOCK *sock,
                                 struct bootstrap_info &info)
 {
-   uint64_t pos;
+   boffset_t pos;
    const char *bootstrap = "bootstrap\n";
    UAContext *ua = info.ua;
    FILE *bs = info.bs;
@@ -241,17 +241,17 @@ static bool send_bootstrap_file(JCR *jcr, BSOCK *sock,
       return false;
    }
    sock->fsend(bootstrap);
-   pos = ftell(bs);
+   pos = ftello(bs);
    while(fgets(ua->cmd, UA_CMD_SIZE, bs)) {
       if (check_for_new_storage(jcr, info)) {
          /* Otherwise, we need to contact another storage daemon.
           * Reset bs to the beginning of the current segment. 
           */
-         fseek(bs, pos, SEEK_SET);
+         fseeko(bs, pos, SEEK_SET);
          break;
       }
       sock->fsend("%s", ua->cmd);
-      pos = ftell(bs);
+      pos = ftello(bs);
    }
    sock->signal(BNET_EOD);
    return true;
