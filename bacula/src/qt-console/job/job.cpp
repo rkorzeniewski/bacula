@@ -202,7 +202,7 @@ void Job::populateText()
  */
 void Job::populateForm()
 {
-   QString stat;
+   QString stat, err;
    char buf[256];
    QString query = 
       "SELECT JobId, Job.Name, Level, Client.Name, Pool.Name, FileSet, SchedTime, StartTime, EndTime, "
@@ -233,9 +233,13 @@ void Job::populateForm()
 
          label_JobBytes->setText(convertBytesSI(fld.next().toULongLong()));
          label_JobFiles->setText(fld.next());
-         label_JobErrors->setText(fld.next());
+         err = fld.next();
+         label_JobErrors->setText(err);
 
          stat=fld.next();
+         if (stat == "T" && err.toInt() > 0) {
+            stat = "W";
+         }
          label_JobStatus->setPixmap(QPixmap(":/images/" + stat + ".png"));
          jobstatus_to_ascii_gui(stat[0].toAscii(), buf, sizeof(buf));
          stat = buf;
