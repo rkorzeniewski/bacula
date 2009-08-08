@@ -1,5 +1,6 @@
 <RCC>
   <qresource prefix="/" >
+    <file>images/W.png</file>
     <file>images/edit.png</file>
     <file>images/extern.png</file>
     <file>images/intern.png</file>
