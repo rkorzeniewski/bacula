@@ -106,12 +106,12 @@ public:
    /* 
     * Returns true if the directory exists
     */
-   bool ch_dir(char *path);
+   bool ch_dir(const char *path);
 
    bool ls_files();             /* Returns true if we have more files to read */
    bool ls_dirs();              /* Returns true if we have more dir to read */
    void ls_special_dirs();      /* get . and .. */
-   void get_all_file_versions(DBId_t pathid, DBId_t fnid, char *client);
+   void get_all_file_versions(DBId_t pathid, DBId_t fnid, const char *client);
 
    void update_cache();
 
