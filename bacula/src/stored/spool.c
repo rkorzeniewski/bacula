@@ -642,14 +642,19 @@ static void make_unique_spool_filename(JCR *jcr, POOLMEM **name, int fd)
       jcr->Job, fd);
 }
 
+/*
+ * Tell Director where to find the attributes spool file 
+ *  Note, if we are not on the same machine, the Director will
+ *  return an error, and the higher level routine will transmit
+ *  the data record by record -- using bsock->despool().
+ */
 static bool blast_attr_spool_file(JCR *jcr, boffset_t size)
 {
    /* send full spool file name */
    POOLMEM *name  = get_pool_memory(PM_MESSAGE);
    make_unique_spool_filename(jcr, &name, jcr->dir_bsock->m_fd);
    bash_spaces(name);
-   jcr->dir_bsock->fsend("BlastAttr Job=%s File=%s\n",
-                         jcr->Job, name);
+   jcr->dir_bsock->fsend("BlastAttr Job=%s File=%s\n", jcr->Job, name);
    free_pool_memory(name);
    
    if (jcr->dir_bsock->recv() <= 0) {
@@ -711,7 +716,7 @@ bail_out:
    return false;
 }
 
-bool open_attr_spool_file(JCR *jcr, BSOCK *bs)
+static bool open_attr_spool_file(JCR *jcr, BSOCK *bs)
 {
    POOLMEM *name  = get_pool_memory(PM_MESSAGE);
 
@@ -731,7 +736,7 @@ bool open_attr_spool_file(JCR *jcr, BSOCK *bs)
    return true;
 }
 
-bool close_attr_spool_file(JCR *jcr, BSOCK *bs)
+static bool close_attr_spool_file(JCR *jcr, BSOCK *bs)
 {
    POOLMEM *name;
 
