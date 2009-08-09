@@ -112,7 +112,7 @@ enum {
 #define job_canceled(jcr) \
   (jcr->JobStatus == JS_Canceled || \
    jcr->JobStatus == JS_ErrorTerminated || \
-   jcr->JobStatus == JS_FatalError ||
+   jcr->JobStatus == JS_FatalError || \
    jcr->JobStatus == JS_Incomplete \
   )
 
@@ -184,6 +184,10 @@ public:
    void init_mutex(void) {pthread_mutex_init(&mutex, NULL); };
    void destroy_mutex(void) {pthread_mutex_destroy(&mutex); };
    bool is_job_canceled() {return job_canceled(this); };
+   void set_JobLevel(int32_t JobLevel) { m_JobLevel = JobLevel; };
+   void setJobLevel(int32_t JobLevel) { m_JobLevel = JobLevel; };
+   void set_JobType(int32_t JobType) { m_JobType = JobType; };
+   void setJobType(int32_t JobType) { m_JobType = JobType; };
    int32_t get_JobType() { return m_JobType; };
    int32_t getJobType() { return m_JobType; };
    int32_t get_JobLevel() { return m_JobLevel; };
@@ -194,10 +198,6 @@ public:
    };
    const char *get_OperationName();       /* in lib/jcr.c */
    const char *get_ActionName(bool past); /* in lib/jcr.c */
-   void set_JobLevel(int32_t JobLevel);   /* in lib/jcr.c */
-   void setJobLevel(int32_t JobLevel);    /* in lib/jcr.c */
-   void set_JobType(int32_t JobType);     /* in lib/jcr.c */
-   void setJobType(int32_t JobType);      /* in lib/jcr.c */
    void setJobStatus(int JobStatus);      /* in lib/jcr.c */
    bool JobReads();                       /* in lib/jcr.c */
    
