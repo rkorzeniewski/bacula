@@ -1026,13 +1026,14 @@ void status_slots(UAContext *ua, STORE *store_r)
    POOL_DBR pr;
    vol_list_t *vl, *vol_list = NULL;
    MEDIA_DBR mr;
+   char ed1[50], ed2[50], ed3[50];
    char *slot_list;
    int max_slots;
    int drive;
    int i=1;
    /* output format */
-   const char *slot_api_empty_format="%i|||||\n";
-   const char *slot_api_full_format="%i|%i|%s|%s|%s|%s|\n";
+   const char *slot_api_empty_format="%i||||||||\n";
+   const char *slot_api_full_format="%i|%i|%s|%s|%s|%s|%s|%s|%s\n";
    const char *slot_hformat=" %4i%c| %16s | %9s | %20s | %18s |\n";
 
    if (!open_client_db(ua)) {
@@ -1124,16 +1125,23 @@ void status_slots(UAContext *ua, STORE *store_r)
                          mr.VolumeName, mr.VolStatus, mr.MediaType, pr.Name);
          } else {
             ua->send_msg(slot_api_full_format,
-                         vl->Slot, mr.Slot, mr.VolumeName, mr.VolStatus, 
-                         mr.MediaType, pr.Name);
+                         vl->Slot, mr.Slot, mr.VolumeName, 
+                         edit_uint64(mr.VolBytes, ed1), 
+                         mr.VolStatus, mr.MediaType, pr.Name, 
+                         edit_uint64(mr.LastWritten, ed2),
+                         edit_uint64(mr.LastWritten+mr.VolRetention, ed3));
          }
 
          db_unlock(ua->db);
          continue;
       } else {                  /* TODO: get information from catalog  */
-         ua->send_msg(slot_hformat,
-                      vl->Slot, '*',
-                      mr.VolumeName, "?", "?", "?");
+         if (!ua->api) {
+            ua->send_msg(slot_hformat,
+                         vl->Slot, '*',
+                         mr.VolumeName, "?", "?", "?");
+         } else {
+            ua->send_msg(slot_api_empty_format, vl->Slot);
+         }
       }
       db_unlock(ua->db);
    }

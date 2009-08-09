@@ -1,9 +1,9 @@
-#ifndef _STORAGE_H_
-#define _STORAGE_H_
+#ifndef _CONTENT_H_
+#define _CONTENT_H_
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2007-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2007-2009 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -27,53 +27,41 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
-/*
- *   Version $Id$
- *
- *   Dirk Bartley, March 2007
- */
 
 #include <QtGui>
-#include "ui_storage.h"
+#include "ui_content.h"
 #include "console.h"
 #include "pages.h"
 
-class Storage : public Pages, public Ui::StorageForm
+class Content : public Pages, public Ui::ContentForm
 {
    Q_OBJECT 
 
 public:
-   Storage();
-   ~Storage();
-   virtual void PgSeltreeWidgetClicked();
+   Content(QString storage);
+//   virtual void PgSeltreeWidgetClicked();
    virtual void currentStackItem();
+   void consoleUnMountStorage();
+   void consoleUpdateSlots();
+   void consoleUpdateSlotsScan();
+   void consoleLabelStorage();
+   void consoleStatusStorage();
+   void consoleMountStorage();
+   void statusStorageWindow();
+   void consoleRelease();
 
 public slots:
    void treeItemChanged(QTreeWidgetItem *, QTreeWidgetItem *);
 
 private slots:
-   void populateTree();
-   void consoleStatusStorage();
-   void consoleLabelStorage();
-   void consoleMountStorage();
-   void consoleUnMountStorage();
-   void consoleUpdateSlots();
-   void consoleUpdateSlotsScan();
-   void consoleRelease();
-   void statusStorageWindow();
-   void contentWindow();
+   void populate();
 
 private:
-   void createContextMenu();
-   void mediaList(QTreeWidgetItem *parent, const QString &storageID);
-   void settingsOpenStatus(QString& storage);
-   QString m_currentStorage;
    bool m_currentAutoChanger;
    bool m_populated;
    bool m_firstpopulation;
    bool m_checkcurwidget;
-   void writeExpandedSettings();
-   QTreeWidgetItem *m_topItem;
+   QString m_currentStorage;
 };
 
 #endif /* _STORAGE_H_ */
