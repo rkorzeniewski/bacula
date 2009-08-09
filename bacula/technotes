@@ -2,6 +2,9 @@
           
 General:
 
+09Aug09
+kes  Change version
+kes  Apply Marco's acl/xattr rework code
 07Aug09
 ebl  bvfs: Add example to list files versions
 ebl  bvfs: Fix directory listing
