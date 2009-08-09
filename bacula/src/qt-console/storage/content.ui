@@ -1,0 +1,142 @@
+<ui version="4.0" >
+ <class>Form</class>
+ <widget class="QWidget" name="Form" >
+  <property name="geometry" >
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>899</width>
+    <height>610</height>
+   </rect>
+  </property>
+  <property name="windowTitle" >
+   <string>Form</string>
+  </property>
+  <widget class="QTableWidget" name="tableContent" >
+   <property name="geometry" >
+    <rect>
+     <x>9</x>
+     <y>308</y>
+     <width>881</width>
+     <height>293</height>
+    </rect>
+   </property>
+   <column>
+    <property name="text" >
+     <string>Slot</string>
+    </property>
+   </column>
+   <column>
+    <property name="text" >
+     <string>Volume</string>
+    </property>
+   </column>
+   <column>
+    <property name="text" >
+     <string>Bytes</string>
+    </property>
+   </column>
+   <column>
+    <property name="text" >
+     <string>Status</string>
+    </property>
+   </column>
+   <column>
+    <property name="text" >
+     <string>Media Type</string>
+    </property>
+   </column>
+   <column>
+    <property name="text" >
+     <string>Pool</string>
+    </property>
+   </column>
+   <column>
+    <property name="text" >
+     <string>Last Written</string>
+    </property>
+   </column>
+   <column>
+    <property name="text" >
+     <string>When expire?</string>
+    </property>
+   </column>
+  </widget>
+  <widget class="QTableWidget" name="tableWidget_2" >
+   <property name="geometry" >
+    <rect>
+     <x>630</x>
+     <y>10</y>
+     <width>211</width>
+     <height>171</height>
+    </rect>
+   </property>
+   <column>
+    <property name="text" >
+     <string>Drive</string>
+    </property>
+   </column>
+   <column>
+    <property name="text" >
+     <string>Volume</string>
+    </property>
+   </column>
+  </widget>
+  <widget class="QPushButton" name="pushButton" >
+   <property name="geometry" >
+    <rect>
+     <x>12</x>
+     <y>12</y>
+     <width>80</width>
+     <height>30</height>
+    </rect>
+   </property>
+   <property name="text" >
+    <string>Update</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="pushButton_2" >
+   <property name="geometry" >
+    <rect>
+     <x>102</x>
+     <y>12</y>
+     <width>80</width>
+     <height>30</height>
+    </rect>
+   </property>
+   <property name="text" >
+    <string>Label</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="pushButton_3" >
+   <property name="geometry" >
+    <rect>
+     <x>192</x>
+     <y>12</y>
+     <width>89</width>
+     <height>30</height>
+    </rect>
+   </property>
+   <property name="text" >
+    <string>Move to tray</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="pushButton_4" >
+   <property name="geometry" >
+    <rect>
+     <x>290</x>
+     <y>10</y>
+     <width>83</width>
+     <height>30</height>
+    </rect>
+   </property>
+   <property name="text" >
+    <string>Empty tray</string>
+   </property>
+  </widget>
+ </widget>
+ <resources>
+  <include location="../main.qrc" />
+ </resources>
+ <connections/>
+</ui>
