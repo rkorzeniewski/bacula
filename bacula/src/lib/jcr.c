@@ -270,18 +270,6 @@ const char *JCR::get_ActionName(bool past)
    }
 }
 
-/* Set Job type in JCR and also set appropriate read flag */
-void JCR::set_JobType(int32_t JobType)
-{
-   m_JobType = JobType;
-}
-
-/* Set Job level in JCR and also set appropriate read flag */
-void JCR::set_JobLevel(int32_t JobLevel)
-{
-   m_JobLevel = JobLevel;
-}
-
 bool JCR::JobReads()
 {
    switch (m_JobType) {
