@@ -612,9 +612,9 @@ int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
    if (have_acl) {
       if (ff_pkt->flags & FO_ACL && ff_pkt->type != FT_LNK && !ff_pkt->cmd_plugin) {
          switch (build_acl_streams(jcr, ff_pkt)) {
-         case bsub_exit_fatal:
+         case bacl_exit_fatal:
             goto bail_out;
-         case bsub_exit_nok:
+         case bacl_exit_error:
             /*
              * Non-fatal errors, count them and when the number is under ACL_REPORT_ERR_MAX_PER_JOB
              * print the error message set by the lower level routine in jcr->errmsg.
@@ -624,7 +624,7 @@ int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
             }
             jcr->total_acl_errors++;
             break;
-         case bsub_exit_ok:
+         case bacl_exit_ok:
             break;
          }
       }
@@ -636,9 +636,9 @@ int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
    if (have_xattr) {
       if (ff_pkt->flags & FO_XATTR && !ff_pkt->cmd_plugin) {
          switch (build_xattr_streams(jcr, ff_pkt)) {
-         case bsub_exit_fatal:
+         case bxattr_exit_fatal:
             goto bail_out;
-         case bsub_exit_nok:
+         case bxattr_exit_error:
             /*
              * Non-fatal errors, count them and when the number is under XATTR_REPORT_ERR_MAX_PER_JOB
              * print the error message set by the lower level routine in jcr->errmsg.
@@ -648,7 +648,7 @@ int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
             }
             jcr->total_xattr_errors++;
             break;
-         case bsub_exit_ok:
+         case bxattr_exit_ok:
             break;
          }
       }
