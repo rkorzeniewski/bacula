@@ -3,6 +3,7 @@
 General:
 
 09Aug09
+kes  Fix bug #1344 show pool displayed wrong variable for maxvolbytes
 kes  Fix compiler warnings in acl and xattr code
 kes  Fix screw up with setting JobLevel and JobType
 kes  Change version
