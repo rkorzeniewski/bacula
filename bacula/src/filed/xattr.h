@@ -38,21 +38,21 @@
 /*
  * Internal representation of an extended attribute.
  */
-typedef struct xattr {
+struct xattr_t {
    uint32_t magic;
    uint32_t name_length;
    char *name;
    uint32_t value_length;
    char *value;
-} xattr_t;
+};
 
 /*
  * Internal representation of an extended attribute hardlinked file.
  */
-typedef struct xattr_link_cache_entry {
+struct xattr_link_cache_entry_t {
    uint32_t inum;
    char target[PATH_MAX];
-} xattr_link_cache_entry_t;
+};
 
 /*
  * Maximum size of the XATTR stream this prevents us from blowing up the filed.

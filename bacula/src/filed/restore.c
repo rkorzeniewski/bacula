@@ -613,9 +613,9 @@ void do_restore(JCR *jcr)
             pm_memcpy(jcr->acl_data, sd->msg, sd->msglen);
             jcr->acl_data_len = sd->msglen;
             switch (parse_acl_streams(jcr, rctx.stream)) {
-            case bsub_exit_fatal:
+            case bacl_exit_fatal:
                goto bail_out;
-            case bsub_exit_nok:
+            case bacl_exit_error:
                /*
                 * Non-fatal errors, count them and when the number is under ACL_REPORT_ERR_MAX_PER_JOB
                 * print the error message set by the lower level routine in jcr->errmsg.
@@ -625,7 +625,7 @@ void do_restore(JCR *jcr)
                }
                jcr->total_acl_errors++;
                break;
-            case bsub_exit_ok:
+            case bacl_exit_ok:
                break;
             }
          } else {
@@ -652,9 +652,9 @@ void do_restore(JCR *jcr)
             pm_memcpy(jcr->xattr_data, sd->msg, sd->msglen);
             jcr->xattr_data_len = sd->msglen;
             switch (parse_xattr_streams(jcr, rctx.stream)) {
-            case bsub_exit_fatal:
+            case bxattr_exit_fatal:
                goto bail_out;
-            case bsub_exit_nok:
+            case bxattr_exit_error:
                /*
                 * Non-fatal errors, count them and when the number is under XATTR_REPORT_ERR_MAX_PER_JOB
                 * print the error message set by the lower level routine in jcr->errmsg.
@@ -664,7 +664,7 @@ void do_restore(JCR *jcr)
                }
                jcr->total_xattr_errors++;
                break;
-            case bsub_exit_ok:
+            case bxattr_exit_ok:
                break;
             }
          } else {
