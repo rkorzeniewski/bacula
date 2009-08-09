@@ -592,7 +592,7 @@ static bacl_exit_code generic_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
 
 static bacl_exit_code generic_parse_acl_streams(JCR *jcr, int stream)
 {
-   int cnt;
+   unsigned int cnt;
 
    switch (stream) {
    case STREAM_UNIX_ACCESS_ACL:
@@ -1240,7 +1240,7 @@ bacl_exit_code build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
 
 bacl_exit_code parse_acl_streams(JCR *jcr, int stream)
 {
-   int cnt;
+   unsigned int cnt;
 
    switch (stream) {
    case STREAM_UNIX_ACCESS_ACL:
