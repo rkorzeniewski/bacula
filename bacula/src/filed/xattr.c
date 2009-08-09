@@ -663,7 +663,7 @@ static int toplevel_hidden_dir_xattr_data_len;
  */
 static alist *xattr_link_cache = NULL;
 
-static xattr_link_cache_entry *find_xattr_link_cache_entry(ino_t inum)
+static xattr_link_cache_entry_t *find_xattr_link_cache_entry(ino_t inum)
 {
    xattr_link_cache_entry_t *ptr;
 
@@ -679,8 +679,8 @@ static void add_xattr_link_cache_entry(ino_t inum, char *target)
 {
    xattr_link_cache_entry_t *ptr;
 
-   ptr = (xattr_link_cache_entry_t *)malloc(sizeof(xattr_link_cache_entry));
-   memset((caddr_t)ptr, 0, sizeof(xattr_link_cache_entry));
+   ptr = (xattr_link_cache_entry_t *)malloc(sizeof(xattr_link_cache_entry_t));
+   memset((caddr_t)ptr, 0, sizeof(xattr_link_cache_entry_t));
    ptr->inum = inum;
    bstrncpy(ptr->target, target, sizeof(ptr->target));
    xattr_link_cache->append(ptr);
@@ -916,7 +916,7 @@ static bxattr_exit_code solaris_save_xattr(JCR *jcr, int fd, const char *xattr_n
    int cnt;
    int attrfd = -1;
    struct stat st;
-   xattr_link_cache_entry *xlce;
+   xattr_link_cache_entry_t *xlce;
    char target_attrname[PATH_MAX];
    char link_source[PATH_MAX];
    char *acl_text = NULL;
