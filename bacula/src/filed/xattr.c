@@ -1868,7 +1868,7 @@ bxattr_exit_code build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
 
 bxattr_exit_code parse_xattr_streams(JCR *jcr, int stream)
 {
-   int cnt;
+   unsigned int cnt;
 
    if (os_parse_xattr_streams) {
       /*
