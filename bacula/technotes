@@ -3,6 +3,7 @@
 General:
 
 10Aug09
+kes  Pull Philipp Storz' bacula.spec changes for OpenSuSE build service
 kes  Implement MaximumConcurrentJobs for SD devices.
      This should significantly help spread jobs among different drives.
 09Aug09
