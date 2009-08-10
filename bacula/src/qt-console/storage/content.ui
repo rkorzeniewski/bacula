@@ -256,42 +256,42 @@
         </property>
         <column>
          <property name="text" >
-          <string>Slot</string>
+          <string>  Slot  </string>
          </property>
         </column>
         <column>
          <property name="text" >
-          <string>Volume</string>
+          <string>  Volume   </string>
          </property>
         </column>
         <column>
          <property name="text" >
-          <string>Bytes</string>
+          <string>   Bytes   </string>
          </property>
         </column>
         <column>
          <property name="text" >
-          <string>Status</string>
+          <string>   Status   </string>
          </property>
         </column>
         <column>
          <property name="text" >
-          <string>Media Type</string>
+          <string>   Media Type   </string>
          </property>
         </column>
         <column>
          <property name="text" >
-          <string>Pool</string>
+          <string>   Pool   </string>
          </property>
         </column>
         <column>
          <property name="text" >
-          <string>Last Written</string>
+          <string>   Last Written   </string>
          </property>
         </column>
         <column>
          <property name="text" >
-          <string>When expire?</string>
+          <string>   When expire?   </string>
          </property>
         </column>
        </widget>
