@@ -12,6 +12,8 @@ kes  Fix compiler warnings in acl and xattr code
 kes  Fix screw up with setting JobLevel and JobType
 kes  Change version
 kes  Apply Marco's acl/xattr rework code
+08Aug09
+ebl  bat: display a Warning icon when having Errors>0 and Status=T
 07Aug09
 ebl  bvfs: Add example to list files versions
 ebl  bvfs: Fix directory listing
