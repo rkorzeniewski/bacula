@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2008 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2009 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -157,6 +157,7 @@ static RES_ITEM dev_items[] = {
    {"maximumvolumesize",     store_size,   ITEM(res_dev.max_volume_size), 0, 0, 0},
    {"maximumfilesize",       store_size,   ITEM(res_dev.max_file_size), 0, ITEM_DEFAULT, 1000000000},
    {"volumecapacity",        store_size,   ITEM(res_dev.volume_capacity), 0, 0, 0},
+   {"maximumconcurrentjobs", store_pint32, ITEM(res_dev.max_concurrent_jobs), 0, 0, 0},
    {"spooldirectory",        store_dir,    ITEM(res_dev.spool_directory), 0, 0, 0},
    {"maximumspoolsize",      store_size,   ITEM(res_dev.max_spool_size), 0, 0, 0},
    {"maximumjobspoolsize",   store_size,   ITEM(res_dev.max_job_spool_size), 0, 0, 0},
