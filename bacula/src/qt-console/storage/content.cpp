@@ -48,7 +48,7 @@ Content::Content(QString storage)
    m_closeable = true;
    m_currentStorage = storage;
 
-   populate();
+   populateContent();
 
    dockPage();
    setCurrent();
@@ -58,11 +58,12 @@ Content::Content(QString storage)
  * The main meat of the class!!  The function that querries the director and 
  * creates the widgets with appropriate values.
  */
-void Content::populate()
+void Content::populateContent()
 {
    m_populated = true;
    m_firstpopulation = false;
    Freeze frz(*tableContent); /* disable updating*/
+   tableContent->clear();
    int row = 0;
    QStringList results;
    QString cmd("status slots drive=0 storage=\"" + m_currentStorage + "\"");
@@ -74,20 +75,35 @@ void Content::populate()
       if (fieldlist.size() < 9)
          continue; /* some fields missing, ignore row */
       Pmsg1(0, "s=%s\n", resultline.toUtf8().data());
-      TableItemFormatter jobitem(*tableContent, row);
+      TableItemFormatter slotitem(*tableContent, row);
       int col=0;
-      jobitem.setNumericFld(col++, fld.next()); 
-      fld.next();
-      jobitem.setTextFld(col++, fld.next());
-      jobitem.setNumericFld(col++, fld.next());
-      jobitem.setVolStatusFld(col++, fld.next());
-      jobitem.setTextFld(col++, fld.next());
-      jobitem.setTextFld(col++, fld.next());
-      jobitem.setTextFld(col++, fld.next());
-      jobitem.setTextFld(col++, fld.next());
+      slotitem.setNumericFld(col++, fld.next()); 
+      Pmsg1(0, "s=%s\n", fld.next().toUtf8().data());
+      slotitem.setTextFld(col++, fld.next());
+      slotitem.setNumericFld(col++, fld.next());
+      slotitem.setVolStatusFld(col++, fld.next());
+      slotitem.setTextFld(col++, fld.next());
+      slotitem.setTextFld(col++, fld.next());
+      slotitem.setTextFld(col++, fld.next());
+      slotitem.setTextFld(col++, fld.next());
 
       row++;
    }
+   tableContent->resizeColumnsToContents();
+   tableContent->resizeRowsToContents();
+   tableContent->verticalHeader()->hide();
+
+   int rcnt = tableContent->rowCount();
+   int ccnt = tableContent->columnCount();
+   for(int r=0; r < rcnt; r++) {
+      for(int c=0; c < ccnt; c++) {
+         QTableWidgetItem* item = tableContent->item(r, c);
+         if (item) {
+            item->setFlags(Qt::ItemFlags(item->flags() & (~Qt::ItemIsEditable)));
+         }
+      }
+   }
+
 }
 
 /*

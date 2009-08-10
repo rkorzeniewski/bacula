@@ -54,7 +54,7 @@ public slots:
    void treeItemChanged(QTreeWidgetItem *, QTreeWidgetItem *);
 
 private slots:
-   void populate();
+   void populateContent();
 
 private:
    bool m_currentAutoChanger;
