@@ -2,6 +2,9 @@
           
 General:
 
+10Aug09
+kes  Implement MaximumConcurrentJobs for SD devices.
+     This should significantly help spread jobs among different drives.
 09Aug09
 kes  Fix bug #1344 show pool displayed wrong variable for maxvolbytes
 kes  Fix compiler warnings in acl and xattr code
@@ -30,17 +33,17 @@ kes  Remove installing gconsole start script from Makefile.in
 01Aug09
 ebl  Add Job Info panel to bat
 30Jul09
-ebl  Add restore from multiple storage functionnality with
+ebl  Add restore from multiple storage functionality with
      a part of Graham's patch.
 kes  Add 'show disabled' command that lists the disabled jobs.
 kes  Modify enable/disable commands to show only appropriate Jobs.
 29Jul09
-kes  Add ACL check for client in estimate commande
+kes  Add ACL check for client in estimate command
 ebl  Change time_t by utime_t in accurate function
 kes  Start reworking 3.0.2 bacula.spec file
      - Add SuSE build codes
      - Add depkgs-qt so bat can build on any system
-     - Reoganize defines
+     - Reorganize defines
 26Jul09
 kes  Tweak RedHat spec files
 24Jul09
@@ -90,7 +93,7 @@ ebl  Implement the project 'restore' menu: enter a JobId, automatically
 ebl  Should fix #1323 about verify accurate jobs and deleted files.
 13Jul09
 kes  Send bootstrap directly from DIR to SD
-kes  Create build scripts for Win64 somewhat equilavent to the Win32 ones.
+kes  Create build scripts for Win64 somewhat equivalent to the Win32 ones.
 10Jul09
 ebl  Print correct JobId in bls, should fix #1331
 kes  Apply python detect patch from Bastian Friedrich <bastian.friedrich@collax.com>
@@ -106,7 +109,7 @@ mvw  Call acl and xattr function only when requested for fileset
 mvw  Fix typo introduces by fix for bug #1305
 03Jul09
 ebl  Should fix the first part #1323 about the restore option
-     'List Jobs where a given File is saved' wich display deleted files
+     'List Jobs where a given File is saved' which display deleted files
 02Jul09
 kes  Another fix for bug #1311 to get the correct last_full_time
 ebl  Make estimate command accurate compatible. Should fix #1318
