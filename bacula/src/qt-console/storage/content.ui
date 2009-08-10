@@ -128,6 +128,9 @@
             <height>192</height>
            </size>
           </property>
+          <property name="selectionBehavior" >
+           <enum>QAbstractItemView::SelectRows</enum>
+          </property>
           <row>
            <property name="text" >
             <string>LTO1</string>
@@ -205,6 +208,12 @@
             <height>0</height>
            </size>
           </property>
+          <property name="selectionBehavior" >
+           <enum>QAbstractItemView::SelectRows</enum>
+          </property>
+          <property name="sortingEnabled" >
+           <bool>false</bool>
+          </property>
           <column>
            <property name="text" >
             <string>Slot</string>
@@ -230,6 +239,21 @@
      <layout class="QHBoxLayout" >
       <item>
        <widget class="QTableWidget" name="tableContent" >
+        <property name="alternatingRowColors" >
+         <bool>true</bool>
+        </property>
+        <property name="selectionMode" >
+         <enum>QAbstractItemView::ExtendedSelection</enum>
+        </property>
+        <property name="selectionBehavior" >
+         <enum>QAbstractItemView::SelectRows</enum>
+        </property>
+        <property name="sortingEnabled" >
+         <bool>true</bool>
+        </property>
+        <property name="rowCount" >
+         <number>0</number>
+        </property>
         <column>
          <property name="text" >
           <string>Slot</string>
