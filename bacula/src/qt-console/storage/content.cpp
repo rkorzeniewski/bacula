@@ -60,12 +60,15 @@ Content::Content(QString storage)
  */
 void Content::populateContent()
 {
+   char buf[200];
+   time_t t;
+   struct tm tm;
+
    m_populated = true;
    m_firstpopulation = false;
-//   Freeze frz(*tableContent); /* disable updating*/
-   tableContent->clear();
+   Freeze frz(*tableContent); /* disable updating*/
+   tableContent->clearContents();
 
-   int row = 0;
    QStringList results_all;
    QString cmd("status slots drive=0 storage=\"" + m_currentStorage + "\"");
 
@@ -74,32 +77,43 @@ void Content::populateContent()
    QStringList results = results_all.filter(QRegExp("[0-9]+\\|"));
    Pmsg1(0, "count=%i\n", results.size());
    tableContent->setRowCount(results.size());
+   int row = results.size();
 
+//   tableContent->setColumnCount(8);
+   int col, i;
    foreach (QString resultline, results){
-      int col=0;
       QStringList fieldlist = resultline.split("|");
-      QStringListIterator fld(fieldlist);
+      col=0;
+      i=0;
 
       if (fieldlist.size() < 9)
          continue; /* some fields missing, ignore row */
 
-      Pmsg1(0, "s=%s\n", resultline.toUtf8().data());
+      Pmsg2(0, "row=%i line=%s\n", row, resultline.toUtf8().data());
 
-      TableItemFormatter slotitem(*tableContent, row);
+      TableItemFormatter slotitem(*tableContent, row--);
 
-      slotitem.setNumericFld(col++, fld.next()); // Slot
-      Pmsg1(0, "s=%s\n", fld.next().toUtf8().data()); // Real Slot
+      slotitem.setNumericFld(col++, fieldlist[i++]); // Slot
 
-//      if (fld.next() != "") {                          // skip "Real Slot"
-         slotitem.setTextFld(col++, fld.next());         // Volume
-         slotitem.setNumericFld(col++, fld.next());      // Bytes
-         slotitem.setVolStatusFld(col++, fld.next());    // Status
-         slotitem.setTextFld(col++, fld.next());         // MediaType
-         slotitem.setTextFld(col++, fld.next());         // Pool
-         slotitem.setTextFld(col++, fld.next());         // LastWritten
-         slotitem.setTextFld(col++, fld.next());         // Expire
-//      }
-      row++;
+      if (fieldlist[i++] != "") {                     // skip "Real Slot"
+         slotitem.setTextFld(col++,  fieldlist[i++]); // Volume
+         slotitem.setBytesFld(col++, fieldlist[i++]); // Bytes
+         slotitem.setVolStatusFld(col++, fieldlist[i++]); // Status
+         slotitem.setTextFld(col++,  fieldlist[i++]);     // MediaType
+         slotitem.setTextFld(col++,  fieldlist[i++]);     // Pool
+
+         if (fieldlist[i].toInt() > 0) {
+            t =  fieldlist[i++].toInt();
+            localtime_r(&t, &tm);         
+            strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", &tm);
+            slotitem.setTextFld(col++, QString(buf));           // LastWritten
+            
+            t =  fieldlist[i++].toInt();
+            localtime_r(&t, &tm);         
+            strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", &tm);
+            slotitem.setTextFld(col++, QString(buf));         // Expire
+         }
+      }
    }
 
    tableContent->resizeColumnsToContents();
@@ -119,8 +133,7 @@ void Content::populateContent()
       }
    }
 
-   tableContent->update();
-
+   tableTray->verticalHeader()->hide();
    tableDrive->verticalHeader()->hide();
 }
 
