@@ -48,8 +48,6 @@ Content::Content(QString storage)
    m_closeable = true;
    m_currentStorage = storage;
 
-   populateContent();
-
    dockPage();
    setCurrent();
 }
@@ -64,64 +62,76 @@ void Content::populateContent()
    time_t t;
    struct tm tm;
 
-   m_populated = true;
-   m_firstpopulation = false;
+   QStringList results_all;
+   QString cmd("status slots drive=0 storage=\"" + m_currentStorage + "\"");
+   m_console->dir_cmd(cmd, results_all);
+
    Freeze frz(*tableContent); /* disable updating*/
    tableContent->clearContents();
 
-   QStringList results_all;
-   QString cmd("status slots drive=0 storage=\"" + m_currentStorage + "\"");
-
-   m_console->dir_cmd(cmd, results_all);
-   // skip non list messages
-   QStringList results = results_all.filter(QRegExp("[0-9]+\\|"));
-   Pmsg1(0, "count=%i\n", results.size());
+   // take only valid records
+   QStringList results = results_all.filter(QRegExp("^[0-9]+\\|"));
    tableContent->setRowCount(results.size());
-   int row = results.size();
 
-//   tableContent->setColumnCount(8);
-   int col, i;
-   foreach (QString resultline, results){
-      QStringList fieldlist = resultline.split("|");
-      col=0;
-      i=0;
+   QString resultline;
+   QStringList fieldlist;
+   int row = 0;
 
+   foreach (resultline, results) {
+      fieldlist = resultline.split("|");
       if (fieldlist.size() < 9)
          continue; /* some fields missing, ignore row */
 
-      Pmsg2(0, "row=%i line=%s\n", row, resultline.toUtf8().data());
+      int index=0;
+      QStringListIterator fld(fieldlist);
+      TableItemFormatter slotitem(*tableContent, row);
 
-      TableItemFormatter slotitem(*tableContent, row--);
+      /* Slot */
+      slotitem.setNumericFld(index++, fld.next()); 
 
-      slotitem.setNumericFld(col++, fieldlist[i++]); // Slot
+      /* Real Slot */
+      if (fld.next() != "") {
 
-      if (fieldlist[i++] != "") {                     // skip "Real Slot"
-         slotitem.setTextFld(col++,  fieldlist[i++]); // Volume
-         slotitem.setBytesFld(col++, fieldlist[i++]); // Bytes
-         slotitem.setVolStatusFld(col++, fieldlist[i++]); // Status
-         slotitem.setTextFld(col++,  fieldlist[i++]);     // MediaType
-         slotitem.setTextFld(col++,  fieldlist[i++]);     // Pool
-
-         if (fieldlist[i].toInt() > 0) {
-            t =  fieldlist[i++].toInt();
-            localtime_r(&t, &tm);         
+         /* Volume */
+         slotitem.setTextFld(index++, fld.next());
+         
+         /* Bytes */
+         slotitem.setBytesFld(index++, fld.next());
+         
+         /* Status */
+         slotitem.setVolStatusFld(index++, fld.next());
+         
+         /* MediaType */
+         slotitem.setTextFld(index++, fld.next());
+         
+         /* Pool */
+         slotitem.setTextFld(index++, fld.next());
+         
+         t = fld.next().toInt();
+         if (t > 0) {
+            /* LastW */
+            localtime_r(&t, &tm);
             strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", &tm);
-            slotitem.setTextFld(col++, QString(buf));           // LastWritten
+            slotitem.setTextFld(index++, QString(buf));
             
-            t =  fieldlist[i++].toInt();
-            localtime_r(&t, &tm);         
+            /* Expire */
+            t = fld.next().toInt();
+            localtime_r(&t, &tm);
             strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", &tm);
-            slotitem.setTextFld(col++, QString(buf));         // Expire
+            slotitem.setTextFld(index++, QString(buf));
          }
       }
+      row++;
    }
 
-   tableContent->resizeColumnsToContents();
-   tableContent->verticalHeader()->hide();
 
+   tableContent->verticalHeader()->hide();
    tableContent->sortByColumn(0, Qt::AscendingOrder);
    tableContent->setSortingEnabled(true);
+   tableContent->resizeColumnsToContents();
+   tableContent->resizeRowsToContents();
 
+   /* make read only */
    int rcnt = tableContent->rowCount();
    int ccnt = tableContent->columnCount();
    for(int r=0; r < rcnt; r++) {
@@ -132,6 +142,7 @@ void Content::populateContent()
          }
       }
    }
+   m_populated = true;
 
    tableTray->verticalHeader()->hide();
    tableDrive->verticalHeader()->hide();
