@@ -80,6 +80,7 @@
 #define JS_FatalError            'f'  /* Fatal error */
 #define JS_Differences           'D'  /* Verify differences */
 #define JS_Canceled              'A'  /* canceled by user */
+#define JS_Incomplete            'I'  /* Incomplete Job */
 #define JS_WaitFD                'F'  /* waiting on File daemon */
 #define JS_WaitSD                'S'  /* waiting on the Storage daemon */
 #define JS_WaitMedia             'm'  /* waiting for new media */
@@ -111,7 +112,9 @@ enum {
 #define job_canceled(jcr) \
   (jcr->JobStatus == JS_Canceled || \
    jcr->JobStatus == JS_ErrorTerminated || \
-   jcr->JobStatus == JS_FatalError)
+   jcr->JobStatus == JS_FatalError || \
+   jcr->JobStatus == JS_Incomplete \
+  )
 
 #define job_waiting(jcr) \
   (jcr->JobStatus == JS_WaitFD       || \
@@ -181,6 +184,10 @@ public:
    void init_mutex(void) {pthread_mutex_init(&mutex, NULL); };
    void destroy_mutex(void) {pthread_mutex_destroy(&mutex); };
    bool is_job_canceled() {return job_canceled(this); };
+   void set_JobLevel(int32_t JobLevel) { m_JobLevel = JobLevel; };
+   void setJobLevel(int32_t JobLevel) { m_JobLevel = JobLevel; };
+   void set_JobType(int32_t JobType) { m_JobType = JobType; };
+   void setJobType(int32_t JobType) { m_JobType = JobType; };
    int32_t get_JobType() { return m_JobType; };
    int32_t getJobType() { return m_JobType; };
    int32_t get_JobLevel() { return m_JobLevel; };
@@ -191,10 +198,6 @@ public:
    };
    const char *get_OperationName();       /* in lib/jcr.c */
    const char *get_ActionName(bool past); /* in lib/jcr.c */
-   void set_JobLevel(int32_t JobLevel);   /* in lib/jcr.c */
-   void setJobLevel(int32_t JobLevel);    /* in lib/jcr.c */
-   void set_JobType(int32_t JobType);     /* in lib/jcr.c */
-   void setJobType(int32_t JobType);      /* in lib/jcr.c */
    void setJobStatus(int JobStatus);      /* in lib/jcr.c */
    bool JobReads();                       /* in lib/jcr.c */
    
@@ -346,8 +349,10 @@ public:
    POOLMEM *last_fname;               /* last file saved/verified */
    POOLMEM *acl_data;                 /* data with ACLs for backup/restore */
    uint32_t acl_data_len;             /* length of acl data buffer */
+   uint32_t total_acl_errors;         /* numbers of errors encountered for acl backup/restore */
    POOLMEM *xattr_data;               /* data with Extended Attributes for backup/restore */
    uint32_t xattr_data_len;           /* length of xattr_data buffer */
+   uint32_t total_xattr_errors;       /* numbers of errors encountered for xattr backup/restore */
    int32_t last_type;                 /* type of last file saved/verified */
    int incremental;                   /* set if incremental for SINCE */
    utime_t mtime;                     /* begin time for SINCE */

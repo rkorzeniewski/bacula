@@ -192,7 +192,7 @@ int32_t bnet_recv(BSOCK * bsock)
  */
 bool is_bnet_stop(BSOCK * bsock)
 {
-   return bsock->errors || bsock->is_terminated();
+   return bsock->is_stop();
 }
 
 /*
@@ -200,8 +200,7 @@ bool is_bnet_stop(BSOCK * bsock)
  */
 int is_bnet_error(BSOCK * bsock)
 {
-   errno = bsock->b_errno;
-   return bsock->errors;
+   return bsock->is_error();
 }
 
 /*
