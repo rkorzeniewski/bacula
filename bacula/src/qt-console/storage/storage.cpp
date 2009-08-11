@@ -334,7 +334,9 @@ void Storage::createContextMenu()
 
 void Storage::contentWindow()
 {
-   new Content(m_currentStorage);
+   if (m_currentStorage != "" && m_currentAutoChanger) { 
+      new Content(m_currentStorage);
+   }
 }
 
 /*
