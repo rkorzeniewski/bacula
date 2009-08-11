@@ -67,14 +67,14 @@ void MediaInfo::showInfoForJob(QTableWidgetItem * item)
    QTreeWidgetItem* pageSelectorTreeWidgetItem = mainWin->getFromHash(this);
    int row = item->row();
    QString jobid = tableJob->item(row, 0)->text();
-   Job *j=new Job(jobid, pageSelectorTreeWidgetItem);
-   connect(j, SIGNAL(destroyed()), this, SLOT(populateTree()));
+   new Job(jobid, pageSelectorTreeWidgetItem);
+//   connect(j, SIGNAL(destroyed()), this, SLOT(populateTree()));
 }
 
 void MediaInfo::pruneVol()
 {
-   prunePage* prune = new prunePage(m_mediaName, "");
-   connect(prune, SIGNAL(destroyed()), this, SLOT(populateTree()));
+   new prunePage(m_mediaName, "");
+//   connect(prune, SIGNAL(destroyed()), this, SLOT(populateTree()));
 }
 
 // TODO: use same functions as in medialist.cpp
@@ -118,9 +118,8 @@ void MediaInfo::deleteVol()
 
 void MediaInfo::editVol()
 {
-   MediaEdit* edit = new MediaEdit(mainWin->getFromHash(this), 
-                                   m_mediaId);
-   connect(edit, SIGNAL(destroyed()), this, SLOT(populateTree()));
+   new MediaEdit(mainWin->getFromHash(this), m_mediaId);
+//   connect(edit, SIGNAL(destroyed()), this, SLOT(populateTree()));
 }
 
 /*
@@ -138,7 +137,8 @@ void MediaInfo::populateForm()
       "SELECT MediaId, VolumeName, Pool.Name, MediaType, FirstWritten,"
       "LastWritten, VolMounts, VolBytes, Media.Enabled,"
       "Location.Location, VolStatus, RecyclePool.Name, Media.Recycle, "
-      "VolReadTime, VolWriteTime, Media.VolUseDuration, Media.MaxVolJobs, "
+      "VolReadTime//1000000, VolWriteTime//1000000, Media.VolUseDuration, "
+      "Media.MaxVolJobs, "
       "Media.MaxVolFiles, Media.MaxVolBytes, Media.VolRetention,InChanger,Slot "
       "FROM Media JOIN Pool USING (PoolId) LEFT JOIN Pool AS RecyclePool "
       "ON (Media.RecyclePoolId = RecyclePool.PoolId) "
