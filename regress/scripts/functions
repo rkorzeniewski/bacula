@@ -353,7 +353,7 @@ copy_test_confs()
 disable_pluguins()
 {
    for i in ${conf}/bacula-fd.conf; do
-      sed 's/Plugin/#Plugin/i' $i > $tmp/1
+      sed 's/Plugin/#Plugin/' $i > $tmp/1
       cp -f $tmp/1 $i
    done
 }
@@ -492,6 +492,7 @@ export tmp
 export src
 export tmpsrc
 
+mkdir -p ${tmp}
 touch ${tmp}/dir.out ${tmp}/fd.out ${tmp}/sd.out
 
 CLIENT=${HOST}-fd
