@@ -81,7 +81,7 @@
 
 # choose database backend here
 # postgres, mysql, sqlite
-%define build_postgresql 1
+%define build_mysql 1
 
 # Build Service: Determine Distribution
 
@@ -220,7 +220,12 @@ Packager: %{_packager}
 Prefix: %{_prefix}
 
 Source0: http://www.prdownloads.sourceforge.net/bacula/%{name}-%{version}.tar.gz
+# opensuse build service changes the release itself
+%if 0%{?opensuse_bs}
+Source1: Release_Notes-%{version}-1.tar.gz
+%else
 Source1: Release_Notes-%{version}-%{release}.tar.gz
+%endif
 Source2: bacula-2.2.7-postgresql.patch
 
 # define the basic package description
@@ -345,6 +350,7 @@ Source2: bacula-2.2.7-postgresql.patch
 %define scil 1
 %endif
 
+
 # test for a platform definition
 %if !%{rhat} && !%{rhel} && !%{fed} && !%{wb3} && !%{suse} && !%{mdk}
 %{error: You must specify a platform. Please examine the spec file.}
@@ -413,7 +419,29 @@ exit 1
 %define _dist %(grep Mand /etc/mandrake-release)
 %endif
 %{?DISTNAME:%define _dist %{DISTNAME}}
+
+# only set Disribution if not in opensuse build service, as it sets it itself
+%if ! 0%{?opensuse_bs}
+%{?DISTNAME:%define _dist %{DISTNAME}}
 Distribution: %{_dist}
+%endif
+
+%if 0%{?opensuse_bs} &&  %{mysql} && %{suse}
+# needed in opensuse_bs, as rpm is installed during build process
+BuildRequires: libmysqlclient-devel
+BuildRequires: mysql-client
+BuildRequires: mysql
+%endif
+%if 0%{?opensuse_bs} &&  %{suse} && %{postgresql}
+BuildRequires: postgresql
+BuildRequires: postgresql-server
+%endif
+BuildRequires: openssl
+
+%if 0%{?opensuse_bs} && %{suse}
+BuildRequires: pwdutils
+BuildRequires: sysconfig
+%endif
 
 # should we turn on python support
 %define python 0
@@ -474,10 +502,13 @@ BuildRequires: glibc-static-devel
 BuildRequires: libtermcap-devel
 %endif
 %if !%{rh7} && !%{su9} && !%{su10} && !%{su102} && !%{su103} && !%{su110} && !%{su111} && !%{mdk} && !%{fc3} && !%{fc4} && !%{fc5} && !%{fc6} && !%{fc7} && !%{fc8} && !%{fc9}
-BuildRequires: libtermcap-devel
+#BuildRequires: libtermcap-devel
 %endif
 
-%if %{sqlite}
+%if %{sqlite} && %{su10}
+BuildRequires: sqlite2-devel
+%endif
+%if %{sqlite} && ! %{su10}
 BuildRequires: sqlite-devel
 %endif
 
@@ -671,15 +702,18 @@ Group: System Environment/Daemons
 This package installs the Bacula pdf and html documentation.
 
 # Must explicitly enable debug pkg on SuSE
+# but not in opensuse_bs
+%if ! 0%{?opensuse_bs}
 %if %{suse}
 %debug_package
 export LDFLAGS="${LDFLAGS} -L/usr/lib/termcap"
+%endif
 %endif
 
 %prep
 %setup
 %setup -T -D -b 1
-%setup -T -D -b 2
+#%setup -T -D -b 2
 
 %build
 
@@ -691,18 +725,18 @@ patch -p3 src/cats/postgresql.c < %SOURCE5
 
 # patch the make_sqlite_tables script for installation bindir
 #patch src/cats/make_sqlite_tables.in src/cats/make_sqlite_tables.in.patch
-patch src/cats/make_sqlite3_tables.in src/cats/make_sqlite3_tables.in.patch
+#patch src/cats/make_sqlite3_tables.in src/cats/make_sqlite3_tables.in.patch
 
 # patch the create_sqlite_database script for installation bindir
 #patch src/cats/create_sqlite_database.in src/cats/create_sqlite_database.in.patch
-patch src/cats/create_sqlite3_database.in src/cats/create_sqlite3_database.in.patch
+#patch src/cats/create_sqlite3_database.in src/cats/create_sqlite3_database.in.patch
 
 # patch the make_catalog_backup script for installation bindir
-patch src/cats/make_catalog_backup.in src/cats/make_catalog_backup.in.patch
+#patch src/cats/make_catalog_backup.in src/cats/make_catalog_backup.in.patch
 
 # patch the update_sqlite_tables script for installation bindir
 #patch src/cats/update_sqlite_tables.in src/cats/update_sqlite_tables.in.patch
-patch src/cats/update_sqlite3_tables.in src/cats/update_sqlite3_tables.in.patch
+#patch src/cats/update_sqlite3_tables.in src/cats/update_sqlite3_tables.in.patch
 
 # patch the bacula-dir init script to remove sqlite service
 %if %{sqlite} && %{su9}
@@ -762,8 +796,12 @@ export LDFLAGS="${LDFLAGS} -L/usr/lib64/python%{pyver}"
         --with-mysql \
 %endif
 %if %{sqlite}
+%if %{su9} || %{su10}
+        --with-sqlite \
+%else
         --with-sqlite3 \
 %endif
+%endif # sqlite?
 %if %{postgresql}
         --with-postgresql \
 %endif
@@ -831,6 +869,7 @@ rm -f $RPM_BUILD_ROOT%{script_dir}/gconsole
 
 # fixme - make installs the mysql scripts for sqlite build
 %if %{sqlite}
+rm -f $RPM_BUILD_ROOT%{script_dir}/startmysql
 rm -f $RPM_BUILD_ROOT%{script_dir}/stopmysql
 rm -f $RPM_BUILD_ROOT%{script_dir}/grant_mysql_privileges
 %endif
@@ -901,7 +940,12 @@ rm -f $RPM_BUILD_ROOT%{_sbindir}/bacula
 
 %clean
 [ "$RPM_BUILD_ROOT" != "/" ] && rm -rf "$RPM_BUILD_ROOT"
+%if 0%{?opensuse_bs}
+rm -f $RPM_BUILD_DIR/Release_Notes-%{version}-1.txt
+%else
 rm -f $RPM_BUILD_DIR/Release_Notes-%{version}-%{release}.txt
+%endif
+
 
 %if %{mysql}
 # MySQL specific files
@@ -918,6 +962,17 @@ rm -f $RPM_BUILD_DIR/Release_Notes-%{version}-%{release}.txt
 %endif
 
 %if %{sqlite}
+%if  %{su9} ||  %{su10}
+# use sqlite2 on SLE_10 and SLES9
+%files sqlite
+%defattr(-,root,root)
+%attr(-, root, %{daemon_group}) %{script_dir}/create_sqlite_database
+%attr(-, root, %{daemon_group}) %{script_dir}/drop_sqlite_database
+%attr(-, root, %{daemon_group}) %{script_dir}/grant_sqlite_privileges
+%attr(-, root, %{daemon_group}) %{script_dir}/make_sqlite_tables
+%attr(-, root, %{daemon_group}) %{script_dir}/drop_sqlite_tables
+%attr(-, root, %{daemon_group}) %{script_dir}/update_sqlite_tables
+%else
 %files sqlite
 %defattr(-,root,root)
 %attr(-, root, %{daemon_group}) %{script_dir}/create_sqlite3_database
@@ -926,7 +981,10 @@ rm -f $RPM_BUILD_DIR/Release_Notes-%{version}-%{release}.txt
 %attr(-, root, %{daemon_group}) %{script_dir}/make_sqlite3_tables
 %attr(-, root, %{daemon_group}) %{script_dir}/drop_sqlite3_tables
 %attr(-, root, %{daemon_group}) %{script_dir}/update_sqlite3_tables
+%endif # sqlite?
 %endif
+
+
 
 %if %{postgresql}
 %files postgresql
@@ -937,9 +995,17 @@ rm -f $RPM_BUILD_DIR/Release_Notes-%{version}-%{release}.txt
 %attr(-, root, %{daemon_group}) %{script_dir}/drop_postgresql_tables
 %attr(-, root, %{daemon_group}) %{script_dir}/update_postgresql_tables
 %attr(-, root, %{daemon_group}) %{script_dir}/grant_postgresql_privileges
-%endif
-
 # The rest is DB backend independent
+%endif
+# opensuse_bs: directories not owned by any package
+/etc/bacula
+/etc/log.d
+/etc/log.d/conf
+/etc/log.d/conf/logfiles
+/etc/log.d/conf/services
+/etc/log.d/scripts
+/etc/log.d/scripts/services
+
 %if ! %{client_only}
 %attr(-, root, %{daemon_group}) %dir %{script_dir}
 %attr(-, root, %{daemon_group}) %{script_dir}/bacula
@@ -1110,10 +1176,15 @@ fi
 %if %{postgresql}
 %post postgresql
 %endif
-
 %if ! %{client_only}
 # add our links
 if [ "$1" -ge 1 ] ; then
+%if %{suse} && %{mysql}
+  /sbin/chkconfig --add mysql
+%endif
+%if %{suse} && %{postgresql}
+  /sbin/chkconfig --add postgresql
+%endif
   /sbin/chkconfig --add bacula-dir
   /sbin/chkconfig --add bacula-fd
   /sbin/chkconfig --add bacula-sd
@@ -1121,6 +1192,10 @@ fi
 %endif
 
 %if %{mysql}
+
+#check, if mysql can be called successfully at all
+if mysql 2>/dev/null bacula -e 'select * from Version;' ; then
+
 # test for an existing database
 # note: this ASSUMES no password has been set for bacula database
 DB_VER=`mysql 2>/dev/null bacula -e 'select * from Version;'|tail -n 1`
@@ -1144,6 +1219,7 @@ elif [ "$DB_VER" -lt "11" ]; then
     %{script_dir}/update_mysql_tables
     echo "If bacula works correctly you can remove the backup file %{working_dir}/bacula_backup.sql.bz2"
 
+fi
 fi
 %endif
 
@@ -1172,6 +1248,9 @@ fi
 %endif
 
 %if %{postgresql}
+# check if psql can be called successfully at all
+if echo 'select * from Version;' | psql bacula 2>/dev/null; then
+
 # test for an existing database
 # note: this ASSUMES no password has been set for bacula database
 DB_VER=`echo 'select * from Version;' | psql bacula 2>/dev/null | tail -3 | head -1`
@@ -1196,6 +1275,7 @@ elif [ "$DB_VER" -lt "11" ]; then
     echo "If bacula works correctly you can remove the backup file %{working_dir}/bacula_backup.sql.bz2"
         
 fi
+fi
 %endif
 
 %if ! %{client_only}
@@ -1204,26 +1284,21 @@ if [ -d %{sysconf_dir} ]; then
    for string in XXX_REPLACE_WITH_DIRECTOR_PASSWORD_XXX XXX_REPLACE_WITH_CLIENT_PASSWORD_XXX XXX_REPLACE_WITH_STORAGE_PASSWORD_XXX XXX_REPLACE_WITH_DIRECTOR_MONITOR_PASSWORD_XXX XXX_REPLACE_WITH_CLIENT_MONITOR_PASSWORD_XXX XXX_REPLACE_WITH_STORAGE_MONITOR_PASSWORD_XXX; do
       pass=`openssl rand -base64 33`
       for file in *.conf; do
-         need_password=`grep ${string} $file 2>/dev/null`
-         if [ -n "$need_password" ]; then
-            sed "s@${string}@${pass}@g" $file > $file.new
-            cp -f $file.new $file; rm -f $file.new
-         fi
+         sed "s@${string}@${pass}@g" $file > $file.new
+         cp -f $file.new $file; rm -f $file.new
       done
    done
 # put actual hostname in conf file
    host=`hostname`
    string="XXX_HOSTNAME_XXX"
    for file in *.conf; do
-      need_host=`grep ${string} $file 2>/dev/null`
-      if [ -n "$need_host" ]; then
-         sed "s@${string}@${host}@g" $file >$file.new
-         cp -f $file.new $file; rm -f $file.new
-      fi
+      sed "s@${string}@${host}@g" $file >$file.new
+      cp -f $file.new $file; rm -f $file.new
    done
 fi
-/sbin/ldconfig
 %endif
+/sbin/ldconfig
+exit 0 # always exit successfull, as otherwise opensuse build service complains
 
 %if %{mysql}
 %preun mysql
@@ -1244,6 +1319,18 @@ if [ $1 = 0 ]; then
 fi
 /sbin/ldconfig
 %endif
+
+# added: run ldconfig in postun
+%if %{mysql}
+%postun mysql
+%endif
+%if %{sqlite}
+%postun sqlite
+%endif
+%if %{postgresql}
+%postun postgresql
+%endif
+/sbin/ldconfig
 
 %files client
 %defattr(-,root,root)
@@ -1272,7 +1359,8 @@ fi
 %{_libdir}/libbacfind.*
 %{_libdir}/libbacpy.*
 /usr/share/doc/*
-
+#opensuse_bs: directories not owned by any package
+/etc/bacula
 
 %pre client
 # create the daemon group and user
@@ -1308,27 +1396,21 @@ if [ -d %{sysconf_dir} ]; then
    for string in XXX_REPLACE_WITH_DIRECTOR_PASSWORD_XXX XXX_REPLACE_WITH_CLIENT_PASSWORD_XXX XXX_REPLACE_WITH_STORAGE_PASSWORD_XXX XXX_REPLACE_WITH_DIRECTOR_MONITOR_PASSWORD_XXX XXX_REPLACE_WITH_CLIENT_MONITOR_PASSWORD_XXX XXX_REPLACE_WITH_STORAGE_MONITOR_PASSWORD_XXX; do
       pass=`openssl rand -base64 33`
       for file in *.conf; do
-         need_password=`grep ${string} $file 2>/dev/null`
-         if [ -n "$need_password" ]; then
-            sed "s@${string}@${pass}@g" $file > $file.new
-            cp -f $file.new $file; rm -f $file.new
-         fi
+         sed "s@${string}@${pass}@g" $file > $file.new
+         cp -f $file.new $file; rm -f $file.new
       done
    done
 # put actual hostname in conf file
    host=`hostname`
    string="XXX_HOSTNAME_XXX"
    for file in *.conf; do
-      need_host=`grep ${string} $file 2>/dev/null`
-      if [ -n "$need_host" ]; then
-         sed "s@${string}@${host}@g" $file >$file.new
-         cp -f $file.new $file; rm -f $file.new
-      fi
+      sed "s@${string}@${host}@g" $file >$file.new
+      cp -f $file.new $file; rm -f $file.new
    done
 fi
 
 /sbin/ldconfig
-
+exit 0
 %preun client
 # delete our link
 if [ $1 = 0 ]; then
@@ -1342,6 +1424,8 @@ fi
 %files updatedb
 %defattr(-,root,%{daemon_group})
 %{script_dir}/updatedb/*
+#oensuse_bs: directories not owned by any package
+%{script_dir}/updatedb
 
 %pre updatedb
 # create the daemon group

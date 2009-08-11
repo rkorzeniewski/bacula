@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2008 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2009 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -252,6 +252,7 @@ public:
    uint32_t max_block_size;           /* max block size */
    uint64_t max_volume_size;          /* max bytes to put on one volume */
    uint64_t max_file_size;            /* max file size to put in one file on volume */
+   uint64_t max_concurrent_jobs;      /* maximum simultaneous jobs this drive */
    uint64_t volume_capacity;          /* advisory capacity */
    uint64_t max_spool_size;           /* maximum spool file size */
    uint64_t spool_size;               /* current spool size for this device */

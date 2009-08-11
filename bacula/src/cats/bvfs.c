@@ -472,7 +472,7 @@ void Bvfs::update_cache()
 }
 
 /* Change the current directory, returns true if the path exists */
-bool Bvfs::ch_dir(char *path)
+bool Bvfs::ch_dir(const char *path)
 {
    pm_strcpy(db->path, path);
    db->pnl = strlen(db->path);
@@ -483,7 +483,7 @@ bool Bvfs::ch_dir(char *path)
 /* 
  * Get all file versions for a specified client
  */
-void Bvfs::get_all_file_versions(DBId_t pathid, DBId_t fnid, char *client)
+void Bvfs::get_all_file_versions(DBId_t pathid, DBId_t fnid, const char *client)
 {
    Dmsg3(dbglevel, "get_all_file_versions(%lld, %lld, %s)\n", (uint64_t)pathid,
          (uint64_t)fnid, client);
@@ -678,8 +678,8 @@ bool Bvfs::ls_files()
 "SELECT File.FilenameId, listfiles.Name, File.JobId, File.LStat, listfiles.id "
 "FROM File, ( "
        "SELECT Filename.Name as Name, max(File.FileId) as id "
-	 "FROM File, Filename "
-	"WHERE File.FilenameId = Filename.FilenameId "
+         "FROM File, Filename "
+        "WHERE File.FilenameId = Filename.FilenameId "
           "AND Filename.Name != '' "
           "AND File.PathId = %s "
           "AND File.JobId IN (%s) "

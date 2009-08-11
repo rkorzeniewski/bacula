@@ -252,9 +252,11 @@ void do_restore(JCR *jcr)
    attr = rctx.attr = new_attr(jcr);
    if (have_acl) {
       jcr->acl_data = get_pool_memory(PM_MESSAGE);
+      jcr->total_acl_errors = 0;
    }
    if (have_xattr) {
       jcr->xattr_data = get_pool_memory(PM_MESSAGE);
+      jcr->total_xattr_errors = 0;
    }
 
    while (bget_msg(sd) >= 0 && !job_canceled(jcr)) {
@@ -610,8 +612,21 @@ void do_restore(JCR *jcr)
          if (have_acl) {
             pm_memcpy(jcr->acl_data, sd->msg, sd->msglen);
             jcr->acl_data_len = sd->msglen;
-            if (!parse_acl_stream(jcr, rctx.stream)) {
-               Qmsg1(jcr, M_WARNING, 0, _("Can't restore ACLs of %s\n"), jcr->last_fname);
+            switch (parse_acl_streams(jcr, rctx.stream)) {
+            case bacl_exit_fatal:
+               goto bail_out;
+            case bacl_exit_error:
+               /*
+                * Non-fatal errors, count them and when the number is under ACL_REPORT_ERR_MAX_PER_JOB
+                * print the error message set by the lower level routine in jcr->errmsg.
+                */
+               if (jcr->total_acl_errors < ACL_REPORT_ERR_MAX_PER_JOB) {
+                  Qmsg(jcr, M_WARNING, 0, "%s", jcr->errmsg);
+               }
+               jcr->total_acl_errors++;
+               break;
+            case bacl_exit_ok:
+               break;
             }
          } else {
             non_support_acl++;
@@ -636,8 +651,21 @@ void do_restore(JCR *jcr)
          if (have_xattr) {
             pm_memcpy(jcr->xattr_data, sd->msg, sd->msglen);
             jcr->xattr_data_len = sd->msglen;
-            if (!parse_xattr_stream(jcr, rctx.stream)) {
-               Qmsg1(jcr, M_WARNING, 0, _("Can't restore Extended Attributes of %s\n"), jcr->last_fname);
+            switch (parse_xattr_streams(jcr, rctx.stream)) {
+            case bxattr_exit_fatal:
+               goto bail_out;
+            case bxattr_exit_error:
+               /*
+                * Non-fatal errors, count them and when the number is under XATTR_REPORT_ERR_MAX_PER_JOB
+                * print the error message set by the lower level routine in jcr->errmsg.
+                */
+               if (jcr->total_xattr_errors < XATTR_REPORT_ERR_MAX_PER_JOB) {
+                  Qmsg(jcr, M_WARNING, 0, "%s", jcr->errmsg);
+               }
+               jcr->total_xattr_errors++;
+               break;
+            case bxattr_exit_ok:
+               break;
             }
          } else {
             non_support_xattr++;
@@ -751,6 +779,14 @@ ok_out:
    free_attr(rctx.attr);
    Dmsg2(10, "End Do Restore. Files=%d Bytes=%s\n", jcr->JobFiles,
       edit_uint64(jcr->JobBytes, ec1));
+   if (jcr->total_acl_errors > 0) {
+      Jmsg(jcr, M_ERROR, 0, _("Encountered %ld acl errors while doing restore\n"),
+           jcr->total_acl_errors);
+   }
+   if (jcr->total_xattr_errors > 0) {
+      Jmsg(jcr, M_ERROR, 0, _("Encountered %ld xattr errors while doing restore\n"),
+           jcr->total_xattr_errors);
+   }
    if (non_support_data > 1 || non_support_attr > 1) {
       Jmsg(jcr, M_ERROR, 0, _("%d non-supported data streams and %d non-supported attrib streams ignored.\n"),
          non_support_data, non_support_attr);

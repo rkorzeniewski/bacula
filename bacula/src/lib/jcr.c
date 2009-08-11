@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2008 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2009 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -270,18 +270,6 @@ const char *JCR::get_ActionName(bool past)
    }
 }
 
-/* Set Job type in JCR and also set appropriate read flag */
-void JCR::set_JobType(int32_t JobType)
-{
-   m_JobType = JobType;
-}
-
-/* Set Job level in JCR and also set appropriate read flag */
-void JCR::set_JobLevel(int32_t JobLevel)
-{
-   m_JobLevel = JobLevel;
-}
-
 bool JCR::JobReads()
 {
    switch (m_JobType) {
@@ -367,9 +355,9 @@ JCR *new_jcr(int size, JCR_free_HANDLER *daemon_free_jcr)
    /* Setup some dummy values */
    bstrncpy(jcr->Job, "*System*", sizeof(jcr->Job));
    jcr->JobId = 0;
-   jcr->set_JobType(JT_SYSTEM);          /* internal job until defined */
-   jcr->set_JobLevel(L_NONE);
-   set_jcr_job_status(jcr, JS_Created);       /* ready to run */
+   jcr->setJobType(JT_SYSTEM);           /* internal job until defined */
+   jcr->setJobLevel(L_NONE);
+   jcr->setJobStatus(JS_Created);        /* ready to run */
    set_jcr_in_tsd(jcr);
    sigtimer.sa_flags = 0;
    sigtimer.sa_handler = timeout_handler;
@@ -740,6 +728,7 @@ static int get_status_priority(int JobStatus)
    case JS_ErrorTerminated:
    case JS_FatalError:
    case JS_Canceled:
+   case JS_Incomplete:
       priority = 10;
       break;
    case JS_Error:

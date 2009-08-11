@@ -160,6 +160,7 @@ init_dev(JCR *jcr, DEVRES *device)
    dev->max_block_size = device->max_block_size;
    dev->max_volume_size = device->max_volume_size;
    dev->max_file_size = device->max_file_size;
+   dev->max_concurrent_jobs = device->max_concurrent_jobs;
    dev->volume_capacity = device->volume_capacity;
    dev->max_rewind_wait = device->max_rewind_wait;
    dev->max_open_wait = device->max_open_wait;

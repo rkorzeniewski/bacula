@@ -98,7 +98,7 @@ void Job::getFont()
 
 void Job::populateAll()
 {
-   Pmsg0(0, "populateAll()\n");
+// Pmsg0(50, "populateAll()\n");
    populateText();
    populateForm();
    populateVolumes();
@@ -124,9 +124,9 @@ void Job::populateText()
       if (!results.size()) {
          QMessageBox::warning(this, tr("Bat"),
             tr("There were no results!\n"
-	       "It is possible you may need to add \"catalog = all\" "
-	       "to the Messages resource for this job.\n"), QMessageBox::Ok);
-	 return;
+               "It is possible you may need to add \"catalog = all\" "
+               "to the Messages resource for this job.\n"), QMessageBox::Ok);
+         return;
       } 
 
       QString jobstr("JobId "); /* FIXME: should this be translated ? */
@@ -141,47 +141,47 @@ void Job::populateText()
       QString lastSvc;
       foreach (QString resultline, results) {
          fieldlist = resultline.split("\t");
-	 
-	 if (fieldlist.size() < 2)
-	    continue;
+         
+         if (fieldlist.size() < 2)
+            continue;
 
-	 QString curTime = fieldlist[0].trimmed();
+         QString curTime = fieldlist[0].trimmed();
 
-	 field = fieldlist[1].trimmed();
-	 int colon = field.indexOf(":");
-	 if (colon > 0) {
- 	    /* string is like <service> <jobId xxxx>: ..." 
-	     * we split at ':' then remove the jobId xxxx string (always the same) */ 
-	    QString curSvc(field.left(colon).replace(jobstr,"").trimmed());
-	    if (curSvc == lastSvc  && curTime == lastTime) {
-	       curTime.clear();
-	       curSvc.clear(); 
-	    } else {
-	       lastTime = curTime;
-	       lastSvc = curSvc;
-	    }
-//	    htmlbuf += "<td>" + curTime + "</td>";
-	    htmlbuf += "\n" + curSvc + " ";
+         field = fieldlist[1].trimmed();
+         int colon = field.indexOf(":");
+         if (colon > 0) {
+            /* string is like <service> <jobId xxxx>: ..." 
+             * we split at ':' then remove the jobId xxxx string (always the same) */ 
+            QString curSvc(field.left(colon).replace(jobstr,"").trimmed());
+            if (curSvc == lastSvc  && curTime == lastTime) {
+               curTime.clear();
+               curSvc.clear(); 
+            } else {
+               lastTime = curTime;
+               lastSvc = curSvc;
+            }
+//          htmlbuf += "<td>" + curTime + "</td>";
+            htmlbuf += "\n" + curSvc + " ";
 
-	    /* rest of string is marked as pre-formatted (here trimming should
-	     * be avoided, to preserve original formatting) */
-	    QString msg(field.mid(colon+2));
-	    if (msg.startsWith( tr("Error:")) ) { /* FIXME: should really be translated ? */
- 	       /* error msg, use a specific class */
-	       htmlbuf += "</pre><pre class=err>" + msg + "</pre><pre>";
-	    } else {
-	       htmlbuf += msg ;
-	    }
-	 } else {
- 	    /* non standard string, place as-is */
-	    if (curTime == lastTime) {
-	       curTime.clear();
-	    } else {
-	       lastTime = curTime;
-	    }
-//	    htmlbuf += "<td>" + curTime + "</td>";
-	    htmlbuf += "\n" + field ;
-	 }
+            /* rest of string is marked as pre-formatted (here trimming should
+             * be avoided, to preserve original formatting) */
+            QString msg(field.mid(colon+2));
+            if (msg.startsWith( tr("Error:")) ) { /* FIXME: should really be translated ? */
+               /* error msg, use a specific class */
+               htmlbuf += "</pre><pre class=err>" + msg + "</pre><pre>";
+            } else {
+               htmlbuf += msg ;
+            }
+         } else {
+            /* non standard string, place as-is */
+            if (curTime == lastTime) {
+               curTime.clear();
+            } else {
+               lastTime = curTime;
+            }
+//          htmlbuf += "<td>" + curTime + "</td>";
+            htmlbuf += "\n" + field ;
+         }
   
       } /* foreach resultline */
 
@@ -257,7 +257,7 @@ void Job::populateVolumes()
       "SELECT DISTINCT VolumeName, InChanger, Slot "
       "FROM Job JOIN JobMedia USING (JobId) JOIN Media USING (MediaId) "
       "WHERE JobId=" + m_jobId + " ORDER BY VolumeName "; 
-   Pmsg1(000, "Query cmd : %s\n",query.toUtf8().data());
+   if (mainWin->m_sqlDebug) Pmsg1(0, "Query cmd : %s\n",query.toUtf8().data());
          
 
    QStringList results;

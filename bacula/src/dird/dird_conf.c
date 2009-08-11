@@ -942,7 +942,7 @@ next_run:
       sendit(sock, _("      MaxVolJobs=%d MaxVolFiles=%d MaxVolBytes=%s\n"),
               res->res_pool.MaxVolJobs, 
               res->res_pool.MaxVolFiles,
-              edit_uint64(res->res_pool.MaxVolFiles, ed1));
+              edit_uint64(res->res_pool.MaxVolBytes, ed1));
       sendit(sock, _("      MigTime=%s MigHiBytes=%s MigLoBytes=%s\n"),
               edit_utime(res->res_pool.MigrationTime, ed1, sizeof(ed1)),
               edit_uint64(res->res_pool.MigrationHighBytes, ed2),
