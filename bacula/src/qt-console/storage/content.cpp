@@ -35,6 +35,12 @@
 #include "util/fmtwidgetitem.h"
 #include "status/storstat.h"
 
+// 
+// TODO: List tray
+//       List drives in autochanger
+//       use user selection to add slot= argument
+// 
+
 Content::Content(QString storage)
 {
    setupUi(this);
