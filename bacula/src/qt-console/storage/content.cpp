@@ -48,8 +48,66 @@ Content::Content(QString storage)
    m_closeable = true;
    m_currentStorage = storage;
 
+   connect(pbUpdate, SIGNAL(clicked()), this,
+           SLOT(consoleUpdateSlots()));
+
+   connect(pbLabel, SIGNAL(clicked()), this,
+           SLOT(consoleLabelStorage()));
+
+   connect(pbMount, SIGNAL(clicked()), this,
+           SLOT(consoleMountStorage()));
+
+   connect(pbUnmount, SIGNAL(clicked()), this,
+           SLOT(consoleUnMountStorage()));
+
+   connect(pbStatus, SIGNAL(clicked()), this,
+           SLOT(statusStorageWindow()));
+
+   connect(pbRelease, SIGNAL(clicked()), this,
+           SLOT(consoleRelease()));
+
    dockPage();
    setCurrent();
+}
+
+/* Label Media populating current storage by default */
+void Content::consoleLabelStorage()
+{
+   new labelPage(m_currentStorage);
+}
+
+/* Mount currently selected storage */
+void Content::consoleMountStorage()
+{
+   setConsoleCurrent();
+   /* if this storage is an autochanger, lets ask for the slot */
+   new mountDialog(m_console, m_currentStorage);
+}
+
+/* Unmount Currently selected storage */
+void Content::consoleUnMountStorage()
+{
+   QString cmd("umount storage=");
+   cmd += m_currentStorage;
+   consoleCommand(cmd);
+}
+
+void Content::statusStorageWindow()
+{
+   /* if one exists, then just set it current */
+   bool found = false;
+   foreach(Pages *page, mainWin->m_pagehash) {
+      if (mainWin->currentConsole() == page->console()) {
+         if (page->name() == tr("Storage Status %1").arg(m_currentStorage)) {
+            found = true;
+            page->setCurrent();
+         }
+      }
+   }
+   if (!found) {
+      QTreeWidgetItem *parentItem = mainWin->getFromHash(this);
+      new StorStat(m_currentStorage, parentItem);
+   }
 }
 
 /*
@@ -158,64 +216,16 @@ void Content::currentStackItem()
    }
 }
 
-/*
- *  Functions to respond to local context sensitive menu sending console
- *  commands If I could figure out how to make these one function passing a
- *  string, Yaaaaaa
- */
-void Content::consoleStatusStorage()
-{
-   QString cmd("status storage=");
-   cmd += m_currentStorage;
-   consoleCommand(cmd);
-}
-
-/* Label Media populating current storage by default */
-void Content::consoleLabelStorage()
-{
-   new labelPage(m_currentStorage);
-}
-
 void Content::treeItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)
 {
 
 }
 
-/* Mount currently selected storage */
-void Content::consoleMountStorage()
-{
-   if (m_currentAutoChanger == 0){
-      /* no autochanger, just execute the command in the console */
-      QString cmd("mount storage=");
-      cmd += m_currentStorage;
-      consoleCommand(cmd);
-   } else {
-      setConsoleCurrent();
-      /* if this storage is an autochanger, lets ask for the slot */
-      new mountDialog(m_console, m_currentStorage);
-   }
-}
-
-/* Unmount Currently selected storage */
-void Content::consoleUnMountStorage()
-{
-   QString cmd("umount storage=");
-   cmd += m_currentStorage;
-   consoleCommand(cmd);
-}
-
 /* Update Slots */
 void Content::consoleUpdateSlots()
 {
+   // TODO: get selected slots
    QString cmd("update slots storage=");
-   cmd += m_currentStorage;
-   consoleCommand(cmd);
-}
-
-/* Update Slots Scan*/
-void Content::consoleUpdateSlotsScan()
-{
-   QString cmd("update slots scan storage=");
    cmd += m_currentStorage;
    consoleCommand(cmd);
 }
@@ -226,25 +236,4 @@ void Content::consoleRelease()
    QString cmd("release storage=");
    cmd += m_currentStorage;
    consoleCommand(cmd);
-}
-
-/*
- *  Open a status storage window
- */
-void Content::statusStorageWindow()
-{
-   /* if one exists, then just set it current */
-   bool found = false;
-   foreach(Pages *page, mainWin->m_pagehash) {
-      if (mainWin->currentConsole() == page->console()) {
-         if (page->name() == tr("Storage Status %1").arg(m_currentStorage)) {
-            found = true;
-            page->setCurrent();
-         }
-      }
-   }
-   if (!found) {
-      QTreeWidgetItem *parentItem = mainWin->getFromHash(this);
-      new StorStat(m_currentStorage, parentItem);
-   }
 }

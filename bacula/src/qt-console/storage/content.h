@@ -41,17 +41,16 @@ public:
    Content(QString storage);
 //   virtual void PgSeltreeWidgetClicked();
    virtual void currentStackItem();
-   void consoleUnMountStorage();
-   void consoleUpdateSlots();
-   void consoleUpdateSlotsScan();
-   void consoleLabelStorage();
-   void consoleStatusStorage();
-   void consoleMountStorage();
-   void statusStorageWindow();
-   void consoleRelease();
 
 public slots:
    void treeItemChanged(QTreeWidgetItem *, QTreeWidgetItem *);
+
+   void consoleRelease();
+   void consoleUpdateSlots();
+   void consoleLabelStorage();
+   void consoleMountStorage();
+   void statusStorageWindow();
+   void consoleUnMountStorage();
 
 private slots:
    void populateContent();
