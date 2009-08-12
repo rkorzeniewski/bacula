@@ -5,6 +5,9 @@
 #   want the disk that is not loaded.  Note, they both have     
 #   prefers non-mounted tapes.  This should expose bug #801
 #
+#  This test the SD Virtual autochanger feature.  It is a disk based
+#    "autochanger", but does not use any changer script.
+#
 # This script uses the Virtual disk autochanger and two drives
 #
 TestName="virtual-changer-disk"
