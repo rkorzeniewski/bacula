@@ -40,6 +40,8 @@
 
 #include "bacula.h"
 #include "dird.h"
+#include "cats/bvfs.h"
+#include "findlib/find.h"
 
 /* Imported variables */
 
@@ -63,6 +65,10 @@ static bool typescmd(UAContext *ua, const char *cmd);
 static bool backupscmd(UAContext *ua, const char *cmd);
 static bool levelscmd(UAContext *ua, const char *cmd);
 static bool getmsgscmd(UAContext *ua, const char *cmd);
+
+static bool dot_lsdirs(UAContext *ua, const char *cmd);
+static bool dot_lsfiles(UAContext *ua, const char *cmd);
+static bool dot_update(UAContext *ua, const char *cmd);
 
 static bool api_cmd(UAContext *ua, const char *cmd);
 static bool sql_cmd(UAContext *ua, const char *cmd);
@@ -88,6 +94,9 @@ static struct cmdstruct commands[] = { /* help */  /* can be used in runscript *
  { NT_(".sql"),        sql_cmd,          NULL,       false},
  { NT_(".status"),     dot_status_cmd,   NULL,       false},
  { NT_(".storage"),    storagecmd,       NULL,       true},
+ { NT_(".lsdirs"),     dot_lsdirs,       NULL,       true},
+ { NT_(".lsfiles"),    dot_lsfiles,      NULL,       true},
+ { NT_(".update"),     dot_update,       NULL,       true},
  { NT_(".types"),      typescmd,         NULL,       false} 
              };
 #define comsize ((int)(sizeof(commands)/sizeof(struct cmdstruct)))
@@ -143,6 +152,155 @@ bool do_a_dot_command(UAContext *ua)
       ok = false;
    }
    return ok;
+}
+
+static bool dot_update(UAContext *ua, const char *cmd)
+{
+   if (!open_client_db(ua)) {
+      return 1;
+   }
+
+   int pos = find_arg_with_value(ua, "jobid");
+   if (pos != -1) {             /* find jobid arg */
+      if (is_a_number_list(ua->argv[pos])) {
+         bvfs_update_path_hierarchy_cache(ua->jcr, ua->db, ua->argv[pos]);
+      }
+   } else {
+      /* update cache for all jobids */
+      bvfs_update_cache(ua->jcr, ua->db);
+   }
+   return true;
+}
+
+static int bvfs_result_handler(void *ctx, int fields, char **row)
+{
+   UAContext *ua = (UAContext *)ctx;
+   struct stat statp;
+   int32_t LinkFI;
+   char empty[] = "A A A A A A A A A A A A A A";
+
+   memset(&statp, 0, sizeof(struct stat));
+   decode_stat((row[BVFS_LStat] && row[BVFS_LStat][0])?row[BVFS_LStat]:empty,
+               &statp, &LinkFI);
+
+   if (fields == BVFS_DIR_RECORD) {
+      char *path = bvfs_basename_dir(row[BVFS_Name]);
+      ua->send_msg("%s\t%s\t\%s\n", row[BVFS_Id], row[BVFS_JobId], path);
+   } else if (fields == BVFS_FILE_RECORD) {
+      ua->send_msg("%s\t%s\t\%s\n", row[BVFS_Id], row[BVFS_JobId], row[BVFS_Name]);
+   }
+
+   return 0;
+}
+
+static bool bvfs_parse_arg(UAContext *ua, 
+                           DBId_t *pathid, char **path, char **jobid,
+                           int *limit, int *offset)
+{
+   *pathid=0;
+   *limit=2000;
+   *offset=0;
+   *path=NULL;
+   *jobid=NULL;
+
+   for (int i=1; i<ua->argc; i++) {
+      if (strcasecmp(ua->argk[i], NT_("pathid")) == 0) {
+         if (is_a_number(ua->argv[i])) {
+            *pathid = str_to_int64(ua->argv[i]);
+         }
+      }
+      if (strcasecmp(ua->argk[i], NT_("path")) == 0) {
+         *path = ua->argv[i];
+      }
+      
+      if (strcasecmp(ua->argk[i], NT_("jobid")) == 0) {
+         if (is_a_number_list(ua->argv[i])) {
+            *jobid = ua->argv[i];
+         }
+      }
+
+      if (strcasecmp(ua->argk[i], NT_("limit")) == 0) {
+         if (is_a_number(ua->argv[i])) {
+            *limit = str_to_int64(ua->argv[i]);
+         }
+      }
+
+      if (strcasecmp(ua->argk[i], NT_("offset")) == 0) {
+         if (is_a_number(ua->argv[i])) {
+            *offset = str_to_int64(ua->argv[i]);
+         }
+      }
+   }
+
+   if (!((pathid || path) && jobid)) {
+      return false;
+   }
+
+   if (!open_client_db(ua)) {
+      return 1;
+   }
+
+   return true;
+}
+
+static bool dot_lsfiles(UAContext *ua, const char *cmd)
+{
+   DBId_t pathid=0;
+   int limit=2000, offset=0;
+   char *path=NULL, *jobid=NULL;
+
+   if (!bvfs_parse_arg(ua, &pathid, &path, &jobid,
+                       &limit, &offset))
+   {
+      ua->error_msg("Can't find jobid, pathid or path argument\n");
+      return true;              /* not enough param */
+   }
+
+   Bvfs fs(ua->jcr, ua->db);
+   fs.set_jobids(jobid);   
+   fs.set_limit(limit);
+   fs.set_offset(offset);
+   fs.set_handler(bvfs_result_handler, ua);
+
+   if (pathid) {
+      fs.ch_dir(pathid);
+   } else {
+      fs.ch_dir(path);
+   }
+
+   fs.ls_files();
+
+   return true;
+}
+
+static bool dot_lsdirs(UAContext *ua, const char *cmd)
+{
+   DBId_t pathid=0;
+   int limit=2000, offset=0;
+   char *path=NULL, *jobid=NULL;
+
+   if (!bvfs_parse_arg(ua, &pathid, &path, &jobid,
+                       &limit, &offset))
+   {
+      ua->error_msg("Can't find jobid, pathid or path argument\n");
+      return true;              /* not enough param */
+   }
+
+   Bvfs fs(ua->jcr, ua->db);
+   fs.set_jobids(jobid);   
+   fs.set_limit(limit);
+   fs.set_offset(offset);
+   fs.set_handler(bvfs_result_handler, ua);
+
+   if (pathid) {
+      fs.ch_dir(pathid);
+   } else {
+      fs.ch_dir(path);
+   }
+
+   fs.ls_dirs();
+
+   return true;
 }
 
 static bool dot_quit_cmd(UAContext *ua, const char *cmd)

@@ -2,6 +2,8 @@
           
 General:
 
+12Aug09
+ebl  Add .lsfiles, .lsdirs, .update command to interface user with bvfs object
 10Aug09
 kes  Pull Philipp Storz' bacula.spec changes for OpenSuSE build service
 kes  Implement MaximumConcurrentJobs for SD devices.
