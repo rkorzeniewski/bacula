@@ -262,15 +262,16 @@ static bool dot_lsfiles(UAContext *ua, const char *cmd)
 
    Bvfs fs(ua->jcr, ua->db);
    fs.set_jobids(jobid);   
-   fs.set_limit(limit);
-   fs.set_offset(offset);
    fs.set_handler(bvfs_result_handler, ua);
+   fs.set_limit(limit);
 
    if (pathid) {
       fs.ch_dir(pathid);
    } else {
       fs.ch_dir(path);
    }
+
+   fs.set_offset(offset);
 
    fs.ls_files();
 
@@ -298,7 +299,6 @@ static bool dot_lsdirs(UAContext *ua, const char *cmd)
    Bvfs fs(ua->jcr, ua->db);
    fs.set_jobids(jobid);   
    fs.set_limit(limit);
-   fs.set_offset(offset);
    fs.set_handler(bvfs_result_handler, ua);
 
    if (pathid) {
@@ -306,6 +306,8 @@ static bool dot_lsdirs(UAContext *ua, const char *cmd)
    } else {
       fs.ch_dir(path);
    }
+
+   fs.set_offset(offset);
 
    fs.ls_special_dirs();
    fs.ls_dirs();
