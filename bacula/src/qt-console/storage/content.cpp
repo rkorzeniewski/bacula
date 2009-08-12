@@ -41,10 +41,10 @@
 //       use user selection to add slot= argument
 // 
 
-Content::Content(QString storage)
+Content::Content(QString storage, QTreeWidgetItem *parentWidget)
 {
    setupUi(this);
-   pgInitialize(tr("Storage Content"));
+   pgInitialize(storage, parentWidget);
    QTreeWidgetItem* thisitem = mainWin->getFromHash(this);
    thisitem->setIcon(0,QIcon(QString::fromUtf8(":images/package-x-generic.png")));
 
@@ -76,10 +76,49 @@ Content::Content(QString storage)
    setCurrent();
 }
 
+void table_get_selection(QTableWidget *table, QString &sel)
+{
+   QTableWidgetItem *item;
+   int current;
+
+   /* The QT selection returns each cell, so you
+    * have x times the same row number...
+    * We take only one instance
+    */
+   int s = table->rowCount();
+   bool *tab = (bool *)malloc(s * sizeof(bool));
+   memset(tab, 0, s); 
+
+   foreach (item, table->selectedItems()) {
+      current = item->row();
+      tab[current]=true;
+   }
+
+   sel += "=";
+
+   for(int i=0; i<s; i++) {
+      if (tab[i]) {
+         sel += table->item(i, 0)->text();
+         sel += ",";
+      }
+   }
+   sel.chop(1);                 // remove trailing , or useless =
+   free(tab);
+}
+
 /* Label Media populating current storage by default */
 void Content::consoleLabelStorage()
 {
-   new labelPage(m_currentStorage);
+   QString sel;
+   table_get_selection(tableContent, sel);
+   if (sel == "") {
+      new labelPage(m_currentStorage);
+   } else {
+      QString cmd = "label barcodes slots";
+      cmd += sel;
+      cmd += " storage=" + m_currentStorage;
+      consoleCommand(cmd);
+   }
 }
 
 /* Mount currently selected storage */
@@ -230,10 +269,19 @@ void Content::treeItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)
 /* Update Slots */
 void Content::consoleUpdateSlots()
 {
-   // TODO: get selected slots
-   QString cmd("update slots storage=");
-   cmd += m_currentStorage;
+   QString sel = "";
+   table_get_selection(tableContent, sel);
+   
+   QString cmd("update slots");
+   if (sel != "") {
+      cmd += sel;
+   }
+   cmd += " storage=" + m_currentStorage;
+
+   Pmsg1(0, "cmd=%s\n", cmd.toUtf8().data());
+
    consoleCommand(cmd);
+   populateContent();
 }
 
 /* Release a tape in the drive */

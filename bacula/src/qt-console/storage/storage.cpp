@@ -335,7 +335,8 @@ void Storage::createContextMenu()
 void Storage::contentWindow()
 {
    if (m_currentStorage != "" && m_currentAutoChanger) { 
-      new Content(m_currentStorage);
+      QTreeWidgetItem *parentItem = mainWin->getFromHash(this);
+      new Content(m_currentStorage, parentItem);
    }
 }
 
