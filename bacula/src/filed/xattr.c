@@ -648,26 +648,15 @@ static int os_default_xattr_streams[1] = { STREAM_XATTR_SOLARIS };
 #endif /* defined(HAVE_SYS_NVPAIR_H) && defined(_PC_SATTR_ENABLED) */
 
 /*
- * This is the count of xattrs saved on a certain file, it gets reset
- * on each new file processed and is used to see if we need to send
- * the hidden xattr dir data. We only send that data when we encounter
- * an other xattr on the file.
- */
-static int nr_xattr_saved = 0;
-static char toplevel_hidden_dir_xattr_data[MAXSTRING];
-static int toplevel_hidden_dir_xattr_data_len;
-
-/*
  * This code creates a temporary cache with entries for each xattr which has
  * a link count > 1 (which indicates it has one or more hard linked counterpart(s))
  */
-static alist *xattr_link_cache = NULL;
-
-static xattr_link_cache_entry_t *find_xattr_link_cache_entry(ino_t inum)
+static xattr_link_cache_entry_t *find_xattr_link_cache_entry(JCR *jcr, ino_t inum)
 {
    xattr_link_cache_entry_t *ptr;
+   xattr_private_data_t *xpd = (xattr_private_data_t *)jcr->xattr_private_data;
 
-   foreach_alist(ptr, xattr_link_cache) {
+   foreach_alist(ptr, xpd->xattr_link_cache) {
       if (ptr && ptr->inum == inum) {
          return ptr;
       }
@@ -675,15 +664,16 @@ static xattr_link_cache_entry_t *find_xattr_link_cache_entry(ino_t inum)
    return NULL;
 }
 
-static void add_xattr_link_cache_entry(ino_t inum, char *target)
+static void add_xattr_link_cache_entry(JCR *jcr, ino_t inum, char *target)
 {
    xattr_link_cache_entry_t *ptr;
+   xattr_private_data_t *xpd = (xattr_private_data_t *)jcr->xattr_private_data;
 
    ptr = (xattr_link_cache_entry_t *)malloc(sizeof(xattr_link_cache_entry_t));
    memset((caddr_t)ptr, 0, sizeof(xattr_link_cache_entry_t));
    ptr->inum = inum;
    bstrncpy(ptr->target, target, sizeof(ptr->target));
-   xattr_link_cache->append(ptr);
+   xpd->xattr_link_cache->append(ptr);
 }
 
 #if defined(HAVE_SYS_NVPAIR_H) && defined(_PC_SATTR_ENABLED)
@@ -911,7 +901,7 @@ static bxattr_exit_code solaris_save_xattrs(JCR *jcr, const char *xattr_namespac
  * actual_xattr_data is the content of the xattr file.
  */
 static bxattr_exit_code solaris_save_xattr(JCR *jcr, int fd, const char *xattr_namespace,
-                                         const char *attrname, bool toplevel_hidden_dir, int stream)
+                                           const char *attrname, bool toplevel_hidden_dir, int stream)
 {
    int cnt;
    int attrfd = -1;
@@ -922,6 +912,7 @@ static bxattr_exit_code solaris_save_xattr(JCR *jcr, int fd, const char *xattr_n
    char *acl_text = NULL;
    char attribs[MAXSTRING];
    char buffer[BUFSIZ];
+   xattr_private_data_t *xpd = (xattr_private_data_t *)jcr->xattr_private_data;
    bxattr_exit_code retval = bxattr_exit_error;
    berrno be;
 
@@ -984,11 +975,11 @@ static bxattr_exit_code solaris_save_xattr(JCR *jcr, int fd, const char *xattr_n
           * Encode the stat struct into an ASCII representation and jump out of the function.
           */
          encode_stat(attribs, &st, 0, stream);
-         toplevel_hidden_dir_xattr_data_len = bsnprintf(toplevel_hidden_dir_xattr_data,
-                                                        sizeof(toplevel_hidden_dir_xattr_data),
-                                                        "%s%c%s%c%s%c",
-                                                        target_attrname, 0, attribs, 0,
-                                                        (acl_text) ? acl_text : "", 0);
+         xpd->toplevel_hidden_dir_xattr_data_len = bsnprintf(xpd->toplevel_hidden_dir_xattr_data,
+                                                             sizeof(xpd->toplevel_hidden_dir_xattr_data),
+                                                             "%s%c%s%c%s%c",
+                                                             target_attrname, 0, attribs, 0,
+                                                             (acl_text) ? acl_text : "", 0);
          goto bail_out;
       } else {
          /*
@@ -1009,7 +1000,7 @@ static bxattr_exit_code solaris_save_xattr(JCR *jcr, int fd, const char *xattr_n
          /*
           * See if the cache already knows this inode number.
           */
-         if ((xlce = find_xattr_link_cache_entry(st.st_ino)) != NULL) {
+         if ((xlce = find_xattr_link_cache_entry(jcr, st.st_ino)) != NULL) {
             /*
              * Generate a xattr encoding with the reference to the target in there.
              */
@@ -1031,7 +1022,7 @@ static bxattr_exit_code solaris_save_xattr(JCR *jcr, int fd, const char *xattr_n
           * Store this hard linked file in the cache.
           * Store the name relative to the top level xattr space.
           */
-         add_xattr_link_cache_entry(st.st_ino, target_attrname + 1);
+         add_xattr_link_cache_entry(jcr, st.st_ino, target_attrname + 1);
       }
 
       /*
@@ -1109,9 +1100,9 @@ static bxattr_exit_code solaris_save_xattr(JCR *jcr, int fd, const char *xattr_n
    /*
     * See if this is the first real xattr being saved. If it is save the toplevel_hidden_dir attributes first.
     */
-   if (nr_xattr_saved == 0) {
-      pm_memcpy(jcr->xattr_data, toplevel_hidden_dir_xattr_data, toplevel_hidden_dir_xattr_data_len);
-      jcr->xattr_data_len = toplevel_hidden_dir_xattr_data_len;
+   if (xpd->nr_xattr_saved == 0) {
+      pm_memcpy(jcr->xattr_data, xpd->toplevel_hidden_dir_xattr_data, xpd->toplevel_hidden_dir_xattr_data_len);
+      jcr->xattr_data_len = xpd->toplevel_hidden_dir_xattr_data_len;
       retval = send_xattr_stream(jcr, STREAM_XATTR_SOLARIS);
    }
 
@@ -1155,7 +1146,7 @@ static bxattr_exit_code solaris_save_xattr(JCR *jcr, int fd, const char *xattr_n
 
    if (retval) {
       retval = send_xattr_stream(jcr, stream);
-      nr_xattr_saved++;
+      xpd->nr_xattr_saved++;
    }
 
    /*
@@ -1775,6 +1766,7 @@ bail_out:
 static bxattr_exit_code solaris_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
 {
    char cwd[PATH_MAX];
+   xattr_private_data_t *xpd;
    bxattr_exit_code retval = bxattr_exit_ok;
 
    /*
@@ -1782,18 +1774,22 @@ static bxattr_exit_code solaris_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
     * If not just pretend things went ok.
     */
    if (pathconf(jcr->last_fname, _PC_XATTR_EXISTS) > 0) {
-      nr_xattr_saved = 0;
+      xpd = (xattr_private_data_t *)malloc(sizeof(xattr_private_data_t));
+      memset((caddr_t)xpd, 0, sizeof(xattr_private_data_t));
+      xpd->xattr_link_cache = New(alist(10, not_owned_by_alist));
+      jcr->xattr_private_data = (void *)xpd;
 
       /*
        * As we change the cwd in the save function save the current cwd
        * for restore after return from the solaris_save_xattrs function.
        */
-      xattr_link_cache = New(alist(10, not_owned_by_alist));
       getcwd(cwd, sizeof(cwd));
       retval = solaris_save_xattrs(jcr, NULL, NULL);
       chdir(cwd);
-      delete xattr_link_cache;
-      xattr_link_cache = NULL;
+      delete xpd->xattr_link_cache;
+      xpd->xattr_link_cache = NULL;
+      free(xpd);
+      jcr->xattr_private_data = NULL;
    }
    return retval;
 }

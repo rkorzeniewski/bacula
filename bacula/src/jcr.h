@@ -350,6 +350,7 @@ public:
    POOLMEM *acl_data;                 /* data with ACLs for backup/restore */
    uint32_t acl_data_len;             /* length of acl data buffer */
    uint32_t total_acl_errors;         /* numbers of errors encountered for acl backup/restore */
+   void *xattr_private_data;          /* private data for xattr saving */
    POOLMEM *xattr_data;               /* data with Extended Attributes for backup/restore */
    uint32_t xattr_data_len;           /* length of xattr_data buffer */
    uint32_t total_xattr_errors;       /* numbers of errors encountered for xattr backup/restore */
