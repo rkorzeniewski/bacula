@@ -137,7 +137,7 @@ void MediaInfo::populateForm()
       "SELECT MediaId, VolumeName, Pool.Name, MediaType, FirstWritten,"
       "LastWritten, VolMounts, VolBytes, Media.Enabled,"
       "Location.Location, VolStatus, RecyclePool.Name, Media.Recycle, "
-      "VolReadTime//1000000, VolWriteTime//1000000, Media.VolUseDuration, "
+      "VolReadTime/1000000, VolWriteTime/1000000, Media.VolUseDuration, "
       "Media.MaxVolJobs, "
       "Media.MaxVolFiles, Media.MaxVolBytes, Media.VolRetention,InChanger,Slot "
       "FROM Media JOIN Pool USING (PoolId) LEFT JOIN Pool AS RecyclePool "
