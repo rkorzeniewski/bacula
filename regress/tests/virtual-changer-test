@@ -5,7 +5,7 @@
 #   want the disk that is not loaded.  Note, they both have     
 #   prefers non-mounted tapes.  This should expose bug #801
 #
-# This script uses the virtual disk autochanger and two drives
+# This script uses the Virtual disk autochanger and two drives
 #
 TestName="virtual-changer-disk"
 JobName="virtualchangerdisk"
