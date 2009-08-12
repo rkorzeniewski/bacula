@@ -237,12 +237,16 @@ static bool bvfs_parse_arg(UAContext *ua,
    }
 
    if (!open_client_db(ua)) {
-      return 1;
+      return false;
    }
 
    return true;
 }
 
+/* 
+ * .lsfiles jobid=1,2,3,4 pathid=10
+ * .lsfiles jobid=1,2,3,4 path=/
+ */
 static bool dot_lsfiles(UAContext *ua, const char *cmd)
 {
    DBId_t pathid=0;
@@ -273,6 +277,11 @@ static bool dot_lsfiles(UAContext *ua, const char *cmd)
    return true;
 }
 
+/* 
+ * .lsdirs jobid=1,2,3,4 pathid=10
+ * .lsdirs jobid=1,2,3,4 path=/
+ * .lsdirs jobid=1,2,3,4 path=
+ */
 static bool dot_lsdirs(UAContext *ua, const char *cmd)
 {
    DBId_t pathid=0;
@@ -298,6 +307,7 @@ static bool dot_lsdirs(UAContext *ua, const char *cmd)
       fs.ch_dir(path);
    }
 
+   fs.ls_special_dirs();
    fs.ls_dirs();
 
    return true;
