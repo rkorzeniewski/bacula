@@ -1,9 +1,9 @@
 #!/bin/sh
 #
-# Run a simple backup of the Bacula build directory then do a virtual
-#   backup to another device.
+# Run a simple backup of the Bacula build directory then do a 
+#   Virtual Full backup to another device.
 #
-# This script uses the virtual disk autochanger
+# This script uses the disk autochanger
 #
 TestName="virtual-backup-test"
 JobName=Vbackup
