@@ -38,7 +38,7 @@ class Content : public Pages, public Ui::ContentForm
    Q_OBJECT 
 
 public:
-   Content(QString storage);
+   Content(QString storage, QTreeWidgetItem *parentWidget);
 //   virtual void PgSeltreeWidgetClicked();
    virtual void currentStackItem();
 
