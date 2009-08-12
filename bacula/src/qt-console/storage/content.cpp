@@ -276,7 +276,7 @@ void Content::consoleUpdateSlots()
    if (sel != "") {
       cmd += sel;
    }
-   cmd += " storage=" + m_currentStorage;
+   cmd += " drive=0 storage=" + m_currentStorage;
 
    Pmsg1(0, "cmd=%s\n", cmd.toUtf8().data());
 
