@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2002-2008 Free Software Foundation Europe e.V.
+   Copyright (C) 2002-2009 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -352,7 +352,7 @@ DCR *acquire_device_for_append(DCR *dcr)
 
    init_device_wait_timers(dcr);
 
-   dev->dblock(BST_DOING_ACQUIRE);
+   dev->dlock();
    Dmsg1(100, "acquire_append device is %s\n", dev->is_tape()?"tape":
         (dev->is_dvd()?"DVD":"disk"));
 
@@ -386,6 +386,8 @@ DCR *acquire_device_for_append(DCR *dcr)
    }
 
    if (!have_vol) {
+      dev->dunlock();
+      dev->dblock(BST_DOING_ACQUIRE);
       Dmsg1(190, "jid=%u Do mount_next_write_vol\n", (uint32_t)jcr->JobId);
       if (!dcr->mount_next_write_volume()) {
          if (!job_canceled(jcr)) {
@@ -395,9 +397,13 @@ DCR *acquire_device_for_append(DCR *dcr)
             Dmsg1(200, "Could not ready device %s for append.\n", 
                dev->print_name());
          }
+         dev->dlock();
+         unblock_device(dev);
          goto get_out;
       }
       Dmsg2(190, "Output pos=%u:%u\n", dcr->dev->file, dcr->dev->block_num);
+      dev->dlock();
+      unblock_device(dev);
    }
 
    dev->num_writers++;                /* we are now a writer */
@@ -412,9 +418,8 @@ DCR *acquire_device_for_append(DCR *dcr)
    ok = true;
 
 get_out:
-   dev->dlock();
    dcr->clear_reserved();
-   dev->dunblock(DEV_LOCKED);
+   dev->dunlock();
    return ok ? dcr : NULL;
 }
 
