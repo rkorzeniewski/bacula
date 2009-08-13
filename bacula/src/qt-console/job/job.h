@@ -43,6 +43,7 @@ public slots:
    void populateAll();
    void deleteJob();
    void showInfoVolume(QListWidgetItem *);
+   void rerun();
 
 private slots:
 
