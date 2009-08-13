@@ -41,7 +41,16 @@ class runPage : public Pages, public Ui::runForm
    Q_OBJECT 
 
 public:
+   runPage();
+
    runPage(const QString &defJob);
+
+   runPage(const QString &defJob, 
+           const QString &level,
+           const QString &pool,
+           const QString &storage,
+           const QString &client,
+           const QString &fileset);
 
 public slots:
    void okButtonPushed();
@@ -49,6 +58,7 @@ public slots:
    void job_name_change(int index);
 
 private:
+   void init();
    int m_conn;
 };
 
