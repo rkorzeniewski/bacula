@@ -637,13 +637,14 @@ int lmgr_mutex_unlock(pthread_mutex_t *m, const char *file, int line)
 /* TODO: check this
  */
 int lmgr_cond_wait(pthread_cond_t *cond,
-                   pthread_mutex_t *mutex)
+                   pthread_mutex_t *mutex,
+                   const char *file, int line)
 {
    int ret;
    lmgr_thread_t *self = lmgr_get_thread_info();
-   self->do_V(mutex);   
+   self->do_V(mutex, file, line);   
    ret = pthread_cond_wait(cond, mutex);
-   self->pre_P(mutex);
+   self->pre_P(mutex, file, line);
    self->post_P();
    return ret;
 }
@@ -655,10 +656,10 @@ int lmgr_cond_wait(pthread_cond_t *cond,
  * pthread_mutex_lock(m);
  * lmgr_post_lock(m);
  */
-void lmgr_pre_lock(void *m)
+void lmgr_pre_lock(void *m, const char *file, int line)
 {
    lmgr_thread_t *self = lmgr_get_thread_info();
-   self->pre_P(m);
+   self->pre_P(m, file, line);
 }
 
 /*
@@ -673,10 +674,10 @@ void lmgr_post_lock()
 /*
  * Do directly pre_P and post_P (used by trylock)
  */
-void lmgr_do_lock(void *m)
+void lmgr_do_lock(void *m, const char *file, int line)
 {
    lmgr_thread_t *self = lmgr_get_thread_info();
-   self->pre_P(m);
+   self->pre_P(m, file, line);
    self->post_P();
 }
 

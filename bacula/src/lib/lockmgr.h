@@ -47,7 +47,8 @@ void lmgr_v(pthread_mutex_t *m);
 
 /* Not yet working */
 int lmgr_cond_wait(pthread_cond_t *cond,
-                   pthread_mutex_t *mutex);
+                   pthread_mutex_t *mutex,
+                   const char *file="*unknown*", int line=0);
 
 /* Replacement of pthread_mutex_lock() */
 int lmgr_mutex_lock(pthread_mutex_t *m, 
@@ -60,10 +61,18 @@ int lmgr_mutex_unlock(pthread_mutex_t *m,
 /* 
  * Use them when you want use your lock yourself (ie rwlock)
  */
-void lmgr_pre_lock(void *m);    /* Call before requesting the lock */
-void lmgr_post_lock();          /* Call after getting it */
-void lmgr_do_lock(void *m);     /* Same as pre+post lock */
-void lmgr_do_unlock(void *m);   /* Call just before releasing the lock */
+
+/* Call before requesting the lock */
+void lmgr_pre_lock(void *m, const char *file="*unknown*", int line=0);
+
+/* Call after getting it */ 
+void lmgr_post_lock();
+
+/* Same as pre+post lock */
+void lmgr_do_lock(void *m, const char *file="*unknown*", int line=0);
+
+/* Call just before releasing the lock */
+void lmgr_do_unlock(void *m); 
 
 /*
  * Each thread have to call this function to put a lmgr_thread_t object
@@ -119,7 +128,7 @@ int lmgr_thread_create(pthread_t *thread,
 # define V(x) lmgr_mutex_unlock(&(x), __FILE__, __LINE__)
 # define pthread_mutex_lock(x)       lmgr_mutex_lock(x, __FILE__, __LINE__)
 # define pthread_mutex_unlock(x)     lmgr_mutex_unlock(x, __FILE__, __LINE__)
-# define pthread_cond_wait(x,y)      lmgr_cond_wait(x,y)
+# define pthread_cond_wait(x,y)      lmgr_cond_wait(x,y, __FILE__, __LINE__)
 # define pthread_create(a, b, c, d)  lmgr_thread_create(a,b,c,d)
 #endif
 
