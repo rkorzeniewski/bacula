@@ -30,6 +30,7 @@
 #include "job.h"
 #include "util/fmtwidgetitem.h"
 #include "mediainfo/mediainfo.h"
+#include "run/run.h"
 
 Job::Job(QString &jobId, QTreeWidgetItem *parentTreeWidgetItem)
 {
@@ -45,11 +46,22 @@ Job::Job(QString &jobId, QTreeWidgetItem *parentTreeWidgetItem)
 
    connect(pbRefresh, SIGNAL(clicked()), this, SLOT(populateAll()));
    connect(pbDelete, SIGNAL(clicked()), this, SLOT(deleteJob()));
+   connect(pbRun, SIGNAL(clicked()), this, SLOT(rerun()));
    connect(list_Volume, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this, SLOT(showInfoVolume(QListWidgetItem *)));
 
    populateAll();
    dockPage();
    setCurrent();
+}
+
+void Job::rerun()
+{
+   new runPage(label_Name->text(),
+               label_Level->text(),
+               label_Pool->text(),
+               QString(""),              // storage
+               label_Client->text(),
+               label_FileSet->text());
 }
 
 void Job::showInfoVolume(QListWidgetItem *item)

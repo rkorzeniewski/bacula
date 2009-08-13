@@ -3,6 +3,9 @@
 General:
 
 13Aug09
+ebl  bat: Add a re-run button on job info page, that allows to
+          run the selected job with the same properties (level, pool, 
+          etc...)
 ebl  bat: tweak the run job window to make it a bit more sexy
 12Aug09
 kes  Make new big-virtual-changer test. Test concurrency.
