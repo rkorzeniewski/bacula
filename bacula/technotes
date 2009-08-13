@@ -2,6 +2,8 @@
           
 General:
 
+13Aug09
+kes  Make SD lock tracing work again. Has not worked for some time.
 12Aug09
 kes  Make new big-virtual-changer test. Test concurrency.
 ebl  Add .lsfiles, .lsdirs, .update command to interface user with bvfs object

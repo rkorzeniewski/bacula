@@ -455,6 +455,7 @@ public:
 #endif
    void dblock(int why);                  /* in lock.c */
    void dunblock(bool locked=false);      /* in lock.c */
+   bool is_device_unmounted();            /* in lock.c */
    void set_blocked(int block) { m_blocked = block; };
    int blocked() const { return m_blocked; };
    bool is_blocked() const { return m_blocked != BST_NOT_BLOCKED; };
@@ -530,8 +531,13 @@ public:
    void clear_found_in_use() { m_found_in_use = false; };
    bool is_reserved() const { return m_reserved; };
    bool is_dev_locked() { return m_dev_locked; }
+#ifdef SD_DEBUG_LOCK
+   void _dlock(const char *, int);      /* in lock.c */
+   void _dunlock(const char *, int);    /* in lock.c */
+#else
    void dlock() { dev->dlock(); m_dev_locked = true; }
    void dunlock() { m_dev_locked = false; dev->dunlock(); }
+#endif
    void dblock(int why) { dev->dblock(why); }
 
 
