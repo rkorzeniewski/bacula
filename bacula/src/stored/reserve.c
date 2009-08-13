@@ -761,7 +761,7 @@ static bool reserve_device_for_read(DCR *dcr)
 
    dev->dlock();  
 
-   if (is_device_unmounted(dev)) {             
+   if (dev->is_device_unmounted()) {             
       Dmsg1(dbglvl, "Device %s is BLOCKED due to user unmount.\n", dev->print_name());
       Mmsg(jcr->errmsg, _("3601 JobId=%u device %s is BLOCKED due to user unmount.\n"),
            jcr->JobId, dev->print_name());
@@ -828,7 +828,7 @@ static bool reserve_device_for_append(DCR *dcr, RCTX &rctx)
    }
 
    /* If device is unmounted, we are out of luck */
-   if (is_device_unmounted(dev)) {
+   if (dev->is_device_unmounted()) {
       Mmsg(jcr->errmsg, _("3604 JobId=%u device %s is BLOCKED due to user unmount.\n"), 
          jcr->JobId, dev->print_name());
       Dmsg1(dbglvl, "%s", jcr->errmsg);
