@@ -332,11 +332,11 @@ const char *DEVICE::print_blocked() const
 /*
  * Check if the device is blocked or not
  */
-bool is_device_unmounted(DEVICE *dev)
+bool DEVICE::is_device_unmounted()
 {
    bool stat;
-   int blocked = dev->blocked();
-   stat = (blocked == BST_UNMOUNTED) ||
-          (blocked == BST_UNMOUNTED_WAITING_FOR_SYSOP);
+   int blk = blocked();
+   stat = (blk == BST_UNMOUNTED) ||
+          (blk == BST_UNMOUNTED_WAITING_FOR_SYSOP);
    return stat;
 }
