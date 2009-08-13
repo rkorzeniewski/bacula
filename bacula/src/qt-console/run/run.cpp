@@ -71,7 +71,9 @@ runPage::runPage(const QString &defJob)
    connect(okButton, SIGNAL(pressed()), this, SLOT(okButtonPushed()));
    connect(cancelButton, SIGNAL(pressed()), this, SLOT(cancelButtonPushed()));
 
-   dockPage();
+   // find a way to place the new window at the cursor position
+   // or in the midle of the page
+//   dockPage();
    setCurrent();
    this->show();
    if (defJob != "")
