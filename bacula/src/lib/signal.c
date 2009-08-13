@@ -101,10 +101,9 @@ static void dbg_print_bacula()
    /* Print also B_DB and RWLOCK structure 
     * Can add more info about JCR with dbg_jcr_add_hook()
     */
-   _dbg_print_jcr(fp);
-
-   _dbg_print_plugin(fp);
    dbg_print_lock(fp);
+   _dbg_print_jcr(fp);
+   _dbg_print_plugin(fp);
 
    if (fp != stderr) {
       fclose(fp);

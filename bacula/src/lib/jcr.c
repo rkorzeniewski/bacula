@@ -642,6 +642,30 @@ JCR *get_jcr_by_id(uint32_t JobId)
 }
 
 /*
+ * Given a thread id, find the JobId
+ *   Returns: JobId on success
+ *            0 on failure
+ */
+uint32_t get_jobid_from_tid(pthread_t tid)
+{
+   JCR *jcr = NULL;
+   bool found = false;
+
+   foreach_jcr(jcr) {
+      if (pthread_equal(jcr->my_thread_id, tid)) {
+         found = true;
+         break;
+      }
+   }
+   endeach_jcr(jcr);
+   if (found) {
+      return jcr->JobId;
+   }
+   return 0;
+}
+
+
+/*
  * Given a SessionId and SessionTime, find the JCR
  *   Returns: jcr on success
  *            NULL on failure

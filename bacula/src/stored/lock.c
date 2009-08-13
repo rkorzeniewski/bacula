@@ -155,17 +155,28 @@ void DEVICE::dunblock(bool locked)
 
 
 #ifdef SD_DEBUG_LOCK
+void DCR::_dlock(const char *file, int line)
+{
+   dev->_dlock(file, line);
+   m_dev_locked = true;
+}
+void DCR::_dunlock(const char *file, int line)
+{
+   m_dev_locked = false;
+   dev->_dunlock(file, line);
+
+}
+
 void DEVICE::_dlock(const char *file, int line)
 {
-   Dmsg4(sd_dbglvl, "dlock from %s:%d precnt=%d JobId=%u\n", file, line,
-         m_count, get_jobid_from_tid()); 
+   Dmsg3(sd_dbglvl, "dlock from %s:%d precnt=%d\n", file, line, m_count); 
    /* Note, this *really* should be protected by a mutex, but
     *  since it is only debug code we don't worry too much.  
     */
    if (m_count > 0 && pthread_equal(m_pid, pthread_self())) {
-      Dmsg5(sd_dbglvl, "Possible DEADLOCK!! lock held by JobId=%u from %s:%d m_count=%d JobId=%u\n", 
+      Dmsg4(sd_dbglvl, "Possible DEADLOCK!! lock held by JobId=%u from %s:%d m_count=%d\n", 
             get_jobid_from_tid(m_pid),
-            file, line, m_count, get_jobid_from_tid());
+            file, line, m_count);
    }
    P(m_mutex);
    m_pid = pthread_self();
@@ -175,8 +186,7 @@ void DEVICE::_dlock(const char *file, int line)
 void DEVICE::_dunlock(const char *file, int line)
 {
    m_count--; 
-   Dmsg4(sd_dbglvl+1, "dunlock from %s:%d postcnt=%d JobId=%u\n", file, line,
-         m_count, get_jobid_from_tid()); 
+   Dmsg3(sd_dbglvl+1, "dunlock from %s:%d postcnt=%d\n", file, line, m_count); 
    V(m_mutex);   
 }
 
@@ -198,14 +208,15 @@ void DEVICE::_r_dunlock(const char *file, int line)
 #ifdef SD_DEBUG_LOCK
 void DEVICE::_r_dlock(const char *file, int line)
 {
-   Dmsg4(sd_dbglvl+1, "r_dlock blked=%s from %s:%d JobId=%u\n", this->print_blocked(),
-         file, line, get_jobid_from_tid());
+   Dmsg3(sd_dbglvl+1, "r_dlock blked=%s from %s:%d\n", this->print_blocked(),
+         file, line);
 #else
 void DEVICE::r_dlock()
 {
 #endif
    int stat;
-   this->dlock();   
+   P(m_mutex); /*    this->dlock();   */
+   m_count++;  /*    this->dlock() */
    if (this->blocked() && !pthread_equal(this->no_wait_id, pthread_self())) {
       this->num_waiting++;             /* indicate that I am waiting */
       while (this->blocked()) {
