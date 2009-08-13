@@ -2,6 +2,8 @@
           
 General:
 
+13Aug09
+ebl  bat: tweak the run job window to make it a bit more sexy
 12Aug09
 kes  Make new big-virtual-changer test. Test concurrency.
 ebl  Add .lsfiles, .lsdirs, .update command to interface user with bvfs object
