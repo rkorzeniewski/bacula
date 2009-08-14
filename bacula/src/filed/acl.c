@@ -53,7 +53,6 @@
   
 #include "bacula.h"
 #include "filed.h"
-#include "acl.h"
   
 #if !defined(HAVE_ACL)
 /*
@@ -83,8 +82,9 @@ static bacl_exit_code send_acl_stream(JCR *jcr, int stream)
    /*
     * Sanity check
     */
-   if (jcr->acl_data_len <= 0)
+   if (jcr->acl_data->content_length <= 0) {
       return bacl_exit_ok;
+   }
 
    /*
     * Send header
@@ -98,10 +98,10 @@ static bacl_exit_code send_acl_stream(JCR *jcr, int stream)
    /*
     * Send the buffer to the storage deamon
     */
-   Dmsg1(400, "Backing up ACL <%s>\n", jcr->acl_data);
+   Dmsg1(400, "Backing up ACL <%s>\n", jcr->acl_data->content);
    msgsave = sd->msg;
-   sd->msg = jcr->acl_data;
-   sd->msglen = jcr->acl_data_len + 1;
+   sd->msg = jcr->acl_data->content;
+   sd->msglen = jcr->acl_data->content_length + 1;
    if (!sd->send()) {
       sd->msg = msgsave;
       sd->msglen = 0;
@@ -137,7 +137,7 @@ static bacl_exit_code aix_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
    char *acl_text;
 
    if ((acl_text = acl_get(jcr->last_fname)) != NULL) {
-      jcr->acl_data_len = pm_strcpy(jcr->acl_data, acl_text);
+      jcr->acl_data->content_length = pm_strcpy(jcr->acl_data->content, acl_text);
       actuallyfree(acl_text);
       return send_acl_stream(jcr, STREAM_ACL_AIX_TEXT);
    }
@@ -146,7 +146,7 @@ static bacl_exit_code aix_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
 
 static bacl_exit_code aix_parse_acl_streams(JCR *jcr, int stream)
 {
-   if (acl_put(jcr->last_fname, jcr->acl_data, 0) != 0) {
+   if (acl_put(jcr->last_fname, jcr->acl_data->content, 0) != 0) {
       return bacl_exit_error;
    }
    return bacl_exit_ok;
@@ -343,8 +343,8 @@ static bacl_exit_code generic_get_acl_from_os(JCR *jcr, bacl_type acltype)
        * to acl_to_text() besides.
        */
       if (acl->acl_cnt <= 0) {
-         pm_strcpy(jcr->acl_data, "");
-         jcr->acl_data_len = 0;
+         pm_strcpy(jcr->acl_data->content, "");
+         jcr->acl_data->content_length = 0;
          acl_free(acl);
          return bacl_exit_ok;
       }
@@ -359,15 +359,15 @@ static bacl_exit_code generic_get_acl_from_os(JCR *jcr, bacl_type acltype)
           * The ACLs simply reflect the (already known) standard permissions
           * So we don't send an ACL stream to the SD.
           */
-         pm_strcpy(jcr->acl_data, "");
-         jcr->acl_data_len = 0;
+         pm_strcpy(jcr->acl_data->content, "");
+         jcr->acl_data->content_length = 0;
          acl_free(acl);
          return bacl_exit_ok;
       }
 #endif
 
       if ((acl_text = acl_to_text(acl, NULL)) != NULL) {
-         jcr->acl_data_len = pm_strcpy(jcr->acl_data, acl_text);
+         jcr->acl_data->content_length = pm_strcpy(jcr->acl_data->content, acl_text);
          acl_free(acl);
          acl_free(acl_text);
          return bacl_exit_ok;
@@ -378,8 +378,8 @@ static bacl_exit_code generic_get_acl_from_os(JCR *jcr, bacl_type acltype)
       Dmsg2(100, "acl_to_text error file=%s ERR=%s\n",  
             jcr->last_fname, be.bstrerror());
 
-      pm_strcpy(jcr->acl_data, "");
-      jcr->acl_data_len = 0;
+      pm_strcpy(jcr->acl_data->content, "");
+      jcr->acl_data->content_length = 0;
       acl_free(acl);
       return bacl_exit_error;
    }
@@ -394,8 +394,8 @@ static bacl_exit_code generic_get_acl_from_os(JCR *jcr, bacl_type acltype)
          break;                       /* not supported */
 #endif
       case ENOENT:
-         pm_strcpy(jcr->acl_data, "");
-         jcr->acl_data_len = 0;
+         pm_strcpy(jcr->acl_data->content, "");
+         jcr->acl_data->content_length = 0;
          return bacl_exit_ok;
       default:
          /* Some real error */
@@ -404,16 +404,16 @@ static bacl_exit_code generic_get_acl_from_os(JCR *jcr, bacl_type acltype)
          Dmsg2(100, "acl_get_file error file=%s ERR=%s\n",  
                jcr->last_fname, be.bstrerror());
 
-         pm_strcpy(jcr->acl_data, "");
-         jcr->acl_data_len = 0;
+         pm_strcpy(jcr->acl_data->content, "");
+         jcr->acl_data->content_length = 0;
          return bacl_exit_error;
       }
    }
    /*
     * Not supported, just pretend there is nothing to see
     */
-   pm_strcpy(jcr->acl_data, "");
-   jcr->acl_data_len = 0;
+   pm_strcpy(jcr->acl_data->content, "");
+   jcr->acl_data->content_length = 0;
    return bacl_exit_ok;
 }
 
@@ -430,7 +430,7 @@ static bacl_exit_code generic_set_acl_on_os(JCR *jcr, bacl_type acltype)
     * If we get empty default ACLs, clear ACLs now
     */
    ostype = bac_to_os_acltype(acltype);
-   if (ostype == ACL_TYPE_DEFAULT && strlen(jcr->acl_data) == 0) {
+   if (ostype == ACL_TYPE_DEFAULT && strlen(jcr->acl_data->content) == 0) {
       if (acl_delete_def_file(jcr->last_fname) == 0) {
          return bacl_exit_ok;
       }
@@ -444,12 +444,12 @@ static bacl_exit_code generic_set_acl_on_os(JCR *jcr, bacl_type acltype)
       }
    }
 
-   acl = acl_from_text(jcr->acl_data);
+   acl = acl_from_text(jcr->acl_data->content);
    if (acl == NULL) {
       Mmsg2(jcr->errmsg, _("acl_from_text error on file \"%s\": ERR=%s\n"),
             jcr->last_fname, be.bstrerror());
       Dmsg3(100, "acl_from_text error acl=%s file=%s ERR=%s\n",  
-         jcr->acl_data, jcr->last_fname, be.bstrerror());
+         jcr->acl_data->content, jcr->last_fname, be.bstrerror());
       return bacl_exit_error;
    }
 
@@ -462,7 +462,7 @@ static bacl_exit_code generic_set_acl_on_os(JCR *jcr, bacl_type acltype)
       Mmsg2(jcr->errmsg, _("acl_valid error on file \"%s\": ERR=%s\n"),
             jcr->last_fname, be.bstrerror());
       Dmsg3(100, "acl_valid error acl=%s file=%s ERR=%s\n",  
-         jcr->acl_data, jcr->last_fname, be.bstrerror());
+         jcr->acl_data->content, jcr->last_fname, be.bstrerror());
       acl_free(acl);
       return bacl_exit_error;
    }
@@ -483,7 +483,7 @@ static bacl_exit_code generic_set_acl_on_os(JCR *jcr, bacl_type acltype)
          Mmsg2(jcr->errmsg, _("acl_set_file error on file \"%s\": ERR=%s\n"),
                jcr->last_fname, be.bstrerror());
          Dmsg3(100, "acl_set_file error acl=%s file=%s ERR=%s\n",
-               jcr->acl_data, jcr->last_fname, be.bstrerror());
+               jcr->acl_data->content, jcr->last_fname, be.bstrerror());
          acl_free(acl);
          return bacl_exit_error;
       }
@@ -524,7 +524,7 @@ static bacl_exit_code darwin_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
       return bacl_exit_fatal;
 #endif
 
-   if (jcr->acl_data_len > 0) {
+   if (jcr->acl_data->content_length > 0) {
       return send_acl_stream(jcr, STREAM_ACL_DARWIN_ACCESS_ACL);
    }
    return bacl_exit_ok;
@@ -571,7 +571,7 @@ static bacl_exit_code generic_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
    if (generic_get_acl_from_os(jcr, BACL_TYPE_ACCESS) == bacl_exit_fatal)
       return bacl_exit_fatal;
 
-   if (jcr->acl_data_len > 0) {
+   if (jcr->acl_data->content_length > 0) {
       if (send_acl_stream(jcr, os_access_acl_streams[0]) == bacl_exit_fatal)
          return bacl_exit_fatal;
    }
@@ -582,7 +582,7 @@ static bacl_exit_code generic_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
    if (ff_pkt->type == FT_DIREND) {
       if (generic_get_acl_from_os(jcr, BACL_TYPE_DEFAULT) == bacl_exit_fatal)
          return bacl_exit_fatal;
-      if (jcr->acl_data_len > 0) {
+      if (jcr->acl_data->content_length > 0) {
          if (send_acl_stream(jcr, os_default_acl_streams[0]) == bacl_exit_fatal)
             return bacl_exit_fatal;
       }
@@ -637,9 +637,9 @@ static bacl_exit_code tru64_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
    /*
     * Read access ACLs for files, dirs and links
     */
-   if ((jcr->acl_data_len = generic_get_acl_from_os(jcr, BACL_TYPE_ACCESS)) < 0)
+   if ((jcr->acl_data->content_length = generic_get_acl_from_os(jcr, BACL_TYPE_ACCESS)) < 0)
       return bacl_exit_error;
-   if (jcr->acl_data_len > 0) {
+   if (jcr->acl_data->content_length > 0) {
       if (!send_acl_stream(jcr, STREAM_ACL_TRU64_ACCESS_ACL))
          return bacl_exit_error;
    }
@@ -647,9 +647,9 @@ static bacl_exit_code tru64_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
     * Directories can have default ACLs too
     */
    if (ff_pkt->type == FT_DIREND) {
-      if ((jcr->acl_data_len = generic_get_acl_from_os(jcr, BACL_TYPE_DEFAULT)) < 0)
+      if ((jcr->acl_data->content_length = generic_get_acl_from_os(jcr, BACL_TYPE_DEFAULT)) < 0)
          return bacl_exit_error;
-      if (jcr->acl_data_len > 0) {
+      if (jcr->acl_data->content_length > 0) {
          if (!send_acl_stream(jcr, STREAM_ACL_TRU64_DEFAULT_ACL))
             return bacl_exit_error;
       }
@@ -659,9 +659,9 @@ static bacl_exit_code tru64_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
        * See http://www.helsinki.fi/atk/unix/dec_manuals/DOC_40D/AQ0R2DTE/DOCU_018.HTM
        * Section 21.5 Default ACLs 
        */
-      if ((jcr->acl_data_len = generic_get_acl_from_os(jcr, BACL_TYPE_DEFAULT_DIR)) < 0)
+      if ((jcr->acl_data->content_length = generic_get_acl_from_os(jcr, BACL_TYPE_DEFAULT_DIR)) < 0)
          return bacl_exit_error;
-      if (jcr->acl_data_len > 0) {
+      if (jcr->acl_data->content_length > 0) {
          if (!send_acl_stream(jcr, STREAM_ACL_TRU64_DEFAULT_DIR_ACL))
             return bacl_exit_error;
       }
@@ -744,13 +744,13 @@ static bacl_exit_code hpux_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
          /*
           * Not supported, just pretend there is nothing to see
           */
-         pm_strcpy(jcr->acl_data, "");
-         jcr->acl_data_len = 0;
+         pm_strcpy(jcr->acl_data->content, "");
+         jcr->acl_data->content_length = 0;
          return bacl_exit_ok;
 #endif
       case ENOENT:
-         pm_strcpy(jcr->acl_data, "");
-         jcr->acl_data_len = 0;
+         pm_strcpy(jcr->acl_data->content, "");
+         jcr->acl_data->content_length = 0;
          return bacl_exit_ok;
       default:
          Mmsg2(jcr->errmsg, _("getacl error on file \"%s\": ERR=%s\n"),
@@ -758,14 +758,14 @@ static bacl_exit_code hpux_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
          Dmsg2(100, "getacl error file=%s ERR=%s\n",  
                jcr->last_fname, be.bstrerror());
 
-         pm_strcpy(jcr->acl_data, "");
-         jcr->acl_data_len = 0;
+         pm_strcpy(jcr->acl_data->content, "");
+         jcr->acl_data->content_length = 0;
          return bacl_exit_error;
       }
    }
    if (n == 0) {
-      pm_strcpy(jcr->acl_data, "");
-      jcr->acl_data_len = 0;
+      pm_strcpy(jcr->acl_data->content, "");
+      jcr->acl_data->content_length = 0;
       return bacl_exit_ok;
    }
    if ((n = getacl(jcr->last_fname, n, acls)) > 0) {
@@ -774,12 +774,12 @@ static bacl_exit_code hpux_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
           * The ACLs simply reflect the (already known) standard permissions
           * So we don't send an ACL stream to the SD.
           */
-         pm_strcpy(jcr->acl_data, "");
-         jcr->acl_data_len = 0;
+         pm_strcpy(jcr->acl_data->content, "");
+         jcr->acl_data->content_length = 0;
          return bacl_exit_ok;
       }
       if ((acl_text = acltostr(n, acls, FORM_SHORT)) != NULL) {
-         jcr->acl_data_len = pm_strcpy(jcr->acl_data, acl_text);
+         jcr->acl_data->content_length = pm_strcpy(jcr->acl_data->content, acl_text);
          actuallyfree(acl_text);
 
          return send_acl_stream(jcr, STREAM_ACL_HPUX_ACL_ENTRY);
@@ -787,7 +787,7 @@ static bacl_exit_code hpux_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
       Mmsg2(jcr->errmsg, _("acltostr error on file \"%s\": ERR=%s\n"),
             jcr->last_fname, be.bstrerror());
       Dmsg3(100, "acltostr error acl=%s file=%s ERR=%s\n",  
-            jcr->acl_data, jcr->last_fname, be.bstrerror());
+            jcr->acl_data->content, jcr->last_fname, be.bstrerror());
       return bacl_exit_error;
    }
    return bacl_exit_error;
@@ -799,19 +799,19 @@ static bacl_exit_code hpux_parse_acl_streams(JCR *jcr, int stream)
    struct acl_entry acls[NACLENTRIES];
    berrno be;
 
-   n = strtoacl(jcr->acl_data, 0, NACLENTRIES, acls, ACL_FILEOWNER, ACL_FILEGROUP);
+   n = strtoacl(jcr->acl_data->content, 0, NACLENTRIES, acls, ACL_FILEOWNER, ACL_FILEGROUP);
    if (n <= 0) {
       Mmsg2(jcr->errmsg, _("strtoacl error on file \"%s\": ERR=%s\n"),
             jcr->last_fname, be.bstrerror());
       Dmsg3(100, "strtoacl error acl=%s file=%s ERR=%s\n",  
-            jcr->acl_data, jcr->last_fname, be.bstrerror());
+            jcr->acl_data->content, jcr->last_fname, be.bstrerror());
       return bacl_exit_error;
    }
-   if (strtoacl(jcr->acl_data, n, NACLENTRIES, acls, ACL_FILEOWNER, ACL_FILEGROUP) != n) {
+   if (strtoacl(jcr->acl_data->content, n, NACLENTRIES, acls, ACL_FILEOWNER, ACL_FILEGROUP) != n) {
       Mmsg2(jcr->errmsg, _("strtoacl error on file \"%s\": ERR=%s\n"),
             jcr->last_fname, be.bstrerror());
       Dmsg3(100, "strtoacl error acl=%s file=%s ERR=%s\n",  
-            jcr->acl_data, jcr->last_fname, be.bstrerror());
+            jcr->acl_data->content, jcr->last_fname, be.bstrerror());
 
       return bacl_exit_error;
    }
@@ -829,7 +829,7 @@ static bacl_exit_code hpux_parse_acl_streams(JCR *jcr, int stream)
          Mmsg2(jcr->errmsg, _("setacl error on file \"%s\": ERR=%s\n"),
                jcr->last_fname, be.bstrerror());
          Dmsg3(100, "setacl error acl=%s file=%s ERR=%s\n",
-               jcr->acl_data, jcr->last_fname, be.bstrerror());
+               jcr->acl_data->content, jcr->last_fname, be.bstrerror());
          return bacl_exit_error;
       }
    }
@@ -903,8 +903,8 @@ static bacl_exit_code solaris_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
    acl_enabled = pathconf(jcr->last_fname, _PC_ACL_ENABLED);
    switch (acl_enabled) {
    case 0:
-      pm_strcpy(jcr->acl_data, "");
-      jcr->acl_data_len = 0;
+      pm_strcpy(jcr->acl_data->content, "");
+      jcr->acl_data->content_length = 0;
       return bacl_exit_ok;
    case -1:
       switch (errno) {
@@ -942,8 +942,8 @@ static bacl_exit_code solaris_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
        * The ACLs simply reflect the (already known) standard permissions
        * So we don't send an ACL stream to the SD.
        */
-      pm_strcpy(jcr->acl_data, "");
-      jcr->acl_data_len = 0;
+      pm_strcpy(jcr->acl_data->content, "");
+      jcr->acl_data->content_length = 0;
       return bacl_exit_ok;
    }
 
@@ -957,7 +957,7 @@ static bacl_exit_code solaris_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
 #endif /* ACL_SID_FMT */
 
    if ((acl_text = acl_totext(aclp, flags)) != NULL) {
-      jcr->acl_data_len = pm_strcpy(jcr->acl_data, acl_text);
+      jcr->acl_data->content_length = pm_strcpy(jcr->acl_data->content, acl_text);
       actuallyfree(acl_text);
 
       switch (acl_type(aclp)) {
@@ -1003,7 +1003,7 @@ static bacl_exit_code solaris_parse_acl_streams(JCR *jcr, int stream)
             Mmsg2(jcr->errmsg, _("pathconf error on file \"%s\": ERR=%s\n"),
                   jcr->last_fname, be.bstrerror());
             Dmsg3(100, "pathconf error acl=%s file=%s ERR=%s\n",  
-                  jcr->acl_data, jcr->last_fname, be.bstrerror());
+                  jcr->acl_data->content, jcr->last_fname, be.bstrerror());
             return bacl_exit_error;
          }
       default:
@@ -1040,11 +1040,11 @@ static bacl_exit_code solaris_parse_acl_streams(JCR *jcr, int stream)
          break;
       }
 
-      if ((error = acl_fromtext(jcr->acl_data, &aclp)) != 0) {
+      if ((error = acl_fromtext(jcr->acl_data->content, &aclp)) != 0) {
          Mmsg2(jcr->errmsg, _("acl_fromtext error on file \"%s\": ERR=%s\n"),
                jcr->last_fname, acl_strerror(error));
          Dmsg3(100, "acl_fromtext error acl=%s file=%s ERR=%s\n",  
-               jcr->acl_data, jcr->last_fname, acl_strerror(error));
+               jcr->acl_data->content, jcr->last_fname, acl_strerror(error));
          return bacl_exit_error;
       }
 
@@ -1088,7 +1088,7 @@ static bacl_exit_code solaris_parse_acl_streams(JCR *jcr, int stream)
             Mmsg2(jcr->errmsg, _("acl_set error on file \"%s\": ERR=%s\n"),
                   jcr->last_fname, acl_strerror(error));
             Dmsg3(100, "acl_set error acl=%s file=%s ERR=%s\n",  
-                  jcr->acl_data, jcr->last_fname, acl_strerror(error));
+                  jcr->acl_data->content, jcr->last_fname, acl_strerror(error));
             acl_free(aclp);
             return bacl_exit_error;
          }
@@ -1152,13 +1152,13 @@ static bacl_exit_code solaris_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
           * So we don't send an ACL stream to the SD.
           */
          free(acls);
-         pm_strcpy(jcr->acl_data, "");
-         jcr->acl_data_len = 0;
+         pm_strcpy(jcr->acl_data->content, "");
+         jcr->acl_data->content_length = 0;
          return bacl_exit_ok;
       }
 
       if ((acl_text = acltotext(acls, n)) != NULL) {
-         jcr->acl_data_len = pm_strcpy(jcr->acl_data, acl_text);
+         jcr->acl_data->content_length = pm_strcpy(jcr->acl_data->content, acl_text);
          actuallyfree(acl_text);
          free(acls);
          return send_acl_stream(jcr, STREAM_ACL_SOLARIS_ACLENT);
@@ -1167,7 +1167,7 @@ static bacl_exit_code solaris_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
       Mmsg2(jcr->errmsg, _("acltotext error on file \"%s\": ERR=%s\n"),
             jcr->last_fname, be.bstrerror());
       Dmsg3(100, "acltotext error acl=%s file=%s ERR=%s\n",  
-            jcr->acl_data, jcr->last_fname, be.bstrerror());
+            jcr->acl_data->content, jcr->last_fname, be.bstrerror());
    }
 
    free(acls);
@@ -1180,12 +1180,12 @@ static bacl_exit_code solaris_parse_acl_streams(JCR *jcr, int stream)
    aclent_t *acls;
    berrno be;
 
-   acls = aclfromtext(jcr->acl_data, &n);
+   acls = aclfromtext(jcr->acl_data->content, &n);
    if (!acls) {
       Mmsg2(jcr->errmsg, _("aclfromtext error on file \"%s\": ERR=%s\n"),
             jcr->last_fname, be.bstrerror());
       Dmsg3(100, "aclfromtext error acl=%s file=%s ERR=%s\n",  
-            jcr->acl_data, jcr->last_fname, be.bstrerror());
+            jcr->acl_data->content, jcr->last_fname, be.bstrerror());
       return bacl_exit_error;
    }
 
@@ -1202,7 +1202,7 @@ static bacl_exit_code solaris_parse_acl_streams(JCR *jcr, int stream)
          Mmsg2(jcr->errmsg, _("acl(SETACL) error on file \"%s\": ERR=%s\n"),
                jcr->last_fname, be.bstrerror());
          Dmsg3(100, "acl(SETACL) error acl=%s file=%s ERR=%s\n",
-               jcr->acl_data, jcr->last_fname, be.bstrerror());
+               jcr->acl_data->content, jcr->last_fname, be.bstrerror());
          actuallyfree(acls);
          return bacl_exit_error;
       }
