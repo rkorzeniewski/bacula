@@ -386,8 +386,9 @@ DCR *acquire_device_for_append(DCR *dcr)
    }
 
    if (!have_vol) {
+      dev->r_dlock(true);
+      block_device(dev, BST_DOING_ACQUIRE);
       dev->dunlock();
-      dev->dblock(BST_DOING_ACQUIRE);
       Dmsg1(190, "jid=%u Do mount_next_write_vol\n", (uint32_t)jcr->JobId);
       if (!dcr->mount_next_write_volume()) {
          if (!job_canceled(jcr)) {

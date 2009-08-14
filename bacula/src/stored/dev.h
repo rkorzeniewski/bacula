@@ -443,12 +443,12 @@ public:
     * Locking and blocking calls
     */
 #ifdef  SD_DEBUG_LOCK
-   void _r_dlock(const char *, int);      /* in lock.c */
+   void _r_dlock(const char *, int, bool locked=false);      /* in lock.c */
    void _r_dunlock(const char *, int);    /* in lock.c */
    void _dlock(const char *, int);        /* in lock.c */
    void _dunlock(const char *, int);      /* in lock.c */
 #else
-   void r_dlock();                        /* in lock.c */
+   void r_dlock(bool locked=false);                        /* in lock.c */
    void r_dunlock() { dunlock(); }
    void dlock() { P(m_mutex); } 
    void dunlock() { V(m_mutex); } 
