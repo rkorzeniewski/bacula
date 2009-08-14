@@ -277,7 +277,7 @@ bool do_append_data(JCR *jcr)
     */
    if (ok || dev->can_write()) {
       if (!write_session_label(dcr, EOS_LABEL)) {
-         Jmsg1(jcr, M_FATAL, 0, _("Error writting end session label. ERR=%s\n"),
+         Jmsg1(jcr, M_FATAL, 0, _("Error writing end session label. ERR=%s\n"),
                dev->bstrerror());
          set_jcr_job_status(jcr, JS_ErrorTerminated);
          ok = false;
