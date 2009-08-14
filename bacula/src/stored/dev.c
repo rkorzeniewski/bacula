@@ -52,7 +52,7 @@
 
 /*
  * Handling I/O errors and end of tape conditions are a bit tricky.
- * This is how it is currently done when writting.
+ * This is how it is currently done when writing.
  * On either an I/O error or end of tape,
  * we will stop writing on the physical device (no I/O recovery is
  * attempted at least in this daemon). The state flag will be sent

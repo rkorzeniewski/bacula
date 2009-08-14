@@ -634,7 +634,7 @@ static void capcmd()
 }
 
 /*
- * Test writting larger and larger records.
+ * Test writing larger and larger records.
  * This is a torture test for records.
  */
 static void rectestcmd()
@@ -643,7 +643,7 @@ static void rectestcmd()
    DEV_RECORD *rec;
    int i, blkno = 0;
 
-   Pmsg0(0, _("Test writting larger and larger records.\n"
+   Pmsg0(0, _("Test writing larger and larger records.\n"
 "This is a torture test for records.\nI am going to write\n"
 "larger and larger records. It will stop when the record size\n"
 "plus the header exceeds the block size (by default about 64K)\n"));
@@ -2024,7 +2024,7 @@ static void fillcmd()
          set_jcr_job_status(jcr, JS_ErrorTerminated);
       }
       if (!write_session_label(dcr, EOS_LABEL)) {
-         Pmsg1(000, _("Error writting end session label. ERR=%s\n"), dev->bstrerror());
+         Pmsg1(000, _("Error writing end session label. ERR=%s\n"), dev->bstrerror());
          ok = false;
       }
       /* Write out final block of this session */
