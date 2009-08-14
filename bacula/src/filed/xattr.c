@@ -683,7 +683,6 @@ static void flush_xattr_link_cache(JCR *jcr)
          free(ptr->target);
       }
    }
->>>>>>> Add all acl and xattr related variables which are either global or already part of the JCR:bacula/src/filed/xattr.c
 }
 
 #if defined(HAVE_SYS_NVPAIR_H) && defined(_PC_SATTR_ENABLED)
