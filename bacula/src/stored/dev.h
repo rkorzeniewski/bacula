@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2008 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2009 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -252,6 +252,7 @@ public:
    uint32_t max_block_size;           /* max block size */
    uint64_t max_volume_size;          /* max bytes to put on one volume */
    uint64_t max_file_size;            /* max file size to put in one file on volume */
+   uint64_t max_concurrent_jobs;      /* maximum simultaneous jobs this drive */
    uint64_t volume_capacity;          /* advisory capacity */
    uint64_t max_spool_size;           /* maximum spool file size */
    uint64_t spool_size;               /* current spool size for this device */
@@ -454,6 +455,7 @@ public:
 #endif
    void dblock(int why);                  /* in lock.c */
    void dunblock(bool locked=false);      /* in lock.c */
+   bool is_device_unmounted();            /* in lock.c */
    void set_blocked(int block) { m_blocked = block; };
    int blocked() const { return m_blocked; };
    bool is_blocked() const { return m_blocked != BST_NOT_BLOCKED; };
@@ -529,8 +531,13 @@ public:
    void clear_found_in_use() { m_found_in_use = false; };
    bool is_reserved() const { return m_reserved; };
    bool is_dev_locked() { return m_dev_locked; }
+#ifdef SD_DEBUG_LOCK
+   void _dlock(const char *, int);      /* in lock.c */
+   void _dunlock(const char *, int);    /* in lock.c */
+#else
    void dlock() { dev->dlock(); m_dev_locked = true; }
    void dunlock() { m_dev_locked = false; dev->dunlock(); }
+#endif
    void dblock(int why) { dev->dblock(why); }
 
 

@@ -1,5 +1,6 @@
 
 
+ADD_TEST(disk:acl-xattr-test "@regressdir@/tests/acl-xattr-test")
 ADD_TEST(disk:accurate-test "@regressdir@/tests/accurate-test")
 ADD_TEST(disk:auto-label-test "@regressdir@/tests/auto-label-test")
 ADD_TEST(disk:backup-bacula-test "@regressdir@/tests/backup-bacula-test")

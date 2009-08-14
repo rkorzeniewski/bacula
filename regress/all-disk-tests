@@ -6,6 +6,7 @@ echo " "
 echo " " >>test.out
 echo "Start non-root disk tests"
 echo "Start non-root disk tests" >>test.out
+nice tests/acl-xattr-test
 nice tests/accurate-test
 nice tests/auto-label-test
 nice tests/backup-bacula-test

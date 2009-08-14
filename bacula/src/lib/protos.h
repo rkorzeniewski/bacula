@@ -191,23 +191,24 @@ bool             is_an_integer           (const char *n);
 bool             is_name_valid           (char *name, POOLMEM **msg);
 
 /* jcr.c (most definitions are in src/jcr.h) */
-void init_last_jobs_list();
-void term_last_jobs_list();
-void lock_last_jobs_list();
-void unlock_last_jobs_list();
-bool read_last_jobs_list(int fd, uint64_t addr);
+void     init_last_jobs_list();
+void     term_last_jobs_list();
+void     lock_last_jobs_list();
+void     unlock_last_jobs_list();
+bool     read_last_jobs_list(int fd, uint64_t addr);
 uint64_t write_last_jobs_list(int fd, uint64_t addr);
-void write_state_file(char *dir, const char *progname, int port);
-void job_end_push(JCR *jcr, void job_end_cb(JCR *jcr,void *), void *ctx);
-void lock_jobs();
-void unlock_jobs();
-JCR *jcr_walk_start();
-JCR *jcr_walk_next(JCR *prev_jcr);
-void jcr_walk_end(JCR *jcr);
+void     write_state_file(char *dir, const char *progname, int port);
+void     job_end_push(JCR *jcr, void job_end_cb(JCR *jcr,void *), void *ctx);
+void     lock_jobs();
+void     unlock_jobs();
+JCR     *jcr_walk_start();
+JCR     *jcr_walk_next(JCR *prev_jcr);
+void     jcr_walk_end(JCR *jcr);
+JCR     *get_jcr_from_tsd();
+void     set_jcr_in_tsd(JCR *jcr);
+void     remove_jcr_from_tsd(JCR *jcr);
 uint32_t get_jobid_from_tsd();             
-JCR *get_jcr_from_tsd();
-void set_jcr_in_tsd(JCR *jcr);
-void remove_jcr_from_tsd(JCR *jcr);
+uint32_t get_jobid_from_tid(pthread_t tid);
 
 
 /* lex.c */

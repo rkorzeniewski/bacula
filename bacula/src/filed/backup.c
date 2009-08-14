@@ -142,15 +142,26 @@ bool blast_data_to_storage_daemon(JCR *jcr, char *addr)
 
    if (have_acl) {
       jcr->acl_data = get_pool_memory(PM_MESSAGE);
+      jcr->total_acl_errors = 0;
    }
    if (have_xattr) {
       jcr->xattr_data = get_pool_memory(PM_MESSAGE);
+      jcr->total_xattr_errors = 0;
    }
 
    /* Subroutine save_file() is called for each file */
    if (!find_files(jcr, (FF_PKT *)jcr->ff, save_file, plugin_save)) {
       ok = false;                     /* error */
       set_jcr_job_status(jcr, JS_ErrorTerminated);
+   }
+
+   if (jcr->total_acl_errors > 0) {
+      Jmsg(jcr, M_ERROR, 0, _("Encountered %ld acl errors while doing backup\n"),
+           jcr->total_acl_errors);
+   }
+   if (jcr->total_xattr_errors > 0) {
+      Jmsg(jcr, M_ERROR, 0, _("Encountered %ld xattr errors while doing backup\n"),
+           jcr->total_xattr_errors);
    }
 
    accurate_finish(jcr);              /* send deleted or base file list to SD */
@@ -600,8 +611,22 @@ int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
     */
    if (have_acl) {
       if (ff_pkt->flags & FO_ACL && ff_pkt->type != FT_LNK && !ff_pkt->cmd_plugin) {
-         if (!build_acl_streams(jcr, ff_pkt))
+         switch (build_acl_streams(jcr, ff_pkt)) {
+         case bacl_exit_fatal:
             goto bail_out;
+         case bacl_exit_error:
+            /*
+             * Non-fatal errors, count them and when the number is under ACL_REPORT_ERR_MAX_PER_JOB
+             * print the error message set by the lower level routine in jcr->errmsg.
+             */
+            if (jcr->total_acl_errors < ACL_REPORT_ERR_MAX_PER_JOB) {
+               Jmsg(jcr, M_ERROR, 0, "%s", jcr->errmsg);
+            }
+            jcr->total_acl_errors++;
+            break;
+         case bacl_exit_ok:
+            break;
+         }
       }
    }
 
@@ -610,8 +635,22 @@ int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
     */
    if (have_xattr) {
       if (ff_pkt->flags & FO_XATTR && !ff_pkt->cmd_plugin) {
-         if (!build_xattr_streams(jcr, ff_pkt))
+         switch (build_xattr_streams(jcr, ff_pkt)) {
+         case bxattr_exit_fatal:
             goto bail_out;
+         case bxattr_exit_error:
+            /*
+             * Non-fatal errors, count them and when the number is under XATTR_REPORT_ERR_MAX_PER_JOB
+             * print the error message set by the lower level routine in jcr->errmsg.
+             */
+            if (jcr->total_xattr_errors < XATTR_REPORT_ERR_MAX_PER_JOB) {
+               Jmsg(jcr, M_ERROR, 0, "%s", jcr->errmsg);
+            }
+            jcr->total_xattr_errors++;
+            break;
+         case bxattr_exit_ok:
+            break;
+         }
       }
    }
 

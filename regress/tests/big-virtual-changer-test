@@ -21,6 +21,11 @@ scripts/prepare-disk-changer
 CLIENT=2drive2disk
 
 echo "${cwd}/build" >${cwd}/tmp/file-list
+echo "${cwd}/build" >>${cwd}/tmp/file-list
+echo "${cwd}/build" >>${cwd}/tmp/file-list
+echo "${cwd}/build" >>${cwd}/tmp/file-list
+echo "${cwd}/build" >>${cwd}/tmp/file-list
+echo "${cwd}/build" >>${cwd}/tmp/file-list
 #change_jobname Virtual $JobName
 start_test
 
@@ -30,31 +35,76 @@ echo "s%# Prefer Mounted Volumes%  Prefer Mounted Volumes%g" >${outf}
 cp ${cwd}/bin/bacula-dir.conf ${cwd}/tmp/1
 # Comment the next line out to write everything to one drive
 #  otherwise, it writes the two jobs to different drives
-sed -f ${outf} ${cwd}/tmp/1 >${cwd}/bin/bacula-dir.conf
+#sed -f ${outf} ${cwd}/tmp/1 >${cwd}/bin/bacula-dir.conf
 
 # Write out bconsole commands
 cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @output /dev/null
 messages
 @$out ${cwd}/tmp/log1.out
-setdebug level=200 storage=Virtual
+setdebug level=10 storage=Virtual
 @#setdebug level=200 client=$CLIENT 
 label storage=Virtual volume=TestVolume001 slot=1 Pool=Default drive=0
 label storage=Virtual volume=TestVolume002 slot=2 Pool=Full    drive=0
 label storage=Virtual volume=TestVolume003 slot=3 Pool=Inc     drive=1
+label storage=Virtual volume=TestVolume004 slot=4 Pool=Default drive=0
 status storage=Virtual
 run job=Virtual level=Full Pool=Default yes
 run job=Virtual level=Full Pool=Default yes
 run job=Virtual level=Full Pool=Default yes
 run job=Virtual level=Full Pool=Default yes
 run job=Virtual level=Full Pool=Default yes
-@sleep 10
+run job=Virtual level=Full Pool=Default yes
+run job=Virtual level=Full Pool=Default yes
+run job=Virtual level=Full Pool=Default yes
+run job=Virtual level=Full Pool=Default yes
 status storage=Virtual
+status client
+@sleep 1
+status storage=Virtual
+status client
+@sleep 1
+status storage=Virtual
+status client
+@sleep 1
+status storage=Virtual
+status client
+@sleep 1
+status storage=Virtual
+status client
+@sleep 1
+status storage=Virtual
+status client
+@sleep 1
+status storage=Virtual
+status client
+@sleep 1
+status storage=Virtual
+status client
+@sleep 1
+status storage=Virtual
+status client
+@sleep 1
+status storage=Virtual
+status client
+@sleep 1
+status storage=Virtual
+status client
+@sleep 1
+status storage=Virtual
+status client
+@sleep 1
+status storage=Virtual
+status client
+@sleep 5
+status storage=Virtual
+status client
 list volumes
 wait
 list volumes
 list jobs
 status storage=Virtual
+status client
 messages
 quit
 END_OF_DATA

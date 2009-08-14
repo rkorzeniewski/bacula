@@ -1,3 +1,5 @@
+1
+*/1
 config
 DartConfiguration.tcl
 DartTestfile.txt
@@ -10,6 +12,7 @@ tmp
 weird-files
 weird-files2
 working
+working2
 scripts/bacula-dir.conf.accurate
 scripts/bacula-dir.conf.errors
 scripts/bacula-dir.conf.maxruntime
