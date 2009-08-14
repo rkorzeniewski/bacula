@@ -761,7 +761,7 @@ static bool reserve_device_for_read(DCR *dcr)
 
    dev->dlock();  
 
-   if (is_device_unmounted(dev)) {             
+   if (dev->is_device_unmounted()) {             
       Dmsg1(dbglvl, "Device %s is BLOCKED due to user unmount.\n", dev->print_name());
       Mmsg(jcr->errmsg, _("3601 JobId=%u device %s is BLOCKED due to user unmount.\n"),
            jcr->JobId, dev->print_name());
@@ -828,7 +828,7 @@ static bool reserve_device_for_append(DCR *dcr, RCTX &rctx)
    }
 
    /* If device is unmounted, we are out of luck */
-   if (is_device_unmounted(dev)) {
+   if (dev->is_device_unmounted()) {
       Mmsg(jcr->errmsg, _("3604 JobId=%u device %s is BLOCKED due to user unmount.\n"), 
          jcr->JobId, dev->print_name());
       Dmsg1(dbglvl, "%s", jcr->errmsg);
@@ -886,6 +886,16 @@ static bool is_max_jobs_ok(DCR *dcr)
          dcr->VolCatInfo.VolCatJobs, dev->num_reserved(),
          dcr->VolCatInfo.VolCatStatus,
          dcr->VolumeName);
+   /* Limit max concurrent jobs on this drive */
+   if (dev->max_concurrent_jobs > 0 && dev->max_concurrent_jobs <= 
+              (uint32_t)(dev->num_writers + dev->num_reserved())) {
+      /* Max Concurrent Jobs depassed or already reserved */
+      Mmsg(jcr->errmsg, _("3609 JobId=%u Max concurrent jobs exceeded on drive %s.\n"), 
+            (uint32_t)jcr->JobId, dev->print_name());
+      queue_reserve_message(jcr);
+      Dmsg1(dbglvl, "reserve dev failed: %s", jcr->errmsg);
+      return false;
+   }
    if (strcmp(dcr->VolCatInfo.VolCatStatus, "Recycle") == 0) {
       return true;
    }

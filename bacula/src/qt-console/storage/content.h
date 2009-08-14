@@ -1,7 +1,9 @@
+#ifndef _CONTENT_H_
+#define _CONTENT_H_
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2004-2009 Free Software Foundation Europe e.V.
+   Copyright (C) 2007-2009 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -26,37 +28,39 @@
    Switzerland, email:ftf@fsfeurope.org.
 */
 
-#ifndef _BACULA_XATTR_
-#define _BACULA_XATTR_
+#include <QtGui>
+#include "ui_content.h"
+#include "console.h"
+#include "pages.h"
 
-/*
- * Magic used in the magic field of the xattr struct.
- * This way we can see we encounter a valid xattr struct.
- */
-#define XATTR_MAGIC 0x5C5884
+class Content : public Pages, public Ui::ContentForm
+{
+   Q_OBJECT 
 
-/*
- * Internal representation of an extended attribute.
- */
-struct xattr_t {
-   uint32_t magic;
-   uint32_t name_length;
-   char *name;
-   uint32_t value_length;
-   char *value;
+public:
+   Content(QString storage, QTreeWidgetItem *parentWidget);
+//   virtual void PgSeltreeWidgetClicked();
+   virtual void currentStackItem();
+
+public slots:
+   void treeItemChanged(QTreeWidgetItem *, QTreeWidgetItem *);
+
+   void consoleRelease();
+   void consoleUpdateSlots();
+   void consoleLabelStorage();
+   void consoleMountStorage();
+   void statusStorageWindow();
+   void consoleUnMountStorage();
+
+private slots:
+   void populateContent();
+
+private:
+   bool m_currentAutoChanger;
+   bool m_populated;
+   bool m_firstpopulation;
+   bool m_checkcurwidget;
+   QString m_currentStorage;
 };
 
-/*
- * Internal representation of an extended attribute hardlinked file.
- */
-struct xattr_link_cache_entry_t {
-   uint32_t inum;
-   char target[PATH_MAX];
-};
-
-/*
- * Maximum size of the XATTR stream this prevents us from blowing up the filed.
- */
-#define MAX_XATTR_STREAM  (1 * 1024 * 1024) /* 1 Mb */
-
-#endif
+#endif /* _STORAGE_H_ */

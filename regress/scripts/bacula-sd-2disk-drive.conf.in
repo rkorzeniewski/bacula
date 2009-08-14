@@ -16,6 +16,7 @@ Storage {                             # definition of myself
   WorkingDirectory = "@working_dir@"
   Pid Directory = "@piddir@"
   Subsys Directory = "@subsysdir@"
+  Maximum Concurrent Jobs = 100
 }
 
 #
@@ -68,11 +69,11 @@ Autochanger {
   Name = Virtual
   Changer Device = /dev/null
   Changer Command =""
-  Device = Virtual-1, Virtual-2
+  Device = vDrive-1, vDrive-2
 }
 
 Device {
-  Name = Virtual-1
+  Name = vDrive-1
   Device Type = File
   Media Type = Disk
   Archive Device = @tmpdir@
@@ -81,11 +82,12 @@ Device {
   Drive Index = 0
   AlwaysOpen = yes;
   RemovableMedia = yes;
+  Maximum Concurrent Jobs = 3
 # Maximum File Size = 1000000
 }
 
 Device {
-  Name = Virtual-2
+  Name = vDrive-2
   Device Type = File
   Media Type = Disk
   Archive Device = @tmpdir@
@@ -94,6 +96,7 @@ Device {
   Drive Index = 1
   AlwaysOpen = yes;
   RemovableMedia = yes;
+  Maximum Concurrent Jobs = 3
 # Maximum File Size = 1000000
 }
 

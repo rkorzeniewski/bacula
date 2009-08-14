@@ -193,6 +193,7 @@ Storage {
   Device = Virtual                    # must be same as Device in Storage daemon
   Media Type = Disk                   # must be same as MediaType in Storage daemon
   Maximum Concurrent Jobs = 100
+  Autochanger = yes
 }
 
 

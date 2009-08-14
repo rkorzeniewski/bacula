@@ -1,16 +1,7 @@
 /*
- *
- *  Program to test cache path
- *
- *   Eric Bollengier, March 2007
- *
- *
- *   Version $Id$
- */
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2001-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2009-2009 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -34,6 +25,14 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ *
+ *  Program to test cache path
+ *
+ *   Eric Bollengier, August 2009
+ *
+ *
+ */
 
 #include "bacula.h"
 #include "cats/cats.h"
@@ -42,7 +41,7 @@
  
 /* Local variables */
 static B_DB *db;
-static char *file="COPYRIGHT";
+static const char *file = "COPYRIGHT";
 static DBId_t fnid=0;
 static const char *db_name = "regress";
 static const char *db_user = "regress";
@@ -75,7 +74,7 @@ static int result_handler(void *ctx, int fields, char **row)
 {
    Bvfs *vfs = (Bvfs *)ctx;
    ATTR *attr = vfs->get_attr();
-   char *empty = "A A A A A A A A A A A A A A";
+   char empty[] = "A A A A A A A A A A A A A A";
 
    memset(&attr->statp, 0, sizeof(struct stat));
    decode_stat((row[BVFS_LStat] && row[BVFS_LStat][0])?row[BVFS_LStat]:empty,
@@ -112,7 +111,8 @@ static int result_handler(void *ctx, int fields, char **row)
 int main (int argc, char *argv[])
 {
    int ch;
-   char *jobids="1", *path=NULL, *client=NULL;
+   char *jobids = (char *)"1";
+   char *path=NULL, *client=NULL;
    uint64_t limit=0;
    bool clean=false;
    setlocale(LC_ALL, "");

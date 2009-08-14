@@ -39,6 +39,7 @@
 #include <QAbstractEventDispatcher>
 #include <QMenu>
 #include "storage.h"
+#include "content.h"
 #include "label/label.h"
 #include "mount/mount.h"
 #include "status/storstat.h"
@@ -326,6 +327,17 @@ void Storage::createContextMenu()
                 SLOT(consoleRelease()));
    connect(actionStatusStorageWindow, SIGNAL(triggered()), this,
                 SLOT(statusStorageWindow()));
+   connect(mp_treeWidget, SIGNAL(itemDoubleClicked(QTreeWidgetItem *, int)),
+           this, SLOT(contentWindow()));
+
+}
+
+void Storage::contentWindow()
+{
+   if (m_currentStorage != "" && m_currentAutoChanger) { 
+      QTreeWidgetItem *parentItem = mainWin->getFromHash(this);
+      new Content(m_currentStorage, parentItem);
+   }
 }
 
 /*

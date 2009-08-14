@@ -3,18 +3,33 @@
 # Run a backup of the Bacula build directory with some acls
 #   then restore it.
 #
-# The fs have to be mount with the acl option (mount -o remount,acl,user_xattr /tmp)
-# on ubuntu, it needs the attr package
+# Your filesystem must be mounted with the acl option (mount -o remount,acl,user_xattr /tmp)
+# on ubuntu, the attr package must be installed
 #
 # For this script to work, you will also need a number of acl packages loaded
 #   not default on Debian derivatives: 
 #   apt-get install acl libacl1 libacl1-dev attr
 #
-TestName="backup-acl-test"
+TestName="acl-xattr-test"
 JobName=backup
 . scripts/functions
 
 require_linux
+
+# Require getfacl to be installed
+getfacl Makefile 2>&1 >/dev/null
+if test  $? -ne 0; then
+  echo "$TestName skipped: getfacl not installed"
+  exit 0
+fi
+
+# Require getfattr to be installed
+getfattr -d Makefile 2>&1 >/dev/null
+if test $? -ne 0; then
+  echo "$TestName skipped: getfattr not installed"
+  exit 0
+fi
+
 scripts/cleanup
 scripts/copy-confs
 

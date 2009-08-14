@@ -69,7 +69,7 @@ int wait_for_sysop(DCR *dcr)
     */
    volume_unused(dcr);
 
-   unmounted = is_device_unmounted(dev);
+   unmounted = dev->is_device_unmounted();
    dev->poll = false;
    /*
     * Wait requested time (dev->rem_wait_sec).  However, we also wake up every
@@ -145,7 +145,7 @@ int wait_for_sysop(DCR *dcr)
       /*
        * Check if user unmounted the device while we were waiting
        */
-      unmounted = is_device_unmounted(dev);
+      unmounted = dev->is_device_unmounted();
 
       if (!unmounted && dev->vol_poll_interval &&
           (total_waited >= dev->vol_poll_interval)) {

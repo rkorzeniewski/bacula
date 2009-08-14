@@ -10,10 +10,17 @@ scripts/cleanup
 scripts/copy-strip-confs
 
 
-rm -rf /tmp/$$-strip
-mkdir /tmp/$$-strip
-cp -rpf ${cwd}/build/src/dird/ /tmp/$$-strip/
-echo "/tmp/$$-strip" >${cwd}/tmp/file-list
+# Make a copy of build/src/dird to be backed up
+rm -rf ${tmp}/$$-strip
+mkdir ${tmp}/$$-strip
+cp -rpf ${cwd}/build/src/dird/ ${tmp}/$$-strip/
+echo "${tmp}/$$-strip" >${cwd}/tmp/file-list
+
+# Now, strip the first 4 parts of the path (which is what
+#   the backup will do and put the result in rpath
+echo "${tmp}/$$-strip/" >${tmp}/1
+rpath=`cut -f5- -d'/' ${tmp}/1`
+echo "========= $rpath"
 
 change_jobname NightlySave $JobName
 start_test
@@ -34,6 +41,8 @@ END_OF_DATA
 
 
 run_bacula
+
+rm -rf ${cwd}/tmp/bacula-restores
 
 cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @$out /dev/null
@@ -58,16 +67,13 @@ stop_bacula
 
 check_two_logs
 #
-# Kludge remove this next line when strip is fixed
-#
-rm -rf tmp/bacula-restores/tmp
 if test "$debug" -eq 1 ; then
-   diff -ur /tmp/$$-strip/dird/ tmp/bacula-restores/
+   diff -ur ${tmp}/$$-strip/ ${tmp}/bacula-restores/${rpath}
 else 
-   diff -r /tmp/$$-strip/dird/ tmp/bacula-restores/ 2>&1 >/dev/null
+   diff -r ${tmp}/$$-strip/ ${tmp}/bacula-restores/${rpath} 2>&1 >/dev/null
 fi
 dstat=$?
 
-rm -rf /tmp/$$-strip
+rm -rf ${tmp}/$$-strip
 
 end_test

@@ -52,7 +52,7 @@ FORMS += medialist/medialist.ui mediaedit/mediaedit.ui joblist/joblist.ui
 FORMS += clients/clients.ui storage/storage.ui fileset/fileset.ui
 FORMS += joblog/joblog.ui jobs/jobs.ui job/job.ui
 FORMS += help/help.ui mediainfo/mediainfo.ui
-FORMS += status/dirstat.ui
+FORMS += status/dirstat.ui storage/content.ui
 FORMS += status/clientstat.ui
 FORMS += status/storstat.ui
 qwt {
@@ -114,6 +114,10 @@ SOURCES += clients/clients.cpp
 ## Storage
 HEADERS += storage/storage.h
 SOURCES += storage/storage.cpp
+
+## Storage content
+HEADERS += storage/content.h
+SOURCES += storage/content.cpp
 
 ## Fileset
 HEADERS += fileset/fileset.h
