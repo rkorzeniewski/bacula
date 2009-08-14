@@ -966,7 +966,6 @@ static bxattr_exit_code solaris_save_xattr(JCR *jcr, int fd, const char *xattr_n
       cnt = bsnprintf(buffer, sizeof(buffer), "%s%c%s%c%s%c",
                      target_attrname, 0, attribs, 0, (acl_text) ? acl_text : "", 0);
       break;
-
    case S_IFDIR:
       /*
        * Get any acl on the xattr.
@@ -1067,7 +1066,6 @@ static bxattr_exit_code solaris_save_xattr(JCR *jcr, int fd, const char *xattr_n
          }
       }
       break;
-
    case S_IFLNK:
       /*
        * The current implementation of xattr on Solaris doesn't support this, but if it ever does we are prepared.
@@ -1098,11 +1096,14 @@ static bxattr_exit_code solaris_save_xattr(JCR *jcr, int fd, const char *xattr_n
       jcr->xattr_data->content_length = cnt;
       retval = send_xattr_stream(jcr, stream);
 
+      if (retval == bxattr_exit_ok) {
+         jcr->xattr_data->nr_saved++;
+      }
+
       /*
        * For a soft linked file we are ready now, no need to recursively save the attributes.
        */
       goto bail_out;
-
    default:
       goto bail_out;
    }
@@ -1117,6 +1118,7 @@ static bxattr_exit_code solaris_save_xattr(JCR *jcr, int fd, const char *xattr_n
       if (retval != bxattr_exit_ok) {
          goto bail_out;
       }
+      jcr->xattr_data->nr_saved++;
    }
 
    pm_memcpy(jcr->xattr_data->content, buffer, cnt);
@@ -1159,7 +1161,9 @@ static bxattr_exit_code solaris_save_xattr(JCR *jcr, int fd, const char *xattr_n
 
    if (retval) {
       retval = send_xattr_stream(jcr, stream);
-      jcr->xattr_data->nr_saved++;
+      if (retval == bxattr_exit_ok) {
+         jcr->xattr_data->nr_saved++;
+      }
    }
 
    /*
@@ -1787,12 +1791,12 @@ static bxattr_exit_code solaris_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
     */
    if (pathconf(jcr->last_fname, _PC_XATTR_EXISTS) > 0) {
       jcr->xattr_data->nr_saved = 0;
+      jcr->xattr_data->link_cache = New(alist(10, not_owned_by_alist));
 
       /*
        * As we change the cwd in the save function save the current cwd
        * for restore after return from the solaris_save_xattrs function.
        */
-      jcr->xattr_data->link_cache = New(alist(10, not_owned_by_alist));
       getcwd(cwd, sizeof(cwd));
       retval = solaris_save_xattrs(jcr, NULL, NULL);
       chdir(cwd);
