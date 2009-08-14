@@ -45,7 +45,6 @@
 
 #include "bacula.h"
 #include "filed.h"
-#include "xattr.h"
 
 #if !defined(HAVE_XATTR)
 /*
@@ -75,8 +74,9 @@ static bxattr_exit_code send_xattr_stream(JCR *jcr, int stream)
    /*
     * Sanity check
     */
-   if (jcr->xattr_data_len <= 0)
+   if (jcr->xattr_data->content_length <= 0) {
       return bxattr_exit_ok;
+   }
 
    /*
     * Send header
@@ -90,10 +90,10 @@ static bxattr_exit_code send_xattr_stream(JCR *jcr, int stream)
    /*
     * Send the buffer to the storage deamon
     */
-   Dmsg1(400, "Backing up XATTR <%s>\n", jcr->xattr_data);
+   Dmsg1(400, "Backing up XATTR <%s>\n", jcr->xattr_data->content);
    msgsave = sd->msg;
-   sd->msg = jcr->xattr_data;
-   sd->msglen = jcr->xattr_data_len;
+   sd->msg = jcr->xattr_data->content;
+   sd->msglen = jcr->xattr_data->content_length;
    if (!sd->send()) {
       sd->msg = msgsave;
       sd->msglen = 0;
@@ -215,8 +215,8 @@ static uint32_t serialize_xattr_stream(JCR *jcr, uint32_t expected_serialize_len
     * Make sure the serialized stream fits in the poolmem buffer.
     * We allocate some more to be sure the stream is gonna fit.
     */
-   jcr->xattr_data = check_pool_memory_size(jcr->xattr_data, expected_serialize_len + 10);
-   ser_begin(jcr->xattr_data, expected_serialize_len + 10);
+   jcr->xattr_data->content = check_pool_memory_size(jcr->xattr_data->content, expected_serialize_len + 10);
+   ser_begin(jcr->xattr_data->content, expected_serialize_len + 10);
 
    /*
     * Walk the list of xattrs and serialize the data.
@@ -236,9 +236,9 @@ static uint32_t serialize_xattr_stream(JCR *jcr, uint32_t expected_serialize_len
       ser_bytes(current_xattr->value, current_xattr->value_length);
    }
 
-   ser_end(jcr->xattr_data, expected_serialize_len + 10);
-   jcr->xattr_data_len = ser_length(jcr->xattr_data);
-   return jcr->xattr_data_len;
+   ser_end(jcr->xattr_data->content, expected_serialize_len + 10);
+   jcr->xattr_data->content_length = ser_length(jcr->xattr_data->content);
+   return jcr->xattr_data->content_length;
 }
 
 static bxattr_exit_code generic_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
@@ -463,8 +463,8 @@ static bxattr_exit_code generic_xattr_parse_streams(JCR *jcr, int stream)
     * Start unserializing the data. We keep on looping while we have not
     * unserialized all bytes in the stream.
     */
-   unser_begin(jcr->xattr_data, jcr->xattr_data_len);
-   while (unser_length(jcr->xattr_data) < jcr->xattr_data_len) {
+   unser_begin(jcr->xattr_data->content, jcr->xattr_data->content_length);
+   while (unser_length(jcr->xattr_data->content) < jcr->xattr_data->content_length) {
       /*
        * First make sure the magic is present. This way we can easily catch corruption.
        * Any missing MAGIC is fatal we do NOT try to continue.
@@ -532,7 +532,7 @@ static bxattr_exit_code generic_xattr_parse_streams(JCR *jcr, int stream)
       free(current_xattr.value);
    }
 
-   unser_end(jcr->xattr_data, jcr->xattr_data_len);
+   unser_end(jcr->xattr_data->content, jcr->xattr_data->content_length);
    return retval;
 }
 
@@ -655,7 +655,7 @@ static xattr_link_cache_entry_t *find_xattr_link_cache_entry(JCR *jcr, ino_t inu
 {
    xattr_link_cache_entry_t *ptr;
 
-   foreach_alist(ptr, jcr->xpd->xattr_link_cache) {
+   foreach_alist(ptr, jcr->xattr_data->link_cache) {
       if (ptr && ptr->inum == inum) {
          return ptr;
       }
@@ -671,7 +671,19 @@ static void add_xattr_link_cache_entry(JCR *jcr, ino_t inum, char *target)
    memset((caddr_t)ptr, 0, sizeof(xattr_link_cache_entry_t));
    ptr->inum = inum;
    bstrncpy(ptr->target, target, sizeof(ptr->target));
-   jcr->xpd->xattr_link_cache->append(ptr);
+   jcr->xattr_data->link_cache->append(ptr);
+}
+
+static void flush_xattr_link_cache(JCR *jcr)
+{
+   xattr_link_cache_entry_t *ptr;
+
+   foreach_alist(ptr, jcr->xattr_data->link_cache) {
+      if (ptr && ptr->target) {
+         free(ptr->target);
+      }
+   }
+>>>>>>> Add all acl and xattr related variables which are either global or already part of the JCR:bacula/src/filed/xattr.c
 }
 
 #if defined(HAVE_SYS_NVPAIR_H) && defined(_PC_SATTR_ENABLED)
@@ -968,15 +980,17 @@ static bxattr_exit_code solaris_save_xattr(JCR *jcr, int fd, const char *xattr_n
        */
       if (toplevel_hidden_dir) {
          /*
-          * Save the data for later storage when we encounter a real xattr.
-          * Encode the stat struct into an ASCII representation and jump out of the function.
+          * Save the data for later storage when we encounter a real xattr. We store the data
+          * in the jcr->xattr_data->content buffer and flush that just before sending out the
+          * first real xattr. Encode the stat struct into an ASCII representation and jump
+          * out of the function.
           */
          encode_stat(attribs, &st, 0, stream);
-         jcr->xpd->toplevel_hidden_dir_xattr_data_len = bsnprintf(jcr->xpd->toplevel_hidden_dir_xattr_data,
-                                                                  sizeof(jcr->xpd->toplevel_hidden_dir_xattr_data),
-                                                                  "%s%c%s%c%s%c",
-                                                                  target_attrname, 0, attribs, 0,
-                                                                  (acl_text) ? acl_text : "", 0);
+         cnt = bsnprintf(buffer, sizeof(buffer),
+                         "%s%c%s%c%s%c",
+                         target_attrname, 0, attribs, 0, (acl_text) ? acl_text : "", 0);
+         pm_memcpy(jcr->xattr_data->content, buffer, cnt);
+         jcr->xattr_data->content_length = cnt;
          goto bail_out;
       } else {
          /*
@@ -1005,8 +1019,8 @@ static bxattr_exit_code solaris_save_xattr(JCR *jcr, int fd, const char *xattr_n
             cnt = bsnprintf(buffer, sizeof(buffer),
                             "%s%c%s%c%s%c",
                             target_attrname, 0, attribs, 0, xlce->target, 0);
-            pm_memcpy(jcr->xattr_data, buffer, cnt);
-            jcr->xattr_data_len = cnt;
+            pm_memcpy(jcr->xattr_data->content, buffer, cnt);
+            jcr->xattr_data->content_length = cnt;
             retval = send_xattr_stream(jcr, stream);
 
             /*
@@ -1081,8 +1095,8 @@ static bxattr_exit_code solaris_save_xattr(JCR *jcr, int fd, const char *xattr_n
       cnt = bsnprintf(buffer, sizeof(buffer),
                       "%s%c%s%c%s%c",
                       target_attrname, 0, attribs, 0, link_source, 0);
-      pm_memcpy(jcr->xattr_data, buffer, cnt);
-      jcr->xattr_data_len = cnt;
+      pm_memcpy(jcr->xattr_data->content, buffer, cnt);
+      jcr->xattr_data->content_length = cnt;
       retval = send_xattr_stream(jcr, stream);
 
       /*
@@ -1097,16 +1111,17 @@ static bxattr_exit_code solaris_save_xattr(JCR *jcr, int fd, const char *xattr_n
    /*
     * See if this is the first real xattr being saved.
     * If it is save the toplevel_hidden_dir attributes first.
+    * This is easy as its stored already in the jcr->xattr_data->content buffer.
     */
-   if (jcr->xpd->nr_xattr_saved == 0) {
-      pm_memcpy(jcr->xattr_data, jcr->xpd->toplevel_hidden_dir_xattr_data,
-                jcr->xpd->toplevel_hidden_dir_xattr_data_len);
-      jcr->xattr_data_len = jcr->xpd->toplevel_hidden_dir_xattr_data_len;
+   if (jcr->xattr_data->nr_saved == 0) {
       retval = send_xattr_stream(jcr, STREAM_XATTR_SOLARIS);
+      if (retval != bxattr_exit_ok) {
+         goto bail_out;
+      }
    }
 
-   pm_memcpy(jcr->xattr_data, buffer, cnt);
-   jcr->xattr_data_len = cnt;
+   pm_memcpy(jcr->xattr_data->content, buffer, cnt);
+   jcr->xattr_data->content_length = cnt;
 
    /*
     * Only dump the content of regular files.
@@ -1124,9 +1139,9 @@ static bxattr_exit_code solaris_save_xattr(JCR *jcr, int fd, const char *xattr_n
          }
 
          while ((cnt = read(attrfd, buffer, sizeof(buffer))) > 0) {
-            jcr->xattr_data = check_pool_memory_size(jcr->xattr_data, jcr->xattr_data_len + cnt);
-            memcpy(jcr->xattr_data + jcr->xattr_data_len, buffer, cnt);
-            jcr->xattr_data_len += cnt;
+            jcr->xattr_data->content = check_pool_memory_size(jcr->xattr_data->content, jcr->xattr_data->content_length + cnt);
+            memcpy(jcr->xattr_data->content + jcr->xattr_data->content_length, buffer, cnt);
+            jcr->xattr_data->content_length += cnt;
          }
 
          if (cnt < 0) {
@@ -1145,7 +1160,7 @@ static bxattr_exit_code solaris_save_xattr(JCR *jcr, int fd, const char *xattr_n
 
    if (retval) {
       retval = send_xattr_stream(jcr, stream);
-      jcr->xpd->nr_xattr_saved++;
+      jcr->xattr_data->nr_saved++;
    }
 
    /*
@@ -1429,16 +1444,16 @@ static bxattr_exit_code solaris_restore_xattrs(JCR *jcr, bool is_extensible)
     * Parse the xattr stream. First the part that is the same for all xattrs.
     */
    used_bytes = 0;
-   total_bytes = jcr->xattr_data_len;
+   total_bytes = jcr->xattr_data->content_length;
 
    /*
     * The name of the target xattr has a leading / we are not interested
     * in that so skip it when decoding the string. We always start a the /
     * of the xattr space anyway.
     */
-   target_attrname = jcr->xattr_data + 1;
+   target_attrname = jcr->xattr_data->content + 1;
    if ((bp = strchr(target_attrname, '\0')) == (char *)NULL ||
-       (used_bytes = (bp - jcr->xattr_data)) >= (total_bytes - 1)) {
+       (used_bytes = (bp - jcr->xattr_data->content)) >= (total_bytes - 1)) {
       goto parse_error;
    }
    attribs = ++bp;
@@ -1529,7 +1544,7 @@ static bxattr_exit_code solaris_restore_xattrs(JCR *jcr, bool is_extensible)
     * Decode the next field (acl_text).
     */
    if ((bp = strchr(attribs, '\0')) == (char *)NULL ||
-       (used_bytes = (bp - jcr->xattr_data)) >= (total_bytes - 1)) {
+       (used_bytes = (bp - jcr->xattr_data->content)) >= (total_bytes - 1)) {
       goto parse_error;
    }
    acl_text = ++bp;
@@ -1606,7 +1621,7 @@ static bxattr_exit_code solaris_restore_xattrs(JCR *jcr, bool is_extensible)
          goto bail_out;
       } else {
          if ((bp = strchr(acl_text, '\0')) == (char *)NULL ||
-             (used_bytes = (bp - jcr->xattr_data)) >= total_bytes) {
+             (used_bytes = (bp - jcr->xattr_data->content)) >= total_bytes) {
             goto parse_error;
          }
 
@@ -1633,7 +1648,7 @@ static bxattr_exit_code solaris_restore_xattrs(JCR *jcr, bool is_extensible)
        * Restore the actual data.
        */
       if (st.st_size > 0) {
-         used_bytes = (data - jcr->xattr_data);
+         used_bytes = (data - jcr->xattr_data->content);
          cnt = total_bytes - used_bytes;
 
          /*
@@ -1772,21 +1787,19 @@ static bxattr_exit_code solaris_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
     * If not just pretend things went ok.
     */
    if (pathconf(jcr->last_fname, _PC_XATTR_EXISTS) > 0) {
-      jcr->xpd = (xattr_private_data_t *)malloc(sizeof(xattr_private_data_t));
-      memset((caddr_t)jcr->xpd, 0, sizeof(xattr_private_data_t));
-      jcr->xpd->xattr_link_cache = New(alist(10, not_owned_by_alist));
+      jcr->xattr_data->nr_saved = 0;
 
       /*
        * As we change the cwd in the save function save the current cwd
        * for restore after return from the solaris_save_xattrs function.
        */
+      jcr->xattr_data->link_cache = New(alist(10, not_owned_by_alist));
       getcwd(cwd, sizeof(cwd));
       retval = solaris_save_xattrs(jcr, NULL, NULL);
       chdir(cwd);
-      delete jcr->xpd->xattr_link_cache;
-      jcr->xpd->xattr_link_cache = NULL;
-      free(jcr->xpd);
-      jcr->xpd = NULL;
+      flush_xattr_link_cache(jcr);
+      delete jcr->xattr_data->link_cache;
+      jcr->xattr_data->link_cache = NULL;
    }
    return retval;
 }

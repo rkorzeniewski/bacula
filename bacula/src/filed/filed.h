@@ -66,6 +66,8 @@ typedef enum {
 #include "filed_conf.h"
 #include "fd_plugins.h"
 #include "findlib/find.h"
+#include "acl.h"
+#include "xattr.h"
 #include "jcr.h"
 #include "protos.h"                   /* file daemon prototypes */
 #include "lib/runscript.h"

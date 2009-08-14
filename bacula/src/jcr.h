@@ -152,6 +152,8 @@ struct xattr_private_data_t;
 
 #ifdef FILE_DAEMON
 class htable;
+struct acl_data_t;
+struct xattr_data_t;
 
 struct CRYPTO_CTX {
    bool pki_sign;                     /* Enable PKI Signatures? */
@@ -348,13 +350,8 @@ public:
    /* File Daemon specific part of JCR */
    uint32_t num_files_examined;       /* files examined this job */
    POOLMEM *last_fname;               /* last file saved/verified */
-   POOLMEM *acl_data;                 /* data with ACLs for backup/restore */
-   uint32_t acl_data_len;             /* length of acl data buffer */
-   uint32_t total_acl_errors;         /* numbers of errors encountered for acl backup/restore */
-   xattr_private_data_t *xpd;         /* private data for xattr saving */
-   POOLMEM *xattr_data;               /* data with Extended Attributes for backup/restore */
-   uint32_t xattr_data_len;           /* length of xattr_data buffer */
-   uint32_t total_xattr_errors;       /* numbers of errors encountered for xattr backup/restore */
+   acl_data_t *acl_data;              /* ACLs for backup/restore */
+   xattr_data_t *xattr_data;          /* Extended Attributes for backup/restore */
    int32_t last_type;                 /* type of last file saved/verified */
    int incremental;                   /* set if incremental for SINCE */
    utime_t mtime;                     /* begin time for SINCE */
