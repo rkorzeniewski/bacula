@@ -733,54 +733,9 @@ bail_out:
    set_jcr_job_status(jcr, JS_ErrorTerminated);
 
 ok_out:
-   /* Free Signature & Crypto Data */
-   free_signature(rctx);
-   free_session(rctx);
-   if (jcr->crypto.digest) {
-      crypto_digest_free(jcr->crypto.digest);
-      jcr->crypto.digest = NULL;
-   }
-
-   /* Free file cipher restore context */
-   if (rctx.cipher_ctx.cipher) {
-      crypto_cipher_free(rctx.cipher_ctx.cipher);
-      rctx.cipher_ctx.cipher = NULL;
-   }
-   if (rctx.cipher_ctx.buf) {
-      free_pool_memory(rctx.cipher_ctx.buf);
-      rctx.cipher_ctx.buf = NULL;
-   }
-
-   /* Free alternate stream cipher restore context */
-   if (rctx.fork_cipher_ctx.cipher) {
-      crypto_cipher_free(rctx.fork_cipher_ctx.cipher);
-      rctx.fork_cipher_ctx.cipher = NULL;
-   }
-   if (rctx.fork_cipher_ctx.buf) {
-      free_pool_memory(rctx.fork_cipher_ctx.buf);
-      rctx.fork_cipher_ctx.buf = NULL;
-   }
-
-   if (jcr->compress_buf) {
-      free(jcr->compress_buf);
-      jcr->compress_buf = NULL;
-      jcr->compress_buf_size = 0;
-   }
-
-   if (have_xattr && jcr->xattr_data) {
-      free_pool_memory(jcr->xattr_data->content);
-      free(jcr->xattr_data);
-      jcr->xattr_data = NULL;
-   }
-   if (have_acl && jcr->acl_data) {
-      free_pool_memory(jcr->acl_data->content);
-      free(jcr->acl_data);
-      jcr->acl_data = NULL;
-   }
-
-   bclose(&rctx.forkbfd);
-   bclose(&rctx.bfd);
-   free_attr(rctx.attr);
+   /*
+    * First output the statistics.
+    */
    Dmsg2(10, "End Do Restore. Files=%d Bytes=%s\n", jcr->JobFiles,
       edit_uint64(jcr->JobBytes, ec1));
    if (jcr->acl_data->nr_errors > 0) {
@@ -811,6 +766,62 @@ ok_out:
       Jmsg(jcr, M_INFO, 0, _("%d non-supported xattr streams ignored.\n"), non_support_xattr);
    }
 
+   /*
+    * Free Signature & Crypto Data
+    */
+   free_signature(rctx);
+   free_session(rctx);
+   if (jcr->crypto.digest) {
+      crypto_digest_free(jcr->crypto.digest);
+      jcr->crypto.digest = NULL;
+   }
+
+   /*
+    * Free file cipher restore context
+    */
+   if (rctx.cipher_ctx.cipher) {
+      crypto_cipher_free(rctx.cipher_ctx.cipher);
+      rctx.cipher_ctx.cipher = NULL;
+   }
+
+   if (rctx.cipher_ctx.buf) {
+      free_pool_memory(rctx.cipher_ctx.buf);
+      rctx.cipher_ctx.buf = NULL;
+   }
+
+   /*
+    * Free alternate stream cipher restore context
+    */
+   if (rctx.fork_cipher_ctx.cipher) {
+      crypto_cipher_free(rctx.fork_cipher_ctx.cipher);
+      rctx.fork_cipher_ctx.cipher = NULL;
+   }
+   if (rctx.fork_cipher_ctx.buf) {
+      free_pool_memory(rctx.fork_cipher_ctx.buf);
+      rctx.fork_cipher_ctx.buf = NULL;
+   }
+
+   if (jcr->compress_buf) {
+      free(jcr->compress_buf);
+      jcr->compress_buf = NULL;
+      jcr->compress_buf_size = 0;
+   }
+
+   if (have_acl && jcr->acl_data) {
+      free_pool_memory(jcr->acl_data->content);
+      free(jcr->acl_data);
+      jcr->acl_data = NULL;
+   }
+
+   if (have_xattr && jcr->xattr_data) {
+      free_pool_memory(jcr->xattr_data->content);
+      free(jcr->xattr_data);
+      jcr->xattr_data = NULL;
+   }
+
+   bclose(&rctx.forkbfd);
+   bclose(&rctx.bfd);
+   free_attr(rctx.attr);
 }
 
 #ifdef HAVE_LIBZ
