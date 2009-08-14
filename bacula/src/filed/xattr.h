@@ -55,20 +55,14 @@ struct xattr_link_cache_entry_t {
 };
 
 /*
- * Private data structure for threadsafe save of xattrs.
- * For now its mostly for storing the solaris specific private data.
+ * Internal tracking data.
  */
-struct xattr_private_data_t {
-   /*
-    * This is the count of xattrs saved on a certain file, it gets reset
-    * on each new file processed and is used to see if we need to send
-    * the hidden xattr dir data. We only send that data when we encounter
-    * an other xattr on the file.
-    */
-   int nr_xattr_saved;
-   char toplevel_hidden_dir_xattr_data[MAXSTRING];
-   int toplevel_hidden_dir_xattr_data_len;
-   alist *xattr_link_cache;
+struct xattr_data_t {
+   POOLMEM *content;
+   uint32_t content_length;
+   uint32_t nr_errors;
+   uint32_t nr_saved;
+   alist *link_cache;
 };
 
 /*
