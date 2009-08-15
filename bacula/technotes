@@ -3,7 +3,11 @@
 General:
 
 15Aug09
+kes  Modify acquire alogrithm so jobs do not block during despooling
+     This can give significantly more parallelism
 ebl  Fix couple of segfault with new ACL/XATTR code
+kes  Apply Marco's branch with jcr structure cleanup
+kes  Apply Marco's branch with new acl/xattr code
 13Aug09
 ebl  update lock manager to display file:line all the time
 kes  Make SD lock tracing work again. Has not worked for some time.
