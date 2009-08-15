@@ -2,6 +2,8 @@
           
 General:
 
+15Aug09
+ebl  Fix couple of segfault with new ACL/XATTR code
 13Aug09
 ebl  update lock manager to display file:line all the time
 kes  Make SD lock tracing work again. Has not worked for some time.

@@ -158,11 +158,11 @@ bool blast_data_to_storage_daemon(JCR *jcr, char *addr)
       set_jcr_job_status(jcr, JS_ErrorTerminated);
    }
 
-   if (jcr->acl_data->nr_errors > 0) {
+   if (have_acl && jcr->acl_data->nr_errors > 0) {
       Jmsg(jcr, M_ERROR, 0, _("Encountered %ld acl errors while doing backup\n"),
            jcr->acl_data->nr_errors);
    }
-   if (jcr->xattr_data->nr_errors > 0) {
+   if (have_xattr && jcr->xattr_data->nr_errors > 0) {
       Jmsg(jcr, M_ERROR, 0, _("Encountered %ld xattr errors while doing backup\n"),
            jcr->xattr_data->nr_errors);
    }
