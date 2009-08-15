@@ -256,6 +256,12 @@ init_dev(JCR *jcr, DEVRES *device)
       Mmsg1(dev->errmsg, _("Unable to init mutex: ERR=%s\n"), be.bstrerror(errstat));
       Jmsg0(jcr, M_ERROR_TERM, 0, dev->errmsg);
    }
+   if ((errstat = pthread_mutex_init(&dev->acquire_mutex, NULL)) != 0) {
+      berrno be;
+      dev->dev_errno = errstat;
+      Mmsg1(dev->errmsg, _("Unable to init mutex: ERR=%s\n"), be.bstrerror(errstat));
+      Jmsg0(jcr, M_ERROR_TERM, 0, dev->errmsg);
+   }
 #ifdef xxx
    if ((errstat = rwl_init(&dev->lock)) != 0) {
       berrno be;
