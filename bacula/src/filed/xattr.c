@@ -674,17 +674,6 @@ static void add_xattr_link_cache_entry(JCR *jcr, ino_t inum, char *target)
    jcr->xattr_data->link_cache->append(ptr);
 }
 
-static void flush_xattr_link_cache(JCR *jcr)
-{
-   xattr_link_cache_entry_t *ptr;
-
-   foreach_alist(ptr, jcr->xattr_data->link_cache) {
-      if (ptr && ptr->target) {
-         free(ptr->target);
-      }
-   }
-}
-
 #if defined(HAVE_SYS_NVPAIR_H) && defined(_PC_SATTR_ENABLED)
 /*
  * This function returns true if a non default extended system attribute
@@ -1800,7 +1789,6 @@ static bxattr_exit_code solaris_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
       getcwd(cwd, sizeof(cwd));
       retval = solaris_save_xattrs(jcr, NULL, NULL);
       chdir(cwd);
-      flush_xattr_link_cache(jcr);
       delete jcr->xattr_data->link_cache;
       jcr->xattr_data->link_cache = NULL;
    }
