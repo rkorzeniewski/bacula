@@ -8,10 +8,8 @@
 #  This test the SD Virtual autochanger feature.  It is a disk based
 #    "autochanger", but does not use any changer script.
 #
-# This script uses the Virtual disk autochanger and two drives
-#
-TestName="virtual-changer-disk"
-JobName="virtualchangerdisk"
+TestName="virtual-changer-test"
+JobName="virtualchangertest"
 . scripts/functions
 
 scripts/cleanup
