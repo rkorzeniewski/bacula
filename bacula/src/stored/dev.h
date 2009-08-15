@@ -211,17 +211,18 @@ private:
    int m_fd;                          /* file descriptor */
    int m_blocked;                     /* set if we must wait (i.e. change tape) */
    int m_count;                       /* Mutex use count -- DEBUG only */
+   int m_num_reserved;                /* counter of device reservations */
+   int32_t m_slot;                    /* slot loaded in drive or -1 if none */ 
    pthread_t m_pid;                   /* Thread that locked -- DEBUG only */
    bool m_unload;                     /* set when Volume must be unloaded */
    bool m_load;                       /* set when Volume must be loaded */
-   int m_num_reserved;                /* counter of device reservations */
-   int32_t m_slot;                    /* slot loaded in drive or -1 if none */ 
 
 public:
    DEVICE * volatile swap_dev;        /* Swap vol from this device */
    dlist *attached_dcrs;              /* attached DCR list */
    pthread_mutex_t m_mutex;           /* access control */
    pthread_mutex_t spool_mutex;       /* mutex for updating spool_size */
+   pthread_mutex_t acquire_mutex;     /* mutex for acquire code */
    pthread_cond_t wait;               /* thread wait variable */
    pthread_cond_t wait_next_vol;      /* wait for tape to be mounted */
    pthread_t no_wait_id;              /* this thread must not wait */
@@ -443,12 +444,12 @@ public:
     * Locking and blocking calls
     */
 #ifdef  SD_DEBUG_LOCK
-   void _r_dlock(const char *, int);      /* in lock.c */
+   void _r_dlock(const char *, int, bool locked=false);      /* in lock.c */
    void _r_dunlock(const char *, int);    /* in lock.c */
    void _dlock(const char *, int);        /* in lock.c */
    void _dunlock(const char *, int);      /* in lock.c */
 #else
-   void r_dlock();                        /* in lock.c */
+   void r_dlock(bool locked=false);                        /* in lock.c */
    void r_dunlock() { dunlock(); }
    void dlock() { P(m_mutex); } 
    void dunlock() { V(m_mutex); } 
