@@ -8,6 +8,16 @@
 #  This test the SD Virtual autochanger feature.  It is a disk based
 #    "autochanger", but does not use any changer script.
 #
+#  Note, because we limit each drive to a maximum of 3 jobs,
+#  the first three start on Drive-0, and the second three start
+#  on drive-1 (Prefer Mounted Volumes = no).  Thus since there
+#  is only one Volume (TestVolume001) that is valid, three jobs
+#  block and ask the user to create a new volume.  However, at some
+#  point, the first three jobs finish and free up TestVolum001, and
+#  Since we set a poll interval of 15 seconds, after a short wait
+#  TestVolume001 will be mounted on drive-1 and the job will
+#  complete.  This tests a good number of things.
+#
 TestName="virtual-changer-test"
 JobName="virtualchangertest"
 . scripts/functions
