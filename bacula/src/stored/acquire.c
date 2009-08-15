@@ -333,8 +333,6 @@ get_out:
    return ok;
 }
 
-static pthread_mutex_t acquire_lock = PTHREAD_MUTEX_INITIALIZER;
-
 /*
  * Acquire device for writing. We permit multiple writers.
  *  If this is the first one, we read the label.
@@ -353,7 +351,7 @@ DCR *acquire_device_for_append(DCR *dcr)
 
    init_device_wait_timers(dcr);
 
-   P(acquire_lock);                   /* only one job at a time */
+   P(dev->acquire_mutex);           /* only one job at a time */
    dev->dlock();
    Dmsg1(100, "acquire_append device is %s\n", dev->is_tape()?"tape":
         (dev->is_dvd()?"DVD":"disk"));
@@ -423,7 +421,7 @@ DCR *acquire_device_for_append(DCR *dcr)
 get_out:
    dcr->clear_reserved();
    dev->dunlock();
-   V(acquire_lock);
+   V(dev->acquire_mutex);
    return ok ? dcr : NULL;
 }
 
