@@ -1,3 +1,6 @@
+15Aug09
+ebl  Add fullname parameter to btime in order to debug
+     regress script.
 04Aug09
 ebl  Document bweb+lighttpd that should permit to use bweb
      in 2 lines of shell.

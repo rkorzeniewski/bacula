@@ -52,7 +52,7 @@ $bweb->can_do('r_view_stat');
 
 my $arg = $bweb->get_form(qw/qnocache qiso_begin qiso_end qusage qpools 
 			     qpoolusage qnojob jclient_groups qbypool
-			     db_client_groups qclient_groups/);
+                             qfullname db_client_groups qclient_groups/);
 my ($filter1, undef) = $bweb->get_param('pool');
 
 if (!$arg->{qiso_begin}) {
@@ -124,11 +124,13 @@ my %regs_fr = (
 	    end_spool2 => ': Transfert des donn',
 	    );
 
+my $name = ($arg->{qfullname}) ? 'Job' : 'Name';
+
 my $filter = join(" OR ", 
 		  map { "Log.LogText $bweb->{sql}->{MATCH} '$_'" } values %regs);
 
 my $query = "
-SELECT " . $bweb->dbh_strcat('Job.Name', "'_'", 'Job.Level') . ",
+SELECT " . $bweb->dbh_strcat("Job.$name", "'_'", 'Job.Level') . ",
        $sec,
        substring(Log.LogText from 8 for 70),
        Job.JobId,
@@ -206,7 +208,7 @@ foreach my $elt (@$all)
 	# on connait le temps de despool
 	my $t = $1*60*60+ $2*60 + $3;
 
-	if ($t > 10) {		# en dessous de 10s on affiche pas
+	if ($t > 3) {		# en dessous de 3s on affiche pas
 	    push @$data, {	# temps d'attente du drive
 #		l => $elt->[2],
 		type  => "waiting",
