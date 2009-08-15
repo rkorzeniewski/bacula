@@ -59,6 +59,7 @@ public:
    void undockPage();
    void togglePageDocking();
    bool isDocked();
+   bool isOnceDocked();
    bool isCloseable();
    QTabWidget *m_parent;
    QList<QAction*> m_contextActions;
@@ -91,6 +92,7 @@ protected:
    void setTitle();
    bool m_closeable;
    bool m_docked;
+   bool m_onceDocked;
    Console *m_console;
    QString m_name;
 };
