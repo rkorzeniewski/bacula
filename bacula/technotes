@@ -2,6 +2,8 @@
           
 General:
 
+19Aug09
+kes  Ensure timestamp put in SQL log
 15Aug09
 kes  Modify acquire alogrithm so jobs do not block during despooling
      This can give significantly more parallelism
