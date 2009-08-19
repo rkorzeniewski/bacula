@@ -58,6 +58,7 @@ static char *configfile = NULL;
 int main(int argc, char *argv[])
 {
    int ch;
+   int rc;
    bool no_signals = true;
    bool test_config = false;
 
@@ -158,7 +159,9 @@ int main(int argc, char *argv[])
    mainWin = new MainWin;
    mainWin->show();
 
-   return app->exec();
+   rc = app->exec();
+// sm_dump(false);
+   return rc;
 }
 
 void terminate_console(int /*sig*/)
