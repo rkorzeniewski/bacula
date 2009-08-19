@@ -27,7 +27,7 @@ fi
 if [ ! -f $BWEBBASE/bweb.conf ]; then
     echo "Making configuration template in $BWEBBASE/bweb.conf"
     cat > $BWEBBASE/bweb.conf <<EOF
-\$VAR1 = { template_dir => '$PWD/lang',
+\$VAR1 = { template_dir => '$BWEBBASE/lang',
            bconsole => 'bconsole -n',
            fv_write_path => '/tmp/',
  };
