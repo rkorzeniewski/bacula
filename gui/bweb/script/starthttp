@@ -13,6 +13,9 @@ elif [ -f $PWD/../html/bweb.js ]; then
 elif [ -f $BASE/html/bweb.js ]; then
     BWEBBASE=$BASE
 
+elif [ -f $BASE/../html/bweb.js ]; then
+    BWEBBASE=$(cd $BASE; dirname $(pwd))
+
 else
     echo "Can't determine bweb installation directory"
     exit 1
