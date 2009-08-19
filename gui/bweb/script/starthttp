@@ -21,12 +21,6 @@ else
     exit 1
 fi
 
-grep /etc/bacula/bweb.conf $BWEBBASE/lib/Bweb.pm > /dev/null
-if [ $? -eq 0 ]; then
-    echo "Adjusting bweb.conf path"
-    sed -i~ "s:/etc/bacula/bweb.conf:$BWEBBASE/bweb.conf:" $BWEBBASE/lib/Bweb.pm
-fi
-
 if [ ! -f $BWEBBASE/bweb.conf ]; then
     echo "Making configuration template in $BWEBBASE/bweb.conf"
     cat > $BWEBBASE/bweb.conf <<EOF
@@ -42,6 +36,7 @@ port=$(awk '/port/ { print $3 }' $BWEBBASE/script/httpd.conf)
 
 echo "Using bweb on $BWEBBASE,  use firefox http://$host:$port"
 export BWEBBASE
+export BWEBCONF=$BWEBBASE/bweb.conf
 
 if [ x$1 = x -o x$1 = xstart ]; then
     lighttpd -f $BWEBBASE/script/httpd.conf
