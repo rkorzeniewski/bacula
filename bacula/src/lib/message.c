@@ -624,6 +624,7 @@ void dispatch_message(JCR *jcr, int type, utime_t mtime, char *msg)
     if (mtime == 1) {
        *dt = 0;
        dtlen = 0;
+       mtime = time(NULL);      /* get time for SQL log */
     } else {
        bstrftime_ny(dt, sizeof(dt), mtime);
        dtlen = strlen(dt);
