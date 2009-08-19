@@ -69,6 +69,7 @@ Bweb works well with 2.0 release or later.
 ################# USE LIGHTTPD WITH BWEB #######################
 
 In this example, bweb files are in /home/bacula/bweb
+You should have installed lighttpd.
 
 bacula:~$ cd bweb
 
