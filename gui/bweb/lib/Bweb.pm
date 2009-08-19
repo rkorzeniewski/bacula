@@ -1279,7 +1279,7 @@ use base q/Bweb::Gui/;
 use DBI;
 use POSIX qw/strftime/;
 
-our $config_file='/etc/bacula/bweb.conf';
+our $config_file='./bweb/bweb.conf';
 our $cur_id=0;
 
 =head1 VARIABLE

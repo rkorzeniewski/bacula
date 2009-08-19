@@ -64,7 +64,8 @@ use Digest::MD5 qw(md5_hex);
 my $md5_rep = md5_hex("$arg->{qiso_begin}:$arg->{qiso_end}:$arg->{qusage}:" . 
 		      "$arg->{jclient_groups}:$arg->{qpoolusage};$arg->{qnojob}") ;
 
-if (   !$arg->{qnocache} 
+if ( 0 
+    &&  !$arg->{qnocache} 
     && $arg->{qiso_begin} 
     && -f "$conf->{fv_write_path}/$md5_rep.png") 
 {

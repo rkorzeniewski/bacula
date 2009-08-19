@@ -10,7 +10,7 @@
      <tr><td>__DBI:__</td>     
          <td> 
           <input class="formulaire" 
-title='DBI:Pg:database=bacula;host=yourhost  or  DBI:Mysql:database=bacula   or...' 
+title='DBI:Pg:database=bacula;host=yourhost  or  DBI:mysql:database=bacula   or...' 
                  type='text' value='<TMPL_VAR dbi>' size='64' name='dbi'> 
          </td>
      </tr>

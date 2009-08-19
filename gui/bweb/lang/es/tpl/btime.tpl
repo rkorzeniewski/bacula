@@ -42,6 +42,9 @@
       <input type='checkbox' 
              <TMPL_IF qbypool>checked</TMPL_IF> 
              name="bypool"> Order by Pool<br/>
+      <input type='checkbox' 
+             <TMPL_IF qfullname>checked</TMPL_IF> 
+             name="fullname"> Use Job name<br/>
 <TMPL_IF db_client_groups>
 <tr>
   <td valign='top'>
@@ -92,12 +95,12 @@
     <h2>Tiempo</h2>
     <select name='age' class='formulaire'>
       <option id='age_604800'   value='604800'>Esta Semana</option>
-      <option id='age_2678400'  value='2678400'>Ãšltimos 30 dÃ­as</option>
-      <option id='age_15552000' value='15552000'>Ãšltimos 6 meses</option>
+      <option id='age_2678400'  value='2678400'>Últimos 30 días</option>
+      <option id='age_15552000' value='15552000'>Últimos 6 meses</option>
     </select>     
   </td>
   <td  valign='top'>
-    <h2>TamaÃ±o</h2>
+    <h2>Tamaño</h2>
      Ancho: &nbsp;<input class='formulaire' type='text' 
 			 name='width' value='<TMPL_VAR width>' size='4'><br/>
      Alto:  <input type='text' class='formulaire' 

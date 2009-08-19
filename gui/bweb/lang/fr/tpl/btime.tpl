@@ -42,6 +42,9 @@
       <input type='checkbox' 
              <TMPL_IF qbypool>checked</TMPL_IF> 
              name="bypool"> Order by Pool<br/>
+      <input type='checkbox' 
+             <TMPL_IF qfullname>checked</TMPL_IF> 
+             name="fullname"> Use Job name<br/>
 <TMPL_IF db_client_groups>
 <tr>
   <td valign='top'>
@@ -57,7 +60,7 @@
 <TMPL_IF db_pools>
 <tr>
   <td valign='top'>
-    <h2>Pools de mÃ©dia</h2>
+    <h2>Pools de média</h2>
     <select name='pool' size='10' class='formulaire' multiple>
 <TMPL_LOOP db_pools>
 	<option id= 'pool_<TMPL_VAR name>'><TMPL_VAR name></option>
@@ -89,7 +92,7 @@
 </tr>
 <tr>
   <td valign='top'>
-    <h2>PÃ©riode</h2>
+    <h2>Période</h2>
     <select name='age' class='formulaire'>
       <option id='age_604800'   value='604800'>Cette semaine</option>
       <option id='age_2678400'  value='2678400'>30 derniers jours</option>
@@ -139,7 +142,7 @@
  Current &nbsp;
  </div>
  <div class="otherbox">
- <img src='<TMPL_VAR result>' alt='Rien n a afficher, essayer avec une autre pÃ©riode'>
+ <img src='<TMPL_VAR result>' alt='Rien n a afficher, essayer avec une autre période'>
  </div>
 
 </td>
