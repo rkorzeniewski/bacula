@@ -1123,6 +1123,7 @@ void status_slots(UAContext *ua, STORE *store_r)
          if (!db_get_pool_record(ua->jcr, ua->db, &pr)) {
             strcpy(pr.Name, "?");
          }
+         db_unlock(ua->db);
 
          if (ua->api) {
             ua->send_msg(slot_api_full_format,
@@ -1138,7 +1139,6 @@ void status_slots(UAContext *ua, STORE *store_r)
                          mr.VolumeName, mr.VolStatus, mr.MediaType, pr.Name);
          }
 
-         db_unlock(ua->db);
          continue;
       } else {                  /* TODO: get information from catalog  */
          if (ua->api) {
