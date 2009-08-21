@@ -68,13 +68,14 @@ public:
    int32_t msglen;                    /* message length */
    volatile time_t timer_start;       /* time started read/write */
    volatile time_t timeout;           /* timeout BSOCK after this interval */
-   struct sockaddr client_addr;       /* client's IP address */
-   struct sockaddr_in peer_addr;      /* peer's IP address */
    int m_fd;                          /* socket file descriptor */
    int b_errno;                       /* bsock errno */
    int m_blocking;                    /* blocking state (0 = nonblocking, 1 = blocking) */
    volatile int errors;               /* incremented for each error on socket */
    volatile bool m_suppress_error_msgs; /* set to suppress error messages */
+
+   struct sockaddr client_addr;       /* client's IP address */
+   struct sockaddr_in peer_addr;      /* peer's IP address */
 
 private:
    BSOCK *m_next;                     /* next BSOCK if duped */
