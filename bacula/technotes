@@ -3,6 +3,8 @@
 General:
 
 21Aug09
+ebl  Tweak status storage slot command to release db lock just
+     after the usage.
 kes  Rework the bsock.h class to put public structures last
 20Aug09
 kes  Integrate patch for building dmg on OSX from Lorenz Schori <lo@znerol.ch>
