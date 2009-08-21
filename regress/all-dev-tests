@@ -5,14 +5,12 @@
 #
 echo " "
 echo " " >>test.out
-echo "Start non-root disk tests"
-echo "Start non-root disk tests" >>test.out
+echo "Start sample non-root disk tests"
+echo "Start sample non-root disk tests" >>test.out
 nice tests/acl-xattr-test
 nice tests/auto-label-test
 nice tests/backup-bacula-test
 nice tests/bextract-test
-nice tests/bscan-test
-nice tests/bsr-opt-test
 nice tests/compressed-test
 nice tests/compress-encrypt-test
 nice tests/concurrent-jobs-test
@@ -31,13 +29,9 @@ nice tests/recycle-test
 nice tests/restore2-by-file-test
 nice tests/restore-by-file-test
 nice tests/restore-disk-seek-test
-nice tests/runscript-test
 nice tests/next-vol-test
-nice tests/sparse-test
 nice tests/strip-test
-nice tests/two-jobs-test
 nice tests/two-vol-test
-nice tests/verify-cat-test
 nice tests/verify-vol-test
 nice tests/weird-files2-test
 nice tests/weird-files-test
@@ -45,31 +39,22 @@ nice tests/migration-job-test
 nice tests/multi-storage-test
 nice tests/hardlink-test
 nice tests/tls-test
-nice tests/virtual-changer-test
 nice tests/virtual-backup-test
-echo "End non-root disk tests"
-echo "End non-root disk tests" >>test.out
+echo "End sample non-root disk tests"
+echo "End sample non-root disk tests" >>test.out
 
 # 
 # The following are Disk Autochanger tests
 echo " "
 echo " " >>test.out
-echo "Start non-root virtual disk autochanger tests"
-echo "Start non-root virtual disk autochanger tests" >>test.out
+echo "Start sample non-root disk autochanger tests"
+echo "Start sample non-root disk autochanger tests" >>test.out
 #nice tests/three-pool-recycle-test
-nice tests/two-pool-test
 nice tests/fast-two-pool-test
 nice tests/two-volume-test
-nice tests/incremental-2disk
-nice tests/2drive-incremental-2disk
-nice tests/scratch-pool-test
-nice tests/scratchpool-pool-test
 nice tests/2drive-concurrent-test
 nice tests/incremental-2media
-nice tests/three-pool-test
 nice tests/2drive-3pool-test
 nice tests/2drive-swap-test
-# Turn back on after next_vol.c bug is fixed
-#  nice tests/next-vol-test
-echo "End non-root virtual disk autochanger tests"
-echo "End non-root virtual disk autochanger tests" >>test.out
+echo "End sample non-root disk autochanger tests"
+echo "End sample non-root disk autochanger tests" >>test.out
