@@ -2,6 +2,9 @@
           
 General:
 
+22Aug09
+kes  Don't print different filesystem. Will not descend 
+     message if directory explicitly excluded
 21Aug09
 ebl  Tweak status storage slot command to release db lock just
      after the usage.
