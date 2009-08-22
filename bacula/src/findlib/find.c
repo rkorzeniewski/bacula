@@ -238,18 +238,16 @@ bool is_in_fileset(FF_PKT *ff)
             }
          }
       }
-#ifdef xxx
       for (i=0; i<fileset->exclude_list.size(); i++) {
          incexe = (findINCEXE *)fileset->exclude_list.get(i);
          foreach_dlist(node, &incexe->name_list) {
             fname = node->c_str();
-            Dmsg2(000, "Exc fname=%s ff->fname=%s\n", fname, ff->fname);
+            Dmsg2(100, "Exc fname=%s ff->fname=%s\n", fname, ff->fname);
             if (strcmp(fname, ff->fname) == 0) {
                return true;
             }
          }
       }
-#endif
    }
    return false;
 }
