@@ -3,6 +3,7 @@
 General:
 
 23Aug09
+ebl  Simplify the code to make TableWidget in read-only
 kes  Free Volume in several places. Fixes virtual-changer problem
      and possibly bug #1346.
 kes  Add SD Volume debug code
