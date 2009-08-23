@@ -254,15 +254,5 @@ void MediaInfo::populateForm()
    tableJob->verticalHeader()->hide();
 
    /* make read only */
-   int rcnt = tableJob->rowCount();
-   int ccnt = tableJob->columnCount();
-   for(int r=0; r < rcnt; r++) {
-      for(int c=0; c < ccnt; c++) {
-         QTableWidgetItem* item = tableJob->item(r, c);
-         if (item) {
-            item->setFlags(Qt::ItemFlags(item->flags() & (~Qt::ItemIsEditable)));
-         }
-      }
-   }
-
+   tableJob->setEditTriggers(QAbstractItemView::NoEditTriggers);
 }

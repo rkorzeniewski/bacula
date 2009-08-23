@@ -231,16 +231,7 @@ void JobList::populateTable()
    }
 
    /* make read only */
-   int rcnt = mp_tableWidget->rowCount();
-   int ccnt = mp_tableWidget->columnCount();
-   for(int r=0; r < rcnt; r++) {
-      for(int c=0; c < ccnt; c++) {
-         QTableWidgetItem* item = mp_tableWidget->item(r, c);
-         if (item) {
-            item->setFlags(Qt::ItemFlags(item->flags() & (~Qt::ItemIsEditable)));
-         }
-      }
-   }
+   m_tableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);
 }
 
 void JobList::prepareFilterWidgets()
