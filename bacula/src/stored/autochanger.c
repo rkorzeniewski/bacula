@@ -427,8 +427,8 @@ static bool unload_other_drive(DCR *dcr, int slot)
       break;
    }
    if (dev->is_busy()) {
-      Jmsg(dcr->jcr, M_WARNING, 0, _("Volume \"%s\" is in use by device %s\n"),
-           dcr->VolumeName, dev->print_name());
+      Jmsg(dcr->jcr, M_WARNING, 0, _("Volume \"%s\" wanted on %s is in use by device %s\n"),
+           dcr->VolumeName, dcr->dev->print_name(), dev->print_name());
       Dmsg4(100, "Vol %s for dev=%s is busy dev=%s slot=%d\n",
            dcr->VolumeName, dcr->dev->print_name(), dev->print_name(), dev->get_slot());
       Dmsg2(100, "num_writ=%d reserv=%d\n", dev->num_writers, dev->num_reserved());
