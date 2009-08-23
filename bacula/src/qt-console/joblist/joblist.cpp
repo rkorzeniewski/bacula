@@ -231,7 +231,7 @@ void JobList::populateTable()
    }
 
    /* make read only */
-   m_tableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);
+   mp_tableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);
 }
 
 void JobList::prepareFilterWidgets()
