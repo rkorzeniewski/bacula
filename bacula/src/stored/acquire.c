@@ -245,7 +245,8 @@ bool acquire_device_for_read(DCR *dcr)
          }
          goto default_path;
       case VOL_NAME_ERROR:
-         Dmsg0(50, "Vol name error.\n");
+         Dmsg3(50, "Vol name=%s want=%s drv=%s.\n", dev->VolHdr.VolumeName, 
+               dcr->VolumeName, dev->print_name());
          if (dev->is_volume_to_unload()) {
             goto default_path;
          }
@@ -253,6 +254,7 @@ bool acquire_device_for_read(DCR *dcr)
          if (!unload_autochanger(dcr, -1)) {
             /* at least free the device so we can re-open with correct volume */
             dev->close();                                                          
+            free_volume(dev);
          }
          dev->set_load();
          /* Fall through */
@@ -267,6 +269,7 @@ default_path:
           */
          if (dev->requires_mount()) {
             dev->close();
+            free_volume(dev);
          }
          
          /* Call autochanger only once unless ask_sysop called */
@@ -511,6 +514,7 @@ bool release_device(DCR *dcr)
    if (dev->num_writers == 0 && (!dev->is_tape() || !dev->has_cap(CAP_ALWAYSOPEN))) {
       dvd_remove_empty_part(dcr);        /* get rid of any empty spool part */
       dev->close();
+      free_volume(dev);
    }
 
    /* Fire off Alert command and include any output */

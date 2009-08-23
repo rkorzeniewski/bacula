@@ -145,6 +145,7 @@ mount_next_vol:
       autochanger = false;
       VolCatInfo.Slot = 0;
       ask = retry >= 2;
+      do_find = true;           /* do find_a_volume if we retry */
    }
    Dmsg1(150, "autoload_dev returns %d\n", autochanger);
    /*
@@ -180,6 +181,7 @@ mount_next_vol:
 
    if (dev->poll && dev->has_cap(CAP_CLOSEONPOLL)) {
       dev->close();
+      free_volume(dev);
    }
 
    /* Ensure the device is open */
@@ -474,6 +476,7 @@ int DCR::check_volume_label(bool &ask, bool &autochanger)
       /* Needed, so the medium can be changed */
       if (dev->requires_mount()) {
          dev->close();
+         free_volume(dev);
       }
       goto check_next_volume;
    }
@@ -544,6 +547,12 @@ void DCR::do_swapping(bool is_writing)
          Dmsg1(100, "=== set in_use vol=%s\n", dev->vol->vol_name);
          dev->vol->set_in_use();
          dev->VolHdr.VolumeName[0] = 0;  /* don't yet have right Volume */
+      } else {
+         Dmsg1(100, "No vol on dev=%s\n", dev->print_name());
+      }
+      if (dev->swap_dev->vol) {
+         Dmsg2(100, "Vol=%s on dev=%s\n", dev->swap_dev->vol->vol_name,
+              dev->swap_dev->print_name());
       }
       dev->swap_dev = NULL;
    }
