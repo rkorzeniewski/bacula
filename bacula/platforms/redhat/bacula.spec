@@ -1441,6 +1441,8 @@ echo "The database update scripts were installed to %{script_dir}/updatedb"
 %endif
 
 %changelog
+* Mon Aug 10 2009 Philipp Storz <philipp.storz@dass-it.de>
+- changes to work with opensuse build service
 * Sat Jun 20 2009 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - Fix bat install which is now handled by make and uses shared libs
 * Sat May 16 2009 D. Scott Barninger <barninger@fairfieldcomputers.com>
