@@ -10,8 +10,11 @@ JobName=backup
 $rscripts/cleanup
 
 copy_test_confs
-sed 's/backup_advance/base_backup/' $rscripts/bacula-dir.conf.accurate > $tmp/1
-sed 's/Name = backup/Name = backup; Base = base_backup, backup/' $tmp/1 > $conf/bacula-dir.conf
+echo 's/backup_advance/base_backup/' > $tmp/s
+echo 's/Name = backup/Name = backup; Base = base_backup, backup/' >> $tmp/s
+sed -f $tmp/s $rscripts/bacula-dir.conf.accurate > $conf/bacula-dir.conf
+rm -f $tmp/s
+
 sed s/all,/all,saved,/ $conf/bacula-fd.conf > tmp/1
 cp tmp/1 $conf/bacula-fd.conf
 

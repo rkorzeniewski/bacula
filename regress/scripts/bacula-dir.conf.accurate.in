@@ -41,7 +41,9 @@ FileSet {
  Name = FS_TESTJOB
  Include {
    Options {
+    Signature = MD5
     Verify = mc
+    Accurate = mcs5
    }
    File=<@tmpdir@/file-list
  }
@@ -51,6 +53,7 @@ FileSet {
  Name = FS_TESTJOB2
  Include {
    Options {
+    Signature = MD5
     Verify = mc
     strippath=1
    }
@@ -62,6 +65,7 @@ FileSet {
  Name = FS_TESTJOB_ADVANCE
  Include {
    Options {
+    Signature = MD5
     Verify = mcpgu
    }
    File=<@tmpdir@/file-list

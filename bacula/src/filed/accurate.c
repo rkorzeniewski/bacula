@@ -39,6 +39,7 @@ typedef struct PrivateCurFile {
    hlink link;
    char *fname;
    char *lstat;
+   char *chksum;
    bool seen;
 } CurFile;
 
@@ -197,7 +198,8 @@ bool accurate_finish(JCR *jcr)
    return ret;
 }
 
-static bool accurate_add_file(JCR *jcr, char *fname, char *lstat)
+static bool accurate_add_file(JCR *jcr, uint32_t len, 
+                              char *fname, char *lstat, char *chksum)
 {
    bool ret = true;
    CurFile elt;
@@ -205,15 +207,21 @@ static bool accurate_add_file(JCR *jcr, char *fname, char *lstat)
 
    CurFile *item;
    /* we store CurFile, fname and ctime/mtime in the same chunk */
-   item = (CurFile *)jcr->file_list->hash_malloc(sizeof(CurFile)+strlen(fname)+strlen(lstat)+2);
+   item = (CurFile *)jcr->file_list->hash_malloc(sizeof(CurFile)+len+3);
    memcpy(item, &elt, sizeof(CurFile));
+
    item->fname  = (char *)item+sizeof(CurFile);
    strcpy(item->fname, fname);
+
    item->lstat  = item->fname+strlen(item->fname)+1;
    strcpy(item->lstat, lstat);
+
+   item->chksum = item->lstat+strlen(item->lstat)+1;
+   strcpy(item->chksum, chksum);
+
    jcr->file_list->insert(item->fname, item); 
 
-   Dmsg2(dbglvl, "add fname=<%s> lstat=%s\n", fname, lstat);
+   Dmsg3(dbglvl, "add fname=<%s> lstat=%s chksum=%s\n", fname, lstat, chksum);
    return ret;
 }
 
@@ -228,6 +236,9 @@ static bool accurate_add_file(JCR *jcr, char *fname, char *lstat)
  */
 bool accurate_check_file(JCR *jcr, FF_PKT *ff_pkt)
 {
+   int digest_stream = STREAM_NONE;
+   DIGEST *digest = NULL;
+
    struct stat statc;
    int32_t LinkFIc;
    bool stat = false;
@@ -259,12 +270,11 @@ bool accurate_check_file(JCR *jcr, FF_PKT *ff_pkt)
 
    decode_stat(elt.lstat, &statc, &LinkFIc); /* decode catalog stat */
 
-//#if 0
    /*
     * Loop over options supplied by user and verify the
     * fields he requests.
     */
-   for (char *p=ff_pkt->AccurateOpts; *p; p++) {
+   for (char *p=ff_pkt->AccurateOpts; !stat && *p; p++) {
       char ed1[30], ed2[30];
       switch (*p) {
       case 'i':                /* compare INODEs */
@@ -323,7 +333,7 @@ bool accurate_check_file(JCR *jcr, FF_PKT *ff_pkt)
             stat = true;
          }
          break;
-      case 'm':
+      case 'm':                 /* modification time */
          if (statc.st_mtime != ff_pkt->statp.st_mtime) {
             Dmsg1(dbglvl-1, "%s      st_mtime differs\n", fname);
             stat = true;
@@ -331,7 +341,7 @@ bool accurate_check_file(JCR *jcr, FF_PKT *ff_pkt)
          break;
       case 'c':                /* ctime */
          if (statc.st_ctime != ff_pkt->statp.st_ctime) {
-            Dmsg1(dbglvl-1, "      st_ctime differs\n", fname);
+            Dmsg1(dbglvl-1, "%s      st_ctime differs\n", fname);
             stat = true;
          }
          break;
@@ -344,39 +354,85 @@ bool accurate_check_file(JCR *jcr, FF_PKT *ff_pkt)
             stat = true;
          }
          break;
+
+      /* TODO: cleanup and factorise this function with verify.c */
       case '5':                /* compare MD5 */
-         break;
       case '1':                 /* compare SHA1 */
+        /*
+          * The remainder of the function is all about getting the checksum.
+          * First we initialise, then we read files, other streams and Finder Info.
+          */
+         if (!stat && *elt.chksum && ff_pkt->type != FT_LNKSAVED && 
+             (S_ISREG(ff_pkt->statp.st_mode) && 
+              ff_pkt->flags & (FO_MD5|FO_SHA1|FO_SHA256|FO_SHA512))) 
+         {
+            /*
+             * Create our digest context. If this fails, the digest will be set to NULL
+             * and not used.
+             */
+            if (ff_pkt->flags & FO_MD5) {
+               digest = crypto_digest_new(jcr, CRYPTO_DIGEST_MD5);
+               digest_stream = STREAM_MD5_DIGEST;
+               
+            } else if (ff_pkt->flags & FO_SHA1) {
+               digest = crypto_digest_new(jcr, CRYPTO_DIGEST_SHA1);
+               digest_stream = STREAM_SHA1_DIGEST;
+               
+            } else if (ff_pkt->flags & FO_SHA256) {
+               digest = crypto_digest_new(jcr, CRYPTO_DIGEST_SHA256);
+               digest_stream = STREAM_SHA256_DIGEST;
+               
+            } else if (ff_pkt->flags & FO_SHA512) {
+               digest = crypto_digest_new(jcr, CRYPTO_DIGEST_SHA512);
+               digest_stream = STREAM_SHA512_DIGEST;
+            }
+            
+            /* Did digest initialization fail? */
+            if (digest_stream != STREAM_NONE && digest == NULL) {
+               Jmsg(jcr, M_WARNING, 0, _("%s digest initialization failed\n"),
+                    stream_to_ascii(digest_stream));
+            }
+
+            /* compute MD5 or SHA1 hash */
+            if (digest) {
+               char md[CRYPTO_DIGEST_MAX_SIZE];
+               uint32_t size;
+               
+               size = sizeof(md);
+               
+               if (digest_file(jcr, ff_pkt, digest) != 0) {
+                  jcr->JobErrors++;
+
+               } else if (crypto_digest_finalize(digest, (uint8_t *)md, &size)) {
+                  char *digest_buf;
+                  const char *digest_name;
+                  
+                  digest_buf = (char *)malloc(BASE64_SIZE(size));
+                  digest_name = crypto_digest_name(digest);
+                  
+                  bin_to_base64(digest_buf, BASE64_SIZE(size), md, size, true);
+
+                  if (strcmp(digest_buf, elt.chksum)) {
+                     Dmsg3(dbglvl-1, "%s      chksum  diff. Cat: %s File: %s\n",
+                           fname,
+                           elt.chksum,
+                           digest_buf);
+                     stat = true;
+                  }
+                  
+                  free(digest_buf);
+               }
+               crypto_digest_free(digest);
+            }
+         }
+
          break;
       case ':':
       case 'C':
       default:
          break;
-            }
+      }
    }
-//#endif
-#if 0
-   /*
-    * We check only mtime/ctime like with the normal
-    * incremental/differential mode
-    */
-   if (statc.st_mtime != ff_pkt->statp.st_mtime) {
-//   Jmsg(jcr, M_SAVED, 0, _("%s      st_mtime differs\n"), fname);
-      Dmsg3(dbglvl, "%s      st_mtime differs (%lld!=%lld)\n", 
-            fname, statc.st_mtime, (utime_t)ff_pkt->statp.st_mtime);
-     stat = true;
-   } else if (!(ff_pkt->flags & FO_MTIMEONLY) 
-              && (statc.st_ctime != ff_pkt->statp.st_ctime)) {
-//   Jmsg(jcr, M_SAVED, 0, _("%s      st_ctime differs\n"), fname);
-      Dmsg1(dbglvl, "%s      st_ctime differs\n", fname);
-      stat = true;
-
-   } else if (statc.st_size != ff_pkt->statp.st_size) {
-//   Jmsg(jcr, M_SAVED, 0, _("%s      st_size differs\n"), fname);
-      Dmsg1(dbglvl, "%s      st_size differs\n", fname);
-      stat = true;
-   }
-#endif
 
    /* In Incr/Diff accurate mode, we mark all files as seen
     * When in Full+Base mode, we mark only if the file match exactly
@@ -402,7 +458,7 @@ bail_out:
 int accurate_cmd(JCR *jcr)
 {
    BSOCK *dir = jcr->dir_bsock;
-   int len;
+   int lstat_pos, chksum_pos;
    int32_t nb;
 
    if (job_canceled(jcr)) {
@@ -419,13 +475,26 @@ int accurate_cmd(JCR *jcr)
 
    /*
     * buffer = sizeof(CurFile) + dirmsg
-    * dirmsg = fname + \0 + lstat
+    * dirmsg = fname + \0 + lstat + \0 + checksum + \0
     */
    /* get current files */
    while (dir->recv() >= 0) {
-      len = strlen(dir->msg) + 1;
-      if (len < dir->msglen) {
-         accurate_add_file(jcr, dir->msg, dir->msg + len);
+      lstat_pos = strlen(dir->msg) + 1;
+      if (lstat_pos < dir->msglen) {
+         chksum_pos = lstat_pos + strlen(dir->msg + lstat_pos) + 1;
+
+         Dmsg3(dbglvl, "len=%i lstat_pos=%i chksum_pos=%i\n", 
+               (uint32_t) dir->msglen,
+               (uint32_t) lstat_pos, (uint32_t) chksum_pos);
+
+         if (chksum_pos >= dir->msglen) {
+            chksum_pos = lstat_pos - 1;       /* no checksum, point to the last \0 */
+         } 
+
+         accurate_add_file(jcr, dir->msglen, 
+                           dir->msg,               /* Path */
+                           dir->msg + lstat_pos,   /* LStat */
+                           dir->msg + chksum_pos); /* CheckSum */
       }
    }
 
