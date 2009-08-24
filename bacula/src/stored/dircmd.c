@@ -814,6 +814,7 @@ static bool unmount_cmd(JCR *jcr)
             if (!unload_autochanger(dcr, -1)) {
                /* ***FIXME**** what is this ????  */
                dev->close();
+               free_volume(dev);
             }
             if (dev->is_unmountable() && !dev->unmount(0)) {
                dir->fsend(_("3907 %s"), dev->bstrerror());
@@ -845,6 +846,7 @@ static bool unmount_cmd(JCR *jcr)
             clear_thread_id(dev->no_wait_id);
             if (!unload_autochanger(dcr, -1)) {
                dev->close();
+               free_volume(dev);
             }
             if (dev->is_unmountable() && !dev->unmount(0)) {
                dir->fsend(_("3907 %s"), dev->bstrerror());

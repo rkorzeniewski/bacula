@@ -101,7 +101,7 @@ void DirStat::timerTriggered()
    if (value == 0) {
       value = spinBox->value();
       bool iscurrent = mainWin->tabWidget->currentIndex() == mainWin->tabWidget->indexOf(this);
-      if (((isDocked() && iscurrent) || (!isDocked())) && (checkBox->checkState() == Qt::Checked)) {
+      if (((isDocked() && iscurrent) || ((!isDocked()) && isOnceDocked())) && (checkBox->checkState() == Qt::Checked)) {
          populateAll();
       }
    }

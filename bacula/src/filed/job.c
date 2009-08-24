@@ -148,7 +148,7 @@ static char errmsg[]      = "2999 Invalid command\n";
 static char no_auth[]     = "2998 No Authorization\n";
 static char invalid_cmd[] = "2997 Invalid command for a Director with Monitor directive enabled.\n";
 static char OKinc[]       = "2000 OK include\n";
-static char OKest[]       = "2000 OK estimate files=%u bytes=%s\n";
+static char OKest[]       = "2000 OK estimate files=%s bytes=%s\n";
 static char OKlevel[]     = "2000 OK level\n";
 static char OKbackup[]    = "2000 OK backup\n";
 static char OKbootstrap[] = "2000 OK bootstrap\n";
@@ -456,7 +456,7 @@ static int setdebug_cmd(JCR *jcr)
 static int estimate_cmd(JCR *jcr)
 {
    BSOCK *dir = jcr->dir_bsock;
-   char ed2[50];
+   char ed1[50], ed2[50];
 
    if (sscanf(dir->msg, estimatecmd, &jcr->listing) != 1) {
       pm_strcpy(jcr->errmsg, dir->msg);
@@ -465,7 +465,7 @@ static int estimate_cmd(JCR *jcr)
       return 0;
    }
    make_estimate(jcr);
-   dir->fsend(OKest, jcr->num_files_examined,
+   dir->fsend(OKest, edit_uint64_with_commas(jcr->num_files_examined, ed1),
       edit_uint64_with_commas(jcr->JobBytes, ed2));
    dir->signal(BNET_EOD);
    return 1;

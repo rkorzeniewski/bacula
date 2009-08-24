@@ -206,17 +206,19 @@ void DEVICE::_r_dunlock(const char *file, int line)
  * and preparing the label.
  */
 #ifdef SD_DEBUG_LOCK
-void DEVICE::_r_dlock(const char *file, int line)
+void DEVICE::_r_dlock(const char *file, int line, bool locked)
 {
    Dmsg3(sd_dbglvl+1, "r_dlock blked=%s from %s:%d\n", this->print_blocked(),
          file, line);
 #else
-void DEVICE::r_dlock()
+void DEVICE::r_dlock(bool locked)
 {
 #endif
    int stat;
-   P(m_mutex); /*    this->dlock();   */
-   m_count++;  /*    this->dlock() */
+   if (!locked) {
+      P(m_mutex); /*    this->dlock();   */
+      m_count++;  /*    this->dlock() */
+   }
    if (this->blocked() && !pthread_equal(this->no_wait_id, pthread_self())) {
       this->num_waiting++;             /* indicate that I am waiting */
       while (this->blocked()) {

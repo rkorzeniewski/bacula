@@ -264,7 +264,7 @@ bool do_append_data(JCR *jcr)
       job_elapsed = 1;
    }
 
-   Jmsg(dcr->jcr, M_INFO, 0, _("Job write elapsed time = %02d:%02d:%02d, Transfer rate = %s bytes/second\n"),
+   Jmsg(dcr->jcr, M_INFO, 0, _("Job write elapsed time = %02d:%02d:%02d, Transfer rate = %s Bytes/second\n"),
          job_elapsed / 3600, job_elapsed % 3600 / 60, job_elapsed % 60,
          edit_uint64_with_suffix(jcr->JobBytes / job_elapsed, ec));
 
@@ -277,7 +277,7 @@ bool do_append_data(JCR *jcr)
     */
    if (ok || dev->can_write()) {
       if (!write_session_label(dcr, EOS_LABEL)) {
-         Jmsg1(jcr, M_FATAL, 0, _("Error writting end session label. ERR=%s\n"),
+         Jmsg1(jcr, M_FATAL, 0, _("Error writing end session label. ERR=%s\n"),
                dev->bstrerror());
          set_jcr_job_status(jcr, JS_ErrorTerminated);
          ok = false;

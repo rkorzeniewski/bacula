@@ -87,10 +87,10 @@ void Pages::dockPage()
 
    /* Set docked flag */
    m_docked = true;
+   m_onceDocked = true;
    mainWin->tabWidget->setCurrentWidget(this);
    /* lets set the page selectors action for docking or undocking */
    setContextMenuDockText();
-
 }
 
 /*
@@ -139,6 +139,17 @@ bool Pages::isDocked()
 {
    return m_docked;
 }
+
+/*
+ * This function is because after the tabbed widget was added I could not tell
+ * from is docked if it had been docked yet.  To prevent status pages from requesting
+ * status from the director
+ */
+bool Pages::isOnceDocked()
+{
+   return m_onceDocked;
+}
+
 
 /*
  * To keep m_closeable protected as well
@@ -221,6 +232,7 @@ void Pages::pgInitialize(const QString &name)
 void Pages::pgInitialize(const QString &tname, QTreeWidgetItem *parentTreeWidgetItem)
 {
    m_docked = false;
+   m_onceDocked = false;
    if (tname.size()) {
       m_name = tname;
    }

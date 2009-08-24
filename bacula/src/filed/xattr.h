@@ -55,6 +55,17 @@ struct xattr_link_cache_entry_t {
 };
 
 /*
+ * Internal tracking data.
+ */
+struct xattr_data_t {
+   POOLMEM *content;
+   uint32_t content_length;
+   uint32_t nr_errors;
+   uint32_t nr_saved;
+   alist *link_cache;
+};
+
+/*
  * Maximum size of the XATTR stream this prevents us from blowing up the filed.
  */
 #define MAX_XATTR_STREAM  (1 * 1024 * 1024) /* 1 Mb */

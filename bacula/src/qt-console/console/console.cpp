@@ -50,6 +50,10 @@ Console::Console(QTabWidget *parent)
    m_console = this;
    m_warningPrevent = false;
    m_dircommCounter = 0;
+
+   /* 
+    * Create a connection to the Director and put it in a hash table
+    */
    m_dircommHash.insert(m_dircommCounter, new DirComm(this, m_dircommCounter));
 
    setupUi(this);
