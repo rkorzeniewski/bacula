@@ -57,8 +57,6 @@ static BQUEUE db_list = {&db_list, &db_list};
 
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
-int QueryDB(const char *file, int line, JCR *jcr, B_DB *db, char *select_cmd);
-
 /*
  * Retrieve database type
  */
