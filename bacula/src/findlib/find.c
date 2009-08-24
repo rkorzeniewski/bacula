@@ -175,7 +175,7 @@ find_files(JCR *jcr, FF_PKT *ff, int file_save(JCR *jcr, FF_PKT *ff_pkt, bool to
       ff->flags = 0;
       ff->VerifyOpts[0] = 'V';
       ff->VerifyOpts[1] = 0;
-      strcpy(ff->AccurateOpts, "C:mc"); /* mtime+ctime by default */
+      strcpy(ff->AccurateOpts, "C:mcs"); /* mtime+ctime+size by default */
       for (i=0; i<fileset->include_list.size(); i++) {
          findINCEXE *incexe = (findINCEXE *)fileset->include_list.get(i);
          fileset->incexe = incexe;

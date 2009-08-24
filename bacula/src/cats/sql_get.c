@@ -1044,10 +1044,12 @@ bool db_get_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
 }
 
 /*
- * Find the last "accurate" backup state (that can take deleted files in account)
+ * Find the last "accurate" backup state (that can take deleted files in
+ * account)
  * 1) Get all files with jobid in list (F subquery)
  *    Get all files in BaseFiles with jobid in list
- * 2) Take only the last version of each file (Temp subquery) => accurate list is ok
+ * 2) Take only the last version of each file (Temp subquery) => accurate list
+ *    is ok
  * 3) Join the result to file table to get fileindex, jobid and lstat information
  *
  * TODO: See if we can do the SORT only if needed (as an argument)
@@ -1066,7 +1068,8 @@ bool db_get_file_list(JCR *jcr, B_DB *mdb, char *jobids,
 #define new_db_get_file_list
 #ifdef new_db_get_file_list
    Mmsg(buf,
- "SELECT Path.Path, Filename.Name, File.FileIndex, File.JobId, File.LStat "
+ "SELECT Path.Path, Filename.Name, File.FileIndex, File.JobId, "
+        "File.LStat, File.MD5 "
  "FROM ( "
   "SELECT max(FileId) as FileId, PathId, FilenameId "
     "FROM (SELECT FileId, PathId, FilenameId FROM File WHERE JobId IN (%s) "
@@ -1214,7 +1217,7 @@ bool db_get_base_file_list(JCR *jcr, B_DB *mdb,
    POOL_MEM buf(PM_MESSAGE);
          
    Mmsg(buf,
- "SELECT Path, Name, FileIndex, JobId, LStat "
+ "SELECT Path, Name, FileIndex, JobId, LStat, MD5 "
    "FROM new_basefile%lld ORDER BY JobId, FileIndex ASC",
         (uint64_t) jcr->JobId);
 
