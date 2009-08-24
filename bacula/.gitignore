@@ -1329,3 +1329,7 @@ updatedb/update_sqlite_tables_9_to_10
 /rescue/solaris/1
 /rescue/solaris/bacula-fd
 /rescue/solaris/bacula-fd.conf
+platforms/osx/build
+platforms/osx/dl
+platforms/osx/products
+platforms/osx/tools
