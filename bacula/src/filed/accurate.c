@@ -483,12 +483,8 @@ int accurate_cmd(JCR *jcr)
       if (lstat_pos < dir->msglen) {
          chksum_pos = lstat_pos + strlen(dir->msg + lstat_pos) + 1;
 
-         Dmsg3(dbglvl, "len=%i lstat_pos=%i chksum_pos=%i\n", 
-               (uint32_t) dir->msglen,
-               (uint32_t) lstat_pos, (uint32_t) chksum_pos);
-
          if (chksum_pos >= dir->msglen) {
-            chksum_pos = lstat_pos - 1;       /* no checksum, point to the last \0 */
+            chksum_pos = lstat_pos - 1;    /* tweak: no checksum, point to the last \0 */
          } 
 
          accurate_add_file(jcr, dir->msglen, 
