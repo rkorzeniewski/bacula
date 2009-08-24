@@ -2,6 +2,18 @@
           
 General:
 
+24Aug09
+kes  Confirmation of procedure suggested for upgrading from SQLite2
+     to SQLite3.  This fixes bug #1351.  Procedure is:
+     echo ".dump" | sqlite bacula.db >bacula.sql
+     mv bacula.db bacula.db.old
+     sed -i -e 's%INTEGER UNSIGNED AUTOINCREMENT,%INTEGER,%g' bacula.sql
+     (note: the above only works on Linux systems. On some systems
+      the -i option is not available. Adapt as necessary)
+     sqlite3 bacula.db
+     .quit
+     sqlite3 bacula.db <bacula.sql
+     rm -f bacula.sql
 23Aug09
 ebl  Run job when double-click in Jobs list item
 ebl  Simplify the code to make TableWidget in read-only
