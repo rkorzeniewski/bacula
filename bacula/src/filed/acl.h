@@ -69,4 +69,13 @@ typedef enum {
 #define BACL_ENOTSUP          ENOTSUP
 #endif
 
+/*
+ * Internal tracking data.
+ */
+struct acl_data_t {
+   POOLMEM *content;
+   uint32_t content_length;
+   uint32_t nr_errors;
+};
+
 #endif

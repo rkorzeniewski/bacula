@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2002-2008 Free Software Foundation Europe e.V.
+   Copyright (C) 2002-2009 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -245,7 +245,8 @@ bool acquire_device_for_read(DCR *dcr)
          }
          goto default_path;
       case VOL_NAME_ERROR:
-         Dmsg0(50, "Vol name error.\n");
+         Dmsg3(50, "Vol name=%s want=%s drv=%s.\n", dev->VolHdr.VolumeName, 
+               dcr->VolumeName, dev->print_name());
          if (dev->is_volume_to_unload()) {
             goto default_path;
          }
@@ -253,6 +254,7 @@ bool acquire_device_for_read(DCR *dcr)
          if (!unload_autochanger(dcr, -1)) {
             /* at least free the device so we can re-open with correct volume */
             dev->close();                                                          
+            free_volume(dev);
          }
          dev->set_load();
          /* Fall through */
@@ -267,6 +269,7 @@ default_path:
           */
          if (dev->requires_mount()) {
             dev->close();
+            free_volume(dev);
          }
          
          /* Call autochanger only once unless ask_sysop called */
@@ -333,7 +336,6 @@ get_out:
    return ok;
 }
 
-
 /*
  * Acquire device for writing. We permit multiple writers.
  *  If this is the first one, we read the label.
@@ -352,7 +354,8 @@ DCR *acquire_device_for_append(DCR *dcr)
 
    init_device_wait_timers(dcr);
 
-   dev->dblock(BST_DOING_ACQUIRE);
+   P(dev->acquire_mutex);           /* only one job at a time */
+   dev->dlock();
    Dmsg1(100, "acquire_append device is %s\n", dev->is_tape()?"tape":
         (dev->is_dvd()?"DVD":"disk"));
 
@@ -386,6 +389,9 @@ DCR *acquire_device_for_append(DCR *dcr)
    }
 
    if (!have_vol) {
+      dev->r_dlock(true);
+      block_device(dev, BST_DOING_ACQUIRE);
+      dev->dunlock();
       Dmsg1(190, "jid=%u Do mount_next_write_vol\n", (uint32_t)jcr->JobId);
       if (!dcr->mount_next_write_volume()) {
          if (!job_canceled(jcr)) {
@@ -395,9 +401,13 @@ DCR *acquire_device_for_append(DCR *dcr)
             Dmsg1(200, "Could not ready device %s for append.\n", 
                dev->print_name());
          }
+         dev->dlock();
+         unblock_device(dev);
          goto get_out;
       }
       Dmsg2(190, "Output pos=%u:%u\n", dcr->dev->file, dcr->dev->block_num);
+      dev->dlock();
+      unblock_device(dev);
    }
 
    dev->num_writers++;                /* we are now a writer */
@@ -412,9 +422,9 @@ DCR *acquire_device_for_append(DCR *dcr)
    ok = true;
 
 get_out:
-   dev->dlock();
    dcr->clear_reserved();
-   dev->dunblock(DEV_LOCKED);
+   dev->dunlock();
+   V(dev->acquire_mutex);
    return ok ? dcr : NULL;
 }
 
@@ -504,6 +514,7 @@ bool release_device(DCR *dcr)
    if (dev->num_writers == 0 && (!dev->is_tape() || !dev->has_cap(CAP_ALWAYSOPEN))) {
       dvd_remove_empty_part(dcr);        /* get rid of any empty spool part */
       dev->close();
+      free_volume(dev);
    }
 
    /* Fire off Alert command and include any output */

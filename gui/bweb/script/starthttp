@@ -13,21 +13,18 @@ elif [ -f $PWD/../html/bweb.js ]; then
 elif [ -f $BASE/html/bweb.js ]; then
     BWEBBASE=$BASE
 
+elif [ -f $BASE/../html/bweb.js ]; then
+    BWEBBASE=$(cd $BASE; dirname $(pwd))
+
 else
     echo "Can't determine bweb installation directory"
     exit 1
 fi
 
-grep /etc/bacula/bweb.conf $BWEBBASE/lib/Bweb.pm > /dev/null
-if [ $? -eq 0 ]; then
-    echo "Adjusting bweb.conf path"
-    sed -i~ "s:/etc/bacula/bweb.conf:$BWEBBASE/bweb.conf:" $BWEBBASE/lib/Bweb.pm
-fi
-
 if [ ! -f $BWEBBASE/bweb.conf ]; then
     echo "Making configuration template in $BWEBBASE/bweb.conf"
     cat > $BWEBBASE/bweb.conf <<EOF
-\$VAR1 = { template_dir => '$PWD/lang',
+\$VAR1 = { template_dir => '$BWEBBASE/lang',
            bconsole => 'bconsole -n',
            fv_write_path => '/tmp/',
  };
@@ -39,6 +36,7 @@ port=$(awk '/port/ { print $3 }' $BWEBBASE/script/httpd.conf)
 
 echo "Using bweb on $BWEBBASE,  use firefox http://$host:$port"
 export BWEBBASE
+export BWEBCONF=$BWEBBASE/bweb.conf
 
 if [ x$1 = x -o x$1 = xstart ]; then
     lighttpd -f $BWEBBASE/script/httpd.conf

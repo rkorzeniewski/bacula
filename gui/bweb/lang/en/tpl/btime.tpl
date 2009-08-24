@@ -42,6 +42,9 @@
       <input type='checkbox' 
              <TMPL_IF qbypool>checked</TMPL_IF> 
              name="bypool"> Order by Pool<br/>
+      <input type='checkbox' 
+             <TMPL_IF qfullname>checked</TMPL_IF> 
+             name="fullname"> Use Job name<br/>
 <TMPL_IF db_client_groups>
 <tr>
   <td valign='top'>

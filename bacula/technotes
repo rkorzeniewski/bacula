@@ -2,6 +2,32 @@
           
 General:
 
+23Aug09
+ebl  Run job when double-click in Jobs list item
+ebl  Simplify the code to make TableWidget in read-only
+kes  Free Volume in several places. Fixes virtual-changer problem
+     and possibly bug #1346.
+kes  Add SD Volume debug code
+22Aug09
+kes  Don't print different filesystem. Will not descend 
+     message if directory explicitly excluded
+21Aug09
+ebl  Tweak status storage slot command to release db lock just
+     after the usage.
+kes  Rework the bsock.h class to put public structures last
+20Aug09
+kes  Integrate patch for building dmg on OSX from Lorenz Schori <lo@znerol.ch>
+kes  Add commas in num files for estimate command
+19Aug09
+kes  Fix bat crash due to alignment diff in bat and core code
+     In bsock.h, exact reason unknown.
+kes  Ensure timestamp put in SQL log
+15Aug09
+kes  Modify acquire alogrithm so jobs do not block during despooling
+     This can give significantly more parallelism
+ebl  Fix couple of segfault with new ACL/XATTR code
+kes  Apply Marco's branch with jcr structure cleanup
+kes  Apply Marco's branch with new acl/xattr code
 13Aug09
 ebl  update lock manager to display file:line all the time
 kes  Make SD lock tracing work again. Has not worked for some time.

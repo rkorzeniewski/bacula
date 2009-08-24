@@ -12,7 +12,7 @@ out="${cwd}/tmp/sed_tmp"
 #cd ${BACULA_SOURCE}
 #svn update src/version.h
 #cd ${cwd}
-git pull
+#git pull
 
 scripts/create_sed
 

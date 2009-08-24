@@ -1,3 +1,11 @@
+19Aug09
+ebl  Add BWEBCONF env variable to specify the bweb.conf path without
+     touching the Bweb.pm file with lighttpd
+ebl  Tweak the btime.pl module to disable caching
+ebl  Add a "Full name" option to btime for easy debugging
+15Aug09
+ebl  Add fullname parameter to btime in order to debug
+     regress script.
 04Aug09
 ebl  Document bweb+lighttpd that should permit to use bweb
      in 2 lines of shell.

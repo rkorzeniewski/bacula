@@ -104,11 +104,12 @@ int wait_for_sysop(DCR *dcr)
       Dmsg4(dbglvl, "I'm going to sleep on device %s. HB=%d rem_wait=%d add_wait=%d\n", 
          dev->print_name(), (int)me->heartbeat_interval, dev->rem_wait_sec, add_wait);
       start = time(NULL);
+
       /* Wait required time */
       stat = pthread_cond_timedwait(&dev->wait_next_vol, &dev->m_mutex, &timeout);
+
       Dmsg2(dbglvl, "Wokeup from sleep on device stat=%d blocked=%s\n", stat,
          dev->print_blocked());
-
       now = time(NULL);
       total_waited = now - first_start;
       dev->rem_wait_sec -= (now - start);
@@ -134,7 +135,6 @@ int wait_for_sysop(DCR *dcr)
          stat = W_ERROR;               /* error */
          break;
       }
-
 
       if (dev->rem_wait_sec <= 0) {  /* on exceeding wait time return */
          Dmsg0(dbglvl, "Exceed wait time.\n");

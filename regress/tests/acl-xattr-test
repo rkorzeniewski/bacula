@@ -23,10 +23,10 @@ if test  $? -ne 0; then
   exit 0
 fi
 
-# Require getfattr to be installed
-getfattr -d Makefile 2>&1 >/dev/null
+# Require attr to be installed
+attr -l Makefile 2>&1 >/dev/null
 if test $? -ne 0; then
-  echo "$TestName skipped: getfattr not installed"
+  echo "$TestName skipped: attr not installed"
   exit 0
 fi
 
@@ -57,11 +57,11 @@ setfacl -m user:nobody:--- $d/bconsole
 setfacl -m group:nogroup:--x $d/bconsole
 cp ${cwd}/bin/bconsole $d/testdir
 cp ${cwd}/bin/bconsole $d/other
-setfattr -n bacula.test -v rulez $d/other
+attr -s bacula.test -V rulez $d/other 2>/dev/null 1>/dev/null
 
 ( cd $cwd/build
   getfacl -R acl > $cwd/tmp/org
-  getfattr -R acl > $cwd/tmp/attr.org
+  attr -g bacula.test $d/other > $cwd/tmp/attr.org
 )
 
 change_jobname BackupClient1 $JobName
@@ -96,10 +96,10 @@ stop_bacula
 
 ( cd $cwd/tmp/bacula-restores/$cwd/build
   getfacl -R acl > $cwd/tmp/new
-  getfattr -R acl > $cwd/tmp/attr.new
+  attr -g bacula.test $d/other > $cwd/tmp/attr.new
 )
 
-diff $cwd/tmp/org $cwd/tmp/new
+diff -u $cwd/tmp/org $cwd/tmp/new
 if [ $? -ne 0 ]; then
    rstat=1
 fi
