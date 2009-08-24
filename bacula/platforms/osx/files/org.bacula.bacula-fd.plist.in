@@ -9,7 +9,7 @@
 		<string>@PREFIX@/sbin/bacula-fd</string>
 		<string>-f</string>
 		<string>-c</string>
-		<string>@PREFIX@/etc/bacula-fd.conf</string>
+		<string>@FD_CONF@</string>
 	</array>
 	<key>Sockets</key>
 	<dict>
