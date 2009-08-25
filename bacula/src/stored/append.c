@@ -239,9 +239,11 @@ bool do_append_data(JCR *jcr)
       Dmsg1(650, "End read loop with FD. Stat=%d\n", n);
 
       if (ds->is_error()) {
-         Dmsg1(350, "Network read error from FD. ERR=%s\n", ds->bstrerror());
-         Jmsg1(jcr, M_FATAL, 0, _("Network error on data channel. ERR=%s\n"),
-               ds->bstrerror());
+         if (!job_canceled(jcr)) {
+            Dmsg1(350, "Network read error from FD. ERR=%s\n", ds->bstrerror());
+            Jmsg1(jcr, M_FATAL, 0, _("Network error on data channel. ERR=%s\n"),
+                  ds->bstrerror());
+         }
          ok = false;
          break;
       }
@@ -289,9 +291,11 @@ bool do_append_data(JCR *jcr)
       Dmsg0(90, "back from write_end_session_label()\n");
       /* Flush out final partial block of this session */
       if (!write_block_to_device(dcr)) {
-         Jmsg2(jcr, M_FATAL, 0, _("Fatal append error on device %s: ERR=%s\n"),
-               dev->print_name(), dev->bstrerror());
-         Dmsg0(100, _("Set ok=FALSE after write_block_to_device.\n"));
+         if (!job_canceled(jcr)) {
+            Jmsg2(jcr, M_FATAL, 0, _("Fatal append error on device %s: ERR=%s\n"),
+                  dev->print_name(), dev->bstrerror());
+            Dmsg0(100, _("Set ok=FALSE after write_block_to_device.\n"));
+         }
          ok = false;
       }
       if (dev->VolCatInfo.VolCatName[0] == 0) {

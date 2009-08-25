@@ -2,6 +2,11 @@
           
 General:
 
+25Aug09
+kes  Suppress some error messages generated after cancelling a job.
+     This should reduce some of the unwanted error messages after
+     a job has been canceled as described in bug #1354. However,
+     there are many other places.
 24Aug09
 kes  Apply and commit Lorenz Schori <lo@znerol.ch> patch for OSX
    * Add platforms/osx/{build,dl,products,tools} to .gitignore
