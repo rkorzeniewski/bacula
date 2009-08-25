@@ -846,8 +846,10 @@ static int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest,
     *    <file-index> <stream> <info>
     */
    if (!sd->fsend("%ld %d 0", jcr->JobFiles, stream)) {
-      Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
-            sd->bstrerror());
+      if (!job_canceled(jcr)) {
+         Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
+               sd->bstrerror());
+      }
       goto err;
    }
    Dmsg1(300, ">stored: datahdr %s\n", sd->msg);
@@ -1004,8 +1006,10 @@ static int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest,
       }
       sd->msg = wbuf;              /* set correct write buffer */
       if (!sd->send()) {
-         Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
-               sd->bstrerror());
+         if (!job_canceled(jcr)) {
+            Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
+                  sd->bstrerror());
+         }
          goto err;
       }
       Dmsg1(130, "Send data to SD len=%d\n", sd->msglen);
@@ -1039,8 +1043,10 @@ static int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest,
          sd->msglen = encrypted_len;      /* set encrypted length */
          sd->msg = jcr->crypto.crypto_buf;       /* set correct write buffer */
          if (!sd->send()) {
-            Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
-                  sd->bstrerror());
+            if (!job_canceled(jcr)) {
+               Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
+                     sd->bstrerror());
+            }
             goto err;
          }
          Dmsg1(130, "Send data to SD len=%d\n", sd->msglen);
@@ -1050,8 +1056,10 @@ static int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest,
    }
 
    if (!sd->signal(BNET_EOD)) {        /* indicate end of file data */
-      Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
-            sd->bstrerror());
+      if (!job_canceled(jcr)) {
+         Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
+               sd->bstrerror());
+      }
       goto err;
    }
 
@@ -1108,8 +1116,10 @@ bool encode_and_send_attributes(JCR *jcr, FF_PKT *ff_pkt, int &data_stream)
     *    <file-index> <stream> <info>
     */
    if (!sd->fsend("%ld %d 0", jcr->JobFiles, attr_stream)) {
-      Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
-            sd->bstrerror());
+      if (!job_canceled(jcr)) {
+         Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
+               sd->bstrerror());
+      }
       return false;
    }
    Dmsg1(300, ">stored: attrhdr %s\n", sd->msg);
@@ -1148,8 +1158,10 @@ bool encode_and_send_attributes(JCR *jcr, FF_PKT *ff_pkt, int &data_stream)
 
    Dmsg2(300, ">stored: attr len=%d: %s\n", sd->msglen, sd->msg);
    if (!stat) {
-      Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
-            sd->bstrerror());
+      if (!job_canceled(jcr)) {
+         Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
+               sd->bstrerror());
+      }
       return false;
    }
    sd->signal(BNET_EOD);            /* indicate end of attributes data */
