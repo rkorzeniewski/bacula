@@ -2,6 +2,9 @@
           
 General:
 
+26Aug09
+kes  Fix possible seg fault in db_get_int_handler in accurate code
+kes  Release orphanned buffers in accurate code.
 25Aug09
 kes  Suppress some error messages generated after cancelling a job.
      This should reduce some of the unwanted error messages after

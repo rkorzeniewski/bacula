@@ -131,11 +131,13 @@ static int accurate_list_handler(void *ctx, int num_fields, char **row)
 bool send_accurate_current_files(JCR *jcr)
 {
    POOL_MEM buf;
+   POOLMEM *jobids;
+   POOLMEM *nb;
 
    if (!jcr->accurate || job_canceled(jcr) || jcr->get_JobLevel()==L_FULL) {
       return true;
    }
-   POOLMEM *jobids = get_pool_memory(PM_FNAME);
+   jobids = get_pool_memory(PM_FNAME);
 
    db_accurate_get_jobids(jcr, jcr->db, &jcr->jr, jobids);
 
@@ -148,7 +150,7 @@ bool send_accurate_current_files(JCR *jcr)
       Jmsg(jcr, M_INFO, 0, _("Sending Accurate information.\n"));
    }
    /* to be able to allocate the right size for htable */
-   POOLMEM *nb = get_pool_memory(PM_FNAME);
+   nb = get_pool_memory(PM_FNAME);
    *nb = 0;                           /* clear buffer */
    Mmsg(buf, "SELECT sum(JobFiles) FROM Job WHERE JobId IN (%s)",jobids);
    db_sql_query(jcr->db, buf.c_str(), db_get_int_handler, nb);
@@ -156,7 +158,9 @@ bool send_accurate_current_files(JCR *jcr)
    jcr->file_bsock->fsend("accurate files=%s\n", nb); 
 
    if (!db_open_batch_connexion(jcr, jcr->db)) {
-      Jmsg0(jcr, M_FATAL, 0, "Can't get dedicate sql connexion");
+      free_pool_memory(jobids);
+      free_pool_memory(nb);
+      Jmsg0(jcr, M_FATAL, 0, "Can't get batch sql connexion");
       return false;
    }
 
