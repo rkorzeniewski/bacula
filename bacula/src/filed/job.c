@@ -1112,6 +1112,16 @@ static void set_options(findFOPTS *fo, const char *opts)
          }
          fo->AccurateOpts[j] = 0;
          break;
+      case 'J':                  /* Basejob options */
+         /* Copy BaseJob Options */
+         for (j=0; *p && *p != ':'; p++) {
+            fo->BaseJobOpts[j] = *p;
+            if (j < (int)sizeof(fo->BaseJobOpts) - 1) {
+               j++;
+            }
+         }
+         fo->BaseJobOpts[j] = 0;
+         break;
       case 'P':                  /* strip path */
          /* Get integer */
          p++;                    /* skip P */

@@ -176,6 +176,7 @@ find_files(JCR *jcr, FF_PKT *ff, int file_save(JCR *jcr, FF_PKT *ff_pkt, bool to
       ff->VerifyOpts[0] = 'V';
       ff->VerifyOpts[1] = 0;
       strcpy(ff->AccurateOpts, "C:mcs"); /* mtime+ctime+size by default */
+      strcpy(ff->BaseJobOpts, "J:mspug5"); /* mtime+size+perm+user+group+chk  */
       for (i=0; i<fileset->include_list.size(); i++) {
          findINCEXE *incexe = (findINCEXE *)fileset->include_list.get(i);
          fileset->incexe = incexe;
@@ -192,6 +193,7 @@ find_files(JCR *jcr, FF_PKT *ff, int file_save(JCR *jcr, FF_PKT *ff_pkt, bool to
             ff->drivetypes = fo->drivetype;
             bstrncat(ff->VerifyOpts, fo->VerifyOpts, sizeof(ff->VerifyOpts));
             bstrncat(ff->AccurateOpts, fo->AccurateOpts, sizeof(ff->AccurateOpts));
+            bstrncat(ff->BaseJobOpts, fo->BaseJobOpts, sizeof(ff->BaseJobOpts));
          }
          dlistString *node;
          foreach_dlist(node, &incexe->name_list) {
