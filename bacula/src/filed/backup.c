@@ -454,10 +454,12 @@ int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
       }
 
       /*
-       * Set up signature digest handling. If this fails, the signature digest will be set to
-       * NULL and not used.
+       * Set up signature digest handling. If this fails, the signature digest
+       * will be set to NULL and not used.
        */
-      // TODO landonf: We should really only calculate the digest once, for both verification and signing.
+      /* TODO landonf: We should really only calculate the digest once, for
+       * both verification and signing.
+       */
       if (jcr->crypto.pki_sign) {
          signing_digest = crypto_digest_new(jcr, signing_algorithm);
 

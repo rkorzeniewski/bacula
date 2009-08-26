@@ -141,6 +141,7 @@ struct findFOPTS {
    int strip_path;                    /* strip path count */
    char VerifyOpts[MAX_FOPTS];        /* verify options */
    char AccurateOpts[MAX_FOPTS];      /* accurate mode options */
+   char BaseJobOpts[MAX_FOPTS];       /* basejob mode options */
    alist regex;                       /* regex string(s) */
    alist regexdir;                    /* regex string(s) for directories */
    alist regexfile;                   /* regex string(s) for files */
@@ -206,6 +207,7 @@ struct FF_PKT {
    bool incremental;                  /* incremental save */
    char VerifyOpts[20];
    char AccurateOpts[20];
+   char BaseJobOpts[20];
    struct s_included_file *included_files_list;
    struct s_excluded_file *excluded_files_list;
    struct s_excluded_file *excluded_paths_list;

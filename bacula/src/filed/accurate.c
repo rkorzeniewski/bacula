@@ -242,6 +242,7 @@ bool accurate_check_file(JCR *jcr, FF_PKT *ff_pkt)
    struct stat statc;
    int32_t LinkFIc;
    bool stat = false;
+   char *opts;
    char *fname;
    CurFile elt;
 
@@ -270,11 +271,17 @@ bool accurate_check_file(JCR *jcr, FF_PKT *ff_pkt)
 
    decode_stat(elt.lstat, &statc, &LinkFIc); /* decode catalog stat */
 
+   if (jcr->get_JobLevel() == L_FULL) {
+      opts = ff_pkt->BaseJobOpts;
+   } else {
+      opts = ff_pkt->AccurateOpts;
+   }
+
    /*
     * Loop over options supplied by user and verify the
     * fields he requests.
     */
-   for (char *p=ff_pkt->AccurateOpts; !stat && *p; p++) {
+   for (char *p=opts; !stat && *p; p++) {
       char ed1[30], ed2[30];
       switch (*p) {
       case 'i':                /* compare INODEs */
@@ -287,6 +294,9 @@ bool accurate_check_file(JCR *jcr, FF_PKT *ff_pkt)
          }
          break;
       case 'p':                /* permissions bits */
+         /* TODO: If something change only in perm, user, group
+          * Backup only the attribute stream
+          */
          if (statc.st_mode != ff_pkt->statp.st_mode) {
             Dmsg3(dbglvl-1, "%s     st_mode  differ. Cat: %x File: %x\n",
                   fname,
@@ -362,13 +372,21 @@ bool accurate_check_file(JCR *jcr, FF_PKT *ff_pkt)
           * The remainder of the function is all about getting the checksum.
           * First we initialise, then we read files, other streams and Finder Info.
           */
-         if (!stat && *elt.chksum && ff_pkt->type != FT_LNKSAVED && 
+         if (!stat && ff_pkt->type != FT_LNKSAVED && 
              (S_ISREG(ff_pkt->statp.st_mode) && 
               ff_pkt->flags & (FO_MD5|FO_SHA1|FO_SHA256|FO_SHA512))) 
          {
+
+            if (!*elt.chksum) {
+               Jmsg(jcr, M_WARNING, 0, _("Can't verify checksum for %s\n"),
+                    ff_pkt->fname);
+               stat = true;
+               break;
+            }
+
             /*
-             * Create our digest context. If this fails, the digest will be set to NULL
-             * and not used.
+             * Create our digest context. If this fails, the digest will be set
+             * to NULL and not used.
              */
             if (ff_pkt->flags & FO_MD5) {
                digest = crypto_digest_new(jcr, CRYPTO_DIGEST_MD5);
@@ -428,6 +446,7 @@ bool accurate_check_file(JCR *jcr, FF_PKT *ff_pkt)
 
          break;
       case ':':
+      case 'J':
       case 'C':
       default:
          break;
