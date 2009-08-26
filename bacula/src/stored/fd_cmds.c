@@ -159,15 +159,17 @@ void do_fd_commands(JCR *jcr)
          if (strncmp(fd_cmds[i].cmd, fd->msg, strlen(fd_cmds[i].cmd)) == 0) {
             found = true;               /* indicate command found */
             jcr->errmsg[0] = 0;
-            if (!fd_cmds[i].func(jcr) || job_canceled(jcr)) {    /* do command */
+            if (!fd_cmds[i].func(jcr)) {    /* do command */
                /* Note fd->msg command may be destroyed by comm activity */
-               if (jcr->errmsg[0]) {
-                  Jmsg1(jcr, M_FATAL, 0, _("Command error with FD, hanging up. %s\n"),
-                        jcr->errmsg);
-               } else {
-                  Jmsg0(jcr, M_FATAL, 0, _("Command error with FD, hanging up.\n"));
+               if (!job_canceled(jcr)) {
+                  if (jcr->errmsg[0]) {
+                     Jmsg1(jcr, M_FATAL, 0, _("Command error with FD, hanging up. %s\n"),
+                           jcr->errmsg);
+                  } else {
+                     Jmsg0(jcr, M_FATAL, 0, _("Command error with FD, hanging up.\n"));
+                  }
+                  set_jcr_job_status(jcr, JS_ErrorTerminated);
                }
-               set_jcr_job_status(jcr, JS_ErrorTerminated);
                quit = true;
             }
             break;
