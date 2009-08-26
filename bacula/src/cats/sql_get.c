@@ -1193,7 +1193,7 @@ bail_out:
 int db_get_int_handler(void *ctx, int num_fields, char **row)
 {
    POOLMEM *ret = (POOLMEM *)ctx;
-   if (num_fields == 1) {
+   if (num_fields == 1 && row[0]) {
       if (ret[0]) {
          pm_strcat(ret, ",");
       }
