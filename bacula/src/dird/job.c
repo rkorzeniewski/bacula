@@ -1367,17 +1367,22 @@ void create_clones(JCR *jcr)
 /*
  * Given: a JobId in jcr->previous_jr.JobId,
  *  this subroutine writes a bsr file to restore that job.
+ * Returns: -1 on error
+ *           number of files if OK
  */
-bool create_restore_bootstrap_file(JCR *jcr)
+int create_restore_bootstrap_file(JCR *jcr)
 {
    RESTORE_CTX rx;
    UAContext *ua;
+   int files;
+
    memset(&rx, 0, sizeof(rx));
    rx.bsr = new_bsr();
    rx.JobIds = (char *)"";                       
    rx.bsr->JobId = jcr->previous_jr.JobId;
    ua = new_ua_context(jcr);
    if (!complete_bsr(ua, rx.bsr)) {
+      files = -1;
       goto bail_out;
    }
    rx.bsr->fi = new_findex();
@@ -1385,17 +1390,18 @@ bool create_restore_bootstrap_file(JCR *jcr)
    rx.bsr->fi->findex2 = jcr->previous_jr.JobFiles;
    jcr->ExpectedFiles = write_bsr_file(ua, rx);
    if (jcr->ExpectedFiles == 0) {
+      files = 0;
       goto bail_out;
    }
    free_ua_context(ua);
    free_bsr(rx.bsr);
    jcr->needs_sd = true;
-   return true;
+   return jcr->ExpectedFiles;
 
 bail_out:
    free_ua_context(ua);
    free_bsr(rx.bsr);
-   return false;
+   return files;
 }
 
 /* TODO: redirect command ouput to job log */

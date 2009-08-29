@@ -176,6 +176,10 @@ bool complete_bsr(UAContext *ua, RBSR *bsr)
       }
       bsr->VolSessionId = jr.VolSessionId;
       bsr->VolSessionTime = jr.VolSessionTime;
+      if (jr.JobFiles == 0) {      /* zero files is OK, not an error, but */
+         bsr->VolCount = 0;        /*   there are no volumes */
+         continue;
+      }
       if ((bsr->VolCount=db_get_job_volume_parameters(ua->jcr, ua->db, bsr->JobId,
            &(bsr->VolParams))) == 0) {
          ua->error_msg(_("Unable to get Job Volume Parameters. ERR=%s\n"), db_strerror(ua->db));
