@@ -152,7 +152,10 @@ bool do_migration_init(JCR *jcr)
       return true;                    /* no work */
    }
 
-   create_restore_bootstrap_file(jcr);
+   if (create_restore_bootstrap_file(jcr) < 0) {
+      Jmsg(jcr, M_FATAL, 0, _("Create bootstrap file failed.\n"));
+      return false;
+   }
 
    if (jcr->previous_jr.JobId == 0 || jcr->ExpectedFiles == 0) {
       set_jcr_job_status(jcr, JS_Terminated);

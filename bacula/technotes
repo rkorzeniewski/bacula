@@ -2,6 +2,8 @@
           
 General:
 
+28Aug09
+kes  Fix bug #1357 Verify jobs fail when job has zero files
 26Aug09
 kes  Fix possible seg fault in db_get_int_handler in accurate code
 kes  Release orphanned buffers in accurate code.
