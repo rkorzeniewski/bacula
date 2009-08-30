@@ -3,6 +3,7 @@
 General:
 
 30Aug09
+kes  Fix Win32/64 build
 kes  Fix bug #1355 Director crashes with double free in Accurate SQL query
 ebl  Prohibe copy and assignment in Bvfs.
 28Aug09
