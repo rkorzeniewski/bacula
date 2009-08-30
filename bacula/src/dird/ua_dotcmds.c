@@ -156,15 +156,16 @@ bool do_a_dot_command(UAContext *ua)
 
 static bool dot_update(UAContext *ua, const char *cmd)
 {
+
    if (!open_client_db(ua)) {
       return 1;
    }
 
    int pos = find_arg_with_value(ua, "jobid");
-   if (pos != -1) {             /* find jobid arg */
-      if (is_a_number_list(ua->argv[pos])) {
-         bvfs_update_path_hierarchy_cache(ua->jcr, ua->db, ua->argv[pos]);
-      }
+   if (pos != -1 && is_a_number_list(ua->argv[pos])) {
+      db_list_ctx jobids;
+      pm_strcpy(jobids.list, ua->argv[pos]);
+      bvfs_update_path_hierarchy_cache(ua->jcr, ua->db, &jobids);
    } else {
       /* update cache for all jobids */
       bvfs_update_cache(ua->jcr, ua->db);

@@ -483,7 +483,7 @@ static int do_list_cmd(UAContext *ua, const char *cmd, e_list_type llist)
          }
          list_nextvol(ua, n);
       } else if (strcasecmp(ua->argk[i], NT_("copies")) == 0) {
-         char *jobids=NULL;
+         char *jobids = NULL;
          uint32_t limit=0;
          for (j=i+1; j<ua->argc; j++) {
             if (strcasecmp(ua->argk[j], NT_("jobid")) == 0 && ua->argv[j]) {
