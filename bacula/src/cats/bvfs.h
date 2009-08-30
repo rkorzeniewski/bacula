@@ -151,7 +151,10 @@ public:
    /* for internal use */
    int _handle_path(void *, int, char **);
    
-private:   
+private:
+   Bvfs(const Bvfs &);               /* prohibit pass by value */
+   Bvfs & operator = (const Bvfs &); /* prohibit class assignment */
+
    JCR *jcr;
    B_DB *db;
    db_list_ctx jobids;

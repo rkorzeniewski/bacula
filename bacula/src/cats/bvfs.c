@@ -128,6 +128,9 @@ public:
       free(cache_ppathid);
       free(nodes);
    }
+private:
+   pathid_cache(const pathid_cache &); /* prohibit pass by value */
+   pathid_cache &operator= (const pathid_cache &);/* prohibit class assignment*/
 } ;
 
 /* Return the parent_dir with the trailing /  (update the given string)

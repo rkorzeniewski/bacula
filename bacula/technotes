@@ -4,6 +4,7 @@ General:
 
 30Aug09
 kes  Fix bug #1355 Director crashes with double free in Accurate SQL query
+ebl  Prohibe copy and assignment in Bvfs.
 28Aug09
 kes  Fix bug #1357 Verify jobs fail when job has zero files
 26Aug09
