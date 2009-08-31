@@ -502,12 +502,9 @@ _Z20get_jcr_by_full_namePc
 _Z20write_last_jobs_listiy
 _Z21unlock_last_jobs_listv
 _Z23get_jcr_by_partial_namePc
+_Z24get_next_jobid_from_listPPcPj
 _Z7new_jcriPFvP3JCRE
 _Z9lock_jobsv
-_ZN3JCR11set_JobTypeEi
-_ZN3JCR12set_JobLevelEi
-_ZN3JCR11set_JobTypeEi
-_ZN3JCR12set_JobLevelEi
 _ZN3JCR14get_ActionNameEb
 _ZN3JCR17get_OperationNameEv
 _ZN3JCR8JobReadsEv

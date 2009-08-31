@@ -412,6 +412,7 @@ typedef int (INTHANDLER)();
 
 #if defined(HAVE_WIN32)
 typedef int64_t   boffset_t;
+#define caddr_t  char *
 #else
 typedef off_t     boffset_t;
 #endif

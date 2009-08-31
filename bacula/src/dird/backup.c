@@ -173,6 +173,8 @@ bool send_accurate_current_files(JCR *jcr)
 {
    POOL_MEM buf;
    bool ret=true;
+   db_list_ctx jobids;
+   db_list_ctx nb;
 
    if (!jcr->accurate || job_canceled(jcr)) {
       return true;
@@ -181,10 +183,6 @@ bool send_accurate_current_files(JCR *jcr)
    if (jcr->get_JobLevel() == L_BASE) {
       return true;
    }
-
-   POOLMEM *nb = get_pool_memory(PM_FNAME);
-   POOLMEM *jobids = get_pool_memory(PM_FNAME);
-   nb[0] = jobids[0] = '\0';
 
    if (jcr->get_JobLevel() == L_FULL) {
       /* On Full mode, if no previous base job, no accurate things */
@@ -211,15 +209,14 @@ bool send_accurate_current_files(JCR *jcr)
    }
 
    /* to be able to allocate the right size for htable */
-   Mmsg(buf, "SELECT sum(JobFiles) FROM Job WHERE JobId IN (%s)",jobids);
-   db_sql_query(jcr->db, buf.c_str(), db_get_int_handler, nb);
-   Dmsg2(0, "jobids=%s nb=%s\n", jobids, nb);
-   jcr->file_bsock->fsend("accurate files=%s\n", nb); 
+   Mmsg(buf, "SELECT sum(JobFiles) FROM Job WHERE JobId IN (%s)", jobids.list);
+   db_sql_query(jcr->db, buf.c_str(), db_list_handler, &nb);
+   Dmsg2(200, "jobids=%s nb=%s\n", jobids.list, nb.list);
+   jcr->file_bsock->fsend("accurate files=%s\n", nb.list); 
 
    if (!db_open_batch_connexion(jcr, jcr->db)) {
-      ret = false;
-      Jmsg0(jcr, M_FATAL, 0, "Can't get dedicate sql connexion");
-      goto bail_out;
+      Jmsg0(jcr, M_FATAL, 0, "Can't get batch sql connexion");
+      return false;
    }
    
    if (jcr->HasBase) {
@@ -238,9 +235,6 @@ bool send_accurate_current_files(JCR *jcr)
    jcr->file_bsock->signal(BNET_EOD);
 
 bail_out:
-   free_pool_memory(jobids);
-   free_pool_memory(nb);
-
    return ret;
 }
 

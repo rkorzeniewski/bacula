@@ -2,6 +2,15 @@
           
 General:
 
+30Aug09
+kes  Fix Win32/64 build
+kes  Fix bug #1355 Director crashes with double free in Accurate SQL query
+ebl  Prohibe copy and assignment in Bvfs.
+28Aug09
+kes  Fix bug #1357 Verify jobs fail when job has zero files
+26Aug09
+kes  Fix possible seg fault in db_get_int_handler in accurate code
+kes  Release orphanned buffers in accurate code.
 25Aug09
 kes  Suppress some error messages generated after cancelling a job.
      This should reduce some of the unwanted error messages after

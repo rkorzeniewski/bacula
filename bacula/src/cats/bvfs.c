@@ -59,9 +59,8 @@ Bvfs::Bvfs(JCR *j, B_DB *mdb) {
    jcr->inc_use_count();
    db = mdb;                 /* need to inc ref count */
    prev_dir = get_pool_memory(PM_NAME);
-   jobids = get_pool_memory(PM_NAME);
    pattern = get_pool_memory(PM_NAME);
-   *prev_dir = *pattern = *jobids = 0;
+   *prev_dir = *pattern = 0;
    dir_filenameid = pwd_id = offset = 0;
    see_copies = see_all_version = false;
    limit = 1000;
@@ -71,7 +70,6 @@ Bvfs::Bvfs(JCR *j, B_DB *mdb) {
 }
 
 Bvfs::~Bvfs() {
-   free_pool_memory(jobids);
    free_pool_memory(pattern);
    free_pool_memory(prev_dir);
    free_attr(attr);
@@ -130,6 +128,9 @@ public:
       free(cache_ppathid);
       free(nodes);
    }
+private:
+   pathid_cache(const pathid_cache &); /* prohibit pass by value */
+   pathid_cache &operator= (const pathid_cache &);/* prohibit class assignment*/
 } ;
 
 /* Return the parent_dir with the trailing /  (update the given string)
@@ -235,7 +236,7 @@ static void build_path_hierarchy(JCR *jcr, B_DB *mdb,
             path = mdb->path;   /* already done */
          }
       } else {
-         /* It's allready in the cache.  We can leave, no time to waste here,
+         /* It's already in the cache.  We can leave, no time to waste here,
           * all the parent dirs have allready been done
           */
          goto bail_out;
@@ -363,6 +364,8 @@ DBId_t Bvfs::get_dir_filenameid()
 void bvfs_update_cache(JCR *jcr, B_DB *mdb)
 {
    uint32_t nb=0;
+   db_list_ctx jobids;
+
    db_lock(mdb);
    db_start_transaction(jcr, mdb);
 
@@ -406,18 +409,15 @@ void bvfs_update_cache(JCR *jcr, B_DB *mdb)
 
    }
 
-   POOLMEM *jobids = get_pool_memory(PM_NAME);
-   *jobids = 0;
-
    Mmsg(mdb->cmd, 
  "SELECT JobId from Job "
   "WHERE JobId NOT IN (SELECT JobId FROM brestore_knownjobid) "
     "AND Type IN ('B') AND JobStatus IN ('T', 'f', 'A') "
   "ORDER BY JobId");
 
-   db_sql_query(mdb, mdb->cmd, db_get_int_handler, jobids);
+   db_sql_query(mdb, mdb->cmd, db_list_handler, &jobids);
 
-   bvfs_update_path_hierarchy_cache(jcr, mdb, jobids);
+   bvfs_update_path_hierarchy_cache(jcr, mdb, &jobids);
 
    db_end_transaction(jcr, mdb);
    db_start_transaction(jcr, mdb);
@@ -438,28 +438,28 @@ void bvfs_update_cache(JCR *jcr, B_DB *mdb)
    Dmsg1(dbglevel, "Affected row(s) = %d\n", nb);
 
    db_end_transaction(jcr, mdb);
-   free_pool_memory(jobids);
 }
 
 /*
  * Update the bvfs cache for given jobids (1,2,3,4)
  */
 void
-bvfs_update_path_hierarchy_cache(JCR *jcr, B_DB *mdb, char *jobids)
+bvfs_update_path_hierarchy_cache(JCR *jcr, B_DB *mdb, db_list_ctx *jobids)
 {
    pathid_cache ppathid_cache;
    JobId_t JobId;
    char *p;
 
-   for (p=jobids; ; ) {
+   for (p=jobids->list; ; ) {
       int stat = get_next_jobid_from_list(&p, &JobId);
+      Dmsg1(dbglevel, "Updating cache for %lld\n", (uint64_t)JobId);
       if (stat < 0) {
          return;
       }
       if (stat == 0) {
          break;
       }
-      Dmsg1(dbglevel, "Updating cache for %lld\n", (uint64_t) JobId);
+      Dmsg1(dbglevel, "Updating cache for %lld\n", (uint64_t)JobId);
       update_path_hierarchy_cache(jcr, mdb, ppathid_cache, JobId);
    }
 }
@@ -469,7 +469,7 @@ bvfs_update_path_hierarchy_cache(JCR *jcr, B_DB *mdb, char *jobids)
  */
 void Bvfs::update_cache()
 {
-   bvfs_update_path_hierarchy_cache(jcr, db, jobids);
+   bvfs_update_path_hierarchy_cache(jcr, db, &jobids);
 }
 
 /* Change the current directory, returns true if the path exists */
@@ -550,7 +550,7 @@ void Bvfs::ls_special_dirs()
 {
    Dmsg1(dbglevel, "ls_special_dirs(%lld)\n", (uint64_t)pwd_id);
    char ed1[50], ed2[50];
-   if (!*jobids) {
+   if (jobids.count == 0) {
       return;
    }
    if (!dir_filenameid) {
@@ -579,7 +579,7 @@ void Bvfs::ls_special_dirs()
        "AND File1.JobId IN (%s)) AS listfile1 "
   "ON (tmp.PathId = listfile1.PathId) "
   "ORDER BY tmp.Path, JobId DESC ",
-        query.c_str(), edit_uint64(dir_filenameid, ed2), jobids);
+        query.c_str(), edit_uint64(dir_filenameid, ed2), jobids.list);
 
    Dmsg1(dbglevel_sql, "q=%s\n", query2.c_str());
    db_sql_query(db, query2.c_str(), path_handler, this);
@@ -590,7 +590,7 @@ bool Bvfs::ls_dirs()
 {
    Dmsg1(dbglevel, "ls_dirs(%lld)\n", (uint64_t)pwd_id);
    char ed1[50], ed2[50];
-   if (!*jobids) {
+   if (jobids.count == 0) {
       return false;
    }
 
@@ -640,10 +640,10 @@ bool Bvfs::ls_dirs()
        "ON (listpath1.PathId = listfile1.PathId) "
     ") AS A ORDER BY 2,3 DESC LIMIT %d OFFSET %d",
         edit_uint64(pwd_id, ed1),
-        jobids,
+        jobids.list,
         filter.c_str(),
         edit_uint64(dir_filenameid, ed2),
-        jobids,
+        jobids.list,
         limit, offset);
 
    Dmsg1(dbglevel_sql, "q=%s\n", query.c_str());
@@ -661,7 +661,7 @@ bool Bvfs::ls_files()
 {
    Dmsg1(dbglevel, "ls_files(%lld)\n", (uint64_t)pwd_id);
    char ed1[50];
-   if (!*jobids) {
+   if (jobids.count == 0) {
       return false;
    }
 
@@ -690,7 +690,7 @@ bool Bvfs::ls_files()
      ") AS listfiles "
 "WHERE File.FileId = listfiles.id",
         edit_uint64(pwd_id, ed1),
-        jobids,
+        jobids.list,
         filter.c_str(),
         limit,
         offset);

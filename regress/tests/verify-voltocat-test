@@ -2,16 +2,6 @@
 #
 # Run a simple backup of the Bacula build directory
 #   then verify the Volume to the catalog.           
-# This test should not be in the normal tests run since it
-#   requires creating a mount point.
-#
-# To run this test
-#    cd regress
-#    mkdir xx
-#    mkdir xx/boot
-#    mount -t ext3 /dev/sda1 xx/boot
-#      (where /dev/sda1 is your boot partion, or some other small partition)
-#    cp regress/* xx
 #
 TestName="verify-voltocat-test"
 JobName=VerifyVol
@@ -20,8 +10,7 @@ JobName=VerifyVol
 cwd=`pwd`
 scripts/cleanup
 scripts/copy-test-confs
-echo "${cwd}/xx" >${cwd}/tmp/file-list
-echo "${cwd}/xx/boot" >>${cwd}/tmp/file-list
+echo "${cwd}/build" >${cwd}/tmp/file-list
 
 change_jobname NightlySave $JobName
 start_test
@@ -44,6 +33,16 @@ run job=VerifyVolume level=VolumeToCatalog
 yes
 wait
 messages
+@$out ${cwd}/tmp/log3.out
+@#
+@# Now a backup with nothing changed
+run job=$JobName level=Incremental yes
+wait
+messages
+run job=VerifyVolume level=VolumeToCatalog
+yes
+wait
+messages
 @$out
 quit
 END_OF_DATA
@@ -58,5 +57,6 @@ grep "^  Termination: *Backup OK" tmp/log1.out 2>&1 >/dev/null
 bstat=$?
 grep "^  Termination: *Verify OK" tmp/log2.out 2>&1 >/dev/null
 rstat=$?
-dstat=0
+grep "^  Termination: *Verify OK" tmp/log3.out 2>&1 >/dev/null
+dstat=$?
 end_test

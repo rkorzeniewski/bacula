@@ -1045,6 +1045,16 @@ struct db_int64_ctx {
    int count;                         /* number of values seen */
 };
 
+/* Call back context for getting a list of comma separated strings from the database */
+class db_list_ctx {
+public:
+   POOLMEM *list;                     /* list */
+   int count;                         /* number of values seen */
+
+   db_list_ctx() { list = get_pool_memory(PM_FNAME); *list = 0; count = 0; }
+   ~db_list_ctx() { free_pool_memory(list); list = NULL; }
+};
+
 
 #include "protos.h"
 #include "jcr.h"
