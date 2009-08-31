@@ -181,8 +181,18 @@ bool do_verify(JCR *jcr)
     *   File daemon but not used).
     */
    if (jcr->get_JobLevel() == L_VERIFY_VOLUME_TO_CATALOG) {
-      if (!create_restore_bootstrap_file(jcr)) {
+      int stat;
+      /*
+       * Note: negative status is an error, zero status, means
+       *  no files were backed up, so skip calling SD and
+       *  client.
+       */
+      stat = create_restore_bootstrap_file(jcr);
+      if (stat < 0) {                      /* error */
          return false;
+      } else if (stat == 0) {              /* No files, nothing to do */
+         verify_cleanup(jcr, JS_Terminated); /* clean up */
+         return true;                      /* get out */
       }
    } else {
       jcr->sd_auth_key = bstrdup("dummy");    /* dummy Storage daemon key */

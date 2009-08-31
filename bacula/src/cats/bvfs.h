@@ -71,11 +71,11 @@ public:
    virtual ~Bvfs();
 
    void set_jobid(JobId_t id) {
-      Mmsg(jobids, "%lld", (uint64_t)id);
+      Mmsg(jobids.list, "%lld", (uint64_t)id);
    }
 
    void set_jobids(char *ids) {
-      pm_strcpy(jobids, ids);
+      pm_strcpy(jobids.list, ids);
    }
 
    void set_limit(uint32_t max) {
@@ -151,10 +151,13 @@ public:
    /* for internal use */
    int _handle_path(void *, int, char **);
    
-private:   
+private:
+   Bvfs(const Bvfs &);               /* prohibit pass by value */
+   Bvfs & operator = (const Bvfs &); /* prohibit class assignment */
+
    JCR *jcr;
    B_DB *db;
-   POOLMEM *jobids;
+   db_list_ctx jobids;
    uint32_t limit;
    uint32_t offset;
    uint32_t nb_record;          /* number of records of the last query */
@@ -173,7 +176,7 @@ private:
    void *user_data;
 };
 
-void bvfs_update_path_hierarchy_cache(JCR *jcr, B_DB *mdb, char *jobids);
+void bvfs_update_path_hierarchy_cache(JCR *jcr, B_DB *mdb, db_list_ctx *jobids);
 void bvfs_update_cache(JCR *jcr, B_DB *mdb);
 char *bvfs_parent_dir(char *path);
 
