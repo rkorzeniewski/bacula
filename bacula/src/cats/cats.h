@@ -1044,7 +1044,9 @@ struct db_int64_ctx {
    int count;                         /* number of values seen */
 };
 
-/* Call back context for getting a list of comma separated strings from the database */
+/* Call back context for getting a list of comma separated strings from the
+ * database 
+ */
 class db_list_ctx {
 public:
    POOLMEM *list;                     /* list */
@@ -1052,6 +1054,10 @@ public:
 
    db_list_ctx() { list = get_pool_memory(PM_FNAME); *list = 0; count = 0; }
    ~db_list_ctx() { free_pool_memory(list); list = NULL; }
+
+private:
+   db_list_ctx(const db_list_ctx&);            /* prohibit pass by value */
+   db_list_ctx &operator=(const db_list_ctx&); /* prohibit class assignment */
 };
 
 
