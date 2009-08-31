@@ -1,4 +1,4 @@
-              Technical notes for current SVN
+              Technical notes for current GIT
           
 General:
 
@@ -6,6 +6,11 @@ General:
 kes  Fix Win32/64 build
 kes  Fix bug #1355 Director crashes with double free in Accurate SQL query
 ebl  Prohibe copy and assignment in Bvfs.
+mvw  Exclude OSX resource forks from saving using the xattr code
+     Exclude OSX acl data from saving using the xattr code when
+     normal acl mode is also enabled.
+     Make excluding certain xattr in the generic functions somewhat
+     easier for certain OS specific attributes.
 28Aug09
 kes  Fix bug #1357 Verify jobs fail when job has zero files
 26Aug09

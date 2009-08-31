@@ -131,12 +131,20 @@ static bxattr_exit_code send_xattr_stream(JCR *jcr, int stream)
  */
 #if defined(HAVE_DARWIN_OS)
 static int os_default_xattr_streams[1] = { STREAM_XATTR_DARWIN };
+static char *xattr_acl_skiplist[2] = { "com.apple.system.Security", NULL };
+static char *xattr_skiplist[3] = { "com.apple.system.extendedsecurity", "com.apple.ResourceFork", NULL };
 #elif defined(HAVE_FREEBSD_OS)
 static int os_default_xattr_streams[1] = { STREAM_XATTR_FREEBSD };
+static char *xattr_acl_skiplist[1] = { NULL };
+static char *xattr_skiplist[1] = { NULL };
 #elif defined(HAVE_LINUX_OS)
 static int os_default_xattr_streams[1] = { STREAM_XATTR_LINUX };
+static char *xattr_acl_skiplist[2] = { "system.posix_acl_access", NULL };
+static char *xattr_skiplist[1] = { NULL };
 #elif defined(HAVE_NETBSD_OS)
 static int os_default_xattr_streams[1] = { STREAM_XATTR_NETBSD };
+static char *xattr_acl_skiplist[1] = { NULL };
+static char *xattr_skiplist[1] = { NULL };
 #endif
 
 /*
@@ -243,7 +251,8 @@ static uint32_t serialize_xattr_stream(JCR *jcr, uint32_t expected_serialize_len
 
 static bxattr_exit_code generic_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
 {
-   int count = 0;
+   bool skip_xattr;
+   int cnt, xattr_count = 0;
    int32_t xattr_list_len,
            xattr_value_len;
    uint32_t expected_serialize_len = 0;
@@ -301,22 +310,41 @@ static bxattr_exit_code generic_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
     */
    bp = xattr_list;
    while ((bp - xattr_list) + 1 < xattr_list_len) {
-#if defined(HAVE_LINUX_OS)
+      skip_xattr = false;
+
       /*
-       * On Linux you also get the acls in the extented attribute list.
+       * On some OSes you also get the acls in the extented attribute list.
        * So we check if we are already backing up acls and if we do we
        * don't store the extended attribute with the same info.
        */
-      if ((ff_pkt->flags & FO_ACL) == 0 || strcmp(bp, "system.posix_acl_access"))
-         count++;
-#else
-      count++;
-#endif
+      if (ff_pkt->flags & FO_ACL) {
+         for (cnt = 0; xattr_acl_skiplist[cnt] != NULL; cnt++) {
+            if (!strcmp(bp, xattr_acl_skiplist[cnt])) {
+               skip_xattr = true;
+               break;
+            }
+         }
+      }
 
+      /*
+       * On some OSes we want to skip certain xattrs which are in the xattr_skiplist array.
+       */
+      if (!skip_xattr) {
+         for (cnt = 0; xattr_skiplist[cnt] != NULL; cnt++) {
+            if (!strcmp(bp, xattr_skiplist[cnt])) {
+               skip_xattr = true;
+               break;
+            }
+         }
+      }
+
+      if (!skip_xattr) {
+         xattr_count++;
+      }
       bp = strchr(bp, '\0') + 1;
    }
 
-   if (count == 0) {
+   if (xattr_count == 0) {
       retval = bxattr_exit_ok;
       goto bail_out;
    }
@@ -325,8 +353,8 @@ static bxattr_exit_code generic_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
     * Allocate enough room to hold all extended attributes.
     * After allocating the storage make sure its empty by zeroing it.
     */
-   xattr_value_list = (xattr_t *)malloc(count * sizeof(xattr_t));
-   memset((caddr_t)xattr_value_list, 0, count * sizeof(xattr_t));
+   xattr_value_list = (xattr_t *)malloc(xattr_count * sizeof(xattr_t));
+   memset((caddr_t)xattr_value_list, 0, xattr_count * sizeof(xattr_t));
 
    /*
     * Walk the list of extended attributes names and retrieve the data.
@@ -335,17 +363,38 @@ static bxattr_exit_code generic_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
    current_xattr = xattr_value_list;
    bp = xattr_list;
    while ((bp - xattr_list) + 1 < xattr_list_len) {
-#if defined(HAVE_LINUX_OS)
+      skip_xattr = false;
+
       /*
-       * On Linux you also get the acls in the extented attribute list.
+       * On some OSes you also get the acls in the extented attribute list.
        * So we check if we are already backing up acls and if we do we
        * don't store the extended attribute with the same info.
        */
-      if (ff_pkt->flags & FO_ACL && !strcmp(bp, "system.posix_acl_access")) {
+      if (ff_pkt->flags & FO_ACL) {
+         for (cnt = 0; xattr_acl_skiplist[cnt] != NULL; cnt++) {
+            if (!strcmp(bp, xattr_acl_skiplist[cnt])) {
+               skip_xattr = true;
+               break;
+            }
+         }
+      }
+
+      /*
+       * On some OSes we want to skip certain xattrs which are in the xattr_skiplist array.
+       */
+      if (!skip_xattr) {
+         for (cnt = 0; xattr_skiplist[cnt] != NULL; cnt++) {
+            if (!strcmp(bp, xattr_skiplist[cnt])) {
+               skip_xattr = true;
+               break;
+            }
+         }
+      }
+
+      if (!skip_xattr) {
          bp = strchr(bp, '\0') + 1;
          continue;
       }
-#endif
 
       /*
        * Each xattr valuepair starts with a magic so we can parse it easier.
