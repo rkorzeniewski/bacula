@@ -931,17 +931,6 @@ bool db_create_file_attributes_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
    }
    B_DB *bdb = jcr->db_batch;
 
-   /*
-    * Make sure we have an acceptable attributes record.
-    */
-   if (!(ar->Stream == STREAM_UNIX_ATTRIBUTES ||
-         ar->Stream == STREAM_UNIX_ATTRIBUTES_EX)) {
-      Mmsg1(&mdb->errmsg, _("Attempt to put non-attributes into catalog. Stream=%d\n"),
-         ar->Stream);
-      Jmsg(jcr, M_FATAL, 0, "%s", mdb->errmsg);
-      return false;
-   }
-
    split_path_and_file(jcr, bdb, ar->fname);
 
 
@@ -972,17 +961,6 @@ bool db_create_file_attributes_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
    db_lock(mdb);
    Dmsg1(dbglevel, "Fname=%s\n", ar->fname);
    Dmsg0(dbglevel, "put_file_into_catalog\n");
-   /*
-    * Make sure we have an acceptable attributes record.
-    */
-   if (!(ar->Stream == STREAM_UNIX_ATTRIBUTES ||
-         ar->Stream == STREAM_UNIX_ATTRIBUTES_EX)) {
-      Mmsg1(&mdb->errmsg, _("Attempt to put non-attributes into catalog. Stream=%d\n"),
-         ar->Stream);
-      Jmsg(jcr, M_ERROR, 0, "%s", mdb->errmsg);
-      goto bail_out;
-   }
-
 
    split_path_and_file(jcr, mdb, ar->fname);
 
@@ -1137,6 +1115,16 @@ const char *create_temp_basefile[4] = {
 bool db_create_attributes_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
 {
    bool ret;
+
+   /*
+    * Make sure we have an acceptable attributes record.
+    */
+   if (!(ar->Stream == STREAM_UNIX_ATTRIBUTES ||
+         ar->Stream == STREAM_UNIX_ATTRIBUTES_EX)) {
+      Jmsg(jcr, M_FATAL, 0, _("Attempt to put non-attributes into catalog. Stream=%d\n"));
+      return false;
+   }
+
    if (ar->FileType != FT_BASE) {
       ret = db_create_file_attributes_record(jcr, mdb, ar);
 
@@ -1160,17 +1148,6 @@ bool db_create_base_file_attributes_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
    bool ret;
    Dmsg1(dbglevel, "create_base_file Fname=%s\n", ar->fname);
    Dmsg0(dbglevel, "put_base_file_into_catalog\n");
-
-   /*
-    * Make sure we have an acceptable attributes record.
-    */
-   if (!(ar->Stream == STREAM_UNIX_ATTRIBUTES ||
-         ar->Stream == STREAM_UNIX_ATTRIBUTES_EX)) {
-      Mmsg1(&mdb->errmsg, _("Attempt to put non-attributes into catalog. Stream=%d\n"),
-         ar->Stream);
-      Jmsg(jcr, M_FATAL, 0, "%s", mdb->errmsg);
-      return false;
-   }
 
    db_lock(mdb); 
    split_path_and_file(jcr, mdb, ar->fname);
