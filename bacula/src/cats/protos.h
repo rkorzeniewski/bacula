@@ -147,7 +147,7 @@ void db_make_inchanger_unique(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr);
 int db_update_stats(JCR *jcr, B_DB *mdb, utime_t age);
 
 
-bool db_get_used_base_jobids(JCR *jcr, B_DB *mdb, POOLMEM *jobids, POOLMEM *result);
+bool db_get_used_base_jobids(JCR *jcr, B_DB *mdb, POOLMEM *jobids, db_list_ctx *result);
 bool db_create_attributes_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar);
 bool db_create_base_file_attributes_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar);
 bool db_commit_base_file_attributes_record(JCR *jcr, B_DB *mdb);
