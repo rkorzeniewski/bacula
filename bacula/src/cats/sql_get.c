@@ -1088,8 +1088,8 @@ bool db_get_file_list(JCR *jcr, B_DB *mdb, char *jobids,
         jobids, jobids);
 #else
    /*  
-    * I am not sure that this works the same as the code in ua_restore.c
-    *  but it is very similar. The accurate-test fails in a restore. Bad file count.
+    * I am not sure that this works the same as the code in ua_restore.c but it
+    *  is very similar. The accurate-test fails in a restore. Bad file count.
     */
    Mmsg(buf, uar_sel_files, jobids);
 #endif
@@ -1099,9 +1099,9 @@ bool db_get_file_list(JCR *jcr, B_DB *mdb, char *jobids,
 
 /*
  * This procedure gets the base jobid list used by jobids,
- * You can specify jobids == result to concat base jobids to current jobids
  */
-bool db_get_used_base_jobids(JCR *jcr, B_DB *mdb, POOLMEM *jobids, db_list_ctx *result)
+bool db_get_used_base_jobids(JCR *jcr, B_DB *mdb, 
+                             POOLMEM *jobids, db_list_ctx *result)
 {
    POOL_MEM buf;
    Mmsg(buf,
