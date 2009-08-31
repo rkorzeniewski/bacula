@@ -106,7 +106,7 @@ bool do_backup_init(JCR *jcr)
 /* Take all base jobs from job resource and find the
  * last L_BASE jobid.
  */
-static bool get_base_jobids(JCR *jcr, POOLMEM *jobids)
+static bool get_base_jobids(JCR *jcr, db_list_ctx *jobids)
 {
    JOB_DBR jr;
    JOB *job;
@@ -125,14 +125,15 @@ static bool get_base_jobids(JCR *jcr, POOLMEM *jobids)
       db_get_base_jobid(jcr, jcr->db, &jr, &id);
 
       if (id) {
-         if (jobids[0]) {
-            pm_strcat(jobids, ",");
+         if (jobids->count) {
+            pm_strcat(jobids->list, ",");
          }
-         pm_strcat(jobids, edit_uint64(id, str_jobid));
+         pm_strcat(jobids->list, edit_uint64(id, str_jobid));
+         jobids->count++;
       }
    }
 
-   return *jobids != '\0';
+   return jobids->count > 0;
 }
 
 /*
@@ -186,18 +187,18 @@ bool send_accurate_current_files(JCR *jcr)
 
    if (jcr->get_JobLevel() == L_FULL) {
       /* On Full mode, if no previous base job, no accurate things */
-      if (!get_base_jobids(jcr, jobids)) {
+      if (!get_base_jobids(jcr, &jobids)) {
          goto bail_out;
       }
       jcr->HasBase = true;
-      Jmsg(jcr, M_INFO, 0, _("Using BaseJobId(s): %s\n"), jobids);
+      Jmsg(jcr, M_INFO, 0, _("Using BaseJobId(s): %s\n"), jobids.list);
 
    } else {
       /* For Incr/Diff level, we search for older jobs */
-      db_accurate_get_jobids(jcr, jcr->db, &jcr->jr, jobids);
+      db_accurate_get_jobids(jcr, jcr->db, &jcr->jr, &jobids);
 
       /* We are in Incr/Diff, but no Full to build the accurate list... */
-      if (*jobids == 0) {
+      if (jobids.count == 0) {
          ret=false;
          Jmsg(jcr, M_FATAL, 0, _("Cannot find previous jobids.\n"));
          goto bail_out;
@@ -220,13 +221,13 @@ bool send_accurate_current_files(JCR *jcr)
    }
    
    if (jcr->HasBase) {
-      jcr->nb_base_files = str_to_int64(nb);
-      db_create_base_file_list(jcr, jcr->db, jobids);
+      jcr->nb_base_files = str_to_int64(nb.list);
+      db_create_base_file_list(jcr, jcr->db, jobids.list);
       db_get_base_file_list(jcr, jcr->db, 
                             accurate_list_handler, (void *)jcr);
 
    } else {
-      db_get_file_list(jcr, jcr->db_batch, jobids, 
+      db_get_file_list(jcr, jcr->db_batch, jobids.list, 
                        accurate_list_handler, (void *)jcr);
    } 
 

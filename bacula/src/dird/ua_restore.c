@@ -310,18 +310,19 @@ bail_out:
  */
 static void get_and_display_basejobs(UAContext *ua, RESTORE_CTX *rx)
 {
-   rx->BaseJobIds[0] = '\0';
+   db_list_ctx jobids;
 
-   if (!db_get_used_base_jobids(ua->jcr, ua->db, rx->JobIds, rx->BaseJobIds)) {
+   if (!db_get_used_base_jobids(ua->jcr, ua->db, rx->JobIds, &jobids)) {
       ua->warning_msg("%s", db_strerror(ua->db));
    }
    
-   if (*rx->BaseJobIds) {
+   if (jobids.count) {
       POOL_MEM q;
-      Mmsg(q, uar_print_jobs, rx->BaseJobIds);
+      Mmsg(q, uar_print_jobs, jobids.list);
       ua->send_msg(_("The restore will use the following job(s) as Base\n"));
       db_list_sql_query(ua->jcr, ua->db, q.c_str(), prtit, ua, 1, HORZ_LIST);
    }
+   pm_strcpy(rx->BaseJobIds, jobids.list);
 }
 
 static void free_rx(RESTORE_CTX *rx)
