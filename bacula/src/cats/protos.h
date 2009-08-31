@@ -79,6 +79,10 @@ bool db_write_batch_file_records(JCR *jcr);
 bool my_batch_start(JCR *jcr, B_DB *mdb);
 bool my_batch_end(JCR *jcr, B_DB *mdb, const char *error);
 bool my_batch_insert(JCR *jcr, B_DB *mdb, ATTR_DBR *ar);
+bool db_create_attributes_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar);
+bool db_create_base_file_attributes_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar);
+bool db_commit_base_file_attributes_record(JCR *jcr, B_DB *mdb);
+bool db_create_base_file_list(JCR *jcr, B_DB *mdb, char *jobids);
 
 /* sql_delete.c */
 int db_delete_pool_record(JCR *jcr, B_DB *db, POOL_DBR *pool_dbr);
@@ -92,6 +96,8 @@ int db_find_next_volume(JCR *jcr, B_DB *mdb, int index, bool InChanger, MEDIA_DB
 bool db_find_failed_job_since(JCR *jcr, B_DB *mdb, JOB_DBR *jr, POOLMEM *stime, int &JobLevel);
 
 /* sql_get.c */
+bool db_get_base_file_list(JCR *jcr, B_DB *mdb,
+                           DB_RESULT_HANDLER *result_handler,void *ctx);
 int db_get_path_record(JCR *jcr, B_DB *mdb);
 bool db_get_pool_record(JCR *jcr, B_DB *db, POOL_DBR *pdbr);
 int db_get_client_record(JCR *jcr, B_DB *mdb, CLIENT_DBR *cr);
@@ -112,7 +118,7 @@ bool db_get_query_dbids(JCR *jcr, B_DB *mdb, POOL_MEM &query, dbid_list &ids);
 bool db_get_file_list(JCR *jcr, B_DB *mdb, char *jobids, DB_RESULT_HANDLER *result_handler, void *ctx);
 bool db_get_base_jobid(JCR *jcr, B_DB *mdb, JOB_DBR *jr, JobId_t *jobid);
 bool db_accurate_get_jobids(JCR *jcr, B_DB *mdb, JOB_DBR *jr, db_list_ctx *jobids);
-
+bool db_get_used_base_jobids(JCR *jcr, B_DB *mdb, POOLMEM *jobids, db_list_ctx *result);
 /* sql_list.c */
 enum e_list_type {
    HORZ_LIST,
@@ -145,15 +151,5 @@ int  db_add_digest_to_file_record(JCR *jcr, B_DB *mdb, FileId_t FileId, char *di
 int  db_mark_file_record(JCR *jcr, B_DB *mdb, FileId_t FileId, JobId_t JobId);
 void db_make_inchanger_unique(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr);
 int db_update_stats(JCR *jcr, B_DB *mdb, utime_t age);
-
-
-bool db_get_used_base_jobids(JCR *jcr, B_DB *mdb, POOLMEM *jobids, db_list_ctx *result);
-bool db_create_attributes_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar);
-bool db_create_base_file_attributes_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar);
-bool db_commit_base_file_attributes_record(JCR *jcr, B_DB *mdb);
-bool db_create_base_file_list(JCR *jcr, B_DB *mdb, char *jobids);
-bool db_get_base_file_list(JCR *jcr, B_DB *mdb, DB_RESULT_HANDLER *result_handler, 
-                           void *ctx);
-
 
 #endif /* __SQL_PROTOS_H */
