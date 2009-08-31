@@ -236,7 +236,7 @@ static void build_path_hierarchy(JCR *jcr, B_DB *mdb,
             path = mdb->path;   /* already done */
          }
       } else {
-         /* It's allready in the cache.  We can leave, no time to waste here,
+         /* It's already in the cache.  We can leave, no time to waste here,
           * all the parent dirs have allready been done
           */
          goto bail_out;
