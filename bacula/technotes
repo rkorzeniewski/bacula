@@ -5,6 +5,7 @@ General:
 01Sep09
 kes  Eliminate xattr.c compiler warning
 31Aug09
+ebl  Prohibit copy and assignment in db_list_ctx.
 mvw  Exclude OSX resource forks from saving using the xattr code
      Exclude OSX acl data from saving using the xattr code when
      normal acl mode is also enabled.
