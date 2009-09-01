@@ -796,6 +796,76 @@ bail_out:
    return stat;
 }
 
+const int num_recs = 10000;
+
+static bool write_two_files()
+{
+   DEV_BLOCK *block;
+   DEV_RECORD *rec;
+   int len, i, j;
+   int *p;
+   bool rc = false;       /* bad return code */
+
+   Pmsg2(-1, _("\n=== Write, rewind, and re-read test ===\n\n"
+      "I'm going to write %d records and an EOF\n"
+      "then write %d records and an EOF, then rewind,\n"
+      "and re-read the data to verify that it is correct.\n\n"
+      "This is an *essential* feature ...\n\n"), num_recs, num_recs);
+
+   block = dcr->block;
+   empty_block(block);
+   rec = new_record();
+   rec->data = check_pool_memory_size(rec->data, block->buf_len);
+   rec->data_len = block->buf_len-100;
+   len = rec->data_len/sizeof(i);
+
+   if (!dev->rewind(dcr)) {
+      Pmsg1(0, _("Bad status from rewind. ERR=%s\n"), dev->bstrerror());
+      goto bail_out;
+   }
+
+   for (i=1; i<=num_recs; i++) {
+      p = (int *)rec->data;
+      for (j=0; j<len; j++) {
+         *p++ = i;
+      }
+      if (!write_record_to_block(block, rec)) {
+         Pmsg0(0, _("Error writing record to block.\n"));
+         goto bail_out;
+      }
+      if (!write_block_to_dev(dcr)) {
+         Pmsg0(0, _("Error writing block to device.\n"));
+         goto bail_out;
+      }
+   }
+   Pmsg2(0, _("Wrote %d blocks of %d bytes.\n"), num_recs, rec->data_len);
+   weofcmd();
+   for (i=num_recs+1; i<=2*num_recs; i++) {
+      p = (int *)rec->data;
+      for (j=0; j<len; j++) {
+         *p++ = i;
+      }
+      if (!write_record_to_block(block, rec)) {
+         Pmsg0(0, _("Error writing record to block.\n"));
+         goto bail_out;
+      }
+      if (!write_block_to_dev(dcr)) {
+         Pmsg0(0, _("Error writing block to device.\n"));
+         goto bail_out;
+      }
+   }
+   Pmsg2(0, _("Wrote %d blocks of %d bytes.\n"), num_recs, rec->data_len);
+   weofcmd();
+   if (dev->has_cap(CAP_TWOEOF)) {
+      weofcmd();
+   }
+   rc = true;
+
+bail_out:
+   free_record(rec);
+   return rc;
+
+}
 
 /*
  * This test writes Bacula blocks to the tape in
@@ -810,62 +880,28 @@ static int write_read_test()
    int len, i, j;
    int *p;
 
-   Pmsg0(-1, _("\n=== Write, rewind, and re-read test ===\n\n"
-      "I'm going to write 1000 records and an EOF\n"
-      "then write 1000 records and an EOF, then rewind,\n"
-      "and re-read the data to verify that it is correct.\n\n"
-      "This is an *essential* feature ...\n\n"));
-   block = dcr->block;
    rec = new_record();
-   if (!dev->rewind(dcr)) {
-      Pmsg1(0, _("Bad status from rewind. ERR=%s\n"), dev->bstrerror());
+
+   if (!write_two_files()) {
       goto bail_out;
    }
-   rec->data = check_pool_memory_size(rec->data, block->buf_len);
-   rec->data_len = block->buf_len-100;
-   len = rec->data_len/sizeof(i);
-   for (i=1; i<=1000; i++) {
-      p = (int *)rec->data;
-      for (j=0; j<len; j++) {
-         *p++ = i;
-      }
-      if (!write_record_to_block(block, rec)) {
-         Pmsg0(0, _("Error writing record to block.\n"));
-         goto bail_out;
-      }
-      if (!write_block_to_dev(dcr)) {
-         Pmsg0(0, _("Error writing block to device.\n"));
-         goto bail_out;
-      }
-   }
-   Pmsg1(0, _("Wrote 1000 blocks of %d bytes.\n"), rec->data_len);
-   weofcmd();
-   for (i=1001; i<=2000; i++) {
-      p = (int *)rec->data;
-      for (j=0; j<len; j++) {
-         *p++ = i;
-      }
-      if (!write_record_to_block(block, rec)) {
-         Pmsg0(0, _("Error writing record to block.\n"));
-         goto bail_out;
-      }
-      if (!write_block_to_dev(dcr)) {
-         Pmsg0(0, _("Error writing block to device.\n"));
-         goto bail_out;
-      }
-   }
-   Pmsg1(0, _("Wrote 1000 blocks of %d bytes.\n"), rec->data_len);
-   weofcmd();
-   if (dev->has_cap(CAP_TWOEOF)) {
-      weofcmd();
-   }
+
+   block = dcr->block;
+   empty_block(block);
+
    if (!dev->rewind(dcr)) {
       Pmsg1(0, _("Bad status from rewind. ERR=%s\n"), dev->bstrerror());
       goto bail_out;
    } else {
       Pmsg0(0, _("Rewind OK.\n"));
    }
-   for (i=1; i<=2000; i++) {
+
+   rec->data = check_pool_memory_size(rec->data, block->buf_len);
+   rec->data_len = block->buf_len-100;
+   len = rec->data_len/sizeof(i);
+
+   /* Now read it back */
+   for (i=1; i<=2*num_recs; i++) {
 read_again:
       if (!read_block_from_dev(dcr, NO_BLOCK_NUMBER_CHECK)) {
          berrno be;
@@ -893,8 +929,8 @@ read_again:
          }
          p++;
       }
-      if (i == 1000 || i == 2000) {
-         Pmsg0(-1, _("1000 blocks re-read correctly.\n"));
+      if (i == num_recs || i == 2*num_recs) {
+         Pmsg1(-1, _("%d blocks re-read correctly.\n"), num_recs);
       }
    }
    Pmsg0(-1, _("=== Test Succeeded. End Write, rewind, and re-read test ===\n\n"));
@@ -915,62 +951,20 @@ static int position_test()
    DEV_BLOCK *block = dcr->block;
    DEV_RECORD *rec;
    int stat = 0;
-   int len, i, j;
+   int len, j;
    bool ok = true;
    int recno = 0;
    int file = 0, blk = 0;
    int *p;
    bool got_eof = false;
 
-   Pmsg0(-1, _("\n=== Write, rewind, and position test ===\n\n"
-      "I'm going to write 1000 records and an EOF\n"
-      "then write 1000 records and an EOF, then rewind,\n"
-      "and position to a few blocks and verify that it is correct.\n\n"
-      "This is an *essential* feature ...\n\n"));
+   block = dcr->block;
    empty_block(block);
    rec = new_record();
-   if (!dev->rewind(dcr)) {
-      Pmsg1(0, _("Bad status from rewind. ERR=%s\n"), dev->bstrerror());
-      goto bail_out;
-   }
    rec->data = check_pool_memory_size(rec->data, block->buf_len);
    rec->data_len = block->buf_len-100;
-   len = rec->data_len/sizeof(i);
-   for (i=1; i<=1000; i++) {
-      p = (int *)rec->data;
-      for (j=0; j<len; j++) {
-         *p++ = i;
-      }
-      if (!write_record_to_block(block, rec)) {
-         Pmsg0(0, _("Error writing record to block.\n"));
-         goto bail_out;
-      }
-      if (!write_block_to_dev(dcr)) {
-         Pmsg0(0, _("Error writing block to device.\n"));
-         goto bail_out;
-      }
-   }
-   Pmsg1(0, _("Wrote 1000 blocks of %d bytes.\n"), rec->data_len);
-   weofcmd();
-   for (i=1001; i<=2000; i++) {
-      p = (int *)rec->data;
-      for (j=0; j<len; j++) {
-         *p++ = i;
-      }
-      if (!write_record_to_block(block, rec)) {
-         Pmsg0(0, _("Error writing record to block.\n"));
-         goto bail_out;
-      }
-      if (!write_block_to_dev(dcr)) {
-         Pmsg0(0, _("Error writing block to device.\n"));
-         goto bail_out;
-      }
-   }
-   Pmsg1(0, _("Wrote 1000 blocks of %d bytes.\n"), rec->data_len);
-   weofcmd();
-   if (dev->has_cap(CAP_TWOEOF)) {
-      weofcmd();
-   }
+   len = rec->data_len/sizeof(j);
+
    if (!dev->rewind(dcr)) {
       Pmsg1(0, _("Bad status from rewind. ERR=%s\n"), dev->bstrerror());
       goto bail_out;
