@@ -15,7 +15,7 @@ Summary:
  Item  7: Add ability to Verify any specified Job.
  Item  8: Improve Bacula's tape and drive usage and cleaning management
  Item  9: Allow FD to initiate a backup
- Item 10: Restore from volumes on multiple storage daemons
+*Item 10: Restore from volumes on multiple storage daemons
  Item 11: Implement Storage daemon compression
  Item 12: Reduction of communications bandwidth for a backup
  Item 13: Ability to reconnect a disconnected comm line
@@ -25,10 +25,10 @@ Summary:
  Item 17: Multiple threads in file daemon for the same job
  Item 18: Possibilty to schedule Jobs on last Friday of the month
  Item 19: Include timestamp of job launch in "stat clients" output
- Item 20: Cause daemons to use a specific IP address to source communications
+*Item 20: Cause daemons to use a specific IP address to source communications
  Item 21: Message mailing based on backup types
  Item 22: Ability to import/export Bacula database entities
- Item 23: "Maximum Concurrent Jobs" for drives when used with changer device
+*Item 23: "Maximum Concurrent Jobs" for drives when used with changer device
  Item 24: Implementation of running Job speed limit.
  Item 25: Add an override in Schedule for Pools based on backup types
  Item 26: Automatic promotion of backup levels based on backup size
@@ -388,7 +388,7 @@ Why:  Makes backup of laptops much easier.
 Item 10: Restore from volumes on multiple storage daemons
 Origin: Graham Keeling (graham@equiinet.com)
 Date:  12 March 2009
-Status: Proposing
+Status: Done in 3.0.2
 
 What:  The ability to restore from volumes held by multiple storage daemons
         would be very useful.
@@ -673,7 +673,7 @@ Item 19: Include timestamp of job launch in "stat clients" output
 Item 20: Cause daemons to use a specific IP address to source communications
  Origin: Bill Moran <wmoran@collaborativefusion.com>
  Date:   18 Dec 2006
- Status: Done
+ Status: Done in 3.0.2
  What:   Cause Bacula daemons (dir, fd, sd) to always use the ip address
           specified in the [DIR|DF|SD]Addr directive as the source IP
           for initiating communication.
@@ -749,7 +749,7 @@ Item 22: Ability to import/export Bacula database entities
 Item 23: "Maximum Concurrent Jobs" for drives when used with changer device
   Origin: Ralf Gross ralf-lists <at> ralfgross.de
   Date:  2008-12-12
-  Status: Initial Request
+  Status: Done in 3.0.3
 
   What:  respect the "Maximum Concurrent Jobs" directive in the _drives_
           Storage section in addition to the changer section
