@@ -50,7 +50,7 @@ typedef enum {
 } bvfs_handler_type;
 
 typedef enum {
-   BVFS_Id      = 0,
+   BVFS_Id      = 0,            /* Could be PathId or FilenameId */
    BVFS_Name    = 1,
    BVFS_JobId   = 2,
    BVFS_LStat   = 3,
