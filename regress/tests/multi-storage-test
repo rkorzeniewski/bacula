@@ -77,7 +77,6 @@ setdebug trace=1 level=110 director
 restore where=${cwd}/tmp/bacula-restores select all done yes
 wait
 messages
-@$out
 quit
 END_OF_DATA
 

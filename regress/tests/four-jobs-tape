@@ -119,7 +119,6 @@ yes
 mount storage=DDS-4
 wait
 messages
-@$out
 quit
 END_OF_DATA
 

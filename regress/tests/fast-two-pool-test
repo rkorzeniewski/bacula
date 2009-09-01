@@ -28,7 +28,7 @@ start_test
 
 # Write out bconsole commands to a file
 cat <<END_OF_DATA >${cwd}/tmp/bconcmds
-@output /dev/null
+@$out /dev/null
 messages
 @$out ${cwd}/tmp/log1.out
 @#setdebug level=150 storage=DDS-4
@@ -62,7 +62,6 @@ restore where=${cwd}/tmp/bacula-restores select all storage=DDS-4 done
 yes
 wait
 messages
-@$out
 quit
 END_OF_DATA
 

@@ -62,7 +62,6 @@ yes
 wait
 status storage=DDS-4
 messages
-@$out
 quit
 END_OF_DATA
 

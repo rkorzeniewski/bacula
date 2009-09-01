@@ -15,7 +15,7 @@ echo "${cwd}/README" >${cwd}/tmp/file-list
 start_test
 
 cat <<END_OF_DATA >${cwd}/tmp/bconcmds
-@output /dev/null
+@$out /dev/null
 messages
 @$out ${cwd}/tmp/log1.out
 label storage=File1 volume=TestVolume001
@@ -44,7 +44,6 @@ yes
 wait
 setdebug level=0 client=$CLIENT
 messages
-@$out
 quit
 END_OF_DATA
 
@@ -72,7 +71,6 @@ restore where=${cwd}/tmp  select all storage=File1 done
 yes
 wait
 messages
-@$out
 quit
 END_OF_DATA
 

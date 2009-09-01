@@ -17,7 +17,7 @@ change_jobname NightlySave $JobName
 start_test
 
 cat <<END_OF_DATA >${cwd}/tmp/bconcmds
-@output /dev/null
+@$out /dev/null
 messages
 @$out   ${cwd}/tmp/log1.out
 @# Make sure we can contact all clients
@@ -59,7 +59,6 @@ done
 yes
 wait
 messages
-@output
 status dir
 status storage=File1
 quit

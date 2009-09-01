@@ -50,7 +50,7 @@ echo ${cwd}/build > ${cwd}/tmp/file-list
 start_test
 
 cat <<END_OF_DATA >${cwd}/tmp/bconcmds
-@output /dev/null
+@$out /dev/null
 messages
 label volume=TestVolume001 storage=File pool=Default
 messages
@@ -72,7 +72,6 @@ restore fileset=FS_TESTJOB where=${cwd}/tmp/bacula-restores select all done
 yes
 wait
 messages
-@$out
 quit
 END_OF_DATA
 
@@ -203,7 +202,6 @@ restore fileset=FS_TESTJOB where=${cwd}/tmp/bacula-restores select all done
 yes
 wait
 messages
-@$out
 quit
 END_OF_DATA
 
@@ -236,7 +234,6 @@ restore fileset=FS_TESTJOB where=${cwd}/tmp/bacula-restores select all done
 yes
 wait
 messages
-@$out
 quit
 END_OF_DATA
 
@@ -304,7 +301,6 @@ restore fileset=FS_TESTJOB where=${cwd}/tmp/bacula-restores select all done
 yes
 wait
 messages
-@$out
 quit
 END_OF_DATA
 
@@ -337,7 +333,6 @@ restore fileset=FS_TESTJOB_ADVANCE where=${cwd}/tmp/bacula-restores select all d
 yes
 wait
 messages
-@$out
 quit
 END_OF_DATA
 
@@ -370,7 +365,6 @@ restore fileset=FS_TESTJOB_ADVANCE where=${cwd}/tmp/bacula-restores select all d
 yes
 wait
 messages
-@$out
 quit
 END_OF_DATA
 

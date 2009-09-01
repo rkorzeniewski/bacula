@@ -43,7 +43,7 @@ dd if=/dev/urandom of="$hugefile" bs=1M count="$hugefilesize"
 echo "Done"
 
 cat >tmp/bconcmds <<END_OF_DATA
-@output /dev/null
+@$out /dev/null
 messages
 @$out tmp/log1.out
 setdebug level=150  storage=File

@@ -17,7 +17,7 @@ change_jobname $JobName
 start_test
 
 cat <<END_OF_DATA >${cwd}/tmp/bconcmds
-@output /dev/null
+@$out /dev/null
 messages
 @$out ${cwd}/tmp/log1.out
 label storage=DDS-4 volume=TestVolume001 slot=0 pool=Default
@@ -122,7 +122,6 @@ done
 yes
 wait
 messages
-@$out
 quit
 END_OF_DATA
 
