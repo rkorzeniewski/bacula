@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2008 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2009 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -74,6 +74,7 @@ static uint32_t btape_state_level = 2;
 DEVICE *dev = NULL;
 DCR *dcr;
 DEVRES *device = NULL;
+int exit_code = 0;
 
 
 /* Forward referenced subroutines */
@@ -305,15 +306,14 @@ int main(int margc, char *margv[])
    }
    dcr = jcr->dcr;
    if (!open_the_device()) {
-      goto terminate;
+      exit(1);
    }
 
    Dmsg0(200, "Do tape commands\n");
    do_tape_cmds();
 
 terminate:
-   terminate_btape(0);
-   return 0;
+   terminate_btape(exit_code);
 }
 
 static void terminate_btape(int stat)
@@ -685,16 +685,16 @@ static void rectestcmd()
  *   it to make sure it is valid.  Bacula can skip this validation
  *   if you set "Backward space record = no"
  */
-static int re_read_block_test()
+static bool re_read_block_test()
 {
    DEV_BLOCK *block = dcr->block;
    DEV_RECORD *rec;
-   int stat = 0;
+   bool rc = false;
    int len;
 
    if (!(dev->capabilities & CAP_BSR)) {
       Pmsg0(-1, _("Skipping read backwards test because BSR turned off.\n"));
-      return 0;
+      return true;
    }
 
    Pmsg0(-1, _("\n=== Write, backup, and re-read test ===\n\n"
@@ -781,11 +781,11 @@ static int re_read_block_test()
    Pmsg0(0, _("\nBlock re-read correct. Test succeeded!\n"));
    Pmsg0(-1, _("=== End Write, backup, and re-read test ===\n\n"));
 
-   stat = 1;
+   rc = true;
 
 bail_out:
    free_record(rec);
-   if (stat == 0) {
+   if (!rc) {
       Pmsg0(0, _("This is not terribly serious since Bacula only uses\n"
                  "this function to verify the last block written to the\n"
                  "tape. Bacula will skip the last block verification\n"
@@ -793,7 +793,7 @@ bail_out:
                   "Backward Space Record = No\n\n"
                   "to your Storage daemon's Device resource definition.\n"));
    }
-   return stat;
+   return rc;
 }
 
 const int num_recs = 10000;
@@ -863,6 +863,9 @@ static bool write_two_files()
 
 bail_out:
    free_record(rec);
+   if (!rc) {
+      exit_code = 1;
+   }
    return rc;
 
 }
@@ -872,11 +875,11 @@ bail_out:
  *   several files. It then rewinds the tape and attepts
  *   to read these blocks back checking the data.
  */
-static int write_read_test()
+static bool write_read_test()
 {
    DEV_BLOCK *block;
    DEV_RECORD *rec;
-   int stat = 0;
+   bool rc = false;
    int len, i, j;
    int *p;
 
@@ -907,7 +910,7 @@ read_again:
          berrno be;
          if (dev_state(dev, ST_EOF)) {
             Pmsg0(-1, _("Got EOF on tape.\n"));
-            if (i == 1001) {
+            if (i == num_recs+1) {
                goto read_again;
             }
          }
@@ -934,11 +937,14 @@ read_again:
       }
    }
    Pmsg0(-1, _("=== Test Succeeded. End Write, rewind, and re-read test ===\n\n"));
-   stat = 1;
+   rc = true;
 
 bail_out:
    free_record(rec);
-   return stat;
+   if (!rc) {
+      exit_code = 1;   
+   }
+   return rc;
 }
 
 /*
@@ -946,18 +952,19 @@ bail_out:
  *   several files. It then rewinds the tape and attepts
  *   to read these blocks back checking the data.
  */
-static int position_test()
+static bool position_test()
 {
    DEV_BLOCK *block = dcr->block;
    DEV_RECORD *rec;
-   int stat = 0;
+   bool rc = false;
    int len, j;
-   bool ok = true;
+   bool more = true;
    int recno = 0;
    int file = 0, blk = 0;
    int *p;
    bool got_eof = false;
 
+   Pmsg0(0, _("Block position test\n"));
    block = dcr->block;
    empty_block(block);
    rec = new_record();
@@ -972,8 +979,11 @@ static int position_test()
       Pmsg0(0, _("Rewind OK.\n"));
    }
 
-   while(ok) {
+   while (more) {
       /* Set up next item to read based on where we are */
+      /* At each step, recno is what we print for the "block number"
+       *  and file, blk are the real positions to go to.
+       */
       switch (recno) {
       case 0:
          recno = 5;
@@ -986,27 +996,27 @@ static int position_test()
          blk = 200;
          break;
       case 201:
-         recno = 1000;
+         recno = num_recs;
          file = 0;
-         blk = 999;
+         blk = num_recs-1;
          break;
-      case 1000:
-         recno = 1001;
+      case num_recs:
+         recno = num_recs+1;
          file = 1;
          blk = 0;
          break;
-      case 1001:
-         recno = 1601;
+      case num_recs+1:
+         recno = num_recs+601;
          file = 1;
          blk = 600;
          break;
-      case 1601:
-         recno = 2000;
+      case num_recs+601:
+         recno = 2*num_recs;
          file = 1;
-         blk = 999;
+         blk = num_recs-1;
          break;
-      case 2000:
-         ok = false;
+      case 2*num_recs:
+         more = false;
          continue;
       }
       Pmsg2(-1, _("Reposition to file:block %d:%d\n"), file, blk);
@@ -1056,11 +1066,11 @@ read_again:
       Pmsg1(-1, _("Block %d re-read correctly.\n"), recno);
    }
    Pmsg0(-1, _("=== Test Succeeded. End Write, rewind, and re-read test ===\n\n"));
-   stat = 1;
+   rc = true;
 
 bail_out:
    free_record(rec);
-   return stat;
+   return rc;
 }
 
 
@@ -1283,7 +1293,7 @@ static void autochangercmd()
  * This test assumes that the append test has been done,
  *   then it tests the fsf function.
  */
-static int fsf_test()
+static bool fsf_test()
 {
    bool set_off = false;
 
@@ -1365,7 +1375,7 @@ test_again:
       goto bail_out;
    }
    Pmsg0(-1, _("\n=== End Forward space files test ===\n\n"));
-   return 1;
+   return true;
 
 bail_out:
    Pmsg0(-1, _("\nThe forward space file test failed.\n"));
@@ -1380,7 +1390,7 @@ bail_out:
             "Some systems, e.g. OpenBSD, require you to set\n"
             "   Use MTIOCGET= no\n"
             "in your device resource. Use with caution.\n"));
-   return -2;
+   return false;
 }
 
 
@@ -1396,9 +1406,11 @@ static void testcmd()
    int stat;
 
    if (!write_read_test()) {
+      exit_code = 1;
       return;
    }
    if (!position_test()) {
+      exit_code = 1;
       return;
    }
 
@@ -1461,6 +1473,7 @@ failed:
             "Some systems, e.g. OpenBSD, require you to set\n"
             "   Use MTIOCGET= no\n"
             "in your device resource. Use with caution.\n"));
+       exit_code = 1;
        return;
    }
 
@@ -1484,10 +1497,14 @@ all_done:
         "the tape.\n\n"));
 
    if (stat == 1) {
-      re_read_block_test();
+      if (!re_read_block_test()) {
+         exit_code = 1;
+      }
    }
 
-   fsf_test();                        /* do fast forward space file test */
+   if (!fsf_test()) {                  /* do fast forward space file test */
+      exit_code = 1;
+   }
 
    autochanger_test();                /* do autochanger test */
 

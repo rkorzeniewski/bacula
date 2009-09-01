@@ -19,7 +19,6 @@ echo "Start all non-root tape tests" >>test.out
 nice tests/ansi-label-tape
 nice tests/backup-bacula-tape
 nice tests/bscan-tape
-nice tests/btape-fill-full-tape
 nice tests/eighty-simultaneous-jobs-tape
 nice tests/eot-fail-tape
 nice tests/fixed-block-size-tape
@@ -35,6 +34,10 @@ nice tests/small-file-size-tape
 nice tests/truncate-bug-tape
 nice tests/verify-vol-tape
 
+# very long
+# nice tests/btape-fill-full-tape
+
+# requires manual intervention
 # nice tests/manual-two-vol-tape
 
 echo "End full non-root tape tests"
