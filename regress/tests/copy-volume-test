@@ -32,7 +32,7 @@ start_test
 
 # Write out bconsole commands
 cat <<END_OF_DATA >${cwd}/tmp/bconcmds
-@output
+@$out /dev/null
 messages
 @$out ${cwd}/tmp/log1.out
 label storage=File volume=FileVolume001 Pool=Default
@@ -93,7 +93,6 @@ done
 yes
 wait
 messages
-@output
 quit
 END_OF_DATA
 

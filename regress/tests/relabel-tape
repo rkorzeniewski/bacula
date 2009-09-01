@@ -19,7 +19,7 @@ change_jobname $JobName
 start_test
 
 cat <<END_OF_DATA >${cwd}/tmp/bconcmds
-@output /dev/null
+@$out /dev/null
 messages
 @$out ${cwd}/tmp/log1.out
 setdebug level=150 storage=DDS-4
@@ -49,7 +49,6 @@ run job=$JobName level=Full yes
 wait
 list volumes
 messages
-@$out
 quit
 END_OF_DATA
 
@@ -88,7 +87,6 @@ yes
 mount storage=DDS-4
 wait
 messages
-@$out
 quit
 END_OF_DATA
 

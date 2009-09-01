@@ -31,7 +31,6 @@ messages
 run job=VerifyVolume level=Catalog yes
 wait
 messages
-@$out
 quit
 END_OF_DATA
 

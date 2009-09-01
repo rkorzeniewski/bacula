@@ -44,7 +44,6 @@ run job=VerifyVolume level=DiskToCatalog
 yes
 wait
 messages
-@$out
 quit
 END_OF_DATA
 

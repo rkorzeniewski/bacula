@@ -31,7 +31,7 @@ start_test
 
 # Write out bconsole commands to a file
 cat <<END_OF_DATA >tmp/bconcmds
-@output /dev/null
+@$out /dev/null
 messages
 @$out tmp/log1.out
 label storage=DDS-4 volume=TestVolume001 slot=$SLOT1 pool=Full drive=$DRIVE1
@@ -61,7 +61,6 @@ restore where=${cwd}/tmp/bacula-restores select all storage=DDS-4 done
 yes
 wait
 messages
-@$out
 quit
 END_OF_DATA
 

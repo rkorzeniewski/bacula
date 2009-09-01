@@ -3,6 +3,7 @@
 General:
 
 01Sep09
+kes  Many debug code fixes in regression scripts
 kes  Update tape tests for hardware certification
      Add script for doing btape test command 
      Make btape return error status if test command fails 

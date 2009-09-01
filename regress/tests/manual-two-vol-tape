@@ -97,7 +97,6 @@ unmount storage=DDS-4
 list volumes
 messages
 wait
-@$out
 quit
 END_OF_DATA
 

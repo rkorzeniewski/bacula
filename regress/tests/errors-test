@@ -18,9 +18,9 @@ echo "${cwd}/build/po" >${cwd}/tmp/file-list
 start_test
 
 cat <<END_OF_DATA >${cwd}/tmp/bconcmds
-@output /dev/null
+@$out /dev/null
 messages
-@output ${cwd}/tmp/LOCAL_INC_ERR.log
+@$out ${cwd}/tmp/LOCAL_INC_ERR.log
 label storage=File volume=TestVolume001
 add storage=File2
 1
@@ -29,11 +29,11 @@ File2
 run job=LOCAL_INC_ERR yes
 wait
 messages
-@output ${cwd}/tmp/REMOTE_INC_ERR.log
+@$out ${cwd}/tmp/REMOTE_INC_ERR.log
 run job=REMOTE_INC_ERR yes
 wait
 messages
-@output ${cwd}/tmp/LOCAL_EXCL_ERR.log
+@$out ${cwd}/tmp/LOCAL_EXCL_ERR.log
 run job=LOCAL_EXCL_ERR yes
 wait
 messages

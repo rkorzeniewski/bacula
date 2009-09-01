@@ -57,7 +57,7 @@ change_jobname BackupClient1 $JobName
 start_test
 
 cat <<END_OF_DATA >${cwd}/tmp/bconcmds
-@output /dev/null
+@$out /dev/null
 messages
 @$out ${cwd}/tmp/log1.out
 @#label volume=TestVolume001 storage=File pool=Default
@@ -89,7 +89,7 @@ if [ "$debug" = 1 ] ; then
 fi
 
 cat <<END_OF_DATA >${cwd}/tmp/bconcmds
-@output /dev/null
+@$out /dev/null
 messages
 @$out ${cwd}/tmp/log1.out
 label volume=TestVolume001 storage=File pool=Default
@@ -104,7 +104,6 @@ restore where=${cwd}/tmp/bacula-restores select all done
 yes
 wait
 messages
-@$out
 quit
 END_OF_DATA
 

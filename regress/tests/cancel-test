@@ -74,7 +74,7 @@ start_test
 when=`perl -MPOSIX -e "print strftime('%F %T', localtime(time+6000))"`
 
 cat <<END_OF_DATA >${cwd}/tmp/bconcmds
-@output /dev/null
+@$out /dev/null
 messages
 @$out ${cwd}/tmp/logfile1.out
 @################################################################
