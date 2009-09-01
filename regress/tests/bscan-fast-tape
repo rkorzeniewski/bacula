@@ -5,8 +5,8 @@
 #   do a bscan and restore.
 #   It should require at least 4 different bsrs.
 #
-TestName="bscan-tape"
-JobName=bscantape
+TestName="bscan-fast-tape"
+JobName=bscanfasttape
 . scripts/functions
 
 require_tape_drive

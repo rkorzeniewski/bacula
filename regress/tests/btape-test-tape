@@ -1,0 +1,39 @@
+#!/bin/sh
+#
+# Test the test command in btape
+#
+TestName="btape-test-tape"
+JobName=btapetest
+. scripts/functions
+
+require_tape_drive
+
+scripts/copy-btape-confs
+scripts/cleanup-tape
+
+change_jobname $JobName
+start_test
+
+if test "$debug" -eq 1 ; then
+  $bin/btape -c bin/bacula-sd.conf tape <<END_OF_DATA
+test
+quit
+END_OF_DATA
+else
+  $bin/btape -c bin/bacula-sd.conf tape <<END_OF_DATA >${cwd}/tmp/log1.out 2>&1
+test
+quit
+END_OF_DATA
+fi
+
+if [ $? != 0 ] ; then
+   echo " "
+   echo " "
+   echo "  !!!!! btape fill test failed!!! !!!!! "
+   echo "  !!!!! btape fill test failed!!! !!!!! " >>test.out
+   echo " "
+else
+   echo "  ===== btape fill test OK ===== "
+   echo "  ===== btape fill test OK ===== " >>test.out
+#  scripts/cleanup
+fi
