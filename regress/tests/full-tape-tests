@@ -18,6 +18,7 @@ echo "Start full tape tests"
 echo "Start full tape tests" >>test.out
 
 # Non-autochanger tests
+nicd tests/btest-test-tape
 nice tests/ansi-label-tape
 nice tests/backup-bacula-tape
 nice tests/bscan-tape
@@ -37,6 +38,7 @@ nice tests/truncate-bug-tape
 nice tests/verify-vol-tape
 
 # Autochanger tests
+nice tests/btest-test-changer
 nice tests/2drive-incremental-changer
 nice tests/bad-label-changer
 nice tests/incremental-changer
@@ -46,6 +48,7 @@ nice tests/vol-duration-changer
 
 # very long
 # nice tests/btape-fill-full-tape
+# nice tests/btape-fill-full-changer
 
 # requires manual intervention
 # nice tests/manual-two-vol-tape

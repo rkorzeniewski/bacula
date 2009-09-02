@@ -15,12 +15,12 @@ change_jobname $JobName
 start_test
 
 if test "$debug" -eq 1 ; then
-  $bin/btape -c bin/bacula-sd.conf tape <<END_OF_DATA | tee ${cwd}/tmp/log1.out
+  $bin/btape -c bin/bacula-sd.conf Drive-0 <<END_OF_DATA | tee ${cwd}/tmp/log1.out
 test
 quit
 END_OF_DATA
 else
-  $bin/btape -c bin/bacula-sd.conf tape <<END_OF_DATA >${cwd}/tmp/log1.out 2>&1
+  $bin/btape -c bin/bacula-sd.conf Drive-0 <<END_OF_DATA >${cwd}/tmp/log1.out 2>&1
 test
 quit
 END_OF_DATA
@@ -42,12 +42,12 @@ cp ${cwd}/bin/bacula-sd.conf ${cwd}/tmp/1
 sed -e 's%64512%262144%' ${cwd}/tmp/1 >${cwd}/bin/bacula-sd.conf
 
 if test "$debug" -eq 1 ; then
-  $bin/btape -c bin/bacula-sd.conf tape <<END_OF_DATA | tee ${cwd}/tmp/log2.out
+  $bin/btape -c bin/bacula-sd.conf Drive-0 <<END_OF_DATA | tee ${cwd}/tmp/log2.out
 test
 quit
 END_OF_DATA
 else
-  $bin/btape -c bin/bacula-sd.conf tape <<END_OF_DATA >${cwd}/tmp/log2.out 2>&1
+  $bin/btape -c bin/bacula-sd.conf Drive-0 <<END_OF_DATA >${cwd}/tmp/log2.out 2>&1
 test
 quit
 END_OF_DATA
