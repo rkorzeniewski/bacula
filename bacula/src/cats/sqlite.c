@@ -403,7 +403,7 @@ void my_sqlite_free_table(B_DB *mdb)
 
    if (mdb->fields_defined) {
       for (i=0; i < sql_num_fields(mdb); i++) {
-         if (mdb->fileds[i]) {
+         if (mdb->fields[i]) {
             free(mdb->fields[i]);
             mdb->fields[i] = NULL;
          }
