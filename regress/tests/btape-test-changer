@@ -2,14 +2,16 @@
 #
 # Test the test command in btape
 #
-TestName="btape-test-tape"
-JobName=btapetest
+TestName="btape-test-changer"
+JobName=btapechanger
 . scripts/functions
 
-require_tape_drive
 
-scripts/copy-btape-confs
-scripts/cleanup-tape
+require_tape_drive
+require_autochanger
+
+scripts/cleanup
+scripts/copy-2tape-confs
 
 change_jobname $JobName
 start_test
@@ -17,11 +19,13 @@ start_test
 if test "$debug" -eq 1 ; then
   $bin/btape -c bin/bacula-sd.conf tape <<END_OF_DATA | tee ${cwd}/tmp/log1.out
 test
+yes
 quit
 END_OF_DATA
 else
   $bin/btape -c bin/bacula-sd.conf tape <<END_OF_DATA >${cwd}/tmp/log1.out 2>&1
 test
+yes
 quit
 END_OF_DATA
 fi
@@ -29,8 +33,8 @@ fi
 if [ $? != 0 ] ; then
    echo " "
    echo " "
-   echo "  !!!!! btape test failed!!! !!!!! "
-   echo "  !!!!! btape test failed!!! !!!!! " >>test.out
+   echo "  !!!!! btape-changer test failed!!! !!!!! "
+   echo "  !!!!! btape-changer test failed!!! !!!!! " >>test.out
    echo " "
    exit 1
 fi
@@ -44,11 +48,13 @@ sed -e 's%64512%262144%' ${cwd}/tmp/1 >${cwd}/bin/bacula-sd.conf
 if test "$debug" -eq 1 ; then
   $bin/btape -c bin/bacula-sd.conf tape <<END_OF_DATA | tee ${cwd}/tmp/log2.out
 test
+yes
 quit
 END_OF_DATA
 else
   $bin/btape -c bin/bacula-sd.conf tape <<END_OF_DATA >${cwd}/tmp/log2.out 2>&1
 test
+yes
 quit
 END_OF_DATA
 fi
@@ -56,11 +62,11 @@ fi
 if [ $? != 0 ] ; then
    echo " "
    echo " "
-   echo "  !!!!! btape test failed!!! !!!!! "
-   echo "  !!!!! btape test failed!!! !!!!! " >>test.out
+   echo "  !!!!! btape-changer test failed!!! !!!!! "
+   echo "  !!!!! btape-changer test failed!!! !!!!! " >>test.out
    echo " "
 else
-   echo "  ===== btape test OK ===== "
-   echo "  ===== btape test OK ===== " >>test.out
+   echo "  ===== btape-changer test OK ===== "
+   echo "  ===== btape-changer test OK ===== " >>test.out
    scripts/cleanup
 fi

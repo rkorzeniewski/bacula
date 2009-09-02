@@ -21,8 +21,8 @@ cat <<END_OF_DATA >tmp/bconcmds
 @$out /dev/null
 messages
 @$out tmp/log1.out
-setdebug level=1 storage=DDS-4 sd
-label storage=DDS-4 volume=TestVolume001 pool=Default
+setdebug level=1 storage=tape sd
+label storage=tape volume=TestVolume001 pool=Default
 run job=$JobName yes
 wait
 messages
@@ -40,7 +40,7 @@ END_OF_DATA
 run_bacula
 
 sleep 2
-check_for_zombie_jobs storage=DDS-4
+check_for_zombie_jobs storage=tape
 stop_bacula
 
 grep "^  Termination: *Backup OK" tmp/log1.out 2>&1 >/dev/null

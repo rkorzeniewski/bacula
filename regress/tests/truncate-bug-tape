@@ -20,10 +20,10 @@ cat <<END_OF_DATA >tmp/bconcmds
 @$out /dev/null
 messages
 @$out   tmp/log1.out
-label storage=DDS-4 volume=TestVolume001 slot=0 pool=Default
+label storage=tape volume=TestVolume001 slot=0 pool=Default
 @# do a bunch of saves so we have 12 files on the tape
 @#setdebug level=100 dir
-setdebug level=100 storage=DDS-4
+setdebug level=100 storage=tape
 run job=$JobName yes
 run level=Full job=$JobName yes
 run level=Full job=$JobName yes
@@ -42,7 +42,7 @@ quit
 END_OF_DATA
 
 run_bacula
-scripts/check_for_zombie_jobs storage=DDS-4
+scripts/check_for_zombie_jobs storage=tape
 
 cat <<END_OF_DATA >tmp/bconcmds
 @$out /dev/null
@@ -51,7 +51,7 @@ messages
 @# 
 @# now do a restore
 @#
-restore where=${cwd}/tmp/bacula-restores storage=DDS-4
+restore where=${cwd}/tmp/bacula-restores storage=tape
 3
 @# select JobId=4 (i.e. file five on the tape)
 4
@@ -66,7 +66,7 @@ quit
 END_OF_DATA
 
 run_bconsole
-scripts/check_for_zombie_jobs storage=DDS-4
+scripts/check_for_zombie_jobs storage=tape
 
 # Now write to tape one more time
 cat <<END_OF_DATA >tmp/bconcmds
@@ -80,7 +80,7 @@ quit
 END_OF_DATA
 
 run_bconsole
-check_for_zombie_jobs storage=DDS-4
+check_for_zombie_jobs storage=tape
 stop_bacula
 
 check_two_logs

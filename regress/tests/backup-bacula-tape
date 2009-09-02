@@ -26,50 +26,50 @@ cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @$out /dev/null
 messages
 @$out ${cwd}/tmp/log1.out
-@#setdebug level=200 storage=DDS-4
-label storage=DDS-4 volume=TestVolume001 slot=0 pool=Default
+@#setdebug level=200 storage=tape
+label storage=tape volume=TestVolume001 slot=0 pool=Default
 purge volume=TestVolume001
-relabel pool=Default storage=DDS-4 oldVolume=TestVolume001 volume=TestVolume002 slot=0
+relabel pool=Default storage=tape oldVolume=TestVolume001 volume=TestVolume002 slot=0
 purge volume=TestVolume002
-relabel pool=Default storage=DDS-4 oldVolume=TestVolume002 volume=TestVolume001 slot=0
+relabel pool=Default storage=tape oldVolume=TestVolume002 volume=TestVolume001 slot=0
 run job=$JobName yes
-status storage=DDS-4
-status storage=DDS-4
-status storage=DDS-4
-status storage=DDS-4
-status storage=DDS-4
-status storage=DDS-4
+status storage=tape
+status storage=tape
+status storage=tape
+status storage=tape
+status storage=tape
+status storage=tape
 @sleep 1
-status storage=DDS-4
-status storage=DDS-4
-status storage=DDS-4
-status storage=DDS-4
-status storage=DDS-4
+status storage=tape
+status storage=tape
+status storage=tape
+status storage=tape
+status storage=tape
 @sleep 1
-status storage=DDS-4
-status storage=DDS-4
-status storage=DDS-4
-status storage=DDS-4
-status storage=DDS-4
+status storage=tape
+status storage=tape
+status storage=tape
+status storage=tape
+status storage=tape
 @sleep 1
-status storage=DDS-4
-status storage=DDS-4
-status storage=DDS-4
-status storage=DDS-4
-status storage=DDS-4
+status storage=tape
+status storage=tape
+status storage=tape
+status storage=tape
+status storage=tape
 @sleep 1
-status storage=DDS-4
-status storage=DDS-4
-status storage=DDS-4
-status storage=DDS-4
-status storage=DDS-4
+status storage=tape
+status storage=tape
+status storage=tape
+status storage=tape
+status storage=tape
 wait
 messages
 @# 
 @# now do a restore
 @#
 @$out ${cwd}/tmp/log2.out
-restore where=${cwd}/tmp/bacula-restores select all storage=DDS-4 done
+restore where=${cwd}/tmp/bacula-restores select all storage=tape done
 yes
 wait
 list volumes
@@ -77,7 +77,7 @@ messages
 END_OF_DATA
 
 run_bacula
-check_for_zombie_jobs storage=DDS-4
+check_for_zombie_jobs storage=tape
 stop_bacula
 
 #
@@ -100,7 +100,7 @@ messages
 @#
 @$out ${cwd}/tmp/log2.out
 list volumes
-restore where=${cwd}/tmp/bacula-restores select all storage=DDS-4 done
+restore where=${cwd}/tmp/bacula-restores select all storage=tape done
 yes
 wait
 list volumes
@@ -109,7 +109,7 @@ quit
 END_OF_DATA
 
 run_bacula
-check_for_zombie_jobs storage=DDS-4
+check_for_zombie_jobs storage=tape
 stop_bacula
 
 check_two_logs

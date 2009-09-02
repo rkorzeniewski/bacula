@@ -22,7 +22,7 @@ sed -e 's%64512%262144%' ${cwd}/tmp/1 >${cwd}/bin/bacula-sd.conf
 
 
 if test "$debug" -eq 1 ; then
-   $bin/btape -c bin/bacula-sd.conf tape <<END_OF_DATA
+   $bin/btape -c bin/bacula-sd.conf tape <<END_OF_DATA | tee ${cwd}/tmp/log1.out
 fill
 s
 
