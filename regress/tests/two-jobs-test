@@ -17,9 +17,9 @@ start_test
 
 cat >tmp/bconcmds <<END_OF_DATA
 setdebug level=150  storage=File
-@output /dev/null
+@$out /dev/null
 messages
-@output/dev/null
+@$out/dev/null
 estimate job=$JobName listing
 estimate job=$JobName
 estimate job=$JobName
@@ -41,7 +41,7 @@ touch ${cwd}/build/src/dird/*.c
 # run a second job
 #
 cat >tmp/bconcmds <<END_OF_DATA
-@output /dev/null
+@$out /dev/null
 messages
 @$out tmp/log1.out
 run job=$JobName
@@ -51,7 +51,7 @@ messages
 @# 
 @# now do several restores to ensure we cleanup between jobs
 @#
-@output /dev/null
+@$out /dev/null
 restore where=${cwd}/tmp/bacula-restores select all storage=File done
 yes
 wait
@@ -66,7 +66,6 @@ done
 yes
 wait
 messages
-@output
 quit
 END_OF_DATA
 

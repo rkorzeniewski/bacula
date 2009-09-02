@@ -16,7 +16,7 @@ change_jobname NightlySave $JobName
 start_test
 
 cat <<END_OF_DATA >${cwd}/tmp/bconcmds
-@output /dev/null
+@$out /dev/null
 messages
 @$out ${cwd}/tmp/log1.out
 label storage=File1 volume=TestVolume001 pool=Default
@@ -35,7 +35,6 @@ restore bootstrap=${cwd}/working/restore.bsr where=${cwd}/tmp/bacula-restores se
 no
 wait
 messages
-@$out
 quit
 END_OF_DATA
 

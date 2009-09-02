@@ -35,7 +35,7 @@ label storage=File volume=TestVolume001
 run job=$JobName yes
 wait
 messages
-@$out
+@output
 quit
 END_OF_DATA
 
@@ -65,7 +65,6 @@ done
 yes
 wait
 messages
-@$out
 quit
 END_OF_DATA
 

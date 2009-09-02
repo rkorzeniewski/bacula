@@ -33,7 +33,7 @@ Director {
 #  same Name and MediaType. 
 #
 Autochanger {
-  Name = DDS-4
+  Name = tape
   Changer Device = @disk_drive@/conf
   Changer Command ="@scriptdir@/disk-changer %c %o %S %a %d"
   Device = Drive-0, Drive-1
@@ -42,7 +42,7 @@ Autochanger {
 Device {
   Name = Drive-0
   Device Type = File
-  Media Type = DDS-4
+  Media Type = tape
   Archive Device = @disk_drive@/drive0
   AutomaticMount = yes;               # when device opened, read it
   Autochanger = yes
@@ -55,7 +55,7 @@ Device {
 Device {
   Name = Drive-1
   Device Type = File
-  Media Type = DDS-4
+  Media Type = tape
   Archive Device = @disk_drive@/drive1
   AutomaticMount = yes;               # when device opened, read it
   Autochanger = yes

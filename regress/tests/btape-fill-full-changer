@@ -2,14 +2,15 @@
 #
 # Test the fill command in btape
 #
-TestName="btape-fill-full-tape"
-JobName=btape-fill
+TestName="btape-fill-full-changer"
+JobName=btape-fill-changer
 . scripts/functions
 
 require_tape_drive
+require_autochanger
 
-scripts/copy-btape-confs
-scripts/cleanup-tape
+scripts/cleanup
+scripts/copy-2tape-confs
 
 change_jobname $JobName
 start_test
@@ -24,14 +25,14 @@ sed -e 's%64512%262144%' ${cwd}/tmp/1 >${cwd}/bin/bacula-sd.conf
 if test "$debug" -eq 1 ; then
    $bin/btape -c bin/bacula-sd.conf tape <<END_OF_DATA | tee ${cwd}/tmp/log1.out
 fill
-s
+m
 
 quit
 END_OF_DATA
 else
    $bin/btape -c bin/bacula-sd.conf tape <<END_OF_DATA >${cwd}/tmp/log1.out 2>&1
 fill
-s
+m
 
 quit
 END_OF_DATA
@@ -47,5 +48,5 @@ if [ $? != 0 ] ; then
 else
    echo "  ===== btape fill test OK ===== "
    echo "  ===== btape fill test OK ===== " >>test.out
-#  scripts/cleanup
+   scripts/cleanup
 fi

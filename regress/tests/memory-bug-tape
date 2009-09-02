@@ -20,11 +20,11 @@ change_jobname $JobName
 start_test
 
 cat <<END_OF_DATA >${cwd}/tmp/bconcmds
-@output /dev/null
+@$out /dev/null
 messages
 @$out ${cwd}/tmp/log1.out
-label storage=DDS-4 volume=TestVolume001 slot=0 pool=Default
-run job=$JobName level=Full Storage=DDS-4 yes
+label storage=tape volume=TestVolume001 slot=0 pool=Default
+run job=$JobName level=Full Storage=tape yes
 sql
 SELECT * from File;
 SELECT * from File;
@@ -20032,7 +20032,7 @@ SELECT * FROM Media;
 status dir
 @sleep 5
 status dir
-status storage=DDS-4
+status storage=tape
 messages
 wait
 messages
@@ -20040,19 +20040,18 @@ messages
 @# now do a restore
 @#
 @$out ${cwd}/tmp/log2.out
-restore where=${cwd}/tmp/bacula-restores select storage=DDS-4
+restore where=${cwd}/tmp/bacula-restores select storage=tape
 unmark *
 mark *
 done
 yes
 wait
 messages
-@$out
 quit
 END_OF_DATA
 
 run_bacula
-check_for_zombie_jobs storage=DDS-4
+check_for_zombie_jobs storage=tape
 stop_bacula
 
 check_two_logs

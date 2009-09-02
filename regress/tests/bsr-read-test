@@ -96,7 +96,6 @@ done
 yes
 wait
 messages
-@$out
 update volume=TestVolume001 volstatus=Used
 run job=migrate-job jobid=1 yes
 run job=migrate-job jobid=2 yes

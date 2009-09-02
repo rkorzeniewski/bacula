@@ -22,7 +22,7 @@ cd ${cwd}
 start_test
 
 cat >${cwd}/tmp/bconcmds <<END_OF_DATA
-@output /dev/null
+@$out /dev/null
 messages
 @$out ${cwd}/tmp/log1.out
 label storage=File volume=TestVolume001
@@ -41,7 +41,6 @@ done
 yes
 wait
 messages
-@output
 quit
 END_OF_DATA
 

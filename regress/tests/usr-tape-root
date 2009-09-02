@@ -16,17 +16,17 @@ echo " "
 echo " "
 
 cat <<END_OF_DATA > ${cwd}/tmp/bconcmds
-@output /dev/null
+@$out /dev/null
 messages
-@output tmp/log1.out
-label storage=DDS-4 Volume=TestVolume001 slot=0
+@$out tmp/log1.out
+label storage=tape Volume=TestVolume001 slot=0
 run job=NightlySave yes
 wait
 messages
 @# 
 @# now do a restore
 @#
-@output tmp/log2.out
+@$out tmp/log2.out
 restore where=${cwd}/tmp/bacula-restores select all done
 yes
 wait

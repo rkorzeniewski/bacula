@@ -24,7 +24,7 @@ change_jobname BackupClient1 $JobName
 start_test
 
 cat <<END_OF_DATA >${tmp}/bconcmds
-@output /dev/null
+@$out /dev/null
 messages
 @$out ${tmp}/log1.out
 label volume=TestVolume001 storage=File pool=Default
@@ -44,7 +44,6 @@ README
 yes
 wait
 messages
-@$out
 quit
 END_OF_DATA
 

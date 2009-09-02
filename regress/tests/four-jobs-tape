@@ -24,7 +24,7 @@ estimate job=$JobName
 estimate job=$JobName
 messages
 @$out ${cwd}/tmp/log1.out
-label storage=DDS-4 volume=TestVolume001 slot=0 pool=Default
+label storage=tape volume=TestVolume001 slot=0 pool=Default
 run job=$JobName yes
 wait
 messages
@@ -32,7 +32,7 @@ quit
 END_OF_DATA
 run_bacula
 
-scripts/check_for_zombie_jobs storage=DDS-4
+scripts/check_for_zombie_jobs storage=tape
 echo "Backup 1 done"
 # make some files for the incremental to pick up
 touch ${cwd}/build/src/dird/*.c ${cwd}/build/src/dird/*.o
@@ -53,7 +53,7 @@ END_OF_DATA
 
 run_bacula
 
-scripts/check_for_zombie_jobs storage=DDS-4
+scripts/check_for_zombie_jobs storage=tape
 echo "Backup 2 done"
 touch ${cwd}/build/src/dird/*.c
 touch ${cwd}/build/src/lib/*.c ${cwd}/build/src/lib/*.o
@@ -72,7 +72,7 @@ END_OF_DATA
 
 run_bacula
 
-scripts/check_for_zombie_jobs storage=DDS-4
+scripts/check_for_zombie_jobs storage=tape
 echo "Backup 3 done"
 # make some files for the incremental to pick up
 touch ${cwd}/build/src/lib/*.c ${cwd}/build/src/lib/*.o
@@ -90,7 +90,7 @@ quit
 END_OF_DATA
 run_bacula
 
-scripts/check_for_zombie_jobs storage=DDS-4
+scripts/check_for_zombie_jobs storage=tape
 echo "Backup 4 done"
 # 
 # now do several restores to ensure we cleanup between jobs
@@ -108,7 +108,7 @@ wait
 @# now unmount the tape and start two restores
 @#  at the same time
 @#
-unmount storage=DDS-4
+unmount storage=tape
 restore where=${cwd}/tmp/bacula-restores select all done
 yes
 restore where=${cwd}/tmp/bacula-restores select
@@ -116,15 +116,14 @@ unmark *
 mark *
 done
 yes
-mount storage=DDS-4
+mount storage=tape
 wait
 messages
-@$out
 quit
 END_OF_DATA
 
 run_bacula
-check_for_zombie_jobs storage=DDS-4
+check_for_zombie_jobs storage=tape
 stop_bacula
 
 check_two_logs

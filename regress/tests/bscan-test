@@ -84,7 +84,6 @@ restore bootstrap=${cwd}/tmp/kern.bsr where=${cwd}/tmp/bacula-restores select al
 yes
 wait
 messages
-@$out
 quit
 END_OF_DATA
 

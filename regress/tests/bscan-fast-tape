@@ -5,8 +5,8 @@
 #   do a bscan and restore.
 #   It should require at least 4 different bsrs.
 #
-TestName="bscan-tape"
-JobName=bscantape
+TestName="bscan-fast-tape"
+JobName=bscanfasttape
 . scripts/functions
 
 require_tape_drive
@@ -22,11 +22,11 @@ change_jobname NightlySave $JobName
 start_test
 
 cat <<END_OF_DATA >tmp/bconcmds
-@output /dev/null
+@$out /dev/null
 messages
 @$out tmp/log1.out
-setdebug level=2 storage=DDS-4
-label storage=DDS-4 volume=TestVolume001 slot=0 pool=Default
+setdebug level=2 storage=tape
+label storage=tape volume=TestVolume001 slot=0 pool=Default
 run job=$JobName yes
 wait
 messages
@@ -48,7 +48,7 @@ echo "Starting Bacula tape writing"
 #quit
 #END_OF_DATA
 #run_bacula
-#check_for_zombie_jobs storage=DDS-4
+#check_for_zombie_jobs storage=tape
 #stop_bacula
 echo "End writing tape"
 
@@ -66,7 +66,7 @@ echo "volume=TestVolume001" >tmp/bscan.bsr
 
 bscan_libdbi
 
-strace -o strace.new $bin/bscan -d200 -w working $BSCANLIBDBI -u regress -n regress -m -s -v -b tmp/bscan.bsr -c bin/bacula-sd.conf DDS-4
+strace -o strace.new $bin/bscan -d200 -w working $BSCANLIBDBI -u regress -n regress -m -s -v -b tmp/bscan.bsr -c bin/bacula-sd.conf tape
 exit
 cat <<END_OF_DATA >tmp/bconcmds
 @$out /dev/null
@@ -75,16 +75,15 @@ messages
 @# 
 @# now do a restore
 @#
-restore where=${cwd}/tmp/bacula-restores select all storage=DDS-4 done
+restore where=${cwd}/tmp/bacula-restores select all storage=tape done
 yes
 wait
 messages
-@$out
 quit
 END_OF_DATA
 
 run_bacula
-check_for_zombie_jobs storage=DDS-4
+check_for_zombie_jobs storage=tape
 stop_bacula
 rm -f  ${cwd}/build/src/lib/dummy
 

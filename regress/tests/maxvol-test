@@ -21,7 +21,7 @@ change_jobname NightlySave $JobName
 start_test
 
 cat <<END_OF_DATA >${cwd}/tmp/bconcmds
-@output /dev/null
+@$out /dev/null
 messages
 @$out   ${cwd}/tmp/log1.out
 label storage=File1 volume=TestVolume001
@@ -55,7 +55,6 @@ wait
 @#reload
 @#reload
 messages
-@output
 quit
 END_OF_DATA
 

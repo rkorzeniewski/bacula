@@ -32,6 +32,7 @@ sed -f ${out} ${rscripts}/bacula-dir-virtual.conf.in >${rscripts}/bacula-dir-vir
 sed -f ${out} ${rscripts}/win32-bacula-dir-tape.conf.in >${rscripts}/win32-bacula-dir-tape.conf
 sed -f ${out} ${rscripts}/win32-bacula-dir.conf.in >${rscripts}/win32-bacula-dir.conf
 sed -f ${out} ${rscripts}/bacula-sd-tape.conf.in >${rscripts}/bacula-sd-tape.conf
+sed -f ${out} ${rscripts}/bacula-sd-btape.conf.in >${rscripts}/bacula-sd-btape.conf
 sed -f ${out} ${rscripts}/ansi-sd-tape.conf.in >${rscripts}/ansi-sd-tape.conf
 sed -f ${out} ${rscripts}/bacula-sd-fifo.conf.in >${rscripts}/bacula-sd-fifo.conf
 sed -f ${out} ${rscripts}/bacula-sd-2tape.conf.in >${rscripts}/bacula-sd-2tape.conf
