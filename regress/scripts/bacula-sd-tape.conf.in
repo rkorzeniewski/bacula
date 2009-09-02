@@ -34,8 +34,8 @@ Director {
 #
 
 Device {
-  Name = DDS-4                     # 
-  Media Type = DDS-4
+  Name = tape                     # 
+  Media Type = tape
   Archive Device = @tape_drive@
   AutomaticMount = yes;               # when device opened, read it
   AlwaysOpen = yes;

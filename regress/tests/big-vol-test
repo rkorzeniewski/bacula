@@ -17,7 +17,7 @@ change_jobname CompressedTest $JobName
 start_test
 
 cat <<END_OF_DATA >${cwd}/tmp/bconcmds
-@output /dev/null
+@$out /dev/null
 messages
 @$out ${cwd}/tmp/log1.out
 @#setdebug level=100 storage=File
@@ -45,7 +45,7 @@ fi
 cd ${cwd}
 
 cat <<END_OF_DATA >${cwd}/tmp/bconcmds
-@output /dev/null
+@$out /dev/null
 messages
 @$out ${cwd}/tmp/log1.out
 sql
@@ -62,12 +62,11 @@ messages
 sql
 SELECT * FROM JobMedia;
 
-@output ${cwd}/tmp/log2.out
+@$out ${cwd}/tmp/log2.out
 restore where=${cwd}/tmp/bacula-restores storage=File select all done
 yes
 wait
 messages
-@$out
 quit
 END_OF_DATA
 

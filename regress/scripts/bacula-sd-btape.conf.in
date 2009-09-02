@@ -1,7 +1,7 @@
 #
 # Default Bacula Storage Daemon Configuration file
 #
-#  For Bacula release 1.33
+#  For Bacula release 3.0.3
 #
 # You may need to change the name of your tape drive
 #   on the "Archive Device" directive in the Device
@@ -16,6 +16,7 @@ Storage {                             # definition of myself
   WorkingDirectory = "@working_dir@"
   Pid Directory = "@piddir@"
   Subsys Directory = "@subsysdir@"
+  Maximum Concurrent Jobs = 100
 }
 
 #
@@ -31,24 +32,19 @@ Director {
 # To connect, the Director's bacula-dir.conf must have the
 #  same Name and MediaType. 
 #
-Autochanger {
-  Name = tape
-  Changer Device = @autochanger@
-  Changer Command ="@scriptdir@/@changer_script@ %c %o %S %a %d"
-  Device = Drive-0
-}
 
 Device {
-  Name = Drive-0                   # 
-  Media Type = tape
+  Name = tape                      # 
+  Media Type = Tape
   Archive Device = @tape_drive@
   AutomaticMount = yes;               # when device opened, read it
-  Autochanger = yes
-  Drive Index = 0
   AlwaysOpen = yes;
   RemovableMedia = yes;
   @@sbindir@/tape_options
-# Maximum File Size = 1000000
+  Maximum Block Size = 64512
+  Minimum Block Size = 64512
+  Maximum File Size = 5G 
+# MaximumVolumeSize = 400M
 }
 
 # 

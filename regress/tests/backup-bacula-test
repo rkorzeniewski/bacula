@@ -23,7 +23,7 @@ change_jobname BackupClient1 $JobName
 start_test
 
 cat <<END_OF_DATA >$tmp/bconcmds
-@output /dev/null
+@$out /dev/null
 messages
 @$out $tmp/log1.out
 setdebug level=100 storage=File
@@ -57,7 +57,6 @@ restore where=$tmp/bacula-restores select all done
 yes
 wait
 messages
-@$out
 quit
 END_OF_DATA
 
@@ -66,7 +65,7 @@ check_for_zombie_jobs storage=File
 stop_bacula
 
 cat <<END_OF_DATA >$tmp/bconcmds
-@output /dev/null
+@$out /dev/null
 messages
 @$out $tmp/log1.out
 @#setdebug level=100 storage=File
@@ -81,7 +80,6 @@ restore where=$tmp/bacula-restores select all done
 yes
 wait
 messages
-@$out
 quit
 END_OF_DATA
 

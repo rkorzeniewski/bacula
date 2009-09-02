@@ -31,7 +31,7 @@ Job {
   Type = Backup
   Client=@win32_client@
   FileSet="Full Set"
-  Storage = DDS-4
+  Storage = tape
   Messages = Standard
   Pool = Default
   Write Bootstrap = "@working_dir@/NightlySave.bsr"
@@ -46,7 +46,7 @@ Job {
   Type = Restore
   Client=@win32_client@
   FileSet="Full Set"
-  Storage = DDS-4
+  Storage = tape
   Messages = Standard
   Pool = Default
   Where = @tmpdir@/bacula-restores
@@ -103,12 +103,12 @@ Client {
 
 # Definition of DDS tape storage device
 Storage {
-  Name = DDS-4
+  Name = tape
   Address = @hostname@-sd            # N.B. Use a fully qualified name here
   SDPort = @sdport@
   Password = "ccV3lVTsQRsdIUGyab0N4sMDavui2hOBkmpBU0aQKOr9"          # password for Storage daemon
-  Device = DDS-4                      # must be same as Device in Storage daemon
-  Media Type = DDS-4                  # must be same as MediaType in Storage daemon
+  Device = tape                      # must be same as Device in Storage daemon
+  Media Type = tape                  # must be same as MediaType in Storage daemon
   AutoChanger = yes
   Maximum Concurrent Jobs = 4
 }

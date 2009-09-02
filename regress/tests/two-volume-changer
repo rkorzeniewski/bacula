@@ -31,15 +31,15 @@ cat <<END_OF_DATA >tmp/bconcmds
 @$out /dev/null
 messages
 @$out tmp/log1.out
-label storage=DDS-4 volume=TestVolume001 slot=$SLOT1 pool=Default drive=$DRIVE1
-label storage=DDS-4 volume=TestVolume002 slot=$SLOT2 pool=Default drive=$DRIVE1
+label storage=tape volume=TestVolume001 slot=$SLOT1 pool=Default drive=$DRIVE1
+label storage=tape volume=TestVolume002 slot=$SLOT2 pool=Default drive=$DRIVE1
 update Volume=TestVolume002 MaxVolBytes=3000000 pool=Default drive=$DRIVE1
 sql
 select * from Storage;
 select VolumeName,InChanger,Slot,StorageId from Media;
 
 @#setdebug level=1000 client=$CLIENT 
-setdebug level=150 storage=DDS-4
+setdebug level=150 storage=tape
 run job=$JobName yes
 wait
 sql
@@ -51,7 +51,7 @@ quit
 END_OF_DATA
 
 run_bacula
-check_for_zombie_jobs storage=DDS-4
+check_for_zombie_jobs storage=tape
 stop_bacula
 
 $scripts/${AUTOCHANGER_SCRIPT} ${AUTOCHANGER} unload $SLOT2 ${TAPE_DRIVE} 0
@@ -63,16 +63,15 @@ messages
 @# now do a restore
 @#
 @$out tmp/log2.out
-restore where=${cwd}/tmp/bacula-restores select all storage=DDS-4 done
+restore where=${cwd}/tmp/bacula-restores select all storage=tape done
 yes
 wait
 messages
-@$out
 quit
 END_OF_DATA
 
 run_bacula
-check_for_zombie_jobs storage=DDS-4
+check_for_zombie_jobs storage=tape
 stop_bacula
 
 check_two_logs

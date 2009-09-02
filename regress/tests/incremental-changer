@@ -33,8 +33,8 @@ cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @$out /dev/null
 messages
 @$out ${cwd}/tmp/log1.out
-label storage=DDS-4 volume=TestVolume001 slot=$SLOT1 Pool=Default drive=$DRIVE1
-label storage=DDS-4 volume=TestVolume002 slot=$SLOT2 Pool=Default drive=$DRIVE1
+label storage=tape volume=TestVolume001 slot=$SLOT1 Pool=Default drive=$DRIVE1
+label storage=tape volume=TestVolume002 slot=$SLOT2 Pool=Default drive=$DRIVE1
 run job=NightlySave yes
 wait
 messages
@@ -66,13 +66,12 @@ restore where=${cwd}/tmp/bacula-restores
 yes
 wait
 messages
-@$out
 quit
 END_OF_DATA
 
 run_bconsole
 
-check_for_zombie_jobs storage=DDS-4
+check_for_zombie_jobs storage=tape
 stop_bacula
 check_two_logs
 rstat=$?

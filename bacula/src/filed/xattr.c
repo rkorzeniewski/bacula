@@ -131,20 +131,20 @@ static bxattr_exit_code send_xattr_stream(JCR *jcr, int stream)
  */
 #if defined(HAVE_DARWIN_OS)
 static int os_default_xattr_streams[1] = { STREAM_XATTR_DARWIN };
-static char *xattr_acl_skiplist[2] = { "com.apple.system.Security", NULL };
-static char *xattr_skiplist[3] = { "com.apple.system.extendedsecurity", "com.apple.ResourceFork", NULL };
+static const char *xattr_acl_skiplist[2] = { "com.apple.system.Security", NULL };
+static const char *xattr_skiplist[3] = { "com.apple.system.extendedsecurity", "com.apple.ResourceFork", NULL };
 #elif defined(HAVE_FREEBSD_OS)
 static int os_default_xattr_streams[1] = { STREAM_XATTR_FREEBSD };
-static char *xattr_acl_skiplist[1] = { NULL };
-static char *xattr_skiplist[1] = { NULL };
+static const char *xattr_acl_skiplist[1] = { NULL };
+static const char *xattr_skiplist[1] = { NULL };
 #elif defined(HAVE_LINUX_OS)
 static int os_default_xattr_streams[1] = { STREAM_XATTR_LINUX };
-static char *xattr_acl_skiplist[2] = { "system.posix_acl_access", NULL };
-static char *xattr_skiplist[1] = { NULL };
+static const char *xattr_acl_skiplist[2] = { "system.posix_acl_access", NULL };
+static const char *xattr_skiplist[1] = { NULL };
 #elif defined(HAVE_NETBSD_OS)
 static int os_default_xattr_streams[1] = { STREAM_XATTR_NETBSD };
-static char *xattr_acl_skiplist[1] = { NULL };
-static char *xattr_skiplist[1] = { NULL };
+static const char *xattr_acl_skiplist[1] = { NULL };
+static const char *xattr_skiplist[1] = { NULL };
 #endif
 
 /*

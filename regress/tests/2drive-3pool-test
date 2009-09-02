@@ -30,27 +30,27 @@ start_test
 
 # Write out bconsole commands
 cat <<END_OF_DATA >${cwd}/tmp/bconcmds
-@output /dev/null
+@$out /dev/null
 messages
 @$out ${cwd}/tmp/log1.out
-setdebug level=51 storage=DDS-4
-label storage=DDS-4 volume=TestVolume001 slot=1 Pool=Default drive=0
-label storage=DDS-4 volume=TestVolume002 slot=2 Pool=Full    drive=1
-@#label storage=DDS-4 volume=TestVolume003 slot=3 Pool=Inc     drive=2
-status storage=DDS-4
+setdebug level=51 storage=tape
+label storage=tape volume=TestVolume001 slot=1 Pool=Default drive=0
+label storage=tape volume=TestVolume002 slot=2 Pool=Full    drive=1
+@#label storage=tape volume=TestVolume003 slot=3 Pool=Inc     drive=2
+status storage=tape
 @#run job=$JobName level=Full Pool=Inc yes
 run job=$JobName level=Full Pool=Full yes
 run job=$JobName level=Full Pool=Default yes
-setdebug level=200 storage=DDS-4
+setdebug level=200 storage=tape
 run job=$JobName level=Full Pool=Default yes
 run job=$JobName level=Full Pool=Default yes
 @sleep 10
-status storage=DDS-4
+status storage=tape
 list volumes
 wait
 list volumes
 list jobs
-status storage=DDS-4
+status storage=tape
 messages
 quit
 END_OF_DATA
@@ -65,17 +65,16 @@ messages
 @# now do a restore
 @#
 @$out ${cwd}/tmp/log2.out
-restore where=${cwd}/tmp/bacula-restores select all storage=DDS-4 done
+restore where=${cwd}/tmp/bacula-restores select all storage=tape done
 yes
 wait
 messages
-@$out
 quit
 END_OF_DATA
 
 run_bconsole
 
-check_for_zombie_jobs storage=DDS-4
+check_for_zombie_jobs storage=tape
 stop_bacula
 
 check_two_logs

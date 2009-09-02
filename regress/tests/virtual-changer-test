@@ -42,7 +42,7 @@ sed -f ${outf} ${cwd}/tmp/1 >${cwd}/bin/bacula-dir.conf
 
 # Write out bconsole commands
 cat <<END_OF_DATA >${cwd}/tmp/bconcmds
-@output /dev/null
+@$out /dev/null
 messages
 @$out ${cwd}/tmp/log1.out
 setdebug level=200 storage=Virtual
@@ -81,7 +81,6 @@ restore where=${cwd}/tmp/bacula-restores select all storage=Virtual done
 yes
 wait
 messages
-@$out
 quit
 END_OF_DATA
 

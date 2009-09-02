@@ -44,7 +44,6 @@ restore where=/  select all storage=File1 done
 yes
 wait
 messages
-@$out
 quit
 END_OF_DATA
 

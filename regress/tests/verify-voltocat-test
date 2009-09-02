@@ -43,7 +43,6 @@ run job=VerifyVolume level=VolumeToCatalog
 yes
 wait
 messages
-@$out
 quit
 END_OF_DATA
 

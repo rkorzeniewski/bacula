@@ -16,7 +16,7 @@ change_jobname CompressedTest $JobName
 start_test
 
 cat <<END_OF_DATA >${cwd}/tmp/bconcmds
-@output /dev/null
+@$out /dev/null
 estimate job=$JobName listing
 estimate job=$JobName
 estimate job=$JobName
@@ -40,7 +40,7 @@ touch ${cwd}/build/src/lib/*.c ${cwd}/build/src/lib/*.o
 # run a second job
 #
 cat <<END_OF_DATA >${cwd}/tmp/bconcmds
-@output /dev/null
+@$out /dev/null
 messages
 @$out  ${cwd}/tmp/log1.out
 run job=$JobName yes
@@ -59,9 +59,9 @@ touch ${cwd}/build/src/lib/*.c ${cwd}/build/src/lib/*.o
 # run a third job
 #
 cat <<END_OF_DATA >${cwd}/tmp/bconcmds
-@output /dev/null
+@$out /dev/null
 messages
-@output ${cwd}/tmp/log1.out
+@$out ${cwd}/tmp/log1.out
 run job=$JobName yes
 wait
 messages
@@ -78,9 +78,9 @@ touch ${cwd}/build/src/lib/*.c ${cwd}/build/src/lib/*.o
 # run a fourth job
 #
 cat <<END_OF_DATA >${cwd}/tmp/bconcmds
-@output /dev/null
+@$out /dev/null
 messages
-@output ${cwd}/tmp/log1.out
+@$out ${cwd}/tmp/log1.out
 run job=$JobName yes
 wait
 messages
@@ -95,7 +95,7 @@ echo "Backup 4 done"
 # now do several restores to ensure we cleanup between jobs
 #
 cat <<END_OF_DATA >${cwd}/tmp/bconcmds
-@output /dev/null
+@$out /dev/null
 restore where=${cwd}/tmp/bacula-restores select all storage=File done
 yes
 wait
@@ -110,7 +110,6 @@ done
 yes
 wait
 messages
-@output
 quit
 END_OF_DATA
 

@@ -2,6 +2,12 @@
           
 General:
 
+01Sep09
+kes  Many debug code fixes in regression scripts
+kes  Update tape tests for hardware certification
+     Add script for doing btape test command 
+     Make btape return error status if test command fails 
+kes  Eliminate xattr.c compiler warning
 31Aug09
 ebl  Prohibit copy and assignment in db_list_ctx.
 mvw  Exclude OSX resource forks from saving using the xattr code
