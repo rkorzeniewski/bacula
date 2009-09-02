@@ -318,7 +318,7 @@ Storage {
 #  SDPort = @sdport@
 #  Password = "ccV3lVTsQRsdIUGyab0N4sMDavui2hOBkmpBU0aQKOr9"          # password for Storage daemon
 #  Device = SDT-10000                  # must be same as Device in Storage daemon
-#  Media Type = DDS-4                  # must be same as MediaType in Storage daemon
+#  Media Type = tape                  # must be same as MediaType in Storage daemon
 #}
 
 # Definition of 8mm tape storage device

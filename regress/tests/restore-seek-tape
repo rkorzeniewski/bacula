@@ -55,7 +55,7 @@ cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @$out /dev/null
 messages
 @$out ${cwd}/tmp/log1.out
-label storage=DDS-4 volume=TestVolume001 pool=Default
+label storage=tape volume=TestVolume001 pool=Default
 run job=$JobName yes
 wait
 messages
@@ -64,12 +64,12 @@ messages
 @#
 @$out ${cwd}/tmp/log2.out
 setdebug level=30 fd
-setdebug level=10 storage=DDS-4
+setdebug level=10 storage=tape
 sql
 @# print the JobMedia records
 select * from JobMedia;
 
-restore bootstrap=${cwd}/tmp/kern.bsr where=${cwd}/tmp/bacula-restores storage=DDS-4
+restore bootstrap=${cwd}/tmp/kern.bsr where=${cwd}/tmp/bacula-restores storage=tape
 7
 <${cwd}/tmp/restore-list
 
@@ -80,7 +80,7 @@ quit
 END_OF_DATA
 
 run_bacula
-check_for_zombie_jobs storage=DDS-4
+check_for_zombie_jobs storage=tape
 stop_bacula
 
 # Now setup a control directory of only what we *should* restore

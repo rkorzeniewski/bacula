@@ -183,9 +183,9 @@ run_bconsole()
 run_btape()
 {
    if test "$debug" -eq 1 ; then
-     cat ${tmp}/bconcmds | ${bin}/btape -c ${conf}/bacula-sd.conf DDS-4 | tee ${tmp}/log1.out
+     cat ${tmp}/bconcmds | ${bin}/btape -c ${conf}/bacula-sd.conf tape | tee ${tmp}/log1.out
    else
-     cat ${tmp}/bconcmds | ${bin}/btape -c ${conf}/bacula-sd.conf DDS-4 >${tmp}/log1.out 2>&1
+     cat ${tmp}/bconcmds | ${bin}/btape -c ${conf}/bacula-sd.conf tape >${tmp}/log1.out 2>&1
    fi
 }
 

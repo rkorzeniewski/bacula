@@ -42,8 +42,8 @@ cat <<END_OF_DATA >tmp/bconcmds
 @out /dev/null
 messages
 @$out tmp/log1.out
-label storage=DDS-4 volume=TestVolume002 slot=0 pool=Default drive=0
-unmount storage=DDS-4
+label storage=tape volume=TestVolume002 slot=0 pool=Default drive=0
+unmount storage=tape
 quit
 END_OF_DATA
 
@@ -56,19 +56,19 @@ init_drive ${TAPE_DRIVE}
 # label first volume, and run first half of job
 cat <<END_OF_DATA >tmp/bconcmds
 @$out tmp/log1.out
-label storage=DDS-4 volume=TestVolume001 slot=0 pool=Default drive=0
+label storage=tape volume=TestVolume001 slot=0 pool=Default drive=0
 update Volume=TestVolume001 MaxVolBytes=500000 pool=Default drive=0
 list volumes
-@#setdebug level=150 storage=DDS-4
+@#setdebug level=150 storage=tape
 run job=$JobName yes
 @# This sleep must be long enough for the first tape to fill (4MB)
 @#  otherwise the following mtx-changer commands will fail
 @#sleep $sleep
 wait mount timeout=180
 list volumes
-unmount storage=DDS-4
+unmount storage=tape
 list volumes
-status storage=DDS-4
+status storage=tape
 messages
 quit
 END_OF_DATA
@@ -80,20 +80,20 @@ load_other_slot $slot
 cat <<END_OF_DATA >tmp/bconcmds
 @$out tmp/log1.out
 wait mount timeout=180
-setdebug level=200 storage=DDS-4
-mount storage=DDS-4
+setdebug level=200 storage=tape
+mount storage=tape
 @# backup should continue
 wait
 list volumes
 @# 
 @# now do a restore
 @#
-restore where=${cwd}/tmp/bacula-restores select all storage=DDS-4 done
+restore where=${cwd}/tmp/bacula-restores select all storage=tape done
 yes
 @sleep $sleep
 wait mount timeout=180
 exec "sh -c 'load_other_slot $slot'"
-unmount storage=DDS-4
+unmount storage=tape
 list volumes
 messages
 wait
@@ -105,7 +105,7 @@ run_bconsole
 
 touch tmp/log2.out
  
-check_for_zombie_jobs storage=DDS-4
+check_for_zombie_jobs storage=tape
 stop_bacula
 
 check_two_logs

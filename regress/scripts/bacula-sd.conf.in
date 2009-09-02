@@ -43,8 +43,8 @@ Device {
 }
 
 #Device {
-#  Name = DDS-4                        # 
-#  Media Type = DDS-4
+#  Name = tape                        # 
+#  Media Type = tape
 #  Archive Device = /dev/nst0
 #  AutomaticMount = yes;               # when device opened, read it
 #  AlwaysOpen = yes;

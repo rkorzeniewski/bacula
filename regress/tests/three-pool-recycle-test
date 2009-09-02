@@ -31,10 +31,10 @@ cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @$out /dev/null
 messages
 @$out ${cwd}/tmp/log1.out
-@#setdebug level=150 storage=DDS-4
-label storage=DDS-4 volume=TestVolume001 slot=1 pool=Full drive=0
-label storage=DDS-4 volume=TestVolume002 slot=2 pool=Default drive=0
-label storage=DDS-4 volume=TestVolume003 slot=3 pool=Scratch drive=0
+@#setdebug level=150 storage=tape
+label storage=tape volume=TestVolume001 slot=1 pool=Full drive=0
+label storage=tape volume=TestVolume002 slot=2 pool=Default drive=0
+label storage=tape volume=TestVolume003 slot=3 pool=Scratch drive=0
 update Volume=TestVolume001 maxvoljobs=1
 update Volume=TestVolume002 maxvoljobs=1
 update Volume=TestVolume003 volretention=7s
@@ -80,7 +80,7 @@ messages
 list volumes
 @# should recycle Scratch pool
 run job=NightlySave2 level=Full pool=Full yes
-status storage=DDS-4
+status storage=tape
 messages
 wait
 list volumes
@@ -89,7 +89,7 @@ messages
 @# now do a restore
 @#
 @$out ${cwd}/tmp/log2.out
-restore where=${cwd}/tmp/bacula-restores select all storage=DDS-4 done
+restore where=${cwd}/tmp/bacula-restores select all storage=tape done
 yes
 wait
 messages
@@ -97,7 +97,7 @@ quit
 END_OF_DATA
 
 run_bacula
-check_for_zombie_jobs storage=DDS-4
+check_for_zombie_jobs storage=tape
 stop_bacula
 
 check_two_logs

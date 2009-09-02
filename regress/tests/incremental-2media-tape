@@ -41,7 +41,7 @@ cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @$out /dev/null
 messages
 @$out ${cwd}/tmp/log1.out
-label storage=DDS-4 volume=TestVolume001 slot=$SLOT1 Pool=Default drive=$DRIVE1
+label storage=tape volume=TestVolume001 slot=$SLOT1 Pool=Default drive=$DRIVE1
 label storage=DLT80 volume=TestVolume002 Pool=Default
 run job=$JobName yes
 wait
@@ -71,7 +71,7 @@ messages
 @# now do a restore
 @#
 @$out ${cwd}/tmp/log2.out
-setdebug level=51 storage=DDS-4
+setdebug level=51 storage=tape
 restore where=${cwd}/tmp/bacula-restores select all done 
 yes
 wait

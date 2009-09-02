@@ -43,20 +43,20 @@ cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @$out /dev/null
 messages
 @$out ${cwd}/tmp/log1.out
-label storage=DDS-4 volume=TestVolume001 slot=$SLOT1 Pool=Default drive=$DRIVE1
-label storage=DDS-4 volume=TestVolume002 slot=$SLOT2 Pool=Default drive=$DRIVE2
-@#setdebug level=100 storage=DDS-4
+label storage=tape volume=TestVolume001 slot=$SLOT1 Pool=Default drive=$DRIVE1
+label storage=tape volume=TestVolume002 slot=$SLOT2 Pool=Default drive=$DRIVE2
+@#setdebug level=100 storage=tape
 run job=NightlySave yes
 run job=NightlySave yes
 run job=NightlySave yes
 run job=NightlySave yes
 run job=NightlySave yes
 @sleep 3
-status storage=DDS-4
+status storage=tape
 wait
 list volumes
 list jobs
-status storage=DDS-4
+status storage=tape
 messages
 quit
 END_OF_DATA
@@ -72,12 +72,12 @@ messages
 @$out ${cwd}/tmp/log1.out
 @# Force Incremental on the second Volume
 update volume=TestVolume001 VolStatus=Used
-status storage=DDS-4
-@#setdebug level=400 storage=DDS-4
+status storage=tape
+@#setdebug level=400 storage=tape
 run level=Incremental job=NightlySave yes
 wait
 list volumes
-status storage=DDS-4
+status storage=tape
 messages
 @# 
 @# now do a restore
@@ -94,7 +94,7 @@ quit
 END_OF_DATA
 
 run_bconsole
-check_for_zombie_jobs storage=DDS-4
+check_for_zombie_jobs storage=tape
 stop_bacula
 
 check_two_logs
