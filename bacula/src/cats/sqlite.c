@@ -408,7 +408,7 @@ void my_sqlite_free_table(B_DB *mdb)
             mdb->fields[i] = NULL;
          }
       }
-      if (mbd->fields) {
+      if (mdb->fields) {
          free(mdb->fields);
          mdb->fields = NULL;
       }
