@@ -76,6 +76,7 @@ DCR *dcr;
 DEVRES *device = NULL;
 int exit_code = 0;
 
+#define REC_SIZE 32768
 
 /* Forward referenced subroutines */
 static void do_tape_cmds();
@@ -1842,6 +1843,7 @@ static void fillcmd()
    char buf1[100], buf2[100];
    int fd;
    uint32_t i;
+   uint64_t write_eof;
    uint32_t min_block_size;
    struct tm tm;
 
@@ -1853,7 +1855,7 @@ static void fillcmd()
    BlockNumber = 0;
    exit_code = 0;
 
-   Pmsg0(-1, _("\n"
+   Pmsg1(-1, _("\n"
 "This command simulates Bacula writing to a tape.\n"
 "It requires either one or two blank tapes, which it\n"
 "will label and write.\n\n"
@@ -1861,14 +1863,15 @@ static void fillcmd()
 "the tapes that are in slots 1 and 2, otherwise, you will\n"
 "be prompted to insert the tapes when necessary.\n\n"
 "It will print a status approximately\n"
-"every 322 MB, and write an EOF every 3.2 GB.  If you have\n"
+"every 322 MB, and write an EOF every %s.  If you have\n"
 "selected the simple test option, after writing the first tape\n"
 "it will rewind it and re-read the last block written.\n\n"
 "If you have selected the multiple tape test, when the first tape\n"
 "fills, it will ask for a second, and after writing a few more \n"
 "blocks, it will stop.  Then it will begin re-reading the\n"
 "two tapes.\n\n"
-"This may take a long time -- hours! ...\n\n"));
+"This may take a long time -- hours! ...\n\n"),
+         edit_uint64_with_suffix(dev->max_file_size, buf1));
 
    get_cmd(_("Do you want to run the simplified test (s) with one tape\n"
            "or the complete multiple tape (m) test: (s/m) "));
@@ -1890,6 +1893,7 @@ static void fillcmd()
    /* Use fixed block size to simplify read back */
    min_block_size = dev->min_block_size;
    dev->min_block_size = dev->max_block_size;
+   write_eof = dev->max_file_size / REC_SIZE; /*compute when we add EOF*/
    set_volume_name("TestVolume1", 1);
    dir_ask_sysop_to_create_appendable_volume(dcr);
    dev->set_append();                 /* force volume to be relabeled */
@@ -1921,8 +1925,6 @@ static void fillcmd()
 
    memset(&rec, 0, sizeof(rec));
    rec.data = get_memory(100000);     /* max record size */
-
-#define REC_SIZE 32768
    rec.data_len = REC_SIZE;
 
    /*
@@ -1961,8 +1963,8 @@ static void fillcmd()
       /* Mix up the data just a bit */
       uint32_t *lp = (uint32_t *)rec.data;
       lp[0] += lp[13];
-      for (i=1; i < (rec.data_len-sizeof(uint32_t))/sizeof(uint32_t)-1; i++) {
-         lp[i] += lp[i-1];
+      for (i=1; i < (rec.data_len-sizeof(uint32_t))/sizeof(uint32_t)-1; i+=100) {
+         lp[i] += lp[0];
       }
 
       Dmsg4(250, "before write_rec FI=%d SessId=%d Strm=%s len=%d\n",
@@ -1979,6 +1981,7 @@ static void fillcmd()
 
          /* Write block to tape */
          if (!flush_block(block, 1)) {
+            Pmsg0(000, _("Flush block failed.\n"));
             exit_code = 1;
             break;
          }
@@ -1996,22 +1999,22 @@ static void fillcmd()
                block->BlockNumber, dev->file, dev->block_num,
                edit_uint64_with_commas(dev->VolCatInfo.VolCatBytes, ec1), (float)kbs);
          }
-         /* Every 32000 blocks (approx 2GB) write an EOF.
+         /* Every X blocks (dev->max_file_size) write an EOF.
           */
-         if ((block->BlockNumber % 32000) == 0) {
+         if ((block->BlockNumber % write_eof) == 0) {
             now = time(NULL);
             (void)localtime_r(&now, &tm);
             strftime(buf1, sizeof(buf1), "%H:%M:%S", &tm);
-            Pmsg1(-1, _("%s\n"), buf1);
-#ifdef needed_xxx
             Pmsg1(-1, _("%s Flush block, write EOF\n"), buf1);
             flush_block(block, 0);
+#ifdef needed_xxx
             dev->weof(1);
 #endif
          }
 
-         /* Get out after writing 10 blocks to the second tape */
-         if (++BlockNumber > 10 && stop != 0) {      /* get out */
+         /* Get out after writing 100 blocks to the second tape */
+         if (++BlockNumber > 100 && stop != 0) {      /* get out */
+            Pmsg0(000, _("Wrote 100 blocks on second tape. Done.\n"));
             break;
          }
       }
@@ -2025,8 +2028,8 @@ static void fillcmd()
          FI_to_ascii(buf1, rec.FileIndex), rec.VolSessionId,
          stream_to_ascii(buf2, rec.Stream, rec.FileIndex), rec.data_len);
 
-      /* Get out after writing 10 blocks to the second tape */
-      if (BlockNumber > 10 && stop != 0) {      /* get out */
+      /* Get out after writing 100 blocks to the second tape */
+      if (BlockNumber > 100 && stop != 0) {      /* get out */
          char ed1[50];
          Pmsg1(-1, "Done writing %s records ...\n", 
              edit_uint64_with_commas(write_count, ed1));
@@ -2039,6 +2042,7 @@ static void fillcmd()
       if (!job_canceled(jcr) && ok) {
          set_jcr_job_status(jcr, JS_Terminated);
       } else if (!ok) {
+         Pmsg0(000, _("Job canceled.\n"));
          set_jcr_job_status(jcr, JS_ErrorTerminated);
          exit_code = 1;
       }
@@ -2077,11 +2081,11 @@ static void fillcmd()
       write(fd, last_block2->buf, last_block2->buf_len);
       write(fd, first_block->buf, first_block->buf_len);
       close(fd);
-      Pmsg2(-1, _("Wrote state file last_block_num1=%d last_block_num2=%d\n"),
+      Pmsg2(0, _("Wrote state file last_block_num1=%d last_block_num2=%d\n"),
          last_block_num1, last_block_num2);
    } else {
       berrno be;
-      Pmsg2(-1, _("Could not create state file: %s ERR=%s\n"), buf,
+      Pmsg2(0, _("Could not create state file: %s ERR=%s\n"), buf,
                  be.bstrerror());
       exit_code = 1;
    }
@@ -2090,16 +2094,16 @@ static void fillcmd()
    (void)localtime_r(&now, &tm);
    strftime(buf1, sizeof(buf1), "%H:%M:%S", &tm);
    if (simple) {
-      Pmsg3(-1, _("\n\n%s Done filling tape at %d:%d. Now beginning re-read of tape ...\n"),
+      Pmsg3(01, _("\n\n%s Done filling tape at %d:%d. Now beginning re-read of tape ...\n"),
          buf1, jcr->dcr->dev->file, jcr->dcr->dev->block_num);
-   }
-   else {
-      Pmsg3(-1, _("\n\n%s Done filling tapes at %d:%d. Now beginning re-read of first tape ...\n"),
+   } else {
+      Pmsg3(0, _("\n\n%s Done filling tapes at %d:%d. Now beginning re-read of first tape ...\n"),
          buf1, jcr->dcr->dev->file, jcr->dcr->dev->block_num);
    }
 
    jcr->dcr->block = block;
    if (!do_unfill()) {
+      Pmsg0(000, _("do_unfill failed.\n"));
       exit_code = 1;
    }
 
@@ -2549,8 +2553,8 @@ static void rawfill_cmd()
             fflush(stdout);
          }
          p[0] += p[13];
-         for (i=1; i<(block->buf_len-sizeof(uint32_t))/sizeof(uint32_t)-1; i++) {
-            p[i] += p[i-1];
+         for (i=1; i<(block->buf_len-sizeof(uint32_t))/sizeof(uint32_t)-1; i+=100) {
+            p[i] += p[0];
          }
          continue;
       }
