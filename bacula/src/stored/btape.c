@@ -367,6 +367,25 @@ static void terminate_btape(int stat)
    exit(stat);
 }
 
+static void init_speed()
+{
+   time(&jcr->run_time);              /* start counting time for rates */
+   jcr->JobBytes=0;
+}
+
+static void print_speed(uint64_t bytes)
+{
+   char ec1[50];
+   now = time(NULL);
+   now -= jcr->run_time;
+   if (now <= 0) {
+      now = 1;                     /* don't divide by zero */
+   }
+   kbs = (double)bytes / (1000 * now);
+   Pmsg2(000, _("VolumeCapacity=%s. Write rate = %.1f KB/s\n"),
+         edit_uint64_with_commas(bytes, ec1), kbs);
+}
+
 static bool open_the_device()
 {
    DEV_BLOCK *block;
@@ -2363,10 +2382,6 @@ static bool compare_blocks(DEV_BLOCK *last_block, DEV_BLOCK *block)
    return true;
 }
 
-
-
-
-
 /*
  * Write current block to tape regardless of whether or
  *   not it is full. If the tape fills, attempt to
@@ -2489,6 +2504,8 @@ static void qfillcmd()
    memset(rec->data, i & 0xFF, i);
    rec->data_len = i;
    rewindcmd();
+   init_speed();
+
    Pmsg1(0, _("Begin writing %d Bacula blocks to tape ...\n"), count);
    for (i=0; i < count; i++) {
       if (i % 100 == 0) {
@@ -2505,6 +2522,7 @@ static void qfillcmd()
       }
    }
    printf("\n");
+   print_speed(dev->VolCatInfo.VolCatBytes);
    weofcmd();
    if (dev->has_cap(CAP_TWOEOF)) {
       weofcmd();
@@ -2540,6 +2558,9 @@ static void rawfill_cmd()
          p[i] = random();
       }
    }
+
+   init_speed();
+
    p = (uint32_t *)block->buf;
    Pmsg1(0, _("Begin writing raw blocks of %u bytes.\n"), block->buf_len);
    for ( ;; ) {
@@ -2554,6 +2575,7 @@ static void rawfill_cmd()
          for (i=1; i<(block->buf_len-sizeof(uint32_t))/sizeof(uint32_t)-1; i+=100) {
             p[i] += p[0];
          }
+         jcr->JobBytes += stat;
          continue;
       }
       break;
@@ -2563,6 +2585,8 @@ static void rawfill_cmd()
    berrno be;
    printf(_("Write failed at block %u. stat=%d ERR=%s\n"), block_num, stat,
       be.bstrerror(my_errno));
+   
+   print_speed(jcr->JobBytes);
    weofcmd();
 }
 
