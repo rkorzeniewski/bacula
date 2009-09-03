@@ -2,6 +2,8 @@
           
 General:
 
+03Sep09
+ebl  Fix #1364 and #1363 about compression buffer error.
 01Sep09
 kes  Many debug code fixes in regression scripts
 kes  Update tape tests for hardware certification
