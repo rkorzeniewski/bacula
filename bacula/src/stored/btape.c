@@ -100,7 +100,7 @@ static void set_volume_name(const char *VolName, int volnum);
 static void rawfill_cmd();
 static bool open_the_device();
 static void autochangercmd();
-static void do_unfill();
+static bool do_unfill();
 
 
 /* Static variables */
@@ -312,7 +312,6 @@ int main(int margc, char *margv[])
    Dmsg0(200, "Do tape commands\n");
    do_tape_cmds();
 
-terminate:
    terminate_btape(exit_code);
 }
 
@@ -1852,6 +1851,7 @@ static void fillcmd()
    last_file = 0;
    last_block_num = 0;
    BlockNumber = 0;
+   exit_code = 0;
 
    Pmsg0(-1, _("\n"
 "This command simulates Bacula writing to a tape.\n"
@@ -1880,6 +1880,7 @@ static void fillcmd()
       simple = false;
    } else {
       Pmsg0(000, _("Command aborted.\n"));
+      exit_code = 1;
       return;
    }
 
@@ -1901,6 +1902,7 @@ static void fillcmd()
    Dmsg0(100, "just before acquire_device\n");
    if (!acquire_device_for_append(dcr)) {
       set_jcr_job_status(jcr, JS_ErrorTerminated);
+      exit_code = 1;
       return;
    }
    block = jcr->dcr->block;
@@ -1977,6 +1979,7 @@ static void fillcmd()
 
          /* Write block to tape */
          if (!flush_block(block, 1)) {
+            exit_code = 1;
             break;
          }
 
@@ -2011,6 +2014,7 @@ static void fillcmd()
       }
       if (!ok) {
          Pmsg0(000, _("Not OK\n"));
+         exit_code = 1;
          break;
       }
       jcr->JobBytes += rec.data_len;   /* increment bytes this job */
@@ -2033,15 +2037,18 @@ static void fillcmd()
          set_jcr_job_status(jcr, JS_Terminated);
       } else if (!ok) {
          set_jcr_job_status(jcr, JS_ErrorTerminated);
+         exit_code = 1;
       }
       if (!write_session_label(dcr, EOS_LABEL)) {
          Pmsg1(000, _("Error writing end session label. ERR=%s\n"), dev->bstrerror());
          ok = false;
+         exit_code = 1;
       }
       /* Write out final block of this session */
       if (!write_block_to_device(dcr)) {
          Pmsg0(-1, _("Set ok=false after write_block_to_device.\n"));
          ok = false;
+         exit_code = 1;
       }
       Pmsg0(-1, _("Wrote End of Session label.\n"));
 
@@ -2073,6 +2080,7 @@ static void fillcmd()
       berrno be;
       Pmsg2(-1, _("Could not create state file: %s ERR=%s\n"), buf,
                  be.bstrerror());
+      exit_code = 1;
    }
 
    now = time(NULL);
@@ -2088,7 +2096,9 @@ static void fillcmd()
    }
 
    jcr->dcr->block = block;
-   do_unfill();
+   if (!do_unfill()) {
+      exit_code = 1;
+   }
 
    dev->min_block_size = min_block_size;
    free_memory(rec.data);
@@ -2104,6 +2114,7 @@ static void unfillcmd()
 {
    int fd;
 
+   exit_code = 0;
    last_block1 = new_block(dev);
    last_block2 = new_block(dev);
    first_block = new_block(dev);
@@ -2124,22 +2135,27 @@ static void unfillcmd()
       if (state_level != btape_state_level) {
           Pmsg0(-1, _("\nThe state file level has changed. You must redo\n"
                   "the fill command.\n"));
+          exit_code = 1;
           return;
        }
    } else {
       berrno be;
       Pmsg2(-1, _("\nCould not find the state file: %s ERR=%s\n"
              "You must redo the fill command.\n"), buf, be.bstrerror());
+      exit_code = 1;
       return;
    }
-   do_unfill();
+   if (!do_unfill()) {
+      exit_code = 1;
+   }
    this_block = NULL;
 }
 
-static void do_unfill()
+static bool do_unfill()
 {
    DEV_BLOCK *block = dcr->block;
    int autochanger;
+   bool rc = false;
 
    dumped = 0;
    VolBytes = 0;
@@ -2286,12 +2302,14 @@ static void do_unfill()
    }
    if (compare_blocks(last_block, block)) {
       Pmsg0(-1, _("\nThe last block on the second tape matches. Test succeeded.\n\n"));
+      rc = true;
    }
 
 bail_out:
    free_block(last_block1);
    free_block(last_block2);
    free_block(first_block);
+   return rc;
 }
 
 /* Read 10000 records then stop */
