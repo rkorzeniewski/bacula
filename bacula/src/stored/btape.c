@@ -892,7 +892,7 @@ static bool speed_test_raw(fill_mode_t mode, uint64_t nb_gb, uint32_t nb)
       for ( ;jcr->JobBytes < nb_gb; ) {
          stat = dev->d_write(dev->fd(), block->buf, block->buf_len);
          if (stat == (int)block->buf_len) {
-            if ((block_num++ % 1000) == 0) {
+            if ((block_num++ % 500) == 0) {
                printf("+");
                fflush(stdout);
             }
