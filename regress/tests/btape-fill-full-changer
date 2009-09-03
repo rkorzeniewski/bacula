@@ -10,7 +10,7 @@ require_tape_drive
 require_autochanger
 
 scripts/cleanup
-scripts/copy-2tape-confs
+scripts/copy-btape-confs
 
 change_jobname $JobName
 start_test
@@ -20,7 +20,6 @@ start_test
 #
 cp ${cwd}/bin/bacula-sd.conf ${cwd}/tmp/1
 sed -e 's%64512%262144%' ${cwd}/tmp/1 >${cwd}/bin/bacula-sd.conf
-
 
 if test "$debug" -eq 1 ; then
    $bin/btape -c bin/bacula-sd.conf Drive-0 <<END_OF_DATA | tee ${cwd}/tmp/log1.out

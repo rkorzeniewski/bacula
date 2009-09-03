@@ -2002,9 +2002,12 @@ static void fillcmd()
             now = time(NULL);
             (void)localtime_r(&now, &tm);
             strftime(buf1, sizeof(buf1), "%H:%M:%S", &tm);
+            Pmsg1(-1, _("%s\n"), buf1);
+#ifdef needed_xxx
             Pmsg1(-1, _("%s Flush block, write EOF\n"), buf1);
             flush_block(block, 0);
             dev->weof(1);
+#endif
          }
 
          /* Get out after writing 10 blocks to the second tape */
