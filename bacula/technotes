@@ -3,6 +3,8 @@
 General:
 
 03Sep09
+ebl  Use MaxFileSize device configuration in btape
+ebl  Make less tweaks in random buffer in btape
 ebl  Fix #1364 and #1363 about compression buffer error.
 01Sep09
 kes  Many debug code fixes in regression scripts
