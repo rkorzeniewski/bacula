@@ -1794,14 +1794,14 @@ static void scan_blocks()
       blocks++;
       tot_blocks++;
       bytes += block->block_len;
-      Dmsg6(100, "Blk_blk=%u dev_blk=%u blen=%u bVer=%d SessId=%u SessTim=%u\n",
-         block->BlockNumber, dev->block_num, block->block_len, block->BlockVer,
+      Dmsg7(100, "Blk_blk=%u file,blk=%u,%u blen=%u bVer=%d SessId=%u SessTim=%u\n",
+         block->BlockNumber, dev->file, dev->block_num, block->block_len, block->BlockVer,
          block->VolSessionId, block->VolSessionTime);
       if (verbose == 1) {
          DEV_RECORD *rec = new_record();
          read_record_from_block(dcr, block, rec);
-         Pmsg8(-1, _("Blk_block: %u dev_blk=%u blen=%u First rec FI=%s SessId=%u SessTim=%u Strm=%s rlen=%d\n"),
-              block->BlockNumber, dev->block_num, block->block_len,
+         Pmsg9(-1, _("Block=%u file,blk=%u,%u blen=%u First rec FI=%s SessId=%u SessTim=%u Strm=%s rlen=%d\n"),
+              block->BlockNumber, dev->file, dev->block_num, block->block_len,
               FI_to_ascii(buf1, rec->FileIndex), rec->VolSessionId, rec->VolSessionTime,
               stream_to_ascii(buf2, rec->Stream, rec->FileIndex), rec->data_len);
          rec->remainder = 0;
@@ -1992,8 +1992,8 @@ static void fillcmd()
                now = 1;          /* prevent divide error */
             }
             kbs = (double)dev->VolCatInfo.VolCatBytes / (1000.0 * (double)now);
-            Pmsg4(-1, _("Wrote blk_block=%u, dev_blk_num=%u VolBytes=%s rate=%.1f KB/s\n"),
-               block->BlockNumber, dev->block_num,
+            Pmsg5(-1, _("Wrote block=%u, file,blk=%u,%u VolBytes=%s rate=%.1f KB/s\n"),
+               block->BlockNumber, dev->file, dev->block_num,
                edit_uint64_with_commas(dev->VolCatInfo.VolCatBytes, ec1), (float)kbs);
          }
          /* Every 32000 blocks (approx 2GB) write an EOF.
