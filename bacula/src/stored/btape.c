@@ -367,6 +367,24 @@ static void terminate_btape(int stat)
    exit(stat);
 }
 
+
+btime_t total_time=0;
+uint64_t total_size=0;
+
+static void init_total_speed()
+{
+   total_size = 0;
+   total_time = 0;
+}
+
+static void print_total_speed()
+{
+   char ec1[50];
+   kbs = (double)total_size / (1000 * total_time);
+   Pmsg2(000, _("TotalVolumeCapacity=%s. Total Write rate = %.1f KB/s\n"),
+         edit_uint64_with_commas(total_size, ec1), kbs);
+}
+
 static void init_speed()
 {
    time(&jcr->run_time);              /* start counting time for rates */
@@ -381,9 +399,45 @@ static void print_speed(uint64_t bytes)
    if (now <= 0) {
       now = 1;                     /* don't divide by zero */
    }
+
+   total_time += now;
+   total_size += bytes;
+
    kbs = (double)bytes / (1000 * now);
    Pmsg2(000, _("VolumeCapacity=%s. Write rate = %.1f KB/s\n"),
          edit_uint64_with_commas(bytes, ec1), kbs);
+}
+
+typedef enum {
+   FILL_RANDOM,
+   FILL_ZERO
+} fill_mode_t;
+
+static void fill_buffer(fill_mode_t mode, char *buf, uint32_t len)
+{
+   int fd;
+   switch (mode) {
+   case FILL_RANDOM:
+      fd = open("/dev/urandom", O_RDONLY);
+      if (fd != -1) {
+         read(fd, buf, len);
+         close(fd);
+      } else {
+         uint32_t *p = (uint32_t *)buf;
+         srandom(time(NULL));
+         for (uint32_t i=0; i<len/sizeof(uint32_t); i++) {
+            p[i] = random();
+         }
+      }
+      break;
+
+   case FILL_ZERO:
+      memset(buf, 0xFF, len);
+      break;
+
+   default:
+      ASSERT(0);
+   }
 }
 
 static bool open_the_device()
@@ -813,6 +867,85 @@ bail_out:
                   "to your Storage daemon's Device resource definition.\n"));
    }
    return rc;
+}
+
+static bool speed_test_raw(fill_mode_t mode, uint64_t nb_gb, uint32_t nb)
+{
+   DEV_BLOCK *block = dcr->block;
+   int stat;
+   uint32_t block_num = 0;
+   uint32_t *p;
+   int my_errno;
+   uint32_t i;
+   char ed1[200];
+   nb_gb *= 1024*1024*1024;      /* convert size from nb to GB */
+
+   init_total_speed();
+   fill_buffer(mode, block->buf, block->buf_len);
+
+   p = (uint32_t *)block->buf;
+   Pmsg3(0, _("Begin writing %i files of %s raw blocks of %u bytes.\n"), 
+         nb, edit_uint64_with_suffix(nb_gb, ed1), block->buf_len);
+
+   for (uint32_t j=0; j<nb; j++) {
+      init_speed();
+      for ( ;jcr->JobBytes < nb_gb; ) {
+         stat = dev->d_write(dev->fd(), block->buf, block->buf_len);
+         if (stat == (int)block->buf_len) {
+            if ((block_num++ % 1000) == 0) {
+               printf("+");
+               fflush(stdout);
+            }
+            if (mode == FILL_RANDOM) {
+               p[0] += p[13];
+               for (i=1; 
+                    i<(block->buf_len-sizeof(uint32_t))/sizeof(uint32_t)-1;
+                    i+=100)
+               {
+                  p[i] += p[0];
+               }
+            }
+            jcr->JobBytes += stat;
+
+         } else {
+            my_errno = errno;
+            printf("\n");
+            berrno be;
+            printf(_("Write failed at block %u. stat=%d ERR=%s\n"), block_num,
+                   stat, be.bstrerror(my_errno));
+            return false;
+         }
+      }
+      printf("\n");
+      weofcmd();
+      print_speed(jcr->JobBytes);
+   }
+   print_total_speed();
+   printf("\n");
+   return true;
+}
+
+
+#define ok(a)    if (!(a)) return
+
+/*
+ * For file (/dev/zero, /dev/urandom, normal?) 
+ *    use raw mode to write a suite of 3 files of 1, 2, 4, 8 GB
+ *    use qfill mode to write the same
+ * 
+ */
+static void speed_test()
+{
+   dev->rewind(dcr);
+   Pmsg0(0, _("Test with random data.\n"));
+   ok(speed_test_raw(FILL_RANDOM, 1, 3));
+   ok(speed_test_raw(FILL_RANDOM, 2, 3));
+   ok(speed_test_raw(FILL_RANDOM, 4, 3));
+
+   Pmsg0(0, _("Test with zero data.\n"));
+   ok(speed_test_raw(FILL_ZERO,   1, 3));
+   ok(speed_test_raw(FILL_ZERO,   2, 3));
+   ok(speed_test_raw(FILL_ZERO,   4, 3));
 }
 
 const int num_recs = 10000;
@@ -1860,10 +1993,10 @@ static void fillcmd()
    DEV_BLOCK  *block = dcr->block;
    char ec1[50];
    char buf1[100], buf2[100];
-   int fd;
    uint32_t i;
    uint64_t write_eof;
    uint32_t min_block_size;
+   int fd;
    struct tm tm;
 
    ok = true;
@@ -1949,17 +2082,7 @@ static void fillcmd()
    /*
     * Put some random data in the record
     */
-   fd = open("/dev/urandom", O_RDONLY);
-   if (fd != -1) {
-      read(fd, rec.data, rec.data_len);
-      close(fd);
-   } else {
-      uint32_t *p = (uint32_t *)rec.data;
-      srandom(time(NULL));
-      for (i=0; i<rec.data_len/sizeof(uint32_t); i++) {
-         p[i] = random();
-      }
-   }
+   fill_buffer(FILL_RANDOM, rec.data, rec.data_len);
 
    /*
     * Generate data as if from File daemon, write to device
@@ -2541,24 +2664,12 @@ static void rawfill_cmd()
 {
    DEV_BLOCK *block = dcr->block;
    int stat;
-   int fd;
    uint32_t block_num = 0;
    uint32_t *p;
    int my_errno;
    uint32_t i;
 
-   fd = open("/dev/urandom", O_RDONLY);
-   if (fd) {
-      read(fd, block->buf, block->buf_len);
-      close(fd);
-   } else {
-      uint32_t *p = (uint32_t *)block->buf;
-      srandom(time(NULL));
-      for (i=0; i<block->buf_len/sizeof(uint32_t); i++) {
-         p[i] = random();
-      }
-   }
-
+   fill_buffer(FILL_RANDOM, block->buf, block->buf_len);
    init_speed();
 
    p = (uint32_t *)block->buf;
@@ -2615,6 +2726,7 @@ static struct cmdstruct commands[] = {
  {NT_("rewind"),    rewindcmd,    _("rewind the tape")},
  {NT_("scan"),      scancmd,      _("read() tape block by block to EOT and report")},
  {NT_("scanblocks"),scan_blocks,  _("Bacula read block by block to EOT and report")},
+ {NT_("speed"),     speed_test,   _("try different configuration and report drive speed")},
  {NT_("status"),    statcmd,      _("print tape status")},
  {NT_("test"),      testcmd,      _("General test Bacula tape functions")},
  {NT_("weof"),      weofcmd,      _("write an EOF on the tape")},
