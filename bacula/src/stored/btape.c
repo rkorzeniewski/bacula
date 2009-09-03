@@ -381,8 +381,8 @@ static void print_total_speed()
 {
    char ec1[50];
    kbs = (double)total_size / (1000 * total_time);
-   Pmsg2(000, _("TotalVolumeCapacity=%s. Total Write rate = %.1f KB/s\n"),
-         edit_uint64_with_commas(total_size, ec1), kbs);
+   Pmsg2(000, _("TotalVolumeCapacity=%sB. Total Write rate = %.1f KB/s\n"),
+         edit_uint64_with_suffix(total_size, ec1), kbs);
 }
 
 static void init_speed()
@@ -404,8 +404,8 @@ static void print_speed(uint64_t bytes)
    total_size += bytes;
 
    kbs = (double)bytes / (1000 * now);
-   Pmsg2(000, _("VolumeCapacity=%s. Write rate = %.1f KB/s\n"),
-         edit_uint64_with_commas(bytes, ec1), kbs);
+   Pmsg2(000, _("VolumeCapacity=%sB. Write rate = %.1f KB/s\n"),
+         edit_uint64_with_suffix(bytes, ec1), kbs);
 }
 
 typedef enum {
@@ -884,7 +884,7 @@ static bool speed_test_raw(fill_mode_t mode, uint64_t nb_gb, uint32_t nb)
    fill_buffer(mode, block->buf, block->buf_len);
 
    p = (uint32_t *)block->buf;
-   Pmsg3(0, _("Begin writing %i files of %s raw blocks of %u bytes.\n"), 
+   Pmsg3(0, _("Begin writing %i files of %sB with raw blocks of %u bytes.\n"), 
          nb, edit_uint64_with_suffix(nb_gb, ed1), block->buf_len);
 
    for (uint32_t j=0; j<nb; j++) {
@@ -937,15 +937,15 @@ static bool speed_test_raw(fill_mode_t mode, uint64_t nb_gb, uint32_t nb)
 static void speed_test()
 {
    dev->rewind(dcr);
-   Pmsg0(0, _("Test with random data.\n"));
-   ok(speed_test_raw(FILL_RANDOM, 1, 3));
-   ok(speed_test_raw(FILL_RANDOM, 2, 3));
-   ok(speed_test_raw(FILL_RANDOM, 4, 3));
-
-   Pmsg0(0, _("Test with zero data.\n"));
+   Pmsg0(0, _("Test with zero data, should give the maximum throughput.\n"));
    ok(speed_test_raw(FILL_ZERO,   1, 3));
    ok(speed_test_raw(FILL_ZERO,   2, 3));
    ok(speed_test_raw(FILL_ZERO,   4, 3));
+
+   Pmsg0(0, _("Test with random data, should give the minimum throughput.\n"));
+   ok(speed_test_raw(FILL_RANDOM, 1, 3));
+   ok(speed_test_raw(FILL_RANDOM, 2, 3));
+   ok(speed_test_raw(FILL_RANDOM, 4, 3));
 }
 
 const int num_recs = 10000;
