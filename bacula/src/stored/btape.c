@@ -2287,7 +2287,7 @@ static void fillcmd()
                now = 1;          /* prevent divide error */
             }
             rate = dev->VolCatInfo.VolCatBytes / now;
-            Pmsg5(-1, _("Wrote block=%u, file,blk=%u,%u VolBytes=%s rate=%.1f KB/s\n"),
+            Pmsg5(-1, _("Wrote block=%u, file,blk=%u,%u VolBytes=%s rate=%sB/s\n"),
                block->BlockNumber, dev->file, dev->block_num,
                edit_uint64_with_commas(dev->VolCatInfo.VolCatBytes, ec1),
                edit_uint64_with_suffix(rate, ec2));
