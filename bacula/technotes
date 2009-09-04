@@ -2,6 +2,8 @@
           
 General:
 
+04Sep09
+ebl  btape: Add speed command and test drive speed with Bacula blocks
 03Sep09
 ebl  Use MaxFileSize device configuration in btape
 ebl  Make less tweaks in random buffer in btape
