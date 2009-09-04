@@ -123,7 +123,6 @@ static int stop = 0;
 static uint64_t vol_size;
 static uint64_t VolBytes;
 static time_t now;
-static double kbs;
 static int32_t file_index;
 static int end_of_tape = 0;
 static uint32_t LastBlock = 0;
@@ -377,10 +376,11 @@ static void init_total_speed()
 
 static void print_total_speed()
 {
-   char ec1[50];
-   kbs = (double)total_size / (1000 * total_time);
-   Pmsg2(000, _("Total Volume bytes=%sB. Total Write rate = %.1f KB/s\n"),
-         edit_uint64_with_suffix(total_size, ec1), kbs);
+   char ec1[50], ec2[50];
+   uint64_t rate = total_size / total_time;
+   Pmsg2(000, _("Total Volume bytes=%sB. Total Write rate = %sB/s\n"),
+         edit_uint64_with_suffix(total_size, ec1), 
+         edit_uint64_with_suffix(rate, ec2));
 }
 
 static void init_speed()
@@ -391,7 +391,9 @@ static void init_speed()
 
 static void print_speed(uint64_t bytes)
 {
-   char ec1[50];
+   char ec1[50], ec2[50];
+   uint64_t rate;
+
    now = time(NULL);
    now -= jcr->run_time;
    if (now <= 0) {
@@ -401,9 +403,10 @@ static void print_speed(uint64_t bytes)
    total_time += now;
    total_size += bytes;
 
-   kbs = (double)bytes / (1000 * now);
-   Pmsg2(000, _("Volume bytes=%sB. Write rate = %.1f KB/s\n"),
-         edit_uint64_with_suffix(bytes, ec1), kbs);
+   rate = bytes / now;
+   Pmsg2(000, _("Volume bytes=%sB. Write rate = %sB/s\n"),
+         edit_uint64_with_suffix(bytes, ec1),
+         edit_uint64_with_suffix(rate, ec2));
 }
 
 /*
@@ -2142,9 +2145,10 @@ static void fillcmd()
 {
    DEV_RECORD rec;
    DEV_BLOCK  *block = dcr->block;
-   char ec1[50];
+   char ec1[50], ec2[50];
    char buf1[100], buf2[100];
    uint64_t write_eof;
+   uint64_t rate;
    uint32_t min_block_size;
    int fd;
    struct tm tm;
@@ -2282,10 +2286,11 @@ static void fillcmd()
             if (now <= 0) {
                now = 1;          /* prevent divide error */
             }
-            kbs = (double)dev->VolCatInfo.VolCatBytes / (1000.0 * (double)now);
+            rate = dev->VolCatInfo.VolCatBytes / now;
             Pmsg5(-1, _("Wrote block=%u, file,blk=%u,%u VolBytes=%s rate=%.1f KB/s\n"),
                block->BlockNumber, dev->file, dev->block_num,
-               edit_uint64_with_commas(dev->VolCatInfo.VolCatBytes, ec1), (float)kbs);
+               edit_uint64_with_commas(dev->VolCatInfo.VolCatBytes, ec1),
+               edit_uint64_with_suffix(rate, ec2));
          }
          /* Every X blocks (dev->max_file_size) write an EOF.
           */
@@ -2675,7 +2680,8 @@ static bool compare_blocks(DEV_BLOCK *last_block, DEV_BLOCK *block)
  */
 static int flush_block(DEV_BLOCK *block, int dump)
 {
-   char ec1[50];
+   char ec1[50], ec2[50];
+   uint64_t rate;
    DEV_BLOCK *tblock;
    uint32_t this_file, this_block_num;
 
@@ -2721,11 +2727,12 @@ static int flush_block(DEV_BLOCK *block, int dump)
       if (now <= 0) {
          now = 1;                     /* don't divide by zero */
       }
-      kbs = (double)dev->VolCatInfo.VolCatBytes / (1000 * now);
+      rate = dev->VolCatInfo.VolCatBytes / now;
       vol_size = dev->VolCatInfo.VolCatBytes;
-      Pmsg4(000, _("End of tape %d:%d. Volume Bytes=%s. Write rate = %.1f KB/s\n"),
+      Pmsg4(000, _("End of tape %d:%d. Volume Bytes=%s. Write rate = %sB/s\n"),
          dev->file, dev->block_num,
-         edit_uint64_with_commas(dev->VolCatInfo.VolCatBytes, ec1), kbs);
+         edit_uint64_with_commas(dev->VolCatInfo.VolCatBytes, ec1), 
+         edit_uint64_with_suffix(rate, ec2));
 
       if (simple) {
          stop = -1;                   /* stop, but do simplified test */
@@ -3065,7 +3072,8 @@ bool dir_ask_sysop_to_create_appendable_volume(DCR *dcr)
 
 static bool my_mount_next_read_volume(DCR *dcr)
 {
-   char ec1[50];
+   char ec1[50], ec2[50];
+   uint64_t rate;
    JCR *jcr = dcr->jcr;
    DEV_BLOCK *block = dcr->block;
 
@@ -3083,9 +3091,10 @@ static bool my_mount_next_read_volume(DCR *dcr)
    if (now <= 0) {
       now = 1;
    }
-   kbs = (double)VolBytes / (1000.0 * (double)now);
-   Pmsg3(-1, _("Read block=%u, VolBytes=%s rate=%.1f KB/s\n"), block->BlockNumber,
-            edit_uint64_with_commas(VolBytes, ec1), (float)kbs);
+   rate = VolBytes / now;
+   Pmsg3(-1, _("Read block=%u, VolBytes=%s rate=%sB/s\n"), block->BlockNumber,
+            edit_uint64_with_commas(VolBytes, ec1), 
+            edit_uint64_with_suffix(rate, ec2));
 
    if (strcmp(dcr->VolumeName, "TestVolume2") == 0) {
       end_of_tape = 1;
