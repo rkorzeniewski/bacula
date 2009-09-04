@@ -406,6 +406,9 @@ static void print_speed(uint64_t bytes)
          edit_uint64_with_suffix(bytes, ec1), kbs);
 }
 
+/*
+ * Helper that fill a buffer with random data or not
+ */
 typedef enum {
    FILL_RANDOM,
    FILL_ZERO
@@ -435,6 +438,21 @@ static void fill_buffer(fill_mode_t mode, char *buf, uint32_t len)
 
    default:
       ASSERT(0);
+   }
+}
+
+static void mix_buffer(fill_mode_t mode, char *data, uint32_t len)
+{
+   uint32_t i;
+   uint32_t *lp = (uint32_t *)data;
+
+   if (mode == FILL_ZERO) {
+      return;
+   }
+
+   lp[0] += lp[13];
+   for (i=1; i < (len-sizeof(uint32_t))/sizeof(uint32_t)-1; i+=100) {
+      lp[i] += lp[0];
    }
 }
 
@@ -872,16 +890,13 @@ static bool speed_test_raw(fill_mode_t mode, uint64_t nb_gb, uint32_t nb)
    DEV_BLOCK *block = dcr->block;
    int stat;
    uint32_t block_num = 0;
-   uint32_t *p;
    int my_errno;
-   uint32_t i;
    char ed1[200];
    nb_gb *= 1024*1024*1024;      /* convert size from nb to GB */
 
    init_total_speed();
    fill_buffer(mode, block->buf, block->buf_len);
 
-   p = (uint32_t *)block->buf;
    Pmsg3(0, _("Begin writing %i files of %sB with raw blocks of %u bytes.\n"), 
          nb, edit_uint64_with_suffix(nb_gb, ed1), block->buf_len);
 
@@ -894,15 +909,9 @@ static bool speed_test_raw(fill_mode_t mode, uint64_t nb_gb, uint32_t nb)
                printf("+");
                fflush(stdout);
             }
-            if (mode == FILL_RANDOM) {
-               p[0] += p[13];
-               for (i=1; 
-                    i<(block->buf_len-sizeof(uint32_t))/sizeof(uint32_t)-1;
-                    i+=100)
-               {
-                  p[i] += p[0];
-               }
-            }
+
+            mix_buffer(mode, block->buf, block->buf_len);
+
             jcr->JobBytes += stat;
 
          } else {
@@ -1991,7 +2000,6 @@ static void fillcmd()
    DEV_BLOCK  *block = dcr->block;
    char ec1[50];
    char buf1[100], buf2[100];
-   uint32_t i;
    uint64_t write_eof;
    uint32_t min_block_size;
    int fd;
@@ -2101,11 +2109,7 @@ static void fillcmd()
       rec.Stream = STREAM_FILE_DATA;
 
       /* Mix up the data just a bit */
-      uint32_t *lp = (uint32_t *)rec.data;
-      lp[0] += lp[13];
-      for (i=1; i < (rec.data_len-sizeof(uint32_t))/sizeof(uint32_t)-1; i+=100) {
-         lp[i] += lp[0];
-      }
+      mix_buffer(FILL_RANDOM, rec.data, rec.data_len);
 
       Dmsg4(250, "before write_rec FI=%d SessId=%d Strm=%s len=%d\n",
          rec.FileIndex, rec.VolSessionId, 
@@ -2682,7 +2686,6 @@ static void rawfill_cmd()
    uint32_t block_num = 0;
    uint32_t *p;
    int my_errno;
-   uint32_t i;
 
    fill_buffer(FILL_RANDOM, block->buf, block->buf_len);
    init_speed();
@@ -2697,10 +2700,9 @@ static void rawfill_cmd()
             printf("+");
             fflush(stdout);
          }
-         p[0] += p[13];
-         for (i=1; i<(block->buf_len-sizeof(uint32_t))/sizeof(uint32_t)-1; i+=100) {
-            p[i] += p[0];
-         }
+
+         mix_buffer(FILL_RANDOM, block->buf, block->buf_len);
+
          jcr->JobBytes += stat;
          continue;
       }
