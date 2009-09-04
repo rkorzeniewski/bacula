@@ -406,6 +406,9 @@ static void print_speed(uint64_t bytes)
          edit_uint64_with_suffix(bytes, ec1), kbs);
 }
 
+/*
+ * Helper that fill a buffer with random data or not
+ */
 typedef enum {
    FILL_RANDOM,
    FILL_ZERO
@@ -435,6 +438,21 @@ static void fill_buffer(fill_mode_t mode, char *buf, uint32_t len)
 
    default:
       ASSERT(0);
+   }
+}
+
+static void mix_buffer(fill_mode_t mode, char *data, uint32_t len)
+{
+   uint32_t i;
+   uint32_t *lp = (uint32_t *)data;
+
+   if (mode == FILL_ZERO) {
+      return;
+   }
+
+   lp[0] += lp[13];
+   for (i=1; i < (len-sizeof(uint32_t))/sizeof(uint32_t)-1; i+=100) {
+      lp[i] += lp[0];
    }
 }
 
@@ -872,16 +890,13 @@ static bool speed_test_raw(fill_mode_t mode, uint64_t nb_gb, uint32_t nb)
    DEV_BLOCK *block = dcr->block;
    int stat;
    uint32_t block_num = 0;
-   uint32_t *p;
    int my_errno;
-   uint32_t i;
    char ed1[200];
    nb_gb *= 1024*1024*1024;      /* convert size from nb to GB */
 
    init_total_speed();
    fill_buffer(mode, block->buf, block->buf_len);
 
-   p = (uint32_t *)block->buf;
    Pmsg3(0, _("Begin writing %i files of %sB with raw blocks of %u bytes.\n"), 
          nb, edit_uint64_with_suffix(nb_gb, ed1), block->buf_len);
 
@@ -894,15 +909,9 @@ static bool speed_test_raw(fill_mode_t mode, uint64_t nb_gb, uint32_t nb)
                printf("+");
                fflush(stdout);
             }
-            if (mode == FILL_RANDOM) {
-               p[0] += p[13];
-               for (i=1; 
-                    i<(block->buf_len-sizeof(uint32_t))/sizeof(uint32_t)-1;
-                    i+=100)
-               {
-                  p[i] += p[0];
-               }
-            }
+
+            mix_buffer(mode, block->buf, block->buf_len);
+
             jcr->JobBytes += stat;
 
          } else {
@@ -924,6 +933,75 @@ static bool speed_test_raw(fill_mode_t mode, uint64_t nb_gb, uint32_t nb)
 }
 
 
+static bool speed_test_bacula(fill_mode_t mode, uint64_t nb_gb, uint32_t nb)
+{
+   DEV_BLOCK *block = dcr->block;
+   char ed1[200];
+   DEV_RECORD *rec;
+   uint64_t last_bytes = dev->VolCatInfo.VolCatBytes;
+   uint64_t written=0;
+
+   nb_gb *= 1024*1024*1024;      /* convert size from nb to GB */
+
+   init_total_speed();
+
+   empty_block(block);
+   rec = new_record();
+   rec->data = check_pool_memory_size(rec->data, block->buf_len);
+   rec->data_len = block->buf_len-100;
+
+   fill_buffer(mode, rec->data, rec->data_len);
+
+   Pmsg3(0, _("Begin writing %i files of %sB with blocks of %u bytes.\n"), 
+         nb, edit_uint64_with_suffix(nb_gb, ed1), block->buf_len);
+
+   for (uint32_t j=0; j<nb; j++) {
+      written = 0;
+      init_speed();
+      for ( ; written < nb_gb; ) {
+
+         if (!write_record_to_block(block, rec)) {
+            Pmsg0(0, _("\nError writing record to block.\n"));
+            goto bail_out;
+         }
+         if (!write_block_to_dev(dcr)) {
+            Pmsg0(0, _("\nError writing block to device.\n"));
+            goto bail_out;
+         }
+
+         if ((block->BlockNumber % 500) == 0) {
+            printf("+");
+            fflush(stdout);
+         }
+         written += dev->VolCatInfo.VolCatBytes - last_bytes;
+         last_bytes = dev->VolCatInfo.VolCatBytes;
+         mix_buffer(mode, rec->data, rec->data_len);
+      }
+      printf("\n");
+      weofcmd();
+      print_speed(written);
+   }
+   print_total_speed();
+   printf("\n");
+   free_record(rec);
+   return true;
+
+bail_out:
+   free_record(rec);
+   return false;
+}
+
+/* TODO: use UAContext */
+static int btape_find_arg(const char *keyword)
+{
+   for (int i=1; i<argc; i++) {
+      if (strcasecmp(keyword, argk[i]) == 0) {
+         return i;
+      }
+   }
+   return -1;
+}
+
 #define ok(a)    if (!(a)) return
 
 /*
@@ -934,16 +1012,91 @@ static bool speed_test_raw(fill_mode_t mode, uint64_t nb_gb, uint32_t nb)
  */
 static void speed_test()
 {
-   dev->rewind(dcr);
-   Pmsg0(0, _("Test with zero data, should give the maximum throughput.\n"));
-   ok(speed_test_raw(FILL_ZERO,   1, 3));
-   ok(speed_test_raw(FILL_ZERO,   2, 3));
-   ok(speed_test_raw(FILL_ZERO,   4, 3));
+   bool do_zero=true, do_random=true, do_block=true, do_raw=true;
+   uint32_t file_size=0, nb_file=3;
+   int32_t i;
 
-   Pmsg0(0, _("Test with random data, should give the minimum throughput.\n"));
-   ok(speed_test_raw(FILL_RANDOM, 1, 3));
-   ok(speed_test_raw(FILL_RANDOM, 2, 3));
-   ok(speed_test_raw(FILL_RANDOM, 4, 3));
+   i = btape_find_arg("file_size");
+   if (i > 0) {
+      file_size = atoi(argv[i]);
+      if (file_size > 100) {
+         Pmsg0(0, _("The file_size is too big, stop this test with Ctrl-c.\n"));
+      }
+   }
+
+   i = btape_find_arg("nb_file");
+   if (i > 0) {
+      nb_file = atoi(argv[i]);
+   }
+
+   if (btape_find_arg("skip_zero") > 0) {
+      do_zero = false;
+   }
+
+   if (btape_find_arg("skip_random") > 0) {
+      do_random = false;
+   }
+
+   if (btape_find_arg("skip_raw") > 0) {
+      do_raw = false;
+   }
+
+   if (btape_find_arg("skip_block") > 0) {
+      do_block = false;
+   }
+
+   if (do_raw) {
+      dev->rewind(dcr);
+      if (do_zero) { 
+         Pmsg0(0, _("Test with zero data, should give the "
+                    "maximum throughput.\n"));
+         if (file_size) {
+            ok(speed_test_raw(FILL_ZERO, file_size, nb_file));
+         } else {
+            ok(speed_test_raw(FILL_ZERO, 1, nb_file));
+            ok(speed_test_raw(FILL_ZERO, 2, nb_file));
+            ok(speed_test_raw(FILL_ZERO, 4, nb_file));
+         }
+      }
+
+      if (do_random) { 
+         Pmsg0(0, _("Test with random data, should give the minimum "
+                    "throughput.\n"));
+         if (file_size) {
+            ok(speed_test_raw(FILL_RANDOM, file_size, nb_file));
+         } else {
+            ok(speed_test_raw(FILL_RANDOM, 1, nb_file));
+            ok(speed_test_raw(FILL_RANDOM, 2, nb_file));
+            ok(speed_test_raw(FILL_RANDOM, 4, nb_file));
+         }
+      }
+   }
+
+   if (do_block) {
+      dev->rewind(dcr);
+      if (do_zero) {
+         Pmsg0(0, _("Test with zero data and bacula block structure.\n"));
+         if (file_size) {
+            ok(speed_test_bacula(FILL_ZERO, file_size, nb_file));
+         } else { 
+            ok(speed_test_bacula(FILL_ZERO, 1, nb_file));
+            ok(speed_test_bacula(FILL_ZERO, 2, nb_file));
+               ok(speed_test_bacula(FILL_ZERO, 4, nb_file));
+         }
+      }
+   
+      if (do_random) { 
+         Pmsg0(0, _("Test with random data, should give the minimum "
+                    "throughput.\n"));
+         if (file_size) {
+            ok(speed_test_bacula(FILL_RANDOM, file_size, nb_file));
+         } else {
+            ok(speed_test_bacula(FILL_RANDOM, 1, nb_file));
+            ok(speed_test_bacula(FILL_RANDOM, 2, nb_file));
+            ok(speed_test_bacula(FILL_RANDOM, 4, nb_file));
+         }
+      }
+   }
 }
 
 const int num_recs = 10000;
@@ -1991,7 +2144,6 @@ static void fillcmd()
    DEV_BLOCK  *block = dcr->block;
    char ec1[50];
    char buf1[100], buf2[100];
-   uint32_t i;
    uint64_t write_eof;
    uint32_t min_block_size;
    int fd;
@@ -2101,11 +2253,7 @@ static void fillcmd()
       rec.Stream = STREAM_FILE_DATA;
 
       /* Mix up the data just a bit */
-      uint32_t *lp = (uint32_t *)rec.data;
-      lp[0] += lp[13];
-      for (i=1; i < (rec.data_len-sizeof(uint32_t))/sizeof(uint32_t)-1; i+=100) {
-         lp[i] += lp[0];
-      }
+      mix_buffer(FILL_RANDOM, rec.data, rec.data_len);
 
       Dmsg4(250, "before write_rec FI=%d SessId=%d Strm=%s len=%d\n",
          rec.FileIndex, rec.VolSessionId, 
@@ -2682,7 +2830,6 @@ static void rawfill_cmd()
    uint32_t block_num = 0;
    uint32_t *p;
    int my_errno;
-   uint32_t i;
 
    fill_buffer(FILL_RANDOM, block->buf, block->buf_len);
    init_speed();
@@ -2697,10 +2844,9 @@ static void rawfill_cmd()
             printf("+");
             fflush(stdout);
          }
-         p[0] += p[13];
-         for (i=1; i<(block->buf_len-sizeof(uint32_t))/sizeof(uint32_t)-1; i+=100) {
-            p[i] += p[0];
-         }
+
+         mix_buffer(FILL_RANDOM, block->buf, block->buf_len);
+
          jcr->JobBytes += stat;
          continue;
       }
@@ -2741,7 +2887,7 @@ static struct cmdstruct commands[] = {
  {NT_("rewind"),    rewindcmd,    _("rewind the tape")},
  {NT_("scan"),      scancmd,      _("read() tape block by block to EOT and report")},
  {NT_("scanblocks"),scan_blocks,  _("Bacula read block by block to EOT and report")},
- {NT_("speed"),     speed_test,   _("try different configuration and report drive speed")},
+ {NT_("speed"),     speed_test,   _("[file_size=n(GB)|nb_file=3|skip_zero|skip_random|skip_raw|skip_block] report drive speed")},
  {NT_("status"),    statcmd,      _("print tape status")},
  {NT_("test"),      testcmd,      _("General test Bacula tape functions")},
  {NT_("weof"),      weofcmd,      _("write an EOF on the tape")},
