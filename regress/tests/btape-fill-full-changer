@@ -20,6 +20,11 @@ start_test
 #
 cp ${cwd}/bin/bacula-sd.conf ${cwd}/tmp/1
 sed -e 's%64512%262144%' ${cwd}/tmp/1 >${cwd}/bin/bacula-sd.conf
+#
+# Limit Volume size for debugging without waiting too long
+#
+# cp ${cwd}/bin/bacula-sd.conf ${cwd}/tmp/1
+# sed -e 's%# MaximumVolumeSize = 400M%  MaximumVolumeSize = 400M%' ${cwd}/tmp/1 >${cwd}/bin/bacula-sd.conf
 
 if test "$debug" -eq 1 ; then
    $bin/btape -c bin/bacula-sd.conf Drive-0 <<END_OF_DATA | tee ${cwd}/tmp/log1.out
@@ -37,7 +42,7 @@ quit
 END_OF_DATA
 fi
 
-grep "^The last block on the tape matches\. Test succeeded\." ${cwd}/tmp/log1.out >/dev/null 2>&1
+grep "^The last block on the second tape matches\. Test succeeded\." ${cwd}/tmp/log1.out >/dev/null 2>&1
 if [ $? != 0 ] ; then
    echo " "
    echo " "
