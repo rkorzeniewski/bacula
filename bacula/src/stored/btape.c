@@ -37,8 +37,6 @@
  *   Note, this program reads stored.conf, and will only
  *     talk to devices that are configured.
  *
- *   Version $Id$
- *
  */
 
 #include "bacula.h"
@@ -381,7 +379,7 @@ static void print_total_speed()
 {
    char ec1[50];
    kbs = (double)total_size / (1000 * total_time);
-   Pmsg2(000, _("TotalVolumeCapacity=%sB. Total Write rate = %.1f KB/s\n"),
+   Pmsg2(000, _("Total Volume bytes=%sB. Total Write rate = %.1f KB/s\n"),
          edit_uint64_with_suffix(total_size, ec1), kbs);
 }
 
@@ -404,7 +402,7 @@ static void print_speed(uint64_t bytes)
    total_size += bytes;
 
    kbs = (double)bytes / (1000 * now);
-   Pmsg2(000, _("VolumeCapacity=%sB. Write rate = %.1f KB/s\n"),
+   Pmsg2(000, _("Volume bytes=%sB. Write rate = %.1f KB/s\n"),
          edit_uint64_with_suffix(bytes, ec1), kbs);
 }
 
@@ -2154,9 +2152,9 @@ static void fillcmd()
 #endif
          }
 
-         /* Get out after writing 100 blocks to the second tape */
-         if (++BlockNumber > 100 && stop != 0) {      /* get out */
-            Pmsg0(000, _("Wrote 100 blocks on second tape. Done.\n"));
+         /* Get out after writing 1000 blocks to the second tape */
+         if (++BlockNumber > 1000 && stop != 0) {      /* get out */
+            Pmsg0(000, _("Wrote 1000 blocks on second tape. Done.\n"));
             break;
          }
       }
@@ -2170,14 +2168,15 @@ static void fillcmd()
          FI_to_ascii(buf1, rec.FileIndex), rec.VolSessionId,
          stream_to_ascii(buf2, rec.Stream, rec.FileIndex), rec.data_len);
 
-      /* Get out after writing 100 blocks to the second tape */
-      if (BlockNumber > 100 && stop != 0) {      /* get out */
+      /* Get out after writing 1000 blocks to the second tape */
+      if (BlockNumber > 1000 && stop != 0) {      /* get out */
          char ed1[50];
          Pmsg1(-1, "Done writing %s records ...\n", 
              edit_uint64_with_commas(write_count, ed1));
          break;
       }
-   }
+   } /* end big for loop */
+
    if (vol_num > 1) {
       Dmsg0(100, "Write_end_session_label()\n");
       /* Create Job status for end of session label */
@@ -2230,25 +2229,30 @@ static void fillcmd()
       Pmsg2(0, _("Could not create state file: %s ERR=%s\n"), buf,
                  be.bstrerror());
       exit_code = 1;
+      ok = false;
    }
 
    now = time(NULL);
    (void)localtime_r(&now, &tm);
    strftime(buf1, sizeof(buf1), "%H:%M:%S", &tm);
-   if (simple) {
-      Pmsg3(01, _("\n\n%s Done filling tape at %d:%d. Now beginning re-read of tape ...\n"),
-         buf1, jcr->dcr->dev->file, jcr->dcr->dev->block_num);
+   if (ok) {
+      if (simple) {
+         Pmsg3(0, _("\n\n%s Done filling tape at %d:%d. Now beginning re-read of tape ...\n"),
+               buf1, jcr->dcr->dev->file, jcr->dcr->dev->block_num);
+      } else {
+         Pmsg3(0, _("\n\n%s Done filling tapes at %d:%d. Now beginning re-read of first tape ...\n"),
+               buf1, jcr->dcr->dev->file, jcr->dcr->dev->block_num);
+      }
+
+      jcr->dcr->block = block;
+      if (!do_unfill()) {
+         Pmsg0(000, _("do_unfill failed.\n"));
+         exit_code = 1;
+         ok = false;
+      }
    } else {
-      Pmsg3(0, _("\n\n%s Done filling tapes at %d:%d. Now beginning re-read of first tape ...\n"),
-         buf1, jcr->dcr->dev->file, jcr->dcr->dev->block_num);
+      Pmsg1(000, _("%s: Error during test.\n"), buf1);
    }
-
-   jcr->dcr->block = block;
-   if (!do_unfill()) {
-      Pmsg0(000, _("do_unfill failed.\n"));
-      exit_code = 1;
-   }
-
    dev->min_block_size = min_block_size;
    free_memory(rec.data);
 }
@@ -2300,6 +2304,11 @@ static void unfillcmd()
    this_block = NULL;
 }
 
+/*
+ * This is the second part of the fill command. After the tape or
+ *  tapes are written, we are called here to reread parts, particularly
+ *  the last block.
+ */
 static bool do_unfill()
 {
    DEV_BLOCK *block = dcr->block;
@@ -2310,7 +2319,7 @@ static bool do_unfill()
    VolBytes = 0;
    LastBlock = 0;
 
-   Dmsg0(20, "Enter do_unfill\n");
+   Pmsg0(000, "Enter do_unfill\n");
    dev->set_cap(CAP_ANONVOLS);        /* allow reading any volume */
    dev->clear_cap(CAP_LABEL);         /* don't label anything here */
 
@@ -2348,8 +2357,10 @@ static bool do_unfill()
       }
       autochanger = autoload_device(dcr, 1, NULL);
       if (autochanger != 1) {
+         Pmsg1(100, "Autochanger returned: %d\n", autochanger);
          dev->close();
          get_cmd(_("Mount first tape. Press enter when ready: "));
+         Pmsg0(000, "\n");
       }
    }
 
@@ -2410,8 +2421,10 @@ static bool do_unfill()
 
    autochanger = autoload_device(dcr, 1, NULL);
    if (autochanger != 1) {
+      Pmsg1(100, "Autochanger returned: %d\n", autochanger);
       dev->close();
       get_cmd(_("Mount second tape. Press enter when ready: "));
+      Pmsg0(000, "\n");
    }
 
    dev->clear_read();
@@ -2562,7 +2575,7 @@ static int flush_block(DEV_BLOCK *block, int dump)
       }
       kbs = (double)dev->VolCatInfo.VolCatBytes / (1000 * now);
       vol_size = dev->VolCatInfo.VolCatBytes;
-      Pmsg4(000, _("End of tape %d:%d. VolumeCapacity=%s. Write rate = %.1f KB/s\n"),
+      Pmsg4(000, _("End of tape %d:%d. Volume Bytes=%s. Write rate = %.1f KB/s\n"),
          dev->file, dev->block_num,
          edit_uint64_with_commas(dev->VolCatInfo.VolCatBytes, ec1), kbs);
 
@@ -2891,10 +2904,12 @@ bool dir_ask_sysop_to_create_appendable_volume(DCR *dcr)
    }
    autochanger = autoload_device(dcr, 1, NULL);
    if (autochanger != 1) {
+      Pmsg1(100, "Autochanger returned: %d\n", autochanger);
       fprintf(stderr, _("Mount blank Volume on device %s and press return when ready: "),
          dev->print_name());
       dev->close();
       getchar();
+      Pmsg0(000, "\n");
    }
    labelcmd();
    VolumeName = NULL;

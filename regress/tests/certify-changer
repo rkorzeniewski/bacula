@@ -36,6 +36,7 @@ echo " " >>${outf}
 echo "lspci:" >>${outf}
 lspci -vv >>${outf}
 
+
 # If we have an autoloader, load the tape in slot1
 if test ! x$AUTOCHANGER = x/dev/null ; then
    a=`bin/mtx-changer $AUTOCHANGER loaded $SLOT1 $TAPE_DRIVE $DRIVE1`

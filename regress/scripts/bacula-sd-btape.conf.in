@@ -47,6 +47,7 @@ Device {
   Archive Device = @tape_drive@
   AutomaticMount = yes;               # when device opened, read it
   AlwaysOpen = yes;
+  Autochanger = yes;
   RemovableMedia = yes;
   @@sbindir@/tape_options
   Maximum Block Size = 64512
