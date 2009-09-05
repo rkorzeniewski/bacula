@@ -54,6 +54,8 @@ Device {
   Minimum Block Size = 64512
   Maximum File Size = 5G 
 # MaximumVolumeSize = 400M
+  Maximum Rewind Wait = 6000
+  Maximum Changer Wait = 6000
 }
 
 # 
