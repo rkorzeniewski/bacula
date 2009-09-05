@@ -54,7 +54,9 @@ update Media SET VolJobs=1 WHERE VolumeName='vol52';
 update Media SET LastWritten='2006-01-01 01:00:01' WHERE VolumeName='vol57';
 update Media SET LastWritten='2006-01-01 01:00:02' WHERE VolumeName='vol53';
 
-list volume
+list volumes
+wait
+quit
 EOF
 
 run_bacula
@@ -68,7 +70,7 @@ cat <<EOF > ${cwd}/tmp/bconcmds
 run level=full pool=Test NightlySave yes
 wait
 message
-list volume
+list volumes
 @# Must choose vol58
 @# Pool + Recycled + Enabled + InChanger
 run level=full pool=Test NightlySave yes
@@ -80,13 +82,13 @@ list volume
 run level=full pool=Test NightlySave yes
 wait
 message
-list volume
+list volumes
 @# Must choose vol55
 @# Pool + Full + Recycle + Enabled + InChanger
 run level=full pool=Test NightlySave yes
 wait
 message
-list volume
+list volumes
 @# Must choose vol54
 @# No more in Test pool, get from scratch
 @# vol52 is Append, but have 1 job and MaxJob
@@ -106,13 +108,13 @@ list volume
 run level=full pool=Test NightlySave yes
 wait
 message
-list volume
+list volumes
 @# Must choose vol53
 @# Scratch + Purged + Enabled + InChanger + LastW
 run level=full pool=Test NightlySave yes
 wait
-message
-list volume
+messages
+list volumes
 restore fileset="Full Set" pool=Test where=${cwd}/tmp/bacula-restores select all done
 yes
 wait
@@ -124,6 +126,7 @@ messages
 @#wait
 @#message
 @#list volume
+quit
 EOF
 
 run_bconsole
@@ -252,6 +255,7 @@ run level=full pool=Test storage=File NightlySave yes
 wait
 message
 list volume
+wait
 quit
 EOF
 
