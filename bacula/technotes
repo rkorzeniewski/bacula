@@ -2,6 +2,10 @@
           
 General:
 
+06Sep09
+kes  Increase default path/file length to 2048. This should fix
+     bug #1368.  Too bad Mac OS programmers don't respect POSIX
+     standards.
 04Sep09
 kes  Implement BlockChecksum in Device to be able to turn off checksum
        for performance reasons
