@@ -38,6 +38,12 @@
 #include "bacula.h"
 #include "filed.h"
 
+#ifdef HAVE_DARWIN_OS
+const bool have_darwin_os = true;
+#else
+const bool have_darwin_os = false;
+#endif
+
 #if defined(HAVE_ACL)
 const bool have_acl = true;
 #else
@@ -562,54 +568,54 @@ int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
       }
    }
 
-#ifdef HAVE_DARWIN_OS
-   /* Regular files can have resource forks and Finder Info */
-   if (ff_pkt->type != FT_LNKSAVED && (S_ISREG(ff_pkt->statp.st_mode) &&
-            ff_pkt->flags & FO_HFSPLUS)) {
-      if (ff_pkt->hfsinfo.rsrclength > 0) {
-         int flags;
-         int rsrc_stream;
-         if (!bopen_rsrc(&ff_pkt->bfd, ff_pkt->fname, O_RDONLY | O_BINARY, 0) < 0) {
-            ff_pkt->ff_errno = errno;
-            berrno be;
-            Jmsg(jcr, M_NOTSAVED, -1, _("     Cannot open resource fork for \"%s\": ERR=%s.\n"), 
-                 ff_pkt->fname, be.bstrerror());
-            jcr->JobErrors++;
-            if (is_bopen(&ff_pkt->bfd)) {
-               bclose(&ff_pkt->bfd);
+   if (have_darwin_os) {
+      /* Regular files can have resource forks and Finder Info */
+      if (ff_pkt->type != FT_LNKSAVED && (S_ISREG(ff_pkt->statp.st_mode) &&
+          ff_pkt->flags & FO_HFSPLUS)) {
+         if (ff_pkt->hfsinfo.rsrclength > 0) {
+            int flags;
+            int rsrc_stream;
+            if (!bopen_rsrc(&ff_pkt->bfd, ff_pkt->fname, O_RDONLY | O_BINARY, 0) < 0) {
+               ff_pkt->ff_errno = errno;
+               berrno be;
+               Jmsg(jcr, M_NOTSAVED, -1, _("     Cannot open resource fork for \"%s\": ERR=%s.\n"),
+                    ff_pkt->fname, be.bstrerror());
+               jcr->JobErrors++;
+               if (is_bopen(&ff_pkt->bfd)) {
+                  bclose(&ff_pkt->bfd);
+               }
+               goto good_rtn;
             }
-            goto good_rtn;
+            flags = ff_pkt->flags;
+            ff_pkt->flags &= ~(FO_GZIP|FO_SPARSE);
+            if (flags & FO_ENCRYPT) {
+               rsrc_stream = STREAM_ENCRYPTED_MACOS_FORK_DATA;
+            } else {
+               rsrc_stream = STREAM_MACOS_FORK_DATA;
+            }
+            stat = send_data(jcr, rsrc_stream, ff_pkt, digest, signing_digest);
+            ff_pkt->flags = flags;
+            bclose(&ff_pkt->bfd);
+            if (!stat) {
+               goto bail_out;
+            }
          }
-         flags = ff_pkt->flags;
-         ff_pkt->flags &= ~(FO_GZIP|FO_SPARSE);
-         if (flags & FO_ENCRYPT) {
-            rsrc_stream = STREAM_ENCRYPTED_MACOS_FORK_DATA;
-         } else {
-            rsrc_stream = STREAM_MACOS_FORK_DATA;
-         }
-         stat = send_data(jcr, rsrc_stream, ff_pkt, digest, signing_digest);
-         ff_pkt->flags = flags;
-         bclose(&ff_pkt->bfd);
-         if (!stat) {
-            goto bail_out;
-         }
-      }
 
-      Dmsg1(300, "Saving Finder Info for \"%s\"\n", ff_pkt->fname);
-      sd->fsend("%ld %d 0", jcr->JobFiles, STREAM_HFSPLUS_ATTRIBUTES);
-      Dmsg1(300, "bfiled>stored:header %s\n", sd->msg);
-      pm_memcpy(sd->msg, ff_pkt->hfsinfo.fndrinfo, 32);
-      sd->msglen = 32;
-      if (digest) {
-         crypto_digest_update(digest, (uint8_t *)sd->msg, sd->msglen);
+         Dmsg1(300, "Saving Finder Info for \"%s\"\n", ff_pkt->fname);
+         sd->fsend("%ld %d 0", jcr->JobFiles, STREAM_HFSPLUS_ATTRIBUTES);
+         Dmsg1(300, "bfiled>stored:header %s\n", sd->msg);
+         pm_memcpy(sd->msg, ff_pkt->hfsinfo.fndrinfo, 32);
+         sd->msglen = 32;
+         if (digest) {
+            crypto_digest_update(digest, (uint8_t *)sd->msg, sd->msglen);
+         }
+         if (signing_digest) {
+            crypto_digest_update(signing_digest, (uint8_t *)sd->msg, sd->msglen);
+         }
+         sd->send();
+         sd->signal(BNET_EOD);
       }
-      if (signing_digest) {
-         crypto_digest_update(signing_digest, (uint8_t *)sd->msg, sd->msglen);
-      }
-      sd->send();
-      sd->signal(BNET_EOD);
    }
-#endif
 
    /*
     * Save ACLs when requested and available for anything not being a symlink and not being a plugin.
