@@ -30,8 +30,6 @@
  *
  *    Kern Sibbald, November MM
  *
- *   Version $Id$
- *
  */
 
 #include "bacula.h"
@@ -526,75 +524,77 @@ void do_restore(JCR *jcr)
          }
          break;
 
-      /* Resource fork stream - only recorded after a file to be restored */
-      /* Silently ignore if we cannot write - we already reported that */
+      /*
+       * Resource fork stream - only recorded after a file to be restored
+       * Silently ignore if we cannot write - we already reported that
+       */
       case STREAM_ENCRYPTED_MACOS_FORK_DATA:
       case STREAM_MACOS_FORK_DATA:
-#ifdef HAVE_DARWIN_OS
-         rctx.fork_flags = 0;
-         jcr->ff->flags |= FO_HFSPLUS;
+         if (have_darwin_os) {
+            rctx.fork_flags = 0;
+            jcr->ff->flags |= FO_HFSPLUS;
 
-         if (rctx.stream == STREAM_ENCRYPTED_MACOS_FORK_DATA) {
-            rctx.fork_flags |= FO_ENCRYPT;
+            if (rctx.stream == STREAM_ENCRYPTED_MACOS_FORK_DATA) {
+               rctx.fork_flags |= FO_ENCRYPT;
 
-            /* Set up a decryption context */
-            if (rctx.extract && !rctx.fork_cipher_ctx.cipher) {
-               if (!rctx.cs) {
-                  Jmsg1(jcr, M_ERROR, 0, _("Missing encryption session data stream for %s\n"), jcr->last_fname);
-                  rctx.extract = false;
-                  bclose(&rctx.bfd);
-                  continue;
+               /* Set up a decryption context */
+               if (rctx.extract && !rctx.fork_cipher_ctx.cipher) {
+                  if (!rctx.cs) {
+                     Jmsg1(jcr, M_ERROR, 0, _("Missing encryption session data stream for %s\n"), jcr->last_fname);
+                     rctx.extract = false;
+                     bclose(&rctx.bfd);
+                     continue;
+                  }
+
+                  if ((rctx.fork_cipher_ctx.cipher = crypto_cipher_new(rctx.cs, false, &rctx.fork_cipher_ctx.block_size)) == NULL) {
+                     Jmsg1(jcr, M_ERROR, 0, _("Failed to initialize decryption context for %s\n"), jcr->last_fname);
+                     free_session(rctx);
+                     rctx.extract = false;
+                     bclose(&rctx.bfd);
+                     continue;
+                  }
+               }
+            }
+
+            if (rctx.extract) {
+               if (rctx.prev_stream != rctx.stream) {
+                  if (bopen_rsrc(&rctx.forkbfd, jcr->last_fname, O_WRONLY | O_TRUNC | O_BINARY, 0) < 0) {
+                     Jmsg(jcr, M_ERROR, 0, _("     Cannot open resource fork for %s.\n"), jcr->last_fname);
+                     rctx.extract = false;
+                     continue;
+                  }
+
+                  rctx.fork_size = rsrc_len;
+                  Dmsg0(130, "Restoring resource fork\n");
                }
 
-               if ((rctx.fork_cipher_ctx.cipher = crypto_cipher_new(rctx.cs, false, &rctx.fork_cipher_ctx.block_size)) == NULL) {
-                  Jmsg1(jcr, M_ERROR, 0, _("Failed to initialize decryption context for %s\n"), jcr->last_fname);
-                  free_session(rctx);
+               if (extract_data(jcr, &rctx.forkbfd, sd->msg, sd->msglen, &rctx.fork_addr, rctx.fork_flags,
+                                &rctx.fork_cipher_ctx) < 0) {
                   rctx.extract = false;
-                  bclose(&rctx.bfd);
+                  bclose(&rctx.forkbfd);
                   continue;
                }
             }
+         } else {
+            non_support_rsrc++;
          }
-
-         if (rctx.extract) {
-            if (rctx.prev_stream != rctx.stream) {
-               if (bopen_rsrc(&rctx.forkbfd, jcr->last_fname, O_WRONLY | O_TRUNC | O_BINARY, 0) < 0) {
-                  Jmsg(jcr, M_ERROR, 0, _("     Cannot open resource fork for %s.\n"), jcr->last_fname);
-                  rctx.extract = false;
-                  continue;
-               }
-
-               rctx.fork_size = rsrc_len;
-               Dmsg0(130, "Restoring resource fork\n");
-            }
-
-            if (extract_data(jcr, &rctx.forkbfd, sd->msg, sd->msglen, &rctx.fork_addr, rctx.fork_flags,
-                             &rctx.fork_cipher_ctx) < 0) {
-               rctx.extract = false;
-               bclose(&rctx.forkbfd);
-               continue;
-            }
-         }
-#else
-         non_support_rsrc++;
-#endif
          break;
 
       case STREAM_HFSPLUS_ATTRIBUTES:
-#ifdef HAVE_DARWIN_OS
-         Dmsg0(130, "Restoring Finder Info\n");
-         jcr->ff->flags |= FO_HFSPLUS;
-         if (sd->msglen != 32) {
-            Jmsg(jcr, M_ERROR, 0, _("     Invalid length of Finder Info (got %d, not 32)\n"), sd->msglen);
-            continue;
+         if (have_darwin_os) {
+            Dmsg0(130, "Restoring Finder Info\n");
+            jcr->ff->flags |= FO_HFSPLUS;
+            if (sd->msglen != 32) {
+               Jmsg(jcr, M_ERROR, 0, _("     Invalid length of Finder Info (got %d, not 32)\n"), sd->msglen);
+               continue;
+            }
+            if (setattrlist(jcr->last_fname, &attrList, sd->msg, sd->msglen, 0) != 0) {
+               Jmsg(jcr, M_ERROR, 0, _("     Could not set Finder Info on %s\n"), jcr->last_fname);
+               continue;
+            }
+         } else {
+            non_support_finfo++;
          }
-         if (setattrlist(jcr->last_fname, &attrList, sd->msg, sd->msglen, 0) != 0) {
-            Jmsg(jcr, M_ERROR, 0, _("     Could not set Finder Info on %s\n"), jcr->last_fname);
-            continue;
-         }
-#else
-         non_support_finfo++;
-#endif
          break;
 
       case STREAM_UNIX_ACCESS_ACL:
