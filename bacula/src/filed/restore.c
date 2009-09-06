@@ -144,6 +144,35 @@ static int bclose_chksize(JCR *jcr, BFILE *bfd, boffset_t osize)
    return 0;
 }
 
+#ifdef HAVE_DARWIN_OS
+bool restore_finderinfo(JCR *jcr, POOLMEM *buf, int32_t buflen)
+{
+   struct attrlist attrList;
+
+   memset(&attrList, 0, sizeof(attrList));
+   attrList.bitmapcount = ATTR_BIT_MAP_COUNT;
+   attrList.commonattr = ATTR_CMN_FNDRINFO;
+
+   Dmsg0(130, "Restoring Finder Info\n");
+   jcr->ff->flags |= FO_HFSPLUS;
+   if (buflen != 32) {
+      Jmsg(jcr, M_ERROR, 0, _("Invalid length of Finder Info (got %d, not 32)\n"), sd->msglen);
+      return false;
+   }
+
+   if (setattrlist(jcr->last_fname, &attrList, buf, buflen, 0) != 0) {
+      Jmsg(jcr, M_ERROR, 0, _("Could not set Finder Info on %s\n"), jcr->last_fname);
+      return false;
+   }
+
+   return true;
+}
+#else
+bool restore_finderinfo(JCR *jcr, POOLMEM *buf, int32_t buflen)
+{
+   return true;
+}
+#endif
 
 /*
  * Restore the requested files.
@@ -175,14 +204,6 @@ void do_restore(JCR *jcr)
    int non_support_progname = 0;
    int non_support_crypto = 0;
    int non_support_xattr = 0;
-
-#ifdef HAVE_DARWIN_OS
-   struct attrlist attrList;
-   memset(&attrList, 0, sizeof(attrList));
-   attrList.bitmapcount = ATTR_BIT_MAP_COUNT;
-   attrList.commonattr = ATTR_CMN_FNDRINFO;
-#endif
-
 
    sd = jcr->store_bsock;
    set_jcr_job_status(jcr, JS_Running);
@@ -559,7 +580,7 @@ void do_restore(JCR *jcr)
             if (rctx.extract) {
                if (rctx.prev_stream != rctx.stream) {
                   if (bopen_rsrc(&rctx.forkbfd, jcr->last_fname, O_WRONLY | O_TRUNC | O_BINARY, 0) < 0) {
-                     Jmsg(jcr, M_ERROR, 0, _("     Cannot open resource fork for %s.\n"), jcr->last_fname);
+                     Jmsg(jcr, M_ERROR, 0, _("Cannot open resource fork for %s.\n"), jcr->last_fname);
                      rctx.extract = false;
                      continue;
                   }
@@ -582,14 +603,7 @@ void do_restore(JCR *jcr)
 
       case STREAM_HFSPLUS_ATTRIBUTES:
          if (have_darwin_os) {
-            Dmsg0(130, "Restoring Finder Info\n");
-            jcr->ff->flags |= FO_HFSPLUS;
-            if (sd->msglen != 32) {
-               Jmsg(jcr, M_ERROR, 0, _("     Invalid length of Finder Info (got %d, not 32)\n"), sd->msglen);
-               continue;
-            }
-            if (setattrlist(jcr->last_fname, &attrList, sd->msg, sd->msglen, 0) != 0) {
-               Jmsg(jcr, M_ERROR, 0, _("     Could not set Finder Info on %s\n"), jcr->last_fname);
+            if (!restore_finderinfo(jcr, sd->msg, sd->msglen)) {
                continue;
             }
          } else {
