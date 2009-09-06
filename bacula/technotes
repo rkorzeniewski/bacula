@@ -3,6 +3,7 @@
 General:
 
 06Sep09
+kes  Increment minor version to avoid future conflict.
 kes  Increase default path/file length to 2048. This should fix
      bug #1368.  Too bad Mac OS programmers don't respect POSIX
      standards.
