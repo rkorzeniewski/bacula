@@ -26,8 +26,8 @@
    Switzerland, email:ftf@fsfeurope.org.
 */
 
-#ifndef _BACULA_XATTR_
-#define _BACULA_XATTR_
+#ifndef _BACULA_XATTR_H
+#define _BACULA_XATTR_H
 
 /*
  * Magic used in the magic field of the xattr struct.

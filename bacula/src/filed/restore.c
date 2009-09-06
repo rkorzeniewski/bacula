@@ -34,6 +34,7 @@
 
 #include "bacula.h"
 #include "filed.h"
+#include "restore.h"
 
 #ifdef HAVE_DARWIN_OS
 #include <sys/attr.h>
@@ -69,38 +70,6 @@ const bool have_xattr = false;
 /* Data received from Storage Daemon */
 static char rec_header[] = "rechdr %ld %ld %ld %ld %ld";
 
-typedef struct restore_cipher_ctx {
-   CIPHER_CONTEXT *cipher;
-   uint32_t block_size;
-
-   POOLMEM *buf;       /* Pointer to descryption buffer */
-   int32_t buf_len;    /* Count of bytes currently in buf */ 
-   int32_t packet_len; /* Total bytes in packet */
-} RESTORE_CIPHER_CTX;
-
-struct r_ctx {
-   JCR *jcr;
-   int32_t stream;
-   int32_t prev_stream;
-   BFILE bfd;                          /* File content */
-   uint64_t fileAddr;                  /* file write address */
-   uint32_t size;                      /* Size of file */
-   int flags;                          /* Options for extract_data() */
-   BFILE forkbfd;                      /* Alternative data stream */
-   uint64_t fork_addr;                 /* Write address for alternative stream */
-   intmax_t fork_size;                 /* Size of alternate stream */
-   int fork_flags;                     /* Options for extract_data() */
-   int32_t type;                       /* file type FT_ */
-   ATTR *attr;                         /* Pointer to attributes */
-   bool extract;                       /* set when extracting */
-
-   SIGNATURE *sig;                     /* Cryptographic signature (if any) for file */
-   CRYPTO_SESSION *cs;                 /* Cryptographic session data (if any) for file */
-   RESTORE_CIPHER_CTX cipher_ctx;      /* Cryptographic restore context (if any) for file */
-   RESTORE_CIPHER_CTX fork_cipher_ctx; /* Cryptographic restore context (if any) for alternative stream */
-};
-
-
 /* Forward referenced functions */
 #if   defined(HAVE_LIBZ)
 static const char *zlib_strerror(int stat);
@@ -115,14 +84,11 @@ static void free_signature(r_ctx &rctx);
 static void free_session(r_ctx &rctx);
 static void close_previous_stream(r_ctx &rctx);
 
-
-
 static bool verify_signature(JCR *jcr, r_ctx &rctx);
 int32_t extract_data(JCR *jcr, BFILE *bfd, POOLMEM *buf, int32_t buflen,
                      uint64_t *addr, int flags, RESTORE_CIPHER_CTX *cipher_ctx);
 bool flush_cipher(JCR *jcr, BFILE *bfd, uint64_t *addr, int flags, 
                   RESTORE_CIPHER_CTX *cipher_ctx);
-
 
 /*
  * Close a bfd check that we are at the expected file offset.

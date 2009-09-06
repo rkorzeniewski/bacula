@@ -29,8 +29,8 @@
  * Properties we use for getting and setting ACLs.
  */
 
-#ifndef _BACULA_ACL_
-#define _BACULA_ACL_
+#ifndef _BACULA_ACL_H
+#define _BACULA_ACL_H
 
 /* For shorter ACL strings when possible, define BACL_WANT_SHORT_ACLS */
 /* #define BACL_WANT_SHORT_ACLS */
