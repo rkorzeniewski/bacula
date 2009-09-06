@@ -367,7 +367,6 @@ void do_restore(JCR *jcr)
             rctx.extract = true;
             /* FALLTHROUGH */
          case CF_CREATED:        /* File created, but there is no content */
-            jcr->JobFiles++;
             rctx.fileAddr = 0;
             print_ls_output(jcr, attr);
 
@@ -377,7 +376,17 @@ void do_restore(JCR *jcr)
                if (attr->type == FT_REG && rsrc_len > 0) {
                   rctx.extract = true;
                }
+
+               /*
+                * Count the resource forks not as regular files being restored.
+                */
+               if (rsrc_len == 0) {
+                  jcr->JobFiles++;
+               }
+            } else {
+               jcr->JobFiles++;
             }
+
             if (!rctx.extract) {
                /* set attributes now because file will not be extracted */
                if (jcr->plugin) {
