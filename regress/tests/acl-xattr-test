@@ -14,21 +14,34 @@ TestName="acl-xattr-test"
 JobName=backup
 . scripts/functions
 
-require_linux
+#
+# See if the right software is installed.
+#
+case `uname -s` in
+   Linux)
+      # Require getfacl to be installed
+      getfacl Makefile 2>&1 >/dev/null
+      if test  $? -ne 0; then
+        echo "$TestName skipped: getfacl not installed"
+        exit 0
+      fi
 
-# Require getfacl to be installed
-getfacl Makefile 2>&1 >/dev/null
-if test  $? -ne 0; then
-  echo "$TestName skipped: getfacl not installed"
-  exit 0
-fi
-
-# Require attr to be installed
-attr -l Makefile 2>&1 >/dev/null
-if test $? -ne 0; then
-  echo "$TestName skipped: attr not installed"
-  exit 0
-fi
+      # Require attr to be installed
+      attr -l Makefile 2>&1 >/dev/null
+      if test $? -ne 0; then
+        echo "$TestName skipped: attr not installed"
+        exit 0
+      fi
+      ;;
+   Darwin)
+      ;;
+   SunOS)
+      ;;
+   *)
+      echo "Unsupported OS"
+      exit 0
+      ;;
+esac
 
 scripts/cleanup
 scripts/copy-confs
@@ -82,8 +95,33 @@ case `uname -s` in
         xattr -p bacula.test $d/other > $cwd/tmp/attr.org
       )
       ;;
+   SunOS)
+      #
+      # See if we need to set ZFS or POSIX acls
+      #
+      df -F zfs $d > /dev/null 2>&1
+      if [ $? = 0 ]; then
+         chmod A+user:$uid:rx:allow $d/testdir
+         chmod A+user:root:wx:allow $d/testdir
+         chmod A+user:nobody:rwx:deny $d/testdir
+         chmod A+user:nobody:rwx:deny $d/bconsole
+         chmod A+group:nogroup:x:allow $d/bconsole
+      else
+         chmod A+user:$uid:r-x $d/testdir
+         chmod A+user:root:-wx $d/testdir
+         chmod A+user:nobody:--- $d/testdir
+         chmod A+user:nobody:--- $d/bconsole
+         chmod A+group:nogroup:--x $d/bconsole
+      fi
+      runat $d/other 'cat > bacula.test' << EOF
+rulez
+EOF
+      ( cd $cwd/build
+        ls -ldv -R acl > $cwd/tmp/org
+        runat $d/other 'cat bacula.test' > $cwd/tmp/attr.org
+      )
+      ;;
 esac
-
 
 change_jobname BackupClient1 $JobName
 start_test
@@ -114,10 +152,26 @@ run_bacula
 check_for_zombie_jobs storage=File
 stop_bacula
 
-( cd $cwd/tmp/bacula-restores/$cwd/build
-  getfacl -R acl > $cwd/tmp/new
-  attr -g bacula.test $d/other > $cwd/tmp/attr.new
-)
+case `uname -s` in
+   Linux)
+      ( cd $cwd/tmp/bacula-restores/$cwd/build
+        getfacl -R acl > $cwd/tmp/new
+        attr -g bacula.test $d/other > $cwd/tmp/attr.new
+      )
+      ;;
+   Darwin)
+      ( cd $cwd/tmp/bacula-restores/$cwd/build
+        ls -lde -R acl > $cwd/tmp/new
+        xattr -p bacula.test $d/other > $cwd/tmp/attr.new
+      )
+      ;;
+   SunOS)
+      ( cd $cwd/tmp/bacula-restores/$cwd/build
+        ls -ldv -R acl > $cwd/tmp/new
+        runat $d/other 'cat bacula.test' > $cwd/tmp/attr.new
+      )
+      ;;
+esac
 
 diff -u $cwd/tmp/org $cwd/tmp/new
 if [ $? -ne 0 ]; then
