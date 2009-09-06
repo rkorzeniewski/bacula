@@ -26,8 +26,8 @@
    Switzerland, email:ftf@fsfeurope.org.
 */
 
-#ifndef _BACULA_RESTORE_H
-#define _BACULA_RESTORE_H
+#ifndef __RESTORE_H
+#define __RESTORE_H
 
 struct RESTORE_CIPHER_CTX {
    CIPHER_CONTEXT *cipher;
