@@ -331,9 +331,8 @@ int digest_file(JCR *jcr, FF_PKT *ff_pkt, DIGEST *digest)
       if (digest && ff_pkt->flags & FO_HFSPLUS) {
          crypto_digest_update(digest, (uint8_t *)ff_pkt->hfsinfo.fndrinfo, 32);
       }
-
-      return 0;
    }
+   return 0;
 }
 
 /*
