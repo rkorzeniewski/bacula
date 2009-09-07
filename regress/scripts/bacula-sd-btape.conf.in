@@ -33,18 +33,29 @@ Director {
 #  same Name and MediaType. 
 #
 
+Autochanger {
+  Name = tape
+  Changer Device = @autochanger@
+  Changer Command ="@scriptdir@/@changer_script@ %c %o %S %a %d"
+  Device = Drive-0
+}
+
+
 Device {
-  Name = tape                      # 
+  Name = Drive-0                   # 
   Media Type = Tape
   Archive Device = @tape_drive@
   AutomaticMount = yes;               # when device opened, read it
   AlwaysOpen = yes;
+  Autochanger = yes;
   RemovableMedia = yes;
   @@sbindir@/tape_options
   Maximum Block Size = 64512
   Minimum Block Size = 64512
   Maximum File Size = 5G 
 # MaximumVolumeSize = 400M
+  Maximum Rewind Wait = 6000
+  Maximum Changer Wait = 6000
 }
 
 # 

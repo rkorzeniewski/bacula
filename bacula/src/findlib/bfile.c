@@ -950,6 +950,11 @@ int bopen_rsrc(BFILE *bfd, const char *fname, int flags, mode_t mode)
    free_pool_memory(rsrc_fname);
    return bfd->fid;
 }
+#else
+int bopen_rsrc(BFILE *bfd, const char *fname, int flags, mode_t mode)
+{
+   return -1;
+}
 #endif
 
 
