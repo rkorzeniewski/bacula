@@ -175,13 +175,11 @@ struct findFILESET {
    alist exclude_list;
 };
 
-#ifdef HAVE_DARWIN_OS
 struct HFSPLUS_INFO {
    unsigned long length;              /* Mandatory field */
    char fndrinfo[32];                 /* Finder Info */
    off_t rsrclength;                  /* Size of resource fork */
 };
-#endif
 
 /*
  * Definition of the find_files packet passed as the
@@ -232,9 +230,7 @@ struct FF_PKT {
     * To avoid clutter, we always include rsrc_bfd and volhas_attrlist */
    BFILE rsrc_bfd;                    /* fd for resource forks */
    bool volhas_attrlist;              /* Volume supports getattrlist() */
-#ifdef HAVE_DARWIN_OS
    struct HFSPLUS_INFO hfsinfo;       /* Finder Info and resource fork size */
-#endif
 };
 
 

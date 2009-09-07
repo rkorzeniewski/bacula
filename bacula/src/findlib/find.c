@@ -67,13 +67,13 @@ FF_PKT *init_find_files()
 
    /* Get system path and filename maximum lengths */
    path_max = pathconf(".", _PC_PATH_MAX);
-   if (path_max < 1024) {
-      path_max = 1024;
+   if (path_max < 2048) {
+      path_max = 2048;
    }
 
    name_max = pathconf(".", _PC_NAME_MAX);
-   if (name_max < 1024) {
-      name_max = 1024;
+   if (name_max < 2048) {
+      name_max = 2048;
    }
    path_max++;                        /* add for EOS */
    name_max++;                        /* add for EOS */

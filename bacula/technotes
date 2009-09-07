@@ -2,6 +2,21 @@
           
 General:
 
+07Sep09
+kes  Apply Marco's git format-patch patches for bugs #1365 and #1366
+06Sep09
+kes  Increment minor version to avoid future conflict.
+kes  Increase default path/file length to 2048. This should fix
+     bug #1368.  Too bad Mac OS programmers don't respect POSIX
+     standards.
+04Sep09
+kes  Implement BlockChecksum in Device to be able to turn off checksum
+       for performance reasons
+ebl  btape: Add speed command and test drive speed with Bacula blocks
+03Sep09
+ebl  Use MaxFileSize device configuration in btape
+ebl  Make less tweaks in random buffer in btape
+ebl  Fix #1364 and #1363 about compression buffer error.
 01Sep09
 kes  Many debug code fixes in regression scripts
 kes  Update tape tests for hardware certification

@@ -189,7 +189,7 @@ void empty_block(DEV_BLOCK *block)
  * in the buffer should have already been reserved by
  * init_block.
  */
-void ser_block_header(DEV_BLOCK *block)
+static void ser_block_header(DEV_BLOCK *block, bool do_checksum)
 {
    ser_declare;
    uint32_t CheckSum = 0;
@@ -207,8 +207,10 @@ void ser_block_header(DEV_BLOCK *block)
    }
 
    /* Checksum whole block except for the checksum */
-   CheckSum = bcrc32((uint8_t *)block->buf+BLKHDR_CS_LENGTH,
-                 block_len-BLKHDR_CS_LENGTH);
+   if (do_checksum) {
+      CheckSum = bcrc32((uint8_t *)block->buf+BLKHDR_CS_LENGTH,
+                    block_len-BLKHDR_CS_LENGTH);
+   }
    Dmsg1(1390, "ser_bloc_header: checksum=%x\n", CheckSum);
    ser_begin(block->buf, BLKHDR2_LENGTH);
    ser_uint32(CheckSum);              /* now add checksum to block header */
@@ -307,7 +309,7 @@ static bool unser_block_header(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
    block->BlockNumber = BlockNumber;
    Dmsg3(390, "Read binbuf = %d %d block_len=%d\n", block->binbuf,
       bhl, block_len);
-   if (block_len <= block->read_len) {
+   if (block_len <= block->read_len && dev->do_checksum()) {
       BlockCheckSum = bcrc32((uint8_t *)block->buf+BLKHDR_CS_LENGTH,
                          block_len-BLKHDR_CS_LENGTH);
       if (BlockCheckSum != CheckSum) {
@@ -466,7 +468,7 @@ bool write_block_to_dev(DCR *dcr)
       }
    }
 
-   ser_block_header(block);
+   ser_block_header(block, dev->do_checksum());
 
    /* Limit maximum Volume size to value specified by user */
    hit_max1 = (dev->max_volume_size > 0) &&

@@ -136,6 +136,7 @@ enum {
 #define CAP_MTIOCGET       (1<<20)    /* Basic support for fileno and blkno */
 #define CAP_REQMOUNT       (1<<21)    /* Require mount to read files back (typically: DVD) */
 #define CAP_CHECKLABELS    (1<<22)    /* Check for ANSI/IBM labels */
+#define CAP_BLOCKCHECKSUM  (1<<23)    /* Create/test block checksum */
 
 /* Test state */
 #define dev_state(dev, st_state) ((dev)->state & (st_state))
@@ -307,6 +308,7 @@ public:
    int has_cap(int cap) const { return capabilities & cap; }
    void clear_cap(int cap) { capabilities &= ~cap; }
    void set_cap(int cap) { capabilities |= cap; }
+   bool do_checksum() const { return (capabilities & CAP_BLOCKCHECKSUM) != 0; }
    int is_autochanger() const { return capabilities & CAP_AUTOCHANGER; }
    int requires_mount() const { return capabilities & CAP_REQMOUNT; }
    int is_removable() const { return capabilities & CAP_REM; }
