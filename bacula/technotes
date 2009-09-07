@@ -2,6 +2,8 @@
           
 General:
 
+07Sep09
+kes  Apply Marco's git format-patch patches for bugs #1365 and #1366
 06Sep09
 kes  Increment minor version to avoid future conflict.
 kes  Increase default path/file length to 2048. This should fix
