@@ -80,15 +80,16 @@ static int result_handler(void *ctx, int fields, char **row)
    decode_stat((row[BVFS_LStat] && row[BVFS_LStat][0])?row[BVFS_LStat]:empty,
                &attr->statp, &attr->LinkFI);
 
-   if (fields == BVFS_DIR_RECORD || fields == BVFS_FILE_RECORD) {
+   if (bvfs_is_dir(row) || bvfs_is_file(row))
+   {
       /* display clean stuffs */
 
-      if (fields == BVFS_DIR_RECORD) {
+      if (bvfs_is_dir(row)) {
          pm_strcpy(attr->ofname, bvfs_basename_dir(row[BVFS_Name]));   
       } else {
          /* if we see the requested file, note his filenameid */
          if (bstrcmp(row[BVFS_Name], file)) {
-            fnid = str_to_int64(row[BVFS_Id]);
+            fnid = str_to_int64(row[BVFS_FilenameId]);
          }
          pm_strcpy(attr->ofname, row[BVFS_Name]);   
       }
@@ -96,7 +97,7 @@ static int result_handler(void *ctx, int fields, char **row)
 
    } else {
       Pmsg5(0, "JobId=%s FileId=%s\tMd5=%s\tVolName=%s\tVolInChanger=%s\n",
-            row[BVFS_JobId], row[BVFS_Id], row[BVFS_Md5], row[BVFS_VolName],
+            row[BVFS_JobId], row[BVFS_FileId], row[BVFS_Md5], row[BVFS_VolName],
             row[BVFS_VolInchanger]);
 
       pm_strcpy(attr->ofname, file);
