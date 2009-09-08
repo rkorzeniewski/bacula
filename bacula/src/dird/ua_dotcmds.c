@@ -163,9 +163,9 @@ static bool dot_update(UAContext *ua, const char *cmd)
 
    int pos = find_arg_with_value(ua, "jobid");
    if (pos != -1 && is_a_number_list(ua->argv[pos])) {
-      db_list_ctx jobids;
-      pm_strcpy(jobids.list, ua->argv[pos]);
-      bvfs_update_path_hierarchy_cache(ua->jcr, ua->db, &jobids);
+      POOL_MEM jobids;
+      pm_strcpy(jobids, ua->argv[pos]);
+      bvfs_update_path_hierarchy_cache(ua->jcr, ua->db, jobids.c_str());
    } else {
       /* update cache for all jobids */
       bvfs_update_cache(ua->jcr, ua->db);
@@ -178,17 +178,26 @@ static int bvfs_result_handler(void *ctx, int fields, char **row)
    UAContext *ua = (UAContext *)ctx;
    struct stat statp;
    int32_t LinkFI;
+   const char *fileid;
+   char *lstat;
    char empty[] = "A A A A A A A A A A A A A A";
 
-   memset(&statp, 0, sizeof(struct stat));
-   decode_stat((row[BVFS_LStat] && row[BVFS_LStat][0])?row[BVFS_LStat]:empty,
-               &statp, &LinkFI);
+   lstat = (row[BVFS_LStat] && row[BVFS_LStat][0])?row[BVFS_LStat]:empty;
+   fileid = (row[BVFS_FileId] && row[BVFS_FileId][0])?row[BVFS_FileId]:"0";
 
-   if (fields == BVFS_DIR_RECORD) {
+   memset(&statp, 0, sizeof(struct stat));
+   decode_stat(lstat, &statp, &LinkFI);
+
+   Dmsg1(0, "type=%s\n", row[0]);
+   if (bvfs_is_dir(row)) {
       char *path = bvfs_basename_dir(row[BVFS_Name]);
-      ua->send_msg("%s\t%s\t\%s\n", row[BVFS_Id], row[BVFS_JobId], path);
-   } else if (fields == BVFS_FILE_RECORD) {
-      ua->send_msg("%s\t%s\t\%s\n", row[BVFS_Id], row[BVFS_JobId], row[BVFS_Name]);
+      ua->send_msg("%s\t0\t%s\t%s\t%s\t%s\n", row[BVFS_PathId], fileid,
+                   row[BVFS_JobId], row[BVFS_LStat], path);
+
+   } else if (bvfs_is_file(row)) {
+      ua->send_msg("%s\t%s\t%s\t%s\t%s\t%s\n", row[BVFS_PathId],
+                   row[BVFS_FilenameId], fileid, row[BVFS_JobId],
+                   row[BVFS_LStat], row[BVFS_Name]);
    }
 
    return 0;
@@ -233,7 +242,7 @@ static bool bvfs_parse_arg(UAContext *ua,
       }
    }
 
-   if (!((pathid || path) && jobid)) {
+   if (!((*pathid || *path) && *jobid)) {
       return false;
    }
 
