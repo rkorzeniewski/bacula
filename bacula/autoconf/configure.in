@@ -1867,26 +1867,6 @@ AC_CACHE_CHECK(for socklen_t, ba_cv_header_socklen_t,
 test $ba_cv_header_socklen_t = yes && AC_DEFINE(HAVE_SOCKLEN_T)
 
 dnl --------------------------------------------------------------------------
-dnl Check for bigendian
-dnl --------------------------------------------------------------------------
-AC_CACHE_CHECK([for bigendian], ba_cv_bigendian,
-   [
-       AC_TRY_RUN(
-	  [
-	      main(){long a=1L; char *p=(char *)&a; exit(*p);}
-	  ], [
-	     ba_cv_bigendian=yes
-	  ], [
-	     ba_cv_bigendian=no
-	  ], [
-	     ba_cv_bigendian=no
-	  ]
-       )
-   ]
-)
-test $ba_cv_bigendian = yes && AC_DEFINE(HAVE_BIGENDIAN)
-
-dnl --------------------------------------------------------------------------
 dnl Check for typeof()
 dnl --------------------------------------------------------------------------
 AC_LANG_PUSH(C++)
