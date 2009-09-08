@@ -41,6 +41,7 @@ BACULA_SOURCE:=${WORKING_DIR}/bacula-${BACULA_VERSION}
 BACULA_DESTDIR:=${WORKING_DIR}/destdir
 BACULA_PREFIX:=/usr/local/bacula-${BACULA_VERSION}
 BACULA_FD_CONF:=/Library/Preferences/bacula/bacula-fd.conf
+BACULA_WORKING_DIR:=/private/var/bacula/working
 
 # Detect whether we sit inside the bacula source tree. In this case we won't
 # download the tar from sourceforge but instead work with what its there
@@ -69,7 +70,8 @@ CONFIGFLAGS:=--enable-client-only --prefix=${BACULA_PREFIX} \
     --with-dir-password=@DIR_PW@ --with-fd-password=@FD_PW@ \
     --with-sd-password=@SD_PW@ --with-mon-dir-password=@MON_DIR_PW@ \
     --with-mon-fd-password=@MON_FD_PW@ --with-mon-sd-password=@MON_SD_PW@ \
-    --with-basename=@BASENAME@ --with-hostname=@HOSTNAME@
+    --with-basename=@BASENAME@ --with-hostname=@HOSTNAME@ \
+    --with-working-dir=${BACULA_WORKING_DIR}
 CPPFLAGS:=-isysroot ${MACOSX_SDK_SYSROOT} ${MACOSX_VERSION_FLAGS}
 CFLAGS:=-O -g ${ARCHFLAGS}
 CXXFLAGS:=${CFLAGS}
