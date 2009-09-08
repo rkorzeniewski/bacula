@@ -3,6 +3,7 @@
 General:
 
 08Sep09
+ebl  Apply Lorenz fix for minor issues in the osx installer package builder.
 ebl  Fix #1373 about typo in bscan manpages. Thanks to John Goerzen.
 07Sep09
 ebl  Make output of new commands .lsdir/.lsfile more usable.
