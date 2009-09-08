@@ -44,22 +44,24 @@
 
 /* Helper for result handler */
 typedef enum {
-   BVFS_FILE_RECORD  = 5,
-   BVFS_DIR_RECORD   = 4,
-   BVFS_FILE_VERSION = 6
+   BVFS_FILE_RECORD  = 'F',
+   BVFS_DIR_RECORD   = 'D',
+   BVFS_FILE_VERSION = 'V'
 } bvfs_handler_type;
 
 typedef enum {
-   BVFS_Id      = 0,            /* Could be PathId or FilenameId */
-   BVFS_Name    = 1,
-   BVFS_JobId   = 2,
-   BVFS_LStat   = 3,
+   BVFS_Type    = 0,            /* Could be D, F, V */
+   BVFS_PathId  = 1, 
+   BVFS_FilenameId = 2,
 
-   /* Only if File record */
-   BVFS_FileId  = 4,
+   BVFS_Name    = 3,
+   BVFS_JobId   = 4,
+
+   BVFS_LStat   = 5,            /* Can be empty for missing directories */
+   BVFS_FileId  = 6,            /* Can be empty for missing directories */
 
    /* Only if File Version record */
-   BVFS_Md5     = 1,
+   BVFS_Md5     = 3,
    BVFS_VolName = 4,
    BVFS_VolInchanger = 5
 } bvfs_row_index;
@@ -71,11 +73,11 @@ public:
    virtual ~Bvfs();
 
    void set_jobid(JobId_t id) {
-      Mmsg(jobids.list, "%lld", (uint64_t)id);
+      Mmsg(jobids, "%lld", (uint64_t)id);
    }
 
    void set_jobids(char *ids) {
-      pm_strcpy(jobids.list, ids);
+      pm_strcpy(jobids, ids);
    }
 
    void set_limit(uint32_t max) {
@@ -157,7 +159,7 @@ private:
 
    JCR *jcr;
    B_DB *db;
-   db_list_ctx jobids;
+   POOLMEM *jobids;
    uint32_t limit;
    uint32_t offset;
    uint32_t nb_record;          /* number of records of the last query */
@@ -176,7 +178,10 @@ private:
    void *user_data;
 };
 
-void bvfs_update_path_hierarchy_cache(JCR *jcr, B_DB *mdb, db_list_ctx *jobids);
+#define bvfs_is_dir(row) ((row)[BVFS_Type][0] == BVFS_DIR_RECORD)
+#define bvfs_is_file(row) ((row)[BVFS_Type][0] == BVFS_FILE_RECORD)
+
+void bvfs_update_path_hierarchy_cache(JCR *jcr, B_DB *mdb, char *jobids);
 void bvfs_update_cache(JCR *jcr, B_DB *mdb);
 char *bvfs_parent_dir(char *path);
 

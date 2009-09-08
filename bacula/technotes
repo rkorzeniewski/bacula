@@ -3,6 +3,7 @@
 General:
 
 07Sep09
+ebl  Make output of new commands .lsdir/.lsfile more usable.
 kes  Apply Marco's git format-patch patches for bugs #1365 and #1366
 06Sep09
 kes  Increment minor version to avoid future conflict.
