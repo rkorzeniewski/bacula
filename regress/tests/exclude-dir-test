@@ -16,6 +16,10 @@ cp -f $tmp/1 $conf/bacula-dir.conf
 change_jobname CompressedTest $JobName
 start_test
 
+mkdir ${cwd}/build/src/testdir
+touch ${cwd}/build/src/testdir/.nobkp
+cp ${cwd}/build/src/dird/*.c ${cwd}/build/src/testdir
+
 cat >tmp/bconcmds <<END_OF_DATA
 @$out /dev/null
 messages
@@ -40,5 +44,15 @@ check_for_zombie_jobs storage=File
 stop_bacula
 
 check_two_logs
+
+# should be ok if we remove the testdir
+rm -rf ${cwd}/build/src/testdir
 check_restore_diff
+
+grep '/testdir' $tmp/log3.out > /dev/null
+if [ $? = 0 ]; then
+    print_debug "ERROR: Should not see testdir in estimate output"
+    bstat=2
+fi
+
 end_test
