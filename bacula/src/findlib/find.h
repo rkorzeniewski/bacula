@@ -151,7 +151,6 @@ struct findFOPTS {
    alist base;                        /* list of base names */
    alist fstype;                      /* file system type limitation */
    alist drivetype;                   /* drive type limitation */
-   char *ignoredir;                   /* ignore directories with this file */
 };
 
 
@@ -161,6 +160,7 @@ struct findINCEXE {
    alist opts_list;                   /* options list */
    dlist name_list;                   /* filename list -- holds dlistString */
    dlist plugin_list;                 /* plugin list -- holds dlistString */
+   char *ignoredir;                   /* ignore directories with this file */
 };
 
 /*
