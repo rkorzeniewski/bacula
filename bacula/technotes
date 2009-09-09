@@ -2,6 +2,9 @@
           
 General:
 
+09Sep09
+ebl  Fix #1369 about a segfault when using ExcludeDirContaining option
+     before the Options{} block in fileset.
 08Sep09
 ebl  Apply Lorenz fix for minor issues in the osx installer package builder.
 ebl  Fix #1373 about typo in bscan manpages. Thanks to John Goerzen.
