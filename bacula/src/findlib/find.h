@@ -215,7 +215,6 @@ struct FF_PKT {
    uint32_t flags;                    /* backup options */
    int GZIP_level;                    /* compression level */
    int strip_path;                    /* strip path count */
-   char *ignoredir;                   /* ignore directories with this file */
    bool cmd_plugin;                   /* set if we have a command plugin */
    alist fstypes;                     /* allowed file system types */
    alist drivetypes;                  /* allowed drive types */
