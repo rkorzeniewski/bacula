@@ -588,7 +588,7 @@ static void store_excludedir(LEX *lc, RES_ITEM2 *item, int index, int pass, bool
    }
    token = lex_get_token(lc, T_NAME);
    if (pass == 1) {
-      res_incexe.current_opts->ignoredir = bstrdup(lc->str);
+      res_incexe.ignoredir = bstrdup(lc->str);
    }
    scan_to_eol(lc);
 }
