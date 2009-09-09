@@ -3,6 +3,8 @@
 General:
 
 09Sep09
+ebl  Fix #1370 about the implementation of the "Exclude Dir Containing"
+     option on FD.
 ebl  Fix #1369 about a segfault when using ExcludeDirContaining option
      before the Options{} block in fileset.
 08Sep09
