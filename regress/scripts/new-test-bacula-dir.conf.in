@@ -122,7 +122,7 @@ Job {
   Messages = Standard
   Pool = Default
   Write Bootstrap = "@working_dir@/NightlySave.bsr"
-  ClientRunBeforeJob = "/bin/sleep 60"
+  ClientRunBeforeJob = "/bin/sleep 5"
 }
 
 
@@ -158,7 +158,7 @@ Job {
   Name = "bug621-job-1"
   Client = @hostname@-fd
   FileSet="Full Set"
-  ClientRunBeforeJob = "/bin/sleep 60"
+  ClientRunBeforeJob = "/bin/sleep 5"
 }
 
 Job {
