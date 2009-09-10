@@ -2,6 +2,8 @@
           
 General:
 
+10Sep09
+kes  Fix seg fault in SD bug #1371
 09Sep09
 ebl  Fix problem when the top_level contains a Exclude Dir flag.
 ebl  Fix #1370 about the implementation of the "Exclude Dir Containing"
