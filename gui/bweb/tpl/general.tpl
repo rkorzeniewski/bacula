@@ -14,10 +14,10 @@ bweb_add_refresh();
        <td>__Total media:__</td>        <td> <TMPL_VAR nb_media> </td>
    </tr>
    <tr><td>__Database size:__</td>      <td> <TMPL_VAR db_size> </td>
-       <td>__Total Pool:__</td>         <td> <TMPL_VAR nb_pool> </td>
-       <td>__Total Job:__</td>         <td> <TMPL_VAR nb_job> </td>
+       <td>__Total Pools:__</td>         <td> <TMPL_VAR nb_pool> </td>
+       <td>__Total Jobs:__</td>         <td> <TMPL_VAR nb_job> </td>
    </tr>
-   <tr><td>__Job failed__ (<TMPL_VAR label>):</td> 
+   <tr><td>__Jobs failed__ (<TMPL_VAR label>):</td> 
        
 <td <TMPL_IF nb_err> class='joberr' </TMPL_IF>>
   <a href="?action=job;level=Any;status=f;age=<TMPL_VAR age>;jobtype=B">
