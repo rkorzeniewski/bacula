@@ -516,4 +516,4 @@ unknown)
 esac
 
 
-echo "${DISTNAME}-${DISTVER}"
+echo "${DISTNAME}-${DISTVER}" | sed -e 's,/,-,g'
