@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2009 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -59,7 +59,7 @@
 void byteReverse(unsigned char *buf, unsigned longs)
 {
     uint32_t t;
-    if (htonl(1) == 1L) {
+    if (bigendian()) {
         do {
             t = (uint32_t) ((unsigned) buf[3] << 8 | buf[2]) << 16 |
                 ((unsigned) buf[1] << 8 | buf[0]);
