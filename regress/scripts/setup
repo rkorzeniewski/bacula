@@ -53,7 +53,9 @@ check_exit_code
 # eliminate non-essential directories to reduce
 #   size.  Otherwise regress run too long
 rm -rf src/win32 examples patches
-cp src/tools/testls ../bin
+# get all tools -- especially testls
+cd src/tools
+make installall
 check_exit_code
 
 cd ${cwd}
