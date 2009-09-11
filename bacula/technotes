@@ -2,6 +2,11 @@
           
 General:
 
+11Sep09
+kes  Set Volume Poll Interval to 5 mins by default.
+kes  Create an inline definition of bigendian().
+kes  Apply Frank's patch to change / to - in cdash tests. 
+     Hopefully it will fix some submit problems.
 10Sep09
 kes  Fix seg fault in SD bug #1371
 09Sep09
