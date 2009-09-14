@@ -66,9 +66,9 @@ static bool backupscmd(UAContext *ua, const char *cmd);
 static bool levelscmd(UAContext *ua, const char *cmd);
 static bool getmsgscmd(UAContext *ua, const char *cmd);
 
-static bool dot_lsdirs(UAContext *ua, const char *cmd);
-static bool dot_lsfiles(UAContext *ua, const char *cmd);
-static bool dot_update(UAContext *ua, const char *cmd);
+static bool dot_bvfs_lsdirs(UAContext *ua, const char *cmd);
+static bool dot_bvfs_lsfiles(UAContext *ua, const char *cmd);
+static bool dot_bvfs_update(UAContext *ua, const char *cmd);
 
 static bool api_cmd(UAContext *ua, const char *cmd);
 static bool sql_cmd(UAContext *ua, const char *cmd);
@@ -94,9 +94,9 @@ static struct cmdstruct commands[] = { /* help */  /* can be used in runscript *
  { NT_(".sql"),        sql_cmd,          NULL,       false},
  { NT_(".status"),     dot_status_cmd,   NULL,       false},
  { NT_(".storage"),    storagecmd,       NULL,       true},
- { NT_(".lsdirs"),     dot_lsdirs,       NULL,       true},
- { NT_(".lsfiles"),    dot_lsfiles,      NULL,       true},
- { NT_(".update"),     dot_update,       NULL,       true},
+ { NT_(".bvfs_lsdirs"), dot_bvfs_lsdirs, NULL,       true},
+ { NT_(".bvfs_lsfiles"),dot_bvfs_lsfiles,NULL,       true},
+ { NT_(".bvfs_update"), dot_bvfs_update, NULL,       true},
  { NT_(".types"),      typescmd,         NULL,       false} 
              };
 #define comsize ((int)(sizeof(commands)/sizeof(struct cmdstruct)))
@@ -154,7 +154,7 @@ bool do_a_dot_command(UAContext *ua)
    return ok;
 }
 
-static bool dot_update(UAContext *ua, const char *cmd)
+static bool dot_bvfs_update(UAContext *ua, const char *cmd)
 {
 
    if (!open_client_db(ua)) {
@@ -254,10 +254,10 @@ static bool bvfs_parse_arg(UAContext *ua,
 }
 
 /* 
- * .lsfiles jobid=1,2,3,4 pathid=10
- * .lsfiles jobid=1,2,3,4 path=/
+ * .bvfs_lsfiles jobid=1,2,3,4 pathid=10
+ * .bvfs_lsfiles jobid=1,2,3,4 path=/
  */
-static bool dot_lsfiles(UAContext *ua, const char *cmd)
+static bool dot_bvfs_lsfiles(UAContext *ua, const char *cmd)
 {
    DBId_t pathid=0;
    int limit=2000, offset=0;
@@ -289,11 +289,11 @@ static bool dot_lsfiles(UAContext *ua, const char *cmd)
 }
 
 /* 
- * .lsdirs jobid=1,2,3,4 pathid=10
- * .lsdirs jobid=1,2,3,4 path=/
- * .lsdirs jobid=1,2,3,4 path=
+ * .bvfs_lsdirs jobid=1,2,3,4 pathid=10
+ * .bvfs_lsdirs jobid=1,2,3,4 path=/
+ * .bvfs_lsdirs jobid=1,2,3,4 path=
  */
-static bool dot_lsdirs(UAContext *ua, const char *cmd)
+static bool dot_bvfs_lsdirs(UAContext *ua, const char *cmd)
 {
    DBId_t pathid=0;
    int limit=2000, offset=0;
