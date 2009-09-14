@@ -2,6 +2,9 @@
           
 General:
 
+14Sep09
+ebl  Rename .lsdirs/.lsfiles/.update to .bvfs_xxx
+     to avoid confusion with future commands
 11Sep09
 kes  Set Volume Poll Interval to 5 mins by default.
 kes  Create an inline definition of bigendian().
