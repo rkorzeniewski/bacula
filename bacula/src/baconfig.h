@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2008 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2009 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -750,5 +750,8 @@ extern "C" int mknod ( const char *path, int mode, dev_t device );
 #define nl_langinfo(x) ("ANSI_X3.4-1968")
 #endif
 */
+
+/* Determine endiannes */
+static inline bool bigendian() { return htonl(1) == 1L; }
 
 #endif /* _BACONFIG_H */

@@ -4042,9 +4042,9 @@ WHERE Job.JobId = $arg->{jobid}
     my $status = $row->{jobstatus};
 
     if ($status =~ /[TfAaEWD]/) {
-	$self->display_job_zoom($arg->{jobid});
+        $self->display_job_zoom($arg->{jobid});
         $self->get_job_log();
-	return;
+        return;
     }
 
     if ($row->{type} eq 'B') {
@@ -5163,7 +5163,7 @@ sub display_missing_job
     }
     $self->display({
         id => $cur_id++,
-        title => "Missing Job (since $arg->{begin} to $arg->{end})",
+        title => "Missing Jobs (from $arg->{begin} to $arg->{end})",
         list => $self->{tmp},
         wiki_url => $self->{info}->{wiki_url},
         missing_mode => 1,

@@ -385,7 +385,7 @@ then
        DISTNAME=redhat
 elif test -f /etc/redhat-release
 then
-       if test `grep CentOs /etc/redhat-release`
+       if test `grep CentOS /etc/redhat-release`
        then
            DISTNAME=redhat
        else
@@ -468,8 +468,7 @@ redhat)
         fi
         if test `cat $f | grep release |\
                    cut -f 3 -d ' '`x = "Enterprise"x ; then
-           DISTVER="Enterprise "`cat $f | grep release |\
-                    cut -f 6 -d ' '`
+           DISTVER="RHEL "`cat $f | grep release | cut -f 6 -d ' '`
         else
             DISTVER=`cat /etc/redhat-release | grep release |\
                      cut -f 5 -d ' '`
@@ -516,4 +515,4 @@ unknown)
 esac
 
 
-echo "${DISTNAME}-${DISTVER}"
+echo "${DISTNAME}-${DISTVER}" | sed -e 's,/,-,g'
