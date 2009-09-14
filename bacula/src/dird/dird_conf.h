@@ -462,7 +462,6 @@ struct FOPTS {
    alist drivetype;                   /* drive type limitation */
    char *reader;                      /* reader program */
    char *writer;                      /* writer program */
-   char *ignoredir;                   /* ignoredir string */
    char *plugin;                      /* plugin program */
 };
 
@@ -474,6 +473,7 @@ struct INCEXE {
    int32_t num_opts;                  /* number of options items */
    alist name_list;                   /* filename list -- holds char * */
    alist plugin_list;                 /* filename list for plugins */
+   char *ignoredir;                   /* ignoredir string */
 };
 
 /*

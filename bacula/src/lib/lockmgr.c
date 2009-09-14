@@ -600,6 +600,9 @@ void lmgr_cleanup_main()
 {
    dlist *temp;
    
+   if (!global_mgr) {
+      return;
+   }
    pthread_cancel(undertaker);
    lmgr_cleanup_thread();
    pthread_mutex_lock(&lmgr_global_mutex);

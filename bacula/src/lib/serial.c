@@ -92,7 +92,7 @@ void serial_uint32(uint8_t * * const ptr, const uint32_t v)
 
 void serial_int64(uint8_t * * const ptr, const int64_t v)
 {
-    if (htonl(1) == 1L) {
+    if (bigendian()) {
         memcpy(*ptr, &v, sizeof(int64_t));
     } else {
         int i;
@@ -112,7 +112,7 @@ void serial_int64(uint8_t * * const ptr, const int64_t v)
 
 void serial_uint64(uint8_t * * const ptr, const uint64_t v)
 {
-    if (htonl(1) == 1L) {
+    if (bigendian()) {
         memcpy(*ptr, &v, sizeof(uint64_t));
     } else {
         int i;
@@ -132,7 +132,7 @@ void serial_uint64(uint8_t * * const ptr, const uint64_t v)
 
 void serial_btime(uint8_t * * const ptr, const btime_t v)
 {
-    if (htonl(1) == 1L) {
+    if (bigendian()) {
         memcpy(*ptr, &v, sizeof(btime_t));
     } else {
         int i;
@@ -158,7 +158,7 @@ void serial_btime(uint8_t * * const ptr, const btime_t v)
 
 void serial_float64(uint8_t * * const ptr, const float64_t v)
 {
-    if (htonl(1) == 1L) {
+    if (bigendian()) {
         memcpy(*ptr, &v, sizeof(float64_t));
     } else {
         int i;
@@ -232,7 +232,7 @@ uint64_t unserial_uint64(uint8_t * * const ptr)
 {
     uint64_t v;
 
-    if (htonl(1) == 1L) {
+    if (bigendian()) {
         memcpy(&v, *ptr, sizeof(uint64_t));
     } else {
         int i;
@@ -255,7 +255,7 @@ btime_t unserial_btime(uint8_t * * const ptr)
 {
     btime_t v;
 
-    if (htonl(1) == 1L) {
+    if (bigendian()) {
         memcpy(&v, *ptr, sizeof(btime_t));
     } else {
         int i;
@@ -285,7 +285,7 @@ float64_t unserial_float64(uint8_t * * const ptr)
 {
     float64_t v;
 
-    if (htonl(1) == 1L) {
+    if (bigendian()) {
         memcpy(&v, *ptr, sizeof(float64_t));
     } else {
         int i;
