@@ -2,6 +2,8 @@
           
 General:
 
+15Sep09
+ebl  Update restore menu 12 explanation
 14Sep09
 ebl  Rename .lsdirs/.lsfiles/.update to .bvfs_xxx
      to avoid confusion with future commands
