@@ -1067,25 +1067,17 @@ bool db_get_file_list(JCR *jcr, B_DB *mdb, char *jobids,
          
 #define new_db_get_file_list
 #ifdef new_db_get_file_list
+   POOL_MEM buf2(PM_MESSAGE);
+   Mmsg(buf2, select_recent_version[db_type], jobids, jobids);
    Mmsg(buf,
- "SELECT Path.Path, Filename.Name, File.FileIndex, File.JobId, "
-        "File.LStat, File.MD5 "
- "FROM ( "
-  "SELECT max(FileId) as FileId, PathId, FilenameId "
-    "FROM (SELECT FileId, PathId, FilenameId FROM File WHERE JobId IN (%s) "
-           "UNION ALL "         /* we already sort after */
-          "SELECT File.FileId, PathId, FilenameId "
-            "FROM BaseFiles JOIN File USING (FileId) "
-           "WHERE BaseFiles.JobId IN (%s) "
-          ") AS F "
-   "GROUP BY PathId, FilenameId "
-  ") AS Temp "
+ "SELECT Path.Path, Filename.Name, FileIndex, JobId, "
+        "LStat, MD5 "
+ "FROM ( %s ) AS TEMP "
  "JOIN Filename ON (Filename.FilenameId = Temp.FilenameId) "
  "JOIN Path ON (Path.PathId = Temp.PathId) "
- "JOIN File ON (File.FileId = Temp.FileId) "
-"WHERE File.FileIndex > 0 ORDER BY JobId, FileIndex ASC",/* Return sorted by JobId, */
+"WHERE FileIndex > 0 ORDER BY JobId, FileIndex ASC",/* Return sorted by JobId, */
                                                          /* FileIndex for restore code */ 
-        jobids, jobids);
+        buf2.c_str());
 #else
    /*  
     * I am not sure that this works the same as the code in ua_restore.c but it
