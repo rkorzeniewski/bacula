@@ -450,6 +450,52 @@ const char *uar_jobid_fileindex_from_table =
 #include "bacula.h"
 #include "cats.h"
 
+/* Get the list of the last recent version with a given jobid list */
+const char *select_recent_version[4] = {
+   /* MySQL */
+   "SELECT max(StartTime), Job.JobId, FileIndex, PathId, FilenameId, LStat, MD5 "
+     "FROM "
+         "(SELECT JobId, PathId, FilenameId, FileIndex, LStat, MD5 FROM File WHERE JobId IN (%s) "
+           "UNION ALL "
+          "SELECT BaseFiles.JobId, PathId, FilenameId, FileIndex, LStat, MD5 "
+            "FROM BaseFiles JOIN File USING (FileId) "
+           "WHERE BaseFiles.JobId IN (%s) "
+          ") AS T JOIN Job USING (JobId) "
+    "GROUP BY PathId, FilenameId ",
+
+   /* Postgresql */
+   "SELECT DISTINCT ON (FilenameId, PathId) StartTime, JobId, FileId, FileIndex, PathId, FilenameId, LStat, MD5 "
+     "FROM "
+         "(SELECT JobId, PathId, FilenameId, FileIndex, LStat, MD5 FROM File WHERE JobId IN (%s) "
+           "UNION ALL "
+          "SELECT BaseFiles.JobId, PathId, FilenameId, FileIndex, LStat, MD5 "
+            "FROM BaseFiles JOIN File USING (FileId) "
+           "WHERE BaseFiles.JobId IN (%s) "
+          ") AS T JOIN Job USING (JobId) "
+     "ORDER BY FilenameId, PathId, StartTime DESC ",
+
+   /* SQLite */
+   "SELECT max(StartTime), JobId, FileId, FileIndex, PathId, FilenameId, LStat "
+     "FROM "
+         "(SELECT JobId, PathId, FilenameId, FileIndex, LStat, MD5 FROM File WHERE JobId IN (%s) "
+           "UNION ALL "
+          "SELECT BaseFiles.JobId, PathId, FilenameId, FileIndex, LStat, MD5 "
+            "FROM BaseFiles JOIN File USING (FileId) "
+           "WHERE BaseFiles.JobId IN (%s) "
+          ") AS T JOIN Job USING (JobId) "
+     "GROUP BY PathId, FilenameId ",
+
+   /* SQLite3 */
+   "SELECT max(StartTime), JobId, FileId, FileIndex, PathId, FilenameId, LStat "
+        "(SELECT JobId, PathId, FilenameId, FileIndex, LStat, MD5 FROM File WHERE JobId IN (%s) "
+           "UNION ALL "
+          "SELECT BaseFiles.JobId, PathId, FilenameId, FileIndex, LStat, MD5 "
+            "FROM BaseFiles JOIN File USING (FileId) "
+           "WHERE BaseFiles.JobId IN (%s) "
+          ") AS T JOIN Job USING (JobId) "
+    "GROUP BY PathId, FilenameId "
+};
+
 /* ====== ua_prune.c */
 
 /* List of SQL commands to create temp table and indicies  */
