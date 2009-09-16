@@ -74,6 +74,7 @@ extern const char CATS_IMP_EXP *uar_jobid_fileindex_from_table;
 extern const char CATS_IMP_EXP *uar_sel_jobid_temp;
 
 extern const char CATS_IMP_EXP *select_recent_version[4];
+extern const char CATS_IMP_EXP *select_recent_version_with_basejob[4];
 extern const char CATS_IMP_EXP *create_deltabs[4];
 
 extern const char CATS_IMP_EXP *uar_file[4];

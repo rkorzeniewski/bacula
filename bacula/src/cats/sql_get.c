@@ -1068,7 +1068,7 @@ bool db_get_file_list(JCR *jcr, B_DB *mdb, char *jobids,
 #define new_db_get_file_list
 #ifdef new_db_get_file_list
    POOL_MEM buf2(PM_MESSAGE);
-   Mmsg(buf2, select_recent_version[db_type], jobids, jobids);
+   Mmsg(buf2, select_recent_version_with_basejob[db_type], jobids, jobids);
    Mmsg(buf,
  "SELECT Path.Path, Filename.Name, FileIndex, JobId, "
         "LStat, MD5 "
@@ -1216,6 +1216,7 @@ bool db_get_base_file_list(JCR *jcr, B_DB *mdb,
 
    return db_sql_query(mdb, buf.c_str(), result_handler, ctx);
 }
+
 bool db_get_base_jobid(JCR *jcr, B_DB *mdb, JOB_DBR *jr, JobId_t *jobid)
 {
    char date[MAX_TIME_LENGTH];
