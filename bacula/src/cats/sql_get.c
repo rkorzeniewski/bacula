@@ -1072,11 +1072,11 @@ bool db_get_file_list(JCR *jcr, B_DB *mdb, char *jobids,
    Mmsg(buf,
  "SELECT Path.Path, Filename.Name, FileIndex, JobId, "
         "LStat, MD5 "
- "FROM ( %s ) AS TEMP "
+ "FROM ( %s ) AS Temp "
  "JOIN Filename ON (Filename.FilenameId = Temp.FilenameId) "
  "JOIN Path ON (Path.PathId = Temp.PathId) "
 "WHERE FileIndex > 0 ORDER BY JobId, FileIndex ASC",/* Return sorted by JobId, */
-                                                         /* FileIndex for restore code */ 
+                                                    /* FileIndex for restore code */ 
         buf2.c_str());
    Dmsg1(0, "sql=%s\n", buf.c_str());
 #else

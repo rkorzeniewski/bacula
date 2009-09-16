@@ -1089,6 +1089,7 @@ bool db_write_batch_file_records(JCR *jcr)
 const char *create_temp_basefile[4] = {
    /* MySQL */
    "CREATE TEMPORARY TABLE basefile%lld ("
+//   "CREATE TABLE basefile%lld ("
    "Path BLOB NOT NULL,"
    "Name BLOB NOT NULL)",
 
@@ -1228,12 +1229,11 @@ bool db_create_base_file_list(JCR *jcr, B_DB *mdb, char *jobids)
    }
 
    Mmsg(mdb->cmd, create_temp_basefile[db_type], (uint64_t) jcr->JobId);
-   if (!QUERY_DB(jcr, mdb, mdb->cmd)) {
+   if (!db_sql_query(mdb, mdb->cmd, NULL, NULL)) {
       goto bail_out;
    }
-     
-   Mmsg(buf, select_recent_version[db_type], jobids);
 
+   Mmsg(buf, select_recent_version[db_type], jobids);
    Mmsg(mdb->cmd,
 "CREATE TEMPORARY TABLE new_basefile%lld AS  "
 //"CREATE TABLE new_basefile%lld AS "
@@ -1245,7 +1245,7 @@ bool db_create_base_file_list(JCR *jcr, B_DB *mdb, char *jobids)
   "JOIN Path ON (Path.PathId = Temp.PathId) "
  "WHERE Temp.FileIndex > 0",
         (uint64_t)jcr->JobId, buf.c_str());
-   ret = QUERY_DB(jcr, mdb, mdb->cmd);
+   ret = db_sql_query(mdb, mdb->cmd, NULL, NULL);
 bail_out:
    db_unlock(mdb);
    return ret;
