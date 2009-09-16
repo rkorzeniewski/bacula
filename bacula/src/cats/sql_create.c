@@ -1192,13 +1192,13 @@ bool db_commit_base_file_attributes_record(JCR *jcr, B_DB *mdb)
    db_lock(mdb);
 
    Mmsg(mdb->cmd, 
-  "INSERT INTO BaseFiles (BaseJobId, JobId, FileId, FileIndex) ( "
+  "INSERT INTO BaseFiles (BaseJobId, JobId, FileId, FileIndex) "
    "SELECT B.JobId AS BaseJobId, %s AS JobId, "
           "B.FileId, B.FileIndex "
      "FROM basefile%s AS A, new_basefile%s AS B "
     "WHERE A.Path = B.Path "
       "AND A.Name = B.Name "
-    "ORDER BY B.FileId)", 
+    "ORDER BY B.FileId", 
         edit_uint64(jcr->JobId, ed1), ed1, ed1);
    ret = QUERY_DB(jcr, mdb, mdb->cmd);
    jcr->nb_base_files_used = sql_affected_rows(mdb);
@@ -1235,15 +1235,15 @@ bool db_create_base_file_list(JCR *jcr, B_DB *mdb, char *jobids)
    Mmsg(buf, select_recent_version[db_type], jobids);
 
    Mmsg(mdb->cmd,
-"CREATE TEMPORARY TABLE new_basefile%lld AS ( "
-//"CREATE TABLE new_basefile%lld AS ( "
+"CREATE TEMPORARY TABLE new_basefile%lld AS  "
+//"CREATE TABLE new_basefile%lld AS "
   "SELECT Path.Path AS Path, Filename.Name AS Name, Temp.FileIndex AS FileIndex,"
          "Temp.JobId AS JobId, Temp.LStat AS LStat, Temp.FileId AS FileId, "
          "Temp.MD5 AS MD5 "
   "FROM ( %s ) AS Temp "
   "JOIN Filename ON (Filename.FilenameId = Temp.FilenameId) "
   "JOIN Path ON (Path.PathId = Temp.PathId) "
- "WHERE Temp.FileIndex > 0)",
+ "WHERE Temp.FileIndex > 0",
         (uint64_t)jcr->JobId, buf.c_str());
    ret = QUERY_DB(jcr, mdb, mdb->cmd);
 bail_out:

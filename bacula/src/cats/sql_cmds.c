@@ -488,6 +488,7 @@ const char *select_recent_version_with_basejob[4] = {
 
    /* SQLite3 */
    "SELECT max(StartTime), JobId, FileIndex, PathId, FilenameId, LStat, MD5 "
+     "FROM "
         "(SELECT FileId, JobId, PathId, FilenameId, FileIndex, LStat, MD5 FROM File WHERE JobId IN (%s) "
            "UNION ALL "
           "SELECT File.FileId, BaseFiles.JobId, PathId, FilenameId, File.FileIndex, LStat, MD5 "
