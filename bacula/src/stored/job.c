@@ -100,7 +100,7 @@ bool job_cmd(JCR *jcr)
               &JobType, &level, fileset_name.c_str(), &no_attributes,
               &spool_attributes, fileset_md5.c_str(), &spool_data,
               &write_part_after_job, &PreferMountedVols, spool_size,
-              Resched);
+              &Resched);
    if (stat != 15) {
       /* Try old version */
       stat = sscanf(dir->msg, jobcmd, &JobId, job.c_str(), job_name.c_str(),

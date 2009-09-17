@@ -50,7 +50,7 @@ static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 /* Commands sent to Storage daemon */
 static char jobcmd[]     = "JobId=%s job=%s job_name=%s client_name=%s "
    "type=%d level=%d FileSet=%s NoAttr=%d SpoolAttr=%d FileSetMD5=%s "
-   "SpoolData=%d WritePartAfterJob=%d PreferMountedVols=%d SpoolSize=%s "  
+   "SpoolData=%d WritePartAfterJob=%d PreferMountedVols=%d SpoolSize=%s "
    "Resched=%d\n";
 static char use_storage[] = "use storage=%s media_type=%s pool_name=%s "
    "pool_type=%s append=%d copy=%d stripe=%d\n";
