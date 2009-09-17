@@ -481,10 +481,10 @@ const char *select_recent_version_with_basejob[4] = {
 "WHERE (Job.JobId IN ( "
         "SELECT DISTINCT BaseJobId FROM BaseFiles WHERE JobId IN (%s)) "
         "OR Job.JobId IN (%s)) "
+  "AND T1.JobTDate = Job.JobTDate "
   "AND Job.JobId = File.JobId "
-  "AND Job.JobTDate = T1.JobTDate "
-  "AND File.PathId = T1.PathId "
-  "AND File.FilenameId = T1.PathId "
+  "AND T1.PathId = File.PathId "
+  "AND T1.FilenameId = File.FilenameId",
 
   /* Postgresql */    /* The DISTINCT ON () permits to avoid extra join */
  "SELECT DISTINCT ON (FilenameId, PathId) StartTime, JobId, FileId, "
@@ -520,10 +520,10 @@ const char *select_recent_version_with_basejob[4] = {
 "WHERE (Job.JobId IN ( "
        "SELECT DISTINCT BaseJobId FROM BaseFiles WHERE JobId IN (%s)) "
        "OR Job.JobId IN (%s)) "
+  "AND T1.JobTDate = Job.JobTDate "
   "AND Job.JobId = File.JobId "
-  "AND Job.JobTDate = T1.JobTDate "
-  "AND File.PathId = T1.PathId "
-  "AND File.FilenameId = T1.PathId ",
+  "AND T1.PathId = File.PathId "
+  "AND T1.FilenameId = File.FilenameId",
 
  /* SQLite3 */              /* See Mysql section for doc */
 "SELECT FileId, Job.JobId AS JobId, FileIndex, File.PathId AS PathId, "
@@ -545,10 +545,10 @@ const char *select_recent_version_with_basejob[4] = {
 "WHERE (Job.JobId IN ( "
          "SELECT DISTINCT BaseJobId FROM BaseFiles WHERE JobId IN (%s)) "
         "OR Job.JobId IN (%s)) "
+  "AND T1.JobTDate = Job.JobTDate "
   "AND Job.JobId = File.JobId "
-  "AND Job.JobTDate = T1.JobTDate "
-  "AND File.PathId = T1.PathId "
-  "AND File.FilenameId = T1.PathId "
+  "AND T1.PathId = File.PathId "
+  "AND T1.FilenameId = File.FilenameId"
 };
 
 /* Get the list of the last recent version with a given BaseJob jobid list */

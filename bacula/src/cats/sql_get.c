@@ -1068,8 +1068,10 @@ bool db_get_file_list(JCR *jcr, B_DB *mdb, char *jobids,
 #define new_db_get_file_list
 #ifdef new_db_get_file_list
    POOL_MEM buf2(PM_MESSAGE);
+   Dmsg1(0, "sql=%s\n", select_recent_version_with_basejob[db_type]);
    Mmsg(buf2, select_recent_version_with_basejob[db_type], 
-        jobids, jobids, jobids);
+        jobids, jobids, jobids, jobids);
+   Dmsg1(0, "sql=%s\n", buf2.c_str());
    Mmsg(buf,
 "SELECT Path.Path, Filename.Name, Temp.FileIndex, Temp.JobId, LStat, MD5 "
  "FROM ( %s ) AS Temp "
