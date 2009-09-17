@@ -454,7 +454,7 @@ const char *uar_jobid_fileindex_from_table =
 const char *select_recent_version_with_basejob[4] = {
  /* MySQL */
 "SELECT FileId, Job.JobId, FileIndex, File.PathId, File.FilenameId, LStat, MD5 "
-"FROM ( "
+"FROM Job, File, ( "
     "SELECT MAX(JobTDate) AS JobTDate, PathId, FilenameId "
       "FROM ( "
         "SELECT JobTDate, PathId, FilenameId "
@@ -468,7 +468,6 @@ const char *select_recent_version_with_basejob[4] = {
          "WHERE BaseFiles.JobId IN (%s) "
        ") AS temp GROUP BY PathId, FilenameId "
     ") AS T1 "
- "Job, File, "
 "WHERE Job.JobId IN (%s) "
   "AND Job.JobTDate = T1.JobTDate "
   "AND File.PathId = T1.PathId "
@@ -490,7 +489,7 @@ const char *select_recent_version_with_basejob[4] = {
 
  /* SQLite */
 "SELECT FileId, Job.JobId, FileIndex, File.PathId, File.FilenameId, LStat, MD5 "
-"FROM ( "
+"FROM Job, File, ( "
     "SELECT MAX(JobTDate) AS JobTDate, PathId, FilenameId "
       "FROM ( "
         "SELECT JobTDate, PathId, FilenameId "
@@ -503,8 +502,7 @@ const char *select_recent_version_with_basejob[4] = {
                "JOIN Job  ON    (BaseJobId = Job.JobId) "
          "WHERE BaseFiles.JobId IN (%s) "
        ") AS temp GROUP BY PathId, FilenameId "
-    ") AS T1, "
- "Job, File "
+    ") AS T1 "
 "WHERE Job.JobId IN (%s) "
   "AND Job.JobTDate = T1.JobTDate "
   "AND File.PathId = T1.PathId "
@@ -512,7 +510,7 @@ const char *select_recent_version_with_basejob[4] = {
 
  /* SQLite3 */
 "SELECT FileId, Job.JobId, FileIndex, File.PathId, File.FilenameId, LStat, MD5 "
-"FROM ( "
+"FROM Job, File, ( "
     "SELECT MAX(JobTDate) AS JobTDate, PathId, FilenameId "
       "FROM ( "
         "SELECT JobTDate, PathId, FilenameId "
@@ -525,8 +523,7 @@ const char *select_recent_version_with_basejob[4] = {
                "JOIN Job  ON    (BaseJobId = Job.JobId) "
          "WHERE BaseFiles.JobId IN (%s) "
        ") AS temp GROUP BY PathId, FilenameId "
-    ") AS T1, "
- "Job, File "
+    ") AS T1 "
 "WHERE Job.JobId IN (%s) "
   "AND Job.JobTDate = T1.JobTDate "
   "AND File.PathId = T1.PathId "
