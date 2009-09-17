@@ -450,30 +450,39 @@ const char *uar_jobid_fileindex_from_table =
 #include "bacula.h"
 #include "cats.h"
 
-/* Get the list of the last recent version with a given jobid list */
+/* Get the list of the last recent version with a given jobid list 
+ * This is a tricky part because with SQL the result of 
+ *
+ * SELECT MAX(A), B, C, D FROM... GROUP BY (B,C)
+ *
+ * doesn't give the good result (for D).
+ *
+ * With PostgreSQL, we can use DISTINCT ON(), but with Mysql or Sqlite,
+ * we need an extra join using JobTDate. 
+ */
 const char *select_recent_version_with_basejob[4] = {
  /* MySQL */
 "SELECT FileId, Job.JobId, FileIndex, File.PathId, File.FilenameId, LStat, MD5 "
 "FROM Job, File, ( "
     "SELECT MAX(JobTDate) AS JobTDate, PathId, FilenameId "
       "FROM ( "
-        "SELECT JobTDate, PathId, FilenameId "
-          "FROM File JOIN Job USING (JobId) "
+        "SELECT JobTDate, PathId, FilenameId "       /* Get all files files */
+          "FROM File JOIN Job USING (JobId) "        /* from selected backup */
          "WHERE JobId IN (%s) "
            "UNION ALL "
-        "SELECT JobTDate, PathId, FilenameId "
-          "FROM BaseFiles "
+        "SELECT JobTDate, PathId, FilenameId "       /* Get all files from */
+          "FROM BaseFiles "                          /* BaseJob */
                "JOIN File USING (FileId) "
                "JOIN Job  ON    (BaseJobId = Job.JobId) "
          "WHERE BaseFiles.JobId IN (%s) "
-       ") AS temp GROUP BY PathId, FilenameId "
-    ") AS T1 "
+       ") AS temp GROUP BY PathId, FilenameId " /* Use Max(JobTDate) to find */
+    ") AS T1 "                                  /* the latest version */
 "WHERE Job.JobId IN (%s) "
-  "AND Job.JobTDate = T1.JobTDate "
-  "AND File.PathId = T1.PathId "
+  "AND Job.JobTDate = T1.JobTDate "   /* Join on JobTDate to get the orginal */
+  "AND File.PathId = T1.PathId "      /* Job/File record */
   "AND File.FilenameId = T1.PathId ",
 
- /* Postgresql */
+  /* Postgresql */    /* The DISTINCT ON () permits to avoid extra join */
  "SELECT DISTINCT ON (FilenameId, PathId) StartTime, JobId, FileId, "
          "FileIndex, PathId, FilenameId, LStat, MD5 "
    "FROM "
@@ -487,7 +496,7 @@ const char *select_recent_version_with_basejob[4] = {
         ") AS T JOIN Job USING (JobId) "
    "ORDER BY FilenameId, PathId, StartTime DESC ",
 
- /* SQLite */
+  /* SQLite */              /* See Mysql section for doc */
 "SELECT FileId, Job.JobId, FileIndex, File.PathId, File.FilenameId, LStat, MD5 "
 "FROM Job, File, ( "
     "SELECT MAX(JobTDate) AS JobTDate, PathId, FilenameId "
@@ -508,7 +517,7 @@ const char *select_recent_version_with_basejob[4] = {
   "AND File.PathId = T1.PathId "
   "AND File.FilenameId = T1.PathId ",
 
- /* SQLite3 */
+ /* SQLite3 */              /* See Mysql section for doc */
 "SELECT FileId, Job.JobId, FileIndex, File.PathId, File.FilenameId, LStat, MD5 "
 "FROM Job, File, ( "
     "SELECT MAX(JobTDate) AS JobTDate, PathId, FilenameId "
@@ -534,7 +543,8 @@ const char *select_recent_version_with_basejob[4] = {
 const char *select_recent_version[4] = {
    /* MySQL */
    "SELECT j1.JobId AS JobId, f1.FileId AS FileId, f1.FileIndex AS FileIndex, "
-          "f1.PathId AS PathId, f1.FilenameId AS FilenameId, f1.LStat AS LStat "
+          "f1.PathId AS PathId, f1.FilenameId AS FilenameId, "
+          "f1.LStat AS LStat, f1.MD5 AS MD5 "
      "FROM ( "     /* Choose the last version for each Path/Filename */
        "SELECT max(JobTDate) AS JobTDate, PathId, FilenameId "
          "FROM File JOIN Job USING (JobId) "
@@ -556,7 +566,8 @@ const char *select_recent_version[4] = {
 
    /* SQLite */
    "SELECT j1.JobId AS JobId, f1.FileId AS FileId, f1.FileIndex AS FileIndex, "
-          "f1.PathId AS PathId, f1.FilenameId AS FilenameId, f1.LStat AS LStat "
+          "f1.PathId AS PathId, f1.FilenameId AS FilenameId, "
+          "f1.LStat AS LStat, f1.MD5 AS MD5 "
      "FROM ( "
        "SELECT max(JobTDate) AS JobTDate, PathId, FilenameId "
          "FROM File JOIN Job USING (JobId) "
@@ -571,7 +582,8 @@ const char *select_recent_version[4] = {
 
    /* SQLite3 */
    "SELECT j1.JobId AS JobId, f1.FileId AS FileId, f1.FileIndex AS FileIndex, "
-          "f1.PathId AS PathId, f1.FilenameId AS FilenameId, f1.LStat AS LStat "
+          "f1.PathId AS PathId, f1.FilenameId AS FilenameId, "
+          "f1.LStat AS LStat, f1.MD5 AS MD5 "
      "FROM ( "
        "SELECT max(JobTDate) AS JobTDate, PathId, FilenameId "
          "FROM File JOIN Job USING (JobId) "
