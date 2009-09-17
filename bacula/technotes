@@ -2,6 +2,8 @@
           
 General:
 
+17Sep09
+kes  Fix seg fault in ignoredir code
 15Sep09
 ebl  Update restore menu 12 explanation
 14Sep09
