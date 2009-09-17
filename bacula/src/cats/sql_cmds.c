@@ -462,7 +462,8 @@ const char *uar_jobid_fileindex_from_table =
  */
 const char *select_recent_version_with_basejob[4] = {
  /* MySQL */
-"SELECT FileId, Job.JobId, FileIndex, File.PathId, File.FilenameId, LStat, MD5 "
+"SELECT FileId, Job.JobId AS JobId, FileIndex, File.PathId AS PathId, "
+       "File.FilenameId AS FilenameId, LStat, MD5 "
 "FROM Job, File, ( "
     "SELECT MAX(JobTDate) AS JobTDate, PathId, FilenameId "
       "FROM ( "
@@ -475,7 +476,7 @@ const char *select_recent_version_with_basejob[4] = {
                "JOIN File USING (FileId) "
                "JOIN Job  ON    (BaseJobId = Job.JobId) "
          "WHERE BaseFiles.JobId IN (%s) "
-       ") AS temp GROUP BY PathId, FilenameId " /* Use Max(JobTDate) to find */
+       ") AS tmp GROUP BY PathId, FilenameId " /* Use Max(JobTDate) to find */
     ") AS T1 "                                  /* the latest version */
 "WHERE Job.JobId IN (%s) "
   "AND Job.JobTDate = T1.JobTDate "   /* Join on JobTDate to get the orginal */
@@ -497,7 +498,8 @@ const char *select_recent_version_with_basejob[4] = {
    "ORDER BY FilenameId, PathId, StartTime DESC ",
 
   /* SQLite */              /* See Mysql section for doc */
-"SELECT FileId, Job.JobId, FileIndex, File.PathId, File.FilenameId, LStat, MD5 "
+"SELECT FileId, Job.JobId AS JobId, FileIndex, File.PathId AS PathId, "
+       "File.FilenameId AS FilenameId, LStat, MD5 "
 "FROM Job, File, ( "
     "SELECT MAX(JobTDate) AS JobTDate, PathId, FilenameId "
       "FROM ( "
@@ -510,7 +512,7 @@ const char *select_recent_version_with_basejob[4] = {
                "JOIN File USING (FileId) "
                "JOIN Job  ON    (BaseJobId = Job.JobId) "
          "WHERE BaseFiles.JobId IN (%s) "
-       ") AS temp GROUP BY PathId, FilenameId "
+       ") AS tmp GROUP BY PathId, FilenameId "
     ") AS T1 "
 "WHERE Job.JobId IN (%s) "
   "AND Job.JobTDate = T1.JobTDate "
@@ -518,7 +520,8 @@ const char *select_recent_version_with_basejob[4] = {
   "AND File.FilenameId = T1.PathId ",
 
  /* SQLite3 */              /* See Mysql section for doc */
-"SELECT FileId, Job.JobId, FileIndex, File.PathId, File.FilenameId, LStat, MD5 "
+"SELECT FileId, Job.JobId AS JobId, FileIndex, File.PathId AS PathId, "
+       "File.FilenameId AS FilenameId, LStat, MD5 "
 "FROM Job, File, ( "
     "SELECT MAX(JobTDate) AS JobTDate, PathId, FilenameId "
       "FROM ( "
@@ -531,7 +534,7 @@ const char *select_recent_version_with_basejob[4] = {
                "JOIN File USING (FileId) "
                "JOIN Job  ON    (BaseJobId = Job.JobId) "
          "WHERE BaseFiles.JobId IN (%s) "
-       ") AS temp GROUP BY PathId, FilenameId "
+       ") AS tmp GROUP BY PathId, FilenameId "
     ") AS T1 "
 "WHERE Job.JobId IN (%s) "
   "AND Job.JobTDate = T1.JobTDate "
