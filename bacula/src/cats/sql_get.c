@@ -1071,15 +1071,14 @@ bool db_get_file_list(JCR *jcr, B_DB *mdb, char *jobids,
    Mmsg(buf2, select_recent_version_with_basejob[db_type], 
         jobids, jobids, jobids);
    Mmsg(buf,
- "SELECT Path.Path, Filename.Name, FileIndex, JobId, "
-        "LStat, MD5 "
+"SELECT Path.Path, Filename.Name, Temp.FileIndex, Temp.JobId, LStat, MD5 "
  "FROM ( %s ) AS Temp "
  "JOIN Filename ON (Filename.FilenameId = Temp.FilenameId) "
  "JOIN Path ON (Path.PathId = Temp.PathId) "
-"WHERE FileIndex > 0 ORDER BY JobId, FileIndex ASC",/* Return sorted by JobId, */
-                                                    /* FileIndex for restore code */ 
+"WHERE FileIndex > 0 "
+"ORDER BY Temp.JobId, FileIndex ASC",/* Return sorted by JobId, */
+                                     /* FileIndex for restore code */ 
         buf2.c_str());
-   Dmsg1(0, "sql=%s\n", buf.c_str());
 #else
    /*  
     * I am not sure that this works the same as the code in ua_restore.c but it
