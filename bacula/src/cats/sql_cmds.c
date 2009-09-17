@@ -478,9 +478,9 @@ const char *select_recent_version_with_basejob[4] = {
          "WHERE BaseFiles.JobId IN (%s) "
        ") AS tmp GROUP BY PathId, FilenameId "
     ") AS T1 "
-"WHERE (Job.JobId IN (
-         SELECT DISTINCT BaseJobId FROM BaseFiles WHERE JobId IN (%s)) 
-        OR Job.JobId IN (%s)) "
+"WHERE (Job.JobId IN ( "
+        "SELECT DISTINCT BaseJobId FROM BaseFiles WHERE JobId IN (%s)) "
+        "OR Job.JobId IN (%s)) "
   "AND Job.JobId = File.JobId "
   "AND Job.JobTDate = T1.JobTDate "
   "AND File.PathId = T1.PathId "
@@ -517,9 +517,9 @@ const char *select_recent_version_with_basejob[4] = {
          "WHERE BaseFiles.JobId IN (%s) "
        ") AS tmp GROUP BY PathId, FilenameId "
     ") AS T1 "
-"WHERE (Job.JobId IN (
-         SELECT DISTINCT BaseJobId FROM BaseFiles WHERE JobId IN (%s)) 
-        OR Job.JobId IN (%s)) "
+"WHERE (Job.JobId IN ( "
+       "SELECT DISTINCT BaseJobId FROM BaseFiles WHERE JobId IN (%s)) "
+       "OR Job.JobId IN (%s)) "
   "AND Job.JobId = File.JobId "
   "AND Job.JobTDate = T1.JobTDate "
   "AND File.PathId = T1.PathId "
@@ -542,9 +542,9 @@ const char *select_recent_version_with_basejob[4] = {
          "WHERE BaseFiles.JobId IN (%s) "
        ") AS tmp GROUP BY PathId, FilenameId "
     ") AS T1 "
-"WHERE (Job.JobId IN (
-         SELECT DISTINCT BaseJobId FROM BaseFiles WHERE JobId IN (%s)) 
-        OR Job.JobId IN (%s)) "
+"WHERE (Job.JobId IN ( "
+         "SELECT DISTINCT BaseJobId FROM BaseFiles WHERE JobId IN (%s)) "
+        "OR Job.JobId IN (%s)) "
   "AND Job.JobId = File.JobId "
   "AND Job.JobTDate = T1.JobTDate "
   "AND File.PathId = T1.PathId "
