@@ -45657,7 +45657,7 @@ echo "$as_me: error: Could not find qmake or qmake-qt4 in $PATH. Check your Qt i
    touch bat
    chmod 755 bat
    $QMAKEBIN
-   make clean
+   ${MAKE:-make} clean
    cd ${BUILD_DIR}
 fi
 
@@ -45725,7 +45725,7 @@ fi
 echo " "
 echo "Cleaning up"
 echo " "
-make clean
+${MAKE:-make} clean
 
 if test "x${db_type}" = "xInternal" ; then
    echo " "
