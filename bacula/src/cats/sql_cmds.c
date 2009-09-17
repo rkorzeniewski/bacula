@@ -467,22 +467,22 @@ const char *select_recent_version_with_basejob[4] = {
 "FROM Job, File, ( "
     "SELECT MAX(JobTDate) AS JobTDate, PathId, FilenameId "
       "FROM ( "
-        "SELECT JobTDate, PathId, FilenameId "
-          "FROM File JOIN Job USING (JobId) "
+        "SELECT JobTDate, PathId, FilenameId "   /* Get all normal files */
+          "FROM File JOIN Job USING (JobId) "    /* from selected backup */
          "WHERE JobId IN (%s) "
           "UNION ALL "
-        "SELECT JobTDate, PathId, FilenameId "
-          "FROM BaseFiles "
+        "SELECT JobTDate, PathId, FilenameId "   /* Get all files from */ 
+          "FROM BaseFiles "                      /* BaseJob */
                "JOIN File USING (FileId) "
                "JOIN Job  ON    (BaseJobId = Job.JobId) "
-         "WHERE BaseFiles.JobId IN (%s) "
-       ") AS tmp GROUP BY PathId, FilenameId "
+         "WHERE BaseFiles.JobId IN (%s) "        /* Use Max(JobTDate) to find */
+       ") AS tmp GROUP BY PathId, FilenameId "   /* the latest file version */
     ") AS T1 "
-"WHERE (Job.JobId IN ( "
+"WHERE (Job.JobId IN ( "  /* Security, we force JobId to be valid */
         "SELECT DISTINCT BaseJobId FROM BaseFiles WHERE JobId IN (%s)) "
         "OR Job.JobId IN (%s)) "
-  "AND T1.JobTDate = Job.JobTDate "
-  "AND Job.JobId = File.JobId "
+  "AND T1.JobTDate = Job.JobTDate " /* Join on JobTDate to get the orginal */
+  "AND Job.JobId = File.JobId "     /* Job/File record */
   "AND T1.PathId = File.PathId "
   "AND T1.FilenameId = File.FilenameId",
 
