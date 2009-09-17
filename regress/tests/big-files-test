@@ -16,7 +16,7 @@ copy_test_confs
 
 echo "${cwd}/many-files" >${cwd}/tmp/file-list
 if [ ! -f ${cwd}/many-files/100000file100000 ]; then
-    mkdir ${cwd}/many-files
+    mkdir -p ${cwd}/many-files
     cd ${cwd}/many-files
     print_debug "Creating files..."
     time perl -e 'for($i=0; $i < 2000000; $i++) {open(FP, ">${i}file${i}") or die "$!"; print FP "$i\n"; close(FP); print "." if ($i%10000);}'
