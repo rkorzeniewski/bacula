@@ -103,7 +103,7 @@ bool job_cmd(JCR *jcr)
               &Resched);
    if (stat != 15) {
       /* Try old version */
-      stat = sscanf(dir->msg, jobcmd, &JobId, job.c_str(), job_name.c_str(),
+      stat = sscanf(dir->msg, oldjobcmd, &JobId, job.c_str(), job_name.c_str(),
                  client_name.c_str(),
                  &JobType, &level, fileset_name.c_str(), &no_attributes,
                  &spool_attributes, fileset_md5.c_str(), &spool_data,
