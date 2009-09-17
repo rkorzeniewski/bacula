@@ -14,9 +14,15 @@ rm -rf ${tmp}/bacula-restores
 mkdir -p $cwd/files
 
 change_jobname CompressedTest $JobName
-if [ "$1" = "accurate" ]; then
+if echo $* | grep accurate >/dev/null; then
   sed 's/Name = "speed"/Name = "speed"; accurate=yes/' $conf/bacula-dir.conf > $tmp/1
   mv $tmp/1 $conf/bacula-dir.conf
+fi
+
+if echo $* | grep basejob >/dev/null; then
+  sed 's/Name = "speed"/Name = "speed"; accurate=yes;basejob=speed/' $conf/bacula-dir.conf > $tmp/1
+  mv $tmp/1 $conf/bacula-dir.conf
+  basejob="level=base"
 fi
 
 start_test
@@ -53,7 +59,7 @@ cat <<END_OF_DATA >${tmp}/bconcmds
 messages
 @$out ${tmp}/log1.out
 label storage=File volume=TestVolume001
-run job=$JobName yes
+run job=$JobName $basejob yes
 wait
 messages
 quit
