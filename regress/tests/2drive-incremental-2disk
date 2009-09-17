@@ -19,7 +19,7 @@ start_test
 
 echo "${cwd}/tmp/build" >${cwd}/tmp/file-list
 if test ! -d ${cwd}/tmp/build ; then
-   mkdir ${cwd}/tmp/build
+   mkdir -p ${cwd}/tmp/build
 fi
 cp -p ${cwd}/build/src/dird/*.c ${cwd}/tmp/build
 cd ${cwd}/tmp

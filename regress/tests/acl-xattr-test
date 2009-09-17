@@ -60,8 +60,8 @@ d=${cwd}/build/acl
 
 uid=`id -u`
 rm -rf $d
-mkdir $d
-mkdir $d/testdir
+mkdir -p $d
+mkdir -p $d/testdir
 cp ${cwd}/bin/bconsole $d
 
 case `uname -s` in
