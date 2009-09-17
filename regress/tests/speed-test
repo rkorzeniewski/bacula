@@ -108,7 +108,7 @@ map {
  open(FP, ">$dest/$base/$_") or die "$_ $!";
  print FP "update $_\n";
  close(FP);
-} grep { ! /^\./  } readdir(DIR);
+} grep { ! /^\./ && -f $_ } readdir(DIR);
 closedir DIR;
 '
 run_bconsole
