@@ -107,8 +107,6 @@ if [ $? -ne 0 ]; then
     bstat=2
 fi
 
-ls -l ${cwd}/tmp/bacula-restores/tmp/regress/build/accurate/
-
 ################################################################
 p Now do a backup after making few changes
 ################################################################
@@ -139,10 +137,6 @@ check_for_zombie_jobs storage=File
 check_two_logs
 check_restore_diff
 check_files_written ${cwd}/tmp/log1.out 4
-
-ls -l ${cwd}/tmp/bacula-restores/tmp/regress/build/accurate/
-
-exit 0
 
 rm -rf ${cwd}/tmp/bacula-restores
 
