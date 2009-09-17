@@ -64,13 +64,13 @@ support.o:   support.c
 
 bgnome-console: Makefile $(CONSOBJS) ../lib/libbaccfg$(DEFAULT_ARCHIVE_TYPE) ../lib/libbac$(DEFAULT_ARCHIVE_TYPE) 
 	$(LIBTOOL_LINK) $(CXX) $(LDFLAGS) $(CONS_LDFLAGS) -L../lib -o $@ $(CONSOBJS) \
-	      $(LIBS) $(DLIB) $(CONS_LIBS) -lbaccfg -lbac -lm
+	      $(DLIB) $(CONS_LIBS) -lbaccfg -lbac -lm $(LIBS)
 
 static-console: static-bgnome-console
 
 static-bgnome-console: Makefile $(CONSOBJS) ../lib/libbaccfg$(DEFAULT_ARCHIVE_TYPE) ../lib/libbac$(DEFAULT_ARCHIVE_TYPE) 
 	$(LIBTOOL_LINK) $(CXX) $(LDFLAGS) $(CONS_LDFLAGS) -L../lib -o $@ $(CONSOBJS) \
-	      $(LIBS) $(DLIB) $(CONS_LIBS) -lbaccfg -lbac -lm 
+	      $(DLIB) $(CONS_LIBS) -lbaccfg -lbac -lm $(LIBS)
 	strip $@
 
 Makefile: $(srcdir)/Makefile.in $(topdir)/config.status
