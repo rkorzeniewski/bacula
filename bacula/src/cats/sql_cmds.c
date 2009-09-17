@@ -467,21 +467,24 @@ const char *select_recent_version_with_basejob[4] = {
 "FROM Job, File, ( "
     "SELECT MAX(JobTDate) AS JobTDate, PathId, FilenameId "
       "FROM ( "
-        "SELECT JobTDate, PathId, FilenameId "       /* Get all files files */
-          "FROM File JOIN Job USING (JobId) "        /* from selected backup */
+        "SELECT JobTDate, PathId, FilenameId "
+          "FROM File JOIN Job USING (JobId) "
          "WHERE JobId IN (%s) "
-           "UNION ALL "
-        "SELECT JobTDate, PathId, FilenameId "       /* Get all files from */
-          "FROM BaseFiles "                          /* BaseJob */
+          "UNION ALL "
+        "SELECT JobTDate, PathId, FilenameId "
+          "FROM BaseFiles "
                "JOIN File USING (FileId) "
                "JOIN Job  ON    (BaseJobId = Job.JobId) "
          "WHERE BaseFiles.JobId IN (%s) "
-       ") AS tmp GROUP BY PathId, FilenameId " /* Use Max(JobTDate) to find */
-    ") AS T1 "                                  /* the latest version */
-"WHERE Job.JobId IN (%s) "
-  "AND Job.JobTDate = T1.JobTDate "   /* Join on JobTDate to get the orginal */
-  "AND File.PathId = T1.PathId "      /* Job/File record */
-  "AND File.FilenameId = T1.PathId ",
+       ") AS tmp GROUP BY PathId, FilenameId "
+    ") AS T1 "
+"WHERE (Job.JobId IN (
+         SELECT DISTINCT BaseJobId FROM BaseFiles WHERE JobId IN (%s)) 
+        OR Job.JobId IN (%s)) "
+  "AND Job.JobId = File.JobId "
+  "AND Job.JobTDate = T1.JobTDate "
+  "AND File.PathId = T1.PathId "
+  "AND File.FilenameId = T1.PathId "
 
   /* Postgresql */    /* The DISTINCT ON () permits to avoid extra join */
  "SELECT DISTINCT ON (FilenameId, PathId) StartTime, JobId, FileId, "
@@ -514,7 +517,10 @@ const char *select_recent_version_with_basejob[4] = {
          "WHERE BaseFiles.JobId IN (%s) "
        ") AS tmp GROUP BY PathId, FilenameId "
     ") AS T1 "
-"WHERE Job.JobId IN (%s) "
+"WHERE (Job.JobId IN (
+         SELECT DISTINCT BaseJobId FROM BaseFiles WHERE JobId IN (%s)) 
+        OR Job.JobId IN (%s)) "
+  "AND Job.JobId = File.JobId "
   "AND Job.JobTDate = T1.JobTDate "
   "AND File.PathId = T1.PathId "
   "AND File.FilenameId = T1.PathId ",
@@ -528,7 +534,7 @@ const char *select_recent_version_with_basejob[4] = {
         "SELECT JobTDate, PathId, FilenameId "
           "FROM File JOIN Job USING (JobId) "
          "WHERE JobId IN (%s) "
-           "UNION ALL "      
+          "UNION ALL "
         "SELECT JobTDate, PathId, FilenameId "
           "FROM BaseFiles "
                "JOIN File USING (FileId) "
@@ -536,7 +542,10 @@ const char *select_recent_version_with_basejob[4] = {
          "WHERE BaseFiles.JobId IN (%s) "
        ") AS tmp GROUP BY PathId, FilenameId "
     ") AS T1 "
-"WHERE Job.JobId IN (%s) "
+"WHERE (Job.JobId IN (
+         SELECT DISTINCT BaseJobId FROM BaseFiles WHERE JobId IN (%s)) 
+        OR Job.JobId IN (%s)) "
+  "AND Job.JobId = File.JobId "
   "AND Job.JobTDate = T1.JobTDate "
   "AND File.PathId = T1.PathId "
   "AND File.FilenameId = T1.PathId "
