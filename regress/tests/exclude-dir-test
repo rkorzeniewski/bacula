@@ -38,7 +38,7 @@ cp -f $tmp/1 $conf/bacula-dir.conf
 change_jobname CompressedTest $JobName
 start_test
 
-mkdir ${cwd}/build/src/xxtestdir
+mkdir -p ${cwd}/build/src/xxtestdir
 touch ${cwd}/build/src/xxtestdir/.nobkp
 cp ${cwd}/build/src/dird/*.c ${cwd}/build/src/xxtestdir
 
