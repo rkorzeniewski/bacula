@@ -2,6 +2,13 @@
           
 General:
 
+17Sep09
+kes  Fix seg fault in ignoredir code
+15Sep09
+ebl  Update restore menu 12 explanation
+14Sep09
+ebl  Rename .lsdirs/.lsfiles/.update to .bvfs_xxx
+     to avoid confusion with future commands
 11Sep09
 kes  Set Volume Poll Interval to 5 mins by default.
 kes  Create an inline definition of bigendian().

@@ -10,7 +10,7 @@ JobName=differential
 scripts/cleanup
 scripts/copy-test-confs
 echo "${cwd}/tmp/build" >${cwd}/tmp/file-list
-mkdir ${cwd}/tmp/build
+mkdir -p ${cwd}/tmp/build
 cp -p ${cwd}/build/src/dird/*.c ${cwd}/tmp/build
 cd ${cwd}/tmp
 echo "${cwd}/tmp/build/ficheriro1.txt" >restore-list

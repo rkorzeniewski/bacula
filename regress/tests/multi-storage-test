@@ -18,7 +18,7 @@ if (/WorkingDirectory/) { $_ =~ s/"$/2"/; }
 print;
 ' $conf/bacula-sd.conf > $conf/bacula-sd2.conf
 
-mkdir ${working}2
+mkdir -p ${working}2
 
 perl -ne '
 if (/^Storage {/) { $in=1; $nb++; }

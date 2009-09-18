@@ -429,7 +429,7 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
       _("Find the JobIds of the most recent backup for a client"),
       _("Find the JobIds for a backup for a client before a specified time"),
       _("Enter a list of directories to restore for found JobIds"),
-      _("Select full restore to a specified JobId"),
+      _("Select full restore to a specified Job date"),
       _("Cancel"),
       NULL };
 
@@ -751,7 +751,7 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
          return 2;
 
       case 11:                        /* Choose a jobid and select jobs */
-         if (!get_cmd(ua, _("Enter JobId to restore: ")) ||
+         if (!get_cmd(ua, _("Enter JobId to get the state to restore: ")) ||
              !is_an_integer(ua->cmd)) 
          {
             return 0;
@@ -764,6 +764,8 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
                           ua->cmd, db_strerror(ua->db));
             return 0;
          }
+         ua->send_msg(_("Selecting jobs to build the Full state at %s\n"),
+                      jr.cStartTime);
          jr.JobLevel = L_INCREMENTAL; /* Take Full+Diff+Incr */
          if (!db_accurate_get_jobids(ua->jcr, ua->db, &jr, &jobids)) {
             return 0;

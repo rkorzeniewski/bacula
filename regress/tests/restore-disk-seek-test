@@ -14,7 +14,7 @@ scripts/cleanup
 scripts/copy-test-confs
 echo "${cwd}/tmp/build" >${cwd}/tmp/file-list
 rm -rf ${cwd}/tmp/build
-mkdir ${cwd}/tmp/build
+mkdir -p ${cwd}/tmp/build
 # Copy only the .c files (to be restored)
 #  set files to "*.c" for all c files
 files="ua_tree.c ua_update.c"
@@ -36,7 +36,7 @@ cd ${cwd}
 # Now arrange to backup *everything* 
 #
 rm -rf  ${cwd}/tmp/build
-mkdir ${cwd}/tmp/build
+mkdir -p ${cwd}/tmp/build
 cp -fp ${cwd}/build/src/dird/* ${cwd}/tmp/build
 #
 # Enable MaximumFileSize to ensure lots of JobMedia records and thus
@@ -82,7 +82,7 @@ stop_bacula
 
 # Now setup a control directory of only what we *should* restore
 rm -rf ${cwd}/tmp/build
-mkdir  ${cwd}/tmp/build
+mkdir -p  ${cwd}/tmp/build
 for i in ${files}; do
    cp -p ${cwd}/build/src/dird/${i} ${cwd}/tmp/build
 done

@@ -2968,7 +2968,7 @@ if test "${support_bat}" = "yes" ; then
    touch bat
    chmod 755 bat
    $QMAKEBIN
-   make clean
+   ${MAKE:-make} clean
    cd ${BUILD_DIR}
 fi
 
@@ -3045,7 +3045,7 @@ fi
 echo " "
 echo "Cleaning up"
 echo " "
-make clean
+${MAKE:-make} clean
 
 if test "x${db_type}" = "xInternal" ; then
    echo " "
