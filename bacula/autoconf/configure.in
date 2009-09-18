@@ -2488,6 +2488,18 @@ AC_CHECK_LIB(pthread, pthread_create, PTHREAD_LIB="-lpthread",
    ]
 )
 
+dnl
+dnl Check for headers, functions and libraries required to support
+dnl keeping readall capabilities
+dnl
+AC_CHECK_HEADERS(sys/prctl.h sys/capability.h)
+AC_CHECK_FUNCS(prctl setreuid)
+AC_CHECK_LIB([cap], [cap_set_proc], [CAP_LIBS="-lcap"], [CAP_LIBS=])
+if test x$CAP_LIBS = x-lcap; then
+   AC_DEFINE(HAVE_LIBCAP, 1, [Define if you have libcap])
+fi
+AC_SUBST(CAP_LIBS)
+
 AC_SUBST(FDLIBS)
 AC_DEFINE(FDLIBS)
 
