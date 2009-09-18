@@ -87,11 +87,11 @@ int purgecmd(UAContext *ua, const char *cmd)
       NULL};
 
    ua->warning_msg(_(
-      "\nThis command is can be DANGEROUS!!!\n\n"
+      "\nThis command can be DANGEROUS!!!\n\n"
       "It purges (deletes) all Files from a Job,\n"
       "JobId, Client or Volume; or it purges (deletes)\n"
       "all Jobs from a Client or Volume without regard\n"
-      "for retention periods. Normally you should use the\n"
+      "to retention periods. Normally you should use the\n"
       "PRUNE command, which respects retention periods.\n"));
 
    if (!open_db(ua)) {

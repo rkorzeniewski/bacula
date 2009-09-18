@@ -303,7 +303,13 @@ static bool have_ignoredir(FF_PKT *ff_pkt)
 {
    struct stat sb;
    char tmp_name[MAXPATHLEN];
-   char *ignoredir = ff_pkt->fileset->incexe->ignoredir;
+   char *ignoredir;
+
+   /* Ensure that pointers are defined */
+   if (!ff_pkt->fileset || !ff_pkt->fileset->incexe) {
+      return false;
+   }
+   ignoredir = ff_pkt->fileset->incexe->ignoredir;
    
    if (ignoredir) {
       if (strlen(ff_pkt->fname) + strlen(ignoredir) + 2 > MAXPATHLEN) {
