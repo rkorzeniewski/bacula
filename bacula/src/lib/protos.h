@@ -69,7 +69,7 @@ int       bvsnprintf             (char *str, int32_t size, const char *format, v
 int       pool_sprintf           (char *pool_buf, const char *fmt, ...);
 void      create_pid_file        (char *dir, const char *progname, int port);
 int       delete_pid_file        (char *dir, const char *progname, int port);
-void      drop                   (char *uid, char *gid);
+void      drop                   (char *uid, char *gid, bool keep_readall_caps);
 int       bmicrosleep            (int32_t sec, int32_t usec);
 char     *bfgets                 (char *s, int size, FILE *fd);
 void      make_unique_filename   (POOLMEM **name, int Id, char *what);

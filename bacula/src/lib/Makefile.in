@@ -15,6 +15,7 @@ topdir = ../..
 thisdir = src/lib
 
 DEBUG=@DEBUG@
+CAP_LIBS = @CAP_LIBS@
 
 first_rule: all
 dummy:
@@ -45,7 +46,7 @@ LIBBAC_SRCS = attr.c base64.c berrno.c bsys.c bget_msg.c \
 	      cram-md5.c crc32.c crypto.c daemon.c edit.c fnmatch.c \
 	      guid_to_name.c hmac.c jcr.c lex.c alist.c dlist.c \
 	      md5.c message.c mem_pool.c openssl.c \
-	      plugins.c queue.c bregex.c \
+	      plugins.c priv.c queue.c bregex.c \
 	      rwlock.c scan.c serial.c sha1.c \
 	      signal.c smartall.c rblist.c tls.c tree.c \
 	      util.c var.c watchdog.c workq.c btimers.c \
@@ -116,7 +117,7 @@ libbac.a: $(LIBBAC_OBJS)
 
 libbac.la: Makefile $(LIBBAC_OBJS)
 	@echo "Making $@ ..."
-	$(LIBTOOL_LINK) $(CXX) $(DEFS) $(DEBUG) $(LDFLAGS) -o $@ $(LIBBAC_OBJS) -export-dynamic -rpath $(libdir) -version-info $(LIBBAC_LT_CURRENT):$(LIBBAC_LT_REVISION):$(LIBBAC_LT_AGE) $(WRAPLIBS)
+	$(LIBTOOL_LINK) $(CXX) $(DEFS) $(DEBUG) $(LDFLAGS) -o $@ $(LIBBAC_OBJS) -export-dynamic -rpath $(libdir) -version-info $(LIBBAC_LT_CURRENT):$(LIBBAC_LT_REVISION):$(LIBBAC_LT_AGE) $(WRAPLIBS) $(CAP_LIBS)
 
 libbaccfg.a: $(LIBBACCFG_OBJS) 
 	@echo "Making $@ ..."

@@ -270,7 +270,7 @@ int main (int argc, char *argv[])
 
    load_dir_plugins(director->plugin_directory);
 
-   drop(uid, gid);                    /* reduce privileges if requested */
+   drop(uid, gid, false);                    /* reduce privileges if requested */
 
    /* If we are in testing mode, we don't try to fix the catalog */
    cat_op mode=(test_config)?CHECK_CONNECTION:UPDATE_AND_FIX;
