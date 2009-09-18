@@ -32,9 +32,10 @@ echo "Creating 1.5M files"
 perl -e '
 my $dest="'$cwd/files'";
 my $base;
+my $dir=$dest;
 mkdir $dest;
-$base = chr(1450000 % 26 + 65);
-if (-f "$dest/$base/aaa1450000aaa$base") {
+$base = chr(750000 % 26 + 65);
+if (-f "$dest/$base/aaa750000aaa$base") {
   exit 0;
 }
 $| = 1;
@@ -42,13 +43,20 @@ for(my $i=0; $i < 26; $i++) {
  $base = chr($i + 65);
   mkdir("$dest/$base") or die "$dest/$base $!";
 }
-for(my $i=0; $i<=1500000; $i++) {
+for(my $i=0; $i<=750000; $i++) {
  $base = chr($i % 26 + 65);
- open(FP, ">$dest/$base/aaa${i}aaa$base") or die "$dest/$base $!";
+ open(FP, ">$dest/$base/a${base}a${i}aaa$base") or die "$dest/$base $!";
  print FP "$i\n";
  close(FP);
 
- mkdir "$dest/$base/$base$i$base" if (!($i % 100));
+ open(FP, ">$dir/b${base}a${i}csq$base") or die "$dir $!";
+ print FP "$base $i\n";
+ close(FP);
+
+ if (!($i % 100)) {
+    $dir = "$dest/$base/$base$i$base";
+    mkdir $dir;
+ }
  print "." if (!($i % 10000));
 }
 print "\n";
@@ -140,6 +148,8 @@ check_two_logs
 #rm -rf ${tmp}/files
 
 find ${tmp}/bacula-restores | wc -l | tee $tmp/bacula-restore-list
-
 rm -rf ${tmp}/bacula-restores
+
+cp working/log files/log${WHICHDB}-$(date +%F_%H-%M).log
+
 end_test
