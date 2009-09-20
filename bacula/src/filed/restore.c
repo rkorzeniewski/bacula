@@ -126,7 +126,7 @@ bool restore_finderinfo(JCR *jcr, POOLMEM *buf, int32_t buflen)
    Dmsg0(130, "Restoring Finder Info\n");
    jcr->ff->flags |= FO_HFSPLUS;
    if (buflen != 32) {
-      Jmsg(jcr, M_ERROR, 0, _("Invalid length of Finder Info (got %d, not 32)\n"), sd->msglen);
+      Jmsg(jcr, M_ERROR, 0, _("Invalid length of Finder Info (got %d, not 32)\n"), buflen);
       return false;
    }
 
