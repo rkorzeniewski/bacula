@@ -192,8 +192,7 @@ int main (int argc, char *argv[])
    }
 
    if (!uid && keep_readall_caps) {
-      Emsg0(M_ERROR, 0, _("-k option has no meaning without -u option.\n"));
-      exit(1);
+      Emsg0(M_ERROR_TERM, 0, _("-k option has no meaning without -u option.\n"));
    }
 
    server_tid = pthread_self();

@@ -125,7 +125,7 @@ void drop(char *uname, char *gname, bool keep_readall_caps)
       }
       cap_free(caps);
 #else
-      Emsg0(M_ERROR_TERM, 0, _("Keep readall capabilities is not implemented on this platform yet\n"));
+      Emsg0(M_ERROR_TERM, 0, _("Keep readall caps not implemented this OS or missing libraries.\n"));
 #endif
    } else if (setuid(uid)) {
       berrno be;
