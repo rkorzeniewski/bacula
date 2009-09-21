@@ -7,7 +7,7 @@ if test xsqlite = x@DB_TYPE@ -o xsqlite3 = x@DB_TYPE@ ; then
   @scriptdir@/drop_@DB_TYPE@_database $*
 else
   if test xmysql = x@DB_TYPE@ ; then 
-    echo "Making MySQL database"
+    echo "Dropping MySQL database"
     @scriptdir@/drop_mysql_database $*
   else
     @scriptdir@/drop_postgresql_database $*
