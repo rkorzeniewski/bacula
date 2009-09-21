@@ -552,6 +552,21 @@ bail_out:
    return purged;
 }
 
+static BSOCK *open_sd_bsock(UAContext *ua)
+{
+   STORE *store = ua->jcr->wstore;
+
+   if (!ua->jcr->store_bsock) {
+      ua->send_msg(_("Connecting to Storage daemon %s at %s:%d ...\n"),
+         store->name(), store->address, store->SDport);
+      if (!connect_to_storage_daemon(ua->jcr, 10, SDConnectTimeout, 1)) {
+         ua->error_msg(_("Failed to connect to Storage daemon.\n"));
+         return NULL;
+      }
+   }
+   return ua->jcr->store_bsock;
+}
+
 /*
  * IF volume status is Append, Full, Used, or Error, mark it Purged
  *   Purged volumes can then be recycled (if enabled).
@@ -567,6 +582,21 @@ bool mark_media_purged(UAContext *ua, MEDIA_DBR *mr)
       if (!db_update_media_record(jcr, ua->db, mr)) {
          return false;
       }
+
+      /* Send the command to truncate the volume after purge. If this feature
+       * is disabled for the specific device, this will be a no-op. */
+      BSOCK *sd;
+      if ((sd=open_sd_bsock(ua)) != NULL) {
+         sd->fsend("truncate_on_purge %s vol=%s", ua->jcr->wstore->dev_name(), mr->VolumeName);
+
+         while (sd->recv() >= 0)
+            ua->send_msg("%s", sd->msg);
+
+         sd->signal(BNET_TERMINATE);
+         sd->close();
+         ua->jcr->store_bsock = NULL;
+      }
+
       pm_strcpy(jcr->VolumeName, mr->VolumeName);
       generate_job_event(jcr, "VolumePurged");
       generate_plugin_event(jcr, bEventVolumePurged);

@@ -83,6 +83,7 @@ static bool setdebug_cmd(JCR *jcr);
 static bool cancel_cmd(JCR *cjcr);
 static bool mount_cmd(JCR *jcr);
 static bool unmount_cmd(JCR *jcr);
+static bool truncate_on_purge_cmd(JCR *jcr);
 static bool bootstrap_cmd(JCR *jcr);
 static bool changer_cmd(JCR *sjcr);
 static bool do_label(JCR *jcr, int relabel);
@@ -118,6 +119,7 @@ static struct s_cmds cmds[] = {
    {"status",      status_cmd,      1},
    {".status",     qstatus_cmd,     1},
    {"unmount",     unmount_cmd,     0},
+   {"truncate_on_purge",	truncate_on_purge_cmd,	0},
    {"use storage=", use_cmd,        0},
    {"run",         run_cmd,         0},
 // {"query",       query_cmd,       0},
@@ -865,6 +867,53 @@ static bool unmount_cmd(JCR *jcr)
       pm_strcpy(jcr->errmsg, dir->msg);
       dir->fsend(_("3907 Error scanning unmount command: %s\n"), jcr->errmsg);
    }
+   dir->signal(BNET_EOD);
+   return true;
+}
+
+/*
+ * The truncate command will recycle a volume. The director can call this
+ * after purging a volume so that disk space will not be wasted. Only useful
+ * for File Storage, of course.
+ *
+ */
+static bool truncate_on_purge_cmd(JCR *jcr)
+{
+   POOL_MEM devname;
+   POOL_MEM volumename;
+   BSOCK *dir = jcr->dir_bsock;
+   DEVICE *dev;
+   DCR *dcr;
+   int drive;
+
+   if (sscanf(dir->msg, "truncate_on_purge %127s vol=%s", devname.c_str(), volumename.c_str()) != 2) {
+      dir->fsend(_("3916 Error scanning truncate_on_purge command\n"));
+      goto done;
+   }
+
+   /* FIXME: autochanger, drive = 0? how can we avoid that? we only work on files */
+   if ((dcr = find_device(jcr, devname, 0)) == NULL) {
+      dir->fsend(_("3999 Device \"%s\" not found or could not be opened.\n"), devname.c_str());
+      goto done;
+   }
+
+   dev = dcr->dev;
+
+   if (!dev->truncate_on_purge) {
+      dir->fsend(_("3919 Truncate on purge not enabled, skipping\n"));
+      goto done;
+   }
+
+   /* Store the VolumeName for opening and re-labeling the volume */
+   bstrncpy(dcr->VolumeName, volumename.c_str(), sizeof(dcr->VolumeName));
+   bstrncpy(dev->VolHdr.VolumeName, volumename.c_str(), sizeof(dev->VolHdr.VolumeName));
+
+   /* Re-write the label with the recycle flag */
+   if (rewrite_volume_label(dcr, true))
+      dir->fsend(_("3917 Volume recycled\n"));
+   else dir->fsend(_("3918 Recycle failed\n"));
+
+done:
    dir->signal(BNET_EOD);
    return true;
 }
