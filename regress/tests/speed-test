@@ -3,6 +3,11 @@
 # Run a big test with backup of millions of files then run 100 incremental
 # modifying 10% each time
 #
+# Can use following env variables
+# ACCURATE=yes
+# BASEJOB=yes
+# NB_CONCURENT=4
+
 TestName="speed-test"
 JobName=speed 
 . scripts/functions
@@ -14,53 +19,24 @@ rm -rf ${tmp}/bacula-restores
 mkdir -p $cwd/files
 
 change_jobname CompressedTest $JobName
-if echo $* | grep accurate >/dev/null; then
+if [ a$ACCURATE != a ]; then
   sed 's/Name = "speed"/Name = "speed"; accurate=yes/' $conf/bacula-dir.conf > $tmp/1
   mv $tmp/1 $conf/bacula-dir.conf
 fi
 
-if echo $* | grep basejob >/dev/null; then
+if [ a$BASEJOB != a ]; then
   sed 's/Name = "speed"/Name = "speed"; accurate=yes;basejob=speed/' $conf/bacula-dir.conf > $tmp/1
   mv $tmp/1 $conf/bacula-dir.conf
   basejob="level=base"
 fi
 
+export NB_CONCURENT=${NB_CONCURENT:-1}
+
 start_test
 
 # Create X million of files 
 echo "Creating 1.5M files"
-perl -e '
-my $dest="'$cwd/files'";
-my $base;
-my $dir=$dest;
-mkdir $dest;
-$base = chr(750000 % 26 + 65);
-if (-f "$dest/$base/aaa750000aaa$base") {
-  exit 0;
-}
-$| = 1;
-for(my $i=0; $i < 26; $i++) {
- $base = chr($i + 65);
-  mkdir("$dest/$base") or die "$dest/$base $!";
-}
-for(my $i=0; $i<=750000; $i++) {
- $base = chr($i % 26 + 65);
- open(FP, ">$dest/$base/a${base}a${i}aaa$base") or die "$dest/$base $!";
- print FP "$i\n";
- close(FP);
-
- open(FP, ">$dir/b${base}a${i}csq$base") or die "$dir $!";
- print FP "$base $i\n";
- close(FP);
-
- if (!($i % 100)) {
-    $dir = "$dest/$base/$base$i$base";
-    mkdir $dir;
- }
- print "." if (!($i % 10000));
-}
-print "\n";
-'
+perl -Mscripts::functions -e "create_many_files('$cwd/files');"
 
 cat <<END_OF_DATA >${tmp}/bconcmds
 @$out /dev/null
@@ -80,47 +56,36 @@ cat <<END_OF_DATA >${tmp}/bconcmds
 @$out /dev/null
 messages
 @$out ${tmp}/log1.out
-run job=$JobName level=Full yes
-wait
-messages
-quit
 END_OF_DATA
 
-# insert 15 million files into File table
-for i in $(seq 0 10)
+for j in $(seq 1 $NB_CONCURENT)
 do
- run_bconsole
+    cat <<EOF >>${tmp}/bconcmds
+@sleep 5
+run job=$JobName level=Full yes
+EOF
 done
 
-cat <<END_OF_DATA >${tmp}/bconcmds
-@$out /dev/null
-messages
-@$out ${tmp}/log1.out
-run job=$JobName level=Incremental yes
+cat <<EOF >>${tmp}/bconcmds
 wait
 messages
 quit
-END_OF_DATA
+EOF
 
+# insert X million files into File table
+for i in $(seq 0 20)
+do
+    run_bconsole
+done
+
+# Now, run many incremental
+sed 's/Full/Incremental/' ${tmp}/bconcmds > $tmp/1
+mv $tmp/1 ${tmp}/bconcmds
 
 for i in $(seq 0 25)
 do
-
-perl -e '
-my $dest="'$cwd/files'";
-my $start="'$i'";
-my $base = chr($start + 65);
-
-opendir(DIR, "$dest/$base") || die "$!";
-map {
- open(FP, ">$dest/$base/$_") or die "$_ $!";
- print FP "update $_\n";
- close(FP);
-} grep { ! /^\./ && -f $_ } readdir(DIR);
-closedir DIR;
-'
-run_bconsole
-
+    perl -Mscripts::functions -e "update_some_files('$cwd/files/'.chr($i+65));"
+    run_bconsole
 done
 
 cat <<END_OF_DATA >${tmp}/bconcmds
