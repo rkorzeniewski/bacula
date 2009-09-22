@@ -27,9 +27,6 @@ CREATE TABLE path
 ALTER TABLE path ALTER COLUMN path SET STATISTICS 1000;
 CREATE UNIQUE INDEX path_name_idx on path (path);
 
--- In File table
--- FileIndex can be 0 for FT_DELETED files
--- FileNameId can link to Filename.Name='' for directories
 CREATE TABLE file
 (
     fileid	      bigserial	  not null,
@@ -43,8 +40,12 @@ CREATE TABLE file
     primary key (fileid)
 );
 
-CREATE INDEX file_jobid_idx on file (jobid);
-CREATE INDEX file_fp_idx on file (filenameid, pathid);
+CREATE INDEX file_jpfid_idx on file (jobid, pathid, filenameid);
+
+-- If you are running PostgreSQL >= 8.2, you can remove this index
+-- the database engine is able to use the composite index
+-- and it increase performances during insertion
+CREATE INDEX file_jobid_idx on file(jobid);
 
 --
 -- Add this if you have a good number of job
@@ -57,7 +58,6 @@ CREATE INDEX file_fp_idx on file (filenameid, pathid);
 --
 -- CREATE INDEX file_pathid_idx on file(pathid);
 -- CREATE INDEX file_filenameid_idx on file(filenameid);
--- CREATE INDEX file_jpfid_idx on file (jobid, pathid, filenameid);
 
 CREATE TABLE job
 (
