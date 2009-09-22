@@ -1,3 +1,5 @@
+22Sep09
+ebl  fix small problem in bfileview using float for LIMIT param
 19Aug09
 ebl  Add BWEBCONF env variable to specify the bweb.conf path without
      touching the Bweb.pm file with lighttpd
