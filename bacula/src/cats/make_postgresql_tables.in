@@ -42,9 +42,9 @@ CREATE TABLE file
 
 CREATE INDEX file_jpfid_idx on file (jobid, pathid, filenameid);
 
--- If you are running PostgreSQL >= 8.2, you can remove this index
+-- If you need performances, you can remove this index
 -- the database engine is able to use the composite index
--- and it increase performances during insertion
+-- to find all records with a given JobId
 CREATE INDEX file_jobid_idx on file(jobid);
 
 --
