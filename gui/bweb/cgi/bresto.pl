@@ -1103,10 +1103,9 @@ if ($action eq 'list_files_dirs') {
 				"'$jids'", # jobid
 				"'" . escape_quote($_->[1]) . "'", # name
 				"'" . $p[7] . "'",                 # size
-				"'" . strftime('%Y-%m-%d %H:%m:%S', localtime($p[11])) .  "'") .
+				"'" . strftime('%Y-%m-%d %H:%m:%S', localtime($p[11]||0)) .  "'") .
 		    ']'; 
 	       } @$files);
-
     print "," if (@$files);
 
     $files = $bvfs->ls_dirs();
@@ -1120,7 +1119,7 @@ if ($action eq 'list_files_dirs') {
 				"'$jids'", # jobid
 				"'" . escape_quote($_->[1]) . "'", # name
 				"'" . $p[7] . "'",                 # size
-				"'" . strftime('%Y-%m-%d %H:%m:%S', localtime($p[11])) .  "'") .
+				"'" . strftime('%Y-%m-%d %H:%m:%S', localtime($p[11]||0)) .  "'") .
 		    ']'; 
 	       } @$files);
 

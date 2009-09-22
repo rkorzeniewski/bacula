@@ -4670,17 +4670,20 @@ sub add_media
         $self->display($arg, 'add_media.tpl');
         return 1;
     }
-
-    my $cmd;
+    $b->connect();
+    $b->send("add pool=\"$arg->{pool}\" storage=\"$arg->{storage}\"\n");
     if ($arg->{nb} > 0) {
         $arg->{offset} = $arg->{offset}?$arg->{offset}:1; 
-        $cmd = "add pool=\"$arg->{pool}\" storage=\"$arg->{storage}\"\n$arg->{nb}\n$arg->{media}\n$arg->{offset}\n";
+        $b->send("$arg->{nb}\n");
+        $b->send("$arg->{media}\n");
+        $b->send("$arg->{offset}\n");
+
     } else {
-        $cmd = "add pool=\"$arg->{pool}\" storage=\"$arg->{storage}\"\n0\n$arg->{media}\n";
+        $b->send("0\n");
+        $b->send("$arg->{media}\n");
     }
-    $b->connect();
-    $b->send($cmd);
-    $b->expect_it('*');
+
+    $b->expect_it('-re','^[*]');
 
     CGI::param('media', '');
     CGI::param('re_media', $arg->{media});
