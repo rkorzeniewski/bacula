@@ -2,6 +2,12 @@
           
 General:
 
+22Sep09
+ebl  Remove the file_fp_idx index for Postgresql (FilenameId, PathId) on
+     File table. 
+     It is useless for common usage, and causes performance issues.
+     This index fragments over the time and the update cost grows
+     very quickly. (This index is not present on Mysql schema)
 17Sep09
 kes  Fix seg fault in ignoredir code
 15Sep09
