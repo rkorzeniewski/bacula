@@ -2,6 +2,8 @@
           
 General:
 
+25Sep08
+kes  Add more smtp document -- resolves bug #1376
 22Sep09
 ebl  Remove the file_fp_idx index for Postgresql (FilenameId, PathId) on
      File table. 
