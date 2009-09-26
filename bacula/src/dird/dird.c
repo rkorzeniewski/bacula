@@ -755,6 +755,7 @@ static bool check_resources()
                           job_items[i].handler == store_jobtype ||
                           job_items[i].handler == store_level   ||
                           job_items[i].handler == store_int32   ||
+                          job_items[i].handler == store_size32  ||
                           job_items[i].handler == store_migtype ||
                           job_items[i].handler == store_replace) {
                   def_ivalue = (uint32_t *)((char *)(job->jobdefs) + offset);
@@ -767,7 +768,7 @@ static bool check_resources()
                 * Handle 64 bit integer fields
                 */
                } else if (job_items[i].handler == store_time   ||
-                          job_items[i].handler == store_size   ||
+                          job_items[i].handler == store_size64 ||
                           job_items[i].handler == store_int64) {
                   def_lvalue = (int64_t *)((char *)(job->jobdefs) + offset);
                   Dmsg5(400, "Job \"%s\", field \"%s\" def_lvalue=%" lld " item %d offset=%u\n",
