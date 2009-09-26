@@ -79,7 +79,7 @@ PROG_COPYRIGHT
 "Usage: bacula-fd [-f -s] [-c config_file] [-d debug_level]\n"
 "        -c <file>   use <file> as configuration file\n"
 "        -d <nn>     set debug level to <nn>\n"
-"        -dt         print timestamp in debug output\n"
+"        -dt         print a timestamp in debug output\n"
 "        -f          run in foreground (for debugging)\n"
 "        -g          groupid\n"
 "        -k          keep readall capabilities\n"
