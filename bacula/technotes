@@ -3,6 +3,7 @@
 General:
 
 26Sep08
+kes  Remove gnome-console
 kes  Implement store_size32 and store_size64
 25Sep08
 kes  Fix Alpha ifdefing -- should fix bug #1359
