@@ -153,15 +153,15 @@ static RES_ITEM dev_items[] = {
    {"maximumrewindwait",     store_time,   ITEM(res_dev.max_rewind_wait), 0, ITEM_DEFAULT, 5 * 60},
    {"minimumblocksize",      store_pint32,   ITEM(res_dev.min_block_size), 0, 0, 0},
    {"maximumblocksize",      store_maxblocksize, ITEM(res_dev.max_block_size), 0, 0, 0},
-   {"maximumvolumesize",     store_size,   ITEM(res_dev.max_volume_size), 0, 0, 0},
-   {"maximumfilesize",       store_size,   ITEM(res_dev.max_file_size), 0, ITEM_DEFAULT, 1000000000},
-   {"volumecapacity",        store_size,   ITEM(res_dev.volume_capacity), 0, 0, 0},
+   {"maximumvolumesize",     store_size64,   ITEM(res_dev.max_volume_size), 0, 0, 0},
+   {"maximumfilesize",       store_size64,   ITEM(res_dev.max_file_size), 0, ITEM_DEFAULT, 1000000000},
+   {"volumecapacity",        store_size64,   ITEM(res_dev.volume_capacity), 0, 0, 0},
    {"maximumconcurrentjobs", store_pint32, ITEM(res_dev.max_concurrent_jobs), 0, 0, 0},
    {"spooldirectory",        store_dir,    ITEM(res_dev.spool_directory), 0, 0, 0},
-   {"maximumspoolsize",      store_size,   ITEM(res_dev.max_spool_size), 0, 0, 0},
-   {"maximumjobspoolsize",   store_size,   ITEM(res_dev.max_job_spool_size), 0, 0, 0},
+   {"maximumspoolsize",      store_size64,   ITEM(res_dev.max_spool_size), 0, 0, 0},
+   {"maximumjobspoolsize",   store_size64,   ITEM(res_dev.max_job_spool_size), 0, 0, 0},
    {"driveindex",            store_pint32,   ITEM(res_dev.drive_index), 0, 0, 0},
-   {"maximumpartsize",       store_size,   ITEM(res_dev.max_part_size), 0, ITEM_DEFAULT, 0},
+   {"maximumpartsize",       store_size64,   ITEM(res_dev.max_part_size), 0, ITEM_DEFAULT, 0},
    {"mountpoint",            store_strname,ITEM(res_dev.mount_point), 0, 0, 0},
    {"mountcommand",          store_strname,ITEM(res_dev.mount_command), 0, 0, 0},
    {"unmountcommand",        store_strname,ITEM(res_dev.unmount_command), 0, 0, 0},
@@ -250,13 +250,10 @@ static void store_devtype(LEX *lc, RES_ITEM *item, int index, int pass)
  */
 static void store_maxblocksize(LEX *lc, RES_ITEM *item, int index, int pass)
 {
-   lex_get_token(lc, T_PINT32);
-   if (lc->pint32_val <= MAX_BLOCK_LENGTH) {
-      *(uint32_t *)(item->value) = lc->pint32_val;
-      scan_to_eol(lc);
-      set_bit(index, res_all.hdr.item_present);
-   } else {
-      scan_err2(lc, _("Maximum Block Size configured value %u is greater than allowed maximum: %u"), lc->pint32_val, MAX_BLOCK_LENGTH );
+   store_size32(lc, item, index, pass);
+   if (*(uint32_t *)(item->value) > MAX_BLOCK_LENGTH) {
+      scan_err2(lc, _("Maximum Block Size configured value %u is greater than allowed maximum: %u"), 
+         *(uint32_t *)(item->value), MAX_BLOCK_LENGTH );
    }
 }
 
