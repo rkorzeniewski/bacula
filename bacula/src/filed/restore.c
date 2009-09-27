@@ -1084,7 +1084,7 @@ bool decompress_data(JCR *jcr, char **data, uint32_t *length)
       /*
        * The buffer size is too small, try with a bigger one
        */
-      compress_len = jcr->compress_buf_size = jcr->compress_buf_size + jcr->compress_buf_size >> 1;
+      compress_len = jcr->compress_buf_size = jcr->compress_buf_size + (jcr->compress_buf_size >> 1);
       Dmsg2(200, "Comp_len=%d msglen=%d\n", compress_len, *length);
       jcr->compress_buf = check_pool_memory_size(jcr->compress_buf,
                                                  compress_len);
