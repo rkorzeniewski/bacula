@@ -48,6 +48,7 @@ extern "C" int initgroups(const char *,int);
  */
 void drop(char *uname, char *gname, bool keep_readall_caps)
 {
+#if   defined(HAVE_PWD_H) && defined(HAVE_GRP_H)
    struct passwd *passw = NULL;
    struct group *group = NULL;
    gid_t gid;
@@ -131,4 +132,5 @@ void drop(char *uname, char *gname, bool keep_readall_caps)
       berrno be;
       Emsg1(M_ERROR_TERM, 0, _("Could not set specified userid: %s\n"), username);
    }
+#endif
 }
