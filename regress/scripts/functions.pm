@@ -33,10 +33,14 @@ use strict;
 =cut
 
 package scripts::functions;
+
+# Export all functions needed to be used by a simple 
+# perl -Mscripts::functions -e '' script
 use Exporter;
 our @ISA = qw(Exporter);
-our @EXPORT =  qw(update_some_files create_many_files);
+our @EXPORT =  qw(update_some_files create_many_files detect_multiple_copies);
 
+# open a directory and update all files
 sub update_some_files
 {
     my ($dest)=@_;
@@ -58,6 +62,11 @@ sub update_some_files
     print "$nb files updated\n";
 }
 
+# create big number of files in a given directory
+# Inputs: dest  destination directory
+#         nb    number of file to create
+# Example:
+# perl -Mscripts::functions -e 'create_many_files("$cwd/files", 100000)'
 sub create_many_files
 {
     my ($dest, $nb) = @_;
@@ -65,7 +74,7 @@ sub create_many_files
     my $dir=$dest;
     $nb = $nb || 750000;
     mkdir $dest;
-    $base = chr($nb % 26 + 65);
+    $base = chr($nb % 26 + 65); # We use a base directory A-Z
 
     # already done
     if (-f "$dest/$base/a${base}a750000aaa$base") {
@@ -97,6 +106,58 @@ sub create_many_files
         print "." if (!($i % 10000));
     }
     print "\n";
+}
+
+# This test ensure that 'list copies' displays only each copy one time
+#
+# Input: read stream from stdin or with file list argument
+#        check the number of copies with the ARGV[1]
+# Output: exit(1) if something goes wrong and print error
+sub check_multiple_copies
+{
+    my ($nb_to_found) = @_;
+
+    my $in_list_copies=0;       # are we or not in a list copies block
+    my $nb_found=0;             # count the number of copies found
+    my $ret = 0;
+    my %seen;
+
+    while (my $l = <>)          # read all files to check
+    {
+        if ($l =~ /list copies/) {
+            $in_list_copies=1;
+            %seen = ();
+            next;
+        }
+
+        # not in a list copies anymore
+        if ($in_list_copies && $l =~ /^ /) {
+            $in_list_copies=0;
+            next;
+        }
+
+        # list copies ouput:
+        # |     3 | Backup.2009-09-28 |  9 | DiskChangerMedia |
+        if ($in_list_copies && $l =~ /^\|\s+\d+/) {
+            my (undef, $jobid, undef, $copyid, undef) = split(/\s*\|\s*/, $l);
+            if (exists $seen{$jobid}) {
+                print "ERROR: $jobid/$copyid already known as $seen{$jobid}\n";
+                $ret = 1;
+            } else {
+                $seen{$jobid}=$copyid;
+                $nb_found++;
+            }
+        }
+    }
+    
+    # test the number of copies against the given arg
+    if ($nb_to_found && ($nb_to_found != $nb_found)) {
+        print "ERROR: Found wrong number of copies ",
+              "($nb_to_found != $nb_found)\n";
+        exit 1;
+    }
+
+    exit $ret;
 }
 
 1;
