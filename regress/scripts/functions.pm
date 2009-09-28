@@ -38,7 +38,7 @@ package scripts::functions;
 # perl -Mscripts::functions -e '' script
 use Exporter;
 our @ISA = qw(Exporter);
-our @EXPORT =  qw(update_some_files create_many_files detect_multiple_copies);
+our @EXPORT =  qw(update_some_files create_many_files check_multiple_copies);
 
 # open a directory and update all files
 sub update_some_files
