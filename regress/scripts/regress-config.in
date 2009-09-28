@@ -10,8 +10,12 @@ else
   PASSWD="--with-db-password=@db_password@"
 fi
 
-CFLAGS="-g -O2 -Wall" \
- ./configure \
+if [ -z "${CFLAGS}" ]; then
+   CFLAGS="-g -O2 -Wall"
+   export CFLAGS
+fi
+
+./configure \
     --sbindir=${1}/bin \
     --libdir=${1}/bin \
     --sysconfdir=${1}/bin \
