@@ -1445,6 +1445,109 @@ Need:
   VolSessionId and VolSessionTime.
 =========================================================  
 
+=========================================================
+        Preliminary design of Deletion of disk volumes
+
+tem  5: Deletion of disk Volumes when pruned
+  Date:  Nov 25, 2005
+  Origin: Ross Boylan <RossBoylan at stanfordalumni dot org> (edited
+          by Kern)
+  Status:
+
+   What: Provide a way for Bacula to automatically remove Volumes
+          from the filesystem, or optionally to truncate them.
+          Obviously, the Volume must be pruned prior removal.
+
+  Why:   This would allow users more control over their Volumes and
+          prevent disk based volumes from consuming too much space.
+
+  Notes: The following two directives might do the trick:
+
+          Volume Data Retention = <time period>
+          Remove Volume After = <time period>
+
+          The migration project should also remove a Volume that is
+          migrated. This might also work for tape Volumes.
+
+  Notes: (Kern). The data fields to control this have been added
+          to the new 3.0.0 database table structure.
+
+As noted above, in version 3.0.0, we added a new Media column
+named ActionOnPurge, which is a TINYINT (smallint in PostgreSQL).
+The purpose of this field is to have a flag set with each Volume
+that determines certain actions that will be performed when a 
+Volume is being marked Purged (i.e. when there are no longer any
+Job records pointing to that Volume).  
+
+We have envisioned that ActionOnPurge could take on the following
+values (some are exclusive and others inclusive):
+
+  Flag Value                 Comments
+   Delete                    Delete the Volume from the catalog and disk
+                                What delete means for a tape is unclear.
+   Truncate                  Truncate the Volume
+   Erase                     Erase the Volume (overwrite data) could be
+                                very time consuming. Erase could be specified
+                                with either Truncate or Delete.
+
+Implementation details:
+- ActionOnPurge is probably a bit mask.
+- There needs to be a new Directive in the Pool resource that allows
+  setting of this flag.
+- The flag must be passed to the SD along with the current Volume information.
+- There needs to be a new command sent from the Director to the SD
+  that indicates that a Purge was done, the Volume name, and that it
+  should be handled.
+- For security reasons the SD must very carefully check that it actually
+  can find the correct volume. This means, it must mount it, read the label
+  or already have done so, and verify that the Volume is really there.
+  Then the SD can perform the requested function (delete or truncate).
+- Doing an Erase could be implemented later.
+- In the above Feature Request, the proposed Volume Data Retention 
+  directive is already implemented with Volume Retention Interval.
+- In the above Feature Request, the proposed Remove Volume After is
+  a bit problematic as it means that some action must occur some time
+  later, and currently Bacula has no mechanism to handle such events.
+  This will probably be considered as a feature to be added later
+  if there is sufficient demand. 
+
+=========================================================
+
+Item  1: Ability to restart failed jobs
+   Date: 26 April 2009
+ Origin: Kern/Eric
+ Status:
+
+  What:  Often jobs fail because of a communications line drop or max run time,
+          cancel, or some other non-critical problem.  Currrently any data
+          saved is lost.  This implementation should modify the Storage daemon
+          so that it saves all the files that it knows are completely backed
+          up to the Volume
+
+          The jobs should then be marked as incomplete and a subsequent
+          Incremental Accurate backup will then take into account all the
+          previously saved job.
+
+  Why:   Avoids backuping data already saved.
+
+  Notes: Requires Accurate to restart correctly.  Must completed have a minimum
+          volume of data or files stored on Volume before enabling.
+
+ Implementation notes:
+ - Must define new I job termination code for incomplete Jobs -- Done
+ - In the SD must track the position of the attributes being spooled
+   when data is actually written to the Volume -- Done
+ - In the SD, truncate the attributes to the last valid file written
+   to the Volume
+ - The Dir must past restart flag to SD -- Done
+ - If restart flag is sent in SD, and Job fails, must truncate attribute
+   file and send it to Dir marking the job as I (incomplete).
+ - In Dir when a Job is restarted, if there is an Incomplete job, must
+   send Accurate information to FD.
+ - In FD must use accurate information
+ - If Incomplete job finishes, must mark it T.
+
+
 ====
    Handling removable disks
 
