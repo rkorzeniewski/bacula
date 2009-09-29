@@ -2,6 +2,12 @@
           
 General:
 
+29Sep08
+ebl  Remove the inx4 index for SQLite2/3 (FilenameId, PathId) on
+     File table. 
+     It is useless for common usage, and causes performance issues.
+     This index fragments over the time and the update cost grows
+     very quickly. (This index is not present on Mysql schema)
 26Sep08
 kes  Remove gnome-console
 kes  Implement store_size32 and store_size64
