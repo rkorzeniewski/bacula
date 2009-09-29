@@ -79,7 +79,7 @@ fi
 
 # build/po is included 2 times with a different exclude file
 # we shouldn't see scripts and bin
-nb=`grep -e 'build/po/fr.po$' $tmp/log3.out | wc -l`
+nb=`egrep -c 'build/po/fr.po$' $tmp/log3.out`
 if [ $nb != 2 ]; then
     print_debug "ERROR: Should see fr.po two times"
     bstat=2
