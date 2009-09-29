@@ -29,6 +29,13 @@ CREATE INDEX jobhisto_idx ON JobHisto ( starttime );
 UPDATE Version SET VersionId=11;
 COMMIT;
 
+BEGIN;
+-- Replace the broken file_fp_idx by a better one
+DROP INDEX file_fp_idx;
+CREATE INDEX file_jpfid_idx on file (jobid, pathid, filenameid);
+ANALYSE;
+COMMIT;
+
 -- If you have already this table, you can remove it with:
 -- DROP TABLE JobHistory;
 
