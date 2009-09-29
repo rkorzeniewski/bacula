@@ -224,8 +224,4 @@ CREATE TABLE JobHisto (
    );
 CREATE INDEX inx61 ON JobHisto (StartTime);
 
--- Replace the index on (FilenameId, PathId) by (JobId, PathId, FilenameId);
-DROP INDEX inx4;
-CREATE INDEX file_jpf_idx ON File (JobId, PathId, FilenameId);
-
 END-OF-DATA
