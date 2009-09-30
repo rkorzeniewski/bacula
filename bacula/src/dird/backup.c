@@ -152,7 +152,11 @@ static int accurate_list_handler(void *ctx, int num_fields, char **row)
    }
 
    /* sending with checksum */
-   if (num_fields == 6 && row[5][0] && row[5][1]) { /* skip checksum = '0' */
+   if (jcr->use_accurate_chksum 
+       && num_fields == 6 
+       && row[5][0] /* skip checksum = '0' */
+       && row[5][1])
+   { 
       jcr->file_bsock->fsend("%s%s%c%s%c%s", 
                              row[0], row[1], 0, row[4], 0, row[5]); 
    } else {
@@ -160,6 +164,56 @@ static int accurate_list_handler(void *ctx, int num_fields, char **row)
                              row[0], row[1], 0, row[4]); 
    }
    return 0;
+}
+
+/* In this procedure, we check if the current fileset is using
+ * FileSet-> Include-> Options-> Accurate/Verify/BaseJob=checksum
+ */
+static bool is_checksum_needed_by_fileset(JCR *jcr)
+{
+   FILESET *f;
+   INCEXE *inc;
+   FOPTS *fopts;
+   bool in_block=false;
+   if (!jcr->job || !jcr->job->fileset) {
+      return false;
+   }
+
+   f = jcr->job->fileset;
+   
+   for (int i=0; i < f->num_includes; i++) {
+      inc = f->include_items[i];
+      
+      for (int j=0; j < inc->num_opts; j++) {
+         fopts = inc->opts_list[j];
+         
+         for (char *k=fopts->opts; *k ; k++) {
+            switch (*k) {
+            case 'V':           /* verify */
+               in_block = (jcr->get_JobType() == JT_VERIFY);
+               break;
+            case 'J':           /* Basejob */
+               in_block = (jcr->get_JobLevel() == L_FULL);
+               break;
+            case 'C':           /* Accurate */
+               in_block = (jcr->get_JobLevel() != L_FULL);
+               break;
+            case ':':
+               in_block = false;
+               break;
+            case '5':           /* MD5  */
+            case '1':           /* SHA1 */
+               if (in_block) {
+                  return true;
+               }
+               break;
+            default:
+               break;
+            }
+         }
+      }
+   }
+   return false;
 }
 
 /*
@@ -184,6 +238,9 @@ bool send_accurate_current_files(JCR *jcr)
    if (jcr->get_JobLevel() == L_BASE) {
       return true;
    }
+   
+   /* Don't send and store the checksum if fileset doesn't require it */
+   jcr->use_accurate_chksum = is_checksum_needed_by_fileset(jcr);
 
    if (jcr->get_JobLevel() == L_FULL) {
       /* On Full mode, if no previous base job, no accurate things */
