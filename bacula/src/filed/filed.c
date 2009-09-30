@@ -79,9 +79,10 @@ PROG_COPYRIGHT
 "Usage: bacula-fd [-f -s] [-c config_file] [-d debug_level]\n"
 "        -c <file>   use <file> as configuration file\n"
 "        -d <nn>     set debug level to <nn>\n"
-"        -dt         print timestamp in debug output\n"
+"        -dt         print a timestamp in debug output\n"
 "        -f          run in foreground (for debugging)\n"
 "        -g          groupid\n"
+"        -k          keep readall capabilities\n"
 "        -s          no signals (for debugging)\n"
 "        -t          test configuration file and exit\n"
 "        -u          userid\n"
@@ -105,6 +106,7 @@ int main (int argc, char *argv[])
 {
    int ch;
    bool test_config = false;
+   bool keep_readall_caps = false;
    char *uid = NULL;
    char *gid = NULL;
 #ifdef HAVE_PYTHON
@@ -121,7 +123,7 @@ int main (int argc, char *argv[])
    init_msg(NULL, NULL);
    daemon_start_time = time(NULL);
 
-   while ((ch = getopt(argc, argv, "c:d:fg:stu:v?")) != -1) {
+   while ((ch = getopt(argc, argv, "c:d:fg:kstu:v?")) != -1) {
       switch (ch) {
       case 'c':                    /* configuration file */
          if (configfile != NULL) {
@@ -147,6 +149,10 @@ int main (int argc, char *argv[])
 
       case 'g':                    /* set group */
          gid = optarg;
+         break;
+
+      case 'k':
+         keep_readall_caps = true;
          break;
 
       case 's':
@@ -183,6 +189,10 @@ int main (int argc, char *argv[])
    }
    if (argc) {
       usage();
+   }
+
+   if (!uid && keep_readall_caps) {
+      Emsg0(M_ERROR_TERM, 0, _("-k option has no meaning without -u option.\n"));
    }
 
    server_tid = pthread_self();
@@ -227,7 +237,7 @@ int main (int argc, char *argv[])
 
    load_fd_plugins(me->plugin_directory);
 
-   drop(uid, gid);
+   drop(uid, gid, keep_readall_caps);
 
 #ifdef BOMB
    me += 1000000;

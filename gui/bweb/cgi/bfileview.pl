@@ -370,6 +370,7 @@ sub fv_get_files_size
 sub fv_get_big_files
 {
     my ($jobid, $rep, $min, $limit) = @_;
+    $limit = int($limit);
 
     my $ret = $bweb->dbh_selectall_arrayref("
    SELECT FilenameId AS filenameid, Name AS name, size

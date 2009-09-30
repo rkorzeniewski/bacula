@@ -314,7 +314,6 @@ _Z15escape_filenamePKc
 _Z15read_state_filePcPKci
 _Z16write_state_filePcPKci
 _Z20make_unique_filenamePPciS_
-_Z4dropPcS_
 _Z5bfreePv
 _Z6bfgetsPciP6_iobuf
 _Z7bcallocyy
@@ -588,6 +587,9 @@ _Z9close_msgP3JCR
 _Z9get_tracev
 _Z9set_tracei
  
+; priv.o
+_Z4dropPcS_b
+
 ; pythonlib.o
 _Z21generate_daemon_eventP3JCRPKc
  

@@ -316,7 +316,7 @@ const char *uar_last_full =
    "INSERT INTO temp1 SELECT Job.JobId,JobTdate "
    "FROM Client,Job,JobMedia,Media,FileSet WHERE Client.ClientId=%s "
    "AND Job.ClientId=%s "
-   "AND Job.StartTime<'%s' "
+   "AND Job.StartTime < '%s' "
    "AND Level='F' AND JobStatus IN ('T','W') AND Type='B' "
    "AND JobMedia.JobId=Job.JobId "
    "AND Media.Enabled=1 "

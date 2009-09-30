@@ -653,8 +653,7 @@ int  m_msg(const char *file, int line, POOLMEM *&pool_buf, const char *fmt, ...)
 #endif
 
 
-#ifdef __alpha__
-#define OSF 1
+#ifdef HAVE_OSF1_OS
 #undef  ioctl_req_t
 #define ioctl_req_t int
 #endif

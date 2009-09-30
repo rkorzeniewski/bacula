@@ -103,54 +103,17 @@ rstat=0
 dstat=0
 zstat=0
 
-for i in tmp/log1[0-9].out; do
-    awk -F '|' '
- /list copies/ { ok=1; delete already }
- /^[|][ ]+[0-9]+/ {
-   if (ok) {
-      jobid=$2
-      copyid=$4
+perl -Mscripts::functions -e 'check_multiple_copies(3)' tmp/log11.out
+bstat=`expr $bstat + $?`
 
-      if (already[jobid]) {
-        print "ERROR: " jobid " " copyid " " already[jobid]
-      } else {
-        print "OK: " jobid " " copyid
-      }
+perl -Mscripts::functions -e 'check_multiple_copies(3)' tmp/log12.out
+bstat=`expr $bstat + $?`
 
-      already[jobid]=copyid
-   }
-}' $i > $i.result
-done
+perl -Mscripts::functions -e 'check_multiple_copies(2)' tmp/log13.out
+bstat=`expr $bstat + $?`
 
-grep ERROR tmp/log*result
-if [ $? -eq 0 ]; then
-    print_debug "Found multiple copies"
-    bstat=2
-fi
-
-n=`wc -l tmp/log11.out.result | awk '{ print $1 }'`
-if [ $n -ne 3 ]; then
-    print_debug "log11: Bad copies number"
-    bstat=3
-fi
-
-n=`wc -l tmp/log12.out.result| awk '{ print $1 }'`
-if [ $n -ne 3 ]; then
-    print_debug "log12: Bad copies number"
-    bstat=3
-fi
-
-n=`wc -l tmp/log13.out.result| awk '{ print $1 }'`
-if [ $n -ne 2 ]; then
-    print_debug "log13: Bad copies number"
-    bstat=3
-fi
-
-n=`wc -l tmp/log14.out.result| awk '{ print $1 }'`
-if [ $n -ne 2 ]; then
-    print_debug "log14: Bad copies number"
-    bstat=3
-fi
+perl -Mscripts::functions -e 'check_multiple_copies(2)' tmp/log14.out
+bstat=`expr $bstat + $?`
 
 check_two_logs
 end_test

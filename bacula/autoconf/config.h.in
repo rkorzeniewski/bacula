@@ -465,6 +465,9 @@
 /* LGETXATTR support */
 #undef HAVE_LGETXATTR
 
+/* Define if you have libcap */
+#undef HAVE_LIBCAP
+
 /* Define to 1 if you have the <libc.h> header file. */
 #undef HAVE_LIBC_H
 
@@ -564,6 +567,9 @@
 /* Define if your printf() function supports format strings with positions. */
 #undef HAVE_POSIX_PRINTF
 
+/* Define to 1 if you have the `prctl' function. */
+#undef HAVE_PRCTL
+
 /* Define to 1 if you have the `putenv' function. */
 #undef HAVE_PUTENV
 
@@ -599,6 +605,9 @@
 
 /* Define to 1 if you have the `setpgrp' function. */
 #undef HAVE_SETPGRP
+
+/* Define to 1 if you have the `setreuid' function. */
+#undef HAVE_SETREUID
 
 /* Define to 1 if you have the `setsid' function. */
 #undef HAVE_SETSID
@@ -703,6 +712,9 @@
 /* Define to 1 if you have the <sys/byteorder.h> header file. */
 #undef HAVE_SYS_BYTEORDER_H
 
+/* Define to 1 if you have the <sys/capability.h> header file. */
+#undef HAVE_SYS_CAPABILITY_H
+
 /* Define to 1 if you have the <sys/dir.h> header file, and it defines `DIR'.
    */
 #undef HAVE_SYS_DIR_H
@@ -722,6 +734,9 @@
 
 /* Define to 1 if you have the <sys/param.h> header file. */
 #undef HAVE_SYS_PARAM_H
+
+/* Define to 1 if you have the <sys/prctl.h> header file. */
+#undef HAVE_SYS_PRCTL_H
 
 /* Define to 1 if you have the <sys/select.h> header file. */
 #undef HAVE_SYS_SELECT_H
