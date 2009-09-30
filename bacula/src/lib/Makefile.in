@@ -15,6 +15,7 @@ topdir = ../..
 thisdir = src/lib
 
 DEBUG=@DEBUG@
+CAP_LIBS = @CAP_LIBS@
 
 first_rule: all
 dummy:
@@ -45,7 +46,7 @@ LIBBAC_SRCS = attr.c base64.c berrno.c bsys.c bget_msg.c \
 	      cram-md5.c crc32.c crypto.c daemon.c edit.c fnmatch.c \
 	      guid_to_name.c hmac.c jcr.c lex.c alist.c dlist.c \
 	      md5.c message.c mem_pool.c openssl.c \
-	      plugins.c queue.c bregex.c \
+	      plugins.c priv.c queue.c bregex.c \
 	      rwlock.c scan.c serial.c sha1.c \
 	      signal.c smartall.c rblist.c tls.c tree.c \
 	      util.c var.c watchdog.c workq.c btimers.c \
@@ -116,7 +117,7 @@ libbac.a: $(LIBBAC_OBJS)
 
 libbac.la: Makefile $(LIBBAC_OBJS)
 	@echo "Making $@ ..."
-	$(LIBTOOL_LINK) $(CXX) $(DEFS) $(DEBUG) $(LDFLAGS) -o $@ $(LIBBAC_OBJS) -export-dynamic -rpath $(libdir) -version-info $(LIBBAC_LT_CURRENT):$(LIBBAC_LT_REVISION):$(LIBBAC_LT_AGE) $(WRAPLIBS)
+	$(LIBTOOL_LINK) $(CXX) $(DEFS) $(DEBUG) $(LDFLAGS) -o $@ $(LIBBAC_OBJS) -export-dynamic -rpath $(libdir) -version-info $(LIBBAC_LT_CURRENT):$(LIBBAC_LT_REVISION):$(LIBBAC_LT_AGE) $(WRAPLIBS) $(CAP_LIBS)
 
 libbaccfg.a: $(LIBBACCFG_OBJS) 
 	@echo "Making $@ ..."
@@ -143,35 +144,35 @@ Makefile: $(srcdir)/Makefile.in $(topdir)/config.status
 lockmgr_test: Makefile
 	rm -f lockmgr.o
 	$(CXX) -D _TEST_IT $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE)  $(CFLAGS) lockmgr.c
-	$(LIBTOOL_LINK) $(CXX) $(LDFLAGS) -L. -o $@ lockmgr.o $(LIBS) $(DLIB) -lbac $(OPENSSL_LIBS) -lm
+	$(LIBTOOL_LINK) $(CXX) $(LDFLAGS) -L. -o $@ lockmgr.o $(DLIB) -lbac -lm $(LIBS) $(OPENSSL_LIBS)
 	rm -f lockmgr.o
 	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) lockmgr.c
 
 rwlock_test: Makefile
 	rm -f rwlock.o
 	$(CXX) -DTEST_RWLOCK $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE)  $(CFLAGS) rwlock.c
-	$(LIBTOOL_LINK) $(CXX) $(LDFLAGS) -L. -o $@ rwlock.o $(LIBS) $(DLIB) -lbac $(OPENSSL_LIBS) -lm
+	$(LIBTOOL_LINK) $(CXX) $(LDFLAGS) -L. -o $@ rwlock.o $(DLIB) -lbac -lm $(LIBS) $(OPENSSL_LIBS)
 	rm -f rwlock.o
 	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) rwlock.c
 
 md5sum: Makefile md5.o	 
 	rm -f md5.o
 	$(CXX) -DMD5_SUM $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE)  $(CFLAGS) md5.c
-	$(LIBTOOL_LINK) $(CXX) $(LDFLAGS) -L. -o $@ md5.o $(LIBS) $(DLIB) -lbac $(OPENSSL_LIBS) -lm
+	$(LIBTOOL_LINK) $(CXX) $(LDFLAGS) -L. -o $@ md5.o $(DLIB) -lbac -lm $(LIBS) $(OPENSSL_LIBS)
 	rm -f md5.o
 	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) md5.c
 
 sha1sum: Makefile sha1.o
 	rm -f sha1.o
 	$(CXX) -DSHA1_SUM $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE)	$(CFLAGS) sha1.c
-	$(LIBTOOL_LINK) $(CXX) $(LDFLAGS) -L. -o $@ sha1.o $(LIBS) $(DLIB) -lbac $(OPENSSL_LIBS) -lm
+	$(LIBTOOL_LINK) $(CXX) $(LDFLAGS) -L. -o $@ sha1.o $(DLIB) -lbac -lm $(LIBS) $(OPENSSL_LIBS)
 	rm -f sha1.o
 	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) sha1.c
 
 bsnprintf: Makefile bsnprintf.o
 	rm -f bsnprintf.o
 	$(CXX) -DTEST_PROGRAM $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE)  $(CFLAGS) bsnprintf.c
-	$(LIBTOOL_LINK) $(CXX) $(LDFLAGS) -L. -o $@ bsnprintf.o $(LIBS) $(DLIB) -lbac $(OPENSSL_LIBS) -lm
+	$(LIBTOOL_LINK) $(CXX) $(LDFLAGS) -L. -o $@ bsnprintf.o $(DLIB) -lbac -lm $(LIBS) $(OPENSSL_LIBS)
 	rm -f bsnprintf.o
 	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) bsnprintf.c
 

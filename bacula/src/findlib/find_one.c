@@ -558,24 +558,6 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt,
       bool volhas_attrlist = ff_pkt->volhas_attrlist;    /* Remember this if we recurse */
 
       /*
-       * If we are using Win32 (non-portable) backup API, don't check
-       *  access as everything is more complicated, and
-       *  in principle, we should be able to access everything.
-       */
-      if (!have_win32_api() || (ff_pkt->flags & FO_PORTABLE)) {
-         if (access(fname, R_OK) == -1 && geteuid() != 0) {
-            /* Could not access() directory */
-            ff_pkt->type = FT_NOACCESS;
-            ff_pkt->ff_errno = errno;
-            rtn_stat = handle_file(jcr, ff_pkt, top_level);
-            if (ff_pkt->linked) {
-               ff_pkt->linked->FileIndex = ff_pkt->FileIndex;
-            }
-            return rtn_stat;
-         }
-      }
-
-      /*
        * Ignore this directory and everything below if the file .nobackup
        * (or what is defined for IgnoreDir in this fileset) exists
        */

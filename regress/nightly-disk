@@ -10,6 +10,13 @@ REGRESS_DEBUG=1
 export REGRESS_DEBUG
 rm -rf Testing
 git pull
+#
+# Temp switch to branch 3.0.3
+#
+git checkout `git branch -r | grep "3\.0\.3" | line`
+if [ $? -ne 0 ]; then
+   git checkout master
+fi
 make distclean
 scripts/config_dart
 make setup
@@ -27,5 +34,7 @@ while [ $i -le 5 ]; do
    rtn=$?
    i=`expr $i + 1`
 done
+# Switch back to master
+git checkout master
 REGRESS_DEBUG=${save_debug}
 echo "End nightly-disk `date`"

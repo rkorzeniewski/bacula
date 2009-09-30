@@ -126,7 +126,7 @@ bool restore_finderinfo(JCR *jcr, POOLMEM *buf, int32_t buflen)
    Dmsg0(130, "Restoring Finder Info\n");
    jcr->ff->flags |= FO_HFSPLUS;
    if (buflen != 32) {
-      Jmsg(jcr, M_ERROR, 0, _("Invalid length of Finder Info (got %d, not 32)\n"), sd->msglen);
+      Jmsg(jcr, M_ERROR, 0, _("Invalid length of Finder Info (got %d, not 32)\n"), buflen);
       return false;
    }
 
@@ -1084,7 +1084,7 @@ bool decompress_data(JCR *jcr, char **data, uint32_t *length)
       /*
        * The buffer size is too small, try with a bigger one
        */
-      compress_len = jcr->compress_buf_size = jcr->compress_buf_size + jcr->compress_buf_size >> 1;
+      compress_len = jcr->compress_buf_size = jcr->compress_buf_size + (jcr->compress_buf_size >> 1);
       Dmsg2(200, "Comp_len=%d msglen=%d\n", compress_len, *length);
       jcr->compress_buf = check_pool_memory_size(jcr->compress_buf,
                                                  compress_len);

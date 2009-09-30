@@ -8,7 +8,7 @@ if test xsqlite = x@DB_TYPE@ -o xsqlite3 = x@DB_TYPE@ ; then
   echo "Dropped SQLite tables"
 else
   if test xmysql = x@DB_TYPE@ ; then 
-    echo "Making MySQL tables"
+    echo "Dropping MySQL tables"
     @scriptdir@/drop_mysql_tables $*
     echo "Dropped MySQL tables"
   else

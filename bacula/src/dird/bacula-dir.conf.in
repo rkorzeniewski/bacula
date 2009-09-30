@@ -32,7 +32,7 @@ JobDefs {
   Schedule = "WeeklyCycle"
   Storage = File
   Messages = Standard
-  Pool = Default
+  Pool = File
   Priority = 10
 }
 
@@ -279,9 +279,6 @@ Messages {
   append = "@working_dir@/log" = all, !skipped
 }
 
-
-
-    
 # Default pool definition
 Pool {
   Name = Default
@@ -290,6 +287,18 @@ Pool {
   AutoPrune = yes                     # Prune expired volumes
   Volume Retention = 365 days         # one year
 }
+
+# File Pool definition
+Pool {
+  Name = File
+  Pool Type = Backup
+  Recycle = yes                       # Bacula can automatically recycle Volumes
+  AutoPrune = yes                     # Prune expired volumes
+  Volume Retention = 365 days         # one year
+  Maximum Volume Bytes = 50G          # Limit Volume size to something reasonable
+  Maximum Volumes = 100               # Limit number of Volumes in Pool
+}
+
 
 # Scratch pool definition
 Pool {

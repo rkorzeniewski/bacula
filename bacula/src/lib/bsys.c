@@ -36,16 +36,6 @@
  */
 
 #include "bacula.h"
-#ifdef HAVE_PWD_H
-#include <pwd.h>
-#endif
-#ifdef HAVE_GRP_H
-#include <grp.h>
-#endif
-
-#ifdef HAVE_AIX_OS
-extern "C" int initgroups(const char *,int);
-#endif
 
 
 static pthread_mutex_t timer_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -581,75 +571,6 @@ bail_out:
       unlink(fname);
    }
    free_pool_memory(fname);
-}
-
-
-/*
- * Drop to privilege new userid and new gid if non-NULL
- */
-void drop(char *uname, char *gname)
-{
-#if   defined(HAVE_PWD_H) && defined(HAVE_GRP_H)
-   struct passwd *passw = NULL;
-   struct group *group = NULL;
-   gid_t gid;
-   uid_t uid;
-   char username[1000];         
-
-   Dmsg2(900, "uname=%s gname=%s\n", uname?uname:"NONE", gname?gname:"NONE");
-   if (!uname && !gname) {
-      return;                            /* Nothing to do */
-   }
-
-   if (uname) {
-      if ((passw = getpwnam(uname)) == NULL) {
-         berrno be;
-         Emsg2(M_ERROR_TERM, 0, _("Could not find userid=%s: ERR=%s\n"), uname,
-            be.bstrerror());
-      }
-   } else {
-      if ((passw = getpwuid(getuid())) == NULL) {
-         berrno be;
-         Emsg1(M_ERROR_TERM, 0, _("Could not find password entry. ERR=%s\n"),
-            be.bstrerror());
-      } else {
-         uname = passw->pw_name;
-      }
-   }
-   /* Any OS uname pointer may get overwritten, so save name, uid, and gid */
-   bstrncpy(username, uname, sizeof(username));
-   uid = passw->pw_uid;
-   gid = passw->pw_gid;
-   if (gname) {
-      if ((group = getgrnam(gname)) == NULL) {
-         berrno be;
-         Emsg2(M_ERROR_TERM, 0, _("Could not find group=%s: ERR=%s\n"), gname,
-            be.bstrerror());
-      }
-      gid = group->gr_gid;
-   }
-   if (initgroups(username, gid)) {
-      berrno be;
-      if (gname) {
-         Emsg3(M_ERROR_TERM, 0, _("Could not initgroups for group=%s, userid=%s: ERR=%s\n"),         
-            gname, username, be.bstrerror());
-      } else {
-         Emsg2(M_ERROR_TERM, 0, _("Could not initgroups for userid=%s: ERR=%s\n"),         
-            username, be.bstrerror());
-      }
-   }
-   if (gname) {
-      if (setgid(gid)) {
-         berrno be;
-         Emsg2(M_ERROR_TERM, 0, _("Could not set group=%s: ERR=%s\n"), gname,
-            be.bstrerror());
-      }
-   }
-   if (setuid(uid)) {
-      berrno be;
-      Emsg1(M_ERROR_TERM, 0, _("Could not set specified userid: %s\n"), username);
-   }
-#endif
 }
 
 

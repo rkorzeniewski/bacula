@@ -261,7 +261,7 @@ int main (int argc, char *argv[])
 
    load_sd_plugins(me->plugin_directory);
 
-   drop(uid, gid);
+   drop(uid, gid, false);
 
    cleanup_old_files();
 

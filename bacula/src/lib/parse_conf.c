@@ -206,11 +206,12 @@ static void init_resource(CONFIG *config, int type, RES_ITEM *items, int pass)
          } else if (items[i].handler == store_bool) {
             *(bool *)(items[i].value) = items[i].default_value != 0;
          } else if (items[i].handler == store_pint32 ||
-                    items[i].handler == store_int32) {
+                    items[i].handler == store_int32 ||
+                    items[i].handler == store_size32) {
             *(uint32_t *)(items[i].value) = items[i].default_value;
          } else if (items[i].handler == store_int64) {
             *(int64_t *)(items[i].value) = items[i].default_value;
-         } else if (items[i].handler == store_size) {
+         } else if (items[i].handler == store_size64) {
             *(uint64_t *)(items[i].value) = (uint64_t)items[i].default_value;
          } else if (items[i].handler == store_time) {
             *(utime_t *)(items[i].value) = (utime_t)items[i].default_value;
@@ -627,7 +628,7 @@ void store_int64(LEX *lc, RES_ITEM *item, int index, int pass)
 }
 
 /* Store a size in bytes */
-void store_size(LEX *lc, RES_ITEM *item, int index, int pass)
+static void store_size(LEX *lc, RES_ITEM *item, int index, int pass, bool size32)
 {
    int token;
    uint64_t uvalue;
@@ -656,7 +657,11 @@ void store_size(LEX *lc, RES_ITEM *item, int index, int pass)
          scan_err1(lc, _("expected a size number, got: %s"), lc->str);
          return;
       }
-      *(uint64_t *)(item->value) = uvalue;
+      if (size32) {
+         *(uint32_t *)(item->value) = (uint32_t)uvalue;
+      } else {
+         *(uint64_t *)(item->value) = uvalue;
+      }
       break;
    default:
       scan_err1(lc, _("expected a size, got: %s"), lc->str);
@@ -667,6 +672,18 @@ void store_size(LEX *lc, RES_ITEM *item, int index, int pass)
    }
    set_bit(index, res_all.hdr.item_present);
    Dmsg0(900, "Leave store_size\n");
+}
+
+/* Store a size in bytes */
+void store_size32(LEX *lc, RES_ITEM *item, int index, int pass)
+{
+   store_size(lc, item, index, pass, true /* 32 bit */);
+}
+
+/* Store a size in bytes */
+void store_size64(LEX *lc, RES_ITEM *item, int index, int pass)
+{
+   store_size(lc, item, index, pass, false /* not 32 bit */);
 }
 
 
