@@ -887,9 +887,9 @@ static bool action_on_purge_cmd(JCR *jcr)
    int drive;
    int action;
 
-   if (sscanf(dir->msg, "action_on_purge_cmd %127s vol=%s action=%d",
+   if (sscanf(dir->msg, "action_on_purge %127s vol=%s action=%d",
               devname.c_str(), volumename.c_str(), &action) != 3) {
-      dir->fsend(_("3916 Error scanning action_on_purge_cmd command\n"));
+      dir->fsend(_("3916 Error scanning action_on_purge command\n"));
       goto done;
    }
 
