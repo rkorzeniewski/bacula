@@ -169,7 +169,6 @@ init_dev(JCR *jcr, DEVRES *device)
    dev->max_spool_size = device->max_spool_size;
    dev->drive_index = device->drive_index;
    dev->autoselect = device->autoselect;
-   dev->truncate_on_purge = device->truncate_on_purge;
    dev->dev_type = device->dev_type;
    dev->init_backend();
    if (dev->is_tape()) { /* No parts on tapes */

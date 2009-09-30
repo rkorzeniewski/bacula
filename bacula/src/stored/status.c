@@ -372,9 +372,6 @@ static void send_device_status(DEVICE *dev, STATUS_PKT *sp)
    len = Mmsg(msg, _("Device parameters:\n"));
    sendit(msg, len, sp);
 
-   len = Mmsg(msg, _("truncate on purge: %d\n"), dev->device->truncate_on_purge);
-   sendit(msg, len, sp);
-
    len = Mmsg(msg, _("Archive name: %s Device name: %s\n"), dev->archive_name(),
       dev->name());
    sendit(msg, len, sp);

@@ -142,7 +142,6 @@ static RES_ITEM dev_items[] = {
    {"offlineonunmount",      store_bit,  ITEM(res_dev.cap_bits), CAP_OFFLINEUNMOUNT, ITEM_DEFAULT, 0},
    {"blockchecksum",         store_bit,  ITEM(res_dev.cap_bits), CAP_BLOCKCHECKSUM, ITEM_DEFAULT, 1},
    {"autoselect",            store_bool, ITEM(res_dev.autoselect), 1, ITEM_DEFAULT, 1},
-   {"truncateonpurge",       store_bool, ITEM(res_dev.truncate_on_purge), 1, ITEM_DEFAULT, 0},
    {"changerdevice",         store_strname,ITEM(res_dev.changer_name), 0, 0, 0},
    {"changercommand",        store_strname,ITEM(res_dev.changer_command), 0, 0, 0},
    {"alertcommand",          store_strname,ITEM(res_dev.alert_command), 0, 0, 0},
