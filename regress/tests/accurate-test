@@ -166,6 +166,7 @@ p Check with bls
 $bin/bls -c $conf/bacula-sd.conf -V 'TestVolume001' FileStorage > $tmp/bls.out
 grep -- '----' $tmp/bls.out | grep xxx > /dev/null
 if [ $? != 0 ] ; then
+    print_debug "ERROR: Should find deleted files into $tmp/bls.out"
     bstat=2
 fi
 
@@ -412,13 +413,13 @@ run_bconsole
 
 grep yyy ${cwd}/tmp/log3.out > /dev/null
 if [ $? != 0 ] ; then
-    print_debug "Can't find yyy file into 'list files' output (${cwd}/tmp/log3.out)"
+    print_debug "ERROR: Can't find yyy file into 'list files' output (${cwd}/tmp/log3.out)"
     dstat=2
 fi
 
-if grep zzz ${cwd}/tmp/log3.out > /dev/null
-then
-    print_debug "Can't find zzz file into 'list files' output (${cwd}/tmp/log3.out)"
+grep zzz ${cwd}/tmp/log3.out > /dev/null
+if [ $? = 0 ] ; then
+    print_debug "ERROR: Should not find zzz file into 'list files' output (${cwd}/tmp/log3.out)"
     dstat=2
 fi
 
