@@ -127,7 +127,6 @@ public:
    uint32_t dev_type;                 /* device type */
    uint32_t label_type;               /* label type */
    bool autoselect;                   /* Automatically select from AutoChanger */
-   bool truncate_on_purge;            /* Truncate this volume when it gets purged? */
    uint32_t drive_index;              /* Autochanger drive index */
    uint32_t cap_bits;                 /* Capabilities of this device */
    utime_t max_changer_wait;          /* Changer timeout */
