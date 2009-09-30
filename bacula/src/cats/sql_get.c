@@ -952,7 +952,7 @@ bool db_get_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
          "MaxVolFiles,Recycle,Slot,FirstWritten,LastWritten,InChanger,"
          "EndFile,EndBlock,VolParts,LabelType,LabelDate,StorageId,"
          "Enabled,LocationId,RecycleCount,InitialWrite,"
-         "ScratchPoolId,RecyclePoolId,VolReadTime,VolWriteTime "
+         "ScratchPoolId,RecyclePoolId,VolReadTime,VolWriteTime,ActionOnPurge "
          "FROM Media WHERE MediaId=%s", 
          edit_int64(mr->MediaId, ed1));
    } else {                           /* find by name */
@@ -962,7 +962,7 @@ bool db_get_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
          "MaxVolFiles,Recycle,Slot,FirstWritten,LastWritten,InChanger,"
          "EndFile,EndBlock,VolParts,LabelType,LabelDate,StorageId,"
          "Enabled,LocationId,RecycleCount,InitialWrite,"
-         "ScratchPoolId,RecyclePoolId,VolReadTime,VolWriteTime "
+         "ScratchPoolId,RecyclePoolId,VolReadTime,VolWriteTime,ActionOnPurge "
          "FROM Media WHERE VolumeName='%s'", mr->VolumeName);
    }
 
@@ -1020,6 +1020,7 @@ bool db_get_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
             mr->RecyclePoolId = str_to_int64(row[34]);
             mr->VolReadTime = str_to_int64(row[35]);
             mr->VolWriteTime = str_to_int64(row[36]);
+            mr->ActionOnPurge = str_to_int32(row[37]);
             
             ok = true;
          }

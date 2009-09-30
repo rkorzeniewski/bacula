@@ -599,7 +599,10 @@ bool mark_media_purged(UAContext *ua, MEDIA_DBR *mr)
             sd->signal(BNET_TERMINATE);
             sd->close();
             ua->jcr->store_bsock = NULL;
-         }
+         } else {
+            ua->error_msg(_("Could not connect to storage daemon"));
+	    return false;
+	 }
       }
 
       pm_strcpy(jcr->VolumeName, mr->VolumeName);
