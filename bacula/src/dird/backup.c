@@ -166,7 +166,7 @@ static int accurate_list_handler(void *ctx, int num_fields, char **row)
    return 0;
 }
 
-/* In this procedure, we check if the current fileset is using
+/* In this procedure, we check if the current fileset is using checksum
  * FileSet-> Include-> Options-> Accurate/Verify/BaseJob=checksum
  */
 static bool is_checksum_needed_by_fileset(JCR *jcr)
@@ -181,29 +181,30 @@ static bool is_checksum_needed_by_fileset(JCR *jcr)
 
    f = jcr->job->fileset;
    
-   for (int i=0; i < f->num_includes; i++) {
+   for (int i=0; i < f->num_includes; i++) { /* Parse all Include {} */
       inc = f->include_items[i];
       
-      for (int j=0; j < inc->num_opts; j++) {
+      for (int j=0; j < inc->num_opts; j++) { /* Parse all Options {} */
          fopts = inc->opts_list[j];
          
-         for (char *k=fopts->opts; *k ; k++) {
+         for (char *k=fopts->opts; *k ; k++) { /* Try to find one request */
             switch (*k) {
             case 'V':           /* verify */
-               in_block = (jcr->get_JobType() == JT_VERIFY);
+               in_block = (jcr->get_JobType() == JT_VERIFY); /* not used now */
                break;
-            case 'J':           /* Basejob */
+            case 'J':           /* Basejob keyword */
                in_block = (jcr->get_JobLevel() == L_FULL);
                break;
-            case 'C':           /* Accurate */
+            case 'C':           /* Accurate keyword */
                in_block = (jcr->get_JobLevel() != L_FULL);
                break;
-            case ':':
+            case ':':           /* End of keyword */
                in_block = false;
                break;
             case '5':           /* MD5  */
             case '1':           /* SHA1 */
                if (in_block) {
+                  Dmsg0(50, "Checksum will be sent to FD\n");
                   return true;
                }
                break;
