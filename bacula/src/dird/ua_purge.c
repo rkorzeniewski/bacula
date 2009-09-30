@@ -583,18 +583,23 @@ bool mark_media_purged(UAContext *ua, MEDIA_DBR *mr)
          return false;
       }
 
-      /* Send the command to truncate the volume after purge. If this feature
-       * is disabled for the specific device, this will be a no-op. */
-      BSOCK *sd;
-      if ((sd=open_sd_bsock(ua)) != NULL) {
-         sd->fsend("truncate_on_purge %s vol=%s", ua->jcr->wstore->dev_name(), mr->VolumeName);
+      if (mr->ActionOnPurge > 0) {
+         /* Send the command to truncate the volume after purge. If this feature
+          * is disabled for the specific device, this will be a no-op. */
+         BSOCK *sd;
+         if ((sd=open_sd_bsock(ua)) != NULL) {
+            sd->fsend("action_on_purge %s vol=%s action=%d",
+                      ua->jcr->wstore->dev_name(),
+		      mr->VolumeName,
+		      mr->ActionOnPurge);
 
-         while (sd->recv() >= 0)
-            ua->send_msg("%s", sd->msg);
+            while (sd->recv() >= 0)
+               ua->send_msg("%s", sd->msg);
 
-         sd->signal(BNET_TERMINATE);
-         sd->close();
-         ua->jcr->store_bsock = NULL;
+            sd->signal(BNET_TERMINATE);
+            sd->close();
+            ua->jcr->store_bsock = NULL;
+         }
       }
 
       pm_strcpy(jcr->VolumeName, mr->VolumeName);

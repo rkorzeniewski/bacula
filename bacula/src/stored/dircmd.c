@@ -83,7 +83,7 @@ static bool setdebug_cmd(JCR *jcr);
 static bool cancel_cmd(JCR *cjcr);
 static bool mount_cmd(JCR *jcr);
 static bool unmount_cmd(JCR *jcr);
-static bool truncate_on_purge_cmd(JCR *jcr);
+static bool action_on_purge_cmd(JCR *jcr);
 static bool bootstrap_cmd(JCR *jcr);
 static bool changer_cmd(JCR *sjcr);
 static bool do_label(JCR *jcr, int relabel);
@@ -119,7 +119,7 @@ static struct s_cmds cmds[] = {
    {"status",      status_cmd,      1},
    {".status",     qstatus_cmd,     1},
    {"unmount",     unmount_cmd,     0},
-   {"truncate_on_purge",	truncate_on_purge_cmd,	0},
+   {"action_on_purge",	action_on_purge_cmd,	0},
    {"use storage=", use_cmd,        0},
    {"run",         run_cmd,         0},
 // {"query",       query_cmd,       0},
@@ -877,7 +877,7 @@ static bool unmount_cmd(JCR *jcr)
  * for File Storage, of course.
  *
  */
-static bool truncate_on_purge_cmd(JCR *jcr)
+static bool action_on_purge_cmd(JCR *jcr)
 {
    POOL_MEM devname;
    POOL_MEM volumename;
@@ -885,9 +885,11 @@ static bool truncate_on_purge_cmd(JCR *jcr)
    DEVICE *dev;
    DCR *dcr;
    int drive;
+   int action;
 
-   if (sscanf(dir->msg, "truncate_on_purge %127s vol=%s", devname.c_str(), volumename.c_str()) != 2) {
-      dir->fsend(_("3916 Error scanning truncate_on_purge command\n"));
+   if (sscanf(dir->msg, "action_on_purge_cmd %127s vol=%s action=%d",
+              devname.c_str(), volumename.c_str(), &action) != 3) {
+      dir->fsend(_("3916 Error scanning action_on_purge_cmd command\n"));
       goto done;
    }
 
@@ -898,11 +900,6 @@ static bool truncate_on_purge_cmd(JCR *jcr)
    }
 
    dev = dcr->dev;
-
-   if (!dev->truncate_on_purge) {
-      dir->fsend(_("3919 Truncate on purge not enabled, skipping\n"));
-      goto done;
-   }
 
    /* Store the VolumeName for opening and re-labeling the volume */
    bstrncpy(dcr->VolumeName, volumename.c_str(), sizeof(dcr->VolumeName));
