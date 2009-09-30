@@ -231,6 +231,7 @@ void set_pool_dbr_defaults_in_media_dbr(MEDIA_DBR *mr, POOL_DBR *pr)
    mr->Recycle = pr->Recycle;
    mr->VolRetention = pr->VolRetention;
    mr->VolUseDuration = pr->VolUseDuration;
+   mr->ActionOnPurge = pr->ActionOnPurge;
    mr->RecyclePoolId = pr->RecyclePoolId;
    mr->MaxVolJobs = pr->MaxVolJobs;
    mr->MaxVolFiles = pr->MaxVolFiles;
@@ -571,6 +572,7 @@ void set_pooldbr_from_poolres(POOL_DBR *pr, POOL *pool, e_pool_op op)
    pr->MaxVolFiles = pool->MaxVolFiles;
    pr->MaxVolBytes = pool->MaxVolBytes;
    pr->AutoPrune = pool->AutoPrune;
+   pr->ActionOnPurge = pool->action_on_purge;
    pr->Recycle = pool->Recycle;
    if (pool->label_format) {
       bstrncpy(pr->LabelFormat, pool->label_format, sizeof(pr->LabelFormat));

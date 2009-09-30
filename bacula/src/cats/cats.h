@@ -901,6 +901,7 @@ struct POOL_DBR {
    int32_t AcceptAnyVolume;           /* set to accept any volume sequence */
    int32_t AutoPrune;                 /* set to prune automatically */
    int32_t Recycle;                   /* default Vol recycle flag */
+   uint32_t ActionOnPurge;            /* action on purge, e.g. truncate the disk volume */
    utime_t  VolRetention;             /* retention period in seconds */
    utime_t  VolUseDuration;           /* time in secs volume can be used */
    uint32_t MaxVolJobs;               /* Max Jobs on Volume */
@@ -976,6 +977,7 @@ struct MEDIA_DBR {
    uint64_t VolWriteTime;             /* time spent writing volume */
    utime_t  VolRetention;             /* Volume retention in seconds */
    utime_t  VolUseDuration;           /* time in secs volume can be used */
+   uint32_t ActionOnPurge;            /* action on purge, e.g. truncate the disk volume */
    uint32_t MaxVolJobs;               /* Max Jobs on Volume */
    uint32_t MaxVolFiles;              /* Max files on Volume */
    int32_t  Recycle;                  /* recycle yes/no */

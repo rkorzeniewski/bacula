@@ -471,7 +471,18 @@ static void update_volenabled(UAContext *ua, char *val, MEDIA_DBR *mr)
    }
 }
 
+static void update_vol_actiononpurge(UAContext *ua, char *val, MEDIA_DBR *mr)
+{
+	if (strcasecmp(val, "truncate") == 0)
+		mr->ActionOnPurge = AOP_TRUNCATE;
+	else mr->ActionOnPurge = 0;
 
+	if (!db_update_media_record(ua->jcr, ua->db, mr)) {
+		ua->error_msg(_("Error updating media record ActionOnPurge: ERR=%s"), db_strerror(ua->db));
+	} else {
+		ua->info_msg(_("New ActionOnPurge is: %d\n"), mr->ActionOnPurge);
+	}
+}
 
 /*
  * Update a media record -- allows you to change the
@@ -504,6 +515,7 @@ static int update_volume(UAContext *ua)
       NT_("AllFromPool"),              /* 11 !!! see below !!! */
       NT_("Enabled"),                  /* 12 */
       NT_("RecyclePool"),              /* 13 */
+      NT_("ActionOnPurge"),            /* 14 */
       NULL };
 
 #define AllFromPool 11               /* keep this updated with above */
@@ -566,6 +578,9 @@ static int update_volume(UAContext *ua)
          case 13:
             update_vol_recyclepool(ua, ua->argv[j], &mr);
             break;
+	 case 14:
+	    update_vol_actiononpurge(ua, ua->argv[j], &mr);
+	    break;
          }
          done = true;
       }
@@ -595,12 +610,13 @@ static int update_volume(UAContext *ua)
       add_prompt(ua, _("All Volumes from all Pools")); /* 13 */
       add_prompt(ua, _("Enabled")),                    /* 14 */
       add_prompt(ua, _("RecyclePool")),                /* 15 */
-      add_prompt(ua, _("Done"));                       /* 16 */
+      add_prompt(ua, _("Action On Purge")),            /* 16 */
+      add_prompt(ua, _("Done"));                       /* 17 */
       i = do_prompt(ua, "", _("Select parameter to modify"), NULL, 0);  
 
       /* For All Volumes, All Volumes from Pool, and Done, we don't need
            * a Volume record */
-      if ( i != 12 && i != 13 && i != 16) {
+      if ( i != 12 && i != 13 && i != 17) {
          if (!select_media_dbr(ua, &mr)) {  /* Get Volume record */
             return 0;
          }
@@ -790,6 +806,15 @@ static int update_volume(UAContext *ua)
          }
          update_vol_recyclepool(ua, pr.Name, &mr);
          return 1;
+
+      case 16:
+	 ua->info_msg(_("Current ActionOnPurge is: %d\n"), mr.ActionOnPurge);
+	 if (!get_cmd(ua, _("Enter new ActionOnPurge: (one of: Truncate, None) "))) {
+		 return 0;
+	 }
+
+         update_vol_actiononpurge(ua, ua->cmd, &mr);
+	 break;
 
       default:                        /* Done or error */
          ua->info_msg(_("Selection terminated.\n"));

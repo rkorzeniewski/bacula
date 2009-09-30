@@ -75,6 +75,7 @@ void store_level(LEX *lc, RES_ITEM *item, int index, int pass);
 void store_replace(LEX *lc, RES_ITEM *item, int index, int pass);
 void store_acl(LEX *lc, RES_ITEM *item, int index, int pass);
 void store_migtype(LEX *lc, RES_ITEM *item, int index, int pass);
+static void store_actiononpurge(LEX *lc, RES_ITEM *item, int index, int pass);
 static void store_device(LEX *lc, RES_ITEM *item, int index, int pass);
 static void store_runscript(LEX *lc, RES_ITEM *item, int index, int pass);
 static void store_runscript_when(LEX *lc, RES_ITEM *item, int index, int pass);
@@ -381,6 +382,7 @@ static RES_ITEM pool_items[] = {
    {"usecatalog",      store_bool,    ITEM(res_pool.use_catalog),    0, ITEM_DEFAULT, true},
    {"usevolumeonce",   store_bool,    ITEM(res_pool.use_volume_once), 0, 0,   0},
    {"purgeoldestvolume", store_bool,  ITEM(res_pool.purge_oldest_volume), 0, 0, 0},
+   {"actiononpurge",   store_actiononpurge, ITEM(res_pool.action_on_purge), 0, 0, 0},
    {"recycleoldestvolume", store_bool,  ITEM(res_pool.recycle_oldest_volume), 0, 0, 0},
    {"recyclecurrentvolume", store_bool, ITEM(res_pool.recycle_current_volume), 0, 0, 0},
    {"maximumvolumes",  store_pint32,    ITEM(res_pool.max_volumes),   0, 0,        0},
@@ -939,9 +941,10 @@ next_run:
               NPRT(res->res_pool.label_format));
       sendit(sock, _("      CleaningPrefix=%s LabelType=%d\n"),
               NPRT(res->res_pool.cleaning_prefix), res->res_pool.LabelType);
-      sendit(sock, _("      RecyleOldest=%d PurgeOldest=%d\n"), 
+      sendit(sock, _("      RecyleOldest=%d PurgeOldest=%d ActionOnPurge=%d\n"), 
               res->res_pool.recycle_oldest_volume,
-              res->res_pool.purge_oldest_volume);
+              res->res_pool.purge_oldest_volume,
+	      res->res_pool.action_on_purge);
       sendit(sock, _("      MaxVolJobs=%d MaxVolFiles=%d MaxVolBytes=%s\n"),
               res->res_pool.MaxVolJobs, 
               res->res_pool.MaxVolFiles,
@@ -1594,6 +1597,21 @@ void save_resource(int type, RES_ITEM *items, int pass)
                res->res_dir.hdr.name, rindex, pass);
       }
    }
+}
+
+static void store_actiononpurge(LEX *lc, RES_ITEM *item, int index, int pass)
+{
+	uint32_t *destination = (uint32_t*)item->value;
+	lex_get_token(lc, T_NAME);
+	printf("got token %s\n", lc->str);
+	if (strcasecmp(lc->str, "truncate") == 0)
+		*destination = (*destination) | AOP_TRUNCATE;
+	else {
+		scan_err2(lc, _("Expected one of: %s, got: %s"), "Truncate", lc->str);
+		return;
+	}
+	scan_to_eol(lc);
+	set_bit(index, res_all.hdr.item_present);
 }
 
 /*
