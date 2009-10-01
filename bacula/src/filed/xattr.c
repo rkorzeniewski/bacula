@@ -32,15 +32,14 @@
  * they were saved using a filed on the same platform.
  *
  * Currently we support the following OSes:
- *   - FreeBSD (Extended Attributes)
  *   - Darwin (Extended Attributes)
  *   - Linux (Extended Attributes)
  *   - NetBSD (Extended Attributes)
+ *   - FreeBSD (Extended Attributes)
  *   - Solaris (Extended Attributes and Extensible Attributes)
  *
  *   Written by Marco van Wieringen, November MMVIII
  *
- *   Version $Id$
  */
 
 #include "bacula.h"
@@ -118,7 +117,6 @@ static bxattr_exit_code send_xattr_stream(JCR *jcr, int stream)
  * Start with the generic interface used by most OS-es.
  */
 #if defined(HAVE_DARWIN_OS) || \
-    defined(HAVE_FREEBSD_OS) || \
     defined(HAVE_LINUX_OS) || \
     defined(HAVE_NETBSD_OS)
        
@@ -133,10 +131,6 @@ static bxattr_exit_code send_xattr_stream(JCR *jcr, int stream)
 static int os_default_xattr_streams[1] = { STREAM_XATTR_DARWIN };
 static const char *xattr_acl_skiplist[2] = { "com.apple.system.Security", NULL };
 static const char *xattr_skiplist[3] = { "com.apple.system.extendedsecurity", "com.apple.ResourceFork", NULL };
-#elif defined(HAVE_FREEBSD_OS)
-static int os_default_xattr_streams[1] = { STREAM_XATTR_FREEBSD };
-static const char *xattr_acl_skiplist[1] = { NULL };
-static const char *xattr_skiplist[1] = { NULL };
 #elif defined(HAVE_LINUX_OS)
 static int os_default_xattr_streams[1] = { STREAM_XATTR_LINUX };
 static const char *xattr_acl_skiplist[2] = { "system.posix_acl_access", NULL };
@@ -590,6 +584,36 @@ static bxattr_exit_code generic_xattr_parse_streams(JCR *jcr, int stream)
  */
 static bxattr_exit_code (*os_build_xattr_streams)(JCR *jcr, FF_PKT *ff_pkt) = generic_xattr_build_streams;
 static bxattr_exit_code (*os_parse_xattr_streams)(JCR *jcr, int stream) = generic_xattr_parse_streams;
+
+#elif defined(HAVE_FREEBSD_OS)
+
+#ifdef HAVE_SYS_EXTATTR_H
+#include <sys/extattr.h>
+#endif
+
+static int os_default_xattr_streams[1] = { STREAM_XATTR_FREEBSD };
+static const char *xattr_acl_skiplist[1] = { NULL };
+static const char *xattr_skiplist[1] = { NULL };
+
+static bxattr_exit_code freebsd_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
+{
+   bxattr_exit_code retval = bxattr_exit_ok;
+
+   return retval;
+}
+
+static bxattr_exit_code freebsd_parse_xattr_streams(JCR *jcr, int stream)
+{
+   bxattr_exit_code retval;
+
+   return retval;
+}
+
+/*
+ * Function pointers to the build and parse function to use for these xattrs.
+ */
+static bxattr_exit_code (*os_build_xattr_streams)(JCR *jcr, FF_PKT *ff_pkt) = freebsd_build_xattr_streams;
+static bxattr_exit_code (*os_parse_xattr_streams)(JCR *jcr, int stream) = freebsd_parse_xattr_streams;
 
 #elif defined(HAVE_SUN_OS)
 /*
