@@ -48,6 +48,11 @@ Document:
   for disaster recovery.
  
 Professional Needs:
+- NDMP
+  - For NAS OpenNAS
+  - ndmfs -- File Server extention in NDMPv4.
+  - ndmjob -- NDMP backup/restore NDMPv2, NDMPv3, and NDMPv4
+- Base jobs
 - Migration from other vendors
   - Date change
   - Path change
