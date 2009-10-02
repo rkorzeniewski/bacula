@@ -229,7 +229,7 @@ static void read_and_process_input(FILE *input, BSOCK *UA_sock)
    bool at_prompt = false;
    int tty_input = isatty(fileno(input));
    int stat;
-   btimer_t *tid;
+   btimer_t *tid=NULL;
 
    for ( ;; ) {
       if (at_prompt) {                /* don't prompt multiple times */
@@ -265,9 +265,9 @@ static void read_and_process_input(FILE *input, BSOCK *UA_sock)
          break;                       /* error or interrupt */
       } else if (stat == 0) {         /* timeout */
          if (strcmp(prompt, "*") == 0) {
-            if (timeout) tid = start_bsock_timer(UA_sock, timeout);
+            tid = start_bsock_timer(UA_sock, timeout);
             bnet_fsend(UA_sock, ".messages");
-            if (timeout) stop_bsock_timer(tid);
+            stop_bsock_timer(tid);
          } else {
             continue;
          }
@@ -281,17 +281,17 @@ static void read_and_process_input(FILE *input, BSOCK *UA_sock)
             }
             continue;
          }
-         if (timeout) tid = start_bsock_timer(UA_sock, timeout);
+         tid = start_bsock_timer(UA_sock, timeout);
          if (!bnet_send(UA_sock)) {   /* send command */
-            if (timeout) stop_bsock_timer(tid);
+            stop_bsock_timer(tid);
             break;                    /* error */
          }
-         if (timeout) stop_bsock_timer(tid);
+         stop_bsock_timer(tid);
       }
       if (strcmp(UA_sock->msg, ".quit") == 0 || strcmp(UA_sock->msg, ".exit") == 0) {
          break;
       }
-      if (timeout) tid = start_bsock_timer(UA_sock, timeout);
+      tid = start_bsock_timer(UA_sock, timeout);
       while ((stat = bnet_recv(UA_sock)) >= 0) {
          if (at_prompt) {
             if (!stop) {
@@ -304,7 +304,7 @@ static void read_and_process_input(FILE *input, BSOCK *UA_sock)
             sendit(UA_sock->msg);
          }
       }
-      if (timeout) stop_bsock_timer(tid);
+      stop_bsock_timer(tid);
       if (usrbrk() > 1) {
          break;
       } else {
