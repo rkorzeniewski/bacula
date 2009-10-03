@@ -2,19 +2,21 @@
           
 General:
 
-02Oct08
+03Oct09
+kes  Fix bug #1382 newly created disk volumes -> file not found warning 
+02Oct09
 ebl  Cleanup the console timeout code.
-29Sep08
+29Sep09
 kes  Apply console timeout patch from Vitaly Kuznetsov <vitty@altlinux.ru>
 ebl  Remove the inx4 index for SQLite2/3 (FilenameId, PathId) on
      File table. 
      It is useless for common usage, and causes performance issues.
      This index fragments over the time and the update cost grows
      very quickly. (This index is not present on Mysql schema)
-26Sep08
+26Sep09
 kes  Remove gnome-console
 kes  Implement store_size32 and store_size64
-25Sep08
+25Sep09
 kes  Fix Alpha ifdefing -- should fix bug #1359
 kes  Add more smtp document -- resolves bug #1376
 22Sep09
