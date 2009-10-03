@@ -228,6 +228,10 @@ init_dev(JCR *jcr, DEVRES *device)
       Jmsg2(jcr, M_WARNING, 0, _("Max block size %u not multiple of device %s block size.\n"),
          dev->max_block_size, dev->print_name());
    }
+   if (dev->max_volume_size != 0 && dev->max_volume_size < (dev->max_block_size << 4)) {
+      Jmsg(jcr, M_ERROR_TERM, 0, _("Max Vol Size < 8 * Max Block Size on device %s\n"), 
+           dev->print_name());
+   }
 
    dev->errmsg = get_pool_memory(PM_EMSG);
    *dev->errmsg = 0;

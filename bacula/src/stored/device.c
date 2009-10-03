@@ -185,6 +185,9 @@ bool fixup_device_block_write_error(DCR *dcr)
       berrno be;
       Dmsg1(0, _("write_block_to_device overflow block failed. ERR=%s"),
         be.bstrerror(dev->dev_errno));
+      Jmsg2(jcr, M_FATAL, 0, 
+           _("Catastrophic error. Cannot write overflow block to device %s. ERR=%s"),
+           dev->print_name(), be.bstrerror(dev->dev_errno));
       goto bail_out;
    }
    ok = true;
