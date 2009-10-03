@@ -9,6 +9,7 @@ rm -rf ${tmp}/TestVolume001 ${tmp}bacula-restores ${tmp}/Small*
 rm -rf ${tmp}/sed_tmp ${tmp}/file-list
 rm -rf ${tmp}/*
 rm -rf ${working}/log ${tmp}/TEST-*
+rm -rf ${working}/log ${tmp}/Backup-*
 rm -rf ${working}/*.bsr ${working}/log*.sd
 rm -rf ${working}/*.trace
 rm -rf ${tmp}disk-changer
