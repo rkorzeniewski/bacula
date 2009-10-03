@@ -686,6 +686,13 @@ void MainWin::stackItemChanged(int)
    Pages* page = (Pages*)tabWidget->currentWidget();
    /* run the virtual function in case this class overrides it */
    page->currentStackItem();
+   if (!m_waitState) {
+      disconnect(treeWidget, SIGNAL(itemClicked(QTreeWidgetItem *, int)), this, SLOT(treeItemClicked(QTreeWidgetItem *, int)));
+      disconnect(treeWidget, SIGNAL( currentItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)), this, SLOT(treeItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)));
+      treeWidget->setCurrentItem(getFromHash(page));
+      connect(treeWidget, SIGNAL(itemClicked(QTreeWidgetItem *, int)), this, SLOT(treeItemClicked(QTreeWidgetItem *, int)));
+      connect(treeWidget, SIGNAL(currentItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)), this, SLOT(treeItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)));
+   }
 }
 
 /*

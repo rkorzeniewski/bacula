@@ -2,7 +2,10 @@
           
 General:
 
+02Oct08
+ebl  Cleanup the console timeout code.
 29Sep08
+kes  Apply console timeout patch from Vitaly Kuznetsov <vitty@altlinux.ru>
 ebl  Remove the inx4 index for SQLite2/3 (FilenameId, PathId) on
      File table. 
      It is useless for common usage, and causes performance issues.

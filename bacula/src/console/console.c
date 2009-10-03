@@ -86,6 +86,7 @@ static FILE *output = stdout;
 static bool teeout = false;               /* output to output and stdout */
 static bool stop = false;
 static bool no_conio = false;
+static int timeout = 0;
 static int argc;
 static int numdir;
 static int numcon;
@@ -124,6 +125,7 @@ PROG_COPYRIGHT
 "       -dt         print timestamp in debug output\n"
 "       -n          no conio\n"
 "       -s          no signals\n"
+"       -u <nn>     set command execution timeout to <nn> seconds\n"
 "       -t          test - read configuration and exit\n"
 "       -?          print this message.\n"
 "\n"), 2000, HOST_OS, DISTNAME, DISTVER);
@@ -227,6 +229,7 @@ static void read_and_process_input(FILE *input, BSOCK *UA_sock)
    bool at_prompt = false;
    int tty_input = isatty(fileno(input));
    int stat;
+   btimer_t *tid=NULL;
 
    for ( ;; ) {
       if (at_prompt) {                /* don't prompt multiple times */
@@ -262,7 +265,9 @@ static void read_and_process_input(FILE *input, BSOCK *UA_sock)
          break;                       /* error or interrupt */
       } else if (stat == 0) {         /* timeout */
          if (strcmp(prompt, "*") == 0) {
+            tid = start_bsock_timer(UA_sock, timeout);
             bnet_fsend(UA_sock, ".messages");
+            stop_bsock_timer(tid);
          } else {
             continue;
          }
@@ -276,13 +281,17 @@ static void read_and_process_input(FILE *input, BSOCK *UA_sock)
             }
             continue;
          }
+         tid = start_bsock_timer(UA_sock, timeout);
          if (!bnet_send(UA_sock)) {   /* send command */
+            stop_bsock_timer(tid);
             break;                    /* error */
          }
+         stop_bsock_timer(tid);
       }
       if (strcmp(UA_sock->msg, ".quit") == 0 || strcmp(UA_sock->msg, ".exit") == 0) {
          break;
       }
+      tid = start_bsock_timer(UA_sock, timeout);
       while ((stat = bnet_recv(UA_sock)) >= 0) {
          if (at_prompt) {
             if (!stop) {
@@ -295,6 +304,7 @@ static void read_and_process_input(FILE *input, BSOCK *UA_sock)
             sendit(UA_sock->msg);
          }
       }
+      stop_bsock_timer(tid);
       if (usrbrk() > 1) {
          break;
       } else {
@@ -585,7 +595,7 @@ int main(int argc, char *argv[])
    working_directory = "/tmp";
    args = get_pool_memory(PM_FNAME);
 
-   while ((ch = getopt(argc, argv, "bc:d:nst?")) != -1) {
+   while ((ch = getopt(argc, argv, "bc:d:nstu:?")) != -1) {
       switch (ch) {
       case 'c':                    /* configuration file */
          if (configfile != NULL) {
@@ -615,6 +625,10 @@ int main(int argc, char *argv[])
 
       case 't':
          test_config = true;
+         break;
+
+      case 'u':
+         timeout = atoi(optarg);
          break;
 
       case '?':
@@ -675,6 +689,8 @@ int main(int argc, char *argv[])
    memset(&jcr, 0, sizeof(jcr));
 
    (void)WSA_Init();                        /* Initialize Windows sockets */
+
+   start_watchdog();                        /* Start socket watchdog */
 
    LockRes();
    numdir = 0;
@@ -865,6 +881,7 @@ static void terminate_console(int sig)
       exit(1);
    }
    already_here = true;
+   stop_watchdog();
    config->free_resources();
    free(config);
    config = NULL;
