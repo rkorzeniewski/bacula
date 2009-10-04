@@ -391,7 +391,7 @@ static bxattr_exit_code generic_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
          }
       }
 
-      if (!skip_xattr) {
+      if (skip_xattr) {
          bp = strchr(bp, '\0') + 1;
          continue;
       }
