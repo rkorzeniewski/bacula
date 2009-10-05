@@ -571,7 +571,7 @@ const char *select_recent_version[4] = {
 
    /* Postgresql */
    "SELECT DISTINCT ON (FilenameId, PathId) StartTime, JobId, FileId, "
-          "FileIndex, PathId, FilenameId, LStat "
+          "FileIndex, PathId, FilenameId, LStat, MD5 "
      "FROM File JOIN Job USING (JobId) "
     "WHERE JobId IN (%s) "
     "ORDER BY FilenameId, PathId, StartTime DESC ",
