@@ -3,6 +3,7 @@
 General:
 
 05Oct09
+mvw  Fix logic error in xattr code to support the *BSD os-es
 ebl  Apply Andreas's patch to remove ScratchPool ref from bat Media list screen.
 03Oct09
 kes  Add a MaxVolBytes test that create over 100 Vols
