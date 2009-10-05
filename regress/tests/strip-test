@@ -20,7 +20,7 @@ echo "${tmp}/$$-strip" >${cwd}/tmp/file-list
 #   the backup will do and put the result in rpath
 echo "${tmp}/$$-strip/" >${tmp}/1
 rpath=`cut -f5- -d'/' ${tmp}/1`
-echo "========= $rpath"
+#echo "========= $rpath"
 
 change_jobname NightlySave $JobName
 start_test
