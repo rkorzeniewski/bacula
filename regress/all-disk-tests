@@ -49,6 +49,7 @@ nice tests/source-addr-test
 nice tests/stats-test
 nice tests/six-vol-test
 nice tests/span-vol-test
+nice tests/maxbytes-test
 nice tests/maxtime-test
 nice tests/maxvol-test
 nice tests/maxvol2-test
