@@ -191,8 +191,8 @@ bool accurate_finish(JCR *jcr)
       
       accurate_free(jcr);
       if (jcr->get_JobLevel() == L_FULL) {
-         Dmsg1(0, "Space saved with Base jobs: %lld MB\n", 
-               jcr->base_size/(1024*1024));
+         Jmsg(jcr, M_INFO, 0, _("Space saved with Base jobs: %lld MB\n"), 
+              jcr->base_size/(1024*1024));
       }
    }
    return ret;
