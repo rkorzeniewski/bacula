@@ -31,6 +31,7 @@ ADD_TEST(disk:four-jobs-test "@regressdir@/tests/four-jobs-test")
 ADD_TEST(disk:hardlink-test "@regressdir@/tests/hardlink-test")
 ADD_TEST(disk:incremental-2media "@regressdir@/tests/incremental-2media")
 ADD_TEST(disk:incremental-test "@regressdir@/tests/incremental-test")
+ADD_TEST(disk:maxbytes-test "@regressdir@/tests/maxbytes-test")
 ADD_TEST(disk:maxtime-test "@regressdir@/tests/maxtime-test")
 SET_TESTS_PROPERTIES(disk:maxtime-test PROPERTIES     
    PASS_REGULAR_EXPRESSION "Fatal error")

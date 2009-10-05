@@ -216,6 +216,8 @@ mount_next_vol:
       if (try_autolabel(false) == try_read_vol) {
          break;                       /* created a new volume label */
       }
+      Jmsg3(jcr, M_WARNING, 0, _("Open device %s Volume \"%s\" failed: ERR=%s\n"),
+            dev->print_name(), dcr->VolumeName, dev->bstrerror());
       Dmsg0(50, "set_unload\n");
       dev->set_unload();              /* force ask sysop */
       ask = true;
