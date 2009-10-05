@@ -41,7 +41,7 @@
 #include "bacula.h"
 #include "cats.h"
 
-static const int dbglevel = 10;
+static const int dbglevel = 100;
 
 #if    HAVE_SQLITE3 || HAVE_MYSQL || HAVE_SQLITE || HAVE_POSTGRESQL || HAVE_DBI
 
