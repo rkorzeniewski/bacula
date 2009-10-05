@@ -2,6 +2,8 @@
           
 General:
 
+05Oct09
+ebl  Apply Andreas's patch to remove ScratchPool ref from bat Media list screen.
 03Oct09
 kes  Add a MaxVolBytes test that create over 100 Vols
 kes  Fix bug #1382 newly created disk volumes -> file not found warning 
