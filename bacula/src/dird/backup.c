@@ -168,6 +168,7 @@ static int accurate_list_handler(void *ctx, int num_fields, char **row)
 
 /* In this procedure, we check if the current fileset is using checksum
  * FileSet-> Include-> Options-> Accurate/Verify/BaseJob=checksum
+ * This procedure uses jcr->HasBase, so it must be call after the initialization
  */
 static bool is_checksum_needed_by_fileset(JCR *jcr)
 {
@@ -175,6 +176,7 @@ static bool is_checksum_needed_by_fileset(JCR *jcr)
    INCEXE *inc;
    FOPTS *fopts;
    bool in_block=false;
+   bool have_basejob_option=false;
    if (!jcr->job || !jcr->job->fileset) {
       return false;
    }
@@ -193,7 +195,7 @@ static bool is_checksum_needed_by_fileset(JCR *jcr)
                in_block = (jcr->get_JobType() == JT_VERIFY); /* not used now */
                break;
             case 'J':           /* Basejob keyword */
-               in_block = (jcr->get_JobLevel() == L_FULL);
+               have_basejob_option = in_block = jcr->HasBase;
                break;
             case 'C':           /* Accurate keyword */
                in_block = (jcr->get_JobLevel() != L_FULL);
@@ -214,6 +216,13 @@ static bool is_checksum_needed_by_fileset(JCR *jcr)
          }
       }
    }
+
+   /* By default for BaseJobs, we send the checksum */
+   if (!have_basejob_option && jcr->HasBase) {
+      return true;
+   }
+   
+   Dmsg0(50, "Checksum will be sent to FD\n");
    return false;
 }
 
@@ -240,9 +249,6 @@ bool send_accurate_current_files(JCR *jcr)
       return true;
    }
    
-   /* Don't send and store the checksum if fileset doesn't require it */
-   jcr->use_accurate_chksum = is_checksum_needed_by_fileset(jcr);
-
    if (jcr->get_JobLevel() == L_FULL) {
       /* On Full mode, if no previous base job, no accurate things */
       if (!get_base_jobids(jcr, &jobids)) {
@@ -262,6 +268,9 @@ bool send_accurate_current_files(JCR *jcr)
          goto bail_out;
       }
    }
+
+   /* Don't send and store the checksum if fileset doesn't require it */
+   jcr->use_accurate_chksum = is_checksum_needed_by_fileset(jcr);
 
    if (jcr->JobId) {            /* display the message only for real jobs */
       Jmsg(jcr, M_INFO, 0, _("Sending Accurate information.\n"));
@@ -576,6 +585,7 @@ void backup_cleanup(JCR *jcr, int TermCode)
    CLIENT_DBR cr;
    double kbps, compression;
    utime_t RunTime;
+   POOL_MEM base_info;
 
    if (jcr->get_JobLevel() == L_VIRTUAL_FULL) {
       vbackup_cleanup(jcr, TermCode);
@@ -681,9 +691,10 @@ void backup_cleanup(JCR *jcr, int TermCode)
    jobstatus_to_ascii(jcr->SDJobStatus, sd_term_msg, sizeof(sd_term_msg));
 
    if (jcr->HasBase) {
-      Dmsg3(0, "Base files/Used files %lld/%lld=%.2f%%\n", jcr->nb_base_files, 
-            jcr->nb_base_files_used, 
-            jcr->nb_base_files_used*100.0/jcr->nb_base_files);
+      Mmsg(base_info, "  Base files/Used files:  %lld/%lld (%.2f%%)\n",
+           jcr->nb_base_files, 
+           jcr->nb_base_files_used, 
+           jcr->nb_base_files_used*100.0/jcr->nb_base_files);
    }
 // bmicrosleep(15, 0);                /* for debugging SIGHUP */
 
@@ -708,6 +719,7 @@ void backup_cleanup(JCR *jcr, int TermCode)
 "  SD Bytes Written:       %s (%sB)\n"
 "  Rate:                   %.1f KB/s\n"
 "  Software Compression:   %s\n"
+"%s"                                         /* Basefile info */
 "  VSS:                    %s\n"
 "  Encryption:             %s\n"
 "  Accurate:               %s\n"
@@ -743,6 +755,7 @@ void backup_cleanup(JCR *jcr, int TermCode)
         edit_uint64_with_suffix(jcr->SDJobBytes, ec6),
         kbps,
         compress,
+        base_info.c_str(),
         jcr->VSS?_("yes"):_("no"),
         jcr->Encrypt?_("yes"):_("no"),
         jcr->accurate?_("yes"):_("no"),
