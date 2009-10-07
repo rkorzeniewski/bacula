@@ -255,7 +255,7 @@
    language is requested. */
 #undef ENABLE_NLS
 
-/* Normal attribute support */
+/* Normal acl support */
 #undef HAVE_ACL
 
 /* Define to 1 if you have `alloca', as a function or macro. */
@@ -347,13 +347,28 @@
 /* Define to 1 if you don't have `vprintf' but do have `_doprnt.' */
 #undef HAVE_DOPRNT
 
-/* Extended attribute support */
+/* Define to 1 if you have the `extattr_get_link' function. */
+#undef HAVE_EXTATTR_GET_LINK
+
+/* Define to 1 if you have the `extattr_list_link' function. */
+#undef HAVE_EXTATTR_LIST_LINK
+
+/* Define to 1 if you have the `extattr_namespace_to_string' function. */
+#undef HAVE_EXTATTR_NAMESPACE_TO_STRING
+
+/* Define to 1 if you have the `extattr_set_link' function. */
+#undef HAVE_EXTATTR_SET_LINK
+
+/* Define to 1 if you have the `extattr_string_to_namespace' function. */
+#undef HAVE_EXTATTR_STRING_TO_NAMESPACE
+
+/* Extended acl support */
 #undef HAVE_EXTENDED_ACL
 
 /* Define to 1 if you have the `fchdir' function. */
 #undef HAVE_FCHDIR
 
-/* FCHOWNAT support */
+/* Define to 1 if you have the `fchownat' function. */
 #undef HAVE_FCHOWNAT
 
 /* Define to 1 if you have the <fcntl.h> header file. */
@@ -368,10 +383,10 @@
 /* Define to 1 if you have the `fseeko' function. */
 #undef HAVE_FSEEKO
 
-/* FSTATAT support */
+/* Define to 1 if you have the `fstatat' function. */
 #undef HAVE_FSTATAT
 
-/* FUTIMESAT support */
+/* Define to 1 if you have the `futimesat' function. */
 #undef HAVE_FUTIMESAT
 
 /* Define to 1 if you have the `fwprintf' function. */
@@ -462,7 +477,7 @@
 /* Define if your <locale.h> file defines LC_MESSAGES. */
 #undef HAVE_LC_MESSAGES
 
-/* LGETXATTR support */
+/* Define to 1 if you have the `lgetxattr' function. */
 #undef HAVE_LGETXATTR
 
 /* Define if you have libcap */
@@ -489,6 +504,9 @@
 /* Define to 1 if you have the `util' library (-lutil). */
 #undef HAVE_LIBUTIL
 
+/* Defines if your system have the libutil.h header file */
+#undef HAVE_LIBUTIL_H
+
 /* Set to enable libwraper support */
 #undef HAVE_LIBWRAP
 
@@ -501,7 +519,7 @@
 /* Define to 1 if you have the `listxattr' function. */
 #undef HAVE_LISTXATTR
 
-/* LLISTXATTR support */
+/* Define to 1 if you have the `llistxattr' function. */
 #undef HAVE_LLISTXATTR
 
 /* Define to 1 if you have the <locale.h> header file. */
@@ -516,7 +534,7 @@
 /* Define if you have the 'long long' type. */
 #undef HAVE_LONG_LONG
 
-/* LSETXATTR support */
+/* Define to 1 if you have the `lsetxattr' function. */
 #undef HAVE_LSETXATTR
 
 /* Define to 1 if you have the `lstat' function. */
@@ -552,7 +570,10 @@
 /* Define to 1 if you have the <nl_types.h> header file. */
 #undef HAVE_NL_TYPES_H
 
-/* OPENAT support */
+/* Define to 1 if you have the `nvlist_next_nvpair' function. */
+#undef HAVE_NVLIST_NEXT_NVPAIR
+
+/* Define to 1 if you have the `openat' function. */
 #undef HAVE_OPENAT
 
 /* Define if OpenSSL library is available */
@@ -719,6 +740,9 @@
    */
 #undef HAVE_SYS_DIR_H
 
+/* Defines if your system have the sys/extattr.h header file */
+#undef HAVE_SYS_EXTATTR_H
+
 /* Define to 1 if you have the <sys/ioctl.h> header file. */
 #undef HAVE_SYS_IOCTL_H
 
@@ -806,7 +830,7 @@
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
 
-/* UNLINKAT support */
+/* Define to 1 if you have the `unlinkat' function. */
 #undef HAVE_UNLINKAT
 
 /* Define if you have the 'unsigned long long' type. */
@@ -839,7 +863,7 @@
 /* Define if you have the 'wint_t' type. */
 #undef HAVE_WINT_T
 
-/* XATTR support */
+/* Exteded Attributes support */
 #undef HAVE_XATTR
 
 /* Define to 1 if you have the <zlib.h> header file. */
