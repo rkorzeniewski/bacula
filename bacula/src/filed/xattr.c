@@ -141,6 +141,8 @@ static void xattr_drop_internal_table(alist *xattr_value_list)
       if (current_xattr->value_length > 0)
          free(current_xattr->value);
    }
+
+   delete xattr_value_list;
 }
 
 /*
@@ -535,7 +537,6 @@ static bxattr_exit_code generic_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
       }
 
       xattr_drop_internal_table(xattr_value_list);
-      delete xattr_value_list;
       xattr_value_list = NULL;
 
       /*
@@ -544,7 +545,6 @@ static bxattr_exit_code generic_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
       return send_xattr_stream(jcr, os_default_xattr_streams[0]);
    } else {
       xattr_drop_internal_table(xattr_value_list);
-      delete xattr_value_list;
       xattr_value_list = NULL;
 
       return bxattr_exit_ok;
@@ -556,7 +556,6 @@ bail_out:
    }
    if (xattr_value_list) {
       xattr_drop_internal_table(xattr_value_list);
-      delete xattr_value_list;
       xattr_value_list = NULL;
    }
    return retval;
@@ -873,7 +872,6 @@ static bxattr_exit_code bsd_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
       }
 
       xattr_drop_internal_table(xattr_value_list);
-      delete xattr_value_list;
       xattr_value_list = NULL;
 
       /*
@@ -882,7 +880,6 @@ static bxattr_exit_code bsd_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
       return send_xattr_stream(jcr, os_default_xattr_streams[0]);
    } else {
       xattr_drop_internal_table(xattr_value_list);
-      delete xattr_value_list;
       xattr_value_list = NULL;
 
       return bxattr_exit_ok;
@@ -894,7 +891,6 @@ bail_out:
    }
    if (xattr_value_list) {
       xattr_drop_internal_table(xattr_value_list);
-      delete xattr_value_list;
       xattr_value_list = NULL;
    }
    return retval;
