@@ -195,15 +195,10 @@ static uint32_t serialize_xattr_stream(JCR *jcr, uint32_t expected_serialize_len
    return jcr->xattr_data->content_length;
 }
 
-/*
- * Forward declaration for restore function.
- */
-static bxattr_exit_code restore_xattr_on_file(JCR *jcr, xattr_t *xattr);
-
-static bxattr_exit_code unserialize_xattr_stream(JCR *jcr)
+static bxattr_exit_code unserialize_xattr_stream(JCR *jcr, alist *xattr_value_list)
 {
    unser_declare;
-   xattr_t current_xattr;
+   xattr_t *current_xattr;
    bxattr_exit_code retval = bxattr_exit_ok;
 
    /*
@@ -218,56 +213,46 @@ static bxattr_exit_code unserialize_xattr_stream(JCR *jcr)
        * First make sure the magic is present. This way we can easily catch corruption.
        * Any missing MAGIC is fatal we do NOT try to continue.
        */
-      unser_uint32(current_xattr.magic);
-      if (current_xattr.magic != XATTR_MAGIC) {
+
+      current_xattr = (xattr_t *)malloc(sizeof(xattr_t));
+      unser_uint32(current_xattr->magic);
+      if (current_xattr->magic != XATTR_MAGIC) {
          Mmsg1(jcr->errmsg, _("Illegal xattr stream, no XATTR_MAGIC on file \"%s\"\n"),
                jcr->last_fname);
          Dmsg1(100, "Illegal xattr stream, no XATTR_MAGIC on file \"%s\"\n",
                jcr->last_fname);
+         free(current_xattr);
          return bxattr_exit_error;
       }
 
       /*
        * Decode the valuepair. First decode the length of the name.
        */
-      unser_uint32(current_xattr.name_length);
+      unser_uint32(current_xattr->name_length);
 
       /*
        * Allocate room for the name and decode its content.
        */
-      current_xattr.name = (char *)malloc(current_xattr.name_length + 1);
-      unser_bytes(current_xattr.name, current_xattr.name_length);
+      current_xattr->name = (char *)malloc(current_xattr->name_length + 1);
+      unser_bytes(current_xattr->name, current_xattr->name_length);
 
       /*
        * The xattr_name needs to be null terminated for lsetxattr.
        */
-      current_xattr.name[current_xattr.name_length] = '\0';
+      current_xattr->name[current_xattr->name_length] = '\0';
 
       /*
        * Decode the value length.
        */
-      unser_uint32(current_xattr.value_length);
+      unser_uint32(current_xattr->value_length);
 
       /*
        * Allocate room for the value and decode its content.
        */
-      current_xattr.value = (char *)malloc(current_xattr.value_length);
-      unser_bytes(current_xattr.value, current_xattr.value_length);
+      current_xattr->value = (char *)malloc(current_xattr->value_length);
+      unser_bytes(current_xattr->value, current_xattr->value_length);
 
-      /*
-       * Try to set the extended attribute on the file.
-       * If we fail to set this attribute we flag the error but its not fatal,
-       * we try to restore the other extended attributes too.
-       */
-      if (restore_xattr_on_file(jcr, &current_xattr) != bxattr_exit_ok) {
-         retval = bxattr_exit_error;
-      }
-
-      /*
-       * Free the temporary buffers.
-       */
-      free(current_xattr.name);
-      free(current_xattr.value);
+      xattr_value_list->append(current_xattr);
    }
 
    unser_end(jcr->xattr_data->content, jcr->xattr_data->content_length);
@@ -537,7 +522,6 @@ static bxattr_exit_code generic_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
       }
 
       xattr_drop_internal_table(xattr_value_list);
-      xattr_value_list = NULL;
 
       /*
        * Send the datastream to the SD.
@@ -545,7 +529,6 @@ static bxattr_exit_code generic_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
       return send_xattr_stream(jcr, os_default_xattr_streams[0]);
    } else {
       xattr_drop_internal_table(xattr_value_list);
-      xattr_value_list = NULL;
 
       return bxattr_exit_ok;
    }
@@ -556,39 +539,45 @@ bail_out:
    }
    if (xattr_value_list) {
       xattr_drop_internal_table(xattr_value_list);
-      xattr_value_list = NULL;
    }
    return retval;
 }
 
-/*
- * This function gets called by the unserialize_xattr_stream function for the OS specific 
- * code to restore an extended attribute on a file.
- */
-static bxattr_exit_code restore_xattr_on_file(JCR *jcr, xattr_t *xattr)
+static bxattr_exit_code generic_xattr_parse_streams(JCR *jcr, int stream)
 {
+   xattr_t *current_xattr;
+   alist *xattr_value_list;
    berrno be;
 
-   if (lsetxattr(jcr->last_fname, xattr->name, xattr->value, xattr->value_length, 0) != 0) {
-      switch (errno) {
-      case ENOENT:
-         break;
-      default:
-         Mmsg2(jcr->errmsg, _("lsetxattr error on file \"%s\": ERR=%s\n"),
-               jcr->last_fname, be.bstrerror());
-         Dmsg2(100, "lsetxattr error file=%s ERR=%s\n",
-               jcr->last_fname, be.bstrerror());
-         return bxattr_exit_error;
-         break;
+   xattr_value_list = New(alist(10, not_owned_by_alist));
+
+   if (unserialize_xattr_stream(jcr, xattr_value_list) != bxattr_exit_ok) {
+      xattr_drop_internal_table(xattr_value_list);
+      return bxattr_exit_error;
+   }
+
+   foreach_alist(current_xattr, xattr_value_list) {
+      if (lsetxattr(jcr->last_fname, current_xattr->name, current_xattr->value, current_xattr->value_length, 0) != 0) {
+         switch (errno) {
+         case ENOENT:
+            goto bail_out;
+         default:
+            Mmsg2(jcr->errmsg, _("lsetxattr error on file \"%s\": ERR=%s\n"),
+                  jcr->last_fname, be.bstrerror());
+            Dmsg2(100, "lsetxattr error file=%s ERR=%s\n",
+                  jcr->last_fname, be.bstrerror());
+            goto bail_out;
+         }
       }
    }
 
+   xattr_drop_internal_table(xattr_value_list);
    return bxattr_exit_ok;
-}
 
-static bxattr_exit_code generic_xattr_parse_streams(JCR *jcr, int stream)
-{
-   return unserialize_xattr_stream(jcr);
+bail_out:
+
+   xattr_drop_internal_table(xattr_value_list);
+   return bxattr_exit_error;
 }
 
 /*
@@ -896,66 +885,75 @@ bail_out:
    return retval;
 }
 
-/*
- * This function gets called by the unserialize_xattr_stream function for the OS specific 
- * code to restore an extended attribute on a file.
- */
-static bxattr_exit_code restore_xattr_on_file(JCR *jcr, xattr_t *xattr)
+static bxattr_exit_code bsd_parse_xattr_streams(JCR *jcr, int stream)
 {
-   berrno be;
+   xattr_t *current_xattr;
+   alist *xattr_value_list;
    int current_attrnamespace, cnt;
    char *attrnamespace, *attrname;
+   berrno be;
 
-   /*
-    * Try splitting the xattr_name into a namespace and name part.
-    * The splitting character is a .
-    */
-   attrnamespace = xattr->name;
-   if ((attrname = strchr(attrnamespace, '.')) == (char *)NULL) {
-      Mmsg2(jcr->errmsg, _("Failed to split %s into namespace and name part on file \"%s\"\n"),
-            xattr->name, jcr->last_fname);
-      Dmsg2(100, "Failed to split %s into namespace and name part on file \"%s\"\n",
-            xattr->name, jcr->last_fname);
-      return bxattr_exit_error;
-   }
-   *attrname++ = '\0';
+   xattr_value_list = New(alist(10, not_owned_by_alist));
 
-   /*
-    * Make sure the attrnamespace makes sense.
-    */
-   if (extattr_string_to_namespace(attrnamespace, &current_attrnamespace) != 0) {
-      Mmsg2(jcr->errmsg, _("Failed to convert %s into namespace on file \"%s\"\n"),
-            attrnamespace, jcr->last_fname);
-      Dmsg2(100, "Failed to convert %s into namespace on file \"%s\"\n",
-            attrnamespace, jcr->last_fname);
+   if (unserialize_xattr_stream(jcr, xattr_value_list) != bxattr_exit_ok) {
+      xattr_drop_internal_table(xattr_value_list);
       return bxattr_exit_error;
    }
 
-   /*
-    * Try restoring the extended attribute.
-    */
-   cnt = extattr_set_link(jcr->last_fname, current_attrnamespace,
-                          attrname, xattr->value, xattr->value_length);
-   if (cnt < 0 || cnt != xattr->value_length) {
-      switch (errno) {
-      case ENOENT:
-         break;
-      default:
-         Mmsg2(jcr->errmsg, _("extattr_set_link error on file \"%s\": ERR=%s\n"),
-               jcr->last_fname, be.bstrerror());
-         Dmsg2(100, "extattr_set_link error file=%s ERR=%s\n",
-               jcr->last_fname, be.bstrerror());
-         return bxattr_exit_error;
-         break;
+   foreach_alist(current_xattr, xattr_value_list) {
+      /*
+       * Try splitting the xattr_name into a namespace and name part.
+       * The splitting character is a .
+       */
+      attrnamespace = current_xattr->name;
+      if ((attrname = strchr(attrnamespace, '.')) == (char *)NULL) {
+         Mmsg2(jcr->errmsg, _("Failed to split %s into namespace and name part on file \"%s\"\n"),
+               current_xattr->name, jcr->last_fname);
+         Dmsg2(100, "Failed to split %s into namespace and name part on file \"%s\"\n",
+               current_xattr->name, jcr->last_fname);
+         goto bail_out;
+      }
+      *attrname++ = '\0';
+
+      /*
+       * Make sure the attrnamespace makes sense.
+       */
+      if (extattr_string_to_namespace(attrnamespace, &current_attrnamespace) != 0) {
+         Mmsg2(jcr->errmsg, _("Failed to convert %s into namespace on file \"%s\"\n"),
+               attrnamespace, jcr->last_fname);
+         Dmsg2(100, "Failed to convert %s into namespace on file \"%s\"\n",
+               attrnamespace, jcr->last_fname);
+         goto bail_out;
+      }
+
+      /*
+       * Try restoring the extended attribute.
+       */
+      cnt = extattr_set_link(jcr->last_fname, current_attrnamespace,
+                             attrname, current_xattr->value, current_xattr->value_length);
+      if (cnt < 0 || cnt != current_xattr->value_length) {
+         switch (errno) {
+         case ENOENT:
+            goto bail_out;
+            break;
+         default:
+            Mmsg2(jcr->errmsg, _("extattr_set_link error on file \"%s\": ERR=%s\n"),
+                  jcr->last_fname, be.bstrerror());
+            Dmsg2(100, "extattr_set_link error file=%s ERR=%s\n",
+                  jcr->last_fname, be.bstrerror());
+            goto bail_out;
+            break;
+         }
       }
    }
 
+   xattr_drop_internal_table(xattr_value_list);
    return bxattr_exit_ok;
-}
 
-static bxattr_exit_code bsd_parse_xattr_streams(JCR *jcr, int stream)
-{
-   return unserialize_xattr_stream(jcr);
+bail_out:
+
+   xattr_drop_internal_table(xattr_value_list);
+   return bxattr_exit_error;
 }
 
 /*
