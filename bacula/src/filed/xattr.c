@@ -262,7 +262,6 @@ static bxattr_exit_code unserialize_xattr_stream(JCR *jcr, alist *xattr_value_li
 
 /*
  * This is a supported OS, See what kind of interface we should use.
- * Start with the generic interface used by most OS-es.
  */
 #if defined(HAVE_DARWIN_OS) || \
     defined(HAVE_LINUX_OS)
@@ -317,7 +316,7 @@ static const char *xattr_skiplist[1] = { NULL };
    #endif
 #endif
 
-static bxattr_exit_code generic_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
+static bxattr_exit_code linux_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
 {
    bool skip_xattr;
    char *xattr_list, *bp;
@@ -543,7 +542,7 @@ bail_out:
    return retval;
 }
 
-static bxattr_exit_code generic_xattr_parse_streams(JCR *jcr, int stream)
+static bxattr_exit_code linux_xattr_parse_streams(JCR *jcr, int stream)
 {
    xattr_t *current_xattr;
    alist *xattr_value_list;
@@ -575,16 +574,15 @@ static bxattr_exit_code generic_xattr_parse_streams(JCR *jcr, int stream)
    return bxattr_exit_ok;
 
 bail_out:
-
    xattr_drop_internal_table(xattr_value_list);
    return bxattr_exit_error;
 }
 
 /*
- * For all these os-es setup the build and parse function pointer to the generic functions.
+ * Function pointers to the build and parse function to use for these xattrs.
  */
-static bxattr_exit_code (*os_build_xattr_streams)(JCR *jcr, FF_PKT *ff_pkt) = generic_xattr_build_streams;
-static bxattr_exit_code (*os_parse_xattr_streams)(JCR *jcr, int stream) = generic_xattr_parse_streams;
+static bxattr_exit_code (*os_build_xattr_streams)(JCR *jcr, FF_PKT *ff_pkt) = linux_xattr_build_streams;
+static bxattr_exit_code (*os_parse_xattr_streams)(JCR *jcr, int stream) = linux_xattr_parse_streams;
 
 #elif defined(HAVE_FREEBSD_OS) || \
       defined(HAVE_NETBSD_OS) || \
@@ -951,7 +949,6 @@ static bxattr_exit_code bsd_parse_xattr_streams(JCR *jcr, int stream)
    return bxattr_exit_ok;
 
 bail_out:
-
    xattr_drop_internal_table(xattr_value_list);
    return bxattr_exit_error;
 }
