@@ -683,6 +683,7 @@ void do_restore(JCR *jcr)
          }
          break;
 
+      case STREAM_XATTR_OPENBSD:
       case STREAM_XATTR_SOLARIS_SYS:
       case STREAM_XATTR_SOLARIS:
       case STREAM_XATTR_DARWIN:

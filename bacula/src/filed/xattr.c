@@ -36,6 +36,7 @@
  *   - Linux (Extended Attributes)
  *   - NetBSD (Extended Attributes)
  *   - FreeBSD (Extended Attributes)
+ *   - OpenBSD (Extended Attributes)
  *   - Solaris (Extended Attributes and Extensible Attributes)
  *
  *   Written by Marco van Wieringen, November MMVIII
@@ -134,10 +135,6 @@ static const char *xattr_skiplist[3] = { "com.apple.system.extendedsecurity", "c
 #elif defined(HAVE_LINUX_OS)
 static int os_default_xattr_streams[1] = { STREAM_XATTR_LINUX };
 static const char *xattr_acl_skiplist[2] = { "system.posix_acl_access", NULL };
-static const char *xattr_skiplist[1] = { NULL };
-#elif defined(HAVE_NETBSD_OS)
-static int os_default_xattr_streams[1] = { STREAM_XATTR_NETBSD };
-static const char *xattr_acl_skiplist[1] = { NULL };
 static const char *xattr_skiplist[1] = { NULL };
 #endif
 
@@ -585,7 +582,9 @@ static bxattr_exit_code generic_xattr_parse_streams(JCR *jcr, int stream)
 static bxattr_exit_code (*os_build_xattr_streams)(JCR *jcr, FF_PKT *ff_pkt) = generic_xattr_build_streams;
 static bxattr_exit_code (*os_parse_xattr_streams)(JCR *jcr, int stream) = generic_xattr_parse_streams;
 
-#elif defined(HAVE_FREEBSD_OS)
+#elif defined(HAVE_FREEBSD_OS) || \
+      defined(HAVE_NETBSD_OS) || \
+      defined(HAVE_OPENBSD_OS)
 
 #ifdef HAVE_SYS_EXTATTR_H
 #include <sys/extattr.h>
