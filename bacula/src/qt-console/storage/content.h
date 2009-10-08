@@ -51,6 +51,7 @@ public slots:
    void consoleMountStorage();
    void statusStorageWindow();
    void consoleUnMountStorage();
+   void showMediaInfo(QTableWidgetItem * item);
 
 private slots:
    void populateContent();

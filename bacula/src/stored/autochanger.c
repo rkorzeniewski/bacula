@@ -559,7 +559,7 @@ bool autochanger_cmd(DCR *dcr, BSOCK *dir, const char *cmd)
       dir->fsend(_("3996 Open bpipe failed.\n"));
       goto bail_out;
    }
-   if (strcmp(cmd, "list") == 0) {
+   if (bstrcmp(cmd, "list") || bstrcmp(cmd, "listall")) {
       /* Get output from changer */
       while (fgets(dir->msg, len, bpipe->rfd)) {
          dir->msglen = strlen(dir->msg);
