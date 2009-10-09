@@ -2402,19 +2402,31 @@ if test x$support_xattr = xyes -o x$support_xattr = xauto; then
    AC_CHECK_FUNCS(extattr_get_link extattr_set_link extattr_list_link,
       [
 	  have_xattr=yes
-	  AC_DEFINE([HAVE_EXTATTR_GET_LINK],1,[Define to 1 if you have the `extattr_get_link' function.])
-	  AC_DEFINE([HAVE_EXTATTR_SET_LINK],1,[Define to 1 if you have the `extattr_set_link' function.])
-	  AC_DEFINE([HAVE_EXTATTR_LIST_LINK],1,[Define to 1 if you have the `extattr_list_link' function.])
+	  AC_DEFINE([HAVE_EXTATTR_GET_LINK],1,[Define to 1 if you have the 'extattr_get_link' function.])
+	  AC_DEFINE([HAVE_EXTATTR_SET_LINK],1,[Define to 1 if you have the 'extattr_set_link' function.])
+	  AC_DEFINE([HAVE_EXTATTR_LIST_LINK],1,[Define to 1 if you have the 'extattr_list_link' function.])
       ]
    )
    
+   if test $have_xattr = yes; then
+      AC_CHECK_FUNCS(extattr_get_file extattr_set_file extattr_list_file,
+         [
+	     have_xattr=yes
+	     AC_DEFINE([HAVE_EXTATTR_GET_FILE],1,[Define to 1 if you have the 'extattr_get_file' function.])
+	     AC_DEFINE([HAVE_EXTATTR_SET_FILE],1,[Define to 1 if you have the 'extattr_set_file' function.])
+	     AC_DEFINE([HAVE_EXTATTR_LIST_FILE],1,[Define to 1 if you have the 'extattr_list_file' function.])
+         ]
+      )
+   fi
+   
+   fi
    if test $have_xattr = yes; then
       have_extattr_string_in_libc=no
       AC_CHECK_FUNCS(extattr_namespace_to_string extattr_string_to_namespace,
          [
              have_extattr_string_in_libc=yes
-	     AC_DEFINE([HAVE_EXTATTR_NAMESPACE_TO_STRING],1,[Define to 1 if you have the `extattr_namespace_to_string' function.])
-	     AC_DEFINE([HAVE_EXTATTR_STRING_TO_NAMESPACE],1,[Define to 1 if you have the `extattr_string_to_namespace' function.])
+	     AC_DEFINE([HAVE_EXTATTR_NAMESPACE_TO_STRING],1,[Define to 1 if you have the 'extattr_namespace_to_string' function.])
+	     AC_DEFINE([HAVE_EXTATTR_STRING_TO_NAMESPACE],1,[Define to 1 if you have the 'extattr_string_to_namespace' function.])
          ]
       )
 
@@ -2424,8 +2436,8 @@ if test x$support_xattr = xyes -o x$support_xattr = xauto; then
       if test $have_extattr_string_in_libc = no; then
          AC_CHECK_LIB(util, extattr_namespace_to_string extattr_string_to_namespace,
             [
-	        AC_DEFINE([HAVE_EXTATTR_NAMESPACE_TO_STRING],1,[Define to 1 if you have the `extattr_namespace_to_string' function.])
-	        AC_DEFINE([HAVE_EXTATTR_STRING_TO_NAMESPACE],1,[Define to 1 if you have the `extattr_string_to_namespace' function.])
+	        AC_DEFINE([HAVE_EXTATTR_NAMESPACE_TO_STRING],1,[Define to 1 if you have the 'extattr_namespace_to_string' function.])
+	        AC_DEFINE([HAVE_EXTATTR_STRING_TO_NAMESPACE],1,[Define to 1 if you have the 'extattr_string_to_namespace' function.])
                 FDLIBS="-lutil $FDLIBS"
             ]
          )
@@ -2440,9 +2452,9 @@ if test x$support_xattr = xyes -o x$support_xattr = xauto; then
       AC_CHECK_FUNCS(llistxattr lgetxattr lsetxattr,
          [
 	     have_xattr=yes
-	     AC_DEFINE([HAVE_LLISTXATTR],1,[Define to 1 if you have the `llistxattr' function.])
-	     AC_DEFINE([HAVE_LGETXATTR],1,[Define to 1 if you have the `lgetxattr' function.])
-	     AC_DEFINE([HAVE_LSETXATTR],1,[Define to 1 if you have the `lsetxattr' function.])
+	     AC_DEFINE([HAVE_LLISTXATTR],1,[Define to 1 if you have the 'llistxattr' function.])
+	     AC_DEFINE([HAVE_LGETXATTR],1,[Define to 1 if you have the 'lgetxattr' function.])
+	     AC_DEFINE([HAVE_LSETXATTR],1,[Define to 1 if you have the 'lsetxattr' function.])
          ]
       )
 
@@ -2450,9 +2462,9 @@ if test x$support_xattr = xyes -o x$support_xattr = xauto; then
          AC_CHECK_FUNCS(listxattr getxattr setxattr,
 	    [
 	        have_xattr=yes
-	        AC_DEFINE([HAVE_LISTXATTR],1,[Define to 1 if you have the `listxattr' function.])
-	        AC_DEFINE([HAVE_GETXATTR],1,[Define to 1 if you have the `getxattr' function.])
-	        AC_DEFINE([HAVE_SETXATTR],1,[Define to 1 if you have the `setxattr' function.])
+	        AC_DEFINE([HAVE_LISTXATTR],1,[Define to 1 if you have the 'listxattr' function.])
+	        AC_DEFINE([HAVE_GETXATTR],1,[Define to 1 if you have the 'getxattr' function.])
+	        AC_DEFINE([HAVE_SETXATTR],1,[Define to 1 if you have the 'setxattr' function.])
 	    ]
          )
       fi
@@ -2469,18 +2481,18 @@ if test x$support_xattr = xyes -o x$support_xattr = xauto; then
       AC_CHECK_FUNCS(openat fstatat unlinkat fchownat futimesat,
 	 [
 	     have_xattr=yes
-             AC_DEFINE([HAVE_OPENAT],1,[Define to 1 if you have the `openat' function.])
-             AC_DEFINE([HAVE_FSTATAT],1,[Define to 1 if you have the `fstatat' function.])
-             AC_DEFINE([HAVE_UNLINKAT],1,[Define to 1 if you have the `unlinkat' function.])
-             AC_DEFINE([HAVE_FCHOWNAT],1,[Define to 1 if you have the `fchownat' function.])
-             AC_DEFINE([HAVE_FUTIMESAT],1,[Define to 1 if you have the `futimesat' function.])
+             AC_DEFINE([HAVE_OPENAT],1,[Define to 1 if you have the 'openat' function.])
+             AC_DEFINE([HAVE_FSTATAT],1,[Define to 1 if you have the 'fstatat' function.])
+             AC_DEFINE([HAVE_UNLINKAT],1,[Define to 1 if you have the 'unlinkat' function.])
+             AC_DEFINE([HAVE_FCHOWNAT],1,[Define to 1 if you have the 'fchownat' function.])
+             AC_DEFINE([HAVE_FUTIMESAT],1,[Define to 1 if you have the 'futimesat' function.])
 	 ]
       )
 
       if test $have_xattr = yes; then
 	 AC_CHECK_LIB(nvpair, nvlist_next_nvpair,
 	    [
-                AC_DEFINE([HAVE_NVLIST_NEXT_NVPAIR],1,[Define to 1 if you have the `nvlist_next_nvpair' function.])
+                AC_DEFINE([HAVE_NVLIST_NEXT_NVPAIR],1,[Define to 1 if you have the 'nvlist_next_nvpair' function.])
 		FDLIBS="-lnvpair $FDLIBS"
 	    ]
 	 )
