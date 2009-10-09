@@ -1259,19 +1259,4 @@ bail_out:
    return false;
 }
 
-/*
- * Use to build a string of int list from a query. "10,20,30"
- */
-int db_get_int_handler(void *ctx, int num_fields, char **row)
-{
-   POOLMEM *ret = (POOLMEM *)ctx;
-   if (num_fields == 1) {
-      if (ret[0]) {
-         pm_strcat(ret, ",");
-      }
-      pm_strcat(ret, row[0]);
-   }
-   return 0;
-}
-
 #endif /* HAVE_SQLITE3 || HAVE_MYSQL || HAVE_SQLITE || HAVE_POSTGRESQL || HAVE_DBI */
