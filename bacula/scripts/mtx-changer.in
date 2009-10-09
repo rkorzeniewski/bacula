@@ -188,7 +188,22 @@ case $cmd in
       exit $rtn
       ;;
 
-   listall) 
+   listall)
+#  Drive content:         D:Drive num:F:Slot loaded:Volume Name
+#  D:0:F:2:vol2        or D:Drive num:E
+#  D:1:F:42:vol42   
+#  D:3:E
+# 
+#  Slot content:
+#  S:1:F:vol1             S:Slot num:F:Volume Name
+#  S:2:E               or S:Slot num:E
+#  S:3:F:vol4
+# 
+#  Import/Export tray slots:
+#  I:10:F:vol10           I:Slot num:F:Volume Name
+#  I:11:E              or I:Slot num:E
+#  I:12:F:vol40
+ 
       debug "Doing mtx -f $ctl -- to list all"
       make_temp_file
       if test ${inventory} -ne 0 ; then
