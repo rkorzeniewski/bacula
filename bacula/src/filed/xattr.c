@@ -390,7 +390,7 @@ static bxattr_exit_code linux_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
        */
       if (ff_pkt->flags & FO_ACL) {
          for (cnt = 0; xattr_acl_skiplist[cnt] != NULL; cnt++) {
-            if (!strcmp(bp, xattr_acl_skiplist[cnt])) {
+            if (bstrcmp(bp, xattr_acl_skiplist[cnt])) {
                skip_xattr = true;
                break;
             }
@@ -402,7 +402,7 @@ static bxattr_exit_code linux_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
        */
       if (!skip_xattr) {
          for (cnt = 0; xattr_skiplist[cnt] != NULL; cnt++) {
-            if (!strcmp(bp, xattr_skiplist[cnt])) {
+            if (bstrcmp(bp, xattr_skiplist[cnt])) {
                skip_xattr = true;
                break;
             }
@@ -743,7 +743,7 @@ static bxattr_exit_code bsd_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
           */
          if (ff_pkt->flags & FO_ACL) {
             for (cnt = 0; xattr_acl_skiplist[cnt] != NULL; cnt++) {
-               if (!strcmp(current_attrtuple, xattr_acl_skiplist[cnt])) {
+               if (bstrcmp(current_attrtuple, xattr_acl_skiplist[cnt])) {
                   skip_xattr = true;
                   break;
                }
@@ -755,7 +755,7 @@ static bxattr_exit_code bsd_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
           */
          if (skip_xattr) {
             for (cnt = 0; xattr_skiplist[cnt] != NULL; cnt++) {
-               if (!strcmp(current_attrtuple, xattr_skiplist[cnt])) {
+               if (bstrcmp(current_attrtuple, xattr_skiplist[cnt])) {
                   skip_xattr = true;
                   break;
                }
@@ -1739,13 +1739,13 @@ static bxattr_exit_code solaris_save_xattrs(JCR *jcr, const char *xattr_namespac
       /*
        * Skip only the toplevel . dir.
        */
-      if (!attr_parent && !strcmp(dp->d_name, "."))
+      if (!attr_parent && bstrcmp(dp->d_name, "."))
          continue;
 
       /*
        * Skip all .. directories
        */
-      if (!strcmp(dp->d_name, ".."))
+      if (bstrcmp(dp->d_name, ".."))
          continue;
 
       Dmsg3(400, "processing extended attribute %s%s on file \"%s\"\n",
@@ -1755,7 +1755,7 @@ static bxattr_exit_code solaris_save_xattrs(JCR *jcr, const char *xattr_namespac
       /*
        * We are not interested in read-only extensible attributes.
        */
-      if (!strcmp(dp->d_name, VIEW_READONLY)) {
+      if (bstrcmp(dp->d_name, VIEW_READONLY)) {
          Dmsg3(400, "Skipping readonly extensible attributes %s%s on file \"%s\"\n",
             current_xattr_namespace, dp->d_name, jcr->last_fname);
 
@@ -1766,7 +1766,7 @@ static bxattr_exit_code solaris_save_xattrs(JCR *jcr, const char *xattr_namespac
        * We are only interested in read-write extensible attributes
        * when they contain non-transient values.
        */
-      if (!strcmp(dp->d_name, VIEW_READWRITE)) {
+      if (bstrcmp(dp->d_name, VIEW_READWRITE)) {
          /*
           * Determine if there are non-transient system attributes at the toplevel.
           * We need to provide a fd to the open file.
@@ -2020,7 +2020,7 @@ static bxattr_exit_code solaris_restore_xattrs(JCR *jcr, bool is_extensible)
        * If its not the hidden_dir create the entry.
        * The current implementation of xattr on Solaris doesn't support this, but if it ever does we are prepared.
        */
-      if (strcmp(target_attrname, ".")) {
+      if (!bstrcmp(target_attrname, ".")) {
          unlinkat(attrdirfd, target_attrname, AT_REMOVEDIR);
          if (mkdir(target_attrname, st.st_mode) < 0) {
             Jmsg3(jcr, M_WARNING, 0, _("Unable to mkdir xattr %s on file \"%s\": ERR=%s\n"),
