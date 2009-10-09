@@ -1062,6 +1062,11 @@ static void content_send_info(UAContext *ua, char type, int Slot, char *vol_name
  * S:2:E               or S:Slot num:E
  * S:3:F:vol4
  *
+ * Import/Export tray slots:
+ * I:10:F:vol10           I:Slot num:F:Volume Name
+ * I:11:E              or I:Slot num:E
+ * I:12:F:vol40
+ *
  * If a drive is loaded, the slot *should* be empty 
  * 
  * Output:
@@ -1076,8 +1081,6 @@ static void content_send_info(UAContext *ua, char type, int Slot, char *vol_name
  * S|1|1|vol1|31417344|Full|LTO1-ANSI|Inc|1250858902|1282394902
  * S|2||||||||
  * S|3|3|vol4|15869952|Append|LTO1-ANSI|Inc|1250858907|1282394907
- *
- * Type can be S or I (Slot or Import/Export)
  *
  * TODO: need to merge with status_slots()
  */

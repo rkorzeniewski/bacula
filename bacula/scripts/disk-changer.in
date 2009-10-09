@@ -280,13 +280,15 @@ case $cmd in
 
       # we print drive content seen by autochanger
       # and we also remove loaded media from the barcode list
-      for i in $dir/loaded*
-      do
-          d=${i##$dir/loaded}
-          s=$(cat $i)
-          v=$(awk -F: "/^$s:/"' { print $2 }' $dir/barcodes)
-          echo "D:$d:F:$s:$v"
-          echo "^$s:" >> $TMPFILE
+      i=0
+      while [ $i -le $maxdrive ]; do
+	 if [ -f $dir/loaded${i} ]; then
+             ld=`cat $dir/loaded${i}`
+             v=`awk -F: "/^$ld:/"' { print $2 }' $dir/barcodes`
+             echo "D:$i:F:$ld:$$v"
+             echo "^$ld:" >> $TMPFILE
+	 fi
+	 i=`expr $i + 1`
       done
 
       # Empty slots are not in barcodes file
