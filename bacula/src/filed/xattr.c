@@ -711,6 +711,11 @@ static bxattr_exit_code bsd_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
        */
       for (index = 0; index < xattr_list_len; index += xattr_list[index] + 1) {
          skip_xattr = false;
+
+         /*
+          * print the current name into the buffer as its not null terminated we need to
+          * use the length encoded in the string for copying only the needed bytes.
+          */
          bsnprintf(current_attrname, sizeof(current_attrname), "%*.*s",
                    xattr_list[index], xattr_list[index], xattr_list + (index + 1));
 
@@ -727,8 +732,7 @@ static bxattr_exit_code bsd_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
          }
 
          /*
-          * print the current name into the buffer as its not null terminated we need to
-          * use the length encoded in the string for copying only the needed bytes.
+          * Create a tupple of the current attrnamespace and attrname.
           */
          bsnprintf(current_attrtuple, sizeof(current_attrtuple), "%s.%s", current_attrnamespace, current_attrname);
 
