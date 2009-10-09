@@ -37,6 +37,11 @@
  *   - NetBSD (Extended Attributes)
  *   - FreeBSD (Extended Attributes)
  *   - OpenBSD (Extended Attributes)
+ *     (As it seems either they never implemented xattr or they are removed
+ *      the support as it stated it was in version 3.1 but the current syscall
+ *      tabled shows the extattr_ functions are not implemented. So as such we
+ *      might eventually support xattr on OpenBSD when they implemented them using
+ *      the same interface as FreeBSD and NetBSD.
  *   - Solaris (Extended Attributes and Extensible Attributes)
  *
  *   Written by Marco van Wieringen, November MMVIII
