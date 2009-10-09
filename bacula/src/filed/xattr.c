@@ -588,12 +588,9 @@ static bxattr_exit_code (*os_parse_xattr_streams)(JCR *jcr, int stream) = linux_
       defined(HAVE_NETBSD_OS) || \
       defined(HAVE_OPENBSD_OS)
 
-#if !defined(HAVE_EXTATTR_GET_LINK) || \
-    !defined(HAVE_EXTATTR_SET_LINK) || \
-    !defined(HAVE_EXTATTR_LIST_LINK) || \
-    !defined(HAVE_EXTATTR_GET_FILE) || \
-    !defined(HAVE_EXTATTR_SET_FILE) || \
-    !defined(HAVE_EXTATTR_LIST_FILE) || \
+#if (!defined(HAVE_EXTATTR_GET_LINK) && !defined(HAVE_EXTATTR_GET_FILE)) || \
+    (!defined(HAVE_EXTATTR_SET_LINK) && !defined(HAVE_EXTATTR_SET_FILE)) || \
+    (!defined(HAVE_EXTATTR_LIST_LINK) && !defined(HAVE_EXTATTR_LIST_FILE)) || \
     !defined(HAVE_EXTATTR_NAMESPACE_TO_STRING) || \
     !defined(HAVE_EXTATTR_STRING_TO_NAMESPACE)
 #error "Missing full support for the extattr functions."
