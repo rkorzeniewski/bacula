@@ -2,7 +2,12 @@
           
 General:
 
+08Oct09
+ebl  Add listall command to autochanger interface
+ebl  Tweak autochanger screen in bat with new commands
+ebl  Add listall and transfer command to disk-changer and mtx-changer
 05Oct09
+kes  Fix concurrent Job recycle bug #1288
 mvw  Fix logic error in xattr code
 ebl  Apply Andreas's patch to remove ScratchPool ref from bat Media list screen.
 03Oct09
