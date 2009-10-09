@@ -347,19 +347,28 @@
 /* Define to 1 if you don't have `vprintf' but do have `_doprnt.' */
 #undef HAVE_DOPRNT
 
-/* Define to 1 if you have the `extattr_get_link' function. */
+/* Define to 1 if you have the 'extattr_get_file' function. */
+#undef HAVE_EXTATTR_GET_FILE
+
+/* Define to 1 if you have the 'extattr_get_link' function. */
 #undef HAVE_EXTATTR_GET_LINK
 
-/* Define to 1 if you have the `extattr_list_link' function. */
+/* Define to 1 if you have the 'extattr_list_file' function. */
+#undef HAVE_EXTATTR_LIST_FILE
+
+/* Define to 1 if you have the 'extattr_list_link' function. */
 #undef HAVE_EXTATTR_LIST_LINK
 
-/* Define to 1 if you have the `extattr_namespace_to_string' function. */
+/* Define to 1 if you have the 'extattr_namespace_to_string' function. */
 #undef HAVE_EXTATTR_NAMESPACE_TO_STRING
 
-/* Define to 1 if you have the `extattr_set_link' function. */
+/* Define to 1 if you have the 'extattr_set_file' function. */
+#undef HAVE_EXTATTR_SET_FILE
+
+/* Define to 1 if you have the 'extattr_set_link' function. */
 #undef HAVE_EXTATTR_SET_LINK
 
-/* Define to 1 if you have the `extattr_string_to_namespace' function. */
+/* Define to 1 if you have the 'extattr_string_to_namespace' function. */
 #undef HAVE_EXTATTR_STRING_TO_NAMESPACE
 
 /* Extended acl support */
@@ -368,7 +377,7 @@
 /* Define to 1 if you have the `fchdir' function. */
 #undef HAVE_FCHDIR
 
-/* Define to 1 if you have the `fchownat' function. */
+/* Define to 1 if you have the 'fchownat' function. */
 #undef HAVE_FCHOWNAT
 
 /* Define to 1 if you have the <fcntl.h> header file. */
@@ -383,10 +392,10 @@
 /* Define to 1 if you have the `fseeko' function. */
 #undef HAVE_FSEEKO
 
-/* Define to 1 if you have the `fstatat' function. */
+/* Define to 1 if you have the 'fstatat' function. */
 #undef HAVE_FSTATAT
 
-/* Define to 1 if you have the `futimesat' function. */
+/* Define to 1 if you have the 'futimesat' function. */
 #undef HAVE_FUTIMESAT
 
 /* Define to 1 if you have the `fwprintf' function. */
@@ -434,7 +443,7 @@
 /* Define to 1 if you have the `getuid' function. */
 #undef HAVE_GETUID
 
-/* Define to 1 if you have the `getxattr' function. */
+/* Define to 1 if you have the 'getxattr' function. */
 #undef HAVE_GETXATTR
 
 /* Define to 1 if you have the <grp.h> header file. */
@@ -477,7 +486,7 @@
 /* Define if your <locale.h> file defines LC_MESSAGES. */
 #undef HAVE_LC_MESSAGES
 
-/* Define to 1 if you have the `lgetxattr' function. */
+/* Define to 1 if you have the 'lgetxattr' function. */
 #undef HAVE_LGETXATTR
 
 /* Define if you have libcap */
@@ -516,10 +525,10 @@
 /* Define to 1 if you have the <limits.h> header file. */
 #undef HAVE_LIMITS_H
 
-/* Define to 1 if you have the `listxattr' function. */
+/* Define to 1 if you have the 'listxattr' function. */
 #undef HAVE_LISTXATTR
 
-/* Define to 1 if you have the `llistxattr' function. */
+/* Define to 1 if you have the 'llistxattr' function. */
 #undef HAVE_LLISTXATTR
 
 /* Define to 1 if you have the <locale.h> header file. */
@@ -534,7 +543,7 @@
 /* Define if you have the 'long long' type. */
 #undef HAVE_LONG_LONG
 
-/* Define to 1 if you have the `lsetxattr' function. */
+/* Define to 1 if you have the 'lsetxattr' function. */
 #undef HAVE_LSETXATTR
 
 /* Define to 1 if you have the `lstat' function. */
@@ -570,10 +579,10 @@
 /* Define to 1 if you have the <nl_types.h> header file. */
 #undef HAVE_NL_TYPES_H
 
-/* Define to 1 if you have the `nvlist_next_nvpair' function. */
+/* Define to 1 if you have the 'nvlist_next_nvpair' function. */
 #undef HAVE_NVLIST_NEXT_NVPAIR
 
-/* Define to 1 if you have the `openat' function. */
+/* Define to 1 if you have the 'openat' function. */
 #undef HAVE_OPENAT
 
 /* Define if OpenSSL library is available */
@@ -633,7 +642,7 @@
 /* Define to 1 if you have the `setsid' function. */
 #undef HAVE_SETSID
 
-/* Define to 1 if you have the `setxattr' function. */
+/* Define to 1 if you have the 'setxattr' function. */
 #undef HAVE_SETXATTR
 
 /* Define if the SHA-2 family of digest algorithms is available */
@@ -830,7 +839,7 @@
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
 
-/* Define to 1 if you have the `unlinkat' function. */
+/* Define to 1 if you have the 'unlinkat' function. */
 #undef HAVE_UNLINKAT
 
 /* Define if you have the 'unsigned long long' type. */
@@ -863,7 +872,7 @@
 /* Define if you have the 'wint_t' type. */
 #undef HAVE_WINT_T
 
-/* Exteded Attributes support */
+/* Extended Attributes support */
 #undef HAVE_XATTR
 
 /* Define to 1 if you have the <zlib.h> header file. */
