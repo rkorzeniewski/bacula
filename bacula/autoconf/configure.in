@@ -2408,7 +2408,7 @@ if test x$support_xattr = xyes -o x$support_xattr = xauto; then
       ]
    )
    
-   if test $have_xattr = yes; then
+   if test $have_xattr = no; then
       AC_CHECK_FUNCS(extattr_get_file extattr_set_file extattr_list_file,
          [
 	     have_xattr=yes
@@ -2419,7 +2419,6 @@ if test x$support_xattr = xyes -o x$support_xattr = xauto; then
       )
    fi
    
-   fi
    if test $have_xattr = yes; then
       have_extattr_string_in_libc=no
       AC_CHECK_FUNCS(extattr_namespace_to_string extattr_string_to_namespace,
