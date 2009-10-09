@@ -591,6 +591,9 @@ static bxattr_exit_code (*os_parse_xattr_streams)(JCR *jcr, int stream) = linux_
 #if !defined(HAVE_EXTATTR_GET_LINK) || \
     !defined(HAVE_EXTATTR_SET_LINK) || \
     !defined(HAVE_EXTATTR_LIST_LINK) || \
+    !defined(HAVE_EXTATTR_GET_FILE) || \
+    !defined(HAVE_EXTATTR_SET_FILE) || \
+    !defined(HAVE_EXTATTR_LIST_FILE) || \
     !defined(HAVE_EXTATTR_NAMESPACE_TO_STRING) || \
     !defined(HAVE_EXTATTR_STRING_TO_NAMESPACE)
 #error "Missing full support for the extattr functions."
@@ -604,6 +607,16 @@ static bxattr_exit_code (*os_parse_xattr_streams)(JCR *jcr, int stream) = linux_
 
 #ifdef HAVE_LIBUTIL_H
 #include <libutil.h>
+#endif
+
+#if !defined(HAVE_EXTATTR_GET_LINK) && defined(HAVE_EXTATTR_GET_FILE)
+#define extattr_get_link extattr_get_file
+#endif
+#if !defined(HAVE_EXTATTR_SET_LINK) && defined(HAVE_EXTATTR_SET_FILE)
+#define extattr_set_link extattr_set_file
+#endif
+#if !defined(HAVE_EXTATTR_LIST_LINK) && defined(HAVE_EXTATTR_LIST_FILE)
+#define extattr_list_link extattr_list_file
 #endif
 
 #if defined(HAVE_FREEBSD_OS)
