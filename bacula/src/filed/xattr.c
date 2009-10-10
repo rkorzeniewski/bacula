@@ -2251,9 +2251,7 @@ static bxattr_exit_code solaris_parse_xattr_streams(JCR *jcr, int stream)
 #if defined(HAVE_SYS_NVPAIR_H) && defined(_PC_SATTR_ENABLED)
    case STREAM_XATTR_SOLARIS_SYS:
       if (pathconf(jcr->last_fname, _PC_SATTR_ENABLED) <= 0) {
-         Qmsg1(jcr, M_WARNING, 0,
-               _("Failed to restore extensible attributes on file \"%s\"\n"),
-               jcr->last_fname);
+         Mmsg1(jcr->errmsg, _("Failed to restore extensible attributes on file \"%s\"\n"), jcr->last_fname);
          Dmsg1(100, "Unable to restore extensible attributes on file \"%s\", filesystem doesn't support this\n",
             jcr->last_fname);
          return bxattr_exit_error;
@@ -2264,9 +2262,7 @@ static bxattr_exit_code solaris_parse_xattr_streams(JCR *jcr, int stream)
 #endif
    case STREAM_XATTR_SOLARIS:
       if (pathconf(jcr->last_fname, _PC_XATTR_ENABLED) <= 0) {
-         Qmsg1(jcr, M_WARNING, 0,
-               _("Failed to restore extended attributes on file \"%s\"\n"),
-               jcr->last_fname);
+         Mmsg1(jcr->errmsg, _("Failed to restore extended attributes on file \"%s\"\n"), jcr->last_fname);
          Dmsg1(100, "Unable to restore extended attributes on file \"%s\", filesystem doesn't support this\n",
             jcr->last_fname);
          return bxattr_exit_error;
