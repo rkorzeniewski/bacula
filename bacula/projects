@@ -1314,6 +1314,90 @@ Item 1:   Relabel disk volume after recycling
 
   Notes:  The configuration option could be "Relabel after Recycling = Yes".
 
+Item n: Command that releases all drives in an autochanger
+  Origin: Blake Dunlap (blake@nxs.net)
+  Date:   10/07/2009
+  Status: Request
+
+  What:  It would be nice if there was a release command that
+         would release all drives in an autochanger instead of having to
+         do each one in turn.
+
+  Why: It can take some time for a release to occur, and the
+       commands must be given for each drive in turn, which can quicky
+       scale if there are several drives in the library.  (Having to
+       watch the console, to give each command can waste a good bit of
+       time when you start getting into the 16 drive range when the
+       tapes can take up to 3 minutes to eject each)
+
+  Notes: Due to the way some autochangers/libraries work, you
+       cannot assume that new tapes inserted will go into slots that are
+       not currently believed to be in use by bacula (the tape from that
+       slot is in a drive).  This would make any changes in
+       configuration quicker/easier, as all drives need to be released
+       before any modifications to slots.
+
+Item  n: Run bscan on a remote storage daemon from within bconsole.
+  Date:  07 October 2009
+  Origin: Graham Keeling <graham@equiinet.com>
+  Status: Proposing
+
+  What:  The ability to be able to run bscan on a remote storage daemon from
+         within bconsole in order to populate your catalog.
+
+  Why:   Currently, it seems you have to:
+         a) log in to a console on the remote machine
+         b) figure out where the storage daemon config file is
+         c) figure out the storage device from the config file
+         d) figure out the catalog IP address
+         e) figure out the catalog port
+         f) open the port on the catalog firewall
+         g) configure the catalog database to accept connections from the
+            remote host
+         h) build a 'bscan' command from (b)-(e) above and run it
+         It would be much nicer to be able to type something like this into
+         bconsole:
+         *bscan storage=<storage> device=<device> volume=<volume>
+         or something like:
+         *bscan storage=<storage> all
+         It seems to me that the scan could also do a better job than the
+         external bscan program currently does. It would possibly be able to
+         deduce some extra details, such as the catalog StorageId for the
+         volumes.
+
+  Notes: (Kern). If you need to do a bscan, you have done something wrong,
+         so this functionality should not need to be integrated into the
+         the Storage daemon.  However, I am not opposed to someone implementing
+         this feature providing that all the code is in a shared object (or dll)
+         and does not add significantly to the size of the Storage daemon. In
+         addition, the code should be written in a way such that the same source
+         code is used in both the bscan program and the Storage daemon to avoid
+         adding a lot of new code that must be maintained by the project.
+
+Item n:   Implement a Migration job type that will create a reverse
+          incremental (or decremental) backup from two existing full backups.
+  Date:   05 October 2009
+  Origin: Griffith College Dublin.  Some sponsorship available.
+          Contact: Gavin McCullagh <gavin.mccullagh@gcd.ie>
+  Status: 
+
+  What:   The ability to take two full backup jobs and derive a reverse
+          incremental backup from them.  The older full backup data may then
+          be discarded.
+
+  Why:    Long-term backups based on keeping full backups can be expensive in
+          media.  In many cases (eg a NAS), as the client accumulates files
+          over months and years, the same file will be duplicated unchanged,
+          across many media and datasets.  Eg, Less than 10% (and
+          shrinking) of our monthly full mail server backup is new files,
+          the other 90% is also in the previous full backup.
+          Regularly converting the oldest full backup into a reverse
+          incremental backup allows the admin to keep access to old backup
+          jobs, but remove all of the duplicated files, freeing up media.
+
+  Notes:  This feature was previously discussed on the bacula-devel list
+          here: http://www.mail-archive.com/bacula-devel@lists.sourceforge.net/msg04962.html
+ 
 
 ========= Add new items above this line =================
 
