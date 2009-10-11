@@ -31,6 +31,7 @@
 #include <QMenu>
 #include "content.h"
 #include "label/label.h"
+#include "mediainfo/mediainfo.h"
 #include "mount/mount.h"
 #include "util/fmtwidgetitem.h"
 #include "status/storstat.h"
@@ -72,8 +73,25 @@ Content::Content(QString storage, QTreeWidgetItem *parentWidget)
    connect(pbRelease, SIGNAL(clicked()), this,
            SLOT(consoleRelease()));
 
+   connect(tableContent, SIGNAL(itemDoubleClicked(QTableWidgetItem*)), this,
+           SLOT(showMediaInfo(QTableWidgetItem *)));
+
    dockPage();
    setCurrent();
+}
+
+
+/*
+ * Subroutine to call class to show the log in the database from that job
+ */
+void Content::showMediaInfo(QTableWidgetItem * item)
+{
+   QTreeWidgetItem* pageSelectorTreeWidgetItem = mainWin->getFromHash(this);
+   int row = item->row();
+   QString vol = tableContent->item(row, 1)->text();
+   if (vol != "") {
+      new MediaInfo(pageSelectorTreeWidgetItem, vol);
+   }
 }
 
 void table_get_selection(QTableWidget *table, QString &sel)
@@ -170,24 +188,41 @@ void Content::populateContent()
    m_console->dir_cmd(cmd, results_all);
 
    Freeze frz(*tableContent); /* disable updating*/
-   tableContent->clearContents();
+   Freeze frz2(*tableTray);
+   Freeze frz3(*tableDrive);
 
-   // take only valid records
-   QStringList results = results_all.filter(QRegExp("^[0-9]+\\|"));
+   tableContent->clearContents();
+   tableTray->clearContents();
+   tableTray->clearContents();
+
+   // take only valid records, TODO: Add D to get drive status
+   QStringList results = results_all.filter(QRegExp("^[IS]\\|[0-9]+\\|"));
    tableContent->setRowCount(results.size());
+
+   QStringList io_results = results_all.filter(QRegExp("^I\\|[0-9]+\\|"));
+   tableTray->setRowCount(io_results.size());
 
    QString resultline;
    QStringList fieldlist;
-   int row = 0;
+   int row = 0, row_io=0;
 
    foreach (resultline, results) {
       fieldlist = resultline.split("|");
-      if (fieldlist.size() < 9)
+      if (fieldlist.size() < 10) {
+         Pmsg1(0, "Discarding %s\n", resultline.data());
          continue; /* some fields missing, ignore row */
+      }
 
       int index=0;
       QStringListIterator fld(fieldlist);
       TableItemFormatter slotitem(*tableContent, row);
+
+      /* Slot type */
+      if (fld.next() == "I") {
+         TableItemFormatter ioitem(*tableTray, row_io++);
+         ioitem.setNumericFld(0, fieldlist[1]);
+         ioitem.setTextFld(1, fieldlist[3]);
+      }
 
       /* Slot */
       slotitem.setNumericFld(index++, fld.next()); 
@@ -234,21 +269,41 @@ void Content::populateContent()
    tableContent->resizeColumnsToContents();
    tableContent->resizeRowsToContents();
 
-   /* make read only */
-   int rcnt = tableContent->rowCount();
-   int ccnt = tableContent->columnCount();
-   for(int r=0; r < rcnt; r++) {
-      for(int c=0; c < ccnt; c++) {
-         QTableWidgetItem* item = tableContent->item(r, c);
-         if (item) {
-            item->setFlags(Qt::ItemFlags(item->flags() & (~Qt::ItemIsEditable)));
-         }
-      }
-   }
+   tableContent->setEditTriggers(QAbstractItemView::NoEditTriggers);
    m_populated = true;
 
    tableTray->verticalHeader()->hide();
+   tableTray->setEditTriggers(QAbstractItemView::NoEditTriggers);
+
    tableDrive->verticalHeader()->hide();
+   QStringList drives = results_all.filter(QRegExp("^D\\|[0-9]+\\|"));
+   row = 0;
+   foreach (resultline, drives) {
+      fieldlist = resultline.split("|");
+      if (fieldlist.size() < 4)
+         continue; /* some fields missing, ignore row */
+
+      int index=0;
+      QStringListIterator fld(fieldlist);
+      TableItemFormatter slotitem(*tableDrive, row);
+
+      /* Drive type */
+      fld.next();
+
+      /* Number */
+      slotitem.setNumericFld(index++, fld.next()); 
+
+      /* Slot */
+      fld.next();
+      
+      /* Volume */
+      slotitem.setTextFld(index++, fld.next());
+         
+      row++;
+   }
+
+   tableDrive->resizeRowsToContents();
+   tableDrive->setEditTriggers(QAbstractItemView::NoEditTriggers);
 }
 
 /*
