@@ -857,6 +857,7 @@ static bxattr_exit_code bsd_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
          xattr_count++;
 
          free(current_attrnamespace);
+         current_attrnamespace = (char *)NULL;
       }
 
       /*
