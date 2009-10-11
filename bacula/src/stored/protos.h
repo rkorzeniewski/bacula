@@ -127,7 +127,7 @@ void    dvd_remove_empty_part(DCR *dcr);
 /* From device.c */
 bool     open_device(DCR *dcr);
 bool     first_open_device(DCR *dcr);
-bool     fixup_device_block_write_error(DCR *dcr);
+bool     fixup_device_block_write_error(DCR *dcr, int retries=4);
 void     set_start_vol_position(DCR *dcr);
 void     set_new_volume_parameters(DCR *dcr);
 void     set_new_file_parameters(DCR *dcr);
