@@ -24,6 +24,7 @@ echo Source is ${new}
 
 if [ ${cur}x != ${new}x ] ; then
     echo "Newer version available, will run make setup"
+    git pull
     make setup
 else
     echo "Latest version present in build, skipping make setup"
