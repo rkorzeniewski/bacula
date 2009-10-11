@@ -18,7 +18,9 @@ find . -name "gigaslam.gif" -exec rm -f {} \;
 
 # bin directory does not always exist
 if [ -d ${bin} ] ; then
-  ${bin}/bacula stop 2>&1 >/dev/null
+  if [ -f ${bin}/bacula ] ; then
+     ${bin}/bacula stop 2>&1 >/dev/null
+  fi
   cd ${scripts}
   ./drop_bacula_tables      >/dev/null 2>&1
   ./make_bacula_tables      >/dev/null 2>&1
