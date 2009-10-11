@@ -310,6 +310,9 @@ static void job_end_pop(JCR *jcr)
    }
 }
 
+#
+# Create thread key for thread specific data
+#
 void create_jcr_key()
 {
    int status = pthread_key_create(&jcr_key, NULL);
