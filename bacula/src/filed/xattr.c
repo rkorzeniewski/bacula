@@ -648,7 +648,7 @@ static bxattr_exit_code bsd_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
    uint32_t expected_serialize_len = 0;
    unsigned int namespace_index;
    int attrnamespace;
-   char *current_attrnamespace, current_attrname[BUFSIZ], current_attrtuple[BUFSIZ];
+   char *current_attrnamespace = NULL, current_attrname[BUFSIZ], current_attrtuple[BUFSIZ];
    xattr_t *current_xattr;
    alist *xattr_value_list = NULL;
    bxattr_exit_code retval = bxattr_exit_error;
@@ -661,6 +661,19 @@ static bxattr_exit_code bsd_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
     */
    for (namespace_index = 0; namespace_index < sizeof(os_default_xattr_namespaces) / sizeof(int); namespace_index++) {
       attrnamespace = os_default_xattr_namespaces[namespace_index];
+
+      /*
+       * Convert the numeric attrnamespace into a string representation and make a private copy of that string.
+       */
+      if (extattr_namespace_to_string(attrnamespace, &current_attrnamespace) != 0) {
+         Mmsg2(jcr->errmsg, _("Failed to convert %d into namespace on file \"%s\"\n"),
+               attrnamespace, jcr->last_fname);
+         Dmsg2(100, "Failed to convert %d into namespace on file \"%s\"\n",
+               attrnamespace, jcr->last_fname);
+         goto bail_out;
+      }
+
+      current_attrnamespace = bstrdup(current_attrnamespace);
 
       /*
        * First get the length of the available list with extended attributes.
@@ -724,17 +737,6 @@ static bxattr_exit_code bsd_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
          /*
           * First make a xattr tuple of the current namespace and the name of the xattr.
           * e.g. something like user.<attrname> or system.<attrname>
-          */
-         if (extattr_namespace_to_string(attrnamespace, &current_attrnamespace) != 0) {
-            Mmsg2(jcr->errmsg, _("Failed to convert %d into namespace on file \"%s\"\n"),
-                  attrnamespace, jcr->last_fname);
-            Dmsg2(100, "Failed to convert %d into namespace on file \"%s\"\n",
-                  attrnamespace, jcr->last_fname);
-            goto bail_out;
-         }
-
-         /*
-          * Create a tupple of the current attrnamespace and attrname.
           */
          bsnprintf(current_attrtuple, sizeof(current_attrtuple), "%s.%s", current_attrnamespace, current_attrname);
 
@@ -853,6 +855,8 @@ static bxattr_exit_code bsd_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
 
          xattr_value_list->append(current_xattr);
          xattr_count++;
+
+         free(current_attrnamespace);
       }
 
       /*
@@ -892,6 +896,9 @@ static bxattr_exit_code bsd_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
    }
 
 bail_out:
+   if (current_attrnamespace) {
+      free(current_attrnamespace);
+   }
    if (xattr_list) {
       free(xattr_list);
    }
