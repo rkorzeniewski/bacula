@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2008 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2009 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -187,7 +187,7 @@ void sm_free(const char *file, int line, void *fp)
    struct abufhead *head = (struct abufhead *)cp;
 
    P(mutex);
-   Dmsg4(1150, "sm_free %d at %x from %s:%d\n",
+   Dmsg4(1150, "sm_free %d at %p from %s:%d\n",
          head->ablen, fp,
          head->abfname, head->ablineno);
 
@@ -327,7 +327,7 @@ void *sm_realloc(const char *fname, int lineno, void *ptr, unsigned int size)
       }
 
       /* All done.  Free and dechain the original buffer. */
-      sm_free(__FILE__, __LINE__, ptr);
+      sm_free(fname, lineno, ptr);
    }
    Dmsg4(150, _("sm_realloc %d at %x from %s:%d\n"), size, buf, fname, lineno);
    return buf;
