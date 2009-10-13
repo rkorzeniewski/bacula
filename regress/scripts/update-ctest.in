@@ -11,6 +11,7 @@ fi
 
 cd @regressdir@/build 
 
+touch git-version
 cur=`cat git-version`
 
 cd @srcdir@
