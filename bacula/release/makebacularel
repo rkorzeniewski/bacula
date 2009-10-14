@@ -99,8 +99,3 @@ cd ..
 echo " "
 echo "If everything is OK, don't forget to push $src tags to the repo"
 echo " "
-
-# Need to do docs and rescue
-#mv docs $base_pkg-docs-$ver
-#./makereldocs $ver
-#mv rescue $base_pkg-rescue-$ver
