@@ -118,7 +118,7 @@ bool setup_job(JCR *jcr)
    jcr->term_wait_inited = true;
 
    create_unique_job_name(jcr, jcr->job->name());
-   set_jcr_job_status(jcr, JS_Created);
+   jcr->setJobStatus(JS_Created);
    jcr->unlock();
 
    /*
@@ -264,18 +264,18 @@ static void *job_thread(void *arg)
    Dsm_check(1);
 
    Dmsg0(200, "=====Start Job=========\n");
-   set_jcr_job_status(jcr, JS_Running);   /* this will be set only if no error */
+   jcr->setJobStatus(JS_Running);   /* this will be set only if no error */
    jcr->start_time = time(NULL);      /* set the real start time */
    jcr->jr.StartTime = jcr->start_time;
 
    if (jcr->job->MaxStartDelay != 0 && jcr->job->MaxStartDelay <
        (utime_t)(jcr->start_time - jcr->sched_time)) {
-      set_jcr_job_status(jcr, JS_Canceled);
+      jcr->setJobStatus(JS_Canceled);
       Jmsg(jcr, M_FATAL, 0, _("Job canceled because max start delay time exceeded.\n"));
    }
 
    if (job_check_maxschedruntime(jcr)) {
-      set_jcr_job_status(jcr, JS_Canceled);
+      jcr->setJobStatus(JS_Canceled);
       Jmsg(jcr, M_FATAL, 0, _("Job canceled because max sched run time exceeded.\n"));
    }
 
@@ -393,7 +393,7 @@ bool cancel_job(UAContext *ua, JCR *jcr)
       ua->info_msg(_("JobId %s, Job %s marked to be canceled.\n"),
               edit_uint64(jcr->JobId, ed1), jcr->Job);
       jobq_remove(&job_queue, jcr); /* attempt to remove it from queue */
-      return true;
+      break;
 
    default:
       /* Cancel File daemon */
@@ -446,6 +446,7 @@ bool cancel_job(UAContext *ua, JCR *jcr)
          sd->close();
          ua->jcr->store_bsock = NULL;
       }
+      break;
    }
 
    return true;
