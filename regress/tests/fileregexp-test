@@ -51,6 +51,12 @@ run_bacula
 check_for_zombie_jobs storage=File
 stop_bacula
 
+#
+# The above restore should have restored some directories, but only
+# files that have README in their name.  There should in fact, be
+# no other files restored COUNT_OTHER==0 and 13 README files restored.
+# We complain if there are less than 11
+#
 COUNT_OTHER=`find ${tmp}/bacula-restores -type f | grep -v README | wc -l`
 COUNT_README=`find ${tmp}/bacula-restores -type f | grep README | wc -l`
 
