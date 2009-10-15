@@ -1943,7 +1943,7 @@ int re_search(regex_t * bufp, unsigned char *str, int size, int pos,
       if (!bufp->lcase) {
          bufp->lcase = get_pool_memory(PM_FNAME);
       }
-      check_pool_memory_size(bufp->lcase, len+1);
+      bufp->lcase = check_pool_memory_size(bufp->lcase, len+1);
       unsigned char *dst = (unsigned char *)bufp->lcase;
       while (*string) {
          *dst++ = tolower(*string++);

@@ -445,8 +445,8 @@ void *jobq_server(void *arg)
          V(jq->mutex);
 
          /* Call user's routine here */
-         Dmsg2(2300, "Calling user engine for jobid=%d use=%d\n", jcr->JobId,
-            jcr->use_count());
+         Dmsg3(2300, "Calling user engine for jobid=%d use=%d stat=%c\n", jcr->JobId,
+            jcr->use_count(), jcr->JobStatus);
          jq->engine(je->jcr);
 
          /* Job finished detach from thread */
