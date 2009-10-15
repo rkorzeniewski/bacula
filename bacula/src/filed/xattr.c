@@ -728,11 +728,12 @@ static bxattr_exit_code bsd_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
          skip_xattr = false;
 
          /*
-          * print the current name into the buffer as its not null terminated we need to
+          * Print the current name into the buffer as its not null terminated we need to
           * use the length encoded in the string for copying only the needed bytes.
           */
-         bsnprintf(current_attrname, sizeof(current_attrname), "%*.*s",
-                   xattr_list[index], xattr_list[index], xattr_list + (index + 1));
+         cnt = MIN((sizeof(current_attrname) - 1), xattr_list[index]);
+         strncpy(current_attrname, xattr_list + (index + 1), cnt);
+         current_attrname[cnt] = '\0';
 
          /*
           * First make a xattr tuple of the current namespace and the name of the xattr.
