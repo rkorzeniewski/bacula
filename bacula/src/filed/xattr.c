@@ -857,8 +857,12 @@ static bxattr_exit_code bsd_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
          xattr_value_list->append(current_xattr);
          xattr_count++;
 
-         bfree_and_null(current_attrnamespace);
       }
+
+      /*
+       * Drop the local copy of the current_attrnamespace.
+       */
+      bfree_and_null(current_attrnamespace);
 
       /*
        * We are done with this xattr list.
