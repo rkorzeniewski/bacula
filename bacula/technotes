@@ -2,6 +2,8 @@
           
 General:
 
+15Oct09
+kes  Fix bug #1391 Job status improperly set due to subtle variable overload problem
 13Oct09
 ebl  Fix #1352 about double free with regexp and big filenames on windows
 11Oct09
