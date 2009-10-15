@@ -857,8 +857,7 @@ static bxattr_exit_code bsd_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
          xattr_value_list->append(current_xattr);
          xattr_count++;
 
-         free(current_attrnamespace);
-         current_attrnamespace = (char *)NULL;
+         bfree_and_null(current_attrnamespace);
       }
 
       /*
