@@ -199,11 +199,12 @@ init_dev(JCR *jcr, DEVRES *device)
          Jmsg2(jcr, M_ERROR_TERM, 0, _("Unable to stat mount point %s: ERR=%s\n"), 
             device->mount_point, be.bstrerror());
       }
-   }
-   if (dev->is_dvd()) {
+   
       if (!device->mount_command || !device->unmount_command) {
          Jmsg0(jcr, M_ERROR_TERM, 0, _("Mount and unmount commands must defined for a device which requires mount.\n"));
       }
+   }
+   if (dev->is_dvd()) {
       if (!device->write_part_command) {
          Jmsg0(jcr, M_ERROR_TERM, 0, _("Write part command must be defined for a device which requires mount.\n"));
       }
@@ -2095,7 +2096,7 @@ bool DEVICE::mount(int timeout)
 bool DEVICE::unmount(int timeout) 
 {
    Dmsg0(100, "Enter unmount\n");
-   if (is_mounted()) {
+   if (requires_mount() && is_mounted()) {
       return do_mount(0, timeout);
    }
    return true;
