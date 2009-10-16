@@ -443,7 +443,7 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
                                  (const Byte *)wbuf, (uLong)wsize)) == Z_BUF_ERROR)
          {
             /* The buffer size is too small, try with a bigger one */
-            compress_len = compress_len + compress_len >> 1;
+            compress_len = compress_len + (compress_len >> 1);
             compress_buf = check_pool_memory_size(compress_buf,
                                                   compress_len);
          }
