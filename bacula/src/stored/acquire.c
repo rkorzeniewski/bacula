@@ -63,7 +63,8 @@ bool acquire_device_for_read(DCR *dcr)
    int vol_label_status;
    int retry = 0;
    
-   Dmsg1(950, "jcr->dcr=%p\n", jcr->dcr);
+   Dmsg2(950, "dcr=%p dev=%p\n", dcr, dcr->dev);
+   Dmsg2(950, "MediaType dcr=%s dev=%s\n", dcr->media_type, dev->device->media_type);
    dev->dblock(BST_DOING_ACQUIRE);
 
    if (dev->num_writers > 0) {
@@ -123,6 +124,7 @@ bool acquire_device_for_read(DCR *dcr)
       lock_reservations();
       memset(&rctx, 0, sizeof(RCTX));
       rctx.jcr = jcr;
+      jcr->read_dcr = dcr;
       jcr->reserve_msgs = New(alist(10, not_owned_by_alist));
       rctx.any_drive = true;
       rctx.device_name = vol->device;
@@ -166,6 +168,7 @@ bool acquire_device_for_read(DCR *dcr)
          goto get_out;
       }
    }
+   Dmsg2(400, "MediaType dcr=%s dev=%s\n", dcr->media_type, dev->device->media_type);
 
    dev->clear_unload();
 
@@ -332,7 +335,8 @@ get_out:
    } else {
       dev->dunlock();               /* dunblock() unlock the device too */
    }
-   Dmsg1(950, "jcr->dcr=%p\n", jcr->dcr);
+   Dmsg2(950, "dcr=%p dev=%p\n", dcr, dcr->dev);
+   Dmsg2(950, "MediaType dcr=%s dev=%s\n", dcr->media_type, dev->device->media_type);
    return ok;
 }
 
