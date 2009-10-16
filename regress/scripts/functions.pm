@@ -33,12 +33,49 @@ use strict;
 =cut
 
 package scripts::functions;
-
 # Export all functions needed to be used by a simple 
 # perl -Mscripts::functions -e '' script
 use Exporter;
 our @ISA = qw(Exporter);
-our @EXPORT =  qw(update_some_files create_many_files check_multiple_copies);
+our @EXPORT =  qw(update_some_files create_many_files check_multiple_copies
+                  $cwd $bin $scripts $conf $rscripts $tmp $working
+                  $db_name $db_user $db_password $src $tmpsrc);
+
+
+our ($cwd, $bin, $scripts, $conf, $rscripts, $tmp, $working,
+     $db_name, $db_user, $db_password, $src, $tmpsrc);
+
+BEGIN {
+    # start by loading the ./config file
+    my ($envar, $enval);
+    if (! -f "./config") {
+        die "Could not find ./config file\n";
+    }
+    # load the ./config file in a subshell doesn't allow to use "env" to display all variable
+    open(IN, ". ./config; env |") or die "Could not run shell: $!\n";
+    while ( my $l = <IN> ) {
+        chomp ($l);
+        ($envar,$enval) = split (/=/,$l,2);
+        $ENV{$envar} = $enval;
+    }
+    close(IN);
+    $cwd = `pwd`; 
+    chomp($cwd);
+
+    # set internal variable name and update environment variable
+    $ENV{db_name} = $db_name = $ENV{db_name} || 'regress';
+    $ENV{db_user} = $db_user = $ENV{db_user} || 'regress';
+    $ENV{db_password} = $db_password = $ENV{db_password} || '';
+
+    $ENV{bin}      = $bin      =  $ENV{bin}      || "$cwd/bin";
+    $ENV{tmp}      = $tmp      =  $ENV{tmp}      || "$cwd/tmp";
+    $ENV{src}      = $src      =  $ENV{src}      || "$cwd/src";
+    $ENV{conf}     = $conf     =  $ENV{conf}     || $bin;
+    $ENV{scripts}  = $scripts  =  $ENV{scripts}  || $bin;
+    $ENV{tmpsrc}   = $tmpsrc   =  $ENV{tmpsrc}   || "$cwd/tmp/build";
+    $ENV{working}  = $working  =  $ENV{working}  || "$cwd/working";    
+    $ENV{rscripts} = $rscripts =  $ENV{rscripts} || "$cwd/scripts";
+}
 
 # open a directory and update all files
 sub update_some_files
@@ -77,7 +114,7 @@ sub create_many_files
     $base = chr($nb % 26 + 65); # We use a base directory A-Z
 
     # already done
-    if (-f "$dest/$base/a${base}a750000aaa$base") {
+    if (-f "$dest/$base/a${base}a${nb}aaa${base}") {
         print "Files already created\n";
         return;
     }
@@ -87,7 +124,7 @@ sub create_many_files
     print "Create $nb files into $dest\n";
     for(my $i=0; $i < 26; $i++) {
         $base = chr($i + 65);
-        mkdir("$dest/$base");
+        mkdir("$dest/$base") if (! -d "$dest/$base");
     }
     for(my $i=0; $i<=$nb; $i++) {
         $base = chr($i % 26 + 65);
@@ -106,6 +143,17 @@ sub create_many_files
         print "." if (!($i % 10000));
     }
     print "\n";
+}
+
+sub check_encoding
+{
+    if (grep {/Wanted SQL_ASCII, got UTF8/} 
+        `${bin}/bacula-dir -d50 -t -c ${conf}/bacula-dir.conf 2>&1`)
+    {
+        print "Found database encoding problem, please modify the ",
+              "database encoding (SQL_ASCII)\n";
+        exit 1;
+    }
 }
 
 # This test ensure that 'list copies' displays only each copy one time

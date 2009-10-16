@@ -169,6 +169,8 @@ const char *stream_to_ascii(int stream)
       return _("Solaris Specific ACL attribs");
    case STREAM_ACL_SOLARIS_ACE:
       return _("Solaris Specific ACL attribs");
+   case STREAM_XATTR_OPENBSD:
+      return _("OpenBSD Specific Extended attribs");
    case STREAM_XATTR_SOLARIS_SYS:
       return _("Solaris Specific Extensible attribs or System Extended attribs");
    case STREAM_XATTR_SOLARIS:
