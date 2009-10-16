@@ -2,6 +2,8 @@
           
 General:
 
+16Oct09
+kes  Fix switching read device reported by Nicolae Mihalache <mache@abcpages.com>
 15Oct09
 kes  Fix bug #1391 Job status improperly set due to subtle variable overload problem
 13Oct09
