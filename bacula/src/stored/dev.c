@@ -1926,8 +1926,16 @@ void DEVICE::close()
    case B_VTAPE_DEV:
    case B_TAPE_DEV:
       unlock_door(); 
+      d_close(m_fd);
+      break;
+   case B_FILE_DEV:
+   case B_DVD_DEV:
+      d_close(m_fd);
+      unmount(1);                     /* do unmount if required */
+      break;
    default:
       d_close(m_fd);
+      break;
    }
 
    /* Clean up device packet so it can be reused */
