@@ -671,7 +671,7 @@ void do_restore(JCR *jcr)
                 * print the error message set by the lower level routine in jcr->errmsg.
                 */
                if (jcr->acl_data->nr_errors < ACL_REPORT_ERR_MAX_PER_JOB) {
-                  Qmsg(jcr, M_WARNING, 0, "%s", jcr->errmsg);
+                  Jmsg(jcr, M_WARNING, 0, "%s", jcr->errmsg);
                }
                jcr->acl_data->nr_errors++;
                break;
@@ -683,6 +683,7 @@ void do_restore(JCR *jcr)
          }
          break;
 
+      case STREAM_XATTR_OPENBSD:
       case STREAM_XATTR_SOLARIS_SYS:
       case STREAM_XATTR_SOLARIS:
       case STREAM_XATTR_DARWIN:
@@ -710,7 +711,7 @@ void do_restore(JCR *jcr)
                 * print the error message set by the lower level routine in jcr->errmsg.
                 */
                if (jcr->xattr_data->nr_errors < XATTR_REPORT_ERR_MAX_PER_JOB) {
-                  Qmsg(jcr, M_WARNING, 0, "%s", jcr->errmsg);
+                  Jmsg(jcr, M_WARNING, 0, "%s", jcr->errmsg);
                }
                jcr->xattr_data->nr_errors++;
                break;
