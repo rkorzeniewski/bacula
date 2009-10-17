@@ -585,16 +585,19 @@ bool mark_media_purged(UAContext *ua, MEDIA_DBR *mr)
 
       if (mr->ActionOnPurge > 0) {
          /* Send the command to truncate the volume after purge. If this feature
-          * is disabled for the specific device, this will be a no-op. */
+          * is disabled for the specific device, this will be a no-op.
+          */
          BSOCK *sd;
          if ((sd=open_sd_bsock(ua)) != NULL) {
+            bash_spaces(mr->VolumeName);
             sd->fsend("action_on_purge %s vol=%s action=%d",
                       ua->jcr->wstore->dev_name(),
 		      mr->VolumeName,
 		      mr->ActionOnPurge);
-
-            while (sd->recv() >= 0)
+            unbash_spaces(mr->VolumeName);
+            while (sd->recv() >= 0) {
                ua->send_msg("%s", sd->msg);
+            }
 
             sd->signal(BNET_TERMINATE);
             sd->close();
