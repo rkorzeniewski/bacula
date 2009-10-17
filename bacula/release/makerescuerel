@@ -72,6 +72,5 @@ cd ${cwd}
 ./sign $base_pkg-$ver.tar.gz
 ls -l $base_pkg-$ver.tar.*
 
-echo " "
-echo "If everything is OK, don't forget to push $src tags to the repo"
-echo " "
+git push
+git push --tags
