@@ -48,6 +48,7 @@ Document:
   for disaster recovery.
  
 Professional Needs:
+- Nexenta (zfs + hardy + iscsi + nas + smf support)
 - NDMP
   - For NAS OpenNAS
   - ndmfs -- File Server extention in NDMPv4.

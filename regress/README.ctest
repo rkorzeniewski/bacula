@@ -58,11 +58,10 @@ that -- they are things where you are experimenting and it is expected that
 something might be broken (bad ctest configuration, experimental source
 code, ...), and nightly runs are not expected to fail.
 
-If you are a developer and you have modified your local SVN repository, you
+If you are a developer and you have modified your local Git repository, you
 should be running the experimental tests -- they are designed for developers.
 If you do modify your local repository and commit it, then run a nightly
-test, the local repository may be reverted to a prior version so that the
-nightly tests all have a consistent cutoff time.
+test.
 
 If you are just doing testing on a nightly basis (no development in your
 source repository), then please use the nightly tests.
@@ -95,7 +94,7 @@ directory, and submit these updates along with the test results.  Any
 Experimental runs will not.
 
 Before either type of run actually begins running tests, ctest will run the
-script scripts/update-ctest.  This script first compares the svn version of
+script scripts/update-ctest.  This script first compares the version of
 BUILD_SOURCE with that of the build/ directory.  If the two versions differ, or
 if the build/ directory does not exist, it will automatically run 'make setup'
 for you.
@@ -117,7 +116,7 @@ minutes or so before your results show up.
 Email from Frank describing the flow when running a ctest and some of the
 problems that come up.
 
-0. Start off with a local svn repository at version A, and the master 
+0. Start off with a local Git repository at version A, and the master 
 repository at version B.
 
 1. nightly-disk is started.
@@ -135,7 +134,7 @@ BuildName parameter of A.
 6. nightly-disk then runs 'ctest -D Nightly'.  This implicitly tells ctest to 
 perform Update, Configure, Build, Test, and Submit stages, in that order.
 
-7. The Update stage runs 'svn update' on the local repository.  The local 
+7. The Update stage runs 'git pull' on the local repository.  The local 
 repository is now updated to version B from the master, but since the 
 DartConfiguration.tcl file was already created and has not been updated, the 
 Update.xml file has the version A BuildName still.
@@ -146,7 +145,7 @@ to not throw any false errors, and can effectively be treated as a no-op.
 
 9. Next is the Build stage, which is handled by calling scripts/update-ctest.
 
-10.  update-ctest checks the svn versions of regress/build vs BACULA_SOURCE. 
+10.  update-ctest checks the Git versions of regress/build vs BACULA_SOURCE. 
 Since the two are different (regress/build is still version A, while 
 BACULA_SOURCE has been updated to B) it calls 'make setup'.
 
@@ -181,7 +180,7 @@ runs at
 http://regress.bacula.org:8081/Bacula/Dashboard/Dashboard?trackid=29
 
 The Update and Build information show up with a BuildName of 
-bacula-2.­3.­10-26Feb08-Linux-sqlite3, then after svn update hit the Test 
+bacula-2.­3.­10-26Feb08-Linux-sqlite3, then aftegit pull hit the Test 
 information shows up with bacula-2.­3.­11-03Mar08-Linux-sqlite3.  (Ignore for 
 the moment the fact my timestamps are at 6:59PM, rather than at 9PM where 
 they're supposed to be; this seems to be a Fedora specific client side issue I 

@@ -12,10 +12,6 @@
 BACULA_VERSION:=@VERSION@
 BACULA_DL_URL:=http://downloads.sourceforge.net/project/bacula/bacula/${BACULA_VERSION}/bacula-${BACULA_VERSION}.tar.gz
 
-# fakeroot version and download site
-FAKEROOT_VERSION:=1.13
-FAKEROOT_DL_URL:=http://ftp.de.debian.org/debian/pool/main/f/fakeroot/fakeroot_${FAKEROOT_VERSION}.tar.gz
-
 # Build universal binary. Comment out when building versions of bacula < 3.0.0
 ARCHFLAGS:=-arch i386 -arch ppc
 MACOSX_SDK_SYSROOT:=/Developer/SDKs/MacOSX10.4u.sdk
@@ -26,6 +22,7 @@ PM:=/Developer/Applications/Utilities/PackageMaker.app/Contents/MacOS/PackageMak
 MAKE:=/usr/bin/make
 CURL:=/usr/bin/curl
 TAR:=/usr/bin/tar
+FAKEROOT:=/usr/local/bin/fakeroot
 
 ########### you should not have to edit anything beyond this line ###########
 
@@ -33,7 +30,6 @@ TAR:=/usr/bin/tar
 DL_DIR:=dl
 BUILD_DIR:=build
 PRODUCTS_DIR:=products
-TOOLS_DIR:=tools
 
 WORKING_DIR:=${BUILD_DIR}/${BACULA_VERSION}
 BACULA_TAR:=${DL_DIR}/bacula-${BACULA_VERSION}.tar.gz
@@ -60,11 +56,6 @@ PACKAGE_DMG:=${PRODUCTS_DIR}/${PACKAGE_TITLE}.dmg
 PACKAGE_RESOURCES:=Description.plist ReadMe.html postflight preupgrade
 PACKAGE_XRESOURCES:=postflight preupgrade
 
-FAKEROOT_TAR:=${DL_DIR}/fakeroot-${FAKEROOT_VERSION}.tar.gz
-FAKEROOT_SOURCE:=${TOOLS_DIR}/fakeroot-${FAKEROOT_VERSION}
-FAKEROOT_DESTDIR:=${FAKEROOT_SOURCE}/destdir
-FAKEROOT:=${FAKEROOT_DESTDIR}/bin/fakeroot
-
 # Flags for the toolchain
 CONFIGFLAGS:=--enable-client-only --prefix=${BACULA_PREFIX} \
     --with-dir-password=@DIR_PW@ --with-fd-password=@FD_PW@ \
@@ -86,7 +77,7 @@ INFILE_SUBST=\
 dmg: pkg
 	hdiutil create -srcfolder "${PACKAGE_DIR}" "${PACKAGE_DMG}"
 
-pkg: ${BACULA_DESTDIR} ${WORKING_DIR}/resources ${FAKEROOT_DESTDIR}
+pkg: ${BACULA_DESTDIR} ${WORKING_DIR}/resources
 	mkdir -p "${PACKAGE_DIR}"
 
 	sed ${INFILE_SUBST} \
@@ -138,22 +129,9 @@ ${BACULA_TAR}:
 	mkdir -p "${DL_DIR}"
 	${CURL} -L -o "${BACULA_TAR}" "${BACULA_DL_URL}"
 
-${FAKEROOT_DESTDIR}: ${FAKEROOT_SOURCE}
-	(cd ${FAKEROOT_SOURCE} && ./configure --prefix=${CURDIR}/${FAKEROOT_DESTDIR})
-	${MAKE} -C ${FAKEROOT_SOURCE}
-	${MAKE} -C ${FAKEROOT_SOURCE} install
-
-${FAKEROOT_SOURCE}: ${FAKEROOT_TAR}
-	mkdir -p "${TOOLS_DIR}"
-	${TAR} -xzf "${FAKEROOT_TAR}" -C "${TOOLS_DIR}"
-
-${FAKEROOT_TAR}:
-	mkdir -p "${DL_DIR}"
-	${CURL} -L -o "${FAKEROOT_TAR}" "${FAKEROOT_DL_URL}"
-
 .PHONY: distclean
 distclean: clean
-	rm -rf "${DL_DIR}" "${PRODUCTS_DIR}" "${TOOLS_DIR}"
+	rm -rf "${DL_DIR}" "${PRODUCTS_DIR}"
 
 .PHONY: clean
 clean:

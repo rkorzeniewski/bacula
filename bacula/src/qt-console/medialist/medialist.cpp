@@ -87,7 +87,7 @@ void MediaList::populateTree()
       << tr("Jobs") << tr("Retention") << tr("Media Type") << tr("Slot") << tr("Use Duration")
       << tr("Max Jobs") << tr("Max Files") << tr("Max Bytes") << tr("Recycle")
       << tr("Last Written") << tr("First Written") << tr("Read Time")
-      << tr("Write Time") << tr("Recycle Count") << tr("Recycle Pool") << tr("Scratch Pool"));
+      << tr("Write Time") << tr("Recycle Count") << tr("Recycle Pool"));
 
    m_checkcurwidget = false;
    mp_treeWidget->clear();
@@ -133,11 +133,10 @@ void MediaList::populateTree()
          " Media.FirstWritten AS FirstWritten,"
          " (VolReadTime/1000000) AS ReadTime, (VolWriteTime/1000000) AS WriteTime,"
          " RecycleCount AS ReCyCount,"
-         " RecPool.Name AS RecyclePool, ScrPool.Name AS ScratchPool"
+         " RecPool.Name AS RecyclePool"
          " FROM Media"
          " JOIN Pool ON (Media.PoolId=Pool.PoolId)"
          " LEFT OUTER JOIN Pool AS RecPool ON (Media.RecyclePoolId=RecPool.PoolId)"
-         " LEFT OUTER JOIN Pool AS ScrPool ON (Media.ScratchPoolId=ScrPool.PoolId)"
          " WHERE ";
       query += " Pool.Name IN (" + pool_comsep + ")";
       query += " ORDER BY Pool.Name, Media";
@@ -246,9 +245,6 @@ void MediaList::populateTree()
             mediaitem.setNumericFld(index++, fld.next()); 
 
             /* recycle pool */
-            mediaitem.setTextFld(index++, fld.next()); 
-
-            /* Scratch pool */
             mediaitem.setTextFld(index++, fld.next()); 
 
          } /* foreach resultline */

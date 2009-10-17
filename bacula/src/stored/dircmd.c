@@ -1065,7 +1065,10 @@ static bool changer_cmd(JCR *jcr)
     */
    bool safe_cmd = false;
 
-   if (sscanf(dir->msg, "autochanger list %127s", devname.c_str()) == 1) {
+   if (sscanf(dir->msg, "autochanger listall %127s", devname.c_str()) == 1) {
+      cmd = "listall";
+      safe_cmd = ok = true;
+   } else if (sscanf(dir->msg, "autochanger list %127s", devname.c_str()) == 1) {
       cmd = "list";
       safe_cmd = ok = true;
    } else if (sscanf(dir->msg, "autochanger slots %127s", devname.c_str()) == 1) {

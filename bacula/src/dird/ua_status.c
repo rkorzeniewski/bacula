@@ -48,6 +48,7 @@ static void do_client_status(UAContext *ua, CLIENT *client, char *cmd);
 static void do_director_status(UAContext *ua);
 static void do_all_status(UAContext *ua);
 void status_slots(UAContext *ua, STORE *store);
+void status_content(UAContext *ua, STORE *store);
 
 static char OKqstatus[]   = "1000 OK .status\n";
 static char DotStatusJob[] = "JobId=%s JobStatus=%c JobErrors=%d\n";
