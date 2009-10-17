@@ -96,5 +96,6 @@ cd ..
 ./sign $base_pkg-gui-$ver.tar.gz
 ./sign $base_pkg-regress-$ver.tar.gz
 
+cd ${src}
 git push
 git push --tags

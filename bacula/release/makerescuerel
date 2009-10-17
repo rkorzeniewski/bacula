@@ -72,5 +72,6 @@ cd ${cwd}
 ./sign $base_pkg-$ver.tar.gz
 ls -l $base_pkg-$ver.tar.*
 
+cd ${src}
 git push
 git push --tags
