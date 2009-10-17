@@ -20,6 +20,10 @@
 #       tunefs -a enable <device>
 #       acls mountoption in /etc/fstab
 #
+# For NetBSD:
+#
+#    Defaults should be ok (As NetBSD doesn't support native acls we skip that test).
+#
 TestName="acl-xattr-test"
 JobName=backup
 . scripts/functions
@@ -55,6 +59,14 @@ case `uname -s` in
         exit 0
       fi
 
+      # Require lsextattr to be installed
+      lsextattr user Makefile 2>&1 >/dev/null
+      if test $? -ne 0; then
+        echo "$TestName skipped: lsextattr not installed"
+        exit 0
+      fi
+      ;;
+   NetBSD)
       # Require lsextattr to be installed
       lsextattr user Makefile 2>&1 >/dev/null
       if test $? -ne 0; then
@@ -165,7 +177,14 @@ EOF
         getextattr user bacula.test $d/other > $cwd/tmp/attr.org
       )
       ;;
-   Darwin)
+   NetBSD)
+      cp ${cwd}/bin/bconsole $d/other
+      setextattr user bacula.test rulez $d/other 2>/dev/null 1>/dev/null
+
+      ( cd $cwd/build
+        cp /dev/null $cwd/tmp/org
+        getextattr user bacula.test $d/other > $cwd/tmp/attr.org
+      )
       ;;
 esac
 
@@ -223,6 +242,12 @@ case `uname -s` in
         do
            getfacl $file
         done > $cwd/tmp/new
+        getextattr user bacula.test $d/other > $cwd/tmp/attr.new
+      )
+      ;;
+   NetBSD)
+      ( cd $cwd/tmp/bacula-restores/$cwd/build
+        cp /dev/null $cwd/tmp/new
         getextattr user bacula.test $d/other > $cwd/tmp/attr.new
       )
       ;;
