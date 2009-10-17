@@ -65,7 +65,7 @@ read a
 
 git tag -d ${fulltag}
 echo "Creating new tag -- $fulltag"
-git tag $fulltag -m "Create tag $fulltag"
+git tag $fulltag
 if [ $? != 0 ] ; then
   echo " "
   echo "Non-zero return status from Git"
