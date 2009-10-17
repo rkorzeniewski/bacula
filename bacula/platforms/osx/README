@@ -13,6 +13,8 @@ installation and file permissions are checked and corrected on upgrades.
 Requirements:
 * Mac OS X 10.4 or later
 * Mac OS X developer tools installed
+* fakeroot >= 1.13 (http://ftp.debian.org/debian/pool/main/f/fakeroot/)
+  The makefile expects the compiled binary at /usr/local/bin/fakeroot.
 
 Example (compile and create package from within bacula source tree):
 $ ./configure --enable-client-only
@@ -60,7 +62,7 @@ Additional notes on the build-script:
   * In order to build Mac OS X installer packages in a repeatable manner with
     the correct owner/group and permissions, PackageMakers's cheap and broken
     mechanism of applying recommended permissions is not used. Instead
-    Debian's fakeroot tool gets built and used during the packaging process to
-    ensure that the ownership of the files in the installer's Archive.pax.gz
-    is set to root and that permissions are kept exactly like "make install"
-    set them before.
+    Debian's fakeroot tool is used during package building phase to ensure
+    that the ownership of the files in the installer's Archive.pax.gz is set
+    to root and that permissions are kept exactly like "make install" set them
+    before.
