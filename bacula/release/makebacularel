@@ -61,7 +61,7 @@ cd ${src}
 git commit -am "Final po changes for ${fulltag}"
 git tag -d ${fulltag}
 echo "Creating new tag -- $fulltag"
-git tag $fulltag -m "Create tag $fulltag"
+git tag $fulltag
 if [ $? != 0 ] ; then
   echo " "
   echo "Non-zero return status from Git"
@@ -96,6 +96,6 @@ cd ..
 ./sign $base_pkg-gui-$ver.tar.gz
 ./sign $base_pkg-regress-$ver.tar.gz
 
-echo " "
-echo "If everything is OK, don't forget to push $src tags to the repo"
-echo " "
+cd ${src}
+git push
+git push --tags
