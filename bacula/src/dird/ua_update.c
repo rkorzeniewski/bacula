@@ -465,7 +465,8 @@ static void update_volenabled(UAContext *ua, char *val, MEDIA_DBR *mr)
       return;
    }
    if (!db_update_media_record(ua->jcr, ua->db, mr)) {
-      ua->error_msg(_("Error updating media record Enabled: ERR=%s"), db_strerror(ua->db));
+      ua->error_msg(_("Error updating media record Enabled: ERR=%s"),
+                    db_strerror(ua->db));
    } else {
       ua->info_msg(_("New Enabled is: %d\n"), mr->Enabled);
    }
@@ -473,15 +474,20 @@ static void update_volenabled(UAContext *ua, char *val, MEDIA_DBR *mr)
 
 static void update_vol_actiononpurge(UAContext *ua, char *val, MEDIA_DBR *mr)
 {
-	if (strcasecmp(val, "truncate") == 0)
-		mr->ActionOnPurge = AOP_TRUNCATE;
-	else mr->ActionOnPurge = 0;
-
-	if (!db_update_media_record(ua->jcr, ua->db, mr)) {
-		ua->error_msg(_("Error updating media record ActionOnPurge: ERR=%s"), db_strerror(ua->db));
-	} else {
-		ua->info_msg(_("New ActionOnPurge is: %d\n"), mr->ActionOnPurge);
-	}
+   POOL_MEM ret;
+   if (strcasecmp(val, "truncate") == 0) {
+      mr->ActionOnPurge = AOP_TRUNCATE;
+   } else {
+      mr->ActionOnPurge = 0;
+   }
+   
+   if (!db_update_media_record(ua->jcr, ua->db, mr)) {
+      ua->error_msg(_("Error updating media record ActionOnPurge: ERR=%s"),
+                    db_strerror(ua->db));
+   } else {
+      ua->info_msg(_("New ActionOnPurge is: %d\n"), 
+                   aop_to_str(mr->ActionOnPurge, ret));
+   }
 }
 
 /*
@@ -496,6 +502,7 @@ static int update_volume(UAContext *ua)
    POOL *pool;
    POOL_DBR pr;
    POOLMEM *query;
+   POOL_MEM ret;
    char buf[1000];
    char ed1[130];
    bool done = false;
@@ -808,9 +815,11 @@ static int update_volume(UAContext *ua)
          return 1;
 
       case 16:
-	 ua->info_msg(_("Current ActionOnPurge is: %d\n"), mr.ActionOnPurge);
+         pm_strcpy(ret, "");
+	 ua->info_msg(_("Current ActionOnPurge is: %s\n"), 
+                      aop_to_str(mr.ActionOnPurge, ret));
 	 if (!get_cmd(ua, _("Enter new ActionOnPurge: (one of: Truncate, None) "))) {
-		 return 0;
+            return 0;
 	 }
 
          update_vol_actiononpurge(ua, ua->cmd, &mr);

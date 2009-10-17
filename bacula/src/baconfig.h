@@ -345,7 +345,7 @@ void InitWinAPIWrapper();
 #define B_IBM_LABEL    2
 
 /*
- * Actions on purge
+ * Actions on purge (bit mask)
  */
 #define AOP_TRUNCATE 1
 

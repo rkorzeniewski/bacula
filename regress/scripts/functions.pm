@@ -69,7 +69,7 @@ BEGIN {
 
     $ENV{bin}      = $bin      =  $ENV{bin}      || "$cwd/bin";
     $ENV{tmp}      = $tmp      =  $ENV{tmp}      || "$cwd/tmp";
-    $ENV{src}      = $src      =  $ENV{src}      || "$cwd/scr";
+    $ENV{src}      = $src      =  $ENV{src}      || "$cwd/src";
     $ENV{conf}     = $conf     =  $ENV{conf}     || $bin;
     $ENV{scripts}  = $scripts  =  $ENV{scripts}  || $bin;
     $ENV{tmpsrc}   = $tmpsrc   =  $ENV{tmpsrc}   || "$cwd/tmp/build";

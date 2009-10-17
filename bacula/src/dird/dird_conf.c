@@ -1601,17 +1601,16 @@ void save_resource(int type, RES_ITEM *items, int pass)
 
 static void store_actiononpurge(LEX *lc, RES_ITEM *item, int index, int pass)
 {
-	uint32_t *destination = (uint32_t*)item->value;
-	lex_get_token(lc, T_NAME);
-	printf("got token %s\n", lc->str);
-	if (strcasecmp(lc->str, "truncate") == 0)
-		*destination = (*destination) | AOP_TRUNCATE;
-	else {
-		scan_err2(lc, _("Expected one of: %s, got: %s"), "Truncate", lc->str);
-		return;
-	}
-	scan_to_eol(lc);
-	set_bit(index, res_all.hdr.item_present);
+   uint32_t *destination = (uint32_t*)item->value;
+   lex_get_token(lc, T_NAME);
+   if (strcasecmp(lc->str, "truncate") == 0) {
+      *destination = (*destination) | AOP_TRUNCATE;
+   } else {
+      scan_err2(lc, _("Expected one of: %s, got: %s"), "Truncate", lc->str);
+      return;
+   }
+   scan_to_eol(lc);
+   set_bit(index, res_all.hdr.item_present);
 }
 
 /*

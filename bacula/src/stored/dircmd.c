@@ -884,7 +884,6 @@ static bool action_on_purge_cmd(JCR *jcr)
    BSOCK *dir = jcr->dir_bsock;
    DEVICE *dev;
    DCR *dcr;
-   int drive;
    int action;
 
    if (sscanf(dir->msg, "action_on_purge %127s vol=%s action=%d",
@@ -892,8 +891,11 @@ static bool action_on_purge_cmd(JCR *jcr)
       dir->fsend(_("3916 Error scanning action_on_purge command\n"));
       goto done;
    }
+   unbash_spaces(volumename.c_str());
 
-   /* FIXME: autochanger, drive = 0? how can we avoid that? we only work on files */
+   /* FIXME: autochanger, drive = 0? how can we avoid that? we only work on
+    * files 
+    */
    if ((dcr = find_device(jcr, devname, 0)) == NULL) {
       dir->fsend(_("3999 Device \"%s\" not found or could not be opened.\n"), devname.c_str());
       goto done;
@@ -906,9 +908,11 @@ static bool action_on_purge_cmd(JCR *jcr)
    bstrncpy(dev->VolHdr.VolumeName, volumename.c_str(), sizeof(dev->VolHdr.VolumeName));
 
    /* Re-write the label with the recycle flag */
-   if (rewrite_volume_label(dcr, true))
+   if (rewrite_volume_label(dcr, true)) {
       dir->fsend(_("3917 Volume recycled\n"));
-   else dir->fsend(_("3918 Recycle failed\n"));
+   } else {
+      dir->fsend(_("3918 Recycle failed\n"));
+   }
 
 done:
    dir->signal(BNET_EOD);
