@@ -1,7 +1,6 @@
 #!/bin/sh
 #
-# Run a backup of the Bacula build directory with some acls
-#   then restore it.
+# Run a backup of the Bacula build directory with some acls then restore it.
 #
 # Your filesystem must be mounted with the acl option (mount -o remount,acl,user_xattr /tmp)
 # on ubuntu, the attr package must be installed
@@ -26,10 +25,10 @@ case `uname -s` in
         exit 0
       fi
 
-      # Require attr to be installed
-      attr -l Makefile 2>&1 >/dev/null
+      # Require getfattr to be installed
+      getfattr -d Makefile 2>&1 >/dev/null
       if test $? -ne 0; then
-        echo "$TestName skipped: attr not installed"
+        echo "$TestName skipped: getfattr not installed"
         exit 0
       fi
       ;;
@@ -73,11 +72,11 @@ case `uname -s` in
       setfacl -m group:nogroup:--x $d/bconsole
       cp ${cwd}/bin/bconsole $d/acl-dir
       cp ${cwd}/bin/bconsole $d/other
-      attr -s bacula.test -V rulez $d/other 2>/dev/null 1>/dev/null
+      setfattr -h -n user.bacula.test -v rulez $d/other 2>/dev/null 1>/dev/null
 
       ( cd $cwd/build
         getfacl -R acl > $cwd/tmp/org
-        attr -g bacula.test $d/other > $cwd/tmp/attr.org
+        getfattr -h -n user.bacula.test $d/other > $cwd/tmp/attr.org
       )
       ;;
    Darwin)
@@ -157,7 +156,7 @@ case `uname -s` in
    Linux)
       ( cd $cwd/tmp/bacula-restores/$cwd/build
         getfacl -R acl > $cwd/tmp/new
-        attr -g bacula.test $d/other > $cwd/tmp/attr.new
+        getfattr -h -n user.bacula.test $d/other > $cwd/tmp/attr.new
       )
       ;;
    Darwin)
