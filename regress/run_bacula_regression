@@ -18,14 +18,19 @@ BACULA_REGRESS_HOME="/bacula_regress"
 export BACULA_REGRESS_HOME
 
 #
+# Directory where regress config templates are stored per db type.
+#
+CONFIG_DIR="/root/configs"
+
+#
 # Lets use the SUN compiler
 #
-CC="/usr/bin/cc"
-CXX="/usr/bin/CC"
-CFLAGS="-fast"
-CXXFLAGS="-fast"
-
-export CC CXX CFLAGS CXXFLAGS
+#CC="/usr/bin/cc"
+#CXX="/usr/bin/CC"
+#CFLAGS="-fast"
+#CXXFLAGS="-fast"
+#
+#export CC CXX CFLAGS CXXFLAGS
 
 #
 # Regression script to run
@@ -51,8 +56,8 @@ run_sqlite3_regression()
    #
    # Run regression using sqlite3
    #
-   if [ -f /root/configs/config.sqlite3 ]; then
-      ln -sf /root/configs/config.sqlite3 config
+   if [ -f ${CONFIG_DIR}/config.sqlite3 ]; then
+      ln -sf ${CONFIG_DIR}/config.sqlite3 config
       if [ $? = 0 ]; then
          run_regression
       fi
@@ -64,8 +69,8 @@ run_postgresql_regression()
    #
    # Run regression using postgresql
    #
-   if [ -f /root/configs/config.postgresql ]; then
-      ln -sf /root/configs/config.postgresql config
+   if [ -f ${CONFIG_DIR}/config.postgresql ]; then
+      ln -sf ${CONFIG_DIR}/config.postgresql config
       if [ $? = 0 ]; then
          run_regression
       fi
@@ -77,8 +82,8 @@ run_mysql_regression()
    #
    # Run regression using mysql
    #
-   if [ -f /root/configs/config.mysql ]; then
-      ln -sf /root/configs/config.mysql config
+   if [ -f ${CONFIG_DIR}/config.mysql ]; then
+      ln -sf ${CONFIG_DIR}/config.mysql config
       if [ $? = 0 ]; then
          run_regression
       fi
