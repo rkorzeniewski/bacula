@@ -2,6 +2,10 @@
           
 General:
 
+17Oct09
+mvw  Fix bug #1361 where device was not unmounted.
+     One big warning however when you now set Requires Mount for a file device
+     you NEED to defined a mount and umount command or the stored will scream.
 16Oct09
 kes  Fix switching read device reported by Nicolae Mihalache <mache@abcpages.com>
 mvw  Merged xattr overhaul which implements the extattr interface for *BSD
