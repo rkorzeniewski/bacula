@@ -493,6 +493,7 @@ _Z18get_jobid_from_tsdv
 _Z18get_jcr_by_sessionjj
 _Z18init_jcr_subsystemv
 _Z18set_jcr_job_statusP3JCRi
+_ZN3JCR12setJobStatusEi
 _Z19init_last_jobs_listv
 _Z19lock_last_jobs_listv
 _Z19read_last_jobs_listiy

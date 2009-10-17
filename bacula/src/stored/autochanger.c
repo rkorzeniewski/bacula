@@ -432,6 +432,7 @@ static bool unload_other_drive(DCR *dcr, int slot)
       Dmsg4(100, "Vol %s for dev=%s is busy dev=%s slot=%d\n",
            dcr->VolumeName, dcr->dev->print_name(), dev->print_name(), dev->get_slot());
       Dmsg2(100, "num_writ=%d reserv=%d\n", dev->num_writers, dev->num_reserved());
+      volume_unused(dcr);
       return false;
    }
    return unload_dev(dcr, dev);
@@ -559,7 +560,7 @@ bool autochanger_cmd(DCR *dcr, BSOCK *dir, const char *cmd)
       dir->fsend(_("3996 Open bpipe failed.\n"));
       goto bail_out;
    }
-   if (strcmp(cmd, "list") == 0) {
+   if (bstrcmp(cmd, "list") || bstrcmp(cmd, "listall")) {
       /* Get output from changer */
       while (fgets(dir->msg, len, bpipe->rfd)) {
          dir->msglen = strlen(dir->msg);
