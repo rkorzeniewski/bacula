@@ -4,6 +4,7 @@ General:
 
 16Oct09
 kes  Fix switching read device reported by Nicolae Mihalache <mache@abcpages.com>
+mvw  Merged xattr overhaul which implements the extattr interface for *BSD
 15Oct09
 kes  Fix bug #1391 Job status improperly set due to subtle variable overload problem
 13Oct09

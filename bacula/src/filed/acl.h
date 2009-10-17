@@ -50,7 +50,7 @@ typedef enum {
 } bacl_type;
 
 /*
- * This value is used as ostype when we encounter a invalid acl type.
+ * This value is used as ostype when we encounter an invalid acl type.
  * The way the code is build this should never happen.
  */
 #if !defined(ACL_TYPE_NONE)
