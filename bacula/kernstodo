@@ -84,17 +84,6 @@ Professional Needs:
 Priority:
 ================
 
-- When reserving a device to read, check to see if the Volume
-  is already in use, if so wait.  Probably will need to pass the
-  Volume.  See bug #1313.  Create a regression test to simulate
-  this problem and see if VolumePollInterval fixes it. Possibly turn
-  it on by default.
-
-- Fix restore of acls and extended attributes to count ERROR
-  messages and make errors non-fatal.
-- Put save/restore various platform acl/xattrs on a pointer to simplify
-  the code.
-
 - Why no error message if restore has no permission on the where
   directory?
 - Possibly allow manual "purge" to purge a Volume that has not
@@ -102,16 +91,6 @@ Priority:
   is_volume_purged().
 - Add disk block detection bsr code (make it work).
 - Remove done bsrs.
-- Add blast attributes to DIR to SD.
-- Detect deadlocks in reservations.
-- Plugins:
-  - Add list during dump
-  - Add in plugin code flag
-  - Add bRC_EndJob -- stops more calls to plugin this job
-  - Add bRC_Term (unload plugin)
-  - remove time_t from Jmsg and use utime_t?
-- Deadlock detection, watchdog sees if counter advances when jobs are
-  running.  With debug on, can do a "status" command.
 - User options for plugins.
 - Pool Storage override precedence over command line.
 - Autolabel only if Volume catalog information indicates tape not
@@ -146,15 +125,16 @@ Priority:
   not exist, back it up, then try a full restore.  It fails.
 - Softlinks that point to non-existent file are not restored in restore all,
   but are restored if the file is individually selected.  BUG!
-- New directive "Delete purged Volumes"
 - Prune by Job
 - Prune by Job Level (Full, Differential, Incremental)
 - Strict automatic pruning 
-- Implement unmount of USB volumes.
 - Use "./config no-idea no-mdc2 no-rc5" on building OpenSSL for
   Win32 to avoid patent problems.
 - Implement multiple jobid specification for the cancel command,
   similar to what is permitted on the update slots command.
+  - Better yet allow wild-cards or regexes.
+- Add Group resource for grouping Jobs so they can all be
+  run at the same time or canceled at the same time.
 - modify pruning to keep a fixed number of versions of a file, 
   if requested.
 - the cd-command should allow complete paths
@@ -1583,3 +1563,27 @@ Item  1: Ability to restart failed jobs
 ===
 - Fix bpipe.c so that it does not modify results pointer.
   ***FIXME*** calling sequence should be changed.
+
+- When reserving a device to read, check to see if the Volume
+  is already in use, if so wait.  Probably will need to pass the
+  Volume.  See bug #1313.  Create a regression test to simulate
+  this problem and see if VolumePollInterval fixes it. Possibly turn
+  it on by default.
+
+- Fix restore of acls and extended attributes to count ERROR
+  messages and make errors non-fatal.
+- Put save/restore various platform acl/xattrs on a pointer to simplify
+  the code.
+- Add blast attributes to DIR to SD.
+- Detect deadlocks in reservations.
+- Plugins:
+  - Add list during dump
+  - Add in plugin code flag
+  - Add bRC_EndJob -- stops more calls to plugin this job
+  - Add bRC_Term (unload plugin)
+  - remove time_t from Jmsg and use utime_t?
+- Deadlock detection, watchdog sees if counter advances when jobs are
+  running.  With debug on, can do a "status" command.
+- New directive "Delete purged Volumes"
+- Implement unmount of USB volumes.
+
