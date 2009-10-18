@@ -818,7 +818,7 @@ static int update_volume(UAContext *ua)
          pm_strcpy(ret, "");
 	 ua->info_msg(_("Current ActionOnPurge is: %s\n"), 
                       aop_to_str(mr.ActionOnPurge, ret));
-	 if (!get_cmd(ua, _("Enter new ActionOnPurge: (one of: Truncate, None) "))) {
+	 if (!get_cmd(ua, _("Enter new ActionOnPurge (one of: Truncate, None): "))) {
             return 0;
 	 }
 
