@@ -485,7 +485,7 @@ static void update_vol_actiononpurge(UAContext *ua, char *val, MEDIA_DBR *mr)
       ua->error_msg(_("Error updating media record ActionOnPurge: ERR=%s"),
                     db_strerror(ua->db));
    } else {
-      ua->info_msg(_("New ActionOnPurge is: %d\n"), 
+      ua->info_msg(_("New ActionOnPurge is: %s\n"), 
                    aop_to_str(mr->ActionOnPurge, ret));
    }
 }
