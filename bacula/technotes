@@ -3,6 +3,7 @@
 General:
 
 17Oct09
+ebl  Add ActionOnPurge pool parameter starting from Michael Stapelberg work.
 mvw  Fix bug #1361 where device was not unmounted.
      One big warning however when you now set Requires Mount to yes for a file device
      you NEED to define a mount and unmount command or the stored will scream.

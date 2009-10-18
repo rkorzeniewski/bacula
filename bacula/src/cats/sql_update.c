@@ -269,7 +269,7 @@ int db_update_pool_record(JCR *jcr, B_DB *mdb, POOL_DBR *pr)
 "AcceptAnyVolume=%d,VolRetention='%s',VolUseDuration='%s',"
 "MaxVolJobs=%u,MaxVolFiles=%u,MaxVolBytes=%s,Recycle=%d,"
 "AutoPrune=%d,LabelType=%d,LabelFormat='%s',RecyclePoolId=%s,"
-"ScratchPoolId=%s WHERE PoolId=%s",
+"ScratchPoolId=%s,ActionOnPurge=%d WHERE PoolId=%s",
       pr->NumVols, pr->MaxVols, pr->UseOnce, pr->UseCatalog,
       pr->AcceptAnyVolume, edit_uint64(pr->VolRetention, ed1),
       edit_uint64(pr->VolUseDuration, ed2),
@@ -277,7 +277,9 @@ int db_update_pool_record(JCR *jcr, B_DB *mdb, POOL_DBR *pr)
       edit_uint64(pr->MaxVolBytes, ed3),
       pr->Recycle, pr->AutoPrune, pr->LabelType,
       pr->LabelFormat, edit_int64(pr->RecyclePoolId,ed5),
-      edit_int64(pr->ScratchPoolId,ed6),ed4);
+      edit_int64(pr->ScratchPoolId,ed6),
+      pr->ActionOnPurge,
+      ed4);
    stat = UPDATE_DB(jcr, mdb, mdb->cmd);
    db_unlock(mdb);
    return stat;
@@ -365,7 +367,7 @@ db_update_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
         "Slot=%d,InChanger=%d,VolReadTime=%s,VolWriteTime=%s,VolParts=%d,"
         "LabelType=%d,StorageId=%s,PoolId=%s,VolRetention=%s,VolUseDuration=%s,"
         "MaxVolJobs=%d,MaxVolFiles=%d,Enabled=%d,LocationId=%s,"
-        "ScratchPoolId=%s,RecyclePoolId=%s,RecycleCount=%d,Recycle=%d"
+        "ScratchPoolId=%s,RecyclePoolId=%s,RecycleCount=%d,Recycle=%d,ActionOnPurge=%d"
         " WHERE VolumeName='%s'",
         mr->VolJobs, mr->VolFiles, mr->VolBlocks, edit_uint64(mr->VolBytes, ed1),
         mr->VolMounts, mr->VolErrors, mr->VolWrites,
@@ -383,7 +385,7 @@ db_update_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
         mr->Enabled, edit_uint64(mr->LocationId, ed9),
         edit_uint64(mr->ScratchPoolId, ed10),
         edit_uint64(mr->RecyclePoolId, ed11),
-        mr->RecycleCount,mr->Recycle,
+        mr->RecycleCount,mr->Recycle, mr->ActionOnPurge,
         mr->VolumeName);
 
    Dmsg1(400, "%s\n", mdb->cmd);
@@ -413,10 +415,10 @@ db_update_media_defaults(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
    db_lock(mdb);
    if (mr->VolumeName[0]) {
       Mmsg(mdb->cmd, "UPDATE Media SET "
-           "Recycle=%d,VolRetention=%s,VolUseDuration=%s,"
+           "ActionOnPurge=%d, Recycle=%d,VolRetention=%s,VolUseDuration=%s,"
            "MaxVolJobs=%u,MaxVolFiles=%u,MaxVolBytes=%s,RecyclePoolId=%s"
            " WHERE VolumeName='%s'",
-           mr->Recycle,edit_uint64(mr->VolRetention, ed1),
+           mr->ActionOnPurge, mr->Recycle,edit_uint64(mr->VolRetention, ed1),
            edit_uint64(mr->VolUseDuration, ed2),
            mr->MaxVolJobs, mr->MaxVolFiles,
            edit_uint64(mr->MaxVolBytes, ed3),
@@ -424,10 +426,10 @@ db_update_media_defaults(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
            mr->VolumeName);
    } else {
       Mmsg(mdb->cmd, "UPDATE Media SET "
-           "Recycle=%d,VolRetention=%s,VolUseDuration=%s,"
+           "ActionOnPurge=%d, Recycle=%d,VolRetention=%s,VolUseDuration=%s,"
            "MaxVolJobs=%u,MaxVolFiles=%u,MaxVolBytes=%s,RecyclePoolId=%s"
            " WHERE PoolId=%s",
-           mr->Recycle,edit_uint64(mr->VolRetention, ed1),
+           mr->ActionOnPurge, mr->Recycle,edit_uint64(mr->VolRetention, ed1),
            edit_uint64(mr->VolUseDuration, ed2),
            mr->MaxVolJobs, mr->MaxVolFiles,
            edit_uint64(mr->MaxVolBytes, ed3),
