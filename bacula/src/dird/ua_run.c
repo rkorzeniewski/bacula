@@ -849,7 +849,7 @@ static bool display_job_parameters(UAContext *ua, JCR *jcr, JOB *job, const char
          /* RegexWhere is take before RestoreWhere */
          if (jcr->RegexWhere || (job->RegexWhere && !jcr->where)) {
             ua->send_msg(_("Run Restore job\n"
-                        "JobName:        f%s\n"
+                        "JobName:         %s\n"
                         "Bootstrap:       %s\n"
                         "RegexWhere:      %s\n"
                         "Replace:         %s\n"
