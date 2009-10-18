@@ -2,6 +2,8 @@
           
 General:
 
+18Oct09
+kes  Apply James' fix for some Exchange plugin crashes
 17Oct09
 ebl  Add ActionOnPurge pool parameter starting from Michael Stapelberg work.
 mvw  Fix bug #1361 where device was not unmounted.
