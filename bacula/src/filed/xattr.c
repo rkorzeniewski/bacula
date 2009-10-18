@@ -1087,7 +1087,7 @@ static bxattr_exit_code (*os_parse_xattr_streams)(JCR *jcr, int stream) = bsd_pa
 #endif
 
 #if !defined(HAVE_OPENAT) || \
-    !defined(HAVE_UNKINKAT) || \
+    !defined(HAVE_UNLINKAT) || \
     !defined(HAVE_FCHOWNAT) || \
     !defined(HAVE_FUTIMESAT)
 #error "Unable to compile code because of missing openat, unlinkat, fchownat or futimesat function"
