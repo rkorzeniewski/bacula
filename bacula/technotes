@@ -3,6 +3,7 @@
 General:
 
 19Oct09
+ebl  Fix typo in disk-changer listall command
 ebl  Fix status slots command when slots are mixed
 18Oct09
 kes  Apply James' fix for some Exchange plugin crashes
