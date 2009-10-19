@@ -226,7 +226,7 @@ dnl If either --prefix or --includedir is set, we leave includedir
 dnl alone except to eval it
 dnl ------------------------------------------------------------------
 os_name=`uname -s`
-os_hw_platform=`uname -i`
+os_processor=`uname -p`
 if test x${prefix} = xNONE ; then
    if test `eval echo ${sysconfdir}` = NONE/etc ; then
       sysconfdir=/etc/bacula
@@ -235,7 +235,7 @@ if test x${prefix} = xNONE ; then
    if test `eval echo ${libdir}` = NONE/lib ; then
       case ${os_name} in
       Linux)
-         case ${os_hw_platform} in
+         case ${os_processor} in
          x86_64)
             libdir=/usr/lib64
             ;;
