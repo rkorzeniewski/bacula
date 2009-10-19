@@ -893,13 +893,28 @@ static vol_list_t *get_vol_list_from_SD(UAContext *ua, bool scan)
          vl->next = vol_list;
          vol_list = vl;
       } else {
-         /* Add new entry to end of list */
+         vol_list_t *prev=vol_list;
+         /* Add new entry to the right place in the list */
          for (vol_list_t *tvl=vol_list; tvl; tvl=tvl->next) {
+            if (tvl->Slot > vl->Slot) {
+               /* no previous item, update vol_list directly */
+               if (prev == vol_list) {  
+                  vl->next = vol_list;
+                  vol_list = vl;
+
+               } else {     /* replace the previous pointer */
+                  prev->next = vl;
+                  vl->next = tvl;
+               }
+               break;
+            }
+            /* we are at the end */
             if (!tvl->next) {
                tvl->next = vl;
                vl->next = NULL;
                break;
             }
+            prev = tvl;
          }
       }
    }
@@ -1218,7 +1233,6 @@ void status_slots(UAContext *ua, STORE *store_r)
    }
    ua->send_msg(_(" Slot |   Volume Name    |   Status  |     Media Type       |      Pool          |\n"));
    ua->send_msg(_("------+------------------+-----------+----------------------+--------------------|\n"));
-   
 
    /* Walk through the list getting the media records */
    for (vl=vol_list; vl; vl=vl->next) {
