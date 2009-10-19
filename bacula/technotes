@@ -2,6 +2,8 @@
           
 General:
 
+19Oct09
+ebl  Fix status slots command when slots are mixed
 18Oct09
 kes  Apply James' fix for some Exchange plugin crashes
 17Oct09
