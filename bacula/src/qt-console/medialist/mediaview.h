@@ -43,14 +43,21 @@ public:
 
 private slots:
    void populateTable();
+   void populateForm();
    void viewVolume();
    void editVolume();
    void deleteVolume();
    void purgeVolume();
    void pruneVolume();
-   void showJobs();
    void PgSeltreeWidgetClicked();
    void currentStackItem();
+   void applyPushed();
+   void editPushed();
+   void purgePushed();
+   void prunePushed();
+   void deletePushed();
+   bool getSelection(QStringList &ret);
+   void showInfoForMedia(QTableWidgetItem * item);
 //   void relabelVolume();
 //   void allVolumesFromPool();
 //   void allVolumes();
