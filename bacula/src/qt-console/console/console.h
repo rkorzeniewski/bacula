@@ -134,6 +134,9 @@ public:
    QStringList storage_list;
    QStringList type_list;
    QStringList level_list;
+   QStringList volstatus_list;
+   QStringList mediatype_list;
+   QStringList location_list;
 
 public slots:
    void connect_dir();                     
