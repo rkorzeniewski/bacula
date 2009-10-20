@@ -44,11 +44,6 @@ public:
 private slots:
    void populateTable();
    void populateForm();
-   void viewVolume();
-   void editVolume();
-   void deleteVolume();
-   void purgeVolume();
-   void pruneVolume();
    void PgSeltreeWidgetClicked();
    void currentStackItem();
    void applyPushed();
@@ -64,8 +59,6 @@ private slots:
 //   void volumeFromPool();
 
 private:
-   QString m_currentVolumeName;
-   QString m_currentVolumeId;
    bool m_populated;
    bool m_checkcurwidget;
    QTreeWidgetItem *m_topItem;
