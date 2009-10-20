@@ -65,6 +65,9 @@ static bool typescmd(UAContext *ua, const char *cmd);
 static bool backupscmd(UAContext *ua, const char *cmd);
 static bool levelscmd(UAContext *ua, const char *cmd);
 static bool getmsgscmd(UAContext *ua, const char *cmd);
+static bool volstatuscmd(UAContext *ua, const char *cmd);
+static bool mediatypescmd(UAContext *ua, const char *cmd);
+static bool locationscmd(UAContext *ua, const char *cmd);
 
 static bool dot_bvfs_lsdirs(UAContext *ua, const char *cmd);
 static bool dot_bvfs_lsfiles(UAContext *ua, const char *cmd);
@@ -94,6 +97,9 @@ static struct cmdstruct commands[] = { /* help */  /* can be used in runscript *
  { NT_(".sql"),        sql_cmd,          NULL,       false},
  { NT_(".status"),     dot_status_cmd,   NULL,       false},
  { NT_(".storage"),    storagecmd,       NULL,       true},
+ { NT_(".volstatus"),  volstatuscmd,     NULL,       true},
+ { NT_(".mediatypes"), mediatypescmd,    NULL,       true},
+ { NT_(".locations"),  locationscmd,     NULL,       true},
  { NT_(".bvfs_lsdirs"), dot_bvfs_lsdirs, NULL,       true},
  { NT_(".bvfs_lsfiles"),dot_bvfs_lsfiles,NULL,       true},
  { NT_(".bvfs_update"), dot_bvfs_update, NULL,       true},
@@ -687,7 +693,40 @@ static bool sql_cmd(UAContext *ua, const char *cmd)
    return true;
 }
       
+static int one_handler(void *ctx, int num_field, char **row)
+{
+   UAContext *ua = (UAContext *)ctx;
+   ua->send_msg("%s\n", row[0]);
+   return 0;
+}
 
+static bool mediatypescmd(UAContext *ua, const char *cmd)
+{
+   if (!open_client_db(ua)) {
+      return true;
+   }
+   if (!db_sql_query(ua->db, 
+                  "SELECT DISTINCT MediaType FROM MediaType ORDER BY MediaType",
+                  one_handler, (void *)ua)) 
+   {
+      ua->error_msg(_("List MediaType failed: ERR=%s\n"), db_strerror(ua->db));
+   }
+   return true;
+}
+
+static bool locationscmd(UAContext *ua, const char *cmd)
+{
+   if (!open_client_db(ua)) {
+      return true;
+   }
+   if (!db_sql_query(ua->db, 
+                  "SELECT DISTINCT Location FROM Location ORDER BY Location",
+                  one_handler, (void *)ua)) 
+   {
+      ua->error_msg(_("List Location failed: ERR=%s\n"), db_strerror(ua->db));
+   }
+   return true;
+}
 
 static bool levelscmd(UAContext *ua, const char *cmd)
 {
@@ -698,6 +737,18 @@ static bool levelscmd(UAContext *ua, const char *cmd)
    ua->send_msg("Catalog\n");
    ua->send_msg("InitCatalog\n");
    ua->send_msg("VolumeToCatalog\n");
+   return true;
+}
+
+static bool volstatuscmd(UAContext *ua, const char *cmd)
+{
+   ua->send_msg("Append\n");
+   ua->send_msg("Full\n");
+   ua->send_msg("Used\n");
+   ua->send_msg("Recycle\n");
+   ua->send_msg("Purged\n");
+   ua->send_msg("Cleaning\n");
+   ua->send_msg("Error\n");
    return true;
 }
 
