@@ -166,6 +166,8 @@ void Console::populateLists(int conn)
    storage_list.clear();
    type_list.clear();
    level_list.clear();
+   volstatus_list.clear();
+   mediatype_list.clear();
    dir_cmd(conn, ".jobs", job_list);
    dir_cmd(conn, ".clients", client_list);
    dir_cmd(conn, ".filesets", fileset_list);  
@@ -174,6 +176,9 @@ void Console::populateLists(int conn)
    dir_cmd(conn, ".storage", storage_list);
    dir_cmd(conn, ".types", type_list);
    dir_cmd(conn, ".levels", level_list);
+   dir_cmd(conn, ".volstatus", volstatus_list);
+   dir_cmd(conn, ".mediatypes", mediatype_list);
+   dir_cmd(conn, ".locations", location_list);
 
    if (mainWin->m_connDebug) {
       QString dbgmsg = QString("jobs=%1 clients=%2 filesets=%3 msgs=%4 pools=%5 storage=%6 types=%7 levels=%8 conn=%9 %10\n")

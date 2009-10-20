@@ -50,6 +50,7 @@
 #include "restore/restoretree.h"
 #include "help/help.h"
 #include "jobs/jobs.h"
+#include "medialist/mediaview.h"
 #ifdef HAVE_QWT
 #include "jobgraphs/jobplot.h"
 #endif
@@ -172,6 +173,7 @@ void MainWin::createPages()
          new JobPlot(NULL, pass);
 #endif
       new MediaList();
+      new MediaView();
       new Storage();
       if (m_openBrowser)
          new restoreTree();
