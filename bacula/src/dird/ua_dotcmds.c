@@ -94,6 +94,7 @@ static struct cmdstruct commands[] = { /* help */  /* can be used in runscript *
  { NT_(".sql"),        sql_cmd,          NULL,       false},
  { NT_(".status"),     dot_status_cmd,   NULL,       false},
  { NT_(".storage"),    storagecmd,       NULL,       true},
+ { NT_(".volstatus"),  volstatuscmd,     NULL,       true},
  { NT_(".bvfs_lsdirs"), dot_bvfs_lsdirs, NULL,       true},
  { NT_(".bvfs_lsfiles"),dot_bvfs_lsfiles,NULL,       true},
  { NT_(".bvfs_update"), dot_bvfs_update, NULL,       true},
@@ -698,6 +699,18 @@ static bool levelscmd(UAContext *ua, const char *cmd)
    ua->send_msg("Catalog\n");
    ua->send_msg("InitCatalog\n");
    ua->send_msg("VolumeToCatalog\n");
+   return true;
+}
+
+static bool volstatuscmd(UAContext *ua, const char *cmd)
+{
+   ua->send_msg("Append\n");
+   ua->send_msg("Full\n");
+   ua->send_msg("Used\n");
+   ua->send_msg("Recycle\n");
+   ua->send_msg("Purged\n");
+   ua->send_msg("Cleaning\n");
+   ua->send_msg("Error\n");
    return true;
 }
 
