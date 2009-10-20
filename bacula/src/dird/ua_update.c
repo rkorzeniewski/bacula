@@ -64,8 +64,9 @@ int update_cmd(UAContext *ua, const char *cmd)
       NT_("volume"), /* 1 */
       NT_("pool"),   /* 2 */
       NT_("slots"),  /* 3 */
-      NT_("jobid"),  /* 4 */
-      NT_("stats"),  /* 5 */
+      NT_("slot"),   /* 4 */
+      NT_("jobid"),  /* 5 */
+      NT_("stats"),  /* 6 */
       NULL};
 
    if (!open_client_db(ua)) {
@@ -81,12 +82,13 @@ int update_cmd(UAContext *ua, const char *cmd)
       update_pool(ua);
       return 1;
    case 3:
+   case 4:
       update_slots(ua);
       return 1;
-   case 4:
+   case 5:
       update_job(ua);
       return 1;
-   case 5:
+   case 6:
       update_stats(ua);
       return 1;
    default:

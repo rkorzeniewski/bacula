@@ -84,6 +84,9 @@ static bool get_user_slot_list(UAContext *ua, char *slot_list, int num_slots)
       slot_list[i] = 0;
    }
    i = find_arg_with_value(ua, "slots");
+   if (i == -1) {  /* not found */
+      i = find_arg_with_value(ua, "slot");
+   }
    if (i > 0) {
       /* scan slot list in ua->argv[i] */
       char *p, *e, *h;
