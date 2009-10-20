@@ -91,6 +91,26 @@ void MediaView::editPushed()
 
 void MediaView::purgePushed()
 {
+   if (QMessageBox::warning(this, "Bat",
+      tr("Are you sure you want to purge ??  !!!.\n"
+"The Purge command will delete associated Catalog database records from Jobs and"
+" Volumes without considering the retention period. Purge  works only on the"
+" Catalog database and does not affect data written to Volumes. This command can"
+" be dangerous because you can delete catalog records associated with current"
+" backups of files, and we recommend that you do not use it unless you know what"
+" you are doing.\n"
+      "Press OK to proceed with the purge operation?"),
+      QMessageBox::Ok | QMessageBox::Cancel)
+      == QMessageBox::Cancel) { return; }
+
+   QStringList lst;
+   QString cmd;
+   getSelection(lst);
+   for(int i=0; i<lst.count(); i++) {
+      cmd = "purge volume=" + lst.at(i);
+      consoleCommand(cmd);
+   }
+   populateTable();
 }
 
 bool MediaView::getSelection(QStringList &list)
@@ -128,10 +148,6 @@ void MediaView::prunePushed()
 
 void MediaView::deletePushed()
 {
-   QStringList sel;
-   QString cmd;
-   getSelection(sel);
-
    if (QMessageBox::warning(this, "Bat",
       tr("Are you sure you want to delete??  !!!.\n"
 "This delete command is used to delete a Volume record and all associated catalog"
@@ -144,8 +160,14 @@ void MediaView::deletePushed()
       QMessageBox::Ok | QMessageBox::Cancel)
       == QMessageBox::Cancel) { return; }
 
-   cmd = "delete volume=" + sel.join(",");
-   consoleCommand(cmd);
+   QStringList lst;
+   QString cmd;
+   getSelection(lst);
+   for(int i=0; i<lst.count(); i++) {
+      cmd = "delete volume=" + lst.at(i);
+      consoleCommand(cmd);
+   }
+   populateTable();
 }
 
 void MediaView::populateForm()
@@ -296,26 +318,6 @@ void MediaView::populateTable()
 }
 
 /*
- * Called from the signal of the context sensitive menu!
- */
-void MediaView::editVolume()
-{
-   MediaEdit* edit = new MediaEdit(mainWin->getFromHash(this), m_currentVolumeId);
-   connect(edit, SIGNAL(destroyed()), this, SLOT(populateTable()));
-}
-
-/*
- * Called from the signal of the context sensitive menu!
- */
-void MediaView::viewVolume()
-{
-   QTreeWidgetItem *parentItem = mainWin->getFromHash(this);
-   MediaInfo* view = new MediaInfo(parentItem, m_currentVolumeName);
-   connect(view, SIGNAL(destroyed()), this, SLOT(populateTable()));
-
-}
-
-/*
  * When the treeWidgetItem in the page selector tree is singleclicked, Make sure
  * The tree has been populated.
  */
@@ -337,68 +339,6 @@ void MediaView::currentStackItem()
       populateForm();
       populateTable();
    }
-}
-
-/*
- * Called from the signal of the context sensitive menu to delete a volume!
- */
-void MediaView::deleteVolume()
-{
-   if (QMessageBox::warning(this, "Bat",
-      tr("Are you sure you want to delete??  !!!.\n"
-"This delete command is used to delete a Volume record and all associated catalog"
-" records that were created. This command operates only on the Catalog"
-" database and has no effect on the actual data written to a Volume. This"
-" command can be dangerous and we strongly recommend that you do not use"
-" it unless you know what you are doing.  All Jobs and all associated"
-" records (File and JobMedia) will be deleted from the catalog."
-      "Press OK to proceed with delete operation.?"),
-      QMessageBox::Ok | QMessageBox::Cancel)
-      == QMessageBox::Cancel) { return; }
-
-   QStringList lst;
-   QString cmd;
-   getSelection(lst);
-   for(int i=0; i<lst.count(); i++) {
-      cmd = "delete volume=" + lst.at(i);
-      consoleCommand(cmd);
-   }
-   populateTable();
-}
-
-/*
- * Called from the signal of the context sensitive menu to purge!
- */
-void MediaView::purgeVolume()
-{
-   if (QMessageBox::warning(this, "Bat",
-      tr("Are you sure you want to purge ??  !!!.\n"
-"The Purge command will delete associated Catalog database records from Jobs and"
-" Volumes without considering the retention period. Purge  works only on the"
-" Catalog database and does not affect data written to Volumes. This command can"
-" be dangerous because you can delete catalog records associated with current"
-" backups of files, and we recommend that you do not use it unless you know what"
-" you are doing.\n"
-      "Press OK to proceed with the purge operation?"),
-      QMessageBox::Ok | QMessageBox::Cancel)
-      == QMessageBox::Cancel) { return; }
-
-   QStringList lst;
-   QString cmd;
-   getSelection(lst);
-   for(int i=0; i<lst.count(); i++) {
-      cmd = "purge volume=" + lst.at(i);
-      consoleCommand(cmd);
-   }
-   populateTable();
-}
-
-/*
- * Called from the signal of the context sensitive menu to prune!
- */
-void MediaView::pruneVolume()
-{
-   new prunePage(m_currentVolumeName, "");
 }
 
 // /*
