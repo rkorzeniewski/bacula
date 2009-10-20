@@ -2,6 +2,8 @@
           
 General:
 
+20Oct09
+ebl  Permits update slot(s) and label barcodes slot(s) commands.
 19Oct09
 ebl  Fix typo in disk-changer listall command
 ebl  Fix status slots command when slots are mixed
