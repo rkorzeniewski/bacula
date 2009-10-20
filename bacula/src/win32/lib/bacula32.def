@@ -731,6 +731,7 @@ _Z16make_session_keyPcS_i
 _Z17job_status_to_stri
 _Z18do_shell_expansionPci
 _Z18jobstatus_to_asciiiPci
+_Z10aop_to_striR8POOL_MEM
 _Z19last_path_separatorPKc
 _Z21set_working_directoryPc
 _Z5lcasePc
