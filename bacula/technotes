@@ -3,6 +3,9 @@
 General:
 
 20Oct09
+ebl  Add dot functions for bat to list location, mediatype and volstatus
+ebl  Add bat screen to list Media in a table view (permits to search, filter
+     and sort media)
 ebl  Permits update slot(s) and label barcodes slot(s) commands.
 19Oct09
 ebl  Fix typo in disk-changer listall command
