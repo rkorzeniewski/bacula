@@ -45,6 +45,13 @@ MediaView::MediaView()
    pgInitialize();
    QTreeWidgetItem* thisitem = mainWin->getFromHash(this);
    thisitem->setIcon(0,QIcon(QString::fromUtf8(":images/cartridge.png")));
+   connect(m_pbApply, SIGNAL(pressed()), this, SLOT(applyPushed()));
+   connect(m_pbEdit, SIGNAL(pressed()), this, SLOT(editPushed()));
+   connect(m_pbPurge, SIGNAL(pressed()), this, SLOT(purgePushed()));
+   connect(m_pbDelete, SIGNAL(pressed()), this, SLOT(deletePushed()));
+   connect(m_pbPrune, SIGNAL(pressed()), this, SLOT(prunePushed()));
+   connect(m_tableMedia, SIGNAL(itemDoubleClicked(QTableWidgetItem*)), 
+           this, SLOT(showInfoForMedia(QTableWidgetItem *)));
 
    /* mp_treeWidget, Storage Tree Tree Widget inherited from ui_medialist.h */
    m_populated = false;
@@ -52,8 +59,112 @@ MediaView::MediaView()
    m_closeable = false;
 }
 
+void MediaView::showInfoForMedia(QTableWidgetItem * item)
+{
+   QTreeWidgetItem* pageSelectorTreeWidgetItem = mainWin->getFromHash(this);
+   int row = item->row();
+   QString vol = m_tableMedia->item(row, 0)->text();
+   new MediaInfo(pageSelectorTreeWidgetItem, vol);
+//   connect(j, SIGNAL(destroyed()), this, SLOT(populateTree()));
+}
+
 MediaView::~MediaView()
 {
+}
+
+void MediaView::applyPushed()
+{
+   populateTable();
+}
+
+void MediaView::editPushed()
+{
+   QStringList sel;
+   QString cmd;
+   getSelection(sel);
+   
+   for(int i=0; i<sel.count(); i++) {
+      cmd = sel.at(i);
+      new MediaEdit(mainWin->getFromHash(this), cmd);
+   }
+}
+
+void MediaView::purgePushed()
+{
+}
+
+bool MediaView::getSelection(QStringList &list)
+{
+   QList<QTableWidgetItem*> items = m_tableMedia->selectedItems();
+   QTableWidgetItem *it;
+   int row;
+   int nb = items.count();
+   int *tab = (int *) malloc (nb * sizeof(int));
+   memset(tab, 0, sizeof(int)*nb);
+   for (int i = 0; i < nb; ++i) {
+      row = items[i]->row();
+      if (!tab[row]) {
+         tab[row]=1;
+         it = m_tableMedia->item(row, 0);
+         list.append(it->text());
+      }
+   }
+   free(tab);
+   return list.count() > 0;
+}
+
+void MediaView::prunePushed()
+{
+   QStringList sel;
+   QString cmd;
+   getSelection(sel);
+
+   for(int i=0; i<sel.count(); i++) {
+      cmd = "prune volume=" + sel.at(i);
+      consoleCommand(cmd);
+   }
+}
+
+
+void MediaView::deletePushed()
+{
+   QStringList sel;
+   QString cmd;
+   getSelection(sel);
+
+   if (QMessageBox::warning(this, "Bat",
+      tr("Are you sure you want to delete??  !!!.\n"
+"This delete command is used to delete a Volume record and all associated catalog"
+" records that were created. This command operates only on the Catalog"
+" database and has no effect on the actual data written to a Volume. This"
+" command can be dangerous and we strongly recommend that you do not use"
+" it unless you know what you are doing.  All Jobs and all associated"
+" records (File and JobMedia) will be deleted from the catalog."
+      "Press OK to proceed with delete operation.?"),
+      QMessageBox::Ok | QMessageBox::Cancel)
+      == QMessageBox::Cancel) { return; }
+
+   cmd = "delete volume=" + sel.join(",");
+   consoleCommand(cmd);
+}
+
+void MediaView::populateForm()
+{
+   m_cbPool->clear();
+   m_cbPool->addItem("");
+   m_cbPool->addItems(m_console->pool_list);
+
+   m_cbStatus->clear();
+   m_cbStatus->addItem("");
+   m_cbStatus->addItems(m_console->volstatus_list);
+
+   m_cbMediaType->clear();
+   m_cbMediaType->addItem("");
+   m_cbMediaType->addItems(m_console->mediatype_list);
+
+   m_cbLocation->clear();
+   m_cbLocation->addItem("");
+   m_cbLocation->addItems(m_console->location_list);
 }
 
 /*
@@ -62,10 +173,126 @@ MediaView::~MediaView()
  */
 void MediaView::populateTable()
 {
+   utime_t t;
+   time_t ttime;
+   QString stat, LastWritten;
+   char buf[256];
+   struct tm tm;
+
    m_populated = true;
 
    Freeze frz(*m_tableMedia); /* disable updating*/
+   QStringList where;
+   QString cmd;
+   if (m_cbPool->currentText() != "") {
+      cmd = " Pool.Name = '" + m_cbPool->currentText() + "'";
+      where.append(cmd);
+   } 
 
+   if (m_cbStatus->currentText() != "") {
+      cmd = " Media.VolStatus = '" + m_cbStatus->currentText() + "'";
+      where.append(cmd);
+   }
+
+   if (m_cbStatus->currentText() != "") {
+      cmd = " Media.VolStatus = '" + m_cbStatus->currentText() + "'";
+      where.append(cmd);
+   }
+
+   if (m_cbMediaType->currentText() != "") {
+      cmd = " Media.MediaType = '" + m_cbMediaType->currentText() + "'";
+      where.append(cmd);
+   }
+
+   if (m_cbLocation->currentText() != "") {
+      cmd = " Location.Location = '" + m_cbLocation->currentText() + "'";
+      where.append(cmd);
+   }
+
+   if (m_textName->text() != "") {
+      cmd = " Media.VolumeName like '%" + m_textName->text() + "%'";
+      where.append(cmd);
+   }
+
+   if (where.size() > 0) {
+      cmd = " WHERE " + where.join(" AND ");
+   } else {
+      cmd = "";
+   }
+
+   m_tableMedia->clearContents();
+
+   QString query = 
+      "SELECT MediaId, VolumeName, InChanger, Slot, VolBytes, VolStatus, "
+      "Pool.Name, "
+      "MediaType, LastWritten,"
+      "Media.VolRetention "
+      "FROM Media JOIN Pool USING (PoolId) "
+      "LEFT JOIN Location USING (LocationId) "
+      + cmd + 
+      " ORDER BY VolumeName LIMIT " + m_sbLimit->cleanText();
+
+//   Pmsg1(000, "MediaView query cmd : %s\n",query.toUtf8().data());
+
+   QStringList results;
+   if (m_console->sql_cmd(query, results)) {
+      QString resultline;
+      QStringList fieldlist;
+      m_tableMedia->setRowCount(results.size());
+      int row=0;
+      foreach (resultline, results) { // should have only one result
+         fieldlist = resultline.split("\t");
+         QStringListIterator fld(fieldlist);
+         int index=0;
+         TableItemFormatter mediaitem(*m_tableMedia, row);
+
+         fld.next();            // MediaId
+         
+         /* VolumeName */
+         mediaitem.setTextFld(index++, fld.next()); 
+         
+         /* Online */
+         mediaitem.setTextFld(index++, fld.next());
+         fld.next();            // Slot
+
+         /* Volume bytes */
+         mediaitem.setBytesFld(index++, fld.next());
+
+         /* Usage */
+         mediaitem.setTextFld(index++, "NYI");
+         
+         /* Volstatus */
+         mediaitem.setVolStatusFld(index++, fld.next());
+
+         /* Pool */
+         mediaitem.setTextFld(index++, fld.next());
+
+         /* MediaType */
+         mediaitem.setTextFld(index++, fld.next());
+
+         /* LastWritten */
+         LastWritten = fld.next();
+         mediaitem.setTextFld(index++, LastWritten);
+
+         stat = fld.next();
+         t = str_to_utime(LastWritten.toAscii().data());
+         t = t + stat.toULongLong();
+         ttime = t;
+         localtime_r(&ttime, &tm);         
+         strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", &tm);
+
+         mediaitem.setTextFld(index++, buf);
+         
+         row++;
+      }
+   }
+
+   m_tableMedia->resizeColumnsToContents();
+   m_tableMedia->resizeRowsToContents();
+   m_tableMedia->verticalHeader()->hide();
+
+   /* make read only */
+   m_tableMedia->setEditTriggers(QAbstractItemView::NoEditTriggers);
 }
 
 /*
@@ -75,15 +302,6 @@ void MediaView::editVolume()
 {
    MediaEdit* edit = new MediaEdit(mainWin->getFromHash(this), m_currentVolumeId);
    connect(edit, SIGNAL(destroyed()), this, SLOT(populateTable()));
-}
-
-/*
- * Called from the signal of the context sensitive menu!
- */
-void MediaView::showJobs()
-{
-   QTreeWidgetItem *parentItem = mainWin->getFromHash(this);
-   mainWin->createPageJobList(m_currentVolumeName, "", "", "", parentItem);
 }
 
 /*
@@ -104,6 +322,7 @@ void MediaView::viewVolume()
 void MediaView::PgSeltreeWidgetClicked()
 {
    if (!m_populated) {
+      populateForm();
       populateTable();
    }
    dockPage();
@@ -115,6 +334,7 @@ void MediaView::PgSeltreeWidgetClicked()
 void MediaView::currentStackItem()
 {
    if(!m_populated) {
+      populateForm();
       populateTable();
    }
 }
@@ -136,9 +356,14 @@ void MediaView::deleteVolume()
       QMessageBox::Ok | QMessageBox::Cancel)
       == QMessageBox::Cancel) { return; }
 
-   QString cmd("delete volume=");
-   cmd += m_currentVolumeName;
-   consoleCommand(cmd);
+   QStringList lst;
+   QString cmd;
+   getSelection(lst);
+   for(int i=0; i<lst.count(); i++) {
+      cmd = "delete volume=" + lst.at(i);
+      consoleCommand(cmd);
+   }
+   populateTable();
 }
 
 /*
@@ -158,9 +383,13 @@ void MediaView::purgeVolume()
       QMessageBox::Ok | QMessageBox::Cancel)
       == QMessageBox::Cancel) { return; }
 
-   QString cmd("purge volume=");
-   cmd += m_currentVolumeName;
-   consoleCommand(cmd);
+   QStringList lst;
+   QString cmd;
+   getSelection(lst);
+   for(int i=0; i<lst.count(); i++) {
+      cmd = "purge volume=" + lst.at(i);
+      consoleCommand(cmd);
+   }
    populateTable();
 }
 

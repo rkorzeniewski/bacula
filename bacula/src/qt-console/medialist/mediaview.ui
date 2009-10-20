@@ -116,7 +116,17 @@
        </widget>
       </item>
       <item row="0" column="5" >
-       <widget class="QSpinBox" name="m_sbLimit" />
+       <widget class="QSpinBox" name="m_sbLimit" >
+        <property name="minimum" >
+         <number>1</number>
+        </property>
+        <property name="maximum" >
+         <number>1000</number>
+        </property>
+        <property name="value" >
+         <number>100</number>
+        </property>
+       </widget>
       </item>
       <item row="0" column="6" >
        <widget class="QLabel" name="label_3" >
@@ -189,7 +199,7 @@
        </spacer>
       </item>
       <item row="1" column="9" >
-       <widget class="QPushButton" name="pushButton" >
+       <widget class="QPushButton" name="m_pbApply" >
         <property name="text" >
          <string>Apply</string>
         </property>
@@ -203,6 +213,15 @@
    </item>
    <item>
     <widget class="QTableWidget" name="m_tableMedia" >
+     <property name="selectionMode" >
+      <enum>QAbstractItemView::ExtendedSelection</enum>
+     </property>
+     <property name="selectionBehavior" >
+      <enum>QAbstractItemView::SelectRows</enum>
+     </property>
+     <property name="sortingEnabled" >
+      <bool>true</bool>
+     </property>
      <column>
       <property name="text" >
        <string>Volume Name</string>
