@@ -118,8 +118,12 @@ bool MediaView::getSelection(QStringList &list)
    QList<QTableWidgetItem*> items = m_tableMedia->selectedItems();
    QTableWidgetItem *it;
    int row;
+   int *tab;
    int nb = items.count();
-   int *tab = (int *) malloc (nb * sizeof(int));
+   if (!nb) {
+      return false;
+   }
+   tab = (int *) malloc (nb * sizeof(int));
    memset(tab, 0, sizeof(int)*nb);
    for (int i = 0; i < nb; ++i) {
       row = items[i]->row();
@@ -189,6 +193,36 @@ void MediaView::populateForm()
    m_cbLocation->addItems(m_console->location_list);
 }
 
+/* 
+ * If chkExpired button is checked, we can remove all non Expired
+ * entries
+ */
+void MediaView::filterExipired(QStringList &list)
+{
+   utime_t t, now = time(NULL);
+   QString resultline, stat, LastWritten;
+   QStringList fieldlist;
+
+   /* We should now in advance how many rows we will have */
+   if (m_chkExpired->isChecked()) {
+      for (int i=list.size() -1; i >= 0; i--) {
+         fieldlist = list.at(i).split("\t");         
+         LastWritten = fieldlist.at(7);
+         if (LastWritten == "") {
+            list.removeAt(i);
+
+         } else {
+            stat = fieldlist.at(8);
+            t = str_to_utime(LastWritten.toAscii().data());
+            t = t + stat.toULongLong();
+            if (t > now) {
+               list.removeAt(i);
+            }
+         }
+      }
+   }
+}
+
 /*
  * The main meat of the class!!  The function that querries the director and 
  * creates the widgets with appropriate values.
@@ -245,31 +279,30 @@ void MediaView::populateTable()
    m_tableMedia->clearContents();
 
    QString query = 
-      "SELECT MediaId, VolumeName, InChanger, Slot, VolBytes, VolStatus, "
-      "Pool.Name, "
-      "MediaType, LastWritten,"
-      "Media.VolRetention "
+      "SELECT VolumeName, InChanger, "
+      "Slot, VolBytes, VolStatus, Pool.Name, MediaType, "
+      "LastWritten, Media.VolRetention "
       "FROM Media JOIN Pool USING (PoolId) "
       "LEFT JOIN Location USING (LocationId) "
       + cmd + 
       " ORDER BY VolumeName LIMIT " + m_sbLimit->cleanText();
 
 //   Pmsg1(000, "MediaView query cmd : %s\n",query.toUtf8().data());
-
+   m_tableMedia->setSortingEnabled(false); /* Don't sort during insert */
    QStringList results;
    if (m_console->sql_cmd(query, results)) {
       QString resultline;
       QStringList fieldlist;
-      m_tableMedia->setRowCount(results.size());
       int row=0;
+      filterExipired(results);
+      m_tableMedia->setRowCount(results.size());
+
       foreach (resultline, results) { // should have only one result
          fieldlist = resultline.split("\t");
          QStringListIterator fld(fieldlist);
          int index=0;
          TableItemFormatter mediaitem(*m_tableMedia, row);
 
-         fld.next();            // MediaId
-         
          /* VolumeName */
          mediaitem.setTextFld(index++, fld.next()); 
          
@@ -292,26 +325,29 @@ void MediaView::populateTable()
          /* MediaType */
          mediaitem.setTextFld(index++, fld.next());
 
-         /* LastWritten */
          LastWritten = fld.next();
+         buf[0] = 0;
+         if (LastWritten != "") {
+            stat = fld.next();  // VolUseDuration
+            t = str_to_utime(LastWritten.toAscii().data());
+            t = t + stat.toULongLong();
+            ttime = t;
+            localtime_r(&ttime, &tm);         
+            strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", &tm);
+         }
+         
+         /* LastWritten */
          mediaitem.setTextFld(index++, LastWritten);
 
-         stat = fld.next();
-         t = str_to_utime(LastWritten.toAscii().data());
-         t = t + stat.toULongLong();
-         ttime = t;
-         localtime_r(&ttime, &tm);         
-         strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", &tm);
-
+         /* When expired */
          mediaitem.setTextFld(index++, buf);
-         
          row++;
       }
    }
-
    m_tableMedia->resizeColumnsToContents();
    m_tableMedia->resizeRowsToContents();
    m_tableMedia->verticalHeader()->hide();
+   m_tableMedia->setSortingEnabled(true);
 
    /* make read only */
    m_tableMedia->setEditTriggers(QAbstractItemView::NoEditTriggers);

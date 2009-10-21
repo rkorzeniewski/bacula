@@ -53,6 +53,7 @@ private slots:
    void deletePushed();
    bool getSelection(QStringList &ret);
    void showInfoForMedia(QTableWidgetItem * item);
+   void filterExipired(QStringList &list);
 //   void relabelVolume();
 //   void allVolumesFromPool();
 //   void allVolumes();
