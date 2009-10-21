@@ -19,8 +19,8 @@ require_vtape
 
 scripts/cleanup
 scripts/copy-tape-confs
-cp $scripts/bacula-dir-vtape.conf $conf/bacula-dir.conf
-cp $scripts/bacula-sd-vtape.conf $conf/bacula-sd.conf
+cp $rscripts/bacula-dir-vtape.conf $conf/bacula-dir.conf
+cp $rscripts/bacula-sd-vtape.conf $conf/bacula-sd.conf
 scripts/prepare-fake-autochanger
 
 echo "${cwd}/build" >${cwd}/tmp/file-list
