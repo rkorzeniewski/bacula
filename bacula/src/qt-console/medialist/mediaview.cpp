@@ -206,7 +206,8 @@ void MediaView::filterExipired(QStringList &list)
    /* We should now in advance how many rows we will have */
    if (m_chkExpired->isChecked()) {
       for (int i=list.size() -1; i >= 0; i--) {
-         fieldlist = list.at(i).split("\t");         
+         fieldlist = list.at(i).split("\t");
+         ASSERT(fieldlist.size() != 9);
          LastWritten = fieldlist.at(7);
          if (LastWritten == "") {
             list.removeAt(i);
@@ -231,8 +232,12 @@ void MediaView::populateTable()
 {
    utime_t t;
    time_t ttime;
-   QString stat, LastWritten;
+   QString stat, resultline, query;
+   QString str_usage;
+   QHash<QString, float> hash_size;
+   QStringList fieldlist, results;
    char buf[256];
+   float usage;
    struct tm tm;
 
    m_populated = true;
@@ -276,11 +281,27 @@ void MediaView::populateTable()
       cmd = "";
    }
 
-   m_tableMedia->clearContents();
+   query =
+      "SELECT AVG(VolBytes) AS size, COUNT(1) as nb, "
+      "MediaType, VolStatus  FROM Media "
+      "WHERE VolStatus IN ('Full', 'Used') "
+      "GROUP BY MediaType, VolStatus";
 
-   QString query = 
+   if (m_console->sql_cmd(query, results)) {
+      foreach (resultline, results) {
+         fieldlist = resultline.split("\t");
+         if (fieldlist.at(1).toInt() > 2) {
+            //           MediaType    +   VolStatus (Used or Full)
+            hash_size[fieldlist.at(2) + fieldlist.at(3)] 
+               = fieldlist.at(0).toFloat(); 
+         }
+      }
+   }      
+   
+   m_tableMedia->clearContents();
+   query = 
       "SELECT VolumeName, InChanger, "
-      "Slot, VolBytes, VolStatus, Pool.Name, MediaType, "
+      "Slot, MediaType, VolStatus, VolBytes, Pool.Name,  "
       "LastWritten, Media.VolRetention "
       "FROM Media JOIN Pool USING (PoolId) "
       "LEFT JOIN Location USING (LocationId) "
@@ -289,16 +310,18 @@ void MediaView::populateTable()
 
 //   Pmsg1(000, "MediaView query cmd : %s\n",query.toUtf8().data());
    m_tableMedia->setSortingEnabled(false); /* Don't sort during insert */
-   QStringList results;
+   results.clear();
    if (m_console->sql_cmd(query, results)) {
-      QString resultline;
-      QStringList fieldlist;
       int row=0;
       filterExipired(results);
       m_tableMedia->setRowCount(results.size());
 
       foreach (resultline, results) { // should have only one result
+         QString VolBytes, MediaType, LastWritten, VolStatus;
          fieldlist = resultline.split("\t");
+         if (fieldlist.size() != 10) {
+            continue;
+         }
          QStringListIterator fld(fieldlist);
          int index=0;
          TableItemFormatter mediaitem(*m_tableMedia, row);
@@ -310,20 +333,30 @@ void MediaView::populateTable()
          mediaitem.setInChanger(index++, fld.next());
          fld.next();            // Slot
 
+         MediaType = fld.next();
+         VolStatus = fld.next();
+
          /* Volume bytes */
-         mediaitem.setBytesFld(index++, fld.next());
+         VolBytes = fld.next();
+         mediaitem.setBytesFld(index++, VolBytes);
 
          /* Usage */
-         mediaitem.setTextFld(index++, "NYI");
-         
+         usage = 0;
+         if (hash_size.contains(MediaType + VolStatus) &&
+             hash_size[MediaType + VolStatus] != 0) 
+         {
+            usage = VolBytes.toLongLong() * 100 / hash_size[MediaType + VolStatus];
+         }
+         mediaitem.setTextFld(index++, str_usage.setNum(usage, 'f'));
+
          /* Volstatus */
-         mediaitem.setVolStatusFld(index++, fld.next());
+         mediaitem.setVolStatusFld(index++, VolStatus);
 
          /* Pool */
          mediaitem.setTextFld(index++, fld.next());
 
          /* MediaType */
-         mediaitem.setTextFld(index++, fld.next());
+         mediaitem.setTextFld(index++, MediaType);
 
          LastWritten = fld.next();
          buf[0] = 0;
