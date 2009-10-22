@@ -192,6 +192,13 @@ ItemFormatterBase::~ItemFormatterBase()
 {
 }
 
+void ItemFormatterBase::setInChanger(int index, const QString &InChanger)
+{
+   setPixmap(index, 
+             QPixmap(":images/inflag"+InChanger+".png"));
+   setSortValue(index, InChanger.toInt() );
+}
+
 void ItemFormatterBase::setTextFld(int index, const QString &fld, bool center)
 {
    setText(index, fld.trimmed());
@@ -386,6 +393,11 @@ void TreeItemFormatter::setSortValue(int /* index */, const QVariant & /* value 
 {
 }
 
+void TreeItemFormatter::setPixmap(int index, const QPixmap &pix)
+{
+   wdg->setIcon(index, QIcon(pix));
+}
+
 /***********************************************
  *
  * Specialized table widget used for sorting
@@ -431,6 +443,13 @@ parent(&tparent),
 row(trow),
 last(NULL)
 {
+}
+
+void TableItemFormatter::setPixmap(int index, const QPixmap &pix)
+{
+   last = new BatSortingTableItem;
+   parent->setItem(row, index, last);
+   last->setIcon(pix);
 }
 
 void TableItemFormatter::setText(int col, const QString &fld)
