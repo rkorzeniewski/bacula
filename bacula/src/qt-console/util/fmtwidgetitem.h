@@ -115,6 +115,9 @@ public:
   
    /* fld value interpreted as job level. */
    void setJobLevelFld(int index, const QString &fld, bool center = false);
+
+   /* fld value interpreted as Online/Offline */
+   void setInChanger(int index, const QString &InChanger);
   
    static void setBytesConversion(BYTES_CONVERSION b) {
       cnvFlag = b;
@@ -130,6 +133,7 @@ protected:
    virtual void setText(int index, const QString &fld) = 0;
    virtual void setTextAlignment(int index, int align) = 0;
    virtual void setBackground(int index, const QBrush &) = 0;
+   virtual void setPixmap(int index, const QPixmap &pix) = 0;
 
    /* sets the *optional* value used for sorting */
    virtual void setSortValue(int index, const QVariant &value) = 0;
@@ -158,6 +162,7 @@ protected:
    virtual void setTextAlignment(int index, int align);
    virtual void setBackground(int index, const QBrush &);
    virtual void setSortValue(int index, const QVariant &value);
+   virtual void setPixmap(int index, const QPixmap &pix);
 
 private:
    QTreeWidgetItem *wdg;
@@ -201,6 +206,7 @@ protected:
    virtual void setTextAlignment(int index, int align);
    virtual void setBackground(int index, const QBrush &);
    virtual void setSortValue(int index, const QVariant &value);
+   virtual void setPixmap(int index, const QPixmap &pix);
 
 private:
    QTableWidget *parent;

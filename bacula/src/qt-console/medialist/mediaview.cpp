@@ -307,7 +307,7 @@ void MediaView::populateTable()
          mediaitem.setTextFld(index++, fld.next()); 
          
          /* Online */
-         mediaitem.setTextFld(index++, fld.next());
+         mediaitem.setInChanger(index++, fld.next());
          fld.next();            // Slot
 
          /* Volume bytes */
