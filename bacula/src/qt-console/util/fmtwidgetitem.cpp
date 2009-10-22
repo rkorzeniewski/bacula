@@ -447,6 +447,11 @@ last(NULL)
 
 void TableItemFormatter::setPixmap(int index, const QPixmap &pix)
 {
+// Centered, but not sortable !
+//   QLabel *lbl = new QLabel();
+//   lbl->setAlignment(Qt::AlignCenter);
+//   lbl->setPixmap(pix);
+//   parent->setCellWidget(row, index, lbl);
    last = new BatSortingTableItem;
    parent->setItem(row, index, last);
    last->setIcon(pix);
