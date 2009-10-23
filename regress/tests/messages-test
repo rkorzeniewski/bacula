@@ -2,6 +2,8 @@
 #
 # Run a simple backup of the Bacula build directory
 #   then restore it.
+# We have bad configuration for Messages resources, everything
+# should work
 #
 TestName="messages-test"
 JobName=backup
@@ -16,8 +18,11 @@ scripts/copy-confs
 #
 outf="$tmp/sed_tmp"
 echo "s%  Schedule =%# Schedule =%g" >$outf
+
+# tweak all Messages {} with non valid path
 echo 's%append = "%append = "/nowhere%g' >> $outf
 echo 's%mailcommand = "%mailcommand = "/nowhere%g' >> $outf
+
 cp $scripts/bacula-dir.conf $tmp/1
 sed -f ${outf} $tmp/1 >$scripts/bacula-dir.conf
 
