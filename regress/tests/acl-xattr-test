@@ -1,14 +1,28 @@
 #!/bin/sh
 #
-# Run a backup of the Bacula build directory with some acls
-#   then restore it.
+# Run a backup of the Bacula build directory with some acls then restore it.
 #
-# Your filesystem must be mounted with the acl option (mount -o remount,acl,user_xattr /tmp)
-# on ubuntu, the attr package must be installed
+# For Linux:
+#    Your filesystem must be mounted with the acl option (mount -o remount,acl,user_xattr /tmp)
+#    on ubuntu, the attr package must be installed
 #
-# For this script to work, you will also need a number of acl packages loaded
-#   not default on Debian derivatives: 
-#   apt-get install acl libacl1 libacl1-dev attr
+#    For this script to work, you will also need a number of acl packages loaded
+#    not default on Debian derivatives: 
+#       apt-get install acl libacl1 libacl1-dev attr
+#
+# For OSX and Solaris:
+#
+#    Defaults should be ok
+#
+# For FreeBSD:
+#
+#    Your filesystem must have acls enabled and needs to be mounted with acls.
+#       tunefs -a enable <device>
+#       acls mountoption in /etc/fstab
+#
+# For NetBSD:
+#
+#    Defaults should be ok (As NetBSD doesn't support native acls we skip that test).
 #
 TestName="acl-xattr-test"
 JobName=backup
@@ -26,16 +40,39 @@ case `uname -s` in
         exit 0
       fi
 
-      # Require attr to be installed
-      attr -l Makefile 2>&1 >/dev/null
+      # Require getfattr to be installed
+      getfattr -d Makefile 2>&1 >/dev/null
       if test $? -ne 0; then
-        echo "$TestName skipped: attr not installed"
+        echo "$TestName skipped: getfattr not installed"
         exit 0
       fi
       ;;
    Darwin)
       ;;
    SunOS)
+      ;;
+   FreeBSD)
+      # Require getfacl to be installed
+      getfacl Makefile 2>&1 >/dev/null
+      if test  $? -ne 0; then
+        echo "$TestName skipped: getfacl not installed"
+        exit 0
+      fi
+
+      # Require lsextattr to be installed
+      lsextattr user Makefile 2>&1 >/dev/null
+      if test $? -ne 0; then
+        echo "$TestName skipped: lsextattr not installed"
+        exit 0
+      fi
+      ;;
+   NetBSD)
+      # Require lsextattr to be installed
+      lsextattr user Makefile 2>&1 >/dev/null
+      if test $? -ne 0; then
+        echo "$TestName skipped: lsextattr not installed"
+        exit 0
+      fi
       ;;
    *)
       echo "Unsupported OS"
@@ -73,11 +110,11 @@ case `uname -s` in
       setfacl -m group:nogroup:--x $d/bconsole
       cp ${cwd}/bin/bconsole $d/acl-dir
       cp ${cwd}/bin/bconsole $d/other
-      attr -s bacula.test -V rulez $d/other 2>/dev/null 1>/dev/null
+      setfattr -h -n user.bacula.test -v rulez $d/other 2>/dev/null 1>/dev/null
 
       ( cd $cwd/build
         getfacl -R acl > $cwd/tmp/org
-        attr -g bacula.test $d/other > $cwd/tmp/attr.org
+        getfattr -h -n user.bacula.test $d/other > $cwd/tmp/attr.org
       )
       ;;
    Darwin)
@@ -122,6 +159,33 @@ EOF
         /bin/runat $d/other 'cat bacula.test' > $cwd/tmp/attr.org
       )
       ;;
+   FreeBSD)
+      setfacl -m d:user:$uid:r-x $d/acl-dir
+      setfacl -m d:user:root:-wx $d/acl-dir
+      setfacl -m user:nobody:--- $d/acl-dir
+      setfacl -m user:nobody:--- $d/bconsole
+      setfacl -m group:nogroup:--x $d/bconsole
+      cp ${cwd}/bin/bconsole $d/acl-dir
+      cp ${cwd}/bin/bconsole $d/other
+      setextattr user bacula.test rulez $d/other 2>/dev/null 1>/dev/null
+
+      ( cd $cwd/build
+        for file in acl/*
+        do
+           getfacl $file
+        done > $cwd/tmp/org
+        getextattr user bacula.test $d/other > $cwd/tmp/attr.org
+      )
+      ;;
+   NetBSD)
+      cp ${cwd}/bin/bconsole $d/other
+      setextattr user bacula.test rulez $d/other 2>/dev/null 1>/dev/null
+
+      ( cd $cwd/build
+        cp /dev/null $cwd/tmp/org
+        getextattr user bacula.test $d/other > $cwd/tmp/attr.org
+      )
+      ;;
 esac
 
 change_jobname BackupClient1 $JobName
@@ -157,7 +221,7 @@ case `uname -s` in
    Linux)
       ( cd $cwd/tmp/bacula-restores/$cwd/build
         getfacl -R acl > $cwd/tmp/new
-        attr -g bacula.test $d/other > $cwd/tmp/attr.new
+        getfattr -h -n user.bacula.test $d/other > $cwd/tmp/attr.new
       )
       ;;
    Darwin)
@@ -170,6 +234,21 @@ case `uname -s` in
       ( cd $cwd/tmp/bacula-restores/$cwd/build
         /bin/ls -ldv -R acl > $cwd/tmp/new
         /bin/runat $d/other 'cat bacula.test' > $cwd/tmp/attr.new
+      )
+      ;;
+   FreeBSD)
+      ( cd $cwd/tmp/bacula-restores/$cwd/build
+        for file in acl/*
+        do
+           getfacl $file
+        done > $cwd/tmp/new
+        getextattr user bacula.test $d/other > $cwd/tmp/attr.new
+      )
+      ;;
+   NetBSD)
+      ( cd $cwd/tmp/bacula-restores/$cwd/build
+        cp /dev/null $cwd/tmp/new
+        getextattr user bacula.test $d/other > $cwd/tmp/attr.new
       )
       ;;
 esac

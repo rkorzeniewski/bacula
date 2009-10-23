@@ -285,7 +285,7 @@ case $cmd in
 	 if [ -f $dir/loaded${i} ]; then
              ld=`cat $dir/loaded${i}`
              v=`awk -F: "/^$ld:/"' { print $2 }' $dir/barcodes`
-             echo "D:$i:F:$ld:$$v"
+             echo "D:$i:F:$ld:$v"
              echo "^$ld:" >> $TMPFILE
 	 fi
 	 i=`expr $i + 1`
@@ -294,7 +294,7 @@ case $cmd in
       # Empty slots are not in barcodes file
       # When we detect a gap, we print missing rows as empty
       # At the end, we fill the gap between the last entry and maxslot
-      grep -v -f $TMPFILE $dir/barcodes | \
+      grep -v -f $TMPFILE $dir/barcodes | sort -n | \
       perl -ne 'BEGIN { $cur=1 } 
        if (/(\d+):(.+)?/) {
          if ($cur == $1) { 

@@ -192,8 +192,8 @@ db_create_pool_record(JCR *jcr, B_DB *mdb, POOL_DBR *pr)
 "INSERT INTO Pool (Name,NumVols,MaxVols,UseOnce,UseCatalog,"
 "AcceptAnyVolume,AutoPrune,Recycle,VolRetention,VolUseDuration,"
 "MaxVolJobs,MaxVolFiles,MaxVolBytes,PoolType,LabelType,LabelFormat,"
-"RecyclePoolId,ScratchPoolId) "
-"VALUES ('%s',%u,%u,%d,%d,%d,%d,%d,%s,%s,%u,%u,%s,'%s',%d,'%s',%s,%s)",
+"RecyclePoolId,ScratchPoolId,ActionOnPurge) "
+"VALUES ('%s',%u,%u,%d,%d,%d,%d,%d,%s,%s,%u,%u,%s,'%s',%d,'%s',%s,%s,%d)",
                   pr->Name,
                   pr->NumVols, pr->MaxVols,
                   pr->UseOnce, pr->UseCatalog,
@@ -205,7 +205,9 @@ db_create_pool_record(JCR *jcr, B_DB *mdb, POOL_DBR *pr)
                   edit_uint64(pr->MaxVolBytes, ed3),
                   pr->PoolType, pr->LabelType, pr->LabelFormat,
                   edit_int64(pr->RecyclePoolId,ed4),
-                  edit_int64(pr->ScratchPoolId,ed5));
+                  edit_int64(pr->ScratchPoolId,ed5),
+                  pr->ActionOnPurge
+      );
    Dmsg1(200, "Create Pool: %s\n", mdb->cmd);
    if (!INSERT_DB(jcr, mdb, mdb->cmd)) {
       Mmsg2(&mdb->errmsg, _("Create db Pool record %s failed: ERR=%s\n"),
@@ -410,9 +412,9 @@ db_create_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
 "VolCapacityBytes,Recycle,VolRetention,VolUseDuration,MaxVolJobs,MaxVolFiles,"
 "VolStatus,Slot,VolBytes,InChanger,VolReadTime,VolWriteTime,VolParts,"
 "EndFile,EndBlock,LabelType,StorageId,DeviceId,LocationId,"
-"ScratchPoolId,RecyclePoolId,Enabled)"
+"ScratchPoolId,RecyclePoolId,Enabled,ActionOnPurge)"
 "VALUES ('%s','%s',0,%u,%s,%s,%d,%s,%s,%u,%u,'%s',%d,%s,%d,%s,%s,%d,0,0,%d,%s,"
-"%s,%s,%s,%s,%d)",
+"%s,%s,%s,%s,%d,%d)",
           mr->VolumeName,
           mr->MediaType, mr->PoolId,
           edit_uint64(mr->MaxVolBytes,ed1),
@@ -435,7 +437,7 @@ db_create_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
           edit_int64(mr->LocationId, ed10), 
           edit_int64(mr->ScratchPoolId, ed11), 
           edit_int64(mr->RecyclePoolId, ed12), 
-          mr->Enabled
+          mr->Enabled, mr->ActionOnPurge
           );
 
 

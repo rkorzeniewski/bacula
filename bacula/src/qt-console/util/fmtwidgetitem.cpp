@@ -192,6 +192,47 @@ ItemFormatterBase::~ItemFormatterBase()
 {
 }
 
+void ItemFormatterBase::setPercent(int index, float value)
+{
+   char buf[100];
+   bsnprintf(buf, sizeof(buf), "%.2f%%", value);
+   QString val = buf;
+   QString pix;
+   if (value < 8) {
+      pix = ":images/0p.png";
+   } else if (value < 24) {
+      pix = ":images/16p.png";
+   } else if (value < 40) {
+      pix = ":images/32p.png";
+   } else if (value < 56) {
+      pix = ":images/48p.png";
+   } else if (value < 72) {
+      pix = ":images/64p.png";
+   } else if (value < 88) {
+      pix = ":images/80p.png";
+   } else {
+      pix = ":images/96p.png";
+   }
+   setPixmap(index, QPixmap(pix), val);
+   setSortValue(index, (int) value);
+}
+
+/* By default, the setPixmap implementation with tooltip don't implement
+ * the tooltip stuff
+ */
+void ItemFormatterBase::setPixmap(int index, const QPixmap &pix, 
+                                  const QString &tip)
+{
+   setPixmap(index, pix);
+}
+
+void ItemFormatterBase::setInChanger(int index, const QString &InChanger)
+{
+   setPixmap(index, 
+             QPixmap(":images/inflag"+InChanger+".png"));
+   setSortValue(index, InChanger.toInt() );
+}
+
 void ItemFormatterBase::setTextFld(int index, const QString &fld, bool center)
 {
    setText(index, fld.trimmed());
@@ -386,6 +427,11 @@ void TreeItemFormatter::setSortValue(int /* index */, const QVariant & /* value 
 {
 }
 
+void TreeItemFormatter::setPixmap(int index, const QPixmap &pix)
+{
+   wdg->setIcon(index, QIcon(pix));
+}
+
 /***********************************************
  *
  * Specialized table widget used for sorting
@@ -431,6 +477,32 @@ parent(&tparent),
 row(trow),
 last(NULL)
 {
+}
+
+void TableItemFormatter::setPixmap(int index, const QPixmap &pix)
+{
+// Centered, but not sortable !
+   QLabel *lbl = new QLabel();
+   lbl->setAlignment(Qt::AlignCenter);
+   lbl->setPixmap(pix);
+   parent->setCellWidget(row, index, lbl);
+}
+
+void TableItemFormatter::setPixmap(int index, const QPixmap &pix, 
+                                   const QString &tips)
+{
+// Centered, but not sortable !
+   QLabel *lbl = new QLabel();
+   lbl->setAlignment(Qt::AlignCenter);
+   lbl->setPixmap(pix);
+   if (!tips.isEmpty()) {
+      lbl->setToolTip(tips);
+   }
+   parent->setCellWidget(row, index, lbl);
+
+//   last = new BatSortingTableItem;
+//   parent->setItem(row, index, last);
+//   last->setIcon(pix);
 }
 
 void TableItemFormatter::setText(int col, const QString &fld)

@@ -345,6 +345,11 @@ void InitWinAPIWrapper();
 #define B_ANSI_LABEL   1
 #define B_IBM_LABEL    2
 
+/*
+ * Actions on purge (bit mask)
+ */
+#define AOP_TRUNCATE 1
+
 /* Size of File Address stored in STREAM_SPARSE_DATA. Do NOT change! */
 #define SPARSE_FADDR_SIZE (sizeof(uint64_t))
 
