@@ -150,6 +150,7 @@ int main (int argc, char *argv[])
    bindtextdomain("bacula", LOCALEDIR);
    textdomain("bacula");
    init_stack_dump();
+   lmgr_init_thread();
 
    my_name_is(argc, argv, "bscan");
    init_msg(NULL, NULL);
