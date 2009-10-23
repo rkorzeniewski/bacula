@@ -590,6 +590,7 @@ int main(int argc, char *argv[])
    textdomain("bacula");
 
    init_stack_dump();
+   lmgr_init_thread();
    my_name_is(argc, argv, "bconsole");
    init_msg(NULL, NULL);
    working_directory = "/tmp";

@@ -243,7 +243,8 @@ public:
    }
 
    void _dump(FILE *fp) {
-      fprintf(fp, "threadid=0x%x max=%i current=%i\n", (int)thread_id, max, current);
+      fprintf(fp, "threadid=%p max=%i current=%i\n", 
+              (void *)thread_id, max, current);
       for(int i=0; i<=current; i++) {
          fprintf(fp, "   lock=%p state=%c %s:%i\n", 
                lock_list[i].lock, lock_list[i].state,
