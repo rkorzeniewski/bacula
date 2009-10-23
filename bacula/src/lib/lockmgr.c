@@ -466,8 +466,8 @@ bool lmgr_detect_deadlock()
 
 /*
  * !!! WARNING !!! 
- * Use this function only after a fatal signal
- * We don't use any lock to display information
+ * Use this function is used only after a fatal signal
+ * We don't use locking to display the information
  */
 void dbg_print_lock(FILE *fp)
 {
@@ -731,8 +731,8 @@ int lmgr_thread_create(pthread_t *thread,
 
 /*
  * !!! WARNING !!! 
- * Use this function only after a fatal signal
- * We don't use any lock to display information
+ * Use this function is used only after a fatal signal
+ * We don't use locking to display information
  */
 void dbg_print_lock(FILE *fp)
 {

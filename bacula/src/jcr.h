@@ -213,8 +213,8 @@ public:
    BSOCK *file_bsock;                 /* File daemon connection socket */
    JCR_free_HANDLER *daemon_free_jcr; /* Local free routine */
    dlist *msg_queue;                  /* Queued messages */
+   pthread_mutex_t msg_queue_mutex;   /* message queue mutex */
    alist job_end_push;                /* Job end pushed calls */
-   bool dequeuing;                    /* dequeuing messages */
    POOLMEM *VolumeName;               /* Volume name desired -- pool_memory */
    POOLMEM *errmsg;                   /* edited error message */
    char Job[MAX_NAME_LENGTH];         /* Unique name of this Job */
