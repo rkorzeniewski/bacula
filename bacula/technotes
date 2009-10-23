@@ -2,6 +2,11 @@
           
 General:
 
+23Oct09
+kes  When dequeuing messages, don't allow queuing more, but send them
+     to syslog. Fixes Eric's messages-test regression script.
+kes  Make queuing messages work on jcr local mutex. Improves concurrent
+     throughput.
 20Oct09
 ebl  Add dot functions for bat to list location, mediatype and volstatus
 ebl  Add bat screen to list Media in a table view (permits to search, filter
