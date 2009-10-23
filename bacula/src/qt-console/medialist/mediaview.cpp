@@ -283,16 +283,16 @@ void MediaView::populateTable()
 
    query =
       "SELECT AVG(VolBytes) AS size, COUNT(1) as nb, "
-      "MediaType, VolStatus  FROM Media "
+      "MediaType  FROM Media "
       "WHERE VolStatus IN ('Full', 'Used') "
-      "GROUP BY MediaType, VolStatus";
+      "GROUP BY MediaType";
 
    if (m_console->sql_cmd(query, results)) {
       foreach (resultline, results) {
          fieldlist = resultline.split("\t");
-         if (fieldlist.at(1).toInt() > 2) {
-            //           MediaType    +   VolStatus (Used or Full)
-            hash_size[fieldlist.at(2) + fieldlist.at(3)] 
+         if (fieldlist.at(1).toInt() >= 1) { 
+            //           MediaType
+            hash_size[fieldlist.at(2)] 
                = fieldlist.at(0).toFloat(); 
          }
       }
@@ -342,12 +342,12 @@ void MediaView::populateTable()
 
          /* Usage */
          usage = 0;
-         if (hash_size.contains(MediaType + VolStatus) &&
-             hash_size[MediaType + VolStatus] != 0) 
+         if (hash_size.contains(MediaType) &&
+             hash_size[MediaType] != 0) 
          {
-            usage = VolBytes.toLongLong() * 100 / hash_size[MediaType + VolStatus];
+            usage = VolBytes.toLongLong() * 100 / hash_size[MediaType];
          }
-         mediaitem.setTextFld(index++, str_usage.setNum(usage, 'f'));
+         mediaitem.setPercent(index++, usage);
 
          /* Volstatus */
          mediaitem.setVolStatusFld(index++, VolStatus);
