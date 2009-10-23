@@ -1361,6 +1361,13 @@ void Qmsg(JCR *jcr, int type, utime_t mtime, const char *fmt,...)
       /* jcr==NULL => daemon message, safe to send now */
       Jmsg(jcr, item->type, item->mtime, "%s", item->msg);
       free(item);
+   /*
+    * If we are dequeuing, we cannot queue another item,
+    * so as a last resort send it to the syslog 
+    */
+   } else if (jcr->dequeuing_msgs) {
+      syslog(LOG_DAEMON|LOG_ERR, "%s", item->msg);
+      free(item);
    } else {
       /* Queue message for later sending */
       P(jcr->msg_queue_mutex);
@@ -1380,11 +1387,13 @@ void dequeue_messages(JCR *jcr)
       return;
    }
    P(jcr->msg_queue_mutex);
+   jcr->dequeuing_msgs = true;
    foreach_dlist(item, jcr->msg_queue) {
       Jmsg(jcr, item->type, item->mtime, "%s", item->msg);
    }
    /* Remove messages just sent */
    jcr->msg_queue->destroy();
+   jcr->dequeuing_msgs = false;
    V(jcr->msg_queue_mutex);
 }
 
