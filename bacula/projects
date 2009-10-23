@@ -226,7 +226,7 @@ Item  5: Deletion of disk Volumes when pruned
   Date:  Nov 25, 2005
   Origin: Ross Boylan <RossBoylan at stanfordalumni dot org> (edited
           by Kern)
-  Status:        
+  Status: Truncate operation implemented in 3.1.4        
 
    What: Provide a way for Bacula to automatically remove Volumes
           from the filesystem, or optionally to truncate them.

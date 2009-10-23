@@ -186,12 +186,14 @@ void MediaInfo::populateForm()
          edit_utime(stat.toULongLong(), buf, sizeof(buf));
          label_VolRetention->setText(QString(buf));
 
-         t = str_to_utime(LastWritten.toAscii().data());
-         t = t + stat.toULongLong();
-         ttime = t;
-         localtime_r(&ttime, &tm);         
-         strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", &tm);
-         label_Expire->setText(QString(buf));
+         if (LastWritten != "") {
+            t = str_to_utime(LastWritten.toAscii().data());
+            t = t + stat.toULongLong();
+            ttime = t;
+            localtime_r(&ttime, &tm);         
+            strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", &tm);
+            label_Expire->setText(QString(buf));
+         }
          label_Online->setPixmap(QPixmap(":/images/inflag"+fld.next()+".png"));
 //         label_VolFiles->setText(fld.next());
 //         label_VolErrors->setText(fld.next());

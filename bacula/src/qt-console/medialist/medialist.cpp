@@ -50,7 +50,7 @@
 MediaList::MediaList()
 {
    setupUi(this);
-   m_name = tr("Media");
+   m_name = tr("Pools");
    pgInitialize();
    QTreeWidgetItem* thisitem = mainWin->getFromHash(this);
    thisitem->setIcon(0,QIcon(QString::fromUtf8(":images/cartridge.png")));

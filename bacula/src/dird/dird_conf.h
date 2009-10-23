@@ -562,6 +562,7 @@ public:
    bool  recycle_current_volume;      /* attempt recycle of current volume */
    bool  AutoPrune;                   /* default for pool auto prune */
    bool  Recycle;                     /* default for media recycle yes/no */
+   uint32_t action_on_purge;          /* action on purge, e.g. truncate the disk volume */
    POOL  *RecyclePool;                /* RecyclePool destination when media is purged */
    POOL  *ScratchPool;                /* ScratchPool source when requesting media */
    alist *CopyPool;                   /* List of copy pools */

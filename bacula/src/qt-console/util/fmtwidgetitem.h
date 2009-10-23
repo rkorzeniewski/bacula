@@ -88,6 +88,9 @@ public:
    void setBoolFld(int index, const QString &fld, bool center = true);
    void setBoolFld(int index, int fld, bool center = true);
 
+   /* Print nice icon to represent percent */
+   void setPercent(int index, float number);
+
    /* Normal text field. Centers field if center true*/
    void setTextFld(int index, const QString &fld, bool center = false);
 
@@ -115,6 +118,9 @@ public:
   
    /* fld value interpreted as job level. */
    void setJobLevelFld(int index, const QString &fld, bool center = false);
+
+   /* fld value interpreted as Online/Offline */
+   void setInChanger(int index, const QString &InChanger);
   
    static void setBytesConversion(BYTES_CONVERSION b) {
       cnvFlag = b;
@@ -130,6 +136,8 @@ protected:
    virtual void setText(int index, const QString &fld) = 0;
    virtual void setTextAlignment(int index, int align) = 0;
    virtual void setBackground(int index, const QBrush &) = 0;
+   virtual void setPixmap(int index, const QPixmap &pix) = 0;
+   virtual void setPixmap(int index, const QPixmap &pix, const QString &tip);
 
    /* sets the *optional* value used for sorting */
    virtual void setSortValue(int index, const QVariant &value) = 0;
@@ -158,6 +166,7 @@ protected:
    virtual void setTextAlignment(int index, int align);
    virtual void setBackground(int index, const QBrush &);
    virtual void setSortValue(int index, const QVariant &value);
+   virtual void setPixmap(int index, const QPixmap &pix);
 
 private:
    QTreeWidgetItem *wdg;
@@ -201,6 +210,8 @@ protected:
    virtual void setTextAlignment(int index, int align);
    virtual void setBackground(int index, const QBrush &);
    virtual void setSortValue(int index, const QVariant &value);
+   virtual void setPixmap(int index, const QPixmap &pix);
+   virtual void setPixmap(int index, const QPixmap &pix, const QString &tip);
 
 private:
    QTableWidget *parent;

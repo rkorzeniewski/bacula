@@ -395,6 +395,19 @@ const char *job_type_to_str(int type)
    return str;
 }
 
+/* Convert ActionOnPurge to string (Truncate, Erase, Destroy)
+ */
+char *aop_to_str(int aop, POOL_MEM &ret)
+{
+   if (aop & AOP_TRUNCATE) {
+      pm_strcpy(ret, _("Truncate"));
+   }
+   if (!aop) {
+      pm_strcpy(ret, _("None"));
+   }
+   return ret.c_str();
+}
+
 /*
  * Convert Job Level into a string
  */
