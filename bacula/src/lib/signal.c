@@ -232,7 +232,6 @@ extern "C" void signal_handler(int sig)
 void init_stack_dump(void)
 {
    main_pid = getpid();               /* save main thread's pid */
-   lmgr_init_thread();                /* initialize the lockmanager stack */
 }
 
 /*

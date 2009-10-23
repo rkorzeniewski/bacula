@@ -256,8 +256,14 @@ int main (int argc, char *argv[])
       init_stack_dump();              /* pick up new pid */
    }
 
-   create_pid_file(me->pid_directory, "bacula-sd", get_first_port_host_order(me->sdaddrs));
-   read_state_file(me->working_directory, "bacula-sd", get_first_port_host_order(me->sdaddrs));
+   create_pid_file(me->pid_directory, "bacula-sd",
+                   get_first_port_host_order(me->sdaddrs));
+   read_state_file(me->working_directory, "bacula-sd", 
+                   get_first_port_host_order(me->sdaddrs));
+
+   /* Make sure on Solaris we can run concurrent, watch dog + servers + misc */
+   set_thread_concurrency(me->max_concurrent_jobs * 2 + 4);
+   lmgr_init_thread(); /* initialize the lockmanager stack */
 
    load_sd_plugins(me->plugin_directory);
 
@@ -285,9 +291,6 @@ int main (int argc, char *argv[])
 
    init_python_interpreter(&python_args);
 #endif /* HAVE_PYTHON */
-
-   /* Make sure on Solaris we can run concurrent, watch dog + servers + misc */
-   set_thread_concurrency(me->max_concurrent_jobs * 2 + 4);
 
     /*
      * Start the device allocation thread
