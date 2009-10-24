@@ -523,7 +523,7 @@ void *check_deadlock(void *)
 }
 
 /* This object is used when LMGR is not initialized */
-lmgr_dummy_thread_t dummy_lmgr;
+static lmgr_dummy_thread_t dummy_lmgr;
 
 /*
  * Retrieve the lmgr_thread_t object from the stack
@@ -721,11 +721,13 @@ int lmgr_thread_create(pthread_t *thread,
                        const pthread_attr_t *attr,
                        void *(*start_routine)(void*), void *arg)
 {
+   /* lmgr should be active (lmgr_init_thread() call in main()) */
+   ASSERT(lmgr_is_active());
    /* Will be freed by the child */
    lmgr_thread_arg_t *a = (lmgr_thread_arg_t*) malloc(sizeof(lmgr_thread_arg_t));
    a->start_routine = start_routine;
    a->arg = arg;
-   return pthread_create(thread, attr, lmgr_thread_launcher, a);   
+   return pthread_create(thread, attr, lmgr_thread_launcher, a);
 }
 
 #else  /* _USE_LOCKMGR */
