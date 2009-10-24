@@ -638,6 +638,7 @@ void dispatch_message(JCR *jcr, int type, utime_t mtime, char *msg)
        fputs(dt, stdout);
        fputs(msg, stdout);         /* print this here to INSURE that it is printed */
        fflush(stdout);
+       syslog(LOG_DAEMON|LOG_ERR, "%s", msg);
     }
 
 
