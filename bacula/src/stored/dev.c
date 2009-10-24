@@ -2164,7 +2164,7 @@ bool DEVICE::do_tape_mount(int mount, int dotimeout)
       /* Try at most 10 times to (un)mount the device. This should perhaps be configurable. */
       tries = 10;
    } else {
-      tries = 0;
+      tries = 1;
    }
    results = get_memory(4000);
 
@@ -2222,7 +2222,7 @@ bool DEVICE::do_file_mount(int mount, int dotimeout)
       /* Try at most 10 times to (un)mount the device. This should perhaps be configurable. */
       tries = 10;
    } else {
-      tries = 0;
+      tries = 1;
    }
    results = get_memory(4000);
 
