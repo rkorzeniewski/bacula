@@ -451,7 +451,7 @@ public:
    void _dlock(const char *, int);        /* in lock.c */
    void _dunlock(const char *, int);      /* in lock.c */
 #else
-   void r_dlock(bool locked=false);                        /* in lock.c */
+   void r_dlock(bool locked=false);       /* in lock.c */
    void r_dunlock() { dunlock(); }
    void dlock() { P(m_mutex); } 
    void dunlock() { V(m_mutex); } 
@@ -465,11 +465,12 @@ public:
    const char *print_blocked() const;     /* in dev.c */
 
 private:
-   bool do_mount(int mount, int timeout);      /* in dev.c */
-   void set_mode(int omode);                   /* in dev.c */
-   void open_tape_device(DCR *dcr, int omode); /* in dev.c */
-   void open_file_device(DCR *dcr, int omode); /* in dev.c */
-   void open_dvd_device(DCR *dcr, int omode);  /* in dev.c */
+   bool do_tape_mount(int mount, int dotimeout);  /* in dev.c */
+   bool do_file_mount(int mount, int dotimeout);  /* in dev.c */
+   void set_mode(int omode);                      /* in dev.c */
+   void open_tape_device(DCR *dcr, int omode);    /* in dev.c */
+   void open_file_device(DCR *dcr, int omode);    /* in dev.c */
+   void open_dvd_device(DCR *dcr, int omode);     /* in dev.c */
 };
 
 inline const char *DEVICE::strerror() const { return errmsg; }
