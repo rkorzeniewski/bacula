@@ -1100,12 +1100,30 @@ gettimeofday(struct timeval *tv, struct timezone *)
 
 }
 
-/* For apcupsd this is in src/lib/wincompat.c */
+/* 
+ * Write in Windows System log 
+ */
 extern "C" void syslog(int type, const char *fmt, ...) 
 {
-/*#ifndef HAVE_CONSOLE
-    MessageBox(NULL, msg, "Bacula", MB_OK);
-#endif*/
+   va_list   arg_ptr;
+   int len, maxlen;
+   POOLMEM *msg;
+
+   msg = get_pool_memory(PM_EMSG);
+
+   for (;;) {
+      maxlen = sizeof_pool_memory(msg) - 1;
+      va_start(arg_ptr, fmt);
+      len = bvsnprintf(msg, maxlen, fmt, arg_ptr);
+      va_end(arg_ptr);
+      if (len < 0 || len >= (maxlen-5)) {
+         msg = realloc_pool_memory(msg, maxlen + maxlen/2);
+         continue;
+      }
+      break;
+   }
+   LogErrorMsg((const char *)msg);
+   free_memory(msg);
 }
 
 void
@@ -2580,3 +2598,28 @@ int munmap(void *start, size_t length)
 /* syslog function, added by Nicolas Boichat */
 void openlog(const char *ident, int option, int facility) {}  
 #endif //HAVE_MINGW
+
+/* Log an error message */
+void LogErrorMsg(const char *message)
+{
+   HANDLE eventHandler;
+   const char *strings[2];
+
+   /* Use the OS event logging to log the error */
+   eventHandler = RegisterEventSource(NULL, "Bacula");
+
+   strings[0] = _("\n\nBacula ERROR: ");
+   strings[1] = message;
+
+   if (eventHandler) {
+      ReportEvent(eventHandler, EVENTLOG_ERROR_TYPE,
+              0,                      /* category */
+              0,                      /* ID */
+              NULL,                   /* SID */
+              2,                      /* Number of strings */
+              0,                      /* raw data size */
+              (const char **)strings, /* error strings */
+              NULL);                  /* raw data */
+      DeregisterEventSource(eventHandler);
+   }
+}
