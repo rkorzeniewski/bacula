@@ -246,10 +246,11 @@ public:
       fprintf(fp, "threadid=%p max=%i current=%i\n", 
               (void *)thread_id, max, current);
       for(int i=0; i<=current; i++) {
-         fprintf(fp, "   lock=%p state=%c %s:%i\n", 
-               lock_list[i].lock, lock_list[i].state,
-               lock_list[i].file, lock_list[i].line);
-      }
+         fprintf(fp, "   lock=%p state=%s %s:%i\n", 
+                 lock_list[i].lock, 
+                 (lock_list[i].state=='W')?"Wanted ":"Granted",
+                 lock_list[i].file, lock_list[i].line);
+      } 
    }
 
    void dump(FILE *fp) {
