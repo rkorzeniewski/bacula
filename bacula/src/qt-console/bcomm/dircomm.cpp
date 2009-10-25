@@ -468,6 +468,14 @@ bool DirComm::is_notify_enabled() const
    bool enabled = false;
    if (m_notifier)
       enabled = m_notifier->isEnabled();   
+
+/* TODO: Windows doesn't support notifier without some kludge
+ * This cheat seems to work, waiting for a cleaner solution.
+ */
+#ifdef HAVE_WIN32
+   enabled = true;
+#endif
+
    return enabled;
 }
 
