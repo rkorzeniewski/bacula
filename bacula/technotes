@@ -2,6 +2,9 @@
           
 General:
 
+25Oct09
+ebl  Apply James make_def version to simplify the link process for Windows
+ebl  Update it for win64.
 23Oct09
 kes  When dequeuing messages, don't allow queuing more, but send them
      to syslog. Fixes Eric's messages-test regression script.
