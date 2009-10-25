@@ -479,7 +479,7 @@ void close_msg(JCR *jcr)
             if (msgs != daemon_msgs) {
                /* read what mail prog returned -- should be nothing */
                while (fgets(line, len, bpipe->rfd)) {
-                  Jmsg1(jcr, M_INFO, 0, _("Mail prog: %s"), line);
+                  Qmsg1(jcr, M_INFO, 0, _("Mail prog: %s"), line);
                }
             }
 
@@ -488,7 +488,7 @@ void close_msg(JCR *jcr)
                berrno be;
                be.set_errno(stat);
                Dmsg1(850, "Calling emsg. CMD=%s\n", cmd);
-               Jmsg2(jcr, M_ERROR, 0, _("Mail program terminated in error.\n"
+               Qmsg2(jcr, M_ERROR, 0, _("Mail program terminated in error.\n"
                                         "CMD=%s\n"
                                         "ERR=%s\n"), cmd, be.bstrerror());
             }
