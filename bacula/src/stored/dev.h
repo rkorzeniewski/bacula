@@ -134,7 +134,7 @@ enum {
 #define CAP_CLOSEONPOLL    (1<<18)    /* Close device on polling */
 #define CAP_POSITIONBLOCKS (1<<19)    /* Use block positioning */
 #define CAP_MTIOCGET       (1<<20)    /* Basic support for fileno and blkno */
-#define CAP_REQMOUNT       (1<<21)    /* Require mount to read files back (typically: DVD) */
+#define CAP_REQMOUNT       (1<<21)    /* Require mount/unmount */
 #define CAP_CHECKLABELS    (1<<22)    /* Check for ANSI/IBM labels */
 #define CAP_BLOCKCHECKSUM  (1<<23)    /* Create/test block checksum */
 
