@@ -11,7 +11,8 @@ JobName=backup
 
 scripts/cleanup
 scripts/copy-confs
-
+change_jobname BackupClient1 $JobName
+start_test
 #
 # Zap out any schedule in default conf file so that
 #  it doesn't start during our test
@@ -21,13 +22,13 @@ echo "s%  Schedule =%# Schedule =%g" >$outf
 
 # tweak all Messages {} with non valid path
 echo 's%append = "%append = "/nowhere%g' >> $outf
-echo 's%mailcommand = "%mailcommand = "/nowhere%g' >> $outf
+echo "s%bsmtp -h $SMTP_HOST%bsmtp -h nonvalidhost%g" >> $outf
+echo 's%# mail%  mail%' >> $outf
+#echo 's%mailcommand = "%mailcommand = "/nowhere%g' >> $outf
 
 cp $scripts/bacula-dir.conf $tmp/1
 sed -f ${outf} $tmp/1 >$scripts/bacula-dir.conf
 
-change_jobname BackupClient1 $JobName
-start_test
 
 cat <<END_OF_DATA >$tmp/bconcmds
 @$out /dev/null
