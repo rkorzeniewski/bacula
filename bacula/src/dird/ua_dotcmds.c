@@ -68,6 +68,7 @@ static bool getmsgscmd(UAContext *ua, const char *cmd);
 static bool volstatuscmd(UAContext *ua, const char *cmd);
 static bool mediatypescmd(UAContext *ua, const char *cmd);
 static bool locationscmd(UAContext *ua, const char *cmd);
+static bool mediacmd(UAContext *ua, const char *cmd);
 
 static bool dot_bvfs_lsdirs(UAContext *ua, const char *cmd);
 static bool dot_bvfs_lsfiles(UAContext *ua, const char *cmd);
@@ -77,6 +78,7 @@ static bool api_cmd(UAContext *ua, const char *cmd);
 static bool sql_cmd(UAContext *ua, const char *cmd);
 static bool dot_quit_cmd(UAContext *ua, const char *cmd);
 static bool dot_help_cmd(UAContext *ua, const char *cmd);
+static bool helpscmd(UAContext *ua, const char *cmd);
 
 struct cmdstruct { const char *key; bool (*func)(UAContext *ua, const char *cmd); const char *help;const bool use_in_rs;};
 static struct cmdstruct commands[] = { /* help */  /* can be used in runscript */
@@ -98,6 +100,7 @@ static struct cmdstruct commands[] = { /* help */  /* can be used in runscript *
  { NT_(".status"),     dot_status_cmd,   NULL,       false},
  { NT_(".storage"),    storagecmd,       NULL,       true},
  { NT_(".volstatus"),  volstatuscmd,     NULL,       true},
+ { NT_(".media"),      mediacmd,         NULL,       true},
  { NT_(".mediatypes"), mediatypescmd,    NULL,       true},
  { NT_(".locations"),  locationscmd,     NULL,       true},
  { NT_(".bvfs_lsdirs"), dot_bvfs_lsdirs, NULL,       true},
@@ -710,6 +713,20 @@ static bool mediatypescmd(UAContext *ua, const char *cmd)
                   one_handler, (void *)ua)) 
    {
       ua->error_msg(_("List MediaType failed: ERR=%s\n"), db_strerror(ua->db));
+   }
+   return true;
+}
+
+static bool mediacmd(UAContext *ua, const char *cmd)
+{
+   if (!open_client_db(ua)) {
+      return true;
+   }
+   if (!db_sql_query(ua->db, 
+                  "SELECT DISTINCT Media.VolumeName FROM Media ORDER BY VolumeName",
+                  one_handler, (void *)ua)) 
+   {
+      ua->error_msg(_("List Media failed: ERR=%s\n"), db_strerror(ua->db));
    }
    return true;
 }
