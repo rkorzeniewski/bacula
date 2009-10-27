@@ -460,12 +460,12 @@ static void match_kw(regex_t *preg, const char *what, int len, POOLMEM **buf)
 {
    int rc, size;
    int nmatch=20;
-   regmatch_t pmatch[nmatch];
+   regmatch_t pmatch[20];
 
    if (len <= 0) {
       return;
    }
-   rc = regexec(preg, what, nmatch, pmatch,  0);
+   rc = regexec(preg, what, nmatch, pmatch, 0);
    if (rc == 0) {
       size = pmatch[0].rm_eo - pmatch[0].rm_so;
 
