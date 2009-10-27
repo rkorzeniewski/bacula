@@ -123,11 +123,13 @@ static struct cmdstruct commands[] = {                                      /* C
  { NT_("disable"),    disable_cmd,   _("disable <job=name> -- disable a job"),        true},
  { NT_("enable"),     enable_cmd,    _("enable <job=name> -- enable a job"),          true},
  { NT_("estimate"),   estimate_cmd,  _("performs FileSet estimate, listing gives full listing"
-       "\n               you can make it more accurate with accurate=yes/no"), true},
+       "\n               you can make it more accurate with accurate=yes/no"
+       "\n               estimate fileset=<fs> client=<cli> accurate=<yes/no> job=<job> listing"), true},
  { NT_("exit"),       quit_cmd,      _("exit = quit"),                                false},
  { NT_("gui"),        gui_cmd,       _("gui [on|off] -- non-interactive gui mode"),   false},
  { NT_("help"),       help_cmd,      _("print this command"),                         false},
- { NT_("label"),      label_cmd,     _("label a tape"),                               false},
+ { NT_("label"),      label_cmd,     _("label a tape -- "
+       "\n               label storage=<storage> volume=<vol> pool=<pool>"), false},
  { NT_("list"),       list_cmd,      _("list [pools | jobs | jobtotals | media <pool=pool-name> | "
        "\n               files <jobid=nn> | copies <jobid=nn>]; from catalog"), true},
  { NT_("llist"),      llist_cmd,     _("full or long list like list command"),        true},
@@ -137,11 +139,13 @@ static struct cmdstruct commands[] = {                                      /* C
        "\n               or mount [ jobid=<id> | job=<job-name> ]"), false},
  { NT_("prune"),      prunecmd,      _("prune files|jobs|volume client=<client-name> volume=<volume-name> "
        "\n               prune expired records from catalog"), true},
- { NT_("purge"),      purgecmd,      _("purge records from catalog"),                 true},
+ { NT_("purge"),      purgecmd,      _("purge records from catalog - purge [volume=<vol>]"),  true},
  { NT_("python"),     python_cmd,    _("python control commands"),                    false},
  { NT_("quit"),       quit_cmd,      _("quit"),                                       false},
  { NT_("query"),      querycmd,      _("query catalog"),                              false},
- { NT_("restore"),    restore_cmd,   _("restore files"),                              false},
+ { NT_("restore"),    restore_cmd,   _("restore files - "
+       "\n              restore [where=/path client=<client> storage=<storage> bootstrap=<file>"
+       "\n                       jobid=<jobid> done select all]"), false},
  { NT_("relabel"),    relabel_cmd,   _("relabel storage=<storage-name> oldvolume=<old-volume-name> "
        "\n               volume=<newvolume-name> -- relabel a tape"), false},
  { NT_("release"),    release_cmd,   _("release <storage-name>"),                     false},
@@ -154,15 +158,18 @@ static struct cmdstruct commands[] = {                                      /* C
  { NT_("setdebug"),   setdebug_cmd,  _("setdebug level=nn [trace=0/1 client=<client-name> |"
        "\n               dir | director | storage=<storage-name> | all]  -- sets debug level"), true},
  { NT_("setip"),      setip_cmd,     _("sets new client address -- if authorized"),   false},
- { NT_("show"),       show_cmd,      _("show (resource records) [jobs | pools | ... | all]"), true},
+ { NT_("show"),       show_cmd,      _("show (resource records) [job=xxx |  pool=yyy | fileset=aaa "
+       "\n              schedule=sss | client=zzz | fileset... | all]"), true},
  { NT_("sqlquery"),   sqlquerycmd,   _("use SQL to query catalog"),                   false},
  { NT_("time"),       time_cmd,      _("print current time"),                         true},
  { NT_("trace"),      trace_cmd,     _("turn on/off trace to file"),                  true},
  { NT_("unmount"),    unmount_cmd,   _("unmount storage=<storage-name> [ drive=<num> ] "
        "\n               or unmount [ jobid=<id> | job=<job-name> ]"), false},
  { NT_("umount"),     unmount_cmd,   _("umount - for old-time Unix guys, see unmount"),false},
- { NT_("update"),     update_cmd,    _("update Volume, Pool or slots"),               true},
- { NT_("use"),        use_cmd,       _("use <database-name> -- catalog xxx"),                            false},
+ { NT_("update"),     update_cmd,    _("update [pool=<poolname> | slots | stats | "
+       "\n                     volume=<volname> volstatus=<status> volretention=<time-def>"
+       "\n                          pool=<pool> recycle=<yes/no> slot=<number> inchanger=<yes/no>]"),true},
+ { NT_("use"),        use_cmd,       _("use <database-name> -- catalog xxx"),          false},
  { NT_("var"),        var_cmd,       _("does variable expansion"),                    false},
  { NT_("version"),    version_cmd,   _("print Director version"),                     true},
  { NT_("wait"),       wait_cmd,      _("wait [<jobname=name> | <jobid=nnn> | <ujobid=complete_name>] -- "
@@ -1860,8 +1867,27 @@ static int help_cmd(UAContext *ua, const char *cmd)
 
 int qhelp_cmd(UAContext *ua, const char *cmd)
 {
-   int i;
-
+   int i,j;
+   /* Want to display only commands */
+   j = find_arg(ua, NT_("all"));
+   if (j >= 0) {
+      for (i=0; i<comsize; i++) {
+         ua->send_msg("%s\n", commands[i].key);
+      }
+      return 1;
+   }
+   /* Want to display a specific help section */
+   j = find_arg_with_value(ua, NT_("item"));
+   if (j >= 0 && ua->argk[j]) {
+      for (i=0; i<comsize; i++) {
+         if (bstrcmp(commands[i].key, ua->argv[j])) {
+            ua->send_msg("%s\n", _(commands[i].help));
+            break;
+         }
+      }
+      return 1;
+   }
+   /* Want to display everything */
    for (i=0; i<comsize; i++) {
       ua->send_msg("%s %s\n", commands[i].key, _(commands[i].help));
    }
