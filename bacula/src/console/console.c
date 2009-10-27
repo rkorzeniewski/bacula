@@ -109,6 +109,13 @@ static int sleepcmd(FILE *input, BSOCK *UA_sock);
 static int execcmd(FILE *input, BSOCK *UA_sock);
 #ifdef HAVE_READLINE
 static int eolcmd(FILE *input, BSOCK *UA_sock);
+
+# ifndef HAVE_REGEX_H
+#  include "lib/bregex.h"
+# else
+#  include <regex.h>
+# endif
+
 #endif
 
 
@@ -359,6 +366,291 @@ static int tls_pem_callback(char *buf, int size, const void *userdata)
 #include "readline.h"
 #include "history.h"
 
+/* Get the first keyword of the line */
+static char *
+get_first_keyword()
+{
+   char *ret=NULL;
+   int len;
+   char *first_space = strchr(rl_line_buffer, ' ');
+   if (first_space) {
+      len = first_space - rl_line_buffer;
+      ret = (char *) malloc((len + 1) * sizeof(char));
+      memcpy(ret, rl_line_buffer, len);
+      ret[len]=0;
+   }
+   return ret;
+}
+
+/*
+ * Return the command before the current point.
+ * Set nb to the number of command to skip
+ */
+static char *
+get_previous_keyword(int current_point, int nb)
+{
+   int i, end=-1, start, inquotes=0;
+   char *s=NULL;
+
+   while (nb-- >= 0) {
+      /* first we look for a space before the current word */
+      for (i = current_point; i >= 0; i--) {
+         if (rl_line_buffer[i] == ' ' || rl_line_buffer[i] == '=') {
+            break;
+         }
+      }
+      
+      /* find the end of the command */
+      for (; i >= 0; i--) {
+         if (rl_line_buffer[i] != ' ') {
+            end = i;
+            break;
+         }
+      }
+      
+      /* no end of string */
+      if (end == -1) {
+         return NULL;
+      }
+      
+      /* look for the start of the command */
+      for (start = end; start > 0; start--) {
+         if (rl_line_buffer[start] == '"') {
+            inquotes = !inquotes;
+         }
+         if ((rl_line_buffer[start - 1] == ' ') && inquotes == 0) {
+            break;
+         }
+         current_point = start;
+      }
+   }
+
+   s = (char *)malloc(end - start + 2);
+   memcpy(s, rl_line_buffer + start, end - start + 1);
+   s[end - start + 1] = 0;
+
+   //  printf("=======> %i:%i <%s>\n", start, end, s);
+
+   return s;
+}
+
+/* Simple structure that will contain the completion list */
+struct ItemList {
+   alist list;
+};
+
+static ItemList *items = NULL;
+void init_items()
+{
+   if (!items) {
+      items = (ItemList*) malloc(sizeof(ItemList));
+      memset(items, 0, sizeof(ItemList));
+
+   } else {
+      items->list.destroy();
+   }
+
+   items->list.init();
+}
+
+/* Match a regexp and add the result to the items list
+ * This function is recursive
+ */
+static void match_kw(regex_t *preg, const char *what, int len, POOLMEM **buf)
+{
+   int rc, size;
+   int nmatch=20;
+   regmatch_t pmatch[nmatch];
+
+   if (len <= 0) {
+      return;
+   }
+   rc = regexec(preg, what, nmatch, pmatch,  0);
+   if (rc == 0) {
+      size = pmatch[0].rm_eo - pmatch[0].rm_so;
+
+      *buf = check_pool_memory_size(*buf, size + 1);
+      memcpy(*buf, what+pmatch[0].rm_so, size);
+      (*buf)[size] = 0;
+
+      items->list.append(bstrdup(*buf));
+      /* We search for the next keyword in the line */
+      match_kw(preg, what + pmatch[0].rm_eo, len - pmatch[0].rm_eo, buf);
+   }
+}
+
+/* fill the items list with the output of the help command */
+void get_arguments(const char *what)
+{
+   regex_t preg;
+   POOLMEM *buf;
+   int rc;
+   init_items();
+
+   rc = regcomp(&preg, 
+                "([a-z]+=|done|select|all|listing|jobs|stats|slots)",
+                REG_EXTENDED);
+   if (rc != 0) {
+      return;
+   }
+
+   buf = get_pool_memory(PM_MESSAGE);
+   UA_sock->fsend(".help item=%s", what);
+   while (UA_sock->recv() > 0) {
+      strip_trailing_junk(UA_sock->msg);
+      match_kw(&preg, UA_sock->msg, UA_sock->msglen, &buf);
+   }
+   free_pool_memory(buf);
+   regfree(&preg);
+}
+
+/* retreive a simple list (.pool, .client) and store it into items */
+void get_items(const char *what)
+{
+   init_items();
+
+   UA_sock->fsend("%s", what);
+   while (UA_sock->recv() > 0) {
+      strip_trailing_junk(UA_sock->msg);
+      items->list.append(bstrdup(UA_sock->msg));
+   }
+}
+
+typedef enum 
+{
+   ITEM_ARG,       /* item with simple list like .job */
+   ITEM_HELP       /* use help item=xxx and detect all arguments */
+} cpl_item_t;
+
+/* Generator function for command completion.  STATE lets us know whether
+ * to start from scratch; without any state (i.e. STATE == 0), then we
+ * start at the top of the list. 
+ */
+static char *item_generator(const char *text, int state, 
+                            const char *item, cpl_item_t type)
+{
+  static int list_index, len;
+  char *name;
+
+  /* If this is a new word to complete, initialize now.  This includes
+   * saving the length of TEXT for efficiency, and initializing the index
+   *  variable to 0. 
+   */
+  if (!state)
+  {
+     list_index = 0;
+     len = strlen(text);
+     switch(type) {
+     case ITEM_ARG:
+        get_items(item);
+        break;
+     case ITEM_HELP:
+        get_arguments(item);
+        break;
+     }
+  }
+
+  /* Return the next name which partially matches from the command list. */
+  while (items && list_index < items->list.size())
+  {
+     name = (char *)items->list[list_index];
+     list_index++;
+     
+     if (strncmp(name, text, len) == 0) {
+        char *ret = (char *) actuallymalloc(strlen(name)+1);
+        strcpy(ret, name);
+        return ret;
+     }
+  }
+
+  /* If no names matched, then return NULL. */
+  return ((char *)NULL);   
+}
+
+/* gobal variables for the type and the item to search 
+ * the readline API doesn' permit to pass user data.
+ */
+static const char *cpl_item;
+static cpl_item_t cpl_type;
+
+static char *cpl_generator(const char *text, int state)
+{
+   return item_generator(text, state, cpl_item, cpl_type);
+}
+
+/* this function is used to not use the default filename completion */
+static char *dummy_completion_function(const char *text, int state)
+{
+   return NULL;
+}
+
+struct cpl_keywords_t {
+   const char *key;
+   const char *cmd;
+};
+
+static struct cpl_keywords_t cpl_keywords[] = {
+   {"pool=",      ".pool"          },
+   {"fileset=",   ".fileset"       },
+   {"client=",    ".client"        },
+   {"job=",       ".job"           },
+   {"level=",     ".level"         },
+   {"storage=",   ".storage"       },
+   {"schedule=",  ".schedule"      },
+   {"volume=",    ".media"         },
+   {"oldvolume=", ".media"         },
+   {"volstatus=", ".volstatus"     }
+};
+#define key_size ((int)(sizeof(cpl_keywords)/sizeof(struct cpl_keywords_t)))
+
+/* Attempt to complete on the contents of TEXT.  START and END bound the
+ * region of rl_line_buffer that contains the word to complete.  TEXT is
+ * the word to complete.  We can use the entire contents of rl_line_buffer
+ * in case we want to do some simple parsing.  Return the array of matches,
+ * or NULL if there aren't any. 
+ */
+static char **readline_completion(const char *text, int start, int end)
+{
+   bool found=false;
+   char **matches;
+   char *s, *cmd;
+   matches = (char **)NULL;
+
+   /* If this word is at the start of the line, then it is a command
+      to complete.  Otherwise it is the name of a file in the current
+      directory. */
+   s = get_previous_keyword(start, 0);
+   cmd = get_first_keyword();
+   if (s) {
+      for (int i=0; i < key_size; i++) {
+         if (!strcasecmp(s, cpl_keywords[i].key)) {
+            cpl_item = cpl_keywords[i].cmd;
+            cpl_type = ITEM_ARG;
+            matches = rl_completion_matches(text, cpl_generator);
+            found=true;
+            break;
+         }
+      }
+      
+      if (!found) {             /* we try to get help with the first command */
+         cpl_item = cmd;
+         cpl_type = ITEM_HELP;
+         /* we don't want to append " " at the end */
+         rl_completion_suppress_append=true; 
+         matches = rl_completion_matches(text, cpl_generator);
+      } 
+      free(s);
+   } else {                     /* nothing on the line, display all commands */
+      cpl_item = ".help all";
+      cpl_type = ITEM_ARG;
+      matches = rl_completion_matches(text, cpl_generator);
+   }
+   if (cmd) {
+      free(cmd);
+   }
+   return (matches);
+}
+
 static char eol = '\0';
 static int eolcmd(FILE *input, BSOCK *UA_sock)
 {
@@ -566,7 +858,10 @@ static int console_init_history(const char *histfile)
 
    using_history();
    ret = read_history(histfile);
-
+   /* Tell the completer that we want a complete . */
+   rl_completion_entry_function = dummy_completion_function;
+   rl_attempted_completion_function = readline_completion;
+   rl_filename_completion_desired = 0;
 #endif
 
    return ret;
