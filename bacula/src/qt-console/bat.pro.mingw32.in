@@ -7,7 +7,8 @@
 #
 #   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 #    
-CONFIG += qt debug cross-win32
+CONFIG += qt cross-win32
+# CONFIG += debug 
 
 bins.path = ./
 bins.files = ./bat
