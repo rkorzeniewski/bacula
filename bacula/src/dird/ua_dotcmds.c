@@ -78,7 +78,6 @@ static bool api_cmd(UAContext *ua, const char *cmd);
 static bool sql_cmd(UAContext *ua, const char *cmd);
 static bool dot_quit_cmd(UAContext *ua, const char *cmd);
 static bool dot_help_cmd(UAContext *ua, const char *cmd);
-static bool helpscmd(UAContext *ua, const char *cmd);
 
 struct cmdstruct { const char *key; bool (*func)(UAContext *ua, const char *cmd); const char *help;const bool use_in_rs;};
 static struct cmdstruct commands[] = { /* help */  /* can be used in runscript */
