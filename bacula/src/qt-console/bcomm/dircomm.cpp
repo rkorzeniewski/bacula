@@ -451,7 +451,9 @@ bool DirComm::notify(bool enable)
    bool prev_enabled = false;
    if (m_notifier) {
       prev_enabled = m_notifier->isEnabled();   
-      m_notifier->setEnabled(enable);
+      if (prev_enabled != enable) {
+         m_notifier->setEnabled(enable);
+      }
       if (mainWin->m_connDebug) {
          if (prev_enabled && !enable)
             Pmsg2(000, "m_notifier Disabling notifier: %i %s\n", m_conn, m_console->m_dir->name());
