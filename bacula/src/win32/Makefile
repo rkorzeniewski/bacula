@@ -40,7 +40,7 @@ newinstaller:
 	   if $(MAKE) -C $@ $(MAKECMDGOALS); then \
 		echo "\n===== Make of $@ succeeded =====\n\n" ; \
 	   else  \
-		echo "\n!!!!! Make of $@ failed !!!!!\n\n" ; \
+		echo "\n!!!!! Make of $@ failed !!!!!\n\n" ; exit 1; \
 	   fi ; \
 	fi
 
@@ -49,7 +49,7 @@ win32_installer:
 	   if $(MAKE) -C $@ $(MAKECMDGOALS); then \
 		echo "\n===== Make of $@ succeeded =====\n\n" ; \
 	   else  \
-		echo "\n!!!!! Make of $@ failed !!!!!\n\n" ; \
+		echo "\n!!!!! Make of $@ failed !!!!!\n\n" ; exit 1; \
 	   fi ; \
 	fi
 
@@ -58,7 +58,7 @@ win64_installer:
 	   if $(MAKE) -C $@ $(MAKECMDGOALS); then \
 		echo "\n===== Make of $@ succeeded =====\n\n" ; \
 	   else  \
-		echo "\n!!!!! Make of $@ failed !!!!!\n\n" ; \
+		echo "\n!!!!! Make of $@ failed !!!!!\n\n" ; exit 1; \
 	   fi ; \
 	fi
 
@@ -68,7 +68,7 @@ $(DIRS):
 	   if $(MAKE) -C $@ $(MAKECMDGOALS); then \
 		echo "\n===== Make of $@ succeeded =====\n\n" ; \
 	   else  \
-		echo "\n!!!!! Make of $@ failed !!!!!\n\n" ; \
+		echo "\n!!!!! Make of $@ failed !!!!!\n\n" ; exit 1; \
 	   fi ; \
 	fi
 
@@ -77,7 +77,7 @@ bsmtp:
 	   if $(MAKE) -C tools bsmtp $(MAKECMDGOALS); then \
 		echo "\n===== Make of tools/bsmtp succeeded =====\n\n" ; \
 	   else  \
-		echo "\n!!!!! Make of tools/bsmtp failed !!!!!\n\n" ; \
+		echo "\n!!!!! Make of tools/bsmtp failed !!!!!\n\n" ; exit 1; \
 	   fi ; \
 	fi
 
