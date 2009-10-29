@@ -4,47 +4,27 @@
 #    manually
 #
 #  Kern Sibbald, June 2007
-#  Rewritten by James Harper, October 2009
 #
 
-
-FILES="$@"
-if [ "$FILES" = "" ]
-then
-  exit 1
-fi
-
-TOPDIR=`(cd ../../../..;pwd)`
+TOPDIR=`(cd ../../..;pwd)`
 TOPDIR=${DEPKGS:-${TOPDIR}}
-VERSION=$1
-shift
-if [ "$VERSION" = 64 ]; then
-   NM=${TOPDIR}/cross-tools/mingw-w64/bin/mingw32-nm
-elif [ "$VERSION" = 32 ]; then
-   NM=${TOPDIR}/cross-tools/mingw32/mingw32/bin/nm
-else 
-   echo "Usage: make_def [32|64] *.o" >&2
-   exit 1
-fi
+NM=${TOPDIR}/cross-tools/mingw32/mingw32/bin/nm
+ 
+echo "LIBRARY bacula.dll"
+echo "EXPORTS"
+echo " "
 
-echo LIBRARY bacula.dll
-echo EXPORTS
-echo ""
-
-$NM \
- --defined-only --extern-only $@ | while read addr type sym
-do
- sym=`echo $sym | cut -c2-`
- case "$type" in
-  "B")
-   echo $sym DATA
-   ;;
-  "T")
-   echo $sym
-   ;;
-  "")
-   echo "; $addr"
-   ;;
- esac
+cd obj32
+for i in *.o ; do \
+   echo "; $i"; \
+   ${NM} $i | grep "^[0-9a-f]* T _" | cut -c13- ; \
+   echo " "; \
 done
 
+DATA="\
+   console_command \
+   plugin_list"
+
+for i in ${DATA}; do \
+   echo "$i DATA"; \
+done

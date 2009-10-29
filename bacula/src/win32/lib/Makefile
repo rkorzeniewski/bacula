@@ -134,10 +134,6 @@ clean:
 # Rules for generating from ../lib
 #
 
-bacula$(WIN_VERSION).def: $(DLL_OBJS)
-	./make_def $(WIN_VERSION) $(DLL_OBJS) >bacula$(WIN_VERSION).def.new && \
-	  mv bacula$(WIN_VERSION).def.new bacula$(WIN_VERSION).def
-
 $(LIBDIR)/libbacula.a: DLL_DEFINE=USING_DLL
 
 $(LIBDIR)/libbacula.a: $(BINDIR)/bacula.dll $(STATIC_OBJS)

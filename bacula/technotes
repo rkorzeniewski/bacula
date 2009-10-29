@@ -8,8 +8,6 @@ ebl  Add readline completion support for bconsole. It gives help
      It works with --disable-conio and --with-readline=/usr/include/readline
 25Oct09
 mvw  Add support for running tape mount and unmount commands
-ebl  Apply James make_def version to simplify the link process for Windows
-ebl  Update it for win64.
 23Oct09
 kes  When dequeuing messages, don't allow queuing more, but send them
      to syslog. Fixes Eric's messages-test regression script.
