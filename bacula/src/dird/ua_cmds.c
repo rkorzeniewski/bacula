@@ -160,7 +160,7 @@ static struct cmdstruct commands[] = {                                      /* C
        "\n\tjobid=<jobid> done select all"), false},
 
  { NT_("relabel"),    relabel_cmd,   _("Relabel a tape"), 
-   NT_("storage=<storage-name> oldvolume=<old-volume-name>  volume=<newvolume-name>"), false},
+   NT_("storage=<storage-name> oldvolume=<old-volume-name>\n\tvolume=<newvolume-name> pool=<pool>"), false},
 
  { NT_("release"),    release_cmd,   _("Release storage"),  NT_("storage-name"),      false},
  { NT_("reload"),     reload_cmd,    _("Reload conf file"), NT_(""),                  true},
