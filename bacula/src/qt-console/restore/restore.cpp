@@ -292,7 +292,7 @@ void restorePage::directoryItemChanged(QTreeWidgetItem *currentitem,
 {
    QString fullpath = m_dirTreeItems.value(currentitem);
    statusLine->setText("");
-   if (fullpath != ""){
+   if (fullpath != "") {
       cwd(fullpath.toUtf8().data());
       fillDirectory();
    }
