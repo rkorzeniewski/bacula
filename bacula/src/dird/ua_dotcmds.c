@@ -69,6 +69,7 @@ static bool volstatuscmd(UAContext *ua, const char *cmd);
 static bool mediatypescmd(UAContext *ua, const char *cmd);
 static bool locationscmd(UAContext *ua, const char *cmd);
 static bool mediacmd(UAContext *ua, const char *cmd);
+static bool aopcmd(UAContext *ua, const char *cmd);
 
 static bool dot_bvfs_lsdirs(UAContext *ua, const char *cmd);
 static bool dot_bvfs_lsfiles(UAContext *ua, const char *cmd);
@@ -102,6 +103,7 @@ static struct cmdstruct commands[] = { /* help */  /* can be used in runscript *
  { NT_(".media"),      mediacmd,         NULL,       true},
  { NT_(".mediatypes"), mediatypescmd,    NULL,       true},
  { NT_(".locations"),  locationscmd,     NULL,       true},
+ { NT_(".actiononpurge"),aopcmd,         NULL,       true},
  { NT_(".bvfs_lsdirs"), dot_bvfs_lsdirs, NULL,       true},
  { NT_(".bvfs_lsfiles"),dot_bvfs_lsfiles,NULL,       true},
  { NT_(".bvfs_update"), dot_bvfs_update, NULL,       true},
@@ -585,6 +587,12 @@ static bool storagecmd(UAContext *ua, const char *cmd)
    return true;
 }
 
+static bool aopcmd(UAContext *ua, const char *cmd)
+{
+   ua->send_msg("None\n");
+   ua->send_msg("Truncate\n");
+   return true;
+}
 
 static bool typescmd(UAContext *ua, const char *cmd)
 {
@@ -595,7 +603,6 @@ static bool typescmd(UAContext *ua, const char *cmd)
    ua->send_msg("Migrate\n");
    return true;
 }
-
 
 /*
  * If this command is called, it tells the director that we
