@@ -1907,7 +1907,7 @@ int qhelp_cmd(UAContext *ua, const char *cmd)
    if (j >= 0 && ua->argk[j]) {
       for (i=0; i<comsize; i++) {
          if (bstrcmp(commands[i].key, ua->argv[j])) {
-            ua->send_msg("%s\n", _(commands[i].help));
+            ua->send_msg("%s\n", commands[i].usage);
             break;
          }
       }
@@ -1915,7 +1915,7 @@ int qhelp_cmd(UAContext *ua, const char *cmd)
    }
    /* Want to display everything */
    for (i=0; i<comsize; i++) {
-      ua->send_msg("%s %s\n", commands[i].key, _(commands[i].help));
+      ua->send_msg("%s %s -- %s\n", commands[i].key, commands[i].help, commands[i].usage);
    }
    return 1;
 }
