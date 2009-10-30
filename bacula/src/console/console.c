@@ -603,7 +603,8 @@ static struct cpl_keywords_t cpl_keywords[] = {
    {"schedule=",  ".schedule"      },
    {"volume=",    ".media"         },
    {"oldvolume=", ".media"         },
-   {"volstatus=", ".volstatus"     }
+   {"volstatus=", ".volstatus"     },
+   {"actiononpurge=", ".actiononpurge" }
 };
 #define key_size ((int)(sizeof(cpl_keywords)/sizeof(struct cpl_keywords_t)))
 
@@ -621,8 +622,9 @@ static char **readline_completion(const char *text, int start, int end)
    matches = (char **)NULL;
 
    /* If this word is at the start of the line, then it is a command
-      to complete.  Otherwise it is the name of a file in the current
-      directory. */
+    * to complete.  Otherwise it is the name of a file in the current
+    * directory. 
+    */
    s = get_previous_keyword(start, 0);
    cmd = get_first_keyword();
    if (s) {

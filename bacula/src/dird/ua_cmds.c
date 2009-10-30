@@ -132,9 +132,9 @@ static struct cmdstruct commands[] = {                                      /* C
  { NT_("exit"),       quit_cmd,      _("Terminate Bconsole session"), NT_(""),         false},
  { NT_("gui"),        gui_cmd,       _("Non-interactive gui mode"),   NT_("on | off"), false},
  { NT_("help"),       help_cmd,      _("Print help on specific command"),  
-   NT_("add autodisplay automount cancel create delete disable enable estimate exit gui label list llist messages "
-       "memory mount prune purge python quit query restore relabel release reload run status setdebug setip show "
-       "sqlquery time trace unmount umount update use var version wait"),         false},
+   NT_("add autodisplay automount cancel create delete disable\n\tenable estimate exit gui label list llist"
+       "\n\tmessages memory mount prune purge python quit query\n\trestore relabel release reload run status"
+       "\n\tsetdebug setip show sqlquery time trace unmount umount\n\tupdate use var version wait"),         false},
 
  { NT_("label"),      label_cmd,     _("Label a tape"), NT_("storage=<storage> volume=<vol> pool=<pool>"), false},
  { NT_("list"),       list_cmd,      _("List objects from catalog"), 
@@ -156,7 +156,8 @@ static struct cmdstruct commands[] = {                                      /* C
  { NT_("quit"),       quit_cmd,      _("Terminate Bconsole session"), NT_(""),              false},
  { NT_("query"),      querycmd,      _("Query catalog"),              NT_(""),              false},
  { NT_("restore"),    restore_cmd,   _("Restore files"), 
-   NT_("where=</path> client=<client> storage=<storage> bootstrap=<file> jobid=<jobid> done select all"), false},
+   NT_("where=</path> client=<client> storage=<storage> bootstrap=<file>"
+       "\n\tjobid=<jobid> done select all"), false},
 
  { NT_("relabel"),    relabel_cmd,   _("Relabel a tape"), 
    NT_("storage=<storage-name> oldvolume=<old-volume-name>  volume=<newvolume-name>"), false},
@@ -164,8 +165,8 @@ static struct cmdstruct commands[] = {                                      /* C
  { NT_("release"),    release_cmd,   _("Release storage"),  NT_("storage-name"),      false},
  { NT_("reload"),     reload_cmd,    _("Reload conf file"), NT_(""),                  true},
  { NT_("run"),        run_cmd,       _("Run a job"), 
-   NT_("job=<job-name> client=<client-name> fileset=<FileSet-name> level=<level-keyword> storage=<storage-name> where=<directory-prefix> "
-       "when=<universal-time-specification> yes"), false}, /* need to be check */
+   NT_("job=<job-name> client=<client-name>\n\tfileset=<FileSet-name> level=<level-keyword>\n\tstorage=<storage-name>"
+       "where=<directory-prefix>\n\twhen=<universal-time-specification>\n\tyes"), false}, /* need to be check */
 
  { NT_("status"),     status_cmd,    _("Report status"), 
    NT_("all | dir=<dir-name> | director | client=<client-name> | storage=<storage-name> slots | days=nnn"), true},
@@ -187,8 +188,11 @@ static struct cmdstruct commands[] = {                                      /* C
    NT_("storage=<storage-name> [ drive=<num> ] | jobid=<id> | job=<job-name>"), false},
 
  { NT_("update"),     update_cmd,    _("Update volume, pool or stats"), 
-   NT_("pool=<poolname> | slots storage=<storage> scan| stats | volume=<volname> volstatus=<status> volretention=<time-def> "
-       "pool=<pool> recycle=<yes/no> slot=<number> inchanger=<yes/no>"),true},
+   NT_("stats\n\tpool=<poolname>\n\tslots storage=<storage> scan"
+       "\n\tvolume=<volname> volstatus=<status> volretention=<time-def>"
+       "\n\t pool=<pool> recycle=<yes/no> slot=<number>\n\t inchanger=<yes/no>"
+       "\n\t maxvolbytes=<size> maxvolfiles=<nb> maxvoljobs=<nb>"
+       "\n\t enable=<yes/no> recyclepool=<pool> actiononpurge=<action>"),true},
  { NT_("use"),        use_cmd,       _("Use catalog xxx"), NT_(""),     false},
  { NT_("var"),        var_cmd,       _("Does variable expansion"), NT_(""),  false},
  { NT_("version"),    version_cmd,   _("Print Director version"),  NT_(""),  true},
@@ -1876,12 +1880,12 @@ int wait_cmd(UAContext *ua, const char *cmd)
 static int help_cmd(UAContext *ua, const char *cmd)
 {
    int i;
-
    ua->send_msg(_("  Command       Description\n  =======       ===========\n"));
    for (i=0; i<comsize; i++) {
       if (ua->argc == 2) {
          if (!strcasecmp(ua->argk[1], commands[i].key)) {
-            ua->send_msg(_("  %-13s %s\n  %s\n"), commands[i].key, commands[i].help, commands[i].usage);
+            ua->send_msg(_("  %-13s %s\n\nArguments:\n\t%s\n"), commands[i].key, 
+                         commands[i].help, commands[i].usage);
             break;
          }
       } else {
