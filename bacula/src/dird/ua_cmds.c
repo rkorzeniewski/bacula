@@ -171,7 +171,7 @@ static struct cmdstruct commands[] = {                                      /* C
    NT_("all | dir=<dir-name> | director | client=<client-name> | storage=<storage-name> slots | days=nnn"), true},
 
  { NT_("setdebug"),   setdebug_cmd,  _("Sets debug level"), 
-   NT_("level=nn trace=0/1 client=<client-name> | dir | storage=<storage-name> | all"), true},
+   NT_("level=<nn> trace=0/1 client=<client-name> | dir | storage=<storage-name> | all"), true},
 
  { NT_("setip"),      setip_cmd,     _("Sets new client address -- if authorized"), NT_(""),   false},
  { NT_("show"),       show_cmd,      _("Show resource records"), 
