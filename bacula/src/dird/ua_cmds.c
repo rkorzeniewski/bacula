@@ -131,7 +131,11 @@ static struct cmdstruct commands[] = {                                      /* C
 
  { NT_("exit"),       quit_cmd,      _("Terminate Bconsole session"), NT_(""),         false},
  { NT_("gui"),        gui_cmd,       _("Non-interactive gui mode"),   NT_("on | off"), false},
- { NT_("help"),       help_cmd,      _("Print this command"),         NT_(""),         false},
+ { NT_("help"),       help_cmd,      _("Print help on specific command"),  
+   NT_("add autodisplay automount cancel create delete disable enable estimate exit gui label list llist messages "
+       "memory mount prune purge python quit query restore relabel release reload run status setdebug setip show "
+       "sqlquery time trace unmount umount update use var version wait"),         false},
+
  { NT_("label"),      label_cmd,     _("Label a tape"), NT_("storage=<storage> volume=<vol> pool=<pool>"), false},
  { NT_("list"),       list_cmd,      _("List objects from catalog"), 
    NT_("pools | jobs | jobtotals | media <pool=pool-name> | files jobid=<nn> | copies jobid=<nn>"), true},
@@ -152,7 +156,7 @@ static struct cmdstruct commands[] = {                                      /* C
  { NT_("quit"),       quit_cmd,      _("Terminate Bconsole session"), NT_(""),              false},
  { NT_("query"),      querycmd,      _("Query catalog"),              NT_(""),              false},
  { NT_("restore"),    restore_cmd,   _("Restore files"), 
-   NT_("where=/path client=<client> storage=<storage> bootstrap=<file> jobid=<jobid> done select all"), false},
+   NT_("where=</path> client=<client> storage=<storage> bootstrap=<file> jobid=<jobid> done select all"), false},
 
  { NT_("relabel"),    relabel_cmd,   _("Relabel a tape"), 
    NT_("storage=<storage-name> oldvolume=<old-volume-name>  volume=<newvolume-name>"), false},
@@ -183,13 +187,13 @@ static struct cmdstruct commands[] = {                                      /* C
    NT_("storage=<storage-name> [ drive=<num> ] | jobid=<id> | job=<job-name>"), false},
 
  { NT_("update"),     update_cmd,    _("Update volume, pool or stats"), 
-   NT_("pool=<poolname> | slots | stats | volume=<volname> volstatus=<status> volretention=<time-def> "
+   NT_("pool=<poolname> | slots storage=<storage> scan| stats | volume=<volname> volstatus=<status> volretention=<time-def> "
        "pool=<pool> recycle=<yes/no> slot=<number> inchanger=<yes/no>"),true},
  { NT_("use"),        use_cmd,       _("Use catalog xxx"), NT_(""),     false},
  { NT_("var"),        var_cmd,       _("Does variable expansion"), NT_(""),  false},
  { NT_("version"),    version_cmd,   _("Print Director version"),  NT_(""),  true},
  { NT_("wait"),       wait_cmd,      _("Wait until no jobs are running"), 
-   NT_("<jobname=name> | <jobid=nnn> | <ujobid=complete_name>"), false}
+   NT_("jobname=<name> | jobid=<nnn> | ujobid=<complete_name>"), false}
 };
 
 #define comsize ((int)(sizeof(commands)/sizeof(struct cmdstruct)))
