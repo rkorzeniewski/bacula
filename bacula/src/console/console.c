@@ -467,15 +467,21 @@ static void match_kw(regex_t *preg, const char *what, int len, POOLMEM **buf)
    }
    rc = regexec(preg, what, nmatch, pmatch, 0);
    if (rc == 0) {
-      size = pmatch[0].rm_eo - pmatch[0].rm_so;
-
+#if 0
+      Pmsg1(0, "\n\n%s\n0123456789012345678901234567890123456789\n        10         20         30\n", what);
+      Pmsg2(0, "%i-%i\n", pmatch[0].rm_so, pmatch[0].rm_eo);
+      Pmsg2(0, "%i-%i\n", pmatch[1].rm_so, pmatch[1].rm_eo);
+      Pmsg2(0, "%i-%i\n", pmatch[2].rm_so, pmatch[2].rm_eo);
+      Pmsg2(0, "%i-%i\n", pmatch[3].rm_so, pmatch[3].rm_eo);
+#endif
+      size = pmatch[1].rm_eo - pmatch[1].rm_so;
       *buf = check_pool_memory_size(*buf, size + 1);
-      memcpy(*buf, what+pmatch[0].rm_so, size);
+      memcpy(*buf, what+pmatch[1].rm_so, size);
       (*buf)[size] = 0;
 
       items->list.append(bstrdup(*buf));
       /* We search for the next keyword in the line */
-      match_kw(preg, what + pmatch[0].rm_eo, len - pmatch[0].rm_eo, buf);
+      match_kw(preg, what + pmatch[1].rm_eo, len - pmatch[1].rm_eo, buf);
    }
 }
 
@@ -487,9 +493,7 @@ void get_arguments(const char *what)
    int rc;
    init_items();
 
-   rc = regcomp(&preg, 
-                "([a-z]+=|done|select|all|listing|jobs|stats|slots)",
-                REG_EXTENDED);
+   rc = regcomp(&preg, "(([a-z]+=)|([a-z]+)( |$))", REG_EXTENDED);
    if (rc != 0) {
       return;
    }
