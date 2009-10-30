@@ -104,16 +104,17 @@ MainWin::MainWin(QWidget *parent) : QMainWindow(parent)
       m_currentConsole->getDirResName(directoryResourceName);
       Pmsg1(100, "Setting initial window to %s\n", directoryResourceName.toUtf8().data());
    }
+   app->restoreOverrideCursor();
 }
 
 void MainWin::popLists()
 {
    foreach(Console *console, m_consoleHash)
       console->populateLists(true);
-   app->restoreOverrideCursor();
    m_doConnect = true;
    connectConsoleSignals();
    connectSignals();
+   app->restoreOverrideCursor();
    m_currentConsole->setCurrent();
 }
 
@@ -324,13 +325,13 @@ void MainWin::waitExit()
 {
    m_waitState = false;
    if (mainWin->m_connDebug) Pmsg0(000, "Exiting Wait State\n");
-   app->restoreOverrideCursor();
    if (m_waitTreeItem != treeWidget->currentItem())
       treeWidget->setCurrentItem(m_waitTreeItem);
    if (m_doConnect) {
       connectSignals();
       connectConsoleSignals();
    }
+   app->restoreOverrideCursor();
 }
 
 void MainWin::connectConsoleSignals()

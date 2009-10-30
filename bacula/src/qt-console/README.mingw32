@@ -78,6 +78,8 @@ Compile bat
 -----------
 
 $ cd bacula/src/qt-console
+$ export DEPKGS="directory above cross-tools and depkgs"
+$ ./make-win32 clean
 $ ./make-win32
 
 Cleanup
