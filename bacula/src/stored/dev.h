@@ -483,6 +483,11 @@ inline const char *DEVICE::print_name() const { return prt_name; }
  *  the device. Items in this record are "local" to the Job and
  *  do not affect other Jobs. Note, a job can have multiple
  *  DCRs open, each pointing to a different device. 
+ * Normally, there is only one JCR thread per DCR. However, the
+ *  big and important exception to this is when a Job is being
+ *  canceled. At that time, there may be two threads using the 
+ *  same DCR. Consequently, when creating/attaching/detaching
+ *  and freeing the DCR we must lock it (m_mutex).
  */
 class DCR {
 private:
@@ -493,6 +498,7 @@ private:
 public:
    dlink dev_link;                    /* link to attach to dev */
    JCR *jcr;                          /* pointer to JCR */
+   pthread_mutex_t m_mutex;           /* access control */
    DEVICE * volatile dev;             /* pointer to device */
    DEVRES *device;                    /* pointer to device resource */
    DEV_BLOCK *block;                  /* pointer to block */
