@@ -2,6 +2,15 @@
           
 General:
 
+01Nov09
+kes  Fix DCR race condition in SD that could lead to seg faults.
+kes  Make many regress tests timeout after 30 mins.
+30Nov09
+kes  Fix Win32 bat so that it runs better.
+kes  Fix seg fault in bat.
+29Nov09
+kes  Make builds stop if any errors.
+kes  Revert James' Win32 make_defs fix -- it builds incorrect def files
 27Oct09
 ebl  Add readline completion support for bconsole. It gives help
      on all commands, and complete job=, pool=, client=, fileset=, ...
