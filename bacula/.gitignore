@@ -440,7 +440,10 @@ src/qt-console/moc/moc_*.cpp
 src/qt-console/mount/.*.swp
 
 # src/qt-console/obj/
-src/qt-console/obj/*.o
+src/qt-console/obj
+src/qt-console/obj32
+src/qt-console/moc32
+src/qt-console/ui32
 
 # src/qt-console/testprogs/examp/
 src/qt-console/testprogs/examp/main

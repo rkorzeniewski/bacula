@@ -34,9 +34,9 @@ qwt {
 }
 
 RESOURCES    = main.qrc
-MOC_DIR      = moc
-OBJECTS_DIR  = obj
-UI_DIR       = ui
+MOC_DIR      = moc32
+OBJECTS_DIR  = obj32
+UI_DIR       = ui32
 
 # Main window
 FORMS += main.ui 
