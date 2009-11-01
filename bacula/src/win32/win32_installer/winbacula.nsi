@@ -27,8 +27,6 @@
 ; Added Bacula-SD and Bacula-DIR
 ; Replaced ParameterGiven with standard GetOptions
 ;
-; Version $Id$
-;
 ; Command line options:
 ;
 ; /service    - 
@@ -172,23 +170,25 @@ Var NewComponents
 ;     1 = Storage Service
 ;     2 = Director Service
 ;     3 = Command Console
-;     4 = Graphical Console
-;     5 = Documentation (PDF)
-;     6 = Documentation (HTML)
+;     4 = Bat Console
+;     5 = wxWidgets Console
+;     7 = Documentation (PDF)
+;     7 = Documentation (HTML)
 
 !define ComponentFile                   1
 !define ComponentStorage                2
 !define ComponentDirector               4
 !define ComponentTextConsole            8
-!define ComponentGUIConsole             16
-!define ComponentPDFDocs                32
-!define ComponentHTMLDocs               64
+!define ComponentBatConsole             16
+!define ComponentGUIConsole             32
+!define ComponentPDFDocs                64
+!define ComponentHTMLDocs               128
 
-!define ComponentsRequiringUserConfig           31
+!define ComponentsRequiringUserConfig           63
 !define ComponentsFileAndStorage                3
 !define ComponentsFileAndStorageAndDirector     7
-!define ComponentsDirectorAndTextGuiConsoles    28
-!define ComponentsTextAndGuiConsoles            24
+!define ComponentsDirectorAndTextGuiConsoles    60
+!define ComponentsTextAndGuiConsoles            56
 
 Var HDLG
 Var HCTL
@@ -787,6 +787,33 @@ Section "Command Console" SecConsole
 
 SectionEnd
 
+Section "Bat Console" SecBatConsole
+  SectionIn 1 2 3
+  
+  SetOutPath "$INSTDIR\bin"
+
+  Call InstallCommonFiles
+  File "${SRC_DIR}\QtCore4.dll"
+  File "${SRC_DIR}\QtGui4.dll"
+
+  File "${SRC_DIR}\bat.exe"
+
+  ${If} $InstallType = ${MigrateInstall}
+  ${AndIf} ${FileExists} "$OldInstallDir\bin\bat.conf"
+    CopyFiles "$OldInstallDir\bin\bat.conf" "$APPDATA\Bacula"
+  ${Else}
+    File "/oname=$PLUGINSDIR\bat.conf" "bat.conf.in"
+    StrCpy $0 "$APPDATA\Bacula"
+    StrCpy $1 bat.conf
+    Call ConfigEditAndCopy
+  ${EndIf}
+
+  ; Create Start Menu entry
+  CreateShortCut "$SMPROGRAMS\Bacula\Bat.lnk" "$INSTDIR\bin\bat.exe" '-c "$APPDATA\Bacula\bat.conf"' "$INSTDIR\bin\bat.exe" 0
+  CreateShortCut "$SMPROGRAMS\Bacula\Configuration\Edit Bat Configuration.lnk" "write.exe" '"$APPDATA\Bacula\bat.conf"'
+SectionEnd
+
+
 Section "Graphical Console" SecWxConsole
   SectionIn 1 2 3
   
@@ -884,7 +911,8 @@ LangString DESC_SecFileDaemon ${LANG_ENGLISH} "Install Bacula File Daemon on thi
 LangString DESC_SecStorageDaemon ${LANG_ENGLISH} "Install Bacula Storage Daemon on this system."
 LangString DESC_SecDirectorDaemon ${LANG_ENGLISH} "Install Bacula Director Daemon on this system."
 LangString DESC_SecConsole ${LANG_ENGLISH} "Install command console program on this system."
-LangString DESC_SecWxConsole ${LANG_ENGLISH} "Install graphical console program on this system."
+LangString DESC_SecBatConsole ${LANG_ENGLISH} "Install Bat graphical console program on this system."
+LangString DESC_SecWxConsole ${LANG_ENGLISH} "Install wxWidgets graphical console program on this system."
 LangString DESC_SecDocPdf ${LANG_ENGLISH} "Install documentation in Acrobat format on this system."
 LangString DESC_SecDocHtml ${LANG_ENGLISH} "Install documentation in HTML format on this system."
 
@@ -905,6 +933,7 @@ LangString SUBTITLE_WriteTemplates ${LANG_ENGLISH} "Create resource templates fo
   !InsertMacro MUI_DESCRIPTION_TEXT ${SecStorageDaemon} $(DESC_SecStorageDaemon)
   !InsertMacro MUI_DESCRIPTION_TEXT ${SecDirectorDaemon} $(DESC_SecDirectorDaemon)
   !InsertMacro MUI_DESCRIPTION_TEXT ${SecConsole} $(DESC_SecConsole)
+  !InsertMacro MUI_DESCRIPTION_TEXT ${SecBatConsole} $(DESC_SecBatConsole)
   !InsertMacro MUI_DESCRIPTION_TEXT ${SecWxConsole} $(DESC_SecWxConsole)
   !InsertMacro MUI_DESCRIPTION_TEXT ${SecDocPdf} $(DESC_SecDocPdf)
   !InsertMacro MUI_DESCRIPTION_TEXT ${SecDocHtml} $(DESC_SecDocHtml)
@@ -1163,6 +1192,9 @@ Function GetSelectedComponents
   ${If} ${SectionIsSelected} ${SecConsole}
     IntOp $R0 $R0 | ${ComponentTextConsole}
   ${EndIf}
+  ${If} ${SectionIsSelected} ${SecBatConsole}
+    IntOp $R0 $R0 | ${ComponentBatConsole}
+  ${EndIf}
   ${If} ${SectionIsSelected} ${SecWxConsole}
     IntOp $R0 $R0 | ${ComponentGUIConsole}
   ${EndIf}
@@ -1302,6 +1334,14 @@ Function SelectPreviousComponents
       !InsertMacro UnselectSection ${SecConsole}
       !InsertMacro ClearSectionFlag ${SecConsole} ${SF_RO}
     ${EndIf}
+    IntOp $R1 $PreviousComponents & ${ComponentBatConsole}
+    ${If} $R1 <> 0
+      !InsertMacro SelectSection ${SecBatConsole}
+      !InsertMacro SetSectionFlag ${SecBatConsole} ${SF_RO}
+    ${Else}
+      !InsertMacro UnselectSection ${SecBatConsole}
+      !InsertMacro ClearSectionFlag ${SecBatConsole} ${SF_RO}
+    ${EndIf}
     IntOp $R1 $PreviousComponents & ${ComponentGUIConsole}
     ${If} $R1 <> 0
       !InsertMacro SelectSection ${SecWxConsole}
@@ -1372,6 +1412,12 @@ Function UpdateComponentUI
       !InsertMacro SetSectionFlag ${SecConsole} ${SF_BOLD}
     ${Else}
       !InsertMacro ClearSectionFlag ${SecConsole} ${SF_BOLD}
+    ${EndIf}
+    IntOp $R1 $NewComponents & ${ComponentBatConsole}
+    ${If} $R1 <> 0
+      !InsertMacro SetSectionFlag ${SecBatConsole} ${SF_BOLD}
+    ${Else}
+      !InsertMacro ClearSectionFlag ${SecBatConsole} ${SF_BOLD}
     ${EndIf}
     IntOp $R1 $NewComponents & ${ComponentGUIConsole}
     ${If} $R1 <> 0

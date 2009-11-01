@@ -1,33 +1,21 @@
 ECHO_CMD=@
 
+WIN32_DIRS=lib cats filed filed/plugins dird stored \
+	 console wx-console tools scripts
+
+WIN64_DIRS=lib filed filed/plugins console scripts
+
 ifeq ($(WIN64),yes)
- DIRS=	lib \
-	filed \
-	filed/plugins \
-	console \
-	scripts
-
-  INSTALLER=win64_installer
-
-  SPECIAL=bsmtp
+	 DIRS=$(WIN64_DIRS)
+	 INSTALLER=win64_installer
+	 SPECIAL=bsmtp
 else
- DIRS=	lib \
-	cats \
-	filed \
-	filed/plugins \
-	dird \
-	stored \
-	console \
-	wx-console \
-	tools \
-	scripts 
-
-  INSTALLER=win32_installer
-
-  SPECIAL=
+	 DIRS=$(WIN32_DIRS)
+	 INSTALLER=win32_installer
+	 SPECIAL=bat
 endif
 
-.PHONY: $(DIRS) clean all Makefile.inc win32_installer newinstaller \
+.PHONY: $(DIRS) clean all Makefile.inc win32_installer full_win32_installer \
 	 win64_installer bsmtp
 
 all: Makefile.inc $(DIRS) $(SPECIAL) $(INSTALLER)
@@ -35,7 +23,10 @@ all: Makefile.inc $(DIRS) $(SPECIAL) $(INSTALLER)
 clean: $(DIRS) win32_installer newinstaller win64_installer
 	$(ECHO_CMD)-rm -rf release32 release64
 
-newinstaller:
+bat:
+	(cd ../qt-console; ./make-win32)
+
+full_win32_installer:
 	@if test -f Makefile.inc; then \
 	   if $(MAKE) -C $@ $(MAKECMDGOALS); then \
 		echo "\n===== Make of $@ succeeded =====\n\n" ; \
