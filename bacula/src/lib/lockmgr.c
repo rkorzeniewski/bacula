@@ -555,7 +555,7 @@ void create_lmgr_key()
    global_mgr = New(dlist(n, &n->link));
 
    status = pthread_create(&undertaker, NULL, check_deadlock, NULL);
-   if (status != 0) P
+   if (status != 0) {
       berrno be;
       Pmsg1(000, _("pthread_create failed: ERR=%s\n"),
             be.bstrerror(status));
