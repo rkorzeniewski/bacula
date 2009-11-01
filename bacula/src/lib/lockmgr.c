@@ -354,7 +354,7 @@ class lmgr_dummy_thread_t: public lmgr_thread_t
 pthread_once_t key_lmgr_once = PTHREAD_ONCE_INIT; 
 static pthread_key_t lmgr_key;  /* used to get lgmr_thread_t object */
 
-static dlist *global_mgr=NULL;  /* used to store all lgmr_thread_t objects */
+static dlist *global_mgr = NULL;  /* used to store all lgmr_thread_t objects */
 static pthread_mutex_t lmgr_global_mutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_t undertaker;
 
@@ -554,7 +554,8 @@ void create_lmgr_key()
    lmgr_thread_t *n=NULL;
    global_mgr = New(dlist(n, &n->link));
 
-   if (pthread_create(&undertaker, NULL, check_deadlock, NULL) != 0) {
+   status = pthread_create(&undertaker, NULL, check_deadlock, NULL);
+   if (status != 0) P
       berrno be;
       Pmsg1(000, _("pthread_create failed: ERR=%s\n"),
             be.bstrerror(status));
@@ -610,7 +611,7 @@ void lmgr_cleanup_main()
    pthread_mutex_lock(&lmgr_global_mutex);
    {
       temp = global_mgr;
-      global_mgr=NULL;
+      global_mgr = NULL;
       delete temp;
    }
    pthread_mutex_unlock(&lmgr_global_mutex);
