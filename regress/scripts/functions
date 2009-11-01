@@ -216,7 +216,11 @@ bscan_libdbi()
 
 stop_bacula()
 {
-   ${bin}/bacula stop 2>&1 >/dev/null
+   if test "$debug" -eq 1 ; then
+      ${bin}/bacula stop
+   else
+      ${bin}/bacula stop 2>&1 >/dev/null
+   fi
 }
 
 check_for_zombie_jobs()
