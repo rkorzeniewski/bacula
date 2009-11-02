@@ -158,9 +158,9 @@ run_bacula()
    debug_wait
    zstat=0
    if test "$debug" -eq 1 ; then
-     ${scripts}/bacula-ctl-sd start
-     ${scripts}/bacula-ctl-fd start $1
-     ${scripts}/bacula-ctl-dir start
+     ${scripts}/bacula-ctl-sd start -m
+     ${scripts}/bacula-ctl-fd start -m $1
+     ${scripts}/bacula-ctl-dir start -m
      cat ${tmp}/bconcmds | ${bin}/bconsole -c ${conf}/bconsole.conf
      return $?
    else

@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2008 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2009 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -34,8 +34,6 @@
  * and acts on them. When a request to append data is made,
  * it opens a data channel and accepts data from the
  * File daemon.
- *
- *   Version $Id$
  *
  */
 
@@ -106,6 +104,7 @@ PROG_COPYRIGHT
 "        -dt         print timestamp in debug output\n"
 "        -f          run in foreground (for debugging)\n"
 "        -g <group>  set groupid to group\n"
+"        -m          print kaboom output (for debugging)\n"
 "        -p          proceed despite I/O errors\n"
 "        -s          no signals (for debugging)\n"
 "        -t          test - read config and exit\n"
@@ -156,7 +155,7 @@ int main (int argc, char *argv[])
       Emsg1(M_ABORT, 0, _("Tape block size (%d) is not a power of 2\n"), TAPE_BSIZE);
    }
 
-   while ((ch = getopt(argc, argv, "c:d:fg:pstu:v?")) != -1) {
+   while ((ch = getopt(argc, argv, "c:d:fg:mpstu:v?")) != -1) {
       switch (ch) {
       case 'c':                    /* configuration file */
          if (configfile != NULL) {
@@ -182,6 +181,10 @@ int main (int argc, char *argv[])
 
       case 'g':                    /* set group id */
          gid = optarg;
+         break;
+
+      case 'm':                    /* print kaboom output */
+         prt_kaboom = true;
          break;
 
       case 'p':                    /* proceed in spite of I/O errors */
