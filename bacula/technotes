@@ -2,6 +2,8 @@
           
 General:
 
+02Nov09
+ebl  Avoid orphan buffers in testls
 01Nov09
 kes  Fix DCR race condition in SD that could lead to seg faults.
 kes  Make many regress tests timeout after 30 mins.
