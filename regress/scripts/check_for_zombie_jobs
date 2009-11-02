@@ -31,6 +31,7 @@ if [ $? != 0 ] ; then
   echo " "
   echo "  !!!! Zombie Jobs in Director !!!!"
   echo "  !!!! Zombie Jobs in Director !!!!" >>test.out
+  cat ${tmp}/dir.out
   echo " "
   zstat=1
   exit 1
@@ -40,6 +41,7 @@ if [ $? != 0 ] ; then
   echo " "
   echo "  !!!! Zombie Jobs in File daemon !!!!"
   echo "  !!!! Zombie Jobs in File daemon !!!!" >>test.out
+  cat ${tmp}/fd.out
   echo " "
   zstat=1
   exit 1
@@ -49,6 +51,7 @@ if [ $? != 0 ] ; then
   echo " "
   echo "  !!!! Zombie Jobs in Storage daemon !!!!"
   echo "  !!!! Zombie Jobs in Storage daemon !!!!" >>test.out
+  cat ${tmp}/sd.out
   echo " "
   zstat=1
   exit 1

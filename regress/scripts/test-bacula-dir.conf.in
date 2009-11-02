@@ -38,6 +38,7 @@ Job {
   Write Bootstrap = "@working_dir@/NightlySave.bsr"
   Maximum Concurrent Jobs = 4
   SpoolData=yes
+  Max Run Time = 30min
 }
 
 Job {
@@ -49,6 +50,7 @@ Job {
   Messages = Standard
   Pool = Default
   Write Bootstrap = "@working_dir@/NightlySave.bsr"
+  Max Run Time = 30min
 }
 
 
@@ -62,6 +64,7 @@ Job {
   Messages = Standard
   Pool = Default
   Write Bootstrap = "@working_dir@/NightlySave.bsr"
+  Max Run Time = 30min
 }
 
 
@@ -74,6 +77,7 @@ Job {
   Messages = Standard
   Pool = Default
   Write Bootstrap = "@working_dir@/NightlySave.bsr"
+  Max Run Time = 30min
 }
 
 Job {
@@ -86,6 +90,7 @@ Job {
   Pool = Default
   Maximum Concurrent Jobs = 4
   Write Bootstrap = "@working_dir@/NightlySave.bsr"
+  Max Run Time = 30min
 # Max Run Time = 15 seconds
 }
 
@@ -98,6 +103,7 @@ Job {
   Messages = Standard
   Pool = Default
   Write Bootstrap = "@working_dir@/NightlySave.bsr"
+  Max Run Time = 30min
 }
 
 
@@ -116,6 +122,7 @@ Job {
   # This deletes the copy of the catalog
   RunAfterJob  = "@sbindir@/delete_catalog_backup"
   Write Bootstrap = "@working_dir@/BackupCatalog.bsr"
+  Max Run Time = 30min
 }
 
 # Standard Restore template, to be changed by Console program
@@ -128,6 +135,7 @@ Job {
   Messages = Standard
   Pool = Default
   Where = @tmpdir@/bacula-restores
+  Max Run Time = 30min
 }
 
 

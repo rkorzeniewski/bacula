@@ -470,8 +470,8 @@ BOOL ReportStatus(DWORD state, DWORD exitcode, DWORD waithint)
    return result;
 }
 
-/* Log an error message */
-void LogErrorMsg(const char *message, const char *fname, int lineno)
+/* Log an error message for the last Windows error */
+void LogLastErrorMsg(const char *message, const char *fname, int lineno)
 {
    char msgbuf[500];
    HANDLE eventHandler;

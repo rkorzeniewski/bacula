@@ -36,7 +36,8 @@ BACULA_BINARIES := \
 	btape.exe \
 	dbcheck.exe \
 	scsilist.exe \
-	bwx-console.exe
+	bwx-console.exe \
+	bat.exe
 
 DEPKGS_BINARIES := \
 	libeay32.dll \
@@ -60,7 +61,9 @@ DEPKGS_BINARIES := \
 	dvd+rw-format.exe \
 	dvd+rw-mediainfo.exe \
 	wxbase28_gcc_bacula.dll \
-	wxmsw28_core_gcc_bacula.dll
+	wxmsw28_core_gcc_bacula.dll \
+	QtCore4.dll \
+	QtGui4.dll
 
 NONGCC_BINARIES := \
 	libmysql.dll

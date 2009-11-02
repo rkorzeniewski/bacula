@@ -38,6 +38,7 @@ SET_TESTS_PROPERTIES(disk:maxtime-test PROPERTIES
    PASS_REGULAR_EXPRESSION "Fatal error")
 ADD_TEST(disk:maxvol2-test "@regressdir@/tests/maxvol2-test")
 ADD_TEST(disk:maxvol-test "@regressdir@/tests/maxvol-test")
+# ADD_TEST(disk:messages-test "@regressdir@/tests/messages-test")
 ADD_TEST(disk:migration-jobspan-test "@regressdir@/tests/migration-jobspan-test")
 ADD_TEST(disk:migration-job-test "@regressdir@/tests/migration-job-test")
 ADD_TEST(disk:migration-time-test "@regressdir@/tests/migration-time-test")

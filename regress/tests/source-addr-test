@@ -84,6 +84,10 @@ if [ $? -ne 0 ]; then
    print_debug "Couldn't detect a connection to the FD sourced from SourceAddress ${IP}"
 fi
 
+if [ "$stat" = 2 ] ; then
+   netstat -tan
+fi
+
 if [ "$debug" = 1 ] ; then
     cat $tmp/log3.out
 fi

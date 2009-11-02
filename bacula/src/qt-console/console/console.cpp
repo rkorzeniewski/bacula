@@ -139,19 +139,12 @@ void Console::connect_dir()
  * A function created to separate out the population of the lists
  * from the Console::connect_dir function
  */
-void Console::populateLists(bool forcenew)
+void Console::populateLists(bool /*forcenew*/)
 {
    int conn;
-   if (forcenew) {
-      if (!newDirComm(conn)) {
-         Pmsg1(000, "newDirComm Seems to Failed to create a connection for populateLists %s\n", m_dir->name());
-         return;
-      }
-   } else {
-      if (!availableDirComm(conn)) {
-         Pmsg1(000, "availableDirComm Seems to Failed to find a connection for populateListsi %s\n", m_dir->name());
-         return;
-      }
+   if (!availableDirComm(conn) && !newDirComm(conn)) {
+      Pmsg1(000, "newDirComm Seems to Failed to create a connection for populateLists %s\n", m_dir->name());
+      return;
    }
    populateLists(conn);
 }

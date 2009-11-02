@@ -179,8 +179,8 @@ void ClientStat::populateTerminated()
                if (field == "OK")
                   p_tableitem->setBackground(Qt::green);
                else
-		 p_tableitem->setBackground(Qt::red);
-	    }
+                 p_tableitem->setBackground(Qt::red);
+            }
             terminatedTable->setItem(results.size() - row - 1, column, p_tableitem);
             column += 1;
          }

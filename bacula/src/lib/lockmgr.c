@@ -243,12 +243,14 @@ public:
    }
 
    void _dump(FILE *fp) {
-      fprintf(fp, "threadid=0x%x max=%i current=%i\n", (int)thread_id, max, current);
+      fprintf(fp, "threadid=%p max=%i current=%i\n", 
+              (void *)thread_id, max, current);
       for(int i=0; i<=current; i++) {
-         fprintf(fp, "   lock=%p state=%c %s:%i\n", 
-               lock_list[i].lock, lock_list[i].state,
-               lock_list[i].file, lock_list[i].line);
-      }
+         fprintf(fp, "   lock=%p state=%s %s:%i\n", 
+                 lock_list[i].lock, 
+                 (lock_list[i].state=='W')?"Wanted ":"Granted",
+                 lock_list[i].file, lock_list[i].line);
+      } 
    }
 
    void dump(FILE *fp) {
@@ -352,7 +354,7 @@ class lmgr_dummy_thread_t: public lmgr_thread_t
 pthread_once_t key_lmgr_once = PTHREAD_ONCE_INIT; 
 static pthread_key_t lmgr_key;  /* used to get lgmr_thread_t object */
 
-static dlist *global_mgr=NULL;  /* used to store all lgmr_thread_t objects */
+static dlist *global_mgr = NULL;  /* used to store all lgmr_thread_t objects */
 static pthread_mutex_t lmgr_global_mutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_t undertaker;
 
@@ -466,8 +468,8 @@ bool lmgr_detect_deadlock()
 
 /*
  * !!! WARNING !!! 
- * Use this function only after a fatal signal
- * We don't use any lock to display information
+ * Use this function is used only after a fatal signal
+ * We don't use locking to display the information
  */
 void dbg_print_lock(FILE *fp)
 {
@@ -522,7 +524,7 @@ void *check_deadlock(void *)
 }
 
 /* This object is used when LMGR is not initialized */
-lmgr_dummy_thread_t dummy_lmgr;
+static lmgr_dummy_thread_t dummy_lmgr;
 
 /*
  * Retrieve the lmgr_thread_t object from the stack
@@ -552,7 +554,8 @@ void create_lmgr_key()
    lmgr_thread_t *n=NULL;
    global_mgr = New(dlist(n, &n->link));
 
-   if (pthread_create(&undertaker, NULL, check_deadlock, NULL) != 0) {
+   status = pthread_create(&undertaker, NULL, check_deadlock, NULL);
+   if (status != 0) {
       berrno be;
       Pmsg1(000, _("pthread_create failed: ERR=%s\n"),
             be.bstrerror(status));
@@ -608,7 +611,7 @@ void lmgr_cleanup_main()
    pthread_mutex_lock(&lmgr_global_mutex);
    {
       temp = global_mgr;
-      global_mgr=NULL;
+      global_mgr = NULL;
       delete temp;
    }
    pthread_mutex_unlock(&lmgr_global_mutex);
@@ -720,19 +723,21 @@ int lmgr_thread_create(pthread_t *thread,
                        const pthread_attr_t *attr,
                        void *(*start_routine)(void*), void *arg)
 {
+   /* lmgr should be active (lmgr_init_thread() call in main()) */
+   ASSERT(lmgr_is_active());
    /* Will be freed by the child */
    lmgr_thread_arg_t *a = (lmgr_thread_arg_t*) malloc(sizeof(lmgr_thread_arg_t));
    a->start_routine = start_routine;
    a->arg = arg;
-   return pthread_create(thread, attr, lmgr_thread_launcher, a);   
+   return pthread_create(thread, attr, lmgr_thread_launcher, a);
 }
 
 #else  /* _USE_LOCKMGR */
 
 /*
  * !!! WARNING !!! 
- * Use this function only after a fatal signal
- * We don't use any lock to display information
+ * Use this function is used only after a fatal signal
+ * We don't use locking to display information
  */
 void dbg_print_lock(FILE *fp)
 {
