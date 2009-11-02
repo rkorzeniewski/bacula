@@ -241,7 +241,7 @@ void dbg_plugin_add_hook(dbg_plugin_hook_t *fct)
    dbg_plugin_hooks[dbg_plugin_hook_count++] = fct;
 }
 
-void _dbg_print_plugin(FILE *fp)
+void dbg_print_plugin(FILE *fp)
 {
    Plugin *plugin;
    fprintf(fp, "Attempt to dump plugins\n");
