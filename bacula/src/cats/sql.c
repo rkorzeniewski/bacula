@@ -761,9 +761,11 @@ bool db_open_batch_connexion(JCR *jcr, B_DB *mdb)
       }
 
       if (!db_open_database(jcr, jcr->db_batch)) {
-         Mmsg2(&jcr->db_batch->errmsg,  _("Could not open database \"%s\": ERR=%s\n"),
+         POOLMEM *errmsg = get_pool_memory(PM_MESSAGE);
+         Mmsg2(&errmsg,  _("Could not open database \"%s\": ERR=%s\n"),
               jcr->db_batch->db_name, db_strerror(jcr->db_batch));
-         Jmsg1(jcr, M_FATAL, 0, "%s", jcr->db_batch->errmsg);
+         Jmsg1(jcr, M_FATAL, 0, "%s", errmsg);
+         free_pool_memory(errmsg);
          return false;
       }      
       Dmsg3(100, "initdb ref=%d connected=%d db=%p\n", jcr->db_batch->ref_count,
