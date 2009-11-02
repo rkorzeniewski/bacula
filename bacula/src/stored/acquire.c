@@ -30,7 +30,6 @@
  *
  *   Kern Sibbald, August MMII
  *
- *   Version $Id$
  */
 
 #include "bacula.h"                   /* pull in global headers */
@@ -38,6 +37,7 @@
 
 /* Forward referenced functions */
 static void attach_dcr_to_dev(DCR *dcr);
+static void detach_dcr_from_dev(DCR *dcr);
 static void set_dcr_from_vol(DCR *dcr, VOL_LIST *vol);
 
 
@@ -555,12 +555,6 @@ bool release_device(DCR *dcr)
    if (dcr->keep_dcr) {
       detach_dcr_from_dev(dcr);
    } else {
-      if (jcr->read_dcr == dcr) {
-         jcr->read_dcr = NULL;
-      }
-      if (jcr->dcr == dcr) {
-         jcr->dcr = NULL;
-      }
       free_dcr(dcr);
    }
    Dmsg2(100, "===== Device %s released by JobId=%u\n", dev->print_name(),
@@ -596,10 +590,17 @@ bool clean_device(DCR *dcr)
 DCR *new_dcr(JCR *jcr, DCR *dcr, DEVICE *dev)
 {
    if (!dcr) {
+      int errstat;
       dcr = (DCR *)malloc(sizeof(DCR));
       memset(dcr, 0, sizeof(DCR));
       dcr->tid = pthread_self();
       dcr->spool_fd = -1;
+      if ((errstat = pthread_mutex_init(&dcr->m_mutex, NULL)) != 0) {
+         berrno be;
+         dev->dev_errno = errstat;
+         Mmsg1(dev->errmsg, _("Unable to init mutex: ERR=%s\n"), be.bstrerror(errstat));
+         Jmsg0(jcr, M_ERROR_TERM, 0, dev->errmsg);
+      }
    }
    dcr->jcr = jcr;                 /* point back to jcr */
    /* Set device information, possibly change device */
@@ -659,18 +660,25 @@ static void remove_dcr_from_dcrs(DCR *dcr)
 
 static void attach_dcr_to_dev(DCR *dcr)
 {
-   DEVICE *dev = dcr->dev;
-   JCR *jcr = dcr->jcr;
+   DEVICE *dev;
+   JCR *jcr;
 
+   P(dcr->m_mutex);
+   dev = dcr->dev;
+   jcr = dcr->jcr;
    if (jcr) Dmsg1(500, "JobId=%u enter attach_dcr_to_dev\n", (uint32_t)jcr->JobId);
    if (!dcr->attached_to_dev && dev->initiated && jcr && jcr->get_JobType() != JT_SYSTEM) {
       dev->attached_dcrs->append(dcr);  /* attach dcr to device */
       dcr->attached_to_dev = true;
       Dmsg1(500, "JobId=%u attach_dcr_to_dev\n", (uint32_t)jcr->JobId);
    }
+   V(dcr->m_mutex);
 }
 
-void detach_dcr_from_dev(DCR *dcr)
+/* 
+ * DCR is locked before calling this routine
+ */
+static void locked_detach_dcr_from_dev(DCR *dcr)
 {
    DEVICE *dev = dcr->dev;
    Dmsg0(500, "Enter detach_dcr_from_dev\n"); /* jcr is NULL in some cases */
@@ -680,10 +688,18 @@ void detach_dcr_from_dev(DCR *dcr)
       dev->dlock();
       dcr->unreserve_device();
       dcr->dev->attached_dcrs->remove(dcr);  /* detach dcr from device */
-      dcr->attached_to_dev = false;
 //    remove_dcr_from_dcrs(dcr);      /* remove dcr from jcr list */
       dev->dunlock();
    }
+   dcr->attached_to_dev = false;
+}
+
+
+static void detach_dcr_from_dev(DCR *dcr)
+{
+   P(dcr->m_mutex);
+   locked_detach_dcr_from_dev(dcr);
+   V(dcr->m_mutex);
 }
 
 /*
@@ -692,9 +708,11 @@ void detach_dcr_from_dev(DCR *dcr)
  */
 void free_dcr(DCR *dcr)
 {
-   JCR *jcr = dcr->jcr;
+   JCR *jcr;
 
-   detach_dcr_from_dev(dcr);
+   P(dcr->m_mutex);
+   jcr = dcr->jcr;
+   locked_detach_dcr_from_dev(dcr);
 
    if (dcr->block) {
       free_block(dcr->block);
@@ -705,6 +723,11 @@ void free_dcr(DCR *dcr)
    if (jcr && jcr->dcr == dcr) {
       jcr->dcr = NULL;
    }
+   if (jcr && jcr->read_dcr == dcr) {
+      jcr->read_dcr = NULL;
+   }
+   V(dcr->m_mutex);
+   pthread_mutex_destroy(&dcr->m_mutex);
    free(dcr);
 }
 

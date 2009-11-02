@@ -28,6 +28,7 @@ Job {
   Write Bootstrap = "@working_dir@/SmallVols.bsr"
   Pool = SmallVols
   SpoolData = yes
+  Max Run Time = 30min
 }
 
 
@@ -41,6 +42,7 @@ Job {
   Messages = Standard
   Pool = Default
   Write Bootstrap = "@working_dir@/NightlySave.bsr"
+  Max Run Time = 30min
 }
 
 
@@ -55,6 +57,7 @@ Job {
   Messages = Standard
   Pool = Default
   Where = @tmpdir@/bacula-restores
+  Max Run Time = 30min
 }
 
 

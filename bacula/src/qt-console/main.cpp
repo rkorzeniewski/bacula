@@ -58,7 +58,6 @@ static char *configfile = NULL;
 int main(int argc, char *argv[])
 {
    int ch;
-   int rc;
    bool no_signals = true;
    bool test_config = false;
 
@@ -85,6 +84,7 @@ int main(int argc, char *argv[])
 
    init_stack_dump();
    my_name_is(argc, argv, "bat");
+   lmgr_init_thread();
    init_msg(NULL, NULL);
    working_directory  = "/tmp";
 
@@ -159,9 +159,7 @@ int main(int argc, char *argv[])
    mainWin = new MainWin;
    mainWin->show();
 
-   rc = app->exec();
-// sm_dump(false);
-   return rc;
+   return app->exec();
 }
 
 void terminate_console(int /*sig*/)

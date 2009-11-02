@@ -12,19 +12,18 @@
   <property name="windowTitle" >
    <string>Form</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout" >
+  <layout class="QVBoxLayout" >
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_2" >
+    <layout class="QHBoxLayout" >
      <item>
-      <layout class="QHBoxLayout" name="horizontalLayout" >
+      <layout class="QHBoxLayout" >
        <item>
         <widget class="QPushButton" name="pbDelete" >
          <property name="text" >
           <string>Delete</string>
          </property>
          <property name="icon" >
-          <iconset resource="../main.qrc" >
-           <normaloff>:/images/purge.png</normaloff>:/images/purge.png</iconset>
+          <iconset resource="../main.qrc" >:/images/purge.png</iconset>
          </property>
          <property name="flat" >
           <bool>true</bool>
@@ -43,8 +42,7 @@
           <string>Errors</string>
          </property>
          <property name="icon" >
-          <iconset resource="../main.qrc" >
-           <normaloff>:/images/zoom.png</normaloff>:/images/zoom.png</iconset>
+          <iconset resource="../main.qrc" >:/images/zoom.png</iconset>
          </property>
          <property name="flat" >
           <bool>true</bool>
@@ -60,8 +58,7 @@
           <string>Media</string>
          </property>
          <property name="icon" >
-          <iconset resource="../main.qrc" >
-           <normaloff>:/images/zoom.png</normaloff>:/images/zoom.png</iconset>
+          <iconset resource="../main.qrc" >:/images/zoom.png</iconset>
          </property>
          <property name="flat" >
           <bool>true</bool>
@@ -77,8 +74,7 @@
           <string>History</string>
          </property>
          <property name="icon" >
-          <iconset resource="../main.qrc" >
-           <normaloff>:/images/zoom.png</normaloff>:/images/zoom.png</iconset>
+          <iconset resource="../main.qrc" >:/images/zoom.png</iconset>
          </property>
          <property name="flat" >
           <bool>true</bool>
@@ -97,8 +93,7 @@
           <string>Run again</string>
          </property>
          <property name="icon" >
-          <iconset resource="../main.qrc" >
-           <normaloff>:/images/R.png</normaloff>:/images/R.png</iconset>
+          <iconset resource="../main.qrc" >:/images/R.png</iconset>
          </property>
          <property name="flat" >
           <bool>true</bool>
@@ -127,8 +122,7 @@
           <string>FileSet</string>
          </property>
          <property name="icon" >
-          <iconset resource="../main.qrc" >
-           <normaloff>:/images/zoom.png</normaloff>:/images/zoom.png</iconset>
+          <iconset resource="../main.qrc" >:/images/zoom.png</iconset>
          </property>
          <property name="flat" >
           <bool>true</bool>
@@ -144,8 +138,7 @@
           <string>Stats</string>
          </property>
          <property name="icon" >
-          <iconset resource="../main.qrc" >
-           <normaloff>:/images/zoom.png</normaloff>:/images/zoom.png</iconset>
+          <iconset resource="../main.qrc" >:/images/zoom.png</iconset>
          </property>
          <property name="flat" >
           <bool>true</bool>
@@ -158,8 +151,7 @@
           <string>Refresh</string>
          </property>
          <property name="icon" >
-          <iconset resource="../main.qrc" >
-           <normaloff>:/images/view-refresh.png</normaloff>:/images/view-refresh.png</iconset>
+          <iconset resource="../main.qrc" >:/images/view-refresh.png</iconset>
          </property>
          <property name="flat" >
           <bool>true</bool>
@@ -169,11 +161,11 @@
       </layout>
      </item>
      <item>
-      <spacer name="horizontalSpacer_2" >
+      <spacer>
        <property name="orientation" >
         <enum>Qt::Horizontal</enum>
        </property>
-       <property name="sizeHint" stdset="0" >
+       <property name="sizeHint" >
         <size>
          <width>40</width>
          <height>20</height>
@@ -184,7 +176,7 @@
     </layout>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_4" >
+    <layout class="QHBoxLayout" >
      <item>
       <widget class="QGroupBox" name="groupBox" >
        <property name="sizePolicy" >
@@ -208,7 +200,7 @@
        <property name="title" >
         <string>Basic Information</string>
        </property>
-       <layout class="QGridLayout" name="gridLayout_2" >
+       <layout class="QGridLayout" >
         <item row="0" column="0" >
          <widget class="QLabel" name="label" >
           <property name="text" >
@@ -222,7 +214,7 @@
            <string>2</string>
           </property>
           <property name="textInteractionFlags" >
-           <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+           <set>Qt::LinksAccessibleByMouse|Qt::NoTextInteraction|Qt::TextSelectableByMouse</set>
           </property>
          </widget>
         </item>
@@ -239,7 +231,7 @@
            <string>Test</string>
           </property>
           <property name="textInteractionFlags" >
-           <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+           <set>Qt::LinksAccessibleByMouse|Qt::NoTextInteraction|Qt::TextSelectableByMouse</set>
           </property>
          </widget>
         </item>
@@ -256,7 +248,7 @@
            <string>VirtualFull</string>
           </property>
           <property name="textInteractionFlags" >
-           <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+           <set>Qt::LinksAccessibleByMouse|Qt::NoTextInteraction|Qt::TextSelectableByMouse</set>
           </property>
          </widget>
         </item>
@@ -273,7 +265,7 @@
            <string>client-fd</string>
           </property>
           <property name="textInteractionFlags" >
-           <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+           <set>Qt::LinksAccessibleByMouse|Qt::NoTextInteraction|Qt::TextSelectableByMouse</set>
           </property>
          </widget>
         </item>
@@ -290,7 +282,7 @@
            <string>TheFileSet</string>
           </property>
           <property name="textInteractionFlags" >
-           <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+           <set>Qt::LinksAccessibleByMouse|Qt::NoTextInteraction|Qt::TextSelectableByMouse</set>
           </property>
          </widget>
         </item>
@@ -307,7 +299,7 @@
            <string>ThePool</string>
           </property>
           <property name="textInteractionFlags" >
-           <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+           <set>Qt::LinksAccessibleByMouse|Qt::NoTextInteraction|Qt::TextSelectableByMouse</set>
           </property>
          </widget>
         </item>
@@ -337,66 +329,15 @@
        <property name="title" >
         <string>Status</string>
        </property>
-       <layout class="QGridLayout" name="gridLayout" >
+       <layout class="QGridLayout" >
         <item row="0" column="0" >
-         <widget class="QLabel" name="label_8" >
-          <property name="text" >
-           <string>Files:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="1" >
-         <widget class="QLabel" name="label_JobFiles" >
-          <property name="text" >
-           <string>1,924</string>
-          </property>
-          <property name="textInteractionFlags" >
-           <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="0" >
-         <widget class="QLabel" name="label_9" >
-          <property name="text" >
-           <string>Bytes:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="1" >
-         <widget class="QLabel" name="label_JobBytes" >
-          <property name="text" >
-           <string>109 MB</string>
-          </property>
-          <property name="textInteractionFlags" >
-           <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="0" >
-         <widget class="QLabel" name="label_10" >
-          <property name="text" >
-           <string>Errors:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="1" >
-         <widget class="QLabel" name="label_JobErrors" >
-          <property name="text" >
-           <string>0</string>
-          </property>
-          <property name="textInteractionFlags" >
-           <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
-          </property>
-         </widget>
-        </item>
-        <item row="3" column="0" >
          <widget class="QLabel" name="label_6" >
           <property name="text" >
            <string>Status:</string>
           </property>
          </widget>
         </item>
-        <item row="3" column="1" >
+        <item row="0" column="1" >
          <widget class="QLabel" name="label_JobStatus" >
           <property name="text" >
            <string/>
@@ -406,6 +347,57 @@
           </property>
           <property name="scaledContents" >
            <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0" >
+         <widget class="QLabel" name="label_10" >
+          <property name="text" >
+           <string>Errors:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1" >
+         <widget class="QLabel" name="label_JobErrors" >
+          <property name="text" >
+           <string>0</string>
+          </property>
+          <property name="textInteractionFlags" >
+           <set>Qt::LinksAccessibleByMouse|Qt::NoTextInteraction|Qt::TextSelectableByMouse</set>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0" >
+         <widget class="QLabel" name="label_8" >
+          <property name="text" >
+           <string>Files:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1" >
+         <widget class="QLabel" name="label_JobFiles" >
+          <property name="text" >
+           <string>1,924</string>
+          </property>
+          <property name="textInteractionFlags" >
+           <set>Qt::LinksAccessibleByMouse|Qt::NoTextInteraction|Qt::TextSelectableByMouse</set>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="0" >
+         <widget class="QLabel" name="label_9" >
+          <property name="text" >
+           <string>Bytes:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="1" >
+         <widget class="QLabel" name="label_JobBytes" >
+          <property name="text" >
+           <string>109 MB</string>
+          </property>
+          <property name="textInteractionFlags" >
+           <set>Qt::LinksAccessibleByMouse|Qt::NoTextInteraction|Qt::TextSelectableByMouse</set>
           </property>
          </widget>
         </item>
@@ -455,7 +447,7 @@
        <property name="title" >
         <string>Times</string>
        </property>
-       <layout class="QGridLayout" name="gridLayout_3" >
+       <layout class="QGridLayout" >
         <item row="0" column="0" >
          <widget class="QLabel" name="label_26" >
           <property name="text" >
@@ -469,7 +461,7 @@
            <string>2009-07-31 00:10:00</string>
           </property>
           <property name="textInteractionFlags" >
-           <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+           <set>Qt::LinksAccessibleByMouse|Qt::NoTextInteraction|Qt::TextSelectableByMouse</set>
           </property>
          </widget>
         </item>
@@ -486,7 +478,7 @@
            <string>2009-07-31 00:10:00</string>
           </property>
           <property name="textInteractionFlags" >
-           <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+           <set>Qt::LinksAccessibleByMouse|Qt::NoTextInteraction|Qt::TextSelectableByMouse</set>
           </property>
          </widget>
         </item>
@@ -503,7 +495,7 @@
            <string>2009-07-31 00:20:00</string>
           </property>
           <property name="textInteractionFlags" >
-           <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+           <set>Qt::LinksAccessibleByMouse|Qt::NoTextInteraction|Qt::TextSelectableByMouse</set>
           </property>
          </widget>
         </item>
@@ -520,7 +512,7 @@
            <string>00:10:00</string>
           </property>
           <property name="textInteractionFlags" >
-           <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+           <set>Qt::LinksAccessibleByMouse|Qt::NoTextInteraction|Qt::TextSelectableByMouse</set>
           </property>
          </widget>
         </item>
@@ -556,7 +548,7 @@
        <property name="title" >
         <string>Volume Used</string>
        </property>
-       <layout class="QHBoxLayout" name="horizontalLayout_3" >
+       <layout class="QHBoxLayout" >
         <item>
          <widget class="QListWidget" name="list_Volume" >
           <property name="sizePolicy" >
@@ -588,8 +580,7 @@
             <string>Vol0001</string>
            </property>
            <property name="icon" >
-            <iconset resource="../main.qrc" >
-             <normaloff>:/images/inflag1.png</normaloff>:/images/inflag1.png</iconset>
+            <iconset resource="../main.qrc" >:/images/inflag1.png</iconset>
            </property>
           </item>
          </widget>
@@ -598,11 +589,11 @@
       </widget>
      </item>
      <item>
-      <spacer name="horizontalSpacer" >
+      <spacer>
        <property name="orientation" >
         <enum>Qt::Horizontal</enum>
        </property>
-       <property name="sizeHint" stdset="0" >
+       <property name="sizeHint" >
         <size>
          <width>40</width>
          <height>20</height>
@@ -615,11 +606,10 @@
    <item>
     <widget class="QTextEdit" name="textJobLog" >
      <property name="html" >
-      <string>&lt;!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd">
-&lt;html>&lt;head>&lt;meta name="qrichtext" content="1" />&lt;style type="text/css">
+      <string>&lt;html>&lt;head>&lt;meta name="qrichtext" content="1" />&lt;style type="text/css">
 p, li { white-space: pre-wrap; }
-&lt;/style>&lt;/head>&lt;body style=" font-family:'DejaVu Sans'; font-size:9pt; font-weight:400; font-style:normal;">
-&lt;p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:10pt;">&lt;/p>&lt;/body>&lt;/html></string>
+&lt;/style>&lt;/head>&lt;body style=" font-family:'Sans Serif'; font-size:10pt; font-weight:400; font-style:normal;">
+&lt;p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:'DejaVu Sans';">&lt;/p>&lt;/body>&lt;/html></string>
      </property>
     </widget>
    </item>

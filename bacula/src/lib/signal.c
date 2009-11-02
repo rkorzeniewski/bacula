@@ -83,7 +83,7 @@ extern void dbg_print_lock(FILE *fp);
  * !!! WARNING !!! 
  *
  * This function should be used ONLY after a violent signal. We walk through the
- * JCR chain without doing any lock, bacula should not be running.
+ * JCR chain without locking, Bacula should not be running.
  */
 static void dbg_print_bacula()
 {
@@ -130,7 +130,7 @@ extern "C" void signal_handler(int sig)
    if (sig == SIGTERM) {
 //    Emsg1(M_TERM, -1, "Shutting down Bacula service: %s ...\n", my_name);
    } else {
-/* ***FIXME*** Display a message without taking any lock in the system
+/* ***FIXME*** Display a message without locking
  *    Emsg2(M_FATAL, -1, _("Bacula interrupted by signal %d: %s\n"), sig, get_signal_name(sig));
  */
       fprintf(stderr, _("Bacula interrupted by signal %d: %s\n"), sig, get_signal_name(sig));
@@ -232,7 +232,6 @@ extern "C" void signal_handler(int sig)
 void init_stack_dump(void)
 {
    main_pid = getpid();               /* save main thread's pid */
-   lmgr_init_thread();                /* initialize the lockmanager stack */
 }
 
 /*

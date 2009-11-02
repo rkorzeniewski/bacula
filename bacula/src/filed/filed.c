@@ -231,9 +231,14 @@ int main (int argc, char *argv[])
       init_stack_dump();              /* set new pid */
    }
 
+   set_thread_concurrency(me->MaxConcurrentJobs + 10);
+   lmgr_init_thread(); /* initialize the lockmanager stack */
+
    /* Maximum 1 daemon at a time */
-   create_pid_file(me->pid_directory, "bacula-fd", get_first_port_host_order(me->FDaddrs));
-   read_state_file(me->working_directory, "bacula-fd", get_first_port_host_order(me->FDaddrs));
+   create_pid_file(me->pid_directory, "bacula-fd",
+                   get_first_port_host_order(me->FDaddrs));
+   read_state_file(me->working_directory, "bacula-fd",
+                   get_first_port_host_order(me->FDaddrs));
 
    load_fd_plugins(me->plugin_directory);
 
@@ -254,8 +259,6 @@ int main (int argc, char *argv[])
 
    init_python_interpreter(&python_args);
 #endif /* HAVE_PYTHON */
-
-   set_thread_concurrency(10);
 
    if (!no_signals) {
       start_watchdog();               /* start watchdog thread */

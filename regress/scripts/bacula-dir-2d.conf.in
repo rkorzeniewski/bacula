@@ -37,6 +37,7 @@ Job {
   Maximum Concurrent Jobs = 4
   SpoolData = yes
 # Prefer Mounted Volumes = no
+  Max Run Time = 30min
 }
 
 # Standard Restore template, to be changed by Console program
@@ -49,6 +50,7 @@ Job {
   Messages = Standard
   Pool = Default
   Where = @tmpdir@/bacula-restores
+  Max Run Time = 30min
 }
 
 

@@ -346,6 +346,11 @@ JCR *new_jcr(int size, JCR_free_HANDLER *daemon_free_jcr)
    memset(jcr, 0, size);
    jcr->my_thread_id = pthread_self();
    jcr->msg_queue = New(dlist(item, &item->link));
+   if ((status = pthread_mutex_init(&jcr->msg_queue_mutex, NULL)) != 0) {
+      berrno be;
+      Jmsg(NULL, M_ABORT, 0, _("Could not init msg_queue mutex. ERR=%s\n"),
+         be.bstrerror(status));
+   }
    jcr->job_end_push.init(1, false);
    jcr->sched_time = time(NULL);
    jcr->daemon_free_jcr = daemon_free_jcr;    /* plug daemon free routine */
@@ -412,6 +417,7 @@ static void free_common_jcr(JCR *jcr)
    if (jcr->msg_queue) {
       delete jcr->msg_queue;
       jcr->msg_queue = NULL;
+      pthread_mutex_destroy(&jcr->msg_queue_mutex);
    }
    close_msg(jcr);                    /* close messages for this job */
 
@@ -1104,7 +1110,7 @@ void dbg_jcr_add_hook(dbg_jcr_hook_t *fct)
  * !!! WARNING !!! 
  *
  * This function should be used ONLY after a fatal signal. We walk through the
- * JCR chain without doing any lock, bacula should not be running.
+ * JCR chain without doing any lock, Bacula should not be running.
  */
 void _dbg_print_jcr(FILE *fp)
 {
@@ -1116,19 +1122,10 @@ void _dbg_print_jcr(FILE *fp)
    fprintf(fp, "Attempt to dump current JCRs\n");
 
    for (JCR *jcr = (JCR *)jcrs->first(); jcr ; jcr = (JCR *)jcrs->next(jcr)) {
-      if (!jcr) {               /* protect us against something ? */
-         continue;
-      }
-      
+
       fprintf(fp, "JCR=%p JobId=%i name=%s JobStatus=%c\n", 
               jcr, jcr->JobId, jcr->Job, jcr->JobStatus);
-#ifdef HAVE_WIN32
-      fprintf(fp, "\tuse_count=%i\n",
-              jcr->use_count());
-#else
-      /* KES -- removed non-portable code referencing pthread_t */
-      fprintf(fp, "\tuse_count=%d\n", jcr->use_count());
-#endif
+      fprintf(fp, "\tuse_count=%i\n", jcr->use_count());
       fprintf(fp, "\tJobType=%c JobLevel=%c\n",
               jcr->get_JobType(), jcr->get_JobLevel());
       bstrftime(buf1, sizeof(buf1), jcr->sched_time);
@@ -1137,10 +1134,12 @@ void _dbg_print_jcr(FILE *fp)
       bstrftime(buf4, sizeof(buf4), jcr->wait_time);
       fprintf(fp, "\tsched_time=%s start_time=%s\n\tend_time=%s wait_time=%s\n",
               buf1, buf2, buf3, buf4);
-      fprintf(fp, "\tdequeing=%i\n", jcr->dequeuing);
       fprintf(fp, "\tdb=%p db_batch=%p batch_started=%i\n", 
               jcr->db, jcr->db_batch, jcr->batch_started);
       
+      /*
+       * Call all the jcr debug hooks
+       */
       for(int i=0; i < dbg_jcr_handler_count; i++) {
          dbg_jcr_hook_t *fct = dbg_jcr_hooks[i];
          fct(jcr, fp);

@@ -110,6 +110,7 @@ int main (int argc, char *argv[])
    bindtextdomain("bacula", LOCALEDIR);
    textdomain("bacula");
    init_stack_dump();
+   lmgr_init_thread();
 
    working_directory = "/tmp";
    my_name_is(argc, argv, "bls");

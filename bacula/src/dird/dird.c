@@ -261,12 +261,18 @@ int main (int argc, char *argv[])
       if (background) {
          daemon_start();
          init_stack_dump();              /* grab new pid */
-      }
-   
+      }   
       /* Create pid must come after we are a daemon -- so we have our final pid */
-      create_pid_file(director->pid_directory, "bacula-dir", get_first_port_host_order(director->DIRaddrs));
-      read_state_file(director->working_directory, "bacula-dir", get_first_port_host_order(director->DIRaddrs));
+      create_pid_file(director->pid_directory, "bacula-dir", 
+                      get_first_port_host_order(director->DIRaddrs));
+      read_state_file(director->working_directory, "bacula-dir",
+                      get_first_port_host_order(director->DIRaddrs));
    }
+
+   set_jcr_in_tsd(INVALID_JCR);
+   set_thread_concurrency(director->MaxConcurrentJobs * 2 +
+                          4 /* UA */ + 5 /* sched+watchdog+jobsvr+misc */);
+   lmgr_init_thread(); /* initialize the lockmanager stack */
 
    load_dir_plugins(director->plugin_directory);
 
@@ -309,10 +315,6 @@ int main (int argc, char *argv[])
 
    init_python_interpreter(&python_args);
 #endif /* HAVE_PYTHON */
-
-   set_jcr_in_tsd(INVALID_JCR);
-   set_thread_concurrency(director->MaxConcurrentJobs * 2 +
-      4 /* UA */ + 4 /* sched+watchdog+jobsvr+misc */);
 
    Dmsg0(200, "Start UA server\n");
    start_UA_server(director->DIRaddrs);

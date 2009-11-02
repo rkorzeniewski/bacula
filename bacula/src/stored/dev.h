@@ -134,7 +134,7 @@ enum {
 #define CAP_CLOSEONPOLL    (1<<18)    /* Close device on polling */
 #define CAP_POSITIONBLOCKS (1<<19)    /* Use block positioning */
 #define CAP_MTIOCGET       (1<<20)    /* Basic support for fileno and blkno */
-#define CAP_REQMOUNT       (1<<21)    /* Require mount to read files back (typically: DVD) */
+#define CAP_REQMOUNT       (1<<21)    /* Require mount/unmount */
 #define CAP_CHECKLABELS    (1<<22)    /* Check for ANSI/IBM labels */
 #define CAP_BLOCKCHECKSUM  (1<<23)    /* Create/test block checksum */
 
@@ -451,7 +451,7 @@ public:
    void _dlock(const char *, int);        /* in lock.c */
    void _dunlock(const char *, int);      /* in lock.c */
 #else
-   void r_dlock(bool locked=false);                        /* in lock.c */
+   void r_dlock(bool locked=false);       /* in lock.c */
    void r_dunlock() { dunlock(); }
    void dlock() { P(m_mutex); } 
    void dunlock() { V(m_mutex); } 
@@ -465,11 +465,12 @@ public:
    const char *print_blocked() const;     /* in dev.c */
 
 private:
-   bool do_mount(int mount, int timeout);      /* in dev.c */
-   void set_mode(int omode);                   /* in dev.c */
-   void open_tape_device(DCR *dcr, int omode); /* in dev.c */
-   void open_file_device(DCR *dcr, int omode); /* in dev.c */
-   void open_dvd_device(DCR *dcr, int omode);  /* in dev.c */
+   bool do_tape_mount(int mount, int dotimeout);  /* in dev.c */
+   bool do_file_mount(int mount, int dotimeout);  /* in dev.c */
+   void set_mode(int omode);                      /* in dev.c */
+   void open_tape_device(DCR *dcr, int omode);    /* in dev.c */
+   void open_file_device(DCR *dcr, int omode);    /* in dev.c */
+   void open_dvd_device(DCR *dcr, int omode);     /* in dev.c */
 };
 
 inline const char *DEVICE::strerror() const { return errmsg; }
@@ -482,6 +483,11 @@ inline const char *DEVICE::print_name() const { return prt_name; }
  *  the device. Items in this record are "local" to the Job and
  *  do not affect other Jobs. Note, a job can have multiple
  *  DCRs open, each pointing to a different device. 
+ * Normally, there is only one JCR thread per DCR. However, the
+ *  big and important exception to this is when a Job is being
+ *  canceled. At that time, there may be two threads using the 
+ *  same DCR. Consequently, when creating/attaching/detaching
+ *  and freeing the DCR we must lock it (m_mutex).
  */
 class DCR {
 private:
@@ -492,6 +498,7 @@ private:
 public:
    dlink dev_link;                    /* link to attach to dev */
    JCR *jcr;                          /* pointer to JCR */
+   pthread_mutex_t m_mutex;           /* access control */
    DEVICE * volatile dev;             /* pointer to device */
    DEVRES *device;                    /* pointer to device resource */
    DEV_BLOCK *block;                  /* pointer to block */

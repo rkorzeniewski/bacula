@@ -301,7 +301,7 @@ bool BSOCK::set_locking()
    }
    if ((stat = pthread_mutex_init(&m_mutex, NULL)) != 0) {
       berrno be;
-      Jmsg(m_jcr, M_FATAL, 0, _("Could not init bsock mutex. ERR=%s\n"),
+      Qmsg(m_jcr, M_FATAL, 0, _("Could not init bsock mutex. ERR=%s\n"),
          be.bstrerror(stat));
       return false;
    }
@@ -722,13 +722,13 @@ int BSOCK::set_nonblocking()
    /* Get current flags */
    if ((oflags = fcntl(m_fd, F_GETFL, 0)) < 0) {
       berrno be;
-      Jmsg1(get_jcr(), M_ABORT, 0, _("fcntl F_GETFL error. ERR=%s\n"), be.bstrerror());
+      Qmsg1(get_jcr(), M_ABORT, 0, _("fcntl F_GETFL error. ERR=%s\n"), be.bstrerror());
    }
 
    /* Set O_NONBLOCK flag */
    if ((fcntl(m_fd, F_SETFL, oflags|O_NONBLOCK)) < 0) {
       berrno be;
-      Jmsg1(get_jcr(), M_ABORT, 0, _("fcntl F_SETFL error. ERR=%s\n"), be.bstrerror());
+      Qmsg1(get_jcr(), M_ABORT, 0, _("fcntl F_SETFL error. ERR=%s\n"), be.bstrerror());
    }
 
    m_blocking = 0;
@@ -756,13 +756,13 @@ int BSOCK::set_blocking()
    /* Get current flags */
    if ((oflags = fcntl(m_fd, F_GETFL, 0)) < 0) {
       berrno be;
-      Jmsg1(get_jcr(), M_ABORT, 0, _("fcntl F_GETFL error. ERR=%s\n"), be.bstrerror());
+      Qmsg1(get_jcr(), M_ABORT, 0, _("fcntl F_GETFL error. ERR=%s\n"), be.bstrerror());
    }
 
    /* Set O_NONBLOCK flag */
    if ((fcntl(m_fd, F_SETFL, oflags & ~O_NONBLOCK)) < 0) {
       berrno be;
-      Jmsg1(get_jcr(), M_ABORT, 0, _("fcntl F_SETFL error. ERR=%s\n"), be.bstrerror());
+      Qmsg1(get_jcr(), M_ABORT, 0, _("fcntl F_SETFL error. ERR=%s\n"), be.bstrerror());
    }
 
    m_blocking = 1;
@@ -787,7 +787,7 @@ void BSOCK::restore_blocking (int flags)
 #ifndef HAVE_WIN32
    if ((fcntl(m_fd, F_SETFL, flags)) < 0) {
       berrno be;
-      Jmsg1(get_jcr(), M_ABORT, 0, _("fcntl F_SETFL error. ERR=%s\n"), be.bstrerror());
+      Qmsg1(get_jcr(), M_ABORT, 0, _("fcntl F_SETFL error. ERR=%s\n"), be.bstrerror());
    }
 
    m_blocking = (flags & O_NONBLOCK) ? true : false;

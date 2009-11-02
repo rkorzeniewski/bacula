@@ -30,10 +30,7 @@
  *
  *   Kern Sibbald, April 2000
  *
- *   Version $Id$
- *
  */
-
 
 #include "bacula.h"
 #include "jcr.h"
@@ -482,7 +479,7 @@ void close_msg(JCR *jcr)
             if (msgs != daemon_msgs) {
                /* read what mail prog returned -- should be nothing */
                while (fgets(line, len, bpipe->rfd)) {
-                  Jmsg1(jcr, M_INFO, 0, _("Mail prog: %s"), line);
+                  Qmsg1(jcr, M_INFO, 0, _("Mail prog: %s"), line);
                }
             }
 
@@ -491,7 +488,7 @@ void close_msg(JCR *jcr)
                berrno be;
                be.set_errno(stat);
                Dmsg1(850, "Calling emsg. CMD=%s\n", cmd);
-               Jmsg2(jcr, M_ERROR, 0, _("Mail program terminated in error.\n"
+               Qmsg2(jcr, M_ERROR, 0, _("Mail program terminated in error.\n"
                                         "CMD=%s\n"
                                         "ERR=%s\n"), cmd, be.bstrerror());
             }
@@ -641,6 +638,7 @@ void dispatch_message(JCR *jcr, int type, utime_t mtime, char *msg)
        fputs(dt, stdout);
        fputs(msg, stdout);         /* print this here to INSURE that it is printed */
        fflush(stdout);
+       syslog(LOG_DAEMON|LOG_ERR, "%s", msg);
     }
 
 
@@ -1325,8 +1323,6 @@ int Mmsg(POOL_MEM &pool_buf, const char *fmt, ...)
 }
 
 
-static pthread_mutex_t msg_queue_mutex = PTHREAD_MUTEX_INITIALIZER;
-
 /*
  * We queue messages rather than print them directly. This
  *  is generally used in low level routines (msg handler, bnet)
@@ -1361,16 +1357,15 @@ void Qmsg(JCR *jcr, int type, utime_t mtime, const char *fmt,...)
    if (!jcr) {
       jcr = get_jcr_from_tsd();
    }
-   /* If no jcr or dequeuing send to daemon to avoid recursion */
-   if ((jcr && !jcr->msg_queue) || !jcr || jcr->dequeuing) {
-      /* jcr==NULL => daemon message, safe to send now */
-      Jmsg(jcr, item->type, item->mtime, "%s", item->msg);
+   /* If no jcr or no queue or dequeuing send to syslog */
+   if (!jcr || !jcr->msg_queue || jcr->dequeuing_msgs) {
+      syslog(LOG_DAEMON|LOG_ERR, "%s", item->msg);
       free(item);
    } else {
       /* Queue message for later sending */
-      P(msg_queue_mutex);
+      P(jcr->msg_queue_mutex);
       jcr->msg_queue->append(item);
-      V(msg_queue_mutex);
+      V(jcr->msg_queue_mutex);
    }
    free_memory(pool_buf);
 }
@@ -1381,19 +1376,18 @@ void Qmsg(JCR *jcr, int type, utime_t mtime, const char *fmt,...)
 void dequeue_messages(JCR *jcr)
 {
    MQUEUE_ITEM *item;
-   P(msg_queue_mutex);
    if (!jcr->msg_queue) {
-      goto bail_out;
+      return;
    }
-   jcr->dequeuing = true;
+   P(jcr->msg_queue_mutex);
+   jcr->dequeuing_msgs = true;
    foreach_dlist(item, jcr->msg_queue) {
       Jmsg(jcr, item->type, item->mtime, "%s", item->msg);
    }
+   /* Remove messages just sent */
    jcr->msg_queue->destroy();
-   jcr->dequeuing = false;
-
-bail_out:
-   V(msg_queue_mutex);
+   jcr->dequeuing_msgs = false;
+   V(jcr->msg_queue_mutex);
 }
 
 

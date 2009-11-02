@@ -138,6 +138,7 @@ int main (int argc, char *argv[])
    setlocale(LC_ALL, "");
    bindtextdomain("bacula", LOCALEDIR);
    textdomain("bacula");
+   lmgr_init_thread();
 
    my_name_is(argc, argv, "dbcheck");
    init_msg(NULL, NULL);              /* setup message handler */
@@ -325,6 +326,7 @@ int main (int argc, char *argv[])
    db_close_database(NULL, db);
    close_msg(NULL);
    term_msg();
+   lmgr_cleanup_main();
    return 0;
 }
 

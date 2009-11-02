@@ -41,7 +41,6 @@ bool     release_device(DCR *dcr);
 bool     clean_device(DCR *dcr);
 DCR     *new_dcr(JCR *jcr, DCR *dcr, DEVICE *dev);
 void     free_dcr(DCR *dcr);
-void     detach_dcr_from_dev(DCR *dcr);
 
 /* From askdir.c */
 enum get_vol_info_rw {
