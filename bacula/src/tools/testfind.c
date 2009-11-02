@@ -243,6 +243,7 @@ main (int argc, char *const *argv)
    term_msg();
 
    close_memory_pool();
+   lmgr_cleanup_main();
    sm_dump(false);
    exit(0);
 }
