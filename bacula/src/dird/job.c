@@ -454,6 +454,10 @@ bool cancel_job(UAContext *ua, JCR *jcr)
 
 void cancel_storage_daemon_job(JCR *jcr)
 {
+   if (jcr->sd_canceled) { 
+      return;                   /* cancel only once */
+   }
+
    UAContext *ua = new_ua_context(jcr);
    JCR *control_jcr = new_control_jcr("*JobCancel*", JT_SYSTEM);
    BSOCK *sd;
@@ -487,6 +491,7 @@ void cancel_storage_daemon_job(JCR *jcr)
       sd->signal(BNET_TERMINATE);
       sd->close();
       ua->jcr->store_bsock = NULL;
+      jcr->sd_canceled = true;
    }
 bail_out:
    free_jcr(control_jcr);
