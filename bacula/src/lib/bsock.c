@@ -564,6 +564,7 @@ bool BSOCK::despool(void update_attr_spool_size(ssize_t size), ssize_t tsize)
    size_t nbytes;
    ssize_t last = 0, size = 0;
    int count = 0;
+   JCR *jcr = get_jcr();
 
    rewind(m_spool_fd);
 
@@ -595,11 +596,15 @@ bool BSOCK::despool(void update_attr_spool_size(ssize_t size), ssize_t tsize)
          }
       }
       send();
+      if (jcr && job_canceled(jcr)) {
+         return false;
+      }
+      send();
    }
    update_attr_spool_size(tsize - last);
    if (ferror(m_spool_fd)) {
       berrno be;
-      Qmsg1(get_jcr(), M_FATAL, 0, _("fread attr spool error. ERR=%s\n"),
+      Qmsg1(jcr, M_FATAL, 0, _("fread attr spool error. ERR=%s\n"),
             be.bstrerror());
       return false;
    }
