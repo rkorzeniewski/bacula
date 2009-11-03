@@ -31,7 +31,6 @@ END_OF_DATA
 
 run_bacula
 check_for_zombie_jobs storage=File
-echo "Backup 1 done"
 # make some files for the incremental to pick up
 touch ${cwd}/build/src/dird/*.c ${cwd}/build/src/dird/*.o
 touch ${cwd}/build/src/lib/*.c ${cwd}/build/src/lib/*.o
@@ -52,7 +51,6 @@ END_OF_DATA
 run_bconsole
 check_for_zombie_jobs storage=File
 
-echo "Backup 2 done"
 touch ${cwd}/build/src/dird/*.c
 touch ${cwd}/build/src/lib/*.c ${cwd}/build/src/lib/*.o
 #
@@ -71,7 +69,6 @@ END_OF_DATA
 run_bconsole
 check_for_zombie_jobs storage=File
 
-echo "Backup 3 done"
 # make some files for the incremental to pick up
 touch ${cwd}/build/src/lib/*.c ${cwd}/build/src/lib/*.o
 #
@@ -90,7 +87,6 @@ END_OF_DATA
 run_bconsole
 check_for_zombie_jobs storage=File
 
-echo "Backup 4 done"
 # 
 # now do several restores to ensure we cleanup between jobs
 #
