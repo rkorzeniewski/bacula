@@ -740,10 +740,10 @@ vertical_list:
  */
 bool db_open_batch_connexion(JCR *jcr, B_DB *mdb)
 {
-   int multi_db=false;
-
 #ifdef HAVE_BATCH_FILE_INSERT
-   multi_db=true;               /* we force a new connexion only if batch insert is enabled */
+   const int multi_db = true;   /* we force a new connection only if batch insert is enabled */
+#else
+   const int multi_db = false;
 #endif
 
    if (!jcr->db_batch) {
@@ -756,16 +756,15 @@ bool db_open_batch_connexion(JCR *jcr, B_DB *mdb)
                                       mdb->db_socket,
                                       multi_db /* multi_db = true when using batch mode */);
       if (!jcr->db_batch) {
-         Jmsg0(jcr, M_FATAL, 0, "Could not init batch connexion");
+         Mmsg0(&mdb->errmsg, _("Could not init database batch connection"));
+         Jmsg(jcr, M_FATAL, 0, "%s", mdb->errmsg);
          return false;
       }
 
       if (!db_open_database(jcr, jcr->db_batch)) {
-         POOLMEM *errmsg = get_pool_memory(PM_MESSAGE);
-         Mmsg2(&errmsg,  _("Could not open database \"%s\": ERR=%s\n"),
+         Mmsg2(&mdb->errmsg,  _("Could not open database \"%s\": ERR=%s\n"),
               jcr->db_batch->db_name, db_strerror(jcr->db_batch));
-         Jmsg1(jcr, M_FATAL, 0, "%s", errmsg);
-         free_pool_memory(errmsg);
+         Jmsg(jcr, M_FATAL, 0, "%s", mdb->errmsg);
          return false;
       }      
       Dmsg3(100, "initdb ref=%d connected=%d db=%p\n", jcr->db_batch->ref_count,

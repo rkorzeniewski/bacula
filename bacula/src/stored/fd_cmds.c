@@ -176,8 +176,10 @@ void do_fd_commands(JCR *jcr)
          }
       }
       if (!found) {                   /* command not found */
-         Jmsg1(jcr, M_FATAL, 0, _("FD command not found: %s\n"), fd->msg);
-         Dmsg1(110, "<filed: Command not found: %s\n", fd->msg);
+         if (!job_canceled(jcr)) {
+            Jmsg1(jcr, M_FATAL, 0, _("FD command not found: %s\n"), fd->msg);
+            Dmsg1(110, "<filed: Command not found: %s\n", fd->msg);
+         }
          fd->fsend(ferrmsg);
          break;
       }
