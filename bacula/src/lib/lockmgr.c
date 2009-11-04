@@ -254,11 +254,11 @@ public:
    }
 
    void dump(FILE *fp) {
-      pthread_mutex_lock(&mutex);
+      lmgr_p(&mutex);
       {
          _dump(fp);
       }
-      pthread_mutex_unlock(&mutex);
+      lmgr_v(&mutex);
    }
 
    /*
@@ -267,7 +267,7 @@ public:
    virtual void pre_P(void *m, const char *f="*unknown*", int l=0) {
       ASSERT(current < LMGR_MAX_LOCK);
       ASSERT(current >= -1);
-      pthread_mutex_lock(&mutex);
+      lmgr_p(&mutex);
       {
          current++;
          lock_list[current].lock = m;
@@ -276,7 +276,7 @@ public:
          lock_list[current].line = l;
          max = MAX(current, max);
       }
-      pthread_mutex_unlock(&mutex);
+      lmgr_v(&mutex);
    }
 
    /*
@@ -303,7 +303,7 @@ public:
     */
    virtual void do_V(void *m, const char *f="*unknown*", int l=0) {
       ASSERT(current >= 0);
-      pthread_mutex_lock(&mutex);
+      lmgr_p(&mutex);
       {
          if (lock_list[current].lock == m) {
             lock_list[current].lock = NULL;
@@ -327,7 +327,7 @@ public:
             }
          }
       }
-      pthread_mutex_unlock(&mutex);
+      lmgr_v(&mutex);
    }
 
    virtual ~lmgr_thread_t() {destroy();}
@@ -365,11 +365,11 @@ static pthread_t undertaker;
  */
 void lmgr_register_thread(lmgr_thread_t *item)
 {
-   pthread_mutex_lock(&lmgr_global_mutex);
+   lmgr_p(&lmgr_global_mutex);
    {
       global_mgr->prepend(item);
    }
-   pthread_mutex_unlock(&lmgr_global_mutex);
+   lmgr_v(&lmgr_global_mutex);
 }
 
 /*
@@ -380,11 +380,11 @@ void lmgr_unregister_thread(lmgr_thread_t *item)
    if (!lmgr_is_active()) {
       return;
    }
-   pthread_mutex_lock(&lmgr_global_mutex);
+   lmgr_p(&lmgr_global_mutex);
    {
       global_mgr->remove(item);
    }
-   pthread_mutex_unlock(&lmgr_global_mutex);
+   lmgr_v(&lmgr_global_mutex);
 }
 
 /*
@@ -448,20 +448,20 @@ bool lmgr_detect_deadlock()
       return ret;
    } 
 
-   pthread_mutex_lock(&lmgr_global_mutex);
+   lmgr_p(&lmgr_global_mutex);
    {
       lmgr_thread_t *item;
       foreach_dlist(item, global_mgr) {
-         pthread_mutex_lock(&item->mutex);
+         lmgr_p(&item->mutex);
       }
 
       ret = lmgr_detect_deadlock_unlocked();
 
       foreach_dlist(item, global_mgr) {
-         pthread_mutex_unlock(&item->mutex);
+         lmgr_v(&item->mutex);
       }
    }
-   pthread_mutex_unlock(&lmgr_global_mutex);
+   lmgr_v(&lmgr_global_mutex);
 
    return ret;
 }
@@ -488,14 +488,14 @@ void dbg_print_lock(FILE *fp)
  */
 void lmgr_dump()
 {
-   pthread_mutex_lock(&lmgr_global_mutex);
+   lmgr_p(&lmgr_global_mutex);
    {
       lmgr_thread_t *item;
       foreach_dlist(item, global_mgr) {
          item->dump(stderr);
       }
    }
-   pthread_mutex_unlock(&lmgr_global_mutex);
+   lmgr_v(&lmgr_global_mutex);
 }
 
 void cln_hdl(void *a)
@@ -608,36 +608,38 @@ void lmgr_cleanup_main()
    }
    pthread_cancel(undertaker);
    lmgr_cleanup_thread();
-   pthread_mutex_lock(&lmgr_global_mutex);
+   lmgr_p(&lmgr_global_mutex);
    {
       temp = global_mgr;
       global_mgr = NULL;
       delete temp;
    }
-   pthread_mutex_unlock(&lmgr_global_mutex);
+   lmgr_v(&lmgr_global_mutex);
 }
 
 /*
  * Replacement for pthread_mutex_lock()
+ * Returns always ok 
  */
 int lmgr_mutex_lock(pthread_mutex_t *m, const char *file, int line)
 {
-   int ret;
    lmgr_thread_t *self = lmgr_get_thread_info();
    self->pre_P(m, file, line);
-   ret = pthread_mutex_lock(m);
+   lmgr_p(m);
    self->post_P();   
-   return ret;
+   return 0;
 }
 
 /*
  * Replacement for pthread_mutex_unlock()
+ * Returns always ok
  */
 int lmgr_mutex_unlock(pthread_mutex_t *m, const char *file, int line)
 {
    lmgr_thread_t *self = lmgr_get_thread_info();
    self->do_V(m, file, line);
-   return pthread_mutex_unlock(m);
+   lmgr_v(m);
+   return 0;
 }
 
 /* TODO: check this
@@ -785,8 +787,8 @@ void *nolock(void *temp)
 void *locker(void *temp)
 {
    pthread_mutex_t *m = (pthread_mutex_t*) temp;
-   pthread_mutex_lock(m);
-   pthread_mutex_unlock(m);
+   lmgr_p(m);
+   lmgr_v(m);
    return NULL;
 }
 
