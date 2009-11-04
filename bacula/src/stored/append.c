@@ -50,8 +50,7 @@ bool do_append_data(JCR *jcr)
 {
    int32_t n;
    int32_t file_index, stream, last_file_index;
-   BSOCK *ds;
-   BSOCK *fd_sock = jcr->file_bsock;
+   BSOCK *fd = jcr->file_bsock;
    bool ok = true;
    DEV_RECORD rec;
    char buf1[100], buf2[100];
@@ -74,9 +73,7 @@ bool do_append_data(JCR *jcr)
 
    memset(&rec, 0, sizeof(rec));
 
-   ds = fd_sock;
-
-   if (!ds->set_buffer_size(dcr->device->max_network_buffer_size, BNET_SETBUF_WRITE)) {
+   if (!fd->set_buffer_size(dcr->device->max_network_buffer_size, BNET_SETBUF_WRITE)) {
       set_jcr_job_status(jcr, JS_ErrorTerminated);
       Jmsg0(jcr, M_FATAL, 0, _("Unable to set network buffer size.\n"));
       return false;
@@ -116,10 +113,10 @@ bool do_append_data(JCR *jcr)
    }
 
    /* Tell File daemon to send data */
-   if (!fd_sock->fsend(OK_data)) {
+   if (!fd->fsend(OK_data)) {
       berrno be;
       Jmsg1(jcr, M_FATAL, 0, _("Network send error to FD. ERR=%s\n"),
-            be.bstrerror(fd_sock->b_errno));
+            be.bstrerror(fd->b_errno));
       ok = false;
    }
 
@@ -151,18 +148,18 @@ bool do_append_data(JCR *jcr)
        *    info       (Info for Storage daemon -- compressed, encrypted, ...)
        *       info is not currently used, so is read, but ignored!
        */
-     if ((n=bget_msg(ds)) <= 0) {
-         if (n == BNET_SIGNAL && ds->msglen == BNET_EOD) {
+     if ((n=bget_msg(fd)) <= 0) {
+         if (n == BNET_SIGNAL && fd->msglen == BNET_EOD) {
             break;                    /* end of data */
          }
          Jmsg1(jcr, M_FATAL, 0, _("Error reading data header from FD. ERR=%s\n"),
-               ds->bstrerror());
+               fd->bstrerror());
          ok = false;
          break;
       }
 
-      if (sscanf(ds->msg, "%ld %ld", &file_index, &stream) != 2) {
-         Jmsg1(jcr, M_FATAL, 0, _("Malformed data header from FD: %s\n"), ds->msg);
+      if (sscanf(fd->msg, "%ld %ld", &file_index, &stream) != 2) {
+         Jmsg1(jcr, M_FATAL, 0, _("Malformed data header from FD: %s\n"), fd->msg);
          ok = false;
          break;
       }
@@ -183,13 +180,13 @@ bool do_append_data(JCR *jcr)
       /* Read data stream from the File daemon.
        *  The data stream is just raw bytes
        */
-      while ((n=bget_msg(ds)) > 0 && !job_canceled(jcr)) {
+      while ((n=bget_msg(fd)) > 0 && !job_canceled(jcr)) {
          rec.VolSessionId = jcr->VolSessionId;
          rec.VolSessionTime = jcr->VolSessionTime;
          rec.FileIndex = file_index;
          rec.Stream = stream;
-         rec.data_len = ds->msglen;
-         rec.data = ds->msg;            /* use message buffer */
+         rec.data_len = fd->msglen;
+         rec.data = fd->msg;            /* use message buffer */
 
          Dmsg4(850, "before writ_rec FI=%d SessId=%d Strm=%s len=%d\n",
             rec.FileIndex, rec.VolSessionId, 
@@ -238,11 +235,11 @@ bool do_append_data(JCR *jcr)
       }
       Dmsg1(650, "End read loop with FD. Stat=%d\n", n);
 
-      if (ds->is_error()) {
+      if (fd->is_error()) {
          if (!job_canceled(jcr)) {
-            Dmsg1(350, "Network read error from FD. ERR=%s\n", ds->bstrerror());
-            Jmsg1(jcr, M_FATAL, 0, _("Network error on data channel. ERR=%s\n"),
-                  ds->bstrerror());
+            Dmsg1(350, "Network read error from FD. ERR=%s\n", fd->bstrerror());
+            Jmsg1(jcr, M_FATAL, 0, _("Network error reading from FD. ERR=%s\n"),
+                  fd->bstrerror());
          }
          ok = false;
          break;
@@ -252,9 +249,13 @@ bool do_append_data(JCR *jcr)
    /* Create Job status for end of session label */
    set_jcr_job_status(jcr, ok?JS_Terminated:JS_ErrorTerminated);
 
-   /* Terminate connection with FD */
-   ds->fsend(OK_append);
-   do_fd_commands(jcr);               /* finish dialog with FD */
+   if (ok) {
+      /* Terminate connection with FD */
+      fd->fsend(OK_append);
+      do_fd_commands(jcr);               /* finish dialog with FD */
+   } else {
+      fd->fsend("3999 Failed append\n");
+   }
 
    /*
     * Don't use time_t for job_elapsed as time_t can be 32 or 64 bits,
@@ -279,8 +280,11 @@ bool do_append_data(JCR *jcr)
     */
    if (ok || dev->can_write()) {
       if (!write_session_label(dcr, EOS_LABEL)) {
-         Jmsg1(jcr, M_FATAL, 0, _("Error writing end session label. ERR=%s\n"),
-               dev->bstrerror());
+         /* Print only if ok and not cancelled to avoid spurious messages */
+         if (ok && !job_canceled(jcr)) {
+            Jmsg1(jcr, M_FATAL, 0, _("Error writing end session label. ERR=%s\n"),
+                  dev->bstrerror());
+         }
          set_jcr_job_status(jcr, JS_ErrorTerminated);
          ok = false;
       }
@@ -291,11 +295,13 @@ bool do_append_data(JCR *jcr)
       Dmsg0(90, "back from write_end_session_label()\n");
       /* Flush out final partial block of this session */
       if (!write_block_to_device(dcr)) {
-         if (!job_canceled(jcr)) {
+         /* Print only if ok and not cancelled to avoid spurious messages */
+         if (ok && !job_canceled(jcr)) {
             Jmsg2(jcr, M_FATAL, 0, _("Fatal append error on device %s: ERR=%s\n"),
                   dev->print_name(), dev->bstrerror());
             Dmsg0(100, _("Set ok=FALSE after write_block_to_device.\n"));
          }
+         set_jcr_job_status(jcr, JS_ErrorTerminated);
          ok = false;
       }
       if (dev->VolCatInfo.VolCatName[0] == 0) {
