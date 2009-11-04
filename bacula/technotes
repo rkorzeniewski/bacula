@@ -2,6 +2,8 @@
           
 General:
 
+04Nov09
+ebl  Check pthread_mutex_lock return code in lockmgr
 03Nov09
 kes  Fix bug #1409: increase ls field width for file size from 10 to 12.  
      At some point we will need to make this totally variable.
