@@ -86,7 +86,7 @@ int32_t read_nbytes(BSOCK * bsock, char *ptr, int32_t nbytes)
             continue;
          }
          if (errno == EAGAIN) {
-            bmicrosleep(0, 200000);  /* try again in 200ms */
+            bmicrosleep(0, 20000);  /* try again in 20ms */
             continue;
          }
       }
@@ -149,7 +149,7 @@ int32_t write_nbytes(BSOCK * bsock, char *ptr, int32_t nbytes)
 
          FD_ZERO(&fdset);
          FD_SET((unsigned)bsock->m_fd, &fdset);
-         tv.tv_sec = 10;
+         tv.tv_sec = 1;
          tv.tv_usec = 0;
          select(bsock->m_fd + 1, NULL, &fdset, NULL, &tv);
          continue;
