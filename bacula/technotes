@@ -2,6 +2,8 @@
           
 General:
 
+05Nov09
+ebl  Display a message if catalog max_connections setting is too low
 04Nov09
 kes  Apply Victor Hugo dos Santos' Spanish translation patch
 kes  Fix double send of attributes introduced in 84aab...
