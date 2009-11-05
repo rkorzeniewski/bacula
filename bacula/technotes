@@ -2,6 +2,16 @@
           
 General:
 
+05Nov09
+ebl  Display a message if catalog max_connections setting is too low
+04Nov09
+kes  Apply Victor Hugo dos Santos' Spanish translation patch
+kes  Fix double send of attributes introduced in 84aab...
+kes  Cleanup error handling in SD append to reduce spurious error messages
+ebl  Check pthread_mutex_lock return code in lockmgr
+03Nov09
+kes  Fix bug #1409: increase ls field width for file size from 10 to 12.  
+     At some point we will need to make this totally variable.
 02Nov09
 ebl  Avoid orphan buffers in testls
 01Nov09

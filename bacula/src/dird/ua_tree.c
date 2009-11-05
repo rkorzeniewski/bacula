@@ -530,7 +530,7 @@ static void ls_output(guid_list *guid, char *buf, const char *fname, const char 
                   guid->uid_to_name(statp->st_uid, en1, sizeof(en1)),
                   guid->gid_to_name(statp->st_gid, en2, sizeof(en2)));
       p += n;
-      n = sprintf(p, "%10.10s  ", edit_int64(statp->st_size, ec1));
+      n = sprintf(p, "%12.12s  ", edit_int64(statp->st_size, ec1));
       p += n;
       if (statp->st_ctime > statp->st_mtime) {
          time = statp->st_ctime;

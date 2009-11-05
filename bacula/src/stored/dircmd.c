@@ -119,7 +119,7 @@ static struct s_cmds cmds[] = {
    {"status",      status_cmd,      1},
    {".status",     qstatus_cmd,     1},
    {"unmount",     unmount_cmd,     0},
-   {"action_on_purge",	action_on_purge_cmd,	0},
+   {"action_on_purge",  action_on_purge_cmd,    0},
    {"use storage=", use_cmd,        0},
    {"run",         run_cmd,         0},
 // {"query",       query_cmd,       0},
@@ -327,7 +327,8 @@ static bool cancel_cmd(JCR *cjcr)
             Dmsg1(100, "JobId=%u broadcast wait_device_release\n", (uint32_t)jcr->JobId);
             pthread_cond_broadcast(&wait_device_release);
          }
-         Jmsg(jcr, M_INFO, 0, _("Job %s marked to be canceled.\n"), jcr->Job);
+         Jmsg(jcr, M_INFO, 0, _("JobId=%d Job=\"%s\" marked to be canceled.\n"), 
+            (int)jcr->JobId, jcr->Job);
          dir->fsend(_("3000 Job %s marked to be canceled.\n"), jcr->Job);
          free_jcr(jcr);
       }

@@ -81,3 +81,5 @@ extern const char CATS_IMP_EXP *uar_file[4];
 extern const char CATS_IMP_EXP *uar_create_temp[4];
 extern const char CATS_IMP_EXP *uar_create_temp1[4];
 extern const char CATS_IMP_EXP *uar_jobid_fileindex_from_dir[4];
+extern const char CATS_IMP_EXP *sql_get_max_connections[4];
+extern const uint32_t CATS_IMP_EXP sql_get_max_connections_index[4];

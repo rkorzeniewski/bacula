@@ -37,7 +37,7 @@ Job {
   Messages = Standard
   Pool = Default
   Write Bootstrap = "@working_dir@/NightlySave.bsr"
-  Maximum Concurrent Jobs = 4
+  Maximum Concurrent Jobs = 10
   SpoolData=yes
   Max Run Time = 30min
 }
@@ -52,6 +52,8 @@ Job {
   Pool = Default
   Write Bootstrap = "@working_dir@/NightlySave.bsr"
   Max Run Time = 30min
+  Maximum Concurrent Jobs = 10
+  SpoolData=yes
 }
 
 Job {
@@ -62,9 +64,10 @@ Job {
   Storage = File
   Messages = Standard
   Pool = Default
-  Maximum Concurrent Jobs = 4
+  Maximum Concurrent Jobs = 10
   Write Bootstrap = "@working_dir@/NightlySave.bsr"
   Max Run Time = 30min
+  SpoolData=yes
 }
 
 
@@ -93,6 +96,8 @@ Job {
   Pool = Default
   Write Bootstrap = "@working_dir@/NightlySave.bsr"
   Max Run Time = 30min
+  SpoolData=yes
+  Maximum Concurrent Jobs = 10
 }
 
 Job {
@@ -103,9 +108,10 @@ Job {
   Storage = File
   Messages = Standard
   Pool = Default
-  Maximum Concurrent Jobs = 4
+  Maximum Concurrent Jobs = 10
   Write Bootstrap = "@working_dir@/NightlySave.bsr"
   Max Run Time = 30min
+  SpoolData=yes
 }
 
 Job {
@@ -118,6 +124,8 @@ Job {
   Pool = Default
   Write Bootstrap = "@working_dir@/NightlySave.bsr"
   Max Run Time = 30min
+  SpoolData=yes
+  Maximum Concurrent Jobs = 10
 }
 
 Job {
@@ -394,7 +402,7 @@ Client {
   File Retention = 30d                # 30 days
   Job Retention = 180d                # six months
   AutoPrune = yes                     # Prune expired Jobs/Files
-  Maximum Concurrent Jobs = 4
+  Maximum Concurrent Jobs = 10
 }
 
 # Definiton of file storage device
@@ -405,7 +413,7 @@ Storage {
   Password = "ccV3lVTsQRsdIUGyab0N4sMDavui2hOBkmpBU0aQKOr9"
   Device = FileStorage
   Media Type = File
-  Maximum Concurrent Jobs = 4
+  Maximum Concurrent Jobs = 10
 }
 
 Storage {
@@ -415,7 +423,7 @@ Storage {
   Password = "ccV3lVTsQRsdIUGyab0N4sMDavui2hOBkmpBU0aQKOr9"
   Device = FileStorage1
   Media Type = File1
-  Maximum Concurrent Jobs = 4
+  Maximum Concurrent Jobs = 10
 }
 
 

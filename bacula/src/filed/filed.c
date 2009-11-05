@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2008 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2009 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -29,8 +29,6 @@
  *  Bacula File Daemon
  *
  *    Kern Sibbald, March MM
- *
- *   Version $Id$
  *
  */
 
@@ -83,6 +81,7 @@ PROG_COPYRIGHT
 "        -f          run in foreground (for debugging)\n"
 "        -g          groupid\n"
 "        -k          keep readall capabilities\n"
+"        -m          print kaboom output (for debugging)\n"
 "        -s          no signals (for debugging)\n"
 "        -t          test configuration file and exit\n"
 "        -u          userid\n"
@@ -123,7 +122,7 @@ int main (int argc, char *argv[])
    init_msg(NULL, NULL);
    daemon_start_time = time(NULL);
 
-   while ((ch = getopt(argc, argv, "c:d:fg:kstu:v?")) != -1) {
+   while ((ch = getopt(argc, argv, "c:d:fg:kmstu:v?")) != -1) {
       switch (ch) {
       case 'c':                    /* configuration file */
          if (configfile != NULL) {
@@ -153,6 +152,10 @@ int main (int argc, char *argv[])
 
       case 'k':
          keep_readall_caps = true;
+         break;
+
+      case 'm':                    /* print kaboom output */
+         prt_kaboom = true;
          break;
 
       case 's':
