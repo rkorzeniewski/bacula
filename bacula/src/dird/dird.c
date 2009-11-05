@@ -958,6 +958,12 @@ static bool check_catalog(cat_op mode)
          OK = false;
          continue;
       }
+      
+      /* Display a message if the db max_connections is too low */
+      if (!db_check_max_connections(NULL, db, director->MaxConcurrentJobs+1)) {
+         Pmsg1(000, "Warning, settings problem for Catalog=%s\n", catalog->name());
+         Pmsg1(000, "%s", db_strerror(db));
+      }
 
       /* we are in testing mode, so don't touch anything in the catalog */
       if (mode == CHECK_CONNECTION) {

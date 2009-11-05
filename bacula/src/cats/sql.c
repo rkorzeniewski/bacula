@@ -108,7 +108,6 @@ dbid_list::~dbid_list()
    free(DBId);
 }
 
-
 /*
  * Called here to retrieve an integer from the database
  */
@@ -158,6 +157,52 @@ int db_list_handler(void *ctx, int num_fields, char **row)
       lctx->count++;
    }
    return 0;
+}
+
+
+/*
+ * Called here to retrieve an integer from the database
+ */
+static int db_max_connections_handler(void *ctx, int num_fields, char **row)
+{
+   uint32_t *val = (uint32_t *)ctx;
+   uint32_t index = sql_get_max_connections_index[db_type];
+   if (row[index]) {
+      *val = str_to_int64(row[index]);
+   } else {
+      Dmsg0(800, "int_handler finds zero\n");
+      *val = 0;
+   }
+   return 0;
+}
+
+/* 
+ * Check catalog max_connections setting
+ */
+bool db_check_max_connections(JCR *jcr, B_DB *mdb, uint32_t max_concurrent_jobs)
+{
+   uint32_t max_conn=0;
+   int ret=true;
+
+   /* Without Batch insert, no need to verify max_connections */
+#ifndef HAVE_BATCH_FILE_INSERT
+   return ret;
+#endif
+
+   /* Check max_connections setting */
+   if (!db_sql_query(mdb, sql_get_max_connections[db_type], db_max_connections_handler, &max_conn)) {
+      Jmsg(jcr, M_ERROR, 0, "Can't verify max_connections settings %s", mdb->errmsg);
+      return ret;
+   }
+   if (max_conn && max_concurrent_jobs && max_concurrent_jobs > max_conn) {
+      Mmsg(mdb->errmsg, 
+           _("On db_name=%s, %s max_connections=%d is lower than Director MaxConcurentJobs=%d\n"),
+           mdb->db_name, db_get_type(), max_conn, max_concurrent_jobs);
+      Jmsg(jcr, M_WARNING, 0, "%s", mdb->errmsg);
+      ret = false;
+   }
+
+   return ret;
 }
 
 /* NOTE!!! The following routines expect that the
