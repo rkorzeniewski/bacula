@@ -53,9 +53,8 @@ sleep 2
 check_for_zombie_jobs storage=File 
 stop_bacula
 
-du -s build
-du -s ${cwd}/tmp/bacula-restores/
-
+#du -s build
+#du -s ${cwd}/tmp/bacula-restores/
 
 check_two_logs
 diff ${cwd}/tmp/build ${cwd}/tmp/bacula-restores/${cwd} 2>&1 >/dev/null

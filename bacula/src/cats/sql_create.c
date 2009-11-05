@@ -909,6 +909,10 @@ bool db_write_batch_file_records(JCR *jcr)
  *  is a single FileName record and a single Path record, no matter
  *  how many times it occurs.  This is this subroutine, we separate
  *  the file and the path and fill temporary tables with this three records.
+ *
+ *  Note: all routines that call this expect to be able to call
+ *    db_strerror(mdb) to get the error message, so the error message
+ *    MUST be edited into mdb->errmsg before returning an error status.
  */
 bool db_create_file_attributes_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
 {
@@ -919,14 +923,13 @@ bool db_create_file_attributes_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
 
    /* Open the dedicated connexion */
    if (!jcr->batch_started) {
-
       if (!db_open_batch_connexion(jcr, mdb)) {
-         return false;
+         return false;     /* error already printed */
       }
       if (!sql_batch_start(jcr, jcr->db_batch)) {
          Mmsg1(&mdb->errmsg, 
               "Can't start batch mode: ERR=%s", db_strerror(jcr->db_batch));
-         Jmsg1(jcr, M_FATAL, 0, "%s", mdb->errmsg);
+         Jmsg(jcr, M_FATAL, 0, "%s", mdb->errmsg);
          return false;
       }
       jcr->batch_started = true;

@@ -1081,6 +1081,7 @@ void list_result(JCR *jcr, B_DB *mdb, DB_LIST_HANDLER *send, void *ctx, e_list_t
 void list_dashes(B_DB *mdb, DB_LIST_HANDLER *send, void *ctx);
 int get_sql_record_max(JCR *jcr, B_DB *mdb);
 bool check_tables_version(JCR *jcr, B_DB *mdb);
+bool db_check_max_connections(JCR *jcr, B_DB *mdb, uint32_t nb);
 void _db_unlock(const char *file, int line, B_DB *mdb);
 void _db_lock(const char *file, int line, B_DB *mdb);
 const char *db_get_type(void);

@@ -278,10 +278,9 @@ db_open_database(JCR *jcr, B_DB *mdb)
    }
 
    if ( dbstat != 0 ) {
-      Mmsg3(&mdb->errmsg, _("Unable to connect to DBI interface.\n"
-                       "Type=%s Database=%s User=%s\n"
-                       "It is probably not running or your password is incorrect.\n"),
-                        mdb->db_driver, mdb->db_name, mdb->db_user);
+      Mmsg3(&mdb->errmsg, _("Unable to connect to DBI interface. Type=%s Database=%s User=%s\n"
+         "Possible causes: SQL server not running; password incorrect; max_connections exceeded.\n"),
+         mdb->db_driver, mdb->db_name, mdb->db_user);
       V(mutex);
       return 0;
    }

@@ -108,7 +108,6 @@ dbid_list::~dbid_list()
    free(DBId);
 }
 
-
 /*
  * Called here to retrieve an integer from the database
  */
@@ -158,6 +157,52 @@ int db_list_handler(void *ctx, int num_fields, char **row)
       lctx->count++;
    }
    return 0;
+}
+
+
+/*
+ * Called here to retrieve an integer from the database
+ */
+static int db_max_connections_handler(void *ctx, int num_fields, char **row)
+{
+   uint32_t *val = (uint32_t *)ctx;
+   uint32_t index = sql_get_max_connections_index[db_type];
+   if (row[index]) {
+      *val = str_to_int64(row[index]);
+   } else {
+      Dmsg0(800, "int_handler finds zero\n");
+      *val = 0;
+   }
+   return 0;
+}
+
+/* 
+ * Check catalog max_connections setting
+ */
+bool db_check_max_connections(JCR *jcr, B_DB *mdb, uint32_t max_concurrent_jobs)
+{
+   uint32_t max_conn=0;
+   int ret=true;
+
+   /* Without Batch insert, no need to verify max_connections */
+#ifndef HAVE_BATCH_FILE_INSERT
+   return ret;
+#endif
+
+   /* Check max_connections setting */
+   if (!db_sql_query(mdb, sql_get_max_connections[db_type], db_max_connections_handler, &max_conn)) {
+      Jmsg(jcr, M_ERROR, 0, "Can't verify max_connections settings %s", mdb->errmsg);
+      return ret;
+   }
+   if (max_conn && max_concurrent_jobs && max_concurrent_jobs > max_conn) {
+      Mmsg(mdb->errmsg, 
+           _("On db_name=%s, %s max_connections=%d is lower than Director MaxConcurentJobs=%d\n"),
+           mdb->db_name, db_get_type(), max_conn, max_concurrent_jobs);
+      Jmsg(jcr, M_WARNING, 0, "%s", mdb->errmsg);
+      ret = false;
+   }
+
+   return ret;
 }
 
 /* NOTE!!! The following routines expect that the
@@ -740,10 +785,10 @@ vertical_list:
  */
 bool db_open_batch_connexion(JCR *jcr, B_DB *mdb)
 {
-   int multi_db=false;
-
 #ifdef HAVE_BATCH_FILE_INSERT
-   multi_db=true;               /* we force a new connexion only if batch insert is enabled */
+   const int multi_db = true;   /* we force a new connection only if batch insert is enabled */
+#else
+   const int multi_db = false;
 #endif
 
    if (!jcr->db_batch) {
@@ -756,14 +801,15 @@ bool db_open_batch_connexion(JCR *jcr, B_DB *mdb)
                                       mdb->db_socket,
                                       multi_db /* multi_db = true when using batch mode */);
       if (!jcr->db_batch) {
-         Jmsg0(jcr, M_FATAL, 0, "Could not init batch connexion");
+         Mmsg0(&mdb->errmsg, _("Could not init database batch connection"));
+         Jmsg(jcr, M_FATAL, 0, "%s", mdb->errmsg);
          return false;
       }
 
       if (!db_open_database(jcr, jcr->db_batch)) {
-         Mmsg2(&jcr->db_batch->errmsg,  _("Could not open database \"%s\": ERR=%s\n"),
+         Mmsg2(&mdb->errmsg,  _("Could not open database \"%s\": ERR=%s\n"),
               jcr->db_batch->db_name, db_strerror(jcr->db_batch));
-         Jmsg1(jcr, M_FATAL, 0, "%s", jcr->db_batch->errmsg);
+         Jmsg(jcr, M_FATAL, 0, "%s", mdb->errmsg);
          return false;
       }      
       Dmsg3(100, "initdb ref=%d connected=%d db=%p\n", jcr->db_batch->ref_count,

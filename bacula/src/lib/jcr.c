@@ -1100,10 +1100,10 @@ extern "C" void timeout_handler(int sig)
 static dbg_jcr_hook_t *dbg_jcr_hooks[MAX_DBG_HOOK];
 static int dbg_jcr_handler_count;
 
-void dbg_jcr_add_hook(dbg_jcr_hook_t *fct)
+void dbg_jcr_add_hook(dbg_jcr_hook_t *hook)
 {
    ASSERT(dbg_jcr_handler_count < MAX_DBG_HOOK);
-   dbg_jcr_hooks[dbg_jcr_handler_count++] = fct;
+   dbg_jcr_hooks[dbg_jcr_handler_count++] = hook;
 }
 
 /*
@@ -1112,7 +1112,7 @@ void dbg_jcr_add_hook(dbg_jcr_hook_t *fct)
  * This function should be used ONLY after a fatal signal. We walk through the
  * JCR chain without doing any lock, Bacula should not be running.
  */
-void _dbg_print_jcr(FILE *fp)
+void dbg_print_jcr(FILE *fp)
 {
    char buf1[128], buf2[128], buf3[128], buf4[128];
    if (!jcrs) {
@@ -1122,9 +1122,8 @@ void _dbg_print_jcr(FILE *fp)
    fprintf(fp, "Attempt to dump current JCRs\n");
 
    for (JCR *jcr = (JCR *)jcrs->first(); jcr ; jcr = (JCR *)jcrs->next(jcr)) {
-
-      fprintf(fp, "JCR=%p JobId=%i name=%s JobStatus=%c\n", 
-              jcr, jcr->JobId, jcr->Job, jcr->JobStatus);
+      fprintf(fp, "JCR=%p JobId=%d name=%s JobStatus=%c\n", 
+              jcr, (int)jcr->JobId, jcr->Job, jcr->JobStatus);
       fprintf(fp, "\tuse_count=%i\n", jcr->use_count());
       fprintf(fp, "\tJobType=%c JobLevel=%c\n",
               jcr->get_JobType(), jcr->get_JobLevel());
@@ -1141,8 +1140,8 @@ void _dbg_print_jcr(FILE *fp)
        * Call all the jcr debug hooks
        */
       for(int i=0; i < dbg_jcr_handler_count; i++) {
-         dbg_jcr_hook_t *fct = dbg_jcr_hooks[i];
-         fct(jcr, fp);
+         dbg_jcr_hook_t *hook = dbg_jcr_hooks[i];
+         hook(jcr, fp);
       }
    }
 }

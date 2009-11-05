@@ -31,7 +31,6 @@
  *
  *     Kern Sibbald, March MM
  *
- *   Version $Id$
  */
 
 #include "bacula.h"
@@ -74,7 +73,7 @@ void store_migtype(LEX *lc, RES_ITEM *item, int index, int pass);
 void init_device_resources();
 
 static char *runjob = NULL;
-static int background = 1;
+static bool background = true;
 static void init_reload(void);
 static CONFIG *config;
  
@@ -116,6 +115,7 @@ PROG_COPYRIGHT
 "       -dt         print timestamp in debug output\n"
 "       -f          run in foreground (for debugging)\n"
 "       -g          groupid\n"
+"       -m          print kaboom output for debugging)\n"
 "       -r <job>    run <job> now\n"
 "       -s          no signals\n"
 "       -t          test - read configuration and exit\n"
@@ -130,7 +130,7 @@ PROG_COPYRIGHT
 
 /*********************************************************************
  *
- *         Main Bacula Server program
+ *         Main Bacula Director Server program
  *
  */
 #if defined(HAVE_WIN32)
@@ -163,7 +163,7 @@ int main (int argc, char *argv[])
 
    console_command = run_console_command;
 
-   while ((ch = getopt(argc, argv, "c:d:fg:r:stu:v?")) != -1) {
+   while ((ch = getopt(argc, argv, "c:d:fg:mr:stu:v?")) != -1) {
       switch (ch) {
       case 'c':                    /* specify config file */
          if (configfile != NULL) {
@@ -185,11 +185,15 @@ int main (int argc, char *argv[])
          break;
 
       case 'f':                    /* run in foreground */
-         background = FALSE;
+         background = false;
          break;
 
       case 'g':                    /* set group id */
          gid = optarg;
+         break;
+
+      case 'm':                    /* print kaboom output */
+         prt_kaboom = true;
          break;
 
       case 'r':                    /* run job */
@@ -953,6 +957,12 @@ static bool check_catalog(cat_op mode)
          }
          OK = false;
          continue;
+      }
+      
+      /* Display a message if the db max_connections is too low */
+      if (!db_check_max_connections(NULL, db, director->MaxConcurrentJobs+1)) {
+         Pmsg1(000, "Warning, settings problem for Catalog=%s\n", catalog->name());
+         Pmsg1(000, "%s", db_strerror(db));
       }
 
       /* we are in testing mode, so don't touch anything in the catalog */

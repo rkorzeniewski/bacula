@@ -508,21 +508,20 @@ static void update_attribute(JCR *jcr, char *msg, int32_t msglen)
  */
 void catalog_update(JCR *jcr, BSOCK *bs)
 {
-   POOLMEM *omsg;
-
-   if (job_canceled(jcr) || !jcr->pool->catalog_files) {
-      goto bail_out;                  /* user disabled cataloging */
+   if (!jcr->pool->catalog_files) {
+      return;                         /* user disabled cataloging */
+   }
+   if (job_canceled(jcr)) {
+      goto bail_out;
    }
    if (!jcr->db) {
-      omsg = get_memory(bs->msglen+1);
+      POOLMEM *omsg = get_memory(bs->msglen+1);
       pm_strcpy(omsg, bs->msg);
       bs->fsend(_("1994 Invalid Catalog Update: %s"), omsg);    
       Jmsg1(jcr, M_FATAL, 0, _("Invalid Catalog Update; DB not open: %s"), omsg);
       free_memory(omsg);
       goto bail_out;
-
    }
-
    update_attribute(jcr, bs->msg, bs->msglen);
 
 bail_out:
@@ -584,7 +583,12 @@ bool despool_attributes_from_file(JCR *jcr, const char *file)
             last = size;
          }
       }
-      update_attribute(jcr, msg, msglen);
+      if (!job_canceled(jcr)) {
+         update_attribute(jcr, msg, msglen);
+         if (job_canceled(jcr)) {
+            goto bail_out;
+         }
+      }
    }
    if (ferror(spool_fd)) {
       berrno be;

@@ -802,3 +802,26 @@ const char *uar_jobid_fileindex_from_dir[4] = {
    "AND Path.PathId=File.Pathid "
    "AND Filename.FilenameId=File.FilenameId "
    "GROUP BY File.FileIndex "};
+
+const char *sql_get_max_connections[4] = {
+   /* Mysql */
+   "SHOW VARIABLES LIKE 'max_connections'",
+   /* Postgresql */
+   "SHOW max_connections",
+   /* SQLite */
+   "SELECT 0",
+   /* SQLite3 */
+   "SELECT 0"
+};
+
+/* Row number of the max_connections setting */
+const uint32_t sql_get_max_connections_index[4] = {
+    /* Mysql */
+   1,
+   /* Postgresql */
+   0,
+   /* SQLite */
+   0,
+   /* SQLite3 */
+   0
+};

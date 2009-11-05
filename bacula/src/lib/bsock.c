@@ -564,6 +564,7 @@ bool BSOCK::despool(void update_attr_spool_size(ssize_t size), ssize_t tsize)
    size_t nbytes;
    ssize_t last = 0, size = 0;
    int count = 0;
+   JCR *jcr = get_jcr();
 
    rewind(m_spool_fd);
 
@@ -576,11 +577,11 @@ bool BSOCK::despool(void update_attr_spool_size(ssize_t size), ssize_t tsize)
       size += sizeof(int32_t);
       msglen = ntohl(pktsiz);
       if (msglen > 0) {
-         if (msglen > (int32_t) sizeof_pool_memory(msg)) {
+         if (msglen > (int32_t)sizeof_pool_memory(msg)) {
             msg = realloc_pool_memory(msg, msglen + 1);
          }
          nbytes = fread(msg, 1, msglen, m_spool_fd);
-         if (nbytes != (size_t) msglen) {
+         if (nbytes != (size_t)msglen) {
             berrno be;
             Dmsg2(400, "nbytes=%d msglen=%d\n", nbytes, msglen);
             Qmsg1(get_jcr(), M_FATAL, 0, _("fread attr spool error. ERR=%s\n"),
@@ -595,12 +596,13 @@ bool BSOCK::despool(void update_attr_spool_size(ssize_t size), ssize_t tsize)
          }
       }
       send();
+      if (jcr && job_canceled(jcr)) {
+         return false;
+      }
    }
    update_attr_spool_size(tsize - last);
    if (ferror(m_spool_fd)) {
-      berrno be;
-      Qmsg1(get_jcr(), M_FATAL, 0, _("fread attr spool error. ERR=%s\n"),
-            be.bstrerror());
+      Qmsg(jcr, M_FATAL, 0, _("fread attr spool I/O error.\n"));
       return false;
    }
    return true;

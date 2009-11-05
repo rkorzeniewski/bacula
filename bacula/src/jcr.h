@@ -302,6 +302,7 @@ public:
    bool run_full_pool_override;
    bool run_inc_pool_override;
    bool run_diff_pool_override;
+   bool sd_canceled;                  /* set if SD canceled */
    FILESET *fileset;                  /* FileSet resource */
    CAT *catalog;                      /* Catalog resource */
    MSGS *messages;                    /* Default message handler */

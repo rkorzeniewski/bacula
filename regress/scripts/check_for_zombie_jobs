@@ -11,14 +11,14 @@
 if [ $# = 2 ] ; then
     client="$2"
 else 
-    client=${HOST}-fd
+    client="client"
 fi
 
 ${bin}/bconsole -c ${scripts}/bconsole.conf <<END_OF_DATA 2>&1 >/dev/null
 @output ${tmp}/dir.out
 status dir
 @output ${tmp}/fd.out
-status client=${client}
+status ${client}
 @output ${tmp}/sd.out
 status $1
 @output

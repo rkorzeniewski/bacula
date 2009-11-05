@@ -228,10 +228,9 @@ db_open_database(JCR *jcr, B_DB *mdb)
             mdb->db_password==NULL?"(NULL)":mdb->db_password);
 
    if (PQstatus(mdb->db) != CONNECTION_OK) {
-      Mmsg2(&mdb->errmsg, _("Unable to connect to PostgreSQL server.\n"
-            "Database=%s User=%s\n"
-            "It is probably not running or your password is incorrect.\n"),
-             mdb->db_name, mdb->db_user);
+      Mmsg2(&mdb->errmsg, _("Unable to connect to PostgreSQL server. Database=%s User=%s\n"
+         "Possible causes: SQL server not running; password incorrect; max_connections exceeded.\n"),
+         mdb->db_name, mdb->db_user);
       V(mutex);
       return 0;
    }
