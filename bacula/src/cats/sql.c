@@ -35,7 +35,7 @@
  *
  *    Kern Sibbald, March 2000
  *
- *    Version $Id$
+ *    Version $Id: sql.c 8034 2008-11-11 14:33:46Z ricozz $
  */
 
 /* The following is necessary so that we do not include
@@ -46,7 +46,7 @@
 #include "bacula.h"
 #include "cats.h"
 
-#if    HAVE_SQLITE3 || HAVE_MYSQL || HAVE_SQLITE || HAVE_POSTGRESQL || HAVE_DBI
+#if    HAVE_SQLITE3 || HAVE_MYSQL || HAVE_SQLITE || HAVE_POSTGRESQL || HAVE_INGRES || HAVE_DBI
 
 uint32_t bacula_db_version = 0;
 
@@ -84,6 +84,8 @@ B_DB *db_init(JCR *jcr, const char *db_driver, const char *db_name, const char *
    db_type = SQL_TYPE_MYSQL;
 #elif HAVE_POSTGRESQL
    db_type = SQL_TYPE_POSTGRESQL;
+#elif HAVE_INGRES
+   db_type = SQL_TYPE_INGRES;
 #elif HAVE_SQLITE
    db_type = SQL_TYPE_SQLITE;
 #elif HAVE_SQLITE3
@@ -454,6 +456,23 @@ void db_start_transaction(JCR *jcr, B_DB *mdb)
    db_unlock(mdb);
 #endif
 
+#ifdef HAVE_INGRES
+   if (!mdb->allow_transactions) {
+      return;
+   }
+   db_lock(mdb);
+   /* Allow only 25,000 changes per transaction */
+   if (mdb->transaction && mdb->changes > 25000) {
+      db_end_transaction(jcr, mdb);
+   }
+   if (!mdb->transaction) {
+      db_sql_query(mdb, "BEGIN", NULL, NULL);  /* begin transaction */
+      Dmsg0(400, "Start Ingres transaction\n");
+      mdb->transaction = 1;
+   }
+   db_unlock(mdb);
+#endif
+
 #ifdef HAVE_DBI
    if (db_type == SQL_TYPE_SQLITE) {
       if (!mdb->allow_transactions) {
@@ -521,6 +540,23 @@ void db_end_transaction(JCR *jcr, B_DB *mdb)
    mdb->changes = 0;
    db_unlock(mdb);
 #endif
+
+
+
+#ifdef HAVE_INGRES
+   if (!mdb->allow_transactions) {
+      return;
+   }
+   db_lock(mdb);
+   if (mdb->transaction) {
+      db_sql_query(mdb, "COMMIT", NULL, NULL); /* end transaction */
+      mdb->transaction = 0;
+      Dmsg1(400, "End Ingres transaction changes=%d\n", mdb->changes);
+   }
+   mdb->changes = 0;
+   db_unlock(mdb);
+#endif
+
 
 #ifdef HAVE_POSTGRESQL
    if (!mdb->allow_transactions) {
@@ -842,4 +878,4 @@ void db_debug_print(JCR *jcr, FILE *fp)
    }
 }
 
-#endif /* HAVE_SQLITE3 || HAVE_MYSQL || HAVE_SQLITE || HAVE_POSTGRESQL*/
+#endif /* HAVE_SQLITE3 || HAVE_MYSQL || HAVE_SQLITE || HAVE_POSTGRESQL || HAVE_INGRES*/

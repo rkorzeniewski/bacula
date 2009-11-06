@@ -30,7 +30,7 @@
  *
  *    Kern Sibbald, March 2000
  *
- *    Version $Id$
+ *    Version $Id: sql_list.c 8508 2009-03-07 20:59:46Z kerns $
  */
 
 
@@ -44,7 +44,7 @@
 
 extern int db_type;
 
-#if    HAVE_SQLITE3 || HAVE_MYSQL || HAVE_SQLITE || HAVE_POSTGRESQL || HAVE_DBI
+#if    HAVE_SQLITE3 || HAVE_MYSQL || HAVE_SQLITE || HAVE_POSTGRESQL || HAVE_INGRES || HAVE_DBI
 
 /* -----------------------------------------------------------------------
  *
@@ -509,4 +509,4 @@ db_list_base_files_for_job(JCR *jcr, B_DB *mdb, JobId_t jobid, DB_LIST_HANDLER *
 }
 
 
-#endif /* HAVE_SQLITE3 || HAVE_MYSQL || HAVE_SQLITE || HAVE_POSTGRESQL*/
+#endif /* HAVE_SQLITE3 || HAVE_MYSQL || HAVE_SQLITE || HAVE_POSTGRESQL || HAVE_INGRES */

@@ -1,7 +1,7 @@
 #!/bin/sh
 #
 #  Drop Bacula tables -- works for whatever is configured,
-#    MySQL, SQLite, or PostgreSQL
+#    MySQL, SQLite, Ingres, or PostgreSQL
 #
 if test xsqlite3 = x@DB_TYPE@ ; then
   @scriptdir@/drop_@DB_TYPE@_tables $*
@@ -11,6 +11,10 @@ else
     echo "Making MySQL tables"
     @scriptdir@/drop_mysql_tables $*
     echo "Dropped MySQL tables"
+  elif test xingres = x@DB_TYPE@ ; then
+    echo "Dropping Ingres tables"
+    @scriptdir@/drop_ingres_tables $*
+    echo "Dropped Ingres tables"
   else
     # hardcoded database name - should be a parameter
     @scriptdir@/drop_postgresql_tables $*

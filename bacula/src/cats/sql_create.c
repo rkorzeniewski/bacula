@@ -30,7 +30,7 @@
  *
  *    Kern Sibbald, March 2000
  *
- *    Version $Id$
+ *    Version $Id: sql_create.c 8407 2009-01-28 10:47:21Z ricozz $
  */
 
 /* The following is necessary so that we do not include
@@ -43,7 +43,7 @@
 
 static const int dbglevel = 100;
 
-#if    HAVE_SQLITE3 || HAVE_MYSQL || HAVE_SQLITE || HAVE_POSTGRESQL || HAVE_DBI
+#if    HAVE_SQLITE3 || HAVE_MYSQL || HAVE_SQLITE || HAVE_POSTGRESQL || HAVE_INGRES || HAVE_DBI
 
 /* -----------------------------------------------------------------------
  *
@@ -1255,4 +1255,4 @@ bail_out:
    return ret;
 }
 
-#endif /* HAVE_SQLITE3 || HAVE_MYSQL || HAVE_SQLITE || HAVE_POSTGRESQL || HAVE_DBI */
+#endif /* HAVE_SQLITE3 || HAVE_MYSQL || HAVE_SQLITE || HAVE_POSTGRESQL || HAVE_INGRES || HAVE_DBI */

@@ -38,7 +38,7 @@
  * for the external world. This is control with
  * the define __SQL_C, which is defined only in sql.c
  *
- *    Version $Id$
+ *    Version $Id: cats.h 8478 2009-02-18 20:11:55Z kerns $
  */
 
 /*
@@ -73,6 +73,7 @@ enum {
    SQL_TYPE_MYSQL      = 0,
    SQL_TYPE_POSTGRESQL = 1,
    SQL_TYPE_SQLITE     = 2,
+   SQL_TYPE_INGRES     = 3,
    SQL_TYPE_SQLITE3
 };
 
@@ -535,6 +536,114 @@ extern const char* my_pg_batch_fill_path_query;
 
 #else
 
+#ifdef HAVE_INGRES
+
+#include "myingres.h"
+
+#define BDB_VERSION 11
+
+/* TEMP: the following is taken from select OID, typname from pg_type; */ /*SRE: huh? */
+#define IS_NUM(x)        ((x) == 20 || (x) == 21 || (x) == 23 || (x) == 700 || (x) == 701)
+#define IS_NOT_NULL(x)   ((x) == 1)
+
+typedef char **INGRES_ROW;
+
+/*
+ * This is the "real" definition that should only be
+ * used inside sql.c and associated database interface
+ * subroutines.
+ *
+ *                     I N G R E S
+ */
+struct B_DB {
+   BQUEUE bq;                         /* queue control */
+   brwlock_t lock;                    /* transaction lock */
+   INGconn *db;
+   INGresult *result;
+   int status;
+   INGRES_ROW row;
+   INGRES_FIELD *fields;
+   int num_rows;
+   int row_size;                  /* size of malloced rows */
+   int num_fields;
+   int fields_size;               /* size of malloced fields */
+   int row_number;                /* row number from my_ingres_data_seek */
+   int field_number;              /* field number from my_ingres_field_seek */
+   int ref_count;
+   char *db_name;
+   char *db_user;
+   char *db_password;
+   char *db_address;              /* host address */
+   char *db_socket;               /* socket for local access */
+   int db_port;                   /* port of host address */
+   int have_insert_id;            /* do have insert_id() */
+   bool connected;
+   POOLMEM *errmsg;               /* nicely edited error message */
+   POOLMEM *cmd;                  /* SQL command string */
+   POOLMEM *cached_path;
+   int cached_path_len;           /* length of cached path */
+   uint32_t cached_path_id;
+   bool allow_transactions;       /* transactions allowed */
+   bool transaction;              /* transaction started */
+   int changes;                   /* changes made to db */
+   POOLMEM *fname;                /* Filename only */
+   POOLMEM *path;                 /* Path only */
+   POOLMEM *esc_name;             /* Escaped file name */
+   POOLMEM *esc_path;             /* Escaped path name */
+   int fnl;                       /* file name length */
+   int pnl;                       /* path name length */
+};
+
+void               my_ingres_free_result(B_DB *mdb);
+INGRES_ROW         my_ingres_fetch_row  (B_DB *mdb);
+int                my_ingres_query      (B_DB *mdb, const char *query);
+void               my_ingres_data_seek  (B_DB *mdb, int row);
+int                my_ingres_currval    (B_DB *mdb, const char *table_name);
+void               my_ingres_field_seek (B_DB *mdb, int row);
+INGRES_FIELD *     my_ingres_fetch_field(B_DB *mdb);
+void		   my_ingres_close	(B_DB *mdb);
+
+int my_ingres_batch_start(JCR *jcr, B_DB *mdb);
+int my_ingres_batch_end(JCR *jcr, B_DB *mdb, const char *error);
+typedef struct ATTR_DBR ATTR_DBR;
+int my_ingres_batch_insert(JCR *jcr, B_DB *mdb, ATTR_DBR *ar);
+char *my_ingres_copy_escape(char *dest, char *src, size_t len);
+
+extern const char* my_ingres_batch_lock_path_query;
+extern const char* my_ingres_batch_lock_filename_query;
+extern const char* my_ingres_batch_unlock_tables_query;
+extern const char* my_ingres_batch_fill_filename_query;
+extern const char* my_ingres_batch_fill_path_query;
+
+/* "Generic" names for easier conversion */
+#define sql_store_result(x)   ((x)->result)
+#define sql_free_result(x)    my_ingres_free_result(x)
+#define sql_fetch_row(x)      my_ingres_fetch_row(x)
+#define sql_query(x, y)       my_ingres_query((x), (y))
+#define sql_close(x)          my_ingres_close(x)
+#define sql_strerror(x)       INGerrorMessage((x)->db)
+#define sql_num_rows(x)       ((unsigned) INGntuples((x)->result))
+#define sql_data_seek(x, i)   my_ingres_data_seek((x), (i))
+#define sql_affected_rows(x)  ((unsigned) atoi(INGcmdTuples((x)->result)))
+#define sql_insert_id(x,y)    my_ingres_currval((x), (y))
+#define sql_field_seek(x, y)  my_ingres_field_seek((x), (y))
+#define sql_fetch_field(x)    my_ingres_fetch_field(x)
+#define sql_num_fields(x)     ((x)->num_fields)
+
+#define sql_batch_start(x,y)    my_ingres_batch_start(x,y)
+#define sql_batch_end(x,y,z)    my_ingres_batch_end(x,y,z)
+#define sql_batch_insert(x,y,z) my_ingres_batch_insert(x,y,z)
+#define sql_batch_lock_path_query       my_ingres_batch_lock_path_query
+#define sql_batch_lock_filename_query   my_ingres_batch_lock_filename_query
+#define sql_batch_unlock_tables_query   my_ingres_batch_unlock_tables_query
+#define sql_batch_fill_filename_query   my_ingres_batch_fill_filename_query
+#define sql_batch_fill_path_query       my_ingres_batch_fill_path_query
+
+#define SQL_ROW               INGRES_ROW
+#define SQL_FIELD             INGRES_FIELD
+
+#else
+
 #ifdef HAVE_DBI
 
 #define BDB_VERSION 11
@@ -719,6 +828,7 @@ struct B_DB {
 #endif /* HAVE_MYSQL */
 #endif /* HAVE_SQLITE */
 #endif /* HAVE_POSTGRESQL */
+#endif /* HAVE_INGRES */
 #endif /* HAVE_DBI */
 #endif
 

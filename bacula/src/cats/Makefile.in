@@ -27,9 +27,10 @@ dummy:
 INCLUDE_FILES = bdb.h cats.h protos.h sql_cmds.h
 
 LIBBACSQL_SRCS = mysql.c bdb.c dbi.c \
-                 sql.c sql_cmds.c sql_create.c sql_delete.c sql_find.c \
-                 sql_get.c sql_list.c sql_update.c sqlite.c \
-                 postgresql.c bvfs.c
+		 sql.c sql_cmds.c sql_create.c sql_delete.c sql_find.c \
+		 sql_get.c sql_list.c sql_update.c sqlite.c \
+		 postgresql.c ingres.c myingres.c \
+		 bvfs.c
 LIBBACSQL_OBJS = $(LIBBACSQL_SRCS:.c=.o)
 LIBBACSQL_LOBJS = $(LIBBACSQL_SRCS:.c=.lo)
 
@@ -49,10 +50,16 @@ LIBBACSQL_LT_AGE = 0
 .c.lo:
 	@echo "Compiling $<"
 	$(NO_ECHO)$(LIBTOOL_COMPILE) $(CXX) $(DEFS) $(DEBUG) -c $(WCFLAGS) $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(SQL_INC) $(DINCLUDE) $(CFLAGS) $<
+
 #-------------------------------------------------------------------------
 all: Makefile libbacsql$(DEFAULT_ARCHIVE_TYPE)
 	@echo "==== Make of sqllib is good ===="
 	@echo " "
+
+# SRE: embeddedSQL precompiler run
+esql:
+	$(II_SYSTEM)/ingres/bin/esqlc -omyingres.c myingres.sc
+	$(II_SYSTEM)/ingres/bin/esqlc -omyingres.h myingres.sh
 
 libbacsql.a: $(LIBBACSQL_OBJS)
 	@echo "Making $@ ..."	  
@@ -90,13 +97,16 @@ realclean: clean
 	$(RMF) create_postgresql_database  update_postgresql_tables make_postgresql_tables
 	$(RMF) grant_postgresql_privileges drop_postgresql_tables   drop_postgresql_database
 
+	$(RMF) create_ingres_database update_ingres_tables make_ingres_tables
+	$(RMF) grant_ingres_privileges drop_ingres_tables   drop_ingres_database
+
 	$(RMF) create_sqlite_database	   update_sqlite_tables     make_sqlite_tables
 	$(RMF) grant_sqlite_privileges	   drop_sqlite_tables	    drop_sqlite_database
 
 	$(RMF) create_sqlite3_database	   update_sqlite3_tables     make_sqlite3_tables
 	$(RMF) grant_sqlite3_privileges    drop_sqlite3_tables	    drop_sqlite3_database
 
-	$(RMF) mysql sqlite postgresql
+	$(RMF) mysql sqlite postgresql ingres
 	$(RMF) make_catalog_backup delete_catalog_backup
 
 distclean: realclean
@@ -182,7 +192,8 @@ uninstall: @LIBTOOL_UNINSTALL_TARGET@ @INCLUDE_UNINSTALL_TARGET@
 # and it also includes system headers.
 # `semi'-automatic since dependencies are generated at distribution time.
 
-depend:
+#depend: esql  <-  SRE: if generating from 'real' ingres source
+depend: 
 	@$(MV) Makefile Makefile.bak
 	@$(SED) "/^# DO NOT DELETE:/,$$ d" Makefile.bak > Makefile
 	@$(ECHO) "# DO NOT DELETE: nice dependency list follows" >> Makefile

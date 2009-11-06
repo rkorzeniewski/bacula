@@ -33,7 +33,6 @@
  *
  *    Kern Sibbald, March 2000
  *
- *    Version $Id: sql_get.c 8918 2009-06-23 11:56:35Z ricozz $
  */
 
 
@@ -45,7 +44,7 @@
 #include "bacula.h"
 #include "cats.h"
 
-#if    HAVE_SQLITE3 || HAVE_MYSQL || HAVE_SQLITE || HAVE_POSTGRESQL || HAVE_DBI
+#if    HAVE_SQLITE3 || HAVE_MYSQL || HAVE_SQLITE || HAVE_POSTGRESQL || HAVE_INGRES || HAVE_DBI
 
 /* -----------------------------------------------------------------------
  *
@@ -1267,4 +1266,4 @@ bail_out:
    return ret;
 }
 
-#endif /* HAVE_SQLITE3 || HAVE_MYSQL || HAVE_SQLITE || HAVE_POSTGRESQL || HAVE_DBI */
+#endif /* HAVE_SQLITE3 || HAVE_MYSQL || HAVE_SQLITE || HAVE_POSTGRESQL || HAVE_INGRES || HAVE_DBI */
