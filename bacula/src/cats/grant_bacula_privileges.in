@@ -11,6 +11,9 @@ else
   if test xpostgresql = x@DB_TYPE@ ; then 
     echo "Granting PostgreSQL privileges"
     @scriptdir@/grant_postgresql_privileges $*
+  elif test xingres = x@DB_TYPE@ ; then
+    echo "Granting Ingres privileges"
+    @scriptdir@/grant_ingres_privileges $*
   else
     if test xsqlite3 = x@DB_TYPE@ ; then 
       echo "Granting SQLite privileges"
