@@ -9,8 +9,6 @@
 extern IISQLCA sqlca;   /* SQL Communications Area */
 #include <eqsqlda.h>
 
-
-
 #include "myingres.h"
 #define INGRES_DEBUG 0
 #define DEBB(x) if (INGRES_DEBUG >= x) {
@@ -230,6 +228,7 @@ void INGfreeRowSpace(ING_ROW *row, IISQLDA *sqlda)
     int i;
     if (row == NULL || sqlda == NULL)
     {
+        printf("INGfreeRowSpace: one argument is NULL!\n");
         return;
     }
     for ( i = 0 ; i < sqlda->sqld ; ++i )
