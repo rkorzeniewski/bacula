@@ -1,24 +1,26 @@
+
 #include "bacula.h"
 #include "cats.h"
 
 #ifdef HAVE_INGRES
 
-# include "/opt/Ingres/IngresII/ingres/files/eqdefc.h"
-# include "/opt/Ingres/IngresII/ingres/files/eqsqlca.h"
-    extern IISQLCA sqlca;   /* SQL Communications Area */
-# include "/opt/Ingres/IngresII/ingres/files/eqsqlda.h"
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
+#include "<qdefc.h>
+# include <eqsqlca.h>
+extern IISQLCA sqlca;   /* SQL Communications Area */
+#include <eqsqlda.h>
+
+
+
 #include "myingres.h"
 #define INGRES_DEBUG 0
 #define DEBB(x) if (INGRES_DEBUG >= x) {
 #define DEBE }
+
 /* ---Implementations--- */
 int INGcheck()
 {
   char errbuf[256];
-        if (sqlca.sqlcode < 0) 
+        if (sqlca.sqlcode < 0)
         {
 /* # line 23 "myingres.sc" */   /* inquire_ingres */
   {
@@ -27,8 +29,8 @@ int INGcheck()
 /* # line 24 "myingres.sc" */   /* host code */
                 printf("Ingres-DBMS-Fehler: %s\n", errbuf);
                 return sqlca.sqlcode;
-    } 
-        else 
+    }
+        else
                 return 0;
 }
 short INGgetCols(const char *stmt)
@@ -228,7 +230,6 @@ void INGfreeRowSpace(ING_ROW *row, IISQLDA *sqlda)
     int i;
     if (row == NULL || sqlda == NULL)
     {
-        printf("INGfreeRowSpace: one argument is NULL!\n");
         return;
     }
     for ( i = 0 ; i < sqlda->sqld ; ++i )
