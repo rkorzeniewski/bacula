@@ -47,8 +47,6 @@
  *
  *   Original written by Preben 'Peppe' Guldberg, December MMIV
  *   Major rewrite by Marco van Wieringen, November MMVIII
- *
- *   Version $Id$
  */
   
 #include "bacula.h"
