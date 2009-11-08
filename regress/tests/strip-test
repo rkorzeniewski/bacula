@@ -9,7 +9,6 @@ JobName=stripTest
 scripts/cleanup
 scripts/copy-strip-confs
 
-
 # Make a copy of build/src/dird to be backed up
 rm -rf ${tmp}/$$-strip
 mkdir -p ${tmp}/$$-strip
@@ -28,6 +27,9 @@ start_test
 cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @$out /dev/null
 messages
+@#
+@# Do a backup
+@#
 @$out ${cwd}/tmp/log1.out
 @#setdebug level=150 dir
 @#setdebug level=150 storage=FileStorage
