@@ -78,5 +78,8 @@ check_two_logs
 diff -u ${cwd}/tmp/original ${cwd}/tmp/restored 2>&1 >/dev/null
 #diff -u ${cwd}/tmp/original ${cwd}/tmp/restored
 dstat=$?
+if test $dstat -ne 0; then
+   diff -u ${cwd}/tmp/original ${cwd}/tmp/restored
+fi
 
 end_test

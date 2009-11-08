@@ -1397,7 +1397,28 @@ Item n:   Implement a Migration job type that will create a reverse
 
   Notes:  This feature was previously discussed on the bacula-devel list
           here: http://www.mail-archive.com/bacula-devel@lists.sourceforge.net/msg04962.html
- 
+
+Item n: Job migration between different SDs
+Origin: Mariusz Czulada <manieq AT wp DOT eu>
+Date:   07 May 2007
+Status: NEW
+
+What:   Allow to specify in migration job devices on Storage Daemon other then
+        the one used for migrated jobs (possibly on different/distant host)
+
+Why:    Sometimes we have more then one system which requires backup
+        implementation.  Often, these systems are functionally unrelated and
+        placed in different locations.  Having a big backup device (a tape
+        library) in each location is not cost-effective.  It would be much
+        better to have one powerful enough tape library which could handle
+        backups from all systems, assuming relatively fast and reliable WAN
+        connections.  In such architecture backups are done in service windows
+        on local bacula servers, then migrated to central storage off the peak
+        hours.
+
+Notes:  If migration to different SD is working, migration to the same SD, as
+        now, could be done the same way (i mean 'localhost') to unify the
+        whole process
 
 ========= Add new items above this line =================
 
