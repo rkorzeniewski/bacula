@@ -1,3 +1,6 @@
+09Nov09
+ebl  Optimize SQL to determine file selection with directories. It
+     is enabled for ascii path.
 22Sep09
 ebl  fix small problem in bfileview using float for LIMIT param
 19Aug09
