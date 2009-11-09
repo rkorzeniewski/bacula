@@ -914,27 +914,12 @@ sub fill_table_for_restore
 
     foreach my $dirid (@dirid) {
         my $p = $bvfs->get_path($dirid);
-        if ($p =~ m!^[a-z0-9/\-_\s,.;:*={}()\[\]\!?]+$!i) {
-           push @union, "
+        $p = $bvfs->dbh_quote($p);
+        push @union, "
   (SELECT File.JobId, File.FileIndex, File.FilenameId, File.PathId $FileId
     FROM Path JOIN File USING (PathId)
-   WHERE Path.Path LIKE '$p%'
+   WHERE Path.Path LIKE " . $bvfs->dbh_strcat($p, "'%'") . "
      AND File.JobId IN ($inclause))";
-
-        } else {
-            # using this is not good because the sql engine doesn't know
-            # what LIKE will use. It will be better to get Path% in perl
-            # but it doesn't work with accents... :(
-
-            push @union, "
-  (SELECT File.JobId, File.FileIndex, File.FilenameId, File.PathId $FileId
-    FROM Path JOIN File USING (PathId)
-   WHERE Path.Path LIKE
-        (SELECT ". $bvfs->dbh_strcat('Path',"'\%'") ." FROM Path
-          WHERE PathId = $dirid
-        )
-     AND File.JobId IN ($inclause))";
-        }
     }
 
     return unless scalar(@union);
@@ -1084,14 +1069,27 @@ if ($action eq 'restore') {
     print CGI::redirect("bweb.pl?action=dsp_cur_job;jobid=$jobid") ;
     exit 0;
 }
-
 sub escape_quote
 {
     my ($str) = @_;
+    my %esc = (
+        "\n" => '\n',
+        "\r" => '\r',
+        "\t" => '\t',
+        "\f" => '\f',
+        "\b" => '\b',
+        "\"" => '\"',
+        "\\" => '\\\\',
+        "\'" => '\\\'',
+    );
+
     if (!$str) {
         return '';
     }
-    $str =~ s/'/\\'/g;
+
+    $str =~ s/([\x22\x5c\n\r\t\f\b])/$esc{$1}/g;
+    $str =~ s/\//\\\//g;
+    $str =~ s/([\x00-\x08\x0b\x0e-\x1f])/'\\u00' . unpack('H2', $1)/eg;
     return $str;
 }
 
@@ -1112,7 +1110,7 @@ if ($action eq 'list_files_dirs') {
 				0, # filenameid
 				$_->[0], # pathid
 				"'$jids'", # jobid
-				"'" . escape_quote($_->[1]) . "'", # name
+                                '"' . escape_quote($_->[1]) . '"', # name
 				"'" . $p[7] . "'",                 # size
 				"'" . strftime('%Y-%m-%d %H:%m:%S', localtime($p[11]||0)) .  "'") .
 		    ']'; 
@@ -1128,7 +1126,7 @@ if ($action eq 'list_files_dirs') {
 				0, # filenameid
 				$_->[0], # pathid
 				"'$jids'", # jobid
-				"'" . escape_quote($_->[1]) . "'", # name
+				'"' . escape_quote($_->[1]) . '"', # name
 				"'" . $p[7] . "'",                 # size
 				"'" . strftime('%Y-%m-%d %H:%m:%S', localtime($p[11]||0)) .  "'") .
 		    ']'; 
@@ -1144,7 +1142,7 @@ if ($action eq 'list_files_dirs') {
 				$_->[0],
 				$pathid,
 				$_->[4],
-				"'" . escape_quote($_->[2]) . "'",
+                                '"' . escape_quote($_->[2]) . '"', # name
 				"'" . $p[7] . "'",
 				"'" . strftime('%Y-%m-%d %H:%m:%S', localtime($p[11])) .  "'") .
 		    ']'; 
@@ -1164,7 +1162,7 @@ if ($action eq 'list_files_dirs') {
 				$_->[0],
 				$pathid,
 				$_->[4],
-				"'" . escape_quote($_->[2]) . "'",
+                                '"' . escape_quote($_->[2]) . '"', # name
 				"'" . $p[7] . "'",
 				"'" . strftime('%Y-%m-%d %H:%m:%S', localtime($p[11])) .  "'") .
 		    ']'; 
