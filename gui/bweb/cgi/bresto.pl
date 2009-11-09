@@ -912,11 +912,21 @@ sub fill_table_for_restore
           FROM File WHERE FileId IN ($fileid))";
     }
 
-    # using this is not good because the sql engine doesn't know
-    # what LIKE will use. It will be better to get Path% in perl
-    # but it doesn't work with accents... :(
     foreach my $dirid (@dirid) {
-      push @union, "
+        my $p = $bvfs->get_path($dirid);
+        if ($p =~ m!^[a-z0-9/\-_\s,.;:*={}()\[\]\!?]+$!i) {
+           push @union, "
+  (SELECT File.JobId, File.FileIndex, File.FilenameId, File.PathId $FileId
+    FROM Path JOIN File USING (PathId)
+   WHERE Path.Path LIKE '$p%'
+     AND File.JobId IN ($inclause))";
+
+        } else {
+            # using this is not good because the sql engine doesn't know
+            # what LIKE will use. It will be better to get Path% in perl
+            # but it doesn't work with accents... :(
+
+            push @union, "
   (SELECT File.JobId, File.FileIndex, File.FilenameId, File.PathId $FileId
     FROM Path JOIN File USING (PathId)
    WHERE Path.Path LIKE
@@ -924,6 +934,7 @@ sub fill_table_for_restore
           WHERE PathId = $dirid
         )
      AND File.JobId IN ($inclause))";
+        }
     }
 
     return unless scalar(@union);
