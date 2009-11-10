@@ -1,3 +1,5 @@
+10Nov09
+ebl  Optimize SQL for ascii and encoded path
 09Nov09
 ebl  Optimize SQL to determine file selection with directories. It
      is enabled for ascii path.
