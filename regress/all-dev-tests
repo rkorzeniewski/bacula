@@ -11,6 +11,7 @@ nice tests/acl-xattr-test
 nice tests/action-on-purge-test
 nice tests/auto-label-test
 nice tests/backup-bacula-test
+nice tests/base-job-test
 nice tests/bextract-test
 nice tests/compressed-test
 nice tests/compress-encrypt-test
