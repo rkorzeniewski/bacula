@@ -914,6 +914,7 @@ sub fill_table_for_restore
 
     foreach my $dirid (@dirid) {
         my $p = $bvfs->get_path($dirid);
+        $p =~ s/([%_\\])/\\$1/g;  # Escape % and _ for LIKE search
         $p = $bvfs->dbh_quote($p);
         push @union, "
   (SELECT File.JobId, File.FileIndex, File.FilenameId, File.PathId $FileId
