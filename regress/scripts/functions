@@ -331,6 +331,7 @@ end_test()
       fi
       echo "   Status: backup=$bstat restore=$rstat diff=$dstat"
       echo "   Status: backup=$bstat restore=$rstat diff=$dstat" >>test.out
+      echo "   Test owner of $SITE_NAME is $EMAIL"
       echo "   Test owner of $SITE_NAME is $EMAIL" >>test.out
       echo " "
       exit 1
