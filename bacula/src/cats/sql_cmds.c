@@ -469,7 +469,7 @@ const char *select_recent_version_with_basejob[4] = {
       "FROM ( "
         "SELECT JobTDate, PathId, FilenameId "   /* Get all normal files */
           "FROM File JOIN Job USING (JobId) "    /* from selected backup */
-         "WHERE JobId IN (%s) "
+         "WHERE File.JobId IN (%s) "
           "UNION ALL "
         "SELECT JobTDate, PathId, FilenameId "   /* Get all files from */ 
           "FROM BaseFiles "                      /* BaseJob */
@@ -508,7 +508,7 @@ const char *select_recent_version_with_basejob[4] = {
       "FROM ( "
         "SELECT JobTDate, PathId, FilenameId "
           "FROM File JOIN Job USING (JobId) "
-         "WHERE JobId IN (%s) "
+         "WHERE File.JobId IN (%s) "
           "UNION ALL "
         "SELECT JobTDate, PathId, FilenameId "
           "FROM BaseFiles "
@@ -533,7 +533,7 @@ const char *select_recent_version_with_basejob[4] = {
       "FROM ( "
         "SELECT JobTDate, PathId, FilenameId "
           "FROM File JOIN Job USING (JobId) "
-         "WHERE JobId IN (%s) "
+         "WHERE File.JobId IN (%s) "
           "UNION ALL "
         "SELECT JobTDate, PathId, FilenameId "
           "FROM BaseFiles "
@@ -560,7 +560,7 @@ const char *select_recent_version[4] = {
      "FROM ( "     /* Choose the last version for each Path/Filename */
        "SELECT max(JobTDate) AS JobTDate, PathId, FilenameId "
          "FROM File JOIN Job USING (JobId) "
-        "WHERE JobId IN (%s) "
+        "WHERE File.JobId IN (%s) "
        "GROUP BY PathId, FilenameId "
      ") AS t1, Job AS j1, File AS f1 "
     "WHERE t1.JobTDate = j1.JobTDate "
@@ -583,7 +583,7 @@ const char *select_recent_version[4] = {
      "FROM ( "
        "SELECT max(JobTDate) AS JobTDate, PathId, FilenameId "
          "FROM File JOIN Job USING (JobId) "
-        "WHERE JobId IN (%s) "
+        "WHERE File.JobId IN (%s) "
        "GROUP BY PathId, FilenameId "
      ") AS t1, Job AS j1, File AS f1 "
     "WHERE t1.JobTDate = j1.JobTDate "
@@ -599,7 +599,7 @@ const char *select_recent_version[4] = {
      "FROM ( "
        "SELECT max(JobTDate) AS JobTDate, PathId, FilenameId "
          "FROM File JOIN Job USING (JobId) "
-        "WHERE JobId IN (%s) "
+        "WHERE File.JobId IN (%s) "
        "GROUP BY PathId, FilenameId "
      ") AS t1, Job AS j1, File AS f1 "
     "WHERE t1.JobTDate = j1.JobTDate "
