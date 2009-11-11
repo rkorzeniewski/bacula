@@ -1224,14 +1224,16 @@ bool db_get_base_file_list(JCR *jcr, B_DB *mdb,
 
 bool db_get_base_jobid(JCR *jcr, B_DB *mdb, JOB_DBR *jr, JobId_t *jobid)
 {
+   POOL_MEM query(PM_FNAME);
+   utime_t StartTime;
+   db_int64_ctx lctx;
    char date[MAX_TIME_LENGTH];
    bool ret=false;
-   int64_t id = *jobid = 0;
-   POOLMEM *query = get_pool_memory(PM_FNAME);
+   *jobid = 0;
 
 // char clientid[50], filesetid[50];
 
-   utime_t StartTime = (jr->StartTime)?jr->StartTime:time(NULL);
+   StartTime = (jr->StartTime)?jr->StartTime:time(NULL);
    bstrutime(date, sizeof(date),  StartTime + 1);
 
    /* we can take also client name, fileset, etc... */
@@ -1251,17 +1253,16 @@ bool db_get_base_jobid(JCR *jcr, B_DB *mdb, JOB_DBR *jr, JobId_t *jobid)
 //      edit_uint64(jr->FileSetId, filesetid));
         date);
 
-   Dmsg1(10, "db_get_base_jobid q=%s\n", query);
-   if (!db_sql_query(mdb, query, db_int64_handler, &id)) {
+   Dmsg1(10, "db_get_base_jobid q=%s\n", query.c_str());
+   if (!db_sql_query(mdb, query.c_str(), db_int64_handler, &lctx)) {
       goto bail_out;
    }
-   *jobid = (JobId_t) id;
+   *jobid = (JobId_t) lctx.value;
 
-   Dmsg1(10, "db_get_base_jobid=%lld\n", id);
+   Dmsg1(10, "db_get_base_jobid=%lld\n", *jobid);
    ret = true;
 
 bail_out:
-   free_pool_memory(query);
    return ret;
 }
 
