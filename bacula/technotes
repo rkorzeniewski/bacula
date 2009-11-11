@@ -2,6 +2,9 @@
           
 General:
 
+11Nov09
+ebl  Fix basejob code for Mysql
+ebl  Fix segfault in basejob code
 05Nov09
 ebl  Display a message if catalog max_connections setting is too low
 04Nov09
