@@ -235,13 +235,13 @@ msgid ""
 "devel tpl)"
 msgstr ""
 
-#: ../tpl/begin.tpl:26 ../tpl/begin.tpl:28 ../tpl/btime.tpl:109
+#: ../tpl/begin.tpl:26 ../tpl/begin.tpl:28 ../tpl/btime.tpl:112
 #: ../tpl/client_list.tpl:3 ../tpl/display_form_job.tpl:121
 #: ../tpl/graph.tpl:53
 msgid "Clients"
 msgstr ""
 
-#: ../tpl/begin.tpl:29 ../tpl/begin.tpl:67 ../tpl/btime.tpl:48
+#: ../tpl/begin.tpl:29 ../tpl/begin.tpl:67 ../tpl/btime.tpl:51
 #: ../tpl/display_form_job.tpl:133 ../tpl/display_groups.tpl:3
 #: ../tpl/graph.tpl:72
 msgid "Groups"
@@ -299,7 +299,7 @@ msgstr ""
 msgid "Media"
 msgstr ""
 
-#: ../tpl/begin.tpl:47 ../tpl/btime.tpl:60 ../tpl/display_pool.tpl:3
+#: ../tpl/begin.tpl:47 ../tpl/btime.tpl:63 ../tpl/display_pool.tpl:3
 msgid "Pools"
 msgstr ""
 
@@ -409,35 +409,39 @@ msgstr ""
 msgid "Order by Pool"
 msgstr ""
 
-#: ../tpl/btime.tpl:73 ../tpl/display_form_job.tpl:11
+#: ../tpl/btime.tpl:47
+msgid "Use Job name"
+msgstr ""
+
+#: ../tpl/btime.tpl:76 ../tpl/display_form_job.tpl:11
 #: ../tpl/display_job.tpl:20 ../tpl/display_job_zoom.tpl:86
 #: ../tpl/display_media_zoom.tpl:114 ../tpl/graph.tpl:16
 #: ../tpl/running_job.tpl:23 ../tpl/scheduled_job.tpl:31
 msgid "Level"
 msgstr ""
 
-#: ../tpl/btime.tpl:75 ../tpl/btime.tpl:83 ../tpl/display_form_job.tpl:13
+#: ../tpl/btime.tpl:78 ../tpl/btime.tpl:86 ../tpl/display_form_job.tpl:13
 #: ../tpl/display_form_job.tpl:26 ../tpl/display_form_job.tpl:106
 #: ../tpl/graph.tpl:18 ../tpl/graph.tpl:30
 msgid "Any"
 msgstr ""
 
-#: ../tpl/btime.tpl:76 ../tpl/display_form_job.tpl:14 ../tpl/graph.tpl:20
+#: ../tpl/btime.tpl:79 ../tpl/display_form_job.tpl:14 ../tpl/graph.tpl:20
 #: ../tpl/run_job_mod.tpl:58
 msgid "Full"
 msgstr ""
 
-#: ../tpl/btime.tpl:77 ../tpl/display_form_job.tpl:15 ../tpl/graph.tpl:21
+#: ../tpl/btime.tpl:80 ../tpl/display_form_job.tpl:15 ../tpl/graph.tpl:21
 #: ../tpl/run_job_mod.tpl:59
 msgid "Differential"
 msgstr ""
 
-#: ../tpl/btime.tpl:78 ../tpl/display_form_job.tpl:16 ../tpl/graph.tpl:22
+#: ../tpl/btime.tpl:81 ../tpl/display_form_job.tpl:16 ../tpl/graph.tpl:22
 #: ../tpl/run_job_mod.tpl:57
 msgid "Incremental"
 msgstr ""
 
-#: ../tpl/btime.tpl:81 ../tpl/client_list.tpl:16 ../tpl/cmd_storage.tpl:33
+#: ../tpl/btime.tpl:84 ../tpl/client_list.tpl:16 ../tpl/cmd_storage.tpl:33
 #: ../tpl/display_form_job.tpl:24 ../tpl/display_form_media.tpl:31
 #: ../tpl/display_job.tpl:26 ../tpl/display_job_group.tpl:23
 #: ../tpl/display_job_zoom.tpl:94 ../tpl/display_media_zoom.tpl:114
@@ -445,58 +449,58 @@ msgstr ""
 msgid "Status"
 msgstr ""
 
-#: ../tpl/btime.tpl:84 ../tpl/display_form_job.tpl:27 ../tpl/graph.tpl:27
+#: ../tpl/btime.tpl:87 ../tpl/display_form_job.tpl:27 ../tpl/graph.tpl:27
 msgid "Ok"
 msgstr ""
 
-#: ../tpl/btime.tpl:85 ../tpl/display_form_job.tpl:29 ../tpl/graph.tpl:28
+#: ../tpl/btime.tpl:88 ../tpl/display_form_job.tpl:29 ../tpl/graph.tpl:28
 msgid "Error"
 msgstr ""
 
-#: ../tpl/btime.tpl:86 ../tpl/display_form_job.tpl:30 ../tpl/graph.tpl:29
+#: ../tpl/btime.tpl:89 ../tpl/display_form_job.tpl:30 ../tpl/graph.tpl:29
 msgid "Canceled"
 msgstr ""
 
-#: ../tpl/btime.tpl:92 ../tpl/display_form_job.tpl:58
+#: ../tpl/btime.tpl:95 ../tpl/display_form_job.tpl:58
 #: ../tpl/display_form_job.tpl:71 ../tpl/graph.tpl:36
 msgid "Age"
 msgstr ""
 
-#: ../tpl/btime.tpl:94 ../tpl/display_form_job.tpl:75 ../tpl/graph.tpl:38
+#: ../tpl/btime.tpl:97 ../tpl/display_form_job.tpl:75 ../tpl/graph.tpl:38
 msgid "This week"
 msgstr ""
 
-#: ../tpl/btime.tpl:95 ../tpl/display_form_job.tpl:76 ../tpl/graph.tpl:39
+#: ../tpl/btime.tpl:98 ../tpl/display_form_job.tpl:76 ../tpl/graph.tpl:39
 msgid "Last 30 days"
 msgstr ""
 
-#: ../tpl/btime.tpl:96 ../tpl/display_form_job.tpl:77 ../tpl/graph.tpl:40
+#: ../tpl/btime.tpl:99 ../tpl/display_form_job.tpl:77 ../tpl/graph.tpl:40
 msgid "Last 6 months"
 msgstr ""
 
-#: ../tpl/btime.tpl:100 ../tpl/display_job_group.tpl:20 ../tpl/graph.tpl:44
+#: ../tpl/btime.tpl:103 ../tpl/display_job_group.tpl:20 ../tpl/graph.tpl:44
 msgid "Size"
 msgstr ""
 
-#: ../tpl/btime.tpl:101 ../tpl/graph.tpl:45
+#: ../tpl/btime.tpl:104 ../tpl/graph.tpl:45
 msgid "Width:"
 msgstr ""
 
-#: ../tpl/btime.tpl:103 ../tpl/graph.tpl:47
+#: ../tpl/btime.tpl:106 ../tpl/graph.tpl:47
 msgid "Height:"
 msgstr ""
 
-#: ../tpl/btime.tpl:117 ../tpl/display_job.tpl:17
+#: ../tpl/btime.tpl:120 ../tpl/display_job.tpl:17
 #: ../tpl/display_job_zoom.tpl:84 ../tpl/graph.tpl:61
 #: ../tpl/running_job.tpl:22
 msgid "Job Name"
 msgstr ""
 
-#: ../tpl/btime.tpl:139 ../tpl/graph.tpl:132
+#: ../tpl/btime.tpl:142 ../tpl/graph.tpl:132
 msgid "Current"
 msgstr ""
 
-#: ../tpl/btime.tpl:142 ../tpl/graph.tpl:137
+#: ../tpl/btime.tpl:145 ../tpl/graph.tpl:137
 msgid "Nothing to display, Try a bigger date range"
 msgstr ""
 
@@ -1469,15 +1473,15 @@ msgid "Database size:"
 msgstr ""
 
 #: ../tpl/general.tpl:17
-msgid "Total Pool:"
+msgid "Total Pools:"
 msgstr ""
 
 #: ../tpl/general.tpl:18
-msgid "Total Job:"
+msgid "Total Jobs:"
 msgstr ""
 
 #: ../tpl/general.tpl:20
-msgid "Job failed"
+msgid "Jobs failed"
 msgstr ""
 
 #: ../tpl/graph.tpl:18
