@@ -329,7 +329,7 @@ int main (int argc, char *argv[])
 
    init_job_server(director->MaxConcurrentJobs);
 
-   dbg_jcr_add_hook(_dbg_print_db); /* used to debug B_DB connexion after fatal signal */
+   dbg_jcr_add_hook(dbg_print_db); /* used to debug B_DB connexion after fatal signal */
 
 //   init_device_resources();
 
