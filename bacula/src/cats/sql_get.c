@@ -1224,9 +1224,10 @@ bool db_get_base_file_list(JCR *jcr, B_DB *mdb,
 
 bool db_get_base_jobid(JCR *jcr, B_DB *mdb, JOB_DBR *jr, JobId_t *jobid)
 {
-   POOL_MEM query(PM_FNAME);
    char date[MAX_TIME_LENGTH];
+   bool ret=false;
    int64_t id = *jobid = 0;
+   POOLMEM *query = get_pool_memory(PM_FNAME);
 
 // char clientid[50], filesetid[50];
 
@@ -1250,17 +1251,18 @@ bool db_get_base_jobid(JCR *jcr, B_DB *mdb, JOB_DBR *jr, JobId_t *jobid)
 //      edit_uint64(jr->FileSetId, filesetid));
         date);
 
-   Dmsg1(10, "db_get_base_jobid q=%s\n", query.c_str());
-   if (!db_sql_query(mdb, query.c_str(), db_int64_handler, &id)) {
+   Dmsg1(10, "db_get_base_jobid q=%s\n", query);
+   if (!db_sql_query(mdb, query, db_int64_handler, &id)) {
       goto bail_out;
    }
    *jobid = (JobId_t) id;
 
    Dmsg1(10, "db_get_base_jobid=%lld\n", id);
-   return true;
+   ret = true;
 
 bail_out:
-   return false;
+   free_pool_memory(query);
+   return ret;
 }
 
 #endif /* HAVE_SQLITE3 || HAVE_MYSQL || HAVE_SQLITE || HAVE_POSTGRESQL || HAVE_DBI */
