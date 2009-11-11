@@ -1224,9 +1224,9 @@ bool db_get_base_file_list(JCR *jcr, B_DB *mdb,
 
 bool db_get_base_jobid(JCR *jcr, B_DB *mdb, JOB_DBR *jr, JobId_t *jobid)
 {
+   POOL_MEM query(PM_FNAME);
    char date[MAX_TIME_LENGTH];
    int64_t id = *jobid = 0;
-   POOL_MEM query(PM_FNAME);
 
 // char clientid[50], filesetid[50];
 
