@@ -1,0 +1,20 @@
+
+Notes about Bweb translations.
+------------------------------
+
+bweb/tpl/ contains special template files where each strings are
+like __My string with lots of things__.
+
+They are used to generate translated tpl files.
+
+* To update the list of all strings (po/bweb.pot):
+ cd po ; make gen-pot
+
+* To create a new language
+ cd po ; msginit -l <lang>
+
+* To add a new language to bweb
+ mkdir -p lang/<lang>/tpl
+
+
+
