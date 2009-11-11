@@ -190,13 +190,15 @@ bool db_check_max_connections(JCR *jcr, B_DB *mdb, uint32_t max_concurrent_jobs)
 #endif
 
    /* Check max_connections setting */
-   if (!db_sql_query(mdb, sql_get_max_connections[db_type], db_max_connections_handler, &max_conn)) {
+   if (!db_sql_query(mdb, sql_get_max_connections[db_type], 
+                     db_max_connections_handler, &max_conn)) {
       Jmsg(jcr, M_ERROR, 0, "Can't verify max_connections settings %s", mdb->errmsg);
       return ret;
    }
    if (max_conn && max_concurrent_jobs && max_concurrent_jobs > max_conn) {
       Mmsg(mdb->errmsg, 
-           _("On db_name=%s, %s max_connections=%d is lower than Director MaxConcurentJobs=%d\n"),
+           _("On db_name=%s, %s max_connections=%d is lower than Director "
+             "MaxConcurentJobs=%d\n"),
            mdb->db_name, db_get_type(), max_conn, max_concurrent_jobs);
       Jmsg(jcr, M_WARNING, 0, "%s", mdb->errmsg);
       ret = false;
