@@ -824,7 +824,7 @@ bool db_open_batch_connexion(JCR *jcr, B_DB *mdb)
  * ie, after a fatal signal and before exiting the program
  * Print information about a B_DB object.
  */
-void _dbg_print_db(JCR *jcr, FILE *fp)
+void dbg_print_db(JCR *jcr, FILE *fp)
 {
    B_DB *mdb = jcr->db;
 
