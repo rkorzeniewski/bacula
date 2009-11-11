@@ -1105,7 +1105,7 @@ bool db_get_used_base_jobids(JCR *jcr, B_DB *mdb,
  "SELECT DISTINCT BaseJobId "
  "  FROM Job JOIN BaseFiles USING (JobId) "
  " WHERE Job.HasBase = 1 "
- "   AND JobId IN (%s) ", jobids);
+ "   AND Job.JobId IN (%s) ", jobids);
    return db_sql_query(mdb, buf.c_str(), db_list_handler, result);
 }
 

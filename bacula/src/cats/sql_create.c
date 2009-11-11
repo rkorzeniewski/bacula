@@ -1206,7 +1206,7 @@ bool db_commit_base_file_attributes_record(JCR *jcr, B_DB *mdb)
       "AND A.Name = B.Name "
     "ORDER BY B.FileId", 
         edit_uint64(jcr->JobId, ed1), ed1, ed1);
-   ret = QUERY_DB(jcr, mdb, mdb->cmd);
+   ret = db_sql_query(mdb, mdb->cmd, NULL, NULL);
    jcr->nb_base_files_used = sql_affected_rows(mdb);
    db_cleanup_base_file(jcr, mdb);
 
