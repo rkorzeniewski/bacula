@@ -65,7 +65,9 @@ static int unmarkcmd(UAContext *ua, TREE_CTX *tree);
 static int unmarkdircmd(UAContext *ua, TREE_CTX *tree);
 static int quitcmd(UAContext *ua, TREE_CTX *tree);
 static int donecmd(UAContext *ua, TREE_CTX *tree);
-
+static int dot_lsdircmd(UAContext *ua, TREE_CTX *tree);
+static int dot_lscmd(UAContext *ua, TREE_CTX *tree);
+static int dot_helpcmd(UAContext *ua, TREE_CTX *tree);
 
 struct cmdstruct { const char *key; int (*func)(UAContext *ua, TREE_CTX *tree); const char *help; };
 static struct cmdstruct commands[] = {
@@ -81,6 +83,8 @@ static struct cmdstruct commands[] = {
  { NT_("find"),       findcmd,      _("find files, wildcards allowed")},
  { NT_("help"),       helpcmd,      _("print help")},
  { NT_("ls"),         lscmd,        _("list current directory, wildcards allowed")},
+ { NT_(".ls"),        dot_lscmd,    _("list current directory, wildcards allowed")},
+ { NT_(".lsdir"),     dot_lsdircmd, _("list subdir in current directory, wildcards allowed")},
  { NT_("lsmark"),     lsmarkcmd,    _("list the marked files in and below the cd")},
  { NT_("mark"),       markcmd,      _("mark dir/file to be restored recursively, wildcards allowed")},
  { NT_("markdir"),    markdircmd,   _("mark directory name to be restored (no files)")},
@@ -89,6 +93,7 @@ static struct cmdstruct commands[] = {
  { NT_("unmark"),     unmarkcmd,    _("unmark dir/file to be restored recursively in dir")},
  { NT_("unmarkdir"),  unmarkdircmd, _("unmark directory name only no recursion")},
  { NT_("quit"),       quitcmd,      _("quit and do not do restore")},
+ { NT_(".help"),      dot_helpcmd,  _("print help")},
  { NT_("?"),          helpcmd,      _("print help")},
              };
 #define comsize ((int)(sizeof(commands)/sizeof(struct cmdstruct)))
@@ -138,7 +143,7 @@ bool user_select_files_from_tree(TREE_CTX *tree)
       found = 0;
       stat = false;
       for (i=0; i<comsize; i++)       /* search for command */
-         if (strncasecmp(ua->argk[0],  _(commands[i].key), len) == 0) {
+         if (strncasecmp(ua->argk[0],  commands[i].key, len) == 0) {
             stat = (*commands[i].func)(ua, tree);   /* go execute command */
             found = 1;
             break;
@@ -436,7 +441,52 @@ static int findcmd(UAContext *ua, TREE_CTX *tree)
    return 1;
 }
 
+static int dot_lsdircmd(UAContext *ua, TREE_CTX *tree)
+{
+   TREE_NODE *node;
 
+   if (!tree_node_has_child(tree->node)) {
+      return 1;
+   }
+
+   foreach_child(node, tree->node) {
+      if (ua->argc == 1 || fnmatch(ua->argk[1], node->fname, 0) == 0) {
+         if (tree_node_has_child(node)) {
+            ua->send_msg("%s/\n", node->fname);
+         }
+      }
+   }
+ 
+   return 1;
+}
+
+static int dot_helpcmd(UAContext *ua, TREE_CTX *tree)
+{
+   for (int i=0; i<comsize; i++) {
+      /* List only non-dot commands */
+      if (commands[i].key[0] != '.') {
+         ua->send_msg("%s\n", commands[i].key);
+      }
+   }
+   return 1;
+}
+
+static int dot_lscmd(UAContext *ua, TREE_CTX *tree)
+{
+   TREE_NODE *node;
+
+   if (!tree_node_has_child(tree->node)) {
+      return 1;
+   }
+
+   foreach_child(node, tree->node) {
+      if (ua->argc == 1 || fnmatch(ua->argk[1], node->fname, 0) == 0) {
+         ua->send_msg("%s%s\n", node->fname, tree_node_has_child(node)?"/":"");
+      }
+   }
+ 
+   return 1;
+}
 
 static int lscmd(UAContext *ua, TREE_CTX *tree)
 {
