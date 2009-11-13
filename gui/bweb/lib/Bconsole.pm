@@ -338,6 +338,18 @@ sub get_fileset
     return $ret;
 }
 
+sub list_backup
+{
+    my ($self) = @_;
+    return sort split(/\r?\n/, $self->send_cmd(".jobs type=B"));
+}
+
+sub list_restore
+{
+    my ($self) = @_;
+    return sort split(/\r?\n/, $self->send_cmd(".jobs type=R"));
+}
+
 sub list_job
 {
     my ($self) = @_;
