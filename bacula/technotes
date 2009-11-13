@@ -2,6 +2,8 @@
           
 General:
 
+13Nov09
+ebl  Add .jobs type=B/C/R command to filter jobs listing
 11Nov09
 ebl  Fix basejob code for Mysql
 ebl  Fix segfault in basejob code
