@@ -2,6 +2,9 @@
           
 General:
 
+14Nov09
+kes  Fix bug #1367 buy creating an empty query.sql file. The old query.sql
+     file is now in exmaples/sample-query.sql, but is unsupported.
 11Nov09
 ebl  Fix basejob code for Mysql
 ebl  Fix segfault in basejob code
