@@ -35,6 +35,7 @@
  *
  *     Kern Sibbald, April MMII
  *
+ *   Version $Id$
  */
 
 #include "bacula.h"
@@ -871,8 +872,6 @@ static bool defaultscmd(UAContext *ua, const char *cmd)
          ua->send_msg("max_vol_bytes=%s", edit_uint64(pool->MaxVolBytes, ed1));
          ua->send_msg("auto_prune=%d", pool->AutoPrune);
          ua->send_msg("recycle=%d", pool->Recycle);
-         ua->send_msg("file_retention=%s", edit_uint64(pool->FileRetention, ed1));
-         ua->send_msg("job_retention=%s", edit_uint64(pool->JobRetention, ed1));
       }
    }
    return true;
