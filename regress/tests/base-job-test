@@ -160,7 +160,7 @@ run_bconsole
 grep -e ' 0 *|' ${cwd}/tmp/log3.out > /dev/null
 if [ $? -ne 0 ]; then
     print_debug "Can't purge the base job"
-    dstat=2
+    estat=1
 fi
 
 
@@ -183,13 +183,13 @@ END_OF_DATA
 
 run_bconsole
 
-grep po/fr.po ${cwd}/tmp/log5.out > /dev/null
+grep "po/fr.po^" ${cwd}/tmp/log5.out > /dev/null
 if [ $? -eq 0 ]; then
     print_debug "Should not display fr.po as basefile"
-    bstat=2
+    estat=2
 fi
 
-export bstat dstat
+export bstat dstat estat
 
 stop_bacula
 end_test
