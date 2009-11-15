@@ -393,7 +393,6 @@ public:
    utime_t MaxStartDelay;             /* max start delay in seconds */
    utime_t MaxRunSchedTime;           /* max run time in seconds from Scheduled time*/
    utime_t RescheduleInterval;        /* Reschedule interval */
-   utime_t JobRetention;              /* job retention period in seconds */
    utime_t MaxFullInterval;           /* Maximum time interval between Fulls */
    utime_t MaxDiffInterval;           /* Maximum time interval between Diffs */
    utime_t DuplicateJobProximity;     /* Permitted time between duplicicates */
@@ -567,6 +566,9 @@ public:
    POOL  *ScratchPool;                /* ScratchPool source when requesting media */
    alist *CopyPool;                   /* List of copy pools */
    CAT *catalog;                      /* Catalog to be used */
+   utime_t FileRetention;             /* file retention period in seconds */
+   utime_t JobRetention;              /* job retention period in seconds */
+
    /* Methods */
    char *name() const;
 };
