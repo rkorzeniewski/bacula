@@ -567,6 +567,9 @@ public:
    POOL  *ScratchPool;                /* ScratchPool source when requesting media */
    alist *CopyPool;                   /* List of copy pools */
    CAT *catalog;                      /* Catalog to be used */
+   utime_t FileRetention;             /* file retention period in seconds */
+   utime_t JobRetention;              /* job retention period in seconds */
+
    /* Methods */
    char *name() const;
 };

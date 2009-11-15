@@ -31,7 +31,6 @@
  *
  *     Kern Sibbald, October MMI
  *
- *   Version  $Id$
  */
 
 #include "bacula.h"
