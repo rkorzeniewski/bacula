@@ -27,6 +27,8 @@ start_test()
    echo " === Starting $TestName at `date +%R:%S` ===" >> ${working}/log
    echo " "
    export zstat
+   export estat
+   estat=0
    zstat=0
    bstat=0
    rstat=0
@@ -157,6 +159,7 @@ run_bacula()
 {
    debug_wait
    zstat=0
+   estat=0
    if test "$debug" -eq 1 ; then
      ${scripts}/bacula-ctl-sd start -m
      ${scripts}/bacula-ctl-fd start -m $1
@@ -304,8 +307,23 @@ check_restore_tmp_build_diff()
    dstat=$?
 }
 
+# bstat is backup error
+# dstat is diff difference
+# estat is special error status (shown by print_debug message)
+# rstat is restore status
+# zstat is zombie job(s)
+#
 end_test()
 {
+   if [ $estat != 0 ] ; then
+      echo " "
+      echo "  !!!!! $TestName failed!!! `date +%R:%S` !!!!! "
+      echo "   Status: estat=$estat zombie=$zstat backup=$bstat restore=$rstat diff=$dstat"
+      echo "  !!!!! $TestName failed!!! `date +%R:%S` !!!!! " >>test.out
+      echo "   Status: estat=$estat zombie=$zstat backup=$bstat restore=$rstat diff=$dstat" >>test.out
+      echo " "
+      exit 1
+   fi
    if [ $zstat != 0 ] ; then
       echo " "
       echo "  !!!!! $TestName failed!!! `date +%R:%S` !!!!! "
