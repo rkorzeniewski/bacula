@@ -71,11 +71,7 @@ ${cwd}/bin/testls weird-files | sort >${cwd}/tmp/restored
 cd ${cwd}
 
 check_two_logs
-if test "$debug" -eq 1; then
-  diff -u ${cwd}/tmp/original ${cwd}/tmp/restored                
-  dstat=$?
-else
-  diff -u ${cwd}/tmp/original ${cwd}/tmp/restored 2>&1 >/dev/null
-  dstat=$?
-fi
+#diff -u ${cwd}/tmp/original ${cwd}/tmp/restored 2>&1 >/dev/null
+diff -u ${cwd}/tmp/original ${cwd}/tmp/restored                
+dstat=$?
 end_test

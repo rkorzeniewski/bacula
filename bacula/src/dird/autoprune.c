@@ -50,7 +50,6 @@ void do_autoprune(JCR *jcr)
 {
    UAContext *ua;
    CLIENT *client;
-   POOL *pool;
    bool pruned;
 
    if (!jcr->client) {                /* temp -- remove me */
@@ -59,17 +58,18 @@ void do_autoprune(JCR *jcr)
 
    ua = new_ua_context(jcr);
    client = jcr->client;
-   pool = jcr->pool;
 
    if (jcr->job->PruneJobs || jcr->client->AutoPrune) {
-      prune_jobs(ua, client, pool, jcr->get_JobType());
+      Jmsg(jcr, M_INFO, 0, _("Begin pruning Jobs.\n"));
+      prune_jobs(ua, client, jcr->get_JobType());
       pruned = true;
    } else {
       pruned = false;
    }
 
    if (jcr->job->PruneFiles || jcr->client->AutoPrune) {
-      prune_files(ua, client, pool);
+      Jmsg(jcr, M_INFO, 0, _("Begin pruning Files.\n"));
+      prune_files(ua, client);
       pruned = true;
    }
    if (pruned) {
