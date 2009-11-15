@@ -273,13 +273,13 @@ static void read_and_process_input(FILE *input, BSOCK *UA_sock)
       } else if (stat == 0) {         /* timeout */
          if (strcmp(prompt, "*") == 0) {
             tid = start_bsock_timer(UA_sock, timeout);
-            bnet_fsend(UA_sock, ".messages");
+            UA_sock->fsend(".messages");
             stop_bsock_timer(tid);
          } else {
             continue;
          }
       } else {
-         at_prompt = FALSE;
+         at_prompt = false;
          /* @ => internal command for us */
          if (UA_sock->msg[0] == '@') {
             parse_args(UA_sock->msg, &args, &argc, argk, argv, MAX_CMD_ARGS);
@@ -289,7 +289,7 @@ static void read_and_process_input(FILE *input, BSOCK *UA_sock)
             continue;
          }
          tid = start_bsock_timer(UA_sock, timeout);
-         if (!bnet_send(UA_sock)) {   /* send command */
+         if (!UA_sock->send()) {   /* send command */
             stop_bsock_timer(tid);
             break;                    /* error */
          }
@@ -299,7 +299,7 @@ static void read_and_process_input(FILE *input, BSOCK *UA_sock)
          break;
       }
       tid = start_bsock_timer(UA_sock, timeout);
-      while ((stat = bnet_recv(UA_sock)) >= 0) {
+      while ((stat = UA_sock->recv()) >= 0) {
          if (at_prompt) {
             if (!stop) {
                sendit("\n");
