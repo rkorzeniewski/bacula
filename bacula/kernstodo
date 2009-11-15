@@ -53,7 +53,6 @@ Professional Needs:
   - For NAS OpenNAS
   - ndmfs -- File Server extention in NDMPv4.
   - ndmjob -- NDMP backup/restore NDMPv2, NDMPv3, and NDMPv4
-- Base jobs
 - Migration from other vendors
   - Date change
   - Path change
@@ -61,7 +60,6 @@ Professional Needs:
 - Backup conf/exe (all daemons) 
 - Backup up system state
 - Detect state change of system (verify)
-- Synthetic Full, Diff, Inc (Virtual, Reconstructed)
 - SD to SD
 - Novell NSS backup http://www.novell.com/coolsolutions/tools/18952.html
 - Compliance norms that compare restored code hash code.
@@ -84,6 +82,8 @@ Professional Needs:
 Priority:
 ================
 
+- Have a mode for bconsole scripting. Multiple catalog question
+  automatically answered.
 - For archiving:
   - Prune by Pool (Job and File)
   - Prune by Job and or Job Level (Full, Differential, Incremental)
@@ -1587,3 +1587,6 @@ Item  1: Ability to restart failed jobs
   running.  With debug on, can do a "status" command.
 - New directive "Delete purged Volumes"
 - Implement unmount of USB volumes.
+- Base jobs
+- Synthetic Full, Diff, Inc (Virtual, Reconstructed)
+
