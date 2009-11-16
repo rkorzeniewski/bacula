@@ -68,6 +68,7 @@ static int donecmd(UAContext *ua, TREE_CTX *tree);
 static int dot_lsdircmd(UAContext *ua, TREE_CTX *tree);
 static int dot_lscmd(UAContext *ua, TREE_CTX *tree);
 static int dot_helpcmd(UAContext *ua, TREE_CTX *tree);
+static int dot_lsmarkcmd(UAContext *ua, TREE_CTX *tree);
 
 struct cmdstruct { const char *key; int (*func)(UAContext *ua, TREE_CTX *tree); const char *help; };
 static struct cmdstruct commands[] = {
@@ -86,6 +87,7 @@ static struct cmdstruct commands[] = {
  { NT_(".ls"),        dot_lscmd,    _("list current directory, wildcards allowed")},
  { NT_(".lsdir"),     dot_lsdircmd, _("list subdir in current directory, wildcards allowed")},
  { NT_("lsmark"),     lsmarkcmd,    _("list the marked files in and below the cd")},
+ { NT_(".lsmark"),    dot_lsmarkcmd,_("list the marked files in")},
  { NT_("mark"),       markcmd,      _("mark dir/file to be restored recursively, wildcards allowed")},
  { NT_("markdir"),    markdircmd,   _("mark directory name to be restored (no files)")},
  { NT_("pwd"),        pwdcmd,       _("print current working directory")},
@@ -506,6 +508,24 @@ static int lscmd(UAContext *ua, TREE_CTX *tree)
             tag = "";
          }
          ua->send_msg("%s%s%s\n", tag, node->fname, tree_node_has_child(node)?"/":"");
+      }
+   }
+   return 1;
+}
+
+/*
+ * Ls command that lists only the marked files
+ */
+static int dot_lsmarkcmd(UAContext *ua, TREE_CTX *tree)
+{
+   TREE_NODE *node;
+   if (!tree_node_has_child(tree->node)) {
+      return 1;
+   }
+   foreach_child(node, tree->node) {
+      if ((ua->argc == 1 || fnmatch(ua->argk[1], node->fname, 0) == 0) &&
+          (node->extract || node->extract_dir)) {
+         ua->send_msg("%s%s\n", node->fname, tree_node_has_child(node)?"/":"");
       }
    }
    return 1;

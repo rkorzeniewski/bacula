@@ -608,6 +608,7 @@ static struct cpl_keywords_t cpl_keywords[] = {
    {"cd",         ".lsdir"         },
    {"mark",       ".ls"            },
    {"m",          ".ls"            },
+   {"unmark",     ".lsmark"        },
    {"actiononpurge=", ".actiononpurge" }
 };
 #define key_size ((int)(sizeof(cpl_keywords)/sizeof(struct cpl_keywords_t)))
