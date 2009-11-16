@@ -2,6 +2,11 @@
           
 General:
 
+16Nov09
+ebl  Add basic completion for restore mode 
+14Nov09
+kes  Fix bug #1367 buy creating an empty query.sql file. The old query.sql
+     file is now in exmaples/sample-query.sql, but is unsupported.
 13Nov09
 ebl  Add .jobs type=B/C/R command to filter jobs listing
 11Nov09

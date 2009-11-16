@@ -307,7 +307,6 @@ RES_ITEM job_items[] = {
    {"maxstartdelay",store_time, ITEM(res_job.MaxStartDelay), 0, 0, 0},
    {"maxfullinterval",  store_time, ITEM(res_job.MaxFullInterval), 0, 0, 0},
    {"maxdiffinterval",  store_time, ITEM(res_job.MaxDiffInterval), 0, 0, 0},
-   {"jobretention", store_time, ITEM(res_job.JobRetention),  0, 0, 0},
    {"prefixlinks", store_bool, ITEM(res_job.PrefixLinks), 0, ITEM_DEFAULT, false},
    {"prunejobs",   store_bool, ITEM(res_job.PruneJobs), 0, ITEM_DEFAULT, false},
    {"prunefiles",  store_bool, ITEM(res_job.PruneFiles), 0, ITEM_DEFAULT, false},
@@ -404,6 +403,9 @@ static RES_ITEM pool_items[] = {
    {"scratchpool",   store_res,       ITEM(res_pool.ScratchPool), R_POOL, 0, 0},
    {"copypool",      store_alist_res, ITEM(res_pool.CopyPool), R_POOL, 0, 0},
    {"catalog",       store_res,       ITEM(res_pool.catalog), R_CATALOG, 0, 0},
+   {"fileretention", store_time,      ITEM(res_pool.FileRetention), 0, 0, 0},
+   {"jobretention",  store_time,      ITEM(res_pool.JobRetention),  0, 0, 0},
+
    {NULL, NULL, {0}, 0, 0, 0}
 };
 
@@ -951,7 +953,7 @@ next_run:
       sendit(sock, _("      RecyleOldest=%d PurgeOldest=%d ActionOnPurge=%d\n"), 
               res->res_pool.recycle_oldest_volume,
               res->res_pool.purge_oldest_volume,
-	      res->res_pool.action_on_purge);
+              res->res_pool.action_on_purge);
       sendit(sock, _("      MaxVolJobs=%d MaxVolFiles=%d MaxVolBytes=%s\n"),
               res->res_pool.MaxVolJobs, 
               res->res_pool.MaxVolFiles,
@@ -960,6 +962,9 @@ next_run:
               edit_utime(res->res_pool.MigrationTime, ed1, sizeof(ed1)),
               edit_uint64(res->res_pool.MigrationHighBytes, ed2),
               edit_uint64(res->res_pool.MigrationLowBytes, ed3));
+      sendit(sock, _("      JobRetention=%s FileRetention=%s\n"),
+         edit_utime(res->res_client.JobRetention, ed1, sizeof(ed1)),
+         edit_utime(res->res_client.FileRetention, ed2, sizeof(ed2)));
       if (res->res_pool.NextPool) {
          sendit(sock, _("      NextPool=%s\n"), res->res_pool.NextPool->name());
       }
