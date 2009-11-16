@@ -70,7 +70,7 @@ fi
 #check_two_logs         # don't work because of "warning file count mismatch"
 grep "Backup OK" ${tmp}/log1.out > /dev/null
 if [ $? -ne 0 ]; then
-    print_debug "Found error on backup"
+    print_debug "Found error in backup"
     bstat=2
 fi
 
