@@ -66,7 +66,14 @@ CONFIGFLAGS:=--enable-client-only --prefix=${BACULA_PREFIX} \
 CPPFLAGS:=-isysroot ${MACOSX_SDK_SYSROOT} ${MACOSX_VERSION_FLAGS}
 CFLAGS:=-O -g ${ARCHFLAGS}
 CXXFLAGS:=${CFLAGS}
-LDFLAGS:=${MACOSX_VERSION_FLAGS} ${ARCHFLAGS}
+LDFLAGS:=-Wl,-syslibroot,${MACOSX_SDK_SYSROOT} ${MACOSX_VERSION_FLAGS} ${ARCHFLAGS}
+
+# required on snow leopard: compiling for 10.4 requires usage of gcc 4.0
+# system defaults to version 4.2
+CC:=gcc-4.0
+CPP:=cpp-4.0
+CXX:=g++-4.0
+CXXPP:=cpp-4.0
 
 # Placeholders for *.in files
 INFILE_SUBST=\
@@ -97,7 +104,7 @@ ${BACULA_PMDOC}: ${BACULA_DESTDIR} ${WORKING_DIR}/resources
 			files/installer.pmdoc.in/$$f > "${BACULA_PMDOC}/$$f"; \
 	done
 
-	python installer-gencontents.py destdir > ${BACULA_PMDOC}/01destdir-contents.xml
+	python installer-gencontents.py ${BACULA_DESTDIR} > ${BACULA_PMDOC}/01destdir-contents.xml
 
 ${WORKING_DIR}/resources: ${BACULA_DESTDIR}
 	mkdir -p "${WORKING_DIR}/resources"
@@ -114,8 +121,8 @@ ${WORKING_DIR}/resources: ${BACULA_DESTDIR}
 	cp "${BACULA_SOURCE}/LICENSE" "${WORKING_DIR}/resources/License.txt"
 
 ${BACULA_DESTDIR}: ${BACULA_SOURCE}
-	(cd ${BACULA_SOURCE} && ./configure ${CONFIGFLAGS} CPPFLAGS="${CPPFLAGS}" CFLAGS="${CFLAGS}" CXXFLAGS="${CXXFLAGS}" LDFLAGS="${LDFLAGS}")
-	${MAKE} -C ${BACULA_SOURCE} LDFLAGS="-Wl,-syslibroot,${MACOSX_SDK_SYSROOT} ${LDFLAGS}"
+	(cd ${BACULA_SOURCE} && ./configure ${CONFIGFLAGS} CPPFLAGS="${CPPFLAGS}" CFLAGS="${CFLAGS}" CXXFLAGS="${CXXFLAGS}" LDFLAGS="${LDFLAGS}" CC="${CC}" CPP="${CPP}" CXX="${CXX}" CXXPP="${CXXPP}")
+	${MAKE} -C ${BACULA_SOURCE}
 	${MAKE} -C ${BACULA_SOURCE} install DESTDIR="${CURDIR}/${BACULA_DESTDIR}"
 
 	rm -rf "${BACULA_DESTDIR}/tmp"
