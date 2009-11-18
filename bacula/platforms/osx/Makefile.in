@@ -90,7 +90,7 @@ dmg: pkg
 pkg: ${BACULA_DESTDIR} ${BACULA_PMDOC} ${WORKING_DIR}/resources
 	mkdir -p "${PACKAGE_DIR}"
 
-	${PM} --doc "${BACULA_PMDOC}" --id "${PACKAGE_ID}" --out "${PACKAGE_BUNDLE}"
+	${PM} --doc "${BACULA_PMDOC}" --id "${PACKAGE_ID}" --no-recommend --out "${PACKAGE_BUNDLE}"
 
 	cp ${WORKING_DIR}/resources/ReadMe.html "${PACKAGE_DIR}/ReadMe.html"
 
