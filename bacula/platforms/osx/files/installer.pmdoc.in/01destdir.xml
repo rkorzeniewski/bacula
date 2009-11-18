@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <pkgref spec="1.12" uuid="E3A20DCD-888A-4211-8318-BF9CAA10B769">
   <config>
-    <identifier>org.bacula.bacula-fd.pkg</identifier>
+    <identifier>@PACKAGE_ID@</identifier>
     <version>@BACULA_VERSION@</version>
     <description/>
     <post-install type="none"/>
