@@ -50,6 +50,7 @@ ifneq ($(CURDIR),$(CURSUB))
 endif
 
 PACKAGE_TITLE:=Bacula File Daemon ${BACULA_VERSION}
+PACKAGE_ID:=org.bacula.bacula-fd.pkg
 PACKAGE_DIR:=${PRODUCTS_DIR}/${PACKAGE_TITLE}
 PACKAGE_BUNDLE:=${PACKAGE_DIR}/${PACKAGE_TITLE}.pkg
 PACKAGE_DMG:=${PRODUCTS_DIR}/${PACKAGE_TITLE}.dmg
@@ -80,7 +81,8 @@ INFILE_SUBST=\
   -e "s,@PREFIX@,${BACULA_PREFIX},g" \
   -e "s,@BACULA_VERSION@,${BACULA_VERSION},g" \
   -e "s,@FD_CONF@,${BACULA_FD_CONF},g" \
-  -e "s,@BACULA_DESTDIR@,${BACULA_DESTDIR},g"
+  -e "s,@BACULA_DESTDIR@,${BACULA_DESTDIR},g" \
+  -e "s,@PACKAGE_ID@,${PACKAGE_ID},g"
 
 dmg: pkg
 	hdiutil create -srcfolder "${PACKAGE_DIR}" "${PACKAGE_DMG}"
@@ -88,7 +90,7 @@ dmg: pkg
 pkg: ${BACULA_DESTDIR} ${BACULA_PMDOC} ${WORKING_DIR}/resources
 	mkdir -p "${PACKAGE_DIR}"
 
-	${PM} --doc "${BACULA_PMDOC}" --out "${PACKAGE_BUNDLE}"
+	${PM} --doc "${BACULA_PMDOC}" --id "${PACKAGE_ID}" --out "${PACKAGE_BUNDLE}"
 
 	cp ${WORKING_DIR}/resources/ReadMe.html "${PACKAGE_DIR}/ReadMe.html"
 
