@@ -4904,7 +4904,7 @@ sub run_job_select
 
     my $b = $self->get_bconsole();
 
-    my $joblist = [ map { { name => $_ } } $b->list_job() ];
+    my $joblist = [ map { { name => $_ } } $b->list_backup() ];
 
     $self->display({ Jobs => $joblist }, "run_job.tpl");
 }
