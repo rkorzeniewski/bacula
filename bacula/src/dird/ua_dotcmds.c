@@ -510,13 +510,24 @@ static bool diecmd(UAContext *ua, const char *cmd)
 
 #endif
 
+/* 
+ * Can use an argument to filter on JobType
+ * .jobs [type=B]
+ */
 static bool jobscmd(UAContext *ua, const char *cmd)
 {
    JOB *job;
+   uint32_t type = 0;
+   int pos;
+   if ((pos = find_arg_with_value(ua, "type")) >= 0) {
+      type = ua->argv[pos][0];
+   }
    LockRes();
    foreach_res(job, R_JOB) {
-      if (acl_access_ok(ua, Job_ACL, job->name())) {
-         ua->send_msg("%s\n", job->name());
+      if (!type || type == job->JobType) {
+         if (acl_access_ok(ua, Job_ACL, job->name())) {
+            ua->send_msg("%s\n", job->name());
+         }
       }
    }
    UnlockRes();

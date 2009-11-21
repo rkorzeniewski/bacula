@@ -604,6 +604,11 @@ static struct cpl_keywords_t cpl_keywords[] = {
    {"volume=",    ".media"         },
    {"oldvolume=", ".media"         },
    {"volstatus=", ".volstatus"     },
+   {"ls",         ".ls"            },
+   {"cd",         ".lsdir"         },
+   {"mark",       ".ls"            },
+   {"m",          ".ls"            },
+   {"unmark",     ".lsmark"        },
    {"actiononpurge=", ".actiononpurge" }
 };
 #define key_size ((int)(sizeof(cpl_keywords)/sizeof(struct cpl_keywords_t)))
