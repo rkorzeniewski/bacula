@@ -1032,7 +1032,7 @@ static int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest,
       Jmsg(jcr, M_ERROR, 0, _("Read error on file %s. ERR=%s\n"),
          ff_pkt->fname, be.bstrerror(ff_pkt->bfd.berrno));
       if (jcr->JobErrors++ > 1000) {       /* insanity check */
-         Jmsg(jcr, M_FATAL, 0, _("Too many errors.\n"));
+         Jmsg(jcr, M_FATAL, 0, _("Too many errors. JobErrors=%d.\n"), jcr->JobErrors);
       }
    } else if (ff_pkt->flags & FO_ENCRYPT) {
       /* 
