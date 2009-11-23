@@ -1473,6 +1473,62 @@ Why:   When dealing with larger volumes the general utillization of the
        and is harder to review for completeness. Subsequently it makes restores
        more complex.
 
+Item 1:   Extend the verify code to make it possible to verify
+          older jobs, not only the last one that has finished
+  Date:   10 April 2009
+  Origin: Ralf Gross (Ralf-Lists <at> ralfgross.de)
+  Status: not implemented or documented
+
+  What:   At the moment a VolumeToCatalog job compares only the
+          last job with the data in the catalog. It's not possible
+          to compare the data (md5sums) of an older volume with the
+          data in the catalog.
+
+  Why:    If a verify job fails, one has to immediately check the
+          source of the problem, fix it and rerun the verify job.
+          This has to happen before the next backup of the
+          verified backup job starts.
+          More important: It's not possible to check jobs that are
+          kept for a long time (archiv). If a jobid could be
+          specified for a verify job, older backups/tapes could be
+          checked on a regular base.
+
+  Notes:  verify documentation:
+          VolumeToCatalog: This level causes Bacula to read the file
+          attribute data written to the Volume from the last Job [...]
+          
+          Verify Job = <Job-Resource-Name> If you run a verify job
+          without this directive, the last job run will be compared
+          with the catalog, which means that you must immediately
+          follow a backup by a verify command. If you specify a Verify
+          Job Bacula will find the last job with that name that ran [...]
+
+          example bconsole verify dialog:
+
+          Run Verify job
+          JobName:     VerifyServerXXX
+          Level:       VolumeToCatalog
+          Client:      ServerXXX-fd
+          FileSet:     ServerXXX-Vol1
+          Pool:        Full (From Job resource)
+          Storage:     Neo4100 (From Pool resource)
+          Verify Job:  ServerXXX-Vol1
+          Verify List: 
+          When:        2009-04-20 09:03:04
+          Priority:    10
+          OK to run? (yes/mod/no): m
+          Parameters to modify:
+               1: Level
+               2: Storage
+               3: Job
+               4: FileSet
+               5: Client
+               6: When
+               7: Priority
+               8: Pool
+               9: Verify Job
+
+
 ========= Add new items above this line =================
 
 
