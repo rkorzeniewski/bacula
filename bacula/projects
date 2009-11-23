@@ -1420,6 +1420,59 @@ Notes:  If migration to different SD is working, migration to the same SD, as
         now, could be done the same way (i mean 'localhost') to unify the
         whole process
 
+Item  n: Concurrent spooling and despooling withini a single job.
+Date:  17 nov 2009
+Origin: Jesper Krogh <jesper@krogh.cc>
+Status: NEW
+What:  When a job has spooling enabled and the spool area size is
+       less than the total volumes size the storage daemon will:
+       1) Spool to spool-area
+       2) Despool to tape
+       3) Go to 1 if more data to be backed up.
+
+       Typical disks will serve data with a speed of 100MB/s when
+       dealing with large files, network it typical capable of doing 115MB/s
+       (GbitE). Tape drives will despool with 50-90MB/s (LTO3) 70-120MB/s
+       (LTO4) depending on compression and data.
+
+       As bacula currently works it'll hold back data from the client until
+       de-spooling is done, now matter if the spool area can handle another
+       block of data. Say given a FileSet of 4TB and a spool-area of 100GB and
+       a Maximum Job Spool Size set to 50GB then above sequence could be
+       changed to allow to spool to the other 50GB while despooling the first
+       50GB and not holding back the client while doing it. As above numbers
+       show, depending on tape-drive and disk-arrays this potentially leads to
+       a cut of the backup-time of 50% for the individual jobs.
+
+       Real-world example, backing up 112.6GB (large files) to LTO4 tapes
+       (despools with ~75MB/s, data is gzipped on the remote filesystem.
+       Maximum Job Spool Size = 8GB
+
+       Current:
+       Size: 112.6GB
+       Elapsed time (total time): 46m 15s => 2775s
+       Despooling time: 25m 41s => 1541s (55%)
+       Spooling time: 20m 34s => 1234s (45%)
+       Reported speed: 40.58MB/s
+       Spooling speed: 112.6GB/1234s => 91.25MB/s
+       Despooling speed: 112.6GB/1541s => 73.07MB/s
+
+       So disk + net can "keep up" with the LTO4 drive (in this test)
+
+       Prosed change would effectively make the backup run in the "despooling
+       time" 1541s giving a reduction to 55% of the total run time.
+
+       In the situation where the individual job cannot keep up with LTO-drive
+       spooling enables efficient multiplexing of multiple concurrent jobs onto
+       the same drive.
+
+Why:   When dealing with larger volumes the general utillization of the
+       network/disk is important to maximize in order to be able to run a full
+       backup over a weekend. Current work-around is to split the FileSet in
+       smaller FileSet and Jobs but that leads to more configuration mangement
+       and is harder to review for completeness. Subsequently it makes restores
+       more complex.
+
 ========= Add new items above this line =================
 
 
