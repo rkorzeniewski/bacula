@@ -1529,6 +1529,46 @@ Item 1:   Extend the verify code to make it possible to verify
                9: Verify Job
 
 
+
+Item n:   Separate "Storage" and "Device" in the bacula-dir.conf
+  Date:   29 April 2009
+  Origin: "James Harper" <james.harper@bendigoit.com.au>
+  Status: not implemented or documented
+
+  What:   Separate "Storage" and "Device" in the bacula-dir.conf
+          The resulting config would looks something like:
+
+          Storage {
+            Name = name_of_server
+            Address = hostname/IP address
+            SDPort = 9103
+            Password = shh_its_a_secret
+            Maximum Concurrent Jobs = 7
+          }
+
+          Device {
+            Name = name_of_device
+            Storage = name_of_server
+            Device = name_of_device_on_sd
+            Media Type = media_type
+            Maximum Concurrent Jobs = 1
+          }
+
+          Maximum Concurrent Jobs would be specified with a server and a device
+          maximum, which would both be honoured by the director. Almost everything
+          that mentions a 'Storage' would need to be changed to 'Device', although
+          perhaps a 'Storage' would just be a synonym for 'Device' for backwards
+          compatibility...
+
+  Why:    If you have multiple Storage definitions pointing to different
+          Devices in the same Storage daemon, the "status storage" command
+          prompts for each different device, but they all give the same 
+          information.
+
+  Notes:  
+
+
+
 ========= Add new items above this line =================
 
 
