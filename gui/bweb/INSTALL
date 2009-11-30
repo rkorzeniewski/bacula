@@ -92,6 +92,16 @@ in the bweb/script/httpd.conf file.
 You will have to configure bweb with your database and bconsole info, it
 can be done in the web interface.
 
+I [Kern] used the following in the Configuration panel:
+DBI:     DBI:mysql:database=bacula;host=roxie 
+user:    bacula
+Password:   (nothing -- I have none)
+email_media:  my@email.com
+bconsole:  /opt/bacula/bin/bconsole -n
+
+Click: Save
+Click: Main -- you should see the charts
+
 
 ################ FILE COPY (Full Apache methode) ###############
  # you must get bweb svn files
@@ -152,10 +162,10 @@ Put this in your httpd.conf, and add user with htpasswd
 
 Alias /bweb /usr/share/bweb/html
 <Directory /usr/share/bweb/html>
-	Options FollowSymLinks MultiViews
-	AllowOverride None
-	Order allow,deny
-	allow from all
+        Options FollowSymLinks MultiViews
+        AllowOverride None
+        Order allow,deny
+        allow from all
 </Directory>
 
 ScriptAlias /cgi-bin/bweb /usr/lib/cgi-bin/bweb
