@@ -92,7 +92,8 @@ in the bweb/script/httpd.conf file.
 You will have to configure bweb with your database and bconsole info, it
 can be done in the web interface.
 
-I [Kern] used the following in the Configuration panel:
+I [Kern] used the following in the Configuration panel. Note: I am 
+   using Ubuntu Hardy (8.04):
 DBI:     DBI:mysql:database=bacula;host=roxie 
 user:    bacula
 Password:   (nothing -- I have none)
