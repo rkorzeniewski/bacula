@@ -420,7 +420,11 @@ AC_HELP_STRING([--with-mysql@<:@=DIR@:>@], [Include MySQL support. DIR is the My
        AC_DEFINE(HAVE_THREAD_SAFE_MYSQL)
     fi
     SQL_BINDIR=$MYSQL_BINDIR
-    SQL_LIB=$MYSQL_LIBDIR/libmysqlclient_r.a
+    if test -f $MYSQL_LIBDIR/libmysqlclient_r.so; then
+       SQL_LIB=$MYSQL_LIBDIR/libmysqlclient_r.so
+    else
+       SQL_LIB=$MYSQL_LIBDIR/libmysqlclient_r.a
+    fi
 
     AC_DEFINE(HAVE_MYSQL)
     AC_MSG_RESULT(yes)
