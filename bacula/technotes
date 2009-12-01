@@ -2,6 +2,10 @@
           
 General:
 
+01Dec09
+kes  Fix search for libdbd in DBI option. Fixes bug #1422
+kes  Fix RH spec files to use /etc/logwatch instead of /etc/log.d
+     Fixes bug #1428
 23Nov09
 ebl  Apply Lorenzo's MacOSX patches
 16Nov09
