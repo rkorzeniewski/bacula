@@ -6,7 +6,7 @@
 
 # basic defines for every build
 %define _release           1
-%define _version           3.0.2
+%define _version           3.0.3
 %define _packager D. Scott Barninger <barninger@fairfieldcomputers.com>
 
 %define single_dir 0
@@ -838,9 +838,9 @@ cwd=${PWD}
 [ "$RPM_BUILD_ROOT" != "/" ] && rm -rf "$RPM_BUILD_ROOT"
 mkdir -p $RPM_BUILD_ROOT/etc/init.d
 mkdir -p $RPM_BUILD_ROOT/etc/logrotate.d
-mkdir -p $RPM_BUILD_ROOT/etc/log.d/conf/logfiles
-mkdir -p $RPM_BUILD_ROOT/etc/log.d/conf/services
-mkdir -p $RPM_BUILD_ROOT/etc/log.d/scripts/services
+mkdir -p $RPM_BUILD_ROOT/etc/logwatch/conf/logfiles
+mkdir -p $RPM_BUILD_ROOT/etc/logwatch/conf/services
+mkdir -p $RPM_BUILD_ROOT/etc/logwatch/scripts/services
 mkdir -p $RPM_BUILD_ROOT%{script_dir}/updatedb
 
 mkdir -p $RPM_BUILD_ROOT/etc/pam.d
@@ -910,12 +910,12 @@ cp -p updatedb/* $RPM_BUILD_ROOT%{script_dir}/updatedb/
 
 # install the logwatch scripts
 %if ! %{client_only}
-cp -p scripts/logwatch/bacula $RPM_BUILD_ROOT/etc/log.d/scripts/services/bacula
-cp -p scripts/logwatch/logfile.bacula.conf $RPM_BUILD_ROOT/etc/log.d/conf/logfiles/bacula.conf
-cp -p scripts/logwatch/services.bacula.conf $RPM_BUILD_ROOT/etc/log.d/conf/services/bacula.conf
-chmod 755 $RPM_BUILD_ROOT/etc/log.d/scripts/services/bacula
-chmod 644 $RPM_BUILD_ROOT/etc/log.d/conf/logfiles/bacula.conf
-chmod 644 $RPM_BUILD_ROOT/etc/log.d/conf/services/bacula.conf
+cp -p scripts/logwatch/bacula $RPM_BUILD_ROOT/etc/logwatch/scripts/services/bacula
+cp -p scripts/logwatch/logfile.bacula.conf $RPM_BUILD_ROOT/etc/logwatch/conf/logfiles/bacula.conf
+cp -p scripts/logwatch/services.bacula.conf $RPM_BUILD_ROOT/etc/logwatch/conf/services/bacula.conf
+chmod 755 $RPM_BUILD_ROOT/etc/logwatch/scripts/services/bacula
+chmod 644 $RPM_BUILD_ROOT/etc/logwatch/conf/logfiles/bacula.conf
+chmod 644 $RPM_BUILD_ROOT/etc/logwatch/conf/services/bacula.conf
 %endif
 
 # now clean up permissions that are left broken by the install
@@ -999,12 +999,12 @@ rm -f $RPM_BUILD_DIR/Release_Notes-%{version}-%{release}.txt
 %endif
 # opensuse_bs: directories not owned by any package
 /etc/bacula
-/etc/log.d
-/etc/log.d/conf
-/etc/log.d/conf/logfiles
-/etc/log.d/conf/services
-/etc/log.d/scripts
-/etc/log.d/scripts/services
+/etc/logwatch
+/etc/logwatch/conf
+/etc/logwatch/conf/logfiles
+/etc/logwatch/conf/services
+/etc/logwatch/scripts
+/etc/logwatch/scripts/services
 
 %if ! %{client_only}
 %attr(-, root, %{daemon_group}) %dir %{script_dir}
@@ -1033,13 +1033,13 @@ rm -f $RPM_BUILD_DIR/Release_Notes-%{version}-%{release}.txt
 %attr(-, root, %{storage_daemon_group}) %{script_dir}/mtx-changer.conf
 
 /etc/logrotate.d/bacula
-/etc/log.d/scripts/services/bacula
+/etc/logwatch/scripts/services/bacula
 %attr(-, root, %{daemon_group}) %config(noreplace) %{sysconf_dir}/bacula-dir.conf
 %attr(-, root, %{daemon_group}) %config(noreplace) %{sysconf_dir}/bacula-fd.conf
 %attr(-, root, %{storage_daemon_group}) %config(noreplace) %{sysconf_dir}/bacula-sd.conf
 %attr(-, root, %{daemon_group}) %config(noreplace) %{sysconf_dir}/bconsole.conf
-%attr(-, root, %{daemon_group}) %config(noreplace) /etc/log.d/conf/logfiles/bacula.conf
-%attr(-, root, %{daemon_group}) %config(noreplace) /etc/log.d/conf/services/bacula.conf
+%attr(-, root, %{daemon_group}) %config(noreplace) /etc/logwatch/conf/logfiles/bacula.conf
+%attr(-, root, %{daemon_group}) %config(noreplace) /etc/logwatch/conf/services/bacula.conf
 %attr(-, root, %{daemon_group}) %config(noreplace) %{script_dir}/query.sql
 
 %attr(-, %{storage_daemon_user}, %{daemon_group}) %dir %{working_dir}

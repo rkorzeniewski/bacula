@@ -1796,9 +1796,9 @@ cwd=${PWD}
 [ "$RPM_BUILD_ROOT" != "/" ] && rm -rf "$RPM_BUILD_ROOT"
 mkdir -p $RPM_BUILD_ROOT/etc/init.d
 mkdir -p $RPM_BUILD_ROOT/etc/logrotate.d
-mkdir -p $RPM_BUILD_ROOT/etc/log.d/conf/logfiles
-mkdir -p $RPM_BUILD_ROOT/etc/log.d/conf/services
-mkdir -p $RPM_BUILD_ROOT/etc/log.d/scripts/services
+mkdir -p $RPM_BUILD_ROOT/etc/logwatch/conf/logfiles
+mkdir -p $RPM_BUILD_ROOT/etc/logwatch/conf/services
+mkdir -p $RPM_BUILD_ROOT/etc/logwatch/scripts/services
 mkdir -p $RPM_BUILD_ROOT%{script_dir}/updatedb
 
 %if %{gconsole} || %{wxconsole} || %{bat}
@@ -2035,12 +2035,12 @@ cp -p updatedb/* $RPM_BUILD_ROOT%{script_dir}/updatedb/
 
 # install the logwatch scripts
 %if ! %{client_only}
-cp -p scripts/logwatch/bacula $RPM_BUILD_ROOT/etc/log.d/scripts/services/bacula
-cp -p scripts/logwatch/logfile.bacula.conf $RPM_BUILD_ROOT/etc/log.d/conf/logfiles/bacula.conf
-cp -p scripts/logwatch/services.bacula.conf $RPM_BUILD_ROOT/etc/log.d/conf/services/bacula.conf
-chmod 755 $RPM_BUILD_ROOT/etc/log.d/scripts/services/bacula
-chmod 644 $RPM_BUILD_ROOT/etc/log.d/conf/logfiles/bacula.conf
-chmod 644 $RPM_BUILD_ROOT/etc/log.d/conf/services/bacula.conf
+cp -p scripts/logwatch/bacula $RPM_BUILD_ROOT/etc/logwatch/scripts/services/bacula
+cp -p scripts/logwatch/logfile.bacula.conf $RPM_BUILD_ROOT/etc/logwatch/conf/logfiles/bacula.conf
+cp -p scripts/logwatch/services.bacula.conf $RPM_BUILD_ROOT/etc/logwatch/conf/services/bacula.conf
+chmod 755 $RPM_BUILD_ROOT/etc/logwatch/scripts/services/bacula
+chmod 644 $RPM_BUILD_ROOT/etc/logwatch/conf/logfiles/bacula.conf
+chmod 644 $RPM_BUILD_ROOT/etc/logwatch/conf/services/bacula.conf
 %endif
 
 # install the rescue files
@@ -2163,15 +2163,15 @@ rm -f $RPM_BUILD_DIR/Release_Notes-%{version}-%{release}.txt
 
 
 /etc/logrotate.d/bacula
-/etc/log.d/scripts/services/bacula
+/etc/logwatch/scripts/services/bacula
 
 %attr(-, root, %{daemon_group}) %dir %{sysconf_dir}
 %attr(-, root, %{daemon_group}) %config(noreplace) %{sysconf_dir}/bacula-dir.conf
 %attr(-, root, %{daemon_group}) %config(noreplace) %{sysconf_dir}/bacula-fd.conf
 %attr(-, root, %{storage_daemon_group}) %config(noreplace) %{sysconf_dir}/bacula-sd.conf
 %attr(-, root, %{daemon_group}) %config(noreplace) %{sysconf_dir}/bconsole.conf
-%attr(-, root, %{daemon_group}) %config(noreplace) /etc/log.d/conf/logfiles/bacula.conf
-%attr(-, root, %{daemon_group}) %config(noreplace) /etc/log.d/conf/services/bacula.conf
+%attr(-, root, %{daemon_group}) %config(noreplace) /etc/logwatch/conf/logfiles/bacula.conf
+%attr(-, root, %{daemon_group}) %config(noreplace) /etc/logwatch/conf/services/bacula.conf
 %attr(-, root, %{daemon_group}) %config(noreplace) %{script_dir}/query.sql
 
 %attr(-, %{storage_daemon_user}, %{daemon_group}) %dir %{working_dir}
