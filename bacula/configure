@@ -28657,6 +28657,12 @@ echo "$as_me: error: Unable to find dbi.h in standard locations" >&2;}
            else
               DRIVERDIR=$prefix/lib/dbd
            fi
+        elif test -d /usr/local/lib64/dbd; then
+           DRIVERDIR=/usr/local/lib64/dbd
+        elif test -d /usr/lib64/dbd; then
+           DRIVERDIR=/usr/lib64/dbd
+        elif test -d $prefix/lib64/dbd; then
+           DRIVERDIR=$prefix/lib64/dbd
         else
            { echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6; }
@@ -28692,6 +28698,8 @@ echo "$as_me: error: Invalid DBI directory $withval - unable to find dbi.h under
            else
               DRIVERDIR=$withval/lib/dbd
            fi
+        elif test -d $withval/lib64/dbd; then
+           DRIVERDIR=$withval/lib64/dbd
         else
            { echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6; }

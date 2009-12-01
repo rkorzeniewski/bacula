@@ -55,6 +55,12 @@ AC_HELP_STRING([--with-dbi@<:@=DIR@:>@], [Include DBI support. DIR is the DBD ba
            else
               DRIVERDIR=$prefix/lib/dbd
            fi
+        elif test -d /usr/local/lib64/dbd; then
+           DRIVERDIR=/usr/local/lib64/dbd
+        elif test -d /usr/lib64/dbd; then
+           DRIVERDIR=/usr/lib64/dbd
+        elif test -d $prefix/lib64/dbd; then
+           DRIVERDIR=$prefix/lib64/dbd
         else
            AC_MSG_RESULT(no)
            AC_MSG_ERROR(Unable to find DBD drivers in standard locations)
@@ -84,6 +90,8 @@ AC_HELP_STRING([--with-dbi@<:@=DIR@:>@], [Include DBI support. DIR is the DBD ba
            else
               DRIVERDIR=$withval/lib/dbd
            fi
+        elif test -d $withval/lib64/dbd; then
+           DRIVERDIR=$withval/lib64/dbd
         else
            AC_MSG_RESULT(no)
            AC_MSG_ERROR(Invalid DBD driver directory $withval - unable to find DBD drivers under $withval)
