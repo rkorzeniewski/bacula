@@ -3,6 +3,8 @@
 General:
 
 01Dec09
+kes  Remove support for SQLite 2
+kes  Fix rpm spec files bug #1420
 kes  Fix include of MySQL libs to use shared object. Fixes bug #1427
 kes  Fix search for libdbd in DBI option. Fixes bug #1422
 kes  Fix RH spec files to use /etc/logwatch instead of /etc/log.d
