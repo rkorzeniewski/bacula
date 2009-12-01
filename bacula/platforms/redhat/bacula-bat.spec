@@ -6,7 +6,7 @@
 
 # basic defines for every build
 %define _release           1
-%define _version           3.0.2
+%define _version           3.0.3
 %define depkgs_qt_version  28Jul09
 %define _packager D. Scott Barninger <barninger@fairfieldcomputers.com>
 
