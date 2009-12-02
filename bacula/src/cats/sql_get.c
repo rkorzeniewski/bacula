@@ -428,7 +428,7 @@ int db_get_job_volume_parameters(JCR *jcr, B_DB *mdb, JobId_t JobId, VOL_PARAMS 
    db_lock(mdb);
    Mmsg(mdb->cmd,
 "SELECT VolumeName,MediaType,FirstIndex,LastIndex,StartFile,"
-"JobMedia.EndFile,StartBlock,JobMedia.EndBlock,Copy,"
+"JobMedia.EndFile,StartBlock,JobMedia.EndBlock,"
 "Slot,StorageId,InChanger"
 " FROM JobMedia,Media WHERE JobMedia.JobId=%s"
 " AND JobMedia.MediaId=Media.MediaId ORDER BY VolIndex,JobMediaId",
@@ -467,10 +467,9 @@ int db_get_job_volume_parameters(JCR *jcr, B_DB *mdb, JobId_t JobId, VOL_PARAMS 
                EndBlock = str_to_uint64(row[7]);
                Vols[i].StartAddr = (((uint64_t)StartFile)<<32) | StartBlock;
                Vols[i].EndAddr =   (((uint64_t)EndFile)<<32) | EndBlock;
-//             Vols[i].Copy = str_to_uint64(row[8]);
-               Vols[i].Slot = str_to_uint64(row[9]);
-               StorageId = str_to_uint64(row[10]);
-               Vols[i].InChanger = str_to_uint64(row[11]);
+               Vols[i].Slot = str_to_uint64(row[8]);
+               StorageId = str_to_uint64(row[9]);
+               Vols[i].InChanger = str_to_uint64(row[10]);
                Vols[i].Storage[0] = 0;
                SId[i] = StorageId;
             }

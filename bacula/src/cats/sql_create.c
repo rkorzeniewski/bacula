@@ -132,13 +132,12 @@ db_create_jobmedia_record(JCR *jcr, B_DB *mdb, JOBMEDIA_DBR *jm)
     */
    Mmsg(mdb->cmd,
         "INSERT INTO JobMedia (JobId,MediaId,FirstIndex,LastIndex,"
-        "StartFile,EndFile,StartBlock,EndBlock,VolIndex,Copy) "
-        "VALUES (%s,%s,%u,%u,%u,%u,%u,%u,%u,%u)",
+        "StartFile,EndFile,StartBlock,EndBlock,VolIndex) "
+        "VALUES (%s,%s,%u,%u,%u,%u,%u,%u,%u)",
         edit_int64(jm->JobId, ed1),
         edit_int64(jm->MediaId, ed2),
         jm->FirstIndex, jm->LastIndex,
-        jm->StartFile, jm->EndFile, jm->StartBlock, jm->EndBlock,count,
-        jm->Copy);
+        jm->StartFile, jm->EndFile, jm->StartBlock, jm->EndBlock,count);
 
    Dmsg0(300, mdb->cmd);
    if (!INSERT_DB(jcr, mdb, mdb->cmd)) {
