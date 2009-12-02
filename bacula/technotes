@@ -2,6 +2,8 @@
           
 General:
 
+02Dec09
+ebl  Rename bvfs brestore_ table
 01Dec09
 kes  Remove support for SQLite 2
 kes  Fix rpm spec files bug #1420
