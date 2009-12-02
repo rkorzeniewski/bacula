@@ -198,7 +198,7 @@ static void build_path_hierarchy(JCR *jcr, B_DB *mdb,
 
    /* Does the ppathid exist for this ? we use a memory cache...  In order to
     * avoid the full loop, we consider that if a dir is allready in the
-    * brestore_pathhierarchy table, then there is no need to calculate all the
+    * PathHierarchy table, then there is no need to calculate all the
     * hierarchy
     */
    while (path && *path)
@@ -206,7 +206,7 @@ static void build_path_hierarchy(JCR *jcr, B_DB *mdb,
       if (!ppathid_cache.lookup(pathid))
       {
          Mmsg(mdb->cmd, 
-              "SELECT PPathId FROM brestore_pathhierarchy WHERE PathId = %s",
+              "SELECT PPathId FROM PathHierarchy WHERE PathId = %s",
               pathid);
 
          QUERY_DB(jcr, mdb, mdb->cmd);
@@ -228,7 +228,7 @@ static void build_path_hierarchy(JCR *jcr, B_DB *mdb,
             ppathid_cache.insert(pathid);
             
             Mmsg(mdb->cmd,
-                 "INSERT INTO brestore_pathhierarchy (PathId, PPathId) "
+                 "INSERT INTO PathHierarchy (PathId, PPathId) "
                  "VALUES (%s,%lld)",
                  pathid, (uint64_t) parent.PathId);
             
@@ -267,7 +267,7 @@ static void update_path_hierarchy_cache(JCR *jcr,
    db_lock(mdb);
    db_start_transaction(jcr, mdb);
 
-   Mmsg(mdb->cmd, "SELECT 1 FROM brestore_knownjobid WHERE JobId = %s", jobid);
+   Mmsg(mdb->cmd, "SELECT 1 FROM Job WHERE JobId = %s AND HasCache=1", jobid);
    
    if (!QUERY_DB(jcr, mdb, mdb->cmd) || sql_num_rows(mdb) > 0) {
       Dmsg1(dbglevel, "already computed %d\n", (uint32_t)JobId );
@@ -275,7 +275,7 @@ static void update_path_hierarchy_cache(JCR *jcr,
    }
 
    /* Inserting path records for JobId */
-   Mmsg(mdb->cmd, "INSERT INTO brestore_pathvisibility (PathId, JobId) "
+   Mmsg(mdb->cmd, "INSERT INTO PathVisibility (PathId, JobId) "
                   "SELECT DISTINCT PathId, JobId FROM File WHERE JobId = %s",
         jobid);
    QUERY_DB(jcr, mdb, mdb->cmd);
@@ -286,13 +286,13 @@ static void update_path_hierarchy_cache(JCR *jcr,
     * only work on not allready hierarchised directories...
     */
    Mmsg(mdb->cmd, 
-     "SELECT brestore_pathvisibility.PathId, Path "
-       "FROM brestore_pathvisibility "
-            "JOIN Path ON( brestore_pathvisibility.PathId = Path.PathId) "
-            "LEFT JOIN brestore_pathhierarchy "
-         "ON (brestore_pathvisibility.PathId = brestore_pathhierarchy.PathId) "
-      "WHERE brestore_pathvisibility.JobId = %s "
-        "AND brestore_pathhierarchy.PathId IS NULL "
+     "SELECT PathVisibility.PathId, Path "
+       "FROM PathVisibility "
+            "JOIN Path ON( PathVisibility.PathId = Path.PathId) "
+            "LEFT JOIN PathHierarchy "
+         "ON (PathVisibility.PathId = PathHierarchy.PathId) "
+      "WHERE PathVisibility.JobId = %s "
+        "AND PathHierarchy.PathId IS NULL "
       "ORDER BY Path", jobid);
    Dmsg1(dbglevel_sql, "q=%s\n", mdb->cmd);
    QUERY_DB(jcr, mdb, mdb->cmd);
@@ -323,15 +323,15 @@ static void update_path_hierarchy_cache(JCR *jcr,
    }
    
    Mmsg(mdb->cmd, 
-  "INSERT INTO brestore_pathvisibility (PathId, JobId)  "
+  "INSERT INTO PathVisibility (PathId, JobId)  "
    "SELECT a.PathId,%s "
    "FROM ( "
      "SELECT DISTINCT h.PPathId AS PathId "
-       "FROM brestore_pathhierarchy AS h "
-       "JOIN  brestore_pathvisibility AS p ON (h.PathId=p.PathId) "
+       "FROM PathHierarchy AS h "
+       "JOIN  PathVisibility AS p ON (h.PathId=p.PathId) "
       "WHERE p.JobId=%s) AS a LEFT JOIN "
        "(SELECT PathId "
-          "FROM brestore_pathvisibility "
+          "FROM PathVisibility "
          "WHERE JobId=%s) AS b ON (a.PathId = b.PathId) "
    "WHERE b.PathId IS NULL",  jobid, jobid, jobid);
 
@@ -339,8 +339,8 @@ static void update_path_hierarchy_cache(JCR *jcr,
       QUERY_DB(jcr, mdb, mdb->cmd);
    } while (sql_affected_rows(mdb) > 0);
    
-   Mmsg(mdb->cmd, "INSERT INTO brestore_knownjobid (JobId) VALUES (%s)", jobid);
-   INSERT_DB(jcr, mdb, mdb->cmd);
+   Mmsg(mdb->cmd, "UPDATE Job SET HasCache=1 WHERE JobId=%s", jobid);
+   UPDATE_DB(jcr, mdb, mdb->cmd);
 
 bail_out:
    db_end_transaction(jcr, mdb);
@@ -371,49 +371,46 @@ void bvfs_update_cache(JCR *jcr, B_DB *mdb)
    db_lock(mdb);
    db_start_transaction(jcr, mdb);
 
-   Mmsg(mdb->cmd, "SELECT 1 from brestore_knownjobid LIMIT 1");
+   Mmsg(mdb->cmd, "SELECT 1 from PathHierarchy LIMIT 1");
    /* TODO: Add this code in the make_bacula_table script */
    if (!QUERY_DB(jcr, mdb, mdb->cmd)) {
       Dmsg0(dbglevel, "Creating cache table\n");
-      Mmsg(mdb->cmd,
-           "CREATE TABLE brestore_knownjobid ("
-           "JobId integer NOT NULL, "
-           "CONSTRAINT brestore_knownjobid_pkey PRIMARY KEY (JobId))");
+      Mmsg(mdb->cmd, "ALTER TABLE Job ADD HasCache int DEFAULT 0");
       QUERY_DB(jcr, mdb, mdb->cmd);
 
       Mmsg(mdb->cmd,
-           "CREATE TABLE brestore_pathhierarchy ( "
+           "CREATE TABLE PathHierarchy ( "
            "PathId integer NOT NULL, "
            "PPathId integer NOT NULL, "
-           "CONSTRAINT brestore_pathhierarchy_pkey "
+           "CONSTRAINT pathhierarchy_pkey "
            "PRIMARY KEY (PathId))");
       QUERY_DB(jcr, mdb, mdb->cmd); 
 
       Mmsg(mdb->cmd,
-           "CREATE INDEX brestore_pathhierarchy_ppathid "
-           "ON brestore_pathhierarchy (PPathId)");
+           "CREATE INDEX pathhierarchy_ppathid "
+           "ON PathHierarchy (PPathId)");
       QUERY_DB(jcr, mdb, mdb->cmd);
 
       Mmsg(mdb->cmd, 
-           "CREATE TABLE brestore_pathvisibility ("
+           "CREATE TABLE PathVisibility ("
            "PathId integer NOT NULL, "
            "JobId integer NOT NULL, "
            "Size int8 DEFAULT 0, "
            "Files int4 DEFAULT 0, "
-           "CONSTRAINT brestore_pathvisibility_pkey "
+           "CONSTRAINT pathvisibility_pkey "
            "PRIMARY KEY (JobId, PathId))");
       QUERY_DB(jcr, mdb, mdb->cmd);
 
       Mmsg(mdb->cmd, 
-           "CREATE INDEX brestore_pathvisibility_jobid "
-           "ON brestore_pathvisibility (JobId)");
+           "CREATE INDEX pathvisibility_jobid "
+           "ON PathVisibility (JobId)");
       QUERY_DB(jcr, mdb, mdb->cmd);
 
    }
 
    Mmsg(mdb->cmd, 
  "SELECT JobId from Job "
-  "WHERE JobId NOT IN (SELECT JobId FROM brestore_knownjobid) "
+  "WHERE HashCache = 0 "
     "AND Type IN ('B') AND JobStatus IN ('T', 'f', 'A') "
   "ORDER BY JobId");
 
@@ -425,17 +422,9 @@ void bvfs_update_cache(JCR *jcr, B_DB *mdb)
    db_start_transaction(jcr, mdb);
    Dmsg0(dbglevel, "Cleaning pathvisibility\n");
    Mmsg(mdb->cmd, 
-        "DELETE FROM brestore_pathvisibility "
+        "DELETE FROM PathVisibility "
          "WHERE NOT EXISTS "
-        "(SELECT 1 FROM Job WHERE JobId=brestore_pathvisibility.JobId)");
-   nb = DELETE_DB(jcr, mdb, mdb->cmd);
-   Dmsg1(dbglevel, "Affected row(s) = %d\n", nb);
-
-   Dmsg0(dbglevel, "Cleaning knownjobid\n");
-   Mmsg(mdb->cmd,         
-        "DELETE FROM brestore_knownjobid "
-         "WHERE NOT EXISTS "
-        "(SELECT 1 FROM Job WHERE JobId=brestore_knownjobid.JobId)");
+        "(SELECT 1 FROM Job WHERE JobId=PathVisibility.JobId)");
    nb = DELETE_DB(jcr, mdb, mdb->cmd);
    Dmsg1(dbglevel, "Affected row(s) = %d\n", nb);
 
@@ -564,7 +553,7 @@ void Bvfs::ls_special_dirs()
    POOL_MEM query;
    Mmsg(query, 
 "((SELECT PPathId AS PathId, '..' AS Path "
-    "FROM  brestore_pathhierarchy "
+    "FROM  PathHierarchy "
    "WHERE  PathId = %s) "
 "UNION "
  "(SELECT %s AS PathId, '.' AS Path))",
@@ -622,14 +611,14 @@ bool Bvfs::ls_dirs()
            "listfile1.JobId AS JobId, listfile1.LStat AS LStat, "
            "listfile1.FileId AS FileId "
     "FROM ( "
-      "SELECT DISTINCT brestore_pathhierarchy1.PathId AS PathId "
-      "FROM brestore_pathhierarchy AS brestore_pathhierarchy1 "
+      "SELECT DISTINCT PathHierarchy1.PathId AS PathId "
+      "FROM PathHierarchy AS PathHierarchy1 "
       "JOIN Path AS Path2 "
-        "ON (brestore_pathhierarchy1.PathId = Path2.PathId) "
-      "JOIN brestore_pathvisibility AS brestore_pathvisibility1 "
-        "ON (brestore_pathhierarchy1.PathId = brestore_pathvisibility1.PathId) "
-      "WHERE brestore_pathhierarchy1.PPathId = %s "
-      "AND brestore_pathvisibility1.jobid IN (%s) "
+        "ON (PathHierarchy1.PathId = Path2.PathId) "
+      "JOIN PathVisibility AS PathVisibility1 "
+        "ON (PathHierarchy1.PathId = PathVisibility1.PathId) "
+      "WHERE PathHierarchy1.PPathId = %s "
+      "AND PathVisibility1.jobid IN (%s) "
            "%s "
      ") AS listpath1 "
    "JOIN Path AS Path1 ON (listpath1.PathId = Path1.PathId) "
