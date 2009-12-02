@@ -197,7 +197,7 @@ static int bvfs_result_handler(void *ctx, int fields, char **row)
    memset(&statp, 0, sizeof(struct stat));
    decode_stat(lstat, &statp, &LinkFI);
 
-   Dmsg1(0, "type=%s\n", row[0]);
+   Dmsg1(100, "type=%s\n", row[0]);
    if (bvfs_is_dir(row)) {
       char *path = bvfs_basename_dir(row[BVFS_Name]);
       ua->send_msg("%s\t0\t%s\t%s\t%s\t%s\n", row[BVFS_PathId], fileid,
