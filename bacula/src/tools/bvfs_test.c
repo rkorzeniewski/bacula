@@ -228,9 +228,9 @@ int main (int argc, char *argv[])
 
    if (clean) {
       Pmsg0(0, "Clean old table\n");
-      db_sql_query(db, "DELETE FROM brestore_pathhierarchy", NULL, NULL);
-      db_sql_query(db, "DELETE FROM brestore_knownjobid", NULL, NULL);
-      db_sql_query(db, "DELETE FROM brestore_pathvisibility", NULL, NULL);
+      db_sql_query(db, "DELETE FROM PathHierarchy", NULL, NULL);
+      db_sql_query(db, "UPDATE Job SET HasCache=0", NULL, NULL);
+      db_sql_query(db, "DELETE FROM PathVisibility", NULL, NULL);
       bvfs_update_cache(bjcr, db);
    }
 
