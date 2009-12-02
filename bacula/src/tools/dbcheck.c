@@ -344,7 +344,7 @@ static void do_interactive_mode()
    else
       printf(_(" Verbose is off.\n"));
 
-   printf(_("Please select the fuction you want to perform.\n"));
+   printf(_("Please select the function you want to perform.\n"));
 
    while (!quit) {
       if (fix) {
