@@ -72,7 +72,7 @@ bweb (2.0.3-4) stable; urgency=low
    *	DROP TABLES brestore_pathhierarchy;
    *	DROP TABLES brestore_knownjobid;
 
-   => DONT USE dbcheck to cleanup Path
+   => DON'T USE dbcheck to cleanup Path
 
  -- Eric Bollengier <eric@eb.homelinux.org>  Thu,  29 March 2007 01:10:47 +0000
 

@@ -29,7 +29,7 @@ DROP TABLES brestore_pathvisibility;
 DROP TABLES brestore_pathhierarchy;
 DROP TABLES brestore_knownjobid;
 
-   => DONT USE dbcheck to cleanup Path
+   => DON'T USE dbcheck to cleanup Path
 
 Version 2.0.3-2:
  - fix mysql stuff
