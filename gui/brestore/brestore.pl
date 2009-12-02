@@ -83,7 +83,7 @@ sub new
 	bconsole => 'bconsole',	# path and arg to bconsole
 	bsr_dest => '',		# destination url for bsr files
 	debug    => 0,		# debug level 0|1
-	use_ok_bkp_only => 1,	# dont use bad backup
+	use_ok_bkp_only => 1,	# don't use bad backup
 	bweb     => 'http://localhost/cgi-bin/bweb/bweb.pl', # bweb url
 	see_all_versions => 0,  # display all file versions in FileInfo
 	mozilla  => 'mozilla',  # mozilla bin

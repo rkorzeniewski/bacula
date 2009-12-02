@@ -1903,7 +1903,7 @@ keep it empty and set bconsole to
 			  <child>
 			    <widget class="GtkEntry" id="entry_bsr_dest">
 			      <property name="visible">True</property>
-			      <property name="tooltip" translatable="yes">BSR destination string (dont use file://tmp)</property>
+			      <property name="tooltip" translatable="yes">BSR destination string (don't use file://tmp)</property>
 			      <property name="can_focus">True</property>
 			      <property name="editable">True</property>
 			      <property name="visibility">True</property>

@@ -366,7 +366,7 @@ $limitq
 }
 
 # it works only with postgresql at this time
-# we dont use $jobt because we use File, so job is in Job table
+# we don't use $jobt because we use File, so job is in Job table
 elsif ($graph eq 'file_histo' and $arg->{where}) {
     
     my $dir  = $dbh->quote(dirname($arg->{where}) . '/');

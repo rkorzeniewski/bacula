@@ -163,7 +163,7 @@ Job {
 }
 
 #@hostname@-fd: ClientBeforeJob: run command "/bin/false RUN_FD_FAILED1"
-#we dont execute FAILED2 
+#we don't execute FAILED2 
 #@hostname@-dir: AfterJob: run command "/bin/echo RunAfterFailedJob"
 Job {
   Name = "RUN_FD_FAILED2"
