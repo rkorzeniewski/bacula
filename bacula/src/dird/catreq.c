@@ -110,7 +110,7 @@ void catalog_request(JCR *jcr, BSOCK *bs)
    int index, ok, label, writing;
    POOLMEM *omsg;
    POOL_DBR pr;
-   uint32_t Stripe;
+   uint32_t Stripe, Copy;
    uint64_t MediaId;
    utime_t VolFirstWritten;
    utime_t VolLastWritten;
@@ -326,7 +326,7 @@ void catalog_request(JCR *jcr, BSOCK *bs)
     */
    } else if (sscanf(bs->msg, Create_job_media, &Job,
       &jm.FirstIndex, &jm.LastIndex, &jm.StartFile, &jm.EndFile,
-      &jm.StartBlock, &jm.EndBlock, &jm.Copy, &Stripe, &MediaId) == 10) {
+      &jm.StartBlock, &jm.EndBlock, &Copy, &Stripe, &MediaId) == 10) {
 
       if (jcr->mig_jcr) {
          jm.JobId = jcr->mig_jcr->JobId;
