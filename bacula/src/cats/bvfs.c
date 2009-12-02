@@ -371,8 +371,8 @@ void bvfs_update_cache(JCR *jcr, B_DB *mdb)
    db_lock(mdb);
    db_start_transaction(jcr, mdb);
 
-   Mmsg(mdb->cmd, "SELECT 1 from PathHierarchy LIMIT 1");
-   /* TODO: Add this code in the make_bacula_table script */
+   /* TODO: Remove this code when updating make_bacula_table script */
+   Mmsg(mdb->cmd, "SELECT 1 FROM Job WHERE HasCache<>2 LIMIT 1");
    if (!QUERY_DB(jcr, mdb, mdb->cmd)) {
       Dmsg0(dbglevel, "Creating cache table\n");
       Mmsg(mdb->cmd, "ALTER TABLE Job ADD HasCache int DEFAULT 0");
