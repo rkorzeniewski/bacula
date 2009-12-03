@@ -87,6 +87,7 @@ typedef int (DB_RESULT_HANDLER)(void *, int, char **);
 
 #if defined(BUILDING_CATS)
 #ifdef HAVE_SQLITE
+#error "SQLite2 is now deprecated, use SQLite3 instead."
 
 #define BDB_VERSION 11
 
