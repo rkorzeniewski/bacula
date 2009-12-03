@@ -2,6 +2,8 @@
           
 General:
 
+03Dec09
+ebl  Apply Arno's patch for check_bacula nagios plugin
 02Dec09
 ebl  Rename bvfs brestore_ table
 01Dec09
