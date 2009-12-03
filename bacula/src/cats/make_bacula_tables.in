@@ -3,7 +3,7 @@
 # This routine makes the appropriately configured
 #  Bacula tables for PostgreSQL, MySQL, or SQLite.
 #
-if test xsqlite = x@DB_TYPE@ -o xsqlite3 = x@DB_TYPE@ ; then
+if test xsqlite3 = x@DB_TYPE@ ; then
   echo "Making SQLite tables"
   @scriptdir@/make_@DB_TYPE@_tables $*
 else

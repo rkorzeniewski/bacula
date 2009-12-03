@@ -3,11 +3,11 @@
 #  Drop Bacula database -- works for whatever is configured,
 #    MySQL, SQLite, PostgreSQL
 #
-if test xsqlite = x@DB_TYPE@ -o xsqlite3 = x@DB_TYPE@ ; then
+if test xsqlite3 = x@DB_TYPE@ ; then
   @scriptdir@/drop_@DB_TYPE@_database $*
 else
   if test xmysql = x@DB_TYPE@ ; then 
-    echo "Dropping MySQL database"
+    echo "Making MySQL database"
     @scriptdir@/drop_mysql_database $*
   else
     @scriptdir@/drop_postgresql_database $*
