@@ -3,6 +3,7 @@
 General:
 
 03Dec09
+ebl  Remove SQLite2 scripts
 ebl  Apply Arno's patch for check_bacula nagios plugin
 02Dec09
 ebl  Rename bvfs brestore_ table
