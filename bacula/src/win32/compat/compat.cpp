@@ -1396,11 +1396,35 @@ WSA_Init(void)
     return 0;
 }
 
+static DWORD fill_attribute(DWORD attr, mode_t mode)
+{
+   Dmsg1(200, "  before attr=%lld\n", (uint64_t) attr);
+   /* Use Bacula mappings define in stat() above */
+   if (mode & (S_IRUSR|S_IRGRP|S_IROTH)) { // If file is readable
+      attr &= ~FILE_ATTRIBUTE_READONLY;    // then this is not READONLY
+   } else {
+      attr |= FILE_ATTRIBUTE_READONLY;
+   }
+   if (mode & S_ISVTX) {                   // The sticky bit <=> HIDDEN 
+      attr |= FILE_ATTRIBUTE_HIDDEN;
+   } else {
+      attr &= ~FILE_ATTRIBUTE_HIDDEN;
+   }
+   if (mode & S_IRWXO) {              // Other can read/write/execute ?
+      attr &= ~FILE_ATTRIBUTE_SYSTEM; // => Not system
+   } else {
+      attr |= FILE_ATTRIBUTE_SYSTEM;
+   }
+   Dmsg1(200, "  after attr=%lld\n", (uint64_t)attr);
+   return attr;
+}
+
 int win32_chmod(const char *path, mode_t mode)
 {
-   DWORD attr = (DWORD)-1;
+   bool ret=false;
+   DWORD attr;
 
-    Dmsg1(100, "Enter win32_chmod. path=%s\n", path);
+   Dmsg2(0, "win32_chmod(path=%s mode=%lld)\n", path, (uint64_t)mode);
    if (p_GetFileAttributesW) {
       POOLMEM* pwszBuf = get_pool_memory(PM_FNAME);
       make_win32_path_UTF8_2_wchar(&pwszBuf, path);
@@ -1408,52 +1432,23 @@ int win32_chmod(const char *path, mode_t mode)
       attr = p_GetFileAttributesW((LPCWSTR) pwszBuf);
       if (attr != INVALID_FILE_ATTRIBUTES) {
          /* Use Bacula mappings define in stat() above */
-         if (mode & (S_IRUSR|S_IRGRP|S_IROTH)) {
-            attr |= FILE_ATTRIBUTE_READONLY;
-         } else {
-            attr &= ~FILE_ATTRIBUTE_READONLY;
-         }
-         if (mode & S_ISVTX) {
-            attr |= FILE_ATTRIBUTE_HIDDEN;
-         } else {
-            attr &= ~FILE_ATTRIBUTE_HIDDEN;
-         }
-         if (mode & S_IRWXO) { 
-            attr |= FILE_ATTRIBUTE_SYSTEM;
-         } else {
-            attr &= ~FILE_ATTRIBUTE_SYSTEM;
-         }
-         attr = p_SetFileAttributesW((LPCWSTR)pwszBuf, attr);
+         attr = fill_attribute(attr, mode);
+         ret = p_SetFileAttributesW((LPCWSTR)pwszBuf, attr);
       }
       free_pool_memory(pwszBuf);
       Dmsg0(100, "Leave win32_chmod. AttributesW\n");
    } else if (p_GetFileAttributesA) {
-         if (mode & (S_IRUSR|S_IRGRP|S_IROTH)) {
-            attr |= FILE_ATTRIBUTE_READONLY;
-         } else {
-            attr &= ~FILE_ATTRIBUTE_READONLY;
-         }
-         if (mode & S_ISVTX) {
-            attr |= FILE_ATTRIBUTE_HIDDEN;
-         } else {
-            attr &= ~FILE_ATTRIBUTE_HIDDEN;
-         }
-         if (mode & S_IRWXO) { 
-            attr |= FILE_ATTRIBUTE_SYSTEM;
-         } else {
-            attr &= ~FILE_ATTRIBUTE_SYSTEM;
-         }
       attr = p_GetFileAttributesA(path);
       if (attr != INVALID_FILE_ATTRIBUTES) {
-         attr = p_SetFileAttributesA(path, attr);
+         attr = fill_attribute(attr, mode);
+         ret = p_SetFileAttributesA(path, attr);
       }
       Dmsg0(100, "Leave win32_chmod did AttributesA\n");
    } else {
       Dmsg0(100, "Leave win32_chmod did nothing\n");
    }
     
-
-   if (attr == (DWORD)-1) {
+   if (!ret) {
       const char *err = errorString();
       Dmsg2(99, "Get/SetFileAttributes(%s): %s\n", path, err);
       LocalFree((void *)err);
