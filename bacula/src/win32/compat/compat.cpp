@@ -1424,7 +1424,7 @@ int win32_chmod(const char *path, mode_t mode)
    bool ret=false;
    DWORD attr;
 
-   Dmsg2(0, "win32_chmod(path=%s mode=%lld)\n", path, (uint64_t)mode);
+   Dmsg2(100, "win32_chmod(path=%s mode=%lld)\n", path, (uint64_t)mode);
    if (p_GetFileAttributesW) {
       POOLMEM* pwszBuf = get_pool_memory(PM_FNAME);
       make_win32_path_UTF8_2_wchar(&pwszBuf, path);
