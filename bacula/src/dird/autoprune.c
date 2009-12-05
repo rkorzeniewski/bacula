@@ -62,7 +62,7 @@ void do_autoprune(JCR *jcr)
    pool = jcr->pool;
 
    if (jcr->job->PruneJobs || jcr->client->AutoPrune) {
-      prune_jobs(ua, client, pool, jcr->get_JobType());
+      prune_jobs(ua, client, pool, jcr->getJobType());
       pruned = true;
    } else {
       pruned = false;

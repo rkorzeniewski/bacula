@@ -774,7 +774,7 @@ POOLMEM *edit_job_codes(JCR *jcr, char *omsg, char *imsg, const char *to, job_co
             break;
          case 'l':
             if (jcr) {
-               str = job_level_to_str(jcr->get_JobLevel());
+               str = job_level_to_str(jcr->getJobLevel());
             } else {
                str = _("*none*");
             }
@@ -805,7 +805,7 @@ POOLMEM *edit_job_codes(JCR *jcr, char *omsg, char *imsg, const char *to, job_co
             break;
          case 't':
             if (jcr) {
-               str = job_type_to_str(jcr->get_JobType());
+               str = job_type_to_str(jcr->getJobType());
             } else {
                str = _("*none*");
             }

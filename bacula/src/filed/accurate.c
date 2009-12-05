@@ -100,7 +100,7 @@ static bool accurate_send_base_file_list(JCR *jcr)
    FF_PKT *ff_pkt;
    int stream = STREAM_UNIX_ATTRIBUTES;
 
-   if (!jcr->accurate || jcr->get_JobLevel() != L_FULL) {
+   if (!jcr->accurate || jcr->getJobLevel() != L_FULL) {
       return true;
    }
 
@@ -183,14 +183,14 @@ bool accurate_finish(JCR *jcr)
 {
    bool ret=true;
    if (jcr->accurate) {
-      if (jcr->get_JobLevel() == L_FULL) {
+      if (jcr->getJobLevel() == L_FULL) {
          ret = accurate_send_base_file_list(jcr);
       } else {
          ret = accurate_send_deleted_list(jcr);
       }
       
       accurate_free(jcr);
-      if (jcr->get_JobLevel() == L_FULL) {
+      if (jcr->getJobLevel() == L_FULL) {
          Jmsg(jcr, M_INFO, 0, _("Space saved with Base jobs: %lld MB\n"), 
               jcr->base_size/(1024*1024));
       }
@@ -271,7 +271,7 @@ bool accurate_check_file(JCR *jcr, FF_PKT *ff_pkt)
 
    decode_stat(elt.lstat, &statc, &LinkFIc); /* decode catalog stat */
 
-   if (jcr->get_JobLevel() == L_FULL) {
+   if (jcr->getJobLevel() == L_FULL) {
       opts = ff_pkt->BaseJobOpts;
    } else {
       opts = ff_pkt->AccurateOpts;
@@ -456,7 +456,7 @@ bool accurate_check_file(JCR *jcr, FF_PKT *ff_pkt)
    /* In Incr/Diff accurate mode, we mark all files as seen
     * When in Full+Base mode, we mark only if the file match exactly
     */
-   if (jcr->get_JobLevel() == L_FULL) {
+   if (jcr->getJobLevel() == L_FULL) {
       if (!stat) {               
          /* compute space saved with basefile */
          jcr->base_size += ff_pkt->statp.st_size;

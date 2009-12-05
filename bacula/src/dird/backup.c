@@ -65,7 +65,7 @@ static char OldEndJob[]  = "2800 End Job TermCode=%d JobFiles=%u "
 bool do_backup_init(JCR *jcr)
 {
 
-   if (jcr->get_JobLevel() == L_VIRTUAL_FULL) {
+   if (jcr->getJobLevel() == L_VIRTUAL_FULL) {
       return do_vbackup_init(jcr);
    }
    free_rstorage(jcr);                   /* we don't read so release */
@@ -192,13 +192,13 @@ static bool is_checksum_needed_by_fileset(JCR *jcr)
          for (char *k=fopts->opts; *k ; k++) { /* Try to find one request */
             switch (*k) {
             case 'V':           /* verify */
-               in_block = (jcr->get_JobType() == JT_VERIFY); /* not used now */
+               in_block = (jcr->getJobType() == JT_VERIFY); /* not used now */
                break;
             case 'J':           /* Basejob keyword */
                have_basejob_option = in_block = jcr->HasBase;
                break;
             case 'C':           /* Accurate keyword */
-               in_block = (jcr->get_JobLevel() != L_FULL);
+               in_block = (jcr->getJobLevel() != L_FULL);
                break;
             case ':':           /* End of keyword */
                in_block = false;
@@ -245,11 +245,11 @@ bool send_accurate_current_files(JCR *jcr)
       return true;
    }
    /* In base level, no previous job is used */
-   if (jcr->get_JobLevel() == L_BASE) {
+   if (jcr->getJobLevel() == L_BASE) {
       return true;
    }
    
-   if (jcr->get_JobLevel() == L_FULL) {
+   if (jcr->getJobLevel() == L_FULL) {
       /* On Full mode, if no previous base job, no accurate things */
       if (!get_base_jobids(jcr, &jobids)) {
          goto bail_out;
@@ -320,7 +320,7 @@ bool do_backup(JCR *jcr)
    STORE *store;
    char ed1[100];
 
-   if (jcr->get_JobLevel() == L_VIRTUAL_FULL) {
+   if (jcr->getJobLevel() == L_VIRTUAL_FULL) {
       return do_vbackup(jcr);
    }
 
@@ -328,7 +328,7 @@ bool do_backup(JCR *jcr)
    Jmsg(jcr, M_INFO, 0, _("Start Backup JobId %s, Job=%s\n"),
         edit_uint64(jcr->JobId, ed1), jcr->Job);
 
-   set_jcr_job_status(jcr, JS_Running);
+   jcr->setJobStatus(JS_Running);
    Dmsg2(100, "JobId=%d JobLevel=%c\n", jcr->jr.JobId, jcr->jr.JobLevel);
    if (!db_update_job_start_record(jcr, jcr->db, &jcr->jr)) {
       Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db));
@@ -342,7 +342,7 @@ bool do_backup(JCR *jcr)
     *
     */
    Dmsg0(110, "Open connection with storage daemon\n");
-   set_jcr_job_status(jcr, JS_WaitSD);
+   jcr->setJobStatus(JS_WaitSD);
    /*
     * Start conversation with Storage daemon
     */
@@ -376,12 +376,12 @@ bool do_backup(JCR *jcr)
    }
    Dmsg0(150, "Storage daemon connection OK\n");
 
-   set_jcr_job_status(jcr, JS_WaitFD);
+   jcr->setJobStatus(JS_WaitFD);
    if (!connect_to_file_daemon(jcr, 10, FDConnectTimeout, 1)) {
       goto bail_out;
    }
 
-   set_jcr_job_status(jcr, JS_Running);
+   jcr->setJobStatus(JS_Running);
    fd = jcr->file_bsock;
 
    if (!send_include_list(jcr)) {
@@ -470,7 +470,7 @@ bool do_backup(JCR *jcr)
 
 /* Come here only after starting SD thread */
 bail_out:
-   set_jcr_job_status(jcr, JS_ErrorTerminated);
+   jcr->setJobStatus(JS_ErrorTerminated);
    Dmsg1(400, "wait for sd. use=%d\n", jcr->use_count());
    /* Cancel SD */
    wait_for_job_termination(jcr, FDConnectTimeout);
@@ -498,7 +498,7 @@ int wait_for_job_termination(JCR *jcr, int timeout)
    int Encrypt = 0;
    btimer_t *tid=NULL;
 
-   set_jcr_job_status(jcr, JS_Running);
+   jcr->setJobStatus(JS_Running);
 
    if (fd) {
       if (timeout) {
@@ -512,7 +512,7 @@ int wait_for_job_termination(JCR *jcr, int timeout)
               sscanf(fd->msg, OldEndJob, &jcr->FDJobStatus, &JobFiles,
                      &ReadBytes, &JobBytes, &JobErrors) == 5)) {
             fd_ok = true;
-            set_jcr_job_status(jcr, jcr->FDJobStatus);
+            jcr->setJobStatus(jcr->FDJobStatus);
             Dmsg1(100, "FDStatus=%c\n", (char)jcr->JobStatus);
          } else {
             Jmsg(jcr, M_WARNING, 0, _("Unexpected Client Job message: %s\n"),
@@ -528,7 +528,7 @@ int wait_for_job_termination(JCR *jcr, int timeout)
 
       if (is_bnet_error(fd)) {
          Jmsg(jcr, M_FATAL, 0, _("Network error with FD during %s: ERR=%s\n"),
-              job_type_to_str(jcr->get_JobType()), fd->bstrerror());
+              job_type_to_str(jcr->getJobType()), fd->bstrerror());
       }
       fd->signal(BNET_TERMINATE);   /* tell Client we are terminating */
    }
@@ -587,7 +587,7 @@ void backup_cleanup(JCR *jcr, int TermCode)
    utime_t RunTime;
    POOL_MEM base_info;
 
-   if (jcr->get_JobLevel() == L_VIRTUAL_FULL) {
+   if (jcr->getJobLevel() == L_VIRTUAL_FULL) {
       vbackup_cleanup(jcr, TermCode);
       return;
    }
@@ -596,12 +596,19 @@ void backup_cleanup(JCR *jcr, int TermCode)
    memset(&mr, 0, sizeof(mr));
    memset(&cr, 0, sizeof(cr));
 
+#ifdef xxxx
+   if (jcr->getJobStatus() == JS_Terminated && 
+        (jcr->JobErrors || jcr->SDErrors || jcr->JobWarnings)) {
+      TermCode = JS_Warnings;
+   }
+#endif
+         
    update_job_end(jcr, TermCode);
 
    if (!db_get_job_record(jcr, jcr->db, &jcr->jr)) {
       Jmsg(jcr, M_WARNING, 0, _("Error getting Job record for Job report: ERR=%s"),
          db_strerror(jcr->db));
-      set_jcr_job_status(jcr, JS_ErrorTerminated);
+      jcr->setJobStatus(JS_ErrorTerminated);
    }
 
    bstrncpy(cr.Name, jcr->client->name(), sizeof(cr.Name));
@@ -614,7 +621,7 @@ void backup_cleanup(JCR *jcr, int TermCode)
    if (!db_get_media_record(jcr, jcr->db, &mr)) {
       Jmsg(jcr, M_WARNING, 0, _("Error getting Media record for Volume \"%s\": ERR=%s"),
          mr.VolumeName, db_strerror(jcr->db));
-      set_jcr_job_status(jcr, JS_ErrorTerminated);
+      jcr->setJobStatus(JS_ErrorTerminated);
    }
 
    update_bootstrap_file(jcr);
@@ -736,7 +743,7 @@ void backup_cleanup(JCR *jcr, int TermCode)
         HOST_OS, DISTNAME, DISTVER,
         jcr->jr.JobId,
         jcr->jr.Job,
-        level_to_str(jcr->get_JobLevel()), jcr->since,
+        level_to_str(jcr->getJobLevel()), jcr->since,
         jcr->client->name(), cr.Uname,
         jcr->fileset->name(), jcr->FSCreateTime,
         jcr->pool->name(), jcr->pool_source,
@@ -794,7 +801,7 @@ void update_bootstrap_file(JCR *jcr)
          fd = bpipe ? bpipe->wfd : NULL;
       } else {
          /* ***FIXME*** handle BASE */
-         fd = fopen(fname, jcr->get_JobLevel()==L_FULL?"w+b":"a+b");
+         fd = fopen(fname, jcr->getJobLevel()==L_FULL?"w+b":"a+b");
       }
       if (fd) {
          VolCount = db_get_job_volume_parameters(jcr, jcr->db, jcr->JobId,
@@ -803,14 +810,14 @@ void update_bootstrap_file(JCR *jcr)
             Jmsg(jcr, M_ERROR, 0, _("Could not get Job Volume Parameters to "
                  "update Bootstrap file. ERR=%s\n"), db_strerror(jcr->db));
              if (jcr->SDJobFiles != 0) {
-                set_jcr_job_status(jcr, JS_ErrorTerminated);
+                jcr->setJobStatus(JS_ErrorTerminated);
              }
 
          }
          /* Start output with when and who wrote it */
          bstrftimes(edt, sizeof(edt), time(NULL));
          fprintf(fd, "# %s - %s - %s%s\n", edt, jcr->jr.Job,
-                 level_to_str(jcr->get_JobLevel()), jcr->since);
+                 level_to_str(jcr->getJobLevel()), jcr->since);
          for (int i=0; i < VolCount; i++) {
             /* Write the record */
             fprintf(fd, "Volume=\"%s\"\n", VolParams[i].VolumeName);
@@ -838,7 +845,7 @@ void update_bootstrap_file(JCR *jcr)
          berrno be;
          Jmsg(jcr, M_ERROR, 0, _("Could not open WriteBootstrap file:\n"
               "%s: ERR=%s\n"), fname, be.bstrerror());
-         set_jcr_job_status(jcr, JS_ErrorTerminated);
+         jcr->setJobStatus(JS_ErrorTerminated);
       }
       free_pool_memory(fname);
    }

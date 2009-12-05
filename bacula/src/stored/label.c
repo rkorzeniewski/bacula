@@ -671,8 +671,8 @@ void create_session_label(DCR *dcr, DEV_RECORD *rec, int label)
    /* Added in VerNum 10 */
    ser_string(jcr->Job);              /* Unique name of this Job */
    ser_string(jcr->fileset_name);
-   ser_uint32(jcr->get_JobType());
-   ser_uint32(jcr->get_JobLevel());
+   ser_uint32(jcr->getJobType());
+   ser_uint32(jcr->getJobLevel());
    /* Added in VerNum 11 */
    ser_string(jcr->fileset_md5);
 
