@@ -1072,7 +1072,7 @@ private:
 /*
  * Exported globals from sql.c
  */
-extern int DLL_IMP_EXP db_type;        /* SQL engine type index */
+extern int CATS_IMP_EXP db_type;        /* SQL engine type index */
 
 /*
  * Some functions exported by sql.c for use within the
