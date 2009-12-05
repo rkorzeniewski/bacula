@@ -329,7 +329,7 @@ int main (int argc, char *argv[])
 
    init_job_server(director->MaxConcurrentJobs);
 
-   dbg_jcr_add_hook(dbg_print_db); /* used to debug B_DB connexion after fatal signal */
+   dbg_jcr_add_hook(db_debug_print); /* used to debug B_DB connexion after fatal signal */
 
 //   init_device_resources();
 
@@ -552,7 +552,7 @@ void reload_config(int sig)
        * Hook all active jobs so that they release this table
        */
       foreach_jcr(jcr) {
-         if (jcr->get_JobType() != JT_SYSTEM) {
+         if (jcr->getJobType() != JT_SYSTEM) {
             reload_table[table].job_count++;
             job_end_push(jcr, reload_job_end_cb, (void *)((long int)table));
             njobs++;

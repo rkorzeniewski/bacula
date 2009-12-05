@@ -59,7 +59,7 @@ void db_end_transaction(JCR *jcr, B_DB *mdb);
 int db_int64_handler(void *ctx, int num_fields, char **row);
 int db_list_handler(void *ctx, int num_fields, char **row);
 void db_thread_cleanup();
-void dbg_print_db(JCR *jcr, FILE *fp);
+void db_debug_print(JCR *jcr, FILE *fp);
 int db_int_handler(void *ctx, int num_fields, char **row);
 
 /* sql_create.c */
