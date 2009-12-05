@@ -38,7 +38,8 @@ Document:
 Priority:
 ================
 - For Windows disaster recovery see http://unattended.sf.net/
-
+- Add "before=" "olderthan=" to FileSet for doing Base of
+  unchanged files.
 - Show files/second in client status output.
 - Don't attempt to restore from "Disabled" Volumes.
 - Have SD compute MD5 or SHA1 and compare to what FD computes.
@@ -1431,5 +1432,4 @@ Need:
 - Implement unmount of USB volumes.
 - Look into using Dart for testing
   http://public.kitware.com/Dart/HTML/Index.shtml
-
 
