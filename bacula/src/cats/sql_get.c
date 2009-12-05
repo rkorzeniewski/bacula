@@ -151,11 +151,6 @@ int db_get_file_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr, FILE_DBR *fdbr)
    if (QUERY_DB(jcr, mdb, mdb->cmd)) {
       mdb->num_rows = sql_num_rows(mdb);
       Dmsg1(050, "get_file_record num_rows=%d\n", (int)mdb->num_rows);
-      if (mdb->num_rows > 1) {
-         Mmsg1(mdb->errmsg, _("get_file_record want 1 got rows=%d\n"),
-            mdb->num_rows);
-         Dmsg1(000, "=== Problem!  %s", mdb->errmsg);
-      }
       if (mdb->num_rows >= 1) {
          if ((row = sql_fetch_row(mdb)) == NULL) {
             Mmsg1(mdb->errmsg, _("Error fetching row: %s\n"), sql_strerror(mdb));
@@ -164,6 +159,13 @@ int db_get_file_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr, FILE_DBR *fdbr)
             bstrncpy(fdbr->LStat, row[1], sizeof(fdbr->LStat));
             bstrncpy(fdbr->Digest, row[2], sizeof(fdbr->Digest));
             stat = 1;
+            if (mdb->num_rows > 1) {
+               Mmsg3(mdb->errmsg, _("get_file_record want 1 got rows=%d PathId=%s FilenameId=%s\n"),
+                  mdb->num_rows, 
+                  edit_int64(fdbr->PathId, ed1), 
+                  edit_int64(fdbr->FilenameId, ed2));
+               Dmsg1(000, "=== Problem!  %s", mdb->errmsg);
+            }
          }
       } else {
          Mmsg2(mdb->errmsg, _("File record for PathId=%s FilenameId=%s not found.\n"),
