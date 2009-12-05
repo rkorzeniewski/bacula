@@ -858,12 +858,12 @@ static bRC baculaGetValue(bpContext *ctx, bVariable var, void *value)
       Dmsg1(dbglvl, "Bacula: return my_name=%s\n", my_name);
       break;
    case bVarLevel:
-      *((int *)value) = jcr->get_JobLevel();
-      Dmsg1(dbglvl, "Bacula: return bVarJobLevel=%d\n", jcr->get_JobLevel());
+      *((int *)value) = jcr->getJobLevel();
+      Dmsg1(dbglvl, "Bacula: return bVarJobLevel=%d\n", jcr->getJobLevel());
       break;
    case bVarType:
-      *((int *)value) = jcr->get_JobType();
-      Dmsg1(dbglvl, "Bacula: return bVarJobType=%d\n", jcr->get_JobType());
+      *((int *)value) = jcr->getJobType();
+      Dmsg1(dbglvl, "Bacula: return bVarJobType=%d\n", jcr->getJobType());
       break;
    case bVarClient:
       *((char **)value) = jcr->client_name;

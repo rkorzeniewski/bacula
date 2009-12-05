@@ -183,7 +183,7 @@ public:
    void unlock() {V(mutex); };
    void inc_use_count(void) {lock(); _use_count++; unlock(); };
    void dec_use_count(void) {lock(); _use_count--; unlock(); };
-   int32_t use_count() { return _use_count; };
+   int32_t use_count() const { return _use_count; };
    void init_mutex(void) {pthread_mutex_init(&mutex, NULL); };
    void destroy_mutex(void) {pthread_mutex_destroy(&mutex); };
    bool is_job_canceled() {return job_canceled(this); };
@@ -191,11 +191,10 @@ public:
    void setJobLevel(int32_t JobLevel) { m_JobLevel = JobLevel; };
    void set_JobType(int32_t JobType) { m_JobType = JobType; };
    void setJobType(int32_t JobType) { m_JobType = JobType; };
-   int32_t get_JobType() { return m_JobType; };
-   int32_t getJobType() { return m_JobType; };
-   int32_t get_JobLevel() { return m_JobLevel; };
-   int32_t getJobLevel() { return m_JobLevel; };
-   bool no_client_used() {
+   int32_t getJobType() const { return m_JobType; };
+   int32_t getJobLevel() const { return m_JobLevel; };
+   int32_t getJobStatus() const { return JobStatus; };
+   bool no_client_used() const {
       return (m_JobType == JT_MIGRATE || m_JobType == JT_COPY ||
               m_JobLevel == L_VIRTUAL_FULL);
    };
@@ -474,7 +473,7 @@ struct s_last_job {
 };
 
 extern struct s_last_job last_job;
-extern DLL_IMP_EXP dlist * last_jobs;
+extern DLL_IMP_EXP dlist *last_jobs;
 
 
 /* The following routines are found in lib/jcr.c */

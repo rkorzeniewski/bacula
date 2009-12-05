@@ -1298,7 +1298,7 @@ static int level_cmd(JCR *jcr)
       buf = get_memory(dir->msglen+1);
       utime_t since_time, adj;
       btime_t his_time, bt_start, rt=0, bt_adj=0;
-      if (jcr->get_JobLevel() == L_NONE) {
+      if (jcr->getJobLevel() == L_NONE) {
          jcr->set_JobLevel(L_SINCE);     /* if no other job level set, do it now */
       }
       if (sscanf(dir->msg, "level = since_utime %s mtime_only=%d",
@@ -1361,7 +1361,7 @@ static int level_cmd(JCR *jcr)
    if (buf) {
       free_memory(buf);
    }
-   generate_plugin_event(jcr, bEventLevel, (void *)jcr->get_JobLevel());
+   generate_plugin_event(jcr, bEventLevel, (void *)jcr->getJobLevel());
    return dir->fsend(OKlevel);
 
 bail_out:
@@ -1728,12 +1728,12 @@ static int verify_cmd(JCR *jcr)
    dir->fsend(OKverify);
 
    generate_daemon_event(jcr, "JobStart");
-   generate_plugin_event(jcr, bEventLevel, (void *)jcr->get_JobLevel());
+   generate_plugin_event(jcr, bEventLevel, (void *)jcr->getJobLevel());
    generate_plugin_event(jcr, bEventStartVerifyJob);
 
    Dmsg1(110, "filed>dird: %s", dir->msg);
 
-   switch (jcr->get_JobLevel()) {
+   switch (jcr->getJobLevel()) {
    case L_VERIFY_INIT:
    case L_VERIFY_CATALOG:
       do_verify(jcr);

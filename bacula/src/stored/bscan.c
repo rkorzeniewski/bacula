@@ -1157,7 +1157,7 @@ static int update_job_record(B_DB *db, JOB_DBR *jr, SESSION_LABEL *elabel,
    }
    if (verbose) {
       Pmsg3(000, _("Updated Job termination record for JobId=%u Level=%s TermStat=%c\n"), 
-         jr->JobId, job_level_to_str(mjcr->get_JobLevel()), jr->JobStatus);
+         jr->JobId, job_level_to_str(mjcr->getJobLevel()), jr->JobStatus);
    }
    if (verbose > 1) {
       const char *term_msg;
@@ -1204,7 +1204,7 @@ static int update_job_record(B_DB *db, JOB_DBR *jr, SESSION_LABEL *elabel,
         mjcr->JobId,
         mjcr->Job,
         mjcr->fileset_name,
-        job_level_to_str(mjcr->get_JobLevel()),
+        job_level_to_str(mjcr->getJobLevel()),
         mjcr->client_name,
         sdt,
         edt,

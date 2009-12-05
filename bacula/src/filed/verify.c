@@ -369,7 +369,7 @@ static int read_digest(BFILE *bfd, DIGEST *digest, JCR *jcr)
       crypto_digest_update(digest, (uint8_t *)buf, n);
 
       /* Can be used by BaseJobs, update only for Verify jobs */
-      if (jcr->get_JobLevel() != L_FULL) {
+      if (jcr->getJobLevel() != L_FULL) {
          jcr->JobBytes += n;
          jcr->ReadBytes += n;
       }

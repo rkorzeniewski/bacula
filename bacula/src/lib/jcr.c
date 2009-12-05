@@ -523,7 +523,7 @@ void free_jcr(JCR *jcr)
    Dmsg1(dbglvl, "End job=%d\n", jcr->JobId);
 
    /* Keep some statistics */
-   switch (jcr->get_JobType()) {
+   switch (jcr->getJobType()) {
    case JT_BACKUP:
    case JT_VERIFY:
    case JT_RESTORE:
@@ -537,7 +537,7 @@ void free_jcr(JCR *jcr)
          je = (struct s_last_job *)malloc(sizeof(struct s_last_job));
          memset(je, 0, sizeof(struct s_last_job));  /* zero in case unset fields */
          je->Errors = jcr->JobErrors;
-         je->JobType = jcr->get_JobType();
+         je->JobType = jcr->getJobType();
          je->JobId = jcr->JobId;
          je->VolSessionId = jcr->VolSessionId;
          je->VolSessionTime = jcr->VolSessionTime;
@@ -545,7 +545,7 @@ void free_jcr(JCR *jcr)
          je->JobFiles = jcr->JobFiles;
          je->JobBytes = jcr->JobBytes;
          je->JobStatus = jcr->JobStatus;
-         je->JobLevel = jcr->get_JobLevel();
+         je->JobLevel = jcr->getJobLevel();
          je->start_time = jcr->start_time;
          je->end_time = time(NULL);
 
@@ -1126,7 +1126,7 @@ void dbg_print_jcr(FILE *fp)
               jcr, (int)jcr->JobId, jcr->Job, jcr->JobStatus);
       fprintf(fp, "\tuse_count=%i\n", jcr->use_count());
       fprintf(fp, "\tJobType=%c JobLevel=%c\n",
-              jcr->get_JobType(), jcr->get_JobLevel());
+              jcr->getJobType(), jcr->getJobLevel());
       bstrftime(buf1, sizeof(buf1), jcr->sched_time);
       bstrftime(buf2, sizeof(buf2), jcr->start_time);
       bstrftime(buf3, sizeof(buf3), jcr->end_time);
