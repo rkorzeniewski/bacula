@@ -3,7 +3,8 @@
 General:
 
 06Dec09
-kes  Add AllowCompress feature that turns off compression in Storage
+kes  Fix seg fault in new AllowCompression code
+kes  Add AllowCompression feature that turns off compression in Storage
      resource.  Submitted by: Steve Polyack <korvus@comcast.net>
 05Dec09
 ebl  Fix #1403 about windows directory attributes not well restored
