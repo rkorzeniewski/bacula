@@ -333,6 +333,7 @@ static bool send_fileset(JCR *jcr)
 {
    FILESET *fileset = jcr->fileset;
    BSOCK   *fd = jcr->file_bsock;
+   STORE   *store = jcr->wstore;
    int num;
    bool include = true;
 
@@ -359,7 +360,6 @@ static bool send_fileset(JCR *jcr)
          }
          for (j=0; j<ie->num_opts; j++) {
             FOPTS *fo = ie->opts_list[j];
-            fd->fsend("O %s\n", fo->opts);
 
             bool enhanced_wild = false;
             for (k=0; fo->opts[k]!='\0'; k++) {
@@ -367,6 +367,31 @@ static bool send_fileset(JCR *jcr)
                   enhanced_wild = true;
                   break;
                }
+            }
+
+            /* Strip out compression option Zn if disallowed for this Storage */
+            if (!store->AllowCompress) {
+               char newopts[MAX_FOPTS];
+               int j = 0;
+               for (k=0; fo->opts[k]!='\0'; k++) {                   
+                 /* Z compress option is followed by the single-digit compress level */
+                 if (fo->opts[k]=='Z') {
+                    k++;                /* skip option and level */
+                 } else {
+                    newopts[j] = fo->opts[k];
+                   j++;
+                 }
+               }
+               newopts[j] = '\0';
+
+               Jmsg(jcr, M_INFO, 0,
+                   _("FD compression disabled for this Job because AllowCompress=No in Storage resource.\n") );
+
+               /* Send the new trimmed option set without overwriting fo->opts */
+               fd->fsend("O %s\n", newopts);
+            } else {
+               /* Send the original options */
+               fd->fsend("O %s\n", fo->opts);
             }
 
             for (k=0; k<fo->regex.size(); k++) {

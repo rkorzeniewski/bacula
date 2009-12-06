@@ -222,6 +222,7 @@ static RES_ITEM store_items[] = {
    {"mediatype",   store_strname,  ITEM(res_store.media_type), 0, ITEM_REQUIRED, 0},
    {"autochanger", store_bool,     ITEM(res_store.autochanger), 0, ITEM_DEFAULT, 0},
    {"enabled",     store_bool,     ITEM(res_store.enabled),     0, ITEM_DEFAULT, true},
+   {"allowcompression",  store_bool, ITEM(res_store.AllowCompress), 0, ITEM_DEFAULT, true},
    {"heartbeatinterval", store_time, ITEM(res_store.heartbeat_interval), 0, ITEM_DEFAULT, 0},
    {"maximumconcurrentjobs", store_pint32, ITEM(res_store.MaxConcurrentJobs), 0, ITEM_DEFAULT, 1},
    {"sddport", store_pint32, ITEM(res_store.SDDport), 0, 0, 0}, /* deprecated */
