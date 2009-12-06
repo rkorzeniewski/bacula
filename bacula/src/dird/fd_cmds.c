@@ -370,7 +370,7 @@ static bool send_fileset(JCR *jcr)
             }
 
             /* Strip out compression option Zn if disallowed for this Storage */
-            if (!store->AllowCompress) {
+            if (store && !store->AllowCompress) {
                char newopts[MAX_FOPTS];
                int j = 0;
                for (k=0; fo->opts[k]!='\0'; k++) {                   
