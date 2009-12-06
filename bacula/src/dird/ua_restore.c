@@ -187,26 +187,20 @@ int restore_cmd(UAContext *ua, const char *cmd)
    }
 
    if (rx.bsr->JobId) {
-      uint32_t selected_files;
       char ed1[50];
       if (!complete_bsr(ua, rx.bsr)) {   /* find Vol, SessId, SessTime from JobIds */
          ua->error_msg(_("Unable to construct a valid BSR. Cannot continue.\n"));
          goto bail_out;
       }
-      if (!(selected_files = write_bsr_file(ua, rx))) {
+      if (!(rx.selected_files = write_bsr_file(ua, rx))) {
          ua->warning_msg(_("No files selected to be restored.\n"));
          goto bail_out;
       }
       display_bsr_info(ua, rx);          /* display vols needed, etc */
 
-      /* If no count of files, use bsr generated value (often wrong) */
-      if (rx.selected_files == 0) {
-         rx.selected_files = selected_files;
-      }
       if (rx.selected_files==1) {
          ua->info_msg(_("\n1 file selected to be restored.\n\n"));
-      }
-      else {
+      } else {
          ua->info_msg(_("\n%s files selected to be restored.\n\n"), 
             edit_uint64_with_commas(rx.selected_files, ed1));
       }
