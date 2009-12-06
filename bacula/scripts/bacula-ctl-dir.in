@@ -197,7 +197,6 @@ fi
 case "$1" in
    start)
       [ -x ${BACDIRBIN}/bacula-dir ] && { 
-	  sleep 2
 	  echo "Starting the $Bacula Director daemon"
 	 OPTIONS=''
 	 if [ "${DIR_USER}" != '' ]; then
@@ -213,6 +212,7 @@ case "$1" in
 	 else
 	    ${BACDIRBIN}/bacula-dir $2 $3 ${OPTIONS} -v -c ${BACDIRCFG}/bacula-dir.conf
 	 fi
+	 sleep 1
       }
       ;;
 
