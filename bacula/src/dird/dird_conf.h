@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2008 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2009 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -306,6 +306,7 @@ public:
    bool tls_require;                  /* Require TLS */
    bool enabled;                      /* Set if device is enabled */
    bool  autochanger;                 /* set if autochanger */
+   bool AllowCompress;                /* set if this Storage should allow jobs to enable compression */
    int64_t StorageId;                 /* Set from Storage DB record */
    utime_t heartbeat_interval;        /* Interval to send heartbeats */
    uint32_t drives;                   /* number of drives in autochanger */
