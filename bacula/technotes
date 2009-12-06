@@ -2,6 +2,8 @@
           
 General:
 
+05Dec09
+ebl  Fix #1403 about windows directory attributes not well restored
 03Dec09
 ebl  Remove SQLite2 scripts
 ebl  Apply Arno's patch for check_bacula nagios plugin
