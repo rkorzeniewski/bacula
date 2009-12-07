@@ -108,15 +108,6 @@ sub start_fd
     return `net start bacula-fd`;
 }
 
-# convert \ to / and strip the path
-sub strip_base
-{
-    my ($data, $path) = @_;
-    $data =~ s!\\!/!sg;
-    $data =~ s!\Q$path!!sig;
-    return $data;
-}
-
 # initialize the weird directory for runscript test
 sub init_weird_runscript_test
 {
@@ -131,12 +122,12 @@ sub init_weird_runscript_test
         return "ERR\nCan't access to $source $!\n";
     }
     
-    if (-d "weird_runcript") {
-        system("rmdir /Q /S weird_runcript");
+    if (-d "weird_runscript") {
+        system("rmdir /Q /S weird_runscript");
     }
 
-    mkdir("weird_runcript");
-    if (!chdir("weird_runcript")) {
+    mkdir("weird_runscript");
+    if (!chdir("weird_runscript")) {
         return "ERR\nCan't access to $source $!\n";
     }
    
@@ -244,7 +235,6 @@ sub wanted
     }
 }
 
-# Compare two directories, make checksums, compare attribs and ACLs
 sub set_director_name
 {
     my ($r) = shift;
@@ -285,12 +275,21 @@ sub set_director_name
     return "ERR\n";
 } 
 
+# convert \ to / and strip the path
+sub strip_base
+{
+    my ($data, $path) = @_;
+    $data =~ s!\\!/!sg;
+    $data =~ s!\Q$path!!sig;
+    return $data;
+}
+
 # Compare two directories, make checksums, compare attribs and ACLs
 sub compare
 {
     my ($r) = shift;
 
-    if ($r->url !~ m!^/compare\?source=([\w:/]+);dest=([\w:/]+)$!) {
+    if ($r->url !~ m!^/compare\?source=(\w:/[\w/]+);dest=(\w:/[\w/]+)$!) {
         return "ERR\nIncorrect url\n";
     }
 
@@ -310,7 +309,7 @@ sub compare
     my $dest_attrib = `attrib /D /S`;
     $dest_attrib = strip_base($dest_attrib, $dest);
 
-    if ($src_attrib ne $dest_attrib) {
+    if (lc($src_attrib) ne lc($dest_attrib)) {
         return "ERR\n$src_attrib\n=========\n$dest_attrib\n";
     } 
 
@@ -323,6 +322,29 @@ sub compare
     }
 }
 
+sub cleandir
+{
+    my ($r) = shift;
+
+    if ($r->url !~ m!^/cleandir\?source=(\w:/[\w/]+)/restore$!) {
+        return "ERR\nIncorrect url\n";
+    }
+
+    my $source = $1;
+ 
+    if (! -d "$source/restore") {
+        return "ERR\nIncorrect path\n";
+    }
+
+    if (!chdir($source)) {
+        return "ERR\nCan't access to $source $!\n";
+    }
+
+    system("rmdir /Q /S restore");
+
+    return "OK\n";
+}
+
 # When adding an action, fill this hash with the right function
 my %action_list = (
     stop    => \&stop_fd,
@@ -332,6 +354,7 @@ my %action_list = (
     init_attrib_test => \&init_attrib_test,
     init_weird_runscript_test => \&init_weird_runscript_test,
     set_director_name => \&set_director_name,
+    cleandir => \&cleandir,
     );
 
 # handle client request
@@ -373,17 +396,17 @@ my $d = HTTP::Daemon->new ( LocalPort =>  8091,
 
 my $olddir = Cwd::cwd();
 while (1) {
-    my ($c, $ip) = $d->accept ;
-#    print "Connexion from $ip\n";
-#    if (!$ip) {
-#        $c->send_error(RC_FORBIDDEN) ;
-#    } elsif ($src_ip && $ip ne $src_ip) {
-#        $c->send_error(RC_FORBIDDEN) ;
-#    } elsif ($c) {
+    my $c = $d->accept ;
+    my $ip = $c->peerhost;
+    if (!$ip) {
+        $c->send_error(RC_FORBIDDEN) ;
+    } elsif ($src_ip && $ip ne $src_ip) {
+        $c->send_error(RC_FORBIDDEN) ;
+    } elsif ($c) {
         handle_client($c, $ip) ;
-#    } else {
-#        $c->send_error(RC_FORBIDDEN) ;
-#    }
+    } else {
+        $c->send_error(RC_FORBIDDEN) ;
+    }
     close($c) ;
     chdir($olddir);
 }
