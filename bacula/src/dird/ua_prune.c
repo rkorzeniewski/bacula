@@ -264,8 +264,9 @@ int prune_files(UAContext *ua, CLIENT *client, POOL *pool)
    }
    now = (utime_t)time(NULL);
 
-   edit_utime(now-period, ed1, sizeof(ed1));
-   Jmsg(ua->jcr, M_INFO, 0, _("Begin pruning Jobs older than %s secs.\n"), ed1);
+//   edit_utime(now-period, ed1, sizeof(ed1));
+//   Jmsg(ua->jcr, M_INFO, 0, _("Begin pruning Jobs older than %s secs.\n"), ed1);
+   Jmsg(ua->jcr, M_INFO, 0, _("Begin pruning Jobs.\n"));
    /* Select Jobs -- for counting */ 
    edit_int64(now - period, ed1);
    Mmsg(query, count_select_job, ed1, edit_int64(cr.ClientId, ed2));
