@@ -14,13 +14,20 @@
 
 =head2 USAGE
 
-    X:\> regress-win32.pl [basedir]
-     or
-    X:\> perl regress-win32.pl [basedir]
+  X:\> regress-win32.pl [-b basedir] [-i ip_address] [-p c:/bacula]
+   or
+  X:\> perl regress-win32.pl ...
+
+    -b|--base=path      Where to find regress and bacula directories
+    -i|--ip=ip          Restrict access to this tool to this ip address
+    -p|--prefix=path    Path to the windows installation
+    -h|--help           Print this help
 
 =head2 EXAMPLE
 
-    regress-win32.pl z:/git         # will find z:/git/regress z:/git/bacula
+    regress-win32.pl -b z:/git         # will find z:/git/regress z:/git/bacula
+
+    regress-win32.pl -i 192.168.0.1 -b z:
 
 =head2 INSTALL
 
@@ -44,8 +51,35 @@ use Pod::Usage;
 use Cwd 'chdir';
 use File::Find;
 use Digest::MD5;
+use Getopt::Long ;
 
-my $base = shift || 'x:';
+my $base = 'x:';
+my $src_ip = '';
+my $help;
+my $bacula_prefix="c:/Program Files/Bacula";
+my $conf = "C:/Documents and Settings/All Users/Application Data/Bacula";
+GetOptions("base=s"   => \$base,
+           "help"     => \$help,
+           "prefix=s" => \$bacula_prefix,
+           "ip=s"     => \$src_ip);
+
+if ($help) {
+    pod2usage(-verbose => 2, 
+              -exitval => 0);
+}
+
+if (! -d $bacula_prefix) {
+    print "Could not find Bacula installation dir $bacula_prefix\n";
+    print "Won't be able to upgrade the version or modify the configuration\n";
+}
+
+if (-f "$bacula_prefix/bacula-fd.conf" and -f "$conf/bacula-fd.conf") {
+    print "Unable to determine bacula-fd location $bacula_prefix or $conf ?\n";
+
+} elsif (-f "$bacula_prefix/bacula-fd.conf") {
+    $conf = $bacula_prefix;
+}
+
 #if (! -d "$base/bacula" || ! -d "$base/regress") {
 #    pod2usage(-verbose => 2, 
 #              -exitval => 1,
@@ -88,13 +122,13 @@ sub init_weird_runscript_test
 {
     my ($r) = shift;
 
-    if ($r->url !~ m!^/init_weird_runscript_test\?source=([\w+:/]+)$!) {
-        return "Incorrect url\n";
+    if ($r->url !~ m!^/init_weird_runscript_test\?source=(\w:/[\w/]+)$!) {
+        return "ERR\nIncorrect url\n";
     }
     my $source = $1;
 
     if (!chdir($source)) {
-        return "Can't access to $source $!\n";
+        return "ERR\nCan't access to $source $!\n";
     }
     
     if (-d "weird_runcript") {
@@ -103,32 +137,32 @@ sub init_weird_runscript_test
 
     mkdir("weird_runcript");
     if (!chdir("weird_runcript")) {
-        return "Can't access to $source $!\n";
+        return "ERR\nCan't access to $source $!\n";
     }
    
-    open(FP, ">test.bat")                 or return "ERROR\n";
+    open(FP, ">test.bat")                 or return "ERR\n";
     print FP "\@echo off\n";
     print FP "echo hello \%1\n";
     close(FP);
     
-    copy("test.bat", "test space.bat")    or return "ERROR\n";
-    copy("test.bat", "test2 space.bat")   or return "ERROR\n";
-    copy("test.bat", "testé.bat")         or return "ERROR\n";
+    copy("test.bat", "test space.bat")    or return "ERR\n";
+    copy("test.bat", "test2 space.bat")   or return "ERR\n";
+    copy("test.bat", "testé.bat")         or return "ERR\n";
 
-    mkdir("dir space")                    or return "ERROR\n";
-    copy("test.bat", "dir space")         or return "ERROR\n";
-    copy("testé.bat","dir space")         or return "ERROR\n"; 
-    copy("test2 space.bat", "dir space")  or return "ERROR\n";
+    mkdir("dir space")                    or return "ERR\n";
+    copy("test.bat", "dir space")         or return "ERR\n";
+    copy("testé.bat","dir space")         or return "ERR\n"; 
+    copy("test2 space.bat", "dir space")  or return "ERR\n";
 
-    mkdir("Évoilà")                       or return "ERROR\n";
-    copy("test.bat", "Évoilà")            or return "ERROR\n";
-    copy("testé.bat","Évoilà")            or return "ERROR\n"; 
-    copy("test2 space.bat", "Évoilà")     or return "ERROR\n";
+    mkdir("Évoilà")                       or return "ERR\n";
+    copy("test.bat", "Évoilà")            or return "ERR\n";
+    copy("testé.bat","Évoilà")            or return "ERR\n"; 
+    copy("test2 space.bat", "Évoilà")     or return "ERR\n";
 
-    mkdir("Éwith space")                  or return "ERROR\n";
-    copy("test.bat", "Éwith space")       or return "ERROR\n";
-    copy("testé.bat","Éwith space")       or return "ERROR\n"; 
-    copy("test2 space.bat", "Éwith space") or return "ERROR\n";
+    mkdir("Éwith space")                  or return "ERR\n";
+    copy("test.bat", "Éwith space")       or return "ERR\n";
+    copy("testé.bat","Éwith space")       or return "ERR\n"; 
+    copy("test2 space.bat", "Éwith space") or return "ERR\n";
     return "OK\n";
 }
 
@@ -137,14 +171,14 @@ sub init_attrib_test
 {
     my ($r) = shift;
 
-    if ($r->url !~ m!^/init_attrib_test\?source=([\w+:/]+)$!) {
-        return "Incorrect url\n";
+    if ($r->url !~ m!^/init_attrib_test\?source=(\w:/[\w/]+)$!) {
+        return "ERR\nIncorrect url\n";
     }
   
     my $source = $1;
  
     if (!chdir($source)) {
-        return "Can't access to $source $!\n";
+        return "ERR\nCan't access to $source $!\n";
     }
 
     # cleanup the old directory if any
@@ -189,6 +223,7 @@ sub md5sum
     return Digest::MD5->new->addfile(*FILE)->hexdigest;
 }
 
+# set $src and $dst before using Find call
 my ($src, $dst);
 my $error="";
 sub wanted
@@ -210,25 +245,66 @@ sub wanted
 }
 
 # Compare two directories, make checksums, compare attribs and ACLs
+sub set_director_name
+{
+    my ($r) = shift;
+
+    if ($r->url !~ m!^/set_director_name\?name=([\w\d\.\-]+);pass=([\w\d+]+)$!)
+    {
+        return "ERR\nIncorrect url\n";
+    }
+
+    my ($name, $pass) = ($1, $2);
+
+    open(ORG, "$conf/bacula-fd.conf") or return "ERR\nORG $!\n";
+    open(NEW, ">$conf/bacula-fd.conf.new") or return "ERR\nNEW $!\n";
+    
+    my $in_dir=0;
+    while (my $l = <ORG>)
+    {
+        if ($l =~ /^\s*Director\s+{/i) {
+            print NEW $l; 
+            $in_dir = 1;
+        } elsif ($l =~ /^(\s*)Name\s*=/ and $in_dir) {
+            print NEW "${1}Name=$name\n";
+        } elsif ($l =~ /^(\s*)Password\s*=/ and $in_dir) {
+            print NEW "${1}Password=$pass\n";
+        } elsif ($l =~ /\s*}/ and $in_dir) {
+            print NEW $l; 
+            $in_dir = 0;
+        } elsif (!$in_dir) {
+            print NEW $l;
+        }
+    }
+
+    close(ORG);
+    close(NEW);
+    move("$conf/bacula-fd.conf.new", "$conf/bacula-fd.conf")
+        and return "OK\n";
+
+    return "ERR\n";
+} 
+
+# Compare two directories, make checksums, compare attribs and ACLs
 sub compare
 {
     my ($r) = shift;
 
-    if ($r->url !~ m!^/compare\?source=([\w+:/]+);dest=([\w+:/]+)$!) {
-        return "Incorrect url\n";
+    if ($r->url !~ m!^/compare\?source=([\w:/]+);dest=([\w:/]+)$!) {
+        return "ERR\nIncorrect url\n";
     }
 
     my ($source, $dest) = ($1, $2);
     
     if (!Cwd::chdir($source)) {
-        return "Can't access to $source $!\n";
+        return "ERR\nCan't access to $source $!\n";
     }
     
     my $src_attrib = `attrib /D /S`;
     $src_attrib = strip_base($src_attrib, $source);
 
     if (!Cwd::chdir($dest)) {
-        return "Can't access to $dest $!\n";
+        return "ERR\nCan't access to $dest $!\n";
     }
     
     my $dest_attrib = `attrib /D /S`;
@@ -255,6 +331,7 @@ my %action_list = (
     compare => \&compare,
     init_attrib_test => \&init_attrib_test,
     init_weird_runscript_test => \&init_weird_runscript_test,
+    set_director_name => \&set_director_name,
     );
 
 # handle client request
@@ -296,10 +373,17 @@ my $d = HTTP::Daemon->new ( LocalPort =>  8091,
 
 my $olddir = Cwd::cwd();
 while (1) {
-    chdir($olddir);
     my ($c, $ip) = $d->accept ;
-    if ($c and $ip) {
+#    print "Connexion from $ip\n";
+#    if (!$ip) {
+#        $c->send_error(RC_FORBIDDEN) ;
+#    } elsif ($src_ip && $ip ne $src_ip) {
+#        $c->send_error(RC_FORBIDDEN) ;
+#    } elsif ($c) {
         handle_client($c, $ip) ;
-    }
+#    } else {
+#        $c->send_error(RC_FORBIDDEN) ;
+#    }
     close($c) ;
+    chdir($olddir);
 }
