@@ -96,6 +96,8 @@ int file_delete_handler(void *ctx, int num_fields, char **row)
          del->max_ids);
    }
    del->JobId[del->num_ids++] = (JobId_t)str_to_int64(row[0]);
+   /* **FIXME*** remove in production */
+   sm_check(__FILE__, __LINE__, true);
 // Dmsg2(150, "row=%d val=%d\n", del->num_ids-1, del->JobId[del->num_ids-1]);
    return 0;
 }
@@ -305,8 +307,12 @@ int prune_files(UAContext *ua, CLIENT *client, POOL *pool)
 
 bail_out:
    db_unlock(ua->db);
+   /* ***FIXME*** remove this for production */
+   sm_check(__FILE__, __LINE__, true);
    if (del.JobId) {
       free(del.JobId);
+      /* ***FIXME*** remove this for production */
+      sm_check(__FILE__, __LINE__, true);
    }
    return 1;
 }
