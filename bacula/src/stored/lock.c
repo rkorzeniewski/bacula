@@ -55,12 +55,14 @@ const int dbglvl = 500;
  *  2. dlock()   simple mutex that locks the device structure. A dlock
  *               can be acquired while a device is blocked if it is not
  *               locked.      
- *  3. r_dlock   "recursive" dlock, when means that a dlock (mutex)
+ *  3. r_dlock(locked)  "recursive" dlock, when means that a dlock (mutex)
  *               will be acquired on the device if it is not blocked
  *               by some other thread. If the device was blocked by
  *               the current thread, it will acquire the lock.
  *               If some other thread has set a block on the device,
  *               this call will wait until the device is unblocked.
+ *               Can be called with locked true, which means the
+ *               dlock is already set
  *
  *  A lock is normally set when modifying the device structure.
  *  A r_lock is normally acquired when you want to block the device
@@ -88,9 +90,10 @@ const int dbglvl = 500;
  *   DEVICE::dlock()   does P(m_mutex)     (in dev.h)
  *   DEVICE::dunlock() does V(m_mutex)
  *
- *   DEVICE::r_dlock() allows locking the device when this thread
-                         already has the device blocked.
- *                    dlock()
+ *   DEVICE::r_dlock(locked) allows locking the device when this thread
+ *                     already has the device blocked.
+ *                    if (!locked)
+ *                       dlock()
  *                    if blocked and not same thread that locked
  *                       pthread_cond_wait
  *                    leaves device locked 

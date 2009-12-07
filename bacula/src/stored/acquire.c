@@ -511,7 +511,6 @@ bool release_device(DCR *dcr)
    unlock_volumes();
    Dmsg3(100, "%d writers, %d reserve, dev=%s\n", dev->num_writers, dev->num_reserved(),
          dev->print_name());
-   debug_list_volumes("acquire:release_device()");
 
 
    /* If no writers, close if file or !CAP_ALWAYS_OPEN */

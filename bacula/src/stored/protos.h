@@ -278,7 +278,6 @@ void    create_volume_lists();
 void    free_volume_lists();
 void    list_volumes(void sendit(const char *msg, int len, void *sarg), void *arg);
 bool    is_volume_in_use(DCR *dcr);
-void    debug_list_volumes(const char *imsg);
 extern  int vol_list_lock_count;
 void    add_read_volume(JCR *jcr, const char *VolumeName);
 void    remove_read_volume(JCR *jcr, const char *VolumeName);

@@ -49,6 +49,7 @@ static pthread_mutex_t read_vol_lock = PTHREAD_MUTEX_INITIALIZER;
 /* Forward referenced functions */
 static void free_vol_item(VOLRES *vol);
 static VOLRES *new_vol_item(DCR *dcr, const char *VolumeName);
+static void debug_list_volumes(const char *imsg);
 
 /*
  * For append volumes the key is the VolumeName.
@@ -195,7 +196,7 @@ enum {
    debug_nolock = false
 };
 
-void debug_list_volumes(const char *imsg)
+static void debug_list_volumes(const char *imsg)
 {
    VOLRES *vol;
    POOL_MEM msg(PM_MESSAGE);
