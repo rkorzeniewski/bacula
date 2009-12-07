@@ -36,6 +36,42 @@ Job {
   SpoolData = yes
 }
 
+Job {
+  Name = "AccurateJob"
+  Type = Backup
+  Client = @win32_client@
+  FileSet = "Full Set"
+  Storage = File
+  Messages = Standard
+  Pool = Default
+  Accurate = yes
+  Write Bootstrap = "@working_dir@/NightlySave.bsr"
+  Maximum Concurrent Jobs = 4
+  SpoolData = yes
+}
+
+Job {
+  Name = "RunScript"
+  Type = Backup
+  Client = @win32_client@
+  FileSet = "Full Set"
+  Storage = File
+  Messages = Standard
+  Pool = Default
+  Write Bootstrap = "@working_dir@/NightlySave.bsr"
+  Maximum Concurrent Jobs = 4
+  SpoolData = yes
+
+  RunScript {
+   Command = "c:\\tmp\\weird_runscript\\test.bat"       # ok  | ok  | ok
+   Command = "c:/tmp/weird_runscript/test.bat"          # ok  | ok  | ok
+   Command = "c:/tmp/weird_runscript/testé.bat"         # ok  | ok  | ok
+   Command = "c:\\tmp\\weird_runscript\\testé.bat"      # ok  | ok  | ok
+   Command = "\"c:\\tmp\\weird_runscript\\test space.bat\"" # ok  | ok  | ok
+   RunsWhen = AfterVSS
+   FailJobOnError = no
+ }    
+}
 
 # Standard Restore template, to be changed by Console program
 Job {
