@@ -2,6 +2,9 @@
           
 General:
 
+08Dec09
+ebl  Fix bug #1431 about bad reload command.
+     Still an object to free in this case.
 06Dec09
 kes  Fix seg fault in new AllowCompression code
 kes  Add AllowCompression feature that turns off compression in Storage
