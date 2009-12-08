@@ -46,6 +46,7 @@ typedef struct s_rwlock_tag {
    pthread_cond_t    read;            /* wait for read */
    pthread_cond_t    write;           /* wait for write */
    pthread_t         writer_id;       /* writer's thread id */
+   int               priority;        /* used in deadlock detection */
    int               valid;           /* set when valid */
    int               r_active;        /* readers active */
    int               w_active;        /* writers active */
@@ -68,7 +69,7 @@ typedef struct s_rwsteal_tag {
 /*
  * read/write lock prototypes
  */
-extern int rwl_init(brwlock_t *wrlock);
+extern int rwl_init(brwlock_t *wrlock, int priority=0);
 extern int rwl_destroy(brwlock_t *rwlock);
 extern int rwl_readlock(brwlock_t *rwlock);
 extern int rwl_readtrylock(brwlock_t *rwlock);
