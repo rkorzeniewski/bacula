@@ -105,7 +105,6 @@ char *bstrncpy(char *dest, POOL_MEM &src, int maxlen)
    return dest;
 }
 
-
 char *bstrncat(char *dest, const char *src, int maxlen)
 {
    int len = strlen(dest);
@@ -116,9 +115,13 @@ char *bstrncat(char *dest, const char *src, int maxlen)
    return dest;
 }
 
+/*
+ * Note: Here the maxlen is the maximum length permitted
+ *  stored in dest, while on Unix systems, it is the maximum characters
+ *  that may be copied from src.
+ */
 char *bstrncat(char *dest, POOL_MEM &src, int maxlen)
 {
-
    int len = strlen(dest);
    if (len < maxlen-1) {
       strncpy(dest+len, src.c_str(), maxlen-len-1);
