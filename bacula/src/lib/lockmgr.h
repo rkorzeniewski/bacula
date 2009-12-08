@@ -106,6 +106,10 @@ int bthread_mutex_init(bthread_mutex_t *m, const pthread_mutexattr_t *attr);
 int bthread_mutex_destroy(bthread_mutex_t *m);
 void bthread_mutex_set_priority(bthread_mutex_t *m, int prio);
 
+/* init/destroy for real pthread_mutex_t object */
+int bthread_mutex_init(pthread_mutex_t *m, const pthread_mutexattr_t *attr);
+int bthread_mutex_destroy(pthread_mutex_t *m);
+
 /*
  * Each thread have to call this function to put a lmgr_thread_t object
  * in the stack and be able to call mutex_lock/unlock
@@ -174,6 +178,8 @@ int lmgr_thread_create(pthread_t *thread,
 # define pthread_mutex_unlock(x)         bthread_mutex_unlock(x)
 # define pthread_cond_wait(x,y)          bthread_cond_wait(x,y)
 # define pthread_cond_timedwait(x,y,z)   bthread_cond_timedwait(x,y,z)
+# define pthread_mutex_init(x,y)         bthread_mutex_init(x,y)
+# define pthread_mutex_destroy(x)        bthread_mutex_destroy(x)
 #endif
 
 #else   /* _USE_LOCKMGR */

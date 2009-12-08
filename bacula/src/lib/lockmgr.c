@@ -26,6 +26,33 @@
    Switzerland, email:ftf@fsfeurope.org.
 */
 
+/*
+  How to use mutex with bad order usage detection
+ ------------------------------------------------
+
+ Instead of using:
+    pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+    P(mutex);
+    ..
+    V(mutex);
+
+ use:
+    bthread_mutex_t mutex = BTHREAD_MUTEX_PRIORITY_1;
+    P(mutex);
+    ...
+    V(mutex);
+
+ Mutex that doesn't need this extra check can be declared as pthread_mutex_t.
+ You can use this object on pthread_mutex_lock/unlock/cond_wait/cond_timewait.
+ 
+ With dynamic creation, you can use:
+    bthread_mutex_t mutex;
+    pthread_mutex_init(&mutex);     // you can also use bthread_mutex_init()
+    bthread_mutex_set_priority(&mutex, 10);
+    pthread_mutex_destroy(&mutex);
+ 
+ */
+
 #define _LOCKMGR_COMPLIANT
 #include "bacula.h"
 
@@ -674,6 +701,23 @@ int bthread_mutex_destroy(bthread_mutex_t *m)
 {
    return pthread_mutex_destroy(&m->mutex);
 }
+
+/*
+ * Replacement for pthread_mutex_init() for pthread_mutex_t
+ */
+int bthread_mutex_init(pthread_mutex_t *m, const pthread_mutexattr_t *attr)
+{
+   return pthread_mutex_init(m, attr);
+}
+
+/*
+ * Replacement for pthread_mutex_destroy() for pthread_mutex_t
+ */
+int bthread_mutex_destroy(pthread_mutex_t *m)
+{
+   return pthread_mutex_destroy(m);
+}
+
 
 /*
  * Replacement for pthread_mutex_lock()
