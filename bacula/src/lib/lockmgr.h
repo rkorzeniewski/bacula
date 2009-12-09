@@ -29,6 +29,8 @@
 #ifndef _LOCKMGR_H
 #define _LOCKMGR_H 1
 
+#include "mutex_list.h"     /* Manage mutex with priority in a central place */
+
 /*
  * P and V op that don't use the lock manager (for memory allocation or on
  * win32)
@@ -203,13 +205,7 @@ int lmgr_thread_create(pthread_t *thread,
 # define V(x) lmgr_v(&(x))
 # define BTHREAD_MUTEX_PRIORITY(p)      PTHREAD_MUTEX_INITIALIZER
 # define BTHREAD_MUTEX_NO_PRIORITY      PTHREAD_MUTEX_INITIALIZER
-# define BTHREAD_MUTEX_PRIORITY_1       PTHREAD_MUTEX_INITIALIZER
-# define BTHREAD_MUTEX_PRIORITY_2       PTHREAD_MUTEX_INITIALIZER
-# define BTHREAD_MUTEX_PRIORITY_3       PTHREAD_MUTEX_INITIALIZER
-# define BTHREAD_MUTEX_PRIORITY_4       PTHREAD_MUTEX_INITIALIZER
 # define BTHREAD_MUTEX_INITIALIZER      PTHREAD_MUTEX_INITIALIZER
 #endif  /* _USE_LOCKMGR */
-
-#include "mutex_list.h"     /* Manage mutex with priority in a central place */
 
 #endif  /* _LOCKMGR_H */
