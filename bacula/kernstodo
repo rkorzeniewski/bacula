@@ -37,6 +37,9 @@ Document:
  
 Priority:
 ================
+- Implement rwlock() for SD that takes why and can_steal to replace
+  existing block/lock mechanism. rlock() would allow multiple readers
+  wlock would allow only one writer.
 - For Windows disaster recovery see http://unattended.sf.net/
 - Add "before=" "olderthan=" to FileSet for doing Base of
   unchanged files.
@@ -1432,4 +1435,3 @@ Need:
 - Implement unmount of USB volumes.
 - Look into using Dart for testing
   http://public.kitware.com/Dart/HTML/Index.shtml
-
