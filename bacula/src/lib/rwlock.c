@@ -49,12 +49,13 @@
  *  Returns: 0 on success
  *           errno on failure
  */
-int rwl_init(brwlock_t *rwl)
+int rwl_init(brwlock_t *rwl, int prio)
 {
    int stat;
 
    rwl->r_active = rwl->w_active = 0;
    rwl->r_wait = rwl->w_wait = 0;
+   rwl->priority = prio;
    if ((stat = pthread_mutex_init(&rwl->mutex, NULL)) != 0) {
       return stat;
    }
@@ -233,7 +234,7 @@ int rwl_writelock(brwlock_t *rwl)
       pthread_mutex_unlock(&rwl->mutex);
       return 0;
    }
-   lmgr_pre_lock(rwl, __FILE__, __LINE__);
+   lmgr_pre_lock(rwl, rwl->priority, __FILE__, __LINE__);
    if (rwl->w_active || rwl->r_active > 0) {
       rwl->w_wait++;                  /* indicate that we are waiting */
       pthread_cleanup_push(rwl_write_release, (void *)rwl);
@@ -278,7 +279,7 @@ int rwl_writetrylock(brwlock_t *rwl)
    } else {
       rwl->w_active = 1;              /* we are running */
       rwl->writer_id = pthread_self(); /* save writer thread's id */
-      lmgr_do_lock(rwl, __FILE__, __LINE__);
+      lmgr_do_lock(rwl, rwl->priority, __FILE__, __LINE__);
    }
    stat2 = pthread_mutex_unlock(&rwl->mutex);
    return (stat == 0 ? stat2 : stat);

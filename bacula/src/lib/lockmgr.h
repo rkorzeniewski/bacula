@@ -29,8 +29,6 @@
 #ifndef _LOCKMGR_H
 #define _LOCKMGR_H 1
 
-#include "bacula.h"
-
 /*
  * P and V op that don't use the lock manager (for memory allocation or on
  * win32)
@@ -40,39 +38,77 @@ void lmgr_v(pthread_mutex_t *m);
 
 #ifdef _USE_LOCKMGR
 
+typedef struct bthread_mutex_t
+{
+   pthread_mutex_t mutex;
+   int priority;
+} bthread_mutex_t;
+
 /* 
  * We decide that a thread won't lock more than LMGR_MAX_LOCK at the same time
  */
 #define LMGR_MAX_LOCK 32
 
-/* Not yet working */
-int lmgr_cond_wait(pthread_cond_t *cond,
-                   pthread_mutex_t *mutex,
-                   const char *file="*unknown*", int line=0);
+int bthread_cond_wait_p(pthread_cond_t *cond,
+                        bthread_mutex_t *mutex,
+                        const char *file="*unknown*", int line=0);
+
+int bthread_cond_timedwait_p(pthread_cond_t *cond,
+                             bthread_mutex_t *mutex,
+                             const struct timespec * abstime,
+                             const char *file="*unknown*", int line=0);
+
+/* Same with real pthread_mutex_t */
+int bthread_cond_wait_p(pthread_cond_t *cond,
+                        pthread_mutex_t *mutex,
+                        const char *file="*unknown*", int line=0);
+
+int bthread_cond_timedwait_p(pthread_cond_t *cond,
+                             pthread_mutex_t *mutex,
+                             const struct timespec * abstime,
+                             const char *file="*unknown*", int line=0);
+
+/* Replacement of pthread_mutex_lock()  but with real pthread_mutex_t */
+int bthread_mutex_lock_p(pthread_mutex_t *m, 
+                         const char *file="*unknown*", int line=0);
+
+/* Replacement for pthread_mutex_unlock() but with real pthread_mutex_t */
+int bthread_mutex_unlock_p(pthread_mutex_t *m,
+                           const char *file="*unknown*", int line=0);
 
 /* Replacement of pthread_mutex_lock() */
-int lmgr_mutex_lock(pthread_mutex_t *m, 
-                    const char *file="*unknown*", int line=0);
+int bthread_mutex_lock_p(bthread_mutex_t *m, 
+                         const char *file="*unknown*", int line=0);
 
 /* Replacement of pthread_mutex_unlock() */
-int lmgr_mutex_unlock(pthread_mutex_t *m, 
-                      const char *file="*unknown*", int line=0);
+int bthread_mutex_unlock_p(bthread_mutex_t *m, 
+                           const char *file="*unknown*", int line=0);
 
 /* 
  * Use them when you want use your lock yourself (ie rwlock)
  */
 
 /* Call before requesting the lock */
-void lmgr_pre_lock(void *m, const char *file="*unknown*", int line=0);
+void lmgr_pre_lock(void *m, int prio=0,
+                   const char *file="*unknown*", int line=0);
 
 /* Call after getting it */ 
 void lmgr_post_lock();
 
 /* Same as pre+post lock */
-void lmgr_do_lock(void *m, const char *file="*unknown*", int line=0);
+void lmgr_do_lock(void *m, int prio=0, 
+                  const char *file="*unknown*", int line=0);
 
 /* Call just before releasing the lock */
 void lmgr_do_unlock(void *m); 
+
+int bthread_mutex_init(bthread_mutex_t *m, const pthread_mutexattr_t *attr);
+int bthread_mutex_destroy(bthread_mutex_t *m);
+void bthread_mutex_set_priority(bthread_mutex_t *m, int prio);
+
+/* init/destroy for real pthread_mutex_t object */
+int bthread_mutex_init(pthread_mutex_t *m, const pthread_mutexattr_t *attr);
+int bthread_mutex_destroy(pthread_mutex_t *m);
 
 /*
  * Each thread have to call this function to put a lmgr_thread_t object
@@ -120,16 +156,30 @@ int lmgr_thread_create(pthread_t *thread,
  * Define _LOCKMGR_COMPLIANT to use real pthread functions
  */
 
+#define BTHREAD_MUTEX_NO_PRIORITY     {PTHREAD_MUTEX_INITIALIZER, 0}
+#define BTHREAD_MUTEX_PRIORITY_1      {PTHREAD_MUTEX_INITIALIZER, 1}
+#define BTHREAD_MUTEX_PRIORITY_2      {PTHREAD_MUTEX_INITIALIZER, 2}
+#define BTHREAD_MUTEX_PRIORITY_3      {PTHREAD_MUTEX_INITIALIZER, 3}
+#define BTHREAD_MUTEX_PRIORITY_4      {PTHREAD_MUTEX_INITIALIZER, 4}
+#define BTHREAD_MUTEX_INITIALIZER     BTHREAD_MUTEX_NO_PRIORITY
+#define bthread_mutex_lock(x)      bthread_mutex_lock_p(x, __FILE__, __LINE__)
+#define bthread_mutex_unlock(x)    bthread_mutex_unlock_p
+#define bthread_cond_wait(x,y)     bthread_cond_wait_p(x,y, __FILE__, __LINE__)
+#define bthread_cond_timedwait(x,y,z) bthread_cond_timedwait_p(x,y,z, __FILE__, __LINE__)
+
 #ifdef _LOCKMGR_COMPLIANT
 # define P(x) lmgr_p(&(x))
 # define V(x) lmgr_v(&(x))
 #else
-# define P(x) lmgr_mutex_lock(&(x), __FILE__, __LINE__)
-# define V(x) lmgr_mutex_unlock(&(x), __FILE__, __LINE__)
-# define pthread_mutex_lock(x)       lmgr_mutex_lock(x, __FILE__, __LINE__)
-# define pthread_mutex_unlock(x)     lmgr_mutex_unlock(x, __FILE__, __LINE__)
-# define pthread_cond_wait(x,y)      lmgr_cond_wait(x,y, __FILE__, __LINE__)
-# define pthread_create(a, b, c, d)  lmgr_thread_create(a,b,c,d)
+# define P(x)                   bthread_mutex_lock_p(&(x), __FILE__, __LINE__)
+# define V(x)                   bthread_mutex_unlock_p(&(x), __FILE__, __LINE__)
+# define pthread_create(a, b, c, d)      lmgr_thread_create(a,b,c,d)
+# define pthread_mutex_lock(x)           bthread_mutex_lock(x)
+# define pthread_mutex_unlock(x)         bthread_mutex_unlock(x)
+# define pthread_cond_wait(x,y)          bthread_cond_wait(x,y)
+# define pthread_cond_timedwait(x,y,z)   bthread_cond_timedwait(x,y,z)
+# define pthread_mutex_init(x,y)         bthread_mutex_init(x,y)
+# define pthread_mutex_destroy(x)        bthread_mutex_destroy(x)
 #endif
 
 #else   /* _USE_LOCKMGR */
@@ -143,9 +193,22 @@ int lmgr_thread_create(pthread_t *thread,
 # define lmgr_do_lock(m, f, l)
 # define lmgr_do_unlock(m)
 # define lmgr_cleanup_main()
+# define bthread_mutex_set_priority(a)
+# define bthread_mutex_init(a,b)     pthread_mutex_init(a,b)
+# define bthread_mutex_destroy(a)    pthread_mutex_destroy(a)
+# define bthread_mutex_lock(a)       pthread_mutex_lock(a)
+# define bthread_mutex_unlock(a)     pthread_mutex_unlock(a)
+# define lmgr_cond_wait(a,b)         pthread_cond_wait(a,b)
+# define lmgr_cond_timedwait(a,b,c)  pthread_cond_timedwait(a,b,c)
+# define bthread_mutex_t             pthread_mutex_t
 # define P(x) lmgr_p(&(x))
 # define V(x) lmgr_v(&(x))
-
+# define BTHREAD_MUTEX_NO_PRIORITY  PTHREAD_MUTEX_INITIALIZER
+# define BTHREAD_MUTEX_PRIORITY_1   PTHREAD_MUTEX_INITIALIZER
+# define BTHREAD_MUTEX_PRIORITY_2   PTHREAD_MUTEX_INITIALIZER
+# define BTHREAD_MUTEX_PRIORITY_3   PTHREAD_MUTEX_INITIALIZER
+# define BTHREAD_MUTEX_PRIORITY_4   PTHREAD_MUTEX_INITIALIZER
+# define BTHREAD_MUTEX_INITIALIZER  PTHREAD_MUTEX_INITIALIZER
 #endif  /* _USE_LOCKMGR */
 
 #endif  /* _LOCKMGR_H */
