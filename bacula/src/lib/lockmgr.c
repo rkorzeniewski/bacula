@@ -37,7 +37,7 @@
     V(mutex);
 
  use:
-    bthread_mutex_t mutex = BTHREAD_MUTEX_PRIORITY_1;
+    bthread_mutex_t mutex = BTHREAD_MUTEX_PRIORITY(1);
     P(mutex);
     ...
     V(mutex);
@@ -283,9 +283,10 @@ public:
       fprintf(fp, "threadid=%p max=%i current=%i\n", 
               (void *)thread_id, max, current);
       for(int i=0; i<=current; i++) {
-         fprintf(fp, "   lock=%p state=%s %s:%i\n", 
+         fprintf(fp, "   lock=%p state=%s priority=%i %s:%i\n", 
                  lock_list[i].lock, 
                  (lock_list[i].state=='W')?"Wanted ":"Granted",
+                 lock_list[i].priority,
                  lock_list[i].file, lock_list[i].line);
       } 
    }
@@ -302,10 +303,11 @@ public:
     * Call before a lock operation (mark mutex as WANTED)
     */
    virtual void pre_P(void *m, int priority, 
-                      const char *f="*unknown*", int l=0) {
+                      const char *f="*unknown*", int l=0) 
+   {
+      int max_prio = max_priority;
       ASSERT_p(current < LMGR_MAX_LOCK, f, l);
       ASSERT_p(current >= -1, f, l);
-      ASSERT_p(!priority || priority >= max_priority, f, l);
       lmgr_p(&mutex);
       {
          current++;
@@ -319,6 +321,7 @@ public:
          max_priority = MAX(priority, max_priority);
       }
       lmgr_v(&mutex);
+      ASSERT_p(!priority || priority >= max_prio, f, l);
    }
 
    /*
