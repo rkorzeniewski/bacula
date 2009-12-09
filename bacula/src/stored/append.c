@@ -314,7 +314,7 @@ bool do_append_data(JCR *jcr)
    if (!ok) {
       discard_data_spool(dcr);
    } else {
-      /* Note: if commit is OK, the device will remain locked */
+      /* Note: if commit is OK, the device will remain blocked */
       commit_data_spool(dcr);
    }
 

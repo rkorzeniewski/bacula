@@ -310,6 +310,9 @@ no_lock_bail_out:
  * This routine is meant to be called once the first pass
  *   to ensure that we have a candidate volume to mount.
  *   Otherwise, we ask the sysop to created one.
+ * Note, the the Volumes are locked on entry.
+ *   They are unlocked on failure and remain locked on
+ *   success.  The caller must know this!!!
  */
 bool DCR::find_a_volume()  
 {
