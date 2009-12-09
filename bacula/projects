@@ -10,8 +10,8 @@ Summary:
 *Item  2: 'restore' menu: enter a JobId, automatically select dependents
  Item  3: Scheduling syntax that permits more flexibility and options
  Item  4: Data encryption on storage daemon
- Item  5: Deletion of disk Volumes when pruned
- Item  6: Implement Base jobs
+*Item  5: Deletion of disk Volumes when pruned (partial -- truncate when pruned)
+*Item  6: Implement Base jobs
  Item  7: Add ability to Verify any specified Job.
  Item  8: Improve Bacula's tape and drive usage and cleaning management
  Item  9: Allow FD to initiate a backup
@@ -40,7 +40,7 @@ Summary:
  Item 32: Ability to defer Batch Insert to a later time
  Item 33: Add MaxVolumeSize/MaxVolumeBytes statement to Storage resource
  Item 34: Enable persistent naming/number of SQL queries
- Item 35: Port bat to Win32
+*Item 35: Port bat to Win32
  Item 36: Bacula Dir, FD and SD to support proxies
  Item 37: Add Minumum Spool Size directive
  Item 38: Backup and Restore of Windows Encrypted Files using Win raw encryption
