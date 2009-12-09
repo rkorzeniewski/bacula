@@ -157,9 +157,10 @@ int lmgr_thread_create(pthread_t *thread,
 
 /* Define USE_LOCKMGR_PRIORITY to detect mutex wrong order */
 #ifdef USE_LOCKMGR_PRIORITY
-# define BTHREAD_MUTEX_PRIORITY(p)      {PTHREAD_MUTEX_INITIALIZER, p}
+# define BTHREAD_MUTEX_PRIORITY(p)       {PTHREAD_MUTEX_INITIALIZER, p}
 #else
-# define BTHREAD_MUTEX_PRIORITY(p)      BTHREAD_MUTEX_NO_PRIORITY
+# define BTHREAD_MUTEX_PRIORITY(p)       BTHREAD_MUTEX_NO_PRIORITY
+# define bthread_mutex_set_priority(x,y)
 #endif
 
 #define bthread_mutex_lock(x)      bthread_mutex_lock_p(x, __FILE__, __LINE__)
