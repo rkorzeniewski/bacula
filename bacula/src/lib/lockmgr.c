@@ -910,10 +910,7 @@ void dbg_print_lock(FILE *fp)
 
 #include "lockmgr.h"
 #define BTHREAD_MUTEX_NO_PRIORITY      {PTHREAD_MUTEX_INITIALIZER, 0}
-#define BTHREAD_MUTEX_PRIORITY_1       {PTHREAD_MUTEX_INITIALIZER, 1}
-#define BTHREAD_MUTEX_PRIORITY_2       {PTHREAD_MUTEX_INITIALIZER, 2}
-#define BTHREAD_MUTEX_PRIORITY_3       {PTHREAD_MUTEX_INITIALIZER, 3}
-#define BTHREAD_MUTEX_PRIORITY_4       {PTHREAD_MUTEX_INITIALIZER, 4}
+#define BTHREAD_MUTEX_PRIORITY(p)      {PTHREAD_MUTEX_INITIALIZER, p}
 #undef P
 #undef V
 #define P(x) bthread_mutex_lock_p(&(x), __FILE__, __LINE__)
@@ -926,9 +923,9 @@ bthread_mutex_t mutex3 = BTHREAD_MUTEX_NO_PRIORITY;
 bthread_mutex_t mutex4 = BTHREAD_MUTEX_NO_PRIORITY;
 bthread_mutex_t mutex5 = BTHREAD_MUTEX_NO_PRIORITY;
 bthread_mutex_t mutex6 = BTHREAD_MUTEX_NO_PRIORITY;
-bthread_mutex_t mutex_p1 = BTHREAD_MUTEX_PRIORITY_1;
-bthread_mutex_t mutex_p2 = BTHREAD_MUTEX_PRIORITY_2;
-bthread_mutex_t mutex_p3 = BTHREAD_MUTEX_PRIORITY_3;
+bthread_mutex_t mutex_p1 = BTHREAD_MUTEX_PRIORITY(1);
+bthread_mutex_t mutex_p2 = BTHREAD_MUTEX_PRIORITY(2);
+bthread_mutex_t mutex_p3 = BTHREAD_MUTEX_PRIORITY(3);
 static const char *my_prog;
 
 void *self_lock(void *temp)
