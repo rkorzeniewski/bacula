@@ -47,7 +47,7 @@
  
  With dynamic creation, you can use:
     bthread_mutex_t mutex;
-    pthread_mutex_init(&mutex);     // you can also use bthread_mutex_init()
+    pthread_mutex_init(&mutex);
     bthread_mutex_set_priority(&mutex, 10);
     pthread_mutex_destroy(&mutex);
  
@@ -688,7 +688,7 @@ void bthread_mutex_set_priority(bthread_mutex_t *m, int prio)
 /*
  * Replacement for pthread_mutex_init()
  */
-int bthread_mutex_init(bthread_mutex_t *m, const pthread_mutexattr_t *attr)
+int pthread_mutex_init(bthread_mutex_t *m, const pthread_mutexattr_t *attr)
 {
    m->priority = 0;
    return pthread_mutex_init(&m->mutex, attr);
@@ -697,27 +697,10 @@ int bthread_mutex_init(bthread_mutex_t *m, const pthread_mutexattr_t *attr)
 /*
  * Replacement for pthread_mutex_destroy()
  */
-int bthread_mutex_destroy(bthread_mutex_t *m)
+int pthread_mutex_destroy(bthread_mutex_t *m)
 {
    return pthread_mutex_destroy(&m->mutex);
 }
-
-/*
- * Replacement for pthread_mutex_init() for pthread_mutex_t
- */
-int bthread_mutex_init(pthread_mutex_t *m, const pthread_mutexattr_t *attr)
-{
-   return pthread_mutex_init(m, attr);
-}
-
-/*
- * Replacement for pthread_mutex_destroy() for pthread_mutex_t
- */
-int bthread_mutex_destroy(pthread_mutex_t *m)
-{
-   return pthread_mutex_destroy(m);
-}
-
 
 /*
  * Replacement for pthread_mutex_lock()
@@ -927,10 +910,7 @@ void dbg_print_lock(FILE *fp)
 
 #include "lockmgr.h"
 #define BTHREAD_MUTEX_NO_PRIORITY      {PTHREAD_MUTEX_INITIALIZER, 0}
-#define BTHREAD_MUTEX_PRIORITY_1       {PTHREAD_MUTEX_INITIALIZER, 1}
-#define BTHREAD_MUTEX_PRIORITY_2       {PTHREAD_MUTEX_INITIALIZER, 2}
-#define BTHREAD_MUTEX_PRIORITY_3       {PTHREAD_MUTEX_INITIALIZER, 3}
-#define BTHREAD_MUTEX_PRIORITY_4       {PTHREAD_MUTEX_INITIALIZER, 4}
+#define BTHREAD_MUTEX_PRIORITY(p)      {PTHREAD_MUTEX_INITIALIZER, p}
 #undef P
 #undef V
 #define P(x) bthread_mutex_lock_p(&(x), __FILE__, __LINE__)
@@ -943,9 +923,9 @@ bthread_mutex_t mutex3 = BTHREAD_MUTEX_NO_PRIORITY;
 bthread_mutex_t mutex4 = BTHREAD_MUTEX_NO_PRIORITY;
 bthread_mutex_t mutex5 = BTHREAD_MUTEX_NO_PRIORITY;
 bthread_mutex_t mutex6 = BTHREAD_MUTEX_NO_PRIORITY;
-bthread_mutex_t mutex_p1 = BTHREAD_MUTEX_PRIORITY_1;
-bthread_mutex_t mutex_p2 = BTHREAD_MUTEX_PRIORITY_2;
-bthread_mutex_t mutex_p3 = BTHREAD_MUTEX_PRIORITY_3;
+bthread_mutex_t mutex_p1 = BTHREAD_MUTEX_PRIORITY(1);
+bthread_mutex_t mutex_p2 = BTHREAD_MUTEX_PRIORITY(2);
+bthread_mutex_t mutex_p3 = BTHREAD_MUTEX_PRIORITY(3);
 static const char *my_prog;
 
 void *self_lock(void *temp)
@@ -1106,10 +1086,13 @@ int main(int argc, char **argv)
    void *ret=NULL;
    lmgr_thread_t *self;
    pthread_t id1, id2, id3, tab[200];
+   bthread_mutex_t bmutex1;
+   pthread_mutex_t pmutex2;
    my_prog = argv[0];
 
    use_undertaker = false;
    lmgr_init_thread();
+   self = lmgr_get_thread_info();
 
    if (argc == 2) {             /* do priority check */
       P(mutex_p2);                /* not permited */
@@ -1118,6 +1101,18 @@ int main(int argc, char **argv)
       V(mutex_p2);
       return 0;
    }
+
+   pthread_mutex_init(&bmutex1, NULL);
+   bthread_mutex_set_priority(&bmutex1, 10);
+
+   pthread_mutex_init(&pmutex2, NULL);
+   P(bmutex1);
+   ok(self->max_priority == 10, "Check self max_priority");
+   P(pmutex2);
+   ok(bmutex1.priority == 10, "Check bmutex_set_priority()");
+   V(pmutex2);
+   V(bmutex1);
+   ok(self->max_priority == 0, "Check self max_priority");
 
    pthread_create(&id1, NULL, self_lock, NULL);
    sleep(2);
@@ -1203,7 +1198,6 @@ int main(int argc, char **argv)
    pthread_join(id3, &ret);
    ok(ret != 0, "Check for priority segfault");
 
-   self = lmgr_get_thread_info();
    P(mutex_p1);
    ok(self->max_priority == 1, "Check max_priority 1/4");
    P(mutex_p2);

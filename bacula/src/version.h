@@ -66,6 +66,10 @@
 # ifndef _USE_LOCKMGR
 #  define _USE_LOCKMGR
 # endif
+/*
+ * Enable priority management with the lock manager
+ */
+//# define USE_LOCKMGR_PRIORITY
 #endif
 
 #if !HAVE_LINUX_OS
