@@ -150,21 +150,24 @@ int lmgr_thread_create(pthread_t *thread,
                        const pthread_attr_t *attr,
                        void *(*start_routine)(void*), void *arg);
 
-/* 
- * Define _LOCKMGR_COMPLIANT to use real pthread functions
- */
-
-#define BTHREAD_MUTEX_PRIORITY(p)      {PTHREAD_MUTEX_INITIALIZER, p}
 #define BTHREAD_MUTEX_NO_PRIORITY      {PTHREAD_MUTEX_INITIALIZER, 0}
-#define BTHREAD_MUTEX_PRIORITY_1       {PTHREAD_MUTEX_INITIALIZER, 1}
-#define BTHREAD_MUTEX_PRIORITY_2       {PTHREAD_MUTEX_INITIALIZER, 2}
-#define BTHREAD_MUTEX_PRIORITY_3       {PTHREAD_MUTEX_INITIALIZER, 3}
-#define BTHREAD_MUTEX_PRIORITY_4       {PTHREAD_MUTEX_INITIALIZER, 4}
 #define BTHREAD_MUTEX_INITIALIZER      BTHREAD_MUTEX_NO_PRIORITY
+
+/* Define USE_LOCKMGR_PRIORITY to detect mutex wrong order */
+#ifdef USE_LOCKMGR_PRIORITY
+# define BTHREAD_MUTEX_PRIORITY(p)      {PTHREAD_MUTEX_INITIALIZER, p}
+#else
+# define BTHREAD_MUTEX_PRIORITY(p)      BTHREAD_MUTEX_NO_PRIORITY
+#endif
+
 #define bthread_mutex_lock(x)      bthread_mutex_lock_p(x, __FILE__, __LINE__)
 #define bthread_mutex_unlock(x)    bthread_mutex_unlock_p(x, __FILE__, __LINE__)
 #define bthread_cond_wait(x,y)     bthread_cond_wait_p(x,y, __FILE__, __LINE__)
 #define bthread_cond_timedwait(x,y,z) bthread_cond_timedwait_p(x,y,z, __FILE__, __LINE__)
+
+/* 
+ * Define _LOCKMGR_COMPLIANT to use real pthread functions
+ */
 
 #ifdef _LOCKMGR_COMPLIANT
 # define P(x) lmgr_p(&(x))
