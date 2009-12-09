@@ -34,9 +34,9 @@
  * race conditions and dead locks
  */
 
-#define PRIO_SD_DEV_ACQUIRE   4
-#define PRIO_SD_VOL_LIST      5
-#define PRIO_SD_DEV_ACCESS    10
-#define PRIO_SD_DEV_SPOOL     14
+#define PRIO_SD_DEV_ACQUIRE   4            /* dev.acquire_mutex */
+#define PRIO_SD_DEV_ACCESS    5            /* dev.m_mutex */
+#define PRIO_SD_VOL_LIST      10           /* vol_list_lock */
+#define PRIO_SD_DEV_SPOOL     14           /* dev.spool_mutex */
 
 #endif
