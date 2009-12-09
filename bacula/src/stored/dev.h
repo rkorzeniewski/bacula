@@ -221,9 +221,9 @@ private:
 public:
    DEVICE * volatile swap_dev;        /* Swap vol from this device */
    dlist *attached_dcrs;              /* attached DCR list */
-   pthread_mutex_t m_mutex;           /* access control */
-   pthread_mutex_t spool_mutex;       /* mutex for updating spool_size */
-   pthread_mutex_t acquire_mutex;     /* mutex for acquire code */
+   bthread_mutex_t m_mutex;           /* access control */
+   bthread_mutex_t spool_mutex;       /* mutex for updating spool_size */
+   bthread_mutex_t acquire_mutex;     /* mutex for acquire code */
    pthread_cond_t wait;               /* thread wait variable */
    pthread_cond_t wait_next_vol;      /* wait for tape to be mounted */
    pthread_t no_wait_id;              /* this thread must not wait */
@@ -498,7 +498,7 @@ private:
 public:
    dlink dev_link;                    /* link to attach to dev */
    JCR *jcr;                          /* pointer to JCR */
-   pthread_mutex_t m_mutex;           /* access control */
+   bthread_mutex_t m_mutex;           /* access control */
    DEVICE * volatile dev;             /* pointer to device */
    DEVRES *device;                    /* pointer to device resource */
    DEV_BLOCK *block;                  /* pointer to block */

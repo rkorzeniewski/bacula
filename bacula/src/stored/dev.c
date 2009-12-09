@@ -267,6 +267,10 @@ init_dev(JCR *jcr, DEVRES *device)
       Mmsg1(dev->errmsg, _("Unable to init mutex: ERR=%s\n"), be.bstrerror(errstat));
       Jmsg0(jcr, M_ERROR_TERM, 0, dev->errmsg);
    }
+   /* Ensure that we respect this order in P/V operations */
+   bthread_mutex_set_priority(&dev->m_mutex,       PRIO_SD_DEV_ACCESS);
+   bthread_mutex_set_priority(&dev->spool_mutex,   PRIO_SD_DEV_SPOOL);
+   bthread_mutex_set_priority(&dev->acquire_mutex, PRIO_SD_DEV_ACQUIRE);
 #ifdef xxx
    if ((errstat = rwl_init(&dev->lock)) != 0) {
       berrno be;
