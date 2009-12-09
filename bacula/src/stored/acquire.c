@@ -436,8 +436,8 @@ get_out:
  * This job is done, so release the device. From a Unix standpoint,
  *  the device remains open.
  *
- * Note, if we are spooling, we may enter with the device locked.
- * However, in all cases, unlock the device when leaving.
+ * Note, if we are spooling, we may enter with the device blocked.
+ * However, in all cases, unblock the device when leaving.
  *
  */
 bool release_device(DCR *dcr)
@@ -447,11 +447,13 @@ bool release_device(DCR *dcr)
    bool ok = true;
    char tbuf[100];
 
-   /* lock only if not already locked by this thread */
-   if (!dcr->is_dev_locked()) {
-      dev->r_dlock();
-   }
    lock_volumes();
+   dev->dlock();
+   if (!dev->is_blocked()) {
+      block_device(dev, BST_RELEASING);
+   } else if (dev->blocked() == BST_DESPOOLING) {
+      dev->set_blocked(BST_RELEASING);
+   }
    Dmsg2(100, "release_device device %s is %s\n", dev->print_name(), dev->is_tape()?"tape":"disk");
 
    /* if device is reserved, job never started, so release the reserve here */
@@ -508,10 +510,8 @@ bool release_device(DCR *dcr)
        */
       volume_unused(dcr);
    }
-   unlock_volumes();
    Dmsg3(100, "%d writers, %d reserve, dev=%s\n", dev->num_writers, dev->num_reserved(),
          dev->print_name());
-
 
    /* If no writers, close if file or !CAP_ALWAYS_OPEN */
    if (dev->num_writers == 0 && (!dev->is_tape() || !dev->has_cap(CAP_ALWAYSOPEN))) {
@@ -550,7 +550,8 @@ bool release_device(DCR *dcr)
    Dmsg2(100, "JobId=%u broadcast wait_device_release at %s\n", 
          (uint32_t)jcr->JobId, bstrftimes(tbuf, sizeof(tbuf), (utime_t)time(NULL)));
    pthread_cond_broadcast(&wait_device_release);
-   dev->dunlock();
+   dev->dunblock(true);
+   unlock_volumes();
    if (dcr->keep_dcr) {
       detach_dcr_from_dev(dcr);
    } else {

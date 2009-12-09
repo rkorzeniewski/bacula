@@ -136,7 +136,7 @@ ok_out:
       if (!ok) {
          discard_data_spool(jcr->dcr);
       } else {
-         /* Note: if commit is OK, the device will remain locked */
+         /* Note: if commit is OK, the device will remain blocked */
          commit_data_spool(jcr->dcr);
       }
 
