@@ -90,7 +90,7 @@ int vol_list_lock_count = 0;
 void init_vol_list_lock()
 {
    int errstat;
-   if ((errstat=rwl_init(&vol_list_lock)) != 0) {
+   if ((errstat=rwl_init(&vol_list_lock, PRIO_SD_VOL_LIST)) != 0) {
       berrno be;
       Emsg1(M_ABORT, 0, _("Unable to initialize volume list lock. ERR=%s\n"),
             be.bstrerror(errstat));
@@ -101,8 +101,6 @@ void term_vol_list_lock()
 {
    rwl_destroy(&vol_list_lock);
 }
-
-
 
 /* 
  * This allows a given thread to recursively call to lock_volumes()
