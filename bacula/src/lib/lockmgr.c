@@ -685,7 +685,9 @@ void lmgr_cleanup_main()
  */
 void bthread_mutex_set_priority(bthread_mutex_t *m, int prio)
 {
+#ifdef USE_LOCKMGR_PRIORITY
    m->priority = prio;
+#endif
 }
 
 /*
