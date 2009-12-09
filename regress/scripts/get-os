@@ -387,9 +387,9 @@ elif test -f /etc/redhat-release
 then
        if test `grep -q CentOS /etc/redhat-release`
        then
-           DISTNAME=redhat
-       else
            DISTNAME=centos
+       else
+           DISTNAME=redhat
        fi
 elif test -f /etc/gentoo-release
 then
