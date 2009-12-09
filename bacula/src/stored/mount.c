@@ -64,6 +64,9 @@ enum {
  * This routine returns a 0 only if it is REALLY
  *  impossible to get the requested Volume.
  *
+ * This routine is entered with the device blocked, but not
+ *   locked.
+ *
  */
 bool DCR::mount_next_write_volume()
 {
@@ -138,6 +141,7 @@ mount_next_vol:
     * and move the tape to the end of data.
     *
     */
+   unlock_volumes();
    if (autoload_device(dcr, true/*writing*/, NULL) > 0) {
       autochanger = true;
       ask = false;
@@ -147,6 +151,7 @@ mount_next_vol:
       ask = retry >= 2;
       do_find = true;           /* do find_a_volume if we retry */
    }
+   lock_volumes();
    Dmsg1(150, "autoload_dev returns %d\n", autochanger);
    /*
     * If we autochanged to correct Volume or (we have not just

@@ -447,13 +447,13 @@ bool release_device(DCR *dcr)
    bool ok = true;
    char tbuf[100];
 
-   lock_volumes();
    dev->dlock();
    if (!dev->is_blocked()) {
       block_device(dev, BST_RELEASING);
    } else if (dev->blocked() == BST_DESPOOLING) {
       dev->set_blocked(BST_RELEASING);
    }
+   lock_volumes();
    Dmsg2(100, "release_device device %s is %s\n", dev->print_name(), dev->is_tape()?"tape":"disk");
 
    /* if device is reserved, job never started, so release the reserve here */
@@ -550,8 +550,8 @@ bool release_device(DCR *dcr)
    Dmsg2(100, "JobId=%u broadcast wait_device_release at %s\n", 
          (uint32_t)jcr->JobId, bstrftimes(tbuf, sizeof(tbuf), (utime_t)time(NULL)));
    pthread_cond_broadcast(&wait_device_release);
-   dev->dunblock(true);
    unlock_volumes();
+   dev->dunblock(true);
    if (dcr->keep_dcr) {
       detach_dcr_from_dev(dcr);
    } else {
@@ -685,8 +685,8 @@ static void locked_detach_dcr_from_dev(DCR *dcr)
 
    /* Detach this dcr only if attached */
    if (dcr->attached_to_dev && dev) {
-      dev->dlock();
       dcr->unreserve_device();
+      dev->dlock();
       dcr->dev->attached_dcrs->remove(dcr);  /* detach dcr from device */
 //    remove_dcr_from_dcrs(dcr);      /* remove dcr from jcr list */
       dev->dunlock();
