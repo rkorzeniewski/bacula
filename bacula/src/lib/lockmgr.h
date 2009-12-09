@@ -154,14 +154,15 @@ int lmgr_thread_create(pthread_t *thread,
  * Define _LOCKMGR_COMPLIANT to use real pthread functions
  */
 
-#define BTHREAD_MUTEX_NO_PRIORITY     {PTHREAD_MUTEX_INITIALIZER, 0}
-#define BTHREAD_MUTEX_PRIORITY_1      {PTHREAD_MUTEX_INITIALIZER, 1}
-#define BTHREAD_MUTEX_PRIORITY_2      {PTHREAD_MUTEX_INITIALIZER, 2}
-#define BTHREAD_MUTEX_PRIORITY_3      {PTHREAD_MUTEX_INITIALIZER, 3}
-#define BTHREAD_MUTEX_PRIORITY_4      {PTHREAD_MUTEX_INITIALIZER, 4}
-#define BTHREAD_MUTEX_INITIALIZER     BTHREAD_MUTEX_NO_PRIORITY
+#define BTHREAD_MUTEX_PRIORITY(p)      {PTHREAD_MUTEX_INITIALIZER, p}
+#define BTHREAD_MUTEX_NO_PRIORITY      {PTHREAD_MUTEX_INITIALIZER, 0}
+#define BTHREAD_MUTEX_PRIORITY_1       {PTHREAD_MUTEX_INITIALIZER, 1}
+#define BTHREAD_MUTEX_PRIORITY_2       {PTHREAD_MUTEX_INITIALIZER, 2}
+#define BTHREAD_MUTEX_PRIORITY_3       {PTHREAD_MUTEX_INITIALIZER, 3}
+#define BTHREAD_MUTEX_PRIORITY_4       {PTHREAD_MUTEX_INITIALIZER, 4}
+#define BTHREAD_MUTEX_INITIALIZER      BTHREAD_MUTEX_NO_PRIORITY
 #define bthread_mutex_lock(x)      bthread_mutex_lock_p(x, __FILE__, __LINE__)
-#define bthread_mutex_unlock(x)    bthread_mutex_unlock_p
+#define bthread_mutex_unlock(x)    bthread_mutex_unlock_p(x, __FILE__, __LINE__)
 #define bthread_cond_wait(x,y)     bthread_cond_wait_p(x,y, __FILE__, __LINE__)
 #define bthread_cond_timedwait(x,y,z) bthread_cond_timedwait_p(x,y,z, __FILE__, __LINE__)
 
@@ -190,19 +191,22 @@ int lmgr_thread_create(pthread_t *thread,
 # define lmgr_do_unlock(m)
 # define lmgr_cleanup_main()
 # define bthread_mutex_set_priority(a)
-# define bthread_mutex_lock(a)       pthread_mutex_lock(a)
-# define bthread_mutex_unlock(a)     pthread_mutex_unlock(a)
-# define lmgr_cond_wait(a,b)         pthread_cond_wait(a,b)
-# define lmgr_cond_timedwait(a,b,c)  pthread_cond_timedwait(a,b,c)
-# define bthread_mutex_t             pthread_mutex_t
+# define bthread_mutex_lock(a)          pthread_mutex_lock(a)
+# define bthread_mutex_unlock(a)        pthread_mutex_unlock(a)
+# define lmgr_cond_wait(a,b)            pthread_cond_wait(a,b)
+# define lmgr_cond_timedwait(a,b,c)     pthread_cond_timedwait(a,b,c)
+# define bthread_mutex_t                pthread_mutex_t
 # define P(x) lmgr_p(&(x))
 # define V(x) lmgr_v(&(x))
-# define BTHREAD_MUTEX_NO_PRIORITY  PTHREAD_MUTEX_INITIALIZER
-# define BTHREAD_MUTEX_PRIORITY_1   PTHREAD_MUTEX_INITIALIZER
-# define BTHREAD_MUTEX_PRIORITY_2   PTHREAD_MUTEX_INITIALIZER
-# define BTHREAD_MUTEX_PRIORITY_3   PTHREAD_MUTEX_INITIALIZER
-# define BTHREAD_MUTEX_PRIORITY_4   PTHREAD_MUTEX_INITIALIZER
-# define BTHREAD_MUTEX_INITIALIZER  PTHREAD_MUTEX_INITIALIZER
+# define BTHREAD_MUTEX_PRIORITY(p)      PTHREAD_MUTEX_INITIALIZER
+# define BTHREAD_MUTEX_NO_PRIORITY      PTHREAD_MUTEX_INITIALIZER
+# define BTHREAD_MUTEX_PRIORITY_1       PTHREAD_MUTEX_INITIALIZER
+# define BTHREAD_MUTEX_PRIORITY_2       PTHREAD_MUTEX_INITIALIZER
+# define BTHREAD_MUTEX_PRIORITY_3       PTHREAD_MUTEX_INITIALIZER
+# define BTHREAD_MUTEX_PRIORITY_4       PTHREAD_MUTEX_INITIALIZER
+# define BTHREAD_MUTEX_INITIALIZER      PTHREAD_MUTEX_INITIALIZER
 #endif  /* _USE_LOCKMGR */
+
+#include "mutex_list.h"     /* Manage mutex with priority in a central place */
 
 #endif  /* _LOCKMGR_H */
