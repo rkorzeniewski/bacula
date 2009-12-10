@@ -54,6 +54,9 @@ const int sd_dbglvl = 300;
 #   include <sys/tape.h>
 #   endif
 # endif
+#else
+/* Needed for Mac 10.6 (Snow Leopard) */
+#include "bmtio.h"
 #endif
 #include "lock.h"
 #include "block.h"
