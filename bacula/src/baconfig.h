@@ -65,6 +65,7 @@
 #define ASSERT(x) if (!(x)) { \
    char *jcr = NULL; \
    Emsg1(M_ERROR, 0, _("Failed ASSERT: %s\n"), #x); \
+   Pmsg1(000, _("Failed ASSERT: %s\n"), #x); \
    jcr[0] = 0; }
 #else
 #define ASSERT(x)

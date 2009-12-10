@@ -59,12 +59,12 @@
 #undef ASSERT
 #define ASSERT(x) if (!(x)) { \
    char *jcr = NULL; \
-   Pmsg3(000, _("Failed ASSERT: %s\n"), __FILE__, __LINE__, #x); \
+   Pmsg3(000, _("ASSERT failed at %s:%i: %s\n"), __FILE__, __LINE__, #x); \
    jcr[0] = 0; }
 
 #define ASSERT_p(x,f,l) if (!(x)) {              \
    char *jcr = NULL; \
-   Pmsg3(000, _("from %s:%i Failed ASSERT: %s\n"), f, l, #x); \
+   Pmsg3(000, _("ASSERT failed at %s:%i: %s \n"), f, l, #x); \
    jcr[0] = 0; }
 
 /*
