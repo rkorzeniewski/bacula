@@ -2,6 +2,10 @@
           
 General:
 
+10Dec09
+ebl  Update the lock manager to detect possible race condition
+     on the fly. You can activate it with USE_LOCKMGR_PRIORITY in
+     version.h
 08Dec09
 ebl  Fix bug #1431 about bad reload command.
      Still an object to free in this case.
