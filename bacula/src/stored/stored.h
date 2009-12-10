@@ -52,11 +52,11 @@ const int sd_dbglvl = 300;
 # else
 #   ifdef HAVE_SYS_TAPE_H
 #   include <sys/tape.h>
+#   else
+    /* Needed for Mac 10.6 (Snow Leopard) */
+#   include "lib/bmtio.h"
 #   endif
 # endif
-#else
-/* Needed for Mac 10.6 (Snow Leopard) */
-#include "bmtio.h"
 #endif
 #include "lock.h"
 #include "block.h"
