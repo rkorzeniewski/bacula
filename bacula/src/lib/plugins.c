@@ -251,7 +251,7 @@ void dbg_print_plugin(FILE *fp)
    }
    foreach_alist(plugin, plugin_list) {
       for(int i=0; i < dbg_plugin_hook_count; i++) {
-         dbg_plugin_hook_t *fct = dbg_plugin_hooks[i];
+//       dbg_plugin_hook_t *fct = dbg_plugin_hooks[i];
          fprintf(fp, "Plugin %p name=\"%s\" disabled=%d\n",
                  plugin, plugin->file, plugin->disabled);
 //       fct(plugin, fp);
