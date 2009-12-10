@@ -116,9 +116,11 @@ mount_next_vol:
       ask = true;                     /* ask operator to mount tape */
       do_find = true;                 /* re-find a volume after unload */
    }
+   unlock_volumes();
    do_unload();
    do_swapping(true /*is_writing*/);
    do_load(true /*is_writing*/);
+   lock_volumes();
 
    if (do_find && !find_a_volume()) {
       goto no_lock_bail_out;
