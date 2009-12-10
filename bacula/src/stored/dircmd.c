@@ -761,6 +761,9 @@ static bool mount_cmd(JCR *jcr)
             } else { /* must be file */
                dir->fsend(_("3906 File device %s is always mounted.\n"),
                   dev->print_name());
+               pthread_cond_broadcast(&dev->wait_next_vol);
+               Dmsg1(100, "JobId=%u broadcast wait_device_release\n", (uint32_t)dcr->jcr->JobId);
+               pthread_cond_broadcast(&wait_device_release);
             }
             break;
 
