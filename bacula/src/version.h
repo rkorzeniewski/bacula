@@ -3,9 +3,9 @@
  */
 
 #undef  VERSION
-#define VERSION "3.1.6"
-#define BDATE   "06 December 2009"
-#define LSMDATE "06Dec09"
+#define VERSION "3.1.7"
+#define BDATE   "10 December 2009"
+#define LSMDATE "10Dec09"
 
 #define PROG_COPYRIGHT "Copyright (C) %d-2009 Free Software Foundation Europe e.V.\n"
 #define BYEAR "2009"       /* year for copyright messages in progs */
@@ -68,6 +68,11 @@
 # endif
 /*
  * Enable priority management with the lock manager
+ *
+ * Note, turning this on will cause the Bacula SD to abort if
+ *  mutexes are executed out of order, which could lead to a
+ *  deadlock.  However, note that this is not necessarily a
+ *  deadlock, so turn this on only for debugging.
  */
 //# define USE_LOCKMGR_PRIORITY
 #endif
