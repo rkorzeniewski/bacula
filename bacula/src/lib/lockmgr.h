@@ -195,7 +195,7 @@ int lmgr_thread_create(pthread_t *thread,
 # define lmgr_do_lock(m, prio, f, l)
 # define lmgr_do_unlock(m)
 # define lmgr_cleanup_main()
-# define bthread_mutex_set_priority(a)
+# define bthread_mutex_set_priority(a,b)
 # define bthread_mutex_lock(a)          pthread_mutex_lock(a)
 # define bthread_mutex_unlock(a)        pthread_mutex_unlock(a)
 # define lmgr_cond_wait(a,b)            pthread_cond_wait(a,b)
