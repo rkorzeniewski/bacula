@@ -519,8 +519,8 @@ bool dir_ask_sysop_to_create_appendable_volume(DCR *dcr)
       } else {
          if (stat == W_TIMEOUT || stat == W_MOUNT) {
             Mmsg(dev->errmsg, _(
-"Job %s waiting. Cannot find any appendable volumes.\n"
-"Please use the \"label\"  command to create a new Volume for:\n"
+"Job %s is waiting. Cannot find any appendable volumes.\n"
+"Please use the \"label\" command to create a new Volume for:\n"
 "    Storage:      %s\n"
 "    Pool:         %s\n"
 "    Media type:   %s\n"),
