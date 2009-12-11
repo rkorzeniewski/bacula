@@ -11,7 +11,7 @@ rm -rf ${tmp}/*
 rm -rf ${working}/log ${tmp}/TEST-*
 rm -rf ${working}/log ${tmp}/Backup-*
 rm -rf ${working}/*.bsr ${working}/log*.sd
-rm -rf ${working}/*.trace
+rm -rf ${working}/*.trace ${working}/*.traceback ${working}/*.bactrace 
 rm -rf ${tmp}disk-changer
 find . -name "gigaslam.gif" -exec rm -f {} \;
 
