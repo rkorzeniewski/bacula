@@ -35,13 +35,13 @@ sed:
 	echo "Doing: scripts/do_sed"
 	scripts/do_sed
 
-# Run all non-root userid tests
+# Run all disk tests
 test: 
-	./all-non-root-tests
+	./all-disk-tests
 
-# run all file and tape tests
+# run all tape and disk tests
 full_test:
-	./all-tape-and-file-tests
+	./all-tape-and-disk-tests
 
 # These tests require you to run as root
 root_test:
