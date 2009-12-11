@@ -3005,7 +3005,7 @@ AC_OUTPUT([autoconf/Make.common \
 	   updatedb/update_mysql_tables_10_to_11 \
 	   updatedb/update_sqlite3_tables_10_to_11 \
 	   updatedb/update_postgresql_tables_10_to_11 \
-           examples/nagios/check_bacula/Makefile \
+	   examples/nagios/check_bacula/Makefile \
 	   $PFILES ],  
      [ ]
 )
@@ -3051,7 +3051,7 @@ cd ..
 
 c=updatedb
 chmod 755 $c/update_mysql_tables_10_to_11   $c/update_sqlite3_tables_10_to_11
-chmod 755 $c/update_postgresql_tables_10_to_11	 $c/update_sqlite_tables_10_to_11
+chmod 755 $c/update_postgresql_tables_10_to_11
 
 c=src/cats
 
