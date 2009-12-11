@@ -77,7 +77,7 @@
 //# define USE_LOCKMGR_PRIORITY
 #endif
 
-#if !HAVE_LINUX_OS
+#if !HAVE_LINUX_OS || !HAVE_SUN_OS || !HAVE_DARWIN_OS || !HAVE_FREEBSD_OS
 # undef _USE_LOCKMGR
 #endif
 
