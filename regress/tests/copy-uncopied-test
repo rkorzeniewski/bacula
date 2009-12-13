@@ -55,7 +55,7 @@ messages
 @# should copy job 1,2,3
 @# Expect: 3 copies (1,2,3)
 @############################################################
-@#setdebug level=100 dir
+setdebug level=200 dir
 run job=copy-uncopied yes
 @sleep 5 
 wait
