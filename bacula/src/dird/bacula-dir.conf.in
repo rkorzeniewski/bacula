@@ -34,6 +34,7 @@ JobDefs {
   Messages = Standard
   Pool = File
   Priority = 10
+  Write Bootstrap = "@working_dir@/%c.bsr"
 }
 
 
@@ -43,14 +44,12 @@ JobDefs {
 Job {
   Name = "BackupClient1"
   JobDefs = "DefaultJob"
-  Write Bootstrap = "@working_dir@/Client1.bsr"
 }
 
 #Job {
 #  Name = "BackupClient2"
 #  Client = @basename@2-fd
 #  JobDefs = "DefaultJob"
-#  Write Bootstrap = "@working_dir@/Client2.bsr"
 #}
 
 # Backup the catalog database (after the nightly save)
@@ -68,7 +67,7 @@ Job {
   RunBeforeJob = "@scriptdir@/make_catalog_backup @db_name@ @db_user@"
   # This deletes the copy of the catalog
   RunAfterJob  = "@scriptdir@/delete_catalog_backup"
-  Write Bootstrap = "@working_dir@/BackupCatalog.bsr"
+  Write Bootstrap = "@working_dir@/%n.bsr"
   Priority = 11                   # run after main backup
 }
 
