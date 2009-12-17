@@ -2,6 +2,8 @@
           
 General:
 
+17Dec09
+ebl  LSBize Debian init scripts
 10Dec09
 ebl  Update the lock manager to detect possible race condition
      on the fly. You can activate it with USE_LOCKMGR_PRIORITY in
