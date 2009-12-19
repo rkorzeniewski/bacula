@@ -1,5 +1,5 @@
 etc/bacula
-etc/apache2/conf.d
+etc/apache2/sites-available
 usr/lib/cgi-bin/bweb
 usr/share/doc/bweb
 usr/share/bweb
