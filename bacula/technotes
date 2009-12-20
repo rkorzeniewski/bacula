@@ -2,6 +2,9 @@
           
 General:
 
+20Dec09
+kes  Fix old way of detecting thread safe SQL in ./configure
+     We should really phase this out.
 17Dec09
 ebl  LSBize Debian init scripts
 10Dec09
