@@ -1,3 +1,8 @@
+bweb (3.0.1-2) stable; urgency=low
+  * Change /etc/apache to /etc/apache2
+
+ -- Eric Bollengier <eric@eb.homelinux.org>  Sat,  19 Dec 2009 19:15:47 +0000
+
 bweb (3.0.1-1) stable; urgency=low
   * Add View copies option to bresto
   * Tweak command output to add hide/display button

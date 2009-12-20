@@ -29,8 +29,8 @@ if [ "$1" = "configure" ] ; then
  echo "If you are using mysql, you have to load /usr/share/bweb/bweb-mysql.sql in your database"
  echo "root@localhost:~$ mysql bacula < /usr/share/bweb/bweb-mysql.sql"
  echo
- echo "You can use user/passwd (see /etc/apache/conf.d/bweb.conf)"
- echo "You have to reload your apache configuration"
+ echo "You can use user/passwd (see /etc/apache2/sites-available/bweb.conf)"
+ echo "You have to enable bweb.conf (a2ensite) and reload your apache configuration"
  echo 
  echo "'/usr/bin/bconsole -n -c /etc/bacula/bconsole.conf' must be accessible"
  echo "by your www-data. You meed to use :"
@@ -42,3 +42,8 @@ if [ "$1" = "configure" ] ; then
  
 fi
 
+if [ "$1" = "upgrade" ] ; then
+ echo "If you are using postgresql, you have to load /usr/share/bweb/upgrade-2.0_2.2_postgresql.sql in your database"
+ echo "postgres@localhost:~$ psql -U bacula bacula < /usr/share/bweb/upgrade-2.0_2.2_postgresql.sql"
+ echo
+fi
