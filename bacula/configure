@@ -28265,11 +28265,7 @@ _ACEOF
 
     fi
     SQL_BINDIR=$MYSQL_BINDIR
-    if test -f $MYSQL_LIBDIR/libmysqlclient_r.so; then
-       SQL_LIB=$MYSQL_LIBDIR/libmysqlclient_r.so
-    else
-       SQL_LIB=$MYSQL_LIBDIR/libmysqlclient_r.a
-    fi
+    SQL_LIB=$MYSQL_LIBDIR/libmysqlclient_r.a
 
     cat >>confdefs.h <<\_ACEOF
 #define HAVE_MYSQL 1
