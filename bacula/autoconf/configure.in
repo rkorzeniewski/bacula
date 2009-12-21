@@ -1710,13 +1710,14 @@ if test $pkg = 0; then
    )
 fi
    
-dnl Check if postgresql support batch mode   
+dnl Check if postgresql can support batch mode   
 if test x$DB_TYPE = xpostgresql; then
-   A=`test -f $SQL_LIB && nm $SQL_LIB | grep PQputCopyData`
-   pkg=$?
-   if test $pkg != 0; then
-      support_batch_insert=no
-   fi
+   AC_CHECK_LIB(pq, PQisthreadsafe, AC_DEFINE(HAVE_PQISTHREADSAFE))
+   AC_CHECK_LIB(pq, PQputCopyData, AC_DEFINE(HAVE_PQ_COPY))
+   if test "x$ac_cv_lib_pq_PQisthreadsafe" != "xyes" -o "x$ac_cv_lib_pq_PQputCopyData" != "xyes"
+    then
+        support_batch_insert=no
+    fi
 fi
 
 if test x$DB_TYPE = xdbi; then
@@ -1725,7 +1726,9 @@ if test x$DB_TYPE = xdbi; then
    pkg=1
    dnl Check for batch insert
    if test $DB_PROG = postgresql; then
-      A=`test -f $SQL_LIB && nm $SQL_LIB | grep PQputCopyData`
+      AC_CHECK_LIB(pq, PQisthreadsafe, AC_DEFINE(HAVE_PQISTHREADSAFE))
+      AC_CHECK_LIB(pq, PQputCopyData, AC_DEFINE(HAVE_PQ_COPY))
+      test "x$ac_cv_lib_pq_PQisthreadsafe" != "xyes" -o "x$ac_cv_lib_pq_PQputCopyData" != "xyes"
       pkg=$?
    fi
 
