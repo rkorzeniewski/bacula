@@ -120,6 +120,7 @@ static void usage()
 "       -d <nn>         set debug level to <nn>\n"
 "       -dt             print a timestamp in debug output\n"
 "       -f              fix inconsistencies\n"
+"       -t              test if client library is thread-safe\n"
 "       -v              verbose\n"
 "       -?              print this message\n\n");
    exit(1);
@@ -130,6 +131,7 @@ int main (int argc, char *argv[])
    int ch;
    const char *user, *password, *db_name, *dbhost;
    int dbport = 0;
+   bool test_thread=false;
    bool print_catalog=false;
    char *configfile = NULL;
    char *catalogname = NULL;
@@ -146,7 +148,7 @@ int main (int argc, char *argv[])
    memset(&id_list, 0, sizeof(id_list));
    memset(&name_list, 0, sizeof(name_list));
 
-   while ((ch = getopt(argc, argv, "bc:C:d:fvB?")) != -1) {
+   while ((ch = getopt(argc, argv, "bc:C:d:fvBt?")) != -1) {
       switch (ch) {
       case 'B':
          print_catalog = true;     /* get catalog information from config */
@@ -182,6 +184,9 @@ int main (int argc, char *argv[])
       case 'v':
          verbose++;
          break;
+      case 't':
+         test_thread=true;
+         break;
 
       case '?':
       default:
@@ -192,6 +197,16 @@ int main (int argc, char *argv[])
    argv += optind;
 
    OSDependentInit();
+
+   if (test_thread) {
+      /* When we will load the SQL backend with ldopen, this check would be
+       * moved after the database initialization. It will need a valid config
+       * file.
+       */
+      db_check_backend_thread_safe();
+      Pmsg0(0, _("OK - DB backend seems to be thread-safe.\n"));
+      exit(0);
+   }
 
    if (configfile) {
       CAT *catalog = NULL;

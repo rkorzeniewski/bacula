@@ -61,6 +61,7 @@ int db_list_handler(void *ctx, int num_fields, char **row);
 void db_thread_cleanup();
 void db_debug_print(JCR *jcr, FILE *fp);
 int db_int_handler(void *ctx, int num_fields, char **row);
+void db_check_backend_thread_safe();
 
 /* sql_create.c */
 int db_create_path_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar);
