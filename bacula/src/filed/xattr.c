@@ -538,10 +538,10 @@ static bxattr_exit_code linux_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
    }
 
 bail_out:
-   if (xattr_list) {
+   if (xattr_list != NULL) {
       free(xattr_list);
    }
-   if (xattr_value_list) {
+   if (xattr_value_list != NULL) {
       xattr_drop_internal_table(xattr_value_list);
    }
    return retval;
@@ -901,13 +901,13 @@ static bxattr_exit_code bsd_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
    }
 
 bail_out:
-   if (current_attrnamespace) {
+   if (current_attrnamespace != NULL) {
       free(current_attrnamespace);
    }
-   if (xattr_list) {
+   if (xattr_list != NULL) {
       free(xattr_list);
    }
-   if (xattr_value_list) {
+   if (xattr_value_list != NULL) {
       xattr_drop_internal_table(xattr_value_list);
       xattr_value_list = NULL;
    }
@@ -1636,7 +1636,7 @@ static bxattr_exit_code solaris_save_xattr(JCR *jcr, int fd, const char *xattr_n
    }
 
 bail_out:
-   if (acl_text) {
+   if (acl_text != NULL) {
       free(acl_text);
    }
    if (attrfd != -1) {
