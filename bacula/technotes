@@ -2,6 +2,10 @@
           
 General:
 
+21Dec09
+ebl  if batch insert is turned on when we try to open a connection and 
+     thread safe is not enabled, we M_ABORT Bacula
+ebl  Add dbcheck -t option that test if the current backend is thread-safe
 20Dec09
 kes  Fix old way of detecting thread safe SQL in ./configure
      We should really phase this out.
