@@ -875,6 +875,9 @@
 /* Extended Attributes support */
 #undef HAVE_XATTR
 
+/* Support PQisthreadsafe() (require libpq >= 8.2) */
+#undef HAVE_PQISTHREADSAFE
+
 /* Define to 1 if you have the <zlib.h> header file. */
 #undef HAVE_ZLIB_H
 
