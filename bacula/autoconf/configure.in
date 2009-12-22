@@ -3191,6 +3191,17 @@ Configuration on `date`:
 
   " > config.out
 
+# create a small shell script useful for support with
+# configure options and config.out info
+cat > scripts/bacula_config << EOF
+#!/bin/sh
+cat << __EOC__
+$ $0 $ac_configure_args
+EOF
+cat config.out >> scripts/bacula_config
+echo __EOC__ >> scripts/bacula_config
+chmod 755 scripts/bacula_config
+
 cat config.out
 
 # Display a warning message if postgresql client lib is <= 8.1
