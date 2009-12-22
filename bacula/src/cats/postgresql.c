@@ -176,12 +176,6 @@ db_open_database(JCR *jcr, B_DB *mdb)
    int errstat;
    char buf[10], *port;
 
-#ifdef xxx                      /* require libpq >= 8.2 */
-   if (!PQisthreadsafe()) {
-      Jmsg(jcr, M_ABORT, 0, _("PostgreSQL configuration problem. "          
-           "PostgreSQL library is not thread safe. Cannot continue.\n"));
-   }
-#endif
    P(mutex);
    if (mdb->connected) {
       V(mutex);
@@ -303,10 +297,12 @@ db_close_database(JCR *jcr, B_DB *mdb)
 void db_check_backend_thread_safe()
 {
 #ifdef HAVE_BATCH_FILE_INSERT
+# ifdef HAVE_PQISTHREADSAFE 
    if (!PQisthreadsafe()) {
       Emsg0(M_ABORT, 0, _("Pg client library must be thread-safe "
                           "when using BatchMode.\n"));
    }
+# endif
 #endif
 }
 
