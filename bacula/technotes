@@ -2,6 +2,10 @@
           
 General:
 
+22Dec09
+ebl  Add bacula_config script for support issues
+ebl  Display a warning message if postgresql client libs <= 8.1 and
+     batch insert is enabled.
 21Dec09
 ebl  if batch insert is turned on when we try to open a connection and 
      thread safe is not enabled, we M_ABORT Bacula
