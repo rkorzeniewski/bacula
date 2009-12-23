@@ -26,11 +26,12 @@ dummy:
 #
 INCLUDE_FILES = bdb.h cats.h protos.h sql_cmds.h
 
-LIBSRCS = mysql.c bdb.c dbi.c \
-	  sql.c sql_cmds.c sql_create.c sql_delete.c sql_find.c \
-	  sql_get.c sql_list.c sql_update.c sqlite.c \
-	  postgresql.c bvfs.c
-LIBOBJS = $(LIBSRCS:.c=$(DEFAULT_OBJECT_TYPE))
+LIBBACSQL_SRCS = mysql.c bdb.c dbi.c \
+                 sql.c sql_cmds.c sql_create.c sql_delete.c sql_find.c \
+                 sql_get.c sql_list.c sql_update.c sqlite.c \
+                 postgresql.c bvfs.c
+LIBBACSQL_OBJS = $(LIBBACSQL_SRCS:.c=.o)
+LIBBACSQL_LOBJS = $(LIBBACSQL_SRCS:.c=.lo)
 
 LIBBACSQL_LT_CURRENT = 1
 LIBBACSQL_LT_REVISION = 0
@@ -53,14 +54,14 @@ all: Makefile libbacsql$(DEFAULT_ARCHIVE_TYPE)
 	@echo "==== Make of sqllib is good ===="
 	@echo " "
 
-libbacsql.a: $(LIBOBJS)
+libbacsql.a: $(LIBBACSQL_OBJS)
 	@echo "Making $@ ..."	  
-	$(AR) rc  $@ $(LIBOBJS)
+	$(AR) rc  $@ $(LIBBACSQL_OBJS)
 	$(RANLIB) $@
 
-libbacsql.la: Makefile $(LIBOBJS)
+libbacsql.la: Makefile $(LIBBACSQL_LOBJS)
 	@echo "Making $@ ..."	  
-	$(LIBTOOL_LINK) $(CXX) $(DEFS) $(DEBUG) $(LDFLAGS) -o $@ $(LIBOBJS) -export-dynamic -rpath $(libdir) -version-info $(LIBBACSQL_LT_CURRENT):$(LIBBACSQL_LT_REVISION):$(LIBBACSQL_LT_AGE) $(DB_LIBS)
+	$(LIBTOOL_LINK) $(CXX) $(DEFS) $(DEBUG) $(LDFLAGS) -o $@ $(LIBBACSQL_LOBJS) -export-dynamic -rpath $(libdir) -version-info $(LIBBACSQL_LT_CURRENT):$(LIBBACSQL_LT_REVISION):$(LIBBACSQL_LT_AGE) $(DB_LIBS)
 
 Makefile: $(srcdir)/Makefile.in $(topdir)/config.status
 	cd $(topdir) \
