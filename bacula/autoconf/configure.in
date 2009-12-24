@@ -1671,6 +1671,36 @@ AC_ARG_WITH(sbin-perm,
 
 AC_SUBST(SBINPERM)
 
+dnl --------------------------------------------------
+dnl plugin support
+dnl --------------------------------------------------
+use_plugins=yes
+AC_ARG_ENABLE(plugins,
+   AC_HELP_STRING([--enable-plugins], [enable plugin support @<:@default=yes@:>@]),
+   [
+       if test x$enableval = xno; then
+          use_plugins=no
+       fi
+   ]
+)
+
+if test "x$use_libtool" != "xyes" -a test "x$use_plugins" = "xyes"; then
+   echo " "
+   echo "You specified --enable-plugins but disabled libtool with --disable-libtool"
+   echo "We only support plugins using libtool so either disable plugins or enable libtool"
+   echo " "
+   echo "Aborting the configuration ..."
+   echo " "
+   echo " "
+   exit 1
+fi
+
+FD_PLUGIN_DIR=""
+if test "x$use_plugins" = "xyes" ; then
+   FD_PLUGIN_DIR="src/plugins/fd"
+fi
+AC_SUBST(FD_PLUGIN_DIR)
+
 dnl ------------------------------------------------
 dnl Bacula check for various SQL database engines
 dnl ------------------------------------------------
