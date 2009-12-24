@@ -55,7 +55,7 @@ grant select, update on log_logid_seq		   to ${db_user};
 
 END-OF-DATA
 then
-   echo "Privileges for ${db_user} granted on ${db_name}."
+   echo "Privileges for user ${db_user} granted on database ${db_name}."
    exit 0
 else
    echo "Error creating privileges."
