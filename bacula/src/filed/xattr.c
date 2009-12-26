@@ -676,6 +676,10 @@ static bxattr_exit_code bsd_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
 
       /*
        * First get the length of the available list with extended attributes.
+       * If we get EPERM on system namespace, don't return error.
+       * This is expected for normal users trying to archive the system
+       * namespace on FreeBSD 6.2 and later. On NetBSD 3.1 and later,
+       * they've decided to return EOPNOTSUPP instead.
        */
       xattr_list_len = extattr_list_link(jcr->last_fname, attrnamespace, NULL, 0);
       if (xattr_list_len < 0) {
@@ -683,6 +687,18 @@ static bxattr_exit_code bsd_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
          case ENOENT:
             retval = bxattr_exit_ok;
             goto bail_out;
+#if defined(EOPNOTSUPP)
+         case EOPNOTSUPP:
+#endif
+         case EPERM:
+            if (attrnamespace == EXTATTR_NAMESPACE_SYSTEM) {
+               actuallyfree(current_attrnamespace);
+               current_attrnamespace = NULL;
+               continue;
+            }
+            /*
+             * FALLTHROUGH
+             */
          default:
             Mmsg2(jcr->errmsg, _("extattr_list_link error on file \"%s\": ERR=%s\n"),
                   jcr->last_fname, be.bstrerror());
