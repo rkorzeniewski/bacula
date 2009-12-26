@@ -1870,7 +1870,31 @@ AC_CACHE_CHECK(for socklen_t, ba_cv_header_socklen_t,
        )
    ]
 )
-test $ba_cv_header_socklen_t = yes && AC_DEFINE(HAVE_SOCKLEN_T)
+test $ba_cv_header_socklen_t = yes && AC_DEFINE(HAVE_SOCKLEN_T, 1, [Set if socklen_t exists])
+
+dnl --------------------------------------------------------------------------
+dnl Check for ioctl request type
+dnl --------------------------------------------------------------------------
+AC_CACHE_CHECK(for ioctl_req_t, ba_cv_header_ioctl_req_t,
+   [
+       AC_TRY_COMPILE(
+	  [
+	      #include <sys/types.h>
+	      #include <sys/ioctl.h>
+	  ], [
+	      unsigned long int req;
+	      int fd;
+	      ioctl(fd, req);
+	  ], [
+	     ba_cv_header_ioctl_req_t=yes
+	  ], [
+	     ba_cv_header_ioct_req_t_t=no
+	  ]
+       )
+   ]
+)
+test $ba_cv_header_ioctl_req_t = yes && AC_DEFINE(HAVE_IOCTL_ULINT_REQUEST, 1, [Set if ioctl request is unsigned long int])
+
 
 dnl --------------------------------------------------------------------------
 dnl Check for typeof()
