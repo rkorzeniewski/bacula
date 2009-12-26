@@ -648,7 +648,8 @@ static bxattr_exit_code bsd_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
    uint32_t expected_serialize_len = 0;
    unsigned int namespace_index;
    int attrnamespace;
-   char *current_attrnamespace = NULL, current_attrname[BUFSIZ], current_attrtuple[BUFSIZ];
+   char *current_attrnamespace = NULL;
+   char current_attrname[BUFSIZ], current_attrtuple[BUFSIZ];
    xattr_t *current_xattr;
    alist *xattr_value_list = NULL;
    bxattr_exit_code retval = bxattr_exit_error;
