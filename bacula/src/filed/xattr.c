@@ -664,6 +664,7 @@ static bxattr_exit_code bsd_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
 
       /*
        * Convert the numeric attrnamespace into a string representation and make a private copy of that string.
+       * The extattr_namespace_to_string functions returns a strdupped string which we need to free.
        */
       if (extattr_namespace_to_string(attrnamespace, &current_attrnamespace) != 0) {
          Mmsg2(jcr->errmsg, _("Failed to convert %d into namespace on file \"%s\"\n"),
@@ -672,8 +673,6 @@ static bxattr_exit_code bsd_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
                attrnamespace, jcr->last_fname);
          goto bail_out;
       }
-
-      current_attrnamespace = bstrdup(current_attrnamespace);
 
       /*
        * First get the length of the available list with extended attributes.
@@ -862,7 +861,8 @@ static bxattr_exit_code bsd_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
       /*
        * Drop the local copy of the current_attrnamespace.
        */
-      bfree_and_null(current_attrnamespace);
+      actuallyfree(current_attrnamespace);
+      current_attrnamespace = NULL;
 
       /*
        * We are done with this xattr list.
@@ -902,7 +902,8 @@ static bxattr_exit_code bsd_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
 
 bail_out:
    if (current_attrnamespace != NULL) {
-      free(current_attrnamespace);
+      actuallyfree(current_attrnamespace);
+      current_attrnamespace = NULL;
    }
    if (xattr_list != NULL) {
       free(xattr_list);
