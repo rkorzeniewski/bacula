@@ -115,7 +115,7 @@ PROG_COPYRIGHT
 "       -dt         print timestamp in debug output\n"
 "       -f          run in foreground (for debugging)\n"
 "       -g          groupid\n"
-"       -m          print kaboom output for debugging)\n"
+"       -m          print kaboom output (for debugging)\n"
 "       -r <job>    run <job> now\n"
 "       -s          no signals\n"
 "       -t          test - read configuration and exit\n"
