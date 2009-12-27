@@ -153,6 +153,8 @@ if test x$use_libtool != xno; then
    LIBTOOL_UNINSTALL_TARGET="libtool-uninstall"
    LIBTOOL_CLEAN_TARGET="libtool-clean"
    QMAKE_LIBTOOL="${BUILD_DIR}/libtool"
+   FD_PLUGIN_DIR="src/plugins/fd"
+   have_plugins=yes
 else
    DEFAULT_OBJECT_TYPE=".o"
    DEFAULT_ARCHIVE_TYPE=".a"
@@ -162,6 +164,8 @@ else
    LIBTOOL_UNINSTALL_TARGET=""
    LIBTOOL_CLEAN_TARGET=""
    QMAKE_LIBTOOL="# ${BUILD_DIR}/libtool"
+   FD_PLUGIN_DIR=""
+   have_plugins=no
 fi
 
 AC_SUBST(DEFAULT_OBJECT_TYPE)
@@ -172,6 +176,7 @@ AC_SUBST(LIBTOOL_INSTALL_TARGET)
 AC_SUBST(LIBTOOL_UNINSTALL_TARGET)
 AC_SUBST(LIBTOOL_CLEAN_TARGET)
 AC_SUBST(QMAKE_LIBTOOL)
+AC_SUBST(FD_PLUGIN_DIR)
 
 dnl --------------------------------------------------
 dnl Include file handling
@@ -1670,36 +1675,6 @@ AC_ARG_WITH(sbin-perm,
 )
 
 AC_SUBST(SBINPERM)
-
-dnl --------------------------------------------------
-dnl plugin support
-dnl --------------------------------------------------
-have_plugins=yes
-AC_ARG_ENABLE(plugins,
-   AC_HELP_STRING([--enable-plugins], [enable plugin support @<:@default=yes@:>@]),
-   [
-       if test x$enableval = xno; then
-          have_plugins=no
-       fi
-   ]
-)
-
-if test "x$use_libtool" != "xyes" -a test "x$have_plugins" = "xyes"; then
-   echo " "
-   echo "You specified --enable-plugins but disabled libtool with --disable-libtool"
-   echo "We only support plugins using libtool so either disable plugins or enable libtool"
-   echo " "
-   echo "Aborting the configuration ..."
-   echo " "
-   echo " "
-   exit 1
-fi
-
-FD_PLUGIN_DIR=""
-if test "x$have_plugins" = "xyes" ; then
-   FD_PLUGIN_DIR="src/plugins/fd"
-fi
-AC_SUBST(FD_PLUGIN_DIR)
 
 dnl ------------------------------------------------
 dnl Bacula check for various SQL database engines
