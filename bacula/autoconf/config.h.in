@@ -600,6 +600,12 @@
 /* Define if your printf() function supports format strings with positions. */
 #undef HAVE_POSIX_PRINTF
 
+/* Set if have PQisthreadsafe */
+#undef HAVE_PQISTHREADSAFE
+
+/* Set if have PQputCopyData */
+#undef HAVE_PQ_COPY
+
 /* Define to 1 if you have the `prctl' function. */
 #undef HAVE_PRCTL
 
@@ -880,9 +886,6 @@
 
 /* Extended Attributes support */
 #undef HAVE_XATTR
-
-/* Support PQisthreadsafe() (require libpq >= 8.2) */
-#undef HAVE_PQISTHREADSAFE
 
 /* Define to 1 if you have the <zlib.h> header file. */
 #undef HAVE_ZLIB_H
