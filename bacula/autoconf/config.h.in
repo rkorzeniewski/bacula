@@ -474,6 +474,9 @@
    declares uintmax_t. */
 #undef HAVE_INTTYPES_H_WITH_UINTMAX
 
+/* Set if ioctl request is unsigned long int */
+#undef HAVE_IOCTL_ULINT_REQUEST
+
 /* Whether to enable IPv6 support */
 #undef HAVE_IPV6
 
@@ -653,6 +656,9 @@
 
 /* Define to 1 if you have the `snprintf' function. */
 #undef HAVE_SNPRINTF
+
+/* Set if socklen_t exists */
+#undef HAVE_SOCKLEN_T
 
 /* Define to 1 if you have the <stdarg.h> header file. */
 #undef HAVE_STDARG_H
