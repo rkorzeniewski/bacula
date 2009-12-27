@@ -1715,13 +1715,13 @@ if test $pkg = 0; then
    )
 fi
    
-dnl Check if postgresql can support batch mode   
+dnl Check if postgresql can support batch mode	 
 if test x$DB_TYPE = xpostgresql; then
-   AC_CHECK_LIB(pq, PQisthreadsafe, AC_DEFINE(HAVE_PQISTHREADSAFE))
-   AC_CHECK_LIB(pq, PQputCopyData, AC_DEFINE(HAVE_PQ_COPY))
+   AC_CHECK_LIB(pq, PQisthreadsafe, AC_DEFINE(HAVE_PQISTHREADSAFE, 1, [Set if have PQisthreadsafe]))
+   AC_CHECK_LIB(pq, PQputCopyData, AC_DEFINE(HAVE_PQ_COPY, 1, [Set if have PQputCopyData]))
    if test "x$ac_cv_lib_pq_PQputCopyData" != "xyes"
     then
-        support_batch_insert=no
+	support_batch_insert=no
    fi
 fi
 
@@ -1887,8 +1887,8 @@ AC_CACHE_CHECK(for ioctl_req_t, ba_cv_header_ioctl_req_t,
 	      #include <sys/types.h>
 	      #include <sys/ioctl.h>
 	  ], [
-	      unsigned long int req;
-	      int fd;
+	      unsigned long int req = 0;
+	      int fd = 0;
 	      ioctl(fd, req);
 	  ], [
 	     ba_cv_header_ioctl_req_t=yes
@@ -3236,10 +3236,10 @@ cat config.out
 
 # Display a warning message if postgresql client lib is <= 8.1
 if test x$DB_TYPE = xpostgresql -a x$ac_cv_lib_pq_PQisthreadsafe != xyes \
-        -a x$support_batch_insert = xyes
+	-a x$support_batch_insert = xyes
 then
-        echo "WARNING: Your PostgreSQL client library is too old to detect "
-        echo " if it was compiled with --enable-thread-safety, consider to"
-        echo " upgrade it in order to avoid problems with Batch insert mode"
-        echo
+	echo "WARNING: Your PostgreSQL client library is too old to detect "
+	echo " if it was compiled with --enable-thread-safety, consider to"
+	echo " upgrade it in order to avoid problems with Batch insert mode"
+	echo
 fi
