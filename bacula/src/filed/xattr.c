@@ -145,6 +145,8 @@ static void xattr_drop_internal_table(alist *xattr_value_list)
 
       if (current_xattr->value_length > 0)
          free(current_xattr->value);
+
+      free(current_xattr);
    }
 
    delete xattr_value_list;
@@ -649,7 +651,7 @@ static bxattr_exit_code bsd_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
    unsigned int namespace_index;
    int attrnamespace;
    char *current_attrnamespace = NULL;
-   char current_attrname[BUFSIZ], current_attrtuple[BUFSIZ];
+   char current_attrname[XATTR_BUFSIZ], current_attrtuple[XATTR_BUFSIZ];
    xattr_t *current_xattr;
    alist *xattr_value_list = NULL;
    bxattr_exit_code retval = bxattr_exit_error;
@@ -1382,7 +1384,7 @@ static bxattr_exit_code solaris_save_xattr(JCR *jcr, int fd, const char *xattr_n
    char link_source[PATH_MAX];
    char *acl_text = NULL;
    char attribs[MAXSTRING];
-   char buffer[BUFSIZ];
+   char buffer[XATTR_BUFSIZ];
    bxattr_exit_code retval = bxattr_exit_error;
    berrno be;
 

@@ -70,4 +70,9 @@ struct xattr_data_t {
  */
 #define MAX_XATTR_STREAM  (1 * 1024 * 1024) /* 1 Mb */
 
+/*
+ * Upperlimit on a xattr internal buffer
+ */
+#define XATTR_BUFSIZ	1024
+
 #endif
