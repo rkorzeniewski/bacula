@@ -145,6 +145,8 @@ static void xattr_drop_internal_table(alist *xattr_value_list)
 
       if (current_xattr->value_length > 0)
          free(current_xattr->value);
+
+      free(current_xattr);
    }
 
    delete xattr_value_list;
