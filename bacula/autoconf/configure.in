@@ -65,7 +65,6 @@ if test ! -e $CXX; then
    AC_MSG_ERROR(Unable to find C++ compiler)
 fi
 
-CXXFLAGS="-g -O2 -Wall"
 AC_LANG(C++)
 
 dnl -------------------------------------------------------
