@@ -65,8 +65,6 @@ if test ! -e $CXX; then
    AC_MSG_ERROR(Unable to find C++ compiler)
 fi
 
-AC_LANG(C++)
-
 dnl -------------------------------------------------------
 dnl Check for programs.
 dnl ------------------------------------------------------
@@ -1882,6 +1880,7 @@ test $ba_cv_header_socklen_t = yes && AC_DEFINE(HAVE_SOCKLEN_T, 1, [Set if sockl
 dnl --------------------------------------------------------------------------
 dnl Check for ioctl request type
 dnl --------------------------------------------------------------------------
+AC_LANG(C++)
 AC_CACHE_CHECK(for ioctl_req_t, ba_cv_header_ioctl_req_t,
    [
        AC_TRY_COMPILE(
@@ -1902,6 +1901,10 @@ AC_CACHE_CHECK(for ioctl_req_t, ba_cv_header_ioctl_req_t,
 )
 test $ba_cv_header_ioctl_req_t = yes && AC_DEFINE(HAVE_IOCTL_ULINT_REQUEST, 1, [Set if ioctl request is unsigned long int])
 
+dnl Note: it is more correct to use AC_LANG(C++) but some of the older
+dnl   *BSD systems still use old style C prototypes, which are wrong with
+dnl   compiled with a C++ compiler. 
+AC_LANG(C)
 
 dnl --------------------------------------------------------------------------
 dnl Check for typeof()
