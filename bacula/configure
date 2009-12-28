@@ -4239,6 +4239,14 @@ echo "$as_me: error: Unable to find C++ compiler" >&2;}
    { (exit 1); exit 1; }; }
 fi
 
+CXXFLAGS="-g -O2 -Wall"
+ac_ext=cpp
+ac_cpp='$CXXCPP $CPPFLAGS'
+ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
+
+
 # Find a good install program.  We prefer a C program (faster),
 # so one script is as good as another.  But avoid the broken or
 # incompatible versions:
@@ -5990,13 +5998,13 @@ if test "${lt_cv_nm_interface+set}" = set; then
 else
   lt_cv_nm_interface="BSD nm"
   echo "int some_variable = 0;" > conftest.$ac_ext
-  (eval echo "\"\$as_me:5993: $ac_compile\"" >&5)
+  (eval echo "\"\$as_me:6001: $ac_compile\"" >&5)
   (eval "$ac_compile" 2>conftest.err)
   cat conftest.err >&5
-  (eval echo "\"\$as_me:5996: $NM \\\"conftest.$ac_objext\\\"\"" >&5)
+  (eval echo "\"\$as_me:6004: $NM \\\"conftest.$ac_objext\\\"\"" >&5)
   (eval "$NM \"conftest.$ac_objext\"" 2>conftest.err > conftest.out)
   cat conftest.err >&5
-  (eval echo "\"\$as_me:5999: output\"" >&5)
+  (eval echo "\"\$as_me:6007: output\"" >&5)
   cat conftest.out >&5
   if $GREP 'External.*some_variable' conftest.out > /dev/null; then
     lt_cv_nm_interface="MS dumpbin"
@@ -7217,7 +7225,7 @@ ia64-*-hpux*)
   ;;
 *-*-irix6*)
   # Find out which ABI we are using.
-  echo '#line 7220 "configure"' > conftest.$ac_ext
+  echo '#line 7228 "configure"' > conftest.$ac_ext
   if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   (eval $ac_compile) 2>&5
   ac_status=$?
@@ -8695,11 +8703,11 @@ else
     CXXFLAGS=
   fi
 fi
-ac_ext=c
-ac_cpp='$CPP $CPPFLAGS'
-ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
-ac_compiler_gnu=$ac_cv_c_compiler_gnu
+ac_ext=cpp
+ac_cpp='$CXXCPP $CPPFLAGS'
+ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
 if test -n "$CXX" && ( test "X$CXX" != "Xno" &&
     ( (test "X$CXX" = "Xg++" && `g++ -v >/dev/null 2>&1` ) ||
@@ -8920,11 +8928,11 @@ else
   _lt_caught_CXX_error=yes
 fi
 
-ac_ext=c
-ac_cpp='$CPP $CPPFLAGS'
-ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
-ac_compiler_gnu=$ac_cv_c_compiler_gnu
+ac_ext=cpp
+ac_cpp='$CXXCPP $CPPFLAGS'
+ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
 else
   _lt_caught_CXX_error=yes
@@ -9432,11 +9440,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:9435: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:9443: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:9439: \$? = $ac_status" >&5
+   echo "$as_me:9447: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -9771,11 +9779,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:9774: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:9782: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:9778: \$? = $ac_status" >&5
+   echo "$as_me:9786: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -9876,11 +9884,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:9879: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:9887: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:9883: \$? = $ac_status" >&5
+   echo "$as_me:9891: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -9931,11 +9939,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:9934: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:9942: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:9938: \$? = $ac_status" >&5
+   echo "$as_me:9946: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -12687,7 +12695,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 12690 "configure"
+#line 12698 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -12783,7 +12791,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 12786 "configure"
+#line 12794 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -12982,11 +12990,11 @@ echo "${ECHO_T}$enable_static" >&6; }
 
 
 fi
-ac_ext=c
-ac_cpp='$CPP $CPPFLAGS'
-ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
-ac_compiler_gnu=$ac_cv_c_compiler_gnu
+ac_ext=cpp
+ac_cpp='$CXXCPP $CPPFLAGS'
+ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
 CC="$lt_save_CC"
 
@@ -14795,11 +14803,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:14798: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:14806: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:14802: \$? = $ac_status" >&5
+   echo "$as_me:14810: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -14894,11 +14902,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:14897: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:14905: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:14901: \$? = $ac_status" >&5
+   echo "$as_me:14909: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -14946,11 +14954,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:14949: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:14957: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:14953: \$? = $ac_status" >&5
+   echo "$as_me:14961: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -15900,11 +15908,11 @@ fi
   lt_cv_prog_gnu_ld=$lt_save_with_gnu_ld
 fi # test "$_lt_caught_CXX_error" != yes
 
-ac_ext=c
-ac_cpp='$CPP $CPPFLAGS'
-ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
-ac_compiler_gnu=$ac_cv_c_compiler_gnu
+ac_ext=cpp
+ac_cpp='$CXXCPP $CPPFLAGS'
+ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
 
 
@@ -17373,7 +17381,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -17437,7 +17445,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -17535,7 +17543,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -17624,7 +17632,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -17673,7 +17681,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -18138,7 +18146,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -18190,7 +18198,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -18452,6 +18460,7 @@ then
    USE_INCLUDED_LIBINTL=no
 #else
 
+
     { echo "$as_me:$LINENO: checking whether we are using the GNU C Library 2 or newer" >&5
 echo $ECHO_N "checking whether we are using the GNU C Library 2 or newer... $ECHO_C" >&6; }
 if test "${ac_cv_gnu_library_2+set}" = set; then
@@ -18629,7 +18638,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -18736,7 +18745,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_cv_c_const=yes
@@ -18794,7 +18803,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   bh_cv_c_signed=yes
@@ -18851,7 +18860,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_cv_c_inline=$ac_kw
@@ -18924,7 +18933,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_cv_type_off_t=yes
@@ -18987,7 +18996,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_cv_type_size_t=yes
@@ -19048,7 +19057,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -19116,7 +19125,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   gt_cv_c_long_double=yes
@@ -19176,7 +19185,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   gt_cv_c_wchar_t=yes
@@ -19235,7 +19244,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   gt_cv_c_wint_t=yes
@@ -19294,7 +19303,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   gl_cv_header_inttypes_h=yes
@@ -19353,7 +19362,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   gl_cv_header_stdint_h=yes
@@ -19422,7 +19431,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   gt_cv_c_intmax_t=yes
@@ -19580,7 +19589,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -19660,7 +19669,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -19793,7 +19802,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -19943,7 +19952,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_header_compiler=yes
@@ -19982,7 +19991,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } >/dev/null && {
-	 test -z "$ac_c_preproc_warn_flag$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_preproc_warn_flag$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        }; then
   ac_header_preproc=yes
@@ -19998,7 +20007,7 @@ rm -f conftest.err conftest.$ac_ext
 echo "${ECHO_T}$ac_header_preproc" >&6; }
 
 # So?  What about this header?
-case $ac_header_compiler:$ac_header_preproc:$ac_c_preproc_warn_flag in
+case $ac_header_compiler:$ac_header_preproc:$ac_cxx_preproc_warn_flag in
   yes:no: )
     { echo "$as_me:$LINENO: WARNING: $ac_header: accepted by the compiler, rejected by the preprocessor!" >&5
 echo "$as_me: WARNING: $ac_header: accepted by the compiler, rejected by the preprocessor!" >&2;}
@@ -20111,7 +20120,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -20507,7 +20516,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -20590,7 +20599,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   gt_cv_header_inttypes_h=yes
@@ -20656,7 +20665,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   gt_cv_inttypes_pri_broken=no
@@ -20722,7 +20731,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_header_compiler=yes
@@ -20761,7 +20770,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } >/dev/null && {
-	 test -z "$ac_c_preproc_warn_flag$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_preproc_warn_flag$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        }; then
   ac_header_preproc=yes
@@ -20777,7 +20786,7 @@ rm -f conftest.err conftest.$ac_ext
 echo "${ECHO_T}$ac_header_preproc" >&6; }
 
 # So?  What about this header?
-case $ac_header_compiler:$ac_header_preproc:$ac_c_preproc_warn_flag in
+case $ac_header_compiler:$ac_header_preproc:$ac_cxx_preproc_warn_flag in
   yes:no: )
     { echo "$as_me:$LINENO: WARNING: $ac_header: accepted by the compiler, rejected by the preprocessor!" >&5
 echo "$as_me: WARNING: $ac_header: accepted by the compiler, rejected by the preprocessor!" >&2;}
@@ -20881,7 +20890,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_lo=0 ac_mid=0
@@ -20917,7 +20926,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_hi=$ac_mid; break
@@ -20970,7 +20979,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_hi=-1 ac_mid=-1
@@ -21006,7 +21015,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_lo=$ac_mid; break
@@ -21069,7 +21078,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_hi=$ac_mid
@@ -21191,7 +21200,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_lo=0 ac_mid=0
@@ -21227,7 +21236,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_hi=$ac_mid; break
@@ -21280,7 +21289,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_hi=-1 ac_mid=-1
@@ -21316,7 +21325,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_lo=$ac_mid; break
@@ -21379,7 +21388,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_hi=$ac_mid
@@ -21501,7 +21510,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_lo=0 ac_mid=0
@@ -21537,7 +21546,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_hi=$ac_mid; break
@@ -21590,7 +21599,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_hi=-1 ac_mid=-1
@@ -21626,7 +21635,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_lo=$ac_mid; break
@@ -21689,7 +21698,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_hi=$ac_mid
@@ -21811,7 +21820,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   fits_in_uint=0
@@ -21887,7 +21896,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_header_compiler=yes
@@ -21926,7 +21935,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } >/dev/null && {
-	 test -z "$ac_c_preproc_warn_flag$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_preproc_warn_flag$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        }; then
   ac_header_preproc=yes
@@ -21942,7 +21951,7 @@ rm -f conftest.err conftest.$ac_ext
 echo "${ECHO_T}$ac_header_preproc" >&6; }
 
 # So?  What about this header?
-case $ac_header_compiler:$ac_header_preproc:$ac_c_preproc_warn_flag in
+case $ac_header_compiler:$ac_header_preproc:$ac_cxx_preproc_warn_flag in
   yes:no: )
     { echo "$as_me:$LINENO: WARNING: $ac_header: accepted by the compiler, rejected by the preprocessor!" >&5
 echo "$as_me: WARNING: $ac_header: accepted by the compiler, rejected by the preprocessor!" >&2;}
@@ -22032,7 +22041,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_cv_type_ptrdiff_t=yes
@@ -22108,7 +22117,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_header_compiler=yes
@@ -22147,7 +22156,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } >/dev/null && {
-	 test -z "$ac_c_preproc_warn_flag$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_preproc_warn_flag$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        }; then
   ac_header_preproc=yes
@@ -22163,7 +22172,7 @@ rm -f conftest.err conftest.$ac_ext
 echo "${ECHO_T}$ac_header_preproc" >&6; }
 
 # So?  What about this header?
-case $ac_header_compiler:$ac_header_preproc:$ac_c_preproc_warn_flag in
+case $ac_header_compiler:$ac_header_preproc:$ac_cxx_preproc_warn_flag in
   yes:no: )
     { echo "$as_me:$LINENO: WARNING: $ac_header: accepted by the compiler, rejected by the preprocessor!" >&5
 echo "$as_me: WARNING: $ac_header: accepted by the compiler, rejected by the preprocessor!" >&2;}
@@ -22301,7 +22310,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -22367,7 +22376,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_cv_have_decl__snprintf=yes
@@ -22432,7 +22441,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_cv_have_decl__snwprintf=yes
@@ -22498,7 +22507,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_cv_have_decl_feof_unlocked=yes
@@ -22563,7 +22572,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_cv_have_decl_fgets_unlocked=yes
@@ -22628,7 +22637,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_cv_have_decl_getc_unlocked=yes
@@ -22749,7 +22758,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -22798,7 +22807,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -22887,7 +22896,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   am_cv_proto_iconv_arg1=""
@@ -22949,7 +22958,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -23011,7 +23020,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -23156,7 +23165,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -23220,7 +23229,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -23337,7 +23346,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -23780,7 +23789,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -23832,7 +23841,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -24515,7 +24524,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -24576,7 +24585,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_header_compiler=yes
@@ -24615,7 +24624,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } >/dev/null && {
-	 test -z "$ac_c_preproc_warn_flag$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_preproc_warn_flag$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        }; then
   ac_header_preproc=yes
@@ -24631,7 +24640,7 @@ rm -f conftest.err conftest.$ac_ext
 echo "${ECHO_T}$ac_header_preproc" >&6; }
 
 # So?  What about this header?
-case $ac_header_compiler:$ac_header_preproc:$ac_c_preproc_warn_flag in
+case $ac_header_compiler:$ac_header_preproc:$ac_cxx_preproc_warn_flag in
   yes:no: )
     { echo "$as_me:$LINENO: WARNING: termcap.h: accepted by the compiler, rejected by the preprocessor!" >&5
 echo "$as_me: WARNING: termcap.h: accepted by the compiler, rejected by the preprocessor!" >&2;}
@@ -24710,7 +24719,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -24784,7 +24793,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -24862,7 +24871,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_header_compiler=yes
@@ -24901,7 +24910,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } >/dev/null && {
-	 test -z "$ac_c_preproc_warn_flag$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_preproc_warn_flag$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        }; then
   ac_header_preproc=yes
@@ -24917,7 +24926,7 @@ rm -f conftest.err conftest.$ac_ext
 echo "${ECHO_T}$ac_header_preproc" >&6; }
 
 # So?  What about this header?
-case $ac_header_compiler:$ac_header_preproc:$ac_c_preproc_warn_flag in
+case $ac_header_compiler:$ac_header_preproc:$ac_cxx_preproc_warn_flag in
   yes:no: )
     { echo "$as_me:$LINENO: WARNING: $ac_header: accepted by the compiler, rejected by the preprocessor!" >&5
 echo "$as_me: WARNING: $ac_header: accepted by the compiler, rejected by the preprocessor!" >&2;}
@@ -24994,7 +25003,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_cv_header_term_h=yes
@@ -25053,7 +25062,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -25169,7 +25178,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_header_compiler=yes
@@ -25208,7 +25217,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } >/dev/null && {
-	 test -z "$ac_c_preproc_warn_flag$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_preproc_warn_flag$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        }; then
   ac_header_preproc=yes
@@ -25224,7 +25233,7 @@ rm -f conftest.err conftest.$ac_ext
 echo "${ECHO_T}$ac_header_preproc" >&6; }
 
 # So?  What about this header?
-case $ac_header_compiler:$ac_header_preproc:$ac_c_preproc_warn_flag in
+case $ac_header_compiler:$ac_header_preproc:$ac_cxx_preproc_warn_flag in
   yes:no: )
     { echo "$as_me:$LINENO: WARNING: ${with_readline}/readline.h: accepted by the compiler, rejected by the preprocessor!" >&5
 echo "$as_me: WARNING: ${with_readline}/readline.h: accepted by the compiler, rejected by the preprocessor!" >&2;}
@@ -25320,7 +25329,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_header_compiler=yes
@@ -25359,7 +25368,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } >/dev/null && {
-	 test -z "$ac_c_preproc_warn_flag$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_preproc_warn_flag$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        }; then
   ac_header_preproc=yes
@@ -25375,7 +25384,7 @@ rm -f conftest.err conftest.$ac_ext
 echo "${ECHO_T}$ac_header_preproc" >&6; }
 
 # So?  What about this header?
-case $ac_header_compiler:$ac_header_preproc:$ac_c_preproc_warn_flag in
+case $ac_header_compiler:$ac_header_preproc:$ac_cxx_preproc_warn_flag in
   yes:no: )
     { echo "$as_me:$LINENO: WARNING: /usr/include/readline/readline.h: accepted by the compiler, rejected by the preprocessor!" >&5
 echo "$as_me: WARNING: /usr/include/readline/readline.h: accepted by the compiler, rejected by the preprocessor!" >&2;}
@@ -25460,7 +25469,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_header_compiler=yes
@@ -25499,7 +25508,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } >/dev/null && {
-	 test -z "$ac_c_preproc_warn_flag$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_preproc_warn_flag$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        }; then
   ac_header_preproc=yes
@@ -25515,7 +25524,7 @@ rm -f conftest.err conftest.$ac_ext
 echo "${ECHO_T}$ac_header_preproc" >&6; }
 
 # So?  What about this header?
-case $ac_header_compiler:$ac_header_preproc:$ac_c_preproc_warn_flag in
+case $ac_header_compiler:$ac_header_preproc:$ac_cxx_preproc_warn_flag in
   yes:no: )
     { echo "$as_me:$LINENO: WARNING: ${TOP_DIR}/depkgs/readline/readline.h: accepted by the compiler, rejected by the preprocessor!" >&5
 echo "$as_me: WARNING: ${TOP_DIR}/depkgs/readline/readline.h: accepted by the compiler, rejected by the preprocessor!" >&2;}
@@ -25639,7 +25648,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_cv_header_stat_broken=no
@@ -25707,7 +25716,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   eval "$as_ac_Header=yes"
@@ -25783,7 +25792,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -25867,7 +25876,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -25977,7 +25986,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -26072,7 +26081,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -26138,7 +26147,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_header_compiler=yes
@@ -26177,7 +26186,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } >/dev/null && {
-	 test -z "$ac_c_preproc_warn_flag$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_preproc_warn_flag$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        }; then
   ac_header_preproc=yes
@@ -26193,7 +26202,7 @@ rm -f conftest.err conftest.$ac_ext
 echo "${ECHO_T}$ac_header_preproc" >&6; }
 
 # So?  What about this header?
-case $ac_header_compiler:$ac_header_preproc:$ac_c_preproc_warn_flag in
+case $ac_header_compiler:$ac_header_preproc:$ac_cxx_preproc_warn_flag in
   yes:no: )
     { echo "$as_me:$LINENO: WARNING: $ac_header: accepted by the compiler, rejected by the preprocessor!" >&5
 echo "$as_me: WARNING: $ac_header: accepted by the compiler, rejected by the preprocessor!" >&2;}
@@ -26374,7 +26383,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -26452,7 +26461,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -26561,7 +26570,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -26626,7 +26635,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -26697,7 +26706,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -26768,7 +26777,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -26856,7 +26865,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -26929,7 +26938,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -26989,7 +26998,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -27095,7 +27104,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -27149,7 +27158,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -27202,7 +27211,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -27324,7 +27333,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -28040,7 +28049,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -28103,7 +28112,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -28938,7 +28947,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -29007,7 +29016,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -29087,7 +29096,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -29155,7 +29164,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -29384,7 +29393,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -29675,7 +29684,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } >/dev/null && {
-	 test -z "$ac_c_preproc_warn_flag$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_preproc_warn_flag$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        }; then
   # We can compile using X headers with no special include directory.
@@ -29730,7 +29739,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -29812,8 +29821,8 @@ else
     { echo "$as_me:$LINENO: checking whether -R must be followed by a space" >&5
 echo $ECHO_N "checking whether -R must be followed by a space... $ECHO_C" >&6; }
     ac_xsave_LIBS=$LIBS; LIBS="$LIBS -R$x_libraries"
-    ac_xsave_c_werror_flag=$ac_c_werror_flag
-    ac_c_werror_flag=yes
+    ac_xsave_cxx_werror_flag=$ac_cxx_werror_flag
+    ac_cxx_werror_flag=yes
     cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
 _ACEOF
@@ -29843,7 +29852,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -29884,7 +29893,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -29905,7 +29914,7 @@ fi
 
 rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
       conftest$ac_exeext conftest.$ac_ext
-    ac_c_werror_flag=$ac_xsave_c_werror_flag
+    ac_cxx_werror_flag=$ac_xsave_cxx_werror_flag
     LIBS=$ac_xsave_LIBS
   fi
 
@@ -29956,7 +29965,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -30008,7 +30017,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -30074,7 +30083,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -30175,7 +30184,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -30237,7 +30246,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -30303,7 +30312,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -30399,7 +30408,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -30461,7 +30470,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -30550,7 +30559,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -30612,7 +30621,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -30701,7 +30710,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -30763,7 +30772,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -30840,7 +30849,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -30965,7 +30974,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_header_compiler=yes
@@ -31004,7 +31013,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } >/dev/null && {
-	 test -z "$ac_c_preproc_warn_flag$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_preproc_warn_flag$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        }; then
   ac_header_preproc=yes
@@ -31020,7 +31029,7 @@ rm -f conftest.err conftest.$ac_ext
 echo "${ECHO_T}$ac_header_preproc" >&6; }
 
 # So?  What about this header?
-case $ac_header_compiler:$ac_header_preproc:$ac_c_preproc_warn_flag in
+case $ac_header_compiler:$ac_header_preproc:$ac_cxx_preproc_warn_flag in
   yes:no: )
     { echo "$as_me:$LINENO: WARNING: $ac_header: accepted by the compiler, rejected by the preprocessor!" >&5
 echo "$as_me: WARNING: $ac_header: accepted by the compiler, rejected by the preprocessor!" >&2;}
@@ -31103,7 +31112,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_cv_header_stdc=yes
@@ -31273,7 +31282,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -31328,7 +31337,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_header_compiler=yes
@@ -31367,7 +31376,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } >/dev/null && {
-	 test -z "$ac_c_preproc_warn_flag$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_preproc_warn_flag$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        }; then
   ac_header_preproc=yes
@@ -31383,7 +31392,7 @@ rm -f conftest.err conftest.$ac_ext
 echo "${ECHO_T}$ac_header_preproc" >&6; }
 
 # So?  What about this header?
-case $ac_header_compiler:$ac_header_preproc:$ac_c_preproc_warn_flag in
+case $ac_header_compiler:$ac_header_preproc:$ac_cxx_preproc_warn_flag in
   yes:no: )
     { echo "$as_me:$LINENO: WARNING: sys/mkdev.h: accepted by the compiler, rejected by the preprocessor!" >&5
 echo "$as_me: WARNING: sys/mkdev.h: accepted by the compiler, rejected by the preprocessor!" >&2;}
@@ -31464,7 +31473,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_header_compiler=yes
@@ -31503,7 +31512,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } >/dev/null && {
-	 test -z "$ac_c_preproc_warn_flag$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_preproc_warn_flag$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        }; then
   ac_header_preproc=yes
@@ -31519,7 +31528,7 @@ rm -f conftest.err conftest.$ac_ext
 echo "${ECHO_T}$ac_header_preproc" >&6; }
 
 # So?  What about this header?
-case $ac_header_compiler:$ac_header_preproc:$ac_c_preproc_warn_flag in
+case $ac_header_compiler:$ac_header_preproc:$ac_cxx_preproc_warn_flag in
   yes:no: )
     { echo "$as_me:$LINENO: WARNING: sys/sysmacros.h: accepted by the compiler, rejected by the preprocessor!" >&5
 echo "$as_me: WARNING: sys/sysmacros.h: accepted by the compiler, rejected by the preprocessor!" >&2;}
@@ -31611,7 +31620,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   eval "$as_ac_Header=yes"
@@ -31687,7 +31696,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -31771,7 +31780,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -31852,7 +31861,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_cv_header_stat_broken=no
@@ -31919,7 +31928,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_cv_header_sys_wait_h=yes
@@ -31980,7 +31989,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_cv_header_time=yes
@@ -32039,7 +32048,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_cv_member_struct_stat_st_blksize=yes
@@ -32078,7 +32087,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_cv_member_struct_stat_st_blksize=yes
@@ -32146,7 +32155,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_cv_member_struct_stat_st_blocks=yes
@@ -32185,7 +32194,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_cv_member_struct_stat_st_blocks=yes
@@ -32262,7 +32271,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_cv_struct_tm=time.h
@@ -32324,7 +32333,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_cv_member_struct_tm_tm_zone=yes
@@ -32366,7 +32375,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_cv_member_struct_tm_tm_zone=yes
@@ -32438,7 +32447,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_cv_have_decl_tzname=yes
@@ -32507,7 +32516,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -32574,7 +32583,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
 
@@ -32642,7 +32651,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
 
@@ -32683,6 +32692,7 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
+	      #include <unistd.h>
 	      #include <sys/types.h>
 	      #include <sys/ioctl.h>
 
@@ -32712,7 +32722,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
 
@@ -32816,11 +32826,11 @@ cat >>confdefs.h <<\_ACEOF
 #define HAVE_TYPEOF 1
 _ACEOF
 
-ac_ext=c
-ac_cpp='$CPP $CPPFLAGS'
-ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
-ac_compiler_gnu=$ac_cv_c_compiler_gnu
+ac_ext=cpp
+ac_cpp='$CXXCPP $CPPFLAGS'
+ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
 
 { echo "$as_me:$LINENO: checking for an ANSI C-conforming const" >&5
@@ -32906,7 +32916,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_cv_c_const=yes
@@ -32958,7 +32968,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } >/dev/null && {
-	 test -z "$ac_c_preproc_warn_flag$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_preproc_warn_flag$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        }; then
   cat >>confdefs.h <<\_ACEOF
@@ -32999,7 +33009,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } >/dev/null && {
-	 test -z "$ac_c_preproc_warn_flag$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_preproc_warn_flag$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        }; then
   cat >>confdefs.h <<\_ACEOF
@@ -33041,7 +33051,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } >/dev/null && {
-	 test -z "$ac_c_preproc_warn_flag$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_preproc_warn_flag$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        }; then
   cat >>confdefs.h <<\_ACEOF
@@ -33082,7 +33092,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } >/dev/null && {
-	 test -z "$ac_c_preproc_warn_flag$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_preproc_warn_flag$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        }; then
   cat >>confdefs.h <<\_ACEOF
@@ -33144,7 +33154,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } >/dev/null && {
-	 test -z "$ac_c_preproc_warn_flag$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_preproc_warn_flag$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        }; then
   cat >>confdefs.h <<\_ACEOF
@@ -33199,7 +33209,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_header_compiler=yes
@@ -33238,7 +33248,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } >/dev/null && {
-	 test -z "$ac_c_preproc_warn_flag$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_preproc_warn_flag$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        }; then
   ac_header_preproc=yes
@@ -33254,7 +33264,7 @@ rm -f conftest.err conftest.$ac_ext
 echo "${ECHO_T}$ac_header_preproc" >&6; }
 
 # So?  What about this header?
-case $ac_header_compiler:$ac_header_preproc:$ac_c_preproc_warn_flag in
+case $ac_header_compiler:$ac_header_preproc:$ac_cxx_preproc_warn_flag in
   yes:no: )
     { echo "$as_me:$LINENO: WARNING: sys/statvfs.h: accepted by the compiler, rejected by the preprocessor!" >&5
 echo "$as_me: WARNING: sys/statvfs.h: accepted by the compiler, rejected by the preprocessor!" >&2;}
@@ -33335,7 +33345,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_cv_type_signal=int
@@ -33398,7 +33408,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -33440,7 +33450,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -33485,7 +33495,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -33570,7 +33580,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_cv_type_mode_t=yes
@@ -33671,7 +33681,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_cv_type_size_t=yes
@@ -33734,7 +33744,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_cv_type_pid_t=yes
@@ -33797,7 +33807,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_cv_type_off_t=yes
@@ -33861,7 +33871,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_cv_type_intptr_t=yes
@@ -33915,7 +33925,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
 
@@ -33976,7 +33986,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_cv_type_uintptr_t=yes
@@ -34031,7 +34041,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
 
@@ -34091,7 +34101,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_cv_type_ino_t=yes
@@ -34154,7 +34164,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_cv_type_dev_t=yes
@@ -34217,7 +34227,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_cv_type_daddr_t=yes
@@ -34280,7 +34290,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_cv_type_major_t=yes
@@ -34343,7 +34353,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_cv_type_minor_t=yes
@@ -34406,7 +34416,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_cv_type_ssize_t=yes
@@ -34467,7 +34477,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_cv_member_struct_stat_st_blocks=yes
@@ -34506,7 +34516,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_cv_member_struct_stat_st_blocks=yes
@@ -34581,7 +34591,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_cv_member_struct_stat_st_rdev=yes
@@ -34620,7 +34630,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_cv_member_struct_stat_st_rdev=yes
@@ -34690,7 +34700,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_cv_struct_tm=time.h
@@ -34796,7 +34806,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_cv_c_const=yes
@@ -34858,7 +34868,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_cv_type_char=yes
@@ -34917,7 +34927,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_lo=0 ac_mid=0
@@ -34954,7 +34964,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_hi=$ac_mid; break
@@ -35008,7 +35018,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_hi=-1 ac_mid=-1
@@ -35045,7 +35055,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_lo=$ac_mid; break
@@ -35109,7 +35119,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_hi=$ac_mid
@@ -35263,7 +35273,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_cv_type_short_int=yes
@@ -35322,7 +35332,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_lo=0 ac_mid=0
@@ -35359,7 +35369,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_hi=$ac_mid; break
@@ -35413,7 +35423,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_hi=-1 ac_mid=-1
@@ -35450,7 +35460,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_lo=$ac_mid; break
@@ -35514,7 +35524,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_hi=$ac_mid
@@ -35668,7 +35678,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_cv_type_int=yes
@@ -35727,7 +35737,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_lo=0 ac_mid=0
@@ -35764,7 +35774,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_hi=$ac_mid; break
@@ -35818,7 +35828,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_hi=-1 ac_mid=-1
@@ -35855,7 +35865,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_lo=$ac_mid; break
@@ -35919,7 +35929,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_hi=$ac_mid
@@ -36073,7 +36083,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_cv_type_long_int=yes
@@ -36132,7 +36142,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_lo=0 ac_mid=0
@@ -36169,7 +36179,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_hi=$ac_mid; break
@@ -36223,7 +36233,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_hi=-1 ac_mid=-1
@@ -36260,7 +36270,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_lo=$ac_mid; break
@@ -36324,7 +36334,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_hi=$ac_mid
@@ -36478,7 +36488,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_cv_type_long_long_int=yes
@@ -36537,7 +36547,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_lo=0 ac_mid=0
@@ -36574,7 +36584,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_hi=$ac_mid; break
@@ -36628,7 +36638,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_hi=-1 ac_mid=-1
@@ -36665,7 +36675,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_lo=$ac_mid; break
@@ -36729,7 +36739,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_hi=$ac_mid
@@ -36883,7 +36893,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_cv_type_int_p=yes
@@ -36942,7 +36952,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_lo=0 ac_mid=0
@@ -36979,7 +36989,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_hi=$ac_mid; break
@@ -37033,7 +37043,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_hi=-1 ac_mid=-1
@@ -37070,7 +37080,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_lo=$ac_mid; break
@@ -37134,7 +37144,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_hi=$ac_mid
@@ -37290,7 +37300,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
 
@@ -37359,7 +37369,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
 
@@ -37403,7 +37413,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
 
@@ -37477,7 +37487,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
 
@@ -37521,7 +37531,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
 
@@ -37595,7 +37605,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
 
@@ -37664,7 +37674,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
 
@@ -37733,7 +37743,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
 
@@ -37802,7 +37812,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
 
@@ -37872,7 +37882,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
 
@@ -37946,7 +37956,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
 
@@ -38015,7 +38025,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
 
@@ -38083,7 +38093,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
 
@@ -38202,7 +38212,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -38300,7 +38310,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -38397,7 +38407,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -38494,7 +38504,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -38588,7 +38598,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -38683,7 +38693,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -38781,7 +38791,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -38849,7 +38859,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -38950,7 +38960,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -39042,7 +39052,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -39107,7 +39117,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -39178,7 +39188,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -39276,7 +39286,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -39373,7 +39383,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -39470,7 +39480,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -39539,7 +39549,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
 
@@ -39637,7 +39647,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -39705,7 +39715,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -39802,7 +39812,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -39889,7 +39899,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -39955,7 +39965,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -40035,7 +40045,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -40168,7 +40178,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -40328,7 +40338,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -40558,7 +40568,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -40625,7 +40635,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -40693,7 +40703,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_header_compiler=yes
@@ -40732,7 +40742,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } >/dev/null && {
-	 test -z "$ac_c_preproc_warn_flag$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_preproc_warn_flag$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        }; then
   ac_header_preproc=yes
@@ -40748,7 +40758,7 @@ rm -f conftest.err conftest.$ac_ext
 echo "${ECHO_T}$ac_header_preproc" >&6; }
 
 # So?  What about this header?
-case $ac_header_compiler:$ac_header_preproc:$ac_c_preproc_warn_flag in
+case $ac_header_compiler:$ac_header_preproc:$ac_cxx_preproc_warn_flag in
   yes:no: )
     { echo "$as_me:$LINENO: WARNING: $ac_header: accepted by the compiler, rejected by the preprocessor!" >&5
 echo "$as_me: WARNING: $ac_header: accepted by the compiler, rejected by the preprocessor!" >&2;}
@@ -40836,7 +40846,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -40919,7 +40929,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_header_compiler=yes
@@ -40958,7 +40968,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } >/dev/null && {
-	 test -z "$ac_c_preproc_warn_flag$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_preproc_warn_flag$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        }; then
   ac_header_preproc=yes
@@ -40974,7 +40984,7 @@ rm -f conftest.err conftest.$ac_ext
 echo "${ECHO_T}$ac_header_preproc" >&6; }
 
 # So?  What about this header?
-case $ac_header_compiler:$ac_header_preproc:$ac_c_preproc_warn_flag in
+case $ac_header_compiler:$ac_header_preproc:$ac_cxx_preproc_warn_flag in
   yes:no: )
     { echo "$as_me:$LINENO: WARNING: sys/acl.h: accepted by the compiler, rejected by the preprocessor!" >&5
 echo "$as_me: WARNING: sys/acl.h: accepted by the compiler, rejected by the preprocessor!" >&2;}
@@ -41082,7 +41092,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -41148,7 +41158,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -41216,7 +41226,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -41284,7 +41294,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -41350,7 +41360,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -41468,7 +41478,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_header_compiler=yes
@@ -41507,7 +41517,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } >/dev/null && {
-	 test -z "$ac_c_preproc_warn_flag$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_preproc_warn_flag$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        }; then
   ac_header_preproc=yes
@@ -41523,7 +41533,7 @@ rm -f conftest.err conftest.$ac_ext
 echo "${ECHO_T}$ac_header_preproc" >&6; }
 
 # So?  What about this header?
-case $ac_header_compiler:$ac_header_preproc:$ac_c_preproc_warn_flag in
+case $ac_header_compiler:$ac_header_preproc:$ac_cxx_preproc_warn_flag in
   yes:no: )
     { echo "$as_me:$LINENO: WARNING: sys/extattr.h: accepted by the compiler, rejected by the preprocessor!" >&5
 echo "$as_me: WARNING: sys/extattr.h: accepted by the compiler, rejected by the preprocessor!" >&2;}
@@ -41602,7 +41612,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_header_compiler=yes
@@ -41641,7 +41651,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } >/dev/null && {
-	 test -z "$ac_c_preproc_warn_flag$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_preproc_warn_flag$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        }; then
   ac_header_preproc=yes
@@ -41657,7 +41667,7 @@ rm -f conftest.err conftest.$ac_ext
 echo "${ECHO_T}$ac_header_preproc" >&6; }
 
 # So?  What about this header?
-case $ac_header_compiler:$ac_header_preproc:$ac_c_preproc_warn_flag in
+case $ac_header_compiler:$ac_header_preproc:$ac_cxx_preproc_warn_flag in
   yes:no: )
     { echo "$as_me:$LINENO: WARNING: libutil.h: accepted by the compiler, rejected by the preprocessor!" >&5
 echo "$as_me: WARNING: libutil.h: accepted by the compiler, rejected by the preprocessor!" >&2;}
@@ -41771,7 +41781,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -41887,7 +41897,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -42004,7 +42014,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -42088,7 +42098,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -42162,7 +42172,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_header_compiler=yes
@@ -42201,7 +42211,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } >/dev/null && {
-	 test -z "$ac_c_preproc_warn_flag$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_preproc_warn_flag$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        }; then
   ac_header_preproc=yes
@@ -42217,7 +42227,7 @@ rm -f conftest.err conftest.$ac_ext
 echo "${ECHO_T}$ac_header_preproc" >&6; }
 
 # So?  What about this header?
-case $ac_header_compiler:$ac_header_preproc:$ac_c_preproc_warn_flag in
+case $ac_header_compiler:$ac_header_preproc:$ac_cxx_preproc_warn_flag in
   yes:no: )
     { echo "$as_me:$LINENO: WARNING: sys/xattr.h: accepted by the compiler, rejected by the preprocessor!" >&5
 echo "$as_me: WARNING: sys/xattr.h: accepted by the compiler, rejected by the preprocessor!" >&2;}
@@ -42331,7 +42341,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -42447,7 +42457,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -42530,7 +42540,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_header_compiler=yes
@@ -42569,7 +42579,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } >/dev/null && {
-	 test -z "$ac_c_preproc_warn_flag$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_preproc_warn_flag$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        }; then
   ac_header_preproc=yes
@@ -42585,7 +42595,7 @@ rm -f conftest.err conftest.$ac_ext
 echo "${ECHO_T}$ac_header_preproc" >&6; }
 
 # So?  What about this header?
-case $ac_header_compiler:$ac_header_preproc:$ac_c_preproc_warn_flag in
+case $ac_header_compiler:$ac_header_preproc:$ac_cxx_preproc_warn_flag in
   yes:no: )
     { echo "$as_me:$LINENO: WARNING: sys/attr.h: accepted by the compiler, rejected by the preprocessor!" >&5
 echo "$as_me: WARNING: sys/attr.h: accepted by the compiler, rejected by the preprocessor!" >&2;}
@@ -42664,7 +42674,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_header_compiler=yes
@@ -42703,7 +42713,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } >/dev/null && {
-	 test -z "$ac_c_preproc_warn_flag$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_preproc_warn_flag$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        }; then
   ac_header_preproc=yes
@@ -42719,7 +42729,7 @@ rm -f conftest.err conftest.$ac_ext
 echo "${ECHO_T}$ac_header_preproc" >&6; }
 
 # So?  What about this header?
-case $ac_header_compiler:$ac_header_preproc:$ac_c_preproc_warn_flag in
+case $ac_header_compiler:$ac_header_preproc:$ac_cxx_preproc_warn_flag in
   yes:no: )
     { echo "$as_me:$LINENO: WARNING: sys/nvpair.h: accepted by the compiler, rejected by the preprocessor!" >&5
 echo "$as_me: WARNING: sys/nvpair.h: accepted by the compiler, rejected by the preprocessor!" >&2;}
@@ -42798,7 +42808,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_header_compiler=yes
@@ -42837,7 +42847,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } >/dev/null && {
-	 test -z "$ac_c_preproc_warn_flag$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_preproc_warn_flag$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        }; then
   ac_header_preproc=yes
@@ -42853,7 +42863,7 @@ rm -f conftest.err conftest.$ac_ext
 echo "${ECHO_T}$ac_header_preproc" >&6; }
 
 # So?  What about this header?
-case $ac_header_compiler:$ac_header_preproc:$ac_c_preproc_warn_flag in
+case $ac_header_compiler:$ac_header_preproc:$ac_cxx_preproc_warn_flag in
   yes:no: )
     { echo "$as_me:$LINENO: WARNING: attr.h: accepted by the compiler, rejected by the preprocessor!" >&5
 echo "$as_me: WARNING: attr.h: accepted by the compiler, rejected by the preprocessor!" >&2;}
@@ -42970,7 +42980,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -43069,7 +43079,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -43163,7 +43173,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -43228,7 +43238,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -43293,7 +43303,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -43379,7 +43389,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -43451,7 +43461,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
   ac_header_compiler=yes
@@ -43490,7 +43500,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } >/dev/null && {
-	 test -z "$ac_c_preproc_warn_flag$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_preproc_warn_flag$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        }; then
   ac_header_preproc=yes
@@ -43506,7 +43516,7 @@ rm -f conftest.err conftest.$ac_ext
 echo "${ECHO_T}$ac_header_preproc" >&6; }
 
 # So?  What about this header?
-case $ac_header_compiler:$ac_header_preproc:$ac_c_preproc_warn_flag in
+case $ac_header_compiler:$ac_header_preproc:$ac_cxx_preproc_warn_flag in
   yes:no: )
     { echo "$as_me:$LINENO: WARNING: $ac_header: accepted by the compiler, rejected by the preprocessor!" >&5
 echo "$as_me: WARNING: $ac_header: accepted by the compiler, rejected by the preprocessor!" >&2;}
@@ -43620,7 +43630,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
@@ -43689,7 +43699,7 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
+	 test -z "$ac_cxx_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
