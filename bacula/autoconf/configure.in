@@ -65,6 +65,9 @@ if test ! -e $CXX; then
    AC_MSG_ERROR(Unable to find C++ compiler)
 fi
 
+CXXFLAGS="-g -O2 -Wall"
+AC_LANG(C++)
+
 dnl -------------------------------------------------------
 dnl Check for programs.
 dnl ------------------------------------------------------
@@ -1884,6 +1887,7 @@ AC_CACHE_CHECK(for ioctl_req_t, ba_cv_header_ioctl_req_t,
    [
        AC_TRY_COMPILE(
 	  [
+	      #include <unistd.h>
 	      #include <sys/types.h>
 	      #include <sys/ioctl.h>
 	  ], [
