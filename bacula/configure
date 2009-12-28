@@ -32700,9 +32700,8 @@ int
 main ()
 {
 
-	      unsigned long int req = 0;
-	      int fd = 0;
-	      ioctl(fd, req);
+	      int (*d_ioctl)(int fd, unsigned long int request, ...);
+	      d_ioctl = ::ioctl;
 
   ;
   return 0;

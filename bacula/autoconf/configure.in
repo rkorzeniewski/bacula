@@ -1891,9 +1891,8 @@ AC_CACHE_CHECK(for ioctl_req_t, ba_cv_header_ioctl_req_t,
 	      #include <sys/types.h>
 	      #include <sys/ioctl.h>
 	  ], [
-	      unsigned long int req = 0;
-	      int fd = 0;
-	      ioctl(fd, req);
+	      int (*d_ioctl)(int fd, unsigned long int request, ...);
+	      d_ioctl = ::ioctl;
 	  ], [
 	     ba_cv_header_ioctl_req_t=yes
 	  ], [
