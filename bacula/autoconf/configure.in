@@ -153,6 +153,8 @@ if test x$use_libtool != xno; then
    LIBTOOL_UNINSTALL_TARGET="libtool-uninstall"
    LIBTOOL_CLEAN_TARGET="libtool-clean"
    QMAKE_LIBTOOL="${BUILD_DIR}/libtool"
+   FD_PLUGIN_DIR="src/plugins/fd"
+   have_plugins=yes
 else
    DEFAULT_OBJECT_TYPE=".o"
    DEFAULT_ARCHIVE_TYPE=".a"
@@ -162,6 +164,8 @@ else
    LIBTOOL_UNINSTALL_TARGET=""
    LIBTOOL_CLEAN_TARGET=""
    QMAKE_LIBTOOL="# ${BUILD_DIR}/libtool"
+   FD_PLUGIN_DIR=""
+   have_plugins=no
 fi
 
 AC_SUBST(DEFAULT_OBJECT_TYPE)
@@ -172,6 +176,7 @@ AC_SUBST(LIBTOOL_INSTALL_TARGET)
 AC_SUBST(LIBTOOL_UNINSTALL_TARGET)
 AC_SUBST(LIBTOOL_CLEAN_TARGET)
 AC_SUBST(QMAKE_LIBTOOL)
+AC_SUBST(FD_PLUGIN_DIR)
 
 dnl --------------------------------------------------
 dnl Include file handling
@@ -3208,6 +3213,7 @@ Configuration on `date`:
    client-only: 	    ${build_client_only}
    build-dird:		    ${build_dird}
    build-stored:	    ${build_stored}
+   Plugin support:	    ${have_plugins}
    ACL support: 	    ${have_acl}
    XATTR support:	    ${have_xattr}
    Python support:	    ${support_python} ${PYTHON_LIBS}

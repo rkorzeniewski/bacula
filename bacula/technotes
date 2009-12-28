@@ -2,6 +2,8 @@
           
 General:
 
+27Dec09
+mvw  Plugins are only build when libtool is used
 22Dec09
 ebl  Add bacula_config script for support issues
 ebl  Display a warning message if postgresql client libs <= 8.1 and
