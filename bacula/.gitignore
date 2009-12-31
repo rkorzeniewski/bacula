@@ -168,6 +168,7 @@ po/*.mo
 po/*.gmo
 
 # scripts/
+scripts/bacula_config
 scripts/wxconsole.console_apps
 scripts/wxconsole.desktop.consolehelper
 scripts/wxconsole.desktop.xsu
