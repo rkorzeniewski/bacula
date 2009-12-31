@@ -401,7 +401,7 @@ if test x$support_bat = xyes; then
 fi
 
 dnl 
-dnl  If bat is enabled, we need the qwt library
+dnl  The qwt library was used with bat, but that is no longer the case
 dnl 
 got_qwt=no
 QWT_INC=
@@ -409,59 +409,59 @@ QWT_LDFLAGS=
 QWT_LIB=
 QWT=
 no_qwt=no
-if test x$support_bat = xyes; then
-   AC_MSG_CHECKING(for qwt support)
-   AC_ARG_WITH(qwt,
-      AC_HELP_STRING([--with-qwt@<:@=DIR@:>@], [specify qwt library directory]),
-      [
-	  case "$with_qwt" in
-	  no)
-	     no_qwt=yes
-	     ;;
-	  yes|*)
-	     if test -f ${with_qwt}/include/qwt.h; then
-		QWT_INC="${with_qwt}/include"
-		QWT_LDFLAGS="-L${with_qwt}/lib"
-		QWT_LIB="-lqwt"
-		QWT="qwt"
-	     fi
-	     ;;
-	  esac
-      ]    
-   )
+dnl if test x$support_bat = xyes; then
+dnl    AC_MSG_CHECKING(for qwt support)
+dnl    AC_ARG_WITH(qwt,
+dnl	  AC_HELP_STRING([--with-qwt@<:@=DIR@:>@], [specify qwt library directory]),
+dnl	  [
+dnl	      case "$with_qwt" in
+dnl	      no)
+dnl		 no_qwt=yes
+dnl		 ;;
+dnl	      yes|*)
+dnl		 if test -f ${with_qwt}/include/qwt.h; then
+dnl		    QWT_INC="${with_qwt}/include"
+dnl		    QWT_LDFLAGS="-L${with_qwt}/lib"
+dnl		    QWT_LIB="-lqwt"
+dnl		    QWT="qwt"
+dnl		 fi
+dnl		 ;;
+dnl	      esac
+dnl	  ]    
+dnl    )
 
-   dnl
-   dnl Search in standard places, or --with-qwt not specified
-   dnl
-   if test $no_qwt = no; then 
-      if test x$QWT_INC = x; then
-	 for root in /usr /usr/local; do
-	    for ver in qwt qwt5 qwt-qt4; do
-	       if test -f ${root}/include/${ver}/qwt.h; then
-		  QWT_INC="${root}/include/${ver}"
-		  if test -d ${root}/lib64/; then
-		     QWT_LDFLAGS="-L${root}/lib64"
-		  elif test -d ${root}/lib/64/; then
-		     QWT_LDFLAGS="-L${root}/64"
-		  else
-		     QWT_LDFLAGS="-L${root}/lib"
-		  fi
-		  QWT_LIB="-lqwt"
-		  QWT="qwt"
-		  got_qwt=yes
-		  break;
-	       fi
-	    done
-	 done
-      fi
-   fi
-   if test x$QWT_INC = x; then
-      AC_MSG_RESULT(no)
-   else
-      AC_DEFINE(HAVE_QWT, 1, [Set if bat QWT library found])
-      AC_MSG_RESULT(yes)
-   fi
-fi
+dnl    dnl
+dnl    dnl Search in standard places, or --with-qwt not specified
+dnl    dnl
+dnl    if test $no_qwt = no; then 
+dnl	  if test x$QWT_INC = x; then
+dnl	     for root in /usr /usr/local; do
+dnl		for ver in qwt qwt5 qwt-qt4; do
+dnl		   if test -f ${root}/include/${ver}/qwt.h; then
+dnl		      QWT_INC="${root}/include/${ver}"
+dnl		      if test -d ${root}/lib64/; then
+dnl			 QWT_LDFLAGS="-L${root}/lib64"
+dnl		      elif test -d ${root}/lib/64/; then
+dnl			 QWT_LDFLAGS="-L${root}/64"
+dnl		      else
+dnl			 QWT_LDFLAGS="-L${root}/lib"
+dnl		      fi
+dnl		      QWT_LIB="-lqwt"
+dnl		      QWT="qwt"
+dnl		      got_qwt=yes
+dnl		      break;
+dnl		   fi
+dnl		done
+dnl	     done
+dnl	  fi
+dnl    fi
+dnl    if test x$QWT_INC = x; then
+dnl	  AC_MSG_RESULT(no)
+dnl    else
+dnl	  AC_DEFINE(HAVE_QWT, 1, [Set if bat QWT library found])
+dnl	  AC_MSG_RESULT(yes)
+dnl    fi
+dnl fi
 
 AC_SUBST(BAT_DIR)
 AC_SUBST(QWT_INC)
@@ -3211,7 +3211,7 @@ Configuration on `date`:
    ZLIB support:	    ${have_zlib}
    enable-smartalloc:	    ${support_smartalloc} 
    enable-lockmgr:	    ${support_lockmgr}
-   bat support: 	    ${support_bat} ${QWT_LDFLAGS}
+   bat support: 	    ${support_bat}
    enable-gnome:	    ${support_gnome} ${gnome_version}
    enable-bwx-console:	    ${support_wx_console} ${wx_version}
    enable-tray-monitor:     ${support_tray_monitor}
