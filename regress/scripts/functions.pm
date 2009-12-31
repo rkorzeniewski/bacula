@@ -38,12 +38,15 @@ package scripts::functions;
 use Exporter;
 our @ISA = qw(Exporter);
 our @EXPORT =  qw(update_some_files create_many_files check_multiple_copies
+                  update_client $HOST $BASEPORT
                   $cwd $bin $scripts $conf $rscripts $tmp $working
                   $db_name $db_user $db_password $src $tmpsrc);
 
 
+use File::Copy qw/copy/;
+
 our ($cwd, $bin, $scripts, $conf, $rscripts, $tmp, $working,
-     $db_name, $db_user, $db_password, $src, $tmpsrc);
+     $db_name, $db_user, $db_password, $src, $tmpsrc, $HOST, $BASEPORT);
 
 BEGIN {
     # start by loading the ./config file
@@ -75,6 +78,46 @@ BEGIN {
     $ENV{tmpsrc}   = $tmpsrc   =  $ENV{tmpsrc}   || "$cwd/tmp/build";
     $ENV{working}  = $working  =  $ENV{working}  || "$cwd/working";    
     $ENV{rscripts} = $rscripts =  $ENV{rscripts} || "$cwd/scripts";
+    $ENV{HOST}     = $HOST     =  $ENV{HOST}     || "localhost";
+    $ENV{BASEPORT} = $BASEPORT =  $ENV{BASEPORT} || "8101";
+}
+
+# update client definition for the current test
+# it permits to test remote client
+sub update_client
+{
+    my ($new_passwd, $new_address, $new_port) = @_;
+    my $in_client=0;
+
+    open(FP, "$conf/bacula-dir.conf") or die "can't open source $!";
+    open(NEW, ">$tmp/bacula-dir.conf.$$") or die "can't open dest $!";
+    while (my $l = <FP>) {
+        if (!$in_client && $l =~ /^Client {/) {
+            $in_client=1;
+        }
+        
+        if ($in_client && $l =~ /Address/i) {
+            $l = "Address = $new_address\n";
+        }
+
+        if ($in_client && $l =~ /FDPort/i) {
+            $l = "FDPort = $new_port\n";
+        }
+
+        if ($in_client && $l =~ /Password/i) {
+            $l = "Password = \"$new_passwd\"\n";
+        }
+
+        if ($in_client && $l =~ /^}/) {
+            $in_client=0;
+        }
+        print NEW $l;
+    }
+    close(FP);
+    close(NEW);
+    my $ret = copy("$tmp/bacula-dir.conf.$$", "$conf/bacula-dir.conf");
+    unlink("$tmp/bacula-dir.conf.$$");
+    return $ret;
 }
 
 # open a directory and update all files
