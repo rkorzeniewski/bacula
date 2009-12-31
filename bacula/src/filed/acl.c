@@ -61,7 +61,7 @@ bacl_exit_code build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
    return bacl_exit_fatal;
 }
 
-bacl_exit_code parse_acl_stream(JCR *jcr, int stream)
+bacl_exit_code parse_acl_streams(JCR *jcr, int stream)
 {
    return bacl_exit_fatal;
 }
