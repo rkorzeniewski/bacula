@@ -39,7 +39,9 @@
 #endif
 
 #ifdef HAVE_AIX_OS
+# if defined(_AIX41) || defined(_AIX42) || defined(_AIX43)
 extern "C" int initgroups(const char *,int);
+# endif
 #endif
 
 /*
