@@ -327,6 +327,7 @@ support_mysql=no
 support_sqlite=no
 support_sqlite3=no
 support_postgresql=no
+support_ingres=no
 support_dbi=no
 support_smartalloc=yes
 support_readline=yes
@@ -1684,6 +1685,8 @@ BA_CHECK_POSTGRESQL_DB
 
 BA_CHECK_MYSQL_DB
 
+BA_CHECK_INGRES_DB
+
 BA_CHECK_SQLITE3_DB
 
 # BA_CHECK_SQLITE_DB
@@ -3015,6 +3018,12 @@ AC_OUTPUT([autoconf/Make.common \
 	   src/cats/grant_sqlite3_privileges \
 	   src/cats/drop_sqlite3_tables \
 	   src/cats/drop_sqlite3_database \
+	   src/cats/create_ingres_database \
+	   src/cats/update_ingres_tables \
+	   src/cats/make_ingres_tables \
+	   src/cats/grant_ingres_privileges \
+	   src/cats/drop_ingres_tables \
+	   src/cats/drop_ingres_database \
 	   src/cats/sqlite \
 	   src/cats/mysql \
 	   src/cats/create_bdb_database \
@@ -3107,6 +3116,10 @@ chmod 755 $c/grant_sqlite3_privileges  $c/drop_sqlite3_tables	 $c/drop_sqlite3_d
 chmod 755 $c/create_postgresql_database  $c/update_postgresql_tables $c/make_postgresql_tables
 chmod 755 $c/grant_postgresql_privileges $c/drop_postgresql_tables   $c/drop_postgresql_database
 
+chmod 755 $c/create_ingres_database  $c/update_ingres_tables $c/make_ingres_tables
+chmod 755 $c/grant_ingres_privileges $c/drop_ingres_tables   $c/drop_ingres_database
+
+
 chmod 755 $c/make_catalog_backup $c/delete_catalog_backup
 chmod 755 $c/sqlite
 chmod 755 $c/mysql
@@ -3143,7 +3156,7 @@ if test "x${db_type}" = "xInternal" ; then
    echo " "
    echo " "
    echo "You have not specified either --enable-client-only or one of the"
-   echo "  supported databases: MySQL, PostgreSQL, SQLite3, SQLite or DBI."
+   echo "  supported databases: MySQL, PostgreSQL, Ingres, SQLite3 or DBI."
    echo "  This is not permitted. Please reconfigure."
    echo " "
    echo "Aborting the configuration ..."

@@ -4,7 +4,7 @@
 
 #ifdef HAVE_INGRES
 
-#include <qdefc.h>
+#include <eqdefc.h>
 # include <eqsqlca.h>
 extern IISQLCA sqlca;   /* SQL Communications Area */
 #include <eqsqlda.h>
