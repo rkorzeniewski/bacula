@@ -461,6 +461,9 @@
 /* Define to 1 if you have the `inet_pton' function. */
 #undef HAVE_INET_PTON
 
+/* Set if have Ingres Database */
+#undef HAVE_INGRES
+
 /* Define if you have the 'intmax_t' type in <stdint.h> or <inttypes.h>. */
 #undef HAVE_INTMAX_T
 
@@ -569,6 +572,9 @@
 
 /* Define to 1 if you have the `munmap' function. */
 #undef HAVE_MUNMAP
+
+/* Set if you have an Ingres Database */
+#undef HAVE_MYSQL
 
 /* Define to 1 if you have the `nanosleep' function. */
 #undef HAVE_NANOSLEEP
