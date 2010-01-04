@@ -38,7 +38,6 @@
  * for the external world. This is control with
  * the define __SQL_C, which is defined only in sql.c
  *
- *    Version $Id: cats.h 8478 2009-02-18 20:11:55Z kerns $
  */
 
 /*
@@ -73,8 +72,8 @@ enum {
    SQL_TYPE_MYSQL      = 0,
    SQL_TYPE_POSTGRESQL = 1,
    SQL_TYPE_SQLITE     = 2,
-   SQL_TYPE_INGRES     = 3,
-   SQL_TYPE_SQLITE3
+   SQL_TYPE_SQLITE3    = 3,
+   SQL_TYPE_INGRES     = 4
 };
 
 
@@ -601,7 +600,7 @@ void               my_ingres_data_seek  (B_DB *mdb, int row);
 int                my_ingres_currval    (B_DB *mdb, const char *table_name);
 void               my_ingres_field_seek (B_DB *mdb, int row);
 INGRES_FIELD *     my_ingres_fetch_field(B_DB *mdb);
-void		   my_ingres_close	(B_DB *mdb);
+void               my_ingres_close      (B_DB *mdb);
 
 int my_ingres_batch_start(JCR *jcr, B_DB *mdb);
 int my_ingres_batch_end(JCR *jcr, B_DB *mdb, const char *error);
