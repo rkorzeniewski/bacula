@@ -20,7 +20,7 @@ Summary:
  Item 12: Reduction of communications bandwidth for a backup
  Item 13: Ability to reconnect a disconnected comm line
  Item 14: Start spooling even when waiting on tape
- Item 15: Enable/disable compression depending on storage device (disk/tape)
+*Item 15: Enable/disable compression depending on storage device (disk/tape)
  Item 16: Include all conf files in specified directory
  Item 17: Multiple threads in file daemon for the same job
  Item 18: Possibilty to schedule Jobs on last Friday of the month
@@ -523,7 +523,7 @@ Item 14: Start spooling even when waiting on tape
 Item 15: Enable/disable compression depending on storage device (disk/tape)
   Origin: Ralf Gross ralf-lists@ralfgross.de
   Date:  2008-01-11
-  Status: Initial Request
+  Status: Done
 
   What: Add a new option to the storage resource of the director.  Depending
           on this option, compression will be enabled/disabled for a device.

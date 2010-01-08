@@ -568,7 +568,7 @@ int db_get_client_ids(JCR *jcr, B_DB *mdb, int *num_ids, uint32_t *ids[])
 
    db_lock(mdb);
    *ids = NULL;
-   Mmsg(mdb->cmd, "SELECT ClientId FROM Client");
+   Mmsg(mdb->cmd, "SELECT ClientId FROM Client ORDER BY Name");
    if (QUERY_DB(jcr, mdb, mdb->cmd)) {
       *num_ids = sql_num_rows(mdb);
       if (*num_ids > 0) {
