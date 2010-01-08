@@ -27053,6 +27053,7 @@ sed 's/^/| /' conftest.$ac_ext >&5
 
 
 	  support_tls="no"
+	  support_crypto="no"
 
 
 fi
@@ -27210,6 +27211,10 @@ else
 fi
 
 if test "$support_tls" = "no"; then
+   OPENSSL_LIBS=""
+   OPENSSL_INC=""
+fi
+if test "$support_crypto" = "no"; then
    OPENSSL_LIBS=""
    OPENSSL_INC=""
 fi
