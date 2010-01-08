@@ -353,11 +353,7 @@ bool do_migration(JCR *jcr)
    Dmsg2(dbglevel, "Read store=%s, write store=%s\n", 
       ((STORE *)jcr->rstorage->first())->name(),
       ((STORE *)jcr->wstorage->first())->name());
-   if (((STORE *)jcr->rstorage->first())->name() == ((STORE *)jcr->wstorage->first())->name()) {
-      Jmsg(jcr, M_FATAL, 0, _("Read storage \"%s\" same as write storage.\n"),
-           ((STORE *)jcr->rstorage->first())->name());
-      return false;
-   }
+
    if (!start_storage_daemon_job(jcr, jcr->rstorage, jcr->wstorage, /*send_bsr*/true)) {
       return false;
    }
