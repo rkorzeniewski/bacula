@@ -2,6 +2,12 @@
           
 General:
 
+06Jan10
+ebl  Add make_catalog_backup.pl script that uses env variables and
+     disk file to pass database password for backup
+ebl  Modify the sql query to get alphabetical order of clients when
+     selecting the most recent backup for a client. Thanks to  
+     Holger Mueller for this suggestion.
 03Jan10
 ebl  Fix initgroups definition on aix >= 5
 27Dec09
