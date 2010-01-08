@@ -2,6 +2,9 @@
           
 General:
 
+08Jan10
+kes  Remove requirement for different storages for migrate, something
+     forgotten, but reminded by Jim Barber.
 06Jan10
 ebl  Add make_catalog_backup.pl script that uses env variables and
      disk file to pass database password for backup
