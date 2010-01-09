@@ -100,7 +100,7 @@ static int version_cmd(UAContext *ua, const char *cmd);
 static int wait_cmd(UAContext *ua, const char *cmd);
 
 static void do_job_delete(UAContext *ua, JobId_t JobId);
-static void delete_job_id_range(UAContext *ua, char *tok);
+static bool delete_job_id_range(UAContext *ua, char *tok);
 static int delete_volume(UAContext *ua);
 static int delete_pool(UAContext *ua);
 static void delete_job(UAContext *ua);
@@ -1462,9 +1462,7 @@ static void delete_job(UAContext *ua)
         sep = strchr(tok, ',');
         while (sep != NULL) {
            *sep = '\0';
-           if (strchr(tok, '-')) {
-               delete_job_id_range(ua, tok);
-           } else {
+           if (!delete_job_id_range(ua, tok)) {
               JobId = str_to_int64(tok);
               do_job_delete(ua, JobId);
            }
@@ -1472,9 +1470,7 @@ static void delete_job(UAContext *ua)
            sep = strchr(tok, ',');
         }
         /* pick up the last token */
-        if (strchr(tok, '-')) {
-            delete_job_id_range(ua, tok);
-        } else {
+        if (!delete_job_id_range(ua, tok)) {
             JobId = str_to_int64(tok);
             do_job_delete(ua, JobId);
         }
@@ -1495,12 +1491,15 @@ static void delete_job(UAContext *ua)
 /*
  * we call delete_job_id_range to parse range tokens and iterate over ranges
  */
-static void delete_job_id_range(UAContext *ua, char *tok)
+static bool delete_job_id_range(UAContext *ua, char *tok)
 {
    char *tok2;
    JobId_t j,j1,j2;
 
    tok2 = strchr(tok, '-');
+   if (!tok2) {
+      return false;
+   }
    *tok2 = '\0';
    tok2++;
    j1 = str_to_int64(tok);
@@ -1508,6 +1507,7 @@ static void delete_job_id_range(UAContext *ua, char *tok)
    for (j=j1; j<=j2; j++) {
       do_job_delete(ua, j);
    }
+   return true;
 }
 
 /*
