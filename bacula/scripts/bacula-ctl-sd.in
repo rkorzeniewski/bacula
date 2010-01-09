@@ -128,7 +128,8 @@ pidofproc() {
    fi
 
    # Finally try to extract it from ps
-   ${PSCMD} | grep $1 | ${AWK} '{ print $1 }' | tr '\n' ' '
+   pid=`${PSCMD} | grep $1 | ${AWK} '{ print $1 }' | tr '\n' ' '`
+   echo $pid
    return 0
 }
 
