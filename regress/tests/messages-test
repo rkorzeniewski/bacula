@@ -27,6 +27,8 @@ echo "s%  Schedule =%# Schedule =%g" >$outf
 echo 's%append = "%append = "/nowhere%g' >> $outf
 echo "s%bsmtp -h $SMTP_HOST%bsmtp -h nonvalidhost%g" >> $outf
 echo 's%# mail%  mail%' >> $outf
+echo 's%Bacula daemon message%DELETE THIS MESSAGE Bacula daemon message%' >> $outf
+echo 's%Bacula:%DELETE THIS MESSAGE Bacula:%' >> $outf
 #echo 's%mailcommand = "%mailcommand = "/nowhere%g' >> $outf
 
 cp $scripts/bacula-dir.conf $tmp/1
