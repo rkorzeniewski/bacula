@@ -2,7 +2,9 @@
           
 General:
 
-08Jan10
+11Jan180
+ebl  Upgrade DB version from 11 to 12.
+08Jan180
 kes  Remove requirement for different storages for migrate, something
      forgotten, but reminded by Jim Barber.
 06Jan10
