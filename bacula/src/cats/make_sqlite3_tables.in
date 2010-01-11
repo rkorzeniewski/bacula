@@ -75,6 +75,7 @@ CREATE TABLE Job (
    PurgedFiles TINYINT DEFAULT 0,
    HasBase TINYINT DEFAULT 0,
    HasCache TINYINT DEFAULT 0,
+   Reviewed TINYINT DEFAULT 0,
    Comment TEXT,
    PRIMARY KEY(JobId) 
    );

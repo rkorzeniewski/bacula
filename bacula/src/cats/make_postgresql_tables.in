@@ -87,6 +87,7 @@ CREATE TABLE Job
     PurgedFiles       smallint    default 0,
     HasBase           smallint    default 0,
     HasCache          smallint    default 0,
+    Reviewed          smallint    default 0,
     Comment           text,
     primary key (jobid)
 );

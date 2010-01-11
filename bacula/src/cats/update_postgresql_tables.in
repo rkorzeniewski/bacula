@@ -16,9 +16,11 @@ if psql -f - -d ${db_name} $* <<END-OF-DATA
 BEGIN;
 ALTER TABLE JobMedia DROP Copy ;
 ALTER TABLE Job ADD COLUMN HasCache smallint default 0;
+ALTER TABLE Job ADD COLUMN Reviewed smallint default 0;
 ALTER TABLE Job ADD COLUMN Comment text;
-ALTER TABLE JobHisto ADD COLUMN Comment text;
 ALTER TABLE JobHisto ADD COLUMN HasCache smallint default 0;
+ALTER TABLE JobHisto ADD COLUMN Reviewed smallint default 0;
+ALTER TABLE JobHisto ADD COLUMN Comment text;
 
 ALTER TABLE Status ADD COLUMN Severity int;
 UPDATE Status SET Severity = 15;

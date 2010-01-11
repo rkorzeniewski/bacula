@@ -18,9 +18,11 @@ USE ${db_name};
 ALTER TABLE JobMedia DROP Stripe ;
 ALTER TABLE JobMedia DROP Copy ;
 ALTER TABLE Job ADD COLUMN HasCache tinyint default 0 after HasBase;
-ALTER TABLE Job ADD Comment BLOB AFTER HasCache;
+ALTER TABLE Job ADD COLUMN Reviewed tinyint default 0 after HasCache;
+ALTER TABLE Job ADD COLUMN Comment BLOB AFTER Reviewed;
 ALTER TABLE JobHisto ADD COLUMN HasCache tinyint default 0 after HasBase;
-ALTER TABLE JobHisto ADD Comment BLOB AFTER HasCache;
+ALTER TABLE JobHisto ADD COLUMN Reviewed tinyint default 0 after HasCache;
+ALTER TABLE JobHisto ADD COLUMN Comment BLOB AFTER Reviewed;
 
 ALTER TABLE Status ADD COLUMN Severity int;
 UPDATE Status SET Severity = 15;
