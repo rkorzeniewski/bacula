@@ -13,7 +13,7 @@ export PATH="$bindir:$PATH"
 db_name=@db_name@
 
 if psql -f - -d ${db_name} $* <<END-OF-DATA
-BEGIN;
+BEGIN; -- Necessary for Bacula core
 ALTER TABLE JobMedia DROP Copy ;
 ALTER TABLE Job ADD COLUMN HasCache smallint default 0;
 ALTER TABLE Job ADD COLUMN Reviewed smallint default 0;
@@ -21,7 +21,10 @@ ALTER TABLE Job ADD COLUMN Comment text;
 ALTER TABLE JobHisto ADD COLUMN HasCache smallint default 0;
 ALTER TABLE JobHisto ADD COLUMN Reviewed smallint default 0;
 ALTER TABLE JobHisto ADD COLUMN Comment text;
+UPDATE Version SET VersionId=12;
+COMMIT;
 
+BEGIN; -- Can conflict with previous Bweb installation
 ALTER TABLE Status ADD COLUMN Severity int;
 UPDATE Status SET Severity = 15;
 UPDATE Status SET Severity = 100 where JobStatus = 'f';
@@ -29,7 +32,9 @@ UPDATE Status SET Severity = 90 where JobStatus = 'A';
 UPDATE Status SET Severity = 10 where JobStatus = 'T';
 UPDATE Status SET Severity = 20 where JobStatus = 'e';
 UPDATE Status SET Severity = 25 where JobStatus = 'E';
+COMMIT;
 
+BEGIN; -- Can already exists if using 3.1.x release
 CREATE TABLE PathHierarchy
 (
      PathId integer NOT NULL,
@@ -52,8 +57,6 @@ CREATE TABLE PathVisibility
 CREATE INDEX pathvisibility_jobid
           ON PathVisibility (JobId);
 
-
-UPDATE Version SET VersionId=12;
 COMMIT;
 
 CREATE INDEX basefiles_jobid_idx ON BaseFiles ( JobId );
