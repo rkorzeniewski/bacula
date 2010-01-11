@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2001-2008 Free Software Foundation Europe e.V.
+   Copyright (C) 2001-2010 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -49,13 +49,13 @@
  *  Returns: 0 on success
  *           errno on failure
  */
-int rwl_init(brwlock_t *rwl, int prio)
+int rwl_init(brwlock_t *rwl, int priority)
 {
    int stat;
 
    rwl->r_active = rwl->w_active = 0;
    rwl->r_wait = rwl->w_wait = 0;
-   rwl->priority = prio;
+   rwl->priority = priority;
    if ((stat = pthread_mutex_init(&rwl->mutex, NULL)) != 0) {
       return stat;
    }
@@ -461,7 +461,7 @@ int main (int argc, char *argv[])
     for (data_count = 0; data_count < DATASIZE; data_count++) {
         data[data_count].data = 0;
         data[data_count].writes = 0;
-        status = rwl_init (&data[data_count].lock);
+        status = rwl_init(&data[data_count].lock);
         if (status != 0) {
            berrno be;
            printf("Init rwlock failed. ERR=%s\n", be.bstrerror(status));
@@ -635,7 +635,7 @@ int main (int argc, char *argv[])
     for (data_count = 0; data_count < DATASIZE; data_count++) {
         data[data_count].data = 0;
         data[data_count].updates = 0;
-        rwl_init (&data[data_count].lock);
+        rwl_init(&data[data_count].lock);
     }
 
     /*
