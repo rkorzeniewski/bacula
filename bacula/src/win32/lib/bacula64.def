@@ -634,7 +634,7 @@ _Z14rwl_readunlockP12s_rwlock_tag
 _Z15rwl_readtrylockP12s_rwlock_tag
 _Z15rwl_writeunlockP12s_rwlock_tag
 _Z16rwl_writetrylockP12s_rwlock_tag
-_Z8rwl_initP12s_rwlock_tag
+_Z8rwl_initP12s_rwlock_tagi
  
 ; scan.o
 _Z10parse_argsPcPS_PiS0_S0_i
