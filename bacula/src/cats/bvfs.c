@@ -371,6 +371,7 @@ void bvfs_update_cache(JCR *jcr, B_DB *mdb)
    db_lock(mdb);
    db_start_transaction(jcr, mdb);
 
+#ifdef xxx
    /* TODO: Remove this code when updating make_bacula_table script */
    Mmsg(mdb->cmd, "SELECT 1 FROM Job WHERE HasCache<>2 LIMIT 1");
    if (!QUERY_DB(jcr, mdb, mdb->cmd)) {
@@ -407,6 +408,7 @@ void bvfs_update_cache(JCR *jcr, B_DB *mdb)
       QUERY_DB(jcr, mdb, mdb->cmd);
 
    }
+#endif
 
    Mmsg(mdb->cmd, 
  "SELECT JobId from Job "

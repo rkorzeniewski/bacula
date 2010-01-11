@@ -1094,7 +1094,6 @@ static bool check_catalog(cat_op mode)
       if (mode == UPDATE_AND_FIX) {
          db_sql_query(db, cleanup_created_job, NULL, NULL);
          db_sql_query(db, cleanup_running_job, NULL, NULL);
-         db_sql_query(db, "CREATE INDEX basefiles_jobid_idx ON BaseFiles ( JobId )" , NULL, NULL);
       }
 
       db_close_database(NULL, db);
