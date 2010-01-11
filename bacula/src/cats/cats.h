@@ -89,7 +89,7 @@ typedef int (DB_RESULT_HANDLER)(void *, int, char **);
 #ifdef HAVE_SQLITE
 #error "SQLite2 is now deprecated, use SQLite3 instead."
 
-#define BDB_VERSION 11
+#define BDB_VERSION 12
 
 #include <sqlite.h>
 
@@ -211,7 +211,7 @@ extern const char* my_sqlite_batch_fill_path_query;
 #ifdef HAVE_SQLITE3
 
 
-#define BDB_VERSION 11
+#define BDB_VERSION 12
 
 #include <sqlite3.h>
 
@@ -338,7 +338,7 @@ extern const char* my_sqlite_batch_fill_path_query;
 
 #ifdef HAVE_MYSQL
 
-#define BDB_VERSION 11
+#define BDB_VERSION 12
 
 #include <mysql.h>
 
@@ -422,7 +422,7 @@ extern void  my_mysql_free_result(B_DB *mdb);
 
 #ifdef HAVE_POSTGRESQL
 
-#define BDB_VERSION 11
+#define BDB_VERSION 12
 
 #include <libpq-fe.h>
 
@@ -645,7 +645,7 @@ extern const char* my_ingres_batch_fill_path_query;
 
 #ifdef HAVE_DBI
 
-#define BDB_VERSION 11
+#define BDB_VERSION 12
 
 #include <dbi/dbi.h>
 
