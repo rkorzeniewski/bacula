@@ -116,6 +116,7 @@ CREATE TABLE Job (
    PurgedFiles TINYINT DEFAULT 0,
    HasBase TINYINT DEFAULT 0,
    HasCache TINYINT DEFAULT 0,
+   Reviewed TINYINT DEFAULT 0,
    Comment BLOB,
    PRIMARY KEY(JobId),
    INDEX (Name(128))
@@ -148,6 +149,7 @@ CREATE TABLE JobHisto (
    PurgedFiles TINYINT DEFAULT 0,
    HasBase TINYINT DEFAULT 0,
    HasCache TINYINT DEFAULT 0,
+   Reviewed TINYINT DEFAULT 0,
    Comment BLOB,
    INDEX (StartTime)
    );
