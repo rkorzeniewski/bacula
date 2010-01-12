@@ -1902,7 +1902,7 @@ AC_CACHE_CHECK(for ioctl_req_t, ba_cv_header_ioctl_req_t,
 	  ], [
 	     ba_cv_header_ioctl_req_t=yes
 	  ], [
-	     ba_cv_header_ioct_req_t_t=no
+	     ba_cv_header_ioct_req_t=no
 	  ]
        )
    ]
