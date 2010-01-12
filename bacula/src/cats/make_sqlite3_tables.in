@@ -108,6 +108,7 @@ CREATE TABLE JobHisto (
    PurgedFiles TINYINT DEFAULT 0,
    HasBase TINYINT DEFAULT 0,
    HasCache TINYINT DEFAULT 0,
+   Reviewed TINYINT DEFAULT 0,
    Comment TEXT
    );
 CREATE INDEX inx61 ON JobHisto (StartTime);
