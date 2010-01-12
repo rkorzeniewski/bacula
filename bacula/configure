@@ -32751,7 +32751,7 @@ else
 sed 's/^/| /' conftest.$ac_ext >&5
 
 
-	     ba_cv_header_ioct_req_t=no
+	     ba_cv_header_ioctl_req_t=no
 
 
 fi
