@@ -999,12 +999,6 @@ rm -f $RPM_BUILD_DIR/Release_Notes-%{version}-%{release}.txt
 %endif
 # opensuse_bs: directories not owned by any package
 /etc/bacula
-/etc/logwatch
-/etc/logwatch/conf
-/etc/logwatch/conf/logfiles
-/etc/logwatch/conf/services
-/etc/logwatch/scripts
-/etc/logwatch/scripts/services
 
 %if ! %{client_only}
 %attr(-, root, %{daemon_group}) %dir %{script_dir}
