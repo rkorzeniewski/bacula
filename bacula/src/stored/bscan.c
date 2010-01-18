@@ -914,6 +914,7 @@ static int create_media_record(B_DB *db, MEDIA_DBR *mr, VOLUME_LABEL *vl)
    mr->VolRetention = 365 * 3600 * 24; /* 1 year */
    mr->Enabled = 1;
    if (vl->VerNum >= 11) {
+      mr->set_first_written = true; /* Save FirstWritten during update_media */
       mr->FirstWritten = btime_to_utime(vl->write_btime);
       mr->LabelDate    = btime_to_utime(vl->label_btime);
    } else {
