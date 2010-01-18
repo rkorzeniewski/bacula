@@ -2,14 +2,11 @@
 
                    Serialisation Support Functions
                           John Walker
-
-
-     Version $Id$
 */
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2010 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -173,12 +170,17 @@ void serial_float64(uint8_t * * const ptr, const float64_t v)
     *ptr += sizeof(float64_t);
 }
 
-void serial_string(uint8_t * * const ptr, const char * const str)
+void serial_string(uint8_t * * const ptr, const char * const str, int max)
 {
-   int len = strlen(str) + 1;
-
-   memcpy(*ptr, str, len);
-   *ptr += len;
+   int i;                   
+   char *dest = (char *)*ptr;
+   char *src = (char *)str;
+   for (i=0; i<max && src[i] != 0;  i++) {
+      dest[i] = src[i];
+   }
+   dest[i++] = 0;                  /* terminate output string */
+   *ptr += i;                      /* update pointer */
+// Dmsg2(000, "ser src=%s dest=%s\n", src, dest);
 }
 
 
@@ -302,9 +304,15 @@ float64_t unserial_float64(uint8_t * * const ptr)
     return v;
 }
 
-void unserial_string(uint8_t * * const ptr, char * const str)
+void unserial_string(uint8_t * * const ptr, char * const str, int max)
 {
-   int len = strlen((char *) *ptr) + 1;
-   memcpy(str, (char *) *ptr, len);
-   *ptr += len;
+   int i;                   
+   char *src = (char*)(*ptr);
+   char *dest = str;
+   for (i=0; i<max && src[i] != 0;  i++) {
+      dest[i] = src[i];
+   }
+   dest[i++] = 0;            /* terminate output string */
+   *ptr += i;                /* update pointer */
+// Dmsg2(000, "unser src=%s dest=%s\n", src, dest);
 }
