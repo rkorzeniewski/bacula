@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2001-2008 Free Software Foundation Europe e.V.
+   Copyright (C) 2001-2010 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -666,11 +666,6 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
 
       if (!unpack_attributes_record(bjcr, rec->Stream, rec->data, attr)) {
          Emsg0(M_ERROR_TERM, 0, _("Cannot continue.\n"));
-      }
-
-      if (attr->file_index != rec->FileIndex) {
-         Emsg2(M_ERROR_TERM, 0, _("Record header file index %ld not equal record index %ld\n"),
-            rec->FileIndex, attr->file_index);
       }
 
       if (verbose > 1) {

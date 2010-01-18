@@ -329,13 +329,7 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
          Emsg0(M_ERROR_TERM, 0, _("Cannot continue.\n"));
       }
 
-      if (attr->file_index != rec->FileIndex) {
-         Emsg2(M_ERROR_TERM, 0, _("Record header file index %ld not equal record index %ld\n"),
-            rec->FileIndex, attr->file_index);
-      }
-
       if (file_is_included(ff, attr->fname) && !file_is_excluded(ff, attr->fname)) {
-
          attr->data_stream = decode_stat(attr->attr, &attr->statp, &attr->LinkFI);
          if (!is_restore_stream_supported(attr->data_stream)) {
             if (!non_support_data++) {
