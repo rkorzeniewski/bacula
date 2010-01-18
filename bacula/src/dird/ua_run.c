@@ -41,7 +41,7 @@ class run_ctx {
 public:
    char *job_name, *level_name, *jid, *store_name, *pool_name;
    char *where, *fileset_name, *client_name, *bootstrap, *regexwhere;
-   char *restore_client_name;
+   char *restore_client_name, *comment;
    const char *replace;
    char *when, *verify_job_name, *catalog_name;
    char *previous_job_name;
@@ -438,6 +438,12 @@ static bool reset_restore_context(UAContext *ua, JCR *jcr, run_ctx &rc)
       jcr->catalog = rc.catalog;
       pm_strcpy(jcr->catalog_source, _("User input"));
    }
+
+   if (!jcr->comment) {
+      jcr->comment = get_pool_memory(PM_MESSAGE);
+   }
+   pm_strcpy(jcr->comment, rc.comment);
+
    if (rc.where) {
       if (jcr->where) {
          free(jcr->where);
@@ -1012,6 +1018,7 @@ static bool scan_command_line_arguments(UAContext *ua, run_ctx &rc)
       "restoreclient",                /* 24 */
       "pluginoptions",                /* 25 */
       "spooldata",                    /* 26 */
+      "comment",                      /* 27 */
       NULL};
 
 #define YES_POS 14
@@ -1026,7 +1033,7 @@ static bool scan_command_line_arguments(UAContext *ua, run_ctx &rc)
    rc.verify_job_name = NULL;
    rc.previous_job_name = NULL;
    rc.spool_data_set = 0;
-
+   rc.comment = NULL;
 
    for (i=1; i<ua->argc; i++) {
       Dmsg2(800, "Doing arg %d = %s\n", i, ua->argk[i]);
@@ -1244,6 +1251,9 @@ static bool scan_command_line_arguments(UAContext *ua, run_ctx &rc)
                   ua->send_msg(_("Invalid spooldata flag.\n"));
                }
                break;
+            case 27: /* comment */
+               rc.comment = ua->argv[i];
+               kw_ok = true;
             default:
                break;
             }
@@ -1269,7 +1279,11 @@ static bool scan_command_line_arguments(UAContext *ua, run_ctx &rc)
    } /* end argc loop */
              
    Dmsg0(800, "Done scan.\n");
-
+   if (rc.comment) {
+      if (!is_comment_legal(ua, rc.comment)) {
+         return false;
+      }
+   }
    if (rc.catalog_name) {
        rc.catalog = GetCatalogResWithName(rc.catalog_name);
        if (rc.catalog == NULL) {

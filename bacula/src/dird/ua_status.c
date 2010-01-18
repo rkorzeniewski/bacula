@@ -786,11 +786,17 @@ static void list_running_jobs(UAContext *ua)
       }
 
       if (ua->api) {
-         ua->send_msg(_("%6d\t%-6s\t%-20s\t%s\n"),
-            jcr->JobId, level, jcr->Job, msg);
+         bash_spaces(jcr->comment);
+         ua->send_msg(_("%6d\t%-6s\t%-20s\t%s\t%s\n"),
+                      jcr->JobId, level, jcr->Job, msg, jcr->comment);
+         unbash_spaces(jcr->comment);
       } else {
          ua->send_msg(_("%6d %-6s  %-20s %s\n"),
             jcr->JobId, level, jcr->Job, msg);
+         /* Display comments if any */
+         if (*jcr->comment) {
+            ua->send_msg(_("               %-30s\n"), jcr->comment);
+         }
       }
 
       if (pool_mem) {

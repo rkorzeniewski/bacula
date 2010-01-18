@@ -66,10 +66,12 @@ static int db_create_filename_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar);
 bool
 db_create_job_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
 {
+   POOL_MEM buf;
    char dt[MAX_TIME_LENGTH];
    time_t stime;
    struct tm tm;
    bool ok;
+   int len;
    utime_t JobTDate;
    char ed1[30],ed2[30];
 
@@ -82,13 +84,18 @@ db_create_job_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
    strftime(dt, sizeof(dt), "%Y-%m-%d %H:%M:%S", &tm);
    JobTDate = (utime_t)stime;
 
+   len = strlen(jcr->comment);
+   buf.check_size(len*2+1);
+   db_escape_string(jcr, mdb, buf.c_str(), jcr->comment, len);
+
    /* Must create it */
    Mmsg(mdb->cmd,
-"INSERT INTO Job (Job,Name,Type,Level,JobStatus,SchedTime,JobTDate,ClientId) "
-"VALUES ('%s','%s','%c','%c','%c','%s',%s,%s)",
+"INSERT INTO Job (Job,Name,Type,Level,JobStatus,SchedTime,JobTDate,"
+                 "ClientId,Comment) "
+"VALUES ('%s','%s','%c','%c','%c','%s',%s,%s,'%s')",
            jr->Job, jr->Name, (char)(jr->JobType), (char)(jr->JobLevel),
            (char)(jr->JobStatus), dt, edit_uint64(JobTDate, ed1),
-           edit_int64(jr->ClientId, ed2));
+           edit_int64(jr->ClientId, ed2), buf.c_str());
 
    if (!INSERT_DB(jcr, mdb, mdb->cmd)) {
       Mmsg2(&mdb->errmsg, _("Create DB Job record %s failed. ERR=%s\n"),

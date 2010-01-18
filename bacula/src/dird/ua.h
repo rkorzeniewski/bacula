@@ -112,6 +112,7 @@ struct RESTORE_CTX {
    POOL *pool;
    int restore_jobs;
    uint32_t selected_files;
+   char *comment;
    char *where;
    char *RegexWhere;
    RBSR *bsr;

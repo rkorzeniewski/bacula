@@ -211,6 +211,7 @@ bool get_yesno(UAContext *ua, const char *prompt);
 bool is_yesno(char *val, int *ret);
 int get_enabled(UAContext *ua, const char *val);
 void parse_ua_args(UAContext *ua);
+bool is_comment_legal(UAContext *ua, const char *name);
 
 /* ua_label.c */
 bool is_volume_name_legal(UAContext *ua, const char *name);

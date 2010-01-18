@@ -79,6 +79,7 @@ static void get_and_display_basejobs(UAContext *ua, RESTORE_CTX *rx);
 int restore_cmd(UAContext *ua, const char *cmd)
 {
    RESTORE_CTX rx;                    /* restore context */
+   POOL_MEM buf;
    JOB *job;
    int i;
    JCR *jcr = ua->jcr;
@@ -94,6 +95,14 @@ int restore_cmd(UAContext *ua, const char *cmd)
    rx.BaseJobIds = get_pool_memory(PM_FNAME);
    rx.query = get_pool_memory(PM_FNAME);
    rx.bsr = new_bsr();
+
+   i = find_arg_with_value(ua, "comment");
+   if (i >= 0) {
+      rx.comment = ua->argv[i];
+      if (!is_comment_legal(ua, rx.comment)) {
+         goto bail_out;
+      }
+   }
 
    i = find_arg_with_value(ua, "where");
    if (i >= 0) {
@@ -227,37 +236,31 @@ int restore_cmd(UAContext *ua, const char *cmd)
 
    escaped_bsr_name = escape_filename(jcr->RestoreBootstrap);
 
+   Mmsg(ua->cmd,
+        "run job=\"%s\" client=\"%s\" restoreclient=\"%s\" storage=\"%s\""
+        " bootstrap=\"%s\" files=%u catalog=\"%s\"",
+        job->name(), rx.ClientName, rx.RestoreClientName,
+        rx.store?rx.store->name():"",
+        escaped_bsr_name ? escaped_bsr_name : jcr->RestoreBootstrap,
+        rx.selected_files, ua->catalog->name());
+
    /* Build run command */
+   pm_strcpy(buf, "");
    if (rx.RegexWhere) {
       escaped_where_name = escape_filename(rx.RegexWhere);
-      Mmsg(ua->cmd,
-          "run job=\"%s\" client=\"%s\" restoreclient=\"%s\" storage=\"%s\""
-          " bootstrap=\"%s\" regexwhere=\"%s\" files=%u catalog=\"%s\"",
-          job->name(), rx.ClientName, rx.RestoreClientName, 
-          rx.store?rx.store->name():"",
-          escaped_bsr_name ? escaped_bsr_name : jcr->RestoreBootstrap,
-          escaped_where_name ? escaped_where_name : rx.RegexWhere,
-          rx.selected_files, ua->catalog->name());
+      Mmsg(buf, " regexwhere=\"%s\"", 
+           escaped_where_name ? escaped_where_name : rx.RegexWhere);
 
    } else if (rx.where) {
       escaped_where_name = escape_filename(rx.where);
-      Mmsg(ua->cmd,
-          "run job=\"%s\" client=\"%s\" restoreclient=\"%s\" storage=\"%s\""
-          " bootstrap=\"%s\" where=\"%s\" files=%u catalog=\"%s\"",
-          job->name(), rx.ClientName, rx.RestoreClientName,
-          rx.store?rx.store->name():"",
-          escaped_bsr_name ? escaped_bsr_name : jcr->RestoreBootstrap,
-          escaped_where_name ? escaped_where_name : rx.where,
-          rx.selected_files, ua->catalog->name());
+      Mmsg(buf," where=\"%s\"", 
+           escaped_where_name ? escaped_where_name : rx.where);
+   }
+   pm_strcat(ua->cmd, buf);
 
-   } else {
-      Mmsg(ua->cmd,
-          "run job=\"%s\" client=\"%s\" restoreclient=\"%s\" storage=\"%s\""
-          " bootstrap=\"%s\" files=%u catalog=\"%s\"",
-          job->name(), rx.ClientName, rx.RestoreClientName,
-          rx.store?rx.store->name():"",
-          escaped_bsr_name ? escaped_bsr_name : jcr->RestoreBootstrap,
-          rx.selected_files, ua->catalog->name());
+   if (rx.comment) {
+      Mmsg(buf, " comment=\"%s\"", rx.comment);
+      pm_strcat(ua->cmd, buf);
    }
 
    if (escaped_bsr_name != NULL) {
@@ -452,6 +455,7 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
       "regexwhere",   /* 18 */
       "restoreclient", /* 19 */
       "copies",        /* 20 */
+      "comment",       /* 21 */
       NULL
    };
 

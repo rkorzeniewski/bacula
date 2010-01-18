@@ -274,6 +274,7 @@ public:
    save_pkt *plugin_sp;               /* plugin save packet */
    char *plugin_options;              /* user set options for plugin */
    bool cmd_plugin;                   /* Set when processing a command Plugin = */
+   POOLMEM *comment;                  /* Comment for this Job */
 
    /* Daemon specific part of JCR */
    /* This should be empty in the library */

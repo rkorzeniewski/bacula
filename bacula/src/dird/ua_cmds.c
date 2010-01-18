@@ -157,7 +157,7 @@ static struct cmdstruct commands[] = {                                      /* C
  { NT_("query"),      querycmd,      _("Query catalog"),              NT_(""),              false},
  { NT_("restore"),    restore_cmd,   _("Restore files"), 
    NT_("where=</path> client=<client> storage=<storage> bootstrap=<file>"
-       "\n\tjobid=<jobid> done select all"), false},
+       "\n\tcomment=<text> jobid=<jobid> done select all"), false},
 
  { NT_("relabel"),    relabel_cmd,   _("Relabel a tape"), 
    NT_("storage=<storage-name> oldvolume=<old-volume-name>\n\tvolume=<newvolume-name> pool=<pool>"), false},
@@ -166,7 +166,7 @@ static struct cmdstruct commands[] = {                                      /* C
  { NT_("reload"),     reload_cmd,    _("Reload conf file"), NT_(""),                  true},
  { NT_("run"),        run_cmd,       _("Run a job"), 
    NT_("job=<job-name> client=<client-name>\n\tfileset=<FileSet-name> level=<level-keyword>\n\tstorage=<storage-name>"
-       "where=<directory-prefix>\n\twhen=<universal-time-specification>\n\tyes"), false}, /* need to be check */
+       "where=<directory-prefix>\n\twhen=<universal-time-specification>\n\tcomment=<text> yes"), false}, 
 
  { NT_("status"),     status_cmd,    _("Report status"), 
    NT_("all | dir=<dir-name> | director | client=<client-name> | storage=<storage-name> slots | days=nnn"), true},

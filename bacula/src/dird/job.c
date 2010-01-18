@@ -140,7 +140,10 @@ bool setup_job(JCR *jcr)
       goto bail_out;
    }
    Dmsg0(150, "DB opened\n");
-
+   if (!jcr->comment) {
+      jcr->comment = get_pool_memory(PM_MESSAGE);
+      *jcr->comment = '\0';
+   }
    if (!jcr->fname) {
       jcr->fname = get_pool_memory(PM_FNAME);
    }
@@ -964,6 +967,10 @@ void dird_free_jcr_pointers(JCR *jcr)
       Dmsg0(200, "Close Store bsock\n");
       bnet_close(jcr->store_bsock);
       jcr->store_bsock = NULL;
+   }
+   if (jcr->comment) {
+      free_pool_memory(jcr->comment);
+      jcr->comment = NULL;
    }
    if (jcr->fname) {
       Dmsg0(200, "Free JCR fname\n");
