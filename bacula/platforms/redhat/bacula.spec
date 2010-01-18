@@ -841,6 +841,7 @@ mkdir -p $RPM_BUILD_ROOT/etc/logrotate.d
 mkdir -p $RPM_BUILD_ROOT/etc/logwatch/conf/logfiles
 mkdir -p $RPM_BUILD_ROOT/etc/logwatch/conf/services
 mkdir -p $RPM_BUILD_ROOT/etc/logwatch/scripts/services
+mkdir -p $RPM_BUILD_ROOT/etc/logwatch/scripts/shared
 mkdir -p $RPM_BUILD_ROOT%{script_dir}/updatedb
 
 mkdir -p $RPM_BUILD_ROOT/etc/pam.d
@@ -911,9 +912,11 @@ cp -p updatedb/* $RPM_BUILD_ROOT%{script_dir}/updatedb/
 # install the logwatch scripts
 %if ! %{client_only}
 cp -p scripts/logwatch/bacula $RPM_BUILD_ROOT/etc/logwatch/scripts/services/bacula
+cp -p scripts/logwatch/applybacula $RPM_BUILD_ROOT/etc/logwatch/scripts/shared/applybacula
 cp -p scripts/logwatch/logfile.bacula.conf $RPM_BUILD_ROOT/etc/logwatch/conf/logfiles/bacula.conf
 cp -p scripts/logwatch/services.bacula.conf $RPM_BUILD_ROOT/etc/logwatch/conf/services/bacula.conf
 chmod 755 $RPM_BUILD_ROOT/etc/logwatch/scripts/services/bacula
+chmod 755 $RPM_BUILD_ROOT/etc/logwatch/scripts/shared/applybacula
 chmod 644 $RPM_BUILD_ROOT/etc/logwatch/conf/logfiles/bacula.conf
 chmod 644 $RPM_BUILD_ROOT/etc/logwatch/conf/services/bacula.conf
 %endif
@@ -1028,6 +1031,7 @@ rm -f $RPM_BUILD_DIR/Release_Notes-%{version}-%{release}.txt
 
 /etc/logrotate.d/bacula
 /etc/logwatch/scripts/services/bacula
+/etc/logwatch/scripts/shared/applybacula
 %attr(-, root, %{daemon_group}) %config(noreplace) %{sysconf_dir}/bacula-dir.conf
 %attr(-, root, %{daemon_group}) %config(noreplace) %{sysconf_dir}/bacula-fd.conf
 %attr(-, root, %{storage_daemon_group}) %config(noreplace) %{sysconf_dir}/bacula-sd.conf
