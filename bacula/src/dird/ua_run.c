@@ -621,7 +621,7 @@ try_again_reg:
          ua->send_msg(_("Cannot use your regexp\n"));
          goto try_again_reg;
       }
-
+      ua->send_msg(_("Enter a period (.) to stop this test\n"));
       while (get_cmd(ua, _("Please enter filename to test: "))) {
          apply_bregexps(ua->cmd, regs, &result);
          ua->send_msg(_("%s -> %s\n"), ua->cmd, result);
