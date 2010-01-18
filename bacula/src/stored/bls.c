@@ -31,7 +31,6 @@
  * 
  *  Kern Sibbald, MM
  *
- *   Version $Id$
  */
 
 #include "bacula.h"
@@ -391,11 +390,6 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
          }
          num_files++;
          return true;
-      }
-
-      if (attr->file_index != rec->FileIndex) {
-         Emsg2(M_ERROR, 0, _("Record FileIndex %ld not equal Attrib FileIndex %ld\n"),
-               rec->FileIndex, attr->file_index);
       }
 
       attr->data_stream = decode_stat(attr->attr, &attr->statp, &attr->LinkFI);
