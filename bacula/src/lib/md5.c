@@ -378,5 +378,6 @@ decode_it:
       bin_to_base64(bin, sizeof(bin), (char *)signature, 16, true);
       printf("%s\n", bin);
    }
+   fclose(fd);
 }
 #endif
