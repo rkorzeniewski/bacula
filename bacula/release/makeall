@@ -2,7 +2,7 @@
 #
 # Make full release
 #
-version=3.0.3
+version=5.0.0
 #
 # Bacula git repos
 bacula=/home/kern/bacula/k
