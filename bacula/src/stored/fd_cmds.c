@@ -129,8 +129,6 @@ void run_job(JCR *jcr)
    dir->fsend(Job_end, jcr->Job, jcr->JobStatus, jcr->JobFiles,
       edit_uint64(jcr->JobBytes, ec1), jcr->JobErrors);
    dir->signal(BNET_EOD);             /* send EOD to Director daemon */
-   /* ***FIXME*** remove for production */
-   sm_check(__FILE__, __LINE__, true);
    return;
 }
 
