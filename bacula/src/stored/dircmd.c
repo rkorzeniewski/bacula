@@ -250,8 +250,6 @@ bail_out:
    dequeue_messages(jcr);             /* send any queued messages */
    bs->signal(BNET_TERMINATE);
    free_jcr(jcr);
-   /* ***FIXME*** remove for production */
-   sm_check(__FILE__, __LINE__, true);
    return NULL;
 }
 
