@@ -357,6 +357,13 @@ Source2: bacula-2.2.7-postgresql.patch
 exit 1
 %endif
 
+# distribution-specific directory for logwatch
+%if %{wb3} || %{rh7} || %{rh8} || %{rh9} || %{fc1} || %{fc3} || %{fc4}
+%define logwatch_dir /etc/log.d
+%else
+%define logwatch_dir /etc/logwatch
+%endif
+
 # database defines
 # set for database support desired or define the build_xxx on the command line
 %define mysql 0
@@ -838,10 +845,10 @@ cwd=${PWD}
 [ "$RPM_BUILD_ROOT" != "/" ] && rm -rf "$RPM_BUILD_ROOT"
 mkdir -p $RPM_BUILD_ROOT/etc/init.d
 mkdir -p $RPM_BUILD_ROOT/etc/logrotate.d
-mkdir -p $RPM_BUILD_ROOT/etc/logwatch/conf/logfiles
-mkdir -p $RPM_BUILD_ROOT/etc/logwatch/conf/services
-mkdir -p $RPM_BUILD_ROOT/etc/logwatch/scripts/services
-mkdir -p $RPM_BUILD_ROOT/etc/logwatch/scripts/shared
+mkdir -p $RPM_BUILD_ROOT%{logwatch_dir}/conf/logfiles
+mkdir -p $RPM_BUILD_ROOT%{logwatch_dir}/conf/services
+mkdir -p $RPM_BUILD_ROOT%{logwatch_dir}/scripts/services
+mkdir -p $RPM_BUILD_ROOT%{logwatch_dir}/scripts/shared
 mkdir -p $RPM_BUILD_ROOT%{script_dir}/updatedb
 
 mkdir -p $RPM_BUILD_ROOT/etc/pam.d
@@ -911,14 +918,14 @@ cp -p updatedb/* $RPM_BUILD_ROOT%{script_dir}/updatedb/
 
 # install the logwatch scripts
 %if ! %{client_only}
-cp -p scripts/logwatch/bacula $RPM_BUILD_ROOT/etc/logwatch/scripts/services/bacula
-cp -p scripts/logwatch/applybacula $RPM_BUILD_ROOT/etc/logwatch/scripts/shared/applybacula
-cp -p scripts/logwatch/logfile.bacula.conf $RPM_BUILD_ROOT/etc/logwatch/conf/logfiles/bacula.conf
-cp -p scripts/logwatch/services.bacula.conf $RPM_BUILD_ROOT/etc/logwatch/conf/services/bacula.conf
-chmod 755 $RPM_BUILD_ROOT/etc/logwatch/scripts/services/bacula
-chmod 755 $RPM_BUILD_ROOT/etc/logwatch/scripts/shared/applybacula
-chmod 644 $RPM_BUILD_ROOT/etc/logwatch/conf/logfiles/bacula.conf
-chmod 644 $RPM_BUILD_ROOT/etc/logwatch/conf/services/bacula.conf
+cp -p scripts/%{logwatch_dir}/bacula $RPM_BUILD_ROOT/etc/%{logwatch_dir}/scripts/services/bacula
+cp -p scripts/%{logwatch_dir}/applybacula $RPM_BUILD_ROOT/etc/%{logwatch_dir}/scripts/shared/applybacula
+cp -p scripts/%{logwatch_dir}/logfile.bacula.conf $RPM_BUILD_ROOT/etc/%{logwatch_dir}/conf/logfiles/bacula.conf
+cp -p scripts/%{logwatch_dir}/services.bacula.conf $RPM_BUILD_ROOT/etc/%{logwatch_dir}/conf/services/bacula.conf
+chmod 755 $RPM_BUILD_ROOT/etc/%{logwatch_dir}/scripts/services/bacula
+chmod 755 $RPM_BUILD_ROOT/etc/%{logwatch_dir}/scripts/shared/applybacula
+chmod 644 $RPM_BUILD_ROOT/etc/%{logwatch_dir}/conf/logfiles/bacula.conf
+chmod 644 $RPM_BUILD_ROOT/etc/%{logwatch_dir}/conf/services/bacula.conf
 %endif
 
 # now clean up permissions that are left broken by the install
@@ -1030,14 +1037,14 @@ rm -f $RPM_BUILD_DIR/Release_Notes-%{version}-%{release}.txt
 %attr(-, root, %{storage_daemon_group}) %{script_dir}/mtx-changer.conf
 
 /etc/logrotate.d/bacula
-/etc/logwatch/scripts/services/bacula
-/etc/logwatch/scripts/shared/applybacula
+/etc/%{logwatch_dir}/scripts/services/bacula
+/etc/%{logwatch_dir}/scripts/shared/applybacula
 %attr(-, root, %{daemon_group}) %config(noreplace) %{sysconf_dir}/bacula-dir.conf
 %attr(-, root, %{daemon_group}) %config(noreplace) %{sysconf_dir}/bacula-fd.conf
 %attr(-, root, %{storage_daemon_group}) %config(noreplace) %{sysconf_dir}/bacula-sd.conf
 %attr(-, root, %{daemon_group}) %config(noreplace) %{sysconf_dir}/bconsole.conf
-%attr(-, root, %{daemon_group}) %config(noreplace) /etc/logwatch/conf/logfiles/bacula.conf
-%attr(-, root, %{daemon_group}) %config(noreplace) /etc/logwatch/conf/services/bacula.conf
+%attr(-, root, %{daemon_group}) %config(noreplace) /etc/%{logwatch_dir}/conf/logfiles/bacula.conf
+%attr(-, root, %{daemon_group}) %config(noreplace) /etc/%{logwatch_dir}/conf/services/bacula.conf
 %attr(-, root, %{daemon_group}) %config(noreplace) %{script_dir}/query.sql
 
 %attr(-, %{storage_daemon_user}, %{daemon_group}) %dir %{working_dir}
