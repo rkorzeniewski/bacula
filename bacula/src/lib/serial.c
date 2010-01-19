@@ -170,12 +170,12 @@ void serial_float64(uint8_t * * const ptr, const float64_t v)
     *ptr += sizeof(float64_t);
 }
 
-void serial_string(uint8_t * * const ptr, const char * const str, int max)
+void serial_string(uint8_t * * const ptr, const char * const str)
 {
    int i;                   
    char *dest = (char *)*ptr;
    char *src = (char *)str;
-   for (i=0; i<max && src[i] != 0;  i++) {
+   for (i=0; src[i] != 0;  i++) {
       dest[i] = src[i];
    }
    dest[i++] = 0;                  /* terminate output string */

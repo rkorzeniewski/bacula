@@ -41,7 +41,7 @@ extern void serial_int64(uint8_t * * ptr, int64_t v);
 extern void serial_uint64(uint8_t * * const ptr, const uint64_t v);
 extern void serial_btime(uint8_t * * const ptr, const btime_t v);
 extern void serial_float64(uint8_t * * const ptr, const float64_t v);
-extern void serial_string(uint8_t * * const ptr, const char * const str, int max);
+extern void serial_string(uint8_t * * const ptr, const char * const str);
 
 extern int16_t unserial_int16(uint8_t * * const ptr);
 extern uint16_t unserial_uint16(uint8_t * * const ptr);
@@ -125,7 +125,7 @@ extern void unserial_string(uint8_t * * const ptr, char * const str, int max);
 #define ser_buffer(x)   ser_bytes((x), (sizeof (x)))
 
 /* Binary string not requiring serialization */
-#define ser_string(x)   serial_string(&ser_ptr, (x), (int)sizeof(x))
+#define ser_string(x)   serial_string(&ser_ptr, (x))
 
 /*                         Unserialisation                  */
 
@@ -164,7 +164,10 @@ extern void unserial_string(uint8_t * * const ptr, char * const str, int max);
 /*  Binary byte stream not requiring serialisation (length obtained by sizeof)  */
 #define unser_buffer(x)  unser_bytes((x), (sizeof (x)))
 
-/* Binary string not requiring serialization */
-#define unser_string(x) unserial_string(&ser_ptr, (x), (int)sizeof(x))
+/* Binary string not requiring serialization (length obtained from max) */
+#define unser_nstring(x,max) unserial_string(&ser_ptr, (x), (int)(max))
+
+/*  Binary string not requiring serialisation (length obtained by sizeof)  */
+#define unser_string(x) unserial_string(&ser_ptr, (x), sizeof(x))
 
 #endif /* __SERIAL_H_ */
