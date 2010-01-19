@@ -30,6 +30,7 @@ messages
 label storage=File volume=TestVolume001
 label storage=File volume=TestVolume002
 run job=$JobName yes
+status client
 wait
 messages
 quit
@@ -156,6 +157,7 @@ setdebug level=10 storage=File
 restore where=${tmp}/bacula-restores storage=File file=<${tmp}/restore-list
 yes
 wait
+status client
 status storage=File
 messages
 quit
