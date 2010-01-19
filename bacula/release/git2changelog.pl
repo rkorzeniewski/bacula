@@ -18,7 +18,7 @@ while (my $l = <FP>) {
 
     # remove non useful messages
     next if ($l =~ /(tweak|typo|cleanup|bweb:|regress:|again|.gitignore|fix compilation|technotes)/ixs);
-    next if ($l =~ /update (version|technotes|kernstodo|projects|releasenotes|version|home|release|todo|notes)/i);
+    next if ($l =~ /update (version|technotes|kernstodo|projects|releasenotes|version|home|release|todo|notes|changelog)/i);
 
     # keep list of fixed bugs
     if ($l =~ /#(\d+)/) {
