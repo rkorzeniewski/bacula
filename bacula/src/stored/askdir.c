@@ -380,8 +380,6 @@ bool dir_update_volume_info(DCR *dcr, bool label, bool update_LastWritten)
    ok = true;
 
 bail_out:
-   /* ***FIXME*** remove for production */
-   sm_check(__FILE__, __LINE__, true);
    V(vol_info_mutex);
    return ok;
 }
