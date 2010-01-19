@@ -29,6 +29,7 @@ update Volume=TestVolume001 MaxVolBytes=100000000
 @#12
 setdebug level=51 Storage=File1
 status storage=File1
+status client
 llist volume=TestVolume001
 llist volume=TestVolume002
 list nextvol
@@ -58,12 +59,14 @@ status storage=File1
 run job=$JobName level=Full Storage=File1
 yes
 status storage=File1
+status client
 @#reload
 @#reload
 list nextvol
 1
 @sleep 2
 status dir
+status client
 status storage=File1
 llist volume=TestVolume001
 llist volume=TestVolume002
@@ -72,6 +75,7 @@ llist volume=TestVolume002
 messages
 @#reload
 wait
+status client
 status storage=File1
 @#reload
 list nextvol
@@ -87,6 +91,7 @@ select JobId,MediaId,StartFile,StartBlock,EndFile,EndBlock from JobMedia;
 
 
 @$out   ${cwd}/tmp/log2.out
+status client
 status storage=File1
 setdebug level=100 Storage=File1
 restore where=${cwd}/tmp/bacula-restores select storage=File1

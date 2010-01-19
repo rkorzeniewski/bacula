@@ -53,6 +53,21 @@ run job=$JobName level=Full Storage=tape yes
 run job=$JobName level=Full Storage=tape yes
 run job=$JobName level=Full Storage=tape yes
 run job=$JobName level=Full Storage=tape yes
+status client
+run job=$JobName level=Full Storage=tape yes
+run job=$JobName level=Full Storage=tape yes
+run job=$JobName level=Full Storage=tape yes
+run job=$JobName level=Full Storage=tape yes
+run job=$JobName level=Full Storage=tape yes
+run job=$JobName level=Full Storage=tape yes
+run job=$JobName level=Full Storage=tape yes
+run job=$JobName level=Full Storage=tape yes
+run job=$JobName level=Full Storage=tape yes
+run job=$JobName level=Full Storage=tape yes
+run job=$JobName level=Full Storage=tape yes
+run job=$JobName level=Full Storage=tape yes
+run job=$JobName level=Full Storage=tape yes
+status client
 run job=$JobName level=Full Storage=tape yes
 run job=$JobName level=Full Storage=tape yes
 run job=$JobName level=Full Storage=tape yes
@@ -72,19 +87,7 @@ run job=$JobName level=Full Storage=tape yes
 run job=$JobName level=Full Storage=tape yes
 run job=$JobName level=Full Storage=tape yes
 run job=$JobName level=Full Storage=tape yes
-run job=$JobName level=Full Storage=tape yes
-run job=$JobName level=Full Storage=tape yes
-run job=$JobName level=Full Storage=tape yes
-run job=$JobName level=Full Storage=tape yes
-run job=$JobName level=Full Storage=tape yes
-run job=$JobName level=Full Storage=tape yes
-run job=$JobName level=Full Storage=tape yes
-run job=$JobName level=Full Storage=tape yes
-run job=$JobName level=Full Storage=tape yes
-run job=$JobName level=Full Storage=tape yes
-run job=$JobName level=Full Storage=tape yes
-run job=$JobName level=Full Storage=tape yes
-run job=$JobName level=Full Storage=tape yes
+status client
 run job=$JobName level=Full Storage=tape yes
 run job=$JobName level=Full Storage=tape yes
 run job=$JobName level=Full Storage=tape yes
@@ -105,8 +108,10 @@ run job=$JobName level=Full Storage=tape yes
 run job=$JobName level=Full Storage=tape yes
 @sleep 2
 status dir
+status client
 @sleep 5
 status dir
+status client
 status storage=tape
 messages
 wait
