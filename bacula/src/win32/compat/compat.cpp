@@ -1161,6 +1161,7 @@ opendir(const char *path)
 {
     /* enough space for VSS !*/
     int max_len = strlen(path) + MAX_PATH;
+    char *tspec = NULL;
     _dir *rval = NULL;
     if (path == NULL) {
        errno = ENOENT;
@@ -1169,10 +1170,15 @@ opendir(const char *path)
 
     Dmsg1(100, "Opendir path=%s\n", path);
     rval = (_dir *)malloc(sizeof(_dir));
+    if (!rval) {
+       goto err;
+    }
     memset (rval, 0, sizeof (_dir));
-    if (rval == NULL) return NULL;
-    char *tspec = (char *)malloc(max_len);
-    if (tspec == NULL) return NULL;
+
+    tspec = (char *)malloc(max_len);
+    if (!tspec) { 
+       goto err;
+    }
 
     conv_unix_to_win32_path(path, tspec, max_len);
     Dmsg1(100, "win32 path=%s\n", tspec);
@@ -1222,8 +1228,12 @@ opendir(const char *path)
     return (DIR *)rval;
 
 err:
-    free((void *)rval->spec);
-    free(rval);
+    if (rval) {
+       free(rval);
+    }
+    if (tspec) {
+       free(tspec);
+    }
     errno = b_errno_win32;
     return NULL;
 }
