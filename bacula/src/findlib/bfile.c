@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2003-2008 Free Software Foundation Europe e.V.
+   Copyright (C) 2003-2010 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -31,8 +31,6 @@
  *    I.e. on Windows, we use Windows APIs.
  *
  *    Kern Sibbald, April MMIII
- *
- *   Version $Id$
  *
  */
 
@@ -617,10 +615,6 @@ int bclose(BFILE *bfd)
 {
    int stat = 0;
 
-   if (bfd->errmsg) {
-      free_pool_memory(bfd->errmsg);
-      bfd->errmsg = NULL;
-   }
    if (bfd->mode == BF_CLOSED) {
       Dmsg0(50, "=== BFD already closed.\n");
       return 0;
@@ -668,6 +662,10 @@ int bclose(BFILE *bfd)
    }
 
 all_done:
+   if (bfd->errmsg) {
+      free_pool_memory(bfd->errmsg);
+      bfd->errmsg = NULL;
+   }
    bfd->mode = BF_CLOSED;
    bfd->lpContext = NULL;
    bfd->cmd_plugin = false;
