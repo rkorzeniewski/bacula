@@ -4,6 +4,10 @@
 # are not supported. They may or may not work -- in fact, they may
 # work with one SQL engine and not another.
 #
+# If you find that they work for MySQL and not for PostgreSQL,
+#  then please send us a whole new file corrected for PostgreSQL
+#  and we will post it here for everyone to use.
+#
 
 # 1 
 :List up to 20 places where a File is saved regardless of the directory
@@ -193,3 +197,13 @@ SELECT VolumeName AS Volume,VolMounts AS Mounts,VolErrors AS Errors,
   WHERE (VolErrors>0) OR (VolStatus='Error') OR (VolMounts>50) OR
          (VolStatus='Disabled') OR (VolWrites>3999999)
   ORDER BY VolStatus ASC, VolErrors,VolMounts,VolumeName DESC;
+#  17
+:List Volumes Bacula thinks are eligible for the changer
+SELECT VolumeName,VolStatus,Storage.Name AS Location,
+   VolBytes/(1024*1024*1024) AS GB,MediaId,MediaType,Pool.Name AS Pool
+   FROM Media,Pool,Storage
+   WHERE Media.PoolId=Pool.PoolId
+   AND Media.StorageId=Storage.StorageId
+   AND InChanger=0
+   AND ((VolStatus='Purged') OR (VolStatus='Append') OR (VolStatus='Recycle'))
+   ORDER BY VolMounts ASC, Pool.Name ASC, VolumeName ASC
