@@ -147,7 +147,7 @@ FileSet {
     Options {
       signature = MD5
     }
-    File = @working_dir@/bacula.sql
+    File = "@working_dir@/@db_name@.sql"
   }
 }
 
