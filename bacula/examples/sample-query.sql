@@ -207,3 +207,34 @@ SELECT VolumeName,VolStatus,Storage.Name AS Location,
    AND InChanger=0
    AND ((VolStatus='Purged') OR (VolStatus='Append') OR (VolStatus='Recycle'))
    ORDER BY VolMounts ASC, Pool.Name ASC, VolumeName ASC
+# 18
+:List Volumes by Volume:
+SELECT VolumeName, Job.JobId as JobID, Job.Name as JobName, Job.StartTime as
+Start, sum(JobFiles) AS Files,sum(JobBytes) AS Bytes
+ FROM Job,JobMedia,Media
+ WHERE JobMedia.JobId=Job.JobId
+ AND JobMedia.MediaId=Media.MediaId
+ GROUP by VolumeName, Job.JobID, Job.Name, Job.StartTime
+ ORDER by VolumeName;
+# 19
+:List Volumes by Jobs:
+SELECT Job.Name as JobName, Job.JobId as JobID, VolumeName, Job.StartTime as
+Start, sum(JobFiles) AS Files,sum(JobBytes) AS Bytes
+ FROM Job,JobMedia,Media
+ WHERE JobMedia.JobId=Job.JobId
+ AND JobMedia.MediaId=Media.MediaId
+ GROUP by VolumeName, Job.JobID, Job.Name, Job.StartTime
+ ORDER by JobName, Start;
+# 20
+:List Volumes for a jobname:
+*Enter Job name:
+SELECT Job.Name as JobName, Job.JobId as JobID, VolumeName, Job.StartTime as
+Start, sum(JobFiles) AS Files,sum(JobBytes) AS Bytes
+ FROM Job,JobMedia,Media
+ WHERE Job.Name='%1'
+ AND JobMedia.JobId=Job.JobId
+ AND JobMedia.MediaId=Media.MediaId
+ GROUP by VolumeName, Job.JobID, Job.Name, Job.StartTime
+ ORDER by JobName, Start;
+
+
