@@ -2983,7 +2983,6 @@ AC_OUTPUT([autoconf/Make.common \
 	   scripts/bat.desktop.xsu \
 	   scripts/bat.desktop.consolehelper \
 	   scripts/bat.console_apps \
-           scripts/make_catalog_backup.pl \
 	   src/Makefile \
 	   src/host.h \
 	   src/console/Makefile \
@@ -3004,6 +3003,7 @@ AC_OUTPUT([autoconf/Make.common \
 	   src/filed/Makefile \
 	   src/filed/bacula-fd.conf \
 	   src/cats/Makefile \
+           src/cats/make_catalog_backup.pl \
 	   src/cats/make_catalog_backup \
 	   src/cats/delete_catalog_backup \
 	   src/cats/create_postgresql_database \
@@ -3097,7 +3097,7 @@ cd ${BUILD_DIR}
 
 cd scripts
 chmod 755 startmysql stopmysql bacula startit stopit btraceback mtx-changer
-chmod 755 dvd-handler dvd-simulator make_catalog_backup.pl
+chmod 755 dvd-handler dvd-simulator
 chmod 755 bconsole gconsole mtx-changer devel_bacula logrotate
 cd ..
 
@@ -3126,7 +3126,7 @@ chmod 755 $c/create_ingres_database  $c/update_ingres_tables $c/make_ingres_tabl
 chmod 755 $c/grant_ingres_privileges $c/drop_ingres_tables   $c/drop_ingres_database
 
 
-chmod 755 $c/make_catalog_backup $c/delete_catalog_backup
+chmod 755 $c/make_catalog_backup $c/delete_catalog_backup  make_catalog_backup.pl
 chmod 755 $c/sqlite
 chmod 755 $c/mysql
 
