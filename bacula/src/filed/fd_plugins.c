@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2007-2009 Free Software Foundation Europe e.V.
+   Copyright (C) 2007-2010 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -218,6 +218,7 @@ int plugin_save(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
    POOL_MEM link(PM_FNAME);
 
    if (!plugin_list || !jcr->plugin_ctx_list || job_canceled(jcr)) {
+      Jmsg1(jcr, M_FATAL, 0, "Command plugin \"%s\" not loaded.\n", cmd);
       return 1;                            /* Return if no plugins loaded */
    }
 
@@ -302,7 +303,7 @@ int plugin_save(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
       }
       goto bail_out;
    }
-   Jmsg1(jcr, M_ERROR, 0, "Command plugin \"%s\" not found.\n", cmd);
+   Jmsg1(jcr, M_FATAL, 0, "Command plugin \"%s\" not found.\n", cmd);
 
 bail_out:
    jcr->cmd_plugin = false;
