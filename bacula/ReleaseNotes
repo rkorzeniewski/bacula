@@ -5,8 +5,8 @@
 
 This release includes large number of new features and changes.
 
-Changes since 3.0.3a:
----------------------
+Important changes since 3.0.3a:
+-------------------------------
 
 Bug fixes:
 1337 1351 1352 1354 1357 1361 1367 1369 1370 1373 
@@ -18,6 +18,8 @@ Fixed:
    to bsmtp
  - Restore's dir command shows incorrect file sizes 
  - Fix various problems with reload command   
+ - Fix problems with conio
+ - Eliminate several deadlocks or potential race conditions from SD
 
 Enhancements:
  - Project 5: Truncate volume after purge
@@ -28,10 +30,24 @@ Enhancements:
    between drives
  - Add Accurate Fileset Options to configure accurate detection. Can use 
    checksum verification for example.
+ - Allow FD to keep root read but drop write permission (CAP)
+ - Secure handling of passwords for catalog backup
  - Add Tab-completion for Bconsole when using Readline
  - Add Bvfs API to query the catalog without building a memory tree
  - Add new speed test to btape program
- - Add new bat screens (Autochanger content, Job view, Media view, ...)
+ - Add new Bat screens (Autochanger content, Job view, Media view, ...)
+ - Windows version of Bat
+ - Added Spanish Bacula translation   
+ - New bconsole -u nnn option to have timeout on commands
+ - Allow Migrate, Copy, and Virtual Full to read and write
+   to the same Pool
+ - show disabled   -- shows disabled Jobs
+ - Add Pool File and Job retention periods (take precedence over Client)
+ - Many ACL improvements
+ - Level added to FD status Job entry
+ - Allow to turn off/on Block Checksum per device
+ - Set Device Poll interval to 5 minutes -- previously did not poll
+ - Implement lock manager with bad order protection
 
 Compatibility:
 Like always, both the Director and Storage daemon must be upgraded at
@@ -72,7 +88,7 @@ The simplest way to upgrade the database assuming you are building from
 source:
 1. Stop any current version of Bacula from running.
 2. Save a copy of your existing database.
-3. Configure, build, and install the 3.0.0 version of Bacula
+3. Configure, build, and install the 5.0.0 version of Bacula
    Note the new ./configure options in the manuals see the link
    at the bottom of this file.
 4. cd <your-scripts-installation-directory>
@@ -104,6 +120,6 @@ features.
 Please see the New Features chapter of the new manual, which documents
 some but not all the new features (we are still working on it):
 
-http://www.bacula.org/manuals/en/concepts/concepts/New_Features.html
+http://www.bacula.org/5.0.x-manuals/en/main/main/New_Features_in_5_0_0.html
   
 The ChangeLog has more details.
