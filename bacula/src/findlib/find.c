@@ -204,15 +204,17 @@ find_files(JCR *jcr, FF_PKT *ff, int file_save(JCR *jcr, FF_PKT *ff_pkt, bool to
                return 0;                  /* error return */
             }
          }
-         if (plugin_save) {
-            foreach_dlist(node, &incexe->plugin_list) {
-               char *fname = node->c_str();
-               Dmsg1(100, "PluginCommand: %s\n", fname);
-               ff->top_fname = fname;
-               ff->cmd_plugin = true;
-               plugin_save(jcr, ff, true);
-               ff->cmd_plugin = false;
+         foreach_dlist(node, &incexe->plugin_list) {
+            char *fname = node->c_str();
+            if (!plugin_save) {
+               Jmsg(jcr, M_FATAL, 0, _("Plugin: \"%s\" not found.\n"), fname);
+               return 0;
             }
+            Dmsg1(100, "PluginCommand: %s\n", fname);
+            ff->top_fname = fname;
+            ff->cmd_plugin = true;
+            plugin_save(jcr, ff, true);
+            ff->cmd_plugin = false;
          }
       }
    }
