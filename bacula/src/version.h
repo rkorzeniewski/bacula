@@ -62,6 +62,7 @@
 #if DEVELOPER
 # ifndef _USE_LOCKMGR
 #  define _USE_LOCKMGR
+# endif /* _USE_LOCKMGR */
 /*
  * Enable priority management with the lock manager
  *
@@ -70,9 +71,7 @@
  *  deadlock.  However, note that this is not necessarily a
  *  deadlock, so turn this on only for debugging.
  */
-# define USE_LOCKMGR_PRIORITY
-
-# endif /* _USE_LOCKMGR */
+#define USE_LOCKMGR_PRIORITY
 #endif  /* DEVELOPER */
 
 #if !HAVE_LINUX_OS && !HAVE_SUN_OS && !HAVE_DARWIN_OS && !HAVE_FREEBSD_OS
