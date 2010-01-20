@@ -711,6 +711,9 @@ static int my_plugin_bopen(BFILE *bfd, const char *fname, int flags, mode_t mode
    struct io_pkt io;
 
    Dmsg1(dbglvl, "plugin_bopen flags=%x\n", flags);
+   if (!plugin || !jcr->plugin_ctx) {
+      return 0;
+   }
    io.pkt_size = sizeof(io);
    io.pkt_end = sizeof(io);
    io.func = IO_OPEN;
@@ -738,7 +741,11 @@ static int my_plugin_bclose(BFILE *bfd)
    JCR *jcr = bfd->jcr;
    Plugin *plugin = (Plugin *)jcr->plugin;
    struct io_pkt io;
+
    Dmsg0(dbglvl, "===== plugin_bclose\n");
+   if (!plugin || !jcr->plugin_ctx) {
+      return 0;
+   }
    io.pkt_size = sizeof(io);
    io.pkt_end = sizeof(io);
    io.func = IO_CLOSE;
@@ -763,7 +770,11 @@ static ssize_t my_plugin_bread(BFILE *bfd, void *buf, size_t count)
    JCR *jcr = bfd->jcr;
    Plugin *plugin = (Plugin *)jcr->plugin;
    struct io_pkt io;
+
    Dmsg0(dbglvl, "plugin_bread\n");
+   if (!plugin || !jcr->plugin_ctx) {
+      return 0;
+   }
    io.pkt_size = sizeof(io);
    io.pkt_end = sizeof(io);
    io.func = IO_READ;
@@ -787,7 +798,11 @@ static ssize_t my_plugin_bwrite(BFILE *bfd, void *buf, size_t count)
    JCR *jcr = bfd->jcr;
    Plugin *plugin = (Plugin *)jcr->plugin;
    struct io_pkt io;
+
    Dmsg0(dbglvl, "plugin_bwrite\n");
+   if (!plugin || !jcr->plugin_ctx) {
+      return 0;
+   }
    io.pkt_size = sizeof(io);
    io.pkt_end = sizeof(io);
    io.func = IO_WRITE;
@@ -811,7 +826,11 @@ static boffset_t my_plugin_blseek(BFILE *bfd, boffset_t offset, int whence)
    JCR *jcr = bfd->jcr;
    Plugin *plugin = (Plugin *)jcr->plugin;
    struct io_pkt io;
+
    Dmsg0(dbglvl, "plugin_bseek\n");
+   if (!plugin || !jcr->plugin_ctx) {
+      return 0;
+   }
    io.pkt_size = sizeof(io);
    io.pkt_end = sizeof(io);
    io.func = IO_SEEK;
