@@ -86,7 +86,7 @@ if [ $? != 0 ]; then
 fi
 
 # Compare with some weird files
-wget -qO $tmp/2.log "$URL/compare?source=$WIN32_FILE/weird_runcript;dest=$WIN32_FILE/restore/$DST/weird_runcript"
+wget -qO $tmp/2.log "$URL/compare?source=$WIN32_FILE/weird_runscript;dest=$WIN32_FILE/restore/$DST/weird_runscript"
 print_debug `cat $tmp/2.log`
 
 grep OK $tmp/2.log > /dev/null
