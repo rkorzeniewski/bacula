@@ -2,7 +2,7 @@
 #
 # Make full release
 #
-version=5.0.0
+branch=5.0.0
 #
 # Bacula git repos
 bacula=/home/kern/bacula/k
@@ -10,10 +10,10 @@ docs=/home/kern/bacula/docs
 rescue=/home/kern/bacula/rescue
 
 ./makeclean
-./makebacularel $bacula $version
-./makedocsrel $bacula $docs $version
-./makerescuerel $rescue $version
-./makewinrel $bacula $version | tee win$$.log
+./makebacularel $bacula $branch
+./makedocsrel $bacula $docs $branch
+./makerescuerel $rescue $branch
+./makewinrel $bacula $branch | tee win$$.log
 
 grep -i warning win$$.log >/dev/null
 if [ $? -eq 0 ] ; then
