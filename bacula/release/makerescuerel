@@ -72,6 +72,8 @@ cd ${cwd}
 ./sign $base_pkg-$ver.tar.gz
 ls -l $base_pkg-$ver.tar.*
 
-cd ${src}
-git push
-git push --tags
+if [ a$push != ano ]; then
+   cd ${src}
+   git push
+   git push --tags
+fi

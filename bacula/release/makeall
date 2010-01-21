@@ -8,6 +8,7 @@ branch=5.0.0
 bacula=/home/kern/bacula/k
 docs=/home/kern/bacula/docs
 rescue=/home/kern/bacula/rescue
+push=yes
 
 ./makeclean
 ./makebacularel $bacula $branch
