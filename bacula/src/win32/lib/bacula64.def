@@ -663,7 +663,7 @@ _Z14serial_float64PPhd
 _Z14unserial_btimePPh
 _Z14unserial_int16PPh
 _Z14unserial_int32PPh
-_Z15unserial_stringPPhPc
+_Z15unserial_stringPPhPci
 _Z15unserial_uint16PPh
 _Z15unserial_uint32PPh
 _Z15unserial_uint64PPh
