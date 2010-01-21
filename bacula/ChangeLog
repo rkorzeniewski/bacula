@@ -1,10 +1,29 @@
-              Technical notes on version 5.0.x
+              Changelog on version 5.0.x
 
 General:
 
 Release Version 5.0.0
 
+21Jan10
+- Remove double secs in pruning output
+
+20Jan10
+- Fix priority mgnt in lock manager
+- Fix FD crash when plugin running and cancel given
+- Stop backup sooner after cancel
+- Make a missing plugin during backup fatal
+- Update sample-query.sql
+- Use make_catalog_backup.pl by default
+
 19Jan10
+- Update makeall and add README to release directory
+- Remove debug code
+- Add more authors
+- Fix possible memory leak
+- Fix bscan bug introduced with serialization change
+- Add a few status client commands
+- Make Ukraine po to compile
+- Update po files
 - More spec improvements from bug #1455
 - Enhance FD status to have level
 
