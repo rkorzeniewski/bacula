@@ -860,8 +860,16 @@ Section "Documentation (Acrobat Format)" SecDocPdf
   SetOutPath "$INSTDIR\doc"
   CreateDirectory "$INSTDIR\doc"
 
-  File "${SRC_DIR}\manual\bacula.pdf"
-  CreateShortCut "$SMPROGRAMS\Bacula\Documentation\Manual.lnk" '"$INSTDIR\doc\bacula.pdf"'
+  File "${SRC_DIR}\docs\manuals\en\console\console.pdf"
+  File "${SRC_DIR}\docs\manuals\en\misc\misc.pdf"
+  File "${SRC_DIR}\docs\manuals\en\main\main.pdf"
+  File "${SRC_DIR}\docs\manuals\en\utility\utility.pdf"
+  File "${SRC_DIR}\docs\manuals\en\problems\problems.pdf"
+  CreateShortCut "$SMPROGRAMS\Bacula\Documentation\Console.lnk" '"$INSTDIR\doc\console.pdf"'
+  CreateShortCut "$SMPROGRAMS\Bacula\Documentation\Main.lnk" '"$INSTDIR\doc\main.pdf"'
+  CreateShortCut "$SMPROGRAMS\Bacula\Documentation\Misc.lnk" '"$INSTDIR\doc\misc.pdf"'
+  CreateShortCut "$SMPROGRAMS\Bacula\Documentation\Utility.lnk" '"$INSTDIR\doc\utility.pdf"'
+  CreateShortCut "$SMPROGRAMS\Bacula\Documentation\Problems.lnk" '"$INSTDIR\doc\problems.pdf"'
 SectionEnd
 
 Section "Documentation (HTML Format)" SecDocHtml
@@ -870,10 +878,10 @@ Section "Documentation (HTML Format)" SecDocHtml
   SetOutPath "$INSTDIR\doc"
   CreateDirectory "$INSTDIR\doc"
 
-  File "${SRC_DIR}\manual\bacula\*.html"
-  File "${SRC_DIR}\manual\bacula\*.png"
-  File "${SRC_DIR}\manual\bacula\*.css"
-  CreateShortCut "$SMPROGRAMS\Bacula\Documentation\Manual (HTML).lnk" '"$INSTDIR\doc\index.html"'
+; File "${SRC_DIR}\manual\bacula\*.html"
+; File "${SRC_DIR}\manual\bacula\*.png"
+; File "${SRC_DIR}\manual\bacula\*.css"
+; CreateShortCut "$SMPROGRAMS\Bacula\Documentation\Manual (HTML).lnk" '"$INSTDIR\doc\index.html"'
 SectionEnd
 
 SectionGroupEnd

@@ -115,10 +115,11 @@ SSL_FILES := \
 	openssl.cnf
 
 DOC_FILES := \
-	manual/bacula.pdf \
-	manual/bacula/*.html \
-	manual/bacula/*.png  \
-	manual/bacula/*.css
+	docs/manuals/en/console/console.pdf \
+	docs/manuals/en/main/main.pdf \
+	docs/manuals/en/misc/misc.pdf \
+	docs/manuals/en/problems/problems.pdf \
+	docs/manuals/en/utility/utility.pdf
 
 ##########################################################################
 
