@@ -185,23 +185,25 @@ Var NewComponents
 ;     1 = Storage Service
 ;     2 = Director Service
 ;     3 = Command Console
-;     4 = Graphical Console
-;     5 = Documentation (PDF)
-;     6 = Documentation (HTML)
+;     4 = Bat Console
+;     5 = wxWidgits Console
+;     6 = Documentation (PDF)
+;     7 = Documentation (HTML)
 
 !define ComponentFile                   1
 !define ComponentStorage                2
 !define ComponentDirector               4
 !define ComponentTextConsole            8
-!define ComponentGUIConsole             16
-!define ComponentPDFDocs                32
-!define ComponentHTMLDocs               64
+!define ComponentBatConsole             16
+!define ComponentGUIConsole             32
+!define ComponentPDFDocs                64
+!define ComponentHTMLDocs               128
 
-!define ComponentsRequiringUserConfig           31
+!define ComponentsRequiringUserConfig           63
 !define ComponentsFileAndStorage                3
 !define ComponentsFileAndStorageAndDirector     7
-!define ComponentsDirectorAndTextGuiConsoles    28
-!define ComponentsTextAndGuiConsoles            24
+!define ComponentsDirectorAndTextGuiConsoles    60
+!define ComponentsTextAndGuiConsoles            56
 
 Var HDLG
 Var HCTL
@@ -490,6 +492,33 @@ Section "Command Console" SecConsole
 
 SectionEnd
 
+Section "Bat Console" SecBatConsole
+  SectionIn 1 2 3
+
+  SetOutPath "$INSTDIR\bin"
+
+  Call InstallCommonFiles
+  File "${SRC_DIR}\QtCore4.dll"
+  File "${SRC_DIR}\QtGui4.dll"
+
+  File "${SRC_DIR}\bat.exe"
+
+  ${If} $InstallType = ${MigrateInstall}
+  ${AndIf} ${FileExists} "$OldInstallDir\bin\bat.conf"
+    CopyFiles "$OldInstallDir\bin\bat.conf" "$APPDATA\Bacula"
+  ${Else}
+    File "/oname=$PLUGINSDIR\bat.conf" "bat.conf.in"
+    StrCpy $0 "$APPDATA\Bacula"
+    StrCpy $1 bat.conf
+    Call ConfigEditAndCopy
+  ${EndIf}
+
+  ; Create Start Menu entry
+  CreateShortCut "$SMPROGRAMS\Bacula\Bat.lnk" "$INSTDIR\bin\bat.exe" '-c "$APPDDATA\Bacula\bat.conf"' "$INSTDIR\bin\bat.exe" 0
+  CreateShortCut "$SMPROGRAMS\Bacula\Configuration\Edit Bat Configuration.lnk" "write.exe" '"$APPDATA\Bacula\bat.conf"'
+SectionEnd
+
+
 ; Essentially deleted because wxconsole is not implemented on Win64
 Section "Graphical Console" SecWxConsole
   SectionIn 1 2 3
@@ -532,6 +561,7 @@ SectionEnd
 
 LangString DESC_SecFileDaemon ${LANG_ENGLISH} "Install Bacula File Daemon on this system."
 LangString DESC_SecConsole ${LANG_ENGLISH} "Install command console program on this system."
+LangString DESC_SecBatConsole ${LANG_ENGLISH} "Install Bat graphical console program on this system."
 
 LangString TITLE_ConfigPage1 ${LANG_ENGLISH} "Configuration"
 LangString SUBTITLE_ConfigPage1 ${LANG_ENGLISH} "Set installation configuration."
@@ -548,6 +578,7 @@ LangString SUBTITLE_WriteTemplates ${LANG_ENGLISH} "Create a resource template f
 !InsertMacro MUI_FUNCTION_DESCRIPTION_BEGIN
   !InsertMacro MUI_DESCRIPTION_TEXT ${SecFileDaemon} $(DESC_SecFileDaemon)
   !InsertMacro MUI_DESCRIPTION_TEXT ${SecConsole} $(DESC_SecConsole)
+  !InsertMacro MUI_DESCRIPTION_TEXT ${SecBatConsole} $(DESC_SecBatConsole)
 !InsertMacro MUI_FUNCTION_DESCRIPTION_END
 
 ; Uninstall section
@@ -741,6 +772,9 @@ Function GetSelectedComponents
   ${If} ${SectionIsSelected} ${SecConsole}
     IntOp $R0 $R0 | ${ComponentTextConsole}
   ${EndIf}
+  ${If} ${SectionIsSelected} ${SecBatConsole}
+    IntOp $R0 $R0 | ${ComponentBatConsole}
+  ${EndIf}
   Exch $R0
 FunctionEnd
 
@@ -829,6 +863,14 @@ Function SelectPreviousComponents
       !InsertMacro UnselectSection ${SecConsole}
       !InsertMacro ClearSectionFlag ${SecConsole} ${SF_RO}
     ${EndIf}
+    IntOp $R1 $PreviousComponents & ${ComponentBatConsole}
+    ${If} $R1 <> 0
+      !InsertMacro SelectSection ${SecBatConsole}
+      !InsertMacro SetSectionFlag ${SecBatConsole} ${SF_RO}
+    ${Else}
+      !InsertMacro UnselectSection ${SecBatConsole}
+      !InsertMacro ClearSectionFlag ${SecBatConsole} ${SF_RO}
+    ${EndIf}
   ${EndIf}
 FunctionEnd
 
@@ -854,6 +896,12 @@ Function UpdateComponentUI
       !InsertMacro SetSectionFlag ${SecConsole} ${SF_BOLD}
     ${Else}
       !InsertMacro ClearSectionFlag ${SecConsole} ${SF_BOLD}
+    ${EndIf}
+   IntOp $R1 $NewComponents & ${ComponentBatConsole}
+    ${If} $R1 <> 0
+      !InsertMacro SetSectionFlag ${SecBatConsole} ${SF_BOLD}
+    ${Else}
+      !InsertMacro ClearSectionFlag ${SecBatConsole} ${SF_BOLD}
     ${EndIf}
   ${EndIf}
 
