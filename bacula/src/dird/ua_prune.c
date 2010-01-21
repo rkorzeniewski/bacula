@@ -390,7 +390,7 @@ int prune_jobs(UAContext *ua, CLIENT *client, POOL *pool, int JobType)
     *  and stuff them into the "DeletionCandidates" table.
     */
    edit_utime(now-period, ed1, sizeof(ed1));
-   Jmsg(ua->jcr, M_INFO, 0, _("Begin pruning Jobs older than %s secs.\n"), ed1);
+   Jmsg(ua->jcr, M_INFO, 0, _("Begin pruning Jobs older than %s.\n"), ed1);
    edit_int64(now - period, ed1);
    Mmsg(query, insert_delcand, (char)JobType, ed1, 
         edit_int64(cr.ClientId, ed2));
