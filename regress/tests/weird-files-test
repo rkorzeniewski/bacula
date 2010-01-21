@@ -74,6 +74,16 @@ check_two_logs
 if test "$debug" -eq 1; then
   diff -u ${cwd}/tmp/original ${cwd}/tmp/restored
   dstat=$?
+  if [ $dstat != 0 ] ; then
+     echo " "
+     echo "===== Original ======"
+     cat ${cwd}/tmp/original
+     echo "====="
+     echo " "
+     echo "===== Restored ======"
+     cat ${cwd}/tmp/restored
+     echo "====="
+  fi
 else
   diff -u ${cwd}/tmp/original ${cwd}/tmp/restored 2>&1 >/dev/null
   dstat=$?
