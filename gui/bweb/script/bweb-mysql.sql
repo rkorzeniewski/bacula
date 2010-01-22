@@ -36,15 +36,6 @@ delimiter ;
 -- Upgrade from 2.2
 -- --------------------------------------------------
 
-ALTER TABLE Status ADD COLUMN severity int;
-UPDATE Status SET severity = 15;
-UPDATE Status SET severity = 100 where JobStatus = 'f';
-UPDATE Status SET severity = 90 where JobStatus = 'A';
-UPDATE Status SET severity = 10 where JobStatus = 'T';
-UPDATE Status SET severity = 20 where JobStatus = 'e';
-UPDATE Status SET severity = 25 where JobStatus = 'E';
-
-
 -- New tables for bresto (same as brestore)
 
 CREATE TABLE brestore_knownjobid
