@@ -14,6 +14,7 @@ DEFINES := \
 	-DOUT_DIR=..\\release32 \
 	-DSRC_DIR=release32 \
 	-DBUILD_TOOLS=MinGW \
+	-DWINVER=32
 
 INSTALL_EXE := $(BUILDDIR)/release32/winbacula-$(VERSION).exe
 
