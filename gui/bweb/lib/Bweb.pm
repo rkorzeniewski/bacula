@@ -1331,9 +1331,9 @@ our %sql_func = (
               STARTTIME_PMONTH => " DATE_FORMAT(Job.StartTime, '%m') ",
               STARTTIME_PWEEK => " DATE_FORMAT(Job.StartTime, '%v') ",
               # with mysql < 5, you have to play with the ugly SHOW command
-              DB_SIZE => " SELECT 0 ",
+              #DB_SIZE => " SELECT 0 ",
               # works only with mysql 5
-              # DB_SIZE => " SELECT sum(DATA_LENGTH) FROM INFORMATION_SCHEMA.TABLES ",
+              DB_SIZE => " SELECT sum(DATA_LENGTH) FROM INFORMATION_SCHEMA.TABLES ",
               CAT_POOL_TYPE => " CONCAT(MediaType,'_',Pool.Name) ",
               CONCAT_SEP => " SEPARATOR '' ",
           },
