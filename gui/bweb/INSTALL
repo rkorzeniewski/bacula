@@ -2,7 +2,7 @@
 #               INSTALL NOTES                                  #
 ################################################################
 
-Bweb works well with 2.0 release or later.
+Bweb works well with 3.0 release or later.
 
 1) install Perl lib
 2) using lighttpd (quick install)
@@ -256,7 +256,7 @@ To get database size with mysql5, edit Bweb.pm and change the DB_SIZE macro
  # with mysql < 5, you have to play with the ugly SHOW command
  DB_SIZE => " SELECT 0 ",
  # works only with mysql 5
- # DB_SIZE => " SELECT sum(DATA_LENGTH) FROM INFORMATION_SCHEMA.TABLES ",
+ DB_SIZE => " SELECT sum(DATA_LENGTH) FROM INFORMATION_SCHEMA.TABLES ",
 
 ################ BCONSOLE NOTES ################################
 
@@ -320,11 +320,9 @@ Add (or configure) a writable location to the parameters in bweb.conf
 
 ###### BFILEVIEW only part
 
-You have to remove "<!-- Remove this to activate bfileview" and "-->" from
-tpl/en/display_job_zoom.tpl.
-
-You MUST use brestore.pl -b or bresto.pl action=batch to initialize the database, and
-you CAN use bfileview.pl mode=batch jobid=xxx where=/ to compute tree size.
+You MUST use brestore.pl -b or bresto.pl action=batch to initialize the
+database, and you CAN use bfileview.pl mode=batch jobid=xxx where=/ to compute
+tree size.
 
 At this time, it's a good idea to schedule brestore.pl -b after your 
 BackupCatalog job.
@@ -333,7 +331,7 @@ Job {
   Name = "BackupCatalog"
   ...
   # This creates an ASCII copy of the catalog
-  RunBeforeJob = "/opt/bacula/etc/make_catalog_backup bacula bacula Pei0ahm9"
+  RunBeforeJob = "/opt/bacula/etc/make_catalog_backup.pl MyCatalog"
   # This deletes the copy of the catalog
   RunAfterJob  = "/opt/bacula/etc/delete_catalog_backup"
   RunAfterJob  = "/usr/lib/cgi-bin/bweb/bresto.pl action=batch"
@@ -371,11 +369,8 @@ GRANT INSERT,UPDATE,DELETE ON bacula.LocationLog
 You keep Jobs informations across retention into a JobHisto table.
 You have to setup stat_job_table = JobHisto in bweb configuration.
 
-CREATE TABLE JobHisto (LIKE Job);
-
-And run this on crontab when you want :
-INSERT INTO JobHisto 
-  (SELECT * FROM Job WHERE JobId NOT IN (SELECT JobId FROM JobHisto) );
+And use Statistics module from Bacula (see documentation and update stats
+command).
 
 ################ USE USERS AND GROUPS WITH BWEB ##########################
 
@@ -387,7 +382,7 @@ For postgresql, it will be done with bweb/script/bweb-postgresql.sql (already do
 
 It will do some basics things on a working bweb/brestore setup.
 
-1) Go to http://extjs.com and download their toolkit (last 2.2 release)
+1) Go to http://extjs.com and download their toolkit (use the 2.2 release)
 
 2) Install files in /bweb/ext web root 
  example on debian : 
@@ -401,7 +396,7 @@ It will do some basics things on a working bweb/brestore setup.
 
 5) Use the last Bweb.pm
   If you are trying bresto in a working bweb/brestore setup, you must make sure that you use 
-  the last Bweb.pm SVN version.
+  the last Bweb.pm git version.
 
 6) Go on http://you-director/bweb/bresto.html
 
