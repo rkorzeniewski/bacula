@@ -20,7 +20,7 @@ endif
 
 all: Makefile.inc $(DIRS) $(SPECIAL) $(INSTALLER)
 
-clean: $(DIRS) win32_installer newinstaller win64_installer
+clean: $(DIRS) win32_installer win64_installer
 	$(ECHO_CMD)-rm -rf release32 release64
 
 bat:
