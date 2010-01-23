@@ -477,6 +477,11 @@ Section "Command Console" SecConsole
   File "${SRC_DIR}\bconsole.exe"
   Call InstallCommonFiles
 
+  File "/oname=$PLUGINSDIR\bconsole.conf" "bconsole.conf.in"
+  StrCpy $0 "$INSTDIR"
+  StrCpy $1 bconsole.conf
+  Call ConfigEditAndCopy
+
   CreateShortCut "$SMPROGRAMS\Bacula\bconsole.lnk" "$INSTDIR\bconsole.exe" '-c "$INSTDIR\bconsole.conf"' "$INSTDIR\bconsole.exe" 0
   CreateShortCut "$SMPROGRAMS\Bacula\Configuration\Edit Command Console Configuration.lnk" "write.exe" '"$INSTDIR\bconsole.conf"'
 
@@ -553,7 +558,7 @@ Section "-Finish"
   Push $R0
 
   ${If} $OsIsNT = 1
-    nsExec::ExecToLog 'cmd.exe /C echo Y|cacls "$INSTDIR" /T /G SYSTEM:F Administrators:F'
+;   nsExec::ExecToLog 'cmd.exe /C echo Y|cacls "$INSTDIR" /T /G SYSTEM:F Administrators:F'
   ${EndIf}
 
   ; Write the uninstall keys for Windows & create Start Menu entry

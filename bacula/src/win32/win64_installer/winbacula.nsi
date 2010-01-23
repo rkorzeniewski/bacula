@@ -261,7 +261,7 @@ Function .onInit
 
   StrCpy $ConfigClientName               "$HostName-fd"
   StrCpy $ConfigClientPort               9102
-  StrCpy $ConfigClientMaxJobs            5
+  StrCpy $ConfigClientMaxJobs            10
   ;StrCpy $ConfigClientPassword
   StrCpy $ConfigClientInstallService     "$OptService"
   StrCpy $ConfigClientStartService       "$OptStart"
@@ -401,10 +401,10 @@ Section "-Initialize"
   ${StrRep} $R2 "$INSTDIR\working" "\" "\\"
   FileWrite $R1 's;@working_dir_cmd@;$R2;g$\r$\n'
 
-  ${StrRep} $R2 "$INSTDIR" "\" "\\\\"
-  FileWrite $R1 's;@bin_dir@;$R2;g$\r$\n'
-  ${StrRep} $R2 "$INSTDIR" "\" "\\"
-  FileWrite $R1 's;@bin_dir_cmd@;$R2;g$\r$\n'
+; ${StrRep} $R2 "$INSTDIR" "\" "\\\\"
+; FileWrite $R1 's;@bin_dir@;$R2;g$\r$\n'
+; ${StrRep} $R2 "$INSTDIR" "\" "\\"
+; FileWrite $R1 's;@bin_dir_cmd@;$R2;g$\r$\n'
 
   ${StrRep} $R2 "$INSTDIR\plugins" "\" "\\\\"
   FileWrite $R1 's;@fdplugins_dir@;$R2;g$\r$\n'
@@ -429,6 +429,12 @@ Section "-Initialize"
   ${If} "$ConfigDirectorName" != ""
     FileWrite $R1 "s;@director_name@;$ConfigDirectorName;g$\r$\n"
   ${EndIf}
+  ${If} "$ConfigDirectorPort" != ""
+    FileWrite $R1 "s;@director_port@;$ConfigDirectorPort;g$\r$\n"
+  ${EndIf}
+  ${If} "$ConfigDirectorPassword" != ""
+    FileWrite $R1 "s;@director_password@;$ConfigDirectorPassword;g$\r$\n"
+  ${EndIf}
   ${If} "$ConfigMonitorName" != ""
     FileWrite $R1 "s;@monitor_name@;$ConfigMonitorName;g$\r$\n"
   ${EndIf}
@@ -437,13 +443,6 @@ Section "-Initialize"
   ${EndIf}
 
   FileClose $R1
-
-
-  ${If} ${FileExists} "$OldInstallDir\bin\bacula-fd.exe"
-    nsExec::ExecToLog '"$OldInstallDir\bin\bacula-fd.exe" /kill'     ; Shutdown any bacula that could be running
-    Sleep 3000
-    nsExec::ExecToLog '"$OldInstallDir\bin\bacula-fd.exe" /remove'   ; Remove existing service
-  ${EndIf}
 
 SectionEnd
 
@@ -487,6 +486,11 @@ Section "Command Console" SecConsole
   File "${SRC_DIR}\bconsole.exe"
   Call InstallCommonFiles
 
+  File "/oname=$PLUGINSDIR\bconsole.conf" "bconsole.conf.in"
+  StrCpy $0 "$INSTDIR"
+  StrCpy $1 bconsole.conf
+  Call ConfigEditAndCopy
+
   CreateShortCut "$SMPROGRAMS\Bacula\bconsole.lnk" "$INSTDIR\bconsole.exe" '-c "$INSTDIR\bconsole.conf"' "$INSTDIR\bconsole.exe" 0
   CreateShortCut "$SMPROGRAMS\Bacula\Configuration\Edit Command Console Configuration.lnk" "write.exe" '"$INSTDIR\bconsole.conf"'
 
@@ -495,37 +499,32 @@ SectionEnd
 Section "Bat Console" SecBatConsole
   SectionIn 1 2 3
 
-; SetOutPath "$INSTDIR\bin"
-
-; Call InstallCommonFiles
-; File "${SRC_DIR}\QtCore4.dll"
-; File "${SRC_DIR}\QtGui4.dll"
-
-; File "${SRC_DIR}\bat.exe"
-
-; ${If} $InstallType = ${MigrateInstall}
-; ${AndIf} ${FileExists} "$OldInstallDir\bin\bat.conf"
-;   CopyFiles "$OldInstallDir\bin\bat.conf" "$APPDATA\Bacula"
-; ${Else}
-;   File "/oname=$PLUGINSDIR\bat.conf" "bat.conf.in"
-;   StrCpy $0 "$APPDATA\Bacula"
-;   StrCpy $1 bat.conf
-;   Call ConfigEditAndCopy
-; ${EndIf}
-
-  ; Create Start Menu entry
-; CreateShortCut "$SMPROGRAMS\Bacula\Bat.lnk" "$INSTDIR\bin\bat.exe" '-c "$APPDDATA\Bacula\bat.conf"' "$INSTDIR\bin\bat.exe" 0
-; CreateShortCut "$SMPROGRAMS\Bacula\Configuration\Edit Bat Configuration.lnk" "write.exe" '"$APPDATA\Bacula\bat.conf"'
-SectionEnd
-
-
-; Essentially deleted because wxconsole is not implemented on Win64
-Section "Graphical Console" SecWxConsole
-  SectionIn 1 2 3
-  
   SetOutPath "$INSTDIR"
 
+  Call InstallCommonFiles
+  File "${SRC_DIR}\QtCore4.dll"
+  File "${SRC_DIR}\QtGui4.dll"
+
+  File "${SRC_DIR}\bat.exe"
+
+  File "/oname=$PLUGINSDIR\bat.conf" "bat.conf.in"
+  StrCpy $0 "$INSTDIR"
+  StrCpy $1 bat.conf
+  Call ConfigEditAndCopy
+
+  ; Create Start Menu entry
+  CreateShortCut "$SMPROGRAMS\Bacula\Bat.lnk" "$INSTDIR\bat.exe" '-c "$INSTDIR\bat.conf"' "$INSTDIR\bat.exe" 0
+  CreateShortCut "$SMPROGRAMS\Bacula\Configuration\Edit Bat Configuration.lnk" "write.exe" '"$INSTDIR\bat.conf"'
 SectionEnd
+
+
+; Deleted because wxconsole is deprecated
+;Section "Graphical Console" SecWxConsole
+;  SectionIn 1 2 3
+;
+;  SetOutPath "$INSTDIR"
+;
+;SectionEnd
 
 SectionGroupEnd
 
@@ -534,8 +533,7 @@ Section "-Finish"
   Push $R0
 
   ${If} $OsIsNT = 1
-    nsExec::ExecToLog 'cmd.exe /C echo Y|cacls "$INSTDIR" /T /G SYSTEM:F Administrators:F'
-    nsExec::ExecToLog 'cmd.exe /C echo Y|cacls "$INSTDIR" /T /G SYSTEM:F Administrators:F'
+;   nsExec::ExecToLog 'cmd.exe /C echo Y|cacls "$INSTDIR" /T /G SYSTEM:F Administrators:F'
   ${EndIf}
 
   ; Write the uninstall keys for Windows & create Start Menu entry
@@ -561,7 +559,7 @@ SectionEnd
 
 LangString DESC_SecFileDaemon ${LANG_ENGLISH} "Install Bacula File Daemon on this system."
 LangString DESC_SecConsole ${LANG_ENGLISH} "Install command console program on this system."
-;LangString DESC_SecBatConsole ${LANG_ENGLISH} "Install Bat graphical console program on this system."
+LangString DESC_SecBatConsole ${LANG_ENGLISH} "Install Bat graphical console program on this system."
 
 LangString TITLE_ConfigPage1 ${LANG_ENGLISH} "Configuration"
 LangString SUBTITLE_ConfigPage1 ${LANG_ENGLISH} "Set installation configuration."
@@ -578,7 +576,7 @@ LangString SUBTITLE_WriteTemplates ${LANG_ENGLISH} "Create a resource template f
 !InsertMacro MUI_FUNCTION_DESCRIPTION_BEGIN
   !InsertMacro MUI_DESCRIPTION_TEXT ${SecFileDaemon} $(DESC_SecFileDaemon)
   !InsertMacro MUI_DESCRIPTION_TEXT ${SecConsole} $(DESC_SecConsole)
-; !InsertMacro MUI_DESCRIPTION_TEXT ${SecBatConsole} $(DESC_SecBatConsole)
+  !InsertMacro MUI_DESCRIPTION_TEXT ${SecBatConsole} $(DESC_SecBatConsole)
 !InsertMacro MUI_FUNCTION_DESCRIPTION_END
 
 ; Uninstall section
@@ -772,9 +770,9 @@ Function GetSelectedComponents
   ${If} ${SectionIsSelected} ${SecConsole}
     IntOp $R0 $R0 | ${ComponentTextConsole}
   ${EndIf}
-; ${If} ${SectionIsSelected} ${SecBatConsole}
-;   IntOp $R0 $R0 | ${ComponentBatConsole}
-; ${EndIf}
+  ${If} ${SectionIsSelected} ${SecBatConsole}
+    IntOp $R0 $R0 | ${ComponentBatConsole}
+  ${EndIf}
   Exch $R0
 FunctionEnd
 
@@ -863,14 +861,14 @@ Function SelectPreviousComponents
       !InsertMacro UnselectSection ${SecConsole}
       !InsertMacro ClearSectionFlag ${SecConsole} ${SF_RO}
     ${EndIf}
-;   IntOp $R1 $PreviousComponents & ${ComponentBatConsole}
-;   ${If} $R1 <> 0
-;     !InsertMacro SelectSection ${SecBatConsole}
-;     !InsertMacro SetSectionFlag ${SecBatConsole} ${SF_RO}
-;   ${Else}
-;     !InsertMacro UnselectSection ${SecBatConsole}
-;     !InsertMacro ClearSectionFlag ${SecBatConsole} ${SF_RO}
-;   ${EndIf}
+    IntOp $R1 $PreviousComponents & ${ComponentBatConsole}
+    ${If} $R1 <> 0
+      !InsertMacro SelectSection ${SecBatConsole}
+      !InsertMacro SetSectionFlag ${SecBatConsole} ${SF_RO}
+    ${Else}
+      !InsertMacro UnselectSection ${SecBatConsole}
+      !InsertMacro ClearSectionFlag ${SecBatConsole} ${SF_RO}
+    ${EndIf}
   ${EndIf}
 FunctionEnd
 
@@ -897,12 +895,12 @@ Function UpdateComponentUI
     ${Else}
       !InsertMacro ClearSectionFlag ${SecConsole} ${SF_BOLD}
     ${EndIf}
-;  IntOp $R1 $NewComponents & ${ComponentBatConsole}
-;   ${If} $R1 <> 0
-;     !InsertMacro SetSectionFlag ${SecBatConsole} ${SF_BOLD}
-;   ${Else}
-;     !InsertMacro ClearSectionFlag ${SecBatConsole} ${SF_BOLD}
-;   ${EndIf}
+    IntOp $R1 $NewComponents & ${ComponentBatConsole}
+    ${If} $R1 <> 0
+      !InsertMacro SetSectionFlag ${SecBatConsole} ${SF_BOLD}
+    ${Else}
+      !InsertMacro ClearSectionFlag ${SecBatConsole} ${SF_BOLD}
+    ${EndIf}
   ${EndIf}
 
   GetDlgItem $R0 $HWNDPARENT 1
@@ -917,7 +915,6 @@ Function UpdateComponentUI
   Pop $R1
   Pop $R0
 FunctionEnd
-
 
 !include "InstallType.nsh"
 !include "ConfigPage1.nsh"

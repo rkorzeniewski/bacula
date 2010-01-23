@@ -25,7 +25,7 @@ Function EnterConfigPage2
     ${Else}
       IntOp $R8 $R7 + 26
     ${EndIf}
-    FileWrite $R5 '[Field $R6]$\r$\nType="GroupBox"$\r$\nText="Enter data for Director Allowed to access this Client"$\r$\nLeft=0$\r$\nTop=$R7$\r$\nRight=300$\r$\nBottom=$R8$\r$\n$\r$\n'
+    FileWrite $R5 '[Field $R6]$\r$\nType="GroupBox"$\r$\nText="Enter data for Director allowed to access this Client (required)"$\r$\nLeft=0$\r$\nTop=$R7$\r$\nRight=300$\r$\nBottom=$R8$\r$\n$\r$\n'
   ${EndIf}
 
   IntOp $R6 $R6 + 1
@@ -202,13 +202,13 @@ Function EnterConfigPage2
       IntOp $R7 $R7 + 2
       IntOp $R8 $R7 + 8
 
-      FileWrite $R5 '[Field $R6]$\r$\nType="Label"$\r$\nText="Address"$\r$\nLeft=6$\r$\nTop=$R7$\r$\nRight=48$\r$\nBottom=$R8$\r$\n$\r$\n'
+;     FileWrite $R5 '[Field $R6]$\r$\nType="Label"$\r$\nText="Address"$\r$\nLeft=6$\r$\nTop=$R7$\r$\nRight=48$\r$\nBottom=$R8$\r$\n$\r$\n'
 
       IntOp $R6 $R6 + 1
       IntOp $R7 $R7 - 2
       IntOp $R8 $R8 + 2
 
-      FileWrite $R5 '[Field $R6]$\r$\nType="Text"$\r$\nState=$ConfigDirectorAddress$\r$\nLeft=50$\r$\nTop=$R7$\r$\nRight=294$\r$\nBottom=$R8$\r$\n$\r$\n'
+;     FileWrite $R5 '[Field $R6]$\r$\nType="Text"$\r$\nState=$ConfigDirectorAddress$\r$\nLeft=50$\r$\nTop=$R7$\r$\nRight=294$\r$\nBottom=$R8$\r$\n$\r$\n'
       IntOp $R6 $R6 + 1
       IntOp $R7 $R7 + 14
       IntOp $R8 $R7 + 8
