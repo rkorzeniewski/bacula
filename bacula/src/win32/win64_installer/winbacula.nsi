@@ -266,6 +266,7 @@ Function .onInit
   StrCpy $ConfigClientInstallService     "$OptService"
   StrCpy $ConfigClientStartService       "$OptStart"
 
+  StrCpy $ConfigDirectorPort             9101
 
   StrCpy $ConfigMonitorName              "$HostName-mon"
   ;StrCpy $ConfigMonitorPassword
@@ -322,7 +323,7 @@ Function InstallCommonFiles
     File "Readme.txt"
 
     SetOutPath "$INSTDIR"
-!if "${BUILD_TOOLS}" == "MinGW"
+!if "${BUILD_TOOLS}" == "MinGW32"
     File "${SRC_DIR}\mingwm10.dll"
     File "${SRC_DIR}\pthreadGCE.dll"
     File "${SRC_DIR}\zlib1.dll"
@@ -384,11 +385,7 @@ Section "-Initialize"
   FileWrite $R1 "s;@DATE@;${__DATE__};g$\r$\n"
   FileWrite $R1 "s;@DISTNAME@;Windows;g$\r$\n"
 
-!If "$BUILD_TOOLS" == "MinGW"
-  StrCpy $R2 "MinGW32"
-!Else
-  StrCpy $R2 "MinGW64"
-!EndIf
+  StrCpy $R2 ${BUILD_TOOLS}
 
   Call GetHostName
   Exch $R3
@@ -434,6 +431,9 @@ Section "-Initialize"
   ${EndIf}
   ${If} "$ConfigDirectorPassword" != ""
     FileWrite $R1 "s;@director_password@;$ConfigDirectorPassword;g$\r$\n"
+  ${EndIf}
+  ${If} "$ConfigDirectorAddress" != ""
+    FileWrite $R1 "s;@director_address@;$ConfigDirectorAddress;g$\r$\n"
   ${EndIf}
   ${If} "$ConfigMonitorName" != ""
     FileWrite $R1 "s;@monitor_name@;$ConfigMonitorName;g$\r$\n"
@@ -588,12 +588,10 @@ Section "Uninstall"
   nsExec::ExecToLog '"$INSTDIR\bacula-fd.exe" /kill'
   Sleep 3000
 
-  ReadRegDWORD $R0 HKLM "Software\Bacula" "Service_Bacula-fd"
-  ${If} $R0 = 1
-    ; Remove bacula service
-    nsExec::ExecToLog '"$INSTDIR\bacula-fd.exe" /remove'
-    nsExec::ExecToLog '"$INSTDIR\plugins\exchange-fd.dll" /remove'
-  ${EndIf}
+; ReadRegDWORD $R0 HKLM "Software\Bacula" "Service_Bacula-fd"
+  ; Remove bacula service
+  nsExec::ExecToLog '"$INSTDIR\bacula-fd.exe" /remove'
+  nsExec::ExecToLog '"$INSTDIR\plugins\exchange-fd.dll" /remove'
   
   ; remove registry keys
   DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Bacula"
@@ -647,6 +645,9 @@ Function InstallDaemon
   WriteRegDWORD HKLM "Software\Bacula" "Service_$0" $2
   
   ${If} $2 = 1
+    nsExec::ExecToLog '"$INSTDIR\$0.exe" /kill'
+    sleep 3000
+    nsExec::ExecToLog '"$INSTDIR\$0.exe" /remove'
     nsExec::ExecToLog '"$INSTDIR\$0.exe" /install -c "$INSTDIR\$0.conf"'
 
     ${If} $OsIsNT <> 1
@@ -660,7 +661,7 @@ Function InstallDaemon
       ${If} $OsIsNT = 1
         nsExec::ExecToLog 'net start $0'
       ${Else}
-        Exec '"$INSTDIR\$0.exe" -c "$INSTDIR\$0.conf"'
+        Exec '"$INSTDIR\$0.exe" /service -c "$INSTDIR\$0.conf"'
       ${EndIf}
     ${EndIf}
   ${Else}

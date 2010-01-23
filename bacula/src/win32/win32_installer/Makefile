@@ -13,7 +13,7 @@ DEFINES := \
 	-DVERSION=$(VERSION) \
 	-DOUT_DIR=..\\release32 \
 	-DSRC_DIR=release32 \
-	-DBUILD_TOOLS=MinGW \
+	-DBUILD_TOOLS=MinGW32 \
 	-DWINVER=32
 
 INSTALL_EXE := $(BUILDDIR)/release32/winbacula-$(VERSION).exe
