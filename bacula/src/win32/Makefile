@@ -1,7 +1,6 @@
 ECHO_CMD=@
 
-WIN32_DIRS=lib cats filed filed/plugins dird stored \
-	 console wx-console tools scripts
+WIN32_DIRS=lib filed filed/plugins console scripts
 
 WIN64_DIRS=lib filed filed/plugins console scripts
 
@@ -12,7 +11,7 @@ ifeq ($(WIN64),yes)
 else
 	 DIRS=$(WIN32_DIRS)
 	 INSTALLER=win32_installer
-	 SPECIAL=bat
+	 SPECIAL=bat bsmtp
 endif
 
 .PHONY: $(DIRS) clean all Makefile.inc win32_installer full_win32_installer \
