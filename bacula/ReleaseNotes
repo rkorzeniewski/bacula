@@ -3,13 +3,32 @@
 
   Bacula code: Total files = 1,081 Total lines = 217,272 (Using SLOCCount)
 
-This release includes large number of new features and changes.
 
+Release Numbering:
+-----------------------------------------------------------
+You might be wondering why this release jumps from 3.0.x to 
+5.0.0 thus skipping version 4.0.0.  We have done this for 
+several reasons: first, we wanted a way of distinguishing
+the numbering system for the Bacula System Enterprise version
+and the Bacula Project version.  So, to do so, we have decided
+that the first number of the Bacula Project version will always
+be odd, and the first number of the Enterprise version will always
+be even. Thus the Bacula Project now moves from 3.0.x to 5.0.x.
+In addition, we want to keep the Bacula Project version larger
+than the Enterprise version to indicate that the Bacula Project
+version is more advanced or has more features than the 
+Enterprise version. For memory, the current Enterprise version
+is 2.6.1, and the next release (in a few months -- before June 2010)
+will be version 4.0.0.
+
+Warning:
+--------------------------------------------------------------
 Please note the three Warnings below before doing any install or
 upgrade.
+       
 
-Changes since 3.0.3a:
--------------------------------
+Changes since 3.0.3a (the last Bacula Project release):
+-------------------------------------------------------
 
 Bug fixes:
 1337 1351 1352 1354 1357 1361 1367 1369 1370 1373 
