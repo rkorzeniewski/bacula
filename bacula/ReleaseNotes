@@ -5,7 +5,10 @@
 
 This release includes large number of new features and changes.
 
-Important changes since 3.0.3a:
+Please note the three Warnings below before doing any install or
+upgrade.
+
+Changes since 3.0.3a:
 -------------------------------
 
 Bug fixes:
@@ -14,10 +17,10 @@ Bug fixes:
 1454 1455 1458 1456
 
 Fixed:
- - Problem that locks the Director when the SMTP server wasn't responding 
-   to bsmtp
+ - Problem that locks the Director when the SMTP server wasn't 
+   responding to the bsmtp program 
  - Restore's dir command shows incorrect file sizes 
- - Fix various problems with reload command   
+ - Fix various problems with the reload command   
  - Fix problems with conio
  - Eliminate several deadlocks or potential race conditions from SD
 
@@ -45,32 +48,20 @@ Enhancements:
  - Add Pool File and Job retention periods (take precedence over Client)
  - Many ACL improvements
  - Level added to FD status Job entry
- - Allow to turn off/on Block Checksum per device
+ - Allow turning on/off Block Checksum per device
  - Set Device Poll interval to 5 minutes -- previously did not poll
  - Implement lock manager with bad order protection
 
 Compatibility:
-Like always, both the Director and Storage daemon must be upgraded at
-the same time.
+As always, both the Director and Storage daemon must be upgraded at
+the same time, and on any given machine, you must run only one version
+of Bacula. This means that on the Director and Storage daemon machines,
+you *must* upgrade your File daemon as well.
 
 Older 3.0.x and possibly 2.4.x File Daemons are compatible with the 5.0.0
-Director and Storage daemons. It should be no need to upgrade older File
-Daemon.
-
-============ Documentation improvements needed ==================
-
-Note!!!!! The 5.0.0+ documentation needs rather extensive modifications in the
-following areas:
-
-1. Missing documentation.
-2. Correction of links within various manuals -- most fail.
-3. Integration of the new features into the main documents.
-4. Much more.
-
-The documentation will not be completed in the near future due to lack
-manpower.  If you are unhappy with this situation as we are, we suggest
-you help by submitting patches to the documentation.  Thanks.
-=====
+Director and Storage daemons. There should be no need to upgrade older File
+Daemons immediately. However, we recommend that you do so as soon
+as is reasonable for your situation.
 
 ================== Warning !!!!!! ==========================
 
@@ -109,8 +100,48 @@ command.  As mentioned above, before running this script, please backup your
 catalog database, and when you do running it, be sure shutdown Bacula and be
 aware that running the script can take some time depending on your database
 size.
-
 ================================================================
+
+
+================== Warning !!!!!! ==========================
+If you upgrade a previous Win32 client installation, you must
+first stop the File daemon, then uninstall it before attempting
+the upgrade. If you do not do so, the upgrade will probably
+fail and you will need to manually find and run the 
+Uninstall.exe file, before you can upgrade to the new version.
+This is because the file locations are different.  If you want
+to save your previous bacula-fd.conf file, please do so before
+uninstalling it.
+================================================================
+
+================== Warning !!!!!! ==========================
+Due to permissions problems on Windows Vista and later systems,
+we no longer require SYSTEM or Administrator permissions to 
+access the binaries and configuation files.  If you wish
+to restrict access to these files, please see the New Features
+section of the manual for how to set access control lists.
+================================================================
+
+Note, the Win32 Installer no longer installs the Bacula Servers
+(Director and Storage daemon). See the New Features section of
+the manual for more details.
+
+============ Documentation improvements needed ==================
+
+Note!!!!! The 5.0.0+ documentation has a number of known problems:
+
+1. We have reduced the number of manuals, which has fixed many
+   of the broken links found in the old 3.0.x version, but there
+   are still some that need fixing.
+
+2. Integration of the 3.0.x features into the main manuals has
+   not yet been done.
+
+The documentation will not be completed in the near future due to lack
+manpower.  If you are unhappy with this situation as we are, we suggest
+you help by submitting patches to the documentation.  Thanks.
+=====
+
 
 This release includes large number of new features and changes.
 It should be more or less compatible with previous xx.conf files
