@@ -337,7 +337,6 @@ Function InstallCommonFiles
     File "${SRC_DIR}\zlib1.dll"
 !endif
     File "${SRC_DIR}\bacula.dll"
-
     File "/oname=$INSTDIR\openssl.cnf" "${SRC_DIR}\openssl.cnf"
     File "${SRC_DIR}\openssl.exe"
     File "${SRC_DIR}\bsleep.exe"
@@ -398,10 +397,10 @@ Section "-Initialize"
   ${StrRep} $R2 "$INSTDIR\working" "\" "\\"
   FileWrite $R1 's;@working_dir_cmd@;$R2;g$\r$\n'
 
-; ${StrRep} $R2 "$INSTDIR" "\" "\\\\"
-; FileWrite $R1 's;@bin_dir@;$R2;g$\r$\n'
-; ${StrRep} $R2 "$INSTDIR" "\" "\\"
-; FileWrite $R1 's;@bin_dir_cmd@;$R2;g$\r$\n'
+  ${StrRep} $R2 "$INSTDIR" "\" "\\\\"
+  FileWrite $R1 's;@bin_dir@;$R2;g$\r$\n'
+  ${StrRep} $R2 "$INSTDIR" "\" "\\"
+  FileWrite $R1 's;@bin_dir_cmd@;$R2;g$\r$\n'
 
   ${StrRep} $R2 "$INSTDIR\plugins" "\" "\\\\"
   FileWrite $R1 's;@fdplugins_dir@;$R2;g$\r$\n'
@@ -499,32 +498,29 @@ SectionEnd
 Section "Bat Console" SecBatConsole
   SectionIn 1 2 3
 
-  SetOutPath "$INSTDIR"
+  SetOutPath "$INSTDIR\bin32"
 
   Call InstallCommonFiles
   File "${SRC_DIR}\QtCore4.dll"
   File "${SRC_DIR}\QtGui4.dll"
-
+  File "${SRC_DIR}\mingwm10.dll"
+  File "${SRC_DIR}\ssleay32.dll"
+  File "${SRC_DIR}\libeay32.dll"
   File "${SRC_DIR}\bat.exe"
+  File "/oname=$INSTDIR\bin32\bacula.dll" "${SRC_DIR}\bacula32.dll"
+  File "/oname=$INSTDIR\bin32\pthreadGCE.dll" "${SRC_DIR}\pthreadGCE32.dll"
+  File "/oname=$INSTDIR\bin32\zlib1.dll" "${SRC_DIR}\zlib132.dll"
 
   File "/oname=$PLUGINSDIR\bat.conf" "bat.conf.in"
-  StrCpy $0 "$INSTDIR"
+  StrCpy $0 "$INSTDIR\bin32"
   StrCpy $1 bat.conf
   Call ConfigEditAndCopy
 
   ; Create Start Menu entry
-  CreateShortCut "$SMPROGRAMS\Bacula\Bat.lnk" "$INSTDIR\bat.exe" '-c "$INSTDIR\bat.conf"' "$INSTDIR\bat.exe" 0
-  CreateShortCut "$SMPROGRAMS\Bacula\Configuration\Edit Bat Configuration.lnk" "write.exe" '"$INSTDIR\bat.conf"'
+  CreateShortCut "$SMPROGRAMS\Bacula\Bat.lnk" "$INSTDIR\bin32\bat.exe" '-c "$INSTDIR\bin32\bat.conf"' "$INSTDIR\bin32\bat.exe" 0
+  CreateShortCut "$SMPROGRAMS\Bacula\Configuration\Edit Bat Configuration.lnk" "write.exe" '"$INSTDIR\bin32\bat.conf"'
+  SetOutPath "$INSTDIR"
 SectionEnd
-
-
-; Deleted because wxconsole is deprecated
-;Section "Graphical Console" SecWxConsole
-;  SectionIn 1 2 3
-;
-;  SetOutPath "$INSTDIR"
-;
-;SectionEnd
 
 SectionGroupEnd
 
@@ -610,6 +606,7 @@ Section "Uninstall"
   MessageBox MB_YESNO|MB_ICONQUESTION \
   "Would you like to delete the current configuration files and the working state file?" IDNO NoDel
     Delete /REBOOTOK "$INSTDIR\*"
+    Delete /REBOOTOK "$INSTDIR\bin32\*"
     Delete /REBOOTOK "$INSTDIR\working\*"
     Delete /REBOOTOK "$INSTDIR\plugins\*"
     Delete /REBOOTOK "$PLUGINSDIR\bacula-*.conf"
@@ -625,6 +622,7 @@ Section "Uninstall"
     Delete /REBOOTOK "$PLUGINSDIR\*.sql"    
     RMDir "$INSTDIR\plugins"
     RMDir "$INSTDIR\working"
+    RMDir "$INSTDIR\bin32"
     RMDir "$INSTDIR"
 NoDel:
 

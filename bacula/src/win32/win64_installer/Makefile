@@ -159,6 +159,12 @@ $(INSTALL_EXE): winbacula.nsi $(addprefix release64/,$(BACULA_BINARIES) $(DEPKGS
 	cp -f ../release32/bat.exe release64
 	cp -f ../release32/QtCore4.dll release64
 	cp -f ../release32/QtGui4.dll release64
+	cp -f ../win32_installer/release32/mingwm10.dll release64
+	cp -f ../win32_installer/release32/ssleay32.dll release64
+	cp -f ../win32_installer/release32/libeay32.dll release64
+	cp -f ../win32_installer/release32/zlib1.dll release64/zlib132.dll
+	cp -f ../release32/bacula.dll release64/bacula32.dll
+	cp -f ../win32_installer/release32/pthreadGCE.dll release64/pthreadGCE32.dll
 	NSISDIR=$(NSIS_DIR) \
 	$(NSIS_DIR)/makensis -V3 $(DEFINES) winbacula.nsi
 
