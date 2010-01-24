@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: de\n"
 "Report-Msgid-Bugs-To: bacula-devel@lists.sourceforge.net\n"
-"POT-Creation-Date: 2010-01-24 16:36+0100\n"
+"POT-Creation-Date: 2010-01-19 13:45+0100\n"
 "PO-Revision-Date: 2007-06-25 20:38+0200\n"
 "Last-Translator: Philipp Storz <philipp.storz@dass-it.de>\n"
 "Language-Team: \n"
@@ -240,7 +240,7 @@ msgstr ""
 #: src/filed/backup.c:1068 src/filed/backup.c:1128 src/filed/backup.c:1170
 #: src/filed/acl.c:91 src/filed/acl.c:106 src/filed/acl.c:114
 #: src/filed/xattr.c:90 src/filed/xattr.c:105 src/filed/xattr.c:113
-#: src/filed/fd_plugins.c:338 src/filed/fd_plugins.c:352
+#: src/filed/fd_plugins.c:337 src/filed/fd_plugins.c:351
 #, c-format
 msgid "Network send error to SD. ERR=%s\n"
 msgstr ""
@@ -1036,7 +1036,7 @@ msgstr ""
 msgid "Unknown include/exclude option: %c\n"
 msgstr ""
 
-#: src/filed/job.c:1233 src/stored/dircmd.c:1020
+#: src/filed/job.c:1233 src/stored/dircmd.c:1022
 #, c-format
 msgid "Could not create bootstrap file %s: ERR=%s\n"
 msgstr ""
@@ -1194,57 +1194,57 @@ msgstr ""
 msgid "Could not open bootstrap file %s: ERR=%s\n"
 msgstr "Kann  bootstrap Datei nicht öffnen: %s: ERR=%s\n"
 
-#: src/filed/fd_plugins.c:277
+#: src/filed/fd_plugins.c:276
 #, c-format
 msgid "Command plugin \"%s\" returned bad startBackupFile packet.\n"
 msgstr ""
 
-#: src/filed/fd_plugins.c:325
+#: src/filed/fd_plugins.c:324
 #, fuzzy
 msgid "Plugin save packet not found.\n"
 msgstr "Path record: %s nicht gefunden.\n"
 
-#: src/filed/fd_plugins.c:413
+#: src/filed/fd_plugins.c:412
 #, c-format
 msgid "Malformed plugin command. Name not terminated by colon: %s\n"
 msgstr ""
 
-#: src/filed/fd_plugins.c:446
+#: src/filed/fd_plugins.c:445
 #, fuzzy, c-format
 msgid "Plugin=%s not found.\n"
 msgstr "Pool Ressource \"%s\" nicht gefunden.\n"
 
-#: src/filed/fd_plugins.c:492
+#: src/filed/fd_plugins.c:491
 #, c-format
 msgid "Plugin createFile call failed. Stat=%d file=%s\n"
 msgstr ""
 
-#: src/filed/fd_plugins.c:497
+#: src/filed/fd_plugins.c:496
 #, c-format
 msgid "Plugin createFile call failed. Returned CF_ERROR file=%s\n"
 msgstr ""
 
-#: src/filed/fd_plugins.c:513 src/findlib/create_file.c:222
+#: src/filed/fd_plugins.c:512 src/findlib/create_file.c:222
 #, c-format
 msgid "Could not create %s: ERR=%s\n"
 msgstr ""
 
-#: src/filed/fd_plugins.c:596
+#: src/filed/fd_plugins.c:595
 #, c-format
 msgid "Loaded plugin: %s\n"
 msgstr ""
 
-#: src/filed/fd_plugins.c:615
+#: src/filed/fd_plugins.c:614
 #, c-format
 msgid "Plugin magic wrong. Plugin=%s wanted=%s got=%s\n"
 msgstr ""
 
-#: src/filed/fd_plugins.c:623
+#: src/filed/fd_plugins.c:622
 #, c-format
 msgid "Plugin version incorrect. Plugin=%s wanted=%d got=%d\n"
 msgstr ""
 
-#: src/filed/fd_plugins.c:631
+#: src/filed/fd_plugins.c:630
 #, c-format
 msgid "Plugin license incompatible. Plugin=%s license=%s\n"
 msgstr ""
@@ -3459,7 +3459,7 @@ msgstr ""
 msgid "Could not destroy client queue: ERR=%s\n"
 msgstr ""
 
-#: src/lib/bpipe.c:361 src/lib/bpipe.c:444
+#: src/lib/bpipe.c:361 src/lib/bpipe.c:443
 msgid "Program killed by Bacula (timeout)\n"
 msgstr ""
 
@@ -6431,7 +6431,7 @@ msgstr ""
 
 #: src/dird/ua_prune.c:393
 #, fuzzy, c-format
-msgid "Begin pruning Jobs older than %s.\n"
+msgid "Begin pruning Jobs older than %s secs.\n"
 msgstr "Beginn automatische Säuberung von Aufträgen.\n"
 
 #: src/dird/ua_prune.c:440
@@ -10968,184 +10968,179 @@ msgstr ""
 msgid "Zero length filename: %s\n"
 msgstr ""
 
-#: src/findlib/find.c:212
-#, fuzzy, c-format
-msgid "Plugin: \"%s\" not found.\n"
-msgstr "Pool Ressource \"%s\" nicht gefunden.\n"
-
-#: src/findlib/bfile.c:95
+#: src/findlib/bfile.c:97
 msgid "Unix attributes"
 msgstr ""
 
-#: src/findlib/bfile.c:97
+#: src/findlib/bfile.c:99
 msgid "File data"
 msgstr ""
 
-#: src/findlib/bfile.c:99
+#: src/findlib/bfile.c:101
 msgid "MD5 digest"
 msgstr ""
 
-#: src/findlib/bfile.c:101
+#: src/findlib/bfile.c:103
 msgid "GZIP data"
 msgstr ""
 
-#: src/findlib/bfile.c:103
+#: src/findlib/bfile.c:105
 msgid "Extended attributes"
 msgstr ""
 
-#: src/findlib/bfile.c:105
+#: src/findlib/bfile.c:107
 msgid "Sparse data"
 msgstr ""
 
-#: src/findlib/bfile.c:107
+#: src/findlib/bfile.c:109
 msgid "GZIP sparse data"
 msgstr ""
 
-#: src/findlib/bfile.c:109
+#: src/findlib/bfile.c:111
 msgid "Program names"
 msgstr ""
 
-#: src/findlib/bfile.c:111
+#: src/findlib/bfile.c:113
 msgid "Program data"
 msgstr ""
 
-#: src/findlib/bfile.c:113
+#: src/findlib/bfile.c:115
 msgid "SHA1 digest"
 msgstr ""
 
-#: src/findlib/bfile.c:115
+#: src/findlib/bfile.c:117
 msgid "Win32 data"
 msgstr ""
 
-#: src/findlib/bfile.c:117
+#: src/findlib/bfile.c:119
 msgid "Win32 GZIP data"
 msgstr ""
 
-#: src/findlib/bfile.c:119
+#: src/findlib/bfile.c:121
 msgid "MacOS Fork data"
 msgstr ""
 
-#: src/findlib/bfile.c:121
+#: src/findlib/bfile.c:123
 msgid "HFS+ attribs"
 msgstr ""
 
-#: src/findlib/bfile.c:123
+#: src/findlib/bfile.c:125
 msgid "Standard Unix ACL attribs"
 msgstr ""
 
-#: src/findlib/bfile.c:125
+#: src/findlib/bfile.c:127
 msgid "Default Unix ACL attribs"
 msgstr ""
 
-#: src/findlib/bfile.c:127
+#: src/findlib/bfile.c:129
 msgid "SHA256 digest"
 msgstr ""
 
-#: src/findlib/bfile.c:129
+#: src/findlib/bfile.c:131
 msgid "SHA512 digest"
 msgstr ""
 
-#: src/findlib/bfile.c:131
+#: src/findlib/bfile.c:133
 msgid "Signed digest"
 msgstr ""
 
-#: src/findlib/bfile.c:133
+#: src/findlib/bfile.c:135
 msgid "Encrypted File data"
 msgstr ""
 
-#: src/findlib/bfile.c:135
+#: src/findlib/bfile.c:137
 msgid "Encrypted Win32 data"
 msgstr ""
 
-#: src/findlib/bfile.c:137
+#: src/findlib/bfile.c:139
 msgid "Encrypted session data"
 msgstr ""
 
-#: src/findlib/bfile.c:139
+#: src/findlib/bfile.c:141
 msgid "Encrypted GZIP data"
 msgstr ""
 
-#: src/findlib/bfile.c:141
+#: src/findlib/bfile.c:143
 msgid "Encrypted Win32 GZIP data"
 msgstr ""
 
-#: src/findlib/bfile.c:143
+#: src/findlib/bfile.c:145
 msgid "Encrypted MacOS fork data"
 msgstr ""
 
-#: src/findlib/bfile.c:145
+#: src/findlib/bfile.c:147
 msgid "AIX Specific ACL attribs"
 msgstr ""
 
-#: src/findlib/bfile.c:147
+#: src/findlib/bfile.c:149
 msgid "Darwin Specific ACL attribs"
 msgstr ""
 
-#: src/findlib/bfile.c:149
+#: src/findlib/bfile.c:151
 msgid "FreeBSD Specific Default ACL attribs"
 msgstr ""
 
-#: src/findlib/bfile.c:151
+#: src/findlib/bfile.c:153
 msgid "FreeBSD Specific Access ACL attribs"
 msgstr ""
 
-#: src/findlib/bfile.c:153
+#: src/findlib/bfile.c:155
 msgid "HPUX Specific ACL attribs"
 msgstr ""
 
-#: src/findlib/bfile.c:155
+#: src/findlib/bfile.c:157
 msgid "Irix Specific Default ACL attribs"
 msgstr ""
 
-#: src/findlib/bfile.c:157
+#: src/findlib/bfile.c:159
 msgid "Irix Specific Access ACL attribs"
 msgstr ""
 
-#: src/findlib/bfile.c:159
+#: src/findlib/bfile.c:161
 msgid "Linux Specific Default ACL attribs"
 msgstr ""
 
-#: src/findlib/bfile.c:161
+#: src/findlib/bfile.c:163
 msgid "Linux Specific Access ACL attribs"
 msgstr ""
 
-#: src/findlib/bfile.c:163
+#: src/findlib/bfile.c:165
 msgid "OSF1 Specific Default ACL attribs"
 msgstr ""
 
-#: src/findlib/bfile.c:165
+#: src/findlib/bfile.c:167
 msgid "OSF1 Specific Access ACL attribs"
 msgstr ""
 
-#: src/findlib/bfile.c:167 src/findlib/bfile.c:169
+#: src/findlib/bfile.c:169 src/findlib/bfile.c:171
 msgid "Solaris Specific ACL attribs"
 msgstr ""
 
-#: src/findlib/bfile.c:171
+#: src/findlib/bfile.c:173
 msgid "OpenBSD Specific Extended attribs"
 msgstr ""
 
-#: src/findlib/bfile.c:173
+#: src/findlib/bfile.c:175
 msgid "Solaris Specific Extensible attribs or System Extended attribs"
 msgstr ""
 
-#: src/findlib/bfile.c:175
+#: src/findlib/bfile.c:177
 msgid "Solaris Specific Extended attribs"
 msgstr ""
 
-#: src/findlib/bfile.c:177
+#: src/findlib/bfile.c:179
 msgid "Darwin Specific Extended attribs"
 msgstr ""
 
-#: src/findlib/bfile.c:179
+#: src/findlib/bfile.c:181
 msgid "FreeBSD Specific Extended attribs"
 msgstr ""
 
-#: src/findlib/bfile.c:181
+#: src/findlib/bfile.c:183
 msgid "Linux Specific Extended attribs"
 msgstr ""
 
-#: src/findlib/bfile.c:183
+#: src/findlib/bfile.c:185
 msgid "NetBSD Specific Extended attribs"
 msgstr ""
 
@@ -14911,7 +14906,7 @@ msgstr "Mehr als ein Dateiname! %s für Datei: %s\n"
 msgid "Failed command: %s\n"
 msgstr ""
 
-#: src/stored/reserve.c:626 src/stored/dircmd.c:605
+#: src/stored/reserve.c:626 src/stored/dircmd.c:607
 #, c-format
 msgid ""
 "\n"
@@ -14919,7 +14914,7 @@ msgid ""
 "does not exist.\n"
 msgstr ""
 
-#: src/stored/reserve.c:630 src/stored/dircmd.c:583
+#: src/stored/reserve.c:630 src/stored/dircmd.c:585
 #, c-format
 msgid ""
 "\n"
@@ -15120,283 +15115,283 @@ msgstr ""
 msgid "Invalid connection from %s. Len=%d\n"
 msgstr ""
 
-#: src/stored/dircmd.c:285
+#: src/stored/dircmd.c:287
 #, c-format
 msgid "3991 Bad setdebug command: %s\n"
 msgstr ""
 
-#: src/stored/dircmd.c:306
+#: src/stored/dircmd.c:308
 #, c-format
 msgid "3904 Job %s not found.\n"
 msgstr ""
 
-#: src/stored/dircmd.c:330
+#: src/stored/dircmd.c:332
 #, fuzzy, c-format
 msgid "JobId=%d Job=\"%s\" marked to be canceled.\n"
 msgstr "JobId %s, Job %s zum Abbruch markiert.\n"
 
-#: src/stored/dircmd.c:332
+#: src/stored/dircmd.c:334
 #, c-format
 msgid "3000 Job %s marked to be canceled.\n"
 msgstr ""
 
-#: src/stored/dircmd.c:336
+#: src/stored/dircmd.c:338
 msgid "3903 Error scanning cancel command.\n"
 msgstr ""
 
-#: src/stored/dircmd.c:412 src/stored/dircmd.c:775 src/stored/dircmd.c:867
-#: src/stored/dircmd.c:904 src/stored/dircmd.c:986 src/stored/dircmd.c:1108
-#: src/stored/dircmd.c:1151
+#: src/stored/dircmd.c:414 src/stored/dircmd.c:777 src/stored/dircmd.c:869
+#: src/stored/dircmd.c:906 src/stored/dircmd.c:988 src/stored/dircmd.c:1110
+#: src/stored/dircmd.c:1153
 #, c-format
 msgid "3999 Device \"%s\" not found or could not be opened.\n"
 msgstr ""
 
-#: src/stored/dircmd.c:417
+#: src/stored/dircmd.c:419
 #, c-format
 msgid "3903 Error scanning label command: %s\n"
 msgstr ""
 
-#: src/stored/dircmd.c:467
+#: src/stored/dircmd.c:469
 #, c-format
 msgid "3910 Unable to open device %s: ERR=%s\n"
 msgstr ""
 
-#: src/stored/dircmd.c:484
+#: src/stored/dircmd.c:486
 #, c-format
 msgid "3920 Cannot label Volume because it is already labeled: \"%s\"\n"
 msgstr ""
 
-#: src/stored/dircmd.c:491
+#: src/stored/dircmd.c:493
 msgid "3921 Wrong volume mounted.\n"
 msgstr ""
 
-#: src/stored/dircmd.c:495
+#: src/stored/dircmd.c:497
 msgid "3922 Cannot relabel an ANSI/IBM labeled Volume.\n"
 msgstr ""
 
-#: src/stored/dircmd.c:503
+#: src/stored/dircmd.c:505
 #, c-format
 msgid "3912 Failed to label Volume: ERR=%s\n"
 msgstr ""
 
-#: src/stored/dircmd.c:513
+#: src/stored/dircmd.c:515
 #, c-format
 msgid "3914 Failed to label Volume (no media): ERR=%s\n"
 msgstr ""
 
-#: src/stored/dircmd.c:516
+#: src/stored/dircmd.c:518
 #, c-format
 msgid "3913 Cannot label Volume. Unknown status %d from read_volume_label()\n"
 msgstr ""
 
-#: src/stored/dircmd.c:550
+#: src/stored/dircmd.c:552
 #, c-format
 msgid "3001 Mounted Volume: %s\n"
 msgstr ""
 
-#: src/stored/dircmd.c:554 src/stored/dircmd.c:1187
+#: src/stored/dircmd.c:556 src/stored/dircmd.c:1189
 #, c-format
 msgid ""
 "3902 Cannot mount Volume on Storage Device %s because:\n"
 "%s"
 msgstr ""
 
-#: src/stored/dircmd.c:667
+#: src/stored/dircmd.c:669
 #, fuzzy
 msgid "Specified slot ignored. "
 msgstr "SQL fehlgeschlagen ERR=%s\n"
 
-#: src/stored/dircmd.c:682 src/stored/dircmd.c:739
+#: src/stored/dircmd.c:684 src/stored/dircmd.c:741
 #, fuzzy, c-format
 msgid "3901 Unable to open device %s: ERR=%s\n"
 msgstr "Kann Datenbank=%s.nicht öffen. ERR=%s\n"
 
-#: src/stored/dircmd.c:702 src/stored/dircmd.c:730
+#: src/stored/dircmd.c:704 src/stored/dircmd.c:732
 #, c-format
 msgid "3001 Device %s is mounted with Volume \"%s\"\n"
 msgstr ""
 
-#: src/stored/dircmd.c:705 src/stored/dircmd.c:733 src/stored/dircmd.c:748
+#: src/stored/dircmd.c:707 src/stored/dircmd.c:735 src/stored/dircmd.c:750
 #, c-format
 msgid ""
 "3905 Device %s open but no Bacula volume is mounted.\n"
 "If this is not a blank tape, try unmounting and remounting the Volume.\n"
 msgstr ""
 
-#: src/stored/dircmd.c:715
+#: src/stored/dircmd.c:717
 #, c-format
 msgid "3001 Device %s is doing acquire.\n"
 msgstr ""
 
-#: src/stored/dircmd.c:720 src/stored/dircmd.c:838
+#: src/stored/dircmd.c:722 src/stored/dircmd.c:840
 #, c-format
 msgid "3903 Device %s is being labeled.\n"
 msgstr ""
 
-#: src/stored/dircmd.c:745
+#: src/stored/dircmd.c:747
 #, c-format
 msgid "3001 Device %s is already mounted with Volume \"%s\"\n"
 msgstr ""
 
-#: src/stored/dircmd.c:754
+#: src/stored/dircmd.c:756
 #, c-format
 msgid "3002 Device %s is mounted.\n"
 msgstr ""
 
-#: src/stored/dircmd.c:757 src/stored/dircmd.c:810 src/stored/dircmd.c:826
-#: src/stored/dircmd.c:858
+#: src/stored/dircmd.c:759 src/stored/dircmd.c:812 src/stored/dircmd.c:828
+#: src/stored/dircmd.c:860
 #, c-format
 msgid "3907 %s"
 msgstr ""
 
-#: src/stored/dircmd.c:760
+#: src/stored/dircmd.c:762
 #, c-format
 msgid "3906 File device %s is always mounted.\n"
 msgstr ""
 
-#: src/stored/dircmd.c:769
+#: src/stored/dircmd.c:771
 #, c-format
 msgid "3905 Bizarre wait state %d\n"
 msgstr ""
 
-#: src/stored/dircmd.c:779
+#: src/stored/dircmd.c:781
 #, c-format
 msgid "3909 Error scanning mount command: %s\n"
 msgstr ""
 
-#: src/stored/dircmd.c:807 src/stored/dircmd.c:860
+#: src/stored/dircmd.c:809 src/stored/dircmd.c:862
 #, c-format
 msgid "3002 Device %s unmounted.\n"
 msgstr ""
 
-#: src/stored/dircmd.c:814
+#: src/stored/dircmd.c:816
 #, c-format
 msgid "3901 Device %s is already unmounted.\n"
 msgstr ""
 
-#: src/stored/dircmd.c:829
+#: src/stored/dircmd.c:831
 #, c-format
 msgid "3001 Device %s unmounted.\n"
 msgstr ""
 
-#: src/stored/dircmd.c:834
+#: src/stored/dircmd.c:836
 #, c-format
 msgid "3902 Device %s is busy in acquire.\n"
 msgstr ""
 
-#: src/stored/dircmd.c:872
+#: src/stored/dircmd.c:874
 #, c-format
 msgid "3907 Error scanning unmount command: %s\n"
 msgstr ""
 
-#: src/stored/dircmd.c:895
+#: src/stored/dircmd.c:897
 msgid "3916 Error scanning action_on_purge command\n"
 msgstr ""
 
-#: src/stored/dircmd.c:916
+#: src/stored/dircmd.c:918
 msgid "3917 Volume recycled\n"
 msgstr ""
 
-#: src/stored/dircmd.c:918
+#: src/stored/dircmd.c:920
 msgid "3918 Recycle failed\n"
 msgstr ""
 
-#: src/stored/dircmd.c:951
+#: src/stored/dircmd.c:953
 #, c-format
 msgid "3921 Device %s already released.\n"
 msgstr ""
 
-#: src/stored/dircmd.c:958
+#: src/stored/dircmd.c:960
 #, c-format
 msgid "3922 Device %s waiting for sysop.\n"
 msgstr ""
 
-#: src/stored/dircmd.c:964
+#: src/stored/dircmd.c:966
 #, c-format
 msgid "3922 Device %s waiting for mount.\n"
 msgstr ""
 
-#: src/stored/dircmd.c:968
+#: src/stored/dircmd.c:970
 #, c-format
 msgid "3923 Device %s is busy in acquire.\n"
 msgstr ""
 
-#: src/stored/dircmd.c:972
+#: src/stored/dircmd.c:974
 #, c-format
 msgid "3914 Device %s is being labeled.\n"
 msgstr ""
 
-#: src/stored/dircmd.c:980
+#: src/stored/dircmd.c:982
 #, c-format
 msgid "3022 Device %s released.\n"
 msgstr ""
 
-#: src/stored/dircmd.c:991
+#: src/stored/dircmd.c:993
 #, c-format
 msgid "3927 Error scanning release command: %s\n"
 msgstr ""
 
-#: src/stored/dircmd.c:1033
+#: src/stored/dircmd.c:1035
 msgid "Error parsing bootstrap file.\n"
 msgstr ""
 
-#: src/stored/dircmd.c:1095
+#: src/stored/dircmd.c:1097
 #, c-format
 msgid "3995 Device %s is not an autochanger.\n"
 msgstr ""
 
-#: src/stored/dircmd.c:1112
+#: src/stored/dircmd.c:1114
 #, c-format
 msgid "3908 Error scanning autocharger drives/list/slots command: %s\n"
 msgstr ""
 
-#: src/stored/dircmd.c:1155
+#: src/stored/dircmd.c:1157
 #, c-format
 msgid "3909 Error scanning readlabel command: %s\n"
 msgstr ""
 
-#: src/stored/dircmd.c:1183
+#: src/stored/dircmd.c:1185
 #, c-format
 msgid "3001 Volume=%s Slot=%d\n"
 msgstr ""
 
-#: src/stored/dircmd.c:1215
+#: src/stored/dircmd.c:1217
 #, c-format
 msgid "3931 Device %s is BLOCKED. user unmounted.\n"
 msgstr ""
 
-#: src/stored/dircmd.c:1219
+#: src/stored/dircmd.c:1221
 #, c-format
 msgid ""
 "3932 Device %s is BLOCKED. user unmounted during wait for media/mount.\n"
 msgstr ""
 
-#: src/stored/dircmd.c:1223
+#: src/stored/dircmd.c:1225
 #, c-format
 msgid "3933 Device %s is BLOCKED waiting for media.\n"
 msgstr ""
 
-#: src/stored/dircmd.c:1227
+#: src/stored/dircmd.c:1229
 #, c-format
 msgid "3934 Device %s is being initialized.\n"
 msgstr ""
 
-#: src/stored/dircmd.c:1231
+#: src/stored/dircmd.c:1233
 #, c-format
 msgid "3935 Device %s is blocked labeling a Volume.\n"
 msgstr ""
 
-#: src/stored/dircmd.c:1235
+#: src/stored/dircmd.c:1237
 #, fuzzy, c-format
 msgid "3935 Device %s is blocked for unknown reason.\n"
 msgstr "unbekannt"
 
-#: src/stored/dircmd.c:1240
+#: src/stored/dircmd.c:1242
 #, c-format
 msgid "3936 Device %s is busy reading.\n"
 msgstr ""
 
-#: src/stored/dircmd.c:1243
+#: src/stored/dircmd.c:1245
 #, c-format
 msgid "3937 Device %s is busy with %d writer(s).\n"
 msgstr ""
@@ -15439,22 +15434,22 @@ msgstr ""
 msgid "Didn't get vol info vol=%s: ERR=%s"
 msgstr ""
 
-#: src/stored/askdir.c:428
+#: src/stored/askdir.c:430
 #, c-format
 msgid "Error creating JobMedia record: ERR=%s\n"
 msgstr ""
 
-#: src/stored/askdir.c:435
+#: src/stored/askdir.c:437
 #, c-format
 msgid "Error creating JobMedia record: %s\n"
 msgstr ""
 
-#: src/stored/askdir.c:509
+#: src/stored/askdir.c:511
 #, c-format
 msgid "Job %s canceled while waiting for mount on Storage Device \"%s\".\n"
 msgstr ""
 
-#: src/stored/askdir.c:520
+#: src/stored/askdir.c:522
 #, c-format
 msgid ""
 "Job %s is waiting. Cannot find any appendable volumes.\n"
@@ -15464,25 +15459,25 @@ msgid ""
 "    Media type:   %s\n"
 msgstr ""
 
-#: src/stored/askdir.c:546 src/stored/askdir.c:648
+#: src/stored/askdir.c:548 src/stored/askdir.c:650
 #, c-format
 msgid "Max time exceeded waiting to mount Storage Device %s for Job %s\n"
 msgstr ""
 
-#: src/stored/askdir.c:556
+#: src/stored/askdir.c:558
 msgid "pthread error in mount_next_volume.\n"
 msgstr ""
 
-#: src/stored/askdir.c:590
+#: src/stored/askdir.c:592
 msgid "Cannot request another volume: no volume name given.\n"
 msgstr ""
 
-#: src/stored/askdir.c:596
+#: src/stored/askdir.c:598
 #, c-format
 msgid "Job %s canceled while waiting for mount on Storage Device %s.\n"
 msgstr ""
 
-#: src/stored/askdir.c:613
+#: src/stored/askdir.c:615
 #, c-format
 msgid ""
 "Please mount Volume \"%s\" or label a new one for:\n"
@@ -15492,7 +15487,7 @@ msgid ""
 "    Media type:   %s\n"
 msgstr ""
 
-#: src/stored/askdir.c:619
+#: src/stored/askdir.c:621
 #, c-format
 msgid ""
 "Please mount Volume \"%s\" for:\n"
@@ -15502,7 +15497,7 @@ msgid ""
 "    Media type:   %s\n"
 msgstr ""
 
-#: src/stored/askdir.c:658
+#: src/stored/askdir.c:660
 msgid "pthread error in mount_volume\n"
 msgstr ""
 
@@ -16257,42 +16252,42 @@ msgid ""
 "Invalid tape position on volume \"%s\" on device %s. Expected %d, got %d\n"
 msgstr ""
 
-#: src/stored/fd_cmds.c:166
+#: src/stored/fd_cmds.c:168
 #, fuzzy, c-format
 msgid "Command error with FD, hanging up. %s\n"
 msgstr "Netzwerkfehler mit FD bei %s: ERR=%s\n"
 
-#: src/stored/fd_cmds.c:169
+#: src/stored/fd_cmds.c:171
 msgid "Command error with FD, hanging up.\n"
 msgstr ""
 
-#: src/stored/fd_cmds.c:180
+#: src/stored/fd_cmds.c:182
 #, fuzzy, c-format
 msgid "FD command not found: %s\n"
 msgstr "Job nicht gefunden: %s\n"
 
-#: src/stored/fd_cmds.c:206
+#: src/stored/fd_cmds.c:208
 #, fuzzy
 msgid "Append data error.\n"
 msgstr "unbekannt"
 
-#: src/stored/fd_cmds.c:211
+#: src/stored/fd_cmds.c:213
 msgid "Attempt to append on non-open session.\n"
 msgstr ""
 
-#: src/stored/fd_cmds.c:223 src/stored/fd_cmds.c:266
+#: src/stored/fd_cmds.c:225 src/stored/fd_cmds.c:268
 msgid "Attempt to close non-open session.\n"
 msgstr ""
 
-#: src/stored/fd_cmds.c:241
+#: src/stored/fd_cmds.c:243
 msgid "Attempt to open already open session.\n"
 msgstr ""
 
-#: src/stored/fd_cmds.c:295
+#: src/stored/fd_cmds.c:297
 msgid "Attempt to read on non-open session.\n"
 msgstr ""
 
-#: src/stored/fd_cmds.c:313 src/stored/fd_cmds.c:322
+#: src/stored/fd_cmds.c:315 src/stored/fd_cmds.c:324
 msgid "Attempt to open read on non-open session.\n"
 msgstr ""
 
@@ -16984,7 +16979,7 @@ msgstr ""
 msgid "Bad Command Line Option"
 msgstr ""
 
-#: src/win32/compat/compat.cpp:2616
+#: src/win32/compat/compat.cpp:2606
 #, fuzzy
 msgid ""
 "\n"
