@@ -3126,7 +3126,7 @@ chmod 755 $c/create_ingres_database  $c/update_ingres_tables $c/make_ingres_tabl
 chmod 755 $c/grant_ingres_privileges $c/drop_ingres_tables   $c/drop_ingres_database
 
 
-chmod 755 $c/make_catalog_backup $c/delete_catalog_backup  make_catalog_backup.pl
+chmod 755 $c/make_catalog_backup $c/delete_catalog_backup  $c/make_catalog_backup.pl
 chmod 755 $c/sqlite
 chmod 755 $c/mysql
 
