@@ -77,5 +77,5 @@ ls -l $base_pkg-$ver.tar.*
 if [ a$push != ano ]; then
    cd ${src}
    git push origin $branch
-   git push tag $fulltag
+   git push origin tag $fulltag
 fi
