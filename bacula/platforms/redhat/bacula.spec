@@ -1,12 +1,12 @@
 # Bacula RPM spec file
 #
-# Copyright (C) 2000-2009 Free Software Foundation Europe e.V.
+# Copyright (C) 2000-2010 Free Software Foundation Europe e.V.
 
 # Platform Build Configuration
 
 # basic defines for every build
 %define _release           1
-%define _version           3.0.3
+%define _version           5.0.0
 %define _packager D. Scott Barninger <barninger@fairfieldcomputers.com>
 
 %define single_dir 0
@@ -796,7 +796,7 @@ export LDFLAGS="${LDFLAGS} -L/usr/lib64/python%{pyver}"
         --with-pid-dir=%{pid_dir} \
         --with-subsys-dir=%{_subsysdir} \
         --enable-smartalloc \
-        --disable-gome \
+        --disable-gnome \
         --disable-bwx-console \
         --disable-tray-monitor \
 %if %{mysql}
@@ -813,7 +813,6 @@ export LDFLAGS="${LDFLAGS} -L/usr/lib64/python%{pyver}"
         --with-postgresql \
 %endif
         --disable-bat \
-        --without-qwt \
 %if %{python}
         --with-python \
 %endif
