@@ -89,7 +89,6 @@ static bool no_conio = false;
 static int timeout = 0;
 static int argc;
 static int numdir;
-static int numcon;
 static POOLMEM *args;
 static char *argk[MAX_CMD_ARGS];
 static char *argv[MAX_CMD_ARGS];
@@ -127,6 +126,7 @@ static void usage()
 PROG_COPYRIGHT
 "\nVersion: " VERSION " (" BDATE ") %s %s %s\n\n"
 "Usage: bconsole [-s] [-c config_file] [-d debug_level]\n"
+"       -D <dir>    select a Director\n"
 "       -c <file>   set configuration file to file\n"
 "       -d <nn>     set debug level to <nn>\n"
 "       -dt         print timestamp in debug output\n"
@@ -878,6 +878,109 @@ static int console_init_history(const char *histfile)
    return ret;
 }
 
+bool select_director(const char *director, DIRRES **ret_dir, CONRES **ret_cons)
+{
+   int numcon=0, numdir=0;
+   int i=0, item=0;
+   BSOCK *UA_sock;
+   DIRRES *dir=NULL;
+   CONRES *cons=NULL;
+   struct sockaddr client_addr;
+   memset(&client_addr, 0, sizeof(client_addr));
+
+   *ret_cons = NULL;
+   *ret_dir = NULL;
+
+   LockRes();
+   numdir = 0;
+   foreach_res(dir, R_DIRECTOR) {
+      numdir++;
+   }
+   numcon = 0;
+   foreach_res(cons, R_CONSOLE) {
+      numcon++;
+   }
+   UnlockRes();
+
+   if (numdir == 1) {           /* No choose */
+      dir = (DIRRES *)GetNextRes(R_DIRECTOR, NULL);
+
+   } else if (director) {       /* Command line choice */
+      LockRes();
+      foreach_res(dir, R_DIRECTOR) {
+         if (bstrcmp(dir->hdr.name, director)) {
+            break;
+         }
+      }
+      UnlockRes();
+   }
+
+   if (!dir) {                  /* prompt for director */
+      UA_sock = init_bsock(NULL, 0, "", "", 0, &client_addr);
+try_again:
+      sendit(_("Available Directors:\n"));
+      LockRes();
+      numdir = 0;
+      foreach_res(dir, R_DIRECTOR) {
+         senditf( _("%2d:  %s at %s:%d\n"), 1+numdir++, dir->hdr.name, 
+                  dir->address, dir->DIRport);
+      }
+      UnlockRes();
+      if (get_cmd(stdin, _("Select Director by entering a number: "), 
+                  UA_sock, 600) < 0) 
+      {
+         (void)WSACleanup();               /* Cleanup Windows sockets */
+         return 0;
+      }
+      if (!is_a_number(UA_sock->msg)) {
+         senditf(_("%s is not a number. You must enter a number between "
+                   "1 and %d\n"), 
+                 UA_sock->msg, numdir);
+         goto try_again;
+      }
+      item = atoi(UA_sock->msg);
+      if (item < 0 || item > numdir) {
+         senditf(_("You must enter a number between 1 and %d\n"), numdir);
+         goto try_again;
+      }
+      term_bsock(UA_sock);
+      LockRes();
+      for (i=0; i<item; i++) {
+         dir = (DIRRES *)GetNextRes(R_DIRECTOR, (RES *)dir);
+      }
+      UnlockRes();
+   }
+   LockRes();
+   /* Look for a console linked to this director */
+   for (i=0; i<numcon; i++) {
+      cons = (CONRES *)GetNextRes(R_CONSOLE, (RES *)cons);
+      if (cons->director && strcmp(cons->director, dir->hdr.name) == 0) {
+         break;
+      }
+      cons = NULL;
+   }
+   /* Look for the first non-linked console */
+   if (cons == NULL) {
+      for (i=0; i<numcon; i++) {
+         cons = (CONRES *)GetNextRes(R_CONSOLE, (RES *)cons);
+         if (cons->director == NULL)
+            break;
+         cons = NULL;
+      }
+   }
+
+   /* If no console, take first one */
+   if (!cons) {
+      cons = (CONRES *)GetNextRes(R_CONSOLE, (RES *)NULL);
+   }
+   UnlockRes();
+
+   *ret_dir = dir;
+   *ret_cons = cons;
+   
+   return 1;
+}
+
 /*********************************************************************
  *
  *         Main Bacula Console -- User Interface Program
@@ -885,7 +988,8 @@ static int console_init_history(const char *histfile)
  */
 int main(int argc, char *argv[])
 {
-   int ch, i, item;
+   int ch;
+   char *director=NULL;
    bool no_signals = false;
    bool test_config = false;
    JCR jcr;
@@ -902,8 +1006,15 @@ int main(int argc, char *argv[])
    working_directory = "/tmp";
    args = get_pool_memory(PM_FNAME);
 
-   while ((ch = getopt(argc, argv, "bc:d:nstu:?")) != -1) {
+   while ((ch = getopt(argc, argv, "bc:d:nstu:D:?")) != -1) {
       switch (ch) {
+      case 'D':                    /* Director */
+         if (director) {
+            free(director);
+         }
+         director = bstrdup(optarg);
+         break;
+
       case 'c':                    /* configuration file */
          if (configfile != NULL) {
             free(configfile);
@@ -999,79 +1110,8 @@ int main(int argc, char *argv[])
 
    start_watchdog();                        /* Start socket watchdog */
 
-   LockRes();
-   numdir = 0;
-   foreach_res(dir, R_DIRECTOR) {
-      numdir++;
-   }
-   numcon = 0;
-   foreach_res(cons, R_CONSOLE) {
-      numcon++;
-   }
-   UnlockRes();
-
-   if (numdir > 1) {
-      struct sockaddr client_addr;
-      memset(&client_addr, 0, sizeof(client_addr));
-      UA_sock = init_bsock(NULL, 0, "", "", 0, &client_addr);
-try_again:
-      sendit(_("Available Directors:\n"));
-      LockRes();
-      numdir = 0;
-      foreach_res(dir, R_DIRECTOR) {
-         senditf( _("%2d:  %s at %s:%d\n"), 1+numdir++, dir->hdr.name, dir->address,
-            dir->DIRport);
-      }
-      UnlockRes();
-      if (get_cmd(stdin, _("Select Director by entering a number: "), UA_sock, 600) < 0) {
-         (void)WSACleanup();               /* Cleanup Windows sockets */
-         return 1;
-      }
-      if (!is_a_number(UA_sock->msg)) {
-         senditf(_("%s is not a number. You must enter a number between 1 and %d\n"), 
-                 UA_sock->msg, numdir);
-         goto try_again;
-      }
-      item = atoi(UA_sock->msg);
-      if (item < 0 || item > numdir) {
-         senditf(_("You must enter a number between 1 and %d\n"), numdir);
-         goto try_again;
-      }
-      term_bsock(UA_sock);
-      LockRes();
-      for (i=0; i<item; i++) {
-         dir = (DIRRES *)GetNextRes(R_DIRECTOR, (RES *)dir);
-      }
-      /* Look for a console linked to this director */
-      for (i=0; i<numcon; i++) {
-         cons = (CONRES *)GetNextRes(R_CONSOLE, (RES *)cons);
-         if (cons->director && strcmp(cons->director, dir->hdr.name) == 0) {
-            break;
-         }
-         cons = NULL;
-      }
-      /* Look for the first non-linked console */
-      if (cons == NULL) {
-         for (i=0; i<numcon; i++) {
-            cons = (CONRES *)GetNextRes(R_CONSOLE, (RES *)cons);
-            if (cons->director == NULL)
-               break;
-            cons = NULL;
-        }
-      }
-      UnlockRes();
-   }
-   /* If no director, take first one */
-   if (!dir) {
-      LockRes();
-      dir = (DIRRES *)GetNextRes(R_DIRECTOR, NULL);
-      UnlockRes();
-   }
-   /* If no console, take first one */
-   if (!cons) {
-      LockRes();
-      cons = (CONRES *)GetNextRes(R_CONSOLE, (RES *)NULL);
-      UnlockRes();
+   if(!select_director(director, &dir, &cons)) {
+      return 0;
    }
 
    senditf(_("Connecting to Director %s:%d\n"), dir->address,dir->DIRport);
