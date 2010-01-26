@@ -896,6 +896,7 @@ static bool action_on_purge_cmd(JCR *jcr)
       goto done;
    }
    unbash_spaces(volumename.c_str());
+   unbash_spaces(devname.c_str());
 
    /* FIXME: autochanger, drive = 0? how can we avoid that? we only work on
     * files 
