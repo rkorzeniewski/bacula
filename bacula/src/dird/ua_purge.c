@@ -577,6 +577,7 @@ static BSOCK *open_sd_bsock(UAContext *ua)
  */
 bool mark_media_purged(UAContext *ua, MEDIA_DBR *mr)
 {
+   char dev_name[MAX_NAME_LENGTH];
    JCR *jcr = ua->jcr;
    if (strcmp(mr->VolStatus, "Append") == 0 ||
        strcmp(mr->VolStatus, "Full")   == 0 ||
@@ -593,6 +594,8 @@ bool mark_media_purged(UAContext *ua, MEDIA_DBR *mr)
           */
          BSOCK *sd;
          if ((sd=open_sd_bsock(ua)) != NULL) {
+            bstrncpy(dev_name, ua->jcr->wstore->dev_name(), sizeof(dev_name));
+            bash_spaces(dev_name);
             bash_spaces(mr->VolumeName);
             sd->fsend("action_on_purge %s vol=%s action=%d",
                       ua->jcr->wstore->dev_name(),
