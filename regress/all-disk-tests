@@ -17,6 +17,7 @@ nice tests/base-job-test
 nice tests/big-vol-test
 nice tests/bscan-test
 nice tests/bsr-opt-test
+nice tests/comment-test
 nice tests/compressed-test
 nice tests/compress-encrypt-test
 nice tests/concurrent-jobs-test

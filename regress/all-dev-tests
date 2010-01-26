@@ -14,6 +14,7 @@ nice tests/auto-label-test
 nice tests/backup-bacula-test
 nice tests/base-job-test
 nice tests/bextract-test
+nice tests/comment-test
 nice tests/compressed-test
 nice tests/compress-encrypt-test
 nice tests/concurrent-jobs-test
