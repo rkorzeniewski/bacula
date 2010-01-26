@@ -598,7 +598,7 @@ bool mark_media_purged(UAContext *ua, MEDIA_DBR *mr)
             bash_spaces(dev_name);
             bash_spaces(mr->VolumeName);
             sd->fsend("action_on_purge %s vol=%s action=%d",
-                      ua->jcr->wstore->dev_name(),
+                      dev_name,
 		      mr->VolumeName,
 		      mr->ActionOnPurge);
             unbash_spaces(mr->VolumeName);
