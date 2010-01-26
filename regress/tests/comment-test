@@ -99,4 +99,20 @@ check_two_logs
 #
 rm -f ${tmpsrc}/*.c
 check_restore_tmp_build_diff
+
+grep "This is a comment for $JobName" $tmp/log3.out >/dev/null
+if [ $? != 0 ]; then
+    print_debug "ERR: Can't find comment"
+    estat=1
+fi
+grep "Ticket #1220 requested by toto@bacula.org" $tmp/log3.out >/dev/null
+if [ $? != 0 ]; then
+    print_debug "ERR: Can't find comment"
+    estat=1
+fi
+grep "This is the incremental job" $tmp/log3.out >/dev/null
+if [ $? != 0 ]; then
+    print_debug "ERR: Can't find comment"
+    estat=1
+fi
 end_test
