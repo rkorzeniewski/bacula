@@ -21,7 +21,8 @@ cat >tmp/bconcmds <<END_OF_DATA
 messages
 @$out $tmp/log1.out
 label storage=File volume=TestVolume001
-run job=$JobName yes
+label storage=File volume=TestVolume002
+run level=full job=$JobName yes
 wait
 messages
 @$out $tmp/log2.out
@@ -30,18 +31,20 @@ yes
 wait
 messages
 @#########################################################
-@# Test ActionOnPurge=Truncate Volume size should be small
+@# Run a second job on TestVolume002
 @#########################################################
 @$out $tmp/log3.out
-purge volume=TestVolume001
+update volume=TestVolume001 volstatus=Used
 messages
 show pool
-update volume=TestVolume001 volstatus=Read-Only
 @$out $tmp/log1.out
-label storage=File volume=TestVolume002
-run job=$JobName yes
+run level=full job=$JobName yes
 wait
 messages
+@#########################################################
+@# Test ActionOnPurge=Truncate Volume size should be small
+@#########################################################
+purge volume=TestVolume001
 @#########################################################
 @# Test ActionOnPurge=Truncate, then update it to None
 @# Volume size should be normal
