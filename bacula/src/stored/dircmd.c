@@ -883,23 +883,41 @@ static bool unmount_cmd(JCR *jcr)
  */
 static bool action_on_purge_cmd(JCR *jcr)
 {
-   POOL_MEM devname;
-   POOL_MEM volumename;
+   char devname[MAX_NAME_LENGTH];
+   char volumename[MAX_NAME_LENGTH];
    BSOCK *dir = jcr->dir_bsock;
    DEVICE *dev;
    DCR *dcr;
    int action;
 
-   devname.check_size(dir->msglen+1);
-   volumename.check_size(dir->msglen+1);
+   /* Currently disabled */
+   dir->fsend(_("3916 Feature action_on_purge currently disabled\n"));
 
-   if (sscanf(dir->msg, "action_on_purge %127s vol=%s action=%d",
-              devname.c_str(), volumename.c_str(), &action) != 3) {
+#if 0
+   /* TODO: Need to find a free device and ask for slot to the director */
+   if (sscanf(dir->msg, 
+              "action_on_purge %127s vol=%127s action=%d",
+              devname.c_str(), volumename.c_str(), &action)!= 5) 
+   {
       dir->fsend(_("3916 Error scanning action_on_purge command\n"));
       goto done;
    }
-   unbash_spaces(volumename.c_str());
-   unbash_spaces(devname.c_str());
+   unbash_spaces(volumename);
+   unbash_spaces(devname);
+
+   /* Check if action is correct */
+   switch (action) {
+   case AOP_TRUNCTATE:
+      break;
+   default:
+      dir->fsend(_("3919 Bad ActionOnPurge\n"));
+      goto done;
+   }
+
+   /* TODO: Ask for Volume information
+    *  - check recycle
+    *  - find slot
+    */
 
    /* FIXME: autochanger, drive = 0? how can we avoid that? we only work on
     * files 
@@ -921,6 +939,7 @@ static bool action_on_purge_cmd(JCR *jcr)
    } else {
       dir->fsend(_("3918 Recycle failed\n"));
    }
+#endif
 
 done:
    dir->signal(BNET_EOD);
