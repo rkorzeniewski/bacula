@@ -588,6 +588,8 @@ bool mark_media_purged(UAContext *ua, MEDIA_DBR *mr)
          return false;
       }
 
+/* Code currently disabled */
+#if 0
       if (mr->ActionOnPurge > 0) {
          /* Send the command to truncate the volume after purge. If this feature
           * is disabled for the specific device, this will be a no-op.
@@ -614,6 +616,7 @@ bool mark_media_purged(UAContext *ua, MEDIA_DBR *mr)
 	    return false;
 	 }
       }
+#endif
 
       pm_strcpy(jcr->VolumeName, mr->VolumeName);
       generate_job_event(jcr, "VolumePurged");
