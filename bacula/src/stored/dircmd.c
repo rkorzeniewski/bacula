@@ -890,6 +890,9 @@ static bool action_on_purge_cmd(JCR *jcr)
    DCR *dcr;
    int action;
 
+   devname.check_size(dir->msglen+1);
+   volumename.check_size(dir->msglen+1);
+
    if (sscanf(dir->msg, "action_on_purge %127s vol=%s action=%d",
               devname.c_str(), volumename.c_str(), &action) != 3) {
       dir->fsend(_("3916 Error scanning action_on_purge command\n"));
