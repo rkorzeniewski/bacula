@@ -880,24 +880,26 @@ static bool unmount_cmd(JCR *jcr)
  * after purging a volume so that disk space will not be wasted. Only useful
  * for File Storage, of course.
  *
+ *
+ * It is currently disabled
  */
 static bool action_on_purge_cmd(JCR *jcr)
 {
-   char devname[MAX_NAME_LENGTH];
-   char volumename[MAX_NAME_LENGTH];
    BSOCK *dir = jcr->dir_bsock;
-   DEVICE *dev;
-   DCR *dcr;
-   int action;
 
    /* Currently disabled */
    dir->fsend(_("3916 Feature action_on_purge currently disabled\n"));
+   goto done;
 
 #if 0
+   char devname[MAX_NAME_LENGTH];
+   char volumename[MAX_NAME_LENGTH];
+   int action;
+
    /* TODO: Need to find a free device and ask for slot to the director */
    if (sscanf(dir->msg, 
               "action_on_purge %127s vol=%127s action=%d",
-              devname.c_str(), volumename.c_str(), &action)!= 5) 
+              devname, volumename, &action)!= 5) 
    {
       dir->fsend(_("3916 Error scanning action_on_purge command\n"));
       goto done;
@@ -906,39 +908,10 @@ static bool action_on_purge_cmd(JCR *jcr)
    unbash_spaces(devname);
 
    /* Check if action is correct */
-   switch (action) {
-   case AOP_TRUNCTATE:
-      break;
-   default:
-      dir->fsend(_("3919 Bad ActionOnPurge\n"));
-      goto done;
-   }
+   if (action & AOP_TRUNCTATE) {
 
-   /* TODO: Ask for Volume information
-    *  - check recycle
-    *  - find slot
-    */
-
-   /* FIXME: autochanger, drive = 0? how can we avoid that? we only work on
-    * files 
-    */
-   if ((dcr = find_device(jcr, devname, 0)) == NULL) {
-      dir->fsend(_("3999 Device \"%s\" not found or could not be opened.\n"), devname.c_str());
-      goto done;
-   }
-
-   dev = dcr->dev;
-
-   /* Store the VolumeName for opening and re-labeling the volume */
-   bstrncpy(dcr->VolumeName, volumename.c_str(), sizeof(dcr->VolumeName));
-   bstrncpy(dev->VolHdr.VolumeName, volumename.c_str(), sizeof(dev->VolHdr.VolumeName));
-
-   /* Re-write the label with the recycle flag */
-   if (rewrite_volume_label(dcr, true)) {
-      dir->fsend(_("3917 Volume recycled\n"));
-   } else {
-      dir->fsend(_("3918 Recycle failed\n"));
-   }
+   } 
+   /* ... */
 #endif
 
 done:

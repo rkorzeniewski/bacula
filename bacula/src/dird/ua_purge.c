@@ -571,13 +571,79 @@ static BSOCK *open_sd_bsock(UAContext *ua)
    return ua->jcr->store_bsock;
 }
 
+static void do_actions_on_purge(UAContext *ua, MEDIA_DBR *mr)
+{
+   BSOCK *sd;
+   POOL_DBR pr;
+   bool ok=false;
+   int dvd;
+   uint64_t VolBytes = 0;
+   char dev_name[MAX_NAME_LENGTH];
+         
+   if (mr->ActionOnPurge & AOP_TRUNCATE) {
+      /* Send the command to truncate the volume after purge. If this feature
+       * is disabled for the specific device, this will be a no-op.
+       */
+
+      if ((sd=open_sd_bsock(ua)) != NULL) {
+         memset(&pr, 0, sizeof(POOL_DBR));
+         
+         pr.PoolId = mr->PoolId;
+         strcpy(pr.Name, "Default"); /* We don't use the Pool in label */
+         bstrncpy(dev_name, ua->jcr->wstore->dev_name(), sizeof(dev_name));
+         
+         /* Protect us from spaces */
+         bash_spaces(dev_name);
+         bash_spaces(mr->VolumeName);
+         bash_spaces(mr->MediaType);
+         bash_spaces(pr.Name);
+         
+         /* We set drive=-1 to let the storage decide of which drive
+          * to use
+          */
+         sd->fsend("relabel %s OldName=%s NewName=%s PoolName=%s "
+                   "MediaType=%s Slot=%d drive=%d\n",
+                   dev_name,
+                   mr->VolumeName, mr->VolumeName,
+                   pr.Name, mr->MediaType, mr->Slot, -1);
+         
+         unbash_spaces(mr->VolumeName);
+         unbash_spaces(mr->MediaType);
+         while (sd->recv() >= 0) {
+            ua->send_msg("%s", sd->msg);
+            if (sscanf(sd->msg, "3000 OK label. VolBytes=%llu DVD=%d ",
+                       &VolBytes, &dvd) == 2) 
+            {
+               ok = true;
+            }
+         }
+         sd->signal(BNET_TERMINATE);
+         sd->close();
+         ua->jcr->store_bsock = NULL;
+         
+      } else {
+         ua->error_msg(_("Could not connect to storage daemon"));
+      }
+      
+      if (ok) {
+         mr->VolBytes = VolBytes;
+         mr->VolFiles = 0;
+         if (!db_update_media_record(ua->jcr, ua->db, mr)) {
+            ua->error_msg(_("Can't update volume size in the catalog\n"));
+         }
+         ua->send_msg(_("The volume has been truncated\n"));
+      } else {
+         ua->warning_msg(_("Unable to truncate the volume\n"));
+      }
+   }
+}
+
 /*
  * IF volume status is Append, Full, Used, or Error, mark it Purged
  *   Purged volumes can then be recycled (if enabled).
  */
 bool mark_media_purged(UAContext *ua, MEDIA_DBR *mr)
 {
-   char dev_name[MAX_NAME_LENGTH];
    JCR *jcr = ua->jcr;
    if (strcmp(mr->VolStatus, "Append") == 0 ||
        strcmp(mr->VolStatus, "Full")   == 0 ||
@@ -587,37 +653,6 @@ bool mark_media_purged(UAContext *ua, MEDIA_DBR *mr)
       if (!db_update_media_record(jcr, ua->db, mr)) {
          return false;
       }
-
-/* Code currently disabled */
-#if 0
-      if (mr->ActionOnPurge > 0) {
-         /* Send the command to truncate the volume after purge. If this feature
-          * is disabled for the specific device, this will be a no-op.
-          */
-         BSOCK *sd;
-         if ((sd=open_sd_bsock(ua)) != NULL) {
-            bstrncpy(dev_name, ua->jcr->wstore->dev_name(), sizeof(dev_name));
-            bash_spaces(dev_name);
-            bash_spaces(mr->VolumeName);
-            sd->fsend("action_on_purge %s vol=%s action=%d",
-                      dev_name,
-		      mr->VolumeName,
-		      mr->ActionOnPurge);
-            unbash_spaces(mr->VolumeName);
-            while (sd->recv() >= 0) {
-               ua->send_msg("%s", sd->msg);
-            }
-
-            sd->signal(BNET_TERMINATE);
-            sd->close();
-            ua->jcr->store_bsock = NULL;
-         } else {
-            ua->error_msg(_("Could not connect to storage daemon"));
-	    return false;
-	 }
-      }
-#endif
-
       pm_strcpy(jcr->VolumeName, mr->VolumeName);
       generate_job_event(jcr, "VolumePurged");
       generate_plugin_event(jcr, bEventVolumePurged);
@@ -646,6 +681,10 @@ bool mark_media_purged(UAContext *ua, MEDIA_DBR *mr)
             ua->error_msg("%s", db_strerror(ua->db));
          }
       }
+      
+      /* Do any ActionOnPurge for this Volume */
+      do_actions_on_purge(ua, mr);
+
       /* Send message to Job report, if it is a *real* job */           
       if (jcr && jcr->JobId > 0) {
          Jmsg(jcr, M_INFO, 0, _("All records pruned from Volume \"%s\"; marking it \"Purged\"\n"),
