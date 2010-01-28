@@ -42,9 +42,34 @@ run level=full job=$JobName yes
 wait
 messages
 @#########################################################
+@# Run a third job that will wait, and purge volume
+@#########################################################
+@$out $tmp/log3.out
+update volume=TestVolume002 volstatus=Used
+messages
+@$out $tmp/log1.out
+run level=full job=$JobName yes
+@#wait mount
+@sleep 5
+messages
+list volume
+@# should continue on TestVolume001
+sql
+select VolumeName, ActionOnPurge FROM Media;
+
+setdebug level=400 director
+purge volume=TestVolume001
+list volume
+sql
+select VolumeName, ActionOnPurge FROM Media;
+
+mount storage=File
+wait
+@#########################################################
 @# Test ActionOnPurge=Truncate Volume size should be small
 @#########################################################
 purge volume=TestVolume001
+list volume
 @#########################################################
 @# Test ActionOnPurge=Truncate, then update it to None
 @# Volume size should be normal
