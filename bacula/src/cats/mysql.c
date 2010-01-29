@@ -54,7 +54,7 @@
  */
 
 /* List of open databases */
-static BQUEUE db_list = {&db_list, &db_list};
+static dlist *db_list = NULL;
 
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
@@ -76,16 +76,19 @@ db_init_database(JCR *jcr, const char *db_name, const char *db_user, const char 
                  const char *db_address, int db_port, const char *db_socket,
                  int mult_db_connections)
 {
-   B_DB *mdb;
+   B_DB *mdb = NULL;
 
    if (!db_user) {
       Jmsg(jcr, M_FATAL, 0, _("A user name for MySQL must be supplied.\n"));
       return NULL;
    }
    P(mutex);                          /* lock DB queue */
+   if (db_list == NULL) {
+      db_list = New(dlist(mdb, &mdb->link));
+   }
    /* Look to see if DB already open */
    if (!mult_db_connections) {
-      for (mdb=NULL; (mdb=(B_DB *)qnext(&db_list, &mdb->bq)); ) {
+      foreach_dlist(mdb, db_list) {
          if (bstrcmp(mdb->db_name, db_name) &&
              bstrcmp(mdb->db_address, db_address) &&
              mdb->db_port == db_port) {
@@ -126,7 +129,7 @@ db_init_database(JCR *jcr, const char *db_name, const char *db_user, const char 
    mdb->esc_name = get_pool_memory(PM_FNAME);
    mdb->esc_path = get_pool_memory(PM_FNAME);
    mdb->allow_transactions = mult_db_connections;
-   qinsert(&db_list, &mdb->bq);            /* put db in list */
+   db_list->append(mdb);                   /* put db in list */
    Dmsg3(100, "initdb ref=%d connected=%d db=%p\n", mdb->ref_count,
          mdb->connected, mdb->db);
    V(mutex);
@@ -236,7 +239,7 @@ db_close_database(JCR *jcr, B_DB *mdb)
    Dmsg3(100, "closedb ref=%d connected=%d db=%p\n", mdb->ref_count,
          mdb->connected, mdb->db);
    if (mdb->ref_count == 0) {
-      qdchain(&mdb->bq);
+      db_list->remove(mdb);
       if (mdb->connected) {
          Dmsg1(100, "close db=%p\n", mdb->db);
          mysql_close(&mdb->mysql);

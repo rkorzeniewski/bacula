@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2009 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2010 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -30,7 +30,6 @@
  *
  *    Kern Sibbald, January 2002
  *
- *    Version $Id$
  */
 
 
@@ -53,7 +52,7 @@
  */
 
 /* List of open databases */
-static BQUEUE db_list = {&db_list, &db_list};
+static dlist *db_list = NULL;
 
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
@@ -99,12 +98,15 @@ db_init_database(JCR *jcr, const char *db_name, const char *db_user, const char 
                  const char *db_address, int db_port, const char *db_socket,
                  int mult_db_connections)
 {
-   B_DB *mdb;
+   B_DB *mdb = NULL;
 
    P(mutex);                          /* lock DB queue */
+   if (db_list == NULL) {
+      db_list = New(dlist(mdb, &mdb->link));
+   }
    /* Look to see if DB already open */
    if (!mult_db_connections) {
-      for (mdb=NULL; (mdb=(B_DB *)qnext(&db_list, &mdb->bq)); ) {
+      foreach_dlist(mdb, db_list) {
          if (bstrcmp(mdb->db_name, db_name) &&
              bstrcmp(mdb->db_address, db_address) &&
              mdb->db_port == db_port) {
@@ -116,7 +118,7 @@ db_init_database(JCR *jcr, const char *db_name, const char *db_user, const char 
       }
    }
    Dmsg0(300, "db_open first time\n");
-   mdb = (B_DB *) malloc(sizeof(B_DB));
+   mdb = (B_DB *)malloc(sizeof(B_DB));
    memset(mdb, 0, sizeof(B_DB));
    mdb->db_name = bstrdup(db_name);
    mdb->have_insert_id = true;
@@ -131,7 +133,7 @@ db_init_database(JCR *jcr, const char *db_name, const char *db_user, const char 
    mdb->esc_name = get_pool_memory(PM_FNAME);
    mdb->esc_path = get_pool_memory(PM_FNAME);
    mdb->allow_transactions = mult_db_connections;
-   qinsert(&db_list, &mdb->bq);            /* put db in list */
+   db_list->append(mdb);
    V(mutex);
    return mdb;
 }
@@ -245,7 +247,7 @@ db_close_database(JCR *jcr, B_DB *mdb)
    sql_free_result(mdb);
    mdb->ref_count--;
    if (mdb->ref_count == 0) {
-      qdchain(&mdb->bq);
+      db_list->remove(mdb);
       if (mdb->connected && mdb->db) {
          sqlite_close(mdb->db);
       }

@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2009 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2010 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -116,7 +116,7 @@ typedef struct s_sql_field {
  *                    S Q L I T E
  */
 struct B_DB {
-   BQUEUE bq;                         /* queue control */
+   dlink link;                        /* queue control */
    brwlock_t lock;                    /* transaction lock */
    struct sqlite *db;
    char **result;
@@ -238,7 +238,7 @@ typedef struct s_sql_field {
  *                    S Q L I T E
  */
 struct B_DB {
-   BQUEUE bq;                         /* queue control */
+   dlink link;                        /* queue control */
    brwlock_t lock;                    /* transaction lock */
    struct sqlite3 *db;
    char **result;
@@ -350,7 +350,7 @@ extern const char* my_sqlite_batch_fill_path_query;
  *                     M Y S Q L
  */
 struct B_DB {
-   BQUEUE bq;                         /* queue control */
+   dlink link;                        /* queue control */
    brwlock_t lock;                    /* transaction lock */
    MYSQL mysql;
    MYSQL *db;
@@ -447,7 +447,7 @@ typedef struct pg_field {
  *                     P O S T G R E S Q L
  */
 struct B_DB {
-   BQUEUE bq;                         /* queue control */
+   dlink link;                        /* queue control */
    brwlock_t lock;                    /* transaction lock */
    PGconn *db;
    PGresult *result;
@@ -555,7 +555,7 @@ typedef char **INGRES_ROW;
  *                     I N G R E S
  */
 struct B_DB {
-   BQUEUE bq;                         /* queue control */
+   dlink link;                        /* queue control */
    brwlock_t lock;                    /* transaction lock */
    INGconn *db;
    INGresult *result;
@@ -665,7 +665,7 @@ typedef struct dbi_field {
 } DBI_FIELD;
 
 typedef struct dbi_field_get {
-   BQUEUE bq;
+   dlink link;
    char *value;
 } DBI_FIELD_GET;
 
@@ -677,7 +677,7 @@ typedef struct dbi_field_get {
  *                     D B I
  */
 struct B_DB {
-   BQUEUE bq;                         /* queue control */
+   dlink link;                        /* queue control */
    brwlock_t lock;                    /* transaction lock */
    dbi_conn *db;
    dbi_result *result;
@@ -776,52 +776,6 @@ extern const char* my_dbi_match[4];
 
 #define SQL_ROW               DBI_ROW
 #define SQL_FIELD             DBI_FIELD
-
-
-#else  /* USE BACULA DB routines */
-
-#define HAVE_BACULA_DB 1
-
-/* Change this each time there is some incompatible
- * file format change!!!!
- */
-#define BDB_VERSION 13                /* file version number */
-
-struct s_control {
-   int bdb_version;                   /* Version number */
-   uint32_t JobId;                    /* next Job Id */
-   uint32_t PoolId;                   /* next Pool Id */
-   uint32_t MediaId;                  /* next Media Id */
-   uint32_t JobMediaId;               /* next JobMedia Id */
-   uint32_t ClientId;                 /* next Client Id */
-   uint32_t FileSetId;                /* nest FileSet Id */
-   time_t time;                       /* time file written */
-};
-
-
-/* This is the REAL definition for using the
- *  Bacula internal DB
- */
-struct B_DB {
-   BQUEUE bq;                         /* queue control */
-/* pthread_mutex_t mutex;  */         /* single thread lock */
-   brwlock_t lock;                    /* transaction lock */
-   int ref_count;                     /* number of times opened */
-   struct s_control control;          /* control file structure */
-   int cfd;                           /* control file device */
-   FILE *jobfd;                       /* Jobs records file descriptor */
-   FILE *poolfd;                      /* Pool records fd */
-   FILE *mediafd;                     /* Media records fd */
-   FILE *jobmediafd;                  /* JobMedia records fd */
-   FILE *clientfd;                    /* Client records fd */
-   FILE *filesetfd;                   /* FileSet records fd */
-   char *db_name;                     /* name of database */
-   POOLMEM *errmsg;                   /* nicely edited error message */
-   POOLMEM *cmd;                      /* Command string */
-   POOLMEM *cached_path;
-   int cached_path_len;               /* length of cached path */
-   uint32_t cached_path_id;
-};
 
 #endif /* HAVE_SQLITE3 */
 #endif /* HAVE_MYSQL */

@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2003-2008 Free Software Foundation Europe e.V.
+   Copyright (C) 2003-2010 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -33,7 +33,6 @@
  *    based upon work done by Dan Langille, December 2003 and
  *    by Kern Sibbald, March 2000
  *
- *    Version $Id$
  */
 
 
@@ -55,10 +54,10 @@
  */
 
 /* List of open databases */
-static BQUEUE db_list = {&db_list, &db_list};
+static dlist *db_list = NULL;
 
 /* Control allocated fields by my_dbi_getvalue */
-static BQUEUE dbi_getvalue_list = {&dbi_getvalue_list, &dbi_getvalue_list};
+static dlist *dbi_getvalue_list = NULL;
 
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
@@ -80,7 +79,8 @@ db_init_database(JCR *jcr, const char *db_name, const char *db_user, const char 
                  const char *db_address, int db_port, const char *db_socket,
                  int mult_db_connections)
 {
-   B_DB *mdb;
+   B_DB *mdb = NULL;
+   DBI_FIELD_GET *field;
    char db_driver[10];
    char db_driverdir[256];
 
@@ -116,9 +116,13 @@ db_init_database(JCR *jcr, const char *db_name, const char *db_user, const char 
       return NULL;
    }
    P(mutex);                          /* lock DB queue */
+   if (db_list == NULL) {
+      db_list = New(dlist(mdb, &mdb->link));
+      db_getvalue_list = New(dlist(field, field->link));
+   }
    if (!mult_db_connections) {
       /* Look to see if DB already open */
-      for (mdb=NULL; (mdb=(B_DB *)qnext(&db_list, &mdb->bq)); ) {
+      foreach_dlist(mdb, db_list) {
          if (bstrcmp(mdb->db_name, db_name) &&
              bstrcmp(mdb->db_address, db_address) &&
              bstrcmp(mdb->db_driver, db_driver) &&
@@ -165,7 +169,7 @@ db_init_database(JCR *jcr, const char *db_name, const char *db_user, const char 
    mdb->esc_name       = get_pool_memory(PM_FNAME);
    mdb->esc_path      = get_pool_memory(PM_FNAME);
    mdb->allow_transactions = mult_db_connections;
-   qinsert(&db_list, &mdb->bq);            /* put db in list */
+   db_list->append(mdb);                   /* put db in list */
    V(mutex);
    return mdb;
 }
@@ -335,7 +339,7 @@ db_close_database(JCR *jcr, B_DB *mdb)
    sql_free_result(mdb);
    mdb->ref_count--;
    if (mdb->ref_count == 0) {
-      qdchain(&mdb->bq);
+      db_list->remove(mdb);
       if (mdb->connected && mdb->db) {
          //sql_close(mdb);
          dbi_shutdown_r(mdb->instance);
@@ -515,7 +519,7 @@ DBI_ROW my_dbi_fetch_row(B_DB *mdb)
          Dmsg4(500, "my_dbi_fetch_row row[%d] field: '%p' in queue: '%p' has value: '%s'\n",
                j, mdb->row[j], mdb->field_get->value, mdb->row[j]);
          // insert in queue to future free
-         qinsert(&dbi_getvalue_list, &mdb->field_get->bq);
+         dbi_getvalue_list->append(mdb->field_get);
       }
       // increment the row number for the next call
       mdb->row_number++;
@@ -691,7 +695,7 @@ void my_dbi_free_result(B_DB *mdb)
     * Using a queue to store all pointer allocate is a good way to free all things
     * when necessary
     */
-   while((f=(DBI_FIELD_GET *)qremove(&dbi_getvalue_list))) {
+   foreach_dlist(f, dbi_getvalue_list) {
       Dmsg2(500, "my_dbi_free_result field value: '%p' in queue: '%p'\n", f->value, f);
       free(f->value);
       free(f);

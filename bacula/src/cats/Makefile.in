@@ -24,9 +24,9 @@ dummy:
 #
 # include files installed when using libtool
 #
-INCLUDE_FILES = bdb.h cats.h protos.h sql_cmds.h
+INCLUDE_FILES = cats.h protos.h sql_cmds.h
 
-LIBBACSQL_SRCS = mysql.c bdb.c dbi.c \
+LIBBACSQL_SRCS = mysql.c dbi.c \
 		 sql.c sql_cmds.c sql_create.c sql_delete.c sql_find.c \
 		 sql_get.c sql_list.c sql_update.c sqlite.c \
 		 postgresql.c ingres.c myingres.c \

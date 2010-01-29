@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2003-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2003-2010 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -32,7 +32,6 @@
  *    Dan Langille, December 2003
  *    based upon work done by Kern Sibbald, March 2000
  *
- *    Version $Id$
  */
 
 
@@ -57,7 +56,7 @@
  */
 
 /* List of open databases */
-static BQUEUE db_list = {&db_list, &db_list};
+static dlist *db_list = NULL;
 
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
@@ -80,16 +79,19 @@ db_init_database(JCR *jcr, const char *db_name, const char *db_user, const char 
                  const char *db_address, int db_port, const char *db_socket,
                  int mult_db_connections)
 {
-   B_DB *mdb;
+   B_DB *mdb = NULL;
 
    if (!db_user) {
       Jmsg(jcr, M_FATAL, 0, _("A user name for PostgreSQL must be supplied.\n"));
       return NULL;
    }
    P(mutex);                          /* lock DB queue */
+   if (db_list == NULL) {
+      db_list = New(dlist(mdb, &mdb->link));
+   }
    if (!mult_db_connections) {
       /* Look to see if DB already open */
-      for (mdb=NULL; (mdb=(B_DB *)qnext(&db_list, &mdb->bq)); ) {
+      foreach_dlist(mdb, db_list) {
          if (bstrcmp(mdb->db_name, db_name) &&
              bstrcmp(mdb->db_address, db_address) &&
              mdb->db_port == db_port) {
@@ -127,7 +129,7 @@ db_init_database(JCR *jcr, const char *db_name, const char *db_user, const char 
    mdb->esc_name       = get_pool_memory(PM_FNAME);
    mdb->esc_path      = get_pool_memory(PM_FNAME);
    mdb->allow_transactions = mult_db_connections;
-   qinsert(&db_list, &mdb->bq);            /* put db in list */
+   db_list->append(mdb);                   /* put db in list */
    V(mutex);
    return mdb;
 }
@@ -262,7 +264,7 @@ db_close_database(JCR *jcr, B_DB *mdb)
    sql_free_result(mdb);
    mdb->ref_count--;
    if (mdb->ref_count == 0) {
-      qdchain(&mdb->bq);
+      db_list->remove(mdb);
       if (mdb->connected && mdb->db) {
          sql_close(mdb);
       }
