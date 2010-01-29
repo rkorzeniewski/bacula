@@ -640,6 +640,7 @@ extern const char* my_ingres_batch_fill_path_query;
 
 #define SQL_ROW               INGRES_ROW
 #define SQL_FIELD             INGRES_FIELD
+#define SQL_MATCH             "~"
 
 #else
 
@@ -742,12 +743,12 @@ typedef int (*custom_function_insert_t)(void*, const char*, int);
 typedef char* (*custom_function_error_t)(void*);
 typedef int (*custom_function_end_t)(void*, const char*);
 
-extern const char* my_dbi_batch_lock_path_query[4];
-extern const char* my_dbi_batch_lock_filename_query[4];
-extern const char* my_dbi_batch_unlock_tables_query[4];
-extern const char* my_dbi_batch_fill_filename_query[4];
-extern const char* my_dbi_batch_fill_path_query[4];
-extern const char* my_dbi_match[4];
+extern const char* my_dbi_batch_lock_path_query[5];
+extern const char* my_dbi_batch_lock_filename_query[5];
+extern const char* my_dbi_batch_unlock_tables_query[5];
+extern const char* my_dbi_batch_fill_filename_query[5];
+extern const char* my_dbi_batch_fill_path_query[5];
+extern const char* my_dbi_match[5];
 
 /* "Generic" names for easier conversion */
 #define sql_store_result(x)   (x)->result

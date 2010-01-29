@@ -460,7 +460,7 @@ const char *uar_jobid_fileindex_from_table =
  * With PostgreSQL, we can use DISTINCT ON(), but with Mysql or Sqlite,
  * we need an extra join using JobTDate. 
  */
-const char *select_recent_version_with_basejob[4] = {
+const char *select_recent_version_with_basejob[5] = {
  /* MySQL */
 "SELECT FileId, Job.JobId AS JobId, FileIndex, File.PathId AS PathId, "
        "File.FilenameId AS FilenameId, LStat, MD5 "
@@ -548,11 +548,26 @@ const char *select_recent_version_with_basejob[4] = {
   "AND T1.JobTDate = Job.JobTDate "
   "AND Job.JobId = File.JobId "
   "AND T1.PathId = File.PathId "
-  "AND T1.FilenameId = File.FilenameId"
+  "AND T1.FilenameId = File.FilenameId",
+
+  /* Ingres (works?) */    /* The DISTINCT ON () permits to avoid extra join */
+ "SELECT DISTINCT ON (FilenameId, PathId) StartTime, JobId, FileId, "
+         "FileIndex, PathId, FilenameId, LStat, MD5 "
+   "FROM "
+       "(SELECT FileId, JobId, PathId, FilenameId, FileIndex, LStat, MD5 "
+          "FROM File WHERE JobId IN (%s) "
+         "UNION ALL "
+        "SELECT File.FileId, File.JobId, PathId, FilenameId, "
+               "File.FileIndex, LStat, MD5 "
+          "FROM BaseFiles JOIN File USING (FileId) "
+         "WHERE BaseFiles.JobId IN (%s) "
+        ") AS T JOIN Job USING (JobId) "
+   "ORDER BY FilenameId, PathId, StartTime DESC "
+
 };
 
 /* Get the list of the last recent version with a given BaseJob jobid list */
-const char *select_recent_version[4] = {
+const char *select_recent_version[5] = {
    /* MySQL */
    "SELECT j1.JobId AS JobId, f1.FileId AS FileId, f1.FileIndex AS FileIndex, "
           "f1.PathId AS PathId, f1.FilenameId AS FilenameId, "
@@ -606,13 +621,21 @@ const char *select_recent_version[4] = {
       "AND j1.JobId IN (%s) "
       "AND t1.FilenameId = f1.FilenameId "
       "AND t1.PathId = f1.PathId "
-      "AND j1.JobId = f1.JobId"
+      "AND j1.JobId = f1.JobId",
+
+   /* Ingres */
+   "SELECT DISTINCT ON (FilenameId, PathId) StartTime, JobId, FileId, "
+          "FileIndex, PathId, FilenameId, LStat, MD5 "
+     "FROM File JOIN Job USING (JobId) "
+    "WHERE JobId IN (%s) "
+    "ORDER BY FilenameId, PathId, StartTime DESC "
+
 };
 
 /* ====== ua_prune.c */
 
 /* List of SQL commands to create temp table and indicies  */
-const char *create_deltabs[4] = {
+const char *create_deltabs[5] = {
    /* MySQL */
    "CREATE TEMPORARY TABLE DelCandidates ("
    "JobId INTEGER UNSIGNED NOT NULL, "
@@ -640,12 +663,20 @@ const char *create_deltabs[4] = {
    "PurgedFiles TINYINT, "
    "FileSetId INTEGER UNSIGNED, "
    "JobFiles INTEGER UNSIGNED, "
-   "JobStatus CHAR)"};
+   "JobStatus CHAR)",
+   /* Ingres */
+   "DECLARE GLOBAL TEMPORARY TABLE DelCandidates (" 
+   "JobId INTEGER NOT NULL, "
+   "PurgedFiles SMALLINT, "
+   "FileSetId INTEGER, "
+   "JobFiles INTEGER, "
+   "JobStatus char(1))"
+};
 
 /* ======= ua_restore.c */
 
 /* List Jobs where a particular file is saved */
-const char *uar_file[4] = {
+const char *uar_file[5] = {
    /* Mysql */
    "SELECT Job.JobId as JobId,"
    "CONCAT(Path.Path,Filename.Name) as Name, "
@@ -681,9 +712,19 @@ const char *uar_file[4] = {
    "AND Client.ClientId=Job.ClientId "
    "AND Job.JobId=File.JobId AND File.FileIndex > 0 "
    "AND Path.PathId=File.PathId AND Filename.FilenameId=File.FilenameId "
-   "AND Filename.Name='%s' ORDER BY StartTime DESC LIMIT 20"};
+   "AND Filename.Name='%s' ORDER BY StartTime DESC LIMIT 20",
+   /* Ingres */
+   "SELECT Job.JobId as JobId,"
+   "Path.Path||Filename.Name as Name, "
+   "StartTime,Type as JobType,JobStatus,JobFiles,JobBytes "
+   "FROM Client,Job,File,Filename,Path WHERE Client.Name='%s' "
+   "AND Client.ClientId=Job.ClientId "
+   "AND Job.JobId=File.JobId AND File.FileIndex > 0 "
+   "AND Path.PathId=File.PathId AND Filename.FilenameId=File.FilenameId "
+   "AND Filename.Name='%s' ORDER BY StartTime DESC LIMIT 20"
+   };
 
-const char *uar_create_temp[4] = {
+const char *uar_create_temp[5] = {
    /* Mysql */
    "CREATE TEMPORARY TABLE temp ("
    "JobId INTEGER UNSIGNED NOT NULL,"
@@ -735,9 +776,23 @@ const char *uar_create_temp[4] = {
    "VolumeName TEXT,"
    "StartFile INTEGER UNSIGNED,"
    "VolSessionId INTEGER UNSIGNED,"
-   "VolSessionTime INTEGER UNSIGNED)"};
+   "VolSessionTime INTEGER UNSIGNED)",
+   /* Ingres */
+   "DECLARE GLOBAL TEMPORARY TABLE temp ("
+   "JobId INTEGER NOT NULL,"
+   "JobTDate BIGINT,"
+   "ClientId INTEGER,"
+   "Level CHAR,"
+   "JobFiles INTEGER,"
+   "JobBytes BIGINT,"
+   "StartTime TEXT,"
+   "VolumeName TEXT,"
+   "StartFile INTEGER,"
+   "VolSessionId INTEGER,"
+   "VolSessionTime INTEGER)"
+   };
 
-const char *uar_create_temp1[4] = {
+const char *uar_create_temp1[5] = {
    /* Mysql */
    "CREATE TEMPORARY TABLE temp1 ("
    "JobId INTEGER UNSIGNED NOT NULL,"
@@ -753,7 +808,12 @@ const char *uar_create_temp1[4] = {
    /* SQLite3 */
    "CREATE TEMPORARY TABLE temp1 ("
    "JobId INTEGER UNSIGNED NOT NULL,"
-   "JobTDate BIGINT UNSIGNED)"};
+   "JobTDate BIGINT UNSIGNED)",
+   /* Ingres */
+   "DECLARE GLOBAL TEMPORARY TABLE temp1 ("
+   "JobId INTEGER NOT NULL,"
+   "JobTDate BIGINT)"
+   };
 
 /* Query to get all files in a directory -- no recursing   
  *  Note, for PostgreSQL since it respects the "Single Value
@@ -762,7 +822,7 @@ const char *uar_create_temp1[4] = {
  *  for each time it was backed up.
  */
 
-const char *uar_jobid_fileindex_from_dir[4] = {
+const char *uar_jobid_fileindex_from_dir[5] = {
    /* Mysql */
    "SELECT Job.JobId,File.FileIndex FROM Job,File,Path,Filename,Client "
    "WHERE Job.JobId IN (%s) "
@@ -801,9 +861,19 @@ const char *uar_jobid_fileindex_from_dir[4] = {
    "AND Job.ClientId=Client.ClientId "
    "AND Path.PathId=File.Pathid "
    "AND Filename.FilenameId=File.FilenameId "
-   "GROUP BY File.FileIndex "};
+   "GROUP BY File.FileIndex ",
+   /* Ingres */
+   "SELECT Job.JobId,File.FileIndex FROM Job,File,Path,Filename,Client "
+   "WHERE Job.JobId IN (%s) "
+   "AND Job.JobId=File.JobId "
+   "AND Path.Path='%s' "
+   "AND Client.Name='%s' "
+   "AND Job.ClientId=Client.ClientId "
+   "AND Path.PathId=File.Pathid "
+   "AND Filename.FilenameId=File.FilenameId"
+   };
 
-const char *sql_get_max_connections[4] = {
+const char *sql_get_max_connections[5] = {
    /* Mysql */
    "SHOW VARIABLES LIKE 'max_connections'",
    /* Postgresql */
@@ -811,11 +881,13 @@ const char *sql_get_max_connections[4] = {
    /* SQLite */
    "SELECT 0",
    /* SQLite3 */
+   "SELECT 0",
+   /* Ingres (TODO) */
    "SELECT 0"
 };
 
 /* Row number of the max_connections setting */
-const uint32_t sql_get_max_connections_index[4] = {
+const uint32_t sql_get_max_connections_index[5] = {
     /* Mysql */
    1,
    /* Postgresql */
@@ -823,5 +895,7 @@ const uint32_t sql_get_max_connections_index[4] = {
    /* SQLite */
    0,
    /* SQLite3 */
+   0,
+   /* Ingres (TODO) */
    0
 };

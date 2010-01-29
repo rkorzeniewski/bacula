@@ -77,6 +77,8 @@ B_DB *db_init(JCR *jcr, const char *db_driver, const char *db_name, const char *
       db_type = SQL_TYPE_SQLITE;
    } else if (strcasecmp(p, "sqlite3") == 0) {
       db_type = SQL_TYPE_SQLITE3;
+   } else if (strcasecmp(p, "ingres") == 0) {
+      db_type = SQL_TYPE_INGRES;
    } else {
       Jmsg1(jcr, M_ABORT, 0, _("Unknown database type: %s\n"), p);
    }

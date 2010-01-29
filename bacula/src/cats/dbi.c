@@ -1255,7 +1255,7 @@ int my_dbi_sql_insert_id(B_DB *mdb, char *table_name)
 }
 
 #ifdef HAVE_BATCH_FILE_INSERT
-const char *my_dbi_batch_lock_path_query[4] = {
+const char *my_dbi_batch_lock_path_query[5] = {
    /* Mysql */
    "LOCK TABLES Path write, batch write, Path as p write",
    /* Postgresql */
@@ -1263,9 +1263,12 @@ const char *my_dbi_batch_lock_path_query[4] = {
    /* SQLite */
    "BEGIN",
    /* SQLite3 */
-   "BEGIN"};
+   "BEGIN",
+   /* Ingres (TODO) */
+   "BEGIN"
+};
 
-const char *my_dbi_batch_lock_filename_query[4] = {
+const char *my_dbi_batch_lock_filename_query[5] = {
    /* Mysql */
    "LOCK TABLES Filename write, batch write, Filename as f write",
    /* Postgresql */
@@ -1273,9 +1276,12 @@ const char *my_dbi_batch_lock_filename_query[4] = {
    /* SQLite */
    "BEGIN",
    /* SQLite3 */
-   "BEGIN"};
+   "BEGIN",
+   /* Ingres (TODO) */
+   "BEGIN"
+};
 
-const char *my_dbi_batch_unlock_tables_query[4] = {
+const char *my_dbi_batch_unlock_tables_query[5] = {
    /* Mysql */
    "UNLOCK TABLES",
    /* Postgresql */
@@ -1283,9 +1289,12 @@ const char *my_dbi_batch_unlock_tables_query[4] = {
    /* SQLite */
    "COMMIT",
    /* SQLite3 */
-   "COMMIT"};
+   "COMMIT",
+   /* Ingres */
+   "COMMIT"
+};
 
-const char *my_dbi_batch_fill_path_query[4] = {
+const char *my_dbi_batch_fill_path_query[5] = {
    /* Mysql */
    "INSERT INTO Path (Path) "
    "SELECT a.Path FROM "
@@ -1303,9 +1312,15 @@ const char *my_dbi_batch_fill_path_query[4] = {
    /* SQLite3 */
    "INSERT INTO Path (Path)"
    " SELECT DISTINCT Path FROM batch"
-   " EXCEPT SELECT Path FROM Path"};
+   " EXCEPT SELECT Path FROM Path",
+   /* Ingres (TODO) */
+   "INSERT INTO Path (Path) "
+   "SELECT a.Path FROM "
+   "(SELECT DISTINCT Path FROM batch) AS a "
+   "WHERE NOT EXISTS (SELECT Path FROM Path WHERE Path = a.Path) "
+};
 
-const char *my_dbi_batch_fill_filename_query[4] = {
+const char *my_dbi_batch_fill_filename_query[5] = {
    /* Mysql */
    "INSERT INTO Filename (Name) "
    "SELECT a.Name FROM "
@@ -1324,7 +1339,14 @@ const char *my_dbi_batch_fill_filename_query[4] = {
    /* SQLite3 */
    "INSERT INTO Filename (Name)"
    " SELECT DISTINCT Name FROM batch "
-   " EXCEPT SELECT Name FROM Filename"};
+   " EXCEPT SELECT Name FROM Filename",
+   /* Ingres (TODO) */
+   "INSERT INTO Filename (Name) "
+   "SELECT a.Name FROM "
+   "(SELECT DISTINCT Name FROM batch) as a "
+   "WHERE NOT EXISTS "
+   "(SELECT Name FROM Filename WHERE Name = a.Name)"
+};
 
 #endif /* HAVE_BATCH_FILE_INSERT */
 

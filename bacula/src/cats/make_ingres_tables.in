@@ -1,11 +1,15 @@
 #!/bin/sh
 #
-# shell script to create Bacula PostgreSQL tables
+# shell script to create Bacula Ingres tables
 #
 bindir=@SQL_BINDIR@
-db_name=${db_name:-@db_name@}
+PATH="$bindir:$PATH"
+#db_name=${db_name:-@db_name@}
+#db_user=${db_user:-@db_user@}
+db_name=@db_name@
+db_user=@db_user@
 
-sql $* ${db_name} <<END-OF-DATA
+sql $* -u${db_user} ${db_name} <<END-OF-DATA
 
 SET AUTOCOMMIT ON\g
 
@@ -17,7 +21,7 @@ CREATE TABLE filename
     primary key (filenameid)
 );
 
-ALTER TABLE filename ALTER COLUMN name SET STATISTICS 1000;
+-- ALTER TABLE filename ALTER COLUMN name SET STATISTICS 1000;
 CREATE UNIQUE INDEX filename_name_idx on filename (name);
 
 CREATE SEQUENCE path_seq;
@@ -28,7 +32,7 @@ CREATE TABLE path
     primary key (pathid)
 );
 
-ALTER TABLE path ALTER COLUMN path SET STATISTICS 1000;
+-- ALTER TABLE path ALTER COLUMN path SET STATISTICS 1000;
 CREATE UNIQUE INDEX path_name_idx on path (path);
 
 CREATE SEQUENCE file_seq;
@@ -45,8 +49,12 @@ CREATE TABLE file
     primary key (fileid)
 );
 
-CREATE INDEX file_jobid_idx on file (jobid);
-CREATE INDEX file_fp_idx on file (filenameid, pathid);
+CREATE INDEX file_jpfid_idx on file (jobid, pathid, filenameid);
+
+-- If you need performances, you can remove this index
+-- the database engine is able to use the composite index
+-- to find all records with a given JobId
+CREATE INDEX file_jobid_idx on file(jobid);
 
 --
 -- Add this if you have a good number of job
@@ -59,43 +67,77 @@ CREATE INDEX file_fp_idx on file (filenameid, pathid);
 --
 -- CREATE INDEX file_pathid_idx on file(pathid);
 -- CREATE INDEX file_filenameid_idx on file(filenameid);
--- CREATE INDEX file_jpfid_idx on file (jobid, pathid, filenameid);
 
-CREATE SEQUENCE job_seq;
-CREATE TABLE job
+CREATE SEQUENCE Job_seq;
+CREATE TABLE Job
 (
-    jobid	      integer	  not null default job_seq.nextval,
-    job 	      text	  not null,
-    name	      text	  not null,
-    type	      char(1)	  not null,
-    level	      char(1)	  not null,
-    clientid	      integer	  default 0,
-    jobstatus	      char(1)	  not null,
-    schedtime	      timestamp   without time zone,
-    starttime	      timestamp   without time zone,
-    endtime	      timestamp   without time zone,
-    realendtime       timestamp   without time zone,
-    jobtdate	      bigint	  default 0,
-    volsessionid      integer	  default 0,
-    volsessiontime    integer	  default 0,
-    jobfiles	      integer	  default 0,
-    jobbytes	      bigint	  default 0,
-    readbytes        bigint      default 0,
-    joberrors	      integer	  default 0,
-    jobmissingfiles   integer	  default 0,
-    poolid	      integer	  default 0,
-    filesetid	      integer	  default 0,
-    purgedfiles       smallint	  default 0,
-    hasbase	      smallint	  default 0,
-    priorjobid	      integer	  default 0,
+    JobId             integer     not null default Job_seq.nextval,
+    Job               text        not null,
+    Name              text        not null,
+    Type              char(1)     not null,
+    Level             char(1)     not null,
+    ClientId          integer     default 0,
+    JobStatus         char(1)     not null,
+    SchedTime         timestamp   without time zone,
+    StartTime         timestamp   without time zone,
+    EndTime           timestamp   without time zone,
+    RealEndTime       timestamp   without time zone,
+    JobTDate          bigint      default 0,
+    VolSessionId      integer     default 0,
+    volSessionTime    integer     default 0,
+    JobFiles          integer     default 0,
+    JobBytes          bigint      default 0,
+    ReadBytes         bigint      default 0,
+    JobErrors         integer     default 0,
+    JobMissingFiles   integer     default 0,
+    PoolId            integer     default 0,
+    FilesetId         integer     default 0,
+    PriorJobid        integer     default 0,
+    PurgedFiles       smallint    default 0,
+    HasBase           smallint    default 0,
+    HasCache          smallint    default 0,
+    Reviewed          smallint    default 0,
+    Comment           text,
     primary key (jobid)
 );
 
 CREATE INDEX job_name_idx on job (name);
 
 -- Create a table like Job for long term statistics 
-CREATE TABLE JobHisto (LIKE Job);
-CREATE INDEX jobhisto_idx ON jobhisto ( starttime );
+CREATE SEQUENCE JobHisto_seq;
+CREATE TABLE JobHisto
+(
+    JobId             integer     not null default JobHisto_seq.nextval,
+    Job               text        not null,
+    Name              text        not null,
+    Type              char(1)     not null,
+    Level             char(1)     not null,
+    ClientId          integer     default 0,
+    JobStatus         char(1)     not null,
+    SchedTime         timestamp   without time zone,
+    StartTime         timestamp   without time zone,
+    EndTime           timestamp   without time zone,
+    RealEndTime       timestamp   without time zone,
+    JobTDate          bigint      default 0,
+    VolSessionId      integer     default 0,
+    volSessionTime    integer     default 0,
+    JobFiles          integer     default 0,
+    JobBytes          bigint      default 0,
+    ReadBytes         bigint      default 0,
+    JobErrors         integer     default 0,
+    JobMissingFiles   integer     default 0,
+    PoolId            integer     default 0,
+    FilesetId         integer     default 0,
+    PriorJobid        integer     default 0,
+    PurgedFiles       smallint    default 0,
+    HasBase           smallint    default 0,
+    HasCache          smallint    default 0,
+    Reviewed          smallint    default 0,
+    Comment           text,
+    primary key (jobid)
+);
+
+CREATE INDEX jobhisto_idx on JobHisto ( StartTime );
 
 
 CREATE SEQUENCE Location_seq;
@@ -106,7 +148,6 @@ CREATE TABLE Location (
    Enabled	      smallint,
    primary key (LocationId)
 );
-
 
 CREATE SEQUENCE fileset_seq;
 CREATE TABLE fileset
@@ -123,7 +164,7 @@ CREATE INDEX fileset_name_idx on fileset (fileset);
 CREATE SEQUENCE jobmedia_seq;
 CREATE TABLE jobmedia
 (
-    jobmediaid	      integer	  not null default jobmedia_seq.nestval,
+    jobmediaid	      integer	  not null default jobmedia_seq.nextval,
     jobid	      integer	  not null,
     mediaid	      integer	  not null,
     firstindex	      integer	  default 0,
@@ -133,7 +174,6 @@ CREATE TABLE jobmedia
     startblock	      bigint	  default 0,
     endblock	      bigint	  default 0,
     volindex	      integer	  default 0,
-    copy	      integer	  default 0,
     primary key (jobmediaid)
 );
 
@@ -192,26 +232,25 @@ CREATE TABLE media
 
 create unique index media_volumename_id on media (volumename);
 
- 
 CREATE SEQUENCE MediaType_seq;
 CREATE TABLE MediaType (
-   MediaTypeId INTEGER DEFAULT MediaType_seq.NEXTVAL,
+   MediaTypeId INTEGER NOT NULL DEFAULT MediaType_seq.nextval,
    MediaType TEXT NOT NULL,
-   ReadOnly INTEGER DEFAULT 0,
+   ReadOnly INTEGER NOT NULL DEFAULT 0,
    PRIMARY KEY(MediaTypeId)
    );
 
 CREATE SEQUENCE Storage_seq;
 CREATE TABLE Storage (
-   StorageId INTEGER DEFAULT Storage_seq.NEXTVAL,
+   StorageId INTEGER NOT NULL DEFAULT Storage_seq.nextval,
    Name TEXT NOT NULL,
-   AutoChanger INTEGER DEFAULT 0,
+   AutoChanger INTEGER NOT NULL DEFAULT 0,
    PRIMARY KEY(StorageId)
    );
 
 CREATE SEQUENCE Device_seq;
 CREATE TABLE Device (
-   DeviceId INTEGER DEFAULT Device_seq.NEXTVAL,
+   DeviceId INTEGER NOT NULL DEFAULT Device_seq.nextval,
    Name TEXT NOT NULL,
    MediaTypeId INTEGER NOT NULL,
    StorageId INTEGER NOT NULL,
@@ -291,7 +330,7 @@ create index log_name_idx on Log (JobId);
 
 CREATE SEQUENCE LocationLog_seq;
 CREATE TABLE LocationLog (
-   LocLogId INTEGER NOT NULL DEFAULT LocationLog_seq.NEXTVAL,
+   LocLogId INTEGER NOT NULL DEFAULT LocationLog_seq.nextval,
    Date timestamp   without time zone,
    Comment TEXT NOT NULL,
    MediaId INTEGER DEFAULT 0,
@@ -317,7 +356,6 @@ CREATE TABLE counters
 );
 
 
-
 CREATE SEQUENCE basefiles_seq;
 CREATE TABLE basefiles
 (
@@ -328,6 +366,8 @@ CREATE TABLE basefiles
     basejobid	      integer			    ,
     primary key (baseid)
 );
+
+CREATE INDEX basefiles_jobid_idx ON BaseFiles ( JobId );
 
 CREATE TABLE unsavedfiles
 (
@@ -346,6 +386,27 @@ CREATE TABLE CDImages
 );
 
 
+CREATE TABLE PathHierarchy
+(
+     PathId integer NOT NULL,
+     PPathId integer NOT NULL,
+     CONSTRAINT pathhierarchy_pkey PRIMARY KEY (PathId)
+);
+
+CREATE INDEX pathhierarchy_ppathid 
+          ON PathHierarchy (PPathId);
+
+CREATE TABLE PathVisibility
+(
+      PathId integer NOT NULL,
+      JobId integer NOT NULL,
+      Size int8 DEFAULT 0,
+      Files int4 DEFAULT 0,
+      CONSTRAINT pathvisibility_pkey PRIMARY KEY (JobId, PathId)
+);
+CREATE INDEX pathvisibility_jobid
+             ON PathVisibility (JobId);
+
 CREATE TABLE version
 (
     versionid	      integer		    not null
@@ -353,52 +414,55 @@ CREATE TABLE version
 
 CREATE TABLE Status (
    JobStatus CHAR(1) NOT NULL,
-   JobStatusLong TEXT, 
+   JobStatusLong TEXT,
+   Severity int,
    PRIMARY KEY (JobStatus)
    );
 
-INSERT INTO Status (JobStatus,JobStatusLong) VALUES
-   ('C', 'Created, not yet running');
-INSERT INTO Status (JobStatus,JobStatusLong) VALUES
-   ('R', 'Running');
-INSERT INTO Status (JobStatus,JobStatusLong) VALUES
-   ('B', 'Blocked');
-INSERT INTO Status (JobStatus,JobStatusLong) VALUES
-   ('T', 'Completed successfully');
-INSERT INTO Status (JobStatus,JobStatusLong) VALUES
-   ('E', 'Terminated with errors');
-INSERT INTO Status (JobStatus,JobStatusLong) VALUES
-   ('e', 'Non-fatal error');
-INSERT INTO Status (JobStatus,JobStatusLong) VALUES
-   ('f', 'Fatal error');
-INSERT INTO Status (JobStatus,JobStatusLong) VALUES
-   ('D', 'Verify found differences');
-INSERT INTO Status (JobStatus,JobStatusLong) VALUES
-   ('A', 'Canceled by user');
-INSERT INTO Status (JobStatus,JobStatusLong) VALUES
-   ('F', 'Waiting for Client');
-INSERT INTO Status (JobStatus,JobStatusLong) VALUES
-   ('S', 'Waiting for Storage daemon');
+\g
+
+INSERT INTO Status (JobStatus,JobStatusLong,Severity) VALUES
+   ('C', 'Created, not yet running',15);
+INSERT INTO Status (JobStatus,JobStatusLong,Severity) VALUES
+   ('R', 'Running',15);
+INSERT INTO Status (JobStatus,JobStatusLong,Severity) VALUES
+   ('B', 'Blocked',15);
+INSERT INTO Status (JobStatus,JobStatusLong,Severity) VALUES
+   ('T', 'Completed successfully', 10);
+INSERT INTO Status (JobStatus,JobStatusLong,Severity) VALUES
+   ('E', 'Terminated with errors', 25);
+INSERT INTO Status (JobStatus,JobStatusLong,Severity) VALUES
+   ('e', 'Non-fatal error',20);
+INSERT INTO Status (JobStatus,JobStatusLong,Severity) VALUES
+   ('f', 'Fatal error',100);
+INSERT INTO Status (JobStatus,JobStatusLong,Severity) VALUES
+   ('D', 'Verify found differences',15);
+INSERT INTO Status (JobStatus,JobStatusLong,Severity) VALUES
+   ('A', 'Canceled by user',90);
+INSERT INTO Status (JobStatus,JobStatusLong,Severity) VALUES
+   ('F', 'Waiting for Client',15);
+INSERT INTO Status (JobStatus,JobStatusLong,Severity) VALUES
+   ('S', 'Waiting for Storage daemon',15);
 INSERT INTO Status (JobStatus,JobStatusLong) VALUES
    ('m', 'Waiting for new media');
-INSERT INTO Status (JobStatus,JobStatusLong) VALUES
-   ('M', 'Waiting for media mount');
-INSERT INTO Status (JobStatus,JobStatusLong) VALUES
-   ('s', 'Waiting for storage resource');
-INSERT INTO Status (JobStatus,JobStatusLong) VALUES
-   ('j', 'Waiting for job resource');
-INSERT INTO Status (JobStatus,JobStatusLong) VALUES
-   ('c', 'Waiting for client resource');
-INSERT INTO Status (JobStatus,JobStatusLong) VALUES
-   ('d', 'Waiting on maximum jobs');
-INSERT INTO Status (JobStatus,JobStatusLong) VALUES
-   ('t', 'Waiting on start time');
-INSERT INTO Status (JobStatus,JobStatusLong) VALUES
-   ('p', 'Waiting on higher priority jobs');
-INSERT INTO Status (JobStatus,JobStatusLong) VALUES
-   ('a', 'SD despooling attributes');
-INSERT INTO Status (JobStatus,JobStatusLong) VALUES
-   ('i', 'Doing batch insert file records');
+INSERT INTO Status (JobStatus,JobStatusLong,Severity) VALUES
+   ('M', 'Waiting for media mount',15);
+INSERT INTO Status (JobStatus,JobStatusLong,Severity) VALUES
+   ('s', 'Waiting for storage resource',15);
+INSERT INTO Status (JobStatus,JobStatusLong,Severity) VALUES
+   ('j', 'Waiting for job resource',15);
+INSERT INTO Status (JobStatus,JobStatusLong,Severity) VALUES
+   ('c', 'Waiting for client resource',15);
+INSERT INTO Status (JobStatus,JobStatusLong,Severity) VALUES
+   ('d', 'Waiting on maximum jobs',15);
+INSERT INTO Status (JobStatus,JobStatusLong,Severity) VALUES
+   ('t', 'Waiting on start time',15);
+INSERT INTO Status (JobStatus,JobStatusLong,Severity) VALUES
+   ('p', 'Waiting on higher priority jobs',15);
+INSERT INTO Status (JobStatus,JobStatusLong,Severity) VALUES
+   ('a', 'SD despooling attributes',15);
+INSERT INTO Status (JobStatus,JobStatusLong,Severity) VALUES
+   ('i', 'Doing batch insert file records',15);
 
 INSERT INTO Version (VersionId) VALUES (11);
 
