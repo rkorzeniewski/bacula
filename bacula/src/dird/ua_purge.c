@@ -579,7 +579,12 @@ static void do_actions_on_purge(UAContext *ua, MEDIA_DBR *mr)
    int dvd;
    uint64_t VolBytes = 0;
    char dev_name[MAX_NAME_LENGTH];
-         
+   
+   /* TODO: Return if not mr->Recyle ? */
+   if (!mr->Recycle) {
+      return;
+   }
+
    if (mr->ActionOnPurge & AOP_TRUNCATE) {
       /* Send the command to truncate the volume after purge. If this feature
        * is disabled for the specific device, this will be a no-op.
@@ -598,7 +603,7 @@ static void do_actions_on_purge(UAContext *ua, MEDIA_DBR *mr)
          bash_spaces(mr->MediaType);
          bash_spaces(pr.Name);
          
-         /* We set drive=-1 to let the storage decide of which drive
+         /* We set drive=-1 to let the storage decides of which drive
           * to use
           */
          sd->fsend("relabel %s OldName=%s NewName=%s PoolName=%s "
