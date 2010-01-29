@@ -2,7 +2,7 @@
 #
 #
 TestName="action-on-purge-test"
-JobName=AOP
+JobName=FIFOTest
 . scripts/functions
 
 cwd=`pwd`
@@ -10,10 +10,26 @@ scripts/cleanup
 scripts/copy-test-confs
 
 echo $src > $tmp/file-list
+echo $cwd/tmp/bfifo >> $tmp/file-list
+rm -f ${cwd}/tmp/bfifo
+mkfifo ${cwd}/tmp/bfifo
+# send a file into the fifo
+(
+echo test1 >$cwd/tmp/bfifo
+print_debug FIRST ECHO
+/bin/sleep 5
+echo test2 >$cwd/tmp/bfifo
+print_debug SECOND ECHO
+/bin/sleep 5
+echo test2 >$cwd/tmp/bfifo
+print_debug THIRD ECHO
+/bin/sleep 5
+cat > $cwd/tmp/bfifo &
+)&
+
 sed 's/Pool Type = Backup/Pool Type = Backup; ActionOnPurge = Truncate/' $conf/bacula-dir.conf > $tmp/1
 cp $tmp/1 $conf/bacula-dir.conf
 
-change_jobname CompressedTest $JobName
 start_test
 
 cat >tmp/bconcmds <<END_OF_DATA
@@ -21,19 +37,22 @@ cat >tmp/bconcmds <<END_OF_DATA
 messages
 @$out $tmp/log1.out
 label storage=File volume=TestVolume001
-label storage=File volume=TestVolume002
+@########################################################
+@# Run a first job on TestVolume001
+@########################################################
 run level=full job=$JobName yes
 wait
 messages
-@$out $tmp/log2.out
-restore where=${cwd}/tmp/bacula-restores select all storage=File done
-yes
-wait
-messages
+@#@$out $tmp/log2.out
+@#restore where=${cwd}/tmp/bacula-restores select all storage=File done
+@#yes
+@#wait
+@#messages
 @#########################################################
 @# Run a second job on TestVolume002
 @#########################################################
 @$out $tmp/log3.out
+label storage=File volume=TestVolume002
 update volume=TestVolume001 volstatus=Used
 messages
 show pool
@@ -42,10 +61,23 @@ run level=full job=$JobName yes
 wait
 messages
 @#########################################################
-@# Run a third job that will wait, and purge volume
+@# Run a 3th job on TestVolume003
 @#########################################################
 @$out $tmp/log3.out
 update volume=TestVolume002 volstatus=Used
+label storage=File volume=TestVolume003
+messages
+show pool
+@$out $tmp/log1.out
+run level=full job=$JobName yes
+wait
+messages
+@#########################################################
+@# Run a 4th job that will wait on fifo, and try to purge volume
+@#########################################################
+@$out $tmp/log5.out
+update volume=TestVolume003 volstatus=Used
+label storage=File volume=TestVolume004
 messages
 @$out $tmp/log1.out
 run level=full job=$JobName yes
@@ -53,17 +85,16 @@ run level=full job=$JobName yes
 @sleep 5
 messages
 list volume
-@# should continue on TestVolume001
-sql
-select VolumeName, ActionOnPurge FROM Media;
-
-setdebug level=400 director
-purge volume=TestVolume001
+setdebug level=100 storage=File
+@# try to purge TestVolume004 (should fail, in use)
+purge volume=TestVolume004 
+@# try to purge TestVolume003 (should fail, drive busy)
+purge volume=TestVolume003
+setdebug level=0 storage=File
 list volume
 sql
-select VolumeName, ActionOnPurge FROM Media;
+select VolumeName, VolStatus, ActionOnPurge FROM Media;
 
-mount storage=File
 wait
 @#########################################################
 @# Test ActionOnPurge=Truncate Volume size should be small
@@ -84,6 +115,7 @@ sql
 select VolumeName, ActionOnPurge FROM Media;
 select Name, ActionOnPurge FROM Pool;
 
+wait
 quit
 END_OF_DATA
 
@@ -91,40 +123,49 @@ run_bacula
 check_for_zombie_jobs storage=File 
 stop_bacula
 
+touch $tmp/log2.out
 check_two_logs
-check_restore_diff
 
+print_debug "Test TestVolume001 size"
 perl -e "die 'Volume size too big' if (-s '$tmp/TestVolume001' > 4096)"
 if [ $? != 0 ]; then
     print_debug `ls -l $tmp/TestVolume001`
-    bstat=2
+    estat=2
 fi
 
+print_debug "Test TestVolume002 size"
 perl -e "die 'Volume size too small' if (-s '$tmp/TestVolume002' < 4096)"
 if [ $? != 0 ]; then
     print_debug `ls -l $tmp/TestVolume002`
-    bstat=2
+    estat=2
+fi
+
+print_debug "Test TestVolume003 size (drive busy)"
+perl -e "die 'Volume size too small' if (-s '$tmp/TestVolume003' < 4096)"
+if [ $? != 0 ]; then
+    print_debug `ls -l $tmp/TestVolume003`
+    estat=2
 fi
 
 print_debug "Test if Pool record is ok"
 r=`awk '/Default/ { print $4 }' $tmp/log4.out`
 if [ "$r" != 1 ]; then
-    print_debug "ActionOnPurge on Pool record should be 1"
-    bstat=2
+    print_debug "ActionOnPurge on Pool record should be 1 ($r)"
+    estat=2
 fi
 
 print_debug "Test TestVolume001 if Media record is ok"
 r=`awk '/TestVolume001/ { print $4 }' $tmp/log4.out`
 if [ "$r" != 1 ]; then
     print_debug "ActionOnPurge on Media record should be 1"
-    bstat=2
+    estat=2
 fi
 
 print_debug "Test TestVolume002 if Media record is ok"
 r=`awk '/TestVolume002/ { print $4 }' $tmp/log4.out`
 if [ "$r" != 0 ]; then
     print_debug "ActionOnPurge on Media record should be 0"
-    bstat=2
+    estat=2
 fi
 
 end_test
