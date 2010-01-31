@@ -6,7 +6,7 @@
 
 # basic defines for every build
 %define _release           1
-%define _version           3.0.3
+%define _version           5.0.0
 %define depkgs_version     18Feb09
 %define _packager D. Scott Barninger <barninger@fairfieldcomputers.com>
 

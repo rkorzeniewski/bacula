@@ -6,7 +6,7 @@
 
 # basic defines for every build
 %define _release           1
-%define _version           3.0.3
+%define _version           5.0.0
 %define _packager D. Scott Barninger <barninger@fairfieldcomputers.com>
 
 %define _prefix        /usr
@@ -31,10 +31,11 @@ BuildRoot: %{_tmppath}/%{name}-root
 URL: http://www.bacula.org/
 Vendor: The Bacula Team
 Packager: %{_packager}
+BuildArchitectures: noarch
 Prefix: %{_prefix}
 Distribution: Bacula Documentation
 
-Source: %{name}-%{_version}.tar.gz
+Source: %{name}-%{_version}.tar.bz2
 
 # Source directory locations
 %define _docsrc .
@@ -74,14 +75,15 @@ This package installs the Bacula pdf and html documentation.
 rm -rf $RPM_BUILD_DIR/%{name}-%{_version}
 
 %files
-%doc %{_docsrc}/manuals/en/catalog/catalog %{_docsrc}/manuals/en/catalog/catalog.pdf
-%doc %{_docsrc}/manuals/en/concepts/concepts %{_docsrc}/manuals/en/concepts/concepts.pdf
 %doc %{_docsrc}/manuals/en/console/console %{_docsrc}/manuals/en/console/console.pdf
 %doc %{_docsrc}/manuals/en/developers/developers %{_docsrc}/manuals/en/developers/developers.pdf
-%doc %{_docsrc}/manuals/en/install/install %{_docsrc}/manuals/en/install/install.pdf
+%doc %{_docsrc}/manuals/en/main/main %{_docsrc}/manuals/en/main/main.pdf
+%doc %{_docsrc}/manuals/en/misc/misc %{_docsrc}/manuals/en/misc/misc.pdf
 %doc %{_docsrc}/manuals/en/problems/problems %{_docsrc}/manuals/en/problems/problems.pdf
 %doc %{_docsrc}/manuals/en/utility/utility %{_docsrc}/manuals/en/utility/utility.pdf
 
 %changelog
+* Sat Jan 30 2010 D. Scott Barninger <barninger@fairfieldcomputers.com>
+- change source file to bz2, update for new doc structure
 * Sat Aug 1 2009 Kern Sibbald <kern@sibbald.com>
 - Split docs into separate bacula-docs.spec

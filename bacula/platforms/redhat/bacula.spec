@@ -1,6 +1,6 @@
 # Bacula RPM spec file
 #
-# Copyright (C) 2000-2010 Free Software Foundation Europe e.V.
+# Copyright (C) 2000-2009 Free Software Foundation Europe e.V.
 
 # Platform Build Configuration
 
@@ -8,6 +8,7 @@
 %define _release           1
 %define _version           5.0.0
 %define _packager D. Scott Barninger <barninger@fairfieldcomputers.com>
+%define depkgs_version 18Dec09
 
 %define single_dir 0
 %{?single_dir_install:%define single_dir 1}
@@ -18,6 +19,7 @@
 %define _sbindir       /opt/bacula/bin
 %define _bindir        /opt/bacula/bin
 %define _subsysdir     /opt/bacula/working
+%define sqlite_bindir /opt/bacula/sqlite
 %define _mandir        /usr/share/man
 %define sysconf_dir    /opt/bacula/etc
 %define script_dir     /opt/bacula/scripts
@@ -30,6 +32,7 @@
 %define _sbindir       %_prefix/sbin
 %define _bindir        %_prefix/bin
 %define _subsysdir     /var/lock/subsys
+%define sqlite_bindir %_libdir/bacula/sqlite
 %define _mandir        %_prefix/share/man
 %define sysconf_dir    /etc/bacula
 %define script_dir     %_libdir/bacula
@@ -47,6 +50,7 @@
 # group that has write access to tape devices, usually disk on Linux
 %define storage_daemon_group    disk
 
+%define depkgs ../depkgs
 
 # probems with mandriva build: 
 # nothing provides libbonobo2_0-devel, nothing provides libbonoboui2_0-devel
@@ -175,6 +179,11 @@ BuildRequires: suse-release
 %define _dist "SUSE 11"
 %endif
 
+%if 0%{?suse_version} == 1120
+%define build_su112 1
+%define _dist "SUSE 11"
+%endif
+
 
 %if 0%{?sles_version} == 9
 %define build_su9 1
@@ -227,6 +236,7 @@ Source1: Release_Notes-%{version}-1.tar.gz
 Source1: Release_Notes-%{version}-%{release}.tar.gz
 %endif
 Source2: bacula-2.2.7-postgresql.patch
+Source3: http://www.prdownloads.sourceforge.net/bacula/depkgs-%{depkgs_version}.tar.gz
 
 # define the basic package description
 %define blurb Bacula - It comes by night and sucks the vital essence from your computers.
@@ -271,6 +281,8 @@ Source2: bacula-2.2.7-postgresql.patch
 %{?build_fc8:%define fc8 1}
 %define fc9 0
 %{?build_fc9:%define fc9 1}
+%define fc10 0
+%{?build_fc10:%define fc10 1}
 # Whitebox Enterprise build
 %define wb3 0
 %{?build_wb3:%define wb3 1}
@@ -317,6 +329,8 @@ Source2: bacula-2.2.7-postgresql.patch
 %{?build_su110:%define su110 1}
 %define su111 0
 %{?build_su111:%define su111 1}
+%define su112 0
+%{?build_su112:%define su112 1}
 # Mandrake builds
 %define mdk 0
 %{?build_mdk:%define mdk 1}
@@ -334,11 +348,11 @@ Source2: bacula-2.2.7-postgresql.patch
 %define rhat 1
 %endif
 %define fed 0
-%if %{fc1} || %{fc3} || %{fc4} || %{fc5} || %{fc6} || %{fc7} || %{fc8} || %{fc9}
+%if %{fc1} || %{fc3} || %{fc4} || %{fc5} || %{fc6} || %{fc7} || %{fc8} || %{fc9} || %{fc10}
 %define fed 1
 %endif
 %define suse 0
-%if %{su9} || %{su10} || %{su102} || %{su103} || %{su110} || %{su111}
+%if %{su9} || %{su10} || %{su102} || %{su103} || %{su110} || %{su111} || %{su112}
 %define suse 1
 %endif
 %define rhel 0
@@ -407,7 +421,7 @@ exit 1
 %if %{rhat} || %{rhel}
 %define _dist %(grep Red /etc/redhat-release)
 %endif
-%if %{fc1} || %{fc3} || %{fc4} || %{fc5} || %{fc7} || %{fc8} || %{fc9}
+%if %{fc1} || %{fc3} || %{fc4} || %{fc5} || %{fc7} || %{fc8} || %{fc9} || %{fc10}
 %define _dist %(grep Fedora /etc/redhat-release)
 %endif
 %if %{centos5} || %{centos4} || %{centos3}
@@ -505,17 +519,10 @@ BuildRequires: libtermcap-devel
 BuildRequires: libstdc++-static-devel
 BuildRequires: glibc-static-devel
 %endif
-%if %{fc1} || %{fc3} || %{fc4} || %{fc5} || %{fc7} || %{fc8} || %{fc9}
+%if %{fc1} || %{fc3} || %{fc4} || %{fc5} || %{fc7} || %{fc8}
 BuildRequires: libtermcap-devel
 %endif
-%if !%{rh7} && !%{su9} && !%{su10} && !%{su102} && !%{su103} && !%{su110} && !%{su111} && !%{mdk} && !%{fc3} && !%{fc4} && !%{fc5} && !%{fc6} && !%{fc7} && !%{fc8} && !%{fc9}
-#BuildRequires: libtermcap-devel
-%endif
-
-%if %{sqlite} && %{su10}
-BuildRequires: sqlite2-devel
-%endif
-%if %{sqlite} && ! %{su10}
+%if %{sqlite}
 BuildRequires: sqlite-devel
 %endif
 
@@ -585,9 +592,6 @@ Requires: rh-postgresql-server >= 7
 %if %{postgresql} && ! %{wb3}
 Requires: postgresql >= 7
 Requires: postgresql-server >= 7
-%endif
-%if %{sqlite}
-Requires: sqlite
 %endif
 
 %if %{mysql}
@@ -690,78 +694,50 @@ This package installs scripts for updating older versions of the bacula
 database.
 %endif
 
-%package docs
-
-Summary: Bacula - The Network Backup Solution
-Group: System Environment/Daemons
-
-%description docs
-%{blurb}
-
-%{blurb2}
-%{blurb3}
-%{blurb4}
-%{blurb5}
-%{blurb6}
-%{blurb7}
-%{blurb8}
-
-This package installs the Bacula pdf and html documentation.
-
 # Must explicitly enable debug pkg on SuSE
 # but not in opensuse_bs
-%if ! 0%{?opensuse_bs}
-%if %{suse}
+%if %{suse} && ! 0%{?opensuse_bs}
 %debug_package
-export LDFLAGS="${LDFLAGS} -L/usr/lib/termcap"
-%endif
 %endif
 
 %prep
 %setup
 %setup -T -D -b 1
-#%setup -T -D -b 2
+%setup -T -D -b 3
 
 %build
 
+%if %{suse}
+export LDFLAGS="${LDFLAGS} -L/usr/lib/termcap"
+%endif
+
+cwd=${PWD}
+%if %{sqlite}
+cd %{depkgs}
+make sqlite3
+cd ${cwd}
+%endif
+
 %if %{wb3} || %{old_pgsql}
-patch -p3 src/cats/postgresql.c < %SOURCE5
+patch -p3 src/cats/postgresql.c < %SOURCE2
 %endif
 
 # patches for the bundled sqlite scripts
 
 # patch the make_sqlite_tables script for installation bindir
-#patch src/cats/make_sqlite_tables.in src/cats/make_sqlite_tables.in.patch
-#patch src/cats/make_sqlite3_tables.in src/cats/make_sqlite3_tables.in.patch
+patch src/cats/make_sqlite3_tables.in src/cats/make_sqlite3_tables.in.patch
 
 # patch the create_sqlite_database script for installation bindir
-#patch src/cats/create_sqlite_database.in src/cats/create_sqlite_database.in.patch
-#patch src/cats/create_sqlite3_database.in src/cats/create_sqlite3_database.in.patch
+patch src/cats/create_sqlite3_database.in src/cats/create_sqlite3_database.in.patch
 
 # patch the make_catalog_backup script for installation bindir
-#patch src/cats/make_catalog_backup.in src/cats/make_catalog_backup.in.patch
+patch src/cats/make_catalog_backup.in src/cats/make_catalog_backup.in.patch
 
 # patch the update_sqlite_tables script for installation bindir
-#patch src/cats/update_sqlite_tables.in src/cats/update_sqlite_tables.in.patch
-#patch src/cats/update_sqlite3_tables.in src/cats/update_sqlite3_tables.in.patch
+patch src/cats/update_sqlite3_tables.in src/cats/update_sqlite3_tables.in.patch
 
 # patch the bacula-dir init script to remove sqlite service
-%if %{sqlite} && %{su9}
-patch platforms/suse/bacula-dir.in platforms/suse/bacula-dir-suse-sqlite.patch
-%endif
-%if %{sqlite} && %{su10}
-patch platforms/suse/bacula-dir.in platforms/suse/bacula-dir-suse-sqlite.patch
-%endif
-%if %{sqlite} && %{su102}
-patch platforms/suse/bacula-dir.in platforms/suse/bacula-dir-suse-sqlite.patch
-%endif
-%if %{sqlite} && %{su103}
-patch platforms/suse/bacula-dir.in platforms/suse/bacula-dir-suse-sqlite.patch
-%endif
-%if %{sqlite} && %{su110}
-patch platforms/suse/bacula-dir.in platforms/suse/bacula-dir-suse-sqlite.patch
-%endif
-%if %{sqlite} && %{su111}
+%if %{sqlite} && %{suse}
 patch platforms/suse/bacula-dir.in platforms/suse/bacula-dir-suse-sqlite.patch
 %endif
 
@@ -776,12 +752,6 @@ export LDFLAGS="${LDFLAGS} -L/usr/lib64/mysql"
 %endif
 %if %{python} && %{x86_64}
 export LDFLAGS="${LDFLAGS} -L/usr/lib64/python%{pyver}"
-%endif
-
-# Red Hat's 64 bit installation of QT4 appears to be broken so:
-%define qt_path 0
-%if %{rhel5} || %{centos5} || %{sl5}
-%define qt_path 1
 %endif
 
 # Main Bacula configuration
@@ -803,16 +773,13 @@ export LDFLAGS="${LDFLAGS} -L/usr/lib64/python%{pyver}"
         --with-mysql \
 %endif
 %if %{sqlite}
-%if %{su9} || %{su10}
-        --with-sqlite \
-%else
-        --with-sqlite3 \
+        --with-sqlite3=${cwd}/%{depkgs}/sqlite3 \
 %endif
-%endif # sqlite?
 %if %{postgresql}
         --with-postgresql \
 %endif
         --disable-bat \
+        --without-qwt \
 %if %{python}
         --with-python \
 %endif
@@ -852,7 +819,10 @@ mkdir -p $RPM_BUILD_ROOT%{script_dir}/updatedb
 
 mkdir -p $RPM_BUILD_ROOT/etc/pam.d
 mkdir -p $RPM_BUILD_ROOT%{_sbindir}
-#mkdir -p $RPM_BUILD_ROOT%{_bindir}
+
+%if %{sqlite}
+mkdir -p $RPM_BUILD_ROOT%{sqlite_bindir}
+%endif
 
 make DESTDIR=$RPM_BUILD_ROOT install
 
@@ -909,6 +879,14 @@ rm -f $RPM_BUILD_ROOT/etc/init.d/bacula-dir
 rm -f $RPM_BUILD_ROOT/etc/init.d/bacula-sd
 %endif
 
+# install sqlite
+%if %{sqlite}
+cp -p %{depkgs}/sqlite3/sqlite3 $RPM_BUILD_ROOT%{sqlite_bindir}/sqlite3
+cp -p %{depkgs}/sqlite3/sqlite3.h $RPM_BUILD_ROOT%{sqlite_bindir}/sqlite3.h
+cp -p %{depkgs}/sqlite3/libsqlite3.a $RPM_BUILD_ROOT%{sqlite_bindir}/libsqlite3.a
+%endif
+
+
 # install the logrotate file
 cp -p scripts/logrotate $RPM_BUILD_ROOT/etc/logrotate.d/bacula
 
@@ -917,14 +895,14 @@ cp -p updatedb/* $RPM_BUILD_ROOT%{script_dir}/updatedb/
 
 # install the logwatch scripts
 %if ! %{client_only}
-cp -p scripts/%{logwatch_dir}/bacula $RPM_BUILD_ROOT/etc/%{logwatch_dir}/scripts/services/bacula
-cp -p scripts/%{logwatch_dir}/applybacula $RPM_BUILD_ROOT/etc/%{logwatch_dir}/scripts/shared/applybacula
-cp -p scripts/%{logwatch_dir}/logfile.bacula.conf $RPM_BUILD_ROOT/etc/%{logwatch_dir}/conf/logfiles/bacula.conf
-cp -p scripts/%{logwatch_dir}/services.bacula.conf $RPM_BUILD_ROOT/etc/%{logwatch_dir}/conf/services/bacula.conf
-chmod 755 $RPM_BUILD_ROOT/etc/%{logwatch_dir}/scripts/services/bacula
-chmod 755 $RPM_BUILD_ROOT/etc/%{logwatch_dir}/scripts/shared/applybacula
-chmod 644 $RPM_BUILD_ROOT/etc/%{logwatch_dir}/conf/logfiles/bacula.conf
-chmod 644 $RPM_BUILD_ROOT/etc/%{logwatch_dir}/conf/services/bacula.conf
+cp -p scripts/logwatch/bacula $RPM_BUILD_ROOT%{logwatch_dir}/scripts/services/bacula
+cp -p scripts/logwatch/applybaculadate $RPM_BUILD_ROOT%{logwatch_dir}/scripts/shared/applybaculadate
+cp -p scripts/logwatch/logfile.bacula.conf $RPM_BUILD_ROOT%{logwatch_dir}/conf/logfiles/bacula.conf
+cp -p scripts/logwatch/services.bacula.conf $RPM_BUILD_ROOT%{logwatch_dir}/conf/services/bacula.conf
+chmod 755 $RPM_BUILD_ROOT%{logwatch_dir}/scripts/services/bacula
+chmod 755 $RPM_BUILD_ROOT%{logwatch_dir}/scripts/shared/applybaculadate
+chmod 644 $RPM_BUILD_ROOT%{logwatch_dir}/conf/logfiles/bacula.conf
+chmod 644 $RPM_BUILD_ROOT%{logwatch_dir}/conf/services/bacula.conf
 %endif
 
 # now clean up permissions that are left broken by the install
@@ -971,17 +949,6 @@ rm -f $RPM_BUILD_DIR/Release_Notes-%{version}-%{release}.txt
 %endif
 
 %if %{sqlite}
-%if  %{su9} ||  %{su10}
-# use sqlite2 on SLE_10 and SLES9
-%files sqlite
-%defattr(-,root,root)
-%attr(-, root, %{daemon_group}) %{script_dir}/create_sqlite_database
-%attr(-, root, %{daemon_group}) %{script_dir}/drop_sqlite_database
-%attr(-, root, %{daemon_group}) %{script_dir}/grant_sqlite_privileges
-%attr(-, root, %{daemon_group}) %{script_dir}/make_sqlite_tables
-%attr(-, root, %{daemon_group}) %{script_dir}/drop_sqlite_tables
-%attr(-, root, %{daemon_group}) %{script_dir}/update_sqlite_tables
-%else
 %files sqlite
 %defattr(-,root,root)
 %attr(-, root, %{daemon_group}) %{script_dir}/create_sqlite3_database
@@ -990,7 +957,9 @@ rm -f $RPM_BUILD_DIR/Release_Notes-%{version}-%{release}.txt
 %attr(-, root, %{daemon_group}) %{script_dir}/make_sqlite3_tables
 %attr(-, root, %{daemon_group}) %{script_dir}/drop_sqlite3_tables
 %attr(-, root, %{daemon_group}) %{script_dir}/update_sqlite3_tables
-%endif # sqlite?
+%{sqlite_bindir}/libsqlite3.a
+%{sqlite_bindir}/sqlite3.h
+%{sqlite_bindir}/sqlite3
 %endif
 
 
@@ -1007,11 +976,12 @@ rm -f $RPM_BUILD_DIR/Release_Notes-%{version}-%{release}.txt
 # The rest is DB backend independent
 %endif
 # opensuse_bs: directories not owned by any package
-/etc/bacula
+#/etc/bacula
 
 %if ! %{client_only}
 %attr(-, root, %{daemon_group}) %dir %{script_dir}
 %attr(-, root, %{daemon_group}) %{script_dir}/bacula
+%attr(-, root, %{daemon_group}) %{script_dir}/bacula_config
 %attr(-, root, %{daemon_group}) %{script_dir}/bconsole
 %attr(-, root, %{daemon_group}) %{script_dir}/create_bacula_database
 %attr(-, root, %{daemon_group}) %{script_dir}/drop_bacula_database
@@ -1020,6 +990,7 @@ rm -f $RPM_BUILD_DIR/Release_Notes-%{version}-%{release}.txt
 %attr(-, root, %{daemon_group}) %{script_dir}/drop_bacula_tables
 %attr(-, root, %{daemon_group}) %{script_dir}/update_bacula_tables
 %attr(-, root, %{daemon_group}) %{script_dir}/make_catalog_backup
+%attr(-, root, %{daemon_group}) %{script_dir}/make_catalog_backup.pl
 %attr(-, root, %{daemon_group}) %{script_dir}/delete_catalog_backup
 %attr(-, root, %{daemon_group}) %{script_dir}/btraceback.dbx
 %attr(-, root, %{daemon_group}) %{script_dir}/btraceback.gdb
@@ -1036,14 +1007,14 @@ rm -f $RPM_BUILD_DIR/Release_Notes-%{version}-%{release}.txt
 %attr(-, root, %{storage_daemon_group}) %{script_dir}/mtx-changer.conf
 
 /etc/logrotate.d/bacula
-/etc/%{logwatch_dir}/scripts/services/bacula
-/etc/%{logwatch_dir}/scripts/shared/applybacula
+%{logwatch_dir}/scripts/services/bacula
+%{logwatch_dir}/scripts/shared/applybaculadate
 %attr(-, root, %{daemon_group}) %config(noreplace) %{sysconf_dir}/bacula-dir.conf
 %attr(-, root, %{daemon_group}) %config(noreplace) %{sysconf_dir}/bacula-fd.conf
 %attr(-, root, %{storage_daemon_group}) %config(noreplace) %{sysconf_dir}/bacula-sd.conf
 %attr(-, root, %{daemon_group}) %config(noreplace) %{sysconf_dir}/bconsole.conf
-%attr(-, root, %{daemon_group}) %config(noreplace) /etc/%{logwatch_dir}/conf/logfiles/bacula.conf
-%attr(-, root, %{daemon_group}) %config(noreplace) /etc/%{logwatch_dir}/conf/services/bacula.conf
+%attr(-, root, %{daemon_group}) %config(noreplace) %{logwatch_dir}/conf/logfiles/bacula.conf
+%attr(-, root, %{daemon_group}) %config(noreplace) %{logwatch_dir}/conf/services/bacula.conf
 %attr(-, root, %{daemon_group}) %config(noreplace) %{script_dir}/query.sql
 
 %attr(-, %{storage_daemon_user}, %{daemon_group}) %dir %{working_dir}
@@ -1078,22 +1049,50 @@ rm -f $RPM_BUILD_DIR/Release_Notes-%{version}-%{release}.txt
 %{_mandir}/man1/bsmtp.1.%{manpage_ext}
 %{_mandir}/man1/bat.1.%{manpage_ext}
 %{_libdir}/libbac*
-/usr/share/doc/*
+%_prefix/share/doc/*
+
+# opensuse build service changes the release itself
+%if 0%{?opensuse_bs}
+%doc ../Release_Notes-%{version}-1.txt
+%else
+%doc ../Release_Notes-%{version}-%{release}.txt
+%endif
 %endif
 
 %if %{mysql}
 %pre mysql
-# test for bacula database older than version 10
+# test for bacula database older than version 12
 # note: this ASSUMES no password has been set for bacula database
 DB_VER=`mysql 2>/dev/null bacula -e 'select * from Version;'|tail -n 1`
 %endif
 
 %if %{sqlite}
 %pre sqlite
-# test for bacula database older than version 10 and sqlite3
-if [ -s %{working_dir}/bacula.db ]; then
-        DB_VER=`echo "select * from Version;" | sqlite3 2>/dev/null %{working_dir}/bacula.db | tail -n 1`
+# are we upgrading from sqlite to sqlite3?
+if [ -s %{working_dir}/bacula.db ] && [ -s %{sqlite_bindir}/sqlite ];then
+        echo "This version of bacula-sqlite involves an upgrade to sqlite3."
+	echo "Your catalog database file is not compatible with sqlite3, thus"
+	echo "you will need to dump the data, delete the old file, and re-run"
+	echo "this rpm upgrade."
+	echo ""
+	echo "Backing up your current database..."
+        echo ".dump" | %{sqlite_bindir}/sqlite %{working_dir}/bacula.db > %{working_dir}/bacula_backup.sql
+	mv %{working_dir}/bacula.db %{working_dir}/bacula.db.old
+	echo "Your catalog data has been saved in %{working_dir}/bacula_backup.sql and your"
+	echo "catalog file has been renamed %{working_dir}/bacula.db.old."
+	echo ""
+	echo "Please re-run this rpm package upgrade."
+	echo "After the upgrade is complete, restore your catalog"
+	echo "with the following commands:"
+	echo "%{script_dir}/drop_sqlite3_tables"
+	echo "cd %{working_dir}"
+	echo "%{sqlite_bindir}/sqlite3 $* bacula.db < bacula_backup.sql"
+	echo "chown bacula.bacula bacula.db"
+	exit 1
 fi
+# test for bacula database older than version 11 and sqlite3
+if [ -s %{working_dir}/bacula.db ] && [ -s %{sqlite_bindir}/sqlite3 ];then
+        DB_VER=`echo "select * from Version;" | %{sqlite_bindir}/sqlite3 2>/dev/null %{working_dir}/bacula.db | tail -n 1`
 %endif
 
 %if %{postgresql}
@@ -1102,17 +1101,20 @@ DB_VER=`echo 'select * from Version;' | psql bacula 2>/dev/null | tail -3 | head
 %endif
 
 %if ! %{client_only}
-if [ -n "$DB_VER" ] && [ "$DB_VER" -lt "10" ]; then
-    echo "This bacula upgrade will update a bacula database from version 10 to 11."
+if [ -n "$DB_VER" ] && [ "$DB_VER" -lt "11" ]; then
+    echo "This bacula upgrade will update a bacula database from version 11 to 12."
     echo "You appear to be running database version $DB_VER. You must first update"
-    echo "your database to version 10 and then install this upgrade. The alternative"
+    echo "your database to version 11 and then install this upgrade. The alternative"
     echo "is to use %{script_dir}/drop_%{db_backend}_tables to delete all your your current"
     echo "catalog information, then do the upgrade. Information on updating a"
-    echo "database older than version 10 can be found in the release notes."
+    echo "database older than version 11 can be found in the release notes."
     exit 1
 fi
 %endif
 
+%if %{sqlite}
+fi
+%endif
 
 %if ! %{client_only}
 # check for and copy %{sysconf_dir}/console.conf to bconsole.conf
@@ -1214,7 +1216,7 @@ if [ -z "$DB_VER" ]; then
     echo "Creating bacula tables..."
     %{script_dir}/make_mysql_tables
 
-# check to see if we need to upgrade a 2.x database
+# check to see if we need to upgrade a 3.x database
 elif [ "$DB_VER" -lt "11" ]; then
     echo "This release requires an upgrade to your bacula database."
     echo "Backing up your current database..."
@@ -1230,24 +1232,24 @@ fi
 %if %{sqlite}
 # test for an existing database
 if [ -s %{working_dir}/bacula.db ]; then
-    DB_VER=`echo "select * from Version;" | sqlite3 2>/dev/null %{working_dir}/bacula.db | tail -n 1`
-    # check to see if we need to upgrade a 2.x database
-    if [ "$DB_VER" -lt "11" ] && [ "$DB_VER" -ge "10" ]; then
-        echo "This release requires an upgrade to your bacula database."
-        echo "Backing up your current database..."
-        echo ".dump" | sqlite3 %{working_dir}/bacula.db | bzip2 > %{working_dir}/bacula_backup.sql.bz2
-        echo "Upgrading bacula database ..."
-        %{script_dir}/update_sqlite3_tables
-        echo "If bacula works correctly you can remove the backup file %{working_dir}/bacula_backup.sql.bz2"
-    fi
+        DB_VER=`echo "select * from Version;" | %{sqlite_bindir}/sqlite3 2>/dev/null %{working_dir}/bacula.db | tail -n 1`
+        # check to see if we need to upgrade a 3.x database
+        if [ "$DB_VER" -lt "12" ] && [ "$DB_VER" -ge "11" ]; then
+                echo "This release requires an upgrade to your bacula database."
+                echo "Backing up your current database..."
+                echo ".dump" | %{sqlite_bindir}/sqlite3 %{working_dir}/bacula.db | bzip2 > %{working_dir}/bacula_backup.sql.bz2
+                echo "Upgrading bacula database ..."
+		%{script_dir}/update_sqlite3_tables
+                echo "If bacula works correctly you can remove the backup file %{working_dir}/bacula_backup.sql.bz2"
+        fi
 else
-    # create the database and tables
-    echo "Hmm, it doesn't look like you have an existing database."
-    echo "Creating SQLite database..."
-    %{script_dir}/create_sqlite3_database
-    echo "Creating the SQLite tables..."
-    %{script_dir}/make_sqlite3_tables
-    chown %{director_daemon_user}.%{daemon_group} %{working_dir}/bacula.db
+        # create the database and tables
+        echo "Hmm, doesn't look like you have an existing database."
+        echo "Creating SQLite database..."
+	%{script_dir}/create_sqlite3_database
+	chown %{director_daemon_user}.%{daemon_group} %{working_dir}/bacula.db
+        echo "Creating the SQLite tables..."
+	%{script_dir}/make_sqlite3_tables
 fi
 %endif
 
@@ -1269,8 +1271,8 @@ if [ -z "$DB_VER" ]; then
     echo "Granting privileges for PostgreSQL user bacula..."
     %{script_dir}/grant_postgresql_privileges
 
-# check to see if we need to upgrade a 2.x database
-elif [ "$DB_VER" -lt "11" ]; then
+# check to see if we need to upgrade a 3.x database
+elif [ "$DB_VER" -lt "12" ]; then
     echo "This release requires an upgrade to your bacula database."
     echo "Backing up your current database..."
     pg_dump bacula | bzip2 > %{working_dir}/bacula_backup.sql.bz2
@@ -1362,9 +1364,10 @@ fi
 %{_libdir}/libbaccfg.*
 %{_libdir}/libbacfind.*
 %{_libdir}/libbacpy.*
-/usr/share/doc/*
+%_prefix/share/doc/*
+
 #opensuse_bs: directories not owned by any package
-/etc/bacula
+#/etc/bacula
 
 %pre client
 # create the daemon group and user
@@ -1429,7 +1432,7 @@ fi
 %defattr(-,root,%{daemon_group})
 %{script_dir}/updatedb/*
 #oensuse_bs: directories not owned by any package
-%{script_dir}/updatedb
+#%{script_dir}/updatedb
 
 %pre updatedb
 # create the daemon group
@@ -1445,8 +1448,18 @@ echo "The database update scripts were installed to %{script_dir}/updatedb"
 %endif
 
 %changelog
+* Sat Jan 30 2010 D. Scott Barninger <barninger@fairfieldcomputers.com>
+- 5.0.0
+- add su112 and fc10 builds, remove doc package declaration.
+- fix source path for logwatch files.
+- restore static bundled build of sqlite (who took that out?) and remove use
+- of system sqlite. we don't support use of sqlite2.
+- upgrade database from version 11 to 12.
 * Mon Aug 10 2009 Philipp Storz <philipp.storz@dass-it.de>
 - changes to work with opensuse build service
+* Sat Aug 1 2009 Kern Sibbald <kern@sibbald.com>
+- Split docs into separate bacula-docs.spec, bacula-bat.spec and bacula-mtx.spec
+- removed build of rescue, gnome console and wxconsole
 * Sat Jun 20 2009 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - Fix bat install which is now handled by make and uses shared libs
 * Sat May 16 2009 D. Scott Barninger <barninger@fairfieldcomputers.com>
