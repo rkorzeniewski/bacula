@@ -10,22 +10,6 @@ scripts/cleanup
 scripts/copy-test-confs
 
 echo $src > $tmp/file-list
-echo $cwd/tmp/bfifo >> $tmp/file-list
-rm -f ${cwd}/tmp/bfifo
-mkfifo ${cwd}/tmp/bfifo
-# send a file into the fifo
-(
-echo test1 >$cwd/tmp/bfifo
-print_debug FIRST ECHO
-/bin/sleep 5
-echo test2 >$cwd/tmp/bfifo
-print_debug SECOND ECHO
-/bin/sleep 5
-echo test2 >$cwd/tmp/bfifo
-print_debug THIRD ECHO
-/bin/sleep 5
-cat > $cwd/tmp/bfifo &
-)&
 
 sed 's/Pool Type = Backup/Pool Type = Backup; ActionOnPurge = Truncate/' $conf/bacula-dir.conf > $tmp/1
 cp $tmp/1 $conf/bacula-dir.conf
@@ -73,7 +57,7 @@ run level=full job=$JobName yes
 wait
 messages
 @#########################################################
-@# Run a 4th job that will wait on fifo, and try to purge volume
+@# Run a 4th job
 @#########################################################
 @$out $tmp/log5.out
 update volume=TestVolume003 volstatus=Used
@@ -81,36 +65,77 @@ label storage=File volume=TestVolume004
 messages
 @$out $tmp/log1.out
 run level=full job=$JobName yes
-@#wait mount
-@sleep 5
+wait
 messages
 list volume
-setdebug level=100 storage=File
-@# try to purge TestVolume004 (should fail, in use)
-purge volume=TestVolume004 
-@# try to purge TestVolume003 (should fail, drive busy)
+@$out $tmp/log1.out
+update volume=TestVolume004 volstatus=Used
+label storage=File volume=TestVolume005
+run level=full job=$JobName yes
+wait
+messages
+@$out $tmp/log6.out
+@#########################################################
+@# tests
+@#########################################################
+update volume=TestVolume002 actiononpurge=none
+purge volume=TestVolume001
+purge volume=TestVolume002
 purge volume=TestVolume003
-setdebug level=0 storage=File
+purge volume=TestVolume004
 list volume
 sql
 select VolumeName, VolStatus, ActionOnPurge FROM Media;
 
-wait
-@#########################################################
-@# Test ActionOnPurge=Truncate Volume size should be small
-@#########################################################
-purge volume=TestVolume001
-list volume
-@#########################################################
-@# Test ActionOnPurge=Truncate, then update it to None
-@# Volume size should be normal
-@#########################################################
-update volume=TestVolume002 actiononpurge=none
-purge volume=TestVolume002
+setdebug level=100 director
+quit
+END_OF_DATA
+
+run_bacula
+check_for_zombie_jobs storage=File
+
+print_debug "Check all media"
+perl -Mscripts::functions -e 'foreach $i (1..5){check_min_volume_size(4096,"TestVolume00$i")}'
+
+if [ $? != 0 ]; then
+    print_debug `ls -l $tmp`
+    print_debug "Initialization problem"
+    estat=2
+fi
+
+echo "purge volume=TestVolume001 action storage=File" > $tmp/bconcmds
+run_bconsole
+
+perl -Mscripts::functions -e '
+check_min_volume_size(4096, "TestVolume002","TestVolume003","TestVolume004","TestVolume005");
+check_max_volume_size(4096, "TestVolume001")'
+
+if [ $? != 0 ]; then
+    print_debug `ls -l $tmp`
+    ls -l $tmp
+    estat=2
+fi
+
+echo "purge volume action storage=File" > $tmp/bconcmds
+run_bconsole
+
+perl -Mscripts::functions -e '
+check_min_volume_size(4096, "TestVolume002", "TestVolume005");
+check_max_volume_size(4096, "TestVolume001", "TestVolume003", "TestVolume004")'
+
+if [ $? != 0 ]; then
+    print_debug `ls -l $tmp`
+    ls -l $tmp
+    estat=2
+fi
+
+
+cat <<END_OF_DATA > $tmp/bconcmds
 @#########################################################
 @# Display catalog settings for Pool and Media
 @#########################################################
 @$out $tmp/log4.out
+setdebug level=0 director
 sql
 select VolumeName, ActionOnPurge FROM Media;
 select Name, ActionOnPurge FROM Pool;
@@ -119,33 +144,12 @@ wait
 quit
 END_OF_DATA
 
-run_bacula
-check_for_zombie_jobs storage=File 
+run_bconsole
+
 stop_bacula
 
 touch $tmp/log2.out
 check_two_logs
-
-print_debug "Test TestVolume001 size"
-perl -e "die 'Volume size too big' if (-s '$tmp/TestVolume001' > 4096)"
-if [ $? != 0 ]; then
-    print_debug `ls -l $tmp/TestVolume001`
-    estat=2
-fi
-
-print_debug "Test TestVolume002 size"
-perl -e "die 'Volume size too small' if (-s '$tmp/TestVolume002' < 4096)"
-if [ $? != 0 ]; then
-    print_debug `ls -l $tmp/TestVolume002`
-    estat=2
-fi
-
-print_debug "Test TestVolume003 size (drive busy)"
-perl -e "die 'Volume size too small' if (-s '$tmp/TestVolume003' < 4096)"
-if [ $? != 0 ]; then
-    print_debug `ls -l $tmp/TestVolume003`
-    estat=2
-fi
 
 print_debug "Test if Pool record is ok"
 r=`awk '/Default/ { print $4 }' $tmp/log4.out`
