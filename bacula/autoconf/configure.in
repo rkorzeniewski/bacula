@@ -90,7 +90,6 @@ AC_PATH_PROG(DVDRWMEDIAINFO, dvd+rw-mediainfo, dvd+rw-mediainfo)
 AC_PATH_PROG(DVDRWFORMAT, dvd+rw-format, dvd+rw-format)
 AC_PATH_PROG(PKGCONFIG, pkg-config, pkg-config)
 AC_PATH_PROG(QMAKE, qmake, none)
-AC_PATH_PROG(QMAKEQT4, qmake-qt4, none)
 AC_PATH_PROG(GMAKE, gmake, none)
 AC_ARG_VAR(WXCONFIG, [wx-config command. On some systems, you must set it to wx-config-2.6 to use wxWidgets 2.6.])
 if test "x$WXCONFIG" = x; then
@@ -3061,20 +3060,16 @@ AC_OUTPUT([autoconf/Make.common \
 )
 
 if test "${support_bat}" = "yes" ; then
-   if test "x$QMAKE" = "xnone" && test "x$QMAKEQT4" = "xnone"; then
-      AC_MSG_ERROR([Could not find qmake or qmake-qt4 in $PATH. Check your Qt installation])
+   if test "x$QMAKE" = "xnone"; then
+      AC_MSG_ERROR([Could not find qmake $PATH. Check your Qt installation])
    fi
 
    QMAKEBIN="qmake"
-
-   if test "x$QMAKEQT4" != "xnone"; then
-       QMAKEBIN=qmake-qt4
-   fi
-  
    cd src/qt-console
    echo "Creating bat Makefile"
    touch bat
    chmod 755 bat
+   rm -f Makefile
    $QMAKEBIN
    ${MAKE:-make} clean
    cd ${BUILD_DIR}
