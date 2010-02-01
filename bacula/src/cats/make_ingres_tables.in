@@ -17,7 +17,7 @@ CREATE SEQUENCE filename_seq;
 CREATE TABLE filename
 (
     filenameid	      integer	  not null default filename_seq.nextval,
-    name	      text	  not null,
+    name	      varchar(256)	  not null,
     primary key (filenameid)
 );
 
@@ -28,7 +28,7 @@ CREATE SEQUENCE path_seq;
 CREATE TABLE path
 (
     pathid	      integer	  not null default path_seq.nextval,
-    path	      text	  not null,
+    path	      varchar(256)	  not null,
     primary key (pathid)
 );
 
@@ -44,8 +44,8 @@ CREATE TABLE file
     pathid	      integer	  not null,
     filenameid	      integer	  not null,
     markid	      integer	  not null  default 0,
-    lstat	      text	  not null,
-    md5 	      text	  not null,
+    lstat	      varchar(256)	  not null,
+    md5 	      varchar(256)	  not null,
     primary key (fileid)
 );
 
@@ -72,8 +72,8 @@ CREATE SEQUENCE Job_seq;
 CREATE TABLE Job
 (
     JobId             integer     not null default Job_seq.nextval,
-    Job               text        not null,
-    Name              text        not null,
+    Job               varchar(256)        not null,
+    Name              varchar(256)        not null,
     Type              char(1)     not null,
     Level             char(1)     not null,
     ClientId          integer     default 0,
@@ -97,7 +97,7 @@ CREATE TABLE Job
     HasBase           smallint    default 0,
     HasCache          smallint    default 0,
     Reviewed          smallint    default 0,
-    Comment           text,
+    Comment           varchar(256),
     primary key (jobid)
 );
 
@@ -108,8 +108,8 @@ CREATE SEQUENCE JobHisto_seq;
 CREATE TABLE JobHisto
 (
     JobId             integer     not null default JobHisto_seq.nextval,
-    Job               text        not null,
-    Name              text        not null,
+    Job               varchar(256)        not null,
+    Name              varchar(256)        not null,
     Type              char(1)     not null,
     Level             char(1)     not null,
     ClientId          integer     default 0,
@@ -133,7 +133,7 @@ CREATE TABLE JobHisto
     HasBase           smallint    default 0,
     HasCache          smallint    default 0,
     Reviewed          smallint    default 0,
-    Comment           text,
+    Comment           varchar(256),
     primary key (jobid)
 );
 
@@ -143,7 +143,7 @@ CREATE INDEX jobhisto_idx on JobHisto ( StartTime );
 CREATE SEQUENCE Location_seq;
 CREATE TABLE Location (
    LocationId	      integer	  not null default Location_seq.nextval,
-   Location	      text	  not null,
+   Location	      varchar(256)	  not null,
    Cost 	      integer	  default 0,
    Enabled	      smallint,
    primary key (LocationId)
@@ -153,8 +153,8 @@ CREATE SEQUENCE fileset_seq;
 CREATE TABLE fileset
 (
     filesetid	      integer	  not null default fileset_seq.nextval,
-    fileset	      text	  not null,
-    md5 	      text	  not null,
+    fileset	      varchar(256)	  not null,
+    md5 	      varchar(256)	  not null,
     createtime	      timestamp without time zone not null,
     primary key (filesetid)
 );
@@ -183,10 +183,10 @@ CREATE SEQUENCE media_seq;
 CREATE TABLE media
 (
     mediaid	      integer	  not null default media_seq.nextval,
-    volumename	      text	  not null,
+    volumename	      varchar(256)	  not null,
     slot	      integer	  default 0,
     poolid	      integer	  default 0,
-    mediatype	      text	  not null,
+    mediatype	      varchar(256)	  not null,
     mediatypeid       integer	  default 0,
     labeltype	      integer	  default 0,
     firstwritten      timestamp   without time zone,
@@ -201,7 +201,7 @@ CREATE TABLE media
     volerrors	      integer	  default 0,
     volwrites	      integer	  default 0,
     volcapacitybytes  bigint	  default 0,
-    volstatus	      text	  not null
+    volstatus	      varchar(256)	  not null
 	check (volstatus in ('Full','Archive','Append',
 	      'Recycle','Purged','Read-Only','Disabled',
 	      'Error','Busy','Used','Cleaning','Scratch')),
@@ -226,7 +226,7 @@ CREATE TABLE media
     initialwrite      timestamp   without time zone,
     scratchpoolid     integer	  default 0,
     recyclepoolid     integer	  default 0,
-    comment	      text,
+    comment	      varchar(256),
     primary key (mediaid)
 );
 
@@ -235,7 +235,7 @@ create unique index media_volumename_id on media (volumename);
 CREATE SEQUENCE MediaType_seq;
 CREATE TABLE MediaType (
    MediaTypeId INTEGER NOT NULL DEFAULT MediaType_seq.nextval,
-   MediaType TEXT NOT NULL,
+   MediaType varchar(256) NOT NULL,
    ReadOnly INTEGER NOT NULL DEFAULT 0,
    PRIMARY KEY(MediaTypeId)
    );
@@ -243,7 +243,7 @@ CREATE TABLE MediaType (
 CREATE SEQUENCE Storage_seq;
 CREATE TABLE Storage (
    StorageId INTEGER NOT NULL DEFAULT Storage_seq.nextval,
-   Name TEXT NOT NULL,
+   Name varchar(256) NOT NULL,
    AutoChanger INTEGER NOT NULL DEFAULT 0,
    PRIMARY KEY(StorageId)
    );
@@ -251,7 +251,7 @@ CREATE TABLE Storage (
 CREATE SEQUENCE Device_seq;
 CREATE TABLE Device (
    DeviceId INTEGER NOT NULL DEFAULT Device_seq.nextval,
-   Name TEXT NOT NULL,
+   Name varchar(256) NOT NULL,
    MediaTypeId INTEGER NOT NULL,
    StorageId INTEGER NOT NULL,
    DevMounts INTEGER NOT NULL DEFAULT 0,
@@ -273,7 +273,7 @@ CREATE SEQUENCE pool_seq;
 CREATE TABLE pool
 (
     poolid	      integer	  not null default pool_seq.nextval,
-    name	      text	  not null,
+    name	      varchar(256)	  not null,
     numvols	      integer	  default 0,
     maxvols	      integer	  default 0,
     useonce	      smallint	  default 0,
@@ -287,10 +287,10 @@ CREATE TABLE pool
     autoprune	      smallint	  default 0,
     recycle	      smallint	  default 0,
     ActionOnPurge     smallint    default 0,
-    pooltype	      text			    
+    pooltype	      varchar(256)			    
       check (pooltype in ('Backup','Copy','Cloned','Archive','Migration','Scratch')),
     labeltype	      integer	  default 0,
-    labelformat       text	  not null,
+    labelformat       varchar(256)	  not null,
     enabled	      smallint	  default 1,
     scratchpoolid     integer	  default 0,
     recyclepoolid     integer	  default 0,
@@ -307,8 +307,8 @@ CREATE SEQUENCE client_seq;
 CREATE TABLE client
 (
     clientid	      integer	  not null default client_seq.nextval,
-    name	      text	  not null,
-    uname	      text	  not null,
+    name	      varchar(256)	  not null,
+    uname	      varchar(256)	  not null,
     autoprune	      smallint	  default 0,
     fileretention     bigint	  default 0,
     jobretention      bigint	  default 0,
@@ -323,7 +323,7 @@ CREATE TABLE Log
     LogId	      integer	  not null default Log_seq.nextval,
     JobId	      integer	  not null,
     Time	      timestamp   without time zone,
-    LogText	      text	  not null,
+    LogText	      varchar(256)	  not null,
     primary key (LogId)
 );
 create index log_name_idx on Log (JobId);
@@ -332,10 +332,10 @@ CREATE SEQUENCE LocationLog_seq;
 CREATE TABLE LocationLog (
    LocLogId INTEGER NOT NULL DEFAULT LocationLog_seq.nextval,
    Date timestamp   without time zone,
-   Comment TEXT NOT NULL,
+   Comment varchar(256) NOT NULL,
    MediaId INTEGER DEFAULT 0,
    LocationId INTEGER DEFAULT 0,
-   newvolstatus text not null
+   newvolstatus varchar(256) not null
 	check (newvolstatus in ('Full','Archive','Append',
 	      'Recycle','Purged','Read-Only','Disabled',
 	      'Error','Busy','Used','Cleaning','Scratch')),
@@ -347,11 +347,11 @@ CREATE TABLE LocationLog (
 
 CREATE TABLE counters
 (
-    counter	      text	  not null,
+    counter	      varchar(256)	  not null,
     minvalue	      integer	  default 0,
     maxvalue	      integer	  default 0,
     currentvalue      integer	  default 0,
-    wrapcounter       text	  not null,
+    wrapcounter       varchar(256)	  not null,
     primary key (counter)
 );
 
@@ -414,7 +414,7 @@ CREATE TABLE version
 
 CREATE TABLE Status (
    JobStatus CHAR(1) NOT NULL,
-   JobStatusLong TEXT,
+   JobStatusLong varchar(256),
    Severity int,
    PRIMARY KEY (JobStatus)
    );

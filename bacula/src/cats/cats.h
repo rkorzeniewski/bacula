@@ -623,7 +623,7 @@ extern const char* my_ingres_batch_fill_path_query;
 #define sql_strerror(x)       INGerrorMessage((x)->db)
 #define sql_num_rows(x)       ((unsigned) INGntuples((x)->result))
 #define sql_data_seek(x, i)   my_ingres_data_seek((x), (i))
-#define sql_affected_rows(x)  ((unsigned) atoi(INGcmdTuples((x)->result)))
+#define sql_affected_rows(x)  ((x)->num_rows)
 #define sql_insert_id(x,y)    my_ingres_currval((x), (y))
 #define sql_field_seek(x, y)  my_ingres_field_seek((x), (y))
 #define sql_fetch_field(x)    my_ingres_fetch_field(x)
