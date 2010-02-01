@@ -83,7 +83,7 @@ static bool setdebug_cmd(JCR *jcr);
 static bool cancel_cmd(JCR *cjcr);
 static bool mount_cmd(JCR *jcr);
 static bool unmount_cmd(JCR *jcr);
-static bool action_on_purge_cmd(JCR *jcr);
+//static bool action_on_purge_cmd(JCR *jcr);
 static bool bootstrap_cmd(JCR *jcr);
 static bool changer_cmd(JCR *sjcr);
 static bool do_label(JCR *jcr, int relabel);
@@ -119,7 +119,7 @@ static struct s_cmds cmds[] = {
    {"status",      status_cmd,      1},
    {".status",     qstatus_cmd,     1},
    {"unmount",     unmount_cmd,     0},
-   {"action_on_purge",  action_on_purge_cmd,    0},
+//   {"action_on_purge",  action_on_purge_cmd,    0},
    {"use storage=", use_cmd,        0},
    {"run",         run_cmd,         0},
 // {"query",       query_cmd,       0},
@@ -875,6 +875,7 @@ static bool unmount_cmd(JCR *jcr)
    return true;
 }
 
+#if 0
 /*
  * The truncate command will recycle a volume. The director can call this
  * after purging a volume so that disk space will not be wasted. Only useful
@@ -887,11 +888,6 @@ static bool action_on_purge_cmd(JCR *jcr)
 {
    BSOCK *dir = jcr->dir_bsock;
 
-   /* Currently disabled */
-   dir->fsend(_("3916 Feature action_on_purge currently disabled\n"));
-   goto done;
-
-#if 0
    char devname[MAX_NAME_LENGTH];
    char volumename[MAX_NAME_LENGTH];
    int action;
@@ -912,12 +908,12 @@ static bool action_on_purge_cmd(JCR *jcr)
 
    } 
    /* ... */
-#endif
 
 done:
    dir->signal(BNET_EOD);
    return true;
 }
+#endif
 
 /*
  * Release command from Director. This rewinds the device and if
