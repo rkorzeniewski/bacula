@@ -273,10 +273,6 @@ db_close_database(JCR *jcr, B_DB *mdb)
          free(mdb->db_socket);
       }
       free(mdb);
-      if (db_list->size() == 0) {
-         delete db_list;
-         db_list = NULL;
-      }
    }
    V(mutex);
 }
@@ -288,7 +284,7 @@ void db_thread_cleanup()
  * Return the next unique index (auto-increment) for
  * the given table.  Return NULL on error.
  *
- * For Ingres, NULL causes the auto-increment value	SRE: true?
+ * For Ingres, NULL causes the auto-increment value     SRE: true?
  *  to be updated.
  */
 int db_next_index(JCR *jcr, B_DB *mdb, char *table, char *index)
