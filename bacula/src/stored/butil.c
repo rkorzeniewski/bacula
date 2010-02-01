@@ -105,8 +105,6 @@ JCR *setup_jcr(const char *name, char *dev_name, BSR *bsr,
    pm_strcpy(jcr->fileset_name, "Dummy.fileset.name");
    jcr->fileset_md5 = get_pool_memory(PM_FNAME);
    pm_strcpy(jcr->fileset_md5, "Dummy.fileset.md5");
-   jcr->comment = get_pool_memory(PM_MESSAGE);
-   *jcr->comment = '\0';
    init_autochangers();
    create_volume_lists();
 
@@ -222,10 +220,6 @@ static void my_free_jcr(JCR *jcr)
    if (jcr->fileset_md5) {
       free_pool_memory(jcr->fileset_md5);
       jcr->fileset_md5 = NULL;
-   }
-   if (jcr->comment) {
-      free_pool_memory(jcr->comment);
-      jcr->comment = NULL;
    }
    if (jcr->VolList) {
       free_restore_volume_list(jcr);
