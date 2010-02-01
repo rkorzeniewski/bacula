@@ -376,6 +376,10 @@ db_close_database(JCR *jcr, B_DB *mdb)
           free(mdb->db_driver);
       }
       free(mdb);
+      if (db_list->size() == 0) {
+         delete db_list;
+         db_list = NULL;
+      }
    }
    V(mutex);
 }
