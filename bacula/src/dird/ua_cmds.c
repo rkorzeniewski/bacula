@@ -151,7 +151,7 @@ static struct cmdstruct commands[] = {                                      /* C
  { NT_("prune"),      prunecmd,      _("Prune expired records from catalog"), 
    NT_("files | jobs | pool=<pool> | client=<client-name> | volume=<volume-name> "), true},
 
- { NT_("purge"),      purgecmd,      _("Purge records from catalog"), NT_("volume=<vol>"),  true},
+ { NT_("purge"),      purgecmd,      _("Purge records from catalog"), NT_("files jobs volume=<vol> [action=<action> devicetype=<type> pool=<pool> allpools storage=<st> drive=<num>]"),  true},
  { NT_("python"),     python_cmd,    _("Python control commands"),    NT_(""),              false},
  { NT_("quit"),       quit_cmd,      _("Terminate Bconsole session"), NT_(""),              false},
  { NT_("query"),      querycmd,      _("Query catalog"),              NT_(""),              false},
