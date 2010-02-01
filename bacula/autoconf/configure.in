@@ -2,6 +2,8 @@ dnl
 dnl
 dnl Process this file with autoconf to produce a configure script.
 dnl
+dnl require a recent autoconf
+AC_PREREQ(2.61)
 AC_INIT(src/version.h)
 BUILD_DIR=`pwd`
 cd ..
@@ -10,7 +12,7 @@ cd ${BUILD_DIR}
 AC_SUBST(BUILD_DIR)
 AC_SUBST(TOP_DIR)
 AC_CONFIG_AUX_DIR(${BUILD_DIR}/autoconf)
-AC_CONFIG_HEADER(src/config.h:autoconf/config.h.in)
+AC_CONFIG_HEADERS(src/config.h:autoconf/config.h.in)
 
 dnl minimal Win32 stuff for "make clean"
 WIN32BUILDDIR=${BUILD_DIR}/src/win32
@@ -19,10 +21,6 @@ WIN32TOPDIR=${TOP_DIR}
 AC_SUBST(WIN32BUILDDIR)
 AC_SUBST(WIN32MAINDIR)
 AC_SUBST(WIN32TOPDIR)
-
-dnl require a recent autoconf
-AC_PREREQ(2.61)
-
 
 dnl search for true and false programs.
 AC_PATH_PROGS(TRUEPRG, true, :)
@@ -3003,7 +3001,7 @@ AC_OUTPUT([autoconf/Make.common \
 	   src/filed/Makefile \
 	   src/filed/bacula-fd.conf \
 	   src/cats/Makefile \
-           src/cats/make_catalog_backup.pl \
+	   src/cats/make_catalog_backup.pl \
 	   src/cats/make_catalog_backup \
 	   src/cats/delete_catalog_backup \
 	   src/cats/create_postgresql_database \
