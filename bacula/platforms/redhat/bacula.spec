@@ -1030,7 +1030,7 @@ rm -f $RPM_BUILD_DIR/Release_Notes-%{version}-%{release}.txt
 %{_sbindir}/btape
 %{_sbindir}/btraceback
 %{_sbindir}/bconsole
-%{_sbindir}/dbcheck
+%attr(-, root, %{daemon_group}) %{_sbindir}/dbcheck
 %{_sbindir}/bsmtp
 %{_sbindir}/bregex
 %{_sbindir}/bwild
@@ -1071,24 +1071,24 @@ DB_VER=`mysql 2>/dev/null bacula -e 'select * from Version;'|tail -n 1`
 # are we upgrading from sqlite to sqlite3?
 if [ -s %{working_dir}/bacula.db ] && [ -s %{sqlite_bindir}/sqlite ];then
         echo "This version of bacula-sqlite involves an upgrade to sqlite3."
-	echo "Your catalog database file is not compatible with sqlite3, thus"
-	echo "you will need to dump the data, delete the old file, and re-run"
-	echo "this rpm upgrade."
-	echo ""
-	echo "Backing up your current database..."
+        echo "Your catalog database file is not compatible with sqlite3, thus"
+        echo "you will need to dump the data, delete the old file, and re-run"
+        echo "this rpm upgrade."
+        echo ""
+        echo "Backing up your current database..."
         echo ".dump" | %{sqlite_bindir}/sqlite %{working_dir}/bacula.db > %{working_dir}/bacula_backup.sql
-	mv %{working_dir}/bacula.db %{working_dir}/bacula.db.old
-	echo "Your catalog data has been saved in %{working_dir}/bacula_backup.sql and your"
-	echo "catalog file has been renamed %{working_dir}/bacula.db.old."
-	echo ""
-	echo "Please re-run this rpm package upgrade."
-	echo "After the upgrade is complete, restore your catalog"
-	echo "with the following commands:"
-	echo "%{script_dir}/drop_sqlite3_tables"
-	echo "cd %{working_dir}"
-	echo "%{sqlite_bindir}/sqlite3 $* bacula.db < bacula_backup.sql"
-	echo "chown bacula.bacula bacula.db"
-	exit 1
+        mv %{working_dir}/bacula.db %{working_dir}/bacula.db.old
+        echo "Your catalog data has been saved in %{working_dir}/bacula_backup.sql and your"
+        echo "catalog file has been renamed %{working_dir}/bacula.db.old."
+        echo ""
+        echo "Please re-run this rpm package upgrade."
+        echo "After the upgrade is complete, restore your catalog"
+        echo "with the following commands:"
+        echo "%{script_dir}/drop_sqlite3_tables"
+        echo "cd %{working_dir}"
+        echo "%{sqlite_bindir}/sqlite3 $* bacula.db < bacula_backup.sql"
+        echo "chown bacula.bacula bacula.db"
+        exit 1
 fi
 # test for bacula database older than version 11 and sqlite3
 if [ -s %{working_dir}/bacula.db ] && [ -s %{sqlite_bindir}/sqlite3 ];then
@@ -1239,17 +1239,17 @@ if [ -s %{working_dir}/bacula.db ]; then
                 echo "Backing up your current database..."
                 echo ".dump" | %{sqlite_bindir}/sqlite3 %{working_dir}/bacula.db | bzip2 > %{working_dir}/bacula_backup.sql.bz2
                 echo "Upgrading bacula database ..."
-		%{script_dir}/update_sqlite3_tables
+                %{script_dir}/update_sqlite3_tables
                 echo "If bacula works correctly you can remove the backup file %{working_dir}/bacula_backup.sql.bz2"
         fi
 else
         # create the database and tables
         echo "Hmm, doesn't look like you have an existing database."
         echo "Creating SQLite database..."
-	%{script_dir}/create_sqlite3_database
-	chown %{director_daemon_user}.%{daemon_group} %{working_dir}/bacula.db
+        %{script_dir}/create_sqlite3_database
+        chown %{director_daemon_user}.%{daemon_group} %{working_dir}/bacula.db
         echo "Creating the SQLite tables..."
-	%{script_dir}/make_sqlite3_tables
+        %{script_dir}/make_sqlite3_tables
 fi
 %endif
 
