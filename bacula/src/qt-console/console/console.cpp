@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2007-2009 Free Software Foundation Europe e.V.
+   Copyright (C) 2007-2010 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -26,8 +26,6 @@
    Switzerland, email:ftf@fsfeurope.org.
 */
 /*
- *   Version $Id$
- *
  *  Console Class
  *
  *   Kern Sibbald, January MMVII
@@ -143,7 +141,7 @@ void Console::populateLists(bool /*forcenew*/)
 {
    int conn;
    if (!availableDirComm(conn) && !newDirComm(conn)) {
-      Pmsg1(000, "newDirComm Seems to Failed to create a connection for populateLists %s\n", m_dir->name());
+      Emsg1(M_ABORT, 0, "Failed to connect to %s for populateLists.\n", m_dir->name());
       return;
    }
    populateLists(conn);
@@ -209,7 +207,7 @@ bool Console::dir_cmd(const char *cmd, QStringList &results)
       dir_cmd(conn, cmd, results);
       return true;
    } else {
-      Pmsg1(000, "dir_cmd Seems to Failed to find a connection %s\n", m_dir->name());
+      Pmsg1(000, "dir_cmd failed to connect to %s\n", m_dir->name());
       return false;
    }
 }
