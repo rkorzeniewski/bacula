@@ -38,15 +38,22 @@ package scripts::functions;
 use Exporter;
 our @ISA = qw(Exporter);
 our @EXPORT =  qw(update_some_files create_many_files check_multiple_copies
-                  update_client $HOST $BASEPORT
+                  update_client $HOST $BASEPORT add_to_backup_list check_volume_size
+                  check_min_volume_size check_max_volume_size $estat $bstat $rstat $zstat
                   $cwd $bin $scripts $conf $rscripts $tmp $working
                   $db_name $db_user $db_password $src $tmpsrc);
 
 
 use File::Copy qw/copy/;
 
-our ($cwd, $bin, $scripts, $conf, $rscripts, $tmp, $working,
+our ($cwd, $bin, $scripts, $conf, $rscripts, $tmp, $working, $estat, $bstat, $zstat, $rstat,
      $db_name, $db_user, $db_password, $src, $tmpsrc, $HOST, $BASEPORT);
+
+END {
+    if ($estat || $rstat || $zstat || $bstat) {
+        exit 1;
+    }
+}
 
 BEGIN {
     # start by loading the ./config file
@@ -80,6 +87,55 @@ BEGIN {
     $ENV{rscripts} = $rscripts =  $ENV{rscripts} || "$cwd/scripts";
     $ENV{HOST}     = $HOST     =  $ENV{HOST}     || "localhost";
     $ENV{BASEPORT} = $BASEPORT =  $ENV{BASEPORT} || "8101";
+
+    $estat = $rstat = $bstat = $zstat = 0;
+}
+
+sub check_min_volume_size
+{
+    my ($size, @vol) = @_;
+    my $ret=0;
+
+    foreach my $v (@vol) {
+        if (! -f "$tmp/$v") {
+            print "ERR: $tmp/$v not accessible\n";
+            $ret++;
+            next;
+        }
+        if (-s "$tmp/$v" < $size) {
+            print "ERR: $tmp/$v too small\n";
+            $ret++;
+        }
+    }
+    $estat+=$ret;
+    return $ret;
+}
+
+sub check_max_volume_size
+{
+    my ($size, @vol) = @_;
+    my $ret=0;
+
+    foreach my $v (@vol) {
+        if (! -f "$tmp/$v") {
+            print "ERR: $tmp/$v not accessible\n";
+            $ret++;
+            next;
+        }
+        if (-s "$tmp/$v" > $size) {
+            print "ERR: $tmp/$v too big\n";
+            $ret++;
+        }
+    }
+    $estat+=$ret;
+    return $ret;
+}
+
+sub add_to_backup_list
+{
+    open(FP, ">>$tmp/file-list") or die "Can't open $tmp/file-list for update $!";
+    print FP join("\n", @_);
+    close(FP);
 }
 
 # update client definition for the current test
