@@ -443,6 +443,12 @@ Section "-Initialize"
 
   FileClose $R1
 
+  ${If} ${FileExists} "$OldInstallDir\bacula-fd.exe"
+    nsExec::ExecToLog '"$OldInstallDir\bacula-fd.exe" /kill'     ; Shutdown any bacula that could be running
+    Sleep 3000
+    nsExec::ExecToLog '"$OldInstallDir\bacula-fd.exe" /remove'   ; Remove existing service
+  ${EndIf}
+
 SectionEnd
 
 SectionGroup "Client" SecGroupClient
@@ -515,6 +521,9 @@ Section "Bat Console" SecBatConsole
   StrCpy $0 "$INSTDIR\bin32"
   StrCpy $1 bat.conf
   Call ConfigEditAndCopy
+
+  File "${SRC_DIR}\help\*"
+
 
   ; Create Start Menu entry
   CreateShortCut "$SMPROGRAMS\Bacula\Bat.lnk" "$INSTDIR\bin32\bat.exe" '-c "$INSTDIR\bin32\bat.conf"' "$INSTDIR\bin32\bat.exe" 0
