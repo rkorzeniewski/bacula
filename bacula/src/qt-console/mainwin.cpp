@@ -94,10 +94,11 @@ MainWin::MainWin(QWidget *parent) : QMainWindow(parent)
 
    readSettings();
 
-   foreach(Console *console, m_consoleHash)
+   foreach(Console *console, m_consoleHash) {
       console->connect_dir();
+   }
    m_currentConsole = (Console*)getFromHash(m_firstItem);
-   QTimer::singleShot(750, this, SLOT(popLists()));
+   QTimer::singleShot(5000, this, SLOT(popLists()));
    if (m_miscDebug) {
       QString directoryResourceName;
       m_currentConsole->getDirResName(directoryResourceName);
@@ -108,8 +109,9 @@ MainWin::MainWin(QWidget *parent) : QMainWindow(parent)
 
 void MainWin::popLists()
 {
-   foreach(Console *console, m_consoleHash)
+   foreach(Console *console, m_consoleHash) {
       console->populateLists(true);
+   }
    m_doConnect = true;
    connectConsoleSignals();
    connectSignals();
@@ -155,7 +157,6 @@ void MainWin::createPages()
       */
       QBrush redBrush(Qt::red);
       item->setForeground(0, redBrush);
-      m_currentConsole->dockPage();
 
       /*
        * Create instances in alphabetic order of the rest 
@@ -182,6 +183,8 @@ void MainWin::createPages()
 
       treeWidget->expandItem(topItem);
       tabWidget->setCurrentWidget(m_currentConsole);
+      m_currentConsole->undockPage();
+      m_currentConsole->dockPage();
    }
    UnlockRes();
 }
