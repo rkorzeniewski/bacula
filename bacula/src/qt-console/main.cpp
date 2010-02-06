@@ -82,6 +82,10 @@ int main(int argc, char *argv[])
    textdomain("bacula");
 #endif
 
+#ifdef HAVE_WIN32
+   set_trace(true);          /* output to trace file */
+#endif
+
    init_stack_dump();
    my_name_is(argc, argv, "bat");
    lmgr_init_thread();
