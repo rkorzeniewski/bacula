@@ -510,7 +510,9 @@ Section "Bat Console" SecBatConsole
   StrCpy $1 bat.conf
   Call ConfigEditAndCopy
 
+  SetOutPath "$INSTDIR\help"
   File "${SRC_DIR}\help\*"
+  SetOutPath "$INSTDIR"
    
 
   ; Create Start Menu entry
