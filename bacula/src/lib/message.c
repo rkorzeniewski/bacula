@@ -841,6 +841,34 @@ get_basename(const char *pathname)
 #endif
 }
 
+/*
+ * print or write output to trace file 
+ */
+static void pt_out(char *buf)
+{
+    /*
+     * Used the "trace on" command in the console to turn on
+     *  output to the trace file.  "trace off" will close the file.
+     */
+    if (trace) {
+       if (!trace_fd) {
+          char fn[200];
+          bsnprintf(fn, sizeof(fn), "%s/%s.trace", working_directory ? working_directory : "./", my_name);
+          trace_fd = fopen(fn, "a+b");
+       }
+       if (trace_fd) {
+          fputs(buf, trace_fd);
+          fflush(trace_fd);
+       } else {
+          /* Some problem, turn off tracing */
+          trace = false;
+       }
+    } else {   /* not tracing */
+       fputs(buf, stdout);
+       fflush(stdout);
+    }
+}
+
 /*********************************************************************
  *
  *  This subroutine prints a debug message if the level number
@@ -889,27 +917,7 @@ d_msg(const char *file, int line, int level, const char *fmt,...)
        bvsnprintf(buf+len, sizeof(buf)-len, (char *)fmt, arg_ptr);
        va_end(arg_ptr);
 
-       /*
-        * Used the "trace on" command in the console to turn on
-        *  output to the trace file.  "trace off" will close the file.
-        */
-       if (trace) {
-          if (!trace_fd) {
-             char fn[200];
-             bsnprintf(fn, sizeof(fn), "%s/%s.trace", working_directory ? working_directory : "./", my_name);
-             trace_fd = fopen(fn, "a+b");
-          }
-          if (trace_fd) {
-             fputs(buf, trace_fd);
-             fflush(trace_fd);
-          } else {
-             /* Some problem, turn off tracing */
-             trace = false;
-          }
-       } else {   /* not tracing */
-          fputs(buf, stdout);
-          fflush(stdout);
-       }
+       pt_out(buf);
     }
 }
 
@@ -964,8 +972,8 @@ p_msg(const char *file, int line, int level, const char *fmt,...)
     va_start(arg_ptr, fmt);
     bvsnprintf(buf+len, sizeof(buf)-len, (char *)fmt, arg_ptr);
     va_end(arg_ptr);
-    fputs(buf, stdout);
-    fflush(stdout);
+
+    pt_out(buf);     
 }
 
 
