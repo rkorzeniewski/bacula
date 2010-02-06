@@ -96,8 +96,9 @@ void Console::stopTimer()
 void Console::poll_messages()
 {
    int conn;
-   if (!availableDirComm(conn))
+   if (!availableDirComm(conn)) {
       return;
+   }
    DirComm *dircomm = m_dircommHash.value(conn);
 
    if (mainWin->m_checkMessages && dircomm->m_at_main_prompt && hasFocus() && !mainWin->getWaitState()){
@@ -251,16 +252,18 @@ bool Console::sql_cmd(int &conn, QString &query, QStringList &results)
 bool Console::sql_cmd(QString &query, QStringList &results)
 {
    int conn;
-   if (!availableDirComm(conn))
+   if (!availableDirComm(conn)) {
       return false;
+   }
    return sql_cmd(conn, query.toUtf8().data(), results, true);
 }
 
 bool Console::sql_cmd(const char *query, QStringList &results)
 {
    int conn;
-   if (!availableDirComm(conn))
+   if (!availableDirComm(conn)) {
       return false;
+   }
    return sql_cmd(conn, query, results, true);
 }
 
@@ -318,16 +321,18 @@ bool Console::sql_cmd(int &conn, const char *query, QStringList &results, bool d
 int Console::write_dir(const char *msg)
 {
    int conn;
-   if (availableDirComm(conn))
+   if (availableDirComm(conn)) {
       write_dir(conn, msg);
+   }
    return conn;
 }
 
 int Console::write_dir(const char *msg, bool dowait)
 {
    int conn;
-   if (availableDirComm(conn))
+   if (availableDirComm(conn)) {
       write_dir(conn, msg, dowait);
+   }
    return conn;
 }
 
@@ -669,8 +674,9 @@ QString Console::returnFromPrompt(int conn)
 int Console::notifyOff()
 { 
    int conn = 0;
-   if (availableDirComm(conn))
+   if (availableDirComm(conn)) {
       notify(conn, false);
+   }
    return conn;
 }
 
@@ -814,19 +820,10 @@ bool Console::is_connected(int conn)
  */
 bool Console::availableDirComm(int &conn)
 {
-   QHash<int, DirComm*>::const_iterator iter = m_dircommHash.constBegin();
-   while (iter != m_dircommHash.constEnd()) {
-      DirComm *dircomm = iter.value();
-      if (dircomm->m_at_prompt && dircomm->m_at_main_prompt && dircomm->is_notify_enabled()) {
-         conn = dircomm->m_conn;
-         return true;
-      }
-      ++iter;
-   }
-   if (newDirComm(conn))
+   if (currentDirComm(conn)) {
       return true;
-   else
-      return false;
+   }
+   return newDirComm(conn);
 }
 
 
@@ -835,12 +832,18 @@ bool Console::availableDirComm(int &conn)
  */
 bool Console::currentDirComm(int &conn)
 {
+   int i = 1;
    QHash<int, DirComm*>::const_iterator iter = m_dircommHash.constBegin();
    while (iter != m_dircommHash.constEnd()) {
       DirComm *dircomm = iter.value();
-      if (dircomm->m_at_prompt && !dircomm->m_at_main_prompt && dircomm->is_notify_enabled()) {
+      if (dircomm->m_at_prompt && dircomm->m_at_main_prompt && dircomm->is_notify_enabled()) {
          conn = dircomm->m_conn;
          return true;
+      }
+      if (mainWin->m_connDebug) {
+         Pmsg4(000, "currentDirComm=%d at_prompt=%d at_main=%d && notify=%d\n",                                      
+            i, dircomm->m_at_prompt, dircomm->m_at_main_prompt, dircomm->is_notify_enabled());
+         i++;
       }
       ++iter;
    }
@@ -852,18 +855,26 @@ bool Console::currentDirComm(int &conn)
  */
 bool Console::newDirComm(int &conn)
 {
-   m_dircommCounter += 1;
-   conn = m_dircommCounter;
-   if (mainWin->m_connDebug)
-      Pmsg2(000, "DirComm %i About to Create and Connect %s\n", m_dircommCounter, m_dir->name());
+   m_dircommCounter++;
+   if (mainWin->m_connDebug) {
+      Pmsg2(000, "newDirComm=%i to: %s\n", m_dircommCounter, m_dir->name());
+   }
    DirComm *dircomm = new DirComm(this, m_dircommCounter);
    m_dircommHash.insert(m_dircommCounter, dircomm);
    bool success = dircomm->connect_dir();
    if (mainWin->m_connDebug) {
-      if (success)
-         Pmsg2(000, "DirComm %i Connected %s\n", conn, m_dir->name());
-      else
-         Pmsg2(000, "DirComm %i NOT Connected %s\n", conn, m_dir->name());
+      if (success) {
+         Pmsg2(000, "newDirComm=%i Connected %s\n", m_dircommCounter, m_dir->name());
+      } else {
+         Emsg2(M_ERROR, 0, "DirComm=%i. Unable to connect to %s\n",
+               m_dircommCounter, m_dir->name());
+      }
    }
+   if (!success) {
+      m_dircommHash.remove(m_dircommCounter);
+      delete dircomm;
+      m_dircommCounter--;
+   }
+   conn = m_dircommCounter;
    return success;
 }
