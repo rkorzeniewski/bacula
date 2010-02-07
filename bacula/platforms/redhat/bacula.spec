@@ -1218,7 +1218,7 @@ if [ -z "$DB_VER" ]; then
     %{script_dir}/make_mysql_tables
 
 # check to see if we need to upgrade a 3.x database
-elif [ "$DB_VER" -lt "11" ]; then
+elif [ "$DB_VER" -lt "12" ]; then
     echo "This release requires an upgrade to your bacula database."
     echo "Backing up your current database..."
     mysqldump -f --opt bacula | bzip2 > %{working_dir}/bacula_backup.sql.bz2
@@ -1449,6 +1449,8 @@ echo "The database update scripts were installed to %{script_dir}/updatedb"
 %endif
 
 %changelog
+* Sun Feb 07 2010 D. Scott Barninger <barninger@fairfieldcomputers.com>
+- fix mysql database upgrade
 * Fri Feb 05 2010 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - fix permissions of dbcheck
 - misc. cleanup
