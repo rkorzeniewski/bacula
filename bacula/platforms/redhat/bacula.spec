@@ -230,6 +230,7 @@ Prefix: %{_prefix}
 
 Source0: http://www.prdownloads.sourceforge.net/bacula/%{name}-%{version}.tar.gz
 # opensuse build service changes the release itself
+# what happens if the release is not 1? DSB
 %if 0%{?opensuse_bs}
 Source1: Release_Notes-%{version}-1.tar.gz
 %else
@@ -976,7 +977,7 @@ rm -f $RPM_BUILD_DIR/Release_Notes-%{version}-%{release}.txt
 # The rest is DB backend independent
 %endif
 # opensuse_bs: directories not owned by any package
-#/etc/bacula
+%dir %attr(-, root, %{daemon_group}) %{sysconf_dir}
 
 %if ! %{client_only}
 %attr(-, root, %{daemon_group}) %dir %{script_dir}
@@ -1001,6 +1002,7 @@ rm -f $RPM_BUILD_DIR/Release_Notes-%{version}-%{release}.txt
 %attr(-, root, %{daemon_group}) %{script_dir}/bpipe-fd.so
 %attr(-, root, %{daemon_group}) /etc/init.d/bacula-dir
 %attr(-, root, %{daemon_group}) /etc/init.d/bacula-fd
+%attr(-, root, %{daemon_group}) %{_sbindir}/dbcheck
 %attr(-, root, %{storage_daemon_group}) %{script_dir}/dvd-handler
 %attr(-, root, %{storage_daemon_group}) /etc/init.d/bacula-sd
 %attr(-, root, %{storage_daemon_group}) %{script_dir}/mtx-changer
@@ -1030,7 +1032,6 @@ rm -f $RPM_BUILD_DIR/Release_Notes-%{version}-%{release}.txt
 %{_sbindir}/btape
 %{_sbindir}/btraceback
 %{_sbindir}/bconsole
-%attr(-, root, %{daemon_group}) %{_sbindir}/dbcheck
 %{_sbindir}/bsmtp
 %{_sbindir}/bregex
 %{_sbindir}/bwild
@@ -1367,7 +1368,7 @@ fi
 %_prefix/share/doc/*
 
 #opensuse_bs: directories not owned by any package
-#/etc/bacula
+%dir %attr(-, root, %{daemon_group}) %{sysconf_dir}
 
 %pre client
 # create the daemon group and user
@@ -1448,6 +1449,9 @@ echo "The database update scripts were installed to %{script_dir}/updatedb"
 %endif
 
 %changelog
+* Fri Feb 05 2010 D. Scott Barninger <barninger@fairfieldcomputers.com>
+- fix permissions of dbcheck
+- misc. cleanup
 * Sat Jan 30 2010 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - 5.0.0
 - add su112 and fc10 builds, remove doc package declaration.
