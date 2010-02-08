@@ -315,8 +315,10 @@ check_restore_tmp_build_diff()
 #
 end_test()
 {
-   cat ${working}/bacula.*.traceback 2>/dev/null
-   cat ${working}/*.bactrace 2>/dev/null
+   if [ x$notracedump != xyes ]; then 
+      cat ${working}/bacula.*.traceback 2>/dev/null
+      cat ${working}/*.bactrace 2>/dev/null
+   fi
    if [ $estat != 0 ] ; then
       echo " "
       echo "  !!!!! $TestName failed!!! `date +%R:%S` !!!!! "
