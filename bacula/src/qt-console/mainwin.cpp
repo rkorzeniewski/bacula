@@ -599,7 +599,7 @@ void MainWin::input_line()
    QString cmdStr = lineEdit->text();    /* Get the text */
    lineEdit->clear();                    /* clear the lineEdit box */
    if (m_currentConsole->is_connected()) {
-      if (m_currentConsole->currentDirComm(conn)) {
+      if (m_currentConsole->findDirComm(conn)) {
          m_currentConsole->consoleCommand(cmdStr, conn);
       } else {
          /* Use consoleCommand to allow typing anything */

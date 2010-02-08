@@ -96,11 +96,16 @@ void Console::stopTimer()
 void Console::poll_messages()
 {
    int conn;
-   if (!availableDirComm(conn)) {
-      return;
-   }
-   DirComm *dircomm = m_dircommHash.value(conn);
 
+   /*
+    * Note if we call getDirComm here, we continuously consume
+    *  file descriptors.
+    */
+   if (!findDirComm(conn)) {    /* find a free DirComm */
+      return;                   /* try later */
+   }
+
+   DirComm *dircomm = m_dircommHash.value(conn);
    if (mainWin->m_checkMessages && dircomm->m_at_main_prompt && hasFocus() && !mainWin->getWaitState()){
       messagesPending(true);
       dircomm->write(".messages");
@@ -125,8 +130,9 @@ void Console::connect_dir()
    m_textEdit = textEdit;   /* our console screen */
 
    if (dircomm->connect_dir()) {
-      if (mainWin->m_connDebug)
+      if (mainWin->m_connDebug) {
          Pmsg1(000, "DirComm 0 Seems to have Connected %s\n", m_dir->name());
+      }
       beginNewCommand(0);
    }
    mainWin->set_status(_("Connected"));
@@ -141,9 +147,14 @@ void Console::connect_dir()
 void Console::populateLists(bool /*forcenew*/)
 {
    int conn;
-   if (!availableDirComm(conn) && !newDirComm(conn)) {
-      Emsg1(M_ABORT, 0, "Failed to connect to %s for populateLists.\n", m_dir->name());
-      return;
+   if (!getDirComm(conn)) {
+      if (mainWin->m_connDebug) {
+         Pmsg0(000, "call newDirComm\n");
+      }
+      if (!newDirComm(conn)) {
+         Emsg1(M_ABORT, 0, "Failed to connect to %s for populateLists.\n", m_dir->name());
+         return;
+      }
    }
    populateLists(conn);
 }
@@ -204,7 +215,7 @@ bool Console::dir_cmd(QString &cmd, QStringList &results)
 bool Console::dir_cmd(const char *cmd, QStringList &results)
 {
    int conn;
-   if (availableDirComm(conn)) {
+   if (getDirComm(conn)) {
       dir_cmd(conn, cmd, results);
       return true;
    } else {
@@ -252,7 +263,7 @@ bool Console::sql_cmd(int &conn, QString &query, QStringList &results)
 bool Console::sql_cmd(QString &query, QStringList &results)
 {
    int conn;
-   if (!availableDirComm(conn)) {
+   if (!getDirComm(conn)) {
       return false;
    }
    return sql_cmd(conn, query.toUtf8().data(), results, true);
@@ -261,7 +272,7 @@ bool Console::sql_cmd(QString &query, QStringList &results)
 bool Console::sql_cmd(const char *query, QStringList &results)
 {
    int conn;
-   if (!availableDirComm(conn)) {
+   if (!getDirComm(conn)) {
       return false;
    }
    return sql_cmd(conn, query, results, true);
@@ -321,7 +332,7 @@ bool Console::sql_cmd(int &conn, const char *query, QStringList &results, bool d
 int Console::write_dir(const char *msg)
 {
    int conn;
-   if (availableDirComm(conn)) {
+   if (getDirComm(conn)) {
       write_dir(conn, msg);
    }
    return conn;
@@ -330,7 +341,7 @@ int Console::write_dir(const char *msg)
 int Console::write_dir(const char *msg, bool dowait)
 {
    int conn;
-   if (availableDirComm(conn)) {
+   if (getDirComm(conn)) {
       write_dir(conn, msg, dowait);
    }
    return conn;
@@ -639,7 +650,9 @@ void Console::discardToPrompt(int conn)
          }
       }
    }
-   if (mainWin->m_commDebug) Pmsg2(000, "endDiscardToPrompt=%d %s\n", stat, m_dir->name());
+   if (mainWin->m_commDebug) {
+      Pmsg2(000, "endDiscardToPrompt conn=%i %s\n", conn, m_dir->name());
+   }
 }
 
 QString Console::returnFromPrompt(int conn)
@@ -670,11 +683,11 @@ QString Console::returnFromPrompt(int conn)
  *    m_console->notifiy(false);
  */
 
-/* dual purpose function to turn notify off and return an available connection */
+/* dual purpose function to turn notify off and return a connection */
 int Console::notifyOff()
 { 
    int conn = 0;
-   if (availableDirComm(conn)) {
+   if (getDirComm(conn)) {
       notify(conn, false);
    }
    return conn;
@@ -816,21 +829,32 @@ bool Console::is_connected(int conn)
 }
 
 /*
- * Need an available connection.  Check existing connections or create one
+ * Need a connection.  Check existing connections or create one
  */
-bool Console::availableDirComm(int &conn)
+bool Console::getDirComm(int &conn)
 {
-   if (currentDirComm(conn)) {
+   if (findDirComm(conn)) {
       return true;
+   }
+   if (mainWin->m_connDebug) {
+      Pmsg0(000, "call newDirComm\n");
    }
    return newDirComm(conn);
 }
 
 
 /*
- * Need current connection.
+ * Try to find a free (unused but established) connection
+ * KES: Note, I think there is a problem here because for
+ *   some reason, the notifier is often turned off on file  
+ *   descriptors that seem to me to be available.  That means
+ *   that we do not use a free descriptor and thus we will create
+ *   a new connection that is maybe not necessary.  Someone needs
+ *   to look into whether or not notify() is correctly turned on
+ *   when we are back at the command prompt and idle.
+ *                         
  */
-bool Console::currentDirComm(int &conn)
+bool Console::findDirComm(int &conn)
 {
    int i = 1;
    QHash<int, DirComm*>::const_iterator iter = m_dircommHash.constBegin();

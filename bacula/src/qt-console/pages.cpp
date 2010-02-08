@@ -272,7 +272,7 @@ void Pages::consoleCommand(QString &command, bool setCurrent)
 {
    int conn;
    bool donotify = false;
-   if (m_console->availableDirComm(conn))  {
+   if (m_console->getDirComm(conn))  {
       if (m_console->is_notify_enabled(conn)) {
          donotify = true;
          m_console->notify(conn, false);
