@@ -1,5 +1,5 @@
 
-               Release Notes for Bacula 5.0.0
+               Release Notes for Bacula 5.0.1
 
   Bacula code: Total files = 1,081 Total lines = 217,272 (Using SLOCCount)
 
@@ -26,6 +26,33 @@ Warning:
 Please note the three Warnings below before doing any install or
 upgrade.
        
+
+Changes since 5.0.0
+-------------------
+
+Bug fixes:
+1466 1467 1468 1481 1486 1488
+
+- Fix bug #1488 -- create delivery_error() subroutine to avoid recursion and
+  race conditions in messages.c
+- Upgrade cats library also to 5.0.0
+- Fix missing console page in bat
+- Add bat help files to Win64 installer
+- Win -- add help files to installer + stop any running bacula-fd before
+  install
+- Fix bug #1481 -- bat consumes all console file descriptors
+- Backport truncate on purge from 5.1.x
+- Fix bug #1486 -- bat doesn't show any errors on command-line
+- Update the bsock error url
+- Correct .my.cnf umask in make_catalog_backup.pl
+- Apply Philipp's fix for dbcheck use by make_catalog_backup.pl
+- Fix seg fault in bscan from new comment field
+- Patch from checks multple CNs when using TLS
+- Fix seg fault in SQlite driver
+- Make versions of shared libs inline with the software version.
+- Remove file_index sequential check -- reported by Graham
+- Fix #1466 about Bogus pruning message
+
 
 Changes since 3.0.3a (the last Bacula Project release):
 -------------------------------------------------------

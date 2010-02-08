@@ -2,6 +2,63 @@
 
 General:
 
+Release Version 5.0.1
+
+07Feb10
+- Fix bug #1488 -- create delivery_error() subroutine to avoid recursion and
+  race conditions in messages.c
+- Upgrade cats library also to 5.0.0
+
+06Feb10
+- Fix missing console page in bat
+- Move msg trace into subroutine
+- Move bat help files into help subdirectory
+- Add bat help files to Win64 installer
+- Win -- add help files to installer + stop any running bacula-fd before
+  install
+- Fix bug #1481 -- bat consumes all console file descriptors
+- Update date on win32 rc file
+
+04Feb10
+- Backport truncate on purge from 5.1.x
+- Fix bug #1486 -- bat doesn't show any errors on command-line
+- Update the bsock error url
+
+03Feb10
+- Correct .my.cnf umask in make_catalog_backup.pl
+
+02Feb10
+- Apply Philipp's fix for dbcheck use by make_catalog_backup.pl
+
+01Feb10
+- Free db_list when not used
+- Fix seg fault in bscan from new comment field
+- Remove qmake-qt4 code so tht alternate qt4 build works. Fixes build problems
+  in bug #1468
+- Patch from checks multple CNs when using TLS
+
+31Jan10
+- Commit spec+rpm build files from Scott
+
+30Jan10
+- Fix seg fault in SQlite driver
+
+28Jan10
+- Make versions of shared libs inline with the software version.
+- Remove file_index sequential check -- reported by Graham
+
+27Jan10
+- Disabled ActionOnPurge waiting for a fix
+- Check pool memory size for truncate op
+
+26Jan10
+- Fix #1467 about ActionOnPurge with Devices having space
+- Fix #1466 about Bogus pruning message
+
+25Jan10
+- update configure
+- Fix make_catalog_backup.pl warning
+
 Release Version 5.0.0
 
 21Jan10
@@ -29,11 +86,11 @@ Release Version 5.0.0
 
 18Jan10
 - Fix logwatch install in bacula.spec. Patch from bug #1454
-- Remove /etc/logwatch directories from spec file. Patch supplied by bug 
+- Remove /etc/logwatch directories from spec file. Patch supplied by bug
   #1456
 - Don't remove spec files -- fixes bug #1458
 - Remove FI sanity check code that does not apply after a VirtualFull
-- Make Attr/record FI non-fatal if different -- possibly temp + add new session 
+- Make Attr/record FI non-fatal if different -- possibly temp + add new session
   record types
 - Keep serial from overruning with bad data
 
@@ -67,9 +124,9 @@ Release Version 5.0.0
 - More checking for OpenSSL in configure
 
 06Jan10
-- Add make_catalog_backup.pl script that uses env variables and disk file to 
+- Add make_catalog_backup.pl script that uses env variables and disk file to
   pass database password for backup
-- Modify the sql query to get alphabetical order of clients when selecting the 
+- Modify the sql query to get alphabetical order of clients when selecting the
   most recent backup for a client
 
 05Jan10
@@ -97,33 +154,33 @@ Release Version 5.0.0
 - Clean old configure
 
 27Dec09
-- Let --enable-libtool and --disable-libtool determine if we build plugins and 
+- Let --enable-libtool and --disable-libtool determine if we build plugins and
   drop the extra configure option
 
 26Dec09
-- Lets use a xattr specific constant and not the stdio BUFSIZ which is kind of 
+- Lets use a xattr specific constant and not the stdio BUFSIZ which is kind of
   platform dependend.
 - Attempt to autoconfigure ioctl_req_t
-- Lets not mix initialized stack variable with uninitialized ones in the same 
+- Lets not mix initialized stack variable with uninitialized ones in the same
   definition.
-- Added some handling of EPERM and EOPNOTSUPP which seem to be returned when 
+- Added some handling of EPERM and EOPNOTSUPP which seem to be returned when
   you try to retrieve the system extended attributes a non root user.
-- Lets not orphan the buffer returned by extattr_namespace_to_string as it 
-  seems by looking at the code it strdups the string it returns so no need to 
+- Lets not orphan the buffer returned by extattr_namespace_to_string as it
+  seems by looking at the code it strdups the string it returns so no need to
   bstrdup it ourself.
 
 25Dec09
 - Show that plugins are enabled or not in configure output.
 
 24Dec09
-- Plugins are dependable on libtool now so cleaned the Makefiles and the fd 
+- Plugins are dependable on libtool now so cleaned the Makefiles and the fd
   plugins are only build when --enable-plugins is set and libtool is used.
 - Clarify catalog grant permissions message
 
 23Dec09
 - Fix depend for changes to SRC variables.
-- Drop the usage of macros within macros as it seems some platforms native 
-  makes don't support that. While converting the Makefiles also made things 
+- Drop the usage of macros within macros as it seems some platforms native
+  makes don't support that. While converting the Makefiles also made things
   somewhat more uniform in naming the lib objects.
 
 22Dec09
@@ -131,9 +188,9 @@ Release Version 5.0.0
 - Continue to support Batch Mode with PostgreSQL < 8.2
 
 21Dec09
-- M_ABORT Bacula If batch insert is turned on when we try to open a connection 
+- M_ABORT Bacula If batch insert is turned on when we try to open a connection
   and thread safe is not enabled
-- Try to fix problem on FreeBSD with unsupported extended attributes which 
+- Try to fix problem on FreeBSD with unsupported extended attributes which
   gives lots of orphaned buffers as seen in regression testing.
 
 20Dec09
@@ -177,9 +234,9 @@ Release Version 5.0.0
 09Dec09
 - Fix misnamed variable
 - Reorder lock_volumes and dlock in SD to avoid race conditions
-- - five more updates to manpages options I had forgotten in a corner, - a 
-  reformated and edited page for bsmtp - a brand new one for btraceback, based 
-  on the Problem Resolution Guide and discussions (to be continued?) on this 
+- - five more updates to manpages options I had forgotten in a corner, - a
+  reformated and edited page for bsmtp - a brand new one for btraceback, based
+  on the Problem Resolution Guide and discussions (to be continued?) on this
   list.
 - Fix compilation pb
 - Add mutex some priority info for SD
@@ -197,7 +254,7 @@ Release Version 5.0.0
 - Add test for reload command
 - More bstrncat doc
 - Add bstrncat comments
-- Fix bug #1431 about bad reload command. Still an object to free in this 
+- Fix bug #1431 about bad reload command. Still an object to free in this
   case.
 - Fix bug in bstrncat
 - Temp fix for prune crash
@@ -245,7 +302,7 @@ Release Version 5.0.0
 - Remove JobMedia.Copy references
 - bvfs: update bvfs_test
 - update
-- Remove brestore_ from bvfs table, use Job::HasCache instead of knownjobid 
+- Remove brestore_ from bvfs table, use Job::HasCache instead of knownjobid
   table
 - Update po files
 - Finally... the 100% of bacula spanish !!! ;-)
@@ -297,7 +354,7 @@ Release Version 5.0.0
 - Display only backups when running a new job
 - Add list_backup, list_restore functions
 - update
-- Add optional type= argument to .jobs command. You can list only Backup, 
+- Add optional type= argument to .jobs command. You can list only Backup,
   Restore,... jobs.
 
 12Nov09
