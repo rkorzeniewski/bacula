@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2007-2009 Free Software Foundation Europe e.V.
+   Copyright (C) 2007-2010 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -26,9 +26,7 @@
    Switzerland, email:ftf@fsfeurope.org.
 */
 /*
- *   Version $Id$
- *
- *  Console Class
+ *  DirComm, Director communications,class
  *
  *   Kern Sibbald, January MMVII
  *
@@ -90,11 +88,15 @@ bool DirComm::connect_dir()
       mainWin->set_status( tr("Already connected."));
       m_console->display_textf(_("Already connected\"%s\".\n"),
             m_console->m_dir->name());
-      if (mainWin->m_connDebug)
+      if (mainWin->m_connDebug) {
          Pmsg2(000, "DirComm %i BAILING already connected %s\n", m_conn, m_console->m_dir->name());
+      }
       goto bail_out;
    }
 
+   if (mainWin->m_connDebug) {
+      Pmsg2(000, "DirComm %i connecting %s\n", m_conn, m_console->m_dir->name());
+   }
    memset(jcr, 0, sizeof(JCR));
 
    mainWin->set_statusf(_("Connecting to Director %s:%d"), m_console->m_dir->address, m_console->m_dir->DIRport);
@@ -213,13 +215,15 @@ bool DirComm::connect_dir()
 
    mainWin->set_status(_("Connected"));
 
-   if (mainWin->m_connDebug)
+   if (mainWin->m_connDebug) {
       Pmsg2(000, "Returning TRUE from DirComm->connect_dir : %i %s\n", m_conn, m_console->m_dir->name());
+   }
    return true;
 
 bail_out:
-   if (mainWin->m_connDebug)
+   if (mainWin->m_connDebug) {
       Pmsg2(000, "Returning FALSE from DirComm->connect_dir : %i %s\n", m_conn, m_console->m_dir->name());
+   }
    delete jcr;
    return false;
 }
@@ -363,7 +367,6 @@ int DirComm::read()
          }
          continue;
       case BNET_START_SELECT:
-         notify(false);
          if (mainWin->m_commDebug) Pmsg1(000, "conn %i START SELECT\n", m_conn);
          m_in_select = true;
          new selectDialog(m_console, m_conn);
@@ -458,10 +461,7 @@ bool DirComm::notify(bool enable)
       prev_enabled = m_notifier->isEnabled();   
       m_notifier->setEnabled(enable);
       if (mainWin->m_connDebug) {
-         if (prev_enabled && !enable)
-            Pmsg2(000, "m_notifier Disabling notifier: %i %s\n", m_conn, m_console->m_dir->name());
-         else if (!prev_enabled && enable)
-            Pmsg2(000, "m_notifier Enabling notifier: %i %s\n", m_conn, m_console->m_dir->name());
+         Pmsg3(000, "conn=%i notify=%d prev=%d\n", m_conn, enable, prev_enabled);
       }
    } else if (mainWin->m_connDebug)
       Pmsg2(000, "m_notifier does not exist: %i %s\n", m_conn, m_console->m_dir->name());
