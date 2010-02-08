@@ -108,7 +108,7 @@ bvfs_test: Makefile ../findlib/libbacfind$(DEFAULT_ARCHIVE_TYPE) ../lib/libbac$(
 	  -lbacsql -lbacfind -lbac -lm $(DB_LIBS) $(LIBS) $(GETTEXT_LIBS) $(OPENSSL_LIBS)
 
 gigaslam.o: gigaslam.c
-	$(CC) -c $<  
+	$(CC) $(CFLAGS) -c $<  
 
 gigaslam: gigaslam.o
 	$(CC) -o $@ gigaslam.o
