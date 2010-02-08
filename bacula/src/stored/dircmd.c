@@ -263,7 +263,16 @@ static bool die_cmd(JCR *jcr)
 #ifdef DEVELOPER
    JCR *djcr = NULL;
    int a;
-   Pmsg0(000, "I have been requested to die ...");
+   BSOCK *dir = jcr->dir_bsock;
+   pthread_mutex_t m=PTHREAD_MUTEX_INITIALIZER;
+
+   if (strstr(dir->msg, "deadlock")) {
+      Pmsg0(000, "I have been requested to deadlock ...\n");
+      P(m);
+      P(m);
+   }
+   
+   Pmsg1(000, "I have been requested to die ... (%s)\n", dir->msg);
    a = djcr->JobId;   /* ref NULL pointer */
 #endif
    return 0;

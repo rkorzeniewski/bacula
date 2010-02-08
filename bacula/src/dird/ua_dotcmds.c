@@ -355,7 +355,7 @@ static bool getmsgscmd(UAContext *ua, const char *cmd)
 }
 
 #ifdef DEVELOPER
-static void do_storage_die(UAContext *ua, STORE *store)
+static void do_storage_die(UAContext *ua, STORE *store, const char *cmd)
 {
    BSOCK *sd;
    JCR *jcr = ua->jcr;
@@ -373,7 +373,7 @@ static void do_storage_die(UAContext *ua, STORE *store)
    }
    Dmsg0(120, _("Connected to storage daemon\n"));
    sd = jcr->store_bsock;
-   sd->fsend(".die");
+   sd->fsend("%s", cmd);
    if (sd->recv() >= 0) {
       ua->send_msg("%s", sd->msg);
    }
@@ -383,7 +383,7 @@ static void do_storage_die(UAContext *ua, STORE *store)
    return;
 }
 
-static void do_client_die(UAContext *ua, CLIENT *client)
+static void do_client_die(UAContext *ua, CLIENT *client, const char *cmd)
 {
    BSOCK *fd;
 
@@ -399,7 +399,7 @@ static void do_client_die(UAContext *ua, CLIENT *client)
    }
    Dmsg0(120, "Connected to file daemon\n");
    fd = ua->jcr->file_bsock;
-   fd->fsend(".die");
+   fd->fsend("%s", cmd);
    if (fd->recv() >= 0) {
       ua->send_msg("%s", fd->msg);
    }
@@ -414,8 +414,12 @@ static void do_client_die(UAContext *ua, CLIENT *client)
  */
 static bool diecmd(UAContext *ua, const char *cmd)
 {
-   STORE *store;
-   CLIENT *client;
+   pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+   STORE *store=NULL;
+   CLIENT *client=NULL;
+   bool dir=false;
+   bool do_deadlock=false;
+   const char *remote_cmd=".die";
    int i;
    JCR *jcr = NULL;
    int a;
@@ -424,77 +428,81 @@ static bool diecmd(UAContext *ua, const char *cmd)
 
    /* General debug? */
    for (i=1; i<ua->argc; i++) {
+      if (strcasecmp(ua->argk[i], "deadlock") == 0) {
+         do_deadlock=true;
+         remote_cmd = ".die deadlock";
+      }
       if (strcasecmp(ua->argk[i], "dir") == 0 ||
           strcasecmp(ua->argk[i], "director") == 0) {
-         ua->send_msg(_("The Director will segment fault.\n"));
-         a = jcr->JobId; /* ref NULL pointer */
-         jcr->JobId = 1000; /* another ref NULL pointer */
-         return 1;
+         dir=true;
       }
       if (strcasecmp(ua->argk[i], "client") == 0 ||
           strcasecmp(ua->argk[i], "fd") == 0) {
          client = NULL;
          if (ua->argv[i]) {
             client = (CLIENT *)GetResWithName(R_CLIENT, ua->argv[i]);
-            if (client) {
-               do_client_die(ua, client);
-               return 1;
-            }
          }
-         client = select_client_resource(ua);
-         if (client) {
-            do_client_die(ua, client);
-            return 1;
+         if (!client) {
+            client = select_client_resource(ua);
          }
       }
-
+   
       if (strcasecmp(ua->argk[i], NT_("store")) == 0 ||
           strcasecmp(ua->argk[i], NT_("storage")) == 0 ||
           strcasecmp(ua->argk[i], NT_("sd")) == 0) {
          store = NULL;
          if (ua->argv[i]) {
             store = (STORE *)GetResWithName(R_STORAGE, ua->argv[i]);
-            if (store) {
-               do_storage_die(ua, store);
-               return 1;
-            }
          }
-         store = get_storage_resource(ua, false/*no default*/);
-         if (store) {
-            do_storage_die(ua, store);
-            return 1;
+         if (!store) {
+            store = get_storage_resource(ua, false/*no default*/);
          }
       }
    }
-   /*
-    * We didn't find an appropriate keyword above, so
-    * prompt the user.
-    */
-   start_prompt(ua, _("Available daemons are: \n"));
-   add_prompt(ua, _("Director"));
-   add_prompt(ua, _("Storage"));
-   add_prompt(ua, _("Client"));
-   switch(do_prompt(ua, "", _("Select daemon type to make die"), NULL, 0)) {
-   case 0:                         /* Director */
+
+   if (!dir && !store && !client) {
+      /*
+       * We didn't find an appropriate keyword above, so
+       * prompt the user.
+       */
+      start_prompt(ua, _("Available daemons are: \n"));
+      add_prompt(ua, _("Director"));
+      add_prompt(ua, _("Storage"));
+      add_prompt(ua, _("Client"));
+      switch(do_prompt(ua, "", _("Select daemon type to make die"), NULL, 0)) {
+      case 0:                         /* Director */
+         dir=true;
+         break;
+      case 1:
+         store = get_storage_resource(ua, false/*no default*/);
+         break;
+      case 2:
+         client = select_client_resource(ua);
+         break;
+      default:
+         break;
+      }
+   }
+
+   if (store) {
+      do_storage_die(ua, store, remote_cmd);
+   }
+
+   if (client) {
+      do_client_die(ua, client, remote_cmd);
+   }
+
+   if (dir) {
+      if (do_deadlock) {
+         ua->send_msg(_("The Director will generate a deadlock.\n"));
+         P(mutex); 
+         P(mutex);
+      }
       ua->send_msg(_("The Director will segment fault.\n"));
       a = jcr->JobId; /* ref NULL pointer */
       jcr->JobId = 1000; /* another ref NULL pointer */
-      break;
-   case 1:
-      store = get_storage_resource(ua, false/*no default*/);
-      if (store) {
-         do_storage_die(ua, store);
-      }
-      break;
-   case 2:
-      client = select_client_resource(ua);
-      if (client) {
-         do_client_die(ua, client);
-      }
-      break;
-   default:
-      break;
    }
+
    return true;
 }
 
