@@ -7,6 +7,9 @@
 # ACCURATE=yes
 # BASEJOB=yes
 # NB_CONCURENT=4
+# NB_FULL=25
+# NB_INCR=25
+# NB_FILES=750000
 
 TestName="speed-test"
 JobName=speed 
@@ -30,13 +33,16 @@ if [ a$BASEJOB != a ]; then
   basejob="level=base"
 fi
 
-export NB_CONCURENT=${NB_CONCURENT:-1}
+NB_CONCURENT=${NB_CONCURENT:-1}
+NB_FULL=${NB_FULL:-20}
+NB_INCR=${NB_INCR:-25}
+NB_FILES=${NB_FILES:-750000}
 
 start_test
 
 # Create X million of files 
-echo "Creating 1.5M files"
-perl -Mscripts::functions -e "create_many_files('$cwd/files');"
+echo "Creating $NB_FILES files"
+perl -Mscripts::functions -e "create_many_files('$cwd/files', $NB_FILES);"
 
 cat <<END_OF_DATA >${tmp}/bconcmds
 @$out /dev/null
@@ -73,7 +79,7 @@ quit
 EOF
 
 # insert X million files into File table
-for i in $(seq 0 20)
+for i in $(seq 0 $NB_FULL)
 do
     run_bconsole
 done
@@ -82,7 +88,7 @@ done
 sed 's/Full/Incremental/' ${tmp}/bconcmds > $tmp/1
 mv $tmp/1 ${tmp}/bconcmds
 
-for i in $(seq 0 25)
+for i in $(seq 0 $NB_INCR)
 do
     perl -Mscripts::functions -e "update_some_files('$cwd/files/'.chr($i+65));"
     run_bconsole
@@ -116,5 +122,6 @@ find ${tmp}/bacula-restores | wc -l | tee $tmp/bacula-restore-list
 rm -rf ${tmp}/bacula-restores
 
 cp working/log files/log${WHICHDB}-$(date +%F_%H-%M).log
+cp $tmp/log2.out files/log2${WHICHDB}-$(date +%F_%H-%M).log
 
 end_test
