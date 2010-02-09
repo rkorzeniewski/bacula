@@ -21,6 +21,7 @@ nice tests/concurrent-jobs-test
 nice tests/copy-job-test
 nice tests/encrypt-bug-test
 nice tests/estimate-test
+nice tests/lockmgr-test
 nice tests/exclude-dir-test
 nice tests/fifo-test
 nice tests/fileregexp-test
