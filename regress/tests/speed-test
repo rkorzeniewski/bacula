@@ -125,7 +125,7 @@ rm -rf ${tmp}/bacula-restores
 if [ x$db_password != x ]; then
    p="-P $db_password"
 fi
-time $src/src/tools/bbatch -r 1 -n $db_name -u $db_user $p -w $tmp >> $working/log
+(time $src/src/tools/bbatch -r 1 -n $db_name -u $db_user $p -w $tmp) >> $working/log 2>&1
 
 cp $working/log files/log${WHICHDB}-$(date +%F_%H-%M).log
 cp $tmp/log2.out files/log2${WHICHDB}-$(date +%F_%H-%M).log
