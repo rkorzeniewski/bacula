@@ -447,7 +447,7 @@ void DirComm::read_dir(int /* fd */)
 /*
  * When the notifier is enabled, read_dir() will automatically be
  * called by the Qt event loop when ever there is any output 
- * from the Directory, and read_dir() will then display it on
+ * from the Director, and read_dir() will then display it on
  * the console.
  *
  * When we are in a bat dialog, we want to control *all* output
