@@ -35,6 +35,28 @@
    Switzerland, email:ftf@fsfeurope.org.
 */
 
+/* Shared object library versions */
+#define LIBBAC_LT_CURRENT  5
+#define LIBBAC_LT_REVISION 1
+#define LIBBAC_LT_AGE 0
+
+#define LIBBACCFG_LT_CURRENT 5
+#define LIBBACCFG_LT_REVISION 1
+#define LIBBACCFG_LT_AGE 0
+
+#define LIBBACPY_LT_CURRENT 5
+#define LIBBACPY_LT_REVISION 1
+#define LIBBACPY_LT_AGE 0
+
+#define LIBBACSQL_LT_CURRENT 5
+#define LIBBACSQL_LT_REVISION 1
+#define LIBBACSQL_LT_AGE 0
+
+#define LIBBACFIND_LT_CURRENT 5
+#define LIBBACFIND_LT_REVISION 1
+#define LIBBACFIND_LT_AGE 0
+
+
 
 /* Debug flags */
 #undef  DEBUG
