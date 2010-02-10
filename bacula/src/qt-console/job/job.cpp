@@ -218,9 +218,9 @@ void Job::populateForm()
    char buf[256];
    QString query = 
       "SELECT JobId, Job.Name, Level, Client.Name, Pool.Name, FileSet, SchedTime, StartTime, EndTime, "
-      "EndTime - StartTime AS Duration, JobBytes, JobFiles, JobErrors, JobStatus, PurgedFiles "
-      "FROM Job JOIN Client USING (ClientId) LEFT JOIN Pool USING (PoolId) "
-      "LEFT JOIN FileSet USING (FileSetId)"
+      "EndTime-StartTime AS Duration, JobBytes, JobFiles, JobErrors, JobStatus, PurgedFiles "
+      "FROM Job JOIN Client USING (ClientId) LEFT JOIN Pool ON (Job.PoolId = Pool.PoolId) "
+      "LEFT JOIN FileSet ON (Job.FileSetId = FileSet.FileSetId)"
       "WHERE JobId=" + m_jobId; 
    QStringList results;
    if (m_console->sql_cmd(query, results)) {

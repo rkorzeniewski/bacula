@@ -304,7 +304,7 @@ void MediaView::populateTable()
       "Slot, MediaType, VolStatus, VolBytes, Pool.Name,  "
       "LastWritten, Media.VolRetention "
       "FROM Media JOIN Pool USING (PoolId) "
-      "LEFT JOIN Location USING (LocationId) "
+      "LEFT JOIN Location ON (Media.LocationId=Location.LocationId) "
       + cmd + 
       " ORDER BY VolumeName LIMIT " + m_sbLimit->cleanText();
 
