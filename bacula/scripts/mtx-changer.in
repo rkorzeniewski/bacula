@@ -76,7 +76,7 @@ make_temp_file() {
   if test x${TMPFILE} = x; then
      TMPFILE="@working_dir@/mtx.$$"
      if test -f ${TMPFILE}; then
-	echo "Temp file security problem on: ${TMPFILE}"
+	echo "ERROR: Temp file security problem on: ${TMPFILE}"
 	exit 1
      fi
   fi
@@ -111,7 +111,7 @@ check_parm_count() {
     pCount=$1
     pCountNeed=$2
     if test $pCount -lt $pCountNeed; then
-	echo "usage: mtx-changer ctl-device command [slot archive-device drive-index]"
+	echo "ERROR: usage: mtx-changer ctl-device command [slot archive-device drive-index]"
 	echo "	Insufficient number of arguments given."
 	if test $pCount -lt 2; then
 	    echo "  Mimimum usage is first two arguments ..."
