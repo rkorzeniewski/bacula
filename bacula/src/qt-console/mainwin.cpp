@@ -517,6 +517,9 @@ void MainWin::treeItemChanged(QTreeWidgetItem *currentitem, QTreeWidgetItem *pre
       }
       /* set the value for the currently active console */
       int stackindex = tabWidget->indexOf(nextPage);
+      if (!nextPage->isDocked()) {
+         nextPage->dockPage();
+      }
    
       /* Is this page currently on the stack or is it undocked */
       if (stackindex >= 0) {
@@ -572,8 +575,9 @@ void MainWin::statusPageButtonClicked()
          }
       }
    }
-   if (!found)
+   if (!found) {
       new DirStat();
+   }
 }
 
 void MainWin::restoreButtonClicked() 
