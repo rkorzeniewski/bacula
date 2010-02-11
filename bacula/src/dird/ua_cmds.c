@@ -138,7 +138,7 @@ static struct cmdstruct commands[] = {                                      /* C
 
  { NT_("label"),      label_cmd,     _("Label a tape"), NT_("storage=<storage> volume=<vol> pool=<pool>"), false},
  { NT_("list"),       list_cmd,      _("List objects from catalog"), 
-   NT_("pools | jobs | jobtotals | media <pool=pool-name> | files jobid=<nn> | copies jobid=<nn>"), true},
+   NT_("pools | jobs | jobtotals | volume | media <pool=pool-name> | files jobid=<nn> | copies jobid=<nn>"), true},
 
  { NT_("llist"),      llist_cmd,     _("Full or long list like list command"),
    NT_("pools | jobs | jobtotals | media <pool=pool-name> | files jobid=<nn> | copies jobid=<nn>"), true},
