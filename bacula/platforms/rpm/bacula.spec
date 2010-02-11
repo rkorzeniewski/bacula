@@ -367,7 +367,7 @@ Source3: http://www.prdownloads.sourceforge.net/bacula/depkgs-%{depkgs_version}.
 
 
 # test for a platform definition
-%if !%{rhat} && !%{rhel} && !%{fed} && !%{wb3} && !%{suse} && !%{mdk}
+%if !%{rhat} && !%{rhel} && !%{fed} && !%{wb3} && !%{suse} && !%{mdk} && !%{scil}
 %{error: You must specify a platform. Please examine the spec file.}
 exit 1
 %endif
@@ -723,6 +723,7 @@ cd ${cwd}
 patch -p3 src/cats/postgresql.c < %SOURCE2
 %endif
 
+%if %{sqlite}
 # patches for the bundled sqlite scripts
 
 # patch the make_sqlite_tables script for installation bindir
@@ -740,6 +741,7 @@ patch src/cats/update_sqlite3_tables.in src/cats/update_sqlite3_tables.in.patch
 # patch the bacula-dir init script to remove sqlite service
 %if %{sqlite} && %{suse}
 patch platforms/suse/bacula-dir.in platforms/suse/bacula-dir-suse-sqlite.patch
+%endif
 %endif
 
 # 64 bit lib location hacks
