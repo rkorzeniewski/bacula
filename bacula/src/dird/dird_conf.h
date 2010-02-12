@@ -434,6 +434,7 @@ public:
    bool accurate;                     /* Set if it is an accurate backup job */
    bool AllowDuplicateJobs;           /* Allow duplicate jobs */
    bool AllowHigherDuplicates;        /* Permit Higher Level */
+   bool CancelLowerLevelDuplicates;   /* Cancel lower level backup jobs */
    bool CancelQueuedDuplicates;       /* Cancel queued jobs */
    bool CancelRunningDuplicates;      /* Cancel Running jobs */
    alist *base;                       /* Base jobs */   
