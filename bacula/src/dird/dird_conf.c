@@ -336,6 +336,7 @@ RES_ITEM job_items[] = {
    {"accurate",           store_bool, ITEM(res_job.accurate), 0,0,0},
    {"allowduplicatejobs", store_bool, ITEM(res_job.AllowDuplicateJobs), 0, ITEM_DEFAULT, false},
    {"allowhigherduplicates",   store_bool, ITEM(res_job.AllowHigherDuplicates), 0, ITEM_DEFAULT, true},
+   {"cancellowerlevelduplicates", store_bool, ITEM(res_job.CancelLowerLevelDuplicates), 0, ITEM_DEFAULT, false},
    {"cancelqueuedduplicates",  store_bool, ITEM(res_job.CancelQueuedDuplicates), 0, ITEM_DEFAULT, false},
    {"cancelrunningduplicates", store_bool, ITEM(res_job.CancelRunningDuplicates), 0, ITEM_DEFAULT, false},
    {"pluginoptions", store_str, ITEM(res_job.PluginOptions), 0, 0, 0},
