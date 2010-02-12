@@ -464,7 +464,7 @@ INSERT INTO Status (JobStatus,JobStatusLong,Severity) VALUES
 INSERT INTO Status (JobStatus,JobStatusLong,Severity) VALUES
    ('i', 'Doing batch insert file records',15);
 
-INSERT INTO Version (VersionId) VALUES (11);
+INSERT INTO Version (VersionId) VALUES (12);
 
 -- Make sure we have appropriate permissions
 \g
