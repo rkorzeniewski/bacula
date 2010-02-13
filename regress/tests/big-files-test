@@ -18,12 +18,13 @@ echo "${cwd}/many-files" >${cwd}/tmp/file-list
 if [ ! -f ${cwd}/many-files/100000file100000 ]; then
     mkdir -p ${cwd}/many-files
     cd ${cwd}/many-files
-    print_debug "Creating files..."
-    time perl -e 'for($i=0; $i < 2000000; $i++) {open(FP, ">${i}file${i}") or die "$!"; print FP "$i\n"; close(FP); print "." if ($i%10000);}'
+    print_debug "Creating 2000000 files..."
+    time perl -e 'for($i=0; $i < 2000000; $i++) {open(FP, ">${i}file${i}") or die "$!"; print FP "$i\n"; close(FP); print "\r$i   " if ($i%10000);}'
 fi
 
-sed "s%# Label Format%  Label Format%" ${cwd}/bin/bacula-dir.conf > ${cwd}/tmp/1
-sed "s%Type = Backup%Type = Backup; Accurate = yes" ${cwd}/tmp/1 > ${cwd}/bin/bacula-dir.conf
+sed 's%# Label Format%  Label Format%' ${cwd}/bin/bacula-dir.conf > ${cwd}/tmp/1
+# sed 's%Type = Backup%Type = Backup; Accurate = yes%' ${cwd}/tmp/1 > ${cwd}/bin/bacula-dir.conf
+sed 's%Type = Backup%Type = Backup%' ${cwd}/tmp/1 > ${cwd}/bin/bacula-dir.conf
 
 change_jobname MonsterFileSet $JobName
 start_test
