@@ -14,7 +14,8 @@ scripts/prepare-disk-changer
 for i in 2 3 4; do
   perl -ne "\$i='$i';\$tmp='$tmp';"'
   if (/SDPort = /) { $_ =~ s/(\d+)/1810$i/}
-  if (/Name = .+?-sd/) { $_ =~ s/-sd/-sd$i/}
+  if (/Name = /) { $_ =~ s/FileStorage/FileStorage$i/}
+  if (/mediatype = /) { $_ =~ s/FileMedia/FileMedia$1/}
   if (/WorkingDirectory/) { $_ =~ s:working:tmp/$i:}
   if (/Pid Directory/) { $_ =~ s:working:tmp/$i:}
   if (/(Archive|Changer) Device/) { $_ =~ s:$tmp:$tmp/$i:}
@@ -52,7 +53,22 @@ messages
 @$out ${cwd}/tmp/log1.out
 label storage=tape volume=TestVolume001 Pool=Default slot=1 drive=0
 label storage=File  volume=TestVolume002 Pool=Default
+label storage=File2 volume=File2-Vol001 Pool=Default
+label storage=File3 volume=File3-Vol001 Pool=Default
+label storage=File4 volume=File4-Vol001 Pool=Default
 run job=$JobName storage=tape yes
+wait
+messages
+run job=$JobName storage=File yes
+wait
+messages
+run job=$JobName storage=File2 yes
+wait
+messages
+run job=$JobName storage=File3 yes
+wait
+messages
+run job=$JobName storage=File4 yes
 wait
 messages
 quit
@@ -75,6 +91,15 @@ messages
 @$out ${cwd}/tmp/log1.out
 @# Force Incremental on the second Volume
 run level=Incremental storage=File job=$JobName yes
+wait
+messages
+run level=Incremental storage=File2 job=$JobName yes
+wait
+messages
+run level=Incremental storage=File3 job=$JobName yes
+wait
+messages
+run level=Incremental storage=File4 job=$JobName yes
 wait
 messages
 @# 

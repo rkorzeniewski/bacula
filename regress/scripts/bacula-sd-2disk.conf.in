@@ -100,7 +100,7 @@ Device {
 
 Device {
   Name = FileStorage
-  Media Type = FileMedia
+  mediatype = FileMedia
   Archive Device = @tmpdir@
   LabelMedia = yes;                   # lets Bacula label unlabeled media
   Random Access = Yes;
