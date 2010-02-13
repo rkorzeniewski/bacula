@@ -93,6 +93,27 @@ Distribution: %{_dist}
 Source0: http://www.prdownloads.sourceforge.net/bacula/bacula-%{version}.tar.gz
 Source1: http://www.prdownloads.sourceforge.net/bacula/depkgs-qt-%{depkgs_qt_version}.tar.gz
 
+BuildRequires: gcc, gcc-c++, make, autoconf
+BuildRequires: libstdc++-devel = %{gccver}-%{gccrel}, zlib-devel
+BuildRequires: openssl-devel, fontconfig-devel, libpng-devel, libstdc++-devel, zlib-devel
+
+Requires: openssl
+Requires: fontconfig
+Requires: freetype2
+Requires: libgcc
+Requires: libpng
+Requires: libstdc++
+Requires: zlib
+
+%if %{suse}
+Requires: /usr/bin/kdesu
+Requires: freetype2
+BuildRequires: freetype2-devel
+%else
+Requires: usermode
+Requires: freetype
+BuildRequires: freetype-devel
+%endif
 
 # Source directory locations
 %define depkgs_qt ../depkgs-qt
@@ -269,6 +290,7 @@ rm -rf $RPM_BUILD_DIR/depkgs-qt
 %changelog
 * Sat Feb 13 2010 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - create file to allow bat to run nonroot with kdesu
+- add dependency information
 * Sat Jan 30 2010 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - fix consolehelper/xsu for suse packages
 * Sat Aug 1 2009 Kern Sibbald <kern@sibbald.com>
