@@ -166,19 +166,6 @@ Client {
   Maximum Concurrent Jobs = 100
 }
 
-# Definition of DDS tape storage device
-Storage {
-  Name = tape
-  Address = @hostname@                # N.B. Use a fully qualified name here
-  SDPort = @sdport@
-  Password = "ccV3lVTsQRsdIUGyab0N4sMDavui2hOBkmpBU0aQKOr9"          # password for Storage daemon
-  Device = tape                      # must be same as Device in Storage daemon
-  Media Type = tape                  # must be same as MediaType in Storage daemon
-  Maximum Concurrent Jobs = 100
-# Autochanger = yes
-}
-
-
 # Definition of File storage device
 Storage {
   Name = File
@@ -200,7 +187,6 @@ Storage {
   Media Type = FileMedia              # must be same as MediaType in Storage daemon
   Maximum Concurrent Jobs = 100
 }
-
 
 # Definition of File3 storage device
 Storage {
@@ -224,7 +210,17 @@ Storage {
   Maximum Concurrent Jobs = 100
 }
 
-
+# Definition of DDS tape storage device
+Storage {
+  Name = tape
+  Address = @hostname@                # N.B. Use a fully qualified name here
+  SDPort = @sdport@
+  Password = "ccV3lVTsQRsdIUGyab0N4sMDavui2hOBkmpBU0aQKOr9"          # password for Storage daemon
+  Device = tape                      # must be same as Device in Storage daemon
+  Media Type = tape                  # must be same as MediaType in Storage daemon
+  Maximum Concurrent Jobs = 100
+# Autochanger = yes
+}
 
 # Definition of Virtual storage device
 Storage {
