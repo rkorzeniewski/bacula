@@ -508,20 +508,19 @@ BuildRequires: python, python-devel
 %endif
 
 %if %{rh7}
-BuildRequires: libtermcap-devel
 BuildRequires: libxml-devel
 %endif
-%if %{suse}
-BuildRequires: termcap
-%endif
 %if %{mdk}
-BuildRequires: libtermcap-devel
 BuildRequires: libstdc++-static-devel
 BuildRequires: glibc-static-devel
 %endif
-%if %{fc1} || %{fc3} || %{fc4} || %{fc5} || %{fc7} || %{fc8}
+
+%if %{suse}
+BuildRequires: termcap
+%else
 BuildRequires: libtermcap-devel
 %endif
+
 %if %{sqlite}
 BuildRequires: sqlite-devel
 %endif
@@ -567,12 +566,11 @@ Conflicts: bacula-client
 Requires: ncurses, libstdc++, zlib, openssl
 Requires: glibc
 
-%if %{rhel} || %{rhat} || %{fed}
-Requires: libtermcap
-%endif
 %if %{suse}
 Conflicts: bacula
 Requires: termcap
+%else
+Requires: libtermcap
 %endif
 
 %if %{mysql}
@@ -1453,6 +1451,7 @@ echo "The database update scripts were installed to %{script_dir}/updatedb"
 %changelog
 * Sat Feb 13 2010 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - fix client only build
+- clean up requirements for termcap
 * Sun Feb 07 2010 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - fix mysql database upgrade
 * Fri Feb 05 2010 D. Scott Barninger <barninger@fairfieldcomputers.com>
