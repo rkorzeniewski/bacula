@@ -12,17 +12,19 @@ scripts/prepare-disk-changer
 
 # create a new bacula-sd.confs
 for sd in 2 3 4; do
-  perl -ne '
-  if (/SDPort = /) { $_ =~ s/(\d+)/1810$sd/;}
-  if (/Name = .+?-sd/) { $_ =~ s/-sd/-sd$sd/;}
-  if (/WorkingDirectory/) { $_ =~ s/"$/$sd"/; }
-  if (/Pid Directory/) { $_ =~ s/"$/$sd"/; }
+  perl -ne "\$sd=$sd;\$tmp='$tmp';"'
+  if (/SDPort = /) { $_ =~ s/(\d+)/1810$sd/}
+  if (/Name = .+?-sd/) { $_ =~ s/-sd/-sd$sd/}
+  if (/WorkingDirectory/) { $_ = "$tmp/$sd"}
+  if (/Pid Directory/) {    $_ = "$tmp/$sd"}
+  if (/(Archive|Changer) Device/) { $_ =~ s:$tmp:$tmp/$sd:}
   print;
   ' $conf/bacula-sd.conf > $conf/bacula-sd$sd.conf
   mkdir -p ${working}$sd
   sed 's/bacula-sd.conf/bacula-sd$sd.conf/' $scripts/bacula-ctl-sd \
       > $tmp/bacula-ctl-sd$sd
   chmod +x $tmp/bacula-ctl-sd$sd
+  mkdir -p $tmp/$sd
 done
 
 # Patch up bacula-dir.conf
@@ -84,9 +86,10 @@ setdebug trace=1 level=110 director
 restore where=${cwd}/tmp/bacula-restores select all done yes
 wait
 messages
+show storage
 sql
-select * in Storage;
-
+select * FROM Storage;
+select VolumeName, Name, StorageId, MediaType FROM Media JOIN Storage USING (StorageId);
 
 quit
 END_OF_DATA
