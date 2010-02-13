@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2002-2008 Free Software Foundation Europe e.V.
+   Copyright (C) 2002-2010 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -35,7 +35,6 @@
  *
  *     Kern Sibbald, February MMII
  *
- *   Version $Id$
  */
 
 #include "bacula.h"
@@ -44,7 +43,7 @@
 /* Forward referenced functions */
 static int purge_files_from_client(UAContext *ua, CLIENT *client);
 static int purge_jobs_from_client(UAContext *ua, CLIENT *client);
-static int aop_cmd(UAContext *ua, const char *cmd);
+static int action_on_purge_cmd(UAContext *ua, const char *cmd);
 
 static const char *select_jobsfiles_from_client =
    "SELECT JobId FROM Job "
@@ -141,7 +140,7 @@ int purgecmd(UAContext *ua, const char *cmd)
    case 2:
       /* Perform ActionOnPurge (action=truncate) */
       if (find_arg(ua, "action") >= 0) {
-         return aop_cmd(ua, ua->cmd);
+         return action_on_purge_cmd(ua, ua->cmd);
       }
 
       while ((i=find_arg(ua, NT_("volume"))) >= 0) {
@@ -635,7 +634,7 @@ static void do_truncate_on_purge(UAContext *ua, MEDIA_DBR *mr,
 }
 
 /* purge action= pool= volume= storage= devicetype= */
-static int aop_cmd(UAContext *ua, const char *cmd)
+static int action_on_purge_cmd(UAContext *ua, const char *cmd)
 {
    bool allpools=false;
    int drive=-1;
