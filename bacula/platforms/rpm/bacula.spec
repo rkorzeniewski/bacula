@@ -444,7 +444,6 @@ exit 1
 
 # only set Disribution if not in opensuse build service, as it sets it itself
 %if ! 0%{?opensuse_bs}
-%{?DISTNAME:%define _dist %{DISTNAME}}
 Distribution: %{_dist}
 %endif
 
@@ -914,6 +913,7 @@ chmod o-rwx $RPM_BUILD_ROOT%{working_dir}
 # fix me - building enable-client-only installs files not included in bacula-client package
 %if %{client_only}
 rm -f $RPM_BUILD_ROOT%{script_dir}/bacula
+rm -f $RPM_BUILD_ROOT%{script_dir}/bacula_config
 rm -f $RPM_BUILD_ROOT%{script_dir}/bacula-ctl-dir
 rm -f $RPM_BUILD_ROOT%{script_dir}/bacula-ctl-sd
 rm -f $RPM_BUILD_ROOT%{script_dir}/disk-changer
@@ -1451,6 +1451,8 @@ echo "The database update scripts were installed to %{script_dir}/updatedb"
 %endif
 
 %changelog
+* Sat Feb 13 2010 D. Scott Barninger <barninger@fairfieldcomputers.com>
+- fix client only build
 * Sun Feb 07 2010 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - fix mysql database upgrade
 * Fri Feb 05 2010 D. Scott Barninger <barninger@fairfieldcomputers.com>
