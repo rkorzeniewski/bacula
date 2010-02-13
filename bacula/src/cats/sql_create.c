@@ -293,6 +293,7 @@ bool db_create_storage_record(JCR *jcr, B_DB *mdb, STORAGE_DBR *sr)
 
    sr->StorageId = 0;
    sr->created = false;
+   /* Check if it already exists */
    if (QUERY_DB(jcr, mdb, mdb->cmd)) {
       mdb->num_rows = sql_num_rows(mdb);
       /* If more than one, report error, but return first row */
