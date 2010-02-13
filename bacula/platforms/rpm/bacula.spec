@@ -6,7 +6,7 @@
 
 # basic defines for every build
 %define _release           1
-%define _version           5.0.0
+%define _version           3.0.3
 %define _packager D. Scott Barninger <barninger@fairfieldcomputers.com>
 %define depkgs_version 18Dec09
 
@@ -444,7 +444,6 @@ exit 1
 
 # only set Disribution if not in opensuse build service, as it sets it itself
 %if ! 0%{?opensuse_bs}
-%{?DISTNAME:%define _dist %{DISTNAME}}
 Distribution: %{_dist}
 %endif
 
@@ -769,7 +768,7 @@ export LDFLAGS="${LDFLAGS} -L/usr/lib64/python%{pyver}"
         --with-pid-dir=%{pid_dir} \
         --with-subsys-dir=%{_subsysdir} \
         --enable-smartalloc \
-        --disable-gnome \
+        --disable-gome \
         --disable-bwx-console \
         --disable-tray-monitor \
 %if %{mysql}
@@ -914,6 +913,7 @@ chmod o-rwx $RPM_BUILD_ROOT%{working_dir}
 # fix me - building enable-client-only installs files not included in bacula-client package
 %if %{client_only}
 rm -f $RPM_BUILD_ROOT%{script_dir}/bacula
+rm -f $RPM_BUILD_ROOT%{script_dir}/bacula_config
 rm -f $RPM_BUILD_ROOT%{script_dir}/bacula-ctl-dir
 rm -f $RPM_BUILD_ROOT%{script_dir}/bacula-ctl-sd
 rm -f $RPM_BUILD_ROOT%{script_dir}/disk-changer
@@ -1451,6 +1451,8 @@ echo "The database update scripts were installed to %{script_dir}/updatedb"
 %endif
 
 %changelog
+* Sat Feb 13 2010 D. Scott Barninger <barninger@fairfieldcomputers.com>
+- fix client only build
 * Sun Feb 07 2010 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - fix mysql database upgrade
 * Fri Feb 05 2010 D. Scott Barninger <barninger@fairfieldcomputers.com>
