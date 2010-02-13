@@ -11,20 +11,20 @@ scripts/copy-2disk-confs
 scripts/prepare-disk-changer
 
 # create a new bacula-sd.confs
-for sd in 2 3 4; do
-  perl -ne "\$sd=$sd;\$tmp='$tmp';"'
-  if (/SDPort = /) { $_ =~ s/(\d+)/1810$sd/}
-  if (/Name = .+?-sd/) { $_ =~ s/-sd/-sd$sd/}
-  if (/WorkingDirectory/) { $_ = "$tmp/$sd"}
-  if (/Pid Directory/) {    $_ = "$tmp/$sd"}
-  if (/(Archive|Changer) Device/) { $_ =~ s:$tmp:$tmp/$sd:}
+for i in 2 3 4; do
+  perl -ne "\$i='$i';\$tmp='$tmp';"'
+  if (/SDPort = /) { $_ =~ s/(\d+)/1810$i/}
+  if (/Name = .+?-sd/) { $_ =~ s/-sd/-sd$i/}
+  if (/WorkingDirectory/) { $_ =~ s:working:tmp/$i:}
+  if (/Pid Directory/) { $_ =~ s:working:tmp/$i:}
+  if (/(Archive|Changer) Device/) { $_ =~ s:$tmp:$tmp/$i:}
   print;
-  ' $conf/bacula-sd.conf > $conf/bacula-sd$sd.conf
-  mkdir -p ${working}$sd
-  sed 's/bacula-sd.conf/bacula-sd$sd.conf/' $scripts/bacula-ctl-sd \
-      > $tmp/bacula-ctl-sd$sd
-  chmod +x $tmp/bacula-ctl-sd$sd
-  mkdir -p $tmp/$sd
+  ' $conf/bacula-sd.conf > $conf/bacula-sd$i.conf
+  mkdir -p ${working}$i
+  sed "s/bacula-sd.conf/bacula-sd${i}.conf/" $scripts/bacula-ctl-sd \
+      > $tmp/bacula-ctl-sd$i
+  chmod +x $tmp/bacula-ctl-sd$i
+  mkdir -p $tmp/$i
 done
 
 # Patch up bacula-dir.conf
@@ -47,7 +47,7 @@ start_test
 
 # Write out bconsole commands
 cat <<END_OF_DATA >${cwd}/tmp/bconcmds
-@$out /dev/null
+@out /dev/null
 messages
 @$out ${cwd}/tmp/log1.out
 label storage=tape volume=TestVolume001 Pool=Default slot=1 drive=0
@@ -70,7 +70,7 @@ echo "ficheriro2.txt" >${cwd}/build/po/ficheriro2.txt
 
 
 cat <<END_OF_DATA >${cwd}/tmp/bconcmds
-@$out /dev/null
+@out /dev/null
 messages
 @$out ${cwd}/tmp/log1.out
 @# Force Incremental on the second Volume
