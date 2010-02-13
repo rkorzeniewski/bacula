@@ -282,7 +282,13 @@ void catalog_request(JCR *jcr, BSOCK *bs)
        *   the number of VolWrites has increased.
        */
       if (jcr->wstore && jcr->wstore->StorageId && sdmr.VolWrites > mr.VolWrites) {
-         mr.StorageId = jcr->wstore->StorageId;
+         Dmsg2(050, "Update StorageId old=%d new=%d\n",
+               mr.StorageId, jcr->wstore->StorageId);
+         if (jcr->wstore->StorageId == 0) {
+            Jmsg(jcr, M_ERROR, 0, _("Attempt to set StorageId to zero.\n"));
+         } else {
+            mr.StorageId = jcr->wstore->StorageId;
+         }
       }
 
       /* Copy updated values to original media record */
