@@ -6,7 +6,7 @@
 
 # basic defines for every build
 %define _release           1
-%define _version           5.0.0
+%define _version           5.0.1
 %define _packager D. Scott Barninger <barninger@fairfieldcomputers.com>
 %define depkgs_version 18Dec09
 
@@ -468,10 +468,6 @@ BuildRequires: sysconfig
 %define python 0
 %{?build_python:%define python 1}
 
-# specifically disallow build of mtx package if desired
-%define mtx 0
-%{?nobuild_mtx:%define mtx 0}
-
 # do we need to patch for old postgresql version?
 %define old_pgsql 0
 %{?build_old_pgsql:%define old_pgsql 1}
@@ -893,6 +889,9 @@ cp -p scripts/logrotate $RPM_BUILD_ROOT/etc/logrotate.d/bacula
 # install the updatedb scripts
 cp -p updatedb/* $RPM_BUILD_ROOT%{script_dir}/updatedb/
 
+# install the sample-query.sql file
+cp -p examples/sample-query.sql $RPM_BUILD_ROOT%{script_dir}/sample-query.sql
+
 # install the logwatch scripts
 %if ! %{client_only}
 cp -p scripts/logwatch/bacula $RPM_BUILD_ROOT%{logwatch_dir}/scripts/services/bacula
@@ -1006,7 +1005,7 @@ rm -f $RPM_BUILD_DIR/Release_Notes-%{version}-%{release}.txt
 %attr(-, root, %{storage_daemon_group}) %{script_dir}/dvd-handler
 %attr(-, root, %{storage_daemon_group}) /etc/init.d/bacula-sd
 %attr(-, root, %{storage_daemon_group}) %{script_dir}/mtx-changer
-%attr(-, root, %{storage_daemon_group}) %{script_dir}/mtx-changer.conf
+%attr(-, root, %{storage_daemon_group}) %config(noreplace) %{script_dir}/mtx-changer.conf
 
 /etc/logrotate.d/bacula
 %{logwatch_dir}/scripts/services/bacula
@@ -1018,6 +1017,7 @@ rm -f $RPM_BUILD_DIR/Release_Notes-%{version}-%{release}.txt
 %attr(-, root, %{daemon_group}) %config(noreplace) %{logwatch_dir}/conf/logfiles/bacula.conf
 %attr(-, root, %{daemon_group}) %config(noreplace) %{logwatch_dir}/conf/services/bacula.conf
 %attr(-, root, %{daemon_group}) %config(noreplace) %{script_dir}/query.sql
+%attr(-, root, %{daemon_group}) %{script_dir}/sample-query.sql
 
 %attr(-, %{storage_daemon_user}, %{daemon_group}) %dir %{working_dir}
 
@@ -1450,8 +1450,11 @@ echo "The database update scripts were installed to %{script_dir}/updatedb"
 
 %changelog
 * Sat Feb 13 2010 D. Scott Barninger <barninger@fairfieldcomputers.com>
+- 5.0.1
 - fix client only build
 - clean up requirements for termcap
+- query.sql now empty by default so we install sample-query.sql along side it
+- remove old nobuild_mtx switch
 * Sun Feb 07 2010 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - fix mysql database upgrade
 * Fri Feb 05 2010 D. Scott Barninger <barninger@fairfieldcomputers.com>
