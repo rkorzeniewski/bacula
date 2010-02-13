@@ -197,6 +197,7 @@ rm -rf $RPM_BUILD_ROOT%{_prefix}/share/doc/bacula
 %if %{suse}
 cp -p src/qt-console/images/bat_icon.png $RPM_BUILD_ROOT/usr/share/pixmaps/bat_icon.png
 cp -p scripts/bat.desktop.xsu $RPM_BUILD_ROOT/usr/share/applications/bat.desktop
+touch RPM_BUILD_ROOT%{sysconfdir}/bat.kdesu
 %else
 cp -p src/qt-console/images/bat_icon.png $RPM_BUILD_ROOT/usr/share/pixmaps/bat_icon.png
 cp -p scripts/bat.desktop.consolehelper $RPM_BUILD_ROOT/usr/share/applications/bat.desktop
@@ -207,11 +208,16 @@ ln -sf consolehelper $RPM_BUILD_ROOT/usr/bin/bat
 
 %files
 %defattr(-,root,root)
-%{_sbindir}/bat
+%attr(-, root, %{daemon_group}) %{_sbindir}/bat
 %attr(-, root, %{daemon_group}) %dir %{sysconf_dir}
 %attr(-, root, %{daemon_group}) %config(noreplace) %{sysconf_dir}/bat.conf
 /usr/share/pixmaps/bat_icon.png
 /usr/share/applications/bat.desktop
+
+# if user is a member of daemon_group then kdesu will run bat as user
+%if %{suse}
+%attr(0660, root, %{daemon_group}) %{sysconf_dir}/bat.kdesu
+%endif
 
 %if ! %{suse}
 # add the console helper files
@@ -261,6 +267,8 @@ fi
 rm -rf $RPM_BUILD_DIR/depkgs-qt
 
 %changelog
+* Sat Feb 13 2010 D. Scott Barninger <barninger@fairfieldcomputers.com>
+- create file to allow bat to run nonroot with kdesu
 * Sat Jan 30 2010 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - fix consolehelper/xsu for suse packages
 * Sat Aug 1 2009 Kern Sibbald <kern@sibbald.com>
