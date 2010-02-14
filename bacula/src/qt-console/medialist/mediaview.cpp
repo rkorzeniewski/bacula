@@ -396,7 +396,9 @@ void MediaView::PgSeltreeWidgetClicked()
       populateForm();
       populateTable();
    }
-   dockPage();
+   if (!isOnceDocked()) {
+      dockPage();
+   }
 }
 
 /*

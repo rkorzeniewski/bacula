@@ -286,7 +286,9 @@ void DirStat::PgSeltreeWidgetClicked()
       populateAll();
       m_populated=true;
    }
-   dockPage();
+   if (!isOnceDocked()) {
+      dockPage();
+   }
 }
 
 /*

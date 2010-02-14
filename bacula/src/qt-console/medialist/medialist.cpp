@@ -297,7 +297,9 @@ void MediaList::PgSeltreeWidgetClicked()
       populateTree();
       createContextMenu();
    }
-   dockPage();
+   if (!isOnceDocked()) {
+      dockPage();
+   }
 }
 
 /*
