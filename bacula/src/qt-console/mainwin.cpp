@@ -312,8 +312,7 @@ void MainWin::waitEnter()
       return;
    }
    m_waitState = true;
-   if (mainWin->m_connDebug)
-      Pmsg0(000, "Entering Wait State\n");
+   if (mainWin->m_connDebug) Pmsg0(000, "Entering Wait State\n");
    app->setOverrideCursor(QCursor(Qt::WaitCursor));
    disconnectSignals();
    disconnectConsoleSignals(m_currentConsole);
@@ -583,6 +582,7 @@ void MainWin::statusPageButtonClicked()
 void MainWin::restoreButtonClicked() 
 {
    new prerestorePage();
+   if (mainWin->m_miscDebug) Pmsg0(000, "in restoreButtonClicked after prerestorePage\n");
 }
 
 void MainWin::jobPlotButtonClicked()
