@@ -12,7 +12,7 @@ echo "${cwd}/build/technotes" >${cwd}/tmp/file-list
 # extract a Job and add a runscript on it
 perl -Mscripts::functions \
     -e "extract_resource('$conf/bacula-dir.conf', 'Job', 'CompressedTest')" \
-    | sed 's%Standard%Standard; ClientRunBeforeJob="sleep 10"%' > $tmp/1
+    | sed 's%Standard%Standard; ClientRunBeforeJob="sleep 6"%' > $tmp/1
 
 
 outf="$tmp/sed_tmp"
@@ -46,59 +46,85 @@ messages
 @$out ${cwd}/tmp/log1.out
 messages
 label storage=File volume=TestVolume001
+@##############################################
+@# AllowDuplicates = Yes, both jobs should work
+@##############################################
 run comment="Should work" level=Full job=AllowDuplicateYes yes
 @sleep 2
 run comment="Should work" level=Full job=AllowDuplicateYes yes
 wait
 messages
 @$out $tmp/log3.out
+@###############################################################
+@# Run two jobs with the same level and see wich one is canceled
+@###############################################################
 run comment="Should work" level=Full job=CancelLowerLevelDuplicatesYes yes
 @sleep 2
 run comment="Should fail" level=Full job=CancelLowerLevelDuplicatesYes yes
 wait
 messages
+@####################################################################
+@# Run two jobs with the different level and see wich one is canceled
+@####################################################################
 run comment="Should fail" level=Incremental job=CancelLowerLevelDuplicatesYes yes
 @sleep 2
 run comment="Should work" level=Full job=CancelLowerLevelDuplicatesYes yes
 wait
 messages
+@#####################################################################################
+@# Run two jobs with the different level and see wich one is canceled (reversed order)
+@#####################################################################################
 run comment="Should work" level=Full job=CancelLowerLevelDuplicatesYes yes
 @sleep 2
 run comment="Should fail" level=Incremental job=CancelLowerLevelDuplicatesYes yes
 wait
 messages
 @$out $tmp/log4.out
+@####################################################################
+@# Run two jobs, the second one can't cancel the 1st, and should fail
+@####################################################################
 run comment="Should work" level=Full job=CancelQueueDuplicatesYes yes
 @sleep 2
 run comment="Should fail" level=Full job=CancelQueueDuplicatesYes yes
 wait
 messages
+@#################################################################
+@# The first job should stay queued, the second one will cancel it
+@#################################################################
 run comment="Should fail" level=Full job=CancelQueueDuplicatesYes when="$when" yes
 @sleep 2
 run comment="Should work" level=Full job=CancelQueueDuplicatesYes yes
 wait
 messages
 @$out $tmp/log5.out
-run comment="Should work" level=Full job=CancelRunningDuplicatesYes yes
-@sleep 2
+@########################################
+@# The second job will kill the first one
+@########################################
 run comment="Should fail" level=Full job=CancelRunningDuplicatesYes yes
+@sleep 2
+run comment="Should work" level=Full job=CancelRunningDuplicatesYes yes
 wait
 messages
 @$out $tmp/log6.out
+@##########################
+@# The second job won't run
+@##########################
 run comment="Should work" level=Full job=CancelRunningDuplicatesNo yes
 @sleep 2
 run comment="Should fail" level=Full job=CancelRunningDuplicatesNo yes
 wait
 messages
-@$out $tmp/log2.out
+@$out $tmp/log7.out
 sql
 SELECT JobId, Name, Level, Comment, JobStatus from Job 
-WHERE Comment='Should fail' and JobStatus='T';
+WHERE Comment='Should fail' and JobStatus='T' ORDER By JobId;
 
+@$out $tmp/log8.out
 sql
-SELECT JobId, Name, Level, Comment, JobStatus from Job order by JobId
-WHERE Comment="Should work' and JobStatus != 'T';
+SELECT JobId, Name, Level, Comment, JobStatus from Job
+WHERE Comment='Should work' and JobStatus != 'T' ORDER By JobId;
 
+@$out $tmp/log9.out
 sql
 SELECT JobId, Name, Level, Comment, JobStatus from Job order by JobId;
 
@@ -109,6 +135,21 @@ run_bacula
 check_for_zombie_jobs storage=File
 stop_bacula
 
+touch $tmp/log2.out
 check_two_logs
-check_restore_diff
+
+grep '^| [0-9]' $tmp/log7.out > /dev/null
+if [ $? = 0 ]; then
+    print_debug "E: Found errors in $tmp/log7.out"
+    print_debug `cat $tmp/log7.out`
+    estat=1
+fi
+
+grep '^| [0-9]' $tmp/log8.out > /dev/null
+if [ $? = 0 ]; then
+    print_debug "E: Found errors in $tmp/log8.out"
+    print_debug `cat $tmp/log8.out`
+    estat=1
+fi
+
 end_test
