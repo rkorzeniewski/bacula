@@ -118,7 +118,7 @@ db_init_database(JCR *jcr, const char *db_name, const char *db_user, const char 
    P(mutex);                          /* lock DB queue */
    if (db_list == NULL) {
       db_list = New(dlist(mdb, &mdb->link));
-      db_getvalue_list = New(dlist(field, field->link));
+      dbi_getvalue_list = New(dlist(field, &field->link));
    }
    if (!mult_db_connections) {
       /* Look to see if DB already open */
@@ -735,7 +735,7 @@ const char *my_dbi_strerror(B_DB *mdb)
  */
 int my_dbi_batch_start(JCR *jcr, B_DB *mdb)
 {
-   char *query = "COPY batch FROM STDIN";
+   const char *query = "COPY batch FROM STDIN";
 
    Dmsg0(500, "my_dbi_batch_start started\n");
 
@@ -931,7 +931,7 @@ int my_dbi_batch_insert(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
    mdb->esc_path = check_pool_memory_size(mdb->esc_path, mdb->pnl*2+1);
 
    if (ar->Digest == NULL || ar->Digest[0] == 0) {
-      digest = "0";
+      *digest = '\0';
    } else {
       digest = ar->Digest;
    }
@@ -1354,7 +1354,7 @@ const char *my_dbi_batch_fill_filename_query[5] = {
 
 #endif /* HAVE_BATCH_FILE_INSERT */
 
-const char *my_dbi_match[4] = {
+const char *my_dbi_match[5] = {
    /* Mysql */
    "MATCH",
    /* Postgresql */
@@ -1362,7 +1362,9 @@ const char *my_dbi_match[4] = {
    /* SQLite */
    "MATCH",
    /* SQLite3 */
-   "MATCH"
+   "MATCH",
+   /* Ingres */
+   "~"
 };
 
 #endif /* HAVE_DBI */
