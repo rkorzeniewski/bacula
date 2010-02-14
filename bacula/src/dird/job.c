@@ -694,7 +694,7 @@ bool allow_duplicate_job(JCR *jcr)
       }
       if (strcmp(job->name(), djcr->job->name()) == 0) {
          bool cancel_dup = false;
-         bool cancel_me = true;
+         bool cancel_me = false;
          if (job->DuplicateJobProximity > 0) {
             utime_t now = (utime_t)time(NULL);
             if ((now - djcr->start_time) > job->DuplicateJobProximity) {
