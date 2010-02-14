@@ -227,10 +227,12 @@ void *handle_client_request(void *dirp)
    JCR *jcr;
    BSOCK *dir = (BSOCK *)dirp;
    const char jobname[12] = "*Director*";
+   saveCWD save_cwd;
 
    jcr = new_jcr(sizeof(JCR), filed_free_jcr); /* create JCR */
    jcr->dir_bsock = dir;
    jcr->ff = init_find_files();
+   save_cwd.save(jcr);
    jcr->start_time = time(NULL);
    jcr->RunScripts = New(alist(10, not_owned_by_alist));
    jcr->last_fname = get_pool_memory(PM_FNAME);
@@ -381,6 +383,8 @@ void *handle_client_request(void *dirp)
    ff->fileset = NULL;
    Dmsg0(100, "Calling term_find_files\n");
    term_find_files(jcr->ff);
+   save_cwd.restore(jcr);
+   save_cwd.release();
    jcr->ff = NULL;
    Dmsg0(100, "Done with term_find_files\n");
    free_jcr(jcr);                     /* destroy JCR record */
