@@ -98,7 +98,7 @@ sub extract_resource
     open(FP, $file) or die "Can't open $file";
     my $content = join("", <FP>);
     
-    if ($content =~ m/(^$type {.+?Name\s*=\s*"?$name"?.+?^})/ms) {
+    if ($content =~ m/(^$type {[^}]+?Name\s*=\s*"?$name"?[^}]+?^})/ms) {
         print $1, "\n";
     }
 
