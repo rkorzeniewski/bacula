@@ -1860,5 +1860,7 @@ int restoreTree::queryFileIndex(QString &fullPath, int jobId)
 
 void restoreTree::PgSeltreeWidgetClicked()
 {
-   dockPage();
+   if (!isOnceDocked()) {
+      dockPage();
+   }
 }
