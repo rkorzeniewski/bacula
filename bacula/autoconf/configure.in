@@ -1789,6 +1789,7 @@ if test x$DB_TYPE = xdbi; then
    if test $DB_PROG = sqlite3; then
       A=`test -f $SQL_LIB && nm $DB_PROG_LIB | grep pthread_mutex_lock`
       pkg=$?
+      AC_CHECK_LIB(sqlite3, sqlite3_threadsafe, AC_DEFINE(HAVE_SQLITE3_THREADSAFE, 1, [Set if have sqlite3_threadsafe]))
    fi
 
    if test $pkg = 0; then

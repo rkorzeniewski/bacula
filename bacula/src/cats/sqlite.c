@@ -274,10 +274,12 @@ db_close_database(JCR *jcr, B_DB *mdb)
 void db_check_backend_thread_safe()
 {
 #ifdef HAVE_BATCH_FILE_INSERT
+# ifdef HAVE_SQLITE3_THREADSAFE
    if (!sqlite3_threadsafe()) {
       Emsg0(M_ABORT, 0, _("SQLite3 client library must be thread-safe "
                           "when using BatchMode.\n"));
    }
+# endif
 #endif
 }
 
