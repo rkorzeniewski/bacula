@@ -333,9 +333,11 @@ int DirComm::read()
          continue;
       case BNET_MAIN_PROMPT:
          if (mainWin->m_commDebug) Pmsg1(000, "conn %i MAIN PROMPT\n", m_conn);
-         m_at_prompt = true;
-         m_at_main_prompt = true;
-         mainWin->set_status(_("At main prompt waiting for input ..."));
+         if (!m_at_prompt && ! m_at_main_prompt) {
+            m_at_prompt = true;
+            m_at_main_prompt = true;
+            mainWin->set_status(_("At main prompt waiting for input ..."));
+         }
          break;
       case BNET_PROMPT:
          if (mainWin->m_commDebug) Pmsg2(000, "conn %i PROMPT m_in_select %i\n", m_conn, m_in_select);
@@ -392,6 +394,8 @@ int DirComm::read()
          stat = sock_read();          /* get the message */
          m_console->display_text(msg());
          QMessageBox::critical(m_console, "Error", msg(), QMessageBox::Ok);
+         m_console->beginNewCommand(m_conn);
+         mainWin->waitExit();
          break;
       case BNET_WARNING_MSG:
          if (mainWin->m_commDebug) Pmsg1(000, "conn %i WARNING MSG\n", m_conn);
