@@ -1,0 +1,114 @@
+#!/bin/sh
+#
+#
+TestName="duplicate-job-test"
+. scripts/functions
+
+scripts/cleanup
+scripts/copy-test-confs
+echo "${cwd}/build/technotes" >${cwd}/tmp/file-list
+
+
+# extract a Job and add a runscript on it
+perl -Mscripts::functions \
+    -e "extract_resource('$conf/bacula-dir.conf', 'Job', 'CompressedTest')" \
+    | sed 's%Standard%Standard; ClientRunBeforeJob="sleep 10"%' > $tmp/1
+
+
+outf="$tmp/sed_tmp"
+echo 's%CompressedTest%AllowDuplicateYes%' > $outf
+echo 's%Backup%Backup; AllowDuplicateJobs = yes%' >> $outf
+sed -f $outf $tmp/1 >> $conf/bacula-dir.conf
+
+echo 's%CompressedTest%CancelLowerLevelDuplicatesYes%' > $outf
+echo 's%Backup%Backup; AllowDuplicateJobs = no; CancelLowerLevelDuplicates=yes%' >> $outf
+sed -f $outf $tmp/1 >> $conf/bacula-dir.conf
+
+echo 's%CompressedTest%CancelQueueDuplicatesYes%' > $outf
+echo 's%Backup%Backup; AllowDuplicateJobs = no;CancelLowerLevelDuplicates=no;CancelQueuedDuplicates=yes %' >> $outf
+sed -f $outf $tmp/1 >> $conf/bacula-dir.conf
+
+echo 's%CompressedTest%CancelRunningDuplicatesYes%' > $outf
+echo 's%Backup%Backup; AllowDuplicateJobs = no;CancelLowerLevelDuplicates=no;CancelQueuedDuplicates=no; CancelRunningDuplicates=yes%' >> $outf
+sed -f $outf $tmp/1 >> $conf/bacula-dir.conf
+
+echo 's%CompressedTest%CancelRunningDuplicatesNo%' > $outf
+echo 's%Backup%Backup; AllowDuplicateJobs = no;CancelLowerLevelDuplicates=no;CancelQueuedDuplicates=no; CancelRunningDuplicates=no%' >> $outf
+sed -f $outf $tmp/1 >> $conf/bacula-dir.conf
+
+when=`perl -MPOSIX -e "print strftime('%F %T', localtime(time+300))"`
+
+start_test
+      
+cat <<END_OF_DATA >${cwd}/tmp/bconcmds
+@$out /dev/null
+messages
+@$out ${cwd}/tmp/log1.out
+messages
+label storage=File volume=TestVolume001
+run comment="Should work" level=Full job=AllowDuplicateYes yes
+@sleep 2
+run comment="Should work" level=Full job=AllowDuplicateYes yes
+wait
+messages
+@$out $tmp/log3.out
+run comment="Should work" level=Full job=CancelLowerLevelDuplicatesYes yes
+@sleep 2
+run comment="Should fail" level=Full job=CancelLowerLevelDuplicatesYes yes
+wait
+messages
+run comment="Should fail" level=Incremental job=CancelLowerLevelDuplicatesYes yes
+@sleep 2
+run comment="Should work" level=Full job=CancelLowerLevelDuplicatesYes yes
+wait
+messages
+run comment="Should work" level=Full job=CancelLowerLevelDuplicatesYes yes
+@sleep 2
+run comment="Should fail" level=Incremental job=CancelLowerLevelDuplicatesYes yes
+wait
+messages
+@$out $tmp/log4.out
+run comment="Should work" level=Full job=CancelQueueDuplicatesYes yes
+@sleep 2
+run comment="Should fail" level=Full job=CancelQueueDuplicatesYes yes
+wait
+messages
+run comment="Should fail" level=Full job=CancelQueueDuplicatesYes when="$when" yes
+@sleep 2
+run comment="Should work" level=Full job=CancelQueueDuplicatesYes yes
+wait
+messages
+@$out $tmp/log5.out
+run comment="Should work" level=Full job=CancelRunningDuplicatesYes yes
+@sleep 2
+run comment="Should fail" level=Full job=CancelRunningDuplicatesYes yes
+wait
+messages
+@$out $tmp/log6.out
+run comment="Should work" level=Full job=CancelRunningDuplicatesNo yes
+@sleep 2
+run comment="Should fail" level=Full job=CancelRunningDuplicatesNo yes
+wait
+messages
+@$out $tmp/log2.out
+sql
+SELECT JobId, Name, Level, Comment, JobStatus from Job 
+WHERE Comment='Should fail' and JobStatus='T';
+
+sql
+SELECT JobId, Name, Level, Comment, JobStatus from Job order by JobId
+WHERE Comment="Should work' and JobStatus != 'T';
+
+sql
+SELECT JobId, Name, Level, Comment, JobStatus from Job order by JobId;
+
+quit
+END_OF_DATA
+
+run_bacula
+check_for_zombie_jobs storage=File
+stop_bacula
+
+check_two_logs
+check_restore_diff
+end_test
