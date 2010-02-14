@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2007-2009 Free Software Foundation Europe e.V.
+   Copyright (C) 2007-2010 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -122,6 +122,7 @@ void prerestorePage::buildPage()
    dockPage();
    setCurrent();
    this->show();
+   if (mainWin->m_miscDebug) Pmsg0(000, "Leave preRestore\n");
 }
 
 
@@ -168,6 +169,12 @@ void prerestorePage::okButtonPushed()
    if (mainWin->m_commandDebug) {
       Pmsg1(000, "preRestore command \'%s\'\n", cmd.toUtf8().data());
    }
+   /* 
+    * Send off command that looks something like:
+    *
+    * restore fileset="Full Set" client="timmy-fd" 
+    *        storage="File" current select
+    */
    m_console->write_dir(m_conn, cmd.toUtf8().data());
 
    /* Note, do not turn notifier back on here ... */
@@ -181,6 +188,7 @@ void prerestorePage::okButtonPushed()
       mainWin->resetFocus();
    }
    m_console->notify(m_conn, true);
+   if (mainWin->m_miscDebug) Pmsg0(000, "preRestore OK pressed\n");
 }
 
 
@@ -252,9 +260,8 @@ int prerestorePage::jobdefsFromJob(QStringList &fieldlist, QString &jobId)
       } /* foreach resultline */
    } /* if results from query */
 
-   /* FIXME This should not be getting more than one ever */
-   if(results.count() >= 1) return 1;
-   else return 0;
+   /* ***FIXME*** This should not ever be getting more than one */
+   return results.count() >= 1;
 }
 
 /*
@@ -353,8 +360,10 @@ void prerestorePage::jobRadioClicked(bool checked)
       selectJobRadio->setChecked(false);
       selectJobIdsRadio->setChecked(true);
    }
-   Dmsg2(200, "jobRadio=%d jobidsRadio=%d\n", selectJobRadio->isChecked(), 
+   if (mainWin->m_miscDebug) {
+      Pmsg2(000, "jobRadio=%d jobidsRadio=%d\n", selectJobRadio->isChecked(), 
          selectJobIdsRadio->isChecked());
+   }
 }
 
 void prerestorePage::jobidsRadioClicked(bool checked)
@@ -384,6 +393,8 @@ void prerestorePage::jobidsRadioClicked(bool checked)
       selectJobRadio->setChecked(true);
       selectJobIdsRadio->setChecked(false);
    }
-   Dmsg2(200, "jobRadio=%d jobidsRadio=%d\n", selectJobRadio->isChecked(), 
+   if (mainWin->m_miscDebug) {
+      Pmsg2(000, "jobRadio=%d jobidsRadio=%d\n", selectJobRadio->isChecked(), 
          selectJobIdsRadio->isChecked());
+   }
 }
