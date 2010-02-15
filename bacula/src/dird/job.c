@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2009 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2010 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -31,7 +31,6 @@
  *
  *     Kern Sibbald, October MM
  *
- *    Version $Id$
  */
 
 #include "bacula.h"
@@ -415,6 +414,11 @@ bool cancel_job(UAContext *ua, JCR *jcr)
          fd->signal(BNET_TERMINATE);
          fd->close();
          ua->jcr->file_bsock = NULL;
+         jcr->file_bsock->set_terminated();
+         if (jcr->my_thread_id) {
+            pthread_kill(jcr->my_thread_id, TIMEOUT_SIGNAL);
+            Dmsg1(800, "Send kill to jid=%d\n", jcr->JobId);
+         }
       }
 
       /* Cancel Storage daemon */
@@ -448,6 +452,10 @@ bool cancel_job(UAContext *ua, JCR *jcr)
          sd->signal(BNET_TERMINATE);
          sd->close();
          ua->jcr->store_bsock = NULL;
+         jcr->store_bsock->set_terminated();
+         if (jcr->my_thread_id) {
+            pthread_kill(jcr->my_thread_id, TIMEOUT_SIGNAL);
+         }
       }
       break;
    }
@@ -683,6 +691,7 @@ bool allow_duplicate_job(JCR *jcr)
    if (job->AllowDuplicateJobs) {
       return true;
    }
+   Dmsg0(800, "Enter allow_duplicate_job\n");
    /*
     * After this point, we do not want to allow any duplicate
     * job to run.
@@ -694,7 +703,7 @@ bool allow_duplicate_job(JCR *jcr)
       }
       if (strcmp(job->name(), djcr->job->name()) == 0) {
          bool cancel_dup = false;
-         bool cancel_me = false;
+         bool cancel_me = false; 
          if (job->DuplicateJobProximity > 0) {
             utime_t now = (utime_t)time(NULL);
             if ((now - djcr->start_time) > job->DuplicateJobProximity) {
@@ -753,17 +762,23 @@ bool allow_duplicate_job(JCR *jcr)
          }
          if (cancel_dup || job->CancelRunningDuplicates) {
             /* Zap the duplicated job djcr */
-            UAContext *ua = new_ua_context(djcr);
+            UAContext *ua = new_ua_context(jcr);
             Jmsg(jcr, M_INFO, 0, _("Cancelling duplicate JobId=%d.\n"), djcr->JobId);
-            ua->jcr = djcr;
             cancel_job(ua, djcr);
             free_ua_context(ua);
-            Dmsg2(800, "Have cancelled JCR %p JobId=%d\n", djcr, djcr->JobId);
+            if (djcr->my_thread_id) {
+               pthread_kill(djcr->my_thread_id, TIMEOUT_SIGNAL);
+               Dmsg1(800, "Send kill to jid=%d\n", djcr->JobId);
+            }
+            Dmsg2(800, "Cancel dup %p JobId=%d\n", djcr, djcr->JobId);
          } else {
             /* Zap current job */
             Jmsg(jcr, M_FATAL, 0, _("JobId %d already running. Duplicate job not allowed.\n"),
                djcr->JobId);
+            Dmsg2(800, "Cancel me %p JobId=%d\n", jcr, jcr->JobId);
          }
+         Dmsg4(800, "curJobId=%d use_cnt=%d dupJobId=%d use_cnt=%d\n",
+               jcr->JobId, jcr->use_count(), djcr->JobId, djcr->use_count());
          break;                 /* did our work, get out of foreach loop */
       }
    }

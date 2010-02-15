@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2001-2009 Free Software Foundation Europe e.V.
+   Copyright (C) 2001-2010 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -43,8 +43,6 @@
  *
  *     Kern Sibbald, May MMI
  *
- *   Version $Id$
- *
  */
 
 #include "bacula.h"
@@ -58,7 +56,7 @@ extern struct s_last_job last_job;
 extern bool init_done;
 
 /* Static variables */
-static char derrmsg[]     = "3900 Invalid command\n";
+static char derrmsg[]     = "3900 Invalid command:";
 static char OKsetdebug[]  = "3000 OK setdebug=%d\n";
 static char invalid_cmd[] = "3997 Invalid command for a Director with Monitor directive enabled.\n";
 static char OK_bootstrap[]    = "3000 OK bootstrap\n";
@@ -241,7 +239,9 @@ void *handle_connection_request(void *arg)
         }
       }
       if (!found) {                   /* command not found */
-        bs->fsend(derrmsg);
+        POOL_MEM err_msg;
+        Mmsg(err_msg, "%s %s\n", derrmsg, bs->msg);
+        bs->fsend(err_msg.c_str());
         break;
       }
    }
@@ -316,14 +316,19 @@ static bool cancel_cmd(JCR *cjcr)
       } else {
          oldStatus = jcr->JobStatus;
          set_jcr_job_status(jcr, JS_Canceled);
+         Dmsg2(800, "Cancel JobId=%d %p\n", jcr->JobId, jcr);
          if (!jcr->authenticated && oldStatus == JS_WaitFD) {
             pthread_cond_signal(&jcr->job_start_wait); /* wake waiting thread */
          }
          if (jcr->file_bsock) {
-            bnet_sig(jcr->file_bsock, BNET_TERMINATE);
+            jcr->file_bsock->signal(BNET_TERMINATE);
+            jcr->file_bsock->set_terminated();
+            Dmsg2(800, "Term bsock jid=%d %p\n", jcr->JobId, jcr);
          } else {
             /* Still waiting for FD to connect, release it */
+            bmicrosleep(0, 50000);
             pthread_cond_signal(&jcr->job_start_wait); /* wake waiting job */
+            Dmsg2(800, "Signal FD connect jid=%d %p\n", jcr->JobId, jcr);
          }
          /* If thread waiting on mount, wake him */
          if (jcr->dcr && jcr->dcr->dev && jcr->dcr->dev->waiting_for_mount()) {
