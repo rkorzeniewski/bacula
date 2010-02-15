@@ -37,7 +37,7 @@ Job {
   Write Bootstrap = "@working_dir@/NightlySave.bsr"
   Maximum Concurrent Jobs = 4
   SpoolData = yes
-  Allow Duplicate Jobs = No
+# Allow Duplicate Jobs = No
 # Prefer Mounted Volumes = no
 }
 
@@ -54,7 +54,7 @@ Job {
   Maximum Concurrent Jobs = 4
   Selection Type = Job 
   Selection Pattern = ".*Save"
-  Allow Duplicate Jobs = No
+# Allow Duplicate Jobs = No
 }
 
 Job {
@@ -70,7 +70,7 @@ Job {
   Maximum Concurrent Jobs = 4
   Selection Type = Volume
   Selection Pattern = "File*"
-  Allow Duplicate Jobs = No
+# Allow Duplicate Jobs = No
 }
 
 Job {
@@ -85,7 +85,7 @@ Job {
   Pool = Default
   Maximum Concurrent Jobs = 4
   Selection Type = PoolUncopiedJobs
-  Allow Duplicate Jobs = No
+# Allow Duplicate Jobs = No
 }
 
 Job {
@@ -100,7 +100,7 @@ Job {
   Pool = Default
   Maximum Concurrent Jobs = 4
   Selection Type = PoolOccupancy
-  Allow Duplicate Jobs = No
+# Allow Duplicate Jobs = No
 }
 
 Job {
@@ -115,7 +115,7 @@ Job {
   Pool = Default
   Maximum Concurrent Jobs = 4
   Selection Type = PoolTime
-  Allow Duplicate Jobs = No
+# Allow Duplicate Jobs = No
 }
 
 
