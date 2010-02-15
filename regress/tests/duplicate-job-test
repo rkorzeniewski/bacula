@@ -46,6 +46,7 @@ messages
 @$out ${cwd}/tmp/log1.out
 messages
 label storage=File volume=TestVolume001
+@#setdebug level=100 storage=File
 @##############################################
 @# AllowDuplicates = Yes, both jobs should work
 @##############################################
