@@ -2879,7 +2879,6 @@ mandrake)
        platforms/mandrake/bacula-fd \
        platforms/mandrake/bacula-sd \
        platforms/mandrake/bacula-dir \
-       platforms/mandrake/bacula.spec \
        "
   ;;
 gentoo)
@@ -2928,8 +2927,7 @@ suse)
        platforms/suse/bacula-fd \
        platforms/suse/bacula-sd \
        platforms/suse/bacula-dir \
-       platforms/suse/bacula \
-       platforms/suse/bacula.spec"
+       platforms/suse/bacula"
   ;;
 suse5)
    DISTNAME=suse
