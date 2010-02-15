@@ -71,6 +71,16 @@ run comment="Should fail" level=Incremental job=CancelLowerLevelDuplicatesYes ye
 run comment="Should work" level=Full job=CancelLowerLevelDuplicatesYes yes
 wait
 messages
+run comment="Should fail" level=Differential job=CancelLowerLevelDuplicatesYes yes
+@sleep 2
+run comment="Should work" level=Full job=CancelLowerLevelDuplicatesYes yes
+wait
+messages
+run comment="Should work" level=Differential job=CancelLowerLevelDuplicatesYes yes
+@sleep 2
+run comment="Should fail" level=Incremental job=CancelLowerLevelDuplicatesYes yes
+wait
+messages
 @#####################################################################################
 @# Run two jobs with the different level and see wich one is canceled (reversed order)
 @#####################################################################################
