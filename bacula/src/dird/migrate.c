@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2004-2009 Free Software Foundation Europe e.V.
+   Copyright (C) 2004-201009 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -41,7 +41,6 @@
  *       to do the backup.
  *     When the Storage daemon finishes the job, update the DB.
  *
- *   Version $Id$
  */
 
 #include "bacula.h"
@@ -318,7 +317,7 @@ bool do_migration(JCR *jcr)
    }
    /* Make sure this job was not already migrated */
    if (jcr->previous_jr.JobType != JT_BACKUP &&
-       jcr->previous_jr.JobType != JT_COPY) {
+       jcr->previous_jr.JobType != JT_JOB_COPY) {
       Jmsg(jcr, M_INFO, 0, _("JobId %s already %s probably by another Job. %s stopped.\n"),
          edit_int64(jcr->previous_jr.JobId, ed1),
          jcr->get_ActionName(1),
