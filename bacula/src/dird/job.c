@@ -452,7 +452,12 @@ bool cancel_job(UAContext *ua, JCR *jcr)
          sd->signal(BNET_TERMINATE);
          sd->close();
          ua->jcr->store_bsock = NULL;
+         jcr->store_bsock->set_timed_out();
          jcr->store_bsock->set_terminated();
+         if (jcr->SD_msg_chan) {
+            Dmsg2(400, "kill jobid=%d use=%d\n", (int)jcr->JobId, jcr->use_count());
+            pthread_kill(jcr->SD_msg_chan, TIMEOUT_SIGNAL);
+         }
          if (jcr->my_thread_id) {
             pthread_kill(jcr->my_thread_id, TIMEOUT_SIGNAL);
          }
@@ -503,6 +508,15 @@ void cancel_storage_daemon_job(JCR *jcr)
       sd->close();
       ua->jcr->store_bsock = NULL;
       jcr->sd_canceled = true;
+      jcr->store_bsock->set_timed_out();
+      jcr->store_bsock->set_terminated();
+      if (jcr->SD_msg_chan) {
+         Dmsg2(400, "kill jobid=%d use=%d\n", (int)jcr->JobId, jcr->use_count());
+         pthread_kill(jcr->SD_msg_chan, TIMEOUT_SIGNAL);
+      }
+      if (jcr->my_thread_id) {
+         pthread_kill(jcr->my_thread_id, TIMEOUT_SIGNAL);
+      }
    }
 bail_out:
    free_jcr(control_jcr);
@@ -765,11 +779,9 @@ bool allow_duplicate_job(JCR *jcr)
             UAContext *ua = new_ua_context(jcr);
             Jmsg(jcr, M_INFO, 0, _("Cancelling duplicate JobId=%d.\n"), djcr->JobId);
             cancel_job(ua, djcr);
+            bmicrosleep(0, 500000);
+            cancel_job(ua, djcr);
             free_ua_context(ua);
-            if (djcr->my_thread_id) {
-               pthread_kill(djcr->my_thread_id, TIMEOUT_SIGNAL);
-               Dmsg1(800, "Send kill to jid=%d\n", djcr->JobId);
-            }
             Dmsg2(800, "Cancel dup %p JobId=%d\n", djcr, djcr->JobId);
          } else {
             /* Zap current job */

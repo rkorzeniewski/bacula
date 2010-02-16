@@ -326,7 +326,6 @@ static bool cancel_cmd(JCR *cjcr)
             Dmsg2(800, "Term bsock jid=%d %p\n", jcr->JobId, jcr);
          } else {
             /* Still waiting for FD to connect, release it */
-            bmicrosleep(0, 50000);
             pthread_cond_signal(&jcr->job_start_wait); /* wake waiting job */
             Dmsg2(800, "Signal FD connect jid=%d %p\n", jcr->JobId, jcr);
          }
