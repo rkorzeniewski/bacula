@@ -1,0 +1,184 @@
+#!/bin/sh
+#
+#
+TestName="duplicate-job-test"
+. scripts/functions
+
+scripts/cleanup
+scripts/copy-test-confs
+echo "${cwd}/build/technotes" >${cwd}/tmp/file-list
+
+
+# extract a Job and add a runscript on it
+perl -Mscripts::functions \
+    -e "extract_resource('$conf/bacula-dir.conf', 'Job', 'CompressedTest')" \
+    | sed 's%Standard%Standard; ClientRunBeforeJob="sleep 6"%' > $tmp/1
+
+
+outf="$tmp/sed_tmp"
+echo 's%CompressedTest%AllowDuplicateYes%' > $outf
+echo 's%Backup%Backup; AllowDuplicateJobs = yes%' >> $outf
+sed -f $outf $tmp/1 >> $conf/bacula-dir.conf
+
+echo 's%CompressedTest%CancelLowerLevelDuplicatesYes%' > $outf
+echo 's%Backup%Backup; AllowDuplicateJobs = no; CancelLowerLevelDuplicates=yes%' >> $outf
+sed -f $outf $tmp/1 >> $conf/bacula-dir.conf
+
+echo 's%CompressedTest%CancelQueueDuplicatesYes%' > $outf
+echo 's%Backup%Backup; AllowDuplicateJobs = no;CancelLowerLevelDuplicates=no;CancelQueuedDuplicates=yes %' >> $outf
+sed -f $outf $tmp/1 >> $conf/bacula-dir.conf
+
+echo 's%CompressedTest%CancelRunningDuplicatesYes%' > $outf
+echo 's%Backup%Backup; AllowDuplicateJobs = no;CancelLowerLevelDuplicates=no;CancelQueuedDuplicates=no; CancelRunningDuplicates=yes%' >> $outf
+sed -f $outf $tmp/1 >> $conf/bacula-dir.conf
+
+echo 's%CompressedTest%CancelRunningDuplicatesNo%' > $outf
+echo 's%Backup%Backup; AllowDuplicateJobs = no;CancelLowerLevelDuplicates=no;CancelQueuedDuplicates=no; CancelRunningDuplicates=no%' >> $outf
+sed -f $outf $tmp/1 >> $conf/bacula-dir.conf
+
+when=`perl -MPOSIX -e "print strftime('%F %T', localtime(time+300))"`
+
+start_test
+      
+cat <<END_OF_DATA >${cwd}/tmp/bconcmds
+@$out /dev/null
+messages
+@$out ${cwd}/tmp/log1.out
+messages
+label storage=File volume=TestVolume001
+@#setdebug level=100 storage=File
+@##############################################
+@# AllowDuplicates = Yes, both jobs should work
+@##############################################
+@# comment="Should work"
+run  level=Full job=AllowDuplicateYes yes
+@sleep 2
+@# comment="Should work"
+run  level=Full job=AllowDuplicateYes yes
+wait
+messages
+@$out $tmp/log3.out
+@###############################################################
+@# Run two jobs with the same level and see wich one is canceled
+@###############################################################
+@# comment="Should work"
+run  level=Full job=CancelLowerLevelDuplicatesYes yes
+@sleep 2
+@# comment="Should fail"
+run  level=Full job=CancelLowerLevelDuplicatesYes yes
+wait
+messages
+@####################################################################
+@# Run two jobs with the different level and see wich one is canceled
+@####################################################################
+@# comment="Should fail"
+run  level=Incremental job=CancelLowerLevelDuplicatesYes yes
+@sleep 2
+@# comment="Should work"
+run  level=Full job=CancelLowerLevelDuplicatesYes yes
+wait
+messages
+@# comment="Should fail"
+run  level=Differential job=CancelLowerLevelDuplicatesYes yes
+@sleep 2
+@# comment="Should work"
+run  level=Full job=CancelLowerLevelDuplicatesYes yes
+wait
+messages
+@# comment="Should work"
+run  level=Differential job=CancelLowerLevelDuplicatesYes yes
+@sleep 2
+@# comment="Should fail"
+run  level=Incremental job=CancelLowerLevelDuplicatesYes yes
+wait
+messages
+@#####################################################################################
+@# Run two jobs with the different level and see wich one is canceled (reversed order)
+@#####################################################################################
+@# comment="Should work"
+run  level=Full job=CancelLowerLevelDuplicatesYes yes
+@sleep 2
+@# comment="Should fail"
+run  level=Incremental job=CancelLowerLevelDuplicatesYes yes
+wait
+messages
+@$out $tmp/log4.out
+@####################################################################
+@# Run two jobs, the second one can't cancel the 1st, and should fail
+@####################################################################
+@# comment="Should work"
+run  level=Full job=CancelQueueDuplicatesYes yes
+@sleep 2
+@# comment="Should fail"
+run  level=Full job=CancelQueueDuplicatesYes yes
+wait
+messages
+@#################################################################
+@# The first job should stay queued, the second one will cancel it
+@#################################################################
+@# comment="Should fail"
+run  level=Full job=CancelQueueDuplicatesYes when="$when" yes
+@sleep 2
+@# comment="Should work"
+run  level=Full job=CancelQueueDuplicatesYes yes
+wait
+messages
+@$out $tmp/log5.out
+@########################################
+@# The second job will kill the first one
+@########################################
+@# comment="Should fail"
+run  level=Full job=CancelRunningDuplicatesYes yes
+@sleep 2
+@# comment="Should work"
+run  level=Full job=CancelRunningDuplicatesYes yes
+wait
+messages
+@$out $tmp/log6.out
+@##########################
+@# The second job won't run
+@##########################
+@# comment="Should work"
+run  level=Full job=CancelRunningDuplicatesNo yes
+@sleep 2
+@# comment="Should fail"
+run  level=Full job=CancelRunningDuplicatesNo yes
+wait
+messages
+@$out $tmp/log7.out
+sql
+SELECT JobId, Job FROM Job WHERE JobId IN (1,2,3,6,8,9,11,13,16,18,19) AND JobStatus != 'T';
+
+@$out $tmp/log8.out
+sql
+SELECT JobId, Job FROM Job WHERE JobId IN (4,5,7,10,12,14,15,17,20) AND JobStatus = 'T';
+
+@$out $tmp/log9.out
+sql
+SELECT JobId, Name, Level, Comment, JobStatus from Job order by JobId;
+
+quit
+END_OF_DATA
+
+run_bacula
+check_for_zombie_jobs storage=File
+stop_bacula
+
+touch $tmp/log2.out
+check_two_logs
+
+grep '^| [0-9]' $tmp/log7.out > /dev/null
+if [ $? = 0 ]; then
+    print_debug "E: Found errors in $tmp/log7.out"
+    print_debug `cat $tmp/log7.out`
+    estat=1
+fi
+
+grep '^| [0-9]' $tmp/log8.out > /dev/null
+if [ $? = 0 ]; then
+    print_debug "E: Found errors in $tmp/log8.out"
+    print_debug `cat $tmp/log8.out`
+    estat=1
+fi
+
+end_test
