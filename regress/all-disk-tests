@@ -26,6 +26,7 @@ nice tests/copy-uncopied-test
 nice tests/copy-upgrade-test
 nice tests/copy-volume-test
 nice tests/data-encrypt-test
+nice tests/duplicate-job-test
 nice tests/encrypt-bug-test
 nice tests/estimate-test
 nice tests/exclude-dir-test
