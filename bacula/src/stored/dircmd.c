@@ -232,7 +232,7 @@ void *handle_connection_request(void *arg)
            Dmsg1(200, "Do command: %s\n", cmds[i].cmd);
            if (!cmds[i].func(jcr)) { /* do command */
               quit = true; /* error, get out */
-              Dmsg1(190, "Command %s reqeusts quit\n", cmds[i].cmd);
+              Dmsg1(190, "Command %s requests quit\n", cmds[i].cmd);
            }
            found = true;             /* indicate command found */
            break;
