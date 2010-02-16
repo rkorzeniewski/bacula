@@ -11,13 +11,13 @@ export REGRESS_DEBUG
 rm -rf Testing
 git pull
 #
-# Temp switch to branch 3.0.3 NB this leaves you on a headless
+# Temp switch to branch Branch-5.0 NB this leaves you on a headless
 #    branch, but it works for building and testing.
 #
-#git checkout `git branch -r | grep "3\.0\.3" | head -1`
-#if [ $? -ne 0 ]; then
-#   git checkout master
-#fi
+git checkout `git branch -r | grep "5\.0" | head -1`
+if [ $? -ne 0 ]; then
+   git checkout master
+fi
 make distclean
 scripts/config_dart
 make setup
