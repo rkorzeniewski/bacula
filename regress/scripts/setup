@@ -29,7 +29,7 @@ which git >/dev/null 2>/dev/null
 if [ $? = 0 ] ; then
   git show HEAD | grep -m 1 commit | awk '{print $2}' > build/git-version
 else
-  cat "Git not found." >build/git-version
+  echo "Git not found." >build/git-version
 fi
 scripts/create_sed
 # In default bacula-dir.conf.in, change default file 
