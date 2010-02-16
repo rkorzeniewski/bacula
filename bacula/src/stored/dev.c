@@ -893,7 +893,7 @@ bool DEVICE::eod(DCR *dcr)
    return fsf(VolCatInfo.VolCatFiles);
 #endif
 
-   Dmsg0(100, "eod\n");
+   Dmsg0(100, "Enter eod\n");
    if (at_eot()) {
       return true;
    }
@@ -906,7 +906,7 @@ bool DEVICE::eod(DCR *dcr)
    }
    if (!is_tape()) {
       pos = lseek(dcr, (boffset_t)0, SEEK_END);
-//    Dmsg1(100, "====== Seek to %lld\n", pos);
+      Dmsg1(200, "====== Seek to %lld\n", pos);
       if (pos >= 0) {
          update_pos(dcr);
          set_eot();
@@ -916,6 +916,7 @@ bool DEVICE::eod(DCR *dcr)
       berrno be;
       Mmsg2(errmsg, _("lseek error on %s. ERR=%s.\n"),
              print_name(), be.bstrerror());
+      Dmsg0(100, errmsg);
       return false;
    }
 #ifdef MTEOM
@@ -924,6 +925,7 @@ bool DEVICE::eod(DCR *dcr)
       /* If unknown position, rewind */
       if (get_os_tape_file() < 0) {
         if (!rewind(NULL)) {
+          Dmsg0(100, "Rewind error\n");
           return false;
         }
       }
@@ -952,6 +954,7 @@ bool DEVICE::eod(DCR *dcr)
          update_pos(dcr);
          Mmsg2(errmsg, _("ioctl MTEOM error on %s. ERR=%s.\n"),
             print_name(), be.bstrerror());
+         Dmsg0(100, errmsg);
          return false;
       }
 
@@ -961,6 +964,7 @@ bool DEVICE::eod(DCR *dcr)
          clrerror(-1);
          Mmsg2(errmsg, _("ioctl MTIOCGET error on %s. ERR=%s.\n"),
             print_name(), be.bstrerror());
+         Dmsg0(100, errmsg);
          return false;
       }
       Dmsg1(100, "EOD file=%d\n", os_file);
@@ -974,6 +978,7 @@ bool DEVICE::eod(DCR *dcr)
        * Rewind then use FSF until EOT reached
        */
       if (!rewind(NULL)) {
+         Dmsg0(100, "Rewind error.\n");
          return false;
       }
       /*
@@ -983,7 +988,7 @@ bool DEVICE::eod(DCR *dcr)
       for (file_num=file; !at_eot(); file_num++) {
          Dmsg0(200, "eod: doing fsf 1\n");
          if (!fsf(1)) {
-            Dmsg0(200, "fsf error.\n");
+            Dmsg0(100, "fsf error.\n");
             return false;
          }
          /*
