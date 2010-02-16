@@ -25,7 +25,12 @@ rm -rf build bin
 # Copy new source
 echo "Copying source from ${BACULA_SOURCE}"
 cp -rp ${BACULA_SOURCE} build
-git show HEAD | grep -m 1 commit | awk '{print $2}' > build/git-version
+which git
+if [ $? = 0 ; then
+  git show HEAD | grep -m 1 commit | awk '{print $2}' > build/git-version
+else
+  cat "Git not found." >build/git-version
+fi
 scripts/create_sed
 # In default bacula-dir.conf.in, change default file 
 # to backup to be build directory
