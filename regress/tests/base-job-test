@@ -174,9 +174,9 @@ cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 run level=full job=backup yes
 wait
 messages
-@$out ${cwd}/tmp/log5.out
+@out ${cwd}/tmp/log5.out
 list basefiles jobid=6
-@$out ${cwd}/tmp/log6.out
+@out ${cwd}/tmp/log6.out
 list files jobid=6
 messages
 END_OF_DATA
