@@ -1,22 +1,47 @@
 
-               Release Notes for Bacula 5.0.0
+               Release Notes for Bacula 5.0.1
 
   Bacula code: Total files = 1,081 Total lines = 217,272 (Using SLOCCount)
 
+!!!!!!!!!!!!!!!!!!!!! NOTE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+The Allow Duplicate Jobs directive has been significantly 
+reworked, and the default value has changed. See below.
 
-=======
+Truncate On Purge has been totally rewritten. See the new
+features section of the manual.
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 Changes since 5.0.0
 -------------------
+- We believe that we have resolved most of the problems
+  concerning canceled or failed jobs being "stuck" in the
+  Director.  There is one outstanding problem in the SD when
+  canceling jobs that we will fix in the next major release.
+  If you see jobs that seem to be stuck, in general issuing
+  a cancel command in bconsole should now make them go away.
+
 Directives:
-- Truncate on Purge rewritten.  See New Features section in the manual.
+- The default for "Allow Duplicate Jobs" has been changed from 
+  no to yes.  If you use this directive, please check your
+  conf file, and note the next two items !!!!!!!!!!!!!!!!!!!
 - AllowHigherDuplicates disabled. It did not work as documented   
     and was confusing.
 - New directive "CancelLowerLevelDuplicates" See New Features
   section in the manual.
+- Truncate on Purge rewritten.  See New Features section in the manual.
 
 Bug fixes:
-1466 1467 1468 1481 1486 1488 1497 1499 1494 1448 1476
+1448 1466 1467 1468 1476 1481 1486 1488 1494 1497 1499 1501 1509
 
+- Apply MacOSX installer patch from bug #1509
+- Apply fix to previous fix of Copy problem. Fix proposed by reporter o
+  #1476
+- Fix bug #1501 -t does not print errors
+- Apply SQLite3 update fix from bug #1497
+- Apply bashism fix for diskchanger.in script from bug #1499
+- Apply rpm fix for Sci Linux from bug #1494
+- Take most recent Ukranian po from bug #1448
+- Probable fix for Copy/Migration bug #1476
 - Fix bug #1488 -- avoid recursion and race conditions in messages.c
 - Upgrade cats library also to 5.0.0
 - Fix missing console page in bat
@@ -136,6 +161,7 @@ use readline or not as you please.
 ==========================================================
 
 
+
 Release Notes for Bacula 5.0.0
 
 Release Numbering:
@@ -160,6 +186,8 @@ Warning:
 Please note the three Warnings below before doing any install or
 upgrade.
        
+
+
 
 Changes since 3.0.3a (the last Bacula Project release):
 -------------------------------------------------------
