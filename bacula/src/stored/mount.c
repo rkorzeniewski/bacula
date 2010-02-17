@@ -280,7 +280,7 @@ read_volume:
          VolumeName);
 
       if (!dev->eod(dcr)) {
-         Dmsg2(150, "Unable to position to end of data on device %s: ERR=%s\n", 
+         Dmsg2(050, "Unable to position to end of data on device %s: ERR=%s\n", 
             dev->print_name(), dev->bstrerror());
          Jmsg(jcr, M_ERROR, 0, _("Unable to position to end of data on device %s: ERR=%s\n"),
             dev->print_name(), dev->bstrerror());
@@ -288,7 +288,7 @@ read_volume:
          goto mount_next_vol;
       }
       if (!is_eod_valid()) {
-         Dmsg0(150, "goto mount_next_vol\n");
+         Dmsg0(100, "goto mount_next_vol\n");
          goto mount_next_vol;
       }
 
@@ -618,11 +618,13 @@ bool DCR::is_eod_valid()
               " size=%s\n"), VolumeName, 
               edit_uint64(dev->VolCatInfo.VolCatBytes, ed1));
       } else {
-         Jmsg(jcr, M_ERROR, 0, _("Bacula cannot write on disk Volume \"%s\" because: "
+         Mmsg(jcr->errmsg, _("Bacula cannot write on disk Volume \"%s\" because: "
               "The sizes do not match! Volume=%s Catalog=%s\n"),
               VolumeName,
               edit_uint64(pos, ed1),
               edit_uint64(dev->VolCatInfo.VolCatBytes, ed2));
+         Jmsg(jcr, M_ERROR, 0, jcr->errmsg);
+         Dmsg0(050, jcr->errmsg);
          mark_volume_in_error();
          return false;
       }
