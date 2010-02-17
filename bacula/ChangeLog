@@ -4,8 +4,92 @@ General:
 
 Release Version 5.0.1
 
+17Feb10
+- Apply MacOSX installer patch from bug #1509
+- Add debug code for FreeBSD regress failures
+- Reduce debug output
+
+16Feb10
+- Regress test Branch-5.0 prior to release
+- Add more debug for three-pool regress failure
+- Backport duplicate-job-test
+- Make dup jobs regress test work
+- Eliminate error message in regress setup if get not present
+- Avoid error message if git not installed
+
+15Feb10
+- Apply fix to previous fix of Copy problem. Fix proposed by reporter o
+  #1476
+- Set default Allow Duplicate Jobs = yes
+- Fix Allow Duplicates bug
+
+14Feb10
+- Fix duplicate job bug
+- Update date
+- Fix infinite wait on error when restore started
+- Make undocking work
+- update configure
+- Add check for sqlite3_threadsafe() in configure
+- Add debug to testls
+
+13Feb10
+- Updates for 5.0.1.
+- Clean up termcap requirements.
+- Add dependency information.
+- Changes to run bat as nonroot user.
+- Refix version.
+- Fix client only build.
+- Add code to check and prevent setting StorageId to zero
+
+12Feb10
+- Lets call the Ingres version of the tables also version 12 as it alre
+  all the new tables introduced in version 12 on the other backends.
+- Fix library versions from 5.1.0 to 5.0.1 so things are inline with th
+  numbering scheme
+- First cut at fixing AllowDuplicateJobs bugs
+- Fix bug #1501 -t does not print errors
+- Add more doc in sample-query.sql
+
+12Feb10
+- Lets call the Ingres version of the tables also version 12 as it alre
+  all the new tables introduced in version 12 on the other backends.
+- Fix library versions from 5.1.0 to 5.0.1 so things are inline with th
+  numbering scheme
+- First cut at fixing AllowDuplicateJobs bugs
+- Fix bug #1501 -t does not print errors
+- Add more doc in sample-query.sql
+
+11Feb10
+- Apply SQLite3 update fix from bug #1497
+- Apply bashism fix for diskchanger.in script from bug #1499
+- Apply Philipp Storz fix on bconsole history file
+- Apply rpm fix for Sci Linux from bug #1494
+- Update po files
+- Take most recent Ukranian po from bug #1448
+- Fix pages not in focus
+
+10Feb10
+- Work around SQLite3 bug in bat submitted by Andreas Piesk a.piesk@gmx
+- Move shared object numbers into version.h + use -release for libtool
+  than -version-info
+- Make mtx-changer errors clearer
+- Check for existence of mtx-changer.conf in mtx-changer script
+
+09Feb10
+- Probable fix for Copy/Migration bug #1476
+- Fix SQL that fails on SQLite3 in bat reported by Andreas Piesk a.pies
+- Make master run with DEVELOPER set
+
+08Feb10
+- Make bsnprintf test program compile
+- Rename directory
+- Reorganize spec files
+- Fix bat bug that consumes connections + add braces on ifs + rename su
+- Fix compiling gigaslam.c whith $(CFLAGS) for OpenSuse Build service
+- Fix Mysql database upgrade.
+
 07Feb10
-- Fix bug #1488 -- create delivery_error() subroutine to avoid recursion and
+- Fix bug #1488 -- create delivery_error() subroutine to avoid recursio
   race conditions in messages.c
 - Upgrade cats library also to 5.0.0
 
@@ -14,7 +98,7 @@ Release Version 5.0.1
 - Move msg trace into subroutine
 - Move bat help files into help subdirectory
 - Add bat help files to Win64 installer
-- Win -- add help files to installer + stop any running bacula-fd before
+- Win -- add help files to installer + stop any running bacula-fd befor
   install
 - Fix bug #1481 -- bat consumes all console file descriptors
 - Update date on win32 rc file
@@ -31,9 +115,11 @@ Release Version 5.0.1
 - Apply Philipp's fix for dbcheck use by make_catalog_backup.pl
 
 01Feb10
+- Backout patch that should not be in Branch-5.0
+- Backup patch that should not be in Branch-5.0
 - Free db_list when not used
 - Fix seg fault in bscan from new comment field
-- Remove qmake-qt4 code so tht alternate qt4 build works. Fixes build problems
+- Remove qmake-qt4 code so tht alternate qt4 build works. Fixes build p
   in bug #1468
 - Patch from checks multple CNs when using TLS
 
@@ -58,6 +144,10 @@ Release Version 5.0.1
 25Jan10
 - update configure
 - Fix make_catalog_backup.pl warning
+
+
+
+
 
 Release Version 5.0.0
 
@@ -1733,4 +1823,3 @@ Release Version 2.4.1
 Release Version 2.4.0
 25Jan08
 Release Version 2.2.8
-
