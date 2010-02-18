@@ -30,7 +30,7 @@ sed -f ${outf} ${cwd}/tmp/1 >${cwd}/bin/bacula-dir.conf
 
 # Write out bconsole commands
 cat <<END_OF_DATA >${cwd}/tmp/bconcmds
-@$out /dev/null
+@out /dev/null
 messages
 @$out ${cwd}/tmp/log1.out
 @#setdebug level=200 storage=tape
@@ -60,7 +60,7 @@ END_OF_DATA
 
 run_bacula
 cat <<END_OF_DATA >${cwd}/tmp/bconcmds
-@$out /dev/null
+@out /dev/null
 messages
 @# 
 @# now do a restore
