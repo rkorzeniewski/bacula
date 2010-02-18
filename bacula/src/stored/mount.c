@@ -275,7 +275,8 @@ read_volume:
        * we need to position to the end of the volume, since we are
        * just now putting it into append mode.
        */
-      Dmsg0(200, "Device previously written, moving to end of data\n");
+      Dmsg1(100, "Device previously written, moving to end of data. Expect %lld bytes\n",
+           dev->VolCatInfo.VolCatBytes);
       Jmsg(jcr, M_INFO, 0, _("Volume \"%s\" previously written, moving to end of data.\n"),
          VolumeName);
 
