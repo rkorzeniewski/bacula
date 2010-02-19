@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2008-2009 Free Software Foundation Europe e.V.
+   Copyright (C) 2008-2010 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -29,6 +29,9 @@
 /*
   How to use mutex with bad order usage detection
  ------------------------------------------------
+
+ Note: see file mutex_list.h for current mutexes with 
+       defined priorities.
 
  Instead of using:
     pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
