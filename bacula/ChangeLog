@@ -4,6 +4,9 @@ General:
 
 Release Version 5.0.1
 
+19Feb10
+ - Fix make_catalog_backup.pl fails when catalog db is on other host
+
 17Feb10
 - Apply MacOSX installer patch from bug #1509
 - Add debug code for FreeBSD regress failures

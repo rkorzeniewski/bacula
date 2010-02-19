@@ -33,6 +33,7 @@ Directives:
 Bug fixes:
 1448 1466 1467 1468 1476 1481 1486 1488 1494 1497 1499 1501 1509
 
+- Fix make_catalog_backup.pl fails when catalog db is on other host
 - Apply MacOSX installer patch from bug #1509
 - Apply fix to previous fix of Copy problem. Fix proposed by reporter o
   #1476
