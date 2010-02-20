@@ -3,7 +3,6 @@
 #include "cats.h"
 
 #ifdef HAVE_INGRES
-#include <eqdef.h>
 #include <eqsqlca.h>
     extern IISQLCA sqlca;   /* SQL Communications Area */
 #include <eqsqlda.h>
