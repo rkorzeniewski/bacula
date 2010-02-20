@@ -169,9 +169,9 @@ static int sql_check(B_DB *mdb)
 {
     int errorcode;
 
-    if ((errorcode = INGcheck()<0)) {
+    if ((errorcode = INGcheck()) < 0) {
         /* TODO: fill mdb->errmsg */
-        Mmsg( mdb->errmsg, "Something went wrong - still searching!\n" );
+        Mmsg(mdb->errmsg, "Something went wrong - still searching!\n");
     } else if (errorcode > 0) {
 	/* just a warning, proceed */
     }
