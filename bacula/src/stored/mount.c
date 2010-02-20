@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2002-2009 Free Software Foundation Europe e.V.
+   Copyright (C) 2002-2010 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -32,7 +32,6 @@
  *
  *   Kern Sibbald, August MMII
  *
- *   Version $Id$
  */
 
 #include "bacula.h"                   /* pull in global headers */
@@ -72,7 +71,6 @@ bool DCR::mount_next_write_volume()
 {
    int retry = 0;
    bool ask = false, recycle, autochanger;
-   bool do_find = true;
    int mode;
    DCR *dcr = this;
 
@@ -108,21 +106,16 @@ mount_next_vol:
    }
    recycle = false;
 
-   if (retry >= 2) {
-      do_find = false; 
-   }
-
    if (dev->must_unload()) {
       ask = true;                     /* ask operator to mount tape */
-      do_find = true;                 /* re-find a volume after unload */
    }
    unlock_volumes();
    do_unload();
    do_swapping(true /*is_writing*/);
    do_load(true /*is_writing*/);
-   lock_volumes();
 
-   if (do_find && !find_a_volume()) {
+   lock_volumes();
+   if (!find_a_volume()) {
       goto no_lock_bail_out;
    }
 
@@ -151,7 +144,6 @@ mount_next_vol:
       autochanger = false;
       VolCatInfo.Slot = 0;
       ask = retry >= 2;
-      do_find = true;           /* do find_a_volume if we retry */
    }
    lock_volumes();
    Dmsg1(150, "autoload_dev returns %d\n", autochanger);
