@@ -608,7 +608,7 @@ bool dir_ask_sysop_to_mount_volume(DCR *dcr, int mode)
        *   Otherwise skip it.
        */
       if (!dev->poll && (stat == W_TIMEOUT || stat == W_MOUNT)) {
-         char *msg;
+         const char *msg;
          if (mode == ST_APPEND) {
             msg = _("Please mount Volume \"%s\" or label a new one for:\n"
               "    Job:          %s\n"
