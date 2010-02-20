@@ -100,14 +100,15 @@ int INGgetTypeSize(IISQLVAR *ingvar)
     int inglength = 0;
         switch (ingvar->sqltype)
     {
-                case IISQ_DTE_TYPE:
-                inglength = 25;
-                    break;
-                case IISQ_MNY_TYPE:
-                    inglength = 8;
-                    break;
-                default:
-                    inglength = ingvar->sqllen;
+    /* TODO: add date types (at least TSTMP,TSW TSWO) */
+		case IISQ_DTE_TYPE:
+	    	inglength = 25;
+		    break;
+		case IISQ_MNY_TYPE:
+		    inglength = 8;
+		    break;
+		default:
+		    inglength = ingvar->sqllen;
     }
         return inglength;
 }
@@ -145,7 +146,7 @@ INGresult *INGgetINGresult(IISQLDA *sqlda)
 }
 void INGfreeINGresult(INGresult *ing_res)
 {
-    /* TODO: free all rows and fields, then res, not descriptor! */
+    /* free all rows and fields, then res, not descriptor! */
     if( ing_res != NULL )
     {
         /* use of rows is a nasty workaround til I find the reason,

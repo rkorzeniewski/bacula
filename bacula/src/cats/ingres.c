@@ -166,7 +166,17 @@ static bool check_database_encoding(JCR *jcr, B_DB *mdb)
  */
 static int sql_check(B_DB *mdb)
 {
-    return INGcheck();
+    int errorcode;
+    if ((errorcode = INGcheck()<0))
+    {
+        /* TODO: fill mdb->errmsg */
+        Mmsg( mdb->errmsg, "Something went wrong - still searching!\n" );
+    }
+    else if (errorcode > 0)
+    {
+	/* just a warning, proceed */
+    }
+    return errorcode;
 }
 
 /*
@@ -515,8 +525,12 @@ int my_ingres_query(B_DB *mdb, const char *query)
    if (mdb->status == ING_COMMAND_OK) {
       Dmsg1(500, "we have a result\n", query);
 
-   if ((cols = INGgetCols(query)) == 0)
+   if ((cols = INGgetCols(query)) <= 0)
    {
+      if (cols < 0 )
+      {
+         Dmsg0(500,"my_ingres_query: neg.columns: no DML stmt!\n");
+      }
       Dmsg0(500,"my_ingres_query (non SELECT) starting...\n");
       /* non SELECT */
       mdb->num_rows = INGexec(mdb->db, query);
@@ -531,9 +545,10 @@ int my_ingres_query(B_DB *mdb, const char *query)
         mdb->status = 0;
       }
    }
-   else if ( cols > 0)
+   else
    {
       /* SELECT */
+      Dmsg0(500,"my_ingres_query (SELECT) starting...\n");
       mdb->result = INGquery(mdb->db, query);
       if ( mdb->result != NULL )
       {
@@ -553,10 +568,6 @@ int my_ingres_query(B_DB *mdb, const char *query)
         Dmsg0(500, "No resultset...\n");
         mdb->status = 1; /* failed */
       }
-   }
-   else
-   {
-    mdb->status = 1; /* failed */
    }
 
    Dmsg0(500, "my_ingres_query finishing\n");

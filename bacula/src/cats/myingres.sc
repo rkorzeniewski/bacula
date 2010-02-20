@@ -7,25 +7,10 @@ EXEC SQL INCLUDE SQLDA;
 
 #include "myingres.h"
 
-#define INGRES_DEBUG 0
-#define DEBB(x) if (INGRES_DEBUG >= x) {
-#define DEBE }
-
 /* ---Implementations--- */
 int INGcheck()
 {
-    EXEC SQL BEGIN DECLARE SECTION;
-		char errbuf[256];
-    EXEC SQL END DECLARE SECTION;
-    
-	if (sqlca.sqlcode < 0) 
-	{
-		EXEC SQL INQUIRE_INGRES(:errbuf = ERRORTEXT);
-		printf("Ingres-DBMS-Fehler: %s\n", errbuf);
-		return sqlca.sqlcode;
-    } 
-	else 
-		return 0;
+    return (sqlca.sqlcode < 0) ? sqlca.sqlcode : 0;
 }
 
 short INGgetCols(const char *stmt)
@@ -101,6 +86,7 @@ int INGgetTypeSize(IISQLVAR *ingvar)
     
 	switch (ingvar->sqltype)
     {
+    /* TODO: add date types (at least TSTMP,TSW TSWO) */
 		case IISQ_DTE_TYPE:
 	    	inglength = 25;
 		    break;
@@ -155,7 +141,7 @@ INGresult *INGgetINGresult(IISQLDA *sqlda)
 
 void INGfreeINGresult(INGresult *ing_res)
 {
-    /* TODO: free all rows and fields, then res, not descriptor! */
+    /* free all rows and fields, then res, not descriptor! */
     if( ing_res != NULL )
     {
 	/* use of rows is a nasty workaround til I find the reason,
@@ -243,11 +229,7 @@ ING_ROW *INGgetRowSpace(INGresult *ing_res)
 void INGfreeRowSpace(ING_ROW *row, IISQLDA *sqlda)
 {
     int i;
-    if (row == NULL || sqlda == NULL)
-    {
-	printf("INGfreeRowSpace: one argument is NULL!\n");
-	return;
-    }
+    if (row == NULL || sqlda == NULL) {	return; }
 
     for ( i = 0 ; i < sqlda->sqld ; ++i )
     {
@@ -263,25 +245,21 @@ int INGfetchAll(const char *stmt, INGresult *ing_res)
     int linecount = 0;
     ING_ROW *row;
     IISQLDA *desc;
+    int check = -1;
     
-    EXEC SQL BEGIN DECLARE SECTION;
-	char	stmt_buffer[2000];
-    EXEC SQL END DECLARE SECTION;
-    
-    strcpy(stmt_buffer,stmt);
     desc = ing_res->sqlda;
     
     EXEC SQL DECLARE c2 CURSOR FOR s2;
-    INGcheck();
+    if ((check = INGcheck()) < 0) { return check; }
     
     EXEC SQL OPEN c2;
-    INGcheck();
+    if ((check = INGcheck()) < 0) { return check; }
         
     /* for (linecount=0;sqlca.sqlcode==0;++linecount) */
     while(sqlca.sqlcode==0)
     {
         EXEC SQL FETCH c2 USING DESCRIPTOR :desc;
-	INGcheck();
+        if ((check = INGcheck()) < 0) { return check;}
 
 	if (sqlca.sqlcode == 0)
 	{
@@ -298,15 +276,6 @@ int INGfetchAll(const char *stmt, INGresult *ing_res)
     	    ing_res->act_row = row; /* set row as act_row */
 	    row->row_number = linecount;
 	    ++linecount;
-		
-	    DEBB(2)
-	    int i;
-	    printf("Row %d ", linecount);
-	    for (i=0;i<ing_res->num_fields;++i)
-		{ printf("F%d:%s ",i,row->sqlvar[i].sqldata); }
-	    printf("\n");
-	    DEBE
-	
 	}
     }
     
@@ -374,19 +343,29 @@ short INGftype(const INGresult *res, int column_number)
     return res->fields[column_number].type;
 }
 
-INGresult *INGexec(INGconn *conn, const char *query)
+int INGexec(INGconn *conn, const char *query)
 {
-    /* TODO: error handling -> res->status? */
-    IISQLDA *desc = NULL;
-    INGresult *res = NULL;
-    int cols = -1;
-
+    int check;
     EXEC SQL BEGIN DECLARE SECTION;
-        char stmt[2000];
+        int rowcount;
+        char *stmt;
     EXEC SQL END DECLARE SECTION;
-    strncpy(stmt,query,strlen(query));
-    stmt[strlen(query)]='\0';
+    
+    stmt = (char *)malloc(strlen(query)+1);
+    strncpy(stmt,query,strlen(query)+1);
+    rowcount = -1;
 
+    EXEC SQL EXECUTE IMMEDIATE :stmt;
+    free(stmt);
+    if ((check = INGcheck()) < 0) { return check; }
+
+    EXEC SQL INQUIRE_INGRES(:rowcount = ROWCOUNT);
+    if ((check = INGcheck()) < 0) { return check; }
+    
+    return rowcount;
+}
+
+INGresult *INGquery(INGconn *conn, const char *query)
     DEBB(1)
 	printf("INGexec: query is >>%s<<\n",stmt);
     DEBE
@@ -408,6 +387,12 @@ INGresult *INGexec(INGconn *conn, const char *query)
 	desc = INGgetDescriptor(cols, query);
 	res = INGgetINGresult(desc);
 	INGfetchAll(query, res);
+=======
+    if (rows < 0)
+    {
+      INGfreeINGresult(res);
+      return NULL;
+>>>>>>> 289e3c7... Added patch from Stefan Reddig -- fixed date types, errmsg:bacula/src/cats/myingres.sc
     }
     return res;
 }
@@ -441,9 +426,6 @@ INGconn *INGconnectDB(char *dbname, char *user, char *passwd)
     
     if ( user != NULL)
     {
-	DEBB(1)
-	    printf("Connection: with user/passwd\n");
-	DEBE
         strcpy(ingdbuser,user);
 	if ( passwd != NULL)
 	    { strcpy(ingdbpasw,passwd); }
@@ -456,9 +438,6 @@ INGconn *INGconnectDB(char *dbname, char *user, char *passwd)
     }
     else
     {
-	DEBB(1)
-	    printf("Connection: w/ user/passwd\n");
-	DEBE
 	EXEC SQL CONNECT :ingdbname;
     }   
    
@@ -470,30 +449,30 @@ INGconn *INGconnectDB(char *dbname, char *user, char *passwd)
     strcpy(dbconn->password,ingdbpasw);
     strcpy(dbconn->connection_name,conn_name);
     dbconn->session_id = sess_id;
-
-    DEBB(1)
-	printf("Connected to '%s' with user/passwd %s/%s, sessID/name %i/%s\n",
-	    dbconn->dbname,
-	    dbconn->user,
-	    dbconn->password,
-	    dbconn->session_id,
-	    dbconn->connection_name
-	);
-    DEBE
+    dbconn->msg = (char*)malloc(257);
+    memset(dbconn->msg,0,257);
 
     return dbconn;
 }
 
 void INGdisconnectDB(INGconn *dbconn)
 {
-    /* TODO: use of dbconn */
+    /* TODO: check for any real use of dbconn: maybe whenn multithreaded? */
     EXEC SQL DISCONNECT;
-    free(dbconn);
+    if (dbconn != NULL) {
+       free(dbconn->msg);
+       free(dbconn);
+    }
 }
 
 char *INGerrorMessage(const INGconn *conn)
 {
-    return NULL;
+    EXEC SQL BEGIN DECLARE SECTION;
+		char errbuf[256];
+    EXEC SQL END DECLARE SECTION;
+    EXEC SQL INQUIRE_INGRES(:errbuf = ERRORTEXT);
+    memcpy(conn->msg,&errbuf,256);
+    return conn->msg;
 }
 
 char	*INGcmdTuples(INGresult *res)
@@ -501,9 +480,9 @@ char	*INGcmdTuples(INGresult *res)
     return res->numrowstring;
 }
 
-
 /*      TODO?
-char *INGerrorMessage(const INGconn *conn);
 int INGputCopyEnd(INGconn *conn, const char *errormsg);
 int INGputCopyData(INGconn *conn, const char *buffer, int nbytes);
 */
+
+#endif
