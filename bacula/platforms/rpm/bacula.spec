@@ -83,10 +83,6 @@
 # am I running in opensuse build service?
 # TODO: seems to make problems
 
-# choose database backend here
-# postgres, mysql, sqlite
-%define build_mysql 1
-
 # Build Service: Determine Distribution
 
 %ifarch x86_64
@@ -383,16 +379,6 @@ exit 1
 # set for database support desired or define the build_xxx on the command line
 %define mysql 0
 %{?build_mysql:%define mysql 1}
-# if using mysql 4.x define this and mysql above
-# currently: Mandrake 10.1, SuSE 9.x & 10.0, RHEL4 and Fedora Core 4
-%define mysql4 0
-%{?build_mysql4:%define mysql4 1}
-%{?build_mysql4:%define mysql 1}
-# if using mysql 5.x define this and mysql above
-# currently: SuSE 10.1 and Fedora Core 5
-%define mysql5 0
-%{?build_mysql5:%define mysql5 1}
-%{?build_mysql5:%define mysql 1}
 %define sqlite 0
 %{?build_sqlite:%define sqlite 1}
 %define postgresql 0
@@ -400,7 +386,10 @@ exit 1
 
 # test for a database definition
 %if ! %{mysql} && ! %{sqlite} && ! %{postgresql} && ! %{client_only}
-%{error: You must specify database support. Please examine the spec file.}
+%{error: You must specify database support, by passing one of the following to rpmbuild:}
+%{error:   --define build_postgresql=1}
+%{error:   --define build_sqlite=1}
+%{error:   --define build_mysql=1}
 exit 1
 %endif
 
@@ -468,6 +457,10 @@ BuildRequires: sysconfig
 %define python 0
 %{?build_python:%define python 1}
 
+# should we enable tcp wrappers support
+%define tcpwrappers 0
+%{?build_tcpwrappers:%define tcpwrappers 1}
+
 # do we need to patch for old postgresql version?
 %define old_pgsql 0
 %{?build_old_pgsql:%define old_pgsql 1}
@@ -482,8 +475,6 @@ BuildRequires: sysconfig
 # for client only build
 %if %{client_only}
 %define mysql 0
-%define mysql4 0
-%define mysql5 0
 %define postgresql 0
 %define sqlite 0
 %endif
@@ -571,21 +562,13 @@ Requires: libtermcap
 
 %if %{mysql}
 Requires: mysql
-
-%if %{suse} || %{mdk}
-Requires: mysql-client
-%else
-Requires: mysql-server
-%endif
 %endif
 
 %if %{postgresql} && %{wb3}
 Requires: rh-postgresql >= 7
-Requires: rh-postgresql-server >= 7
 %endif
 %if %{postgresql} && ! %{wb3}
 Requires: postgresql >= 7
-Requires: postgresql-server >= 7
 %endif
 
 %if %{mysql}
@@ -623,6 +606,9 @@ This build incorporates sqlite3 as the catalog database, statically compiled.
 %endif
 %if %{python}
 This build includes python scripting support.
+%endif
+%if %{tcpwrappers}
+This build includes tcp-wrappers support.
 %endif
 
 %package client
@@ -665,6 +651,9 @@ This is the File daemon (Client) only package. It includes the command line
 console program.
 %if %{python}
 This build includes python scripting support.
+%endif
+%if %{tcpwrappers}
+This build includes tcp-wrappers support.
 %endif
 
 %if ! %{client_only}
@@ -779,6 +768,9 @@ export LDFLAGS="${LDFLAGS} -L/usr/lib64/python%{pyver}"
 %if %{python}
         --with-python \
 %endif
+%if %{tcpwrappers}
+        --with-tcp-wrappers  \
+%endif
 %if %{client_only}
         --enable-client-only \
 %endif
@@ -833,6 +825,8 @@ rm -f $RPM_BUILD_ROOT%{_mandir}/man8/bscan.8.%{manpage_ext}
 rm -f $RPM_BUILD_ROOT%{_mandir}/man8/btape.8.%{manpage_ext}
 rm -f $RPM_BUILD_ROOT%{_mandir}/man8/dbcheck.8.%{manpage_ext}
 rm -f $RPM_BUILD_ROOT%{_mandir}/man1/bsmtp.1.%{manpage_ext}
+# installed but not packaged
+rm -f $RPM_BUILD_ROOT%{script_dir}/bacula_config
 %endif
 # Docs for programs that are depreciated
 rm -f $RPM_BUILD_ROOT%{_mandir}/man1/bacula-bgnome-console.1.%{manpage_ext}
@@ -1449,6 +1443,11 @@ echo "The database update scripts were installed to %{script_dir}/updatedb"
 %endif
 
 %changelog
+* Sat Feb 20 2010 D. Scott Barninger <barninger@fairfieldcomputers.com>
+- remove deprecated mysql4 and mysql5 build defines
+- add build support for tcpwrappers
+- remove bacula_config file for client only build
+- remove requirements for database server packages
 * Sat Feb 13 2010 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - 5.0.1
 - fix client only build
