@@ -167,13 +167,11 @@ static bool check_database_encoding(JCR *jcr, B_DB *mdb)
 static int sql_check(B_DB *mdb)
 {
     int errorcode;
-    if ((errorcode = INGcheck()<0))
-    {
+
+    if ((errorcode = INGcheck()<0)) {
         /* TODO: fill mdb->errmsg */
         Mmsg( mdb->errmsg, "Something went wrong - still searching!\n" );
-    }
-    else if (errorcode > 0)
-    {
+    } else if (errorcode > 0) {
 	/* just a warning, proceed */
     }
     return errorcode;
@@ -449,7 +447,7 @@ int my_ingres_max_length(B_DB *mdb, int field_num) {
 
 INGRES_FIELD * my_ingres_fetch_field(B_DB *mdb)
 {
-   int     i;
+   int i;
 
    Dmsg0(500, "my_ingres_fetch_field starts\n");
 
@@ -525,33 +523,25 @@ int my_ingres_query(B_DB *mdb, const char *query)
    if (mdb->status == ING_COMMAND_OK) {
       Dmsg1(500, "we have a result\n", query);
 
-   if ((cols = INGgetCols(query)) <= 0)
-   {
-      if (cols < 0 )
-      {
+   if ((cols = INGgetCols(query)) <= 0) {
+      if (cols < 0 ) {
          Dmsg0(500,"my_ingres_query: neg.columns: no DML stmt!\n");
       }
       Dmsg0(500,"my_ingres_query (non SELECT) starting...\n");
       /* non SELECT */
       mdb->num_rows = INGexec(mdb->db, query);
-      if(INGcheck())
-      {
+      if (INGcheck()) {
         Dmsg0(500,"my_ingres_query (non SELECT) went wrong\n");
         mdb->status = 1;
-      }
-      else
-      {
+      } else {
         Dmsg0(500,"my_ingres_query (non SELECT) seems ok\n");
         mdb->status = 0;
       }
-   }
-   else
-   {
+   } else {
       /* SELECT */
       Dmsg0(500,"my_ingres_query (SELECT) starting...\n");
       mdb->result = INGquery(mdb->db, query);
-      if ( mdb->result != NULL )
-      {
+      if ( mdb->result != NULL ) {
         Dmsg1(500, "we have a result\n", query);
 
         // how many fields in the set?
@@ -562,9 +552,7 @@ int my_ingres_query(B_DB *mdb, const char *query)
         Dmsg1(500, "we have %d rows\n", mdb->num_rows);
 
         mdb->status = 0;                  /* succeed */
-      }
-      else 
-      {
+      } else {
         Dmsg0(500, "No resultset...\n");
         mdb->status = 1; /* failed */
       }
