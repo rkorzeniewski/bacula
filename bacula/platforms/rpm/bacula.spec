@@ -827,8 +827,6 @@ rm -f $RPM_BUILD_ROOT%{_mandir}/man8/bscan.8.%{manpage_ext}
 rm -f $RPM_BUILD_ROOT%{_mandir}/man8/btape.8.%{manpage_ext}
 rm -f $RPM_BUILD_ROOT%{_mandir}/man8/dbcheck.8.%{manpage_ext}
 rm -f $RPM_BUILD_ROOT%{_mandir}/man1/bsmtp.1.%{manpage_ext}
-# installed but not packaged
-rm -f $RPM_BUILD_ROOT%{script_dir}/bacula_config
 %endif
 # Docs for programs that are depreciated
 rm -f $RPM_BUILD_ROOT%{_mandir}/man1/bacula-bgnome-console.1.%{manpage_ext}
