@@ -23,16 +23,19 @@ short INGgetCols(const char *stmt)
     sqlda->sqln = number;
     
     EXEC SQL BEGIN DECLARE SECTION;
-	char stmt_buffer[2000];
+    	char *stmtd;
     EXEC SQL END DECLARE SECTION;
     
-    strcpy(stmt_buffer,stmt);
-    
-    EXEC SQL PREPARE s1 from :stmt_buffer;
+    stmtd = (char*)malloc(strlen(stmt)+1);
+    strncpy(stmtd,stmt,strlen(stmt)+1);
+      
+    EXEC SQL PREPARE s1 from :stmtd;
+    if (INGcheck() < 0 ) { free(stmtd); free(sqlda); return -1; }
     EXEC SQL DESCRIBE s1 into :sqlda;
-    
+    if (INGcheck() < 0 ) { free(stmtd); free(sqlda); return -1; }
+      
     number = sqlda->sqld;
-    free(sqlda);
+    free(stmtd); free(sqlda);
     return number;
 }
 
@@ -46,28 +49,44 @@ IISQLDA *INGgetDescriptor(short numCols, const char *stmt)
     sqlda->sqln = numCols;
     
     EXEC SQL BEGIN DECLARE SECTION;
-	char stmt_buffer[2000];
+	char *stmtd;
     EXEC SQL END DECLARE SECTION;
 
-    strcpy(stmt_buffer,stmt);
-
-    EXEC SQL PREPARE s2 INTO :sqlda FROM :stmt_buffer;
+    stmtd = (char *)malloc(strlen(stmt)+1);
+    strncpy(stmtd,stmt,strlen(stmt)+1);
+  
+    EXEC SQL PREPARE s2 INTO :sqlda FROM :stmtd;
+  
+    free(stmtd);
 
     int i;
     for (i=0;i<sqlda->sqld;++i)
     {
-	sqlda->sqlvar[i].sqldata =
-	    (char *)malloc(sqlda->sqlvar[i].sqllen);
-	if (sqlda->sqlvar[i].sqldata == (char *)0)
-	    { printf("Failure allocating %d bytes for SQLVAR data\n",sqlda->sqlvar[i].sqllen); }
-
-	sqlda->sqlvar[i].sqlind = (short *)malloc(sizeof(short));
-	if (sqlda->sqlvar[i].sqlind == (short *)0) 
-	    { printf("Failure allocating sqlind\n"); }
+	/* alloc space for variable like indicated in sqllen */
+	/* for date types sqllen is always 0 -> allocate by type */
+	switch (abs(sqlda->sqlvar[i].sqltype))
+	{
+	    case IISQ_TSW_TYPE:
+		sqlda->sqlvar[i].sqldata =
+		    (char *)malloc(IISQ_TSW_LEN);
+		break;
+	    case IISQ_TSWO_TYPE:
+		sqlda->sqlvar[i].sqldata =
+		    (char *)malloc(IISQ_TSWO_LEN);
+		break;
+	    case IISQ_TSTMP_TYPE:
+		sqlda->sqlvar[i].sqldata =
+		    (char *)malloc(IISQ_TSTMP_LEN);
+		break;
+	    default:
+		sqlda->sqlvar[i].sqldata =
+		    (char *)malloc(sqlda->sqlvar[i].sqllen);
+	}
     }
     
     return sqlda;
 }
+
 void INGfreeDescriptor(IISQLDA *sqlda)
 {
     int i;
@@ -116,24 +135,21 @@ INGresult *INGgetINGresult(IISQLDA *sqlda)
     result->act_row	= NULL;
     strcpy(result->numrowstring,"");
     
-    result->fields = (INGRES_FIELD *)calloc(1, sizeof(INGRES_FIELD) * result->num_fields);
-    if (result->fields == (INGRES_FIELD *)0)
-	{ printf("Failure allocating %d INGRES_FIELD elements\n",result->num_fields); }
+    if (result->num_fields) {
+        result->fields = (INGRES_FIELD *)malloc(sizeof(INGRES_FIELD) * result->num_fields);
+        memset(result->fields, 0, sizeof(INGRES_FIELD) * result->num_fields);
 
-    DEBB(2)
-	printf("INGgetINGresult, before loop over %d fields\n", result->num_fields);
-    DEBE
-
-    int i;
-    for (i=0;i<result->num_fields;++i)
-    {
-	memset(result->fields[i].name,'\0',34);
-	strncpy(result->fields[i].name,
-	    sqlda->sqlvar[i].sqlname.sqlnamec,
-	    sqlda->sqlvar[i].sqlname.sqlnamel);
-	result->fields[i].max_length 	= INGgetTypeSize(&sqlda->sqlvar[i]);
-	result->fields[i].type 		= abs(sqlda->sqlvar[i].sqltype);
-	result->fields[i].flags		= (abs(sqlda->sqlvar[i].sqltype)<0) ? 1 : 0;
+        int i;
+        for (i=0;i<result->num_fields;++i)
+        {
+	    memset(result->fields[i].name, 0, 34);
+	    strncpy(result->fields[i].name,
+	        sqlda->sqlvar[i].sqlname.sqlnamec,
+	        sqlda->sqlvar[i].sqlname.sqlnamel);
+	    result->fields[i].max_length 	= INGgetTypeSize(&sqlda->sqlvar[i]);
+	    result->fields[i].type 		= abs(sqlda->sqlvar[i].sqltype);
+	    result->fields[i].flags		= (abs(sqlda->sqlvar[i].sqltype)<0) ? 1 : 0;
+        }
     }
 
     return result;
@@ -190,9 +206,6 @@ ING_ROW *INGgetRowSpace(INGresult *ing_res)
 	{
 	    case IISQ_VCH_TYPE:
 		len = ((ING_VARCHAR *)sqlda->sqlvar[i].sqldata)->len;
-		DEBB(2)
-		    printf("length of varchar: %d\n", len);
-		DEBE
 		vars[i].sqldata = (char *)malloc(len+1);
 		if (vars[i].sqldata == (char *)0)
 		    { printf("Failure allocating %d bytes for SQLVAR data\n",len+1); }
@@ -208,18 +221,37 @@ ING_ROW *INGgetRowSpace(INGresult *ing_res)
 		break;
 	    case IISQ_INT_TYPE:
 		vars[i].sqldata = (char *)malloc(20);
-		memset(vars[i].sqldata,'\0',20);
-		sprintf(vars[i].sqldata,"%d",*(int*)sqlda->sqlvar[i].sqldata);
+		memset(vars[i].sqldata, 0, 20);
+		switch (sqlda->sqlvar[i].sqllen)
+		{
+		    case 2:
+			snprintf(vars[i].sqldata, 20, "%d",*(short*)sqlda->sqlvar[i].sqldata);
+			break;
+		    case 4:
+			snprintf(vars[i].sqldata, 20, "%d",*(int*)sqlda->sqlvar[i].sqldata);
+			break;
+		    case 8:
+			snprintf(vars[i].sqldata, 20, "%d",*(long*)sqlda->sqlvar[i].sqldata);
+			break;
+		}
+		break;
+	    case IISQ_TSTMP_TYPE:
+		vars[i].sqldata = (char *)malloc(IISQ_TSTMP_LEN+1);
+		vars[i].sqldata[IISQ_TSTMP_LEN] = '\0';
+		break;
+	    case IISQ_TSWO_TYPE:
+		vars[i].sqldata = (char *)malloc(IISQ_TSWO_LEN+1);
+		vars[i].sqldata[IISQ_TSWO_LEN] = '\0';
+		break;
+	    case IISQ_TSW_TYPE:
+		vars[i].sqldata = (char *)malloc(IISQ_TSW_LEN+1);
+		vars[i].sqldata[IISQ_TSW_LEN] = '\0';
 		break;
 	}
 	vars[i].sqlind = (short *)malloc(sizeof(short));
 	if (sqlda->sqlvar[i].sqlind == (short *)0) 
 	    { printf("Failure allocating sqlind\n"); }
 	memcpy(vars[i].sqlind,sqlda->sqlvar[i].sqlind,sizeof(short));
-	DEBB(2)
-	    printf("INGgetRowSpace, Field %d, type %d, length %d, name %s\n",
-	    i, sqlda->sqlvar[i].sqltype, sqlda->sqlvar[i].sqllen, ing_res->fields[i].name);
-	DEBE
     }
     
     return row;
