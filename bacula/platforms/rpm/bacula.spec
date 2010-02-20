@@ -6,7 +6,7 @@
 
 # basic defines for every build
 %define _release           1
-%define _version           5.0.1
+%define _version           5.0.0
 %define _packager D. Scott Barninger <barninger@fairfieldcomputers.com>
 %define depkgs_version 18Dec09
 
@@ -481,7 +481,7 @@ BuildRequires: sysconfig
 
 BuildRequires: gcc, gcc-c++, make, autoconf
 BuildRequires: glibc, glibc-devel
-BuildRequires: ncurses-devel, perl
+BuildRequires: ncurses-devel, perl, readline-devel
 BuildRequires: libstdc++-devel, zlib-devel
 BuildRequires: openssl-devel
 BuildRequires: libacl-devel
@@ -551,7 +551,7 @@ Provides: bacula-dir, bacula-sd, bacula-fd, bacula-server
 Conflicts: bacula-client
 
 Requires: ncurses, libstdc++, zlib, openssl
-Requires: glibc
+Requires: glibc, readline
 
 %if %{suse}
 Conflicts: bacula
@@ -624,7 +624,7 @@ Provides: bacula
 %endif
 
 Requires: libstdc++, zlib, openssl
-Requires: glibc
+Requires: glibc, readline
 
 %if %{suse}
 Requires: termcap
@@ -754,6 +754,8 @@ export LDFLAGS="${LDFLAGS} -L/usr/lib64/python%{pyver}"
         --disable-gnome \
         --disable-bwx-console \
         --disable-tray-monitor \
+	--disable-conio \
+	--enable-readline \
 %if %{mysql}
         --with-mysql \
 %endif
@@ -1448,6 +1450,7 @@ echo "The database update scripts were installed to %{script_dir}/updatedb"
 - add build support for tcpwrappers
 - remove bacula_config file for client only build
 - remove requirements for database server packages
+- enable readline support
 * Sat Feb 13 2010 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - 5.0.1
 - fix client only build
