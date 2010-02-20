@@ -6,7 +6,7 @@
 
 # basic defines for every build
 %define _release           1
-%define _version           5.0.0
+%define _version           5.0.1
 %define _packager D. Scott Barninger <barninger@fairfieldcomputers.com>
 %define depkgs_version 18Dec09
 
@@ -884,7 +884,9 @@ cp -p scripts/logrotate $RPM_BUILD_ROOT/etc/logrotate.d/bacula
 cp -p updatedb/* $RPM_BUILD_ROOT%{script_dir}/updatedb/
 
 # install the sample-query.sql file
+%if ! %{client_only}
 cp -p examples/sample-query.sql $RPM_BUILD_ROOT%{script_dir}/sample-query.sql
+%endif
 
 # install the logwatch scripts
 %if ! %{client_only}
@@ -967,13 +969,13 @@ rm -f $RPM_BUILD_DIR/Release_Notes-%{version}-%{release}.txt
 %attr(-, root, %{daemon_group}) %{script_dir}/drop_postgresql_tables
 %attr(-, root, %{daemon_group}) %{script_dir}/update_postgresql_tables
 %attr(-, root, %{daemon_group}) %{script_dir}/grant_postgresql_privileges
-# The rest is DB backend independent
 %endif
-# opensuse_bs: directories not owned by any package
-%dir %attr(-, root, %{daemon_group}) %{sysconf_dir}
+
+# The rest is DB backend independent
 
 %if ! %{client_only}
 %attr(-, root, %{daemon_group}) %dir %{script_dir}
+%attr(-, root, %{daemon_group}) %dir %{sysconf_dir}
 %attr(-, root, %{daemon_group}) %{script_dir}/bacula
 %attr(-, root, %{daemon_group}) %{script_dir}/bacula_config
 %attr(-, root, %{daemon_group}) %{script_dir}/bconsole
@@ -1297,9 +1299,9 @@ if [ -d %{sysconf_dir} ]; then
       cp -f $file.new $file; rm -f $file.new
    done
 fi
-%endif
 /sbin/ldconfig
-exit 0 # always exit successfull, as otherwise opensuse build service complains
+%endif
+
 
 %if %{mysql}
 %preun mysql
@@ -1319,9 +1321,9 @@ if [ $1 = 0 ]; then
   /sbin/chkconfig --del bacula-sd
 fi
 /sbin/ldconfig
+exit 0
 %endif
 
-# added: run ldconfig in postun
 %if %{mysql}
 %postun mysql
 %endif
@@ -1331,11 +1333,15 @@ fi
 %if %{postgresql}
 %postun postgresql
 %endif
+%if ! %{client_only}
 /sbin/ldconfig
+exit 0
+%endif
 
 %files client
 %defattr(-,root,root)
 %attr(-, root, %{daemon_group}) %dir %{script_dir}
+%attr(-, root, %{daemon_group}) %dir %{sysconf_dir}
 %{script_dir}/bacula-ctl-fd
 /etc/init.d/bacula-fd
 
@@ -1360,9 +1366,6 @@ fi
 %{_libdir}/libbacfind.*
 %{_libdir}/libbacpy.*
 %_prefix/share/doc/*
-
-#opensuse_bs: directories not owned by any package
-%dir %attr(-, root, %{daemon_group}) %{sysconf_dir}
 
 %pre client
 # create the daemon group and user
@@ -1421,6 +1424,7 @@ fi
 
 %postun client
 /sbin/ldconfig
+exit 0
 
 %if ! %{client_only}
 %files updatedb
