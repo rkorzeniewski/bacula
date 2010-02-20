@@ -37,10 +37,6 @@ PLATFORM=su111
 # for Mandrake set to 101mdk or 20060mdk
 FILENAME=su111
 
-# MySQL version
-# set to empty (for MySQL 3), 4 or 5
-MYSQL=5
-
 # enter your name and email address here
 PACKAGER="Your Name <your-email@site.org>"
 
@@ -93,7 +89,7 @@ SRPM4=${SRPMDIR}bacula-mtx-$VERSION-$RELEASE.src.rpm
 echo Building MySQL packages for "$PLATFORM"...
 sleep 2
 rpmbuild --rebuild --define "build_${PLATFORM} 1" \
---define "build_mysql${MYSQL} 1" \
+--define "build_mysql 1" \
 --define "build_python 1" \
 --define "contrib_packager ${PACKAGER}" ${SRPM}
 rm -rf ${RPMBUILD}/*
@@ -196,3 +192,4 @@ ls
 # 31 Dec 2008 add su111
 # 05 Apr 2009 deprecate gconsole and wxconsole, bat built by default
 # 30 Jan 2010 adjust for mtx, bat and docs in separate srpm
+# 20 Feb 2010 remove mysql version number
