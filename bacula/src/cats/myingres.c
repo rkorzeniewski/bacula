@@ -353,10 +353,9 @@ short INGftype(const INGresult *res, int column_number)
 }
 INGresult *INGexec(INGconn *conn, const char *query)
 {
-    /* TODO: error handling -> res->status? */
-    IISQLDA *desc = NULL;
-    INGresult *res = NULL;
-    int cols = -1;
+/* # line 374 "myingres.sc" */	
+  
+  long rowcount;
   char stmt[2000];
     strncpy(stmt,query,strlen(query));
     stmt[strlen(query)]='\0';
@@ -375,9 +374,30 @@ INGresult *INGexec(INGconn *conn, const char *query)
     IIsqExImmed(stmt);
     IIsyncup((char *)0,0);
   }
-/* # line 401 "myingres.sc" */  /* host code */
-    }
-    else
+/* # line 383 "myingres.sc" */	/* host code */
+    INGcheck();
+/* # line 385 "myingres.sc" */	/* inquire_ingres */
+  {
+    IILQisInqSqlio((short *)0,1,30,sizeof(rowcount),&rowcount,8);
+  }
+/* # line 386 "myingres.sc" */	/* host code */
+    INGcheck();
+    return (int)(sqlca.sqlerrd[2]);
+}
+INGresult *INGquery(INGconn *conn, const char *query)
+{
+    /* TODO: error handling */
+    IISQLDA *desc = NULL;
+    INGresult *res = NULL;
+    int cols = -1;
+/* # line 398 "myingres.sc" */	
+  
+  char stmt[2000];
+/* # line 400 "myingres.sc" */	
+  
+    strncpy(stmt,query,strlen(query));
+    stmt[strlen(query)]='\0';
+    if ((cols = INGgetCols(query)) > 0)
     {
         DEBB(1)
             printf("INGexec: select\n");

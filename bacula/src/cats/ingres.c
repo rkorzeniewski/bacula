@@ -515,17 +515,48 @@ int my_ingres_query(B_DB *mdb, const char *query)
    if (mdb->status == ING_COMMAND_OK) {
       Dmsg1(500, "we have a result\n", query);
 
-      // how many fields in the set?
-      mdb->num_fields = (int)INGnfields(mdb->result);
-      Dmsg1(500, "we have %d fields\n", mdb->num_fields);
+   if ((cols = INGgetCols(query)) == 0)
+   {
+      Dmsg0(500,"my_ingres_query (non SELECT) starting...\n");
+      /* non SELECT */
+      mdb->num_rows = INGexec(mdb->db, query);
+      if(INGcheck())
+      {
+        Dmsg0(500,"my_ingres_query (non SELECT) went wrong\n");
+        mdb->status = 1;
+      }
+      else
+      {
+        Dmsg0(500,"my_ingres_query (non SELECT) seems ok\n");
+        mdb->status = 0;
+      }
+   }
+   else if ( cols > 0)
+   {
+      /* SELECT */
+      mdb->result = INGquery(mdb->db, query);
+      if ( mdb->result != NULL )
+      {
+        Dmsg1(500, "we have a result\n", query);
 
-      mdb->num_rows = INGntuples(mdb->result);
-      Dmsg1(500, "we have %d rows\n", mdb->num_rows);
+        // how many fields in the set?
+        mdb->num_fields = (int)INGnfields(mdb->result);
+        Dmsg1(500, "we have %d fields\n", mdb->num_fields);
 
-      mdb->status = 0;                  /* succeed */
-   } else {
-      Dmsg1(50, "Result status failed: %s\n", query);
-      goto bail_out;
+        mdb->num_rows = INGntuples(mdb->result);
+        Dmsg1(500, "we have %d rows\n", mdb->num_rows);
+
+        mdb->status = 0;                  /* succeed */
+      }
+      else 
+      {
+        Dmsg0(500, "No resultset...\n");
+        mdb->status = 1; /* failed */
+      }
+   }
+   else
+   {
+    mdb->status = 1; /* failed */
    }
 
    Dmsg0(500, "my_ingres_query finishing\n");
