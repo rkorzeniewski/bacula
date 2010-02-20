@@ -31,12 +31,11 @@
  *
  *   Stefan Reddig, February 2010
  *
- *   reusing code from 'bvfs_test.c' by
+ *   reusing code by
  *   Eric Bollengier, August 2009
  *
  *
  */
-
 #include "bacula.h"
 #include "cats/cats.h"
 #include "cats/bvfs.h"
@@ -71,6 +70,13 @@ PROG_COPYRIGHT
 "       -v                verbose\n"
 "       -?                print this message\n\n"), 2001, VERSION, BDATE);
    exit(1);
+}
+
+/* simple handler for debug output of CRUD example*/
+static int test_handler(void *ctx, int num_fields, char **row)
+{
+   Dmsg2(200, "   Values are %d, %s\n", str_to_int64(row[0]), row[1]);
+   return 0;
 }
 
 
@@ -184,6 +190,11 @@ int main (int argc, char *argv[])
       Pmsg2(000, _("Using Database: %s, User: %s\n"), db_name, db_user);
    }
    
+
+   /* simple CRUD test including create/drop table */
+
+   Pmsg0(0, "\nsimple CRUD test...\n\n");
+
    Dmsg0(200, "DB-Statement: CREATE TABLE t1 ( c1 integer, c2 varchar(29))\n");
    if (!db_sql_query(db, "CREATE TABLE t1 ( c1 integer, c2 varchar(29))", NULL, NULL))
    {
@@ -196,20 +207,64 @@ int main (int argc, char *argv[])
       Emsg0(M_ERROR_TERM, 0, _("INSERT-Stmt went wrong\n"));
    }
 
+   Dmsg0(200, "DB-Statement: SELECT * FROM t1 (should be 1, foo)\n");
+   if (!db_sql_query(db, "SELECT * FROM t1", test_handler, NULL))
+   {
+      Emsg0(M_ERROR_TERM, 0, _("SELECT-Stmt went wrong\n"));
+   }
+
+   Dmsg0(200, "DB-Statement: UPDATE t1 SET c2='bar' WHERE c1=1\n");
+   if (!db_sql_query(db, "UPDATE t1 SET c2='bar' WHERE c1=1", NULL, NULL))
+   {
+      Emsg0(M_ERROR_TERM, 0, _("UPDATE-Stmt went wrong\n"));
+   }
+
+   Dmsg0(200, "DB-Statement: SELECT * FROM t1 (should be 1, bar)\n");
+   if (!db_sql_query(db, "SELECT * FROM t1", test_handler, NULL))
+   {
+      Emsg0(M_ERROR_TERM, 0, _("SELECT-Stmt went wrong\n"));
+   }
+
+   Dmsg0(200, "DB-Statement: DELETE FROM t1 WHERE c2 LIKE '%r'\n");
+   if (!db_sql_query(db, "DELETE FROM t1 WHERE c2 LIKE '%r'", NULL, NULL))
+   {
+      Emsg0(M_ERROR_TERM, 0, _("DELETE-Stmt went wrong\n"));
+   }
+
+   Dmsg0(200, "DB-Statement: SELECT * FROM t1 (should be 0 rows)\n");
+   if (!db_sql_query(db, "SELECT * FROM t1", test_handler, NULL))
+   {
+      Emsg0(M_ERROR_TERM, 0, _("SELECT-Stmt went wrong\n"));
+   }
+
    Dmsg0(200, "DB-Statement: DROP TABLE t1\n");
    if (!db_sql_query(db, "DROP TABLE t1", NULL, NULL))
    {
       Emsg0(M_ERROR_TERM, 0, _("DROP-Stmt went wrong\n"));
    }
 
-/*
-   if (clean) {
-      Pmsg0(0, "Clean old table\n");
-      db_sql_query(db, "DELETE FROM PathHierarchy", NULL, NULL);
-      db_sql_query(db, "UPDATE Job SET HasCache=0", NULL, NULL);
-      db_sql_query(db, "DELETE FROM PathVisibility", NULL, NULL);
+   /* datatypes test */
+   Pmsg0(0, "\ndatatypes test... (TODO)\n\n");
+
+
+   Dmsg0(200, "DB-Statement: CREATE TABLE for datatypes\n");
+   if (!db_sql_query(db, "CREATE TABLE t2 ("
+     "c1	integer,"
+     "c2	varchar(255),"
+     "c3	char(255)"
+     /* some more datatypes... "c4	," */
+     ")" , NULL, NULL))
+   {
+      Emsg0(M_ERROR_TERM, 0, _("CREATE-Stmt went wrong\n"));
    }
-*/
+
+   Dmsg0(200, "DB-Statement: DROP TABLE for datatypes\n");
+   if (!db_sql_query(db, "DROP TABLE t2", NULL, NULL))
+   {
+      Emsg0(M_ERROR_TERM, 0, _("DROP-Stmt went wrong\n"));
+   }
+
+
    db_close_database(NULL, db);
    Dmsg0(200, "Database closed\n");
 
