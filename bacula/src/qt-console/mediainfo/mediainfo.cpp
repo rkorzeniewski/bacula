@@ -53,7 +53,6 @@ MediaInfo::MediaInfo(QTreeWidgetItem *parentWidget, QString &mediaName)
    connect(pbEdit, SIGNAL(clicked()), this, SLOT(editVol()));
    connect(tableJob, SIGNAL(itemDoubleClicked(QTableWidgetItem*)), this, SLOT(showInfoForJob(QTableWidgetItem *)));
    
-   m_closeable = true;
    dockPage();
    setCurrent();
    populateForm();

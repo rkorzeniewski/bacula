@@ -98,7 +98,7 @@ MainWin::MainWin(QWidget *parent) : QMainWindow(parent)
       console->connect_dir();
    }
    m_currentConsole = (Console*)getFromHash(m_firstItem);
-   QTimer::singleShot(5000, this, SLOT(popLists()));
+   QTimer::singleShot(2000, this, SLOT(popLists()));
    if (m_miscDebug) {
       QString directoryResourceName;
       m_currentConsole->getDirResName(directoryResourceName);
@@ -151,6 +151,7 @@ void MainWin::createPages()
 
       /* insert the cosole and tree widget item into the hashes */
       hashInsert(item, m_currentConsole);
+      m_currentConsole->dockPage();
 
       /* Set Color of treeWidgetItem for the console
       * It will be set to green in the console class if the connection is made.
@@ -183,8 +184,6 @@ void MainWin::createPages()
 
       treeWidget->expandItem(topItem);
       tabWidget->setCurrentWidget(m_currentConsole);
-      m_currentConsole->undockPage();
-      m_currentConsole->dockPage();
    }
    UnlockRes();
 }

@@ -51,6 +51,14 @@ bool isWin32Path(QString &fullPath)
    return toret;
 }
 
+/* Need to initialize variables here */
+Pages::Pages()
+{
+   m_docked = false;
+   m_onceDocked = false;
+   m_closeable = true;
+}
+
 /*
  * dockPage
  * This function is intended to be called from within the Pages class to pull

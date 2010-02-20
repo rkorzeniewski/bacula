@@ -51,7 +51,6 @@ restorePage::restorePage(int conn)
    thisitem->setIcon(0,QIcon(QString::fromUtf8(":images/restore.png")));
 
    m_console->notify(m_conn, false);          /* this should already be off */
-   m_closeable = true;
 
    connect(fileWidget, SIGNAL(itemDoubleClicked(QTreeWidgetItem*, int)), 
            this, SLOT(fileDoubleClicked(QTreeWidgetItem *, int)));
