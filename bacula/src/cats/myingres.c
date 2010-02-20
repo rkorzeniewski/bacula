@@ -1,7 +1,5 @@
-
 #include "bacula.h"
-#include "cats.h"
-
+/* # line 3 "myingres.sc" */
 #ifdef HAVE_INGRES
 #include <eqsqlca.h>
     extern IISQLCA sqlca;   /* SQL Communications Area */
@@ -376,7 +374,7 @@ short INGftype(const INGresult *res, int column_number)
 {
    return res->fields[column_number].type;
 }
-INGresult *INGexec(INGconn *conn, const char *query)
+int INGexec(INGconn *conn, const char *query)
 {
    int check;
 /* # line 402 "myingres.sc" */	

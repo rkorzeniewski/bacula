@@ -1,3 +1,6 @@
+#include "bacula.h"
+
+#ifdef HAVE_INGRES
 EXEC SQL INCLUDE SQLCA;
 EXEC SQL INCLUDE SQLDA;
 

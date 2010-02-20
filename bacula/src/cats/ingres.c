@@ -1,7 +1,8 @@
+
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2003-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2003-2010 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -285,6 +286,11 @@ db_close_database(JCR *jcr, B_DB *mdb)
    V(mutex);
 }
 
+void db_check_backend_thread_safe()
+{ }
+
+
+
 void db_thread_cleanup()
 { }
 
@@ -493,7 +499,6 @@ void my_ingres_field_seek(B_DB *mdb, int field)
 /*
  * Note, if this routine returns 1 (failure), Bacula expects
  *  that no result has been stored.
- * This is where QUERY_DB comes with Ingres.   SRE: true?
  *
  *  Returns:  0  on success
  *            1  on failure
@@ -507,21 +512,16 @@ int my_ingres_query(B_DB *mdb, const char *query)
    mdb->row_number   = -1;
    mdb->field_number = -1;
 
+   int cols = -1;
+
    if (mdb->result) {
       INGclear(mdb->result);  /* hmm, someone forgot to free?? */
       mdb->result = NULL;
    }
 
    Dmsg1(500, "my_ingres_query starts with '%s'\n", query);
-   mdb->result = INGexec(mdb->db, query);
-   if (!mdb->result) {
-      Dmsg1(50, "Query failed: %s\n", query);
-      goto bail_out;
-   }
 
-   mdb->status = INGresultStatus(mdb->result);
-   if (mdb->status == ING_COMMAND_OK) {
-      Dmsg1(500, "we have a result\n", query);
+   /* TODO: differentiate between SELECTs and other queries */
 
    if ((cols = INGgetCols(query)) <= 0) {
       if (cols < 0 ) {
@@ -559,13 +559,6 @@ int my_ingres_query(B_DB *mdb, const char *query)
    }
 
    Dmsg0(500, "my_ingres_query finishing\n");
-   return mdb->status;
-
-bail_out:
-   Dmsg1(500, "we failed\n", query);
-   INGclear(mdb->result);
-   mdb->result = NULL;
-   mdb->status = 1;                   /* failed */
    return mdb->status;
 }
 
