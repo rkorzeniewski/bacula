@@ -1300,6 +1300,7 @@ if [ -d %{sysconf_dir} ]; then
    done
 fi
 /sbin/ldconfig
+exit 0
 %endif
 
 
