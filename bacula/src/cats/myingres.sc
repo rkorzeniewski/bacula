@@ -49,7 +49,8 @@ short INGgetCols(const char *stmt)
    }
      
    number = sqlda->sqld;
-   free(stmtd); free(sqlda);
+   free(stmtd);
+   free(sqlda);
    return number;
 }
 
@@ -103,8 +104,12 @@ void INGfreeDescriptor(IISQLDA *sqlda)
    int i;
 
    for (i = 0; i < sqlda->sqld; ++i) {
-      free(sqlda->sqlvar[i].sqldata);
-      free(sqlda->sqlvar[i].sqlind);
+      if (sqlda->sqlvar[i].sqldata) {
+         free(sqlda->sqlvar[i].sqldata);
+      }
+      if (sqlda->sqlvar[i].sqlind) {
+         free(sqlda->sqlvar[i].sqlind);
+      }
    }
    free(sqlda);
    sqlda = NULL;
@@ -256,7 +261,11 @@ ING_ROW *INGgetRowSpace(INGresult *ing_res)
          break;
       }
       vars[i].sqlind = (short *)malloc(sizeof(short));
-      memcpy(vars[i].sqlind,sqlda->sqlvar[i].sqlind,sizeof(short));
+      if (sqlda->sqlvar[i].sqlind) {
+         memcpy(vars[i].sqlind,sqlda->sqlvar[i].sqlind,sizeof(short));
+      } else {
+         *vars[i].sqlind = 0;
+      }
    }
    
    return row;
@@ -272,8 +281,12 @@ void INGfreeRowSpace(ING_ROW *row, IISQLDA *sqlda)
    }
 
    for (i = 0; i < sqlda->sqld; ++i) {
-      free(row->sqlvar[i].sqldata);
-      free(row->sqlvar[i].sqlind);
+      if (row->sqlvar[i].sqldata) {
+         free(row->sqlvar[i].sqldata);
+      }
+      if (row->sqlvar[i].sqlind) {
+         free(row->sqlvar[i].sqlind);
+      }
    }
    free(row->sqlvar);
    free(row);
