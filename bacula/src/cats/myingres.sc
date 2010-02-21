@@ -314,10 +314,12 @@ int INGfetchAll(const char *stmt, INGresult *ing_res)
    /* for (linecount = 0; sqlca.sqlcode == 0; ++linecount) */
    while(sqlca.sqlcode == 0) {
       EXEC SQL FETCH c2 USING DESCRIPTOR :desc;
-      if ((check = INGcheck()) < 0) { return check;}
+      if ((check = INGcheck()) < 0) {
+         EXEC SQL CLOSE c2;
+         return check;
+      }
 
-      if (sqlca.sqlcode == 0)
-      {
+      if (sqlca.sqlcode == 0) {
          row = INGgetRowSpace(ing_res); /* alloc space for fetched row */
             
          /*
