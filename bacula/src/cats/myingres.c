@@ -139,7 +139,7 @@ INGresult *INGgetINGresult(IISQLDA *sqlda)
    result->first_row = NULL;
    result->status = ING_EMPTY_RESULT;
    result->act_row = NULL;
-   strcpy(result->numrowstring,"");
+   memset(result->numrowstring, 0, sizeof(result->numrowstring));
    if (result->num_fields) {
       result->fields = (INGRES_FIELD *)malloc(sizeof(INGRES_FIELD) * result->num_fields);
       memset(result->fields, 0, sizeof(INGRES_FIELD) * result->num_fields);
@@ -215,13 +215,13 @@ ING_ROW *INGgetRowSpace(INGresult *ing_res)
          memset(vars[i].sqldata, 0, 20);
          switch (sqlda->sqlvar[i].sqllen) {
          case 2:
-            snprintf(vars[i].sqldata, 20, "%d",*(short*)sqlda->sqlvar[i].sqldata);
+            bsnprintf(vars[i].sqldata, 20, "%d",*(short*)sqlda->sqlvar[i].sqldata);
             break;
          case 4:
-            snprintf(vars[i].sqldata, 20, "%d",*(int*)sqlda->sqlvar[i].sqldata);
+            bsnprintf(vars[i].sqldata, 20, "%ld",*(int*)sqlda->sqlvar[i].sqldata);
             break;
          case 8:
-            snprintf(vars[i].sqldata, 20, "%d",*(long*)sqlda->sqlvar[i].sqldata);
+            bsnprintf(vars[i].sqldata, 20, "%lld",*(long*)sqlda->sqlvar[i].sqldata);
             break;
          }
          break;
@@ -270,9 +270,9 @@ int INGfetchAll(const char *stmt, INGresult *ing_res)
 /* # line 296 "myingres.sc" */	/* open */
   {
     IIsqInit(&sqlca);
-    IIcsOpen((char *)"c2",1824,27390);
+    IIcsOpen((char *)"c2",4535,24299);
     IIwritio(0,(short *)0,1,32,0,(char *)"s2");
-    IIcsQuery((char *)"c2",1824,27390);
+    IIcsQuery((char *)"c2",4535,24299);
   }
 /* # line 297 "myingres.sc" */	/* host code */
    if ((check = INGcheck()) < 0) {
@@ -283,7 +283,7 @@ int INGfetchAll(const char *stmt, INGresult *ing_res)
 /* # line 303 "myingres.sc" */	/* fetch */
   {
     IIsqInit(&sqlca);
-    if (IIcsRetScroll((char *)"c2",1824,27390,-1,-1) != 0) {
+    if (IIcsRetScroll((char *)"c2",4535,24299,-1,-1) != 0) {
       IIcsDaGet(0,desc);
       IIcsERetrieve();
     } /* IIcsRetrieve */
@@ -310,7 +310,7 @@ int INGfetchAll(const char *stmt, INGresult *ing_res)
 /* # line 325 "myingres.sc" */	/* close */
   {
     IIsqInit(&sqlca);
-    IIcsClose((char *)"c2",1824,27390);
+    IIcsClose((char *)"c2",4535,24299);
   }
 /* # line 327 "myingres.sc" */	/* host code */
    ing_res->status = ING_COMMAND_OK;
@@ -450,13 +450,13 @@ INGconn *INGconnectDB(char *dbname, char *user, char *passwd)
   int sess_id;
 /* # line 471 "myingres.sc" */	
   
-   strcpy(ingdbname,dbname);
+   bstrcpy(ingdbname, dbname, sizeof(ingdbname));
    if (user != NULL) {
-      strcpy(ingdbuser,user);
+      bstrcpy(ingdbuser, user, sizeof(ingdbuser));
       if (passwd != NULL) {
-         strcpy(ingdbpasw,passwd);
+         bstrncpy(ingdbpasw, passwd, sizeof(ingdbpasw));
       } else {
-         strcpy(ingdbpasw, "");
+         memset(ingdbpasw, 0, sizeof(ingdbpasw));
       }
 /* # line 482 "myingres.sc" */	/* connect */
   {

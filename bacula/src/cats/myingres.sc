@@ -146,7 +146,7 @@ INGresult *INGgetINGresult(IISQLDA *sqlda)
    result->first_row = NULL;
    result->status = ING_EMPTY_RESULT;
    result->act_row = NULL;
-   strcpy(result->numrowstring,"");
+   memset(result->numrowstring, 0, sizeof(result->numrowstring));
    
    if (result->num_fields) {
       result->fields = (INGRES_FIELD *)malloc(sizeof(INGRES_FIELD) * result->num_fields);
@@ -232,13 +232,13 @@ ING_ROW *INGgetRowSpace(INGresult *ing_res)
          memset(vars[i].sqldata, 0, 20);
          switch (sqlda->sqlvar[i].sqllen) {
          case 2:
-            snprintf(vars[i].sqldata, 20, "%d",*(short*)sqlda->sqlvar[i].sqldata);
+            bsnprintf(vars[i].sqldata, 20, "%d",*(short*)sqlda->sqlvar[i].sqldata);
             break;
          case 4:
-            snprintf(vars[i].sqldata, 20, "%d",*(int*)sqlda->sqlvar[i].sqldata);
+            bsnprintf(vars[i].sqldata, 20, "%ld",*(int*)sqlda->sqlvar[i].sqldata);
             break;
          case 8:
-            snprintf(vars[i].sqldata, 20, "%d",*(long*)sqlda->sqlvar[i].sqldata);
+            bsnprintf(vars[i].sqldata, 20, "%lld",*(long*)sqlda->sqlvar[i].sqldata);
             break;
          }
          break;
@@ -470,14 +470,14 @@ INGconn *INGconnectDB(char *dbname, char *user, char *passwd)
    int sess_id;
    EXEC SQL END DECLARE SECTION;
 
-   strcpy(ingdbname,dbname);
+   bstrcpy(ingdbname, dbname, sizeof(ingdbname));
    
    if (user != NULL) {
-      strcpy(ingdbuser,user);
+      bstrcpy(ingdbuser, user, sizeof(ingdbuser));
       if (passwd != NULL) {
-         strcpy(ingdbpasw,passwd);
+         bstrncpy(ingdbpasw, passwd, sizeof(ingdbpasw));
       } else {
-         strcpy(ingdbpasw, "");
+         memset(ingdbpasw, 0, sizeof(ingdbpasw));
       }
       EXEC SQL CONNECT
          :ingdbname
