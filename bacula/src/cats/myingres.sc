@@ -470,10 +470,10 @@ INGconn *INGconnectDB(char *dbname, char *user, char *passwd)
    int sess_id;
    EXEC SQL END DECLARE SECTION;
 
-   bstrcpy(ingdbname, dbname, sizeof(ingdbname));
+   bstrncpy(ingdbname, dbname, sizeof(ingdbname));
    
    if (user != NULL) {
-      bstrcpy(ingdbuser, user, sizeof(ingdbuser));
+      bstrncpy(ingdbuser, user, sizeof(ingdbuser));
       if (passwd != NULL) {
          bstrncpy(ingdbpasw, passwd, sizeof(ingdbpasw));
       } else {
