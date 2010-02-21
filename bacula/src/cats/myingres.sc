@@ -36,13 +36,13 @@ short INGgetCols(const char *stmt)
    strncpy(stmtd,stmt,strlen(stmt)+1);
      
    EXEC SQL PREPARE s1 from :stmtd;
-   if (INGcheck() < 0 ) {
+   if (INGcheck() < 0) {
       free(stmtd);
       free(sqlda);
       return -1;
    }
    EXEC SQL DESCRIBE s1 into :sqlda;
-   if (INGcheck() < 0 ) {
+   if (INGcheck() < 0) {
       free(stmtd);
       free(sqlda);
       return -1;
@@ -172,7 +172,7 @@ void INGfreeINGresult(INGresult *ing_res)
    /*
     * Free all rows and fields, then res, not descriptor!
     */
-   if (ing_res != NULL ) {
+   if (ing_res != NULL) {
       /*
        * Use of rows is a nasty workaround til I find the reason,
        * why aggregates like max() don't work
@@ -271,7 +271,7 @@ void INGfreeRowSpace(ING_ROW *row, IISQLDA *sqlda)
       return;
    }
 
-   for (i = 0; i < sqlda->sqld; ++i ) {
+   for (i = 0; i < sqlda->sqld; ++i) {
       free(row->sqlvar[i].sqldata);
       free(row->sqlvar[i].sqlind);
    }
@@ -384,7 +384,7 @@ int INGnfields(const INGresult *res)
 
 char *INGfname(const INGresult *res, int column_number)
 {
-   if ( (column_number > res->num_fields) || (column_number < 0) ) {
+   if ((column_number > res->num_fields) || (column_number < 0)) {
       return NULL;
    } else {
       return res->fields[column_number].name;
@@ -474,7 +474,7 @@ INGconn *INGconnectDB(char *dbname, char *user, char *passwd)
    
    if (user != NULL) {
       strcpy(ingdbuser,user);
-      if ( passwd != NULL) {
+      if (passwd != NULL) {
          strcpy(ingdbpasw,passwd);
       } else {
          strcpy(ingdbpasw, "");
