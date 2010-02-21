@@ -280,6 +280,10 @@ Source3: http://www.prdownloads.sourceforge.net/bacula/depkgs-%{depkgs_version}.
 %{?build_fc9:%define fc9 1}
 %define fc10 0
 %{?build_fc10:%define fc10 1}
+%define fc11 0
+%{?build_fc11:%define fc11 1}
+%define fc12 0
+%{?build_fc12:%define fc12 1}
 # Whitebox Enterprise build
 %define wb3 0
 %{?build_wb3:%define wb3 1}
@@ -345,7 +349,7 @@ Source3: http://www.prdownloads.sourceforge.net/bacula/depkgs-%{depkgs_version}.
 %define rhat 1
 %endif
 %define fed 0
-%if %{fc1} || %{fc3} || %{fc4} || %{fc5} || %{fc6} || %{fc7} || %{fc8} || %{fc9} || %{fc10}
+%if %{fc1} || %{fc3} || %{fc4} || %{fc5} || %{fc6} || %{fc7} || %{fc8} || %{fc9} || %{fc10} || %{fc11} || %{fc12}
 %define fed 1
 %endif
 %define suse 0
@@ -411,7 +415,7 @@ exit 1
 %if %{rhat} || %{rhel}
 %define _dist %(grep Red /etc/redhat-release)
 %endif
-%if %{fc1} || %{fc3} || %{fc4} || %{fc5} || %{fc7} || %{fc8} || %{fc9} || %{fc10}
+%if %{fc1} || %{fc3} || %{fc4} || %{fc5} || %{fc7} || %{fc8} || %{fc9} || %{fc10} || %{fc11} || %{fc12}
 %define _dist %(grep Fedora /etc/redhat-release)
 %endif
 %if %{centos5} || %{centos4} || %{centos3}
@@ -1454,6 +1458,7 @@ echo "The database update scripts were installed to %{script_dir}/updatedb"
 - remove bacula_config file for client only build
 - remove requirements for database server packages
 - enable readline support
+- add fc11 and fc12
 * Sat Feb 13 2010 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - 5.0.1
 - fix client only build
