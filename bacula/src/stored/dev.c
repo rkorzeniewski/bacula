@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2009 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2010 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -47,7 +47,6 @@
  *     daemon. More complicated coding (double buffering, writer
  *     thread, ...) is left for a later version.
  *
- *   Version $Id$
  */
 
 /*
@@ -354,11 +353,11 @@ DEVICE::open(DCR *dcr, int omode)
       }
    }
    if (dcr) {
-      bstrncpy(VolCatInfo.VolCatName, dcr->VolumeName, sizeof(VolCatInfo.VolCatName));
+      VolCatInfo = dcr->VolCatInfo;    /* structure assign */
    }
 
    Dmsg4(100, "open dev: type=%d dev_name=%s vol=%s mode=%s\n", dev_type,
-         print_name(), VolCatInfo.VolCatName, mode_to_str(omode));
+         print_name(), getVolCatName(), mode_to_str(omode));
    state &= ~(ST_LABEL|ST_APPEND|ST_READ|ST_EOT|ST_WEOT|ST_EOF);
    label_type = B_BACULA_LABEL;
    if (is_tape() || is_fifo()) {
@@ -531,7 +530,7 @@ void DEVICE::open_file_device(DCR *dcr, int omode)
       if (!IsPathSeparator(archive_name.c_str()[strlen(archive_name.c_str())-1])) {
          pm_strcat(archive_name, "/");
       }
-      pm_strcat(archive_name, VolCatInfo.VolCatName);
+      pm_strcat(archive_name, getVolCatName());
    }
 
    mount(1);                          /* do mount if required */
@@ -559,8 +558,8 @@ void DEVICE::open_file_device(DCR *dcr, int omode)
 }
 
 /*
- * Open a DVD device. N.B. at this point, dcr->VolCatInfo.VolCatName 
- *  (NB:??? I think it's VolCatInfo.VolCatName that is right)
+ * Open a DVD device. N.B. at this point, dcr->getVolCatName() 
+ *  (NB:??? I think it's getVolCatName() that is right)
  *  has the desired Volume name, but there is NO assurance that
  *  any other field of VolCatInfo is correct.
  */
@@ -584,7 +583,7 @@ void DEVICE::open_dvd_device(DCR *dcr, int omode)
     *  copy here, when opening.
     */
    VolCatInfo = dcr->VolCatInfo;         /* structure assignment */
-   Dmsg1(100, "Volume=%s\n", VolCatInfo.VolCatName);
+   Dmsg1(100, "Volume=%s\n", getVolCatName());
 
    if (VolCatInfo.VolCatName[0] == 0) {
       Dmsg1(10,  "Could not open DVD device %s. No Volume name given.\n",
@@ -1913,6 +1912,7 @@ void DEVICE::clear_volhdr()
 {
    Dmsg1(100, "Clear volhdr vol=%s\n", VolHdr.VolumeName);
    memset(&VolHdr, 0, sizeof(VolHdr));
+   setVolCatInfo(false);
 }
 
 
@@ -2475,7 +2475,7 @@ int32_t DEVICE::get_os_tape_file()
 char *
 dev_vol_name(DEVICE *dev)
 {
-   return dev->VolCatInfo.VolCatName;
+   return dev->getVolCatName();
 }
 
 

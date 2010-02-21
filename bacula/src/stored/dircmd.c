@@ -475,7 +475,7 @@ static void label_volume_if_ok(DCR *dcr, char *oldname,
       dev->truncating = true;         /* let open() know we will truncate it */
    }
    /* Set old volume name for open if relabeling */
-   bstrncpy(dcr->VolCatInfo.VolCatName, volname, sizeof(dcr->VolCatInfo.VolCatName));
+   dcr->setVolCatName(volname);
    if (dev->open(dcr, mode) < 0) {
       dir->fsend(_("3910 Unable to open device %s: ERR=%s\n"),
          dev->print_name(), dev->bstrerror());
@@ -486,7 +486,7 @@ static void label_volume_if_ok(DCR *dcr, char *oldname,
    label_status = read_dev_volume_label(dcr);
    
    /* Set new volume name */
-   bstrncpy(dcr->VolCatInfo.VolCatName, newname, sizeof(dcr->VolCatInfo.VolCatName));
+   dcr->setVolCatName(newname);
    switch(label_status) {
    case VOL_NAME_ERROR:
    case VOL_VERSION_ERROR:

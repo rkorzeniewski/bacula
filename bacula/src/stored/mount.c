@@ -123,7 +123,7 @@ mount_next_vol:
       goto bail_out;
    }
    Dmsg3(150, "After find_next_append. Vol=%s Slot=%d Parts=%d\n",
-         VolCatInfo.VolCatName, VolCatInfo.Slot, VolCatInfo.VolCatParts);
+         getVolCatName(), VolCatInfo.Slot, VolCatInfo.VolCatParts);
    
    /*
     * Get next volume and ready it for append
@@ -137,6 +137,7 @@ mount_next_vol:
     *
     */
    unlock_volumes();
+   dcr->setVolCatInfo(false);   /* out of date when Vols unlocked */
    if (autoload_device(dcr, true/*writing*/, NULL) > 0) {
       autochanger = true;
       ask = false;
@@ -166,6 +167,7 @@ mount_next_vol:
 
    if (ask) {
       unlock_volumes();
+      dcr->setVolCatInfo(false);   /* out of date when Vols unlocked */
       if (!dir_ask_sysop_to_mount_volume(dcr, ST_APPEND)) {
          Dmsg0(150, "Error return ask_sysop ...\n");
          goto no_lock_bail_out;
@@ -240,6 +242,16 @@ read_volume:
       goto bail_out;
    case check_ok:
       break;
+   }
+   /*
+    * Check that volcatinfo is good   
+    */
+   if (!dev->haveVolCatInfo()) {
+      Dmsg0(000, "Do not have volcatinfo\n");
+      if (!find_a_volume()) {
+         goto mount_next_vol;
+      }
+      dev->VolCatInfo = VolCatInfo;      /* structure assignment */
    }
 
    /*
@@ -347,7 +359,10 @@ bool DCR::find_a_volume()
          }
       }
    }
-   return true;
+   if (dcr->haveVolCatInfo()) {
+      return true;
+   }
+   return dir_get_volume_info(dcr, GET_VOL_INFO_FOR_WRITE);
 }
 
 int DCR::check_volume_label(bool &ask, bool &autochanger)
@@ -370,6 +385,7 @@ int DCR::check_volume_label(bool &ask, bool &autochanger)
 
    Dmsg2(150, "Want dirVol=%s dirStat=%s\n", VolumeName,
       VolCatInfo.VolCatStatus);
+
    /*
     * At this point, dev->VolCatInfo has what is in the drive, if anything,
     *          and   dcr->VolCatInfo has what the Director wants.
@@ -446,6 +462,8 @@ int DCR::check_volume_label(bool &ask, bool &autochanger)
          Jmsg2(jcr, M_WARNING, 0, _("Could not reserve volume %s on %s\n"),
             dev->VolHdr.VolumeName, dev->print_name());
          ask = true;
+         dev->setVolCatInfo(false);
+         setVolCatInfo(false);
          goto check_next_volume;
       }
       break;                /* got a Volume */
@@ -490,6 +508,8 @@ int DCR::check_volume_label(bool &ask, bool &autochanger)
    return check_ok;
 
 check_next_volume:
+   dev->setVolCatInfo(false);
+   setVolCatInfo(false);
    return check_next_vol;
 
 check_bail_out:
@@ -717,7 +737,7 @@ void DCR::mark_volume_not_inchanger()
 {
    Jmsg(jcr, M_ERROR, 0, _("Autochanger Volume \"%s\" not found in slot %d.\n"
 "    Setting InChanger to zero in catalog.\n"),
-        VolCatInfo.VolCatName, VolCatInfo.Slot);
+        getVolCatName(), VolCatInfo.Slot);
    dev->VolCatInfo = VolCatInfo;    /* structure assignment */
    VolCatInfo.InChanger = false;
    dev->VolCatInfo.InChanger = false;
