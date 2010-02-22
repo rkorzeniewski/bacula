@@ -39,6 +39,7 @@ use Exporter;
 our @ISA = qw(Exporter);
 our @EXPORT =  qw(update_some_files create_many_files check_multiple_copies
                   update_client $HOST $BASEPORT add_to_backup_list check_volume_size
+                  create_many_dirs
                   check_min_volume_size check_max_volume_size $estat $bstat $rstat $zstat
                   $cwd $bin $scripts $conf $rscripts $tmp $working extract_resource
                   $db_name $db_user $db_password $src $tmpsrc);
@@ -253,6 +254,47 @@ sub create_many_files
             $dir = "$dest/$base/$base$i$base";
             mkdir $dir;
         }
+        print "." if (!($i % 10000));
+    }
+    print "\n";
+}
+
+# create big number of dirs in a given directory
+# Inputs: dest  destination directory
+#         nb    number of dirs to create
+# Example:
+# perl -Mscripts::functions -e 'create_many_dirs("$cwd/files", 100000)'
+sub create_many_dirs
+{
+    my ($dest, $nb) = @_;
+    my ($base, $base2);
+    my $dir=$dest;
+    $nb = $nb || 750000;
+    mkdir $dest;
+    $base = chr($nb % 26 + 65); # We use a base directory A-Z
+    $base2 = chr(($nb+10) % 26 + 65);
+    # already done
+    if (-d "$dest/$base/$base2/$base/a${base}a${nb}aaa${base}") {
+        print "Files already created\n";
+        return;
+    }
+
+    # auto flush stdout for dots
+    $| = 1;
+    print "Create $nb dirs into $dest\n";
+    for(my $i=0; $i < 26; $i++) {
+        $base = chr($i + 65);
+        $base2 = chr(($i+10) % 26 + 65);
+        mkdir("$dest/$base");
+        mkdir("$dest/$base/$base2");
+        mkdir("$dest/$base/$base2/$base$base2");
+        mkdir("$dest/$base/$base2/$base$base2/$base$base2");
+        mkdir("$dest/$base/$base2/$base$base2/$base$base2/$base2$base");
+    }
+    for(my $i=0; $i<=$nb; $i++) {
+        $base = chr($i % 26 + 65);
+        $base2 = chr(($i+10) % 26 + 65);
+        mkdir("$dest/$base/$base2/$base$base2/$base$base2/$base2$base/a${base}a${i}aaa$base");  
         print "." if (!($i % 10000));
     }
     print "\n";
