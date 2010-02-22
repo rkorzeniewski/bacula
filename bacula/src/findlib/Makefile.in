@@ -22,7 +22,7 @@ dummy:
 #
 # include files installed when using libtool
 #
-INCLUDE_FILES = bfile.h find.h protos.h savecwd.h
+INCLUDE_FILES = bfile.h find.h protos.h 
 
 #
 LIBBACFIND_SRCS = find.c match.c find_one.c attribs.c create_file.c \

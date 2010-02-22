@@ -36,7 +36,6 @@
 
 #include "jcr.h"
 #include "bfile.h"
-#include "savecwd.h"
 #include "../filed/fd_plugins.h"
 
 #ifdef HAVE_DIRENT_H
