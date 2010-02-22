@@ -112,10 +112,10 @@ ing_test: Makefile ../findlib/libbacfind$(DEFAULT_ARCHIVE_TYPE) ../lib/libbac$(D
 	  -lbacsql -lbacfind -lbac -lm $(DB_LIBS) $(LIBS) $(GETTEXT_LIBS) $(OPENSSL_LIBS)
 
 gigaslam.o: gigaslam.c
-	$(CC) $(CFLAGS) -c $<  
+	$(CXX) $(CFLAGS) -c $<	
 
 gigaslam: gigaslam.o
-	$(CC) -o $@ gigaslam.o
+	$(CXX) -o $@ gigaslam.o
 
 grow: Makefile grow.o ../lib/libbac$(DEFAULT_ARCHIVE_TYPE)
 	$(LIBTOOL_LINK) $(CXX) $(LDFLAGS) -L../lib -o $@ grow.o -lbac -lm $(DLIB) $(LIBS) $(GETTEXT_LIBS) $(OPENSSL_LIBS)
