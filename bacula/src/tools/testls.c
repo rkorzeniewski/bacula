@@ -77,8 +77,7 @@ static void usage()
 }
 
 
-int
-main (int argc, char *const *argv)
+int main(int argc, char *const *argv)
 {
    FF_PKT *ff;
    char name[1000];

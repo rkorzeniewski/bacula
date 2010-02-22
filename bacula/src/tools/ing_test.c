@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2009-2009 Free Software Foundation Europe e.V.
+   Copyright (C) 2009-2010 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -44,7 +44,7 @@
 /* Local variables */
 static B_DB *db;
 static const char *file = "COPYRIGHT";
-static DBId_t fnid=0;
+//static DBId_t fnid=0;
 static const char *db_name = "bacula";
 static const char *db_user = "bacula";
 static const char *db_password = "";
@@ -249,10 +249,10 @@ int main (int argc, char *argv[])
 
    Dmsg0(200, "DB-Statement: CREATE TABLE for datatypes\n");
    if (!db_sql_query(db, "CREATE TABLE t2 ("
-     "c1	integer,"
-     "c2	varchar(255),"
-     "c3	char(255)"
-     /* some more datatypes... "c4	," */
+     "c1        integer,"
+     "c2        varchar(255),"
+     "c3        char(255)"
+     /* some more datatypes... "c4      ," */
      ")" , NULL, NULL))
    {
       Emsg0(M_ERROR_TERM, 0, _("CREATE-Stmt went wrong\n"));
