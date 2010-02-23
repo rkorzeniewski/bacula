@@ -9,6 +9,12 @@ reworked, and the default value has changed. See below.
 
 Truncate On Purge has been totally rewritten. See the new
 features section of the manual.
+
+When Volume Poll Interval is set in the SD DEVICE configuration,
+(default 5 mins), after a certain number of polling tries (approx
+10) polling will stop and the operator will be asked to
+resolve the problem.  Previously there was no limit, and an
+error message could be produced at each poll attempt.
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 Changes since 5.0.0
@@ -31,8 +37,15 @@ Directives:
 - Truncate on Purge rewritten.  See New Features section in the manual.
 
 Bug fixes:
-1448 1466 1467 1468 1476 1481 1486 1488 1494 1497 1499 1501 1509
+1448 1466 1467 1468 1476 1481 1486 1488 1494 1497 
+1499 1501 1505 1509 1513
 
+- Ensure SD asks for help when looping even if poll set. Fixes bug #1513.
+- Fix three-pool regress bug
+- Modify bacula.spec fixes bug #1505
+- This version fixes an issue where the console window would start out
+  docked. It is fixed by initiating the variables in the Pages class wi
+  constructor.
 - Fix make_catalog_backup.pl fails when catalog db is on other host
 - Apply MacOSX installer patch from bug #1509
 - Apply fix to previous fix of Copy problem. Fix proposed by reporter o

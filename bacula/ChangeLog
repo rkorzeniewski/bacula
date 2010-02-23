@@ -4,6 +4,46 @@ General:
 
 Release Version 5.0.1
 
+23Feb10
+- Ensure SD asks for help when looping even if poll set. Fixes bug #1513
+
+21Feb10
+- Fix three-pool regress bug
+- Replace MIN by code as recommended by Marco to avoid compiler warning
+- Make script more portable
+- Add Fedora 11 and 12 build tags.
+- Lets close the Ingres cursor otherwise the code complains the cursor is still 
+  open when we try to reuse it.
+- Fix segv when indicator field is null. Also added some extra checks around 
+  free calls so we don't try to free null pointers.
+- Changed strcpy to bstrncpy and sprintf to bsnprintf and changed the bsnprintf 
+  format.
+- Small indent changes
+
+20Feb10
+- Sync between master and this branch as some ingres changes did go into master 
+  but not into this branch.
+- Remove include file that makes the compile complain and doesn't seem to be 
+  used as removing makes the code compile ok.
+- Some small indent changes.
+- Reindented myingres.sc to Bacula "style" and regenerated myingres.c
+- Merged in rejects from previous patch and regenerated new myingres.c from 
+  myingres.sc using esqlc. Changed sprintf into snprintf.
+- Added patch from Stefan Reddig -- fixed date types, errmsg
+- Added patch from Stefan Reddig -- improved ingres db test
+- Added patch from Stefan Reddig -- added some checks, db test prog
+- Forgot one exit.
+- Fixes for client only build.
+- Fix seg fault in dup jobs regression test
+- Possible fix for FreeBSD three-pool regress failure
+- Remove duplicate.
+- Remove mysql version variable.
+- Enable readline support.
+- bug report 1505
+- This version fixes an issue where the console window would start out not 
+  docked. It is fixed by initiating the variables in the Pages class with a 
+  constructor.
+
 19Feb10
  - Fix make_catalog_backup.pl fails when catalog db is on other host
 
