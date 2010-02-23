@@ -1237,6 +1237,15 @@ bool db_create_base_file_list(JCR *jcr, B_DB *mdb, char *jobids)
    if (!db_sql_query(mdb, mdb->cmd, NULL, NULL)) {
       goto bail_out;
    }
+   /* Quick and dirty fix for MySQL and Bacula 5.0.1 */
+#ifdef HAVE_MYSQL
+   Mmsg(mdb->cmd, 
+        "CREATE INDEX basefile%lld_idx ON basefile%lld (Path(255), Name(255))", 
+        (uint64_t) jcr->JobId, (uint64_t) jcr->JobId);
+   if (!db_sql_query(mdb, mdb->cmd, NULL, NULL)) {
+      goto bail_out;
+   }
+#endif
    Mmsg(buf, select_recent_version[db_type], jobids, jobids);
    Mmsg(mdb->cmd,
 "CREATE TEMPORARY TABLE new_basefile%lld AS  "
