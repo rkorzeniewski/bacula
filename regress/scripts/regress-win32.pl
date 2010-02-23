@@ -262,7 +262,7 @@ sub set_director_name
         } elsif ($l =~ /\s*}/ and $in_dir) {
             print NEW $l; 
             $in_dir = 0;
-        } elsif (!$in_dir) {
+        } else {
             print NEW $l;
         }
     }
