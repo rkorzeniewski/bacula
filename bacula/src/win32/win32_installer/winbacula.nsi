@@ -642,6 +642,7 @@ Section "Uninstall"
   ; remove files and uninstaller (preserving config for now)
   Delete /REBOOTOK "$INSTDIR\doc\*"
   Delete /REBOOTOK "$INSTDIR\*"
+  Delete /REBOOTOK "$INSTDIR\help\*"
 
   ; Check for existing installation
   MessageBox MB_YESNO|MB_ICONQUESTION \
@@ -667,6 +668,7 @@ NoDel:
 
   ; remove directories used
   RMDir "$INSTDIR\doc"
+  RMDir "$INSTDIR\help"
   RMDir "$INSTDIR"
 SectionEnd
 
