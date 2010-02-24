@@ -13,6 +13,7 @@ nice tests/accurate-test
 nice tests/auto-label-test
 nice tests/backup-bacula-test
 nice tests/bextract-test
+nice tests/bconsole-test
 nice tests/base-job-test
 nice tests/big-vol-test
 nice tests/bscan-test
