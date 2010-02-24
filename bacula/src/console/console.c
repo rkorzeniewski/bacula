@@ -1132,7 +1132,7 @@ int main(int argc, char *argv[])
    start_watchdog();                        /* Start socket watchdog */
 
    if(!select_director(director, &dir, &cons)) {
-      return 0;
+      return 1;
    }
 
    senditf(_("Connecting to Director %s:%d\n"), dir->address,dir->DIRport);
