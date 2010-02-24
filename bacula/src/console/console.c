@@ -127,6 +127,7 @@ PROG_COPYRIGHT
 "\nVersion: " VERSION " (" BDATE ") %s %s %s\n\n"
 "Usage: bconsole [-s] [-c config_file] [-d debug_level]\n"
 "       -D <dir>    select a Director\n"
+"       -l          list Directors defined\n"
 "       -c <file>   set configuration file to file\n"
 "       -d <nn>     set debug level to <nn>\n"
 "       -dt         print timestamp in debug output\n"
@@ -905,8 +906,9 @@ bool select_director(const char *director, DIRRES **ret_dir, CONRES **ret_cons)
 
    if (numdir == 1) {           /* No choose */
       dir = (DIRRES *)GetNextRes(R_DIRECTOR, NULL);
-
-   } else if (director) {       /* Command line choice */
+   } 
+ 
+   if (director) {    /* Command line choice overwrite the no choose option */
       LockRes();
       foreach_res(dir, R_DIRECTOR) {
          if (bstrcmp(dir->hdr.name, director)) {
@@ -914,6 +916,10 @@ bool select_director(const char *director, DIRRES **ret_dir, CONRES **ret_cons)
          }
       }
       UnlockRes();
+      if (!dir) {               /* Can't find Director used as argument */
+         senditf(_("Can't find %s in Director list\n"), director);
+         return 0;
+      }
    }
 
    if (!dir) {                  /* prompt for director */
@@ -991,6 +997,7 @@ int main(int argc, char *argv[])
 {
    int ch;
    char *director=NULL;
+   bool list_directors=false;
    bool no_signals = false;
    bool test_config = false;
    JCR jcr;
@@ -1007,13 +1014,18 @@ int main(int argc, char *argv[])
    working_directory = "/tmp";
    args = get_pool_memory(PM_FNAME);
 
-   while ((ch = getopt(argc, argv, "bc:d:nstu:D:?")) != -1) {
+   while ((ch = getopt(argc, argv, "D:lbc:d:nstu:?")) != -1) {
       switch (ch) {
       case 'D':                    /* Director */
          if (director) {
             free(director);
          }
          director = bstrdup(optarg);
+         break;
+
+      case 'l':
+         list_directors = true;
+         test_config = true;
          break;
 
       case 'c':                    /* configuration file */
@@ -1098,6 +1110,14 @@ int main(int argc, char *argv[])
 
    if (!no_conio) {
       con_init(stdin);
+   }
+
+   if (list_directors) {
+      LockRes();
+      foreach_res(dir, R_DIRECTOR) {
+         senditf("%s\n", dir->hdr.name);
+      }
+      UnlockRes();
    }
 
    if (test_config) {
