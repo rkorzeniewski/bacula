@@ -249,19 +249,21 @@ sub set_director_name
     open(ORG, "$conf/bacula-fd.conf") or return "ERR\nORG $!\n";
     open(NEW, ">$conf/bacula-fd.conf.new") or return "ERR\nNEW $!\n";
     
-    my $in_dir=0;
+    my $in_dir=0;               # don't use monitoring section
+    my $nb_dir="";
     while (my $l = <ORG>)
     {
         if ($l =~ /^\s*Director\s+{/i) {
             print NEW $l; 
             $in_dir = 1;
         } elsif ($l =~ /^(\s*)Name\s*=/ and $in_dir) {
-            print NEW "${1}Name=$name\n";
+            print NEW "${1}Name=$name$nb_dir\n";
         } elsif ($l =~ /^(\s*)Password\s*=/ and $in_dir) {
             print NEW "${1}Password=$pass\n";
         } elsif ($l =~ /\s*}/ and $in_dir) {
             print NEW $l; 
             $in_dir = 0;
+            $nb_dir++;
         } else {
             print NEW $l;
         }
