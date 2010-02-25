@@ -221,7 +221,7 @@ rm -rf $RPM_BUILD_ROOT%{_prefix}/share/doc/bacula
 %if %{suse}
 cp -p src/qt-console/images/bat_icon.png $RPM_BUILD_ROOT/usr/share/pixmaps/bat_icon.png
 cp -p scripts/bat.desktop.xsu $RPM_BUILD_ROOT/usr/share/applications/bat.desktop
-touch RPM_BUILD_ROOT%{sysconfdir}/bat.kdesu
+touch RPM_BUILD_ROOT%{sysconf_dir}/bat.kdesu
 %else
 cp -p src/qt-console/images/bat_icon.png $RPM_BUILD_ROOT/usr/share/pixmaps/bat_icon.png
 cp -p scripts/bat.desktop.consolehelper $RPM_BUILD_ROOT/usr/share/applications/bat.desktop
