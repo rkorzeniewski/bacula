@@ -1,34 +1,27 @@
                 
 Projects:
                      Bacula Projects Roadmap 
-                    Status updated 14 Jun 2009
+                    Status updated 25 February 2010
 
 Summary:
 * => item complete
 
  Item  1: Ability to restart failed jobs
-*Item  2: 'restore' menu: enter a JobId, automatically select dependents
  Item  3: Scheduling syntax that permits more flexibility and options
  Item  4: Data encryption on storage daemon
-*Item  5: Deletion of disk Volumes when pruned (partial -- truncate when pruned)
-*Item  6: Implement Base jobs
  Item  7: Add ability to Verify any specified Job.
  Item  8: Improve Bacula's tape and drive usage and cleaning management
  Item  9: Allow FD to initiate a backup
-*Item 10: Restore from volumes on multiple storage daemons
  Item 11: Implement Storage daemon compression
  Item 12: Reduction of communications bandwidth for a backup
  Item 13: Ability to reconnect a disconnected comm line
  Item 14: Start spooling even when waiting on tape
-*Item 15: Enable/disable compression depending on storage device (disk/tape)
  Item 16: Include all conf files in specified directory
  Item 17: Multiple threads in file daemon for the same job
  Item 18: Possibilty to schedule Jobs on last Friday of the month
  Item 19: Include timestamp of job launch in "stat clients" output
-*Item 20: Cause daemons to use a specific IP address to source communications
  Item 21: Message mailing based on backup types
  Item 22: Ability to import/export Bacula database entities
-*Item 23: "Maximum Concurrent Jobs" for drives when used with changer device
  Item 24: Implementation of running Job speed limit.
  Item 25: Add an override in Schedule for Pools based on backup types
  Item 26: Automatic promotion of backup levels based on backup size
@@ -36,16 +29,16 @@ Summary:
  Item 28: Archival (removal) of User Files to Tape
  Item 29: An option to operate on all pools with update vol parameters
  Item 30: Automatic disabling of devices
-*Item 31: List InChanger flag when doing restore.
  Item 32: Ability to defer Batch Insert to a later time
  Item 33: Add MaxVolumeSize/MaxVolumeBytes statement to Storage resource
  Item 34: Enable persistent naming/number of SQL queries
-*Item 35: Port bat to Win32
  Item 36: Bacula Dir, FD and SD to support proxies
  Item 37: Add Minumum Spool Size directive
  Item 38: Backup and Restore of Windows Encrypted Files using Win raw encryption
  Item 39: Implement an interface between Bacula and Amazon's S3.
  Item 40: Convert Bacula existing tray monitor on Windows to a stand alone program
+
+
 
 Item  1: Ability to restart failed jobs
    Date: 26 April 2009
@@ -66,33 +59,6 @@ Item  1: Ability to restart failed jobs
 
   Notes: Requires Accurate to restart correctly.  Must completed have a minimum
           volume of data or files stored on Volume before enabling.
-
-
-Item  2: 'restore' menu: enter a JobId, automatically select dependents 
-Origin: Graham Keeling (graham@equiinet.com)
-Date:  13 March 2009
-Status: Done in 3.0.2
-
-What:   Add to the bconsole 'restore' menu the ability to select a job
-        by JobId, and have bacula automatically select all the
-        dependent jobs.
-
-        Why: Currently, you either have to...
-
-        a) laboriously type in a date that is greater than the date of the
-        backup that you want and is less than the subsequent backup (bacula
-        then figures out the dependent jobs), or
-        b) manually figure out all the JobIds that you want and laboriously
-        type them all in.  It would be extremely useful (in a programmatical
-        sense, as well as for humans) to be able to just give it a single JobId
-        and let bacula do the hard work (work that it already knows how to do).
-
-        Notes (Kern): I think this should either be modified to have Bacula
-        print a list of dates that the user can choose from as is done in
-        bwx-console and bat or the name of this command must be carefully
-        chosen so that the user clearly understands that the JobId is being
-        used to specify what Job and the date to which he wishes the restore to
-        happen.
 
 
 Item  3: Scheduling syntax that permits more flexibility and options
@@ -222,66 +188,6 @@ Item  4: Data encryption on storage daemon
           http://www.mail-archive.com/bacula-users@lists.sourceforge.net/msg28860.html
 
 
-Item  5: Deletion of disk Volumes when pruned
-  Date:  Nov 25, 2005
-  Origin: Ross Boylan <RossBoylan at stanfordalumni dot org> (edited
-          by Kern)
-  Status: Truncate operation implemented in 3.1.4        
-
-   What: Provide a way for Bacula to automatically remove Volumes
-          from the filesystem, or optionally to truncate them.
-          Obviously, the Volume must be pruned prior removal.
-
-  Why:   This would allow users more control over their Volumes and
-          prevent disk based volumes from consuming too much space.
-
-  Notes: The following two directives might do the trick:
-
-          Volume Data Retention = <time period>
-          Remove Volume After = <time period>
-
-          The migration project should also remove a Volume that is
-          migrated. This might also work for tape Volumes.
-
-  Notes: (Kern). The data fields to control this have been added
-          to the new 3.0.0 database table structure.
-
-
-Item  6: Implement Base jobs 
-  Date:  28 October 2005
-  Origin: Kern
-  Status:
-  
-  What:  A base job is sort of like a Full save except that you 
-          will want the FileSet to contain only files that are
-          unlikely to change in the future (i.e.  a snapshot of
-          most of your system after installing it).  After the
-          base job has been run, when you are doing a Full save,
-          you specify one or more Base jobs to be used.  All
-          files that have been backed up in the Base job/jobs but
-          not modified will then be excluded from the backup.
-          During a restore, the Base jobs will be automatically
-          pulled in where necessary.
-
-  Why:   This is something none of the competition does, as far as
-          we know (except perhaps BackupPC, which is a Perl program that
-          saves to disk only).  It is big win for the user, it
-          makes Bacula stand out as offering a unique
-          optimization that immediately saves time and money.
-          Basically, imagine that you have 100 nearly identical
-          Windows or Linux machine containing the OS and user
-          files.  Now for the OS part, a Base job will be backed
-          up once, and rather than making 100 copies of the OS,
-          there will be only one.  If one or more of the systems
-          have some files updated, no problem, they will be
-          automatically restored.
-
-  Notes: Huge savings in tape usage even for a single machine.
-          Will require more resources because the DIR must send
-          FD a list of files/attribs, and the FD must search the
-          list and compare it for each file to be saved.
-
-
 Item  7: Add ability to Verify any specified Job.
 Date: 17 January 2008
 Origin: portrix.net Hamburg, Germany.
@@ -391,63 +297,6 @@ What: Provide some means, possibly by a restricted console that
 Why:  Makes backup of laptops much easier.
 
 
-Item 10: Restore from volumes on multiple storage daemons
-Origin: Graham Keeling (graham@equiinet.com)
-Date:  12 March 2009
-Status: Done in 3.0.2
-
-What:  The ability to restore from volumes held by multiple storage daemons
-        would be very useful.
-
-Why: It is useful to be able to backup to any number of different storage
-        daemons. For example, your first storage daemon may run out of space,
-        so you switch to your second and carry on. Bacula will currently let
-        you do this.  However, once you come to restore, bacula cannot cope
-        when volumes on different storage daemons are required.
-
-        Notes: The director knows that more than one storage daemon is needed,
-        as bconsole outputs something like the following table.
-
-        The job will require the following
-           Volume(s)                 Storage(s)                SD Device(s)
-        =====================================================================
-           
-           backup-0001               Disk 1                    Disk 1.0 
-           backup-0002               Disk 2                    Disk 2.0 
-
-        However, the bootstrap file that it creates gets sent to the first
-        storage daemon only, which then stalls for a long time, 'waiting for a
-        mount request' for the volume that it doesn't have.  The bootstrap file
-        contains no knowledge of the storage daemon.  Under the current design:
-
-        The director connects to the storage daemon, and gets an sd_auth_key.
-        The director then connects to the file daemon, and gives it the
-        sd_auth_key with the 'jobcmd'.  (restoring of files happens) The
-        director does a 'wait_for_storage_daemon_termination()'.  The director
-        waits for the file daemon to indicate the end of the job.
-
-        With my idea:
-
-        The director connects to the file daemon.
-        Then, for each storage daemon in the .bsr file...  {
-          The director connects to the storage daemon, and gets an sd_auth_key.
-          The director then connects to the file daemon, and gives it the
-                   sd_auth_key with the 'storaddr' command.
-          (restoring of files happens)
-          The director does a 'wait_for_storage_daemon_termination()'.
-          The director waits for the file daemon to indicate the end of the
-                   work on this storage.
-        }
-
-        The director tells the file daemon that there are no more storages to
-        contact.  The director waits for the file daemon to indicate the end of
-        the job.  As you can see, each restore between the file daemon and
-        storage daemon is handled in the same way that it is currently handled,
-        using the same method for authentication, except that the sd_auth_key
-        is moved from the 'jobcmd' to the 'storaddr' command - where it
-        logically belongs.
-
-
 Item 11: Implement Storage daemon compression
   Date:  18 December 2006
   Origin: Vadim A. Umanski , e-mail umanski@ext.ru
@@ -518,32 +367,6 @@ Item 14: Start spooling even when waiting on tape
 
   Notes: I am using bacula 2.2.8, which has none of those features
          implemented.
-
-
-Item 15: Enable/disable compression depending on storage device (disk/tape)
-  Origin: Ralf Gross ralf-lists@ralfgross.de
-  Date:  2008-01-11
-  Status: Done
-
-  What: Add a new option to the storage resource of the director.  Depending
-          on this option, compression will be enabled/disabled for a device.
-
-  Why: If different devices (disks/tapes) are used for full/diff/incr
-          backups, software compression will be enabled for all backups
-          because of the FileSet compression option.  For backup to tapes
-          wich are able to do hardware compression this is not desired.
-          
-
-  Notes:
-         http://news.gmane.org/gmane.comp.sysutils.backup.bacula.devel/cutoff=11124
-         It must be clear to the user, that the FileSet compression option
-         must still be enabled use compression for a backup job at all.
-         Thus a name for the new option in the director must be
-         well-defined.
-
-  Notes: KES I think the Storage definition should probably override what
-         is in the Job definition or vice-versa, but in any case, it must
-         be well defined.
 
 
 Item 16: Include all conf files in specified directory
@@ -675,36 +498,6 @@ Item 19: Include timestamp of job launch in "stat clients" output
           particularly when there are many active clients.
 
 
-Item 20: Cause daemons to use a specific IP address to source communications
- Origin: Bill Moran <wmoran@collaborativefusion.com>
- Date:   18 Dec 2006
- Status: Done in 3.0.2
- What:   Cause Bacula daemons (dir, fd, sd) to always use the ip address
-          specified in the [DIR|DF|SD]Addr directive as the source IP
-          for initiating communication.
- Why:    On complex networks, as well as extremely secure networks, it's
-          not unusual to have multiple possible routes through the network.
-          Often, each of these routes is secured by different policies
-          (effectively, firewalls allow or deny different traffic depending
-          on the source address)
-          Unfortunately, it can sometimes be difficult or impossible to
-          represent this in a system routing table, as the result is
-          excessive subnetting that quickly exhausts available IP space.
-          The best available workaround is to provide multiple IPs to
-          a single machine that are all on the same subnet.  In order
-          for this to work properly, applications must support the ability
-          to bind outgoing connections to a specified address, otherwise
-          the operating system will always choose the first IP that
-          matches the required route.
- Notes:  Many other programs support this.  For example, the following
-          can be configured in BIND:
-          query-source address 10.0.0.1;
-          transfer-source 10.0.0.2;
-          Which means queries from this server will always come from
-          10.0.0.1 and zone transfers will always originate from
-          10.0.0.2.
-
-
 Item 21: Message mailing based on backup types
  Origin: Evan Kaufman <evan.kaufman@gmail.com>
    Date: January 6, 2006
@@ -750,57 +543,6 @@ Item 22: Ability to import/export Bacula database entities
 
   Notes: Job selection should be by Job, time, Volume, Client, Pool and possibly
           other criteria.
-
-
-Item 23: "Maximum Concurrent Jobs" for drives when used with changer device
-  Origin: Ralf Gross ralf-lists <at> ralfgross.de
-  Date:  2008-12-12
-  Status: Done in 3.0.3
-
-  What:  respect the "Maximum Concurrent Jobs" directive in the _drives_
-          Storage section in addition to the changer section
-
-  Why:   I have a 3 drive changer where I want to be able to let 3 concurrent
-          jobs run in parallel. But only one job per drive at the same time.
-          Right now I don't see how I could limit the number of concurrent jobs
-          per drive in this situation.
-
-  Notes: Using different priorities for these jobs lead to problems that other
-          jobs are blocked. On the user list I got the advice to use the
-          "Prefer Mounted Volumes" directive, but Kern advised against using
-          "Prefer Mounted Volumes" in an other thread:
-          http://article.gmane.org/gmane.comp.sysutils.backup.bacula.devel/11876/
-
-          In addition I'm not sure if this would be the same as respecting the
-          drive's "Maximum Concurrent Jobs" setting.
-
-          Example:
-
-          Storage {
-            Name = Neo4100
-            Address = ....
-            SDPort = 9103
-            Password = "wiped"
-            Device = Neo4100
-            Media Type = LTO4
-            Autochanger = yes
-            Maximum Concurrent Jobs = 3
-          }
-          
-          Storage {
-            Name = Neo4100-LTO4-D1
-            Address = ....
-            SDPort = 9103
-            Password = "wiped"
-            Device = ULTRIUM-TD4-D1
-            Media Type = LTO4
-            Maximum Concurrent Jobs = 1
-          }
-          
-          [2 more drives] 
-
-          The "Maximum Concurrent Jobs = 1" directive in the drive's section is
-          ignored.
 
 
 Item 24: Implementation of running Job speed limit.
@@ -985,41 +727,6 @@ Item 30: Automatic disabling of devices
           instead.
 
 
-Item 31: List InChanger flag when doing restore.
- Origin: Jesper Krogh<jesper@krogh.cc>
-   Date: 17 Oct 2008
- Status: Done in version 3.0.2
-
-   What: When doing a restore the restore selection dialog ends by telling
-         stuff like this:
-  The job will require the following
-   Volume(s)                 Storage(s)                SD Device(s)
-   ===========================================================================
-    000741L3                  LTO-4                     LTO3 
-    000866L3                  LTO-4                     LTO3 
-    000765L3                  LTO-4                     LTO3 
-    000764L3                  LTO-4                     LTO3 
-    000756L3                  LTO-4                     LTO3 
-    001759L3                  LTO-4                     LTO3 
-    001763L3                  LTO-4                     LTO3 
-    001762L3                  LTO-4                     LTO3 
-    001767L3                  LTO-4                     LTO3 
-
-   When having an autochanger, it would be really nice with an inChanger 
-   column so the operator knew if this restore job would stop waiting for 
-   operator intervention. This is done just by selecting the inChanger flag 
-   from the catalog and printing it in a seperate column.
-
-
-   Why:   This would help getting large restores through minimizing the 
-      time spent waiting for operator to drop by and change tapes in the library.
-
-  Notes: [Kern] I think it would also be good to have the Slot as well,
-      or some indication that Bacula thinks the volume is in the autochanger
-      because it depends on both the InChanger flag and the Slot being
-      valid.
-
-
 Item 32: Ability to defer Batch Insert to a later time
    Date: 26 April 2009
  Origin: Eric
@@ -1124,18 +831,6 @@ Item 34: Enable persistent naming/number of SQL queries
   Notes:
         Alternatively, queries could be called by keyword (tag), rather
         than by number.
-
-
-Item 35: Port bat to Win32
-   Date: 26 April 2009
- Origin: Kern/Eric
- Status: 
-
-  What:  Make bat run on Win32/64.
-
-  Why:   To have GUI on Windows
-
-  Notes: 
 
 
 Item 36: Bacula Dir, FD and SD to support proxies
@@ -1587,3 +1282,15 @@ Item  n: One line summary ...
 
 
 ========== Items put on hold by Kern ============================
+
+
+========== Items completed in version 5.0.0 ====================
+*Item  2: 'restore' menu: enter a JobId, automatically select dependents
+*Item  5: Deletion of disk Volumes when pruned (partial -- truncate when pruned)
+*Item  6: Implement Base jobs
+*Item 10: Restore from volumes on multiple storage daemons
+*Item 15: Enable/disable compression depending on storage device (disk/tape)
+*Item 20: Cause daemons to use a specific IP address to source communications
+*Item 23: "Maximum Concurrent Jobs" for drives when used with changer device
+*Item 31: List InChanger flag when doing restore.
+*Item 35: Port bat to Win32
