@@ -55,6 +55,9 @@
 
 %{?contrib_packager:%define _packager %{contrib_packager}}
 
+%{expand: %%define gccver %(rpm -q --queryformat %%{version} gcc)}
+%{expand: %%define gccrel %(rpm -q --queryformat %%{release} gcc)}
+
 # determine what platform we are building on
 %define fedora 0
 %define suse 0
