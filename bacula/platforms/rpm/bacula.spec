@@ -1366,10 +1366,10 @@ exit 0
 %{_mandir}/man8/bconsole.8.%{manpage_ext}
 %{_mandir}/man8/btraceback.8.%{manpage_ext}
 %{_mandir}/man1/bat.1.%{manpage_ext}
-%{_libdir}/libbac.*
-%{_libdir}/libbaccfg.*
-%{_libdir}/libbacfind.*
-%{_libdir}/libbacpy.*
+%{_libdir}/libbac*
+%{_libdir}/libbaccfg*
+%{_libdir}/libbacfind*
+%{_libdir}/libbacpy*
 %_prefix/share/doc/*
 
 %pre client
