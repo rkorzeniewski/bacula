@@ -1584,7 +1584,7 @@ static int backup_cmd(JCR *jcr)
 #if defined(WIN32_VSS)
    /* START VSS ON WIN32 */
    if (jcr->VSS) {      
-      if (g_pVSSClient->InitializeForBackup()) {   
+      if (g_pVSSClient->InitializeForBackup(jcr)) {   
         /* tell vss which drives to snapshot */   
         char szWinDriveLetters[27];   
         if (get_win32_driveletters(jcr->ff, szWinDriveLetters)) {
