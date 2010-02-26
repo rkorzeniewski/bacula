@@ -2881,7 +2881,6 @@ mandrake)
        platforms/mandrake/bacula-fd \
        platforms/mandrake/bacula-sd \
        platforms/mandrake/bacula-dir \
-       platforms/mandrake/bacula.spec \
        "
   ;;
 gentoo)
@@ -2931,7 +2930,6 @@ suse)
        platforms/suse/bacula-sd \
        platforms/suse/bacula-dir \
        platforms/suse/bacula \
-       platforms/suse/bacula.spec"
   ;;
 suse5)
    DISTNAME=suse
@@ -3042,7 +3040,7 @@ AC_OUTPUT([autoconf/Make.common \
 	   src/filed/Makefile \
 	   src/filed/bacula-fd.conf \
 	   src/cats/Makefile \
-           src/cats/make_catalog_backup.pl \
+	   src/cats/make_catalog_backup.pl \
 	   src/cats/make_catalog_backup \
 	   src/cats/delete_catalog_backup \
 	   src/cats/create_postgresql_database \
