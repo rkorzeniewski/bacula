@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2009 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2010 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -30,8 +30,6 @@
  *   to the Storage daemon.
  *
  *    Kern Sibbald, March MM
- *
- *   Version $Id$
  *
  */
 
@@ -64,7 +62,7 @@ static bool crypto_session_start(JCR *jcr);
 static void crypto_session_end(JCR *jcr);
 static bool crypto_session_send(JCR *jcr, BSOCK *sd);
 
-/*
+/**
  * Find all the requested files and send them
  * to the Storage daemon.
  *
@@ -104,7 +102,8 @@ bool blast_data_to_storage_daemon(JCR *jcr, char *addr)
    }
 
    jcr->buf_size = sd->msglen;
-   /* Adjust for compression so that output buffer is
+   /**
+    * Adjust for compression so that output buffer is
     *  12 bytes + 0.1% larger than input buffer plus 18 bytes.
     *  This gives a bit extra plus room for the sparse addr if any.
     *  Note, we adjust the read size to be smaller so that the
@@ -216,7 +215,7 @@ static bool crypto_session_start(JCR *jcr)
 {
    crypto_cipher_t cipher = CRYPTO_CIPHER_AES_128_CBC;
 
-   /*
+   /**
     * Create encryption session data and a cached, DER-encoded session data
     * structure. We use a single session key for each backup, so we'll encode
     * the session data only once.
@@ -287,7 +286,7 @@ static bool crypto_session_send(JCR *jcr, BSOCK *sd)
 }
 
 
-/*
+/**
  * Called here by find() for each file included.
  *   This is a callback. The original is find_files() above.
  *
@@ -425,7 +424,7 @@ int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
 
    /* Digests and encryption are only useful if there's file data */
    if (has_file_data) {
-      /*
+      /**
        * Setup for digest handling. If this fails, the digest will be set to NULL
        * and not used. Note, the digest (file hash) can be any one of the four
        * algorithms below.
@@ -459,7 +458,7 @@ int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
             stream_to_ascii(digest_stream));
       }
 
-      /*
+      /**
        * Set up signature digest handling. If this fails, the signature digest
        * will be set to NULL and not used.
        */
@@ -750,7 +749,7 @@ bail_out:
    return rtnstat;
 }
 
-/*
+/**
  * Send data read from an already open file descriptor.
  *
  * We return 1 on sucess and 0 on errors.
@@ -802,7 +801,7 @@ static int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest,
       wbuf = jcr->compress_buf;    /* compressed output here */
       cipher_input = (uint8_t *)jcr->compress_buf; /* encrypt compressed data */
 
-      /* 
+      /**
        * Only change zlib parameters if there is no pending operation.
        * This should never happen as deflatereset is called after each
        * deflate.
@@ -835,7 +834,7 @@ static int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest,
          goto err;
       }
 
-      /*
+      /**
        * Grow the crypto buffer, if necessary.
        * crypto_cipher_update() will buffer up to (cipher_block_size - 1).
        * We grow crypto_buf to the maximum number of blocks that
@@ -849,7 +848,7 @@ static int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest,
       wbuf = jcr->crypto.crypto_buf; /* Encrypted, possibly compressed output here. */
    }
 
-   /*
+   /**
     * Send Data header to Storage daemon
     *    <file-index> <stream> <info>
     */
@@ -862,7 +861,7 @@ static int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest,
    }
    Dmsg1(300, ">stored: datahdr %s\n", sd->msg);
 
-   /*
+   /**
     * Make space at beginning of buffer for fileAddr because this
     *   same buffer will be used for writing if compression is off.
     */
@@ -884,7 +883,7 @@ static int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest,
       rsize = (rsize/512) * 512;
 #endif
    
-   /*
+   /**
     * Read the file data
     */
    while ((sd->msglen=(uint32_t)bread(&ff_pkt->bfd, rbuf, rsize)) > 0) {
@@ -956,7 +955,7 @@ static int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest,
          cipher_input_len = compress_len;
       }
 #endif
-      /* 
+      /**
        * Note, here we prepend the current record length to the beginning
        *  of the encrypted data. This is because both sparse and compression
        *  restore handling want records returned to them with exactly the
@@ -1176,7 +1175,7 @@ bool encode_and_send_attributes(JCR *jcr, FF_PKT *ff_pkt, int &data_stream)
    return true;
 }
 
-/* 
+/**
  * Do in place strip of path
  */
 static bool do_strip(int count, char *in)
@@ -1213,7 +1212,7 @@ static bool do_strip(int count, char *in)
    return stripped==count && numsep>count;
 }
 
-/*
+/**
  * If requested strip leading components of the path so that we can
  *   save file as if it came from a subdirectory.  This is most useful
  *   for dealing with snapshots, by removing the snapshot directory, or
@@ -1238,7 +1237,7 @@ void strip_path(FF_PKT *ff_pkt)
       sm_check(__FILE__, __LINE__, true);
    }
 
-   /* 
+   /**
     * Strip path.  If it doesn't succeed put it back.  If
     *  it does, and there is a different link string,
     *  attempt to strip the link. If it fails, back them
@@ -1250,7 +1249,7 @@ void strip_path(FF_PKT *ff_pkt)
       unstrip_path(ff_pkt);
       goto rtn;
    } 
-   /* Strip links but not symlinks */
+   /** Strip links but not symlinks */
    if (ff_pkt->type != FT_LNK && ff_pkt->fname != ff_pkt->link) {
       if (!do_strip(ff_pkt->strip_path, ff_pkt->link)) {
          unstrip_path(ff_pkt);

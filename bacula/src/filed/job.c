@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2009 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2010 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -30,8 +30,6 @@
  *
  *    Kern Sibbald, October MM
  *
- *   Version $Id$
- *
  */
 
 #include "bacula.h"
@@ -44,7 +42,7 @@ static pthread_mutex_t vss_mutex = PTHREAD_MUTEX_INITIALIZER;
 static int enable_vss = 0;
 #endif
 
-/*
+/**
  * As Windows saves ACLs as part of the standard backup stream
  * we just pretend here that is has implicit acl support.
  */
@@ -101,7 +99,7 @@ struct s_cmds {
    int monitoraccess; /* specify if monitors have access to this function */
 };
 
-/*
+/**
  * The following are the recognized commands from the Director.
  */
 static struct s_cmds cmds[] = {
@@ -187,7 +185,7 @@ static char read_open[]    = "read open session = %s %ld %ld %ld %ld %ld %ld\n";
 static char read_data[]    = "read data %d\n";
 static char read_close[]   = "read close session %d\n";
 
-/*
+/**
  * Accept requests from a Director
  *
  * NOTE! We are running as a separate thread
@@ -393,7 +391,7 @@ void *handle_client_request(void *dirp)
    return NULL;
 }
 
-/*
+/**
  * Hello from Director he must identify himself and provide his
  *  password.
  */
@@ -408,7 +406,7 @@ static int hello_cmd(JCR *jcr)
    return 1;
 }
 
-/*
+/**
  * Cancel a Job
  */
 static int cancel_cmd(JCR *jcr)
@@ -439,7 +437,7 @@ static int cancel_cmd(JCR *jcr)
 }
 
 
-/*
+/**
  * Set debug level as requested by the Director
  *
  */
@@ -478,7 +476,7 @@ static int estimate_cmd(JCR *jcr)
    return 1;
 }
 
-/*
+/**
  * Get JobId and Storage Daemon Authorization key from Director
  */
 static int job_cmd(JCR *jcr)
@@ -664,7 +662,7 @@ static findFOPTS *start_options(FF_PKT *ff)
 
 }
 
-/*
+/**
  * Add fname to include/exclude fileset list. First check for
  * | and < and if necessary perform command.
  */
@@ -774,7 +772,7 @@ static void add_fileset(JCR *jcr, const char *item)
       return;
    }
 
-   /*
+   /**
     * The switch tests the code for validity.
     * The subcode is always good if it is a space, otherwise we must confirm.
     * We set state to state_error first assuming the subcode is invalid,
@@ -1008,7 +1006,7 @@ static bool term_fileset(JCR *jcr)
 }
 
 
-/*
+/**
  * As an optimization, we should do this during
  *  "compile" time in filed/job.c, and keep only a bit mask
  *  and the Verify options.
@@ -1172,7 +1170,7 @@ static void set_options(findFOPTS *fo, const char *opts)
 }
 
 
-/*
+/**
  * Director is passing his Fileset
  */
 static int fileset_cmd(JCR *jcr)
@@ -1213,9 +1211,11 @@ static void free_bootstrap(JCR *jcr)
 static pthread_mutex_t bsr_mutex = PTHREAD_MUTEX_INITIALIZER;
 static uint32_t bsr_uniq = 0;
 
-/* 
+/**
  * The Director sends us the bootstrap file, which
  *   we will in turn pass to the SD.
+ *   Deprecated.  The bsr is now sent directly from the
+ *   Director to the SD.
  */
 static int bootstrap_cmd(JCR *jcr)
 {
@@ -1260,7 +1260,7 @@ static int bootstrap_cmd(JCR *jcr)
 }
 
 
-/*
+/**
  * Get backup level from Director
  *
  */
@@ -1378,8 +1378,9 @@ bail_out:
    return 0;
 }
 
-/*
+/**
  * Get session parameters from Director -- this is for a Restore command
+ *   This is deprecated. It is now passed via the bsr.
  */
 static int session_cmd(JCR *jcr)
 {
@@ -1413,7 +1414,8 @@ static void set_storage_auth_key(JCR *jcr, char *key)
       jcr->store_bsock = NULL;
    }
 
-   /* We can be contacting multiple storage daemons.
+   /**
+    * We can be contacting multiple storage daemons.
     *   So, make sure that any old jcr->sd_auth_key is cleaned up. 
     */
    if (jcr->sd_auth_key) {
@@ -1428,7 +1430,7 @@ static void set_storage_auth_key(JCR *jcr, char *key)
    jcr->sd_auth_key = bstrdup(key);
 }
 
-/*
+/**
  * Get address of storage daemon from Director
  *
  */
@@ -1444,11 +1446,9 @@ static int storage_cmd(JCR *jcr)
    Dmsg1(100, "StorageCmd: %s", dir->msg);
    sd_auth_key.check_size(dir->msglen);
    if (sscanf(dir->msg, storaddr, &jcr->stored_addr, &stored_port, 
-              &enable_ssl, sd_auth_key.c_str()) != 4)
-   {
+              &enable_ssl, sd_auth_key.c_str()) != 4) {
       if (sscanf(dir->msg, storaddr_v1, &jcr->stored_addr,
-                 &stored_port, &enable_ssl) != 3)
-      {
+                 &stored_port, &enable_ssl) != 3) {
          pm_strcpy(jcr->errmsg, dir->msg);
          Jmsg(jcr, M_FATAL, 0, _("Bad storage command: %s"), jcr->errmsg);
          goto bail_out;
@@ -1497,7 +1497,7 @@ bail_out:
 }
 
 
-/*
+/**
  * Do a backup.
  */
 static int backup_cmd(JCR *jcr)
@@ -1518,7 +1518,7 @@ static int backup_cmd(JCR *jcr)
    }
 #endif
 
-   /*
+   /**
     * Validate some options given to the backup make sense for the compiled in
     * options of this filed.
     */
@@ -1544,12 +1544,12 @@ static int backup_cmd(JCR *jcr)
    dir->fsend(OKbackup);
    Dmsg1(110, "filed>dird: %s", dir->msg);
 
-   /*
+   /**
     * Send Append Open Session to Storage daemon
     */
    sd->fsend(append_open);
    Dmsg1(110, ">stored: %s", sd->msg);
-   /*
+   /**
     * Expect to receive back the Ticket number
     */
    if (bget_msg(sd) >= 0) {
@@ -1564,13 +1564,13 @@ static int backup_cmd(JCR *jcr)
       goto cleanup;
    }
 
-   /*
+   /**
     * Send Append data command to Storage daemon
     */
    sd->fsend(append_data, jcr->Ticket);
    Dmsg1(110, ">stored: %s", sd->msg);
 
-   /*
+   /**
     * Expect to get OK data
     */
    Dmsg1(110, "<stored: %s", sd->msg);
@@ -1619,7 +1619,7 @@ static int backup_cmd(JCR *jcr)
    }
 #endif
 
-   /*
+   /**
     * Send Files to Storage daemon
     */
    Dmsg1(110, "begin blast ff=%p\n", (FF_PKT *)jcr->ff);
@@ -1635,7 +1635,7 @@ static int backup_cmd(JCR *jcr)
          bnet_suppress_error_messages(sd, 1);
          goto cleanup;                /* bail out now */
       }
-      /*
+      /**
        * Expect to get response to append_data from Storage daemon
        */
       if (!response(jcr, sd, OK_append, "Append Data")) {
@@ -1643,7 +1643,7 @@ static int backup_cmd(JCR *jcr)
          goto cleanup;
       }
 
-      /*
+      /**
        * Send Append End Data to Storage daemon
        */
       sd->fsend(append_end, jcr->Ticket);
@@ -1653,7 +1653,7 @@ static int backup_cmd(JCR *jcr)
          goto cleanup;
       }
 
-      /*
+      /**
        * Send Append Close to Storage daemon
        */
       sd->fsend(append_close, jcr->Ticket);
@@ -1698,7 +1698,7 @@ cleanup:
    return 0;                          /* return and stop command loop */
 }
 
-/*
+/**
  * Do a Verify for Director
  *
  */
@@ -1775,7 +1775,7 @@ static int verify_cmd(JCR *jcr)
    return 0;                          /* return and terminate command loop */
 }
 
-/*
+/**
  * Do a Restore for Director
  *
  */
@@ -1788,7 +1788,7 @@ static int restore_cmd(JCR *jcr)
    int prefix_links;
    char replace;
 
-   /*
+   /**
     * Scan WHERE (base directory for restore) from command
     */
    Dmsg0(150, "restore command\n");
@@ -1844,7 +1844,7 @@ static int restore_cmd(JCR *jcr)
 
    set_jcr_job_status(jcr, JS_Running);
 
-   /*
+   /**
     * Do restore of files and data
     */
    start_dir_heartbeat(jcr);
@@ -1858,7 +1858,7 @@ static int restore_cmd(JCR *jcr)
       bnet_suppress_error_messages(sd, 1);
    }
 
-   /*
+   /**
     * Send Close session command to Storage daemon
     */
    sd->fsend(read_close, jcr->Ticket);
@@ -1950,7 +1950,7 @@ static int open_sd_read_session(JCR *jcr)
    return 1;
 }
 
-/*
+/**
  * Destroy the Job Control Record and associated
  * resources (sockets).
  */
@@ -1972,7 +1972,7 @@ static void filed_free_jcr(JCR *jcr)
    return;
 }
 
-/*
+/**
  * Get response from Storage daemon to a command we
  * sent. Check that the response is OK.
  *
