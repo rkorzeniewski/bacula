@@ -107,6 +107,7 @@ Requires: libgcc
 Requires: libpng
 Requires: libstdc++
 Requires: zlib
+Requires: bacula-libs
 
 %if %{suse}
 Requires: /usr/bin/kdesu
@@ -291,6 +292,8 @@ fi
 rm -rf $RPM_BUILD_DIR/depkgs-qt
 
 %changelog
+* Sat Feb 27 2010 D. Scott Barninger <barninger@fairfieldcomputers.com>
+- add dependency on bacula-libs
 * Sat Feb 13 2010 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - create file to allow bat to run nonroot with kdesu
 - add dependency information

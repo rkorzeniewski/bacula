@@ -555,7 +555,7 @@ Provides: bacula-dir, bacula-sd, bacula-fd, bacula-server
 Conflicts: bacula-client
 
 Requires: ncurses, libstdc++, zlib, openssl
-Requires: glibc, readline
+Requires: glibc, readline, bacula-libs
 
 %if %{suse}
 Conflicts: bacula
@@ -628,7 +628,7 @@ Provides: bacula
 %endif
 
 Requires: libstdc++, zlib, openssl
-Requires: glibc, readline
+Requires: glibc, readline, bacula-libs
 
 %if %{suse}
 Requires: termcap
@@ -680,6 +680,24 @@ Group: System Environment/Daemons
 This package installs scripts for updating older versions of the bacula
 database.
 %endif
+
+%package libs
+
+Summary: Bacula - The Network Backup Solution
+Group: System Environment/Daemons
+
+%description libs
+%{blurb}
+
+%{blurb2}
+%{blurb3}
+%{blurb4}
+%{blurb5}
+%{blurb6}
+%{blurb7}
+%{blurb8}
+
+This package installs the shared libraries used by many bacula programs.
 
 # Must explicitly enable debug pkg on SuSE
 # but not in opensuse_bs
@@ -1049,7 +1067,6 @@ rm -f $RPM_BUILD_DIR/Release_Notes-%{version}-%{release}.txt
 %{_mandir}/man8/dbcheck.8.%{manpage_ext}
 %{_mandir}/man1/bsmtp.1.%{manpage_ext}
 %{_mandir}/man1/bat.1.%{manpage_ext}
-%{_libdir}/libbac*
 %_prefix/share/doc/*
 
 # opensuse build service changes the release itself
@@ -1303,8 +1320,6 @@ if [ -d %{sysconf_dir} ]; then
       cp -f $file.new $file; rm -f $file.new
    done
 fi
-/sbin/ldconfig
-exit 0
 %endif
 
 
@@ -1325,22 +1340,6 @@ if [ $1 = 0 ]; then
   /sbin/chkconfig --del bacula-fd
   /sbin/chkconfig --del bacula-sd
 fi
-/sbin/ldconfig
-exit 0
-%endif
-
-%if %{mysql}
-%postun mysql
-%endif
-%if %{sqlite}
-%postun sqlite
-%endif
-%if %{postgresql}
-%postun postgresql
-%endif
-%if ! %{client_only}
-/sbin/ldconfig
-exit 0
 %endif
 
 %files client
@@ -1366,10 +1365,6 @@ exit 0
 %{_mandir}/man8/bconsole.8.%{manpage_ext}
 %{_mandir}/man8/btraceback.8.%{manpage_ext}
 %{_mandir}/man1/bat.1.%{manpage_ext}
-%{_libdir}/libbac*
-%{_libdir}/libbaccfg*
-%{_libdir}/libbacfind*
-%{_libdir}/libbacpy*
 %_prefix/share/doc/*
 
 %pre client
@@ -1419,15 +1414,24 @@ if [ -d %{sysconf_dir} ]; then
    done
 fi
 
-/sbin/ldconfig
-exit 0
 %preun client
 # delete our link
 if [ $1 = 0 ]; then
    /sbin/chkconfig --del bacula-fd
 fi
 
-%postun client
+%files libs
+%defattr(-,root,root)
+%{_libdir}/libbac*
+%{_libdir}/libbaccfg*
+%{_libdir}/libbacfind*
+%{_libdir}/libbacpy*
+
+%post libs
+/sbin/ldconfig
+exit 0
+
+%postun libs
 /sbin/ldconfig
 exit 0
 
@@ -1452,6 +1456,8 @@ echo "The database update scripts were installed to %{script_dir}/updatedb"
 %endif
 
 %changelog
+* Sat Feb 27 2010 D. Scott Barninger <barninger@fairfieldcomputers.com>
+- move shared libraries into bacula-libs package
 * Sat Feb 20 2010 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - remove deprecated mysql4 and mysql5 build defines
 - add build support for tcpwrappers
