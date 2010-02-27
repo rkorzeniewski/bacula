@@ -695,7 +695,7 @@ database.
 %build
 
 %if %{suse}
-export LDFLAGS="${LDFLAGS} -L/usr/lib/termcap"
+export LDFLAGS="${LDFLAGS} -L/usr/lib/termcap -L/usr/lib64/termcap"
 %endif
 
 cwd=${PWD}
