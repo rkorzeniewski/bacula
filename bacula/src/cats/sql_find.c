@@ -211,7 +211,7 @@ db_find_failed_job_since(JCR *jcr, B_DB *mdb, JOB_DBR *jr, POOLMEM *stime, int &
    db_lock(mdb);
    /* Differential is since last Full backup */
    Mmsg(mdb->cmd,
-"SELECT Level FROM Job WHERE JobStatus!='T' AND Type='%c' AND "
+"SELECT Level FROM Job WHERE JobStatus NOT IN ('T') AND Type='%c' AND "
 "Level IN ('%c','%c') AND Name='%s' AND ClientId=%s "
 "AND FileSetId=%s AND StartTime>'%s' "
 "ORDER BY StartTime DESC LIMIT 1",
