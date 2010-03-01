@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2009 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2010 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -33,7 +33,6 @@
  *
  * Kern Sibbald, Nov MM
  *
- *   Version $Id$
  */
 
 
@@ -70,31 +69,32 @@
 #define JT_SCAN                  'S'  /* Scan Job */
 
 /* Job Status. Some of these are stored in the DB */
-#define JS_Created               'C'  /* created but not yet running */
-#define JS_Running               'R'  /* running */
+#define JS_Canceled              'A'  /* canceled by user */
 #define JS_Blocked               'B'  /* blocked */
+#define JS_Created               'C'  /* created but not yet running */
+#define JS_Differences           'D'  /* Verify differences */
+#define JS_ErrorTerminated       'E'  /* Job terminated in error */
+#define JS_WaitFD                'F'  /* waiting on File daemon */
+#define JS_Incomplete            'I'  /* Incomplete Job */
+#define JS_DataCommitting        'L'  /* Committing data (last despool) */
+#define JS_WaitMount             'M'  /* waiting for Mount */
+#define JS_Running               'R'  /* running */
+#define JS_WaitSD                'S'  /* waiting on the Storage daemon */
 #define JS_Terminated            'T'  /* terminated normally */
 #define JS_Warnings              'W'  /* Terminated normally with warnings */
-#define JS_ErrorTerminated       'E'  /* Job terminated in error */
-#define JS_Error                 'e'  /* Non-fatal error */
-#define JS_FatalError            'f'  /* Fatal error */
-#define JS_Differences           'D'  /* Verify differences */
-#define JS_Canceled              'A'  /* canceled by user */
-#define JS_Incomplete            'I'  /* Incomplete Job */
-#define JS_WaitFD                'F'  /* waiting on File daemon */
-#define JS_WaitSD                'S'  /* waiting on the Storage daemon */
-#define JS_WaitMedia             'm'  /* waiting for new media */
-#define JS_WaitMount             'M'  /* waiting for Mount */
-#define JS_WaitStoreRes          's'  /* Waiting for storage resource */
-#define JS_WaitJobRes            'j'  /* Waiting for job resource */
+
+#define JS_AttrDespooling        'a'  /* SD despooling attributes */
 #define JS_WaitClientRes         'c'  /* Waiting for Client resource */
 #define JS_WaitMaxJobs           'd'  /* Waiting for maximum jobs */
-#define JS_WaitStartTime         't'  /* Waiting for start time */
-#define JS_WaitPriority          'p'  /* Waiting for higher priority jobs to finish */
-#define JS_AttrDespooling        'a'  /* SD despooling attributes */
+#define JS_Error                 'e'  /* Non-fatal error */
+#define JS_FatalError            'f'  /* Fatal error */
 #define JS_AttrInserting         'i'  /* Doing batch insert file records */
+#define JS_WaitJobRes            'j'  /* Waiting for job resource */
 #define JS_DataDespooling        'l'  /* Doing data despooling */
-#define JS_DataCommitting        'L'  /* Committing data (last despool) */
+#define JS_WaitMedia             'm'  /* waiting for new media */
+#define JS_WaitPriority          'p'  /* Waiting for higher priority jobs to finish */
+#define JS_WaitStoreRes          's'  /* Waiting for storage resource */
+#define JS_WaitStartTime         't'  /* Waiting for start time */ 
 
 /* Migration selection types */
 enum {
