@@ -1,8 +1,10 @@
 #include "bacula.h"
 /* # line 3 "myingres.sc" */	
 #ifdef HAVE_INGRES
+#include <eqpname.h>
+#include <eqdefcc.h>
 #include <eqsqlca.h>
-    extern IISQLCA sqlca;   /* SQL Communications Area */
+extern IISQLCA sqlca;   /* SQL Communications Area */
 #include <eqsqlda.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -28,7 +30,7 @@ short INGgetCols(const char *stmt)
    memset(sqlda, 0, (IISQDA_HEAD_SIZE + (number * IISQDA_VAR_SIZE)));
    sqlda->sqln = number;
    stmtd = (char*)malloc(strlen(stmt)+1);
-   strncpy(stmtd,stmt,strlen(stmt)+1);
+   bstrncpy(stmtd,stmt,strlen(stmt)+1);
 /* # line 38 "myingres.sc" */	/* prepare */
   {
     IIsqInit(&sqlca);
@@ -69,7 +71,7 @@ IISQLDA *INGgetDescriptor(short numCols, const char *stmt)
    memset(sqlda, 0, (IISQDA_HEAD_SIZE + (numCols * IISQDA_VAR_SIZE)));
    sqlda->sqln = numCols;
    stmtd = (char *)malloc(strlen(stmt)+1);
-   strncpy(stmtd,stmt,strlen(stmt)+1);
+   bstrncpy(stmtd,stmt,strlen(stmt)+1);
 /* # line 74 "myingres.sc" */	/* prepare */
   {
     IIsqInit(&sqlca);
@@ -150,7 +152,7 @@ INGresult *INGgetINGresult(IISQLDA *sqlda)
       memset(result->fields, 0, sizeof(INGRES_FIELD) * result->num_fields);
       for (i = 0; i < result->num_fields; ++i) {
          memset(result->fields[i].name, 0, 34);
-         strncpy(result->fields[i].name, sqlda->sqlvar[i].sqlname.sqlnamec, sqlda->sqlvar[i].sqlname.sqlnamel);
+         bstrncpy(result->fields[i].name, sqlda->sqlvar[i].sqlname.sqlnamec, sqlda->sqlvar[i].sqlname.sqlnamel);
          result->fields[i].max_length = INGgetTypeSize(&sqlda->sqlvar[i]);
          result->fields[i].type = abs(sqlda->sqlvar[i].sqltype);
          result->fields[i].flags = (abs(sqlda->sqlvar[i].sqltype)<0) ? 1 : 0;
@@ -283,9 +285,9 @@ int INGfetchAll(const char *stmt, INGresult *ing_res)
 /* # line 309 "myingres.sc" */	/* open */
   {
     IIsqInit(&sqlca);
-    IIcsOpen((char *)"c2",17878,21884);
+    IIcsOpen((char *)"c2",4824,17405);
     IIwritio(0,(short *)0,1,32,0,(char *)"s2");
-    IIcsQuery((char *)"c2",17878,21884);
+    IIcsQuery((char *)"c2",4824,17405);
   }
 /* # line 310 "myingres.sc" */	/* host code */
    if ((check = INGcheck()) < 0) {
@@ -296,7 +298,7 @@ int INGfetchAll(const char *stmt, INGresult *ing_res)
 /* # line 316 "myingres.sc" */	/* fetch */
   {
     IIsqInit(&sqlca);
-    if (IIcsRetScroll((char *)"c2",17878,21884,-1,-1) != 0) {
+    if (IIcsRetScroll((char *)"c2",4824,17405,-1,-1) != 0) {
       IIcsDaGet(0,desc);
       IIcsERetrieve();
     } /* IIcsRetrieve */
@@ -306,7 +308,7 @@ int INGfetchAll(const char *stmt, INGresult *ing_res)
 /* # line 318 "myingres.sc" */	/* close */
   {
     IIsqInit(&sqlca);
-    IIcsClose((char *)"c2",17878,21884);
+    IIcsClose((char *)"c2",4824,17405);
   }
 /* # line 319 "myingres.sc" */	/* host code */
          return check;
@@ -330,7 +332,7 @@ int INGfetchAll(const char *stmt, INGresult *ing_res)
 /* # line 340 "myingres.sc" */	/* close */
   {
     IIsqInit(&sqlca);
-    IIcsClose((char *)"c2",17878,21884);
+    IIcsClose((char *)"c2",4824,17405);
   }
 /* # line 342 "myingres.sc" */	/* host code */
    ing_res->status = ING_COMMAND_OK;
@@ -404,7 +406,7 @@ int INGexec(INGconn *conn, const char *query)
 /* # line 420 "myingres.sc" */	
   
    stmt = (char *)malloc(strlen(query)+1);
-   strncpy(stmt,query,strlen(query)+1);
+   bstrncpy(stmt,query,strlen(query)+1);
    rowcount = -1;
 /* # line 426 "myingres.sc" */	/* execute */
   {
@@ -506,10 +508,10 @@ INGconn *INGconnectDB(char *dbname, char *user, char *passwd)
     IILQisInqSqlio((short *)0,1,30,sizeof(sess_id),&sess_id,11);
   }
 /* # line 508 "myingres.sc" */	/* host code */
-   strncpy(dbconn->dbname, ingdbname, sizeof(dbconn->dbname));
-   strncpy(dbconn->user, ingdbuser, sizeof(dbconn->user));
-   strncpy(dbconn->password, ingdbpasw, sizeof(dbconn->password));
-   strncpy(dbconn->connection_name, conn_name, sizeof(dbconn->connection_name));
+   bstrncpy(dbconn->dbname, ingdbname, sizeof(dbconn->dbname));
+   bstrncpy(dbconn->user, ingdbuser, sizeof(dbconn->user));
+   bstrncpy(dbconn->password, ingdbpasw, sizeof(dbconn->password));
+   bstrncpy(dbconn->connection_name, conn_name, sizeof(dbconn->connection_name));
    dbconn->session_id = sess_id;
    dbconn->msg = (char*)malloc(257);
    memset(dbconn->msg, 0, 257);
