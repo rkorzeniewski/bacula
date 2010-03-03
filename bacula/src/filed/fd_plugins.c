@@ -907,6 +907,14 @@ static bRC baculaGetValue(bpContext *ctx, bVariable var, void *value)
       break;
    case bVarFileSeen:
       break;                 /* a write only variable, ignore read request */
+   case bVarVssObject:
+#ifdef HAVE_WIN32
+      if (g_pVSSClient) {
+         value = g_pVSSClient->GetVssObject();
+         break;
+       }
+#endif
+       return bRC_Error;
    }
    return bRC_OK;
 }
