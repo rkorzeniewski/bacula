@@ -600,6 +600,9 @@
 /* Define if the OpenSSL library is export-contrained to 128bit ciphers */
 #undef HAVE_OPENSSL_EXPORT_LIBRARY
 
+/* Set if have OpenSSL version 1.x */
+#undef HAVE_OPENSSLv1
+
 /* Define to 1 if you have the `posix_fadvise' function. */
 #undef HAVE_POSIX_FADVISE
 
