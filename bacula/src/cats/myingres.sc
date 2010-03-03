@@ -33,7 +33,7 @@ short INGgetCols(const char *stmt)
    sqlda->sqln = number;
    
    stmtd = (char*)malloc(strlen(stmt)+1);
-   strncpy(stmtd,stmt,strlen(stmt)+1);
+   bstrncpy(stmtd,stmt,strlen(stmt)+1);
      
    EXEC SQL PREPARE s1 from :stmtd;
    if (INGcheck() < 0) {
@@ -69,7 +69,7 @@ IISQLDA *INGgetDescriptor(short numCols, const char *stmt)
    sqlda->sqln = numCols;
    
    stmtd = (char *)malloc(strlen(stmt)+1);
-   strncpy(stmtd,stmt,strlen(stmt)+1);
+   bstrncpy(stmtd,stmt,strlen(stmt)+1);
   
    EXEC SQL PREPARE s2 INTO :sqlda FROM :stmtd;
   
@@ -159,7 +159,7 @@ INGresult *INGgetINGresult(IISQLDA *sqlda)
 
       for (i = 0; i < result->num_fields; ++i) {
          memset(result->fields[i].name, 0, 34);
-         strncpy(result->fields[i].name, sqlda->sqlvar[i].sqlname.sqlnamec, sqlda->sqlvar[i].sqlname.sqlnamel);
+         bstrncpy(result->fields[i].name, sqlda->sqlvar[i].sqlname.sqlnamec, sqlda->sqlvar[i].sqlname.sqlnamel);
          result->fields[i].max_length = INGgetTypeSize(&sqlda->sqlvar[i]);
          result->fields[i].type = abs(sqlda->sqlvar[i].sqltype);
          result->fields[i].flags = (abs(sqlda->sqlvar[i].sqltype)<0) ? 1 : 0;
@@ -420,7 +420,7 @@ int INGexec(INGconn *conn, const char *query)
    EXEC SQL END DECLARE SECTION;
    
    stmt = (char *)malloc(strlen(query)+1);
-   strncpy(stmt,query,strlen(query)+1);
+   bstrncpy(stmt,query,strlen(query)+1);
    rowcount = -1;
 
    EXEC SQL EXECUTE IMMEDIATE :stmt;
@@ -505,10 +505,10 @@ INGconn *INGconnectDB(char *dbname, char *user, char *passwd)
    EXEC SQL INQUIRE_SQL(:conn_name = connection_name);
    EXEC SQL INQUIRE_SQL(:sess_id = session);
    
-   strncpy(dbconn->dbname, ingdbname, sizeof(dbconn->dbname));
-   strncpy(dbconn->user, ingdbuser, sizeof(dbconn->user));
-   strncpy(dbconn->password, ingdbpasw, sizeof(dbconn->password));
-   strncpy(dbconn->connection_name, conn_name, sizeof(dbconn->connection_name));
+   bstrncpy(dbconn->dbname, ingdbname, sizeof(dbconn->dbname));
+   bstrncpy(dbconn->user, ingdbuser, sizeof(dbconn->user));
+   bstrncpy(dbconn->password, ingdbpasw, sizeof(dbconn->password));
+   bstrncpy(dbconn->connection_name, conn_name, sizeof(dbconn->connection_name));
    dbconn->session_id = sess_id;
    dbconn->msg = (char*)malloc(257);
    memset(dbconn->msg, 0, 257);
