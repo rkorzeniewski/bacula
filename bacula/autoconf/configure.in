@@ -1208,6 +1208,8 @@ fi
 if test "$support_crypto" = "no"; then
    OPENSSL_LIBS=""
    OPENSSL_INC=""
+else
+   AC_CHECK_LIB(ssl, EVP_PKEY_encrypt_old, AC_DEFINE(HAVE_OPENSSLv1, 1, [Set if have OpenSSL version 1.x]))
 fi  
 
 AC_MSG_RESULT([$support_tls])
@@ -3289,4 +3291,3 @@ then
 	echo " upgrade it in order to avoid problems with Batch insert mode"
 	echo
 fi
-
