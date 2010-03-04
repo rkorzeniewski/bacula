@@ -216,6 +216,7 @@ typedef struct s_baculaFuncs {
    void *(*baculaMalloc)(bpContext *ctx, const char *file, int line, 
        size_t size);
    void (*baculaFree)(bpContext *ctx, const char *file, int line, void *mem);
+   bRC (*AddExclude)(bpContext *ctx, const char *file);
 } bFuncs;
 
 

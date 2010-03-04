@@ -62,6 +62,7 @@ static bRC baculaDebugMsg(bpContext *ctx, const char *file, int line,
 static void *baculaMalloc(bpContext *ctx, const char *file, int line,
               size_t size);
 static void baculaFree(bpContext *ctx, const char *file, int line, void *mem);
+static bRC  baculaAddExclude(bpContext *ctx, const char *file);
 static bool is_plugin_compatible(Plugin *plugin);
 
 /*
@@ -91,7 +92,8 @@ static bFuncs bfuncs = {
    baculaJobMsg,
    baculaDebugMsg,
    baculaMalloc,
-   baculaFree
+   baculaFree,
+   baculaAddExclude
 };
 
 /* 
@@ -101,6 +103,7 @@ struct bacula_ctx {
    JCR *jcr;                             /* jcr for plugin */
    bRC  rc;                              /* last return code */
    bool disabled;                        /* set if plugin disabled */
+   findFILESET *fileset;                 /* pointer to exclude files */
 };
 
 static bool is_plugin_disabled(JCR *jcr)
@@ -1013,6 +1016,10 @@ static void baculaFree(bpContext *ctx, const char *file, int line, void *mem)
 #endif
 }
 
+static bRC baculaAddExclude(bpContext *ctx, const char *file)
+{
+   return bRC_Error;
+}
 
 
 #ifdef TEST_PROGRAM
