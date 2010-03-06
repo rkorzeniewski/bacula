@@ -666,8 +666,8 @@ static findFOPTS *start_options(FF_PKT *ff)
  * Add fname to include/exclude fileset list. First check for
  * | and < and if necessary perform command.
  */
-static void add_file_to_fileset(JCR *jcr, const char *fname, findFILESET *fileset,
-                                bool is_file)
+void add_file_to_fileset(JCR *jcr, const char *fname, findFILESET *fileset,
+                         bool is_file)
 {
    char *p;
    BPIPE *bpipe;
@@ -743,6 +743,21 @@ static void add_file_to_fileset(JCR *jcr, const char *fname, findFILESET *filese
    }
 }
 
+findFILESET *new_exclude(JCR *jcr)
+{
+   FF_PKT *ff = jcr->ff;
+   findFILESET *fileset = ff->fileset;
+
+   /* New exclude */
+   fileset->incexe = (findINCEXE *)malloc(sizeof(findINCEXE));
+   memset(fileset->incexe, 0, sizeof(findINCEXE));
+   fileset->incexe->opts_list.init(1, true);
+   fileset->incexe->name_list.init();
+   fileset->incexe->plugin_list.init();
+   fileset->exclude_list.append(fileset->incexe);
+   return fileset;
+}
+
 
 static void add_fileset(JCR *jcr, const char *item)
 {
@@ -793,13 +808,7 @@ static void add_fileset(JCR *jcr, const char *item)
       fileset->include_list.append(fileset->incexe);
       break;
    case 'E':
-      /* New exclude */
-      fileset->incexe = (findINCEXE *)malloc(sizeof(findINCEXE));
-      memset(fileset->incexe, 0, sizeof(findINCEXE));
-      fileset->incexe->opts_list.init(1, true);
-      fileset->incexe->name_list.init();
-      fileset->incexe->plugin_list.init();
-      fileset->exclude_list.append(fileset->incexe);
+      fileset = new_exclude(jcr);
       break;
    case 'N':
       state = state_none;
