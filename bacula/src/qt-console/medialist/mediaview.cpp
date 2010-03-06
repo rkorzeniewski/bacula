@@ -311,6 +311,7 @@ void MediaView::populateTable()
       + cmd + 
       " ORDER BY VolumeName LIMIT " + m_sbLimit->cleanText();
 
+   m_tableMedia->sortByColumn(0, Qt::AscendingOrder);
    m_tableMedia->setSortingEnabled(false); /* Don't sort during insert */
    results.clear();
    if (mainWin->m_sqlDebug) {
