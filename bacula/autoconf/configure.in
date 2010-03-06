@@ -818,10 +818,10 @@ if test x$support_ipv6 = xyes; then
 fi
 
 TERM_LIB=""
-AC_CHECK_HEADER(termcap.h, 
-  [ AC_CHECK_LIB(termcap, tgetent, 
-    [ TERM_LIB="-ltermcap" ],
-    [ AC_CHECK_LIB(ncurses, tgetent, [ TERM_LIB="-lncurses" ])
+AC_CHECK_HEADER(curses.h, 
+  [ AC_CHECK_LIB(ncurses, tgetent, 
+    [ TERM_LIB="-lncurses" ],
+    [ AC_CHECK_LIB(termcap, tgetent, [ TERM_LIB="-ltermcap" ])
     ])
   ],
   [  AC_CHECK_HEADERS(curses.h)

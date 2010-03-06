@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 1981-2009 Free Software Foundation Europe e.V.
+   Copyright (C) 1981-2010 Free Software Foundation Europe e.V.
              Yes, that is 1981 no error.
 
    The main author of Bacula is Kern Sibbald, with contributions from
@@ -61,17 +61,14 @@
 
 #endif
 
-#include <termios.h>
+#include <curses.h>
+#include <term.h>
+
 #ifdef HAVE_SUN_OS
 extern "C" int tgetent(void *, const char *);
 extern "C" int tgetnum(const char *);
 extern "C" char *tgetstr (const char*, char**);
 extern "C" char *tgoto (const char *, int, int);
-#elif HAVE_HPUX_OS
-#include <term.h>
-#elif HAVE_AIX_OS 
-#include <curses.h>
-#include <term.h>
 #elif defined(__sgi)
 extern "C" int tgetent(char *, char *);
 extern "C" int tgetnum(char id[2]);
@@ -82,9 +79,6 @@ extern "C" int tgetent(void *, const char *);
 extern "C" int tgetnum(const char *);
 extern "C" char *tgetstr (const char*, char**);
 extern "C" char *tgoto (const char *, int, int);
-
-#else
-#include <termcap.h>
 #endif
 #include "func.h"
 
