@@ -603,7 +603,7 @@ void get_attributes_and_compare_to_catalog(JCR *jcr, JobId_t JobId)
           */
          fdbr.FileId = 0;
          if (!db_get_file_attributes_record(jcr, jcr->db, jcr->fname,
-              NULL, &fdbr)) {
+              &jcr->previous_jr, &fdbr)) {
             Jmsg(jcr, M_INFO, 0, _("New file: %s\n"), jcr->fname);
             Dmsg1(020, _("File not in catalog: %s\n"), jcr->fname);
             set_jcr_job_status(jcr, JS_Differences);
