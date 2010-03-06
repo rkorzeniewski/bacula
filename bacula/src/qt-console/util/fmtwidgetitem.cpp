@@ -221,7 +221,7 @@ void ItemFormatterBase::setPercent(int index, float value)
  * the tooltip stuff
  */
 void ItemFormatterBase::setPixmap(int index, const QPixmap &pix, 
-                                  const QString &tip)
+                                  const QString & /* tip */)
 {
    setPixmap(index, pix);
 }
