@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2009 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2010 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -25,7 +25,7 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
-/*
+/** 
  * Bacula Catalog Database Get record interface routines
  *  Note, these routines generally get a record by id or
  *        by name.  If more logic is involved, the routine
@@ -36,7 +36,8 @@
  */
 
 
-/* The following is necessary so that we do not include
+/**
+ * The following is necessary so that we do not include
  * the dummy external definition of DB.
  */
 #define __SQL_C                       /* indicate that this is sql.c */
@@ -58,7 +59,7 @@ static int db_get_file_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr, FILE_DBR *fdbr);
 static int db_get_filename_record(JCR *jcr, B_DB *mdb);
 
 
-/*
+/**
  * Given a full filename (with path), look up the File record
  * (with attributes) in the database.
  *
@@ -85,7 +86,7 @@ int db_get_file_attributes_record(JCR *jcr, B_DB *mdb, char *fname, JOB_DBR *jr,
 }
 
 
-/*
+/**
  * Get a File record
  * Returns: 0 on failure
  *          1 on success
@@ -126,7 +127,10 @@ int db_get_file_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr, FILE_DBR *fdbr)
       edit_int64(jr->ClientId,ed3));
 
    } else if (jr != NULL) {
-      /* Called from Verify so jr->FileIndex is valid */
+      /*
+       * Note, if jr given jr->FileIndex must be valid   
+       *  This is probably no longer used.
+       */
       Mmsg(mdb->cmd,
 "SELECT FileId, LStat, MD5 FROM File WHERE File.JobId=%s AND File.PathId=%s AND "
 "File.FilenameId=%s AND FileIndex=%u", 
@@ -179,7 +183,8 @@ int db_get_file_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr, FILE_DBR *fdbr)
 
 }
 
-/* Get Filename record
+/**
+ * Get Filename record
  * Returns: 0 on failure
  *          FilenameId on success
  *
@@ -223,7 +228,8 @@ static int db_get_filename_record(JCR *jcr, B_DB *mdb)
    return FilenameId;
 }
 
-/* Get path record
+/**
+ * Get path record
  * Returns: 0 on failure
  *          PathId on success
  *
@@ -282,7 +288,7 @@ int db_get_path_record(JCR *jcr, B_DB *mdb)
 }
 
 
-/*
+/**
  * Get Job record for given JobId or Job name
  * Returns: false on failure
  *          true  on success
@@ -353,7 +359,7 @@ bool db_get_job_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
    return true;
 }
 
-/*
+/**
  * Find VolumeNames for a given JobId
  *  Returns: 0 on error or no Volumes found
  *           number of volumes on success
@@ -410,7 +416,7 @@ int db_get_job_volume_names(JCR *jcr, B_DB *mdb, JobId_t JobId, POOLMEM **Volume
    return stat;
 }
 
-/*
+/**
  * Find Volume parameters for a give JobId
  *  Returns: 0 on error or no Volumes found
  *           number of volumes on success
@@ -498,7 +504,7 @@ int db_get_job_volume_parameters(JCR *jcr, B_DB *mdb, JobId_t JobId, VOL_PARAMS 
 
 
 
-/*
+/**
  * Get the number of pool records
  *
  * Returns: -1 on failure
@@ -515,7 +521,7 @@ int db_get_num_pool_records(JCR *jcr, B_DB *mdb)
    return stat;
 }
 
-/*
+/**
  * This function returns a list of all the Pool record ids.
  *  The caller must free ids if non-NULL.
  *
@@ -552,7 +558,7 @@ int db_get_pool_ids(JCR *jcr, B_DB *mdb, int *num_ids, uint32_t *ids[])
    return stat;
 }
 
-/*
+/**
  * This function returns a list of all the Client record ids.
  *  The caller must free ids if non-NULL.
  *
@@ -591,7 +597,8 @@ int db_get_client_ids(JCR *jcr, B_DB *mdb, int *num_ids, uint32_t *ids[])
 
 
 
-/* Get Pool Record
+/**
+ * Get Pool Record
  * If the PoolId is non-zero, we get its record,
  *  otherwise, we search on the PoolName
  *
@@ -674,7 +681,8 @@ bool db_get_pool_record(JCR *jcr, B_DB *mdb, POOL_DBR *pdbr)
    return ok;
 }
 
-/* Get Client Record
+/**
+ * Get Client Record
  * If the ClientId is non-zero, we get its record,
  *  otherwise, we search on the Client Name
  *
@@ -729,7 +737,7 @@ int db_get_client_record(JCR *jcr, B_DB *mdb, CLIENT_DBR *cdbr)
    return stat;
 }
 
-/*
+/**
  * Get Counter Record
  *
  * Returns: 0 on failure
@@ -780,7 +788,8 @@ int db_get_counter_record(JCR *jcr, B_DB *mdb, COUNTER_DBR *cr)
 }
 
 
-/* Get FileSet Record
+/**
+ * Get FileSet Record
  * If the FileSetId is non-zero, we get its record,
  *  otherwise, we search on the name
  *
@@ -831,7 +840,7 @@ int db_get_fileset_record(JCR *jcr, B_DB *mdb, FILESET_DBR *fsr)
 }
 
 
-/*
+/**
  * Get the number of Media records
  *
  * Returns: -1 on failure
@@ -848,7 +857,7 @@ int db_get_num_media_records(JCR *jcr, B_DB *mdb)
    return stat;
 }
 
-/*
+/**
  * This function returns a list of all the Media record ids for
  *     the current Pool, the correct Media Type, Recyle, Enabled, StorageId, VolBytes
  *     VolumeName if specified
@@ -929,7 +938,7 @@ bool db_get_media_ids(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr, int *num_ids, uint32_t
 }
 
 
-/*
+/**
  * This function returns a list of all the DBIds that are returned
  *   for the query.
  *
@@ -966,7 +975,8 @@ bool db_get_query_dbids(JCR *jcr, B_DB *mdb, POOL_MEM &query, dbid_list &ids)
    return ok;
 }
 
-/* Get Media Record
+/**
+ * Get Media Record
  *
  * Returns: false: on failure
  *          true:  on success
@@ -1085,7 +1095,7 @@ bool db_get_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
    return ok;
 }
 
-/*
+/**
  * Find the last "accurate" backup state (that can take deleted files in
  * account)
  * 1) Get all files with jobid in list (F subquery)
@@ -1132,7 +1142,7 @@ bool db_get_file_list(JCR *jcr, B_DB *mdb, char *jobids,
    return db_sql_query(mdb, buf.c_str(), result_handler, ctx);
 }
 
-/*
+/**
  * This procedure gets the base jobid list used by jobids,
  */
 bool db_get_used_base_jobids(JCR *jcr, B_DB *mdb, 
@@ -1147,7 +1157,8 @@ bool db_get_used_base_jobids(JCR *jcr, B_DB *mdb,
    return db_sql_query(mdb, buf.c_str(), db_list_handler, result);
 }
 
-/* The decision do change an incr/diff was done before
+/**
+ * The decision do change an incr/diff was done before
  * Full : do nothing
  * Differential : get the last full id
  * Incremental : get the last full + last diff + last incr(s) ids
