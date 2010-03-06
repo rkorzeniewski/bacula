@@ -102,7 +102,6 @@ BuildRequires: openssl-devel, fontconfig-devel, libpng-devel, libstdc++-devel, z
 
 Requires: openssl
 Requires: fontconfig
-Requires: freetype2
 Requires: libgcc
 Requires: libpng
 Requires: libstdc++
