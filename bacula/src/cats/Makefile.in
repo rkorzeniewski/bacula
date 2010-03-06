@@ -56,15 +56,11 @@ all: Makefile libbacsql$(DEFAULT_ARCHIVE_TYPE)
 	@echo "==== Make of sqllib is good ===="
 	@echo " "
 
-myingres.c: myingres.sc
-	@echo "Generating $@ from $<"
-	$(NO_ECHO)$(II_SYSTEM)/ingres/bin/esqlcc -extension=c $<
-
-myingres.h: myingres.sh
-	@echo "Generating $@ from $<"
-	$(NO_ECHO)$(II_SYSTEM)/ingres/bin/esqlcc -extension=h $<
-
-esql: myingres.c myingres.h
+esql:
+	@echo "Generating myingres.c from myingres.sc"
+	$(NO_ECHO)$(II_SYSTEM)/ingres/bin/esqlcc -extension=c myingres.sc
+	@echo "Generating myingres.h from myingres.sh"
+	$(NO_ECHO)$(II_SYSTEM)/ingres/bin/esqlcc -extension=h myingres.sh
 
 libbacsql.a: $(LIBBACSQL_OBJS)
 	@echo "Making $@ ..."	  
