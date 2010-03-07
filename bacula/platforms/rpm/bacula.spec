@@ -788,7 +788,6 @@ export LDFLAGS="${LDFLAGS} -L/usr/lib64/python%{pyver}"
         --with-postgresql \
 %endif
         --disable-bat \
-        --without-qwt \
 %if %{python}
         --with-python \
 %endif
@@ -1456,6 +1455,8 @@ echo "The database update scripts were installed to %{script_dir}/updatedb"
 %endif
 
 %changelog
+* Sun Mar 07 2010 D. Scott Barninger <barninger@fairfieldcomputers.com>
+- remove --without-qwt from configure statement
 * Sat Feb 27 2010 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - move shared libraries into bacula-libs package
 * Sat Feb 20 2010 D. Scott Barninger <barninger@fairfieldcomputers.com>
