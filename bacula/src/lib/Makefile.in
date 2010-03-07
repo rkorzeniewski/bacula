@@ -50,7 +50,7 @@ INCLUDE_FILES = ../baconfig.h ../bacula.h ../bc_types.h \
 		smartall.h status.h tls.h tree.h var.h \
 		waitq.h watchdog.h workq.h \
 		parse_conf.h \
-		pythonlib.h lockmgr.h
+		pythonlib.h lockmgr.h devlock.h
 
 #
 # libbac
@@ -65,7 +65,8 @@ LIBBAC_SRCS = attr.c base64.c berrno.c bsys.c bget_msg.c \
 	      rwlock.c scan.c serial.c sha1.c \
 	      signal.c smartall.c rblist.c tls.c tree.c \
 	      util.c var.c watchdog.c workq.c btimers.c \
-	      address_conf.c breg.c htable.c lockmgr.c
+	      address_conf.c breg.c htable.c lockmgr.c devlock.c
+
 LIBBAC_OBJS = $(LIBBAC_SRCS:.c=.o)
 LIBBAC_LOBJS = $(LIBBAC_SRCS:.c=.lo)
 
@@ -163,6 +164,14 @@ rwlock_test: Makefile
 	$(LIBTOOL_LINK) $(CXX) $(LDFLAGS) -L. -o $@ rwlock.o $(DLIB) -lbac -lm $(LIBS) $(OPENSSL_LIBS)
 	rm -f rwlock.o
 	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) rwlock.c
+
+devlock_test: Makefile
+	rm -f devlock.o
+	$(CXX) -DTEST_devlock $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE)  $(CFLAGS) devlock.c
+	$(LIBTOOL_LINK) $(CXX) $(LDFLAGS) -L. -o $@ devlock.o $(DLIB) -lbac -lm $(LIBS) $(OPENSSL_LIBS)
+	rm -f devlock.o
+	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) devlock.c
+
 
 md5sum: Makefile md5.o	 
 	rm -f md5.o
