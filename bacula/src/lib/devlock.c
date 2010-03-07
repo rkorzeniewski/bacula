@@ -240,7 +240,7 @@ int devlock::readunlock()
  * Lock for write access, wait until locked (or error).
  *   Multiple nested write locking is permitted.
  */
-int devlock::writelock(int areason, bool acan_steal)
+int devlock::writelock(int areason, bool acan_take)
 {
    devlock *rwl = this;
    int stat;
@@ -275,7 +275,7 @@ int devlock::writelock(int areason, bool acan_steal)
       lmgr_post_lock();
    } 
    rwl->reason = areason;
-   rwl->can_steal = acan_steal;
+   rwl->can_take = acan_take;
    pthread_mutex_unlock(&rwl->mutex);
    return stat;
 }
@@ -347,6 +347,47 @@ int devlock::writeunlock()
    }
    stat2 = pthread_mutex_unlock(&rwl->mutex);
    return (stat == 0 ? stat2 : stat);
+}
+
+int devlock::take_lock(take_lock_t *hold, int areason)
+{
+   int stat;
+
+   if (valid != DEVLOCK_VALID) {
+      return EINVAL;
+   }
+   if ((stat = pthread_mutex_lock(&mutex)) != 0) {
+      return stat;
+   }
+   hold->reason = reason;
+   hold->prev_reason = prev_reason;
+   hold->writer_id = writer_id;
+   reason = areason;
+   writer_id = pthread_self();
+   stat = pthread_mutex_unlock(&mutex);
+   return stat;
+}
+
+int devlock::return_lock(take_lock_t *hold)
+{
+   int stat, stat2;
+
+   if (valid != DEVLOCK_VALID) {
+      return EINVAL;
+   }
+   if ((stat = pthread_mutex_lock(&mutex)) != 0) {
+      return stat;
+   }
+   reason = hold->reason;
+   prev_reason = hold->prev_reason;
+   writer_id = hold->writer_id;
+   writer_id = pthread_self();
+   stat2 = pthread_mutex_unlock(&mutex);
+   if (w_active || w_wait) {
+      stat = pthread_cond_broadcast(&write);
+   }
+   return (stat == 0 ? stat2 : stat);
+
 }
 
 #ifdef TEST_RWLOCK

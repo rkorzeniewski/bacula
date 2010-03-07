@@ -39,6 +39,13 @@
 #ifndef __DEVLOCK_H
 #define __DEVLOCK_H 1
 
+struct take_lock_t {
+   pthread_t  writer_id;              /* id of writer */
+   int        reason;                 /* save reason */
+   int        prev_reason;            /* previous reason */
+};
+
+
 class devlock {
 private:
    pthread_mutex_t   mutex;
@@ -52,16 +59,21 @@ private:
    int               r_wait;          /* readers waiting */
    int               w_wait;          /* writers waiting */
    int               reason;          /* reason for lock */
-   bool              can_steal;       /* can the lock be stolen? */
+   int               prev_reason;     /* previous reason */
+   bool              can_take;        /* can the lock be taken? */
 
 
 public:
-   devlock(int reason, bool can_steal=false);
+   devlock(int reason, bool can_take=false);
    ~devlock();
    int init(int priority);
    int destroy();
+   int take_lock(take_lock_t *hold, int reason);
+   int return_lock(take_lock_t *hold);
+   void new_reason(int nreason) { prev_reason = reason; reason = nreason; };
+   void restore_reason() { reason = prev_reason; prev_reason = 0; };
 
-   int writelock(int reason, bool can_steal=false); 
+   int writelock(int reason, bool can_take=false); 
    int writetrylock();
    int writeunlock();
    void write_release();
