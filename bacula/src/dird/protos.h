@@ -191,6 +191,7 @@ bool acl_access_ok(UAContext *ua, int acl, const char *item, int len);
 bool do_a_command(UAContext *ua);
 bool do_a_dot_command(UAContext *ua);
 int qmessagescmd(UAContext *ua, const char *cmd);
+bool open_new_client_db(UAContext *ua);
 bool open_client_db(UAContext *ua);
 bool open_db(UAContext *ua);
 void close_db(UAContext *ua);

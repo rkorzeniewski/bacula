@@ -165,8 +165,7 @@ bool do_a_dot_command(UAContext *ua)
 
 static bool dot_bvfs_update(UAContext *ua, const char *cmd)
 {
-
-   if (!open_client_db(ua)) {
+   if (!open_new_client_db(ua)) {
       return 1;
    }
 
@@ -179,6 +178,8 @@ static bool dot_bvfs_update(UAContext *ua, const char *cmd)
       /* update cache for all jobids */
       bvfs_update_cache(ua->jcr, ua->db);
    }
+   
+   close_db(ua);
    return true;
 }
 
