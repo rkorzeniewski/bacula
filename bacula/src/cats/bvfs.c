@@ -412,7 +412,7 @@ void bvfs_update_cache(JCR *jcr, B_DB *mdb)
 
    Mmsg(mdb->cmd, 
  "SELECT JobId from Job "
-  "WHERE HashCache = 0 "
+  "WHERE HasCache = 0 "
     "AND Type IN ('B') AND JobStatus IN ('T', 'f', 'A') "
   "ORDER BY JobId");
 
