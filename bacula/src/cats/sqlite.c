@@ -454,6 +454,9 @@ void my_sqlite_field_seek(B_DB *mdb, int field)
       mdb->fields = (SQL_FIELD **)malloc(sizeof(SQL_FIELD) * mdb->ncolumn);
       for (i=0; i < sql_num_fields(mdb); i++) {
          mdb->fields[i] = (SQL_FIELD *)malloc(sizeof(SQL_FIELD));
+         /* ***FIXME***  it seems to me that this is wrong
+          *   fields has lots of items
+          */
          if (mdb->result[i] == NULL) {
             mdb->fields_defined = false;
             free(mdb->fields);
