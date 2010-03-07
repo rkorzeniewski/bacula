@@ -157,6 +157,14 @@ yes
 wait
 status storage=File
 messages
+@$out ${tmp}/log3.out
+setdebug level=10 director
+.bvfs_update
+sql
+SELECT HasCache FROM Job WHERE Type='B';
+
+.bvfs_lsdir path=${tmpsrc}/ jobid=1,2,3,4,5,6,7,8
+.bvfs_lsfile path=${tmpsrc}/ jobid=1,2,3,4,5,6,7,8
 quit
 END_OF_DATA
 
@@ -170,7 +178,6 @@ check_two_logs
 #
 rm -f ${tmpsrc}/*.c
 check_restore_tmp_build_diff
-
 
 ${cwd}/build/src/tools/bvfs_test -T  -p ${tmpsrc} -j 1,2,3,4,5,6,7,8 \
     -w "$working" -n "$db_name" -u "$db_user" -P "$db_password"
