@@ -46,6 +46,7 @@ runPage::runPage()
 
 runPage::runPage(const QString &defJob)
 {
+   m_dockOnFirstUse = false;
    init();
    if (defJob != "")
       jobCombo->setCurrentIndex(jobCombo->findText(defJob, Qt::MatchExactly));
@@ -57,6 +58,7 @@ runPage::runPage(const QString &defJob, const QString &level,
                  const QString &pool, const QString &storage,
                  const QString &client, const QString &fileset)
 {
+   m_dockOnFirstUse = false;
    init();
    jobCombo->setCurrentIndex(jobCombo->findText(defJob, Qt::MatchExactly));
    job_name_change(0);

@@ -515,9 +515,7 @@ void MainWin::treeItemChanged(QTreeWidgetItem *currentitem, QTreeWidgetItem *pre
       }
       /* set the value for the currently active console */
       int stackindex = tabWidget->indexOf(nextPage);
-      if (!nextPage->isOnceDocked()) {
-         nextPage->dockPage();
-      }
+      nextPage->firstUseDock();
    
       /* Is this page currently on the stack or is it undocked */
       if (stackindex >= 0) {

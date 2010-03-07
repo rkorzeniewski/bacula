@@ -78,6 +78,7 @@ public:
    QString &name() { return m_name; };
    void getVolumeList(QStringList &);
    void getStatusList(QStringList &);
+   void firstUseDock();
 
 public slots:
    /* closeEvent is a virtual function inherited from QWidget */
@@ -94,6 +95,7 @@ protected:
    bool m_closeable;
    bool m_docked;
    bool m_onceDocked;
+   bool m_dockOnFirstUse;
    Console *m_console;
    QString m_name;
 };
