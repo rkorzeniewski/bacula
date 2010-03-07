@@ -6,38 +6,45 @@ Projects:
 Summary:
 * => item complete
 
- Item  1: Ability to restart failed jobs
- Item  3: Scheduling syntax that permits more flexibility and options
- Item  4: Data encryption on storage daemon
- Item  7: Add ability to Verify any specified Job.
- Item  8: Improve Bacula's tape and drive usage and cleaning management
- Item  9: Allow FD to initiate a backup
- Item 11: Implement Storage daemon compression
- Item 12: Reduction of communications bandwidth for a backup
- Item 13: Ability to reconnect a disconnected comm line
- Item 14: Start spooling even when waiting on tape
- Item 16: Include all conf files in specified directory
- Item 17: Multiple threads in file daemon for the same job
- Item 18: Possibilty to schedule Jobs on last Friday of the month
- Item 19: Include timestamp of job launch in "stat clients" output
- Item 21: Message mailing based on backup types
- Item 22: Ability to import/export Bacula database entities
- Item 24: Implementation of running Job speed limit.
- Item 25: Add an override in Schedule for Pools based on backup types
- Item 26: Automatic promotion of backup levels based on backup size
- Item 27: Allow inclusion/exclusion of files in a fileset by creation/mod times
- Item 28: Archival (removal) of User Files to Tape
- Item 29: An option to operate on all pools with update vol parameters
- Item 30: Automatic disabling of devices
- Item 32: Ability to defer Batch Insert to a later time
- Item 33: Add MaxVolumeSize/MaxVolumeBytes statement to Storage resource
- Item 34: Enable persistent naming/number of SQL queries
- Item 36: Bacula Dir, FD and SD to support proxies
- Item 37: Add Minumum Spool Size directive
- Item 38: Backup and Restore of Windows Encrypted Files using Win raw encryption
- Item 39: Implement an interface between Bacula and Amazon's S3.
- Item 40: Convert Bacula existing tray monitor on Windows to a stand alone program
-
+Item  1: Ability to restart failed jobs
+Item  2: Scheduling syntax that permits more flexibility and options
+Item  3: Data encryption on storage daemon
+Item  4: Add ability to Verify any specified Job.
+Item  5: Improve Bacula's tape and drive usage and cleaning management
+Item  6: Allow FD to initiate a backup
+Item  7: Implement Storage daemon compression
+Item  8: Reduction of communications bandwidth for a backup
+Item  9: Ability to reconnect a disconnected comm line
+Item 10: Start spooling even when waiting on tape
+Item 11: Include all conf files in specified directory
+Item 12: Multiple threads in file daemon for the same job
+Item 13: Possibilty to schedule Jobs on last Friday of the month
+Item 14: Include timestamp of job launch in "stat clients" output
+Item 15: Message mailing based on backup types
+Item 16: Ability to import/export Bacula database entities
+Item 17: Implementation of running Job speed limit.
+Item 18: Add an override in Schedule for Pools based on backup types
+Item 19: Automatic promotion of backup levels based on backup size
+Item 20: Allow FileSet inclusion/exclusion by creation/mod times
+Item 21: Archival (removal) of User Files to Tape
+Item 22: An option to operate on all pools with update vol parameters
+Item 23: Automatic disabling of devices
+Item 24: Ability to defer Batch Insert to a later time
+Item 25: Add MaxVolumeSize/MaxVolumeBytes to Storage resource
+Item 26: Enable persistent naming/number of SQL queries
+Item 27: Bacula Dir, FD and SD to support proxies
+Item 28: Add Minumum Spool Size directive
+Item 29: Handle Windows Encrypted Files using Win raw encryption
+Item 30: Implement a Storage device like Amazon's S3.
+Item 31: Convert tray monitor on Windows to a stand alone program
+Item 32: Relabel disk volume after recycling
+Item 33: Command that releases all drives in an autochanger
+Item 34: Run bscan on a remote storage daemon from within bconsole.
+Item 35: Implement a Migration job type that will create a reverse
+Item 36: Job migration between different SDs
+Item 37: Concurrent spooling and despooling withini a single job.
+Item 39: Extend the verify code to make it possible to verify
+Item 40: Separate "Storage" and "Device" in the bacula-dir.conf
 
 
 Item  1: Ability to restart failed jobs
@@ -61,7 +68,7 @@ Item  1: Ability to restart failed jobs
           volume of data or files stored on Volume before enabling.
 
 
-Item  3: Scheduling syntax that permits more flexibility and options
+Item  2: Scheduling syntax that permits more flexibility and options
    Date: 15 December 2006
   Origin: Gregory Brauer (greg at wildbrain dot com) and
           Florian Schnabel <florian.schnabel at docufy dot de>
@@ -167,7 +174,7 @@ Item  3: Scheduling syntax that permits more flexibility and options
           jobs (via Schedule syntax) into this.
 
 
-Item  4: Data encryption on storage daemon
+Item  3: Data encryption on storage daemon
   Origin: Tobias Barth <tobias.barth at web-arts.com>
   Date:  04 February 2009
   Status: new
@@ -188,7 +195,7 @@ Item  4: Data encryption on storage daemon
           http://www.mail-archive.com/bacula-users@lists.sourceforge.net/msg28860.html
 
 
-Item  7: Add ability to Verify any specified Job.
+Item  4: Add ability to Verify any specified Job.
 Date: 17 January 2008
 Origin: portrix.net Hamburg, Germany.
 Contact: Christian Sabelmann
@@ -216,7 +223,7 @@ Status: 70% of the required Code is part of the Verify function since v. 2.x
    Jobs whose file information are still in the catalog.
 
 
-Item  8: Improve Bacula's tape and drive usage and cleaning management 
+Item  5: Improve Bacula's tape and drive usage and cleaning management 
   Date:  8 November 2005, November 11, 2005
   Origin: Adam Thornton <athornton at sinenomine dot net>,
           Arno Lehmann <al at its-lehmann dot de>
@@ -285,19 +292,40 @@ Item  8: Improve Bacula's tape and drive usage and cleaning management
           volumes, and handling drive cleaning and TAPEALERTs.
 
 
-Item  9: Allow FD to initiate a backup
+Item  6: Allow FD to initiate a backup
 Origin:  Frank Volf (frank at deze dot org)
 Date:    17 November 2005
 Status: 
 
-What: Provide some means, possibly by a restricted console that
+What:  Provide some means, possibly by a restricted console that
        allows a FD to initiate a backup, and that uses the connection
        established by the FD to the Director for the backup so that
        a Director that is firewalled can do the backup.
-Why:  Makes backup of laptops much easier.
+Why:   Makes backup of laptops much easier.
+Notes: This project consists of the following points
+       1. Modify the FD to have a "mini-console" interface that
+          permits it to connect to the Director and start a
+          backup job of itself.
+       2. The list of jobs that can be started by the FD are
+          defined in the Director (possibly via a restricted
+          console).
+       3. Modify the existing tray monitor code in the Win32 FD
+          so that it is a separate program from the FD.
+       4. The tray monitor program should be extended to permit
+          initiating a backup.
+       5. No new Director directives should be added without
+          prior consultation with the Bacula developers.
+       6. The comm line used by the FD to connect to the Director
+          should be re-used by the Director to do the backup.
+          This feature is partially implemented in the Director.
+       7. The FD may have a new directive that allows it to start
+          a backup when the FD starts.
+       8. The console interface to the FD should be extended to
+          permit a properly authorized console to initiate a
+          backup via the FD.
+              
 
-
-Item 11: Implement Storage daemon compression
+Item  7: Implement Storage daemon compression
   Date:  18 December 2006
   Origin: Vadim A. Umanski , e-mail umanski@ext.ru
   Status:
@@ -319,7 +347,7 @@ Item 11: Implement Storage daemon compression
   Notes:
 
 
-Item 12: Reduction of communications bandwidth for a backup
+Item  8: Reduction of communications bandwidth for a backup
    Date: 14 October 2008
  Origin: Robin O'Leary (Equiinet)
  Status: 
@@ -333,7 +361,7 @@ Item 12: Reduction of communications bandwidth for a backup
           backup that will speed up subsequent backups.
      
      
-Item 13: Ability to reconnect a disconnected comm line
+Item  9: Ability to reconnect a disconnected comm line
   Date:  26 April 2009
   Origin: Kern/Eric
   Status: 
@@ -346,7 +374,7 @@ Item 13: Ability to reconnect a disconnected comm line
 
   Notes: *Very* complicated from a design point of view because of authenication.
 
-Item 14: Start spooling even when waiting on tape
+Item 10: Start spooling even when waiting on tape
   Origin: Tobias Barth <tobias.barth@web-arts.com>
   Date:  25 April 2008
   Status:
@@ -369,7 +397,7 @@ Item 14: Start spooling even when waiting on tape
          implemented.
 
 
-Item 16: Include all conf files in specified directory
+Item 11: Include all conf files in specified directory
 Date:  18 October 2008
 Origin: Database, Lda. Maputo, Mozambique
 Contact:Cameron Smith / cameron.ord@database.co.mz 
@@ -414,7 +442,7 @@ Notes: (kes) this can already be done with scripting
     /etc/bacula/clientdefs/clientname.conf
 
 
-Item 17: Multiple threads in file daemon for the same job
+Item 12: Multiple threads in file daemon for the same job
   Date:  27 November 2005
   Origin: Ove Risberg (Ove.Risberg at octocode dot com)
   Status:
@@ -436,8 +464,12 @@ Item 17: Multiple threads in file daemon for the same job
   Why:   Multiple concurrent backups of a large fileserver with many
           disks and controllers will be much faster.
 
+  Notes: (KES) This is not necessary and could be accomplished
+         by having two jobs.  In addition, the current VSS code
+         is single thread.
 
-Item 18: Possibilty to schedule Jobs on last Friday of the month
+
+Item 13: Possibilty to schedule Jobs on last Friday of the month
 Origin: Carsten Menke <bootsy52 at gmx dot net>
 Date:   02 March 2008
 Status:
@@ -479,7 +511,7 @@ Status:
               Run = pool=Monthly last Day of the Month at 23:50
 
 
-Item 19: Include timestamp of job launch in "stat clients" output
+Item 14: Include timestamp of job launch in "stat clients" output
   Origin: Mark Bergman <mark.bergman@uphs.upenn.edu>
   Date:  Tue Aug 22 17:13:39 EDT 2006
   Status:
@@ -498,7 +530,7 @@ Item 19: Include timestamp of job launch in "stat clients" output
           particularly when there are many active clients.
 
 
-Item 21: Message mailing based on backup types
+Item 15: Message mailing based on backup types
  Origin: Evan Kaufman <evan.kaufman@gmail.com>
    Date: January 6, 2006
  Status:
@@ -530,7 +562,7 @@ Item 21: Message mailing based on backup types
    Notes: Kern: This should be rather trivial to implement.
 
 
-Item 22: Ability to import/export Bacula database entities
+Item 16: Ability to import/export Bacula database entities
    Date: 26 April 2009
  Origin: Eric
  Status: 
@@ -545,7 +577,7 @@ Item 22: Ability to import/export Bacula database entities
           other criteria.
 
 
-Item 24: Implementation of running Job speed limit.
+Item 17: Implementation of running Job speed limit.
 Origin: Alex F, alexxzell at yahoo dot com
 Date: 29 January 2009
 
@@ -567,7 +599,7 @@ Why: Because of a couple of reasons.  First, it's very hard to implement a
      especially where there is little available.
 
 
-Item 25: Add an override in Schedule for Pools based on backup types
+Item 18: Add an override in Schedule for Pools based on backup types
 Date:    19 Jan 2005
 Origin:  Chad Slater <chad.slater@clickfox.com>
 Status: 
@@ -587,7 +619,7 @@ Status:
           has more capacity (i.e. a 8TB tape library.
 
 
-Item 26: Automatic promotion of backup levels based on backup size
+Item 19: Automatic promotion of backup levels based on backup size
    Date: 19 January 2006
   Origin: Adam Thornton <athornton@sinenomine.net>
   Status: 
@@ -607,7 +639,7 @@ Item 26: Automatic promotion of backup levels based on backup size
           of).
 
 
-Item 27: Allow inclusion/exclusion of files in a fileset by creation/mod times
+Item 20: Allow FileSet inclusion/exclusion by creation/mod times
   Origin: Evan Kaufman <evan.kaufman@gmail.com>
   Date:  January 11, 2006
   Status:
@@ -657,7 +689,7 @@ Item 27: Allow inclusion/exclusion of files in a fileset by creation/mod times
            or 'since'.
 
 
-Item 28: Archival (removal) of User Files to Tape
+Item 21: Archival (removal) of User Files to Tape
   Date:  Nov. 24/2005 
   Origin: Ray Pengelly [ray at biomed dot queensu dot ca
   Status: 
@@ -685,7 +717,7 @@ Item 28: Archival (removal) of User Files to Tape
           storage pool gets full) data is migrated to Tape.
 
 
-Item 29: An option to operate on all pools with update vol parameters
+Item 22: An option to operate on all pools with update vol parameters
   Origin: Dmitriy Pinchukov <absh@bossdev.kiev.ua>
    Date: 16 August 2006
   Status: Patch made by  Nigel Stepp
@@ -700,7 +732,7 @@ Item 29: An option to operate on all pools with update vol parameters
           Volumes from Pool -> pool #.
 
 
-Item 30: Automatic disabling of devices
+Item 23: Automatic disabling of devices
    Date: 2005-11-11
   Origin: Peter Eriksson <peter at ifm.liu dot se>
   Status:
@@ -727,7 +759,7 @@ Item 30: Automatic disabling of devices
           instead.
 
 
-Item 32: Ability to defer Batch Insert to a later time
+Item 24: Ability to defer Batch Insert to a later time
    Date: 26 April 2009
  Origin: Eric
  Status: 
@@ -744,7 +776,7 @@ Item 32: Ability to defer Batch Insert to a later time
           format (i.e. dependent on the import/export entities project).
 
 
-Item 33: Add MaxVolumeSize/MaxVolumeBytes statement to Storage resource
+Item 25: Add MaxVolumeSize/MaxVolumeBytes to Storage resource
    Origin: Bastian Friedrich <bastian.friedrich@collax.com>
    Date:  2008-07-09
    Status: -
@@ -767,7 +799,7 @@ Item 33: Add MaxVolumeSize/MaxVolumeBytes statement to Storage resource
            quite well.
 
 
-Item 34: Enable persistent naming/number of SQL queries
+Item 26: Enable persistent naming/number of SQL queries
   Date:  24 Jan, 2007 
   Origin: Mark Bergman 
   Status: 
@@ -833,7 +865,7 @@ Item 34: Enable persistent naming/number of SQL queries
         than by number.
 
 
-Item 36: Bacula Dir, FD and SD to support proxies
+Item 27: Bacula Dir, FD and SD to support proxies
 Origin: Karl Grindley @ MIT Lincoln Laboratory <kgrindley at ll dot mit dot edu>
 Date:  25 March 2009
 Status: proposed
@@ -874,7 +906,7 @@ Notes: Director resource tunneling: This configuration option to utilize a
         One could also possibly use stunnel, netcat, etc.
 
 
-Item 37: Add Minumum Spool Size directive
+Item 28: Add Minumum Spool Size directive
 Date: 20 March 2008
 Origin: Frank Sweetser <fs@wpi.edu>
 
@@ -897,7 +929,7 @@ Origin: Frank Sweetser <fs@wpi.edu>
         gigabytes) it can easily produce multi-megabyte report emails!
 
 
-Item 38: Backup and Restore of Windows Encrypted Files using Win raw encryption
+Item 29: Handle Windows Encrypted Files using Win raw encryption
   Origin: Michael Mohr, SAG  Mohr.External@infineon.com
   Date:  22 February 2008
   Origin: Alex Ehrlich (Alex.Ehrlich-at-mail.ee)
@@ -944,7 +976,7 @@ Item 38: Backup and Restore of Windows Encrypted Files using Win raw encryption
            encrypted-file-related callback functions.
 
 
-Item 39: Implement an interface between Bacula and Storage clould like Amazon's S3.
+Item 30: Implement a Storage device like Amazon's S3.
   Date:  25 August 2008
   Origin: Soren Hansen <soren@ubuntu.com>
   Status: Not started.
@@ -968,7 +1000,7 @@ Item 39: Implement an interface between Bacula and Storage clould like Amazon's 
          if bacula want to recycle a volume, it will start by downloading the
          file to truncate it few seconds later, if we can avoid that...
 
-Item 40: Convert Bacula existing tray monitor on Windows to a stand alone program
+Item 31: Convert tray monitor on Windows to a stand alone program
    Date: 26 April 2009
  Origin: Kern/Eric
  Status: 
@@ -983,12 +1015,7 @@ Item 40: Convert Bacula existing tray monitor on Windows to a stand alone progra
           a console connection).
 
 
-
-========= End items voted on May 2009 ==================
-
-========= New items after last vote ====================
-
-Item 1:   Relabel disk volume after recycling
+Item 32: Relabel disk volume after recycling
   Origin: Pasi Kärkkäinen <pasik@iki.fi>
   Date:   07 May 2009.
   Status: Not implemented yet, no code written.
@@ -1009,7 +1036,7 @@ Item 1:   Relabel disk volume after recycling
 
   Notes:  The configuration option could be "Relabel after Recycling = Yes".
 
-Item n: Command that releases all drives in an autochanger
+Item 33: Command that releases all drives in an autochanger
   Origin: Blake Dunlap (blake@nxs.net)
   Date:   10/07/2009
   Status: Request
@@ -1032,7 +1059,7 @@ Item n: Command that releases all drives in an autochanger
        configuration quicker/easier, as all drives need to be released
        before any modifications to slots.
 
-Item  n: Run bscan on a remote storage daemon from within bconsole.
+Item 34: Run bscan on a remote storage daemon from within bconsole.
   Date:  07 October 2009
   Origin: Graham Keeling <graham@equiinet.com>
   Status: Proposing
@@ -1069,7 +1096,7 @@ Item  n: Run bscan on a remote storage daemon from within bconsole.
          code is used in both the bscan program and the Storage daemon to avoid
          adding a lot of new code that must be maintained by the project.
 
-Item n:   Implement a Migration job type that will create a reverse
+Item 35: Implement a Migration job type that will create a reverse
           incremental (or decremental) backup from two existing full backups.
   Date:   05 October 2009
   Origin: Griffith College Dublin.  Some sponsorship available.
@@ -1093,10 +1120,10 @@ Item n:   Implement a Migration job type that will create a reverse
   Notes:  This feature was previously discussed on the bacula-devel list
           here: http://www.mail-archive.com/bacula-devel@lists.sourceforge.net/msg04962.html
 
-Item n: Job migration between different SDs
-Origin: Mariusz Czulada <manieq AT wp DOT eu>
-Date:   07 May 2007
-Status: NEW
+Item 36: Job migration between different SDs
+Origin:  Mariusz Czulada <manieq AT wp DOT eu>
+Date:    07 May 2007
+Status:  NEW
 
 What:   Allow to specify in migration job devices on Storage Daemon other then
         the one used for migrated jobs (possibly on different/distant host)
@@ -1115,7 +1142,7 @@ Notes:  If migration to different SD is working, migration to the same SD, as
         now, could be done the same way (i mean 'localhost') to unify the
         whole process
 
-Item  n: Concurrent spooling and despooling withini a single job.
+Item 37: Concurrent spooling and despooling withini a single job.
 Date:  17 nov 2009
 Origin: Jesper Krogh <jesper@krogh.cc>
 Status: NEW
@@ -1168,7 +1195,7 @@ Why:   When dealing with larger volumes the general utillization of the
        and is harder to review for completeness. Subsequently it makes restores
        more complex.
 
-Item 1:   Extend the verify code to make it possible to verify
+Item 39: Extend the verify code to make it possible to verify
           older jobs, not only the last one that has finished
   Date:   10 April 2009
   Origin: Ralf Gross (Ralf-Lists <at> ralfgross.de)
@@ -1225,7 +1252,7 @@ Item 1:   Extend the verify code to make it possible to verify
 
 
 
-Item n:   Separate "Storage" and "Device" in the bacula-dir.conf
+Item 40: Separate "Storage" and "Device" in the bacula-dir.conf
   Date:   29 April 2009
   Origin: "James Harper" <james.harper@bendigoit.com.au>
   Status: not implemented or documented
@@ -1262,6 +1289,7 @@ Item n:   Separate "Storage" and "Device" in the bacula-dir.conf
 
   Notes:  
 
+========= New items after last vote ====================
 
 
 ========= Add new items above this line =================
