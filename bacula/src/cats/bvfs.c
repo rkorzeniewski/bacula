@@ -672,7 +672,7 @@ bool Bvfs::ls_files()
    if (*pattern) {
       Mmsg(filter, " AND Filename.Name %s '%s' ", SQL_MATCH, pattern);
    }
-
+   /* TODO: Use JobTDate instead of FileId to determine the latest version */
    POOL_MEM query;
    Mmsg(query, //    1              2             3          4
 "SELECT 'F', File.PathId, File.FilenameId, listfiles.Name, File.JobId, "
