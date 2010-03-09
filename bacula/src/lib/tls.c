@@ -315,7 +315,7 @@ bool tls_postconnect_verify_host(JCR *jcr, TLS_CONNECTION *tls, const char *host
          extname = OBJ_nid2sn(OBJ_obj2nid(X509_EXTENSION_get_object(ext)));
 
          if (strcmp(extname, "subjectAltName") == 0) {
-            X509V3_EXT_METHOD *method;
+            const X509V3_EXT_METHOD *method;
             STACK_OF(CONF_VALUE) *val;
             CONF_VALUE *nval;
             void *extstr = NULL;
