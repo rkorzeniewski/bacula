@@ -743,6 +743,9 @@ void add_file_to_fileset(JCR *jcr, const char *fname, findFILESET *fileset,
    }
 }
 
+/**
+ * Define a new Exclude block in the FileSet
+ */
 findFILESET *new_exclude(JCR *jcr)
 {
    FF_PKT *ff = jcr->ff;
