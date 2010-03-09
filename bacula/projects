@@ -302,7 +302,16 @@ What:  Provide some means, possibly by a restricted console that
        established by the FD to the Director for the backup so that
        a Director that is firewalled can do the backup.
 Why:   Makes backup of laptops much easier.
-Notes: This project consists of the following points
+Notes: - The FD already has code for the monitor interface
+       - It could be nice to have a .job command that lists authorized
+         jobs.
+       - Commands need to be restricted on the Director side
+         (for example by re-using the runscript flag) 
+       - The Client resource can be used to authorize the connection
+       - In a first time, the client can't modify job parameters
+       - We need a way to run a status command to follow job progression
+
+      This project consists of the following points
        1. Modify the FD to have a "mini-console" interface that
           permits it to connect to the Director and start a
           backup job of itself.
