@@ -25,7 +25,7 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
-/*
+/**
  * Main program to test loading and running Bacula plugins.
  *   Destined to become Bacula pluginloader, ...
  *
@@ -117,7 +117,7 @@ static bool is_plugin_disabled(JCR *jcr)
 }
 
 
-/*
+/**
  * Create a plugin event 
  */
 void generate_plugin_event(JCR *jcr, bEventType eventType, void *value)     
@@ -154,7 +154,7 @@ void generate_plugin_event(JCR *jcr, bEventType eventType, void *value)
    return;
 }
 
-/*
+/**
  * Check if file was seen for accurate
  */
 bool plugin_check_file(JCR *jcr, char *fname)
@@ -193,7 +193,7 @@ bool plugin_check_file(JCR *jcr, char *fname)
 }
 
 
-/*   
+/**  
  * Sequence of calls for a backup:
  * 1. plugin_save() here is called with ff_pkt
  * 2. we find the plugin requested on the command string
@@ -315,7 +315,7 @@ bail_out:
    return 1;
 }
 
-/* 
+/**
  * Send plugin name start/end record to SD
  */
 bool send_plugin_name(JCR *jcr, BSOCK *sd, bool start)
@@ -361,7 +361,7 @@ bool send_plugin_name(JCR *jcr, BSOCK *sd, bool start)
    return true;
 }
 
-/*
+/**
  * Plugin name stream found during restore.  The record passed in
  *  argument name was generated in send_plugin_name() above.
  *
@@ -452,7 +452,7 @@ bail_out:
    return start;
 }
 
-/*
+/**
  * Tell the plugin to create the file.  Return values are
  *   This is called only during Restore
  *
@@ -525,7 +525,7 @@ int plugin_create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
    return CF_EXTRACT;
 }
 
-/*
+/**
  * Reset the file attributes after all file I/O is done -- this allows
  *  the previous access time/dates to be set properly, and it also allows
  *  us to properly set directory permissions.
@@ -559,7 +559,7 @@ void dump_fd_plugin(Plugin *plugin, FILE *fp)
    fprintf(fp, "\tdescription=%s\n", NPRTB(info->plugin_description));
 }
 
-/*
+/**
  * This entry point is called internally by Bacula to ensure
  *  that the plugin IO calls come into this code.
  */
@@ -603,7 +603,7 @@ void load_fd_plugins(const char *plugin_dir)
    dbg_plugin_add_hook(dump_fd_plugin);
 }
 
-/*
+/**
  * Check if a plugin is compatible.  Called by the load_plugin function
  *  to allow us to verify the plugin.
  */
@@ -642,7 +642,7 @@ static bool is_plugin_compatible(Plugin *plugin)
 }
 
 
-/*
+/**
  * Create a new instance of each plugin for this Job
  *   Note, plugin_list can exist but jcr->plugin_ctx_list can
  *   be NULL if no plugins were loaded.
@@ -684,7 +684,7 @@ void new_plugins(JCR *jcr)
    }
 }
 
-/*
+/**
  * Free the plugin instances for this Job
  */
 void free_plugins(JCR *jcr)
@@ -864,7 +864,6 @@ static bRC baculaGetValue(bpContext *ctx, bVariable var, void *value)
    if (!value || !ctx) {
       return bRC_Error;
    }
-   jcr = ((bacula_ctx *)ctx->bContext)->jcr;
 // Dmsg1(dbglvl, "bacula: baculaGetValue var=%d\n", var);
    jcr = ((bacula_ctx *)ctx->bContext)->jcr;
    if (!jcr) {
@@ -928,7 +927,6 @@ static bRC baculaSetValue(bpContext *ctx, bVariable var, void *value)
    if (!value || !ctx) {
       return bRC_Error;
    }
-   jcr = ((bacula_ctx *)ctx->bContext)->jcr;
 // Dmsg1(dbglvl, "bacula: baculaGetValue var=%d\n", var);
    jcr = ((bacula_ctx *)ctx->bContext)->jcr;
    if (!jcr) {
@@ -1016,9 +1014,33 @@ static void baculaFree(bpContext *ctx, const char *file, int line, void *mem)
 #endif
 }
 
+/**
+ * Let the plugin define files/directories to be excluded
+ *  from the main backup.
+ */
 static bRC baculaAddExclude(bpContext *ctx, const char *file)
 {
-   return bRC_Error;
+   JCR *jcr;
+   bacula_ctx *bctx;
+   if (ctx) {
+      return bRC_Error;
+   }
+   if (!file) {
+      return bRC_Error;
+   }
+   bctx = (bacula_ctx *)ctx->bContext;
+   if (!bctx) {
+      return bRC_Error;
+   }
+   jcr = bctx->jcr;
+   if (!jcr) {
+      return bRC_Error;
+   }
+   if (!bctx->fileset) {  
+      bctx->fileset = new_exclude(jcr);
+   }
+   add_file_to_fileset(jcr, file, bctx->fileset, true);
+   return bRC_OK;
 }
 
 
