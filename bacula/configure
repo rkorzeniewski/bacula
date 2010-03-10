@@ -44231,7 +44231,7 @@ solaris)
 _ACEOF
 
    fi
-   LIBS="$LIBS -lresolv"
+   LIBS="$LIBS -lresolv -lrt"
   ;;
 suse)
    DISTVER=`cat /etc/SuSE-release |grep VERSION|\
