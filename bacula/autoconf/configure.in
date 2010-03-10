@@ -2908,7 +2908,7 @@ solaris)
    if test x$DISTVER = x5.6 ; then
        AC_DEFINE(HAVE_OLD_SOCKOPT)
    fi
-   LIBS="$LIBS -lresolv"
+   LIBS="$LIBS -lresolv -lrt"
   ;;
 suse)
    DISTVER=`cat /etc/SuSE-release |grep VERSION|\
