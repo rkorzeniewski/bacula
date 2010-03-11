@@ -100,9 +100,15 @@ sub cleanup
 
 sub start_bacula
 {
+    my $ret;
     $ENV{LANG}='C';
     system("$bin/bacula start");
-    return $? == 0;
+    $ret = $? == 0;
+    open(FP, ">$tmp/bcmd");
+    print FP "sql\ntruncate client_group;\ntruncate client_group_member;\nupdate Media set LocationId=0;\ntruncate location;\n\n";
+    close(FP);
+    system("cat $tmp/bcmd | $bin/bconsole >/dev/null");
+    return $ret;
 }
 
 sub stop_bacula
