@@ -39,7 +39,7 @@ use Exporter;
 our @ISA = qw(Exporter);
 our @EXPORT =  qw(update_some_files create_many_files check_multiple_copies
                   update_client $HOST $BASEPORT add_to_backup_list check_volume_size
-                  create_many_dirs
+                  create_many_dirs cleanup start_bacula stop_bacula
                   check_min_volume_size check_max_volume_size $estat $bstat $rstat $zstat
                   $cwd $bin $scripts $conf $rscripts $tmp $working extract_resource
                   $db_name $db_user $db_password $src $tmpsrc);
@@ -90,6 +90,26 @@ BEGIN {
     $ENV{BASEPORT} = $BASEPORT =  $ENV{BASEPORT} || "8101";
 
     $estat = $rstat = $bstat = $zstat = 0;
+}
+
+sub cleanup
+{
+    system("$rscripts/cleanup");
+    return $? == 0;
+}
+
+sub start_bacula
+{
+    $ENV{LANG}='C';
+    system("$bin/bacula start");
+    return $? == 0;
+}
+
+sub stop_bacula
+{
+    $ENV{LANG}='C';
+    system("$bin/bacula stop");
+    return $? == 0;
 }
 
 sub extract_resource
