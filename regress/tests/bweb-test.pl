@@ -481,3 +481,25 @@ if ($part{overview}) {
     $sel->is_text_present_ok("backup");
     $sel->is_text_present_ok("Full Set");
 }
+
+if ($part{config}) {
+    $sel->open_ok("/cgi-bin/bweb/bweb.pl");
+    $sel->click_ok("link=Configuration");
+    $sel->wait_for_page_to_load_ok("30000");
+    $sel->is_text_present_ok("Main Configuration");
+
+    $sel->click_ok("//button[\@name='action' and \@value='edit_main_conf']");
+    $sel->wait_for_page_to_load_ok("30000");
+    $sel->is_text_present_ok("Main Configuration");
+    my $dbi = $sel->get_text("dbi");
+    my $user = $sel->get_text("user");
+    my $pass = $sel->get_text("password");
+    my $histo = $sel->get_text("stat_job_table");
+
+    print "dbi=$dbi histo=$histo\n";
+    if ($histo eq 'Job') {
+        $sel->type_ok("stat_job_table", "JobHisto");
+    } else {
+        $sel->type_ok("stat_job_table", "Job");
+    }
+}
