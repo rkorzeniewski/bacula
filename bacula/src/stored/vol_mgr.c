@@ -44,7 +44,7 @@ const int dbglvl =  150;
 static dlist *vol_list = NULL;
 static brwlock_t vol_list_lock;
 static dlist *read_vol_list = NULL;
-static pthread_mutex_t read_vol_lock = PTHREAD_MUTEX_INITIALIZER;
+static bthread_mutex_t read_vol_lock = BTHREAD_MUTEX_PRIORITY(PRIO_SD_READ_VOL_LIST);
 
 /* Forward referenced functions */
 static void free_vol_item(VOLRES *vol);
