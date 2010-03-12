@@ -58,17 +58,18 @@ use Getopt::Long;
 use scripts::functions;
 use File::Copy qw/copy move/;
 
-my ($login, $pass, $verbose, %part, @part, $noclean, $client);
+my ($login, $pass, $verbose, %part, @part, $noclean, $client, $multi);
 my $url = "http://localhost:9180";
+my @available = qw/client group location run missingjob media overview config/;
 
-my @available = qw/client group location run missingjob media overview/;
-GetOptions ("login=s"  => \$login,
-	    "passwd=s" => \$pass,
-	    "url|u=s"  => \$url,
-            "module=s@"   => \@part,
-	    "verbose"  => \$verbose,
+GetOptions ("login=s"   => \$login,
+	    "passwd=s"  => \$pass,
+	    "url|u=s"   => \$url,
+            "module=s@" => \@part,
+	    "verbose"   => \$verbose,
             "nocleanup" => \$noclean,
-            "client=s"    => \$client,
+            "client=s"  => \$client,
+            "dirs"      => \$multi,
 	    );
 
 die "Usage: $0 --url http://.../cgi-bin/bweb/bweb.pl [-m module] [-n]"
@@ -80,8 +81,14 @@ if (scalar(@part)) {
     %part = map { $_ => 1 } @available;
 }
 
+if ($multi) {
+    $part{multidir} = 1;
+}
+
 if (!$noclean) {
     cleanup();
+    `scripts/copy-confs`;
+    `sed -i 's/# Sched/ Sched/' $conf/bacula-dir.conf`;
     start_bacula();
 }
 
@@ -91,12 +98,53 @@ my $sel = Test::WWW::Selenium->new( host => "localhost",
                                     browser_url => $url );
 
 $sel->open_ok("/cgi-bin/bweb/bweb.pl?");
-$sel->set_speed(500);
+$sel->set_speed(100);
+
+if ($part{multidir}) {
+    # if the current bconsole.conf doesn't contain two sections, we
+    # create it
+    if (!get_resource("$conf/bconsole.conf", "Director", "bweb-dir")) {
+        copy("$conf/bconsole.conf", "$tmp/bconsole.conf.$$");
+        my $r = get_resource("$conf/bconsole.conf", "Director", ".+?");
+        open(FP, ">>$conf/bconsole.conf");
+        $r =~ s/Name = .+$/Name = bweb1-dir/m;
+        print FP $r;
+        $r =~ s/Name = .+$/Name = bweb2-dir/m;
+        print FP $r;
+        close(FP);
+    }
+    $sel->open_ok("/cgi-bin/bweb/bweb.pl");
+    $sel->click_ok("link=Configuration");
+    $sel->wait_for_page_to_load_ok("30000");
+    $sel->is_text_present_ok("Main Configuration");
+    
+    # create subconf
+    $sel->click_ok("//button[\@name='action' and \@value='add_conf']");
+    $sel->wait_for_page_to_load_ok("30000");
+    $sel->is_text_present_ok("Unnamed");
+
+    $sel->type_ok("name", "MyBweb");
+    $sel->type_ok("new_dir", "bweb1-dir");
+ 
+    $sel->type_ok("stat_job_table", "JobHisto");
+    $sel->click_ok("//button[\@name='action' and \@value='apply_conf']");
+    $sel->wait_for_page_to_load_ok("30000");
+    $sel->is_text_present_ok("MyBweb");
+    $sel->is_text_present_ok("bweb1-dir");
+
+    $sel->click_ok("link=Main");
+    $sel->wait_for_page_to_load_ok("30000");
+    $sel->is_text_present_ok("Directors");
+    $sel->click_ok("link=MyBweb");
+    $sel->wait_for_page_to_load_ok("30000");
+    $sel->is_text_present_ok("Informations on MyBweb");
+}
 
 if ($part{client}) {
 # test client
-    $sel->open_ok("/cgi-bin/bweb/bweb.pl?");
-    $sel->is_text_present_ok("Informations");
+    $sel->click_ok("link=Main");
+    $sel->wait_for_page_to_load_ok("30000");
+    $sel->is_text_present_ok("Running Jobs");
 
     $sel->click_ok("link=Clients");
     $sel->wait_for_page_to_load_ok("30000");
@@ -115,7 +163,10 @@ if ($part{client}) {
 
 if ($part{media}) {
 # add media
-    $sel->open_ok("/cgi-bin/bweb/bweb.pl");
+    $sel->click_ok("link=Main");
+    $sel->wait_for_page_to_load_ok("30000");
+    $sel->is_text_present_ok("Running Jobs");
+
     $sel->click_ok("link=Add Media");
     $sel->wait_for_page_to_load_ok("30000");
 
@@ -176,7 +227,10 @@ if ($part{media}) {
 
 if ($part{missingjob}) {
 # view missing jobs
-    $sel->open_ok("/cgi-bin/bweb/bweb.pl");
+    $sel->click_ok("link=Main");
+    $sel->wait_for_page_to_load_ok("30000");
+    $sel->is_text_present_ok("Running Jobs");
+
     $sel->click_ok("link=Missing Jobs");
     $sel->wait_for_page_to_load_ok("30000");
 
@@ -192,7 +246,10 @@ if ($part{missingjob}) {
 
 if ($part{run}) {
 # run a new job
-    $sel->open_ok("/cgi-bin/bweb/bweb.pl?");
+    $sel->click_ok("link=Main");
+    $sel->wait_for_page_to_load_ok("30000");
+    $sel->is_text_present_ok("Running Jobs");
+
     $sel->click_ok("link=Defined Jobs");
     $sel->wait_for_page_to_load_ok("30000");
 
@@ -264,7 +321,10 @@ if ($part{run}) {
 
 if ($part{group}) {
 # test group
-    $sel->open_ok("/cgi-bin/bweb/bweb.pl");
+    $sel->click_ok("link=Main");
+    $sel->wait_for_page_to_load_ok("30000");
+    $sel->is_text_present_ok("Running Jobs");
+
     $sel->click_ok("link=Groups");
     $sel->wait_for_page_to_load_ok("30000");
 
@@ -362,7 +422,10 @@ if ($part{group}) {
 
 if ($part{location}) {
 # test location
-    $sel->open_ok("/cgi-bin/bweb/bweb.pl");
+    $sel->click_ok("link=Main");
+    $sel->wait_for_page_to_load_ok("30000");
+    $sel->is_text_present_ok("Running Jobs");
+
     $sel->click_ok("link=Locations");
     $sel->wait_for_page_to_load_ok("30000");
 
@@ -480,7 +543,10 @@ if ($part{overview}) {
         $sel->wait_for_page_to_load_ok("30000");
         $client = $sel->get_text("//tr[\@id='even_row']/td[1]");
     }
-    $sel->open_ok("/cgi-bin/bweb/bweb.pl");
+    $sel->click_ok("link=Main");
+    $sel->wait_for_page_to_load_ok("30000");
+    $sel->is_text_present_ok("Running Jobs");
+
     $sel->click_ok("link=Jobs overview");
     $sel->wait_for_page_to_load_ok("30000");
 
@@ -496,17 +562,6 @@ if ($part{overview}) {
 }
 
 if ($part{config}) {
-    # if the current bconsole.conf doesn't contain two sections, we
-    # create it
-    if (!get_resource("$conf/bconsole.conf", "Director", "bweb-dir")) {
-        copy("$conf/bconsole.conf", "$tmp/bconsole.conf.$$");
-        my $r = get_resource("$conf/bconsole.conf", "Director", ".+?");
-        $r =~ s/Name = .+$/Name = bweb-dir/m;
-        open(FP, ">>$conf/bconsole.conf");
-        print FP $r;
-        close(FP);
-    }
-
     my ($dbi, $user, $pass, $histo);
     $sel->open_ok("/cgi-bin/bweb/bweb.pl");
     $sel->click_ok("link=Configuration");
@@ -575,7 +630,7 @@ if ($part{config}) {
 
     $sel->type_ok("name", "MyBweb3");
     $sel->type_ok("new_dir", "bweb3-dir");
-     $sel->type_ok("user", "test");
+    $sel->type_ok("user", "test");
 
     $sel->click_ok("//button[\@name='action' and \@value='apply_conf']");
     $sel->wait_for_page_to_load_ok("30000");
@@ -618,6 +673,17 @@ if ($part{config}) {
     ok($sel->get_confirmation() =~ /^Do you really want to remove this Director[\s\S]$/);
     $sel->wait_for_page_to_load_ok("30000");
     $sel->body_text_isnt("MyBweb2");
+}
+
+if ($part{multidir}) {
+    # cleanup
+    $sel->click_ok("link=Configuration");
+    $sel->wait_for_page_to_load_ok("30000");
+    $sel->click_ok("//input[\@name='dir' and \@value='bweb1-dir']");
+    $sel->click_ok("//button[\@name='action' and \@value='del_conf']");
+    ok($sel->get_confirmation() =~ /^Do you really want to remove this Director[\s\S]$/);
+    $sel->wait_for_page_to_load_ok("30000");
+    $sel->body_text_isnt("MyBweb");
 
     if (-f "$tmp/bconsole.conf.$$") {
         move("$tmp/bconsole.conf", "$bin/bconsole.conf");
