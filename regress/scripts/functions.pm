@@ -39,7 +39,7 @@ use Exporter;
 our @ISA = qw(Exporter);
 our @EXPORT =  qw(update_some_files create_many_files check_multiple_copies
                   update_client $HOST $BASEPORT add_to_backup_list check_volume_size
-                  create_many_dirs cleanup start_bacula stop_bacula
+                  create_many_dirs cleanup start_bacula stop_bacula get_resource
                   check_min_volume_size check_max_volume_size $estat $bstat $rstat $zstat
                   $cwd $bin $scripts $conf $rscripts $tmp $working extract_resource
                   $db_name $db_user $db_password $src $tmpsrc);
@@ -118,18 +118,27 @@ sub stop_bacula
     return $? == 0;
 }
 
-sub extract_resource
+sub get_resource
 {
     my ($file, $type, $name) = @_;
-
+    my $ret;
     open(FP, $file) or die "Can't open $file";
     my $content = join("", <FP>);
     
     if ($content =~ m/(^$type {[^}]+?Name\s*=\s*"?$name"?[^}]+?^})/ms) {
-        print $1, "\n";
+        $ret = $1;
     }
 
     close(FP);
+    return $ret;
+}
+
+sub extract_resource
+{
+    my $ret = get_resource(@_);
+    if ($ret) {
+        print $ret, "\n";
+    }
 }
 
 sub check_min_volume_size
