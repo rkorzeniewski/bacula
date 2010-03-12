@@ -1,7 +1,7 @@
 #include "bacula.h"
 /* # line 3 "myingres.sc" */	
 #ifdef HAVE_INGRES
-#include <eqdefc.h>
+#include <eqdef.h>
 #include <eqsqlca.h>
     extern IISQLCA sqlca;   /* SQL Communications Area */
 #include <eqsqlda.h>
@@ -328,7 +328,7 @@ int INGfetchAll(const char *stmt, INGresult *ing_res)
          ++linecount;
          row->row_number = linecount;
       }
-   } while ( (sqlca.sqlcode == 0) || (sqlca.sqlcode == -40202) )
+   } while ( (sqlca.sqlcode == 0) || (sqlca.sqlcode == -40202) );
 /* # line 348 "myingres.sc" */	/* close */
   {
     IIsqInit(&sqlca);
@@ -347,7 +347,6 @@ ING_STATUS INGresultStatus(INGresult *res)
 void INGrowSeek(INGresult *res, int row_number)
 {
    ING_ROW *trow = NULL;
-   int i;
    if (res->act_row->row_number == row_number) {
       return;
    }
@@ -357,7 +356,7 @@ void INGrowSeek(INGresult *res, int row_number)
    if (row_number<0 || row_number>res->num_rows) {
       return;
    }
-   for (trow = res->first_row , i=1 ; trow->row_number != row_number , i <= res->num_rows; trow = trow->next , ++i);
+   for (trow = res->first_row ; trow->row_number != row_number; trow = trow->next);
    res->act_row = trow;
    /*
     * Note - can be null - if row_number not found, right?

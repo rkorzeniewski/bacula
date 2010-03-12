@@ -313,21 +313,32 @@ int db_next_index(JCR *jcr, B_DB *mdb, char *table, char *index)
  *   NOTE! len is the length of the old string. Your new
  *         string must be long enough (max 2*old+1) to hold
  *         the escaped output.
- * SRE: TODO! 
  */
 void
 db_escape_string(JCR *jcr, B_DB *mdb, char *snew, char *old, int len)
 {
-/*
-   int error;
-  
-   PQescapeStringConn(mdb->db, snew, old, len, &error);
-   if (error) {
-      Jmsg(jcr, M_FATAL, 0, _("PQescapeStringConn returned non-zero.\n"));*/
-      /* error on encoding, probably invalid multibyte encoding in the source string
-        see PQescapeStringConn documentation for details. */
-/*      Dmsg0(500, "PQescapeStringConn failed\n");
-   }*/
+   char *n, *o;
+
+   n = snew;
+   o = old;
+   while (len--) {
+      switch (*o) {
+      case '\'':
+         *n++ = '\'';
+         *n++ = '\'';
+         o++;
+         break;
+      case 0:
+         *n++ = '\\';
+         *n++ = 0;
+         o++;
+         break;
+      default:
+         *n++ = *o++;
+         break;
+      }
+   }
+   *n = 0;
 }
 
 /*
