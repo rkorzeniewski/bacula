@@ -178,7 +178,6 @@ void remove_read_volume(JCR *jcr, const char *VolumeName)
    if (fvol) {
       Dmsg3(dbglvl, "remove_read_vol=%s JobId=%d found=%d\n", VolumeName, jcr->JobId, fvol!=NULL);
    }
-   debug_list_volumes("remove_read_volume");
    if (fvol) {
       read_vol_list->remove(fvol);
       free_vol_item(fvol);
