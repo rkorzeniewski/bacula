@@ -56,10 +56,12 @@ use Test::More "no_plan";
 use Test::Exception;
 use Getopt::Long;
 use scripts::functions;
+use File::Copy qw/copy move/;
 
-my ($login, $pass, $url, $verbose, %part, @part, $noclean, $client);
+my ($login, $pass, $verbose, %part, @part, $noclean, $client);
+my $url = "http://localhost:9180";
+
 my @available = qw/client group location run missingjob media overview/;
-
 GetOptions ("login=s"  => \$login,
 	    "passwd=s" => \$pass,
 	    "url|u=s"  => \$url,
@@ -494,25 +496,130 @@ if ($part{overview}) {
 }
 
 if ($part{config}) {
-    my ($dbi, $user, $pass);
+    # if the current bconsole.conf doesn't contain two sections, we
+    # create it
+    if (!get_resource("$conf/bconsole.conf", "Director", "bweb-dir")) {
+        copy("$conf/bconsole.conf", "$tmp/bconsole.conf.$$");
+        my $r = get_resource("$conf/bconsole.conf", "Director", ".+?");
+        $r =~ s/Name = .+$/Name = bweb-dir/m;
+        open(FP, ">>$conf/bconsole.conf");
+        print FP $r;
+        close(FP);
+    }
+
+    my ($dbi, $user, $pass, $histo);
     $sel->open_ok("/cgi-bin/bweb/bweb.pl");
     $sel->click_ok("link=Configuration");
     $sel->wait_for_page_to_load_ok("30000");
     $sel->is_text_present_ok("Main Configuration");
 
-    $dbi = $sel->get_text("//tr[2]/td[2]");
-    $user = $sel->get_text("//tr[3]/td[2]");
-    $pass = $sel->get_text("//tr[4]/td[2]");
-
     $sel->click_ok("//button[\@name='action' and \@value='edit_main_conf']");
     $sel->wait_for_page_to_load_ok("30000");
     $sel->is_text_present_ok("Main Configuration");
-    my $histo = $sel->get_text("//input[\@type='text' and \@name='stat_job_table']");
+    
+    $dbi = $sel->get_value("dbi");
+    $user = $sel->get_value("user");
+    $pass = $sel->get_value("password");
+    $histo = $sel->get_value("stat_job_table");
 
-    print "dbi=$dbi histo=$histo\n";
-    if ($histo eq 'Job') {
-        $sel->type_ok("stat_job_table", "JobHisto");
-    } else {
-        $sel->type_ok("stat_job_table", "Job");
+    $sel->type_ok("dbi", "dbi:Pg:database=dbi1");
+    $sel->type_ok("user", "user1");
+    $sel->type_ok("password", "password1");
+
+    $sel->type_ok("stat_job_table", ($histo eq 'Job')?"JobHisto":"Job");
+
+    $sel->click_ok("//button[\@name='action' and \@value='apply_conf']");
+    $sel->wait_for_page_to_load_ok("30000");
+
+    $sel->click_ok("//button[\@name='action' and \@value='edit_main_conf']");
+    $sel->wait_for_page_to_load_ok("30000");
+
+    is($sel->get_value("dbi"), "dbi:Pg:database=dbi1", "verify dbi");
+    is($sel->get_value("user"), "user1", "verify user");
+    is($sel->get_value("password"), "password1", "verify passwd");
+
+    $sel->type_ok("dbi", $dbi);
+    $sel->type_ok("user", $user);
+    $sel->type_ok("password", $pass);
+    $sel->click_ok("//button[\@name='action' and \@value='apply_conf']");
+    $sel->wait_for_page_to_load_ok("30000");
+
+    $sel->is_text_present_ok("Main Configuration");
+
+    # test create conf
+    $sel->click_ok("//button[\@name='action' and \@value='add_conf']");
+    $sel->wait_for_page_to_load_ok("30000");
+    $sel->is_text_present_ok("Unnamed");
+
+    $sel->type_ok("name", "MyBweb2");
+    $sel->type_ok("new_dir", "bweb2-dir");
+ 
+    $sel->type_ok("dbi", $dbi);
+    $sel->type_ok("user", $user);
+    $sel->type_ok("password", $pass);
+ 
+    $sel->type_ok("stat_job_table", "JobHisto");
+    $sel->click_ok("//button[\@name='action' and \@value='apply_conf']");
+    $sel->wait_for_page_to_load_ok("30000");
+    $sel->is_text_present_ok("MyBweb2");
+    $sel->is_text_present_ok("bweb2-dir");
+
+    # test create other conf
+    $sel->click_ok("//button[\@name='action' and \@value='view_main_conf']");
+    $sel->wait_for_page_to_load_ok("30000");
+    $sel->is_text_present_ok("Main Configuration");
+
+    $sel->click_ok("//button[\@name='action' and \@value='add_conf']");
+    $sel->wait_for_page_to_load_ok("30000");
+    $sel->is_text_present_ok("Unnamed");
+
+    $sel->type_ok("name", "MyBweb3");
+    $sel->type_ok("new_dir", "bweb3-dir");
+     $sel->type_ok("user", "test");
+
+    $sel->click_ok("//button[\@name='action' and \@value='apply_conf']");
+    $sel->wait_for_page_to_load_ok("30000");
+    $sel->is_text_present_ok("MyBweb3");
+
+    $sel->click_ok("//button[\@name='action' and \@value='view_main_conf']");
+    $sel->wait_for_page_to_load_ok("30000");
+    $sel->is_text_present_ok("Main Configuration");
+    $sel->is_text_present_ok("MyBweb3");
+    $sel->is_text_present_ok("MyBweb2");
+
+    # test rename
+    $sel->click_ok("//input[\@name='dir' and \@value='bweb2-dir']");
+    $sel->click_ok("//button[\@name='action' and \@value='view_conf']");
+    $sel->wait_for_page_to_load_ok("30000");
+    $sel->is_text_present_ok("MyBweb2");
+    $sel->click_ok("//button[\@name='action' and \@value='edit_conf']");
+    $sel->wait_for_page_to_load_ok("30000");
+    $sel->is_text_present_ok("MyBweb2");
+    $sel->type_ok("new_dir", "bweb-dir");
+    $sel->click_ok("//button[\@name='action' and \@value='apply_conf']");
+    $sel->wait_for_page_to_load_ok("30000");
+    $sel->is_text_present_ok("MyBweb2");
+    $sel->is_text_present_ok("bweb-dir");
+    
+    # test delete
+    $sel->click_ok("//button[\@name='action' and \@value='view_main_conf']");
+    $sel->wait_for_page_to_load_ok("30000");
+    $sel->is_text_present_ok("MyBweb3");
+
+    $sel->click_ok("//input[\@name='dir' and \@value='bweb3-dir']");
+    $sel->click_ok("//button[\@name='action' and \@value='del_conf']");
+    ok($sel->get_confirmation() =~ /^Do you really want to remove this Director[\s\S]$/);
+    $sel->wait_for_page_to_load_ok("30000");
+    $sel->body_text_isnt("MyBweb3");
+    $sel->is_text_present_ok("MyBweb2");
+
+    $sel->click_ok("//input[\@name='dir' and \@value='bweb-dir']");
+    $sel->click_ok("//button[\@name='action' and \@value='del_conf']");
+    ok($sel->get_confirmation() =~ /^Do you really want to remove this Director[\s\S]$/);
+    $sel->wait_for_page_to_load_ok("30000");
+    $sel->body_text_isnt("MyBweb2");
+
+    if (-f "$tmp/bconsole.conf.$$") {
+        move("$tmp/bconsole.conf", "$bin/bconsole.conf");
     }
 }
