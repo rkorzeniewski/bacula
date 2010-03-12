@@ -42,6 +42,8 @@ use strict;
     - unzip the archive, and start the Selenium server (require java >= 1.5)
       $ java -jar selenium-server.jar
     - Load bweb sql file
+    - run backup-bacula-test
+    - uncomment schedule
     - Start the test
       $ ./tests/bweb-test.pl
 
@@ -55,7 +57,7 @@ use Test::Exception;
 use Getopt::Long;
 use scripts::functions;
 
-my ($login, $pass, $url, $verbose, %part, @part, $noclean);
+my ($login, $pass, $url, $verbose, %part, @part, $noclean, $client);
 my @available = qw/client group location run missingjob media overview/;
 
 GetOptions ("login=s"  => \$login,
@@ -64,6 +66,7 @@ GetOptions ("login=s"  => \$login,
             "module=s@"   => \@part,
 	    "verbose"  => \$verbose,
             "nocleanup" => \$noclean,
+            "client=s"    => \$client,
 	    );
 
 die "Usage: $0 --url http://.../cgi-bin/bweb/bweb.pl [-m module] [-n]"
@@ -85,14 +88,17 @@ my $sel = Test::WWW::Selenium->new( host => "localhost",
                                     browser => "*firefox", 
                                     browser_url => $url );
 
+$sel->open_ok("/cgi-bin/bweb/bweb.pl?");
+$sel->set_speed(500);
+
 if ($part{client}) {
 # test client
     $sel->open_ok("/cgi-bin/bweb/bweb.pl?");
-    $sel->wait_for_page_to_load_ok("30000");
     $sel->is_text_present_ok("Informations");
 
     $sel->click_ok("link=Clients");
     $sel->wait_for_page_to_load_ok("30000");
+    $client = $sel->get_text("//tr[\@id='even_row']/td[1]");
 
     $sel->click_ok("//input[\@name='client']"); # click the first client
     $sel->click_ok("//button[\@name='action' and \@value='client_status']");
@@ -467,6 +473,11 @@ if ($part{location}) {
 }
 
 if ($part{overview}) {
+    unless ($client) {
+        $sel->click_ok("link=Clients");
+        $sel->wait_for_page_to_load_ok("30000");
+        $client = $sel->get_text("//tr[\@id='even_row']/td[1]");
+    }
     $sel->open_ok("/cgi-bin/bweb/bweb.pl");
     $sel->click_ok("link=Jobs overview");
     $sel->wait_for_page_to_load_ok("30000");
@@ -475,7 +486,7 @@ if ($part{overview}) {
     $sel->click_ok("link=All");
     $sel->wait_for_page_to_load_ok("30000");
 
-    $sel->click_ok("link=zogi-fd");
+    $sel->click_ok("link=$client");
     $sel->wait_for_page_to_load_ok("30000");
 
     $sel->is_text_present_ok("backup");
@@ -483,18 +494,20 @@ if ($part{overview}) {
 }
 
 if ($part{config}) {
+    my ($dbi, $user, $pass);
     $sel->open_ok("/cgi-bin/bweb/bweb.pl");
     $sel->click_ok("link=Configuration");
     $sel->wait_for_page_to_load_ok("30000");
     $sel->is_text_present_ok("Main Configuration");
 
+    $dbi = $sel->get_text("//tr[2]/td[2]");
+    $user = $sel->get_text("//tr[3]/td[2]");
+    $pass = $sel->get_text("//tr[4]/td[2]");
+
     $sel->click_ok("//button[\@name='action' and \@value='edit_main_conf']");
     $sel->wait_for_page_to_load_ok("30000");
     $sel->is_text_present_ok("Main Configuration");
-    my $dbi = $sel->get_text("dbi");
-    my $user = $sel->get_text("user");
-    my $pass = $sel->get_text("password");
-    my $histo = $sel->get_text("stat_job_table");
+    my $histo = $sel->get_text("//input[\@type='text' and \@name='stat_job_table']");
 
     print "dbi=$dbi histo=$histo\n";
     if ($histo eq 'Job') {
