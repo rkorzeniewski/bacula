@@ -101,6 +101,10 @@ IISQLDA *INGgetDescriptor(short numCols, const char *stmt)
 
 void INGfreeDescriptor(IISQLDA *sqlda)
 {
+   if (!sqlda) {
+      return;
+   }
+
    int i;
 
    for (i = 0; i < sqlda->sqld; ++i) {
@@ -139,6 +143,10 @@ int INGgetTypeSize(IISQLVAR *ingvar)
 
 INGresult *INGgetINGresult(IISQLDA *sqlda)
 {
+   if (!sqlda) {
+      return NULL;
+   }
+
    int i;
    INGresult *result = NULL;
    
@@ -171,6 +179,10 @@ INGresult *INGgetINGresult(IISQLDA *sqlda)
 
 void INGfreeINGresult(INGresult *ing_res)
 {
+   if (!ing_res) {
+      return;
+   }
+
    int rows;
    ING_ROW *rowtemp;
 
@@ -312,14 +324,10 @@ int INGfetchAll(const char *stmt, INGresult *ing_res)
    }
       
    /* for (linecount = 0; sqlca.sqlcode == 0; ++linecount) */
-   while(sqlca.sqlcode == 0) {
+   do {
       EXEC SQL FETCH c2 USING DESCRIPTOR :desc;
-      if ((check = INGcheck()) < 0) {
-         EXEC SQL CLOSE c2;
-         return check;
-      }
 
-      if (sqlca.sqlcode == 0) {
+      if ( (sqlca.sqlcode == 0) || (sqlca.sqlcode == -40202) ) {
          row = INGgetRowSpace(ing_res); /* alloc space for fetched row */
             
          /*
@@ -332,10 +340,10 @@ int INGfetchAll(const char *stmt, INGresult *ing_res)
          }      
          ing_res->act_row->next = row; /* append row to old act_row */
          ing_res->act_row = row; /* set row as act_row */
-         row->row_number = linecount;
          ++linecount;
+         row->row_number = linecount;
       }
-   }
+   } while ( (sqlca.sqlcode == 0) || (sqlca.sqlcode == -40202) )
    
    EXEC SQL CLOSE c2;
    
@@ -352,7 +360,8 @@ ING_STATUS INGresultStatus(INGresult *res)
 
 void INGrowSeek(INGresult *res, int row_number)
 {
-   ING_ROW *trow;
+   ING_ROW *trow = NULL;
+   int i;
    if (res->act_row->row_number == row_number) {
       return;
    }
@@ -364,7 +373,7 @@ void INGrowSeek(INGresult *res, int row_number)
       return;
    }
 
-   for (trow = res->first_row; trow->row_number != row_number; trow = trow->next) ;
+   for (trow = res->first_row , i=1 ; trow->row_number != row_number , i <= res->num_rows; trow = trow->next , ++i);
    res->act_row = trow;
    /*
     * Note - can be null - if row_number not found, right?
@@ -448,11 +457,18 @@ INGresult *INGquery(INGconn *conn, const char *query)
    int cols = INGgetCols(query);
 
    desc = INGgetDescriptor(cols, query);
+   if (!desc) {
+      return NULL;
+   }
    res = INGgetINGresult(desc);
+   if (!res) {
+      return NULL;
+   }
    rows = INGfetchAll(query, res);
 
    if (rows < 0) {
      INGfreeINGresult(res);
+     INGfreeDescriptor(desc);
      return NULL;
    }
    return res;

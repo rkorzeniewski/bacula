@@ -1112,7 +1112,13 @@ const char *create_temp_basefile[4] = {
    /* SQLite3 */
    "CREATE TEMPORARY TABLE basefile%lld (" 
    "Path TEXT,"
-   "Name TEXT)"
+   "Name TEXT)",
+
+   /* Ingres */
+   "DECLARE GLOBAL TEMPORARY TABLE basefile%lld (" 
+   "Path TEXT NOT NULL,"
+   "Name TEXT NOT NULL)"
+   "ON COMMIT PRESERVE ROWS WITH NORECOVERY"
 };
 
 /* 

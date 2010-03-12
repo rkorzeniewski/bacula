@@ -640,7 +640,16 @@ const char *create_deltabs[4] = {
    "PurgedFiles TINYINT, "
    "FileSetId INTEGER UNSIGNED, "
    "JobFiles INTEGER UNSIGNED, "
-   "JobStatus CHAR)"};
+   "JobStatus CHAR)",
+   /* Ingres */
+   "DECLARE GLOBAL TEMPORARY TABLE DelCandidates (" 
+   "JobId INTEGER NOT NULL, "
+   "PurgedFiles SMALLINT, "
+   "FileSetId INTEGER, "
+   "JobFiles INTEGER, "
+   "JobStatus char(1))"
+   "ON COMMIT PERSERVE ROWS WITH NORECOVERY"
+};
 
 /* ======= ua_restore.c */
 
@@ -735,7 +744,22 @@ const char *uar_create_temp[4] = {
    "VolumeName TEXT,"
    "StartFile INTEGER UNSIGNED,"
    "VolSessionId INTEGER UNSIGNED,"
-   "VolSessionTime INTEGER UNSIGNED)"};
+   "VolSessionTime INTEGER UNSIGNED)",
+   /* Ingres */
+   "DECLARE GLOBAL TEMPORARY TABLE temp ("
+   "JobId INTEGER NOT NULL,"
+   "JobTDate BIGINT,"
+   "ClientId INTEGER,"
+   "Level CHAR,"
+   "JobFiles INTEGER,"
+   "JobBytes BIGINT,"
+   "StartTime TEXT,"
+   "VolumeName TEXT,"
+   "StartFile INTEGER,"
+   "VolSessionId INTEGER,"
+   "VolSessionTime INTEGER)"
+   "ON COMMIT PRESERVE ROWS WITH NORECOVERY"
+   };
 
 const char *uar_create_temp1[4] = {
    /* Mysql */
@@ -753,7 +777,13 @@ const char *uar_create_temp1[4] = {
    /* SQLite3 */
    "CREATE TEMPORARY TABLE temp1 ("
    "JobId INTEGER UNSIGNED NOT NULL,"
-   "JobTDate BIGINT UNSIGNED)"};
+   "JobTDate BIGINT UNSIGNED)",
+   /* Ingres */
+   "DECLARE GLOBAL TEMPORARY TABLE temp1 ("
+   "JobId INTEGER NOT NULL,"
+   "JobTDate BIGINT)"
+   "ON COMMIT PRESERVE ROWS WITH NORECOVERY"
+   };
 
 /* Query to get all files in a directory -- no recursing   
  *  Note, for PostgreSQL since it respects the "Single Value
