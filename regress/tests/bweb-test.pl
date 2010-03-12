@@ -686,6 +686,6 @@ if ($part{multidir}) {
     $sel->body_text_isnt("MyBweb");
 
     if (-f "$tmp/bconsole.conf.$$") {
-        move("$tmp/bconsole.conf", "$bin/bconsole.conf");
+        move("$tmp/bconsole.conf.$$", "$bin/bconsole.conf");
     }
 }
