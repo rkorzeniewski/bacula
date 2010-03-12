@@ -1,11 +1,11 @@
 #include "bacula.h"
 /* # line 3 "myingres.sc" */	
 #ifdef HAVE_INGRES
-#include <eqdef.h>
+#include <eqpname.h>
+#include <eqdefcc.h>
 #include <eqsqlca.h>
-    extern IISQLCA sqlca;   /* SQL Communications Area */
+extern IISQLCA sqlca;   /* SQL Communications Area */
 #include <eqsqlda.h>
-/* # line 7 "myingres.sc" */	/* host code */
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -294,9 +294,9 @@ int INGfetchAll(const char *stmt, INGresult *ing_res)
 /* # line 321 "myingres.sc" */	/* open */
   {
     IIsqInit(&sqlca);
-    IIcsOpen((char *)"c2",30532,24309);
+    IIcsOpen((char *)"c2",9341,8444);
     IIwritio(0,(short *)0,1,32,0,(char *)"s2");
-    IIcsQuery((char *)"c2",30532,24309);
+    IIcsQuery((char *)"c2",9341,8444);
   }
 /* # line 322 "myingres.sc" */	/* host code */
    if ((check = INGcheck()) < 0) {
@@ -307,7 +307,7 @@ int INGfetchAll(const char *stmt, INGresult *ing_res)
 /* # line 328 "myingres.sc" */	/* fetch */
   {
     IIsqInit(&sqlca);
-    if (IIcsRetScroll((char *)"c2",30532,24309,-1,-1) != 0) {
+    if (IIcsRetScroll((char *)"c2",9341,8444,-1,-1) != 0) {
       IIcsDaGet(0,desc);
       IIcsERetrieve();
     } /* IIcsRetrieve */
@@ -332,7 +332,7 @@ int INGfetchAll(const char *stmt, INGresult *ing_res)
 /* # line 348 "myingres.sc" */	/* close */
   {
     IIsqInit(&sqlca);
-    IIcsClose((char *)"c2",30532,24309);
+    IIcsClose((char *)"c2",9341,8444);
   }
 /* # line 350 "myingres.sc" */	/* host code */
    ing_res->status = ING_COMMAND_OK;
