@@ -671,6 +671,7 @@ const char *create_deltabs[5] = {
    "FileSetId INTEGER, "
    "JobFiles INTEGER, "
    "JobStatus char(1))"
+   "ON COMMIT PERSERVE ROWS WITH NORECOVERY"
 };
 
 /* ======= ua_restore.c */
@@ -790,6 +791,7 @@ const char *uar_create_temp[5] = {
    "StartFile INTEGER,"
    "VolSessionId INTEGER,"
    "VolSessionTime INTEGER)"
+   "ON COMMIT PRESERVE ROWS WITH NORECOVERY"
    };
 
 const char *uar_create_temp1[5] = {
@@ -813,6 +815,7 @@ const char *uar_create_temp1[5] = {
    "DECLARE GLOBAL TEMPORARY TABLE temp1 ("
    "JobId INTEGER NOT NULL,"
    "JobTDate BIGINT)"
+   "ON COMMIT PRESERVE ROWS WITH NORECOVERY"
    };
 
 /* Query to get all files in a directory -- no recursing   
