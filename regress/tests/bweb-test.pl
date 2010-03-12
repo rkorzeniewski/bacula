@@ -234,7 +234,7 @@ if ($part{missingjob}) {
     $sel->click_ok("link=Missing Jobs");
     $sel->wait_for_page_to_load_ok("30000");
 
-    $sel->is_text_present_ok("backup");
+    $sel->is_text_present_ok("BackupClient1");
     $sel->is_text_present_ok("BackupCatalog");
     $sel->click_ok("job");
     $sel->click_ok("//input[\@name='job' and \@value='BackupCatalog']");
@@ -253,8 +253,8 @@ if ($part{run}) {
     $sel->click_ok("link=Defined Jobs");
     $sel->wait_for_page_to_load_ok("30000");
 
-    $sel->select_ok("job", "label=backup");
-    $sel->is_text_present_ok("backup");
+    $sel->select_ok("job", "label=BackupClient1");
+    $sel->is_text_present_ok("BackupClient1");
     $sel->click_ok("//button[\@name='action' and \@value='run_job_mod']");
     $sel->wait_for_page_to_load_ok("30000");
 
@@ -271,7 +271,7 @@ if ($part{run}) {
       }
     fail("timeout");
     }
-    $sel->is_text_present_ok("Log: backup on");
+    $sel->is_text_present_ok("Log: BackupClient1 on");
     $sel->click_ok("//button[\@name='action']");
     $sel->wait_for_page_to_load_ok("30000");
 
@@ -311,7 +311,7 @@ if ($part{run}) {
     $sel->is_element_present_ok("level");
     $sel->selected_value_is("name=level", "Full");
     $sel->selected_label_is("name=fileset", "Full Set");
-    $sel->selected_label_is("name=job", "backup");
+    $sel->selected_label_is("name=job", "BackupClient1");
     $sel->click_ok("//button[\@name='action' and \@value='fileset_view']");
     $sel->wait_for_page_to_load_ok("30000");
 
@@ -557,7 +557,7 @@ if ($part{overview}) {
     $sel->click_ok("link=$client");
     $sel->wait_for_page_to_load_ok("30000");
 
-    $sel->is_text_present_ok("backup");
+    $sel->is_text_present_ok("BackupClient1");
     $sel->is_text_present_ok("Full Set");
 }
 
