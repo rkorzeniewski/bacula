@@ -6,8 +6,12 @@
 
 # basic defines for every build
 %define _release           1
-%define _version           5.0.0
+%define _version           5.0.1
 %define depkgs_qt_version  28Jul09
+
+# this is the QT version in depkgs_qt
+%define qt4ver             4.3.4
+
 %define _packager D. Scott Barninger <barninger@fairfieldcomputers.com>
 
 %define manpage_ext gz
@@ -169,6 +173,7 @@ export PATH=${qtdir}/qt4/bin:$PATH
 export QTDIR=${qtdir}/qt4/
 export QTINC=${qtdir}/qt4/include/
 export QTLIB=${qtdir}/qt4/lib/
+export QMAKESPEC=${qtdir}/qt-x11-opensource-src-%{qt4ver}/mkspecs/linux-g++/
 cd ${cwd}
 
 # Main Bacula configuration with bat
@@ -291,6 +296,8 @@ fi
 rm -rf $RPM_BUILD_DIR/depkgs-qt
 
 %changelog
+* Sun Mar 14 2010 D. Scott Barninger <barninger@fairfieldcomputers.com>
+- Fix for QT mkspecs location on FC12
 * Sat Feb 27 2010 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - add dependency on bacula-libs
 * Sat Feb 13 2010 D. Scott Barninger <barninger@fairfieldcomputers.com>
