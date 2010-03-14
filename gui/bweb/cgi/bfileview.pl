@@ -362,6 +362,7 @@ sub fv_get_files_size
    FROM File
   WHERE PathId  = $rep
     AND JobId = $jobid
+    AND FileIndex >= 0
 ");
 
     return $ret->{size};
@@ -379,6 +380,7 @@ sub fv_get_big_files
            FROM File
           WHERE PathId  = $rep
             AND JobId = $jobid
+            AND FileIndex >= 0
         ) AS S INNER JOIN Filename USING (FilenameId)
    WHERE S.size > $min
    ORDER BY S.size DESC
