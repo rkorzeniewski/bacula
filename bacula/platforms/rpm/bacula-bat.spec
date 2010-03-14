@@ -62,6 +62,9 @@
 %{expand: %%define gccver %(rpm -q --queryformat %%{version} gcc)}
 %{expand: %%define gccrel %(rpm -q --queryformat %%{release} gcc)}
 
+%define staticqt 1
+%{?nobuild_staticqt:%define staticqt 0}
+
 # determine what platform we are building on
 %define fedora 0
 %define suse 0
@@ -160,10 +163,12 @@ It is an add-on to the client or server packages.
 
 
 cwd=${PWD}
-#export QTDIR=$(pkg-config --variable=prefix QtCore)
-#export QTINC=$(pkg-config --variable=includedir QtCore)
-#export QTLIB=$(pkg-config --variable=libdir QtCore)
-#export PATH=${QTDIR}/bin/:${PATH}
+%if ! %{staticqt}
+export QTDIR=$(pkg-config --variable=prefix QtCore)
+export QTINC=$(pkg-config --variable=includedir QtCore)
+export QTLIB=$(pkg-config --variable=libdir QtCore)
+export PATH=${QTDIR}/bin/:${PATH}
+%else
 cd %{depkgs_qt}
 make qt4 <<EOF
 yes
@@ -175,6 +180,7 @@ export QTINC=${qtdir}/qt4/include/
 export QTLIB=${qtdir}/qt4/lib/
 export QMAKESPEC=${qtdir}/qt-x11-opensource-src-%{qt4ver}/mkspecs/linux-g++/
 cd ${cwd}
+%endif
 
 # Main Bacula configuration with bat
 %configure \
@@ -298,6 +304,7 @@ rm -rf $RPM_BUILD_DIR/depkgs-qt
 %changelog
 * Sun Mar 14 2010 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - Fix for QT mkspecs location on FC12
+- allow user to build without embedded static QT
 * Sat Feb 27 2010 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - add dependency on bacula-libs
 * Sat Feb 13 2010 D. Scott Barninger <barninger@fairfieldcomputers.com>
