@@ -912,7 +912,7 @@ static bRC baculaGetValue(bpContext *ctx, bVariable var, void *value)
    case bVarVssObject:
 #ifdef HAVE_WIN32
       if (g_pVSSClient) {
-         value = g_pVSSClient->GetVssObject();
+         *(void **)value = g_pVSSClient->GetVssObject();
          break;
        }
 #endif
