@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2002-2009 Free Software Foundation Europe e.V.
+   Copyright (C) 2002-2010 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -25,14 +25,12 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
-/*
+/**
  *  Encode and decode standard Unix attributes and
  *   Extended attributes for Win32 and
  *   other non-Unix systems, or Unix systems with ACLs, ...
  *
  *    Kern Sibbald, October MMII
- *
- *   Version $Id$
  *
  */
 
@@ -63,23 +61,22 @@ HANDLE bget_handle(BFILE *bfd);
 /*                                                             */
 /*=============================================================*/
 
-/*
+/**
  * Return the data stream that will be used
  */
 int select_data_stream(FF_PKT *ff_pkt)
 {
    int stream;
 
-   /*
+   /**
     *  Fix all incompatible options
     */
-
-   /* No sparse option for encrypted data */
+   /** No sparse option for encrypted data */
    if (ff_pkt->flags & FO_ENCRYPT) {
       ff_pkt->flags &= ~FO_SPARSE;
    }
 
-   /* Note, no sparse option for win32_data */
+   /** Note, no sparse option for win32_data */
    if (!is_portable_backup(&ff_pkt->bfd)) {
       stream = STREAM_WIN32_DATA;
       ff_pkt->flags &= ~FO_SPARSE;
@@ -89,18 +86,18 @@ int select_data_stream(FF_PKT *ff_pkt)
       stream = STREAM_FILE_DATA;
    }
 
-   /* Encryption is only supported for file data */
+   /** Encryption is only supported for file data */
    if (stream != STREAM_FILE_DATA && stream != STREAM_WIN32_DATA &&
          stream != STREAM_MACOS_FORK_DATA) {
       ff_pkt->flags &= ~FO_ENCRYPT;
    }
 
-   /* Compression is not supported for Mac fork data */
+   /** Compression is not supported for Mac fork data */
    if (stream == STREAM_MACOS_FORK_DATA) {
       ff_pkt->flags &= ~FO_GZIP;
    }
 
-   /*
+   /**
     * Handle compression and encryption options
     */
 #ifdef HAVE_LIBZ
@@ -116,8 +113,10 @@ int select_data_stream(FF_PKT *ff_pkt)
          stream = STREAM_GZIP_DATA;
          break;
       default:
-         /* All stream types that do not support gzip should clear out
-          * FO_GZIP above, and this code block should be unreachable. */
+         /**
+          * All stream types that do not support gzip should clear out
+          * FO_GZIP above, and this code block should be unreachable.
+          */
          ASSERT(!(ff_pkt->flags & FO_GZIP));
          return STREAM_NONE;
       }
@@ -151,7 +150,7 @@ int select_data_stream(FF_PKT *ff_pkt)
 }
 
 
-/*
+/**
  * Encode a stat structure into a base64 character string
  *   All systems must create such a structure.
  *   In addition, we tack on the LinkFI, which is non-zero in
@@ -166,7 +165,7 @@ void encode_stat(char *buf, struct stat *statp, int32_t LinkFI, int data_stream)
 {
    char *p = buf;
 
-   /*
+   /**
     *  Encode a stat packet.  I should have done this more intelligently
     *   with a length so that it could be easily expanded.
     */
@@ -236,7 +235,7 @@ void encode_stat(char *buf, struct stat *statp, int32_t LinkFI, int data_stream)
 #endif
 
 
-/* Decode a stat packet from base64 characters */
+/** Decode a stat packet from base64 characters */
 int decode_stat(char *buf, struct stat *statp, int32_t *LinkFI)
 {
    char *p = buf;
@@ -321,7 +320,7 @@ int decode_stat(char *buf, struct stat *statp, int32_t *LinkFI)
    return (int)val;
 }
 
-/* Decode a LinkFI field of encoded stat packet */
+/** Decode a LinkFI field of encoded stat packet */
 int32_t decode_LinkFI(char *buf, struct stat *statp)
 {
    char *p = buf;
@@ -363,7 +362,7 @@ int32_t decode_LinkFI(char *buf, struct stat *statp)
    return 0;
 }
 
-/*
+/**
  * Set file modes, permissions and times
  *
  *  fname is the original filename
@@ -404,7 +403,7 @@ bool set_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
    }
 
 
-   /*
+   /**
     * If Windows stuff failed, e.g. attempt to restore Unix file
     *  to Windows, simply fall through and we will do it the
     *  universal way.
@@ -424,7 +423,7 @@ bool set_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
       }
    }
 
-   /*
+   /**
     * We do not restore sockets, so skip trying to restore their
     *   attributes.
     */
@@ -436,12 +435,12 @@ bool set_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
    ut.modtime = attr->statp.st_mtime;
 
    /* ***FIXME**** optimize -- don't do if already correct */
-   /*
+   /**
     * For link, change owner of link using lchown, but don't
     *   try to do a chmod as that will update the file behind it.
     */
    if (attr->type == FT_LNK) {
-      /* Change owner of link, not of real file */
+      /** Change owner of link, not of real file */
       if (lchown(attr->ofname, attr->statp.st_uid, attr->statp.st_gid) < 0 && my_uid == 0) {
          berrno be;
          Jmsg2(jcr, M_ERROR, 0, _("Unable to set file owner %s: ERR=%s\n"),
@@ -462,7 +461,7 @@ bool set_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
          ok = false;
       }
 
-      /*
+      /**
        * Reset file times.
        */
       if (utime(attr->ofname, &ut) < 0 && my_uid == 0) {
@@ -472,7 +471,7 @@ bool set_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
          ok = false;
       }
 #ifdef HAVE_CHFLAGS
-      /*
+      /**
        * FreeBSD user flags
        *
        * Note, this should really be done before the utime() above,
@@ -503,7 +502,7 @@ bail_out:
 
 #if !defined(HAVE_WIN32)
 
-/*
+/**
  * It is possible to piggyback additional data e.g. ACLs on
  *   the encode_stat() data by returning the extended attributes
  *   here.  They must be "self-contained" (i.e. you keep track
@@ -515,7 +514,7 @@ bail_out:
 int encode_attribsEx(JCR *jcr, char *attribsEx, FF_PKT *ff_pkt)
 {
 #ifdef HAVE_DARWIN_OS
-   /*
+   /**
     * We save the Mac resource fork length so that on a
     * restore, we can be sure we put back the whole resource.
     */
@@ -562,7 +561,7 @@ int encode_attribsEx(JCR *jcr, char *attribsEx, FF_PKT *ff_pkt)
 
    unix_name_to_win32(&ff_pkt->sys_fname, ff_pkt->fname);
 
-   // try unicode version
+   /** try unicode version */
    if (p_GetFileAttributesExW)  {
       POOLMEM* pwszBuf = get_pool_memory(PM_FNAME);   
       make_win32_path_UTF8_2_wchar(&pwszBuf, ff_pkt->fname);
@@ -608,7 +607,7 @@ int encode_attribsEx(JCR *jcr, char *attribsEx, FF_PKT *ff_pkt)
    return STREAM_UNIX_ATTRIBUTES_EX;
 }
 
-/* Define attributes that are legal to set with SetFileAttributes() */
+/** Define attributes that are legal to set with SetFileAttributes() */
 #define SET_ATTRS ( \
          FILE_ATTRIBUTE_ARCHIVE| \
          FILE_ATTRIBUTE_HIDDEN| \
@@ -620,7 +619,7 @@ int encode_attribsEx(JCR *jcr, char *attribsEx, FF_PKT *ff_pkt)
          FILE_ATTRIBUTE_TEMPORARY)
 
 
-/*
+/**
  * Set Extended File Attributes for Win32
  *
  *  fname is the original filename
@@ -637,7 +636,7 @@ static bool set_win32_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
    ULARGE_INTEGER li;
    POOLMEM *win32_ofile;
 
-   // if we have neither ansi nor wchar version, we leave
+   /** if we have neither Win ansi nor wchar API, get out */
    if (!(p_SetFileAttributesW || p_SetFileAttributesA)) {
       return false;
    }
@@ -676,11 +675,11 @@ static bool set_win32_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
    p += from_base64(&val, p);
    plug(atts.nFileSizeLow, val);
 
-   /* Convert to Windows path format */
+   /** Convert to Windows path format */
    win32_ofile = get_pool_memory(PM_FNAME);
    unix_name_to_win32(&win32_ofile, attr->ofname);
 
-   /* At this point, we have reconstructed the WIN32_FILE_ATTRIBUTE_DATA pkt */
+   /** At this point, we have reconstructed the WIN32_FILE_ATTRIBUTE_DATA pkt */
 
    if (!is_bopen(ofd)) {
       Dmsg1(100, "File not open: %s\n", attr->ofname);

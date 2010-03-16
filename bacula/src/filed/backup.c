@@ -25,7 +25,7 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
-/*
+/**
  *  Bacula File Daemon  backup.c  send file attributes and data
  *   to the Storage daemon.
  *
@@ -138,7 +138,7 @@ bool blast_data_to_storage_daemon(JCR *jcr, char *addr)
 
    set_find_options((FF_PKT *)jcr->ff, jcr->incremental, jcr->mtime);
 
-   /* in accurate mode, we overwrite the find_one check function */
+   /** in accurate mode, we overwrite the find_one check function */
    if (jcr->accurate) {
       set_find_changed_function((FF_PKT *)jcr->ff, accurate_check_file);
    } 
@@ -157,7 +157,7 @@ bool blast_data_to_storage_daemon(JCR *jcr, char *addr)
       jcr->xattr_data->content = get_pool_memory(PM_MESSAGE);
    }
 
-   /* Subroutine save_file() is called for each file */
+   /** Subroutine save_file() is called for each file */
    if (!find_files(jcr, (FF_PKT *)jcr->ff, save_file, plugin_save)) {
       ok = false;                     /* error */
       set_jcr_job_status(jcr, JS_ErrorTerminated);
@@ -223,28 +223,28 @@ static bool crypto_session_start(JCR *jcr)
    if (jcr->crypto.pki_encrypt) {
       uint32_t size = 0;
 
-      /* Create per-job session encryption context */
+      /** Create per-job session encryption context */
       jcr->crypto.pki_session = crypto_session_new(cipher, jcr->crypto.pki_recipients);
 
-      /* Get the session data size */
+      /** Get the session data size */
       if (!crypto_session_encode(jcr->crypto.pki_session, (uint8_t *)0, &size)) {
          Jmsg(jcr, M_FATAL, 0, _("An error occurred while encrypting the stream.\n"));
          return false;
       }
 
-      /* Allocate buffer */
+      /** Allocate buffer */
       jcr->crypto.pki_session_encoded = get_memory(size);
 
-      /* Encode session data */
+      /** Encode session data */
       if (!crypto_session_encode(jcr->crypto.pki_session, (uint8_t *)jcr->crypto.pki_session_encoded, &size)) {
          Jmsg(jcr, M_FATAL, 0, _("An error occurred while encrypting the stream.\n"));
          return false;
       }
 
-      /* ... and store the encoded size */
+      /** ... and store the encoded size */
       jcr->crypto.pki_session_encoded_size = size;
 
-      /* Allocate the encryption/decryption buffer */
+      /** Allocate the encryption/decryption buffer */
       jcr->crypto.crypto_buf = get_memory(CRYPTO_CIPHER_MAX_BLOCK_SIZE);
    }
    return true;
@@ -269,7 +269,7 @@ static bool crypto_session_send(JCR *jcr, BSOCK *sd)
 {
    POOLMEM *msgsave;
 
-   /* Send our header */
+   /** Send our header */
    Dmsg2(100, "Send hdr fi=%ld stream=%d\n", jcr->JobFiles, STREAM_ENCRYPTED_SESSION_DATA);
    sd->fsend("%ld %d 0", jcr->JobFiles, STREAM_ENCRYPTED_SESSION_DATA);
 
@@ -422,7 +422,7 @@ int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
 
    Dmsg1(130, "bfiled: sending %s to stored\n", ff_pkt->fname);
 
-   /* Digests and encryption are only useful if there's file data */
+   /** Digests and encryption are only useful if there's file data */
    if (has_file_data) {
       /**
        * Setup for digest handling. If this fails, the digest will be set to NULL
@@ -452,7 +452,7 @@ int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
          digest_stream = STREAM_SHA512_DIGEST;
       }
 
-      /* Did digest initialization fail? */
+      /** Did digest initialization fail? */
       if (digest_stream != STREAM_NONE && digest == NULL) {
          Jmsg(jcr, M_WARNING, 0, _("%s digest initialization failed\n"),
             stream_to_ascii(digest_stream));
@@ -468,7 +468,7 @@ int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
       if (jcr->crypto.pki_sign) {
          signing_digest = crypto_digest_new(jcr, signing_algorithm);
 
-         /* Full-stop if a failure occurred initializing the signature digest */
+         /** Full-stop if a failure occurred initializing the signature digest */
          if (signing_digest == NULL) {
             Jmsg(jcr, M_NOTSAVED, 0, _("%s signature digest initialization failed\n"),
                stream_to_ascii(signing_algorithm));
@@ -477,13 +477,13 @@ int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
          }
       }
 
-      /* Enable encryption */
+      /** Enable encryption */
       if (jcr->crypto.pki_encrypt) {
          ff_pkt->flags |= FO_ENCRYPT;
       }
    }
 
-   /* Initialize the file descriptor we use for data and other streams. */
+   /** Initialize the file descriptor we use for data and other streams. */
    binit(&ff_pkt->bfd);
    if (ff_pkt->flags & FO_PORTABLE) {
       set_portable_backup(&ff_pkt->bfd); /* disable Win32 BackupRead() */
@@ -495,19 +495,19 @@ int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
       send_plugin_name(jcr, sd, true);      /* signal start of plugin data */
    }
 
-   /* Send attributes -- must be done after binit() */
+   /** Send attributes -- must be done after binit() */
    if (!encode_and_send_attributes(jcr, ff_pkt, data_stream)) {
       goto bail_out;
    }
 
-   /* Set up the encryption context and send the session data to the SD */
+   /** Set up the encryption context and send the session data to the SD */
    if (has_file_data && jcr->crypto.pki_encrypt) {
       if (!crypto_session_send(jcr, sd)) {
          goto bail_out;
       }
    }
 
-   /*
+   /**
     * Open any file with data that we intend to save, then save it.
     *
     * Note, if is_win32_backup, we must open the Directory so that
@@ -570,7 +570,7 @@ int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
    }
 
    if (have_darwin_os) {
-      /* Regular files can have resource forks and Finder Info */
+      /** Regular files can have resource forks and Finder Info */
       if (ff_pkt->type != FT_LNKSAVED && (S_ISREG(ff_pkt->statp.st_mode) &&
           ff_pkt->flags & FO_HFSPLUS)) {
          if (ff_pkt->hfsinfo.rsrclength > 0) {
@@ -618,7 +618,7 @@ int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
       }
    }
 
-   /*
+   /**
     * Save ACLs when requested and available for anything not being a symlink and not being a plugin.
     */
    if (have_acl) {
@@ -627,7 +627,7 @@ int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
          case bacl_exit_fatal:
             goto bail_out;
          case bacl_exit_error:
-            /*
+            /**
              * Non-fatal errors, count them and when the number is under ACL_REPORT_ERR_MAX_PER_JOB
              * print the error message set by the lower level routine in jcr->errmsg.
              */
@@ -642,7 +642,7 @@ int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
       }
    }
 
-   /*
+   /**
     * Save Extended Attributes when requested and available for all files not being a plugin.
     */
    if (have_xattr) {
@@ -651,7 +651,7 @@ int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
          case bxattr_exit_fatal:
             goto bail_out;
          case bxattr_exit_error:
-            /*
+            /**
              * Non-fatal errors, count them and when the number is under XATTR_REPORT_ERR_MAX_PER_JOB
              * print the error message set by the lower level routine in jcr->errmsg.
              */
@@ -666,7 +666,7 @@ int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
       }
    }
 
-   /* Terminate the signing digest and send it to the Storage daemon */
+   /** Terminate the signing digest and send it to the Storage daemon */
    if (signing_digest) {
       uint32_t size = 0;
 
@@ -680,22 +680,22 @@ int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
          goto bail_out;
       }
 
-      /* Get signature size */
+      /** Get signature size */
       if (!crypto_sign_encode(sig, NULL, &size)) {
          Jmsg(jcr, M_FATAL, 0, _("An error occurred while signing the stream.\n"));
          goto bail_out;
       }
 
-      /* Grow the bsock buffer to fit our message if necessary */
+      /** Grow the bsock buffer to fit our message if necessary */
       if (sizeof_pool_memory(sd->msg) < (int32_t)size) {
          sd->msg = realloc_pool_memory(sd->msg, size);
       }
 
-      /* Send our header */
+      /** Send our header */
       sd->fsend("%ld %ld 0", jcr->JobFiles, STREAM_SIGNED_DIGEST);
       Dmsg1(300, "bfiled>stored:header %s\n", sd->msg);
 
-      /* Encode signature data */
+      /** Encode signature data */
       if (!crypto_sign_encode(sig, (uint8_t *)sd->msg, &size)) {
          Jmsg(jcr, M_FATAL, 0, _("An error occurred while signing the stream.\n"));
          goto bail_out;
@@ -706,7 +706,7 @@ int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
       sd->signal(BNET_EOD);              /* end of checksum */
    }
 
-   /* Terminate any digest and send it to Storage daemon */
+   /** Terminate any digest and send it to Storage daemon */
    if (digest) {
       uint32_t size;
 
@@ -715,7 +715,7 @@ int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
 
       size = CRYPTO_DIGEST_MAX_SIZE;
 
-      /* Grow the bsock buffer to fit our message if necessary */
+      /** Grow the bsock buffer to fit our message if necessary */
       if (sizeof_pool_memory(sd->msg) < (int32_t)size) {
          sd->msg = realloc_pool_memory(sd->msg, size);
       }
@@ -808,7 +808,7 @@ static int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest,
        */
 
       if (((z_stream*)jcr->pZLIB_compress_workset)->total_in == 0) {
-         /* set gzip compression level - must be done per file */
+         /** set gzip compression level - must be done per file */
          if ((zstat=deflateParams((z_stream*)jcr->pZLIB_compress_workset, 
               ff_pkt->GZIP_level, Z_DEFAULT_STRATEGY)) != Z_OK) {
             Jmsg(jcr, M_FATAL, 0, _("Compression deflateParams error: %d\n"), zstat);
@@ -826,7 +826,7 @@ static int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest,
          Jmsg0(jcr, M_FATAL, 0, _("Encrypting sparse data not supported.\n"));
          goto err;
       }
-      /* Allocate the cipher context */
+      /** Allocate the cipher context */
       if ((cipher_ctx = crypto_cipher_new(jcr->crypto.pki_session, true, 
            &cipher_block_size)) == NULL) {
          /* Shouldn't happen! */
@@ -869,7 +869,7 @@ static int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest,
       rbuf += SPARSE_FADDR_SIZE;
       rsize -= SPARSE_FADDR_SIZE;
 #ifdef HAVE_FREEBSD_OS
-      /*
+      /**
        * To read FreeBSD partitions, the read size must be
        *  a multiple of 512.
        */
@@ -877,7 +877,7 @@ static int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest,
 #endif
    }
 
-   /* a RAW device read on win32 only works if the buffer is a multiple of 512 */
+   /** a RAW device read on win32 only works if the buffer is a multiple of 512 */
 #ifdef HAVE_WIN32
    if (S_ISBLK(ff_pkt->statp.st_mode))
       rsize = (rsize/512) * 512;
@@ -888,7 +888,7 @@ static int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest,
     */
    while ((sd->msglen=(uint32_t)bread(&ff_pkt->bfd, rbuf, rsize)) > 0) {
 
-      /* Check for sparse blocks */
+      /** Check for sparse blocks */
       if (ff_pkt->flags & FO_SPARSE) {
          ser_declare;
          bool allZeros = false;
@@ -899,12 +899,12 @@ static int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest,
             allZeros = is_buf_zero(rbuf, rsize);
          }
          if (!allZeros) {
-            /* Put file address as first data in buffer */
+            /** Put file address as first data in buffer */
             ser_begin(wbuf, SPARSE_FADDR_SIZE);
             ser_uint64(fileAddr);     /* store fileAddr in begin of buffer */
          }
          fileAddr += sd->msglen;      /* update file address */
-         /* Skip block of all zeros */
+         /** Skip block of all zeros */
          if (allZeros) {
             continue;                 /* skip block of zeros */
          }
@@ -912,21 +912,21 @@ static int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest,
 
       jcr->ReadBytes += sd->msglen;         /* count bytes read */
 
-      /* Uncompressed cipher input length */
+      /** Uncompressed cipher input length */
       cipher_input_len = sd->msglen;
 
-      /* Update checksum if requested */
+      /** Update checksum if requested */
       if (digest) {
          crypto_digest_update(digest, (uint8_t *)rbuf, sd->msglen);
       }
 
-      /* Update signing digest if requested */
+      /** Update signing digest if requested */
       if (signing_digest) {
          crypto_digest_update(signing_digest, (uint8_t *)rbuf, sd->msglen);
       }
 
 #ifdef HAVE_LIBZ
-      /* Do compression if turned on */
+      /** Do compression if turned on */
       if (ff_pkt->flags & FO_GZIP && jcr->pZLIB_compress_workset) {
          Dmsg3(400, "cbuf=0x%x rbuf=0x%x len=%u\n", cbuf, rbuf, sd->msglen);
          
@@ -941,7 +941,7 @@ static int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest,
             goto err;
          }
          compress_len = ((z_stream*)jcr->pZLIB_compress_workset)->total_out;
-         /* reset zlib stream to be able to begin from scratch again */
+         /** reset zlib stream to be able to begin from scratch again */
          if ((zstat=deflateReset((z_stream*)jcr->pZLIB_compress_workset)) != Z_OK) {
             Jmsg(jcr, M_FATAL, 0, _("Compression deflateReset error: %d\n"), zstat);
             set_jcr_job_status(jcr, JS_ErrorTerminated);
@@ -976,7 +976,7 @@ static int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest,
             cipher_input_len += SPARSE_FADDR_SIZE;
          }
 
-         /* Encrypt the length of the input block */
+         /** Encrypt the length of the input block */
          uint8_t packet_len[sizeof(uint32_t)];
 
          ser_begin(packet_len, sizeof(uint32_t));
@@ -985,23 +985,23 @@ static int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest,
 
          if (!crypto_cipher_update(cipher_ctx, packet_len, sizeof(packet_len),
              (uint8_t *)jcr->crypto.crypto_buf, &initial_len)) {
-            /* Encryption failed. Shouldn't happen. */
+            /** Encryption failed. Shouldn't happen. */
             Jmsg(jcr, M_FATAL, 0, _("Encryption error\n"));
             goto err;
          }
 
-         /* Encrypt the input block */
+         /** Encrypt the input block */
          if (crypto_cipher_update(cipher_ctx, cipher_input, cipher_input_len, 
              (uint8_t *)&jcr->crypto.crypto_buf[initial_len], &encrypted_len)) {
             if ((initial_len + encrypted_len) == 0) {
-               /* No full block of data available, read more data */
+               /** No full block of data available, read more data */
                continue;
             }
             Dmsg2(400, "encrypted len=%d unencrypted len=%d\n", encrypted_len, 
                   sd->msglen);
             sd->msglen = initial_len + encrypted_len; /* set encrypted length */
          } else {
-            /* Encryption failed. Shouldn't happen. */
+            /** Encryption failed. Shouldn't happen. */
             Jmsg(jcr, M_FATAL, 0, _("Encryption error\n"));
             goto err;
          }
@@ -1034,7 +1034,7 @@ static int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest,
          Jmsg(jcr, M_FATAL, 0, _("Too many errors. JobErrors=%d.\n"), jcr->JobErrors);
       }
    } else if (ff_pkt->flags & FO_ENCRYPT) {
-      /* 
+      /** 
        * For encryption, we must call finalize to push out any
        *  buffered data.
        */
@@ -1045,7 +1045,7 @@ static int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest,
          goto err;
       }
 
-      /* Note, on SSL pre-0.9.7, there is always some output */
+      /** Note, on SSL pre-0.9.7, there is always some output */
       if (encrypted_len > 0) {
          sd->msglen = encrypted_len;      /* set encrypted length */
          sd->msg = jcr->crypto.crypto_buf;       /* set correct write buffer */
@@ -1070,14 +1070,14 @@ static int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest,
       goto err;
    }
 
-   /* Free the cipher context */
+   /** Free the cipher context */
    if (cipher_ctx) {
       crypto_cipher_free(cipher_ctx);
    }
    return 1;
 
 err:
-   /* Free the cipher context */
+   /** Free the cipher context */
    if (cipher_ctx) {
       crypto_cipher_free(cipher_ctx);
    }
@@ -1099,7 +1099,7 @@ bool encode_and_send_attributes(JCR *jcr, FF_PKT *ff_pkt, int &data_stream)
 #endif
 
    Dmsg1(300, "encode_and_send_attrs fname=%s\n", ff_pkt->fname);
-   /* Find what data stream we will use, then encode the attributes */
+   /** Find what data stream we will use, then encode the attributes */
    if ((data_stream = select_data_stream(ff_pkt)) == STREAM_NONE) {
       /* This should not happen */
       Jmsg0(jcr, M_FATAL, 0, _("Invalid file flags, no supported data stream type.\n"));
@@ -1107,7 +1107,7 @@ bool encode_and_send_attributes(JCR *jcr, FF_PKT *ff_pkt, int &data_stream)
    }
    encode_stat(attribs, &ff_pkt->statp, ff_pkt->LinkFI, data_stream);
 
-   /* Now possibly extend the attributes */
+   /** Now possibly extend the attributes */
    attr_stream = encode_attribsEx(jcr, attribsEx, ff_pkt);
 
    Dmsg3(300, "File %s\nattribs=%s\nattribsEx=%s\n", ff_pkt->fname, attribs, attribsEx);
@@ -1118,7 +1118,7 @@ bool encode_and_send_attributes(JCR *jcr, FF_PKT *ff_pkt, int &data_stream)
    pm_strcpy(jcr->last_fname, ff_pkt->fname);
    jcr->unlock();
 
-   /*
+   /**
     * Send Attributes header to Storage daemon
     *    <file-index> <stream> <info>
     */
@@ -1131,7 +1131,7 @@ bool encode_and_send_attributes(JCR *jcr, FF_PKT *ff_pkt, int &data_stream)
    }
    Dmsg1(300, ">stored: attrhdr %s\n", sd->msg);
 
-   /*
+   /**
     * Send file attributes to Storage daemon
     *   File_index
     *   File type
@@ -1184,7 +1184,7 @@ static bool do_strip(int count, char *in)
    int stripped;
    int numsep = 0;
 
-   /* Copy to first path separator -- Win32 might have c: ... */
+   /** Copy to first path separator -- Win32 might have c: ... */
    while (*in && !IsPathSeparator(*in)) {    
       out++; in++;
    }
