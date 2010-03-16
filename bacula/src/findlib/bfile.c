@@ -187,7 +187,9 @@ const char *stream_to_ascii(int stream)
    }
 }
 
-   
+/**   
+ *  Convert a 64 bit little endian to a big endian
+ */
 void int64_LE2BE(int64_t* pBE, const int64_t v)
 {
    /* convert little endian to big endian */
@@ -205,7 +207,9 @@ void int64_LE2BE(int64_t* pBE, const int64_t v)
    }    
 }
 
-
+/**
+ *  Convert a 32 bit little endian to a big endian
+ */
 void int32_LE2BE(int32_t* pBE, const int32_t v)
 {
    /* convert little endian to big endian */
@@ -224,6 +228,9 @@ void int32_LE2BE(int32_t* pBE, const int32_t v)
 }
 
 
+/**
+ *  Read a BackupRead block and pull out the file data
+ */
 bool processWin32BackupAPIBlock (BFILE *bfd, void *pBuffer, ssize_t dwSize)
 {
    /* pByte contains the buffer 
