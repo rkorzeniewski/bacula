@@ -167,7 +167,8 @@ typedef enum {
   bEventRestoreCommand  = 10,
   bEventLevel           = 11,
   bEventSince           = 12,
-  bEventCancelCommand   = 13
+  bEventCancelCommand   = 13,
+  bEventInitializeVSS   = 14
 } bEventType;
 
 typedef struct s_bEvent {
