@@ -528,7 +528,8 @@ bool release_device(DCR *dcr)
       char line[MAXSTRING];
       alert = get_pool_memory(PM_FNAME);
       alert = edit_device_codes(dcr, alert, dcr->device->alert_command, "");
-      bpipe = open_bpipe(alert, 0, "r");
+      /* Wait maximum 5 minutes */
+      bpipe = open_bpipe(alert, 60 * 5, "r");
       if (bpipe) {
          while (fgets(line, sizeof(line), bpipe->rfd)) {
             Jmsg(jcr, M_ALERT, 0, _("Alert: %s"), line);
