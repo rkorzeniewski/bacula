@@ -43,7 +43,6 @@ use strict;
       $ java -jar selenium-server.jar
     - Load bweb sql file
     - run backup-bacula-test
-    - uncomment schedule
     - Start the test
       $ ./tests/bweb-test.pl
 
