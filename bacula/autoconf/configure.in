@@ -1699,9 +1699,9 @@ AC_SUBST(fd_group)
 dnl
 dnl allow setting default executable permissions
 dnl
-SBINPERM=0754
+SBINPERM=0750
 AC_ARG_WITH(sbin-perm,
-   AC_HELP_STRING([--with-sbin-perm=MODE], [specify permissions for sbin binaries @<:@default=0754@:>@]),
+   AC_HELP_STRING([--with-sbin-perm=MODE], [specify permissions for sbin binaries @<:@default=0750@:>@]),
    [
        if test "x$withval" != "x" ; then   
 	  SBINPERM=$withval
