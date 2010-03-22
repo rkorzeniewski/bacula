@@ -14,10 +14,11 @@ require_vtape
 
 scripts/cleanup
 scripts/copy-tape-confs
-cp $rscripts/bacula-dir-vtape.conf $conf/bacula-dir.conf
+sed 's:Job {:Job { ClientRunBeforeJob = "/bin/sleep 5":' \
+    $rscripts/bacula-dir-vtape.conf > $conf/bacula-dir.conf
 sed 's/VTape/VTape; maximum concurrent jobs = 3/' \
     $rscripts/bacula-sd-vtape.conf | \
-sed 's/LTO1/LTO3/g' > $conf/bacula-sd.conf
+    sed 's/LTO1/LTO3/g' > $conf/bacula-sd.conf
 scripts/prepare-fake-autochanger
 
 echo "${cwd}/build" >${cwd}/tmp/file-list
@@ -87,7 +88,7 @@ quit
 END_OF_DATA
 
 run_bconsole
-check_for_zombie_jobs storage=LTO3 $clientname
+check_for_zombie_jobs storage=LTO3 client=$clientname
 
 cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 setdebug trace=1 level=0 storage=LTO3
@@ -102,7 +103,7 @@ messages
 END_OF_DATA
 
 run_bconsole
-check_for_zombie_jobs storage=LTO3 $clientname
+check_for_zombie_jobs storage=LTO3 client=$clientname
 
 stop_bacula
 
