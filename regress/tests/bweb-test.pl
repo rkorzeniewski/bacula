@@ -218,6 +218,13 @@ if ($part{media}) {
     $sel->wait_for_page_to_load_ok("30000");
 
     $sel->is_text_present_ok("Volume Infos");
+
+    $sel->click_ok("//button[\@name='action' and \@value='prune']");
+    $sel->wait_for_page_to_load_ok("30000");
+    $sel->is_text_present_ok("The current Volume retention period");
+
+    $sel->back();
+    $sel->is_text_present_ok("Volume Infos");
     $sel->click_ok("//button[\@name='action' and \@value='purge']");
     $sel->wait_for_page_to_load_ok("30000");
 
