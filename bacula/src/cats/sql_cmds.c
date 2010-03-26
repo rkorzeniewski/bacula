@@ -612,7 +612,7 @@ const char *select_recent_version[4] = {
 /* ====== ua_prune.c */
 
 /* List of SQL commands to create temp table and indicies  */
-const char *create_deltabs[4] = {
+const char *create_deltabs[5] = {
    /* MySQL */
    "CREATE TEMPORARY TABLE DelCandidates ("
    "JobId INTEGER UNSIGNED NOT NULL, "
@@ -692,7 +692,7 @@ const char *uar_file[4] = {
    "AND Path.PathId=File.PathId AND Filename.FilenameId=File.FilenameId "
    "AND Filename.Name='%s' ORDER BY StartTime DESC LIMIT 20"};
 
-const char *uar_create_temp[4] = {
+const char *uar_create_temp[5] = {
    /* Mysql */
    "CREATE TEMPORARY TABLE temp ("
    "JobId INTEGER UNSIGNED NOT NULL,"
@@ -761,7 +761,7 @@ const char *uar_create_temp[4] = {
    "ON COMMIT PRESERVE ROWS WITH NORECOVERY"
    };
 
-const char *uar_create_temp1[4] = {
+const char *uar_create_temp1[5] = {
    /* Mysql */
    "CREATE TEMPORARY TABLE temp1 ("
    "JobId INTEGER UNSIGNED NOT NULL,"

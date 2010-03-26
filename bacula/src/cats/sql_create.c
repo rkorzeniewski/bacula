@@ -1091,7 +1091,7 @@ bool db_write_batch_file_records(JCR *jcr)
 
 
 /* List of SQL commands to create temp table and indicies  */
-const char *create_temp_basefile[4] = {
+const char *create_temp_basefile[5] = {
    /* MySQL */
    "CREATE TEMPORARY TABLE basefile%lld ("
 //   "CREATE TABLE basefile%lld ("
