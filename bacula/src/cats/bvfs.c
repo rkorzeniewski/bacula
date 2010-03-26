@@ -437,6 +437,7 @@ void bvfs_update_cache(JCR *jcr, B_DB *mdb)
    Dmsg1(dbglevel, "Affected row(s) = %d\n", nb);
 
    db_end_transaction(jcr, mdb);
+   db_unlock(mdb);
 }
 
 /*
