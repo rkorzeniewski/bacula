@@ -980,7 +980,7 @@ int job_count()
    int count = 0;
 
    lock_jcr_chain();
-   for (jcr = (JCR *)jcrs->first(); jcr = (JCR *)jcrs->next(jcr); ) {
+   for (jcr = (JCR *)jcrs->first(); (jcr = (JCR *)jcrs->next(jcr)); ) {
       if (jcr->JobId > 0) {
          count++;
       }
