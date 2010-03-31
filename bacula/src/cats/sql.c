@@ -185,31 +185,29 @@ static int db_max_connections_handler(void *ctx, int num_fields, char **row)
  */
 bool db_check_max_connections(JCR *jcr, B_DB *mdb, uint32_t max_concurrent_jobs)
 {
-   uint32_t max_conn=0;
-   int ret=true;
+#ifdef HAVE_BATCH_FILE_INSERT
 
-   /* Without Batch insert, no need to verify max_connections */
-#ifndef HAVE_BATCH_FILE_INSERT
-   return ret;
-#endif
+   uint32_t max_conn = 0;
 
-   /* Check max_connections setting */
+   /* With Batch insert, verify max_connections */
    if (!db_sql_query(mdb, sql_get_max_connections[db_type], 
                      db_max_connections_handler, &max_conn)) {
       Jmsg(jcr, M_ERROR, 0, "Can't verify max_connections settings %s", mdb->errmsg);
-      return ret;
+      return false;
    }
-   if (max_conn && max_concurrent_jobs && max_concurrent_jobs > max_conn) {
+   if (max_conn && max_concurrent_jobs > max_conn) {
       Mmsg(mdb->errmsg, 
            _("Potential performance problem:\n"
              "max_connections=%d set for %s database \"%s\" should be larger than Director's "
              "MaxConcurrentJobs=%d\n"),
            max_conn, db_get_type(), mdb->db_name, max_concurrent_jobs);
       Jmsg(jcr, M_WARNING, 0, "%s", mdb->errmsg);
-      ret = false;
+      return false;
    }
 
-   return ret;
+#endif
+
+   return true;
 }
 
 /* NOTE!!! The following routines expect that the
