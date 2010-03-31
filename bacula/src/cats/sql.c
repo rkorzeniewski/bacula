@@ -201,9 +201,10 @@ bool db_check_max_connections(JCR *jcr, B_DB *mdb, uint32_t max_concurrent_jobs)
    }
    if (max_conn && max_concurrent_jobs && max_concurrent_jobs > max_conn) {
       Mmsg(mdb->errmsg, 
-           _("On db_name=%s, %s max_connections=%d is lower than Director "
-             "MaxConcurentJobs=%d\n"),
-           mdb->db_name, db_get_type(), max_conn, max_concurrent_jobs);
+           _("Potential performance problem:\n"
+             "max_connections=%d set for %s database \"%s\" should be larger than Director's "
+             "MaxConcurrentJobs=%d\n"),
+           max_conn, db_get_type(), mdb->db_name, max_concurrent_jobs);
       Jmsg(jcr, M_WARNING, 0, "%s", mdb->errmsg);
       ret = false;
    }
