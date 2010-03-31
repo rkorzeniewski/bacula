@@ -971,6 +971,24 @@ void jcr_walk_end(JCR *jcr)
    }
 }
 
+/*
+ * Return number of Jobs
+ */
+int job_count()
+{
+   JCR *jcr;
+   int count = 0;
+
+   lock_jcr_chain();
+   for (jcr = (JCR *)jcrs->first(); jcr = (JCR *)jcrs->next(jcr); ) {
+      if (jcr->JobId > 0) {
+         count++;
+      }
+   }
+   unlock_jcr_chain();
+   return count;
+}
+
 
 /*
  * Setup to call the timeout check routine every 30 seconds
