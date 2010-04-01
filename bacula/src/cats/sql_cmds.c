@@ -287,19 +287,11 @@ const char *uar_count_files =
    "SELECT JobFiles FROM Job WHERE JobId=%s";
 
 /* List last 20 Jobs */
-#if HAVE_INGRES
-const char *uar_list_jobs =
-   "SELECT JobId,Client.Name as Client,StartTime,Level as "
-   "JobLevel,JobFiles,JobBytes "
-   "FROM Client,Job WHERE Client.ClientId=Job.ClientId AND JobStatus IN ('T','W') "
-   "AND Type='B' ORDER BY StartTime DESC FETCH FIRST 20 ROWS ONLY";
-#else
 const char *uar_list_jobs =
    "SELECT JobId,Client.Name as Client,StartTime,Level as "
    "JobLevel,JobFiles,JobBytes "
    "FROM Client,Job WHERE Client.ClientId=Job.ClientId AND JobStatus IN ('T','W') "
    "AND Type='B' ORDER BY StartTime DESC LIMIT 20";
-#endif
 
 const char *uar_print_jobs =  
    "SELECT DISTINCT JobId,Level,JobFiles,JobBytes,StartTime,VolumeName"
@@ -320,21 +312,6 @@ const char *uar_sel_files =
 const char *uar_del_temp  = "DROP TABLE temp";
 const char *uar_del_temp1 = "DROP TABLE temp1";
 
-#if HAVE_INGRES
-const char *uar_last_full =
-   "INSERT INTO temp1 SELECT Job.JobId,JobTdate "
-   "FROM Client,Job,JobMedia,Media,FileSet WHERE Client.ClientId=%s "
-   "AND Job.ClientId=%s "
-   "AND Job.StartTime < '%s' "
-   "AND Level='F' AND JobStatus IN ('T','W') AND Type='B' "
-   "AND JobMedia.JobId=Job.JobId "
-   "AND Media.Enabled=1 "
-   "AND JobMedia.MediaId=Media.MediaId "
-   "AND Job.FileSetId=FileSet.FileSetId "
-   "AND FileSet.FileSet='%s' "
-   "%s"
-   "ORDER BY Job.JobTDate DESC FETCH FIRST 1 ROW ONLY";
-#else
 const char *uar_last_full =
    "INSERT INTO temp1 SELECT Job.JobId,JobTdate "
    "FROM Client,Job,JobMedia,Media,FileSet WHERE Client.ClientId=%s "
@@ -348,7 +325,6 @@ const char *uar_last_full =
    "AND FileSet.FileSet='%s' "
    "%s"
    "ORDER BY Job.JobTDate DESC LIMIT 1";
-#endif
 
 const char *uar_full =
    "INSERT INTO temp SELECT Job.JobId,Job.JobTDate,"
@@ -360,24 +336,6 @@ const char *uar_full =
    "AND JobMedia.JobId=Job.JobId "
    "AND JobMedia.MediaId=Media.MediaId";
 
-#if HAVE_INGRES
-const char *uar_dif =
-   "INSERT INTO temp SELECT Job.JobId,Job.JobTDate,Job.ClientId,"
-   "Job.Level,Job.JobFiles,Job.JobBytes,"
-   "Job.StartTime,Media.VolumeName,JobMedia.StartFile,"
-   "Job.VolSessionId,Job.VolSessionTime "
-   "FROM Job,JobMedia,Media,FileSet "
-   "WHERE Job.JobTDate>%s AND Job.StartTime<'%s' "
-   "AND Job.ClientId=%s "
-   "AND JobMedia.JobId=Job.JobId "
-   "AND Media.Enabled=1 "
-   "AND JobMedia.MediaId=Media.MediaId "
-   "AND Job.Level='D' AND JobStatus IN ('T','W') AND Type='B' "
-   "AND Job.FileSetId=FileSet.FileSetId "
-   "AND FileSet.FileSet='%s' "
-   "%s"
-   "ORDER BY Job.JobTDate DESC FETCH FIRST 1 ROW ONLY";
-#else
 const char *uar_dif =
    "INSERT INTO temp SELECT Job.JobId,Job.JobTDate,Job.ClientId,"
    "Job.Level,Job.JobFiles,Job.JobBytes,"
@@ -394,7 +352,6 @@ const char *uar_dif =
    "AND FileSet.FileSet='%s' "
    "%s"
    "ORDER BY Job.JobTDate DESC LIMIT 1";
-#endif
 
 const char *uar_inc =
    "INSERT INTO temp SELECT Job.JobId,Job.JobTDate,Job.ClientId,"
@@ -443,20 +400,6 @@ const char *uar_mediatype =
  *  Find JobId, FileIndex for a given path/file and date
  *  for use when inserting individual files into the tree.
  */
-#if HAVE_INGRES
-const char *uar_jobid_fileindex =
-   "SELECT Job.JobId,File.FileIndex FROM Job,File,Path,Filename,Client "
-   "WHERE Job.JobId=File.JobId "
-   "AND Job.StartTime<='%s' "
-   "AND Path.Path='%s' "
-   "AND Filename.Name='%s' "
-   "AND Client.Name='%s' "
-   "AND Job.ClientId=Client.ClientId "
-   "AND Path.PathId=File.PathId "
-   "AND Filename.FilenameId=File.FilenameId "
-   "AND JobStatus IN ('T','W') AND Type='B' "
-   "ORDER BY Job.StartTime DESC FETCH FIRST 1 ROW ONLY";
-#else
 const char *uar_jobid_fileindex =
    "SELECT Job.JobId,File.FileIndex FROM Job,File,Path,Filename,Client "
    "WHERE Job.JobId=File.JobId "
@@ -469,22 +412,7 @@ const char *uar_jobid_fileindex =
    "AND Filename.FilenameId=File.FilenameId "
    "AND JobStatus IN ('T','W') AND Type='B' "
    "ORDER BY Job.StartTime DESC LIMIT 1";
-#endif
 
-#if HAVE_INGRES
-const char *uar_jobids_fileindex =
-   "SELECT Job.JobId,File.FileIndex FROM Job,File,Path,Filename,Client "
-   "WHERE Job.JobId IN (%s) "
-   "AND Job.JobId=File.JobId "
-   "AND Job.StartTime<='%s' "
-   "AND Path.Path='%s' "
-   "AND Filename.Name='%s' "
-   "AND Client.Name='%s' "
-   "AND Job.ClientId=Client.ClientId "
-   "AND Path.PathId=File.PathId "
-   "AND Filename.FilenameId=File.FilenameId "
-   "ORDER BY Job.StartTime DESC FETCH FIRST 1 ROW ONLY";
-#else
 const char *uar_jobids_fileindex =
    "SELECT Job.JobId,File.FileIndex FROM Job,File,Path,Filename,Client "
    "WHERE Job.JobId IN (%s) "
@@ -497,7 +425,6 @@ const char *uar_jobids_fileindex =
    "AND Path.PathId=File.PathId "
    "AND Filename.FilenameId=File.FilenameId "
    "ORDER BY Job.StartTime DESC LIMIT 1";
-#endif
 
 /* Query to get list of files from table -- presuably built by an external program */
 const char *uar_jobid_fileindex_from_table = 
