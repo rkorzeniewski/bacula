@@ -77,6 +77,15 @@ IISQLDA *INGgetDescriptor(short numCols, const char *stmt)
 
    for (i = 0; i < sqlda->sqld; ++i) {
       /*
+       * Negative type indicates nullable coulumns, so an indicator
+       * is allocated, otherwise it's null
+       */
+      if (sqlda->sqlvar[i].sqltype > 0) {
+         sqlda->sqlvar[i].sqlind = NULL;
+      } else {
+         sqlda->sqlvar[i].sqlind = (short *)malloc(sizeof(short));
+      }
+      /*
        * Alloc space for variable like indicated in sqllen
        * for date types sqllen is always 0 -> allocate by type
        */
@@ -91,7 +100,10 @@ IISQLDA *INGgetDescriptor(short numCols, const char *stmt)
          sqlda->sqlvar[i].sqldata = (char *)malloc(IISQ_TSTMP_LEN);
          break;
       default:
-         sqlda->sqlvar[i].sqldata = (char *)malloc(sqlda->sqlvar[i].sqllen);
+         /*
+          * plus one to avoid zero mem allocs
+          */
+         sqlda->sqlvar[i].sqldata = (char *)malloc(sqlda->sqlvar[i].sqllen+1);
          break;
       }
    }
@@ -170,7 +182,7 @@ INGresult *INGgetINGresult(IISQLDA *sqlda)
          bstrncpy(result->fields[i].name, sqlda->sqlvar[i].sqlname.sqlnamec, sqlda->sqlvar[i].sqlname.sqlnamel);
          result->fields[i].max_length = INGgetTypeSize(&sqlda->sqlvar[i]);
          result->fields[i].type = abs(sqlda->sqlvar[i].sqltype);
-         result->fields[i].flags = (abs(sqlda->sqlvar[i].sqltype)<0) ? 1 : 0;
+         result->fields[i].flags = (sqlda->sqlvar[i].sqltype < 0) ? 1 : 0;
       }
    }
 
@@ -232,54 +244,60 @@ ING_ROW *INGgetRowSpace(INGresult *ing_res)
        * Make strings out of the data, then the space and assign 
        * (why string? at least it seems that way, looking into the sources)
        */
-      switch (ing_res->fields[i].type) {
-      case IISQ_VCH_TYPE:
-         len = ((ING_VARCHAR *)sqlda->sqlvar[i].sqldata)->len;
-         vars[i].sqldata = (char *)malloc(len+1);
-         memcpy(vars[i].sqldata,sqlda->sqlvar[i].sqldata+2,len);
-         vars[i].sqldata[len] = '\0';
-         break;
-      case IISQ_CHA_TYPE:
-         vars[i].sqldata = (char *)malloc(ing_res->fields[i].max_length+1);
-         memcpy(vars[i].sqldata,sqlda->sqlvar[i].sqldata,sqlda->sqlvar[i].sqllen);
-         vars[i].sqldata[ing_res->fields[i].max_length] = '\0';
-         break;
-      case IISQ_INT_TYPE:
-         vars[i].sqldata = (char *)malloc(20);
-         memset(vars[i].sqldata, 0, 20);
-         switch (sqlda->sqlvar[i].sqllen) {
-         case 2:
-            bsnprintf(vars[i].sqldata, 20, "%d",*(short*)sqlda->sqlvar[i].sqldata);
-            break;
-         case 4:
-            bsnprintf(vars[i].sqldata, 20, "%ld",*(int*)sqlda->sqlvar[i].sqldata);
-            break;
-         case 8:
-            bsnprintf(vars[i].sqldata, 20, "%lld",*(long*)sqlda->sqlvar[i].sqldata);
-            break;
-         }
-         break;
-      case IISQ_TSTMP_TYPE:
-         vars[i].sqldata = (char *)malloc(IISQ_TSTMP_LEN+1);
-         vars[i].sqldata[IISQ_TSTMP_LEN] = '\0';
-         break;
-      case IISQ_TSWO_TYPE:
-         vars[i].sqldata = (char *)malloc(IISQ_TSWO_LEN+1);
-         vars[i].sqldata[IISQ_TSWO_LEN] = '\0';
-         break;
-      case IISQ_TSW_TYPE:
-         vars[i].sqldata = (char *)malloc(IISQ_TSW_LEN+1);
-         vars[i].sqldata[IISQ_TSW_LEN] = '\0';
-         break;
-      }
       vars[i].sqlind = (short *)malloc(sizeof(short));
       if (sqlda->sqlvar[i].sqlind) {
          memcpy(vars[i].sqlind,sqlda->sqlvar[i].sqlind,sizeof(short));
       } else {
-         *vars[i].sqlind = 0;
+         *vars[i].sqlind = NULL;
+      }
+      /*
+       * if sqlind pointer exists AND points to -1 -> column is 'null'
+       */
+      if ( *vars[i].sqlind && (*vars[i].sqlind == -1)) {
+         vars[i].sqldata = NULL;
+      } else {
+         switch (ing_res->fields[i].type) {
+         case IISQ_VCH_TYPE:
+            len = ((ING_VARCHAR *)sqlda->sqlvar[i].sqldata)->len;
+            vars[i].sqldata = (char *)malloc(len+1);
+            memcpy(vars[i].sqldata,sqlda->sqlvar[i].sqldata+2,len);
+            vars[i].sqldata[len] = '\0';
+            break;
+         case IISQ_CHA_TYPE:
+            vars[i].sqldata = (char *)malloc(ing_res->fields[i].max_length+1);
+            memcpy(vars[i].sqldata,sqlda->sqlvar[i].sqldata,sqlda->sqlvar[i].sqllen);
+            vars[i].sqldata[ing_res->fields[i].max_length] = '\0';
+            break;
+         case IISQ_INT_TYPE:
+            vars[i].sqldata = (char *)malloc(20);
+            memset(vars[i].sqldata, 0, 20);
+            switch (sqlda->sqlvar[i].sqllen) {
+            case 2:
+               bsnprintf(vars[i].sqldata, 20, "%d",*(short*)sqlda->sqlvar[i].sqldata);
+               break;
+            case 4:
+               bsnprintf(vars[i].sqldata, 20, "%ld",*(int*)sqlda->sqlvar[i].sqldata);
+               break;
+            case 8:
+               bsnprintf(vars[i].sqldata, 20, "%lld",*(long*)sqlda->sqlvar[i].sqldata);
+               break;
+            }
+            break;
+         case IISQ_TSTMP_TYPE:
+            vars[i].sqldata = (char *)malloc(IISQ_TSTMP_LEN+1);
+            vars[i].sqldata[IISQ_TSTMP_LEN] = '\0';
+            break;
+         case IISQ_TSWO_TYPE:
+            vars[i].sqldata = (char *)malloc(IISQ_TSWO_LEN+1);
+            vars[i].sqldata[IISQ_TSWO_LEN] = '\0';
+            break;
+         case IISQ_TSW_TYPE:
+            vars[i].sqldata = (char *)malloc(IISQ_TSW_LEN+1);
+            vars[i].sqldata[IISQ_TSW_LEN] = '\0';
+            break;
+         }
       }
    }
-   
    return row;
 }
 
@@ -340,8 +358,8 @@ int INGfetchAll(const char *stmt, INGresult *ing_res)
          }      
          ing_res->act_row->next = row; /* append row to old act_row */
          ing_res->act_row = row; /* set row as act_row */
-         ++linecount;
          row->row_number = linecount;
+         ++linecount;
       }
    } while ( (sqlca.sqlcode == 0) || (sqlca.sqlcode == -40202) );
    
@@ -392,7 +410,7 @@ int INGgetisnull(INGresult *res, int row_number, int column_number)
    if (row_number != res->act_row->row_number) {
       INGrowSeek(res, row_number);
    }
-   return (short)*res->act_row->sqlvar[column_number].sqlind;
+   return (*res->act_row->sqlvar[column_number].sqlind == -1) 1 : 0;
 }
 
 int INGntuples(const INGresult *res)

@@ -249,7 +249,11 @@ void db_list_copies_records(JCR *jcr, B_DB *mdb, uint32_t limit, char *JobIds,
    POOL_MEM str_jobids(PM_MESSAGE);
 
    if (limit > 0) {
+#if HAVE_INGRES
+      Mmsg(str_limit, " FETCH FIRST %d ROWS ONLY", limit);
+#else
       Mmsg(str_limit, " LIMIT %d", limit);
+#endif
    }
 
    if (JobIds && JobIds[0]) {
@@ -330,7 +334,11 @@ db_list_job_records(JCR *jcr, B_DB *mdb, JOB_DBR *jr, DB_LIST_HANDLER *sendit,
    char limit[100];
    db_lock(mdb);
    if (jr->limit > 0) {
+#if HAVE_INGRES
+      snprintf(limit, sizeof(limit), " FETCH FIRST %d ROWS ONLY", jr->limit);
+#else
       snprintf(limit, sizeof(limit), " LIMIT %d", jr->limit);
+#endif
    } else {
       limit[0] = 0;
    }
