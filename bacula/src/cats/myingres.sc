@@ -31,24 +31,23 @@ short INGgetCols(const char *query)
    memset(sqlda, 0, (IISQDA_HEAD_SIZE + (number * IISQDA_VAR_SIZE)));
    
    sqlda->sqln = number;
-   
-   stmt = (char*)malloc(strlen(stmt)+1);
-   bstrncpy(stmt,stmt,strlen(stmt)+1);
+
+   stmt = bstrdup(query);
      
    EXEC SQL PREPARE s1 from :stmt;
    if (INGcheck() < 0) {
-      free(stmt);
-      free(sqlda);
-      return -1;
+      number = -1;
+      goto bail_out;
    }
    EXEC SQL DESCRIBE s1 into :sqlda;
    if (INGcheck() < 0) {
-      free(stmt);
-      free(sqlda);
-      return -1;
+      number = -1;
+      goto bail_out;
    }
      
    number = sqlda->sqld;
+
+bail_out:
    free(stmt);
    free(sqlda);
    return number;
@@ -68,8 +67,7 @@ static inline IISQLDA *INGgetDescriptor(short numCols, const char *query)
    
    sqlda->sqln = numCols;
    
-   stmt = (char *)malloc(strlen(stmt)+1);
-   bstrncpy(stmt,stmt,strlen(stmt)+1);
+   stmt = bstrdup(query);
   
    EXEC SQL PREPARE s2 INTO :sqlda FROM :stmt;
   
@@ -447,8 +445,7 @@ int INGexec(INGconn *conn, const char *query)
    char *stmt;
    EXEC SQL END DECLARE SECTION;
    
-   stmt = (char *)malloc(strlen(query)+1);
-   bstrncpy(stmt,query,strlen(query)+1);
+   stmt = bstrdup(query);
    rowcount = -1;
 
    EXEC SQL EXECUTE IMMEDIATE :stmt;
@@ -570,7 +567,7 @@ char *INGerrorMessage(const INGconn *conn)
    EXEC SQL END DECLARE SECTION;
 
    EXEC SQL INQUIRE_INGRES(:errbuf = ERRORTEXT);
-   memcpy(conn->msg,&errbuf,256);
+   memcpy(conn->msg, &errbuf, 256);
    return conn->msg;
 }
 
