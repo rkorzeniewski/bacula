@@ -214,7 +214,7 @@ CREATE TABLE media
     maxvolfiles       integer	  default 0,
     maxvolbytes       bigint	  default 0,
     inchanger	      smallint	  default 0,
-    StorageId	      integer	  default 0,
+    StorageId	      bigint	  default 0,
     DeviceId	      integer	  default 0,
     mediaaddressing   smallint	  default 0,
     volreadtime       bigint	  default 0,
