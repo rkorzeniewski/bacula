@@ -117,16 +117,6 @@ int db_get_file_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr, FILE_DBR *fdbr)
    char ed1[50], ed2[50], ed3[50];
 
    if (jcr->getJobLevel() == L_VERIFY_DISK_TO_CATALOG) {
-#if HAVE_INGRES
-      Mmsg(mdb->cmd,
-"SELECT FileId, LStat, MD5 FROM File,Job WHERE "
-"File.JobId=Job.JobId AND File.PathId=%s AND "
-"File.FilenameId=%s AND Job.Type='B' AND Job.JobStatus IN ('T','W') AND "
-"ClientId=%s ORDER BY StartTime DESC FETCH FIRST 1 ROW ONLY",
-      edit_int64(fdbr->PathId, ed1), 
-      edit_int64(fdbr->FilenameId, ed2), 
-      edit_int64(jr->ClientId,ed3));
-#else
       Mmsg(mdb->cmd,
 "SELECT FileId, LStat, MD5 FROM File,Job WHERE "
 "File.JobId=Job.JobId AND File.PathId=%s AND "
@@ -135,7 +125,6 @@ int db_get_file_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr, FILE_DBR *fdbr)
       edit_int64(fdbr->PathId, ed1), 
       edit_int64(fdbr->FilenameId, ed2), 
       edit_int64(jr->ClientId,ed3));
-#endif
    } else {
       Mmsg(mdb->cmd,
 "SELECT FileId, LStat, MD5 FROM File WHERE File.JobId=%s AND File.PathId=%s AND "
@@ -807,15 +796,9 @@ int db_get_fileset_record(JCR *jcr, B_DB *mdb, FILESET_DBR *fsr)
            "WHERE FileSetId=%s", 
            edit_int64(fsr->FileSetId, ed1));
    } else {                           /* find by name */
-#if HAVE_INGRES
-      Mmsg(mdb->cmd,
-           "SELECT FileSetId,FileSet,MD5,CreateTime FROM FileSet "
-           "WHERE FileSet='%s' ORDER BY CreateTime DESC FETCH FIRST 1 ROW ONLY", fsr->FileSet);
-#else
       Mmsg(mdb->cmd,
            "SELECT FileSetId,FileSet,MD5,CreateTime FROM FileSet "
            "WHERE FileSet='%s' ORDER BY CreateTime DESC LIMIT 1", fsr->FileSet);
-#endif
    }
 
    if (QUERY_DB(jcr, mdb, mdb->cmd)) {
@@ -1188,21 +1171,6 @@ bool db_accurate_get_jobids(JCR *jcr, B_DB *mdb,
    jobids->count = 0;
 
    /* First, find the last good Full backup for this job/client/fileset */
-#if HAVE_INGRES
-   Mmsg(query, 
-"CREATE TABLE btemp3%s AS "
- "SELECT JobId, StartTime, EndTime, JobTDate, PurgedFiles "
-   "FROM Job JOIN FileSet USING (FileSetId) "
-  "WHERE ClientId = %s "
-    "AND Level='F' AND JobStatus IN ('T','W') AND Type='B' "
-    "AND StartTime<'%s' "
-    "AND FileSet.FileSet=(SELECT FileSet FROM FileSet WHERE FileSetId = %s) "
-  "ORDER BY Job.JobTDate DESC FETCH FIRST 1 ROW ONLY",
-        edit_uint64(jcr->JobId, jobid),
-        edit_uint64(jr->ClientId, clientid),
-        date,
-        edit_uint64(jr->FileSetId, filesetid));
-#else
    Mmsg(query, 
 "CREATE TABLE btemp3%s AS "
  "SELECT JobId, StartTime, EndTime, JobTDate, PurgedFiles "
@@ -1216,7 +1184,6 @@ bool db_accurate_get_jobids(JCR *jcr, B_DB *mdb,
         edit_uint64(jr->ClientId, clientid),
         date,
         edit_uint64(jr->FileSetId, filesetid));
-#endif
 
    if (!db_sql_query(mdb, query.c_str(), NULL, NULL)) {
       goto bail_out;
@@ -1224,23 +1191,6 @@ bool db_accurate_get_jobids(JCR *jcr, B_DB *mdb,
 
    if (jr->JobLevel == L_INCREMENTAL || jr->JobLevel == L_VIRTUAL_FULL) {
       /* Now, find the last differential backup after the last full */
-#if HAVE_INGRES
-      Mmsg(query, 
-"INSERT INTO btemp3%s (JobId, StartTime, EndTime, JobTDate, PurgedFiles) "
- "SELECT JobId, StartTime, EndTime, JobTDate, PurgedFiles "
-   "FROM Job JOIN FileSet USING (FileSetId) "
-  "WHERE ClientId = %s "
-    "AND Level='D' AND JobStatus IN ('T','W') AND Type='B' "
-    "AND StartTime > (SELECT EndTime FROM btemp3%s ORDER BY EndTime DESC LIMIT 1) "
-    "AND StartTime < '%s' "
-    "AND FileSet.FileSet= (SELECT FileSet FROM FileSet WHERE FileSetId = %s) "
-  "ORDER BY Job.JobTDate DESC FETCH FIRST 1 ROW ONLY ",
-           jobid,
-           clientid,
-           jobid,
-           date,
-           filesetid);
-#else
       Mmsg(query, 
 "INSERT INTO btemp3%s (JobId, StartTime, EndTime, JobTDate, PurgedFiles) "
  "SELECT JobId, StartTime, EndTime, JobTDate, PurgedFiles "
@@ -1256,30 +1206,12 @@ bool db_accurate_get_jobids(JCR *jcr, B_DB *mdb,
            jobid,
            date,
            filesetid);
-#endif
 
       if (!db_sql_query(mdb, query.c_str(), NULL, NULL)) {
          goto bail_out;
       }
 
       /* We just have to take all incremental after the last Full/Diff */
-#if HAVE_INGRES
-      Mmsg(query, 
-"INSERT INTO btemp3%s (JobId, StartTime, EndTime, JobTDate, PurgedFiles) "
- "SELECT JobId, StartTime, EndTime, JobTDate, PurgedFiles "
-   "FROM Job JOIN FileSet USING (FileSetId) "
-  "WHERE ClientId = %s "
-    "AND Level='I' AND JobStatus IN ('T','W') AND Type='B' "
-    "AND StartTime > (SELECT EndTime FROM btemp3%s ORDER BY EndTime DESC FETCH FIRST 1 ROW ONLY) "
-    "AND StartTime < '%s' "
-    "AND FileSet.FileSet= (SELECT FileSet FROM FileSet WHERE FileSetId = %s) "
-  "ORDER BY Job.JobTDate DESC ",
-           jobid,
-           clientid,
-           jobid,
-           date,
-           filesetid);
-#else
       Mmsg(query, 
 "INSERT INTO btemp3%s (JobId, StartTime, EndTime, JobTDate, PurgedFiles) "
  "SELECT JobId, StartTime, EndTime, JobTDate, PurgedFiles "
@@ -1295,7 +1227,6 @@ bool db_accurate_get_jobids(JCR *jcr, B_DB *mdb,
            jobid,
            date,
            filesetid);
-#endif
       if (!db_sql_query(mdb, query.c_str(), NULL, NULL)) {
          goto bail_out;
       }
@@ -1352,10 +1283,6 @@ bool db_get_base_jobid(JCR *jcr, B_DB *mdb, JOB_DBR *jr, JobId_t *jobid)
 //    "AND FileSet.FileSet= '%s' "
 //    "AND Client.Name = '%s' "
     "AND StartTime<'%s' "
-#if HAVE_INGRES
-#else
-  "ORDER BY Job.JobTDate DESC FETCH FIRST 1 ROW ONLY",
-#endif
   "ORDER BY Job.JobTDate DESC LIMIT 1",
         jr->Name,
 //      edit_uint64(jr->ClientId, clientid),
