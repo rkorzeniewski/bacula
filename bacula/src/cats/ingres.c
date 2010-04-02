@@ -126,6 +126,7 @@ db_init_database(JCR *jcr, const char *db_name, const char *db_user, const char 
    mdb->esc_name       = get_pool_memory(PM_FNAME);
    mdb->esc_path      = get_pool_memory(PM_FNAME);
    mdb->allow_transactions = mult_db_connections;
+   mdb->limit_filter = new_bregexp("/LIMIT ([0-9]+)/FETCH FIRST $1 ROW ONLY/g");
    qinsert(&db_list, &mdb->bq);            /* put db in list */
    V(mutex);
    return mdb;
@@ -265,6 +266,7 @@ db_close_database(JCR *jcr, B_DB *mdb)
       free_pool_memory(mdb->path);
       free_pool_memory(mdb->esc_name);
       free_pool_memory(mdb->esc_path);
+      free_bregexp(mdb->limit_filter);
       if (mdb->db_name) {
          free(mdb->db_name);
       }
@@ -542,13 +544,13 @@ int my_ingres_query(B_DB *mdb, const char *query)
 
    /* TODO: differentiate between SELECTs and other queries */
 
-   if ((cols = INGgetCols(query)) <= 0) {
+   if ((cols = INGgetCols(mdb, query)) <= 0) {
       if (cols < 0 ) {
          Dmsg0(500,"my_ingres_query: neg.columns: no DML stmt!\n");
       }
       Dmsg0(500,"my_ingres_query (non SELECT) starting...\n");
       /* non SELECT */
-      mdb->num_rows = INGexec(mdb->db, query);
+      mdb->num_rows = INGexec(mdb, mdb->db, query);
       if (INGcheck()) {
         Dmsg0(500,"my_ingres_query (non SELECT) went wrong\n");
         mdb->status = 1;
@@ -559,7 +561,7 @@ int my_ingres_query(B_DB *mdb, const char *query)
    } else {
       /* SELECT */
       Dmsg0(500,"my_ingres_query (SELECT) starting...\n");
-      mdb->result = INGquery(mdb->db, query);
+      mdb->result = INGquery(mdb, mdb->db, query);
       if ( mdb->result != NULL ) {
         Dmsg1(500, "we have a result\n", query);
 

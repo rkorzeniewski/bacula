@@ -538,6 +538,7 @@ extern const char* my_pg_batch_fill_path_query;
 #ifdef HAVE_INGRES
 
 #include "myingres.h"
+#include "lib/reg.h"
 
 #define BDB_VERSION 12
 
@@ -589,6 +590,7 @@ struct B_DB {
    POOLMEM *path;                 /* Path only */
    POOLMEM *esc_name;             /* Escaped file name */
    POOLMEM *esc_path;             /* Escaped path name */
+   BREGEXP *limit_filter;         /* Filter LIMIT function in queries into supported SQL */
    int fnl;                       /* file name length */
    int pnl;                       /* path name length */
 };

@@ -18,8 +18,9 @@ int INGcheck()
    return (sqlca.sqlcode < 0) ? sqlca.sqlcode : 0;
 }
 
-short INGgetCols(const char *query)
+short INGgetCols(B_DB *mdb, const char *query)
 {
+   bool stmt_free = false;
    EXEC SQL BEGIN DECLARE SECTION;
    char *stmt;
    EXEC SQL END DECLARE SECTION;
@@ -32,13 +33,22 @@ short INGgetCols(const char *query)
    
    sqlda->sqln = number;
 
-   stmt = bstrdup(query);
+   /*
+    * See if we need to run this through the limit_filter.
+    */
+   if (strstr(query, "LIMIT") != NULL) {
+      stmt = mdb->limit_filter->replace(query);
+   } else {
+      stmt = bstrdup(query);
+      stmt_free = true;
+   }
      
    EXEC SQL PREPARE s1 from :stmt;
    if (INGcheck() < 0) {
       number = -1;
       goto bail_out;
    }
+
    EXEC SQL DESCRIBE s1 into :sqlda;
    if (INGcheck() < 0) {
       number = -1;
@@ -48,13 +58,16 @@ short INGgetCols(const char *query)
    number = sqlda->sqld;
 
 bail_out:
-   free(stmt);
+   if (stmt_free) {
+      free(stmt);
+   }
    free(sqlda);
    return number;
 }
 
-static inline IISQLDA *INGgetDescriptor(short numCols, const char *query)
+static inline IISQLDA *INGgetDescriptor(B_DB *mdb, short numCols, const char *query)
 {
+   bool stmt_free = false;
    EXEC SQL BEGIN DECLARE SECTION;
    char *stmt;
    EXEC SQL END DECLARE SECTION;
@@ -67,11 +80,21 @@ static inline IISQLDA *INGgetDescriptor(short numCols, const char *query)
    
    sqlda->sqln = numCols;
    
-   stmt = bstrdup(query);
+   /*
+    * See if we need to run this through the limit_filter.
+    */
+   if (strstr(query, "LIMIT") != NULL) {
+      stmt = mdb->limit_filter->replace(query);
+   } else {
+      stmt = bstrdup(query);
+      stmt_free = true;
+   }
   
    EXEC SQL PREPARE s2 INTO :sqlda FROM :stmt;
   
-   free(stmt);
+   if (stmt_free) {
+      free(stmt);
+   }
 
    for (i = 0; i < sqlda->sqld; ++i) {
       /*
@@ -111,11 +134,11 @@ static inline IISQLDA *INGgetDescriptor(short numCols, const char *query)
 
 static void INGfreeDescriptor(IISQLDA *sqlda)
 {
+   int i;
+
    if (!sqlda) {
       return;
    }
-
-   int i;
 
    for (i = 0; i < sqlda->sqld; ++i) {
       if (sqlda->sqlvar[i].sqldata) {
@@ -153,13 +176,13 @@ static inline int INGgetTypeSize(IISQLVAR *ingvar)
 
 static inline INGresult *INGgetINGresult(IISQLDA *sqlda)
 {
+   int i;
+   INGresult *result = NULL;
+   
    if (!sqlda) {
       return NULL;
    }
 
-   int i;
-   INGresult *result = NULL;
-   
    result = (INGresult *)malloc(sizeof(INGresult));
    memset(result, 0, sizeof(INGresult));
    
@@ -189,32 +212,29 @@ static inline INGresult *INGgetINGresult(IISQLDA *sqlda)
 
 static void INGfreeINGresult(INGresult *ing_res)
 {
+   int rows;
+   ING_ROW *rowtemp;
+
    if (!ing_res) {
       return;
    }
 
-   int rows;
-   ING_ROW *rowtemp;
-
    /*
     * Free all rows and fields, then res, not descriptor!
+    *
+    * Use of rows is a nasty workaround til I find the reason,
+    * why aggregates like max() don't work
     */
-   if (ing_res != NULL) {
-      /*
-       * Use of rows is a nasty workaround til I find the reason,
-       * why aggregates like max() don't work
-       */
-      rows = ing_res->num_rows;
-      ing_res->act_row = ing_res->first_row;
-      while (ing_res->act_row != NULL && rows > 0) {
-         rowtemp = ing_res->act_row->next;
-         INGfreeRowSpace(ing_res->act_row, ing_res->sqlda);
-         ing_res->act_row = rowtemp;
-         --rows;
-      }
-      if (ing_res->fields) {
-         free(ing_res->fields);
-      }
+   rows = ing_res->num_rows;
+   ing_res->act_row = ing_res->first_row;
+   while (ing_res->act_row != NULL && rows > 0) {
+      rowtemp = ing_res->act_row->next;
+      INGfreeRowSpace(ing_res->act_row, ing_res->sqlda);
+      ing_res->act_row = rowtemp;
+      --rows;
+   }
+   if (ing_res->fields) {
+      free(ing_res->fields);
    }
    free(ing_res);
    ing_res = NULL;
@@ -379,6 +399,7 @@ static inline ING_STATUS INGresultStatus(INGresult *res)
 static void INGrowSeek(INGresult *res, int row_number)
 {
    ING_ROW *trow = NULL;
+
    if (res->act_row->row_number == row_number) {
       return;
    }
@@ -390,7 +411,7 @@ static void INGrowSeek(INGresult *res, int row_number)
       return;
    }
 
-   for (trow = res->first_row ; trow->row_number != row_number ; trow = trow->next );
+   for (trow = res->first_row; trow->row_number != row_number; trow = trow->next) ;
    res->act_row = trow;
    /*
     * Note - can be null - if row_number not found, right?
@@ -402,6 +423,7 @@ char *INGgetvalue(INGresult *res, int row_number, int column_number)
    if (row_number != res->act_row->row_number) {
       INGrowSeek(res, row_number);
    }
+
    return res->act_row->sqlvar[column_number].sqldata;
 }
 
@@ -410,6 +432,7 @@ int INGgetisnull(INGresult *res, int row_number, int column_number)
    if (row_number != res->act_row->row_number) {
       INGrowSeek(res, row_number);
    }
+
    return (*res->act_row->sqlvar[column_number].sqlind == -1) 1 : 0;
 }
 
@@ -437,19 +460,32 @@ short INGftype(const INGresult *res, int column_number)
    return res->fields[column_number].type;
 }
 
-int INGexec(INGconn *conn, const char *query)
+int INGexec(B_DB *mdb, INGconn *conn, const char *query)
 {
+   bool stmt_free = false;
    int check;
    EXEC SQL BEGIN DECLARE SECTION;
    int rowcount;
    char *stmt;
    EXEC SQL END DECLARE SECTION;
    
-   stmt = bstrdup(query);
+   /*
+    * See if we need to run this through the limit_filter.
+    */
+   if (strstr(query, "LIMIT") != NULL) {
+      stmt = mdb->limit_filter->replace(query);
+   } else {
+      stmt = bstrdup(query);
+      stmt_free = true;
+   }
    rowcount = -1;
 
    EXEC SQL EXECUTE IMMEDIATE :stmt;
-   free(stmt);
+
+   if (stmt_free) {
+      free(stmt);
+   }
+
    if ((check = INGcheck()) < 0) {
       return check;
    }
@@ -462,7 +498,7 @@ int INGexec(INGconn *conn, const char *query)
    return rowcount;
 }
 
-INGresult *INGquery(INGconn *conn, const char *query)
+INGresult *INGquery(B_DB *mdb, INGconn *conn, const char *query)
 {
    /*
     * TODO: error handling
@@ -470,7 +506,7 @@ INGresult *INGquery(INGconn *conn, const char *query)
    IISQLDA *desc = NULL;
    INGresult *res = NULL;
    int rows = -1;
-   int cols = INGgetCols(query);
+   int cols = INGgetCols(mdb, query);
 
    desc = INGgetDescriptor(cols, query);
    if (!desc) {
@@ -495,18 +531,20 @@ void INGclear(INGresult *res)
    if (res == NULL) {
       return;
    }
-   IISQLDA *desc = res->sqlda;
+
    INGfreeINGresult(res);
-   INGfreeDescriptor(desc);
+   INGfreeDescriptor(res->sqlda);
 }
 
 INGconn *INGconnectDB(char *dbname, char *user, char *passwd)
 {
+   INGconn *dbconn;
+
    if (dbname == NULL || strlen(dbname) == 0) {
       return NULL;
    }
 
-   INGconn *dbconn = (INGconn *)malloc(sizeof(INGconn));
+   dbconn = (INGconn *)malloc(sizeof(INGconn));
    memset(dbconn, 0, sizeof(INGconn));
 
    EXEC SQL BEGIN DECLARE SECTION;
