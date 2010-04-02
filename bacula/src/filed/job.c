@@ -1597,7 +1597,7 @@ static int backup_cmd(JCR *jcr)
    /* START VSS ON WIN32 */
    if (jcr->VSS) {      
       if (g_pVSSClient->InitializeForBackup(jcr)) {   
-        generate_plugin_event(jcr, bEventInitializeVSS);
+        generate_plugin_event(jcr, bEventVssBackupAddComponents);
         /* tell vss which drives to snapshot */   
         char szWinDriveLetters[27];   
         if (get_win32_driveletters(jcr->ff, szWinDriveLetters)) {
@@ -1794,10 +1794,10 @@ static bool vss_restore_init_callback(JCR *jcr, int init_type)
    switch (init_type)
    {
    case VSS_INIT_RESTORE_AFTER_INIT:
-      generate_plugin_event(jcr, bEventInitializeVSS);
+      generate_plugin_event(jcr, bEventVssRestoreLoadComponentMetadata);
       return true;
    case VSS_INIT_RESTORE_AFTER_GATHER:
-      generate_plugin_event(jcr, bEventPrepareVSS);
+      generate_plugin_event(jcr, bEventVssRestoreSetComponentsSelected);
       return true;
    default:
       return false;

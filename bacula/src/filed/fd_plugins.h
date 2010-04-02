@@ -156,21 +156,22 @@ typedef enum {
 
 /* Events that are passed to plugin */
 typedef enum {
-  bEventJobStart        = 1,
-  bEventJobEnd          = 2,
-  bEventStartBackupJob  = 3,
-  bEventEndBackupJob    = 4,
-  bEventStartRestoreJob = 5,
-  bEventEndRestoreJob   = 6,
-  bEventStartVerifyJob  = 7,
-  bEventEndVerifyJob    = 8,
-  bEventBackupCommand   = 9,
-  bEventRestoreCommand  = 10,
-  bEventLevel           = 11,
-  bEventSince           = 12,
-  bEventCancelCommand   = 13,
-  bEventInitializeVSS   = 14,
-  bEventPrepareVSS      = 15,
+  bEventJobStart                        = 1,
+  bEventJobEnd                          = 2,
+  bEventStartBackupJob                  = 3,
+  bEventEndBackupJob                    = 4,
+  bEventStartRestoreJob                 = 5,
+  bEventEndRestoreJob                   = 6,
+  bEventStartVerifyJob                  = 7,
+  bEventEndVerifyJob                    = 8,
+  bEventBackupCommand                   = 9,
+  bEventRestoreCommand                  = 10,
+  bEventLevel                           = 11,
+  bEventSince                           = 12,
+  bEventCancelCommand                   = 13,
+  bEventVssBackupAddComponents          = 14,
+  bEventVssRestoreLoadComponentMetadata = 15,
+  bEventVssRestoreSetComponentsSelected = 16,
 } bEventType;
 
 typedef struct s_bEvent {
