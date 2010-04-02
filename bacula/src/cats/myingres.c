@@ -272,7 +272,6 @@ static void INGfreeINGresult(INGresult *ing_res)
       free(ing_res->fields);
    }
    free(ing_res);
-   ing_res = NULL;
 }
 static inline ING_ROW *INGgetRowSpace(INGresult *ing_res)
 {
@@ -523,16 +522,20 @@ INGresult *INGquery(B_DB *mdb, INGconn *conn, const char *query)
    if (!desc) {
       return NULL;
    }
+
    res = INGgetINGresult(desc);
    if (!res) {
       return NULL;
    }
+
    rows = INGfetchAll(query, res);
+
    if (rows < 0) {
-     INGfreeINGresult(res);
      INGfreeDescriptor(desc);
+     INGfreeINGresult(res);
      return NULL;
    }
+
    return res;
 }
 void INGclear(INGresult *res)
@@ -540,8 +543,8 @@ void INGclear(INGresult *res)
    if (res == NULL) {
       return;
    }
-   INGfreeINGresult(res);
    INGfreeDescriptor(res->sqlda);
+   INGfreeINGresult(res);
 }
 INGconn *INGconnectDB(char *dbname, char *user, char *passwd)
 {
