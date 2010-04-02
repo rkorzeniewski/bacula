@@ -1,4 +1,44 @@
+/*
+   Bacula® - The Network Backup Solution
+
+   Copyright (C) 2009-2010 Free Software Foundation Europe e.V.
+
+   The main author of Bacula is Kern Sibbald, with contributions from
+   many others, a complete list can be found in the file AUTHORS.
+   This program is Free Software; you can redistribute it and/or
+   modify it under the terms of version two of the GNU General Public
+   License as published by the Free Software Foundation and included
+   in the file LICENSE.
+
+   This program is distributed in the hope that it will be useful, but
+   WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+   General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+   02110-1301, USA.
+
+   Bacula® is a registered trademark of Kern Sibbald.
+   The licensor of Bacula is the Free Software Foundation Europe
+   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
+   Switzerland, email:ftf@fsfeurope.org.
+*/
+/*
+ * Bacula Catalog Database routines specific to Ingres
+ *   These are Ingres specific routines
+ *
+ *    Stefan Reddig, June 2009
+ */
+
+/* The following is necessary so that we do not include
+ * the dummy external definition of DB.
+ */
+#define __SQL_C                       /* indicate that this is sql.c */
+
 #include "bacula.h"
+#include "cats.h"
 
 #ifdef HAVE_INGRES
 EXEC SQL INCLUDE SQLCA;
@@ -210,6 +250,26 @@ static inline INGresult *INGgetINGresult(IISQLDA *sqlda)
    return result;
 }
 
+static inline void INGfreeRowSpace(ING_ROW *row, IISQLDA *sqlda)
+{
+   int i;
+
+   if (row == NULL || sqlda == NULL) {
+      return;
+   }
+
+   for (i = 0; i < sqlda->sqld; ++i) {
+      if (row->sqlvar[i].sqldata) {
+         free(row->sqlvar[i].sqldata);
+      }
+      if (row->sqlvar[i].sqlind) {
+         free(row->sqlvar[i].sqlind);
+      }
+   }
+   free(row->sqlvar);
+   free(row);
+}
+
 static void INGfreeINGresult(INGresult *ing_res)
 {
    int rows;
@@ -317,26 +377,6 @@ static inline ING_ROW *INGgetRowSpace(INGresult *ing_res)
       }
    }
    return row;
-}
-
-static inline void INGfreeRowSpace(ING_ROW *row, IISQLDA *sqlda)
-{
-   int i;
-
-   if (row == NULL || sqlda == NULL) {
-      return;
-   }
-
-   for (i = 0; i < sqlda->sqld; ++i) {
-      if (row->sqlvar[i].sqldata) {
-         free(row->sqlvar[i].sqldata);
-      }
-      if (row->sqlvar[i].sqlind) {
-         free(row->sqlvar[i].sqlind);
-      }
-   }
-   free(row->sqlvar);
-   free(row);
 }
 
 static inline int INGfetchAll(const char *query, INGresult *ing_res)
@@ -508,7 +548,7 @@ INGresult *INGquery(B_DB *mdb, INGconn *conn, const char *query)
    int rows = -1;
    int cols = INGgetCols(mdb, query);
 
-   desc = INGgetDescriptor(cols, query);
+   desc = INGgetDescriptor(mdb, cols, query);
    if (!desc) {
       return NULL;
    }

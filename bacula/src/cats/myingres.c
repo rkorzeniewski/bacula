@@ -1,5 +1,38 @@
+/*
+   Bacula® - The Network Backup Solution
+   Copyright (C) 2009-2010 Free Software Foundation Europe e.V.
+   The main author of Bacula is Kern Sibbald, with contributions from
+   many others, a complete list can be found in the file AUTHORS.
+   This program is Free Software; you can redistribute it and/or
+   modify it under the terms of version two of the GNU General Public
+   License as published by the Free Software Foundation and included
+   in the file LICENSE.
+   This program is distributed in the hope that it will be useful, but
+   WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+   General Public License for more details.
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+   02110-1301, USA.
+   Bacula® is a registered trademark of Kern Sibbald.
+   The licensor of Bacula is the Free Software Foundation Europe
+   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
+   Switzerland, email:ftf@fsfeurope.org.
+*/
+/*
+ * Bacula Catalog Database routines specific to Ingres
+ *   These are Ingres specific routines
+ *
+ *    Stefan Reddig, June 2009
+ */
+/* The following is necessary so that we do not include
+ * the dummy external definition of DB.
+ */
+#define __SQL_C                       /* indicate that this is sql.c */
 #include "bacula.h"
-/* # line 3 "myingres.sc" */	
+#include "cats.h"
+/* # line 43 "myingres.sc" */	
 #ifdef HAVE_INGRES
 #include <eqpname.h>
 #include <eqdefcc.h>
@@ -20,10 +53,10 @@ int INGcheck()
 short INGgetCols(B_DB *mdb, const char *query)
 {
    bool stmt_free = false;
-/* # line 24 "myingres.sc" */	
+/* # line 64 "myingres.sc" */	
   
   char *stmt;
-/* # line 26 "myingres.sc" */	
+/* # line 66 "myingres.sc" */	
   
    short number = 1;
    IISQLDA *sqlda;
@@ -39,22 +72,22 @@ short INGgetCols(B_DB *mdb, const char *query)
       stmt = bstrdup(query);
       stmt_free = true;
    }
-/* # line 46 "myingres.sc" */	/* prepare */
+/* # line 86 "myingres.sc" */	/* prepare */
   {
     IIsqInit(&sqlca);
     IIsqPrepare(0,(char *)"s1",(char *)0,0,stmt);
   }
-/* # line 47 "myingres.sc" */	/* host code */
+/* # line 87 "myingres.sc" */	/* host code */
    if (INGcheck() < 0) {
       number = -1;
       goto bail_out;
    }
-/* # line 52 "myingres.sc" */	/* describe */
+/* # line 92 "myingres.sc" */	/* describe */
   {
     IIsqInit(&sqlca);
     IIsqDescribe(0,(char *)"s1",sqlda,0);
   }
-/* # line 53 "myingres.sc" */	/* host code */
+/* # line 93 "myingres.sc" */	/* host code */
    if (INGcheck() < 0) {
       number = -1;
       goto bail_out;
@@ -70,10 +103,10 @@ bail_out:
 static inline IISQLDA *INGgetDescriptor(B_DB *mdb, short numCols, const char *query)
 {
    bool stmt_free = false;
-/* # line 71 "myingres.sc" */	
+/* # line 111 "myingres.sc" */	
   
   char *stmt;
-/* # line 73 "myingres.sc" */	
+/* # line 113 "myingres.sc" */	
   
    int i;
    IISQLDA *sqlda;
@@ -89,12 +122,12 @@ static inline IISQLDA *INGgetDescriptor(B_DB *mdb, short numCols, const char *qu
       stmt = bstrdup(query);
       stmt_free = true;
    }
-/* # line 93 "myingres.sc" */	/* prepare */
+/* # line 133 "myingres.sc" */	/* prepare */
   {
     IIsqInit(&sqlca);
     IIsqPrepare(0,(char *)"s2",sqlda,0,stmt);
   }
-/* # line 95 "myingres.sc" */	/* host code */
+/* # line 135 "myingres.sc" */	/* host code */
    if (stmt_free) {
       free(stmt);
    }
@@ -197,6 +230,23 @@ static inline INGresult *INGgetINGresult(IISQLDA *sqlda)
    }
    return result;
 }
+static inline void INGfreeRowSpace(ING_ROW *row, IISQLDA *sqlda)
+{
+   int i;
+   if (row == NULL || sqlda == NULL) {
+      return;
+   }
+   for (i = 0; i < sqlda->sqld; ++i) {
+      if (row->sqlvar[i].sqldata) {
+         free(row->sqlvar[i].sqldata);
+      }
+      if (row->sqlvar[i].sqlind) {
+         free(row->sqlvar[i].sqlind);
+      }
+   }
+   free(row->sqlvar);
+   free(row);
+}
 static void INGfreeINGresult(INGresult *ing_res)
 {
    int rows;
@@ -298,23 +348,6 @@ static inline ING_ROW *INGgetRowSpace(INGresult *ing_res)
    }
    return row;
 }
-static inline void INGfreeRowSpace(ING_ROW *row, IISQLDA *sqlda)
-{
-   int i;
-   if (row == NULL || sqlda == NULL) {
-      return;
-   }
-   for (i = 0; i < sqlda->sqld; ++i) {
-      if (row->sqlvar[i].sqldata) {
-         free(row->sqlvar[i].sqldata);
-      }
-      if (row->sqlvar[i].sqlind) {
-         free(row->sqlvar[i].sqlind);
-      }
-   }
-   free(row->sqlvar);
-   free(row);
-}
 static inline int INGfetchAll(const char *query, INGresult *ing_res)
 {
    int linecount = 0;
@@ -322,32 +355,32 @@ static inline int INGfetchAll(const char *query, INGresult *ing_res)
    IISQLDA *desc;
    int check = -1;
    desc = ing_res->sqlda;
-/* # line 352 "myingres.sc" */	/* host code */
+/* # line 392 "myingres.sc" */	/* host code */
    if ((check = INGcheck()) < 0) {
       return check;
    }
-/* # line 356 "myingres.sc" */	/* open */
+/* # line 396 "myingres.sc" */	/* open */
   {
     IIsqInit(&sqlca);
-    IIcsOpen((char *)"c2",9209,14491);
+    IIcsOpen((char *)"c2",4150,23546);
     IIwritio(0,(short *)0,1,32,0,(char *)"s2");
-    IIcsQuery((char *)"c2",9209,14491);
+    IIcsQuery((char *)"c2",4150,23546);
   }
-/* # line 357 "myingres.sc" */	/* host code */
+/* # line 397 "myingres.sc" */	/* host code */
    if ((check = INGcheck()) < 0) {
       return check;
    }
    /* for (linecount = 0; sqlca.sqlcode == 0; ++linecount) */
    do {
-/* # line 363 "myingres.sc" */	/* fetch */
+/* # line 403 "myingres.sc" */	/* fetch */
   {
     IIsqInit(&sqlca);
-    if (IIcsRetScroll((char *)"c2",9209,14491,-1,-1) != 0) {
+    if (IIcsRetScroll((char *)"c2",4150,23546,-1,-1) != 0) {
       IIcsDaGet(0,desc);
       IIcsERetrieve();
     } /* IIcsRetrieve */
   }
-/* # line 365 "myingres.sc" */	/* host code */
+/* # line 405 "myingres.sc" */	/* host code */
       if ( (sqlca.sqlcode == 0) || (sqlca.sqlcode == -40202) ) {
          row = INGgetRowSpace(ing_res); /* alloc space for fetched row */
          /*
@@ -364,12 +397,12 @@ static inline int INGfetchAll(const char *query, INGresult *ing_res)
          ++linecount;
       }
    } while ( (sqlca.sqlcode == 0) || (sqlca.sqlcode == -40202) );
-/* # line 383 "myingres.sc" */	/* close */
+/* # line 423 "myingres.sc" */	/* close */
   {
     IIsqInit(&sqlca);
-    IIcsClose((char *)"c2",9209,14491);
+    IIcsClose((char *)"c2",4150,23546);
   }
-/* # line 385 "myingres.sc" */	/* host code */
+/* # line 425 "myingres.sc" */	/* host code */
    ing_res->status = ING_COMMAND_OK;
    ing_res->num_rows = linecount;
    return linecount;
@@ -438,11 +471,11 @@ int INGexec(B_DB *mdb, INGconn *conn, const char *query)
 {
    bool stmt_free = false;
    int check;
-/* # line 467 "myingres.sc" */	
+/* # line 507 "myingres.sc" */	
   
   int rowcount;
   char *stmt;
-/* # line 470 "myingres.sc" */	
+/* # line 510 "myingres.sc" */	
   
    /*
     * See if we need to run this through the limit_filter.
@@ -454,24 +487,24 @@ int INGexec(B_DB *mdb, INGconn *conn, const char *query)
       stmt_free = true;
    }
    rowcount = -1;
-/* # line 483 "myingres.sc" */	/* execute */
+/* # line 523 "myingres.sc" */	/* execute */
   {
     IIsqInit(&sqlca);
     IIsqExImmed(stmt);
     IIsyncup((char *)0,0);
   }
-/* # line 485 "myingres.sc" */	/* host code */
+/* # line 525 "myingres.sc" */	/* host code */
    if (stmt_free) {
       free(stmt);
    }
    if ((check = INGcheck()) < 0) {
       return check;
    }
-/* # line 493 "myingres.sc" */	/* inquire_ingres */
+/* # line 533 "myingres.sc" */	/* inquire_ingres */
   {
     IILQisInqSqlio((short *)0,1,30,sizeof(rowcount),&rowcount,8);
   }
-/* # line 494 "myingres.sc" */	/* host code */
+/* # line 534 "myingres.sc" */	/* host code */
    if ((check = INGcheck()) < 0) {
       return check;
    }
@@ -486,7 +519,7 @@ INGresult *INGquery(B_DB *mdb, INGconn *conn, const char *query)
    INGresult *res = NULL;
    int rows = -1;
    int cols = INGgetCols(mdb, query);
-   desc = INGgetDescriptor(cols, query);
+   desc = INGgetDescriptor(mdb, cols, query);
    if (!desc) {
       return NULL;
    }
@@ -518,14 +551,14 @@ INGconn *INGconnectDB(char *dbname, char *user, char *passwd)
    }
    dbconn = (INGconn *)malloc(sizeof(INGconn));
    memset(dbconn, 0, sizeof(INGconn));
-/* # line 550 "myingres.sc" */	
+/* # line 590 "myingres.sc" */	
   
   char ingdbname[24];
   char ingdbuser[32];
   char ingdbpasw[32];
   char conn_name[32];
   int sess_id;
-/* # line 556 "myingres.sc" */	
+/* # line 596 "myingres.sc" */	
   
    bstrncpy(ingdbname, dbname, sizeof(ingdbname));
    if (user != NULL) {
@@ -535,7 +568,7 @@ INGconn *INGconnectDB(char *dbname, char *user, char *passwd)
       } else {
          memset(ingdbpasw, 0, sizeof(ingdbpasw));
       }
-/* # line 567 "myingres.sc" */	/* connect */
+/* # line 607 "myingres.sc" */	/* connect */
   {
     IIsqInit(&sqlca);
     IIsqUser(ingdbuser);
@@ -543,26 +576,26 @@ INGconn *INGconnectDB(char *dbname, char *user, char *passwd)
     (char *)0, (char *)0, (char *)0, (char *)0, (char *)0, (char *)0, 
     (char *)0, (char *)0, (char *)0, (char *)0);
   }
-/* # line 571 "myingres.sc" */	/* host code */
+/* # line 611 "myingres.sc" */	/* host code */
    } else {
-/* # line 572 "myingres.sc" */	/* connect */
+/* # line 612 "myingres.sc" */	/* connect */
   {
     IIsqInit(&sqlca);
     IIsqConnect(0,ingdbname,(char *)0, (char *)0, (char *)0, (char *)0, 
     (char *)0, (char *)0, (char *)0, (char *)0, (char *)0, (char *)0, 
     (char *)0, (char *)0, (char *)0);
   }
-/* # line 573 "myingres.sc" */	/* host code */
+/* # line 613 "myingres.sc" */	/* host code */
    }   
-/* # line 575 "myingres.sc" */	/* inquire_sql */
+/* # line 615 "myingres.sc" */	/* inquire_sql */
   {
     IILQisInqSqlio((short *)0,1,32,31,conn_name,13);
   }
-/* # line 576 "myingres.sc" */	/* inquire_sql */
+/* # line 616 "myingres.sc" */	/* inquire_sql */
   {
     IILQisInqSqlio((short *)0,1,30,sizeof(sess_id),&sess_id,11);
   }
-/* # line 578 "myingres.sc" */	/* host code */
+/* # line 618 "myingres.sc" */	/* host code */
    bstrncpy(dbconn->dbname, ingdbname, sizeof(dbconn->dbname));
    bstrncpy(dbconn->user, ingdbuser, sizeof(dbconn->user));
    bstrncpy(dbconn->password, ingdbpasw, sizeof(dbconn->password));
@@ -577,12 +610,12 @@ void INGdisconnectDB(INGconn *dbconn)
    /*
     * TODO: check for any real use of dbconn: maybe whenn multithreaded?
     */
-/* # line 594 "myingres.sc" */	/* disconnect */
+/* # line 634 "myingres.sc" */	/* disconnect */
   {
     IIsqInit(&sqlca);
     IIsqDisconnect();
   }
-/* # line 595 "myingres.sc" */	/* host code */
+/* # line 635 "myingres.sc" */	/* host code */
    if (dbconn != NULL) {
       free(dbconn->msg);
       free(dbconn);
@@ -590,16 +623,16 @@ void INGdisconnectDB(INGconn *dbconn)
 }
 char *INGerrorMessage(const INGconn *conn)
 {
-/* # line 603 "myingres.sc" */	
+/* # line 643 "myingres.sc" */	
   
   char errbuf[256];
-/* # line 605 "myingres.sc" */	
+/* # line 645 "myingres.sc" */	
   
-/* # line 607 "myingres.sc" */	/* inquire_ingres */
+/* # line 647 "myingres.sc" */	/* inquire_ingres */
   {
     IILQisInqSqlio((short *)0,1,32,255,errbuf,63);
   }
-/* # line 608 "myingres.sc" */	/* host code */
+/* # line 648 "myingres.sc" */	/* host code */
    memcpy(conn->msg, &errbuf, 256);
    return conn->msg;
 }
@@ -611,5 +644,5 @@ char *INGcmdTuples(INGresult *res)
 int INGputCopyEnd(INGconn *conn, const char *errormsg);
 int INGputCopyData(INGconn *conn, const char *buffer, int nbytes);
 */
-/* # line 622 "myingres.sc" */	
+/* # line 662 "myingres.sc" */	
 #endif
