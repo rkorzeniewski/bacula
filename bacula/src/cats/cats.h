@@ -538,7 +538,7 @@ extern const char* my_pg_batch_fill_path_query;
 #ifdef HAVE_INGRES
 
 #include "myingres.h"
-#include "lib/reg.h"
+#include "lib/breg.h"
 
 #define BDB_VERSION 12
 
