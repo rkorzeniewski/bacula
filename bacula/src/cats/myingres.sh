@@ -86,7 +86,7 @@ typedef struct ing_conn {
 int INGcheck(void);
 short INGgetCols(B_DB *mdb, const char *stmt);
 char *INGgetvalue(INGresult *res, int row_number, int column_number);
-int INGgetisnull(INGresult *res, int row_number, int column_number);
+bool INGgetisnull(INGresult *res, int row_number, int column_number);
 int INGntuples(const INGresult *res);
 int INGnfields(const INGresult *res);
 char *INGfname(const INGresult *res, int column_number);
