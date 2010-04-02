@@ -169,7 +169,8 @@ typedef enum {
   bEventLevel           = 11,
   bEventSince           = 12,
   bEventCancelCommand   = 13,
-  bEventInitializeVSS   = 14
+  bEventInitializeVSS   = 14,
+  bEventPrepareVSS      = 15,
 } bEventType;
 
 typedef struct s_bEvent {

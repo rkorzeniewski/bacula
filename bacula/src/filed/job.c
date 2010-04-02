@@ -1788,6 +1788,24 @@ static int verify_cmd(JCR *jcr)
    return 0;                          /* return and terminate command loop */
 }
 
+#ifdef WIN32_VSS
+static bool vss_restore_init_callback(JCR *jcr, int init_type)
+{
+   switch (init_type)
+   {
+   case VSS_INIT_RESTORE_AFTER_INIT:
+      generate_plugin_event(jcr, bEventInitializeVSS);
+      return true;
+   case VSS_INIT_RESTORE_AFTER_GATHER:
+      generate_plugin_event(jcr, bEventPrepareVSS);
+      return true;
+   default:
+      return false;
+      break;
+   }
+}
+#endif
+
 /**
  * Do a Restore for Director
  *
@@ -1805,6 +1823,21 @@ static int restore_cmd(JCR *jcr)
     * Scan WHERE (base directory for restore) from command
     */
    Dmsg0(150, "restore command\n");
+#if defined(WIN32_VSS)
+
+   /* TODO: this should be given from the director */
+   enable_vss = 1;
+
+   Dmsg2(50, "g_pVSSClient = %p, enable_vss = %d\n", g_pVSSClient, enable_vss);
+   // capture state here, if client is backed up by multiple directors
+   // and one enables vss and the other does not then enable_vss can change
+   // between here and where its evaluated after the job completes.
+   jcr->VSS = g_pVSSClient && enable_vss;
+   if (jcr->VSS) {
+      /* Run only one at a time */
+      P(vss_mutex);
+   }
+#endif
    /* Pickup where string */
    args = get_memory(dir->msglen+1);
    *args = 0;
@@ -1863,6 +1896,32 @@ static int restore_cmd(JCR *jcr)
    start_dir_heartbeat(jcr);
    generate_daemon_event(jcr, "JobStart");
    generate_plugin_event(jcr, bEventStartRestoreJob);
+
+#if defined(WIN32_VSS)
+   /* START VSS ON WIN32 */
+   if (jcr->VSS) {
+      if (g_pVSSClient->InitializeForRestore(jcr, vss_restore_init_callback)) {
+         /* inform user about writer states */
+         int i;
+         for (i=0; i < (int)g_pVSSClient->GetWriterCount(); i++) {
+            int msg_type = M_INFO;
+            if (g_pVSSClient->GetWriterState(i) < 1) {
+               msg_type = M_WARNING;
+               jcr->JobErrors++;
+            }
+            if (g_pVSSClient->GetWriterState(i) < 1) {
+               Jmsg(jcr, M_WARNING, 0, _("VSS Writer (PreRestore): %s\n"), g_pVSSClient->GetWriterInfo(i));
+               jcr->JobErrors++;
+            }
+         }
+      } else {
+         berrno be;
+         Jmsg(jcr, M_WARNING, 0, _("VSS was not initialized properly. VSS support is disabled. ERR=%s\n"), be.bstrerror());
+      }
+      run_scripts(jcr, jcr->RunScripts, "ClientAfterVSS");
+   }
+#endif
+
    do_restore(jcr);
    stop_dir_heartbeat(jcr);
 
@@ -1881,6 +1940,30 @@ static int restore_cmd(JCR *jcr)
 
    /* Inform Storage daemon that we are done */
    sd->signal(BNET_TERMINATE);
+
+#if defined(WIN32_VSS)
+   /* STOP VSS ON WIN32 */
+   /* tell vss to close the restore session */
+   Dmsg0(0, "About to call CloseRestore\n");
+   if (jcr->VSS) {
+      Dmsg0(0, "Really about to call CloseRestore\n");
+      if (g_pVSSClient->CloseRestore()) {
+         Dmsg0(0, "CloseRestore success\n");
+         /* inform user about writer states */
+         for (int i=0; i<(int)g_pVSSClient->GetWriterCount(); i++) {
+            int msg_type = M_INFO;
+            if (g_pVSSClient->GetWriterState(i) < 1) {
+               msg_type = M_WARNING;
+               jcr->JobErrors++;
+            }
+            Jmsg(jcr, msg_type, 0, _("VSS Writer (RestoreComplete): %s\n"), g_pVSSClient->GetWriterInfo(i));
+         }
+      }
+      else
+         Dmsg1(0, "CloseRestore fail - %08x\n", errno);
+      V(vss_mutex);
+   }
+#endif
 
 bail_out:
    bfree_and_null(jcr->where);
