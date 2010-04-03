@@ -268,7 +268,6 @@ CREATE TABLE Device (
    PRIMARY KEY(DeviceId)
    );
 
-
 CREATE SEQUENCE pool_seq;
 CREATE TABLE pool
 (
@@ -343,8 +342,6 @@ CREATE TABLE LocationLog (
    PRIMARY KEY(LocLogId)
 );
 
-
-
 CREATE TABLE counters
 (
     counter	      varchar(256)	  not null,
@@ -354,7 +351,6 @@ CREATE TABLE counters
     wrapcounter       varchar(256)	  not null,
     primary key (counter)
 );
-
 
 CREATE SEQUENCE basefiles_seq;
 CREATE TABLE basefiles
