@@ -591,10 +591,14 @@ INGconn *INGconnectDB(char *dbname, char *user, char *passwd)
 
 void INGdisconnectDB(INGconn *dbconn)
 {
-   /*
-    * TODO: check for any real use of dbconn: maybe whenn multithreaded?
-    */
-   EXEC SQL DISCONNECT;
+   EXEC SQL BEGIN DECLARE SECTION;
+   int sess_id;
+   EXEC SQL END DECLARE SECTION;
+
+   sess_id = dbconn->session_id;
+
+   EXEC SQL DISCONNECT SESSION :sess_id;
+
    if (dbconn != NULL) {
       free(dbconn->msg);
       free(dbconn);
