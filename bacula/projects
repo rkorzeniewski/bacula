@@ -45,6 +45,7 @@ Item 36: Job migration between different SDs
 Item 37: Concurrent spooling and despooling withini a single job.
 Item 39: Extend the verify code to make it possible to verify
 Item 40: Separate "Storage" and "Device" in the bacula-dir.conf
+Item 41: Least recently used device selection for tape drives in autochanger.
 
 
 Item  1: Ability to restart failed jobs
@@ -1297,6 +1298,25 @@ Item 40: Separate "Storage" and "Device" in the bacula-dir.conf
           information.
 
   Notes:  
+
+Item 41: Least recently used device selection for tape drives in autochanger.
+Date:    12 October 2009
+Origin:  Thomas Carter <tcarter@memc.com>
+Status:  Proposal
+
+What: A better tape drive selection algorithm for multi-drive 
+      autochangers. The AUTOCHANGER class contains an array list of tape 
+      devices. When a tape drive is needed, this list is always searched in 
+      order. This causes lower number drives (specifically drive 0) to do a 
+      majority of the work with higher numbered drives possibly never being 
+      used. When a drive in an autochanger is reserved for use, its entry should 
+      be moved to the end of the list; this would give a rough LRU drive 
+      selection.
+
+Why:  The current implementation places a majority of use and wear on drive 
+      0 of a multi-drive autochanger.
+
+Notes:
 
 ========= New items after last vote ====================
 
