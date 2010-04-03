@@ -617,8 +617,8 @@ int my_ingres_currval(B_DB *mdb, const char *table_name)
     * As we name all sequences as <table>_seq this is easy.
     */
 
-   char sequence[NAMEDATALEN-1];
-   char query[NAMEDATALEN+50];
+   char sequence[64];
+   char query[256];
    INGresult *result;
    int id = 0;
 
