@@ -4,12 +4,9 @@
 #
 bindir=@SQL_BINDIR@
 PATH="$bindir:$PATH"
-#db_name=${db_name:-@db_name@}
-#db_user=${db_user:-@db_user@}
-db_name=@db_name@
-db_user=@db_user@
+db_name=${db_name:-@db_name@}
 
-sql $* -u${db_user} ${db_name} <<END-OF-DATA
+sql $* ${db_name} <<END-OF-DATA
 
 SET AUTOCOMMIT ON\g
 

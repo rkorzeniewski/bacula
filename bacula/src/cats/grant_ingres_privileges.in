@@ -2,11 +2,10 @@
 #
 # shell script TO GRANT privileges to the bacula database
 #
-db_user=${db_user:-@db_user@}
 bindir=@SQL_BINDIR@
 db_name=${db_name:-@db_name@}
 
-if sql -u${db_user} ${db_name} $* <<END-OF-DATA
+if sql ${db_name} $* <<END-OF-DATA
 
 -- for tables
 GRANT ALL ON TABLE filename TO ${db_user};

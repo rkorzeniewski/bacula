@@ -5,9 +5,8 @@
 
 bindir=@SQL_BINDIR@
 db_name=@db_name@
-db_user=@db_user@
 
-if destroydb -u${db_user} ${db_name}
+if destroydb ${db_name}
 then
    echo "Drop of ${db_name} database succeeded."
 else
