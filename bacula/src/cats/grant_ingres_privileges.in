@@ -4,6 +4,12 @@
 #
 bindir=@SQL_BINDIR@
 db_name=${db_name:-@db_name@}
+db_user=${db_user:-@db_user@}
+
+sql iidbdb $* <<END-OF-DATA
+CREATE USER ${db_user}
+\g
+END-OF-DATA
 
 if sql ${db_name} $* <<END-OF-DATA
 

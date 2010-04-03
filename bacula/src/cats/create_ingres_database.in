@@ -4,6 +4,7 @@
 #
 
 bindir=@SQL_BINDIR@
+PATH="$bindir:$PATH"
 db_name=@db_name@
 
 # use SQL_ASCII to be able to put any filename into
@@ -26,4 +27,5 @@ then
 else
    echo "Creation of ${db_name} database failed."
 fi
+
 exit 0
