@@ -5,7 +5,8 @@
 
 bindir=@SQL_BINDIR@
 PATH="$bindir:$PATH"
-db_name=@db_name@
+db_name=${db_name:-@db_name@}
+db_user=${db_user:-@db_user@}
 
 # use SQL_ASCII to be able to put any filename into
 #  the database even those created with unusual character sets
@@ -21,7 +22,7 @@ ENCODING="ENCODING 'SQL_ASCII'"
 #
 #ENCODING="ENCODING 'UTF8'"
      
-if createdb $* ${db_name}
+if createdb -u${db_user} $* ${db_name}
 then
    echo "Creation of ${db_name} database succeeded."
 else
