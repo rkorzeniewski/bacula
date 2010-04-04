@@ -527,7 +527,7 @@ void my_ingres_field_seek(B_DB *mdb, int field)
  */
 int my_ingres_query(B_DB *mdb, const char *query)
 {
-   char *new_query;
+   const char *new_query;
 
    if (strstr(query, "LIMIT") != NULL) {
       new_query = mdb->limit_filter->replace(query);
