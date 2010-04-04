@@ -671,7 +671,7 @@ const char *create_deltabs[5] = {
    "FileSetId INTEGER, "
    "JobFiles INTEGER, "
    "JobStatus char(1))"
-   "ON COMMIT PERSERVE ROWS WITH NORECOVERY"
+   "ON COMMIT PRESERVE ROWS WITH NORECOVERY"
 };
 
 /* ======= ua_restore.c */
