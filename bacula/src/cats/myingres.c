@@ -32,13 +32,21 @@
 #include <eqpname.h>
 #include <eqdefcc.h>
 #include <eqsqlca.h>
-IISQLCA *IIsqlca();
-#define sqlca (*(IIsqlca()))
 #include <eqsqlda.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include "myingres.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+IISQLCA *IIsqlca();
+#ifdef __cplusplus
+}
+#endif
+#define sqlca (*(IIsqlca()))
+
 /*
  * ---Implementations---
  */

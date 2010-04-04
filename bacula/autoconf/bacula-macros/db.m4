@@ -565,7 +565,7 @@ AC_HELP_STRING([--with-ingres@<:@=DIR@:>@], [Include Ingres support. DIR is the 
         fi
      fi
      SQL_INCLUDE=-I$INGRES_INCDIR
-     SQL_LFLAGS="-L$INGRES_LIBDIR -lingres"
+     SQL_LFLAGS="-L$INGRES_LIBDIR -lq.1 -lcompat.1"
      SQL_BINDIR=$INGRES_BINDIR
      SQL_LIB=$INGRES_LIBDIR/libingres.a
      AC_DEFINE(HAVE_INGRES, 1, [Set if have Ingres Database])
