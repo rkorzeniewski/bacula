@@ -358,6 +358,8 @@ JCR *new_jcr(int size, JCR_free_HANDLER *daemon_free_jcr)
    jcr->VolumeName[0] = 0;
    jcr->errmsg = get_pool_memory(PM_MESSAGE);
    jcr->errmsg[0] = 0;
+   jcr->comment = get_pool_memory(PM_FNAME);
+   jcr->comment[0] = 0;
    /* Setup some dummy values */
    bstrncpy(jcr->Job, "*System*", sizeof(jcr->Job));
    jcr->JobId = 0;
@@ -468,6 +470,10 @@ static void free_common_jcr(JCR *jcr)
    if (jcr->id_list) {
       free_guid_list(jcr->id_list);
       jcr->id_list = NULL;
+   }
+   if (jcr->comment) {
+      free_pool_memory(jcr->comment);
+      jcr->comment = NULL;
    }
    remove_jcr_from_tsd(jcr);
    free(jcr);

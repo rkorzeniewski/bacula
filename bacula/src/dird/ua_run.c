@@ -439,9 +439,6 @@ static bool reset_restore_context(UAContext *ua, JCR *jcr, run_ctx &rc)
       pm_strcpy(jcr->catalog_source, _("User input"));
    }
 
-   if (!jcr->comment) {
-      jcr->comment = get_pool_memory(PM_MESSAGE);
-   }
    pm_strcpy(jcr->comment, rc.comment);
 
    if (rc.where) {
