@@ -576,6 +576,7 @@ struct B_DB {
    char *db_address;              /* host address */
    char *db_socket;               /* socket for local access */
    int db_port;                   /* port of host address */
+   int session_id;                /* unique session id */
    int have_insert_id;            /* do have insert_id() */
    bool connected;
    POOLMEM *errmsg;               /* nicely edited error message */

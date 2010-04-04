@@ -76,7 +76,6 @@ typedef struct ing_conn {
     char dbname[24];
     char user[32];
     char password[32];
-    char connection_name[32];
     int session_id;
     char *msg;
 } INGconn;
@@ -84,7 +83,7 @@ typedef struct ing_conn {
 
 /* ---Prototypes--- */
 int INGcheck(void);
-short INGgetCols(const char *stmt);
+short INGgetCols(INGconn *conn, const char *query);
 char *INGgetvalue(INGresult *res, int row_number, int column_number);
 bool INGgetisnull(INGresult *res, int row_number, int column_number);
 int INGntuples(const INGresult *res);
@@ -94,7 +93,7 @@ short INGftype(const INGresult *res, int column_number);
 int INGexec(INGconn *db, const char *query);
 INGresult *INGquery(INGconn *db, const char *query);
 void INGclear(INGresult *res);
-INGconn *INGconnectDB(char *dbname, char *user, char *passwd);
+INGconn *INGconnectDB(char *dbname, char *user, char *passwd, int session_id);
 void INGdisconnectDB(INGconn *dbconn);
 char *INGerrorMessage(const INGconn *conn);
 char *INGcmdTuples(INGresult *res);
