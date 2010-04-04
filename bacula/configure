@@ -28522,7 +28522,7 @@ echo "$as_me: error: Invalid Ingres directory $withval - unable to find Ingres h
         fi
      fi
      SQL_INCLUDE=-I$INGRES_INCDIR
-     SQL_LFLAGS="-L$INGRES_LIBDIR -lq.1 -lcompat.1"
+     SQL_LFLAGS="-L$INGRES_LIBDIR -lq.1 -lcompat.1 -lframe.1"
      SQL_BINDIR=$INGRES_BINDIR
      SQL_LIB=$INGRES_LIBDIR/libingres.a
 
