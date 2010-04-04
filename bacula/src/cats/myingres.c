@@ -32,7 +32,8 @@
 #include <eqpname.h>
 #include <eqdefcc.h>
 #include <eqsqlca.h>
-extern IISQLCA sqlca;   /* SQL Communications Area */
+IISQLCA *IIsqlca();
+#define sqlca (*(IIsqlca()))
 #include <eqsqlda.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -334,9 +335,9 @@ static inline int INGfetchAll(const char *query, INGresult *ing_res)
 /* # line 367 "myingres.sc" */	/* open */
   {
     IIsqInit(&sqlca);
-    IIcsOpen((char *)"c2",11417,2807);
+    IIcsOpen((char *)"c2",19318,7414);
     IIwritio(0,(short *)0,1,32,0,(char *)"s2");
-    IIcsQuery((char *)"c2",11417,2807);
+    IIcsQuery((char *)"c2",19318,7414);
   }
 /* # line 368 "myingres.sc" */	/* host code */
    if ((check = INGcheck()) < 0) {
@@ -347,7 +348,7 @@ static inline int INGfetchAll(const char *query, INGresult *ing_res)
 /* # line 374 "myingres.sc" */	/* fetch */
   {
     IIsqInit(&sqlca);
-    if (IIcsRetScroll((char *)"c2",11417,2807,-1,-1) != 0) {
+    if (IIcsRetScroll((char *)"c2",19318,7414,-1,-1) != 0) {
       IIcsDaGet(0,desc);
       IIcsERetrieve();
     } /* IIcsRetrieve */
@@ -372,7 +373,7 @@ static inline int INGfetchAll(const char *query, INGresult *ing_res)
 /* # line 394 "myingres.sc" */	/* close */
   {
     IIsqInit(&sqlca);
-    IIcsClose((char *)"c2",11417,2807);
+    IIcsClose((char *)"c2",19318,7414);
   }
 /* # line 396 "myingres.sc" */	/* host code */
    ing_res->status = ING_COMMAND_OK;
