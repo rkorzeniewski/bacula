@@ -58,7 +58,7 @@ all: Makefile libbacsql$(DEFAULT_ARCHIVE_TYPE)
 
 esql:
 	@echo "Generating myingres.c from myingres.sc"
-	$(NO_ECHO)$(II_SYSTEM)/ingres/bin/esqlcc -extension=c myingres.sc
+	$(NO_ECHO)$(II_SYSTEM)/ingres/bin/esqlcc -multi -extension=c myingres.sc
 	@echo "Generating myingres.h from myingres.sh"
 	$(NO_ECHO)$(II_SYSTEM)/ingres/bin/esqlcc -extension=h myingres.sh
 
