@@ -121,7 +121,6 @@ db_init_database(JCR *jcr, const char *db_name, const char *db_user, const char 
    mdb = (B_DB *)malloc(sizeof(B_DB));
    memset(mdb, 0, sizeof(B_DB));
    mdb->db_name = bstrdup(db_name);
-   mdb->have_insert_id = true;
    mdb->errmsg = get_pool_memory(PM_EMSG); /* get error message buffer */
    *mdb->errmsg = 0;
    mdb->cmd = get_pool_memory(PM_EMSG);    /* get command buffer */
