@@ -291,24 +291,23 @@ struct B_DB {
  *
  *                    S Q L I T E 3
  */
-#define sql_store_result(x)   (x)->result
-#define sql_free_result(x)    my_sqlite_free_table(x)
-#define sql_fetch_row(x)      my_sqlite_fetch_row(x)
-#define sql_query(x, y)       my_sqlite_query((x), (y))
+#define sql_store_result(x)    (x)->result
+#define sql_free_result(x)     my_sqlite_free_table(x)
+#define sql_fetch_row(x)       my_sqlite_fetch_row(x)
+#define sql_query(x, y)        my_sqlite_query((x), (y))
+#define sql_insert_id(x, y, z) my_sqlite_sql_insert_id((x), (y), (z))
 #ifdef HAVE_SQLITE3
-#define sql_insert_id(x,y)    sqlite3_last_insert_rowid((x)->db)
-#define sql_close(x)          sqlite3_close((x)->db)
+#define sql_close(x)           sqlite3_close((x)->db)
 #else
-#define sql_insert_id(x,y)    sqlite_last_insert_rowid((x)->db)
-#define sql_close(x)          sqlite_close((x)->db)
+#define sql_close(x)           sqlite_close((x)->db)
 #endif
-#define sql_strerror(x)       (x)->sqlite_errmsg?(x)->sqlite_errmsg:"unknown"
-#define sql_num_rows(x)       (x)->nrow
-#define sql_data_seek(x, i)   (x)->row = (i)
-#define sql_affected_rows(x)  sqlite3_changes((x)->db)
-#define sql_field_seek(x, y)  my_sqlite_field_seek((x), (y))
-#define sql_fetch_field(x)    my_sqlite_fetch_field(x)
-#define sql_num_fields(x)     ((x)->ncolumn)
+#define sql_strerror(x)        (x)->sqlite_errmsg?(x)->sqlite_errmsg:"unknown"
+#define sql_num_rows(x)        (x)->nrow
+#define sql_data_seek(x, i)    (x)->row = (i)
+#define sql_affected_rows(x)   sqlite3_changes((x)->db)
+#define sql_field_seek(x, y)   my_sqlite_field_seek((x), (y))
+#define sql_fetch_field(x)     my_sqlite_fetch_field(x)
+#define sql_num_fields(x)      ((x)->ncolumn)
 #define sql_batch_start(x,y)    my_batch_start(x,y)
 #define sql_batch_end(x,y,z)    my_batch_end(x,y,z)
 #define sql_batch_insert(x,y,z) my_batch_insert(x,y,z)
@@ -326,6 +325,7 @@ SQL_ROW    my_sqlite_fetch_row(B_DB *mdb);
 int        my_sqlite_query(B_DB *mdb, const char *cmd);
 void       my_sqlite_field_seek(B_DB *mdb, int field);
 SQL_FIELD *my_sqlite_fetch_field(B_DB *mdb);
+int        my_sqlite_sql_insert_id(B_DB *mdb, const char *query, const char *table_name);
 extern const char* my_sqlite_batch_lock_query;
 extern const char* my_sqlite_batch_unlock_query;
 extern const char* my_sqlite_batch_fill_filename_query;
@@ -486,7 +486,7 @@ void               my_postgresql_free_result(B_DB *mdb);
 POSTGRESQL_ROW     my_postgresql_fetch_row  (B_DB *mdb);
 int                my_postgresql_query      (B_DB *mdb, const char *query);
 void               my_postgresql_data_seek  (B_DB *mdb, int row);
-int                my_postgresql_insert_id  (B_DB *mdb, const char *query, const char *table_name)
+int                my_postgresql_insert_id  (B_DB *mdb, const char *query, const char *table_name);
 void               my_postgresql_field_seek (B_DB *mdb, int row);
 POSTGRESQL_FIELD * my_postgresql_fetch_field(B_DB *mdb);
 
