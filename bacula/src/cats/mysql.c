@@ -380,6 +380,26 @@ void my_mysql_free_result(B_DB *mdb)
    db_unlock(mdb);
 }
 
+int my_mysql_sql_insert_id(B_DB *mdb, const char *query, const char *table_name)
+{
+   /*
+    * First execute the insert query and then retrieve the currval.
+    */
+   if (!mysql_query(mdb, query)) {
+      return 0;
+   }
+
+   mdb->num_rows = sql_affected_rows(mdb);
+   if (mdb->num_rows != 1) {
+      return 0;
+   }
+
+   mdb->changes++;
+
+   return mysql_insert_id(mdb->db);
+}
+
+
 #ifdef HAVE_BATCH_FILE_INSERT
 const char *my_mysql_batch_lock_path_query = 
    "LOCK TABLES Path write, batch write, Path as p write";

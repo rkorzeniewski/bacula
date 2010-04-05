@@ -159,27 +159,26 @@ struct B_DB {
  *
  *                    S Q L I T E
  */
-#define sql_store_result(x)   (x)->result
-#define sql_free_result(x)    my_sqlite_free_table(x)
-#define sql_fetch_row(x)      my_sqlite_fetch_row(x)
-#define sql_query(x, y)       my_sqlite_query((x), (y))
+#define sql_store_result(x)    (x)->result
+#define sql_free_result(x)     my_sqlite_free_table(x)
+#define sql_fetch_row(x)       my_sqlite_fetch_row(x)
+#define sql_query(x, y)        my_sqlite_query((x), (y))
+#define sql_insert_id(x, y, z) my_sqlite_sql_insert_id((x), (y), (z))
 #ifdef HAVE_SQLITE3
-#define sql_insert_id(x,y)    sqlite3_last_insert_rowid((x)->db)
-#define sql_close(x)          sqlite3_close((x)->db)
-#define sql_affected_rows(x)  sqlite3_changes((x)->db)
+#define sql_close(x)           sqlite3_close((x)->db)
+#define sql_affected_rows(x)   sqlite3_changes((x)->db)
 #else
-#define sql_insert_id(x,y)    sqlite_last_insert_rowid((x)->db)
-#define sql_close(x)          sqlite_close((x)->db)
-#define sql_affected_rows(x)  1
+#define sql_close(x)           sqlite_close((x)->db)
+#define sql_affected_rows(x)   1
 #endif
-#define sql_strerror(x)       (x)->sqlite_errmsg?(x)->sqlite_errmsg:"unknown"
-#define sql_num_rows(x)       (x)->nrow
-#define sql_data_seek(x, i)   (x)->row = (i)
-#define sql_field_seek(x, y)  my_sqlite_field_seek((x), (y))
-#define sql_fetch_field(x)    my_sqlite_fetch_field(x)
-#define sql_num_fields(x)     ((x)->ncolumn)
-#define SQL_ROW               char**
-#define SQL_MATCH             "MATCH"
+#define sql_strerror(x)        (x)->sqlite_errmsg?(x)->sqlite_errmsg:"unknown"
+#define sql_num_rows(x)        (x)->nrow
+#define sql_data_seek(x, i)    (x)->row = (i)
+#define sql_field_seek(x, y)   my_sqlite_field_seek((x), (y))
+#define sql_fetch_field(x)     my_sqlite_fetch_field(x)
+#define sql_num_fields(x)      ((x)->ncolumn)
+#define SQL_ROW                char**
+#define SQL_MATCH              "MATCH"
 
 #define sql_batch_start(x,y)    my_batch_start(x,y)
 #define sql_batch_end(x,y,z)    my_batch_end(x,y,z)
@@ -196,6 +195,7 @@ SQL_ROW    my_sqlite_fetch_row(B_DB *mdb);
 int        my_sqlite_query(B_DB *mdb, const char *cmd);
 void       my_sqlite_field_seek(B_DB *mdb, int field);
 SQL_FIELD *my_sqlite_fetch_field(B_DB *mdb);
+int my_sqlite_sql_insert_id(B_DB *mdb, const char *query, const char *table_name);
 extern const char* my_sqlite_batch_lock_query;
 extern const char* my_sqlite_batch_unlock_query;
 extern const char* my_sqlite_batch_fill_filename_query;
@@ -381,22 +381,22 @@ struct B_DB {
 #define DB_STATUS int
 
 /* "Generic" names for easier conversion */
-#define sql_store_result(x)   mysql_store_result((x)->db)
-#define sql_use_result(x)     mysql_use_result((x)->db)
-#define sql_free_result(x)    my_mysql_free_result(x)
-#define sql_fetch_row(x)      mysql_fetch_row((x)->result)
-#define sql_query(x, y)       mysql_query((x)->db, (y))
-#define sql_strerror(x)       mysql_error((x)->db)
-#define sql_num_rows(x)       mysql_num_rows((x)->result)
-#define sql_data_seek(x, i)   mysql_data_seek((x)->result, (i))
-#define sql_affected_rows(x)  mysql_affected_rows((x)->db)
-#define sql_insert_id(x,y)    mysql_insert_id((x)->db)
-#define sql_field_seek(x, y)  mysql_field_seek((x)->result, (y))
-#define sql_fetch_field(x)    mysql_fetch_field((x)->result)
-#define sql_num_fields(x)     (int)mysql_num_fields((x)->result)
-#define SQL_ROW               MYSQL_ROW
-#define SQL_FIELD             MYSQL_FIELD
-#define SQL_MATCH             "MATCH"
+#define sql_store_result(x)    mysql_store_result((x)->db)
+#define sql_use_result(x)      mysql_use_result((x)->db)
+#define sql_free_result(x)     my_mysql_free_result(x)
+#define sql_fetch_row(x)       mysql_fetch_row((x)->result)
+#define sql_query(x, y)        mysql_query((x)->db, (y))
+#define sql_strerror(x)        mysql_error((x)->db)
+#define sql_num_rows(x)        mysql_num_rows((x)->result)
+#define sql_data_seek(x, i)    mysql_data_seek((x)->result, (i))
+#define sql_affected_rows(x)   mysql_affected_rows((x)->db)
+#define sql_insert_id(x, y, z) my_mysql_sql_insert_id((x), (y), (z))
+#define sql_field_seek(x, y)   mysql_field_seek((x)->result, (y))
+#define sql_fetch_field(x)     mysql_fetch_field((x)->result)
+#define sql_num_fields(x)      (int)mysql_num_fields((x)->result)
+#define SQL_ROW                MYSQL_ROW
+#define SQL_FIELD              MYSQL_FIELD
+#define SQL_MATCH              "MATCH"
 
 #define sql_batch_start(x,y)    my_batch_start(x,y)
 #define sql_batch_end(x,y,z)    my_batch_end(x,y,z)
@@ -414,6 +414,7 @@ extern const char* my_mysql_batch_unlock_tables_query;
 extern const char* my_mysql_batch_fill_filename_query;
 extern const char* my_mysql_batch_fill_path_query;
 extern void  my_mysql_free_result(B_DB *mdb);
+extern int my_mysql_sql_insert_id(B_DB *mdb, const char *query, const char *table_name);
 
 #else
 
@@ -485,7 +486,7 @@ void               my_postgresql_free_result(B_DB *mdb);
 POSTGRESQL_ROW     my_postgresql_fetch_row  (B_DB *mdb);
 int                my_postgresql_query      (B_DB *mdb, const char *query);
 void               my_postgresql_data_seek  (B_DB *mdb, int row);
-int                my_postgresql_currval    (B_DB *mdb, const char *table_name);
+int                my_postgresql_insert_id  (B_DB *mdb, const char *query, const char *table_name)
 void               my_postgresql_field_seek (B_DB *mdb, int row);
 POSTGRESQL_FIELD * my_postgresql_fetch_field(B_DB *mdb);
 
@@ -511,7 +512,7 @@ extern const char* my_pg_batch_fill_path_query;
 #define sql_num_rows(x)       ((unsigned) PQntuples((x)->result))
 #define sql_data_seek(x, i)   my_postgresql_data_seek((x), (i))
 #define sql_affected_rows(x)  ((unsigned) atoi(PQcmdTuples((x)->result)))
-#define sql_insert_id(x,y)    my_postgresql_currval((x), (y))
+#define sql_insert_id(x, y, z)    my_postgresql_insert_id((x), (y), (z))
 #define sql_field_seek(x, y)  my_postgresql_field_seek((x), (y))
 #define sql_fetch_field(x)    my_postgresql_fetch_field(x)
 #define sql_num_fields(x)     ((x)->num_fields)
@@ -595,10 +596,10 @@ void               my_ingres_free_result(B_DB *mdb);
 INGRES_ROW         my_ingres_fetch_row  (B_DB *mdb);
 int                my_ingres_query      (B_DB *mdb, const char *query);
 void               my_ingres_data_seek  (B_DB *mdb, int row);
-int                my_ingres_currval    (B_DB *mdb, const char *table_name);
 void               my_ingres_field_seek (B_DB *mdb, int row);
 INGRES_FIELD *     my_ingres_fetch_field(B_DB *mdb);
 void               my_ingres_close      (B_DB *mdb);
+int                my_ingres_insert_id  (B_DB *mdb, const char *query, const char *table_name);
 
 int my_ingres_batch_start(JCR *jcr, B_DB *mdb);
 int my_ingres_batch_end(JCR *jcr, B_DB *mdb, const char *error);
@@ -613,19 +614,19 @@ extern const char* my_ingres_batch_fill_filename_query;
 extern const char* my_ingres_batch_fill_path_query;
 
 /* "Generic" names for easier conversion */
-#define sql_store_result(x)   ((x)->result)
-#define sql_free_result(x)    my_ingres_free_result(x)
-#define sql_fetch_row(x)      my_ingres_fetch_row(x)
-#define sql_query(x, y)       my_ingres_query((x), (y))
-#define sql_close(x)          my_ingres_close(x)
-#define sql_strerror(x)       INGerrorMessage((x)->db)
-#define sql_num_rows(x)       ((unsigned) INGntuples((x)->result))
-#define sql_data_seek(x, i)   my_ingres_data_seek((x), (i))
-#define sql_affected_rows(x)  ((x)->num_rows)
-#define sql_insert_id(x,y)    my_ingres_currval((x), (y))
-#define sql_field_seek(x, y)  my_ingres_field_seek((x), (y))
-#define sql_fetch_field(x)    my_ingres_fetch_field(x)
-#define sql_num_fields(x)     ((x)->num_fields)
+#define sql_store_result(x)    ((x)->result)
+#define sql_free_result(x)     my_ingres_free_result(x)
+#define sql_fetch_row(x)       my_ingres_fetch_row(x)
+#define sql_query(x, y)        my_ingres_query((x), (y))
+#define sql_close(x)           my_ingres_close(x)
+#define sql_strerror(x)        INGerrorMessage((x)->db)
+#define sql_num_rows(x)        ((unsigned) INGntuples((x)->result))
+#define sql_data_seek(x, i)    my_ingres_data_seek((x), (i))
+#define sql_affected_rows(x)   ((x)->num_rows)
+#define sql_insert_id(x, y, z) my_ingres_insert_id((x), (y), (z))
+#define sql_field_seek(x, y)   my_ingres_field_seek((x), (y))
+#define sql_fetch_field(x)     my_ingres_fetch_field(x)
+#define sql_num_fields(x)      ((x)->num_fields)
 
 #define sql_batch_start(x,y)    my_ingres_batch_start(x,y)
 #define sql_batch_end(x,y,z)    my_ingres_batch_end(x,y,z)
@@ -728,7 +729,7 @@ const char *       my_dbi_strerror   (B_DB *mdb);
 int                my_dbi_getisnull  (dbi_result *result, int row_number, int column_number);
 char *             my_dbi_getvalue   (dbi_result *result, int row_number, unsigned int column_number);
 //int                my_dbi_getvalue   (dbi_result *result, int row_number, unsigned int column_number, char *value);
-int                my_dbi_sql_insert_id(B_DB *mdb, char *table_name);
+int                my_dbi_sql_insert_id(B_DB *mdb, const char *query, const char *table_name);
 
 int my_dbi_batch_start(JCR *jcr, B_DB *mdb);
 int my_dbi_batch_end(JCR *jcr, B_DB *mdb, const char *error);
@@ -759,10 +760,10 @@ extern const char* my_dbi_match[5];
 #define SQL_MATCH             my_dbi_match[db_type]
 /* #define sql_affected_rows(x)  dbi_result_get_numrows_affected((x)->result) */
 #define sql_affected_rows(x)  1
-#define sql_insert_id(x,y)    my_dbi_sql_insert_id((x), (y))
-#define sql_field_seek(x, y)  my_dbi_field_seek((x), (y))
-#define sql_fetch_field(x)    my_dbi_fetch_field(x)
-#define sql_num_fields(x)     ((x)->num_fields)
+#define sql_insert_id(x, y, z)  my_dbi_sql_insert_id((x), (y), (z))
+#define sql_field_seek(x, y)    my_dbi_field_seek((x), (y))
+#define sql_fetch_field(x)      my_dbi_fetch_field(x)
+#define sql_num_fields(x)       ((x)->num_fields)
 #define sql_batch_start(x,y)    my_dbi_batch_start(x,y)
 #define sql_batch_end(x,y,z)    my_dbi_batch_end(x,y,z)
 #define sql_batch_insert(x,y,z) my_dbi_batch_insert(x,y,z)

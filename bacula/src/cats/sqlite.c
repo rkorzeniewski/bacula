@@ -500,6 +500,29 @@ SQL_FIELD *my_sqlite_fetch_field(B_DB *mdb)
    }
 }
 
+int my_sqlite_sql_insert_id(B_DB *mdb, const char *query, const char *table_name)
+{
+   /*
+    * First execute the insert query and then retrieve the currval.
+    */
+   if (!my_sqlite_query(mdb, query)) {
+      return 0;
+   }
+
+   mdb->num_rows = sql_affected_rows(mdb);
+   if (mdb->num_rows != 1) {
+      return 0;
+   }
+
+   mdb->changes++;
+
+#ifdef HAVE_SQLITE3
+   return sqlite3_last_insert_rowid(mdb->db);
+#else
+   return sqlite_last_insert_rowid(mdb->db);
+#endif
+}
+
 #ifdef HAVE_BATCH_FILE_INSERT
 const char *my_sqlite_batch_lock_query = "BEGIN";
 const char *my_sqlite_batch_unlock_query = "COMMIT";

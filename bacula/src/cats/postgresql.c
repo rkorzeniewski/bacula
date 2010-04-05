@@ -592,7 +592,7 @@ void my_postgresql_free_result(B_DB *mdb)
    db_unlock(mdb);
 }
 
-int my_postgresql_currval(B_DB *mdb, const char *table_name)
+static int my_postgresql_currval(B_DB *mdb, const char *table_name)
 {
    // Obtain the current value of the sequence that
    // provides the serial value for primary key of the table.
@@ -655,6 +655,25 @@ bail_out:
    PQclear(result);
 
    return id;
+}
+
+int my_postgresql_insert_id(B_DB *mdb, const char *query, const char *table_name)
+{
+   /*
+    * First execute the insert query and then retrieve the currval.
+    */
+   if (!my_postgresql_query(mdb, query)) {
+      return 0;
+   }
+
+   mdb->num_rows = sql_affected_rows(mdb);
+   if (mdb->num_rows != 1) {
+      return 0;
+   }
+
+   mdb->changes++;
+
+   return my_postgresql_currval(mdb, table_name);
 }
 
 #ifdef HAVE_BATCH_FILE_INSERT
