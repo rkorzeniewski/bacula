@@ -1283,7 +1283,7 @@ const char *my_dbi_batch_lock_path_query[5] = {
    "BEGIN",
    /* SQLite3 */
    "BEGIN",
-   /* Ingres (TODO) */
+   /* Ingres */
    "BEGIN"
 };
 
@@ -1296,7 +1296,7 @@ const char *my_dbi_batch_lock_filename_query[5] = {
    "BEGIN",
    /* SQLite3 */
    "BEGIN",
-   /* Ingres (TODO) */
+   /* Ingres */
    "BEGIN"
 };
 
@@ -1332,7 +1332,7 @@ const char *my_dbi_batch_fill_path_query[5] = {
    "INSERT INTO Path (Path)"
    " SELECT DISTINCT Path FROM batch"
    " EXCEPT SELECT Path FROM Path",
-   /* Ingres (TODO) */
+   /* Ingres */
    "INSERT INTO Path (Path) "
    "SELECT a.Path FROM "
    "(SELECT DISTINCT Path FROM batch) AS a "
@@ -1359,7 +1359,7 @@ const char *my_dbi_batch_fill_filename_query[5] = {
    "INSERT INTO Filename (Name)"
    " SELECT DISTINCT Name FROM batch "
    " EXCEPT SELECT Name FROM Filename",
-   /* Ingres (TODO) */
+   /* Ingres */
    "INSERT INTO Filename (Name) "
    "SELECT a.Name FROM "
    "(SELECT DISTINCT Name FROM batch) as a "
