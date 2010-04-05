@@ -397,9 +397,9 @@ const char *job_type_to_str(int type)
 
 /* Convert ActionOnPurge to string (Truncate, Erase, Destroy)
  */
-char *aop_to_str(int aop, POOL_MEM &ret)
+char *action_on_purge_to_string(int aop, POOL_MEM &ret)
 {
-   if (aop & AOP_TRUNCATE) {
+   if (aop & ON_PURGE_TRUNCATE) {
       pm_strcpy(ret, _("Truncate"));
    }
    if (!aop) {

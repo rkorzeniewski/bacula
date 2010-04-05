@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2009 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2010 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -32,7 +32,6 @@
  *
  *     Kern Sibbald, September MM
  *
- *   Version $Id$
  */
 
 #include "bacula.h"
@@ -478,7 +477,7 @@ static void update_vol_actiononpurge(UAContext *ua, char *val, MEDIA_DBR *mr)
 {
    POOL_MEM ret;
    if (strcasecmp(val, "truncate") == 0) {
-      mr->ActionOnPurge = AOP_TRUNCATE;
+      mr->ActionOnPurge = ON_PURGE_TRUNCATE;
    } else {
       mr->ActionOnPurge = 0;
    }
@@ -488,7 +487,7 @@ static void update_vol_actiononpurge(UAContext *ua, char *val, MEDIA_DBR *mr)
                     db_strerror(ua->db));
    } else {
       ua->info_msg(_("New ActionOnPurge is: %s\n"), 
-                   aop_to_str(mr->ActionOnPurge, ret));
+                   action_on_purge_to_string(mr->ActionOnPurge, ret));
    }
 }
 
@@ -587,9 +586,9 @@ static int update_volume(UAContext *ua)
          case 13:
             update_vol_recyclepool(ua, ua->argv[j], &mr);
             break;
-	 case 14:
-	    update_vol_actiononpurge(ua, ua->argv[j], &mr);
-	    break;
+         case 14:
+            update_vol_actiononpurge(ua, ua->argv[j], &mr);
+            break;
          }
          done = true;
       }
@@ -818,14 +817,14 @@ static int update_volume(UAContext *ua)
 
       case 16:
          pm_strcpy(ret, "");
-	 ua->info_msg(_("Current ActionOnPurge is: %s\n"), 
-                      aop_to_str(mr.ActionOnPurge, ret));
-	 if (!get_cmd(ua, _("Enter new ActionOnPurge (one of: Truncate, None): "))) {
+         ua->info_msg(_("Current ActionOnPurge is: %s\n"), 
+                      action_on_purge_to_string(mr.ActionOnPurge, ret));
+         if (!get_cmd(ua, _("Enter new ActionOnPurge (one of: Truncate, None): "))) {
             return 0;
-	 }
+         }
 
          update_vol_actiononpurge(ua, ua->cmd, &mr);
-	 break;
+         break;
 
       default:                        /* Done or error */
          ua->info_msg(_("Selection terminated.\n"));

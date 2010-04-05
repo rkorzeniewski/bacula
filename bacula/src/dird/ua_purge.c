@@ -589,7 +589,7 @@ static void do_truncate_on_purge(UAContext *ua, MEDIA_DBR *mr,
       return;
    }
 
-   if (mr->ActionOnPurge & AOP_TRUNCATE) {
+   if (mr->ActionOnPurge & ON_PURGE_TRUNCATE) {
       /* Send the command to truncate the volume after purge. If this feature
        * is disabled for the specific device, this will be a no-op.
        */

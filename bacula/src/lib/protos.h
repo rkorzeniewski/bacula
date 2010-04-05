@@ -321,7 +321,7 @@ void             jobstatus_to_ascii      (int JobStatus, char *msg, int maxlen);
 void             jobstatus_to_ascii_gui  (int JobStatus, char *msg, int maxlen);
 int              run_program             (char *prog, int wait, POOLMEM *&results);
 int              run_program_full_output (char *prog, int wait, POOLMEM *&results);
-char *           aop_to_str              (int aop, POOL_MEM &ret);
+char *           action_on_purge_to_string(int aop, POOL_MEM &ret);
 const char *     job_type_to_str         (int type);
 const char *     job_status_to_str       (int stat);
 const char *     job_level_to_str        (int level);

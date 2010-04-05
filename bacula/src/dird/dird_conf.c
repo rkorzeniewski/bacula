@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2009 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2010 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -46,7 +46,6 @@
  *
  *     Kern Sibbald, January MM
  *
- *     Version $Id$
  */
 
 
@@ -1622,7 +1621,7 @@ static void store_actiononpurge(LEX *lc, RES_ITEM *item, int index, int pass)
    uint32_t *destination = (uint32_t*)item->value;
    lex_get_token(lc, T_NAME);
    if (strcasecmp(lc->str, "truncate") == 0) {
-      *destination = (*destination) | AOP_TRUNCATE;
+      *destination = (*destination) | ON_PURGE_TRUNCATE;
    } else {
       scan_err2(lc, _("Expected one of: %s, got: %s"), "Truncate", lc->str);
       return;

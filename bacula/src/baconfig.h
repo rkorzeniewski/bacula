@@ -356,7 +356,7 @@ void InitWinAPIWrapper();
 /**
  * Actions on purge (bit mask)
  */
-#define AOP_TRUNCATE 1
+#define ON_PURGE_TRUNCATE 1
 
 /* Size of File Address stored in STREAM_SPARSE_DATA. Do NOT change! */
 #define SPARSE_FADDR_SIZE (sizeof(uint64_t))
