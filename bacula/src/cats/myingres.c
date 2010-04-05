@@ -24,7 +24,7 @@
  * Bacula Catalog Database routines specific to Ingres
  *   These are Ingres specific routines
  *
- *    Stefan Reddig, June 2009
+ *    Stefan Reddig, June 2009 with help of Marco van Wieringen April 2010
  */
 #include "bacula.h"
 /* # line 37 "myingres.sc" */	
