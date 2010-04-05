@@ -561,7 +561,7 @@ int my_ingres_query(B_DB *mdb, const char *query)
       Dmsg0(500,"my_ingres_query: Start of transaction\n");
       mdb->transaction = true;
       return 0;
-   } else if (strcasecmp(new_query, "END") != NULL) {
+   } else if (strcasecmp(new_query, "COMMIT") != NULL) {
       /*
        * End of a transaction.
        */
@@ -776,12 +776,9 @@ char *my_ingres_copy_escape(char *dest, char *src, size_t len)
 }
 
 #ifdef HAVE_BATCH_FILE_INSERT
-const char *my_ingres_batch_lock_path_query = 
-   "BEGIN; LOCK TABLE Path IN SHARE ROW EXCLUSIVE MODE";
+const char *my_ingres_batch_lock_path_query = "BEGIN";
 
-
-const char *my_ingres_batch_lock_filename_query = 
-   "BEGIN; LOCK TABLE Filename IN SHARE ROW EXCLUSIVE MODE";
+const char *my_ingres_batch_lock_filename_query = "BEGIN";
 
 const char *my_ingres_batch_unlock_tables_query = "COMMIT";
 
