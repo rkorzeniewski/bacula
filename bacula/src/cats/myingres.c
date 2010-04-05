@@ -547,7 +547,7 @@ INGresult *INGquery(INGconn *conn, const char *query, bool transaction)
    IISQLDA *desc = NULL;
    INGresult *res = NULL;
    int rows = -1;
-   int cols = INGgetCols(conn, query);
+   int cols = INGgetCols(conn, query, transaction);
 /* # line 546 "myingres.sc" */	
   
   int sess_id;
@@ -607,7 +607,7 @@ void INGclear(INGresult *res)
    INGfreeDescriptor(res->sqlda);
    INGfreeINGresult(res);
 }
-void INGcommit(onst INGconn *conn)
+void INGcommit(const INGconn *dbconn)
 {
 /* # line 601 "myingres.sc" */	
   
