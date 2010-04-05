@@ -551,15 +551,35 @@ int my_ingres_query(B_DB *mdb, const char *query)
 
    Dmsg1(500, "my_ingres_query starts with '%s'\n", new_query);
 
+   /*
+    * See if we are getting a transaction start or end.
+    */
+   if (strcasecmp(new_query, "BEGIN") != NULL) {
+      /*
+       * Start of a transaction.
+       */
+      Dmsg0(500,"my_ingres_query: Start of transaction\n");
+      mdb->transaction = true;
+      return 0;
+   } else if (strcasecmp(new_query, "END") != NULL) {
+      /*
+       * End of a transaction.
+       */
+      Dmsg0(500,"my_ingres_query: End of transaction, commiting work\n");
+      mdb->transaction = false;
+      INGcommit(mdb->db);
+      return 0;
+   }
+
    /* TODO: differentiate between SELECTs and other queries */
 
-   if ((cols = INGgetCols(mdb->db, new_query)) <= 0) {
+   if ((cols = INGgetCols(mdb->db, new_query, mdb->transaction)) <= 0) {
       if (cols < 0 ) {
          Dmsg0(500,"my_ingres_query: neg.columns: no DML stmt!\n");
       }
       Dmsg0(500,"my_ingres_query (non SELECT) starting...\n");
       /* non SELECT */
-      mdb->num_rows = INGexec(mdb->db, new_query);
+      mdb->num_rows = INGexec(mdb->db, new_query, mdb->transaction);
       if (INGcheck()) {
         Dmsg0(500,"my_ingres_query (non SELECT) went wrong\n");
         mdb->status = 1;
@@ -570,7 +590,7 @@ int my_ingres_query(B_DB *mdb, const char *query)
    } else {
       /* SELECT */
       Dmsg0(500,"my_ingres_query (SELECT) starting...\n");
-      mdb->result = INGquery(mdb->db, new_query);
+      mdb->result = INGquery(mdb->db, new_query, mdb->transaction);
       if (mdb->result != NULL) {
         Dmsg1(500, "we have a result\n", new_query);
 
