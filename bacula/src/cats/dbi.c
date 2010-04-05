@@ -1221,7 +1221,7 @@ char *my_dbi_getvalue(dbi_result *result, int row_number, unsigned int column_nu
    return buf;
 }
 
-int my_dbi_sql_insert_id(B_DB *mdb, char *table_name)
+static int my_dbi_sequence_last(B_DB *mdb, char *table_name)
 {
    /*
     Obtain the current value of the sequence that
@@ -1241,8 +1241,8 @@ int my_dbi_sql_insert_id(B_DB *mdb, char *table_name)
     everything else can use the PostgreSQL formula.
    */
 
-   char      sequence[30];
-   uint64_t    id = 0;
+   char sequence[30];
+   uint64_t id = 0;
 
    if (mdb->db_type == SQL_TYPE_POSTGRESQL) {
 
@@ -1262,6 +1262,25 @@ int my_dbi_sql_insert_id(B_DB *mdb, char *table_name)
    }
 
    return id;
+}
+
+int my_dbi_sql_insert_id(B_DB *mdb, const char *query, const char *table_name)
+{
+   /*
+    * First execute the insert query and then retrieve the currval.
+    */
+   if (!my_dbi_query(mdb, query)) {
+      return 0;
+   }
+
+   mdb->num_rows = sql_affected_rows(mdb);
+   if (mdb->num_rows != 1) {
+      return 0;
+   }
+
+   mdb->changes++;
+
+   return my_dbi_sequence_last(mdb, table_name);
 }
 
 #ifdef HAVE_BATCH_FILE_INSERT
