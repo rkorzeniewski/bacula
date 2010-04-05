@@ -656,26 +656,56 @@ bail_out:
 }
 
 #ifdef HAVE_BATCH_FILE_INSERT
-
 int my_ingres_batch_start(JCR *jcr, B_DB *mdb)
 {
-    //TODO!
-   return ING_ERROR;
+   bool ok;
+
+   db_lock(mdb);
+   ok = db_sql_query(mdb,
+             "DECLARE GLOBAL TEMPORARY TABLE batch ("
+                "FileIndex integer,"
+                "JobId integer,"
+                "Path varchar(256),"
+                "Name varchar(256),"
+                "LStat varchar(256),"
+                "MD5 varchar(256))"
+                " ON COMMIT PRESERVE ROWS WITH NORECOVERY",NULL, NULL);
+   db_unlock(mdb);
+   return ok;
 }
 
-/* set error to something to abort operation */
 int my_ingres_batch_end(JCR *jcr, B_DB *mdb, const char *error)
 {
-    //TODO!
-   return ING_ERROR;
+   if (mdb) {
+      mdb->status = 0;
+   }
+   return true;
 }
 
 int my_ingres_batch_insert(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
 {
-    //TODO!
-   return ING_ERROR;
-}
+   size_t len;
+   const char *digest;
+   char ed1[50];
 
+   mdb->esc_name = check_pool_memory_size(mdb->esc_name, mdb->fnl*2+1);
+   db_escape_string(jcr, mdb, mdb->esc_name, mdb->fname, mdb->fnl);
+
+   mdb->esc_path = check_pool_memory_size(mdb->esc_path, mdb->pnl*2+1);
+   db_escape_string(jcr, mdb, mdb->esc_path, mdb->path, mdb->pnl);
+
+   if (ar->Digest == NULL || ar->Digest[0] == 0) {
+      digest = "0";
+   } else {
+      digest = ar->Digest;
+   }
+
+   len = Mmsg(mdb->cmd, "INSERT INTO batch VALUES (%u,%s,'%s','%s','%s','%s')",
+              ar->FileIndex, edit_int64(ar->JobId,ed1), mdb->esc_path,
+              mdb->esc_name, ar->attr, digest);
+
+   return INSERT_DB(jcr, mdb, mdb->cmd);
+}
 #endif /* HAVE_BATCH_FILE_INSERT */
 
 /*
