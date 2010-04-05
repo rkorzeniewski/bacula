@@ -1229,7 +1229,7 @@ char *my_dbi_getvalue(dbi_result *result, int row_number, unsigned int column_nu
    return buf;
 }
 
-static int my_dbi_sequence_last(B_DB *mdb, char *table_name)
+static int my_dbi_sequence_last(B_DB *mdb, const char *table_name)
 {
    /*
     Obtain the current value of the sequence that

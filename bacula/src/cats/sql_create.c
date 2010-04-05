@@ -446,7 +446,7 @@ db_create_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
 
 
    Dmsg1(500, "Create Volume: %s\n", mdb->cmd);
-   mr->MediaId = sql_insert_id(mdb, mdb->cmd), NT_("Media"));
+   mr->MediaId = sql_insert_id(mdb, mdb->cmd, NT_("Media"));
    if (mr->MediaId == 0) {
       Mmsg2(&mdb->errmsg, _("Create DB Media record %s failed. ERR=%s\n"),
             mdb->cmd, sql_strerror(mdb));
