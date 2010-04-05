@@ -383,7 +383,8 @@ static void update_attribute(JCR *jcr, char *msg, int32_t msglen)
    db_start_transaction(jcr, jcr->db);     /* start transaction if not already open */
    ar = jcr->ar;      
 
-   /* Start by scanning directly in the message buffer to get Stream   
+   /*
+    * Start by scanning directly in the message buffer to get Stream   
     *  there may be a cached attr so we cannot yet write into
     *  jcr->attr or jcr->ar  
     */
@@ -395,12 +396,17 @@ static void update_attribute(JCR *jcr, char *msg, int32_t msglen)
    skip_nonspaces(&p);                /* FileAttributes */
    p += 1;
    unser_begin(p, 0);
-   unser_uint32(VolSessionId);
-   unser_uint32(VolSessionTime);
-   unser_int32(FileIndex);
-   unser_int32(Stream);
-   unser_uint32(data_len);
-   p += unser_length(p);
+   unser_uint32(VolSessionId);        /* VolSessionId */
+   unser_uint32(VolSessionTime);      /* VolSessionTime */
+   unser_int32(FileIndex);            /* FileIndex */
+   unser_int32(Stream);               /* Stream */
+   unser_uint32(data_len);            /* Record length */
+   p += unser_length(p);              /* Raw record follows */
+
+   /*
+    * At this point p points to the raw record, which varies according
+    *  to what kind of a record (Stream) was sent
+    */
 
    Dmsg1(400, "UpdCat msg=%s\n", msg);
    Dmsg5(400, "UpdCat VolSessId=%d VolSessT=%d FI=%d Strm=%d data_len=%d\n",
@@ -448,6 +454,10 @@ static void update_attribute(JCR *jcr, char *msg, int32_t msglen)
 
       Dmsg2(400, "dird<filed: stream=%d %s\n", Stream, fname);
       Dmsg1(400, "dird<filed: attr=%s\n", attr);
+
+   } else if (Stream == STREAM_RESTORE_OBJECT) {
+      /* p is beginning of RESTORE_OBJECT */
+      /* ***FIXME**** put RESTORE_OBJECT into catalog */
 
    } else if (crypto_digest_stream_type(Stream) != CRYPTO_DIGEST_NONE) {
       fname = p;
@@ -516,7 +526,7 @@ void catalog_update(JCR *jcr, BSOCK *bs)
    if (!jcr->pool->catalog_files) {
       return;                         /* user disabled cataloging */
    }
-   if (job_canceled(jcr)) {
+   if (jcr->is_job_canceled()) {
       goto bail_out;
    }
    if (!jcr->db) {
@@ -530,7 +540,7 @@ void catalog_update(JCR *jcr, BSOCK *bs)
    update_attribute(jcr, bs->msg, bs->msglen);
 
 bail_out:
-   if (job_canceled(jcr)) {
+   if (jcr->is_job_canceled()) {
       cancel_storage_daemon_job(jcr);
    }
 }
@@ -553,7 +563,7 @@ bool despool_attributes_from_file(JCR *jcr, const char *file)
 
    Dmsg0(100, "Begin despool_attributes_from_file\n");
 
-   if (job_canceled(jcr) || !jcr->pool->catalog_files || !jcr->db) {
+   if (jcr->is_job_canceled() || !jcr->pool->catalog_files || !jcr->db) {
       goto bail_out;                  /* user disabled cataloging */
    }
 
@@ -588,9 +598,9 @@ bool despool_attributes_from_file(JCR *jcr, const char *file)
             last = size;
          }
       }
-      if (!job_canceled(jcr)) {
+      if (!jcr->is_job_canceled()) {
          update_attribute(jcr, msg, msglen);
-         if (job_canceled(jcr)) {
+         if (jcr->is_job_canceled()) {
             goto bail_out;
          }
       }
@@ -608,7 +618,7 @@ bail_out:
       fclose(spool_fd);
    }
 
-   if (job_canceled(jcr)) {
+   if (jcr->is_job_canceled()) {
       cancel_storage_daemon_job(jcr);
    }
 

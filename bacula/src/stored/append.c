@@ -139,7 +139,7 @@ bool do_append_data(JCR *jcr)
     */
    dcr->VolFirstIndex = dcr->VolLastIndex = 0;
    jcr->run_time = time(NULL);              /* start counting time for rates */
-   for (last_file_index = 0; ok && !job_canceled(jcr); ) {
+   for (last_file_index = 0; ok && !jcr->is_job_canceled(); ) {
 
       /* Read Stream header from the File daemon.
        *  The stream header consists of the following:
@@ -180,7 +180,7 @@ bool do_append_data(JCR *jcr)
       /* Read data stream from the File daemon.
        *  The data stream is just raw bytes
        */
-      while ((n=bget_msg(fd)) > 0 && !job_canceled(jcr)) {
+      while ((n=bget_msg(fd)) > 0 && !jcr->is_job_canceled()) {
          rec.VolSessionId = jcr->VolSessionId;
          rec.VolSessionTime = jcr->VolSessionTime;
          rec.FileIndex = file_index;
@@ -213,7 +213,9 @@ bool do_append_data(JCR *jcr)
             stream_to_ascii(buf2, rec.Stream, rec.FileIndex), rec.data_len);
 
          /* Send attributes and digest to Director for Catalog */
-         if (stream == STREAM_UNIX_ATTRIBUTES || stream == STREAM_UNIX_ATTRIBUTES_EX ||
+         if (stream == STREAM_UNIX_ATTRIBUTES    || 
+             stream == STREAM_UNIX_ATTRIBUTES_EX ||
+             stream == STREAM_RESTORE_OBJECT     ||
              crypto_digest_stream_type(stream) != CRYPTO_DIGEST_NONE) {
             if (!jcr->no_attributes) {
                BSOCK *dir = jcr->dir_bsock;
@@ -236,7 +238,7 @@ bool do_append_data(JCR *jcr)
       Dmsg1(650, "End read loop with FD. Stat=%d\n", n);
 
       if (fd->is_error()) {
-         if (!job_canceled(jcr)) {
+         if (!jcr->is_job_canceled()) {
             Dmsg1(350, "Network read error from FD. ERR=%s\n", fd->bstrerror());
             Jmsg1(jcr, M_FATAL, 0, _("Network error reading from FD. ERR=%s\n"),
                   fd->bstrerror());
@@ -281,7 +283,7 @@ bool do_append_data(JCR *jcr)
    if (ok || dev->can_write()) {
       if (!write_session_label(dcr, EOS_LABEL)) {
          /* Print only if ok and not cancelled to avoid spurious messages */
-         if (ok && !job_canceled(jcr)) {
+         if (ok && !jcr->is_job_canceled()) {
             Jmsg1(jcr, M_FATAL, 0, _("Error writing end session label. ERR=%s\n"),
                   dev->bstrerror());
          }
@@ -296,7 +298,7 @@ bool do_append_data(JCR *jcr)
       /* Flush out final partial block of this session */
       if (!write_block_to_device(dcr)) {
          /* Print only if ok and not cancelled to avoid spurious messages */
-         if (ok && !job_canceled(jcr)) {
+         if (ok && !jcr->is_job_canceled()) {
             Jmsg2(jcr, M_FATAL, 0, _("Fatal append error on device %s: ERR=%s\n"),
                   dev->print_name(), dev->bstrerror());
             Dmsg0(100, _("Set ok=FALSE after write_block_to_device.\n"));
@@ -328,7 +330,7 @@ bool do_append_data(JCR *jcr)
     */
    release_device(dcr);
 
-   if (!ok || job_canceled(jcr)) {
+   if (!ok || jcr->is_job_canceled()) {
       discard_attribute_spool(jcr);
    } else {
       commit_attribute_spool(jcr);
