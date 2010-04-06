@@ -71,6 +71,9 @@ static pFuncs pluginFuncs = {
    setFileAttributes
 };
 
+/*
+ * Plugin called here when it is first loaded
+ */
 bRC loadPlugin(bInfo *lbinfo, bFuncs *lbfuncs, pInfo **pinfo, pFuncs **pfuncs)
 {
    bfuncs = lbfuncs;                  /* set Bacula funct pointers */
@@ -83,12 +86,23 @@ bRC loadPlugin(bInfo *lbinfo, bFuncs *lbfuncs, pInfo **pinfo, pFuncs **pfuncs)
    return bRC_OK;
 }
 
+/*
+ * Plugin called here when it is unloaded, normally when
+ *  Bacula is going to exit.
+ */
 bRC unloadPlugin() 
 {
    printf("plugin: Unloaded\n");
    return bRC_OK;
 }
 
+/*
+ * Called here to make a new instance of the plugin -- i.e. when
+ *  a new Job is started.  There can be multiple instances of
+ *  each plugin that are running at the same time.  Your
+ *  plugin instance must be thread safe and keep its own
+ *  local data.
+ */
 static bRC newPlugin(bpContext *ctx)
 {
    int JobId = 0;
@@ -98,6 +112,10 @@ static bRC newPlugin(bpContext *ctx)
    return bRC_OK;
 }
 
+/*
+ * Release everything concerning a particular instance of a 
+ *  plugin. Normally called when the Job terminates.
+ */
 static bRC freePlugin(bpContext *ctx)
 {
    int JobId = 0;
@@ -106,18 +124,31 @@ static bRC freePlugin(bpContext *ctx)
    return bRC_OK;
 }
 
+/*
+ * Called by core code to get a variable from the plugin.
+ *   Not currently used.
+ */
 static bRC getPluginValue(bpContext *ctx, pVariable var, void *value) 
 {
 // printf("plugin: getPluginValue var=%d\n", var);
    return bRC_OK;
 }
 
+/* 
+ * Called by core code to set a plugin variable.
+ *  Not currently used.
+ */
 static bRC setPluginValue(bpContext *ctx, pVariable var, void *value) 
 {
 // printf("plugin: setPluginValue var=%d\n", var);
    return bRC_OK;
 }
 
+/*
+ * Called by Bacula when there are certain events that the
+ *   plugin might want to know.  The value depends on the
+ *   event.
+ */
 static bRC handlePluginEvent(bpContext *ctx, bEvent *event, void *value)
 {
    char *name;
@@ -167,18 +198,30 @@ static bRC handlePluginEvent(bpContext *ctx, bEvent *event, void *value)
    return bRC_OK;
 }
 
+/*
+ * Called when starting to backup a file.  Here the plugin must
+ *  return the "stat" packet for the directory/file and provide
+ *  certain information so that Bacula knows what the file is.
+ *  The plugin can create "Virtual" files by giving them a
+ *  name that is not normally found on the file system.
+ */
 static bRC startBackupFile(bpContext *ctx, struct save_pkt *sp)
 {
    return bRC_OK;
 }
 
+/*
+ * Done backing up a file.
+ */
 static bRC endBackupFile(bpContext *ctx)
 { 
    return bRC_OK;
 }
 
 /*
- * Do actual I/O
+ * Do actual I/O.  Bacula calls this after startBackupFile
+ *   or after startRestoreFile to do the actual file 
+ *   input or output.
  */
 static bRC pluginIO(bpContext *ctx, struct io_pkt *io)
 {
@@ -211,11 +254,22 @@ static bRC endRestoreFile(bpContext *ctx)
    return bRC_OK;
 }
 
+/*
+ * Called here to give the plugin the information needed to
+ *  re-create the file on a restore.  It basically gets the
+ *  stat packet that was created during the backup phase.
+ *  This data is what is needed to create the file, but does
+ *  not contain actual file data.
+ */
 static bRC createFile(bpContext *ctx, struct restore_pkt *rp)
 {
    return bRC_OK;
 }
 
+/*
+ * Called after the file has been restored. This can be used to
+ *  set directory permissions, ...
+ */
 static bRC setFileAttributes(bpContext *ctx, struct restore_pkt *rp)
 {
    return bRC_OK;
