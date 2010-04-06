@@ -57,8 +57,8 @@ short INGgetCols(INGconn *dbconn, const char *query, bool transaction)
    short number = -1;
    IISQLDA *sqlda;
 
-   sqlda = (IISQLDA *)malloc(IISQDA_HEAD_SIZE + (number * IISQDA_VAR_SIZE));
-   memset(sqlda, 0, (IISQDA_HEAD_SIZE + (number * IISQDA_VAR_SIZE)));
+   sqlda = (IISQLDA *)malloc(IISQDA_HEAD_SIZE + IISQDA_VAR_SIZE);
+   memset(sqlda, 0, (IISQDA_HEAD_SIZE + IISQDA_VAR_SIZE));
    
    sqlda->sqln = number;
 
