@@ -579,7 +579,7 @@ int my_ingres_query(B_DB *mdb, const char *query)
       Dmsg0(500,"my_ingres_query (non SELECT) starting...\n");
       /* non SELECT */
       mdb->num_rows = INGexec(mdb->db, new_query, mdb->transaction);
-      if (INGcheck()) {
+      if (mdb->num_rows == -1) {
         Dmsg0(500,"my_ingres_query (non SELECT) went wrong\n");
         mdb->status = 1;
       } else {
@@ -684,7 +684,7 @@ int my_ingres_insert_id(B_DB *mdb, const char *query, const char *table_name)
     * Ingres and things work.
     */
    mdb->num_rows = INGexec(mdb->db, query, true);
-   if (INGcheck()) {
+   if (mdb->num_rows == -1) {
       return 0;
    }
 

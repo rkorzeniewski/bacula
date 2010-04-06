@@ -82,7 +82,6 @@ typedef struct ing_conn {
 
 
 /* ---Prototypes--- */
-int INGcheck(void);
 short INGgetCols(INGconn *conn, const char *query, bool transaction);
 char *INGgetvalue(INGresult *res, int row_number, int column_number);
 bool INGgetisnull(INGresult *res, int row_number, int column_number);

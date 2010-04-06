@@ -47,11 +47,6 @@ EXEC SQL INCLUDE SQLDA;
 /*
  * ---Implementations---
  */
-int INGcheck()
-{
-   return (sqlca.sqlcode < 0) ? sqlca.sqlcode : 0;
-}
-
 short INGgetCols(INGconn *conn, const char *query, bool transaction)
 {
    EXEC SQL BEGIN DECLARE SECTION;
@@ -59,7 +54,7 @@ short INGgetCols(INGconn *conn, const char *query, bool transaction)
    char *stmt;
    EXEC SQL END DECLARE SECTION;
    
-   short number = 1;
+   short number = -1;
    IISQLDA *sqlda;
 
    sqlda = (IISQLDA *)malloc(IISQDA_HEAD_SIZE + (number * IISQDA_VAR_SIZE));
@@ -74,28 +69,24 @@ short INGgetCols(INGconn *conn, const char *query, bool transaction)
     */
    sess_id = conn->session_id;
    EXEC SQL SET_SQL (SESSION = :sess_id);
+
+   EXEC SQL WHENEVER SQLERROR GOTO bail_out;
      
    EXEC SQL PREPARE s1 from :stmt;
-   if (INGcheck() < 0) {
-      number = -1;
-      goto bail_out;
-   }
-
    EXEC SQL DESCRIBE s1 into :sqlda;
-   if (INGcheck() < 0) {
-      number = -1;
-      goto bail_out;
-   }
+
+   EXEC SQL WHENEVER SQLERROR CONTINUE;
      
    number = sqlda->sqld;
 
-bail_out:
    /*
     * If we are not in a transaction we commit our work now.
     */
    if (!transaction) {
       EXEC SQL COMMIT WORK;
    }
+
+bail_out:
    /*
     * Switch to no default session for this thread.
     */
@@ -122,12 +113,10 @@ static inline IISQLDA *INGgetDescriptor(short numCols, const char *query)
    stmt = bstrdup(query);
   
    EXEC SQL PREPARE s2 INTO :sqlda FROM :stmt;
-  
-   free(stmt);
 
    for (i = 0; i < sqlda->sqld; ++i) {
       /*
-       * Negative type indicates nullable coulumns, so an indicator
+       * Negative type indicates nullable columns, so an indicator
        * is allocated, otherwise it's null
        */
       if (sqlda->sqlvar[i].sqltype > 0) {
@@ -158,6 +147,7 @@ static inline IISQLDA *INGgetDescriptor(short numCols, const char *query)
       }
    }
    
+   free(stmt);
    return sqlda;
 }
 
@@ -369,29 +359,28 @@ static inline ING_ROW *INGgetRowSpace(INGresult *ing_res)
 
 static inline int INGfetchAll(const char *query, INGresult *ing_res)
 {
-   int linecount = 0;
    ING_ROW *row;
    IISQLDA *desc;
-   int check = -1;
+   int linecount = -1;
    
    desc = ing_res->sqlda;
    
+   EXEC SQL WHENEVER SQLERROR GOTO bail_out;
+
    EXEC SQL DECLARE c2 CURSOR FOR s2;
-   if ((check = INGcheck()) < 0) {
-      return check;
-   }
-   
    EXEC SQL OPEN c2;
-   if ((check = INGcheck()) < 0) {
-      return check;
-   }
       
-   /* for (linecount = 0; sqlca.sqlcode == 0; ++linecount) */
+   EXEC SQL WHENEVER SQLERROR CONTINUE;
+
+   linecount = 0;
    do {
       EXEC SQL FETCH c2 USING DESCRIPTOR :desc;
 
-      if ( (sqlca.sqlcode == 0) || (sqlca.sqlcode == -40202) ) {
-         row = INGgetRowSpace(ing_res); /* alloc space for fetched row */
+      if (sqlca.sqlcode == 0 || sqlca.sqlcode == -40202) {
+         /*
+          * Allocate space for fetched row
+          */
+         row = INGgetRowSpace(ing_res);
             
          /*
           * Initialize list when encountered first time
@@ -401,10 +390,10 @@ static inline int INGfetchAll(const char *query, INGresult *ing_res)
             ing_res->first_row->next = NULL;
             ing_res->act_row = ing_res->first_row;
          }      
+
          ing_res->act_row->next = row; /* append row to old act_row */
          ing_res->act_row = row; /* set row as act_row */
-         row->row_number = linecount;
-         ++linecount;
+         row->row_number = linecount++;
       }
    } while ( (sqlca.sqlcode == 0) || (sqlca.sqlcode == -40202) );
    
@@ -412,6 +401,8 @@ static inline int INGfetchAll(const char *query, INGresult *ing_res)
    
    ing_res->status = ING_COMMAND_OK;
    ing_res->num_rows = linecount;
+
+bail_out:
    return linecount;
 }
 
@@ -497,40 +488,35 @@ int INGexec(INGconn *conn, const char *query, bool transaction)
    char *stmt;
    EXEC SQL END DECLARE SECTION;
    
-   stmt = bstrdup(query);
    rowcount = -1;
+   stmt = bstrdup(query);
 
    /*
     * Switch to the correct default session for this thread.
     */
    sess_id = conn->session_id;
    EXEC SQL SET_SQL (SESSION = :sess_id);
+
+   EXEC SQL WHENEVER SQLERROR GOTO bail_out;
+
    EXEC SQL EXECUTE IMMEDIATE :stmt;
-
-   free(stmt);
-
-   if ((check = INGcheck()) < 0) {
-      rowcount = check;
-      goto bail_out;
-   }
-
    EXEC SQL INQUIRE_INGRES(:rowcount = ROWCOUNT);
-   if ((check = INGcheck()) < 0) {
-      rowcount = check;
-      goto bail_out;
-   }
 
-bail_out:
+   EXEC SQL WHENEVER SQLERROR CONTINUE;
+
    /*
     * If we are not in a transaction we commit our work now.
     */
    if (!transaction) {
       EXEC SQL COMMIT WORK;
    }
+
+bail_out:
    /*
     * Switch to no default session for this thread.
     */
    EXEC SQL SET_SQL (SESSION = NONE);
+   free(stmt);
    return rowcount;
 }
 
@@ -620,25 +606,23 @@ void INGcommit(const INGconn *conn)
 
 INGconn *INGconnectDB(char *dbname, char *user, char *passwd, int session_id)
 {
-   INGconn *dbconn;
-
-   if (dbname == NULL || strlen(dbname) == 0) {
-      return NULL;
-   }
-
-   dbconn = (INGconn *)malloc(sizeof(INGconn));
-   memset(dbconn, 0, sizeof(INGconn));
-
    EXEC SQL BEGIN DECLARE SECTION;
    char ingdbname[24];
    char ingdbuser[32];
    char ingdbpasswd[32];
    int sess_id;
    EXEC SQL END DECLARE SECTION;
+   INGconn *dbconn;
+
+   if (dbname == NULL || strlen(dbname) == 0) {
+      return NULL;
+   }
 
    sess_id = session_id;
    bstrncpy(ingdbname, dbname, sizeof(ingdbname));
    
+   EXEC SQL WHENEVER SQLERROR GOTO bail_out;
+
    if (user != NULL) {
       bstrncpy(ingdbuser, user, sizeof(ingdbuser));
       if (passwd != NULL) {
@@ -656,15 +640,17 @@ INGconn *INGconnectDB(char *dbname, char *user, char *passwd, int session_id)
          :ingdbname
          SESSION :sess_id;
    }   
-   if (INGcheck() < 0) {
-      return NULL;
-   }
    
+   EXEC SQL WHENEVER SQLERROR CONTINUE;
+
+   dbconn = (INGconn *)malloc(sizeof(INGconn));
+   memset(dbconn, 0, sizeof(INGconn));
+
    bstrncpy(dbconn->dbname, ingdbname, sizeof(dbconn->dbname));
    bstrncpy(dbconn->user, ingdbuser, sizeof(dbconn->user));
    bstrncpy(dbconn->password, ingdbpasswd, sizeof(dbconn->password));
    dbconn->session_id = sess_id;
-   dbconn->msg = (char*)malloc(257);
+   dbconn->msg = (char *)malloc(257);
    memset(dbconn->msg, 0, 257);
 
    /*
@@ -672,6 +658,7 @@ INGconn *INGconnectDB(char *dbname, char *user, char *passwd, int session_id)
     */
    EXEC SQL SET_SQL (SESSION = NONE);
 
+bail_out:
    return dbconn;
 }
 
@@ -696,8 +683,8 @@ char *INGerrorMessage(const INGconn *conn)
    char errbuf[256];
    EXEC SQL END DECLARE SECTION;
 
-   EXEC SQL INQUIRE_INGRES(:errbuf = ERRORTEXT);
-   memcpy(conn->msg, &errbuf, 256);
+   EXEC SQL INQUIRE_INGRES (:errbuf = ERRORTEXT);
+   strncpy(conn->msg, errbuf, sizeof(conn->msg));
    return conn->msg;
 }
 
