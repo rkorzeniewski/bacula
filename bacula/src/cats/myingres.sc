@@ -47,7 +47,7 @@ EXEC SQL INCLUDE SQLDA;
 /*
  * ---Implementations---
  */
-short INGgetCols(INGconn *conn, const char *query, bool transaction)
+short INGgetCols(INGconn *dbconn, const char *query, bool transaction)
 {
    EXEC SQL BEGIN DECLARE SECTION;
    int sess_id;
@@ -67,7 +67,7 @@ short INGgetCols(INGconn *conn, const char *query, bool transaction)
    /*
     * Switch to the correct default session for this thread.
     */
-   sess_id = conn->session_id;
+   sess_id = dbconn->session_id;
    EXEC SQL SET_SQL (SESSION = :sess_id);
 
    EXEC SQL WHENEVER SQLERROR GOTO bail_out;
@@ -479,7 +479,7 @@ short INGftype(const INGresult *res, int column_number)
    return res->fields[column_number].type;
 }
 
-int INGexec(INGconn *conn, const char *query, bool transaction)
+int INGexec(INGconn *dbconn, const char *query, bool transaction)
 {
    int check;
    EXEC SQL BEGIN DECLARE SECTION;
@@ -494,7 +494,7 @@ int INGexec(INGconn *conn, const char *query, bool transaction)
    /*
     * Switch to the correct default session for this thread.
     */
-   sess_id = conn->session_id;
+   sess_id = dbconn->session_id;
    EXEC SQL SET_SQL (SESSION = :sess_id);
 
    EXEC SQL WHENEVER SQLERROR GOTO bail_out;
@@ -520,7 +520,7 @@ bail_out:
    return rowcount;
 }
 
-INGresult *INGquery(INGconn *conn, const char *query, bool transaction)
+INGresult *INGquery(INGconn *dbconn, const char *query, bool transaction)
 {
    /*
     * TODO: error handling
@@ -528,7 +528,7 @@ INGresult *INGquery(INGconn *conn, const char *query, bool transaction)
    IISQLDA *desc = NULL;
    INGresult *res = NULL;
    int rows = -1;
-   int cols = INGgetCols(conn, query, transaction);
+   int cols = INGgetCols(dbconn, query, transaction);
    EXEC SQL BEGIN DECLARE SECTION;
    int sess_id;
    EXEC SQL END DECLARE SECTION;
@@ -536,7 +536,7 @@ INGresult *INGquery(INGconn *conn, const char *query, bool transaction)
    /*
     * Switch to the correct default session for this thread.
     */
-   sess_id = conn->session_id;
+   sess_id = dbconn->session_id;
    EXEC SQL SET_SQL (SESSION = :sess_id);
 
    desc = INGgetDescriptor(cols, query);
@@ -582,7 +582,7 @@ void INGclear(INGresult *res)
    INGfreeINGresult(res);
 }
 
-void INGcommit(const INGconn *conn)
+void INGcommit(const INGconn *dbconn)
 {
    EXEC SQL BEGIN DECLARE SECTION;
    int sess_id;
@@ -677,15 +677,15 @@ void INGdisconnectDB(INGconn *dbconn)
    }
 }
 
-char *INGerrorMessage(const INGconn *conn)
+char *INGerrorMessage(const INGconn *dbconn)
 {
    EXEC SQL BEGIN DECLARE SECTION;
    char errbuf[256];
    EXEC SQL END DECLARE SECTION;
 
    EXEC SQL INQUIRE_INGRES (:errbuf = ERRORTEXT);
-   strncpy(conn->msg, errbuf, sizeof(conn->msg));
-   return conn->msg;
+   strncpy(dbconn->msg, errbuf, sizeof(dbconn->msg));
+   return dbconn->msg;
 }
 
 char *INGcmdTuples(INGresult *res)
@@ -694,8 +694,8 @@ char *INGcmdTuples(INGresult *res)
 }
 
 /* TODO?
-int INGputCopyEnd(INGconn *conn, const char *errormsg);
-int INGputCopyData(INGconn *conn, const char *buffer, int nbytes);
+int INGputCopyEnd(INGconn *dbconn, const char *errormsg);
+int INGputCopyData(INGconn *dbconn, const char *buffer, int nbytes);
 */
 
 #endif
