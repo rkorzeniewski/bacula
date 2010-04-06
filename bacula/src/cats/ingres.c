@@ -678,23 +678,51 @@ bail_out:
    return id;
 }
 
+/*
+ * First execute the insert query and then retrieve the currval.
+ * By setting transaction to true we make it an atomic transaction
+ * and as such we can get the currval after which we commit if
+ * mdb->transaction is false. This way things are an atomic operation
+ * for Ingres and things work. We save the current transaction status
+ * and set transaction in the mdb to true and at the end of this
+ * function we restore the actual transaction status.
+ */
 int my_ingres_insert_id(B_DB *mdb, const char *query, const char *table_name)
 {
+   int id = 0;
+   bool transaction;
+
    /*
-    * First execute the insert query and then retrieve the currval.
-    * By setting transaction to true we make it an atomic transaction
-    * and as such we can get the currval after which we commit if
-    * mdb->transaction is false. This way its an atomic operation for
-    * Ingres and things work.
+    * Save the current transaction status and pretend we are in a transaction.
     */
-   mdb->num_rows = INGexec(mdb->db, query, true);
+   transaction = mdb->transaction;
+   mdb->transaction = true;
+
+   /*
+    * Execute the INSERT query.
+    */
+   mdb->num_rows = INGexec(mdb->db, query, mdb->transaction);
    if (mdb->num_rows == -1) {
-      return 0;
+      goto bail_out;
    }
 
    mdb->changes++;
+   id = my_ingres_currval(mdb, table_name);
 
-   return my_ingres_currval(mdb, table_name);
+   /*
+    * Commit if we are NOT in a transaction.
+    */
+   if (transaction) {
+      INGcommit(mdb->db);
+   }
+
+bail_out:
+   /*
+    * Restore the actual transaction status.
+    */
+   mdb->transaction = transaction;
+
+   return id;
 }
 
 #ifdef HAVE_BATCH_FILE_INSERT
