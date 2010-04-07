@@ -53,13 +53,12 @@ short INGgetCols(INGconn *dbconn, const char *query, bool transaction)
    int sess_id;
    char *stmt;
    EXEC SQL END DECLARE SECTION;
-   
-   short number = -1;
    IISQLDA *sqlda;
 
    sqlda = (IISQLDA *)malloc(IISQDA_HEAD_SIZE + IISQDA_VAR_SIZE);
    memset(sqlda, 0, (IISQDA_HEAD_SIZE + IISQDA_VAR_SIZE));
    
+   short number = -1;
    sqlda->sqln = number;
 
    stmt = bstrdup(query);
@@ -71,9 +70,8 @@ short INGgetCols(INGconn *dbconn, const char *query, bool transaction)
    EXEC SQL SET_SQL (SESSION = :sess_id);
 
    EXEC SQL WHENEVER SQLERROR GOTO bail_out;
-     
-   EXEC SQL PREPARE s1 from :stmt;
-   EXEC SQL DESCRIBE s1 into :sqlda;
+
+   EXEC SQL PREPARE s1 INTO :sqlda FROM :stmt;
 
    EXEC SQL WHENEVER SQLERROR CONTINUE;
      
@@ -101,7 +99,6 @@ static inline IISQLDA *INGgetDescriptor(short numCols, const char *query)
    EXEC SQL BEGIN DECLARE SECTION;
    char *stmt;
    EXEC SQL END DECLARE SECTION;
-
    int i;
    IISQLDA *sqlda;
 
@@ -485,6 +482,7 @@ int INGexec(INGconn *dbconn, const char *query, bool transaction)
    EXEC SQL BEGIN DECLARE SECTION;
    int sess_id;
    int rowcount;
+   int errors;
    char *stmt;
    EXEC SQL END DECLARE SECTION;
    
@@ -501,6 +499,22 @@ int INGexec(INGconn *dbconn, const char *query, bool transaction)
 
    EXEC SQL EXECUTE IMMEDIATE :stmt;
    EXEC SQL INQUIRE_INGRES(:rowcount = ROWCOUNT);
+
+   /*
+    * See if the negative rowcount is due to errors.
+    */
+   if (rowcount < 0) {
+      EXEC SQL INQUIRE_INGRES(:errors = DBMSERROR);
+
+      /*
+       * If the number of errors is 0 we got a negative rowcount
+       * because the statement we executed doesn't give a rowcount back.
+       * Lets pretend we have a rowcount of 1 then.
+       */
+      if (errors == 0) {
+         rowcount = 1;
+      }
+   }
 
    EXEC SQL WHENEVER SQLERROR CONTINUE;
 
