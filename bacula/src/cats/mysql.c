@@ -385,7 +385,7 @@ int my_mysql_sql_insert_id(B_DB *mdb, const char *query, const char *table_name)
    /*
     * First execute the insert query and then retrieve the currval.
     */
-   if (!mysql_query(mdb->db, query)) {
+   if (mysql_query(mdb->db, query)) {
       return 0;
    }
 

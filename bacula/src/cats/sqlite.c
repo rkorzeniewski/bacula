@@ -505,7 +505,7 @@ int my_sqlite_sql_insert_id(B_DB *mdb, const char *query, const char *table_name
    /*
     * First execute the insert query and then retrieve the currval.
     */
-   if (!my_sqlite_query(mdb, query)) {
+   if (my_sqlite_query(mdb, query)) {
       return 0;
    }
 
