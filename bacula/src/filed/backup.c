@@ -1095,7 +1095,8 @@ bool encode_and_send_attributes(JCR *jcr, FF_PKT *ff_pkt, int &data_stream)
 {
    BSOCK *sd = jcr->store_bsock;
    char attribs[MAXSTRING];
-   char attribsEx[MAXSTRING];
+   char attribsExBuf[MAXSTRING];
+   char *attribsEx;
    int attr_stream;
    bool stat;
 #ifdef FD_NO_SEND_TEST
@@ -1112,6 +1113,7 @@ bool encode_and_send_attributes(JCR *jcr, FF_PKT *ff_pkt, int &data_stream)
    encode_stat(attribs, &ff_pkt->statp, ff_pkt->LinkFI, data_stream);
 
    /** Now possibly extend the attributes */
+   attribsEx = attribsExBuf;
    attr_stream = encode_attribsEx(jcr, attribsEx, ff_pkt);
 
    Dmsg3(300, "File %s\nattribs=%s\nattribsEx=%s\n", ff_pkt->fname, attribs, attribsEx);
@@ -1164,6 +1166,9 @@ bool encode_and_send_attributes(JCR *jcr, FF_PKT *ff_pkt, int &data_stream)
       stat = sd->fsend("%ld %d %s%c%s%c%c%s%c", jcr->JobFiles,
                ff_pkt->type, ff_pkt->link, 0, attribs, 0, 0, attribsEx, 0);
       break;
+   case FT_RESTORE_FIRST:
+      attribsEx = ff_pkt->object;        /* put object as extended attributes */
+      /* Fall through wanted */
    default:
       stat = sd->fsend("%ld %d %s%c%s%c%c%s%c", jcr->JobFiles,
                ff_pkt->type, ff_pkt->fname, 0, attribs, 0, 0, attribsEx, 0);

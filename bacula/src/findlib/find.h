@@ -189,6 +189,7 @@ struct FF_PKT {
    char *top_fname;                   /* full filename before descending */
    char *fname;                       /* full filename */
    char *link;                        /* link if file linked */
+   char *object;                      /* restore object */
    POOLMEM *sys_fname;                /* system filename */
    POOLMEM *fname_save;               /* save when stripping path */
    POOLMEM *link_save;                /* save when stripping path */

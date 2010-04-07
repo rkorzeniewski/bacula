@@ -292,6 +292,10 @@ int plugin_save(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
          ff_pkt->fname = fname.c_str();
          ff_pkt->link = link.c_str();
          ff_pkt->type = sp.type;
+         ff_pkt->object = sp.object;
+         if (sp.type == FT_RESTORE_FIRST) {
+            ff_pkt->LinkFI = sp.index;     /* restore object index */
+         }
          memcpy(&ff_pkt->statp, &sp.statp, sizeof(ff_pkt->statp));
          Dmsg1(dbglvl, "Save_file: file=%s\n", fname.c_str());
          save_file(jcr, ff_pkt, true);
