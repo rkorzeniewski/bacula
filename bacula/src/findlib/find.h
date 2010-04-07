@@ -196,6 +196,7 @@ struct FF_PKT {
    struct stat statp;                 /* stat packet */
    int32_t FileIndex;                 /* FileIndex of this file */
    int32_t LinkFI;                    /* FileIndex of main hard linked file */
+   int32_t object_len;                /* Object length */
    struct f_link *linked;             /* Set if this file is hard linked */
    int type;                          /* FT_ type from above */
    int ff_errno;                      /* errno */

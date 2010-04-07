@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2009 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2010 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -29,7 +29,6 @@
  * Append code for Storage daemon
  *  Kern Sibbald, May MM
  *
- *  Version $Id$
  */
 
 #include "bacula.h"
@@ -215,7 +214,6 @@ bool do_append_data(JCR *jcr)
          /* Send attributes and digest to Director for Catalog */
          if (stream == STREAM_UNIX_ATTRIBUTES    || 
              stream == STREAM_UNIX_ATTRIBUTES_EX ||
-             stream == STREAM_RESTORE_OBJECT     ||
              crypto_digest_stream_type(stream) != CRYPTO_DIGEST_NONE) {
             if (!jcr->no_attributes) {
                BSOCK *dir = jcr->dir_bsock;

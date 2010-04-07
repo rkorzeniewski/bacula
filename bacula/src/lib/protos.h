@@ -39,7 +39,7 @@ class JCR;
 /* attr.c */
 ATTR     *new_attr(JCR *jcr);
 void      free_attr(ATTR *attr);
-int       unpack_attributes_record(JCR *jcr, int32_t stream, char *rec, ATTR *attr);
+int       unpack_attributes_record(JCR *jcr, int32_t stream, char *rec, int32_t reclen, ATTR *attr);
 void      build_attr_output_fnames(JCR *jcr, ATTR *attr);
 void      print_ls_output(JCR *jcr, ATTR *attr);
 

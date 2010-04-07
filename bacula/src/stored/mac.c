@@ -266,7 +266,6 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
    stream = rec->Stream;
    if (stream == STREAM_UNIX_ATTRIBUTES    || 
        stream == STREAM_UNIX_ATTRIBUTES_EX ||
-       stream == STREAM_RESTORE_OBJECT     ||
        crypto_digest_stream_type(stream) != CRYPTO_DIGEST_NONE) {
       if (!jcr->no_attributes) {
          BSOCK *dir = jcr->dir_bsock;

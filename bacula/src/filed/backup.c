@@ -528,11 +528,12 @@ int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
          (!is_portable_backup(&ff_pkt->bfd) && ff_pkt->type == FT_DIREND)) {
       do_read = true;
    }
-   if (ff_pkt->cmd_plugin) {
+
+   if (ff_pkt->cmd_plugin && ff_pkt->type != FT_RESTORE_FIRST) {
       do_read = true;
    }
 
-   Dmsg1(400, "do_read=%d\n", do_read);
+   Dmsg2(000, "type=%d do_read=%d\n", ff_pkt->type, do_read);
    if (do_read) {
       btimer_t *tid;
 
@@ -1113,8 +1114,17 @@ bool encode_and_send_attributes(JCR *jcr, FF_PKT *ff_pkt, int &data_stream)
    encode_stat(attribs, &ff_pkt->statp, ff_pkt->LinkFI, data_stream);
 
    /** Now possibly extend the attributes */
-   attribsEx = attribsExBuf;
-   attr_stream = encode_attribsEx(jcr, attribsEx, ff_pkt);
+   if (ff_pkt->type == FT_RESTORE_FIRST) {
+      /**
+       * For restore objects, we return the object in the extended 
+       * attributes.
+       */
+      attribsEx = ff_pkt->object;
+      attr_stream = STREAM_UNIX_ATTRIBUTES_EX;
+   } else {
+      attribsEx = attribsExBuf;
+      attr_stream = encode_attribsEx(jcr, attribsEx, ff_pkt);
+   }
 
    Dmsg3(300, "File %s\nattribs=%s\nattribsEx=%s\n", ff_pkt->fname, attribs, attribsEx);
 
@@ -1167,8 +1177,20 @@ bool encode_and_send_attributes(JCR *jcr, FF_PKT *ff_pkt, int &data_stream)
                ff_pkt->type, ff_pkt->link, 0, attribs, 0, 0, attribsEx, 0);
       break;
    case FT_RESTORE_FIRST:
-      attribsEx = ff_pkt->object;        /* put object as extended attributes */
-      /* Fall through wanted */
+      /**
+       * Note, we edit everything as we do for the default case, but the
+       *   object is tacked on to the end in place of the extended attributes,
+       *   but we do a memcpy so that the object can be a binary object.
+       */
+      Dmsg6(000, "Type=%d DataStream=%d attrStream=%d File=%s\nattribs=%s\nattribsEx=%s", 
+            ff_pkt->type, data_stream, STREAM_UNIX_ATTRIBUTES_EX,
+            ff_pkt->fname, attribs, ff_pkt->object);
+      sd->msglen = Mmsg(sd->msg, "%ld %d %s%c%s%c%c", 
+                        jcr->JobFiles, ff_pkt->type, ff_pkt->fname, 0, attribs, 0, 0);
+      sd->msg = check_pool_memory_size(sd->msg, sd->msglen + ff_pkt->object_len + 1);
+      memcpy(sd->msg + sd->msglen, ff_pkt->object, ff_pkt->object_len);
+      sd->msglen += ff_pkt->object_len;
+      stat = sd->send();
    default:
       stat = sd->fsend("%ld %d %s%c%s%c%c%s%c", jcr->JobFiles,
                ff_pkt->type, ff_pkt->fname, 0, attribs, 0, 0, attribsEx, 0);

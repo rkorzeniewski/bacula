@@ -323,7 +323,7 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
          extract = false;
       }
 
-      if (!unpack_attributes_record(jcr, rec->Stream, rec->data, attr)) {
+      if (!unpack_attributes_record(jcr, rec->Stream, rec->data, rec->data_len, attr)) {
          Emsg0(M_ERROR_TERM, 0, _("Cannot continue.\n"));
       }
 

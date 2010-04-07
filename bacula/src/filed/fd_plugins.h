@@ -83,6 +83,7 @@ struct save_pkt {
    bool portable;                     /* set if data format is portable */
    char *cmd;                         /* command */
    char *object;                      /* restore object data to save */
+   int32_t object_len;                /* restore object length */
    int32_t index;                     /* restore object index */
    int32_t pkt_end;                   /* end packet sentinel */
 };

@@ -242,7 +242,6 @@ void InitWinAPIWrapper();
 #define STREAM_ENCRYPTED_MACOS_FORK_DATA   25    /* Encrypted, uncompressed Mac resource fork */
 #define STREAM_PLUGIN_NAME                 26    /* Plugin "file" string */
 #define STREAM_PLUGIN_DATA                 27    /* Plugin specific data */
-#define STREAM_RESTORE_OBJECT              28    /* Special restore object */
 
 /**
  * Additional Stream definitions. Once defined these must NEVER

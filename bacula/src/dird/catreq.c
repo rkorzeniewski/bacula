@@ -455,10 +455,6 @@ static void update_attribute(JCR *jcr, char *msg, int32_t msglen)
       Dmsg2(400, "dird<filed: stream=%d %s\n", Stream, fname);
       Dmsg1(400, "dird<filed: attr=%s\n", attr);
 
-   } else if (Stream == STREAM_RESTORE_OBJECT) {
-      /* p is beginning of RESTORE_OBJECT */
-      /* ***FIXME**** put RESTORE_OBJECT into catalog */
-
    } else if (crypto_digest_stream_type(Stream) != CRYPTO_DIGEST_NONE) {
       fname = p;
       if (ar->FileIndex != FileIndex) {

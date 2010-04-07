@@ -100,8 +100,6 @@ const char *stream_to_ascii(char *buf, int stream, int fi)
        return "UATTR";
     case STREAM_FILE_DATA:
        return "DATA";
-    case STREAM_RESTORE_OBJECT:
-       return "RESTORE_OBJECT";
     case STREAM_WIN32_DATA:
        return "WIN32-DATA";
     case STREAM_WIN32_GZIP_DATA:
@@ -150,8 +148,6 @@ const char *stream_to_ascii(char *buf, int stream, int fi)
        return "contUATTR";
     case -STREAM_FILE_DATA:
        return "contDATA";
-    case -STREAM_RESTORE_OBJECT:
-       return "contRESTORE_OBJECT";
     case -STREAM_WIN32_DATA:
        return "contWIN32-DATA";
     case -STREAM_WIN32_GZIP_DATA:

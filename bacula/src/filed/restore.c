@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2008 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2010 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -323,20 +323,14 @@ void do_restore(JCR *jcr)
          /*
           * Unpack attributes and do sanity check them
           */
-         if (!unpack_attributes_record(jcr, rctx.stream, sd->msg, attr)) {
+         if (!unpack_attributes_record(jcr, rctx.stream, sd->msg, sd->msglen, attr)) {
             goto bail_out;
          }
-#ifdef xxx
-         if (file_index != attr->file_index) {
-            Jmsg(jcr, M_FATAL, 0, _("Record header file index %ld not equal record index %ld\n"),
-                 file_index, attr->file_index);
-            Dmsg0(200, "File index error\n");
-            goto bail_out;
-         }
-#endif
 
-         Dmsg3(200, "File %s\nattrib=%s\nattribsEx=%s\n", attr->fname,
+         Dmsg3(000, "File %s\nattrib=%s\nattribsEx=%s\n", attr->fname,
                attr->attr, attr->attrEx);
+         Dmsg3(000, "=== msglen=%d attrExlen=%d msg=%s\n", sd->msglen,
+               strlen(attr->attrEx), sd->msg);
 
          attr->data_stream = decode_stat(attr->attr, &attr->statp, &attr->LinkFI);
 
@@ -758,10 +752,6 @@ void do_restore(JCR *jcr)
          close_previous_stream(rctx);
          Dmsg1(50, "restore stream_plugin_name=%s\n", sd->msg);
          plugin_name_stream(jcr, sd->msg);
-         break;
-
-      case STREAM_RESTORE_OBJECT:
-         close_previous_stream(rctx);
          break;
 
       default:

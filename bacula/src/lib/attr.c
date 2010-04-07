@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2003-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2003-2010 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -30,7 +30,6 @@
  *
  *    Kern Sibbald, June MMIII  (code pulled from filed/restore.c and updated)
  *
- *   Version $Id$
  */
 
 
@@ -58,9 +57,10 @@ void free_attr(ATTR *attr)
    free(attr);
 }
 
-int unpack_attributes_record(JCR *jcr, int32_t stream, char *rec, ATTR *attr)
+int unpack_attributes_record(JCR *jcr, int32_t stream, char *rec, int32_t reclen, ATTR *attr)
 {
    char *p;
+   int object_len;
    /*
     * An Attributes record consists of:
     *    File_index
@@ -102,14 +102,23 @@ int unpack_attributes_record(JCR *jcr, int32_t stream, char *rec, ATTR *attr)
    attr->lname = p;                   /* set link position */
    while (*p++ != 0)                  /* skip link */
       { }
-   pm_strcpy(attr->attrEx, p);        /* copy extended attributes, if any */
-
-   if (attr->data_stream) {
-      int64_t val;
-      while (*p++ != 0)               /* skip extended attributes */
-         { }
-      from_base64(&val, p);
-      attr->data_stream = (int32_t)val;
+   if (attr->type == FT_RESTORE_FIRST) {
+      /* We have an object, so do a binary copy */
+      object_len = reclen + rec - p;
+      attr->attrEx = check_pool_memory_size(attr->attrEx, object_len + 1);
+      memcpy(attr->attrEx, p, object_len);  
+      /* Add a EOS for those who attempt to print the object */
+      p = attr->attrEx + object_len;
+      *p = 0;
+   } else {
+      pm_strcpy(attr->attrEx, p);     /* copy extended attributes, if any */
+      if (attr->data_stream) {
+         int64_t val;
+         while (*p++ != 0)               /* skip extended attributes */
+            { }
+         from_base64(&val, p);
+         attr->data_stream = (int32_t)val;
+      }
    }
    Dmsg7(400, "unpack_attr FI=%d Type=%d fname=%s attr=%s lname=%s attrEx=%s ds=%d\n",
       attr->file_index, attr->type, attr->fname, attr->attr, attr->lname,
