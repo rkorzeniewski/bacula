@@ -105,11 +105,11 @@ void term_vol_list_lock()
 /* 
  * This allows a given thread to recursively call to lock_volumes()
  */
-void _lock_volumes()
+void _lock_volumes(const char *file, int line)
 {
    int errstat;
    vol_list_lock_count++;
-   if ((errstat=rwl_writelock(&vol_list_lock)) != 0) {
+   if ((errstat=rwl_writelock_p(&vol_list_lock, file, line)) != 0) {
       berrno be;
       Emsg2(M_ABORT, 0, "rwl_writelock failure. stat=%d: ERR=%s\n",
            errstat, be.bstrerror(errstat));
@@ -127,14 +127,14 @@ void _unlock_volumes()
    }
 }
 
-void lock_read_volumes()
+void lock_read_volumes(const char *file="**Unknown", int line=0)
 {
-   P(read_vol_lock);
+   bthread_mutex_lock_p(&read_vol_lock, file, line);
 }
 
 void unlock_read_volumes()
 {
-   V(read_vol_lock);
+   bthread_mutex_unlock(&read_vol_lock);
 }
 
 /*
