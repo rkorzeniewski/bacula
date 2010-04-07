@@ -124,6 +124,16 @@ Job {
   Write Bootstrap = "@working_dir@/NightlySave.bsr"
 }
 
+Job {
+  Name = "TestPluginTest"
+  Type = Backup
+  Client=@hostname@-fd 
+  FileSet="TestPluginSet"
+  Storage = File
+  Messages = Standard
+  Pool = Default
+  Write Bootstrap = "@working_dir@/NightlySave.bsr"
+}
 
 
 # Backup the catalog database (after the nightly save)
@@ -226,6 +236,20 @@ FileSet {
     Plugin = "bpipe:/@bpipe@/Makefile:cat @builddir@/../Makefile:cat >@tmpdir@/Makefile"
   }
 }
+
+FileSet {
+  Name = "TestPluginSet"
+  Include {
+    Options {
+      readfifo = yes
+      signature=MD5 
+    }
+    File = <@tmpdir@/file-list
+    Plugin = "test-plugin:/@test-plugin@/encrypt-bug.jpg:cat @builddir@/../encrypt-bug.jpg:cat >@tmpdir@/encrypt-bug.jpg"
+    Plugin = "test-plugin:/@test-plugin@/Makefile:cat @builddir@/../Makefile:cat >@tmpdir@/Makefile"
+  }
+}
+
 
 
 FileSet {

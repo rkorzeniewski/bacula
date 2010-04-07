@@ -5,7 +5,7 @@
 #   testing
 #
 TestName="test-plugin-test"
-JobName=TestpluginTest
+JobName=TestPluginTest
 . scripts/functions
 
 scripts/cleanup
@@ -52,6 +52,8 @@ END_OF_DATA
 run_bconsole
 
 stop_bacula
+
+exit 0
 
 # ****FIXME**** test if the restore of the two files is OK
 
