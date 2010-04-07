@@ -728,7 +728,12 @@ bail_out:
 }
 
 #ifdef HAVE_BATCH_FILE_INSERT
-int my_ingres_batch_start(JCR *jcr, B_DB *mdb)
+
+/* 
+ * Returns true if OK
+ *         false if failed
+ */
+bool my_ingres_batch_start(JCR *jcr, B_DB *mdb)
 {
    bool ok;
 
@@ -746,7 +751,11 @@ int my_ingres_batch_start(JCR *jcr, B_DB *mdb)
    return ok;
 }
 
-int my_ingres_batch_end(JCR *jcr, B_DB *mdb, const char *error)
+/* 
+ * Returns true if OK
+ *         false if failed
+ */
+bool my_ingres_batch_end(JCR *jcr, B_DB *mdb, const char *error)
 {
    if (mdb) {
       mdb->status = 0;
@@ -754,7 +763,11 @@ int my_ingres_batch_end(JCR *jcr, B_DB *mdb, const char *error)
    return true;
 }
 
-int my_ingres_batch_insert(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
+/* 
+ * Returns true if OK
+ *         false if failed
+ */
+bool my_ingres_batch_insert(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
 {
    size_t len;
    const char *digest;
@@ -778,6 +791,7 @@ int my_ingres_batch_insert(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
 
    return INSERT_DB(jcr, mdb, mdb->cmd);
 }
+
 #endif /* HAVE_BATCH_FILE_INSERT */
 
 /*

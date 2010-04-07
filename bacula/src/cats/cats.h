@@ -601,10 +601,10 @@ INGRES_FIELD *     my_ingres_fetch_field(B_DB *mdb);
 void               my_ingres_close      (B_DB *mdb);
 int                my_ingres_insert_id  (B_DB *mdb, const char *query, const char *table_name);
 
-int my_ingres_batch_start(JCR *jcr, B_DB *mdb);
-int my_ingres_batch_end(JCR *jcr, B_DB *mdb, const char *error);
+bool my_ingres_batch_start(JCR *jcr, B_DB *mdb);
+bool my_ingres_batch_end(JCR *jcr, B_DB *mdb, const char *error);
 typedef struct ATTR_DBR ATTR_DBR;
-int my_ingres_batch_insert(JCR *jcr, B_DB *mdb, ATTR_DBR *ar);
+bool my_ingres_batch_insert(JCR *jcr, B_DB *mdb, ATTR_DBR *ar);
 char *my_ingres_copy_escape(char *dest, char *src, size_t len);
 
 extern const char* my_ingres_batch_lock_path_query;
