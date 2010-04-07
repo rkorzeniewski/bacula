@@ -69,20 +69,21 @@ typedef struct ing_conn {
     char *msg;
 } INGconn;
 /* ---Prototypes--- */
-short INGgetCols(INGconn *conn, const char *query, bool transaction);
+short INGgetCols(INGconn *dbconn, const char *query, bool transaction);
 char *INGgetvalue(INGresult *res, int row_number, int column_number);
 bool INGgetisnull(INGresult *res, int row_number, int column_number);
 int INGntuples(const INGresult *res);
 int INGnfields(const INGresult *res);
 char *INGfname(const INGresult *res, int column_number);
 short INGftype(const INGresult *res, int column_number);
-int INGexec(INGconn *db, const char *query, bool transaction);
-INGresult *INGquery(INGconn *db, const char *query, bool transaction);
+int INGexec(INGconn *dbconn, const char *query, bool transaction);
+INGresult *INGquery(INGconn *dbconn, const char *query, bool transaction);
 void INGclear(INGresult *res);
-void INGcommit(const INGconn *conn);
+void INGcommit(const INGconn *dbconn);
 INGconn *INGconnectDB(char *dbname, char *user, char *passwd, int session_id);
 void INGdisconnectDB(INGconn *dbconn);
-char *INGerrorMessage(const INGconn *conn);
+void INGsetDefaultLockingMode(INGconn *dbconn);
+char *INGerrorMessage(const INGconn *dbconn);
 char *INGcmdTuples(INGresult *res);
 /* # line 102 "myingres.sh" */	
 #endif /* _MYINGRES_SH */

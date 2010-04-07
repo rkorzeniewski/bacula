@@ -662,6 +662,88 @@ bail_out:
    return dbconn;
 }
 
+void INGsetDefaultLockingMode(INGconn *dbconn)
+{
+   /*
+    * Set the default Ingres session locking mode:
+    *
+    * SET LOCKMODE provides four different parameters to govern
+    * the nature of locking in an INGRES session:
+    *
+    * Level: This refers to the level of granularity desired when
+    * the table is accessed. You can specify any of the following
+    * locking levels:
+    *
+    * page    Specifies locking at the level of the data page (subject to
+    *         escalation criteria; see below)
+    * table   Specifies table-level locking in the database
+    * session Specifies the current default for your INGRES session
+    * system  Specifies that INGRES will start with page-level locking,
+    *         unless it estimates that more than Maxlocks pages will be
+    *         referenced, in which case table-level locking will be used.
+    *
+    * Readlock: This refers to locking in situations where table access
+    *           is required for reading data only (as opposed to updating
+    *           data). You can specify any of the following Readlock modes:
+    *
+    *    nolock     Specifies no locking when reading data
+    *    shared     Specifies the default mode of locking when reading data
+    *    exclusive  Specifies exclusive locking when reading data (useful in
+    *               "select-for-update" processing within a multi-statement
+    *               transaction)
+    *    system     Specifies the general Readlock default for the INGRES system
+    *
+    * Maxlocks: This refers to an escalation factor, or number of locks on
+    *           data pages, at which locking escalates from page-level
+    *           to table-level. The number of locks available to you is
+    *           dependent upon your system configuration. You can specify the
+    *           following Maxlocks escalation factors:
+    *
+    *    n       A specific (integer) number of page locks to allow before
+    *            escalating to table-level locking. The default "n" is 10,
+    *            and "n" must be greater than 0.
+    *    session Specifies the current Maxlocks default for your INGRES
+    *            session
+    *    system  Specifies the general Maxlocks default for the INGRES system
+    *
+    * Note: If you specify page-level locking, and the number of locks granted
+    * during a query exceeds the system-wide lock limit, or if the operating
+    * system's locking resources are depleted, locking escalates to table-level.
+    * This escalation occurs automatically and is independent of the user.
+    *
+    * Timeout: This refers to a time limit, expressed in seconds, for which
+    * a lock request should remain pending. If INGRES cannot grant the lock
+    * request within the specified time, then the query that requested the
+    * lock aborts. You can specify the following timeout characteristics:
+    *
+    *    n       A specific (integer) number of seconds to wait for a lock
+    *            (setting "n" to 0 requires INGRES to wait indefinitely for
+    *            the lock)
+    *    session Specifies the current timeout default for your INGRES
+    *            session (which is also the INGRES default)
+    *    system  Specifies the general timeout default for the INGRES system
+    *
+    */
+   EXEC SQL BEGIN DECLARE SECTION;
+   int sess_id;
+   EXEC SQL END DECLARE SECTION;
+
+   if (dbconn != NULL) {
+      sess_id = dbconn->session_id;
+      /*
+       * Switch to the correct default session for this thread.
+       */
+      EXEC SQL SET_SQL (SESSION = :sess_id);
+
+      EXEC SQL SET LOCKMODE SESSION WHERE level = system, readlock = nolock;
+
+      /*
+       * Switch to no default session for this thread.
+       */
+      EXEC SQL SET_SQL (SESSION = NONE);
+   }
+}
+
 void INGdisconnectDB(INGconn *dbconn)
 {
    EXEC SQL BEGIN DECLARE SECTION;
