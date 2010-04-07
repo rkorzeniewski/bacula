@@ -1045,7 +1045,7 @@ static bRC baculaAddExclude(bpContext *ctx, const char *file)
 {
    JCR *jcr;
    bacula_ctx *bctx;
-   if (ctx) {
+   if (!ctx) {
       return bRC_Error;
    }
    if (!file) {
