@@ -68,6 +68,12 @@ int select_data_stream(FF_PKT *ff_pkt)
 {
    int stream;
 
+   /* This is a plugin special restore object */
+   if (ff_pkt->type == FT_RESTORE_FIRST) {
+      ff_pkt->flags = 0;
+      return STREAM_RESTORE_OBJECT;
+   }
+
    /**
     *  Fix all incompatible options
     */

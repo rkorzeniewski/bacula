@@ -82,6 +82,7 @@ struct save_pkt {
    uint32_t flags;                    /* Bacula internal flags */
    bool portable;                     /* set if data format is portable */
    char *cmd;                         /* command */
+   char *object;                      /* restore object data to save */
    int32_t pkt_end;                   /* end packet sentinel */
 };
 

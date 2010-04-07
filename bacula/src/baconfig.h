@@ -343,6 +343,7 @@ void InitWinAPIWrapper();
 #define FT_PLUGIN    22               /* Plugin generated filename */
 #define FT_DELETED   23               /* Deleted file entry */
 #define FT_BASE      24               /* Duplicate base file entry */
+#define FT_RESTORE_FIRST 25           /* Restore this "object" first */
 
 /* Definitions for upper part of type word (see above). */
 #define AR_DATA_STREAM (1<<16)        /* Data stream id present */

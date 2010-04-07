@@ -314,7 +314,7 @@ int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
 #endif
    BSOCK *sd = jcr->store_bsock;
 
-   if (job_canceled(jcr)) {
+   if (jcr->is_job_canceled()) {
       return 0;
    }
 
@@ -334,6 +334,9 @@ int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
       break;
    case FT_LNK:
       Dmsg2(130, "FT_LNK saving: %s -> %s\n", ff_pkt->fname, ff_pkt->link);
+      break;
+   case FT_RESTORE_FIRST:
+      Dmsg1(00, "FT_RESTORE_FIRST saving: %s\n", ff_pkt->fname);
       break;
    case FT_DIRBEGIN:
       jcr->num_files_examined--;      /* correct file count */
@@ -489,6 +492,7 @@ int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
       set_portable_backup(&ff_pkt->bfd); /* disable Win32 BackupRead() */
    }
    if (ff_pkt->cmd_plugin) {
+      /* Tell bfile that it needs to call plugin */
       if (!set_cmd_plugin(&ff_pkt->bfd, jcr)) {
          goto bail_out;
       }
@@ -853,7 +857,7 @@ static int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest,
     *    <file-index> <stream> <info>
     */
    if (!sd->fsend("%ld %d 0", jcr->JobFiles, stream)) {
-      if (!job_canceled(jcr)) {
+      if (!jcr->is_job_canceled()) {
          Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
                sd->bstrerror());
       }
@@ -1013,7 +1017,7 @@ static int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest,
       }
       sd->msg = wbuf;              /* set correct write buffer */
       if (!sd->send()) {
-         if (!job_canceled(jcr)) {
+         if (!jcr->is_job_canceled()) {
             Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
                   sd->bstrerror());
          }
@@ -1050,7 +1054,7 @@ static int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest,
          sd->msglen = encrypted_len;      /* set encrypted length */
          sd->msg = jcr->crypto.crypto_buf;       /* set correct write buffer */
          if (!sd->send()) {
-            if (!job_canceled(jcr)) {
+            if (!jcr->is_job_canceled()) {
                Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
                      sd->bstrerror());
             }
@@ -1063,7 +1067,7 @@ static int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest,
    }
 
    if (!sd->signal(BNET_EOD)) {        /* indicate end of file data */
-      if (!job_canceled(jcr)) {
+      if (!jcr->is_job_canceled()) {
          Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
                sd->bstrerror());
       }
@@ -1093,7 +1097,7 @@ bool encode_and_send_attributes(JCR *jcr, FF_PKT *ff_pkt, int &data_stream)
    char attribs[MAXSTRING];
    char attribsEx[MAXSTRING];
    int attr_stream;
-   int stat;
+   bool stat;
 #ifdef FD_NO_SEND_TEST
    return true;
 #endif
@@ -1123,7 +1127,7 @@ bool encode_and_send_attributes(JCR *jcr, FF_PKT *ff_pkt, int &data_stream)
     *    <file-index> <stream> <info>
     */
    if (!sd->fsend("%ld %d 0", jcr->JobFiles, attr_stream)) {
-      if (!job_canceled(jcr)) {
+      if (!jcr->is_job_canceled()) {
          Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
                sd->bstrerror());
       }
@@ -1146,33 +1150,36 @@ bool encode_and_send_attributes(JCR *jcr, FF_PKT *ff_pkt, int &data_stream)
    if (ff_pkt->type != FT_DELETED) { /* already stripped */
       strip_path(ff_pkt);
    }
-   if (ff_pkt->type == FT_LNK || ff_pkt->type == FT_LNKSAVED) {
+   switch (ff_pkt->type) {
+   case FT_LNK:
+   case FT_LNKSAVED:
       Dmsg2(300, "Link %s to %s\n", ff_pkt->fname, ff_pkt->link);
       stat = sd->fsend("%ld %d %s%c%s%c%s%c%s%c", jcr->JobFiles,
                ff_pkt->type, ff_pkt->fname, 0, attribs, 0, ff_pkt->link, 0,
                attribsEx, 0);
-   } else if (ff_pkt->type == FT_DIREND || ff_pkt->type == FT_REPARSE) {
+      break;
+   case FT_DIREND:
+   case FT_REPARSE:
       /* Here link is the canonical filename (i.e. with trailing slash) */
       stat = sd->fsend("%ld %d %s%c%s%c%c%s%c", jcr->JobFiles,
                ff_pkt->type, ff_pkt->link, 0, attribs, 0, 0, attribsEx, 0);
-   } else {
+      break;
+   default:
       stat = sd->fsend("%ld %d %s%c%s%c%c%s%c", jcr->JobFiles,
                ff_pkt->type, ff_pkt->fname, 0, attribs, 0, 0, attribsEx, 0);
+      break;
    }
    if (ff_pkt->type != FT_DELETED) {
       unstrip_path(ff_pkt);
    }
 
    Dmsg2(300, ">stored: attr len=%d: %s\n", sd->msglen, sd->msg);
-   if (!stat) {
-      if (!job_canceled(jcr)) {
-         Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
-               sd->bstrerror());
-      }
-      return false;
+   if (!stat && !jcr->is_job_canceled()) {
+      Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
+            sd->bstrerror());
    }
    sd->signal(BNET_EOD);            /* indicate end of attributes data */
-   return true;
+   return stat;
 }
 
 /**
