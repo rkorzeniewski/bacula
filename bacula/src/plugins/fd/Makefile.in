@@ -35,6 +35,11 @@ install: all
 	$(LIBTOOL_INSTALL) $(INSTALL_PROGRAM) bpipe-fd.la $(DESTDIR)$(plugindir)
 	$(RMF) $(DESTDIR)$(plugindir)/bpipe-fd.la
 
+install-test-plugin: all
+	$(MKDIR) $(DESTDIR)$(plugindir)
+	$(LIBTOOL_INSTALL) $(INSTALL_PROGRAM) test-plugin-fd.la $(DESTDIR)$(plugindir)
+	$(RMF) $(DESTDIR)$(plugindir)/test-plugin-fd.la
+
 libtool-clean:
 	@find . -name '*.lo' -print | xargs $(LIBTOOL_CLEAN) $(RMF)
 	@$(RMF) *.la

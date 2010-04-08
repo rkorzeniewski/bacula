@@ -219,17 +219,17 @@ static bRC handlePluginEvent(bpContext *ctx, bEvent *event, void *value)
    switch (event->eventType) {
    case bEventJobStart:
       bfuncs->DebugMessage(ctx, fi, li, dbglvl, "test-plugin-fd: JobStart=%s\n", (char *)value);
-//    bfuncs->AddExclude(ctx, "/home/kern/bacula/regress/README");
       break;
    case bEventJobEnd:
-   case bEventStartBackupJob:
    case bEventEndBackupJob:
    case bEventLevel:
    case bEventSince:
    case bEventStartRestoreJob:
    case bEventEndRestoreJob:
       break;
-
+   case bEventStartBackupJob:
+      bfuncs->AddExclude(ctx, "/home/kern/bacula/regress/README");
+      break;
    /* Plugin command e.g. plugin = <plugin-name>:<name-space>:read command:write command */
    case bEventRestoreCommand:
       /* Fall-through wanted */

@@ -8,6 +8,12 @@ TestName="test-plugin-test"
 JobName=TestPluginTest
 . scripts/functions
 
+# Build and install the test plugin
+cd ${cwd}/build/src/plugins/fd
+make
+make install-test-plugin
+cd ${cwd}
+
 scripts/cleanup
 scripts/copy-plugin-confs
 file=encrypt-bug.jpg
