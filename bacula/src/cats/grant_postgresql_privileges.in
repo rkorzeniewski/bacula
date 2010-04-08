@@ -37,23 +37,23 @@ grant all on PathHierarchy  to ${db_user};
 grant all on PathVisibility to ${db_user};
 -- for sequences on those tables
 
-grant select, update on filename_seq    to ${db_user};
-grant select, update on path_seq 	to ${db_user};
-grant select, update on fileset_seq	to ${db_user};
-grant select, update on pool_seq 	to ${db_user};
-grant select, update on client_seq	to ${db_user};
-grant select, update on media_seq	to ${db_user};
-grant select, update on job_seq		to ${db_user};
-grant select, update on jobhisto_jobid_seq  to ${db_user};
-grant select, update on file_seq 	to ${db_user};
-grant select, update on jobmedia_seq    to ${db_user};
-grant select, update on basefiles_seq	to ${db_user};
-grant select, update on storage_seq	to ${db_user};
-grant select, update on mediatype_seq   to ${db_user};
-grant select, update on device_seq	to ${db_user};
-grant select, update on location_seq    to ${db_user};
-grant select, update on locationlog_seq to ${db_user};
-grant select, update on log_seq		to ${db_user};
+grant select, update on filename_filenameid_seq    to ${db_user};
+grant select, update on path_pathid_seq            to ${db_user};
+grant select, update on fileset_filesetid_seq      to ${db_user};
+grant select, update on pool_poolid_seq            to ${db_user};
+grant select, update on client_clientid_seq        to ${db_user};
+grant select, update on media_mediaid_seq          to ${db_user};
+grant select, update on job_jobid_seq              to ${db_user};
+grant select, update on file_fileid_seq            to ${db_user};
+grant select, update on jobmedia_jobmediaid_seq    to ${db_user};
+grant select, update on basefiles_baseid_seq       to ${db_user};
+grant select, update on storage_storageid_seq      to ${db_user};
+grant select, update on mediatype_mediatypeid_seq  to ${db_user};
+grant select, update on device_deviceid_seq        to ${db_user};
+grant select, update on location_locationid_seq    to ${db_user};
+grant select, update on locationlog_loclogid_seq   to ${db_user};
+grant select, update on log_logid_seq              to ${db_user};
+grant select, update on jobhisto_jobid_seq	   to ${db_user};
 END-OF-DATA
 if [ $? -eq 0 ]
 then
