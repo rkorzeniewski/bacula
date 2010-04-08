@@ -54,7 +54,6 @@ grant select, update on device_deviceid_seq	   to ${db_user};
 grant select, update on location_locationid_seq    to ${db_user};
 grant select, update on locationlog_loclogid_seq   to ${db_user};
 grant select, update on log_logid_seq		   to ${db_user};
-grant select, update on jobhisto_jobid_seq	   to ${db_user};
 END-OF-DATA
 if [ $? -eq 0 ]
 then
