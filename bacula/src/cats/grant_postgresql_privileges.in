@@ -44,6 +44,7 @@ grant select, update on pool_seq 	to ${db_user};
 grant select, update on client_seq	to ${db_user};
 grant select, update on media_seq	to ${db_user};
 grant select, update on job_seq		to ${db_user};
+grant select, update on jobhisto_jobid_seq  to ${db_user};
 grant select, update on file_seq 	to ${db_user};
 grant select, update on jobmedia_seq    to ${db_user};
 grant select, update on basefiles_seq	to ${db_user};
