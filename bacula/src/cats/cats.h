@@ -939,6 +939,21 @@ struct ATTR_DBR {
    int DigestType;
 };
 
+struct ROBJECT_DBR {
+   char *full_fname;
+   char *fname;
+   char *path;
+   char *plugin_name;
+   char *object;
+   uint32_t object_len;
+   uint32_t ObjectIndex;
+   uint32_t FileIndex;
+   uint32_t Stream;
+   uint32_t FileType;
+   JobId_t  JobId;
+   DBId_t RestoreObjectId;
+};
+
 
 /* File record -- same format as database */
 struct FILE_DBR {

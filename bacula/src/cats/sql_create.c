@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2008 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2010 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -30,7 +30,6 @@
  *
  *    Kern Sibbald, March 2000
  *
- *    Version $Id: sql_create.c 8407 2009-01-28 10:47:21Z ricozz $
  */
 
 /* The following is necessary so that we do not include
@@ -1260,5 +1259,52 @@ bail_out:
    db_unlock(mdb);
    return ret;
 }
+
+
+/*
+ * Create Restore Object record in B_DB
+ *
+ */
+bool db_create_restore_object_record(JCR *jcr, B_DB *mdb, ROBJECT_DBR *ro)
+{
+   bool stat;
+   POOLMEM *esc_obj = get_pool_memory(PM_MESSAGE); 
+   db_lock(mdb);
+
+   Dmsg1(dbglevel, "Fname=%s\n", ro->fname);
+   Dmsg0(dbglevel, "put_object_into_catalog\n");
+
+   split_path_and_file(jcr, mdb, ro->fname);
+
+   mdb->esc_name = check_pool_memory_size(mdb->esc_name, mdb->fnl*2+1);
+   db_escape_string(jcr, mdb, mdb->esc_name, mdb->fname, mdb->fnl);
+   
+   mdb->esc_path = check_pool_memory_size(mdb->esc_path, mdb->pnl*2+1);
+   db_escape_string(jcr, mdb, mdb->esc_path, mdb->path, mdb->pnl);
+
+   esc_obj = check_pool_memory_size(esc_obj, ro->object_len*2+1);
+   db_escape_string(jcr, mdb, esc_obj, ro->object, ro->object_len);
+
+   Mmsg(mdb->cmd,
+        "INSERT INTO RestoreObject (Fname,Path,PluginName,RestoreObject"
+        "ObjectIndex,ObjectType,FileIndex,JobId) VALUES"
+        "('%s','%s','%s','%s',%d,%d,%d,%u)", 
+        ro->fname, ro->path, ro->plugin_name, esc_obj, ro->object_len,
+        ro->ObjectIndex, FT_RESTORE_FIRST, ro->FileIndex, ro->JobId);
+
+   ro->RestoreObjectId = sql_insert_id(mdb, mdb->cmd, NT_("RestoreObject"));
+   if (ro->RestoreObjectId == 0) {
+      Mmsg2(&mdb->errmsg, _("Create db Object record %s failed. ERR=%s"),
+         mdb->cmd, sql_strerror(mdb));
+      Jmsg(jcr, M_FATAL, 0, "%s", mdb->errmsg);
+      stat = false;
+   } else {
+      stat = true;
+   }
+   db_unlock(mdb);
+   free_pool_memory(esc_obj);
+   return stat;
+}
+
 
 #endif /* HAVE_SQLITE3 || HAVE_MYSQL || HAVE_SQLITE || HAVE_POSTGRESQL || HAVE_INGRES || HAVE_DBI */

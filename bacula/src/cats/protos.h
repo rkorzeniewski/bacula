@@ -81,6 +81,7 @@ bool my_batch_start(JCR *jcr, B_DB *mdb);
 bool my_batch_end(JCR *jcr, B_DB *mdb, const char *error);
 bool my_batch_insert(JCR *jcr, B_DB *mdb, ATTR_DBR *ar);
 bool db_create_attributes_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar);
+bool db_create_restore_object_record(JCR *jcr, B_DB *mdb, ROBJECT_DBR *ar);
 bool db_create_base_file_attributes_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar);
 bool db_commit_base_file_attributes_record(JCR *jcr, B_DB *mdb);
 bool db_create_base_file_list(JCR *jcr, B_DB *mdb, char *jobids);

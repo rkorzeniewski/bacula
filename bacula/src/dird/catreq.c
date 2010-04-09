@@ -418,6 +418,7 @@ static void update_attribute(JCR *jcr, char *msg, int32_t msglen)
          if (!db_create_attributes_record(jcr, jcr->db, ar)) {
             Jmsg1(jcr, M_FATAL, 0, _("Attribute create error. %s"), db_strerror(jcr->db));
          }
+         jcr->cached_attribute = false;
       }
       /* Any cached attr is flushed so we can reuse jcr->attr and jcr->ar */
       jcr->attr = check_pool_memory_size(jcr->attr, msglen);
@@ -448,9 +449,40 @@ static void update_attribute(JCR *jcr, char *msg, int32_t msglen)
       } else {
          ar->JobId = jcr->JobId;
       }
-      ar->Digest = NULL;
-      ar->DigestType = CRYPTO_DIGEST_NONE;
-      jcr->cached_attribute = true;
+      /*
+       * Restore object */
+      if (ar->FileType == FT_RESTORE_FIRST) {
+         ROBJECT_DBR ro;
+         POOLMEM *attrEx = get_pool_memory(PM_MESSAGE);
+         char *p;
+         ro.full_fname = fname;
+         ro.Stream = Stream;
+         ro.FileType = ar->FileType;
+         ro.FileIndex = FileIndex;
+         ro.JobId = ar->JobId;
+         p = ar->attr;                   /* point to attributes */
+         while (*p++ != 0)               /* skip attributes */
+            { }
+         while (*p++ != 0)               /* skip link */
+            { }
+         /* We have an object, so do a binary copy */
+         ro.object_len = msglen + ar->attr - p;
+         attrEx = check_pool_memory_size(attrEx, ro.object_len + 1);
+         memcpy(attrEx, p, ro.object_len);  
+         ro.object = attrEx;
+         /* Add a EOS for those who attempt to print the object */
+         p = attrEx + ro.object_len;
+         *p = 0;
+         /* Send it */
+         if (!db_create_restore_object_record(jcr, jcr->db, &ro)) {
+            Jmsg1(jcr, M_FATAL, 0, _("Restore object create error. %s"), db_strerror(jcr->db));
+         }
+         free_pool_memory(attrEx);
+      } else {
+         ar->Digest = NULL;
+         ar->DigestType = CRYPTO_DIGEST_NONE;
+         jcr->cached_attribute = true;
+      }
 
       Dmsg2(400, "dird<filed: stream=%d %s\n", Stream, fname);
       Dmsg1(400, "dird<filed: attr=%s\n", attr);
