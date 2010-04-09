@@ -566,9 +566,10 @@ INGresult *INGquery(INGconn *dbconn, const char *query, bool transaction)
    rows = INGfetchAll(query, res);
 
    if (rows < 0) {
-      INGfreeDescriptor(desc);
       INGfreeINGresult(res);
       res = NULL;
+      INGfreeDescriptor(desc);
+      desc = NULL;
       goto bail_out;
    }
 
@@ -588,12 +589,15 @@ bail_out:
 
 void INGclear(INGresult *res)
 {
+   IISQLDA *desc = NULL;
+
    if (res == NULL) {
       return;
    }
 
-   INGfreeDescriptor(res->sqlda);
+   desc = res->sqlda;
    INGfreeINGresult(res);
+   INGfreeDescriptor(desc);
 }
 
 void INGcommit(const INGconn *dbconn)
