@@ -30,7 +30,7 @@ CREATE UNIQUE INDEX path_name_idx on path (path);
 
 CREATE TABLE file
 (
-    fileid	      bigserial	  not null,
+    fileid	      bigserial   not null,
     fileindex	      integer	  not null  default 0,
     jobid	      integer	  not null,
     pathid	      integer	  not null,
@@ -60,35 +60,50 @@ CREATE INDEX file_jobid_idx on file(jobid);
 -- CREATE INDEX file_pathid_idx on file(pathid);
 -- CREATE INDEX file_filenameid_idx on file(filenameid);
 
+CREATE TABLE RestoreObject (
+   RestoreObjectId SERIAL NOT NULL,
+   Fname TEXT NOT NULL,
+   Path TEXT NOT NULL,
+   RestoreObject TEXT NOT NULL,
+   PluginName TEXT NOT NULL,
+   ObjectIndex INTEGER DEFAULT 0,
+   ObjectType INTEGER DEFAULT 0,
+   FileIndex INTEGER UNSIGNED DEFAULT 0,
+   JobId INTEGER UNSIGNED,
+   PRIMARY KEY(RestoreObjectId),
+   );
+CREATE INDEX restore_jobid_idx on file(JobId);
+
+
 CREATE TABLE Job
 (
-    JobId             serial      not null,
-    Job               text        not null,
-    Name              text        not null,
-    Type              char(1)     not null,
-    Level             char(1)     not null,
-    ClientId          integer     default 0,
-    JobStatus         char(1)     not null,
-    SchedTime         timestamp   without time zone,
-    StartTime         timestamp   without time zone,
-    EndTime           timestamp   without time zone,
+    JobId	      serial	  not null,
+    Job 	      text	  not null,
+    Name	      text	  not null,
+    Type	      char(1)	  not null,
+    Level	      char(1)	  not null,
+    ClientId	      integer	  default 0,
+    JobStatus	      char(1)	  not null,
+    SchedTime	      timestamp   without time zone,
+    StartTime	      timestamp   without time zone,
+    EndTime	      timestamp   without time zone,
     RealEndTime       timestamp   without time zone,
-    JobTDate          bigint      default 0,
-    VolSessionId      integer     default 0,
-    volSessionTime    integer     default 0,
-    JobFiles          integer     default 0,
-    JobBytes          bigint      default 0,
-    ReadBytes         bigint      default 0,
-    JobErrors         integer     default 0,
-    JobMissingFiles   integer     default 0,
-    PoolId            integer     default 0,
-    FilesetId         integer     default 0,
-    PriorJobid        integer     default 0,
-    PurgedFiles       smallint    default 0,
-    HasBase           smallint    default 0,
-    HasCache          smallint    default 0,
-    Reviewed          smallint    default 0,
-    Comment           text,
+    JobTDate	      bigint	  default 0,
+    VolSessionId      integer	  default 0,
+    volSessionTime    integer	  default 0,
+    JobFiles	      integer	  default 0,
+    JobBytes	      bigint	  default 0,
+    ReadBytes	      bigint	  default 0,
+    JobErrors	      integer	  default 0,
+    JobMissingFiles   integer	  default 0,
+    PoolId	      integer	  default 0,
+    FilesetId	      integer	  default 0,
+    PriorJobid	      integer	  default 0,
+    PurgedFiles       smallint	  default 0,
+    HasBase	      smallint	  default 0,
+    HasCache	      smallint	  default 0,
+    Reviewed	      smallint	  default 0,
+    Comment	      text,
     primary key (jobid)
 );
 
@@ -163,7 +178,7 @@ CREATE TABLE media
 	      'Error','Busy','Used','Cleaning','Scratch')),
     enabled	      smallint	  default 1,
     recycle	      smallint	  default 0,
-    ActionOnPurge     smallint    default 0,
+    ActionOnPurge     smallint	  default 0,
     volretention      bigint	  default 0,
     voluseduration    bigint	  default 0,
     maxvoljobs	      integer	  default 0,
@@ -239,7 +254,7 @@ CREATE TABLE pool
     maxvolbytes       bigint	  default 0,
     autoprune	      smallint	  default 0,
     recycle	      smallint	  default 0,
-    ActionOnPurge     smallint    default 0,
+    ActionOnPurge     smallint	  default 0,
     pooltype	      text			    
       check (pooltype in ('Backup','Copy','Cloned','Archive','Migration','Scratch')),
     labeltype	      integer	  default 0,
@@ -344,7 +359,7 @@ CREATE TABLE PathHierarchy
 );
 
 CREATE INDEX pathhierarchy_ppathid 
-          ON PathHierarchy (PPathId);
+	  ON PathHierarchy (PPathId);
 
 CREATE TABLE PathVisibility
 (
@@ -355,7 +370,7 @@ CREATE TABLE PathVisibility
       CONSTRAINT pathvisibility_pkey PRIMARY KEY (JobId, PathId)
 );
 CREATE INDEX pathvisibility_jobid
-             ON PathVisibility (JobId);
+	     ON PathVisibility (JobId);
 
 CREATE TABLE version
 (

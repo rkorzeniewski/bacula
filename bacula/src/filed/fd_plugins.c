@@ -350,7 +350,7 @@ bool send_plugin_name(JCR *jcr, BSOCK *sd, bool start)
            sd->bstrerror());
      return false;
    }
-   Dmsg1(50, "send: %s\n", sd->msg);
+   Dmsg1(50, "send plugin name hdr: %s\n", sd->msg);
 
    if (start) {
       /* Send data -- not much */
@@ -364,7 +364,7 @@ bool send_plugin_name(JCR *jcr, BSOCK *sd, bool start)
             sd->bstrerror());
          return false;
    }
-   Dmsg1(dbglvl, "send: %s\n", sd->msg);
+   Dmsg1(dbglvl, "send plugin start/end: %s\n", sd->msg);
    sd->signal(BNET_EOD);            /* indicate end of plugin name data */
    return true;
 }

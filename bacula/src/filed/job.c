@@ -1639,7 +1639,6 @@ static int backup_cmd(JCR *jcr)
    if (!blast_data_to_storage_daemon(jcr, NULL)) {
       set_jcr_job_status(jcr, JS_ErrorTerminated);
       bnet_suppress_error_messages(sd, 1);
-      bget_msg(sd);                   /* Read final response from append_data */
       Dmsg0(110, "Error in blast_data.\n");
    } else {
       set_jcr_job_status(jcr, JS_Terminated);

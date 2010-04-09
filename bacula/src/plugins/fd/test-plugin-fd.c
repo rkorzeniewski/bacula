@@ -280,17 +280,17 @@ static bRC startBackupFile(bpContext *ctx, struct save_pkt *sp)
    }
    time_t now = time(NULL);
    sp->fname = p_ctx->fname;
+   sp->object = (char *)"This is test data for the restore object.";
+   sp->object_len = strlen(sp->object);
+   sp->index = 2;
    sp->type = FT_RESTORE_FIRST;
    sp->statp.st_mode = 0700 | S_IFREG;
    sp->statp.st_ctime = now;
    sp->statp.st_mtime = now;
    sp->statp.st_atime = now;
-   sp->statp.st_size = -1;
+   sp->statp.st_size = sp->object_len;
    sp->statp.st_blksize = 4096;
    sp->statp.st_blocks = 1;
-   sp->object = (char *)"This is test data for the restore object.";
-   sp->object_len = strlen(sp->object);
-   sp->index = 2;
    p_ctx->backup = true;
    printf("test-plugin-fd: startBackupFile\n");
    return bRC_OK;
@@ -314,8 +314,14 @@ static bRC endBackupFile(bpContext *ctx)
  */
 static bRC pluginIO(bpContext *ctx, struct io_pkt *io)
 {
-   printf("test-plugin-fd: pluginIO\n");
-   return bRC_Error;
+   struct plugin_ctx *p_ctx = (struct plugin_ctx *)ctx->pContext;
+   if (!p_ctx) {
+      return bRC_Error;
+   }
+    
+   io->status = 0;
+   io->io_errno = 0;
+   return bRC_OK;
 }
 
 /*

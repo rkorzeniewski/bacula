@@ -39,7 +39,6 @@ CREATE TABLE File (
    MD5 VARCHAR(255) NOT NULL,
    PRIMARY KEY(FileId) 
    );
-
 CREATE INDEX inx3 ON File (JobId);
 CREATE INDEX file_jpf_idx ON File (JobId, PathId, FilenameId);
 --
@@ -48,6 +47,23 @@ CREATE INDEX file_jpf_idx ON File (JobId, PathId, FilenameId);
 --
 -- CREATE INDEX inx4 ON File (PathId);
 -- CREATE INDEX inx5 ON File (FileNameId);
+
+
+CREATE TABLE RestoreObject (
+   RestoreObjectId INTEGER,
+   Fname TEXT DEFAULT '',
+   Path TEXT DEFAULT '',
+   RestoreObject TEXT DEFAULT '',
+   PluginName TEXT DEFAULT '',
+   ObjectIndex INTEGER DEFAULT 0,
+   ObjectType INTEGER DEFAULT 0,
+   FileIndex INTEGER UNSIGNED DEFAULT 0,
+   JobId INTEGER UNSIGNED REFERENCES Job NOT NULL,
+   PRIMARY KEY(RestoreObjectId),
+   INDEX (JobId)
+   );
+CREATE INDEX restore_jobid_idx ON RestoreObject (JobId);
+
 
 CREATE TABLE Job (
    JobId INTEGER,
@@ -191,7 +207,7 @@ CREATE TABLE Media (
    VolStatus VARCHAR(20) NOT NULL,
    Enabled TINYINT DEFAULT 1,
    Recycle TINYINT DEFAULT 0,
-   ActionOnPurge     TINYINT    DEFAULT 0,
+   ActionOnPurge     TINYINT	DEFAULT 0,
    VolRetention BIGINT UNSIGNED DEFAULT 0,
    VolUseDuration BIGINT UNSIGNED DEFAULT 0,
    MaxVolJobs INTEGER UNSIGNED DEFAULT 0,
@@ -265,7 +281,7 @@ CREATE TABLE Pool (
    MaxVolBytes BIGINT UNSIGNED DEFAULT 0,
    AutoPrune TINYINT DEFAULT 0,
    Recycle TINYINT DEFAULT 0,
-   ActionOnPurge     TINYINT    DEFAULT 0,
+   ActionOnPurge     TINYINT	DEFAULT 0,
    PoolType VARCHAR(20) NOT NULL,
    LabelType TINYINT DEFAULT 0,
    LabelFormat VARCHAR(128) NOT NULL,
@@ -351,7 +367,7 @@ CREATE TABLE PathHierarchy
 );
 
 CREATE INDEX pathhierarchy_ppathid 
-          ON PathHierarchy (PPathId);
+	  ON PathHierarchy (PPathId);
 
 CREATE TABLE PathVisibility
 (
@@ -363,7 +379,7 @@ CREATE TABLE PathVisibility
 );
 
 CREATE INDEX pathvisibility_jobid
-          ON PathVisibility (JobId);
+	  ON PathVisibility (JobId);
 
 CREATE TABLE Status (
    JobStatus CHAR(1) NOT NULL,

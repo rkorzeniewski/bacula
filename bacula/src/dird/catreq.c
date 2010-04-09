@@ -373,11 +373,11 @@ static void update_attribute(JCR *jcr, char *msg, int32_t msglen)
    uint32_t VolSessionId, VolSessionTime;
    int32_t Stream;
    uint32_t FileIndex;
-   uint32_t data_len;
    char *p;
    int len;
    char *fname, *attr;
    ATTR_DBR *ar = NULL;
+   uint32_t reclen;
 
    /* Start transaction allocates jcr->attr and jcr->ar if needed */
    db_start_transaction(jcr, jcr->db);     /* start transaction if not already open */
@@ -400,7 +400,7 @@ static void update_attribute(JCR *jcr, char *msg, int32_t msglen)
    unser_uint32(VolSessionTime);      /* VolSessionTime */
    unser_int32(FileIndex);            /* FileIndex */
    unser_int32(Stream);               /* Stream */
-   unser_uint32(data_len);            /* Record length */
+   unser_uint32(reclen);              /* Record length */
    p += unser_length(p);              /* Raw record follows */
 
    /*
@@ -409,8 +409,8 @@ static void update_attribute(JCR *jcr, char *msg, int32_t msglen)
     */
 
    Dmsg1(400, "UpdCat msg=%s\n", msg);
-   Dmsg5(400, "UpdCat VolSessId=%d VolSessT=%d FI=%d Strm=%d data_len=%d\n",
-      VolSessionId, VolSessionTime, FileIndex, Stream, data_len);
+   Dmsg5(400, "UpdCat VolSessId=%d VolSessT=%d FI=%d Strm=%d reclen=%d\n",
+      VolSessionId, VolSessionTime, FileIndex, Stream, reclen);
 
    if (Stream == STREAM_UNIX_ATTRIBUTES || Stream == STREAM_UNIX_ATTRIBUTES_EX) {
       if (jcr->cached_attribute) {
@@ -455,6 +455,7 @@ static void update_attribute(JCR *jcr, char *msg, int32_t msglen)
          ROBJECT_DBR ro;
          POOLMEM *attrEx = get_pool_memory(PM_MESSAGE);
          char *p;
+         memset(&ro, 0, sizeof(ro));
          ro.full_fname = fname;
          ro.Stream = Stream;
          ro.FileType = ar->FileType;
@@ -466,13 +467,16 @@ static void update_attribute(JCR *jcr, char *msg, int32_t msglen)
          while (*p++ != 0)               /* skip link */
             { }
          /* We have an object, so do a binary copy */
-         ro.object_len = msglen + ar->attr - p;
+         ro.object_len = msglen + jcr->attr - p;
          attrEx = check_pool_memory_size(attrEx, ro.object_len + 1);
          memcpy(attrEx, p, ro.object_len);  
          ro.object = attrEx;
          /* Add a EOS for those who attempt to print the object */
          p = attrEx + ro.object_len;
          *p = 0;
+         Dmsg7(000, "fname=%s stream=%d FT=%d FI=%d JobId=%d, obj_len=%d\nobj=\"%s\"\n",
+            ro.full_fname, ro.Stream, ro.FileType, ro.FileIndex, ro.JobId,
+            ro.object_len, attrEx);
          /* Send it */
          if (!db_create_restore_object_record(jcr, jcr->db, &ro)) {
             Jmsg1(jcr, M_FATAL, 0, _("Restore object create error. %s"), db_strerror(jcr->db));

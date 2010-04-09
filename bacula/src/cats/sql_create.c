@@ -1274,7 +1274,7 @@ bool db_create_restore_object_record(JCR *jcr, B_DB *mdb, ROBJECT_DBR *ro)
    Dmsg1(dbglevel, "Fname=%s\n", ro->fname);
    Dmsg0(dbglevel, "put_object_into_catalog\n");
 
-   split_path_and_file(jcr, mdb, ro->fname);
+   split_path_and_file(jcr, mdb, ro->full_fname);
 
    mdb->esc_name = check_pool_memory_size(mdb->esc_name, mdb->fnl*2+1);
    db_escape_string(jcr, mdb, mdb->esc_name, mdb->fname, mdb->fnl);
@@ -1286,10 +1286,10 @@ bool db_create_restore_object_record(JCR *jcr, B_DB *mdb, ROBJECT_DBR *ro)
    db_escape_string(jcr, mdb, esc_obj, ro->object, ro->object_len);
 
    Mmsg(mdb->cmd,
-        "INSERT INTO RestoreObject (Fname,Path,PluginName,RestoreObject"
+        "INSERT INTO RestoreObject (Fname,Path,PluginName,RestoreObject,"
         "ObjectIndex,ObjectType,FileIndex,JobId) VALUES"
         "('%s','%s','%s','%s',%d,%d,%d,%u)", 
-        ro->fname, ro->path, ro->plugin_name, esc_obj, ro->object_len,
+        mdb->esc_name, mdb->esc_path, mdb->esc_path, esc_obj, ro->object_len,
         ro->ObjectIndex, FT_RESTORE_FIRST, ro->FileIndex, ro->JobId);
 
    ro->RestoreObjectId = sql_insert_id(mdb, mdb->cmd, NT_("RestoreObject"));

@@ -335,6 +335,12 @@ bool BSOCK::send()
    bool ok = true;
 
    if (errors || is_terminated() || msglen > 1000000) {
+      if (!m_suppress_error_msgs) {
+         Qmsg6(m_jcr, M_ERROR, 0,
+            _("Socket has errors=%d; is_terminated=%d; or has insane msglen=%d on call to %s:%s:%d\n"),
+             errors, is_terminated(), msglen, m_who,
+             m_host, m_port);
+      }
       return false;
    }
    if (m_use_locking) P(m_mutex);
