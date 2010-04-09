@@ -327,9 +327,9 @@ void do_restore(JCR *jcr)
             goto bail_out;
          }
 
-         Dmsg3(000, "File %s\nattrib=%s\nattribsEx=%s\n", attr->fname,
+         Dmsg3(100, "File %s\nattrib=%s\nattribsEx=%s\n", attr->fname,
                attr->attr, attr->attrEx);
-         Dmsg3(000, "=== msglen=%d attrExlen=%d msg=%s\n", sd->msglen,
+         Dmsg3(100, "=== msglen=%d attrExlen=%d msg=%s\n", sd->msglen,
                strlen(attr->attrEx), sd->msg);
 
          attr->data_stream = decode_stat(attr->attr, &attr->statp, &attr->LinkFI);
