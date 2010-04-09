@@ -34,7 +34,7 @@
 #include "bacula.h"
 #include "filed.h"
 
-const int dbglvl = 0;
+const int dbglvl = 150;
 #ifdef HAVE_WIN32
 const char *plugin_type = "-fd.dll";
 #else
