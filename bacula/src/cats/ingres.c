@@ -658,7 +658,7 @@ int my_ingres_currval(B_DB *mdb, const char *table_name)
 
    Dmsg1(500, "my_ingres_currval invoked with '%s'\n", query);
 
-   result = INGquery(mdb->db, query, mdb->transaction);
+   result = INGquery(mdb->db, query);
 
    if (!result) {
       Dmsg1(50, "Query failed: %s\n", query);

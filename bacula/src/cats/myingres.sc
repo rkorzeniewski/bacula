@@ -542,7 +542,7 @@ INGresult *INGquery(INGconn *conn, const char *query, bool transaction)
    IISQLDA *desc = NULL;
    INGresult *res = NULL;
    int rows = -1;
-   int cols = INGgetCols(conn, query, transaction);
+   int cols = INGgetCols(conn, query);
    EXEC SQL BEGIN DECLARE SECTION;
    int sess_id;
    EXEC SQL END DECLARE SECTION;
@@ -596,7 +596,7 @@ void INGclear(INGresult *res)
    INGfreeINGresult(res);
 }
 
-void INGcommit(const INGconn *conn)
+void INGcommit(onst INGconn *conn)
 {
    EXEC SQL BEGIN DECLARE SECTION;
    int sess_id;
