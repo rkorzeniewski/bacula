@@ -29,7 +29,7 @@
  * Bacula Catalog Database routines specific to Ingres
  *   These are Ingres specific routines
  *
- *    Stefan Reddig, June 2009 with help of Marco van Wieringen April 2010
+ *    Stefan Reddig, June 2009
  *    based uopn work done 
  *    by Dan Langille, December 2003 and
  *    by Kern Sibbald, March 2000
