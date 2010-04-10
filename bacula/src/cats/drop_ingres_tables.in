@@ -30,6 +30,7 @@ DROP TABLE unsavedfiles;
 DROP TABLE CDImages ;
 DROP TABLE PathHierarchy;
 DROP TABLE PathVisibility;
+DROP TABLE RestoreObject;
 DROP TABLE version;
 DROP TABLE Status;
 DROP SEQUENCE filename_seq;
@@ -49,6 +50,7 @@ DROP SEQUENCE client_seq;
 DROP SEQUENCE Log_seq;
 DROP SEQUENCE LocationLog_seq;
 DROP SEQUENCE basefiles_seq;
+DROP SEQUENCE RestoreObject_seq;
 \g
 END-OF-DATA
 pstat=$?
