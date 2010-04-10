@@ -562,7 +562,7 @@ int my_ingres_query(B_DB *mdb, const char *query)
       /* SELECT */
       Dmsg0(500,"my_ingres_query (SELECT) starting...\n");
       mdb->result = INGquery(mdb, mdb->db, query);
-      if (mdb->result != NULL) {
+      if ( mdb->result != NULL ) {
         Dmsg1(500, "we have a result\n", query);
 
         // how many fields in the set?
@@ -606,44 +606,8 @@ void my_ingres_free_result(B_DB *mdb)
 
 int my_ingres_currval(B_DB *mdb, const char *table_name)
 {
-   /*
-    * Obtain the current value of the sequence that
-    * provides the serial value for primary key of the table.
-    *
-    * currval is local to our session. It is not affected by
-    * other transactions.
-    *
-    * Determine the name of the sequence.
-    * As we name all sequences as <table>_seq this is easy.
-    */
-
-   char sequence[NAMEDATALEN-1];
-   char query[NAMEDATALEN+50];
-   INGresult *result;
-   int id = 0;
-
-   bstrncpy(sequence, table_name, sizeof(sequence));
-   bstrncat(sequence, "_seq", sizeof(sequence));
-
-   bsnprintf(query, sizeof(query), "SELECT %s.currval FROM %s", sequence, table_name);
-
-   Dmsg1(500, "my_ingres_currval invoked with '%s'\n", query);
-
-   result = INGquery(mdb, mdb->db, query);
-
-   if (!result) {
-      Dmsg1(50, "Query failed: %s\n", query);
-      goto bail_out;
-   }
-
-   Dmsg0(500, "exec done");
-
-   id = atoi(INGgetvalue(result, 0, 0));
-
-bail_out:
-   INGclear(result);
-
-   return id;
+   // TODO!
+   return -1;
 }
 
 #ifdef HAVE_BATCH_FILE_INSERT
