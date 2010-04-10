@@ -357,9 +357,9 @@ static inline int INGfetchAll(const char *query, INGresult *ing_res)
 /* # line 371 "myingres.sc" */	/* open */
   {
     IIsqInit(&sqlca);
-    IIcsOpen((char *)"c2",11858,14584);
+    IIcsOpen((char *)"c2",30801,28581);
     IIwritio(0,(short *)0,1,32,0,(char *)"s2");
-    IIcsQuery((char *)"c2",11858,14584);
+    IIcsQuery((char *)"c2",30801,28581);
     if (sqlca.sqlcode < 0) 
       goto bail_out;
   }
@@ -369,7 +369,7 @@ static inline int INGfetchAll(const char *query, INGresult *ing_res)
 /* # line 377 "myingres.sc" */	/* fetch */
   {
     IIsqInit(&sqlca);
-    if (IIcsRetScroll((char *)"c2",11858,14584,-1,-1) != 0) {
+    if (IIcsRetScroll((char *)"c2",30801,28581,-1,-1) != 0) {
       IIcsDaGet(0,desc);
       IIcsERetrieve();
     } /* IIcsRetrieve */
@@ -396,7 +396,7 @@ static inline int INGfetchAll(const char *query, INGresult *ing_res)
 /* # line 400 "myingres.sc" */	/* close */
   {
     IIsqInit(&sqlca);
-    IIcsClose((char *)"c2",11858,14584);
+    IIcsClose((char *)"c2",30801,28581);
   }
 /* # line 402 "myingres.sc" */	/* host code */
    ing_res->status = ING_COMMAND_OK;
@@ -692,132 +692,38 @@ INGconn *INGconnectDB(char *dbname, char *user, char *passwd, int session_id)
 bail_out:
    return dbconn;
 }
-void INGsetDefaultLockingMode(INGconn *dbconn)
-{
-   /*
-    * Set the default Ingres session locking mode:
-    *
-    * SET LOCKMODE provides four different parameters to govern
-    * the nature of locking in an INGRES session:
-    *
-    * Level: This refers to the level of granularity desired when
-    * the table is accessed. You can specify any of the following
-    * locking levels:
-    *
-    * page    Specifies locking at the level of the data page (subject to
-    *         escalation criteria; see below)
-    * table   Specifies table-level locking in the database
-    * session Specifies the current default for your INGRES session
-    * system  Specifies that INGRES will start with page-level locking,
-    *         unless it estimates that more than Maxlocks pages will be
-    *         referenced, in which case table-level locking will be used.
-    *
-    * Readlock: This refers to locking in situations where table access
-    *           is required for reading data only (as opposed to updating
-    *           data). You can specify any of the following Readlock modes:
-    *
-    *    nolock     Specifies no locking when reading data
-    *    shared     Specifies the default mode of locking when reading data
-    *    exclusive  Specifies exclusive locking when reading data (useful in
-    *               "select-for-update" processing within a multi-statement
-    *               transaction)
-    *    system     Specifies the general Readlock default for the INGRES system
-    *
-    * Maxlocks: This refers to an escalation factor, or number of locks on
-    *           data pages, at which locking escalates from page-level
-    *           to table-level. The number of locks available to you is
-    *           dependent upon your system configuration. You can specify the
-    *           following Maxlocks escalation factors:
-    *
-    *    n       A specific (integer) number of page locks to allow before
-    *            escalating to table-level locking. The default "n" is 10,
-    *            and "n" must be greater than 0.
-    *    session Specifies the current Maxlocks default for your INGRES
-    *            session
-    *    system  Specifies the general Maxlocks default for the INGRES system
-    *
-    * Note: If you specify page-level locking, and the number of locks granted
-    * during a query exceeds the system-wide lock limit, or if the operating
-    * system's locking resources are depleted, locking escalates to table-level.
-    * This escalation occurs automatically and is independent of the user.
-    *
-    * Timeout: This refers to a time limit, expressed in seconds, for which
-    * a lock request should remain pending. If INGRES cannot grant the lock
-    * request within the specified time, then the query that requested the
-    * lock aborts. You can specify the following timeout characteristics:
-    *
-    *    n       A specific (integer) number of seconds to wait for a lock
-    *            (setting "n" to 0 requires INGRES to wait indefinitely for
-    *            the lock)
-    *    session Specifies the current timeout default for your INGRES
-    *            session (which is also the INGRES default)
-    *    system  Specifies the general timeout default for the INGRES system
-    *
-    */
-/* # line 727 "myingres.sc" */	
-  
-  int sess_id;
-/* # line 729 "myingres.sc" */	
-  
-   if (dbconn != NULL) {
-      sess_id = dbconn->session_id;
-      /*
-       * Switch to the correct default session for this thread.
-       */
-/* # line 736 "myingres.sc" */	/* set_sql */
-  {
-    IILQssSetSqlio(11,(short *)0,1,30,sizeof(sess_id),&sess_id);
-  }
-/* # line 738 "myingres.sc" */	/* set */
-  {
-    IIsqInit(&sqlca);
-    IIwritio(0,(short *)0,1,32,0,(char *)
-"set LOCKMODE session where level=system, readlock=nolock");
-    IIsyncup((char *)0,0);
-  }
-/* # line 740 "myingres.sc" */	/* host code */
-      /*
-       * Switch to no default session for this thread.
-       */
-/* # line 743 "myingres.sc" */	/* set_sql */
-  {
-    IILQssSetSqlio(11,(short *)0,1,30,sizeof(-97),(void *)IILQint(-97));
-  }
-/* # line 744 "myingres.sc" */	/* host code */
-   }
-}
 void INGdisconnectDB(INGconn *dbconn)
 {
-/* # line 749 "myingres.sc" */	
+/* # line 667 "myingres.sc" */	
   
   int sess_id;
-/* # line 751 "myingres.sc" */	
+/* # line 669 "myingres.sc" */	
   
    if (dbconn != NULL) {
       sess_id = dbconn->session_id;
-/* # line 755 "myingres.sc" */	/* disconnect */
+/* # line 673 "myingres.sc" */	/* disconnect */
   {
     IIsqInit(&sqlca);
     IILQsidSessID(sess_id);
     IIsqDisconnect();
   }
-/* # line 757 "myingres.sc" */	/* host code */
+/* # line 675 "myingres.sc" */	/* host code */
       free(dbconn->msg);
       free(dbconn);
    }
 }
 char *INGerrorMessage(const INGconn *dbconn)
 {
-/* # line 764 "myingres.sc" */	
+/* # line 682 "myingres.sc" */	
   
   char errbuf[256];
-/* # line 766 "myingres.sc" */	
+/* # line 684 "myingres.sc" */	
   
-/* # line 768 "myingres.sc" */	/* inquire_ingres */
+/* # line 686 "myingres.sc" */	/* inquire_ingres */
   {
     IILQisInqSqlio((short *)0,1,32,255,errbuf,63);
   }
-/* # line 769 "myingres.sc" */	/* host code */
+/* # line 687 "myingres.sc" */	/* host code */
    strncpy(dbconn->msg, errbuf, sizeof(dbconn->msg));
    return dbconn->msg;
 }
@@ -829,5 +735,5 @@ char *INGcmdTuples(INGresult *res)
 int INGputCopyEnd(INGconn *dbconn, const char *errormsg);
 int INGputCopyData(INGconn *dbconn, const char *buffer, int nbytes);
 */
-/* # line 783 "myingres.sc" */	
+/* # line 701 "myingres.sc" */	
 #endif

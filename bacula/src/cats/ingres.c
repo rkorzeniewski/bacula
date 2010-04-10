@@ -228,8 +228,6 @@ db_open_database(JCR *jcr, B_DB *mdb)
 
    mdb->connected = true;
 
-   INGsetDefaultLockingMode(mdb->db);
-
    if (!check_tables_version(jcr, mdb)) {
       V(mutex);
       return 0;
