@@ -56,7 +56,7 @@
  * -----------------------------------------------------------------------
  */
 
-/* List of open databases */
+/* List of open databases */  /* SRE: needed for ingres? */
 static BQUEUE db_list = {&db_list, &db_list};
 
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -80,7 +80,6 @@ db_init_database(JCR *jcr, const char *db_name, const char *db_user, const char 
                  int mult_db_connections)
 {
    B_DB *mdb;
-   int next_session_id = 0;
 
    if (!db_user) {
       Jmsg(jcr, M_FATAL, 0, _("A user name for Ingres must be supplied.\n"));
@@ -97,20 +96,6 @@ db_init_database(JCR *jcr, const char *db_name, const char *db_user, const char 
             mdb->ref_count++;
             V(mutex);
             return mdb;                  /* already open */
-         }
-
-         if (mdb->session_id > next_session_id) {
-            next_session_id = mdb->session_id;
-         }
-      }
-   } else {
-      /*
-       * See what the next available session_id is.
-       * We first see what the highest session_id is used now.
-       */
-      foreach_dlist(mdb, db_list) {
-         if (mdb->session_id > next_session_id) {
-            next_session_id = mdb->session_id;
          }
       }
    }
@@ -129,7 +114,6 @@ db_init_database(JCR *jcr, const char *db_name, const char *db_user, const char 
       mdb->db_socket   = bstrdup(db_socket);
    }
    mdb->db_port        = db_port;
-   mdb->session_id     = ++next_session_id;
    mdb->have_insert_id = TRUE;
    mdb->errmsg         = get_pool_memory(PM_EMSG); /* get error message buffer */
    *mdb->errmsg        = 0;
@@ -179,6 +163,22 @@ static bool check_database_encoding(JCR *jcr, B_DB *mdb)
 }
 
 /*
+ * Check for errors in DBMS work
+ */
+static int sql_check(B_DB *mdb)
+{
+    int errorcode;
+
+    if ((errorcode = INGcheck()) < 0) {
+        /* TODO: fill mdb->errmsg */
+        Mmsg(mdb->errmsg, "Something went wrong - still searching!\n");
+    } else if (errorcode > 0) {
+	/* just a warning, proceed */
+    }
+    return errorcode;
+}
+
+/*
  * Now actually open the database.  This can generate errors,
  *   which are returned in the errmsg
  *
@@ -212,13 +212,13 @@ db_open_database(JCR *jcr, B_DB *mdb)
       port = NULL;
    }
 
-   mdb->db = INGconnectDB(mdb->db_name, mdb->db_user, mdb->db_password, mdb->session_id);
+   mdb->db = INGconnectDB(mdb->db_name, mdb->db_user, mdb->db_password);
 
    Dmsg0(50, "Ingres real CONNECT done\n");
    Dmsg3(50, "db_user=%s db_name=%s db_password=%s\n", mdb->db_user, mdb->db_name,
             mdb->db_password==NULL?"(NULL)":mdb->db_password);
 
-   if (!mdb->db) {
+   if (sql_check(mdb)) {
       Mmsg2(&mdb->errmsg, _("Unable to connect to Ingres server.\n"
             "Database=%s User=%s\n"
             "It is probably not running or your password is incorrect.\n"),
@@ -390,9 +390,8 @@ bool db_sql_query(B_DB *mdb, const char *query, DB_RESULT_HANDLER *result_handle
  */
 void my_ingres_close(B_DB *mdb)
 {
-   Dmsg0(500, "my_ingres_close closing database connection\n");
-   INGdisconnectDB(mdb->db);
-   //SRE: error handling? 
+    INGdisconnectDB(mdb->db);
+    //SRE: error handling? 
 }
 
 INGRES_ROW my_ingres_fetch_row(B_DB *mdb)
@@ -553,7 +552,7 @@ int my_ingres_query(B_DB *mdb, const char *query)
 
    /* TODO: differentiate between SELECTs and other queries */
 
-   if ((cols = INGgetCols(mdb->db, new_query)) <= 0) {
+   if ((cols = INGgetCols(new_query)) <= 0) {
       if (cols < 0 ) {
          Dmsg0(500,"my_ingres_query: neg.columns: no DML stmt!\n");
       }

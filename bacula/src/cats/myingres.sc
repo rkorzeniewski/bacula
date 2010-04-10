@@ -52,10 +52,9 @@ int INGcheck()
    return (sqlca.sqlcode < 0) ? sqlca.sqlcode : 0;
 }
 
-short INGgetCols(INGconn *conn, const char *query)
+short INGgetCols(const char *query)
 {
    EXEC SQL BEGIN DECLARE SECTION;
-   int sess_id;
    char *stmt;
    EXEC SQL END DECLARE SECTION;
    
@@ -68,12 +67,6 @@ short INGgetCols(INGconn *conn, const char *query)
    sqlda->sqln = number;
 
    stmt = bstrdup(query);
-
-   /*
-    * Switch to the correct default session for this thread.
-    */
-   sess_id = conn->session_id;
-   EXEC SQL SET_SQL (SESSION = :sess_id);
      
    EXEC SQL PREPARE s1 from :stmt;
    if (INGcheck() < 0) {
@@ -90,10 +83,6 @@ short INGgetCols(INGconn *conn, const char *query)
    number = sqlda->sqld;
 
 bail_out:
-   /*
-    * Switch to no default session for this thread.
-    */
-   EXEC SQL SET_SQL (SESSION = NONE);
    free(stmt);
    free(sqlda);
    return number;
@@ -484,8 +473,8 @@ short INGftype(const INGresult *res, int column_number)
 
 int INGexec(INGconn *conn, const char *query)
 {
+   int check;
    EXEC SQL BEGIN DECLARE SECTION;
-   int sess_id;
    int rowcount;
    char *stmt;
    EXEC SQL END DECLARE SECTION;
@@ -493,29 +482,19 @@ int INGexec(INGconn *conn, const char *query)
    stmt = bstrdup(query);
    rowcount = -1;
 
-   /*
-    * Switch to the correct default session for this thread.
-    */
-   sess_id = conn->session_id;
-   EXEC SQL SET_SQL (SESSION = :sess_id);
    EXEC SQL EXECUTE IMMEDIATE :stmt;
 
    free(stmt);
 
-   if ((rowcount = INGcheck()) < 0) {
-      goto bail_out;
+   if ((check = INGcheck()) < 0) {
+      return check;
    }
 
    EXEC SQL INQUIRE_INGRES(:rowcount = ROWCOUNT);
-   if ((rowcount = INGcheck()) < 0) {
-      goto bail_out;
+   if ((check = INGcheck()) < 0) {
+      return check;
    }
-
-bail_out:
-   /*
-    * Switch to no default session for this thread.
-    */
-   EXEC SQL SET_SQL (SESSION = NONE);
+   
    return rowcount;
 }
 
@@ -527,41 +506,26 @@ INGresult *INGquery(INGconn *conn, const char *query)
    IISQLDA *desc = NULL;
    INGresult *res = NULL;
    int rows = -1;
-   int cols = INGgetCols(conn, query);
-   EXEC SQL BEGIN DECLARE SECTION;
-   int sess_id;
-   EXEC SQL END DECLARE SECTION;
-
-   /*
-    * Switch to the correct default session for this thread.
-    */
-   sess_id = conn->session_id;
-   EXEC SQL SET_SQL (SESSION = :sess_id);
+   int cols = INGgetCols(query);
 
    desc = INGgetDescriptor(cols, query);
    if (!desc) {
-      goto bail_out;
+      return NULL;
    }
 
    res = INGgetINGresult(desc);
    if (!res) {
-      goto bail_out;
+      return NULL;
    }
 
    rows = INGfetchAll(query, res);
 
    if (rows < 0) {
-      INGfreeDescriptor(desc);
-      INGfreeINGresult(res);
-      res = NULL;
-      goto bail_out;
+     INGfreeDescriptor(desc);
+     INGfreeINGresult(res);
+     return NULL;
    }
 
-bail_out:
-   /*
-    * Switch to no default session for this thread.
-    */
-   EXEC SQL SET_SQL (SESSION = NONE);
    return res;
 }
 
@@ -575,7 +539,7 @@ void INGclear(INGresult *res)
    INGfreeINGresult(res);
 }
 
-INGconn *INGconnectDB(char *dbname, char *user, char *passwd, int session_id)
+INGconn *INGconnectDB(char *dbname, char *user, char *passwd)
 {
    INGconn *dbconn;
 
@@ -589,45 +553,38 @@ INGconn *INGconnectDB(char *dbname, char *user, char *passwd, int session_id)
    EXEC SQL BEGIN DECLARE SECTION;
    char ingdbname[24];
    char ingdbuser[32];
-   char ingdbpasswd[32];
+   char ingdbpasw[32];
+   char conn_name[32];
    int sess_id;
    EXEC SQL END DECLARE SECTION;
 
-   sess_id = session_id;
    bstrncpy(ingdbname, dbname, sizeof(ingdbname));
    
    if (user != NULL) {
       bstrncpy(ingdbuser, user, sizeof(ingdbuser));
       if (passwd != NULL) {
-         bstrncpy(ingdbpasswd, passwd, sizeof(ingdbpasswd));
+         bstrncpy(ingdbpasw, passwd, sizeof(ingdbpasw));
       } else {
-         memset(ingdbpasswd, 0, sizeof(ingdbpasswd));
+         memset(ingdbpasw, 0, sizeof(ingdbpasw));
       }
       EXEC SQL CONNECT
          :ingdbname
-         SESSION :sess_id
-         IDENTIFIED BY :ingdbuser
-         DBMS_PASSWORD = :ingdbpasswd;
+         identified by :ingdbuser
+         dbms_password = :ingdbpasw;
    } else {
-      EXEC SQL CONNECT
-         :ingdbname
-         SESSION :sess_id;
+      EXEC SQL CONNECT :ingdbname;
    }   
-   if (INGcheck() < 0) {
-      return NULL;
-   }
+   
+   EXEC SQL INQUIRE_SQL(:conn_name = connection_name);
+   EXEC SQL INQUIRE_SQL(:sess_id = session);
    
    bstrncpy(dbconn->dbname, ingdbname, sizeof(dbconn->dbname));
    bstrncpy(dbconn->user, ingdbuser, sizeof(dbconn->user));
-   bstrncpy(dbconn->password, ingdbpasswd, sizeof(dbconn->password));
+   bstrncpy(dbconn->password, ingdbpasw, sizeof(dbconn->password));
+   bstrncpy(dbconn->connection_name, conn_name, sizeof(dbconn->connection_name));
    dbconn->session_id = sess_id;
    dbconn->msg = (char*)malloc(257);
    memset(dbconn->msg, 0, 257);
-
-   /*
-    * Switch to no default session for this thread undo default settings from SQL CONNECT.
-    */
-   EXEC SQL SET_SQL (SESSION = NONE);
 
    return dbconn;
 }
@@ -639,6 +596,7 @@ void INGdisconnectDB(INGconn *dbconn)
    EXEC SQL END DECLARE SECTION;
 
    sess_id = dbconn->session_id;
+
    EXEC SQL DISCONNECT SESSION :sess_id;
 
    if (dbconn != NULL) {
