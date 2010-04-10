@@ -350,9 +350,9 @@ static inline int INGfetchAll(const char *query, INGresult *ing_res)
 /* # line 368 "myingres.sc" */	/* open */
   {
     IIsqInit(&sqlca);
-    IIcsOpen((char *)"c2",24445,10430);
+    IIcsOpen((char *)"c2",14864,14190);
     IIwritio(0,(short *)0,1,32,0,(char *)"s2");
-    IIcsQuery((char *)"c2",24445,10430);
+    IIcsQuery((char *)"c2",14864,14190);
     if (sqlca.sqlcode < 0) 
       goto bail_out;
   }
@@ -362,7 +362,7 @@ static inline int INGfetchAll(const char *query, INGresult *ing_res)
 /* # line 374 "myingres.sc" */	/* fetch */
   {
     IIsqInit(&sqlca);
-    if (IIcsRetScroll((char *)"c2",24445,10430,-1,-1) != 0) {
+    if (IIcsRetScroll((char *)"c2",14864,14190,-1,-1) != 0) {
       IIcsDaGet(0,desc);
       IIcsERetrieve();
     } /* IIcsRetrieve */
@@ -389,7 +389,7 @@ static inline int INGfetchAll(const char *query, INGresult *ing_res)
 /* # line 397 "myingres.sc" */	/* close */
   {
     IIsqInit(&sqlca);
-    IIcsClose((char *)"c2",24445,10430);
+    IIcsClose((char *)"c2",14864,14190);
   }
 /* # line 399 "myingres.sc" */	/* host code */
    ing_res->status = ING_COMMAND_OK;
@@ -566,10 +566,9 @@ INGresult *INGquery(INGconn *dbconn, const char *query, bool transaction)
    }
    rows = INGfetchAll(query, res);
    if (rows < 0) {
+      INGfreeDescriptor(desc);
       INGfreeINGresult(res);
       res = NULL;
-      INGfreeDescriptor(desc);
-      desc = NULL;
       goto bail_out;
    }
 bail_out:
@@ -577,77 +576,75 @@ bail_out:
     * If we are not in a transaction we commit our work now.
     */
    if (!transaction) {
-/* # line 581 "myingres.sc" */	/* commit */
+/* # line 580 "myingres.sc" */	/* commit */
   {
     IIsqInit(&sqlca);
     IIxact(3);
   }
-/* # line 582 "myingres.sc" */	/* host code */
+/* # line 581 "myingres.sc" */	/* host code */
    }
    /*
     * Switch to no default session for this thread.
     */
-/* # line 586 "myingres.sc" */	/* set_sql */
+/* # line 585 "myingres.sc" */	/* set_sql */
   {
     IILQssSetSqlio(11,(short *)0,1,30,sizeof(-97),(void *)IILQint(-97));
   }
-/* # line 587 "myingres.sc" */	/* host code */
+/* # line 586 "myingres.sc" */	/* host code */
    return res;
 }
 void INGclear(INGresult *res)
 {
-   IISQLDA *desc = NULL;
    if (res == NULL) {
       return;
    }
-   desc = res->sqlda;
+   INGfreeDescriptor(res->sqlda);
    INGfreeINGresult(res);
-   INGfreeDescriptor(desc);
 }
 void INGcommit(const INGconn *dbconn)
 {
-/* # line 605 "myingres.sc" */	
+/* # line 601 "myingres.sc" */	
   
   int sess_id;
-/* # line 607 "myingres.sc" */	
+/* # line 603 "myingres.sc" */	
   
    if (dbconn != NULL) {
       sess_id = dbconn->session_id;
-/* # line 611 "myingres.sc" */	/* disconnect */
+/* # line 607 "myingres.sc" */	/* disconnect */
   {
     IIsqInit(&sqlca);
     IILQsidSessID(sess_id);
     IIsqDisconnect();
   }
-/* # line 613 "myingres.sc" */	/* host code */
+/* # line 609 "myingres.sc" */	/* host code */
       /*
        * Commit our work.
        */
-/* # line 616 "myingres.sc" */	/* commit */
+/* # line 612 "myingres.sc" */	/* commit */
   {
     IIsqInit(&sqlca);
     IIxact(3);
   }
-/* # line 618 "myingres.sc" */	/* host code */
+/* # line 614 "myingres.sc" */	/* host code */
       /*
        * Switch to no default session for this thread.
        */
-/* # line 621 "myingres.sc" */	/* set_sql */
+/* # line 617 "myingres.sc" */	/* set_sql */
   {
     IILQssSetSqlio(11,(short *)0,1,30,sizeof(-97),(void *)IILQint(-97));
   }
-/* # line 622 "myingres.sc" */	/* host code */
+/* # line 618 "myingres.sc" */	/* host code */
    }
 }
 INGconn *INGconnectDB(char *dbname, char *user, char *passwd, int session_id)
 {
-/* # line 627 "myingres.sc" */	
+/* # line 623 "myingres.sc" */	
   
   char ingdbname[24];
   char ingdbuser[32];
   char ingdbpasswd[32];
   int sess_id;
-/* # line 632 "myingres.sc" */	
+/* # line 628 "myingres.sc" */	
   
    INGconn *dbconn;
    if (dbname == NULL || strlen(dbname) == 0) {
@@ -655,7 +652,7 @@ INGconn *INGconnectDB(char *dbname, char *user, char *passwd, int session_id)
    }
    sess_id = session_id;
    bstrncpy(ingdbname, dbname, sizeof(ingdbname));
-/* # line 644 "myingres.sc" */	/* host code */
+/* # line 640 "myingres.sc" */	/* host code */
    if (user != NULL) {
       bstrncpy(ingdbuser, user, sizeof(ingdbuser));
       if (passwd != NULL) {
@@ -663,7 +660,7 @@ INGconn *INGconnectDB(char *dbname, char *user, char *passwd, int session_id)
       } else {
          memset(ingdbpasswd, 0, sizeof(ingdbpasswd));
       }
-/* # line 651 "myingres.sc" */	/* connect */
+/* # line 647 "myingres.sc" */	/* connect */
   {
     IIsqInit(&sqlca);
     IILQsidSessID(sess_id);
@@ -674,9 +671,9 @@ INGconn *INGconnectDB(char *dbname, char *user, char *passwd, int session_id)
     if (sqlca.sqlcode < 0) 
       goto bail_out;
   }
-/* # line 656 "myingres.sc" */	/* host code */
+/* # line 652 "myingres.sc" */	/* host code */
    } else {
-/* # line 657 "myingres.sc" */	/* connect */
+/* # line 653 "myingres.sc" */	/* connect */
   {
     IIsqInit(&sqlca);
     IILQsidSessID(sess_id);
@@ -686,9 +683,9 @@ INGconn *INGconnectDB(char *dbname, char *user, char *passwd, int session_id)
     if (sqlca.sqlcode < 0) 
       goto bail_out;
   }
-/* # line 660 "myingres.sc" */	/* host code */
+/* # line 656 "myingres.sc" */	/* host code */
    }   
-/* # line 664 "myingres.sc" */	/* host code */
+/* # line 660 "myingres.sc" */	/* host code */
    dbconn = (INGconn *)malloc(sizeof(INGconn));
    memset(dbconn, 0, sizeof(INGconn));
    bstrncpy(dbconn->dbname, ingdbname, sizeof(dbconn->dbname));
@@ -700,11 +697,11 @@ INGconn *INGconnectDB(char *dbname, char *user, char *passwd, int session_id)
    /*
     * Switch to no default session for this thread undo default settings from SQL CONNECT.
     */
-/* # line 677 "myingres.sc" */	/* set_sql */
+/* # line 673 "myingres.sc" */	/* set_sql */
   {
     IILQssSetSqlio(11,(short *)0,1,30,sizeof(-97),(void *)IILQint(-97));
   }
-/* # line 679 "myingres.sc" */	/* host code */
+/* # line 675 "myingres.sc" */	/* host code */
 bail_out:
    return dbconn;
 }
@@ -770,70 +767,70 @@ void INGsetDefaultLockingMode(INGconn *dbconn)
     *    system  Specifies the general timeout default for the INGRES system
     *
     */
-/* # line 745 "myingres.sc" */	
+/* # line 741 "myingres.sc" */	
   
   int sess_id;
-/* # line 747 "myingres.sc" */	
+/* # line 743 "myingres.sc" */	
   
    if (dbconn != NULL) {
       sess_id = dbconn->session_id;
       /*
        * Switch to the correct default session for this thread.
        */
-/* # line 754 "myingres.sc" */	/* set_sql */
+/* # line 750 "myingres.sc" */	/* set_sql */
   {
     IILQssSetSqlio(11,(short *)0,1,30,sizeof(sess_id),&sess_id);
   }
-/* # line 756 "myingres.sc" */	/* set */
+/* # line 752 "myingres.sc" */	/* set */
   {
     IIsqInit(&sqlca);
     IIwritio(0,(short *)0,1,32,0,(char *)
 "set LOCKMODE session where level=system, readlock=nolock");
     IIsyncup((char *)0,0);
   }
-/* # line 758 "myingres.sc" */	/* host code */
+/* # line 754 "myingres.sc" */	/* host code */
       /*
        * Switch to no default session for this thread.
        */
-/* # line 761 "myingres.sc" */	/* set_sql */
+/* # line 757 "myingres.sc" */	/* set_sql */
   {
     IILQssSetSqlio(11,(short *)0,1,30,sizeof(-97),(void *)IILQint(-97));
   }
-/* # line 762 "myingres.sc" */	/* host code */
+/* # line 758 "myingres.sc" */	/* host code */
    }
 }
 void INGdisconnectDB(INGconn *dbconn)
 {
-/* # line 767 "myingres.sc" */	
+/* # line 763 "myingres.sc" */	
   
   int sess_id;
-/* # line 769 "myingres.sc" */	
+/* # line 765 "myingres.sc" */	
   
    if (dbconn != NULL) {
       sess_id = dbconn->session_id;
-/* # line 773 "myingres.sc" */	/* disconnect */
+/* # line 769 "myingres.sc" */	/* disconnect */
   {
     IIsqInit(&sqlca);
     IILQsidSessID(sess_id);
     IIsqDisconnect();
   }
-/* # line 775 "myingres.sc" */	/* host code */
+/* # line 771 "myingres.sc" */	/* host code */
       free(dbconn->msg);
       free(dbconn);
    }
 }
 char *INGerrorMessage(const INGconn *dbconn)
 {
-/* # line 782 "myingres.sc" */	
+/* # line 778 "myingres.sc" */	
   
   char errbuf[256];
-/* # line 784 "myingres.sc" */	
+/* # line 780 "myingres.sc" */	
   
-/* # line 786 "myingres.sc" */	/* inquire_ingres */
+/* # line 782 "myingres.sc" */	/* inquire_ingres */
   {
     IILQisInqSqlio((short *)0,1,32,255,errbuf,63);
   }
-/* # line 787 "myingres.sc" */	/* host code */
+/* # line 783 "myingres.sc" */	/* host code */
    strncpy(dbconn->msg, errbuf, sizeof(dbconn->msg));
    return dbconn->msg;
 }
@@ -845,5 +842,5 @@ char *INGcmdTuples(INGresult *res)
 int INGputCopyEnd(INGconn *dbconn, const char *errormsg);
 int INGputCopyData(INGconn *dbconn, const char *buffer, int nbytes);
 */
-/* # line 801 "myingres.sc" */	
+/* # line 797 "myingres.sc" */	
 #endif
