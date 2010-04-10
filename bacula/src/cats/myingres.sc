@@ -52,7 +52,7 @@ int INGcheck()
    return (sqlca.sqlcode < 0) ? sqlca.sqlcode : 0;
 }
 
-short INGgetCols(INGconn *conn, const char *query, bool transaction)
+short INGgetCols(INGconn *conn, const char *query)
 {
    EXEC SQL BEGIN DECLARE SECTION;
    int sess_id;
@@ -90,12 +90,6 @@ short INGgetCols(INGconn *conn, const char *query, bool transaction)
    number = sqlda->sqld;
 
 bail_out:
-   /*
-    * If we are not in a transaction we commit our work now.
-    */
-   if (!transaction) {
-      EXEC SQL COMMIT WORK;
-   }
    /*
     * Switch to no default session for this thread.
     */
@@ -488,7 +482,7 @@ short INGftype(const INGresult *res, int column_number)
    return res->fields[column_number].type;
 }
 
-int INGexec(INGconn *conn, const char *query, bool transaction)
+int INGexec(INGconn *conn, const char *query)
 {
    int check;
    EXEC SQL BEGIN DECLARE SECTION;
@@ -522,19 +516,13 @@ int INGexec(INGconn *conn, const char *query, bool transaction)
 
 bail_out:
    /*
-    * If we are not in a transaction we commit our work now.
-    */
-   if (!transaction) {
-      EXEC SQL COMMIT WORK;
-   }
-   /*
     * Switch to no default session for this thread.
     */
    EXEC SQL SET_SQL (SESSION = NONE);
    return rowcount;
 }
 
-INGresult *INGquery(INGconn *conn, const char *query, bool transaction)
+INGresult *INGquery(INGconn *conn, const char *query)
 {
    /*
     * TODO: error handling
@@ -574,12 +562,6 @@ INGresult *INGquery(INGconn *conn, const char *query, bool transaction)
 
 bail_out:
    /*
-    * If we are not in a transaction we commit our work now.
-    */
-   if (!transaction) {
-      EXEC SQL COMMIT WORK;
-   }
-   /*
     * Switch to no default session for this thread.
     */
    EXEC SQL SET_SQL (SESSION = NONE);
@@ -594,28 +576,6 @@ void INGclear(INGresult *res)
 
    INGfreeDescriptor(res->sqlda);
    INGfreeINGresult(res);
-}
-
-void INGcommit(onst INGconn *conn)
-{
-   EXEC SQL BEGIN DECLARE SECTION;
-   int sess_id;
-   EXEC SQL END DECLARE SECTION;
-
-   if (dbconn != NULL) {
-      sess_id = dbconn->session_id;
-      EXEC SQL DISCONNECT SESSION :sess_id;
-
-      /*
-       * Commit our work.
-       */
-      EXEC SQL COMMIT WORK;
-
-      /*
-       * Switch to no default session for this thread.
-       */
-      EXEC SQL SET_SQL (SESSION = NONE);
-   }
 }
 
 INGconn *INGconnectDB(char *dbname, char *user, char *passwd, int session_id)
@@ -681,10 +641,10 @@ void INGdisconnectDB(INGconn *dbconn)
    int sess_id;
    EXEC SQL END DECLARE SECTION;
 
-   if (dbconn != NULL) {
-      sess_id = dbconn->session_id;
-      EXEC SQL DISCONNECT SESSION :sess_id;
+   sess_id = dbconn->session_id;
+   EXEC SQL DISCONNECT SESSION :sess_id;
 
+   if (dbconn != NULL) {
       free(dbconn->msg);
       free(dbconn);
    }
