@@ -54,7 +54,7 @@ short INGgetCols(const char *query)
    return number;
 }
 
-static inline IISQLDA *INGgetDescriptor(short numCols, const char *query)
+static IISQLDA *INGgetDescriptor(short numCols, const char *query)
 {
    EXEC SQL BEGIN DECLARE SECTION;
    char *stmt;
@@ -131,7 +131,7 @@ static void INGfreeDescriptor(IISQLDA *sqlda)
    sqlda = NULL;
 }
 
-static inline int INGgetTypeSize(IISQLVAR *ingvar)
+static int INGgetTypeSize(IISQLVAR *ingvar)
 {
    int inglength = 0;
    
@@ -153,7 +153,7 @@ static inline int INGgetTypeSize(IISQLVAR *ingvar)
    return inglength;
 }
 
-static inline INGresult *INGgetINGresult(IISQLDA *sqlda)
+static INGresult *INGgetINGresult(IISQLDA *sqlda)
 {
    if (!sqlda) {
       return NULL;
@@ -222,7 +222,7 @@ static void INGfreeINGresult(INGresult *ing_res)
    ing_res = NULL;
 }
 
-static inline ING_ROW *INGgetRowSpace(INGresult *ing_res)
+static ING_ROW *INGgetRowSpace(INGresult *ing_res)
 {
    int i;
    unsigned short len; /* used for VARCHAR type length */
@@ -301,7 +301,7 @@ static inline ING_ROW *INGgetRowSpace(INGresult *ing_res)
    return row;
 }
 
-static inline void INGfreeRowSpace(ING_ROW *row, IISQLDA *sqlda)
+static void INGfreeRowSpace(ING_ROW *row, IISQLDA *sqlda)
 {
    int i;
 
@@ -321,7 +321,7 @@ static inline void INGfreeRowSpace(ING_ROW *row, IISQLDA *sqlda)
    free(row);
 }
 
-static inline int INGfetchAll(const char *query, INGresult *ing_res)
+static int INGfetchAll(const char *query, INGresult *ing_res)
 {
    int linecount = 0;
    ING_ROW *row;
@@ -369,13 +369,10 @@ static inline int INGfetchAll(const char *query, INGresult *ing_res)
    return linecount;
 }
 
-static inline ING_STATUS INGresultStatus(INGresult *res)
+static ING_STATUS INGresultStatus(INGresult *res)
 {
-   if (res == NULL) {
-      return ING_NO_RESULT;
-   } else {
-      return res->status;
-   }
+   if (res == NULL) {return ING_NO_RESULT;}
+   return res->status;
 }
 
 static void INGrowSeek(INGresult *res, int row_number)
