@@ -390,9 +390,6 @@ db_close_database(JCR *jcr, B_DB *mdb)
    V(mutex);
 }
 
-void db_check_backend_thread_safe()
-{ }
-
 void db_thread_cleanup()
 { }
 
