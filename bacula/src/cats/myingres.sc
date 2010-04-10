@@ -484,7 +484,6 @@ short INGftype(const INGresult *res, int column_number)
 
 int INGexec(INGconn *conn, const char *query)
 {
-   int check;
    EXEC SQL BEGIN DECLARE SECTION;
    int sess_id;
    int rowcount;
@@ -503,14 +502,12 @@ int INGexec(INGconn *conn, const char *query)
 
    free(stmt);
 
-   if ((check = INGcheck()) < 0) {
-      rowcount = check;
+   if ((rowcount = INGcheck()) < 0) {
       goto bail_out;
    }
 
    EXEC SQL INQUIRE_INGRES(:rowcount = ROWCOUNT);
-   if ((check = INGcheck()) < 0) {
-      rowcount = check;
+   if ((rowcount = INGcheck()) < 0) {
       goto bail_out;
    }
 
