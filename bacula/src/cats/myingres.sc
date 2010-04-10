@@ -32,7 +32,13 @@
  *    Stefan Reddig, June 2009
  */
 
+/* The following is necessary so that we do not include
+ * the dummy external definition of DB.
+ */
+#define __SQL_C                       /* indicate that this is sql.c */
+
 #include "bacula.h"
+#include "cats.h"
 
 #ifdef HAVE_INGRES
 EXEC SQL INCLUDE SQLCA;
@@ -52,8 +58,9 @@ int INGcheck()
    return (sqlca.sqlcode < 0) ? sqlca.sqlcode : 0;
 }
 
-short INGgetCols(const char *query)
+short INGgetCols(B_DB *mdb, const char *query)
 {
+   bool stmt_free = false;
    EXEC SQL BEGIN DECLARE SECTION;
    char *stmt;
    EXEC SQL END DECLARE SECTION;
@@ -66,7 +73,15 @@ short INGgetCols(const char *query)
    
    sqlda->sqln = number;
 
-   stmt = bstrdup(query);
+   /*
+    * See if we need to run this through the limit_filter.
+    */
+   if (strstr(query, "LIMIT") != NULL) {
+      stmt = mdb->limit_filter->replace(query);
+   } else {
+      stmt = bstrdup(query);
+      stmt_free = true;
+   }
      
    EXEC SQL PREPARE s1 from :stmt;
    if (INGcheck() < 0) {
@@ -83,13 +98,16 @@ short INGgetCols(const char *query)
    number = sqlda->sqld;
 
 bail_out:
-   free(stmt);
+   if (stmt_free) {
+      free(stmt);
+   }
    free(sqlda);
    return number;
 }
 
-static inline IISQLDA *INGgetDescriptor(short numCols, const char *query)
+static inline IISQLDA *INGgetDescriptor(B_DB *mdb, short numCols, const char *query)
 {
+   bool stmt_free = false;
    EXEC SQL BEGIN DECLARE SECTION;
    char *stmt;
    EXEC SQL END DECLARE SECTION;
@@ -102,11 +120,21 @@ static inline IISQLDA *INGgetDescriptor(short numCols, const char *query)
    
    sqlda->sqln = numCols;
    
-   stmt = bstrdup(query);
+   /*
+    * See if we need to run this through the limit_filter.
+    */
+   if (strstr(query, "LIMIT") != NULL) {
+      stmt = mdb->limit_filter->replace(query);
+   } else {
+      stmt = bstrdup(query);
+      stmt_free = true;
+   }
   
    EXEC SQL PREPARE s2 INTO :sqlda FROM :stmt;
   
-   free(stmt);
+   if (stmt_free) {
+      free(stmt);
+   }
 
    for (i = 0; i < sqlda->sqld; ++i) {
       /*
@@ -471,20 +499,31 @@ short INGftype(const INGresult *res, int column_number)
    return res->fields[column_number].type;
 }
 
-int INGexec(INGconn *conn, const char *query)
+int INGexec(B_DB *mdb, INGconn *conn, const char *query)
 {
+   bool stmt_free = false;
    int check;
    EXEC SQL BEGIN DECLARE SECTION;
    int rowcount;
    char *stmt;
    EXEC SQL END DECLARE SECTION;
    
-   stmt = bstrdup(query);
+   /*
+    * See if we need to run this through the limit_filter.
+    */
+   if (strstr(query, "LIMIT") != NULL) {
+      stmt = mdb->limit_filter->replace(query);
+   } else {
+      stmt = bstrdup(query);
+      stmt_free = true;
+   }
    rowcount = -1;
 
    EXEC SQL EXECUTE IMMEDIATE :stmt;
 
-   free(stmt);
+   if (stmt_free) {
+      free(stmt);
+   }
 
    if ((check = INGcheck()) < 0) {
       return check;
@@ -498,7 +537,7 @@ int INGexec(INGconn *conn, const char *query)
    return rowcount;
 }
 
-INGresult *INGquery(INGconn *conn, const char *query)
+INGresult *INGquery(B_DB *mdb, INGconn *conn, const char *query)
 {
    /*
     * TODO: error handling
@@ -506,9 +545,9 @@ INGresult *INGquery(INGconn *conn, const char *query)
    IISQLDA *desc = NULL;
    INGresult *res = NULL;
    int rows = -1;
-   int cols = INGgetCols(query);
+   int cols = INGgetCols(mdb, query);
 
-   desc = INGgetDescriptor(cols, query);
+   desc = INGgetDescriptor(mdb, cols, query);
    if (!desc) {
       return NULL;
    }

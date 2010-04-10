@@ -527,14 +527,6 @@ void my_ingres_field_seek(B_DB *mdb, int field)
  */
 int my_ingres_query(B_DB *mdb, const char *query)
 {
-   char *new_query;
-
-   if (strstr(query, "LIMIT") != NULL) {
-      new_query = mdb->limit_filter->replace(query);
-   } else {
-      new_query = query;
-   }
-
    Dmsg0(500, "my_ingres_query started\n");
    // We are starting a new query.  reset everything.
    mdb->num_rows     = -1;
@@ -548,17 +540,17 @@ int my_ingres_query(B_DB *mdb, const char *query)
       mdb->result = NULL;
    }
 
-   Dmsg1(500, "my_ingres_query starts with '%s'\n", new_query);
+   Dmsg1(500, "my_ingres_query starts with '%s'\n", query);
 
    /* TODO: differentiate between SELECTs and other queries */
 
-   if ((cols = INGgetCols(new_query)) <= 0) {
+   if ((cols = INGgetCols(mdb, query)) <= 0) {
       if (cols < 0 ) {
          Dmsg0(500,"my_ingres_query: neg.columns: no DML stmt!\n");
       }
       Dmsg0(500,"my_ingres_query (non SELECT) starting...\n");
       /* non SELECT */
-      mdb->num_rows = INGexec(mdb->db, new_query);
+      mdb->num_rows = INGexec(mdb, mdb->db, query);
       if (INGcheck()) {
         Dmsg0(500,"my_ingres_query (non SELECT) went wrong\n");
         mdb->status = 1;
@@ -569,9 +561,9 @@ int my_ingres_query(B_DB *mdb, const char *query)
    } else {
       /* SELECT */
       Dmsg0(500,"my_ingres_query (SELECT) starting...\n");
-      mdb->result = INGquery(mdb->db, new_query);
+      mdb->result = INGquery(mdb, mdb->db, query);
       if (mdb->result != NULL) {
-        Dmsg1(500, "we have a result\n", new_query);
+        Dmsg1(500, "we have a result\n", query);
 
         // how many fields in the set?
         mdb->num_fields = (int)INGnfields(mdb->result);
@@ -637,7 +629,7 @@ int my_ingres_currval(B_DB *mdb, const char *table_name)
 
    Dmsg1(500, "my_ingres_currval invoked with '%s'\n", query);
 
-   result = INGquery(mdb->db, query);
+   result = INGquery(mdb, mdb->db, query);
 
    if (!result) {
       Dmsg1(50, "Query failed: %s\n", query);

@@ -71,15 +71,15 @@ typedef struct ing_conn {
 } INGconn;
 /* ---Prototypes--- */
 int INGcheck(void);
-short INGgetCols(const char *stmt);
+short INGgetCols(B_DB *mdb, const char *stmt);
 char *INGgetvalue(INGresult *res, int row_number, int column_number);
 bool INGgetisnull(INGresult *res, int row_number, int column_number);
 int INGntuples(const INGresult *res);
 int INGnfields(const INGresult *res);
 char *INGfname(const INGresult *res, int column_number);
 short INGftype(const INGresult *res, int column_number);
-int INGexec(INGconn *db, const char *query);
-INGresult *INGquery(INGconn *db, const char *query);
+int INGexec(B_DB *mdb, INGconn *db, const char *query);
+INGresult *INGquery(B_DB *mdb, INGconn *db, const char *query);
 void INGclear(INGresult *res);
 INGconn *INGconnectDB(char *dbname, char *user, char *passwd);
 void INGdisconnectDB(INGconn *dbconn);
