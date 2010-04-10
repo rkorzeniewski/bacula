@@ -135,6 +135,7 @@ struct B_DB {
    char *db_password;
    int  db_port;                      /* port for host name address */
    bool connected;                    /* connection made to db */
+   bool have_insert_id;               /* do not have insert id */
    bool fields_defined;               /* set when fields defined */
    char *sqlite_errmsg;               /* error message returned by sqlite */
    POOLMEM *errmsg;                   /* nicely edited error message */
@@ -256,6 +257,7 @@ struct B_DB {
    char *db_password;
    int  db_port;                      /* port for host name address */
    bool connected;                    /* connection made to db */
+   bool have_insert_id;               /* do not have insert id */
    bool fields_defined;               /* set when fields defined */
    char *sqlite_errmsg;               /* error message returned by sqlite */
    POOLMEM *errmsg;                   /* nicely edited error message */
@@ -362,6 +364,7 @@ struct B_DB {
    char *db_address;                  /* host address */
    char *db_socket;                   /* socket for local access */
    int db_port;                       /* port of host address */
+   int have_insert_id;                /* do have insert_id() */
    bool connected;
    POOLMEM *errmsg;                   /* nicely edited error message */
    POOLMEM *cmd;                      /* SQL command string */
@@ -464,6 +467,7 @@ struct B_DB {
    char *db_address;              /* host address */
    char *db_socket;               /* socket for local access */
    int db_port;                   /* port of host address */
+   int have_insert_id;            /* do have insert_id() */
    bool connected;
    POOLMEM *errmsg;               /* nicely edited error message */
    POOLMEM *cmd;                  /* SQL command string */
@@ -573,6 +577,7 @@ struct B_DB {
    char *db_socket;               /* socket for local access */
    int db_port;                   /* port of host address */
    int session_id;                /* unique session id */
+   int have_insert_id;            /* do have insert_id() */
    bool connected;
    POOLMEM *errmsg;               /* nicely edited error message */
    POOLMEM *cmd;                  /* SQL command string */
@@ -700,6 +705,7 @@ struct B_DB {
    char *db_address;              /* host address */
    char *db_socket;               /* socket for local access */
    int db_port;                   /* port of host address */
+   int have_insert_id;            /* do have insert_id() */
    bool connected;
    POOLMEM *errmsg;               /* nicely edited error message */
    POOLMEM *cmd;                  /* SQL command string */

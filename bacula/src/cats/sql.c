@@ -269,7 +269,11 @@ InsertDB(const char *file, int line, JCR *jcr, B_DB *mdb, char *cmd)
       }
       return 0;
    }
-   mdb->num_rows = sql_affected_rows(mdb);
+   if (mdb->have_insert_id) {
+      mdb->num_rows = sql_affected_rows(mdb);
+   } else {
+      mdb->num_rows = 1;
+   }
    if (mdb->num_rows != 1) {
       char ed1[30];
       m_msg(file, line, &mdb->errmsg, _("Insertion problem: affected_rows=%s\n"),

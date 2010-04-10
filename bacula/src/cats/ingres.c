@@ -130,6 +130,7 @@ db_init_database(JCR *jcr, const char *db_name, const char *db_user, const char 
    }
    mdb->db_port        = db_port;
    mdb->session_id     = ++next_session_id;
+   mdb->have_insert_id = TRUE;
    mdb->errmsg         = get_pool_memory(PM_EMSG); /* get error message buffer */
    *mdb->errmsg        = 0;
    mdb->cmd            = get_pool_memory(PM_EMSG); /* get command buffer */
