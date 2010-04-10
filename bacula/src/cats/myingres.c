@@ -334,9 +334,9 @@ static inline int INGfetchAll(const char *query, INGresult *ing_res)
 /* # line 367 "myingres.sc" */	/* open */
   {
     IIsqInit(&sqlca);
-    IIcsOpen((char *)"c2",11417,2807);
+    IIcsOpen((char *)"c2",10560,29663);
     IIwritio(0,(short *)0,1,32,0,(char *)"s2");
-    IIcsQuery((char *)"c2",11417,2807);
+    IIcsQuery((char *)"c2",10560,29663);
   }
 /* # line 368 "myingres.sc" */	/* host code */
    if ((check = INGcheck()) < 0) {
@@ -347,7 +347,7 @@ static inline int INGfetchAll(const char *query, INGresult *ing_res)
 /* # line 374 "myingres.sc" */	/* fetch */
   {
     IIsqInit(&sqlca);
-    if (IIcsRetScroll((char *)"c2",11417,2807,-1,-1) != 0) {
+    if (IIcsRetScroll((char *)"c2",10560,29663,-1,-1) != 0) {
       IIcsDaGet(0,desc);
       IIcsERetrieve();
     } /* IIcsRetrieve */
@@ -372,7 +372,7 @@ static inline int INGfetchAll(const char *query, INGresult *ing_res)
 /* # line 394 "myingres.sc" */	/* close */
   {
     IIsqInit(&sqlca);
-    IIcsClose((char *)"c2",11417,2807);
+    IIcsClose((char *)"c2",10560,29663);
   }
 /* # line 396 "myingres.sc" */	/* host code */
    ing_res->status = ING_COMMAND_OK;
@@ -568,19 +568,15 @@ INGconn *INGconnectDB(char *dbname, char *user, char *passwd)
 }
 void INGdisconnectDB(INGconn *dbconn)
 {
-/* # line 594 "myingres.sc" */	
-  
-  int sess_id;
-/* # line 596 "myingres.sc" */	
-  
-   sess_id = dbconn->session_id;
-/* # line 600 "myingres.sc" */	/* disconnect */
+   /*
+    * TODO: check for any real use of dbconn: maybe whenn multithreaded?
+    */
+/* # line 597 "myingres.sc" */	/* disconnect */
   {
     IIsqInit(&sqlca);
-    IILQsidSessID(sess_id);
     IIsqDisconnect();
   }
-/* # line 602 "myingres.sc" */	/* host code */
+/* # line 598 "myingres.sc" */	/* host code */
    if (dbconn != NULL) {
       free(dbconn->msg);
       free(dbconn);
@@ -588,16 +584,16 @@ void INGdisconnectDB(INGconn *dbconn)
 }
 char *INGerrorMessage(const INGconn *conn)
 {
-/* # line 610 "myingres.sc" */	
+/* # line 606 "myingres.sc" */	
   
   char errbuf[256];
-/* # line 612 "myingres.sc" */	
+/* # line 608 "myingres.sc" */	
   
-/* # line 614 "myingres.sc" */	/* inquire_ingres */
+/* # line 610 "myingres.sc" */	/* inquire_ingres */
   {
     IILQisInqSqlio((short *)0,1,32,255,errbuf,63);
   }
-/* # line 615 "myingres.sc" */	/* host code */
+/* # line 611 "myingres.sc" */	/* host code */
    memcpy(conn->msg, &errbuf, 256);
    return conn->msg;
 }
@@ -609,5 +605,5 @@ char *INGcmdTuples(INGresult *res)
 int INGputCopyEnd(INGconn *conn, const char *errormsg);
 int INGputCopyData(INGconn *conn, const char *buffer, int nbytes);
 */
-/* # line 629 "myingres.sc" */	
+/* # line 625 "myingres.sc" */	
 #endif
