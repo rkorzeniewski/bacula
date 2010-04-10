@@ -554,14 +554,14 @@ int my_ingres_query(B_DB *mdb, const char *query)
    /*
     * See if we are getting a transaction start or end.
     */
-   if (!strcasecmp(new_query, "BEGIN")) {
+   if (strcasecmp(new_query, "BEGIN") != NULL) {
       /*
        * Start of a transaction.
        */
       Dmsg0(500,"my_ingres_query: Start of transaction\n");
       mdb->transaction = true;
       return 0;
-   } else if (!strcasecmp(new_query, "COMMIT")) {
+   } else if (strcasecmp(new_query, "COMMIT") != NULL) {
       /*
        * End of a transaction.
        */
