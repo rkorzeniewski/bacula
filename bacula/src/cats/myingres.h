@@ -48,20 +48,29 @@ typedef struct ing_conn {
     char *msg;
 } INGconn;
 /* ---Prototypes--- */
-int INGcheck(void);
-short INGgetCols(B_DB *mdb, const char *stmt);
-char *INGgetvalue(INGresult *res, int row_number, int column_number);
-int INGgetisnull(INGresult *res, int row_number, int column_number);
-int INGntuples(const INGresult *res);
-int INGnfields(const INGresult *res);
-char *INGfname(const INGresult *res, int column_number);
-short INGftype(const INGresult *res, int column_number);
-int INGexec(B_DB *mdb, INGconn *db, const char *query);
-INGresult *INGquery(B_DB *mdb, INGconn *db, const char *query);
-void INGclear(INGresult *res);
+int	INGcheck();
+ING_STATUS	INGresultStatus(INGresult *res);
+short	INGgetCols(const char *stmt);
+IISQLDA *INGgetDescriptor(short numCols, const char *stmt);
+void	INGfreeDescriptor(IISQLDA *sqlda);
+int	INGgetTypeSize(IISQLVAR *ingvar);
+INGresult	*INGgetINGresult(IISQLDA *sqlda);
+void	INGfreeINGresult(INGresult *ing_res);
+ING_ROW *INGgetRowSpace(INGresult *ing_res);
+void	INGfreeRowSpace(ING_ROW *row, IISQLDA *sqlda);
+int	INGfetchAll(const char *stmt, INGresult *ing_res);
+void	INGrowSeek(INGresult *res, int row_number);
+char 	*INGgetvalue(INGresult *res, int row_number, int column_number);
+int 	INGgetisnull(INGresult *res, int row_number, int column_number);
+int 	INGntuples(const INGresult *res);
+int 	INGnfields(const INGresult *res);
+char 	*INGfname(const INGresult *res, int column_number);
+short 	INGftype(const INGresult *res, int column_number);
+INGresult	*INGexec(INGconn *db, const char *query);
+void 	INGclear(INGresult *res);
 INGconn *INGconnectDB(char *dbname, char *user, char *passwd);
-void INGdisconnectDB(INGconn *dbconn);
-char *INGerrorMessage(const INGconn *conn);
-char *INGcmdTuples(INGresult *res);
-/* # line 75 "myingres.sh" */	
+void 	INGdisconnectDB(INGconn *dbconn);
+char	*INGerrorMessage(const INGconn *conn);
+char	*INGcmdTuples(INGresult *res);
+/* # line 85 "myingres.sh" */	
 #endif /* _MYINGRES_SH */
