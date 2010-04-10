@@ -647,7 +647,6 @@ static int my_ingres_currval(B_DB *mdb, const char *table_name)
 
    char sequence[64];
    char query[256];
-   char *currval;
    INGresult *result;
    int id = 0;
 
@@ -667,10 +666,7 @@ static int my_ingres_currval(B_DB *mdb, const char *table_name)
 
    Dmsg0(500, "exec done");
 
-   currval = INGgetvalue(result, 0, 0);
-   if (currval) {
-      id = atoi(currval);
-   }
+   id = atoi(INGgetvalue(result, 0, 0));
 
 bail_out:
    INGclear(result);
