@@ -657,7 +657,7 @@ bail_out:
    return id;
 }
 
-int my_postgresql_insert_id(B_DB *mdb, const char *query, const char *table_name)
+int my_postgresql_insert_autokey_record(B_DB *mdb, const char *query, const char *table_name)
 {
    /*
     * First execute the insert query and then retrieve the currval.

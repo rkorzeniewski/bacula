@@ -380,7 +380,7 @@ void my_mysql_free_result(B_DB *mdb)
    db_unlock(mdb);
 }
 
-int my_mysql_sql_insert_id(B_DB *mdb, const char *query, const char *table_name)
+int my_mysql_insert_autokey_record(B_DB *mdb, const char *query, const char *table_name)
 {
    /*
     * First execute the insert query and then retrieve the currval.

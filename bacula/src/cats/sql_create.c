@@ -96,7 +96,7 @@ db_create_job_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
            (char)(jr->JobStatus), dt, edit_uint64(JobTDate, ed1),
            edit_int64(jr->ClientId, ed2), buf.c_str());
 
-   jr->JobId = sql_insert_id(mdb, mdb->cmd, NT_("Job"));
+   jr->JobId = sql_insert_autokey_record(mdb, mdb->cmd, NT_("Job"));
    if (jr->JobId == 0) {
       Mmsg2(&mdb->errmsg, _("Create DB Job record %s failed. ERR=%s\n"),
             mdb->cmd, sql_strerror(mdb));
@@ -213,7 +213,7 @@ db_create_pool_record(JCR *jcr, B_DB *mdb, POOL_DBR *pr)
                   pr->ActionOnPurge
       );
    Dmsg1(200, "Create Pool: %s\n", mdb->cmd);
-   pr->PoolId = sql_insert_id(mdb, mdb->cmd, NT_("Pool"));
+   pr->PoolId = sql_insert_autokey_record(mdb, mdb->cmd, NT_("Pool"));
    if (pr->PoolId == 0) {
       Mmsg2(&mdb->errmsg, _("Create db Pool record %s failed: ERR=%s\n"),
             mdb->cmd, sql_strerror(mdb));
@@ -260,7 +260,7 @@ db_create_device_record(JCR *jcr, B_DB *mdb, DEVICE_DBR *dr)
                   edit_uint64(dr->MediaTypeId, ed1),
                   edit_int64(dr->StorageId, ed2));
    Dmsg1(200, "Create Device: %s\n", mdb->cmd);
-   dr->DeviceId = sql_insert_id(mdb, mdb->cmd, NT_("Device"));
+   dr->DeviceId = sql_insert_autokey_record(mdb, mdb->cmd, NT_("Device"));
    if (dr->DeviceId == 0) {
       Mmsg2(&mdb->errmsg, _("Create db Device record %s failed: ERR=%s\n"),
             mdb->cmd, sql_strerror(mdb));
@@ -318,7 +318,7 @@ bool db_create_storage_record(JCR *jcr, B_DB *mdb, STORAGE_DBR *sr)
    Mmsg(mdb->cmd, "INSERT INTO Storage (Name,AutoChanger)"
         " VALUES ('%s',%d)", sr->Name, sr->AutoChanger);
 
-   sr->StorageId = sql_insert_id(mdb, mdb->cmd, NT_("Storage"));
+   sr->StorageId = sql_insert_autokey_record(mdb, mdb->cmd, NT_("Storage"));
    if (sr->StorageId == 0) {
       Mmsg2(&mdb->errmsg, _("Create DB Storage record %s failed. ERR=%s\n"),
             mdb->cmd, sql_strerror(mdb));
@@ -366,7 +366,7 @@ db_create_mediatype_record(JCR *jcr, B_DB *mdb, MEDIATYPE_DBR *mr)
                   mr->MediaType,
                   mr->ReadOnly);
    Dmsg1(200, "Create mediatype: %s\n", mdb->cmd);
-   mr->MediaTypeId = sql_insert_id(mdb, mdb->cmd, NT_("MediaType"));
+   mr->MediaTypeId = sql_insert_autokey_record(mdb, mdb->cmd, NT_("MediaType"));
    if (mr->MediaTypeId == 0) {
       Mmsg2(&mdb->errmsg, _("Create db mediatype record %s failed: ERR=%s\n"),
             mdb->cmd, sql_strerror(mdb));
@@ -445,7 +445,7 @@ db_create_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
 
 
    Dmsg1(500, "Create Volume: %s\n", mdb->cmd);
-   mr->MediaId = sql_insert_id(mdb, mdb->cmd, NT_("Media"));
+   mr->MediaId = sql_insert_autokey_record(mdb, mdb->cmd, NT_("Media"));
    if (mr->MediaId == 0) {
       Mmsg2(&mdb->errmsg, _("Create DB Media record %s failed. ERR=%s\n"),
             mdb->cmd, sql_strerror(mdb));
@@ -524,7 +524,7 @@ int db_create_client_record(JCR *jcr, B_DB *mdb, CLIENT_DBR *cr)
       edit_uint64(cr->FileRetention, ed1),
       edit_uint64(cr->JobRetention, ed2));
 
-   cr->ClientId = sql_insert_id(mdb, mdb->cmd, NT_("Client"));
+   cr->ClientId = sql_insert_autokey_record(mdb, mdb->cmd, NT_("Client"));
    if (cr->ClientId == 0) {
       Mmsg2(&mdb->errmsg, _("Create DB Client record %s failed. ERR=%s\n"),
             mdb->cmd, sql_strerror(mdb));
@@ -589,7 +589,7 @@ int db_create_path_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
 
    Mmsg(mdb->cmd, "INSERT INTO Path (Path) VALUES ('%s')", mdb->esc_name);
 
-   ar->PathId = sql_insert_id(mdb, mdb->cmd, NT_("Path"));
+   ar->PathId = sql_insert_autokey_record(mdb, mdb->cmd, NT_("Path"));
    if (ar->PathId == 0) {
       Mmsg2(&mdb->errmsg, _("Create db Path record %s failed. ERR=%s\n"),
          mdb->cmd, sql_strerror(mdb));
@@ -702,7 +702,7 @@ bool db_create_fileset_record(JCR *jcr, B_DB *mdb, FILESET_DBR *fsr)
       Mmsg(mdb->cmd, "INSERT INTO FileSet (FileSet,MD5,CreateTime) "
 "VALUES ('%s','%s','%s')", fsr->FileSet, fsr->MD5, fsr->cCreateTime);
 
-   fsr->FileSetId = sql_insert_id(mdb, mdb->cmd, NT_("FileSet"));
+   fsr->FileSetId = sql_insert_autokey_record(mdb, mdb->cmd, NT_("FileSet"));
    if (fsr->FileSetId == 0) {
       Mmsg2(&mdb->errmsg, _("Create DB FileSet record %s failed. ERR=%s\n"),
             mdb->cmd, sql_strerror(mdb));
@@ -1024,7 +1024,7 @@ static int db_create_file_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
         ar->FileIndex, ar->JobId, ar->PathId, ar->FilenameId,
         ar->attr, digest);
 
-   ar->FileId = sql_insert_id(mdb, mdb->cmd, NT_("File"));
+   ar->FileId = sql_insert_autokey_record(mdb, mdb->cmd, NT_("File"));
    if (ar->FileId == 0) {
       Mmsg2(&mdb->errmsg, _("Create db File record %s failed. ERR=%s"),
          mdb->cmd, sql_strerror(mdb));
@@ -1071,7 +1071,7 @@ static int db_create_filename_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
 
    Mmsg(mdb->cmd, "INSERT INTO Filename (Name) VALUES ('%s')", mdb->esc_name);
 
-   ar->FilenameId = sql_insert_id(mdb, mdb->cmd, NT_("Filename"));
+   ar->FilenameId = sql_insert_autokey_record(mdb, mdb->cmd, NT_("Filename"));
    if (ar->FilenameId == 0) {
       Mmsg2(&mdb->errmsg, _("Create db Filename record %s failed. ERR=%s\n"),
             mdb->cmd, sql_strerror(mdb));
@@ -1292,7 +1292,7 @@ bool db_create_restore_object_record(JCR *jcr, B_DB *mdb, ROBJECT_DBR *ro)
         mdb->esc_name, mdb->esc_path, mdb->esc_path, esc_obj, ro->object_len,
         ro->ObjectIndex, FT_RESTORE_FIRST, ro->FileIndex, ro->JobId);
 
-   ro->RestoreObjectId = sql_insert_id(mdb, mdb->cmd, NT_("RestoreObject"));
+   ro->RestoreObjectId = sql_insert_autokey_record(mdb, mdb->cmd, NT_("RestoreObject"));
    if (ro->RestoreObjectId == 0) {
       Mmsg2(&mdb->errmsg, _("Create db Object record %s failed. ERR=%s"),
          mdb->cmd, sql_strerror(mdb));
