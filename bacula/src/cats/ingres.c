@@ -419,13 +419,11 @@ INGRES_ROW my_ingres_fetch_row(B_DB *mdb)
       mdb->row_size = num_fields;
 
       // now reset the row_number now that we have the space allocated
-      //mdb->row_number = 1;
-      mdb->row_number = 0;
+      mdb->row_number = 1;
    }
 
    // if still within the result set
-   //if (mdb->row_number <= mdb->num_rows) {
-   if (mdb->row_number < mdb->num_rows) {
+   if (mdb->row_number <= mdb->num_rows) {
       Dmsg2(500, "my_ingres_fetch_row row number '%d' is acceptable (0..%d)\n", mdb->row_number, mdb->num_rows);
       // get each value from this row
       for (j = 0; j < mdb->num_fields; j++) {
