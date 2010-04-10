@@ -632,7 +632,7 @@ void my_ingres_free_result(B_DB *mdb)
    db_unlock(mdb);
 }
 
-static int my_ingres_currval(B_DB *mdb, const char *table_name)
+int my_ingres_currval(B_DB *mdb, const char *table_name)
 {
    /*
     * Obtain the current value of the sequence that
@@ -672,25 +672,6 @@ bail_out:
    INGclear(result);
 
    return id;
-}
-
-int my_ingres_insert_id(B_DB *mdb, const char *query, const char *table_name)
-{
-   /*
-    * First execute the insert query and then retrieve the currval.
-    * By setting transaction to true we make it an atomic transaction
-    * and as such we can get the currval after which we commit if
-    * mdb->transaction is false. This way its an atomic operation for
-    * Ingres and things work.
-    */
-   mdb->num_rows = INGexec(mdb->db, new_query, true);
-   if (INGcheck()) {
-      return 0;
-   }
-
-   mdb->changes++;
-
-   return my_ingres_currval(mdb, table_name);
 }
 
 #ifdef HAVE_BATCH_FILE_INSERT
