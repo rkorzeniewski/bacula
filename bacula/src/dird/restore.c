@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2009 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2010 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -25,7 +25,7 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
-/*
+/**
  *   Bacula Director -- restore.c -- responsible for restoring files
  *
  *     Kern Sibbald, November MM
@@ -42,7 +42,6 @@
  *       to do the restore.
  *     Update the DB according to what files where restored????
  *
- *   Version $Id$
  */
 
 
@@ -112,7 +111,8 @@ struct bootstrap_info
 
 #define UA_CMD_SIZE 1000
 
-/* Open the bootstrap file and find the first Storage= 
+/*
+ * Open the bootstrap file and find the first Storage= 
  * Returns ok if able to open
  * It fills the storage name (should be the first line) 
  * and the file descriptor to the bootstrap file, 
@@ -158,7 +158,7 @@ static bool open_bootstrap_file(JCR *jcr, struct bootstrap_info &info)
    return true;
 }
 
-/* 
+/** 
  * This function compare the given storage name with the
  * the current one. We compare the name and the address:port.
  * Returns true if we use the same storage.
@@ -197,7 +197,7 @@ static bool is_on_same_storage(JCR *jcr, char *new_one)
    return true;
 }
 
-/* 
+/** 
  * Check if the current line contains Storage="xxx", and compare the
  * result to the current storage. We use UAContext to analyse the bsr 
  * string.
@@ -225,7 +225,7 @@ static bool check_for_new_storage(JCR *jcr, struct bootstrap_info &info)
    return false;
 }
 
-/*
+/**
  * Send bootstrap file to Storage daemon section by section.
  */
 static bool send_bootstrap_file(JCR *jcr, BSOCK *sock,
@@ -257,12 +257,13 @@ static bool send_bootstrap_file(JCR *jcr, BSOCK *sock,
    return true;
 }
 
-/* 
+/** 
  * Change the read storage resource for the current job.
  */
 static void select_rstore(JCR *jcr, struct bootstrap_info &info)
 {
    USTORE ustore;
+
    if (!strcmp(jcr->rstore->name(), info.storage)) {
       return;
    }
@@ -296,10 +297,14 @@ static void close_bootstrap_file(struct bootstrap_info &info)
    }
 }
 
-/* 
- * Take a bootstrap and for each different storage, we change the storage
- * resource and start a new restore session between the client and the storage
- *
+/** 
+ * The bootstrap is stored in a file, so open the file, and loop
+ *   through it processing each storage device in turn. If the
+ *   storage is different from the prior one, we open a new connection
+ *   to the new storage and do a restore for that part.
+ * This permits handling multiple storage daemons for a single
+ *   restore.  E.g. your Full is stored on tape, and Incrementals
+ *   on disk.
  */
 bool restore_bootstrap(JCR *jcr)
 {
@@ -313,14 +318,16 @@ bool restore_bootstrap(JCR *jcr)
    /* this command is used for each part */
    build_restore_command(jcr, restore_cmd);
    
+   /* Open the bootstrap file */
    if (!open_bootstrap_file(jcr, info)) {
       goto bail_out;
    }
+   /* Read the bootstrap file */
    while (!end_loop && !feof(info.bs)) {
       
       select_rstore(jcr, info);
 
-      /*
+      /**
        * Open a message channel connection with the Storage
        * daemon. This is to let him know that our client
        * will be contacting him for a backup  session.
@@ -351,7 +358,6 @@ bool restore_bootstrap(JCR *jcr)
          if (!connect_to_file_daemon(jcr, 10, FDConnectTimeout, 1)) {
             goto bail_out;
          }
-
          fd = jcr->file_bsock;
       }
 
@@ -400,6 +406,10 @@ bool restore_bootstrap(JCR *jcr)
          first_time=false;
       }
 
+      if (!send_restore_objects(jcr)) {
+         goto bail_out;
+      }
+
       fd->fsend("%s", restore_cmd.c_str());
 
       if (!response(jcr, fd, OKrestore, "Restore", DISPLAY_ERROR)) {
@@ -428,7 +438,7 @@ bail_out:
    return ret;
 }
 
-/*
+/**
  * Do a restore of the specified files
  *
  *  Returns:  0 on failure
@@ -466,6 +476,7 @@ bool do_restore(JCR *jcr)
    /* Print Job Start message */
    Jmsg(jcr, M_INFO, 0, _("Start Restore Job %s\n"), jcr->Job);
 
+   /* Read the bootstrap file and do the restore */
    if (!restore_bootstrap(jcr)) {
       goto bail_out;
    }
@@ -486,7 +497,7 @@ bool do_restore_init(JCR *jcr)
    return true;
 }
 
-/*
+/**
  * Release resources allocated during restore.
  *
  */

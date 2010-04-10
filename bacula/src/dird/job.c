@@ -1012,14 +1012,6 @@ void create_unique_job_name(JCR *jcr, const char *base_name)
 /* Called directly from job rescheduling */
 void dird_free_jcr_pointers(JCR *jcr)
 {
-   if (jcr->sd_auth_key) {
-      free(jcr->sd_auth_key);
-      jcr->sd_auth_key = NULL;
-   }
-   if (jcr->where) {
-      free(jcr->where);
-      jcr->where = NULL;
-   }
    if (jcr->file_bsock) {
       Dmsg0(200, "Close File bsock\n");
       bnet_close(jcr->file_bsock);
@@ -1030,27 +1022,16 @@ void dird_free_jcr_pointers(JCR *jcr)
       bnet_close(jcr->store_bsock);
       jcr->store_bsock = NULL;
    }
-   if (jcr->fname) {
-      Dmsg0(200, "Free JCR fname\n");
-      free_pool_memory(jcr->fname);
-      jcr->fname = NULL;
-   }
-   if (jcr->RestoreBootstrap) {
-      free(jcr->RestoreBootstrap);
-      jcr->RestoreBootstrap = NULL;
-   }
-   if (jcr->client_uname) {
-      free_pool_memory(jcr->client_uname);
-      jcr->client_uname = NULL;
-   }
-   if (jcr->attr) {
-      free_pool_memory(jcr->attr);
-      jcr->attr = NULL;
-   }
-   if (jcr->ar) {
-      free(jcr->ar);
-      jcr->ar = NULL;
-   }
+
+   bfree_and_null(jcr->sd_auth_key);
+   bfree_and_null(jcr->where);
+   bfree_and_null(jcr->RestoreBootstrap);
+   bfree_and_null(jcr->ar);
+
+   free_and_null_pool_memory(jcr->JobIds);
+   free_and_null_pool_memory(jcr->client_uname);
+   free_and_null_pool_memory(jcr->attr);
+   free_and_null_pool_memory(jcr->fname);
 }
 
 /*
@@ -1076,36 +1057,14 @@ void dird_free_jcr(JCR *jcr)
       db_close_database(jcr, jcr->db);
       jcr->db = NULL;
    }
-   if (jcr->stime) {
-      Dmsg0(200, "Free JCR stime\n");
-      free_pool_memory(jcr->stime);
-      jcr->stime = NULL;
-   }
-   if (jcr->fname) {
-      Dmsg0(200, "Free JCR fname\n");
-      free_pool_memory(jcr->fname);
-      jcr->fname = NULL;
-   }
-   if (jcr->pool_source) {
-      free_pool_memory(jcr->pool_source);
-      jcr->pool_source = NULL;
-   }
-   if (jcr->catalog_source) {
-      free_pool_memory(jcr->catalog_source);
-      jcr->catalog_source = NULL;
-   }
-   if (jcr->rpool_source) {
-      free_pool_memory(jcr->rpool_source);
-      jcr->rpool_source = NULL;
-   }
-   if (jcr->wstore_source) {
-      free_pool_memory(jcr->wstore_source);
-      jcr->wstore_source = NULL;
-   }
-   if (jcr->rstore_source) {
-      free_pool_memory(jcr->rstore_source);
-      jcr->rstore_source = NULL;
-   }
+
+   free_and_null_pool_memory(jcr->stime);
+   free_and_null_pool_memory(jcr->fname);
+   free_and_null_pool_memory(jcr->pool_source);
+   free_and_null_pool_memory(jcr->catalog_source);
+   free_and_null_pool_memory(jcr->rpool_source);
+   free_and_null_pool_memory(jcr->wstore_source);
+   free_and_null_pool_memory(jcr->rstore_source);
 
    /* Delete lists setup to hold storage pointers */
    free_rwstorage(jcr);

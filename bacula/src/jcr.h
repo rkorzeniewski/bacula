@@ -239,6 +239,7 @@ public:
    time_t wait_time_sum;              /* cumulative wait time since job start */
    time_t wait_time;                  /* timestamp when job have started to wait */
    POOLMEM *client_name;              /* client name */
+   POOLMEM *JobIds;                   /* User entered string of JobIds */
    POOLMEM *RestoreBootstrap;         /* Bootstrap file to restore */
    POOLMEM *stime;                    /* start time for incremental/differential */
    char *sd_auth_key;                 /* SD auth key */

@@ -66,6 +66,7 @@ CREATE TABLE RestoreObject (
    Path TEXT NOT NULL,
    RestoreObject TEXT NOT NULL,
    PluginName TEXT NOT NULL,
+   ObjectLength INTEGER DEFAULT 0,
    ObjectIndex INTEGER DEFAULT 0,
    ObjectType INTEGER DEFAULT 0,
    FileIndex INTEGER UNSIGNED DEFAULT 0,

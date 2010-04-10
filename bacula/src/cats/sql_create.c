@@ -1287,8 +1287,8 @@ bool db_create_restore_object_record(JCR *jcr, B_DB *mdb, ROBJECT_DBR *ro)
 
    Mmsg(mdb->cmd,
         "INSERT INTO RestoreObject (Fname,Path,PluginName,RestoreObject,"
-        "ObjectIndex,ObjectType,FileIndex,JobId) VALUES"
-        "('%s','%s','%s','%s',%d,%d,%d,%u)", 
+        "ObjectLength,ObjectIndex,ObjectType,FileIndex,JobId) VALUES"
+        "('%s','%s','%s','%s',%d,%d,%d,%d,%u)", 
         mdb->esc_name, mdb->esc_path, mdb->esc_path, esc_obj, ro->object_len,
         ro->ObjectIndex, FT_RESTORE_FIRST, ro->FileIndex, ro->JobId);
 

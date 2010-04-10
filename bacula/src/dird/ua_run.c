@@ -122,6 +122,11 @@ int run_cmd(UAContext *ua, const char *cmd)
       jcr->unlink_bsr = ua->jcr->unlink_bsr;    /* copy unlink flag from caller */
       ua->jcr->unlink_bsr = false;
    }
+   /* Transfer JobIds to new restore Job */
+   if (ua->jcr->JobIds) {
+      jcr->JobIds = ua->jcr->JobIds;
+      ua->jcr->JobIds = NULL;
+   }
 
 try_again:
    if (!reset_restore_context(ua, jcr, rc)) {

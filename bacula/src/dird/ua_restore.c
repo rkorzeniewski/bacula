@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2002-2009 Free Software Foundation Europe e.V.
+   Copyright (C) 2002-2010 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -36,8 +36,6 @@
  *        bsr.c July MMIII
  *
  *     Kern Sibbald, July MMII
- *
- *   Version $Id$
  */
 
 
@@ -67,7 +65,7 @@ static bool insert_dir_into_findex_list(UAContext *ua, RESTORE_CTX *rx, char *di
 static void insert_one_file_or_dir(UAContext *ua, RESTORE_CTX *rx, char *date, bool dir);
 static int get_client_name(UAContext *ua, RESTORE_CTX *rx);
 static int get_restore_client_name(UAContext *ua, RESTORE_CTX &rx);
-static int get_date(UAContext *ua, char *date, int date_len);
+static bool get_date(UAContext *ua, char *date, int date_len);
 static int restore_count_handler(void *ctx, int num_fields, char **row);
 static bool insert_table_into_findex_list(UAContext *ua, RESTORE_CTX *rx, char *table);
 static void get_and_display_basejobs(UAContext *ua, RESTORE_CTX *rx);
@@ -92,6 +90,7 @@ int restore_cmd(UAContext *ua, const char *cmd)
    rx.path = get_pool_memory(PM_FNAME);
    rx.fname = get_pool_memory(PM_FNAME);
    rx.JobIds = get_pool_memory(PM_FNAME);
+   rx.JobIds[0] = 0;
    rx.BaseJobIds = get_pool_memory(PM_FNAME);
    rx.query = get_pool_memory(PM_FNAME);
    rx.bsr = new_bsr();
@@ -279,6 +278,9 @@ int restore_cmd(UAContext *ua, const char *cmd)
       pm_strcat(ua->cmd, " yes");    /* pass it on to the run command */
    }
    Dmsg1(200, "Submitting: %s\n", ua->cmd);
+   /* Transfer jobids to jcr to for picking up restore objects */
+   jcr->JobIds = rx.JobIds;
+   rx.JobIds = NULL;
    parse_ua_args(ua);
    run_cmd(ua, ua->cmd);
    free_rx(&rx);
@@ -721,6 +723,7 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
             pm_strcat(rx->JobIds, ua->cmd);
          }
          if (*rx->JobIds == 0 || *rx->JobIds == '.') {
+            *rx->JobIds = 0;
             return 0;                 /* nothing entered, return */
          }
          if (!have_date) {
@@ -835,13 +838,13 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
 /*
  * Get date from user
  */
-static int get_date(UAContext *ua, char *date, int date_len)
+static bool get_date(UAContext *ua, char *date, int date_len)
 {
    ua->send_msg(_("The restored files will the most current backup\n"
                   "BEFORE the date you specify below.\n\n"));
    for ( ;; ) {
       if (!get_cmd(ua, _("Enter date as YYYY-MM-DD HH:MM:SS :"))) {
-         return 0;
+         return false;
       }
       if (str_to_utime(ua->cmd) != 0) {
          break;
@@ -849,7 +852,7 @@ static int get_date(UAContext *ua, char *date, int date_len)
       ua->error_msg(_("Improper date format.\n"));
    }
    bstrncpy(date, ua->cmd, date_len);
-   return 1;
+   return true;
 }
 
 /*

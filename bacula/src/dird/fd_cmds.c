@@ -323,9 +323,9 @@ bool send_level_command(JCR *jcr)
    }
    Dmsg1(120, ">filed: %s", fd->msg);
    if (!response(jcr, fd, OKlevel, "Level", DISPLAY_ERROR)) {
-      return 0;
+      return false;
    }
-   return 1;
+   return true;
 }
 
 /*
@@ -665,6 +665,41 @@ bail_out:
    free_pool_memory(msg);
    free_pool_memory(ehost);
    return 0;
+}
+
+static int restore_object_handler(void *ctx, int num_fields, char **row)
+{
+   JCR *jcr = (JCR *)ctx;
+   BSOCK *fd;
+
+   fd = jcr->file_bsock;
+   if (jcr->is_job_canceled()) {
+      return 1;
+   }
+   bash_spaces(row[2]);
+   bash_spaces(row[3]);
+   bash_spaces(row[6]);
+   fd->fsend("RestoreObject JobId=%s ObjLen=%s ObjInx=%s ObjType=%s FI=%s",
+      row[0], row[3], row[6], row[7], row[8]);
+   Dmsg1(000, ">fd: %s\n", fd->msg);
+   return 0;
+}
+
+bool send_restore_objects(JCR *jcr)
+{
+//   BSOCK *fd = jcr->file_bsock;
+   POOL_MEM query(PM_MESSAGE);
+
+   if (!jcr->JobIds || !jcr->JobIds[0]) {
+      return true;
+   }
+   Mmsg(query, "SELECT JobId,Fname,Path,ObjectLength,RestoreObject,"
+        "PluginName,ObjectIndex,ObjectType,FileIndex "
+        "FROM RestoreObject WHERE JobId IN (%s)", jcr->JobIds);
+   
+   /* missing_handler is called for each file found */
+   db_sql_query(jcr->db, query.c_str(), restore_object_handler, (void *)jcr);
+   return true;
 }
 
 

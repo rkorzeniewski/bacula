@@ -51,6 +51,7 @@ CREATE TABLE RestoreObject (
    Path BLOB NOT NULL,
    RestoreObject BLOB NOT NULL,
    PluginName TINYBLOB NOT NULL,
+   ObjectLength INTEGER DEFAULT 0,
    ObjectIndex INTEGER DEFAULT 0,
    ObjectType INTEGER DEFAULT 0,
    FileIndex INTEGER UNSIGNED DEFAULT 0,

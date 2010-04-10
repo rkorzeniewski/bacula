@@ -299,6 +299,7 @@ static bool crypto_session_send(JCR *jcr, BSOCK *sd)
 int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
 {
    bool do_read = false;
+   bool plugin_started = false;
    int stat, data_stream; 
    int rtnstat = 0;
    DIGEST *digest = NULL;
@@ -497,11 +498,16 @@ int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
          goto bail_out;
       }
       send_plugin_name(jcr, sd, true);      /* signal start of plugin data */
+      plugin_started = true;
    }
 
    /** Send attributes -- must be done after binit() */
    if (!encode_and_send_attributes(jcr, ff_pkt, data_stream)) {
       goto bail_out;
+   }
+   /** Meta data only for restore object */
+   if (ff_pkt->type == FT_RESTORE_FIRST) {
+      goto good_rtn;
    }
 
    /** Set up the encryption context and send the session data to the SD */
@@ -529,7 +535,7 @@ int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
       do_read = true;
    }
 
-   if (ff_pkt->cmd_plugin && ff_pkt->type != FT_RESTORE_FIRST) {
+   if (ff_pkt->cmd_plugin) {
       do_read = true;
    }
 
@@ -734,14 +740,14 @@ int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
       sd->send();
       sd->signal(BNET_EOD);              /* end of checksum */
    }
-   if (ff_pkt->cmd_plugin) {
-      send_plugin_name(jcr, sd, false); /* signal end of plugin data */
-   }
 
 good_rtn:
    rtnstat = 1;                       /* good return */
 
 bail_out:
+   if (ff_pkt->cmd_plugin && plugin_started) {
+      send_plugin_name(jcr, sd, false); /* signal end of plugin data */
+   }
    if (digest) {
       crypto_digest_free(digest);
    }

@@ -88,6 +88,7 @@ static int runscript_cmd(JCR *jcr);
 static int runbefore_cmd(JCR *jcr);
 static int runafter_cmd(JCR *jcr);
 static int runbeforenow_cmd(JCR *jcr);
+static int restoreobject_cmd(JCR *jcr);
 static void set_options(findFOPTS *fo, const char *opts);
 static void set_storage_auth_key(JCR *jcr, char *key);
 
@@ -124,6 +125,7 @@ static struct s_cmds cmds[] = {
    {"RunAfterJob",  runafter_cmd,  0},
    {"Run",          runscript_cmd, 0},
    {"accurate",     accurate_cmd,  0},
+   {"restoreobject", restoreobject_cmd, 0},
    {NULL,       NULL}                  /* list terminator */
 };
 
@@ -135,6 +137,7 @@ static char sessioncmd[]  = "session %127s %ld %ld %ld %ld %ld %ld\n";
 static char restorecmd[]  = "restore replace=%c prelinks=%d where=%s\n";
 static char restorecmd1[] = "restore replace=%c prelinks=%d where=\n";
 static char restorecmdR[] = "restore replace=%c prelinks=%d regexwhere=%s\n";
+static char restoreobjcmd[] = "RestoreObject JobId=%u ObjLen=%d ObjInx=%d ObjType=%d FI=%d";
 static char verifycmd[]   = "verify level=%30s";
 static char estimatecmd[] = "estimate listing=%d";
 static char runbefore[]   = "RunBeforeJob %s";
@@ -612,6 +615,28 @@ static int runscript_cmd(JCR *jcr)
 
    free_pool_memory(msg);
    return dir->fsend(OKRunScript);
+}
+
+
+static int restoreobject_cmd(JCR *jcr)
+{
+   BSOCK *dir = jcr->dir_bsock;
+   POOLMEM *msg = get_memory(dir->msglen+1);
+   uint32_t JobId;
+   int32_t object_len, object_index, object_type, FileIndex;
+
+   Dmsg1(000, "restoreobject_cmd: %s", dir->msg);
+   if (sscanf(dir->msg, restoreobjcmd, &JobId, &object_len, &object_index, 
+              &object_type, &FileIndex) != 5) {
+      pm_strcpy(jcr->errmsg, dir->msg);
+      Jmsg1(jcr, M_FATAL, 0, _("Bad RestoreObject command: %s\n"), jcr->errmsg);
+      dir->fsend(_("2909 Bad RestoreObject command.\n"));
+      free_memory(msg);
+      return 0;
+   }
+   Dmsg5(000, "JobId=%u objlen=%d objinx=%d objtype=%d FI=%d\n",
+         JobId, object_len, object_index, object_type, FileIndex);
+   return 1;
 }
 
 
