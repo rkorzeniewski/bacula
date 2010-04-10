@@ -683,7 +683,7 @@ int my_ingres_insert_id(B_DB *mdb, const char *query, const char *table_name)
     * mdb->transaction is false. This way its an atomic operation for
     * Ingres and things work.
     */
-   mdb->num_rows = INGexec(mdb->db, query, true);
+   mdb->num_rows = INGexec(mdb->db, new_query, true);
    if (INGcheck()) {
       return 0;
    }
