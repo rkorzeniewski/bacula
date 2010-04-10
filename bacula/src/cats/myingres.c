@@ -445,7 +445,7 @@ int INGgetisnull(INGresult *res, int row_number, int column_number)
    if (row_number != res->act_row->row_number) {
       INGrowSeek(res, row_number);
    }
-   return (*res->act_row->sqlvar[column_number].sqlind == -1) ? 1 : 0;
+   return (*res->act_row->sqlvar[column_number].sqlind == -1) 1 : 0;
 }
 int INGntuples(const INGresult *res)
 {
