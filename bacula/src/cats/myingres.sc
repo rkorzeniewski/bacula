@@ -467,13 +467,13 @@ char *INGgetvalue(INGresult *res, int row_number, int column_number)
    return res->act_row->sqlvar[column_number].sqldata;
 }
 
-bool INGgetisnull(INGresult *res, int row_number, int column_number)
+int INGgetisnull(INGresult *res, int row_number, int column_number)
 {
    if (row_number != res->act_row->row_number) {
       INGrowSeek(res, row_number);
    }
 
-   return (*res->act_row->sqlvar[column_number].sqlind == -1) ? true : false;
+   return (*res->act_row->sqlvar[column_number].sqlind == -1) ? 1 : 0;
 }
 
 int INGntuples(const INGresult *res)
