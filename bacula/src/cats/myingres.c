@@ -50,7 +50,7 @@ IISQLCA *IIsqlca();
 /*
  * ---Implementations---
  */
-short INGgetCols(INGconn *dbconn, const char *query, bool transaction)
+short INGgetCols(INGconn *conn, const char *query, bool transaction)
 {
 /* # line 52 "myingres.sc" */	
   
@@ -67,7 +67,7 @@ short INGgetCols(INGconn *dbconn, const char *query, bool transaction)
    /*
     * Switch to the correct default session for this thread.
     */
-   sess_id = dbconn->session_id;
+   sess_id = conn->session_id;
 /* # line 71 "myingres.sc" */	/* set_sql */
   {
     IILQssSetSqlio(11,(short *)0,1,30,sizeof(sess_id),&sess_id);
@@ -357,9 +357,9 @@ static inline int INGfetchAll(const char *query, INGresult *ing_res)
 /* # line 371 "myingres.sc" */	/* open */
   {
     IIsqInit(&sqlca);
-    IIcsOpen((char *)"c2",30801,28581);
+    IIcsOpen((char *)"c2",14614,8429);
     IIwritio(0,(short *)0,1,32,0,(char *)"s2");
-    IIcsQuery((char *)"c2",30801,28581);
+    IIcsQuery((char *)"c2",14614,8429);
     if (sqlca.sqlcode < 0) 
       goto bail_out;
   }
@@ -369,7 +369,7 @@ static inline int INGfetchAll(const char *query, INGresult *ing_res)
 /* # line 377 "myingres.sc" */	/* fetch */
   {
     IIsqInit(&sqlca);
-    if (IIcsRetScroll((char *)"c2",30801,28581,-1,-1) != 0) {
+    if (IIcsRetScroll((char *)"c2",14614,8429,-1,-1) != 0) {
       IIcsDaGet(0,desc);
       IIcsERetrieve();
     } /* IIcsRetrieve */
@@ -396,7 +396,7 @@ static inline int INGfetchAll(const char *query, INGresult *ing_res)
 /* # line 400 "myingres.sc" */	/* close */
   {
     IIsqInit(&sqlca);
-    IIcsClose((char *)"c2",30801,28581);
+    IIcsClose((char *)"c2",14614,8429);
   }
 /* # line 402 "myingres.sc" */	/* host code */
    ing_res->status = ING_COMMAND_OK;
@@ -464,7 +464,7 @@ short INGftype(const INGresult *res, int column_number)
 {
    return res->fields[column_number].type;
 }
-int INGexec(INGconn *dbconn, const char *query, bool transaction)
+int INGexec(INGconn *conn, const char *query, bool transaction)
 {
    int check;
 /* # line 485 "myingres.sc" */	
@@ -479,7 +479,7 @@ int INGexec(INGconn *dbconn, const char *query, bool transaction)
    /*
     * Switch to the correct default session for this thread.
     */
-   sess_id = dbconn->session_id;
+   sess_id = conn->session_id;
 /* # line 498 "myingres.sc" */	/* set_sql */
   {
     IILQssSetSqlio(11,(short *)0,1,30,sizeof(sess_id),&sess_id);
@@ -520,7 +520,7 @@ bail_out:
    free(stmt);
    return rowcount;
 }
-INGresult *INGquery(INGconn *dbconn, const char *query, bool transaction)
+INGresult *INGquery(INGconn *conn, const char *query, bool transaction)
 {
    /*
     * TODO: error handling
@@ -528,7 +528,7 @@ INGresult *INGquery(INGconn *dbconn, const char *query, bool transaction)
    IISQLDA *desc = NULL;
    INGresult *res = NULL;
    int rows = -1;
-   int cols = INGgetCols(dbconn, query, transaction);
+   int cols = INGgetCols(conn, query, transaction);
 /* # line 532 "myingres.sc" */	
   
   int sess_id;
@@ -537,7 +537,7 @@ INGresult *INGquery(INGconn *dbconn, const char *query, bool transaction)
    /*
     * Switch to the correct default session for this thread.
     */
-   sess_id = dbconn->session_id;
+   sess_id = conn->session_id;
 /* # line 540 "myingres.sc" */	/* set_sql */
   {
     IILQssSetSqlio(11,(short *)0,1,30,sizeof(sess_id),&sess_id);
@@ -588,7 +588,7 @@ void INGclear(INGresult *res)
    INGfreeDescriptor(res->sqlda);
    INGfreeINGresult(res);
 }
-void INGcommit(const INGconn *dbconn)
+void INGcommit(const INGconn *conn)
 {
 /* # line 587 "myingres.sc" */	
   
@@ -712,7 +712,7 @@ void INGdisconnectDB(INGconn *dbconn)
       free(dbconn);
    }
 }
-char *INGerrorMessage(const INGconn *dbconn)
+char *INGerrorMessage(const INGconn *conn)
 {
 /* # line 682 "myingres.sc" */	
   
@@ -724,16 +724,16 @@ char *INGerrorMessage(const INGconn *dbconn)
     IILQisInqSqlio((short *)0,1,32,255,errbuf,63);
   }
 /* # line 687 "myingres.sc" */	/* host code */
-   strncpy(dbconn->msg, errbuf, sizeof(dbconn->msg));
-   return dbconn->msg;
+   strncpy(conn->msg, errbuf, sizeof(conn->msg));
+   return conn->msg;
 }
 char *INGcmdTuples(INGresult *res)
 {
    return res->numrowstring;
 }
 /* TODO?
-int INGputCopyEnd(INGconn *dbconn, const char *errormsg);
-int INGputCopyData(INGconn *dbconn, const char *buffer, int nbytes);
+int INGputCopyEnd(INGconn *conn, const char *errormsg);
+int INGputCopyData(INGconn *conn, const char *buffer, int nbytes);
 */
 /* # line 701 "myingres.sc" */	
 #endif
