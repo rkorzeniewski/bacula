@@ -573,7 +573,7 @@
 /* Define to 1 if you have the `munmap' function. */
 #undef HAVE_MUNMAP
 
-/* Set if you have an Ingres Database */
+/* Set if you have an MySQL Database */
 #undef HAVE_MYSQL
 
 /* Define to 1 if you have the `nanosleep' function. */
