@@ -88,7 +88,7 @@ static int runscript_cmd(JCR *jcr);
 static int runbefore_cmd(JCR *jcr);
 static int runafter_cmd(JCR *jcr);
 static int runbeforenow_cmd(JCR *jcr);
-static int restoreobject_cmd(JCR *jcr);
+static int restore_object_cmd(JCR *jcr);
 static void set_options(findFOPTS *fo, const char *opts);
 static void set_storage_auth_key(JCR *jcr, char *key);
 
@@ -112,7 +112,7 @@ static struct s_cmds cmds[] = {
    {"fileset",      fileset_cmd,   0},
    {"JobId=",       job_cmd,       0},
    {"level = ",     level_cmd,     0},
-   {"restore",      restore_cmd,   0},
+   {"restore ",     restore_cmd,   0},
    {"endrestore",   end_restore_cmd, 0},
    {"session",      session_cmd,   0},
    {"status",       status_cmd,    1},
@@ -125,7 +125,7 @@ static struct s_cmds cmds[] = {
    {"RunAfterJob",  runafter_cmd,  0},
    {"Run",          runscript_cmd, 0},
    {"accurate",     accurate_cmd,  0},
-   {"restoreobject", restoreobject_cmd, 0},
+   {"restoreobject", restore_object_cmd, 0},
    {NULL,       NULL}                  /* list terminator */
 };
 
@@ -137,7 +137,8 @@ static char sessioncmd[]  = "session %127s %ld %ld %ld %ld %ld %ld\n";
 static char restorecmd[]  = "restore replace=%c prelinks=%d where=%s\n";
 static char restorecmd1[] = "restore replace=%c prelinks=%d where=\n";
 static char restorecmdR[] = "restore replace=%c prelinks=%d regexwhere=%s\n";
-static char restoreobjcmd[] = "RestoreObject JobId=%u ObjLen=%d ObjInx=%d ObjType=%d FI=%d";
+static char restoreobjcmd[] = "restoreobject JobId=%u ObjLen=%d ObjInx=%d ObjType=%d FI=%d\n";
+static char endrestoreobjectcmd[] = "restoreobject end\n";
 static char verifycmd[]   = "verify level=%30s";
 static char estimatecmd[] = "estimate listing=%d";
 static char runbefore[]   = "RunBeforeJob %s";
@@ -168,6 +169,7 @@ static char OKRunBeforeNow[] = "2000 OK RunBeforeNow\n";
 static char OKRunAfter[]  = "2000 OK RunAfter\n";
 static char OKRunScript[] = "2000 OK RunScript\n";
 static char BADcmd[]      = "2902 Bad %s\n";
+static char OKRestoreObject[] = "2000 OK ObjectRestored\n";
 
 
 /* Responses received from Storage Daemon */
@@ -618,25 +620,56 @@ static int runscript_cmd(JCR *jcr)
 }
 
 
-static int restoreobject_cmd(JCR *jcr)
+static int restore_object_cmd(JCR *jcr)
 {
    BSOCK *dir = jcr->dir_bsock;
    POOLMEM *msg = get_memory(dir->msglen+1);
    uint32_t JobId;
    int32_t object_len, object_index, object_type, FileIndex;
 
-   Dmsg1(000, "restoreobject_cmd: %s", dir->msg);
+   Dmsg1(100, "Enter restoreobject_cmd: %s", dir->msg);
+   if (strcmp(dir->msg, endrestoreobjectcmd) == 0) {
+      free_memory(msg);
+      return dir->fsend(OKRestoreObject);
+   }
+
    if (sscanf(dir->msg, restoreobjcmd, &JobId, &object_len, &object_index, 
               &object_type, &FileIndex) != 5) {
+      Dmsg0(5, "Bad restore object command\n");
       pm_strcpy(jcr->errmsg, dir->msg);
       Jmsg1(jcr, M_FATAL, 0, _("Bad RestoreObject command: %s\n"), jcr->errmsg);
-      dir->fsend(_("2909 Bad RestoreObject command.\n"));
-      free_memory(msg);
-      return 0;
+      goto bail_out;
    }
-   Dmsg5(000, "JobId=%u objlen=%d objinx=%d objtype=%d FI=%d\n",
-         JobId, object_len, object_index, object_type, FileIndex);
+
+// Dmsg5(000, "Recv object: JobId=%u objlen=%d objinx=%d objtype=%d FI=%d\n",
+//       JobId, object_len, object_index, object_type, FileIndex);
+   /* Read Fname */
+   if (dir->recv() < 0) {
+      goto bail_out;
+   }
+// Dmsg2(000, "Recv Fname object: len=%d Fname=%s\n", dir->msglen, dir->msg);
+
+   /* Read Path */
+   if (dir->recv() < 0) {
+      goto bail_out;
+   }
+// Dmsg2(000, "Recv Path object: len=%d Path=%s\n", dir->msglen, dir->msg);
+
+   /* Read Object */
+   if (dir->recv() < 0) {
+      goto bail_out;
+   }
+// Dmsg2(000, "Recv Object: len=%d Object=%s\n", dir->msglen, dir->msg);
+
+   free_memory(msg);
+   Dmsg1(100, "Send: %s", OKRestoreObject);
    return 1;
+
+bail_out:
+   dir->fsend(_("2909 Bad RestoreObject command.\n"));
+   free_memory(msg);
+   return 0;
+
 }
 
 
@@ -1443,7 +1476,8 @@ static void set_storage_auth_key(JCR *jcr, char *key)
       return;
    }
 
-   /* We can be contacting multiple storage daemons.
+   /**
+    * We can be contacting multiple storage daemons.
     * So, make sure that any old jcr->store_bsock is cleaned up. 
     */
    if (jcr->store_bsock) {
@@ -1456,7 +1490,8 @@ static void set_storage_auth_key(JCR *jcr, char *key)
     *   So, make sure that any old jcr->sd_auth_key is cleaned up. 
     */
    if (jcr->sd_auth_key) {
-      /* If we already have a Authorization key, director can do multi
+      /*
+       * If we already have a Authorization key, director can do multi
        * storage restore
        */
       Dmsg0(5, "set multi_restore=true\n");
@@ -1465,6 +1500,7 @@ static void set_storage_auth_key(JCR *jcr, char *key)
    }
 
    jcr->sd_auth_key = bstrdup(key);
+   Dmsg0(5, "set sd auth key\n");
 }
 
 /**
@@ -1846,7 +1882,7 @@ static int restore_cmd(JCR *jcr)
    /**
     * Scan WHERE (base directory for restore) from command
     */
-   Dmsg0(150, "restore command\n");
+   Dmsg0(100, "restore command\n");
 #if defined(WIN32_VSS)
 
    /* TODO: this should be given from the director */
@@ -1958,7 +1994,7 @@ static int restore_cmd(JCR *jcr)
     * Send Close session command to Storage daemon
     */
    sd->fsend(read_close, jcr->Ticket);
-   Dmsg1(130, "filed>stored: %s", sd->msg);
+   Dmsg1(100, "filed>stored: %s", sd->msg);
 
    bget_msg(sd);                      /* get OK */
 
@@ -1996,10 +2032,11 @@ bail_out:
       set_jcr_job_status(jcr, JS_ErrorTerminated);
    }
 
-   Dmsg0(130, "Done in job.c\n");
+   Dmsg0(100, "Done in job.c\n");
 
    int ret;
    if (jcr->multi_restore) {
+      Dmsg0(100, OKstoreend);
       dir->fsend(OKstoreend);
       ret = 1;     /* we continue the loop, waiting for next part */
    } else {

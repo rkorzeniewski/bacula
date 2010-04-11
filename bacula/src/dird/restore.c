@@ -308,12 +308,12 @@ static void close_bootstrap_file(struct bootstrap_info &info)
  */
 bool restore_bootstrap(JCR *jcr)
 {
-   BSOCK *fd=NULL, *sd;
-   bool end_loop=false;
-   bool first_time=true;
+   BSOCK *fd = NULL;
+   BSOCK *sd;
+   bool first_time = true;
    struct bootstrap_info info;
    POOL_MEM restore_cmd(PM_MESSAGE);
-   bool ret=false;
+   bool ret = false;
 
    /* this command is used for each part */
    build_restore_command(jcr, restore_cmd);
@@ -323,7 +323,7 @@ bool restore_bootstrap(JCR *jcr)
       goto bail_out;
    }
    /* Read the bootstrap file */
-   while (!end_loop && !feof(info.bs)) {
+   while (!feof(info.bs)) {
       
       select_rstore(jcr, info);
 
@@ -399,15 +399,16 @@ bool restore_bootstrap(JCR *jcr)
          goto bail_out;
       }
 
+      /* Only pass "global" commands to the FD once */
       if (first_time) {
+         first_time = false;
          if (!send_runscripts_commands(jcr)) {
             goto bail_out;
          }
-         first_time=false;
-      }
-
-      if (!send_restore_objects(jcr)) {
-         goto bail_out;
+         if (!send_restore_objects(jcr)) {
+            Dmsg0(000, "FAIL: Send restore objects\n");
+            goto bail_out;
+         }
       }
 
       fd->fsend("%s", restore_cmd.c_str());
@@ -417,8 +418,7 @@ bool restore_bootstrap(JCR *jcr)
       }
 
       if (jcr->FDVersion < 2) { /* Old FD */
-         end_loop=true;         /* we do only one loop */
-
+         break;                 /* we do only one loop */
       } else {
          if (!response(jcr, fd, OKstoreend, "Store end", DISPLAY_ERROR)) {
             goto bail_out;

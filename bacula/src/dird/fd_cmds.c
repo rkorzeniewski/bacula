@@ -59,6 +59,7 @@ static char OKjob[]          = "2000 OK Job";
 static char OKlevel[]        = "2000 OK level\n";
 static char OKRunScript[]    = "2000 OK RunScript\n";
 static char OKRunBeforeNow[] = "2000 OK RunBeforeNow\n";
+static char OKRestoreObject[] = "2000 OK ObjectRestored\n";
 
 /* Forward referenced functions */
 static bool send_list_item(JCR *jcr, const char *code, char *item, BSOCK *fd);
@@ -671,25 +672,37 @@ static int restore_object_handler(void *ctx, int num_fields, char **row)
 {
    JCR *jcr = (JCR *)ctx;
    BSOCK *fd;
+   POOLMEM *msg_save;
 
    fd = jcr->file_bsock;
    if (jcr->is_job_canceled()) {
       return 1;
    }
-   bash_spaces(row[2]);
-   bash_spaces(row[3]);
-   bash_spaces(row[6]);
-   fd->fsend("RestoreObject JobId=%s ObjLen=%s ObjInx=%s ObjType=%s FI=%s",
+   fd->fsend("restoreobject JobId=%s ObjLen=%s ObjInx=%s ObjType=%s FI=%s\n",
       row[0], row[3], row[6], row[7], row[8]);
-   Dmsg1(000, ">fd: %s\n", fd->msg);
+
+   fd->fsend("%s", row[1]);              /* send Fname */
+// Dmsg1(000, "Send obj: %s\n", fd->msg);
+
+   fd->fsend("%s", row[2]);              /* send Path */
+// Dmsg1(000, "Send obj: %s\n", fd->msg);
+
+   msg_save = fd->msg;
+   fd->msg = row[4];                     /* object */
+   fd->msglen = str_to_uint64(row[3]);   /* object length */
+   fd->send();                           /* send object */
+// Dmsg1(000, "Send obj: %s\n", fd->msg);
+   fd->msg = msg_save;
+
    return 0;
 }
 
 bool send_restore_objects(JCR *jcr)
 {
-//   BSOCK *fd = jcr->file_bsock;
    POOL_MEM query(PM_MESSAGE);
+   BSOCK *fd;
 
+// Dmsg0(000, "Enter send_restore_objects\n");
    if (!jcr->JobIds || !jcr->JobIds[0]) {
       return true;
    }
@@ -697,8 +710,16 @@ bool send_restore_objects(JCR *jcr)
         "PluginName,ObjectIndex,ObjectType,FileIndex "
         "FROM RestoreObject WHERE JobId IN (%s)", jcr->JobIds);
    
-   /* missing_handler is called for each file found */
+   /* restore_object_handler is called for each file found */
    db_sql_query(jcr->db, query.c_str(), restore_object_handler, (void *)jcr);
+// Dmsg0(000, "All restore objects sent, looking for OKRestoreObject\n");
+   fd = jcr->file_bsock;
+   fd->fsend("restoreobject end\n");
+   if (!response(jcr, fd, OKRestoreObject, "RestoreObject", DISPLAY_ERROR)) {
+      Jmsg(jcr, M_FATAL, 0, _("RestoreObject failed.\n"));
+      return false;
+   }
+// Dmsg0(000, "got for OKRestoreObject\n");
    return true;
 }
 

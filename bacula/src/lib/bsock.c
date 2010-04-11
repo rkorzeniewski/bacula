@@ -334,15 +334,29 @@ bool BSOCK::send()
    int32_t *hdr;
    bool ok = true;
 
-   if (errors || is_terminated() || msglen > 1000000) {
+   if (errors) {
       if (!m_suppress_error_msgs) {
-         Qmsg6(m_jcr, M_ERROR, 0,
-            _("Socket has errors=%d; is_terminated=%d; or has insane msglen=%d on call to %s:%s:%d\n"),
-             errors, is_terminated(), msglen, m_who,
-             m_host, m_port);
+         Qmsg4(m_jcr, M_ERROR, 0,  _("Socket has errors=%d on call to %s:%s:%d\n"),
+             errors, m_who, m_host, m_port);
       }
       return false;
    }
+   if (is_terminated()) {
+      if (!m_suppress_error_msgs) {
+         Qmsg4(m_jcr, M_ERROR, 0,  _("Socket is terminated=%d on call to %s:%s:%d\n"),
+             is_terminated(), m_who, m_host, m_port);
+      }
+      return false;
+   }
+   if (msglen > 1000000) {
+      if (!m_suppress_error_msgs) {
+         Qmsg4(m_jcr, M_ERROR, 0,
+            _("Socket has insane msglen=%d on call to %s:%s:%d\n"),
+             msglen, m_who, m_host, m_port);
+      }
+      return false;
+   }
+
    if (m_use_locking) P(m_mutex);
    /* Compute total packet length */
    if (msglen <= 0) {

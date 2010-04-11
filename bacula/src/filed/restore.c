@@ -319,6 +319,13 @@ void do_restore(JCR *jcr)
          if (rctx.type == FT_DELETED) { /* deleted file */
             continue;
          }
+         /*
+          * Restore objects should be ignored here -- they are
+          * returned at the beginning of the restore. 
+          */
+         if (rctx.type == FT_RESTORE_FIRST) {
+            continue;
+         }
 
          /*
           * Unpack attributes and do sanity check them

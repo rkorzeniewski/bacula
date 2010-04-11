@@ -481,6 +481,7 @@ int plugin_create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
    if (!plugin || !plugin_ctx || !set_cmd_plugin(bfd, jcr) || jcr->is_job_canceled()) {
       return CF_ERROR;
    }
+
    rp.pkt_size = sizeof(rp);
    rp.pkt_end = sizeof(rp);
    rp.stream = attr->stream;
@@ -516,9 +517,6 @@ int plugin_create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
    /* Created link or directory? */
    if (rp.create_status == CF_CREATED) {
       return rp.create_status;        /* yes, no need to bopen */
-   }
-   if (rp.type == FT_RESTORE_FIRST) {
-      return CF_CREATED;
    }
 
    flags =  O_WRONLY | O_CREAT | O_TRUNC | O_BINARY;
