@@ -3060,12 +3060,6 @@ AC_OUTPUT([autoconf/Make.common \
 	   src/cats/drop_ingres_database \
 	   src/cats/sqlite \
 	   src/cats/mysql \
-	   src/cats/create_bdb_database \
-	   src/cats/update_bdb_tables \
-	   src/cats/make_bdb_tables \
-	   src/cats/grant_bdb_privileges \
-	   src/cats/drop_bdb_tables \
-	   src/cats/drop_bdb_database \
 	   src/cats/create_bacula_database \
 	   src/cats/update_bacula_tables \
 	   src/cats/grant_bacula_privileges \
