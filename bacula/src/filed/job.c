@@ -624,17 +624,21 @@ static int restore_object_cmd(JCR *jcr)
 {
    BSOCK *dir = jcr->dir_bsock;
    POOLMEM *msg = get_memory(dir->msglen+1);
-   uint32_t JobId;
-   int32_t object_len, object_index, object_type, FileIndex;
+   int32_t FileIndex;
+   restore_object_pkt rop;
 
+   memset(&rop, 0, sizeof(rop));
+   rop.pkt_size = sizeof(rop);
+   rop.pkt_end = sizeof(rop);
    Dmsg1(100, "Enter restoreobject_cmd: %s", dir->msg);
    if (strcmp(dir->msg, endrestoreobjectcmd) == 0) {
+      generate_plugin_event(jcr, bEventRestoreObject, NULL);
       free_memory(msg);
       return dir->fsend(OKRestoreObject);
    }
 
-   if (sscanf(dir->msg, restoreobjcmd, &JobId, &object_len, &object_index, 
-              &object_type, &FileIndex) != 5) {
+   if (sscanf(dir->msg, restoreobjcmd, &rop.JobId, &rop.object_len, 
+              &rop.object_index, &rop.object_type, &FileIndex) != 5) {
       Dmsg0(5, "Bad restore object command\n");
       pm_strcpy(jcr->errmsg, dir->msg);
       Jmsg1(jcr, M_FATAL, 0, _("Bad RestoreObject command: %s\n"), jcr->errmsg);
@@ -648,6 +652,7 @@ static int restore_object_cmd(JCR *jcr)
       goto bail_out;
    }
 // Dmsg2(000, "Recv Fname object: len=%d Fname=%s\n", dir->msglen, dir->msg);
+   rop.fname = bstrdup(dir->msg);
 
    /* Read Path */
    if (dir->recv() < 0) {
@@ -659,7 +664,18 @@ static int restore_object_cmd(JCR *jcr)
    if (dir->recv() < 0) {
       goto bail_out;
    }
+   rop.object = dir->msg;
 // Dmsg2(000, "Recv Object: len=%d Object=%s\n", dir->msglen, dir->msg);
+
+   /* pass to plugin */
+   generate_plugin_event(jcr, bEventRestoreObject, (void *)&rop);
+
+   if (rop.fname) {
+      free(rop.fname);
+   }
+   if (!rop.object) {
+      dir->msg = get_pool_memory(PM_MESSAGE);
+   }
 
    free_memory(msg);
    Dmsg1(100, "Send: %s", OKRestoreObject);

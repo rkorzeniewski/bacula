@@ -292,16 +292,17 @@ int plugin_save(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
          ff_pkt->fname = fname.c_str();
          ff_pkt->link = link.c_str();
          ff_pkt->type = sp.type;
-         ff_pkt->object = sp.object;
-         ff_pkt->object_len = sp.object_len;
          if (sp.type == FT_RESTORE_FIRST) {
             ff_pkt->LinkFI = sp.index;     /* restore object index */
+            ff_pkt->object = sp.object;
+            ff_pkt->object_len = sp.object_len;
          }
          memcpy(&ff_pkt->statp, &sp.statp, sizeof(ff_pkt->statp));
          Dmsg2(dbglvl, "startBackup returned type=%d, fname=%s\n", sp.type, sp.fname);
          if (sp.object) {
             Dmsg2(dbglvl, "index=%d object=%s\n", sp.index, sp.object);
          }   
+         /* Call Bacula core code to backup the plugin's file */
          save_file(jcr, ff_pkt, true);
          bRC rc = plug_func(plugin)->endBackupFile(jcr->plugin_ctx);
          if (rc == bRC_More || rc == bRC_OK) {

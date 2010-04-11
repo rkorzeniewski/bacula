@@ -46,7 +46,7 @@
 extern "C" {
 #endif
 
-static const int dbglvl = 150;
+static const int dbglvl = 000;
 
 #define PLUGIN_LICENSE      "Bacula GPLv2"
 #define PLUGIN_AUTHOR       "Kern Sibbald"
@@ -205,6 +205,7 @@ static bRC setPluginValue(bpContext *ctx, pVariable var, void *value)
 static bRC handlePluginEvent(bpContext *ctx, bEvent *event, void *value)
 {
    struct plugin_ctx *p_ctx = (struct plugin_ctx *)ctx->pContext;
+   restore_object_pkt *rop;
    if (!p_ctx) {
       return bRC_Error;
    }
@@ -229,6 +230,16 @@ static bRC handlePluginEvent(bpContext *ctx, bEvent *event, void *value)
       break;
    case bEventStartBackupJob:
       bfuncs->AddExclude(ctx, "/home/kern/bacula/regress/README");
+      break;
+   case bEventRestoreObject:
+      printf("Plugin RestoreObject\n");
+      if (!value) {
+         bfuncs->DebugMessage(ctx, fi, li, dbglvl, "test-plugin-fd: End restore objects\n");
+         break;
+      }
+      rop = (restore_object_pkt *)value;
+      bfuncs->DebugMessage(ctx, fi, li, dbglvl, "test-plugin-fd: len=%d JobId=%d fname=%s\n",
+         rop->object_len, rop->JobId, rop->fname);
       break;
    /* Plugin command e.g. plugin = <plugin-name>:<name-space>:read command:write command */
    case bEventRestoreCommand:

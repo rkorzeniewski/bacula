@@ -71,6 +71,22 @@
 #endif
 
 /*
+ * This packet is used for the restore objects
+ *  It is passed to the plugin when restoring
+ *  the object.
+ */
+struct restore_object_pkt {
+   int32_t pkt_size;                  /* size of this packet */
+   char *fname;                       /* Full path and filename */
+   int32_t object_type;               /* FT_xx for this file */             
+   char *object;                      /* restore object data to save */
+   int32_t object_len;                /* restore object length */
+   int32_t object_index;              /* restore object index */
+   uint32_t JobId;                    /* JobId object came from */
+   int32_t pkt_end;                   /* end packet sentinel */
+};
+
+/*
  * This packet is used for file save info transfer.
 */
 struct save_pkt {
@@ -175,6 +191,7 @@ typedef enum {
   bEventVssBackupAddComponents          = 14,
   bEventVssRestoreLoadComponentMetadata = 15,
   bEventVssRestoreSetComponentsSelected = 16,
+  bEventRestoreObject                   = 17,
 } bEventType;
 
 typedef struct s_bEvent {
