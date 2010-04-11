@@ -111,8 +111,8 @@ struct bootstrap_info
 
 #define UA_CMD_SIZE 1000
 
-/*
- * Open the bootstrap file and find the first Storage= 
+/**
+ * Open the bootstrap file and find the first Storage=
  * Returns ok if able to open
  * It fills the storage name (should be the first line) 
  * and the file descriptor to the bootstrap file, 
@@ -158,7 +158,7 @@ static bool open_bootstrap_file(JCR *jcr, struct bootstrap_info &info)
    return true;
 }
 
-/** 
+/**
  * This function compare the given storage name with the
  * the current one. We compare the name and the address:port.
  * Returns true if we use the same storage.
@@ -197,7 +197,7 @@ static bool is_on_same_storage(JCR *jcr, char *new_one)
    return true;
 }
 
-/** 
+/**
  * Check if the current line contains Storage="xxx", and compare the
  * result to the current storage. We use UAContext to analyse the bsr 
  * string.
@@ -257,7 +257,7 @@ static bool send_bootstrap_file(JCR *jcr, BSOCK *sock,
    return true;
 }
 
-/** 
+/**
  * Change the read storage resource for the current job.
  */
 static void select_rstore(JCR *jcr, struct bootstrap_info &info)
@@ -297,7 +297,7 @@ static void close_bootstrap_file(struct bootstrap_info &info)
    }
 }
 
-/** 
+/**
  * The bootstrap is stored in a file, so open the file, and loop
  *   through it processing each storage device in turn. If the
  *   storage is different from the prior one, we open a new connection

@@ -58,8 +58,8 @@ static int db_create_filename_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar);
 #endif /* HAVE_BATCH_FILE_INSERT */
 
 
-/* Create a new record for the Job
- * Returns: false on failure
+/** Create a new record for the Job
+ *  Returns: false on failure
  *          true  on success
  */
 bool
@@ -109,8 +109,8 @@ db_create_job_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
 }
 
 
-/* Create a JobMedia record for medium used this job
- * Returns: false on failure
+/** Create a JobMedia record for medium used this job
+ *  Returns: false on failure
  *          true  on success
  */
 bool
@@ -131,10 +131,6 @@ db_create_jobmedia_record(JCR *jcr, B_DB *mdb, JOBMEDIA_DBR *jm)
    }
    count++;
 
-   /* Note, jm->Strip is not used and is not likely to be used
-    * in the near future, so I have removed it from the insert
-    * to save space in the DB. KES June 2006.
-    */
    Mmsg(mdb->cmd,
         "INSERT INTO JobMedia (JobId,MediaId,FirstIndex,LastIndex,"
         "StartFile,EndFile,StartBlock,EndBlock,VolIndex) "
@@ -165,8 +161,8 @@ db_create_jobmedia_record(JCR *jcr, B_DB *mdb, JOBMEDIA_DBR *jm)
    return ok;
 }
 
-/* Create Unique Pool record
- * Returns: false on failure
+/** Create Unique Pool record
+ *  Returns: false on failure
  *          true  on success
  */
 bool
@@ -226,7 +222,7 @@ db_create_pool_record(JCR *jcr, B_DB *mdb, POOL_DBR *pr)
    return stat;
 }
 
-/*
+/**
  * Create Unique Device record
  * Returns: false on failure
  *          true  on success
@@ -274,7 +270,7 @@ db_create_device_record(JCR *jcr, B_DB *mdb, DEVICE_DBR *dr)
 
 
 
-/*
+/**
  * Create a Unique record for Storage -- no duplicates
  * Returns: false on failure
  *          true  on success with id in sr->StorageId
@@ -333,7 +329,7 @@ bool db_create_storage_record(JCR *jcr, B_DB *mdb, STORAGE_DBR *sr)
 }
 
 
-/*
+/**
  * Create Unique MediaType record
  * Returns: false on failure
  *          true  on success
@@ -379,7 +375,7 @@ db_create_mediatype_record(JCR *jcr, B_DB *mdb, MEDIATYPE_DBR *mr)
 }
 
 
-/*
+/**
  * Create Media record. VolumeName and non-zero Slot must be unique
  *
  * Returns: 0 on failure
@@ -474,7 +470,7 @@ db_create_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
    return stat;
 }
 
-/*
+/**
  * Create a Unique record for the client -- no duplicates
  * Returns: 0 on failure
  *          1 on success with id in cr->ClientId
@@ -538,7 +534,7 @@ int db_create_client_record(JCR *jcr, B_DB *mdb, CLIENT_DBR *cr)
 }
 
 
-/* Create a Unique record for the Path -- no duplicates */
+/** Create a Unique record for the Path -- no duplicates */
 int db_create_path_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
 {
    SQL_ROW row;
@@ -609,7 +605,7 @@ int db_create_path_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
    return stat;
 }
 
-/*
+/**
  * Create a Unique record for the counter -- no duplicates
  * Returns: 0 on failure
  *          1 on success with counter filled in
@@ -647,7 +643,7 @@ int db_create_counter_record(JCR *jcr, B_DB *mdb, COUNTER_DBR *cr)
 }
 
 
-/*
+/**
  * Create a FileSet record. This record is unique in the
  *  name and the MD5 signature of the include/exclude sets.
  *  Returns: 0 on failure
@@ -718,7 +714,7 @@ bool db_create_fileset_record(JCR *jcr, B_DB *mdb, FILESET_DBR *fsr)
 }
 
 
-/*
+/**
  *  struct stat
  *  {
  *      dev_t         st_dev;       * device *
@@ -739,7 +735,7 @@ bool db_create_fileset_record(JCR *jcr, B_DB *mdb, FILESET_DBR *fsr)
 
 #ifdef HAVE_BATCH_FILE_INSERT
 
-/*  All sql_batch_* functions are used to do bulk batch insert in File/Filename/Path
+/** All sql_batch_* functions are used to do bulk batch insert in File/Filename/Path
  *  tables. This code can be activated by adding "#define HAVE_BATCH_FILE_INSERT 1"
  *  in baconfig.h
  *  
@@ -902,7 +898,7 @@ bool db_write_batch_file_records(JCR *jcr)
    return true;
 }
 
-/*
+/**
  * Create File record in B_DB
  *
  *  In order to reduce database size, we store the File attributes,
@@ -953,7 +949,7 @@ bool db_create_file_attributes_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
 
 #else  /* ! HAVE_BATCH_FILE_INSERT */
 
-/*
+/**
  * Create File record in B_DB
  *
  *  In order to reduce database size, we store the File attributes,
@@ -997,7 +993,7 @@ bail_out:
 }
 
 
-/*
+/**
  * This is the master File entry containing the attributes.
  *  The filename and path records have already been created.
  */
@@ -1036,7 +1032,7 @@ static int db_create_file_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
    return stat;
 }
 
-/* Create a Unique record for the filename -- no duplicates */
+/** Create a Unique record for the filename -- no duplicates */
 static int db_create_filename_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
 {
    SQL_ROW row;
@@ -1119,7 +1115,7 @@ const char *create_temp_basefile[5] = {
    "ON COMMIT PRESERVE ROWS WITH NORECOVERY"
 };
 
-/* 
+/** 
  * Create file attributes record, or base file attributes record
  */
 bool db_create_attributes_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
@@ -1149,7 +1145,7 @@ bool db_create_attributes_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
    return ret;
 }
 
-/*
+/**
  * Create Base File record in B_DB
  *
  */
@@ -1177,7 +1173,7 @@ bool db_create_base_file_attributes_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
    return ret;
 }
 
-/* 
+/** 
  * Cleanup the base file temporary tables
  */
 static void db_cleanup_base_file(JCR *jcr, B_DB *mdb)
@@ -1190,7 +1186,7 @@ static void db_cleanup_base_file(JCR *jcr, B_DB *mdb)
    db_sql_query(mdb, buf.c_str(), NULL, NULL);
 }
 
-/*
+/**
  * Put all base file seen in the backup to the BaseFile table
  * and cleanup temporary tables
  */
@@ -1218,7 +1214,7 @@ bool db_commit_base_file_attributes_record(JCR *jcr, B_DB *mdb)
    return ret;
 }
 
-/*
+/**
  * Find the last "accurate" backup state with Base jobs
  * 1) Get all files with jobid in list (F subquery) 
  * 2) Take only the last version of each file (Temp subquery) => accurate list is ok
@@ -1261,7 +1257,7 @@ bail_out:
 }
 
 
-/*
+/**
  * Create Restore Object record in B_DB
  *
  */
@@ -1288,7 +1284,7 @@ bool db_create_restore_object_record(JCR *jcr, B_DB *mdb, ROBJECT_DBR *ro)
    Mmsg(mdb->cmd,
         "INSERT INTO RestoreObject (Fname,Path,PluginName,RestoreObject,"
         "ObjectLength,ObjectIndex,ObjectType,FileIndex,JobId) VALUES"
-        "('%s','%s','%s','%s',%d,%d,%d,%d,%u)", 
+        "('%s','%s','%s','%s',%d,%d,%d,%d,%u)",
         mdb->esc_name, mdb->esc_path, mdb->esc_path, esc_obj, ro->object_len,
         ro->ObjectIndex, FT_RESTORE_FIRST, ro->FileIndex, ro->JobId);
 
