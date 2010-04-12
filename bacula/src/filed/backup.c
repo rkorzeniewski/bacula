@@ -1197,6 +1197,7 @@ bool encode_and_send_attributes(JCR *jcr, FF_PKT *ff_pkt, int &data_stream)
       memcpy(sd->msg + sd->msglen, ff_pkt->object, ff_pkt->object_len);
       sd->msglen += ff_pkt->object_len;
       stat = sd->send();
+      break;
    default:
       stat = sd->fsend("%ld %d %s%c%s%c%c%s%c", jcr->JobFiles,
                ff_pkt->type, ff_pkt->fname, 0, attribs, 0, 0, attribsEx, 0);
