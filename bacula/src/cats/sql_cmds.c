@@ -723,7 +723,7 @@ const char *uar_file[5] = {
    "AND Job.JobId=File.JobId AND File.FileIndex > 0 "
    "AND Path.PathId=File.PathId AND Filename.FilenameId=File.FilenameId "
    "AND Filename.Name='%s' ORDER BY StartTime DESC FETCH FIRST 20 ROWS ONLY"
-   };
+};
 
 const char *uar_create_temp[5] = {
    /* Mysql */
@@ -792,7 +792,7 @@ const char *uar_create_temp[5] = {
    "VolSessionId INTEGER,"
    "VolSessionTime INTEGER)"
    "ON COMMIT PRESERVE ROWS WITH NORECOVERY"
-   };
+};
 
 const char *uar_create_temp1[5] = {
    /* Mysql */
@@ -874,7 +874,20 @@ const char *uar_jobid_fileindex_from_dir[5] = {
    "AND Job.ClientId=Client.ClientId "
    "AND Path.PathId=File.Pathid "
    "AND Filename.FilenameId=File.FilenameId"
-   };
+};
+
+const char *sql_media_order_most_recently_written[5] {
+   /* Mysql */
+   "ORDER BY LastWritten IS NULL,LastWritten DESC,MediaId",
+   /* Postgresql */
+   "ORDER BY LastWritten IS NULL,LastWritten DESC,MediaId",
+   /* SQLite */
+   "ORDER BY LastWritten IS NULL,LastWritten DESC,MediaId",
+   /* SQLite3 */
+   "ORDER BY LastWritten IS NULL,LastWritten DESC,MediaId",
+   /* Ingres */
+   "ORDER BY IFNULL(LastWritten, '') DESC,MediaId"
+};
 
 const char *sql_get_max_connections[5] = {
    /* Mysql */

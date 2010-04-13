@@ -346,7 +346,7 @@ db_find_next_volume(JCR *jcr, B_DB *mdb, int item, bool InChanger, MEDIA_DBR *mr
           strcmp(mr->VolStatus, "Purged") == 0) {
          order = "AND Recycle=1 ORDER BY LastWritten ASC,MediaId";  /* take oldest that can be recycled */
       } else {
-         order = "ORDER BY LastWritten IS NULL,LastWritten DESC,MediaId";   /* take most recently written */
+         order = sql_media_order_most_recently_written[db_type];    /* take most recently written */
       }
       Mmsg(mdb->cmd, "SELECT MediaId,VolumeName,VolJobs,VolFiles,VolBlocks,"
          "VolBytes,VolMounts,VolErrors,VolWrites,MaxVolBytes,VolCapacityBytes,"
