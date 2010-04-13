@@ -876,7 +876,7 @@ const char *uar_jobid_fileindex_from_dir[5] = {
    "AND Filename.FilenameId=File.FilenameId"
 };
 
-const char *sql_media_order_most_recently_written[5] {
+const char *sql_media_order_most_recently_written[5] = {
    /* Mysql */
    "ORDER BY LastWritten IS NULL,LastWritten DESC,MediaId",
    /* Postgresql */

@@ -81,6 +81,6 @@ extern const char CATS_IMP_EXP *uar_file[5];
 extern const char CATS_IMP_EXP *uar_create_temp[5];
 extern const char CATS_IMP_EXP *uar_create_temp1[5];
 extern const char CATS_IMP_EXP *uar_jobid_fileindex_from_dir[5];
-extern const char CATS_IMP_EXP *sql_media_order_by_leastrecently_used[5];
+extern const char CATS_IMP_EXP *sql_media_order_most_recently_written[5];
 extern const char CATS_IMP_EXP *sql_get_max_connections[5];
 extern const uint32_t CATS_IMP_EXP sql_get_max_connections_index[5];
