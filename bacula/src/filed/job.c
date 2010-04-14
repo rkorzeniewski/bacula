@@ -317,6 +317,7 @@ void *handle_client_request(void *dirp)
    dir->signal(BNET_TERMINATE);
 
    free_plugins(jcr);                 /* release instantiated plugins */
+   free_and_null_pool_memory(jcr->job_metadata);
 
    /* Clean up fileset */
    FF_PKT *ff = jcr->ff;
@@ -619,7 +620,6 @@ static int runscript_cmd(JCR *jcr)
    return dir->fsend(OKRunScript);
 }
 
-
 static int restore_object_cmd(JCR *jcr)
 {
    BSOCK *dir = jcr->dir_bsock;
@@ -663,8 +663,15 @@ static int restore_object_cmd(JCR *jcr)
    rop.object = dir->msg;
 // Dmsg2(000, "Recv Object: len=%d Object=%s\n", dir->msglen, dir->msg);
 
-   /* pass to plugin */
-   generate_plugin_event(jcr, bEventRestoreObject, (void *)&rop);
+   if (strcmp(rop.object_name, "job_metadata.xml") == 0) {
+      Dmsg0(000, "got job metadata\n");
+      free_and_null_pool_memory(jcr->job_metadata);
+      jcr->job_metadata = rop.object;
+      rop.object = NULL;
+   } else {
+      /* pass to plugin */
+      generate_plugin_event(jcr, bEventRestoreObject, (void *)&rop);
+   }
 
    if (rop.object_name) {
       free(rop.object_name);
@@ -1958,7 +1965,8 @@ static int restore_cmd(JCR *jcr)
 #if defined(WIN32_VSS)
    /* START VSS ON WIN32 */
    if (jcr->VSS) {
-      if (g_pVSSClient->InitializeForRestore(jcr, vss_restore_init_callback)) {
+      if (g_pVSSClient->InitializeForRestore(jcr, vss_restore_init_callback,
+            (WCHAR *)jcr->job_metadata)) {
          /* inform user about writer states */
          int i;
          for (i=0; i < (int)g_pVSSClient->GetWriterCount(); i++) {
@@ -1976,6 +1984,7 @@ static int restore_cmd(JCR *jcr)
          berrno be;
          Jmsg(jcr, M_WARNING, 0, _("VSS was not initialized properly. VSS support is disabled. ERR=%s\n"), be.bstrerror());
       }
+      free_and_null_pool_memory(jcr->job_metadata);
       run_scripts(jcr, jcr->RunScripts, "ClientAfterVSS");
    }
 #endif

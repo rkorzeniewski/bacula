@@ -358,6 +358,7 @@ public:
    /* File Daemon specific part of JCR */
    uint32_t num_files_examined;       /* files examined this job */
    POOLMEM *last_fname;               /* last file saved/verified */
+   POOLMEM *job_metadata;             /* VSS job metadata */
    acl_data_t *acl_data;              /* ACLs for backup/restore */
    xattr_data_t *xattr_data;          /* Extended Attributes for backup/restore */
    int32_t last_type;                 /* type of last file saved/verified */
