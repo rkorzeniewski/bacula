@@ -1850,8 +1850,7 @@ static int verify_cmd(JCR *jcr)
 #ifdef WIN32_VSS
 static bool vss_restore_init_callback(JCR *jcr, int init_type)
 {
-   switch (init_type)
-   {
+   switch (init_type) {
    case VSS_INIT_RESTORE_AFTER_INIT:
       generate_plugin_event(jcr, bEventVssRestoreLoadComponentMetadata);
       return true;
