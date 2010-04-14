@@ -276,8 +276,8 @@ int plugin_save(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
          if (plug_func(plugin)->startBackupFile(jcr->plugin_ctx, &sp) != bRC_OK) {
             goto bail_out;
          }
-         if (sp.type == 0 || sp.fname == NULL) {
-            Jmsg1(jcr, M_FATAL, 0, _("Command plugin \"%s\" returned bad startBackupFile packet.\n"),
+         if (sp.type == 0) {
+            Jmsg1(jcr, M_FATAL, 0, _("Command plugin \"%s\": no type in startBackupFile packet.\n"),
                cmd);
             goto bail_out;
          }
@@ -287,16 +287,30 @@ int plugin_save(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
           * Copy fname and link because save_file() zaps them.  This 
           *  avoids zaping the plugin's strings.
           */
-         pm_strcpy(fname, sp.fname);
-         pm_strcpy(link, sp.link);
-         ff_pkt->fname = fname.c_str();
-         ff_pkt->link = link.c_str();
          ff_pkt->type = sp.type;
          if (sp.type == FT_RESTORE_FIRST) {
+            if (!sp.object_name) {
+               Jmsg1(jcr, M_FATAL, 0, _("Command plugin \"%s\": no object_name in startBackupFile packet.\n"),
+                  cmd);
+               goto bail_out;
+            }
+            pm_strcpy(fname, sp.object_name);
+            ff_pkt->fname = fname.c_str();
             ff_pkt->LinkFI = sp.index;     /* restore object index */
             ff_pkt->object = sp.object;
             ff_pkt->object_len = sp.object_len;
+         } else {
+            if (!sp.fname) {
+               Jmsg1(jcr, M_FATAL, 0, _("Command plugin \"%s\": no fname in startBackupFile packet.\n"),
+                  cmd);
+               goto bail_out;
+            }
+            pm_strcpy(fname, sp.fname);
+            pm_strcpy(link, sp.link);
+            ff_pkt->fname = fname.c_str();
+            ff_pkt->link = link.c_str();
          }
+
          memcpy(&ff_pkt->statp, &sp.statp, sizeof(ff_pkt->statp));
          Dmsg2(dbglvl, "startBackup returned type=%d, fname=%s\n", sp.type, sp.fname);
          if (sp.object) {

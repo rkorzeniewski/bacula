@@ -99,6 +99,7 @@ struct save_pkt {
    uint32_t flags;                    /* Bacula internal flags */
    bool portable;                     /* set if data format is portable */
    char *cmd;                         /* command */
+   char *object_name;                 /* Object name to create */
    char *object;                      /* restore object data to save */
    int32_t object_len;                /* restore object length */
    int32_t index;                     /* restore object index */

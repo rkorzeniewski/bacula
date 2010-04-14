@@ -290,7 +290,7 @@ static bRC startBackupFile(bpContext *ctx, struct save_pkt *sp)
       return bRC_Error;
    }
    time_t now = time(NULL);
-   sp->fname = (char *)"james.xml";
+   sp->object_name = (char *)"james.xml";
    sp->object = (char *)"This is test data for the restore object.";
    sp->object_len = strlen(sp->object);
    sp->index = 2;

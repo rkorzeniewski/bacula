@@ -1760,20 +1760,7 @@ static int backup_cmd(JCR *jcr)
 
 cleanup:
 #if defined(WIN32_VSS)
-   /* STOP VSS ON WIN32 */
-   /* tell vss to close the backup session */
    if (jcr->VSS) {
-      if (g_pVSSClient->CloseBackup()) {             
-         /* inform user about writer states */
-         for (int i=0; i<(int)g_pVSSClient->GetWriterCount(); i++) {
-            int msg_type = M_INFO;
-            if (g_pVSSClient->GetWriterState(i) < 1) {
-               msg_type = M_WARNING;
-               jcr->JobErrors++;
-            }
-            Jmsg(jcr, msg_type, 0, _("VSS Writer (BackupComplete): %s\n"), g_pVSSClient->GetWriterInfo(i));
-         }
-      }
       Win32ConvCleanupCache();
       V(vss_mutex);
    }

@@ -61,6 +61,7 @@ bool encode_and_send_attributes(JCR *jcr, FF_PKT *ff_pkt, int &data_stream);
 static bool crypto_session_start(JCR *jcr);
 static void crypto_session_end(JCR *jcr);
 static bool crypto_session_send(JCR *jcr, BSOCK *sd);
+static void close_vss_backup_session(JCR *jcr);
 
 /**
  * Find all the requested files and send them
@@ -171,6 +172,8 @@ bool blast_data_to_storage_daemon(JCR *jcr, char *addr)
       Jmsg(jcr, M_ERROR, 0, _("Encountered %ld xattr errors while doing backup\n"),
            jcr->xattr_data->nr_errors);
    }
+
+   close_vss_backup_session(jcr);
 
    accurate_finish(jcr);              /* send deleted or base file list to SD */
 
@@ -1316,4 +1319,25 @@ void unstrip_path(FF_PKT *ff_pkt)
           strlen(ff_pkt->link_save));
       sm_check(__FILE__, __LINE__, true);
    }
+}
+
+static void close_vss_backup_session(JCR *jcr)
+{
+#if defined(WIN32_VSS)
+   /* STOP VSS ON WIN32 */
+   /* tell vss to close the backup session */
+   if (jcr->VSS) {
+      if (g_pVSSClient->CloseBackup()) {             
+         /* inform user about writer states */
+         for (int i=0; i<(int)g_pVSSClient->GetWriterCount(); i++) {
+            int msg_type = M_INFO;
+            if (g_pVSSClient->GetWriterState(i) < 1) {
+               msg_type = M_WARNING;
+               jcr->JobErrors++;
+            }
+            Jmsg(jcr, msg_type, 0, _("VSS Writer (BackupComplete): %s\n"), g_pVSSClient->GetWriterInfo(i));
+         }
+      }
+   }
+#endif
 }
