@@ -68,8 +68,6 @@ CREATE TABLE RestoreObject (
 #
 #  INDEX (PathId),
 #  INDEX (FilenameId),
-#  INDEX (FilenameId, PathId)
-#  INDEX (JobId),
 #
 
 CREATE TABLE MediaType (
