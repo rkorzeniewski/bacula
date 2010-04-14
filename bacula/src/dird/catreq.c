@@ -456,7 +456,7 @@ static void update_attribute(JCR *jcr, char *msg, int32_t msglen)
          POOLMEM *attrEx = get_pool_memory(PM_MESSAGE);
          char *p;
          memset(&ro, 0, sizeof(ro));
-         ro.full_fname = fname;
+         ro.object_name = fname;
          ro.Stream = Stream;
          ro.FileType = ar->FileType;
          ro.FileIndex = FileIndex;
@@ -474,8 +474,8 @@ static void update_attribute(JCR *jcr, char *msg, int32_t msglen)
          /* Add a EOS for those who attempt to print the object */
          p = attrEx + ro.object_len;
          *p = 0;
-         Dmsg7(000, "fname=%s stream=%d FT=%d FI=%d JobId=%d, obj_len=%d\nobj=\"%s\"\n",
-            ro.full_fname, ro.Stream, ro.FileType, ro.FileIndex, ro.JobId,
+         Dmsg7(000, "oname=%s stream=%d FT=%d FI=%d JobId=%d, obj_len=%d\nobj=\"%s\"\n",
+            ro.object_name, ro.Stream, ro.FileType, ro.FileIndex, ro.JobId,
             ro.object_len, attrEx);
          /* Send it */
          if (!db_create_restore_object_record(jcr, jcr->db, &ro)) {

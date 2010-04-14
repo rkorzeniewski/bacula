@@ -679,17 +679,16 @@ static int restore_object_handler(void *ctx, int num_fields, char **row)
       return 1;
    }
    fd->fsend("restoreobject JobId=%s ObjLen=%s ObjInx=%s ObjType=%s FI=%s\n",
-      row[0], row[3], row[6], row[7], row[8]);
-
-   fd->fsend("%s", row[1]);              /* send Fname */
-// Dmsg1(000, "Send obj: %s\n", fd->msg);
-
-   fd->fsend("%s", row[2]);              /* send Path */
-// Dmsg1(000, "Send obj: %s\n", fd->msg);
+      row[0], row[1], row[2], row[3], row[4]);
 
    msg_save = fd->msg;
-   fd->msg = row[4];                     /* object */
-   fd->msglen = str_to_uint64(row[3]);   /* object length */
+   fd->msg = row[5] ? row[5] : (char *)"";
+   fd->msglen = strlen(fd->msg);
+   fd->send();                            /* send Object name */
+// Dmsg1(000, "Send obj: %s\n", fd->msg);
+
+   fd->msg = row[6] ? row[6] : (char *)""; /* object */
+   fd->msglen = str_to_uint64(row[1]);   /* object length */
    fd->send();                           /* send object */
 // Dmsg1(000, "Send obj: %s\n", fd->msg);
    fd->msg = msg_save;
@@ -706,9 +705,9 @@ bool send_restore_objects(JCR *jcr)
    if (!jcr->JobIds || !jcr->JobIds[0]) {
       return true;
    }
-   Mmsg(query, "SELECT JobId,Fname,Path,ObjectLength,RestoreObject,"
-        "PluginName,ObjectIndex,ObjectType,FileIndex "
-        "FROM RestoreObject WHERE JobId IN (%s)", jcr->JobIds);
+   Mmsg(query, "SELECT JobId,ObjectLength,ObjectIndex,ObjectType,"
+        "FileIndex,Fname,RestoreObject FROM RestoreObject "
+        "WHERE JobId IN (%s) ORDER BY ObjectIndex ASC", jcr->JobIds);
    
    /* restore_object_handler is called for each file found */
    db_sql_query(jcr->db, query.c_str(), restore_object_handler, (void *)jcr);

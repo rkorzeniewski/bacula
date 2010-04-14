@@ -1267,25 +1267,21 @@ bool db_create_restore_object_record(JCR *jcr, B_DB *mdb, ROBJECT_DBR *ro)
    POOLMEM *esc_obj = get_pool_memory(PM_MESSAGE); 
    db_lock(mdb);
 
-   Dmsg1(dbglevel, "Fname=%s\n", ro->fname);
+   Dmsg1(dbglevel, "Oname=%s\n", ro->object_name);
    Dmsg0(dbglevel, "put_object_into_catalog\n");
 
-   split_path_and_file(jcr, mdb, ro->full_fname);
-
+   mdb->fnl = strlen(ro->object_name);
    mdb->esc_name = check_pool_memory_size(mdb->esc_name, mdb->fnl*2+1);
-   db_escape_string(jcr, mdb, mdb->esc_name, mdb->fname, mdb->fnl);
+   db_escape_string(jcr, mdb, mdb->esc_name, ro->object_name, mdb->fnl);
    
-   mdb->esc_path = check_pool_memory_size(mdb->esc_path, mdb->pnl*2+1);
-   db_escape_string(jcr, mdb, mdb->esc_path, mdb->path, mdb->pnl);
-
    esc_obj = check_pool_memory_size(esc_obj, ro->object_len*2+1);
    db_escape_string(jcr, mdb, esc_obj, ro->object, ro->object_len);
 
    Mmsg(mdb->cmd,
-        "INSERT INTO RestoreObject (Fname,Path,PluginName,RestoreObject,"
+        "INSERT INTO RestoreObject (Fname,RestoreObject,"
         "ObjectLength,ObjectIndex,ObjectType,FileIndex,JobId) VALUES"
-        "('%s','%s','%s','%s',%d,%d,%d,%d,%u)",
-        mdb->esc_name, mdb->esc_path, mdb->esc_path, esc_obj, ro->object_len,
+        "('%s','%s',%d,%d,%d,%d,%u)",
+        mdb->esc_name, esc_obj, ro->object_len,
         ro->ObjectIndex, FT_RESTORE_FIRST, ro->FileIndex, ro->JobId);
 
    ro->RestoreObjectId = sql_insert_autokey_record(mdb, mdb->cmd, NT_("RestoreObject"));

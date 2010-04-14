@@ -238,8 +238,8 @@ static bRC handlePluginEvent(bpContext *ctx, bEvent *event, void *value)
          break;
       }
       rop = (restore_object_pkt *)value;
-      bfuncs->DebugMessage(ctx, fi, li, dbglvl, "test-plugin-fd: len=%d JobId=%d fname=%s\n",
-         rop->object_len, rop->JobId, rop->fname);
+      bfuncs->DebugMessage(ctx, fi, li, dbglvl, "test-plugin-fd: len=%d JobId=%d oname=%s\n",
+         rop->object_len, rop->JobId, rop->object_name);
       break;
    /* Plugin command e.g. plugin = <plugin-name>:<name-space>:read command:write command */
    case bEventRestoreCommand:
@@ -290,7 +290,7 @@ static bRC startBackupFile(bpContext *ctx, struct save_pkt *sp)
       return bRC_Error;
    }
    time_t now = time(NULL);
-   sp->fname = p_ctx->fname;
+   sp->fname = (char *)"james.xml";
    sp->object = (char *)"This is test data for the restore object.";
    sp->object_len = strlen(sp->object);
    sp->index = 2;

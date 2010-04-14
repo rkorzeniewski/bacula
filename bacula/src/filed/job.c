@@ -647,17 +647,13 @@ static int restore_object_cmd(JCR *jcr)
 
 // Dmsg5(000, "Recv object: JobId=%u objlen=%d objinx=%d objtype=%d FI=%d\n",
 //       JobId, object_len, object_index, object_type, FileIndex);
-   /* Read Fname */
+   /* Read Object name */
    if (dir->recv() < 0) {
       goto bail_out;
    }
-// Dmsg2(000, "Recv Fname object: len=%d Fname=%s\n", dir->msglen, dir->msg);
-   rop.fname = bstrdup(dir->msg);
+// Dmsg2(000, "Recv Fname object: len=%d Oname=%s\n", dir->msglen, dir->msg);
+   rop.object_name = bstrdup(dir->msg);
 
-   /* Read Path */
-   if (dir->recv() < 0) {
-      goto bail_out;
-   }
 // Dmsg2(000, "Recv Path object: len=%d Path=%s\n", dir->msglen, dir->msg);
 
    /* Read Object */
@@ -670,8 +666,8 @@ static int restore_object_cmd(JCR *jcr)
    /* pass to plugin */
    generate_plugin_event(jcr, bEventRestoreObject, (void *)&rop);
 
-   if (rop.fname) {
-      free(rop.fname);
+   if (rop.object_name) {
+      free(rop.object_name);
    }
    if (!rop.object) {
       dir->msg = get_pool_memory(PM_MESSAGE);
