@@ -10,19 +10,20 @@
 #  $3 = working directory
 #
 PNAME=`basename $1`
-PNAME="${PNAME} on `hostname`"
 WD="$3"
 if test `uname -s` = SunOS ; then
-  gcore -o ${WD}/${PNAME} $2
-  if [ -x /usr/bin/mdb ]; then
-     mdb -u -p $2 <@scriptdir@/btraceback.mdb >${WD}/bacula.$2.traceback 2>&1
-  else
-     dbx $1 $2 <@scriptdir@/btraceback.dbx >${WD}/bacula.$2.traceback 2>&1
-  fi
-  cat ${WD}/bacula.$2.traceback \
-   | @sbindir@/bsmtp -h @smtp_host@ -f @dump_email@ -s "Bacula DBX traceback of ${PNAME}" @dump_email@
+   gcore -o ${WD}/${PNAME} $2
+   if [ -x /usr/bin/mdb ]; then
+      mdb -u -p $2 <@scriptdir@/btraceback.mdb >${WD}/bacula.$2.traceback 2>&1
+   else
+      dbx $1 $2 <@scriptdir@/btraceback.dbx >${WD}/bacula.$2.traceback 2>&1
+   fi
+   PNAME="${PNAME} on `hostname`"
+   cat ${WD}/bacula.$2.traceback \
+    | @sbindir@/bsmtp -h @smtp_host@ -f @dump_email@ -s "Bacula DBX traceback of ${PNAME}" @dump_email@
 else
-  gdb -quiet -batch -x @scriptdir@/btraceback.gdb $1 $2 >${WD}/bacula.$2.traceback 2>&1
-  cat ${WD}/bacula.$2.traceback \
-   | @sbindir@/bsmtp -h @smtp_host@ -f @dump_email@ -s "Bacula GDB traceback of ${PNAME}" @dump_email@
+   gdb -quiet -batch -x @scriptdir@/btraceback.gdb $1 $2 >${WD}/bacula.$2.traceback 2>&1
+   PNAME="${PNAME} on `hostname`"
+   cat ${WD}/bacula.$2.traceback \
+    | @sbindir@/bsmtp -h @smtp_host@ -f @dump_email@ -s "Bacula GDB traceback of ${PNAME}" @dump_email@
 fi 
