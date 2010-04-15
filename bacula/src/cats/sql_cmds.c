@@ -550,20 +550,30 @@ const char *select_recent_version_with_basejob[5] = {
   "AND T1.PathId = File.PathId "
   "AND T1.FilenameId = File.FilenameId",
 
-  /* Ingres (works?) */    /* The DISTINCT ON () permits to avoid extra join */
- "SELECT DISTINCT ON (FilenameId, PathId) StartTime, JobId, FileId, "
-         "FileIndex, PathId, FilenameId, LStat, MD5 "
-   "FROM "
-       "(SELECT FileId, JobId, PathId, FilenameId, FileIndex, LStat, MD5 "
-          "FROM File WHERE JobId IN (%s) "
-         "UNION ALL "
-        "SELECT File.FileId, File.JobId, PathId, FilenameId, "
-               "File.FileIndex, LStat, MD5 "
-          "FROM BaseFiles JOIN File USING (FileId) "
+  /* Ingres */              /* See Mysql section for doc */
+"SELECT FileId, Job.JobId AS JobId, FileIndex, File.PathId AS PathId, "
+       "File.FilenameId AS FilenameId, LStat, MD5 "
+"FROM Job, File, ( "
+    "SELECT MAX(JobTDate) AS JobTDate, PathId, FilenameId "
+      "FROM ( "
+        "SELECT JobTDate, PathId, FilenameId "
+          "FROM File JOIN Job USING (JobId) "
+         "WHERE File.JobId IN (%s) "
+          "UNION ALL "
+        "SELECT JobTDate, PathId, FilenameId "
+          "FROM BaseFiles "
+               "JOIN File USING (FileId) "
+               "JOIN Job  ON    (BaseJobId = Job.JobId) "
          "WHERE BaseFiles.JobId IN (%s) "
-        ") AS T JOIN Job USING (JobId) "
-   "ORDER BY FilenameId, PathId, StartTime DESC "
-
+       ") AS tmp GROUP BY PathId, FilenameId "
+    ") AS T1 "
+"WHERE (Job.JobId IN ( "
+         "SELECT DISTINCT BaseJobId FROM BaseFiles WHERE JobId IN (%s)) "
+        "OR Job.JobId IN (%s)) "
+  "AND T1.JobTDate = Job.JobTDate "
+  "AND Job.JobId = File.JobId "
+  "AND T1.PathId = File.PathId "
+  "AND T1.FilenameId = File.FilenameId"
 };
 
 /* Get the list of the last recent version with a given BaseJob jobid list */
@@ -624,12 +634,20 @@ const char *select_recent_version[5] = {
       "AND j1.JobId = f1.JobId",
 
    /* Ingres */
-   "SELECT DISTINCT ON (FilenameId, PathId) StartTime, JobId, FileId, "
-          "FileIndex, PathId, FilenameId, LStat, MD5 "
-     "FROM File JOIN Job USING (JobId) "
-    "WHERE JobId IN (%s) "
-    "ORDER BY FilenameId, PathId, StartTime DESC "
-
+   "SELECT j1.JobId AS JobId, f1.FileId AS FileId, f1.FileIndex AS FileIndex, "
+          "f1.PathId AS PathId, f1.FilenameId AS FilenameId, "
+          "f1.LStat AS LStat, f1.MD5 AS MD5 "
+     "FROM ( "     /* Choose the last version for each Path/Filename */
+       "SELECT max(JobTDate) AS JobTDate, PathId, FilenameId "
+         "FROM File JOIN Job USING (JobId) "
+        "WHERE File.JobId IN (%s) "
+       "GROUP BY PathId, FilenameId "
+     ") AS t1, Job AS j1, File AS f1 "
+    "WHERE t1.JobTDate = j1.JobTDate "
+      "AND j1.JobId IN (%s) "
+      "AND t1.FilenameId = f1.FilenameId "
+      "AND t1.PathId = f1.PathId "
+      "AND j1.JobId = f1.JobId"
 };
 
 /* ====== ua_prune.c */
