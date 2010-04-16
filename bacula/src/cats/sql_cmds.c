@@ -26,12 +26,10 @@
    Switzerland, email:ftf@fsfeurope.org.
 */
 /*
- *
  *  This file contains all the SQL commands that are either issued by the
  *  Director or which are database backend specific.
  *
  *     Kern Sibbald, July MMII
- *
  */
 /*
  * Note, PostgreSQL imposes some constraints on using DISTINCT and GROUP BY
@@ -627,6 +625,79 @@ const char *select_recent_version[5] = {
       "AND t1.FilenameId = f1.FilenameId "
       "AND t1.PathId = f1.PathId "
       "AND j1.JobId = f1.JobId"
+};
+
+const char *create_temp_basefile[5] = {
+   /* Mysql */
+   "CREATE TEMPORARY TABLE basefile%lld ("
+   "Path BLOB NOT NULL,"
+   "Name BLOB NOT NULL)",
+   /* Postgresql */
+   "CREATE TEMPORARY TABLE basefile%lld ("
+   "Path TEXT,"
+   "Name TEXT)",
+   /* SQLite */
+   "CREATE TEMPORARY TABLE basefile%lld ("
+   "Path TEXT,"
+   "Name TEXT)",
+   /* SQLite3 */
+   "CREATE TEMPORARY TABLE basefile%lld ("
+   "Path TEXT,"
+   "Name TEXT)",
+   /* Ingres */
+   "DECLARE GLOBAL TEMPORARY TABLE basefile%lld ("
+   "Path TEXT NOT NULL,"
+   "Name TEXT NOT NULL)"
+   "ON COMMIT PRESERVE ROWS WITH NORECOVERY"
+};
+
+const char *create_temp_new_basefile[5] = {
+   /* Mysql */
+   "CREATE TEMPORARY TABLE new_basefile%lld AS "
+   "SELECT Path.Path AS Path, Filename.Name AS Name, Temp.FileIndex AS FileIndex,"
+   "Temp.JobId AS JobId, Temp.LStat AS LStat, Temp.FileId AS FileId, "
+   "Temp.MD5 AS MD5 "
+   "FROM ( %s ) AS Temp "
+   "JOIN Filename ON (Filename.FilenameId = Temp.FilenameId) "
+   "JOIN Path ON (Path.PathId = Temp.PathId) "
+   "WHERE Temp.FileIndex > 0",
+   /* Postgresql */
+   "CREATE TEMPORARY TABLE new_basefile%lld AS "
+   "SELECT Path.Path AS Path, Filename.Name AS Name, Temp.FileIndex AS FileIndex,"
+   "Temp.JobId AS JobId, Temp.LStat AS LStat, Temp.FileId AS FileId, "
+   "Temp.MD5 AS MD5 "
+   "FROM ( %s ) AS Temp "
+   "JOIN Filename ON (Filename.FilenameId = Temp.FilenameId) "
+   "JOIN Path ON (Path.PathId = Temp.PathId) "
+   "WHERE Temp.FileIndex > 0",
+   /* SQLite */
+   "CREATE TEMPORARY TABLE new_basefile%lld AS "
+   "SELECT Path.Path AS Path, Filename.Name AS Name, Temp.FileIndex AS FileIndex,"
+   "Temp.JobId AS JobId, Temp.LStat AS LStat, Temp.FileId AS FileId, "
+   "Temp.MD5 AS MD5 "
+   "FROM ( %s ) AS Temp "
+   "JOIN Filename ON (Filename.FilenameId = Temp.FilenameId) "
+   "JOIN Path ON (Path.PathId = Temp.PathId) "
+   "WHERE Temp.FileIndex > 0",
+   /* SQLite3 */
+   "CREATE TEMPORARY TABLE new_basefile%lld AS "
+   "SELECT Path.Path AS Path, Filename.Name AS Name, Temp.FileIndex AS FileIndex,"
+   "Temp.JobId AS JobId, Temp.LStat AS LStat, Temp.FileId AS FileId, "
+   "Temp.MD5 AS MD5 "
+   "FROM ( %s ) AS Temp "
+   "JOIN Filename ON (Filename.FilenameId = Temp.FilenameId) "
+   "JOIN Path ON (Path.PathId = Temp.PathId) "
+   "WHERE Temp.FileIndex > 0",
+   /* Ingres */
+   "DECLARE GLOBAL TEMPORARY TABLE new_basefile%lld AS "
+   "SELECT Path.Path AS Path, Filename.Name AS Name, Temp.FileIndex AS FileIndex,"
+   "Temp.JobId AS JobId, Temp.LStat AS LStat, Temp.FileId AS FileId, "
+   "Temp.MD5 AS MD5 "
+   "FROM ( %s ) AS Temp "
+   "JOIN Filename ON (Filename.FilenameId = Temp.FilenameId) "
+   "JOIN Path ON (Path.PathId = Temp.PathId) "
+   "WHERE Temp.FileIndex > 0"
+   "ON COMMIT PRESERVE ROWS WITH NORECOVERY",
 };
 
 /* ====== ua_prune.c */

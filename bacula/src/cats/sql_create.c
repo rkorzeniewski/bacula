@@ -1083,38 +1083,6 @@ bool db_write_batch_file_records(JCR *jcr)
 
 #endif /* ! HAVE_BATCH_FILE_INSERT */
 
-
-/* List of SQL commands to create temp table and indicies  */
-const char *create_temp_basefile[5] = {
-   /* MySQL */
-   "CREATE TEMPORARY TABLE basefile%lld ("
-//   "CREATE TABLE basefile%lld ("
-   "Path BLOB NOT NULL,"
-   "Name BLOB NOT NULL)",
-
-   /* Postgresql */
-   "CREATE TEMPORARY TABLE basefile%lld (" 
-//   "CREATE TABLE basefile%lld (" 
-   "Path TEXT,"
-   "Name TEXT)",
-
-   /* SQLite */
-   "CREATE TEMPORARY TABLE basefile%lld (" 
-   "Path TEXT,"
-   "Name TEXT)",
-
-   /* SQLite3 */
-   "CREATE TEMPORARY TABLE basefile%lld (" 
-   "Path TEXT,"
-   "Name TEXT)",
-
-   /* Ingres */
-   "DECLARE GLOBAL TEMPORARY TABLE basefile%lld (" 
-   "Path TEXT NOT NULL,"
-   "Name TEXT NOT NULL)"
-   "ON COMMIT PRESERVE ROWS WITH NORECOVERY"
-};
-
 /** 
  * Create file attributes record, or base file attributes record
  */
@@ -1238,24 +1206,13 @@ bool db_create_base_file_list(JCR *jcr, B_DB *mdb, char *jobids)
       goto bail_out;
    }
    Mmsg(buf, select_recent_version[db_type], jobids, jobids);
-   Mmsg(mdb->cmd,
-"CREATE TEMPORARY TABLE new_basefile%lld AS  "
-//"CREATE TABLE new_basefile%lld AS "
-  "SELECT Path.Path AS Path, Filename.Name AS Name, Temp.FileIndex AS FileIndex,"
-         "Temp.JobId AS JobId, Temp.LStat AS LStat, Temp.FileId AS FileId, "
-         "Temp.MD5 AS MD5 "
-  "FROM ( %s ) AS Temp "
-  "JOIN Filename ON (Filename.FilenameId = Temp.FilenameId) "
-  "JOIN Path ON (Path.PathId = Temp.PathId) "
- "WHERE Temp.FileIndex > 0",
-        (uint64_t)jcr->JobId, buf.c_str());
+   Mmsg(mdb->cmd, create_temp_new_basefile[db_type], (uint64_t)jcr->JobId, buf.c_str());
 
    ret = db_sql_query(mdb, mdb->cmd, NULL, NULL);
 bail_out:
    db_unlock(mdb);
    return ret;
 }
-
 
 /**
  * Create Restore Object record in B_DB
