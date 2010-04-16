@@ -646,8 +646,8 @@ const char *create_temp_basefile[5] = {
    "Name TEXT)",
    /* Ingres */
    "DECLARE GLOBAL TEMPORARY TABLE basefile%lld ("
-   "Path TEXT NOT NULL,"
-   "Name TEXT NOT NULL)"
+   "Path VARCHAR(256) NOT NULL,"
+   "Name VARCHAR(256) NOT NULL)"
    "ON COMMIT PRESERVE ROWS WITH NORECOVERY"
 };
 
