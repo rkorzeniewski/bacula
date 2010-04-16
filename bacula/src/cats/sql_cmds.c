@@ -27,11 +27,11 @@
 */
 /*
  *
- *  This file contains all the SQL commands issued by the Director
+ *  This file contains all the SQL commands that are either issued by the
+ *  Director or which are database backend specific.
  *
  *     Kern Sibbald, July MMII
  *
- *   Version $Id$
  */
 /*
  * Note, PostgreSQL imposes some constraints on using DISTINCT and GROUP BY
@@ -39,7 +39,6 @@
  *  SELECT DISTINCT JobId FROM temp ORDER BY StartTime ASC;
  *  because all the ORDER BY expressions must appear in the SELECT list!
  */
-
 
 #include "bacula.h"
 #include "cats.h"
@@ -429,26 +428,6 @@ const char *uar_jobids_fileindex =
 /* Query to get list of files from table -- presuably built by an external program */
 const char *uar_jobid_fileindex_from_table = 
    "SELECT JobId,FileIndex from %s";
-
-
-/*
- *
- *  This file contains all the SQL commands issued by the Director
- *
- *     Kern Sibbald, July MMII
- *
- *   Version $Id$
- */
-/*
- * Note, PostgreSQL imposes some constraints on using DISTINCT and GROUP BY
- *  for example, the following is illegal in PostgreSQL:
- *  SELECT DISTINCT JobId FROM temp ORDER BY StartTime ASC;
- *  because all the ORDER BY expressions must appear in the SELECT list!
- */
-
-
-#include "bacula.h"
-#include "cats.h"
 
 /* Get the list of the last recent version with a given jobid list 
  * This is a tricky part because with SQL the result of 
