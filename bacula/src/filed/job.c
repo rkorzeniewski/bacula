@@ -645,26 +645,24 @@ static int restore_object_cmd(JCR *jcr)
       goto bail_out;
    }
 
-// Dmsg5(000, "Recv object: JobId=%u objlen=%d objinx=%d objtype=%d FI=%d\n",
-//       JobId, object_len, object_index, object_type, FileIndex);
+   Dmsg5(100, "Recv object: JobId=%u objlen=%d objinx=%d objtype=%d FI=%d\n",
+         rop.JobId, rop.object_len, rop.object_index, rop.object_type, FileIndex);
    /* Read Object name */
    if (dir->recv() < 0) {
       goto bail_out;
    }
-// Dmsg2(000, "Recv Fname object: len=%d Oname=%s\n", dir->msglen, dir->msg);
+   Dmsg2(100, "Recv Oname object: len=%d Oname=%s\n", dir->msglen, dir->msg);
    rop.object_name = bstrdup(dir->msg);
-
-// Dmsg2(000, "Recv Path object: len=%d Path=%s\n", dir->msglen, dir->msg);
 
    /* Read Object */
    if (dir->recv() < 0) {
       goto bail_out;
    }
    rop.object = dir->msg;
-// Dmsg2(000, "Recv Object: len=%d Object=%s\n", dir->msglen, dir->msg);
+   Dmsg2(100, "Recv Object: len=%d Object=%s\n", dir->msglen, dir->msg);
 
    if (strcmp(rop.object_name, "job_metadata.xml") == 0) {
-      Dmsg0(000, "got job metadata\n");
+      Dmsg0(100, "got job metadata\n");
       free_and_null_pool_memory(jcr->job_metadata);
       jcr->job_metadata = rop.object;
       rop.object = NULL;

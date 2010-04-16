@@ -706,7 +706,7 @@ bool send_restore_objects(JCR *jcr)
       return true;
    }
    Mmsg(query, "SELECT JobId,ObjectLength,ObjectIndex,ObjectType,"
-        "FileIndex,Fname,RestoreObject FROM RestoreObject "
+        "FileIndex,ObjectName,RestoreObject FROM RestoreObject "
         "WHERE JobId IN (%s) ORDER BY ObjectIndex ASC", jcr->JobIds);
    
    /* restore_object_handler is called for each file found */
