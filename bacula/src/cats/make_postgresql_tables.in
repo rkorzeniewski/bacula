@@ -62,8 +62,7 @@ CREATE INDEX file_jobid_idx on file(jobid);
 
 CREATE TABLE RestoreObject (
    RestoreObjectId SERIAL NOT NULL,
-   Fname TEXT NOT NULL,
-   Path TEXT NOT NULL,
+   ObjectName TEXT NOT NULL,
    RestoreObject TEXT NOT NULL,
    PluginName TEXT NOT NULL,
    ObjectLength INTEGER DEFAULT 0,
@@ -71,6 +70,7 @@ CREATE TABLE RestoreObject (
    ObjectType INTEGER DEFAULT 0,
    FileIndex INTEGER UNSIGNED DEFAULT 0,
    JobId INTEGER UNSIGNED,
+   ObjectCompression INTEGER DEFAULT 0,
    PRIMARY KEY(RestoreObjectId),
    );
 CREATE INDEX restore_jobid_idx on file(JobId);

@@ -189,6 +189,7 @@ struct FF_PKT {
    char *top_fname;                   /* full filename before descending */
    char *fname;                       /* full filename */
    char *link;                        /* link if file linked */
+   char *object_name;                 /* Object name */
    char *object;                      /* restore object */
    POOLMEM *sys_fname;                /* system filename */
    POOLMEM *fname_save;               /* save when stripping path */
@@ -196,7 +197,9 @@ struct FF_PKT {
    struct stat statp;                 /* stat packet */
    int32_t FileIndex;                 /* FileIndex of this file */
    int32_t LinkFI;                    /* FileIndex of main hard linked file */
+   int32_t object_index;              /* Object index */
    int32_t object_len;                /* Object length */
+   int32_t object_compression;        /* Type of compression for object */
    struct f_link *linked;             /* Set if this file is hard linked */
    int type;                          /* FT_ type from above */
    int ff_errno;                      /* errno */

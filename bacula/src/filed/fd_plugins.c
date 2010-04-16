@@ -294,9 +294,10 @@ int plugin_save(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
                   cmd);
                goto bail_out;
             }
-            pm_strcpy(fname, sp.object_name);
-            ff_pkt->fname = fname.c_str();
-            ff_pkt->LinkFI = sp.index;     /* restore object index */
+            ff_pkt->fname = cmd;                 /* full plugin string */
+            ff_pkt->object_name = sp.object_name;
+            ff_pkt->object_index = sp.index;     /* restore object index */
+            ff_pkt->object_compression = 0;      /* no compression for now */
             ff_pkt->object = sp.object;
             ff_pkt->object_len = sp.object_len;
          } else {

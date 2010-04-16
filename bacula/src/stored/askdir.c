@@ -73,7 +73,7 @@ static char Device_update[] = "DevUpd Job=%s device=%s "
    "changer_name=%s media_type=%s volume_name=%s\n";
 
 
-/* Send update information about a device to Director */
+/** Send update information about a device to Director */
 bool dir_update_device(JCR *jcr, DEVICE *dev)
 {
    BSOCK *dir = jcr->dir_bsock;
@@ -142,7 +142,7 @@ bool dir_update_changer(JCR *jcr, AUTOCHANGER *changer)
 #endif
 
 
-/*
+/**
  * Send current JobStatus to Director
  */
 bool dir_send_job_status(JCR *jcr)
@@ -150,7 +150,7 @@ bool dir_send_job_status(JCR *jcr)
    return jcr->dir_bsock->fsend(Job_status, jcr->Job, jcr->JobStatus);
 }
 
-/*
+/**
  * Common routine for:
  *   dir_get_volume_info()
  * and
@@ -208,7 +208,7 @@ static bool do_get_volume_info(DCR *dcr)
 }
 
 
-/*
+/**
  * Get Volume info for a specific volume from the Director's Database
  *
  * Returns: true  on success   (Director guarantees that Pool and MediaType
@@ -237,7 +237,7 @@ bool dir_get_volume_info(DCR *dcr, enum get_vol_info_rw writing)
 
 
 
-/*
+/**
  * Get info on the next appendable volume in the Director's database
  *
  * Returns: true  on success dcr->VolumeName is volume
@@ -314,7 +314,7 @@ get_out:
 }
 
 
-/*
+/**
  * After writing a Volume, send the updated statistics
  * back to the director. The information comes from the
  * dev record.
@@ -385,7 +385,7 @@ bail_out:
    return ok;
 }
 
-/*
+/**
  * After writing a Volume, create the JobMedia record.
  */
 bool dir_create_jobmedia_record(DCR *dcr, bool zero)
@@ -440,8 +440,21 @@ bool dir_create_jobmedia_record(DCR *dcr, bool zero)
 }
 
 
-/*
+/**
  * Update File Attribute data
+ * We do the following:
+ *  1. expand the bsock buffer to be large enough 
+ *  2. Write a "header" into the buffer with serialized data
+ *    VolSessionId
+ *    VolSeesionTime
+ *    FileIndex
+ *    Stream
+ *    data length that follows
+ *    start of raw byte data from the Device record.
+ * Note, this is primarily for Attribute data, but can
+ *   also handle any device record. The Director must know
+ *   the raw byte data format that is defined for each Stream.
+ * Now Restore Objects pass through here STREAM_RESTORE_OBJECT
  */
 bool dir_update_file_attributes(DCR *dcr, DEV_RECORD *rec)
 {
@@ -474,7 +487,7 @@ bool dir_update_file_attributes(DCR *dcr, DEV_RECORD *rec)
 }
 
 
-/*
+/**
  *   Request the sysop to create an appendable volume
  *
  *   Entered with device blocked.
@@ -568,7 +581,7 @@ get_out:
    return true;
 }
 
-/*
+/**
  *   Request to mount specific Volume
  *
  *   Entered with device blocked and dcr->VolumeName is desired

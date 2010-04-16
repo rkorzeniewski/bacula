@@ -186,7 +186,6 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
    JCR *jcr = dcr->jcr;
    DEVICE *dev = jcr->dcr->dev;
    char buf1[100], buf2[100];
-   int32_t stream;   
    
 #ifdef xxx
    Dmsg5(000, "on entry     JobId=%d FI=%s SessId=%d Strm=%s len=%d\n",
@@ -262,26 +261,7 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
       FI_to_ascii(buf1, rec->FileIndex), rec->VolSessionId,
       stream_to_ascii(buf2, rec->Stream, rec->FileIndex), rec->data_len);
 
-   /* Send attributes and digest to Director for Catalog */
-   stream = rec->Stream;
-   if (stream == STREAM_UNIX_ATTRIBUTES    || 
-       stream == STREAM_UNIX_ATTRIBUTES_EX ||
-       crypto_digest_stream_type(stream) != CRYPTO_DIGEST_NONE) {
-      if (!jcr->no_attributes) {
-         BSOCK *dir = jcr->dir_bsock;
-         if (are_attributes_spooled(jcr)) {
-            dir->set_spooling();
-         }
-         Dmsg0(850, "Send attributes to dir.\n");
-         if (!dir_update_file_attributes(jcr->dcr, rec)) {
-            dir->clear_spooling();
-            Jmsg(jcr, M_FATAL, 0, _("Error updating file attributes. ERR=%s\n"),
-               dir->bstrerror());
-            return false;
-         }
-         dir->clear_spooling();
-      }
-   }
+   send_attrs_to_dir(jcr, rec);
 
    return true;
 }

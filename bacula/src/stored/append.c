@@ -211,26 +211,7 @@ bool do_append_data(JCR *jcr)
             FI_to_ascii(buf1, rec.FileIndex), rec.VolSessionId,
             stream_to_ascii(buf2, rec.Stream, rec.FileIndex), rec.data_len);
 
-         /* Send attributes and digest to Director for Catalog */
-         if (stream == STREAM_UNIX_ATTRIBUTES    || 
-             stream == STREAM_UNIX_ATTRIBUTES_EX ||
-             crypto_digest_stream_type(stream) != CRYPTO_DIGEST_NONE) {
-            if (!jcr->no_attributes) {
-               BSOCK *dir = jcr->dir_bsock;
-               if (are_attributes_spooled(jcr)) {
-                  dir->set_spooling();
-               }
-               Dmsg0(850, "Send attributes to dir.\n");
-               if (!dir_update_file_attributes(dcr, &rec)) {
-                  dir->clear_spooling();
-                  Jmsg(jcr, M_FATAL, 0, _("Error updating file attributes. ERR=%s\n"),
-                     dir->bstrerror());
-                  ok = false;
-                  break;
-               }
-               dir->clear_spooling();
-            }
-         }
+         send_attrs_to_dir(jcr, &rec);
          Dmsg0(650, "Enter bnet_get\n");
       }
       Dmsg1(650, "End read loop with FD. Stat=%d\n", n);
@@ -338,4 +319,32 @@ bool do_append_data(JCR *jcr)
 
    Dmsg1(100, "return from do_append_data() ok=%d\n", ok);
    return ok;
+}
+
+
+/* Send attributes and digest to Director for Catalog */
+bool send_attrs_to_dir(JCR *jcr, DEV_RECORD *rec)
+{
+   int stream = rec->Stream;
+
+   if (stream == STREAM_UNIX_ATTRIBUTES    || 
+       stream == STREAM_UNIX_ATTRIBUTES_EX ||
+       stream == STREAM_RESTORE_OBJECT     ||
+       crypto_digest_stream_type(stream) != CRYPTO_DIGEST_NONE) {
+      if (!jcr->no_attributes) {
+         BSOCK *dir = jcr->dir_bsock;
+         if (are_attributes_spooled(jcr)) {
+            dir->set_spooling();
+         }
+         Dmsg0(850, "Send attributes to dir.\n");
+         if (!dir_update_file_attributes(jcr->dcr, rec)) {
+            Jmsg(jcr, M_FATAL, 0, _("Error updating file attributes. ERR=%s\n"),
+               dir->bstrerror());
+            dir->clear_spooling();
+            return false;
+         }
+         dir->clear_spooling();
+      }
+   }
+   return true;
 }

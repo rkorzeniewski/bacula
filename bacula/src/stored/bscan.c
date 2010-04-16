@@ -687,6 +687,11 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
       free_jcr(mjcr);
       break;
 
+   case STREAM_RESTORE_OBJECT:
+   /* ****FIXME*****/
+      /* Implement putting into catalog */
+      break;
+
    /* Data stream */
    case STREAM_WIN32_DATA:
    case STREAM_FILE_DATA:

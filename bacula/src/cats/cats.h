@@ -942,8 +942,10 @@ struct ATTR_DBR {
 struct ROBJECT_DBR {
    char *object_name;
    char *object;
+   char *plugin_name;
    uint32_t object_len;
-   uint32_t ObjectIndex;
+   uint32_t object_index;
+   int32_t  object_compression;
    uint32_t FileIndex;
    uint32_t Stream;
    uint32_t FileType;

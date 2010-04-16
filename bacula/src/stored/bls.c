@@ -381,7 +381,6 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
    /* File Attributes stream */
    if (rec->Stream == STREAM_UNIX_ATTRIBUTES ||
        rec->Stream == STREAM_UNIX_ATTRIBUTES_EX) {
-
       if (!unpack_attributes_record(jcr, rec->Stream, rec->data, rec->data_len, attr)) {
          if (!forge_on) {
             Emsg0(M_ERROR_TERM, 0, _("Cannot continue.\n"));
@@ -407,6 +406,8 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
       if (strncmp("0 0", rec->data, 3) != 0) {
          Pmsg1(000, "Plugin data: %s\n", rec->data);
       }
+   } else if (rec->Stream == STREAM_RESTORE_OBJECT) {
+      Pmsg0(000, "Restore Object record\n");
    }
       
    return true;

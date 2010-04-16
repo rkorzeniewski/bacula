@@ -112,6 +112,8 @@ const char *stream_to_ascii(char *buf, int stream, int fi)
        return "GZIP";
     case STREAM_UNIX_ATTRIBUTES_EX:
        return "UNIX-ATTR-EX";
+    case STREAM_RESTORE_OBJECT:
+       return "RESTORE-OBJECT";
     case STREAM_SPARSE_DATA:
        return "SPARSE-DATA";
     case STREAM_SPARSE_GZIP_DATA:
@@ -160,6 +162,8 @@ const char *stream_to_ascii(char *buf, int stream, int fi)
        return "contGZIP";
     case -STREAM_UNIX_ATTRIBUTES_EX:
        return "contUNIX-ATTR-EX";
+    case -STREAM_RESTORE_OBJECT:
+       return "contRESTORE-OBJECT";
     case -STREAM_SPARSE_DATA:
        return "contSPARSE-DATA";
     case -STREAM_SPARSE_GZIP_DATA:

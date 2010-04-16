@@ -368,6 +368,10 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
       }
       break;
 
+   case STREAM_RESTORE_OBJECT:
+      /* nothing to do */
+      break;
+
    /* Data stream and extracting */
    case STREAM_FILE_DATA:
    case STREAM_SPARSE_DATA:

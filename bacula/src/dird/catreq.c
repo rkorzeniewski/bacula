@@ -393,8 +393,9 @@ static void update_attribute(JCR *jcr, char *msg, int32_t msglen)
    skip_spaces(&p);
    skip_nonspaces(&p);                /* Job=nnn */
    skip_spaces(&p);
-   skip_nonspaces(&p);                /* FileAttributes */
+   skip_nonspaces(&p);                /* "FileAttributes" */
    p += 1;
+   /* The following "SD header" fields are serialized */
    unser_begin(p, 0);
    unser_uint32(VolSessionId);        /* VolSessionId */
    unser_uint32(VolSessionTime);      /* VolSessionTime */
@@ -403,9 +404,30 @@ static void update_attribute(JCR *jcr, char *msg, int32_t msglen)
    unser_uint32(reclen);              /* Record length */
    p += unser_length(p);              /* Raw record follows */
 
-   /*
+   /**
     * At this point p points to the raw record, which varies according
-    *  to what kind of a record (Stream) was sent
+    *  to what kind of a record (Stream) was sent.  Note, the integer
+    *  fields at the beginning of these "raw" records are in ASCII with
+    *  spaces between them so one can use scanf or manual scanning to
+    *  extract the fields.
+    *
+    * File Attributes
+    *   File_index
+    *   File type
+    *   Filename (full path)
+    *   Encoded attributes
+    *   Link name (if type==FT_LNK or FT_LNKSAVED)
+    *   Encoded extended-attributes (for Win32)
+    *
+    * Restore Object
+    *   File_index
+    *   File_type
+    *   Object_index
+    *   Object_len
+    *   Object_compression
+    *   Plugin_name
+    *   Object_name
+    *   Binary Object data
     */
 
    Dmsg1(400, "UpdCat msg=%s\n", msg);
@@ -426,7 +448,7 @@ static void update_attribute(JCR *jcr, char *msg, int32_t msglen)
       p = jcr->attr - msg + p;    /* point p into jcr->attr */
       skip_nonspaces(&p);             /* skip FileIndex */
       skip_spaces(&p);
-      ar->FileType = str_to_int32(p);     /* TODO: choose between unserialize and str_to_int32 */
+      ar->FileType = str_to_int32(p); 
       skip_nonspaces(&p);             /* skip FileType */
       skip_spaces(&p);
       fname = p;
@@ -449,47 +471,52 @@ static void update_attribute(JCR *jcr, char *msg, int32_t msglen)
       } else {
          ar->JobId = jcr->JobId;
       }
-      /*
-       * Restore object */
-      if (ar->FileType == FT_RESTORE_FIRST) {
-         ROBJECT_DBR ro;
-         POOLMEM *attrEx = get_pool_memory(PM_MESSAGE);
-         char *p;
-         memset(&ro, 0, sizeof(ro));
-         ro.object_name = fname;
-         ro.Stream = Stream;
-         ro.FileType = ar->FileType;
-         ro.FileIndex = FileIndex;
-         ro.JobId = ar->JobId;
-         p = ar->attr;                   /* point to attributes */
-         while (*p++ != 0)               /* skip attributes */
-            { }
-         while (*p++ != 0)               /* skip link */
-            { }
-         /* We have an object, so do a binary copy */
-         ro.object_len = msglen + jcr->attr - p;
-         attrEx = check_pool_memory_size(attrEx, ro.object_len + 1);
-         memcpy(attrEx, p, ro.object_len);  
-         ro.object = attrEx;
-         /* Add a EOS for those who attempt to print the object */
-         p = attrEx + ro.object_len;
-         *p = 0;
-         Dmsg7(000, "oname=%s stream=%d FT=%d FI=%d JobId=%d, obj_len=%d\nobj=\"%s\"\n",
-            ro.object_name, ro.Stream, ro.FileType, ro.FileIndex, ro.JobId,
-            ro.object_len, attrEx);
-         /* Send it */
-         if (!db_create_restore_object_record(jcr, jcr->db, &ro)) {
-            Jmsg1(jcr, M_FATAL, 0, _("Restore object create error. %s"), db_strerror(jcr->db));
-         }
-         free_pool_memory(attrEx);
-      } else {
-         ar->Digest = NULL;
-         ar->DigestType = CRYPTO_DIGEST_NONE;
-         jcr->cached_attribute = true;
-      }
+      ar->Digest = NULL;
+      ar->DigestType = CRYPTO_DIGEST_NONE;
+      jcr->cached_attribute = true;
 
       Dmsg2(400, "dird<filed: stream=%d %s\n", Stream, fname);
       Dmsg1(400, "dird<filed: attr=%s\n", attr);
+
+   } else if (Stream == STREAM_RESTORE_OBJECT) {
+      ROBJECT_DBR ro;
+
+      memset(&ro, 0, sizeof(ro));
+      ro.Stream = Stream;
+      ro.FileIndex = FileIndex;
+      if (jcr->mig_jcr) {
+         ro.JobId = jcr->mig_jcr->JobId;
+      } else {
+         ro.JobId = jcr->JobId;
+      }
+
+      Dmsg1(100, "Robj=%s\n", p);
+      
+      skip_nonspaces(&p);             /* skip FileIndex */
+      skip_spaces(&p);
+      ro.FileType = str_to_int32(p); 
+      skip_nonspaces(&p);             /* move past FileType */
+      skip_spaces(&p);
+      ro.object_index = str_to_int32(p);
+      skip_nonspaces(&p);             /* move past object_index */
+      ro.object_len = str_to_int32(p);
+      skip_nonspaces(&p);             /* move past object_length */
+      ro.object_compression = str_to_int32(p);
+      skip_nonspaces(&p);             /* move past object_compression */
+
+      ro.plugin_name = p;                      /* point to plugin name */
+      len = strlen(ro.plugin_name);
+      ro.object_name = &ro.plugin_name[len+1]; /* point to object name */
+      len = strlen(ro.object_name);
+      ro.object = &ro.object_name[len+1];      /* point to object */
+      ro.object[ro.object_len] = 0;            /* add zero for those who attempt printing */
+      Dmsg7(100, "oname=%s stream=%d FT=%d FI=%d JobId=%d, obj_len=%d\nobj=\"%s\"\n",
+         ro.object_name, ro.Stream, ro.FileType, ro.FileIndex, ro.JobId,
+         ro.object_len, ro.object);
+      /* Send it */
+      if (!db_create_restore_object_record(jcr, jcr->db, &ro)) {
+         Jmsg1(jcr, M_FATAL, 0, _("Restore object create error. %s"), db_strerror(jcr->db));
+      }
 
    } else if (crypto_digest_stream_type(Stream) != CRYPTO_DIGEST_NONE) {
       fname = p;

@@ -51,14 +51,14 @@ CREATE INDEX file_jpf_idx ON File (JobId, PathId, FilenameId);
 
 CREATE TABLE RestoreObject (
    RestoreObjectId INTEGER,
-   Fname TEXT DEFAULT '',
-   Path TEXT DEFAULT '',
+   ObjectName TEXT DEFAULT '',
    RestoreObject TEXT DEFAULT '',
    PluginName TEXT DEFAULT '',
    ObjectLength INTEGER DEFAULT 0,
    ObjectIndex INTEGER DEFAULT 0,
    ObjectType INTEGER DEFAULT 0,
    FileIndex INTEGER UNSIGNED DEFAULT 0,
+   ObejctCompression INTEGER DEFAULT 0,
    JobId INTEGER UNSIGNED REFERENCES Job NOT NULL,
    PRIMARY KEY(RestoreObjectId)
    );

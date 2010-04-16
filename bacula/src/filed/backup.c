@@ -1129,7 +1129,7 @@ bool encode_and_send_attributes(JCR *jcr, FF_PKT *ff_pkt, int &data_stream)
        * attributes.
        */
       attribsEx = ff_pkt->object;
-      attr_stream = STREAM_UNIX_ATTRIBUTES_EX;
+      attr_stream = STREAM_RESTORE_OBJECT;
    } else {
       attribsEx = attribsExBuf;
       attr_stream = encode_attribsEx(jcr, attribsEx, ff_pkt);
@@ -1165,6 +1165,16 @@ bool encode_and_send_attributes(JCR *jcr, FF_PKT *ff_pkt, int &data_stream)
     *   Link name (if type==FT_LNK or FT_LNKSAVED)
     *   Encoded extended-attributes (for Win32)
     *
+    * or send Restore Object to Storage daemon
+    *   File_index
+    *   File_type
+    *   Object_index
+    *   Object_len
+    *   Object_compression
+    *   Plugin_name
+    *   Object_name
+    *   Binary Object data
+    *
     * For a directory, link is the same as fname, but with trailing
     * slash. For a linked file, link is the link.
     */
@@ -1186,19 +1196,14 @@ bool encode_and_send_attributes(JCR *jcr, FF_PKT *ff_pkt, int &data_stream)
                ff_pkt->type, ff_pkt->link, 0, attribs, 0, 0, attribsEx, 0);
       break;
    case FT_RESTORE_FIRST:
-      /**
-       * Note, we edit everything as we do for the default case, but the
-       *   object is tacked on to the end in place of the extended attributes,
-       *   but we do a memcpy so that the object can be a binary object.
-       */
-      Dmsg6(100, "Type=%d DataStream=%d attrStream=%d File=%s\nattribs=%s\nattribsEx=%s", 
-            ff_pkt->type, data_stream, STREAM_UNIX_ATTRIBUTES_EX,
-            ff_pkt->fname, attribs, ff_pkt->object);
-      sd->msglen = Mmsg(sd->msg, "%ld %d %s%c%s%c%c", 
-                        jcr->JobFiles, ff_pkt->type, ff_pkt->fname, 0, attribs, 0, 0);
-      sd->msg = check_pool_memory_size(sd->msg, sd->msglen + ff_pkt->object_len + 1);
+      sd->msglen = Mmsg(sd->msg, "%d %d %d %d %d %s%c%s%c", 
+                        jcr->JobFiles, ff_pkt->type, ff_pkt->object_index,
+                        ff_pkt->object_len, ff_pkt->object_compression,
+                        ff_pkt->fname, 0, ff_pkt->object_name, 0);
+      sd->msg = check_pool_memory_size(sd->msg, sd->msglen + ff_pkt->object_len + 2);
       memcpy(sd->msg + sd->msglen, ff_pkt->object, ff_pkt->object_len);
-      sd->msglen += ff_pkt->object_len;
+      /* Note we send one extra byte so Dir can store zero after object */
+      sd->msglen += ff_pkt->object_len + 1;
       stat = sd->send();
       break;
    default:
