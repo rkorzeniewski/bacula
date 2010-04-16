@@ -60,8 +60,7 @@ CREATE TABLE RestoreObject (
    ObjectType INTEGER DEFAULT 0,
    FileIndex INTEGER UNSIGNED DEFAULT 0,
    JobId INTEGER UNSIGNED REFERENCES Job NOT NULL,
-   PRIMARY KEY(RestoreObjectId),
-   INDEX (JobId)
+   PRIMARY KEY(RestoreObjectId)
    );
 CREATE INDEX restore_jobid_idx ON RestoreObject (JobId);
 
