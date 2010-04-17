@@ -478,8 +478,15 @@ static bool create_bootstrap_file(JCR *jcr, char *jobids)
 
 #define new_get_file_list
 #ifdef new_get_file_list
-   if (!db_get_file_list(jcr, ua->db, jobids, insert_bootstrap_handler, (void *)rx.bsr)) {
-      Jmsg(jcr, M_ERROR, 0, "%s", db_strerror(ua->db));
+   if (!db_open_batch_connexion(jcr, jcr->db)) {
+      Jmsg0(jcr, M_FATAL, 0, "Can't get batch sql connexion");
+      return false;
+   }
+
+   if (!db_get_file_list(jcr, jcr->db_batch, jobids, 
+                         insert_bootstrap_handler, (void *)rx.bsr))
+   {
+      Jmsg(jcr, M_ERROR, 0, "%s", db_strerror(jcr->db_batch));
    }
 #else
    char *p;
