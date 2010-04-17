@@ -73,7 +73,7 @@ CREATE TABLE RestoreObject (
    ObjectCompression INTEGER DEFAULT 0,
    PRIMARY KEY(RestoreObjectId),
    );
-CREATE INDEX restore_jobid_idx on file(JobId);
+CREATE INDEX restore_jobid_idx on RestoreObject(JobId);
 
 
 CREATE TABLE Job
