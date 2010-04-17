@@ -353,7 +353,7 @@ CREATE SEQUENCE LocationLog_Seq;
 CREATE TABLE LocationLog (
    LocLogId		INTEGER		NOT NULL DEFAULT LocationLog_Seq.nextval,
    Date			TIMESTAMP WITHOUT TIME ZONE,
-   Comment		VARBYTE(4096)		NOT NULL,
+   Comment		VARBYTE(4096)	NOT NULL,
    MediaId		INTEGER		DEFAULT 0,
    LocationId		INTEGER		DEFAULT 0,
    NewVolStatus		VARBYTE(32)	NOT NULL
