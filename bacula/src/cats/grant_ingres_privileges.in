@@ -15,49 +15,51 @@ END-OF-DATA
 if sql -u${db_user} ${db_name} $* <<END-OF-DATA
 
 -- for tables
-GRANT ALL ON TABLE filename TO ${db_user};
-GRANT ALL ON TABLE path TO ${db_user};
-GRANT ALL ON TABLE file TO ${db_user};
+GRANT ALL ON TABLE Filename TO ${db_user};
+GRANT ALL ON TABLE Path TO ${db_user};
+GRANT ALL ON TABLE File TO ${db_user};
+GRANT ALL ON TABLE RestoreObject TO ${db_user};
 GRANT ALL ON TABLE Job TO ${db_user};
 GRANT ALL ON TABLE JobHisto TO ${db_user};
 GRANT ALL ON TABLE Location TO ${db_user};
-GRANT ALL ON TABLE fileset TO ${db_user};
-GRANT ALL ON TABLE jobmedia TO ${db_user};
-GRANT ALL ON TABLE media TO ${db_user};
+GRANT ALL ON TABLE Fileset TO ${db_user};
+GRANT ALL ON TABLE JobMedia TO ${db_user};
+GRANT ALL ON TABLE Media TO ${db_user};
 GRANT ALL ON TABLE MediaType TO ${db_user};
 GRANT ALL ON TABLE Storage TO ${db_user};
 GRANT ALL ON TABLE Device TO ${db_user};
-GRANT ALL ON TABLE pool TO ${db_user};
-GRANT ALL ON TABLE client TO ${db_user};
+GRANT ALL ON TABLE Pool TO ${db_user};
+GRANT ALL ON TABLE Client TO ${db_user};
 GRANT ALL ON TABLE Log TO ${db_user};
 GRANT ALL ON TABLE LocationLog TO ${db_user};
-GRANT ALL ON TABLE counters TO ${db_user};
-GRANT ALL ON TABLE basefiles TO ${db_user};
-GRANT ALL ON TABLE unsavedfiles TO ${db_user};
+GRANT ALL ON TABLE Counters TO ${db_user};
+GRANT ALL ON TABLE BaseFiles TO ${db_user};
+GRANT ALL ON TABLE UnsavedFiles TO ${db_user};
 GRANT ALL ON TABLE CDImages  TO ${db_user};
 GRANT ALL ON TABLE PathHierarchy TO ${db_user};
 GRANT ALL ON TABLE PathVisibility TO ${db_user};
-GRANT ALL ON TABLE version TO ${db_user};
+GRANT ALL ON TABLE Version TO ${db_user};
 GRANT ALL ON TABLE Status TO ${db_user};
 
 -- for sequences ON those tables
-GRANT NEXT ON SEQUENCE filename_seq TO ${db_user};
-GRANT NEXT ON SEQUENCE path_seq TO ${db_user};
-GRANT NEXT ON SEQUENCE file_seq TO ${db_user};
-GRANT NEXT ON SEQUENCE Job_seq TO ${db_user};
-GRANT NEXT ON SEQUENCE JobHisto_seq TO ${db_user};
-GRANT NEXT ON SEQUENCE Location_seq TO ${db_user};
-GRANT NEXT ON SEQUENCE fileset_seq TO ${db_user};
-GRANT NEXT ON SEQUENCE jobmedia_seq TO ${db_user};
-GRANT NEXT ON SEQUENCE media_seq TO ${db_user};
-GRANT NEXT ON SEQUENCE MediaType_seq TO ${db_user};
-GRANT NEXT ON SEQUENCE Storage_seq TO ${db_user};
-GRANT NEXT ON SEQUENCE Device_seq TO ${db_user};
-GRANT NEXT ON SEQUENCE pool_seq TO ${db_user};
-GRANT NEXT ON SEQUENCE client_seq TO ${db_user};
-GRANT NEXT ON SEQUENCE Log_seq TO ${db_user};
-GRANT NEXT ON SEQUENCE LocationLog_seq TO ${db_user};
-GRANT NEXT ON SEQUENCE basefiles_seq TO ${db_user};
+GRANT NEXT ON SEQUENCE Filename_Seq TO ${db_user};
+GRANT NEXT ON SEQUENCE Path_Seq TO ${db_user};
+GRANT NEXT ON SEQUENCE File_Seq TO ${db_user};
+GRANT NEXT ON SEQUENCE RestoreObject_Seq TO ${db_user};
+GRANT NEXT ON SEQUENCE Job_Seq TO ${db_user};
+GRANT NEXT ON SEQUENCE JobHisto_Seq TO ${db_user};
+GRANT NEXT ON SEQUENCE Location_Seq TO ${db_user};
+GRANT NEXT ON SEQUENCE Fileset_Seq TO ${db_user};
+GRANT NEXT ON SEQUENCE Jobmedia_Seq TO ${db_user};
+GRANT NEXT ON SEQUENCE Media_Seq TO ${db_user};
+GRANT NEXT ON SEQUENCE MediaType_Seq TO ${db_user};
+GRANT NEXT ON SEQUENCE Storage_Seq TO ${db_user};
+GRANT NEXT ON SEQUENCE Device_Seq TO ${db_user};
+GRANT NEXT ON SEQUENCE Pool_Seq TO ${db_user};
+GRANT NEXT ON SEQUENCE Client_Seq TO ${db_user};
+GRANT NEXT ON SEQUENCE Log_Seq TO ${db_user};
+GRANT NEXT ON SEQUENCE LocationLog_Seq TO ${db_user};
+GRANT NEXT ON SEQUENCE BaseFiles_Seq TO ${db_user};
 \g
 
 END-OF-DATA
