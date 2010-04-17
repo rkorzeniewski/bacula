@@ -114,6 +114,7 @@ void do_verify_volume(JCR *jcr)
 
       /* File Attributes stream */
       switch (stream) {
+      case STREAM_UNIX_ATTRIBUTES:
       case STREAM_UNIX_ATTRIBUTES_EX:
          char *ap, *lp, *fp;
 
