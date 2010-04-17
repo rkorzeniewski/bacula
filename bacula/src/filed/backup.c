@@ -1124,11 +1124,6 @@ bool encode_and_send_attributes(JCR *jcr, FF_PKT *ff_pkt, int &data_stream)
 
    /** Now possibly extend the attributes */
    if (ff_pkt->type == FT_RESTORE_FIRST) {
-      /**
-       * For restore objects, we return the object in the extended 
-       * attributes.
-       */
-      attribsEx = ff_pkt->object;
       attr_stream = STREAM_RESTORE_OBJECT;
    } else {
       attribsEx = attribsExBuf;
