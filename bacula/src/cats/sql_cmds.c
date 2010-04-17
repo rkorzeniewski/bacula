@@ -646,8 +646,8 @@ const char *create_temp_basefile[5] = {
    "Name TEXT)",
    /* Ingres */
    "DECLARE GLOBAL TEMPORARY TABLE basefile%lld ("
-   "Path VARCHAR(256) NOT NULL,"
-   "Name VARCHAR(256) NOT NULL)"
+   "Path VARBYTE(32000) NOT NULL,"
+   "Name VARBYTE(32000) NOT NULL)"
    "ON COMMIT PRESERVE ROWS WITH NORECOVERY"
 };
 
@@ -738,7 +738,7 @@ const char *create_deltabs[5] = {
    "PurgedFiles SMALLINT, "
    "FileSetId INTEGER, "
    "JobFiles INTEGER, "
-   "JobStatus char(1))"
+   "JobStatus CHAR(1))"
    "ON COMMIT PRESERVE ROWS WITH NORECOVERY"
 };
 
@@ -851,11 +851,11 @@ const char *uar_create_temp[5] = {
    "JobId INTEGER NOT NULL,"
    "JobTDate BIGINT,"
    "ClientId INTEGER,"
-   "Level CHAR,"
+   "Level CHAR(1),"
    "JobFiles INTEGER,"
    "JobBytes BIGINT,"
-   "StartTime VARCHAR(256),"
-   "VolumeName VARCHAR(256),"
+   "StartTime VARBYTE(32),"
+   "VolumeName VARBYTE(128),"
    "StartFile INTEGER,"
    "VolSessionId INTEGER,"
    "VolSessionTime INTEGER)"
