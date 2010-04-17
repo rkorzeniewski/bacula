@@ -22,6 +22,8 @@ if [ ! -f ${cwd}/many-files/100000file100000 ]; then
     time perl -e 'for($i=0; $i < 2000000; $i++) {open(FP, ">${i}file${i}") or die "$!"; print FP "$i\n"; close(FP); print "\r$i   " if ($i%10000);}'
 fi
 
+cd $cwd}
+
 sed 's%# Label Format%  Label Format%' ${cwd}/bin/bacula-dir.conf > ${cwd}/tmp/1
 # sed 's%Type = Backup%Type = Backup; Accurate = yes%' ${cwd}/tmp/1 > ${cwd}/bin/bacula-dir.conf
 sed 's%Type = Backup%Type = Backup%' ${cwd}/tmp/1 > ${cwd}/bin/bacula-dir.conf
