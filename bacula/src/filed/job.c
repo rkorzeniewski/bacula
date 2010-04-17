@@ -620,6 +620,12 @@ static int runscript_cmd(JCR *jcr)
    return dir->fsend(OKRunScript);
 }
 
+/*
+ * This reads data sent from the Director from the
+ *   RestoreObject table that allows us to get objects
+ *   that were backed up (VSS .xml data) and are needed
+ *   before starting the restore.
+ */
 static int restore_object_cmd(JCR *jcr)
 {
    BSOCK *dir = jcr->dir_bsock;
@@ -836,6 +842,61 @@ findFILESET *new_exclude(JCR *jcr)
    return fileset;
 }
 
+/**
+ * Define a new Include block in the FileSet
+ */
+findFILESET *new_include(JCR *jcr)
+{
+   FF_PKT *ff = jcr->ff;
+   findFILESET *fileset = ff->fileset;
+
+   /* New include */
+   fileset->incexe = (findINCEXE *)malloc(sizeof(findINCEXE));
+   memset(fileset->incexe, 0, sizeof(findINCEXE));
+   fileset->incexe->opts_list.init(1, true);
+   fileset->incexe->name_list.init(); /* for dlist;  was 1,true for alist */
+   fileset->incexe->plugin_list.init();
+   fileset->include_list.append(fileset->incexe);
+   return fileset;
+}
+
+int add_regex_to_fileset(JCR *jcr, const char *item, int subcode)
+{
+   FF_PKT *ff = jcr->ff;
+   int state;
+   findFOPTS *current_opts;
+   regex_t *preg;
+   int rc;
+   char prbuf[500];
+
+   current_opts = start_options(ff);
+   preg = (regex_t *)malloc(sizeof(regex_t));
+   if (current_opts->flags & FO_IGNORECASE) {
+      rc = regcomp(preg, item, REG_EXTENDED|REG_ICASE);
+   } else {
+      rc = regcomp(preg, item, REG_EXTENDED);
+   }
+   if (rc != 0) {
+      regerror(rc, preg, prbuf, sizeof(prbuf));
+      regfree(preg);
+      free(preg);
+      Jmsg(jcr, M_FATAL, 0, _("REGEX %s compile error. ERR=%s\n"), item, prbuf);
+      state = state_error;
+      return state;
+   }
+   state = state_options;
+   if (subcode == ' ') {
+      current_opts->regex.append(preg);
+   } else if (subcode == 'D') {
+      current_opts->regexdir.append(preg);
+   } else if (subcode == 'F') {
+      current_opts->regexfile.append(preg);
+   } else {
+      state = state_error;
+   }
+   return state;
+}
+
 
 static void add_fileset(JCR *jcr, const char *item)
 {
@@ -877,13 +938,7 @@ static void add_fileset(JCR *jcr, const char *item)
    }
    switch (code) {
    case 'I':
-      /* New include */
-      fileset->incexe = (findINCEXE *)malloc(sizeof(findINCEXE));
-      memset(fileset->incexe, 0, sizeof(findINCEXE));
-      fileset->incexe->opts_list.init(1, true);
-      fileset->incexe->name_list.init(); /* for dlist;  was 1,true for alist */
-      fileset->incexe->plugin_list.init();
-      fileset->include_list.append(fileset->incexe);
+      fileset = new_include(jcr);
       break;
    case 'E':
       fileset = new_exclude(jcr);
@@ -902,34 +957,7 @@ static void add_fileset(JCR *jcr, const char *item)
       add_file_to_fileset(jcr, item, fileset, false);
       break;
    case 'R':
-      current_opts = start_options(ff);
-      regex_t *preg;
-      int rc;
-      char prbuf[500];
-      preg = (regex_t *)malloc(sizeof(regex_t));
-      if (current_opts->flags & FO_IGNORECASE) {
-         rc = regcomp(preg, item, REG_EXTENDED|REG_ICASE);
-      } else {
-         rc = regcomp(preg, item, REG_EXTENDED);
-      }
-      if (rc != 0) {
-         regerror(rc, preg, prbuf, sizeof(prbuf));
-         regfree(preg);
-         free(preg);
-         Jmsg(jcr, M_FATAL, 0, _("REGEX %s compile error. ERR=%s\n"), item, prbuf);
-         state = state_error;
-         break;
-      }
-      state = state_options;
-      if (subcode == ' ') {
-         current_opts->regex.append(preg);
-      } else if (subcode == 'D') {
-         current_opts->regexdir.append(preg);
-      } else if (subcode == 'F') {
-         current_opts->regexfile.append(preg);
-      } else {
-         state = state_error;
-      }
+      state = add_regex_to_fileset(jcr, item, subcode);
       break;
    case 'B':
       current_opts = start_options(ff);
