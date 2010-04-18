@@ -195,6 +195,7 @@ typedef enum {
   bEventVssRestoreLoadComponentMetadata = 15,
   bEventVssRestoreSetComponentsSelected = 16,
   bEventRestoreObject                   = 17,
+  bEventEndFileSet                      = 18
 } bEventType;
 
 typedef struct s_bEvent {
@@ -244,6 +245,10 @@ typedef struct s_baculaFuncs {
        size_t size);
    void (*baculaFree)(bpContext *ctx, const char *file, int line, void *mem);
    bRC (*AddExclude)(bpContext *ctx, const char *file);
+   bRC (*baculaAddInclude)(bpContext *ctx, const char *file);
+   bRC (*baculaAddIncludeOptions)(bpContext *ctx, const char *opts);
+   bRC (*baculaAddRegexToInclude)(bpContext *ctx, const char *item, int type);
+   bRC (*baculaAddWildToInclude)(bpContext *ctx, const char *item, int type);
 } bFuncs;
 
 

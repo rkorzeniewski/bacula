@@ -65,6 +65,10 @@ static void *baculaMalloc(bpContext *ctx, const char *file, int line,
               size_t size);
 static void baculaFree(bpContext *ctx, const char *file, int line, void *mem);
 static bRC  baculaAddExclude(bpContext *ctx, const char *file);
+static bRC baculaAddInclude(bpContext *ctx, const char *file);
+static bRC baculaAddIncludeOptions(bpContext *ctx, const char *opts);
+static bRC baculaAddRegexToInclude(bpContext *ctx, const char *item, int type);
+static bRC baculaAddWildToInclude(bpContext *ctx, const char *item, int type);
 static bool is_plugin_compatible(Plugin *plugin);
 
 /*
@@ -95,7 +99,11 @@ static bFuncs bfuncs = {
    baculaDebugMsg,
    baculaMalloc,
    baculaFree,
-   baculaAddExclude
+   baculaAddExclude,
+   baculaAddInclude,
+   baculaAddIncludeOptions,
+   baculaAddRegexToInclude,
+   baculaAddWildToInclude
 };
 
 /* 
@@ -105,7 +113,8 @@ struct bacula_ctx {
    JCR *jcr;                             /* jcr for plugin */
    bRC  rc;                              /* last return code */
    bool disabled;                        /* set if plugin disabled */
-   findFILESET *fileset;                 /* pointer to exclude files */
+   findINCEXE *exclude;                  /* pointer to exclude files */
+   findINCEXE *include;                  /* pointer to include/exclude files */
 };
 
 static bool is_plugin_disabled(JCR *jcr)
@@ -1056,6 +1065,22 @@ static void baculaFree(bpContext *ctx, const char *file, int line, void *mem)
 #endif
 }
 
+static bool is_ctx_good(bpContext *ctx, JCR *&jcr, bacula_ctx *&bctx)
+{
+   if (!ctx) {
+      return false;
+   }
+   bctx = (bacula_ctx *)ctx->bContext;
+   if (!bctx) {
+      return false;
+   }
+   jcr = bctx->jcr;
+   if (!jcr) {
+      return false;
+   }
+   return true;
+}
+
 /**
  * Let the plugin define files/directories to be excluded
  *  from the main backup.
@@ -1064,26 +1089,103 @@ static bRC baculaAddExclude(bpContext *ctx, const char *file)
 {
    JCR *jcr;
    bacula_ctx *bctx;
-   if (!ctx) {
+   if (!is_ctx_good(ctx, jcr, bctx)) {
       return bRC_Error;
    }
    if (!file) {
       return bRC_Error;
    }
-   bctx = (bacula_ctx *)ctx->bContext;
-   if (!bctx) {
-      return bRC_Error;
+   if (!bctx->exclude) {  
+      bctx->exclude = new_exclude(jcr);
+      new_options(jcr, bctx->exclude);
    }
-   jcr = bctx->jcr;
-   if (!jcr) {
-      return bRC_Error;
-   }
-   if (!bctx->fileset) {  
-      bctx->fileset = new_exclude(jcr);
-   }
-   add_file_to_fileset(jcr, file, bctx->fileset, true);
+   set_incexe(jcr, bctx->exclude);
+   add_file_to_fileset(jcr, file, true);
    return bRC_OK;
 }
+
+/**
+ * Let the plugin define files/directories to be excluded
+ *  from the main backup.
+ */
+static bRC baculaAddInclude(bpContext *ctx, const char *file)
+{
+   JCR *jcr;
+   bacula_ctx *bctx;
+   if (!is_ctx_good(ctx, jcr, bctx)) {
+      return bRC_Error;
+   }
+   if (!file) {
+      return bRC_Error;
+   }
+   if (!bctx->include) {  
+      bctx->include = new_preinclude(jcr);
+      new_options(jcr, bctx->include);
+   }
+   set_incexe(jcr, bctx->include);
+   add_file_to_fileset(jcr, file, true);
+   return bRC_OK;
+}
+
+static bRC baculaAddIncludeOptions(bpContext *ctx, const char *opts)
+{
+   JCR *jcr;
+   bacula_ctx *bctx;
+   if (!is_ctx_good(ctx, jcr, bctx)) {
+      return bRC_Error;
+   }
+   if (!opts) {
+      return bRC_Error;
+   }
+   if (!bctx->include) {  
+      bctx->include = new_preinclude(jcr);
+      new_options(jcr, bctx->include);
+   }
+   set_incexe(jcr, bctx->include);
+   add_options_to_fileset(jcr, opts);
+   return bRC_OK;
+}
+
+static bRC baculaAddRegexToInclude(bpContext *ctx, const char *item, int type)
+{
+   JCR *jcr;
+   bacula_ctx *bctx;
+   if (!is_ctx_good(ctx, jcr, bctx)) {
+      return bRC_Error;
+   }
+   if (!item) {
+      return bRC_Error;
+   }
+   if (!bctx->include) {  
+      bctx->include = new_preinclude(jcr);
+      new_options(jcr, bctx->include);
+   }
+   set_incexe(jcr, bctx->include);
+   add_regex_to_fileset(jcr, item, type);
+   return bRC_OK;
+}
+
+static bRC baculaAddWildToInclude(bpContext *ctx, const char *item, int type)
+{
+   JCR *jcr;
+   bacula_ctx *bctx;
+   if (!is_ctx_good(ctx, jcr, bctx)) {
+      return bRC_Error;
+   }
+   if (!item) {
+      return bRC_Error;
+   }
+   if (!bctx->include) {  
+      bctx->include = new_preinclude(jcr);
+      new_options(jcr, bctx->include);
+   }
+   set_incexe(jcr, bctx->include);
+   add_wild_to_fileset(jcr, item, type);
+   return bRC_OK;
+}
+
+
+
 
 
 #ifdef TEST_PROGRAM
