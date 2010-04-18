@@ -1922,9 +1922,7 @@ void DEVICE::clear_volhdr()
 void DEVICE::close()
 {
    Dmsg1(100, "close_dev %s\n", print_name());
-   if (has_cap(CAP_OFFLINEUNMOUNT)) {
-      offline();
-   }
+   offline_or_rewind();
 
    if (!is_open()) {
       Dmsg2(100, "device %s already closed vol=%s\n", print_name(),
