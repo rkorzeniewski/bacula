@@ -267,7 +267,7 @@ void do_restore(JCR *jcr)
          Jmsg1(jcr, M_FATAL, 0, _("Record header scan error: %s\n"), sd->msg);
          goto bail_out;
       }
-      Dmsg5(50, "Got hdr: Files=%d FilInx=%d size=%d Stream=%d, %s.\n", 
+      Dmsg5(150, "Got hdr: Files=%d FilInx=%d size=%d Stream=%d, %s.\n", 
             jcr->JobFiles, file_index, rctx.size, rctx.stream, stream_to_ascii(rctx.stream));
 
       /*

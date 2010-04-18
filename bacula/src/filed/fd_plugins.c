@@ -1101,6 +1101,7 @@ static bRC baculaAddExclude(bpContext *ctx, const char *file)
    }
    set_incexe(jcr, bctx->exclude);
    add_file_to_fileset(jcr, file, true);
+   Dmsg1(100, "Add exclude file=%s\n", file);
    return bRC_OK;
 }
 
@@ -1124,6 +1125,7 @@ static bRC baculaAddInclude(bpContext *ctx, const char *file)
    }
    set_incexe(jcr, bctx->include);
    add_file_to_fileset(jcr, file, true);
+   Dmsg1(100, "Add include file=%s\n", file);
    return bRC_OK;
 }
 
@@ -1137,12 +1139,8 @@ static bRC baculaAddIncludeOptions(bpContext *ctx, const char *opts)
    if (!opts) {
       return bRC_Error;
    }
-   if (!bctx->include) {  
-      bctx->include = new_preinclude(jcr);
-      new_options(jcr, bctx->include);
-   }
-   set_incexe(jcr, bctx->include);
    add_options_to_fileset(jcr, opts);
+   Dmsg1(1000, "Add options=%s\n", opts);
    return bRC_OK;
 }
 
@@ -1156,12 +1154,8 @@ static bRC baculaAddRegexToInclude(bpContext *ctx, const char *item, int type)
    if (!item) {
       return bRC_Error;
    }
-   if (!bctx->include) {  
-      bctx->include = new_preinclude(jcr);
-      new_options(jcr, bctx->include);
-   }
-   set_incexe(jcr, bctx->include);
    add_regex_to_fileset(jcr, item, type);
+   Dmsg1(100, "Add regex=%s\n", item);
    return bRC_OK;
 }
 
@@ -1175,12 +1169,8 @@ static bRC baculaAddWildToInclude(bpContext *ctx, const char *item, int type)
    if (!item) {
       return bRC_Error;
    }
-   if (!bctx->include) {  
-      bctx->include = new_preinclude(jcr);
-      new_options(jcr, bctx->include);
-   }
-   set_incexe(jcr, bctx->include);
    add_wild_to_fileset(jcr, item, type);
+   Dmsg1(100, "Add wild=%s\n", item);
    return bRC_OK;
 }
 

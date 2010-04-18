@@ -542,7 +542,7 @@ int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
       do_read = true;
    }
 
-   Dmsg2(100, "type=%d do_read=%d\n", ff_pkt->type, do_read);
+   Dmsg2(150, "type=%d do_read=%d\n", ff_pkt->type, do_read);
    if (do_read) {
       btimer_t *tid;
 

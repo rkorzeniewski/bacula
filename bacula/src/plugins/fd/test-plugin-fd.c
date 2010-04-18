@@ -231,6 +231,7 @@ static bRC handlePluginEvent(bpContext *ctx, bEvent *event, void *value)
    /* End of Dir FileSet commands, now we can add excludes */
    case bEventEndFileSet:
       bfuncs->AddWildToInclude(ctx, "*.c", ' ');
+      bfuncs->AddWildToInclude(ctx, "*.cpp", ' ');
       bfuncs->AddIncludeOptions(ctx, "ei");   /* exclude, ignore case */
       break;
    case bEventStartBackupJob:
