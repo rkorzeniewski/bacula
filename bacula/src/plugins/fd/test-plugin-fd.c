@@ -230,12 +230,13 @@ static bRC handlePluginEvent(bpContext *ctx, bEvent *event, void *value)
       break;
    /* End of Dir FileSet commands, now we can add excludes */
    case bEventEndFileSet:
-      bfuncs->AddWildToInclude(ctx, "*.c", ' ');
-      bfuncs->AddWildToInclude(ctx, "*.cpp", ' ');
-      bfuncs->AddIncludeOptions(ctx, "ei");   /* exclude, ignore case */
+      bfuncs->NewOptions(ctx);
+      bfuncs->AddWild(ctx, "*.c", ' ');
+      bfuncs->AddWild(ctx, "*.cpp", ' ');
+      bfuncs->AddOptions(ctx, "ei");         /* exclude, ignore case */
+      bfuncs->AddExclude(ctx, "/home/kern/bacula/regress/README");
       break;
    case bEventStartBackupJob:
-      bfuncs->AddExclude(ctx, "/home/kern/bacula/regress/README");
       break;
    case bEventRestoreObject:
       printf("Plugin RestoreObject\n");

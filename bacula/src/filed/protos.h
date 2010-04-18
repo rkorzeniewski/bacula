@@ -75,3 +75,4 @@ void add_file_to_fileset(JCR *jcr, const char *fname, bool is_file);
 int add_options_to_fileset(JCR *jcr, const char *item);
 int add_wild_to_fileset(JCR *jcr, const char *item, int type);
 int add_regex_to_fileset(JCR *jcr, const char *item, int type);
+findINCEXE *new_include(JCR *jcr);

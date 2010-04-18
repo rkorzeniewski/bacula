@@ -889,6 +889,9 @@ static findFOPTS *start_options(FF_PKT *ff)
  */
 void new_options(JCR *jcr, findINCEXE *incexe)
 {
+   if (!incexe) {
+      incexe = jcr->ff->fileset->incexe;
+   }
    findFOPTS *fo = (findFOPTS *)malloc(sizeof(findFOPTS));
    memset(fo, 0, sizeof(findFOPTS));
    fo->regex.init(1, true);
@@ -902,7 +905,7 @@ void new_options(JCR *jcr, findINCEXE *incexe)
    fo->fstype.init(1, true);
    fo->drivetype.init(1, true);
    incexe->current_opts = fo;
-   incexe->opts_list.append(fo);
+   incexe->opts_list.prepend(fo);
    jcr->ff->fileset->state = state_options;
 }
 
@@ -1230,6 +1233,7 @@ static int set_options(findFOPTS *fo, const char *opts)
          break;
       case 'R':                 /* Resource forks and Finder Info */
          fo->flags |= FO_HFSPLUS;
+         break;
       case 'r':                 /* read fifo */
          fo->flags |= FO_READFIFO;
          break;

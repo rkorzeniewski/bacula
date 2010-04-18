@@ -66,9 +66,11 @@ static void *baculaMalloc(bpContext *ctx, const char *file, int line,
 static void baculaFree(bpContext *ctx, const char *file, int line, void *mem);
 static bRC  baculaAddExclude(bpContext *ctx, const char *file);
 static bRC baculaAddInclude(bpContext *ctx, const char *file);
-static bRC baculaAddIncludeOptions(bpContext *ctx, const char *opts);
-static bRC baculaAddRegexToInclude(bpContext *ctx, const char *item, int type);
-static bRC baculaAddWildToInclude(bpContext *ctx, const char *item, int type);
+static bRC baculaAddOptions(bpContext *ctx, const char *opts);
+static bRC baculaAddRegex(bpContext *ctx, const char *item, int type);
+static bRC baculaAddWild(bpContext *ctx, const char *item, int type);
+static bRC baculaNewOptions(bpContext *ctx);
+static bRC baculaNewInclude(bpContext *ctx);
 static bool is_plugin_compatible(Plugin *plugin);
 
 /*
@@ -101,9 +103,11 @@ static bFuncs bfuncs = {
    baculaFree,
    baculaAddExclude,
    baculaAddInclude,
-   baculaAddIncludeOptions,
-   baculaAddRegexToInclude,
-   baculaAddWildToInclude
+   baculaAddOptions,
+   baculaAddRegex,
+   baculaAddWild,
+   baculaNewOptions,
+   baculaNewInclude
 };
 
 /* 
@@ -1129,7 +1133,7 @@ static bRC baculaAddInclude(bpContext *ctx, const char *file)
    return bRC_OK;
 }
 
-static bRC baculaAddIncludeOptions(bpContext *ctx, const char *opts)
+static bRC baculaAddOptions(bpContext *ctx, const char *opts)
 {
    JCR *jcr;
    bacula_ctx *bctx;
@@ -1144,7 +1148,7 @@ static bRC baculaAddIncludeOptions(bpContext *ctx, const char *opts)
    return bRC_OK;
 }
 
-static bRC baculaAddRegexToInclude(bpContext *ctx, const char *item, int type)
+static bRC baculaAddRegex(bpContext *ctx, const char *item, int type)
 {
    JCR *jcr;
    bacula_ctx *bctx;
@@ -1159,7 +1163,7 @@ static bRC baculaAddRegexToInclude(bpContext *ctx, const char *item, int type)
    return bRC_OK;
 }
 
-static bRC baculaAddWildToInclude(bpContext *ctx, const char *item, int type)
+static bRC baculaAddWild(bpContext *ctx, const char *item, int type)
 {
    JCR *jcr;
    bacula_ctx *bctx;
@@ -1174,8 +1178,27 @@ static bRC baculaAddWildToInclude(bpContext *ctx, const char *item, int type)
    return bRC_OK;
 }
 
+static bRC baculaNewOptions(bpContext *ctx)
+{
+   JCR *jcr;
+   bacula_ctx *bctx;
+   if (!is_ctx_good(ctx, jcr, bctx)) {
+      return bRC_Error;
+   }
+   (void)new_options(jcr, NULL);
+   return bRC_OK;
+}
 
-
+static bRC baculaNewInclude(bpContext *ctx)
+{
+   JCR *jcr;
+   bacula_ctx *bctx;
+   if (!is_ctx_good(ctx, jcr, bctx)) {
+      return bRC_Error;
+   }
+   (void)new_include(jcr);
+   return bRC_OK;
+}
 
 
 #ifdef TEST_PROGRAM
