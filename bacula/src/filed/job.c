@@ -89,7 +89,7 @@ static int runbefore_cmd(JCR *jcr);
 static int runafter_cmd(JCR *jcr);
 static int runbeforenow_cmd(JCR *jcr);
 static int restore_object_cmd(JCR *jcr);
-static void set_options(findFOPTS *fo, const char *opts);
+static int set_options(findFOPTS *fo, const char *opts);
 static void set_storage_auth_key(JCR *jcr, char *key);
 
 /* Exported functions */
@@ -860,6 +860,9 @@ findFILESET *new_include(JCR *jcr)
    return fileset;
 }
 
+/**
+ * Add a regex to the current fileset
+ */
 int add_regex_to_fileset(JCR *jcr, const char *item, int subcode)
 {
    FF_PKT *ff = jcr->ff;
@@ -897,6 +900,16 @@ int add_regex_to_fileset(JCR *jcr, const char *item, int subcode)
    return state;
 }
 
+/**
+ * Add options to the current fileset
+ */
+int add_options_to_fileset(JCR *jcr, const char *item)
+{
+   findFOPTS *current_opts = start_options(jcr->ff);
+
+   set_options(current_opts, item);
+   return state_options;
+}
 
 static void add_fileset(JCR *jcr, const char *item)
 {
@@ -943,20 +956,20 @@ static void add_fileset(JCR *jcr, const char *item)
    case 'E':
       fileset = new_exclude(jcr);
       break;
-   case 'N':
+   case 'N':                             /* null */
       state = state_none;
       break;
-   case 'F':
+   case 'F':                             /* file = */
       /* File item to include or exclude list */
       state = state_include;
       add_file_to_fileset(jcr, item, fileset, true);
       break;
-   case 'P':
+   case 'P':                              /* plugin */
       /* Plugin item to include list */
       state = state_include;
       add_file_to_fileset(jcr, item, fileset, false);
       break;
-   case 'R':
+   case 'R':                              /* regex */
       state = add_regex_to_fileset(jcr, item, subcode);
       break;
    case 'B':
@@ -964,7 +977,7 @@ static void add_fileset(JCR *jcr, const char *item)
       current_opts->base.append(bstrdup(item));
       state = state_options;
       break;
-   case 'X':
+   case 'X':                             /* Filetype or Drive type */
       current_opts = start_options(ff);
       state = state_options;
       if (subcode == ' ') {
@@ -975,7 +988,7 @@ static void add_fileset(JCR *jcr, const char *item)
          state = state_error;
       }
       break;
-   case 'W':
+   case 'W':                               /* wild cards */
       current_opts = start_options(ff);
       state = state_options;
       if (subcode == ' ') {
@@ -990,23 +1003,21 @@ static void add_fileset(JCR *jcr, const char *item)
          state = state_error;
       }
       break;
-   case 'O':
-      current_opts = start_options(ff);
-      set_options(current_opts, item);
-      state = state_options;
+   case 'O':                                /* Options */
+      state = add_options_to_fileset(jcr, item);
       break;
-   case 'Z':
+   case 'Z':                                /* ignore dir */
       state = state_include;
       fileset->incexe->ignoredir = bstrdup(item);
       break;
    case 'D':
       current_opts = start_options(ff);
-//    current_opts->reader = bstrdup(item);
+//    current_opts->reader = bstrdup(item); /* deprecated */
       state = state_options;
       break;
    case 'T':
       current_opts = start_options(ff);
-//    current_opts->writer = bstrdup(item);
+//    current_opts->writer = bstrdup(item); /* deprecated */
       state = state_options;
       break;
    default:
@@ -1126,7 +1137,7 @@ static bool term_fileset(JCR *jcr)
  *  "compile" time in filed/job.c, and keep only a bit mask
  *  and the Verify options.
  */
-static void set_options(findFOPTS *fo, const char *opts)
+static int set_options(findFOPTS *fo, const char *opts)
 {
    int j;
    const char *p;
@@ -1282,6 +1293,7 @@ static void set_options(findFOPTS *fo, const char *opts)
          break;
       }
    }
+   return state_options;
 }
 
 
