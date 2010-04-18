@@ -245,10 +245,10 @@ typedef struct s_baculaFuncs {
        size_t size);
    void (*baculaFree)(bpContext *ctx, const char *file, int line, void *mem);
    bRC (*AddExclude)(bpContext *ctx, const char *file);
-   bRC (*baculaAddInclude)(bpContext *ctx, const char *file);
-   bRC (*baculaAddIncludeOptions)(bpContext *ctx, const char *opts);
-   bRC (*baculaAddRegexToInclude)(bpContext *ctx, const char *item, int type);
-   bRC (*baculaAddWildToInclude)(bpContext *ctx, const char *item, int type);
+   bRC (*AddInclude)(bpContext *ctx, const char *file);
+   bRC (*AddIncludeOptions)(bpContext *ctx, const char *opts);
+   bRC (*AddRegexToInclude)(bpContext *ctx, const char *item, int type);
+   bRC (*AddWildToInclude)(bpContext *ctx, const char *item, int type);
 } bFuncs;
 
 
