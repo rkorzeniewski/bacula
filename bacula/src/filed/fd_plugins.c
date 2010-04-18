@@ -34,6 +34,8 @@
 #include "bacula.h"
 #include "filed.h"
 
+extern CLIENT *me;
+
 const int dbglvl = 150;
 #ifdef HAVE_WIN32
 const char *plugin_type = "-fd.dll";
@@ -954,6 +956,9 @@ static bRC baculaGetValue(bpContext *ctx, bVariable var, void *value)
        }
 #endif
        return bRC_Error;
+   case bVarWorkingDir:
+      *(void **)value = me->working_directory;
+      break;
    }
    return bRC_OK;
 }

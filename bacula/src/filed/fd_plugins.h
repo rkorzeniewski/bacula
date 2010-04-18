@@ -172,7 +172,8 @@ typedef enum {
   bVarAccurate  = 9,
   bVarFileSeen  = 10,
   bVarVssObject = 11,
-  bVarVssDllHandle = 12
+  bVarVssDllHandle = 12,
+  bVarWorkingDir = 13
 } bVariable;
 
 /* Events that are passed to plugin */
