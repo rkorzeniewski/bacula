@@ -411,7 +411,7 @@ bool cancel_job(UAContext *ua, JCR *jcr)
          fd->close();
          ua->jcr->file_bsock = NULL;
          jcr->file_bsock->set_terminated();
-         if (jcr->my_thread_id) {
+         if (jcr->my_thread_id && !pthread_equal(jcr->my_thread_id, pthread_self())) {
             pthread_kill(jcr->my_thread_id, TIMEOUT_SIGNAL);
             Dmsg1(800, "Send kill to jid=%d\n", jcr->JobId);
          }
@@ -450,11 +450,11 @@ bool cancel_job(UAContext *ua, JCR *jcr)
          ua->jcr->store_bsock = NULL;
          jcr->store_bsock->set_timed_out();
          jcr->store_bsock->set_terminated();
-         if (jcr->SD_msg_chan) {
+         if (jcr->SD_msg_chan && !pthread_equal(jcr->SD_msg_chan, pthread_self())) {
             Dmsg2(400, "kill jobid=%d use=%d\n", (int)jcr->JobId, jcr->use_count());
             pthread_kill(jcr->SD_msg_chan, TIMEOUT_SIGNAL);
          }
-         if (jcr->my_thread_id) {
+         if (jcr->my_thread_id && !pthread_equal(jcr->my_thread_id, pthread_self())) {
             pthread_kill(jcr->my_thread_id, TIMEOUT_SIGNAL);
          }
       }
@@ -506,11 +506,11 @@ void cancel_storage_daemon_job(JCR *jcr)
       jcr->sd_canceled = true;
       jcr->store_bsock->set_timed_out();
       jcr->store_bsock->set_terminated();
-      if (jcr->SD_msg_chan) {
+      if (jcr->SD_msg_chan && !pthread_equal(jcr->SD_msg_chan, pthread_self())) {
          Dmsg2(400, "kill jobid=%d use=%d\n", (int)jcr->JobId, jcr->use_count());
          pthread_kill(jcr->SD_msg_chan, TIMEOUT_SIGNAL);
       }
-      if (jcr->my_thread_id) {
+      if (jcr->my_thread_id && !pthread_equal(jcr->my_thread_id, pthread_self())) {
          pthread_kill(jcr->my_thread_id, TIMEOUT_SIGNAL);
       }
    }
