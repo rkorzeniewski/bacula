@@ -288,7 +288,7 @@ echo "volume=TestVolume001" >tmp/bscan.bsr
 
 bscan_libdbi
 
-$bin/bscan -c $conf/bacula-sd.conf $BSCANLIBDBI -n regress -u regress -m -s -b $tmp/bscan.bsr FileStorage 2>&1 > $tmp/bscan.log
+$bin/bscan -c $conf/bacula-sd.conf $BSCANLIBDBI -n "$db_name" -u "$db_user" -m -s -b $tmp/bscan.bsr FileStorage 2>&1 > $tmp/bscan.log
 
 cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @$out ${cwd}/tmp/log1.out
