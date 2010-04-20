@@ -2,6 +2,10 @@
 #
 # shell script to create Bacula MySQL tables
 #
+# Important note: 
+#   You won't get any support for performance issue if you changed the default
+#   schema.
+
 bindir=@SQL_BINDIR@
 PATH="$bindir:$PATH"
 db_name=${db_name:-@db_name@}
@@ -27,6 +31,17 @@ CREATE TABLE Path (
    PRIMARY KEY(PathId),
    INDEX (Path(255))
    );
+
+-- We strongly recommend to avoid the temptation to add new indexes.
+-- In general, these will cause very significant performance
+-- problems in other areas.  A better approch is to carefully check
+-- that all your memory configuation parameters are
+-- suitable for the size of your installation.  If you backup
+-- millions of files, you need to adapt the database memory
+-- configuration parameters concerning sorting, joining and global
+-- memory.  By default, sort and join parameters are very small
+-- (sometimes 8Kb), and having sufficient memory specified by those
+-- parameters is extremely important to run fast.  
 
 -- In File table
 -- FileIndex can be 0 for FT_DELETED files
@@ -64,7 +79,7 @@ CREATE TABLE RestoreObject (
 #
 # Possibly add one or more of the following indexes
 #  to the above File table if your Verifies are
-#  too slow.
+#  too slow, but they can slow down backups.
 #
 #  INDEX (PathId),
 #  INDEX (FilenameId),
