@@ -818,11 +818,12 @@ bool my_batch_end(JCR *jcr, B_DB *mdb, const char *error)
 }
 
 /* 
- * Returns 1 if OK
- *         0 if failed
+ * Returns true if OK
+ *         false if failed
  */
 bool db_write_batch_file_records(JCR *jcr)
 {
+   bool retval = false;
    int JobStatus = jcr->JobStatus;
 
    if (!jcr->batch_started) {         /* no files to backup ? */
@@ -830,7 +831,7 @@ bool db_write_batch_file_records(JCR *jcr)
       return true;
    }
    if (job_canceled(jcr)) {
-      return false;
+      goto bail_out;
    }
 
    Dmsg1(50,"db_create_file_record changes=%u\n",jcr->db_batch->changes);
@@ -838,49 +839,52 @@ bool db_write_batch_file_records(JCR *jcr)
    jcr->JobStatus = JS_AttrInserting;
    if (!sql_batch_end(jcr, jcr->db_batch, NULL)) {
       Jmsg1(jcr, M_FATAL, 0, "Batch end %s\n", jcr->db_batch->errmsg);
-      return false;
+      goto bail_out;
    }
    if (job_canceled(jcr)) {
-      return false;
+      goto bail_out;
    }
 
-
-   /* we have to lock tables */
+   /*
+    * We have to lock tables
+    */
    if (!db_sql_query(jcr->db_batch, sql_batch_lock_path_query, NULL, NULL)) {
       Jmsg1(jcr, M_FATAL, 0, "Lock Path table %s\n", jcr->db_batch->errmsg);
-      return false;
+      goto bail_out;
    }
 
    if (!db_sql_query(jcr->db_batch, sql_batch_fill_path_query, NULL, NULL)) {
       Jmsg1(jcr, M_FATAL, 0, "Fill Path table %s\n",jcr->db_batch->errmsg);
       db_sql_query(jcr->db_batch, sql_batch_unlock_tables_query, NULL, NULL);
-      return false;
+      goto bail_out;
    }
    
    if (!db_sql_query(jcr->db_batch, sql_batch_unlock_tables_query,NULL,NULL)) {
       Jmsg1(jcr, M_FATAL, 0, "Unlock Path table %s\n", jcr->db_batch->errmsg);
-      return false;      
+      goto bail_out;
    }
 
-   /* we have to lock tables */
+   /*
+    * We have to lock tables
+    */
    if (!db_sql_query(jcr->db_batch,sql_batch_lock_filename_query,NULL, NULL)) {
       Jmsg1(jcr, M_FATAL, 0, "Lock Filename table %s\n", jcr->db_batch->errmsg);
-      return false;
+      goto bail_out;
    }
    
    if (!db_sql_query(jcr->db_batch,sql_batch_fill_filename_query, NULL,NULL)) {
       Jmsg1(jcr,M_FATAL,0,"Fill Filename table %s\n",jcr->db_batch->errmsg);
       db_sql_query(jcr->db_batch, sql_batch_unlock_tables_query, NULL, NULL);
-      return false;            
+      goto bail_out;
    }
 
    if (!db_sql_query(jcr->db_batch, sql_batch_unlock_tables_query,NULL,NULL)) {
       Jmsg1(jcr, M_FATAL, 0, "Unlock Filename table %s\n", jcr->db_batch->errmsg);
-      return false;
+      goto bail_out;
    }
    
    if (!db_sql_query(jcr->db_batch, 
-       "INSERT INTO File (FileIndex, JobId, PathId, FilenameId, LStat, MD5)"
+       "INSERT INTO File (FileIndex, JobId, PathId, FilenameId, LStat, MD5) "
          "SELECT batch.FileIndex, batch.JobId, Path.PathId, "
                 "Filename.FilenameId,batch.LStat, batch.MD5 "
            "FROM batch "
@@ -889,13 +893,16 @@ bool db_write_batch_file_records(JCR *jcr)
                      NULL,NULL))
    {
       Jmsg1(jcr, M_FATAL, 0, "Fill File table %s\n", jcr->db_batch->errmsg);
-      return false;
+      goto bail_out;
    }
 
+   jcr->JobStatus = JobStatus;         /* reset entry status */
+   retval = true;
+
+bail_out:
    db_sql_query(jcr->db_batch, "DROP TABLE batch", NULL,NULL);
 
-   jcr->JobStatus = JobStatus;         /* reset entry status */
-   return true;
+   return retval;
 }
 
 /**
