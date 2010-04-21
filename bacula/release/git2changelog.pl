@@ -22,7 +22,7 @@ while (my $l = <FP>) {
 
     # remove non useful messages
     next if ($l =~ /(tweak|typo|cleanup|regress:|again|.gitignore|fix compilation|technotes)/ixs);
-    next if ($l =~ /update (version|technotes|kernstodo|projects|releasenotes|version|home|release|todo|notes|changelog|tpl)/i);
+    next if ($l =~ /update (version|technotes|kernstodo|projects|releasenotes|version|home|release|todo|notes|changelog|tpl|configure)/i);
 
     if ($for_bweb) {
         next if ($l !~ /bweb/ixs);
