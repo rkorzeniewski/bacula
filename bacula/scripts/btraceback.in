@@ -11,12 +11,15 @@
 #
 PNAME=`basename $1`
 WD="$3"
+GDB=`which gdb`
 if test `uname -s` = SunOS ; then
    gcore -o ${WD}/${PNAME} $2
    if [ -x /usr/bin/mdb ]; then
       mdb -u -p $2 <@scriptdir@/btraceback.mdb >${WD}/bacula.$2.traceback 2>&1
-   else
+   elif [ -x /usr/bin/dbx ]; then
       dbx $1 $2 <@scriptdir@/btraceback.dbx >${WD}/bacula.$2.traceback 2>&1
+   elif [ "x${GDB}" != "x" ]; then
+      gdb -quiet -batch -x @scriptdir@/btraceback.gdb $1 $2 >${WD}/bacula.$2.traceback 2>&1
    fi
    PNAME="${PNAME} on `hostname`"
    cat ${WD}/bacula.$2.traceback \
