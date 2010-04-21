@@ -74,9 +74,9 @@ quit
 END_OF_DATA
 
 run_bconsole
-check_for_zombie_jobs storage=LTO1 $clientname
-check_for_zombie_jobs storage=LTO3 $clientname
-check_for_zombie_jobs storage=LTO1-ANSI_6 $clientname
+check_for_zombie_jobs storage=LTO1 client=$clientname
+check_for_zombie_jobs storage=LTO3 client=$clientname
+check_for_zombie_jobs storage=LTO1-ANSI_6 client=$clientname
 
 touch ${cwd}/build/po/*.po
 
@@ -97,9 +97,9 @@ messages
 END_OF_DATA
 
 run_bconsole
-check_for_zombie_jobs storage=LTO1 $clientname
-check_for_zombie_jobs storage=LTO3 $clientname
-check_for_zombie_jobs storage=LTO1-ANSI_6 $clientname
+check_for_zombie_jobs storage=LTO1 client=$clientname
+check_for_zombie_jobs storage=LTO3 client=$clientname
+check_for_zombie_jobs storage=LTO1-ANSI_6 client=$clientname
 
 # test update slots
 # remove volume vol20 from autochanger
@@ -124,19 +124,19 @@ check_restore_diff
 RES=`awk -F'|' '/vol20.+Append/ { print $11 }' ${cwd}/tmp/log3.out`
 set $RES
 if [ $1 -eq $2 ]; then
-    echo "Error in update slots"
+    print_debug "ERROR: Error in update slots"
     bstat=1
 fi
 
 grep LTO1_5 tmp/log1.out > /dev/null
 if test $? = 0; then
-    echo "AutoSelect option broken"
+    print_debug "ERROR: AutoSelect option broken"
     bstat=1
 fi
 
 grep 'Error: Re-read' tmp/log1.out > /dev/null
 if test $? = 0; then
-    echo "Found Re-read errors"
+    print_debug "ERROR: Found Re-read errors"
     bstat=1
 fi
 
