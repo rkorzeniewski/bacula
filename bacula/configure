@@ -29430,6 +29430,10 @@ else
 fi
 
 
+if test x$DB_TYPE = xingres; then
+   support_batch_insert=yes
+fi
+
 
 if test $support_batch_insert = yes ; then
 

@@ -1804,6 +1804,11 @@ fi
 
 AC_SUBST(uncomment_dbi)
 
+dnl For Ingres always enable batch inserts.
+if test x$DB_TYPE = xingres; then
+   support_batch_insert=yes
+fi
+
 if test $support_batch_insert = yes ; then
    AC_DEFINE(HAVE_BATCH_FILE_INSERT, 1, [Set if DB batch insert code enabled])
 fi
