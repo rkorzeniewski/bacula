@@ -854,7 +854,7 @@ const char *uar_create_temp[5] = {
    "Level CHAR(1),"
    "JobFiles INTEGER,"
    "JobBytes BIGINT,"
-   "StartTime VARBYTE(32),"
+   "StartTime TIMESTAMP WITHOUT TIME ZONE,"
    "VolumeName VARBYTE(128),"
    "StartFile INTEGER,"
    "VolSessionId INTEGER,"
