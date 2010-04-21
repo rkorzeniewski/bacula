@@ -647,7 +647,7 @@ const char *create_temp_basefile[5] = {
    /* Ingres */
    "DECLARE GLOBAL TEMPORARY TABLE basefile%lld ("
    "Path VARBYTE(32000) NOT NULL,"
-   "Name VARBYTE(32000) NOT NULL)"
+   "Name VARBYTE(32000) NOT NULL) "
    "ON COMMIT PRESERVE ROWS WITH NORECOVERY"
 };
 
@@ -696,7 +696,7 @@ const char *create_temp_new_basefile[5] = {
    "FROM ( %s ) AS Temp "
    "JOIN Filename ON (Filename.FilenameId = Temp.FilenameId) "
    "JOIN Path ON (Path.PathId = Temp.PathId) "
-   "WHERE Temp.FileIndex > 0"
+   "WHERE Temp.FileIndex > 0 "
    "ON COMMIT PRESERVE ROWS WITH NORECOVERY",
 };
 
@@ -738,7 +738,7 @@ const char *create_deltabs[5] = {
    "PurgedFiles SMALLINT, "
    "FileSetId INTEGER, "
    "JobFiles INTEGER, "
-   "JobStatus CHAR(1))"
+   "JobStatus CHAR(1)) "
    "ON COMMIT PRESERVE ROWS WITH NORECOVERY"
 };
 
@@ -858,7 +858,7 @@ const char *uar_create_temp[5] = {
    "VolumeName VARBYTE(128),"
    "StartFile INTEGER,"
    "VolSessionId INTEGER,"
-   "VolSessionTime INTEGER)"
+   "VolSessionTime INTEGER) "
    "ON COMMIT PRESERVE ROWS WITH NORECOVERY"
 };
 
@@ -882,7 +882,7 @@ const char *uar_create_temp1[5] = {
    /* Ingres */
    "DECLARE GLOBAL TEMPORARY TABLE temp1 ("
    "JobId INTEGER NOT NULL,"
-   "JobTDate BIGINT)"
+   "JobTDate BIGINT) "
    "ON COMMIT PRESERVE ROWS WITH NORECOVERY"
    };
 
