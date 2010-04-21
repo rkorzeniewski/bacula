@@ -581,6 +581,7 @@ struct B_DB {
    uint32_t cached_path_id;
    bool allow_transactions;       /* transactions allowed */
    bool transaction;              /* transaction started */
+   bool explicit_commit;          /* do an explicit commit after each query */
    int changes;                   /* changes made to db */
    POOLMEM *fname;                /* Filename only */
    POOLMEM *path;                 /* Path only */
