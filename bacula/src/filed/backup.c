@@ -1339,13 +1339,16 @@ static void close_vss_backup_session(JCR *jcr)
          }
       }
       WCHAR *metadata = g_pVSSClient->GetMetadata();
-      FF_PKT *ff_pkt = jcr->ff;
-      ff_pkt->fname = bstrdup("job_metadata.xml");
-      ff_pkt->type = FT_RESTORE_FIRST;
-      ff_pkt->LinkFI = 0;
-      ff_pkt->object = (char *)metadata;
-      ff_pkt->object_len = (wcslen(metadata) + 1) * sizeof(WCHAR);
-      save_file(jcr, ff_pkt, true);
+      if (metatdata) {
+         FF_PKT *ff_pkt = jcr->ff;
+         ff_pkt->fname = "job";
+         ff_pkt->type = FT_RESTORE_FIRST;
+         ff_pkt->LinkFI = 0;
+         ff_pkt->object_name = "job_metadata.xml";
+         ff_pkt->object = (char *)metadata;
+         ff_pkt->object_len = (wcslen(metadata) + 1) * sizeof(WCHAR);
+         save_file(jcr, ff_pkt, true);
+     }
    }
 #endif
 }
