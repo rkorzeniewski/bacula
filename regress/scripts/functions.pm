@@ -40,7 +40,7 @@ our @ISA = qw(Exporter);
 our @EXPORT =  qw(update_some_files create_many_files check_multiple_copies
                   update_client $HOST $BASEPORT add_to_backup_list check_volume_size
                   create_many_dirs cleanup start_bacula stop_bacula get_resource
-                  set_maximum_concurent_jobs
+                  set_maximum_concurent_jobs get_time
                   check_min_volume_size check_max_volume_size $estat $bstat $rstat $zstat
                   $cwd $bin $scripts $conf $rscripts $tmp $working extract_resource
                   $db_name $db_user $db_password $src $tmpsrc);
@@ -441,6 +441,13 @@ sub check_multiple_copies
     }
 
     exit $ret;
+}
+
+use POSIX qw/strftime/;
+sub get_time
+{
+    my ($sec) = @_;
+    print strftime('%F %T', localtime(time+$sec)), "\n";
 }
 
 1;
