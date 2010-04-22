@@ -40,6 +40,7 @@ our @ISA = qw(Exporter);
 our @EXPORT =  qw(update_some_files create_many_files check_multiple_copies
                   update_client $HOST $BASEPORT add_to_backup_list check_volume_size
                   create_many_dirs cleanup start_bacula stop_bacula get_resource
+                  set_maximum_concurent_jobs
                   check_min_volume_size check_max_volume_size $estat $bstat $rstat $zstat
                   $cwd $bin $scripts $conf $rscripts $tmp $working extract_resource
                   $db_name $db_user $db_password $src $tmpsrc);
@@ -344,6 +345,50 @@ sub check_encoding
               "database encoding (SQL_ASCII)\n";
         exit 1;
     }
+}
+
+# You can change the maximum concurrent jobs for any config file
+# If specified, you can change only one Resource or one type of
+# resource at the time (optional)
+#  set_maximum_concurent_jobs('$conf/bacula-dir.conf', 100);
+#  set_maximum_concurent_jobs('$conf/bacula-dir.conf', 100, 'Director');
+#  set_maximum_concurent_jobs('$conf/bacula-dir.conf', 100, 'Device', 'Drive-0');
+sub set_maximum_concurent_jobs
+{
+    my ($file, $nb, $obj, $name) = @_;
+    my ($cur_obj, $cur_name);
+
+    die "Can't get new maximumconcurrentjobs" 
+        unless ($nb);
+
+    open(FP, ">$tmp/1.$$") or die "Can't write to $tmp/1.$$";
+    open(SRC, $file) or die "Can't open $file";
+    while (my $l = <SRC>)
+    {
+        if ($l =~ /^(\w+) {/) {
+            $cur_obj = $1;
+        }
+
+        if ($l =~ /maximum\s*concurrent\s*jobs/i) {
+            if (!$obj || $cur_obj eq $obj) {
+                if (!$name || $cur_name eq $name) {
+                    $l =~ s/maximum\s*concurrent\s*jobs\s*=\s*\d+/Maximum Concurrent Jobs = $nb/ig;
+                }
+            }
+        }
+
+        if ($l =~ /Name\s*=\s*"?([\w\d\.-])"?/i) {
+            $cur_name = $1;
+        }
+
+        if ($l =~ /^}/) {
+            $cur_name = $cur_obj = undef;
+        }
+        print FP $l;
+    }
+    close(SRC);
+    close(FP);
+    copy("$tmp/1.$$", $file) or die "Can't copy $tmp/1.$$ to $file";
 }
 
 # This test ensure that 'list copies' displays only each copy one time
