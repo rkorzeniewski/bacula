@@ -161,7 +161,7 @@ messages
 @##########################
 END_OF_DATA
 
-for i in `seq 1 40`; do
+for i in `seq 1 30`; do
   cat <<EOF  >>${cwd}/tmp/bconcmds 
 run comment="Should work" level=Full job=CancelLowerLevelDuplicatesYes-$i yes
 EOF
@@ -170,7 +170,7 @@ done
 echo "wait" >> ${cwd}/tmp/bconcmds
 echo "messages" >> ${cwd}/tmp/bconcmds
 
-for i in `seq 1 40`; do
+for i in `seq 1 30`; do
   cat <<EOF >>${cwd}/tmp/bconcmds
 run comment="Should fail" level=Incremental job=CancelLowerLevelDuplicatesYes-$i yes
 EOF
@@ -178,7 +178,7 @@ done
 
 echo "@sleep 5" >> ${cwd}/tmp/bconcmds
 
-for i in `seq 1 40`; do
+for i in `seq 1 30`; do
   cat <<EOF >>${cwd}/tmp/bconcmds
 run comment="Should work" level=Full job=CancelLowerLevelDuplicatesYes-$i yes
 EOF
