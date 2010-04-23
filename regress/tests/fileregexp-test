@@ -33,6 +33,17 @@ wait
 messages
 @sleep 5
 prune files yes
+quit
+END_OF_DATA
+
+run_bacula
+
+touch $cwd/build/po/*
+
+cat <<END_OF_DATA >${tmp}/bconcmds
+run job=$JobName yes
+wait
+messages
 @# 
 @# now do a restore
 @#
@@ -44,10 +55,10 @@ README
 yes
 wait
 messages
-quit
 END_OF_DATA
 
-run_bacula
+run_bconsole
+
 check_for_zombie_jobs storage=File
 stop_bacula
 
@@ -62,7 +73,7 @@ COUNT_README=`find ${tmp}/bacula-restores -type f | grep README | wc -l`
 
 if [ $COUNT_OTHER -gt 0 -o $COUNT_README -lt 11 ]; then
     print_debug "Found non matching files"
-    print debug "Count_other=$COUNT_OTHER count_readme=$COUNT_README"
+    print_debug "Count_other=$COUNT_OTHER count_readme=$COUNT_README"
     print_debug `find ${tmp}/bacula-restores -type f | grep -v README`
     rstat=2
 fi
