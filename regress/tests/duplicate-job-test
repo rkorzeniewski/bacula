@@ -60,79 +60,99 @@ label storage=File volume=TestVolume001
 @##############################################
 @# AllowDuplicates = Yes, both jobs should work
 @##############################################
-run comment="Should work" level=Full job=AllowDuplicateYes yes
+@# comment="Should work"
+run  level=Full job=AllowDuplicateYes yes
 @sleep 2
-run comment="Should work" level=Full job=AllowDuplicateYes yes
+@# comment="Should work"
+run  level=Full job=AllowDuplicateYes yes
 wait
 messages
 @$out $tmp/log3.out
 @###############################################################
 @# Run two jobs with the same level and see wich one is canceled
 @###############################################################
-run comment="Should work" level=Full job=CancelLowerLevelDuplicatesYes yes
+@# comment="Should work"
+run  level=Full job=CancelLowerLevelDuplicatesYes yes
 @sleep 2
-run comment="Should fail" level=Full job=CancelLowerLevelDuplicatesYes yes
+@# comment="Should fail"
+run  level=Full job=CancelLowerLevelDuplicatesYes yes
 wait
 messages
 @####################################################################
 @# Run two jobs with the different level and see wich one is canceled
 @####################################################################
-run comment="Should fail" level=Incremental job=CancelLowerLevelDuplicatesYes yes
+@# comment="Should fail"
+run  level=Incremental job=CancelLowerLevelDuplicatesYes yes
 @sleep 2
-run comment="Should work" level=Full job=CancelLowerLevelDuplicatesYes yes
+@# comment="Should work"
+run  level=Full job=CancelLowerLevelDuplicatesYes yes
 wait
 messages
-run comment="Should fail" level=Differential job=CancelLowerLevelDuplicatesYes yes
+@# comment="Should fail"
+run  level=Differential job=CancelLowerLevelDuplicatesYes yes
 @sleep 2
-run comment="Should work" level=Full job=CancelLowerLevelDuplicatesYes yes
+@# comment="Should work"
+run  level=Full job=CancelLowerLevelDuplicatesYes yes
 wait
 messages
-run comment="Should work" level=Differential job=CancelLowerLevelDuplicatesYes yes
+@# comment="Should work"
+run  level=Differential job=CancelLowerLevelDuplicatesYes yes
 @sleep 2
-run comment="Should fail" level=Incremental job=CancelLowerLevelDuplicatesYes yes
+@# comment="Should fail"
+run  level=Incremental job=CancelLowerLevelDuplicatesYes yes
 wait
 messages
 @#####################################################################################
 @# Run two jobs with the different level and see wich one is canceled (reversed order)
 @#####################################################################################
-run comment="Should work" level=Full job=CancelLowerLevelDuplicatesYes yes
+@# comment="Should work"
+run  level=Full job=CancelLowerLevelDuplicatesYes yes
 @sleep 2
-run comment="Should fail" level=Incremental job=CancelLowerLevelDuplicatesYes yes
+@# comment="Should fail"
+run  level=Incremental job=CancelLowerLevelDuplicatesYes yes
 wait
 messages
 @$out $tmp/log4.out
 @####################################################################
 @# Run two jobs, the second one can't cancel the 1st, and should fail
 @####################################################################
-run comment="Should work" level=Full job=CancelQueueDuplicatesYes yes
+@# comment="Should work"
+run  level=Full job=CancelQueueDuplicatesYes yes
 @sleep 2
-run comment="Should fail" level=Full job=CancelQueueDuplicatesYes yes
+@# comment="Should fail"
+run  level=Full job=CancelQueueDuplicatesYes yes
 wait
 messages
 @#################################################################
 @# The first job should stay queued, the second one will cancel it
 @#################################################################
-run comment="Should fail" level=Full job=CancelQueueDuplicatesYes when="$when" yes
+@# comment="Should fail"
+run  level=Full job=CancelQueueDuplicatesYes when="$when" yes
 @sleep 2
-run comment="Should work" level=Full job=CancelQueueDuplicatesYes yes
+@# comment="Should work"
+run  level=Full job=CancelQueueDuplicatesYes yes
 wait
 messages
 @$out $tmp/log5.out
 @########################################
 @# The second job will kill the first one
 @########################################
-run comment="Should fail" level=Full job=CancelRunningDuplicatesYes yes
+@# comment="Should fail"
+run  level=Full job=CancelRunningDuplicatesYes yes
 @sleep 2
-run comment="Should work" level=Full job=CancelRunningDuplicatesYes yes
+@# comment="Should work"
+run  level=Full job=CancelRunningDuplicatesYes yes
 wait
 messages
 @$out $tmp/log6.out
 @##########################
 @# The second job won't run
 @##########################
-run comment="Should work" level=Full job=CancelRunningDuplicatesNo yes
+@# comment="Should work"
+run  level=Full job=CancelRunningDuplicatesNo yes
 @sleep 2
-run comment="Should fail" level=Full job=CancelRunningDuplicatesNo yes
+@# comment="Should fail"
+run  level=Full job=CancelRunningDuplicatesNo yes
 wait
 messages
 @$out $tmp/log61.out
@@ -141,7 +161,7 @@ messages
 @##########################
 END_OF_DATA
 
-for i in `seq 1 40`; do
+for i in `seq 1 30`; do
   cat <<EOF  >>${cwd}/tmp/bconcmds 
 run comment="Should work" level=Full job=CancelLowerLevelDuplicatesYes-$i yes
 EOF
@@ -150,7 +170,7 @@ done
 echo "wait" >> ${cwd}/tmp/bconcmds
 echo "messages" >> ${cwd}/tmp/bconcmds
 
-for i in `seq 1 40`; do
+for i in `seq 1 30`; do
   cat <<EOF >>${cwd}/tmp/bconcmds
 run comment="Should fail" level=Incremental job=CancelLowerLevelDuplicatesYes-$i yes
 EOF
@@ -158,7 +178,7 @@ done
 
 echo "@sleep 5" >> ${cwd}/tmp/bconcmds
 
-for i in `seq 1 40`; do
+for i in `seq 1 30`; do
   cat <<EOF >>${cwd}/tmp/bconcmds
 run comment="Should work" level=Full job=CancelLowerLevelDuplicatesYes-$i yes
 EOF
@@ -170,13 +190,11 @@ echo "messages" >> ${cwd}/tmp/bconcmds
 cat <<END_OF_DATA >>${cwd}/tmp/bconcmds
 @$out $tmp/log7.out
 sql
-SELECT JobId, Name, Level, Comment, JobStatus from Job 
-WHERE Comment='Should fail' and JobStatus='T' ORDER By JobId;
+SELECT JobId, Job FROM Job WHERE JobId IN (1,2,3,6,8,9,11,13,16,18,19) AND JobStatus != 'T';
 
 @$out $tmp/log8.out
 sql
-SELECT JobId, Name, Level, Comment, JobStatus from Job
-WHERE Comment='Should work' and JobStatus != 'T' ORDER By JobId;
+SELECT JobId, Job FROM Job WHERE JobId IN (4,5,7,10,12,14,15,17,20) AND JobStatus = 'T';
 
 @$out $tmp/log9.out
 sql
