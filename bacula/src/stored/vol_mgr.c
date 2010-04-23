@@ -621,10 +621,6 @@ bool free_volume(DEVICE *dev)
    if (!vol->is_swapping()) {
       Dmsg1(dbglvl, "=== clear in_use vol=%s\n", vol->vol_name);
       dev->vol = NULL;
-      if (!dev->num_reserved()) {
-         dev->pool_name[0] = 0;
-         dev->pool_type[0] = 0;
-      }
       vol_list->remove(vol);
       Dmsg2(dbglvl, "=== remove volume %s dev=%s\n", vol->vol_name, dev->print_name());
       free_vol_item(vol);
