@@ -38,8 +38,8 @@ SET AUTOCOMMIT ON\g
 CREATE SEQUENCE Filename_Seq;
 CREATE TABLE Filename
 (
-   FilenameId		INTEGER		NOT NULL DEFAULT Filename_Seq.nextval,
-   Name			VARBYTE(32000)	NOT NULL,
+   FilenameId		INTEGER 	NOT NULL DEFAULT Filename_Seq.nextval,
+   Name 		VARBYTE(32000)	NOT NULL,
    PRIMARY KEY (FilenameId)
 );
 
@@ -48,8 +48,8 @@ CREATE UNIQUE INDEX (filename_name_idx ON filename (Name) WITH STRUCTURE=HASH,PA
 CREATE SEQUENCE Path_Seq;
 CREATE TABLE path
 (
-   Pathid		INTEGER		NOT NULL DEFAULT Path_Seq.nextval,
-   Path			VARBYTE(32000)	NOT NULL,
+   Pathid		INTEGER 	NOT NULL DEFAULT Path_Seq.nextval,
+   Path 		VARBYTE(32000)	NOT NULL,
    PRIMARY KEY (Pathid)
 );
 
@@ -59,11 +59,11 @@ CREATE SEQUENCE File_Seq;
 CREATE TABLE file
 (
    FileId		BIGINT		NOT NULL DEFAULT File_Seq.nextval,
-   FileIndex		INTEGER		NOT NULL DEFAULT 0,
-   JobId		INTEGER		NOT NULL,
-   PathId		INTEGER		NOT NULL,
-   FilenameId		INTEGER		NOT NULL,
-   MarkId		INTEGER		NOT NULL DEFAULT 0,
+   FileIndex		INTEGER 	NOT NULL DEFAULT 0,
+   JobId		INTEGER 	NOT NULL,
+   PathId		INTEGER 	NOT NULL,
+   FilenameId		INTEGER 	NOT NULL,
+   MarkId		INTEGER 	NOT NULL DEFAULT 0,
    LStat		VARBYTE(255)	NOT NULL,
    Md5			VARBYTE(255)	NOT NULL,
    PRIMARY KEY (fileid)
@@ -78,14 +78,16 @@ CREATE INDEX file_jobid_idx ON File(jobid);
 
 CREATE SEQUENCE RestoreObject_Seq;
 CREATE TABLE RestoreObject (
-   RestoreObjectId	INTEGER		NOT NULL DEFAULT RestoreObject_Seq.nextval,
+   RestoreObjectId	INTEGER 	NOT NULL DEFAULT RestoreObject_Seq.nextval,
    RestoreObject	BLOB		NOT NULL,
    PluginName		VARBYTE(128)	NOT NULL,
-   ObjectIndex		INTEGER		DEFAULT 0,
-   ObjectType		INTEGER		DEFAULT 0,
-   FileIndex		INTEGER		DEFAULT 0,
+   ObjectLength 	INTEGER 	DEFAULT 0,
+   ObjectFullLength	INTEGER 	DEFAULT 0,
+   ObjectIndex		INTEGER 	DEFAULT 0,
+   ObjectType		INTEGER 	DEFAULT 0,
+   FileIndex		INTEGER 	DEFAULT 0,
    JobId		INTEGER,
-   ObjectCompression	INTEGER		DEFAULT 0,
+   ObjectCompression	INTEGER 	DEFAULT 0,
    PRIMARY KEY (RestoreObjectId)
 );
 
@@ -94,28 +96,28 @@ CREATE INDEX restore_jobid_idx on RestoreObject(JobId);
 CREATE SEQUENCE Job_Seq;
 CREATE TABLE Job
 (
-   JobId		INTEGER		NOT NULL DEFAULT Job_Seq.nextval,
+   JobId		INTEGER 	NOT NULL DEFAULT Job_Seq.nextval,
    Job			VARBYTE(128)	NOT NULL,
-   Name			VARBYTE(128)	NOT NULL,
-   Type			CHAR(1)		NOT NULL,
-   Level		CHAR(1)		NOT NULL,
-   ClientId		INTEGER		DEFAULT 0,
-   JobStatus		CHAR(1)		NOT NULL,
+   Name 		VARBYTE(128)	NOT NULL,
+   Type 		CHAR(1) 	NOT NULL,
+   Level		CHAR(1) 	NOT NULL,
+   ClientId		INTEGER 	DEFAULT 0,
+   JobStatus		CHAR(1) 	NOT NULL,
    SchedTime		TIMESTAMP WITHOUT TIME ZONE,
    StartTime		TIMESTAMP WITHOUT TIME ZONE,
    EndTime		TIMESTAMP WITHOUT TIME ZONE,
    RealEndTime		TIMESTAMP WITHOUT TIME ZONE,
    JobTDate		BIGINT		DEFAULT 0,
-   VolSessionId		INTEGER		DEFAULT 0,
-   volSessionTime	INTEGER		DEFAULT 0,
-   JobFiles		INTEGER		DEFAULT 0,
+   VolSessionId 	INTEGER 	DEFAULT 0,
+   volSessionTime	INTEGER 	DEFAULT 0,
+   JobFiles		INTEGER 	DEFAULT 0,
    JobBytes		BIGINT		DEFAULT 0,
    ReadBytes		BIGINT		DEFAULT 0,
-   JobErrors		INTEGER		DEFAULT 0,
-   JobMissingFiles	INTEGER		DEFAULT 0,
-   PoolId		INTEGER		DEFAULT 0,
-   FilesetId		INTEGER		DEFAULT 0,
-   PriorJobid		INTEGER		DEFAULT 0,
+   JobErrors		INTEGER 	DEFAULT 0,
+   JobMissingFiles	INTEGER 	DEFAULT 0,
+   PoolId		INTEGER 	DEFAULT 0,
+   FilesetId		INTEGER 	DEFAULT 0,
+   PriorJobid		INTEGER 	DEFAULT 0,
    PurgedFiles		SMALLINT	DEFAULT 0,
    HasBase		SMALLINT	DEFAULT 0,
    HasCache		SMALLINT	DEFAULT 0,
@@ -130,28 +132,28 @@ CREATE INDEX job_name_idx ON Job (Name);
 CREATE SEQUENCE JobHisto_Seq;
 CREATE TABLE JobHisto
 (
-   JobId		INTEGER		NOT NULL DEFAULT JobHisto_Seq.nextval,
+   JobId		INTEGER 	NOT NULL DEFAULT JobHisto_Seq.nextval,
    Job			VARBYTE(128)	NOT NULL,
-   Name			VARBYTE(128)	NOT NULL,
-   Type			CHAR(1)		NOT NULL,
-   Level		CHAR(1)		NOT NULL,
-   ClientId		INTEGER		DEFAULT 0,
-   JobStatus		CHAR(1)		NOT NULL,
+   Name 		VARBYTE(128)	NOT NULL,
+   Type 		CHAR(1) 	NOT NULL,
+   Level		CHAR(1) 	NOT NULL,
+   ClientId		INTEGER 	DEFAULT 0,
+   JobStatus		CHAR(1) 	NOT NULL,
    SchedTime		TIMESTAMP WITHOUT TIME ZONE,
    StartTime		TIMESTAMP WITHOUT TIME ZONE,
    EndTime		TIMESTAMP WITHOUT TIME ZONE,
    RealEndTime		TIMESTAMP WITHOUT TIME ZONE,
    JobTDate		BIGINT		DEFAULT 0,
-   VolSessionId		INTEGER		DEFAULT 0,
-   volSessionTime	INTEGER		DEFAULT 0,
-   JobFiles		INTEGER		DEFAULT 0,
+   VolSessionId 	INTEGER 	DEFAULT 0,
+   volSessionTime	INTEGER 	DEFAULT 0,
+   JobFiles		INTEGER 	DEFAULT 0,
    JobBytes		BIGINT		DEFAULT 0,
    ReadBytes		BIGINT		DEFAULT 0,
-   JobErrors		INTEGER		DEFAULT 0,
-   JobMissingFiles	INTEGER		DEFAULT 0,
-   PoolId		INTEGER		DEFAULT 0,
-   FilesetId		INTEGER		DEFAULT 0,
-   PriorJobid		INTEGER		DEFAULT 0,
+   JobErrors		INTEGER 	DEFAULT 0,
+   JobMissingFiles	INTEGER 	DEFAULT 0,
+   PoolId		INTEGER 	DEFAULT 0,
+   FilesetId		INTEGER 	DEFAULT 0,
+   PriorJobid		INTEGER 	DEFAULT 0,
    PurgedFiles		SMALLINT	DEFAULT 0,
    HasBase		SMALLINT	DEFAULT 0,
    HasCache		SMALLINT	DEFAULT 0,
@@ -164,9 +166,9 @@ CREATE INDEX jobhisto_idx ON JobHisto (StartTime);
 
 CREATE SEQUENCE Location_Seq;
 CREATE TABLE Location (
-   LocationId		INTEGER		NOT NULL DEFAULT Location_Seq.nextval,
+   LocationId		INTEGER 	NOT NULL DEFAULT Location_Seq.nextval,
    Location		VARBYTE(128)	NOT NULL,
-   Cost			INTEGER		DEFAULT 0,
+   Cost 		INTEGER 	DEFAULT 0,
    Enabled		SMALLINT,
    PRIMARY KEY (LocationId)
 );
@@ -174,7 +176,7 @@ CREATE TABLE Location (
 CREATE SEQUENCE Fileset_Seq;
 CREATE TABLE Fileset
 (
-   FilesetId		INTEGER		NOT NULL DEFAULT Fileset_Seq.nextval,
+   FilesetId		INTEGER 	NOT NULL DEFAULT Fileset_Seq.nextval,
    Fileset		VARBYTE(128)	NOT NULL,
    Md5			VARBYTE(128)	NOT NULL,
    Createtime		TIMESTAMP WITHOUT TIME ZONE NOT NULL,
@@ -186,16 +188,16 @@ CREATE INDEX fileset_name_idx ON Fileset (fileset);
 CREATE SEQUENCE JobMedia_Seq;
 CREATE TABLE JobMedia
 (
-   JobMediaId		INTEGER		NOT NULL DEFAULT JobMedia_Seq.nextval,
-   JobId		INTEGER		NOT NULL,
-   MediaId		INTEGER		NOT NULL,
-   FirstIndex		INTEGER		DEFAULT 0,
-   LastIndex		INTEGER		DEFAULT 0,
-   StartFile		INTEGER		DEFAULT 0,
-   EndFile		INTEGER		DEFAULT 0,
+   JobMediaId		INTEGER 	NOT NULL DEFAULT JobMedia_Seq.nextval,
+   JobId		INTEGER 	NOT NULL,
+   MediaId		INTEGER 	NOT NULL,
+   FirstIndex		INTEGER 	DEFAULT 0,
+   LastIndex		INTEGER 	DEFAULT 0,
+   StartFile		INTEGER 	DEFAULT 0,
+   EndFile		INTEGER 	DEFAULT 0,
    StartBlock		BIGINT		DEFAULT 0,
    EndBlock		BIGINT		DEFAULT 0,
-   VolIndex		INTEGER		DEFAULT 0,
+   VolIndex		INTEGER 	DEFAULT 0,
    PRIMARY KEY (jobmediaid)
 );
 
@@ -204,24 +206,24 @@ CREATE INDEX job_media_job_id_media_id_idx ON JobMedia (jobid, mediaid);
 CREATE SEQUENCE Media_Seq;
 CREATE TABLE Media
 (
-    MediaId		INTEGER		NOT NULL DEFAULT Media_Seq.nextval,
+    MediaId		INTEGER 	NOT NULL DEFAULT Media_Seq.nextval,
     VolumeName		VARBYTE(128)	NOT NULL,
-    Slot		INTEGER		DEFAULT 0,
-    PoolId		INTEGER		DEFAULT 0,
+    Slot		INTEGER 	DEFAULT 0,
+    PoolId		INTEGER 	DEFAULT 0,
     MediaType		VARBYTE(128)	NOT NULL,
-    MediaTypeId		INTEGER		DEFAULT 0,
-    LabelType		INTEGER		DEFAULT 0,
+    MediaTypeId 	INTEGER 	DEFAULT 0,
+    LabelType		INTEGER 	DEFAULT 0,
     FirstWritten	TIMESTAMP WITHOUT TIME ZONE,
-    LastWritten		TIMESTAMP WITHOUT TIME ZONE,
+    LastWritten 	TIMESTAMP WITHOUT TIME ZONE,
     LabelDate		TIMESTAMP WITHOUT TIME ZONE,
-    VolJobs		INTEGER		DEFAULT 0,
-    VolFiles		INTEGER		DEFAULT 0,
-    VolBlocks		INTEGER		DEFAULT 0,
-    VolMounts		INTEGER		DEFAULT 0,
+    VolJobs		INTEGER 	DEFAULT 0,
+    VolFiles		INTEGER 	DEFAULT 0,
+    VolBlocks		INTEGER 	DEFAULT 0,
+    VolMounts		INTEGER 	DEFAULT 0,
     VolBytes		BIGINT		DEFAULT 0,
-    VolParts		INTEGER		DEFAULT 0,
-    VolErrors		INTEGER		DEFAULT 0,
-    VolWrites		INTEGER		DEFAULT 0,
+    VolParts		INTEGER 	DEFAULT 0,
+    VolErrors		INTEGER 	DEFAULT 0,
+    VolWrites		INTEGER 	DEFAULT 0,
     VolCapacitybytes	BIGINT		DEFAULT 0,
     VolStatus		VARBYTE(128)	NOT NULL
 	CHECK (volstatus in ('Full','Archive','Append',
@@ -232,22 +234,22 @@ CREATE TABLE Media
     ActionOnPurge	SMALLINT	DEFAULT 0,
     VolRetention	BIGINT		DEFAULT 0,
     VolUseDuration	BIGINT		DEFAULT 0,
-    MaxVolJobs		INTEGER		DEFAULT 0,
-    MaxVolFiles		INTEGER		DEFAULT 0,
-    MaxVolBytes		BIGINT		DEFAULT 0,
+    MaxVolJobs		INTEGER 	DEFAULT 0,
+    MaxVolFiles 	INTEGER 	DEFAULT 0,
+    MaxVolBytes 	BIGINT		DEFAULT 0,
     InChanger		SMALLINT	DEFAULT 0,
     StorageId		BIGINT		DEFAULT 0,
-    DeviceId		INTEGER		DEFAULT 0,
+    DeviceId		INTEGER 	DEFAULT 0,
     MediaAddressing	SMALLINT	DEFAULT 0,
-    VolReadTime		BIGINT		DEFAULT 0,
+    VolReadTime 	BIGINT		DEFAULT 0,
     VolWriteTime	BIGINT		DEFAULT 0,
-    EndFile		INTEGER		DEFAULT 0,
+    EndFile		INTEGER 	DEFAULT 0,
     EndBlock		BIGINT		DEFAULT 0,
-    LocationId		INTEGER		DEFAULT 0,
-    RecycleCount	INTEGER		DEFAULT 0,
+    LocationId		INTEGER 	DEFAULT 0,
+    RecycleCount	INTEGER 	DEFAULT 0,
     InitialWrite	TIMESTAMP WITHOUT TIME ZONE,
-    ScratchPoolId	INTEGER		DEFAULT 0,
-    RecyclePoolId	INTEGER		DEFAULT 0,
+    ScratchPoolId	INTEGER 	DEFAULT 0,
+    RecyclePoolId	INTEGER 	DEFAULT 0,
     Comment		VARBYTE(4096),
     PRIMARY KEY (mediaid)
 );
@@ -256,36 +258,36 @@ CREATE UNIQUE INDEX media_volumename_id ON Media (VolumeName);
 
 CREATE SEQUENCE MediaType_Seq;
 CREATE TABLE MediaType (
-   MediaTypeId		INTEGER		NOT NULL DEFAULT MediaType_Seq.nextval,
+   MediaTypeId		INTEGER 	NOT NULL DEFAULT MediaType_Seq.nextval,
    MediaType		VARBYTE(128)	NOT NULL,
-   ReadOnly		INTEGER		NOT NULL DEFAULT 0,
+   ReadOnly		INTEGER 	NOT NULL DEFAULT 0,
    PRIMARY KEY (MediaTypeId)
 );
 
 CREATE SEQUENCE Storage_Seq;
 CREATE TABLE Storage (
-   StorageId		INTEGER		NOT NULL DEFAULT Storage_Seq.nextval,
-   Name			VARBYTE(128)	NOT NULL,
-   AutoChanger		INTEGER		NOT NULL DEFAULT 0,
+   StorageId		INTEGER 	NOT NULL DEFAULT Storage_Seq.nextval,
+   Name 		VARBYTE(128)	NOT NULL,
+   AutoChanger		INTEGER 	NOT NULL DEFAULT 0,
    PRIMARY KEY (StorageId)
 );
 
 CREATE SEQUENCE Device_Seq;
 CREATE TABLE Device (
-   DeviceId			INTEGER		NOT NULL DEFAULT Device_Seq.nextval,
-   Name				VARBYTE(128)	NOT NULL,
-   MediaTypeId			INTEGER		NOT NULL,
-   StorageId			INTEGER		NOT NULL,
-   DevMounts			INTEGER		NOT NULL DEFAULT 0,
-   DevReadBytes			BIGINT		NOT NULL DEFAULT 0,
+   DeviceId			INTEGER 	NOT NULL DEFAULT Device_Seq.nextval,
+   Name 			VARBYTE(128)	NOT NULL,
+   MediaTypeId			INTEGER 	NOT NULL,
+   StorageId			INTEGER 	NOT NULL,
+   DevMounts			INTEGER 	NOT NULL DEFAULT 0,
+   DevReadBytes 		BIGINT		NOT NULL DEFAULT 0,
    DevWriteBytes		BIGINT		NOT NULL DEFAULT 0,
    DevReadBytesSinceCleaning	BIGINT		NOT NULL DEFAULT 0,
    DevWriteBytesSinceCleaning	BIGINT		NOT NULL DEFAULT 0,
    DevReadTime			BIGINT		NOT NULL DEFAULT 0,
-   DevWriteTime			BIGINT		NOT NULL DEFAULT 0,
+   DevWriteTime 		BIGINT		NOT NULL DEFAULT 0,
    DevReadTimeSinceCleaning	BIGINT		NOT NULL DEFAULT 0,
    DevWriteTimeSinceCleaning	BIGINT		NOT NULL DEFAULT 0,
-   CleaningDate			TIMESTAMP WITHOUT TIME ZONE,
+   CleaningDate 		TIMESTAMP WITHOUT TIME ZONE,
    CleaningPeriod		BIGINT		NOT NULL DEFAULT 0,
    PRIMARY KEY (DeviceId)
 );
@@ -293,29 +295,29 @@ CREATE TABLE Device (
 CREATE SEQUENCE Pool_Seq;
 CREATE TABLE Pool
 (
-   PoolId		INTEGER		NOT NULL DEFAULT pool_Seq.nextval,
-   Name			VARBYTE(128)	NOT NULL,
-   NumVols		INTEGER		DEFAULT 0,
-   MaxVols		INTEGER		DEFAULT 0,
+   PoolId		INTEGER 	NOT NULL DEFAULT pool_Seq.nextval,
+   Name 		VARBYTE(128)	NOT NULL,
+   NumVols		INTEGER 	DEFAULT 0,
+   MaxVols		INTEGER 	DEFAULT 0,
    UseOnce		SMALLINT	DEFAULT 0,
    UseCatalog		SMALLINT	DEFAULT 0,
    AcceptAnyVolume	SMALLINT	DEFAULT 0,
-   VolRetention		BIGINT		DEFAULT 0,
+   VolRetention 	BIGINT		DEFAULT 0,
    VolUseDuration	BIGINT		DEFAULT 0,
-   MaxVolJobs		INTEGER		DEFAULT 0,
-   MaxVolFiles		INTEGER		DEFAULT 0,
+   MaxVolJobs		INTEGER 	DEFAULT 0,
+   MaxVolFiles		INTEGER 	DEFAULT 0,
    MaxVolBytes		BIGINT		DEFAULT 0,
    AutoPrune		SMALLINT	DEFAULT 0,
    Recycle		SMALLINT	DEFAULT 0,
    ActionOnPurge	SMALLINT	DEFAULT 0,
    PoolType		VARBYTE(32)
 	CHECK (pooltype in ('Backup','Copy','Cloned','Archive','Migration','Scratch')),
-   LabelType		INTEGER		DEFAULT 0,
+   LabelType		INTEGER 	DEFAULT 0,
    LabelFormat		VARBYTE(128)	NOT NULL,
    Enabled		SMALLINT	DEFAULT 1,
-   ScratchPoolId	INTEGER		DEFAULT 0,
-   RecyclePoolId	INTEGER		DEFAULT 0,
-   NextPoolId		INTEGER		DEFAULT 0,
+   ScratchPoolId	INTEGER 	DEFAULT 0,
+   RecyclePoolId	INTEGER 	DEFAULT 0,
+   NextPoolId		INTEGER 	DEFAULT 0,
    MigrationHighBytes	BIGINT		DEFAULT 0,
    MigrationLowBytes	BIGINT		DEFAULT 0,
    MigrationTime	BIGINT		DEFAULT 0,
@@ -327,12 +329,12 @@ CREATE INDEX pool_name_idx ON Pool (name);
 CREATE SEQUENCE Client_Seq;
 CREATE TABLE Client
 (
-   ClientId		INTEGER		NOT NULL DEFAULT Client_Seq.nextval,
-   Name			VARBYTE(128)	NOT NULL,
+   ClientId		INTEGER 	NOT NULL DEFAULT Client_Seq.nextval,
+   Name 		VARBYTE(128)	NOT NULL,
    Uname		VARBYTE(256)	NOT NULL,
    AutoPrune		SMALLINT	DEFAULT 0,
    FileRetention	BIGINT		DEFAULT 0,
-   JobRetention		BIGINT		DEFAULT 0,
+   JobRetention 	BIGINT		DEFAULT 0,
    PRIMARY KEY (clientid)
 );
 
@@ -341,9 +343,9 @@ CREATE UNIQUE INDEX client_name_idx ON Client (Name);
 CREATE SEQUENCE Log_Seq;
 CREATE TABLE Log
 (
-   LogId		INTEGER		NOT NULL DEFAULT Log_Seq.nextval,
-   JobId		INTEGER		NOT NULL,
-   Time			TIMESTAMP WITHOUT TIME ZONE,
+   LogId		INTEGER 	NOT NULL DEFAULT Log_Seq.nextval,
+   JobId		INTEGER 	NOT NULL,
+   Time 		TIMESTAMP WITHOUT TIME ZONE,
    LogText		VARBYTE(4096)		NOT NULL,
    PRIMARY KEY (LogId)
 );
@@ -351,12 +353,12 @@ CREATE INDEX log_name_idx ON Log (JobId);
 
 CREATE SEQUENCE LocationLog_Seq;
 CREATE TABLE LocationLog (
-   LocLogId		INTEGER		NOT NULL DEFAULT LocationLog_Seq.nextval,
-   Date			TIMESTAMP WITHOUT TIME ZONE,
+   LocLogId		INTEGER 	NOT NULL DEFAULT LocationLog_Seq.nextval,
+   Date 		TIMESTAMP WITHOUT TIME ZONE,
    Comment		VARBYTE(4096)	NOT NULL,
-   MediaId		INTEGER		DEFAULT 0,
-   LocationId		INTEGER		DEFAULT 0,
-   NewVolStatus		VARBYTE(32)	NOT NULL
+   MediaId		INTEGER 	DEFAULT 0,
+   LocationId		INTEGER 	DEFAULT 0,
+   NewVolStatus 	VARBYTE(32)	NOT NULL
 	CHECK (newvolstatus in ('Full','Archive','Append',
 	      'Recycle','Purged','Read-Only','Disabled',
 	      'Error','Busy','Used','Cleaning','Scratch')),
@@ -367,9 +369,9 @@ CREATE TABLE LocationLog (
 CREATE TABLE Counters
 (
    Counter		VARBYTE(128)	NOT NULL,
-   MinValue		INTEGER		DEFAULT 0,
-   MaxValue		INTEGER		DEFAULT 0,
-   CurrentValue		INTEGER		DEFAULT 0,
+   MinValue		INTEGER 	DEFAULT 0,
+   MaxValue		INTEGER 	DEFAULT 0,
+   CurrentValue 	INTEGER 	DEFAULT 0,
    WrapCounter		VARBYTE(128)	NOT NULL,
    PRIMARY KEY (counter)
 );
@@ -377,8 +379,8 @@ CREATE TABLE Counters
 CREATE SEQUENCE BaseFiles_Seq;
 CREATE TABLE BaseFiles
 (
-   BaseId		INTEGER		NOT NULL DEFAULT BaseFiles_Seq.nextval,
-   JobId		INTEGER		NOT NULL,
+   BaseId		INTEGER 	NOT NULL DEFAULT BaseFiles_Seq.nextval,
+   JobId		INTEGER 	NOT NULL,
    FileId		BIGINT		NOT NULL,
    FileIndex		INTEGER,
    BaseJobid		INTEGER,
@@ -389,24 +391,24 @@ CREATE INDEX basefiles_jobid_idx ON BaseFiles (JobId);
 
 CREATE TABLE unsavedfiles
 (
-   UnsavedId		INTEGER		NOT NULL,
-   JobId		INTEGER		NOT NULL,
-   PathId		INTEGER		NOT NULL,
-   FilenameId		INTEGER		NOT NULL,
+   UnsavedId		INTEGER 	NOT NULL,
+   JobId		INTEGER 	NOT NULL,
+   PathId		INTEGER 	NOT NULL,
+   FilenameId		INTEGER 	NOT NULL,
    PRIMARY KEY (UnsavedId)
 );
 
 CREATE TABLE CDImages 
 (
-   MediaId		INTEGER		NOT NULL,
+   MediaId		INTEGER 	NOT NULL,
    LastBurn		TIMESTAMP WITHOUT TIME ZONE NOT NULL,
    PRIMARY KEY (MediaId)
 );
 
 CREATE TABLE PathHierarchy
 (
-   PathId		INTEGER		NOT NULL,
-   PPathId		INTEGER		NOT NULL,
+   PathId		INTEGER 	NOT NULL,
+   PPathId		INTEGER 	NOT NULL,
    CONSTRAINT pathhierarchy_pkey PRIMARY KEY (PathId)
 );
 
@@ -414,21 +416,21 @@ CREATE INDEX pathhierarchy_ppathid ON PathHierarchy (PPathId);
 
 CREATE TABLE PathVisibility
 (
-   PathId		INTEGER		NOT NULL,
-   JobId		INTEGER		NOT NULL,
-   Size			BIGINT		DEFAULT 0,
-   Files		INTEGER		DEFAULT 0,
+   PathId		INTEGER 	NOT NULL,
+   JobId		INTEGER 	NOT NULL,
+   Size 		BIGINT		DEFAULT 0,
+   Files		INTEGER 	DEFAULT 0,
    CONSTRAINT pathvisibility_pkey PRIMARY KEY (JobId, PathId)
 );
 CREATE INDEX pathvisibility_jobid ON PathVisibility (JobId);
 
 CREATE TABLE version
 (
-   versionid		INTEGER		NOT NULL
+   versionid		INTEGER 	NOT NULL
 );
 
 CREATE TABLE Status (
-   JobStatus		CHAR(1)		NOT NULL,
+   JobStatus		CHAR(1) 	NOT NULL,
    JobStatusLong	VARBYTE(128),
    Severity		INTEGER,
    PRIMARY KEY (JobStatus)
