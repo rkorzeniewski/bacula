@@ -471,10 +471,6 @@ static void free_common_jcr(JCR *jcr)
       free_guid_list(jcr->id_list);
       jcr->id_list = NULL;
    }
-   if (jcr->comment) {
-      free_pool_memory(jcr->comment);
-      jcr->comment = NULL;
-   }
    free(jcr);
 }
 
