@@ -527,9 +527,9 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
             }
          }
          /* Create Client record if not already there */
-            bstrncpy(cr.Name, label.ClientName, sizeof(cr.Name));
-            create_client_record(db, &cr);
-            jr.ClientId = cr.ClientId;
+         bstrncpy(cr.Name, label.ClientName, sizeof(cr.Name));
+         create_client_record(db, &cr);
+         jr.ClientId = cr.ClientId;
 
          /* process label, if Job record exists don't update db */
          mjcr = create_job_record(db, &jr, &label, rec);
@@ -1138,6 +1138,9 @@ static int update_job_record(B_DB *db, JOB_DBR *jr, SESSION_LABEL *elabel,
    jr->JobStatus = elabel->JobStatus;
    mjcr->JobStatus = elabel->JobStatus;
    jr->JobFiles = elabel->JobFiles;
+   if (jr->JobFiles > 0) {  /* If we found files, force PurgedFiles */
+      jr->PurgedFiles = 0;
+   }
    jr->JobBytes = elabel->JobBytes;
    jr->VolSessionId = rec->VolSessionId;
    jr->VolSessionTime = rec->VolSessionTime;

@@ -290,13 +290,13 @@ bool db_get_job_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
       Mmsg(mdb->cmd, "SELECT VolSessionId,VolSessionTime,"
 "PoolId,StartTime,EndTime,JobFiles,JobBytes,JobTDate,Job,JobStatus,"
 "Type,Level,ClientId,Name,PriorJobId,RealEndTime,JobId,FileSetId,"
-"SchedTime,RealEndTime,ReadBytes,HasBase "
+"SchedTime,RealEndTime,ReadBytes,HasBase,PurgedFiles "
 "FROM Job WHERE Job='%s'", jr->Job);
     } else {
       Mmsg(mdb->cmd, "SELECT VolSessionId,VolSessionTime,"
 "PoolId,StartTime,EndTime,JobFiles,JobBytes,JobTDate,Job,JobStatus,"
 "Type,Level,ClientId,Name,PriorJobId,RealEndTime,JobId,FileSetId,"
-"SchedTime,RealEndTime,ReadBytes,HasBase "
+"SchedTime,RealEndTime,ReadBytes,HasBase,PurgedFiles "
 "FROM Job WHERE JobId=%s", 
           edit_int64(jr->JobId, ed1));
     }
@@ -340,6 +340,7 @@ bool db_get_job_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
    jr->EndTime = str_to_utime(jr->cEndTime);
    jr->RealEndTime = str_to_utime(jr->cRealEndTime);
    jr->HasBase = str_to_int64(row[21]);
+   jr->PurgedFiles = str_to_int64(row[22]);
    sql_free_result(mdb);
 
    db_unlock(mdb);
