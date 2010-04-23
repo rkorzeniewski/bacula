@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2008 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2010 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -28,7 +28,6 @@
 /*
  * Prototypes for lib directory of Bacula
  *
- *   Version $Id$
  */
 
 #ifndef __LIBPROTOS_H
@@ -79,6 +78,8 @@ long long int strtoll            (const char *ptr, char **endptr, int base);
 void      read_state_file(char *dir, const char *progname, int port);
 int       b_strerror(int errnum, char *buf, size_t bufsiz);
 char     *escape_filename(const char *file_path);
+int       Zdeflate(char *in, int in_len, char *out, int &out_len);
+int       Zinflate(char *in, int in_len, char *out, int &out_len);
 
 /* bnet.c */
 int32_t    bnet_recv             (BSOCK *bsock);

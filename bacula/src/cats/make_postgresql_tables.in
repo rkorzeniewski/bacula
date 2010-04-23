@@ -36,7 +36,7 @@ CREATE UNIQUE INDEX path_name_idx on Path (Path);
 -- In general, these will cause very significant performance
 -- problems in other areas.  A better approch is to carefully check
 -- that all your memory configuation parameters are
--- suitable for the size of your installation.  If you backup
+-- suitable for the size of your installation.	If you backup
 -- millions of files, you need to adapt the database memory
 -- configuration parameters concerning sorting, joining and global
 -- memory.  By default, sort and join parameters are very small
@@ -81,6 +81,7 @@ CREATE TABLE RestoreObject (
    RestoreObject TEXT NOT NULL,
    PluginName TEXT NOT NULL,
    ObjectLength INTEGER DEFAULT 0,
+   ObjectFullLength INTEGER DEFAULT 0,
    ObjectIndex INTEGER DEFAULT 0,
    ObjectType INTEGER DEFAULT 0,
    FileIndex INTEGER UNSIGNED DEFAULT 0,

@@ -423,7 +423,8 @@ static void update_attribute(JCR *jcr, char *msg, int32_t msglen)
     *   File_index
     *   File_type
     *   Object_index
-    *   Object_len
+    *   Object_len (possibly compressed)
+    *   Object_full_len (not compressed)
     *   Object_compression
     *   Plugin_name
     *   Object_name
@@ -492,17 +493,23 @@ static void update_attribute(JCR *jcr, char *msg, int32_t msglen)
 
       Dmsg1(100, "Robj=%s\n", p);
       
-      skip_nonspaces(&p);             /* skip FileIndex */
+      skip_nonspaces(&p);                  /* skip FileIndex */
       skip_spaces(&p);
-      ro.FileType = str_to_int32(p); 
-      skip_nonspaces(&p);             /* move past FileType */
+      ro.FileType = str_to_int32(p);        /* FileType */
+      skip_nonspaces(&p);
       skip_spaces(&p);
-      ro.object_index = str_to_int32(p);
-      skip_nonspaces(&p);             /* move past object_index */
-      ro.object_len = str_to_int32(p);
-      skip_nonspaces(&p);             /* move past object_length */
-      ro.object_compression = str_to_int32(p);
-      skip_nonspaces(&p);             /* move past object_compression */
+      ro.object_index = str_to_int32(p);    /* Object Index */
+      skip_nonspaces(&p);
+      skip_spaces(&p);
+      ro.object_len = str_to_int32(p);      /* object length possibly compressed */
+      skip_nonspaces(&p);                  
+      skip_spaces(&p);
+      ro.object_full_len = str_to_int32(p); /* uncompressed object length */
+      skip_nonspaces(&p);
+      skip_spaces(&p);
+      ro.object_compression = str_to_int32(p); /* compression */
+      skip_nonspaces(&p);
+      skip_spaces(&p);
 
       ro.plugin_name = p;                      /* point to plugin name */
       len = strlen(ro.plugin_name);

@@ -1108,6 +1108,7 @@ bool encode_and_send_attributes(JCR *jcr, FF_PKT *ff_pkt, int &data_stream)
    char attribsExBuf[MAXSTRING];
    char *attribsEx;
    int attr_stream;
+   int comp_len;
    bool stat;
 #ifdef FD_NO_SEND_TEST
    return true;
@@ -1164,7 +1165,8 @@ bool encode_and_send_attributes(JCR *jcr, FF_PKT *ff_pkt, int &data_stream)
     *   File_index
     *   File_type
     *   Object_index
-    *   Object_len
+    *   Object_len  (possibly compressed)
+    *   Object_full_len (not compressed)
     *   Object_compression
     *   Plugin_name
     *   Object_name
@@ -1191,15 +1193,34 @@ bool encode_and_send_attributes(JCR *jcr, FF_PKT *ff_pkt, int &data_stream)
                ff_pkt->type, ff_pkt->link, 0, attribs, 0, 0, attribsEx, 0);
       break;
    case FT_RESTORE_FIRST:
-      sd->msglen = Mmsg(sd->msg, "%d %d %d %d %d %s%c%s%c", 
+      comp_len = ff_pkt->object_len;
+      if (ff_pkt->object_len > 1000) {
+         /* Big object, compress it */
+         int stat;
+         comp_len = ff_pkt->object_len + 1000;
+         POOLMEM *comp_obj = get_memory(comp_len);
+         stat = Zdeflate(ff_pkt->object, ff_pkt->object_len, comp_obj, comp_len);
+         if (comp_len < ff_pkt->object_len) {
+            ff_pkt->object = comp_obj;
+            ff_pkt->object_compression = 1;    /* zlib level 9 compression */
+         } else {
+            /* Uncompressed object smaller, use it */
+            comp_len = ff_pkt->object_len;
+         }
+         Dmsg2(100, "Object compressed from %d to %d bytes\n", ff_pkt->object_len, comp_len);
+      }
+      sd->msglen = Mmsg(sd->msg, "%d %d %d %d %d %d %s%c%s%c", 
                         jcr->JobFiles, ff_pkt->type, ff_pkt->object_index,
-                        ff_pkt->object_len, ff_pkt->object_compression,
+                        comp_len, ff_pkt->object_len, ff_pkt->object_compression,
                         ff_pkt->fname, 0, ff_pkt->object_name, 0);
-      sd->msg = check_pool_memory_size(sd->msg, sd->msglen + ff_pkt->object_len + 2);
-      memcpy(sd->msg + sd->msglen, ff_pkt->object, ff_pkt->object_len);
+      sd->msg = check_pool_memory_size(sd->msg, sd->msglen + comp_len + 2);
+      memcpy(sd->msg + sd->msglen, ff_pkt->object, comp_len);
       /* Note we send one extra byte so Dir can store zero after object */
-      sd->msglen += ff_pkt->object_len + 1;
+      sd->msglen += comp_len + 1;
       stat = sd->send();
+      if (ff_pkt->object_compression) {
+         free_and_null_pool_memory(ff_pkt->object);
+      }
       break;
    default:
       stat = sd->fsend("%ld %d %s%c%s%c%c%s%c", jcr->JobFiles,

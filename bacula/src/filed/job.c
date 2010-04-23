@@ -137,7 +137,7 @@ static char sessioncmd[]  = "session %127s %ld %ld %ld %ld %ld %ld\n";
 static char restorecmd[]  = "restore replace=%c prelinks=%d where=%s\n";
 static char restorecmd1[] = "restore replace=%c prelinks=%d where=\n";
 static char restorecmdR[] = "restore replace=%c prelinks=%d regexwhere=%s\n";
-static char restoreobjcmd[] = "restoreobject JobId=%u ObjLen=%d ObjInx=%d ObjType=%d FI=%d\n";
+static char restoreobjcmd[] = "restoreobject JobId=%u %d,%d,%d,%d,%d,%d\n";
 static char endrestoreobjectcmd[] = "restoreobject end\n";
 static char verifycmd[]   = "verify level=%30s";
 static char estimatecmd[] = "estimate listing=%d";
@@ -629,7 +629,6 @@ static int runscript_cmd(JCR *jcr)
 static int restore_object_cmd(JCR *jcr)
 {
    BSOCK *dir = jcr->dir_bsock;
-   POOLMEM *msg = get_memory(dir->msglen+1);
    int32_t FileIndex;
    restore_object_pkt rop;
 
@@ -639,20 +638,21 @@ static int restore_object_cmd(JCR *jcr)
    Dmsg1(100, "Enter restoreobject_cmd: %s", dir->msg);
    if (strcmp(dir->msg, endrestoreobjectcmd) == 0) {
       generate_plugin_event(jcr, bEventRestoreObject, NULL);
-      free_memory(msg);
       return dir->fsend(OKRestoreObject);
    }
 
    if (sscanf(dir->msg, restoreobjcmd, &rop.JobId, &rop.object_len, 
-              &rop.object_index, &rop.object_type, &FileIndex) != 5) {
+              &rop.object_full_len, &rop.object_index, 
+              &rop.object_type, &rop.object_compression, &FileIndex) != 7) {
       Dmsg0(5, "Bad restore object command\n");
       pm_strcpy(jcr->errmsg, dir->msg);
       Jmsg1(jcr, M_FATAL, 0, _("Bad RestoreObject command: %s\n"), jcr->errmsg);
       goto bail_out;
    }
 
-   Dmsg5(100, "Recv object: JobId=%u objlen=%d objinx=%d objtype=%d FI=%d\n",
-         rop.JobId, rop.object_len, rop.object_index, rop.object_type, FileIndex);
+   Dmsg6(100, "Recv object: JobId=%u objlen=%d full_len=%d objinx=%d objtype=%d FI=%d\n",
+         rop.JobId, rop.object_len, rop.object_full_len, 
+         rop.object_index, rop.object_type, FileIndex);
    /* Read Object name */
    if (dir->recv() < 0) {
       goto bail_out;
@@ -664,9 +664,28 @@ static int restore_object_cmd(JCR *jcr)
    if (dir->recv() < 0) {
       goto bail_out;
    }
+   /* Transfer object from message buffer, and get new message buffer */
    rop.object = dir->msg;
-   Dmsg2(100, "Recv Object: len=%d Object=%s\n", dir->msglen, dir->msg);
+   dir->msg = get_pool_memory(PM_MESSAGE);
 
+   /* If object is compressed, uncompress it */
+   if (rop.object_compression == 1) {   /* zlib level 9 */
+      int stat;
+      int out_len = rop.object_full_len + 100;
+      POOLMEM *obj = get_memory(out_len);
+      Dmsg2(100, "Inflating from %d to %d\n", rop.object_len, rop.object_full_len);
+      stat = Zinflate(rop.object, rop.object_len, obj, out_len);
+      Dmsg1(100, "Zinflate stat=%d\n", stat);
+      if (out_len != rop.object_full_len) {
+         Jmsg3(jcr, M_ERROR, 0, ("Decompression failed. Len wanted=%d got=%d. Object=%s\n"),
+            rop.object_full_len, out_len, rop.object_name);
+      }
+      free_pool_memory(rop.object);   /* release compressed object */
+      rop.object = obj;               /* new uncompressed object */
+      rop.object_len = out_len;
+   }
+   Dmsg2(100, "Recv Object: len=%d Object=%s\n", rop.object_len, rop.object);
+   /* Special Job meta data */
    if (strcmp(rop.object_name, "job_metadata.xml") == 0) {
       Dmsg0(100, "got job metadata\n");
       free_and_null_pool_memory(jcr->job_metadata);
@@ -680,17 +699,15 @@ static int restore_object_cmd(JCR *jcr)
    if (rop.object_name) {
       free(rop.object_name);
    }
-   if (!rop.object) {
-      dir->msg = get_pool_memory(PM_MESSAGE);
+   if (rop.object) {
+      free_pool_memory(rop.object);
    }
 
-   free_memory(msg);
    Dmsg1(100, "Send: %s", OKRestoreObject);
    return 1;
 
 bail_out:
    dir->fsend(_("2909 Bad RestoreObject command.\n"));
-   free_memory(msg);
    return 0;
 
 }
@@ -1986,8 +2003,11 @@ static int restore_cmd(JCR *jcr)
    Dmsg0(100, "restore command\n");
 #if defined(WIN32_VSS)
 
-   /* TODO: this should be given from the director */
-   enable_vss = 1;
+   /**
+    * No need to enable VSS for restore if we do not have plugin
+    *  data to restore 
+    */
+   enable_vss = jcr->job_metadata != NULL;
 
    Dmsg2(50, "g_pVSSClient = %p, enable_vss = %d\n", g_pVSSClient, enable_vss);
    // capture state here, if client is backed up by multiple directors

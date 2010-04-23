@@ -678,16 +678,18 @@ static int restore_object_handler(void *ctx, int num_fields, char **row)
    if (jcr->is_job_canceled()) {
       return 1;
    }
-   fd->fsend("restoreobject JobId=%s ObjLen=%s ObjInx=%s ObjType=%s FI=%s\n",
-      row[0], row[1], row[2], row[3], row[4]);
+   fd->fsend("restoreobject JobId=%s %s,%s,%s,%s,%s,%s\n",
+      row[0], row[1], row[2], row[3], row[4], row[5], row[6]);
+
+   Dmsg1(000, "Send obj hdr=%s", fd->msg);
 
    msg_save = fd->msg;
-   fd->msg = row[5] ? row[5] : (char *)"";
+   fd->msg = row[7] ? row[7] : (char *)"";
    fd->msglen = strlen(fd->msg);
    fd->send();                            /* send Object name */
-// Dmsg1(000, "Send obj: %s\n", fd->msg);
+   Dmsg1(000, "Send obj: %s\n", fd->msg);
 
-   fd->msg = row[6] ? row[6] : (char *)""; /* object */
+   fd->msg = row[8] ? row[8] : (char *)""; /* object */
    fd->msglen = str_to_uint64(row[1]);   /* object length */
    fd->send();                           /* send object */
 // Dmsg1(000, "Send obj: %s\n", fd->msg);
@@ -705,8 +707,8 @@ bool send_restore_objects(JCR *jcr)
    if (!jcr->JobIds || !jcr->JobIds[0]) {
       return true;
    }
-   Mmsg(query, "SELECT JobId,ObjectLength,ObjectIndex,ObjectType,"
-        "FileIndex,ObjectName,RestoreObject FROM RestoreObject "
+   Mmsg(query, "SELECT JobId,ObjectLength,ObjectFullLength,ObjectIndex,ObjectType,"
+        "ObjectCompression,FileIndex,ObjectName,RestoreObject FROM RestoreObject "
         "WHERE JobId IN (%s) ORDER BY ObjectIndex ASC", jcr->JobIds);
    
    /* restore_object_handler is called for each file found */

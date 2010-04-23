@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2007-2008 Free Software Foundation Europe e.V.
+   Copyright (C) 2007-2010 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -30,7 +30,6 @@
  *
  *  by Kern Sibbald
  *
- *   Version $Id: $
  */
 
 
@@ -348,7 +347,7 @@ bool BSOCK::send()
       }
       return false;
    }
-   if (msglen > 1000000) {
+   if (msglen > 4000000) {
       if (!m_suppress_error_msgs) {
          Qmsg4(m_jcr, M_ERROR, 0,
             _("Socket has insane msglen=%d on call to %s:%s:%d\n"),

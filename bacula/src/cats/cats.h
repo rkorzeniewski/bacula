@@ -944,6 +944,7 @@ struct ROBJECT_DBR {
    char *object;
    char *plugin_name;
    uint32_t object_len;
+   uint32_t object_full_len;
    uint32_t object_index;
    int32_t  object_compression;
    uint32_t FileIndex;

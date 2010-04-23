@@ -40,7 +40,7 @@
 #include "bacula.h"
 #include "find.h"
 
-static const int dbglvl = 150;
+static const int dbglvl = 450;
 
 int32_t name_max;              /* filename max length */
 int32_t path_max;              /* path name max length */
