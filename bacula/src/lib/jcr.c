@@ -633,7 +633,7 @@ void JCR::my_thread_send_signal(int sig)
       pthread_kill(this->my_thread_id, sig);
 
    } else if (!this->my_thread_running) {
-      Dmsg1(0, "Warning, can't send kill to jid=%d\n", this->JobId);
+      Dmsg1(10, "Warning, can't send kill to jid=%d\n", this->JobId);
    }
    this->unlock();
 }
