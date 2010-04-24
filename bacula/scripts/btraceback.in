@@ -43,4 +43,5 @@ SunOS)
    PNAME="${PNAME} on `hostname`"
    cat ${WD}/bacula.$2.traceback \
     | @sbindir@/bsmtp -h @smtp_host@ -f @dump_email@ -s "Bacula GDB traceback of ${PNAME}" @dump_email@
+   ;;
 esac
