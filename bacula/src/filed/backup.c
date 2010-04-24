@@ -1106,7 +1106,7 @@ bool encode_and_send_attributes(JCR *jcr, FF_PKT *ff_pkt, int &data_stream)
    BSOCK *sd = jcr->store_bsock;
    char attribs[MAXSTRING];
    char attribsExBuf[MAXSTRING];
-   char *attribsEx;
+   char *attribsEx = NULL;
    int attr_stream;
    int comp_len;
    bool stat;
@@ -1360,7 +1360,7 @@ static void close_vss_backup_session(JCR *jcr)
          }
       }
       WCHAR *metadata = g_pVSSClient->GetMetadata();
-      if (metatdata) {
+      if (metadata) {
          FF_PKT *ff_pkt = jcr->ff;
          ff_pkt->fname = "job";
          ff_pkt->type = FT_RESTORE_FIRST;
