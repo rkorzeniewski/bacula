@@ -1,33 +1,45 @@
 # btraceback.dbx
 
-echo "******** RUNNING LWPS/THREADS:"
+dbxenv language_mode c++
+
+echo "exename ==> \c"; print -l (char *)exename
+echo "exepath ==> \c"; print -l (char *)exepath
+echo "catalog_db ==> \c"; print -l (char *)catalog_db
+echo "version ==> \c"; print -l (char *)version
+echo "host_os ==> \c"; print -l (char *)host_os
+echo "distname ==> \c"; print -l (char *)distname
+echo "distver ==> \c"; print -l (char *)distver
+echo "dist_name ==> \c"; print -l (char *)dist_name
+echo "beef ==> \c"; print -l (int)dist_name
+
+echo "******** RUNNING THREADS:"
 echo
-lwps
+threads
 
 echo
 echo
-echo "******** STACK TRACE OF CURRENT LWP:"
+echo "******** STACK TRACE OF CURRENT THREAD:"
 echo
 where
 
 echo
 echo
-echo "******** VARIABLES DUMP OF CURRENT LWP:"
+echo "******** VARIABLES DUMP OF CURRENT THREAD:"
 echo
 dump
 
-for LWP in 1 2 3 4 5 6 7 8; do
+for THREAD in $(threads | sh sed -e 's/.*@//' -e 's/ .*//'); do
 	(
-	if lwp l@$LWP; then
+	if thread t@$THREAD; then
 		echo 
 		echo 
-		echo "******** STACK TRACE OF LWP ${LWP}:"
+		echo "******** STACK TRACE OF THREAD ${THREAD}:"
 		echo
 		where
 
 		echo
 		echo
-		echo "******** VARIABLES DUMP OF LWP ${LWP}:"
+		echo "******** VARIABLES DUMP OF THREAD ${THREAD}:"
 		echo
 		dump
 		
