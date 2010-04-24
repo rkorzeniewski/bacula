@@ -12,38 +12,37 @@ echo "distver ==> \c"; print -l (char *)distver
 echo "dist_name ==> \c"; print -l (char *)dist_name
 echo "beef ==> \c"; print -l (int)beef
 
-echo "******** RUNNING THREADS:"
+echo "******** RUNNING THREADS/LWPS:"
 echo
-threads
+lwps
 
 echo
 echo
-echo "******** STACK TRACE OF CURRENT THREAD:"
+echo "******** STACK TRACE OF CURRENT THREAD/LWP:"
 echo
 where
 
 echo
 echo
-echo "******** VARIABLES DUMP OF CURRENT THREAD:"
+echo "******** VARIABLES DUMP OF CURRENT THREAD/LWP:"
 echo
 dump
 
-for THREAD in $(threads | sh sed -e 's/.*@//' -e 's/ .*//'); do
-	(
-	if thread t@$THREAD; then
-		echo 
-		echo 
-		echo "******** STACK TRACE OF THREAD ${THREAD}:"
-		echo
-		where
+for LWP in $(lwps | sh sed -e 's/.*@//' -e 's/ .*//'); do
+(
+   if lwp l@$LWP; then
+      echo "******************************************"
+      echo
+      echo "******** STACK TRACE OF THREAD/LWP ${LWP}:"
+      echo
+      where
 
-		echo
-		echo
-		echo "******** VARIABLES DUMP OF THREAD ${THREAD}:"
-		echo
-		dump
-		
-	fi
-	)
+      echo
+      echo "******** VARIABLES DUMP OF THREAD/LWP ${LWP}:"
+      echo
+      dump
+      echo "******************************************"
+   fi
+)
 done
 quit
