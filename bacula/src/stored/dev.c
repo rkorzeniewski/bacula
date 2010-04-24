@@ -353,6 +353,7 @@ DEVICE::open(DCR *dcr, int omode)
       }
    }
    if (dcr) {
+      dcr->setVolCatName(dcr->VolumeName);
       VolCatInfo = dcr->VolCatInfo;    /* structure assign */
    }
 
