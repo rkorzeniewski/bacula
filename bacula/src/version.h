@@ -1,8 +1,8 @@
 
 #undef  VERSION
 #define VERSION "5.1.4"
-#define BDATE   "09 April 2010"
-#define LSMDATE "09Apr10"
+#define BDATE   "24 April 2010"
+#define LSMDATE "24Apr10"
 
 #define PROG_COPYRIGHT "Copyright (C) %d-2010 Free Software Foundation Europe e.V.\n"
 #define BYEAR "2010"       /* year for copyright messages in progs */
@@ -137,6 +137,7 @@
 /* #define TRACE_RES 1 */
 /* #define DEBUG_MEMSET 1 */
 /* #define DEBUG_MUTEX 1 */
+#define BEEF 0
 
 /*
  * Set SMALLOC_SANITY_CHECK to zero to turn off, otherwise
