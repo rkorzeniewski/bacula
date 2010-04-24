@@ -7,6 +7,8 @@ print host_os
 print distname
 print distver
 print host_name
+print dist_name
+print beef
 bt
 thread apply all bt
 f 0
