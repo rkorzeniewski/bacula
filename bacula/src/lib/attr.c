@@ -37,6 +37,8 @@
 #include "jcr.h"
 #include "lib/breg.h"
 
+static const int dbglvl = 150;
+
 ATTR *new_attr(JCR *jcr)
 {
    ATTR *attr = (ATTR *)malloc(sizeof(ATTR));
@@ -74,13 +76,13 @@ int unpack_attributes_record(JCR *jcr, int32_t stream, char *rec, int32_t reclen
     *
     */
    attr->stream = stream;
-   Dmsg1(400, "Attr: %s\n", rec);
+   Dmsg1(dbglvl, "Attr: %s\n", rec);
    if (sscanf(rec, "%d %d", &attr->file_index, &attr->type) != 2) {
       Jmsg(jcr, M_FATAL, 0, _("Error scanning attributes: %s\n"), rec);
-      Dmsg1(100, "\nError scanning attributes. %s\n", rec);
+      Dmsg1(dbglvl, "\nError scanning attributes. %s\n", rec);
       return 0;
    }
-   Dmsg2(400, "Got Attr: FilInx=%d type=%d\n", attr->file_index, attr->type);
+   Dmsg2(dbglvl, "Got Attr: FilInx=%d type=%d\n", attr->file_index, attr->type);
    if (attr->type & AR_DATA_STREAM) {
       attr->data_stream = 1;
    } else {
@@ -120,7 +122,7 @@ int unpack_attributes_record(JCR *jcr, int32_t stream, char *rec, int32_t reclen
          attr->data_stream = (int32_t)val;
       }
    }
-   Dmsg7(400, "unpack_attr FI=%d Type=%d fname=%s attr=%s lname=%s attrEx=%s ds=%d\n",
+   Dmsg7(dbglvl, "unpack_attr FI=%d Type=%d fname=%s attr=%s lname=%s attrEx=%s ds=%d\n",
       attr->file_index, attr->type, attr->fname, attr->attr, attr->lname,
       attr->attrEx, attr->data_stream);
    *attr->ofname = 0;
@@ -254,7 +256,7 @@ void print_ls_output(JCR *jcr, ATTR *attr)
    if (attr->type == FT_DELETED) { /* TODO: change this to get last seen values */
       bsnprintf(buf, sizeof(buf),
                 "----------   - -        -                - ---------- --------  %s\n", attr->ofname);
-      Dmsg1(20, "%s", buf);
+      Dmsg1(dbglvl, "%s", buf);
       Jmsg(jcr, M_RESTORED, 1, "%s", buf);
       return;
    }
@@ -287,6 +289,6 @@ void print_ls_output(JCR *jcr, ATTR *attr)
    }
    *p++ = '\n';
    *p = 0;
-   Dmsg1(20, "%s", buf);
+   Dmsg1(dbglvl, "%s", buf);
    Jmsg(jcr, M_RESTORED, 1, "%s", buf);
 }
