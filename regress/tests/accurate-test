@@ -21,12 +21,14 @@ cp tmp/1 $conf/bacula-fd.conf
 change_jobname BackupClient1 $JobName
 
 p() {
-    echo "##############################################" >> ${cwd}/tmp/log1.out
-    echo "$*" >> ${cwd}/tmp/log1.out
-    echo "##############################################" >> ${cwd}/tmp/log2.out
-    echo "$*" >> ${cwd}/tmp/log2.out
-    echo "##############################################"
-    echo "$*"
+   echo "##############################################" >> ${cwd}/tmp/log1.out
+   echo "$*" >> ${cwd}/tmp/log1.out
+   echo "##############################################" >> ${cwd}/tmp/log2.out
+   echo "$*" >> ${cwd}/tmp/log2.out
+   if test "$debug" -eq 1 ; then
+      echo "##############################################"
+      echo "$*"
+   fi
 }
 
 # cleanup
