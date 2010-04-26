@@ -152,7 +152,7 @@ check_two_logs
 check_restore_diff
 
 # get InChanger flag
-RES=`awk -F'|' '/vol20.+Full/ { print $11 }' ${cwd}/tmp/log3.out`
+RES=`awk -F'|' '/vol20 .+(Full|Append)/ { print $11 }' ${cwd}/tmp/log3.out`
 set $RES
 if [ $1 -eq $2 ]; then
     print_debug "ERROR: Error in update slots"
