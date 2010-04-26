@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2009 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2010 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -30,7 +30,6 @@
  *
  *  Kern Sibbald, 2000-2007.  June 2007
  *
- *   Version $Id$
  */
 
 #include "bacula.h"                   /* pull in global headers */
@@ -251,6 +250,7 @@ void DEVICE::r_dlock(bool locked)
  */
 void _block_device(const char *file, int line, DEVICE *dev, int state)
 {
+// ASSERT(lmgr_mutex_is_locked(&dev->m_mutex) == 1);
    ASSERT(dev->blocked() == BST_NOT_BLOCKED);
    dev->set_blocked(state);           /* make other threads wait */
    dev->no_wait_id = pthread_self();  /* allow us to continue */
@@ -265,7 +265,9 @@ void _block_device(const char *file, int line, DEVICE *dev, int state)
 void _unblock_device(const char *file, int line, DEVICE *dev)
 {
    Dmsg3(sd_dbglvl, "unblock %s from %s:%d\n", dev->print_blocked(), file, line);
+// ASSERT(lmgr_mutex_is_locked(&dev->m_mutex) == 1);
    ASSERT(dev->blocked());
+// ASSERT(dev->no_wait_id == pthread_self());
    dev->set_blocked(BST_NOT_BLOCKED);
    clear_thread_id(dev->no_wait_id);
    if (dev->num_waiting > 0) {
