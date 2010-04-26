@@ -267,7 +267,6 @@ void _unblock_device(const char *file, int line, DEVICE *dev)
    Dmsg3(sd_dbglvl, "unblock %s from %s:%d\n", dev->print_blocked(), file, line);
 // ASSERT(lmgr_mutex_is_locked(&dev->m_mutex) == 1);
    ASSERT(dev->blocked());
-// ASSERT(dev->no_wait_id == pthread_self());
    dev->set_blocked(BST_NOT_BLOCKED);
    clear_thread_id(dev->no_wait_id);
    if (dev->num_waiting > 0) {
