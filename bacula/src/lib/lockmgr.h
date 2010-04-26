@@ -86,6 +86,12 @@ int bthread_mutex_lock_p(bthread_mutex_t *m,
 int bthread_mutex_unlock_p(bthread_mutex_t *m, 
                            const char *file="*unknown*", int line=0);
 
+/*  Test if this mutex is locked by the current thread
+ *     0 - not locked by the current thread
+ *     1 - locked by the current thread
+ */
+int lmgr_mutex_is_locked(void *m);
+                   
 /* 
  * Use them when you want use your lock yourself (ie rwlock)
  */
@@ -208,6 +214,8 @@ int lmgr_thread_create(pthread_t *thread,
 # define BTHREAD_MUTEX_PRIORITY(p)      PTHREAD_MUTEX_INITIALIZER
 # define BTHREAD_MUTEX_NO_PRIORITY      PTHREAD_MUTEX_INITIALIZER
 # define BTHREAD_MUTEX_INITIALIZER      PTHREAD_MUTEX_INITIALIZER
+# define lmgr_mutex_is_locked(m)        (1)
+
 #endif  /* _USE_LOCKMGR */
 
 #endif  /* _LOCKMGR_H */
