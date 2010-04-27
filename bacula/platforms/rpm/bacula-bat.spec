@@ -1,12 +1,12 @@
 # Bacula RPM spec file
 #
-# Copyright (C) 2000-2009 Free Software Foundation Europe e.V.
+# Copyright (C) 2000-2010 Free Software Foundation Europe e.V.
 
 # Platform Build Configuration
 
 # basic defines for every build
 %define _release           1
-%define _version           5.0.1
+%define _version           5.0.2
 %define depkgs_qt_version  28Jul09
 
 # this is the QT version in depkgs_qt
@@ -71,16 +71,16 @@
 %define mdk 0
 
 %if %{_vendor} == redhat
-	%define fedora 1
-	%define _dist %(cat /etc/redhat-release)
+        %define fedora 1
+        %define _dist %(cat /etc/redhat-release)
 %endif
 %if %{_vendor} == suse
-	%define suse 1
-	%define _dist %(grep -i SuSE /etc/SuSE-release)
+        %define suse 1
+        %define _dist %(grep -i SuSE /etc/SuSE-release)
 %endif
 %if %{_vendor} == Mandriva
-	%define mdk 1
-	%define _dist %(grep Mand /etc/mandrake-release)
+        %define mdk 1
+        %define _dist %(grep Mand /etc/mandrake-release)
 %endif
 %if ! %{fedora} && ! %{suse} && ! %{mdk}
 %{error: Unknown platform. Please examine the spec file.}
