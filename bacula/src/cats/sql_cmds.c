@@ -954,7 +954,7 @@ const char *sql_media_order_most_recently_written[5] = {
    /* SQLite3 */
    "ORDER BY LastWritten IS NULL,LastWritten DESC,MediaId",
    /* Ingres */
-   "ORDER BY IFNULL(LastWritten, '') DESC,MediaId"
+   "ORDER BY IFNULL(LastWritten, '1970-01-01 00:00:00') DESC,MediaId"
 };
 
 const char *sql_get_max_connections[5] = {
