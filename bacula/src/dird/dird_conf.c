@@ -964,8 +964,8 @@ next_run:
               edit_uint64(res->res_pool.MigrationHighBytes, ed2),
               edit_uint64(res->res_pool.MigrationLowBytes, ed3));
       sendit(sock, _("      JobRetention=%s FileRetention=%s\n"),
-         edit_utime(res->res_client.JobRetention, ed1, sizeof(ed1)),
-         edit_utime(res->res_client.FileRetention, ed2, sizeof(ed2)));
+         edit_utime(res->res_pool.JobRetention, ed1, sizeof(ed1)),
+         edit_utime(res->res_pool.FileRetention, ed2, sizeof(ed2)));
       if (res->res_pool.NextPool) {
          sendit(sock, _("      NextPool=%s\n"), res->res_pool.NextPool->name());
       }
