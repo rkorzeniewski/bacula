@@ -8,6 +8,10 @@ scripts/cleanup
 scripts/copy-test-confs
 echo "${cwd}/build/technotes" >${cwd}/tmp/file-list
 
+# increase the maximum concurrent jobs for FD, SD and DIR
+perl -Mscripts::functions -e 'set_maximum_concurent_jobs("$conf/bacula-dir.conf",100)'
+perl -Mscripts::functions -e 'set_maximum_concurent_jobs("$conf/bacula-sd.conf",100)'
+perl -Mscripts::functions -e 'set_maximum_concurent_jobs("$conf/bacula-fd.conf",100)'
 
 # extract a Job and add a runscript on it
 perl -Mscripts::functions \
@@ -36,7 +40,7 @@ echo 's%CompressedTest%CancelRunningDuplicatesNo%' > $outf
 echo 's%Backup%Backup; AllowDuplicateJobs = no;CancelLowerLevelDuplicates=no;CancelQueuedDuplicates=no; CancelRunningDuplicates=no%' >> $outf
 sed -f $outf $tmp/1 >> $conf/bacula-dir.conf
 
-when=`perl -MPOSIX -e "print strftime('%F %T', localtime(time+300))"`
+when=`perl -Mscripts::functions -e "get_time(300)"`
 
 start_test
       
@@ -149,17 +153,24 @@ stop_bacula
 touch $tmp/log2.out
 check_two_logs
 
-grep '^| [0-9]' $tmp/log7.out > /dev/null
+grep '^| *[0-9]' $tmp/log7.out > /dev/null
 if [ $? = 0 ]; then
-    print_debug "E: Found errors in $tmp/log7.out"
+    print_debug "ERROR: Found errors in $tmp/log7.out"
     print_debug `cat $tmp/log7.out`
     estat=1
 fi
 
-grep '^| [0-9]' $tmp/log8.out > /dev/null
+grep '^| *[0-9]' $tmp/log8.out > /dev/null
 if [ $? = 0 ]; then
-    print_debug "E: Found errors in $tmp/log8.out"
+    print_debug "ERROR: Found errors in $tmp/log8.out"
     print_debug `cat $tmp/log8.out`
+    estat=1
+fi
+
+nb=`grep '^| *[0-9]' $tmp/log9.out | wc -l`
+if [ $nb -lt 10 ]; then
+    print_debug "ERROR: no enough results in $tmp/log9.out"
+    print_debug `cat $tmp/log9.out`
     estat=1
 fi
 
