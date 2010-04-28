@@ -8,15 +8,12 @@ scripts/cleanup
 scripts/copy-test-confs
 echo "${cwd}/build/technotes" >${cwd}/tmp/file-list
 
-# increase the maximum concurrent jobs for FD, SD and DIR
-perl -Mscripts::functions -e 'set_maximum_concurent_jobs("$conf/bacula-dir.conf",100)'
-perl -Mscripts::functions -e 'set_maximum_concurent_jobs("$conf/bacula-sd.conf",100)'
-perl -Mscripts::functions -e 'set_maximum_concurent_jobs("$conf/bacula-fd.conf",100)'
 
 # extract a Job and add a runscript on it
 perl -Mscripts::functions \
     -e "extract_resource('$conf/bacula-dir.conf', 'Job', 'CompressedTest')" \
     | sed 's%Standard%Standard; ClientRunBeforeJob="sleep 6"%' > $tmp/1
+
 
 outf="$tmp/sed_tmp"
 echo 's%CompressedTest%AllowDuplicateYes%' > $outf
@@ -39,14 +36,7 @@ echo 's%CompressedTest%CancelRunningDuplicatesNo%' > $outf
 echo 's%Backup%Backup; AllowDuplicateJobs = no;CancelLowerLevelDuplicates=no;CancelQueuedDuplicates=no; CancelRunningDuplicates=no%' >> $outf
 sed -f $outf $tmp/1 >> $conf/bacula-dir.conf
 
-for i in `seq 1 40`; do
-    echo "s%CompressedTest%CancelLowerLevelDuplicatesYes-$i%" > $outf
-    echo 's%Backup%Backup; AllowDuplicateJobs = no; CancelLowerLevelDuplicates=yes%' >> $outf
-    echo 's%sleep 6%sleep 20%' >> $outf
-    sed -f $outf $tmp/1 >> $conf/bacula-dir.conf
-done
-
-when=`perl -Mscripts::functions -e "get_time(300)"`
+when=`perl -MPOSIX -e "print strftime('%F %T', localtime(time+300))"`
 
 start_test
       
@@ -60,141 +50,90 @@ label storage=File volume=TestVolume001
 @##############################################
 @# AllowDuplicates = Yes, both jobs should work
 @##############################################
-@# comment="Should work"
-run  level=Full job=AllowDuplicateYes yes
+run comment="Should work" level=Full job=AllowDuplicateYes yes
 @sleep 2
-@# comment="Should work"
-run  level=Full job=AllowDuplicateYes yes
+run comment="Should work" level=Full job=AllowDuplicateYes yes
 wait
 messages
 @$out $tmp/log3.out
 @###############################################################
 @# Run two jobs with the same level and see wich one is canceled
 @###############################################################
-@# comment="Should work"
-run  level=Full job=CancelLowerLevelDuplicatesYes yes
+run comment="Should work" level=Full job=CancelLowerLevelDuplicatesYes yes
 @sleep 2
-@# comment="Should fail"
-run  level=Full job=CancelLowerLevelDuplicatesYes yes
+run comment="Should fail" level=Full job=CancelLowerLevelDuplicatesYes yes
 wait
 messages
 @####################################################################
 @# Run two jobs with the different level and see wich one is canceled
 @####################################################################
-@# comment="Should fail"
-run  level=Incremental job=CancelLowerLevelDuplicatesYes yes
+run comment="Should fail" level=Incremental job=CancelLowerLevelDuplicatesYes yes
 @sleep 2
-@# comment="Should work"
-run  level=Full job=CancelLowerLevelDuplicatesYes yes
+run comment="Should work" level=Full job=CancelLowerLevelDuplicatesYes yes
 wait
 messages
-@# comment="Should fail"
-run  level=Differential job=CancelLowerLevelDuplicatesYes yes
+run comment="Should fail" level=Differential job=CancelLowerLevelDuplicatesYes yes
 @sleep 2
-@# comment="Should work"
-run  level=Full job=CancelLowerLevelDuplicatesYes yes
+run comment="Should work" level=Full job=CancelLowerLevelDuplicatesYes yes
 wait
 messages
-@# comment="Should work"
-run  level=Differential job=CancelLowerLevelDuplicatesYes yes
+run comment="Should work" level=Differential job=CancelLowerLevelDuplicatesYes yes
 @sleep 2
-@# comment="Should fail"
-run  level=Incremental job=CancelLowerLevelDuplicatesYes yes
+run comment="Should fail" level=Incremental job=CancelLowerLevelDuplicatesYes yes
 wait
 messages
 @#####################################################################################
 @# Run two jobs with the different level and see wich one is canceled (reversed order)
 @#####################################################################################
-@# comment="Should work"
-run  level=Full job=CancelLowerLevelDuplicatesYes yes
+run comment="Should work" level=Full job=CancelLowerLevelDuplicatesYes yes
 @sleep 2
-@# comment="Should fail"
-run  level=Incremental job=CancelLowerLevelDuplicatesYes yes
+run comment="Should fail" level=Incremental job=CancelLowerLevelDuplicatesYes yes
 wait
 messages
 @$out $tmp/log4.out
 @####################################################################
 @# Run two jobs, the second one can't cancel the 1st, and should fail
 @####################################################################
-@# comment="Should work"
-run  level=Full job=CancelQueueDuplicatesYes yes
+run comment="Should work" level=Full job=CancelQueueDuplicatesYes yes
 @sleep 2
-@# comment="Should fail"
-run  level=Full job=CancelQueueDuplicatesYes yes
+run comment="Should fail" level=Full job=CancelQueueDuplicatesYes yes
 wait
 messages
 @#################################################################
 @# The first job should stay queued, the second one will cancel it
 @#################################################################
-@# comment="Should fail"
-run  level=Full job=CancelQueueDuplicatesYes when="$when" yes
+run comment="Should fail" level=Full job=CancelQueueDuplicatesYes when="$when" yes
 @sleep 2
-@# comment="Should work"
-run  level=Full job=CancelQueueDuplicatesYes yes
+run comment="Should work" level=Full job=CancelQueueDuplicatesYes yes
 wait
 messages
 @$out $tmp/log5.out
 @########################################
 @# The second job will kill the first one
 @########################################
-@# comment="Should fail"
-run  level=Full job=CancelRunningDuplicatesYes yes
+run comment="Should fail" level=Full job=CancelRunningDuplicatesYes yes
 @sleep 2
-@# comment="Should work"
-run  level=Full job=CancelRunningDuplicatesYes yes
+run comment="Should work" level=Full job=CancelRunningDuplicatesYes yes
 wait
 messages
 @$out $tmp/log6.out
 @##########################
 @# The second job won't run
 @##########################
-@# comment="Should work"
-run  level=Full job=CancelRunningDuplicatesNo yes
+run comment="Should work" level=Full job=CancelRunningDuplicatesNo yes
 @sleep 2
-@# comment="Should fail"
-run  level=Full job=CancelRunningDuplicatesNo yes
+run comment="Should fail" level=Full job=CancelRunningDuplicatesNo yes
 wait
 messages
-@$out $tmp/log61.out
-@##########################
-@# run a bunch of job
-@##########################
-END_OF_DATA
-
-for i in `seq 1 30`; do
-  cat <<EOF  >>${cwd}/tmp/bconcmds 
-run comment="Should work" level=Full job=CancelLowerLevelDuplicatesYes-$i yes
-EOF
-done
-
-echo "wait" >> ${cwd}/tmp/bconcmds
-echo "messages" >> ${cwd}/tmp/bconcmds
-
-for i in `seq 1 30`; do
-  cat <<EOF >>${cwd}/tmp/bconcmds
-run comment="Should fail" level=Incremental job=CancelLowerLevelDuplicatesYes-$i yes
-EOF
-done
-
-echo "@sleep 5" >> ${cwd}/tmp/bconcmds
-
-for i in `seq 1 30`; do
-  cat <<EOF >>${cwd}/tmp/bconcmds
-run comment="Should work" level=Full job=CancelLowerLevelDuplicatesYes-$i yes
-EOF
-done
-
-echo "wait" >> ${cwd}/tmp/bconcmds
-echo "messages" >> ${cwd}/tmp/bconcmds
-
-cat <<END_OF_DATA >>${cwd}/tmp/bconcmds
 @$out $tmp/log7.out
 sql
-SELECT JobId, Job FROM Job WHERE JobId IN (1,2,3,6,8,9,11,13,16,18,19) AND JobStatus != 'T';
+SELECT JobId, Name, Level, Comment, JobStatus from Job 
+WHERE Comment='Should fail' and JobStatus='T' ORDER By JobId;
 
 @$out $tmp/log8.out
 sql
-SELECT JobId, Job FROM Job WHERE JobId IN (4,5,7,10,12,14,15,17,20) AND JobStatus = 'T';
+SELECT JobId, Name, Level, Comment, JobStatus from Job
+WHERE Comment='Should work' and JobStatus != 'T' ORDER By JobId;
 
 @$out $tmp/log9.out
 sql
@@ -210,24 +149,17 @@ stop_bacula
 touch $tmp/log2.out
 check_two_logs
 
-grep '^| *[0-9]' $tmp/log7.out > /dev/null
+grep '^| [0-9]' $tmp/log7.out > /dev/null
 if [ $? = 0 ]; then
-    print_debug "ERROR: Found errors in $tmp/log7.out"
+    print_debug "E: Found errors in $tmp/log7.out"
     print_debug `cat $tmp/log7.out`
     estat=1
 fi
 
-grep '^| *[0-9]' $tmp/log8.out > /dev/null
+grep '^| [0-9]' $tmp/log8.out > /dev/null
 if [ $? = 0 ]; then
-    print_debug "ERROR: Found errors in $tmp/log8.out"
+    print_debug "E: Found errors in $tmp/log8.out"
     print_debug `cat $tmp/log8.out`
-    estat=1
-fi
-
-nb=`grep '^| *[0-9]' $tmp/log9.out | wc -l`
-if [ $nb -lt 80 ]; then
-    print_debug "ERROR: no enough results in $tmp/log9.out"
-    print_debug `cat $tmp/log9.out`
     estat=1
 fi
 
