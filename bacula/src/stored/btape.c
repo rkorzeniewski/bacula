@@ -2552,6 +2552,7 @@ static bool do_unfill()
    if (compare_blocks(last_block, block)) {
       if (simple) {
          Pmsg0(-1, _("\nThe last block on the tape matches. Test succeeded.\n\n"));
+         rc = true;
       } else {
          Pmsg0(-1, _("\nThe last block of the first tape matches.\n\n"));
       }
