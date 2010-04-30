@@ -742,6 +742,49 @@ const char *create_deltabs[5] = {
    "ON COMMIT PRESERVE ROWS WITH NORECOVERY"
 };
 
+/* ======= ua_purge.c */
+
+/* Select the first available Copy Job that must be upgraded to a Backup job when the original backup job is expired. */
+
+const char *uap_upgrade_copies_oldest_job[5] = {
+   /* Mysql */
+   "CREATE TEMPORARY TABLE cpy_tmp AS "
+   "SELECT MIN(JobId) AS JobId FROM Job "
+   "WHERE Type='%c' AND (PriorJobId IN (%s) OR PriorJobId IN ( "
+   "SELECT PriorJobId FROM Job "
+   "WHERE JobId IN (%s) AND Type='B' ))"
+   "GROUP BY PriorJobId",
+   /* Postgresql */
+   "CREATE TEMPORARY TABLE cpy_tmp AS "
+   "SELECT MIN(JobId) AS JobId FROM Job "
+   "WHERE Type='%c' AND (PriorJobId IN (%s) OR PriorJobId IN ( "
+   "SELECT PriorJobId FROM Job "
+   "WHERE JobId IN (%s) AND Type='B' ))"
+   "GROUP BY PriorJobId",
+   /* SQLite */
+   "CREATE TEMPORARY TABLE cpy_tmp AS "
+   "SELECT MIN(JobId) AS JobId FROM Job "
+   "WHERE Type='%c' AND (PriorJobId IN (%s) OR PriorJobId IN ( "
+   "SELECT PriorJobId FROM Job "
+   "WHERE JobId IN (%s) AND Type='B' ))"
+   "GROUP BY PriorJobId",
+   /* SQLite3 */
+   "CREATE TEMPORARY TABLE cpy_tmp AS "
+   "SELECT MIN(JobId) AS JobId FROM Job "
+   "WHERE Type='%c' AND (PriorJobId IN (%s) OR PriorJobId IN ( "
+   "SELECT PriorJobId FROM Job "
+   "WHERE JobId IN (%s) AND Type='B' ))"
+   "GROUP BY PriorJobId",
+   /* Ingres */
+   "DECLARE GLOBAL TEMPORARY TABLE cpy_tmp AS "
+   "SELECT MIN(JobId) AS JobId FROM Job "
+   "WHERE Type='%c' AND (PriorJobId IN (%s) OR PriorJobId IN ( "
+   "SELECT PriorJobId FROM Job "
+   "WHERE JobId IN (%s) AND Type='B' ))"
+   "GROUP BY PriorJobId "
+   "ON COMMIT PRESERVE ROWS WITH NORECOVERY"
+};
+
 /* ======= ua_restore.c */
 
 /* List Jobs where a particular file is saved */

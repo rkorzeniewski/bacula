@@ -387,21 +387,8 @@ void upgrade_copies(UAContext *ua, char *jobs)
    POOL_MEM query(PM_MESSAGE);
    
    db_lock(ua->db);
-   /* Do it in two times for mysql */
-   Mmsg(query, "CREATE TEMPORARY TABLE cpy_tmp AS "
-                  "SELECT MIN(JobId) AS JobId FROM Job "     /* Choose the oldest job */
-                   "WHERE Type='%c' "
-                     "AND ( PriorJobId IN (%s) "
-                         "OR "
-                          " PriorJobId IN ( "
-                             "SELECT PriorJobId "
-                               "FROM Job "
-                              "WHERE JobId IN (%s) "
-                               " AND Type='B' "
-                            ") "
-                         ") "
-                   "GROUP BY PriorJobId ",           /* one result per copy */
-        JT_JOB_COPY, jobs, jobs);
+
+   Mmsg(query, uap_upgrade_copies_oldest_job[db_type], JT_JOB_COPY, jobs, jobs);
    db_sql_query(ua->db, query.c_str(), NULL, (void *)NULL);
    Dmsg1(050, "Upgrade copies Log sql=%s\n", query.c_str());
 

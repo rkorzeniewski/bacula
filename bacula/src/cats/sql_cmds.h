@@ -78,6 +78,7 @@ extern const char CATS_IMP_EXP *select_recent_version_with_basejob[5];
 extern const char CATS_IMP_EXP *create_temp_basefile[5];
 extern const char CATS_IMP_EXP *create_temp_new_basefile[5];
 extern const char CATS_IMP_EXP *create_deltabs[5];
+extern const char CATS_IMP_EXP *uap_upgrade_copies_oldest_job[5];
 
 extern const char CATS_IMP_EXP *uar_file[5];
 extern const char CATS_IMP_EXP *uar_create_temp[5];
