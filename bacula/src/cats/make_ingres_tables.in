@@ -79,6 +79,7 @@ CREATE INDEX file_jobid_idx ON File(jobid);
 CREATE SEQUENCE RestoreObject_Seq;
 CREATE TABLE RestoreObject (
    RestoreObjectId	INTEGER 	NOT NULL DEFAULT RestoreObject_Seq.nextval,
+   ObjectName		VARBYTE(128)	NOT NULL,
    RestoreObject	BLOB		NOT NULL,
    PluginName		VARBYTE(128)	NOT NULL,
    ObjectLength 	INTEGER 	DEFAULT 0,
