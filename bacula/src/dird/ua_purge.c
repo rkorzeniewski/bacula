@@ -388,12 +388,13 @@ void upgrade_copies(UAContext *ua, char *jobs)
    
    db_lock(ua->db);
 
+   /* Do it in two times for mysql */
    Mmsg(query, uap_upgrade_copies_oldest_job[db_type], JT_JOB_COPY, jobs, jobs);
    db_sql_query(ua->db, query.c_str(), NULL, (void *)NULL);
    Dmsg1(050, "Upgrade copies Log sql=%s\n", query.c_str());
 
    /* Now upgrade first copy to Backup */
-   Mmsg(query, "UPDATE Job SET Type='B' "           /* JT_JOB_COPY => JT_BACKUP  */
+   Mmsg(query, "UPDATE Job SET Type='B' "      /* JT_JOB_COPY => JT_BACKUP  */
                 "WHERE JobId IN ( SELECT JobId FROM cpy_tmp )");
 
    db_sql_query(ua->db, query.c_str(), NULL, (void *)NULL);

@@ -746,42 +746,44 @@ const char *create_deltabs[5] = {
 
 /* Select the first available Copy Job that must be upgraded to a Backup job when the original backup job is expired. */
 
+const char *uap_upgrade_copies_oldest_job_default = 
+"CREATE TEMPORARY TABLE cpy_tmp AS "
+       "SELECT MIN(JobId) AS JobId FROM Job "     /* Choose the oldest job */
+        "WHERE Type='%c' "                        /* JT_JOB_COPY */
+          "AND ( PriorJobId IN (%s) "             /* JobId selection */
+              "OR "
+               " PriorJobId IN ( "
+                  "SELECT PriorJobId "
+                    "FROM Job "
+                   "WHERE JobId IN (%s) "         /* JobId selection */
+                    " AND Type='B' "
+                 ") "
+              ") "
+          "GROUP BY PriorJobId ";           /* one result per copy */
+
 const char *uap_upgrade_copies_oldest_job[5] = {
    /* Mysql */
-   "CREATE TEMPORARY TABLE cpy_tmp AS "
-   "SELECT MIN(JobId) AS JobId FROM Job "
-   "WHERE Type='%c' AND (PriorJobId IN (%s) OR PriorJobId IN ( "
-   "SELECT PriorJobId FROM Job "
-   "WHERE JobId IN (%s) AND Type='B' ))"
-   "GROUP BY PriorJobId",
+   uap_upgrade_copies_oldest_job_default,
    /* Postgresql */
-   "CREATE TEMPORARY TABLE cpy_tmp AS "
-   "SELECT MIN(JobId) AS JobId FROM Job "
-   "WHERE Type='%c' AND (PriorJobId IN (%s) OR PriorJobId IN ( "
-   "SELECT PriorJobId FROM Job "
-   "WHERE JobId IN (%s) AND Type='B' ))"
-   "GROUP BY PriorJobId",
+   uap_upgrade_copies_oldest_job_default,
    /* SQLite */
-   "CREATE TEMPORARY TABLE cpy_tmp AS "
-   "SELECT MIN(JobId) AS JobId FROM Job "
-   "WHERE Type='%c' AND (PriorJobId IN (%s) OR PriorJobId IN ( "
-   "SELECT PriorJobId FROM Job "
-   "WHERE JobId IN (%s) AND Type='B' ))"
-   "GROUP BY PriorJobId",
+   uap_upgrade_copies_oldest_job_default,
    /* SQLite3 */
-   "CREATE TEMPORARY TABLE cpy_tmp AS "
-   "SELECT MIN(JobId) AS JobId FROM Job "
-   "WHERE Type='%c' AND (PriorJobId IN (%s) OR PriorJobId IN ( "
-   "SELECT PriorJobId FROM Job "
-   "WHERE JobId IN (%s) AND Type='B' ))"
-   "GROUP BY PriorJobId",
+   uap_upgrade_copies_oldest_job_default,
    /* Ingres */
    "DECLARE GLOBAL TEMPORARY TABLE cpy_tmp AS "
-   "SELECT MIN(JobId) AS JobId FROM Job "
-   "WHERE Type='%c' AND (PriorJobId IN (%s) OR PriorJobId IN ( "
-   "SELECT PriorJobId FROM Job "
-   "WHERE JobId IN (%s) AND Type='B' ))"
-   "GROUP BY PriorJobId "
+       "SELECT MIN(JobId) AS JobId FROM Job "     /* Choose the oldest job */
+        "WHERE Type='%c' "                        /* JT_JOB_COPY */
+          "AND ( PriorJobId IN (%s) "             /* JobId selection */
+              "OR "
+               " PriorJobId IN ( "
+                  "SELECT PriorJobId "
+                    "FROM Job "
+                   "WHERE JobId IN (%s) "         /* JobId selection */
+                    " AND Type='B' "
+                 ") "
+              ") "
+          "GROUP BY PriorJobId "           /* one result per copy */
    "ON COMMIT PRESERVE ROWS WITH NORECOVERY"
 };
 
