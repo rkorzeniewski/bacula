@@ -49,6 +49,7 @@ case "$1" in
        ;;
     status)
        /sbin/checkproc @sbindir@/bacula-sd
+       RETVAL=$?
        rc_status -v
        ;;
     *)
@@ -56,4 +57,4 @@ case "$1" in
        exit 1
        ;;
 esac
-exit 0
+exit $RETVAL
