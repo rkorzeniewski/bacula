@@ -61,10 +61,11 @@ case "$1" in
        ;;
     status)
        status @sbindir@/bacula-fd
+       RETVAL=$?
        ;;
     *)
        echo "Usage: $0 {start|stop|restart|status}"
        exit 1
        ;;
 esac
-exit 0
+exit $RETVAL
