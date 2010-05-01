@@ -1200,6 +1200,7 @@ else
    OPENSSL_LIBS=""
    OPENSSL_INC=""
 fi
+AC_MSG_RESULT([$support_tls])
 
 if test "$support_tls" = "no"; then
    OPENSSL_LIBS=""
@@ -1212,7 +1213,6 @@ else
    AC_CHECK_LIB(ssl, EVP_PKEY_encrypt_old, AC_DEFINE(HAVE_OPENSSLv1, 1, [Set if have OpenSSL version 1.x]))
 fi  
 
-AC_MSG_RESULT([$support_tls])
 AC_SUBST(OPENSSL_LIBS)
 AC_SUBST(OPENSSL_INC)
 
