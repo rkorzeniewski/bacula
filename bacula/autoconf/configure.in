@@ -2401,12 +2401,13 @@ AC_CHECK_LIB(intl, gettext, [LIBS="$LIBS -lintl"])
 AC_CHECK_LIB(sun, getpwnam)
 
 AC_CHECK_HEADERS(zlib.h)
-AC_CHECK_LIB(z, deflate, [FDLIBS="-lz"])
+AC_CHECK_LIB(z, deflate, [ZLIBS="-lz"])
 have_zlib=no
-if test x$FDLIBS = x-lz; then
+if test x$ZLIBS = x-lz; then
    AC_DEFINE(HAVE_LIBZ)
    have_zlib=yes
 fi
+AC_SUBST(ZLIBS)
 
 dnl
 dnl Check for ACL support and libraries
