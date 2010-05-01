@@ -1228,7 +1228,10 @@ bail_out:
 bool db_create_restore_object_record(JCR *jcr, B_DB *mdb, ROBJECT_DBR *ro)
 {
    bool stat;
-   POOLMEM *esc_obj = get_pool_memory(PM_MESSAGE); 
+   int plug_name_len;
+   POOLMEM *esc_obj = get_pool_memory(PM_MESSAGE);
+   POOLMEM *esc_plug_name = get_pool_memory(PM_MESSAGE);
+
    db_lock(mdb);
 
    Dmsg1(dbglevel, "Oname=%s\n", ro->object_name);
@@ -1241,12 +1244,17 @@ bool db_create_restore_object_record(JCR *jcr, B_DB *mdb, ROBJECT_DBR *ro)
    esc_obj = check_pool_memory_size(esc_obj, ro->object_len*2+1);
    db_escape_string(jcr, mdb, esc_obj, ro->object, ro->object_len);
 
+   plug_name_len = strlen(ro->plugin_name);
+   esc_plug_name = check_pool_memory_size(esc_plug_name, plug_name_len*2+1);
+   db_escape_string(jcr, mdb, esc_plug_name, ro->plugin_name, plug_name_len);
+
    Mmsg(mdb->cmd,
-        "INSERT INTO RestoreObject (ObjectName,RestoreObject,"
+        "INSERT INTO RestoreObject (ObjectName,PluginName,RestoreObject,"
         "ObjectLength,ObjectFullLength,ObjectIndex,ObjectType,"
         "ObjectCompression,FileIndex,JobId) "
-        "VALUES ('%s','%s',%d,%d,%d,%d,%d,%d,%u)",
-        mdb->esc_name, esc_obj, ro->object_len, ro->object_full_len, ro->object_index, 
+        "VALUES ('%s','%s','%s',%d,%d,%d,%d,%d,%d,%u)",
+        mdb->esc_name, esc_plug_name, esc_obj,
+        ro->object_len, ro->object_full_len, ro->object_index, 
         FT_RESTORE_FIRST, ro->object_compression, ro->FileIndex, ro->JobId);
 
    ro->RestoreObjectId = sql_insert_autokey_record(mdb, mdb->cmd, NT_("RestoreObject"));
@@ -1260,6 +1268,7 @@ bool db_create_restore_object_record(JCR *jcr, B_DB *mdb, ROBJECT_DBR *ro)
    }
    db_unlock(mdb);
    free_pool_memory(esc_obj);
+   free_pool_memory(esc_plug_name);
    return stat;
 }
 
