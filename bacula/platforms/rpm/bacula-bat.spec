@@ -71,16 +71,16 @@
 %define mdk 0
 
 %if %{_vendor} == redhat
-	%define fedora 1
-	%define _dist %(cat /etc/redhat-release)
+        %define fedora 1
+        %define _dist %(cat /etc/redhat-release)
 %endif
 %if %{_vendor} == suse
-	%define suse 1
-	%define _dist %(grep -i SuSE /etc/SuSE-release)
+        %define suse 1
+        %define _dist %(grep -i SuSE /etc/SuSE-release)
 %endif
 %if %{_vendor} == Mandriva
-	%define mdk 1
-	%define _dist %(grep Mand /etc/mandrake-release)
+        %define mdk 1
+        %define _dist %(grep Mand /etc/mandrake-release)
 %endif
 %if ! %{fedora} && ! %{suse} && ! %{mdk}
 %{error: Unknown platform. Please examine the spec file.}
@@ -129,7 +129,7 @@ BuildRequires: freetype-devel
 %define depkgs_qt ../depkgs-qt
 
 # define the basic package description
-%define blurb Bacula - It comes by night and sucks the vital essence from your computers.
+%define blurb Bacula - The Leading Open Source Backup Solution.
 %define blurb2 Bacula is a set of computer programs that permit you (or the system
 %define blurb3 administrator) to manage backup, recovery, and verification of computer
 %define blurb4 data across a network of computers of different kinds. In technical terms,
