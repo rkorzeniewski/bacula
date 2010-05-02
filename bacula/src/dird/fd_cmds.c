@@ -672,7 +672,6 @@ static int restore_object_handler(void *ctx, int num_fields, char **row)
 {
    JCR *jcr = (JCR *)ctx;
    BSOCK *fd;
-   POOLMEM *msg_save;
 
    fd = jcr->file_bsock;
    if (jcr->is_job_canceled()) {
@@ -683,17 +682,27 @@ static int restore_object_handler(void *ctx, int num_fields, char **row)
 
    Dmsg1(000, "Send obj hdr=%s", fd->msg);
 
-   msg_save = fd->msg;
-   fd->msg = row[7] ? row[7] : (char *)"";
-   fd->msglen = strlen(fd->msg);
+   fd->msglen = pm_strcpy(fd->msg, row[7]);
    fd->send();                            /* send Object name */
+
    Dmsg1(000, "Send obj: %s\n", fd->msg);
 
-   fd->msg = row[8] ? row[8] : (char *)""; /* object */
-   fd->msglen = str_to_uint64(row[1]);   /* object length */
+//   fd->msglen = str_to_uint64(row[1]);   /* object length */
+//   Dmsg1(000, "obj size: %lld\n", (uint64_t)fd->msglen);
+
+   /* object */
+   db_unescape_object(jcr, jcr->db, 
+                      row[8],                /* Object  */
+                      str_to_uint64(row[1]), /* Object length */
+                      &fd->msg, &fd->msglen);
    fd->send();                           /* send object */
-// Dmsg1(000, "Send obj: %s\n", fd->msg);
-   fd->msg = msg_save;
+
+   if (debug_level) {
+      for (int i=0; i < fd->msglen; i++)
+         if (!fd->msg[i]) 
+            fd->msg[i] = ' ';
+      Dmsg1(000, "Send obj: %s\n", fd->msg);
+   }
 
    return 0;
 }
@@ -707,9 +716,12 @@ bool send_restore_objects(JCR *jcr)
    if (!jcr->JobIds || !jcr->JobIds[0]) {
       return true;
    }
-   Mmsg(query, "SELECT JobId,ObjectLength,ObjectFullLength,ObjectIndex,ObjectType,"
-        "ObjectCompression,FileIndex,ObjectName,RestoreObject FROM RestoreObject "
-        "WHERE JobId IN (%s) ORDER BY ObjectIndex ASC", jcr->JobIds);
+   Mmsg(query, "SELECT JobId,ObjectLength,ObjectFullLength,ObjectIndex,"
+                      "ObjectType,ObjectCompression,FileIndex,ObjectName,"
+                      "RestoreObject "
+               "FROM RestoreObject "
+              "WHERE JobId IN (%s) "
+              "ORDER BY ObjectIndex ASC", jcr->JobIds);
    
    /* restore_object_handler is called for each file found */
    db_sql_query(jcr->db, query.c_str(), restore_object_handler, (void *)jcr);

@@ -1229,7 +1229,6 @@ bool db_create_restore_object_record(JCR *jcr, B_DB *mdb, ROBJECT_DBR *ro)
 {
    bool stat;
    int plug_name_len;
-   POOLMEM *esc_obj = get_pool_memory(PM_MESSAGE);
    POOLMEM *esc_plug_name = get_pool_memory(PM_MESSAGE);
 
    db_lock(mdb);
@@ -1241,8 +1240,7 @@ bool db_create_restore_object_record(JCR *jcr, B_DB *mdb, ROBJECT_DBR *ro)
    mdb->esc_name = check_pool_memory_size(mdb->esc_name, mdb->fnl*2+1);
    db_escape_string(jcr, mdb, mdb->esc_name, ro->object_name, mdb->fnl);
    
-   esc_obj = check_pool_memory_size(esc_obj, ro->object_len*2+1);
-   db_escape_string(jcr, mdb, esc_obj, ro->object, ro->object_len);
+   db_escape_object(jcr, mdb, ro->object, ro->object_len);
 
    plug_name_len = strlen(ro->plugin_name);
    esc_plug_name = check_pool_memory_size(esc_plug_name, plug_name_len*2+1);
@@ -1253,7 +1251,7 @@ bool db_create_restore_object_record(JCR *jcr, B_DB *mdb, ROBJECT_DBR *ro)
         "ObjectLength,ObjectFullLength,ObjectIndex,ObjectType,"
         "ObjectCompression,FileIndex,JobId) "
         "VALUES ('%s','%s','%s',%d,%d,%d,%d,%d,%d,%u)",
-        mdb->esc_name, esc_plug_name, esc_obj,
+        mdb->esc_name, esc_plug_name, mdb->esc_obj,
         ro->object_len, ro->object_full_len, ro->object_index, 
         FT_RESTORE_FIRST, ro->object_compression, ro->FileIndex, ro->JobId);
 
@@ -1267,7 +1265,6 @@ bool db_create_restore_object_record(JCR *jcr, B_DB *mdb, ROBJECT_DBR *ro)
       stat = true;
    }
    db_unlock(mdb);
-   free_pool_memory(esc_obj);
    free_pool_memory(esc_plug_name);
    return stat;
 }

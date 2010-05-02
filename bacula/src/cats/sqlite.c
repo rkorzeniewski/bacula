@@ -131,6 +131,7 @@ db_init_database(JCR *jcr, const char *db_name, const char *db_user, const char 
    mdb->path = get_pool_memory(PM_FNAME);
    mdb->esc_name = get_pool_memory(PM_FNAME);
    mdb->esc_path = get_pool_memory(PM_FNAME);
+   mdb->esc_obj  = get_pool_memory(PM_FNAME);
    mdb->allow_transactions = mult_db_connections;
    db_list->append(mdb);
    V(mutex);
@@ -258,6 +259,7 @@ db_close_database(JCR *jcr, B_DB *mdb)
       free_pool_memory(mdb->path);
       free_pool_memory(mdb->esc_name);
       free_pool_memory(mdb->esc_path);
+      free_pool_memory(mdb->esc_obj);
       if (mdb->db_name) {
          free(mdb->db_name);
       }
@@ -299,6 +301,61 @@ int db_next_index(JCR *jcr, B_DB *mdb, char *table, char *index)
    return 1;
 }
 
+/*
+ * Escape binary object so that SQLite is happy
+ * Memory is stored in B_DB struct, no need to free it
+ *
+ * TODO: this should be implemented  (escape \0)
+ */
+char *
+db_escape_object(JCR *jcr, B_DB *db, char *old, int len)
+{
+   char *n, *o;
+
+   n = mdb->esc_obj = check_pool_memory_size(mdb->esc_obj, len*2+1);
+   o = old;
+   while (len--) {
+      switch (*o) {
+      case '\'':
+         *n++ = '\'';
+         *n++ = '\'';
+         o++;
+         break;
+      case 0:
+         *n++ = '\\';
+         *n++ = 0;
+         o++;
+         break;
+      default:
+         *n++ = *o++;
+         break;
+      }
+   }
+   *n = 0;
+   return mdb->esc_obj;
+}
+
+/*
+ * Unescape binary object so that SQLIte is happy
+ * Memory is stored in B_DB struct, no need to free it
+ *
+ * TODO: need to be implemented (escape \0)
+ */
+void
+db_unescape_object(JCR *jcr, B_DB *db, 
+                   char *from, int32_t expected_len, 
+                   POOLMEM **dest, int32_t *dest_len)
+{
+   if (!from) {
+      *dest[0] = 0;
+      *dest_len = 0;
+      return;
+   }
+   *dest = check_pool_memory_size(*dest, expected_len+1);
+   *dest_len = expected_len;
+   memcpy(*dest, from, expected_len);
+   (*dest)[expected_len]=0;
+}
 
 /*
  * Escape strings so that SQLite is happy

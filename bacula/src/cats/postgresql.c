@@ -126,7 +126,7 @@ db_init_database(JCR *jcr, const char *db_name, const char *db_user, const char 
    mdb->fname          = get_pool_memory(PM_FNAME);
    mdb->path           = get_pool_memory(PM_FNAME);
    mdb->esc_name       = get_pool_memory(PM_FNAME);
-   mdb->esc_path      = get_pool_memory(PM_FNAME);
+   mdb->esc_path       = get_pool_memory(PM_FNAME);
    mdb->allow_transactions = mult_db_connections;
    db_list->append(mdb);                   /* put db in list */
    V(mutex);
@@ -290,6 +290,9 @@ db_close_database(JCR *jcr, B_DB *mdb)
       if (mdb->db_socket) {
          free(mdb->db_socket);
       }
+      if (mdb->esc_obj) {
+         PQfreemem(mdb->esc_obj);
+      }
       free(mdb);
       if (db_list->size() == 0) {
          delete db_list;
@@ -327,6 +330,61 @@ int db_next_index(JCR *jcr, B_DB *mdb, char *table, char *index)
    return 1;
 }
 
+/*
+ * Escape binary so that PostgreSQL is happy
+ *
+ */
+char *
+db_escape_object(JCR *jcr, B_DB *mdb, char *old, int len)
+{
+   size_t new_len;
+   if (mdb->esc_obj) {
+      PQfreemem(mdb->esc_obj);
+   }
+
+   mdb->esc_obj = PQescapeByteaConn(mdb->db, (unsigned const char *)old,
+                                    len, &new_len);
+
+   if (!mdb->esc_obj) {
+      Jmsg(jcr, M_FATAL, 0, _("PQescapeByteaConn returned NULL.\n"));
+   }
+
+   return (char *)mdb->esc_obj;
+}
+
+/*
+ * Unescape binary object so that PostgreSQL is happy
+ *
+ */
+void
+db_unescape_object(JCR *jcr, B_DB *mdb, 
+                   char *from, int32_t expected_len,
+                   POOLMEM **dest, int32_t *dest_len)
+{
+   size_t new_len;
+   unsigned char *obj;
+
+   if (!from) {
+      *dest[0] = 0;
+      *dest_len = 0;
+      return;
+   }
+
+   obj = PQunescapeBytea((unsigned const char *)from, &new_len);
+
+   if (!obj) {
+      Jmsg(jcr, M_FATAL, 0, _("PQunescapeByteaConn returned NULL.\n"));
+   }
+
+   *dest_len = new_len;
+   *dest = check_pool_memory_size(*dest, new_len+1);
+   memcpy(*dest, obj, new_len);
+   (*dest)[new_len]=0;
+   
+   PQfreemem(obj);
+
+   Dmsg1(000, "obj size: %d\n", *dest_len);
+}
 
 /*
  * Escape strings so that PostgreSQL is happy
@@ -653,7 +711,7 @@ static int my_postgresql_currval(B_DB *mdb, const char *table_name)
 
 bail_out:
    PQclear(result);
-
+   
    return id;
 }
 

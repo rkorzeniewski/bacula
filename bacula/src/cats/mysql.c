@@ -125,6 +125,7 @@ db_init_database(JCR *jcr, const char *db_name, const char *db_user, const char 
    mdb->path = get_pool_memory(PM_FNAME);
    mdb->esc_name = get_pool_memory(PM_FNAME);
    mdb->esc_path = get_pool_memory(PM_FNAME);
+   mdb->esc_obj = get_pool_memory(PM_FNAME);
    mdb->allow_transactions = mult_db_connections;
    db_list->append(mdb);                   /* put db in list */
    Dmsg3(100, "initdb ref=%d connected=%d db=%p\n", mdb->ref_count,
@@ -253,6 +254,7 @@ db_close_database(JCR *jcr, B_DB *mdb)
       free_pool_memory(mdb->path);
       free_pool_memory(mdb->esc_name);
       free_pool_memory(mdb->esc_path);
+      free_pool_memory(mdb->esc_obj);
       if (mdb->db_name) {
          free(mdb->db_name);
       }
@@ -315,6 +317,36 @@ int db_next_index(JCR *jcr, B_DB *mdb, char *table, char *index)
    return 1;
 }
 
+/*
+ * Escape binary object so that MySQL is happy
+ * Memory is stored in B_DB struct, no need to free it
+ */
+char *
+db_escape_object(JCR *jcr, B_DB *db, char *old, int len)
+{
+   mdb->esc_obj = check_pool_memory_size(mdb->esc_obj, len*2+1);
+   mysql_real_escape_string(mdb->db, mdb->esc_obj, old, len);
+   return mdb->esc_obj;
+}
+
+/*
+ * Unescape binary object so that MySQL is happy
+ */
+void
+db_unescape_object(JCR *jcr, B_DB *db, 
+                   char *from, int32_t expected_len, 
+                   POOLMEM **dest, int32_t *dest_len)
+{
+   if (!from) {
+      *dest[0] = 0;
+      *dest_len = 0;
+      return;
+   }
+   *dest = check_pool_memory_size(*dest, expected_len+1);
+   *dest_len = expected_len;
+   memcpy(*dest, from, expected_len);
+   (*dest)[expected_len]=0;
+}
 
 /*
  * Escape strings so that MySQL is happy

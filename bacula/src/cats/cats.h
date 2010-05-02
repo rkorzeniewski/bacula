@@ -149,6 +149,7 @@ struct B_DB {
    POOLMEM *path;                     /* Path only */
    POOLMEM *esc_name;                 /* Escaped file name */
    POOLMEM *esc_path;                 /* Escaped path name */
+   POOLMEM *esc_obj;                  /* Escaped restore object */
    int fnl;                           /* file name length */
    int pnl;                           /* path name length */
 };
@@ -270,6 +271,7 @@ struct B_DB {
    POOLMEM *path;                     /* Path only */
    POOLMEM *esc_name;                 /* Escaped file name */
    POOLMEM *esc_path;                 /* Escaped path name */
+   POOLMEM *esc_obj;                  /* Escaped restore object */
    int fnl;                           /* file name length */
    int pnl;                           /* path name length */
 };
@@ -374,6 +376,7 @@ struct B_DB {
    POOLMEM *path;                     /* Path only */
    POOLMEM *esc_name;                 /* Escaped file name */
    POOLMEM *esc_path;                 /* Escaped path name */
+   POOLMEM *esc_obj;                  /* Escaped restore object */
    int fnl;                           /* file name length */
    int pnl;                           /* path name length */
 };
@@ -478,6 +481,7 @@ struct B_DB {
    POOLMEM *path;                 /* Path only */
    POOLMEM *esc_name;             /* Escaped file name */
    POOLMEM *esc_path;             /* Escaped path name */
+   unsigned char *esc_obj;        /* Escaped restore object */
    int fnl;                       /* file name length */
    int pnl;                       /* path name length */
 };
@@ -715,6 +719,7 @@ struct B_DB {
    POOLMEM *path;                 /* Path only */
    POOLMEM *esc_name;             /* Escaped file name */
    POOLMEM *esc_path;             /* Escaped path name */
+   POOLMEM *esc_obj;              /* Escaped restore object */
    int fnl;                       /* file name length */
    int pnl;                       /* path name length */
 };

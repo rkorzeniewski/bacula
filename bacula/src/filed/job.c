@@ -2083,6 +2083,7 @@ static int restore_cmd(JCR *jcr)
    if (jcr->VSS) {
       if (g_pVSSClient->InitializeForRestore(jcr, vss_restore_init_callback,
             (WCHAR *)jcr->job_metadata)) {
+
          /* inform user about writer states */
          int i;
          for (i=0; i < (int)g_pVSSClient->GetWriterCount(); i++) {
@@ -2097,6 +2098,11 @@ static int restore_cmd(JCR *jcr)
             }
          }
       } else {
+/*
+   int fd = open("C:\\eric.xml", O_CREAT | O_WRONLY | O_TRUNC, 0777);
+   write(fd, (WCHAR *)jcr->job_metadata, wcslen((WCHAR *)jcr->job_metadata) * sizeof(WCHAR));
+   close(fd);
+*/
          berrno be;
          Jmsg(jcr, M_WARNING, 0, _("VSS was not initialized properly. VSS support is disabled. ERR=%s\n"), be.bstrerror());
       }
