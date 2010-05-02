@@ -337,7 +337,6 @@ db_escape_object(JCR *jcr, B_DB *db, char *old, int len)
 
 /*
  * Unescape binary object so that SQLIte is happy
- * Memory is stored in B_DB struct, no need to free it
  *
  * TODO: need to be implemented (escape \0)
  */
