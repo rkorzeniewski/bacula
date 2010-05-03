@@ -121,6 +121,8 @@ bool load_plugins(void *binfo, void *bfuncs, const char *plugin_dir,
    }
    entry = (struct dirent *)malloc(sizeof(struct dirent) + name_max + 1000);
    for ( ;; ) {
+      plugin = NULL;            /* Start from a fresh plugin */
+
       if ((readdir_r(dp, entry, &result) != 0) || (result == NULL)) {
          if (!found) {
             Jmsg(NULL, M_WARNING, 0, _("Failed to find any plugins in %s\n"), 
