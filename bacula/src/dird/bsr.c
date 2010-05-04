@@ -279,7 +279,7 @@ static void display_vol_info(UAContext *ua, RESTORE_CTX &rx, JobId_t JobId)
             } else {
                online = ' ';
             }
-            Mmsg(volmsg, "%c%-25.25s %-25.25s %-25.25s", 
+            Mmsg(volmsg, "%c%-25s %-25s %-25s", 
                  online, bsr->VolParams[i].VolumeName,
                  bsr->VolParams[i].Storage, Device);
             add_prompt(ua, volmsg.c_str());
