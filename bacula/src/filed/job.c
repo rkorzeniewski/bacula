@@ -1810,8 +1810,8 @@ static int backup_cmd(JCR *jcr)
                /* inform user about writer states */
                for (i=0; i < (int)g_pVSSClient->GetWriterCount(); i++)                
                   if (g_pVSSClient->GetWriterState(i) < 1) {
-                     Jmsg(jcr, M_WARNING, 0, _("VSS Writer (PrepareForBackup): %s\n"), g_pVSSClient->GetWriterInfo(i));                    
-                     jcr->JobErrors++;
+                     Jmsg(jcr, M_INFO, 0, _("VSS Writer (PrepareForBackup): %s\n"), g_pVSSClient->GetWriterInfo(i));                    
+                     //jcr->JobErrors++;
                   }                            
             }
         } else {
@@ -2087,14 +2087,9 @@ static int restore_cmd(JCR *jcr)
          /* inform user about writer states */
          int i;
          for (i=0; i < (int)g_pVSSClient->GetWriterCount(); i++) {
-            int msg_type = M_INFO;
             if (g_pVSSClient->GetWriterState(i) < 1) {
-               msg_type = M_WARNING;
-               jcr->JobErrors++;
-            }
-            if (g_pVSSClient->GetWriterState(i) < 1) {
-               Jmsg(jcr, M_WARNING, 0, _("VSS Writer (PreRestore): %s\n"), g_pVSSClient->GetWriterInfo(i));
-               jcr->JobErrors++;
+               Jmsg(jcr, M_INFO, 0, _("VSS Writer (PreRestore): %s\n"), g_pVSSClient->GetWriterInfo(i));
+               //jcr->JobErrors++;
             }
          }
       } else {
@@ -2142,8 +2137,8 @@ static int restore_cmd(JCR *jcr)
          for (int i=0; i<(int)g_pVSSClient->GetWriterCount(); i++) {
             int msg_type = M_INFO;
             if (g_pVSSClient->GetWriterState(i) < 1) {
-               msg_type = M_WARNING;
-               jcr->JobErrors++;
+               //msg_type = M_WARNING;
+               //jcr->JobErrors++;
             }
             Jmsg(jcr, msg_type, 0, _("VSS Writer (RestoreComplete): %s\n"), g_pVSSClient->GetWriterInfo(i));
          }
