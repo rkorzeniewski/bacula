@@ -53,11 +53,13 @@ make clean
 make -j3
 check_exit_code
 make install
-rm -rf examples patches
-check_exit_code
-# eliminate non-essential directories to reduce
-#   size.  Otherwise regress run too long
-rm -rf src/win32 examples patches
+if [ a$KEEP_SOURCE = a ]; then
+   rm -rf examples patches
+   check_exit_code
+   # eliminate non-essential directories to reduce
+   #   size.  Otherwise regress run too long
+   rm -rf src/win32 examples patches
+fi
 # get all tools -- especially testls
 cd src/tools
 make installall
