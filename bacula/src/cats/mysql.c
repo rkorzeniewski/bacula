@@ -322,7 +322,7 @@ int db_next_index(JCR *jcr, B_DB *mdb, char *table, char *index)
  * Memory is stored in B_DB struct, no need to free it
  */
 char *
-db_escape_object(JCR *jcr, B_DB *db, char *old, int len)
+db_escape_object(JCR *jcr, B_DB *mdb, char *old, int len)
 {
    mdb->esc_obj = check_pool_memory_size(mdb->esc_obj, len*2+1);
    mysql_real_escape_string(mdb->db, mdb->esc_obj, old, len);
