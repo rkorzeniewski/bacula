@@ -72,6 +72,7 @@ static bRC baculaAddWild(bpContext *ctx, const char *item, int type);
 static bRC baculaNewOptions(bpContext *ctx);
 static bRC baculaNewInclude(bpContext *ctx);
 static bool is_plugin_compatible(Plugin *plugin);
+static bool get_plugin_name(JCR *jcr, char *cmd, int *ret);
 
 /*
  * These will be plugged into the global pointer structure for
@@ -140,9 +141,24 @@ void generate_plugin_event(JCR *jcr, bEventType eventType, void *value)
    bEvent event;
    Plugin *plugin;
    int i = 0;
+   char *name=NULL;
+   int len;
+   bRC rc;
 
    if (!plugin_list || !jcr || !jcr->plugin_ctx_list || jcr->is_job_canceled()) {
       return;                         /* Return if no plugins loaded */
+   }
+   
+   /* Some events are sent to only a particular plugin */
+   switch(eventType) {
+   case bEventPluginCommand:
+      name = (char *)value;
+      if (!get_plugin_name(jcr, name, &len)) {
+         return;
+      }
+      break;
+   default:
+      break;
    }
 
    bpContext *plugin_ctx_list = (bpContext *)jcr->plugin_ctx_list;
@@ -150,9 +166,12 @@ void generate_plugin_event(JCR *jcr, bEventType eventType, void *value)
 
    Dmsg2(dbglvl, "plugin_ctx=%p JobId=%d\n", jcr->plugin_ctx_list, jcr->JobId);
 
-   /* Pass event to every plugin */
+   /* Pass event to every plugin (except if name is set) */
    foreach_alist(plugin, plugin_list) {
-      bRC rc;
+      if (name && strncmp(plugin->file, name, len) != 0) {
+         i++;
+         continue;
+      }
       jcr->plugin_ctx = &plugin_ctx_list[i++];
       jcr->plugin = plugin;
       if (is_plugin_disabled(jcr)) {
@@ -207,6 +226,26 @@ bool plugin_check_file(JCR *jcr, char *fname)
    return rc == bRC_Seen;
 }
 
+static bool get_plugin_name(JCR *jcr, char *cmd, int *ret)
+{
+   char *p;
+   int len;
+   if (!cmd) {
+      return false;
+   }
+   /* Handle plugin command here backup */
+   Dmsg1(dbglvl, "plugin cmd=%s\n", cmd);
+   if (!(p = strchr(cmd, ':'))) {
+      Jmsg1(jcr, M_ERROR, 0, "Malformed plugin command: %s\n", cmd);
+      return false;
+   }
+   len = p - cmd;
+   if (len <= 0) {
+      return false;
+   }
+   *ret = len;
+   return true;
+}
 
 /**  
  * Sequence of calls for a backup:
@@ -228,7 +267,6 @@ int plugin_save(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
    Plugin *plugin;
    int i = 0;
    int len;
-   char *p;
    char *cmd = ff_pkt->top_fname;
    struct save_pkt sp;
    bEvent event;
@@ -244,14 +282,7 @@ int plugin_save(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
    bpContext *plugin_ctx_list = (bpContext *)jcr->plugin_ctx_list;
    event.eventType = bEventBackupCommand;
 
-   /* Handle plugin command here backup */
-   Dmsg1(dbglvl, "plugin cmd=%s\n", cmd);
-   if (!(p = strchr(cmd, ':'))) {
-      Jmsg1(jcr, M_ERROR, 0, "Malformed plugin command: %s\n", cmd);
-      goto bail_out;
-   }
-   len = p - cmd;
-   if (len <= 0) {
+   if (!get_plugin_name(jcr, cmd, &len)) {
       goto bail_out;
    }
 

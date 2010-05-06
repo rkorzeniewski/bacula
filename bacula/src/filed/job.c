@@ -734,6 +734,22 @@ static bool init_fileset(JCR *jcr)
    return true;
 }
 
+static void append_file(JCR *jcr, findINCEXE *incexe, 
+                        const char *buf, bool is_file)
+{
+   if (is_file) {
+      incexe->name_list.append(new_dlistString(buf));
+
+   } else if (me->plugin_directory) {
+      generate_plugin_event(jcr, bEventPluginCommand, (void *)buf);
+      incexe->plugin_list.append(new_dlistString(buf));
+
+   } else {
+      Jmsg(jcr, M_FATAL, 0, 
+           _("Plugin Directory not defined. Cannot use plugin: \"%s\"\n"),
+           buf);
+   }
+}
 
 /**
  * Add fname to include/exclude fileset list. First check for
@@ -768,11 +784,7 @@ void add_file_to_fileset(JCR *jcr, const char *fname, bool is_file)
       free_pool_memory(fn);
       while (fgets(buf, sizeof(buf), bpipe->rfd)) {
          strip_trailing_junk(buf);
-         if (is_file) {
-            fileset->incexe->name_list.append(new_dlistString(buf));
-         } else {
-            fileset->incexe->plugin_list.append(new_dlistString(buf));
-         }
+         append_file(jcr, fileset->incexe, buf, is_file);
       }
       if ((stat=close_bpipe(bpipe)) != 0) {
          berrno be;
@@ -786,32 +798,19 @@ void add_file_to_fileset(JCR *jcr, const char *fname, bool is_file)
       p++;                      /* skip over < */
       if ((ffd = fopen(p, "rb")) == NULL) {
          berrno be;
-         Jmsg(jcr, M_FATAL, 0, _("Cannot open FileSet input file: %s. ERR=%s\n"),
+         Jmsg(jcr, M_FATAL, 0, 
+              _("Cannot open FileSet input file: %s. ERR=%s\n"),
             p, be.bstrerror());
          return;
       }
       while (fgets(buf, sizeof(buf), ffd)) {
          strip_trailing_junk(buf);
-         Dmsg1(100, "%s\n", buf);
-         if (is_file) {
-            fileset->incexe->name_list.append(new_dlistString(buf));
-         } else {
-            fileset->incexe->plugin_list.append(new_dlistString(buf));
-         }
-   }
+         append_file(jcr, fileset->incexe, buf, is_file);
+      }
       fclose(ffd);
       break;
    default:
-      if (is_file) {
-         fileset->incexe->name_list.append(new_dlistString(fname));
-      } else {
-         if (me->plugin_directory) {
-            fileset->incexe->plugin_list.append(new_dlistString(fname));
-         } else {
-            Jmsg(jcr, M_FATAL, 0, _("Plugin Directory not defined. Cannot use plugin: \"%\"\n"),
-               fname);
-         }
-      }
+      append_file(jcr, fileset->incexe, fname, is_file);
       break;
    }
 }

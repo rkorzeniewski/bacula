@@ -197,7 +197,8 @@ typedef enum {
   bEventVssRestoreLoadComponentMetadata = 15,
   bEventVssRestoreSetComponentsSelected = 16,
   bEventRestoreObject                   = 17,
-  bEventEndFileSet                      = 18
+  bEventEndFileSet                      = 18,
+  bEventPluginCommand                   = 19
 } bEventType;
 
 typedef struct s_bEvent {
