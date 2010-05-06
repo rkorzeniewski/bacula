@@ -103,22 +103,28 @@ struct bacula_ctx {
    bool disabled;                        /* set if plugin disabled */
 };
 
-static bool is_plugin_disabled(JCR *jcr)
+static bool is_plugin_disabled(bpContext *plugin_ctx)
 {
    bacula_ctx *b_ctx;
-   if (!jcr->plugin_ctx) {
+   if (!plugin_ctx) {
       return true;
    }
-   b_ctx = (bacula_ctx *)jcr->plugin_ctx->bContext;
+   b_ctx = (bacula_ctx *)plugin_ctx->bContext;
    return b_ctx->disabled;
 }
 
+static bool is_plugin_disabled(JCR *jcr)
+{
+   return is_plugin_disabled(jcr->plugin_ctx);
+}
 
 /*
  * Create a plugin event 
+ * When receiving bEventCancelCommand, this function is called by an other thread. 
  */
 void generate_plugin_event(JCR *jcr, bEventType eventType, void *value)     
 {
+   bpContext *plugin_ctx;
    bEvent event;
    Plugin *plugin;
    int i = 0;
@@ -135,19 +141,15 @@ void generate_plugin_event(JCR *jcr, bEventType eventType, void *value)
    /* Pass event to every plugin */
    foreach_alist(plugin, plugin_list) {
       bRC rc;
-      jcr->plugin_ctx = &plugin_ctx_list[i++];
-      jcr->plugin = plugin;
-      if (is_plugin_disabled(jcr)) {
+      plugin_ctx = &plugin_ctx_list[i++];
+      if (is_plugin_disabled(plugin_ctx)) {
          continue;
       }
-      rc = plug_func(plugin)->handlePluginEvent(jcr->plugin_ctx, &event, value);
+      rc = plug_func(plugin)->handlePluginEvent(plugin_ctx, &event, value);
       if (rc != bRC_OK) {
          break;
       }
    }
-
-   jcr->plugin = NULL;
-   jcr->plugin_ctx = NULL;
    return;
 }
 
