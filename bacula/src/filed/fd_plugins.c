@@ -226,6 +226,11 @@ bool plugin_check_file(JCR *jcr, char *fname)
    return rc == bRC_Seen;
 }
 
+/* Get the first part of the the plugin command
+ *  systemstate:/@SYSTEMSTATE/ 
+ * => ret = 11
+ * => can use strncmp(plugin_name, cmd, ret);
+ */
 static bool get_plugin_name(JCR *jcr, char *cmd, int *ret)
 {
    char *p;
@@ -479,15 +484,7 @@ bool plugin_name_stream(JCR *jcr, char *name)
    /*
     * After this point, we are dealing with a restore start
     */
-
-// Dmsg1(dbglvl, "plugin restore cmd=%s\n", cmd);
-   if (!(p = strchr(cmd, ':'))) {
-      Jmsg1(jcr, M_ERROR, 0,
-           _("Malformed plugin command. Name not terminated by colon: %s\n"), cmd);
-      goto bail_out;
-   }
-   len = p - cmd;
-   if (len <= 0) {
+   if (!get_plugin_name(jcr, cmd, &len)) {
       goto bail_out;
    }
 
