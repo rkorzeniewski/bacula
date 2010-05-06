@@ -680,12 +680,12 @@ static int restore_object_handler(void *ctx, int num_fields, char **row)
    fd->fsend("restoreobject JobId=%s %s,%s,%s,%s,%s,%s\n",
       row[0], row[1], row[2], row[3], row[4], row[5], row[6]);
 
-   Dmsg1(000, "Send obj hdr=%s", fd->msg);
+   Dmsg1(010, "Send obj hdr=%s", fd->msg);
 
    fd->msglen = pm_strcpy(fd->msg, row[7]);
    fd->send();                            /* send Object name */
 
-   Dmsg1(000, "Send obj: %s\n", fd->msg);
+   Dmsg1(010, "Send obj: %s\n", fd->msg);
 
 //   fd->msglen = str_to_uint64(row[1]);   /* object length */
 //   Dmsg1(000, "obj size: %lld\n", (uint64_t)fd->msglen);

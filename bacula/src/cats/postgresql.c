@@ -383,7 +383,7 @@ db_unescape_object(JCR *jcr, B_DB *mdb,
    
    PQfreemem(obj);
 
-   Dmsg1(000, "obj size: %d\n", *dest_len);
+   Dmsg1(010, "obj size: %d\n", *dest_len);
 }
 
 /*
