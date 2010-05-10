@@ -91,6 +91,7 @@ static int runbeforenow_cmd(JCR *jcr);
 static int restore_object_cmd(JCR *jcr);
 static int set_options(findFOPTS *fo, const char *opts);
 static void set_storage_auth_key(JCR *jcr, char *key);
+static int sm_dump_cmd(JCR *jcr);
 
 /* Exported functions */
 
@@ -126,6 +127,7 @@ static struct s_cmds cmds[] = {
    {"Run",          runscript_cmd, 0},
    {"accurate",     accurate_cmd,  0},
    {"restoreobject", restore_object_cmd, 0},
+   {"sm_dump",      sm_dump_cmd, 0},
    {NULL,       NULL}                  /* list terminator */
 };
 
@@ -395,6 +397,14 @@ void *handle_client_request(void *dirp)
    Dmsg0(100, "Done with free_jcr\n");
    Dsm_check(1);
    return NULL;
+}
+
+static int sm_dump_cmd(JCR *jcr)
+{
+   BSOCK *dir = jcr->dir_bsock;
+   sm_dump(false, true);
+   dir->fsend("2000 sm_dump OK\n");
+   return 1;
 }
 
 /**
