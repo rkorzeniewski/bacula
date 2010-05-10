@@ -90,6 +90,7 @@ static int runafter_cmd(JCR *jcr);
 static int runbeforenow_cmd(JCR *jcr);
 static void set_options(findFOPTS *fo, const char *opts);
 static void set_storage_auth_key(JCR *jcr, char *key);
+static int sm_dump_cmd(JCR *jcr);
 
 /* Exported functions */
 
@@ -124,6 +125,8 @@ static struct s_cmds cmds[] = {
    {"RunAfterJob",  runafter_cmd,  0},
    {"Run",          runscript_cmd, 0},
    {"accurate",     accurate_cmd,  0},
+   {"restoreobject", restore_object_cmd, 0},
+   {"sm_dump",      sm_dump_cmd, 0},
    {NULL,       NULL}                  /* list terminator */
 };
 
@@ -387,7 +390,15 @@ void *handle_client_request(void *dirp)
    return NULL;
 }
 
-/*
+static int sm_dump_cmd(JCR *jcr)
+{
+   BSOCK *dir = jcr->dir_bsock;
+   sm_dump(false, true);
+   dir->fsend("2000 sm_dump OK\n");
+   return 1;
+}
+
+/**
  * Hello from Director he must identify himself and provide his
  *  password.
  */

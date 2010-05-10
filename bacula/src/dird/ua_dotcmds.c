@@ -52,7 +52,7 @@ extern bool dot_status_cmd(UAContext *ua, const char *cmd);
 
 
 /* Forward referenced functions */
-static bool diecmd(UAContext *ua, const char *cmd);
+static bool die_or_dump_cmd(UAContext *ua, const char *cmd);
 static bool jobscmd(UAContext *ua, const char *cmd);
 static bool filesetscmd(UAContext *ua, const char *cmd);
 static bool clientscmd(UAContext *ua, const char *cmd);
@@ -85,7 +85,8 @@ static struct cmdstruct commands[] = { /* help */  /* can be used in runscript *
  { NT_(".backups"),    backupscmd,       NULL,       false},
  { NT_(".clients"),    clientscmd,       NULL,       true},
  { NT_(".defaults"),   defaultscmd,      NULL,       false},
- { NT_(".die"),        diecmd,           NULL,       false},
+ { NT_(".die"),        die_or_dump_cmd,  NULL,       false},
+ { NT_(".dump"),       die_or_dump_cmd,  NULL,       false},
  { NT_(".exit"),       dot_quit_cmd,     NULL,       false},
  { NT_(".filesets"),   filesetscmd,      NULL,       false},
  { NT_(".help"),       dot_help_cmd,     NULL,       false},
@@ -106,7 +107,7 @@ static struct cmdstruct commands[] = { /* help */  /* can be used in runscript *
  { NT_(".bvfs_lsdirs"), dot_bvfs_lsdirs, NULL,       true},
  { NT_(".bvfs_lsfiles"),dot_bvfs_lsfiles,NULL,       true},
  { NT_(".bvfs_update"), dot_bvfs_update, NULL,       true},
- { NT_(".types"),      typescmd,         NULL,       false} 
+ { NT_(".types"),      typescmd,         NULL,       false}
              };
 #define comsize ((int)(sizeof(commands)/sizeof(struct cmdstruct)))
 
@@ -362,7 +363,7 @@ static bool getmsgscmd(UAContext *ua, const char *cmd)
 }
 
 #ifdef DEVELOPER
-static void do_storage_die(UAContext *ua, STORE *store)
+static void do_storage_cmd(UAContext *ua, STORE *store, const char *cmd)
 {
    BSOCK *sd;
    JCR *jcr = ua->jcr;
@@ -390,7 +391,7 @@ static void do_storage_die(UAContext *ua, STORE *store)
    return;
 }
 
-static void do_client_die(UAContext *ua, CLIENT *client)
+static void do_client_cmd(UAContext *ua, CLIENT *client, const char *cmd)
 {
    BSOCK *fd;
 
@@ -417,18 +418,27 @@ static void do_client_die(UAContext *ua, CLIENT *client)
 }
 
 /*
- * Create segmentation fault
+ * Create segmentation fault or dump memory
  */
-static bool diecmd(UAContext *ua, const char *cmd)
+static bool die_or_dump_cmd(UAContext *ua, const char *cmd)
 {
-   STORE *store;
-   CLIENT *client;
+   pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+   STORE *store=NULL;
+   CLIENT *client=NULL;
+   bool dir=false;
+   bool do_deadlock=false;
+   const char *remote_cmd="sm_dump";
    int i;
    JCR *jcr = NULL;
    int a;
-
-   Dmsg1(120, "diecmd:%s:\n", cmd);
-
+   if (!strncmp(ua->argk[0], ".die", 4)) {
+      if (find_arg(ua, "deadlock") > 0) {
+         do_deadlock=true;
+         remote_cmd = ".die deadlock";
+      } else {
+         remote_cmd = ".die";
+      }
+   }
    /* General debug? */
    for (i=1; i<ua->argc; i++) {
       if (strcasecmp(ua->argk[i], "dir") == 0 ||
@@ -473,34 +483,29 @@ static bool diecmd(UAContext *ua, const char *cmd)
          }
       }
    }
-   /*
-    * We didn't find an appropriate keyword above, so
-    * prompt the user.
-    */
-   start_prompt(ua, _("Available daemons are: \n"));
-   add_prompt(ua, _("Director"));
-   add_prompt(ua, _("Storage"));
-   add_prompt(ua, _("Client"));
-   switch(do_prompt(ua, "", _("Select daemon type to make die"), NULL, 0)) {
-   case 0:                         /* Director */
-      ua->send_msg(_("The Director will segment fault.\n"));
-      a = jcr->JobId; /* ref NULL pointer */
-      jcr->JobId = 1000; /* another ref NULL pointer */
-      break;
-   case 1:
-      store = get_storage_resource(ua, false/*no default*/);
-      if (store) {
-         do_storage_die(ua, store);
+
+   if (store) {
+      do_storage_cmd(ua, store, remote_cmd);
+   }
+
+   if (client) {
+      do_client_cmd(ua, client, remote_cmd);
+   }
+
+   if (dir) {
+      if (!strncmp(remote_cmd, ".die", 4)) {
+         if (do_deadlock) {
+            ua->send_msg(_("The Director will generate a deadlock.\n"));
+            P(mutex); 
+            P(mutex);
+         }
+         ua->send_msg(_("The Director will segment fault.\n"));
+         a = jcr->JobId; /* ref NULL pointer */
+         jcr->JobId = 1000; /* another ref NULL pointer */
+
+      } else {                  /* .dump */
+         sm_dump(false, true);
       }
-      break;
-   case 2:
-      client = select_client_resource(ua);
-      if (client) {
-         do_client_die(ua, client);
-      }
-      break;
-   default:
-      break;
    }
    return true;
 }
@@ -510,7 +515,7 @@ static bool diecmd(UAContext *ua, const char *cmd)
 /*
  * Dummy routine for non-development version
  */
-static bool diecmd(UAContext *ua, const char *cmd)
+static bool die_or_dump_cmd(UAContext *ua, const char *cmd)
 {
    return true;
 }
