@@ -295,6 +295,7 @@ void InitWinAPIWrapper();
 #define STREAM_ACL_SOLARIS_ACE           1013    /* Solaris specific ace_t string representation from
                                                   * from acl_totext (NFSv4 or ZFS acl)
                                                   */
+#define STREAM_ACL_AFS_TEXT              1014    /* AFS specific string representation from pioctl */
 #define STREAM_XATTR_OPENBSD             1993    /* OpenBSD specific extended attributes */
 #define STREAM_XATTR_SOLARIS_SYS         1994    /* Solaris specific extensible attributes or
                                                   * otherwise named extended system attributes.

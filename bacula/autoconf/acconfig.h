@@ -155,6 +155,9 @@
 /* Define if you have libacl */
 #undef HAVE_ACL
 
+/* Define if you have AFS acls */
+#undef HAVE_AFS_ACL
+
 /* General libs */
 #undef LIBS
 

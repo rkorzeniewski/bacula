@@ -52,7 +52,7 @@
 #include "bacula.h"
 #include "filed.h"
   
-#if !defined(HAVE_ACL)
+#if !defined(HAVE_ACL) && !defined(HAVE_AFS_ACL)
 /*
  * Entry points when compiled without support for ACLs or on an unsupported platform.
  */
@@ -120,6 +120,10 @@ static bacl_exit_code send_acl_stream(JCR *jcr, int stream)
    return bacl_exit_ok;
 }
 
+/*
+ * First the native ACLs.
+ */
+#if defined(HAVE_ACL)
 #if defined(HAVE_AIX_OS)
 
 #include <sys/access.h>
@@ -1217,6 +1221,77 @@ static bacl_exit_code (*os_build_acl_streams)(JCR *jcr, FF_PKT *ff_pkt) = solari
 static bacl_exit_code (*os_parse_acl_streams)(JCR *jcr, int stream) = solaris_parse_acl_streams;
 
 #endif /* HAVE_SUN_OS */
+#endif /* HAVE_ACL */
+
+#if defined(HAVE_AFS_ACL)
+
+#include <afs/stds.h>
+#include <afs/afs.h>
+#include <afs/auth.h>
+#include <afs/venus.h>
+#include <afs/prs_fs.h>
+
+/*
+ * External references to functions in the libsys library function not in current include files.
+ */
+extern "C" {
+long pioctl(char *pathp, long opcode, struct ViceIoctl *blobp, int follow);
+}
+
+static bacl_exit_code afs_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
+{
+   int error;
+   struct ViceIoctl vip;
+   char acl_text[BUFSIZ];
+   berrno be;
+
+   /*
+    * AFS ACLs can only be set on a directory, so no need to try to
+    * request them for anything other then that.
+    */
+   if (ff_pkt->type != FT_DIREND) {
+      return bacl_exit_ok;
+   }
+
+   vip.in = NULL;
+   vip.in_size = 0;
+   vip.out = acl_text;
+   vip.out_size = sizeof(acl_text);
+   memset((caddr_t)acl_text, 0, sizeof(acl_text));
+
+   if ((error = pioctl(jcr->last_fname, VIOCGETAL, &vip, 0)) < 0) {
+      Mmsg2(jcr->errmsg, _("pioctl VIOCGETAL error on file \"%s\": ERR=%s\n"),
+            jcr->last_fname, be.bstrerror());
+      Dmsg2(100, "pioctl VIOCGETAL error file=%s ERR=%s\n",
+            jcr->last_fname, be.bstrerror());
+      return bacl_exit_error;
+   }
+   jcr->acl_data->content_length = pm_strcpy(jcr->acl_data->content, acl_text);
+   return send_acl_stream(jcr, STREAM_ACL_AFS_TEXT);
+}
+
+static bacl_exit_code afs_parse_acl_stream(JCR *jcr, int stream)
+{
+   int error;
+   struct ViceIoctl vip;
+   berrno be;
+
+   vip.in = jcr->acl_data->content;
+   vip.in_size = jcr->acl_data->content_length;
+   vip.out = NULL;
+   vip.out_size = 0;
+
+   if ((error = pioctl(jcr->last_fname, VIOCSETAL, &vip, 0)) < 0) {
+      Mmsg2(jcr->errmsg, _("pioctl VIOCSETAL error on file \"%s\": ERR=%s\n"),
+            jcr->last_fname, be.bstrerror());
+      Dmsg2(100, "pioctl VIOCSETAL error file=%s ERR=%s\n",
+            jcr->last_fname, be.bstrerror());
+
+      return bacl_exit_error;
+   }
+   return bacl_exit_ok;
+}
+#endif /* HAVE_AFS_ACL */
 
 /*
  * Entry points when compiled with support for ACLs on a supported platform.
@@ -1227,12 +1302,23 @@ static bacl_exit_code (*os_parse_acl_streams)(JCR *jcr, int stream) = solaris_pa
  */
 bacl_exit_code build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
 {
+#if defined(HAVE_AFS_ACL)
+   /*
+    * AFS is a non OS specific filesystem so see if this path is on an AFS filesystem
+    * and retrieve its ACL if it is.
+    */
+   if (fstype_equals(jcr->last_fname, "afs")) {
+      return afs_build_acl_streams(jcr, ff_pkt);
+   }
+#endif
+#if defined(HAVE_ACL)
    /*
     * Call the appropriate function.
     */
    if (os_build_acl_streams) {
       return (*os_build_acl_streams)(jcr, ff_pkt);
    }
+#endif
    return bacl_exit_error;
 }
 
@@ -1241,6 +1327,11 @@ bacl_exit_code parse_acl_streams(JCR *jcr, int stream)
    unsigned int cnt;
 
    switch (stream) {
+#if defined(HAVE_AFS_ACL)
+   case STREAM_ACL_AFS_TEXT:
+      return afs_parse_acl_stream(jcr, stream);
+#endif
+#if defined(HAVE_ACL)
    case STREAM_UNIX_ACCESS_ACL:
    case STREAM_UNIX_DEFAULT_ACL:
       /*
@@ -1270,6 +1361,10 @@ bacl_exit_code parse_acl_streams(JCR *jcr, int stream)
          }
       }
       break;
+#else
+   default:
+      break;
+#endif
    }
    Qmsg2(jcr, M_WARNING, 0,
       _("Can't restore ACLs of %s - incompatible acl stream encountered - %d\n"),
