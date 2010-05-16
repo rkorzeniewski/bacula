@@ -81,6 +81,7 @@ bool makepath(ATTR *attr, const char *path, mode_t mode,
 
 /* from fstype.c */
 bool fstype(const char *fname, char *fs, int fslen);
+bool fstype_equals(const char *fname, const char *fstypename);
 
 /* from drivetype.c */
 bool drivetype(const char *fname, char *fs, int fslen);

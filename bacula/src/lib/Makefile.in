@@ -45,8 +45,8 @@ INCLUDE_FILES = ../baconfig.h ../bacula.h ../bc_types.h \
 		berrno.h bits.h bpipe.h breg.h bregex.h \
 		bsock.h btime.h btimers.h crypto.h dlist.h \
 		fnmatch.h guid_to_name.h htable.h lex.h \
-		lib.h md5.h mem_pool.h message.h openssl.h \
-		plugins.h protos.h queue.h rblist.h \
+		lib.h md5.h mem_pool.h message.h mntent_cache.h \
+		openssl.h plugins.h protos.h queue.h rblist.h \
 		runscript.h rwlock.h serial.h sha1.h \
 		smartall.h status.h tls.h tree.h var.h \
 		waitq.h watchdog.h workq.h \
@@ -61,7 +61,7 @@ LIBBAC_SRCS = attr.c base64.c berrno.c bsys.c bget_msg.c \
 	      bsock.c bpipe.c bsnprintf.c btime.c \
 	      cram-md5.c crc32.c crypto.c daemon.c edit.c fnmatch.c \
 	      guid_to_name.c hmac.c jcr.c lex.c alist.c dlist.c \
-	      md5.c message.c mem_pool.c openssl.c \
+	      md5.c message.c mem_pool.c mntent_cache.c openssl.c \
 	      plugins.c priv.c queue.c bregex.c \
 	      rwlock.c scan.c serial.c sha1.c \
 	      signal.c smartall.c rblist.c tls.c tree.c \
