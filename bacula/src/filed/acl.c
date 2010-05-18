@@ -25,7 +25,7 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
-/*
+/**
  * Functions to handle ACLs for bacula.
  *
  * We handle two different types of ACLs: access and default ACLS.
@@ -53,7 +53,7 @@
 #include "filed.h"
   
 #if !defined(HAVE_ACL) && !defined(HAVE_AFS_ACL)
-/*
+/**
  * Entry points when compiled without support for ACLs or on an unsupported platform.
  */
 bacl_exit_code build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
@@ -66,7 +66,7 @@ bacl_exit_code parse_acl_streams(JCR *jcr, int stream)
    return bacl_exit_fatal;
 }
 #else
-/*
+/**
  * Send an ACL stream to the SD.
  */
 static bacl_exit_code send_acl_stream(JCR *jcr, int stream)
@@ -77,14 +77,14 @@ static bacl_exit_code send_acl_stream(JCR *jcr, int stream)
    return bacl_exit_ok;
 #endif
 
-   /*
+   /**
     * Sanity check
     */
    if (jcr->acl_data->content_length <= 0) {
       return bacl_exit_ok;
    }
 
-   /*
+   /**
     * Send header
     */
    if (!sd->fsend("%ld %d 0", jcr->JobFiles, stream)) {
@@ -93,7 +93,7 @@ static bacl_exit_code send_acl_stream(JCR *jcr, int stream)
       return bacl_exit_fatal;
    }
 
-   /*
+   /**
     * Send the buffer to the storage deamon
     */
    Dmsg1(400, "Backing up ACL <%s>\n", jcr->acl_data->content);
@@ -120,7 +120,7 @@ static bacl_exit_code send_acl_stream(JCR *jcr, int stream)
    return bacl_exit_ok;
 }
 
-/*
+/**
  * First the native ACLs.
  */
 #if defined(HAVE_ACL)
@@ -128,7 +128,7 @@ static bacl_exit_code send_acl_stream(JCR *jcr, int stream)
 
 #include <sys/access.h>
 
-/*
+/**
  * Define the supported ACL streams for this OS
  */
 static int os_access_acl_streams[1] = { STREAM_ACL_AIX_TEXT };
@@ -154,7 +154,7 @@ static bacl_exit_code aix_parse_acl_streams(JCR *jcr, int stream)
    return bacl_exit_ok;
 }
 
-/*
+/**
  * For this OS setup the build and parse function pointer to the OS specific functions.
  */
 static bacl_exit_code (*os_build_acl_streams)(JCR *jcr, FF_PKT *ff_pkt) = aix_build_acl_streams;
@@ -174,12 +174,16 @@ static bacl_exit_code (*os_parse_acl_streams)(JCR *jcr, int stream) = aix_parse_
 #error "configure failed to detect availability of sys/acl.h"
 #endif
 
-/* On IRIX we can get shortened ACLs */
+/**
+ * On IRIX we can get shortened ACLs
+ */
 #if defined(HAVE_IRIX_OS) && defined(BACL_WANT_SHORT_ACLS)
 #define acl_to_text(acl,len)     acl_to_short_text((acl), (len))
 #endif
 
-/* In Linux we can get numeric and/or shorted ACLs */
+/**
+ * In Linux we can get numeric and/or shorted ACLs
+ */
 #if defined(HAVE_LINUX_OS)
 #if defined(BACL_WANT_SHORT_ACLS) && defined(BACL_WANT_NUMERIC_IDS)
 #define BACL_ALTERNATE_TEXT            (TEXT_ABBREVIATE|TEXT_NUMERIC_IDS)
@@ -194,7 +198,7 @@ static bacl_exit_code (*os_parse_acl_streams)(JCR *jcr, int stream) = aix_parse_
 #endif
 #endif
 
-/*
+/**
  * Some generic functions used by multiple OSes.
  */
 static acl_type_t bac_to_os_acltype(bacl_type acltype)
@@ -211,7 +215,7 @@ static acl_type_t bac_to_os_acltype(bacl_type acltype)
 
 #ifdef ACL_TYPE_DEFAULT_DIR
    case BACL_TYPE_DEFAULT_DIR:
-      /*
+      /**
        * OSF1 has an additional acl type named ACL_TYPE_DEFAULT_DIR.
        */
       ostype = ACL_TYPE_DEFAULT_DIR;
@@ -219,14 +223,14 @@ static acl_type_t bac_to_os_acltype(bacl_type acltype)
 #endif
 #ifdef ACL_TYPE_EXTENDED
    case BACL_TYPE_EXTENDED:
-      /*
+      /**
        * MacOSX has an additional acl type named ACL_TYPE_EXTENDED.
        */
       ostype = ACL_TYPE_EXTENDED;
       break;
 #endif
    default:
-      /*
+      /**
        * This should never happen, as the per OS version function only tries acl
        * types supported on a certain platform.
        */
@@ -237,13 +241,13 @@ static acl_type_t bac_to_os_acltype(bacl_type acltype)
 }
 
 #if !defined(HAVE_DARWIN_OS)
-/*
+/**
  * See if an acl is a trivial one (e.g. just the stat bits encoded as acl.)
  * There is no need to store those acls as we already store the stat bits too.
  */
 static bool acl_is_trivial(acl_t acl)
 {
-  /*
+  /**
    * acl is trivial if it has only the following entries:
    * "user::",
    * "group::",
@@ -257,13 +261,13 @@ static bool acl_is_trivial(acl_t acl)
 
    entry_available = acl_get_entry(acl, ACL_FIRST_ENTRY, &ace);
    while (entry_available == 1) {
-      /*
+      /**
        * Get the tag type of this acl entry.
        * If we fail to get the tagtype we call the acl non-trivial.
        */
       if (acl_get_tag_type(ace, &tag) < 0)
          return true;
-      /*
+      /**
        * Anything other the ACL_USER_OBJ, ACL_GROUP_OBJ or ACL_OTHER breaks the spell.
        */
       if (tag != ACL_USER_OBJ &&
@@ -280,7 +284,7 @@ static bool acl_is_trivial(acl_t acl)
       ace = &acl->acl_entry[n];
       tag = ace->ae_tag;
 
-      /*
+      /**
        * Anything other the ACL_USER_OBJ, ACL_GROUP_OBJ or ACL_OTHER breaks the spell.
        */
       if (tag != ACL_USER_OBJ &&
@@ -297,14 +301,14 @@ static bool acl_is_trivial(acl_t acl)
 
    while (count > 0) {
       tag = ace->entry->acl_type;
-      /*
+      /**
        * Anything other the ACL_USER_OBJ, ACL_GROUP_OBJ or ACL_OTHER breaks the spell.
        */
       if (tag != ACL_USER_OBJ &&
           tag != ACL_GROUP_OBJ &&
           tag != ACL_OTHER)
          return false;
-      /*
+      /**
        * On Tru64, perm can also contain non-standard bits such as
        * PERM_INSERT, PERM_DELETE, PERM_MODIFY, PERM_LOOKUP, ...
        */
@@ -318,7 +322,7 @@ static bool acl_is_trivial(acl_t acl)
 }
 #endif
 
-/*
+/**
  * Generic wrapper around acl_get_file call.
  */
 static bacl_exit_code generic_get_acl_from_os(JCR *jcr, bacl_type acltype)
@@ -332,7 +336,7 @@ static bacl_exit_code generic_get_acl_from_os(JCR *jcr, bacl_type acltype)
    acl = acl_get_file(jcr->last_fname, ostype);
    if (acl) {
 #if defined(HAVE_IRIX_OS)
-      /* 
+      /**
        * From observation, IRIX's acl_get_file() seems to return a
        * non-NULL acl with a count field of -1 when a file has no ACL
        * defined, while IRIX's acl_to_text() returns NULL when presented
@@ -353,11 +357,11 @@ static bacl_exit_code generic_get_acl_from_os(JCR *jcr, bacl_type acltype)
 #endif
 
 #if !defined(HAVE_DARWIN_OS)
-      /*
+      /**
        * Make sure this is not just a trivial ACL.
        */
       if (acltype == BACL_TYPE_ACCESS && acl_is_trivial(acl)) {
-         /*
+         /**
           * The ACLs simply reflect the (already known) standard permissions
           * So we don't send an ACL stream to the SD.
           */
@@ -386,13 +390,20 @@ static bacl_exit_code generic_get_acl_from_os(JCR *jcr, bacl_type acltype)
       return bacl_exit_error;
    }
 
-   /*
+   /**
     * Handle errors gracefully.
     */
    if (acl == (acl_t)NULL) {
       switch (errno) {
 #if defined(BACL_ENOTSUP)
       case BACL_ENOTSUP:
+         /**
+          * If the filesystem reports it doesn't support ACLs we clear the
+          * BACL_FLAG_SAVE_NATIVE flag so we skip ACL saves on all other files
+          * on the same filesystem. The BACL_FLAG_SAVE_NATIVE flag gets set again
+          * when we change from one filesystem to an other.
+          */
+         jcr->acl_data->flags &= ~BACL_FLAG_SAVE_NATIVE;
          break;                       /* not supported */
 #endif
       case ENOENT:
@@ -411,7 +422,8 @@ static bacl_exit_code generic_get_acl_from_os(JCR *jcr, bacl_type acltype)
          return bacl_exit_error;
       }
    }
-   /*
+
+   /**
     * Not supported, just pretend there is nothing to see
     */
    pm_strcpy(jcr->acl_data->content, "");
@@ -419,7 +431,7 @@ static bacl_exit_code generic_get_acl_from_os(JCR *jcr, bacl_type acltype)
    return bacl_exit_ok;
 }
 
-/*
+/**
  * Generic wrapper around acl_set_file call.
  */
 static bacl_exit_code generic_set_acl_on_os(JCR *jcr, bacl_type acltype)
@@ -428,7 +440,7 @@ static bacl_exit_code generic_set_acl_on_os(JCR *jcr, bacl_type acltype)
    acl_type_t ostype;
    berrno be;
 
-   /*
+   /**
     * If we get empty default ACLs, clear ACLs now
     */
    ostype = bac_to_os_acltype(acltype);
@@ -456,7 +468,7 @@ static bacl_exit_code generic_set_acl_on_os(JCR *jcr, bacl_type acltype)
    }
 
 #ifndef HAVE_FREEBSD_OS
-   /*
+   /**
     * FreeBSD always fails acl_valid() - at least on valid input...
     * As it does the right thing, given valid input, just ignore acl_valid().
     */
@@ -470,7 +482,7 @@ static bacl_exit_code generic_set_acl_on_os(JCR *jcr, bacl_type acltype)
    }
 #endif
 
-   /*
+   /**
     * Restore the ACLs, but don't complain about links which really should
     * not have attributes, and the file it is linked to may not yet be restored.
     * This is only true for the old acl streams as in the new implementation we
@@ -494,11 +506,11 @@ static bacl_exit_code generic_set_acl_on_os(JCR *jcr, bacl_type acltype)
    return bacl_exit_ok;
 }
 
-/*
+/**
  * OS specific functions for handling different types of acl streams.
  */
 #if defined(HAVE_DARWIN_OS)
-/*
+/**
  * Define the supported ACL streams for this OS
  */
 static int os_access_acl_streams[1] = { STREAM_ACL_DARWIN_ACCESS_ACL };
@@ -507,7 +519,7 @@ static int os_default_acl_streams[1] = { -1 };
 static bacl_exit_code darwin_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
 {
 #if defined(ACL_TYPE_EXTENDED)
-   /*
+   /**
     * On MacOS X, acl_get_file (name, ACL_TYPE_ACCESS)
     * and acl_get_file (name, ACL_TYPE_DEFAULT)
     * always return NULL / EINVAL.  There is no point in making
@@ -519,7 +531,7 @@ static bacl_exit_code darwin_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
    if (generic_get_acl_from_os(jcr, BACL_TYPE_EXTENDED) == bacl_exit_fatal)
       return bacl_exit_fatal;
 #else
-   /*
+   /**
     * Read access ACLs for files, dirs and links
     */
    if (generic_get_acl_from_os(jcr, BACL_TYPE_ACCESS) == bacl_exit_fatal)
@@ -541,7 +553,7 @@ static bacl_exit_code darwin_parse_acl_streams(JCR *jcr, int stream)
 #endif
 }
 
-/*
+/**
  * For this OS setup the build and parse function pointer to the OS specific functions.
  */
 static bacl_exit_code (*os_build_acl_streams)(JCR *jcr, FF_PKT *ff_pkt) = darwin_build_acl_streams;
@@ -551,7 +563,7 @@ static bacl_exit_code (*os_parse_acl_streams)(JCR *jcr, int stream) = darwin_par
       defined(HAVE_IRIX_OS) || \
       defined(HAVE_LINUX_OS)
 
-/*
+/**
  * Define the supported ACL streams for these OSes
  */
 #if defined(HAVE_FREEBSD_OS)
@@ -567,7 +579,7 @@ static int os_default_acl_streams[1] = { STREAM_ACL_LINUX_DEFAULT_ACL };
 
 static bacl_exit_code generic_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
 {
-   /*
+   /**
     * Read access ACLs for files, dirs and links
     */
    if (generic_get_acl_from_os(jcr, BACL_TYPE_ACCESS) == bacl_exit_fatal)
@@ -578,7 +590,7 @@ static bacl_exit_code generic_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
          return bacl_exit_fatal;
    }
 
-   /*
+   /**
     * Directories can have default ACLs too
     */
    if (ff_pkt->type == FT_DIREND) {
@@ -602,7 +614,7 @@ static bacl_exit_code generic_parse_acl_streams(JCR *jcr, int stream)
    case STREAM_UNIX_DEFAULT_ACL:
       return generic_set_acl_on_os(jcr, BACL_TYPE_DEFAULT);
    default:
-      /*
+      /**
        * See what type of acl it is.
        */
       for (cnt = 0; cnt < sizeof(os_access_acl_streams) / sizeof(int); cnt++) {
@@ -620,7 +632,7 @@ static bacl_exit_code generic_parse_acl_streams(JCR *jcr, int stream)
    return bacl_exit_error;
 }
 
-/*
+/**
  * For this OSes setup the build and parse function pointer to the OS specific functions.
  */
 static bacl_exit_code (*os_build_acl_streams)(JCR *jcr, FF_PKT *ff_pkt) = generic_build_acl_streams;
@@ -628,7 +640,7 @@ static bacl_exit_code (*os_parse_acl_streams)(JCR *jcr, int stream) = generic_pa
 
 #elif defined(HAVE_OSF1_OS)
 
-/*
+/**
  * Define the supported ACL streams for this OS
  */
 static int os_access_acl_streams[1] = { STREAM_ACL_TRU64_ACCESS_ACL };
@@ -636,7 +648,7 @@ static int os_default_acl_streams[2] = { STREAM_ACL_TRU64_DEFAULT_ACL, STREAM_AC
 
 static bacl_exit_code tru64_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
 {
-   /*
+   /**
     * Read access ACLs for files, dirs and links
     */
    if ((jcr->acl_data->content_length = generic_get_acl_from_os(jcr, BACL_TYPE_ACCESS)) < 0)
@@ -645,7 +657,7 @@ static bacl_exit_code tru64_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
       if (!send_acl_stream(jcr, STREAM_ACL_TRU64_ACCESS_ACL))
          return bacl_exit_error;
    }
-   /*
+   /**
     * Directories can have default ACLs too
     */
    if (ff_pkt->type == FT_DIREND) {
@@ -655,7 +667,7 @@ static bacl_exit_code tru64_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
          if (!send_acl_stream(jcr, STREAM_ACL_TRU64_DEFAULT_ACL))
             return bacl_exit_error;
       }
-      /*
+      /**
        * Tru64 has next to BACL_TYPE_DEFAULT also BACL_TYPE_DEFAULT_DIR acls.
        * This is an inherited acl for all subdirs.
        * See http://www.helsinki.fi/atk/unix/dec_manuals/DOC_40D/AQ0R2DTE/DOCU_018.HTM
@@ -684,7 +696,7 @@ static bacl_exit_code tru64_parse_acl_streams(JCR *jcr, int stream)
       return generic_set_acl_on_os(jcr, BACL_TYPE_DEFAULT_DIR);
 }
 
-/*
+/**
  * For this OS setup the build and parse function pointer to the OS specific functions.
  */
 static bacl_exit_code (*os_build_acl_streams)(JCR *jcr, FF_PKT *ff_pkt) = tru64_build_acl_streams;
@@ -701,13 +713,13 @@ static bacl_exit_code (*os_parse_acl_streams)(JCR *jcr, int stream) = tru64_pars
 
 #include <acllib.h>
 
-/*
+/**
  * Define the supported ACL streams for this OS
  */
 static int os_access_acl_streams[1] = { STREAM_ACL_HPUX_ACL_ENTRY };
 static int os_default_acl_streams[1] = { -1 };
 
-/*
+/**
  * See if an acl is a trivial one (e.g. just the stat bits encoded as acl.)
  * There is no need to store those acls as we already store the stat bits too.
  */
@@ -718,7 +730,7 @@ static bool acl_is_trivial(int count, struct acl_entry *entries, struct stat sb)
 
    for (n = 0; n < count; n++) {
       ace = entries[n];
-      /*
+      /**
        * See if this acl just is the stat mode in acl form.
        */
       if (!((ace.uid == sb.st_uid && ace.gid == ACL_NSGROUP) ||
@@ -729,7 +741,7 @@ static bool acl_is_trivial(int count, struct acl_entry *entries, struct stat sb)
    return true;
 }
 
-/*
+/**
  * OS specific functions for handling different types of acl streams.
  */
 static bacl_exit_code hpux_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
@@ -743,9 +755,15 @@ static bacl_exit_code hpux_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
       switch (errno) {
 #if defined(BACL_ENOTSUP)
       case BACL_ENOTSUP:
-         /*
+         /**
           * Not supported, just pretend there is nothing to see
+          *
+          * If the filesystem reports it doesn't support ACLs we clear the
+          * BACL_FLAG_SAVE_NATIVE flag so we skip ACL saves on all other files
+          * on the same filesystem. The BACL_FLAG_SAVE_NATIVE flag gets set again
+          * when we change from one filesystem to an other.
           */
+         jcr->acl_data->flags &= ~BACL_FLAG_SAVE_NATIVE;
          pm_strcpy(jcr->acl_data->content, "");
          jcr->acl_data->content_length = 0;
          return bacl_exit_ok;
@@ -772,7 +790,7 @@ static bacl_exit_code hpux_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
    }
    if ((n = getacl(jcr->last_fname, n, acls)) > 0) {
       if (acl_is_trivial(n, acls, ff_pkt->statp)) {
-         /*
+         /**
           * The ACLs simply reflect the (already known) standard permissions
           * So we don't send an ACL stream to the SD.
           */
@@ -817,7 +835,7 @@ static bacl_exit_code hpux_parse_acl_streams(JCR *jcr, int stream)
 
       return bacl_exit_error;
    }
-   /*
+   /**
     * Restore the ACLs, but don't complain about links which really should
     * not have attributes, and the file it is linked to may not yet be restored.
     * This is only true for the old acl streams as in the new implementation we
@@ -838,7 +856,7 @@ static bacl_exit_code hpux_parse_acl_streams(JCR *jcr, int stream)
    return bacl_exit_ok;
 }
 
-/*
+/**
  * For this OS setup the build and parse function pointer to the OS specific functions.
  */
 static bacl_exit_code (*os_build_acl_streams)(JCR *jcr, FF_PKT *ff_pkt) = hpux_build_acl_streams;
@@ -852,7 +870,7 @@ static bacl_exit_code (*os_parse_acl_streams)(JCR *jcr, int stream) = hpux_parse
 #endif
 
 #if defined(HAVE_EXTENDED_ACL)
-/*
+/**
  * We define some internals of the Solaris acl libs here as those
  * are not exposed yet. Probably because they want us to see the
  * acls as opague data. But as we need to support different platforms
@@ -871,7 +889,7 @@ typedef enum acl_type {
 } acl_type_t;
 #endif
 
-/*
+/**
  * Two external references to functions in the libsec library function not in current include files.
  */
 extern "C" {
@@ -879,13 +897,13 @@ int acl_type(acl_t *);
 char *acl_strerror(int);
 }
 
-/*
+/**
  * Define the supported ACL streams for this OS
  */
 static int os_access_acl_streams[2] = { STREAM_ACL_SOLARIS_ACLENT, STREAM_ACL_SOLARIS_ACE };
 static int os_default_acl_streams[1] = { -1 };
 
-/*
+/**
  * As the new libsec interface with acl_totext and acl_fromtext also handles
  * the old format from acltotext we can use the new functions even
  * for acls retrieved and stored in the database with older fd versions. If the
@@ -899,12 +917,19 @@ static bacl_exit_code solaris_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
    bacl_exit_code stream_status = bacl_exit_error;
    berrno be;
 
-   /*
+   /**
     * See if filesystem supports acls.
     */
    acl_enabled = pathconf(jcr->last_fname, _PC_ACL_ENABLED);
    switch (acl_enabled) {
    case 0:
+      /**
+       * If the filesystem reports it doesn't support ACLs we clear the
+       * BACL_FLAG_SAVE_NATIVE flag so we skip ACL saves on all other files
+       * on the same filesystem. The BACL_FLAG_SAVE_NATIVE flag gets set again
+       * when we change from one filesystem to an other.
+       */
+      jcr->acl_data->flags &= ~BACL_FLAG_SAVE_NATIVE;
       pm_strcpy(jcr->acl_data->content, "");
       jcr->acl_data->content_length = 0;
       return bacl_exit_ok;
@@ -923,7 +948,7 @@ static bacl_exit_code solaris_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
       break;
    }
 
-   /*
+   /**
     * Get ACL info: don't bother allocating space if there is only a trivial ACL.
     */
    if (acl_get(jcr->last_fname, ACL_NO_TRIVIAL, &aclp) != 0) {
@@ -940,7 +965,7 @@ static bacl_exit_code solaris_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
    }
 
    if (!aclp) {
-      /*
+      /**
        * The ACLs simply reflect the (already known) standard permissions
        * So we don't send an ACL stream to the SD.
        */
@@ -950,7 +975,7 @@ static bacl_exit_code solaris_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
    }
 
 #if defined(ACL_SID_FMT)
-   /*
+   /**
     * New format flag added in newer Solaris versions.
     */
    flags = ACL_APPEND_ID | ACL_COMPACT_FMT | ACL_SID_FMT;
@@ -988,7 +1013,7 @@ static bacl_exit_code solaris_parse_acl_streams(JCR *jcr, int stream)
    case STREAM_UNIX_ACCESS_ACL:
    case STREAM_ACL_SOLARIS_ACLENT:
    case STREAM_ACL_SOLARIS_ACE:
-      /*
+      /**
        * First make sure the filesystem supports acls.
        */
       acl_enabled = pathconf(jcr->last_fname, _PC_ACL_ENABLED);
@@ -1009,12 +1034,12 @@ static bacl_exit_code solaris_parse_acl_streams(JCR *jcr, int stream)
             return bacl_exit_error;
          }
       default:
-         /*
+         /**
           * On a filesystem with ACL support make sure this particilar ACL type can be restored.
           */
          switch (stream) {
          case STREAM_ACL_SOLARIS_ACLENT:
-            /*
+            /**
              * An aclent can be restored on filesystems with _ACL_ACLENT_ENABLED or _ACL_ACE_ENABLED support.
              */
             if ((acl_enabled & (_ACL_ACLENT_ENABLED | _ACL_ACE_ENABLED)) == 0) {
@@ -1024,7 +1049,7 @@ static bacl_exit_code solaris_parse_acl_streams(JCR *jcr, int stream)
             }
             break;
          case STREAM_ACL_SOLARIS_ACE:
-            /*
+            /**
              * An ace can only be restored on a filesystem with _ACL_ACE_ENABLED support.
              */
             if ((acl_enabled & _ACL_ACE_ENABLED) == 0) {
@@ -1034,7 +1059,7 @@ static bacl_exit_code solaris_parse_acl_streams(JCR *jcr, int stream)
             }
             break;
          default:
-            /*
+            /**
              * Stream id which doesn't describe the type of acl which is encoded.
              */
             break;
@@ -1050,7 +1075,7 @@ static bacl_exit_code solaris_parse_acl_streams(JCR *jcr, int stream)
          return bacl_exit_error;
       }
 
-      /*
+      /**
        * Validate that the conversion gave us the correct acl type.
        */
       switch (stream) {
@@ -1069,13 +1094,13 @@ static bacl_exit_code solaris_parse_acl_streams(JCR *jcr, int stream)
          }
          break;
       default:
-         /*
+         /**
           * Stream id which doesn't describe the type of acl which is encoded.
           */
          break;
       }
 
-      /*
+      /**
        * Restore the ACLs, but don't complain about links which really should
        * not have attributes, and the file it is linked to may not yet be restored.
        * This is only true for the old acl streams as in the new implementation we
@@ -1105,13 +1130,13 @@ static bacl_exit_code solaris_parse_acl_streams(JCR *jcr, int stream)
 
 #else /* HAVE_EXTENDED_ACL */
 
-/*
+/**
  * Define the supported ACL streams for this OS
  */
 static int os_access_acl_streams[2] = { STREAM_ACL_SOLARIS_ACLENT };
 static int os_default_acl_streams[1] = { -1 };
 
-/*
+/**
  * See if an acl is a trivial one (e.g. just the stat bits encoded as acl.)
  * There is no need to store those acls as we already store the stat bits too.
  */
@@ -1132,7 +1157,7 @@ static bool acl_is_trivial(int count, aclent_t *entries)
    return true;
 }
 
-/*
+/**
  * OS specific functions for handling different types of acl streams.
  */
 static bacl_exit_code solaris_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
@@ -1149,7 +1174,7 @@ static bacl_exit_code solaris_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
    acls = (aclent_t *)malloc(n * sizeof(aclent_t));
    if (acl(jcr->last_fname, GETACL, n, acls) == n) {
       if (acl_is_trivial(n, acls)) {
-         /*
+         /**
           * The ACLs simply reflect the (already known) standard permissions
           * So we don't send an ACL stream to the SD.
           */
@@ -1191,7 +1216,7 @@ static bacl_exit_code solaris_parse_acl_streams(JCR *jcr, int stream)
       return bacl_exit_error;
    }
 
-   /*
+   /**
     * Restore the ACLs, but don't complain about links which really should
     * not have attributes, and the file it is linked to may not yet be restored.
     */
@@ -1214,7 +1239,7 @@ static bacl_exit_code solaris_parse_acl_streams(JCR *jcr, int stream)
 }
 #endif /* HAVE_EXTENDED_ACL */
 
-/*
+/**
  * For this OS setup the build and parse function pointer to the OS specific functions.
  */
 static bacl_exit_code (*os_build_acl_streams)(JCR *jcr, FF_PKT *ff_pkt) = solaris_build_acl_streams;
@@ -1231,7 +1256,7 @@ static bacl_exit_code (*os_parse_acl_streams)(JCR *jcr, int stream) = solaris_pa
 #include <afs/venus.h>
 #include <afs/prs_fs.h>
 
-/*
+/**
  * External references to functions in the libsys library function not in current include files.
  */
 extern "C" {
@@ -1245,7 +1270,7 @@ static bacl_exit_code afs_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
    char acl_text[BUFSIZ];
    berrno be;
 
-   /*
+   /**
     * AFS ACLs can only be set on a directory, so no need to try to
     * request them for anything other then that.
     */
@@ -1293,30 +1318,70 @@ static bacl_exit_code afs_parse_acl_stream(JCR *jcr, int stream)
 }
 #endif /* HAVE_AFS_ACL */
 
-/*
+/**
  * Entry points when compiled with support for ACLs on a supported platform.
  */
 
-/*
+/**
  * Read and send an ACL for the last encountered file.
  */
 bacl_exit_code build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
 {
-#if defined(HAVE_AFS_ACL)
-   /*
-    * AFS is a non OS specific filesystem so see if this path is on an AFS filesystem
-    * and retrieve its ACL if it is.
+   /**
+    * See if we are changing from one device to an other.
+    * We save the current device we are scanning and compare
+    * it with the current st_dev in the last stat performed on
+    * the file we are currently storing.
     */
-   if (fstype_equals(jcr->last_fname, "afs")) {
+   if (jcr->acl_data->current_dev != ff_pkt->statp->st_dev) {
+      /**
+       * Reset the acl save flags.
+       */
+      jcr->acl_data->flags = 0;
+
+#if defined(HAVE_AFS_ACL)
+      /**
+       * AFS is a non OS specific filesystem so see if this path is on an AFS filesystem
+       * Set the BACL_FLAG_SAVE_AFS flag if it is. If not set the BACL_FLAG_SAVE_NATIVE flag.
+       */
+      if (fstype_equals(jcr->last_fname, "afs")) {
+         jcr->acl_data->flags |= BACL_FLAG_SAVE_AFS;
+      } else {
+         jcr->acl_data->flags |= BACL_FLAG_SAVE_NATIVE;
+      }
+#else
+      jcr->acl_data->flags |= BACL_FLAG_SAVE_NATIVE;
+#endif
+
+      /**
+       * Save that we started scanning a new filesystem.
+       */
+      jcr->acl_data->current_dev = ff_pkt->statp->st_dev;
+   }
+
+#if defined(HAVE_AFS_ACL)
+   /**
+    * See if the BACL_FLAG_SAVE_AFS flag is set which lets us know if we should
+    * save AFS ACLs.
+    */
+   if (jcr->acl_data->flags & BACL_FLAG_SAVE_AFS) {
       return afs_build_acl_streams(jcr, ff_pkt);
    }
 #endif
 #if defined(HAVE_ACL)
-   /*
-    * Call the appropriate function.
+   /**
+    * See if the BACL_FLAG_SAVE_NATIVE flag is set which lets us know if we should
+    * save native ACLs.
     */
-   if (os_build_acl_streams) {
-      return (*os_build_acl_streams)(jcr, ff_pkt);
+   if (jcr->acl_data->flags & BACL_FLAG_SAVE_NATIVE) {
+      /**
+       * Call the appropriate function.
+       */
+      if (os_build_acl_streams) {
+         return (*os_build_acl_streams)(jcr, ff_pkt);
+      }
+   } else {
+      return bacl_exit_ok;
    }
 #endif
    return bacl_exit_error;
@@ -1334,7 +1399,7 @@ bacl_exit_code parse_acl_streams(JCR *jcr, int stream)
 #if defined(HAVE_ACL)
    case STREAM_UNIX_ACCESS_ACL:
    case STREAM_UNIX_DEFAULT_ACL:
-      /*
+      /**
        * Handle legacy ACL streams.
        */
       if (os_parse_acl_streams) {
@@ -1343,7 +1408,7 @@ bacl_exit_code parse_acl_streams(JCR *jcr, int stream)
       break;
    default:
       if (os_parse_acl_streams) {
-         /*
+         /**
           * Walk the os_access_acl_streams array with the supported Access ACL streams for this OS.
           */
          for (cnt = 0; cnt < sizeof(os_access_acl_streams) / sizeof(int); cnt++) {
@@ -1351,7 +1416,7 @@ bacl_exit_code parse_acl_streams(JCR *jcr, int stream)
                return (*os_parse_acl_streams)(jcr, stream);
             }
          }
-         /*
+         /**
           * Walk the os_default_acl_streams array with the supported Default ACL streams for this OS.
           */
          for (cnt = 0; cnt < sizeof(os_default_acl_streams) / sizeof(int); cnt++) {

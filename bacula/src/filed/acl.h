@@ -69,6 +69,9 @@ typedef enum {
 #define BACL_ENOTSUP          ENOTSUP
 #endif
 
+#define BACL_FLAG_SAVE_NATIVE	0x01
+#define BACL_FLAG_SAVE_AFS	0x02
+
 /*
  * Internal tracking data.
  */
@@ -76,6 +79,8 @@ struct acl_data_t {
    POOLMEM *content;
    uint32_t content_length;
    uint32_t nr_errors;
+   uint32_t current_dev;
+   uint32_t flags;		/* See BACL_FLAG_*
 };
 
 #endif
