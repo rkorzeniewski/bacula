@@ -1333,7 +1333,7 @@ bacl_exit_code build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
     * it with the current st_dev in the last stat performed on
     * the file we are currently storing.
     */
-   if (jcr->acl_data->current_dev != ff_pkt->statp->st_dev) {
+   if (jcr->acl_data->current_dev != ff_pkt->statp.st_dev) {
       /**
        * Reset the acl save flags.
        */
@@ -1356,7 +1356,7 @@ bacl_exit_code build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
       /**
        * Save that we started scanning a new filesystem.
        */
-      jcr->acl_data->current_dev = ff_pkt->statp->st_dev;
+      jcr->acl_data->current_dev = ff_pkt->statp.st_dev;
    }
 
 #if defined(HAVE_AFS_ACL)

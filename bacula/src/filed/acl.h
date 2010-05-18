@@ -80,7 +80,7 @@ struct acl_data_t {
    uint32_t content_length;
    uint32_t nr_errors;
    uint32_t current_dev;
-   uint32_t flags;		/* See BACL_FLAG_*
+   uint32_t flags;		/* See BACL_FLAG_* */
 };
 
 #endif
