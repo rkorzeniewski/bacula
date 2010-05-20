@@ -193,9 +193,14 @@ find_files(JCR *jcr, FF_PKT *ff, int file_save(JCR *jcr, FF_PKT *ff_pkt, bool to
             ff->fstypes = fo->fstype;
             ff->drivetypes = fo->drivetype;
             bstrncat(ff->VerifyOpts, fo->VerifyOpts, sizeof(ff->VerifyOpts));
-            bstrncat(ff->AccurateOpts, fo->AccurateOpts, sizeof(ff->AccurateOpts));
-            bstrncat(ff->BaseJobOpts, fo->BaseJobOpts, sizeof(ff->BaseJobOpts));
+            if (fo->AccurateOpts[0]) {
+               bstrncpy(ff->AccurateOpts, fo->AccurateOpts, sizeof(ff->AccurateOpts));
+            }
+            if (fo->BaseJobOpts[0]) {
+               bstrncpy(ff->BaseJobOpts, fo->BaseJobOpts, sizeof(ff->BaseJobOpts));
+            }
          }
+         Dmsg3(50, "Verify=<%s> Accurate=<%s> BaseJob=<%s>\n", ff->VerifyOpts, ff->AccurateOpts, ff->BaseJobOpts);
          dlistString *node;
          foreach_dlist(node, &incexe->name_list) {
             char *fname = node->c_str();
