@@ -308,7 +308,7 @@ int db_next_index(JCR *jcr, B_DB *mdb, char *table, char *index)
  * TODO: this should be implemented  (escape \0)
  */
 char *
-db_escape_object(JCR *jcr, B_DB *db, char *old, int len)
+db_escape_object(JCR *jcr, B_DB *mdb, char *old, int len)
 {
    char *n, *o;
 
@@ -341,7 +341,7 @@ db_escape_object(JCR *jcr, B_DB *db, char *old, int len)
  * TODO: need to be implemented (escape \0)
  */
 void
-db_unescape_object(JCR *jcr, B_DB *db, 
+db_unescape_object(JCR *jcr, B_DB *mdb, 
                    char *from, int32_t expected_len, 
                    POOLMEM **dest, int32_t *dest_len)
 {
@@ -364,7 +364,7 @@ db_unescape_object(JCR *jcr, B_DB *db,
  *         the escaped output.
  */
 void
-db_escape_string(JCR *jcr, B_DB *db, char *snew, char *old, int len)
+db_escape_string(JCR *jcr, B_DB *mdb, char *snew, char *old, int len)
 {
    char *n, *o;
 
