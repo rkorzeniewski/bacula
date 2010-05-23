@@ -91,6 +91,30 @@ const char *host_os = HOST_OS;
 const char *distname = DISTNAME;
 const char *distver = DISTVER;
 
+/* Some message class methods */
+void MSGS::lock()
+{
+   P(fides_mutex);
+}
+
+void MSGS::unlock()
+{
+   V(fides_mutex);
+}
+
+/*
+ * Wait for not in use variable to be clear
+ */
+void MSGS::wait_not_in_use()     /* leaves fides_mutex set */
+{
+   lock();
+   while (m_in_use) {
+      unlock();
+      bmicrosleep(0, 200);         /* wait */
+      lock();
+   }
+}
+
 /*
  * Handle message delivery errors
  */
@@ -302,6 +326,7 @@ init_msg(JCR *jcr, MSGS *msg)
       daemon_msgs->dest_chain = temp_chain;
       memcpy(daemon_msgs->send_msg, msg->send_msg, sizeof(msg->send_msg));
    }
+
    Dmsg2(250, "Copy message resource %p to %p\n", msg, temp_chain);
 
 }
@@ -470,7 +495,15 @@ void close_msg(JCR *jcr)
    if (msgs == NULL) {
       return;
    }
-   P(fides_mutex);
+
+   /* Wait for item to be not in use, then mark closing */
+   if (msgs->is_closing()) {
+      return;
+   }
+   msgs->wait_not_in_use();          /* leaves fides_mutex set */
+   msgs->set_closing();
+   msgs->unlock();
+
    Dmsg1(850, "===Begin close msg resource at %p\n", msgs);
    cmd = get_pool_memory(PM_MESSAGE);
    for (d=msgs->dest_chain; d; ) {
@@ -554,12 +587,13 @@ rem_temp_file:
       }
       d = d->next;                    /* point to next buffer */
    }
-   V(fides_mutex);
    free_pool_memory(cmd);
    Dmsg0(850, "Done walking message chain.\n");
    if (jcr) {
       free_msgs_res(msgs);
       msgs = NULL;
+   } else {
+      msgs->clear_closing();
    }
    Dmsg0(850, "===End close msg resource\n");
 }
@@ -699,6 +733,18 @@ void dispatch_message(JCR *jcr, int type, utime_t mtime, char *msg)
     if (msgs == NULL) {
        msgs = daemon_msgs;
     }
+    /*
+     * If closing this message resource, print and send to syslog,
+     *   then get out.
+     */
+    if (msgs->is_closing()) {
+       fputs(dt, stdout);
+       fputs(msg, stdout);
+       fflush(stdout);
+       syslog(LOG_DAEMON|LOG_ERR, "%s", msg);
+       return;
+    }
+
     for (d=msgs->dest_chain; d; d=d->next) {
        if (bit_is_set(type, d->msg_types)) {
           switch (d->dest_code) {
@@ -780,7 +826,10 @@ void dispatch_message(JCR *jcr, int type, utime_t mtime, char *msg)
              case MD_MAIL_ON_ERROR:
              case MD_MAIL_ON_SUCCESS:
                 Dmsg1(850, "MAIL for following msg: %s", msg);
-                P(fides_mutex);
+                if (msgs->is_closing()) {
+                   break;
+                }
+                msgs->set_in_use();
                 if (!d->fd) {
                    POOLMEM *name = get_pool_memory(PM_MESSAGE);
                    make_unique_mail_filename(jcr, name, d);
@@ -801,7 +850,7 @@ void dispatch_message(JCR *jcr, int type, utime_t mtime, char *msg)
                    d->max_len = len;      /* keep max line length */
                 }
                 fputs(msg, d->fd);
-                V(fides_mutex);
+                msgs->clear_in_use();
                 break;
              case MD_APPEND:
                 Dmsg1(850, "APPEND for following msg: %s", msg);
@@ -811,9 +860,12 @@ void dispatch_message(JCR *jcr, int type, utime_t mtime, char *msg)
                 Dmsg1(850, "FILE for following msg: %s", msg);
                 mode = "w+b";
 send_to_file:
-                P(fides_mutex);
+                if (msgs->is_closing()) {
+                   break;
+                }
+                msgs->set_in_use();
                 if (!d->fd && !open_dest_file(jcr, d, mode)) {
-                   V(fides_mutex);
+                   msgs->clear_in_use();
                    break;
                 }
                 fputs(dt, d->fd);
@@ -827,7 +879,7 @@ send_to_file:
                       fputs(msg, d->fd);
                    }
                 }
-                V(fides_mutex);
+                msgs->clear_in_use();
                 break;
              case MD_DIRECTOR:
                 Dmsg1(850, "DIRECTOR for following msg: %s", msg);
