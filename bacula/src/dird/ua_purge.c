@@ -569,6 +569,10 @@ static BSOCK *open_sd_bsock(UAContext *ua)
    return ua->jcr->store_bsock;
 }
 
+/* 
+ * Called here to send the appropriate commands to the SD
+ *  to do truncate on purge.
+ */
 static void do_truncate_on_purge(UAContext *ua, MEDIA_DBR *mr, 
                                  char *pool, char *storage,
                                  int drive, BSOCK *sd)
@@ -582,70 +586,74 @@ static void do_truncate_on_purge(UAContext *ua, MEDIA_DBR *mr,
       return;
    }
 
-   if (mr->ActionOnPurge & ON_PURGE_TRUNCATE) {
-      /* Send the command to truncate the volume after purge. If this feature
-       * is disabled for the specific device, this will be a no-op.
-       */
+   /* Do it only if action on purge = truncate is set */
+   if (!(mr->ActionOnPurge & ON_PURGE_TRUNCATE)) {
+      return;
+   }
+   /*
+    * Send the command to truncate the volume after purge. If this feature
+    * is disabled for the specific device, this will be a no-op.
+    */
 
-      /* Protect us from spaces */
-      bash_spaces(mr->VolumeName);
-      bash_spaces(mr->MediaType);
-      bash_spaces(pool);
-      bash_spaces(storage);
-         
-      sd->fsend("relabel %s OldName=%s NewName=%s PoolName=%s "
-                "MediaType=%s Slot=%d drive=%d\n",
-                   storage,
-                   mr->VolumeName, mr->VolumeName,
-                   pool, mr->MediaType, mr->Slot, drive);
-         
-      unbash_spaces(mr->VolumeName);
-      unbash_spaces(mr->MediaType);
-      unbash_spaces(pool);
-      unbash_spaces(storage);
+   /* Protect us from spaces */
+   bash_spaces(mr->VolumeName);
+   bash_spaces(mr->MediaType);
+   bash_spaces(pool);
+   bash_spaces(storage);
+      
+   /* Do it by relabeling the Volume, which truncates it */
+   sd->fsend("relabel %s OldName=%s NewName=%s PoolName=%s "
+             "MediaType=%s Slot=%d drive=%d\n",
+                storage,
+                mr->VolumeName, mr->VolumeName,
+                pool, mr->MediaType, mr->Slot, drive);
+      
+   unbash_spaces(mr->VolumeName);
+   unbash_spaces(mr->MediaType);
+   unbash_spaces(pool);
+   unbash_spaces(storage);
 
-      while (sd->recv() >= 0) {
-         ua->send_msg("%s", sd->msg);
-         if (sscanf(sd->msg, "3000 OK label. VolBytes=%llu DVD=%d ",
-                    &VolBytes, &dvd) == 2) 
-         {
-            ok = true;
-         }
+   /* Send relabel command, and check for valid response */
+   while (sd->recv() >= 0) {
+      ua->send_msg("%s", sd->msg);
+      if (sscanf(sd->msg, "3000 OK label. VolBytes=%llu DVD=%d ", VolBytes, &dvd) == 2) {
+         ok = true;
       }
+   }
 
-      if (ok) {
-         mr->VolBytes = VolBytes;
-         mr->VolFiles = 0;
-         if (!db_update_media_record(ua->jcr, ua->db, mr)) {
-            ua->error_msg(_("Can't update volume size in the catalog\n"));
-         }
-         ua->send_msg(_("The volume \"%s\" has been truncated\n"), mr->VolumeName);
-      } else {
-         ua->warning_msg(_("Unable to truncate volume \"%s\"\n"), mr->VolumeName);
+   if (ok) {
+      mr->VolBytes = VolBytes;
+      mr->VolFiles = 0;
+      if (!db_update_media_record(ua->jcr, ua->db, mr)) {
+         ua->error_msg(_("Can't update volume size in the catalog\n"));
       }
+      ua->send_msg(_("The volume \"%s\" has been truncated\n"), mr->VolumeName);
+   } else {
+      ua->warning_msg(_("Unable to truncate volume \"%s\"\n"), mr->VolumeName);
    }
 }
 
-/* purge action= pool= volume= storage= devicetype= */
+/* 
+ * Implement Bacula bconsole command  purge action
+ *     purge action= pool= volume= storage= devicetype= 
+ */
 static int action_on_purge_cmd(UAContext *ua, const char *cmd)
 {
-   bool allpools=false;
-   int drive=-1;
-   int nb=0;
-
-   uint32_t *results=NULL;
-   const char *action="all";
-   STORE *store=NULL;
-   POOL *pool=NULL;
+   bool allpools = false;
+   int drive = -1;
+   int nb = 0;
+   uint32_t *results = NULL;
+   const char *action = "all";
+   STORE *store = NULL;
+   POOL *pool = NULL;
    MEDIA_DBR mr;
    POOL_DBR pr;
-
-   BSOCK *sd=NULL;
+   BSOCK *sd = NULL;
    
    memset(&pr, 0, sizeof(pr));
    memset(&mr, 0, sizeof(mr));
 
-   /* Look arguments */
+   /* Look at arguments */
    for (int i=1; i<ua->argc; i++) {
       if (strcasecmp(ua->argk[i], NT_("allpools")) == 0) {
          allpools = true;
@@ -691,18 +699,21 @@ static int action_on_purge_cmd(UAContext *ua, const char *cmd)
       mr.PoolId = pr.PoolId;
    }
 
+   /* 
+    * Look for all Purged volumes that can be recycled, are enabled and
+    *  have more the 10,000 bytes.
+    */
    mr.Recycle = 1;
    mr.Enabled = 1;
    mr.VolBytes = 10000;
    bstrncpy(mr.VolStatus, "Purged", sizeof(mr.VolStatus));
-
    if (!db_get_media_ids(ua->jcr, ua->db, &mr, &nb, &results)) {
       Dmsg0(100, "No results from db_get_media_ids\n");
       goto bail_out;
    }
    
    if (!nb) {
-      ua->send_msg(_("No volume founds to perform %s action(s)\n"), action);
+      ua->send_msg(_("No Volumes found to perform %s action.\n"), action);
       goto bail_out;
    }
 
@@ -711,6 +722,9 @@ static int action_on_purge_cmd(UAContext *ua, const char *cmd)
       goto bail_out;
    }
 
+   /*
+    * Loop over the candidate Volumes and actually truncate them
+    */
    for (int i=0; i < nb; i++) {
       memset(&mr, 0, sizeof(mr));
       mr.MediaId = results[i];
