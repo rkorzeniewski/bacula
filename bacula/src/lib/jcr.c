@@ -1176,11 +1176,11 @@ void dbg_print_jcr(FILE *fp)
       return;
    }
 
-   fprintf(fp, "Attempt to dump current JCRs\n");
+   fprintf(fp, "Attempt to dump current JCRs. njcrs=%d\n", jcrs->size());
 
    for (JCR *jcr = (JCR *)jcrs->first(); jcr ; jcr = (JCR *)jcrs->next(jcr)) {
-      fprintf(fp, "JCR=%p JobId=%d name=%s JobStatus=%c\n", 
-              jcr, (int)jcr->JobId, jcr->Job, jcr->JobStatus);
+      fprintf(fp, "threadid=%p JobId=%d JobStatus=%c jcr=%p name=%s\n", 
+              (void *)jcr->my_thread_id, (int)jcr->JobId, jcr->JobStatus, jcr, jcr->Job);
       fprintf(fp, "\tuse_count=%i\n", jcr->use_count());
       fprintf(fp, "\tJobType=%c JobLevel=%c\n",
               jcr->getJobType(), jcr->getJobLevel());
