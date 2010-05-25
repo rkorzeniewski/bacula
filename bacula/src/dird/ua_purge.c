@@ -616,7 +616,7 @@ static void do_truncate_on_purge(UAContext *ua, MEDIA_DBR *mr,
    /* Send relabel command, and check for valid response */
    while (sd->recv() >= 0) {
       ua->send_msg("%s", sd->msg);
-      if (sscanf(sd->msg, "3000 OK label. VolBytes=%llu DVD=%d ", VolBytes, &dvd) == 2) {
+      if (sscanf(sd->msg, "3000 OK label. VolBytes=%llu DVD=%d ", &VolBytes, &dvd) == 2) {
          ok = true;
       }
    }
