@@ -46,12 +46,15 @@ echo "${cwd}/build" >${cwd}/tmp/file-list
 change_jobname $JobName
 start_test
 
-# Start SDs
+# Stop SDs
 for sd in 2 3 4; do
   $tmp/bacula-ctl-sd$sd stop &> /dev/null
-  $tmp/bacula-ctl-sd$sd start &> /dev/null
 done
 
+# Start SDs
+for sd in 2 3 4; do
+  $tmp/bacula-ctl-sd$sd start &> /dev/null
+done
 
 # Write out bconsole commands
 cat <<END_OF_DATA >${cwd}/tmp/bconcmds
