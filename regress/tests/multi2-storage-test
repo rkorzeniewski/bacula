@@ -13,9 +13,9 @@ scripts/prepare-disk-changer
 # create a new bacula-sd.confs
 for i in 2 3 4; do
   perl -ne "\$i='$i';\$tmp='$tmp';"'
+  if (/Name =/ ) { $_ =~ s/-sd/-$i-sd/}
   if (/SDPort = /) { $_ =~ s/(\d+)/1810$i/}
-  if (/Name = /) { $_ =~ s/FileStorage/FileStorage$i/}
-  if (/mediatype = /) { $_ =~ s/FileMedia/FileMedia$1/}
+  if (/mediatype = /) { $_ =~ s/FileMedia/FileMedia$i/}
   if (/WorkingDirectory/) { $_ =~ s:working:tmp/$i:}
   if (/Pid Directory/) { $_ =~ s:working:tmp/$i:}
   if (/(Archive|Changer) Device/) { $_ =~ s:$tmp:$tmp/$i:}
@@ -46,6 +46,13 @@ echo "${cwd}/build" >${cwd}/tmp/file-list
 change_jobname $JobName
 start_test
 
+# Start SDs
+for sd in 2 3 4; do
+  $tmp/bacula-ctl-sd$sd stop &> /dev/null
+  $tmp/bacula-ctl-sd$sd start &> /dev/null
+done
+
+
 # Write out bconsole commands
 cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @out /dev/null
@@ -59,25 +66,24 @@ label storage=File4 volume=File4-Vol001 Pool=Default
 run job=$JobName storage=tape yes
 wait
 messages
+@exec "touch $cwd/build/po/fr.po"
 run job=$JobName storage=File yes
 wait
 messages
+@exec "touch $cwd/build/po/de.po"
 run job=$JobName storage=File2 yes
 wait
 messages
+@exec "touch $cwd/build/po/it.po"
 run job=$JobName storage=File3 yes
 wait
 messages
+@exec "touch $cwd/build/po/es.po"
 run job=$JobName storage=File4 yes
 wait
 messages
 quit
 END_OF_DATA
-
-# Start SDs
-for sd in 2 3 4; do
-  $tmp/bacula-ctl-sd$sd start &> /dev/null
-done
 
 run_bacula
 
@@ -90,15 +96,19 @@ cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 messages
 @$out ${cwd}/tmp/log1.out
 @# Force Incremental on the second Volume
+@exec "touch $cwd/build/po/fi.po"
 run level=Incremental storage=File job=$JobName yes
 wait
 messages
+@exec "touch $cwd/build/po/uk.po"
 run level=Incremental storage=File2 job=$JobName yes
 wait
 messages
+@exec "touch $cwd/build/po/sv.po"
 run level=Incremental storage=File3 job=$JobName yes
 wait
 messages
+@exec "touch $cwd/build/po/README"
 run level=Incremental storage=File4 job=$JobName yes
 wait
 messages
@@ -109,6 +119,13 @@ messages
 setdebug trace=1 level=110 client
 setdebug trace=1 level=110 director
 restore where=${cwd}/tmp/bacula-restores select all done yes
+wait
+messages
+@$out ${cwd}/tmp/status.out
+status all
+@exec "touch $cwd/build/po/POTFILES"
+@$out ${cwd}/tmp/log1.out
+run level=Incremental storage=File4 job=$JobName yes
 wait
 messages
 show storage
