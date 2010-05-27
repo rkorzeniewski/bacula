@@ -10,6 +10,15 @@ db_user=${db_user:-@db_user@}
 sql -u${db_user} $* ${db_name} <<END-OF-DATA
 
 --
+-- When using batch insert make sure you adhere to the following
+-- minimum Ingres version:
+--
+-- Ingres 9.2 or higher with the fix for bug 123652 and bug 117256
+--   For Solaris x86 this is Ingres 9.2. + patch 13785 or higher
+--   For Linux x86_64 this is Ingres 9.2 + patch 13790 or higher
+--
+
+--
 -- As it seems the upper limit for a VARCHAR/VARBYTE column is 32000 bytes
 -- We could have used a BLOB as storage type which can go up to 2 Gb but
 -- you cannot create indexes based on a BLOB (and we don't seem to be able
