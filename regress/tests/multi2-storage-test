@@ -118,7 +118,7 @@ messages
 @# 
 @# now do a restore
 @#
-@$out ${cwd}/tmp/log2.out
+@$out ${cwd}/tmp/log22.out
 setdebug trace=1 level=110 client
 setdebug trace=1 level=110 director
 restore where=${cwd}/tmp/bacula-restores select all done yes
@@ -129,6 +129,28 @@ status all
 @exec "touch $cwd/build/po/POTFILES"
 @$out ${cwd}/tmp/log1.out
 run level=Incremental storage=File4 job=$JobName yes
+wait
+messages
+@# run a job that will wait for a volume
+@$out ${cwd}/tmp/log23.out
+@exec "touch $cwd/build/po/Changelog"
+run level=Incremental pool=Special storage=File3 job=$JobName yes
+@sleep 5
+messages
+status dir
+status storage=File3
+@sleep 3
+@# 
+@# now do a restore with a backup that takes a drive
+@#
+setdebug trace=1 level=110 client
+setdebug trace=1 level=110 director
+restore where=${cwd}/tmp/bacula-restores select all done yes
+@sleep 10
+messages
+status dir
+label storage=File3 volume=test3 pool=Special
+mount storage=File3
 wait
 messages
 show storage
@@ -142,6 +164,9 @@ END_OF_DATA
 run_bconsole
 
 check_for_zombie_jobs storage=File
+check_for_zombie_jobs storage=File2
+check_for_zombie_jobs storage=File3
+check_for_zombie_jobs storage=File4
 check_for_zombie_jobs storage=tape
 
 stop_bacula
@@ -149,7 +174,12 @@ for sd in 2 3 4; do
   $tmp/bacula-ctl-sd$sd stop &> /dev/null
 done
 
+# we have two restore to test
+cp $tmp/log22.out $tmp/log2.out
 check_two_logs
+cp $tmp/log23.out $tmp/log2.out
+check_two_logs
+
 check_restore_diff
 
 end_test
