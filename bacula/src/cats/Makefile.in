@@ -131,7 +131,7 @@ uninstall-includes:
 
 libtool-install: all
 	$(MKDIR) $(DESTDIR)$(libdir)
-	$(LIBTOOL_INSTALL_FINISH) $(INSTALL_PROGRAM) libbacsql$(DEFAULT_ARCHIVE_TYPE) $(DESTDIR)$(libdir)
+	$(LIBTOOL_INSTALL_FINISH) $(INSTALL_LIB) libbacsql$(DEFAULT_ARCHIVE_TYPE) $(DESTDIR)$(libdir)
 
 libtool-uninstall:
 	$(LIBTOOL_UNINSTALL) $(RMF) $(DESTDIR)$(libdir)/libbacsql.la
