@@ -1218,11 +1218,24 @@ Jmsg(JCR *jcr, int type, utime_t mtime, const char *fmt,...)
        return;
     }
 
+    /* The watchdog thread can't use Jmsg directly, we always queued it */
+    if (is_watchdog()) {
+       va_start(arg_ptr, fmt);
+       bvsnprintf(rbuf+len,  sizeof(rbuf)-len, fmt, arg_ptr);
+       va_end(arg_ptr);
+       Qmsg(jcr, type, mtime, "%s", rbuf);
+       return;
+    }
+
     msgs = NULL;
     if (!jcr) {
        jcr = get_jcr_from_tsd();
     }
     if (jcr) {
+       if (!jcr->dequeuing_msgs) { /* Avoid recursion */
+          /* Dequeue messages to keep the original order  */
+          dequeue_messages(jcr); 
+       }
        msgs = jcr->jcr_msgs;
        JobId = jcr->JobId;
     }

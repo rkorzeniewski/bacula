@@ -341,6 +341,7 @@ int stop_watchdog(void);
 watchdog_t *new_watchdog(void);
 bool register_watchdog(watchdog_t *wd);
 bool unregister_watchdog(watchdog_t *wd);
+bool is_watchdog();
 
 /* timers.c */
 btimer_t *start_child_timer(JCR *jcr, pid_t pid, uint32_t wait);
