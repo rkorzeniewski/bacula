@@ -60,6 +60,19 @@ static pthread_t wd_tid;
 static dlist *wd_queue;
 static dlist *wd_inactive;
 
+/* 
+ * Returns: 0 if the current thread is NOT the watchdog
+ *          1 if the current thread is the watchdog
+ */
+bool is_watchdog()
+{
+   if (wd_is_init && pthread_equal(pthread_self(), wd_tid)) {
+      return true;
+   } else {
+      return false;
+   }
+}
+
 /*
  * Start watchdog thread
  *
