@@ -115,6 +115,7 @@ static int32_t fmtfp(char *buffer, int32_t currlen, int32_t maxlen,
 #define DP_C_LDOUBLE  3
 #define DP_C_INT64    4
 #define DP_C_WCHAR    5      /* wide characters */
+#define DP_C_SIZE_T   6
 
 #define char_to_int(p) ((p)- '0')
 #undef MAX
@@ -250,6 +251,10 @@ int bvsnprintf(char *buffer, int32_t maxlen, const char *format, va_list args)
                ch = *format++;
             }
             break;
+         case 'z':
+            cflags = DP_C_SIZE_T;
+            ch = *format++;
+            break;
          case 'L':
             cflags = DP_C_LDOUBLE;
             ch = *format++;
@@ -273,6 +278,8 @@ int bvsnprintf(char *buffer, int32_t maxlen, const char *format, va_list args)
                value = va_arg(args, int32_t);
             } else if (cflags == DP_C_INT64) {
                value = va_arg(args, int64_t);
+            } else if (cflags == DP_C_SIZE_T) {
+               value = va_arg(args, ssize_t);
             } else {
                value = va_arg(args, int);
             }
@@ -299,6 +306,8 @@ int bvsnprintf(char *buffer, int32_t maxlen, const char *format, va_list args)
                value = va_arg(args, uint32_t);
             } else if (cflags == DP_C_INT64) {
                value = va_arg(args, uint64_t);
+            } else if (cflags == DP_C_SIZE_T) {
+               value = va_arg(args, size_t);
             } else {
                value = va_arg(args, unsigned int);
             }
