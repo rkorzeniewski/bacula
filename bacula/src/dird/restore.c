@@ -119,7 +119,7 @@ struct bootstrap_info
  * it should be used for next operations, and need to be closed
  * at the end.
  */
-static bool open_bootstrap_file(JCR *jcr, struct bootstrap_info &info)
+static bool open_bootstrap_file(JCR *jcr, bootstrap_info &info)
 {
    FILE *bs;
    UAContext *ua;
@@ -205,7 +205,7 @@ static bool is_on_same_storage(JCR *jcr, char *new_one)
  * Returns true if we need to change the storage, and it set the new
  * Storage resource name in "storage" arg. 
  */
-static bool check_for_new_storage(JCR *jcr, struct bootstrap_info &info)
+static bool check_for_new_storage(JCR *jcr, bootstrap_info &info)
 {
    UAContext *ua = info.ua;
    parse_ua_args(ua);
@@ -229,7 +229,7 @@ static bool check_for_new_storage(JCR *jcr, struct bootstrap_info &info)
  * Send bootstrap file to Storage daemon section by section.
  */
 static bool send_bootstrap_file(JCR *jcr, BSOCK *sock,
-                                struct bootstrap_info &info)
+                                bootstrap_info &info)
 {
    boffset_t pos;
    const char *bootstrap = "bootstrap\n";
@@ -260,7 +260,7 @@ static bool send_bootstrap_file(JCR *jcr, BSOCK *sock,
 /**
  * Change the read storage resource for the current job.
  */
-static void select_rstore(JCR *jcr, struct bootstrap_info &info)
+static void select_rstore(JCR *jcr, bootstrap_info &info)
 {
    USTORE ustore;
 
@@ -285,9 +285,9 @@ static void select_rstore(JCR *jcr, struct bootstrap_info &info)
 }
 
 /* 
- * Clean the struct bootstrap_info struct
+ * Clean the bootstrap_info struct
  */
-static void close_bootstrap_file(struct bootstrap_info &info)
+static void close_bootstrap_file(bootstrap_info &info)
 {
    if (info.bs) {
       fclose(info.bs);
@@ -311,7 +311,7 @@ bool restore_bootstrap(JCR *jcr)
    BSOCK *fd = NULL;
    BSOCK *sd;
    bool first_time = true;
-   struct bootstrap_info info;
+   bootstrap_info info;
    POOL_MEM restore_cmd(PM_MESSAGE);
    bool ret = false;
 
