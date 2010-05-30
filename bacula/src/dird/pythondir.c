@@ -202,7 +202,7 @@ PyObject *job_getattr(PyObject *self, char *attrname)
       buf[1] = 0;
       buf[0] = jcr->FDJobStatus;
       return Py_BuildValue((char *)getvars[i].fmt, buf);
-   case 29:                           /* SDJobStatus */
+   case 20:                           /* SDJobStatus */
       buf[1] = 0;
       buf[0] = jcr->SDJobStatus;
       return Py_BuildValue((char *)getvars[i].fmt, buf);
