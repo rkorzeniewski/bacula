@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2007-2009 Free Software Foundation Europe e.V.
+   Copyright (C) 2007-2010 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -28,8 +28,6 @@
 /* 
  * 
  *  Kern Sibbald, August 2007
- *
- *  Version $Id$
  *
  * This is a generic service routine, which is used by all three
  *  of the daemons. Each one compiles it with slightly different
@@ -363,8 +361,10 @@ int removeService()
                   }
                }
                if (status.dwCurrentState != SERVICE_STOPPED) {
-                  MessageBox(NULL, _("The Bacula service: " APP_NAME " could not be stopped"), 
-                     APP_DESC, MB_ICONEXCLAMATION | MB_OK);
+                  if (opt_debug) {
+                     MessageBox(NULL, _("The Bacula service: " APP_NAME " could not be stopped"), 
+                        APP_DESC, MB_ICONEXCLAMATION | MB_OK);
+                  }
                }
             }
 
@@ -381,9 +381,11 @@ int removeService()
             CloseServiceHandle(baculaService);
 
          } else {
-            MessageBox(NULL, _("A existing Bacula service: " APP_NAME " could not be found for "
-                "removal. This is not normally an error."),
-                APP_DESC, MB_ICONEXCLAMATION | MB_OK);
+            if (opt_debug) {
+               MessageBox(NULL, _("An existing Bacula service: " APP_NAME " could not be found for "
+                   "removal. This is not normally an error."),
+                   APP_DESC, MB_ICONEXCLAMATION | MB_OK);
+            }
          }
          CloseServiceHandle(serviceManager);
          return stat;
@@ -400,9 +402,11 @@ int removeService()
       if (RegOpenKey(HKEY_LOCAL_MACHINE, 
             "Software\\Microsoft\\Windows\\CurrentVersion\\RunServices",
             &runservices) != ERROR_SUCCESS) {
-         MessageBox(NULL, 
-            _("Could not find registry entry.\nService probably not registerd - the Bacula service was not removed"), 
-               APP_DESC, MB_ICONEXCLAMATION | MB_OK);
+         if (opt_debug) {
+            MessageBox(NULL, 
+               _("Could not find registry entry.\nService probably not registerd - the Bacula service was not removed"), 
+                  APP_DESC, MB_ICONEXCLAMATION | MB_OK);
+         }
       } else {
          /* Now delete the Bacula entry */
          if (RegDeleteValue(runservices, APP_NAME) != ERROR_SUCCESS) {
@@ -416,9 +420,11 @@ int removeService()
 
       /* Stop any running Bacula */
       if (!stopRunningBacula()) {
-         MessageBox(NULL,
-             _("Bacula could not be contacted, probably not running"),
-             APP_DESC, MB_ICONEXCLAMATION | MB_OK);
+         if (opt_debug) {
+            MessageBox(NULL,
+                _("Bacula could not be contacted, probably not running"),
+                APP_DESC, MB_ICONEXCLAMATION | MB_OK);
+         }
          return 0;   /* not really an error */
       }
 
