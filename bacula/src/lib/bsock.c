@@ -668,6 +668,7 @@ int BSOCK::get_peer(char *buf, socklen_t buflen)
 bool BSOCK::set_buffer_size(uint32_t size, int rw)
 {
    uint32_t dbuf_size, start_size;
+
 #if defined(IP_TOS) && defined(IPTOS_THROUGHPUT)
    int opt;
    opt = IPTOS_THROUGHPUT;
@@ -684,6 +685,17 @@ bool BSOCK::set_buffer_size(uint32_t size, int rw)
       Qmsg0(get_jcr(), M_FATAL, 0, _("Could not malloc BSOCK data buffer\n"));
       return false;
    }
+
+   /*
+    * If user has not set the size, use the OS default -- i.e. do not
+    *   try to set it.  This allows sys admins to set the size they
+    *   want in the OS, and Bacula will comply. See bug #1493
+    */
+   if (size == 0) {
+      msglen = dbuf_size;
+      return true;
+   }
+
    if (rw & BNET_SETBUF_READ) {
       while ((dbuf_size > TAPE_BSIZE) && (setsockopt(m_fd, SOL_SOCKET,
               SO_RCVBUF, (sockopt_val_t) & dbuf_size, sizeof(dbuf_size)) < 0)) {
