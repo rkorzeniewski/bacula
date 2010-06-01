@@ -1,8 +1,8 @@
 
 #undef  VERSION
 #define VERSION "5.1.4"
-#define BDATE   "24 May 2010"
-#define LSMDATE "24May10"
+#define BDATE   "02 Jun 2010"
+#define LSMDATE "02Jun10"
 
 #define PROG_COPYRIGHT "Copyright (C) %d-2010 Free Software Foundation Europe e.V.\n"
 #define BYEAR "2010"       /* year for copyright messages in progs */
@@ -37,7 +37,7 @@
 
 /* Shared object library versions */
 
-/* Uncomment to overwrite default values from VERSION */
+/* Uncomment to overwrite default value from VERSION */
 /* #define LIBBAC_LT_RELEASE     "5.1.0" */
 /* #define LIBBACCFG_LT_RELEASE  "5.1.0" */
 /* #define LIBBACPY_LT_RELEASE   "5.1.0" */
