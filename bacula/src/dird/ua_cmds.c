@@ -458,10 +458,10 @@ static int cancel_cmd(UAContext *ua, const char *cmd)
    for (i=1; i<ua->argc; i++) {
       if (strcasecmp(ua->argk[i], NT_("jobid")) == 0) {
          uint32_t JobId;
-         if (!ua->argv[i]) {
+         JobId = str_to_int64(ua->argv[i]);
+         if (!JobId) {
             break;
          }
-         JobId = str_to_int64(ua->argv[i]);
          if (!(jcr=get_jcr_by_id(JobId))) {
             ua->error_msg(_("JobId %s is not running. Use Job name to cancel inactive jobs.\n"),  ua->argv[i]);
             return 1;
