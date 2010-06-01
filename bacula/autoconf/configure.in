@@ -43,41 +43,34 @@ AC_SUBST(BACULA)dnl
 AC_SUBST(post_host)dnl
 
 dnl src/lib
-LIBBAC_LT_CURRENT=`sed -n -e 's/^.*LIBBAC_LT_CURRENT *\(.*\)$/\1/p' ${srcdir}/src/version.h`
-LIBBAC_LT_REVISION=`sed -n -e 's/^.*LIBBAC_LT_REVISION *\(.*\)$/\1/p' ${srcdir}/src/version.h`
-LIBBAC_LT_AGE=`sed -n -e 's/^.*LIBBAC_LT_AGE *\(.*\)$/\1/p' ${srcdir}/src/version.h`
-LIBBACCFG_LT_CURRENT=`sed -n -e 's/^.*LIBBACCFG_LT_CURRENT *\(.*\)$/\1/p' ${srcdir}/src/version.h`
-LIBBACCFG_LT_REVISION=`sed -n -e 's/^.*LIBBACCFG_LT_REVISION *\(.*\)$/\1/p' ${srcdir}/src/version.h`
-LIBBACCFG_LT_AGE=`sed -n -e 's/^.*LIBBACCFG_LT_AGE *\(.*\)$/\1/p' ${srcdir}/src/version.h`
-LIBBACPY_LT_CURRENT=`sed -n -e 's/^.*LIBBACPY_LT_CURRENT *\(.*\)$/\1/p' ${srcdir}/src/version.h`
-LIBBACPY_LT_REVISION=`sed -n -e 's/^.*LIBBACPY_LT_REVISION *\(.*\)$/\1/p' ${srcdir}/src/version.h`
-LIBBACPY_LT_AGE=`sed -n -e 's/^.*LIBBACPY_LT_AGE *\(.*\)$/\1/p' ${srcdir}/src/version.h`
+dnl can be overwritten by specific values from version.h
+LIBBAC_LT_RELEASE=`sed -n -e 's/^#.*LIBBAC_LT_RELEASE.*"\(.*\)"$/\1/p' ${srcdir}/src/version.h`
+LIBBACCFG_LT_RELEASE=`sed -n -e 's/^#.*LIBBACCFG_LT_RELEASE.*"\(.*\)"$/\1/p' ${srcdir}/src/version.h`
+LIBBACPY_LT_RELEASE=`sed -n -e 's/^#.*LIBBACPY_LT_RELEASE.*"\(.*\)"$/\1/p' ${srcdir}/src/version.h`
 
-AC_SUBST(LIBBAC_LT_CURRENT)dnl
-AC_SUBST(LIBBAC_LT_REVISION)dnl
-AC_SUBST(LIBBAC_LT_AGE)dnl
-AC_SUBST(LIBBACCFG_LT_CURRENT)dnl
-AC_SUBST(LIBBACCFG_LT_REVISION)dnl
-AC_SUBST(LIBBACCFG_LT_AGE)dnl
-AC_SUBST(LIBBACPY_LT_CURRENT)dnl
-AC_SUBST(LIBBACPY_LT_REVISION)dnl
-AC_SUBST(LIBBACPY_LT_AGE)dnl
+LIBBAC_LT_RELEASE=${LIBBAC_LT_RELEASE:-$VERSION}
+LIBBACCFG_LT_RELEASE=${LIBBACCFG_LT_RELEASE:-$VERSION}
+LIBBACPY_LT_RELEASE=${LIBBACPY_LT_RELEASE:-$VERSION}
+
+AC_SUBST(LIBBAC_LT_RELEASE)dnl
+AC_SUBST(LIBBACCFG_LT_RELEASE)dnl
+AC_SUBST(LIBBACPY_LT_RELEASE)dnl
 
 dnl src/cats
-LIBBACSQL_LT_CURRENT=`sed -n -e 's/^.*LIBBACSQL_LT_CURRENT *\(.*\)$/\1/p' ${srcdir}/src/version.h`
-LIBBACSQL_LT_REVISION=`sed -n -e 's/^.*LIBBACSQL_LT_REVISION *\(.*\)$/\1/p' ${srcdir}/src/version.h`
-LIBBACSQL_LT_AGE=`sed -n -e 's/^.*LIBBACSQL_LT_AGE *\(.*\)$/\1/p' ${srcdir}/src/version.h`
-AC_SUBST(LIBBACSQL_LT_CURRENT)dnl
-AC_SUBST(LIBBACSQL_LT_REVISION)dnl
-AC_SUBST(LIBBACSQL_LT_AGE)dnl
+dnl can be overwritten by specific values from version.h
+LIBBACSQL_LT_RELEASE=`sed -n -e 's/^#.*LIBBACSQL_LT_RELEASE.*"\(.*\)"$/\1/p' ${srcdir}/src/version.h`
+
+LIBBACSQL_LT_RELEASE=${LIBBACSQL_LT_RELEASE:-$VERSION}
+
+AC_SUBST(LIBBACSQL_LT_RELEASE)dnl
 
 dnl src/findlib
-LIBBACFIND_LT_CURRENT=`sed -n -e 's/^.*LIBBACFIND_LT_CURRENT *\(.*\)$/\1/p' ${srcdir}/src/version.h`
-LIBBACFIND_LT_REVISION=`sed -n -e 's/^.*LIBBACFIND_LT_REVISION *\(.*\)$/\1/p' ${srcdir}/src/version.h`
-LIBBACFIND_LT_AGE=`sed -n -e 's/^.*LIBBACFIND_LT_AGE *\(.*\)$/\1/p' ${srcdir}/src/version.h`
-AC_SUBST(LIBBACFIND_LT_CURRENT)dnl
-AC_SUBST(LIBBACFIND_LT_REVISION)dnl
-AC_SUBST(LIBBACFIND_LT_AGE)dnl
+dnl can be overwritten by specific values from version.h
+LIBBACFIND_LT_RELEASE=`sed -n -e 's/^#.*LIBBACFIND_LT_RELEASE.*"\(.*\)"$/\1/p' ${srcdir}/src/version.h`
+
+LIBBACFIND_LT_RELEASE=${LIBBACFIND_LT_RELEASE:-$VERSION}
+
+AC_SUBST(LIBBACFIND_LT_RELEASE)dnl
 
 echo "configuring for ${BACULA} $VERSION ($DATE)"
 
