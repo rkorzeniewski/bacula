@@ -21,7 +21,7 @@ for i in 2 3 4; do
   if (/(Archive|Changer) Device/) { $_ =~ s:$tmp:$tmp/$i:}
   print;
   ' $conf/bacula-sd.conf > $conf/bacula-sd$i.conf
-  mkdir -p ${working}$i
+  mkdir -p ${tmp}/$i
   sed "s/bacula-sd.conf/bacula-sd${i}.conf/" $scripts/bacula-ctl-sd \
       > $tmp/bacula-ctl-sd$i
   chmod +x $tmp/bacula-ctl-sd$i
@@ -50,6 +50,8 @@ start_test
 for sd in 2 3 4; do
   $tmp/bacula-ctl-sd$sd stop &> /dev/null
 done
+
+sleep 2
 
 # Start SDs
 for sd in 2 3 4; do
