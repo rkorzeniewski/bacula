@@ -627,6 +627,37 @@ const char *select_recent_version[5] = {
       "AND j1.JobId = f1.JobId"
 };
 
+const char *create_temp_accurate_jobids_default =
+   "CREATE TEMPORARY TABLE btemp3%s AS "
+   "SELECT JobId, StartTime, EndTime, JobTDate, PurgedFiles "
+   "FROM Job JOIN FileSet USING (FileSetId) "
+   "WHERE ClientId = %s "
+   "AND Level='F' AND JobStatus IN ('T','W') AND Type='B' "
+   "AND StartTime<'%s' "
+   "AND FileSet.FileSet=(SELECT FileSet FROM FileSet WHERE FileSetId = %s) "
+   "ORDER BY Job.JobTDate DESC LIMIT 1";
+
+const char *create_temp_accurate_jobids[5] = {
+   /* Mysql */
+   create_temp_accurate_jobids_default,
+   /* Postgresql */
+   create_temp_accurate_jobids_default,
+   /* SQLite */
+   create_temp_accurate_jobids_default,
+   /* SQLite3 */
+   create_temp_accurate_jobids_default,
+   /* Ingres */
+   "DECLARE GLOBAL TEMPORARY TABLE btemp3%s AS "
+   "SELECT JobId, StartTime, EndTime, JobTDate, PurgedFiles "
+   "FROM Job JOIN FileSet USING (FileSetId) "
+   "WHERE ClientId = %s "
+   "AND Level='F' AND JobStatus IN ('T','W') AND Type='B' "
+   "AND StartTime<'%s' "
+   "AND FileSet.FileSet=(SELECT FileSet FROM FileSet WHERE FileSetId = %s) "
+   "ORDER BY Job.JobTDate DESC FETCH FIRST 1 ROW ONLY "
+   "ON COMMIT PRESERVE ROWS WITH NORECOVERY"
+};
+
 const char *create_temp_basefile[5] = {
    /* Mysql */
    "CREATE TEMPORARY TABLE basefile%lld ("
@@ -697,7 +728,7 @@ const char *create_temp_new_basefile[5] = {
    "JOIN Filename ON (Filename.FilenameId = Temp.FilenameId) "
    "JOIN Path ON (Path.PathId = Temp.PathId) "
    "WHERE Temp.FileIndex > 0 "
-   "ON COMMIT PRESERVE ROWS WITH NORECOVERY",
+   "ON COMMIT PRESERVE ROWS WITH NORECOVERY"
 };
 
 /* ====== ua_prune.c */

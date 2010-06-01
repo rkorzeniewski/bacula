@@ -1172,15 +1172,7 @@ bool db_accurate_get_jobids(JCR *jcr, B_DB *mdb,
    jobids->count = 0;
 
    /* First, find the last good Full backup for this job/client/fileset */
-   Mmsg(query, 
-"CREATE TABLE btemp3%s AS "
- "SELECT JobId, StartTime, EndTime, JobTDate, PurgedFiles "
-   "FROM Job JOIN FileSet USING (FileSetId) "
-  "WHERE ClientId = %s "
-    "AND Level='F' AND JobStatus IN ('T','W') AND Type='B' "
-    "AND StartTime<'%s' "
-    "AND FileSet.FileSet=(SELECT FileSet FROM FileSet WHERE FileSetId = %s) "
-  "ORDER BY Job.JobTDate DESC LIMIT 1",
+   Mmsg(query, create_temp_accurate_jobids[db_type], 
         edit_uint64(jcr->JobId, jobid),
         edit_uint64(jr->ClientId, clientid),
         date,
