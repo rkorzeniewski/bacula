@@ -1221,7 +1221,7 @@ Jmsg(JCR *jcr, int type, utime_t mtime, const char *fmt,...)
     /* The watchdog thread can't use Jmsg directly, we always queued it */
     if (is_watchdog()) {
        va_start(arg_ptr, fmt);
-       bvsnprintf(rbuf+len,  sizeof(rbuf)-len, fmt, arg_ptr);
+       bvsnprintf(rbuf,  sizeof(rbuf), fmt, arg_ptr);
        va_end(arg_ptr);
        Qmsg(jcr, type, mtime, "%s", rbuf);
        return;
