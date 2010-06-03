@@ -109,7 +109,7 @@ messages
 run level=Incremental storage=File2 job=$JobName yes
 wait
 messages
-@exec "touch $cwd/build/po/sv.po"
+@exec "touch $cwd/build/po/sv.po $cwd/build/po/test.po"
 run level=Incremental storage=File3 job=$JobName yes
 wait
 messages
@@ -135,7 +135,7 @@ wait
 messages
 @# run a job that will wait for a volume
 @$out ${cwd}/tmp/log23.out
-@exec "touch $cwd/build/po/Changelog"
+@exec "touch $cwd/build/po/ChangeLog"
 run level=Incremental pool=Special storage=File3 job=$JobName yes
 @sleep 5
 messages
