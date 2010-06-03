@@ -143,6 +143,10 @@ extern void cancel_storage_daemon_job(JCR *jcr);
 extern bool run_console_command(JCR *jcr, const char *cmd);
 extern void sd_msg_thread_send_signal(JCR *jcr, int sig);
 
+/* jobq.c */
+extern bool inc_read_store(JCR *jcr);
+extern void dec_read_store(JCR *jcr);
+
 /* migration.c */
 extern bool do_migration(JCR *jcr);
 extern bool do_migration_init(JCR *jcr);

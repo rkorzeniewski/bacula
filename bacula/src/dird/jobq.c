@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2003-2009 Free Software Foundation Europe e.V.
+   Copyright (C) 2003-2010 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -56,7 +56,6 @@ extern "C" void *sched_wait(void *arg);
 static int  start_server(jobq_t *jq);
 static bool acquire_resources(JCR *jcr);
 static bool reschedule_job(JCR *jcr, jobq_t *jq, jobq_item_t *je);
-static void dec_read_store(JCR *jcr);
 static void dec_write_store(JCR *jcr);
 
 /*
@@ -710,7 +709,7 @@ static bool acquire_resources(JCR *jcr)
  *   but we do not really have enough information here to
  *   know if this is really a deadlock (it may be a dual drive
  *   autochanger), and in principle, the SD reservation system
- *   should detect these deadlocks, so push the work off on is.
+ *   should detect these deadlocks, so push the work off on it.
  */
 #ifdef xxx
    if (jcr->rstore && jcr->rstore == jcr->wstore) {    /* possible deadlock */
@@ -723,11 +722,7 @@ static bool acquire_resources(JCR *jcr)
 #endif
    if (jcr->rstore) {
       Dmsg1(200, "Rstore=%s\n", jcr->rstore->name());
-      if (jcr->rstore->NumConcurrentJobs < jcr->rstore->MaxConcurrentJobs) {
-         jcr->rstore->NumConcurrentReadJobs++;
-         jcr->rstore->NumConcurrentJobs++;
-         Dmsg1(200, "Inc rncj=%d\n", jcr->rstore->NumConcurrentJobs);
-      } else {
+      if (!inc_read_store(jcr)) {
          Dmsg1(200, "Fail rncj=%d\n", jcr->rstore->NumConcurrentJobs);
          set_jcr_job_status(jcr, JS_WaitStoreRes);
          return false;
@@ -776,12 +771,34 @@ static bool acquire_resources(JCR *jcr)
    return true;
 }
 
-static void dec_read_store(JCR *jcr)
+static pthread_mutex_t rstore_mutex = PTHREAD_MUTEX_INITIALIZER;
+
+/* 
+ * Note: inc_read_store() and dec_read_store() are
+ *   called from select_rstore() in src/dird/restore.c
+ */
+bool inc_read_store(JCR *jcr)
+{
+   P(rstore_mutex);
+   if (jcr->rstore->NumConcurrentJobs < jcr->rstore->MaxConcurrentJobs) {
+      jcr->rstore->NumConcurrentReadJobs++;
+      jcr->rstore->NumConcurrentJobs++;
+      Dmsg1(200, "Inc rncj=%d\n", jcr->rstore->NumConcurrentJobs);
+      V(rstore_mutex);
+      return true;
+   }
+   V(rstore_mutex);
+   return false;
+}
+
+void dec_read_store(JCR *jcr)
 {
    if (jcr->rstore) {
+      P(rstore_mutex);
       jcr->rstore->NumConcurrentReadJobs--;    /* back out rstore */
       jcr->rstore->NumConcurrentJobs--;        /* back out rstore */
       Dmsg1(200, "Dec rncj=%d\n", jcr->rstore->NumConcurrentJobs);
+      V(rstore_mutex);
       ASSERT(jcr->rstore->NumConcurrentReadJobs >= 0);
       ASSERT(jcr->rstore->NumConcurrentJobs >= 0);
    }
