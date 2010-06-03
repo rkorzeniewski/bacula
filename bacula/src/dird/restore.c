@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2009 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2010 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -42,7 +42,6 @@
  *       to do the restore.
  *     Update the DB according to what files where restored????
  *
- *   Version $Id$
  */
 
 
@@ -257,30 +256,62 @@ static bool send_bootstrap_file(JCR *jcr, BSOCK *sock,
    return true;
 }
 
-/* 
+#define MAX_TRIES 6 * 360   /* 6 hours */
+
+/**
  * Change the read storage resource for the current job.
  */
-static void select_rstore(JCR *jcr, bootstrap_info &info)
+static bool select_rstore(JCR *jcr, bootstrap_info &info)
 {
    USTORE ustore;
+   int i;
+
    if (!strcmp(jcr->rstore->name(), info.storage)) {
-      return;
+      return true;                 /* same SD nothing to change */
    }
 
    if (!(ustore.store = (STORE *)GetResWithName(R_STORAGE,info.storage))) {
       Jmsg(jcr, M_FATAL, 0,
            _("Could not get storage resource '%s'.\n"), info.storage);
       set_jcr_job_status(jcr, JS_ErrorTerminated);
-      return;
+      return false;
    }
    
+   /*
+    * What does this do???????????  KES
+    */
    if (jcr->store_bsock) {
       jcr->store_bsock->destroy();
       jcr->store_bsock = NULL;
    }
    
+   /*
+    * release current read storage and get a new one 
+    */
+   dec_read_store(jcr);
    free_rstorage(jcr);
    set_rstorage(jcr, &ustore);
+   set_jcr_job_status(jcr, JS_WaitSD);
+   /*
+    * Wait for up to 6 hours to increment read stoage counter 
+    */
+   for (i=0; i < MAX_TRIES; i++) {
+      /* try to get read storage counter incremented */
+      if (inc_read_store(jcr)) {
+         set_jcr_job_status(jcr, JS_Running);
+         return true;
+      }
+      bmicrosleep(10, 0);       /* sleep 10 secs */
+      if (job_canceled(jcr)) {
+         free_rstorage(jcr);
+         return false;
+      }
+   }
+   /* Failed to inc_read_store() */
+   free_rstorage(jcr);
+   Jmsg(jcr, M_FATAL, 0, 
+      _("Could not acquire read storage lock for \"%s\""), info.storage);
+   return false;
 }
 
 /* 
@@ -318,7 +349,9 @@ bool restore_bootstrap(JCR *jcr)
    }
    while (!end_loop && !feof(info.bs)) {
       
-      select_rstore(jcr, info);
+      if (!select_rstore(jcr, info)) {
+         goto bail_out;
+      }
 
       /*
        * Open a message channel connection with the Storage
