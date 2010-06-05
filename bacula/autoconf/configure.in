@@ -2478,8 +2478,6 @@ fi
 
 AC_SUBST(AFS_CFLAGS)
 AC_SUBST(AFS_LIBS)
-AC_DEFINE(AFS_CFLAGS)
-AC_DEFINE(AFS_LIBS)
 
 dnl
 dnl Check for ACL support and libraries
