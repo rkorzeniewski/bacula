@@ -40,7 +40,7 @@ our @ISA = qw(Exporter);
 our @EXPORT =  qw(update_some_files create_many_files check_multiple_copies
                   update_client $HOST $BASEPORT add_to_backup_list check_volume_size
                   create_many_dirs cleanup start_bacula stop_bacula get_resource
-                  set_maximum_concurent_jobs get_time
+                  set_maximum_concurrent_jobs get_time
                   check_min_volume_size check_max_volume_size $estat $bstat $rstat $zstat
                   $cwd $bin $scripts $conf $rscripts $tmp $working extract_resource
                   $db_name $db_user $db_password $src $tmpsrc);
@@ -350,10 +350,10 @@ sub check_encoding
 # You can change the maximum concurrent jobs for any config file
 # If specified, you can change only one Resource or one type of
 # resource at the time (optional)
-#  set_maximum_concurent_jobs('$conf/bacula-dir.conf', 100);
-#  set_maximum_concurent_jobs('$conf/bacula-dir.conf', 100, 'Director');
-#  set_maximum_concurent_jobs('$conf/bacula-dir.conf', 100, 'Device', 'Drive-0');
-sub set_maximum_concurent_jobs
+#  set_maximum_concurrent_jobs('$conf/bacula-dir.conf', 100);
+#  set_maximum_concurrent_jobs('$conf/bacula-dir.conf', 100, 'Director');
+#  set_maximum_concurrent_jobs('$conf/bacula-dir.conf', 100, 'Device', 'Drive-0');
+sub set_maximum_concurrent_jobs
 {
     my ($file, $nb, $obj, $name) = @_;
     my ($cur_obj, $cur_name);
