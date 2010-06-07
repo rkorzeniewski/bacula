@@ -1078,7 +1078,7 @@ void trayMessage(const char *fmt,...)
    bvsnprintf(buf, sizeof(buf), (char *)fmt, arg_ptr);
    va_end(arg_ptr);
 
-   fprintf(stderr, buf);
+   fprintf(stderr, "%s", buf);
 
 // gtk_tray_icon_send_message(gtk_status_icon_get_tray_icon(mTrayIcon), 5000, (const char*)&buf, -1);
 }
