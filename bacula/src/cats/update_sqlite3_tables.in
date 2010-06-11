@@ -1,10 +1,12 @@
 #!/bin/sh
 #
-# Shell script to update SQLite3 tables from Bacula Community version 3.0.x to 5.0.0
+# Shell script to update MySQL tables from Bacula Enterprise version 2.6.x to 4.0.x
+#  or Bacula Community version 5.0.x to 5.2.x
 #
 echo " "
-echo "This script will update a Bacula SQLite3 database from version 11 to 12"
-echo "	which is needed to convert from Bacula Community version 3.0.x to 5.0.x"
+echo "This script will update a Bacula MySQL database from version 12 to 13"
+echo "	which is needed to convert from Bacula Enterprise version 2.6.x to 4.0.x"
+echo "	or Bacula Community version 5.0.x to 5.2.x"
 echo " "
 
 bindir=@SQL_BINDIR@
@@ -16,62 +18,35 @@ db_name=@db_name@
 DBV=`${sqlite} ${db_name} $sbin/regress.db <<END
 select VersionId from Version;
 END`
-if [ $DBVERSION != 11 ] ; then
+if [ $DBVERSION != 12 ] ; then
    echo " "
    echo "The existing database is version $DBVERSION !!"
-   echo "This script can only update an existing version 11 database to version 12."
+   echo "This script can only update an existing version 12 database to version 13."
    echo "Error. Cannot upgrade this database."
    echo " "
    exit 1
 fi
 
-
 ${sqlite} $* ${db_name}.db <<END-OF-DATA
 BEGIN;
-ALTER TABLE Job ADD COLUMN HasCache TINYINT DEFAULT 0;
-ALTER TABLE Job ADD COLUMN Reviewed TINYINT DEFAULT 0;
-ALTER TABLE Job ADD COLUMN Comment TEXT;
-ALTER TABLE JobHisto ADD COLUMN HasCache TINYINT DEFAULT 0;
-ALTER TABLE JobHisto ADD COLUMN Reviewed TINYINT DEFAULT 0;
-ALTER TABLE JobHisto ADD COLUMN Comment TEXT;
 
-ALTER TABLE Status ADD COLUMN Severity int;
-UPDATE Status SET Severity = 15;
-UPDATE Status SET Severity = 100 where JobStatus = 'f';
-UPDATE Status SET Severity = 90 where JobStatus = 'A';
-UPDATE Status SET Severity = 10 where JobStatus = 'T';
-UPDATE Status SET Severity = 20 where JobStatus = 'e';
-UPDATE Status SET Severity = 25 where JobStatus = 'E';
+CREATE TABLE RestoreObject (
+   RestoreObjectId INTEGER,
+   ObjectName TEXT DEFAULT '',
+   RestoreObject TEXT DEFAULT '',
+   PluginName TEXT DEFAULT '',
+   ObjectLength INTEGER DEFAULT 0,
+   ObjectFullLength INTEGER DEFAULT 0,
+   ObjectIndex INTEGER DEFAULT 0,
+   ObjectType INTEGER DEFAULT 0,
+   FileIndex INTEGER UNSIGNED DEFAULT 0,
+   ObejctCompression INTEGER DEFAULT 0,
+   JobId INTEGER UNSIGNED REFERENCES Job NOT NULL,
+   PRIMARY KEY(RestoreObjectId)
+   );
+CREATE INDEX restore_jobid_idx ON RestoreObject (JobId);
 
-CREATE TABLE PathHierarchy
-(
-     PathId integer NOT NULL,
-     PPathId integer NOT NULL,
-     CONSTRAINT pathhierarchy_pkey PRIMARY KEY (PathId)
-);
-
-CREATE INDEX pathhierarchy_ppathid 
-	  ON PathHierarchy (PPathId);
-
-CREATE TABLE PathVisibility
-(
-      PathId integer NOT NULL,
-      JobId integer NOT NULL,
-      Size int8 DEFAULT 0,
-      Files int4 DEFAULT 0,
-      CONSTRAINT pathvisibility_pkey PRIMARY KEY (JobId, PathId)
-);
-
-CREATE INDEX pathvisibility_jobid
-	  ON PathVisibility (JobId);
-
-CREATE INDEX basefiles_jobid_idx ON BaseFiles ( JobId );
-
-UPDATE Version SET VersionId=12;
+UPDATE Version SET VersionId=13;
 COMMIT;
-
-DROP INDEX inx4;
-DROP INDEX IF EXISTS inx9;  
-CREATE INDEX file_jpf_idx ON File (JobId, PathId, FilenameId);
 
 END-OF-DATA

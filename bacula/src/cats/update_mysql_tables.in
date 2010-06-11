@@ -1,10 +1,12 @@
 #!/bin/sh
 #
-# Shell script to update MySQL Community version 3.0.x to 5.0.x
+# Shell script to update MySQL Enterprise version 2.6.x to 4.0.x
+#  or Bacula Community version 5.0.x to 5.2.x
 #
 echo " "
-echo "This script will update a Bacula MySQL database from version 11 to 12"
-echo " which is needed to convert from Bacula Community version 3.0.x to 5.0.x"
+echo "This script will update a Bacula MySQL database from version 12 to 13"
+echo " which is needed to convert from Bacula Enterprise version 2.6.x to 6.0.x"
+echo " or Bacula Community version 5.0.x to 5.2.x"
 echo " "
 bindir=@SQL_BINDIR@
 PATH="$bindir:$PATH"
@@ -12,10 +14,10 @@ db_name=@db_name@
 
 mysql ${db_name} -e "select VersionId from Version\G" >/tmp/$$
 DBVERSION=`sed -n -e 's/^VersionId: \(.*\)$/\1/p' /tmp/$$`
-if [ $DBVERSION != 11 ] ; then
+if [ $DBVERSION != 12 ] ; then
    echo " "
    echo "The existing database is version $DBVERSION !!"
-   echo "This script can only update an existing version 11 database to version 12."
+   echo "This script can only update an existing version 12 database to version 13."
    echo "Error. Cannot upgrade this database."
    echo " "
    exit 1
@@ -24,48 +26,24 @@ fi
 if mysql $* -f <<END-OF-DATA
 USE ${db_name};
 
-ALTER TABLE JobMedia DROP Stripe ;
-ALTER TABLE JobMedia DROP Copy ;
-ALTER TABLE Job ADD COLUMN HasCache tinyint default 0 after HasBase;
-ALTER TABLE Job ADD COLUMN Reviewed tinyint default 0 after HasCache;
-ALTER TABLE Job ADD COLUMN Comment BLOB AFTER Reviewed;
-ALTER TABLE JobHisto ADD COLUMN HasCache tinyint default 0 after HasBase;
-ALTER TABLE JobHisto ADD COLUMN Reviewed tinyint default 0 after HasCache;
-ALTER TABLE JobHisto ADD COLUMN Comment BLOB AFTER Reviewed;
-
-ALTER TABLE Status ADD COLUMN Severity int;
-UPDATE Status SET Severity = 15;
-UPDATE Status SET Severity = 100 where JobStatus = 'f';
-UPDATE Status SET Severity = 90 where JobStatus = 'A';
-UPDATE Status SET Severity = 10 where JobStatus = 'T';
-UPDATE Status SET Severity = 20 where JobStatus = 'e';
-UPDATE Status SET Severity = 25 where JobStatus = 'E';
-
-CREATE TABLE PathHierarchy
-(
-     PathId integer NOT NULL,
-     PPathId integer NOT NULL,
-     CONSTRAINT pathhierarchy_pkey PRIMARY KEY (PathId)
+CREATE TABLE RestoreObject (
+   RestoreObjectId INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,
+   ObjectName BLOB NOT NULL,
+   RestoreObject LONGBLOB NOT NULL,
+   PluginName TINYBLOB NOT NULL,
+   ObjectLength INTEGER DEFAULT 0,
+   ObjectFullLength INTEGER DEFAULT 0,
+   ObjectIndex INTEGER DEFAULT 0,
+   ObjectType INTEGER DEFAULT 0,
+   FileIndex INTEGER UNSIGNED DEFAULT 0,
+   JobId INTEGER UNSIGNED NOT NULL REFERENCES Job,
+   ObjectCompression INTEGER DEFAULT 0,
+   PRIMARY KEY(RestoreObjectId),
+   INDEX (JobId)
 );
-
-CREATE INDEX pathhierarchy_ppathid 
-	  ON PathHierarchy (PPathId);
-
-CREATE TABLE PathVisibility
-(
-      PathId integer NOT NULL,
-      JobId integer NOT NULL,
-      Size int8 DEFAULT 0,
-      Files int4 DEFAULT 0,
-      CONSTRAINT pathvisibility_pkey PRIMARY KEY (JobId, PathId)
-);
-CREATE INDEX pathvisibility_jobid
-	     ON PathVisibility (JobId);
-
-CREATE INDEX basefiles_jobid_idx ON BaseFiles ( JobId );
 
 DELETE FROM Version;
-INSERT INTO Version (VersionId) VALUES (12);
+INSERT INTO Version (VersionId) VALUES (13);
 
 END-OF-DATA
 then
