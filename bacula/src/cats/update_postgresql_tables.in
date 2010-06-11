@@ -1,9 +1,9 @@
 #!/bin/sh
 #
-# Shell script to update MySQL tables from Bacula Community version 3.0.x to 5.0.0
+# Shell script to update PostgreSQL tables from Bacula Community version 3.0.x to 5.0.0
 #
 echo " "
-echo "This script will update a Bacula MySQL database from version 11 to 12"
+echo "This script will update a Bacula PostgreSQL database from version 11 to 12"
 echo "	which is needed to convert from Bacula Community version 3.0.x to 5.0.x"
 echo " "
 
