@@ -756,6 +756,9 @@ src/wx-console/bwx-console.conf
 src/wx-console/.libs
 
 # updatedb/
+updatedb/update_mysql_tables_11_to_12
+updatedb/update_postgresql_tables_11_to_12
+updatedb/update_sqlite3_tables_11_to_12
 updatedb/update_mysql_tables_10_to_11
 updatedb/update_postgresql_tables_10_to_11
 updatedb/update_sqlite3_tables_10_to_11
