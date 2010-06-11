@@ -87,7 +87,7 @@
 #undef HAVE_GCC
 
 /* Define if you have the Andrew File System.  */
-#undef HAVE_AFS
+#undef AFS
 
 /* Define If you want find -nouser and -nogroup to make tables of
    used UIDs and GIDs at startup instead of using getpwuid or
@@ -154,6 +154,9 @@
 
 /* Define if you have libacl */
 #undef HAVE_ACL
+
+/* Define if you have AFS acls */
+#undef HAVE_AFS_ACL
 
 /* General libs */
 #undef LIBS
@@ -257,6 +260,15 @@
 
 /* Normal acl support */
 #undef HAVE_ACL
+
+/* Defines if your system has AFS support */
+#undef HAVE_AFS
+
+/* Andrew FileSystem ACL support */
+#undef HAVE_AFS_ACL
+
+/* Define to 1 if you have the <afs/stds.h> header file. */
+#undef HAVE_AFS_STDS_H
 
 /* Define to 1 if you have `alloca', as a function or macro. */
 #undef HAVE_ALLOCA
@@ -374,9 +386,6 @@
 /* Extended acl support */
 #undef HAVE_EXTENDED_ACL
 
-/* AFS ACL support */
-#undef HAVE_AFS_ACL
-
 /* Define to 1 if you have the `fchdir' function. */
 #undef HAVE_FCHDIR
 
@@ -430,6 +439,9 @@
 
 /* Define to 1 if you have the `getmntent' function. */
 #undef HAVE_GETMNTENT
+
+/* Define to 1 if you have the `getmntinfo' function. */
+#undef HAVE_GETMNTINFO
 
 /* Define to 1 if you have the `getpagesize' function. */
 #undef HAVE_GETPAGESIZE
