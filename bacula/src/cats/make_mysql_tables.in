@@ -423,7 +423,7 @@ CREATE TABLE Version (
    );
 
 -- Initialize Version		 
-INSERT INTO Version (VersionId) VALUES (12);
+INSERT INTO Version (VersionId) VALUES (@BDB_VERSION@);
 
 END-OF-DATA
 then

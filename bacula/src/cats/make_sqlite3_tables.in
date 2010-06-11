@@ -434,7 +434,7 @@ INSERT INTO Status (JobStatus,JobStatusLong,Severity) VALUES
 
 
 -- Initialize Version		 
-INSERT INTO Version (VersionId) VALUES (12);
+INSERT INTO Version (VersionId) VALUES (@BDB_VERSION@);
 
 
 PRAGMA default_cache_size = 100000;

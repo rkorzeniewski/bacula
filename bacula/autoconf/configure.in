@@ -36,11 +36,13 @@ BACULA=${BACULA:-Bacula}
 VERSION=`sed -n -e 's/^.*VERSION.*"\(.*\)"$/\1/p' ${srcdir}/src/version.h`
 DATE=`sed -n -e 's/^.*[ \t]*BDATE.*"\(.*\)"$/\1/p' ${srcdir}/src/version.h`
 LSMDATE=`sed -n -e 's/^.*LSMDATE.*"\(.*\)"$/\1/p' ${srcdir}/src/version.h`
+BDB_VERSION=`sed -n -e 's/^.*BDB_VERSION \(.*\)$/\1/p' ${srcdir}/src/cats/cats.h`
 AC_SUBST(VERSION)dnl 
 AC_SUBST(DATE)dnl 
 AC_SUBST(LSMDATE)dnl 
 AC_SUBST(BACULA)dnl
 AC_SUBST(post_host)dnl
+AC_SUBST(BDB_VERSION)dnl
 
 dnl src/lib
 dnl can be overwritten by specific values from version.h
@@ -2432,10 +2434,10 @@ if test x$support_afs = xyes -o x$support_afs = xauto; then
    dnl
    if test x$with_afsdir = x; then
       for root in /usr /usr/local; do
-         if test -d ${root}/include/afs/ ; then
-            with_afsdir=${root}
-            break
-         fi
+	 if test -d ${root}/include/afs/ ; then
+	    with_afsdir=${root}
+	    break
+	 fi
       done
    fi
 
@@ -2455,13 +2457,13 @@ if test x$support_afs = xyes -o x$support_afs = xauto; then
    do
       for arch_type in .a .so
       do
-         A=`test -f ${dir}/libsys${arch_type} && nm ${dir}/libsys${arch_type} | grep pioctl`
-         pkg=$?
-         if test $pkg = 0; then
-            have_afs=yes
-            AFS_LIBS="-L${dir} -lsys -lrx -llwp ${dir}/util.a"
-            break
-         fi
+	 A=`test -f ${dir}/libsys${arch_type} && nm ${dir}/libsys${arch_type} | grep pioctl`
+	 pkg=$?
+	 if test $pkg = 0; then
+	    have_afs=yes
+	    AFS_LIBS="-L${dir} -lsys -lrx -llwp ${dir}/util.a"
+	    break
+	 fi
       done
    done
 
@@ -2471,7 +2473,7 @@ if test x$support_afs = xyes -o x$support_afs = xauto; then
    else
       if test $have_afs = yes; then
 	 AC_DEFINE([HAVE_AFS],1,[Defines if your system has AFS support])
-         AC_DEFINE([HAVE_AFS_ACL],1,[Andrew FileSystem ACL support])
+	 AC_DEFINE([HAVE_AFS_ACL],1,[Andrew FileSystem ACL support])
       fi
    fi
 fi
@@ -2505,18 +2507,18 @@ if test x$support_acl = xyes -o x$support_acl = xauto; then
 	  AC_CHECK_LIB(acl, acl_get_file,
 	     [
 		 have_acl=yes;
-                 if test $have_afs = yes; then
-                    dnl
-                    dnl Because of possible naming conflict with AFS libacl make sure we use the one in /usr/lib64 or /usr/lib !!!
-                    dnl
+		 if test $have_afs = yes; then
+		    dnl
+		    dnl Because of possible naming conflict with AFS libacl make sure we use the one in /usr/lib64 or /usr/lib !!!
+		    dnl
 		    if test -d /usr/lib64/; then
 		       FDLIBS="-L/usr/lib64 -lacl $FDLIBS"
-                    else
+		    else
 		       FDLIBS="-L/usr/lib -lacl $FDLIBS"
-                    fi
-                 else
+		    fi
+		 else
 		    FDLIBS="-lacl $FDLIBS"
-                 fi
+		 fi
 	     ], [
 		 AC_CHECK_LIB(pacl, acl_get_file,
 		    [
@@ -3166,6 +3168,9 @@ AC_OUTPUT([autoconf/Make.common \
 	   updatedb/update_mysql_tables_10_to_11 \
 	   updatedb/update_sqlite3_tables_10_to_11 \
 	   updatedb/update_postgresql_tables_10_to_11 \
+	   updatedb/update_mysql_tables_11_to_12 \
+	   updatedb/update_sqlite3_tables_11_to_12 \
+	   updatedb/update_postgresql_tables_11_to_12 \
 	   examples/nagios/check_bacula/Makefile \
 	   $PFILES ],  
      [ ]
@@ -3343,7 +3348,7 @@ Configuration on `date`:
    build-dird:		    ${build_dird}
    build-stored:	    ${build_stored}
    Plugin support:	    ${have_plugins}
-   AFS support:		    ${have_afs}
+   AFS support: 	    ${have_afs}
    ACL support: 	    ${have_acl}
    XATTR support:	    ${have_xattr}
    Python support:	    ${support_python} ${PYTHON_LIBS}

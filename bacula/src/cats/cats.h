@@ -85,11 +85,13 @@ typedef int (DB_RESULT_HANDLER)(void *, int, char **);
 
 #ifdef __SQL_C
 
+/* Current database version number for all drivers */
+#define BDB_VERSION 13
+
+
 #if defined(BUILDING_CATS)
 #ifdef HAVE_SQLITE
 #error "SQLite2 is now deprecated, use SQLite3 instead."
-
-#define BDB_VERSION 12
 
 #include <sqlite.h>
 
@@ -209,9 +211,6 @@ extern const char* my_sqlite_batch_fill_path_query;
 
 
 #ifdef HAVE_SQLITE3
-
-
-#define BDB_VERSION 12
 
 #include <sqlite3.h>
 
@@ -338,8 +337,6 @@ extern const char* my_sqlite_batch_fill_path_query;
 
 #ifdef HAVE_MYSQL
 
-#define BDB_VERSION 12
-
 #include <mysql.h>
 
 /*
@@ -422,8 +419,6 @@ extern int my_mysql_insert_autokey_record(B_DB *mdb, const char *query, const ch
 #else
 
 #ifdef HAVE_POSTGRESQL
-
-#define BDB_VERSION 12
 
 #include <libpq-fe.h>
 
@@ -540,8 +535,6 @@ extern const char* my_pg_batch_fill_path_query;
 
 #include "myingres.h"
 
-#define BDB_VERSION 12
-
 /* TEMP: the following is taken from $(II_SYSTEM)/ingres/files/eqsqlda.h IISQ_ types */
 #define IS_NUM(x)        ((x) == 10 || (x) == 30 || (x) == 31)
 #define IS_NOT_NULL(x)   ((x) == 1)
@@ -648,8 +641,6 @@ extern const char* my_ingres_batch_fill_path_query;
 #else
 
 #ifdef HAVE_DBI
-
-#define BDB_VERSION 12
 
 #include <dbi/dbi.h>
 
