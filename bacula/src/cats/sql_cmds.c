@@ -205,7 +205,7 @@ const char *select_copy_del =
    "WHERE (Job.JobTdate<%s AND DelCandidates.JobStatus NOT IN ('T','W')) OR "
    "(Job.JobTDate>%s "
    "AND Job.ClientId=%s "
-   "AND Job.Type='C')";
+   "AND Job.Type='c')";
 
 
 #else
@@ -274,7 +274,7 @@ const char *select_copy_del =
    "WHERE (Job.JobId=DelCandidates.JobId AND DelCandidates.JobStatus NOT IN ('T','W')) OR "
    "(Job.JobTDate>%s "
    "AND Job.ClientId=%s "
-   "AND Job.Type='C')";
+   "AND Job.Type='c')";
 
 
 #endif
