@@ -520,6 +520,9 @@ export tmp
 export src
 export tmpsrc
 
+bperl="perl -Mscripts::functions"
+export bperl
+
 mkdir -p ${tmp}
 touch ${tmp}/dir.out ${tmp}/fd.out ${tmp}/sd.out
 
