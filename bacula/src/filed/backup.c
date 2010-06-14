@@ -1194,6 +1194,7 @@ bool encode_and_send_attributes(JCR *jcr, FF_PKT *ff_pkt, int &data_stream)
       break;
    case FT_RESTORE_FIRST:
       comp_len = ff_pkt->object_len;
+      ff_pkt->object_compression = 0;
       if (ff_pkt->object_len > 1000) {
          /* Big object, compress it */
          int stat;
