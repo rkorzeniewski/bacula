@@ -549,6 +549,7 @@ src/win32/wx-console.res
 src/win32/debug
 src/win32/release32
 src/win32/release64
+src/win32/dll
 
 # src/win32
 src/win32*.user
