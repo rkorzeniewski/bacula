@@ -63,7 +63,9 @@ const char *fill_jobhisto =
            "PurgedFiles, HasBase, Reviewed, Comment "
           "FROM Job "
          "WHERE JobStatus IN ('T','W','f','A','E') "
-           "AND JobId NOT IN (SELECT JobId FROM JobHisto) "
+           "AND NOT EXISTS "
+                "(SELECT JobHisto.JobId "
+                   "FROM JobHisto WHERE JobHisto.Jobid=Job.JobId) "
            "AND JobTDate < %s ";
 
 /* For ua_update.c */
