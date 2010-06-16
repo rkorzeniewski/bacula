@@ -1,0 +1,102 @@
+#!/bin/sh
+#
+# This script will test prune algo with
+# vtape
+#
+. scripts/functions
+
+TestName="prune-test"
+JobName=NightlySave
+
+scripts/cleanup
+scripts/copy-test-confs
+
+start_test
+
+echo $PWD/build/po > tmp/file-list
+
+$bperl -e 'add_attribute("$conf/bacula-dir.conf", "AutoPrune", "No", "Client")'
+$bperl -e 'add_attribute("$conf/bacula-dir.conf", "Job Retention", "1s", "Client")'
+
+cat <<EOF > ${cwd}/tmp/bconcmds
+@$out /dev/null
+messages
+@$out $tmp/log1.out
+label storage=File volume=TestVolume001
+run job=$JobName level=full yes
+wait
+messages
+@exec "touch $cwd/build/po/fr.po"
+run job=$JobName level=incremental yes
+wait
+messages
+@exec "touch $cwd/build/po/de.po"
+run job=$JobName level=incremental yes
+wait
+messages
+@sleep 2
+@$out $tmp/log3.out
+@################################################################
+@# Should not prune anything
+list jobs
+prune jobs yes
+list jobs
+@$out $tmp/log4.out
+@################################################################
+@# Should prune the first incremental job
+run job=$JobName level=differential yes
+wait
+messages
+@exec "touch $cwd/build/po/es.po"
+run job=$JobName level=incremental yes
+wait
+messages
+list jobs
+prune jobs yes
+list jobs
+@$out $tmp/log5.out
+@################################################################
+@# Should prune the first Full+Diff job
+run job=$JobName level=full yes
+wait
+messages
+list jobs
+prune jobs yes
+list jobs
+@$out $tmp/log2.out
+restore where=${cwd}/tmp/bacula-restores select all storage=File done
+yes
+wait
+messages
+@sleep 2
+@$out $tmp/log6.out
+@################################################################
+@# Should prune the restore job
+list jobs
+prune jobs yes
+list jobs
+quit
+EOF
+
+run_bacula
+
+check_for_zombie_jobs storage=File
+stop_bacula
+
+check_two_logs
+
+estat=0
+
+$bperl -e "check_job_list('$tmp/log3.out')"
+estat=$(($estat + $?))
+
+$bperl -e "check_job_list('$tmp/log4.out',2,3)"
+estat=$(($estat + $?))
+
+$bperl -e "check_job_list('$tmp/log5.out',1,4,5)"
+estat=$(($estat + $?))
+
+$bperl -e "check_job_list('$tmp/log6.out',7)"
+estat=$(($estat + $?))
+
+end_test
