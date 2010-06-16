@@ -40,6 +40,7 @@
 /* Imported functions */
 
 /* Forward referenced functions */
+static bool grow_del_list(struct del_ctx *del);
 
 /*
  * Called here to count entries to be deleted
@@ -69,16 +70,11 @@ int job_delete_handler(void *ctx, int num_fields, char **row)
 {
    struct del_ctx *del = (struct del_ctx *)ctx;
 
-   if (del->num_ids == MAX_DEL_LIST_LEN) {
+   if (!grow_del_list(del)) {
       return 1;
    }
-   if (del->num_ids == del->max_ids) {
-      del->max_ids = (del->max_ids * 3) / 2;
-      del->JobId = (JobId_t *)brealloc(del->JobId, sizeof(JobId_t) * del->max_ids);
-      del->PurgedFiles = (char *)brealloc(del->PurgedFiles, del->max_ids);
-   }
    del->JobId[del->num_ids] = (JobId_t)str_to_int64(row[0]);
-// Dmsg2(60, "row=%d val=%d\n", del->num_ids, del->JobId[del->num_ids]);
+   Dmsg2(0, "job_delete_handler row=%d val=%d\n", del->num_ids, del->JobId[del->num_ids]);
    del->PurgedFiles[del->num_ids++] = (char)str_to_int64(row[1]);
    return 0;
 }
@@ -87,13 +83,8 @@ int file_delete_handler(void *ctx, int num_fields, char **row)
 {
    struct del_ctx *del = (struct del_ctx *)ctx;
 
-   if (del->num_ids == MAX_DEL_LIST_LEN) {
+   if (!grow_del_list(del)) {
       return 1;
-   }
-   if (del->num_ids == del->max_ids) {
-      del->max_ids = (del->max_ids * 3) / 2;
-      del->JobId = (JobId_t *)brealloc(del->JobId, sizeof(JobId_t) *
-         del->max_ids);
    }
    del->JobId[del->num_ids++] = (JobId_t)str_to_int64(row[0]);
 // Dmsg2(150, "row=%d val=%d\n", del->num_ids-1, del->JobId[del->num_ids-1]);
@@ -337,7 +328,82 @@ static bool create_temp_tables(UAContext *ua)
    return true;
 }
 
+static bool grow_del_list(struct del_ctx *del)
+{
+   if (del->num_ids == MAX_DEL_LIST_LEN) {
+      return false;
+   }
 
+   if (del->num_ids == del->max_ids) {
+      del->max_ids = (del->max_ids * 3) / 2;
+      del->JobId = (JobId_t *)brealloc(del->JobId, sizeof(JobId_t) *
+         del->max_ids);
+      del->PurgedFiles = (char *)brealloc(del->PurgedFiles, del->max_ids);
+   }
+   return true;
+}
+
+struct verify_ctx {
+   DBId_t ClientId;                   /* Id of client */
+   DBId_t FileSetId;                  /* Id of FileSet */ 
+};
+
+/* row: Job.Name, FileSet, Client.Name, FileSetId, ClientId */
+static int job_select_handler(void *ctx, int num_fields, char **row)
+{
+   alist *lst = (alist *)ctx;
+   struct verify_ctx *res;
+
+   if (num_fields != 5) {
+      return 1;
+   }
+
+   /* If this job doesn't exist anymore in the configuration, delete it */
+   if (GetResWithName(R_JOB, row[0]) == NULL) {
+      return 1;
+   }
+
+   /* If this fileset doesn't exist anymore in the configuration, delete it */
+   if (GetResWithName(R_FILESET, row[1]) == NULL) {
+      return 1;
+   }
+
+   /* If this client doesn't exist anymore in the configuration, delete it */
+   if (GetResWithName(R_CLIENT, row[2]) == NULL) {
+      return 1;
+   }
+
+   res = (struct verify_ctx*) malloc(sizeof(struct verify_ctx));
+   res->FileSetId = str_to_int64(row[3]);
+   res->ClientId = str_to_int64(row[4]);
+   lst->append(res);
+
+// Dmsg2(150, "row=%d val=%d\n", del->num_ids-1, del->JobId[del->num_ids-1]);
+   return 0;
+}
+
+static void dump_del(struct del_ctx *del)
+{
+   POOL_MEM query;
+   for (int i=0; del->num_ids; ) {
+      pm_strcpy(query, "");
+      for (int j=0; j<1000 && del->num_ids>0; j++) {
+         del->num_ids--;
+         if (del->JobId[i] == 0 || ua->jcr->JobId == del->JobId[i]) {
+            Dmsg2(0, "skip JobId[%d]=%d\n", i, (int)del->JobId[i]);
+            i++;
+            continue;
+         }
+         if (*query.c_str() != 0) {
+            pm_strcat(query, ",");
+         }
+         pm_strcat(query, edit_int64(del->JobId[i++], ed1));
+         del->num_del++;
+      }
+      Dmsg1(0, "num_ids=%d\n", del->num_ids);
+      Dmsg1(0, "purge_jobs_from_catalog %s\n", query.c_str());
+   }
+}
 
 /*
  * Pruning Jobs is a bit more complicated than purging Files
@@ -358,6 +424,10 @@ int prune_jobs(UAContext *ua, CLIENT *client, POOL *pool, int JobType)
    utime_t now, period;
    CLIENT_DBR cr;
    char ed1[50], ed2[50];
+   alist *jobids_check=NULL;
+   struct verify_ctx *elt;
+   db_list_ctx jobids;
+   JCR *jcr;
 
    db_lock(ua->db);
    memset(&cr, 0, sizeof(cr));
@@ -412,7 +482,7 @@ int prune_jobs(UAContext *ua, CLIENT *client, POOL *pool, int JobType)
    /* Prune Admin, Restore, Copy and Migration jobs */
    Mmsg(query, 
    "SELECT JobId, PurgedFiles FROM Job "
-    "WHERE JobType IN ('D', 'R', 'c', 'm') "
+    "WHERE Type IN ('D', 'R', 'c', 'm') "
       "AND JobTDate < %s "
       "AND ClientId = %s ",
         ed1, ed2);
@@ -422,23 +492,6 @@ int prune_jobs(UAContext *ua, CLIENT *client, POOL *pool, int JobType)
       ua->error_msg("%s", db_strerror(ua->db));
    }
 
-   /* Select all backups that can be used */
-   /* need to check by fileset name  */
-   /* need to check unused base jobs */
-   /* how we do with old fileset.... */
-   /* did we check only for defined jobs ? */
-   Mmsg(query, 
-   "SELECT JobId, FileSet, PurgedFiles FROM Job "
-    "WHERE JobType IN = 'B' "
-      "AND JobTDate < %s "
-      "AND ClientId = %s ",
-        ed1, ed2);
-   
-   Dmsg1(150, "Query=%s\n", query.c_str());
-   if (!db_sql_query(ua->db, query.c_str(), job_delete_handler, (void *)&del)) {
-      ua->error_msg("%s", db_strerror(ua->db));
-   }
-   
    /*
     * Select all files that are older than the JobRetention period
     *  and stuff them into the "DeletionCandidates" table.
@@ -453,34 +506,55 @@ int prune_jobs(UAContext *ua, CLIENT *client, POOL *pool, int JobType)
       goto bail_out;
    }
 
+   /* Now, for the selection, we discard some of them in order to be always
+    * able to restore files. (ie, last full, last diff, last incr)
+    */
+   jobids_check = New(alist(10, owned_by_alist));
+   Mmsg(query, 
+        "SELECT DISTINCT Job.Name, FileSet, Client.Name, Job.FileSetId, Job.ClientId "
+          "FROM DelCandidates "
+               "JOIN Job USING (JobId) "
+               "JOIN Client USING (ClientId) "
+               "JOIN FileSet ON (Job.FileSetId = FileSet.FileSetId) "
+      );
 
-   switch (JobType) {
-   case JT_BACKUP:
-      Mmsg(query, select_backup_del, ed1, ed2);
-      break;
-   case JT_RESTORE:
-      Mmsg(query, select_restore_del, ed1, ed2);
-      break;
-   case JT_VERIFY:
-      Mmsg(query, select_verify_del, ed1, ed2);
-      break;
-   case JT_ADMIN:
-      Mmsg(query, select_admin_del, ed1, ed2);
-      break;
-   case JT_COPY:
-      Mmsg(query, select_copy_del, ed1, ed2);
-      break;
-   case JT_MIGRATE:
-      Mmsg(query, select_migrate_del, ed1, ed2);
-      break;
+   if (!db_sql_query(ua->db, query.c_str(), job_select_handler, jobids_check)) {
+      ua->error_msg("%s", db_strerror(ua->db));
    }
 
+   /* For all jobs of this client, we exclude current jobs used for restore or
+    * accurate. This will prevent to prune the last full backup used for
+    * current backup & restore
+    */
+   jcr = ua->jcr;
+   jcr->jr.JobLevel = L_INCREMENTAL; /* To find useful jobs, we do like an incremental */
+
+   foreach_alist(elt, jobids_check) {
+      jcr->jr.ClientId = elt->ClientId;
+      jcr->jr.FileSetId = elt->FileSetId;
+      db_accurate_get_jobids(jcr, ua->db, &jcr->jr, &jobids);
+   }
+
+   if (jobids.count > 0) {
+      Dmsg1(0, "jobids to exclude before basejobs = %s\n", jobids.list);
+      /* We also need to exclude all basejobs used */
+      db_get_used_base_jobids(jcr, ua->db, jobids.list, &jobids);
+
+      Mmsg(query, "DELETE FROM DelCandidates WHERE JobId IN (%s)", jobids.list);
+      if (!db_sql_query(ua->db, query.c_str(), NULL, NULL)) {
+         ua->error_msg("%s", db_strerror(ua->db));
+      }
+      Dmsg1(0, "jobids to exclude = %s\n", jobids.list);
+   }
+
+   Mmsg(query, "SELECT DelCandidates.JobId,DelCandidates.PurgedFiles FROM DelCandidates");
    Dmsg1(150, "Query=%s\n", query.c_str());
    if (!db_sql_query(ua->db, query.c_str(), job_delete_handler, (void *)&del)) {
       ua->error_msg("%s", db_strerror(ua->db));
    }
 
-   purge_job_list_from_catalog(ua, del);
+   dump_del(&del);
+//   purge_job_list_from_catalog(ua, del);
 
    if (del.num_del > 0) {
       ua->info_msg(_("Pruned %d %s for client %s from catalog.\n"), del.num_del,
@@ -497,6 +571,9 @@ bail_out:
    }
    if (del.PurgedFiles) {
       free(del.PurgedFiles);
+   }
+   if (jobids_check) {
+      delete jobids_check;
    }
    return 1;
 }
