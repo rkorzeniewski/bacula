@@ -361,7 +361,6 @@ int prune_jobs(UAContext *ua, CLIENT *client, POOL *pool, int JobType)
 
    db_lock(ua->db);
    memset(&cr, 0, sizeof(cr));
-   memset(&del, 0, sizeof(del));
 
    bstrncpy(cr.Name, client->name(), sizeof(cr.Name));
    if (!db_create_client_record(ua->jcr, ua->db, &cr)) {
@@ -384,14 +383,66 @@ int prune_jobs(UAContext *ua, CLIENT *client, POOL *pool, int JobType)
       goto bail_out;
    }
 
+   edit_utime(period, ed1, sizeof(ed1));
+   Jmsg(ua->jcr, M_INFO, 0, _("Begin pruning Jobs older than %s.\n"), ed1);
 
+   edit_int64(now - period, ed1); /* Jobs older than ed1 are good candidates */
+   edit_int64(cr.ClientId, ed2);
+
+   memset(&del, 0, sizeof(del));
+   del.max_ids = 100;
+   del.JobId = (JobId_t *)malloc(sizeof(JobId_t) * del.max_ids);
+   del.PurgedFiles = (char *)malloc(del.max_ids);
+
+   /* Prune garbage jobs (JobStatus not successful) */
+   Mmsg(query, 
+   "SELECT JobId, PurgedFiles FROM Job "
+    "WHERE ( JobFiles=0 "
+         "OR JobStatus NOT IN ('T', 'W') "
+          ") "
+      "AND JobTDate < %s "
+      "AND ClientId = %s ",
+        ed1, ed2);
+   
+   Dmsg1(150, "Query=%s\n", query.c_str());
+   if (!db_sql_query(ua->db, query.c_str(), job_delete_handler, (void *)&del)) {
+      ua->error_msg("%s", db_strerror(ua->db));
+   }
+
+   /* Prune Admin, Restore, Copy and Migration jobs */
+   Mmsg(query, 
+   "SELECT JobId, PurgedFiles FROM Job "
+    "WHERE JobType IN ('D', 'R', 'c', 'm') "
+      "AND JobTDate < %s "
+      "AND ClientId = %s ",
+        ed1, ed2);
+   
+   Dmsg1(150, "Query=%s\n", query.c_str());
+   if (!db_sql_query(ua->db, query.c_str(), job_delete_handler, (void *)&del)) {
+      ua->error_msg("%s", db_strerror(ua->db));
+   }
+
+   /* Select all backups that can be used */
+   /* need to check by fileset name  */
+   /* need to check unused base jobs */
+   /* how we do with old fileset.... */
+   /* did we check only for defined jobs ? */
+   Mmsg(query, 
+   "SELECT JobId, FileSet, PurgedFiles FROM Job "
+    "WHERE JobType IN = 'B' "
+      "AND JobTDate < %s "
+      "AND ClientId = %s ",
+        ed1, ed2);
+   
+   Dmsg1(150, "Query=%s\n", query.c_str());
+   if (!db_sql_query(ua->db, query.c_str(), job_delete_handler, (void *)&del)) {
+      ua->error_msg("%s", db_strerror(ua->db));
+   }
+   
    /*
     * Select all files that are older than the JobRetention period
     *  and stuff them into the "DeletionCandidates" table.
     */
-   edit_utime(period, ed1, sizeof(ed1));
-   Jmsg(ua->jcr, M_INFO, 0, _("Begin pruning Jobs older than %s.\n"), ed1);
-   edit_int64(now - period, ed1);
    Mmsg(query, insert_delcand, (char)JobType, ed1, 
         edit_int64(cr.ClientId, ed2));
    if (!db_sql_query(ua->db, query.c_str(), NULL, (void *)NULL)) {
@@ -402,12 +453,7 @@ int prune_jobs(UAContext *ua, CLIENT *client, POOL *pool, int JobType)
       goto bail_out;
    }
 
-   del.max_ids = 100;
-   del.JobId = (JobId_t *)malloc(sizeof(JobId_t) * del.max_ids);
-   del.PurgedFiles = (char *)malloc(del.max_ids);
 
-   /* ed1 = JobTDate */
-   edit_int64(cr.ClientId, ed2);
    switch (JobType) {
    case JT_BACKUP:
       Mmsg(query, select_backup_del, ed1, ed2);
