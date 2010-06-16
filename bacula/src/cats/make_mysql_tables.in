@@ -181,6 +181,7 @@ CREATE TABLE JobHisto (
    HasCache TINYINT DEFAULT 0,
    Reviewed TINYINT DEFAULT 0,
    Comment BLOB,
+   INDEX (JobId),
    INDEX (StartTime)
    );
 

@@ -42,6 +42,8 @@ CREATE TABLE RestoreObject (
    INDEX (JobId)
 );
 
+CREATE INDEX jobhisto_jobid_idx ON JobHisto (JobId);
+
 DELETE FROM Version;
 INSERT INTO Version (VersionId) VALUES (13);
 
