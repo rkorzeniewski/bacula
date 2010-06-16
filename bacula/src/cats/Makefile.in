@@ -29,7 +29,7 @@ INCLUDE_FILES = cats.h protos.h sql_cmds.h
 LIBBACSQL_SRCS = mysql.c dbi.c \
 		 sql.c sql_cmds.c sql_create.c sql_delete.c sql_find.c \
 		 sql_get.c sql_list.c sql_update.c sqlite.c \
-		 postgresql.c ingres.c myingres.c \
+		 postgresql.c \
 		 bvfs.c
 LIBBACSQL_OBJS = $(LIBBACSQL_SRCS:.c=.o)
 LIBBACSQL_LOBJS = $(LIBBACSQL_SRCS:.c=.lo)
