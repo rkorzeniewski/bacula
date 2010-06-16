@@ -3214,6 +3214,9 @@ cd ..
 c=updatedb
 chmod 755 $c/update_mysql_tables_10_to_11   $c/update_sqlite3_tables_10_to_11
 chmod 755 $c/update_postgresql_tables_10_to_11
+chmod 755 $c/update_mysql_tables_11_to_12   $c/update_sqlite3_tables_11_to_12
+chmod 755 $c/update_postgresql_tables_11_to_12
+
 
 c=src/cats
 
