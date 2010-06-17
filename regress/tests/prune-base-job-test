@@ -22,7 +22,7 @@ change_jobname BackupClient1 $JobName
 dircfg=$conf/bacula-dir.conf
 $bperl -e "add_attribute('$dircfg', 'AutoPrune', 'No', 'Client')"
 $bperl -e "add_attribute('$dircfg', 'Job Retention', '1s', 'Client')"
-
+$bperl -e "add_attribute('$dircfg', 'File', '<$tmp/lst', 'FileSet', 'FS_TESTJOB_ADVANCE')"
 p() {
     echo "##############################################" >> ${cwd}/tmp/log1.out
     echo "$*" >> ${cwd}/tmp/log1.out
@@ -31,7 +31,9 @@ p() {
 }
 
 
+echo ${cwd}/bin > ${cwd}/tmp/lst
 echo ${cwd}/bin > ${cwd}/tmp/file-list
+echo ${cwd}/build >> ${cwd}/tmp/file-list
 
 start_test
 
@@ -57,8 +59,6 @@ update volume=TestVolume001 volstatus=Used
 END_OF_DATA
 
 run_bconsole
-
-echo ${cwd}/build >> ${cwd}/tmp/file-list
 
 cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @$out $tmp/log4.out
@@ -110,11 +110,72 @@ SELECT count(*) FROM BaseFiles;
 list jobs
 prune jobs yes
 list jobs
+@$out $tmp/log1.out
+@################################################################
+@# This full job will force the purge of the previous one
+run job=backup level=full yes
+wait
+messages
+@$out $tmp/log11.out
+list jobs
+prune jobs yes
+list jobs
+@$out $tmp/log1.out
+@################################################################
+@# This base job will replace the first one after the next full replacement
+run job=base_backup level=base yes
+wait
+messages
+@$out $tmp/log12.out
+list jobs
+prune jobs yes
+list jobs
+@$out $tmp/log1.out
+@################################################################
+@# This full job will force the purge of the previous one
+run job=backup level=full yes
+wait
+messages
+@$out $tmp/log13.out
+list jobs
+prune jobs yes
+list jobs
+@$out $tmp/log1.out
+@################################################################
+@# see with two base jobs (base_backup and backup)
+run job=backup level=base yes
+wait
+messages
+@exec "touch $cwd/bin/bacula-dir.conf"
+run job=base_backup level=base yes
+wait
+messages
+list jobs
+run job=backup level=full yes
+wait
+messages
+list jobs
+@$out $tmp/log14.out
+list jobs
+prune jobs yes
+list jobs
 END_OF_DATA
 
 run_bconsole
 
 $bperl -e "check_job_list('$tmp/log10.out', 3,5,6)"
+estat=$(($estat + $?))
+
+$bperl -e "check_job_list('$tmp/log11.out', 2,4,7)"
+estat=$(($estat + $?))
+
+$bperl -e "check_job_list('$tmp/log12.out')"
+estat=$(($estat + $?))
+
+$bperl -e "check_job_list('$tmp/log13.out',1,8)"
+estat=$(($estat + $?))
+
+$bperl -e "check_job_list('$tmp/log14.out',9,10)"
 estat=$(($estat + $?))
 
 stop_bacula
