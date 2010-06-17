@@ -40,7 +40,7 @@ our @ISA = qw(Exporter);
 our @EXPORT =  qw(update_some_files create_many_files check_multiple_copies
                   update_client $HOST $BASEPORT add_to_backup_list check_volume_size
                   create_many_dirs cleanup start_bacula stop_bacula get_resource
-                  set_maximum_concurrent_jobs get_time add_attribute
+                  set_maximum_concurrent_jobs get_time add_attribute check_job_list
                   check_min_volume_size check_max_volume_size $estat $bstat $rstat $zstat
                   $cwd $bin $scripts $conf $rscripts $tmp $working extract_resource
                   $db_name $db_user $db_password $src $tmpsrc);
@@ -414,6 +414,73 @@ sub add_attribute
     close(SRC);
     close(FP);
     copy("$tmp/1.$$", $file) or die "Can't copy $tmp/1.$$ to $file";
+}
+
+# This test the list jobs output to check differences
+# Input: read stream from stdin or with file list argument
+#        check if all argument are not present in the second
+#        list jobs output
+# Output: exit(1) if something goes wrong and print error
+sub check_job_list
+{
+    my $f = shift;
+    my %to_check = map { $_ => 1} @_;
+    my %seen;
+    my $in_list_jobs=0;
+    my $nb_list_job=0;
+    my $nb = scalar(@_);
+    open(FP, $f) or die "Can't open $f $!";
+    while (my $l = <FP>)          # read all files to check
+    {
+        if ($l =~ /list jobs/) {
+            $in_list_jobs=1;
+            $nb_list_job++;
+            
+            if ($nb_list_job == 2) {
+                foreach my $jobid (keys %to_check) {
+                    if (!$seen{$jobid}) {
+                        print "ERROR: in $f, can't find $jobid in first 'list jobs'\n";
+                        exit 1;
+                    }
+                }
+            }
+            next;
+        }
+        if ($nb_list_job == 0) {
+            next;
+        }
+        if ($l =~ /Pruned (\d+) Job for client/) {
+            if ($1 != $nb) {
+                print "ERROR: in $f, Prune command returns $1 jobs, want $nb\n";
+                exit 1;
+            }
+        }
+
+        if ($l =~ /No Jobs found to prune/) {
+           if ($nb != 0) {
+                print "ERROR: in $f, Prune command returns 0 job, want $nb\n";
+                exit 1;
+            }            
+        }
+
+        # list jobs ouput:
+        # | 1 | NightlySave | 2010-06-16 22:43:05 | B | F | 27 | 4173577 | T |
+        if ($l =~ /^\|\s+(\d+)/) {
+            if ($nb_list_job == 1) {
+                $seen{$1}=1;
+            } else {
+                delete $seen{$1};
+            }
+        }
+    }
+    close(FP);
+    foreach my $jobid (keys %to_check) {
+        if (!$seen{$jobid}) {
+            print "ERROR: in $f, $jobid in still present in the 2nd 'list jobs'\n";
+            exit 1;
+        }
+    }
+    exit 0;
 }
 
 # This test ensure that 'list copies' displays only each copy one time
