@@ -3223,9 +3223,6 @@ c=src/cats
 chmod 755 $c/create_bacula_database   $c/update_bacula_tables  $c/make_bacula_tables
 chmod 755 $c/grant_bacula_privileges  $c/drop_bacula_tables    $c/drop_bacula_database
 
-chmod 755 $c/create_bdb_database      $c/update_bdb_tables     $c/make_bdb_tables
-chmod 755 $c/grant_bdb_privileges     $c/drop_bdb_tables       $c/drop_bdb_database
-
 chmod 755 $c/create_mysql_database    $c/update_mysql_tables   $c/make_mysql_tables
 chmod 755 $c/grant_mysql_privileges   $c/drop_mysql_tables     $c/drop_mysql_database
 
