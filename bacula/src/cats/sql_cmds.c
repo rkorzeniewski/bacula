@@ -127,7 +127,7 @@ const char *create_delindex = "CREATE INDEX DelInx1 ON DelCandidates (JobId)";
 const char *insert_delcand =
    "INSERT INTO DelCandidates "
    "SELECT JobId,PurgedFiles,FileSetId,JobFiles,JobStatus FROM Job "
-   "WHERE Type='%c' "
+   "WHERE Type IN ('B', 'C', 'M') "
    "AND JobTDate<%s "
    "AND ClientId=%s";
 

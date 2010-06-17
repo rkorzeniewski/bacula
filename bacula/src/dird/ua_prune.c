@@ -343,7 +343,7 @@ static bool grow_del_list(struct del_ctx *del)
    return true;
 }
 
-struct verify_ctx {
+struct accurate_check_ctx {
    DBId_t ClientId;                   /* Id of client */
    DBId_t FileSetId;                  /* Id of FileSet */ 
 };
@@ -352,7 +352,7 @@ struct verify_ctx {
 static int job_select_handler(void *ctx, int num_fields, char **row)
 {
    alist *lst = (alist *)ctx;
-   struct verify_ctx *res;
+   struct accurate_check_ctx *res;
 
    if (num_fields != 6) {
       return 1;
@@ -378,7 +378,7 @@ static int job_select_handler(void *ctx, int num_fields, char **row)
       return 1;
    }
 
-   res = (struct verify_ctx*) malloc(sizeof(struct verify_ctx));
+   res = (struct accurate_check_ctx*) malloc(sizeof(struct accurate_check_ctx));
    res->FileSetId = str_to_int64(row[3]);
    res->ClientId = str_to_int64(row[4]);
    lst->append(res);
@@ -407,7 +407,7 @@ int prune_jobs(UAContext *ua, CLIENT *client, POOL *pool, int JobType)
    CLIENT_DBR cr ;
    char ed1[50], ed2[50];
    alist *jobids_check=NULL;
-   struct verify_ctx *elt;
+   struct accurate_check_ctx *elt;
    db_list_ctx jobids;
    JOB_DBR jr;
 
@@ -466,20 +466,23 @@ int prune_jobs(UAContext *ua, CLIENT *client, POOL *pool, int JobType)
    }
 
    /* Now, for the selection, we discard some of them in order to be always
-    * able to restore files. (ie, last full, last diff, last incr)
+    * able to restore files. (ie, last full, last diff, last incrs)
     * Note: The DISTINCT could be more useful if we don't get FileSetId
     */
    jobids_check = New(alist(10, owned_by_alist));
    Mmsg(query, 
-        "SELECT DISTINCT Job.Name, FileSet, Client.Name, Job.FileSetId, "
-                        "Job.ClientId, Job.Type "
-          "FROM DelCandidates "
-               "JOIN Job USING (JobId) "
-               "JOIN Client USING (ClientId) "
-               "JOIN FileSet ON (Job.FileSetId = FileSet.FileSetId) "
-         "WHERE Type NOT IN ('D', 'R', 'c', 'm') " /* Don't look Admin, Restore, Copy, Migration */
+"SELECT DISTINCT Job.Name, FileSet, Client.Name, Job.FileSetId, "
+                "Job.ClientId, Job.Type "
+  "FROM DelCandidates "
+       "JOIN Job USING (JobId) "
+       "JOIN Client USING (ClientId) "
+       "JOIN FileSet ON (Job.FileSetId = FileSet.FileSetId) "
+ "WHERE Type NOT IN ('D', 'R', 'c', 'm') " /* Discard Admin, Restore, Copy, Migration */
       );
 
+   /* The job_select_handler will skip jobs or fileset that are no longer
+    * in the configuration file
+    */
    if (!db_sql_query(ua->db, query.c_str(), job_select_handler, jobids_check)) {
       ua->error_msg("%s", db_strerror(ua->db));
    }
@@ -489,7 +492,8 @@ int prune_jobs(UAContext *ua, CLIENT *client, POOL *pool, int JobType)
     * current backup & restore
     */
    memset(&jr, 0, sizeof(jr));
-   jr.JobLevel = L_INCREMENTAL; /* To find useful jobs, we do like an incremental */
+   /* To find useful jobs, we do like an incremental */
+   jr.JobLevel = L_INCREMENTAL; 
    foreach_alist(elt, jobids_check) {
       jr.ClientId = elt->ClientId;
       jr.FileSetId = elt->FileSetId;
@@ -509,8 +513,8 @@ int prune_jobs(UAContext *ua, CLIENT *client, POOL *pool, int JobType)
       ua->error_msg("%s", db_strerror(ua->db));
    }
 
-   /* If we found job to exclude from the DelCandidates list, we should
-    * also remove BaseJobs that can be linked
+   /* If we found jobs to exclude from the DelCandidates list, we should
+    * also remove BaseJobs that can be linked with them
     */
    if (jobids.count > 0) {
       Dmsg1(60, "jobids to exclude before basejobs = %s\n", jobids.list);
@@ -544,8 +548,9 @@ int prune_jobs(UAContext *ua, CLIENT *client, POOL *pool, int JobType)
    }
 
    /* We use DISTINCT because we can have two times the same job */
-   Mmsg(query, "SELECT DISTINCT DelCandidates.JobId,DelCandidates.PurgedFiles FROM DelCandidates");
-   Dmsg1(150, "Query=%s\n", query.c_str());
+   Mmsg(query, 
+        "SELECT DISTINCT DelCandidates.JobId,DelCandidates.PurgedFiles "
+          "FROM DelCandidates");
    if (!db_sql_query(ua->db, query.c_str(), job_delete_handler, (void *)&del)) {
       ua->error_msg("%s", db_strerror(ua->db));
    }
