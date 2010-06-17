@@ -480,14 +480,15 @@ int prune_jobs(UAContext *ua, CLIENT *client, POOL *pool, int JobType)
  "WHERE Type NOT IN ('D', 'R', 'c', 'm') " /* Discard Admin, Restore, Copy, Migration */
       );
 
-   /* The job_select_handler will skip jobs or fileset that are no longer
-    * in the configuration file
+   /* The job_select_handler will skip jobs or filesets that are no longer
+    * in the configuration file. Interesting ClientId/FileSetId will be
+    * added to jobids_check
     */
    if (!db_sql_query(ua->db, query.c_str(), job_select_handler, jobids_check)) {
       ua->error_msg("%s", db_strerror(ua->db));
    }
 
-   /* For all jobs of this client, we exclude current jobs used for restore or
+   /* For this selection, we exclude current jobs used for restore or
     * accurate. This will prevent to prune the last full backup used for
     * current backup & restore
     */
