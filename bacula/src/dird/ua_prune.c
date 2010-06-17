@@ -348,15 +348,12 @@ struct accurate_check_ctx {
    DBId_t FileSetId;                  /* Id of FileSet */ 
 };
 
-/* row: Job.Name, FileSet, Client.Name, FileSetId, ClientId */
+/* row: Job.Name, FileSet, Client.Name, FileSetId, ClientId, Type */
 static int job_select_handler(void *ctx, int num_fields, char **row)
 {
    alist *lst = (alist *)ctx;
    struct accurate_check_ctx *res;
-
-   if (num_fields != 6) {
-      return 1;
-   }
+   ASSERT(num_fields == 6);
 
    /* If this job doesn't exist anymore in the configuration, delete it */
    if (GetResWithName(R_JOB, row[0]) == NULL) {
