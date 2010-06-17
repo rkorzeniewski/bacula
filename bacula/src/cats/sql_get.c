@@ -1159,8 +1159,6 @@ bool db_accurate_get_jobids(JCR *jcr, B_DB *mdb,
    utime_t StartTime = (jr->StartTime)?jr->StartTime:time(NULL);
 
    bstrutime(date, sizeof(date),  StartTime + 1);
-   jobids->list[0] = 0;
-   jobids->count = 0;
 
    /* First, find the last good Full backup for this job/client/fileset */
    Mmsg(query, 
@@ -1257,9 +1255,10 @@ bool db_get_base_jobid(JCR *jcr, B_DB *mdb, JOB_DBR *jr, JobId_t *jobid)
    db_int64_ctx lctx;
    char date[MAX_TIME_LENGTH];
    bool ret=false;
-   *jobid = 0;
-
 // char clientid[50], filesetid[50];
+   *jobid = 0;
+   lctx.count = 0;
+   lctx.value = 0;
 
    StartTime = (jr->StartTime)?jr->StartTime:time(NULL);
    bstrutime(date, sizeof(date),  StartTime + 1);
