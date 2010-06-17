@@ -20,8 +20,8 @@ cp tmp/1 $conf/bacula-fd.conf
 
 change_jobname BackupClient1 $JobName
 dircfg=$conf/bacula-dir.conf
-$bperl -e 'add_attribute("$dircfg", "AutoPrune", "No", "Client")'
-$bperl -e 'add_attribute("$dircfg", "Job Retention", "1s", "Client")'
+$bperl -e "add_attribute('$dircfg', 'AutoPrune', 'No', 'Client')"
+$bperl -e "add_attribute('$dircfg', 'Job Retention', '1s', 'Client')"
 
 p() {
     echo "##############################################" >> ${cwd}/tmp/log1.out
@@ -58,7 +58,7 @@ END_OF_DATA
 
 run_bconsole
 
-echo ${cwd}/build > ${cwd}/tmp/file-list
+echo ${cwd}/build >> ${cwd}/tmp/file-list
 
 cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @$out $tmp/log4.out
@@ -67,6 +67,13 @@ run job=backup level=full yes
 wait
 messages
 @exec "touch $cwd/build/po/fr.po"
+run job=backup level=incremental yes
+wait
+messages
+run job=backup level=differential yes
+wait
+messages
+@# should be empty
 run job=backup level=incremental yes
 wait
 messages
@@ -101,13 +108,14 @@ sql
 SELECT count(*) FROM BaseFiles;
 
 list jobs
-@#setdebug level=60 director trace=1
-@#prune jobs yes
+prune jobs yes
 list jobs
 END_OF_DATA
 
 run_bconsole
 
-$bperl -e "check_job_list('$tmp/log10.out', 4)"
+$bperl -e "check_job_list('$tmp/log10.out', 3,5,6)"
+estat=$(($estat + $?))
+
 stop_bacula
 end_test
