@@ -112,7 +112,7 @@ print_debug()
 {
    echo $* | grep ERROR > /dev/null
    if test $? -eq 0; then
-     print_error="$print_error\n$*"
+     echo $* >> $tmp/err.log
    fi
    if test "$debug" -eq 1 ; then
      echo $*
