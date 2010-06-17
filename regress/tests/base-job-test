@@ -103,7 +103,13 @@ rm -rf ${cwd}/tmp/bacula-restores
 
 grep -e 'FD Bytes Written: *0' ${cwd}/tmp/log4.out > /dev/null
 if [ $? -ne 0 ]; then
-    print_debug "The first full job should have 0 byte in log4.out"
+    print_debug "ERROR: The first full job should have 0 byte in log4.out"
+    bstat=2
+fi
+
+grep -e 'Using BaseJobId(s): 1$'  ${cwd}/tmp/log4.out > /dev/null
+if [ $? -ne 0 ]; then
+    print_debug "ERROR: The first full job should use only jobid=1 as basejob"
     bstat=2
 fi
 

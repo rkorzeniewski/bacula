@@ -110,6 +110,10 @@ set_debug()
 
 print_debug()
 {
+   echo $* | grep ERROR > /dev/null
+   if test $? -eq 0; then
+     print_error="$print_error\n$*"
+   fi
    if test "$debug" -eq 1 ; then
      echo $*
    fi
@@ -322,6 +326,9 @@ end_test()
       cat ${working}/*.bactrace 2>/dev/null
       cp -f ${working}/*.bactrace ${dumps} 2>/dev/null
    fi
+   cat ${working}/bacula.*.traceback 2>/dev/null
+   cat ${working}/*.bactrace 2>/dev/null
+   echo -e $print_error
    if [ $estat != 0 ] ; then
       echo " "
       echo "  !!!!! $TestName failed!!! `date +%R:%S` !!!!! "
