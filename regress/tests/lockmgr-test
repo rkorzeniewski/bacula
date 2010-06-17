@@ -28,14 +28,16 @@ start_test
 
 make -C $src/src/lib lockmgr_test > /dev/null
 if [ -f $src/src/lib/.libs/lockmgr_test ]; then
-    LD_LIBRARY_PATH=$src/src/lib/.libs $src/src/lib/.libs/lockmgr_test > $tmp/1
+    LD_LIBRARY_PATH=$src/src/lib/.libs $src/src/lib/.libs/lockmgr_test > $tmp/1 2> $tmp/2
 else 
-    $src/src/lib/lockmgr_test > $tmp/1
+    $src/src/lib/lockmgr_test > $tmp/1 2> $tmp/2
 fi
 
 estat=$?
 
-print_debug `cat $tmp/1`
+if [ "$debug" eq 1 ]; then
+    cat $tmp/1
+fi
 
 cat <<END_OF_DATA >$tmp/bconcmds
 @$out /dev/null
@@ -51,7 +53,7 @@ stop_bacula
 
 nb=`ls $working/*.traceback $working/*.bactrace | wc -l`
 if [ $nb != 4 ]; then
-    print_debug "Should find 4 traces, not $nb"
+    print_debug "ERROR: Should find 4 traces, not $nb"
     estat=1
 fi
 
