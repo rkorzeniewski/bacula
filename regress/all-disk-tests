@@ -76,6 +76,8 @@ nice tests/migration-jobspan-test
 nice tests/migration-volume-test
 nice tests/migration-time-test
 nice tests/multi-storage-test
+nice tests/prune-test
+nice tests/prune-base-job-test
 nice tests/hardlink-test
 nice tests/tls-test
 nice tests/virtual-changer-test

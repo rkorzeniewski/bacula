@@ -46,6 +46,7 @@ nice tests/weird-files-test
 nice tests/migration-job-test
 nice tests/messages-test
 nice tests/multi-storage-test
+nice tests/prune-test
 nice tests/hardlink-test
 nice tests/tls-test
 nice tests/virtual-backup-test
