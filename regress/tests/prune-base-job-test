@@ -19,8 +19,9 @@ sed s/all,/all,saved,/ $conf/bacula-fd.conf > tmp/1
 cp tmp/1 $conf/bacula-fd.conf
 
 change_jobname BackupClient1 $JobName
-$bperl -e 'add_attribute("$conf/bacula-dir.conf", "AutoPrune", "No", "Client")'
-$bperl -e 'add_attribute("$conf/bacula-dir.conf", "Job Retention", "1s", "Client")'
+dircfg=$conf/bacula-dir.conf
+$bperl -e 'add_attribute("$dircfg", "AutoPrune", "No", "Client")'
+$bperl -e 'add_attribute("$dircfg", "Job Retention", "1s", "Client")'
 
 p() {
     echo "##############################################" >> ${cwd}/tmp/log1.out
@@ -96,8 +97,12 @@ export bstat dstat estat
 
 cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @$out $tmp/log10.out
+sql
+SELECT count(*) FROM BaseFiles;
+
 list jobs
-prune jobs yes
+@#setdebug level=60 director trace=1
+@#prune jobs yes
 list jobs
 END_OF_DATA
 
