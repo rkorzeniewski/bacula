@@ -170,7 +170,7 @@ void *sched_wait(void *arg)
    JCR *jcr = ((wait_pkt *)arg)->jcr;
    jobq_t *jq = ((wait_pkt *)arg)->jq;
 
-   set_jcr_in_tsd(jcr);
+   set_jcr_in_tsd(INVALID_JCR);
    Dmsg0(2300, "Enter sched_wait.\n");
    free(arg);
    time_t wtime = jcr->sched_time - time(NULL);
@@ -437,6 +437,7 @@ void *jobq_server(void *arg)
          jq->running_jobs->append(je);
 
          /* Attach jcr to this thread while we run the job */
+         jcr->set_killable(true);
          set_jcr_in_tsd(jcr);
          Dmsg1(2300, "Took jobid=%d from ready and appended to run\n", jcr->JobId);
 
@@ -450,6 +451,7 @@ void *jobq_server(void *arg)
 
          /* Job finished detach from thread */
          remove_jcr_from_tsd(je->jcr);
+         je->jcr->set_killable(false);
 
          Dmsg2(2300, "Back from user engine jobid=%d use=%d.\n", jcr->JobId,
             jcr->use_count());

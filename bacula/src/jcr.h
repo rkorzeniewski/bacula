@@ -178,6 +178,7 @@ private:
    volatile int32_t _use_count;       /* use count */
    int32_t m_JobType;                 /* backup, restore, verify ... */
    int32_t m_JobLevel;                /* Job level */
+   bool my_thread_killable;           /* can we kill the thread? */
 public:
    void lock() {P(mutex); };
    void unlock() {V(mutex); };
@@ -203,10 +204,11 @@ public:
    void setJobStatus(int JobStatus);      /* in lib/jcr.c */
    bool JobReads();                       /* in lib/jcr.c */
    void my_thread_send_signal(int sig);   /* in lib/jcr.c */
+   void set_killable(bool killable);      /* in lib/jcr.c */
+   bool is_killable() const { return my_thread_killable; };
 
    /* Global part of JCR common to all daemons */
    dlink link;                        /* JCR chain link */
-   bool my_thread_running;            /* is the thread controlling jcr running*/
    pthread_t my_thread_id;            /* id of thread controlling jcr */
    BSOCK *dir_bsock;                  /* Director bsock or NULL if we are him */
    BSOCK *store_bsock;                /* Storage connection socket */
