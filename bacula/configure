@@ -23700,6 +23700,9 @@ fi
 
 fi
 
+saved_LIBS="${LIBS}"
+LIBS="${saved_LIBS} ${SQL_LFLAGS}"
+
 if test x$DB_TYPE = xpostgresql; then
    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for PQisthreadsafe in -lpq" >&5
 $as_echo_n "checking for PQisthreadsafe in -lpq... " >&6; }
@@ -23951,6 +23954,8 @@ fi
 else
       uncomment_dbi="#"
 fi
+
+LIBS="${saved_LIBS}"
 
 
 
