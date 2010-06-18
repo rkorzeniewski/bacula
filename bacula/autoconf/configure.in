@@ -1746,8 +1746,12 @@ if test $pkg = 0; then
       ]
    )
 fi
+
+dnl For postgresql checking
+saved_LIBS="${LIBS}"
+LIBS="${saved_LIBS} ${SQL_LFLAGS}"
    
-dnl Check if postgresql can support batch mode	 
+dnl Check if postgresql can support batch mode
 if test x$DB_TYPE = xpostgresql; then
    AC_CHECK_LIB(pq, PQisthreadsafe, AC_DEFINE(HAVE_PQISTHREADSAFE, 1, [Set if have PQisthreadsafe]))
    AC_CHECK_LIB(pq, PQputCopyData, AC_DEFINE(HAVE_PQ_COPY, 1, [Set if have PQputCopyData]))
@@ -1796,6 +1800,9 @@ else
    dnl If dbi was not chosen, let the comment in file
    uncomment_dbi="#"  
 fi
+
+dnl revert after postgresql checks
+LIBS="${saved_LIBS}"
 
 AC_SUBST(uncomment_dbi)
 
