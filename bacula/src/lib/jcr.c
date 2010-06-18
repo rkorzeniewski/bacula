@@ -1074,7 +1074,7 @@ static void jcr_timeout_check(watchdog_t *self)
             Qmsg(jcr, M_ERROR, 0, _(
 "Watchdog sending kill after %d secs to thread stalled reading Storage daemon.\n"),
                  watchdog_time - timer_start);
-            pthread_kill(jcr->my_thread_id, TIMEOUT_SIGNAL);
+            jcr->my_thread_send_signal(TIMEOUT_SIGNAL);
          }
       }
       bs = jcr->file_bsock;
@@ -1086,7 +1086,7 @@ static void jcr_timeout_check(watchdog_t *self)
             Qmsg(jcr, M_ERROR, 0, _(
 "Watchdog sending kill after %d secs to thread stalled reading File daemon.\n"),
                  watchdog_time - timer_start);
-            pthread_kill(jcr->my_thread_id, TIMEOUT_SIGNAL);
+            jcr->my_thread_send_signal(TIMEOUT_SIGNAL);
          }
       }
       bs = jcr->dir_bsock;
@@ -1098,7 +1098,7 @@ static void jcr_timeout_check(watchdog_t *self)
             Qmsg(jcr, M_ERROR, 0, _(
 "Watchdog sending kill after %d secs to thread stalled reading Director.\n"),
                  watchdog_time - timer_start);
-            pthread_kill(jcr->my_thread_id, TIMEOUT_SIGNAL);
+            jcr->my_thread_send_signal(TIMEOUT_SIGNAL);
          }
       }
    }
