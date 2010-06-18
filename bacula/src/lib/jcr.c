@@ -365,7 +365,6 @@ JCR *new_jcr(int size, JCR_free_HANDLER *daemon_free_jcr)
    jcr->setJobType(JT_SYSTEM);           /* internal job until defined */
    jcr->setJobLevel(L_NONE);
    jcr->setJobStatus(JS_Created);        /* ready to run */
-   set_jcr_in_tsd(jcr);
    sigtimer.sa_flags = 0;
    sigtimer.sa_handler = timeout_handler;
    sigfillset(&sigtimer.sa_mask);
@@ -413,6 +412,7 @@ static void free_common_jcr(JCR *jcr)
 {
    /* Uses jcr lock/unlock */
    remove_jcr_from_tsd(jcr);
+   jcr->set_killable(false);
 
    jcr->destroy_mutex();
 
@@ -588,12 +588,21 @@ void remove_jcr_from_tsd(JCR *jcr)
 {
    JCR *tjcr = get_jcr_from_tsd();
    if (tjcr == jcr) { 
-      jcr->lock();
-      jcr->my_thread_running = false;
-      memset(&jcr->my_thread_id, 0, sizeof(jcr->my_thread_id));
-      jcr->unlock();
       set_jcr_in_tsd(INVALID_JCR);
    }
+}
+
+void JCR::set_killable(bool killable)
+{
+   JCR *jcr = this;
+   jcr->lock();
+   jcr->my_thread_killable = killable;
+   if (killable) {
+      jcr->my_thread_id = pthread_self();
+   } else {
+      memset(&jcr->my_thread_id, 0, sizeof(jcr->my_thread_id));
+   }
+   jcr->unlock();
 }
 
 /*
@@ -601,7 +610,7 @@ void remove_jcr_from_tsd(JCR *jcr)
  *  if update_thread_info is true and the jcr is valide,
  *  we update the my_thread_id in the JCR
  */
-void set_jcr_in_tsd(JCR *jcr, bool update_thread_info)
+void set_jcr_in_tsd(JCR *jcr)
 {
    int status = pthread_setspecific(jcr_key, (void *)jcr);
    if (status != 0) {
@@ -609,30 +618,18 @@ void set_jcr_in_tsd(JCR *jcr, bool update_thread_info)
       Jmsg1(jcr, M_ABORT, 0, _("pthread_setspecific failed: ERR=%s\n"), 
             be.bstrerror(status));
    }
-
-   /* We explicitly ask to set a jcr in tsd, we can update jcr->my_thread
-    */
-   if (update_thread_info && jcr && jcr != INVALID_JCR) {
-      Dmsg2(100, "setting my_thread_stuffs 0x%p => 0x%p\n", 
-            jcr->my_thread_id, pthread_self());
-      jcr->lock();
-      //ASSERT(jcr->my_thread_running == false);
-      jcr->my_thread_id = pthread_self();
-      jcr->my_thread_running = true;
-      jcr->unlock();
-   }
 }
 
 void JCR::my_thread_send_signal(int sig)
 {
    this->lock();
-   if (   this->my_thread_running 
-       && !pthread_equal(this->my_thread_id, pthread_self()))
+   if (this->is_killable() &&
+       !pthread_equal(this->my_thread_id, pthread_self()))
    {
       Dmsg1(800, "Send kill to jid=%d\n", this->JobId);
       pthread_kill(this->my_thread_id, sig);
 
-   } else if (!this->my_thread_running) {
+   } else if (!this->is_killable()) {
       Dmsg1(10, "Warning, can't send kill to jid=%d\n", this->JobId);
    }
    this->unlock();
@@ -1181,6 +1178,10 @@ void dbg_print_jcr(FILE *fp)
    for (JCR *jcr = (JCR *)jcrs->first(); jcr ; jcr = (JCR *)jcrs->next(jcr)) {
       fprintf(fp, "threadid=%p JobId=%d JobStatus=%c jcr=%p name=%s\n", 
               (void *)jcr->my_thread_id, (int)jcr->JobId, jcr->JobStatus, jcr, jcr->Job);
+      fprintf(fp, "threadid=%p killable=%d JobId=%d JobStatus=%c "
+                  "jcr=%p name=%s\n",
+              (void *)jcr->my_thread_id, jcr->is_killable(),
+              (int)jcr->JobId, jcr->JobStatus, jcr, jcr->Job);
       fprintf(fp, "\tuse_count=%i\n", jcr->use_count());
       fprintf(fp, "\tJobType=%c JobLevel=%c\n",
               jcr->getJobType(), jcr->getJobLevel());
