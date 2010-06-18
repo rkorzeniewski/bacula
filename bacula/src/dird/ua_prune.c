@@ -405,7 +405,7 @@ int prune_jobs(UAContext *ua, CLIENT *client, POOL *pool, int JobType)
    char ed1[50], ed2[50];
    alist *jobids_check=NULL;
    struct accurate_check_ctx *elt;
-   db_list_ctx jobids;
+   db_list_ctx jobids, tempids;
    JOB_DBR jr;
 
    db_lock(ua->db);
@@ -495,7 +495,8 @@ int prune_jobs(UAContext *ua, CLIENT *client, POOL *pool, int JobType)
    foreach_alist(elt, jobids_check) {
       jr.ClientId = elt->ClientId;
       jr.FileSetId = elt->FileSetId;
-      db_accurate_get_jobids(ua->jcr, ua->db, &jr, &jobids);
+      db_accurate_get_jobids(ua->jcr, ua->db, &jr, &tempids);
+      jobids.cat(tempids);
    }
 
    /* Discard latest Verify level=InitCatalog job */
