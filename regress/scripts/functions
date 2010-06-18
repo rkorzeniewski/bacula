@@ -26,6 +26,7 @@ start_test()
    echo " === Starting $TestName at `date +%R:%S` ==="
    echo " === Starting $TestName at `date +%R:%S` ===" >> ${working}/log
    echo " "
+   export TestName
    export zstat
    export estat
    estat=0

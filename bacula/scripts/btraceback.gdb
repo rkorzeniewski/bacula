@@ -25,5 +25,6 @@ f 6
 info locals
 f 7
 info locals
+show env TestName
 detach
 quit
