@@ -1129,9 +1129,18 @@ public:
    POOLMEM *list;                     /* list */
    int count;                         /* number of values seen */
 
-   db_list_ctx() { list = get_pool_memory(PM_FNAME); *list = 0; count = 0; }
+   db_list_ctx() { list = get_pool_memory(PM_FNAME); reset(); }
    ~db_list_ctx() { free_pool_memory(list); list = NULL; }
-
+   void reset() { *list = 0; count = 0;}
+   void cat(const db_list_ctx &str) {
+      if (str.count > 0) {
+         if (*list) {
+            pm_strcat(list, ",");
+         }
+         pm_strcat(list, str.list);
+         count += str.count;
+      }
+   }
 private:
    db_list_ctx(const db_list_ctx&);            /* prohibit pass by value */
    db_list_ctx &operator=(const db_list_ctx&); /* prohibit class assignment */

@@ -1168,8 +1168,7 @@ bool db_accurate_get_jobids(JCR *jcr, B_DB *mdb,
    utime_t StartTime = (jr->StartTime)?jr->StartTime:time(NULL);
 
    bstrutime(date, sizeof(date),  StartTime + 1);
-   jobids->list[0] = 0;
-   jobids->count = 0;
+   jobids->reset();
 
    /* First, find the last good Full backup for this job/client/fileset */
    Mmsg(query, create_temp_accurate_jobids[db_type], 
