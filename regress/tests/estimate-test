@@ -103,25 +103,25 @@ rm -rf ${cwd}/build/po/test
 
 grep test1 $tmp/log3.out > /dev/null
 if [ $? = 0 ]; then
-    print_debug "Normal estimate shouldn't detect test1 file in $tmp/log3.out"
+    print_debug "ERROR: Normal estimate shouldn't detect test1 file in $tmp/log3.out"
     dstat=2
 fi
 
 grep test1 $tmp/log4.out > /dev/null
 if [ $? != 0 ]; then
-    print_debug "Accurate=yes estimate should detect test1 file in $tmp/log4.out"
+    print_debug "ERROR: Accurate=yes estimate should detect test1 file in $tmp/log4.out"
     dstat=2
 fi
 
 grep test1 $tmp/log5.out > /dev/null
 if [ $? != 0 ]; then
-    print_debug "Accurate estimate should detect test1 file in $tmp/log5.out"
+    print_debug "ERROR: Accurate estimate should detect test1 file in $tmp/log5.out"
     dstat=2
 fi
 
 grep test1 $tmp/log6.out > /dev/null
 if [ $? = 0 ]; then
-    print_debug "Accurate=no estimate shouldn't detect test1 file in $tmp/log6.out"
+    print_debug "ERROR: Accurate=no estimate shouldn't detect test1 file in $tmp/log6.out"
     dstat=2
 fi
 
