@@ -109,12 +109,10 @@ mount_next_vol:
    if (dev->must_unload()) {
       ask = true;                     /* ask operator to mount tape */
    }
-//   unlock_volumes();
    do_unload();
    do_swapping(true /*is_writing*/);
    do_load(true /*is_writing*/);
 
-//   lock_volumes();
    if (!find_a_volume()) {
       goto bail_out;
    }
@@ -136,7 +134,6 @@ mount_next_vol:
     * and move the tape to the end of data.
     *
     */
-//   unlock_volumes();
    dcr->setVolCatInfo(false);   /* out of date when Vols unlocked */
    if (autoload_device(dcr, true/*writing*/, NULL) > 0) {
       autochanger = true;
@@ -146,7 +143,6 @@ mount_next_vol:
       VolCatInfo.Slot = 0;
       ask = retry >= 2;
    }
-//   lock_volumes();
    Dmsg1(150, "autoload_dev returns %d\n", autochanger);
    /*
     * If we autochanged to correct Volume or (we have not just
@@ -780,8 +776,6 @@ void DCR::release_volume()
    if (dev->is_open()) {
       dev->offline_or_rewind();
    }
-// Dmsg0(50, "set_unload\n");
-// dev->set_unload();
    Dmsg0(190, "release_volume\n");
 }
 
