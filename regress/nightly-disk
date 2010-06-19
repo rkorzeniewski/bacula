@@ -10,7 +10,7 @@ REGRESS_DEBUG=1
 export REGRESS_DEBUG
 rm -rf Testing
 rm -f dumps/*
-git checkout master
+#git checkout master
 git pull
 #
 # Temp switch to branch Branch-5.0 NB this leaves you on a headless
