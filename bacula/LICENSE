@@ -17,6 +17,17 @@ What follows is the addition(s) to the GPL version 2 license, that
 applies to code that is copyrighted by the Free Software Foundation
 Europe e.V.
 
+Distribution:
+In the sense used in the GPLv2 as concerns the Bacula license, 
+distribution includes using Bacula in an appliance or using Bacula
+as a service via Internet or other electronic form that makes
+Bacula, Bacula service or Bacula binaries available to other parties.
+If you "distribute" Bacula in any manner, you are required to 
+provide the source code upon demand to the parties to whom
+you "distribute" it. If you wish to distribute Bacula without
+providing source code, please contact Bacula Systems SA 
+(www.baculasystems.com) about alternate licenses.
+
 Linking: 
 As a special exception to the GPLv2, the Bacula Project gives
 permission to link the code of its release of Bacula with the OpenSSL
