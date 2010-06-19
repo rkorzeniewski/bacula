@@ -7,6 +7,7 @@ echo " "
 echo " " >>test.out
 echo "Start sample non-root disk tests"
 echo "Start sample non-root disk tests" >>test.out
+rm -f dumps/*
 nice tests/acl-xattr-test
 nice tests/action-on-purge-test
 nice tests/allowcompress-test

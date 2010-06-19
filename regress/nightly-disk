@@ -9,6 +9,7 @@ save_debug=${REGRESS_DEBUG}
 REGRESS_DEBUG=1
 export REGRESS_DEBUG
 rm -rf Testing
+rm -f dumps/*
 git checkout master
 git pull
 #

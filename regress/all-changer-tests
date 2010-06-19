@@ -4,6 +4,7 @@
 #
 echo "Start autochanger tests"
 echo "Start autochanger tests" >>test.out
+rm -f dumps/*
 
 nice tests/incremental-changer
 nice tests/two-pool-changer

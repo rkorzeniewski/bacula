@@ -318,7 +318,9 @@ end_test()
 {
    if [ x$notracedump != xyes ]; then 
       cat ${working}/bacula.*.traceback 2>/dev/null
+      cp -f  ${working}/bacula.*.traceback ${dumps} 2>/dev/null
       cat ${working}/*.bactrace 2>/dev/null
+      cp -f ${working}/*.bactrace ${dumps} 2>/dev/null
    fi
    if [ $estat != 0 ] ; then
       echo " "
@@ -492,6 +494,7 @@ db_name=${db_name:-"regress"}
 db_user=${db_user:-"regress"}
 db_password=${db_password:-""}
 working=${working:-"$cwd/working"}
+dumps=${dumps:-"$cwd/dumps"}
 bin=${bin:-"$cwd/bin"}
 
 # Bacula scripts
@@ -515,6 +518,7 @@ tmpsrc=${tmpsrc:-"$cwd/tmp/build"}
 export bin
 export conf
 export working
+export dumps
 export scripts
 export rscripts
 export tmp
