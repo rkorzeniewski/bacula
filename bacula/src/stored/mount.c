@@ -116,7 +116,7 @@ mount_next_vol:
 
 //   lock_volumes();
    if (!find_a_volume()) {
-      goto no_lock_bail_out;
+      goto bail_out;
    }
 
    if (job_canceled(jcr)) {
