@@ -26,8 +26,8 @@ bacula: all
 	@-gunzip w.tar.gz
 	@-tar xf w.tar
 	@rm -f w.tar.gz w.tar
-	@rm -rf tmp working
-	mkdir tmp working
+	@rm -rf tmp working dumps
+	mkdir tmp working dumps
 	echo "Doing: scripts/setup"
 	scripts/setup
 
@@ -50,7 +50,7 @@ root_test:
 clean:
 	scripts/cleanup
 	rm -f tmp/file-list
-	rm -fr tmp/* working/* Testing
+	rm -fr tmp/* working/* dumps/* Testing
 	rm -f test.out
 	rm -f diff
 	rm -f 1 2 3 scripts/1 scripts/2 scripts/3 tests/1 tests/2 tests/3
