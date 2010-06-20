@@ -9,6 +9,7 @@ print distver
 print host_name
 print dist_name
 print beef
+show env TestName
 bt
 thread apply all bt
 f 0
@@ -27,6 +28,5 @@ f 6
 info locals
 f 7
 info locals
-show env TestName
 detach
 quit
