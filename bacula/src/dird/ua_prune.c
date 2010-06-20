@@ -451,7 +451,7 @@ int prune_jobs(UAContext *ua, CLIENT *client, POOL *pool, int JobType)
         "INSERT INTO DelCandidates "
           "SELECT JobId,PurgedFiles,FileSetId,JobFiles,JobStatus "
             "FROM Job "
-           "WHERE Type IN ('B', 'C', 'M', 'V',  'D', 'R', 'c', 'm') "
+           "WHERE Type IN ('B', 'C', 'M', 'V',  'D', 'R', 'c', 'm', 'g') "
              "AND JobTDate<%s AND ClientId=%s", 
         ed1, ed2);
 
@@ -474,7 +474,8 @@ int prune_jobs(UAContext *ua, CLIENT *client, POOL *pool, int JobType)
        "JOIN Job USING (JobId) "
        "JOIN Client USING (ClientId) "
        "JOIN FileSet ON (Job.FileSetId = FileSet.FileSetId) "
- "WHERE Type NOT IN ('D', 'R', 'c', 'm') " /* Discard Admin, Restore, Copy, Migration */
+ "WHERE Job.Type IN ('B') "               /* Look only Backup jobs */
+   "AND Job.JobStatus IN ('T', 'W') "     /* Look only useful jobs */
       );
 
    /* The job_select_handler will skip jobs or filesets that are no longer
@@ -493,13 +494,15 @@ int prune_jobs(UAContext *ua, CLIENT *client, POOL *pool, int JobType)
    /* To find useful jobs, we do like an incremental */
    jr.JobLevel = L_INCREMENTAL; 
    foreach_alist(elt, jobids_check) {
-      jr.ClientId = elt->ClientId;
+      jr.ClientId = elt->ClientId;   /* should be always the same */
       jr.FileSetId = elt->FileSetId;
       db_accurate_get_jobids(ua->jcr, ua->db, &jr, &tempids);
       jobids.cat(tempids);
    }
 
-   /* Discard latest Verify level=InitCatalog job */
+   /* Discard latest Verify level=InitCatalog job 
+    * TODO: can have multiple fileset
+    */
    Mmsg(query, 
         "SELECT JobId, JobTDate "
           "FROM Job "
@@ -520,30 +523,17 @@ int prune_jobs(UAContext *ua, CLIENT *client, POOL *pool, int JobType)
       /* We also need to exclude all basejobs used */
       db_get_used_base_jobids(ua->jcr, ua->db, jobids.list, &jobids);
 
-      /* Removing exceptions from the DelCandidates list */
-      Mmsg(query, "DELETE FROM DelCandidates WHERE JobId IN (%s)", jobids.list);
+      /* Removing useful jobs from the DelCandidates list */
+      Mmsg(query, "DELETE FROM DelCandidates "
+                   "WHERE JobId IN (%s) "        /* JobId used in accurate */
+                     "AND JobFiles!=0",          /* Discard when JobFiles=0 */
+           jobids.list);
+
       if (!db_sql_query(ua->db, query.c_str(), NULL, NULL)) {
          ua->error_msg("%s", db_strerror(ua->db));
          goto bail_out;         /* Don't continue if the list isn't clean */
       }
       Dmsg1(60, "jobids to exclude = %s\n", jobids.list);
-   }
-
-   /* Prune garbage jobs (JobStatus not successful) */
-   Mmsg(query, 
-        "INSERT INTO DelCandidates "
-          "SELECT JobId,PurgedFiles,FileSetId,JobFiles,JobStatus "
-            "FROM Job "
-           "WHERE ( JobFiles=0 "
-                "OR JobStatus NOT IN ('T', 'W') "
-                 ") "
-             "AND JobTDate < %s "
-             "AND ClientId = %s ",
-        ed1, ed2);
-   
-   Dmsg1(150, "Query=%s\n", query.c_str());
-   if (!db_sql_query(ua->db, query.c_str(), NULL, NULL)) {
-      ua->error_msg("%s", db_strerror(ua->db));
    }
 
    /* We use DISTINCT because we can have two times the same job */
