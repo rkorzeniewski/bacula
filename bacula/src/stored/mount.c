@@ -348,6 +348,7 @@ bool DCR::find_a_volume()
             }
             unlock_volumes();
             if (!dir_ask_sysop_to_create_appendable_volume(dcr)) {
+               lock_volumes();
                return false;
              }
              lock_volumes();
