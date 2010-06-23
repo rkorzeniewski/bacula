@@ -21,17 +21,19 @@ use Data::Dumper;
 use Cwd;
 use POSIX qw/strftime/;
 
-my ($src, $dst, $help, $acl, $attr, $wattr, $dest_attrib, $src_attrib);
+my ($src, $dst, $help, $acl, $attr, $wattr, 
+    $dest_attrib, $src_attrib, $mtimedir);
 my %src_attr; 
 my %dst_attr;
 my $hash;
 my $ret=0;
 
-GetOptions("src=s"   => \$src,  # source directory
-           "dst=s"   => \$dst,  # dest directory
-           "acl"     => \$acl,  # acl test
-           "attr"    => \$attr, # attributes test
-           "wattr"   => \$wattr,# windows attributes
+GetOptions("src=s"   => \$src,        # source directory
+           "dst=s"   => \$dst,        # dest directory
+           "acl"     => \$acl,        # acl test
+           "attr"    => \$attr,       # attributes test
+           "wattr"   => \$wattr,      # windows attributes
+           "mtime-dir" => \$mtimedir, # check mtime on directories
            "help"    => \$help,
     ) or pod2usage(-verbose => 1, 
                    -exitval => 1);
@@ -146,6 +148,7 @@ sub compare
 sub wanted_src
 {
     my $f = $_;
+
     if (-l $f) {
         my ($dev,$ino,$mode,$nlink,$uid,$gid,$rdev,$size,
             $atime,$mtime,$ctime,$blksize,$blocks) = lstat($f);
@@ -183,30 +186,47 @@ sub wanted_src
         $hash->{$File::Find::name}->{md5} = $md5->addfile(*FILE)->hexdigest;
         close(FILE);
         
-        if ($acl) {
-            $hash->{$File::Find::name}->{acl} = `getfacl "$f" 2>/dev/null`;
-        }
-        if ($attr) {
-            $hash->{$File::Find::name}->{attr} = `getfattr "$f" 2>/dev/null`;
-        }
-        
     } elsif (-d $f) {
         $hash->{$File::Find::name} = {
             mode => $mode,
             uid => $uid,
             gid => $gid,
-            mtime => $mtime,
+            mtime => ($mtimedir)?$mtime:0,
             type => 'd',
             file =>  $File::Find::name,
         };
-        if ($acl) {
-            $hash->{$File::Find::name}->{acl} = `getfacl "$f" 2>/dev/null`;
-        }
-        if ($attr) {
-            $hash->{$File::Find::name}->{attr} = `getfattr "$f" 2>/dev/null`;
-        }
+
+    } elsif (-b $f or -c $f) { # dev
+        $hash->{$File::Find::name} = {
+            mode => $mode,
+            uid => $uid,
+            gid => $gid,
+            mtime => $mtime,
+            rdev => $rdev,
+            type => (-b $f)?'block':'char',
+            file =>  $File::Find::name,
+        };
+        
+    } elsif (-p $f) { # named pipe
+        $hash->{$File::Find::name} = {
+            mode => $mode,
+            uid => $uid,
+            gid => $gid,
+            mtime => $mtime,
+            type => 'pipe',
+            file =>  $File::Find::name,
+        };
         
     } else {                # other than file and directory
-            
+        return;
+    }
+    
+    my $fe = $f;
+    $fe =~ s/"/\\"/g;
+    if ($acl) {
+        $hash->{$File::Find::name}->{acl} = `getfacl "$fe" 2>/dev/null`;
+    }
+    if ($attr) {
+        $hash->{$File::Find::name}->{attr} = `getfattr "$fe" 2>/dev/null`;
     }
 }
