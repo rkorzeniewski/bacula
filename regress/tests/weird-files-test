@@ -60,32 +60,20 @@ END_OF_DATA
 run_bacula
 check_for_zombie_jobs storage=File 
 stop_bacula
-# Note, the Unix domain socket (sock-file) is not restored
-#  by Bacula so we delete it for the diffs
-rm -f weird-files/sock-file
-touch weird-files tmp/bacula-restores${cwd}/weird-files
 
-${cwd}/bin/testls weird-files | sort >${cwd}/tmp/original
-cd tmp/bacula-restores${cwd}
-${cwd}/bin/testls weird-files | sort >${cwd}/tmp/restored
-cd ${cwd}
+# Note, the Unix domain socket (sock-file) is not restored
+#  by Bacula so we delete it for the diffs. diff.pl already discards them
+# rm -f weird-files/sock-file
+
+# to have the same mtime after the rm, we need to touch directories
+# touch weird-files tmp/bacula-restores${cwd}/weird-files
+
+
+$rscripts/diff.pl -s weird-files -d tmp/bacula-restores${cwd}/weird-files > tmp/diff.out
+dstat=$?
 
 check_two_logs
 if test "$debug" -eq 1; then
-  diff -u ${cwd}/tmp/original ${cwd}/tmp/restored
-  dstat=$?
-  if [ $dstat != 0 ] ; then
-     echo " "
-     echo "===== Original ======"
-     cat ${cwd}/tmp/original
-     echo "====="
-     echo " "
-     echo "===== Restored ======"
-     cat ${cwd}/tmp/restored
-     echo "====="
-  fi
-else
-  diff -u ${cwd}/tmp/original ${cwd}/tmp/restored 2>&1 >/dev/null
-  dstat=$?
+  cat tmp/diff.out
 fi
 end_test
