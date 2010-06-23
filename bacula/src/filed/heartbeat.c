@@ -139,9 +139,11 @@ void stop_heartbeat_monitor(JCR *jcr)
       jcr->hb_dir_bsock->set_timed_out();     /* set timed_out to terminate read */
       jcr->hb_dir_bsock->set_terminated();    /* set to terminate read */
    }
-   Dmsg0(100, "Send kill to heartbeat id\n");
-   pthread_kill(jcr->heartbeat_id, TIMEOUT_SIGNAL);  /* make heartbeat thread go away */
-   bmicrosleep(0, 50000);
+   if (jcr->hb_started) {
+      Dmsg0(100, "Send kill to heartbeat id\n");
+      pthread_kill(jcr->heartbeat_id, TIMEOUT_SIGNAL);  /* make heartbeat thread go away */
+      bmicrosleep(0, 50000);
+   }
    cnt = 0;
    /* Wait max 100 secs for heartbeat thread to stop */
    while (jcr->hb_started && cnt++ < 200) {
