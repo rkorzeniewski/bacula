@@ -710,6 +710,40 @@ int pthread_mutex_destroy(bthread_mutex_t *m)
    return pthread_mutex_destroy(&m->mutex);
 }
 
+/* 
+ * Replacement for pthread_kill (only with USE_LOCKMGR_SAFEKILL)
+ */
+int bthread_kill(pthread_t thread, int sig, 
+                 const char *file, int line)
+{
+   bool thread_found_in_process=false;
+   
+   /* We doesn't allow to send signal to ourself */
+   ASSERT(!pthread_equal(thread, pthread_self()));
+
+   /* This loop isn't very efficient with dozens of threads but we don't use
+    * signal very much, and this feature is for testing only
+    */
+   lmgr_p(&lmgr_global_mutex);
+   {
+      lmgr_thread_t *item;
+      foreach_dlist(item, global_mgr) {
+         if (pthread_equal(thread, item->thread_id)) {
+            thread_found_in_process=true;
+            break;
+         }
+      }
+   }
+   lmgr_v(&lmgr_global_mutex);
+
+   /* Sending a signal to non existing thread can create problem
+    * so, we can stop here.
+    */
+   ASSERT(thread_found_in_process == true);
+   
+   return pthread_kill(thread, sig);
+}
+
 /*
  * Replacement for pthread_mutex_lock()
  * Returns always ok 

@@ -158,6 +158,16 @@ int lmgr_thread_create(pthread_t *thread,
                        const pthread_attr_t *attr,
                        void *(*start_routine)(void*), void *arg);
 
+/* 
+ * Can use SAFEKILL to check if the argument is a valid threadid
+ */
+int bthread_kill(pthread_t thread, int sig, 
+                 const char *file="*unknown*", int line=0);
+
+#ifdef USE_LOCKMGR_SAFEKILL
+# define pthread_kill(a,b)      bthread_kill((a),(b), __FILE__, __LINE__)
+#endif
+
 #define BTHREAD_MUTEX_NO_PRIORITY      {PTHREAD_MUTEX_INITIALIZER, 0}
 #define BTHREAD_MUTEX_INITIALIZER      BTHREAD_MUTEX_NO_PRIORITY
 
