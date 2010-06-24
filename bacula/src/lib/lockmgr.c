@@ -740,7 +740,8 @@ int bthread_kill(pthread_t thread, int sig,
     * so, we can stop here.
     */
    ASSERT(thread_found_in_process == true);
-   
+
+   Dmsg3(100, "%s:%d send kill to existing thread %p\n", file, line, thread);
    return pthread_kill(thread, sig);
 }
 

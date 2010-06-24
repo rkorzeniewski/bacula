@@ -164,10 +164,6 @@ int lmgr_thread_create(pthread_t *thread,
 int bthread_kill(pthread_t thread, int sig, 
                  const char *file="*unknown*", int line=0);
 
-#ifdef USE_LOCKMGR_SAFEKILL
-# define pthread_kill(a,b)      bthread_kill((a),(b), __FILE__, __LINE__)
-#endif
-
 #define BTHREAD_MUTEX_NO_PRIORITY      {PTHREAD_MUTEX_INITIALIZER, 0}
 #define BTHREAD_MUTEX_INITIALIZER      BTHREAD_MUTEX_NO_PRIORITY
 
@@ -198,6 +194,10 @@ int bthread_kill(pthread_t thread, int sig,
 # define pthread_mutex_unlock(x)         bthread_mutex_unlock(x)
 # define pthread_cond_wait(x,y)          bthread_cond_wait(x,y)
 # define pthread_cond_timedwait(x,y,z)   bthread_cond_timedwait(x,y,z)
+
+# ifdef USE_LOCKMGR_SAFEKILL
+#  define pthread_kill(a,b)      bthread_kill((a),(b), __FILE__, __LINE__)
+# endif
 #endif
 
 #else   /* _USE_LOCKMGR */
