@@ -81,6 +81,14 @@
  *  deadlock, so turn this on only for debugging.
  */
 #define USE_LOCKMGR_PRIORITY
+
+/*
+ * Enable thread verification before kill 
+ *
+ * Note, this extra check have a high cost when using
+ * dozens of thread, so turn this only for debugging.
+ */
+/* #define USE_LOCKMGR_SAFEKILL */
 #endif  /* DEVELOPER */
 
 #if !HAVE_LINUX_OS && !HAVE_SUN_OS && !HAVE_DARWIN_OS && !HAVE_FREEBSD_OS
