@@ -1003,6 +1003,14 @@ static bool check_catalog(cat_op mode)
       CLIENT *client;
       foreach_res(client, R_CLIENT) {
          CLIENT_DBR cr;
+         /* Create clients only if they use the current catalog */
+         if (client->catalog != catalog) {
+            Dmsg3(500, "Skip client=%s with cat=%s not catalog=%s\n",
+                  client->name(), client->catalog->name(), catalog->name());
+            continue;
+         }
+         Dmsg2(500, "create cat=%s for client=%s\n", 
+               client->catalog->name(), client->name());
          memset(&cr, 0, sizeof(cr));
          bstrncpy(cr.Name, client->name(), sizeof(cr.Name));
          db_create_client_record(NULL, db, &cr);
