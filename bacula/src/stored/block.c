@@ -967,22 +967,6 @@ reread:
       return false;
    }
    
-// #define lots_of_debug
-#ifdef lots_of_debug
-   if (dev->at_eof() && dev->is_dvd()) {
-      Dmsg1(100, "file_size=%u\n",(unsigned int)dev->file_size);
-      Dmsg1(100, "file_addr=%u\n",(unsigned int)dev->file_addr);
-      Dmsg1(100, "lseek=%u\n",(unsigned int)lseek(dev->fd(), 0, SEEK_CUR));
-      Dmsg1(100, "part_start=%u\n",(unsigned int)dev->part_start);
-      Dmsg1(100, "part_size=%u\n", (unsigned int)dev->part_size);
-      Dmsg2(100, "part=%u num_dvd_parts=%u\n", dev->part, dev->num_dvd_parts);
-      Dmsg1(100, "VolCatInfo.VolCatParts=%u\n", (unsigned int)dev->VolCatInfo.VolCatParts);
-      Dmsg3(100, "Tests : %d %d %d\n", (dev->VolCatInfo.VolCatParts > 0), 
-         ((dev->file_addr-dev->part_start) == dev->part_size), 
-         (dev->part <= dev->VolCatInfo.VolCatParts));
-  }
-#endif
-
    /* Check for DVD part file end */
    if (dev->at_eof() && dev->is_dvd() && dev->num_dvd_parts > 0 &&
         dev->part <= dev->num_dvd_parts) {
