@@ -947,7 +947,6 @@ bool read_block_from_dev(DCR *dcr, bool check_block_numbers)
    if (job_canceled(jcr)) {
       return false;
    }
-   ASSERT(dev->is_open());
    
    if (dev->at_eot()) {
       return false;
@@ -955,6 +954,9 @@ bool read_block_from_dev(DCR *dcr, bool check_block_numbers)
    looping = 0;
    Dmsg1(250, "Full read in read_block_from_device() len=%d\n",
          block->buf_len);
+
+// ASSERT(dev->is_open());
+
 reread:
    if (looping > 1) {
       dev->dev_errno = EIO;
