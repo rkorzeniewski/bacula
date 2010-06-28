@@ -50,7 +50,7 @@ my $md5 = Digest::MD5->new;
 
 my $dir = getcwd;
 
-chdir($src) or die "E: Can't access to $src";
+chdir($src) or die "ERROR: Can't access to $src";
 $hash = \%src_attr;
 find(\&wanted_src, '.');
 
@@ -61,7 +61,7 @@ if ($wattr) {
 
 chdir ($dir);
 
-chdir($dst) or die "E: Can't access to $dst";
+chdir($dst) or die "ERROR: Can't access to $dst";
 $hash = \%dst_attr;
 find(\&wanted_src, '.');
 
@@ -71,7 +71,7 @@ if ($wattr) {
 
     if (lc($src_attrib) ne lc($dest_attrib)) {
         $ret++;
-        print "E: Differences between windows attributes\n",
+        print "ERROR: Differences between windows attributes\n",
               "$src_attrib\n=========\n$dest_attrib\n";
     } 
 }
@@ -83,7 +83,7 @@ foreach my $f (keys %src_attr)
 {
     if (!defined $dst_attr{$f}) {
         $ret++;
-        print "E: Can't find $f in dst\n";
+        print "ERROR: Can't find $f in dst\n";
 
     } else {
         compare($src_attr{$f}, $dst_attr{$f});
@@ -95,7 +95,7 @@ foreach my $f (keys %src_attr)
 foreach my $f (keys %dst_attr)
 {
     $ret++;
-    print "E: Can't find $f in src\n";
+    print "ERROR: Can't find $f in src\n";
 }
 
 if ($ret) {
@@ -121,11 +121,11 @@ sub compare
     foreach my $k (keys %$h1) {
         if (!exists $h2->{$k}) {
             $ret++;
-            print "E: Can't find $k for dest $f2 ($k=$h1->{$k})\n";
+            print "ERROR: Can't find $k for dest $f2 ($k=$h1->{$k})\n";
         }
         if (!defined $h2->{$k}) {
             $ret++;
-            print "E: $k not found in destination ", $h1->{file}, "\n";
+            print "ERROR: $k not found in destination ", $h1->{file}, "\n";
             print Data::Dumper::Dumper($h1, $h2);
         } elsif ($h2->{$k} ne $h1->{$k}) {
             $ret++;
@@ -134,14 +134,14 @@ sub compare
                 ($val1, $val2) = 
                     (map { strftime('%F %T', localtime($_)) } ($val1, $val2));
             }
-            print "E: src and dst $f2 differ on $k ($val1 != $val2)\n";
+            print "ERROR: src and dst $f2 differ on $k ($val1 != $val2)\n";
         }
         delete $attr{$k};
     }
 
     foreach my $k (keys %attr) {
         $ret++;
-        print "E: Found $k on dst file and not on src ($k=$h2->{$k})\n";
+        print "ERROR: Found $k on dst file and not on src ($k=$h2->{$k})\n";
     }
 }
 
@@ -181,7 +181,7 @@ sub wanted_src
             file => $File::Find::name,
         };
         $md5->reset;
-        open(FILE, '<', $f) or die "Can't open '$f': $!";
+        open(FILE, '<', $f) or die "ERROR: Can't open '$f': $!";
         binmode(FILE);
         $hash->{$File::Find::name}->{md5} = $md5->addfile(*FILE)->hexdigest;
         close(FILE);
