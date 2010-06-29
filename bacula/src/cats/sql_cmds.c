@@ -469,6 +469,9 @@ const char *select_recent_version[5] = {
       "AND j1.JobId = f1.JobId"
 };
 
+/* We don't create this table as TEMPORARY because MySQL MyISAM 
+ * 5.0 and 5.1 are unable to run further queries in this mode
+ */
 const char *create_temp_accurate_jobids_default =
  "CREATE TABLE btemp3%s AS "
     "SELECT JobId, StartTime, EndTime, JobTDate, PurgedFiles "
