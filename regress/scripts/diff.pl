@@ -71,7 +71,7 @@ if ($wattr) {
 
     if (lc($src_attrib) ne lc($dest_attrib)) {
         $ret++;
-        print "ERROR: Differences between windows attributes\n",
+        print "diff.pl ERROR: Differences between windows attributes\n",
               "$src_attrib\n=========\n$dest_attrib\n";
     } 
 }
@@ -83,7 +83,7 @@ foreach my $f (keys %src_attr)
 {
     if (!defined $dst_attr{$f}) {
         $ret++;
-        print "ERROR: Can't find $f in dst\n";
+        print "diff.pl ERROR: Can't find $f in dst\n";
 
     } else {
         compare($src_attr{$f}, $dst_attr{$f});
@@ -95,11 +95,11 @@ foreach my $f (keys %src_attr)
 foreach my $f (keys %dst_attr)
 {
     $ret++;
-    print "ERROR: Can't find $f in src\n";
+    print "diff.pl ERROR: Can't find $f in src\n";
 }
 
 if ($ret) {
-    print "ERROR: found $ret error(s)\n";
+    print "diff.pl ERROR: found $ret error(s)\n";
 }
 
 exit $ret;
@@ -121,11 +121,11 @@ sub compare
     foreach my $k (keys %$h1) {
         if (!exists $h2->{$k}) {
             $ret++;
-            print "ERROR: Can't find $k for dest $f2 ($k=$h1->{$k})\n";
+            print "diff.pl ERROR: Can't find $k for dest $f2 ($k=$h1->{$k})\n";
         }
         if (!defined $h2->{$k}) {
             $ret++;
-            print "ERROR: $k not found in destination ", $h1->{file}, "\n";
+            print "diff.pl ERROR: $k not found in destination ", $h1->{file}, "\n";
             print Data::Dumper::Dumper($h1, $h2);
         } elsif ($h2->{$k} ne $h1->{$k}) {
             $ret++;
@@ -134,14 +134,14 @@ sub compare
                 ($val1, $val2) = 
                     (map { strftime('%F %T', localtime($_)) } ($val1, $val2));
             }
-            print "ERROR: src and dst $f2 differ on $k ($val1 != $val2)\n";
+            print "diff.pl ERROR: src and dst $f2 differ on $k ($val1 != $val2)\n";
         }
         delete $attr{$k};
     }
 
     foreach my $k (keys %attr) {
         $ret++;
-        print "ERROR: Found $k on dst file and not on src ($k=$h2->{$k})\n";
+        print "diff.pl ERROR: Found $k on dst file and not on src ($k=$h2->{$k})\n";
     }
 }
 
