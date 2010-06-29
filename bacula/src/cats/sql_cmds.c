@@ -470,7 +470,7 @@ const char *select_recent_version[5] = {
 };
 
 const char *create_temp_accurate_jobids_default =
- "CREATE TEMPORARY TABLE btemp3%s AS "
+ "CREATE TABLE btemp3%s AS "
     "SELECT JobId, StartTime, EndTime, JobTDate, PurgedFiles "
       "FROM Job JOIN FileSet USING (FileSetId) "
      "WHERE ClientId = %s "
