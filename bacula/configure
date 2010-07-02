@@ -975,21 +975,11 @@ CPPFLAGS
 LDFLAGS
 CFLAGS
 CC
-LIBBACFIND_LT_AGE
-LIBBACFIND_LT_REVISION
-LIBBACFIND_LT_CURRENT
-LIBBACSQL_LT_AGE
-LIBBACSQL_LT_REVISION
-LIBBACSQL_LT_CURRENT
-LIBBACPY_LT_AGE
-LIBBACPY_LT_REVISION
-LIBBACPY_LT_CURRENT
-LIBBACCFG_LT_AGE
-LIBBACCFG_LT_REVISION
-LIBBACCFG_LT_CURRENT
-LIBBAC_LT_AGE
-LIBBAC_LT_REVISION
-LIBBAC_LT_CURRENT
+LIBBACFIND_LT_RELEASE
+LIBBACSQL_LT_RELEASE
+LIBBACPY_LT_RELEASE
+LIBBACCFG_LT_RELEASE
+LIBBAC_LT_RELEASE
 post_host
 BACULA
 LSMDATE
@@ -3298,24 +3288,24 @@ VERSION=`sed -n -e 's/^.*VERSION.*"\(.*\)"$/\1/p' ${srcdir}/src/version.h`
 DATE=`sed -n -e 's/^.* \t*BDATE.*"\(.*\)"$/\1/p' ${srcdir}/src/version.h`
 LSMDATE=`sed -n -e 's/^.*LSMDATE.*"\(.*\)"$/\1/p' ${srcdir}/src/version.h`
 
-LIBBAC_LT_CURRENT=`sed -n -e 's/^.*LIBBAC_LT_CURRENT *\(.*\)$/\1/p' ${srcdir}/src/version.h`
-LIBBAC_LT_REVISION=`sed -n -e 's/^.*LIBBAC_LT_REVISION *\(.*\)$/\1/p' ${srcdir}/src/version.h`
-LIBBAC_LT_AGE=`sed -n -e 's/^.*LIBBAC_LT_AGE *\(.*\)$/\1/p' ${srcdir}/src/version.h`
-LIBBACCFG_LT_CURRENT=`sed -n -e 's/^.*LIBBACCFG_LT_CURRENT *\(.*\)$/\1/p' ${srcdir}/src/version.h`
-LIBBACCFG_LT_REVISION=`sed -n -e 's/^.*LIBBACCFG_LT_REVISION *\(.*\)$/\1/p' ${srcdir}/src/version.h`
-LIBBACCFG_LT_AGE=`sed -n -e 's/^.*LIBBACCFG_LT_AGE *\(.*\)$/\1/p' ${srcdir}/src/version.h`
-LIBBACPY_LT_CURRENT=`sed -n -e 's/^.*LIBBACPY_LT_CURRENT *\(.*\)$/\1/p' ${srcdir}/src/version.h`
-LIBBACPY_LT_REVISION=`sed -n -e 's/^.*LIBBACPY_LT_REVISION *\(.*\)$/\1/p' ${srcdir}/src/version.h`
-LIBBACPY_LT_AGE=`sed -n -e 's/^.*LIBBACPY_LT_AGE *\(.*\)$/\1/p' ${srcdir}/src/version.h`
+LIBBAC_LT_RELEASE=`sed -n -e 's/^#.*LIBBAC_LT_RELEASE.*"\(.*\)"$/\1/p' ${srcdir}/src/version.h`
+LIBBACCFG_LT_RELEASE=`sed -n -e 's/^#.*LIBBACCFG_LT_RELEASE.*"\(.*\)"$/\1/p' ${srcdir}/src/version.h`
+LIBBACPY_LT_RELEASE=`sed -n -e 's/^#.*LIBBACPY_LT_RELEASE.*"\(.*\)"$/\1/p' ${srcdir}/src/version.h`
+
+LIBBAC_LT_RELEASE=${LIBBAC_LT_RELEASE:-$VERSION}
+LIBBACCFG_LT_RELEASE=${LIBBACCFG_LT_RELEASE:-$VERSION}
+LIBBACPY_LT_RELEASE=${LIBBACPY_LT_RELEASE:-$VERSION}
 
 
-LIBBACSQL_LT_CURRENT=`sed -n -e 's/^.*LIBBACSQL_LT_CURRENT *\(.*\)$/\1/p' ${srcdir}/src/version.h`
-LIBBACSQL_LT_REVISION=`sed -n -e 's/^.*LIBBACSQL_LT_REVISION *\(.*\)$/\1/p' ${srcdir}/src/version.h`
-LIBBACSQL_LT_AGE=`sed -n -e 's/^.*LIBBACSQL_LT_AGE *\(.*\)$/\1/p' ${srcdir}/src/version.h`
+LIBBACSQL_LT_RELEASE=`sed -n -e 's/^#.*LIBBACSQL_LT_RELEASE.*"\(.*\)"$/\1/p' ${srcdir}/src/version.h`
 
-LIBBACFIND_LT_CURRENT=`sed -n -e 's/^.*LIBBACFIND_LT_CURRENT *\(.*\)$/\1/p' ${srcdir}/src/version.h`
-LIBBACFIND_LT_REVISION=`sed -n -e 's/^.*LIBBACFIND_LT_REVISION *\(.*\)$/\1/p' ${srcdir}/src/version.h`
-LIBBACFIND_LT_AGE=`sed -n -e 's/^.*LIBBACFIND_LT_AGE *\(.*\)$/\1/p' ${srcdir}/src/version.h`
+LIBBACSQL_LT_RELEASE=${LIBBACSQL_LT_RELEASE:-$VERSION}
+
+
+LIBBACFIND_LT_RELEASE=`sed -n -e 's/^#.*LIBBACFIND_LT_RELEASE.*"\(.*\)"$/\1/p' ${srcdir}/src/version.h`
+
+LIBBACFIND_LT_RELEASE=${LIBBACFIND_LT_RELEASE:-$VERSION}
+
 
 echo "configuring for ${BACULA} $VERSION ($DATE)"
 
@@ -6511,13 +6501,13 @@ if test "${lt_cv_nm_interface+set}" = set; then :
 else
   lt_cv_nm_interface="BSD nm"
   echo "int some_variable = 0;" > conftest.$ac_ext
-  (eval echo "\"\$as_me:6514: $ac_compile\"" >&5)
+  (eval echo "\"\$as_me:6504: $ac_compile\"" >&5)
   (eval "$ac_compile" 2>conftest.err)
   cat conftest.err >&5
-  (eval echo "\"\$as_me:6517: $NM \\\"conftest.$ac_objext\\\"\"" >&5)
+  (eval echo "\"\$as_me:6507: $NM \\\"conftest.$ac_objext\\\"\"" >&5)
   (eval "$NM \"conftest.$ac_objext\"" 2>conftest.err > conftest.out)
   cat conftest.err >&5
-  (eval echo "\"\$as_me:6520: output\"" >&5)
+  (eval echo "\"\$as_me:6510: output\"" >&5)
   cat conftest.out >&5
   if $GREP 'External.*some_variable' conftest.out > /dev/null; then
     lt_cv_nm_interface="MS dumpbin"
@@ -7722,7 +7712,7 @@ ia64-*-hpux*)
   ;;
 *-*-irix6*)
   # Find out which ABI we are using.
-  echo '#line 7725 "configure"' > conftest.$ac_ext
+  echo '#line 7715 "configure"' > conftest.$ac_ext
   if { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_compile\""; } >&5
   (eval $ac_compile) 2>&5
   ac_status=$?
@@ -9512,11 +9502,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:9515: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:9505: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:9519: \$? = $ac_status" >&5
+   echo "$as_me:9509: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -9851,11 +9841,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:9854: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:9844: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:9858: \$? = $ac_status" >&5
+   echo "$as_me:9848: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -9956,11 +9946,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:9959: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:9949: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:9963: \$? = $ac_status" >&5
+   echo "$as_me:9953: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -10011,11 +10001,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:10014: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:10004: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:10018: \$? = $ac_status" >&5
+   echo "$as_me:10008: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -12378,7 +12368,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 12381 "configure"
+#line 12371 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -12474,7 +12464,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 12477 "configure"
+#line 12467 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -14430,11 +14420,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:14433: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:14423: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:14437: \$? = $ac_status" >&5
+   echo "$as_me:14427: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -14529,11 +14519,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:14532: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:14522: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:14536: \$? = $ac_status" >&5
+   echo "$as_me:14526: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -14581,11 +14571,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:14584: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:14574: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:14588: \$? = $ac_status" >&5
+   echo "$as_me:14578: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -31943,9 +31933,6 @@ c=src/cats
 
 chmod 755 $c/create_bacula_database   $c/update_bacula_tables  $c/make_bacula_tables
 chmod 755 $c/grant_bacula_privileges  $c/drop_bacula_tables    $c/drop_bacula_database
-
-chmod 755 $c/create_bdb_database      $c/update_bdb_tables     $c/make_bdb_tables
-chmod 755 $c/grant_bdb_privileges     $c/drop_bdb_tables       $c/drop_bdb_database
 
 chmod 755 $c/create_mysql_database    $c/update_mysql_tables   $c/make_mysql_tables
 chmod 755 $c/grant_mysql_privileges   $c/drop_mysql_tables     $c/drop_mysql_database
