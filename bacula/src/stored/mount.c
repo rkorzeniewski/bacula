@@ -37,7 +37,6 @@
 #include "bacula.h"                   /* pull in global headers */
 #include "stored.h"                   /* pull in Storage Deamon headers */
 
-
 enum {
    try_next_vol = 1,
    try_read_vol,
@@ -78,13 +77,14 @@ bool DCR::mount_next_write_volume()
       dev->print_name());
 
    init_device_wait_timers(dcr);
-   lock_volumes();
    
    /*
     * Attempt to mount the next volume. If something non-fatal goes
     *  wrong, we come back here to re-try (new op messages, re-read
     *  Volume, ...)
     */
+   lock_volumes();
+
 mount_next_vol:
    Dmsg1(150, "mount_next_vol retry=%d\n", retry);
    /* Ignore retry if this is poll request */
@@ -320,13 +320,12 @@ no_lock_bail_out:
  * This routine is meant to be called once the first pass
  *   to ensure that we have a candidate volume to mount.
  *   Otherwise, we ask the sysop to created one.
- * Note, the the Volumes are locked on entry.
- *   They are unlocked on failure and remain locked on
- *   success.  The caller must know this!!!
+ * Note, the the Volumes are locked on entry and exit.
  */
-bool DCR::find_a_volume()  
+bool DCR::find_a_volume()
 {
    DCR *dcr = this;
+
    if (!is_suitable_volume_mounted()) {
       bool have_vol = false;
       /* Do we have a candidate volume? */
@@ -343,7 +342,6 @@ bool DCR::find_a_volume()
          while (!dir_find_next_appendable_volume(dcr)) {
             Dmsg0(200, "not dir_find_next\n");
             if (job_canceled(jcr)) {
-               unlock_volumes();
                return false;
             }
             unlock_volumes();
@@ -352,6 +350,9 @@ bool DCR::find_a_volume()
                return false;
              }
              lock_volumes();
+             if (job_canceled(jcr)) {
+                return false;
+             }
              Dmsg0(150, "Again dir_find_next_append...\n");
          }
       }
