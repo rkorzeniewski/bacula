@@ -124,7 +124,7 @@ TLS_CONTEXT *new_tls_context(const char *ca_certfile, const char *ca_certdir,
    ctx->openssl = SSL_CTX_new(TLSv1_method());
 
    if (!ctx->openssl) {
-      openssl_post_errors(M_ERROR, _("Error initializing SSL context"));
+      openssl_post_errors(M_FATAL, _("Error initializing SSL context"));
       goto err;
    }
 
@@ -145,7 +145,7 @@ TLS_CONTEXT *new_tls_context(const char *ca_certfile, const char *ca_certdir,
     */
    if (ca_certfile || ca_certdir) {
       if (!SSL_CTX_load_verify_locations(ctx->openssl, ca_certfile, ca_certdir)) {
-         openssl_post_errors(M_ERROR, _("Error loading certificate verification stores"));
+         openssl_post_errors(M_FATAL, _("Error loading certificate verification stores"));
          goto err;
       }
    } else if (verify_peer) {
@@ -161,7 +161,7 @@ TLS_CONTEXT *new_tls_context(const char *ca_certfile, const char *ca_certdir,
     */
    if (certfile) {
       if (!SSL_CTX_use_certificate_chain_file(ctx->openssl, certfile)) {
-         openssl_post_errors(M_ERROR, _("Error loading certificate file"));
+         openssl_post_errors(M_FATAL, _("Error loading certificate file"));
          goto err;
       }
    }
@@ -169,7 +169,7 @@ TLS_CONTEXT *new_tls_context(const char *ca_certfile, const char *ca_certdir,
    /* Load our private key. */
    if (keyfile) {
       if (!SSL_CTX_use_PrivateKey_file(ctx->openssl, keyfile, SSL_FILETYPE_PEM)) {
-         openssl_post_errors(M_ERROR, _("Error loading private key"));
+         openssl_post_errors(M_FATAL, _("Error loading private key"));
          goto err;
       }
    }
@@ -177,17 +177,17 @@ TLS_CONTEXT *new_tls_context(const char *ca_certfile, const char *ca_certdir,
    /* Load Diffie-Hellman Parameters. */
    if (dhfile) {
       if (!(bio = BIO_new_file(dhfile, "r"))) {
-         openssl_post_errors(M_ERROR, _("Unable to open DH parameters file"));
+         openssl_post_errors(M_FATAL, _("Unable to open DH parameters file"));
          goto err;
       }
       dh = PEM_read_bio_DHparams(bio, NULL, NULL, NULL);
       BIO_free(bio);
       if (!dh) {
-         openssl_post_errors(M_ERROR, _("Unable to load DH parameters from specified file"));
+         openssl_post_errors(M_FATAL, _("Unable to load DH parameters from specified file"));
          goto err;
       }
       if (!SSL_CTX_set_tmp_dh(ctx->openssl, dh)) {
-         openssl_post_errors(M_ERROR, _("Failed to set TLS Diffie-Hellman parameters"));
+         openssl_post_errors(M_FATAL, _("Failed to set TLS Diffie-Hellman parameters"));
          DH_free(dh);
          goto err;
       }
@@ -413,7 +413,7 @@ TLS_CONNECTION *new_tls_connection(TLS_CONTEXT *ctx, int fd)
    bio = BIO_new(BIO_s_socket());
    if (!bio) {
       /* Not likely, but never say never */
-      openssl_post_errors(M_ERROR, _("Error creating file descriptor-based BIO"));
+      openssl_post_errors(M_FATAL, _("Error creating file descriptor-based BIO"));
       return NULL; /* Nothing allocated, nothing to clean up */
    }
    BIO_set_fd(bio, fd, BIO_NOCLOSE);
@@ -424,7 +424,7 @@ TLS_CONNECTION *new_tls_connection(TLS_CONTEXT *ctx, int fd)
    /* Create the SSL object and attach the socket BIO */
    if ((tls->openssl = SSL_new(ctx->openssl)) == NULL) {
       /* Not likely, but never say never */
-      openssl_post_errors(M_ERROR, _("Error creating new SSL object"));
+      openssl_post_errors(M_FATAL, _("Error creating new SSL object"));
       goto err;
    }
 
@@ -487,7 +487,7 @@ static inline bool openssl_bsock_session_start(BSOCK *bsock, bool server)
          goto cleanup;
       case SSL_ERROR_ZERO_RETURN:
          /* TLS connection was cleanly shut down */
-         openssl_post_errors(M_ERROR, _("Connect failure"));
+         openssl_post_errors(bsock->get_jcr(), M_FATAL, _("Connect failure"));
          stat = false;
          goto cleanup;
       case SSL_ERROR_WANT_READ:
@@ -510,7 +510,7 @@ static inline bool openssl_bsock_session_start(BSOCK *bsock, bool server)
          break;
       default:
          /* Socket Error Occurred */
-         openssl_post_errors(M_ERROR, _("Connect failure"));
+         openssl_post_errors(bsock->get_jcr(), M_FATAL, _("Connect failure"));
          stat = false;
          goto cleanup;
       }
@@ -589,11 +589,11 @@ void tls_bsock_shutdown(BSOCK *bsock)
       break;
    case SSL_ERROR_ZERO_RETURN:
       /* TLS connection was shut down on us via a TLS protocol-level closure */
-      openssl_post_errors(M_ERROR, _("TLS shutdown failure."));
+      openssl_post_errors(bsock->get_jcr(), M_ERROR, _("TLS shutdown failure."));
       break;
    default:
       /* Socket Error Occurred */
-      openssl_post_errors(M_ERROR, _("TLS shutdown failure."));
+      openssl_post_errors(bsock->get_jcr(), M_ERROR, _("TLS shutdown failure."));
       break;
    }
 }
@@ -660,7 +660,7 @@ static inline int openssl_bsock_readwrite(BSOCK *bsock, char *ptr, int nbytes, b
          /* Fall through wanted */
       default:
          /* Socket Error Occured */
-         openssl_post_errors(M_ERROR, _("TLS read/write failure."));
+         openssl_post_errors(bsock->get_jcr(), M_FATAL, _("TLS read/write failure."));
          goto cleanup;
       }
 
