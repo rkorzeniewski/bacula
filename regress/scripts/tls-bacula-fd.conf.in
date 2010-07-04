@@ -28,6 +28,8 @@ FileDaemon {                          # this is me
   WorkingDirectory = "@working_dir@"
   Pid Directory = "@piddir@"
   SubSys Directory = "@subsysdir@"
+  Plugin Directory = "@sbindir@/plugins"
+  Maximum Concurrent Jobs = 100
   TLS Require = yes
   TLS Certificate = "@scriptdir@/tls-cert.pem"
   TLS Key = "@scriptdir@/tls-cert.pem"
