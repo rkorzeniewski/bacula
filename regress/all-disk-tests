@@ -81,6 +81,7 @@ nice tests/prune-migration-test
 nice tests/prune-copy-test
 nice tests/prune-base-job-test
 nice tests/hardlink-test
+nice tests/tls-duplicate-job-test
 nice tests/tls-test
 nice tests/virtual-changer-test
 nice tests/virtual-backup-test
