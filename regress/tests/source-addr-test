@@ -70,6 +70,7 @@ END_OF_DATA
 
 run_bacula
 
+sleep 5
 print_debug "Detecting connections to SD sourced from ${IP}"
 netstat -tan | grep -E "127.0.0.1(.|:)$SDPORT .* ${IP}" > $tmp/log3.out
 if [ $? -ne 0 ]; then
