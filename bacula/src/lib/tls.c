@@ -637,6 +637,19 @@ static inline int openssl_bsock_readwrite(BSOCK *bsock, char *ptr, int nbytes, b
          }
          break;
 
+      case SSL_ERROR_SYSCALL:
+         if (nwritten == -1) {
+            if (errno == EINTR) {
+               continue;
+            }
+            if (errno == EAGAIN) {
+               bmicrosleep(0, 20000); /* try again in 20 ms */
+               continue;
+            }
+         }
+         openssl_post_errors(bsock->get_jcr(), M_FATAL, _("TLS read/write failure."));
+         goto cleanup;
+
       case SSL_ERROR_WANT_READ:
          /* If we timeout on a select, this will be unset */
          FD_SET((unsigned)bsock->m_fd, &fdset);
