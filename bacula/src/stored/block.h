@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2010 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -30,15 +30,13 @@
  *
  *    Kern Sibbald, MM
  *
- *   Version $Id$
- *
  */
 
 
 #ifndef __BLOCK_H
 #define __BLOCK_H 1
 
-#define MAX_BLOCK_LENGTH  2000000       /* this is a sort of sanity check */
+#define MAX_BLOCK_LENGTH  20000000      /* this is a sort of sanity check */
 #define DEFAULT_BLOCK_SIZE (512 * 126)  /* 64,512 N.B. do not use 65,636 here */
 
 /* Block Header definitions. */
