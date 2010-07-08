@@ -12,6 +12,7 @@
 # * Execute the script on the Windows box
 #     perl regress-win32.pl
 # * Run this script with the proper config settings about WIN32
+# * Allow firewall for perl program 8091 and bacula-fd 9102
 #
 TestName="win32-fd-test"
 JobName=win32
