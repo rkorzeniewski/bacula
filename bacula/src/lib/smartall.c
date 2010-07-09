@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2009 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2010 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -40,9 +40,6 @@
 
                   http://www.fourmilab.ch/smartall/
 
-
-         Version $Id$
-
 */
 
 #define _LOCKMGR_COMPLIANT
@@ -58,6 +55,7 @@
  *  If you want it, simply #ifdef all the
  *  following off.
  */
+#ifdef no_debug_xxxxx
 #undef Dmsg1
 #undef Dmsg2
 #undef Dmsg3
@@ -66,6 +64,7 @@
 #define Dmsg2(l,f,a1,a2)
 #define Dmsg3(l,f,a1,a2,a3)
 #define Dmsg4(l,f,a1,a2,a3,a4)
+#endif
 
 
 uint64_t sm_max_bytes = 0;
@@ -289,7 +288,7 @@ void *sm_realloc(const char *fname, int lineno, void *ptr, unsigned int size)
    void *buf;
    char *cp = (char *) ptr;
 
-   Dmsg4(400, "sm_realloc %s:%d %p %d\n", fname, lineno, ptr, size);
+   Dmsg4(1400, "sm_realloc %s:%d %p %d\n", fname, lineno, ptr, size);
    if (size <= 0) {
       e_msg(fname, lineno, M_ABORT, 0, _("sm_realloc size: %d\n"), size);
    }
@@ -329,7 +328,7 @@ void *sm_realloc(const char *fname, int lineno, void *ptr, unsigned int size)
       /* All done.  Free and dechain the original buffer. */
       sm_free(fname, lineno, ptr);
    }
-   Dmsg4(150, _("sm_realloc %d at %p from %s:%d\n"), size, buf, fname, lineno);
+   Dmsg4(4150, _("sm_realloc %d at %p from %s:%d\n"), size, buf, fname, lineno);
    return buf;
 }
 
@@ -360,7 +359,7 @@ void *actuallycalloc(unsigned int nelem, unsigned int elsize)
 
 void *actuallyrealloc(void *ptr, unsigned int size)
 {
-   Dmsg2(400, "Actuallyrealloc %p %d\n", ptr, size);
+   Dmsg2(1400, "Actuallyrealloc %p %d\n", ptr, size);
    return realloc(ptr, size);
 }
 
@@ -374,8 +373,6 @@ void actuallyfree(void *cp)
 
 /*  SM_DUMP  --  Print orphaned buffers (and dump them if BUFDUMP is
  *               True).
- *  N.B. DO NOT USE any Bacula print routines (Dmsg, Jmsg, Emsg, ...)
- *    as they have all been shut down at this point.
  */
 void sm_dump(bool bufdump, bool in_use) 
 {
@@ -390,7 +387,7 @@ void sm_dump(bool bufdump, bool in_use)
       if ((ap == NULL) ||
           (ap->abq.qnext->qprev != (struct b_queue *) ap) ||
           (ap->abq.qprev->qnext != (struct b_queue *) ap)) {
-         fprintf(stderr, _(
+         Pmsg1(0, _(
             "\nOrphaned buffers exist.  Dump terminated following\n"
             "  discovery of bad links in chain of orphaned buffers.\n"
             "  Buffer address with bad links: %p\n"), ap);
@@ -407,7 +404,7 @@ void sm_dump(bool bufdump, bool in_use)
             in_use?"In use":"Orphaned",
             my_name, memsize, cp, ap->abfname, ap->ablineno
          );
-         fprintf(stderr, "%s", errmsg);
+         Pmsg1(0, "%s", errmsg);
          if (bufdump) {
             char buf[20];
             unsigned llen = 0;
@@ -417,7 +414,7 @@ void sm_dump(bool bufdump, bool in_use)
                if (llen >= 16) {
                   bstrncat(errmsg, "\n", sizeof(errmsg));
                   llen = 0;
-                  fprintf(stderr, "%s", errmsg);
+                  Pmsg1(0, "%s", errmsg);
                   errmsg[0] = EOS;
                }
                bsnprintf(buf, sizeof(buf), " %02X",
@@ -426,7 +423,7 @@ void sm_dump(bool bufdump, bool in_use)
                llen++;
                memsize--;
             }
-            fprintf(stderr, "%s\n", errmsg);
+            Pmsg1(0, "%s\n", errmsg);
          }
       }
       ap = (struct abufhead *) ap->abq.qnext;
@@ -471,32 +468,32 @@ int sm_check_rtn(const char *fname, int lineno, bool bufdump)
       }
       badbuf |= bad;
       if (bad) {
-         fprintf(stderr,
+         Pmsg2(0, 
             _("\nDamaged buffers found at %s:%d\n"), fname, lineno);
 
          if (bad & 0x1) {
-            fprintf(stderr, _("  discovery of bad prev link.\n"));
+            Pmsg0(0,  _("  discovery of bad prev link.\n"));
          }
          if (bad & 0x2) {
-            fprintf(stderr, _("  discovery of bad next link.\n"));
+            Pmsg0(0, _("  discovery of bad next link.\n"));
          }
          if (bad & 0x4) {
-            fprintf(stderr, _("  discovery of data overrun.\n"));
+            Pmsg0(0, _("  discovery of data overrun.\n"));
          }
          if (bad & 0x8) {
-            fprintf(stderr, _("  NULL pointer.\n"));
+            Pmsg0(0, _("  NULL pointer.\n"));
          }
 
          if (!ap) {
             goto get_out;
          }
-         fprintf(stderr, _("  Buffer address: %p\n"), ap);
+         Pmsg1(0, _("  Buffer address: %p\n"), ap);
 
          if (ap->abfname != NULL) {
             unsigned memsize = ap->ablen - (HEAD_SIZE + 1);
             char errmsg[80];
 
-            fprintf(stderr,
+            Pmsg4(0, 
               _("Damaged buffer:  %6u bytes allocated at line %d of %s %s\n"),
                memsize, ap->ablineno, my_name, ap->abfname
             );
@@ -509,7 +506,7 @@ int sm_check_rtn(const char *fname, int lineno, bool bufdump)
                   if (llen >= 16) {
                      strcat(errmsg, "\n");
                      llen = 0;
-                     fprintf(stderr, "%s", errmsg);
+                     Pmsg1(0, "%s", errmsg);
                      errmsg[0] = EOS;
                   }
                   if (*cp < 0x20) {
@@ -522,7 +519,7 @@ int sm_check_rtn(const char *fname, int lineno, bool bufdump)
                   llen++;
                   memsize--;
                }
-               fprintf(stderr, "%s\n", errmsg);
+               Pmsg1(0, "%s\n", errmsg);
             }
          }
       }
