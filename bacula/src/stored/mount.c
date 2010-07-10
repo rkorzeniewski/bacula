@@ -613,6 +613,18 @@ bool DCR::is_eod_valid()
       if (dev->VolCatInfo.VolCatFiles == dev->get_file()) {
          Jmsg(jcr, M_INFO, 0, _("Ready to append to end of Volume \"%s\" at file=%d.\n"),
               VolumeName, dev->get_file());
+      } else if (dev->get_file() > dev->VolCatInfo.VolCatFiles) {
+         Jmsg(jcr, M_WARNING, 0, _("For Volume \"%s\":\n"
+              "The number of files mismatch! Volume=%u Catalog=%u\n"
+              "Correcting Catalog\n"),
+              VolumeName, dev->get_file(), dev->VolCatInfo.VolCatFiles);
+         dev->VolCatInfo.VolCatFiles = dev->get_file();
+         dev->VolCatInfo.VolCatBlocks = dev->get_block_num();
+         if (!dir_update_volume_info(this, false, true)) {
+            Jmsg(jcr, M_WARNING, 0, _("Error updating Catalog\n"));
+            mark_volume_in_error();
+            return false;
+         }
       } else {
          Jmsg(jcr, M_ERROR, 0, _("Bacula cannot write on tape Volume \"%s\" because:\n"
               "The number of files mismatch! Volume=%u Catalog=%u\n"),
@@ -628,6 +640,19 @@ bool DCR::is_eod_valid()
          Jmsg(jcr, M_INFO, 0, _("Ready to append to end of Volume \"%s\""
               " size=%s\n"), VolumeName, 
               edit_uint64(dev->VolCatInfo.VolCatBytes, ed1));
+      } else if ((uint64_t)pos > dev->VolCatInfo.VolCatBytes) {
+         Jmsg(jcr, M_WARNING, 0, _("For Volume \"%s\":\n"
+              "The sizes do not mismatch! Volume=%s Catalog=%s\n"
+              "Correcting Catalog\n"),
+              VolumeName, edit_uint64(pos, ed1), 
+              edit_uint64(dev->VolCatInfo.VolCatBytes, ed2));
+         dev->VolCatInfo.VolCatBytes = (uint64_t)pos;
+         dev->VolCatInfo.VolCatFiles = (uint32_t)(pos >> 32);
+         if (!dir_update_volume_info(this, false, true)) {
+            Jmsg(jcr, M_WARNING, 0, _("Error updating Catalog\n"));
+            mark_volume_in_error();
+            return false;
+         }
       } else {
          Mmsg(jcr->errmsg, _("Bacula cannot write on disk Volume \"%s\" because: "
               "The sizes do not match! Volume=%s Catalog=%s\n"),
