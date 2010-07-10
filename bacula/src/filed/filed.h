@@ -78,3 +78,6 @@ typedef enum {
 #endif
 
 extern CLIENT *me;                    /* "Global" Client resource */
+
+void terminate_filed(int sig);
+
