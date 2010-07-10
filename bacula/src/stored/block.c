@@ -381,6 +381,9 @@ bool write_block_to_device(DCR *dcr)
 
    if (!write_block_to_dev(dcr)) {
        if (job_canceled(jcr) || jcr->getJobType() == JT_SYSTEM) {
+          if (jcr->getJobType() != JT_SYSTEM) {
+             terminate_writing_volume(dcr);
+          }
           stat = false;
        } else {
           stat = fixup_device_block_write_error(dcr);
@@ -416,6 +419,7 @@ bool write_block_to_dev(DCR *dcr)
    return true;
 #endif
    if (job_canceled(jcr)) {
+      terminate_writing_volume(dcr);
       return false;
    }
 
@@ -729,6 +733,10 @@ static bool terminate_writing_volume(DCR *dcr)
 {
    DEVICE *dev = dcr->dev;
    bool ok = true;
+
+   if (dev->at_eot()) {
+      return true;
+  }
 
    /* Create a JobMedia record to indicated end of tape */
    dev->VolCatInfo.VolCatFiles = dev->file;
