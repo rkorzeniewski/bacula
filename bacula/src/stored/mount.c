@@ -642,7 +642,7 @@ bool DCR::is_eod_valid()
               edit_uint64(dev->VolCatInfo.VolCatBytes, ed1));
       } else if ((uint64_t)pos > dev->VolCatInfo.VolCatBytes) {
          Jmsg(jcr, M_WARNING, 0, _("For Volume \"%s\":\n"
-              "The sizes do not mismatch! Volume=%s Catalog=%s\n"
+              "The sizes do not match! Volume=%s Catalog=%s\n"
               "Correcting Catalog\n"),
               VolumeName, edit_uint64(pos, ed1), 
               edit_uint64(dev->VolCatInfo.VolCatBytes, ed2));
