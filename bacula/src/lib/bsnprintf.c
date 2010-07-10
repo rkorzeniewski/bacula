@@ -348,10 +348,16 @@ int bvsnprintf(char *buffer, int32_t maxlen, const char *format, va_list args)
          case 's':
             if (cflags != DP_C_WCHAR) {
               strvalue = va_arg(args, char *);
+              if (!strvalue) {
+                 strvalue = (char *)"<NULL>";
+              }
               currlen = fmtstr(buffer, currlen, maxlen, strvalue, flags, min, max);
             } else {
               /* %ls means to edit wide characters */
               wstrvalue = va_arg(args, wchar_t *);
+              if (!wstrvalue) {
+                 wstrvalue = (wchar_t *)L"<NULL>";
+              }
               currlen = fmtwstr(buffer, currlen, maxlen, wstrvalue, flags, min, max);
             }
             break;
@@ -437,9 +443,6 @@ static int32_t fmtstr(char *buffer, int32_t currlen, int32_t maxlen,
    } else if (max < 0) {
       max = maxlen;
    }
-   if (!value) {
-      value = "<NULL>";
-   }
    strln = strlen(value);
    if (strln > max) {
       strln = max;                /* truncate to max */
@@ -480,9 +483,6 @@ static int32_t fmtwstr(char *buffer, int32_t currlen, int32_t maxlen,
       max = 0;
    } else if (max < 0) {
       max = maxlen;
-   }
-   if (!value) {
-      value = L"<NULL>";
    }
    strln = wcslen(value);
    if (strln > max) {
@@ -752,6 +752,7 @@ static int32_t fmtfp(char *buffer, int32_t currlen, int32_t maxlen,
 
    if (!result) {
       r_length = 0;
+      dummy[0] = 0;
       result = dummy;
    } else {
       r_length = strlen(result);
