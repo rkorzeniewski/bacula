@@ -292,7 +292,7 @@ int installService(const char *cmdOpts)
 
       /* Set a text description in the service manager's control panel */
       set_service_description(serviceManager, baculaService,
-_("Provides file backup and restore services. Bacula -- the network backup solution."));
+(char *)_("Provides file backup and restore services. Bacula -- the network backup solution."));
 
       CloseServiceHandle(serviceManager);
       CloseServiceHandle(baculaService);
