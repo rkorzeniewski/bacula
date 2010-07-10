@@ -92,6 +92,7 @@ static int restore_object_cmd(JCR *jcr);
 static int set_options(findFOPTS *fo, const char *opts);
 static void set_storage_auth_key(JCR *jcr, char *key);
 static int sm_dump_cmd(JCR *jcr);
+static int exit_cmd(JCR *jcr);
 
 /* Exported functions */
 
@@ -128,6 +129,9 @@ static struct s_cmds cmds[] = {
    {"accurate",     accurate_cmd,  0},
    {"restoreobject", restore_object_cmd, 0},
    {"sm_dump",      sm_dump_cmd, 0},
+#ifdef DEVELOPER
+   {"exit",         exit_cmd, 0},
+#endif
    {NULL,       NULL}                  /* list terminator */
 };
 
@@ -401,11 +405,20 @@ void *handle_client_request(void *dirp)
 
 static int sm_dump_cmd(JCR *jcr)
 {
-   BSOCK *dir = jcr->dir_bsock;
    sm_dump(false, true);
-   dir->fsend("2000 sm_dump OK\n");
+   jcr->dir_bsock->fsend("2000 sm_dump OK\n");
    return 1;
 }
+
+#ifdef DEVELOPER
+static int exit_cmd(JCR *jcr)
+{
+   jcr->dir_bsock->fsend("2000 exit OK\n");
+   terminate_filed(0);
+   return 0;
+}
+#endif
+
 
 /**
  * Hello from Director he must identify himself and provide his

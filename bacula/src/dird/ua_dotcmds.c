@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2002-2009 Free Software Foundation Europe e.V.
+   Copyright (C) 2002-2010 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -52,7 +52,7 @@ extern bool dot_status_cmd(UAContext *ua, const char *cmd);
 
 
 /* Forward referenced functions */
-static bool die_or_dump_cmd(UAContext *ua, const char *cmd);
+static bool admin_cmds(UAContext *ua, const char *cmd);
 static bool jobscmd(UAContext *ua, const char *cmd);
 static bool filesetscmd(UAContext *ua, const char *cmd);
 static bool clientscmd(UAContext *ua, const char *cmd);
@@ -85,9 +85,9 @@ static struct cmdstruct commands[] = { /* help */  /* can be used in runscript *
  { NT_(".backups"),    backupscmd,       NULL,       false},
  { NT_(".clients"),    clientscmd,       NULL,       true},
  { NT_(".defaults"),   defaultscmd,      NULL,       false},
- { NT_(".die"),        die_or_dump_cmd,  NULL,       false},
- { NT_(".dump"),       die_or_dump_cmd,  NULL,       false},
- { NT_(".exit"),       dot_quit_cmd,     NULL,       false},
+ { NT_(".die"),        admin_cmds,       NULL,       false},
+ { NT_(".dump"),       admin_cmds,       NULL,       false},
+ { NT_(".exit"),       admin_cmds,       NULL,       false},
  { NT_(".filesets"),   filesetscmd,      NULL,       false},
  { NT_(".help"),       dot_help_cmd,     NULL,       false},
  { NT_(".jobs"),       jobscmd,          NULL,       true},
@@ -419,32 +419,41 @@ static void do_client_cmd(UAContext *ua, CLIENT *client, const char *cmd)
 }
 
 /*
- * Create segmentation fault or dump memory
+ *   .die (seg fault)
+ *   .dump (sm_dump)
+ *   .exit (no arg => .quit)
  */
-static bool die_or_dump_cmd(UAContext *ua, const char *cmd)
+static bool admin_cmds(UAContext *ua, const char *cmd)
 {
    pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
    STORE *store=NULL;
    CLIENT *client=NULL;
    bool dir=false;
    bool do_deadlock=false;
-   const char *remote_cmd="sm_dump";
+   const char *remote_cmd;
    int i;
    JCR *jcr = NULL;
    int a;
-   if (!strncmp(ua->argk[0], ".die", 4)) {
+   if (strncmp(ua->argk[0], ".die", 4) == 0) {
       if (find_arg(ua, "deadlock") > 0) {
-         do_deadlock=true;
+         do_deadlock = true;
          remote_cmd = ".die deadlock";
       } else {
          remote_cmd = ".die";
       }
+   } else if (strncmp(ua->argk[0], ".dump", 5) == 0) {
+      remote_cmd = "sm_dump";
+   } else if (strncmp(ua->argk[0], ".exit", 5) == 0) {
+      remote_cmd = "exit";
+   } else {
+      ua->error_msg(_("Unknown command: %s\n"), ua->argk[0]);
+      return true;
    }
    /* General debug? */
    for (i=1; i<ua->argc; i++) {
       if (strcasecmp(ua->argk[i], "dir") == 0 ||
           strcasecmp(ua->argk[i], "director") == 0) {
-         dir=true;
+         dir = true;
       }
       if (strcasecmp(ua->argk[i], "client") == 0 ||
           strcasecmp(ua->argk[i], "fd") == 0) {
@@ -503,7 +512,7 @@ static bool die_or_dump_cmd(UAContext *ua, const char *cmd)
    }
 
    if (dir) {
-      if (!strncmp(remote_cmd, ".die", 4)) {
+      if (strncmp(remote_cmd, ".die", 4) == 0) {
          if (do_deadlock) {
             ua->send_msg(_("The Director will generate a deadlock.\n"));
             P(mutex); 
@@ -513,8 +522,10 @@ static bool die_or_dump_cmd(UAContext *ua, const char *cmd)
          a = jcr->JobId; /* ref NULL pointer */
          jcr->JobId = 1000; /* another ref NULL pointer */
 
-      } else {                  /* .dump */
+      } else if (strncmp(remote_cmd, ".dump", 5) == 0) {
          sm_dump(false, true);
+      } else if (strncmp(remote_cmd, ".exit", 5) == 0) {
+         dot_quit_cmd(ua, cmd);
       }
    }
 

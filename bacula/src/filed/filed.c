@@ -53,7 +53,6 @@ extern void *handle_client_request(void *dir_sock);
 extern bool parse_fd_config(CONFIG *config, const char *configfile, int exit_code);
 
 /* Forward referenced functions */
-void terminate_filed(int sig);
 static bool check_resources();
 
 /* Exported variables */
