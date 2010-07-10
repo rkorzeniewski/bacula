@@ -396,7 +396,7 @@ void sm_dump(bool bufdump, bool in_use)
 
       if (ap->abfname != NULL) {
          unsigned memsize = ap->ablen - (HEAD_SIZE + 1);
-         char errmsg[500];
+         char errmsg[1000];
          char *cp = ((char *)ap) + HEAD_SIZE;
 
          bsnprintf(errmsg, sizeof(errmsg),
