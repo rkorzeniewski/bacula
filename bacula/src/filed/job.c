@@ -92,7 +92,9 @@ static int restore_object_cmd(JCR *jcr);
 static int set_options(findFOPTS *fo, const char *opts);
 static void set_storage_auth_key(JCR *jcr, char *key);
 static int sm_dump_cmd(JCR *jcr);
+#ifdef DEVELOPER
 static int exit_cmd(JCR *jcr);
+#endif
 
 /* Exported functions */
 
