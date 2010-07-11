@@ -87,9 +87,6 @@ realclean: clean
 	$(RMF) create_bacula_database	   update_bacula_tables     make_bacula_tables
 	$(RMF) grant_bacula_privileges	   drop_bacula_tables	    drop_bacula_database
 
-	$(RMF) create_bdb_database	   update_bdb_tables	    make_bdb_tables
-	$(RMF) grant_bdb_privileges	   drop_bdb_tables	    drop_bdb_database
-
 	$(RMF) create_mysql_database	   update_mysql_tables	    make_mysql_tables
 	$(RMF) grant_mysql_privileges	   drop_mysql_tables	    drop_mysql_database
 
