@@ -91,7 +91,9 @@ static int runbeforenow_cmd(JCR *jcr);
 static void set_options(findFOPTS *fo, const char *opts);
 static void set_storage_auth_key(JCR *jcr, char *key);
 static int sm_dump_cmd(JCR *jcr);
+#ifdef DEVELOPER
 static int exit_cmd(JCR *jcr);
+#endif
 
 /* Exported functions */
 
@@ -126,7 +128,6 @@ static struct s_cmds cmds[] = {
    {"RunAfterJob",  runafter_cmd,  0},
    {"Run",          runscript_cmd, 0},
    {"accurate",     accurate_cmd,  0},
-   {"restoreobject", restore_object_cmd, 0},
    {"sm_dump",      sm_dump_cmd, 0},
 #ifdef DEVELOPER
    {"exit",         exit_cmd, 0},
