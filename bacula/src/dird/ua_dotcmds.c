@@ -537,8 +537,9 @@ static bool admin_cmds(UAContext *ua, const char *cmd)
 /*
  * Dummy routine for non-development version
  */
-static bool die_or_dump_cmd(UAContext *ua, const char *cmd)
+static bool admin_cmds(UAContext *ua, const char *cmd)
 {
+   ua->error_msg(_("Unknown command: %s\n"), ua->argk[0]);
    return true;
 }
 
