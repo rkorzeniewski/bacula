@@ -1907,6 +1907,7 @@ cleanup:
 #if defined(WIN32_VSS)
    if (jcr->VSS) {
       Win32ConvCleanupCache();
+      g_pVSSClient->DestroyWriterInfo();
       V(vss_mutex);
    }
 #endif
