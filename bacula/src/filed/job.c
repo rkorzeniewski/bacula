@@ -2154,11 +2154,12 @@ static int restore_cmd(JCR *jcr)
 #if defined(WIN32_VSS)
    /* STOP VSS ON WIN32 */
    /* tell vss to close the restore session */
-   Dmsg0(0, "About to call CloseRestore\n");
+   Dmsg0(100, "About to call CloseRestore\n");
    if (jcr->VSS) {
-      Dmsg0(0, "Really about to call CloseRestore\n");
+      generate_plugin_event(jcr, bEventVssBeforeCloseRestore);
+      Dmsg0(100, "Really about to call CloseRestore\n");
       if (g_pVSSClient->CloseRestore()) {
-         Dmsg0(0, "CloseRestore success\n");
+         Dmsg0(100, "CloseRestore success\n");
          /* inform user about writer states */
          for (int i=0; i<(int)g_pVSSClient->GetWriterCount(); i++) {
             int msg_type = M_INFO;
@@ -2170,7 +2171,7 @@ static int restore_cmd(JCR *jcr)
          }
       }
       else
-         Dmsg1(0, "CloseRestore fail - %08x\n", errno);
+         Dmsg1(100, "CloseRestore fail - %08x\n", errno);
       V(vss_mutex);
    }
 #endif

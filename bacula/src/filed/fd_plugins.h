@@ -195,13 +195,14 @@ typedef enum {
   bEventRestoreCommand                  = 10,
   bEventLevel                           = 11,
   bEventSince                           = 12,
-  bEventCancelCommand                   = 13, /* Executed by an other thread */
+  bEventCancelCommand                   = 13, /* Executed by another thread */
   bEventVssBackupAddComponents          = 14,
   bEventVssRestoreLoadComponentMetadata = 15,
   bEventVssRestoreSetComponentsSelected = 16,
   bEventRestoreObject                   = 17,
   bEventEndFileSet                      = 18,
-  bEventPluginCommand                   = 19  /* Sent during FileSet creation */
+  bEventPluginCommand                   = 19, /* Sent during FileSet creation */
+  bEventVssBeforeCloseRestore           = 20
 } bEventType;
 
 typedef struct s_bEvent {
