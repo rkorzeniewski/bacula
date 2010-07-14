@@ -78,8 +78,6 @@ static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 extern char my_name[];                /* daemon name */
 
-typedef unsigned short sm_ushort;
-
 #define EOS      '\0'              /* End of string sentinel */
 #define sm_min(a, b) ((a) < (b) ? (a) : (b))
 
@@ -89,9 +87,9 @@ typedef unsigned short sm_ushort;
 
 struct abufhead {
    struct b_queue abq;         /* Links on allocated queue */
-   unsigned ablen;             /* Buffer length in bytes */
+   uint32_t ablen;             /* Buffer length in bytes */
    const char *abfname;        /* File name pointer */
-   sm_ushort ablineno;         /* Line number of allocation */
+   uint32_t ablineno;         /* Line number of allocation */
    bool abin_use;              /* set when malloced and cleared when free */
 };
 
@@ -130,7 +128,7 @@ static void *smalloc(const char *fname, int lineno, unsigned int nbytes)
       qinsert(&abqueue, (struct b_queue *) buf);
       head->ablen = nbytes;
       head->abfname = bufimode ? NULL : fname;
-      head->ablineno = (sm_ushort)lineno;
+      head->ablineno = (uint32_t)lineno;
       head->abin_use = true;
       /* Emplace end-clobber detector at end of buffer */
       buf[nbytes - 1] = (uint8_t)((((intptr_t) buf) & 0xFF) ^ 0xC5);
@@ -162,7 +160,7 @@ void sm_new_owner(const char *fname, int lineno, char *buf)
 {
    buf -= HEAD_SIZE;  /* Decrement to header */
    ((struct abufhead *)buf)->abfname = bufimode ? NULL : fname;
-   ((struct abufhead *)buf)->ablineno = (sm_ushort) lineno;
+   ((struct abufhead *)buf)->ablineno = (uint32_t) lineno;
    ((struct abufhead *)buf)->abin_use = true;
    return;
 }
@@ -395,7 +393,7 @@ void sm_dump(bool bufdump, bool in_use)
       }
 
       if (ap->abfname != NULL) {
-         unsigned memsize = ap->ablen - (HEAD_SIZE + 1);
+         uint32_t memsize = ap->ablen - (HEAD_SIZE + 1);
          char errmsg[1000];
          char *cp = ((char *)ap) + HEAD_SIZE;
 
