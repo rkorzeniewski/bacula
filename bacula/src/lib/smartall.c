@@ -89,7 +89,7 @@ struct abufhead {
    struct b_queue abq;         /* Links on allocated queue */
    uint32_t ablen;             /* Buffer length in bytes */
    const char *abfname;        /* File name pointer */
-   uint32_t ablineno;         /* Line number of allocation */
+   uint32_t ablineno;          /* Line number of allocation */
    bool abin_use;              /* set when malloced and cleared when free */
 };
 
@@ -174,9 +174,10 @@ void sm_free(const char *file, int line, void *fp)
 {
    char *cp = (char *) fp;
    struct b_queue *qp;
+   uint32_t lineno = line;
 
    if (cp == NULL) {
-      Emsg2(M_ABORT, 0, _("Attempt to free NULL called from %s:%d\n"), file, line);
+      Emsg2(M_ABORT, 0, _("Attempt to free NULL called from %s:%d\n"), file, lineno);
    }
 
    cp -= HEAD_SIZE;
@@ -190,7 +191,7 @@ void sm_free(const char *file, int line, void *fp)
 
    if (!head->abin_use) {
       V(mutex);
-      Emsg2(M_ABORT, 0, _("double free from %s:%d\n"), file, line);
+      Emsg2(M_ABORT, 0, _("double free from %s:%d\n"), file, lineno);
    }
    head->abin_use = false;
 
@@ -198,11 +199,11 @@ void sm_free(const char *file, int line, void *fp)
       of an address which isn't an allocated buffer. */
    if (qp->qnext->qprev != qp) {
       V(mutex);
-      Emsg2(M_ABORT, 0, _("qp->qnext->qprev != qp called from %s:%d\n"), file, line);
+      Emsg2(M_ABORT, 0, _("qp->qnext->qprev != qp called from %s:%d\n"), file, lineno);
    }
    if (qp->qprev->qnext != qp) {
       V(mutex);
-      Emsg2(M_ABORT, 0, _("qp->qprev->qnext != qp called from %s:%d\n"), file, line);
+      Emsg2(M_ABORT, 0, _("qp->qprev->qnext != qp called from %s:%d\n"), file, lineno);
    }
 
    /* The following assertion detects storing off the  end  of  the
@@ -286,7 +287,7 @@ void *sm_realloc(const char *fname, int lineno, void *ptr, unsigned int size)
    void *buf;
    char *cp = (char *) ptr;
 
-   Dmsg4(1400, "sm_realloc %s:%d %p %d\n", fname, lineno, ptr, size);
+   Dmsg4(1400, "sm_realloc %s:%d %p %d\n", fname, (uint32_t)lineno, ptr, size);
    if (size <= 0) {
       e_msg(fname, lineno, M_ABORT, 0, _("sm_realloc size: %d\n"), size);
    }
@@ -326,7 +327,7 @@ void *sm_realloc(const char *fname, int lineno, void *ptr, unsigned int size)
       /* All done.  Free and dechain the original buffer. */
       sm_free(fname, lineno, ptr);
    }
-   Dmsg4(4150, _("sm_realloc %d at %p from %s:%d\n"), size, buf, fname, lineno);
+   Dmsg4(4150, _("sm_realloc %d at %p from %s:%d\n"), size, buf, fname, (uint32_t)lineno);
    return buf;
 }
 
@@ -435,7 +436,7 @@ void sm_check(const char *fname, int lineno, bool bufdump)
 {
    if (!sm_check_rtn(fname, lineno, bufdump)) {
       Emsg2(M_ABORT, 0, _("Damaged buffer found. Called from %s:%d\n"),
-            fname, lineno);
+            fname, (uint32_t)lineno);
    }
 }
 
@@ -467,7 +468,7 @@ int sm_check_rtn(const char *fname, int lineno, bool bufdump)
       badbuf |= bad;
       if (bad) {
          Pmsg2(0, 
-            _("\nDamaged buffers found at %s:%d\n"), fname, lineno);
+            _("\nDamaged buffers found at %s:%d\n"), fname, (uint32_t)lineno);
 
          if (bad & 0x1) {
             Pmsg0(0,  _("  discovery of bad prev link.\n"));
@@ -488,7 +489,7 @@ int sm_check_rtn(const char *fname, int lineno, bool bufdump)
          Pmsg1(0, _("  Buffer address: %p\n"), ap);
 
          if (ap->abfname != NULL) {
-            unsigned memsize = ap->ablen - (HEAD_SIZE + 1);
+            uint32_t memsize = ap->ablen - (HEAD_SIZE + 1);
             char errmsg[80];
 
             Pmsg4(0, 
