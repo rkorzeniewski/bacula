@@ -1829,23 +1829,22 @@ static int backup_cmd(JCR *jcr)
                int i;
                for (i=0; i < (int)strlen(szWinDriveLetters); i++) {
                   if (islower(szWinDriveLetters[i])) {
-                     Jmsg(jcr, M_WARNING, 0, _("Generate VSS snapshot of drive \"%c:\\\" failed. VSS support is disabled on this drive.\n"), szWinDriveLetters[i]);
-                     jcr->JobErrors++;
+                     Jmsg(jcr, M_FATAL, 0, _("Generate VSS snapshot of drive \"%c:\\\" failed.\n"), szWinDriveLetters[i]);
                   }
                }
                /* inform user about writer states */
-               for (i=0; i < (int)g_pVSSClient->GetWriterCount(); i++)                
+               for (i=0; i < (int)g_pVSSClient->GetWriterCount(); i++) {               
                   if (g_pVSSClient->GetWriterState(i) < 1) {
                      Jmsg(jcr, M_INFO, 0, _("VSS Writer (PrepareForBackup): %s\n"), g_pVSSClient->GetWriterInfo(i));                    
-                     //jcr->JobErrors++;
                   }                            
+               }
             }
         } else {
-            Jmsg(jcr, M_INFO, 0, _("No drive letters found for generating VSS snapshots.\n"));
+            Jmsg(jcr, M_FATAL, 0, _("No drive letters found for generating VSS snapshots.\n"));
         }
       } else {
          berrno be;
-         Jmsg(jcr, M_WARNING, 0, _("VSS was not initialized properly. VSS support is disabled. ERR=%s\n"), be.bstrerror());
+         Jmsg(jcr, M_FATAL, 0, _("VSS was not initialized properly. ERR=%s\n"), be.bstrerror());
       } 
       run_scripts(jcr, jcr->RunScripts, "ClientAfterVSS");
    }
