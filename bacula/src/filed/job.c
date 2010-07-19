@@ -1820,8 +1820,8 @@ static int backup_cmd(JCR *jcr)
         if (get_win32_driveletters(jcr->ff, szWinDriveLetters)) {
             Jmsg(jcr, M_INFO, 0, _("Generate VSS snapshots. Driver=\"%s\", Drive(s)=\"%s\"\n"), g_pVSSClient->GetDriverName(), szWinDriveLetters);
             if (!g_pVSSClient->CreateSnapshots(szWinDriveLetters)) {               
-               Jmsg(jcr, M_WARNING, 0, _("Generate VSS snapshots failed.\n"));
-               jcr->JobErrors++;
+               berrno be;
+               Jmsg(jcr, M_FATAL, 0, _("Generate VSS snapshots failed. ERR=%s\n"), be.bstrerror());
             } else {
                /* tell user if snapshot creation of a specific drive failed */
                int i;
