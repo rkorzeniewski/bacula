@@ -388,6 +388,7 @@ static bxattr_exit_code linux_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
     */
    bp = xattr_list;
    while ((bp - xattr_list) + 1 < xattr_list_len) {
+      int name_len;
       skip_xattr = false;
 
       /*
@@ -416,7 +417,8 @@ static bxattr_exit_code linux_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
          }
       }
 
-      if (skip_xattr) {
+      name_len = strlen(bp);
+      if (skip_xattr || name_len == 0) {
          bp = strchr(bp, '\0') + 1;
          continue;
       }
@@ -431,7 +433,7 @@ static bxattr_exit_code linux_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
       /*
        * Allocate space for storing the name.
        */
-      current_xattr->name_length = strlen(bp);
+      current_xattr->name_length = name_len;
       current_xattr->name = (char *)malloc(current_xattr->name_length);
       memcpy((caddr_t)current_xattr->name, (caddr_t)bp, current_xattr->name_length);
 
