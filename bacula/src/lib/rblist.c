@@ -1,20 +1,7 @@
 /*
- *  Bacula red-black binary tree routines.
- *
- *    rblist is a binary tree with the links being in the data item.
- *
- *   Developped in part from ideas obtained from several online University
- *    courses. 
- *
- *   Kern Sibbald, November MMV
- *
- *   Version $Id$
- *
- */
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2005-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2005-2010 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -38,6 +25,17 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ *  Bacula red-black binary tree routines.
+ *
+ *    rblist is a binary tree with the links being in the data item.
+ *
+ *   Developped in part from ideas obtained from several online University
+ *    courses. 
+ *
+ *   Kern Sibbald, November MMV
+ *
+ */
 
 #include "bacula.h"
 
@@ -490,7 +488,7 @@ int main()
    delete jcr_chain;
 
 
-   sm_dump(true);
+   sm_dump(true);      /* unit test */
 
 }
 #endif
