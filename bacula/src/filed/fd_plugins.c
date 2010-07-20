@@ -1056,7 +1056,7 @@ int main(int argc, char *argv[])
 
    Dmsg0(dbglvl, "bacula: OK ...\n");
    close_memory_pool();
-   sm_dump(false);
+   sm_dump(false);     /* unit test */
    return 0;
 }
 
