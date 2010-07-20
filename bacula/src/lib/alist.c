@@ -202,7 +202,7 @@ int main()
    delete mlist;
 
 
-   sm_dump(false);
+   sm_dump(false);       /* test program */
 
 }
 #endif

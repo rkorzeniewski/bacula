@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2007 Kern Sibbald
+   Copyright (C) 2007-2010 Kern Sibbald
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -31,7 +31,6 @@
  *  Program to convert uid and gid into names, and cache the results
  *   for preformance reasons.
  *
- *  Version $Id$
  */
 
 #include "bacula.h"
@@ -199,7 +198,7 @@ int main()
    }
     
    free_guid_list(list);
-   sm_dump(false);
+   sm_dump(false);     /* unit test */
 
    return 0;
 }
