@@ -26,8 +26,6 @@
  * Peters, Guido van Rossum, Ka-Ping Yee, Sjoerd Mullender, and
  * probably one or two others that I'm forgetting.
  *
- * $Id$   
- *
  * This file modified to work with Bacula and C++ by
  *    Kern Sibbald, April 2006
  *
@@ -37,7 +35,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2006-2008 Free Software Foundation Europe e.V.
+   Copyright (C) 2006-2010 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.

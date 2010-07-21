@@ -26,7 +26,7 @@ extern "C" {
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2006-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2006-2010 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -106,8 +106,8 @@ struct regex_t
    int num_registers;     /* number of registers used */
    unsigned char anchor;           /* anchor: 0=none 1=begline 2=begbuf */
    char *errmsg;
-   int cflags;			   /* compilation flags */
-   POOLMEM *lcase;		   /* used by REG_ICASE */
+   int cflags;                     /* compilation flags */
+   POOLMEM *lcase;                 /* used by REG_ICASE */
 };        
 
 
