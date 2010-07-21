@@ -402,11 +402,13 @@ void *handle_client_request(void *dirp)
    free_jcr(jcr);                     /* destroy JCR record */
    Dmsg0(100, "Done with free_jcr\n");
    Dsm_check(1);
+   garbage_collect_memory_pool();
    return NULL;
 }
 
 static int sm_dump_cmd(JCR *jcr)
 {
+   garbage_collect_memory_pool();
    sm_dump(false, true);
    jcr->dir_bsock->fsend("2000 sm_dump OK\n");
    return 1;
