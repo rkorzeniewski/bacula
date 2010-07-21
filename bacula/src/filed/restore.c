@@ -762,6 +762,9 @@ void do_restore(JCR *jcr)
          plugin_name_stream(jcr, sd->msg);
          break;
 
+      case STREAM_RESTORE_OBJECT:
+         break;                    /* these are sent by Director */
+
       default:
          close_previous_stream(rctx);
          Jmsg(jcr, M_ERROR, 0, _("Unknown stream=%d ignored. This shouldn't happen!\n"),
