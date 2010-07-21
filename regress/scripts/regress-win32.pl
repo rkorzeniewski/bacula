@@ -437,10 +437,11 @@ sub handle_client
 
 my $d = HTTP::Daemon->new ( LocalPort =>  8091,
                             ReuseAddr => 1) 
-    || die "E : Can't bind $!" ;
+    || die "Error: Can't bind $!" ;
 
 my $olddir = Cwd::cwd();
 while (1) {
+    print "Starting daemon...\n";
     my $c = $d->accept ;
     my $ip = $c->peerhost;
     if (!$ip) {
