@@ -408,7 +408,7 @@ void *handle_client_request(void *dirp)
 
 static int sm_dump_cmd(JCR *jcr)
 {
-   garbage_collect_memory_pool();
+   close_memory_pool();
    sm_dump(false, true);
    jcr->dir_bsock->fsend("2000 sm_dump OK\n");
    return 1;
