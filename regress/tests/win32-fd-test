@@ -27,7 +27,11 @@ scripts/cleanup
 scripts/copy-test-confs
 cp scripts/win32-bacula-dir.conf bin/bacula-dir.conf
 
+change_jobname NightlySave $JobName
+start_test
+
 URL=http://$WIN32_ADDR:8091
+echo "Doing wgets ..."
 wget -qO $tmp/stop.log "$URL/stop"
 wget -qO $tmp/update.log "$URL/set_director_name?name=$HOST-dir;pass=$WIN32_PASSWORD"
 wget -qO $tmp/start.log "$URL/start"
@@ -35,9 +39,8 @@ wget -qO $tmp/start.log "$URL/start"
 wget -qO $tmp/init1.log "$URL/init_attrib_test?source=$WIN32_FILE"
 wget -qO $tmp/init2.log "$URL/init_weird_runscript_test?source=$WIN32_FILE"
 wget -qO $tmp/clean.log "$URL/cleandir?source=$WIN32_FILE/restore"
+echo "Done wgets ..."
 
-change_jobname NightlySave $JobName
-start_test
       
 cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @output
