@@ -398,7 +398,7 @@ void sm_dump(bool bufdump, bool in_use)
          uint32_t memsize = ap->ablen - (HEAD_SIZE + 1);
          char *cp = ((char *)ap) + HEAD_SIZE;
 
-         Pmsg0(0, "%s buffer: %s %d bytes at %p from %s:%d\n", 
+         Pmsg6(0, "%s buffer: %s %d bytes at %p from %s:%d\n", 
             in_use?"In use":"Orphaned",
             my_name, memsize, cp, ap->abfname, ap->ablineno);
          if (bufdump) {
