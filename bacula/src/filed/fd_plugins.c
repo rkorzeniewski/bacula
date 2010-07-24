@@ -151,15 +151,19 @@ void generate_plugin_event(JCR *jcr, bEventType eventType, void *value)
    bEvent event;
    Plugin *plugin;
    int i = 0;
-   char *name=NULL;
-   int len;
+   char *name = NULL;
+   int len = 0;
+   bool call_if_canceled = false;
    bRC rc;
 
-   if (!plugin_list || !jcr || !jcr->plugin_ctx_list || jcr->is_job_canceled()) {
+   if (!plugin_list || !jcr || !jcr->plugin_ctx_list) {
       return;                         /* Return if no plugins loaded */
    }
    
-   /* Some events are sent to only a particular plugin */
+   /*
+    * Some events are sent to only a particular plugin or must be
+    *  called even if the job is canceled
+    */
    switch(eventType) {
    case bEventPluginCommand:
       name = (char *)value;
@@ -167,8 +171,23 @@ void generate_plugin_event(JCR *jcr, bEventType eventType, void *value)
          return;
       }
       break;
+   case bEventEndBackupJob:
+   case bEventEndVerifyJob:
+      call_if_canceled = true;
+      break;
+   case bEventEndRestoreJob:
+      call_if_canceled = true;
+      if (jcr->plugin && jcr->plugin->restoreFileStarted) {
+         plug_func(jcr->plugin)->endRestoreFile(jcr->plugin_ctx);
+         jcr->plugin->restoreFileStarted = false;
+      }
+      break;
    default:
       break;
+   }
+
+   if (!call_if_canceled && jcr->is_job_canceled()) {
+      return;
    }
 
    bpContext *plugin_ctx_list = (bpContext *)jcr->plugin_ctx_list;
@@ -485,8 +504,9 @@ bool plugin_name_stream(JCR *jcr, char *name)
        * End of plugin data, notify plugin, then clear flags   
        */
       Dmsg2(dbglvl, "End plugin data plugin=%p ctx=%p\n", jcr->plugin, jcr->plugin_ctx);
-      if (jcr->plugin) {
+      if (jcr->plugin && jcr->plugin->restoreFileStarted) {
          plug_func(jcr->plugin)->endRestoreFile(jcr->plugin_ctx);
+         jcr->plugin->restoreFileStarted = false;
       }
       jcr->plugin_ctx = NULL;
       jcr->plugin = NULL;
@@ -525,7 +545,11 @@ bool plugin_name_stream(JCR *jcr, char *name)
          goto bail_out;
       }
       /* ***FIXME**** check error code */
+      if (plugin->restoreFileStarted) {
+         plug_func(jcr->plugin)->endRestoreFile(jcr->plugin_ctx);
+      }
       plug_func(plugin)->startRestoreFile((bpContext *)jcr->plugin_ctx, cmd);
+      plugin->restoreFileStarted = true;
       goto bail_out;
    }
    Jmsg1(jcr, M_WARNING, 0, _("Plugin=%s not found.\n"), cmd);
