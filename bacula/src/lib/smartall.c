@@ -394,16 +394,13 @@ void sm_dump(bool bufdump, bool in_use)
       }
 
       if (ap->abfname != NULL) {
+         char errmsg[500];
          uint32_t memsize = ap->ablen - (HEAD_SIZE + 1);
-         char errmsg[1000];
          char *cp = ((char *)ap) + HEAD_SIZE;
 
-         bsnprintf(errmsg, sizeof(errmsg),
-           _("%s buffer:  %s %6u bytes buf=%p allocated at %s:%d\n"),
+         Pmsg0(0, "%s buffer: %s %d bytes at %p from %s:%d\n", 
             in_use?"In use":"Orphaned",
-            my_name, memsize, cp, ap->abfname, ap->ablineno
-         );
-         Pmsg1(0, "%s", errmsg);
+            my_name, memsize, cp, ap->abfname, ap->ablineno);
          if (bufdump) {
             char buf[20];
             unsigned llen = 0;
