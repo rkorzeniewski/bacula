@@ -6,7 +6,7 @@
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
    This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version two of the GNU General Public
+   modify it under the terms of version three of the GNU Affero General Public
    License as published by the Free Software Foundation, which is 
    listed in the file LICENSE.
 
@@ -15,7 +15,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
    General Public License for more details.
 
-   You should have received a copy of the GNU General Public License
+   You should have received a copy of the GNU Affero General Public License
    along with this program; if not, write to the Free Software
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
    02110-1301, USA.
@@ -703,8 +703,8 @@ static bool is_plugin_compatible(Plugin *plugin)
            plugin->file, FD_PLUGIN_INTERFACE_VERSION, info->version);
       return false;
    }
-   if (strcmp(info->plugin_license, "Bacula GPLv2") != 0 &&
-       strcmp(info->plugin_license, "GPLv2") != 0) {
+   if (strcmp(info->plugin_license, "Bacula AGPLv3") != 0 &&
+       strcmp(info->plugin_license, "AGPLv3") != 0) {
       Jmsg(NULL, M_ERROR, 0, _("Plugin license incompatible. Plugin=%s license=%s\n"),
            plugin->file, info->plugin_license);
       Dmsg2(50, "Plugin license incompatible. Plugin=%s license=%s\n",
