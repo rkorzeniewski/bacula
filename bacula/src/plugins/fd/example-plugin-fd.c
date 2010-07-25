@@ -1,9 +1,9 @@
 /*
 
-   Copyright (C) 2007-2008 Kern Sibbald
+   Copyright (C) 2007-2010 Kern Sibbald
 
    You may freely use this code to create your own plugin provided
-   it is to write a plugin for Bacula licensed under GPLv2
+   it is to write a plugin for Bacula licensed under AGPLv3
    (as Bacula is), and in that case, you may also remove
    the above Copyright and this notice as well as modify 
    the code in any way. 
@@ -16,7 +16,7 @@
 extern "C" {
 #endif
 
-#define PLUGIN_LICENSE      "GPL"
+#define PLUGIN_LICENSE      "AGPLv3"
 #define PLUGIN_AUTHOR       "Your name"
 #define PLUGIN_DATE         "January 2008"
 #define PLUGIN_VERSION      "1"
