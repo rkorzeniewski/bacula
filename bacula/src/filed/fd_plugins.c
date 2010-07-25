@@ -281,7 +281,7 @@ int plugin_save(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
    POOL_MEM link(PM_FNAME);
 
    if (!plugin_list || !jcr->plugin_ctx_list || jcr->is_job_canceled()) {
-      Jmsg1(jcr, M_FATAL, 0, "Command plugin \"%s\" not loaded.\n", cmd);
+      Jmsg1(jcr, M_FATAL, 0, "Command plugin \"%s\" requested, but is not loaded.\n", cmd);
       return 1;                            /* Return if no plugins loaded */
    }
 
