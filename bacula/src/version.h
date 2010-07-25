@@ -1,8 +1,8 @@
 
 #undef  VERSION
-#define VERSION "5.1.6"
-#define BDATE   "10 Jun 2010"
-#define LSMDATE "10Jun10"
+#define VERSION "5.1.7"
+#define BDATE   "24 July 2010"
+#define LSMDATE "24Jul10"
 
 #define PROG_COPYRIGHT "Copyright (C) %d-2010 Free Software Foundation Europe e.V.\n"
 #define BYEAR "2010"       /* year for copyright messages in progs */
@@ -30,6 +30,7 @@
    02110-1301, USA.
 
    Bacula® is a registered trademark of Kern Sibbald.
+
    The licensor of Bacula is the Free Software Foundation Europe
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
