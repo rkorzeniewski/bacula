@@ -17,7 +17,7 @@ my $last_txt='';
 my %bugs;
 my $refs = shift || '';
 my $for_bweb = $ENV{FORBWEB}?1:0;
-open(FP, "git log --no-merges --pretty=format:'%ct: %s' $refs|") or die "Can't run git log $!";
+open(FP, "git log --no-merges --pretty=format:'%at: %s' $refs|") or die "Can't run git log $!";
 while (my $l = <FP>) {
 
     # remove non useful messages
