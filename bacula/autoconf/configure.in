@@ -1173,9 +1173,6 @@ if test "x$with_openssl_directory" != "xno"; then
       ]
    )
 
-   LIBS="${saved_LIBS}"
-   CFLAGS="${saved_CFLAGS}"
-
    if test "$support_tls" = "yes"; then
       AC_DEFINE(HAVE_OPENSSL, 1, [Define if OpenSSL library is available])
       AC_DEFINE(HAVE_TLS, 1, [Define if TLS support should be enabled])
@@ -1189,6 +1186,13 @@ if test "x$with_openssl_directory" != "xno"; then
    if test "$ac_cv_openssl_export" = "yes"; then
       AC_DEFINE(HAVE_OPENSSL_EXPORT_LIBRARY, 1, [Define if the OpenSSL library is export-contrained to 128bit ciphers])
    fi
+
+   if test "$support_crypto" = "yes"; then
+      AC_CHECK_LIB(ssl, EVP_PKEY_encrypt_old, AC_DEFINE(HAVE_OPENSSLv1, 1, [Set if have OpenSSL version 1.x]))
+   fi
+
+   LIBS="${saved_LIBS}"
+   CFLAGS="${saved_CFLAGS}"
 else
    support_tls="no"
    support_crypto="no"
@@ -1204,8 +1208,6 @@ fi
 if test "$support_crypto" = "no"; then
    OPENSSL_LIBS=""
    OPENSSL_INC=""
-else
-   AC_CHECK_LIB(ssl, EVP_PKEY_encrypt_old, AC_DEFINE(HAVE_OPENSSLv1, 1, [Set if have OpenSSL version 1.x]))
 fi  
 
 AC_SUBST(OPENSSL_LIBS)
