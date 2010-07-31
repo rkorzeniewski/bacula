@@ -15,10 +15,11 @@
 cwd=`pwd`
 reltype=release
 tagbase=Release-
+base_dir=bacula
 base_pkg=bacula
-if [ $# != 2 ] ; then
-  echo "Need $0 <source-directory> <branch>"
-  echo "e.g. $0 release-source 3.0.3"
+if [ $# != 3 ] ; then
+  echo "Need $0 <source-directory> <remote-name> <branch>"
+  echo "e.g. $0 release-source bee 4.0.0"
   exit 1
 fi
 cd $1
@@ -27,14 +28,16 @@ if [ $? -ne 0 ]; then
    exit 1
 fi
 src=`pwd` 
-cd $base_pkg 
+current=`git branch | awk '/*/ { print $2 }'`
+cd $base_dir 
 if [ $?  -ne 0 ]; then
    echo "Directory: $1 does not exist"
    exit 1
 fi
-branch=$2
+remote=$2
+branch=$3
 git checkout ${branch}
-git pull origin ${branch}
+git pull ${remote} ${branch}
 if [ $? -ne 0 ]; then
    echo "Checkout of branch ${branch} failed."
    exit 1
@@ -83,7 +86,6 @@ if [ $? != 0 ] ; then
   exit 1
 fi
 echo "Exported release into ${cwd}/$base_pkg-$ver.tar.gz"
-git checkout master
 cd ${cwd}
 tar xfz $base_pkg-$ver.tar.gz 
 cd $base_pkg-$ver/
@@ -93,6 +95,7 @@ mv regress $base_pkg-regress-$ver
 tar cvfz ../$base_pkg-$ver.tar.gz $base_pkg-$ver
 tar cvfz ../$base_pkg-gui-$ver.tar.gz $base_pkg-gui-$ver
 tar cvfz ../$base_pkg-regress-$ver.tar.gz $base_pkg-regress-$ver
+rm -rf $base_pkg-$ver
 cd ..
 ./sign $base_pkg-$ver.tar.gz
 ./sign $base_pkg-gui-$ver.tar.gz
@@ -100,6 +103,10 @@ cd ..
 
 if [ a$push != ano ]; then
    cd ${src}
-   git push origin $branch
-   git push origin tag $fulltag
+   git push ${remote} ${branch}
+   git push ${remote} tag ${fulltag}
+   echo "Pushed ${remote} and push tag ${fulltag}"
 fi
+
+cd ${src}
+git checkout ${current}

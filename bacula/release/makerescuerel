@@ -14,11 +14,12 @@ reltype=release
 tagbase=Release-
 base_pkg=bacula-rescue
 base_dir=rescue
-branch=$2
+remote=$2
+branch=$3
 
-if [ $# != 2 ] ; then
-  echo "Need $0 <rescue-source-directory> <branch>"
-  echo "e.g. $0 rescue-source master"
+if [ $# != 3 ] ; then
+  echo "Need $0 <rescue-source-directory> <remote-name> <branch>"
+  echo "e.g. $0 rescue-source bee Branch-4.0"
   exit 1
 fi
 cd $1
@@ -32,13 +33,14 @@ if [ $?  -ne 0 ]; then
    exit 1
 fi
 
+current=`git branch | awk '/*/ { print $2 }'`
 src=`pwd` 
 git checkout ${branch}
 if [ $? -ne 0 ]; then
    echo "Checkout of branch ${branch} in ${src} failed."
    exit 1
 fi
-git pull origin ${branch}
+git pull ${remote} ${branch}
 ver=`sed -n -e 's/^.*VERSION.*"\(.*\)"$/\1/p' version.h`
 fulltag=$tagbase$ver
 echo " "
@@ -69,13 +71,15 @@ if [ $? != 0 ] ; then
   exit 1
 fi
 echo "Exported release into ${cwd}/$base_pkg-$ver.tar.gz"
-git checkout master
+if [ a$push != ano ]; then
+   cd ${src}
+   git push ${remote} ${branch}
+   git push ${remote} tag ${fulltag}
+   echo "Pushed ${remote} and push tag ${fulltag}"
+fi
+cd ${src}
+git checkout ${current}
+
 cd ${cwd}
 ./sign $base_pkg-$ver.tar.gz
 ls -l $base_pkg-$ver.tar.*
-
-if [ a$push != ano ]; then
-   cd ${src}
-   git push origin $branch
-   git push origin tag $fulltag
-fi

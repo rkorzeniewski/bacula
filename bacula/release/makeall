@@ -2,21 +2,37 @@
 #
 # Make full release
 #
-branch=5.0.0
-#
 # Bacula git repos
-bacula=/home/kern/bacula/k
-docs=/home/kern/bacula/docs
-rescue=/home/kern/bacula/rescue
+bacula=${bacula:-${HOME}/bacula/k/bacula}
+docs=${docs:-${HOME}/bacula/k/docs}
+rescue=${rescue:-${HOME}/bacula/k/rescue}
+#
+# Set the following to your remote name.  By default it is origin.
+remote=bs
+
 export push=yes
-export updatepo=yes
+#
+# Note, you will probably want to set updatepo=no if you
+#   run this script multiple times for a given release.
+export updatepo=no
 
-./makeclean
-./makebacularel $bacula $branch
-./makedocsrel $bacula $docs $branch
-./makerescuerel $rescue $branch
-./makewinrel $bacula $branch | tee win$$.log
+if [ $# != 1 ] ; then
+  echo "Need $0 <Branch-to-release>"
+  echo "e.g. $0 Branch-5.0"
+  exit 1
+fi
 
+branch=$1
+
+# ./makeclean
+./makebacularel $bacula $remote $branch
+./makedocsrel $bacula $docs $remote $branch
+./makerescuerel $rescue $remote $branch
+./makewinrel $bacula $remote $branch | tee win$$.log
+
+# strip ./configure strerror from Win log file
+sed -i -e 's%strerror%%' win$$.log
+# check for warning and error messages
 grep -i warning win$$.log >/dev/null
 if [ $? -eq 0 ] ; then
   echo " "
