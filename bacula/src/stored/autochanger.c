@@ -653,7 +653,15 @@ char *edit_device_codes(DCR *dcr, char *omsg, const char *imsg, const char *cmd)
             str = dcr->jcr->Job;
             break;
          case 'v':
-            str = NPRT(dcr->VolumeName);
+            if (dcr->VolCatInfo.VolCatName[0]) {
+               str = dcr->VolCatInfo.VolCatName;
+            } else if (dcr->VolumeName[0]) {
+               str = dcr->VolumeName;
+            } else if (dcr->dev->vol && dcr->dev->vol->vol_name) {
+               str = dcr->dev->vol->vol_name;
+            } else {
+               str = dcr->dev->VolHdr.VolumeName;
+            }
             break;
          case 'f':
             str = NPRT(dcr->jcr->client_name);

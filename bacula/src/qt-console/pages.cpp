@@ -57,6 +57,15 @@ Pages::Pages()
    m_docked = false;
    m_onceDocked = false;
    m_closeable = true;
+   m_dockOnFirstUse = true;
+}
+
+/* first Use Dock */
+void Pages::firstUseDock()
+{
+   if (!m_onceDocked && m_dockOnFirstUse) {
+      dockPage();
+   }
 }
 
 /*
