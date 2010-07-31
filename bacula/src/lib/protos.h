@@ -202,6 +202,7 @@ void     job_end_push(JCR *jcr, void job_end_cb(JCR *jcr,void *), void *ctx);
 void     lock_jobs();
 void     unlock_jobs();
 JCR     *jcr_walk_start();
+int      job_count();
 JCR     *jcr_walk_next(JCR *prev_jcr);
 void     jcr_walk_end(JCR *jcr);
 JCR     *get_jcr_from_tsd();

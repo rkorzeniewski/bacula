@@ -18,9 +18,10 @@ change_jobname NightlySave $JobName
 start_test
 
 cat <<END_OF_DATA >tmp/bconcmds
-@$out /dev/null
+@output /dev/null
 messages
 @$out tmp/log1.out
+@#exec "sh -c 'touch ${cwd}/build/xxx_new_file'"
 run job=VerifyVolume level=InitCatalog yes
 wait
 messages
@@ -28,6 +29,7 @@ messages
 @# now do a verify Catalog
 @#
 @$out ${cwd}/tmp/original
+@#exec "sh -c 'rm -f ${cwd}/build/xxx_new_file'"
 run job=VerifyVolume level=Catalog yes
 wait
 messages

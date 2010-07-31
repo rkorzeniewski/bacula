@@ -1,8 +1,8 @@
 
 #undef  VERSION
 #define VERSION "5.0.3"
-#define BDATE   "24 July 2010"
-#define LSMDATE "24Jul10"
+#define BDATE   "31 July 2010"
+#define LSMDATE "31Jul10"
 
 #define PROG_COPYRIGHT "Copyright (C) %d-2010 Free Software Foundation Europe e.V.\n"
 #define BYEAR "2010"       /* year for copyright messages in progs */
@@ -52,7 +52,7 @@
 #define TRACE_FILE 1
 
 /* If this is set stdout will not be closed on startup */
-/* #define DEVELOPER 1 */
+#define DEVELOPER 1
 
 /*
  * SMCHECK does orphaned buffer checking (memory leaks)
@@ -124,6 +124,7 @@
 /* #define TRACE_RES 1 */
 /* #define DEBUG_MEMSET 1 */
 /* #define DEBUG_MUTEX 1 */
+#define BEEF 0
 
 /*
  * Set SMALLOC_SANITY_CHECK to zero to turn off, otherwise

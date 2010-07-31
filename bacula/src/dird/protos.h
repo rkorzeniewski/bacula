@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2010 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -27,8 +27,6 @@
 */
 /*
  * Director external function prototypes
- *
- *   Version $Id$
  */
 
 /* admin.c */
@@ -104,6 +102,7 @@ extern int put_file_into_catalog(JCR *jcr, long file_index, char *fname,
                           char *link, char *attr, int stream);
 extern void get_level_since_time(JCR *jcr, char *since, int since_len);
 extern int send_runscripts_commands(JCR *jcr);
+extern bool send_restore_objects(JCR *jcr);
 
 /* getmsg.c */
 enum e_prtmsg {
@@ -196,6 +195,7 @@ bool acl_access_ok(UAContext *ua, int acl, const char *item, int len);
 bool do_a_command(UAContext *ua);
 bool do_a_dot_command(UAContext *ua);
 int qmessagescmd(UAContext *ua, const char *cmd);
+bool open_new_client_db(UAContext *ua);
 bool open_client_db(UAContext *ua);
 bool open_db(UAContext *ua);
 void close_db(UAContext *ua);
@@ -216,6 +216,7 @@ bool get_yesno(UAContext *ua, const char *prompt);
 bool is_yesno(char *val, int *ret);
 int get_enabled(UAContext *ua, const char *val);
 void parse_ua_args(UAContext *ua);
+bool is_comment_legal(UAContext *ua, const char *name);
 
 /* ua_label.c */
 bool is_volume_name_legal(UAContext *ua, const char *name);

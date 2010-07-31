@@ -39,6 +39,49 @@
       bacula/
       regress/
 
+   This script requires perl to work (http://strawberryperl.com), and by default 
+   it assumes that Bacula is installed in the standard location. Once it's 
+   started on the windows, you can do remote commands like:
+    - start the service
+    - stop the service
+    - edit the bacula-fd.conf to change the director and password setting
+    - install a new binary version (not tested, no plugin support)
+    - create weird files and directories
+    - create files with windows attributes
+    - compare two directories (with md5)
+   
+   
+   To test it, you can follow this procedure
+   On the windows box:
+    - install perl from http://strawberryperl.com on windows
+    - copy or export regress directory somewhere on your windows
+    - start the regress/scripts/regress-win32.pl (open it with perl.exe)
+    - create c:/tmp (not sure it's mandatory)
+    - make sure that the firewall is well configured or just disabled (needs 
+   bacula and 8091/tcp)
+   
+   On Linux box:
+    - edit config file to fill the following variables
+   
+   WIN32_CLIENT="win2008-fd"
+   # Client FQDN or IP address
+   WIN32_ADDR="192.168.0.6"
+   # File or Directory to backup.  This is put in the "File" directive 
+   #   in the FileSet
+   WIN32_FILE="c:/tmp"
+   # Port of Win32 client
+   WIN32_PORT=9102
+   # Win32 Client password
+   WIN32_PASSWORD="xxx"
+   # will be the ip address of the linux box
+   WIN32_STORE_ADDR="192.168.0.1"
+   
+    - type make setup
+    - run ./tests/backup-bacula-test to be sure that everything is ok
+    - start ./tests/win32-fd-test
+   
+   I'm not very happy with this script, but it works :)
+
 =cut
 
 use strict;

@@ -166,8 +166,7 @@ bool do_a_dot_command(UAContext *ua)
 
 static bool dot_bvfs_update(UAContext *ua, const char *cmd)
 {
-
-   if (!open_client_db(ua)) {
+   if (!open_new_client_db(ua)) {
       return 1;
    }
 
@@ -180,6 +179,8 @@ static bool dot_bvfs_update(UAContext *ua, const char *cmd)
       /* update cache for all jobids */
       bvfs_update_cache(ua->jcr, ua->db);
    }
+   
+   close_db(ua);
    return true;
 }
 
@@ -381,7 +382,7 @@ static void do_storage_cmd(UAContext *ua, STORE *store, const char *cmd)
    }
    Dmsg0(120, _("Connected to storage daemon\n"));
    sd = jcr->store_bsock;
-   sd->fsend(".die");
+   sd->fsend("%s", cmd);
    if (sd->recv() >= 0) {
       ua->send_msg("%s", sd->msg);
    }
@@ -407,7 +408,7 @@ static void do_client_cmd(UAContext *ua, CLIENT *client, const char *cmd)
    }
    Dmsg0(120, "Connected to file daemon\n");
    fd = ua->jcr->file_bsock;
-   fd->fsend(".die");
+   fd->fsend("%s", cmd);
    if (fd->recv() >= 0) {
       ua->send_msg("%s", fd->msg);
    }
@@ -459,34 +460,46 @@ static bool admin_cmds(UAContext *ua, const char *cmd)
          client = NULL;
          if (ua->argv[i]) {
             client = (CLIENT *)GetResWithName(R_CLIENT, ua->argv[i]);
-            if (client) {
-               do_client_die(ua, client);
-               return 1;
-            }
          }
-         client = select_client_resource(ua);
-         if (client) {
-            do_client_die(ua, client);
-            return 1;
+         if (!client) {
+            client = select_client_resource(ua);
          }
       }
-
+   
       if (strcasecmp(ua->argk[i], NT_("store")) == 0 ||
           strcasecmp(ua->argk[i], NT_("storage")) == 0 ||
           strcasecmp(ua->argk[i], NT_("sd")) == 0) {
          store = NULL;
          if (ua->argv[i]) {
             store = (STORE *)GetResWithName(R_STORAGE, ua->argv[i]);
-            if (store) {
-               do_storage_die(ua, store);
-               return 1;
-            }
          }
+         if (!store) {
+            store = get_storage_resource(ua, false/*no default*/);
+         }
+      }
+   }
+
+   if (!dir && !store && !client) {
+      /*
+       * We didn't find an appropriate keyword above, so
+       * prompt the user.
+       */
+      start_prompt(ua, _("Available daemons are: \n"));
+      add_prompt(ua, _("Director"));
+      add_prompt(ua, _("Storage"));
+      add_prompt(ua, _("Client"));
+      switch(do_prompt(ua, "", _("Select daemon type to make die"), NULL, 0)) {
+      case 0:                         /* Director */
+         dir=true;
+         break;
+      case 1:
          store = get_storage_resource(ua, false/*no default*/);
-         if (store) {
-            do_storage_die(ua, store);
-            return 1;
-         }
+         break;
+      case 2:
+         client = select_client_resource(ua);
+         break;
+      default:
+         break;
       }
    }
 
@@ -515,6 +528,7 @@ static bool admin_cmds(UAContext *ua, const char *cmd)
          dot_quit_cmd(ua, cmd);
       }
    }
+
    return true;
 }
 
@@ -632,6 +646,7 @@ static bool typescmd(UAContext *ua, const char *cmd)
    ua->send_msg("Admin\n");
    ua->send_msg("Verify\n");
    ua->send_msg("Migrate\n");
+   ua->send_msg("Copy\n");
    return true;
 }
 

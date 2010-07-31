@@ -1,16 +1,7 @@
 /*
- *  Bacula File Daemon  verify-vol.c Verify files on a Volume
- *    versus attributes in Catalog
- *
- *    Kern Sibbald, July MMII
- *
- *   Version $Id$
- *
- */
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2002-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2002-2010 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -34,6 +25,13 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ *  Bacula File Daemon  verify-vol.c Verify files on a Volume
+ *    versus attributes in Catalog
+ *
+ *    Kern Sibbald, July MMII
+ *
+ */
 
 #include "bacula.h"
 #include "filed.h"

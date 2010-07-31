@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2009 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2010 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -45,7 +45,6 @@
  *       Requests are any message that does not begin with a digit.
  *       In affect, they are commands.
  *
- *   Version $Id$
  */
 
 #include "bacula.h"
@@ -71,7 +70,7 @@ static char Device_update[]   = "DevUpd Job=%127s "
 static char OK_msg[] = "1000 OK\n";
 
 
-void set_jcr_sd_job_status(JCR *jcr, int SDJobStatus)
+static void set_jcr_sd_job_status(JCR *jcr, int SDJobStatus)
 {
    bool set_waittime=false;
    Dmsg2(800, "set_jcr_sd_job_status(%s, %c)\n", jcr->Job, SDJobStatus);

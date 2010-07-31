@@ -243,7 +243,7 @@ read_volume:
     * Check that volcatinfo is good   
     */
    if (!dev->haveVolCatInfo()) {
-      Dmsg0(010, "Do not have volcatinfo\n");
+      Dmsg0(100, "Do not have volcatinfo\n");
       if (!find_a_volume()) {
          goto mount_next_vol;
       }

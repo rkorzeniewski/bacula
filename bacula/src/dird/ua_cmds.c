@@ -1956,6 +1956,22 @@ static int version_cmd(UAContext *ua, const char *cmd)
 #endif
 
 /* 
+ * This call uses open_client_db() and force a
+ * new dedicated connection to the catalog
+ */
+bool open_new_client_db(UAContext *ua)
+{   
+   bool ret;
+
+   /* Force a new dedicated connection */
+   close_db(ua);
+   ua->force_mult_db_connections = true;
+   ret = open_client_db(ua);
+   ua->force_mult_db_connections = false;
+   return ret;
+}
+
+/* 
  * This call explicitly checks for a catalog=xxx and
  *  if given, opens that catalog.  It also checks for
  *  client=xxx and if found, opens the catalog 
@@ -2040,6 +2056,8 @@ bool open_client_db(UAContext *ua)
  */
 bool open_db(UAContext *ua)
 {
+   bool mult_db_conn;
+
    if (ua->db) {
       return true;
    }
@@ -2051,6 +2069,12 @@ bool open_db(UAContext *ua)
       }
    }
 
+   /* Some modules like bvfs need their own catalog connection */
+   mult_db_conn = ua->catalog->mult_db_connections;
+   if (ua->force_mult_db_connections) {
+      mult_db_conn = true;
+   }
+
    ua->jcr->catalog = ua->catalog;
 
    Dmsg0(100, "UA Open database\n");
@@ -2058,7 +2082,7 @@ bool open_db(UAContext *ua)
                              ua->catalog->db_user,
                              ua->catalog->db_password, ua->catalog->db_address,
                              ua->catalog->db_port, ua->catalog->db_socket,
-                             ua->catalog->mult_db_connections);
+                             mult_db_conn);
    if (!ua->db || !db_open_database(ua->jcr, ua->db)) {
       ua->error_msg(_("Could not open catalog database \"%s\".\n"),
                  ua->catalog->db_name);

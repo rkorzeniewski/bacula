@@ -1,7 +1,8 @@
 #!/bin/sh
-rm -rf tmp/disk-changer
-mkdir -p tmp/disk-changer
-touch tmp/disk-changer/conf 
+. scripts/functions
+scripts/cleanup
+scripts/copy-2disk-confs
+scripts/prepare-disk-changer
 echo "Unload drive 0"
 $scripts/disk-changer tmp/disk-changer/conf unload 1 tmp/disk-changer/drive0 0
 echo "rtn=$?"   

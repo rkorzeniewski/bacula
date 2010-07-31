@@ -350,38 +350,63 @@ sub check_encoding
 # You can change the maximum concurrent jobs for any config file
 # If specified, you can change only one Resource or one type of
 # resource at the time (optional)
-#  set_maximum_concurent_jobs('$conf/bacula-dir.conf', 100);
-#  set_maximum_concurent_jobs('$conf/bacula-dir.conf', 100, 'Director');
-#  set_maximum_concurent_jobs('$conf/bacula-dir.conf', 100, 'Device', 'Drive-0');
-sub set_maximum_concurent_jobs
+#  set_maximum_concurrent_jobs('$conf/bacula-dir.conf', 100);
+#  set_maximum_concurrent_jobs('$conf/bacula-dir.conf', 100, 'Director');
+#  set_maximum_concurrent_jobs('$conf/bacula-dir.conf', 100, 'Device', 'Drive-0');
+sub set_maximum_concurrent_jobs
 {
     my ($file, $nb, $obj, $name) = @_;
-    my ($cur_obj, $cur_name);
 
     die "Can't get new maximumconcurrentjobs" 
         unless ($nb);
+
+    add_attribute($file, "Maximum Concurrent Jobs", $nb, $obj, $name);
+}
+
+
+# You can add option to a resource
+#  add_attribute('$conf/bacula-dir.conf', 'FDTimeout', 1600, 'Director');
+#  add_attribute('$conf/bacula-dir.conf', 'FDTimeout', 1600, 'Storage', 'FileStorage');
+sub add_attribute
+{
+    my ($file, $attr, $value, $obj, $name) = @_;
+    my ($cur_obj, $cur_name, $done);
 
     open(FP, ">$tmp/1.$$") or die "Can't write to $tmp/1.$$";
     open(SRC, $file) or die "Can't open $file";
     while (my $l = <SRC>)
     {
-        if ($l =~ /^(\w+) {/) {
-            $cur_obj = $1;
+        if ($l =~ /^#/) {
+            print FP $l;
+            next;
         }
 
-        if ($l =~ /maximum\s*concurrent\s*jobs/i) {
+        if ($l =~ /^(\w+) {/) {
+            $cur_obj = $1;
+            $done=0;
+        }
+
+        if ($l =~ /\Q$attr\E/i) {
             if (!$obj || $cur_obj eq $obj) {
                 if (!$name || $cur_name eq $name) {
-                    $l =~ s/maximum\s*concurrent\s*jobs\s*=\s*\d+/Maximum Concurrent Jobs = $nb/ig;
+                    $l =~ s/\Q$attr\E\s*=\s*.+/$attr = $value/ig;
+                    $done=1
                 }
             }
         }
 
-        if ($l =~ /Name\s*=\s*"?([\w\d\.-])"?/i) {
+        if ($l =~ /Name\s*=\s*"?([\w\d\.-]+)"?/i) {
             $cur_name = $1;
         }
 
         if ($l =~ /^}/) {
+            if (!$done) {
+                if ($cur_obj eq $obj) {
+                    if (!$name || $cur_name eq $name) {
+                        $l = "  $attr = $value\n$l";
+                    }
+                }
+            }
             $cur_name = $cur_obj = undef;
         }
         print FP $l;

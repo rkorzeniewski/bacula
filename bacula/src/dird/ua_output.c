@@ -706,11 +706,11 @@ bool complete_jcr_for_job(JCR *jcr, JOB *job, POOL *pool)
    }
 
    Dmsg0(100, "complete_jcr open db\n");
-   jcr->db = jcr->db=db_init(jcr, jcr->catalog->db_driver, jcr->catalog->db_name, 
-                      jcr->catalog->db_user,
-                      jcr->catalog->db_password, jcr->catalog->db_address,
-                      jcr->catalog->db_port, jcr->catalog->db_socket,
-                      jcr->catalog->mult_db_connections);
+   jcr->db = db_init(jcr, jcr->catalog->db_driver, jcr->catalog->db_name, 
+                     jcr->catalog->db_user,
+                     jcr->catalog->db_password, jcr->catalog->db_address,
+                     jcr->catalog->db_port, jcr->catalog->db_socket,
+                     jcr->catalog->mult_db_connections);
    if (!jcr->db || !db_open_database(jcr, jcr->db)) {
       Jmsg(jcr, M_FATAL, 0, _("Could not open database \"%s\".\n"),
                  jcr->catalog->db_name);

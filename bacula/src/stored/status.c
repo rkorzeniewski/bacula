@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2003-2009 Free Software Foundation Europe e.V.
+   Copyright (C) 2003-2010 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -30,7 +30,6 @@
  *
  *     Kern Sibbald, May MMIII
  *
- *   Version $Id$
  *
  */
 
@@ -223,8 +222,8 @@ static void list_status_header(STATUS_PKT *sp)
    bstrftime_nc(dt, sizeof(dt), daemon_start_time);
 
 
-   len = Mmsg(msg, _("Daemon started %s, %d Job%s run since started.\n"),
-        dt, num_jobs_run, num_jobs_run == 1 ? "" : "s");
+   len = Mmsg(msg, _("Daemon started %s. Jobs: run=%d, running=%d.\n"),
+        dt, num_jobs_run, job_count());
    sendit(msg, len, sp);
 
    len = Mmsg(msg, _(" Heap: heap=%s smbytes=%s max_bytes=%s bufs=%s max_bufs=%s\n"),

@@ -192,3 +192,39 @@ void parse_ua_args(UAContext *ua)
 {
    parse_args(ua->cmd, &ua->args, &ua->argc, ua->argk, ua->argv, MAX_CMD_ARGS);
 }
+
+/*
+ * Check if the comment has legal characters
+ * If ua is non-NULL send the message
+ */
+bool is_comment_legal(UAContext *ua, const char *name)
+{
+   int len;
+   const char *p;
+   const char *forbid = "'<>&\\\"";
+
+   /* Restrict the characters permitted in the comment */
+   for (p=name; *p; p++) {
+      if (!strchr(forbid, (int)(*p))) {
+         continue;
+      }
+      if (ua) {
+         ua->error_msg(_("Illegal character \"%c\" in a comment.\n"), *p);
+      }
+      return 0;
+   }
+   len = strlen(name);
+   if (len >= MAX_NAME_LENGTH) {
+      if (ua) {
+         ua->error_msg(_("Comment too long.\n"));
+      }
+      return 0;
+   }
+   if (len == 0) {
+      if (ua) {
+         ua->error_msg(_("Comment must be at least one character long.\n"));
+      }
+      return 0;
+   }
+   return 1;
+}

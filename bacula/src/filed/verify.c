@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2009 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2010 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -29,8 +29,6 @@
  *  Bacula File Daemon  verify.c  Verify files.
  *
  *    Kern Sibbald, October MM
- *
- *   Version $Id$
  *
  */
 
@@ -157,6 +155,8 @@ static int verify_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
    case FT_NOFSCHG:
       Jmsg(jcr, M_SKIPPED, 1, _("     File system change prohibited. Directory skipped: %s\n"), ff_pkt->fname);
       return 1;
+   case FT_RESTORE_FIRST:
+      return 1;                       /* silently skip */
    case FT_NOOPEN: {
       berrno be;
       be.set_errno(ff_pkt->ff_errno);
