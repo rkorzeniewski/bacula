@@ -9,9 +9,9 @@ scripts/copy-test-confs
 echo "${cwd}/build/technotes" >${cwd}/tmp/file-list
 
 # increase the maximum concurrent jobs for FD, SD and DIR
-perl -Mscripts::functions -e 'set_maximum_concurent_jobs("$conf/bacula-dir.conf",100)'
-perl -Mscripts::functions -e 'set_maximum_concurent_jobs("$conf/bacula-sd.conf",100)'
-perl -Mscripts::functions -e 'set_maximum_concurent_jobs("$conf/bacula-fd.conf",100)'
+perl -Mscripts::functions -e 'set_maximum_concurrent_jobs("$conf/bacula-dir.conf",100)'
+perl -Mscripts::functions -e 'set_maximum_concurrent_jobs("$conf/bacula-sd.conf",100)'
+perl -Mscripts::functions -e 'set_maximum_concurrent_jobs("$conf/bacula-fd.conf",100)'
 
 # extract a Job and add a runscript on it
 perl -Mscripts::functions \
