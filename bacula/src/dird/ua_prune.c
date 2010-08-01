@@ -445,7 +445,7 @@ int prune_jobs(UAContext *ua, CLIENT *client, POOL *pool, int JobType)
 
    /*
     * Select all files that are older than the JobRetention period
-    *  and stuff them into the "DeletionCandidates" table.
+    *  and add them into the "DeletionCandidates" table.
     */
    Mmsg(query, 
         "INSERT INTO DelCandidates "
