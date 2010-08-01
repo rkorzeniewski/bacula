@@ -20,6 +20,8 @@ cp tmp/1 $conf/bacula-fd.conf
 
 change_jobname BackupClient1 $JobName
 dircfg=$conf/bacula-dir.conf
+
+# modify some attributes in configuration file for the test
 $bperl -e "add_attribute('$dircfg', 'AutoPrune', 'No', 'Client')"
 $bperl -e "add_attribute('$dircfg', 'Job Retention', '1s', 'Client')"
 $bperl -e "add_attribute('$dircfg', 'File', '<$tmp/lst', 'FileSet', 'FS_TESTJOB_ADVANCE')"
@@ -163,19 +165,30 @@ END_OF_DATA
 
 run_bconsole
 
-$bperl -e "check_job_list('$tmp/log10.out', 3,5,6)"
+# Now we will verify that the pruning code is working as expected.  Each time,
+# we run 'list jobs', 'prune', 'list jobs'. check_prune_list ensures that jobids
+# in argument are present in the first 'list jobs', the 'prune' command deletes
+# them (same number), and checks that the last 'list jobs' doesn't contain them
+# anymore. See scripts/functions.pm for details.
+
+# B F I D I0 R I -> B F D I
+$bperl -e "check_prune_list('$tmp/log10.out', 3,5,6)"
 estat=$(($estat + $?))
 
-$bperl -e "check_job_list('$tmp/log11.out', 2,4,7)"
+# B F D I F -> B F
+$bperl -e "check_prune_list('$tmp/log11.out', 2,4,7)"
 estat=$(($estat + $?))
 
-$bperl -e "check_job_list('$tmp/log12.out')"
+# B F B -> B F B
+$bperl -e "check_prune_list('$tmp/log12.out')"
 estat=$(($estat + $?))
 
-$bperl -e "check_job_list('$tmp/log13.out',1,8)"
+# B F B F -> B F
+$bperl -e "check_prune_list('$tmp/log13.out',1,8)"
 estat=$(($estat + $?))
 
-$bperl -e "check_job_list('$tmp/log14.out',9,10)"
+# B F B B F -> B B F
+$bperl -e "check_prune_list('$tmp/log14.out',9,10)"
 estat=$(($estat + $?))
 
 stop_bacula

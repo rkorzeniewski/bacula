@@ -1,11 +1,10 @@
 #!/bin/sh
+# Not yet working
 #
 # Run a simple backup of the Bacula build directory then copy it
 #   to another device.
-#
-# This script uses the virtual disk autochanger
-#
-TestName="copy-job-test"
+##
+TestName="prune-copy-test"
 JobName=CopyJobSave
 . scripts/functions
 
@@ -78,7 +77,13 @@ stop_bacula
 touch $tmp/log2.out
 check_two_logs
 
-$bperl -e "check_job_list('$tmp/log3.out',1,3,4,5,6,7)"
+# Now we will verify that the pruning code is working as expected.  Each time,
+# we run 'list jobs', 'prune', 'list jobs'. check_prune_list ensures that jobids
+# in argument are present in the first 'list jobs', the 'prune' command deletes
+# them (same number), and checks that the last 'list jobs' doesn't contain them
+# anymore. See scripts/functions.pm for details.
+
+$bperl -e "check_prune_list('$tmp/log3.out',1,3,4,5,6,7)"
 estat=$(($estat + $?))
 
 end_test

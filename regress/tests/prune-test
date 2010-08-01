@@ -1,7 +1,6 @@
 #!/bin/sh
 #
-# This script will test prune algo with
-# vtape
+# This script will test prune algo 
 #
 . scripts/functions
 
@@ -15,6 +14,7 @@ start_test
 
 echo $PWD/build/po > tmp/file-list
 
+# We want to have pruning only when doing prune command
 $bperl -e 'add_attribute("$conf/bacula-dir.conf", "AutoPrune", "No", "Client")'
 $bperl -e 'add_attribute("$conf/bacula-dir.conf", "Job Retention", "1s", "Client")'
 
@@ -43,7 +43,7 @@ prune jobs yes
 list jobs
 @$out $tmp/log4.out
 @################################################################
-@# Should prune the first incremental job
+@# Should prune the two firsts incrementals
 run job=$JobName level=differential yes
 wait
 messages
@@ -65,7 +65,6 @@ prune jobs yes
 list jobs
 @$out $tmp/log6.out
 @################################################################
-@# Should prune the last incr
 run job=$JobName level=incremental yes
 wait
 messages
@@ -93,16 +92,28 @@ check_two_logs
 
 estat=0
 
-$bperl -e "check_job_list('$tmp/log3.out')"
+###############################################################################
+# Now we will verify that the pruning code is working as expected.  Each time,
+# we run 'list jobs', 'prune', 'list jobs'. check_prune_list ensures that jobids
+# in argument are present in the first 'list jobs', the 'prune' command deletes
+# them (same number), and checks that the last 'list jobs' doesn't contain them
+# anymore. See scripts/functions.pm for details.
+
+# nothing should be pruned
+$bperl -e "check_prune_list('$tmp/log3.out')"
 estat=$(($estat + $?))
 
-$bperl -e "check_job_list('$tmp/log4.out',2,3)"
+# jobids 2 and 3 should be pruned
+# (F I I D) -> (F D)
+$bperl -e "check_prune_list('$tmp/log4.out',2,3)"
 estat=$(($estat + $?))
 
-$bperl -e "check_job_list('$tmp/log5.out',1,4,5)"
+# (F D I F) -> (F)
+$bperl -e "check_prune_list('$tmp/log5.out',1,4,5)"
 estat=$(($estat + $?))
 
-$bperl -e "check_job_list('$tmp/log6.out',7,8)"
+# (F I R) -> (F)     -- Incremental have 0 file
+$bperl -e "check_prune_list('$tmp/log6.out',7,8)"
 estat=$(($estat + $?))
 
 end_test
