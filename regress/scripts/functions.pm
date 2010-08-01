@@ -40,7 +40,7 @@ our @ISA = qw(Exporter);
 our @EXPORT =  qw(update_some_files create_many_files check_multiple_copies
                   update_client $HOST $BASEPORT add_to_backup_list check_volume_size
                   create_many_dirs cleanup start_bacula stop_bacula get_resource
-                  set_maximum_concurrent_jobs get_time add_attribute check_job_list
+                  set_maximum_concurrent_jobs get_time add_attribute check_prune_list
                   check_min_volume_size check_max_volume_size $estat $bstat $rstat $zstat
                   $cwd $bin $scripts $conf $rscripts $tmp $working extract_resource
                   $db_name $db_user $db_password $src $tmpsrc);
@@ -417,11 +417,11 @@ sub add_attribute
 }
 
 # This test the list jobs output to check differences
-# Input: read stream from stdin or with file list argument
-#        check if all argument are not present in the second
-#        list jobs output
+# Input: read file argument
+#        check if all jobids in argument are present in the first
+#        'list jobs' and not present in the second
 # Output: exit(1) if something goes wrong and print error
-sub check_job_list
+sub check_prune_list
 {
     my $f = shift;
     my %to_check = map { $_ => 1} @_;

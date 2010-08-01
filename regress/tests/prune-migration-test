@@ -92,7 +92,13 @@ stop_bacula
 check_two_logs
 check_restore_diff
 
-$bperl -e "check_job_list('$tmp/log3.out',1,2,3,4,5,7)"
+# Now we will verify that the pruning code is working as expected.  Each time,
+# we run 'list jobs', 'prune', 'list jobs'. check_prune_list ensures that jobids
+# in argument are present in the first 'list jobs', the 'prune' command deletes
+# them (same number), and checks that the last 'list jobs' doesn't contain them
+# anymore. See scripts/functions.pm for details.
+
+$bperl -e "check_prune_list('$tmp/log3.out',1,2,3,4,5,7)"
 estat=$(($estat + $?))
 
 end_test
