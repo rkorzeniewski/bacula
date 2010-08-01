@@ -353,8 +353,13 @@ int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
    case FT_NOFSCHG:
       /* Suppress message for /dev filesystems */
       if (!is_in_fileset(ff_pkt)) {
-         Jmsg(jcr, M_INFO, 1, _("     %s is a different filesystem. Will not descend from %s into %s\n"),
-              ff_pkt->fname, ff_pkt->top_fname, ff_pkt->fname);
+#ifdef HAVE_WIN32
+         Jmsg(jcr, M_INFO, 1, _("     %s is a junction point or a different filesystem. Will not descend from %s into it.\n"),
+              ff_pkt->fname, ff_pkt->top_fname);
+#else
+         Jmsg(jcr, M_INFO, 1, _("     %s is a different filesystem. Will not descend from %s into it.\n"),
+              ff_pkt->fname, ff_pkt->top_fname);
+#endif
       }
       ff_pkt->type = FT_DIREND;       /* Backup only the directory entry */
       break;
