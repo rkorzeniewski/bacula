@@ -357,22 +357,22 @@ static int job_select_handler(void *ctx, int num_fields, char **row)
 
    /* If this job doesn't exist anymore in the configuration, delete it */
    if (GetResWithName(R_JOB, row[0]) == NULL) {
-      return 1;
+      return 0;
    }
 
    /* If this fileset doesn't exist anymore in the configuration, delete it */
    if (GetResWithName(R_FILESET, row[1]) == NULL) {
-      return 1;
+      return 0;
    }
 
    /* If this client doesn't exist anymore in the configuration, delete it */
    if (GetResWithName(R_CLIENT, row[2]) == NULL) {
-      return 1;
+      return 0;
    }
 
    /* Don't compute accurate things for Verify jobs */
    if (*row[5] == 'V') {
-      return 1;
+      return 0;
    }
 
    res = (struct accurate_check_ctx*) malloc(sizeof(struct accurate_check_ctx));
