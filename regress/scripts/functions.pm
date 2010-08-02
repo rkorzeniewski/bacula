@@ -37,12 +37,14 @@ package scripts::functions;
 # perl -Mscripts::functions -e '' script
 use Exporter;
 our @ISA = qw(Exporter);
-our @EXPORT =  qw(update_some_files create_many_files check_multiple_copies
-                  update_client $HOST $BASEPORT add_to_backup_list check_volume_size
-                  create_many_dirs cleanup start_bacula stop_bacula get_resource
-                  set_maximum_concurrent_jobs get_time add_attribute check_prune_list
-                  check_min_volume_size check_max_volume_size $estat $bstat $rstat $zstat
-                  $cwd $bin $scripts $conf $rscripts $tmp $working extract_resource
+
+our @EXPORT = qw(update_some_files create_many_files check_multiple_copies
+                  update_client $HOST $BASEPORT add_to_backup_list
+                  check_volume_size create_many_dirs cleanup start_bacula
+                  stop_bacula get_resource set_maximum_concurrent_jobs get_time
+                  add_attribute check_prune_list check_min_volume_size
+                  check_max_volume_size $estat $bstat $rstat $zstat $cwd $bin
+                  $scripts $conf $rscripts $tmp $working extract_resource
                   $db_name $db_user $db_password $src $tmpsrc);
 
 
@@ -479,6 +481,10 @@ sub check_prune_list
             print "ERROR: in $f, $jobid in still present in the 2nd 'list jobs'\n";
             exit 1;
         }
+    }
+    if ($nb_list_job != 2) {
+        print "ERROR: in $f, not enough 'list jobs'\n";
+        exit 1;
     }
     exit 0;
 }
