@@ -77,6 +77,7 @@ nice tests/migration-volume-test
 nice tests/migration-time-test
 nice tests/multi-storage-test
 nice tests/prune-test
+nice tests/prune-config-test
 nice tests/prune-migration-test
 nice tests/prune-copy-test
 nice tests/prune-base-job-test
