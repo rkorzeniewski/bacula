@@ -51,6 +51,7 @@ messages
 run job=$JobName level=incremental yes
 wait
 messages
+@sleep 2
 list jobs
 prune jobs yes
 list jobs
@@ -60,6 +61,7 @@ list jobs
 run job=$JobName level=full yes
 wait
 messages
+@sleep 2
 list jobs
 prune jobs yes
 list jobs
