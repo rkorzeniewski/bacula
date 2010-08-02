@@ -60,7 +60,7 @@ wait
 run job=$JobName level=Incremental yes
 wait
 messages
-@sleep 1
+@sleep 2
 @################################################################
 @$out $cwd/tmp/log10.out
 @#
