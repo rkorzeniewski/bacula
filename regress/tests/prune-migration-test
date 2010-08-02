@@ -62,10 +62,8 @@ wait
 messages
 @sleep 1
 @################################################################
-@$out $cwd/tmp/log3.out
+@$out $cwd/tmp/log10.out
 @#
-@# This final job that runs should be Incremental and
-@# not upgraded to full.
 list jobs
 prune jobs yes
 list jobs
@@ -98,7 +96,8 @@ check_restore_diff
 # them (same number), and checks that the last 'list jobs' doesn't contain them
 # anymore. See scripts/functions.pm for details.
 
-$bperl -e "check_prune_list('$tmp/log3.out',1,2,3,4,5,7)"
+# M M g g F F I0 -> F
+$bperl -e "check_prune_list('$tmp/log10.out',1,2,3,4,5,7)"
 estat=$(($estat + $?))
 
 end_test
