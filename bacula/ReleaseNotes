@@ -23,8 +23,18 @@ Compatibility:
  Director and Storage daemons. There should be no need to upgrade older File
  Daemons.
 
-New Features:
-to be done ...
+Changes and New Features:
+- If a VSS (Windows) snapshot fails, the whole Job is failed, previously
+  it printed a warning message and continued.
+- New editing codes %b = Job Bytes and %f = Job Files for runscripts
+- Any non-Bacula project plugins (i.e. third party plugins) 
+  must be upgraded to specify AGPLv3 in place of the GPLv2 used previously 
+  for the PLUGIN_LICENSE.
+- The bat Media page text columns can be sorted by clicking on the column.
+- If possible, the SD will automatically update the catalog Volume size if 
+  it does not match the Volume size. The mismatch between the Volume sizes
+  typically occurs when the FD has a comm line drop or the FD crashes.
+
 
 Bug fixes
 1538 1554 1564 1567 1568 1569 1571 1577 1581 1582 1587 1594 1595 1606 1610
