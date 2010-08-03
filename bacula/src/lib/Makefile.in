@@ -23,6 +23,7 @@ thisdir = src/lib
 
 DEBUG=@DEBUG@
 CAP_LIBS = @CAP_LIBS@
+ZLIBS = @ZLIBS@
 
 first_rule: all
 dummy:
