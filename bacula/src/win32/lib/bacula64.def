@@ -481,6 +481,7 @@ _ZN6htableC2EPvS0_i
 _Z10b_free_jcrPKciP3JCR
 _Z11unlock_jobsv
 _Z12jcr_walk_endP3JCR
+_Z9job_countv
 _Z12job_end_pushP3JCRPFvS0_PvES1_
 _Z13get_jcr_by_idj
 _Z13jcr_walk_nextP3JCR
