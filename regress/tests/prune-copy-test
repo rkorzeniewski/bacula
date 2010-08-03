@@ -40,6 +40,7 @@ label storage=DiskChanger volume=ChangerVolume001 slot=1 Pool=Full drive=0
 label storage=DiskChanger volume=ChangerVolume002 slot=2 Pool=Full drive=0
 @# run two jobs (both will be copied)
 run job=$JobName yes
+@sleep 2
 run job=$JobName yes
 wait
 list jobs
