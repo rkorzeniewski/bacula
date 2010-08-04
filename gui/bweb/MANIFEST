@@ -1,7 +1,9 @@
-lib/Bweb.pm
 lib/Bconsole.pm
+lib/Bweb.pm
 lib/CCircle.pm
+lib/GBalloon.pm
+lib/GTime.pm
 Makefile.PL
 INSTALL
-COPYING
+LICENSE
 MANIFEST
