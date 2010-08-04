@@ -34,7 +34,6 @@ cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @$out /dev/null
 messages
 @$out ${cwd}/tmp/log1.out
-@# setdebug level=100 storage=File
 label storage=File volume=FileVolume001 Pool=Default
 label storage=DiskChanger volume=ChangerVolume001 slot=1 Pool=Full drive=0
 label storage=DiskChanger volume=ChangerVolume002 slot=2 Pool=Full drive=0
@@ -71,6 +70,7 @@ wait
 messages
 @$out ${cwd}/tmp/log10.out
 @sleep 1
+setdebug level=1 director
 list jobs
 prune jobs yes
 list jobs
