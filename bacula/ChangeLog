@@ -3,6 +3,11 @@
 
 Release version 5.0.3
 
+03Aug10
+- Fix Windows build
+- Remove patches directory
+- Fix compilation problem with zlib
+
 02Aug10
 - Remove comments field from tls-duplicate-job-test -- add back next database 
   upgrade

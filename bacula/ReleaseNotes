@@ -10,7 +10,7 @@ This 5.0.3 version is significant bug fix update to version 5.0.2.
 It includes new code and some new features.
 There is no database change since prior versions of 5.0.
 
-Note, if you are running 5.0.0, read the 5.0.1 release notes below in
+Note, if you are running 5.0.0, read the 5.0.1 and 5.0.2 release notes below in
   the 5.0.1 release section.
   Important!!!
 
@@ -91,8 +91,10 @@ Bug fixes
 
 See ChangeLog for more details.
 
+=============================================================================
 
-============= Release 5.0.1 =================================
+
+============= Release 5.0.2 ========================
 
 Changes since 5.0.1
 -------------------
@@ -128,6 +130,10 @@ Bug fixes
 - Fix OpenSSL 1.x problem in crypto.c on Fedora 12
 - Display AllowCompress warning message only if compression used in FileSet
 
+=============================================================================
+
+
+============= Release 5.0.1 ========================
 
 !!!!!!!!!!!!!!! NOTE FOR 5.0.0 USERS !!!!!!!!!!!!!!!!!!!!
 The Allow Duplicate Jobs directive has been significantly 
