@@ -25,9 +25,8 @@ if [ $# != 4 ] ; then
   echo "e.g. $0 release-source bee 4.0 4.0.1"
   exit 1
 fi
-cd $1
-check_return_code "$0: Directory $1 does not exist"
-cd bacula
+
+cd $1/bacula
 check_return_code "$0: Directory $1/bacula does not exist"
 src=`pwd` 
 current=`git branch | awk '/*/ { print $2 }'`
@@ -60,24 +59,14 @@ fi
 git tag -d ${fulltag} 2>/dev/null 1>/dev/null
 echo "Creating new tag -- $fulltag"
 git tag $fulltag
-if [ $? != 0 ] ; then
-  echo " "
-  echo "makebacularel: Non-zero return status from Git"
-  echo " "
-  exit 1
-fi
-echo "Create Tag $fulltag done"
+check_return_code "$0: Non-zero return status from git tag"
+echo "$0: Create Tag $fulltag done"
 cd ${cwd}
 rm -rf $base_pkg-$ver $base_pkg-$ver.tar.gz $base_pkg-$ver.tar.gz.sig
 rm -rf $fulltag
-cd ${src}
+cd $1
 git archive --format=tar --prefix=$base_pkg-$ver/ $fulltag | gzip >${cwd}/$base_pkg-$ver.tar.gz
-if [ $? != 0 ] ; then
-  echo " "
-  echo "makebacularel: Non-zero return status from Git"
-  echo " "
-  exit 1
-fi
+check_return_code "$0: Non-zero return status from git archive"
 echo "Exported release into ${cwd}/$base_pkg-$ver.tar.gz"
 cd ${cwd}
 tar xfz $base_pkg-$ver.tar.gz 
@@ -101,6 +90,6 @@ if [ a$push != ano ]; then
    echo "Pushed ${remote}"
 fi
 
-cd ${src}
+cd $1
 git checkout ${current}
 exit 0
