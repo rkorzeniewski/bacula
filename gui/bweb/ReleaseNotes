@@ -1,9 +1,11 @@
-          Release Notes for bweb 3.0.2
+Bweb 5.0.3
+
+          Release Notes for bweb 5.0.3
 
  - Fix graph_font parameter to work with graph module
  - Avoid warning messages in apache log with graph module
 
-          Release Notes for bweb 3.0
+          Release Notes for bweb 5.0.0
 
  - Support Copy and Migration jobs
  - Add "Mark missing job as Canceled" function
