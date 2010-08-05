@@ -16,10 +16,11 @@ base_pkg=bacula-rescue
 base_dir=rescue
 remote=$2
 branch=$3
+ver=$4
 
-if [ $# != 3 ] ; then
-  echo "Need $0 <rescue-source-directory> <remote-name> <branch>"
-  echo "e.g. $0 rescue-source bee Branch-4.0"
+if [ $# != 4 ] ; then
+  echo "Need $0 <rescue-source-directory> <remote-name> <branch> <version>"
+  echo "e.g. $0 rescue-source bee Branch-4.0 4.0.1"
   exit 1
 fi
 cd $1
@@ -41,7 +42,6 @@ if [ $? -ne 0 ]; then
    exit 1
 fi
 git pull ${remote} ${branch}
-ver=`sed -n -e 's/^.*VERSION.*"\(.*\)"$/\1/p' version.h`
 fulltag=$tagbase$ver
 echo " "
 echo "Making $reltype for $base_pkg-$ver ..."
@@ -74,8 +74,8 @@ echo "Exported release into ${cwd}/$base_pkg-$ver.tar.gz"
 if [ a$push != ano ]; then
    cd ${src}
    git push ${remote} ${branch}
-   git push ${remote} tag ${fulltag}
-   echo "Pushed ${remote} and push tag ${fulltag}"
+#  git push ${remote} tag ${fulltag}
+   echo "Pushed ${remote}"
 fi
 cd ${src}
 git checkout ${current}
