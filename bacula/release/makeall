@@ -16,8 +16,8 @@ remote=bs
 #
 # Note, you will probably want to set updatepo=no if you
 #   run this script multiple times for a given release.
-export updatepo=yes
-export push=no
+export updatepo=no
+export push=yes
 
 
 if [ $# != 1 ] ; then
