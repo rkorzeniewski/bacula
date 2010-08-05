@@ -12,6 +12,8 @@
 # Commit all changes, update the language files, 
 #    export the release, make a release tar.
 #
+. ./functions
+
 cwd=`pwd`
 reltype=release
 tagbase=Release-
@@ -24,28 +26,19 @@ if [ $# != 4 ] ; then
   exit 1
 fi
 cd $1
-if [ $? -ne 0 ]; then
-   echo "Directory: $1 does not exist"
-   exit 1
-fi
+check_return_code "$0: Directory $1 does not exist"
+cd bacula
+check_return_code "$0: Directory $1/bacula does not exist"
 src=`pwd` 
 current=`git branch | awk '/*/ { print $2 }'`
-cd $base_dir 
-if [ $?  -ne 0 ]; then
-   echo "Directory: $1 does not exist"
-   exit 1
-fi
 remote=$2
 branch=$3
 git checkout ${branch}
+check_return_code "$0: Checkout of branch ${branch} failed."
 git pull ${remote} ${branch}
-if [ $? -ne 0 ]; then
-   echo "Checkout of branch ${branch} failed."
-   exit 1
-fi
 fulltag=$tagbase$ver
 echo " "
-echo "Making $reltype for $base_pkg-$ver ..."
+echo "$0: Making $reltype for $base_pkg-$ver ..."
 echo " "
 echo "OK?  ctl-c to stop"
 read a
@@ -64,12 +57,12 @@ if [ a$updatepo != ano ]; then
    cd ${src}   
    git commit -am "Final po changes for ${fulltag}"
 fi
-git tag -d ${fulltag}
+git tag -d ${fulltag} 2>/dev/null 1>/dev/null
 echo "Creating new tag -- $fulltag"
 git tag $fulltag
 if [ $? != 0 ] ; then
   echo " "
-  echo "Non-zero return status from Git"
+  echo "makebacularel: Non-zero return status from Git"
   echo " "
   exit 1
 fi
@@ -81,7 +74,7 @@ cd ${src}
 git archive --format=tar --prefix=$base_pkg-$ver/ $fulltag | gzip >${cwd}/$base_pkg-$ver.tar.gz
 if [ $? != 0 ] ; then
   echo " "
-  echo "Non-zero return status from Git"
+  echo "makebacularel: Non-zero return status from Git"
   echo " "
   exit 1
 fi
@@ -110,3 +103,4 @@ fi
 
 cd ${src}
 git checkout ${current}
+exit 0

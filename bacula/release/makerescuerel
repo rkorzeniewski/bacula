@@ -9,6 +9,8 @@
 #
 # Commit all changes, export the release, make a release tar.
 #
+. ./functions
+
 cwd=`pwd`
 reltype=release
 tagbase=Release-
@@ -23,53 +25,33 @@ if [ $# != 4 ] ; then
   echo "e.g. $0 rescue-source bee Branch-4.0 4.0.1"
   exit 1
 fi
-cd $1
-if [ $? -ne 0 ]; then
-   echo "Directory: $1 does not exist"
-   exit 1
-fi
-cd $base_dir
-if [ $?  -ne 0 ]; then
-   echo "Directory: $1 does not exist"
-   exit 1
-fi
+cd $1/rescue
+check_return_code "$0: Directory $1/rescue does not exist"
 
 current=`git branch | awk '/*/ { print $2 }'`
 src=`pwd` 
 git checkout ${branch}
-if [ $? -ne 0 ]; then
-   echo "Checkout of branch ${branch} in ${src} failed."
-   exit 1
-fi
+check_return_code "$0: Checkout of branch ${branch} in ${src} failed."
+
 git pull ${remote} ${branch}
 fulltag=$tagbase$ver
 echo " "
-echo "Making $reltype for $base_pkg-$ver ..."
+echo "$0: Making $reltype for $base_pkg-$ver ..."
 echo " "
 echo "OK?  ctl-c to stop"
 read a
 
-git tag -d ${fulltag}
+git tag -d ${fulltag} 2>/dev/null 1>/dev/null
 echo "Creating new tag -- $fulltag"
 git tag $fulltag
-if [ $? != 0 ] ; then
-  echo " "
-  echo "Non-zero return status from Git"
-  echo " "
-  exit 1
-fi
+check_return_code "$0: Non-zero return status from git tag"
 echo "Create Tag $fulltag done"
 cd ${cwd}
 rm -rf $base_pkg-$ver $base_pkg-$ver.tar.gz $base_pkg-$ver.tar.gz.sig
 rm -rf $fulltag
 cd ${src}
 git archive --format=tar --prefix=$base_pkg-$ver/ $fulltag | gzip >${cwd}/$base_pkg-$ver.tar.gz
-if [ $? != 0 ] ; then
-  echo " "
-  echo "Non-zero return status from Git"
-  echo " "
-  exit 1
-fi
+check_return_code "$0: Non-zero return status from Git"
 echo "Exported release into ${cwd}/$base_pkg-$ver.tar.gz"
 if [ a$push != ano ]; then
    cd ${src}
@@ -83,3 +65,4 @@ git checkout ${current}
 cd ${cwd}
 ./sign $base_pkg-$ver.tar.gz
 ls -l $base_pkg-$ver.tar.*
+exit 0
