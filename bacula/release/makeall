@@ -10,7 +10,6 @@ docs=${docs:-${HOME}/bacula/docs}
 rescue=${rescue:-${HOME}/bacula/rescue}
 #
 # Set the following to your remote name.  By default it is origin.
-#  NOTE!!! There is a different remote set on rescue below
 remote=bs
 
 #
@@ -63,7 +62,6 @@ grep -i error win$$.log >/dev/null
 check_return_code "makeall: Errors in win$$.log"
 rm -f win$$.log
 
-remote=sf
 ./makerescuerel $rescue $remote $branch $ver
 check_return_code "$0: makerescuerel bad return code"
 
