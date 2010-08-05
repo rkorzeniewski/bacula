@@ -23,12 +23,15 @@ In general, you do the following:
 
    bacula/src/version.h
    rescue/version.h
-   winbmr/rescue/version.h
    gui/bweb/ReleaseNotes            (for makebwebrel)
+
+   In docs, you must run 
+   ./configure --with-bacula=<bacula source directory>  
+   so that the versions of the docs are correct.
 
 4. Run the makeall script.  
 
-   ./makeall Branch-4.0   # specify branch to release
+   ./makeall Branch-5.0   # specify branch to release
 
 5. There should be no errors.  If 
    there are, fix them, and re-run the script or re-run the scripts

@@ -10,11 +10,12 @@ rescue=${rescue:-${HOME}/bacula/k/rescue}
 # Set the following to your remote name.  By default it is origin.
 remote=bs
 
-export push=yes
 #
 # Note, you will probably want to set updatepo=no if you
 #   run this script multiple times for a given release.
 export updatepo=no
+export push=yes
+
 
 if [ $# != 1 ] ; then
   echo "Need $0 <Branch-to-release>"
