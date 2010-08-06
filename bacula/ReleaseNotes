@@ -1,14 +1,152 @@
 
-               Release Notes for Bacula 5.0.1
+               Release Notes for Bacula 5.0.3
 
-  Bacula code: Total files = 1,081 Total lines = 217,272 (Using SLOCCount)
+  Bacula code: Total files = 1,088 Total lines = 219,172 (Using SLOCCount)
 
-!!!!!!!!!!!!!!!!!!!!! NOTE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+General:
+--------
+
+This 5.0.3 version is significant bug fix update to version 5.0.2.
+It includes new code and some new features.
+There is no database change since prior versions of 5.0.
+
+Note, if you are running 5.0.0, read the 5.0.1 and 5.0.2 release notes below in
+  the 5.0.1 release section.
+  Important!!!
+
+Compatibility:
+--------------
+ As always, both the Director and Storage daemon must be upgraded at
+ the same time.
+
+ Older 5.0.x and 3.0.x File Daemons are compatible with the 5.0.3
+ Director and Storage daemons. There should be no need to upgrade older File
+ Daemons.
+
+Changes and New Features:
+- If a VSS (Windows) snapshot fails, the whole Job is failed, previously
+  it printed a warning message and continued.
+- New editing codes %b = Job Bytes and %f = Job Files for runscripts
+- Any non-Bacula project plugins (i.e. third party plugins) 
+  must be upgraded to specify AGPLv3 in place of the GPLv2 used previously 
+  for the PLUGIN_LICENSE.
+- The bat Media page text columns can be sorted by clicking on the column.
+- If possible, the SD will automatically update the catalog Volume size if 
+  it does not match the Volume size. The mismatch between the Volume sizes
+  typically occurs when the FD has a comm line drop or the FD crashes.
+
+
+Bug fixes
+1538 1554 1564 1567 1568 1569 1571 1577 1581 1582 1587 1594 1595 1606 1610
+
+- Change license from GPLv2 to AGPLv3
+- Make Win32 no filesystem change more explicit
+- Backport Branch-4.0 release to Branch-5.0
+- Massive backport from Branch-5.1 to Branch-5.0
+- Fix postgresql catalog creation when version is not on the first line
+- Fix bug #1610 handle empty xattr values on Linux and xBSD.
+- Garbage collect memory pool at end of job and before sm_dump
+- Add xattr seg fault protection suggested by Marco for bug #1610
+- Add archlinux to os.m4
+- More fixes for 32/64 bit problems in smartall
+- Fix 32/64 bit problem in smartalloc dump routine
+- Fix bad copy/paste in commit c88dccb88 prably a seg fault
+- Add .dump and .exit commands for daemons
+- Make SD automatically fix the Volume size in the Catalog when out of sync
+- Use Pmsg in smartall.c rather than printf for tracing Windows
+- Up maximum block size to 20M
+- Fix for TLS bugs #1568 and #1599
+- Improve comm line error handling for TLS, may fix bug #1568 and #1599
+- Fix problem when sending Cancel event to plugin
+- Convert all Jmsg on the watchdog thread to Qmsg
+- Fix SD crash due to mismatched lock/unlock in error condition
+- Fix bug #1587 if you have clients with different catalogs configured, both 
+  catalogs contains all clients after a reload or restart of the dir
+- Fix bug #1577 During migration: ERROR in block.c:950 Failed ASSERT: dev->is_open() 
+  by moving and commenting out the ASSERT()
+- Skip HB kill in FD if HB thread terminated
+- Fix crash from unequal volume_lock/unlock calls
+- New prunning algorithm -- should be more accurate
+- Save any dumps during regression to dumps directory
+- Fix crash from rw_lock/unlock miss match
+- Attempt to fix duplicate job kill seg fault
+- Replace pthread_kill by my_thread_send_signal() in jcr.c
+- fix #1595 about batch mode detection problem for postgresql with non standard 
+  install dir
+- Fix #1594 about prune copy jobs
+- Apply literal string fix in printf submitted by Luca Berra
+- Fix bug #1582 Restore from multiple storage daemons breaks subsequent backups
+- Fix segfault on "cancel jobid=" command
+- Fix bug #1554 Windows installer doesn't honor /S flag
+- Remove pool zap code that breaks 2drive-concurrent-test
+- Fix #1571 and install libraries with 755 perms
+- Fix bug #1581 ASSERTs in src/dird/jobq.c can never trigger
+- Fix problem with BaseJob and Accurate FileSet options on client side
+- Fix for bug #1569 deadlock/crash in Dir
+- Fix segfault when loading Plugins
+- Fix #1567 about display of long volume names truncated during restore
+- Added new bacula-libs package.
+- Fix bug #1538 Start Scripts return incorrect value
+- Fix bug #1564 init scripts not LSB compliant
+
+See ChangeLog for more details.
+
+=============================================================================
+
+
+============= Release 5.0.2 ========================
+
+Changes since 5.0.1
+-------------------
+
+Bug fixes
+1502 1511 1517 1524 1527 1532 1536 1541 1549 1551 1553 1559 1560
+
+- Probable fix for SD crash bug #1553
+- Fix #1559 problem when restoring pruned jobs with a regexp
+- Fix for bug #1560 bcopy cannot find Volume
+- Fix cancel crash bug #1551
+- Check if sql backend is thread-safe
+- Correct Pool display in SD status. Fixes bug #1541
+- Fix cancel crash reported by Stephen Thompson
+- Rewind on close to fix #1549
+- Remove closelog() in bpipe fixes bug #1536
+- Fix #1517 about missing Base level in .level command
+- Replace ASSERT in block.c with fail Job
+- Fix database locking calling db_lock and returning from function without
+  calling db_unlock.
+- Add missing db_unlock to bvfs_update_cache.
+- Fix #1532 about permission on binaries
+- Fix #1527 about deadlock during migration
+- Another fix for OpenSSLv1
+- Add -lrt to Solaris links
+- Fix tls.c for OpenSSLv1
+- Fix #1511 when trying to insert more than 50.000 directories in bvfs
+- Fix plugin load not to stop if one plugin bad -- pointed out by James
+- Remove --without-qwt from configure statement.
+- Second correct fix to bug #1524 verify fails after adding or removing files
+- Fix bug #1524 verify fails after adding or removing files
+- Apply fix suggested by Andreas in bug #1502 for mediaview column sort problem
+- Fix OpenSSL 1.x problem in crypto.c on Fedora 12
+- Display AllowCompress warning message only if compression used in FileSet
+
+=============================================================================
+
+
+============= Release 5.0.1 ========================
+
+!!!!!!!!!!!!!!! NOTE FOR 5.0.0 USERS !!!!!!!!!!!!!!!!!!!!
 The Allow Duplicate Jobs directive has been significantly 
 reworked, and the default value has changed. See below.
 
 Truncate On Purge has been totally rewritten. See the new
 features section of the manual.
+
+When Volume Poll Interval is set in the SD DEVICE configuration,
+(default 5 mins), after a certain number of polling tries (approx
+10) polling will stop and the operator will be asked to
+resolve the problem.  Previously there was no limit, and an
+error message could be produced at each poll attempt.
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 Changes since 5.0.0
@@ -31,8 +169,16 @@ Directives:
 - Truncate on Purge rewritten.  See New Features section in the manual.
 
 Bug fixes:
-1448 1466 1467 1468 1476 1481 1486 1488 1494 1497 1499 1501 1509
+1448 1466 1467 1468 1476 1481 1486 1488 1494 1497 
+1499 1501 1505 1509 1513
 
+- Ensure SD asks for help when looping even if poll set. Fixes bug #1513.
+- Fix three-pool regress bug
+- Modify bacula.spec fixes bug #1505
+- This version fixes an issue where the console window would start out
+  docked. It is fixed by initiating the variables in the Pages class wi
+  constructor.
+- Fix make_catalog_backup.pl fails when catalog db is on other host
 - Apply MacOSX installer patch from bug #1509
 - Apply fix to previous fix of Copy problem. Fix proposed by reporter o
   #1476
@@ -187,8 +333,6 @@ Please note the three Warnings below before doing any install or
 upgrade.
        
 
-
-
 Changes since 3.0.3a (the last Bacula Project release):
 -------------------------------------------------------
 
@@ -332,6 +476,6 @@ features.
 Please see the New Features chapter of the new manual, which documents
 some but not all the new features (we are still working on it):
 
-http://www.bacula.org/5.0.x-manuals/en/main/main/New_Features_in_5_0_0.html
+http://www.bacula.org/5.0.x-manuals/en/main/main/New_Features_in_5_0_1.html
   
 The ChangeLog has more details.
