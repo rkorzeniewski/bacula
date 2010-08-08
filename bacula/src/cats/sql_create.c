@@ -625,7 +625,7 @@ int db_create_counter_record(JCR *jcr, B_DB *mdb, COUNTER_DBR *cr)
    }
 
    /* Must create it */
-   Mmsg(mdb->cmd, "INSERT INTO Counters (Counter,MinValue,MaxValue,CurrentValue,"
+   Mmsg(mdb->cmd, "INSERT INTO Counters (Counter,\"MinValue\",\"MaxValue\",CurrentValue,"
       "WrapCounter) VALUES ('%s','%d','%d','%d','%s')",
       cr->Counter, cr->MinValue, cr->MaxValue, cr->CurrentValue,
       cr->WrapCounter);
