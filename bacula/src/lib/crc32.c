@@ -32,7 +32,6 @@
  *
  */
 
-
 #ifdef GENERATE_STATIC_CRC_TABLE
 /*
  * The following code can be used to generate the static CRC table.
@@ -138,3 +137,60 @@ uint32_t bcrc32(uint8_t *buf, int len)
   }
   return crc ^ 0xFFFFFFFFL;
 }
+
+
+
+#ifdef CRC32_SUM
+
+static void usage()
+{
+   fprintf(stderr,
+"\n"
+"Usage: crc32 <data-file>\n"
+"       -?          print this message.\n"
+"\n\n");
+
+   exit(1);
+}
+
+/*
+ * Reads a single ASCII file and prints the HEX md5 sum.
+ */
+#include <stdio.h>
+int main(int argc, char *argv[]) 
+{
+   FILE *fd;
+   char buf[5000];
+   int ch;
+
+   while ((ch = getopt(argc, argv, "h?")) != -1) {
+      switch (ch) {
+      case 'h':
+      case '?':
+      default:
+         usage();
+      }
+   }
+
+   argc -= optind;
+   argv += optind;
+
+   if (argc < 1) {
+      printf("Must have filename\n");
+      exit(1);
+   }
+
+   fd = fopen(argv[0], "rb");
+   if (!fd) {
+      printf("Could not open %s: ERR=%s\n", argv[0], strerror(errno));
+      exit(1);
+   }
+   uint32_t res;
+   while (fgets(buf, sizeof(buf), fd)) {
+      res = bcrc32((unsigned char *)buf, strlen(buf));
+      printf("%02x\n", res); 
+   }
+   printf("  %s (old)\n", argv[0]);
+   fclose(fd);
+}
+#endif
