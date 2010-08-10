@@ -104,6 +104,11 @@
 # define USE_VTAPE
 #endif
 
+/*
+ * USE_FTP is a ftp driver for the FD using curl.
+ */
+// #define USE_FTP
+
 /* 
  * for fastest speed but you must have a UPS to avoid unwanted shutdowns
  */
