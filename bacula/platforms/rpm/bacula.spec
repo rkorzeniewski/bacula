@@ -6,11 +6,17 @@
 
 # basic defines for every build
 %define _release           1
-%define _version           5.0.1
+%define _version           5.0.3
 %define _packager D. Scott Barninger <barninger@fairfieldcomputers.com>
 %define depkgs_version 18Dec09
 
-%define single_dir 0
+%define postgres_version 8
+%define postgres_package postgresql84
+%define postgres_server_package postgresql84-server
+%define postgres_devel_package postgresql84-devel
+
+
+%define single_dir 1
 %{?single_dir_install:%define single_dir 1}
 
 # Installation Directory locations
@@ -19,7 +25,7 @@
 %define _sbindir       /opt/bacula/bin
 %define _bindir        /opt/bacula/bin
 %define _subsysdir     /opt/bacula/working
-%define sqlite_bindir /opt/bacula/sqlite
+%define sqlite_bindir  /opt/bacula/sqlite
 %define _mandir        /usr/share/man
 %define sysconf_dir    /opt/bacula/etc
 %define script_dir     /opt/bacula/scripts
@@ -217,7 +223,7 @@ Name: bacula
 Version: %{_version}
 Release: %{_release}
 Group: System Environment/Daemons
-License: GPL v2
+License: AGPLv3
 BuildRoot: %{_tmppath}/%{name}-root
 URL: http://www.bacula.org/
 Vendor: The Bacula Team
@@ -232,8 +238,7 @@ Source1: Release_Notes-%{version}-1.tar.gz
 %else
 Source1: Release_Notes-%{version}-%{release}.tar.gz
 %endif
-Source2: bacula-2.2.7-postgresql.patch
-Source3: http://www.prdownloads.sourceforge.net/bacula/depkgs-%{depkgs_version}.tar.gz
+Source2: http://www.prdownloads.sourceforge.net/bacula/depkgs-%{depkgs_version}.tar.gz
 
 # define the basic package description
 %define blurb Bacula - The Leading Open Source Backup Solution.
@@ -243,7 +248,7 @@ Source3: http://www.prdownloads.sourceforge.net/bacula/depkgs-%{depkgs_version}.
 %define blurb5 it is a network client/server based backup program. Bacula is relatively
 %define blurb6 easy to use and efficient, while offering many advanced storage management
 %define blurb7 features that make it easy to find and recover lost or damaged files.
-%define blurb8 Bacula source code has been released under the GPL version 2 license.
+%define blurb8 Bacula source code has been released under the AGPL version 3 license.
 
 %define user_file  /etc/passwd
 %define group_file /etc/group
@@ -447,8 +452,8 @@ BuildRequires: mysql-client
 BuildRequires: mysql
 %endif
 %if 0%{?opensuse_bs} &&  %{suse} && %{postgresql}
-BuildRequires: postgresql
-BuildRequires: postgresql-server
+BuildRequires: %{postgres_package}
+BuildRequires: %{postgres_server_package}
 %endif
 BuildRequires: openssl
 
@@ -521,11 +526,11 @@ BuildRequires: mysql-devel
 %endif
 
 %if %{postgresql} && %{wb3}
-BuildRequires: rh-postgresql-devel >= 7
+BuildRequires: rh-postgresql-devel >= %{postgres_version}
 %endif
 
 %if %{postgresql} && ! %{wb3}
-BuildRequires: postgresql-devel >= 7
+BuildRequires: %{postgres_devel_package} >= %{postgres_version}
 %endif
 
 %description
@@ -708,7 +713,6 @@ This package installs the shared libraries used by many bacula programs.
 %prep
 %setup
 %setup -T -D -b 1
-%setup -T -D -b 3
 
 %build
 
@@ -723,9 +727,6 @@ make sqlite3
 cd ${cwd}
 %endif
 
-%if %{wb3} || %{old_pgsql}
-patch -p3 src/cats/postgresql.c < %SOURCE2
-%endif
 
 %if %{sqlite}
 # patches for the bundled sqlite scripts
@@ -963,6 +964,7 @@ rm -f $RPM_BUILD_DIR/Release_Notes-%{version}-%{release}.txt
 %attr(-, root, %{daemon_group}) %{script_dir}/grant_mysql_privileges
 %attr(-, root, %{daemon_group}) %{script_dir}/startmysql
 %attr(-, root, %{daemon_group}) %{script_dir}/stopmysql
+%{_libdir}/libbacsql*
 %endif
 
 %if %{sqlite}
@@ -990,6 +992,7 @@ rm -f $RPM_BUILD_DIR/Release_Notes-%{version}-%{release}.txt
 %attr(-, root, %{daemon_group}) %{script_dir}/drop_postgresql_tables
 %attr(-, root, %{daemon_group}) %{script_dir}/update_postgresql_tables
 %attr(-, root, %{daemon_group}) %{script_dir}/grant_postgresql_privileges
+%{_libdir}/libbacsql*
 %endif
 
 # The rest is DB backend independent
@@ -1011,6 +1014,7 @@ rm -f $RPM_BUILD_DIR/Release_Notes-%{version}-%{release}.txt
 %attr(-, root, %{daemon_group}) %{script_dir}/delete_catalog_backup
 %attr(-, root, %{daemon_group}) %{script_dir}/btraceback.dbx
 %attr(-, root, %{daemon_group}) %{script_dir}/btraceback.gdb
+%attr(-, root, %{daemon_group}) %{script_dir}/btraceback.mdb
 %attr(-, root, %{daemon_group}) %{script_dir}/disk-changer
 %attr(-, root, %{daemon_group}) %{script_dir}/bacula-ctl-dir
 %attr(-, root, %{daemon_group}) %{script_dir}/bacula-ctl-fd
@@ -1078,7 +1082,7 @@ rm -f $RPM_BUILD_DIR/Release_Notes-%{version}-%{release}.txt
 
 %if %{mysql}
 %pre mysql
-# test for bacula database older than version 12
+# test for bacula database older than version 13
 # note: this ASSUMES no password has been set for bacula database
 DB_VER=`mysql 2>/dev/null bacula -e 'select * from Version;'|tail -n 1`
 %endif
@@ -1107,7 +1111,7 @@ if [ -s %{working_dir}/bacula.db ] && [ -s %{sqlite_bindir}/sqlite ];then
         echo "chown bacula.bacula bacula.db"
         exit 1
 fi
-# test for bacula database older than version 11 and sqlite3
+# test for bacula database older than version 12 and sqlite3
 if [ -s %{working_dir}/bacula.db ] && [ -s %{sqlite_bindir}/sqlite3 ];then
         DB_VER=`echo "select * from Version;" | %{sqlite_bindir}/sqlite3 2>/dev/null %{working_dir}/bacula.db | tail -n 1`
 %endif
@@ -1118,13 +1122,13 @@ DB_VER=`echo 'select * from Version;' | psql bacula 2>/dev/null | tail -3 | head
 %endif
 
 %if ! %{client_only}
-if [ -n "$DB_VER" ] && [ "$DB_VER" -lt "11" ]; then
-    echo "This bacula upgrade will update a bacula database from version 11 to 12."
+if [ -n "$DB_VER" ] && [ "$DB_VER" -lt "12" ]; then
+    echo "This bacula upgrade will update a bacula database from version 12 to 13."
     echo "You appear to be running database version $DB_VER. You must first update"
-    echo "your database to version 11 and then install this upgrade. The alternative"
+    echo "your database to version 12 and then install this upgrade. The alternative"
     echo "is to use %{script_dir}/drop_%{db_backend}_tables to delete all your your current"
     echo "catalog information, then do the upgrade. Information on updating a"
-    echo "database older than version 11 can be found in the release notes."
+    echo "database older than version 12 can be found in the release notes."
     exit 1
 fi
 %endif
@@ -1234,7 +1238,7 @@ if [ -z "$DB_VER" ]; then
     %{script_dir}/make_mysql_tables
 
 # check to see if we need to upgrade a 3.x database
-elif [ "$DB_VER" -lt "12" ]; then
+elif [ "$DB_VER" -lt "13" ]; then
     echo "This release requires an upgrade to your bacula database."
     echo "Backing up your current database..."
     mysqldump -f --opt bacula | bzip2 > %{working_dir}/bacula_backup.sql.bz2
@@ -1251,7 +1255,7 @@ fi
 if [ -s %{working_dir}/bacula.db ]; then
         DB_VER=`echo "select * from Version;" | %{sqlite_bindir}/sqlite3 2>/dev/null %{working_dir}/bacula.db | tail -n 1`
         # check to see if we need to upgrade a 3.x database
-        if [ "$DB_VER" -lt "12" ] && [ "$DB_VER" -ge "11" ]; then
+        if [ "$DB_VER" -lt "13" ] && [ "$DB_VER" -ge "12" ]; then
                 echo "This release requires an upgrade to your bacula database."
                 echo "Backing up your current database..."
                 echo ".dump" | %{sqlite_bindir}/sqlite3 %{working_dir}/bacula.db | bzip2 > %{working_dir}/bacula_backup.sql.bz2
@@ -1288,8 +1292,8 @@ if [ -z "$DB_VER" ]; then
     echo "Granting privileges for PostgreSQL user bacula..."
     %{script_dir}/grant_postgresql_privileges
 
-# check to see if we need to upgrade a 3.x database
-elif [ "$DB_VER" -lt "12" ]; then
+# check to see if we need to upgrade a 5.0.x database
+elif [ "$DB_VER" -lt "13" ]; then
     echo "This release requires an upgrade to your bacula database."
     echo "Backing up your current database..."
     pg_dump bacula | bzip2 > %{working_dir}/bacula_backup.sql.bz2
@@ -1421,7 +1425,8 @@ fi
 
 %files libs
 %defattr(-,root,root)
-%{_libdir}/libbac*
+%{_libdir}/libbac-*
+%{_libdir}/libbac.*
 %{_libdir}/libbaccfg*
 %{_libdir}/libbacfind*
 %{_libdir}/libbacpy*

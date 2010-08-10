@@ -41,7 +41,7 @@ Name: bacula-mtx
 Version: %{_version}
 Release: %{_release}
 Group: System Environment/Daemons
-License: GPL v2
+License: AGPLv3
 BuildRoot: %{_tmppath}/%{name}-root
 URL: http://www.bacula.org/
 Vendor: The Bacula Team
@@ -59,7 +59,7 @@ Source: http://www.prdownloads.sourceforge.net/bacula/depkgs-%{depkgs_version}.t
 %define blurb5 it is a network client/server based backup program. Bacula is relatively
 %define blurb6 easy to use and efficient, while offering many advanced storage management
 %define blurb7 features that make it easy to find and recover lost or damaged files.
-%define blurb8 Bacula source code has been released under the GPL version 2 license.
+%define blurb8 Bacula source code has been released under the AGPL version 3 license.
 
 Summary: Bacula - The Network Backup Solution
 Group: System Environment/Daemons
