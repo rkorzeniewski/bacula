@@ -31,6 +31,9 @@
 
 */
 
+#ifndef SMARTALLOC_H
+#define SMARTALLOC_H
+
 extern uint64_t DLL_IMP_EXP sm_max_bytes;
 extern uint64_t DLL_IMP_EXP sm_bytes;
 extern uint32_t DLL_IMP_EXP sm_max_buffers;
@@ -85,8 +88,8 @@ extern int sm_check_rtn(const char *fname, int lineno, bool bufdump);
 #define sm_dump(x)
 #define sm_static(x)
 #define sm_new_owner(a, b, c)
-#define sm_malloc(f, l, n) malloc(n)
-
+#define sm_malloc(f, l, n)     malloc(n)
+#define sm_free(f,l n)         free(n)
 #define sm_check(f, l, fl)
 #define sm_check_rtn(f, l, fl) 1
 
@@ -138,7 +141,6 @@ void *operator new(size_t s) throw() { (void)s; return 0; }
 void *operator new[](size_t s) throw() { (void)s; return 0; }
 };
 
-
 #else
 
 #define New(type) new type
@@ -159,4 +161,52 @@ class SMARTALLOC
           free(ptr);
       }
 };
-#endif
+#endif  /* SMARTALLOC */
+
+/* We do memset(0) because it's not possible to memset a class when
+ * using subclass with virtual functions
+ */
+
+/* Now, sm_malloc and sm_free can be smartalloc or normal function */
+inline void *operator new(size_t size, char const * file, int line)
+{
+   void *pnew = sm_malloc(file,line, size);
+   memset((char *)pnew, 0, size);
+   return pnew;
+}
+
+inline void *operator new[](size_t size, char const * file, int line)
+{
+   void *pnew = sm_malloc(file, line, size);
+   memset((char *)pnew, 0, size);
+   return pnew;
+}
+
+inline void *operator new(size_t size)
+{
+   void *pnew = sm_malloc(__FILE__, __LINE__, size);
+   memset((char *)pnew, 0, size);
+   return pnew;
+}
+
+inline void *operator new[](size_t size)
+{
+   void *pnew = sm_malloc(__FILE__, __LINE__, size);
+   memset((char *)pnew, 0, size);
+   return pnew;
+}
+
+//#define new   new(__FILE__, __LINE__)
+
+inline void operator delete(void *buf)
+{
+   sm_free( __FILE__, __LINE__, buf);
+}
+
+inline void operator delete[] (void *buf)
+{
+  sm_free(__FILE__, __LINE__, buf);
+}
+
+
+#endif  /* !SMARTALLOC_H */
