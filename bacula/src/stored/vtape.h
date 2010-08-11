@@ -51,7 +51,7 @@ typedef enum {
    VT_SKIP_EOF                  /* Have already read the EOF byte */
 } VT_READ_FM_MODE;
 
-class vtape: public DEVICE{
+class vtape: public DEVICE {
 private:
    int         fd;              /* Our file descriptor */
 
@@ -118,7 +118,7 @@ public:
    int d_close(int) { return -1; }
    int d_ioctl(int fd, ioctl_req_t request, char *mt) { return -1; }
    boffset_t lseek(DCR *dcr, off_t offset, int whence) { return -1; }
-}
+};
 
 #endif  /* USE_VTAPE */
 
