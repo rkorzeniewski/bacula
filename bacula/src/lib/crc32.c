@@ -69,21 +69,20 @@ main()
 
 #include "bacula.h"
 
-#ifndef __BYTE_ORDER
-#error __BYTE_ORDER not defined!
+#if !defined(HAVE_LITTLE_ENDIAN) && !defined(HAVE_BIG_ENDIAN)
+#error Either HAVE_LITTLE_ENDIAN or HAVE_BIG_ENDIAN must be defined!
 #endif
-#define bswab32(x)						   \
-	((uint32_t)(						   \
-		(((uint32_t)(x) & (uint32_t)0x000000ffUL) << 24) | \
-		(((uint32_t)(x) & (uint32_t)0x0000ff00UL) <<  8) | \
-		(((uint32_t)(x) & (uint32_t)0x00ff0000UL) >>  8) | \
-		(((uint32_t)(x) & (uint32_t)0xff000000UL) >> 24) ))
-
 /* tole == To Little Endian */
-#if __BYTE_ORDER == __LITTLE_ENDIAN
-#define tole(x) x
+#ifdef HAVE_BIG_ENDIAN
+#define tole(x) \
+       ((uint32_t)(                                               \
+               (((uint32_t)(x) & (uint32_t)0x000000ffUL) << 24) | \
+               (((uint32_t)(x) & (uint32_t)0x0000ff00UL) <<  8) | \
+               (((uint32_t)(x) & (uint32_t)0x00ff0000UL) >>  8) | \
+               (((uint32_t)(x) & (uint32_t)0xff000000UL) >> 24) ))
+
 #else
-#define tole(x) bswab32(x)
+#define tole(x) x
 #endif
 
 /*
