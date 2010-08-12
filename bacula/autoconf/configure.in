@@ -1757,7 +1757,7 @@ dnl Check if postgresql can support batch mode
 if test x$DB_TYPE = xpostgresql; then
    AC_CHECK_LIB(pq, PQisthreadsafe, AC_DEFINE(HAVE_PQISTHREADSAFE, 1, [Set if have PQisthreadsafe]))
    AC_CHECK_LIB(pq, PQputCopyData, AC_DEFINE(HAVE_PQ_COPY, 1, [Set if have PQputCopyData]))
-   test "x$ac_cv_lib_pq_PQputCopyData" != "xyes"
+   test "x$ac_cv_lib_pq_PQputCopyData" = "xyes"
    pkg=$?
    if test $pkg = 0; then
       AC_ARG_ENABLE(batch-insert,
@@ -1781,7 +1781,7 @@ if test x$DB_TYPE = xdbi; then
    if test $DB_PROG = postgresql; then
       AC_CHECK_LIB(pq, PQisthreadsafe, AC_DEFINE(HAVE_PQISTHREADSAFE))
       AC_CHECK_LIB(pq, PQputCopyData, AC_DEFINE(HAVE_PQ_COPY))
-      test "x$ac_cv_lib_pq_PQputCopyData" != "xyes"
+      test "x$ac_cv_lib_pq_PQputCopyData" = "xyes"
       pkg=$?
    fi
 
