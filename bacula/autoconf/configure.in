@@ -1755,6 +1755,7 @@ LIBS="${saved_LIBS} ${SQL_LFLAGS}"
    
 dnl Check if postgresql can support batch mode
 if test x$DB_TYPE = xpostgresql; then
+   support_batch_insert=yes
    AC_CHECK_LIB(pq, PQisthreadsafe, AC_DEFINE(HAVE_PQISTHREADSAFE, 1, [Set if have PQisthreadsafe]))
    AC_CHECK_LIB(pq, PQputCopyData, AC_DEFINE(HAVE_PQ_COPY, 1, [Set if have PQputCopyData]))
    test "x$ac_cv_lib_pq_PQputCopyData" = "xyes"
@@ -1765,11 +1766,11 @@ if test x$DB_TYPE = xpostgresql; then
 	 [
 	     if test x$enableval = xno; then
 		support_batch_insert=no
-	     else
-		support_batch_insert=yes
 	     fi
 	 ]
       )
+   else
+      support_batch_insert=no
    fi
 fi
 
