@@ -441,7 +441,7 @@ public:
    int fd() const { return m_fd; };
 
    /* low level operations */
-   virtual int d_ioctl(int fd, ioctl_req_t request, char *mt_com);
+   virtual int d_ioctl(int fd, ioctl_req_t request, char *mt_com=NULL);
    virtual int d_open(const char *pathname, int flags);
    virtual int d_close(int fd);
    virtual ssize_t d_read(int fd, void *buffer, size_t count);

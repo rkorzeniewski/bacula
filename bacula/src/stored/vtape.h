@@ -95,7 +95,7 @@ public:
    /* interface from DEVICE */
    int d_close(int);
    int d_open(const char *pathname, int flags);
-   int d_ioctl(int fd, ioctl_req_t request, char *mt);
+   int d_ioctl(int fd, ioctl_req_t request, char *mt=NULL);
    ssize_t d_read(int, void *buffer, size_t count);
    ssize_t d_write(int, const void *buffer, size_t count);
 
@@ -116,7 +116,7 @@ public:
    ssize_t d_read(void *buffer, size_t count) { return -1; }
    ssize_t d_write(const void *buffer, size_t count) { return -1; }
    int d_close(int) { return -1; }
-   int d_ioctl(int fd, ioctl_req_t request, char *mt) { return -1; }
+   int d_ioctl(int fd, ioctl_req_t request, char *mt=NULL) { return -1; }
    boffset_t lseek(DCR *dcr, off_t offset, int whence) { return -1; }
 };
 
