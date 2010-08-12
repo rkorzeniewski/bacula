@@ -103,20 +103,29 @@ extern void *b_malloc();
 
 #define New(type) new(__FILE__, __LINE__) type
 
+/* We do memset(0) because it's not possible to memset a class when
+ * using subclass with virtual functions
+ */
+
 class SMARTALLOC
 {
 public:
 
 void *operator new(size_t s, const char *fname, int line)
 {
-  void *p = sm_malloc(fname, line, s > sizeof(int) ? (unsigned int)s : sizeof(int));
-  return p;
+   size_t size =  s > sizeof(int) ? (unsigned int)s : sizeof(int);
+   void *p = sm_malloc(fname, line, size);
+   memset(p, 0, size);
+   return p;
 }
 void *operator new[](size_t s, const char *fname, int line)
 {
-   void *p = sm_malloc(fname, line, s > sizeof(int) ? (unsigned int)s : sizeof(int));
+   size_t size =  s > sizeof(int) ? (unsigned int)s : sizeof(int);
+   void *p = sm_malloc(fname, line, size);
+   memset(p, 0, size);
    return p;
 }
+
 void  operator delete(void *ptr)
 {
    free(ptr);
@@ -130,11 +139,11 @@ void  operator delete(void *ptr, const char * /*fname*/, int /*line*/)
 {
    free(ptr);
 }
-void  operator delete[](void *ptr, size_t /*i*/, const char * /*fname*/, int /*line*/)
+void  operator delete[](void *ptr, size_t /*i*/, 
+                        const char * /*fname*/, int /*line*/)
 {
    free(ptr);
 }
-
 
 private:
 void *operator new(size_t s) throw() { (void)s; return 0; }
@@ -149,10 +158,14 @@ class SMARTALLOC
 {
    public:
       void *operator new(size_t s) {
-          return malloc(s);
+         void *p = malloc(s);
+         memset(p, 0, s);
+         return p;
       }
       void *operator new[](size_t s) {
-          return malloc(s);
+         void *p = malloc(s);
+         memset(p, 0, s);
+         return p;
       }
       void  operator delete(void *ptr) {
           free(ptr);
@@ -162,51 +175,5 @@ class SMARTALLOC
       }
 };
 #endif  /* SMARTALLOC */
-
-/* We do memset(0) because it's not possible to memset a class when
- * using subclass with virtual functions
- */
-
-/* Now, sm_malloc and sm_free can be smartalloc or normal function */
-inline void *operator new(size_t size, char const * file, int line)
-{
-   void *pnew = sm_malloc(file,line, size);
-   memset((char *)pnew, 0, size);
-   return pnew;
-}
-
-inline void *operator new[](size_t size, char const * file, int line)
-{
-   void *pnew = sm_malloc(file, line, size);
-   memset((char *)pnew, 0, size);
-   return pnew;
-}
-
-inline void *operator new(size_t size)
-{
-   void *pnew = sm_malloc(__FILE__, __LINE__, size);
-   memset((char *)pnew, 0, size);
-   return pnew;
-}
-
-inline void *operator new[](size_t size)
-{
-   void *pnew = sm_malloc(__FILE__, __LINE__, size);
-   memset((char *)pnew, 0, size);
-   return pnew;
-}
-
-//#define new   new(__FILE__, __LINE__)
-
-inline void operator delete(void *buf)
-{
-   sm_free( __FILE__, __LINE__, buf);
-}
-
-inline void operator delete[] (void *buf)
-{
-  sm_free(__FILE__, __LINE__, buf);
-}
-
-
+   
 #endif  /* !SMARTALLOC_H */

@@ -206,7 +206,7 @@ class VOLRES; /* forward reference */
  *  each physical device. Everything here is "global" to
  *  that device and effects all jobs using the device.
  */
-class DEVICE {
+class DEVICE: public SMARTALLOC {
 protected:
    int m_fd;                          /* file descriptor */
 private:

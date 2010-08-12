@@ -147,26 +147,26 @@ init_dev(JCR *jcr, DEVRES *device)
       Jmsg0(jcr, M_FATAL, 0, _("DVD support is now deprecated\n"));
       return NULL;
    case B_VTAPE_DEV:
-      dev = new vtape;
+      dev = New(vtape);
       break;
 #ifdef USE_FTP
    case B_FTP_DEV:
-      dev = new ftp_device;
+      dev = New(ftp_device);
       break;
 #endif
 #ifdef HAVE_WIN32
 /* TODO: defined in src/win32/stored/mtops.cpp */
    case B_TAPE_DEV:
-      dev = new win32_tape_device;
+      dev = New(win32_tape_device);
       break;
    case B_FILE_DEV:
-      dev = new win32_file_device;
+      dev = New(win32_file_device);
       break;
 #else
    case B_TAPE_DEV:
    case B_FILE_DEV:
    case B_FIFO_DEV:
-      dev = new DEVICE;
+      dev = New(DEVICE);
       break;
 #endif
    default:
