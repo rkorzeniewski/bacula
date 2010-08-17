@@ -1815,7 +1815,7 @@ static bxattr_exit_code solaris_save_xattrs(JCR *jcr, const char *xattr_namespac
    /*
     * Walk the namespace.
     */
-   while (dp = readdir(dirp)) {
+   while ((dp = readdir(dirp)) != NULL) {
       /*
        * Skip only the toplevel . dir.
        */
