@@ -288,15 +288,16 @@ static int do_list_cmd(UAContext *ua, const char *cmd, e_list_type llist)
       ua->error_msg(_("Hey! DB is NULL\n"));
    }
 
+   /* Apply any limit */
+   j = find_arg_with_value(ua, NT_("limit"));
+   if (j >= 0) {
+      jr.limit = atoi(ua->argv[j]);
+   }
+
    /* Scan arguments looking for things to do */
    for (i=1; i<ua->argc; i++) {
       /* List JOBS */
       if (strcasecmp(ua->argk[i], NT_("jobs")) == 0) {
-         /* Apply any limit */
-         j = find_arg_with_value(ua, NT_("limit"));
-         if (j >= 0) {
-            jr.limit = atoi(ua->argv[j]);
-         }
          db_list_job_records(ua->jcr, ua->db, &jr, prtit, ua, llist);
 
          /* List JOBTOTALS */
