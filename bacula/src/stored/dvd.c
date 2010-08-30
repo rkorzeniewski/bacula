@@ -430,9 +430,14 @@ static bool dvd_open_first_part(DCR *dcr, int mode)
  */
 boffset_t lseek_dvd(DCR *dcr, boffset_t offset, int whence)
 {
-   DEVICE *dev = dcr->dev;
+   DEVICE *dev;
    boffset_t pos;
    char ed1[50], ed2[50];
+
+   if (!dcr) {                  /* can be NULL when called from rewind(NULL) */
+      return -1;
+   }
+   dev = dcr->dev;
    
    Dmsg5(400, "Enter lseek_dvd fd=%d off=%s w=%d part=%d nparts=%d\n", dev->fd(),
       edit_int64(offset, ed1), whence, dev->part, dev->num_dvd_parts);
