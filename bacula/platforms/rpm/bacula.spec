@@ -560,7 +560,7 @@ Provides: bacula-dir, bacula-sd, bacula-fd, bacula-server
 Conflicts: bacula-client
 
 Requires: ncurses, libstdc++, zlib, openssl
-Requires: glibc, readline, bacula-libs
+Requires: glibc, readline, %{name}-libs
 
 %if %{suse}
 Conflicts: bacula
@@ -633,7 +633,7 @@ Provides: bacula
 %endif
 
 Requires: libstdc++, zlib, openssl
-Requires: glibc, readline, bacula-libs
+Requires: glibc, readline, %{name}-libs
 
 %if %{suse}
 Requires: termcap

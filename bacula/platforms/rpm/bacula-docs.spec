@@ -1,6 +1,6 @@
 # Bacula RPM spec file
 #
-# Copyright (C) 2000-2009 Free Software Foundation Europe e.V.
+# Copyright (C) 2000-2010 Free Software Foundation Europe e.V.
 
 # Platform Build Configuration
 
