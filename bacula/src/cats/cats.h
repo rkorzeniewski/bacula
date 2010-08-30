@@ -198,7 +198,7 @@ SQL_ROW    my_sqlite_fetch_row(B_DB *mdb);
 int        my_sqlite_query(B_DB *mdb, const char *cmd);
 void       my_sqlite_field_seek(B_DB *mdb, int field);
 SQL_FIELD *my_sqlite_fetch_field(B_DB *mdb);
-int my_sqlite_insert_autokey_record(B_DB *mdb, const char *query, const char *table_name);
+int64_t my_sqlite_insert_autokey_record(B_DB *mdb, const char *query, const char *table_name);
 extern const char* my_sqlite_batch_lock_query;
 extern const char* my_sqlite_batch_unlock_query;
 extern const char* my_sqlite_batch_fill_filename_query;
@@ -326,7 +326,7 @@ SQL_ROW    my_sqlite_fetch_row(B_DB *mdb);
 int        my_sqlite_query(B_DB *mdb, const char *cmd);
 void       my_sqlite_field_seek(B_DB *mdb, int field);
 SQL_FIELD *my_sqlite_fetch_field(B_DB *mdb);
-int        my_sqlite_insert_autokey_record(B_DB *mdb, const char *query, const char *table_name);
+int64_t    my_sqlite_insert_autokey_record(B_DB *mdb, const char *query, const char *table_name);
 extern const char* my_sqlite_batch_lock_query;
 extern const char* my_sqlite_batch_unlock_query;
 extern const char* my_sqlite_batch_fill_filename_query;
@@ -414,7 +414,7 @@ extern const char* my_mysql_batch_unlock_tables_query;
 extern const char* my_mysql_batch_fill_filename_query;
 extern const char* my_mysql_batch_fill_path_query;
 extern void  my_mysql_free_result(B_DB *mdb);
-extern int my_mysql_insert_autokey_record(B_DB *mdb, const char *query, const char *table_name);
+extern int64_t my_mysql_insert_autokey_record(B_DB *mdb, const char *query, const char *table_name);
 
 #else
 
@@ -485,7 +485,7 @@ void               my_postgresql_free_result(B_DB *mdb);
 POSTGRESQL_ROW     my_postgresql_fetch_row  (B_DB *mdb);
 int                my_postgresql_query      (B_DB *mdb, const char *query);
 void               my_postgresql_data_seek  (B_DB *mdb, int row);
-int                my_postgresql_insert_autokey_record  (B_DB *mdb, const char *query, const char *table_name);
+int64_t            my_postgresql_insert_autokey_record  (B_DB *mdb, const char *query, const char *table_name);
 void               my_postgresql_field_seek (B_DB *mdb, int row);
 POSTGRESQL_FIELD * my_postgresql_fetch_field(B_DB *mdb);
 
@@ -596,7 +596,7 @@ void               my_ingres_data_seek  (B_DB *mdb, int row);
 void               my_ingres_field_seek (B_DB *mdb, int row);
 INGRES_FIELD *     my_ingres_fetch_field(B_DB *mdb);
 void               my_ingres_close      (B_DB *mdb);
-int                my_ingres_insert_autokey_record  (B_DB *mdb, const char *query, const char *table_name);
+int64_t            my_ingres_insert_autokey_record  (B_DB *mdb, const char *query, const char *table_name);
 
 bool my_ingres_batch_start(JCR *jcr, B_DB *mdb);
 bool my_ingres_batch_end(JCR *jcr, B_DB *mdb, const char *error);
@@ -725,7 +725,7 @@ const char *       my_dbi_strerror   (B_DB *mdb);
 int                my_dbi_getisnull  (dbi_result *result, int row_number, int column_number);
 char *             my_dbi_getvalue   (dbi_result *result, int row_number, unsigned int column_number);
 //int                my_dbi_getvalue   (dbi_result *result, int row_number, unsigned int column_number, char *value);
-int                my_dbi_insert_autokey_record(B_DB *mdb, const char *query, const char *table_name);
+int64_t            my_dbi_insert_autokey_record(B_DB *mdb, const char *query, const char *table_name);
 
 int my_dbi_batch_start(JCR *jcr, B_DB *mdb);
 int my_dbi_batch_end(JCR *jcr, B_DB *mdb, const char *error);

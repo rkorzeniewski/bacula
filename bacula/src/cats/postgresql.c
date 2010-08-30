@@ -650,7 +650,7 @@ void my_postgresql_free_result(B_DB *mdb)
    db_unlock(mdb);
 }
 
-static int my_postgresql_currval(B_DB *mdb, const char *table_name)
+static int64_t my_postgresql_currval(B_DB *mdb, const char *table_name)
 {
    // Obtain the current value of the sequence that
    // provides the serial value for primary key of the table.
@@ -671,7 +671,7 @@ static int my_postgresql_currval(B_DB *mdb, const char *table_name)
    char      sequence[NAMEDATALEN-1];
    char      query   [NAMEDATALEN+50];
    PGresult *result;
-   int       id = 0;
+   int64_t   id = 0;
 
    if (strcasecmp(table_name, "basefiles") == 0) {
       bstrncpy(sequence, "basefiles_baseid", sizeof(sequence));
@@ -702,7 +702,7 @@ static int my_postgresql_currval(B_DB *mdb, const char *table_name)
 
    if (PQresultStatus(result) == PGRES_TUPLES_OK) {
       Dmsg0(500, "getting value");
-      id = atoi(PQgetvalue(result, 0, 0));
+      id = str_to_int64(PQgetvalue(result, 0, 0));
       Dmsg2(500, "got value '%s' which became %d\n", PQgetvalue(result, 0, 0), id);
    } else {
       Dmsg1(50, "Result status failed: %s\n", query);
@@ -715,7 +715,7 @@ bail_out:
    return id;
 }
 
-int my_postgresql_insert_autokey_record(B_DB *mdb, const char *query, const char *table_name)
+int64_t my_postgresql_insert_autokey_record(B_DB *mdb, const char *query, const char *table_name)
 {
    /*
     * First execute the insert query and then retrieve the currval.

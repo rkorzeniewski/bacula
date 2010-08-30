@@ -1275,7 +1275,7 @@ static int my_dbi_sequence_last(B_DB *mdb, const char *table_name)
    return id;
 }
 
-int my_dbi_insert_autokey_record(B_DB *mdb, const char *query, const char *table_name)
+int64_t my_dbi_insert_autokey_record(B_DB *mdb, const char *query, const char *table_name)
 {
    /*
     * First execute the insert query and then retrieve the currval.
