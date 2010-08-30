@@ -668,9 +668,15 @@ bail_out:
    return 0;
 }
 
+struct OBJ_CTX {
+   JCR *jcr;
+   int count;
+};
+
 static int restore_object_handler(void *ctx, int num_fields, char **row)
 {
-   JCR *jcr = (JCR *)ctx;
+   OBJ_CTX *octx = (OBJ_CTX *)ctx;
+   JCR *jcr = octx->jcr;
    BSOCK *fd;
 
    fd = jcr->file_bsock;
@@ -704,6 +710,7 @@ static int restore_object_handler(void *ctx, int num_fields, char **row)
                       str_to_uint64(row[1]), /* Object length */
                       &fd->msg, &fd->msglen);
    fd->send();                           /* send object */
+   octx->count++;
 
    if (debug_level) {
       for (int i=0; i < fd->msglen; i++)
@@ -719,11 +726,13 @@ bool send_restore_objects(JCR *jcr)
 {
    POOL_MEM query(PM_MESSAGE);
    BSOCK *fd;
+   OBJ_CTX octx;
 
-// Dmsg0(000, "Enter send_restore_objects\n");
    if (!jcr->JobIds || !jcr->JobIds[0]) {
       return true;
    }
+   octx.jcr = jcr;
+   octx.count = 0;
    Mmsg(query, "SELECT JobId,ObjectLength,ObjectFullLength,ObjectIndex,"
                       "ObjectType,ObjectCompression,FileIndex,ObjectName,"
                       "RestoreObject "
@@ -732,15 +741,20 @@ bool send_restore_objects(JCR *jcr)
               "ORDER BY ObjectIndex ASC", jcr->JobIds);
    
    /* restore_object_handler is called for each file found */
-   db_sql_query(jcr->db, query.c_str(), restore_object_handler, (void *)jcr);
-// Dmsg0(000, "All restore objects sent, looking for OKRestoreObject\n");
-   fd = jcr->file_bsock;
-   fd->fsend("restoreobject end\n");
-   if (!response(jcr, fd, OKRestoreObject, "RestoreObject", DISPLAY_ERROR)) {
-      Jmsg(jcr, M_FATAL, 0, _("RestoreObject failed.\n"));
-      return false;
+   db_sql_query(jcr->db, query.c_str(), restore_object_handler, (void *)&octx);
+
+   /*
+    * Send to FD only if we have at least one restore object.
+    * This permits backward compatibility with older FDs.
+    */
+   if (octx.count > 0) {
+      fd = jcr->file_bsock;
+      fd->fsend("restoreobject end\n");
+      if (!response(jcr, fd, OKRestoreObject, "RestoreObject", DISPLAY_ERROR)) {
+         Jmsg(jcr, M_FATAL, 0, _("RestoreObject failed.\n"));
+         return false;
+      }
    }
-// Dmsg0(000, "got for OKRestoreObject\n");
    return true;
 }
 
