@@ -556,7 +556,7 @@ SQL_FIELD *my_sqlite_fetch_field(B_DB *mdb)
    }
 }
 
-int64_t my_sqlite_insert_autokey_record(B_DB *mdb, const char *query, const char *table_name)
+uint64_t my_sqlite_insert_autokey_record(B_DB *mdb, const char *query, const char *table_name)
 {
    /*
     * First execute the insert query and then retrieve the currval.

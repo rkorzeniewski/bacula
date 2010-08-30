@@ -1232,7 +1232,7 @@ char *my_dbi_getvalue(dbi_result *result, int row_number, unsigned int column_nu
    return buf;
 }
 
-static int my_dbi_sequence_last(B_DB *mdb, const char *table_name)
+static uint64_t my_dbi_sequence_last(B_DB *mdb, const char *table_name)
 {
    /*
     Obtain the current value of the sequence that
@@ -1275,7 +1275,7 @@ static int my_dbi_sequence_last(B_DB *mdb, const char *table_name)
    return id;
 }
 
-int64_t my_dbi_insert_autokey_record(B_DB *mdb, const char *query, const char *table_name)
+uint64_t my_dbi_insert_autokey_record(B_DB *mdb, const char *query, const char *table_name)
 {
    /*
     * First execute the insert query and then retrieve the currval.
