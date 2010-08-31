@@ -127,7 +127,7 @@ static struct cmdstruct commands[] = {                                      /* C
  { NT_("disable"),    disable_cmd,   _("Disable a job"), NT_("job=<name>"),        true},
  { NT_("enable"),     enable_cmd,    _("Enable a job"), NT_("job=<name>"),          true},
  { NT_("estimate"),   estimate_cmd,  _("Performs FileSet estimate, listing gives full listing"), 
-   NT_("fileset=<fs> client=<cli> accurate=<yes/no> job=<job> listing"), true},
+   NT_("fileset=<fs> client=<cli> level=<level> accurate=<yes/no> job=<job> listing"), true},
 
  { NT_("exit"),       quit_cmd,      _("Terminate Bconsole session"), NT_(""),         false},
  { NT_("gui"),        gui_cmd,       _("Non-interactive gui mode"),   NT_("on | off"), false},
