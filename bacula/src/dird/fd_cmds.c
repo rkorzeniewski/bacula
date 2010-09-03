@@ -677,6 +677,14 @@ static int restore_object_handler(void *ctx, int num_fields, char **row)
    if (jcr->is_job_canceled()) {
       return 1;
    }
+   /* Old File Daemon doesn't handle restore objects */
+   if (jcr->FDVersion < 3) {
+      Jmsg(jcr, M_WARNING, 0, _("Client \"%s\" may not be used to restore "
+                                "this job. Please upgrade your client.\n"), 
+           jcr->client->name());
+      return 1;
+   }
+
    fd->fsend("restoreobject JobId=%s %s,%s,%s,%s,%s,%s\n",
       row[0], row[1], row[2], row[3], row[4], row[5], row[6]);
 
