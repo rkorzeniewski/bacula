@@ -570,6 +570,9 @@ int plugin_create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
             rc, attr->ofname);
       return CF_ERROR;
    }
+   if (rp.create_status == CF_SKIP) {
+      return CF_SKIP;
+   }
    if (rp.create_status == CF_ERROR) {
       Qmsg1(jcr, M_ERROR, 0, _("Plugin createFile call failed. Returned CF_ERROR file=%s\n"),
             attr->ofname);
