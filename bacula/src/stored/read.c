@@ -79,6 +79,7 @@ bool do_read_data(JCR *jcr)
    /* Tell File daemon we will send data */
    fd->fsend(OK_data);
    set_jcr_job_status(jcr, JS_Running);
+   dir_send_job_status(jcr);
    ok = read_records(dcr, record_cb, mount_next_read_volume);
 
    /* Send end of data to FD */

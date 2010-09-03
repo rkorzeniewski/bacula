@@ -36,7 +36,6 @@
  *  the File daemon, control is passed here to handle the
  *  subsequent File daemon commands.
  *
- *   Version $Id$
  *
  */
 
