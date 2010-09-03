@@ -678,9 +678,9 @@ static void list_running_jobs(UAContext *ua)
       case JS_WaitSD:
          emsg = (char *) get_pool_memory(PM_FNAME);
          if (jcr->wstore) {
-            Mmsg(emsg, _("is waiting on Storage %s"), jcr->wstore->name());
+            Mmsg(emsg, _("is waiting on Storage \"%s\""), jcr->wstore->name());
          } else if (jcr->rstore) {
-            Mmsg(emsg, _("is waiting on Storage %s"), jcr->rstore->name());
+            Mmsg(emsg, _("is waiting on Storage \"%s\""), jcr->rstore->name());
          } else {
             Mmsg(emsg, _("is waiting on Storage"));
          }
