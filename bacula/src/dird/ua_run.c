@@ -546,7 +546,7 @@ static bool reset_restore_context(UAContext *ua, JCR *jcr, run_ctx &rc)
       rc.level_name = NULL;
    }
    if (rc.jid) {
-      /* Note, this is also MigrateJobId */
+      /* Note, this is also MigrateJobId and a VerifyJobId */
       jcr->RestoreJobId = str_to_int64(rc.jid);
       rc.jid = 0;
    }

@@ -130,24 +130,32 @@ bool do_verify(JCR *jcr)
       if (jcr->verify_job &&
           (jcr->getJobLevel() == L_VERIFY_VOLUME_TO_CATALOG ||
            jcr->getJobLevel() == L_VERIFY_DISK_TO_CATALOG)) {
-         Name = jcr->verify_job->name();  
+         Name = jcr->verify_job->name();
       } else {
          Name = NULL;
       }
       Dmsg1(100, "find last jobid for: %s\n", NPRT(Name));
-      if (!db_find_last_jobid(jcr, jcr->db, Name, &jr)) {
-         if (jcr->getJobLevel() == L_VERIFY_CATALOG) {
-            Jmsg(jcr, M_FATAL, 0, _(
-                 "Unable to find JobId of previous InitCatalog Job.\n"
-                 "Please run a Verify with Level=InitCatalog before\n"
-                 "running the current Job.\n"));
-          } else {
-            Jmsg(jcr, M_FATAL, 0, _(
-                 "Unable to find JobId of previous Job for this client.\n"));
+
+      /* see if user supplied a jobid= as run argument or from menu */
+      if (jcr->RestoreJobId) {
+         verify_jobid = jcr->RestoreJobId;
+         Dmsg1(100, "Supplied jobid=%d\n", verify_jobid);
+
+      } else {
+         if (!db_find_last_jobid(jcr, jcr->db, Name, &jr)) {
+            if (jcr->getJobLevel() == L_VERIFY_CATALOG) {
+               Jmsg(jcr, M_FATAL, 0, _(
+                       "Unable to find JobId of previous InitCatalog Job.\n"
+                       "Please run a Verify with Level=InitCatalog before\n"
+                       "running the current Job.\n"));
+            } else {
+               Jmsg(jcr, M_FATAL, 0, _(
+                       "Unable to find JobId of previous Job for this client.\n"));
+            }
+            return false;
          }
-         return false;
+         verify_jobid = jr.JobId;
       }
-      verify_jobid = jr.JobId;
       Dmsg1(100, "Last full jobid=%d\n", verify_jobid);
    }
    /*
