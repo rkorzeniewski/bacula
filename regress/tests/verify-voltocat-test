@@ -18,10 +18,14 @@ start_test
 cat <<END_OF_DATA >tmp/bconcmds
 @$out /dev/null
 messages
-@$out tmp/log1.out
+@$out tmp/log0.out
 setdebug level=1 storage=File sd
 label storage=File volume=TestVolume001
-run job=$JobName yes
+run level=full job=$JobName yes
+wait
+messages
+@$out tmp/log1.out
+run level=full job=$JobName yes
 wait
 messages
 @# 
@@ -30,6 +34,12 @@ messages
 @$out ${cwd}/tmp/log2.out
 setdebug level=12 dir
 run job=VerifyVolume level=VolumeToCatalog
+yes
+wait
+messages
+@$out ${cwd}/tmp/log4.out
+setdebug level=12 dir
+run job=VerifyVolume jobid=1 level=VolumeToCatalog
 yes
 wait
 messages
@@ -58,4 +68,11 @@ grep "^  Termination: *Verify OK" tmp/log2.out 2>&1 >/dev/null
 rstat=$?
 grep "^  Termination: *Verify OK" tmp/log3.out 2>&1 >/dev/null
 dstat=$?
+grep "Verify JobId: *2" tmp/log2.out 2>&1 >/dev/null
+dstat=$(($dstat + $?))
+grep "Verify JobId: *1" tmp/log4.out 2>&1 >/dev/null
+dstat=$(($dstat + $?))
+grep "Verify Job: *VerifyVol" tmp/log4.out 2>&1 >/dev/null
+dstat=$(($dstat + $?))
+
 end_test
