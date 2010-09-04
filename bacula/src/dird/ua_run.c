@@ -752,10 +752,11 @@ static void select_job_level(UAContext *ua, JCR *jcr)
 static bool display_job_parameters(UAContext *ua, JCR *jcr, JOB *job, const char *verify_list,
    char *jid, const char *replace, char *client_name) 
 {
+   char ec1[30];
+   char dt[MAX_TIME_LENGTH];
+
    Dmsg1(800, "JobType=%c\n", jcr->getJobType());
    switch (jcr->getJobType()) {
-      char ec1[30];
-      char dt[MAX_TIME_LENGTH];
    case JT_ADMIN:
       if (ua->api) ua->signal(BNET_RUN_CMD);   
       ua->send_msg(_("Run %s job\n"
@@ -801,9 +802,19 @@ static bool display_job_parameters(UAContext *ua, JCR *jcr, JOB *job, const char
                  jcr->plugin_options?jcr->plugin_options:"",
                  jcr->plugin_options?"\n":"");
       } else {  /* JT_VERIFY */
+         JOB_DBR jr;
          const char *Name;
          if (jcr->verify_job) {
             Name = jcr->verify_job->name();
+         } else if (jcr->RestoreJobId) { /* Display job name if jobid requested */
+            memset(&jr, 0, sizeof(jr));
+            jr.JobId = jcr->RestoreJobId;
+            if (!db_get_job_record(jcr, ua->db, &jr)) {
+               ua->error_msg(_("Could not get job record for selected JobId. ERR=%s"),
+                    db_strerror(ua->db));
+               return false;
+            }
+            Name = jr.Job;
          } else {
             Name = "";
          }
