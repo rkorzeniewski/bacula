@@ -12,7 +12,7 @@ Item  3: NDMP backup/restore
 Item  4: SAP backup/restore
 Item  5: Oracle backup/restore
 Item  6: Zimbra and Zarafa backup/restore
-Item  7: Include timestamp of job launch in "stat clients" output
+Item* 7: Include timestamp of job launch in "stat clients" output
 Item  8: Include all conf files in specified directory
 Item  9: Reduction of communications bandwidth for a backup
 Item 10: Concurrent spooling and despooling within a single job.
@@ -128,7 +128,7 @@ Item  6: Zimbra and Zarafa backup/restore
 Item  7: Include timestamp of job launch in "stat clients" output
   Origin: Mark Bergman <mark.bergman@uphs.upenn.edu>
   Date:  Tue Aug 22 17:13:39 EDT 2006
-  Status:
+  Status: Done
 
   What:  The "stat clients" command doesn't include any detail on when
           the active backup jobs were launched.
