@@ -2557,7 +2557,14 @@ if test x$support_acl = xyes -o x$support_acl = xauto; then
 				      have_extended_acl=yes
 				  ]
 			       )
-			   ]
+			   ], [
+                               dnl check for AIX
+                               AC_CHECK_FUNC(acl_get,
+				  [
+				      have_acl=yes
+				  ]
+			       )
+                              ]
 			)
 		    ]
 		 )
