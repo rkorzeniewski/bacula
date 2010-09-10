@@ -138,6 +138,9 @@ static bacl_exit_code aix_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
 {
    char *acl_text;
 
+   /* TODO: need to use aclx_get and aclx_put instead of acl_get and acl_put 
+    * to work on all AIX FS
+    */
    if ((acl_text = acl_get(jcr->last_fname)) != NULL) {
       jcr->acl_data->content_length = pm_strcpy(jcr->acl_data->content, acl_text);
       actuallyfree(acl_text);
