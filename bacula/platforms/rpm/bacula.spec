@@ -1,6 +1,6 @@
 # Bacula RPM spec file
 #
-# Copyright (C) 2000-2009 Free Software Foundation Europe e.V.
+# Copyright (C) 2000-2010 Free Software Foundation Europe e.V.
 
 # Platform Build Configuration
 
@@ -10,11 +10,17 @@
 %define _packager D. Scott Barninger <barninger@fairfieldcomputers.com>
 %define depkgs_version 18Dec09
 
+# postgresql defines - defaults for most platforms
+# pass changes if required
+# versions less than 8 are no longer supported
 %define postgres_version 8
+%{?postgresql_version:%define postgres_version %{postgresql_version}}
 %define postgres_package postgresql84
+%{?postgresql_package:%define postgres_package %{postgresql_package}}
 %define postgres_server_package postgresql84-server
+%{?postgresql_server_package:%define postgres_server_package %{postgresql_server_package}}
 %define postgres_devel_package postgresql84-devel
-
+%{?postgresql_devel_package:%define postgres_devel_package %{postgresql_devel_package}}
 
 %define single_dir 1
 %{?single_dir_install:%define single_dir 1}
@@ -470,10 +476,6 @@ BuildRequires: sysconfig
 %define tcpwrappers 0
 %{?build_tcpwrappers:%define tcpwrappers 1}
 
-# do we need to patch for old postgresql version?
-%define old_pgsql 0
-%{?build_old_pgsql:%define old_pgsql 1}
-
 # Mandriva somehow forces the manpage file extension to bz2 rather than gz
 %if %{mdk}
 %define manpage_ext bz2
@@ -713,6 +715,7 @@ This package installs the shared libraries used by many bacula programs.
 %prep
 %setup
 %setup -T -D -b 1
+%setup -T -D -b 2
 
 %build
 
@@ -1460,6 +1463,13 @@ echo "The database update scripts were installed to %{script_dir}/updatedb"
 %endif
 
 %changelog
+* Mon Sep 06 2010 D. Scott Barninger <barninger@fairfieldcomputers.com>
+* Mon Sep 06 2010 Kern Sibbald <kern@sibbald.com>
+- 5.0.3
+- change license to AGPL v3
+- add defines for postgresql version and packages, require version 8 or greater
+- adjusted package description
+- fix bug with libbacsql files
 * Sun Mar 07 2010 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - remove --without-qwt from configure statement
 * Sat Feb 27 2010 D. Scott Barninger <barninger@fairfieldcomputers.com>
