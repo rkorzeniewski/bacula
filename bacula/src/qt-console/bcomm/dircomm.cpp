@@ -179,7 +179,9 @@ bool DirComm::connect_dir()
       mainWin->actionConnect->setIcon(QIcon(":images/connected.png"));
       QBrush greenBrush(Qt::green);
       QTreeWidgetItem *item = mainWin->getFromHash(m_console);
-      item->setForeground(0, greenBrush);
+      if (item) {
+         item->setForeground(0, greenBrush);
+      }
    }
 
    jcr->dir_bsock = m_sock;
