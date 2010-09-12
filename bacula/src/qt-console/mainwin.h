@@ -61,6 +61,7 @@ public:
    void hashRemove(QTreeWidgetItem *, Pages *);
    void setMessageIcon();
    bool getWaitState() {return m_waitState; };
+   bool isClosing() {return m_isClosing; };
    Console *currentConsole();
    QTreeWidgetItem *currentTopItem();
    Pages* getFromHash(QTreeWidgetItem *);

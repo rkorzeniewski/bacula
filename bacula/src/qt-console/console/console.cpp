@@ -292,10 +292,10 @@ bool Console::sql_cmd(int &conn, const char *query, QStringList &results, bool d
       return false;
    }
 
-   if (mainWin->m_connDebug)
-      Pmsg2(000, "sql_cmd conn %i %s\n", conn, query);
-   if (donotify)
+   if (mainWin->m_connDebug) Pmsg2(000, "sql_cmd conn %i %s\n", conn, query);
+   if (donotify) {
       dircomm->notify(false);
+   }
    mainWin->waitEnter();
    
    pm_strcpy(cmd, ".sql query=\"");
@@ -314,15 +314,17 @@ bool Console::sql_cmd(int &conn, const char *query, QStringList &results, bool d
          QString dum = dircomm->msg();
          if ((dum.left(6) == "*None*")) doappend = false;
       }
-      if (doappend)
+      if (doappend) {
          results << dircomm->msg();
+      }
       first = false;
    }
-   if (donotify)
+   if (donotify) {
       dircomm->notify(true);
+   }
    discardToPrompt(conn);
    mainWin->waitExit();
-   return true;              /* ***FIXME*** return any command error */
+   return !mainWin->isClosing();      /* return false if closing */
 }
 
 /* 

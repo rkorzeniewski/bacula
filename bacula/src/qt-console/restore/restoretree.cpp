@@ -275,6 +275,8 @@ void restoreTree::populateDirectoryTree()
                fieldcnt += 1;
             }
          }
+      } else {
+         return;
       }
    } else {
      QMessageBox::warning(this, "Bat",

@@ -177,11 +177,12 @@ void MainWin::createPages()
       new MediaList();
       new MediaView();
       new Storage();
-      if (m_openBrowser)
+      if (m_openBrowser) {
          new restoreTree();
-      if (m_openDirStat)
+      }
+      if (m_openDirStat) {
          new DirStat();
-
+      }
       treeWidget->expandItem(topItem);
       tabWidget->setCurrentWidget(m_currentConsole);
    }
@@ -323,10 +324,14 @@ void MainWin::waitEnter()
  */
 void MainWin::waitExit()
 {
+   if (!m_waitState || m_isClosing) {
+      return;
+   }
    m_waitState = false;
    if (mainWin->m_connDebug) Pmsg0(000, "Exiting Wait State\n");
-   if (m_waitTreeItem != treeWidget->currentItem())
+   if (m_waitTreeItem && (m_waitTreeItem != treeWidget->currentItem())) {
       treeWidget->setCurrentItem(m_waitTreeItem);
+   }
    if (m_doConnect) {
       connectSignals();
       connectConsoleSignals();
