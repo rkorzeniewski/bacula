@@ -81,6 +81,8 @@ restoreTree::restoreTree()
    daysSpinBox->setValue(mainWin->m_daysLimitVal);
    readSettings();
    m_nullFileNameId = -1;
+   dockPage();
+   setCurrent();
 }
 
 restoreTree::~restoreTree()
@@ -533,10 +535,8 @@ void restoreTree::directoryCurrentItemChanged(QTreeWidgetItem *item, QTreeWidget
          " AND File.Jobid IN (" + m_checkedJobs + ")"
          " AND Filename.Name!=''"
          " ORDER BY FileName";
+      if (mainWin->m_sqlDebug) Pmsg1(000, "Query cmd : %s\n", cmd.toUtf8().data());
 
-      if (mainWin->m_sqlDebug) {
-         Pmsg1(000, "Query cmd : %s\n", cmd.toUtf8().data());
-      }
       QStringList results;
       if (m_console->sql_cmd(cmd, results)) {
       
@@ -559,6 +559,7 @@ void restoreTree::directoryCurrentItemChanged(QTreeWidgetItem *item, QTreeWidget
                 *  | Qt::ItemIsEnabled | Qt::ItemIsTristate; */
                tableItem->setForeground(blackBrush);
                /* Just in case a column ever gets added */
+               if (mainWin->m_sqlDebug) Pmsg1(000, "Column=%d\n", column);
                if (column == 0) {
                   Qt::ItemFlags flag = Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | Qt::ItemIsTristate;
                   tableItem->setFlags(flag);
@@ -640,8 +641,7 @@ void restoreTree::fileCurrentItemChanged(QTableWidgetItem *currentFileTableItem,
          " AND Job.Jobid IN (" + m_checkedJobs + ")"
          " ORDER BY Job.EndTime DESC";
    
-      if (mainWin->m_sqlDebug)
-         Pmsg1(000, "Query cmd : %s\n", cmd.toUtf8().data());
+      if (mainWin->m_sqlDebug) Pmsg1(000, "Query cmd : %s\n", cmd.toUtf8().data());
       QStringList results;
       if (m_console->sql_cmd(cmd, results)) {
       
@@ -671,7 +671,7 @@ void restoreTree::fileCurrentItemChanged(QTableWidgetItem *currentFileTableItem,
                   tableItem->setForeground(blackBrush);
                   tableItem->setData(Qt::UserRole, QVariant(directory));
                   versionTable->setItem(row, column, tableItem);
-   
+                  if (mainWin->m_sqlDebug) Pmsg1(000, "Column=%d\n", column);
                   if (column == 0) {
                      Qt::ItemFlags flag = Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | Qt::ItemIsTristate;
                      tableItem->setFlags(flag);
@@ -819,6 +819,7 @@ void restoreTree::populateJobTable()
                   tableItem->setFlags(0);
                   tableItem->setForeground(blackBrush);
                   jobTable->setItem(row, column, tableItem);
+                  if (mainWin->m_sqlDebug) Pmsg1(000, "Column=%d\n", column);
                   if (column == 0) {
                      bool ok;
                      int purged = fieldlist[purgedIndex].toInt(&ok, 10); 
@@ -1107,13 +1108,14 @@ void restoreTree::versionTableItemChanged(QTableWidgetItem *item)
 
    /* determine the default state */
    Qt::CheckState defState;
+   if (mainWin->m_sqlDebug) Pmsg1(000, "row=%d\n", row);
    if (row == 0) {
       defState = Qt::PartiallyChecked;
       if (fileState == Qt::Unchecked)
          defState = Qt::Unchecked;
-   }
-   else
+   } else {
       defState = Qt::Unchecked;
+   }
 
    /* determine if it is already in the versionExceptionHash */
    QString directory = directoryTree->currentItem()->data(0, Qt::UserRole).toString();
@@ -1146,7 +1148,7 @@ void restoreTree::versionTableItemChanged(QTableWidgetItem *item)
       m_versionExceptionHash.remove(fullPath);
    } else if (prevState != curState) {
       if (mainWin->m_rtVerTabICDebug) Pmsg2(000, "  THE STATE OF THE version Check has changed, Setting StateList[%i] to %i\n", row, curState);
-      if ((curState == Qt::Checked) || (curState == Qt::PartiallyChecked && row != 0)) {
+      if ((curState == Qt::Checked) || (curState == Qt::PartiallyChecked)) {
          if (mainWin->m_rtVerTabICDebug) Pmsg2(000, "Inserting into m_versionExceptionHash %s, %i\n", fullPath.toUtf8().data(), thisJobNum);
          m_versionExceptionHash.insert(fullPath, thisJobNum);
          if (fileState != Qt::Checked) {
@@ -1811,6 +1813,7 @@ int restoreTree::queryFileIndex(QString &fullPath, int jobId)
    int qfileIndex = 0;
    QString directory, fileName;
    int index = fullPath.lastIndexOf("/", -2);
+   if (mainWin->m_sqlDebug) Pmsg1(000, "Index=%d\n", index);
    if (index != -1) {
       directory = fileName = fullPath;
       directory.replace(index+1, fullPath.length()-index-1, "");
@@ -1833,7 +1836,6 @@ int restoreTree::queryFileIndex(QString &fullPath, int jobId)
              " AND Filename.Name='" + fileName + "'"
              " AND Job.Jobid='" + QString("%1").arg(jobId) + "'"
             " GROUP BY File.FileIndex";
-    
          if (mainWin->m_sqlDebug) Pmsg1(000, "Query cmd : %s\n", cmd.toUtf8().data());
          QStringList results;
          if (m_console->sql_cmd(cmd, results)) {
@@ -1855,6 +1857,7 @@ int restoreTree::queryFileIndex(QString &fullPath, int jobId)
          }
       }
    } /* if (index != -1) */
+   if (mainWin->m_sqlDebug) Pmsg1(000, "qfileIndex=%d\n", qfileIndex);
    return qfileIndex;
 }
 
