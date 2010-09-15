@@ -18,10 +18,10 @@ PSQLVERSION=`psql -d template1 -c 'select version()' | awk '/PostgreSQL/ {print 
 # This must be updated for future versions of PostgreSQL
 #
 case ${PSQLVERSION} in
-   "9.*")
+   9.*)
 	ENCODING="ENCODING 'SQL_ASCII' LC_COLLATE 'C' LC_CTYPE 'C'"
    ;;
-   "8.[456789]")
+   8.[456789])
 	ENCODING="ENCODING 'SQL_ASCII' LC_COLLATE 'C' LC_CTYPE 'C'"
     ;;
     *)
