@@ -2522,56 +2522,85 @@ have_acl=no
 have_extended_acl=no
 if test x$support_acl = xyes -o x$support_acl = xauto; then
    AC_CHECK_HEADER(sys/acl.h, [ AC_DEFINE(HAVE_SYS_ACL_H,1,[Defines if your system have the sys/acl.h header file])] , )
+
+   dnl
+   dnl First check for acl_get_file in libc
+   dnl
    AC_CHECK_FUNC(acl_get_file,
       [
 	  have_acl=yes
-      ], [
-	  AC_CHECK_LIB(acl, acl_get_file,
-	     [
-		 have_acl=yes;
-		 if test $have_afs = yes; then
-		    dnl
-		    dnl Because of possible naming conflict with AFS libacl make sure we use the one in /usr/lib64 or /usr/lib !!!
-		    dnl
-		    if test -d /usr/lib64/; then
-		       FDLIBS="-L/usr/lib64 -lacl $FDLIBS"
-		    else
-		       FDLIBS="-L/usr/lib -lacl $FDLIBS"
-		    fi
-		 else
-		    FDLIBS="-lacl $FDLIBS"
-		 fi
-	     ], [
-		 AC_CHECK_LIB(pacl, acl_get_file,
-		    [
-			have_acl=yes;
-			FDLIBS="-lpacl $FDLIBS"
-		    ], [
-			AC_CHECK_LIB(sec, acltotext,
-			   [
-			       have_acl=yes;
-			       FDLIBS="-lsec $FDLIBS"
-
-			       AC_CHECK_LIB(sec, acl_totext,
-				  [
-				      have_extended_acl=yes
-				  ]
-			       )
-			   ], [
-                               dnl check for AIX
-                               AC_CHECK_FUNC(acl_get,
-				  [
-				      have_acl=yes
-				  ]
-			       )
-                              ]
-			)
-		    ]
-		 )
-	     ]
-	  )
       ]
    )
+
+   dnl
+   dnl Check for acl_get_file in libacl (Linux)
+   dnl
+   if test $have_acl = no; then
+      AC_CHECK_LIB(acl, acl_get_file,
+         [
+	     have_acl=yes
+             if test $have_afs = yes; then
+                dnl
+                dnl Because of possible naming conflict with AFS libacl make sure we use the one in /usr/lib64 or /usr/lib !!!
+                dnl
+                if test -d /usr/lib64/; then
+                   FDLIBS="-L/usr/lib64 -lacl $FDLIBS"
+                else
+                   FDLIBS="-L/usr/lib -lacl $FDLIBS"
+                fi
+             else
+                FDLIBS="-lacl $FDLIBS"
+             fi
+         ]
+      )
+   fi
+
+   dnl
+   dnl Check for acl_get_file in libpacl (OSF1)
+   dnl
+   if test $have_acl = no; then
+      AC_CHECK_LIB(pacl, acl_get_file,
+         [
+	     have_acl=yes
+             FDLIBS="-lpacl $FDLIBS"
+         ]
+      )
+   fi
+
+   dnl
+   dnl Check for acltotext and acl_totext (Solaris)
+   dnl
+   if test $have_acl = no; then
+      AC_CHECK_LIB(sec, acltotext,
+         [
+	     have_acl=yes
+             FDLIBS="-lsec $FDLIBS"
+
+             AC_CHECK_LIB(sec, acl_totext,
+                [
+                    have_extended_acl=yes
+                ]
+             )
+         ]
+      )
+   fi
+
+   dnl
+   dnl Check for acl_get and aclx_get (AIX)
+   dnl
+   if test $have_acl = no; then
+      AC_CHECK_FUNC(acl_get,
+         [
+	     have_acl=yes
+
+             AC_CHECK_FUNC(aclx_get,
+                [
+                    have_extended_acl=yes
+                ]
+             )
+         ]
+      )
+   fi
 
    if test x$support_acl = xyes -a $have_acl != yes; then
       AC_MSG_ERROR([acl support explicitly enabled but no supported acl implementation found, 
