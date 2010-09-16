@@ -299,6 +299,13 @@ void InitWinAPIWrapper();
                                                   * from acl_totext (NFSv4 or ZFS acl)
                                                   */
 #define STREAM_ACL_AFS_TEXT              1014    /* AFS specific string representation from pioctl */
+
+#define STREAM_ACL_AIX_AIXC              1015    /* AIX specific string representation from
+                                                  * aclx_printStr (POSIX acl)
+                                                  */
+#define STREAM_ACL_AIX_NFS4              1016    /* AIX specific string representation from
+                                                  * aclx_printStr (NFSv4 acl)
+                                                  */
 #define STREAM_XATTR_OPENBSD             1993    /* OpenBSD specific extended attributes */
 #define STREAM_XATTR_SOLARIS_SYS         1994    /* Solaris specific extensible attributes or
                                                   * otherwise named extended system attributes.

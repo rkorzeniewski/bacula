@@ -126,6 +126,36 @@ static bacl_exit_code send_acl_stream(JCR *jcr, int stream)
 #if defined(HAVE_ACL)
 #if defined(HAVE_AIX_OS)
 
+#if defined(HAVE_EXTENDED_ACL)
+
+#include <sys/acl.h>
+
+/**
+ * Define the supported ACL streams for this OS
+ */
+static int os_access_acl_streams[1] = { STREAM_ACL_AIX_TEXT, STREAM_ACL_AIX_AIXC, STREAM_ACL_AIX_NFS4 };
+static int os_default_acl_streams[1] = { -1 };
+
+static bacl_exit_code aix_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
+{
+   return bacl_exit_error;
+}
+
+static bacl_exit_code aix_parse_acl_streams(JCR *jcr, int stream)
+{
+   switch (stream) {
+   case STREAM_ACL_AIX_TEXT:
+   case STREAM_ACL_AIX_AIXC:
+      break;
+   case STREAM_ACL_AIX_NFS4:
+      break;
+   }
+
+   return bacl_exit_error;
+}
+
+#else /* HAVE_EXTENDED_ACL */
+
 #include <sys/access.h>
 
 /**
@@ -138,9 +168,6 @@ static bacl_exit_code aix_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
 {
    char *acl_text;
 
-   /* TODO: need to use aclx_get and aclx_put instead of acl_get and acl_put 
-    * to work on all AIX FS
-    */
    if ((acl_text = acl_get(jcr->last_fname)) != NULL) {
       jcr->acl_data->content_length = pm_strcpy(jcr->acl_data->content, acl_text);
       actuallyfree(acl_text);
@@ -156,6 +183,7 @@ static bacl_exit_code aix_parse_acl_streams(JCR *jcr, int stream)
    }
    return bacl_exit_ok;
 }
+#endif /* HAVE_EXTENDED_ACL */
 
 /**
  * For this OS setup the build and parse function pointer to the OS specific functions.
