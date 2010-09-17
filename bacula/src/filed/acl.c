@@ -128,6 +128,7 @@ static bacl_exit_code send_acl_stream(JCR *jcr, int stream)
 
 #if defined(HAVE_EXTENDED_ACL)
 
+#include <sys/access.h>
 #include <sys/acl.h>
 
 /**
@@ -145,6 +146,13 @@ static bacl_exit_code aix_parse_acl_streams(JCR *jcr, int stream)
 {
    switch (stream) {
    case STREAM_ACL_AIX_TEXT:
+      /**
+       * Handle the old stream using the old system call.
+       */
+      if (acl_put(jcr->last_fname, jcr->acl_data->content, 0) != 0) {
+         return bacl_exit_error;
+      }
+      return bacl_exit_ok;
    case STREAM_ACL_AIX_AIXC:
       break;
    case STREAM_ACL_AIX_NFS4:
