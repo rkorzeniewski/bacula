@@ -24,16 +24,19 @@ messages
 label volume=TestVolume001 pool=PoolA
 @$out ${cwd}/tmp/RUN_MAXTIME.log
 @# no media => have to wait
-run job=RUN_MAXWAITTIME pool=Default yes
+run job=RUN_MAXWAITTIME comment="Should fail" pool=Default yes
 @sleep 2
 @# storage is used by RUN_MAXWAITTIME => have to wait
-run job=RUN_MAXSTARTDELAY pool=PoolA when="$WHEN" yes
+run job=RUN_MAXSTARTDELAY comment="Should fail" pool=PoolA when="$WHEN" yes
+@sleep 2
+@# storage is used by the first MAXWAITTIME, but should work
+run job=RUN_MAXWAITTIME comment="Should work" pool=PoolA yes
 @sleep 60
 label volume=TestVolume002 pool=Default
 mount
 wait
 messages
-run job=RUN_MAXRUNTIME pool=PoolA yes
+run job=RUN_MAXRUNTIME comment="Should fail" pool=PoolA yes
 wait
 messages
 st dir
@@ -78,7 +81,7 @@ else
    bstat=1
 fi
 
-grep -e '3: Fatal error: Max run time exceeded. Job canceled.' ${cwd}/tmp/RUN_MAXTIME.log >/dev/null 
+grep -e '4: Fatal error: Max run time exceeded. Job canceled.' ${cwd}/tmp/RUN_MAXTIME.log >/dev/null 
 if [ $? -eq 0 ]
 then
     [ "$debug" = 1 ] && echo MAXRUNTIME ok
@@ -86,5 +89,15 @@ else
    echo "MAXRUNTIME in error"
    bstat=1
 fi
+
+grep 'Termination:*Backup OK' ${cwd}/tmp/RUN_MAXTIME.log >/dev/null
+if [ $? -eq 0 ]
+then
+    [ "$debug" = 1 ] && echo MAXRUNTIME2 ok
+else
+   echo "MAXRUNTIME2 in error"
+   bstat=1
+fi
+
 
 end_test
