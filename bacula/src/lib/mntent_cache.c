@@ -74,7 +74,7 @@
 #include <sys/mnttab.h>
 #endif /* HAVE_GETMNTENT */
 #elif defined(HAVE_GETMNTINFO)
-#if defined(HAVE_DARWIN_OS)
+#if defined(HAVE_DARWIN_OS) || defined(HAVE_FREEBSD_OS)
 #include <sys/param.h>
 #include <sys/ucred.h> 
 #include <sys/mount.h> 
@@ -203,13 +203,20 @@ static void refresh_mount_cache(void)
 #elif defined(HAVE_GETMNTINFO)
    int cnt;
    struct stat st;
-#if defined(HAVE_DARWIN_OS)
+#if defined(HAVE_DARWIN_OS) || defined(HAVE_FREEBSD_OS)
    struct statfs *mntinfo;
 #else
    struct statvfs *mntinfo;
 #endif
+#if defined(ST_NOWAIT)
+   int flags = ST_NOWAIT;
+#elif defined(MNT_NOWAIT)
+   int flags = MNT_NOWAIT;
+#else
+   int flags = 0;
+#endif
 
-   if ((cnt = getmntinfo(&mntinfo, MNT_NOWAIT)) > 0) {
+   if ((cnt = getmntinfo(&mntinfo, flags)) > 0) {
       while (cnt > 0) {
          if (stat(mntinfo->f_mntonname, &st) == 0) {
             add_mntent_mapping(st.st_dev,
