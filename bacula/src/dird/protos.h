@@ -210,7 +210,7 @@ void set_pooldbr_from_poolres(POOL_DBR *pr, POOL *pool, e_pool_op op);
 int update_pool_references(JCR *jcr, B_DB *db, POOL *pool);
 
 /* ua_input.c */
-int get_cmd(UAContext *ua, const char *prompt);
+int get_cmd(UAContext *ua, const char *prompt, bool subprompt=false);
 bool get_pint(UAContext *ua, const char *prompt);
 bool get_yesno(UAContext *ua, const char *prompt);
 bool is_yesno(char *val, int *ret);

@@ -105,6 +105,9 @@ public:
    bool m_openPlot;
    bool m_openDirStat;
 
+   /* Global */
+   bool m_notify;                     /* global flag to turn on/off all notifiers */
+
 public slots:
    void input_line();
    void about();

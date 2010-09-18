@@ -130,7 +130,7 @@ bool user_select_files_from_tree(TREE_CTX *tree)
    ua->send_msg(_("cwd is: %s\n"), cwd);
    for ( ;; ) {
       int found, len, i;
-      if (!get_cmd(ua, "$ ")) {
+      if (!get_cmd(ua, "$ ", true)) {
          break;
       }
       if (ua->api) user->signal(BNET_CMD_BEGIN);

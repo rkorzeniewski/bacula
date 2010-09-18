@@ -97,6 +97,15 @@ MainWin::MainWin(QWidget *parent) : QMainWindow(parent)
    foreach(Console *console, m_consoleHash) {
       console->connect_dir();
    }
+   /* 
+    * Note, the notifier is now a global flag, although each notifier
+    *  can be individually turned on and off at a socket level.  Once
+    *  the notifier is turned off, we don't accept anything from anyone
+    *  this prevents unwanted messages from getting into the input
+    *  dialogs such as restore that read from the director and "know"
+    *  what to expect.
+    */
+   m_notify = true;
    m_currentConsole = (Console*)getFromHash(m_firstItem);
    QTimer::singleShot(2000, this, SLOT(popLists()));
    if (m_miscDebug) {
@@ -306,9 +315,7 @@ void MainWin::disconnectSignals()
  */
 void MainWin::waitEnter()
 {
-   if (m_waitState){ 
-      if (mainWin->m_connDebug)
-         Pmsg0(000, "Should Never Get Here DANGER DANGER, for now I'll return\n");
+   if (m_waitState || m_isClosing) { 
       return;
    }
    m_waitState = true;
@@ -327,7 +334,6 @@ void MainWin::waitExit()
    if (!m_waitState || m_isClosing) {
       return;
    }
-   m_waitState = false;
    if (mainWin->m_connDebug) Pmsg0(000, "Exiting Wait State\n");
    if (m_waitTreeItem && (m_waitTreeItem != treeWidget->currentItem())) {
       treeWidget->setCurrentItem(m_waitTreeItem);
@@ -337,6 +343,7 @@ void MainWin::waitExit()
       connectConsoleSignals();
    }
    app->restoreOverrideCursor();
+   m_waitState = false;
 }
 
 void MainWin::connectConsoleSignals()

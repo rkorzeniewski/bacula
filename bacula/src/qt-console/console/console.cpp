@@ -97,6 +97,11 @@ void Console::poll_messages()
 {
    int conn;
 
+   /* Do not poll if notifier off */
+   if (!mainWin->m_notify) {
+      return;
+   }
+
    /*
     * Note if we call getDirComm here, we continuously consume
     *  file descriptors.
@@ -148,9 +153,7 @@ void Console::populateLists(bool /*forcenew*/)
 {
    int conn;
    if (!getDirComm(conn)) {
-      if (mainWin->m_connDebug) {
-         Pmsg0(000, "call newDirComm\n");
-      }
+      if (mainWin->m_connDebug) Pmsg0(000, "call newDirComm\n");
       if (!newDirComm(conn)) {
          Emsg1(M_ABORT, 0, "Failed to connect to %s for populateLists.\n", m_dir->name());
          return;
@@ -233,6 +236,7 @@ bool Console::dir_cmd(int conn, const char *cmd, QStringList &results)
    mainWin->waitEnter();
    DirComm *dircomm = m_dircommHash.value(conn);
    int stat;
+   bool prev_notify = mainWin->m_notify;
 
    if (mainWin->m_connDebug) {
       QString dbgmsg = QString("dir_cmd conn %1 %2 %3\n").arg(conn).arg(m_dir->name()).arg(cmd);
@@ -246,10 +250,12 @@ bool Console::dir_cmd(int conn, const char *cmd, QStringList &results)
       results << dircomm->msg();
    }
    if (stat > 0 && mainWin->m_displayAll) display_text(dircomm->msg());
-   notify(conn, true);
+   if (prev_notify) {
+      notify(conn, true);         /* turn it back on */
+   }
    discardToPrompt(conn);
    mainWin->waitExit();
-   return true;              /* ***FIXME*** return any command error */
+   return true;                  /* ***FIXME*** return any command error */
 }
 
 /*
@@ -287,6 +293,7 @@ bool Console::sql_cmd(int &conn, const char *query, QStringList &results, bool d
    DirComm *dircomm = m_dircommHash.value(conn);
    int stat;
    POOL_MEM cmd(PM_MESSAGE);
+   bool prev_notify = mainWin->m_notify;
 
    if (!is_connectedGui()) {
       return false;
@@ -319,7 +326,7 @@ bool Console::sql_cmd(int &conn, const char *query, QStringList &results, bool d
       }
       first = false;
    }
-   if (donotify) {
+   if (donotify && prev_notify) {
       dircomm->notify(true);
    }
    discardToPrompt(conn);
@@ -402,9 +409,12 @@ bool Console::get_job_defaults(int &conn, struct job_defaults &job_defs, bool do
    QString scmd;
    int stat;
    char *def;
+   bool prev_notify = mainWin->m_notify;
+   bool rtn = false;
 
-   if (donotify)
+   if (donotify) {
       conn = notifyOff();
+   }
    beginNewCommand(conn);
    DirComm *dircomm = m_dircommHash.value(conn);
    bool prevWaitState = mainWin->getWaitState();
@@ -471,19 +481,16 @@ bool Console::get_job_defaults(int &conn, struct job_defaults &job_defs, bool do
          continue;
       }
    }
-
-   if (donotify)
-      notify(conn, true);
-   if (!prevWaitState)
-      mainWin->waitExit();
-   return true;
-
+   rtn = true;
+   /* Fall through wanted */
 bail_out:
-   if (donotify)
+   if (donotify && prev_notify) {
       notify(conn, true);
-   if (!prevWaitState)
+   }
+   if (!prevWaitState) {
       mainWin->waitExit();
-   return false;
+   }
+   return rtn;
 }
 
 
@@ -664,6 +671,8 @@ QString Console::returnFromPrompt(int conn)
 
    int stat = 0;
    text = "";
+   dircomm->read();
+   text += dircomm->msg();
    if (mainWin->m_commDebug) Pmsg1(000, "returnFromPrompt %s\n", m_dir->name());
    while (!dircomm->m_at_prompt) {
       if ((stat=dircomm->read()) > 0) {
@@ -838,9 +847,7 @@ bool Console::getDirComm(int &conn)
    if (findDirComm(conn)) {
       return true;
    }
-   if (mainWin->m_connDebug) {
-      Pmsg0(000, "call newDirComm\n");
-   }
+   if (mainWin->m_connDebug) Pmsg0(000, "call newDirComm\n");
    return newDirComm(conn);
 }
 

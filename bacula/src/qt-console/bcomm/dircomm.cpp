@@ -94,9 +94,7 @@ bool DirComm::connect_dir()
       goto bail_out;
    }
 
-   if (mainWin->m_connDebug) {
-      Pmsg2(000, "DirComm %i connecting %s\n", m_conn, m_console->m_dir->name());
-   }
+   if (mainWin->m_connDebug)Pmsg2(000, "DirComm %i connecting %s\n", m_conn, m_console->m_dir->name());
    memset(jcr, 0, sizeof(JCR));
 
    mainWin->set_statusf(_("Connecting to Director %s:%d"), m_console->m_dir->address, m_console->m_dir->DIRport);
@@ -129,8 +127,9 @@ bool DirComm::connect_dir()
       if (!cons->tls_ctx) {
          m_console->display_textf(_("Failed to initialize TLS context for Console \"%s\".\n"),
             m_console->m_dir->name());
-         if (mainWin->m_connDebug)
+         if (mainWin->m_connDebug) {
             Pmsg2(000, "DirComm %i BAILING Failed to initialize TLS context for Console %s\n", m_conn, m_console->m_dir->name());
+         }
          goto bail_out;
       }
    }
@@ -152,8 +151,9 @@ bool DirComm::connect_dir()
          m_console->display_textf(_("Failed to initialize TLS context for Director \"%s\".\n"),
             m_console->m_dir->name());
          mainWin->set_status("Connection failed");
-         if (mainWin->m_connDebug)
+         if (mainWin->m_connDebug) {
             Pmsg2(000, "DirComm %i BAILING Failed to initialize TLS context for Director %s\n", m_conn, m_console->m_dir->name());
+         }
          goto bail_out;
       }
    }
@@ -171,8 +171,9 @@ bool DirComm::connect_dir()
                           NULL, m_console->m_dir->DIRport, 0);
    if (m_sock == NULL) {
       mainWin->set_status("Connection failed");
-      if (mainWin->m_connDebug)
+      if (mainWin->m_connDebug) {
          Pmsg2(000, "DirComm %i BAILING Connection failed %s\n", m_conn, m_console->m_dir->name());
+      }
       goto bail_out;
    } else {
       /* Update page selector to green to indicate that Console is connected */
@@ -188,8 +189,9 @@ bool DirComm::connect_dir()
 
    if (!authenticate_director(jcr, m_console->m_dir, cons, buf, sizeof(buf))) {
       m_console->display_text(buf);
-      if (mainWin->m_connDebug)
+      if (mainWin->m_connDebug) {
          Pmsg2(000, "DirComm %i BAILING Connection failed %s\n", m_conn, m_console->m_dir->name());
+      }
       goto bail_out;
    }
 
@@ -206,8 +208,8 @@ bool DirComm::connect_dir()
     * Set up input notifier
     */
    m_notifier = new QSocketNotifier(m_sock->m_fd, QSocketNotifier::Read, 0);
-   QObject::connect(m_notifier, SIGNAL(activated(int)), this, SLOT(read_dir(int)));
-   m_notifier->setEnabled(false);
+   QObject::connect(m_notifier, SIGNAL(activated(int)), this, SLOT(notify_read_dir(int)));
+   m_notifier->setEnabled(true);
 
    write(".api 1");
    m_api_set = true;
@@ -341,19 +343,24 @@ int DirComm::read()
             mainWin->set_status(_("At main prompt waiting for input ..."));
          }
          break;
-      case BNET_PROMPT:
-         if (mainWin->m_commDebug) Pmsg2(000, "conn %i PROMPT m_in_select %i\n", m_conn, m_in_select);
+      case BNET_SUB_PROMPT:
+         if (mainWin->m_commDebug) Pmsg2(000, "conn %i SUB_PROMPT m_in_select=%d\n", m_conn, m_in_select);
          m_at_prompt = true;
          m_at_main_prompt = false;
          mainWin->set_status(_("At prompt waiting for input ..."));
-         /***** FIXME *****/
-         /* commented out until the prompt communication issue with the director is resolved 
-          * This is where I call a new text input dialog class to prevent the connection issues
-          * when a text input is requited.
-          *   if (!m_in_select) {
-          *      new textInputDialog(m_console, m_conn);
-          *   }
-          */
+         break;
+      case BNET_TEXT_INPUT:
+         if (mainWin->m_commDebug) Pmsg4(000, "conn %i TEXT_INPUT at_prompt=%d  m_in_select=%d notify=%d\n", 
+               m_conn, m_at_prompt, m_in_select, is_notify_enabled());
+         if (!m_in_select && is_notify_enabled()) {
+            mainWin->waitExit();
+            new textInputDialog(m_console, m_conn);
+         } else {
+            if (mainWin->m_commDebug) Pmsg0(000, "!m_in_select && is_notify_enabled\n");
+            m_at_prompt = true;
+            m_at_main_prompt = false;
+            mainWin->set_status(_("At prompt waiting for input ..."));
+         }
          break;
       case BNET_CMD_FAILED:
          if (mainWin->m_commDebug) Pmsg1(000, "CMD FAILED\n", m_conn);
@@ -413,6 +420,11 @@ int DirComm::read()
          mainWin->set_status(msg());
          break;
       }
+
+      if (!m_sock) {
+         stat = BNET_HARDEOF;
+         return stat;
+      }
       if (is_bnet_stop(m_sock)) {         /* error or term request */
          if (mainWin->m_commDebug) Pmsg1(000, "conn %i BNET STOP\n", m_conn);
          m_console->stopTimer();
@@ -436,9 +448,12 @@ int DirComm::read()
 }
 
 /* Called by signal when the Director has output for us */
-void DirComm::read_dir(int /* fd */)
+void DirComm::notify_read_dir(int /* fd */)
 {
    int stat;
+   if (!mainWin->m_notify) {
+      return;
+   }
    if (mainWin->m_commDebug) Pmsg1(000, "enter read_dir conn %i read_dir\n", m_conn);
    stat = m_sock->wait_data(0, 5000);
    if (stat > 0) {
@@ -463,24 +478,23 @@ void DirComm::read_dir(int /* fd */)
 bool DirComm::notify(bool enable) 
 { 
    bool prev_enabled = false;
+   /* Set global flag */
+   mainWin->m_notify = enable;
    if (m_notifier) {
       prev_enabled = m_notifier->isEnabled();   
-      m_notifier->setEnabled(enable);
-      if (mainWin->m_connDebug) {
-         Pmsg3(000, "conn=%i notify=%d prev=%d\n", m_conn, enable, prev_enabled);
+      if (prev_enabled != enable) {
+         m_notifier->setEnabled(enable);
       }
-   } else if (mainWin->m_connDebug)
+      if (mainWin->m_connDebug) Pmsg3(000, "conn=%i notify=%d prev=%d\n", m_conn, enable, prev_enabled);
+   } else if (mainWin->m_connDebug) {
       Pmsg2(000, "m_notifier does not exist: %i %s\n", m_conn, m_console->m_dir->name());
+   }
    return prev_enabled;
 }
 
 bool DirComm::is_notify_enabled() const
 {
-   bool enabled = false;
-   if (m_notifier) {
-      enabled = m_notifier->isEnabled();   
-   }
-   return enabled;
+   return mainWin->m_notify;
 }
 
 /*

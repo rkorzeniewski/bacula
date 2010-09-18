@@ -43,7 +43,11 @@
 
 /* Exported functions */
 
-int get_cmd(UAContext *ua, const char *prompt)
+/* 
+ * If subprompt is set, we send a BNET_SUB_PROMPT signal otherwise
+ *   send a BNET_TEXT_INPUT signal.
+ */
+int get_cmd(UAContext *ua, const char *prompt, bool subprompt)
 {
    BSOCK *sock = ua->UA_sock;
    int stat;
@@ -52,8 +56,13 @@ int get_cmd(UAContext *ua, const char *prompt)
    if (!sock || ua->batch) {          /* No UA or batch mode */
       return 0;
    }
+   if (!subprompt) {
+      sock->signal(BNET_TEXT_INPUT);
+   }
    sock->fsend("%s", prompt);
-   sock->signal(BNET_PROMPT);         /* request more input */
+   if (subprompt) {
+      sock->signal(BNET_SUB_PROMPT);
+   }
    for ( ;; ) {
       stat = sock->recv();
       if (stat == BNET_SIGNAL) {

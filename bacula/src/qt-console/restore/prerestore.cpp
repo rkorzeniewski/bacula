@@ -27,8 +27,6 @@
 */
  
 /*
- *   Version $Id$
- *
  *  preRestore -> dialog put up to determine the restore type
  *
  *   Kern Sibbald, February MMVII
@@ -139,6 +137,7 @@ void prerestorePage::okButtonPushed()
    QString cmd;
 
    this->hide();
+
 
    cmd = QString("restore");
    cmd += " fileset=\"" + filesetCombo->currentText() + "\"";

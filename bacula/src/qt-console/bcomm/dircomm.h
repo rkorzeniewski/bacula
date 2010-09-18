@@ -72,7 +72,7 @@ public:
    int write(QString msg);
 
 public slots:
-   void read_dir(int fd);
+   void notify_read_dir(int fd);
 
 private:
    BSOCK *m_sock;   

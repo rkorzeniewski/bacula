@@ -324,7 +324,7 @@ static void read_and_process_input(FILE *input, BSOCK *UA_sock)
       if (is_bnet_stop(UA_sock)) {
          break;                       /* error or term */
       } else if (stat == BNET_SIGNAL) {
-         if (UA_sock->msglen == BNET_PROMPT) {
+         if (UA_sock->msglen == BNET_SUB_PROMPT) {
             at_prompt = true;
          }
          Dmsg1(100, "Got poll %s\n", bnet_sig_to_ascii(UA_sock));

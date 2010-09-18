@@ -166,7 +166,7 @@ enum {
    BNET_POLL           = -5,          /* Poll request, I'm hanging on a read */
    BNET_HEARTBEAT      = -6,          /* Heartbeat Response requested */
    BNET_HB_RESPONSE    = -7,          /* Only response permited to HB */
-   BNET_PROMPT         = -8,          /* Prompt for subcommand */
+   BNET_xxxxxxPROMPT   = -8,          /* No longer used -- Prompt for subcommand */
    BNET_BTIME          = -9,          /* Send UTC btime */
    BNET_BREAK          = -10,         /* Stop current command -- ctl-c */
    BNET_START_SELECT   = -11,         /* Start of a selection list */
@@ -184,7 +184,9 @@ enum {
    BNET_RUN_CMD        = -23,         /* Run command follows */
    BNET_YESNO          = -24,         /* Request yes no response */
    BNET_START_RTREE    = -25,         /* Start restore tree mode */
-   BNET_END_RTREE      = -26          /* End restore tree mode */ 
+   BNET_END_RTREE      = -26,         /* End restore tree mode */ 
+   BNET_SUB_PROMPT     = -27,         /* Indicate we are at a subprompt */
+   BNET_TEXT_INPUT     = -28          /* Get text input from user */
 };
 
 #define BNET_SETBUF_READ  1           /* Arg for bnet_set_buffer_size */
