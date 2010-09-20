@@ -149,17 +149,26 @@ int autoload_device(DCR *dcr, int writing, BSOCK *dir)
 
    changer = get_pool_memory(PM_FNAME);
    if (slot <= 0) {
-      Jmsg(jcr, M_INFO, 0, _("Invalid slot=%d defined in catalog for Volume \"%s\" "
-           "on %s. Manual load may be required.\n"), slot, dcr->getVolCatName(),
-           dev->print_name());
+      /* Suppress info when polling */
+      if (!dev->poll) {
+         Jmsg(jcr, M_INFO, 0, _("No slot defined in catalog (slot=%d) for Volume \"%s\" on %s.\n"), 
+              slot, dcr->getVolCatName(), dev->print_name());
+         Jmsg(jcr, M_INFO, 0, _("Cartridge change or \"update slots\" may be required.\n"));
+      }
       rtn_stat = 0;
    } else if (!dcr->device->changer_name) {
-      Jmsg(jcr, M_INFO, 0, _("No \"Changer Device\" for %s. Manual load of Volume may be required.\n"),
-           dev->print_name());
+      /* Suppress info when polling */
+      if (!dev->poll) {
+         Jmsg(jcr, M_INFO, 0, _("No \"Changer Device\" for %s. Manual load of Volume may be required.\n"),
+              dev->print_name());
+      }
       rtn_stat = 0;
   } else if (!dcr->device->changer_command) {
-      Jmsg(jcr, M_INFO, 0, _("No \"Changer Command\" for %s. Manual load of Volume may be requird.\n"),
-           dev->print_name());
+      /* Suppress info when polling */
+      if (!dev->poll) {
+         Jmsg(jcr, M_INFO, 0, _("No \"Changer Command\" for %s. Manual load of Volume may be requird.\n"),
+              dev->print_name());
+      }
       rtn_stat = 0;
   } else {
       /* Attempt to load the Volume */
@@ -266,8 +275,11 @@ int get_autochanger_loaded_slot(DCR *dcr)
    /* Find out what is loaded, zero means device is unloaded */
    changer = get_pool_memory(PM_FNAME);
    lock_changer(dcr);
-   Jmsg(jcr, M_INFO, 0, _("3301 Issuing autochanger \"loaded? drive %d\" command.\n"),
-        drive);
+   /* Suppress info when polling */
+   if (!dev->poll) {
+      Jmsg(jcr, M_INFO, 0, _("3301 Issuing autochanger \"loaded? drive %d\" command.\n"),
+           drive);
+   }
    changer = edit_device_codes(dcr, changer, dcr->device->changer_command, "loaded");
    Dmsg1(100, "Run program=%s\n", changer);
    status = run_program_full_output(changer, timeout, results.addr());
@@ -275,12 +287,18 @@ int get_autochanger_loaded_slot(DCR *dcr)
    if (status == 0) {
       loaded = str_to_int32(results.c_str());
       if (loaded > 0) {
-         Jmsg(jcr, M_INFO, 0, _("3302 Autochanger \"loaded? drive %d\", result is Slot %d.\n"),
-              drive, loaded);
+         /* Suppress info when polling */
+         if (!dev->poll) {
+            Jmsg(jcr, M_INFO, 0, _("3302 Autochanger \"loaded? drive %d\", result is Slot %d.\n"),
+                 drive, loaded);
+         }
          dev->set_slot(loaded);
       } else {
-         Jmsg(jcr, M_INFO, 0, _("3302 Autochanger \"loaded? drive %d\", result: nothing loaded.\n"),
-              drive);
+         /* Suppress info when polling */
+         if (!dev->poll) {
+            Jmsg(jcr, M_INFO, 0, _("3302 Autochanger \"loaded? drive %d\", result: nothing loaded.\n"),
+                 drive);
+         }
          dev->clear_slot();   /* unknown */
       }
    } else {
