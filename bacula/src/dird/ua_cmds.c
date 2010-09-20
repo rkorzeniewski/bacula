@@ -1342,8 +1342,8 @@ static int estimate_cmd(UAContext *ua, const char *cmd)
 
 bail_out:
    if (jcr->file_bsock) {
-      bnet_sig(jcr->file_bsock, BNET_TERMINATE);
-      bnet_close(jcr->file_bsock);
+      jcr->file_bsock->signal(BNET_TERMINATE);
+      jcr->file_bsock->close();
       jcr->file_bsock = NULL;
    }
    return 1;
