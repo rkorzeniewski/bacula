@@ -243,6 +243,9 @@
        <string>Vol Bytes</string>
       </property>
      </column>
+     <property name="sortingEnabled" >
+      <bool>true</bool>
+     </property>
      <column>
       <property name="text" >
        <string>Vol Usage</string>
@@ -264,6 +267,9 @@
        <string>Pool</string>
       </property>
      </column>
+     <property name="sortingEnabled" >
+      <bool>true</bool>
+     </property>
      <column>
       <property name="text" >
        <string>Media Type</string>
