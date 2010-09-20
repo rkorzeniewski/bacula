@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2007-2009 Free Software Foundation Europe e.V.
+   Copyright (C) 2007-2010 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -225,9 +225,11 @@ void Pages::closeStackPage()
    /* First get the tree widget item and destroy it */
    QTreeWidgetItem *item=mainWin->getFromHash(this);
    /* remove the QTreeWidgetItem <-> page from the hash */
-   mainWin->hashRemove(item, this);
-   /* remove the item from the page selector by destroying it */
-   delete item;
+   if (item) {
+      mainWin->hashRemove(item, this);
+      /* remove the item from the page selector by destroying it */
+      delete item;
+   }
    /* remove this */
    delete this;
 }
@@ -285,6 +287,7 @@ void Pages::consoleCommand(QString &command)
 {
    consoleCommand(command, true);
 }
+
 void Pages::consoleCommand(QString &command, bool setCurrent)
 {
    int conn;
@@ -298,10 +301,12 @@ void Pages::consoleCommand(QString &command, bool setCurrent)
       if (donotify) { m_console->notify(conn, true); }
    }
 }
+
 void Pages::consoleCommand(QString &command, int conn)
 {
    consoleCommand(command, conn, true);
 }
+
 void Pages::consoleCommand(QString &command, int conn, bool setCurrent)
 {
    /* Bring this director's console to the front of the stack */

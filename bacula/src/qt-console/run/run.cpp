@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2007-2009 Free Software Foundation Europe e.V.
+   Copyright (C) 2007-2010 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -31,7 +31,6 @@
  *
  *   Kern Sibbald, February MMVII
  *
- *  $Id$
  */ 
 
 #include "bat.h"
@@ -111,7 +110,7 @@ void runPage::init()
    connect(cancelButton, SIGNAL(pressed()), this, SLOT(cancelButtonPushed()));
 
    // find a way to place the new window at the cursor position
-   // or in the midle of the page
+   // or in the middle of the page
 //   dockPage();
    setCurrent();
 }
