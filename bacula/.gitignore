@@ -55,7 +55,6 @@ kernswinproductionconfig
 Makefile
 newdb
 newtape
-run
 run_clean
 run_clean_tape
 run_two
