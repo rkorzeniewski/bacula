@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2007-2009 Free Software Foundation Europe e.V.
+   Copyright (C) 2007-2010 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -27,7 +27,6 @@
 */
  
 /*
- *   Version $Id$
  *
  *  Restore Class 
  *
@@ -766,6 +765,7 @@ void restoreTree::populateJobTable()
       " INNER JOIN Client ON (Job.ClientId=Client.ClientId)"
       " INNER JOIN FileSet ON (Job.FileSetId=FileSet.FileSetId)"
       " WHERE"
+      " Job.JobStatus IN ('T','W') AND Job.Type='B' AND"
       " Client.Name='" + clientCombo->currentText() + "'";
    if ((jobCombo->currentIndex() >= 0) && (jobCombo->currentText() != tr("Any"))) {
       jobQuery += " AND Job.name = '" + jobCombo->currentText() + "'";
@@ -787,8 +787,8 @@ void restoreTree::populateJobTable()
       limit.setNum(limitSpinBox->value());
       jobQuery += " LIMIT " + limit;
    }
-   if (mainWin->m_sqlDebug)
-      Pmsg1(000, "Query cmd : %s\n", jobQuery.toUtf8().data());
+   if (mainWin->m_sqlDebug) Pmsg1(000, "Query cmd : %s\n", jobQuery.toUtf8().data());
+
 
    QStringList results;
    if (m_console->sql_cmd(jobQuery, results)) {

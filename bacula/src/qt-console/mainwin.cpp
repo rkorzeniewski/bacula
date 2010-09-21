@@ -941,7 +941,7 @@ void MainWin::readPreferences()
    settings.endGroup();
    settings.beginGroup("JobList");
    m_recordLimitCheck = settings.value("recordLimitCheck", true).toBool();
-   m_recordLimitVal = settings.value("recordLimitVal", 150).toInt();
+   m_recordLimitVal = settings.value("recordLimitVal", 50).toInt();
    m_daysLimitCheck = settings.value("daysLimitCheck", false).toBool();
    m_daysLimitVal = settings.value("daysLimitVal", 28).toInt();
    settings.endGroup();
