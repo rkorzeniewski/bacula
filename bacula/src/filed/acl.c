@@ -131,35 +131,237 @@ static bacl_exit_code send_acl_stream(JCR *jcr, int stream)
 #include <sys/access.h>
 #include <sys/acl.h>
 
+static bool acl_is_trivial(struct acl *acl)
+{
+   return (acl_last(acl) != acl->acl_ext ? false : true);
+}
+
+static bool acl_nfs4_is_trivial(nfs4_acl_int_t *acl)
+{
+   return (acl->aclEntryN > 0 ? false : true);
+}
+
 /**
  * Define the supported ACL streams for this OS
  */
-static int os_access_acl_streams[1] = { STREAM_ACL_AIX_TEXT, STREAM_ACL_AIX_AIXC, STREAM_ACL_AIX_NFS4 };
+static int os_access_acl_streams[3] = { STREAM_ACL_AIX_TEXT, STREAM_ACL_AIX_AIXC, STREAM_ACL_AIX_NFS4 };
 static int os_default_acl_streams[1] = { -1 };
 
 static bacl_exit_code aix_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
 {
-   return bacl_exit_error;
+   berrno be;
+   mode_t mode;
+   acl_type_t type;
+   size_t aclsize, acltxtsize;
+   bacl_exit_code retval = bacl_exit_error;
+   POOLMEM *aclbuf = get_pool_memory(PM_MESSAGE);
+
+   /**
+    * First see how big the buffers should be.
+    */
+   type.u64 = ACL_ANY;
+   if (aclx_get(jcr->last_fname, GET_ACLINFO_ONLY, &type, NULL, &aclsize, NULL) < 0) {
+      switch (errno) {
+      case ENOENT:
+         retval = bacl_exit_ok;
+         goto bail_out;
+      default:
+         Mmsg2(jcr->errmsg, _("aclx_get error on file \"%s\": ERR=%s\n"),
+               jcr->last_fname, be.bstrerror());
+         Dmsg2(100, "aclx_get error file=%s ERR=%s\n",
+               jcr->last_fname, be.bstrerror());
+         goto bail_out;
+      }
+   }
+
+   /**
+    * Make sure the buffers are big enough.
+    */
+   aclbuf = check_pool_memory_size(aclbuf, aclsize + 1);
+
+   /**
+    * Retrieve the ACL info.
+    */
+   if (aclx_get(jcr->last_fname, 0, &type, aclbuf, &aclsize, &mode) < 0) {
+      switch (errno) {
+      case ENOENT:
+         retval = bacl_exit_ok;
+         goto bail_out;
+      default:
+         Mmsg2(jcr->errmsg, _("aclx_get error on file \"%s\": ERR=%s\n"),
+               jcr->last_fname, be.bstrerror());
+         Dmsg2(100, "aclx_get error file=%s ERR=%s\n",
+               jcr->last_fname, be.bstrerror());
+         goto bail_out;
+      }
+   }
+
+   /**
+    * See if the acl is non trivial.
+    */
+   switch (type.u64) {
+   case ACL_AIXC:
+      if (acl_is_trivial((struct acl *)aclbuf)) {
+         retval = bacl_exit_ok;
+         goto bail_out;
+      }
+      break;
+   case ACL_NFS4:
+      if (acl_nfs4_is_trivial((nfs4_acl_int_t *)aclbuf)) {
+         retval = bacl_exit_ok;
+         goto bail_out;
+      }
+      break;
+   default:
+      Mmsg2(jcr->errmsg, _("Unknown acl type encountered on file \"%s\": %ld\n"),
+            jcr->last_fname, type.u64);
+      Dmsg2(100, "Unknown acl type encountered on file \"%s\": %ld\n",
+            jcr->last_fname, type.u64);
+      goto bail_out;
+   }
+
+   /**
+    * We have a non-trivial acl lets convert it into some ASCII form.
+    */
+   acltxtsize = sizeof_pool_memory(jcr->acl_data->content);
+   if (aclx_printStr(jcr->acl_data->content, &acltxtsize, aclbuf,
+                     aclsize, type, jcr->last_fname, 0) < 0) {
+      switch (errno) {
+      case ENOSPC:
+         /**
+          * Our buffer is not big enough, acltxtsize should be updated with the value
+          * the aclx_printStr really need. So we increase the buffer and try again.
+          */
+         jcr->acl_data->content = check_pool_memory_size(jcr->acl_data->content, acltxtsize + 1);
+         if (aclx_printStr(jcr->acl_data->content, &acltxtsize, aclbuf,
+                           aclsize, type, jcr->last_fname, 0) < 0) {
+            Mmsg1(jcr->errmsg, _("Failed to convert acl into text on file \"%s\"\n"),
+                  jcr->last_fname);
+            Dmsg2(100, "Failed to convert acl into text on file \"%s\": %ld\n",
+                  jcr->last_fname, type.u64);
+            goto bail_out;
+         }
+         break;
+      default:
+         Mmsg1(jcr->errmsg, _("Failed to convert acl into text on file \"%s\"\n"),
+               jcr->last_fname);
+         Dmsg2(100, "Failed to convert acl into text on file \"%s\": %ld\n",
+               jcr->last_fname, type.u64);
+         goto bail_out;
+      }
+   }
+
+   jcr->acl_data->content_length = strlen(jcr->acl_data->content) + 1;
+   switch (type.u64) {
+   case ACL_AIXC:
+      retval = send_acl_stream(jcr, STREAM_ACL_AIX_AIXC);
+   case ACL_NFS4:
+      retval = send_acl_stream(jcr, STREAM_ACL_AIX_NFS4);
+   }
+
+bail_out:
+   free_pool_memory(aclbuf);
+
+   return retval;
 }
 
 static bacl_exit_code aix_parse_acl_streams(JCR *jcr, int stream)
 {
+   int cnt;
+   berrno be;
+   acl_type_t type;
+   size_t aclsize;
+   bacl_exit_code retval = bacl_exit_error;
+   POOLMEM *aclbuf = get_pool_memory(PM_MESSAGE);
+
    switch (stream) {
    case STREAM_ACL_AIX_TEXT:
       /**
-       * Handle the old stream using the old system call.
+       * Handle the old stream using the old system call for now.
        */
       if (acl_put(jcr->last_fname, jcr->acl_data->content, 0) != 0) {
-         return bacl_exit_error;
+         retval = bacl_exit_error;
+         goto bail_out;
       }
-      return bacl_exit_ok;
+      retval = bacl_exit_ok;
+      goto bail_out;
    case STREAM_ACL_AIX_AIXC:
+      type.u64 = ACL_AIXC;
       break;
    case STREAM_ACL_AIX_NFS4:
+      type.u64 = ACL_NFS4;
       break;
+   default:
+      goto bail_out;
+   } /* end switch (stream) */
+
+   /**
+    * Set the acl buffer to an initial size. For now we set it
+    * to the same size as the ASCII representation.
+    */
+   aclbuf = check_pool_memory_size(aclbuf, jcr->acl_data->content_length);
+   aclsize = jcr->acl_data->content_length;
+   if (aclx_scanStr(jcr->acl_data->content, aclbuf, &aclsize, type) < 0) {
+      switch (errno) {
+      case ENOSPC:
+         /**
+          * The buffer isn't big enough. The man page doesn't say that aclsize
+          * is updated to the needed size as what is done with aclx_printStr.
+          * So for now we try to increase the buffer a maximum of 3 times
+          * and retry the conversion.
+          */
+         for (cnt = 0; cnt < 3; cnt++) {
+            aclsize = 2 * aclsize;
+            aclbuf = check_pool_memory_size(aclbuf, aclsize);
+
+            if (aclx_scanStr(jcr->acl_data->content, aclbuf, &aclsize, type) == 0) {
+               break;
+            }
+
+            /**
+             * See why we failed this time, ENOSPC retry if max retries not met,
+             * otherwise abort.
+             */
+            switch (errno) {
+            case ENOSPC:
+               continue;
+            default:
+               Mmsg2(jcr->errmsg, _("aclx_scanStr error on file \"%s\": ERR=%s\n"),
+                     jcr->last_fname, be.bstrerror());
+               Dmsg2(100, "aclx_scanStr error file=%s ERR=%s\n",
+                     jcr->last_fname, be.bstrerror());
+               goto bail_out;
+            }
+         }
+         break;
+      default:
+         Mmsg2(jcr->errmsg, _("aclx_scanStr error on file \"%s\": ERR=%s\n"),
+               jcr->last_fname, be.bstrerror());
+         Dmsg2(100, "aclx_scanStr error file=%s ERR=%s\n",
+               jcr->last_fname, be.bstrerror());
+      }
    }
 
-   return bacl_exit_error;
+   if (aclx_put(jcr->last_fname, SET_ACL, type, aclbuf, aclsize, 0) < 0) {
+      switch (errno) {
+      case ENOENT:
+         retval = bacl_exit_ok;
+         goto bail_out;
+      default:
+         Mmsg2(jcr->errmsg, _("aclx_put error on file \"%s\": ERR=%s\n"),
+               jcr->last_fname, be.bstrerror());
+         Dmsg2(100, "aclx_put error file=%s ERR=%s\n",
+               jcr->last_fname, be.bstrerror());
+         goto bail_out;
+      }
+   }
+
+   retval = bacl_exit_ok;
+
+bail_out:
+   free_pool_memory(aclbuf);
+
+   return retval;
 }
 
 #else /* HAVE_EXTENDED_ACL */
