@@ -32,6 +32,7 @@
  * they were saved using a filed on the same platform.
  *
  * Currently we support the following OSes:
+ *   - AIX (Extended Attributes)
  *   - Darwin (Extended Attributes)
  *   - Linux (Extended Attributes)
  *   - NetBSD (Extended Attributes)
@@ -121,7 +122,8 @@ static bxattr_exit_code send_xattr_stream(JCR *jcr, int stream)
 /*
  * First some generic functions for OSes that use the same xattr encoding scheme.
  */
-#if defined(HAVE_DARWIN_OS) || \
+#if defined(HAVE_AIX_OS) || \
+    defined(HAVE_DARWIN_OS) || \
     defined(HAVE_LINUX_OS) || \
     defined(HAVE_NETBSD_OS) || \
     defined(HAVE_FREEBSD_OS) || \
@@ -254,7 +256,7 @@ static bxattr_exit_code unserialize_xattr_stream(JCR *jcr, alist *xattr_value_li
       unser_bytes(current_xattr->name, current_xattr->name_length);
 
       /*
-       * The xattr_name needs to be null terminated for lsetxattr.
+       * The xattr_name needs to be null terminated.
        */
       current_xattr->name[current_xattr->name_length] = '\0';
 
@@ -284,13 +286,321 @@ static bxattr_exit_code unserialize_xattr_stream(JCR *jcr, alist *xattr_value_li
 /*
  * This is a supported OS, See what kind of interface we should use.
  */
-#if defined(HAVE_DARWIN_OS) || \
-    defined(HAVE_LINUX_OS)
+#if defined(HAVE_AIX_OS)
+
+#if (!defined(HAVE_LISTEA) && !defined(HAVE_LLISTEA)) || \
+    (!defined(HAVE_GETEA) && !defined(HAVE_LGETEA)) || \
+    (!defined(HAVE_SETEA) && !defined(HAVE_LSETEA))
+#error "Missing full support for the Extended Attributes (EA) functions."
+#endif
+
+#ifdef HAVE_SYS_EA
+#include <sys/ea.h>
+#else
+#error "Missing sys/ea.h header file"
+#endif
+
+/*
+ * Define the supported XATTR streams for this OS
+ */
+static int os_default_xattr_streams[1] = { STREAM_XATTR_AIX };
+
+/*
+ * Fallback to the non l-functions when those are not available.
+ */
+#if defined(HAVE_GETEA) && !defined(HAVE_LGETEA)
+#define lgetea getea
+#endif
+#if defined(HAVE_SETEA) && !defined(HAVE_LSETEA)
+#define lsetea setea
+#endif
+#if defined(HAVE_LISTEA) && !defined(HAVE_LLISTEA)
+#define llistea listea
+#endif
+
+static bxattr_exit_code aix_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
+{
+   bool skip_xattr;
+   char *xattr_list, *bp;
+   int cnt, xattr_count = 0;
+   uint32_t name_length;
+   int32_t xattr_list_len,
+           xattr_value_len;
+   uint32_t expected_serialize_len = 0;
+   xattr_t *current_xattr;
+   alist *xattr_value_list = NULL;
+   bxattr_exit_code retval = bxattr_exit_error;
+   berrno be;
+
+   /*
+    * First get the length of the available list with extended attributes.
+    */
+   xattr_list_len = llistea(jcr->last_fname, NULL, 0);
+   switch (xattr_list_len) {
+   case -1:
+      switch (errno) {
+      case ENOENT:
+      case EFORMAT:
+      case ENOTSUP:
+         return bxattr_exit_ok;
+      default:
+         Mmsg2(jcr->errmsg, _("llistea error on file \"%s\": ERR=%s\n"),
+               jcr->last_fname, be.bstrerror());
+         Dmsg2(100, "llistea error file=%s ERR=%s\n",
+               jcr->last_fname, be.bstrerror());
+         return bxattr_exit_error;
+      }
+      break;
+   case 0:
+      return bxattr_exit_ok;
+   default:
+      break;
+   }
+
+   /*
+    * Allocate room for the extented attribute list.
+    */
+   xattr_list = (char *)malloc(xattr_list_len + 1);
+   memset((caddr_t)xattr_list, 0, xattr_list_len + 1);
+
+   /*
+    * Get the actual list of extended attributes names for a file.
+    */
+   xattr_list_len = llistea(jcr->last_fname, xattr_list, xattr_list_len);
+   switch (xattr_list_len) {
+   case -1:
+      switch (errno) {
+      case ENOENT:
+      case EFORMAT:
+      case ENOTSUP:
+         retval = bxattr_exit_ok;
+         goto bail_out;
+      default:
+         Mmsg2(jcr->errmsg, _("llistea error on file \"%s\": ERR=%s\n"),
+               jcr->last_fname, be.bstrerror());
+         Dmsg2(100, "llistea error file=%s ERR=%s\n",
+               jcr->last_fname, be.bstrerror());
+         goto bail_out;
+      }
+      break;
+   default:
+      break;
+   }
+   xattr_list[xattr_list_len] = '\0';
+
+   xattr_value_list = New(alist(10, not_owned_by_alist));
+
+   /*
+    * Walk the list of extended attributes names and retrieve the data.
+    * We already count the bytes needed for serializing the stream later on.
+    */
+   bp = xattr_list;
+   while ((bp - xattr_list) + 1 < xattr_list_len) {
+      skip_xattr = false;
+
+      /*
+       * We want to skip certain xattrs which start with a 0xF8 character on AIX.
+       */
+      if (*bp == 0xF8) {
+         skip_xattr = true;
+      }
+
+      name_length = strlen(bp);
+      if (skip_xattr || name_length == 0) {
+         bp = strchr(bp, '\0') + 1;
+         continue;
+      }
+
+      /*
+       * Each xattr valuepair starts with a magic so we can parse it easier.
+       */
+      current_xattr = (xattr_t *)malloc(sizeof(xattr_t));
+      current_xattr->magic = XATTR_MAGIC;
+      expected_serialize_len += sizeof(current_xattr->magic);
+
+      /*
+       * Allocate space for storing the name.
+       */
+      current_xattr->name_length = name_length;
+      current_xattr->name = (char *)malloc(current_xattr->name_length);
+      memcpy((caddr_t)current_xattr->name, (caddr_t)bp, current_xattr->name_length);
+
+      expected_serialize_len += sizeof(current_xattr->name_length) + current_xattr->name_length;
+
+      /*
+       * First see how long the value is for the extended attribute.
+       */
+      xattr_value_len = lgetea(jcr->last_fname, bp, NULL, 0);
+      switch (xattr_value_len) {
+      case -1:
+         switch (errno) {
+         case ENOENT:
+         case EFORMAT:
+         case ENOTSUP:
+            retval = bxattr_exit_ok;
+            free(current_xattr->name);
+            free(current_xattr);
+            goto bail_out;
+         default:
+            Mmsg2(jcr->errmsg, _("lgetea error on file \"%s\": ERR=%s\n"),
+                  jcr->last_fname, be.bstrerror());
+            Dmsg2(100, "lgetea error file=%s ERR=%s\n",
+                  jcr->last_fname, be.bstrerror());
+            free(current_xattr->name);
+            free(current_xattr);
+            goto bail_out;
+         }
+         break;
+      case 0:
+         current_xattr->value = NULL;
+         current_xattr->value_length = 0;
+         expected_serialize_len += sizeof(current_xattr->value_length);
+         break;
+      default:
+         /*
+          * Allocate space for storing the value.
+          */
+         current_xattr->value = (char *)malloc(xattr_value_len);
+         memset((caddr_t)current_xattr->value, 0, xattr_value_len);
+
+         xattr_value_len = lgetea(jcr->last_fname, bp, current_xattr->value, xattr_value_len);
+         if (xattr_value_len < 0) {
+            switch (errno) {
+            case ENOENT:
+            case EFORMAT:
+            case ENOTSUP:
+               retval = bxattr_exit_ok;
+               free(current_xattr->value);
+               free(current_xattr->name);
+               free(current_xattr);
+               goto bail_out;
+            default:
+               Mmsg2(jcr->errmsg, _("lgetea error on file \"%s\": ERR=%s\n"),
+                     jcr->last_fname, be.bstrerror());
+               Dmsg2(100, "lgetea error file=%s ERR=%s\n",
+                     jcr->last_fname, be.bstrerror());
+               free(current_xattr->value);
+               free(current_xattr->name);
+               free(current_xattr);
+               goto bail_out;
+            }
+         }
+         /*
+          * Store the actual length of the value.
+          */
+         current_xattr->value_length = xattr_value_len;
+         expected_serialize_len += sizeof(current_xattr->value_length) + current_xattr->value_length;
+
+         /*
+          * Protect ourself against things getting out of hand.
+          */
+         if (expected_serialize_len >= MAX_XATTR_STREAM) {
+            Mmsg2(jcr->errmsg, _("Xattr stream on file \"%s\" exceeds maximum size of %d bytes\n"),
+                  jcr->last_fname, MAX_XATTR_STREAM);
+            free(current_xattr->value);
+            free(current_xattr->name);
+            free(current_xattr);
+            goto bail_out;
+         }
+      }
+
+      xattr_value_list->append(current_xattr);
+      xattr_count++;
+      bp = strchr(bp, '\0') + 1;
+      break;
+   }
+
+   free(xattr_list);
+   xattr_list = (char *)NULL;
+
+   /*
+    * If we found any xattr send them to the SD.
+    */
+   if (xattr_count > 0) {
+      /*
+       * Serialize the datastream.
+       */
+      if (serialize_xattr_stream(jcr, expected_serialize_len, xattr_value_list) < expected_serialize_len) {
+         Mmsg1(jcr->errmsg, _("Failed to serialize extended attributes on file \"%s\"\n"),
+               jcr->last_fname);
+         Dmsg1(100, "Failed to serialize extended attributes on file \"%s\"\n",
+               jcr->last_fname);
+         goto bail_out;
+      }
+
+      xattr_drop_internal_table(xattr_value_list);
+
+      /*
+       * Send the datastream to the SD.
+       */
+      return send_xattr_stream(jcr, os_default_xattr_streams[0]);
+   } else {
+      xattr_drop_internal_table(xattr_value_list);
+
+      return bxattr_exit_ok;
+   }
+
+bail_out:
+   if (xattr_list != NULL) {
+      free(xattr_list);
+   }
+   if (xattr_value_list != NULL) {
+      xattr_drop_internal_table(xattr_value_list);
+   }
+   return retval;
+}
+
+static bxattr_exit_code aix_xattr_parse_streams(JCR *jcr, int stream)
+{
+   xattr_t *current_xattr;
+   alist *xattr_value_list;
+   berrno be;
+
+   xattr_value_list = New(alist(10, not_owned_by_alist));
+
+   if (unserialize_xattr_stream(jcr, xattr_value_list) != bxattr_exit_ok) {
+      xattr_drop_internal_table(xattr_value_list);
+      return bxattr_exit_error;
+   }
+
+   foreach_alist(current_xattr, xattr_value_list) {
+      if (lsetea(jcr->last_fname, current_xattr->name, current_xattr->value, current_xattr->value_length, 0) != 0) {
+         switch (errno) {
+         case ENOENT:
+         case EFORMAT:
+         case ENOTSUP:
+            goto bail_out;
+         default:
+            Mmsg2(jcr->errmsg, _("lsetea error on file \"%s\": ERR=%s\n"),
+                  jcr->last_fname, be.bstrerror());
+            Dmsg2(100, "lsetea error file=%s ERR=%s\n",
+                  jcr->last_fname, be.bstrerror());
+            goto bail_out;
+         }
+      }
+   }
+
+   xattr_drop_internal_table(xattr_value_list);
+   return bxattr_exit_ok;
+
+bail_out:
+   xattr_drop_internal_table(xattr_value_list);
+   return bxattr_exit_error;
+}
+
+/*
+ * Function pointers to the build and parse function to use for these xattrs.
+ */
+static bxattr_exit_code (*os_build_xattr_streams)(JCR *jcr, FF_PKT *ff_pkt) = aix_xattr_build_streams;
+static bxattr_exit_code (*os_parse_xattr_streams)(JCR *jcr, int stream) = aix_xattr_parse_streams;
+
+#elif defined(HAVE_DARWIN_OS) || \
+      defined(HAVE_LINUX_OS)
 
 #if (!defined(HAVE_LISTXATTR) && !defined(HAVE_LLISTXATTR)) || \
     (!defined(HAVE_GETXATTR) && !defined(HAVE_LGETXATTR)) || \
     (!defined(HAVE_SETXATTR) && !defined(HAVE_LSETXATTR))
-#error "Missing either full support for the LXATTR or XATTR functions."
+#error "Missing full support for the XATTR functions."
 #endif
 
 #ifdef HAVE_SYS_XATTR_H
@@ -337,7 +647,7 @@ static const char *xattr_skiplist[1] = { NULL };
    #endif
 #endif
 
-static bxattr_exit_code linux_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
+static bxattr_exit_code generic_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
 {
    bool skip_xattr;
    char *xattr_list, *bp;
@@ -358,6 +668,7 @@ static bxattr_exit_code linux_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
    case -1:
       switch (errno) {
       case ENOENT:
+      case ENOTSUP:
          return bxattr_exit_ok;
       default:
          Mmsg2(jcr->errmsg, _("llistxattr error on file \"%s\": ERR=%s\n"),
@@ -387,6 +698,7 @@ static bxattr_exit_code linux_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
    case -1:
       switch (errno) {
       case ENOENT:
+      case ENOTSUP:
          retval = bxattr_exit_ok;
          goto bail_out;
       default:
@@ -469,6 +781,7 @@ static bxattr_exit_code linux_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
       case -1:
          switch (errno) {
          case ENOENT:
+         case ENOTSUP:
             retval = bxattr_exit_ok;
             free(current_xattr->name);
             free(current_xattr);
@@ -499,6 +812,7 @@ static bxattr_exit_code linux_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
          if (xattr_value_len < 0) {
             switch (errno) {
             case ENOENT:
+            case ENOTSUP:
                retval = bxattr_exit_ok;
                free(current_xattr->value);
                free(current_xattr->name);
@@ -580,7 +894,7 @@ bail_out:
    return retval;
 }
 
-static bxattr_exit_code linux_xattr_parse_streams(JCR *jcr, int stream)
+static bxattr_exit_code generic_xattr_parse_streams(JCR *jcr, int stream)
 {
    xattr_t *current_xattr;
    alist *xattr_value_list;
@@ -597,6 +911,7 @@ static bxattr_exit_code linux_xattr_parse_streams(JCR *jcr, int stream)
       if (lsetxattr(jcr->last_fname, current_xattr->name, current_xattr->value, current_xattr->value_length, 0) != 0) {
          switch (errno) {
          case ENOENT:
+         case ENOTSUP:
             goto bail_out;
          default:
             Mmsg2(jcr->errmsg, _("lsetxattr error on file \"%s\": ERR=%s\n"),
@@ -619,8 +934,8 @@ bail_out:
 /*
  * Function pointers to the build and parse function to use for these xattrs.
  */
-static bxattr_exit_code (*os_build_xattr_streams)(JCR *jcr, FF_PKT *ff_pkt) = linux_xattr_build_streams;
-static bxattr_exit_code (*os_parse_xattr_streams)(JCR *jcr, int stream) = linux_xattr_parse_streams;
+static bxattr_exit_code (*os_build_xattr_streams)(JCR *jcr, FF_PKT *ff_pkt) = generic_xattr_build_streams;
+static bxattr_exit_code (*os_parse_xattr_streams)(JCR *jcr, int stream) = generic_xattr_parse_streams;
 
 #elif defined(HAVE_FREEBSD_OS) || \
       defined(HAVE_NETBSD_OS) || \

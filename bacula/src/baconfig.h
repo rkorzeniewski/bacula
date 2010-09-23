@@ -306,6 +306,7 @@ void InitWinAPIWrapper();
 #define STREAM_ACL_AIX_NFS4              1016    /* AIX specific string representation from
                                                   * aclx_printStr (NFSv4 acl)
                                                   */
+#define STREAM_XATTR_AIX                 1992    /* AIX specific extended attributes */
 #define STREAM_XATTR_OPENBSD             1993    /* OpenBSD specific extended attributes */
 #define STREAM_XATTR_SOLARIS_SYS         1994    /* Solaris specific extensible attributes or
                                                   * otherwise named extended system attributes.
