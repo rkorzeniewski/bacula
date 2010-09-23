@@ -652,6 +652,8 @@ void do_restore(JCR *jcr)
       case STREAM_ACL_SOLARIS_ACLENT:
       case STREAM_ACL_SOLARIS_ACE:
       case STREAM_ACL_AFS_TEXT:
+      case STREAM_ACL_AIX_AIXC:
+      case STREAM_ACL_AIX_NFS4:
          /*
           * Do not restore ACLs when
           * a) The current file is not extracted

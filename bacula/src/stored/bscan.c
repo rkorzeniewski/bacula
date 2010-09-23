@@ -806,6 +806,9 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
    case STREAM_ACL_TRU64_ACCESS_ACL:
    case STREAM_ACL_SOLARIS_ACLENT:
    case STREAM_ACL_SOLARIS_ACE:
+   case STREAM_ACL_AFS_TEXT:
+   case STREAM_ACL_AIX_AIXC:
+   case STREAM_ACL_AIX_NFS4:
       /* Ignore Unix ACL attributes */
       break;
 
