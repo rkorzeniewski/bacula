@@ -2683,7 +2683,33 @@ if test x$support_xattr = xyes -o x$support_xattr = xauto; then
    fi
 
    dnl
-   dnl If we failed to find *BSD support try the Linux or OSX implementation of xattr
+   dnl If we failed to find *BSD support try the AIX implementation of extented attributes (EA)
+   dnl
+   if test $have_xattr = no; then
+      AC_CHECK_HEADER(sys/ea.h, [ AC_DEFINE(HAVE_SYS_EA_H,1,[Defines if your system have the sys/ea.h header file])] , )
+      AC_CHECK_FUNCS(llistea lgetea lsetea,
+	 [
+	     have_xattr=yes
+	     AC_DEFINE([HAVE_LLISTEA],1,[Define to 1 if you have the 'llistea' function.])
+	     AC_DEFINE([HAVE_LGETEA],1,[Define to 1 if you have the 'lgetea' function.])
+	     AC_DEFINE([HAVE_LSETEA],1,[Define to 1 if you have the 'lsetea' function.])
+	 ]
+      )
+
+      if test $have_xattr = no; then
+	 AC_CHECK_FUNCS(listea getea setea,
+	    [
+		have_xattr=yes
+		AC_DEFINE([HAVE_LISTEA],1,[Define to 1 if you have the 'listea' function.])
+		AC_DEFINE([HAVE_GETEA],1,[Define to 1 if you have the 'getea' function.])
+		AC_DEFINE([HAVE_SETEA],1,[Define to 1 if you have the 'setea' function.])
+	    ]
+	 )
+      fi
+   fi
+
+   dnl
+   dnl If we failed to find AIX support try the Linux or OSX implementation of xattr
    dnl
    if test $have_xattr = no; then
       AC_CHECK_HEADER(sys/xattr.h, [ AC_DEFINE(HAVE_SYS_XATTR_H,1,[Defines if your system have the sys/xattr.h header file])] , )
