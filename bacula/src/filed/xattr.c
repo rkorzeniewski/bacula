@@ -294,7 +294,7 @@ static bxattr_exit_code unserialize_xattr_stream(JCR *jcr, alist *xattr_value_li
 #error "Missing full support for the Extended Attributes (EA) functions."
 #endif
 
-#ifdef HAVE_SYS_EA
+#ifdef HAVE_SYS_EA_H
 #include <sys/ea.h>
 #else
 #error "Missing sys/ea.h header file"
