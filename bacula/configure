@@ -43316,7 +43316,7 @@ done
       fi
    fi
 
-            if test $have_xattr = no; then
+            if test $have_xattr = no -a `uname -s` = SunOS; then
       if test "${ac_cv_header_sys_attr_h+set}" = set; then
   { echo "$as_me:$LINENO: checking for sys/attr.h" >&5
 echo $ECHO_N "checking for sys/attr.h... $ECHO_C" >&6; }
