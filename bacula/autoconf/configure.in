@@ -2710,8 +2710,11 @@ if test x$support_xattr = xyes -o x$support_xattr = xauto; then
 
    dnl
    dnl If we failed to find *BSD support and the Linux or OSX implementation of xattr try the Solaris xattr implementation
+   dnl when we are running on an Solaris OS (checked by running uname -s) we don't just check the openat function as
+   dnl the posix openat, fstatat, unlinkat etc. are also available on other os-es but don't indicate xattr support is
+   dnl available.
    dnl
-   if test $have_xattr = no; then
+   if test $have_xattr = no -a `uname -s` = SunOS; then
       AC_CHECK_HEADER(sys/attr.h, [ AC_DEFINE(HAVE_SYS_ATTR_H,1,[Defines if your system have the sys/attr.h header file])] , )
       AC_CHECK_HEADER(sys/nvpair.h, [ AC_DEFINE(HAVE_SYS_NVPAIR_H,1,[Defines if your system have the sys/nvpair.h header file])] , )
       AC_CHECK_HEADER(attr.h, [ AC_DEFINE(HAVE_ATTR_H,1,[Defines if your system have the attr.h header file])] , )
