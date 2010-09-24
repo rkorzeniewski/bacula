@@ -53,7 +53,7 @@
    "HAVE_NETBSD_OS\n" \
    "HAVE_OPENBSD_OS\n" \
    "HAVE_SUN_OS\n" \
-   "HAVE_OSF1_OS\n" \
+   "HAVE_TRU64_OS\n" \
    "HAVE_WIN32\n"
 #define false              0
 #define true               1
@@ -131,7 +131,7 @@ bool fstype(const char *fname, char *fs, int fslen)
 }
 
 #elif defined(HAVE_LINUX_OS) || \
-      defined(HAVE_OSF1_OS)
+      defined(HAVE_TRU64_OS)
 
 #include <sys/stat.h>
 #include "lib/mntent_cache.h"

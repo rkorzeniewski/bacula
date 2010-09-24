@@ -121,14 +121,9 @@ static bxattr_exit_code send_xattr_stream(JCR *jcr, int stream)
 
 /*
  * First some generic functions for OSes that use the same xattr encoding scheme.
+ * Currently for all OSes except for Solaris.
  */
-#if defined(HAVE_AIX_OS) || \
-    defined(HAVE_DARWIN_OS) || \
-    defined(HAVE_LINUX_OS) || \
-    defined(HAVE_NETBSD_OS) || \
-    defined(HAVE_FREEBSD_OS) || \
-    defined(HAVE_OPENBSD_OS)
-
+#if !defined(HAVE_SUN_OS)
 static void xattr_drop_internal_table(alist *xattr_value_list)
 {
    xattr_t *current_xattr;
@@ -1370,6 +1365,310 @@ bail_out:
  */
 static bxattr_exit_code (*os_build_xattr_streams)(JCR *jcr, FF_PKT *ff_pkt) = bsd_build_xattr_streams;
 static bxattr_exit_code (*os_parse_xattr_streams)(JCR *jcr, int stream) = bsd_parse_xattr_streams;
+
+#elif defined(HAVE_TRU64_OS)
+
+#if !defined(HAVE_GETPROPLIST) || \
+    !defined(HAVE_GET_PROPLIST_ENTRY) || \
+    !defined(HAVE_SIZEOF_PROPLIST_ENTRY) || \
+    !defined(HAVE_ADD_PROPLIST_ENTRY) || \
+    !defined(HAVE_SETPROPLIST)
+#error "Missing full support for the Extended Attributes functions."
+#endif
+
+#ifdef HAVE_SYS_PROPLIST_H
+#include <sys/proplist.h>
+#else
+#error "Missing sys/proplist.h header file"
+#endif
+
+/*
+ * Define the supported XATTR streams for this OS
+ */
+static int os_default_xattr_streams[1] = { STREAM_XATTR_TRU64 };
+static const char *xattr_acl_skiplist[1] = { NULL };
+static const char *xattr_skiplist[1] = { NULL };
+
+static bxattr_exit_code tru64_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
+{
+   char *bp,
+        *xattr_name,
+        *xattr_value;
+   int xattr_count = 0;
+   int32_t *flags,
+           *xattr_value_len;
+   int32_t xattr_list_len,
+           xattrbuf_size,
+           xattrbuf_min_size;
+   uint32_t expected_serialize_len = 0;
+   xattr_t *current_xattr;
+   alist *xattr_value_list = NULL;
+   struct proplistname_args prop_args;
+   bxattr_exit_code retval = bxattr_exit_error;
+   POOLMEM *xattrbuf = get_pool_memory(PM_MESSAGE);
+   berrno be;
+
+   xattrbuf_size = sizeof_pool_memory(xattrbuf);
+   xattrbuf_min_size = 0;
+   xattr_list_len = getproplist(jcr->last_fname, 1, &prop_args, xattrbuf_size,
+                                xattrbuf, &xattrbuf_min_size);
+
+   /**
+    * See what xattr are available.
+    */
+   switch (xattr_list_len) {
+   case -1:
+      switch (errno) {
+      case EOPNOTSUPP:
+         retval = bacl_exit_ok;
+         goto bail_out;
+      default:
+         Mmsg2(jcr->errmsg, _("getproplist error on file \"%s\": ERR=%s\n"),
+               jcr->last_fname, be.bstrerror());
+         Dmsg2(100, "getproplist error file=%s ERR=%s\n",
+               jcr->last_fname, be.bstrerror());
+         goto bail_out;
+      }
+      break;
+   case 0:
+      if (xattrbuf_min_size) {
+         /**
+          * The buffer isn't big enough to hold the xattr data, we now have
+          * a minimum buffersize so we resize the buffer and try again.
+          */
+         xattrbuf = check_pool_memory_size(xattrbuf, xattrbuf_min_size + 1);
+         xattrbuf_size = xattrbuf_min_size + 1;
+         xattr_list_len = getproplist(jcr->last_fname, 1, &prop_args, xattrbuf_size,
+                                   xattrbuf, &xattrbuf_min_size);
+         switch (xattr_list_len) {
+         case -1:
+            switch (errno) {
+            case EOPNOTSUPP:
+               retval = bacl_exit_ok;
+               goto bail_out;
+            default:
+               Mmsg2(jcr->errmsg, _("getproplist error on file \"%s\": ERR=%s\n"),
+                     jcr->last_fname, be.bstrerror());
+               Dmsg2(100, "getproplist error file=%s ERR=%s\n",
+                     jcr->last_fname, be.bstrerror());
+               goto bail_out;
+            }
+            break;
+         case 0:
+            /**
+             * This should never happen as we sized the buffer according to the minimumsize
+             * returned by a previous getproplist call. If it does happen things are fishy and
+             * we are better of forgetting this xattr as it seems its list is changing at this
+             * exact moment so we can never make a good backup copy of it.
+             */
+            retval = bacl_exit_ok;
+            goto bail_out;
+         default:
+            break;
+         }
+      } else {
+         /**
+          * No xattr on file.
+          */
+         retval = bacl_exit_ok;
+         goto bail_out;
+      }
+      break;
+   default:
+      break;
+   }
+
+   xattr_value_list = New(alist(10, not_owned_by_alist));
+
+   /**
+    * Walk the list of extended attributes names and retrieve the data.
+    * We already count the bytes needed for serializing the stream later on.
+    */
+   bp = xattrbuf;
+   while (xattrbuf_size > 0) {
+      /*
+       * Call getproplist_entry to initialize name and value
+       * pointers to entries position within buffer.
+       */
+      xattrbuf_size -= get_proplist_entry(&xattr_name, &flags, &xattr_value_len, &xattr_value, &bp);
+
+      /*
+       * On some OSes you also get the acls in the extented attribute list.
+       * So we check if we are already backing up acls and if we do we
+       * don't store the extended attribute with the same info.
+       */
+      if (ff_pkt->flags & FO_ACL) {
+         for (cnt = 0; xattr_acl_skiplist[cnt] != NULL; cnt++) {
+            if (bstrcmp(xattr_name, xattr_acl_skiplist[cnt])) {
+               skip_xattr = true;
+               break;
+            }
+         }
+      }
+
+      /*
+       * On some OSes we want to skip certain xattrs which are in the xattr_skiplist array.
+       */
+      if (!skip_xattr) {
+         for (cnt = 0; xattr_skiplist[cnt] != NULL; cnt++) {
+            if (bstrcmp(xattr_name, xattr_skiplist[cnt])) {
+               skip_xattr = true;
+               break;
+            }
+         }
+      }
+
+      if (skip_xattr) {
+         continue;
+      }
+
+      /*
+       * Each xattr valuepair starts with a magic so we can parse it easier.
+       */
+      current_xattr = (xattr_t *)malloc(sizeof(xattr_t));
+      current_xattr->magic = XATTR_MAGIC;
+      expected_serialize_len += sizeof(current_xattr->magic);
+
+      current_xattr->name_length = strlen(xattr_name);
+      current_xattr->name = bstrdup(xattr_name);
+
+      expected_serialize_len += sizeof(current_xattr->name_length) + current_xattr->name_length;
+
+      current_xattr->value_length = *xattr_value_len;
+      current_xattr->value = (char *)malloc(current_xattr->value_length);
+      memcpy(current_xattr->value, xattr_value, current_xattr->value_length);
+
+      expected_serialize_len += sizeof(current_xattr->value_length) + current_xattr->value_length;
+
+      /*
+       * Protect ourself against things getting out of hand.
+       */
+      if (expected_serialize_len >= MAX_XATTR_STREAM) {
+         Mmsg2(jcr->errmsg, _("Xattr stream on file \"%s\" exceeds maximum size of %d bytes\n"),
+               jcr->last_fname, MAX_XATTR_STREAM);
+         free(current_xattr->value);
+         free(current_xattr->name);
+         free(current_xattr);
+         goto bail_out;
+      }
+
+      xattr_value_list->append(current_xattr);
+      xattr_count++;
+   }
+
+   /*
+    * If we found any xattr send them to the SD.
+    */
+   if (xattr_count > 0) {
+      /*
+       * Serialize the datastream.
+       */
+      if (serialize_xattr_stream(jcr, expected_serialize_len, xattr_value_list) < expected_serialize_len) {
+         Mmsg1(jcr->errmsg, _("Failed to serialize extended attributes on file \"%s\"\n"),
+               jcr->last_fname);
+         Dmsg1(100, "Failed to serialize extended attributes on file \"%s\"\n",
+               jcr->last_fname);
+         goto bail_out;
+      }
+
+      /*
+       * Send the datastream to the SD.
+       */
+      retval = send_xattr_stream(jcr, os_default_xattr_streams[0]);
+   }
+
+bail_out:
+   if (xattr_value_list != NULL) {
+      xattr_drop_internal_table(xattr_value_list);
+   }
+   free_pool_memory(xattrbuf);
+
+   return retval;
+}
+
+static bxattr_exit_code tru64_parse_xattr_streams(JCR *jcr, int stream)
+{
+   char *bp, *xattrbuf;
+   int32_t xattrbuf_size, cnt;
+   xattr_t *current_xattr;
+   alist *xattr_value_list;
+   berrno be;
+
+   xattr_value_list = New(alist(10, not_owned_by_alist));
+
+   if (unserialize_xattr_stream(jcr, xattr_value_list) != bxattr_exit_ok) {
+      xattr_drop_internal_table(xattr_value_list);
+      return bxattr_exit_error;
+   }
+
+   /**
+    * See how big the propertylist must be.
+    */
+   xattrbuf_size = 0;
+   foreach_alist(current_xattr, xattr_value_list) {
+      xattrbuf_size += sizeof_proplist_entry(current_xattr->name, current_xattr->value_length);
+   }
+
+   xattrbuf = (char *)malloc(xattrbuf_size);
+
+   cnt = 0;
+   bp = xattrbuf;
+   /**
+    * Add all value pairs to the proplist.
+    */
+   foreach_alist(current_xattr, xattr_value_list) {
+      cnt = add_proplist_entry(current_xattr->name, 0, current_xattr->value_length,
+                               current_xattr->value, &bp);
+   }
+
+   if (cnt != xattrbuf_size) {
+      Mmsg1(jcr->errmsg, _("Unable create proper proplist to restore xattrs on file \"%s\"\n"),
+            jcr->last_fname);
+      Dmsg1(100, "Unable create proper proplist to restore xattrs on file \"%s\"\n",
+            jcr->last_fname);
+      free(xattrbuf);
+      goto bail_out;
+   }
+
+   /**
+    * Restore the list of extended attributes on the file.
+    */
+   cnt = setproplist(jcr->last_fname, 1, xattrbuf_size, xattrbuf);
+   switch (cnt) {
+   case -1:
+      switch (errno) {
+      case EOPNOTSUPP:
+         retval = bacl_exit_ok;
+         free(xattrbuf);
+         goto bail_out;
+      default:
+         Mmsg2(jcr->errmsg, _("setproplist error on file \"%s\": ERR=%s\n"),
+               jcr->last_fname, be.bstrerror());
+         Dmsg2(100, "setproplist error file=%s ERR=%s\n",
+               jcr->last_fname, be.bstrerror());
+         free(xattrbuf);
+         goto bail_out;
+      }
+      break;
+   default:
+      break;
+   }
+
+   free(xattrbuf);
+
+   xattr_drop_internal_table(xattr_value_list);
+   return bxattr_exit_ok;
+
+bail_out:
+   xattr_drop_internal_table(xattr_value_list);
+   return bxattr_exit_error;
+}
+
+/*
+ * Function pointers to the build and parse function to use for these xattrs.
+ */
+static bxattr_exit_code (*os_build_xattr_streams)(JCR *jcr, FF_PKT *ff_pkt) = tru64_build_xattr_streams;
+static bxattr_exit_code (*os_parse_xattr_streams)(JCR *jcr, int stream) = tru64_parse_xattr_streams;
 
 #elif defined(HAVE_SUN_OS)
 /*

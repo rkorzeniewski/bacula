@@ -160,9 +160,9 @@ const char *stream_to_ascii(int stream)
    case STREAM_ACL_LINUX_ACCESS_ACL:
       return _("Linux Specific Access ACL attribs");
    case STREAM_ACL_TRU64_DEFAULT_ACL:
-      return _("OSF1 Specific Default ACL attribs");
+      return _("TRU64 Specific Default ACL attribs");
    case STREAM_ACL_TRU64_ACCESS_ACL:
-      return _("OSF1 Specific Access ACL attribs");
+      return _("TRU64 Specific Access ACL attribs");
    case STREAM_ACL_SOLARIS_ACLENT:
       return _("Solaris Specific ACL attribs");
    case STREAM_ACL_SOLARIS_ACE:
@@ -173,6 +173,8 @@ const char *stream_to_ascii(int stream)
       return _("AIX Specific ACL attribs");
    case STREAM_ACL_AIX_NFS4:
       return _("AIX Specific ACL attribs");
+   case STREAM_XATTR_TRU64:
+      return _("TRU64 Specific Extended attribs");
    case STREAM_XATTR_AIX:
       return _("AIX Specific Extended attribs");
    case STREAM_XATTR_OPENBSD:

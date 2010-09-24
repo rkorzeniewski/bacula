@@ -306,6 +306,7 @@ void InitWinAPIWrapper();
 #define STREAM_ACL_AIX_NFS4              1016    /* AIX specific string representation from
                                                   * aclx_printStr (NFSv4 acl)
                                                   */
+#define STREAM_XATTR_TRU64               1991    /* TRU64 specific extended attributes */
 #define STREAM_XATTR_AIX                 1992    /* AIX specific extended attributes */
 #define STREAM_XATTR_OPENBSD             1993    /* OpenBSD specific extended attributes */
 #define STREAM_XATTR_SOLARIS_SYS         1994    /* Solaris specific extensible attributes or
@@ -698,7 +699,7 @@ extern int thr_setconcurrency(int);
 
 #endif
 
-#if defined(HAVE_DARWIN_OS) || defined(HAVE_OSF1_OS)
+#if defined(HAVE_DARWIN_OS) || defined(HAVE_TRU64_OS)
 /* Apparently someone forgot to wrap getdomainname as a C function */
 extern "C" int getdomainname(char *name, int len);
 #endif
@@ -745,7 +746,7 @@ extern "C" int setdomainname(char *name, int namelen);
 #endif /* HAVE_HPUX_OS */
 
 
-#ifdef HAVE_OSF1_OS
+#ifdef HAVE_TRU64_OS
 extern "C" int fchdir(int filedes);
 extern "C" long gethostid(void);
 extern "C" int mknod(const char *path, int mode, dev_t device );

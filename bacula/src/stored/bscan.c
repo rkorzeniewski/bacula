@@ -812,6 +812,7 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
       /* Ignore Unix ACL attributes */
       break;
 
+   case STREAM_XATTR_TRU64:
    case STREAM_XATTR_AIX:
    case STREAM_XATTR_OPENBSD:
    case STREAM_XATTR_SOLARIS_SYS:

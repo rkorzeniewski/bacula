@@ -41,10 +41,10 @@
  * - DARWIN (OSX)
  * - IRIX
  * - AIX
- * - OSF1 (True64)
+ * - TRU64 (True64)
  * - Solaris
  *
- * Currently we only use this code for Linux and OSF1 based fstype determination.
+ * Currently we only use this code for Linux and TRU64 based fstype determination.
  * For the other OS-es we can use the fstype present in stat structure on those OS-es.
  *
  * This code replaces the big switch we used before based on SUPER_MAGIC present in
@@ -88,7 +88,7 @@
 #elif defined(HAVE_AIX_OS)
 #include <fshelp.h>
 #include <sys/vfs.h>
-#elif defined(HAVE_OSF1_OS)
+#elif defined(HAVE_TRU64_OS)
 #include <sys/mount.h>
 #endif
 
@@ -275,7 +275,7 @@ static void refresh_mount_cache(void)
       cnt++;
    }
    free(entries);
-#elif defined(HAVE_OSF1_OS)
+#elif defined(HAVE_TRU64_OS)
    struct statfs *entries, *current;
    struct stat st;
    int n_entries, cnt;

@@ -1686,7 +1686,7 @@ void DEVICE::clrerror(int func)
 }
 #endif
 
-/* Clear Subsystem Exception OSF1 */
+/* Clear Subsystem Exception TRU64 */
 #ifdef MTCSE
 {
    struct mtop mt_com;
