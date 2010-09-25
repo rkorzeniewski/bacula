@@ -2590,7 +2590,8 @@ if test x$support_acl = xyes -o x$support_acl = xauto; then
    dnl
    dnl Check for acltotext and acl_totext (Solaris)
    dnl
-   if test $have_acl = no; then
+   if test $have_acl = no -a \
+           x${HAVE_SUN_OS}_TRUE = x; then
       AC_CHECK_LIB(sec, acltotext,
          [
 	     have_acl=yes
@@ -2608,7 +2609,8 @@ if test x$support_acl = xyes -o x$support_acl = xauto; then
    dnl
    dnl Check for acl_get and aclx_get (AIX)
    dnl
-   if test $have_acl = no; then
+   if test $have_acl = no -a \
+           x${HAVE_AIX_OS}_TRUE = x; then
       AC_CHECK_FUNC(acl_get,
          [
 	     have_acl=yes
@@ -2655,57 +2657,64 @@ have_xattr=no
 if test x$support_xattr = xyes -o x$support_xattr = xauto; then
    dnl
    dnl First check for *BSD support
+   dnl When running on a BSD variant
    dnl
-   AC_CHECK_HEADER(sys/extattr.h, [ AC_DEFINE(HAVE_SYS_EXTATTR_H,1,[Defines if your system have the sys/extattr.h header file])] , )
-   AC_CHECK_HEADER(libutil.h, [ AC_DEFINE(HAVE_LIBUTIL_H,1,[Defines if your system have the libutil.h header file])] , )
-   AC_CHECK_FUNCS(extattr_get_link extattr_set_link extattr_list_link,
-      [
-	  have_xattr=yes
-	  AC_DEFINE([HAVE_EXTATTR_GET_LINK],1,[Define to 1 if you have the 'extattr_get_link' function.])
-	  AC_DEFINE([HAVE_EXTATTR_SET_LINK],1,[Define to 1 if you have the 'extattr_set_link' function.])
-	  AC_DEFINE([HAVE_EXTATTR_LIST_LINK],1,[Define to 1 if you have the 'extattr_list_link' function.])
-      ]
-   )
-   
-   if test $have_xattr = no; then
-      AC_CHECK_FUNCS(extattr_get_file extattr_set_file extattr_list_file,
-	 [
+   if test x${HAVE_FREEBSD_OS}_TRUE = x -o \
+           x${HAVE_NETBSD_OS}_TRUE = x -o \
+           x${HAVE_OPENBSD_OS}_TRUE = x; then
+      AC_CHECK_HEADER(sys/extattr.h, [ AC_DEFINE(HAVE_SYS_EXTATTR_H,1,[Defines if your system have the sys/extattr.h header file])] , )
+      AC_CHECK_HEADER(libutil.h, [ AC_DEFINE(HAVE_LIBUTIL_H,1,[Defines if your system have the libutil.h header file])] , )
+      AC_CHECK_FUNCS(extattr_get_link extattr_set_link extattr_list_link,
+         [
 	     have_xattr=yes
-	     AC_DEFINE([HAVE_EXTATTR_GET_FILE],1,[Define to 1 if you have the 'extattr_get_file' function.])
-	     AC_DEFINE([HAVE_EXTATTR_SET_FILE],1,[Define to 1 if you have the 'extattr_set_file' function.])
-	     AC_DEFINE([HAVE_EXTATTR_LIST_FILE],1,[Define to 1 if you have the 'extattr_list_file' function.])
-	 ]
+	     AC_DEFINE([HAVE_EXTATTR_GET_LINK],1,[Define to 1 if you have the 'extattr_get_link' function.])
+	     AC_DEFINE([HAVE_EXTATTR_SET_LINK],1,[Define to 1 if you have the 'extattr_set_link' function.])
+	     AC_DEFINE([HAVE_EXTATTR_LIST_LINK],1,[Define to 1 if you have the 'extattr_list_link' function.])
+         ]
       )
-   fi
    
-   if test $have_xattr = yes; then
-      have_extattr_string_in_libc=no
-      AC_CHECK_FUNCS(extattr_namespace_to_string extattr_string_to_namespace,
-	 [
-	     have_extattr_string_in_libc=yes
-	     AC_DEFINE([HAVE_EXTATTR_NAMESPACE_TO_STRING],1,[Define to 1 if you have the 'extattr_namespace_to_string' function.])
-	     AC_DEFINE([HAVE_EXTATTR_STRING_TO_NAMESPACE],1,[Define to 1 if you have the 'extattr_string_to_namespace' function.])
-	 ]
-      )
-
-      dnl
-      dnl If extattr_namespace_to_string and extattr_string_to_namespace are not in libc see if they are in libutil
-      dnl
-      if test $have_extattr_string_in_libc = no; then
-	 AC_CHECK_LIB(util, extattr_namespace_to_string extattr_string_to_namespace,
+      if test $have_xattr = no; then
+         AC_CHECK_FUNCS(extattr_get_file extattr_set_file extattr_list_file,
 	    [
-		AC_DEFINE([HAVE_EXTATTR_NAMESPACE_TO_STRING],1,[Define to 1 if you have the 'extattr_namespace_to_string' function.])
-		AC_DEFINE([HAVE_EXTATTR_STRING_TO_NAMESPACE],1,[Define to 1 if you have the 'extattr_string_to_namespace' function.])
-		FDLIBS="-lutil $FDLIBS"
+	        have_xattr=yes
+	        AC_DEFINE([HAVE_EXTATTR_GET_FILE],1,[Define to 1 if you have the 'extattr_get_file' function.])
+	        AC_DEFINE([HAVE_EXTATTR_SET_FILE],1,[Define to 1 if you have the 'extattr_set_file' function.])
+	        AC_DEFINE([HAVE_EXTATTR_LIST_FILE],1,[Define to 1 if you have the 'extattr_list_file' function.])
 	    ]
-	 )
+         )
+      fi
+   
+      if test $have_xattr = yes; then
+         have_extattr_string_in_libc=no
+         AC_CHECK_FUNCS(extattr_namespace_to_string extattr_string_to_namespace,
+	    [
+	        have_extattr_string_in_libc=yes
+	        AC_DEFINE([HAVE_EXTATTR_NAMESPACE_TO_STRING],1,[Define to 1 if you have the 'extattr_namespace_to_string' function.])
+	        AC_DEFINE([HAVE_EXTATTR_STRING_TO_NAMESPACE],1,[Define to 1 if you have the 'extattr_string_to_namespace' function.])
+	    ]
+         )
+
+         dnl
+         dnl If extattr_namespace_to_string and extattr_string_to_namespace are not in libc see if they are in libutil
+         dnl
+         if test $have_extattr_string_in_libc = no; then
+	    AC_CHECK_LIB(util, extattr_namespace_to_string extattr_string_to_namespace,
+	       [
+		   AC_DEFINE([HAVE_EXTATTR_NAMESPACE_TO_STRING],1,[Define to 1 if you have the 'extattr_namespace_to_string' function.])
+		   AC_DEFINE([HAVE_EXTATTR_STRING_TO_NAMESPACE],1,[Define to 1 if you have the 'extattr_string_to_namespace' function.])
+		   FDLIBS="-lutil $FDLIBS"
+	       ]
+	    )
+         fi
       fi
    fi
 
    dnl
    dnl If we failed to find *BSD support try the AIX implementation of extented attributes (EA)
+   dnl When running on AIX
    dnl
-   if test $have_xattr = no; then
+   if test $have_xattr = no -a \
+           x${HAVE_AIX_OS}_TRUE = x; then
       AC_CHECK_HEADER(sys/ea.h, [ AC_DEFINE(HAVE_SYS_EA_H,1,[Defines if your system have the sys/ea.h header file])] , )
       AC_CHECK_FUNCS(llistea lgetea lsetea,
 	 [
@@ -2729,38 +2738,30 @@ if test x$support_xattr = xyes -o x$support_xattr = xauto; then
    fi
 
    dnl
-   dnl If we failed to find AIX support try the Linux or OSX implementation of xattr
+   dnl If we failed to find AIX support try the TRU64 implementation of extented attributes
+   dnl when running on a TRU64 OS.
    dnl
-   if test $have_xattr = no; then
-      AC_CHECK_HEADER(sys/xattr.h, [ AC_DEFINE(HAVE_SYS_XATTR_H,1,[Defines if your system have the sys/xattr.h header file])] , )
-      AC_CHECK_FUNCS(llistxattr lgetxattr lsetxattr,
+   if test $have_xattr = no -a \
+           x${HAVE_TRU64_OS}_TRUE = x; then
+      AC_CHECK_HEADER(sys/proplist.h, [ AC_DEFINE(HAVE_SYS_PROPLIST_H,1,[Defines if your system have the sys/proplist.h header file])] , )
+      AC_CHECK_FUNCS(getproplist get_proplist_entry sizeof_proplist_entry add_proplist_entry setproplist,
 	 [
 	     have_xattr=yes
-	     AC_DEFINE([HAVE_LLISTXATTR],1,[Define to 1 if you have the 'llistxattr' function.])
-	     AC_DEFINE([HAVE_LGETXATTR],1,[Define to 1 if you have the 'lgetxattr' function.])
-	     AC_DEFINE([HAVE_LSETXATTR],1,[Define to 1 if you have the 'lsetxattr' function.])
+	     AC_DEFINE([HAVE_GETPROPLIST],1,[Define to 1 if you have the 'getproplist' function.])
+	     AC_DEFINE([HAVE_GET_PROPLIST_ENTRY],1,[Define to 1 if you have the 'get_proplist_entry' function.])
+	     AC_DEFINE([HAVE_SIZEOF_PROPLIST_ENTRY],1,[Define to 1 if you have the 'sizeof_proplist_entry' function.])
+	     AC_DEFINE([HAVE_ADD_PROPLIST_ENTRY],1,[Define to 1 if you have the 'add_proplist_entry' function.])
+	     AC_DEFINE([HAVE_SETPROPLIST],1,[Define to 1 if you have the 'setproplist' function.])
 	 ]
       )
-
-      if test $have_xattr = no; then
-	 AC_CHECK_FUNCS(listxattr getxattr setxattr,
-	    [
-		have_xattr=yes
-		AC_DEFINE([HAVE_LISTXATTR],1,[Define to 1 if you have the 'listxattr' function.])
-		AC_DEFINE([HAVE_GETXATTR],1,[Define to 1 if you have the 'getxattr' function.])
-		AC_DEFINE([HAVE_SETXATTR],1,[Define to 1 if you have the 'setxattr' function.])
-	    ]
-	 )
-      fi
    fi
 
    dnl
-   dnl If we failed to find *BSD support and the Linux or OSX implementation of xattr try the Solaris xattr implementation
-   dnl when we are running on an Solaris OS (checked by running uname -s) we don't just check the openat function as
-   dnl the posix openat, fstatat, unlinkat etc. are also available on other os-es but don't indicate xattr support is
-   dnl available.
+   dnl If we failed to find TRU64 support try the SOLARIS implementation of extented and extensible attributes
+   dnl when running on a Solaris.
    dnl
-   if test $have_xattr = no -a `uname -s` = SunOS; then
+   if test $have_xattr = no -a \
+           x${HAVE_SUN_OS}_TRUE = x; then
       AC_CHECK_HEADER(sys/attr.h, [ AC_DEFINE(HAVE_SYS_ATTR_H,1,[Defines if your system have the sys/attr.h header file])] , )
       AC_CHECK_HEADER(sys/nvpair.h, [ AC_DEFINE(HAVE_SYS_NVPAIR_H,1,[Defines if your system have the sys/nvpair.h header file])] , )
       AC_CHECK_HEADER(attr.h, [ AC_DEFINE(HAVE_ATTR_H,1,[Defines if your system have the attr.h header file])] , )
@@ -2781,6 +2782,32 @@ if test x$support_xattr = xyes -o x$support_xattr = xauto; then
 	    [
 		AC_DEFINE([HAVE_NVLIST_NEXT_NVPAIR],1,[Define to 1 if you have the 'nvlist_next_nvpair' function.])
 		FDLIBS="-lnvpair $FDLIBS"
+	    ]
+	 )
+      fi
+   fi
+
+   dnl
+   dnl If we failed to find Solaris support try the generic xattr support code
+   dnl
+   if test $have_xattr = no; then
+      AC_CHECK_HEADER(sys/xattr.h, [ AC_DEFINE(HAVE_SYS_XATTR_H,1,[Defines if your system have the sys/xattr.h header file])] , )
+      AC_CHECK_FUNCS(llistxattr lgetxattr lsetxattr,
+	 [
+	     have_xattr=yes
+	     AC_DEFINE([HAVE_LLISTXATTR],1,[Define to 1 if you have the 'llistxattr' function.])
+	     AC_DEFINE([HAVE_LGETXATTR],1,[Define to 1 if you have the 'lgetxattr' function.])
+	     AC_DEFINE([HAVE_LSETXATTR],1,[Define to 1 if you have the 'lsetxattr' function.])
+	 ]
+      )
+
+      if test $have_xattr = no; then
+	 AC_CHECK_FUNCS(listxattr getxattr setxattr,
+	    [
+		have_xattr=yes
+		AC_DEFINE([HAVE_LISTXATTR],1,[Define to 1 if you have the 'listxattr' function.])
+		AC_DEFINE([HAVE_GETXATTR],1,[Define to 1 if you have the 'getxattr' function.])
+		AC_DEFINE([HAVE_SETXATTR],1,[Define to 1 if you have the 'setxattr' function.])
 	    ]
 	 )
       fi
