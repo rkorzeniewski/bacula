@@ -1394,6 +1394,7 @@ static bxattr_exit_code tru64_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
    char *bp,
         *xattr_name,
         *xattr_value;
+   bool skip_xattr;
    int xattr_count = 0;
    int32_t *flags,
            *xattr_value_len;
@@ -1588,7 +1589,7 @@ bail_out:
 
 static bxattr_exit_code tru64_parse_xattr_streams(JCR *jcr, int stream)
 {
-   char *bp, *xattrbuf;
+   char *bp, *xattrbuf = NULL;
    int32_t xattrbuf_size, cnt;
    xattr_t *current_xattr;
    alist *xattr_value_list;
@@ -1611,22 +1612,24 @@ static bxattr_exit_code tru64_parse_xattr_streams(JCR *jcr, int stream)
 
    xattrbuf = (char *)malloc(xattrbuf_size);
 
-   cnt = 0;
-   bp = xattrbuf;
    /**
     * Add all value pairs to the proplist.
     */
+   cnt = 0;
+   bp = xattrbuf;
    foreach_alist(current_xattr, xattr_value_list) {
       cnt = add_proplist_entry(current_xattr->name, 0, current_xattr->value_length,
                                current_xattr->value, &bp);
    }
 
+   /**
+    * Sanity check.
+    */
    if (cnt != xattrbuf_size) {
       Mmsg1(jcr->errmsg, _("Unable create proper proplist to restore xattrs on file \"%s\"\n"),
             jcr->last_fname);
       Dmsg1(100, "Unable create proper proplist to restore xattrs on file \"%s\"\n",
             jcr->last_fname);
-      free(xattrbuf);
       goto bail_out;
    }
 
@@ -1639,14 +1642,12 @@ static bxattr_exit_code tru64_parse_xattr_streams(JCR *jcr, int stream)
       switch (errno) {
       case EOPNOTSUPP:
          retval = bacl_exit_ok;
-         free(xattrbuf);
          goto bail_out;
       default:
          Mmsg2(jcr->errmsg, _("setproplist error on file \"%s\": ERR=%s\n"),
                jcr->last_fname, be.bstrerror());
          Dmsg2(100, "setproplist error file=%s ERR=%s\n",
                jcr->last_fname, be.bstrerror());
-         free(xattrbuf);
          goto bail_out;
       }
       break;
@@ -1660,6 +1661,9 @@ static bxattr_exit_code tru64_parse_xattr_streams(JCR *jcr, int stream)
    return bxattr_exit_ok;
 
 bail_out:
+   if (xattrbuf) {
+      free(xattrbuf);
+   }
    xattr_drop_internal_table(xattr_value_list);
    return bxattr_exit_error;
 }
