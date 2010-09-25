@@ -324,7 +324,10 @@ static bacl_exit_code aix_parse_acl_streams(JCR *jcr, int stream)
              */
             switch (errno) {
             case ENOSPC:
-               continue;
+               if (cnt < 3) {
+                  continue;
+               }
+               /* FALL THROUGH */
             default:
                Mmsg2(jcr->errmsg, _("aclx_scanStr error on file \"%s\": ERR=%s\n"),
                      jcr->last_fname, be.bstrerror());
