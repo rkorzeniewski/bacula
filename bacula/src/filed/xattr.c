@@ -192,6 +192,11 @@ static uint32_t serialize_xattr_stream(JCR *jcr, uint32_t expected_serialize_len
       ser_uint32(current_xattr->value_length);
       if (current_xattr->value_length > 0 && current_xattr->value) {
          ser_bytes(current_xattr->value, current_xattr->value_length);
+
+         Dmsg3(100, "Backup xattr named %s, value %*s\n",
+               current_xattr->name, current_xattr->value, current_xattr->value);
+      } else {
+         Dmsg1(100, "Backup empty xattr named %s\n", current_xattr->name);
       }
    }
 
@@ -266,8 +271,12 @@ static bxattr_exit_code unserialize_xattr_stream(JCR *jcr, alist *xattr_value_li
           */
          current_xattr->value = (char *)malloc(current_xattr->value_length);
          unser_bytes(current_xattr->value, current_xattr->value_length);
+
+         Dmsg3(100, "Restoring xattr named %s, value %*s\n",
+               current_xattr->name, current_xattr->value, current_xattr->value);
       } else {
          current_xattr->value = NULL;
+         Dmsg1(100, "Restoring empty xattr named %s\n", current_xattr->name);
       }
 
       xattr_value_list->append(current_xattr);
@@ -403,6 +412,7 @@ static bxattr_exit_code aix_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
       name_length = strlen(bp);
       if (skip_xattr || name_length == 0) {
          bp = strchr(bp, '\0') + 1;
+         Dmsg1(100, "Skipping xattr named %s\n", current_xattr->name);
          continue;
       }
 
@@ -749,6 +759,7 @@ static bxattr_exit_code generic_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
       name_len = strlen(bp);
       if (skip_xattr || name_len == 0) {
          bp = strchr(bp, '\0') + 1;
+         Dmsg1(100, "Skipping xattr named %s\n", current_xattr->name);
          continue;
       }
 
@@ -1138,6 +1149,7 @@ static bxattr_exit_code bsd_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
          }
 
          if (skip_xattr) {
+            Dmsg1(100, "Skipping xattr named %s\n", current_xattr->name);
             continue;
          }
 
@@ -1520,6 +1532,7 @@ static bxattr_exit_code tru64_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
       }
 
       if (skip_xattr) {
+         Dmsg1(100, "Skipping xattr named %s\n", current_xattr->name);
          continue;
       }
 
