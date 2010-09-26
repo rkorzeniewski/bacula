@@ -332,7 +332,7 @@ static bxattr_exit_code aix_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
    int32_t xattr_list_len,
            xattr_value_len;
    uint32_t expected_serialize_len = 0;
-   xattr_t *current_xattr;
+   xattr_t *current_xattr = NULL;
    alist *xattr_value_list = NULL;
    bxattr_exit_code retval = bxattr_exit_error;
    berrno be;
@@ -444,16 +444,12 @@ static bxattr_exit_code aix_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
          case EFORMAT:
          case ENOTSUP:
             retval = bxattr_exit_ok;
-            free(current_xattr->name);
-            free(current_xattr);
             goto bail_out;
          default:
             Mmsg2(jcr->errmsg, _("lgetea error on file \"%s\": ERR=%s\n"),
                   jcr->last_fname, be.bstrerror());
             Dmsg2(100, "lgetea error file=%s ERR=%s\n",
                   jcr->last_fname, be.bstrerror());
-            free(current_xattr->name);
-            free(current_xattr);
             goto bail_out;
          }
          break;
@@ -476,18 +472,12 @@ static bxattr_exit_code aix_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
             case EFORMAT:
             case ENOTSUP:
                retval = bxattr_exit_ok;
-               free(current_xattr->value);
-               free(current_xattr->name);
-               free(current_xattr);
                goto bail_out;
             default:
                Mmsg2(jcr->errmsg, _("lgetea error on file \"%s\": ERR=%s\n"),
                      jcr->last_fname, be.bstrerror());
                Dmsg2(100, "lgetea error file=%s ERR=%s\n",
                      jcr->last_fname, be.bstrerror());
-               free(current_xattr->value);
-               free(current_xattr->name);
-               free(current_xattr);
                goto bail_out;
             }
          }
@@ -503,14 +493,12 @@ static bxattr_exit_code aix_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
          if (expected_serialize_len >= MAX_XATTR_STREAM) {
             Mmsg2(jcr->errmsg, _("Xattr stream on file \"%s\" exceeds maximum size of %d bytes\n"),
                   jcr->last_fname, MAX_XATTR_STREAM);
-            free(current_xattr->value);
-            free(current_xattr->name);
-            free(current_xattr);
             goto bail_out;
          }
       }
 
       xattr_value_list->append(current_xattr);
+      current_xattr = NULL;
       xattr_count++;
       bp = strchr(bp, '\0') + 1;
       break;
@@ -547,6 +535,15 @@ static bxattr_exit_code aix_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
    }
 
 bail_out:
+   if (current_xattr != NULL) {
+      if (current_xattr->value != NULL) {
+         free(current_xattr->value);
+      }
+      if (current_xattr->name != NULL) {
+         free(current_xattr->name);
+      }
+      free(current_xattr);
+   }
    if (xattr_list != NULL) {
       free(xattr_list);
    }
@@ -623,12 +620,14 @@ static xattr_naming_space xattr_naming_spaces[] = {
 static bxattr_exit_code irix_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
 {
    int cnt, xattr_count = 0;
-   POOLMEM *xattrbuf = get_memory(ATTR_MAX_VALUELEN);
-   bxattr_exit_code retval = bxattr_exit_error;
    attrlist_cursor_t cursor;
    attrlist_t *attrlist;
    attrlist_ent_t *attrlist_ent;
+   xattr_t *current_xattr = NULL;
    alist *xattr_value_list = NULL;
+   uint32_t expected_serialize_len = 0;
+   bxattr_exit_code retval = bxattr_exit_error;
+   POOLMEM *xattrbuf = get_memory(ATTR_MAX_VALUELEN);
    berrno be;
 
    xattr_value_list = New(alist(10, not_owned_by_alist));
@@ -659,18 +658,18 @@ static bxattr_exit_code irix_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
          for (cnt = 0; cnt < attrlist->al_count; cnt++) {
             attrlist_ent = ATTR_ENTRY(xattrbuf, cnt);
 
-            /*
+            /**
              * Each xattr valuepair starts with a magic so we can parse it easier.
              */
             current_xattr = (xattr_t *)malloc(sizeof(xattr_t));
             current_xattr->magic = XATTR_MAGIC;
             expected_serialize_len += sizeof(current_xattr->magic);
 
-            /*
+            /**
              * Allocate space for storing the name.
              * We store the name as <naming_space_name><xattr_name>
              */
-            current_xattr->name_length = strlen(xattr_naming_spaces[cnt].name) + strlen(attrlist_ent->a_name) + 2;
+            current_xattr->name_length = strlen(xattr_naming_spaces[cnt].name) + strlen(attrlist_ent->a_name) + 1;
             current_xattr->name = (char *)malloc(current_xattr->name_length);
             bsnprintf(current_xattr->name, current_xattr->name_length, "%s%s",
                       xattr_naming_spaces[cnt].name, attrlist_ent->a_name);
@@ -679,7 +678,6 @@ static bxattr_exit_code irix_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
 
             current_xattr->value_length = attrlist_ent->a_valuelen;
             current_xattr->value = (char *)malloc(current_xattr->value_length);
-            memset((caddr_t)current_xattr->value, 0, current_xattr->value_length);
 
             /**
              * Retrieve the actual value of the xattr.
@@ -689,17 +687,34 @@ static bxattr_exit_code irix_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
                switch (errno) {
                case ENOENT:
                case ENOATTR:
-                  free(current_xattr->value);
-                  free(current_xattr->name);
-                  free(current_xattr);
                   retval = bxattr_exit_ok;
                   goto bail_out;
                case E2BIG:
+                  /**
+                   * The buffer for the xattr isn't big enough. the value of
+                   * current_xattr->value_length is updated with the actual size
+                   * of the xattr. So we free the old buffer and create a new one
+                   * and try again.
+                   */
+                  free(current_xattr->value);
+                  current_xattr->value = (char *)malloc(current_xattr->value_length);
+                  if (attr_get(jcr->last_fname, attrlist_ent->a_name, current_xattr->value,
+                               current_xattr->value_length, xattr_naming_spaces[cnt].flags) != 0) {
+                     switch (errno) {
+                     case ENOENT:
+                     case ENOATTR:
+                        retval = bxattr_exit_ok;
+                        goto bail_out;
+                     default:
+                        Mmsg2(jcr->errmsg, _("attr_list error on file \"%s\": ERR=%s\n"),
+                              jcr->last_fname, be.bstrerror());
+                        Dmsg2(100, "attr_list error file=%s ERR=%s\n",
+                              jcr->last_fname, be.bstrerror());
+                        goto bail_out;
+                     }
+                  }
                   break;
                default:
-                  free(current_xattr->value);
-                  free(current_xattr->name);
-                  free(current_xattr);
                   Mmsg2(jcr->errmsg, _("attr_list error on file \"%s\": ERR=%s\n"),
                         jcr->last_fname, be.bstrerror());
                   Dmsg2(100, "attr_list error file=%s ERR=%s\n",
@@ -720,6 +735,7 @@ static bxattr_exit_code irix_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
             }
 
             xattr_value_list->append(current_xattr);
+            current_xattr = NULL;
             xattr_count++;
          }
 
@@ -760,6 +776,15 @@ static bxattr_exit_code irix_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
    }
 
 bail_out:
+   if (current_xattr != NULL) {
+      if (current_xattr->value != NULL) {
+         free(current_xattr->value);
+      }
+      if (current_xattr->name != NULL) {
+         free(current_xattr->name);
+      }
+      free(current_xattr);
+   }
    free_pool_memory(xattrbuf);
 
    if (xattr_value_list != NULL) {
@@ -770,10 +795,10 @@ bail_out:
 
 static bxattr_exit_code irix_xattr_parse_streams(JCR *jcr, int stream)
 {
-   int cnt, cmp_size;
+   char *bp;
+   int cnt, cmp_size, name_space_index;
    xattr_t *current_xattr;
    alist *xattr_value_list;
-   xattr_naming_space *xattr_naming_space;
    berrno be;
 
    xattr_value_list = New(alist(10, not_owned_by_alist));
@@ -787,13 +812,13 @@ static bxattr_exit_code irix_xattr_parse_streams(JCR *jcr, int stream)
       /**
        * See to what namingspace this xattr belongs to.
        */
-      xattr_naming_space = NULL;
+      name_space_index = 0;
       for (cnt = 0; xattr_naming_spaces[cnt].name != NULL; cnt++) {
          cmp_size = strlen(xattr_naming_spaces[cnt].name);
          if (!strncasecmp(current_xattr->name,
                           xattr_naming_spaces[cnt].name,
                           cmp_size)) {
-            xattr_naming_space = &xattr_naming_spaces[cnt];
+            name_space_index = cnt;
             break;
          }
       }
@@ -801,7 +826,7 @@ static bxattr_exit_code irix_xattr_parse_streams(JCR *jcr, int stream)
       /**
        * If we got a xattr that doesn't belong to ant valid namespace complain.
        */
-      if (xattr_naming_space == NULL) {
+      if (name_space_index == 0) {
          Mmsg2(jcr->errmsg, _("Received illegal xattr named %s on file \"%s\"\n"),
                current_xattr->name, jcr->last_fname);
          Dmsg2(100, "Received illegal xattr named %s on file \"%s\"\n",
@@ -812,9 +837,10 @@ static bxattr_exit_code irix_xattr_parse_streams(JCR *jcr, int stream)
       /**
        * Restore the xattr first try to create the attribute from scratch.
        */
-      flags = xattr_naming_space->flags | ATTR_CREATE;
-      if (attr_set(jcr->last_fname, current_xattr->name,
-                   current_xattr->value, current_xattr->value_len, flags) != 0) {
+      flags = xattr_naming_spaces[name_space_index].flags | ATTR_CREATE;
+      bp = strchr(current_xattr->name, '.');
+      if (attr_set(jcr->last_fname, ++bp, current_xattr->value,
+                   current_xattr->value_len, flags) != 0) {
          switch (errno) {
          case ENOENT:
             retval = bxattr_exit_ok;
@@ -823,9 +849,9 @@ static bxattr_exit_code irix_xattr_parse_streams(JCR *jcr, int stream)
             /**
              * The xattr already exists we need to replace it.
              */
-            flags = xattr_naming_space->flags | ATTR_REPLACE;
-            if (attr_set(jcr->last_fname, current_xattr->name,
-                         current_xattr->value, current_xattr->value_len, flags) != 0) {
+            flags = xattr_naming_spaces[name_space_index].flags | ATTR_REPLACE;
+            if (attr_set(jcr->last_fname, bp, current_xattr->value,
+                         current_xattr->value_len, flags) != 0) {
                switch (errno) {
                case ENOENT:
                   retval = bxattr_exit_ok;
@@ -924,7 +950,7 @@ static bxattr_exit_code generic_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
    int32_t xattr_list_len,
            xattr_value_len;
    uint32_t expected_serialize_len = 0;
-   xattr_t *current_xattr;
+   xattr_t *current_xattr = NULL;
    alist *xattr_value_list = NULL;
    bxattr_exit_code retval = bxattr_exit_error;
    berrno be;
@@ -1053,16 +1079,12 @@ static bxattr_exit_code generic_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
          case ENOENT:
          case ENOTSUP:
             retval = bxattr_exit_ok;
-            free(current_xattr->name);
-            free(current_xattr);
             goto bail_out;
          default:
             Mmsg2(jcr->errmsg, _("lgetxattr error on file \"%s\": ERR=%s\n"),
                   jcr->last_fname, be.bstrerror());
             Dmsg2(100, "lgetxattr error file=%s ERR=%s\n",
                   jcr->last_fname, be.bstrerror());
-            free(current_xattr->name);
-            free(current_xattr);
             goto bail_out;
          }
          break;
@@ -1084,18 +1106,12 @@ static bxattr_exit_code generic_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
             case ENOENT:
             case ENOTSUP:
                retval = bxattr_exit_ok;
-               free(current_xattr->value);
-               free(current_xattr->name);
-               free(current_xattr);
                goto bail_out;
             default:
                Mmsg2(jcr->errmsg, _("lgetxattr error on file \"%s\": ERR=%s\n"),
                      jcr->last_fname, be.bstrerror());
                Dmsg2(100, "lgetxattr error file=%s ERR=%s\n",
                      jcr->last_fname, be.bstrerror());
-               free(current_xattr->value);
-               free(current_xattr->name);
-               free(current_xattr);
                goto bail_out;
             }
          }
@@ -1111,14 +1127,12 @@ static bxattr_exit_code generic_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
          if (expected_serialize_len >= MAX_XATTR_STREAM) {
             Mmsg2(jcr->errmsg, _("Xattr stream on file \"%s\" exceeds maximum size of %d bytes\n"),
                   jcr->last_fname, MAX_XATTR_STREAM);
-            free(current_xattr->value);
-            free(current_xattr->name);
-            free(current_xattr);
             goto bail_out;
          }
       }
 
       xattr_value_list->append(current_xattr);
+      current_xattr = NULL;
       xattr_count++;
       bp = strchr(bp, '\0') + 1;
       break;
@@ -1155,6 +1169,15 @@ static bxattr_exit_code generic_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
    }
 
 bail_out:
+   if (current_xattr != NULL) {
+      if (current_xattr->value != NULL) {
+         free(current_xattr->value);
+      }
+      if (current_xattr->name != NULL) {
+         free(current_xattr->name);
+      }
+      free(current_xattr);
+   }
    if (xattr_list != NULL) {
       free(xattr_list);
    }
@@ -1268,7 +1291,7 @@ static bxattr_exit_code bsd_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
    int attrnamespace;
    char *current_attrnamespace = NULL;
    char current_attrname[XATTR_BUFSIZ], current_attrtuple[XATTR_BUFSIZ];
-   xattr_t *current_xattr;
+   xattr_t *current_xattr = NULL;
    alist *xattr_value_list = NULL;
    bxattr_exit_code retval = bxattr_exit_error;
    berrno be;
@@ -1442,16 +1465,12 @@ static bxattr_exit_code bsd_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
             switch (errno) {
             case ENOENT:
                retval = bxattr_exit_ok;
-               free(current_xattr->name);
-               free(current_xattr);
                goto bail_out;
             default:
                Mmsg2(jcr->errmsg, _("extattr_get_link error on file \"%s\": ERR=%s\n"),
                      jcr->last_fname, be.bstrerror());
                Dmsg2(100, "extattr_get_link error file=%s ERR=%s\n",
                      jcr->last_fname, be.bstrerror());
-               free(current_xattr->name);
-               free(current_xattr);
                goto bail_out;
             }
             break;
@@ -1472,18 +1491,12 @@ static bxattr_exit_code bsd_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
                switch (errno) {
                case ENOENT:
                   retval = bxattr_exit_ok;
-                  free(current_xattr->value);
-                  free(current_xattr->name);
-                  free(current_xattr);
                   goto bail_out;
                default:
                   Mmsg2(jcr->errmsg, _("extattr_get_link error on file \"%s\": ERR=%s\n"),
                         jcr->last_fname, be.bstrerror());
                   Dmsg2(100, "extattr_get_link error file=%s ERR=%s\n",
                         jcr->last_fname, be.bstrerror());
-                  free(current_xattr->value);
-                  free(current_xattr->name);
-                  free(current_xattr);
                   goto bail_out;
                }
             }
@@ -1500,15 +1513,13 @@ static bxattr_exit_code bsd_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
             if (expected_serialize_len >= MAX_XATTR_STREAM) {
                Mmsg2(jcr->errmsg, _("Xattr stream on file \"%s\" exceeds maximum size of %d bytes\n"),
                      jcr->last_fname, MAX_XATTR_STREAM);
-               free(current_xattr->value);
-               free(current_xattr->name);
-               free(current_xattr);
                goto bail_out;
             }
             break;
          }
 
          xattr_value_list->append(current_xattr);
+         current_xattr = NULL;
          xattr_count++;
 
       }
@@ -1556,6 +1567,15 @@ static bxattr_exit_code bsd_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
 bail_out:
    if (current_attrnamespace != NULL) {
       actuallyfree(current_attrnamespace);
+   }
+   if (current_xattr != NULL) {
+      if (current_xattr->value != NULL) {
+         free(current_xattr->value);
+      }
+      if (current_xattr->name != NULL) {
+         free(current_xattr->name);
+      }
+      free(current_xattr);
    }
    if (xattr_list != NULL) {
       free(xattr_list);
@@ -1678,7 +1698,7 @@ static bxattr_exit_code tru64_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
            xattrbuf_size,
            xattrbuf_min_size;
    uint32_t expected_serialize_len = 0;
-   xattr_t *current_xattr;
+   xattr_t *current_xattr = NULL;
    alist *xattr_value_list = NULL;
    struct proplistname_args prop_args;
    bxattr_exit_code retval = bxattr_exit_error;
@@ -1824,13 +1844,11 @@ static bxattr_exit_code tru64_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
       if (expected_serialize_len >= MAX_XATTR_STREAM) {
          Mmsg2(jcr->errmsg, _("Xattr stream on file \"%s\" exceeds maximum size of %d bytes\n"),
                jcr->last_fname, MAX_XATTR_STREAM);
-         free(current_xattr->value);
-         free(current_xattr->name);
-         free(current_xattr);
          goto bail_out;
       }
 
       xattr_value_list->append(current_xattr);
+      current_xattr = NULL;
       xattr_count++;
    }
 
@@ -1856,6 +1874,15 @@ static bxattr_exit_code tru64_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
    }
 
 bail_out:
+   if (current_xattr != NULL) {
+      if (current_xattr->value != NULL) {
+         free(current_xattr->value);
+      }
+      if (current_xattr->name != NULL) {
+         free(current_xattr->name);
+      }
+      free(current_xattr);
+   }
    if (xattr_value_list != NULL) {
       xattr_drop_internal_table(xattr_value_list);
    }
