@@ -34,6 +34,7 @@
  * Currently we support the following OSes:
  *   - AIX (Extended Attributes)
  *   - Darwin (Extended Attributes)
+ *   - IRIX (Extended Attributes)
  *   - Linux (Extended Attributes)
  *   - NetBSD (Extended Attributes)
  *   - FreeBSD (Extended Attributes)
@@ -598,6 +599,183 @@ bail_out:
  */
 static bxattr_exit_code (*os_build_xattr_streams)(JCR *jcr, FF_PKT *ff_pkt) = aix_xattr_build_streams;
 static bxattr_exit_code (*os_parse_xattr_streams)(JCR *jcr, int stream) = aix_xattr_parse_streams;
+
+#elif defined(HAVE_IRIX_OS)
+
+/*
+ * Define the supported XATTR streams for this OS
+ */
+static int os_default_xattr_streams[1] = { STREAM_XATTR_IRIX };
+static const char *xattr_acl_skiplist[1] = { NULL };
+static const char *xattr_skiplist[1] = { NULL };
+
+struct xattr_naming_space {
+   const char *name;
+   int flags;
+};
+
+static xattr_naming_space xattr_naming_spaces[] = {
+   { "user", ATTR_DONTFOLLOW },
+   { "root", ATTR_ROOT | ATTR_DONTFOLLOW },
+   { NULL, 0 }
+};
+
+static bxattr_exit_code irix_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
+{
+   int cnt, xattr_count = 0;
+   POOLMEM *xattrbuf = get_memory(ATTR_MAX_VALUELEN);
+   bxattr_exit_code retval = bxattr_exit_error;
+   attrlist_cursor_t cursor;
+   attrlist_t *attrlist;
+   attrlist_ent_t *attrlist_ent;
+   alist *xattr_value_list = NULL;
+
+   xattr_value_list = New(alist(10, not_owned_by_alist));
+
+   for (cnt = 0; xattr_naming_spaces[cnt]->name != NULL; cnt++) {
+      memset(cursor, 0, sizeof(attrlist_cursor_t));
+      while (1) {
+         if (attr_list(jcr->last_fname, xattrbuf, ATTR_MAX_VALUELEN,
+                       xattr_naming_spaces[cnt]->flags, &cursor) != 0) {
+            switch (errno) {
+            case ENOENT:
+               retval = bxattr_exit_ok;
+               goto bail_out;
+            default:
+               Mmsg2(jcr->errmsg, _("attr_list error on file \"%s\": ERR=%s\n"),
+                     jcr->last_fname, be.bstrerror());
+               Dmsg2(100, "attr_list error file=%s ERR=%s\n",
+                     jcr->last_fname, be.bstrerror());
+               goto bail_out;
+            }
+         }
+
+         attrlist = (attrlist_t *)xattrbuf;
+
+         /**
+          * Walk the available attributes.
+          */
+         for (cnt = 0; cnt < attrlist->al_count; cnt++) {
+            attrlist_ent = ATTR_ENTRY(xattrbuf, cnt);
+
+            /*
+             * Each xattr valuepair starts with a magic so we can parse it easier.
+             */
+            current_xattr = (xattr_t *)malloc(sizeof(xattr_t));
+            current_xattr->magic = XATTR_MAGIC;
+            expected_serialize_len += sizeof(current_xattr->magic);
+
+            /*
+             * Allocate space for storing the name.
+             * We store the name as <naming_space_name>.<xattr_name>
+             */
+            current_xattr->name_length = strlen(xattr_naming_spaces[cnt]->name) + strlen(attrlist_ent->a_name) + 2;
+            current_xattr->name = (char *)malloc(current_xattr->name_length);
+            bsnprintf(current_xattr->name, current_xattr->name_length, "%s.%s",
+                      xattr_naming_spaces[cnt]->name, attrlist_ent->a_name);
+
+            expected_serialize_len += sizeof(current_xattr->name_length) + current_xattr->name_length;
+
+            current_xattr->value_length = attrlist_ent->a_valuelen;
+            current_xattr->value = (char *)malloc(current_xattr->value_length);
+            memset((caddr_t)current_xattr->value, 0, current_xattr->value_length);
+
+            /**
+             * Retrieve the actual value of the xattr.
+             */
+            if (attr_get(jcr->last_fname, attrlist_ent->a_name, current_xattr->value,
+                         current_xattr->value_length, xattr_naming_spaces[cnt]->flags) != 0) {
+               switch (errno) {
+               case ENOENT:
+               case ENOATTR:
+                  free(current_xattr->value);
+                  free(current_xattr->name);
+                  free(current_xattr);
+                  retval = bxattr_exit_ok;
+                  goto bail_out;
+               case E2BIG:
+                  break;
+               default:
+                  free(current_xattr->value);
+                  free(current_xattr->name);
+                  free(current_xattr);
+                  Mmsg2(jcr->errmsg, _("attr_list error on file \"%s\": ERR=%s\n"),
+                        jcr->last_fname, be.bstrerror());
+                  Dmsg2(100, "attr_list error file=%s ERR=%s\n",
+                        jcr->last_fname, be.bstrerror());
+                  goto bail_out;
+               }
+            }
+
+            expected_serialize_len += sizeof(current_xattr->value_length) + current_xattr->value_length;
+
+            /*
+             * Protect ourself against things getting out of hand.
+             */
+            if (expected_serialize_len >= MAX_XATTR_STREAM) {
+               Mmsg2(jcr->errmsg, _("Xattr stream on file \"%s\" exceeds maximum size of %d bytes\n"),
+                     jcr->last_fname, MAX_XATTR_STREAM);
+               goto bail_out;
+            }
+
+            xattr_value_list->append(current_xattr);
+            xattr_count++;
+         }
+
+         /**
+          * See if there are more attributes available for a next run of attr_list.
+          */
+         if (attrlist->al_more == 0) {
+            break;
+         }
+      }
+   }
+
+   /*
+    * If we found any xattr send them to the SD.
+    */
+   if (xattr_count > 0) {
+      /*
+       * Serialize the datastream.
+       */
+      if (serialize_xattr_stream(jcr, expected_serialize_len, xattr_value_list) < expected_serialize_len) {
+         Mmsg1(jcr->errmsg, _("Failed to serialize extended attributes on file \"%s\"\n"),
+               jcr->last_fname);
+         Dmsg1(100, "Failed to serialize extended attributes on file \"%s\"\n",
+               jcr->last_fname);
+         goto bail_out;
+      }
+
+      xattr_drop_internal_table(xattr_value_list);
+
+      /*
+       * Send the datastream to the SD.
+       */
+      return send_xattr_stream(jcr, os_default_xattr_streams[0]);
+   } else {
+      xattr_drop_internal_table(xattr_value_list);
+
+      return bxattr_exit_ok;
+   }
+
+bail_out:
+   free_pool_memory(xattrbuf);
+
+   if (xattr_value_list != NULL) {
+      xattr_drop_internal_table(xattr_value_list);
+   }
+   return retval;
+}
+
+static bxattr_exit_code irix_xattr_parse_streams(JCR *jcr, int stream)
+{
+}
+
+/*
+ * Function pointers to the build and parse function to use for these xattrs.
+ */
+static bxattr_exit_code (*os_build_xattr_streams)(JCR *jcr, FF_PKT *ff_pkt) = irix_xattr_build_streams;
+static bxattr_exit_code (*os_parse_xattr_streams)(JCR *jcr, int stream) = irix_xattr_parse_streams;
 
 #elif defined(HAVE_DARWIN_OS) || \
       defined(HAVE_LINUX_OS)

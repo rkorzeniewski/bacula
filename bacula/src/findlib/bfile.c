@@ -173,6 +173,8 @@ const char *stream_to_ascii(int stream)
       return _("AIX Specific ACL attribs");
    case STREAM_ACL_AIX_NFS4:
       return _("AIX Specific ACL attribs");
+   case STREAM_XATTR_IRIX:
+      return _("IRIX Specific Extended attribs");
    case STREAM_XATTR_TRU64:
       return _("TRU64 Specific Extended attribs");
    case STREAM_XATTR_AIX:
