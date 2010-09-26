@@ -1662,7 +1662,7 @@ bail_out:
 static bxattr_exit_code (*os_build_xattr_streams)(JCR *jcr, FF_PKT *ff_pkt) = bsd_build_xattr_streams;
 static bxattr_exit_code (*os_parse_xattr_streams)(JCR *jcr, int stream) = bsd_parse_xattr_streams;
 
-#elif defined(HAVE_TRU64_OS)
+#elif defined(HAVE_OSF1_OS)
 
 #if !defined(HAVE_GETPROPLIST) || \
     !defined(HAVE_GET_PROPLIST_ENTRY) || \

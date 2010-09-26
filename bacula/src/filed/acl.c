@@ -407,7 +407,7 @@ static bacl_exit_code (*os_parse_acl_streams)(JCR *jcr, int stream) = aix_parse_
 #elif defined(HAVE_DARWIN_OS) || \
       defined(HAVE_FREEBSD_OS) || \
       defined(HAVE_IRIX_OS) || \
-      defined(HAVE_TRU64_OS) || \
+      defined(HAVE_OSF1_OS) || \
       defined(HAVE_LINUX_OS)
 
 #include <sys/types.h>
@@ -537,7 +537,7 @@ static bool acl_is_trivial(acl_t acl)
          return false;
    }
    return true;
-#elif defined(HAVE_TRU64_OS)
+#elif defined(HAVE_OSF1_OS)
    int count;
 
    ace = acl->acl_first;
@@ -882,7 +882,7 @@ static bacl_exit_code generic_parse_acl_streams(JCR *jcr, int stream)
 static bacl_exit_code (*os_build_acl_streams)(JCR *jcr, FF_PKT *ff_pkt) = generic_build_acl_streams;
 static bacl_exit_code (*os_parse_acl_streams)(JCR *jcr, int stream) = generic_parse_acl_streams;
 
-#elif defined(HAVE_TRU64_OS)
+#elif defined(HAVE_OSF1_OS)
 
 /**
  * Define the supported ACL streams for this OS

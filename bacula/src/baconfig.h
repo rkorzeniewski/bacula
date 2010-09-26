@@ -700,7 +700,7 @@ extern int thr_setconcurrency(int);
 
 #endif
 
-#if defined(HAVE_DARWIN_OS) || defined(HAVE_TRU64_OS)
+#if defined(HAVE_DARWIN_OS) || defined(HAVE_OSF1_OS)
 /* Apparently someone forgot to wrap getdomainname as a C function */
 extern "C" int getdomainname(char *name, int len);
 #endif
@@ -747,7 +747,7 @@ extern "C" int setdomainname(char *name, int namelen);
 #endif /* HAVE_HPUX_OS */
 
 
-#ifdef HAVE_TRU64_OS
+#ifdef HAVE_OSF1_OS
 extern "C" int fchdir(int filedes);
 extern "C" long gethostid(void);
 extern "C" int mknod(const char *path, int mode, dev_t device );

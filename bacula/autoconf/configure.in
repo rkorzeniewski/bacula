@@ -2742,7 +2742,7 @@ if test x$support_xattr = xyes -o x$support_xattr = xauto; then
    dnl when running on a TRU64 OS.
    dnl
    if test $have_xattr = no -a \
-           x${HAVE_TRU64_OS}_TRUE = x; then
+           x${HAVE_OSF1_OS}_TRUE = x; then
       AC_CHECK_HEADER(sys/proplist.h, [ AC_DEFINE(HAVE_SYS_PROPLIST_H,1,[Defines if your system have the sys/proplist.h header file])] , )
       AC_CHECK_FUNCS(getproplist get_proplist_entry sizeof_proplist_entry add_proplist_entry setproplist,
 	 [
