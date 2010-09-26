@@ -615,8 +615,8 @@ struct xattr_naming_space {
 };
 
 static xattr_naming_space xattr_naming_spaces[] = {
-   { "user", ATTR_DONTFOLLOW },
-   { "root", ATTR_ROOT | ATTR_DONTFOLLOW },
+   { "user.", ATTR_DONTFOLLOW },
+   { "root.", ATTR_ROOT | ATTR_DONTFOLLOW },
    { NULL, 0 }
 };
 
@@ -629,14 +629,15 @@ static bxattr_exit_code irix_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
    attrlist_t *attrlist;
    attrlist_ent_t *attrlist_ent;
    alist *xattr_value_list = NULL;
+   berrno be;
 
    xattr_value_list = New(alist(10, not_owned_by_alist));
 
-   for (cnt = 0; xattr_naming_spaces[cnt]->name != NULL; cnt++) {
+   for (cnt = 0; xattr_naming_spaces[cnt].name != NULL; cnt++) {
       memset(cursor, 0, sizeof(attrlist_cursor_t));
       while (1) {
          if (attr_list(jcr->last_fname, xattrbuf, ATTR_MAX_VALUELEN,
-                       xattr_naming_spaces[cnt]->flags, &cursor) != 0) {
+                       xattr_naming_spaces[cnt].flags, &cursor) != 0) {
             switch (errno) {
             case ENOENT:
                retval = bxattr_exit_ok;
@@ -667,12 +668,12 @@ static bxattr_exit_code irix_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
 
             /*
              * Allocate space for storing the name.
-             * We store the name as <naming_space_name>.<xattr_name>
+             * We store the name as <naming_space_name><xattr_name>
              */
-            current_xattr->name_length = strlen(xattr_naming_spaces[cnt]->name) + strlen(attrlist_ent->a_name) + 2;
+            current_xattr->name_length = strlen(xattr_naming_spaces[cnt].name) + strlen(attrlist_ent->a_name) + 2;
             current_xattr->name = (char *)malloc(current_xattr->name_length);
-            bsnprintf(current_xattr->name, current_xattr->name_length, "%s.%s",
-                      xattr_naming_spaces[cnt]->name, attrlist_ent->a_name);
+            bsnprintf(current_xattr->name, current_xattr->name_length, "%s%s",
+                      xattr_naming_spaces[cnt].name, attrlist_ent->a_name);
 
             expected_serialize_len += sizeof(current_xattr->name_length) + current_xattr->name_length;
 
@@ -684,7 +685,7 @@ static bxattr_exit_code irix_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
              * Retrieve the actual value of the xattr.
              */
             if (attr_get(jcr->last_fname, attrlist_ent->a_name, current_xattr->value,
-                         current_xattr->value_length, xattr_naming_spaces[cnt]->flags) != 0) {
+                         current_xattr->value_length, xattr_naming_spaces[cnt].flags) != 0) {
                switch (errno) {
                case ENOENT:
                case ENOATTR:
@@ -769,6 +770,91 @@ bail_out:
 
 static bxattr_exit_code irix_xattr_parse_streams(JCR *jcr, int stream)
 {
+   int cnt, cmp_size;
+   xattr_t *current_xattr;
+   alist *xattr_value_list;
+   xattr_naming_space *xattr_naming_space;
+   berrno be;
+
+   xattr_value_list = New(alist(10, not_owned_by_alist));
+
+   if (unserialize_xattr_stream(jcr, xattr_value_list) != bxattr_exit_ok) {
+      xattr_drop_internal_table(xattr_value_list);
+      return bxattr_exit_error;
+   }
+
+   foreach_alist(current_xattr, xattr_value_list) {
+      /**
+       * See to what namingspace this xattr belongs to.
+       */
+      xattr_naming_space = NULL;
+      for (cnt = 0; xattr_naming_spaces[cnt].name != NULL; cnt++) {
+         cmp_size = strlen(xattr_naming_spaces[cnt].name);
+         if (!strncasecmp(current_xattr->name,
+                          xattr_naming_spaces[cnt].name,
+                          cmp_size)) {
+            xattr_naming_space = &xattr_naming_spaces[cnt];
+            break;
+         }
+      }
+
+      /**
+       * If we got a xattr that doesn't belong to ant valid namespace complain.
+       */
+      if (xattr_naming_space == NULL) {
+         Mmsg2(jcr->errmsg, _("Received illegal xattr named %s on file \"%s\"\n"),
+               current_xattr->name, jcr->last_fname);
+         Dmsg2(100, "Received illegal xattr named %s on file \"%s\"\n",
+               current_xattr->name, jcr->last_fname);
+         goto bail_out;
+      }
+
+      /**
+       * Restore the xattr first try to create the attribute from scratch.
+       */
+      flags = xattr_naming_space->flags | ATTR_CREATE;
+      if (attr_set(jcr->last_fname, current_xattr->name,
+                   current_xattr->value, current_xattr->value_len, flags) != 0) {
+         switch (errno) {
+         case ENOENT:
+            retval = bxattr_exit_ok;
+            goto bail_out;
+         case EEXIST:
+            /**
+             * The xattr already exists we need to replace it.
+             */
+            flags = xattr_naming_space->flags | ATTR_REPLACE;
+            if (attr_set(jcr->last_fname, current_xattr->name,
+                         current_xattr->value, current_xattr->value_len, flags) != 0) {
+               switch (errno) {
+               case ENOENT:
+                  retval = bxattr_exit_ok;
+                  goto bail_out;
+               default:
+                  Mmsg2(jcr->errmsg, _("attr_set error on file \"%s\": ERR=%s\n"),
+                        jcr->last_fname, be.bstrerror());
+                  Dmsg2(100, "attr_set error file=%s ERR=%s\n",
+                        jcr->last_fname, be.bstrerror());
+                  goto bail_out;
+               }
+            }
+            break;
+         default:
+            Mmsg2(jcr->errmsg, _("attr_set error on file \"%s\": ERR=%s\n"),
+                  jcr->last_fname, be.bstrerror());
+            Dmsg2(100, "attr_set error file=%s ERR=%s\n",
+                  jcr->last_fname, be.bstrerror());
+            goto bail_out;
+         }
+      }
+   }
+
+   xattr_drop_internal_table(xattr_value_list);
+   return bxattr_exit_ok;
+
+bail_out:
+   xattr_drop_internal_table(xattr_value_list);
+   return bxattr_exit_error;
 }
 
 /*
