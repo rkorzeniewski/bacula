@@ -427,6 +427,9 @@ void purge_jobs_from_catalog(UAContext *ua, char *jobs)
    db_sql_query(ua->db, query.c_str(), NULL, (void *)NULL);
    Dmsg1(050, "Delete RestoreObject sql=%s\n", query.c_str());
 
+   Mmsg(query, "DELETE FROM PathVisibility WHERE JobId IN (%s)", jobs);
+   db_sql_query(ua->db, query.c_str(), NULL, (void *)NULL);
+   Dmsg1(050, "Delete PathVisibility sql=%s\n", query.c_str());
 
    upgrade_copies(ua, jobs);
 
