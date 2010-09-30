@@ -298,7 +298,7 @@ int prune_files(UAContext *ua, CLIENT *client, POOL *pool)
 
 //   edit_utime(now-period, ed1, sizeof(ed1));
 //   Jmsg(ua->jcr, M_INFO, 0, _("Begin pruning Jobs older than %s secs.\n"), ed1);
-   Jmsg(ua->jcr, M_INFO, 0, _("Begin pruning Jobs.\n"));
+   Jmsg(ua->jcr, M_INFO, 0, _("Begin pruning Files.\n"));
    /* Select Jobs -- for counting */ 
    Mmsg(query, 
         "SELECT COUNT(1) FROM Job %s WHERE PurgedFiles=0 %s", 
