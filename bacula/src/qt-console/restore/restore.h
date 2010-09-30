@@ -121,11 +121,19 @@ class bRestore : public Pages, public Ui::bRestoreForm
 public:
    bRestore();
    ~bRestore();
+   void PgSeltreeWidgetClicked();
 
 public slots:
+   void setClient();
+   void setJob();
+
 
 private:
-
+   QString m_client;
+   void setupPage();
+   bool m_populated;
+   void displayFiles(QString path);
+   void displayFiles(uint64_t pathid);
 };
 
 #endif /* _RESTORE_H_ */

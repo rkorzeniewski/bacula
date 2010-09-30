@@ -172,7 +172,7 @@ void MainWin::createPages()
        * Create instances in alphabetic order of the rest 
        *  of the classes that will by default exist under each Director.  
        */
-//      new bRestore();
+      new bRestore();
       new Clients();
       new FileSet();
       new Jobs();
