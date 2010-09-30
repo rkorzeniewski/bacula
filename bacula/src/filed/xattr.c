@@ -412,8 +412,8 @@ static bxattr_exit_code aix_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
 
       name_length = strlen(bp);
       if (skip_xattr || name_length == 0) {
+         Dmsg1(100, "Skipping xattr named %s\n", bp);
          bp = strchr(bp, '\0') + 1;
-         Dmsg1(100, "Skipping xattr named %s\n", current_xattr->name);
          continue;
       }
 
@@ -1048,8 +1048,8 @@ static bxattr_exit_code generic_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
 
       name_len = strlen(bp);
       if (skip_xattr || name_len == 0) {
+         Dmsg1(100, "Skipping xattr named %s\n", bp);
          bp = strchr(bp, '\0') + 1;
-         Dmsg1(100, "Skipping xattr named %s\n", current_xattr->name);
          continue;
       }
 
@@ -1436,7 +1436,7 @@ static bxattr_exit_code bsd_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
          }
 
          if (skip_xattr) {
-            Dmsg1(100, "Skipping xattr named %s\n", current_xattr->name);
+            Dmsg1(100, "Skipping xattr named %s\n", current_attrname);
             continue;
          }
 
@@ -1816,7 +1816,7 @@ static bxattr_exit_code tru64_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
       }
 
       if (skip_xattr) {
-         Dmsg1(100, "Skipping xattr named %s\n", current_xattr->name);
+         Dmsg1(100, "Skipping xattr named %s\n", xattr_name);
          continue;
       }
 
