@@ -954,14 +954,15 @@ static void pt_out(char *buf)
        if (trace_fd) {
           fputs(buf, trace_fd);
           fflush(trace_fd);
+          return;
        } else {
           /* Some problem, turn off tracing */
           trace = false;
        }
-    } else {   /* not tracing */
-       fputs(buf, stdout);
-       fflush(stdout);
     }
+    /* not tracing */
+    fputs(buf, stdout);
+    fflush(stdout);
 }
 
 /*********************************************************************
