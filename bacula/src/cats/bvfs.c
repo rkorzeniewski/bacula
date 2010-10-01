@@ -63,7 +63,7 @@ Bvfs::Bvfs(JCR *j, B_DB *mdb) {
    pattern = get_pool_memory(PM_NAME);
    *jobids = *prev_dir = *pattern = 0;
    dir_filenameid = pwd_id = offset = 0;
-   see_copies = see_all_version = false;
+   see_copies = see_all_versions = false;
    limit = 1000;
    attr = new_attr(jcr);
    list_entries = result_handler;
@@ -497,9 +497,11 @@ void Bvfs::get_all_file_versions(DBId_t pathid, DBId_t fnid, const char *client)
 
    POOL_MEM query;
 
-   Mmsg(query,//    1           2          3       4
-"SELECT 'V', File.FileId, File.Md5, File.JobId, File.LStat, "
-//         5                6
+   Mmsg(query,//    1           2              3       
+"SELECT 'V', File.PathId, File.FilenameId,  File.Md5, "
+//         4          5           6
+        "File.JobId, File.LStat, File.FileId, "
+//         7                    8
        "Media.VolumeName, Media.InChanger "
 "FROM File, Job, Client, JobMedia, Media "
 "WHERE File.FilenameId = %s "

@@ -62,8 +62,8 @@ typedef enum {
 
    /* Only if File Version record */
    BVFS_Md5     = 3,
-   BVFS_VolName = 4,
-   BVFS_VolInchanger = 5
+   BVFS_VolName = 7,
+   BVFS_VolInchanger = 8
 } bvfs_row_index;
 
 class Bvfs {
@@ -117,8 +117,8 @@ public:
 
    void update_cache();
 
-   void set_see_all_version(bool val) {
-      see_all_version = val;
+   void set_see_all_versions(bool val) {
+      see_all_versions = val;
    }
 
    void set_see_copies(bool val) {
@@ -169,7 +169,7 @@ private:
    POOLMEM *prev_dir; /* ls_dirs query returns all versions, take the 1st one */
    ATTR *attr;        /* Can be use by handler to call decode_stat() */
 
-   bool see_all_version;
+   bool see_all_versions;
    bool see_copies;
 
    DBId_t get_dir_filenameid();
@@ -180,6 +180,8 @@ private:
 
 #define bvfs_is_dir(row) ((row)[BVFS_Type][0] == BVFS_DIR_RECORD)
 #define bvfs_is_file(row) ((row)[BVFS_Type][0] == BVFS_FILE_RECORD)
+#define bvfs_is_version(row) ((row)[BVFS_Type][0] == BVFS_FILE_VERSION)
+
 
 void bvfs_update_path_hierarchy_cache(JCR *jcr, B_DB *mdb, char *jobids);
 void bvfs_update_cache(JCR *jcr, B_DB *mdb);
