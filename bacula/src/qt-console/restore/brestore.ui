@@ -47,7 +47,7 @@
          <number>9</number>
         </property>
         <item>
-         <widget class="QTableWidget" name="FileList">
+         <widget class="bRestoreTable" name="FileList">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
             <horstretch>5</horstretch>
@@ -119,7 +119,7 @@
          <number>9</number>
         </property>
         <item>
-         <widget class="QTableWidget" name="FileRevisions">
+         <widget class="bRestoreTable" name="FileRevisions">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
             <horstretch>0</horstretch>
@@ -244,10 +244,16 @@ p, li { white-space: pre-wrap; }
         </layout>
        </item>
        <item>
-        <widget class="QTableWidget" name="RestoreList">
+        <widget class="bRestoreTable" name="RestoreList">
          <property name="acceptDrops">
           <bool>true</bool>
          </property>
+         <property name="dragDropMode">
+          <enum>QAbstractItemView::DropOnly</enum>
+         </property>
+         <attribute name="verticalHeaderVisible">
+          <bool>false</bool>
+         </attribute>
          <column>
           <property name="text">
            <string>Data</string>
@@ -378,6 +384,13 @@ p, li { white-space: pre-wrap; }
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>bRestoreTable</class>
+   <extends>QTableWidget</extends>
+   <header>restore.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

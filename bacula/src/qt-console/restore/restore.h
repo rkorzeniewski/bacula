@@ -36,6 +36,26 @@
 
 #include <QtGui>
 #include "pages.h"
+
+
+class bRestoreTable : public QTableWidget
+{
+   Q_OBJECT 
+private:
+   QPoint dragStartPosition;
+public:
+   bRestoreTable(QWidget *parent)
+      : QTableWidget(parent)
+   {
+   }
+   void mousePressEvent(QMouseEvent *event);
+   void mouseMoveEvent(QMouseEvent *event);
+
+   void dragEnterEvent(QDragEnterEvent *event);
+//   void dragMoveEvent(QDragMoveEvent *event);
+   void dropEvent(QDropEvent *event);
+};
+
 #include "ui_brestore.h"
 #include "ui_restore.h"
 #include "ui_prerestore.h"
@@ -112,7 +132,6 @@ private:
    QRegExp m_rx;
    QString m_splitText;
 };
-
 
 class bRestore : public Pages, public Ui::bRestoreForm
 {

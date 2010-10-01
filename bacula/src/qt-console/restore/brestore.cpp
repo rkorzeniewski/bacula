@@ -316,3 +316,70 @@ void bRestore::setupPage()
 bRestore::~bRestore()
 {
 }
+
+void bRestoreTable::mousePressEvent(QMouseEvent *event)
+{
+   QTableWidget::mousePressEvent(event);
+
+   if (event->button() == Qt::LeftButton) {
+      dragStartPosition = event->pos();
+   }
+}
+
+void bRestoreTable::mouseMoveEvent(QMouseEvent *event)
+{
+   if (!(event->buttons() & Qt::LeftButton)) {
+      QTableWidget::mouseMoveEvent(event);
+      return;
+   }
+   if ((event->pos() - dragStartPosition).manhattanLength()
+       < QApplication::startDragDistance())
+   {
+      QTableWidget::mouseMoveEvent(event);
+      return;
+   }  
+   
+   QDrag *drag = new QDrag(this);
+   QMimeData *mimeData = new QMimeData;
+   
+   mimeData->setText(QString("test"));
+   qDebug() << "1 ========" << mimeData->formats() << "========";
+   drag->setMimeData(mimeData);
+   drag->exec(Qt::CopyAction | Qt::MoveAction);
+}
+
+void bRestoreTable::dragEnterEvent(QDragEnterEvent *event)
+{
+   Pmsg0(0, "dragEnterEvent\n");
+   qDebug() << "2 ========" << event->mimeData()->formats() << "========";
+
+   if (event->mimeData()->hasText()) {
+      qDebug() << event->mimeData()->text();
+      event->acceptProposedAction();
+   } else {
+      event->ignore();
+   }
+}
+
+// void bRestoreTable::dragMoveEvent(QDragMoveEvent *event)
+// {
+//    Pmsg0(0, "dragMoveEvent\n");
+//    if (event->mimeData()->hasText()) {
+//       event->acceptProposedAction();
+//    } else {
+//       event->ignore();
+//    }
+// }
+// 
+void bRestoreTable::dropEvent(QDropEvent *event)
+{
+   Pmsg0(0, "dropEvent\n");
+   qDebug() << "3 ========" << event->mimeData()->formats() << "========";
+   if (event->mimeData()->hasText()) {
+      qDebug() << event->mimeData()->text();
+      event->acceptProposedAction();
+   } else {
+      event->ignore();
+   }
+}
+
