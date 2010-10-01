@@ -126,14 +126,18 @@ public:
 public slots:
    void setClient();
    void setJob();
-
-
+   void showInfoForFile(QTableWidgetItem *);
+   void applyLocation();
+   void clearVersions(QTableWidgetItem *);
+   
 private:
    QString m_client;
+   QString m_jobids;
+   QTableWidgetItem *m_current;
    void setupPage();
    bool m_populated;
-   void displayFiles(QString path);
-   void displayFiles(uint64_t pathid);
+   void displayFiles(int64_t pathid, QString path);
+   void displayFileVersion(QString pathid, QString fnid, QString client);
 };
 
 #endif /* _RESTORE_H_ */

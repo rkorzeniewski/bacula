@@ -20,7 +20,7 @@ TEMPLATE     = app
 TARGET       = bat
 DEPENDPATH  += .
 INCLUDEPATH += .. . ./console ./restore ./select
-LIBS        += -L../lib -lbaccfg -lbac @OPENSSL_LIBS@
+LIBS        += -L../lib -lbaccfg -lbac -L../findlib -lbacfind @OPENSSL_LIBS@
 LIBTOOL_LINK = @QMAKE_LIBTOOL@ --silent --tag=CXX --mode=link
 LIBTOOL_INSTALL = @QMAKE_LIBTOOL@ --silent --mode=install
 QMAKE_LINK   = $${LIBTOOL_LINK} $(CXX)
