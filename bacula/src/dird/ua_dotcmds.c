@@ -73,6 +73,7 @@ static bool aopcmd(UAContext *ua, const char *cmd);
 static bool dot_bvfs_lsdirs(UAContext *ua, const char *cmd);
 static bool dot_bvfs_lsfiles(UAContext *ua, const char *cmd);
 static bool dot_bvfs_update(UAContext *ua, const char *cmd);
+static bool dot_bvfs_get_jobids(UAContext *ua, const char *cmd);
 
 static bool api_cmd(UAContext *ua, const char *cmd);
 static bool sql_cmd(UAContext *ua, const char *cmd);
@@ -107,6 +108,7 @@ static struct cmdstruct commands[] = { /* help */  /* can be used in runscript *
  { NT_(".bvfs_lsdirs"), dot_bvfs_lsdirs, NULL,       true},
  { NT_(".bvfs_lsfiles"),dot_bvfs_lsfiles,NULL,       true},
  { NT_(".bvfs_update"), dot_bvfs_update, NULL,       true},
+ { NT_(".bvfs_get_jobids"), dot_bvfs_get_jobids,NULL,true},
  { NT_(".types"),      typescmd,         NULL,       false}
              };
 #define comsize ((int)(sizeof(commands)/sizeof(struct cmdstruct)))
@@ -340,6 +342,34 @@ static bool dot_bvfs_lsdirs(UAContext *ua, const char *cmd)
    fs.ls_special_dirs();
    fs.ls_dirs();
 
+   return true;
+}
+
+static bool dot_bvfs_get_jobids(UAContext *ua, const char *cmd)
+{
+   JOB_DBR jr;
+   db_list_ctx jobids;
+   int pos;
+
+   if (!open_client_db(ua)) {
+      return true;
+   }
+
+   memset(&jr, 0, sizeof(JOB_DBR));
+   if ((pos = find_arg_with_value(ua, "jobid")) >= 0) {
+      jr.JobId = str_to_int64(ua->argv[pos]);
+   }
+
+   if (!db_get_job_record(ua->jcr, ua->db, &jr)) {
+      ua->error_msg(_("Unable to get Job record for JobId=%s: ERR=%s\n"),
+                    ua->cmd, db_strerror(ua->db));
+      return true;
+   }
+   jr.JobLevel = L_INCREMENTAL; /* Take Full+Diff+Incr */
+   if (!db_accurate_get_jobids(ua->jcr, ua->db, &jr, &jobids)) {
+      return true;
+   }
+   ua->send_msg("%s\n", jobids.list);
    return true;
 }
 
