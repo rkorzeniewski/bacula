@@ -348,6 +348,16 @@ p, li { white-space: pre-wrap; }
       </spacer>
      </item>
      <item>
+      <widget class="QCheckBox" name="MergeChk">
+       <property name="text">
+        <string>Merge Jobs</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QCheckBox" name="VersionsChk">
        <property name="text">
         <string>View all Versions</string>

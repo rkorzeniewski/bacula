@@ -63,6 +63,7 @@ void bRestore::setClient()
    JobList->clear();
    JobList->setEnabled(true);
    LocationEntry->clear();
+   m_pathid = 0;
 
    if (ClientList->currentIndex() < 1) {
       JobList->setEnabled(false);
@@ -109,6 +110,10 @@ void bRestore::setJob()
 
    m_jobids = tmp.toString();
    QString cmd = ".bvfs_get_jobids jobid=" + m_jobids;
+   if (MergeChk->checkState() == Qt::Checked) {
+      cmd.append(" all");
+   }
+
    m_console->dir_cmd(cmd, results);
 
    if (results.size() < 1) {
@@ -125,7 +130,7 @@ void bRestore::setJob()
 
    Pmsg1(0, "jobids=%s\n", m_jobids.toLocal8Bit().constData());
 
-   displayFiles(0, "/");
+   displayFiles(m_pathid, QString(""));
    Pmsg0(000, "update done\n");
 }
 
@@ -177,6 +182,9 @@ void bRestore::displayFiles(int64_t pathid, QString path)
          decode_stat(fieldlist.at(4).toLocal8Bit().data(), 
                      &statp, &LinkFI);
          item.setDateFld(4, statp.st_mtime); // date
+         if (fieldlist.at(5) == ".") {
+            m_pathid = fieldlist.at(0).toLongLong(); // keep current pathid
+         }
       }
    }
 
@@ -297,6 +305,8 @@ void bRestore::setupPage()
    connect(FileList, SIGNAL(itemDoubleClicked(QTableWidgetItem*)), 
            this, SLOT(showInfoForFile(QTableWidgetItem *)));
    connect(LocationBp, SIGNAL(pressed()), this, SLOT(applyLocation()));
+   connect(MergeChk, SIGNAL(clicked()), this, SLOT(setJob()));
+
    FileList->setColumnHidden(0, true);
    FileRevisions->setColumnHidden(0, true);
    RestoreList->setColumnHidden(0, true);

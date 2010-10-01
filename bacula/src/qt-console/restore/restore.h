@@ -133,6 +133,7 @@ public slots:
 private:
    QString m_client;
    QString m_jobids;
+   int64_t m_pathid;
    QTableWidgetItem *m_current;
    void setupPage();
    bool m_populated;
