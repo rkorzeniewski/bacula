@@ -57,6 +57,7 @@ extern const char CATS_IMP_EXP *uar_inc;
 extern const char CATS_IMP_EXP *uar_list_temp;
 extern const char CATS_IMP_EXP *uar_sel_all_temp1;
 extern const char CATS_IMP_EXP *uar_sel_fileset;
+extern const char CATS_IMP_EXP *uar_sel_filesetid;
 extern const char CATS_IMP_EXP *uar_mediatype;
 extern const char CATS_IMP_EXP *uar_jobid_fileindex;
 extern const char CATS_IMP_EXP *uar_dif;

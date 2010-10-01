@@ -421,11 +421,19 @@ static bool dot_bvfs_versions(UAContext *ua, const char *cmd)
    return true;
 }
 
+/* .bvfs_get_jobids jobid=1
+ *  -> returns needed jobids to restore
+ * .bvfs_get_jobids jobid=1 all
+ *  -> returns needed jobids to restore with all filesets a JobId=1 time
+ */
 static bool dot_bvfs_get_jobids(UAContext *ua, const char *cmd)
 {
    JOB_DBR jr;
-   db_list_ctx jobids;
+   db_list_ctx jobids, tempids;
    int pos;
+   char ed1[50];
+   POOL_MEM query;
+   dbid_list ids;               /* Store all FileSetIds for this client */
 
    if (!open_client_db(ua)) {
       return true;
@@ -441,10 +449,30 @@ static bool dot_bvfs_get_jobids(UAContext *ua, const char *cmd)
                     ua->cmd, db_strerror(ua->db));
       return true;
    }
-   jr.JobLevel = L_INCREMENTAL; /* Take Full+Diff+Incr */
-   if (!db_accurate_get_jobids(ua->jcr, ua->db, &jr, &jobids)) {
-      return true;
+
+   /* If we have the "all" option, we do a search on all defined fileset
+    * for this client
+    */
+   if (find_arg(ua, "all") > 0) {
+      edit_int64(jr.ClientId, ed1);
+      Mmsg(query, uar_sel_filesetid, ed1);
+      db_get_query_dbids(ua->jcr, ua->db, query, ids);
+   } else {
+      ids.num_ids = 1;
+      ids.DBId[0] = jr.FileSetId;
    }
+
+   jr.JobLevel = L_INCREMENTAL; /* Take Full+Diff+Incr */
+
+   /* Foreach different FileSet, we build a restore jobid list */
+   for (int i=0; i < ids.num_ids; i++) {
+      jr.FileSetId = ids.DBId[i];
+      if (!db_accurate_get_jobids(ua->jcr, ua->db, &jr, &tempids)) {
+         return true;
+      }
+      jobids.cat(tempids);
+   }
+
    ua->send_msg("%s\n", jobids.list);
    return true;
 }

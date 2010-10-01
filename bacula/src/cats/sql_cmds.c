@@ -230,6 +230,17 @@ const char *uar_sel_fileset =
    "AND Job.ClientId=%s AND Client.ClientId=%s "
    "ORDER BY FileSet.FileSet";
 
+/* Select all different FileSet for this client
+ * This query doesn't guarantee that the Id is the latest
+ * version of the FileSet. Can be used with other queries that
+ * use Ids to select the FileSet name. (like in accurate)
+ */
+const char *uar_sel_filesetid =
+   "SELECT MAX(FileSetId) "
+     "FROM FileSet JOIN Job USING (FileSetId) "
+         "WHERE Job.ClientId=%s "
+        "GROUP BY FileSet";
+
 /* Find MediaType used by this Job */
 const char *uar_mediatype =
    "SELECT MediaType FROM JobMedia,Media WHERE JobMedia.JobId=%s "
