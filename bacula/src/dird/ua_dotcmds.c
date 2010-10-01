@@ -74,6 +74,7 @@ static bool dot_bvfs_lsdirs(UAContext *ua, const char *cmd);
 static bool dot_bvfs_lsfiles(UAContext *ua, const char *cmd);
 static bool dot_bvfs_update(UAContext *ua, const char *cmd);
 static bool dot_bvfs_get_jobids(UAContext *ua, const char *cmd);
+static bool dot_bvfs_versions(UAContext *ua, const char *cmd);
 
 static bool api_cmd(UAContext *ua, const char *cmd);
 static bool sql_cmd(UAContext *ua, const char *cmd);
@@ -82,33 +83,34 @@ static bool dot_help_cmd(UAContext *ua, const char *cmd);
 
 struct cmdstruct { const char *key; bool (*func)(UAContext *ua, const char *cmd); const char *help;const bool use_in_rs;};
 static struct cmdstruct commands[] = { /* help */  /* can be used in runscript */
- { NT_(".api"),        api_cmd,          NULL,       false},
- { NT_(".backups"),    backupscmd,       NULL,       false},
- { NT_(".clients"),    clientscmd,       NULL,       true},
- { NT_(".defaults"),   defaultscmd,      NULL,       false},
- { NT_(".die"),        admin_cmds,       NULL,       false},
- { NT_(".dump"),       admin_cmds,       NULL,       false},
- { NT_(".exit"),       admin_cmds,       NULL,       false},
- { NT_(".filesets"),   filesetscmd,      NULL,       false},
- { NT_(".help"),       dot_help_cmd,     NULL,       false},
- { NT_(".jobs"),       jobscmd,          NULL,       true},
- { NT_(".levels"),     levelscmd,        NULL,       false},
- { NT_(".messages"),   getmsgscmd,       NULL,       false},
- { NT_(".msgs"),       msgscmd,          NULL,       false},
- { NT_(".pools"),      poolscmd,         NULL,       true},
- { NT_(".quit"),       dot_quit_cmd,     NULL,       false},
- { NT_(".sql"),        sql_cmd,          NULL,       false},
- { NT_(".status"),     dot_status_cmd,   NULL,       false},
- { NT_(".storage"),    storagecmd,       NULL,       true},
- { NT_(".volstatus"),  volstatuscmd,     NULL,       true},
- { NT_(".media"),      mediacmd,         NULL,       true},
- { NT_(".mediatypes"), mediatypescmd,    NULL,       true},
- { NT_(".locations"),  locationscmd,     NULL,       true},
- { NT_(".actiononpurge"),aopcmd,         NULL,       true},
- { NT_(".bvfs_lsdirs"), dot_bvfs_lsdirs, NULL,       true},
- { NT_(".bvfs_lsfiles"),dot_bvfs_lsfiles,NULL,       true},
- { NT_(".bvfs_update"), dot_bvfs_update, NULL,       true},
- { NT_(".bvfs_get_jobids"), dot_bvfs_get_jobids,NULL,true},
+ { NT_(".api"),        api_cmd,                  NULL,       false},
+ { NT_(".backups"),    backupscmd,               NULL,       false},
+ { NT_(".clients"),    clientscmd,               NULL,       true},
+ { NT_(".defaults"),   defaultscmd,              NULL,       false},
+ { NT_(".die"),        admin_cmds,               NULL,       false},
+ { NT_(".dump"),       admin_cmds,               NULL,       false},
+ { NT_(".exit"),       admin_cmds,               NULL,       false},
+ { NT_(".filesets"),   filesetscmd,              NULL,       false},
+ { NT_(".help"),       dot_help_cmd,             NULL,       false},
+ { NT_(".jobs"),       jobscmd,                  NULL,       true},
+ { NT_(".levels"),     levelscmd,                NULL,       false},
+ { NT_(".messages"),   getmsgscmd,               NULL,       false},
+ { NT_(".msgs"),       msgscmd,                  NULL,       false},
+ { NT_(".pools"),      poolscmd,                 NULL,       true},
+ { NT_(".quit"),       dot_quit_cmd,             NULL,       false},
+ { NT_(".sql"),        sql_cmd,                  NULL,       false},
+ { NT_(".status"),     dot_status_cmd,           NULL,       false},
+ { NT_(".storage"),    storagecmd,               NULL,       true},
+ { NT_(".volstatus"),  volstatuscmd,             NULL,       true},
+ { NT_(".media"),      mediacmd,                 NULL,       true},
+ { NT_(".mediatypes"), mediatypescmd,            NULL,       true},
+ { NT_(".locations"),  locationscmd,             NULL,       true},
+ { NT_(".actiononpurge"),aopcmd,                 NULL,       true},
+ { NT_(".bvfs_lsdirs"), dot_bvfs_lsdirs,         NULL,       true},
+ { NT_(".bvfs_lsfiles"),dot_bvfs_lsfiles,        NULL,       true},
+ { NT_(".bvfs_update"), dot_bvfs_update,         NULL,       true},
+ { NT_(".bvfs_get_jobids"), dot_bvfs_get_jobids, NULL,       true},
+ { NT_(".bvfs_versions"), dot_bvfs_versions,     NULL,       true},
  { NT_(".types"),      typescmd,         NULL,       false}
              };
 #define comsize ((int)(sizeof(commands)/sizeof(struct cmdstruct)))
@@ -214,6 +216,12 @@ static int bvfs_result_handler(void *ctx, int fields, char **row)
       ua->send_msg("%s\t0\t%s\t%s\t%s\t%s\n", row[BVFS_PathId], fileid,
                    jobid, lstat, path);
 
+   } else if (bvfs_is_version(row)) {
+      ua->send_msg("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n", row[BVFS_PathId],
+                   row[BVFS_FilenameId], fileid, jobid,
+                   lstat, row[BVFS_Md5], row[BVFS_VolName], 
+                   row[BVFS_VolInchanger]);
+
    } else if (bvfs_is_file(row)) {
       ua->send_msg("%s\t%s\t%s\t%s\t%s\t%s\n", row[BVFS_PathId],
                    row[BVFS_FilenameId], fileid, jobid,
@@ -221,6 +229,39 @@ static int bvfs_result_handler(void *ctx, int fields, char **row)
    }
 
    return 0;
+}
+
+static bool bvfs_parse_arg_version(UAContext *ua,
+                                   char **client,
+                                   DBId_t *fnid, 
+                                   bool *versions, 
+                                   bool *copies)
+{
+   *fnid=0;
+   *client=NULL;
+   *versions=false;
+   *copies=false;
+
+   for (int i=1; i<ua->argc; i++) {
+      if (fnid && strcasecmp(ua->argk[i], NT_("fnid")) == 0) {
+         if (is_a_number(ua->argv[i])) {
+            *fnid = str_to_int64(ua->argv[i]);
+         }
+      }
+
+      if (strcasecmp(ua->argk[i], NT_("client")) == 0) {
+         *client = ua->argv[i];
+      }
+
+      if (copies && strcasecmp(ua->argk[i], NT_("copies")) == 0) {
+         *copies = true;
+      }
+
+      if (versions && strcasecmp(ua->argk[i], NT_("versions")) == 0) {
+         *versions = true;
+      }
+   }
+   return (*client && *fnid > 0);
 }
 
 static bool bvfs_parse_arg(UAContext *ua, 
@@ -239,6 +280,7 @@ static bool bvfs_parse_arg(UAContext *ua,
             *pathid = str_to_int64(ua->argv[i]);
          }
       }
+
       if (strcasecmp(ua->argk[i], NT_("path")) == 0) {
          *path = ua->argv[i];
       }
@@ -300,7 +342,7 @@ static bool dot_bvfs_lsfiles(UAContext *ua, const char *cmd)
    } else {
       fs.ch_dir(path);
    }
-
+   
    fs.set_offset(offset);
 
    fs.ls_files();
@@ -341,6 +383,40 @@ static bool dot_bvfs_lsdirs(UAContext *ua, const char *cmd)
 
    fs.ls_special_dirs();
    fs.ls_dirs();
+
+   return true;
+}
+
+/* 
+ * .bvfs_versions jobid=x filenameid=10 pathid=10 copies versions
+ * (jobid isn't used)
+ */
+static bool dot_bvfs_versions(UAContext *ua, const char *cmd)
+{
+   DBId_t pathid=0, fnid=0;
+   int limit=2000, offset=0;
+   char *path=NULL, *jobid=NULL, *client=NULL;
+   bool copies=false, versions=false;
+   if (!bvfs_parse_arg(ua, &pathid, &path, &jobid,
+                       &limit, &offset))
+   {
+      ua->error_msg("Can't find jobid, pathid or path argument\n");
+      return true;              /* not enough param */
+   }
+
+   if (!bvfs_parse_arg_version(ua, &client, &fnid, &versions, &copies))
+   {
+      ua->error_msg("Can't find client or filenameid argument\n");
+      return true;              /* not enough param */
+   }
+
+   Bvfs fs(ua->jcr, ua->db);
+   fs.set_limit(limit);
+   fs.set_see_all_versions(versions);
+   fs.set_see_copies(copies);
+   fs.set_handler(bvfs_result_handler, ua);
+   fs.set_offset(offset);
+   fs.get_all_file_versions(pathid, fnid, client);
 
    return true;
 }
