@@ -232,9 +232,25 @@ void ItemFormatterBase::setInChanger(int index, const QString &InChanger)
    //setSortValue(index, InChanger.toInt() );
 }
 
+void ItemFormatterBase::setFileType(int index, const QString &type)
+{
+   setPixmap(index, QPixmap(":images/"+type+".png"));
+   //setSortValue(index, InChanger.toInt() );
+}
+
 void ItemFormatterBase::setTextFld(int index, const QString &fld, bool center)
 {
    setText(index, fld.trimmed());
+   if (center) {
+      setTextAlignment(index, Qt::AlignCenter);
+   }
+}
+
+void ItemFormatterBase::setDateFld(int index, utime_t fld, bool center)
+{
+   char buf[200];
+   bstrutime(buf, sizeof(buf), fld);
+   setText(index, QString(buf).trimmed());
    if (center) {
       setTextAlignment(index, Qt::AlignCenter);
    }
