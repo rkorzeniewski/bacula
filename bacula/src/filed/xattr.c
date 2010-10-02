@@ -34,10 +34,10 @@
  * Currently we support the following OSes:
  *   - AIX (Extended Attributes)
  *   - Darwin (Extended Attributes)
+ *   - FreeBSD (Extended Attributes)
  *   - IRIX (Extended Attributes)
  *   - Linux (Extended Attributes)
  *   - NetBSD (Extended Attributes)
- *   - FreeBSD (Extended Attributes)
  *   - OpenBSD (Extended Attributes)
  *     (As it seems either they never implemented xattr or they are removed
  *      the support as it stated it was in version 3.1 but the current syscall
@@ -45,6 +45,7 @@
  *      might eventually support xattr on OpenBSD when they implemented them using
  *      the same interface as FreeBSD and NetBSD.
  *   - Solaris (Extended Attributes and Extensible Attributes)
+ *   - Tru64 (Extended Attributes)
  *
  *   Written by Marco van Wieringen, November MMVIII
  *
@@ -393,8 +394,6 @@ static bxattr_exit_code aix_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
    }
    xattr_list[xattr_list_len] = '\0';
 
-   xattr_value_list = New(alist(10, not_owned_by_alist));
-
    /*
     * Walk the list of extended attributes names and retrieve the data.
     * We already count the bytes needed for serializing the stream later on.
@@ -497,6 +496,10 @@ static bxattr_exit_code aix_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
          }
       }
 
+      if (xattr_value_list == NULL) {
+         xattr_value_list = New(alist(10, not_owned_by_alist));
+      }
+
       xattr_value_list->append(current_xattr);
       current_xattr = NULL;
       xattr_count++;
@@ -522,16 +525,12 @@ static bxattr_exit_code aix_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
          goto bail_out;
       }
 
-      xattr_drop_internal_table(xattr_value_list);
-
       /*
        * Send the datastream to the SD.
        */
-      return send_xattr_stream(jcr, os_default_xattr_streams[0]);
+      retval = send_xattr_stream(jcr, os_default_xattr_streams[0]);
    } else {
-      xattr_drop_internal_table(xattr_value_list);
-
-      return bxattr_exit_ok;
+      retval = bxattr_exit_ok;
    }
 
 bail_out:
@@ -629,8 +628,6 @@ static bxattr_exit_code irix_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
    bxattr_exit_code retval = bxattr_exit_error;
    POOLMEM *xattrbuf = get_memory(ATTR_MAX_VALUELEN);
    berrno be;
-
-   xattr_value_list = New(alist(10, not_owned_by_alist));
 
    for (cnt = 0; xattr_naming_spaces[cnt].name != NULL; cnt++) {
       memset(cursor, 0, sizeof(attrlist_cursor_t));
@@ -734,6 +731,10 @@ static bxattr_exit_code irix_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
                goto bail_out;
             }
 
+            if (xattr_value_list == NULL) {
+               xattr_value_list = New(alist(10, not_owned_by_alist));
+            }
+
             xattr_value_list->append(current_xattr);
             current_xattr = NULL;
             xattr_count++;
@@ -763,16 +764,12 @@ static bxattr_exit_code irix_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
          goto bail_out;
       }
 
-      xattr_drop_internal_table(xattr_value_list);
-
       /*
        * Send the datastream to the SD.
        */
-      return send_xattr_stream(jcr, os_default_xattr_streams[0]);
+      retval = send_xattr_stream(jcr, os_default_xattr_streams[0]);
    } else {
-      xattr_drop_internal_table(xattr_value_list);
-
-      return bxattr_exit_ok;
+      retval = bxattr_exit_ok;
    }
 
 bail_out:
@@ -1009,8 +1006,6 @@ static bxattr_exit_code generic_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
    }
    xattr_list[xattr_list_len] = '\0';
 
-   xattr_value_list = New(alist(10, not_owned_by_alist));
-
    /*
     * Walk the list of extended attributes names and retrieve the data.
     * We already count the bytes needed for serializing the stream later on.
@@ -1131,6 +1126,10 @@ static bxattr_exit_code generic_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
          }
       }
 
+      if (xattr_value_list == NULL) {
+         xattr_value_list = New(alist(10, not_owned_by_alist));
+      }
+
       xattr_value_list->append(current_xattr);
       current_xattr = NULL;
       xattr_count++;
@@ -1156,16 +1155,12 @@ static bxattr_exit_code generic_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
          goto bail_out;
       }
 
-      xattr_drop_internal_table(xattr_value_list);
-
       /*
        * Send the datastream to the SD.
        */
-      return send_xattr_stream(jcr, os_default_xattr_streams[0]);
+      retval = send_xattr_stream(jcr, os_default_xattr_streams[0]);
    } else {
-      xattr_drop_internal_table(xattr_value_list);
-
-      return bxattr_exit_ok;
+      retval = bxattr_exit_ok;
    }
 
 bail_out:
@@ -1295,8 +1290,6 @@ static bxattr_exit_code bsd_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
    alist *xattr_value_list = NULL;
    bxattr_exit_code retval = bxattr_exit_error;
    berrno be;
-
-   xattr_value_list = New(alist(10, not_owned_by_alist));
 
    /*
     * Loop over all available xattr namespaces.
@@ -1518,6 +1511,10 @@ static bxattr_exit_code bsd_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
             break;
          }
 
+         if (xattr_value_list == NULL) {
+            xattr_value_list = New(alist(10, not_owned_by_alist));
+         }
+
          xattr_value_list->append(current_xattr);
          current_xattr = NULL;
          xattr_count++;
@@ -1552,16 +1549,12 @@ static bxattr_exit_code bsd_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
          goto bail_out;
       }
 
-      xattr_drop_internal_table(xattr_value_list);
-
       /*
        * Send the datastream to the SD.
        */
-      return send_xattr_stream(jcr, os_default_xattr_streams[0]);
+      retval = send_xattr_stream(jcr, os_default_xattr_streams[0]);
    } else {
-      xattr_drop_internal_table(xattr_value_list);
-
-      return bxattr_exit_ok;
+      retval = bxattr_exit_ok;
    }
 
 bail_out:
@@ -1775,9 +1768,7 @@ static bxattr_exit_code tru64_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
       break;
    }
 
-   xattr_value_list = New(alist(10, not_owned_by_alist));
-
-   /**
+   /*
     * Walk the list of extended attributes names and retrieve the data.
     * We already count the bytes needed for serializing the stream later on.
     */
@@ -1845,6 +1836,10 @@ static bxattr_exit_code tru64_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
          Mmsg2(jcr->errmsg, _("Xattr stream on file \"%s\" exceeds maximum size of %d bytes\n"),
                jcr->last_fname, MAX_XATTR_STREAM);
          goto bail_out;
+      }
+
+      if (xattr_value_list == NULL) {
+         xattr_value_list = New(alist(10, not_owned_by_alist));
       }
 
       xattr_value_list->append(current_xattr);
