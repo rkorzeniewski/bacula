@@ -311,6 +311,12 @@ void bRestore::clearRestoreList()
    RestoreList->setRowCount(0);
 }
 
+void bRestore::runRestore()
+{
+   bRunRestore *r = new bRunRestore(this);
+   r->setVisible(true);
+}
+
 void bRestore::setupPage()
 {
    ClientList->addItem("Client list");
@@ -324,6 +330,7 @@ void bRestore::setupPage()
    connect(LocationBp, SIGNAL(pressed()), this, SLOT(applyLocation()));
    connect(MergeChk, SIGNAL(clicked()), this, SLOT(setJob()));
    connect(ClearBp, SIGNAL(clicked()), this, SLOT(clearRestoreList()));
+   connect(RestoreBp, SIGNAL(clicked()), this, SLOT(runRestore()));
    m_populated = true;
 }
 
@@ -433,3 +440,63 @@ void bRestoreTable::dropEvent(QDropEvent *event)
    }
 }
 
+void bRunRestore::UFRcb()
+{
+   if (UseFileRelocationChk->checkState() == Qt::Checked) {
+      WhereEntry->setEnabled(false);
+      UseRegexpChk->setEnabled(true);
+      if (UseRegexpChk->checkState() == Qt::Checked) {
+         AddSuffixEntry->setEnabled(false);
+         AddPrefixEntry->setEnabled(false);
+         StripPrefixEntry->setEnabled(false);
+         WhereRegexpEntry->setEnabled(true);
+      } else {
+         AddSuffixEntry->setEnabled(true);
+         AddPrefixEntry->setEnabled(true);
+         StripPrefixEntry->setEnabled(true);
+         WhereRegexpEntry->setEnabled(false);
+      }
+   } else {
+      WhereEntry->setEnabled(true);
+      AddSuffixEntry->setEnabled(false);
+      AddPrefixEntry->setEnabled(false);
+      StripPrefixEntry->setEnabled(false);
+      UseRegexpChk->setEnabled(false);
+      WhereRegexpEntry->setEnabled(false);
+   }
+}
+
+void bRunRestore::useRegexp()
+{
+   if (UseRegexpChk->checkState() == Qt::Checked) {
+      AddSuffixEntry->setEnabled(false);
+      AddPrefixEntry->setEnabled(false);
+      StripPrefixEntry->setEnabled(false);
+      WhereRegexpEntry->setEnabled(true);
+   } else {
+      AddSuffixEntry->setEnabled(true);
+      AddPrefixEntry->setEnabled(true);
+      StripPrefixEntry->setEnabled(true);
+      WhereRegexpEntry->setEnabled(false);
+   }
+}
+
+bRunRestore::bRunRestore(bRestore *parent)
+{
+   setupUi(this);
+   ClientCb->addItems(parent->console()->client_list);
+   int i = ClientCb->findText(parent->m_client);
+   if (i >= 0) {
+      ClientCb->setCurrentIndex(i);
+   }
+   StorageCb->addItem(QString(""));
+   RestoreCb->addItems(parent->console()->restore_list);
+   WhenEditor->setDateTime(QDateTime::currentDateTime());
+   StorageCb->addItems(parent->console()->storage_list);
+   connect(UseFileRelocationChk, SIGNAL(clicked()), this, SLOT(UFRcb()));
+   connect(UseRegexpChk, SIGNAL(clicked()), this, SLOT(useRegexp()));
+   struct job_defaults jd;
+   jd.job_name = parent->console()->restore_list[0];
+   parent->console()->get_job_defaults(jd);
+   WhereEntry->setText(jd.where);
+}

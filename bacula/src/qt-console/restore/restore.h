@@ -36,7 +36,7 @@
 
 #include <QtGui>
 #include "pages.h"
-
+#include "ui_runrestore.h"
 
 class bRestoreTable : public QTableWidget
 {
@@ -141,6 +141,8 @@ public:
    bRestore();
    ~bRestore();
    void PgSeltreeWidgetClicked();
+   QString m_client;
+   QString m_jobids;
 
 public slots:
    void setClient();
@@ -148,10 +150,9 @@ public slots:
    void showInfoForFile(QTableWidgetItem *);
    void applyLocation();
    void clearVersions(QTableWidgetItem *);
-   
+   void clearRestoreList();
+   void runRestore();
 private:
-   QString m_client;
-   QString m_jobids;
    QString m_path;
    int64_t m_pathid;
    QTableWidgetItem *m_current;
@@ -160,6 +161,18 @@ private:
    void displayFiles(int64_t pathid, QString path);
    void displayFileVersion(QString pathid, QString fnid, 
                            QString client, QString filename);
+};
+
+class bRunRestore : public QDialog, public Ui::bRunRestoreForm
+{
+   Q_OBJECT 
+
+public:
+   bRunRestore(bRestore *parent);
+   ~bRunRestore() {}
+public slots:
+   void useRegexp();
+   void UFRcb();
 };
 
 #endif /* _RESTORE_H_ */
