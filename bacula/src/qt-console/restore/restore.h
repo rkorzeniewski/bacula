@@ -52,7 +52,7 @@ public:
    void mouseMoveEvent(QMouseEvent *event);
 
    void dragEnterEvent(QDragEnterEvent *event);
-//   void dragMoveEvent(QDragMoveEvent *event);
+   void dragMoveEvent(QDragMoveEvent *event);
    void dropEvent(QDropEvent *event);
 };
 
@@ -152,12 +152,14 @@ public slots:
 private:
    QString m_client;
    QString m_jobids;
+   QString m_path;
    int64_t m_pathid;
    QTableWidgetItem *m_current;
    void setupPage();
    bool m_populated;
    void displayFiles(int64_t pathid, QString path);
-   void displayFileVersion(QString pathid, QString fnid, QString client);
+   void displayFileVersion(QString pathid, QString fnid, 
+                           QString client, QString filename);
 };
 
 #endif /* _RESTORE_H_ */

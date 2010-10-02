@@ -48,6 +48,7 @@ bRestore::bRestore()
    thisitem->setIcon(0, QIcon(QString::fromUtf8(":images/browse.png")));
    m_populated = false;
    m_current = NULL;
+   RestoreList->setAcceptDrops(true);
 }
 
 void bRestore::setClient()
@@ -63,6 +64,7 @@ void bRestore::setClient()
    JobList->clear();
    JobList->setEnabled(true);
    LocationEntry->clear();
+   m_path = "";
    m_pathid = 0;
 
    if (ClientList->currentIndex() < 1) {
@@ -155,36 +157,39 @@ void bRestore::displayFiles(int64_t pathid, QString path)
       arg = " pathid=" + QString().setNum(pathid);
 
       if (path == "..") {
-         path = LocationEntry->text();
-         if (path != "/") {
-            LocationEntry->setText(path.remove(QRegExp("[^/]+/$")));
+         if (m_path == "/") {
+            m_path = "";
+         } else {
+            m_path.remove(QRegExp("[^/]+/$"));
          }
-      } else if (path != ".") {
-         LocationEntry->setText(LocationEntry->text() + path);
+
+      } else if (path == "/" && m_path == "") {
+         m_path += path;
+
+      } else if (path != "/" && path != ".") {
+         m_path += path;
       }
    } else {
-      LocationEntry->setText(path);
-      arg = " path=\"" + path + "\"";
+      m_path = path;
+      arg = " path=\"" + m_path + "\"";
    }
+   LocationEntry->setText(m_path);
 
    QString q = ".bvfs_lsdir jobid=" + m_jobids + arg;
    if (m_console->dir_cmd(q, results)) {
       nb = results.size();
       FileList->setRowCount(nb);
       foreach (QString resultline, results) {
+         int col=0;
          //PathId, FilenameId, fileid, jobid, lstat, path
-         Pmsg1(0, "dir=%s\n", resultline.toLocal8Bit().constData());
          fieldlist = resultline.split("\t");
          TableItemFormatter item(*FileList, row++);
-         item.setTextFld(0, resultline); // keep info
-         item.setFileType(1, QString("folder")); // folder or file
-         item.setTextFld(2, fieldlist.at(5)); // path
+         item.setFileType(col++, QString("folder")); // folder or file
+         item.setTextFld(col++, fieldlist.at(5)); // path
          decode_stat(fieldlist.at(4).toLocal8Bit().data(), 
                      &statp, &LinkFI);
-         item.setDateFld(4, statp.st_mtime); // date
-         if (fieldlist.at(5) == ".") {
-            m_pathid = fieldlist.at(0).toLongLong(); // keep current pathid
-         }
+         item.setDateFld(col++, statp.st_mtime); // date
+         item.widget(1)->setData(Qt::UserRole, fieldlist.join("\t")); // keep info
       }
    }
 
@@ -193,16 +198,16 @@ void bRestore::displayFiles(int64_t pathid, QString path)
    if (m_console->dir_cmd(q, results)) {
       FileList->setRowCount(results.size() + nb);
       foreach (QString resultline, results) {
+         int col=1;            // skip icon
          //PathId, FilenameId, fileid, jobid, lstat, name
-         Pmsg1(0, "file=%s\n", resultline.toLocal8Bit().constData());
          fieldlist = resultline.split("\t");
          TableItemFormatter item(*FileList, row++);
-         item.setTextFld(0, resultline); // keep info
-         item.setTextFld(2, fieldlist.at(5)); // path
+         item.setTextFld(col++, fieldlist.at(5)); // name
          decode_stat(fieldlist.at(4).toLocal8Bit().data(), 
                      &statp, &LinkFI);
-         item.setBytesFld(3, QString().setNum(statp.st_size));
-         item.setDateFld(4, statp.st_mtime);
+         item.setBytesFld(col++, QString().setNum(statp.st_size));
+         item.setDateFld(col++, statp.st_mtime);
+         item.widget(1)->setData(Qt::UserRole, fieldlist.join("\t")); // keep info
       }
    }
    FileList->verticalHeader()->hide();
@@ -221,7 +226,8 @@ void bRestore::PgSeltreeWidgetClicked()
    }
 }
 
-void bRestore::displayFileVersion(QString pathid, QString fnid, QString client)
+void bRestore::displayFileVersion(QString pathid, QString fnid, 
+                                  QString client, QString filename)
 {
    int row=0;
    struct stat statp;
@@ -240,17 +246,15 @@ void bRestore::displayFileVersion(QString pathid, QString fnid, QString client)
 
    QStringList results;
    QStringList fieldlist;
-
+   QString tmp;
    if (m_console->dir_cmd(q, results)) {
       FileRevisions->setRowCount(results.size());
       foreach (QString resultline, results) {
          int col=0;
          // 0        1          2        3      4    5      6        7
          //PathId, FilenameId, fileid, jobid, lstat, Md5, VolName, Inchanger
-         Pmsg1(0, "dir=%s\n", resultline.toLocal8Bit().constData());
          fieldlist = resultline.split("\t");
          TableItemFormatter item(*FileRevisions, row++);
-         item.setTextFld(col++, resultline); // keep info
          item.setInChanger(col++, fieldlist.at(7));    // inchanger
          item.setTextFld(col++, fieldlist.at(6)); // Volume
          item.setNumericFld(col++, fieldlist.at(3)); // JobId
@@ -259,6 +263,13 @@ void bRestore::displayFileVersion(QString pathid, QString fnid, QString client)
          item.setBytesFld(col++, QString().setNum(statp.st_size)); // size
          item.setDateFld(col++, statp.st_mtime); // date
          item.setTextFld(col++, fieldlist.at(5)); // chksum
+
+         // Adjust the fieldlist for drag&drop
+         fieldlist.removeLast(); // inchanger
+         fieldlist.removeLast(); // volname
+         fieldlist.removeLast(); // md5
+         fieldlist << m_path + filename;
+         item.widget(1)->setData(Qt::UserRole, fieldlist.join("\t")); // keep info
       }
    }
    FileRevisions->verticalHeader()->hide();
@@ -270,12 +281,12 @@ void bRestore::displayFileVersion(QString pathid, QString fnid, QString client)
 void bRestore::showInfoForFile(QTableWidgetItem *widget)
 {
    m_current = widget;
-   QTableWidgetItem *first = FileList->item(widget->row(), 0);
-   QStringList lst = first->text().split("\t");
+   QTableWidgetItem *first = FileList->item(widget->row(), 1);
+   QStringList lst = first->data(Qt::UserRole).toString().split("\t");
    if (lst.at(1) == "0") {      // no filenameid, should be a path
       displayFiles(lst.at(0).toLongLong(), lst.at(5));
    } else {
-      displayFileVersion(lst.at(0), lst.at(1), m_client);
+      displayFileVersion(lst.at(0), lst.at(1), m_client, lst.at(5));
    }
 }
 
@@ -295,7 +306,6 @@ void bRestore::clearVersions(QTableWidgetItem *item)
 
 void bRestore::setupPage()
 {
-   Pmsg0(000, "Setup page\n");
    ClientList->addItem("Client list");
    ClientList->addItems(m_console->client_list);
    connect(ClientList, SIGNAL(currentIndexChanged(int)), this, SLOT(setClient()));
@@ -307,9 +317,6 @@ void bRestore::setupPage()
    connect(LocationBp, SIGNAL(pressed()), this, SLOT(applyLocation()));
    connect(MergeChk, SIGNAL(clicked()), this, SLOT(setJob()));
 
-   FileList->setColumnHidden(0, true);
-   FileRevisions->setColumnHidden(0, true);
-   RestoreList->setColumnHidden(0, true);
    m_populated = true;
 }
 
@@ -326,8 +333,13 @@ void bRestoreTable::mousePressEvent(QMouseEvent *event)
    }
 }
 
+// This event permits to send set custom data on drag&drop
+// Don't forget to call original class if we are not interested
 void bRestoreTable::mouseMoveEvent(QMouseEvent *event)
 {
+   int lastrow=-1;
+
+   // Look just for drag&drop
    if (!(event->buttons() & Qt::LeftButton)) {
       QTableWidget::mouseMoveEvent(event);
       return;
@@ -337,46 +349,77 @@ void bRestoreTable::mouseMoveEvent(QMouseEvent *event)
    {
       QTableWidget::mouseMoveEvent(event);
       return;
-   }  
-   
+   }
+
+   QList<QTableWidgetItem *> lst = selectedItems();
+   qDebug() << this << " selectedItems: " << lst;
+   if (lst.isEmpty()) {
+      return;
+   }
+
    QDrag *drag = new QDrag(this);
    QMimeData *mimeData = new QMimeData;
-   
-   mimeData->setText(QString("test"));
-   qDebug() << "1 ========" << mimeData->formats() << "========";
+   for (int i=0; i < lst.size(); i++) {
+      if (lastrow != lst[i]->row()) {
+         lastrow = lst[i]->row();
+         QTableWidgetItem *it = item(lastrow, 1);
+         mimeData->setText(it->data(Qt::UserRole).toString());
+         break;                  // at this time, we do it one by one
+      }
+   }
    drag->setMimeData(mimeData);
-   drag->exec(Qt::CopyAction | Qt::MoveAction);
+   drag->exec();
 }
 
+// This event is called when the drag item enters in the destination area
 void bRestoreTable::dragEnterEvent(QDragEnterEvent *event)
 {
-   Pmsg0(0, "dragEnterEvent\n");
-   qDebug() << "2 ========" << event->mimeData()->formats() << "========";
-
+   if (event->source() == this) {
+      event->ignore();
+      return;
+   }
    if (event->mimeData()->hasText()) {
-      qDebug() << event->mimeData()->text();
       event->acceptProposedAction();
    } else {
       event->ignore();
    }
 }
 
-// void bRestoreTable::dragMoveEvent(QDragMoveEvent *event)
-// {
-//    Pmsg0(0, "dragMoveEvent\n");
-//    if (event->mimeData()->hasText()) {
-//       event->acceptProposedAction();
-//    } else {
-//       event->ignore();
-//    }
-// }
-// 
+// It should not be essential to redefine this event, but it
+// doesn't work if not defined
+void bRestoreTable::dragMoveEvent(QDragMoveEvent *event)
+{
+   if (event->mimeData()->hasText()) {
+      event->acceptProposedAction();
+   } else {
+      event->ignore();
+   }
+}
+
 void bRestoreTable::dropEvent(QDropEvent *event)
 {
-   Pmsg0(0, "dropEvent\n");
-   qDebug() << "3 ========" << event->mimeData()->formats() << "========";
+   int col=1;
+   struct stat statp;
+   int32_t LinkFI;
    if (event->mimeData()->hasText()) {
-      qDebug() << event->mimeData()->text();
+      TableItemFormatter item(*this, rowCount());
+      setRowCount(rowCount() + 1);
+      QStringList fields = event->mimeData()->text().split("\t");
+      if (fields.size() != 6) {
+         event->ignore();
+         return;
+      }
+      if (fields.at(1) == "0") {
+         item.setFileType(0, "folder");
+      }
+      item.setTextFld(col++, fields.at(5)); // filename
+      decode_stat(fields.at(4).toLocal8Bit().data(), 
+                  &statp, &LinkFI);
+      item.setBytesFld(col++, QString().setNum(statp.st_size)); // size
+      item.setDateFld(col++, statp.st_mtime); // date
+      item.setNumericFld(col++, fields.at(3)); // jobid
+      item.setNumericFld(col++, fields.at(2)); // fileid
+      item.widget(1)->setData(Qt::UserRole, event->mimeData()->text());
       event->acceptProposedAction();
    } else {
       event->ignore();

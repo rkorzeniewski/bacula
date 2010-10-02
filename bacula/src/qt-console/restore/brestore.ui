@@ -57,6 +57,9 @@
           <property name="dragEnabled">
            <bool>true</bool>
           </property>
+          <property name="dragDropMode">
+           <enum>QAbstractItemView::DragOnly</enum>
+          </property>
           <property name="alternatingRowColors">
            <bool>true</bool>
           </property>
@@ -72,11 +75,6 @@
           <attribute name="verticalHeaderVisible">
            <bool>false</bool>
           </attribute>
-          <column>
-           <property name="text">
-            <string>Data</string>
-           </property>
-          </column>
           <column>
            <property name="text">
             <string>Type</string>
@@ -129,6 +127,9 @@
           <property name="dragEnabled">
            <bool>true</bool>
           </property>
+          <property name="dragDropMode">
+           <enum>QAbstractItemView::DragOnly</enum>
+          </property>
           <property name="alternatingRowColors">
            <bool>true</bool>
           </property>
@@ -141,11 +142,6 @@
           <property name="showGrid">
            <bool>false</bool>
           </property>
-          <column>
-           <property name="text">
-            <string>Data</string>
-           </property>
-          </column>
           <column>
            <property name="text">
             <string>InChanger</string>
@@ -221,21 +217,21 @@ p, li { white-space: pre-wrap; }
           </spacer>
          </item>
          <item>
-          <widget class="QPushButton" name="pushButton">
+          <widget class="QPushButton" name="ClearBp">
            <property name="text">
             <string>Clear</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="pushButton_2">
+          <widget class="QPushButton" name="EstimateBp">
            <property name="text">
             <string>Estimate</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="pushButton_3">
+          <widget class="QPushButton" name="RestoreBp">
            <property name="text">
             <string>Restore</string>
            </property>
@@ -248,17 +244,24 @@ p, li { white-space: pre-wrap; }
          <property name="acceptDrops">
           <bool>true</bool>
          </property>
+         <property name="dragEnabled">
+          <bool>false</bool>
+         </property>
          <property name="dragDropMode">
           <enum>QAbstractItemView::DropOnly</enum>
+         </property>
+         <property name="defaultDropAction">
+          <enum>Qt::MoveAction</enum>
+         </property>
+         <property name="selectionMode">
+          <enum>QAbstractItemView::MultiSelection</enum>
+         </property>
+         <property name="selectionBehavior">
+          <enum>QAbstractItemView::SelectRows</enum>
          </property>
          <attribute name="verticalHeaderVisible">
           <bool>false</bool>
          </attribute>
-         <column>
-          <property name="text">
-           <string>Data</string>
-          </property>
-         </column>
          <column>
           <property name="text">
            <string>Type</string>
