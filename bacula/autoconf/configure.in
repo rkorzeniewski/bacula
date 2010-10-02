@@ -2591,7 +2591,7 @@ if test x$support_acl = xyes -o x$support_acl = xauto; then
    dnl Check for acltotext and acl_totext (Solaris)
    dnl
    if test $have_acl = no -a \
-           x${HAVE_SUN_OS}_TRUE = x; then
+           x${HAVE_SUN_OS_TRUE} = x; then
       AC_CHECK_LIB(sec, acltotext,
          [
 	     have_acl=yes
@@ -2610,7 +2610,7 @@ if test x$support_acl = xyes -o x$support_acl = xauto; then
    dnl Check for acl_get and aclx_get (AIX)
    dnl
    if test $have_acl = no -a \
-           x${HAVE_AIX_OS}_TRUE = x; then
+           x${HAVE_AIX_OS_TRUE} = x; then
       AC_CHECK_FUNC(acl_get,
          [
 	     have_acl=yes
@@ -2659,9 +2659,9 @@ if test x$support_xattr = xyes -o x$support_xattr = xauto; then
    dnl First check for *BSD support
    dnl When running on a BSD variant
    dnl
-   if test x${HAVE_FREEBSD_OS}_TRUE = x -o \
-           x${HAVE_NETBSD_OS}_TRUE = x -o \
-           x${HAVE_OPENBSD_OS}_TRUE = x; then
+   if test x${HAVE_FREEBSD_OS_TRUE} = x -o \
+           x${HAVE_NETBSD_OS_TRUE} = x -o \
+           x${HAVE_OPENBSD_OS_TRUE} = x; then
       AC_CHECK_HEADER(sys/extattr.h, [ AC_DEFINE(HAVE_SYS_EXTATTR_H,1,[Defines if your system have the sys/extattr.h header file])] , )
       AC_CHECK_HEADER(libutil.h, [ AC_DEFINE(HAVE_LIBUTIL_H,1,[Defines if your system have the libutil.h header file])] , )
       AC_CHECK_FUNCS(extattr_get_link extattr_set_link extattr_list_link,
@@ -2714,7 +2714,7 @@ if test x$support_xattr = xyes -o x$support_xattr = xauto; then
    dnl When running on AIX
    dnl
    if test $have_xattr = no -a \
-           x${HAVE_AIX_OS}_TRUE = x; then
+           x${HAVE_AIX_OS_TRUE} = x; then
       AC_CHECK_HEADER(sys/ea.h, [ AC_DEFINE(HAVE_SYS_EA_H,1,[Defines if your system have the sys/ea.h header file])] , )
       AC_CHECK_FUNCS(llistea lgetea lsetea,
 	 [
@@ -2742,7 +2742,7 @@ if test x$support_xattr = xyes -o x$support_xattr = xauto; then
    dnl when running on a TRU64 OS.
    dnl
    if test $have_xattr = no -a \
-           x${HAVE_OSF1_OS}_TRUE = x; then
+           x${HAVE_OSF1_OS_TRUE} = x; then
       AC_CHECK_HEADER(sys/proplist.h, [ AC_DEFINE(HAVE_SYS_PROPLIST_H,1,[Defines if your system have the sys/proplist.h header file])] , )
       AC_CHECK_FUNCS(getproplist get_proplist_entry sizeof_proplist_entry add_proplist_entry setproplist,
 	 [
@@ -2761,7 +2761,7 @@ if test x$support_xattr = xyes -o x$support_xattr = xauto; then
    dnl when running on a Solaris.
    dnl
    if test $have_xattr = no -a \
-           x${HAVE_SUN_OS}_TRUE = x; then
+           x${HAVE_SUN_OS_TRUE} = x; then
       AC_CHECK_HEADER(sys/attr.h, [ AC_DEFINE(HAVE_SYS_ATTR_H,1,[Defines if your system have the sys/attr.h header file])] , )
       AC_CHECK_HEADER(sys/nvpair.h, [ AC_DEFINE(HAVE_SYS_NVPAIR_H,1,[Defines if your system have the sys/nvpair.h header file])] , )
       AC_CHECK_HEADER(attr.h, [ AC_DEFINE(HAVE_ATTR_H,1,[Defines if your system have the attr.h header file])] , )
