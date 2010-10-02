@@ -189,6 +189,7 @@ void bRestore::displayFiles(int64_t pathid, QString path)
          decode_stat(fieldlist.at(4).toLocal8Bit().data(), 
                      &statp, &LinkFI);
          item.setDateFld(col++, statp.st_mtime); // date
+         fieldlist.replace(3, m_jobids);      // use current jobids selection
          item.widget(1)->setData(Qt::UserRole, fieldlist.join("\t")); // keep info
       }
    }
@@ -304,6 +305,12 @@ void bRestore::clearVersions(QTableWidgetItem *item)
    m_current = item ;
 }
 
+void bRestore::clearRestoreList()
+{
+   RestoreList->clearContents();
+   RestoreList->setRowCount(0);
+}
+
 void bRestore::setupPage()
 {
    ClientList->addItem("Client list");
@@ -316,7 +323,7 @@ void bRestore::setupPage()
            this, SLOT(showInfoForFile(QTableWidgetItem *)));
    connect(LocationBp, SIGNAL(pressed()), this, SLOT(applyLocation()));
    connect(MergeChk, SIGNAL(clicked()), this, SLOT(setJob()));
-
+   connect(ClearBp, SIGNAL(clicked()), this, SLOT(clearRestoreList()));
    m_populated = true;
 }
 
