@@ -165,6 +165,7 @@ void Console::populateLists(bool /*forcenew*/)
 void Console::populateLists(int conn)
 {
    job_list.clear();
+   restore_list.clear();
    client_list.clear();
    fileset_list.clear();
    messages_list.clear();
@@ -175,6 +176,7 @@ void Console::populateLists(int conn)
    volstatus_list.clear();
    mediatype_list.clear();
    dir_cmd(conn, ".jobs", job_list);
+   dir_cmd(conn, ".jobs type=R", restore_list);
    dir_cmd(conn, ".clients", client_list);
    dir_cmd(conn, ".filesets", fileset_list);  
    dir_cmd(conn, ".msgs", messages_list);
