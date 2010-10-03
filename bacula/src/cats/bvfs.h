@@ -150,6 +150,13 @@ public:
       offset+=limit;
    }
 
+   /* Compute restore list */
+   bool compute_restore_list(char *fileid, char *dirid, char *hardlink, 
+                             char *output_table);
+   
+   /* Drop previous restore list */
+   bool drop_restore_list(char *output_table);
+
    /* for internal use */
    int _handle_path(void *, int, char **);
    

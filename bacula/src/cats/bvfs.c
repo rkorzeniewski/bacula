@@ -327,7 +327,8 @@ static void update_path_hierarchy_cache(JCR *jcr,
       }
       free(result);
    }
-   
+
+   /* TODO: Add Path for BaseJobs */
    Mmsg(mdb->cmd, 
   "INSERT INTO PathVisibility (PathId, JobId)  "
    "SELECT a.PathId,%s "
@@ -705,4 +706,200 @@ bool Bvfs::ls_files()
    db_unlock(db);
 
    return nb_record == limit;
+}
+
+
+/* 
+ * Return next Id from comma separated list   
+ *
+ * Returns:
+ *   1 if next Id returned
+ *   0 if no more Ids are in list
+ *  -1 there is an error
+ * TODO: merge with get_next_jobid_from_list() and get_next_dbid_from_list()
+ */
+static int get_next_id_from_list(char **p, int64_t *Id)
+{
+   const int maxlen = 30;
+   char id[maxlen+1];
+   char *q = *p;
+
+   id[0] = 0;
+   for (int i=0; i<maxlen; i++) {
+      if (*q == 0) {
+         break;
+      } else if (*q == ',') {
+         q++;
+         break;
+      }
+      id[i] = *q++;
+      id[i+1] = 0;
+   }
+   if (id[0] == 0) {
+      return 0;
+   } else if (!is_a_number(id)) {
+      return -1;                      /* error */
+   }
+   *p = q;
+   *Id = str_to_int64(id);
+   return 1;
+}
+
+static int get_path_handler(void *ctx, int fields, char **row)
+{
+   POOL_MEM *buf = (POOL_MEM *) ctx;
+   pm_strcpy(*buf, row[0]);
+   return 0;
+}
+
+static bool check_temp(char *output_table)
+{
+   if (output_table[0] == 'b' &&
+       output_table[1] == '2' &&
+       is_an_integer(output_table + 2))
+   {
+      return true;
+   }
+   return false;
+}
+
+bool Bvfs::drop_restore_list(char *output_table)
+{
+   POOL_MEM query;
+   if (check_temp(output_table)) {
+      Mmsg(query, "DROP TABLE %s", output_table);
+      db_sql_query(db, query.c_str(), NULL, NULL);
+      return true;
+   }
+   return false;
+}
+
+bool Bvfs::compute_restore_list(char *fileid, char *dirid, char *hardlink, 
+                                char *output_table)
+{
+   POOL_MEM query;
+   POOL_MEM tmp, tmp2;
+   int64_t id, jobid;
+   bool init=false;
+   bool ret=false;
+   /* check args */
+   if ((*fileid   && !is_a_number_list(fileid))  ||
+       (*dirid    && !is_a_number_list(dirid))   ||
+       (*hardlink && !is_a_number_list(hardlink))||
+       (!*hardlink && !*fileid && !*dirid && !*hardlink))
+   {
+      return false;
+   }
+   if (!check_temp(output_table)) {
+      return false;
+   }
+
+   Mmsg(query, "CREATE TEMPORARY TABLE btemp%s AS ", output_table);
+
+   if (*fileid) {
+      init=true;
+      Mmsg(tmp, "(SELECT JobId, FileIndex, FilenameId, PathId, FileId "
+                   "FROM File WHERE FileId IN (%s))", fileid);
+      pm_strcat(query, tmp.c_str());
+   }
+
+   while (get_next_id_from_list(&dirid, &id) == 1) {
+      Mmsg(tmp, "SELECT Path FROM Path WHERE PathId=%lld", id);
+      
+      if (!db_sql_query(db, tmp.c_str(), get_path_handler, (void *)&tmp2)) {
+         /* print error */
+         return false;
+      }
+      if (!strcmp(tmp2.c_str(), "")) { /* path not found */
+         Dmsg3(0, "Path not found %lld q=%s s=%s\n",
+               id, tmp.c_str(), tmp2.c_str());
+         break;
+      }
+      /* escape % and _ for LIKE search */
+      tmp.check_size((strlen(tmp2.c_str())+1) * 2);
+      char *p = tmp.c_str();
+      for (char *s = tmp2.c_str(); *s ; s++) {
+         if (*s == '%' || *s == '_' || *s == '\\') {
+            *p = '\\'; 
+            p++;
+         }
+         *p = *s; 
+         p++;
+      }
+      *p = '\0';
+      tmp.strcat("%");
+
+      size_t len = strlen(tmp.c_str());
+      tmp2.check_size((len+1) * 2);
+      db_escape_string(jcr, db, tmp2.c_str(), tmp.c_str(), len);
+
+      if (init) {
+         query.strcat(" UNION ");
+      }
+      Mmsg(tmp, "(SELECT File.JobId, File.FileIndex, File.FilenameId, "
+                        "File.PathId, FileId "
+                   "FROM Path JOIN File USING (PathId) "
+                  "WHERE Path.Path LIKE '%s' AND File.JobId IN (%s)) ", 
+           tmp2.c_str(), jobids); 
+      query.strcat(tmp.c_str());
+      init = true;
+   }
+
+   /* expect jobid,fileindex */
+   int64_t prev_jobid=0;
+   while (get_next_id_from_list(&hardlink, &jobid) == 1) {
+      if (get_next_id_from_list(&hardlink, &id) != 1) {
+         return false;
+      }
+      if (jobid != prev_jobid) { /* new job */
+         if (prev_jobid == 0) {  /* first jobid */
+            if (init) {
+               query.strcat(" UNION ");
+            }
+         } else {               /* end last job, start new one */
+            tmp.strcat(")) UNION ");
+            query.strcat(tmp.c_str());
+         }
+         Mmsg(tmp, "(SELECT JobId, FileIndex, FilenameId, PathId, FileId "
+                       "FROM File WHERE JobId = %lld " 
+                        "AND FileIndex IN (%lld", jobid, id);
+         prev_jobid = jobid;
+
+      } else {                  /* same job, add new findex */
+         Mmsg(tmp2, ", %lld", id);
+         tmp.strcat(tmp2.c_str());
+      }
+   }
+
+   if (prev_jobid != 0) {       /* end last job */
+      tmp.strcat(")) ");
+      query.strcat(tmp.c_str());
+      init = true;
+   }
+
+   Dmsg1(0, "q=%s\n", query.c_str());
+
+   if (!db_sql_query(db, query.c_str(), NULL, NULL)) {
+      goto bail_out;
+   }
+
+   Mmsg(query, "CREATE TABLE %s AS ( "
+        "SELECT JobId, FileIndex, FileId "
+          "FROM ( "
+     "SELECT DISTINCT ON (PathId, FilenameId) JobId, FileIndex, FileId "
+       "FROM btemp%s "
+      "ORDER BY PathId, FilenameId, JobId DESC "
+          ") AS T "
+          "WHERE FileIndex > 0)", output_table, output_table);
+
+   Dmsg1(0, "q=%s\n", query.c_str());
+   if (!db_sql_query(db, query.c_str(), NULL, NULL)) {
+      goto bail_out;
+   }
+   ret = true;
+
+bail_out:
+   Mmsg(query, "DROP TABLE btemp%s", output_table);
+   db_sql_query(db, query.c_str(), NULL, NULL);
+   return ret;
 }

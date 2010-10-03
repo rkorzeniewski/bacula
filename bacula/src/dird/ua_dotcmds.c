@@ -75,7 +75,8 @@ static bool dot_bvfs_lsfiles(UAContext *ua, const char *cmd);
 static bool dot_bvfs_update(UAContext *ua, const char *cmd);
 static bool dot_bvfs_get_jobids(UAContext *ua, const char *cmd);
 static bool dot_bvfs_versions(UAContext *ua, const char *cmd);
-static bool dot_bvfs_get_path(UAContext *ua, const char *cmd);
+static bool dot_bvfs_restore(UAContext *ua, const char *cmd);
+static bool dot_bvfs_cleanup(UAContext *ua, const char *cmd);
 
 static bool api_cmd(UAContext *ua, const char *cmd);
 static bool sql_cmd(UAContext *ua, const char *cmd);
@@ -113,7 +114,8 @@ static struct cmdstruct commands[] = { /* help */  /* can be used in runscript *
  { NT_(".bvfs_update"), dot_bvfs_update,         NULL,       true},
  { NT_(".bvfs_get_jobids"), dot_bvfs_get_jobids, NULL,       true},
  { NT_(".bvfs_versions"), dot_bvfs_versions,     NULL,       true},
- { NT_(".bvfs_get_path"), dot_bvfs_get_path,     NULL,       true},
+ { NT_(".bvfs_restore"), dot_bvfs_restore,       NULL,       true},
+ { NT_(".bvfs_cleanup"), dot_bvfs_cleanup,       NULL,       true},
  { NT_(".types"),      typescmd,                 NULL,       false}
              };
 #define comsize ((int)(sizeof(commands)/sizeof(struct cmdstruct)))
@@ -318,29 +320,54 @@ static bool bvfs_parse_arg(UAContext *ua,
    return true;
 }
 
-/* .bvfs_get_path pathid=10
- *   -> /etc/
+/* .bvfs_cleanup path=b2XXXXX
  */
-static bool dot_bvfs_get_path(UAContext *ua, const char *cmd)
+static bool dot_bvfs_cleanup(UAContext *ua, const char *cmd)
 {
-   char buf[128];
-   int i = find_arg_with_value(ua, NT_("pathid"));
-   if (!open_client_db(ua)) {
-      return false;
+   int i;
+   if ((i = find_arg_with_value(ua, "path")) >= 0) {
+      open_client_db(ua);
+      Bvfs fs(ua->jcr, ua->db);
+      fs.drop_restore_list(ua->argv[i]);
    }
-   if (i >= 0) {
-      if (is_a_number(ua->argv[i])) {
-         bsnprintf(buf, sizeof(buf), "SELECT Path FROM Path WHERE PathId=%lld", 
-                   str_to_int64(ua->argv[i]));
+   return true;
+}
 
-         if (!db_sql_query(ua->db, buf, one_handler, (void *)ua))
-         {
-            ua->error_msg("Can't find pathid\n");
-            /* print error */
-         }
-      }
+/* .bvfs_restore path=b2XXXXX jobid=1,2 fileid=1,2 dirid=1,2 hardlink=1,2,3,4
+ */
+static bool dot_bvfs_restore(UAContext *ua, const char *cmd)
+{
+   DBId_t pathid=0;
+   int limit=2000, offset=0, i;
+   char *path=NULL, *jobid=NULL;
+   char *empty = (char *)"";
+   char *fileid, *dirid, *hardlink, *id;
+   id = fileid = dirid = hardlink = empty;
+
+   if (!bvfs_parse_arg(ua, &pathid, &path, &jobid,
+                       &limit, &offset))
+   {
+      ua->error_msg("Can't find jobid, pathid or path argument\n");
+      return true;              /* not enough param */
+   }
+
+   Bvfs fs(ua->jcr, ua->db);
+   fs.set_jobids(jobid);
+
+   if ((i = find_arg_with_value(ua, "fileid")) >= 0) {
+      fileid = ua->argv[i];
+   }
+   if ((i = find_arg_with_value(ua, "dirid")) >= 0) {
+      dirid = ua->argv[i];
+   }
+   if ((i = find_arg_with_value(ua, "hardlink")) >= 0) {
+      hardlink = ua->argv[i];
+   }
+
+   if (fs.compute_restore_list(fileid, dirid, hardlink, path)) {
+      ua->send_msg("OK\n");
    } else {
-      ua->error_msg("Can't find pathid=\n");
+      ua->error_msg("Can't create restore list\n");
    }
    return true;
 }
