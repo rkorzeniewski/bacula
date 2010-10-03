@@ -75,11 +75,13 @@ static bool dot_bvfs_lsfiles(UAContext *ua, const char *cmd);
 static bool dot_bvfs_update(UAContext *ua, const char *cmd);
 static bool dot_bvfs_get_jobids(UAContext *ua, const char *cmd);
 static bool dot_bvfs_versions(UAContext *ua, const char *cmd);
+static bool dot_bvfs_get_path(UAContext *ua, const char *cmd);
 
 static bool api_cmd(UAContext *ua, const char *cmd);
 static bool sql_cmd(UAContext *ua, const char *cmd);
 static bool dot_quit_cmd(UAContext *ua, const char *cmd);
 static bool dot_help_cmd(UAContext *ua, const char *cmd);
+static int one_handler(void *ctx, int num_field, char **row);
 
 struct cmdstruct { const char *key; bool (*func)(UAContext *ua, const char *cmd); const char *help;const bool use_in_rs;};
 static struct cmdstruct commands[] = { /* help */  /* can be used in runscript */
@@ -111,7 +113,8 @@ static struct cmdstruct commands[] = { /* help */  /* can be used in runscript *
  { NT_(".bvfs_update"), dot_bvfs_update,         NULL,       true},
  { NT_(".bvfs_get_jobids"), dot_bvfs_get_jobids, NULL,       true},
  { NT_(".bvfs_versions"), dot_bvfs_versions,     NULL,       true},
- { NT_(".types"),      typescmd,         NULL,       false}
+ { NT_(".bvfs_get_path"), dot_bvfs_get_path,     NULL,       true},
+ { NT_(".types"),      typescmd,                 NULL,       false}
              };
 #define comsize ((int)(sizeof(commands)/sizeof(struct cmdstruct)))
 
@@ -312,6 +315,33 @@ static bool bvfs_parse_arg(UAContext *ua,
       return false;
    }
 
+   return true;
+}
+
+/* .bvfs_get_path pathid=10
+ *   -> /etc/
+ */
+static bool dot_bvfs_get_path(UAContext *ua, const char *cmd)
+{
+   char buf[128];
+   int i = find_arg_with_value(ua, NT_("pathid"));
+   if (!open_client_db(ua)) {
+      return false;
+   }
+   if (i >= 0) {
+      if (is_a_number(ua->argv[i])) {
+         bsnprintf(buf, sizeof(buf), "SELECT Path FROM Path WHERE PathId=%lld", 
+                   str_to_int64(ua->argv[i]));
+
+         if (!db_sql_query(ua->db, buf, one_handler, (void *)ua))
+         {
+            ua->error_msg("Can't find pathid\n");
+            /* print error */
+         }
+      }
+   } else {
+      ua->error_msg("Can't find pathid=\n");
+   }
    return true;
 }
 
