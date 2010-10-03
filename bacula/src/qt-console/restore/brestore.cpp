@@ -174,8 +174,10 @@ void bRestore::displayFiles(int64_t pathid, QString path)
       arg = " path=\"" + m_path + "\"";
    }
    LocationEntry->setText(m_path);
-
-   QString q = ".bvfs_lsdir jobid=" + m_jobids + arg;
+   QString offset = QString().setNum(Offset1Spin->value());
+   QString limit=QString().setNum(Offset2Spin->value() - Offset1Spin->value());
+   QString q = ".bvfs_lsdir jobid=" + m_jobids + arg 
+      + " limit=" + limit + " offset=" + offset ;
    if (m_console->dir_cmd(q, results)) {
       nb = results.size();
       FileList->setRowCount(nb);
@@ -188,6 +190,7 @@ void bRestore::displayFiles(int64_t pathid, QString path)
          item.setTextFld(col++, fieldlist.at(5)); // path
          decode_stat(fieldlist.at(4).toLocal8Bit().data(), 
                      &statp, &LinkFI);
+         item.setBytesFld(col++, QString().setNum(statp.st_size));
          item.setDateFld(col++, statp.st_mtime); // date
          fieldlist.replace(3, m_jobids);      // use current jobids selection
          item.widget(1)->setData(Qt::UserRole, fieldlist.join("\t")); // keep info
@@ -195,7 +198,8 @@ void bRestore::displayFiles(int64_t pathid, QString path)
    }
 
    results.clear();
-   q = ".bvfs_lsfiles jobid=" + m_jobids + arg;
+   q = ".bvfs_lsfiles jobid=" + m_jobids + arg
+      + " limit=" + limit + " offset=" + offset ;
    if (m_console->dir_cmd(q, results)) {
       FileList->setRowCount(results.size() + nb);
       foreach (QString resultline, results) {
@@ -483,6 +487,7 @@ void bRunRestore::useRegexp()
 
 bRunRestore::bRunRestore(bRestore *parent)
 {
+   brestore = parent;
    setupUi(this);
    ClientCb->addItems(parent->console()->client_list);
    int i = ClientCb->findText(parent->m_client);
@@ -495,8 +500,108 @@ bRunRestore::bRunRestore(bRestore *parent)
    StorageCb->addItems(parent->console()->storage_list);
    connect(UseFileRelocationChk, SIGNAL(clicked()), this, SLOT(UFRcb()));
    connect(UseRegexpChk, SIGNAL(clicked()), this, SLOT(useRegexp()));
+   connect(ActionBp, SIGNAL(accepted()), this, SLOT(computeRestore()));
    struct job_defaults jd;
    jd.job_name = parent->console()->restore_list[0];
-   parent->console()->get_job_defaults(jd);
+   brestore->console()->get_job_defaults(jd);
    WhereEntry->setText(jd.where);
+   computeVolumeList();
+}
+
+void bRestore::get_info_from_selection(QStringList &fileids, 
+                                       QStringList &jobids,
+                                       QStringList &dirids,
+                                       QStringList &findexes)
+{
+   struct stat statp;
+   int32_t LinkFI;
+   for (int i=0; i < RestoreList->rowCount(); i++) {
+      QTableWidgetItem *item = RestoreList->item(i, 1);
+      QString data = item->data(Qt::UserRole).toString();
+      QStringList lst = data.split("\t");
+      if (lst.at(1) != "0") {   // skip path
+         fileids << lst.at(2);
+         jobids << lst.at(3);
+         decode_stat(lst.at(4).toLocal8Bit().data(), 
+                     &statp, &LinkFI);
+         if (LinkFI) {
+            findexes << lst.at(3) + "," + QString().setNum(LinkFI);
+         }
+      } else {
+         dirids << lst.at(0);
+         jobids << lst.at(3).split(","); // Can have multiple jobids
+      }
+   }
+   fileids.removeDuplicates();
+   jobids.removeDuplicates();
+   dirids.removeDuplicates();
+   findexes.removeDuplicates();
+   qDebug() << fileids << jobids << dirids << findexes;
+}
+
+void bRunRestore::computeVolumeList()
+{
+   brestore->get_info_from_selection(m_fileids, m_jobids, m_dirids, m_findexes);
+   if (m_fileids.size() == 0) {
+      return;
+   }
+
+   Freeze frz_lst(*TableMedia); /* disable updating*/
+   QString q =
+" SELECT DISTINCT VolumeName, Enabled, InChanger "
+ " FROM File, "
+  " ( " // -- Get all media from this job 
+     " SELECT MIN(FirstIndex) AS FirstIndex, MAX(LastIndex) AS LastIndex, "
+            " VolumeName, Enabled, Inchanger "
+       " FROM JobMedia JOIN Media USING (MediaId) "
+      " WHERE JobId IN (" + m_jobids.join(",") + ") "
+      " GROUP BY VolumeName,Enabled,InChanger "
+   " ) AS allmedia "
+  " WHERE File.FileId IN (" + m_fileids.join(",") + ") "
+   " AND File.FileIndex >= allmedia.FirstIndex "
+   " AND File.FileIndex <= allmedia.LastIndex ";
+   int row=0;
+   QStringList results;
+   if (brestore->console()->sql_cmd(q, results)) {
+      QStringList fieldlist;
+      TableMedia->setRowCount(results.size());
+      /* Iterate through the record returned from the query */
+      foreach (QString resultline, results) {
+         // 0        1          2 
+         //volname, enabled, inchanger
+         fieldlist = resultline.split("\t");
+         int col=0;
+         TableItemFormatter item(*TableMedia, row++);
+         item.setInChanger(col++, fieldlist.at(2));    // inchanger
+         item.setTextFld(col++, fieldlist.at(0)); // Volume
+      }
+   }
+   TableMedia->verticalHeader()->hide();
+   TableMedia->resizeColumnsToContents();
+   TableMedia->resizeRowsToContents();
+   TableMedia->setEditTriggers(QAbstractItemView::NoEditTriggers);
+}
+
+void bRunRestore::computeRestore()
+{
+   QString q = ".bvfs_restore path=b2123 jobid=" + m_jobids.join(",");
+   if (m_fileids.size() > 0) {
+      q += " fileid=" + m_fileids.join(",");
+   }
+   if (m_dirids.size() > 0) {
+      q += " dirid=" + m_dirids.join(",");
+   }
+   if (m_findexes.size() > 0) {
+      q += " hardlink=" + m_findexes.join(",");
+   }
+   qDebug() << q;
+
+   QStringList results;
+   if (brestore->console()->dir_cmd(q, results)) {
+      if (results.size() == 1 && results[0] == "OK") {
+         qDebug() << "Run restore!";
+         q = ".bvfs_cleanup path=b2123";
+         brestore->console()->dir_cmd(q, results);
+      }
+   }   
 }

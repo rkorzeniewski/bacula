@@ -143,6 +143,8 @@ public:
    void PgSeltreeWidgetClicked();
    QString m_client;
    QString m_jobids;
+   void get_info_from_selection(QStringList &fileids, QStringList &jobids,
+                                QStringList &dirids, QStringList &fileindexes);
 
 public slots:
    void setClient();
@@ -166,13 +168,19 @@ private:
 class bRunRestore : public QDialog, public Ui::bRunRestoreForm
 {
    Q_OBJECT 
+private:
+   bRestore *brestore;
+   QStringList m_fileids, m_jobids, m_dirids, m_findexes;
 
 public:
    bRunRestore(bRestore *parent);
    ~bRunRestore() {}
+   void computeVolumeList();
+
 public slots:
    void useRegexp();
    void UFRcb();
+   void computeRestore();
 };
 
 #endif /* _RESTORE_H_ */

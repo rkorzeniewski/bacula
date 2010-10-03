@@ -95,7 +95,24 @@
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_2">
           <item>
-           <widget class="QTableView" name="TableMedia"/>
+           <widget class="QTableWidget" name="TableMedia">
+            <property name="showGrid">
+             <bool>false</bool>
+            </property>
+            <property name="gridStyle">
+             <enum>Qt::NoPen</enum>
+            </property>
+            <column>
+             <property name="text">
+              <string>InChanger</string>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>Volume</string>
+             </property>
+            </column>
+           </widget>
           </item>
           <item>
            <widget class="QPushButton" name="pushButton">
@@ -284,7 +301,7 @@ regexp:</string>
     </widget>
    </item>
    <item>
-    <widget class="QDialogButtonBox" name="buttonBox">
+    <widget class="QDialogButtonBox" name="ActionBp">
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
      </property>
@@ -298,7 +315,7 @@ regexp:</string>
  <resources/>
  <connections>
   <connection>
-   <sender>buttonBox</sender>
+   <sender>ActionBp</sender>
    <signal>accepted()</signal>
    <receiver>bRunRestoreForm</receiver>
    <slot>accept()</slot>
@@ -314,7 +331,7 @@ regexp:</string>
    </hints>
   </connection>
   <connection>
-   <sender>buttonBox</sender>
+   <sender>ActionBp</sender>
    <signal>rejected()</signal>
    <receiver>bRunRestoreForm</receiver>
    <slot>reject()</slot>
