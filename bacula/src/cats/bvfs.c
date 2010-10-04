@@ -485,6 +485,7 @@ bool Bvfs::ch_dir(const char *path)
 
 /* 
  * Get all file versions for a specified client
+ * TODO: Handle basejobs using different client
  */
 void Bvfs::get_all_file_versions(DBId_t pathid, DBId_t fnid, const char *client)
 {
@@ -510,36 +511,11 @@ void Bvfs::get_all_file_versions(DBId_t pathid, DBId_t fnid, const char *client)
 "WHERE File.FilenameId = %s "
   "AND File.PathId=%s "
   "AND File.JobId = Job.JobId "
-  "AND Job.ClientId = Client.ClientId "
   "AND Job.JobId = JobMedia.JobId "
   "AND File.FileIndex >= JobMedia.FirstIndex "
   "AND File.FileIndex <= JobMedia.LastIndex "
   "AND JobMedia.MediaId = Media.MediaId "
-  "AND Client.Name = '%s' "
-  "%s ORDER BY FileId LIMIT %d OFFSET %d"
-        ,edit_uint64(fnid, ed1), edit_uint64(pathid, ed2), client, q.c_str(),
-        limit, offset);
-   Dmsg1(dbglevel_sql, "q=%s\n", query.c_str());
-   db_sql_query(db, query.c_str(), list_entries, user_data);
-
-   /* Handle BaseJobs version */
-   Mmsg(query,//    1           2              3       
-"SELECT 'V', File.PathId, File.FilenameId,  File.Md5, "
-//         4          5           6
-        "File.JobId, File.LStat, File.FileId, "
-//         7                    8
-       "Media.VolumeName, Media.InChanger "
-"FROM File, Job, Client, JobMedia, Media, BaseFiles "
-"WHERE File.FilenameId = %s "
-  "AND File.PathId = %s "
-  "AND Job.JobId = BaseFiles.JobId "
-  "AND File.JobId = BaseFiles.BaseJobId "
-  "AND File.FileId = BaseFiles.FileId "
   "AND Job.ClientId = Client.ClientId "
-  "AND Job.JobId = JobMedia.JobId "
-  "AND File.FileIndex >= JobMedia.FirstIndex "
-  "AND File.FileIndex <= JobMedia.LastIndex "
-  "AND JobMedia.MediaId = Media.MediaId "
   "AND Client.Name = '%s' "
   "%s ORDER BY FileId LIMIT %d OFFSET %d"
         ,edit_uint64(fnid, ed1), edit_uint64(pathid, ed2), client, q.c_str(),
