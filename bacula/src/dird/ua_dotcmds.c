@@ -452,7 +452,7 @@ static bool dot_bvfs_lsdirs(UAContext *ua, const char *cmd)
 }
 
 /* 
- * .bvfs_versions jobid=x filenameid=10 pathid=10 copies versions
+ * .bvfs_versions jobid=x fnid=10 pathid=10 copies versions
  * (jobid isn't used)
  */
 static bool dot_bvfs_versions(UAContext *ua, const char *cmd)
@@ -470,7 +470,7 @@ static bool dot_bvfs_versions(UAContext *ua, const char *cmd)
 
    if (!bvfs_parse_arg_version(ua, &client, &fnid, &versions, &copies))
    {
-      ua->error_msg("Can't find client or filenameid argument\n");
+      ua->error_msg("Can't find client or fnid argument\n");
       return true;              /* not enough param */
    }
 
