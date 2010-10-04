@@ -4,7 +4,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2007-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2007-2010 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -29,7 +29,6 @@
    Switzerland, email:ftf@fsfeurope.org.
 */
 /*
- *   Version $Id$
  *
  *  Kern Sibbald, February 2007
  */
@@ -154,6 +153,7 @@ public slots:
    void clearVersions(QTableWidgetItem *);
    void clearRestoreList();
    void runRestore();
+   void refreshView();
 private:
    QString m_path;
    int64_t m_pathid;
@@ -176,6 +176,7 @@ public:
    bRunRestore(bRestore *parent);
    ~bRunRestore() {}
    void computeVolumeList();
+   int64_t runRestore(QString tablename);
 
 public slots:
    void useRegexp();

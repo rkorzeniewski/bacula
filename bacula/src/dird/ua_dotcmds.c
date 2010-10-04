@@ -381,6 +381,8 @@ static bool dot_bvfs_lsfiles(UAContext *ua, const char *cmd)
    DBId_t pathid=0;
    int limit=2000, offset=0;
    char *path=NULL, *jobid=NULL;
+   char *pattern=NULL;
+   int i;
 
    if (!bvfs_parse_arg(ua, &pathid, &path, &jobid,
                        &limit, &offset))
@@ -388,12 +390,17 @@ static bool dot_bvfs_lsfiles(UAContext *ua, const char *cmd)
       ua->error_msg("Can't find jobid, pathid or path argument\n");
       return true;              /* not enough param */
    }
+   if ((i = find_arg_with_value(ua, "pattern")) >= 0) {
+      pattern = ua->argv[i];
+   }
 
    Bvfs fs(ua->jcr, ua->db);
    fs.set_jobids(jobid);   
    fs.set_handler(bvfs_result_handler, ua);
    fs.set_limit(limit);
-
+   if (pattern) {
+      fs.set_pattern(pattern);
+   }
    if (pathid) {
       fs.ch_dir(pathid);
    } else {

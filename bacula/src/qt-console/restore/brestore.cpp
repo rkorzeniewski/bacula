@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2007-2009 Free Software Foundation Europe e.V.
+   Copyright (C) 2007-2010 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -51,9 +51,9 @@ bRestore::bRestore()
    RestoreList->setAcceptDrops(true);
 }
 
+// Populate client table and job associated
 void bRestore::setClient()
 {
-   Pmsg0(000, "Repopulating client table\n");
    // Select the same client, don't touch
    if (m_client == ClientList->currentText()) {
       return;
@@ -85,19 +85,20 @@ void bRestore::setClient()
 
    QString job;
    QStringList results;
+   QStringList fieldlist;
    if (m_console->sql_cmd(jobQuery, results)) {
-      QStringList fieldlist;
-
       /* Iterate through the record returned from the query */
       foreach (QString resultline, results) {
+         //  0       1          2     3
+         // JobId, StartTime, Level, Name
          fieldlist = resultline.split("\t");
          job = fieldlist[1] + " " + fieldlist[3] + "(" + fieldlist[2] + ") " + fieldlist[0];
-         JobList->addItem(job, QVariant(fieldlist[0]));
+         JobList->addItem(job, QVariant(fieldlist[0])); // set also private value
       }
    }
 }
 
-
+// Compute job associated and update the job cache if needed
 void bRestore::setJob()
 {
    if (JobList->currentIndex() < 1) {
@@ -126,6 +127,7 @@ void bRestore::setJob()
       return;
    }
 
+   // TODO: Can take some time if the job contains many dirs
    m_jobids = results.at(0);
    cmd = ".bvfs_update jobid=" + m_jobids;
    m_console->dir_cmd(cmd, results);
@@ -137,6 +139,12 @@ void bRestore::setJob()
 }
 
 extern int decode_stat(char *buf, struct stat *statp, int32_t *LinkFI);
+
+// refresh button with a filter or limit/offset change
+void bRestore::refreshView()
+{
+   displayFiles(m_pathid, m_path);
+}
 
 void bRestore::displayFiles(int64_t pathid, QString path)
 {
@@ -153,9 +161,11 @@ void bRestore::displayFiles(int64_t pathid, QString path)
    FileRevisions->clearContents();
    FileRevisions->setRowCount(0);
 
+   // If we provide pathid, use it (path can be altered by encoding conversion)
    if (pathid > 0) {
       arg = " pathid=" + QString().setNum(pathid);
 
+      // Choose .. update current path to parent dir
       if (path == "..") {
          if (m_path == "/") {
             m_path = "";
@@ -173,11 +183,20 @@ void bRestore::displayFiles(int64_t pathid, QString path)
       m_path = path;
       arg = " path=\"" + m_path + "\"";
    }
+
+   // If a filter is set, add it to the current query
+   if (FilterEntry->text() != "") {
+      QString tmp = FilterEntry->text();
+      tmp.replace("\"", ".");   // basic escape of "
+      arg += " pattern=\"" + tmp + "\"";
+   }
+
    LocationEntry->setText(m_path);
    QString offset = QString().setNum(Offset1Spin->value());
    QString limit=QString().setNum(Offset2Spin->value() - Offset1Spin->value());
    QString q = ".bvfs_lsdir jobid=" + m_jobids + arg 
       + " limit=" + limit + " offset=" + offset ;
+   qDebug() << q;
    if (m_console->dir_cmd(q, results)) {
       nb = results.size();
       FileList->setRowCount(nb);
@@ -193,7 +212,8 @@ void bRestore::displayFiles(int64_t pathid, QString path)
          item.setBytesFld(col++, QString().setNum(statp.st_size));
          item.setDateFld(col++, statp.st_mtime); // date
          fieldlist.replace(3, m_jobids);      // use current jobids selection
-         item.widget(1)->setData(Qt::UserRole, fieldlist.join("\t")); // keep info
+         // keep original info on the first cel that is never empty
+         item.widget(1)->setData(Qt::UserRole, fieldlist.join("\t"));
       }
    }
 
@@ -212,6 +232,7 @@ void bRestore::displayFiles(int64_t pathid, QString path)
                      &statp, &LinkFI);
          item.setBytesFld(col++, QString().setNum(statp.st_size));
          item.setDateFld(col++, statp.st_mtime);
+         // keep original info on the first cel that is never empty
          item.widget(1)->setData(Qt::UserRole, fieldlist.join("\t")); // keep info
       }
    }
@@ -231,6 +252,7 @@ void bRestore::PgSeltreeWidgetClicked()
    }
 }
 
+// Display all versions of a file for this client
 void bRestore::displayFileVersion(QString pathid, QString fnid, 
                                   QString client, QString filename)
 {
@@ -274,7 +296,9 @@ void bRestore::displayFileVersion(QString pathid, QString fnid,
          fieldlist.removeLast(); // volname
          fieldlist.removeLast(); // md5
          fieldlist << m_path + filename;
-         item.widget(1)->setData(Qt::UserRole, fieldlist.join("\t")); // keep info
+
+         // keep original info on the first cel that is never empty
+         item.widget(1)->setData(Qt::UserRole, fieldlist.join("\t"));
       }
    }
    FileRevisions->verticalHeader()->hide();
@@ -335,6 +359,7 @@ void bRestore::setupPage()
    connect(MergeChk, SIGNAL(clicked()), this, SLOT(setJob()));
    connect(ClearBp, SIGNAL(clicked()), this, SLOT(clearRestoreList()));
    connect(RestoreBp, SIGNAL(clicked()), this, SLOT(runRestore()));
+   connect(FilterBp, SIGNAL(clicked()), this, SLOT(refreshView()));
    m_populated = true;
 }
 
@@ -342,6 +367,7 @@ bRestore::~bRestore()
 {
 }
 
+// Drag & Drop handling, not so easy...
 void bRestoreTable::mousePressEvent(QMouseEvent *event)
 {
    QTableWidget::mousePressEvent(event);
@@ -414,6 +440,7 @@ void bRestoreTable::dragMoveEvent(QDragMoveEvent *event)
    }
 }
 
+// When user releases the button
 void bRestoreTable::dropEvent(QDropEvent *event)
 {
    int col=1;
@@ -437,6 +464,7 @@ void bRestoreTable::dropEvent(QDropEvent *event)
       item.setDateFld(col++, statp.st_mtime); // date
       item.setNumericFld(col++, fields.at(3)); // jobid
       item.setNumericFld(col++, fields.at(2)); // fileid
+      // keep original info on the first cel that is never empty
       item.widget(1)->setData(Qt::UserRole, event->mimeData()->text());
       event->acceptProposedAction();
    } else {
@@ -444,6 +472,7 @@ void bRestoreTable::dropEvent(QDropEvent *event)
    }
 }
 
+// Use File Relocation bp
 void bRunRestore::UFRcb()
 {
    if (UseFileRelocationChk->checkState() == Qt::Checked) {
@@ -470,6 +499,7 @@ void bRunRestore::UFRcb()
    }
 }
 
+// Expert mode for file relocation
 void bRunRestore::useRegexp()
 {
    if (UseRegexpChk->checkState() == Qt::Checked) {
@@ -485,6 +515,7 @@ void bRunRestore::useRegexp()
    }
 }
 
+// Display Form to run the restore job
 bRunRestore::bRunRestore(bRestore *parent)
 {
    brestore = parent;
@@ -501,10 +532,13 @@ bRunRestore::bRunRestore(bRestore *parent)
    connect(UseFileRelocationChk, SIGNAL(clicked()), this, SLOT(UFRcb()));
    connect(UseRegexpChk, SIGNAL(clicked()), this, SLOT(useRegexp()));
    connect(ActionBp, SIGNAL(accepted()), this, SLOT(computeRestore()));
+   // TODO: handle multiple restore job
    struct job_defaults jd;
-   jd.job_name = parent->console()->restore_list[0];
-   brestore->console()->get_job_defaults(jd);
-   WhereEntry->setText(jd.where);
+   if (parent->console()->restore_list.size() > 0) {
+      jd.job_name = parent->console()->restore_list[0];
+      brestore->console()->get_job_defaults(jd);
+      WhereEntry->setText(jd.where);
+   }
    computeVolumeList();
 }
 
@@ -536,9 +570,9 @@ void bRestore::get_info_from_selection(QStringList &fileids,
    jobids.removeDuplicates();
    dirids.removeDuplicates();
    findexes.removeDuplicates();
-   qDebug() << fileids << jobids << dirids << findexes;
 }
 
+// To compute volume list with directories, query is much slower
 void bRunRestore::computeVolumeList()
 {
    brestore->get_info_from_selection(m_fileids, m_jobids, m_dirids, m_findexes);
@@ -573,13 +607,90 @@ void bRunRestore::computeVolumeList()
          int col=0;
          TableItemFormatter item(*TableMedia, row++);
          item.setInChanger(col++, fieldlist.at(2));    // inchanger
-         item.setTextFld(col++, fieldlist.at(0)); // Volume
+         item.setTextFld(col++, fieldlist.at(0));      // Volume
       }
    }
    TableMedia->verticalHeader()->hide();
    TableMedia->resizeColumnsToContents();
    TableMedia->resizeRowsToContents();
    TableMedia->setEditTriggers(QAbstractItemView::NoEditTriggers);
+}
+
+int64_t bRunRestore::runRestore(QString tablename)
+{
+   QString q;
+   QString tmp;
+
+   tmp = ClientCb->currentText();
+   if (tmp == "") {
+      return 0;
+   }
+   q = "restore client=" + tmp;
+
+   tmp = CommentEntry->text();
+   if (tmp != "") {
+      tmp.replace("\"", " ");
+      q += " comment=\"" + tmp + "\"";
+   }
+
+   tmp = StorageCb->currentText();
+   if (tmp != "") {
+      q += " storage=" + tmp;
+   }
+
+   if (UseFileRelocationChk->checkState() == Qt::Checked) {
+      if (UseRegexpChk->checkState() == Qt::Checked) {
+         tmp = WhereRegexpEntry->text();
+         if (tmp != "") {
+            tmp.replace("\"", "");
+            q += " regexwhere=\"" + tmp + "\"";
+         }
+      } else {
+         QStringList lst;
+         tmp = StripPrefixEntry->text();
+         if (tmp != "") {
+            tmp.replace("\"", "");
+            lst.append("!" + tmp + "!!i");
+         }
+         tmp = AddPrefixEntry->text();
+         if (tmp != "") {
+            tmp.replace("\"", "");
+            lst.append("!^!" + tmp + "!");
+         }
+         tmp = AddSuffixEntry->text();
+         if (tmp != "") {
+            tmp.replace("\"", "");
+            lst.append("!([^/])$!$1" + tmp + "!");
+         }
+         if (lst.size() > 0) {
+            q += " regexwhere=\"" + lst.join(",") + "\"";
+         }
+      }
+   } else {
+      tmp = WhereEntry->text();
+      if (tmp != "") {
+         tmp.replace("\"", "");
+         q += " where=\"" + tmp + "\"";
+      }
+   }
+
+//   q += " priority=" + tmp.setNum(PrioritySb->value());
+//   q += " job=\"" + RestoreCb->currentText() + "\"";
+   q += " file=\"?" + tablename + "\"";
+   q += " when=\"" + WhenEditor->dateTime().toString("yyyy-MM-dd hh:mm:ss") + "\"";
+   q += " done yes";
+   
+   qDebug() << q;
+   QStringList results;
+   if (brestore->console()->dir_cmd(q, results)) {
+      foreach (QString resultline, results) {
+         QStringList fieldlist = resultline.split("=");
+         if (fieldlist.size() == 2) {
+            return fieldlist.at(1).toLongLong();
+         }
+      }
+   }
+   return 0;
 }
 
 void bRunRestore::computeRestore()
@@ -599,7 +710,7 @@ void bRunRestore::computeRestore()
    QStringList results;
    if (brestore->console()->dir_cmd(q, results)) {
       if (results.size() == 1 && results[0] == "OK") {
-         qDebug() << "Run restore!";
+         qDebug() << "jobid=" << runRestore("b2123");
          q = ".bvfs_cleanup path=b2123";
          brestore->console()->dir_cmd(q, results);
       }
