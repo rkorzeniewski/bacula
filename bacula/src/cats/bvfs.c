@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2009-2009 Free Software Foundation Europe e.V.
+   Copyright (C) 2009-2010 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -282,10 +282,13 @@ static void update_path_hierarchy_cache(JCR *jcr,
 
    /* Inserting path records for JobId */
    Mmsg(mdb->cmd, "INSERT INTO PathVisibility (PathId, JobId) "
-                  "SELECT DISTINCT PathId, JobId FROM File WHERE JobId = %s",
-        jobid);
+                   "SELECT DISTINCT PathId, JobId "
+                     "FROM (SELECT PathId, JobId FROM File WHERE JobId = %s "
+                           "UNION "
+                           "SELECT PathId, BaseFiles.JobId FROM BaseFiles JOIN File AS F USING (FileId) "
+                            "WHERE BaseFiles.JobId = %s) AS B",
+        jobid, jobid);
    QUERY_DB(jcr, mdb, mdb->cmd);
-
 
    /* Now we have to do the directory recursion stuff to determine missing
     * visibility We try to avoid recursion, to be as fast as possible We also
@@ -328,7 +331,6 @@ static void update_path_hierarchy_cache(JCR *jcr,
       free(result);
    }
 
-   /* TODO: Add Path for BaseJobs */
    Mmsg(mdb->cmd, 
   "INSERT INTO PathVisibility (PathId, JobId)  "
    "SELECT a.PathId,%s "
@@ -508,6 +510,31 @@ void Bvfs::get_all_file_versions(DBId_t pathid, DBId_t fnid, const char *client)
 "WHERE File.FilenameId = %s "
   "AND File.PathId=%s "
   "AND File.JobId = Job.JobId "
+  "AND Job.ClientId = Client.ClientId "
+  "AND Job.JobId = JobMedia.JobId "
+  "AND File.FileIndex >= JobMedia.FirstIndex "
+  "AND File.FileIndex <= JobMedia.LastIndex "
+  "AND JobMedia.MediaId = Media.MediaId "
+  "AND Client.Name = '%s' "
+  "%s ORDER BY FileId LIMIT %d OFFSET %d"
+        ,edit_uint64(fnid, ed1), edit_uint64(pathid, ed2), client, q.c_str(),
+        limit, offset);
+   Dmsg1(dbglevel_sql, "q=%s\n", query.c_str());
+   db_sql_query(db, query.c_str(), list_entries, user_data);
+
+   /* Handle BaseJobs version */
+   Mmsg(query,//    1           2              3       
+"SELECT 'V', File.PathId, File.FilenameId,  File.Md5, "
+//         4          5           6
+        "File.JobId, File.LStat, File.FileId, "
+//         7                    8
+       "Media.VolumeName, Media.InChanger "
+"FROM File, Job, Client, JobMedia, Media, BaseFiles "
+"WHERE File.FilenameId = %s "
+  "AND File.PathId = %s "
+  "AND Job.JobId = BaseFiles.JobId "
+  "AND File.JobId = BaseFiles.BaseJobId "
+  "AND File.FileId = BaseFiles.FileId "
   "AND Job.ClientId = Client.ClientId "
   "AND Job.JobId = JobMedia.JobId "
   "AND File.FileIndex >= JobMedia.FirstIndex "
