@@ -810,11 +810,12 @@ bool Bvfs::compute_restore_list(char *fileid, char *dirid, char *hardlink,
       Mmsg(tmp, "SELECT Path FROM Path WHERE PathId=%lld", id);
       
       if (!db_sql_query(db, tmp.c_str(), get_path_handler, (void *)&tmp2)) {
+         Dmsg0(dbglevel, "Can't search for path\n");
          /* print error */
          return false;
       }
       if (!strcmp(tmp2.c_str(), "")) { /* path not found */
-         Dmsg3(0, "Path not found %lld q=%s s=%s\n",
+         Dmsg3(dbglevel, "Path not found %lld q=%s s=%s\n",
                id, tmp.c_str(), tmp2.c_str());
          break;
       }
@@ -852,6 +853,7 @@ bool Bvfs::compute_restore_list(char *fileid, char *dirid, char *hardlink,
    int64_t prev_jobid=0;
    while (get_next_id_from_list(&hardlink, &jobid) == 1) {
       if (get_next_id_from_list(&hardlink, &id) != 1) {
+         Dmsg0(dbglevel, "hardlink should be two by two\n");
          return false;
       }
       if (jobid != prev_jobid) { /* new job */
@@ -880,12 +882,14 @@ bool Bvfs::compute_restore_list(char *fileid, char *dirid, char *hardlink,
       init = true;
    }
 
-   Dmsg1(0, "q=%s\n", query.c_str());
+   Dmsg1(dbglevel_sql, "q=%s\n", query.c_str());
 
    if (!db_sql_query(db, query.c_str(), NULL, NULL)) {
+      Dmsg0(dbglevel, "Can't execute q\n");
       goto bail_out;
    }
 
+   /* TODO: handle basejob and MySQL/SQLite3 */
    Mmsg(query, "CREATE TABLE %s AS ( "
         "SELECT JobId, FileIndex, FileId "
           "FROM ( "
@@ -895,8 +899,9 @@ bool Bvfs::compute_restore_list(char *fileid, char *dirid, char *hardlink,
           ") AS T "
           "WHERE FileIndex > 0)", output_table, output_table);
 
-   Dmsg1(0, "q=%s\n", query.c_str());
+   Dmsg1(dbglevel_sql, "q=%s\n", query.c_str());
    if (!db_sql_query(db, query.c_str(), NULL, NULL)) {
+      Dmsg0(dbglevel, "Can't execute q\n");
       goto bail_out;
    }
    ret = true;
