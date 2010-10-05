@@ -1,16 +1,14 @@
 /*
-   Bacula® - The Network Backup Solution
+   crc32.c 32 bit CRC
 
    Copyright (C) 2010 Joakim Tjernlund
 
-   This file is part of Bacula.
-
-   Bacula is free software: you can redistribute it and/or modify
+   This file is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as published by
    the Free Software Foundation, either version 3 of the License, or
    (at your option) any later version.
 
-   Bacula is distributed in the hope that it will be useful,
+   This file is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU Lesser General Public License for more details.
@@ -24,10 +22,13 @@
    Switzerland, email:ftf@fsfeurope.org.
 */
 /*
- *  32 bit CRC.  Algorithm from RFC 2083 (png format)
+ *  Original 32 bit CRC.  Algorithm from RFC 2083 (png format)
  *
  *   By Kern Sibbald, January 2001
  *
+ *   Inproved, faster version
+ *
+ *   By Joakim Tjernlunc, 2010
  */
 
 
@@ -72,6 +73,7 @@ main()
 #if !defined(HAVE_LITTLE_ENDIAN) && !defined(HAVE_BIG_ENDIAN)
 #error Either HAVE_LITTLE_ENDIAN or HAVE_BIG_ENDIAN must be defined!
 #endif
+
 /* tole == To Little Endian */
 #ifdef HAVE_BIG_ENDIAN
 #define tole(x) \
@@ -361,43 +363,43 @@ uint32_t bcrc32(unsigned char*buf, int len)
 # ifdef __LITTLE_ENDIAN
 #  define DO_CRC(x) crc = tab[0][(crc ^ (x)) & 255 ] ^ (crc >> 8)
 #  define DO_CRC4 crc = tab[3][(crc) & 255 ] ^ \
-		tab[2][(crc >> 8) & 255 ] ^ \
-		tab[1][(crc >> 16) & 255 ] ^ \
-		tab[0][(crc >> 24) & 255 ]
+                tab[2][(crc >> 8) & 255 ] ^ \
+                tab[1][(crc >> 16) & 255 ] ^ \
+                tab[0][(crc >> 24) & 255 ]
 # else
 #  define DO_CRC(x) crc = tab[0][((crc >> 24) ^ (x)) & 255] ^ (crc << 8)
 #  define DO_CRC4 crc = tab[0][(crc) & 255 ] ^ \
-		tab[1][(crc >> 8) & 255 ] ^ \
-		tab[2][(crc >> 16) & 255 ] ^ \
-		tab[3][(crc >> 24) & 255 ]
+                tab[1][(crc >> 8) & 255 ] ^ \
+                tab[2][(crc >> 16) & 255 ] ^ \
+                tab[3][(crc >> 24) & 255 ]
 # endif
-	const uint32_t *b;
-	size_t    rem_len;
-	uint32_t crc = tole(~0);
+        const uint32_t *b;
+        size_t    rem_len;
+        uint32_t crc = tole(~0);
 
-	/* Align it */
-	if ((long)buf & 3 && len) {
-		do {
-			DO_CRC(*buf++);
-		} while ((--len) && ((long)buf)&3);
-	}
-	rem_len = len & 3;
-	/* load data 32 bits wide, xor data 32 bits wide. */
-	b = (const uint32_t *)buf;
-	len = len >> 2;
-	for (--b; len; --len) {
-		crc ^= *++b; /* use pre increment for speed */
-		DO_CRC4;
-	}
-	len = rem_len;
-	/* And the last few bytes */
-	if (len) {
-		uint8_t *p = (uint8_t *)(b + 1) - 1;
-		do {
-			DO_CRC(*++p); /* use pre increment for speed */
-		} while (--len);
-	}
-	return tole(crc) ^ ~0;
+        /* Align it */
+        if ((long)buf & 3 && len) {
+                do {
+                        DO_CRC(*buf++);
+                } while ((--len) && ((long)buf)&3);
+        }
+        rem_len = len & 3;
+        /* load data 32 bits wide, xor data 32 bits wide. */
+        b = (const uint32_t *)buf;
+        len = len >> 2;
+        for (--b; len; --len) {
+                crc ^= *++b; /* use pre increment for speed */
+                DO_CRC4;
+        }
+        len = rem_len;
+        /* And the last few bytes */
+        if (len) {
+                uint8_t *p = (uint8_t *)(b + 1) - 1;
+                do {
+                        DO_CRC(*++p); /* use pre increment for speed */
+                } while (--len);
+        }
+        return tole(crc) ^ ~0;
 }
 
 
