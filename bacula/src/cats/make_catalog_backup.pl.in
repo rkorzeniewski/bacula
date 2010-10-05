@@ -135,7 +135,7 @@ sub dump_catalog
     }
 }
 
-open(FP, "$dir_conf|") or die "Can't get catalog information $@";
+open(FP, "$dir_conf -C '$cat'|") or die "Can't get catalog information $@";
 # catalog=MyCatalog
 # db_type=SQLite
 # db_name=regress
