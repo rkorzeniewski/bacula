@@ -25,7 +25,7 @@ DESC="Bacula File Daemon"
 DAEMON=@sbindir@/${NAME}
 BUSER=@fd_user@
 BGROUP=@fd_group@
-BOPTIONS="-c @sysconfdir@/${NAME}.conf"
+USERGRP="-c @sysconfdir@/${NAME}.conf"
 BPORT=@fd_port@
 
 PATH=/sbin:/bin:/usr/sbin:/usr/bin
@@ -46,22 +46,22 @@ mkdir -p @piddir@
 PIDFILE=@piddir@/${NAME}.${BPORT}.pid
 
 if [ "x${BUSER}" != "x" ]; then
-   BOPTIONS="${BOPTIONS} -u ${BUSER}"
-fi
-if [ "x${BGROUP}" != "x" ]; then
-   BOPTIONS="${BOPTIONS} -g ${BGROUP}"
+   USERGRP="--chuid ${BUSER}"
+   if [ "x${BGROUP}" != "x" ]; then
+      USERGRP="${BOPTIONS}:${BGROUP}"
+   fi
 fi
 
 case "$1" in
    start)
       echo -n "Starting ${DESC}: "
-      start-stop-daemon --start --quiet --pidfile ${PIDFILE} --exec ${DAEMON} -- ${BOPTIONS}
+      start-stop-daemon --start --quiet --pidfile ${PIDFILE} ${USERGRP} --exec ${DAEMON}
       RETVAL=$?
       echo "${NAME}"
       ;;
    stop)
       echo -n "Stopping ${DESC}: "
-      start-stop-daemon --oknodo --stop --quiet --exec ${DAEMON} -- ${BOPTIONS}
+      start-stop-daemon --oknodo --stop --quiet ${USERGRP} --exec ${DAEMON} 
       RETVAL=$?
       echo "${NAME}"
       ;;
