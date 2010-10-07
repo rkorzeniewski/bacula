@@ -922,7 +922,7 @@ const char *sql_bvfs_select[5] = {
       "SELECT max(JobId) as JobId, FileIndex, FileId "
         "FROM btemp%s "
       "GROUP BY PathId, FilenameId "
-   "HAVING FileIndex > 0 ",
+   "HAVING FileIndex > 0)",
    /* Postgresql */
    "CREATE TABLE %s AS ( "
         "SELECT JobId, FileIndex, FileId "
