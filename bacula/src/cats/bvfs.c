@@ -889,15 +889,8 @@ bool Bvfs::compute_restore_list(char *fileid, char *dirid, char *hardlink,
       goto bail_out;
    }
 
-   /* TODO: handle basejob and MySQL/SQLite3 */
-   Mmsg(query, "CREATE TABLE %s AS ( "
-        "SELECT JobId, FileIndex, FileId "
-          "FROM ( "
-     "SELECT DISTINCT ON (PathId, FilenameId) JobId, FileIndex, FileId "
-       "FROM btemp%s "
-      "ORDER BY PathId, FilenameId, JobId DESC "
-          ") AS T "
-          "WHERE FileIndex > 0)", output_table, output_table);
+   /* TODO: handle basejob and SQLite3 */
+   Mmsg(query, sql_bvfs_select[db_type], output_table, output_table);
 
    Dmsg1(dbglevel_sql, "q=%s\n", query.c_str());
    if (!db_sql_query(db, query.c_str(), NULL, NULL)) {

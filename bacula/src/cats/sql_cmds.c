@@ -915,3 +915,27 @@ const uint32_t sql_get_max_connections_index[5] = {
    /* Ingres (TODO) */
    0
 };
+
+const char *sql_bvfs_select[5] = {
+   /* Mysql */
+   "CREATE TABLE %s AS ( "
+      "SELECT max(JobId) as JobId, FileIndex, FileId "
+        "FROM btemp%s "
+      "GROUP BY PathId, FilenameId "
+   "HAVING FileIndex > 0 ",
+   /* Postgresql */
+   "CREATE TABLE %s AS ( "
+        "SELECT JobId, FileIndex, FileId "
+          "FROM ( "
+     "SELECT DISTINCT ON (PathId, FilenameId) JobId, FileIndex, FileId "
+       "FROM btemp%s "
+      "ORDER BY PathId, FilenameId, JobId DESC "
+          ") AS T "
+          "WHERE FileIndex > 0)",
+   /* SQLite */
+   "SELECT 0",
+   /* SQLite3 */
+   "SELECT 0",
+   /* Ingres (TODO) */
+   "SELECT 0"
+};
