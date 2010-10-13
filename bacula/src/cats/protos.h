@@ -102,6 +102,8 @@ int db_find_next_volume(JCR *jcr, B_DB *mdb, int index, bool InChanger, MEDIA_DB
 bool db_find_failed_job_since(JCR *jcr, B_DB *mdb, JOB_DBR *jr, POOLMEM *stime, int &JobLevel);
 
 /* sql_get.c */
+bool db_get_volume_jobids(JCR *jcr, B_DB *mdb, 
+                         MEDIA_DBR *mr, db_list_ctx *lst);
 bool db_get_base_file_list(JCR *jcr, B_DB *mdb,
                            DB_RESULT_HANDLER *result_handler,void *ctx);
 int db_get_path_record(JCR *jcr, B_DB *mdb);

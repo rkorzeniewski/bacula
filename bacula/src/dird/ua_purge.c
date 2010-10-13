@@ -450,12 +450,11 @@ void purge_files_from_volume(UAContext *ua, MEDIA_DBR *mr )
 bool purge_jobs_from_volume(UAContext *ua, MEDIA_DBR *mr, bool force)
 {
    POOL_MEM query(PM_MESSAGE);
-   struct del_ctx del;
+   db_list_ctx lst;
+   char *jobids=NULL;
    int i;
    bool purged = false;
    bool stat;
-   JOB_DBR jr;
-   char ed1[50];
 
    stat = strcmp(mr->VolStatus, "Append") == 0 ||
           strcmp(mr->VolStatus, "Full")   == 0 ||
@@ -468,42 +467,34 @@ bool purge_jobs_from_volume(UAContext *ua, MEDIA_DBR *mr, bool force)
       return 0;
    }
 
-   memset(&jr, 0, sizeof(jr));
-   memset(&del, 0, sizeof(del));
-   del.max_ids = 1000;
-   del.JobId = (JobId_t *)malloc(sizeof(JobId_t) * del.max_ids);
-
    /*
     * Check if he wants to purge a single jobid
     */
    i = find_arg_with_value(ua, "jobid");
-   if (i >= 0) {
-      del.num_ids = 1;
-      del.JobId[0] = str_to_int64(ua->argv[i]);
+   if (i >= 0 && is_a_number_list(ua->argv[i])) {
+      jobids = ua->argv[i];
    } else {
       /*
        * Purge ALL JobIds
        */
-      Mmsg(query, "SELECT DISTINCT JobId FROM JobMedia WHERE MediaId=%s", 
-           edit_int64(mr->MediaId, ed1));
-      if (!db_sql_query(ua->db, query.c_str(), file_delete_handler, (void *)&del)) {
+      if (!db_get_volume_jobids(ua->jcr, ua->db, mr, &lst)) {
          ua->error_msg("%s", db_strerror(ua->db));
          Dmsg0(050, "Count failed\n");
          goto bail_out;
       }
+      jobids = lst.list;
    }
 
-   purge_job_list_from_catalog(ua, del);
+   if (*jobids) {
+      purge_jobs_from_catalog(ua, jobids);
+   }
 
-   ua->info_msg(_("%d File%s on Volume \"%s\" purged from catalog.\n"), del.num_del,
-      del.num_del==1?"":"s", mr->VolumeName);
+   ua->info_msg(_("%d File%s on Volume \"%s\" purged from catalog.\n"), 
+                lst.count, lst.count<=1?"":"s", mr->VolumeName);
 
    purged = is_volume_purged(ua, mr, force); 
 
 bail_out:
-   if (del.JobId) {
-      free(del.JobId);
-   }
    return purged;
 }
 

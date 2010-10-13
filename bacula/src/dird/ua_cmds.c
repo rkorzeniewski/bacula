@@ -1529,6 +1529,7 @@ static int delete_volume(UAContext *ua)
 {
    MEDIA_DBR mr;
    char buf[1000];
+   db_list_ctx lst;
 
    if (!select_media_dbr(ua, &mr)) {
       return 1;
@@ -1546,9 +1547,22 @@ static int delete_volume(UAContext *ua)
          return 1;
       }
    }
-   if (ua->pint32_val) {
-      db_delete_media_record(ua->jcr, ua->db, &mr);
+   if (!ua->pint32_val) {
+      return 1;
    }
+
+   /* If not purged, do it */
+   if (strcmp(mr.VolStatus, "Purged") != 0) {
+      if (!db_get_volume_jobids(ua->jcr, ua->db, &mr, &lst)) {
+         ua->error_msg(_("Can't list jobs on this volume\n"));
+         return 1;
+      }
+      if (lst.count) {
+         purge_jobs_from_catalog(ua, lst.list);
+      }
+   }
+
+   db_delete_media_record(ua->jcr, ua->db, &mr);
    return 1;
 }
 

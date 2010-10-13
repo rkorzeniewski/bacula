@@ -1295,4 +1295,19 @@ bail_out:
    return ret;
 }
 
+/* Get JobIds associated with a volume */
+bool db_get_volume_jobids(JCR *jcr, B_DB *mdb, 
+                         MEDIA_DBR *mr, db_list_ctx *lst)
+{
+   char ed1[50];
+   bool ret=false;
+
+   db_lock(mdb);
+   Mmsg(mdb->cmd, "SELECT DISTINCT JobId FROM JobMedia WHERE MediaId=%s", 
+        edit_int64(mr->MediaId, ed1));
+   ret = db_sql_query(mdb, mdb->cmd, db_list_handler, lst);
+   db_unlock(mdb);
+   return ret;
+}
+
 #endif /* HAVE_SQLITE3 || HAVE_MYSQL || HAVE_SQLITE || HAVE_POSTGRESQL || HAVE_INGRES || HAVE_DBI */

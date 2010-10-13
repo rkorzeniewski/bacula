@@ -151,6 +151,10 @@ static int delete_handler(void *ctx, int num_fields, char **row)
  * This routine will purge (delete) all records
  * associated with a particular Volume. It will
  * not delete the media record itself.
+ * TODO: This function is broken and it doesn't purge
+ *       File, BaseFiles, Log, ...
+ *       We call it from relabel and delete volume=, both ensure
+ *       that the volume is properly purged.
  */
 static int do_media_purge(B_DB *mdb, MEDIA_DBR *mr)
 {
