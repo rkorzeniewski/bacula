@@ -172,7 +172,7 @@ run_bacula()
      cat ${tmp}/bconcmds | ${bin}/bconsole -c ${conf}/bconsole.conf
      return $?
    else
-     ${bin}/bacula start >/dev/null 2>&1
+     ${scripts}/bacula start >/dev/null 2>&1
      cat ${tmp}/bconcmds | ${bin}/bconsole -c ${conf}/bconsole.conf >/dev/null 2>&1
      return $?
    fi
@@ -225,9 +225,9 @@ bscan_libdbi()
 stop_bacula()
 {
    if test "$debug" -eq 1 ; then
-      ${bin}/bacula stop
+      ${scripts}/bacula stop
    else
-      ${bin}/bacula stop 2>&1 >/dev/null
+      ${scripts}/bacula stop 2>&1 >/dev/null
    fi
 }
 
@@ -508,10 +508,10 @@ dumps=${dumps:-"$cwd/dumps"}
 bin=${bin:-"$cwd/bin"}
 
 # Bacula scripts
-scripts=${scripts:-"$bin"}
+scripts=${scripts:-"$cwd/bin"}
 
 # Bacula conf files
-conf=${conf:-"$bin"}
+conf=${conf:-"$cwd/bin"}
 
 # Regress scripts
 rscripts=${rscripts:-"$cwd/scripts"}
