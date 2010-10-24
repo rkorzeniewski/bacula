@@ -58,8 +58,8 @@ utime_t daemon_start_time = 0;        /* Daemon start time */
 const char *version = VERSION " (" BDATE ")";
 const char *dist_name = DISTNAME " " DISTVER;
 const int beef = BEEF;
-char my_name[30];                     /* daemon name is stored here */
-char host_name[50];                   /* host machine name */
+char my_name[30] = {0};               /* daemon name is stored here */
+char host_name[50] = {0};             /* host machine name */
 char *exepath = (char *)NULL;
 char *exename = (char *)NULL;
 int console_msg_pending = false;
