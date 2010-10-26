@@ -28,6 +28,18 @@
 /**
  * Functions to handle ACLs for bacula.
  *
+ * Currently we support the following OSes:
+ *   - AIX (pre-5.3 and post 5.3 acls, acl_get and aclx_get interface)
+ *   - Darwin
+ *   - FreeBSD
+ *   - HPUX
+ *   - IRIX
+ *   - Linux
+ *   - Solaris (POSIX and NFSv4/ZFS acls)
+ *   - Tru64
+ *
+ * Next to OS specific acls we support AFS acls using the pioctl interface.
+ *
  * We handle two different types of ACLs: access and default ACLS.
  * On most systems that support default ACLs they only apply to directories.
  *
