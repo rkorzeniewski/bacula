@@ -285,7 +285,8 @@ static void update_path_hierarchy_cache(JCR *jcr,
                    "SELECT DISTINCT PathId, JobId "
                      "FROM (SELECT PathId, JobId FROM File WHERE JobId = %s "
                            "UNION "
-                           "SELECT PathId, BaseFiles.JobId FROM BaseFiles JOIN File AS F USING (FileId) "
+                           "SELECT PathId, BaseFiles.JobId "
+                             "FROM BaseFiles JOIN File AS F USING (FileId) "
                             "WHERE BaseFiles.JobId = %s) AS B",
         jobid, jobid);
    QUERY_DB(jcr, mdb, mdb->cmd);
@@ -680,6 +681,50 @@ bool Bvfs::ls_files()
       Mmsg(filter, " AND Filename.Name %s '%s' ", SQL_MATCH, pattern);
    }
    /* TODO: Use JobTDate instead of FileId to determine the latest version */
+
+/* Postgresql
+ SELECT DISTINCT ON (FilenameId) 'F', PathId, T.FilenameId, 
+  Filename.Name, JobId, LStat, FileId
+   FROM 
+       (SELECT FileId, JobId, PathId, FilenameId, FileIndex, LStat, MD5 
+          FROM File WHERE JobId IN (7) AND PathId = 9
+         UNION ALL 
+        SELECT File.FileId, File.JobId, PathId, FilenameId, 
+               File.FileIndex, LStat, MD5 
+          FROM BaseFiles JOIN File USING (FileId) 
+         WHERE BaseFiles.JobId IN (7) AND File.PathId = 9
+        ) AS T JOIN Job USING (JobId) JOIN Filename USING (FilenameId)
+   ORDER BY FilenameId, StartTime DESC
+
+Mysql
+SELECT FileId, Job.JobId AS JobId, FileIndex, File.PathId AS PathId, 
+       File.FilenameId AS FilenameId, Filename.Name, LStat, MD5 
+FROM Job, File, ( 
+    SELECT MAX(JobTDate) AS JobTDate, PathId, FilenameId 
+      FROM ( 
+        SELECT JobTDate, PathId, FilenameId
+          FROM File JOIN Job USING (JobId)
+         WHERE File.JobId IN (7) AND PathId = 9
+          UNION ALL 
+        SELECT JobTDate, PathId, FilenameId 
+          FROM BaseFiles                 
+               JOIN File USING (FileId) 
+               JOIN Job  ON    (BaseJobId = Job.JobId) 
+         WHERE BaseFiles.JobId IN (7)   AND PathId = 9
+       ) AS tmp GROUP BY PathId, FilenameId
+    ) AS T1 JOIN Filename USING (FilenameId)
+WHERE (Job.JobId IN (  
+        SELECT DISTINCT BaseJobId FROM BaseFiles WHERE JobId IN (7)) 
+        OR Job.JobId IN (7)) 
+  AND T1.JobTDate = Job.JobTDate
+  AND Job.JobId = File.JobId
+  AND T1.PathId = File.PathId 
+  AND T1.FilenameId = File.FilenameId
+
+
+
+*/
+
    POOL_MEM query;
    Mmsg(query, //    1              2             3          4
 "SELECT 'F', File.PathId, File.FilenameId, listfiles.Name, File.JobId, "
