@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2002-2009 Free Software Foundation Europe e.V.
+   Copyright (C) 2002-2010 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -33,7 +33,6 @@
  *
  *     Kern Sibbald, July MMII
  *
- *   Version $Id$
  */
 
 #include "bacula.h"
@@ -151,6 +150,10 @@ bool user_select_files_from_tree(TREE_CTX *tree)
             break;
          }
       if (!found) {
+         if (*ua->argk[0] == '.') {
+            /* Some unknow dot command -- probably .messages, ignore it */
+            continue;
+         }
          ua->warning_msg(_("Invalid command \"%s\". Enter \"done\" to exit.\n"), ua->cmd);
          if (ua->api) user->signal(BNET_CMD_FAILED);
          continue;
