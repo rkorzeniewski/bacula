@@ -253,7 +253,9 @@ void restorePage::addDirectory(QString &newdirr)
             item->setText(0, newdir.toUtf8().data());
             item->setIcon(0,QIcon(QString::fromUtf8(":images/folder.png")));
             directoryWidget->expandItem(parent);
-            Pmsg1(dbglvl, "%s\n", newdir.toUtf8().data());
+            if (mainWin->m_miscDebug) {
+               Pmsg1(dbglvl, "%s\n", newdir.toUtf8().data());
+            }
          } else {
             ok = false;
             if (mainWin->m_miscDebug) {
@@ -343,7 +345,9 @@ void restorePage::fileDoubleClicked(QTreeWidgetItem *item, int column)
    if (item->text(1).endsWith("/")) {
       QString fullpath = m_cwd + item->text(1);
       QTreeWidgetItem *item = m_dirPaths.value(fullpath);
-      Pmsg1(dbglvl, "%s\n", fullpath.toUtf8().data());
+      if (mainWin->m_miscDebug) {
+         Pmsg1(dbglvl, "%s\n", fullpath.toUtf8().data());
+      }
       if (item) {
          directoryWidget->setCurrentItem(item);
       } else {

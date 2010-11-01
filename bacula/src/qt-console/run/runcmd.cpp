@@ -86,8 +86,8 @@ void runCmdPage::fill()
    foreach(item, items) {
       rx.indexIn(item);
       val = rx.cap(1);
-      Dmsg1(000, "Item=%s\n", item.toUtf8().data());
-      Dmsg1(000, "Value=%s\n", val.toUtf8().data());
+      Dmsg1(100, "Item=%s\n", item.toUtf8().data());
+      Dmsg1(100, "Value=%s\n", val.toUtf8().data());
 
       if (item.startsWith("Title:")) {
          run->setText(val);
