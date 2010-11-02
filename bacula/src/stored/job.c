@@ -131,7 +131,7 @@ bool job_cmd(JCR *jcr)
     */
    ojcr = get_jcr_by_full_name(job.c_str());
    if (ojcr && !ojcr->authenticated) {
-      Dmsg2(100, "Found ojcr=0x%x Job %s\n", (unsigned)(long)ojcr, job.c_str());
+      Dmsg2(100, "Found ojcr=0x%x Job %s\n", (unsigned)(intptr_t)ojcr, job.c_str());
       free_jcr(ojcr);
    }
    jcr->JobId = JobId;

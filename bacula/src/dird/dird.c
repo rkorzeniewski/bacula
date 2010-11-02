@@ -447,7 +447,7 @@ static void free_saved_resources(int table)
  */
 static void reload_job_end_cb(JCR *jcr, void *ctx)
 {
-   int reload_id = (int)((long int)ctx);
+   int reload_id = (int)((intptr_t)ctx);
    Dmsg3(100, "reload job_end JobId=%d table=%d cnt=%d\n", jcr->JobId,
       reload_id, reload_table[reload_id].job_count);
    lock_jobs();
