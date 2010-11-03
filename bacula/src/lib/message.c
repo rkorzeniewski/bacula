@@ -1264,6 +1264,9 @@ Jmsg(JCR *jcr, int type, utime_t mtime, const char *fmt,...)
        if (jcr) {
           set_jcr_job_status(jcr, JS_FatalError);
        }
+       if (jcr && jcr->JobErrors == 0) {
+          jcr->JobErrors = 1;
+       }
        break;
     case M_ERROR:
        len = bsnprintf(rbuf, sizeof(rbuf), _("%s JobId %u: Error: "), my_name, JobId);
