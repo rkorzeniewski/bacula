@@ -162,7 +162,7 @@ static struct cmdstruct commands[] = {                                      /* C
  { NT_("relabel"),    relabel_cmd,   _("Relabel a tape"), 
    NT_("storage=<storage-name> oldvolume=<old-volume-name>\n\tvolume=<newvolume-name> pool=<pool>"), false},
 
- { NT_("release"),    release_cmd,   _("Release storage"),  NT_("storage-name"),      false},
+ { NT_("release"),    release_cmd,   _("Release storage"),  NT_("storage=<storage-name>"),      false},
  { NT_("reload"),     reload_cmd,    _("Reload conf file"), NT_(""),                  true},
  { NT_("run"),        run_cmd,       _("Run a job"), 
    NT_("job=<job-name> client=<client-name>\n\tfileset=<FileSet-name> level=<level-keyword>\n\tstorage=<storage-name>"
