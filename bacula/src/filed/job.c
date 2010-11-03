@@ -2194,6 +2194,10 @@ bail_out:
       ret = 0;     /* we stop here */
    }
 
+   if (job_canceled(jcr)) {
+      ret = 0;     /* we stop here */
+   }
+
    return ret;
 }
 
