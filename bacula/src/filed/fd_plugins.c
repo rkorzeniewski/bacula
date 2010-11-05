@@ -44,6 +44,7 @@ const char *plugin_type = "-fd.so";
 #endif
 
 extern int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level);
+extern bool check_changes(JCR *jcr, FF_PKT *ff_pkt);
 
 /* Function pointers to be set here */
 extern DLL_IMP_EXP int     (*plugin_bopen)(BFILE *bfd, const char *fname, int flags, mode_t mode);
@@ -73,6 +74,7 @@ static bRC baculaNewOptions(bpContext *ctx);
 static bRC baculaNewInclude(bpContext *ctx);
 static bool is_plugin_compatible(Plugin *plugin);
 static bool get_plugin_name(JCR *jcr, char *cmd, int *ret);
+static bRC baculaCheckChanges(bpContext *ctx, struct save_pkt *sp);
 
 /*
  * These will be plugged into the global pointer structure for
@@ -108,7 +110,8 @@ static bFuncs bfuncs = {
    baculaAddRegex,
    baculaAddWild,
    baculaNewOptions,
-   baculaNewInclude
+   baculaNewInclude,
+   baculaCheckChanges
 };
 
 /* 
@@ -1014,6 +1017,12 @@ static bRC baculaGetValue(bpContext *ctx, bVariable var, void *value)
    case bVarWorkingDir:
       *(void **)value = me->working_directory;
       break;
+   case bVarWhere:
+      *(char **)value = jcr->where;
+      break;
+   case bVarRegexWhere:
+      *(char **)value = jcr->RegexWhere;
+      break;
    }
    return bRC_OK;
 }
@@ -1240,6 +1249,50 @@ static bRC baculaNewInclude(bpContext *ctx)
    }
    (void)new_include(jcr);
    return bRC_OK;
+}
+
+
+/* 
+ * Check if a file have to be backuped using Accurate code
+ */
+static bRC baculaCheckChanges(bpContext *ctx, struct save_pkt *sp)
+{
+   JCR *jcr;
+   bacula_ctx *bctx;
+   FF_PKT *ff_pkt;
+   bRC ret = bRC_Error;
+
+   if (!is_ctx_good(ctx, jcr, bctx)) {
+      goto bail_out;
+   }
+   if (!sp) {
+      goto bail_out;
+   }
+   
+   ff_pkt = jcr->ff;
+   /*
+    * Copy fname and link because save_file() zaps them.  This 
+    *  avoids zaping the plugin's strings.
+    */
+   ff_pkt->type = sp->type;
+   if (!sp->fname) {
+      Jmsg0(jcr, M_FATAL, 0, _("Command plugin: no fname in baculaCheckChanges packet.\n"));
+      goto bail_out;
+   }
+
+   ff_pkt->fname = sp->fname;
+   ff_pkt->link = sp->link;
+   memcpy(&ff_pkt->statp, &sp->statp, sizeof(ff_pkt->statp));
+
+   if (check_changes(jcr, ff_pkt))  {
+      ret = bRC_OK;
+   } else {
+      ret = bRC_Seen;
+   }
+
+bail_out:
+   Dmsg1(100, "checkChanges=%i\n", ret);
+   return ret;
 }
 
 

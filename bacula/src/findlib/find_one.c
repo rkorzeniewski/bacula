@@ -274,7 +274,7 @@ bool has_file_changed(JCR *jcr, FF_PKT *ff_pkt)
  * For incremental/diffential or accurate backups, we
  *   determine if the current file has changed.
  */
-static bool check_changes(JCR *jcr, FF_PKT *ff_pkt)
+bool check_changes(JCR *jcr, FF_PKT *ff_pkt)
 {
    /* in special mode (like accurate backup), the programmer can 
     * choose his comparison function.

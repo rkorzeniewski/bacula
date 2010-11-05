@@ -69,6 +69,7 @@ int   find_one_file(JCR *jcr, FF_PKT *ff,
                char *p, dev_t parent_device, bool top_level);
 int   term_find_one(FF_PKT *ff);
 bool  has_file_changed(JCR *jcr, FF_PKT *ff_pkt);
+bool check_changes(JCR *jcr, FF_PKT *ff_pkt);
 
 /* From get_priv.c */
 int enable_backup_privileges(JCR *jcr, int ignore_errors);

@@ -175,7 +175,9 @@ typedef enum {
   bVarFileSeen  = 10,
   bVarVssObject = 11,
   bVarVssDllHandle = 12,
-  bVarWorkingDir = 13
+  bVarWorkingDir = 13,
+  bVarWhere      = 14,
+  bVarRegexWhere = 15
 } bVariable;
 
 /* Events that are passed to plugin */
@@ -254,6 +256,7 @@ typedef struct s_baculaFuncs {
    bRC (*AddWild)(bpContext *ctx, const char *item, int type);
    bRC (*NewOptions)(bpContext *ctx);
    bRC (*NewInclude)(bpContext *ctx);
+   bRC (*checkChanges)(bpContext *ctx, struct save_pkt *sp);
 } bFuncs;
 
 
@@ -272,7 +275,7 @@ typedef enum {
 
 
 #define FD_PLUGIN_MAGIC     "*FDPluginData*" 
-#define FD_PLUGIN_INTERFACE_VERSION  4
+#define FD_PLUGIN_INTERFACE_VERSION  5
 
 typedef struct s_pluginInfo {
    uint32_t size;
