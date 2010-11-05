@@ -378,10 +378,10 @@ uint32_t bcrc32(unsigned char*buf, int len)
         uint32_t crc = tole(~0);
 
         /* Align it */
-        if ((long)buf & 3 && len) {
+        if ((intptr_t)buf & 3 && len) {
                 do {
                         DO_CRC(*buf++);
-                } while ((--len) && ((long)buf)&3);
+                } while ((--len) && ((intptr_t)buf)&3);
         }
         rem_len = len & 3;
         /* load data 32 bits wide, xor data 32 bits wide. */
