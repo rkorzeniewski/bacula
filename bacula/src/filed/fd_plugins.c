@@ -232,23 +232,32 @@ bool plugin_check_file(JCR *jcr, char *fname)
  *  systemstate:/@SYSTEMSTATE/ 
  * => ret = 11
  * => can use strncmp(plugin_name, cmd, ret);
+ *
+ * The plugin command can contain only the plugin name
+ *  Plugin = alldrives
+ * => ret = 9
  */
 static bool get_plugin_name(JCR *jcr, char *cmd, int *ret)
 {
    char *p;
    int len;
-   if (!cmd) {
+   if (!cmd || (*cmd == '\0')) {
       return false;
    }
    /* Handle plugin command here backup */
    Dmsg1(dbglvl, "plugin cmd=%s\n", cmd);
-   if (!(p = strchr(cmd, ':'))) {
-      Jmsg1(jcr, M_ERROR, 0, "Malformed plugin command: %s\n", cmd);
-      return false;
-   }
-   len = p - cmd;
-   if (len <= 0) {
-      return false;
+   if ((p = strchr(cmd, ':')) == NULL) {
+      if (strchr(cmd, ' ') == NULL) { /* we have just the plugin name */
+         len = strlen(cmd);
+      } else {
+         Jmsg1(jcr, M_ERROR, 0, "Malformed plugin command: %s\n", cmd);
+         return false;
+      }
+   } else {                     /* plugin:argument */
+      len = p - cmd;
+      if (len <= 0) {
+         return false;
+      }
    }
    *ret = len;
    return true;
