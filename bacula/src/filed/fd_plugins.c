@@ -35,7 +35,7 @@
 #include "filed.h"
 
 extern CLIENT *me;
-extern char *exepath;
+extern DLL_IMP_EXP char *exepath;
 
 const int dbglvl = 150;
 #ifdef HAVE_WIN32
