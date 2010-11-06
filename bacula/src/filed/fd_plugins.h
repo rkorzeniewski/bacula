@@ -177,7 +177,8 @@ typedef enum {
   bVarVssDllHandle = 12,
   bVarWorkingDir = 13,
   bVarWhere      = 14,
-  bVarRegexWhere = 15
+  bVarRegexWhere = 15,
+  bVarExePath    = 16
 } bVariable;
 
 /* Events that are passed to plugin */

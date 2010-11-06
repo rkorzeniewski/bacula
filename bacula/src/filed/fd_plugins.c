@@ -35,6 +35,7 @@
 #include "filed.h"
 
 extern CLIENT *me;
+extern char *exepath;
 
 const int dbglvl = 150;
 #ifdef HAVE_WIN32
@@ -1022,6 +1023,9 @@ static bRC baculaGetValue(bpContext *ctx, bVariable var, void *value)
       break;
    case bVarRegexWhere:
       *(char **)value = jcr->RegexWhere;
+      break;
+   case bVarExePath:
+      *(char **)value = exepath;
       break;
    }
    return bRC_OK;
