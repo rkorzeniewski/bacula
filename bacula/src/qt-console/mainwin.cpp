@@ -80,7 +80,7 @@ MainWin::MainWin(QWidget *parent) : QMainWindow(parent)
    treeWidget->setColumnCount(1);
    treeWidget->setHeaderLabel( tr("Select Page") );
    treeWidget->setContextMenuPolicy(Qt::ActionsContextMenu);
-   // tabWidget->setTabsClosable(true);  /* wait for QT 4.5 */
+   tabWidget->setTabsClosable(true);  /* wait for QT 4.5 */
    createPages();
 
    resetFocus(); /* lineEdit->setFocus() */
@@ -265,6 +265,7 @@ void MainWin::connectSignals()
    connect(treeWidget, SIGNAL(itemClicked(QTreeWidgetItem *, int)), this, SLOT(treeItemClicked(QTreeWidgetItem *, int)));
    connect(treeWidget, SIGNAL(currentItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)), this, SLOT(treeItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)));
    connect(tabWidget, SIGNAL(currentChanged(int)), this, SLOT(stackItemChanged(int)));
+   connect(tabWidget, SIGNAL(tabCloseRequested(int)), this, SLOT(closePage()));
    connect(actionQuit, SIGNAL(triggered()), app, SLOT(closeAllWindows()));
    connect(actionLabel, SIGNAL(triggered()), this,  SLOT(labelButtonClicked()));
    connect(actionRun, SIGNAL(triggered()), this,  SLOT(runButtonClicked()));
@@ -292,6 +293,7 @@ void MainWin::disconnectSignals()
    disconnect(treeWidget, SIGNAL(itemClicked(QTreeWidgetItem *, int)), this, SLOT(treeItemClicked(QTreeWidgetItem *, int)));
    disconnect(treeWidget, SIGNAL( currentItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)), this, SLOT(treeItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)));
    disconnect(tabWidget, SIGNAL(currentChanged(int)), this, SLOT(stackItemChanged(int)));
+   disconnect(tabWidget, SIGNAL(tabCloseRequested(int)), this, SLOT(closePage()));
    disconnect(actionQuit, SIGNAL(triggered()), app, SLOT(closeAllWindows()));
    disconnect(actionLabel, SIGNAL(triggered()), this,  SLOT(labelButtonClicked()));
    disconnect(actionRun, SIGNAL(triggered()), this,  SLOT(runButtonClicked()));
