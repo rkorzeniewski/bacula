@@ -6,7 +6,7 @@
 
 =head2 USAGE
 
-    diff.pl -s source -d dest [--acl | --attr | --wattr]
+    diff.pl -s source -d dest [-e exclude ] [--acl | --attr | --wattr]
 
 =cut
 
@@ -25,6 +25,7 @@ my ($src, $dst, $help, $acl, $attr, $wattr,
     $dest_attrib, $src_attrib, $mtimedir);
 my %src_attr; 
 my %dst_attr;
+my @exclude;
 my $hash;
 my $ret=0;
 
@@ -34,6 +35,7 @@ GetOptions("src=s"   => \$src,        # source directory
            "attr"    => \$attr,       # attributes test
            "wattr"   => \$wattr,      # windows attributes
            "mtime-dir" => \$mtimedir, # check mtime on directories
+           "exclude=s@" => \@exclude, # exclude some files
            "help"    => \$help,
     ) or pod2usage(-verbose => 1, 
                    -exitval => 1);
@@ -148,7 +150,9 @@ sub compare
 sub wanted_src
 {
     my $f = $_;
-
+    if (grep ($f, @exclude)) {
+        return;
+    }
     if (-l $f) {
         my ($dev,$ino,$mode,$nlink,$uid,$gid,$rdev,$size,
             $atime,$mtime,$ctime,$blksize,$blocks) = lstat($f);
