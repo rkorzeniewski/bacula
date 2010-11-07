@@ -951,23 +951,37 @@ static boffset_t my_plugin_blseek(BFILE *bfd, boffset_t offset, int whence)
 static bRC baculaGetValue(bpContext *ctx, bVariable var, void *value)
 {
    JCR *jcr;
-   if (!value || !ctx) {
+   if (!value) {
       return bRC_Error;
    }
-// Dmsg1(dbglvl, "bacula: baculaGetValue var=%d\n", var);
+
+   switch (var) {               /* General variables, no need of ctx */
+   case bVarFDName:
+      *((char **)value) = my_name;
+      break;
+   case bVarWorkingDir:
+      *(void **)value = me->working_directory;
+      break;
+   case bVarExePath:
+      *(char **)value = exepath;
+      break;
+   default:
+      break;
+   }
+
+   if (!ctx) {                  /* Other variables need context */
+      return bRC_Error;
+   }
+
    jcr = ((bacula_ctx *)ctx->bContext)->jcr;
    if (!jcr) {
       return bRC_Error;
    }
-// Dmsg1(dbglvl, "Bacula: jcr=%p\n", jcr); 
+
    switch (var) {
    case bVarJobId:
       *((int *)value) = jcr->JobId;
       Dmsg1(dbglvl, "Bacula: return bVarJobId=%d\n", jcr->JobId);
-      break;
-   case bVarFDName:
-      *((char **)value) = my_name;
-      Dmsg1(dbglvl, "Bacula: return my_name=%s\n", my_name);
       break;
    case bVarLevel:
       *((int *)value) = jcr->getJobLevel();
@@ -1015,17 +1029,16 @@ static bRC baculaGetValue(bpContext *ctx, bVariable var, void *value)
        }
 #endif
        return bRC_Error;
-   case bVarWorkingDir:
-      *(void **)value = me->working_directory;
-      break;
    case bVarWhere:
       *(char **)value = jcr->where;
       break;
    case bVarRegexWhere:
       *(char **)value = jcr->RegexWhere;
       break;
+
+   case bVarFDName:             /* get warning with g++ if we missed one */
+   case bVarWorkingDir:
    case bVarExePath:
-      *(char **)value = exepath;
       break;
    }
    return bRC_OK;
