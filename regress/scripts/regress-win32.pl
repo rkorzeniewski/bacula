@@ -390,6 +390,91 @@ sub cleandir
     return "OK\n";
 }
 
+my $Registry;
+use Win32::TieRegistry qw/KEY_READ KEY_WRITE/;
+
+sub add_registry_key
+{
+    my ($r) = shift;
+    my $ret="ERR";
+    if ($r->url !~ m!^/add_registry_key\?key=(\w+);val=(\w+)$!) {
+        return "ERR\nIncorrect url\n";
+    }
+    my ($k, $v) = ($1,$2);
+    
+    my $key= new Win32::TieRegistry ("LMachine/SOFTWARE/",
+                                     { Access=>KEY_READ()|KEY_WRITE(),
+                                       Delimiter=>"/" })
+        or return "ERR Can't open Registry\n";
+    print join(",", keys( %{$key} )), "\n" ;
+    my $newKey = $key->{"Bacula"};
+    if ($newKey) {
+        $newKey->{$k} = $v;
+        $ret = "OK\n";
+    } else {
+        $ret = "ERR can't find Bacula key";
+    }
+
+    undef $key;
+    undef $newKey;
+    return "$ret\n";
+}
+
+sub del_registry_key
+{
+    my ($r) = shift;
+    my $ret="ERR";
+    if ($r->url !~ m!^/del_registry_key\?key=(\w+)$!) {
+        return "ERR\nIncorrect url\n";
+    }
+    my $k = $1;
+    
+    my $key= new Win32::TieRegistry ("LMachine/Software/",
+                                     { Access=>KEY_READ()|KEY_WRITE(),
+                                       Delimiter=>"/" })
+        or return "ERR Can't open Registry\n";
+
+    my $newKey = $key->{"Bacula"};
+    if ($newKey) {
+        delete $newKey->{$k};
+        $ret = "OK\n";
+    } else {
+        $ret = "ERR can't find Bacula key";
+    }
+    undef $key;
+    undef $newKey;
+    return "$ret\n";
+}
+
+sub get_registry_key
+{
+    my ($r) = shift;
+    my $ret = "ERR";
+    if ($r->url !~ m!^/get_registry_key\?key=(\w+);val=(\w+)$!) {
+        return "ERR\nIncorrect url\n";
+    }
+    my ($k, $v) = ($1, $2);
+    
+    my $key= new Win32::TieRegistry ("LMachine/Software/",
+                                     { Access=>KEY_READ()|KEY_WRITE(),
+                                       Delimiter=>"/" })
+        or return "ERR Can't open Registry\n";
+
+    my $newKey = $key->{"Bacula"};
+    if ($newKey) {
+        if ($newKey->{$k} eq $v) {
+            $ret = "OK\n";
+        } else {
+            $ret = "ERR key=" . $newKey->{$k}; 
+        }
+    } else {
+        $ret = "ERR can't find Bacula key";
+    }
+    undef $key;
+    undef $newKey;
+    return "$ret\n";
+}
+
 # When adding an action, fill this hash with the right function
 my %action_list = (
     stop    => \&stop_fd,
@@ -400,6 +485,10 @@ my %action_list = (
     init_weird_runscript_test => \&init_weird_runscript_test,
     set_director_name => \&set_director_name,
     cleandir => \&cleandir,
+    add_registry_key => \&add_registry_key,
+    del_registry_key => \&del_registry_key,
+    get_registry_key => \&get_registry_key,
+    quit => sub {  exit 0; },
     );
 
 # handle client request
