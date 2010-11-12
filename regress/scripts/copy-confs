@@ -4,5 +4,6 @@
 /bin/cp -f ${rscripts}/bacula-sd.conf ${scripts}/bacula-sd.conf
 /bin/cp -f ${rscripts}/bacula-fd.conf ${scripts}/bacula-fd.conf
 /bin/cp -f ${rscripts}/bconsole.conf ${scripts}/bconsole.conf
+/bin/cp -f ${rscripts}/bconsole.conf ${scripts}/bat.conf
 
 ${rscripts}/set_tape_options

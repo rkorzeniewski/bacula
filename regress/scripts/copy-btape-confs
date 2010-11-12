@@ -3,5 +3,6 @@
 /bin/cp -f ${rscripts}/bacula-sd-btape.conf ${scripts}/bacula-sd.conf
 /bin/cp -f ${rscripts}/test-bacula-fd.conf ${scripts}/bacula-fd.conf
 /bin/cp -f ${rscripts}/test-console.conf ${scripts}/bconsole.conf
+/bin/cp -f ${rscripts}/test-console.conf ${scripts}/bat.conf
 
 ${rscripts}/set_tape_options
