@@ -1248,7 +1248,7 @@ static void send_dir_busy_message(BSOCK *dir, DEVICE *dev)
        dir->fsend(_("3936 Device \"%s\" is busy reading.\n"),
                    dev->print_name());;
    } else {
-       dir->fsend(_("3937 Device \"%s\" is busy with %d writer(s).\n"),
-          dev->print_name(), dev->num_writers);
+       dir->fsend(_("3937 Device \"%s\" is busy with writers=%d reserved=%d.\n"),
+          dev->print_name(), dev->num_writers, dev->num_reserved());
    }
 }
