@@ -1368,10 +1368,10 @@ static void close_vss_backup_session(JCR *jcr)
       WCHAR *metadata = g_pVSSClient->GetMetadata();
       if (metadata) {
          FF_PKT *ff_pkt = jcr->ff;
-         ff_pkt->fname = "job";
+         ff_pkt->fname = (char *)"job";
          ff_pkt->type = FT_RESTORE_FIRST;
          ff_pkt->LinkFI = 0;
-         ff_pkt->object_name = "job_metadata.xml";
+         ff_pkt->object_name = (char *)"job_metadata.xml";
          ff_pkt->object = (char *)metadata;
          ff_pkt->object_len = (wcslen(metadata) + 1) * sizeof(WCHAR);
          save_file(jcr, ff_pkt, true);
