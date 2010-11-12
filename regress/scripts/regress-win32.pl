@@ -390,59 +390,74 @@ sub cleandir
     return "OK\n";
 }
 
-my $Registry;
-use Win32::TieRegistry qw/KEY_READ KEY_WRITE/;
-
 sub add_registry_key
 {
     my ($r) = shift;
-    my $ret="ERR";
     if ($r->url !~ m!^/add_registry_key\?key=(\w+);val=(\w+)$!) {
         return "ERR\nIncorrect url\n";
     }
     my ($k, $v) = ($1,$2);
-    
-    my $key= new Win32::TieRegistry ("LMachine/SOFTWARE/",
-                                     { Access=>KEY_READ()|KEY_WRITE(),
-                                       Delimiter=>"/" })
-        or return "ERR Can't open Registry\n";
-    print join(",", keys( %{$key} )), "\n" ;
-    my $newKey = $key->{"Bacula"};
-    if ($newKey) {
-        $newKey->{$k} = $v;
-        $ret = "OK\n";
-    } else {
-        $ret = "ERR can't find Bacula key";
-    }
+    my $ret = "ERR";
+    open(FP, ">tmp.reg") 
+        or return "ERR\nCan't open tmp.reg $!\n";
 
-    undef $key;
-    undef $newKey;
+    print FP "Windows Registry Editor Version 5.00
+
+[HKEY_LOCAL_MACHINE\\SOFTWARE\\Bacula]
+\"$k\"=\"$v\"
+
+";
+    close(FP);
+    system("regedit /s tmp.reg");
+
+    unlink("tmp2.reg");
+    system("regedit /e tmp2.reg HKEY_LOCAL_MACHINE\\SOFTWARE\\Bacula");
+
+    open(FP, "<:encoding(UTF-16LE)", "tmp2.reg") 
+       or return "ERR\nCan't open tmp2.reg $!\n";
+    while (my $l = <FP>) {
+       if ($l =~ /"$k"="$v"/) {
+          $ret = "OK";
+       } 
+    }
+    close(FP);
+    unlink("tmp.reg");
+    unlink("tmp2.reg");
     return "$ret\n";
 }
 
 sub del_registry_key
 {
     my ($r) = shift;
-    my $ret="ERR";
     if ($r->url !~ m!^/del_registry_key\?key=(\w+)$!) {
         return "ERR\nIncorrect url\n";
     }
     my $k = $1;
-    
-    my $key= new Win32::TieRegistry ("LMachine/Software/",
-                                     { Access=>KEY_READ()|KEY_WRITE(),
-                                       Delimiter=>"/" })
-        or return "ERR Can't open Registry\n";
+    my $ret = "OK";
 
-    my $newKey = $key->{"Bacula"};
-    if ($newKey) {
-        delete $newKey->{$k};
-        $ret = "OK\n";
-    } else {
-        $ret = "ERR can't find Bacula key";
+    unlink("tmp2.reg");
+    open(FP, ">tmp.reg") 
+        or return "ERR\nCan't open tmp.reg $!\n";
+    print FP "Windows Registry Editor Version 5.00
+
+[HKEY_LOCAL_MACHINE\\SOFTWARE\\Bacula]
+\"$k\"=-
+
+";
+    close(FP);
+    system("regedit /s tmp.reg");
+    system("regedit /e tmp2.reg HKEY_LOCAL_MACHINE\\SOFTWARE\\Bacula");
+
+    open(FP, "<:encoding(UTF-16LE)", "tmp2.reg") 
+       or return "ERR\nCan't open tmp2.reg $!\n";
+    while (my $l = <FP>) {
+       if ($l =~ /"$k"=/) {
+          $ret = "ERR\n";
+       } 
     }
-    undef $key;
-    undef $newKey;
+    close(FP);
+    unlink("tmp.reg");
+    unlink("tmp2.reg");
     return "$ret\n";
 }
 
@@ -454,24 +469,19 @@ sub get_registry_key
         return "ERR\nIncorrect url\n";
     }
     my ($k, $v) = ($1, $2);
-    
-    my $key= new Win32::TieRegistry ("LMachine/Software/",
-                                     { Access=>KEY_READ()|KEY_WRITE(),
-                                       Delimiter=>"/" })
-        or return "ERR Can't open Registry\n";
 
-    my $newKey = $key->{"Bacula"};
-    if ($newKey) {
-        if ($newKey->{$k} eq $v) {
-            $ret = "OK\n";
-        } else {
-            $ret = "ERR key=" . $newKey->{$k}; 
-        }
-    } else {
-        $ret = "ERR can't find Bacula key";
+    unlink("tmp2.reg");
+    system("regedit /e tmp2.reg HKEY_LOCAL_MACHINE\\SOFTWARE\\Bacula");
+    open(FP, "<:encoding(UTF-16LE)", "tmp2.reg") 
+       or return "ERR\nCan't open tmp2.reg $!\n";
+    while (my $l = <FP>) {
+       if ($l =~ /"$k"="$v"/) {
+          $ret = "OK";
+       } 
     }
-    undef $key;
-    undef $newKey;
+    close(FP);
+    unlink("tmp2.reg");
+
     return "$ret\n";
 }
 
