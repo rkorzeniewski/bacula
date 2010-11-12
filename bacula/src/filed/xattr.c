@@ -25,7 +25,7 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
-/*
+/**
  * Functions to handle Extended Attributes for bacula.
  *
  * Extended Attributes are so OS specific we only restore Extended Attributes if
@@ -48,14 +48,13 @@
  *   - Tru64 (Extended Attributes)
  *
  *   Written by Marco van Wieringen, November MMVIII
- *
  */
 
 #include "bacula.h"
 #include "filed.h"
 
 #if !defined(HAVE_XATTR)
-/*
+/**
  * Entry points when compiled without support for XATTRs or on an unsupported platform.
  */
 bxattr_exit_code build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
@@ -68,7 +67,7 @@ bxattr_exit_code parse_xattr_streams(JCR *jcr, int stream)
    return bxattr_exit_fatal;
 }
 #else
-/*
+/**
  * Send a XATTR stream to the SD.
  */
 static bxattr_exit_code send_xattr_stream(JCR *jcr, int stream)
@@ -121,7 +120,7 @@ static bxattr_exit_code send_xattr_stream(JCR *jcr, int stream)
    return bxattr_exit_ok;
 }
 
-/*
+/**
  * First some generic functions for OSes that use the same xattr encoding scheme.
  * Currently for all OSes except for Solaris.
  */
@@ -151,7 +150,7 @@ static void xattr_drop_internal_table(alist *xattr_value_list)
    delete xattr_value_list;
 }
 
-/*
+/**
  * The xattr stream for OSX, FreeBSD, Linux and NetBSD is a serialized stream of bytes
  * which encodes one or more xattr_t structures.
  *
@@ -214,7 +213,7 @@ static bxattr_exit_code unserialize_xattr_stream(JCR *jcr, alist *xattr_value_li
    xattr_t *current_xattr;
    bxattr_exit_code retval = bxattr_exit_ok;
 
-   /*
+   /**
     * Parse the stream and call restore_xattr_on_file for each extended attribute.
     *
     * Start unserializing the data. We keep on looping while we have not
@@ -226,7 +225,6 @@ static bxattr_exit_code unserialize_xattr_stream(JCR *jcr, alist *xattr_value_li
        * First make sure the magic is present. This way we can easily catch corruption.
        * Any missing MAGIC is fatal we do NOT try to continue.
        */
-
       current_xattr = (xattr_t *)malloc(sizeof(xattr_t));
       unser_uint32(current_xattr->magic);
       if (current_xattr->magic != XATTR_MAGIC) {
@@ -649,20 +647,20 @@ static bxattr_exit_code irix_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
 
          attrlist = (attrlist_t *)xattrbuf;
 
-         /**
+         /*
           * Walk the available attributes.
           */
          for (cnt = 0; cnt < attrlist->al_count; cnt++) {
             attrlist_ent = ATTR_ENTRY(xattrbuf, cnt);
 
-            /**
+            /*
              * Each xattr valuepair starts with a magic so we can parse it easier.
              */
             current_xattr = (xattr_t *)malloc(sizeof(xattr_t));
             current_xattr->magic = XATTR_MAGIC;
             expected_serialize_len += sizeof(current_xattr->magic);
 
-            /**
+            /*
              * Allocate space for storing the name.
              * We store the name as <naming_space_name><xattr_name>
              */
@@ -676,7 +674,7 @@ static bxattr_exit_code irix_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
             current_xattr->value_length = attrlist_ent->a_valuelen;
             current_xattr->value = (char *)malloc(current_xattr->value_length);
 
-            /**
+            /*
              * Retrieve the actual value of the xattr.
              */
             if (attr_get(jcr->last_fname, attrlist_ent->a_name, current_xattr->value,
@@ -687,7 +685,7 @@ static bxattr_exit_code irix_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
                   retval = bxattr_exit_ok;
                   goto bail_out;
                case E2BIG:
-                  /**
+                  /*
                    * The buffer for the xattr isn't big enough. the value of
                    * current_xattr->value_length is updated with the actual size
                    * of the xattr. So we free the old buffer and create a new one
@@ -740,7 +738,7 @@ static bxattr_exit_code irix_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
             xattr_count++;
          }
 
-         /**
+         /*
           * See if there are more attributes available for a next run of attr_list.
           */
          if (attrlist->al_more == 0) {
@@ -806,7 +804,7 @@ static bxattr_exit_code irix_xattr_parse_streams(JCR *jcr, int stream)
    }
 
    foreach_alist(current_xattr, xattr_value_list) {
-      /**
+      /*
        * See to what namingspace this xattr belongs to.
        */
       name_space_index = 0;
@@ -820,8 +818,8 @@ static bxattr_exit_code irix_xattr_parse_streams(JCR *jcr, int stream)
          }
       }
 
-      /**
-       * If we got a xattr that doesn't belong to ant valid namespace complain.
+      /*
+       * If we got a xattr that doesn't belong to an valid namespace complain.
        */
       if (name_space_index == 0) {
          Mmsg2(jcr->errmsg, _("Received illegal xattr named %s on file \"%s\"\n"),
@@ -831,7 +829,7 @@ static bxattr_exit_code irix_xattr_parse_streams(JCR *jcr, int stream)
          goto bail_out;
       }
 
-      /**
+      /*
        * Restore the xattr first try to create the attribute from scratch.
        */
       flags = xattr_naming_spaces[name_space_index].flags | ATTR_CREATE;
@@ -843,7 +841,7 @@ static bxattr_exit_code irix_xattr_parse_streams(JCR *jcr, int stream)
             retval = bxattr_exit_ok;
             goto bail_out;
          case EEXIST:
-            /**
+            /*
              * The xattr already exists we need to replace it.
              */
             flags = xattr_naming_spaces[name_space_index].flags | ATTR_REPLACE;
@@ -944,6 +942,7 @@ static bxattr_exit_code generic_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
    bool skip_xattr;
    char *xattr_list, *bp;
    int cnt, xattr_count = 0;
+   uint32_t name_length;
    int32_t xattr_list_len,
            xattr_value_len;
    uint32_t expected_serialize_len = 0;
@@ -1012,7 +1011,6 @@ static bxattr_exit_code generic_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
     */
    bp = xattr_list;
    while ((bp - xattr_list) + 1 < xattr_list_len) {
-      int name_len;
       skip_xattr = false;
 
       /*
@@ -1041,8 +1039,8 @@ static bxattr_exit_code generic_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
          }
       }
 
-      name_len = strlen(bp);
-      if (skip_xattr || name_len == 0) {
+      name_length = strlen(bp);
+      if (skip_xattr || name_length == 0) {
          Dmsg1(100, "Skipping xattr named %s\n", bp);
          bp = strchr(bp, '\0') + 1;
          continue;
@@ -1058,7 +1056,7 @@ static bxattr_exit_code generic_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
       /*
        * Allocate space for storing the name.
        */
-      current_xattr->name_length = name_len;
+      current_xattr->name_length = name_length;
       current_xattr->name = (char *)malloc(current_xattr->name_length);
       memcpy((caddr_t)current_xattr->name, (caddr_t)bp, current_xattr->name_length);
 
@@ -1703,7 +1701,7 @@ static bxattr_exit_code tru64_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
    xattr_list_len = getproplist(jcr->last_fname, 1, &prop_args, xattrbuf_size,
                                 xattrbuf, &xattrbuf_min_size);
 
-   /**
+   /*
     * See what xattr are available.
     */
    switch (xattr_list_len) {
@@ -1722,7 +1720,7 @@ static bxattr_exit_code tru64_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
       break;
    case 0:
       if (xattrbuf_min_size) {
-         /**
+         /*
           * The buffer isn't big enough to hold the xattr data, we now have
           * a minimum buffersize so we resize the buffer and try again.
           */
@@ -1745,7 +1743,7 @@ static bxattr_exit_code tru64_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
             }
             break;
          case 0:
-            /**
+            /*
              * This should never happen as we sized the buffer according to the minimumsize
              * returned by a previous getproplist call. If it does happen things are fishy and
              * we are better of forgetting this xattr as it seems its list is changing at this
@@ -1901,7 +1899,7 @@ static bxattr_exit_code tru64_parse_xattr_streams(JCR *jcr, int stream)
       return bxattr_exit_error;
    }
 
-   /**
+   /*
     * See how big the propertylist must be.
     */
    xattrbuf_size = 0;
@@ -1911,7 +1909,7 @@ static bxattr_exit_code tru64_parse_xattr_streams(JCR *jcr, int stream)
 
    xattrbuf = (char *)malloc(xattrbuf_size);
 
-   /**
+   /*
     * Add all value pairs to the proplist.
     */
    cnt = 0;
@@ -1921,7 +1919,7 @@ static bxattr_exit_code tru64_parse_xattr_streams(JCR *jcr, int stream)
                                current_xattr->value, &bp);
    }
 
-   /**
+   /*
     * Sanity check.
     */
    if (cnt != xattrbuf_size) {
@@ -1932,7 +1930,7 @@ static bxattr_exit_code tru64_parse_xattr_streams(JCR *jcr, int stream)
       goto bail_out;
    }
 
-   /**
+   /*
     * Restore the list of extended attributes on the file.
     */
    cnt = setproplist(jcr->last_fname, 1, xattrbuf_size, xattrbuf);
