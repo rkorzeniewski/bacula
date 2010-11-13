@@ -292,6 +292,7 @@ int DirComm::read()
          } 
          app->processEvents();
          if (m_api_set && m_console->is_messagesPending() && is_notify_enabled() && m_console->hasFocus()) {
+            if (mainWin->m_commDebug) Pmsg1(000, "conn %i process_events\n", m_conn);
             m_console->write_dir(m_conn, ".messages", false);
             m_console->messagesPending(false);
          }
@@ -316,6 +317,7 @@ int DirComm::read()
             m_console->write_dir(m_conn, ".messages", false);
             m_console->displayToPrompt(m_conn);
             m_console->messagesPending(false);
+            continue;
          }
          m_console->messagesPending(true);
          continue;

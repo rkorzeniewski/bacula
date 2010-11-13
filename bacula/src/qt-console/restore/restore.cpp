@@ -204,7 +204,7 @@ void restorePage::addDirectory(QString &newdirr)
    }
 
    if (isWin32Path(fullpath)) {
-      Pmsg0(dbglvl, "Windows drive\n");
+      if (mainWin->m_miscDebug) Pmsg0(dbglvl, "Windows drive\n");
       if (fullpath.left(1) == "/") {
          fullpath.replace(0, 1, "");           /* strip leading / */
       }
@@ -243,7 +243,7 @@ void restorePage::addDirectory(QString &newdirr)
          /* this is the base widget */
          item = new QTreeWidgetItem(directoryWidget);
          item->setText(0, fullpath.toUtf8().data());
-         Pmsg1(dbglvl, "Windows: %s\n", fullpath.toUtf8().data());
+         if (mainWin->m_miscDebug) Pmsg1(dbglvl, "Windows: %s\n", fullpath.toUtf8().data());
          item->setIcon(0,QIcon(QString::fromUtf8(":images/folder.png")));
       } else {
          QTreeWidgetItem *parent = m_dirPaths.value(m_cwd);
@@ -354,7 +354,7 @@ void restorePage::fileDoubleClicked(QTreeWidgetItem *item, int column)
          QString msg = QString("DoubleClick else of item column %1 fullpath %2\n")
               .arg(column,10)
               .arg(fullpath);
-         Pmsg1(dbglvl, "%s\n", msg.toUtf8().data());
+         if (mainWin->m_miscDebug) Pmsg1(dbglvl, "%s\n", msg.toUtf8().data());
       }
    }
 }
