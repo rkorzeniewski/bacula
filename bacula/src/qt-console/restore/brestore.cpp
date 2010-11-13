@@ -153,8 +153,8 @@ void bRestore::displayFiles(int64_t pathid, QString path)
    QStringList fieldlist;
    struct stat statp;
    int32_t LinkFI;
-   int nb;
-   int row=0;
+   int nb = 0;
+   int row = 0;
    Freeze frz_lst(*FileList); /* disable updating*/
    Freeze frz_rev(*FileRevisions); /* disable updating*/
    FileList->clearContents();
