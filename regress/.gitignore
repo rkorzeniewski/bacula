@@ -30,3 +30,4 @@ scripts/prepare-fake-autochanger
 scripts/prepare-two-tapes
 scripts/regress-config
 scripts/update-ctest
+scripts/mtx-changer

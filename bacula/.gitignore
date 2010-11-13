@@ -24,7 +24,6 @@ config.log
 config.out
 config.status
 configure.lineno
-console
 console.log
 console.sum
 diff
