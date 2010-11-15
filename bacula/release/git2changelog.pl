@@ -10,7 +10,7 @@
 =cut
 
 use strict;
-use Time::CTime;
+use POSIX q/strftime/;
 
 my $d='';
 my $last_txt='';
