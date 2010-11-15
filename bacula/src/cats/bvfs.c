@@ -706,11 +706,29 @@ bool Bvfs::ls_dirs()
    return nb_record == limit;
 }
 
+void build_ls_files_query(B_DB *db, POOL_MEM &query, 
+                          const char *JobId, const char *PathId,  
+                          const char *filter, int64_t limit, int64_t offset)
+{
+   if (db_type == SQL_TYPE_POSTGRESQL) {
+      Mmsg(query, sql_bvfs_list_files[db_type], 
+           JobId, PathId, JobId, PathId, 
+           filter, limit, offset);
+   } else {
+      Mmsg(query, sql_bvfs_list_files[db_type], 
+           JobId, PathId, JobId, PathId, 
+           limit, offset, filter, JobId, JobId);
+   }
+}
+
 /* Returns true if we have files to read */
 bool Bvfs::ls_files()
 {
+   POOL_MEM query;
+   POOL_MEM filter;
+   char pathid[50];
+
    Dmsg1(dbglevel, "ls_files(%lld)\n", (uint64_t)pwd_id);
-   char ed1[50];
    if (*jobids == 0) {
       return false;
    }
@@ -719,76 +737,15 @@ bool Bvfs::ls_files()
       ch_dir(get_root());
    }
 
-   POOL_MEM filter;
+   edit_uint64(pwd_id, pathid);
    if (*pattern) {
       Mmsg(filter, " AND Filename.Name %s '%s' ", SQL_MATCH, pattern);
    }
-   /* TODO: Use JobTDate instead of FileId to determine the latest version */
 
-/* Postgresql
- SELECT DISTINCT ON (FilenameId) 'F', PathId, T.FilenameId, 
-  Filename.Name, JobId, LStat, FileId
-   FROM 
-       (SELECT FileId, JobId, PathId, FilenameId, FileIndex, LStat, MD5 
-          FROM File WHERE JobId IN (7) AND PathId = 9
-         UNION ALL 
-        SELECT File.FileId, File.JobId, PathId, FilenameId, 
-               File.FileIndex, LStat, MD5 
-          FROM BaseFiles JOIN File USING (FileId) 
-         WHERE BaseFiles.JobId IN (7) AND File.PathId = 9
-        ) AS T JOIN Job USING (JobId) JOIN Filename USING (FilenameId)
-   ORDER BY FilenameId, StartTime DESC
+   build_ls_files_query(db, query, 
+                        jobids, pathid, filter.c_str(),
+                        limit, offset);
 
-Mysql
-SELECT FileId, Job.JobId AS JobId, FileIndex, File.PathId AS PathId, 
-       File.FilenameId AS FilenameId, Filename.Name, LStat, MD5 
-FROM Job, File, ( 
-    SELECT MAX(JobTDate) AS JobTDate, PathId, FilenameId 
-      FROM ( 
-        SELECT JobTDate, PathId, FilenameId
-          FROM File JOIN Job USING (JobId)
-         WHERE File.JobId IN (7) AND PathId = 9
-          UNION ALL 
-        SELECT JobTDate, PathId, FilenameId 
-          FROM BaseFiles                 
-               JOIN File USING (FileId) 
-               JOIN Job  ON    (BaseJobId = Job.JobId) 
-         WHERE BaseFiles.JobId IN (7)   AND PathId = 9
-       ) AS tmp GROUP BY PathId, FilenameId
-    ) AS T1 JOIN Filename USING (FilenameId)
-WHERE (Job.JobId IN (  
-        SELECT DISTINCT BaseJobId FROM BaseFiles WHERE JobId IN (7)) 
-        OR Job.JobId IN (7)) 
-  AND T1.JobTDate = Job.JobTDate
-  AND Job.JobId = File.JobId
-  AND T1.PathId = File.PathId 
-  AND T1.FilenameId = File.FilenameId
-
-
-
-*/
-
-   POOL_MEM query;
-   Mmsg(query, //    1              2             3          4
-"SELECT 'F', File.PathId, File.FilenameId, listfiles.Name, File.JobId, "
-        "File.LStat, listfiles.id "
-"FROM File, ( "
-       "SELECT Filename.Name as Name, max(File.FileId) as id "
-         "FROM File, Filename "
-        "WHERE File.FilenameId = Filename.FilenameId "
-          "AND Filename.Name != '' "
-          "AND File.PathId = %s "
-          "AND File.JobId IN (%s) "
-          "%s "
-        "GROUP BY Filename.Name "
-        "ORDER BY Filename.Name LIMIT %d OFFSET %d "
-     ") AS listfiles "
-"WHERE File.FileId = listfiles.id",
-        edit_uint64(pwd_id, ed1),
-        jobids,
-        filter.c_str(),
-        limit,
-        offset);
    Dmsg1(dbglevel_sql, "q=%s\n", query.c_str());
 
    db_lock(db);
@@ -889,8 +846,9 @@ bool Bvfs::compute_restore_list(char *fileid, char *dirid, char *hardlink,
 
    if (*fileid) {
       init=true;
-      Mmsg(tmp, "(SELECT JobId, FileIndex, FilenameId, PathId, FileId "
-                   "FROM File WHERE FileId IN (%s))", fileid);
+      Mmsg(tmp,"(SELECT JobId, JobTDate, FileIndex, FilenameId, PathId, FileId "
+                  "FROM File JOIN Job USING (JobId) WHERE FileId IN (%s))",
+           fileid);
       pm_strcat(query, tmp.c_str());
    }
 
@@ -928,9 +886,10 @@ bool Bvfs::compute_restore_list(char *fileid, char *dirid, char *hardlink,
       if (init) {
          query.strcat(" UNION ");
       }
-      Mmsg(tmp, "(SELECT File.JobId, File.FileIndex, File.FilenameId, "
+      /* TODO: Add basejobs here */
+      Mmsg(tmp, "(SELECT JobId, JobTDate, File.FileIndex, File.FilenameId, "
                         "File.PathId, FileId "
-                   "FROM Path JOIN File USING (PathId) "
+                   "FROM Path JOIN File USING (PathId) JOIN Job USING (JobId) "
                   "WHERE Path.Path LIKE '%s' AND File.JobId IN (%s)) ", 
            tmp2.c_str(), jobids); 
       query.strcat(tmp.c_str());
@@ -953,8 +912,9 @@ bool Bvfs::compute_restore_list(char *fileid, char *dirid, char *hardlink,
             tmp.strcat(")) UNION ");
             query.strcat(tmp.c_str());
          }
-         Mmsg(tmp, "(SELECT JobId, FileIndex, FilenameId, PathId, FileId "
-                       "FROM File WHERE JobId = %lld " 
+         Mmsg(tmp, "(SELECT JobId, JobTDate, FileIndex, FilenameId, "
+                           "PathId, FileId "
+                       "FROM File JOIN Job USING (JobId) WHERE JobId = %lld " 
                         "AND FileIndex IN (%lld", jobid, id);
          prev_jobid = jobid;
 
@@ -980,11 +940,19 @@ bool Bvfs::compute_restore_list(char *fileid, char *dirid, char *hardlink,
    /* TODO: handle basejob and SQLite3 */
    Mmsg(query, sql_bvfs_select[db_type], output_table, output_table);
 
+   /* TODO: handle jobid filter */
    Dmsg1(dbglevel_sql, "q=%s\n", query.c_str());
    if (!db_sql_query(db, query.c_str(), NULL, NULL)) {
       Dmsg0(dbglevel, "Can't execute q\n");
       goto bail_out;
    }
+
+   /* MySQL need it */
+   if (db_type == SQL_TYPE_MYSQL) {
+      Mmsg(query, "CREATE INDEX idx_%s ON b2%s (JobId)", 
+           output_table, output_table);
+   }
+
    ret = true;
 
 bail_out:

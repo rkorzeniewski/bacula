@@ -83,3 +83,4 @@ extern const char CATS_IMP_EXP *sql_media_order_most_recently_written[5];
 extern const char CATS_IMP_EXP *sql_get_max_connections[5];
 extern const uint32_t CATS_IMP_EXP sql_get_max_connections_index[5];
 extern const char *sql_bvfs_select[5];
+extern const char *sql_bvfs_list_files[];

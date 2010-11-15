@@ -919,7 +919,7 @@ const uint32_t sql_get_max_connections_index[5] = {
 const char *sql_bvfs_select[5] = {
    /* Mysql */
    "CREATE TABLE %s AS ( "
-      "SELECT max(JobId) as JobId, FileIndex, FileId "
+      "SELECT JobId, FileIndex, FileId, max(JobTDate) as JobTDate "
         "FROM btemp%s "
       "GROUP BY PathId, FilenameId "
    "HAVING FileIndex > 0)",
@@ -927,9 +927,10 @@ const char *sql_bvfs_select[5] = {
    "CREATE TABLE %s AS ( "
         "SELECT JobId, FileIndex, FileId "
           "FROM ( "
-     "SELECT DISTINCT ON (PathId, FilenameId) JobId, FileIndex, FileId "
-       "FROM btemp%s "
-      "ORDER BY PathId, FilenameId, JobId DESC "
+             "SELECT DISTINCT ON (PathId, FilenameId) "
+                    "JobId, FileIndex, FileId "
+               "FROM btemp%s "
+              "ORDER BY PathId, FilenameId, JobTDate DESC "
           ") AS T "
           "WHERE FileIndex > 0)",
    /* SQLite */
@@ -939,3 +940,63 @@ const char *sql_bvfs_select[5] = {
    /* Ingres (TODO) */
    "SELECT 0"
 };
+
+const char *sql_bvfs_list_files_default = 
+"SELECT 'F', PathId, T1.FilenameId, Filename.Name, "
+        "File.JobId, LStat, FileId "
+"FROM Job, File, ( "
+    "SELECT MAX(JobTDate) AS JobTDate, PathId, FilenameId "
+      "FROM ( "
+        "SELECT JobTDate, PathId, FilenameId "
+          "FROM File JOIN Job USING (JobId) "
+         "WHERE File.JobId IN (%s) AND PathId = %s "
+          "UNION ALL "
+        "SELECT JobTDate, PathId, FilenameId "
+          "FROM BaseFiles "
+               "JOIN File USING (FileId) "
+               "JOIN Job  ON    (BaseJobId = Job.JobId) "
+         "WHERE BaseFiles.JobId IN (%s)   AND PathId = %s "
+       ") AS tmp GROUP BY PathId, FilenameId LIMIT %lld OFFSET %lld"
+    ") AS T1 JOIN Filename USING (FilenameId) "
+"WHERE T1.JobTDate = Job.JobTDate "
+  "AND Job.JobId = File.JobId "
+  "AND T1.PathId = File.PathId "
+  "AND T1.FilenameId = File.FilenameId "
+  "AND Filename.Name != '' "
+  " %s "                     /* AND Name LIKE '' */
+  "AND (Job.JobId IN ( "
+        "SELECT DISTINCT BaseJobId FROM BaseFiles WHERE JobId IN (%s)) "
+       "OR Job.JobId IN (%s)) ";
+
+const char *sql_bvfs_list_files[] = {
+   /* Mysql */
+/* JobId PathId JobId PathId Limit Offset AND? Filename? JobId JobId*/
+   sql_bvfs_list_files_default,
+
+/* JobId PathId JobId PathId WHERE? Filename? Limit Offset*/
+   /* Postgresql */
+ "SELECT DISTINCT ON (FilenameId) 'F', PathId, T.FilenameId, "
+  "Filename.Name, JobId, LStat, FileId "
+   "FROM "
+       "(SELECT FileId, JobId, PathId, FilenameId, FileIndex, LStat, MD5 "
+          "FROM File WHERE JobId IN (%s) AND PathId = %s "
+         "UNION ALL "
+        "SELECT File.FileId, File.JobId, PathId, FilenameId, "
+               "File.FileIndex, LStat, MD5 "
+          "FROM BaseFiles JOIN File USING (FileId) "
+         "WHERE BaseFiles.JobId IN (%s) AND File.PathId = %s "
+        ") AS T JOIN Job USING (JobId) JOIN Filename USING (FilenameId) "
+        " WHERE Filename.Name != '' "
+        " %s "               /* AND Name LIKE '' */
+   "ORDER BY FilenameId, StartTime DESC LIMIT %lld OFFSET %lld",
+
+   /* SQLite */
+   sql_bvfs_list_files_default,
+
+   /* SQLite3 */
+   sql_bvfs_list_files_default,
+
+   /* Ingres (TODO) */
+   sql_bvfs_list_files_default
+};
+
