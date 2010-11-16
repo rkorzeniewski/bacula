@@ -643,9 +643,13 @@ bool Bvfs::ls_dirs()
       return false;
    }
 
+   POOL_MEM query;
    POOL_MEM filter;
    if (*pattern) {
-      Mmsg(filter, " AND Path2.Path %s '%s' ", SQL_MATCH, pattern);
+      int len = strlen(pattern);
+      query.check_size(len*2+1);
+      db_escape_string(jcr, db, query.c_str(), pattern, len);
+      Mmsg(filter, " AND Path2.Path %s '%s' ", SQL_MATCH, query.c_str());
    }
 
    if (!dir_filenameid) {
@@ -661,7 +665,6 @@ bool Bvfs::ls_dirs()
     * my $dir_filenameid = $self->get_dir_filenameid();
     */
    /* Then we get all the dir entries from File ... */
-   POOL_MEM query;
    Mmsg(query,
 //       0     1     2   3      4     5       6
 "SELECT 'D', PathId, 0, Path, JobId, LStat, FileId FROM ( "
@@ -739,7 +742,10 @@ bool Bvfs::ls_files()
 
    edit_uint64(pwd_id, pathid);
    if (*pattern) {
-      Mmsg(filter, " AND Filename.Name %s '%s' ", SQL_MATCH, pattern);
+      int len = strlen(pattern);
+      query.check_size(len*2+1);
+      db_escape_string(jcr, db, query.c_str(), pattern, len);
+      Mmsg(filter, " AND Filename.Name %s '%s' ", SQL_MATCH, query.c_str());
    }
 
    build_ls_files_query(db, query, 
