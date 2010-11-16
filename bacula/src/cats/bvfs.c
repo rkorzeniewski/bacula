@@ -844,7 +844,7 @@ bool Bvfs::compute_restore_list(char *fileid, char *dirid, char *hardlink,
 
    Mmsg(query, "CREATE TEMPORARY TABLE btemp%s AS ", output_table);
 
-   if (*fileid) {
+   if (*fileid) {               /* Select files with their direct id */
       init=true;
       Mmsg(tmp,"(SELECT JobId, JobTDate, FileIndex, FilenameId, PathId, FileId "
                   "FROM File JOIN Job USING (JobId) WHERE FileId IN (%s))",
@@ -852,6 +852,7 @@ bool Bvfs::compute_restore_list(char *fileid, char *dirid, char *hardlink,
       pm_strcat(query, tmp.c_str());
    }
 
+   /* Add a directory content */
    while (get_next_id_from_list(&dirid, &id) == 1) {
       Mmsg(tmp, "SELECT Path FROM Path WHERE PathId=%lld", id);
       
@@ -886,7 +887,7 @@ bool Bvfs::compute_restore_list(char *fileid, char *dirid, char *hardlink,
       if (init) {
          query.strcat(" UNION ");
       }
-      /* TODO: Add basejobs here */
+
       Mmsg(tmp, "(SELECT JobId, JobTDate, File.FileIndex, File.FilenameId, "
                         "File.PathId, FileId "
                    "FROM Path JOIN File USING (PathId) JOIN Job USING (JobId) "
@@ -894,6 +895,19 @@ bool Bvfs::compute_restore_list(char *fileid, char *dirid, char *hardlink,
            tmp2.c_str(), jobids); 
       query.strcat(tmp.c_str());
       init = true;
+
+      query.strcat(" UNION ");
+
+      /* A directory can have files from a BaseJob */
+      Mmsg(tmp, "(SELECT File.JobId, JobTDate, BaseFiles.FileIndex, "
+                        "File.FilenameId, File.PathId, BaseFiles.FileId "
+                   "FROM BaseFiles "
+                        "JOIN File USING (FileId) "
+                        "JOIN Job ON (BaseFiles.JobId = Job.JobId) "
+                        "JOIN Path USING (PathId) "
+                  "WHERE Path.Path LIKE '%s' AND BaseFiles.JobId IN (%s)) ", 
+           tmp2.c_str(), jobids); 
+      query.strcat(tmp.c_str());
    }
 
    /* expect jobid,fileindex */
