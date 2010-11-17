@@ -418,6 +418,7 @@ static void update_attribute(JCR *jcr, char *msg, int32_t msglen)
     *   Encoded attributes
     *   Link name (if type==FT_LNK or FT_LNKSAVED)
     *   Encoded extended-attributes (for Win32)
+    *   Delta sequence number (32 bit int)
     *
     * Restore Object
     *   File_index
@@ -447,14 +448,26 @@ static void update_attribute(JCR *jcr, char *msg, int32_t msglen)
       jcr->attr = check_pool_memory_size(jcr->attr, msglen);
       memcpy(jcr->attr, msg, msglen);
       p = jcr->attr - msg + p;    /* point p into jcr->attr */
-      skip_nonspaces(&p);             /* skip FileIndex */
+      skip_nonspaces(&p);         /* skip FileIndex */
       skip_spaces(&p);
       ar->FileType = str_to_int32(p); 
-      skip_nonspaces(&p);             /* skip FileType */
+      skip_nonspaces(&p);         /* skip FileType */
       skip_spaces(&p);
       fname = p;
       len = strlen(fname);        /* length before attributes */
       attr = &fname[len+1];
+      ar->DeltaSeq = 0;
+      if (ar->FileType == FT_REG) {
+         p = attr + strlen(attr) + 1;  /* point to link */
+         p = p + strlen(p) + 1;        /* point to extended attributes */
+         p = p + strlen(p) + 1;        /* point to delta sequence */
+         /*
+          * Older FDs don't have a delta sequence, so check if it is there 
+          */
+         if (p - jcr->attr < msglen) {
+            ar->DeltaSeq = str_to_int32(p);
+         }
+      }
 
       Dmsg2(400, "dird<stored: stream=%d %s\n", Stream, fname);
       Dmsg1(400, "dird<stored: attr=%s\n", attr);
