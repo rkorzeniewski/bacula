@@ -1187,15 +1187,16 @@ bool encode_and_send_attributes(JCR *jcr, FF_PKT *ff_pkt, int &data_stream)
    case FT_LNK:
    case FT_LNKSAVED:
       Dmsg2(300, "Link %s to %s\n", ff_pkt->fname, ff_pkt->link);
-      stat = sd->fsend("%ld %d %s%c%s%c%s%c%s%c", jcr->JobFiles,
-               ff_pkt->type, ff_pkt->fname, 0, attribs, 0, ff_pkt->link, 0,
-               attribsEx, 0);
+      stat = sd->fsend("%ld %d %s%c%s%c%s%c%s%c%u%c", jcr->JobFiles,
+                       ff_pkt->type, ff_pkt->fname, 0, attribs, 0, 
+                       ff_pkt->link, 0, attribsEx, 0, ff_pkt->delta_seq, 0);
       break;
    case FT_DIREND:
    case FT_REPARSE:
       /* Here link is the canonical filename (i.e. with trailing slash) */
-      stat = sd->fsend("%ld %d %s%c%s%c%c%s%c", jcr->JobFiles,
-               ff_pkt->type, ff_pkt->link, 0, attribs, 0, 0, attribsEx, 0);
+      stat = sd->fsend("%ld %d %s%c%s%c%c%s%c%u%c", jcr->JobFiles,
+                       ff_pkt->type, ff_pkt->link, 0, attribs, 0, 0, 
+                       attribsEx, 0, ff_pkt->delta_seq, 0);
       break;
    case FT_RESTORE_FIRST:
       comp_len = ff_pkt->object_len;
@@ -1229,8 +1230,9 @@ bool encode_and_send_attributes(JCR *jcr, FF_PKT *ff_pkt, int &data_stream)
       }
       break;
    default:
-      stat = sd->fsend("%ld %d %s%c%s%c%c%s%c", jcr->JobFiles,
-               ff_pkt->type, ff_pkt->fname, 0, attribs, 0, 0, attribsEx, 0);
+      stat = sd->fsend("%ld %d %s%c%s%c%c%s%c%u%c", jcr->JobFiles,
+                       ff_pkt->type, ff_pkt->fname, 0, attribs, 0, 0, 
+                       attribsEx, 0, ff_pkt->delta_seq, 0);
       break;
    }
    if (ff_pkt->type != FT_DELETED) {

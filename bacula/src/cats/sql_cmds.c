@@ -280,7 +280,7 @@ const char *uar_jobids_fileindex =
 const char *uar_jobid_fileindex_from_table = 
    "SELECT JobId,FileIndex from %s";
 
-/* Get the list of the last recent version with a given jobid list 
+/* Get the list of the last recent version per Delta with a given jobid list 
  * This is a tricky part because with SQL the result of 
  *
  * SELECT MAX(A), B, C, D FROM... GROUP BY (B,C)
@@ -290,10 +290,9 @@ const char *uar_jobid_fileindex_from_table =
  * With PostgreSQL, we can use DISTINCT ON(), but with Mysql or Sqlite,
  * we need an extra join using JobTDate. 
  */
-const char *select_recent_version_with_basejob[5] = {
- /* MySQL */
+const char *select_recent_version_with_basejob_default = 
 "SELECT FileId, Job.JobId AS JobId, FileIndex, File.PathId AS PathId, "
-       "File.FilenameId AS FilenameId, LStat, MD5 "
+       "File.FilenameId AS FilenameId, LStat, MD5, MarkId "
 "FROM Job, File, ( "
     "SELECT MAX(JobTDate) AS JobTDate, PathId, FilenameId "
       "FROM ( "
@@ -306,7 +305,8 @@ const char *select_recent_version_with_basejob[5] = {
                "JOIN File USING (FileId) "
                "JOIN Job  ON    (BaseJobId = Job.JobId) "
          "WHERE BaseFiles.JobId IN (%s) "        /* Use Max(JobTDate) to find */
-       ") AS tmp GROUP BY PathId, FilenameId "   /* the latest file version */
+       ") AS tmp "
+       "GROUP BY PathId, FilenameId "            /* the latest file version */
     ") AS T1 "
 "WHERE (Job.JobId IN ( "  /* Security, we force JobId to be valid */
         "SELECT DISTINCT BaseJobId FROM BaseFiles WHERE JobId IN (%s)) "
@@ -314,102 +314,110 @@ const char *select_recent_version_with_basejob[5] = {
   "AND T1.JobTDate = Job.JobTDate " /* Join on JobTDate to get the orginal */
   "AND Job.JobId = File.JobId "     /* Job/File record */
   "AND T1.PathId = File.PathId "
-  "AND T1.FilenameId = File.FilenameId",
+  "AND T1.FilenameId = File.FilenameId";
+
+const char *select_recent_version_with_basejob[5] = {
+ /* MySQL */
+   select_recent_version_with_basejob_default,
 
   /* Postgresql */    /* The DISTINCT ON () permits to avoid extra join */
  "SELECT DISTINCT ON (FilenameId, PathId) StartTime, JobId, FileId, "
-         "FileIndex, PathId, FilenameId, LStat, MD5 "
+         "FileIndex, PathId, FilenameId, LStat, MD5, MarkId "
    "FROM "
-       "(SELECT FileId, JobId, PathId, FilenameId, FileIndex, LStat, MD5 "
-          "FROM File WHERE JobId IN (%s) "
-         "UNION ALL "
-        "SELECT File.FileId, File.JobId, PathId, FilenameId, "
-               "File.FileIndex, LStat, MD5 "
-          "FROM BaseFiles JOIN File USING (FileId) "
-         "WHERE BaseFiles.JobId IN (%s) "
-        ") AS T JOIN Job USING (JobId) "
+     "(SELECT FileId, JobId, PathId, FilenameId, FileIndex, LStat, MD5, MarkId "
+         "FROM File WHERE JobId IN (%s) "
+        "UNION ALL "
+       "SELECT File.FileId, File.JobId, PathId, FilenameId, "
+              "File.FileIndex, LStat, MD5, MarkId "
+         "FROM BaseFiles JOIN File USING (FileId) "
+        "WHERE BaseFiles.JobId IN (%s) "
+       ") AS T JOIN Job USING (JobId) "
    "ORDER BY FilenameId, PathId, StartTime DESC ",
 
-  /* SQLite */              /* See Mysql section for doc */
-"SELECT FileId, Job.JobId AS JobId, FileIndex, File.PathId AS PathId, "
-       "File.FilenameId AS FilenameId, LStat, MD5 "
-"FROM Job, File, ( "
-    "SELECT MAX(JobTDate) AS JobTDate, PathId, FilenameId "
-      "FROM ( "
-        "SELECT JobTDate, PathId, FilenameId "
-          "FROM File JOIN Job USING (JobId) "
-         "WHERE File.JobId IN (%s) "
-          "UNION ALL "
-        "SELECT JobTDate, PathId, FilenameId "
-          "FROM BaseFiles "
-               "JOIN File USING (FileId) "
-               "JOIN Job  ON    (BaseJobId = Job.JobId) "
-         "WHERE BaseFiles.JobId IN (%s) "
-       ") AS tmp GROUP BY PathId, FilenameId "
-    ") AS T1 "
-"WHERE (Job.JobId IN ( "
-       "SELECT DISTINCT BaseJobId FROM BaseFiles WHERE JobId IN (%s)) "
-       "OR Job.JobId IN (%s)) "
-  "AND T1.JobTDate = Job.JobTDate "
-  "AND Job.JobId = File.JobId "
-  "AND T1.PathId = File.PathId "
-  "AND T1.FilenameId = File.FilenameId",
+  /* SQLite */
+   select_recent_version_with_basejob_default,
 
- /* SQLite3 */              /* See Mysql section for doc */
-"SELECT FileId, Job.JobId AS JobId, FileIndex, File.PathId AS PathId, "
-       "File.FilenameId AS FilenameId, LStat, MD5 "
-"FROM Job, File, ( "
-    "SELECT MAX(JobTDate) AS JobTDate, PathId, FilenameId "
-      "FROM ( "
-        "SELECT JobTDate, PathId, FilenameId "
-          "FROM File JOIN Job USING (JobId) "
-         "WHERE File.JobId IN (%s) "
-          "UNION ALL "
-        "SELECT JobTDate, PathId, FilenameId "
-          "FROM BaseFiles "
-               "JOIN File USING (FileId) "
-               "JOIN Job  ON    (BaseJobId = Job.JobId) "
-         "WHERE BaseFiles.JobId IN (%s) "
-       ") AS tmp GROUP BY PathId, FilenameId "
-    ") AS T1 "
-"WHERE (Job.JobId IN ( "
-         "SELECT DISTINCT BaseJobId FROM BaseFiles WHERE JobId IN (%s)) "
-        "OR Job.JobId IN (%s)) "
-  "AND T1.JobTDate = Job.JobTDate "
-  "AND Job.JobId = File.JobId "
-  "AND T1.PathId = File.PathId "
-  "AND T1.FilenameId = File.FilenameId",
+ /* SQLite3 */
+   select_recent_version_with_basejob_default,
 
-  /* Ingres */              /* See Mysql section for doc */
-"SELECT FileId, Job.JobId AS JobId, FileIndex, File.PathId AS PathId, "
-       "File.FilenameId AS FilenameId, LStat, MD5 "
-"FROM Job, File, ( "
-    "SELECT MAX(JobTDate) AS JobTDate, PathId, FilenameId "
-      "FROM ( "
-        "SELECT JobTDate, PathId, FilenameId "
-          "FROM File JOIN Job USING (JobId) "
-         "WHERE File.JobId IN (%s) "
-          "UNION ALL "
-        "SELECT JobTDate, PathId, FilenameId "
-          "FROM BaseFiles "
-               "JOIN File USING (FileId) "
-               "JOIN Job  ON    (BaseJobId = Job.JobId) "
-         "WHERE BaseFiles.JobId IN (%s) "
-       ") AS tmp GROUP BY PathId, FilenameId "
-    ") AS T1 "
-"WHERE (Job.JobId IN ( "
-         "SELECT DISTINCT BaseJobId FROM BaseFiles WHERE JobId IN (%s)) "
-        "OR Job.JobId IN (%s)) "
-  "AND T1.JobTDate = Job.JobTDate "
-  "AND Job.JobId = File.JobId "
-  "AND T1.PathId = File.PathId "
-  "AND T1.FilenameId = File.FilenameId"
+  /* Ingres */
+   select_recent_version_with_basejob_default
 };
 
-/* Get the list of the last recent version with a given BaseJob jobid list */
-const char *select_recent_version[5] = {
-   /* MySQL */
-   "SELECT j1.JobId AS JobId, f1.FileId AS FileId, f1.FileIndex AS FileIndex, "
+/* We do the same thing than the previous query, but we include
+ * all delta parts. If the file has been deleted, we can have irrelevant
+ * parts.
+ *
+ * The code that uses results should control the delta sequence with
+ * the following rules:
+ * First Delta = 0
+ * Delta = Previous Delta + 1
+ *
+ * If we detect a gap, we can discard further pieces
+ * If a file starts at 1 instead of 0, the file has been deleted, and further
+ * pieces are useless.
+ * 
+ * This control should be reset for each new file
+ */
+const char *select_recent_version_with_basejob_and_delta_default = 
+"SELECT FileId, Job.JobId AS JobId, FileIndex, File.PathId AS PathId, "
+       "File.FilenameId AS FilenameId, LStat, MD5, MarkId "
+"FROM Job, File, ( "
+    "SELECT MAX(JobTDate) AS JobTDate, PathId, FilenameId, MarkId "
+      "FROM ( "
+        "SELECT JobTDate, PathId, FilenameId "   /* Get all normal files */
+          "FROM File JOIN Job USING (JobId) "    /* from selected backup */
+         "WHERE File.JobId IN (%s) "
+          "UNION ALL "
+        "SELECT JobTDate, PathId, FilenameId "   /* Get all files from */ 
+          "FROM BaseFiles "                      /* BaseJob */
+               "JOIN File USING (FileId) "
+               "JOIN Job  ON    (BaseJobId = Job.JobId) "
+         "WHERE BaseFiles.JobId IN (%s) "        /* Use Max(JobTDate) to find */
+       ") AS tmp "
+       "GROUP BY PathId, FilenameId, MarkId "    /* the latest file version */
+    ") AS T1 "
+"WHERE (Job.JobId IN ( "  /* Security, we force JobId to be valid */
+        "SELECT DISTINCT BaseJobId FROM BaseFiles WHERE JobId IN (%s)) "
+        "OR Job.JobId IN (%s)) "
+  "AND T1.JobTDate = Job.JobTDate " /* Join on JobTDate to get the orginal */
+  "AND Job.JobId = File.JobId "     /* Job/File record */
+  "AND T1.PathId = File.PathId "
+  "AND T1.FilenameId = File.FilenameId";
+
+const char *select_recent_version_with_basejob_and_delta[5] = {
+ /* MySQL */
+   select_recent_version_with_basejob_and_delta_default,
+
+  /* Postgresql */    /* The DISTINCT ON () permits to avoid extra join */
+ "SELECT DISTINCT ON (FilenameId, PathId, MarkId) JobTDate, JobId, FileId, "
+         "FileIndex, PathId, FilenameId, LStat, MD5, MarkId "
+   "FROM "
+     "(SELECT FileId, JobId, PathId, FilenameId, FileIndex, LStat, MD5, MarkId "
+         "FROM File WHERE JobId IN (%s) "
+        "UNION ALL "
+       "SELECT File.FileId, File.JobId, PathId, FilenameId, "
+              "File.FileIndex, LStat, MD5, MarkId "
+         "FROM BaseFiles JOIN File USING (FileId) "
+        "WHERE BaseFiles.JobId IN (%s) "
+       ") AS T JOIN Job USING (JobId) "
+   "ORDER BY FilenameId, PathId, MarkId, JobTDate DESC ",
+
+  /* SQLite */
+   select_recent_version_with_basejob_and_delta_default,
+
+ /* SQLite3 */
+   select_recent_version_with_basejob_and_delta_default,
+
+  /* Ingres */
+   select_recent_version_with_basejob_and_delta_default
+};
+
+/* Get the list of the last recent version with a given BaseJob jobid list
+ * We don't handle Delta with BaseJobs, they have only Full files
+ */
+const char *select_recent_version_default = 
+  "SELECT j1.JobId AS JobId, f1.FileId AS FileId, f1.FileIndex AS FileIndex, "
           "f1.PathId AS PathId, f1.FilenameId AS FilenameId, "
           "f1.LStat AS LStat, f1.MD5 AS MD5 "
      "FROM ( "     /* Choose the last version for each Path/Filename */
@@ -422,62 +430,27 @@ const char *select_recent_version[5] = {
       "AND j1.JobId IN (%s) "
       "AND t1.FilenameId = f1.FilenameId "
       "AND t1.PathId = f1.PathId "
-      "AND j1.JobId = f1.JobId",
+      "AND j1.JobId = f1.JobId";
+
+const char *select_recent_version[5] = {
+   /* MySQL */
+   select_recent_version_default,
 
    /* Postgresql */
-   "SELECT DISTINCT ON (FilenameId, PathId) StartTime, JobId, FileId, "
+   "SELECT DISTINCT ON (FilenameId, PathId) JobTDate, JobId, FileId, "
           "FileIndex, PathId, FilenameId, LStat, MD5 "
      "FROM File JOIN Job USING (JobId) "
     "WHERE JobId IN (%s) "
-    "ORDER BY FilenameId, PathId, StartTime DESC ",
+    "ORDER BY FilenameId, PathId, JobTDate DESC ",
 
    /* SQLite */
-   "SELECT j1.JobId AS JobId, f1.FileId AS FileId, f1.FileIndex AS FileIndex, "
-          "f1.PathId AS PathId, f1.FilenameId AS FilenameId, "
-          "f1.LStat AS LStat, f1.MD5 AS MD5 "
-     "FROM ( "
-       "SELECT max(JobTDate) AS JobTDate, PathId, FilenameId "
-         "FROM File JOIN Job USING (JobId) "
-        "WHERE File.JobId IN (%s) "
-       "GROUP BY PathId, FilenameId "
-     ") AS t1, Job AS j1, File AS f1 "
-    "WHERE t1.JobTDate = j1.JobTDate "
-      "AND j1.JobId IN (%s) "
-      "AND t1.FilenameId = f1.FilenameId "
-      "AND t1.PathId = f1.PathId "
-      "AND j1.JobId = f1.JobId",
+   select_recent_version_default,
 
    /* SQLite3 */
-   "SELECT j1.JobId AS JobId, f1.FileId AS FileId, f1.FileIndex AS FileIndex, "
-          "f1.PathId AS PathId, f1.FilenameId AS FilenameId, "
-          "f1.LStat AS LStat, f1.MD5 AS MD5 "
-     "FROM ( "
-       "SELECT max(JobTDate) AS JobTDate, PathId, FilenameId "
-         "FROM File JOIN Job USING (JobId) "
-        "WHERE File.JobId IN (%s) "
-       "GROUP BY PathId, FilenameId "
-     ") AS t1, Job AS j1, File AS f1 "
-    "WHERE t1.JobTDate = j1.JobTDate "
-      "AND j1.JobId IN (%s) "
-      "AND t1.FilenameId = f1.FilenameId "
-      "AND t1.PathId = f1.PathId "
-      "AND j1.JobId = f1.JobId",
+   select_recent_version_default,
 
    /* Ingres */
-   "SELECT j1.JobId AS JobId, f1.FileId AS FileId, f1.FileIndex AS FileIndex, "
-          "f1.PathId AS PathId, f1.FilenameId AS FilenameId, "
-          "f1.LStat AS LStat, f1.MD5 AS MD5 "
-     "FROM ( "     /* Choose the last version for each Path/Filename */
-       "SELECT max(JobTDate) AS JobTDate, PathId, FilenameId "
-         "FROM File JOIN Job USING (JobId) "
-        "WHERE File.JobId IN (%s) "
-       "GROUP BY PathId, FilenameId "
-     ") AS t1, Job AS j1, File AS f1 "
-    "WHERE t1.JobTDate = j1.JobTDate "
-      "AND j1.JobId IN (%s) "
-      "AND t1.FilenameId = f1.FilenameId "
-      "AND t1.PathId = f1.PathId "
-      "AND j1.JobId = f1.JobId"
+   select_recent_version_default
 };
 
 /* We don't create this table as TEMPORARY because MySQL MyISAM 

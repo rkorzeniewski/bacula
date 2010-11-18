@@ -137,7 +137,7 @@ static bool get_base_jobids(JCR *jcr, db_list_ctx *jobids)
 }
 
 /*
- * Foreach files in currrent list, send "/path/fname\0LStat\0MD5" to FD
+ * Foreach files in currrent list, send "/path/fname\0LStat\0MD5\0Delta" to FD
  */
 static int accurate_list_handler(void *ctx, int num_fields, char **row)
 {
@@ -147,21 +147,21 @@ static int accurate_list_handler(void *ctx, int num_fields, char **row)
       return 1;
    }
    
-   if (row[2] == 0) {           /* discard when file_index == 0 */
+   if (row[2][0] == '0') {           /* discard when file_index == 0 */
       return 0;
    }
 
    /* sending with checksum */
    if (jcr->use_accurate_chksum 
-       && num_fields == 6 
+       && num_fields == 7 
        && row[5][0] /* skip checksum = '0' */
        && row[5][1])
    { 
-      jcr->file_bsock->fsend("%s%s%c%s%c%s", 
-                             row[0], row[1], 0, row[4], 0, row[5]); 
+      jcr->file_bsock->fsend("%s%s%c%s%c%s%c%s", 
+                             row[0], row[1], 0, row[4], 0, row[5], 0, row[6]); 
    } else {
-      jcr->file_bsock->fsend("%s%s%c%s", 
-                             row[0], row[1], 0, row[4]); 
+      jcr->file_bsock->fsend("%s%s%c%s%c%c%s", 
+                             row[0], row[1], 0, row[4], 0, 0, row[6]); 
    }
    return 0;
 }
@@ -229,8 +229,8 @@ static bool is_checksum_needed_by_fileset(JCR *jcr)
 /*
  * Send current file list to FD
  *    DIR -> FD : accurate files=xxxx
- *    DIR -> FD : /path/to/file\0Lstat\0MD5
- *    DIR -> FD : /path/to/dir/\0Lstat\0MD5
+ *    DIR -> FD : /path/to/file\0Lstat\0MD5\0Delta
+ *    DIR -> FD : /path/to/dir/\0Lstat\0MD5\0Delta
  *    ...
  *    DIR -> FD : EOD
  */

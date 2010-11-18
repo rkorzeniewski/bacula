@@ -40,6 +40,7 @@ typedef struct PrivateCurFile {
    char *fname;
    char *lstat;
    char *chksum;
+   int32_t delta_seq;
    bool seen;
 } CurFile;
 
@@ -199,7 +200,8 @@ bool accurate_finish(JCR *jcr)
 }
 
 static bool accurate_add_file(JCR *jcr, uint32_t len, 
-                              char *fname, char *lstat, char *chksum)
+                              char *fname, char *lstat, char *chksum,
+                              int32_t delta)
 {
    bool ret = true;
    CurFile elt;
@@ -219,9 +221,12 @@ static bool accurate_add_file(JCR *jcr, uint32_t len,
    item->chksum = item->lstat+strlen(item->lstat)+1;
    strcpy(item->chksum, chksum);
 
+   item->delta_seq = delta;
+
    jcr->file_list->insert(item->fname, item); 
 
-   Dmsg3(dbglvl, "add fname=<%s> lstat=%s chksum=%s\n", fname, lstat, chksum);
+   Dmsg4(dbglvl, "add fname=<%s> lstat=%s  delta_seq=%i chksum=%s\n", 
+         fname, lstat, delta, chksum);
    return ret;
 }
 
@@ -246,6 +251,8 @@ bool accurate_check_file(JCR *jcr, FF_PKT *ff_pkt)
    char *fname;
    CurFile elt;
 
+   ff_pkt->delta_seq = 0;
+
    if (!jcr->accurate) {
       return true;
    }
@@ -263,6 +270,9 @@ bool accurate_check_file(JCR *jcr, FF_PKT *ff_pkt)
       stat = true;
       goto bail_out;
    }
+
+   ff_pkt->delta_seq = elt.delta_seq;
+   Dmsg1(10, "accurate delta_seq=%i\n", ff_pkt->delta_seq);
 
    if (elt.seen) { /* file has been seen ? */
       Dmsg1(dbglvl, "accurate %s (already seen)\n", fname);
@@ -479,6 +489,7 @@ int accurate_cmd(JCR *jcr)
    BSOCK *dir = jcr->dir_bsock;
    int lstat_pos, chksum_pos;
    int32_t nb;
+   uint16_t delta_seq;
 
    if (job_canceled(jcr)) {
       return true;
@@ -494,7 +505,7 @@ int accurate_cmd(JCR *jcr)
 
    /*
     * buffer = sizeof(CurFile) + dirmsg
-    * dirmsg = fname + \0 + lstat + \0 + checksum + \0
+    * dirmsg = fname + \0 + lstat + \0 + checksum + \0 + delta_seq + \0
     */
    /* get current files */
    while (dir->recv() >= 0) {
@@ -504,12 +515,18 @@ int accurate_cmd(JCR *jcr)
 
          if (chksum_pos >= dir->msglen) {
             chksum_pos = lstat_pos - 1;    /* tweak: no checksum, point to the last \0 */
-         } 
+            delta_seq = 0;
+         } else {
+            delta_seq = str_to_int32(dir->msg + 
+                                     chksum_pos + 
+                                     strlen(dir->msg + chksum_pos) + 1);
+         }
 
          accurate_add_file(jcr, dir->msglen, 
                            dir->msg,               /* Path */
                            dir->msg + lstat_pos,   /* LStat */
-                           dir->msg + chksum_pos); /* CheckSum */
+                           dir->msg + chksum_pos,  /* CheckSum */
+                           delta_seq);             /* Delta Sequence */
       }
    }
 

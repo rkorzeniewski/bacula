@@ -1111,14 +1111,15 @@ bool db_get_file_list(JCR *jcr, B_DB *mdb, char *jobids,
    Mmsg(buf2, select_recent_version_with_basejob[db_type], 
         jobids, jobids, jobids, jobids);
    Mmsg(buf,
-"SELECT Path.Path, Filename.Name, Temp.FileIndex, Temp.JobId, LStat, MD5 "
- "FROM ( %s ) AS Temp "
- "JOIN Filename ON (Filename.FilenameId = Temp.FilenameId) "
- "JOIN Path ON (Path.PathId = Temp.PathId) "
+"SELECT Path.Path, Filename.Name, T1.FileIndex, T1.JobId, LStat, MD5, MarkId "
+ "FROM ( %s ) AS T1 "
+ "JOIN Filename ON (Filename.FilenameId = T1.FilenameId) "
+ "JOIN Path ON (Path.PathId = T1.PathId) "
 "WHERE FileIndex > 0 "
-"ORDER BY Temp.JobId, FileIndex ASC",/* Return sorted by JobId, */
+"ORDER BY T1.JobId, FileIndex ASC",/* Return sorted by JobId, */
                                      /* FileIndex for restore code */ 
         buf2.c_str());
+   Dmsg1(100, "q=%s\n", buf.c_str());
 #else
    /*  
     * I am not sure that this works the same as the code in ua_restore.c but it
@@ -1243,7 +1244,7 @@ bool db_get_base_file_list(JCR *jcr, B_DB *mdb,
    POOL_MEM buf(PM_MESSAGE);
          
    Mmsg(buf,
- "SELECT Path, Name, FileIndex, JobId, LStat, MD5 "
+ "SELECT Path, Name, FileIndex, JobId, LStat, MD5, 0 As MarkId "
    "FROM new_basefile%lld ORDER BY JobId, FileIndex ASC",
         (uint64_t) jcr->JobId);
 

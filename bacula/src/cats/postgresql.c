@@ -749,7 +749,8 @@ int my_postgresql_batch_start(JCR *jcr, B_DB *mdb)
                                "path varchar,"
                                "name varchar,"
                                "lstat varchar,"
-                               "md5 varchar)") == 1)
+                               "md5 varchar,"
+                               "markid int)") == 1)
    {
       Dmsg0(500, "my_postgresql_batch_start failed\n");
       return 1;
@@ -857,9 +858,9 @@ int my_postgresql_batch_insert(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
       digest = ar->Digest;
    }
 
-   len = Mmsg(mdb->cmd, "%u\t%s\t%s\t%s\t%s\t%s\n", 
+   len = Mmsg(mdb->cmd, "%u\t%s\t%s\t%s\t%s\t%s\t%u\n", 
               ar->FileIndex, edit_int64(ar->JobId, ed1), mdb->esc_path, 
-              mdb->esc_name, ar->attr, digest);
+              mdb->esc_name, ar->attr, digest, ar->DeltaSeq);
 
    do { 
       res = PQputCopyData(mdb->db,

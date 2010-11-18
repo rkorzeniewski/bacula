@@ -763,7 +763,8 @@ bool my_batch_start(JCR *jcr, B_DB *mdb)
                 "Path blob,"
                 "Name blob,"
                 "LStat tinyblob,"
-                "MD5 tinyblob)",NULL, NULL);
+                "MD5 tinyblob,"
+                "MarkId integer)",NULL, NULL);
    db_unlock(mdb);
    return ok;
 }
@@ -790,9 +791,10 @@ bool my_batch_insert(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
       digest = ar->Digest;
    }
 
-   len = Mmsg(mdb->cmd, "INSERT INTO batch VALUES (%u,%s,'%s','%s','%s','%s')",
+   len = Mmsg(mdb->cmd, "INSERT INTO batch VALUES "
+                         "(%u,%s,'%s','%s','%s','%s',%u)",
               ar->FileIndex, edit_int64(ar->JobId,ed1), mdb->esc_path, 
-              mdb->esc_name, ar->attr, digest);
+              mdb->esc_name, ar->attr, digest, ar->DeltaSeq);
 
    return INSERT_DB(jcr, mdb, mdb->cmd);
 }
@@ -884,12 +886,12 @@ bool db_write_batch_file_records(JCR *jcr)
    }
    
    if (!db_sql_query(jcr->db_batch, 
-       "INSERT INTO File (FileIndex, JobId, PathId, FilenameId, LStat, MD5) "
-         "SELECT batch.FileIndex, batch.JobId, Path.PathId, "
-                "Filename.FilenameId,batch.LStat, batch.MD5 "
-           "FROM batch "
-           "JOIN Path ON (batch.Path = Path.Path) "
-           "JOIN Filename ON (batch.Name = Filename.Name)",
+  "INSERT INTO File (FileIndex, JobId, PathId, FilenameId, LStat, MD5, MarkId) "
+    "SELECT batch.FileIndex, batch.JobId, Path.PathId, "
+           "Filename.FilenameId,batch.LStat, batch.MD5, batch.MarkId "
+      "FROM batch "
+      "JOIN Path ON (batch.Path = Path.Path) "
+      "JOIN Filename ON (batch.Name = Filename.Name)",
                      NULL,NULL))
    {
       Jmsg1(jcr, M_FATAL, 0, "Fill File table %s\n", jcr->db_batch->errmsg);
@@ -1023,9 +1025,9 @@ static int db_create_file_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
    /* Must create it */
    Mmsg(mdb->cmd,
         "INSERT INTO File (FileIndex,JobId,PathId,FilenameId,"
-        "LStat,MD5) VALUES (%u,%u,%u,%u,'%s','%s')",
+        "LStat,MD5,MarkId) VALUES (%u,%u,%u,%u,'%s','%s',%u)",
         ar->FileIndex, ar->JobId, ar->PathId, ar->FilenameId,
-        ar->attr, digest);
+        ar->attr, digest, ar->DeltaSeq);
 
    ar->FileId = sql_insert_autokey_record(mdb, mdb->cmd, NT_("File"));
    if (ar->FileId == 0) {

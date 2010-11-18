@@ -197,6 +197,7 @@ struct FF_PKT {
    struct stat statp;                 /* stat packet */
    int32_t FileIndex;                 /* FileIndex of this file */
    int32_t LinkFI;                    /* FileIndex of main hard linked file */
+   int32_t delta_seq;                 /* Delta Sequence number */
    int32_t object_index;              /* Object index */
    int32_t object_len;                /* Object length */
    int32_t object_compression;        /* Type of compression for object */
