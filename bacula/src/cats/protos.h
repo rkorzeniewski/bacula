@@ -104,7 +104,7 @@ bool db_find_failed_job_since(JCR *jcr, B_DB *mdb, JOB_DBR *jr, POOLMEM *stime, 
 /* sql_get.c */
 bool db_get_volume_jobids(JCR *jcr, B_DB *mdb, 
                          MEDIA_DBR *mr, db_list_ctx *lst);
-bool db_get_base_file_list(JCR *jcr, B_DB *mdb,
+bool db_get_base_file_list(JCR *jcr, B_DB *mdb, bool use_md5,
                            DB_RESULT_HANDLER *result_handler,void *ctx);
 int db_get_path_record(JCR *jcr, B_DB *mdb);
 bool db_get_pool_record(JCR *jcr, B_DB *db, POOL_DBR *pdbr);
@@ -123,7 +123,7 @@ int db_get_job_volume_parameters(JCR *jcr, B_DB *mdb, JobId_t JobId, VOL_PARAMS 
 int db_get_client_record(JCR *jcr, B_DB *mdb, CLIENT_DBR *cdbr);
 int db_get_counter_record(JCR *jcr, B_DB *mdb, COUNTER_DBR *cr);
 bool db_get_query_dbids(JCR *jcr, B_DB *mdb, POOL_MEM &query, dbid_list &ids);
-bool db_get_file_list(JCR *jcr, B_DB *mdb, char *jobids, DB_RESULT_HANDLER *result_handler, void *ctx);
+bool db_get_file_list(JCR *jcr, B_DB *mdb, char *jobids, bool use_md5, DB_RESULT_HANDLER *result_handler, void *ctx);
 bool db_get_base_jobid(JCR *jcr, B_DB *mdb, JOB_DBR *jr, JobId_t *jobid);
 bool db_accurate_get_jobids(JCR *jcr, B_DB *mdb, JOB_DBR *jr, db_list_ctx *jobids);
 bool db_get_used_base_jobids(JCR *jcr, B_DB *mdb, POOLMEM *jobids, db_list_ctx *result);

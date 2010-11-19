@@ -196,7 +196,7 @@ int main (int argc, char *argv[])
       }
 
       start = get_current_btime();
-      db_get_file_list(NULL, db, restore_list, list_handler, &nb_file);
+      db_get_file_list(NULL, db, restore_list, false, list_handler, &nb_file);
       end = get_current_btime();
 
       Pmsg3(0, _("Computing file list for jobid=%s files=%lld secs=%d\n"), 

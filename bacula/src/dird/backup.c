@@ -138,6 +138,8 @@ static bool get_base_jobids(JCR *jcr, db_list_ctx *jobids)
 
 /*
  * Foreach files in currrent list, send "/path/fname\0LStat\0MD5\0Delta" to FD
+ *      row[0]=Path, row[1]=Filename, row[2]=FileIndex
+ *      row[3]=JobId row[4]=LStat row[5]=MarkId row[6]=MD5
  */
 static int accurate_list_handler(void *ctx, int num_fields, char **row)
 {
@@ -154,14 +156,14 @@ static int accurate_list_handler(void *ctx, int num_fields, char **row)
    /* sending with checksum */
    if (jcr->use_accurate_chksum 
        && num_fields == 7 
-       && row[5][0] /* skip checksum = '0' */
-       && row[5][1])
+       && row[6][0] /* skip checksum = '0' */
+       && row[6][1])
    { 
       jcr->file_bsock->fsend("%s%s%c%s%c%s%c%s", 
-                             row[0], row[1], 0, row[4], 0, row[5], 0, row[6]); 
+                             row[0], row[1], 0, row[4], 0, row[6], 0, row[5]); 
    } else {
       jcr->file_bsock->fsend("%s%s%c%s%c%c%s", 
-                             row[0], row[1], 0, row[4], 0, 0, row[6]); 
+                             row[0], row[1], 0, row[4], 0, 0, row[5]); 
    }
    return 0;
 }
@@ -290,11 +292,12 @@ bool send_accurate_current_files(JCR *jcr)
    if (jcr->HasBase) {
       jcr->nb_base_files = str_to_int64(nb.list);
       db_create_base_file_list(jcr, jcr->db, jobids.list);
-      db_get_base_file_list(jcr, jcr->db, 
+      db_get_base_file_list(jcr, jcr->db, jcr->use_accurate_chksum,
                             accurate_list_handler, (void *)jcr);
 
    } else {
-      db_get_file_list(jcr, jcr->db_batch, jobids.list, 
+      db_get_file_list(jcr, jcr->db_batch,
+                       jobids.list, jcr->use_accurate_chksum,
                        accurate_list_handler, (void *)jcr);
    } 
 

@@ -483,7 +483,7 @@ static bool create_bootstrap_file(JCR *jcr, char *jobids)
       return false;
    }
 
-   if (!db_get_file_list(jcr, jcr->db_batch, jobids, 
+   if (!db_get_file_list(jcr, jcr->db_batch, jobids, false /* don't use md5 */,
                          insert_bootstrap_handler, (void *)rx.bsr))
    {
       Jmsg(jcr, M_ERROR, 0, "%s", db_strerror(jcr->db_batch));

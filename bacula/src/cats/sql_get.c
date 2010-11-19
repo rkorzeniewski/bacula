@@ -1083,6 +1083,15 @@ bool db_get_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
    return ok;
 }
 
+/* Remove all MD5 from a query (can save lot of memory with many files) */
+static void replace_md5(char *q)
+{
+   char *p = q;
+   while ((p = strstr(p, ", MD5"))) {
+      memset(p, ' ', 5 * sizeof(char));
+   }
+}
+
 /**
  * Find the last "accurate" backup state (that can take deleted files in
  * account)
@@ -1094,7 +1103,7 @@ bool db_get_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
  *
  * TODO: See if we can do the SORT only if needed (as an argument)
  */
-bool db_get_file_list(JCR *jcr, B_DB *mdb, char *jobids, 
+bool db_get_file_list(JCR *jcr, B_DB *mdb, char *jobids, bool use_md5,
                       DB_RESULT_HANDLER *result_handler, void *ctx)
 {
    if (!*jobids) {
@@ -1111,7 +1120,7 @@ bool db_get_file_list(JCR *jcr, B_DB *mdb, char *jobids,
    Mmsg(buf2, select_recent_version_with_basejob[db_type], 
         jobids, jobids, jobids, jobids);
    Mmsg(buf,
-"SELECT Path.Path, Filename.Name, T1.FileIndex, T1.JobId, LStat, MD5, MarkId "
+"SELECT Path.Path, Filename.Name, T1.FileIndex, T1.JobId, LStat, MarkId, MD5 "
  "FROM ( %s ) AS T1 "
  "JOIN Filename ON (Filename.FilenameId = T1.FilenameId) "
  "JOIN Path ON (Path.PathId = T1.PathId) "
@@ -1119,6 +1128,9 @@ bool db_get_file_list(JCR *jcr, B_DB *mdb, char *jobids,
 "ORDER BY T1.JobTDate, FileIndex ASC",/* Return sorted by JobId, */
                                       /* FileIndex for restore code */ 
         buf2.c_str());
+   if (!use_md5) {
+      replace_md5(buf.c_str());
+   }
    Dmsg1(100, "q=%s\n", buf.c_str());
 #else
    /*  
@@ -1238,16 +1250,19 @@ bail_out:
    return ret;
 }
 
-bool db_get_base_file_list(JCR *jcr, B_DB *mdb,
+bool db_get_base_file_list(JCR *jcr, B_DB *mdb, bool use_md5,
                            DB_RESULT_HANDLER *result_handler, void *ctx)
 {
    POOL_MEM buf(PM_MESSAGE);
          
    Mmsg(buf,
- "SELECT Path, Name, FileIndex, JobId, LStat, MD5, 0 As MarkId "
+ "SELECT Path, Name, FileIndex, JobId, LStat, 0 As MarkId, MD5 "
    "FROM new_basefile%lld ORDER BY JobId, FileIndex ASC",
         (uint64_t) jcr->JobId);
-
+   
+   if (!use_md5) {
+      replace_md5(buf.c_str());
+   }
    return db_sql_query(mdb, buf.c_str(), result_handler, ctx);
 }
 
