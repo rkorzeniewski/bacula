@@ -1116,8 +1116,8 @@ bool db_get_file_list(JCR *jcr, B_DB *mdb, char *jobids,
  "JOIN Filename ON (Filename.FilenameId = T1.FilenameId) "
  "JOIN Path ON (Path.PathId = T1.PathId) "
 "WHERE FileIndex > 0 "
-"ORDER BY T1.JobId, FileIndex ASC",/* Return sorted by JobId, */
-                                     /* FileIndex for restore code */ 
+"ORDER BY T1.JobTDate, FileIndex ASC",/* Return sorted by JobId, */
+                                      /* FileIndex for restore code */ 
         buf2.c_str());
    Dmsg1(100, "q=%s\n", buf.c_str());
 #else

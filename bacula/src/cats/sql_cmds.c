@@ -292,7 +292,8 @@ const char *uar_jobid_fileindex_from_table =
  */
 const char *select_recent_version_with_basejob_default = 
 "SELECT FileId, Job.JobId AS JobId, FileIndex, File.PathId AS PathId, "
-       "File.FilenameId AS FilenameId, LStat, MD5, MarkId "
+       "File.FilenameId AS FilenameId, LStat, MD5, MarkId, "
+       "Job.JobTDate AS JobTDate"
 "FROM Job, File, ( "
     "SELECT MAX(JobTDate) AS JobTDate, PathId, FilenameId "
       "FROM ( "
@@ -321,7 +322,7 @@ const char *select_recent_version_with_basejob[5] = {
    select_recent_version_with_basejob_default,
 
   /* Postgresql */    /* The DISTINCT ON () permits to avoid extra join */
- "SELECT DISTINCT ON (FilenameId, PathId) StartTime, JobId, FileId, "
+ "SELECT DISTINCT ON (FilenameId, PathId) JobTDate, JobId, FileId, "
          "FileIndex, PathId, FilenameId, LStat, MD5, MarkId "
    "FROM "
      "(SELECT FileId, JobId, PathId, FilenameId, FileIndex, LStat, MD5, MarkId "
@@ -332,7 +333,7 @@ const char *select_recent_version_with_basejob[5] = {
          "FROM BaseFiles JOIN File USING (FileId) "
         "WHERE BaseFiles.JobId IN (%s) "
        ") AS T JOIN Job USING (JobId) "
-   "ORDER BY FilenameId, PathId, StartTime DESC ",
+   "ORDER BY FilenameId, PathId, JobTDate DESC ",
 
   /* SQLite */
    select_recent_version_with_basejob_default,
@@ -361,7 +362,8 @@ const char *select_recent_version_with_basejob[5] = {
  */
 const char *select_recent_version_with_basejob_and_delta_default = 
 "SELECT FileId, Job.JobId AS JobId, FileIndex, File.PathId AS PathId, "
-       "File.FilenameId AS FilenameId, LStat, MD5, MarkId "
+       "File.FilenameId AS FilenameId, LStat, MD5, MarkId, "
+       "Job.JobTDate AS JobTDate "
 "FROM Job, File, ( "
     "SELECT MAX(JobTDate) AS JobTDate, PathId, FilenameId, MarkId "
       "FROM ( "
@@ -419,7 +421,7 @@ const char *select_recent_version_with_basejob_and_delta[5] = {
 const char *select_recent_version_default = 
   "SELECT j1.JobId AS JobId, f1.FileId AS FileId, f1.FileIndex AS FileIndex, "
           "f1.PathId AS PathId, f1.FilenameId AS FilenameId, "
-          "f1.LStat AS LStat, f1.MD5 AS MD5 "
+          "f1.LStat AS LStat, f1.MD5 AS MD5, j1.JobTDate "
      "FROM ( "     /* Choose the last version for each Path/Filename */
        "SELECT max(JobTDate) AS JobTDate, PathId, FilenameId "
          "FROM File JOIN Job USING (JobId) "
