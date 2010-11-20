@@ -16,13 +16,19 @@ LIBDIR=../../lib
 .c.lo:
 	$(LIBTOOL_COMPILE) $(CXX) $(DEFS) $(DEBUG) $(CPPFLAGS) -I${SRCDIR} -I${FDDIR} -DTEST_PROGRAM -c $<
 
-all: bpipe-fd.la test-plugin-fd.la
+all: bpipe-fd.la test-plugin-fd.la delta-test-fd.la
 
 bpipe-fd.lo: bpipe-fd.c ${FDDIR}/fd_plugins.h
 	$(LIBTOOL_COMPILE) $(CXX) $(DEFS) $(DEBUG) $(CPPFLAGS) $(CFLAGS) -I../.. -I${FDDIR} -c bpipe-fd.c
 
 bpipe-fd.la: Makefile bpipe-fd$(DEFAULT_OBJECT_TYPE)
 	$(LIBTOOL_LINK) $(CXX) $(LDFLAGS) -shared bpipe-fd.lo -o $@ -rpath $(plugindir) -module -export-dynamic -avoid-version 
+
+delta-test-fd.lo: delta-test-fd.c ${FDDIR}/fd_plugins.h fd_common.h
+	$(LIBTOOL_COMPILE) $(CXX) $(DEFS) $(DEBUG) $(CPPFLAGS) $(CFLAGS) -I../.. -I${FDDIR} -c delta-test-fd.c
+
+delta-test-fd.la: Makefile delta-test-fd$(DEFAULT_OBJECT_TYPE)
+	$(LIBTOOL_LINK) $(CXX) $(LDFLAGS) -shared delta-test-fd.lo -o $@ -rpath $(plugindir) -module -export-dynamic -avoid-version 
 
 test-plugin-fd.lo: test-plugin-fd.c ${FDDIR}/fd_plugins.h
 	$(LIBTOOL_COMPILE) $(CXX) $(DEFS) $(DEBUG) $(CPPFLAGS) $(CFLAGS) -I../.. -I${FDDIR} -c test-plugin-fd.c
