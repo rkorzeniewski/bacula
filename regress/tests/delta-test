@@ -90,4 +90,13 @@ check_two_logs
 
 stop_bacula
 
+head -c 300 /etc/passwd > $tmp/source
+diff -u $tmp/source $tmp/delta.txt > $tmp/d
+if [ $? -ne 0 ]; then
+    print_debug "ERROR: delta.txt and source are different, restore failed"
+    print_debug `cat $tmp/d`
+    cat -ev $tmp/delta.*
+    dstat=1
+fi
+
 end_test
