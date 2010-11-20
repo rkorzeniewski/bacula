@@ -24,6 +24,8 @@ EOF
 
 $bperl -e 'add_attribute("$conf/bacula-dir.conf", "FileSet", "FS_DELTA", "Job", "pluginTest")'
 
+# install the delta plugin
+make -C build/src/plugins/fd install-test-plugin >/dev/null
 
 start_test
 
