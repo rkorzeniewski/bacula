@@ -202,7 +202,6 @@ struct FF_PKT {
    int32_t object_index;              /* Object index */
    int32_t object_len;                /* Object length */
    int32_t object_compression;        /* Type of compression for object */
-   uint32_t delta_seq;                /* Delta sequence number */
    struct f_link *linked;             /* Set if this file is hard linked */
    int type;                          /* FT_ type from above */
    int ff_errno;                      /* errno */

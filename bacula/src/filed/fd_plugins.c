@@ -398,6 +398,7 @@ int plugin_save(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
             ff_pkt->link = link.c_str();
             if (sp.flags & FO_DELTA) {
                ff_pkt->flags |= FO_DELTA;
+               ff_pkt->delta_seq++;          /* make new delta sequence number */
             } else {
                ff_pkt->flags &= ~FO_DELTA;
             }
