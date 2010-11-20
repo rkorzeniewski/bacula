@@ -907,8 +907,10 @@ static ssize_t my_plugin_bread(BFILE *bfd, void *buf, size_t count)
    io.count = count;
    io.buf = (char *)buf;
    io.win32 = false;
+   io.offset = 0;
    io.lerror = 0;
    plug_func(plugin)->pluginIO(jcr->plugin_ctx, &io);
+   bfd->offset = io.offset;
    bfd->berrno = io.io_errno;
    if (io.win32) {
       errno = b_errno_win32;
