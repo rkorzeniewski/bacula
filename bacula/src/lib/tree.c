@@ -111,6 +111,7 @@ static TREE_NODE *new_tree_node(TREE_ROOT *root)
    int size = sizeof(TREE_NODE);
    node = (TREE_NODE *)tree_alloc(root, size);
    memset(node, 0, size);
+   node->delta_seq = -1;
    return node;
 }
 
@@ -125,7 +126,16 @@ static void free_tree_node(TREE_ROOT *root)
    root->mem->mem -= asize;
 }
 
-
+void tree_remove_node(TREE_ROOT *root, TREE_NODE *node)
+{
+   int asize = BALIGN(sizeof(TREE_NODE));
+   node->parent->child.remove(node);
+   if ((root->mem->mem - asize) == (char *)node) {
+      free_tree_node(root);
+   } else {
+      Dmsg0(0, "Can't release tree node\n");
+   }
+}
 
 /*
  * Allocate bytes for filename in tree structure.
@@ -172,6 +182,18 @@ void free_tree(TREE_ROOT *root)
    return;
 }
 
+/* Add Delta part for this node */
+void tree_add_delta_part(TREE_ROOT *root, TREE_NODE *node,
+                         JobId_t JobId, int32_t FileIndex)
+{
+   struct delta_list *elt = 
+      (struct delta_list*) tree_alloc(root, sizeof(struct delta_list));
+
+   elt->next = node->delta_list;
+   elt->JobId = JobId;
+   elt->FileIndex = FileIndex;
+   node->delta_list = elt;
+}
 
 /*
  * Insert a node in the tree. This is the main subroutine
