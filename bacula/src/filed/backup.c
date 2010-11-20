@@ -750,7 +750,7 @@ int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
    }
 
 good_rtn:
-   rtnstat = 1;                       /* good return */
+   rtnstat = jcr->is_job_canceled() ? 0 : 1; /* good return if not canceled */
 
 bail_out:
    if (ff_pkt->cmd_plugin && plugin_started) {
@@ -1220,7 +1220,7 @@ bool encode_and_send_attributes(JCR *jcr, FF_PKT *ff_pkt, int &data_stream)
          }
          Dmsg2(100, "Object compressed from %d to %d bytes\n", ff_pkt->object_len, comp_len);
       }
-      sd->msglen = Mmsg(sd->msg, "%d %d %d %d %d %d %s%c%s%c", 
+      sd->msglen = Mmsg(sd->msg, "%d %d %d %d %d %d %s%c%s%c",
                         jcr->JobFiles, ff_pkt->type, ff_pkt->object_index,
                         comp_len, ff_pkt->object_len, ff_pkt->object_compression,
                         ff_pkt->fname, 0, ff_pkt->object_name, 0);
@@ -1235,12 +1235,12 @@ bool encode_and_send_attributes(JCR *jcr, FF_PKT *ff_pkt, int &data_stream)
       break;
    case FT_REG:
       stat = sd->fsend("%ld %d %s%c%s%c%c%s%c%d%c", jcr->JobFiles,
-               ff_pkt->type, ff_pkt->fname, 0, attribs, 0, 0, attribsEx, 0, 
+               ff_pkt->type, ff_pkt->fname, 0, attribs, 0, 0, attribsEx, 0,
                ff_pkt->delta_seq, 0);
       break;
    default:
       stat = sd->fsend("%ld %d %s%c%s%c%c%s%c%u%c", jcr->JobFiles,
-                       ff_pkt->type, ff_pkt->fname, 0, attribs, 0, 0, 
+                       ff_pkt->type, ff_pkt->fname, 0, attribs, 0, 0,
                        attribsEx, 0, ff_pkt->delta_seq, 0);
       break;
    }

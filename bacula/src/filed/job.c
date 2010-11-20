@@ -452,13 +452,13 @@ static int cancel_cmd(JCR *jcr)
       if (!(cjcr=get_jcr_by_full_name(Job))) {
          dir->fsend(_("2901 Job %s not found.\n"), Job);
       } else {
+         generate_plugin_event(cjcr, bEventCancelCommand, NULL);
+         set_jcr_job_status(cjcr, JS_Canceled);
          if (cjcr->store_bsock) {
             cjcr->store_bsock->set_timed_out();
             cjcr->store_bsock->set_terminated();
             cjcr->my_thread_send_signal(TIMEOUT_SIGNAL);
          }
-         generate_plugin_event(cjcr, bEventCancelCommand, NULL);
-         set_jcr_job_status(cjcr, JS_Canceled);
          free_jcr(cjcr);
          dir->fsend(_("2001 Job %s marked to be canceled.\n"), Job);
       }
