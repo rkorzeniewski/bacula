@@ -191,10 +191,11 @@ int insert_tree_handler(void *ctx, int num_fields, char **row)
    int type;
    bool hard_link, ok;
    int FileIndex;
+   int32_t delta_seq;
    JobId_t JobId;
 
-   Dmsg4(400, "Path=%s%s FI=%s JobId=%s\n", row[0], row[1],
-      row[2], row[3]);
+   Dmsg4(100, "Path=%s%s FI=%s JobId=%s\n", row[0], row[1],
+         row[2], row[3]);
    if (*row[1] == 0) {                 /* no filename => directory */
       if (!IsPathSeparator(*row[0])) { /* Must be Win32 directory */
          type = TN_DIR_NLS;
@@ -208,7 +209,28 @@ int insert_tree_handler(void *ctx, int num_fields, char **row)
    node = insert_tree_node(row[0], row[1], type, tree->root, NULL);
    JobId = str_to_int64(row[3]);
    FileIndex = str_to_int64(row[2]);
-   Dmsg2(400, "JobId=%s FileIndex=%s\n", row[3], row[2]);
+   delta_seq = str_to_int64(row[5]);
+   Dmsg5(100, "node=0x%p JobId=%s FileIndex=%s Delta=%s node.delta=%d\n",
+         node, row[3], row[2], row[5], node->delta_seq);
+
+   /* TODO: check with hardlinks */
+   if (delta_seq > 0) {
+      if (delta_seq == (node->delta_seq + 1)) {
+         tree_add_delta_part(tree->root, node, node->JobId, node->FileIndex);
+
+      } else {
+         /* File looks to be deleted */
+         if (node->delta_seq == -1) { /* just created */
+            tree_remove_node(tree->root, node);
+
+         } else {
+            Dmsg3(0, "Something is wrong with Delta, skipt it "
+                  "fname=%s d1=%d d2=%d\n", 
+                  row[1], node->delta_seq, delta_seq);
+         }
+         return 0;
+      }
+   }
    /*
     * - The first time we see a file (node->inserted==true), we accept it.
     * - In the same JobId, we accept only the first copy of a
@@ -232,6 +254,8 @@ int insert_tree_handler(void *ctx, int num_fields, char **row)
       node->JobId = JobId;
       node->type = type;
       node->soft_link = S_ISLNK(statp.st_mode) != 0;
+      node->delta_seq = delta_seq;
+
       if (tree->all) {
          node->extract = true;          /* extract all by default */
          if (type == TN_DIR || type == TN_DIR_NLS) {

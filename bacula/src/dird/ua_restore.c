@@ -1066,6 +1066,17 @@ static bool ask_for_fileregex(UAContext *ua, RESTORE_CTX *rx)
    return false;
 }
 
+/* Walk on the delta_list of a TREE_NODE item and insert all parts
+ * TODO: Optimize for bootstrap creation 
+ */
+static void add_delta_list_findex(RESTORE_CTX *rx, struct delta_list *lst)
+{
+   while (lst != NULL) {
+      add_findex(rx->bsr, lst->JobId, lst->FileIndex);
+      lst = lst->next;
+   }
+}
+
 static bool build_directory_tree(UAContext *ua, RESTORE_CTX *rx)
 {
    TREE_CTX tree;
@@ -1106,9 +1117,9 @@ static bool build_directory_tree(UAContext *ua, RESTORE_CTX *rx)
 
 #define new_get_file_list
 #ifdef new_get_file_list
-   if (!db_get_file_list(ua->jcr, ua->db, 
-                         rx->JobIds, false /* do not use md5 */, 
-                         insert_tree_handler, (void *)&tree))
+   if (!db_get_file_list_with_delta(ua->jcr, ua->db, 
+                                    rx->JobIds, false /* do not use md5 */, 
+                                    insert_tree_handler, (void *)&tree))
    {
       ua->error_msg("%s", db_strerror(ua->db));
    }
@@ -1184,6 +1195,8 @@ static bool build_directory_tree(UAContext *ua, RESTORE_CTX *rx)
             Dmsg2(400, "FI=%d node=0x%x\n", node->FileIndex, node);
             if (node->extract || node->extract_dir) {
                Dmsg3(400, "JobId=%lld type=%d FI=%d\n", (uint64_t)node->JobId, node->type, node->FileIndex);
+               /* TODO: optimize bsr insertion when jobid are non sorted */
+               add_delta_list_findex(rx, node->delta_list);
                add_findex(rx->bsr, node->JobId, node->FileIndex);
                if (node->extract && node->type != TN_NEWDIR) {
                   rx->selected_files++;  /* count only saved files */
