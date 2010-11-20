@@ -91,6 +91,9 @@ int select_data_stream(FF_PKT *ff_pkt)
    } else {
       stream = STREAM_FILE_DATA;
    }
+   if (ff_pkt->flags & FO_DELTA) {
+      stream = STREAM_SPARSE_DATA;
+   }
 
    /** Encryption is only supported for file data */
    if (stream != STREAM_FILE_DATA && stream != STREAM_WIN32_DATA &&
