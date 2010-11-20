@@ -44,9 +44,11 @@ status client=$CLIENT
 messages
 run job=$JobName level=Incremental yes
 wait
+messages
 status client=$CLIENT
 run job=$JobName level=Incremental yes
 wait
+messages
 status client=$CLIENT
 quit
 END_OF_DATA
@@ -65,12 +67,14 @@ m *
 done
 yes
 wait
+messages
 @exec "cp $tmp/delta.txt $tmp/delta.F.txt"
 restore where=$tmp jobid=2
 m *
 done
 yes
 wait
+messages
 @exec "cp $tmp/delta.txt $tmp/delta.I1.txt"
 restore where=$tmp jobid=3
 m *
