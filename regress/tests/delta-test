@@ -23,6 +23,7 @@ FileSet {
 EOF
 
 $bperl -e 'add_attribute("$conf/bacula-dir.conf", "FileSet", "FS_DELTA", "Job", "pluginTest")'
+$bperl -e 'add_attribute("$conf/bacula-dir.conf", "Accurate", "yes", "Job", "pluginTest")'
 
 # install the delta plugin
 make -C build/src/plugins/fd install-test-plugin >/dev/null
@@ -59,7 +60,21 @@ messages
 @#
 @$out ${cwd}/tmp/log2.out
 setdebug level=50 client=$CLIENT
-restore where=$tmp select all done
+restore where=$tmp jobid=1
+m *
+done
+yes
+wait
+@exec "cp $tmp/delta.txt $tmp/delta.F.txt"
+restore where=$tmp jobid=2
+m *
+done
+yes
+wait
+@exec "cp $tmp/delta.txt $tmp/delta.I1.txt"
+restore where=$tmp jobid=3
+m *
+done
 yes
 wait
 messages
