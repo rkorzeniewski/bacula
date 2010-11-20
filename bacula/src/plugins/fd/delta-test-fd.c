@@ -42,7 +42,7 @@
 extern "C" {
 #endif
 
-static const int dbglvl = 150;
+static const int dbglvl = 0;
 
 #define PLUGIN_LICENSE      "Bacula AGPLv3"
 #define PLUGIN_AUTHOR       "Eric Bollengier"
@@ -265,7 +265,7 @@ static bRC handlePluginEvent(bpContext *ctx, bEvent *event, void *value)
       /* Fall-through wanted */
    case bEventBackupCommand:
       /* TODO: analyse plugin command here */
-      pm_strcpy(self->fname, "delta.txt");
+      pm_strcpy(self->fname, "/delta.txt");
       break;
 
    default:
@@ -299,7 +299,9 @@ static bRC startBackupFile(bpContext *ctx, struct save_pkt *sp)
       /* Should always be bRC_OK */
       sp->type = (state == bRC_Seen)? FT_NOCHG : FT_REG;
       sp->flags |= FO_DELTA;
-      self->delta = sp->delta_seq;
+      self->delta = sp->delta_seq + 1;
+      Dmsg(ctx, dbglvl, "delta-fd: delta_seq=%i delta=%i\n", 
+           sp->delta_seq, self->delta);
    }
 
 // Dmsg(ctx, dbglvl, "delta-fd: startBackupFile\n");
@@ -335,7 +337,7 @@ static bRC pluginIO(bpContext *ctx, struct io_pkt *io)
    case IO_OPEN:
       Dmsg(ctx, dbglvl, "delta-fd: IO_OPEN\n");
       if (io->flags & (O_CREAT | O_WRONLY)) {
-         self->fd = fopen("/tmp/passwd", "w");
+         self->fd = fopen("/tmp/passwd", "w+");
          if (!self->fd) {
             io->io_errno = errno;
             Jmsg(ctx, M_FATAL, 0, 
@@ -382,7 +384,6 @@ static bRC pluginIO(bpContext *ctx, struct io_pkt *io)
          Jmsg(ctx, M_FATAL, 0, "Logic error: NULL write FD\n");
          return bRC_Error;
       }
-      fseek(self->fd, self->delta * io->count, SEEK_SET);
       io->status = fwrite(io->buf, 1, io->count, self->fd);
 
       if (io->status == 0 && ferror(self->fd)) {
@@ -396,13 +397,17 @@ static bRC pluginIO(bpContext *ctx, struct io_pkt *io)
 
    case IO_CLOSE:
       if (!self->fd) {
-         Jmsg(ctx, M_FATAL, 0, "Logic error: NULL FD on bpipe close\n");
+         Jmsg(ctx, M_FATAL, 0, "Logic error: NULL FD on delta close\n");
          return bRC_Error;
       }
       io->status = fclose(self->fd);
       break;
 
    case IO_SEEK:
+      if (!self->fd) {
+         Jmsg(ctx, M_FATAL, 0, "Logic error: NULL FD on delta close\n");
+         return bRC_Error;
+      }
       io->status = fseek(self->fd, io->offset, io->whence);
       break;
    }
