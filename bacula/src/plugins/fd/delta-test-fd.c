@@ -348,7 +348,7 @@ static bRC pluginIO(bpContext *ctx, struct io_pkt *io)
    case IO_OPEN:
       Dmsg(ctx, dbglvl, "delta-fd: IO_OPEN\n");
       if (io->flags & (O_CREAT | O_WRONLY)) {
-         self->fd = fopen(self->fname, "w+");
+         self->fd = fopen(self->fname, "a+");
          if (!self->fd) {
             io->io_errno = errno;
             Jmsg(ctx, M_FATAL, 0, 
@@ -379,6 +379,7 @@ static bRC pluginIO(bpContext *ctx, struct io_pkt *io)
          io->offset = self->delta * 100;
          fseek(self->fd, io->offset, SEEK_SET);
          io->status = fread(io->buf, 1, 100, self->fd);
+         Dmsg(ctx, dbglvl, "delta-fd: READ offset=%lld\n", (int64_t)io->offset);
          self->done = true;
       }
       if (io->status == 0 && ferror(self->fd)) {
@@ -396,8 +397,8 @@ static bRC pluginIO(bpContext *ctx, struct io_pkt *io)
          Jmsg(ctx, M_FATAL, 0, "Logic error: NULL write FD\n");
          return bRC_Error;
       }
+      Dmsg(ctx, dbglvl, "delta-fd: WRITE count=%lld\n", (int64_t)io->count);
       io->status = fwrite(io->buf, 1, io->count, self->fd);
-
       if (io->status == 0 && ferror(self->fd)) {
          Jmsg(ctx, M_FATAL, 0, 
             "Pipe write error\n");
@@ -420,7 +421,7 @@ static bRC pluginIO(bpContext *ctx, struct io_pkt *io)
          Jmsg(ctx, M_FATAL, 0, "Logic error: NULL FD on delta close\n");
          return bRC_Error;
       }
-      Dmsg(ctx, dbglvl, "delta-fd: seek offset=%lld\n", (int64_t)io->offset);
+      Dmsg(ctx, dbglvl, "delta-fd: SEEK offset=%lld\n", (int64_t)io->offset);
       io->status = fseek(self->fd, io->offset, io->whence);
       break;
    }
