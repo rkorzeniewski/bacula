@@ -214,6 +214,7 @@ static bRC setPluginValue(bpContext *ctx, pVariable var, void *value)
 static bRC handlePluginEvent(bpContext *ctx, bEvent *event, void *value)
 {
    delta_test *self = get_self(ctx);
+   int accurate=0;
 
    if (!self) {
       return bRC_Error;
@@ -246,6 +247,16 @@ static bRC handlePluginEvent(bpContext *ctx, bEvent *event, void *value)
    case bEventLevel:
 //    Dmsg(ctx, dbglvl, "delta-fd: JobLevel=%c %d\n", (int)value, (int)value);
       self->level = (int)(intptr_t)value;
+      if (self->level == 'I' || self->level == 'D') {
+         bfuncs->getBaculaValue(ctx, bVarAccurate, (void *)&accurate);
+         if (!accurate) {       /* can be changed to FATAL */
+            Jmsg(ctx, M_FATAL, 
+                 "Accurate mode should be turned on when using the "
+                 "delta-test plugin\n");
+            return bRC_Error;
+         }
+      }
+
       break;
    case bEventSince:
 //    Dmsg(ctx, dbglvl, "delta-fd: since=%d\n", (int)value);
