@@ -337,7 +337,7 @@ static bRC pluginIO(bpContext *ctx, struct io_pkt *io)
    case IO_OPEN:
       Dmsg(ctx, dbglvl, "delta-fd: IO_OPEN\n");
       if (io->flags & (O_CREAT | O_WRONLY)) {
-         self->fd = fopen("/tmp/passwd", "w+");
+         self->fd = fopen(self->fname, "w+");
          if (!self->fd) {
             io->io_errno = errno;
             Jmsg(ctx, M_FATAL, 0, 
@@ -377,6 +377,7 @@ static bRC pluginIO(bpContext *ctx, struct io_pkt *io)
             "Pipe read error: ERR=%s\n", strerror(errno));
          return bRC_Error;
       }
+      Dmsg(ctx, dbglvl, "offset=%d\n", io->offset);
       break;
 
    case IO_WRITE:
@@ -408,6 +409,7 @@ static bRC pluginIO(bpContext *ctx, struct io_pkt *io)
          Jmsg(ctx, M_FATAL, 0, "Logic error: NULL FD on delta close\n");
          return bRC_Error;
       }
+      Dmsg(ctx, dbglvl, "delta-fd: seek offset=%lld\n", (int64_t)io->offset);
       io->status = fseek(self->fd, io->offset, io->whence);
       break;
    }
@@ -446,6 +448,8 @@ static bRC endRestoreFile(bpContext *ctx)
  */
 static bRC createFile(bpContext *ctx, struct restore_pkt *rp)
 {
+   delta_test *self = get_self(ctx);
+   pm_strcpy(self->fname, rp->ofname);
    rp->create_status = CF_EXTRACT;
    return bRC_OK;
 }
