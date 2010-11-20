@@ -85,7 +85,7 @@ struct BFILE {
    DWORD rw_bytes;                    /* Bytes read or written */
    DWORD lerror;                      /* Last error code */
    int berrno;                        /* errno */
-   bofset_t offset;                   /* Delta offset */
+   boffset_t offset;                  /* Delta offset */
    JCR *jcr;                          /* jcr for editing job codes */
    PROCESS_WIN32_BACKUPAPIBLOCK_CONTEXT win32DecompContext; /* context for decomposition of win32 backup streams */
    int use_backup_decomp;             /* set if using BackupRead Stream Decomposition */
