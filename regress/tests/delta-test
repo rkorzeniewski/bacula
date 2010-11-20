@@ -57,7 +57,7 @@ messages
 @#
 @$out ${cwd}/tmp/log2.out
 setdebug level=50 client=$CLIENT
-restore select all done
+restore where=$tmp select all done
 yes
 wait
 messages
