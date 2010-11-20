@@ -354,6 +354,7 @@ int plugin_save(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
          sp.pkt_size = sizeof(sp);
          sp.pkt_end = sizeof(sp);
          sp.portable = true;
+         sp.flags = 0;
          sp.cmd = cmd;
          Dmsg3(dbglvl, "startBackup st_size=%p st_blocks=%p sp=%p\n", &sp.statp.st_size, &sp.statp.st_blocks,
                 &sp);
@@ -395,6 +396,11 @@ int plugin_save(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
             pm_strcpy(link, sp.link);
             ff_pkt->fname = fname.c_str();
             ff_pkt->link = link.c_str();
+            if (sp.flags & FO_DELTA) {
+               ff_pkt->flags |= FO_DELTA;
+            } else {
+               ff_pkt->flags &= ~FO_DELTA;
+            }
          }
 
          memcpy(&ff_pkt->statp, &sp.statp, sizeof(ff_pkt->statp));
@@ -412,9 +418,9 @@ int plugin_save(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
             continue;
          }
          goto bail_out;
-      }
+      } /* end while loop */
       goto bail_out;
-   }
+   } /* end loop over all plugins */
    Jmsg1(jcr, M_FATAL, 0, "Command plugin \"%s\" not found.\n", cmd);
 
 bail_out:

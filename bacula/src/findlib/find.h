@@ -102,6 +102,7 @@ int readdir_r(DIR *dirp, struct dirent *entry, struct dirent **result);
 #define FO_STRIPPATH    (1<<25)       /* Check for stripping path */
 #define FO_HONOR_NODUMP (1<<26)       /* honor NODUMP flag */
 #define FO_XATTR        (1<<27)       /* Backup Extended Attributes */
+#define FO_DELTA        (1<<28)       /* Do delta on file */
 
 struct s_included_file {
    struct s_included_file *next;
@@ -201,6 +202,7 @@ struct FF_PKT {
    int32_t object_index;              /* Object index */
    int32_t object_len;                /* Object length */
    int32_t object_compression;        /* Type of compression for object */
+   uint32_t delta_seq;                /* Delta sequence number */
    struct f_link *linked;             /* Set if this file is hard linked */
    int type;                          /* FT_ type from above */
    int ff_errno;                      /* errno */

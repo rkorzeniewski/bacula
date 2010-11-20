@@ -810,7 +810,7 @@ static int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest,
    int zstat;
 
    if (ff_pkt->flags & FO_GZIP) {
-      if (ff_pkt->flags & FO_SPARSE) {
+      if ((ff_pkt->flags & FO_SPARSE) || (ff_pkt->flags & FO_DELTA)) {
          cbuf = (Bytef *)jcr->compress_buf + SPARSE_FADDR_SIZE;
          max_compress_len = jcr->compress_buf_size - SPARSE_FADDR_SIZE;
       } else {
@@ -884,7 +884,7 @@ static int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest,
     * Make space at beginning of buffer for fileAddr because this
     *   same buffer will be used for writing if compression is off.
     */
-   if (ff_pkt->flags & FO_SPARSE) {
+   if ((ff_pkt->flags & FO_SPARSE) || (ff_pkt->flags & FO_DELTA)) {
       rbuf += SPARSE_FADDR_SIZE;
       rsize -= SPARSE_FADDR_SIZE;
 #ifdef HAVE_FREEBSD_OS
@@ -927,6 +927,10 @@ static int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest,
          if (allZeros) {
             continue;                 /* skip block of zeros */
          }
+      } else if (ff_pkt->flags & FO_DELTA) {
+         ser_declare;
+         ser_begin(wbuf, SPARSE_FADDR_SIZE);
+         ser_uint64(ff_pkt->bfd.offset);     /* store offset in begin of buffer */
       }
 
       jcr->ReadBytes += sd->msglen;         /* count bytes read */
@@ -991,7 +995,7 @@ static int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest,
          uint32_t initial_len = 0;
          ser_declare;
 
-         if (ff_pkt->flags & FO_SPARSE) {
+         if ((ff_pkt->flags & FO_SPARSE) || (ff_pkt->flags & FO_DELTA)) {
             cipher_input_len += SPARSE_FADDR_SIZE;
          }
 
@@ -1027,7 +1031,7 @@ static int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest,
       }
 
       /* Send the buffer to the Storage daemon */
-      if (ff_pkt->flags & FO_SPARSE) {
+      if ((ff_pkt->flags & FO_SPARSE) || (ff_pkt->flags & FO_DELTA)) {
          sd->msglen += SPARSE_FADDR_SIZE; /* include fileAddr in size */
       }
       sd->msg = wbuf;              /* set correct write buffer */
@@ -1228,6 +1232,11 @@ bool encode_and_send_attributes(JCR *jcr, FF_PKT *ff_pkt, int &data_stream)
       if (ff_pkt->object_compression) {
          free_and_null_pool_memory(ff_pkt->object);
       }
+      break;
+   case FT_REG:
+      stat = sd->fsend("%ld %d %s%c%s%c%c%s%c%d%c", jcr->JobFiles,
+               ff_pkt->type, ff_pkt->fname, 0, attribs, 0, 0, attribsEx, 0, 
+               ff_pkt->delta_seq, 0);
       break;
    default:
       stat = sd->fsend("%ld %d %s%c%s%c%c%s%c%u%c", jcr->JobFiles,

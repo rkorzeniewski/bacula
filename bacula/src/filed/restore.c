@@ -1233,7 +1233,7 @@ int32_t extract_data(JCR *jcr, BFILE *bfd, POOLMEM *buf, int32_t buflen,
       Dmsg2(130, "Encryption writing full block, %u bytes, remaining %u bytes in buffer\n", wsize, cipher_ctx->buf_len);
    }
 
-   if (flags & FO_SPARSE) {
+   if ((flags & FO_SPARSE) || (flags & FO_DELTA)) {
       if (!sparse_data(jcr, bfd, addr, &wbuf, &wsize)) {
          goto bail_out;
       }
@@ -1374,7 +1374,7 @@ again:
    cipher_ctx->buf_len -= cipher_ctx->packet_len;
    Dmsg2(130, "Encryption writing full block, %u bytes, remaining %u bytes in buffer\n", wsize, cipher_ctx->buf_len);
 
-   if (flags & FO_SPARSE) {
+   if ((flags & FO_SPARSE) || (flags & FO_DELTA)) {
       if (!sparse_data(jcr, bfd, addr, &wbuf, &wsize)) {
          return false;
       }
