@@ -1119,13 +1119,18 @@ bool db_get_file_list(JCR *jcr, B_DB *mdb, char *jobids, bool use_md5,
    POOL_MEM buf2(PM_MESSAGE);
    Mmsg(buf2, select_recent_version_with_basejob[db_type], 
         jobids, jobids, jobids, jobids);
+
+   /* bsr code is optimized for JobId sorted, with Delta, we need to get
+    * them ordered by date. JobTDate and JobId can be mixed if using Copy
+    * or Migration
+    */
    Mmsg(buf,
 "SELECT Path.Path, Filename.Name, T1.FileIndex, T1.JobId, LStat, MarkId, MD5 "
  "FROM ( %s ) AS T1 "
  "JOIN Filename ON (Filename.FilenameId = T1.FilenameId) "
  "JOIN Path ON (Path.PathId = T1.PathId) "
 "WHERE FileIndex > 0 "
-"ORDER BY T1.JobTDate, FileIndex ASC",/* Return sorted by JobId, */
+"ORDER BY T1.JobTDate, FileIndex ASC",/* Return sorted by JobTDate */
                                       /* FileIndex for restore code */ 
         buf2.c_str());
    if (!use_md5) {
@@ -1139,6 +1144,42 @@ bool db_get_file_list(JCR *jcr, B_DB *mdb, char *jobids, bool use_md5,
     */
    Mmsg(buf, uar_sel_files, jobids);
 #endif
+
+   return db_sql_query(mdb, buf.c_str(), result_handler, ctx);
+}
+
+bool db_get_file_list_with_delta(JCR *jcr, B_DB *mdb,
+                                 char *jobids, bool use_md5,
+                                 DB_RESULT_HANDLER *result_handler, void *ctx)
+{
+   if (!*jobids) {
+      db_lock(mdb);
+      Mmsg(mdb->errmsg, _("ERR=JobIds are empty\n"));
+      db_unlock(mdb);
+      return false;
+   }
+   POOL_MEM buf(PM_MESSAGE);         
+   POOL_MEM buf2(PM_MESSAGE);
+   Mmsg(buf2, select_recent_version_with_basejob_and_delta[db_type], 
+        jobids, jobids, jobids, jobids);
+
+   /* bsr code is optimized for JobId sorted, with Delta, we need to get
+    * them ordered by date. JobTDate and JobId can be mixed if using Copy
+    * or Migration
+    */
+   Mmsg(buf,
+"SELECT Path.Path, Filename.Name, T1.FileIndex, T1.JobId, LStat, MarkId, MD5 "
+ "FROM ( %s ) AS T1 "
+ "JOIN Filename ON (Filename.FilenameId = T1.FilenameId) "
+ "JOIN Path ON (Path.PathId = T1.PathId) "
+"WHERE FileIndex > 0 "
+"ORDER BY T1.JobTDate, FileIndex ASC",/* Return sorted by JobTDate */
+                                      /* FileIndex for restore code */ 
+        buf2.c_str());
+   if (!use_md5) {
+      replace_md5(buf.c_str());
+   }
+   Dmsg1(100, "q=%s\n", buf.c_str());
 
    return db_sql_query(mdb, buf.c_str(), result_handler, ctx);
 }

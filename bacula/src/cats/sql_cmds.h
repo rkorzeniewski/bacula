@@ -69,6 +69,7 @@ extern const char CATS_IMP_EXP *uar_sel_jobid_temp;
 
 extern const char CATS_IMP_EXP *select_recent_version[5];
 extern const char CATS_IMP_EXP *select_recent_version_with_basejob[5];
+extern const char CATS_IMP_EXP *select_recent_version_with_basejob_and_delta[];
 extern const char CATS_IMP_EXP *create_temp_accurate_jobids[5];
 extern const char CATS_IMP_EXP *create_temp_basefile[5];
 extern const char CATS_IMP_EXP *create_temp_new_basefile[5];

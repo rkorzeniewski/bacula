@@ -124,6 +124,9 @@ int db_get_client_record(JCR *jcr, B_DB *mdb, CLIENT_DBR *cdbr);
 int db_get_counter_record(JCR *jcr, B_DB *mdb, COUNTER_DBR *cr);
 bool db_get_query_dbids(JCR *jcr, B_DB *mdb, POOL_MEM &query, dbid_list &ids);
 bool db_get_file_list(JCR *jcr, B_DB *mdb, char *jobids, bool use_md5, DB_RESULT_HANDLER *result_handler, void *ctx);
+bool db_get_file_list_with_delta(JCR *jcr, B_DB *mdb,
+                                 char *jobids, bool use_md5,
+                                 DB_RESULT_HANDLER *result_handler, void *ctx);
 bool db_get_base_jobid(JCR *jcr, B_DB *mdb, JOB_DBR *jr, JobId_t *jobid);
 bool db_accurate_get_jobids(JCR *jcr, B_DB *mdb, JOB_DBR *jr, db_list_ctx *jobids);
 bool db_get_used_base_jobids(JCR *jcr, B_DB *mdb, POOLMEM *jobids, db_list_ctx *result);
