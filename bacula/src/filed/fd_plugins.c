@@ -396,6 +396,7 @@ int plugin_save(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
             pm_strcpy(link, sp.link);
             ff_pkt->fname = fname.c_str();
             ff_pkt->link = link.c_str();
+            ff_pkt->delta_seq = sp.delta_seq;
             if (sp.flags & FO_DELTA) {
                ff_pkt->flags |= FO_DELTA;
                ff_pkt->delta_seq++;          /* make new delta sequence number */
@@ -1338,6 +1339,11 @@ static bRC baculaCheckChanges(bpContext *ctx, struct save_pkt *sp)
    } else {
       ret = bRC_Seen;
    }
+
+   /* check_changes() can update delta sequence number, return it to the
+    * plugin 
+    */
+   sp->delta_seq = ff_pkt->delta_seq;
 
 bail_out:
    Dmsg1(100, "checkChanges=%i\n", ret);

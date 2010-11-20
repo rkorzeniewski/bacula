@@ -106,6 +106,7 @@ struct save_pkt {
    char *object;                      /* restore object data to save */
    int32_t object_len;                /* restore object length */
    int32_t index;                     /* restore object index */
+   int32_t delta_seq;                 /* Delta sequence number */
    int32_t pkt_end;                   /* end packet sentinel */
 };
 
@@ -128,6 +129,7 @@ struct restore_pkt {
    const char *RegexWhere;            /* regex where */
    int replace;                       /* replace flag */
    int create_status;                 /* status from createFile() */
+   int32_t delta_seq;                 /* Delta sequence number */
    int32_t pkt_end;                   /* end packet sentinel */
 };
 
