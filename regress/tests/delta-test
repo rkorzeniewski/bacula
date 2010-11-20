@@ -62,21 +62,12 @@ messages
 @#
 @$out ${cwd}/tmp/log2.out
 setdebug level=50 client=$CLIENT
+restore where=$tmp select all done
+yes
+wait
+messages
+@exec "mv $tmp/delta.txt $tmp/delta.OK.txt"
 restore where=$tmp jobid=1
-m *
-done
-yes
-wait
-messages
-@exec "cp $tmp/delta.txt $tmp/delta.F.txt"
-restore where=$tmp jobid=2
-m *
-done
-yes
-wait
-messages
-@exec "cp $tmp/delta.txt $tmp/delta.I1.txt"
-restore where=$tmp jobid=3
 m *
 done
 yes
@@ -94,13 +85,18 @@ check_two_logs
 
 stop_bacula
 
-head -c 300 /etc/passwd > $tmp/source
+head -c 100 /etc/passwd > $tmp/source
 diff -u $tmp/source $tmp/delta.txt > $tmp/d
 if [ $? -ne 0 ]; then
     print_debug "ERROR: delta.txt and source are different, restore failed"
-    print_debug `cat $tmp/d`
-    cat -ev $tmp/delta.*
     dstat=1
+fi
+
+head -c 300 /etc/passwd > $tmp/source
+diff -u $tmp/source $tmp/delta.OK.txt > $tmp/d
+if [ $? -ne 0 ]; then
+    print_debug "ERROR: delta.OK.txt and source are different, restore failed"
+    dstat=2
 fi
 
 end_test
