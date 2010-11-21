@@ -229,11 +229,11 @@ static bRC handlePluginEvent(bpContext *ctx, bEvent *event, void *value)
     */
    switch (event->eventType) {
    case bEventPluginCommand:
-      Dmsg(ctx, dbglvl, 
-           "delta-fd: PluginCommand=%s\n", (char *)value);
+//    Dmsg(ctx, dbglvl, 
+//         "delta-fd: PluginCommand=%s\n", (char *)value);
       break;
    case bEventJobStart:
-      Dmsg(ctx, dbglvl, "delta-fd: JobStart=%s\n", (char *)value);
+//    Dmsg(ctx, dbglvl, "delta-fd: JobStart=%s\n", (char *)value);
       break;
    case bEventJobEnd:
 //    Dmsg(ctx, dbglvl, "delta-fd: JobEnd\n");
@@ -276,7 +276,6 @@ static bRC handlePluginEvent(bpContext *ctx, bEvent *event, void *value)
       /* Fall-through wanted */
    case bEventBackupCommand:
       /* TODO: analyse plugin command here */
-      pm_strcpy(self->fname, "/delta.txt");
       break;
 
    default:
@@ -285,6 +284,14 @@ static bRC handlePluginEvent(bpContext *ctx, bEvent *event, void *value)
    }
    return bRC_OK;
 }
+
+static const char *files[] = {
+   "/etc/passwd",
+   "/etc/group",
+   "/etc/hosts",
+   "/etc/services"
+};
+static int nb_files = 4;
 
 /* 
  * Start the backup of a specific file
@@ -296,7 +303,7 @@ static bRC startBackupFile(bpContext *ctx, struct save_pkt *sp)
       return bRC_Error;
    }
    time_t now = time(NULL);
-   sp->fname = self->fname;
+   sp->fname = (char *)"/delta.txt";
    sp->type = FT_REG;
    sp->statp.st_mode = 0700 | S_IFREG;
    sp->statp.st_ctime = now;
@@ -311,10 +318,10 @@ static bRC startBackupFile(bpContext *ctx, struct save_pkt *sp)
       sp->type = (state == bRC_Seen)? FT_NOCHG : FT_REG;
       sp->flags |= FO_DELTA;
       self->delta = sp->delta_seq + 1;
-      Dmsg(ctx, dbglvl, "delta-fd: delta_seq=%i delta=%i\n", 
-           sp->delta_seq, self->delta);
    }
-
+   pm_strcpy(self->fname, files[self->delta % nb_files]);
+   Dmsg(ctx, dbglvl, "delta-fd: delta_seq=%i delta=%i fname=%s\n", 
+        sp->delta_seq, self->delta, self->fname);
 // Dmsg(ctx, dbglvl, "delta-fd: startBackupFile\n");
    return bRC_OK;
 }
@@ -338,6 +345,7 @@ static bRC endBackupFile(bpContext *ctx)
 static bRC pluginIO(bpContext *ctx, struct io_pkt *io)
 {
    delta_test *self = get_self(ctx);
+   struct stat statp;
    if (!self) {
       return bRC_Error;
    }
@@ -348,42 +356,50 @@ static bRC pluginIO(bpContext *ctx, struct io_pkt *io)
    case IO_OPEN:
       Dmsg(ctx, dbglvl, "delta-fd: IO_OPEN\n");
       if (io->flags & (O_CREAT | O_WRONLY)) {
-         self->fd = fopen(self->fname, "a+");
+         /* TODO: if the file already exists, the result is undefined */
+         if (stat(io->fname, &statp) == 0) { /* file exists */
+            self->fd = fopen(io->fname, "r+");
+         } else {
+            self->fd = fopen(io->fname, "w"); /* file doesn't exist,create it */
+         }
          if (!self->fd) {
             io->io_errno = errno;
-            Jmsg(ctx, M_FATAL, 0, 
+            Jmsg(ctx, M_FATAL, 
                  "Open failed: ERR=%s\n", strerror(errno));
             return bRC_Error;
          }
 
       } else {
-         self->fd = fopen("/etc/passwd", "r");
+         self->fd = fopen(self->fname, "r");
          if (!self->fd) {
             io->io_errno = errno;
-            Jmsg(ctx, M_FATAL, 0, 
+            Jmsg(ctx, M_FATAL, 
                "Open failed: ERR=%s\n", strerror(errno));
             return bRC_Error;
          }
       }
-      sleep(1);                 /* let pipe connect */
       break;
 
    case IO_READ:
       if (!self->fd) {
-         Jmsg(ctx, M_FATAL, 0, "Logic error: NULL read FD\n");
+         Jmsg(ctx, M_FATAL, "Logic error: NULL read FD\n");
          return bRC_Error;
       }
       if (self->done) {
          io->status = 0;
       } else {
-         io->offset = self->delta * 100;
-         fseek(self->fd, io->offset, SEEK_SET);
-         io->status = fread(io->buf, 1, 100, self->fd);
+         /* first time, read 300, then replace 50-250 by other data */
+         if (self->delta == 0) {
+            io->status = fread(io->buf, 1, 400, self->fd);            
+         } else {
+            io->offset = self->delta * 100 / 2; /* chunks are melted */
+            io->status = fread(io->buf, 1, 100, self->fd);
+         }
          Dmsg(ctx, dbglvl, "delta-fd: READ offset=%lld\n", (int64_t)io->offset);
          self->done = true;
       }
       if (io->status == 0 && ferror(self->fd)) {
-         Jmsg(ctx, M_FATAL, 0, 
+         Jmsg(ctx, M_FATAL, 
             "Pipe read error: ERR=%s\n", strerror(errno));
          Dmsg(ctx, dbglvl, 
             "Pipe read error: ERR=%s\n", strerror(errno));
@@ -394,13 +410,13 @@ static bRC pluginIO(bpContext *ctx, struct io_pkt *io)
 
    case IO_WRITE:
       if (!self->fd) {
-         Jmsg(ctx, M_FATAL, 0, "Logic error: NULL write FD\n");
+         Jmsg(ctx, M_FATAL, "Logic error: NULL write FD\n");
          return bRC_Error;
       }
       Dmsg(ctx, dbglvl, "delta-fd: WRITE count=%lld\n", (int64_t)io->count);
       io->status = fwrite(io->buf, 1, io->count, self->fd);
       if (io->status == 0 && ferror(self->fd)) {
-         Jmsg(ctx, M_FATAL, 0, 
+         Jmsg(ctx, M_FATAL, 
             "Pipe write error\n");
          Dmsg(ctx, dbglvl, 
             "Pipe read error: ERR=%s\n", strerror(errno));
@@ -410,7 +426,7 @@ static bRC pluginIO(bpContext *ctx, struct io_pkt *io)
 
    case IO_CLOSE:
       if (!self->fd) {
-         Jmsg(ctx, M_FATAL, 0, "Logic error: NULL FD on delta close\n");
+         Jmsg(ctx, M_FATAL, "Logic error: NULL FD on delta close\n");
          return bRC_Error;
       }
       io->status = fclose(self->fd);
@@ -418,11 +434,12 @@ static bRC pluginIO(bpContext *ctx, struct io_pkt *io)
 
    case IO_SEEK:
       if (!self->fd) {
-         Jmsg(ctx, M_FATAL, 0, "Logic error: NULL FD on delta close\n");
+         Jmsg(ctx, M_FATAL, "Logic error: NULL FD on delta close\n");
          return bRC_Error;
       }
       Dmsg(ctx, dbglvl, "delta-fd: SEEK offset=%lld\n", (int64_t)io->offset);
       io->status = fseek(self->fd, io->offset, io->whence);
+      Dmsg(ctx, dbglvl, "after SEEK=%lld\n", (int64_t)ftell(self->fd));
       break;
    }
    return bRC_OK;
