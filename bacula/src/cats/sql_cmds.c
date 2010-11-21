@@ -293,7 +293,7 @@ const char *uar_jobid_fileindex_from_table =
 const char *select_recent_version_with_basejob_default = 
 "SELECT FileId, Job.JobId AS JobId, FileIndex, File.PathId AS PathId, "
        "File.FilenameId AS FilenameId, LStat, MD5, MarkId, "
-       "Job.JobTDate AS JobTDate"
+       "Job.JobTDate AS JobTDate "
 "FROM Job, File, ( "
     "SELECT MAX(JobTDate) AS JobTDate, PathId, FilenameId "
       "FROM ( "
