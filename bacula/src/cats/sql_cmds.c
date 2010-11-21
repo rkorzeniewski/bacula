@@ -367,12 +367,12 @@ const char *select_recent_version_with_basejob_and_delta_default =
 "FROM Job, File, ( "
     "SELECT MAX(JobTDate) AS JobTDate, PathId, FilenameId, MarkId "
       "FROM ( "
-        "SELECT JobTDate, PathId, FilenameId "   /* Get all normal files */
-          "FROM File JOIN Job USING (JobId) "    /* from selected backup */
+        "SELECT JobTDate, PathId, FilenameId, MarkId " /* Get all normal files */
+          "FROM File JOIN Job USING (JobId) "          /* from selected backup */
          "WHERE File.JobId IN (%s) "
           "UNION ALL "
-        "SELECT JobTDate, PathId, FilenameId "   /* Get all files from */ 
-          "FROM BaseFiles "                      /* BaseJob */
+        "SELECT JobTDate, PathId, FilenameId, MarkId " /* Get all files from */ 
+          "FROM BaseFiles "                            /* BaseJob */
                "JOIN File USING (FileId) "
                "JOIN Job  ON    (BaseJobId = Job.JobId) "
          "WHERE BaseFiles.JobId IN (%s) "        /* Use Max(JobTDate) to find */
