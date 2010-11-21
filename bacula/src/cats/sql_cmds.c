@@ -362,7 +362,7 @@ const char *select_recent_version_with_basejob[5] = {
  */
 const char *select_recent_version_with_basejob_and_delta_default = 
 "SELECT FileId, Job.JobId AS JobId, FileIndex, File.PathId AS PathId, "
-       "File.FilenameId AS FilenameId, LStat, MD5, MarkId, "
+       "File.FilenameId AS FilenameId, LStat, MD5, T1.MarkId AS MarkId, "
        "Job.JobTDate AS JobTDate "
 "FROM Job, File, ( "
     "SELECT MAX(JobTDate) AS JobTDate, PathId, FilenameId, MarkId "
