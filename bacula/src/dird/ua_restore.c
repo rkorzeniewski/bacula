@@ -1117,9 +1117,10 @@ static bool build_directory_tree(UAContext *ua, RESTORE_CTX *rx)
 
 #define new_get_file_list
 #ifdef new_get_file_list
-   if (!db_get_file_list_with_delta(ua->jcr, ua->db, 
-                                    rx->JobIds, false /* do not use md5 */, 
-                                    insert_tree_handler, (void *)&tree))
+   if (!db_get_file_list(ua->jcr, ua->db, 
+                         rx->JobIds, false /* do not use md5 */, 
+                         true /* get delta */,
+                         insert_tree_handler, (void *)&tree))
    {
       ua->error_msg("%s", db_strerror(ua->db));
    }

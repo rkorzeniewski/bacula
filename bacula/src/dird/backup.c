@@ -297,7 +297,7 @@ bool send_accurate_current_files(JCR *jcr)
 
    } else {
       db_get_file_list(jcr, jcr->db_batch,
-                       jobids.list, jcr->use_accurate_chksum,
+                       jobids.list, jcr->use_accurate_chksum, false /* no delta */,
                        accurate_list_handler, (void *)jcr);
    } 
 

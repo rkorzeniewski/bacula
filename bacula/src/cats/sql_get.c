@@ -1084,7 +1084,7 @@ bool db_get_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
 }
 
 /* Remove all MD5 from a query (can save lot of memory with many files) */
-static void replace_md5(char *q)
+static void strip_md5(char *q)
 {
    char *p = q;
    while ((p = strstr(p, ", MD5"))) {
@@ -1103,7 +1103,8 @@ static void replace_md5(char *q)
  *
  * TODO: See if we can do the SORT only if needed (as an argument)
  */
-bool db_get_file_list(JCR *jcr, B_DB *mdb, char *jobids, bool use_md5,
+bool db_get_file_list(JCR *jcr, B_DB *mdb, char *jobids,
+                      bool use_md5, bool use_delta,
                       DB_RESULT_HANDLER *result_handler, void *ctx)
 {
    if (!*jobids) {
@@ -1113,12 +1114,15 @@ bool db_get_file_list(JCR *jcr, B_DB *mdb, char *jobids, bool use_md5,
       return false;
    }
    POOL_MEM buf(PM_MESSAGE);
-         
-#define new_db_get_file_list
-#ifdef new_db_get_file_list
    POOL_MEM buf2(PM_MESSAGE);
-   Mmsg(buf2, select_recent_version_with_basejob[db_type], 
-        jobids, jobids, jobids, jobids);
+   if (use_delta) {
+      Mmsg(buf2, select_recent_version_with_basejob_and_delta[db_type], 
+           jobids, jobids, jobids, jobids);
+
+   } else {
+      Mmsg(buf2, select_recent_version_with_basejob[db_type], 
+           jobids, jobids, jobids, jobids);
+   }
 
    /* bsr code is optimized for JobId sorted, with Delta, we need to get
     * them ordered by date. JobTDate and JobId can be mixed if using Copy
@@ -1133,52 +1137,11 @@ bool db_get_file_list(JCR *jcr, B_DB *mdb, char *jobids, bool use_md5,
 "ORDER BY T1.JobTDate, FileIndex ASC",/* Return sorted by JobTDate */
                                       /* FileIndex for restore code */ 
         buf2.c_str());
+
    if (!use_md5) {
-      replace_md5(buf.c_str());
+      strip_md5(buf.c_str());
    }
-   Dmsg1(100, "q=%s\n", buf.c_str());
-#else
-   /*  
-    * I am not sure that this works the same as the code in ua_restore.c but it
-    *  is very similar. The accurate-test fails in a restore. Bad file count.
-    */
-   Mmsg(buf, uar_sel_files, jobids);
-#endif
 
-   return db_sql_query(mdb, buf.c_str(), result_handler, ctx);
-}
-
-bool db_get_file_list_with_delta(JCR *jcr, B_DB *mdb,
-                                 char *jobids, bool use_md5,
-                                 DB_RESULT_HANDLER *result_handler, void *ctx)
-{
-   if (!*jobids) {
-      db_lock(mdb);
-      Mmsg(mdb->errmsg, _("ERR=JobIds are empty\n"));
-      db_unlock(mdb);
-      return false;
-   }
-   POOL_MEM buf(PM_MESSAGE);         
-   POOL_MEM buf2(PM_MESSAGE);
-   Mmsg(buf2, select_recent_version_with_basejob_and_delta[db_type], 
-        jobids, jobids, jobids, jobids);
-
-   /* bsr code is optimized for JobId sorted, with Delta, we need to get
-    * them ordered by date. JobTDate and JobId can be mixed if using Copy
-    * or Migration
-    */
-   Mmsg(buf,
-"SELECT Path.Path, Filename.Name, T1.FileIndex, T1.JobId, LStat, MarkId, MD5 "
- "FROM ( %s ) AS T1 "
- "JOIN Filename ON (Filename.FilenameId = T1.FilenameId) "
- "JOIN Path ON (Path.PathId = T1.PathId) "
-"WHERE FileIndex > 0 "
-"ORDER BY T1.JobTDate, FileIndex ASC",/* Return sorted by JobTDate */
-                                      /* FileIndex for restore code */ 
-        buf2.c_str());
-   if (!use_md5) {
-      replace_md5(buf.c_str());
-   }
    Dmsg1(100, "q=%s\n", buf.c_str());
 
    return db_sql_query(mdb, buf.c_str(), result_handler, ctx);
@@ -1302,7 +1265,7 @@ bool db_get_base_file_list(JCR *jcr, B_DB *mdb, bool use_md5,
         (uint64_t) jcr->JobId);
    
    if (!use_md5) {
-      replace_md5(buf.c_str());
+      strip_md5(buf.c_str());
    }
    return db_sql_query(mdb, buf.c_str(), result_handler, ctx);
 }
