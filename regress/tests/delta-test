@@ -38,15 +38,17 @@ label storage=File volume=TestVolume001
 setdebug level=150 client=$CLIENT
 estimate job=$JobName level=Full
 setdebug level=50 client=$CLIENT
-run job=$JobName yes
+run job=$JobName comment="read 400 bytes of passwd" yes
 wait
 status client=$CLIENT
 messages
-run job=$JobName level=Incremental yes
+run job=$JobName comment="read 100 bytes of group" level=Incremental yes
 wait
 messages
-status client=$CLIENT
-run job=$JobName level=Incremental yes
+run job=$JobName comment="read 100 bytes of hosts" level=Incremental yes
+wait
+messages
+run job=$JobName comment="read 100 bytes of services" level=Incremental yes
 wait
 messages
 status client=$CLIENT
@@ -85,18 +87,25 @@ check_two_logs
 
 stop_bacula
 
-head -c 100 /etc/passwd > $tmp/source
-diff -u $tmp/source $tmp/delta.txt > $tmp/d
-if [ $? -ne 0 ]; then
-    print_debug "ERROR: delta.txt and source are different, restore failed"
-    dstat=1
-fi
+head -c 50 /etc/passwd > $tmp/source
+head -c 50 /etc/group >> $tmp/source
+head -c 50 /etc/hosts >> $tmp/source
+head -c 100 /etc/services >> $tmp/source
+head -c 400 /etc/passwd | tail -c 150 >> $tmp/source
 
-head -c 300 /etc/passwd > $tmp/source
 diff -u $tmp/source $tmp/delta.OK.txt > $tmp/d
 if [ $? -ne 0 ]; then
     print_debug "ERROR: delta.OK.txt and source are different, restore failed"
-    dstat=2
+    dstat=1
 fi
+
+head -c 400 /etc/passwd > $tmp/source2
+diff -u $tmp/source2 $tmp/delta.txt > $tmp/d
+if [ $? -ne 0 ]; then
+    print_debug "ERROR: delta.txt and source2 are different, restore failed"
+    dstat=1
+fi
+
+
 
 end_test
