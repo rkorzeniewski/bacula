@@ -362,20 +362,20 @@ const char *select_recent_version_with_basejob[5] = {
  */
 const char *select_recent_version_with_basejob_and_delta_default = 
 "SELECT FileId, Job.JobId AS JobId, FileIndex, File.PathId AS PathId, "
-       "File.FilenameId AS FilenameId, LStat, MD5, T1.MarkId AS MarkId, "
+       "File.FilenameId AS FilenameId, LStat, MD5, File.MarkId AS MarkId, "
        "Job.JobTDate AS JobTDate "
 "FROM Job, File, ( "
     "SELECT MAX(JobTDate) AS JobTDate, PathId, FilenameId, MarkId "
       "FROM ( "
-        "SELECT JobTDate, PathId, FilenameId, MarkId " /* Get all normal files */
-          "FROM File JOIN Job USING (JobId) "          /* from selected backup */
-         "WHERE File.JobId IN (%s) "
-          "UNION ALL "
-        "SELECT JobTDate, PathId, FilenameId, MarkId " /* Get all files from */ 
-          "FROM BaseFiles "                            /* BaseJob */
-               "JOIN File USING (FileId) "
-               "JOIN Job  ON    (BaseJobId = Job.JobId) "
-         "WHERE BaseFiles.JobId IN (%s) "        /* Use Max(JobTDate) to find */
+       "SELECT JobTDate, PathId, FilenameId, MarkId " /* Get all normal files */
+         "FROM File JOIN Job USING (JobId) "          /* from selected backup */
+        "WHERE File.JobId IN (%s) "
+         "UNION ALL "
+       "SELECT JobTDate, PathId, FilenameId, MarkId " /* Get all files from */ 
+         "FROM BaseFiles "                            /* BaseJob */
+              "JOIN File USING (FileId) "
+              "JOIN Job  ON    (BaseJobId = Job.JobId) "
+        "WHERE BaseFiles.JobId IN (%s) "        /* Use Max(JobTDate) to find */
        ") AS tmp "
        "GROUP BY PathId, FilenameId, MarkId "    /* the latest file version */
     ") AS T1 "
