@@ -1067,14 +1067,20 @@ static bool ask_for_fileregex(UAContext *ua, RESTORE_CTX *rx)
 }
 
 /* Walk on the delta_list of a TREE_NODE item and insert all parts
- * TODO: Optimize for bootstrap creation 
+ * TODO: Optimize for bootstrap creation, remove recursion
+ * 6 -> 5 -> 4 -> 3 -> 2 -> 1 -> 0
+ * should insert as
+ * 0, 1, 2, 3, 4, 5, 6
  */
 static void add_delta_list_findex(RESTORE_CTX *rx, struct delta_list *lst)
 {
-   while (lst != NULL) {
-      add_findex(rx->bsr, lst->JobId, lst->FileIndex);
-      lst = lst->next;
+   if (lst == NULL) {
+      return;
    }
+   if (lst->next) {
+      add_delta_list_findex(rx, lst->next);
+   }
+   add_findex(rx->bsr, lst->JobId, lst->FileIndex);
 }
 
 static bool build_directory_tree(UAContext *ua, RESTORE_CTX *rx)
