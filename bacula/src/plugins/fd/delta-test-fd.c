@@ -157,7 +157,7 @@ bRC loadPlugin(bInfo *lbinfo, bFuncs *lbfuncs, pInfo **pinfo, pFuncs **pfuncs)
  */
 bRC unloadPlugin() 
 {
-// Dmsg(NULL, dbglvl, "delta-fd: Unloaded\n");
+// Dmsg(NULL, dbglvl, "delta-test-fd: Unloaded\n");
    return bRC_OK;
 }
 
@@ -230,22 +230,22 @@ static bRC handlePluginEvent(bpContext *ctx, bEvent *event, void *value)
    switch (event->eventType) {
    case bEventPluginCommand:
 //    Dmsg(ctx, dbglvl, 
-//         "delta-fd: PluginCommand=%s\n", (char *)value);
+//         "delta-test-fd: PluginCommand=%s\n", (char *)value);
       break;
    case bEventJobStart:
-//    Dmsg(ctx, dbglvl, "delta-fd: JobStart=%s\n", (char *)value);
+//    Dmsg(ctx, dbglvl, "delta-test-fd: JobStart=%s\n", (char *)value);
       break;
    case bEventJobEnd:
-//    Dmsg(ctx, dbglvl, "delta-fd: JobEnd\n");
+//    Dmsg(ctx, dbglvl, "delta-test-fd: JobEnd\n");
       break;
    case bEventStartBackupJob:
-//    Dmsg(ctx, dbglvl, "delta-fd: StartBackupJob\n");
+//    Dmsg(ctx, dbglvl, "delta-test-fd: StartBackupJob\n");
       break;
    case bEventEndBackupJob:
-//    Dmsg(ctx, dbglvl, "delta-fd: EndBackupJob\n");
+//    Dmsg(ctx, dbglvl, "delta-test-fd: EndBackupJob\n");
       break;
    case bEventLevel:
-//    Dmsg(ctx, dbglvl, "delta-fd: JobLevel=%c %d\n", (int)value, (int)value);
+//    Dmsg(ctx, dbglvl, "delta-test-fd: JobLevel=%c %d\n", (int)value, (int)value);
       self->level = (int)(intptr_t)value;
       if (self->level == 'I' || self->level == 'D') {
          bfuncs->getBaculaValue(ctx, bVarAccurate, (void *)&accurate);
@@ -259,27 +259,28 @@ static bRC handlePluginEvent(bpContext *ctx, bEvent *event, void *value)
 
       break;
    case bEventSince:
-//    Dmsg(ctx, dbglvl, "delta-fd: since=%d\n", (int)value);
+//    Dmsg(ctx, dbglvl, "delta-test-fd: since=%d\n", (int)value);
       break;
 
    case bEventStartRestoreJob:
-//    Dmsg(ctx, dbglvl, "delta-fd: StartRestoreJob\n");
+//    Dmsg(ctx, dbglvl, "delta-test-fd: StartRestoreJob\n");
       break;
 
    case bEventEndRestoreJob:
-//    Dmsg(ctx, dbglvl, "delta-fd: EndRestoreJob\n");
+//    Dmsg(ctx, dbglvl, "delta-test-fd: EndRestoreJob\n");
       break;
 
    /* Plugin command e.g. plugin = <plugin-name>:<name-space>:read command:write command */
    case bEventRestoreCommand:
-//    Dmsg(ctx, dbglvl, "delta-fd: EventRestoreCommand cmd=%s\n", (char *)value);
+//    Dmsg(ctx, dbglvl, "delta-test-fd: EventRestoreCommand cmd=%s\n", (char *)value);
       /* Fall-through wanted */
    case bEventBackupCommand:
+      Dmsg(ctx, dbglvl, "delta-test-fd: pluginEvent cmd=%s\n", (char *)value);
       /* TODO: analyse plugin command here */
       break;
 
    default:
-//    Dmsg(ctx, dbglvl, "delta-fd: unknown event=%d\n", event->eventType);
+//    Dmsg(ctx, dbglvl, "delta-test-fd: unknown event=%d\n", event->eventType);
       break;
    }
    return bRC_OK;
@@ -320,9 +321,9 @@ static bRC startBackupFile(bpContext *ctx, struct save_pkt *sp)
       self->delta = sp->delta_seq + 1;
    }
    pm_strcpy(self->fname, files[self->delta % nb_files]);
-   Dmsg(ctx, dbglvl, "delta-fd: delta_seq=%i delta=%i fname=%s\n", 
+   Dmsg(ctx, dbglvl, "delta-test-fd: delta_seq=%i delta=%i fname=%s\n", 
         sp->delta_seq, self->delta, self->fname);
-// Dmsg(ctx, dbglvl, "delta-fd: startBackupFile\n");
+// Dmsg(ctx, dbglvl, "delta-test-fd: startBackupFile\n");
    return bRC_OK;
 }
 
@@ -354,7 +355,7 @@ static bRC pluginIO(bpContext *ctx, struct io_pkt *io)
    io->io_errno = 0;
    switch(io->func) {
    case IO_OPEN:
-      Dmsg(ctx, dbglvl, "delta-fd: IO_OPEN\n");
+      Dmsg(ctx, dbglvl, "delta-test-fd: IO_OPEN\n");
       if (io->flags & (O_CREAT | O_WRONLY)) {
          /* TODO: if the file already exists, the result is undefined */
          if (stat(io->fname, &statp) == 0) { /* file exists */
@@ -395,7 +396,7 @@ static bRC pluginIO(bpContext *ctx, struct io_pkt *io)
             io->offset = self->delta * 100 / 2; /* chunks are melted */
             io->status = fread(io->buf, 1, 100, self->fd);
          }
-         Dmsg(ctx, dbglvl, "delta-fd: READ offset=%lld\n", (int64_t)io->offset);
+         Dmsg(ctx, dbglvl, "delta-test-fd: READ offset=%lld\n", (int64_t)io->offset);
          self->done = true;
       }
       if (io->status == 0 && ferror(self->fd)) {
@@ -413,7 +414,7 @@ static bRC pluginIO(bpContext *ctx, struct io_pkt *io)
          Jmsg(ctx, M_FATAL, "Logic error: NULL write FD\n");
          return bRC_Error;
       }
-      Dmsg(ctx, dbglvl, "delta-fd: WRITE count=%lld\n", (int64_t)io->count);
+      Dmsg(ctx, dbglvl, "delta-test-fd: WRITE count=%lld\n", (int64_t)io->count);
       io->status = fwrite(io->buf, 1, io->count, self->fd);
       if (io->status == 0 && ferror(self->fd)) {
          Jmsg(ctx, M_FATAL, 
@@ -437,7 +438,7 @@ static bRC pluginIO(bpContext *ctx, struct io_pkt *io)
          Jmsg(ctx, M_FATAL, "Logic error: NULL FD on delta close\n");
          return bRC_Error;
       }
-      Dmsg(ctx, dbglvl, "delta-fd: SEEK offset=%lld\n", (int64_t)io->offset);
+      Dmsg(ctx, dbglvl, "delta-test-fd: SEEK offset=%lld\n", (int64_t)io->offset);
       io->status = fseek(self->fd, io->offset, io->whence);
       Dmsg(ctx, dbglvl, "after SEEK=%lld\n", (int64_t)ftell(self->fd));
       break;
@@ -451,7 +452,7 @@ static bRC pluginIO(bpContext *ctx, struct io_pkt *io)
  */
 static bRC startRestoreFile(bpContext *ctx, const char *cmd)
 {
-// Dmsg(ctx, dbglvl, "delta-fd: startRestoreFile cmd=%s\n", cmd);
+// Dmsg(ctx, dbglvl, "delta-test-fd: startRestoreFile cmd=%s\n", cmd);
    return bRC_OK;
 }
 
@@ -461,7 +462,7 @@ static bRC startRestoreFile(bpContext *ctx, const char *cmd)
  */
 static bRC endRestoreFile(bpContext *ctx)
 {
-// Dmsg(ctx, dbglvl, "delta-fd: endRestoreFile\n");
+// Dmsg(ctx, dbglvl, "delta-test-fd: endRestoreFile\n");
    return bRC_OK;
 }
 
@@ -489,7 +490,7 @@ static bRC createFile(bpContext *ctx, struct restore_pkt *rp)
  */
 static bRC setFileAttributes(bpContext *ctx, struct restore_pkt *rp)
 {
-// Dmsg(ctx, dbglvl, "delta-fd: setFileAttributes\n");
+// Dmsg(ctx, dbglvl, "delta-test-fd: setFileAttributes\n");
    return bRC_OK;
 }
 
