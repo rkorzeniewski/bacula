@@ -538,7 +538,7 @@ bool plugin_name_stream(JCR *jcr, char *name)
    foreach_alist(plugin, plugin_list) {
       bEvent event;
       Dmsg3(dbglvl, "plugin=%s cmd=%s len=%d\n", plugin->file, cmd, len);
-      if (strncmp(plugin->file, cmd, len) != 0) {
+      if ((plugin->len != len) || (strncmp(plugin->file, cmd, len) != 0)) {
          i++;
          continue;
       }
