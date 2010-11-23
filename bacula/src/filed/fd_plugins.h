@@ -205,7 +205,13 @@ typedef enum {
   bEventEndFileSet                      = 18,
   bEventPluginCommand                   = 19, /* Sent during FileSet creation */
   bEventVssBeforeCloseRestore           = 20,
-  bEventVssAddSnapshotLetters           = 21  /* Can add drives to vss snap */
+
+  /* Add drives to VSS snapshot 
+   *  argument: char[27] drivelist
+   * You need to add them without duplicates, 
+   * see fd_common.h add_drive() copy_drives() to get help
+   */
+  bEventVssAddSnapshotLetters           = 21
 } bEventType;
 
 typedef struct s_bEvent {
