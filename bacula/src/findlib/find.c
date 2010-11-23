@@ -121,10 +121,14 @@ get_win32_driveletters(FF_PKT *ff, char* szDrives)
 #if !defined(HAVE_WIN32)
    return 0;
 #endif
+   int nCount;
+   /* Can be already filled by plugin, so check that everything
+    * is on upper case. TODO: can check for dupplicate?
+    */
+   for (nCount = 0; nCount < 27 && szDrives[nCount] ; nCount++) {
+      szDrives[nCount] = toupper(szDrives[nCount]);
+   }
 
-   szDrives[0] = 0; /* make empty */
-   int nCount = 0;
-    
    findFILESET *fileset = ff->fileset;
    if (fileset) {
       int i;

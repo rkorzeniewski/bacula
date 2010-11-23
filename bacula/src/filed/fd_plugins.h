@@ -204,7 +204,8 @@ typedef enum {
   bEventRestoreObject                   = 17,
   bEventEndFileSet                      = 18,
   bEventPluginCommand                   = 19, /* Sent during FileSet creation */
-  bEventVssBeforeCloseRestore           = 20
+  bEventVssBeforeCloseRestore           = 20,
+  bEventVssAddSnapshotLetters           = 21  /* Can add drives to vss snap */
 } bEventType;
 
 typedef struct s_bEvent {
