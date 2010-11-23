@@ -155,6 +155,7 @@ bool load_plugins(void *binfo, void *bfuncs, const char *plugin_dir,
 
       plugin = new_plugin();
       plugin->file = bstrdup(result->d_name);
+      plugin->len = strstr(plugin->file, "-fd.") - plugin->file;
       plugin->pHandle = dlopen(fname.c_str(), RTLD_NOW);
       if (!plugin->pHandle) {
          Jmsg(NULL, M_ERROR, 0, _("Plugin load %s failed: ERR=%s\n"), 
