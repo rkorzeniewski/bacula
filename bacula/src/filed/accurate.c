@@ -272,7 +272,6 @@ bool accurate_check_file(JCR *jcr, FF_PKT *ff_pkt)
    }
 
    ff_pkt->delta_seq = elt.delta_seq;
-   Dmsg1(10, "accurate delta_seq=%i\n", ff_pkt->delta_seq);
 
    if (elt.seen) { /* file has been seen ? */
       Dmsg1(dbglvl, "accurate %s (already seen)\n", fname);
