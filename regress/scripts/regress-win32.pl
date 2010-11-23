@@ -390,6 +390,42 @@ sub cleandir
     return "OK\n";
 }
 
+sub reboot
+{
+    Win32::InitiateSystemShutdown('', "\nSystem will now Reboot\!", 2, 0, 1 );
+    exit 0;
+}
+
+# boot disabled auto
+sub set_service
+{
+    my ($r) = shift;
+
+    if ($r->url !~ m!^/set_service\?srv=([\w-]+);action=(\w+)$!) {
+        return "ERR\nIncorrect url\n";
+    }
+    my $out = `sc config $1 start= $2`;
+    if ($out !~ /SUCCESS/) {
+        return "ERR\n$out";
+    }
+    return "OK\n";
+}
+
+# RUNNING, STOPPED
+sub get_service
+{
+    my ($r) = shift;
+
+    if ($r->url !~ m!^/get_service\?srv=([\w-]+);state=(\w+)$!) {
+        return "ERR\nIncorrect url\n";
+    }
+    my $out = `sc query $1`;
+    if ($out !~ /$2/) {
+        return "ERR\n$out";
+    }
+    return "OK\n";
+}
+
 sub add_registry_key
 {
     my ($r) = shift;
@@ -422,6 +458,50 @@ sub add_registry_key
     }
     close(FP);
     unlink("tmp.reg");
+    unlink("tmp2.reg");
+    return "$ret\n";
+}
+
+sub set_auto_logon
+{
+    my ($r) = shift;
+    my $self = $0;
+    $self =~ s/\\/\\\\/g;
+    my $p = $^X;
+    $p =~ s/\\/\\\\/g;
+    if ($r->url !~ m!^/set_auto_logon\?user=(\w+);pass=([\w\d\,:*+-]*)$!) {
+        return "ERR\nIncorrect url\n";
+    }    
+    my $k = $1;
+    my $v = $2 || '';           # password can be empty
+    my $ret = "ERR";
+    open(FP, ">c:/autologon.reg") 
+        or return "ERR\nCan't open tmp.reg $!\n";
+    print FP "Windows Registry Editor Version 5.00
+
+[HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon]
+\"DefaultUserName\"=\"$k\"
+\"DefaultPassword\"=\"$v\"
+\"AutoAdminLogon\"=\"1\"
+
+[HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run]
+\"regress\"=\"$p $self\"
+
+";
+    close(FP);
+    system("regedit /s c:\autologon.reg");
+
+    unlink("tmp2.reg");
+    system("regedit /e tmp2.reg \"HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon\"");
+
+    open(FP, "<:encoding(UTF-16LE)", "tmp2.reg") 
+       or return "ERR\nCan't open tmp2.reg $!\n";
+    while (my $l = <FP>) {
+       if ($l =~ /"AutoAdminLogon"="1"/) {
+          $ret = "OK";
+       } 
+    }
+    close(FP);
     unlink("tmp2.reg");
     return "$ret\n";
 }
@@ -487,6 +567,7 @@ sub get_registry_key
 
 # When adding an action, fill this hash with the right function
 my %action_list = (
+    nop     => sub { return "OK\n"; },
     stop    => \&stop_fd,
     start   => \&start_fd,
     install => \&install_fd,
@@ -499,6 +580,10 @@ my %action_list = (
     del_registry_key => \&del_registry_key,
     get_registry_key => \&get_registry_key,
     quit => sub {  exit 0; },
+    reboot => \&reboot,
+    set_service => \&set_service,
+    get_service => \&get_service,
+    set_auto_logon => \&set_auto_logon,
     );
 
 # handle client request

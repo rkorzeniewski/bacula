@@ -14,33 +14,19 @@ Director {                            # define myself
   QueryFile = "@scriptdir@/query.sql"
   WorkingDirectory = "@working_dir@"
   PidDirectory = "@piddir@"
-  Maximum Concurrent Jobs = 4
+  Maximum Concurrent Jobs = 100
   Password = "pNvX1WiXnwv2C/F7E52LGvw6rKjbbPvu2kyuPa9pVaL3"
   Messages = Daemon
+  FD Connect Timeout = 2min
 }
 
 #
 # Define the main nightly save backup job
-#   By default, this job will back up to disk in @tmpdir@
-Job {
-  Name = "NightlySave"
-  Type = Backup
-  Client = @win32_client@
-  FileSet = "Full Set"
-  Storage = File
-  Messages = Standard
-  Pool = Default
-  Write Bootstrap = "@working_dir@/NightlySave.bsr"
-  Maximum Concurrent Jobs = 4
-  SpoolData = yes
-}
-
-#
-# Define the main nightly save backup job
-#   By default, this job will back up to disk in @tmpdir@
+#   By default, this job will back up to disk in /home/kern/bacula/k/regress/tmp
 Job {
   Name = "SystemstateJob"
   Type = Backup
+  Level = Incremental
   Client = @win32_client@
   FileSet = "SystemState Set"
   Storage = File
@@ -51,67 +37,46 @@ Job {
 }
 
 Job {
-  Name = "AccurateJob"
+  Name = "MSSQLJob"
   Type = Backup
+  Level = Incremental
   Client = @win32_client@
-  FileSet = "Full Set"
+  FileSet = "MSSQL Set"
   Storage = File
   Messages = Standard
   Pool = Default
-  Accurate = yes
   Write Bootstrap = "@working_dir@/NightlySave.bsr"
   Maximum Concurrent Jobs = 4
-  SpoolData = yes
 }
 
 Job {
-  Name = "RunScript"
+  Name = "SS_SQLJob"
   Type = Backup
+  Level = Incremental
   Client = @win32_client@
-  FileSet = "Full Set"
+  FileSet = "SS_SQL Set"
   Storage = File
   Messages = Standard
   Pool = Default
   Write Bootstrap = "@working_dir@/NightlySave.bsr"
   Maximum Concurrent Jobs = 4
-  SpoolData = yes
-
-  RunScript {
-   Command = "c:\\tmp\\weird_runscript\\test.bat"       # ok  | ok  | ok
-   Command = "c:/tmp/weird_runscript/test.bat"          # ok  | ok  | ok
-   Command = "c:/tmp/weird_runscript/testé.bat"         # ok  | ok  | ok
-   Command = "c:\\tmp\\weird_runscript\\testé.bat"      # ok  | ok  | ok
-   Command = "\"c:\\tmp\\weird_runscript\\test space.bat\"" # ok  | ok  | ok
-   RunsWhen = AfterVSS
-   FailJobOnError = no
- }    
 }
+
+
 
 # Standard Restore template, to be changed by Console program
 Job {
   Name = "RestoreFiles"
   Type = Restore
   Client = @win32_client@
-  FileSet="Full Set"
+  FileSet="SystemState Set"
   Storage = File
   Messages = Standard
   Pool = Default
-  Where = @tmpdir@/bacula-restores
+# Where = /home/kern/bacula/k/regress/tmp/bacula-restores
 }
 
 
-# List of files to be backed up
-FileSet {
-  Name = "Full Set"
-  Enable VSS = yes
-  Include { 
-     Options { 
-        signature=MD5; portable=no  
-#      compression=GZIP
-     }
-     File = "@win32_file@"
-  }
-}
 # List of files to be backed up
 FileSet {
   Name = "SystemState Set"
@@ -122,13 +87,13 @@ FileSet {
 #      compression=GZIP
      }
      File = "@win32_file@"
-     Plugin = "systemstate:/@SYSTEMSTATE/"
+     Plugin = "vss:/@SYSTEMSTATE/"
   }
 }
 
 # List of files to be backed up
 FileSet {
-  Name = "Plugin Set"
+  Name = "MSSQL Set"
   Enable VSS = yes
   Include { 
      Options { 
@@ -136,9 +101,23 @@ FileSet {
 #      compression=GZIP
      }
      File = "@win32_file@"
-     Plugin = "systemstate:/@SYSTEMSTATE/"
+     Plugin = "vss:/@MSSQL/"
   }
 }
+
+FileSet {
+  Name = "SS_SQL Set"
+  Enable VSS = yes
+  Include { 
+     Options { 
+        signature=MD5; portable=no  
+     }
+     File = "@win32_file@"
+     Plugin = "vss:/@SYSTEMSTATE/"
+     Plugin = "vss:/@MSSQL/"
+  }
+}
+
 
 #
 # When to do the backups, full backup on first sunday of the month,
@@ -164,12 +143,12 @@ Client {
   Maximum Concurrent Jobs = 4
 }
 
-
 # Definition of File storage device
 Storage {
   Name = File
   Address = @win32_store_addr@       # N.B. Use a fully qualified name here
   SDPort = @sdport@
+
   Password = "ccV3lVTsQRsdIUGyab0N4sMDavui2hOBkmpBU0aQKOr9"          # password for Storage daemon
   Device = FileStorage               # must be same as Device in Storage daemon
   Media Type = File                  # must be same as MediaType in Storage daemon
@@ -181,8 +160,8 @@ Storage {
 # Generic catalog service
 Catalog {
   Name = MyCatalog
-  @libdbi@
-  dbname = @db_name@; user = @db_user@; password = "@db_password@"
+  
+  dbname = regress; user = regress; password = ""
 }
 
 # Reasonable message delivery -- send most everything to email address
@@ -191,8 +170,8 @@ Messages {
   Name = Standard
   mailcommand = "@sbindir@/bsmtp -h localhost -f \"\(Bacula regression\) %r\" -s \"Regression: %t %e of %c %l\" %r"
 # operatorcommand = "@sbindir@/bsmtp -h localhost -f \"\(Bacula regression\) %r\" -s \"Regression: Intervention needed for %j\" %r"
-# MailOnError = @job_email@ = all, !terminate
-# operator = @job_email@ = mount
+# MailOnError = kern@sibbald.com = all, !terminate
+# operator = kern@sibbald.com = mount
   console = all, !skipped, !terminate, !restored
 #
 # WARNING! the following will create a file that you must cycle from
@@ -207,8 +186,8 @@ Messages {
 # Message delivery for daemon messages (no job).
 Messages {
   Name = Daemon
-  mailcommand = "@sbindir@/bsmtp -h @smtp_host@ -f \"\(Bacula regression\) %r\" -s \"Regression daemon message\" %r"
-# mail = @job_email@ = all, !skipped            
+  mailcommand = "@sbindir@/bsmtp -h localhost -f \"\(Bacula regression\) %r\" -s \"Regression daemon message\" %r"
+# mail = kern@sibbald.com = all, !skipped            
   console = all, !skipped, !saved
   append = "@working_dir@/log" = all, !skipped
   catalog = all, !skipped
