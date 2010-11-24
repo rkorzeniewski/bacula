@@ -332,18 +332,13 @@ char *edit_utime(utime_t val, char *buf, int buf_len)
    return buf;
 }
 
-/*
- * Convert a size in bytes to uint64_t
- * Returns false: if error
-           true:  if OK, and value stored in value
- */
-bool size_to_uint64(char *str, int str_len, uint64_t *value)
+static bool strunit_to_uint64(char *str, int str_len, uint64_t *value, 
+                              const char **mod)
 {
    int i, mod_len;
    double val;
    char mod_str[20];
    char num_str[50];
-   static const char *mod[]  = {"*", "k", "kb", "m", "mb",  "g", "gb",  NULL}; /* first item * not used */
    const int64_t mult[] = {1,             /* byte */
                            1024,          /* kilobyte */
                            1000,          /* kb kilobyte */
@@ -377,6 +372,30 @@ bool size_to_uint64(char *str, int str_len, uint64_t *value)
    }
    *value = (utime_t)(val * mult[i]);
    return true;
+}
+
+/*
+ * Convert a size in bytes to uint64_t
+ * Returns false: if error
+           true:  if OK, and value stored in value
+ */
+bool size_to_uint64(char *str, int str_len, uint64_t *value)
+{
+   /* first item * not used */
+   static const char *mod[]  = {"*", "k", "kb", "m", "mb",  "g", "gb",  NULL};
+   return strunit_to_uint64(str, str_len, value, mod);
+}
+
+/*
+ * Convert a speed in bytes/s to uint64_t
+ * Returns false: if error
+           true:  if OK, and value stored in value
+ */
+bool speed_to_uint64(char *str, int str_len, uint64_t *value)
+{
+   /* first item * not used */
+   static const char *mod[]  = {"*", "k/s", "kb/s", "m/s", "mb/s",  NULL}; 
+   return strunit_to_uint64(str, str_len, value, mod);
 }
 
 /*
