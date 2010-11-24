@@ -87,7 +87,7 @@ static ssize_t my_plugin_bread(BFILE *bfd, void *buf, size_t count);
 static ssize_t my_plugin_bwrite(BFILE *bfd, void *buf, size_t count);
 static boffset_t my_plugin_blseek(BFILE *bfd, boffset_t offset, int whence);
 
-#define for_this_plug(plugin, str, len) (((len) == (plugin)->len) && strncmp((plugin)->file, str, len) == 0)
+#define for_this_plug(plugin, str, len) (((len) == (plugin)->file_len) && strncmp((plugin)->file, str, len) == 0)
 
 /* Bacula info */
 static bInfo binfo = {
@@ -328,7 +328,7 @@ int plugin_save(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
 
    /* Note, we stop the loop on the first plugin that matches the name */
    foreach_alist(plugin, plugin_list) {
-      Dmsg4(0, "plugin=%s plen=%d cmd=%s len=%d\n", plugin->file, plugin->len, cmd, len);
+      Dmsg4(0, "plugin=%s plen=%d cmd=%s len=%d\n", plugin->file, plugin->file_len, cmd, len);
       if (!for_this_plug(plugin, cmd, len)) {
          i++;
          continue;

@@ -71,7 +71,7 @@ typedef bRC (*t_unloadPlugin)(void);
 class Plugin {
 public:
    char *file;
-   int32_t len;
+   int32_t file_len;
    t_unloadPlugin unloadPlugin;
    void *pinfo;
    void *pfuncs;
