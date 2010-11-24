@@ -35,9 +35,25 @@
 #ifndef __BSTREAMS_H
 #define __BSTREAMS_H 1
 
+/* Stream bits  -- these bits are new as of 24Nov10 */
+#define STREAM_BIT_64                 (1<<30)    /* 64 bit stream (not yet implemented) */
+#define STREAM_BIT_BITS               (1<<29)    /* Following bits may be set */
+#define STREAM_BIT_PLUGIN             (1<<28)    /* Item written by a plugin */
+#define STREAM_BIT_DELTA              (1<<27)    /* Stream contains delta data */
+#define STREAM_BIT_OFFSETS            (1<<26)    /* Stream has data offset */
+#define STREAM_BIT_PORTABLE_DATA      (1<<25)    /* Data is portable */
+
+/* TYPE represents our current (old) stream types -- e.g. values 0 - 2047 */
+#define STREAMBASE_TYPE                0         /* base for types */
+#define STREAMBITS_TYPE               11         /* type bit size */
+#define STREAMMASK_TYPE               (~((~0)<< STREAMBITS_TYPE) << STREAMBASE_TYPE)
+/*
+ * Note additional base, bits, and masks can be defined for new     
+ *  ranges or subranges of stream attributes.
+ */
 
 /**
- * Stream definitions. Once defined these must NEVER
+ * Old, but currently used Stream definitions. Once defined these must NEVER
  *   change as they go on the storage media.
  * Note, the following streams are passed from the SD to the DIR
  *   so that they may be put into the catalog (actually only the
@@ -153,5 +169,7 @@
 #define STREAM_XATTR_FREEBSD             1997    /* FreeBSD specific extended attributes */
 #define STREAM_XATTR_LINUX               1998    /* Linux specific extended attributes */
 #define STREAM_XATTR_NETBSD              1999    /* NetBSD specific extended attributes */
+
+/* WARNING!!! do not define more than 2047 of these old types */
 
 #endif /* __BSTREAMS_H */
