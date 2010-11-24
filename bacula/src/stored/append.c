@@ -184,6 +184,7 @@ bool do_append_data(JCR *jcr)
          rec.VolSessionTime = jcr->VolSessionTime;
          rec.FileIndex = file_index;
          rec.Stream = stream;
+         rec.maskedStream = stream & STREAMMASK_TYPE;   /* strip high bits */
          rec.data_len = fd->msglen;
          rec.data = fd->msg;            /* use message buffer */
 
@@ -325,12 +326,10 @@ bool do_append_data(JCR *jcr)
 /* Send attributes and digest to Director for Catalog */
 bool send_attrs_to_dir(JCR *jcr, DEV_RECORD *rec)
 {
-   int stream = rec->Stream;
-
-   if (stream == STREAM_UNIX_ATTRIBUTES    || 
-       stream == STREAM_UNIX_ATTRIBUTES_EX ||
-       stream == STREAM_RESTORE_OBJECT     ||
-       crypto_digest_stream_type(stream) != CRYPTO_DIGEST_NONE) {
+   if (rec->maskedStream == STREAM_UNIX_ATTRIBUTES    || 
+       rec->maskedStream == STREAM_UNIX_ATTRIBUTES_EX ||
+       rec->maskedStream == STREAM_RESTORE_OBJECT     ||
+       crypto_digest_stream_type(rec->maskedStream) != CRYPTO_DIGEST_NONE) {
       if (!jcr->no_attributes) {
          BSOCK *dir = jcr->dir_bsock;
          if (are_attributes_spooled(jcr)) {

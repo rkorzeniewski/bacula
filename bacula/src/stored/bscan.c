@@ -658,7 +658,7 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
    }
 
    /* File Attributes stream */
-   switch (rec->Stream) {
+   switch (rec->maskedStream) {
    case STREAM_UNIX_ATTRIBUTES:
    case STREAM_UNIX_ATTRIBUTES_EX:
 
@@ -704,7 +704,7 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
        * The data must be decrypted to know the correct length.
        */
       mjcr->JobBytes += rec->data_len;
-      if (rec->Stream == STREAM_SPARSE_DATA) {
+      if (rec->maskedStream == STREAM_SPARSE_DATA) {
          mjcr->JobBytes -= sizeof(uint64_t);
       }
 

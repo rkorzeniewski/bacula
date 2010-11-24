@@ -2256,6 +2256,7 @@ static void fillcmd()
       rec.VolSessionTime = jcr->VolSessionTime;
       rec.FileIndex = ++file_index;
       rec.Stream = STREAM_FILE_DATA;
+      rec.maskedStream = STREAM_FILE_DATA;
 
       /* Mix up the data just a bit */
       mix_buffer(FILL_RANDOM, rec.data, rec.data_len);

@@ -308,7 +308,7 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
 
    /* File Attributes stream */
 
-   switch (rec->Stream) {
+   switch (rec->maskedStream) {
    case STREAM_UNIX_ATTRIBUTES:
    case STREAM_UNIX_ATTRIBUTES_EX:
 
@@ -378,7 +378,7 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
    case STREAM_WIN32_DATA:
 
       if (extract) {
-         if (rec->Stream == STREAM_SPARSE_DATA) {
+         if (rec->maskedStream == STREAM_SPARSE_DATA) {
             ser_declare;
             uint64_t faddr;
             wbuf = rec->data + OFFSET_FADDR_SIZE;
@@ -413,7 +413,7 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
          uLong compress_len;
          int stat;
 
-         if (rec->Stream == STREAM_SPARSE_GZIP_DATA) {
+         if (rec->maskedStream == STREAM_SPARSE_GZIP_DATA) {
             ser_declare;
             uint64_t faddr;
             char ec1[50];

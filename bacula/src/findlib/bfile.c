@@ -90,7 +90,7 @@ const char *stream_to_ascii(int stream)
 {
    static char buf[20];
 
-   switch (stream) {
+   switch (stream & STREAMMASK_TYPE) {
    case STREAM_UNIX_ATTRIBUTES:
       return _("Unix attributes");
    case STREAM_FILE_DATA:

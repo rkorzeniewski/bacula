@@ -152,8 +152,8 @@ static int match_fileregex(BSR *bsr, DEV_RECORD *rec, JCR *jcr)
     * The code breaks if the first record associated with a file is
     * not of this type
     */
-   if (rec->Stream == STREAM_UNIX_ATTRIBUTES ||
-       rec->Stream == STREAM_UNIX_ATTRIBUTES_EX) {
+   if (rec->maskedStream == STREAM_UNIX_ATTRIBUTES ||
+       rec->maskedStream == STREAM_UNIX_ATTRIBUTES_EX) {
       bsr->skip_file = false;
       if (unpack_attributes_record(jcr, rec->Stream, rec->data, rec->data_len, bsr->attr)) {
          if (regexec(bsr->fileregex_re, bsr->attr->fname, 0, NULL, 0) == 0) {

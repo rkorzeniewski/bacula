@@ -379,8 +379,8 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
       return true;
    }
    /* File Attributes stream */
-   if (rec->Stream == STREAM_UNIX_ATTRIBUTES ||
-       rec->Stream == STREAM_UNIX_ATTRIBUTES_EX) {
+   if (rec->maskedStream == STREAM_UNIX_ATTRIBUTES ||
+       rec->maskedStream == STREAM_UNIX_ATTRIBUTES_EX) {
       if (!unpack_attributes_record(jcr, rec->Stream, rec->data, rec->data_len, attr)) {
          if (!forge_on) {
             Emsg0(M_ERROR_TERM, 0, _("Cannot continue.\n"));
@@ -402,11 +402,11 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
          print_ls_output(jcr, attr);
          num_files++;
       }
-   } else if (rec->Stream == STREAM_PLUGIN_NAME) {
+   } else if (rec->maskedStream == STREAM_PLUGIN_NAME) {
       if (strncmp("0 0", rec->data, 3) != 0) {
          Pmsg1(000, "Plugin data: %s\n", rec->data);
       }
-   } else if (rec->Stream == STREAM_RESTORE_OBJECT) {
+   } else if (rec->maskedStream == STREAM_RESTORE_OBJECT) {
       Pmsg0(000, "Restore Object record\n");
    }
       
