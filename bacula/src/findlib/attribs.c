@@ -91,7 +91,7 @@ int select_data_stream(FF_PKT *ff_pkt)
    } else {
       stream = STREAM_FILE_DATA;
    }
-   if (ff_pkt->flags & FO_DELTA) {
+   if (ff_pkt->flags & FO_OFFSETS) {
       stream = STREAM_SPARSE_DATA;
    }
 

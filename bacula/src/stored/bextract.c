@@ -381,9 +381,9 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
          if (rec->Stream == STREAM_SPARSE_DATA) {
             ser_declare;
             uint64_t faddr;
-            wbuf = rec->data + SPARSE_FADDR_SIZE;
-            wsize = rec->data_len - SPARSE_FADDR_SIZE;
-            ser_begin(rec->data, SPARSE_FADDR_SIZE);
+            wbuf = rec->data + OFFSET_FADDR_SIZE;
+            wsize = rec->data_len - OFFSET_FADDR_SIZE;
+            ser_begin(rec->data, OFFSET_FADDR_SIZE);
             unser_uint64(faddr);
             if (fileAddr != faddr) {
                fileAddr = faddr;
@@ -417,9 +417,9 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
             ser_declare;
             uint64_t faddr;
             char ec1[50];
-            wbuf = rec->data + SPARSE_FADDR_SIZE;
-            wsize = rec->data_len - SPARSE_FADDR_SIZE;
-            ser_begin(rec->data, SPARSE_FADDR_SIZE);
+            wbuf = rec->data + OFFSET_FADDR_SIZE;
+            wsize = rec->data_len - OFFSET_FADDR_SIZE;
+            ser_begin(rec->data, OFFSET_FADDR_SIZE);
             unser_uint64(faddr);
             if (fileAddr != faddr) {
                fileAddr = faddr;

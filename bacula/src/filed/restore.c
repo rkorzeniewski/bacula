@@ -263,10 +263,12 @@ void do_restore(JCR *jcr)
        * First we expect a Stream Record Header
        */
       if (sscanf(sd->msg, rec_header, &VolSessionId, &VolSessionTime, &file_index,
-          &rctx.stream, &rctx.size) != 5) {
+          &rctx.full_stream, &rctx.size) != 5) {
          Jmsg1(jcr, M_FATAL, 0, _("Record header scan error: %s\n"), sd->msg);
          goto bail_out;
       }
+      /* Strip off new stream high bits */
+      rctx.stream = rctx.full_stream & STREAMMASK_TYPE;
       Dmsg5(150, "Got hdr: Files=%d FilInx=%d size=%d Stream=%d, %s.\n", 
             jcr->JobFiles, file_index, rctx.size, rctx.stream, stream_to_ascii(rctx.stream));
 
@@ -1058,7 +1060,7 @@ bool sparse_data(JCR *jcr, BFILE *bfd, uint64_t *addr, char **data, uint32_t *le
       unser_declare;
       uint64_t faddr;
       char ec1[50];
-      unser_begin(*data, SPARSE_FADDR_SIZE);
+      unser_begin(*data, OFFSET_FADDR_SIZE);
       unser_uint64(faddr);
       if (*addr != faddr) {
          *addr = faddr;
@@ -1070,8 +1072,8 @@ bool sparse_data(JCR *jcr, BFILE *bfd, uint64_t *addr, char **data, uint32_t *le
             return false;
          }
       }
-      *data += SPARSE_FADDR_SIZE;
-      *length -= SPARSE_FADDR_SIZE;
+      *data += OFFSET_FADDR_SIZE;
+      *length -= OFFSET_FADDR_SIZE;
       return true;
 }
 
@@ -1233,7 +1235,7 @@ int32_t extract_data(JCR *jcr, BFILE *bfd, POOLMEM *buf, int32_t buflen,
       Dmsg2(130, "Encryption writing full block, %u bytes, remaining %u bytes in buffer\n", wsize, cipher_ctx->buf_len);
    }
 
-   if ((flags & FO_SPARSE) || (flags & FO_DELTA)) {
+   if ((flags & FO_SPARSE) || (flags & FO_OFFSETS)) {
       if (!sparse_data(jcr, bfd, addr, &wbuf, &wsize)) {
          goto bail_out;
       }
@@ -1374,7 +1376,7 @@ again:
    cipher_ctx->buf_len -= cipher_ctx->packet_len;
    Dmsg2(130, "Encryption writing full block, %u bytes, remaining %u bytes in buffer\n", wsize, cipher_ctx->buf_len);
 
-   if ((flags & FO_SPARSE) || (flags & FO_DELTA)) {
+   if ((flags & FO_SPARSE) || (flags & FO_OFFSETS)) {
       if (!sparse_data(jcr, bfd, addr, &wbuf, &wsize)) {
          return false;
       }

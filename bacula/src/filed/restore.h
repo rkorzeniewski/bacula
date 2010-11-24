@@ -40,8 +40,9 @@ struct RESTORE_CIPHER_CTX {
 
 struct r_ctx {
    JCR *jcr;
-   int32_t stream;
-   int32_t prev_stream;
+   int32_t stream;                     /* stream less new bits */
+   int32_t prev_stream;                /* previous stream */
+   int32_t full_stream;                /* full stream including new bits */
    BFILE bfd;                          /* File content */
    uint64_t fileAddr;                  /* file write address */
    uint32_t size;                      /* Size of file */

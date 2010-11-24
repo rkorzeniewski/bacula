@@ -103,6 +103,7 @@ static pFuncs pluginFuncs = {
 
 #define get_self(x) ((delta_test*)((x)->pContext))
 #define FO_DELTA        (1<<28)       /* Do delta on file */
+#define FO_OFFSETS      (1<<30)       /* Keep block offsets */
 
 class delta_test
 {
@@ -317,7 +318,7 @@ static bRC startBackupFile(bpContext *ctx, struct save_pkt *sp)
       bRC state = bfuncs->checkChanges(ctx, sp);
       /* Should always be bRC_OK */
       sp->type = (state == bRC_Seen)? FT_NOCHG : FT_REG;
-      sp->flags |= FO_DELTA;
+      sp->flags |= (FO_DELTA|FO_OFFSETS);
       self->delta = sp->delta_seq + 1;
    }
    pm_strcpy(self->fname, files[self->delta % nb_files]);

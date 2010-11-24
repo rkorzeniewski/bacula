@@ -405,6 +405,13 @@ int plugin_save(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
                ff_pkt->flags &= ~FO_DELTA;   /* clean delta sequence number */
                ff_pkt->delta_seq = 0;
             }
+            if (sp.flags & FO_OFFSETS) {
+               ff_pkt->flags |= FO_OFFSETS;
+            }
+            if (sp.flags & FO_PORTABLE_DATA) {
+               ff_pkt->flags |= FO_PORTABLE_DATA;
+            }
+            ff_pkt->flags |= FO_PLUGIN;       /* data from plugin */
          }
 
          memcpy(&ff_pkt->statp, &sp.statp, sizeof(ff_pkt->statp));

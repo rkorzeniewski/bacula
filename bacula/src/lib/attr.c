@@ -83,6 +83,10 @@ int unpack_attributes_record(JCR *jcr, int32_t stream, char *rec, int32_t reclen
       return 0;
    }
    Dmsg2(dbglvl, "Got Attr: FilInx=%d type=%d\n", attr->file_index, attr->type);
+   /*
+    * Note AR_DATA_STREAM should never be set since it is encoded
+    *  at the end of the attributes.
+    */
    if (attr->type & AR_DATA_STREAM) {
       attr->data_stream = 1;
    } else {
@@ -104,6 +108,7 @@ int unpack_attributes_record(JCR *jcr, int32_t stream, char *rec, int32_t reclen
    attr->lname = p;                   /* set link position */
    while (*p++ != 0)                  /* skip link */
       { }
+   attr->delta_seq = 0;
    if (attr->type == FT_RESTORE_FIRST) {
       /* We have an object, so do a binary copy */
       object_len = reclen + rec - p;
@@ -116,15 +121,21 @@ int unpack_attributes_record(JCR *jcr, int32_t stream, char *rec, int32_t reclen
       pm_strcpy(attr->attrEx, p);     /* copy extended attributes, if any */
       if (attr->data_stream) {
          int64_t val;
-         while (*p++ != 0)               /* skip extended attributes */
+         while (*p++ != 0)            /* skip extended attributes */
             { }
          from_base64(&val, p);
          attr->data_stream = (int32_t)val;
-      }
+      } else {
+         while (*p++ != 0)            /* skip extended attributes */
+            { }
+         if (p - rec < reclen) {
+            attr->delta_seq = str_to_int32(p); /* delta_seq */
+         }
+      }       
    }
-   Dmsg7(dbglvl, "unpack_attr FI=%d Type=%d fname=%s attr=%s lname=%s attrEx=%s ds=%d\n",
+   Dmsg8(dbglvl, "unpack_attr FI=%d Type=%d fname=%s attr=%s lname=%s attrEx=%s datastr=%d delta_seq=%d\n",
       attr->file_index, attr->type, attr->fname, attr->attr, attr->lname,
-      attr->attrEx, attr->data_stream);
+      attr->attrEx, attr->data_stream, attr->delta_seq);
    *attr->ofname = 0;
    *attr->olname = 0;
    return 1;

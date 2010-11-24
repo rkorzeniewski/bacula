@@ -465,7 +465,7 @@ static void update_attribute(JCR *jcr, char *msg, int32_t msglen)
           * Older FDs don't have a delta sequence, so check if it is there 
           */
          if (p - jcr->attr < msglen) {
-            ar->DeltaSeq = str_to_int32(p);
+            ar->DeltaSeq = str_to_int32(p); /* delta_seq */
          }
       }
 

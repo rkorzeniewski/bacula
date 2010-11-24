@@ -607,7 +607,7 @@ int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
                goto good_rtn;
             }
             flags = ff_pkt->flags;
-            ff_pkt->flags &= ~(FO_GZIP|FO_SPARSE);
+            ff_pkt->flags &= ~(FO_GZIP|FO_SPARSE|FO_OFFSETS);
             if (flags & FO_ENCRYPT) {
                rsrc_stream = STREAM_ENCRYPTED_MACOS_FORK_DATA;
             } else {
@@ -810,9 +810,9 @@ static int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest,
    int zstat;
 
    if (ff_pkt->flags & FO_GZIP) {
-      if ((ff_pkt->flags & FO_SPARSE) || (ff_pkt->flags & FO_DELTA)) {
-         cbuf = (Bytef *)jcr->compress_buf + SPARSE_FADDR_SIZE;
-         max_compress_len = jcr->compress_buf_size - SPARSE_FADDR_SIZE;
+      if ((ff_pkt->flags & FO_SPARSE) || (ff_pkt->flags & FO_OFFSETS)) {
+         cbuf = (Bytef *)jcr->compress_buf + OFFSET_FADDR_SIZE;
+         max_compress_len = jcr->compress_buf_size - OFFSET_FADDR_SIZE;
       } else {
          cbuf = (Bytef *)jcr->compress_buf;
          max_compress_len = jcr->compress_buf_size; /* set max length */
@@ -841,8 +841,8 @@ static int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest,
 #endif
 
    if (ff_pkt->flags & FO_ENCRYPT) {
-      if (ff_pkt->flags & FO_SPARSE) {
-         Jmsg0(jcr, M_FATAL, 0, _("Encrypting sparse data not supported.\n"));
+      if ((ff_pkt->flags & FO_SPARSE) || (ff_pkt->flags & FO_OFFSETS)) {
+         Jmsg0(jcr, M_FATAL, 0, _("Encrypting sparse or offset data not supported.\n"));
          goto err;
       }
       /** Allocate the cipher context */
@@ -884,9 +884,9 @@ static int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest,
     * Make space at beginning of buffer for fileAddr because this
     *   same buffer will be used for writing if compression is off.
     */
-   if ((ff_pkt->flags & FO_SPARSE) || (ff_pkt->flags & FO_DELTA)) {
-      rbuf += SPARSE_FADDR_SIZE;
-      rsize -= SPARSE_FADDR_SIZE;
+   if ((ff_pkt->flags & FO_SPARSE) || (ff_pkt->flags & FO_OFFSETS)) {
+      rbuf += OFFSET_FADDR_SIZE;
+      rsize -= OFFSET_FADDR_SIZE;
 #ifdef HAVE_FREEBSD_OS
       /**
        * To read FreeBSD partitions, the read size must be
@@ -919,7 +919,7 @@ static int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest,
          }
          if (!allZeros) {
             /** Put file address as first data in buffer */
-            ser_begin(wbuf, SPARSE_FADDR_SIZE);
+            ser_begin(wbuf, OFFSET_FADDR_SIZE);
             ser_uint64(fileAddr);     /* store fileAddr in begin of buffer */
          }
          fileAddr += sd->msglen;      /* update file address */
@@ -927,9 +927,9 @@ static int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest,
          if (allZeros) {
             continue;                 /* skip block of zeros */
          }
-      } else if (ff_pkt->flags & FO_DELTA) {
+      } else if (ff_pkt->flags & FO_OFFSETS) {
          ser_declare;
-         ser_begin(wbuf, SPARSE_FADDR_SIZE);
+         ser_begin(wbuf, OFFSET_FADDR_SIZE);
          ser_uint64(ff_pkt->bfd.offset);     /* store offset in begin of buffer */
       }
 
@@ -995,8 +995,8 @@ static int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest,
          uint32_t initial_len = 0;
          ser_declare;
 
-         if ((ff_pkt->flags & FO_SPARSE) || (ff_pkt->flags & FO_DELTA)) {
-            cipher_input_len += SPARSE_FADDR_SIZE;
+         if ((ff_pkt->flags & FO_SPARSE) || (ff_pkt->flags & FO_OFFSETS)) {
+            cipher_input_len += OFFSET_FADDR_SIZE;
          }
 
          /** Encrypt the length of the input block */
@@ -1031,8 +1031,8 @@ static int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest,
       }
 
       /* Send the buffer to the Storage daemon */
-      if ((ff_pkt->flags & FO_SPARSE) || (ff_pkt->flags & FO_DELTA)) {
-         sd->msglen += SPARSE_FADDR_SIZE; /* include fileAddr in size */
+      if ((ff_pkt->flags & FO_SPARSE) || (ff_pkt->flags & FO_OFFSETS)) {
+         sd->msglen += OFFSET_FADDR_SIZE; /* include fileAddr in size */
       }
       sd->msg = wbuf;              /* set correct write buffer */
       if (!sd->send()) {
