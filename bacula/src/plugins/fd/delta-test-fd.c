@@ -248,16 +248,6 @@ static bRC handlePluginEvent(bpContext *ctx, bEvent *event, void *value)
    case bEventLevel:
 //    Dmsg(ctx, dbglvl, "delta-test-fd: JobLevel=%c %d\n", (int)value, (int)value);
       self->level = (int)(intptr_t)value;
-      if (self->level == 'I' || self->level == 'D') {
-         bfuncs->getBaculaValue(ctx, bVarAccurate, (void *)&accurate);
-         if (!accurate) {       /* can be changed to FATAL */
-            Jmsg(ctx, M_FATAL, 
-                 "Accurate mode should be turned on when using the "
-                 "delta-test plugin\n");
-            return bRC_Error;
-         }
-      }
-
       break;
    case bEventSince:
 //    Dmsg(ctx, dbglvl, "delta-test-fd: since=%d\n", (int)value);
@@ -275,9 +265,18 @@ static bRC handlePluginEvent(bpContext *ctx, bEvent *event, void *value)
    case bEventRestoreCommand:
 //    Dmsg(ctx, dbglvl, "delta-test-fd: EventRestoreCommand cmd=%s\n", (char *)value);
       /* Fall-through wanted */
+      break;
    case bEventBackupCommand:
       Dmsg(ctx, dbglvl, "delta-test-fd: pluginEvent cmd=%s\n", (char *)value);
-      /* TODO: analyse plugin command here */
+      if (self->level == 'I' || self->level == 'D') {
+         bfuncs->getBaculaValue(ctx, bVarAccurate, (void *)&accurate);
+         if (!accurate) {       /* can be changed to FATAL */
+            Jmsg(ctx, M_FATAL, 
+                 "Accurate mode should be turned on when using the "
+                 "delta-test plugin\n");
+            return bRC_Error;
+         }
+      }
       break;
 
    default:
