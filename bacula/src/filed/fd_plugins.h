@@ -198,7 +198,7 @@ typedef enum {
   bEventLevel                           = 11,
   bEventSince                           = 12,
   bEventCancelCommand                   = 13, /* Executed by another thread */
-  bEventVssBackupAddComponents          = 14,
+  bEventVssBackupAddComponents          = 14, /* Just before bEventVssPrepareSnapshot */
   bEventVssRestoreLoadComponentMetadata = 15,
   bEventVssRestoreSetComponentsSelected = 16,
   bEventRestoreObject                   = 17,
@@ -211,7 +211,7 @@ typedef enum {
    * You need to add them without duplicates, 
    * see fd_common.h add_drive() copy_drives() to get help
    */
-  bEventVssAddSnapshotLetters           = 21
+  bEventVssPrepareSnapshot              = 21
 } bEventType;
 
 typedef struct s_bEvent {
