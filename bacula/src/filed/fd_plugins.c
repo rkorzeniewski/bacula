@@ -196,7 +196,10 @@ void generate_plugin_event(JCR *jcr, bEventType eventType, void *value)
 
    Dmsg2(dbglvl, "plugin_ctx=%p JobId=%d\n", jcr->plugin_ctx_list, jcr->JobId);
 
-   /* Pass event to every plugin (except if name is set) */
+   /*
+    * Pass event to every plugin (except if name is set). If name
+    *   is set, we pass it only to the plugin with that name.
+    */
    foreach_alist(plugin, plugin_list) {
       if (name && !for_this_plug(plugin, name, len)) {
          i++;
@@ -599,6 +602,7 @@ int plugin_create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
 
    rp.pkt_size = sizeof(rp);
    rp.pkt_end = sizeof(rp);
+   rp.delta_seq = attr->delta_seq;
    rp.stream = attr->stream;
    rp.data_stream = attr->data_stream;
    rp.type = attr->type;
