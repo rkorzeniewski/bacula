@@ -73,6 +73,7 @@ nice tests/verify-voltocat-test
 nice tests/weird-files2-test
 nice tests/weird-files-test
 nice tests/migration-job-test
+nice tests/migration-job-purge-test
 nice tests/migration-jobspan-test
 nice tests/migration-volume-test
 nice tests/migration-time-test
