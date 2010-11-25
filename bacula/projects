@@ -8,16 +8,16 @@ Summary:
 
 Item  1: Ability to restart failed jobs
 Item  2: SD redesign
-Item  3: NDMP backup/restore
-Item  4: SAP backup/restore
-Item  5: Oracle backup/restore
+Item* 3: NDMP backup/restore                                           
+Item  4: SAP backup/restore                                           
+Item  5: Oracle backup/restore                                           
 Item  6: Zimbra and Zarafa backup/restore
 Item* 7: Include timestamp of job launch in "stat clients" output
 Item  8: Include all conf files in specified directory
 Item  9: Reduction of communications bandwidth for a backup
 Item 10: Concurrent spooling and despooling within a single job.
 Item 11: Start spooling even when waiting on tape
-Item 12: Add ability to Verify any specified Job.
+Item*12: Add ability to Verify any specified Job.
 Item 13: Data encryption on storage daemon
 Item 14: Possibilty to schedule Jobs on last Friday of the month
 Item 15: Scheduling syntax that permits more flexibility and options
@@ -29,7 +29,7 @@ Item 20: Job migration between different SDs
 Item 19. Allow FD to initiate a backup
 Item 21: Implement Storage daemon compression
 Item 22: Ability to import/export Bacula database entities
-Item 23: Implementation of running Job speed limit.
+Item*23: Implementation of running Job speed limit.
 Item 24: Add an override in Schedule for Pools based on backup types
 Item 25: Automatic promotion of backup levels based on backup size
 Item 26: Allow FileSet inclusion/exclusion by creation/mod times
@@ -43,14 +43,12 @@ Item 33: Add Minumum Spool Size directive
 Item 34: Command that releases all drives in an autochanger
 Item 35: Run bscan on a remote storage daemon from within bconsole.
 Item 36: Implement a Migration job type that will create a reverse
-Item 37: Extend the verify code to make it possible to verify
-Item 38: Separate "Storage" and "Device" in the bacula-dir.conf
-Item 39: Least recently used device selection for tape drives in autochanger.
-Item 40: Implement a Storage device like Amazon's S3.
-Item 41: Convert tray monitor on Windows to a stand alone program
-Item 42: Improve Bacula's tape and drive usage and cleaning management
-Item 43: Relabel disk volume after recycling
-
+Item 37: Separate "Storage" and "Device" in the bacula-dir.conf
+Item 38: Least recently used device selection for tape drives in autochanger.
+Item 39: Implement a Storage device like Amazon's S3.
+Item 40: Convert tray monitor on Windows to a stand alone program
+Item 41: Improve Bacula's tape and drive usage and cleaning management 
+Item 42: Relabel disk volume after recycling
 
 Item  1: Ability to restart failed jobs
    Date: 26 April 2009
@@ -287,7 +285,7 @@ Item 12: Add ability to Verify any specified Job.
 Date: 17 January 2008
 Origin: portrix.net Hamburg, Germany.
 Contact: Christian Sabelmann
-Status: 70% of the required Code is part of the Verify function since v. 2.x
+Status: Can use jobid= in run command to select an old job
 
    What:
    The ability to tell Bacula which Job should verify instead of 
@@ -1121,66 +1119,7 @@ Item 36: Implement a Migration job type that will create a reverse
   Notes:  This feature was previously discussed on the bacula-devel list
           here: http://www.mail-archive.com/bacula-devel@lists.sourceforge.net/msg04962.html
 
-
-
-Item 37: Extend the verify code to make it possible to verify
-          older jobs, not only the last one that has finished
-  Date:   10 April 2009
-  Origin: Ralf Gross (Ralf-Lists <at> ralfgross.de)
-  Status: not implemented or documented
-
-  What:   At the moment a VolumeToCatalog job compares only the
-          last job with the data in the catalog. It's not possible
-          to compare the data (md5sums) of an older volume with the
-          data in the catalog.
-
-  Why:    If a verify job fails, one has to immediately check the
-          source of the problem, fix it and rerun the verify job.
-          This has to happen before the next backup of the
-          verified backup job starts.
-          More important: It's not possible to check jobs that are
-          kept for a long time (archiv). If a jobid could be
-          specified for a verify job, older backups/tapes could be
-          checked on a regular base.
-
-  Notes:  verify documentation:
-          VolumeToCatalog: This level causes Bacula to read the file
-          attribute data written to the Volume from the last Job [...]
-          
-          Verify Job = <Job-Resource-Name> If you run a verify job
-          without this directive, the last job run will be compared
-          with the catalog, which means that you must immediately
-          follow a backup by a verify command. If you specify a Verify
-          Job Bacula will find the last job with that name that ran [...]
-
-          example bconsole verify dialog:
-
-          Run Verify job
-          JobName:     VerifyServerXXX
-          Level:       VolumeToCatalog
-          Client:      ServerXXX-fd
-          FileSet:     ServerXXX-Vol1
-          Pool:        Full (From Job resource)
-          Storage:     Neo4100 (From Pool resource)
-          Verify Job:  ServerXXX-Vol1
-          Verify List: 
-          When:        2009-04-20 09:03:04
-          Priority:    10
-          OK to run? (yes/mod/no): m
-          Parameters to modify:
-               1: Level
-               2: Storage
-               3: Job
-               4: FileSet
-               5: Client
-               6: When
-               7: Priority
-               8: Pool
-               9: Verify Job
-
-
-
-Item 38: Separate "Storage" and "Device" in the bacula-dir.conf
+Item 37: Separate "Storage" and "Device" in the bacula-dir.conf
   Date:   29 April 2009
   Origin: "James Harper" <james.harper@bendigoit.com.au>
   Status: not implemented or documented
@@ -1217,7 +1156,7 @@ Item 38: Separate "Storage" and "Device" in the bacula-dir.conf
 
   Notes:  
 
-Item 39: Least recently used device selection for tape drives in autochanger.
+Item 38: Least recently used device selection for tape drives in autochanger.
 Date:    12 October 2009
 Origin:  Thomas Carter <tcarter@memc.com>
 Status:  Proposal
@@ -1236,7 +1175,7 @@ Why:  The current implementation places a majority of use and wear on drive
 
 Notes:
 
-Item 40: Implement a Storage device like Amazon's S3.
+Item 39: Implement a Storage device like Amazon's S3.
   Date:  25 August 2008
   Origin: Soren Hansen <soren@ubuntu.com>
   Status: Not started.
@@ -1260,7 +1199,7 @@ Item 40: Implement a Storage device like Amazon's S3.
          if bacula want to recycle a volume, it will start by downloading the
          file to truncate it few seconds later, if we can avoid that...
 
-Item 41: Convert tray monitor on Windows to a stand alone program
+Item 40: Convert tray monitor on Windows to a stand alone program
    Date: 26 April 2009
  Origin: Kern/Eric
  Status: 
@@ -1274,7 +1213,7 @@ Item 41: Convert tray monitor on Windows to a stand alone program
   Notes: Requires communicating with the FD via the network (simulate
           a console connection).
 
-Item 42: Improve Bacula's tape and drive usage and cleaning management 
+Item 41: Improve Bacula's tape and drive usage and cleaning management 
   Date:  8 November 2005, November 11, 2005
   Origin: Adam Thornton <athornton at sinenomine dot net>,
           Arno Lehmann <al at its-lehmann dot de>
@@ -1288,7 +1227,7 @@ Item 42: Improve Bacula's tape and drive usage and cleaning management
   Why:   Needed
 
 
-Item 43: Relabel disk volume after recycling
+Item 42: Relabel disk volume after recycling
   Origin: Pasi Kärkkäinen <pasik@iki.fi>
   Date:   07 May 2009.
   Status: Not implemented yet, no code written.
@@ -1349,3 +1288,5 @@ Item  n: One line summary ...
 *Item   : List InChanger flag when doing restore.
 *Item   : Port bat to Win32
 *Item   : An option to operate on all pools with update vol parameters
+========== Item completed after 5.0.0 ==========================
+*Item   : Add ability to Verify any specified Job.
