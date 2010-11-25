@@ -1179,8 +1179,15 @@ void migration_cleanup(JCR *jcr, int TermCode)
          Mmsg(query, "UPDATE Log SET JobId=%s WHERE JobId=%s",
            new_jobid, old_jobid);
          db_sql_query(mig_jcr->db, query.c_str(), NULL, NULL);
-         /* Purge all old file records, but leave Job record */
-         purge_files_from_jobs(ua, old_jobid);
+
+         if (jcr->job->PurgeMigrateJob) {
+            /* Purge old Job record */
+            purge_jobs_from_catalog(ua, old_jobid);
+         } else {
+            /* Purge all old file records, but leave Job record */
+            purge_files_from_jobs(ua, old_jobid);
+         }
+
          free_ua_context(ua);
       } 
 

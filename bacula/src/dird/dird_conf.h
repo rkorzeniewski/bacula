@@ -436,6 +436,8 @@ public:
    bool CancelLowerLevelDuplicates;   /* Cancel lower level backup jobs */
    bool CancelQueuedDuplicates;       /* Cancel queued jobs */
    bool CancelRunningDuplicates;      /* Cancel Running jobs */
+   bool PurgeMigrateJob;              /* Purges source job on completion */
+
    alist *base;                       /* Base jobs */   
 
    /* Methods */
