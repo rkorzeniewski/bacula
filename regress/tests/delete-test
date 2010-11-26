@@ -50,6 +50,7 @@ quit
 EOF
 
 run_bacula
+stop_bacula
 
 check_two_logs
 
