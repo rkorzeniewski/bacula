@@ -583,21 +583,27 @@ void Console::display_textf(const char *fmt, ...)
 
 void Console::display_text(const QString buf)
 {
-   m_cursor->insertText(buf);
-   update_cursor();
+   if (buf.size() != 0) {
+      m_cursor->insertText(buf);
+      update_cursor();
+   }
 }
 
 
 void Console::display_text(const char *buf)
 {
-   m_cursor->insertText(buf);
-   update_cursor();
+   if (*buf != 0) {
+      m_cursor->insertText(buf);
+      update_cursor();
+   }
 }
 
 void Console::display_html(const QString buf)
 {
-   m_cursor->insertHtml(buf);
-   update_cursor();
+   if (buf.size() != 0) {
+      m_cursor->insertHtml(buf);
+      update_cursor();
+   }
 }
 
 /* Position cursor to end of screen */
