@@ -614,7 +614,7 @@ void Console::beginNewCommand(int conn)
    for (int i=0; i < 3; i++) {
       dircomm->write(".");
       while (dircomm->read() > 0) {
-         Pmsg2(000, "begin new command loop %i %s\n", i, m_dir->name());
+         if (mainWin->m_commDebug) Pmsg2(000, "begin new command loop %i %s\n", i, m_dir->name());
          if (mainWin->m_displayAll) display_text(dircomm->msg());
       }
       if (dircomm->m_at_main_prompt) {
