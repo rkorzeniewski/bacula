@@ -718,11 +718,11 @@ sub find_mdf
 sub online_mssql_db
 {
     my ($r) = shift;
-    if ($r->url !~ m!^/online_mssql_db\?db=([\w\d]+)$!) {
+    if ($r->url !~ m!^/online_mssql_db\?mdf=([\w\d]+);db=([\w\d]+)$!) {
         return "ERR\nIncorrect url\n";
     }
-    my $db = $1;
-    $mdf_to_find = "$db.mdf";
+    my ($mdf, $db) = ($1, $2);
+    $mdf_to_find = "$mdf.mdf";
 
     find(\&find_mdf, 'c:/program files/microsoft sql server/');
     $mssql_mdf =~ s:/:\\:g;
@@ -732,8 +732,8 @@ sub online_mssql_db
 USE [master]
 GO
 CREATE DATABASE [$db] ON 
-( FILENAME = N'$mssql_mdf\\$db.mdf' ),
-( FILENAME = N'$mssql_mdf\\${db}_log.LDF' )
+( FILENAME = N'$mssql_mdf\\$mdf.mdf' ),
+( FILENAME = N'$mssql_mdf\\${mdf}_log.LDF' )
  FOR ATTACH
 GO
 USE [$db]
