@@ -581,6 +581,7 @@ sub find_mssql
     }
 }    
 
+# Verify that we can use SQLCMD.exe
 sub check_mssql
 {
     my ($r) = shift;
@@ -608,6 +609,7 @@ sub check_mssql
     return "OK\n";
 }
 
+# Create simple DB, a table and some information in
 sub setup_mssql_db
 {
     my ($r) = shift;
@@ -634,6 +636,7 @@ sub setup_mssql_db
     return "OK\n";
 }
 
+# drop database
 sub cleanup_mssql_db
 {
     my ($r) = shift;
@@ -653,6 +656,7 @@ sub cleanup_mssql_db
     return "OK\n";
 }
 
+# truncate the table that is in database
 sub truncate_mssql_table
 {
     my ($r) = shift;
@@ -677,6 +681,7 @@ sub truncate_mssql_table
     return "OK\n";
 }
 
+# test that table1 contains some rows
 sub test_mssql_content
 {
     my ($r) = shift;
@@ -700,6 +705,51 @@ sub test_mssql_content
     return "OK\n";
 }
 
+my $mssql_mdf;
+my $mdf_to_find;
+sub find_mdf
+{
+    if ($_ =~ /$mdf_to_find/i) {
+        $mssql_mdf = $File::Find::dir;
+    }
+}
+
+# put a mdf online
+sub online_mssql_db
+{
+    my ($r) = shift;
+    if ($r->url !~ m!^/online_mssql_db\?db=([\w\d]+)$!) {
+        return "ERR\nIncorrect url\n";
+    }
+    my $db = $1;
+    $mdf_to_find = "$db.mdf";
+
+    find(\&find_mdf, 'c:/program files/microsoft sql server/');
+    $mssql_mdf =~ s:/:\\:g;
+
+    open(FP, ">c:/mssql.sql");
+    print FP "
+USE [master]
+GO
+CREATE DATABASE [$db] ON 
+( FILENAME = N'$mssql_mdf\\$db.mdf' ),
+( FILENAME = N'$mssql_mdf\\${db}_log.LDF' )
+ FOR ATTACH
+GO
+USE [$db]
+GO
+SELECT 'OK' FROM table1
+GO
+";
+    close(FP);
+    my $res = `"$mssql_bin" -U $mssql_user -P $mssql_pass -i c:\\mssql.sql`;
+    #unlink("c:/mssql.sql");
+    if ($res !~ /OK/) {
+        print "no content\n";
+        return "ERR\n";
+    }
+    return "OK\n";
+}
 
 # When adding an action, fill this hash with the right function
 my %action_list = (
@@ -720,11 +770,13 @@ my %action_list = (
     set_service => \&set_service,
     get_service => \&get_service,
     set_auto_logon => \&set_auto_logon,
+
     check_mssql => \&check_mssql,
     setup_mssql_db => \&setup_mssql_db,
     cleanup_mssql_db => \&cleanup_mssql_db,
     truncate_mssql_table => \&truncate_mssql_table,
     test_mssql_content => \&test_mssql_content,
+    online_mssql_db => \&online_mssql_db,
     );
 
 # handle client request
