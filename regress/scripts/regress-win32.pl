@@ -75,7 +75,12 @@
    WIN32_PASSWORD="xxx"
    # will be the ip address of the linux box
    WIN32_STORE_ADDR="192.168.0.1"
-   
+   # set for autologon
+   WIN32_USER=Administrator
+   WIN32_PASS=password
+   # set for MSSQL
+   WIN32_MSSQL_USER=sa
+   WIN32_MSSQL_PASS=pass
     - type make setup
     - run ./tests/backup-bacula-test to be sure that everything is ok
     - start ./tests/win32-fd-test
@@ -565,6 +570,137 @@ sub get_registry_key
     return "$ret\n";
 }
 
+my $mssql_user;
+my $mssql_pass;
+my $mssql_bin;
+use File::Find qw/find/;
+sub find_mssql
+{
+    if ($_ =~ /sqlcmd.exe/i) {
+        $mssql_bin = $File::Find::name;
+    }
+}    
+
+sub check_mssql
+{
+    my ($r) = shift;
+    my $ret = "ERR";
+    if ($r->url !~ m!^/check_mssql\?user=(\w+);pass=(.+)$!) {
+        return "ERR\nIncorrect url\n";
+    }
+    ($mssql_user, $mssql_pass) = ($1, $2);
+
+    unless ($mssql_bin) {
+        find(\&find_mssql, 'c:/program files/microsoft sql server/');
+    }
+
+    if (!$mssql_bin) {
+        return "ERR\n";
+    }
+
+    print $mssql_bin, "\n";
+
+    my $res = `"$mssql_bin" -U $mssql_user -P $mssql_pass -Q "SELECT 'OK';"`;
+    if ($res !~ /OK/) {
+        print "Can't run sql\n";
+        return "ERR\n";
+    }
+    return "OK\n";
+}
+
+sub setup_mssql_db
+{
+    my ($r) = shift;
+    my $ret = "ERR";
+    if ($r->url !~ m!^/setup_mssql_db\?db=([\w\d]+)$!) {
+        return "ERR\nIncorrect url\n";
+    }
+    my $db = $1;
+
+    unless ($mssql_bin) {
+        print "Can't find mssql bin\n";
+        return "ERR\n";
+    }
+
+    my $res = `"$mssql_bin" -U $mssql_user -P $mssql_pass -Q "CREATE DATABASE $db;"`;
+    $res = `"$mssql_bin" -U $mssql_user -P $mssql_pass -d $db -Q "CREATE TABLE table1 (a int, b int);"`;
+    $res = `"$mssql_bin" -U $mssql_user -P $mssql_pass -d $db -Q "INSERT INTO table1 (a, b) VALUES (1,1);"`;
+    $res = `"$mssql_bin" -U $mssql_user -P $mssql_pass -d $db -Q "SELECT 'OK' FROM table1;"`;
+    
+    if ($res !~ /OK/) {
+        print "Can't run sql\n";
+        return "ERR\n";
+    }
+    return "OK\n";
+}
+
+sub cleanup_mssql_db
+{
+    my ($r) = shift;
+    my $ret = "ERR";
+    if ($r->url !~ m!^/cleanup_mssql_db\?db=([\w\d]+)$!) {
+        return "ERR\nIncorrect url\n";
+    }
+    my $db = $1;
+
+    unless ($mssql_bin) {
+        print "Can't find mssql bin\n";
+        return "ERR\n";
+    }
+
+    my $res = `"$mssql_bin" -U $mssql_user -P $mssql_pass -Q "DROP DATABASE $db;"`;
+
+    return "OK\n";
+}
+
+sub truncate_mssql_table
+{
+    my ($r) = shift;
+    my $ret = "ERR";
+    if ($r->url !~ m!^/truncate_mssql_table\?db=([\w\d]+)$!) {
+        return "ERR\nIncorrect url\n";
+    }
+    my $db = $1;
+
+    unless ($mssql_bin) {
+        print "Can't find mssql bin\n";
+        return "ERR\n";
+    }
+
+    my $res = `"$mssql_bin" -U $mssql_user -P $mssql_pass -d $db -Q "TRUNCATE TABLE table1;"`;
+    $res = `"$mssql_bin" -U $mssql_user -P $mssql_pass -d $db -Q "SELECT 'OK' FROM table1;"`;
+
+    if ($res =~ /OK/) {
+        print "Can't truncate\n";
+        return "ERR\n";
+    }    
+    return "OK\n";
+}
+
+sub test_mssql_content
+{
+    my ($r) = shift;
+    my $ret = "ERR";
+    if ($r->url !~ m!^/test_mssql_content\?db=([\w\d]+)$!) {
+        return "ERR\nIncorrect url\n";
+    }
+    my $db = $1;
+
+    unless ($mssql_bin) {
+        print "Can't find mssql bin\n";
+        return "ERR\n";
+    }
+
+    my $res = `"$mssql_bin" -U $mssql_user -P $mssql_pass -d $db -Q "SELECT 'OK' FROM table1;"`;
+
+    if ($res !~ /OK/) {
+        print "no content\n";
+        return "ERR\n";
+    }    
+    return "OK\n";
+}
+
+
 # When adding an action, fill this hash with the right function
 my %action_list = (
     nop     => sub { return "OK\n"; },
@@ -584,6 +720,11 @@ my %action_list = (
     set_service => \&set_service,
     get_service => \&get_service,
     set_auto_logon => \&set_auto_logon,
+    check_mssql => \&check_mssql,
+    setup_mssql_db => \&setup_mssql_db,
+    cleanup_mssql_db => \&cleanup_mssql_db,
+    truncate_mssql_table => \&truncate_mssql_table,
+    test_mssql_content => \&test_mssql_content,
     );
 
 # handle client request
