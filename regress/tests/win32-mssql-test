@@ -12,17 +12,16 @@
 # * Execute the script on the Windows box
 #     perl regress-win32.pl
 # * Run this script with the proper config settings about WIN32
+#   see win32-fd-test
 #
-# Add user auth info to ./config file to enable autologin
+# * Install MSSQL with default options, put database username in config
 #  WIN32_MSSQL_USER=sa
-#  WIN32_MSSQL_PASS=PasswordSecret
-# * Install MSSQL with default options
-#
+#  WIN32_MSSQL_PASS=password
 #
 # Note, once everything is setup, and you have run the above once
 #  you can simply run the first part of this script prior to the URL=
 #  to get the proper conf files loaded in bin, then manually
-#  start bacula, and run the "systemstate" backup job, then
+#  start bacula, and run the "MSSQLJob" backup job, then
 #  restore it.
 #
 TestName="win32-mssql-test"
@@ -59,6 +58,12 @@ END_OF_DATA
 
 run_bacula
 
+wget -qO - "$URL/cleanup_mssql_db?db=db$$" | grep OK > /dev/null
+if [ $? -ne 0 ]; then
+    print_debug "ERROR: can't remove mssql db$$"
+    estat=1
+fi
+
 cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @# 
 @# now do a restore
@@ -66,7 +71,10 @@ cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @$out ${cwd}/tmp/log2.out
 restore where=/ storage=File
 5
-m @MSSQL
+cd @MSSQL/
+cd SqlServerWriter/
+cd WIN2003/
+m db$$
 done
 yes
 wait
@@ -81,6 +89,18 @@ stop_bacula
 
 check_two_logs
 
-wget -qO $tmp/cleanup.log "$URL/cleanup_setup_db?db=db$$"
+wget -qO - "$URL/online_mssql_db?mdf=db$$;db=restoredb$$" | grep OK > /dev/null
+if [ $? -ne 0 ]; then
+    print_debug "ERROR: can't put db$$ online"
+    estat=1
+fi
+
+wget -qO - "$URL/test_mssql_content?db=restoredb$$" | grep OK > /dev/null
+if [ $? -ne 0 ]; then
+    print_debug "ERROR: can't get content of restoredb$$"
+    estat=1
+fi
+
+wget -qO $tmp/cleanup.log "$URL/cleanup_mssql_db?db=restoredb$$"
 
 end_test
