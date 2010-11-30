@@ -25,6 +25,7 @@ Director {                            # define myself
 #   By default, this job will back up to disk in /home/kern/bacula/k/regress/tmp
 Job {
   Name = "SystemstateJob"
+  Accurate = yes
   Type = Backup
   Level = Incremental
   Client = @win32_client@
