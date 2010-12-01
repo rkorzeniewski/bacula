@@ -89,7 +89,7 @@ extern int sm_check_rtn(const char *fname, int lineno, bool bufdump);
 #define sm_static(x)
 #define sm_new_owner(a, b, c)
 #define sm_malloc(f, l, n)     malloc(n)
-#define sm_free(f,l n)         free(n)
+#define sm_free(f, l, n)       free(n)
 #define sm_check(f, l, fl)
 #define sm_check_rtn(f, l, fl) 1
 
