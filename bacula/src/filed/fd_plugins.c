@@ -331,7 +331,7 @@ int plugin_save(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
 
    /* Note, we stop the loop on the first plugin that matches the name */
    foreach_alist(plugin, plugin_list) {
-      Dmsg4(0, "plugin=%s plen=%d cmd=%s len=%d\n", plugin->file, plugin->file_len, cmd, len);
+      Dmsg4(dbglvl, "plugin=%s plen=%d cmd=%s len=%d\n", plugin->file, plugin->file_len, cmd, len);
       if (!for_this_plug(plugin, cmd, len)) {
          i++;
          continue;
