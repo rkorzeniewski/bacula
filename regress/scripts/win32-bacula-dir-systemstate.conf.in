@@ -161,8 +161,7 @@ Storage {
 # Generic catalog service
 Catalog {
   Name = MyCatalog
-  
-  dbname = regress; user = regress; password = ""
+  dbname = @db_name@; user = @db_user@; password = "@db_password@"
 }
 
 # Reasonable message delivery -- send most everything to email address
