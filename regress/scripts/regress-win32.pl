@@ -503,7 +503,7 @@ sub set_auto_logon
        or return "ERR\nCan't open tmp2.reg $!\n";
     while (my $l = <FP>) {
        if ($l =~ /"AutoAdminLogon"="1"/) {
-          $ret = "OK";
+          $ret = "OK\n";
        } 
     }
     close(FP);
