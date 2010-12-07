@@ -405,8 +405,8 @@ update_win32()
      -a -d $cwd/build/src/win32/release64 ] \
    || [ -d $cwd/release32 -a -f $cwd/release64 ]
    then
-       echo "Try to upgrade the FileDaemon"
-       wget -qO - "$WIN32_ADDR:8091/install" | grep OK >/dev/null
+       echo -ne "Try to upgrade the FileDaemon:\t"
+       wget -qO - "$WIN32_ADDR:8091/install"
    fi
 }
 
