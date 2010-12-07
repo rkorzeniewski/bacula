@@ -17,6 +17,8 @@
 #     to run and connect to it.
 # * Create c:\regress\test on the Windows machine
 # * Allow ports through the Win firewall for perl 8091 and bacula-fd 9102
+# * If you put bacula binaries in release32 and release64, the script will
+#   update binaries
 # * Run win32-fd-test regression
 #
 TestName="win32-fd-test"
@@ -39,8 +41,9 @@ wget -qO $tmp/start.log "$URL/start"
 wget -qO $tmp/init1.log "$URL/init_attrib_test?source=$WIN32_FILE"
 wget -qO $tmp/init2.log "$URL/init_weird_runscript_test?source=$WIN32_FILE"
 wget -qO $tmp/clean.log "$URL/cleandir?source=$WIN32_FILE/restore"
-echo "Done wgets ..."
 
+# try to upgrade win32 binaries
+update_win32
       
 cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @output

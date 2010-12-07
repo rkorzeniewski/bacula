@@ -399,6 +399,17 @@ disable_pluguins()
    done
 }
 
+update_win32()
+{
+   if [ -d $cwd/build/src/win32/release32   \
+     -a -d $cwd/build/src/win32/release64 ] \
+   || [ -d $cwd/release32 -a -f $cwd/release64 ]
+   then
+       echo "Try to upgrade the FileDaemon"
+       wget -qO - "$WIN32_ADDR:8091/install" | grep OK >/dev/null
+   fi
+}
+
 debug_wait()
 {
   if test "x${REGRESS_WAIT}" = "x1"; then
