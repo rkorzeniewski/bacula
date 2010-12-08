@@ -52,6 +52,7 @@ Job {
 
 Job {
   Name = "SS_SQLJob"
+  Accurate = yes
   Type = Backup
   Level = Incremental
   Client = @win32_client@
