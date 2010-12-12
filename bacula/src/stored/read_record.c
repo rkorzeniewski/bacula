@@ -52,6 +52,7 @@ static char *rec_state_to_str(DEV_RECORD *rec);
 #endif
 
 static const int dbglvl = 500;
+static const int no_FileIndex = -999999;
 
 /*
  * This subroutine reads all the records and passes them back to your
@@ -67,6 +68,7 @@ bool read_records(DCR *dcr,
    DEV_BLOCK *block = dcr->block;
    DEV_RECORD *rec = NULL;
    uint32_t record;
+   int32_t lastFileIndex;
    bool ok = true;
    bool done = false;
    SESSION_LABEL sessrec;
@@ -194,6 +196,7 @@ bool read_records(DCR *dcr,
             block->BlockNumber, rec->remainder);
       record = 0;
       rec->state = 0;
+      lastFileIndex = no_FileIndex;
       Dmsg1(dbglvl, "Block %s empty\n", is_block_empty(rec)?"is":"NOT");
       for (rec->state=0; ok && !is_block_empty(rec); ) {
          if (!read_record_from_block(dcr, block, rec)) {
@@ -283,22 +286,35 @@ bool read_records(DCR *dcr,
          Dmsg6(dbglvl, "OK callback. recno=%d state=%s blk=%d SI=%d ST=%d FI=%d\n", record,
                rec_state_to_str(rec), block->BlockNumber,
                rec->VolSessionId, rec->VolSessionTime, rec->FileIndex);
+         if (lastFileIndex != no_FileIndex && lastFileIndex != rec->FileIndex) {
+            if (is_this_bsr_done(jcr->bsr, rec) && try_repositioning(jcr, rec, dcr)) {
+               Dmsg2(dbglvl, "This bsr done, break pos %u:%u\n",
+                     dev->file, dev->block_num);
+               break;
+            }
+            Dmsg2(dbglvl, "==== inside LastIndex=%d FileIndex=%d\n", lastFileIndex, rec->FileIndex);
+         }
+         Dmsg2(dbglvl, "==== LastIndex=%d FileIndex=%d\n", lastFileIndex, rec->FileIndex);
+         lastFileIndex = rec->FileIndex;
          ok = record_cb(dcr, rec);
+#if 0
          /*
           * If we have a digest stream, we check to see if we have 
           *  finished the current bsr, and if so, repositioning will
           *  be turned on.
           */
          if (crypto_digest_stream_type(rec->Stream) != CRYPTO_DIGEST_NONE) {
-            Dmsg3(dbglvl, "Have digest FI=%u before bsr check pos %u:%u\n", rec->FileIndex,
+            Dmsg3(dbglvl, "=== Have digest FI=%u before bsr check pos %u:%u\n", rec->FileIndex,
                   dev->file, dev->block_num);
             if (is_this_bsr_done(jcr->bsr, rec) && try_repositioning(jcr, rec, dcr)) {
+               Dmsg1(dbglvl, "==== BSR done at FI=%d\n", rec->FileIndex);
                Dmsg2(dbglvl, "This bsr done, break pos %u:%u\n",
                      dev->file, dev->block_num);
                break;
             }
             Dmsg2(900, "After is_bsr_done pos %u:%u\n", dev->file, dev->block_num);
          }
+#endif
       } /* end for loop over records */
       Dmsg2(dbglvl, "After end recs in block. pos=%u:%u\n", dev->file, dev->block_num);
    } /* end for loop over blocks */
