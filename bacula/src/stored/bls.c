@@ -402,11 +402,12 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
          print_ls_output(jcr, attr);
          num_files++;
       }
-   } else if (rec->maskedStream == STREAM_PLUGIN_NAME) {
-      if (strncmp("0 0", rec->data, 3) != 0) {
-         Pmsg1(000, "Plugin data: %s\n", rec->data);
-      }
-   } else if (rec->maskedStream == STREAM_RESTORE_OBJECT) {
+   } else if (rec->Stream == STREAM_PLUGIN_NAME) {
+      char data[100];
+      int len = MIN(rec->data_len+1, sizeof(data));
+      bstrncpy(data, rec->data, len);
+      Pmsg1(000, "Plugin data: %s\n", data);
+   } else if (rec->Stream == STREAM_RESTORE_OBJECT) {
       Pmsg0(000, "Restore Object record\n");
    }
       
