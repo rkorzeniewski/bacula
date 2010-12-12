@@ -81,10 +81,16 @@ runPage::runPage(const QString &defJob, const QString &level,
 void runPage::init()
 {
    QDateTime dt;
+   QDesktopWidget *desk = QApplication::desktop(); 
+   QRect scrn;
 
    m_name = tr("Run");
    pgInitialize();
    setupUi(this);
+   /* Get screen rectangle */
+   scrn = desk->screenGeometry(desk->primaryScreen());
+   /* Position this window in the middle of the screen */
+   this->move((scrn.width()-this->width())/2, (scrn.height()-this->height())/2);
    QTreeWidgetItem* thisitem = mainWin->getFromHash(this);
    thisitem->setIcon(0,QIcon(QString::fromUtf8(":images/run.png")));
    m_conn = m_console->notifyOff();
