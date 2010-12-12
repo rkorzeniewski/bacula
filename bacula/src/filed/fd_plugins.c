@@ -478,7 +478,7 @@ bool send_plugin_name(JCR *jcr, BSOCK *sd, bool start)
       stat = sd->fsend("%ld 1 %d %s%c", index, sp->portable, sp->cmd, 0);
    } else {
       /* Send end of data */
-      stat = sd->fsend("0 0");
+      stat = sd->fsend("%ld 0", jcr->JobFiles);
    }
    if (!stat) {
       Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
