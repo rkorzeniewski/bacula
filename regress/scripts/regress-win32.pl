@@ -921,6 +921,22 @@ sub remove_dir
     return "OK\n";
 }
 
+sub get_traces
+{
+    my ($file) = <"c:/program files/bacula/working/*.trace">;
+    if (!$file || ! -f $file) {
+        return "ERR\n$!\n";
+    }
+    return $file;
+}
+
+sub truncate_traces
+{
+    my $f = get_traces();
+    unlink($f) or return "ERR\n$!\n";
+    return "OK\n";
+}
+
 # When adding an action, fill this hash with the right function
 my %action_list = (
     nop     => sub { return "OK\n"; },
@@ -945,6 +961,8 @@ my %action_list = (
     create_schedtask => \&create_schedtask,
     del_schedtask => \&del_schedtask,
     check_schedtask => \&check_schedtask,
+    get_traces => \&get_traces,
+    truncate_traces => \&truncate_traces,
 
     check_mssql => \&check_mssql,
     setup_mssql_db => \&setup_mssql_db,
@@ -984,11 +1002,17 @@ sub handle_client
         print "Exec $action:\n";
         
         my $ret = $action_list{$action}($r);
-        my $h = HTTP::Headers->new('Content-Type' => 'text/plain') ;
-        my $r = HTTP::Response->new(HTTP::Status::RC_OK,
-                                    'OK', $h, $ret) ;
-        print $ret;
-        $c->send_response($r) ;
+        if ($action eq 'get_traces' && $ret !~ /ERR/) {
+            print "Sending $ret\n";
+            $c->send_file_response($ret);
+
+        } else {
+            my $h = HTTP::Headers->new('Content-Type' => 'text/plain') ;
+            my $r = HTTP::Response->new(HTTP::Status::RC_OK,
+                                        'OK', $h, $ret) ;
+            print $ret;
+            $c->send_response($r) ;
+        }
     } else {
         print "$action not found, probably a version problem\n";
         $c->send_error(RC_NOT_FOUND) ;
