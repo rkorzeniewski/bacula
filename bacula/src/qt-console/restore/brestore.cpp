@@ -47,6 +47,7 @@ bRestore::bRestore()
    QTreeWidgetItem* thisitem = mainWin->getFromHash(this);
    thisitem->setIcon(0, QIcon(QString::fromUtf8(":images/browse.png")));
    m_populated = false;
+   m_closeable = false;
    m_current = NULL;
    RestoreList->setAcceptDrops(true);
 }

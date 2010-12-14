@@ -124,7 +124,8 @@ public slots:
    void treeItemChanged(QTreeWidgetItem *, QTreeWidgetItem *);
    void stackItemChanged(int);
    void toggleDockContextWindow();
-   void closePage();
+   void closePage(int item);
+   void closeCurrentPage();
    void setPreferences();
    void readPreferences();
    void waitEnter();

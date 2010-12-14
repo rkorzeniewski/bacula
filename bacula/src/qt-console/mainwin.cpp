@@ -265,7 +265,7 @@ void MainWin::connectSignals()
    connect(treeWidget, SIGNAL(itemClicked(QTreeWidgetItem *, int)), this, SLOT(treeItemClicked(QTreeWidgetItem *, int)));
    connect(treeWidget, SIGNAL(currentItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)), this, SLOT(treeItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)));
    connect(tabWidget, SIGNAL(currentChanged(int)), this, SLOT(stackItemChanged(int)));
-   connect(tabWidget, SIGNAL(tabCloseRequested(int)), this, SLOT(closePage()));
+   connect(tabWidget, SIGNAL(tabCloseRequested(int)), this, SLOT(closePage(int)));
    connect(actionQuit, SIGNAL(triggered()), app, SLOT(closeAllWindows()));
    connect(actionLabel, SIGNAL(triggered()), this,  SLOT(labelButtonClicked()));
    connect(actionRun, SIGNAL(triggered()), this,  SLOT(runButtonClicked()));
@@ -278,7 +278,7 @@ void MainWin::connectSignals()
    connect(actionRestore, SIGNAL(triggered()), this,  SLOT(restoreButtonClicked()));
    connect(actionUndock, SIGNAL(triggered()), this,  SLOT(undockWindowButton()));
    connect(actionToggleDock, SIGNAL(triggered()), this,  SLOT(toggleDockContextWindow()));
-   connect(actionClosePage, SIGNAL(triggered()), this,  SLOT(closePage()));
+   connect(actionClosePage, SIGNAL(triggered()), this,  SLOT(closeCurrentPage()));
    connect(actionPreferences, SIGNAL(triggered()), this,  SLOT(setPreferences()));
    connect(actionRepopLists, SIGNAL(triggered()), this,  SLOT(repopLists()));
    connect(actionReloadRepop, SIGNAL(triggered()), this,  SLOT(reloadRepopLists()));
@@ -293,7 +293,7 @@ void MainWin::disconnectSignals()
    disconnect(treeWidget, SIGNAL(itemClicked(QTreeWidgetItem *, int)), this, SLOT(treeItemClicked(QTreeWidgetItem *, int)));
    disconnect(treeWidget, SIGNAL( currentItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)), this, SLOT(treeItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)));
    disconnect(tabWidget, SIGNAL(currentChanged(int)), this, SLOT(stackItemChanged(int)));
-   disconnect(tabWidget, SIGNAL(tabCloseRequested(int)), this, SLOT(closePage()));
+   disconnect(tabWidget, SIGNAL(tabCloseRequested(int)), this, SLOT(closePage(int)));
    disconnect(actionQuit, SIGNAL(triggered()), app, SLOT(closeAllWindows()));
    disconnect(actionLabel, SIGNAL(triggered()), this,  SLOT(labelButtonClicked()));
    disconnect(actionRun, SIGNAL(triggered()), this,  SLOT(runButtonClicked()));
@@ -306,7 +306,7 @@ void MainWin::disconnectSignals()
    disconnect(actionRestore, SIGNAL(triggered()), this,  SLOT(restoreButtonClicked()));
    disconnect(actionUndock, SIGNAL(triggered()), this,  SLOT(undockWindowButton()));
    disconnect(actionToggleDock, SIGNAL(triggered()), this,  SLOT(toggleDockContextWindow()));
-   disconnect(actionClosePage, SIGNAL(triggered()), this,  SLOT(closePage()));
+   disconnect(actionClosePage, SIGNAL(triggered()), this,  SLOT(closeCurrentPage()));
    disconnect(actionPreferences, SIGNAL(triggered()), this,  SLOT(setPreferences()));
    disconnect(actionRepopLists, SIGNAL(triggered()), this,  SLOT(repopLists()));
    disconnect(actionReloadRepop, SIGNAL(triggered()), this,  SLOT(reloadRepopLists()));
@@ -444,13 +444,16 @@ void MainWin::treeItemClicked(QTreeWidgetItem *item, int /*column*/)
    /* Is this a page that has been inserted into the hash  */
    if (getFromHash(item)) {
       Pages* page = getFromHash(item);
-      int stackindex=tabWidget->indexOf(page);
+      int stackindex = tabWidget->indexOf(page);
 
       if (stackindex >= 0) {
          tabWidget->setCurrentWidget(page);
       }
+      page->dockPage();
       /* run the virtual function in case this class overrides it */
       page->PgSeltreeWidgetClicked();
+   } else {
+      Dmsg0(000, "Page not in hash");
    }
 }
 
@@ -757,19 +760,35 @@ QTreeWidgetItem* MainWin::getFromHash(Pages *page)
    return m_widgethash.value(page);
 }
 
+void MainWin::closeCurrentPage()
+{
+   closePage(-1);
+}
+
 /*
  * Function to respond to action on page selector context menu to close the
  * current window.
  */
-void MainWin::closePage()
+void MainWin::closePage(int item)
 {
-   QTreeWidgetItem *currentitem = treeWidget->currentItem();
+   QTreeWidgetItem *currentitem;
+   Pages *page;
+
+   if (item >= 0) {
+     page = (Pages *)tabWidget->widget(item);
+   } else {
+      currentitem = treeWidget->currentItem();
+      /* Is this a page that has been inserted into the hash  */
+      if (getFromHash(currentitem)) {
+         page = getFromHash(currentitem);
+      }
+   }   
    
-   /* Is this a page that has been inserted into the hash  */
-   if (getFromHash(currentitem)) {
-      Pages* page = getFromHash(currentitem);
+   if (page) {
       if (page->isCloseable()) {
          page->closeStackPage();
+      } else {
+         page->hidePage();
       }
    }
 }

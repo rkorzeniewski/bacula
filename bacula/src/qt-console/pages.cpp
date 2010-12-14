@@ -176,6 +176,20 @@ bool Pages::isCloseable()
    return m_closeable;
 }
 
+void Pages::hidePage()
+{
+   if (!m_parent || (m_parent->indexOf(this) <= 0)) {
+      return;
+   }
+   /* Remove any tab that may exist */
+   m_parent->removeTab(m_parent->indexOf(this));
+   hide();
+   /* Clear docked flag */
+   m_docked = false;
+   /* The window has been undocked, lets change the context menu */
+   setContextMenuDockText();
+}
+
 /*
  * When a window is closed, this slot is called.  The idea is to put it back in the
  * stack here, and it works.  I wanted to get it to the top of the stack so that the

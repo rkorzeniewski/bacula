@@ -58,6 +58,7 @@ public:
    Pages();
    void dockPage();
    void undockPage();
+   void hidePage();
    void togglePageDocking();
    bool isDocked();
    bool isOnceDocked();
