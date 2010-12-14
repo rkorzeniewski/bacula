@@ -559,14 +559,24 @@ static int dot_lsmarkcmd(UAContext *ua, TREE_CTX *tree)
 }
 
 /*
- * Ls command that lists only the marked files
+ * This recursive ls command that lists only the marked files
  */
-static void rlsmark(UAContext *ua, TREE_NODE *tnode)
+static void rlsmark(UAContext *ua, TREE_NODE *tnode, int level)
 {
    TREE_NODE *node;
+   const int max_level = 100;
+   char indent[max_level*2+1];
+   int i, j;
    if (!tree_node_has_child(tnode)) {
       return;
    }
+   level = MIN(level, max_level);
+   j = 0;
+   for (i=0; i<level; i++) {
+      indent[j++] = ' ';
+      indent[j++] = ' ';
+   }
+   indent[j] = 0;
    foreach_child(node, tnode) {
       if ((ua->argc == 1 || fnmatch(ua->argk[1], node->fname, 0) == 0) &&
           (node->extract || node->extract_dir)) {
@@ -578,9 +588,9 @@ static void rlsmark(UAContext *ua, TREE_NODE *tnode)
          } else {
             tag = "";
          }
-         ua->send_msg("%s%s%s\n", tag, node->fname, tree_node_has_child(node)?"/":"");
+         ua->send_msg("%s%s%s%s\n", indent, tag, node->fname, tree_node_has_child(node)?"/":"");
          if (tree_node_has_child(node)) {
-            rlsmark(ua, node);
+            rlsmark(ua, node, level+1);
          }
       }
    }
@@ -588,7 +598,7 @@ static void rlsmark(UAContext *ua, TREE_NODE *tnode)
 
 static int lsmarkcmd(UAContext *ua, TREE_CTX *tree)
 {
-   rlsmark(ua, tree->node);
+   rlsmark(ua, tree->node, 0);
    return 1;
 }
 
