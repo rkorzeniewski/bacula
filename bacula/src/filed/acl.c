@@ -31,7 +31,7 @@
  * Currently we support the following OSes:
  *   - AIX (pre-5.3 and post 5.3 acls, acl_get and aclx_get interface)
  *   - Darwin
- *   - FreeBSD
+ *   - FreeBSD (POSIX and NFSv4/ZFS acls)
  *   - HPUX
  *   - IRIX
  *   - Linux
@@ -438,7 +438,7 @@ static bacl_exit_code (*os_parse_acl_streams)(JCR *jcr, int stream) = aix_parse_
 #endif
 
 /**
- * In Linux we can get numeric and/or shorted ACLs
+ * On Linux we can get numeric and/or shorted ACLs
  */
 #if defined(HAVE_LINUX_OS)
 #if defined(BACL_WANT_SHORT_ACLS) && defined(BACL_WANT_NUMERIC_IDS)
@@ -451,6 +451,18 @@ static bacl_exit_code (*os_parse_acl_streams)(JCR *jcr, int stream) = aix_parse_
 #ifdef BACL_ALTERNATE_TEXT
 #include <acl/libacl.h>
 #define acl_to_text(acl,len)     (acl_to_any_text((acl), NULL, ',', BACL_ALTERNATE_TEXT))
+#endif
+#endif
+
+/**
+ * On FreeBSD we can get numeric ACLs
+ */
+#if defined(HAVE_FREEBSD_OS)
+#if defined(BACL_WANT_NUMERIC_IDS)
+#define BACL_ALTERNATE_TEXT            ACL_TEXT_NUMERIC_IDS
+#endif
+#ifdef BACL_ALTERNATE_TEXT
+#define acl_to_text(acl,len)     (acl_to_text_np((acl), (len), BACL_ALTERNATE_TEXT))
 #endif
 #endif
 
@@ -468,7 +480,14 @@ static acl_type_t bac_to_os_acltype(bacl_type acltype)
    case BACL_TYPE_DEFAULT:
       ostype = ACL_TYPE_DEFAULT;
       break;
-
+#ifdef ACL_TYPE_NFS4
+      /**
+       * FreeBSD has an additional acl type named ACL_TYPE_NFS4.
+       */
+   case BACL_TYPE_NFS4:
+      ostype = ACL_TYPE_NFS4;
+      break;
+#endif
 #ifdef ACL_TYPE_DEFAULT_DIR
    case BACL_TYPE_DEFAULT_DIR:
       /**
@@ -612,10 +631,10 @@ static bacl_exit_code generic_get_acl_from_os(JCR *jcr, bacl_type acltype)
       }
 #endif
 
-#if !defined(HAVE_DARWIN_OS)
       /**
        * Make sure this is not just a trivial ACL.
        */
+#if !defined(HAVE_DARWIN_OS)
       if (acltype == BACL_TYPE_ACCESS && acl_is_trivial(acl)) {
          /**
           * The ACLs simply reflect the (already known) standard permissions
@@ -625,6 +644,23 @@ static bacl_exit_code generic_get_acl_from_os(JCR *jcr, bacl_type acltype)
          jcr->acl_data->content_length = 0;
          acl_free(acl);
          return bacl_exit_ok;
+      }
+#endif
+#if defined(HAVE_FREEBSD_OS) && defined(_PC_ACL_NFS4)
+      if (acltype == BACL_TYPE_NFS4) {
+         int trivial;
+         if (acl_is_trivial_np(acl, &trivial) == 0) {
+            if (trivial == 1) {
+               /**
+                * The ACLs simply reflect the (already known) standard permissions
+                * So we don't send an ACL stream to the SD.
+                */
+               pm_strcpy(jcr->acl_data->content, "");
+               jcr->acl_data->content_length = 0;
+               acl_free(acl);
+               return bacl_exit_ok;
+            }
+         }
       }
 #endif
 
@@ -815,17 +851,197 @@ static bacl_exit_code darwin_parse_acl_streams(JCR *jcr, int stream)
 static bacl_exit_code (*os_build_acl_streams)(JCR *jcr, FF_PKT *ff_pkt) = darwin_build_acl_streams;
 static bacl_exit_code (*os_parse_acl_streams)(JCR *jcr, int stream) = darwin_parse_acl_streams;
 
-#elif defined(HAVE_FREEBSD_OS) || \
-      defined(HAVE_IRIX_OS) || \
-      defined(HAVE_LINUX_OS)
-
+#elif defined(HAVE_FREEBSD_OS)
 /**
  * Define the supported ACL streams for these OSes
  */
-#if defined(HAVE_FREEBSD_OS)
-static int os_access_acl_streams[1] = { STREAM_ACL_FREEBSD_ACCESS_ACL };
+static int os_access_acl_streams[2] = { STREAM_ACL_FREEBSD_ACCESS_ACL, STREAM_ACL_FREEBSD_NFS4_ACL };
 static int os_default_acl_streams[1] = { STREAM_ACL_FREEBSD_DEFAULT_ACL };
-#elif defined(HAVE_IRIX_OS)
+
+static bacl_exit_code freebsd_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
+{
+   int acl_enabled = 0;
+   bacl_type acltype = BACL_TYPE_NONE;
+   berrno be;
+
+#if defined(_PC_ACL_NFS4)
+   /**
+    * See if filesystem supports NFS4 acls.
+    */
+   acl_enabled = pathconf(jcr->last_fname, _PC_ACL_NFS4);
+   switch (acl_enabled) {
+   case -1:
+      switch (errno) {
+      case ENOENT:
+         return bacl_exit_ok;
+      default:
+         Mmsg2(jcr->errmsg, _("pathconf error on file \"%s\": ERR=%s\n"),
+               jcr->last_fname, be.bstrerror());
+         Dmsg2(100, "pathconf error file=%s ERR=%s\n",
+               jcr->last_fname, be.bstrerror());
+         return bacl_exit_error;
+      }
+   default:
+      acltype = BACL_TYPE_NFS4;
+      break;
+   }
+#endif
+
+   if (acl_enabled == 0) {
+      /**
+       * See if filesystem supports POSIX acls.
+       */
+      acl_enabled = pathconf(jcr->last_fname, _PC_ACL_EXTENDED);
+      switch (acl_enabled) {
+      case -1:
+         switch (errno) {
+         case ENOENT:
+            return bacl_exit_ok;
+         default:
+            Mmsg2(jcr->errmsg, _("pathconf error on file \"%s\": ERR=%s\n"),
+                  jcr->last_fname, be.bstrerror());
+            Dmsg2(100, "pathconf error file=%s ERR=%s\n",
+                  jcr->last_fname, be.bstrerror());
+            return bacl_exit_error;
+         }
+      default:
+         acltype = BACL_TYPE_ACCESS;
+         break;
+      }
+   }
+
+   /**
+    * If the filesystem reports it doesn't support ACLs we clear the
+    * BACL_FLAG_SAVE_NATIVE flag so we skip ACL saves on all other files
+    * on the same filesystem. The BACL_FLAG_SAVE_NATIVE flag gets set again
+    * when we change from one filesystem to an other.
+    */
+   if (acl_enabled == 0) {
+      jcr->acl_data->flags &= ~BACL_FLAG_SAVE_NATIVE;
+      pm_strcpy(jcr->acl_data->content, "");
+      jcr->acl_data->content_length = 0;
+      return bacl_exit_ok;
+   }
+
+   /**
+    * Based on the supported ACLs retrieve and store them.
+    */
+   switch (acltype) {
+   case BACL_TYPE_NFS4:
+      /**
+       * Read NFS4 ACLs for files, dirs and links
+       */
+      if (generic_get_acl_from_os(jcr, BACL_TYPE_NFS4) == bacl_exit_fatal)
+         return bacl_exit_fatal;
+
+      if (jcr->acl_data->content_length > 0) {
+         if (send_acl_stream(jcr, STREAM_ACL_FREEBSD_NFS4_ACL) == bacl_exit_fatal)
+            return bacl_exit_fatal;
+      }
+      break;
+   case BACL_TYPE_ACCESS:
+      /**
+       * Read access ACLs for files, dirs and links
+       */
+      if (generic_get_acl_from_os(jcr, BACL_TYPE_ACCESS) == bacl_exit_fatal)
+         return bacl_exit_fatal;
+
+      if (jcr->acl_data->content_length > 0) {
+         if (send_acl_stream(jcr, STREAM_ACL_FREEBSD_ACCESS_ACL) == bacl_exit_fatal)
+            return bacl_exit_fatal;
+      }
+
+      /**
+       * Directories can have default ACLs too
+       */
+      if (ff_pkt->type == FT_DIREND) {
+         if (generic_get_acl_from_os(jcr, BACL_TYPE_DEFAULT) == bacl_exit_fatal)
+            return bacl_exit_fatal;
+         if (jcr->acl_data->content_length > 0) {
+            if (send_acl_stream(jcr, STREAM_ACL_FREEBSD_DEFAULT_ACL) == bacl_exit_fatal)
+               return bacl_exit_fatal;
+         }
+      }
+      break;
+   default:
+      break;
+   }
+
+   return bacl_exit_ok;
+}
+
+static bacl_exit_code freebsd_parse_acl_streams(JCR *jcr, int stream)
+{
+   int acl_enabled = 0;
+   berrno be;
+
+   /**
+    * First make sure the filesystem supports acls.
+    */
+   switch (stream) {
+   case STREAM_UNIX_ACCESS_ACL:
+   case STREAM_ACL_FREEBSD_ACCESS_ACL:
+   case STREAM_UNIX_DEFAULT_ACL:
+   case STREAM_ACL_FREEBSD_DEFAULT_ACL:
+      acl_enabled = pathconf(jcr->last_fname, _PC_ACL_EXTENDED);
+      break;
+   case STREAM_ACL_FREEBSD_NFS4_ACL:
+#if defined(_PC_ACL_NFS4)
+      acl_enabled = pathconf(jcr->last_fname, _PC_ACL_NFS4);
+#endif
+      break;
+   default:
+      break;
+   }
+
+   switch (acl_enabled) {
+   case 0:
+      Mmsg1(jcr->errmsg, _("Trying to restore acl on file \"%s\" on filesystem without acl support\n"),
+            jcr->last_fname);
+      return bacl_exit_error;
+   case -1:
+      switch (errno) {
+      case ENOENT:
+         return bacl_exit_ok;
+      default:
+         Mmsg2(jcr->errmsg, _("pathconf error on file \"%s\": ERR=%s\n"),
+               jcr->last_fname, be.bstrerror());
+         Dmsg3(100, "pathconf error acl=%s file=%s ERR=%s\n",
+               jcr->acl_data->content, jcr->last_fname, be.bstrerror());
+         return bacl_exit_error;
+      }
+   }
+
+   /**
+    * Restore the ACLs.
+    */
+   switch (stream) {
+   case STREAM_UNIX_ACCESS_ACL:
+   case STREAM_ACL_FREEBSD_ACCESS_ACL:
+      return generic_set_acl_on_os(jcr, BACL_TYPE_ACCESS);
+   case STREAM_UNIX_DEFAULT_ACL:
+   case STREAM_ACL_FREEBSD_DEFAULT_ACL:
+      return generic_set_acl_on_os(jcr, BACL_TYPE_DEFAULT);
+   case STREAM_ACL_FREEBSD_NFS4_ACL:
+      return generic_set_acl_on_os(jcr, BACL_TYPE_NFS4);
+   default:
+      break;
+   }
+   return bacl_exit_error;
+}
+
+/**
+ * For this OSes setup the build and parse function pointer to the OS specific functions.
+ */
+static bacl_exit_code (*os_build_acl_streams)(JCR *jcr, FF_PKT *ff_pkt) = freebsd_build_acl_streams;
+static bacl_exit_code (*os_parse_acl_streams)(JCR *jcr, int stream) = freebsd_parse_acl_streams;
+
+#elif defined(HAVE_IRIX_OS) || \
+      defined(HAVE_LINUX_OS)
+/**
+ * Define the supported ACL streams for these OSes
+ */
+#if defined(HAVE_IRIX_OS)
 static int os_access_acl_streams[1] = { STREAM_ACL_IRIX_ACCESS_ACL };
 static int os_default_acl_streams[1] = { STREAM_ACL_IRIX_DEFAULT_ACL };
 #elif defined(HAVE_LINUX_OS)
@@ -1291,7 +1507,7 @@ static bacl_exit_code solaris_parse_acl_streams(JCR *jcr, int stream)
          }
       default:
          /**
-          * On a filesystem with ACL support make sure this particilar ACL type can be restored.
+          * On a filesystem with ACL support make sure this particular ACL type can be restored.
           */
          switch (stream) {
          case STREAM_ACL_SOLARIS_ACLENT:

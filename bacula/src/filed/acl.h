@@ -46,7 +46,8 @@ typedef enum {
    BACL_TYPE_ACCESS = 1,
    BACL_TYPE_DEFAULT = 2,
    BACL_TYPE_DEFAULT_DIR = 3,
-   BACL_TYPE_EXTENDED = 4
+   BACL_TYPE_EXTENDED = 4,
+   BACL_TYPE_NFS4 = 5
 } bacl_type;
 
 /*
