@@ -1258,7 +1258,7 @@ static bxattr_exit_code (*os_parse_xattr_streams)(JCR *jcr, int stream) = generi
 #if defined(HAVE_FREEBSD_OS)
 static int os_default_xattr_streams[1] = { STREAM_XATTR_FREEBSD };
 static int os_default_xattr_namespaces[2] = { EXTATTR_NAMESPACE_USER, EXTATTR_NAMESPACE_SYSTEM };
-static const char *xattr_acl_skiplist[2] = { "system.posix1e.acl_access", NULL };
+static const char *xattr_acl_skiplist[4] = { "system.posix1e.acl_access", "system.posix1e.acl_default", "system.nfs4.acl", NULL };
 static const char *xattr_skiplist[1] = { NULL };
 #elif defined(HAVE_NETBSD_OS)
 static int os_default_xattr_streams[1] = { STREAM_XATTR_NETBSD };
