@@ -881,6 +881,8 @@ static bacl_exit_code freebsd_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
                jcr->last_fname, be.bstrerror());
          return bacl_exit_error;
       }
+   case 0:
+      break;
    default:
       acltype = BACL_TYPE_NFS4;
       break;
@@ -904,6 +906,8 @@ static bacl_exit_code freebsd_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
                   jcr->last_fname, be.bstrerror());
             return bacl_exit_error;
          }
+      case 0:
+         break;
       default:
          acltype = BACL_TYPE_ACCESS;
          break;
@@ -973,6 +977,7 @@ static bacl_exit_code freebsd_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
 static bacl_exit_code freebsd_parse_acl_streams(JCR *jcr, int stream)
 {
    int acl_enabled = 0;
+   char *acl_type_name;
    berrno be;
 
    /**
@@ -984,21 +989,20 @@ static bacl_exit_code freebsd_parse_acl_streams(JCR *jcr, int stream)
    case STREAM_UNIX_DEFAULT_ACL:
    case STREAM_ACL_FREEBSD_DEFAULT_ACL:
       acl_enabled = pathconf(jcr->last_fname, _PC_ACL_EXTENDED);
+      acl_type_name = "POSIX";
       break;
    case STREAM_ACL_FREEBSD_NFS4_ACL:
 #if defined(_PC_ACL_NFS4)
       acl_enabled = pathconf(jcr->last_fname, _PC_ACL_NFS4);
 #endif
+      acl_type_name = "NFS4";
       break;
    default:
+      acl_type_name = "unknown";
       break;
    }
 
    switch (acl_enabled) {
-   case 0:
-      Mmsg1(jcr->errmsg, _("Trying to restore acl on file \"%s\" on filesystem without acl support\n"),
-            jcr->last_fname);
-      return bacl_exit_error;
    case -1:
       switch (errno) {
       case ENOENT:
@@ -1010,6 +1014,12 @@ static bacl_exit_code freebsd_parse_acl_streams(JCR *jcr, int stream)
                jcr->acl_data->content, jcr->last_fname, be.bstrerror());
          return bacl_exit_error;
       }
+   case 0:
+      Mmsg1(jcr->errmsg, _("Trying to restore acl on file \"%s\" on filesystem without %s acl support\n"),
+            jcr->last_fname, acl_type_name);
+      return bacl_exit_error;
+   default:
+      break;
    }
 
    /**
