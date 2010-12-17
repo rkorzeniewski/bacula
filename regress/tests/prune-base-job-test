@@ -87,11 +87,6 @@ restore fileset=FS_TESTJOB where=${cwd}/tmp/bacula-restores select all done
 yes
 wait
 messages
-@$out ${cwd}/tmp/log4.out
-@exec "touch $cwd/build/po/fr.po"
-run job=backup level=incremental yes
-wait
-messages
 quit
 END_OF_DATA
 
@@ -105,6 +100,11 @@ check_restore_diff
 export bstat dstat estat
 
 cat <<END_OF_DATA >${cwd}/tmp/bconcmds
+@$out ${cwd}/tmp/log4.out
+@exec "touch $cwd/build/po/fr.po"
+run job=backup level=incremental yes
+wait
+messages
 @$out $tmp/log10.out
 sql
 SELECT count(*) FROM BaseFiles;
@@ -128,10 +128,6 @@ list jobs
 run job=base_backup level=base yes
 wait
 messages
-@$out $tmp/log12.out
-list jobs
-prune jobs yes
-list jobs
 @$out $tmp/log1.out
 @################################################################
 @# This full job will force the purge of the previous one
@@ -177,10 +173,6 @@ estat=$(($estat + $?))
 
 # B F D I F -> B F
 $bperl -e "check_prune_list('$tmp/log11.out', 2,4,7)"
-estat=$(($estat + $?))
-
-# B F B -> B F B
-$bperl -e "check_prune_list('$tmp/log12.out')"
 estat=$(($estat + $?))
 
 # B F B F -> B F
