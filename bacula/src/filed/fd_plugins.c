@@ -176,11 +176,18 @@ void generate_plugin_event(JCR *jcr, bEventType eventType, void *value)
    case bEventEndVerifyJob:
       call_if_canceled = true;
       break;
+   case bEventStartRestoreJob:
+      if (jcr->plugin) {
+         jcr->plugin->restoreFileStarted = false;
+         jcr->plugin->createFileCalled = false;
+      }
+      break;
    case bEventEndRestoreJob:
       call_if_canceled = true;
       if (jcr->plugin && jcr->plugin->restoreFileStarted) {
          plug_func(jcr->plugin)->endRestoreFile(jcr->plugin_ctx);
          jcr->plugin->restoreFileStarted = false;
+         jcr->plugin->createFileCalled = false;
       }
       break;
    default:
@@ -527,6 +534,7 @@ bool plugin_name_stream(JCR *jcr, char *name)
       if (jcr->plugin && jcr->plugin->restoreFileStarted) {
          plug_func(jcr->plugin)->endRestoreFile(jcr->plugin_ctx);
          jcr->plugin->restoreFileStarted = false;
+         jcr->plugin->createFileCalled = false;
       }
       jcr->plugin_ctx = NULL;
       jcr->plugin = NULL;
@@ -564,11 +572,12 @@ bool plugin_name_stream(JCR *jcr, char *name)
             &event, cmd) != bRC_OK) {
          goto bail_out;
       }
-      /* ***FIXME**** check error code */
-      if (plugin->restoreFileStarted) {
-         plug_func(jcr->plugin)->endRestoreFile(jcr->plugin_ctx);
+      if (plugin->restoreFileStarted)
+      {
+         Jmsg0(jcr, M_FATAL, 0, "Unbalanced call to startRestoreFile\n");
+         goto bail_out;
       }
-      plug_func(plugin)->startRestoreFile((bpContext *)jcr->plugin_ctx, cmd);
+      plug_func(plugin)->startRestoreFile(jcr->plugin_ctx, cmd);
       plugin->restoreFileStarted = true;
       goto bail_out;
    }
@@ -621,6 +630,11 @@ int plugin_create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
          rp.stream, rp.type, rp.LinkFI, rp.ofname);
    if (rp.attrEx) {
       Dmsg1(dbglvl, "attrEx=\"%s\"\n", rp.attrEx);
+   }
+   if (!plugin->restoreFileStarted || plugin->createFileCalled)
+   {
+      Jmsg0(jcr, M_FATAL, 0, "Unbalanced call to createFile\n");
+      return CF_ERROR;
    }
    rc = plug_func(plugin)->createFile(plugin_ctx, &rp);
    if (rc != bRC_OK) {

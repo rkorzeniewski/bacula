@@ -78,6 +78,7 @@ public:
    void *pHandle;
    bool disabled;
    bool restoreFileStarted;
+   bool createFileCalled;
 };
 
 /* Functions */
