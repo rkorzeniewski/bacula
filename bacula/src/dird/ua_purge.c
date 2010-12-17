@@ -529,7 +529,7 @@ bool is_volume_purged(UAContext *ua, MEDIA_DBR *mr, bool force)
 
    /* If purged, mark it so */
    cnt.count = 0;
-   Mmsg(query, "SELECT count(*) FROM JobMedia WHERE MediaId=%s", 
+   Mmsg(query, "SELECT 1 FROM JobMedia WHERE MediaId=%s LIMIT 1", 
         edit_int64(mr->MediaId, ed1));
    if (!db_sql_query(ua->db, query.c_str(), del_count_handler, (void *)&cnt)) {
       ua->error_msg("%s", db_strerror(ua->db));
