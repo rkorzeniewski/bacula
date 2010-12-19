@@ -299,7 +299,11 @@ int get_autochanger_loaded_slot(DCR *dcr)
             Jmsg(jcr, M_INFO, 0, _("3302 Autochanger \"loaded? drive %d\", result: nothing loaded.\n"),
                  drive);
          }
-         dev->clear_slot();   /* unknown */
+         if (loaded == 0) {      /* no slot loaded */
+            dev->set_slot(0);
+         } else {                /* probably some error */
+            dev->clear_slot();   /* unknown */
+         }
       }
    } else {
       berrno be;
