@@ -977,7 +977,7 @@ static bacl_exit_code freebsd_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
 static bacl_exit_code freebsd_parse_acl_streams(JCR *jcr, int stream)
 {
    int acl_enabled = 0;
-   char *acl_type_name;
+   const char *acl_type_name;
    berrno be;
 
    /**
