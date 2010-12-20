@@ -42,19 +42,24 @@ public:
 public slots:
    void populateAll();
    void deleteJob();
+   void cancelJob();
    void showInfoVolume(QListWidgetItem *);
    void rerun();
+   void storeBwLimit(int val);
 
 private slots:
 
 private:
+   void updateRunInfo();
    void populateText();
    void populateForm();
    void populateVolumes();
-
    void getFont();
    QTextCursor *m_cursor;
    QString m_jobId;
+   QString m_client;
+   QTimer *m_timer;
+   int m_bwlimit;
 };
 
 #endif /* _JOB_H_ */
