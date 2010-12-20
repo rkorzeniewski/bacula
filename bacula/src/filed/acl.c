@@ -1015,7 +1015,7 @@ static bacl_exit_code freebsd_parse_acl_streams(JCR *jcr, int stream)
          return bacl_exit_error;
       }
    case 0:
-      Mmsg1(jcr->errmsg, _("Trying to restore acl on file \"%s\" on filesystem without %s acl support\n"),
+      Mmsg2(jcr->errmsg, _("Trying to restore acl on file \"%s\" on filesystem without %s acl support\n"),
             jcr->last_fname, acl_type_name);
       return bacl_exit_error;
    default:
