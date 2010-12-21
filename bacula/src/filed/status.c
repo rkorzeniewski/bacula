@@ -281,12 +281,12 @@ static void  list_running_jobs_api(STATUS_PKT *sp)
                  edit_uint64(bps, b3),
                  njcr->JobErrors, njcr->max_bandwidth);
       sendit(msg.c_str(), len, sp);
-      len = Mmsg(msg, " FilesExamined=%s\n",
+      len = Mmsg(msg, " Files Examined=%s\n",
            edit_uint64(njcr->num_files_examined, b1));
       sendit(msg.c_str(), len, sp);
       if (njcr->JobFiles > 0) {
          njcr->lock();
-         len = Mmsg(msg, " ProcessingFile=%s\n", njcr->last_fname);
+         len = Mmsg(msg, " Processing file=%s\n", njcr->last_fname);
          njcr->unlock();
          sendit(msg.c_str(), len, sp);
       }
