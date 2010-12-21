@@ -133,6 +133,7 @@ void Job::populateAll()
 
 /*
  * Populate the text in the window
+ * TODO: Just append new text instead of clearing the window
  */
 void Job::populateText()
 {
@@ -246,17 +247,59 @@ void Job::updateRunInfo()
    }
 
    cmd = QString(".status client=\"" + m_client + "\" running");
-
+/*
+ *  JobId 5 Job backup.2010-12-21_09.28.17_03 is running.
+ *   VSS Full Backup Job started: 21-Dec-10 09:28
+ *   Files=4 Bytes=610,976 Bytes/sec=87,282 Errors=0
+ *   Files Examined=4
+ *   Processing file: /tmp/regress/build/po/de.po
+ *   SDReadSeqNo=5 fd=5
+ *
+ *  Or
+ *  JobId=5
+ *  Job=backup.2010-12-21_09.28.17_03
+ *  VSS=1
+ *  Files=4
+ *  Bytes=610976
+ *
+ */
+   QRegExp jobline("(JobId) (\\d+) Job ");
+   QRegExp itemline("([\\w /]+)[:=]\\s*(.+)");
+   QRegExp oldline("Files=([\\d,]+) Bytes=([\\d,]+) Bytes/sec=([\\d,]+) Errors=([\\d,]+)");
+   QString com(",");
+   QString empty("");
+   
    if (m_console->dir_cmd(cmd, results)) {
       foreach (QString mline, results) {
          foreach (QString line, mline.split("\n")) { 
             line = line.trimmed();
-            lst = line.split(equal);
-            if (lst.count() != 2) {
-               Pmsg1(0, "bad count=%d\n",lst.count());
+            if (oldline.indexIn(line) >= 0) {
+               if (parseit) {
+                  lst = oldline.capturedTexts();
+                  label_JobErrors->setText(lst[4]);
+                  label_Speed->setText(convertBytesSI(lst[3].replace(com, empty).toULongLong())+"/s");
+                  label_JobFiles->setText(lst[1]);
+                  label_JobBytes->setText(convertBytesSI(lst[2].replace(com, empty).toULongLong()));
+               }
+               continue;
+
+            } else if (jobline.indexIn(line) >= 0) {
+               lst = jobline.capturedTexts();
+               lst.removeFirst();
+
+            } else if (itemline.indexIn(line) >= 0) {
+               lst = itemline.capturedTexts();
+               lst.removeFirst();
+
+            } else {
+               if (mainWin->m_miscDebug) 
+                  Pmsg1(0, "bad line=%s\n", line.toUtf8().data());
                continue;
             }
-            
+            if (lst.count() < 2) {
+               if (mainWin->m_miscDebug) 
+                  Pmsg2(0, "bad line=%s count=%d\n", line.toUtf8().data(), lst.count());
+            }
             if (lst[0] == "JobId") {
                if (lst[1] == m_jobId) {
                   parseit = true;
@@ -294,8 +337,8 @@ void Job::updateRunInfo()
                   spin_Bwlimit->setValue(0);
                }
                
-//         } else if (lst[0] == "Errors") {
-//            Errors->setText(lst[1]);
+            } else if (lst[0] == "Errors") {
+               label_JobErrors->setText(lst[1]);
                
             } else if (lst[0] == "Bytes/sec") {
                label_Speed->setText(convertBytesSI(lst[1].toULongLong())+"/s");
@@ -306,12 +349,11 @@ void Job::updateRunInfo()
             } else if (lst[0] == "Bytes") {
                label_JobBytes->setText(convertBytesSI(lst[1].toULongLong()));
                
-            } else if (lst[0] == "FilesExamined") {
+            } else if (lst[0] == "Files Examined") {
                label_FilesExamined->setText(lst[1]);
                
-            } else if (lst[0] == "ProcessingFile") {
+            } else if (lst[0] == "Processing file") {
                label_CurrentFile->setText(lst[1]);
-               
             }
          }
       }
