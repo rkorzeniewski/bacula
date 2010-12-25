@@ -223,7 +223,7 @@ void Job::populateForm()
       "WHERE JobId=" + m_jobId; 
    QStringList results;
    if (m_console->sql_cmd(query, results)) {
-      QString resultline;
+      QString resultline, duration;
       QStringList fieldlist;
 
       foreach (resultline, results) { // should have only one result
@@ -240,14 +240,23 @@ void Job::populateForm()
          label_SchedTime->setText(fld.next());
          label_StartTime->setText(fld.next());
          label_EndTime->setText(fld.next());
-         label_Duration->setText(fld.next());
+         duration = fld.next();
+         /* 
+          * Note: if we have a negative duration, it is because the EndTime
+          *  is zero (i.e. the Job is still running).  We should use 
+          *  duration = StartTime - current_time
+          */
+         if (duration.left(1) == "-") {
+            duration = "0.0";
+         }
+         label_Duration->setText(duration);
 
          label_JobBytes->setText(convertBytesSI(fld.next().toULongLong()));
          label_JobFiles->setText(fld.next());
          err = fld.next();
          label_JobErrors->setText(err);
 
-         stat=fld.next();
+         stat = fld.next();
          if (stat == "T" && err.toInt() > 0) {
             stat = "W";
          }
