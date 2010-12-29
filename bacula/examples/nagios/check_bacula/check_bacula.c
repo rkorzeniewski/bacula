@@ -268,7 +268,7 @@ int docmd(monitoritem* item, const char* command, char *answer) {
 
    int stat;
    char num;
-   char *dname;
+   const char *dname;
    
    dname = "";
 
