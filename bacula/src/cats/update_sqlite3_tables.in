@@ -15,9 +15,10 @@ cd @working_dir@
 sqlite=@DB_TYPE@
 db_name=@db_name@
 
-DBV=`${sqlite} ${db_name} $sbin/regress.db <<END
+DBVERSION=`${sqlite} ${db_name}.db <<END
 select VersionId from Version;
-END`
+END
+`
 if [ $DBVERSION != 12 ] ; then
    echo " "
    echo "The existing database is version $DBVERSION !!"
