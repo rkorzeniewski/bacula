@@ -360,7 +360,7 @@ tole(0xccb0a91fL), tole(0x740cce7aL), tole(0x66b96194L), tole(0xde0506f1L)},
  */
 uint32_t bcrc32(unsigned char*buf, int len)
 {
-# ifdef __LITTLE_ENDIAN
+# ifdef HAVE_LITTLE_ENDIAN
 #  define DO_CRC(x) crc = tab[0][(crc ^ (x)) & 255 ] ^ (crc >> 8)
 #  define DO_CRC4 crc = tab[3][(crc) & 255 ] ^ \
                 tab[2][(crc >> 8) & 255 ] ^ \
