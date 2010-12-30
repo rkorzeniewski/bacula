@@ -115,4 +115,32 @@ inline void operator delete[] (void *buf)
 #define Dmsg(context, level, message, ...) bfuncs->DebugMessage(context, __FILE__, __LINE__, level, message, ##__VA_ARGS__)
 #define Jmsg(context, type, message, ...) bfuncs->JobMessage(context, __FILE__, __LINE__, type, 0, message, ##__VA_ARGS__)
 
+
+#ifdef USE_ADD_DRIVE
+/* Keep drive letters for windows vss snapshot */
+static void add_drive(char *drives, int *nCount, char *fname) {
+   if (strlen(fname) >= 2 && B_ISALPHA(fname[0]) && fname[1] == ':') {
+      /* always add in uppercase */
+      char ch = toupper(fname[0]);
+      /* if not found in string, add drive letter */
+      if (!strchr(drives,ch)) {
+         drives[*nCount] = ch;
+         drives[*nCount+1] = 0;
+         (*nCount)++;
+      }                                
+   }
+}
+
+/* Copy our drive list to Bacula core list */
+static void copy_drives(char *drives, char *dest) {
+   int last = strlen(dest);     /* dest is 27 bytes long */
+   for (char *p = drives; *p && last < 26; p++) {
+      if (!strchr(dest, *p)) {
+         dest[last++] = *p;
+         dest[last] = 0;
+      }
+   }
+}
+#endif
+
 #endif
