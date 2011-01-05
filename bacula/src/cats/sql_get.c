@@ -105,7 +105,7 @@ int db_get_file_attributes_record(JCR *jcr, B_DB *mdb, char *fname, JOB_DBR *jr,
  *    use includes the directory twice.  In this case, Verify 
  *    VolumeToCatalog fails because we have two copies in the catalog, 
  *    and only the first one is marked (twice).  So, when calling from Verify, 
- *    jr is not NULL and we know jr->FileIndex is the fileindex
+ *    VolumeToCatalog jr is not NULL and we know jr->FileIndex is the fileindex
  *    of the version of the directory/file we actually want and do
  *    a more explicit SQL search.
  */
@@ -125,6 +125,14 @@ int db_get_file_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr, FILE_DBR *fdbr)
       edit_int64(fdbr->PathId, ed1), 
       edit_int64(fdbr->FilenameId, ed2), 
       edit_int64(jr->ClientId,ed3));
+   } else if (jcr->getJobLevel() == L_VERIFY_VOLUME_TO_CATALOG) {
+      Mmsg(mdb->cmd,
+           "SELECT FileId, LStat, MD5 FROM File WHERE File.JobId=%s AND File.PathId=%s AND "
+           "File.FilenameId=%s AND File.FileIndex=%u", 
+           edit_int64(fdbr->JobId, ed1), 
+           edit_int64(fdbr->PathId, ed2), 
+           edit_int64(fdbr->FilenameId,ed3),
+           jr->FileIndex);
    } else {
       Mmsg(mdb->cmd,
 "SELECT FileId, LStat, MD5 FROM File WHERE File.JobId=%s AND File.PathId=%s AND "
