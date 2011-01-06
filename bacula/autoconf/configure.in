@@ -3238,6 +3238,8 @@ AC_OUTPUT([autoconf/Make.common \
 	   src/host.h \
 	   src/console/Makefile \
 	   src/console/bconsole.conf \
+	   src/qt-console/tray-monitor/tray-monitor.pro \
+	   src/qt-console/tray-monitor/tray-monitor.conf \
 	   src/qt-console/bat.conf \
 	   src/qt-console/bat.pro \
 	   src/qt-console/bat.pro.mingw32 \
