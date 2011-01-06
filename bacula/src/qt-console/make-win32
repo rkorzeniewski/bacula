@@ -25,3 +25,13 @@ if test -d ../win32/release32; then
    cp -f images/status.png ../win32/release32/help/
    cp -f images/mail-message-new.png ../win32/release32/help/
 fi
+
+cd tray-monitor
+qmake -spec ../win32 -unix -o Makefile.mingw32 tray-monitor.pro
+make -j3 -f Makefile.mingw32 $1
+if test -f release/bacula-tray-monitor.exe; then
+      cp -f release/bacula-tray-monitor.exe ../../win32/release32
+else
+      cp -f debug/bacula-tray-monitor.exe ../../win32/release32
+fi 
+cd ..
