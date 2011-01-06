@@ -10,8 +10,8 @@
 CONFIG += qt debug 
 
 cross-win32 {
-#  LIBS       +=  ../../win32/dll/bacula.a
-  LIBS       +=  -mwindows -L../win32/release32 -lbacula
+  LIBS       +=  -mwindows -L../../win32/release32 -lbacula
+  INCLUDEPATH += ../../win32/compat
 }
 !cross-win32 {
   LIBS        += -L../../lib -lbaccfg -lbac -L../findlib -lbacfind @OPENSSL_LIBS@
