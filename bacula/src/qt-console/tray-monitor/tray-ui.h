@@ -105,6 +105,7 @@ public:
       fill(clientCombo, res.client_list);
       fill(poolCombo, res.pool_list);
       fill(storageCombo, res.storage_list);
+      dateTimeEdit->setDisplayFormat("yyyy-MM-dd hh:mm:ss");
       dateTimeEdit->setDateTime(dt.currentDateTime());
       fill(messagesCombo, res.messages_list);
       messagesCombo->setEnabled(false);
