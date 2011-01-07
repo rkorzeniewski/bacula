@@ -1,11 +1,10 @@
 ######################################################################
-# Version $Id$
 #
-#   !!!!!!! IMPORTANT !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+#  !!!!!!! IMPORTANT !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 #
-#      Edit only bat.pro.in  -- bat.pro is built by the ./configure program
+#  Edit only tray-monitor.pro.in  -- tray-monitor.pro is built by the ./configure program
 #
-#   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+#  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 #    
 CONFIG += qt debug 
 
@@ -43,4 +42,3 @@ HEADERS += tray_conf.h  tray-monitor.h  tray-ui.h
 SOURCES += authenticate.cpp  tray_conf.cpp  tray-monitor.cpp 
 
 FORMS += ../run/run.ui
-

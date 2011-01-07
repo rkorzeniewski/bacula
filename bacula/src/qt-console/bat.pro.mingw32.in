@@ -1,11 +1,10 @@
 ######################################################################
-# Version $Id: bat.pro.in 7051 2008-05-29 01:19:31Z bartleyd2 $
 #
-#   !!!!!!! IMPORTANT !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+# !!!!!!! IMPORTANT !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 #
-#      Edit only bat.pro.in  -- bat.pro is built by the ./configure program
+# Edit only bat.pro.miingw32.in  -- bat.pro.mingw32 is built by the ./configure program
 #
-#   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 #    
 CONFIG += qt cross-win32
 # CONFIG += debug 
