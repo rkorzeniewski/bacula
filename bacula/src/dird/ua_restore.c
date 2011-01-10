@@ -220,7 +220,7 @@ int restore_cmd(UAContext *ua, const char *cmd)
    if (rx.restore_jobs == 1) {
       job = rx.restore_job;
    } else {
-      job = select_restore_job_resource(ua);
+      job = get_restore_job(ua);
    }
    if (!job) {
       goto bail_out;
@@ -458,6 +458,7 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
       "restoreclient", /* 19 */
       "copies",        /* 20 */
       "comment",       /* 21 */
+      "restore_job",   /* 22 */
       NULL
    };
 

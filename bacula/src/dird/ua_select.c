@@ -293,6 +293,24 @@ JOB *select_job_resource(UAContext *ua)
    return job;
 }
 
+/* 
+ * Select a Restore Job resource from argument or prompt
+ */
+JOB *get_restore_job(UAContext *ua)
+{
+   JOB *job;
+   int i = find_arg_with_value(ua, "restore_job");
+   if (i >= 0 && acl_access_ok(ua, Job_ACL, ua->argv[i])) {
+      job = (JOB *)GetResWithName(R_JOB, ua->argv[i]);
+      if (job && job->JobType == JT_RESTORE) {
+         return job;
+      }
+      ua->error_msg(_("Error: Restore Job resource \"%s\" does not exist.\n"),
+                    ua->argv[i]);
+   }
+   return select_restore_job_resource(ua);
+}
+
 /*
  * Select a Restore Job resource from prompt list
  */

@@ -156,7 +156,8 @@ static struct cmdstruct commands[] = {                                      /* C
  { NT_("quit"),       quit_cmd,      _("Terminate Bconsole session"), NT_(""),              false},
  { NT_("query"),      querycmd,      _("Query catalog"),              NT_(""),              false},
  { NT_("restore"),    restore_cmd,   _("Restore files"), 
-   NT_("where=</path> client=<client> storage=<storage> bootstrap=<file>"
+   NT_("where=</path> client=<client> storage=<storage> bootstrap=<file> "
+       "restore_job=<job>"
        "\n\tcomment=<text> jobid=<jobid> done select all"), false},
 
  { NT_("relabel"),    relabel_cmd,   _("Relabel a tape"), 

@@ -522,7 +522,7 @@ void get_items(const char *what)
 
 typedef enum 
 {
-   ITEM_ARG,       /* item with simple list like .job */
+   ITEM_ARG,       /* item with simple list like .jobs */
    ITEM_HELP       /* use help item=xxx and detect all arguments */
 } cpl_item_t;
 
@@ -597,7 +597,8 @@ static struct cpl_keywords_t cpl_keywords[] = {
    {"pool=",      ".pool"          },
    {"fileset=",   ".fileset"       },
    {"client=",    ".client"        },
-   {"job=",       ".job"           },
+   {"job=",       ".jobs"          },
+   {"restore_job=",".jobs type=R"  },
    {"level=",     ".level"         },
    {"storage=",   ".storage"       },
    {"schedule=",  ".schedule"      },
