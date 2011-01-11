@@ -77,11 +77,13 @@ Job {
   SpoolData = yes
 
   RunScript {
-   Command = "c:\\tmp\\weird_runscript\\test.bat"       # ok  | ok  | ok
-   Command = "c:/tmp/weird_runscript/test.bat"          # ok  | ok  | ok
-   Command = "c:/tmp/weird_runscript/testé.bat"         # ok  | ok  | ok
-   Command = "c:\\tmp\\weird_runscript\\testé.bat"      # ok  | ok  | ok
-   Command = "\"c:\\tmp\\weird_runscript\\test space.bat\"" # ok  | ok  | ok
+   Command = "c:\\tmp\\weird_runscript\\test.bat"               # ok  | ok  | ok
+   Command = "c:/tmp/weird_runscript/test.bat"                  # ok  | ok  | ok
+   Command = "\"c:/tmp/weird_runscript/dir space/test.bat\""    # ok  | ok  | ok
+   Command = "\"c:/tmp/weird_runscript/dir space/test2 space.bat\"" # ok|ok|ok
+   Command = "c:/tmp/weird_runscript/testé.bat"                 # ok  | ok  | ok
+   Command = "c:\\tmp\\weird_runscript\\testé.bat"              # ok  | ok  | ok
+   Command = "\"c:\\tmp\\weird_runscript\\test space.bat\""     # ok  | ok  | ok
    RunsWhen = AfterVSS
    FailJobOnError = no
  }    
