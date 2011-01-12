@@ -108,6 +108,12 @@ int restore_cmd(UAContext *ua, const char *cmd)
       rx.where = ua->argv[i];
    }
 
+   i = find_arg_with_value(ua, "replace");
+   if (i >= 0) {
+      rx.replace = ua->argv[i];
+   }
+   
+
    i = find_arg_with_value(ua, "strip_prefix");
    if (i >= 0) {
       strip_prefix = ua->argv[i];
@@ -256,6 +262,11 @@ int restore_cmd(UAContext *ua, const char *cmd)
            escaped_where_name ? escaped_where_name : rx.where);
    }
    pm_strcat(ua->cmd, buf);
+
+   if (rx.replace) {
+      Mmsg(buf, " replace=%s", rx.replace);
+      pm_strcat(ua->cmd, buf);
+   }
 
    if (rx.comment) {
       Mmsg(buf, " comment=\"%s\"", rx.comment);
@@ -458,7 +469,8 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
       "restoreclient", /* 19 */
       "copies",        /* 20 */
       "comment",       /* 21 */
-      "restore_job",   /* 22 */
+      "restorejob",    /* 22 */
+      "replace",       /* 23 */
       NULL
    };
 
