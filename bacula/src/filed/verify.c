@@ -368,11 +368,13 @@ static int read_digest(BFILE *bfd, DIGEST *digest, JCR *jcr)
       
       crypto_digest_update(digest, (uint8_t *)buf, n);
 
-      /* Can be used by BaseJobs, update only for Verify jobs */
-      if (jcr->getJobLevel() != L_FULL) {
+      /* Can be used by BaseJobs or with accurate, update only for Verify
+       * jobs 
+       */
+      if (jcr->getJobType() == JT_VERIFY) {
          jcr->JobBytes += n;
-         jcr->ReadBytes += n;
       }
+      jcr->ReadBytes += n;
    }
    if (n < 0) {
       berrno be;
