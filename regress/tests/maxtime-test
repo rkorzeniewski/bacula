@@ -92,7 +92,7 @@ else
    bstat=1
 fi
 
-grep 'Termination:*Backup OK' ${cwd}/tmp/RUN_MAXTIME.log >/dev/null
+grep 'Termination: *Backup OK' ${cwd}/tmp/RUN_MAXTIME.log >/dev/null
 if [ $? -eq 0 ]
 then
     [ "$debug" = 1 ] && echo MAXRUNTIME2 ok
