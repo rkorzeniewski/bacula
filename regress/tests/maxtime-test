@@ -34,6 +34,8 @@ run job=RUN_MAXWAITTIME comment="Should work" pool=PoolA yes
 @sleep 60
 label volume=TestVolume002 pool=Default
 mount
+@sleep 2
+mount
 wait
 messages
 run job=RUN_MAXRUNTIME comment="Should fail" pool=PoolA yes
