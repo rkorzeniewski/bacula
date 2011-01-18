@@ -3,7 +3,7 @@
 # shell script to create Bacula database(s)
 #
 
-PATH="@SQL_BINDIR@:$PATH"
+PATH="@POSTGRESQL_BINDIR@:$PATH"
 db_name=${db_name:-@db_name@}
 
 #

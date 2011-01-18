@@ -147,11 +147,11 @@ void Qmsg(JCR *jcr, int type, utime_t mtime, const char *fmt,...);
 bool get_trace(void);
 
 struct B_DB;
-typedef void (*sql_query)(JCR *jcr, const char *cmd);
-typedef void (*sql_escape)(JCR *jcr, B_DB* db, char *snew, char *old, int len);
+typedef void (*sql_query_func)(JCR *jcr, const char *cmd);
+typedef void (*sql_escape_func)(JCR *jcr, B_DB* db, char *snew, char *old, int len);
 
-extern DLL_IMP_EXP sql_query     p_sql_query;
-extern DLL_IMP_EXP sql_escape    p_sql_escape;
+extern DLL_IMP_EXP sql_query_func     p_sql_query;
+extern DLL_IMP_EXP sql_escape_func    p_sql_escape;
 
 extern DLL_IMP_EXP int           debug_level;
 extern DLL_IMP_EXP bool          dbg_timestamp;          /* print timestamp in debug output */

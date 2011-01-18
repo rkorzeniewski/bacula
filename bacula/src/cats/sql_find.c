@@ -36,16 +36,13 @@
  *
  */
 
-
-/* The following is necessary so that we do not include
- * the dummy external definition of DB.
- */
-#define __SQL_C                       /* indicate that this is sql.c */
-
 #include "bacula.h"
-#include "cats.h"
 
-#if    HAVE_SQLITE3 || HAVE_MYSQL || HAVE_SQLITE || HAVE_POSTGRESQL || HAVE_INGRES || HAVE_DBI
+#if HAVE_SQLITE3 || HAVE_MYSQL || HAVE_POSTGRESQL || HAVE_INGRES || HAVE_DBI
+
+#include "cats.h"
+#include "bdb_priv.h"
+#include "sql_glue.h"
 
 /* -----------------------------------------------------------------------
  *
@@ -346,7 +343,7 @@ db_find_next_volume(JCR *jcr, B_DB *mdb, int item, bool InChanger, MEDIA_DBR *mr
           strcmp(mr->VolStatus, "Purged") == 0) {
          order = "AND Recycle=1 ORDER BY LastWritten ASC,MediaId";  /* take oldest that can be recycled */
       } else {
-         order = sql_media_order_most_recently_written[db_type];    /* take most recently written */
+         order = sql_media_order_most_recently_written[db_get_type_index(mdb)];    /* take most recently written */
       }
       Mmsg(mdb->cmd, "SELECT MediaId,VolumeName,VolJobs,VolFiles,VolBlocks,"
          "VolBytes,VolMounts,VolErrors,VolWrites,MaxVolBytes,VolCapacityBytes,"
@@ -444,5 +441,4 @@ db_find_next_volume(JCR *jcr, B_DB *mdb, int item, bool InChanger, MEDIA_DBR *mr
    return numrows;
 }
 
-
-#endif /* HAVE_SQLITE3 || HAVE_MYSQL || HAVE_SQLITE || HAVE_POSTGRESQL*/
+#endif /* HAVE_SQLITE3 || HAVE_MYSQL || HAVE_POSTGRESQL || HAVE_INGRES || HAVE_DBI */

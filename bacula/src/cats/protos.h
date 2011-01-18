@@ -41,28 +41,10 @@
 /* Database prototypes */
 
 /* sql.c */
-B_DB *db_init(JCR *jcr, const char *db_driver, const char *db_name, const char *db_user, 
-              const char *db_password, const char *db_address, int db_port, 
-              const char *db_socket, int mult_db_connections);
-B_DB *db_init_database(JCR *jcr, const char *db_name, const char *db_user, const char *db_password,
-                       const char *db_address, int db_port, const char *db_socket,
-                       int mult_db_connections);
-int  db_open_database(JCR *jcr, B_DB *db);
-void db_close_database(JCR *jcr, B_DB *db);
 bool db_open_batch_connexion(JCR *jcr, B_DB *mdb);
-void db_escape_string(JCR *jcr, B_DB *db, char *snew, char *old, int len);
-char *db_escape_object(JCR *jcr, B_DB *db, char *old, int len);
-void db_unescape_object(JCR *jcr, B_DB *db, 
-                        char *from, int32_t expected_len, 
-                        POOLMEM **dest, int32_t *len);
 char *db_strerror(B_DB *mdb);
-int  db_next_index(JCR *jcr, B_DB *mdb, char *table, char *index);
-bool db_sql_query(B_DB *mdb, const char *cmd, DB_RESULT_HANDLER *result_handler, void *ctx);
-void db_start_transaction(JCR *jcr, B_DB *mdb);
-void db_end_transaction(JCR *jcr, B_DB *mdb);
 int db_int64_handler(void *ctx, int num_fields, char **row);
 int db_list_handler(void *ctx, int num_fields, char **row);
-void db_thread_cleanup();
 void db_debug_print(JCR *jcr, FILE *fp);
 int db_int_handler(void *ctx, int num_fields, char **row);
 void db_check_backend_thread_safe();

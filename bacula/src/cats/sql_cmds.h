@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2008 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2010 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -67,21 +67,27 @@ extern const char CATS_IMP_EXP *uar_jobids_fileindex;
 extern const char CATS_IMP_EXP *uar_jobid_fileindex_from_table;
 extern const char CATS_IMP_EXP *uar_sel_jobid_temp;
 
-extern const char CATS_IMP_EXP *select_recent_version[5];
-extern const char CATS_IMP_EXP *select_recent_version_with_basejob[5];
+extern const char CATS_IMP_EXP *select_recent_version[];
+extern const char CATS_IMP_EXP *select_recent_version_with_basejob[];
 extern const char CATS_IMP_EXP *select_recent_version_with_basejob_and_delta[];
-extern const char CATS_IMP_EXP *create_temp_accurate_jobids[5];
-extern const char CATS_IMP_EXP *create_temp_basefile[5];
-extern const char CATS_IMP_EXP *create_temp_new_basefile[5];
-extern const char CATS_IMP_EXP *create_deltabs[5];
-extern const char CATS_IMP_EXP *uap_upgrade_copies_oldest_job[5];
+extern const char CATS_IMP_EXP *create_temp_accurate_jobids[];
+extern const char CATS_IMP_EXP *create_temp_basefile[];
+extern const char CATS_IMP_EXP *create_temp_new_basefile[];
+extern const char CATS_IMP_EXP *create_deltabs[];
+extern const char CATS_IMP_EXP *uap_upgrade_copies_oldest_job[];
 
-extern const char CATS_IMP_EXP *uar_file[5];
-extern const char CATS_IMP_EXP *uar_create_temp[5];
-extern const char CATS_IMP_EXP *uar_create_temp1[5];
-extern const char CATS_IMP_EXP *uar_jobid_fileindex_from_dir[5];
-extern const char CATS_IMP_EXP *sql_media_order_most_recently_written[5];
-extern const char CATS_IMP_EXP *sql_get_max_connections[5];
-extern const uint32_t CATS_IMP_EXP sql_get_max_connections_index[5];
-extern const char *sql_bvfs_select[5];
-extern const char *sql_bvfs_list_files[];
+extern const char CATS_IMP_EXP *uar_file[];
+extern const char CATS_IMP_EXP *uar_create_temp[];
+extern const char CATS_IMP_EXP *uar_create_temp1[];
+extern const char CATS_IMP_EXP *uar_jobid_fileindex_from_dir[];
+extern const char CATS_IMP_EXP *sql_media_order_most_recently_written[];
+extern const char CATS_IMP_EXP *sql_get_max_connections[];
+extern const char CATS_IMP_EXP *sql_bvfs_select[];
+extern const char CATS_IMP_EXP *sql_bvfs_list_files[];
+
+extern const char CATS_IMP_EXP *batch_lock_path_query[];
+extern const char CATS_IMP_EXP *batch_lock_filename_query[];
+extern const char CATS_IMP_EXP *batch_unlock_tables_query[];
+extern const char CATS_IMP_EXP *batch_fill_path_query[];
+extern const char CATS_IMP_EXP *batch_fill_filename_query[];
+extern const char CATS_IMP_EXP *match_query[];

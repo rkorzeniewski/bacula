@@ -35,16 +35,15 @@
 
 /* *****FIXME**** fix fixed length of select_cmd[] and insert_cmd[] */
 
-/* The following is necessary so that we do not include
- * the dummy external definition of DB.
- */
-#define __SQL_C                       /* indicate that this is sql.c */
-
 #include "bacula.h"
+
+
+#if HAVE_SQLITE3 || HAVE_MYSQL || HAVE_POSTGRESQL || HAVE_INGRES || HAVE_DBI
+
 #include "cats.h"
+#include "bdb_priv.h"
+#include "sql_glue.h"
 
-
-#if    HAVE_SQLITE3 || HAVE_MYSQL || HAVE_SQLITE || HAVE_POSTGRESQL || HAVE_INGRES || HAVE_DBI
 /* -----------------------------------------------------------------------
  *
  *   Generic Routines (or almost generic)
@@ -65,6 +64,7 @@ int
 db_delete_pool_record(JCR *jcr, B_DB *mdb, POOL_DBR *pr)
 {
    SQL_ROW row;
+   int num_rows;
 
    db_lock(mdb);
    Mmsg(mdb->cmd, "SELECT PoolId FROM Pool WHERE Name='%s'", pr->Name);
@@ -74,15 +74,14 @@ db_delete_pool_record(JCR *jcr, B_DB *mdb, POOL_DBR *pr)
 
    if (QUERY_DB(jcr, mdb, mdb->cmd)) {
 
-      mdb->num_rows = sql_num_rows(mdb);
-
-      if (mdb->num_rows == 0) {
+      num_rows = sql_num_rows(mdb);
+      if (num_rows == 0) {
          Mmsg(mdb->errmsg, _("No pool record %s exists\n"), pr->Name);
          sql_free_result(mdb);
          db_unlock(mdb);
          return 0;
-      } else if (mdb->num_rows != 1) {
-         Mmsg(mdb->errmsg, _("Expecting one pool record, got %d\n"), mdb->num_rows);
+      } else if (num_rows != 1) {
+         Mmsg(mdb->errmsg, _("Expecting one pool record, got %d\n"), num_rows);
          sql_free_result(mdb);
          db_unlock(mdb);
          return 0;
@@ -241,4 +240,4 @@ int db_purge_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
 }
 
 
-#endif /* HAVE_SQLITE3 || HAVE_MYSQL || HAVE_SQLITE || HAVE_POSTGRESQL || HAVE_INGRES */
+#endif /* HAVE_SQLITE3 || HAVE_MYSQL || HAVE_POSTGRESQL || HAVE_INGRES */

@@ -583,8 +583,10 @@ static bool list_nextvol(UAContext *ua, int ndays)
    }
 
 get_out:
-   db_close_database(jcr, jcr->db);
-   jcr->db = NULL;
+   if (jcr->db) {
+      db_close_database(jcr, jcr->db);
+      jcr->db = NULL;
+   }
    free_jcr(jcr);
    if (!found) {
       ua->error_msg(_("Could not find next Volume for Job %s.\n"),
@@ -707,11 +709,12 @@ bool complete_jcr_for_job(JCR *jcr, JOB *job, POOL *pool)
    }
 
    Dmsg0(100, "complete_jcr open db\n");
-   jcr->db = db_init(jcr, jcr->catalog->db_driver, jcr->catalog->db_name, 
-                     jcr->catalog->db_user,
-                     jcr->catalog->db_password, jcr->catalog->db_address,
-                     jcr->catalog->db_port, jcr->catalog->db_socket,
-                     jcr->catalog->mult_db_connections);
+   jcr->db = db_init_database(jcr, jcr->catalog->db_driver, jcr->catalog->db_name, 
+                              jcr->catalog->db_user,
+                              jcr->catalog->db_password, jcr->catalog->db_address,
+                              jcr->catalog->db_port, jcr->catalog->db_socket,
+                              jcr->catalog->mult_db_connections, 
+                              jcr->catalog->disable_batch_insert);
    if (!jcr->db || !db_open_database(jcr, jcr->db)) {
       Jmsg(jcr, M_FATAL, 0, _("Could not open database \"%s\".\n"),
                  jcr->catalog->db_name);

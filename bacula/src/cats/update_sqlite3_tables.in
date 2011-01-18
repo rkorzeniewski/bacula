@@ -9,13 +9,12 @@ echo "	which is needed to convert from Bacula Enterprise version 2.6.x to 4.0.x"
 echo "	or Bacula Community version 5.0.x to 5.2.x"
 echo " "
 
-bindir=@SQL_BINDIR@
+bindir=@SQLITE_BINDIR@
 PATH="$bindir:$PATH"
 cd @working_dir@
-sqlite=@DB_TYPE@
 db_name=@db_name@
 
-DBVERSION=`${sqlite} ${db_name}.db <<END
+DBVERSION=`sqlite3 ${db_name}.db <<END
 select VersionId from Version;
 END
 `
@@ -28,7 +27,7 @@ if [ $DBVERSION != 12 ] ; then
    exit 1
 fi
 
-${sqlite} $* ${db_name}.db <<END-OF-DATA
+sqlite3 $* ${db_name}.db <<END-OF-DATA
 BEGIN;
 
 CREATE TABLE RestoreObject (

@@ -43,6 +43,7 @@
 /* #define LIBBACCFG_LT_RELEASE  "5.1.0" */
 /* #define LIBBACPY_LT_RELEASE   "5.1.0" */
 /* #define LIBBACSQL_LT_RELEASE  "5.1.0" */
+/* #define LIBBACCATS_LT_RELEASE  "5.1.0" */
 /* #define LIBBACFIND_LT_RELEASE "5.1.0" */
 
 

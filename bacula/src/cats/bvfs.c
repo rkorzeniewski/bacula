@@ -29,7 +29,12 @@
 #define __SQL_C                       /* indicate that this is sql.c */
 
 #include "bacula.h"
-#include "cats/cats.h"
+
+#if HAVE_SQLITE3 || HAVE_MYSQL || HAVE_POSTGRESQL || HAVE_INGRES || HAVE_DBI
+
+#include "cats.h"
+#include "bdb_priv.h"
+#include "sql_glue.h"
 #include "lib/htable.h"
 #include "bvfs.h"
 
@@ -649,7 +654,7 @@ bool Bvfs::ls_dirs()
       int len = strlen(pattern);
       query.check_size(len*2+1);
       db_escape_string(jcr, db, query.c_str(), pattern, len);
-      Mmsg(filter, " AND Path2.Path %s '%s' ", SQL_MATCH, query.c_str());
+      Mmsg(filter, " AND Path2.Path %s '%s' ", match_query[db_get_type_index(db)], query.c_str());
    }
 
    if (!dir_filenameid) {
@@ -703,7 +708,7 @@ bool Bvfs::ls_dirs()
 
    db_lock(db);
    db_sql_query(db, query.c_str(), path_handler, this);
-   nb_record = db->num_rows;
+   nb_record = sql_num_rows(db);
    db_unlock(db);
 
    return nb_record == limit;
@@ -713,12 +718,12 @@ void build_ls_files_query(B_DB *db, POOL_MEM &query,
                           const char *JobId, const char *PathId,  
                           const char *filter, int64_t limit, int64_t offset)
 {
-   if (db_type == SQL_TYPE_POSTGRESQL) {
-      Mmsg(query, sql_bvfs_list_files[db_type], 
+   if (db_get_type_index(db) == SQL_TYPE_POSTGRESQL) {
+      Mmsg(query, sql_bvfs_list_files[db_get_type_index(db)], 
            JobId, PathId, JobId, PathId, 
            filter, limit, offset);
    } else {
-      Mmsg(query, sql_bvfs_list_files[db_type], 
+      Mmsg(query, sql_bvfs_list_files[db_get_type_index(db)], 
            JobId, PathId, JobId, PathId, 
            limit, offset, filter, JobId, JobId);
    }
@@ -745,7 +750,7 @@ bool Bvfs::ls_files()
       int len = strlen(pattern);
       query.check_size(len*2+1);
       db_escape_string(jcr, db, query.c_str(), pattern, len);
-      Mmsg(filter, " AND Filename.Name %s '%s' ", SQL_MATCH, query.c_str());
+      Mmsg(filter, " AND Filename.Name %s '%s' ", match_query[db_get_type_index(db)], query.c_str());
    }
 
    build_ls_files_query(db, query, 
@@ -756,7 +761,7 @@ bool Bvfs::ls_files()
 
    db_lock(db);
    db_sql_query(db, query.c_str(), list_entries, user_data);
-   nb_record = db->num_rows;
+   nb_record = sql_num_rows(db);
    db_unlock(db);
 
    return nb_record == limit;
@@ -958,7 +963,7 @@ bool Bvfs::compute_restore_list(char *fileid, char *dirid, char *hardlink,
    }
 
    /* TODO: handle basejob and SQLite3 */
-   Mmsg(query, sql_bvfs_select[db_type], output_table, output_table);
+   Mmsg(query, sql_bvfs_select[db_get_type_index(db)], output_table, output_table);
 
    /* TODO: handle jobid filter */
    Dmsg1(dbglevel_sql, "q=%s\n", query.c_str());
@@ -968,7 +973,7 @@ bool Bvfs::compute_restore_list(char *fileid, char *dirid, char *hardlink,
    }
 
    /* MySQL need it */
-   if (db_type == SQL_TYPE_MYSQL) {
+   if (db_get_type_index(db) == SQL_TYPE_MYSQL) {
       Mmsg(query, "CREATE INDEX idx_%s ON b2%s (JobId)", 
            output_table, output_table);
    }
@@ -980,3 +985,5 @@ bail_out:
    db_sql_query(db, query.c_str(), NULL, NULL);
    return ret;
 }
+
+#endif /* HAVE_SQLITE3 || HAVE_MYSQL || HAVE_POSTGRESQL || HAVE_INGRES || HAVE_DBI */

@@ -124,11 +124,11 @@ bool setup_job(JCR *jcr)
     * Open database
     */
    Dmsg0(100, "Open database\n");
-   jcr->db=db_init(jcr, jcr->catalog->db_driver, jcr->catalog->db_name, 
-                   jcr->catalog->db_user,
-                   jcr->catalog->db_password, jcr->catalog->db_address,
-                   jcr->catalog->db_port, jcr->catalog->db_socket,
-                   jcr->catalog->mult_db_connections);
+   jcr->db = db_init_database(jcr, jcr->catalog->db_driver, jcr->catalog->db_name, 
+                              jcr->catalog->db_user, jcr->catalog->db_password,
+                              jcr->catalog->db_address, jcr->catalog->db_port,
+                              jcr->catalog->db_socket, jcr->catalog->mult_db_connections,
+                              jcr->catalog->disable_batch_insert);
    if (!jcr->db || !db_open_database(jcr, jcr->db)) {
       Jmsg(jcr, M_FATAL, 0, _("Could not open database \"%s\".\n"),
                  jcr->catalog->db_name);

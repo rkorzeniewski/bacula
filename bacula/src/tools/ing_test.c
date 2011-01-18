@@ -38,8 +38,7 @@
  */
 #include "bacula.h"
 #include "cats/cats.h"
-#include "cats/bvfs.h"
-#include "findlib/find.h"
+#include "cats/sql_glue.h"
  
 /* Local variables */
 static B_DB *db;
@@ -186,11 +185,11 @@ int main (int argc, char *argv[])
       usage();
    }
    
-   if ((db=db_init_database(NULL, db_name, db_user, db_password,
-                            db_host, 0, NULL, 0)) == NULL) {
+   if ((db = db_init_database(NULL, NULL, db_name, db_user, db_password,
+                              db_host, 0, NULL, false, false)) == NULL) {
       Emsg0(M_ERROR_TERM, 0, _("Could not init Bacula database\n"));
    }
-   Dmsg1(0, "db_type=%s\n", db_get_type());
+   Dmsg1(0, "db_type=%s\n", db_get_type(db));
 
    if (!db_open_database(NULL, db)) {
       Emsg0(M_ERROR_TERM, 0, db_strerror(db));

@@ -38,6 +38,7 @@
 
 #include "bacula.h"
 #include "cats/cats.h"
+#include "cats/sql_glue.h"
 #include "lib/runscript.h"
 #include "dird/dird_conf.h"
 
@@ -131,7 +132,6 @@ int main (int argc, char *argv[])
    int ch;
    const char *user, *password, *db_name, *dbhost;
    int dbport = 0;
-   bool test_thread=false;
    bool print_catalog=false;
    char *configfile = NULL;
    char *catalogname = NULL;
@@ -148,7 +148,7 @@ int main (int argc, char *argv[])
    memset(&id_list, 0, sizeof(id_list));
    memset(&name_list, 0, sizeof(name_list));
 
-   while ((ch = getopt(argc, argv, "bc:C:d:fvBt?")) != -1) {
+   while ((ch = getopt(argc, argv, "bc:C:d:fvB?")) != -1) {
       switch (ch) {
       case 'B':
          print_catalog = true;     /* get catalog information from config */
@@ -184,9 +184,6 @@ int main (int argc, char *argv[])
       case 'v':
          verbose++;
          break;
-      case 't':
-         test_thread=true;
-         break;
 
       case '?':
       default:
@@ -197,16 +194,6 @@ int main (int argc, char *argv[])
    argv += optind;
 
    OSDependentInit();
-
-   if (test_thread) {
-      /* When we will load the SQL backend with ldopen, this check would be
-       * moved after the database initialization. It will need a valid config
-       * file.
-       */
-      db_check_backend_thread_safe();
-      Pmsg0(0, _("OK - DB backend seems to be thread-safe.\n"));
-      exit(0);
-   }
 
    if (configfile) {
       CAT *catalog = NULL;
@@ -248,8 +235,8 @@ int main (int argc, char *argv[])
          /* Print catalog information and exit (-B) */
          if (print_catalog) {
             POOLMEM *buf = get_pool_memory(PM_MESSAGE);
-            printf("%sdb_type=%s\nworking_dir=%s\n", catalog->display(buf),
-                   db_get_type(), working_directory);
+            printf("%s\nworking_dir=%s\n", catalog->display(buf),
+                    working_directory);
             free_pool_memory(buf);
             exit(0);
          }
@@ -314,7 +301,7 @@ int main (int argc, char *argv[])
    }
 
    /* Open database */
-   db = db_init_database(NULL, db_name, user, password, dbhost, dbport, NULL, 0);
+   db = db_init_database(NULL, NULL, db_name, user, password, dbhost, dbport, NULL, false, false);
    if (!db_open_database(NULL, db)) {
       Emsg1(M_FATAL, 0, "%s", db_strerror(db));
           return 1;

@@ -359,7 +359,7 @@ static void drop_temp_tables(UAContext *ua)
 static bool create_temp_tables(UAContext *ua)
 {
    /* Create temp tables and indicies */
-   if (!db_sql_query(ua->db, create_deltabs[db_type], NULL, (void *)NULL)) {
+   if (!db_sql_query(ua->db, create_deltabs[db_get_type_index(ua->db)], NULL, (void *)NULL)) {
       ua->error_msg("%s", db_strerror(ua->db));
       Dmsg0(050, "create DelTables table failed\n");
       return false;

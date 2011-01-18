@@ -8,7 +8,7 @@ echo "This script will update a Bacula MySQL database from version 12 to 13"
 echo " which is needed to convert from Bacula Enterprise version 2.6.x to 6.0.x"
 echo " or Bacula Community version 5.0.x to 5.2.x"
 echo " "
-bindir=@SQL_BINDIR@
+bindir=@MYSQL_BINDIR@
 PATH="$bindir:$PATH"
 db_name=@db_name@
 

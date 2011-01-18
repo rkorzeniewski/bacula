@@ -56,6 +56,7 @@
 #include "stored/stored.h"
 #include "findlib/find.h"
 #include "cats/cats.h"
+#include "cats/sql_glue.h"
  
 /* Forward referenced functions */
 static void *do_batch(void *);
@@ -187,8 +188,8 @@ int main (int argc, char *argv[])
       btime_t start, end;
       /* To use the -r option, the catalog should already contains records */
       
-      if ((db=db_init(NULL, NULL, db_name, db_user, db_password,
-                      db_host, 0, NULL, 0)) == NULL) {
+      if ((db = db_init_database(NULL, NULL, db_name, db_user, db_password,
+                                 db_host, 0, NULL, false, false)) == NULL) {
          Emsg0(M_ERROR_TERM, 0, _("Could not init Bacula database\n"));
       }
       if (!db_open_database(NULL, db)) {
@@ -235,8 +236,8 @@ int main (int argc, char *argv[])
       bjcr->fileset_md5 = get_pool_memory(PM_FNAME);
       pm_strcpy(bjcr->fileset_md5, "Dummy.fileset.md5");
       
-      if ((db=db_init(NULL, NULL, db_name, db_user, db_password,
-                      db_host, 0, NULL, 0)) == NULL) {
+      if ((db = db_init_database(NULL, NULL, db_name, db_user, db_password,
+                                 db_host, 0, NULL, false, false)) == NULL) {
          Emsg0(M_ERROR_TERM, 0, _("Could not init Bacula database\n"));
       }
       if (!db_open_database(NULL, db)) {

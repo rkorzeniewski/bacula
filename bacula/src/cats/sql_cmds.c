@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2002-2008 Free Software Foundation Europe e.V.
+   Copyright (C) 2002-2010 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -39,7 +39,6 @@
  */
 
 #include "bacula.h"
-#include "cats.h"
 
 const char *cleanup_created_job =
    "UPDATE Job SET JobStatus='f', StartTime=SchedTime, EndTime=SchedTime "
@@ -317,12 +316,12 @@ const char *select_recent_version_with_basejob_default =
   "AND T1.PathId = File.PathId "
   "AND T1.FilenameId = File.FilenameId";
 
-const char *select_recent_version_with_basejob[5] = {
- /* MySQL */
+const char *select_recent_version_with_basejob[] = {
+   /* MySQL */
    select_recent_version_with_basejob_default,
 
-  /* Postgresql */    /* The DISTINCT ON () permits to avoid extra join */
- "SELECT DISTINCT ON (FilenameId, PathId) JobTDate, JobId, FileId, "
+   /* Postgresql */    /* The DISTINCT ON () permits to avoid extra join */
+   "SELECT DISTINCT ON (FilenameId, PathId) JobTDate, JobId, FileId, "
          "FileIndex, PathId, FilenameId, LStat, MD5, MarkId "
    "FROM "
      "(SELECT FileId, JobId, PathId, FilenameId, FileIndex, LStat, MD5, MarkId "
@@ -335,13 +334,10 @@ const char *select_recent_version_with_basejob[5] = {
        ") AS T JOIN Job USING (JobId) "
    "ORDER BY FilenameId, PathId, JobTDate DESC ",
 
-  /* SQLite */
+   /* SQLite3 */
    select_recent_version_with_basejob_default,
 
- /* SQLite3 */
-   select_recent_version_with_basejob_default,
-
-  /* Ingres */
+   /* Ingres */
    select_recent_version_with_basejob_default
 };
 
@@ -387,12 +383,12 @@ const char *select_recent_version_with_basejob_and_delta_default =
   "AND T1.PathId = File.PathId "
   "AND T1.FilenameId = File.FilenameId";
 
-const char *select_recent_version_with_basejob_and_delta[5] = {
- /* MySQL */
+const char *select_recent_version_with_basejob_and_delta[] = {
+   /* MySQL */
    select_recent_version_with_basejob_and_delta_default,
 
-  /* Postgresql */    /* The DISTINCT ON () permits to avoid extra join */
- "SELECT DISTINCT ON (FilenameId, PathId, MarkId) JobTDate, JobId, FileId, "
+   /* Postgresql */    /* The DISTINCT ON () permits to avoid extra join */
+   "SELECT DISTINCT ON (FilenameId, PathId, MarkId) JobTDate, JobId, FileId, "
          "FileIndex, PathId, FilenameId, LStat, MD5, MarkId "
    "FROM "
      "(SELECT FileId, JobId, PathId, FilenameId, FileIndex, LStat, MD5, MarkId "
@@ -405,13 +401,10 @@ const char *select_recent_version_with_basejob_and_delta[5] = {
        ") AS T JOIN Job USING (JobId) "
    "ORDER BY FilenameId, PathId, MarkId, JobTDate DESC ",
 
-  /* SQLite */
+   /* SQLite3 */
    select_recent_version_with_basejob_and_delta_default,
 
- /* SQLite3 */
-   select_recent_version_with_basejob_and_delta_default,
-
-  /* Ingres */
+   /* Ingres */
    select_recent_version_with_basejob_and_delta_default
 };
 
@@ -434,7 +427,7 @@ const char *select_recent_version_default =
       "AND t1.PathId = f1.PathId "
       "AND j1.JobId = f1.JobId";
 
-const char *select_recent_version[5] = {
+const char *select_recent_version[] = {
    /* MySQL */
    select_recent_version_default,
 
@@ -444,9 +437,6 @@ const char *select_recent_version[5] = {
      "FROM File JOIN Job USING (JobId) "
     "WHERE JobId IN (%s) "
     "ORDER BY FilenameId, PathId, JobTDate DESC ",
-
-   /* SQLite */
-   select_recent_version_default,
 
    /* SQLite3 */
    select_recent_version_default,
@@ -468,15 +458,16 @@ const char *create_temp_accurate_jobids_default =
        "AND FileSet.FileSet=(SELECT FileSet FROM FileSet WHERE FileSetId = %s) "
      "ORDER BY Job.JobTDate DESC LIMIT 1";
 
-const char *create_temp_accurate_jobids[5] = {
+const char *create_temp_accurate_jobids[] = {
    /* Mysql */
    create_temp_accurate_jobids_default,
+
    /* Postgresql */
    create_temp_accurate_jobids_default,
-   /* SQLite */
-   create_temp_accurate_jobids_default,
+
    /* SQLite3 */
    create_temp_accurate_jobids_default,
+
    /* Ingres */
    "DECLARE GLOBAL TEMPORARY TABLE btemp3%s AS "
    "SELECT JobId, StartTime, EndTime, JobTDate, PurgedFiles "
@@ -489,23 +480,22 @@ const char *create_temp_accurate_jobids[5] = {
    "ON COMMIT PRESERVE ROWS WITH NORECOVERY"
 };
 
-const char *create_temp_basefile[5] = {
+const char *create_temp_basefile[] = {
    /* Mysql */
    "CREATE TEMPORARY TABLE basefile%lld ("
    "Path BLOB NOT NULL,"
    "Name BLOB NOT NULL)",
+
    /* Postgresql */
    "CREATE TEMPORARY TABLE basefile%lld ("
    "Path TEXT,"
    "Name TEXT)",
-   /* SQLite */
-   "CREATE TEMPORARY TABLE basefile%lld ("
-   "Path TEXT,"
-   "Name TEXT)",
+
    /* SQLite3 */
    "CREATE TEMPORARY TABLE basefile%lld ("
    "Path TEXT,"
    "Name TEXT)",
+
    /* Ingres */
    "DECLARE GLOBAL TEMPORARY TABLE basefile%lld ("
    "Path VARBYTE(32000) NOT NULL,"
@@ -513,7 +503,7 @@ const char *create_temp_basefile[5] = {
    "ON COMMIT PRESERVE ROWS WITH NORECOVERY"
 };
 
-const char *create_temp_new_basefile[5] = {
+const char *create_temp_new_basefile[] = {
    /* Mysql */
    "CREATE TEMPORARY TABLE new_basefile%lld AS "
    "SELECT Path.Path AS Path, Filename.Name AS Name, Temp.FileIndex AS FileIndex,"
@@ -523,6 +513,7 @@ const char *create_temp_new_basefile[5] = {
    "JOIN Filename ON (Filename.FilenameId = Temp.FilenameId) "
    "JOIN Path ON (Path.PathId = Temp.PathId) "
    "WHERE Temp.FileIndex > 0",
+
    /* Postgresql */
    "CREATE TEMPORARY TABLE new_basefile%lld AS "
    "SELECT Path.Path AS Path, Filename.Name AS Name, Temp.FileIndex AS FileIndex,"
@@ -532,15 +523,7 @@ const char *create_temp_new_basefile[5] = {
    "JOIN Filename ON (Filename.FilenameId = Temp.FilenameId) "
    "JOIN Path ON (Path.PathId = Temp.PathId) "
    "WHERE Temp.FileIndex > 0",
-   /* SQLite */
-   "CREATE TEMPORARY TABLE new_basefile%lld AS "
-   "SELECT Path.Path AS Path, Filename.Name AS Name, Temp.FileIndex AS FileIndex,"
-   "Temp.JobId AS JobId, Temp.LStat AS LStat, Temp.FileId AS FileId, "
-   "Temp.MD5 AS MD5 "
-   "FROM ( %s ) AS Temp "
-   "JOIN Filename ON (Filename.FilenameId = Temp.FilenameId) "
-   "JOIN Path ON (Path.PathId = Temp.PathId) "
-   "WHERE Temp.FileIndex > 0",
+
    /* SQLite3 */
    "CREATE TEMPORARY TABLE new_basefile%lld AS "
    "SELECT Path.Path AS Path, Filename.Name AS Name, Temp.FileIndex AS FileIndex,"
@@ -550,6 +533,7 @@ const char *create_temp_new_basefile[5] = {
    "JOIN Filename ON (Filename.FilenameId = Temp.FilenameId) "
    "JOIN Path ON (Path.PathId = Temp.PathId) "
    "WHERE Temp.FileIndex > 0",
+
    /* Ingres */
    "DECLARE GLOBAL TEMPORARY TABLE new_basefile%lld AS "
    "SELECT Path.Path AS Path, Filename.Name AS Name, Temp.FileIndex AS FileIndex,"
@@ -565,7 +549,7 @@ const char *create_temp_new_basefile[5] = {
 /* ====== ua_prune.c */
 
 /* List of SQL commands to create temp table and indicies  */
-const char *create_deltabs[5] = {
+const char *create_deltabs[] = {
    /* MySQL */
    "CREATE TEMPORARY TABLE DelCandidates ("
    "JobId INTEGER UNSIGNED NOT NULL, "
@@ -573,6 +557,7 @@ const char *create_deltabs[5] = {
    "FileSetId INTEGER UNSIGNED, "
    "JobFiles INTEGER UNSIGNED, "
    "JobStatus BINARY(1))",
+
    /* Postgresql */
    "CREATE TEMPORARY TABLE DelCandidates (" 
    "JobId INTEGER NOT NULL, "
@@ -580,13 +565,7 @@ const char *create_deltabs[5] = {
    "FileSetId INTEGER, "
    "JobFiles INTEGER, "
    "JobStatus char(1))",
-   /* SQLite */
-   "CREATE TEMPORARY TABLE DelCandidates ("
-   "JobId INTEGER UNSIGNED NOT NULL, "
-   "PurgedFiles TINYINT, "
-   "FileSetId INTEGER UNSIGNED, "
-   "JobFiles INTEGER UNSIGNED, "
-   "JobStatus CHAR)",
+
    /* SQLite3 */
    "CREATE TEMPORARY TABLE DelCandidates ("
    "JobId INTEGER UNSIGNED NOT NULL, "
@@ -594,6 +573,7 @@ const char *create_deltabs[5] = {
    "FileSetId INTEGER UNSIGNED, "
    "JobFiles INTEGER UNSIGNED, "
    "JobStatus CHAR)",
+
    /* Ingres */
    "DECLARE GLOBAL TEMPORARY TABLE DelCandidates (" 
    "JobId INTEGER NOT NULL, "
@@ -623,15 +603,16 @@ const char *uap_upgrade_copies_oldest_job_default =
               ") "
           "GROUP BY PriorJobId ";           /* one result per copy */
 
-const char *uap_upgrade_copies_oldest_job[5] = {
+const char *uap_upgrade_copies_oldest_job[] = {
    /* Mysql */
    uap_upgrade_copies_oldest_job_default,
+
    /* Postgresql */
    uap_upgrade_copies_oldest_job_default,
-   /* SQLite */
-   uap_upgrade_copies_oldest_job_default,
+
    /* SQLite3 */
    uap_upgrade_copies_oldest_job_default,
+
    /* Ingres */
    "DECLARE GLOBAL TEMPORARY TABLE cpy_tmp AS "
        "SELECT MIN(JobId) AS JobId FROM Job "     /* Choose the oldest job */
@@ -652,7 +633,7 @@ const char *uap_upgrade_copies_oldest_job[5] = {
 /* ======= ua_restore.c */
 
 /* List Jobs where a particular file is saved */
-const char *uar_file[5] = {
+const char *uar_file[] = {
    /* Mysql */
    "SELECT Job.JobId as JobId,"
    "CONCAT(Path.Path,Filename.Name) as Name, "
@@ -662,6 +643,7 @@ const char *uar_file[5] = {
    "AND Job.JobId=File.JobId AND File.FileIndex > 0 "
    "AND Path.PathId=File.PathId AND Filename.FilenameId=File.FilenameId "
    "AND Filename.Name='%s' ORDER BY StartTime DESC LIMIT 20",
+
    /* Postgresql */
    "SELECT Job.JobId as JobId,"
    "Path.Path||Filename.Name as Name, "
@@ -671,15 +653,7 @@ const char *uar_file[5] = {
    "AND Job.JobId=File.JobId AND File.FileIndex > 0 "
    "AND Path.PathId=File.PathId AND Filename.FilenameId=File.FilenameId "
    "AND Filename.Name='%s' ORDER BY StartTime DESC LIMIT 20",
-   /* SQLite */
-   "SELECT Job.JobId as JobId,"
-   "Path.Path||Filename.Name as Name, "
-   "StartTime,Type as JobType,JobStatus,JobFiles,JobBytes "
-   "FROM Client,Job,File,Filename,Path WHERE Client.Name='%s' "
-   "AND Client.ClientId=Job.ClientId "
-   "AND Job.JobId=File.JobId AND File.FileIndex > 0 "
-   "AND Path.PathId=File.PathId AND Filename.FilenameId=File.FilenameId "
-   "AND Filename.Name='%s' ORDER BY StartTime DESC LIMIT 20",
+
    /* SQLite3 */
    "SELECT Job.JobId as JobId,"
    "Path.Path||Filename.Name as Name, "
@@ -689,6 +663,7 @@ const char *uar_file[5] = {
    "AND Job.JobId=File.JobId AND File.FileIndex > 0 "
    "AND Path.PathId=File.PathId AND Filename.FilenameId=File.FilenameId "
    "AND Filename.Name='%s' ORDER BY StartTime DESC LIMIT 20",
+
    /* Ingres */
    "SELECT Job.JobId as JobId,"
    "Path.Path||Filename.Name as Name, "
@@ -700,7 +675,7 @@ const char *uar_file[5] = {
    "AND Filename.Name='%s' ORDER BY StartTime DESC FETCH FIRST 20 ROWS ONLY"
 };
 
-const char *uar_create_temp[5] = {
+const char *uar_create_temp[] = {
    /* Mysql */
    "CREATE TEMPORARY TABLE temp ("
    "JobId INTEGER UNSIGNED NOT NULL,"
@@ -714,6 +689,7 @@ const char *uar_create_temp[5] = {
    "StartFile INTEGER UNSIGNED,"
    "VolSessionId INTEGER UNSIGNED,"
    "VolSessionTime INTEGER UNSIGNED)",
+
    /* Postgresql */
    "CREATE TEMPORARY TABLE temp ("
    "JobId INTEGER NOT NULL,"
@@ -727,19 +703,7 @@ const char *uar_create_temp[5] = {
    "StartFile INTEGER,"
    "VolSessionId INTEGER,"
    "VolSessionTime INTEGER)",
-   /* SQLite */
-   "CREATE TEMPORARY TABLE temp ("
-   "JobId INTEGER UNSIGNED NOT NULL,"
-   "JobTDate BIGINT UNSIGNED,"
-   "ClientId INTEGER UNSIGNED,"
-   "Level CHAR,"
-   "JobFiles INTEGER UNSIGNED,"
-   "JobBytes BIGINT UNSIGNED,"
-   "StartTime TEXT,"
-   "VolumeName TEXT,"
-   "StartFile INTEGER UNSIGNED,"
-   "VolSessionId INTEGER UNSIGNED,"
-   "VolSessionTime INTEGER UNSIGNED)",
+
    /* SQLite3 */
    "CREATE TEMPORARY TABLE temp ("
    "JobId INTEGER UNSIGNED NOT NULL,"
@@ -753,6 +717,7 @@ const char *uar_create_temp[5] = {
    "StartFile INTEGER UNSIGNED,"
    "VolSessionId INTEGER UNSIGNED,"
    "VolSessionTime INTEGER UNSIGNED)",
+
    /* Ingres */
    "DECLARE GLOBAL TEMPORARY TABLE temp ("
    "JobId INTEGER NOT NULL,"
@@ -769,29 +734,28 @@ const char *uar_create_temp[5] = {
    "ON COMMIT PRESERVE ROWS WITH NORECOVERY"
 };
 
-const char *uar_create_temp1[5] = {
+const char *uar_create_temp1[] = {
    /* Mysql */
    "CREATE TEMPORARY TABLE temp1 ("
    "JobId INTEGER UNSIGNED NOT NULL,"
    "JobTDate BIGINT UNSIGNED)",
+
    /* Postgresql */
    "CREATE TEMPORARY TABLE temp1 ("
    "JobId INTEGER NOT NULL,"
    "JobTDate BIGINT)",
-   /* SQLite */
-   "CREATE TEMPORARY TABLE temp1 ("
-   "JobId INTEGER UNSIGNED NOT NULL,"
-   "JobTDate BIGINT UNSIGNED)",
+
    /* SQLite3 */
    "CREATE TEMPORARY TABLE temp1 ("
    "JobId INTEGER UNSIGNED NOT NULL,"
    "JobTDate BIGINT UNSIGNED)",
+
    /* Ingres */
    "DECLARE GLOBAL TEMPORARY TABLE temp1 ("
    "JobId INTEGER NOT NULL,"
    "JobTDate BIGINT) "
    "ON COMMIT PRESERVE ROWS WITH NORECOVERY"
-   };
+};
 
 /* Query to get all files in a directory -- no recursing   
  *  Note, for PostgreSQL since it respects the "Single Value
@@ -800,7 +764,7 @@ const char *uar_create_temp1[5] = {
  *  for each time it was backed up.
  */
 
-const char *uar_jobid_fileindex_from_dir[5] = {
+const char *uar_jobid_fileindex_from_dir[] = {
    /* Mysql */
    "SELECT Job.JobId,File.FileIndex FROM Job,File,Path,Filename,Client "
    "WHERE Job.JobId IN (%s) "
@@ -811,6 +775,7 @@ const char *uar_jobid_fileindex_from_dir[5] = {
    "AND Path.PathId=File.Pathid "
    "AND Filename.FilenameId=File.FilenameId "
    "GROUP BY File.FileIndex ",
+
    /* Postgresql */
    "SELECT Job.JobId,File.FileIndex FROM Job,File,Path,Filename,Client "
    "WHERE Job.JobId IN (%s) "
@@ -820,16 +785,7 @@ const char *uar_jobid_fileindex_from_dir[5] = {
    "AND Job.ClientId=Client.ClientId "
    "AND Path.PathId=File.Pathid "
    "AND Filename.FilenameId=File.FilenameId",
-   /* SQLite */
-   "SELECT Job.JobId,File.FileIndex FROM Job,File,Path,Filename,Client "
-   "WHERE Job.JobId IN (%s) "
-   "AND Job.JobId=File.JobId "
-   "AND Path.Path='%s' "
-   "AND Client.Name='%s' "
-   "AND Job.ClientId=Client.ClientId "
-   "AND Path.PathId=File.Pathid "
-   "AND Filename.FilenameId=File.FilenameId "
-   "GROUP BY File.FileIndex ",
+
    /* SQLite3 */
    "SELECT Job.JobId,File.FileIndex FROM Job,File,Path,Filename,Client "
    "WHERE Job.JobId IN (%s) "
@@ -840,6 +796,7 @@ const char *uar_jobid_fileindex_from_dir[5] = {
    "AND Path.PathId=File.Pathid "
    "AND Filename.FilenameId=File.FilenameId "
    "GROUP BY File.FileIndex ",
+
    /* Ingres */
    "SELECT Job.JobId,File.FileIndex FROM Job,File,Path,Filename,Client "
    "WHERE Job.JobId IN (%s) "
@@ -851,53 +808,42 @@ const char *uar_jobid_fileindex_from_dir[5] = {
    "AND Filename.FilenameId=File.FilenameId"
 };
 
-const char *sql_media_order_most_recently_written[5] = {
+const char *sql_media_order_most_recently_written[] = {
    /* Mysql */
    "ORDER BY LastWritten IS NULL,LastWritten DESC,MediaId",
+
    /* Postgresql */
    "ORDER BY LastWritten IS NULL,LastWritten DESC,MediaId",
-   /* SQLite */
-   "ORDER BY LastWritten IS NULL,LastWritten DESC,MediaId",
+
    /* SQLite3 */
    "ORDER BY LastWritten IS NULL,LastWritten DESC,MediaId",
+
    /* Ingres */
    "ORDER BY IFNULL(LastWritten, '1970-01-01 00:00:00') DESC,MediaId"
 };
 
-const char *sql_get_max_connections[5] = {
+const char *sql_get_max_connections[] = {
    /* Mysql */
    "SHOW VARIABLES LIKE 'max_connections'",
+
    /* Postgresql */
    "SHOW max_connections",
-   /* SQLite */
-   "SELECT 0",
+
    /* SQLite3 */
    "SELECT 0",
+
    /* Ingres (TODO) */
    "SELECT 0"
 };
 
-/* Row number of the max_connections setting */
-const uint32_t sql_get_max_connections_index[5] = {
-    /* Mysql */
-   1,
-   /* Postgresql */
-   0,
-   /* SQLite */
-   0,
-   /* SQLite3 */
-   0,
-   /* Ingres (TODO) */
-   0
-};
-
-const char *sql_bvfs_select[5] = {
+const char *sql_bvfs_select[] = {
    /* Mysql */
    "CREATE TABLE %s AS ( "
       "SELECT JobId, FileIndex, FileId, max(JobTDate) as JobTDate "
         "FROM btemp%s "
       "GROUP BY PathId, FilenameId "
    "HAVING FileIndex > 0)",
+
    /* Postgresql */
    "CREATE TABLE %s AS ( "
         "SELECT JobId, FileIndex, FileId "
@@ -908,10 +854,10 @@ const char *sql_bvfs_select[5] = {
               "ORDER BY PathId, FilenameId, JobTDate DESC "
           ") AS T "
           "WHERE FileIndex > 0)",
-   /* SQLite */
-   "SELECT 0",
+
    /* SQLite3 */
    "SELECT 0",
+
    /* Ingres (TODO) */
    "SELECT 0"
 };
@@ -945,10 +891,10 @@ const char *sql_bvfs_list_files_default =
 
 const char *sql_bvfs_list_files[] = {
    /* Mysql */
-/* JobId PathId JobId PathId Limit Offset AND? Filename? JobId JobId*/
+   /* JobId PathId JobId PathId Limit Offset AND? Filename? JobId JobId*/
    sql_bvfs_list_files_default,
 
-/* JobId PathId JobId PathId WHERE? Filename? Limit Offset*/
+   /* JobId PathId JobId PathId WHERE? Filename? Limit Offset*/
    /* Postgresql */
  "SELECT DISTINCT ON (FilenameId) 'F', PathId, T.FilenameId, "
   "Filename.Name, JobId, LStat, FileId "
@@ -975,3 +921,107 @@ const char *sql_bvfs_list_files[] = {
    sql_bvfs_list_files_default
 };
 
+const char *batch_lock_path_query[] = {
+   /* Mysql */
+   "LOCK TABLES Path write, batch write, Path as p write",
+
+   /* Postgresql */
+   "BEGIN; LOCK TABLE Path IN SHARE ROW EXCLUSIVE MODE",
+
+   /* SQLite3 */
+   "BEGIN",
+
+   /* Ingres */
+   "BEGIN"
+};
+
+const char *batch_lock_filename_query[] = {
+   /* Mysql */
+   "LOCK TABLES Filename write, batch write, Filename as f write",
+
+   /* Postgresql */
+   "BEGIN; LOCK TABLE Filename IN SHARE ROW EXCLUSIVE MODE",
+
+   /* SQLite3 */
+   "BEGIN",
+
+   /* Ingres */
+   "BEGIN"
+};
+
+const char *batch_unlock_tables_query[] = {
+   /* Mysql */
+   "UNLOCK TABLES",
+
+   /* Postgresql */
+   "COMMIT",
+
+   /* SQLite3 */
+   "COMMIT",
+
+   /* Ingres */
+   "COMMIT"
+};
+
+const char *batch_fill_path_query[] = {
+   /* Mysql */
+   "INSERT INTO Path (Path) "
+   "SELECT a.Path FROM "
+   "(SELECT DISTINCT Path FROM batch) AS a WHERE NOT EXISTS "
+   "(SELECT Path FROM Path AS p WHERE p.Path = a.Path)",
+
+   /* Postgresql */
+   "INSERT INTO Path (Path) "
+   "SELECT a.Path FROM "
+   "(SELECT DISTINCT Path FROM batch) AS a "
+   "WHERE NOT EXISTS (SELECT Path FROM Path WHERE Path = a.Path) ",
+
+   /* SQLite3 */
+   "INSERT INTO Path (Path) "
+   "SELECT DISTINCT Path FROM batch "
+   "EXCEPT SELECT Path FROM Path",
+
+   /* Ingres */
+   "INSERT INTO Path (Path) "
+   "SELECT DISTINCT b.Path FROM batch b "
+   "WHERE NOT EXISTS (SELECT Path FROM Path p WHERE p.Path = b.Path)"
+};
+
+const char *batch_fill_filename_query[] = {
+   /* Mysql */
+   "INSERT INTO Filename (Name) "
+   "SELECT a.Name FROM "
+   "(SELECT DISTINCT Name FROM batch) AS a WHERE NOT EXISTS "
+   "(SELECT Name FROM Filename AS f WHERE f.Name = a.Name)",
+
+   /* Postgresql */
+   "INSERT INTO Filename (Name) "
+   "SELECT a.Name FROM "
+   "(SELECT DISTINCT Name FROM batch) as a "
+   "WHERE NOT EXISTS "
+   "(SELECT Name FROM Filename WHERE Name = a.Name)",
+
+   /* SQLite3 */
+   "INSERT INTO Filename (Name) "
+   "SELECT DISTINCT Name FROM batch "
+   "EXCEPT SELECT Name FROM Filename",
+
+   /* Ingres */
+   "INSERT INTO Filename (Name) "
+   "SELECT DISTINCT b.Name FROM batch b "
+   "WHERE NOT EXISTS (SELECT Name FROM Filename f WHERE f.Name = b.Name)"
+};
+
+const char *match_query[] = {
+   /* Mysql */
+   "MATCH",
+
+   /* Postgresql */
+   "~",
+
+   /* SQLite3 */
+   "MATCH",
+
+   /* Ingres */
+   "~"
+};

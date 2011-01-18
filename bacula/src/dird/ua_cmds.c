@@ -2093,11 +2093,11 @@ bool open_db(UAContext *ua)
    ua->jcr->catalog = ua->catalog;
 
    Dmsg0(100, "UA Open database\n");
-   ua->db = db_init(ua->jcr, ua->catalog->db_driver, ua->catalog->db_name, 
+   ua->db = db_init_database(ua->jcr, ua->catalog->db_driver, ua->catalog->db_name, 
                              ua->catalog->db_user,
                              ua->catalog->db_password, ua->catalog->db_address,
                              ua->catalog->db_port, ua->catalog->db_socket,
-                             mult_db_conn);
+                             mult_db_conn, ua->catalog->disable_batch_insert);
    if (!ua->db || !db_open_database(ua->jcr, ua->db)) {
       ua->error_msg(_("Could not open catalog database \"%s\".\n"),
                  ua->catalog->db_name);

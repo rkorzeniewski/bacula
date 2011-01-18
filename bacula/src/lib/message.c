@@ -40,8 +40,8 @@
 #include "bacula.h"
 #include "jcr.h"
 
-sql_query p_sql_query = NULL;
-sql_escape p_sql_escape = NULL;
+sql_query_func p_sql_query = NULL;
+sql_escape_func p_sql_escape = NULL;
 
 #define FULL_LOCATION 1               /* set for file:line in Debug messages */
 
@@ -77,7 +77,6 @@ void create_jcr_key();
 /* Allow only one thread to tweak d->fd at a time */
 static pthread_mutex_t fides_mutex = PTHREAD_MUTEX_INITIALIZER;
 static MSGS *daemon_msgs;              /* global messages */
-static char *catalog_db = NULL;       /* database type */
 static void (*message_callback)(int type, char *msg) = NULL;
 static FILE *trace_fd = NULL;
 #if defined(HAVE_WIN32)
@@ -221,21 +220,6 @@ void my_name_is(int argc, char *argv[], const char *name)
       }
       Dmsg2(500, "exepath=%s\nexename=%s\n", exepath, exename);
    }
-}
-
-const char *
-get_db_type(void)
-{
-   return catalog_db != NULL ? catalog_db : "unknown";
-}
-
-void
-set_db_type(const char *name)
-{
-   if (catalog_db != NULL) {
-      free(catalog_db);
-   }
-   catalog_db = bstrdup(name);
 }
 
 /*
@@ -651,10 +635,6 @@ void term_msg()
    if (trace_fd) {
       fclose(trace_fd);
       trace_fd = NULL;
-   }
-   if (catalog_db) {
-      free(catalog_db);
-      catalog_db = NULL;
    }
    term_last_jobs_list();
 }

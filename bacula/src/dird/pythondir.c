@@ -189,7 +189,7 @@ PyObject *job_getattr(PyObject *self, char *attrname)
          jcr->catalog->db_name, jcr->catalog->db_address, 
          jcr->catalog->db_user, jcr->catalog->db_password,
          jcr->catalog->db_socket, jcr->catalog->db_port,
-         db_get_type());
+         db_get_type(jcr->db));
    case 15:                           /* JobErrors */
       return Py_BuildValue((char *)getvars[i].fmt, jcr->JobErrors);
    case 16:                           /* JobFiles */

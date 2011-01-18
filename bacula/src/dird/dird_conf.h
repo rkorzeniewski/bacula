@@ -234,6 +234,7 @@ public:
    char *db_name;
    char *db_driver;                   /* Select appropriate driver */
    uint32_t mult_db_connections;      /* set if multiple connections wanted */
+   bool disable_batch_insert;         /* set if batch inserts should be disabled */
 
    /* Methods */
    char *name() const;

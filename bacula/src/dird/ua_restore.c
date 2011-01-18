@@ -613,7 +613,7 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
          len = strlen(ua->cmd);
          fname = (char *)malloc(len * 2 + 1);
          db_escape_string(ua->jcr, ua->db, fname, ua->cmd, len);
-         Mmsg(rx->query, uar_file[db_type], rx->ClientName, fname);
+         Mmsg(rx->query, uar_file[db_get_type_index(ua->db)], rx->ClientName, fname);
          free(fname);
          gui_save = ua->jcr->gui;
          ua->jcr->gui = true;
@@ -959,7 +959,7 @@ static bool insert_dir_into_findex_list(UAContext *ua, RESTORE_CTX *rx, char *di
       ua->error_msg(_("No JobId specified cannot continue.\n"));
       return false;
    } else {
-      Mmsg(rx->query, uar_jobid_fileindex_from_dir[db_type], rx->JobIds, dir, rx->ClientName);
+      Mmsg(rx->query, uar_jobid_fileindex_from_dir[db_get_type_index(ua->db)], rx->JobIds, dir, rx->ClientName);
    }
    rx->found = false;
    /* Find and insert jobid and File Index */
@@ -1249,10 +1249,10 @@ static bool select_backups_before_date(UAContext *ua, RESTORE_CTX *rx, char *dat
    /* Create temp tables */
    db_sql_query(ua->db, uar_del_temp, NULL, NULL);
    db_sql_query(ua->db, uar_del_temp1, NULL, NULL);
-   if (!db_sql_query(ua->db, uar_create_temp[db_type], NULL, NULL)) {
+   if (!db_sql_query(ua->db, uar_create_temp[db_get_type_index(ua->db)], NULL, NULL)) {
       ua->error_msg("%s\n", db_strerror(ua->db));
    }
-   if (!db_sql_query(ua->db, uar_create_temp1[db_type], NULL, NULL)) {
+   if (!db_sql_query(ua->db, uar_create_temp1[db_get_type_index(ua->db)], NULL, NULL)) {
       ua->error_msg("%s\n", db_strerror(ua->db));
    }
    /*

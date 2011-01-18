@@ -61,10 +61,13 @@ AC_SUBST(LIBBACPY_LT_RELEASE)dnl
 dnl src/cats
 dnl can be overwritten by specific values from version.h
 LIBBACSQL_LT_RELEASE=`sed -n -e 's/^#.*LIBBACSQL_LT_RELEASE.*"\(.*\)"$/\1/p' ${srcdir}/src/version.h`
+LIBBACCATS_LT_RELEASE=`sed -n -e 's/^#.*LIBBACCATS_LT_RELEASE.*"\(.*\)"$/\1/p' ${srcdir}/src/version.h`
 
 LIBBACSQL_LT_RELEASE=${LIBBACSQL_LT_RELEASE:-$VERSION}
+LIBBACCATS_LT_RELEASE=${LIBBACCATS_LT_RELEASE:-$VERSION}
 
 AC_SUBST(LIBBACSQL_LT_RELEASE)dnl
+AC_SUBST(LIBBACCATS_LT_RELEASE)dnl
 
 dnl src/findlib
 dnl can be overwritten by specific values from version.h
@@ -354,12 +357,6 @@ then
    AM_GNU_GETTEXT
 fi
 
-support_mysql=no
-support_sqlite=no
-support_sqlite3=no
-support_postgresql=no
-support_ingres=no
-support_dbi=no
 support_smartalloc=yes
 support_readline=yes
 support_conio=yes
@@ -380,10 +377,8 @@ support_python=no
 build_client_only=no
 build_dird=yes
 build_stored=yes
-cats=
-db_type=Internal
+db_backends=""
 support_lockmgr=no
-DB_TYPE=bdb
 
 dnl --------------------------------------------------------------------------
 dnl CHECKING COMMAND LINE OPTIONS
@@ -722,8 +717,8 @@ AC_ARG_ENABLE(client-only,
    [
        if test x$enableval = xyes; then
 	  build_client_only=yes
-	  db_type=None
-	  DB_TYPE=none
+	  db_backends="None"
+	  DB_BACKENDS="none"
        fi
    ]
 )
@@ -1711,142 +1706,185 @@ AC_SUBST(SBINPERM)
 dnl ------------------------------------------------
 dnl Bacula check for various SQL database engines
 dnl ------------------------------------------------
-SQL_LIB=
 BA_CHECK_POSTGRESQL_DB
 
 BA_CHECK_MYSQL_DB
 
-BA_CHECK_INGRES_DB
-
 BA_CHECK_SQLITE3_DB
 
-# BA_CHECK_SQLITE_DB
+BA_CHECK_INGRES_DB
 
 BA_CHECK_DBI_DB
 
 BA_CHECK_DBI_DRIVER
 
-AC_SUBST(cats)
-AC_SUBST(DB_TYPE)
+dnl -------------------------------------------
+dnl Make sure at least one database backend is found
+dnl -------------------------------------------
+if test "x${db_backends}" = "x" ; then
+   echo " "
+   echo " "
+   echo "You have not specified either --enable-client-only or one of the"
+   echo "supported databases: MySQL, PostgreSQL, Ingres, SQLite3 or DBI."
+   echo "This is not permitted. Please reconfigure."
+   echo " "
+   echo "Aborting the configuration ..."
+   echo " "
+   echo " "
+   exit 1
+fi
+
+dnl -------------------------------------------
+dnl See how many catalog backends are configured.
+dnl -------------------------------------------
+case `echo $DB_BACKENDS | wc -w | sed -e 's/^ *//'` in
+   1)
+      DEFAULT_DB_TYPE="${DB_BACKENDS}"
+      if test x$use_libtool = xno; then
+         SHARED_CATALOG_TARGETS=""
+      else
+         SHARED_CATALOG_TARGETS="libbaccats-${DEFAULT_DB_TYPE}.la"
+      fi
+      ;;
+   *)
+      dnl ------------------------------------------------
+      dnl Set the default backend to the first backend found
+      dnl ------------------------------------------------
+      DEFAULT_DB_TYPE=`echo ${DB_BACKENDS} | cut -d' ' -f1`
+
+      dnl ------------------------------------------------
+      dnl For multiple backend we need libtool support.
+      dnl ------------------------------------------------
+      if test x$use_libtool = xno; then
+         echo " "
+         echo " "
+         echo "You have specified two or more of the"
+         echo "supported databases: MySQL, PostgreSQL, Ingres, SQLite3 or DBI."
+         echo "This is not permitted when not using libtool Please reconfigure."
+         echo " "
+         echo "Aborting the configuration ..."
+         echo " "
+         echo " "
+         exit 1
+      fi
+
+      SHARED_CATALOG_TARGETS=""
+      for db_type in ${DB_BACKENDS}
+      do
+         if test -z "${SHARED_CATALOG_TARGETS}"; then
+            SHARED_CATALOG_TARGETS="libbaccats-${db_type}.la"
+         else
+            SHARED_CATALOG_TARGETS="${SHARED_CATALOG_TARGETS} libbaccats-${db_type}.la"
+         fi
+      done
+      ;;
+esac
+
+dnl -------------------------------------------
+dnl Unset DB_LIBS when using libtool as we link the
+dnl shared library using the right database lib no need to
+dnl set DB_LIBS which is only used for non shared versions
+dnl of the backends.
+dnl -------------------------------------------
+if test x$use_libtool = xyes; then
+   DB_LIBS=""
+fi
+
+AC_SUBST(DB_BACKENDS)
+AC_SUBST(DB_LIBS)
+AC_SUBST(DEFAULT_DB_TYPE)
+AC_SUBST(SHARED_CATALOG_TARGETS)
 
 dnl -------------------------------------------
 dnl enable batch attribute DB insert (default on)
 dnl -------------------------------------------
-support_batch_insert=no
-A=`test -f $SQL_LIB && nm $SQL_LIB | grep pthread_mutex_lock`
-pkg=$?
-if test $pkg = 0; then
-   support_batch_insert=yes
-   AC_ARG_ENABLE(batch-insert,
-      AC_HELP_STRING([--enable-batch-insert], [enable the DB batch insert code @<:@default=no@:>@]),
-      [
-	  if test x$enableval = xno; then
-	     support_batch_insert=no
-	  else
-	     support_batch_insert=yes
-	  fi
-      ]
-   )
+support_batch_insert=yes
+AC_ARG_ENABLE(batch-insert,
+   AC_HELP_STRING([--enable-batch-insert], [enable the DB batch insert code @<:@default=yes@:>@]),
+   [
+       if test x$enableval = xno; then
+          support_batch_insert=no
+       fi
+   ]
+)
+
+if test x$support_batch_insert = xyes; then
+   AC_DEFINE(USE_BATCH_FILE_INSERT, 1, [Set if DB batch insert code enabled])
 fi
 
-if test x$support_batch_insert = xno; then
-  if test x$DB_TYPE = xmysql; then
-    A=`test -f $MYSQL_LIBDIR/libmysqlclient_r.so && nm -D $MYSQL_LIBDIR/libmysqlclient_r.so | grep pthread_mutex_lock`
-    pkg=$?
-    if test $pkg = 0; then
-      support_batch_insert=yes
-      AC_ARG_ENABLE(batch-insert,
-	AC_HELP_STRING([--enable-batch-insert], [enable the DB batch insert code @<:@default=no@:>@]),
-	[
-	  if test x$enableval = xno; then
-	     support_batch_insert=no
-	  else
-	     support_batch_insert=yes
-	  fi
-	]
-      )
-    fi
-  fi
-fi  
+dnl -------------------------------------------
+dnl Check if mysql supports batch mode   
+dnl -------------------------------------------
+if test ! -z "$MYSQL_LIB"; then
+   AC_CHECK_LIB(mysql_r, mysql_thread_safe, AC_DEFINE(HAVE_MYSQL_THREAD_SAFE, 1, [Set if have mysql_thread_safe]))
+fi
 
-dnl For postgresql checking
-saved_LIBS="${LIBS}"
-LIBS="${saved_LIBS} ${SQL_LFLAGS}"
+dnl -------------------------------------------
+dnl Check if sqlite supports batch mode   
+dnl -------------------------------------------
+if test ! -z "SQLITE_LIB"; then
+   AC_CHECK_LIB(sqlite3, sqlite3_threadsafe, AC_DEFINE(HAVE_SQLITE3_THREADSAFE, 1, [Set if have sqlite3_threadsafe]))
+fi
+
+dnl -------------------------------------------
+dnl Check if postgresql supports batch mode   
+dnl -------------------------------------------
+if test ! -z "$POSTGRESQL_LIB"; then
+   dnl For postgresql checking
+   saved_LIBS="${LIBS}"
+   LIBS="${saved_LIBS} ${POSTGRESQL_LIB}"
    
-dnl Check if postgresql can support batch mode
-if test x$DB_TYPE = xpostgresql; then
-   support_batch_insert=yes
    AC_CHECK_LIB(pq, PQisthreadsafe, AC_DEFINE(HAVE_PQISTHREADSAFE, 1, [Set if have PQisthreadsafe]))
    AC_CHECK_LIB(pq, PQputCopyData, AC_DEFINE(HAVE_PQ_COPY, 1, [Set if have PQputCopyData]))
-   test "x$ac_cv_lib_pq_PQputCopyData" = "xyes"
-   pkg=$?
-   if test $pkg = 0; then
-      AC_ARG_ENABLE(batch-insert,
-	 AC_HELP_STRING([--enable-batch-insert], [enable the DB batch insert code @<:@default=no@:>@]),
-	 [
-	     if test x$enableval = xno; then
-		support_batch_insert=no
-	     fi
-	 ]
-      )
-   else
-      support_batch_insert=no
+   if test "x$ac_cv_lib_pq_PQputCopyData" = "xyes"; then
+      if test $support_batch_insert = yes ; then
+         AC_DEFINE(HAVE_POSTGRESQL_BATCH_FILE_INSERT, 1, [Set if PostgreSQL DB batch insert code enabled])
+      fi
    fi
+
+   if test x$ac_cv_lib_pq_PQisthreadsafe != xyes -a x$support_batch_insert = xyes
+   then
+      echo "WARNING: Your PostgreSQL client library is too old to detect "
+      echo "if it was compiled with --enable-thread-safety, consider to "
+      echo "upgrade it in order to avoid problems with Batch insert mode"
+      echo
+   fi
+
+   dnl Revert after postgresql checks
+   LIBS="${saved_LIBS}"
 fi
 
-if test x$DB_TYPE = xdbi; then
-   DB_TYPE=$DB_PROG
-   db_type=$DB_PROG
-   pkg=1
+dnl -------------------------------------------
+dnl Check if dbi supports batch mode   
+dnl -------------------------------------------
+if test ! -z "$DBI_LIBS"; then
+   dnl -------------------------------------------
+   dnl Push the DB_PROG onto the stack of supported database backends for DBI
+   dnl -------------------------------------------
+   DB_BACKENDS="${DB_BACKENDS} ${DB_PROG}"
+
+   dnl -------------------------------------------
    dnl Check for batch insert
+   dnl -------------------------------------------
    if test $DB_PROG = postgresql; then
       AC_CHECK_LIB(pq, PQisthreadsafe, AC_DEFINE(HAVE_PQISTHREADSAFE))
       AC_CHECK_LIB(pq, PQputCopyData, AC_DEFINE(HAVE_PQ_COPY))
       test "x$ac_cv_lib_pq_PQputCopyData" = "xyes"
       pkg=$?
-   fi
-
-   if test $DB_PROG = mysql; then
-      A=`test -f $SQL_LIB && nm $DB_PROG_LIB | grep pthread_mutex_lock`
-      pkg=$?	
-   fi
-
-   if test $DB_PROG = sqlite3; then
-      A=`test -f $SQL_LIB && nm $DB_PROG_LIB | grep pthread_mutex_lock`
-      pkg=$?
-      AC_CHECK_LIB(sqlite3, sqlite3_threadsafe, AC_DEFINE(HAVE_SQLITE3_THREADSAFE, 1, [Set if have sqlite3_threadsafe]))
-   fi
-
-   if test $pkg = 0; then
-      AC_ARG_ENABLE(batch-insert,
-	 AC_HELP_STRING([--enable-batch-insert], [enable the DB batch insert code @<:@default=no@:>@]),
-	 [
-	     if test x$enableval = xno; then
-		support_batch_insert=no
-	     else
-		support_batch_insert=yes
-	     fi
-	 ]
-      )
+      if test $pkg = 0; then
+         if test $support_batch_insert = yes ; then
+            AC_DEFINE(HAVE_DBI_BATCH_FILE_INSERT, 1, [Set if DBI DB batch insert code enabled])
+         fi
+      fi
    fi
 else 
+   dnl -------------------------------------------
    dnl If dbi was not chosen, let the comment in file
+   dnl -------------------------------------------
    uncomment_dbi="#"  
 fi
 
-dnl revert after postgresql checks
-LIBS="${saved_LIBS}"
-
 AC_SUBST(uncomment_dbi)
-
-dnl For Ingres always enable batch inserts.
-if test x$DB_TYPE = xingres; then
-   support_batch_insert=yes
-fi
-
-if test $support_batch_insert = yes ; then
-   AC_DEFINE(HAVE_BATCH_FILE_INSERT, 1, [Set if DB batch insert code enabled])
-fi
 
 AC_DEFINE(PROTOTYPES)
 
@@ -2863,7 +2901,6 @@ if test x$have_gcc = xyes ; then
    CFLAGS="$CFLAGS -fno-strict-aliasing -fno-exceptions -fno-rtti"
 fi
 LDFLAGS=${LDFLAGS--O}
-DB_LIBS="${SQL_LFLAGS}"
 CPPFLAGS="$CPPFLAGS"
 CFLAGS="$CFLAGS"
 AC_SUBST(DEBUG)
@@ -2875,7 +2912,6 @@ AC_SUBST(X_CFLAGS)
 AC_SUBST(DEFS)
 AC_SUBST(LIBS)
 AC_SUBST(DLIB)
-AC_SUBST(DB_LIBS)
 AC_SUBST(X_LIBS)
 AC_SUBST(X_EXTRA_LIBS)
 AC_SUBST(WCFLAGS)
@@ -3404,68 +3440,52 @@ echo "Cleaning up"
 echo " "
 ${MAKE:-make} clean
 
-if test "x${db_type}" = "xInternal" ; then
-   echo " "
-   echo " "
-   echo "You have not specified either --enable-client-only or one of the"
-   echo "  supported databases: MySQL, PostgreSQL, Ingres, SQLite3 or DBI."
-   echo "  This is not permitted. Please reconfigure."
-   echo " "
-   echo "Aborting the configuration ..."
-   echo " "
-   echo " "
-   exit 1
-fi
-
 echo "
 Configuration on `date`:
 
-   Host:		    ${host}${post_host} -- ${DISTNAME} ${DISTVER}
-   Bacula version:	    ${BACULA} ${VERSION} (${DATE})
-   Source code location:    ${srcdir}
-   Install binaries:	    ${sbindir}
-   Install libraries:	    ${libdir}
-   Install config files:    ${sysconfdir}
-   Scripts directory:	    ${scriptdir}
-   Archive directory:	    ${archivedir}
-   Working directory:	    ${working_dir}
-   PID directory:	    ${piddir}
-   Subsys directory:	    ${subsysdir}
-   Man directory:	    ${mandir}
-   Data directory:	    ${datarootdir}
-   Plugin directory:	    ${plugindir}
-   C Compiler:		    ${CC} ${CCVERSION}
-   C++ Compiler:	    ${CXX} ${CXXVERSION}
-   Compiler flags:	    ${WCFLAGS} ${CFLAGS} 
-   Linker flags:	    ${WLDFLAGS} ${LDFLAGS}
-   Libraries:		    ${LIBS}
-   Statically Linked Tools: ${support_static_tools}
-   Statically Linked FD:    ${support_static_fd}
-   Statically Linked SD:    ${support_static_sd}
-   Statically Linked DIR:   ${support_static_dir}
-   Statically Linked CONS:  ${support_static_cons}
-   Database type:	    ${db_type}
-   Database port:	    ${db_port}
-   Database lib:	    ${DB_LIBS}
-   Database name:	    ${db_name}
-   Database user:	    ${db_user}
+   Host:		     ${host}${post_host} -- ${DISTNAME} ${DISTVER}
+   Bacula version:	     ${BACULA} ${VERSION} (${DATE})
+   Source code location:     ${srcdir}
+   Install binaries:	     ${sbindir}
+   Install libraries:	     ${libdir}
+   Install config files:     ${sysconfdir}
+   Scripts directory:	     ${scriptdir}
+   Archive directory:	     ${archivedir}
+   Working directory:	     ${working_dir}
+   PID directory:	     ${piddir}
+   Subsys directory:	     ${subsysdir}
+   Man directory:	     ${mandir}
+   Data directory:	     ${datarootdir}
+   Plugin directory:	     ${plugindir}
+   C Compiler:		     ${CC} ${CCVERSION}
+   C++ Compiler:	     ${CXX} ${CXXVERSION}
+   Compiler flags:	     ${WCFLAGS} ${CFLAGS} 
+   Linker flags:	     ${WLDFLAGS} ${LDFLAGS}
+   Libraries:		     ${LIBS}
+   Statically Linked Tools:  ${support_static_tools}
+   Statically Linked FD:     ${support_static_fd}
+   Statically Linked SD:     ${support_static_sd}
+   Statically Linked DIR:    ${support_static_dir}
+   Statically Linked CONS:   ${support_static_cons}
+   Database backends:	     ${db_backends}
+   Database port:	     ${db_port}
+   Database name:	     ${db_name}
+   Database user:	     ${db_user}
  
-   Job Output Email:	    ${job_email}
-   Traceback Email:	    ${dump_email}
-   SMTP Host Address:	    ${smtp_host}
+   Job Output Email:	     ${job_email}
+   Traceback Email:	     ${dump_email}
+   SMTP Host Address:	     ${smtp_host}
  
-   Director Port:	    ${dir_port}
-   File daemon Port:	    ${fd_port}
-   Storage daemon Port:     ${sd_port}
+   Director Port:	     ${dir_port}
+   File daemon Port:	     ${fd_port}
+   Storage daemon Port:      ${sd_port}
  
-   Director User:	    ${dir_user}
-   Director Group:	    ${dir_group}
-   Storage Daemon User:     ${sd_user}
-   Storage DaemonGroup:     ${sd_group}
-   File Daemon User:	    ${fd_user}
-   File Daemon Group:	    ${fd_group}
- 
-   SQL binaries Directory   ${SQL_BINDIR}
+   Director User:	     ${dir_user}
+   Director Group:	     ${dir_group}
+   Storage Daemon User:      ${sd_user}
+   Storage DaemonGroup:      ${sd_group}
+   File Daemon User:	     ${fd_user}
+   File Daemon Group:	     ${fd_group}
  
    Large file support:	    $largefile_support
    Bacula conio support:    ${got_conio} ${CONS_LIBS}
@@ -3504,13 +3524,3 @@ echo __EOC__ >> scripts/bacula_config
 chmod 755 scripts/bacula_config
 
 cat config.out
-
-# Display a warning message if postgresql client lib is <= 8.1
-if test x$DB_TYPE = xpostgresql -a x$ac_cv_lib_pq_PQisthreadsafe != xyes \
-	-a x$support_batch_insert = xyes
-then
-	echo "WARNING: Your PostgreSQL client library is too old to detect "
-	echo " if it was compiled with --enable-thread-safety, consider to"
-	echo " upgrade it in order to avoid problems with Batch insert mode"
-	echo
-fi

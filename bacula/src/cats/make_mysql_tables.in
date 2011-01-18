@@ -5,8 +5,8 @@
 # Important note: 
 #   You won't get any support for performance issue if you changed the default
 #   schema.
-
-bindir=@SQL_BINDIR@
+#
+bindir=@MYSQL_BINDIR@
 PATH="$bindir:$PATH"
 db_name=${db_name:-@db_name@}
 

@@ -33,18 +33,14 @@
  *    Version $Id: sql_list.c 8508 2009-03-07 20:59:46Z kerns $
  */
 
-
-/* The following is necessary so that we do not include
- * the dummy external definition of DB.
- */
-#define __SQL_C                       /* indicate that this is sql.c */
-
 #include "bacula.h"
 #include "cats.h"
 
-extern int db_type;
+#if HAVE_SQLITE3 || HAVE_MYSQL || HAVE_POSTGRESQL || HAVE_INGRES || HAVE_DBI
 
-#if    HAVE_SQLITE3 || HAVE_MYSQL || HAVE_SQLITE || HAVE_POSTGRESQL || HAVE_INGRES || HAVE_DBI
+#include "cats.h"
+#include "bdb_priv.h"
+#include "sql_glue.h"
 
 /* -----------------------------------------------------------------------
  *
@@ -60,7 +56,7 @@ int db_list_sql_query(JCR *jcr, B_DB *mdb, const char *query, DB_LIST_HANDLER *s
                       void *ctx, int verbose, e_list_type type)
 {
    db_lock(mdb);
-   if (sql_query(mdb, query) != 0) {
+   if (!sql_query(mdb, query, QF_STORE_RESULT)) {
       Mmsg(mdb->errmsg, _("Query failed: %s\n"), sql_strerror(mdb));
       if (verbose) {
          sendit(ctx, mdb->errmsg);
@@ -69,12 +65,8 @@ int db_list_sql_query(JCR *jcr, B_DB *mdb, const char *query, DB_LIST_HANDLER *s
       return 0;
    }
 
-   mdb->result = sql_store_result(mdb);
-
-   if (mdb->result) {
-      list_result(jcr, mdb, sendit, ctx, type);
-      sql_free_result(mdb);
-   }
+   list_result(jcr, mdb, sendit, ctx, type);
+   sql_free_result(mdb);
    db_unlock(mdb);
    return 1;
 }
@@ -271,7 +263,7 @@ void db_list_copies_records(JCR *jcr, B_DB *mdb, uint32_t limit, char *JobIds,
       goto bail_out;
    }
 
-   if (mdb->result && sql_num_rows(mdb)) {
+   if (sql_num_rows(mdb)) {
       if (JobIds && JobIds[0]) {
          sendit(ctx, _("These JobIds have copies as follows:\n"));
       } else {
@@ -434,7 +426,7 @@ db_list_files_for_job(JCR *jcr, B_DB *mdb, JobId_t jobid, DB_LIST_HANDLER *sendi
    /*
     * Stupid MySQL is NON-STANDARD !
     */
-   if (db_type == SQL_TYPE_MYSQL) {
+   if (db_get_type_index(mdb) == SQL_TYPE_MYSQL) {
       Mmsg(mdb->cmd, "SELECT CONCAT(Path.Path,Filename.Name) AS Filename "
            "FROM (SELECT PathId, FilenameId FROM File WHERE JobId=%s "
                   "UNION ALL "
@@ -480,7 +472,7 @@ db_list_base_files_for_job(JCR *jcr, B_DB *mdb, JobId_t jobid, DB_LIST_HANDLER *
    /*
     * Stupid MySQL is NON-STANDARD !
     */
-   if (db_type == SQL_TYPE_MYSQL) {
+   if (db_get_type_index(mdb) == SQL_TYPE_MYSQL) {
       Mmsg(mdb->cmd, "SELECT CONCAT(Path.Path,Filename.Name) AS Filename "
            "FROM BaseFiles, File, Filename, Path "
            "WHERE BaseFiles.JobId=%s AND BaseFiles.BaseJobId = File.JobId "
@@ -509,5 +501,4 @@ db_list_base_files_for_job(JCR *jcr, B_DB *mdb, JobId_t jobid, DB_LIST_HANDLER *
    db_unlock(mdb);
 }
 
-
-#endif /* HAVE_SQLITE3 || HAVE_MYSQL || HAVE_SQLITE || HAVE_POSTGRESQL || HAVE_INGRES */
+#endif /* HAVE_SQLITE3 || HAVE_MYSQL || HAVE_POSTGRESQL || HAVE_INGRES || HAVE_DBI */

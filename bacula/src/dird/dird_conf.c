@@ -256,6 +256,7 @@ static RES_ITEM cat_items[] = {
    {"dbsocket", store_str,      ITEM(res_cat.db_socket),   0, 0, 0},
    /* Turned off for the moment */
    {"multipleconnections", store_bit, ITEM(res_cat.mult_db_connections), 0, 0, 0},
+   {"disablebatchinsert", store_bool, ITEM(res_cat.disable_batch_insert), 0, ITEM_DEFAULT, false},
    {NULL, NULL, {0}, 0, 0, 0}
 };
 

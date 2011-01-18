@@ -9,7 +9,7 @@ echo "	which is needed to convert from Bacula Enterprise version 2.6.x to 4.0.x"
 echo "	or Bacula Community version 5.0.x to 5.2.x"
 echo " "
 
-bindir=@SQL_BINDIR@
+bindir=@POSTGRESQL_BINDIR@
 PATH="$bindir:$PATH"
 db_name=@db_name@
 

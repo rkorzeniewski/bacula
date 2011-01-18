@@ -39,6 +39,7 @@
 #include "stored.h"
 #include "findlib/find.h"
 #include "cats/cats.h"
+#include "cats/sql_glue.h"
  
 /* Dummy functions */
 int generate_daemon_event(JCR *jcr, const char *event) { return 1; }
@@ -296,8 +297,8 @@ int main (int argc, char *argv[])
          edit_uint64(currentVolumeSize, ed1));
    }
 
-   if ((db=db_init(NULL, db_driver, db_name, db_user, db_password,
-        db_host, db_port, NULL, 0)) == NULL) {
+   if ((db = db_init_database(NULL, db_driver, db_name, db_user, db_password,
+                              db_host, db_port, NULL, false, false)) == NULL) {
       Emsg0(M_ERROR_TERM, 0, _("Could not init Bacula database\n"));
    }
    if (!db_open_database(NULL, db)) {
