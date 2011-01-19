@@ -138,23 +138,23 @@ int report()
 
 static void cmp_pool(POOL_DBR &pr, POOL_DBR &pr2)
 {
-   ok(pr.MaxVols == pr2.MaxVols,      "  Check Pool MaxVols");
-   ok(pr.UseOnce == pr2.UseOnce,      "  Check Pool UseOnce");
-   ok(pr.UseCatalog == pr2.UseCatalog,"  Check Pool UseCatalog");
+   ok(pr.MaxVols == pr2.MaxVols,                "  Check Pool MaxVols");
+   ok(pr.UseOnce == pr2.UseOnce,                "  Check Pool UseOnce");
+   ok(pr.UseCatalog == pr2.UseCatalog,          "  Check Pool UseCatalog");
    ok(pr.AcceptAnyVolume == pr2.AcceptAnyVolume,"  Check Pool AcceptAnyVolume");
-   ok(pr.AutoPrune == pr2.AutoPrune,   "  Check Pool AutoPrune");
-   ok(pr.Recycle == pr2.Recycle,       "  Check Pool Recycle");
-   ok(pr.VolRetention == pr2.VolRetention,    "  Check Pool VolRetention");
-   ok(pr.VolUseDuration == pr2.VolUseDuration,"  Check Pool VolUseDuration");
-   ok(pr.MaxVolJobs == pr2.MaxVolJobs,     "  Check Pool MaxVolJobs");
-   ok(pr.MaxVolFiles == pr2.MaxVolFiles,   "  Check Pool MaxVolFiles");
-   ok(pr.MaxVolBytes == pr2.MaxVolBytes,   "  Check Pool MaxVolBytes");
-   ok(!strcmp(pr.PoolType, pr2.PoolType),  "  Check Pool PoolType");
-   ok(pr.LabelType == pr2.LabelType,       "  Check Pool LabelType");
-   ok(!strcmp(pr.LabelFormat, pr2.LabelFormat),   "  Check Pool LabelFormat");
-   ok(pr.RecyclePoolId == pr2.RecyclePoolId,   "  Check Pool RecyclePoolId");
-   ok(pr.ScratchPoolId == pr2.ScratchPoolId,   "  Check Pool ScratchPoolId");
-   ok(pr.ActionOnPurge == pr2.ActionOnPurge,   "  Check Pool ActionOnPurge");
+   ok(pr.AutoPrune == pr2.AutoPrune,            "  Check Pool AutoPrune");
+   ok(pr.Recycle == pr2.Recycle,                "  Check Pool Recycle");
+   ok(pr.VolRetention == pr2.VolRetention ,     "  Check Pool VolRetention");
+   ok(pr.VolUseDuration == pr2.VolUseDuration,  "  Check Pool VolUseDuration");
+   ok(pr.MaxVolJobs == pr2.MaxVolJobs,          "  Check Pool MaxVolJobs");
+   ok(pr.MaxVolFiles == pr2.MaxVolFiles,        "  Check Pool MaxVolFiles");
+   ok(pr.MaxVolBytes == pr2.MaxVolBytes,        "  Check Pool MaxVolBytes");
+   ok(!strcmp(pr.PoolType, pr2.PoolType),       "  Check Pool PoolType");
+   ok(pr.LabelType == pr2.LabelType,            "  Check Pool LabelType");
+   ok(!strcmp(pr.LabelFormat, pr2.LabelFormat), "  Check Pool LabelFormat");
+   ok(pr.RecyclePoolId == pr2.RecyclePoolId,    "  Check Pool RecyclePoolId");
+   ok(pr.ScratchPoolId == pr2.ScratchPoolId,    "  Check Pool ScratchPoolId");
+   ok(pr.ActionOnPurge == pr2.ActionOnPurge,    "  Check Pool ActionOnPurge");
 }
 
 static void cmp_client(CLIENT_DBR &cr, CLIENT_DBR &cr2)
@@ -166,10 +166,38 @@ static void cmp_client(CLIENT_DBR &cr, CLIENT_DBR &cr2)
    ok(cr.FileRetention == cr2.FileRetention,"  Check Client FileRetention");
 }
 
+static void cmp_job(JOB_DBR &jr, JOB_DBR &jr2)
+{
+   ok(jr.VolSessionId == jr2.VolSessionId,     "  Check VolSessionId");
+   ok(jr.VolSessionTime == jr2.VolSessionTime, "  Check VolSessionTime");
+   ok(jr.PoolId == jr2.PoolId,                 "  Check PoolId");
+   ok(jr.StartTime == jr2.StartTime,           "  Check StartTime");
+   ok(jr.EndTime == jr2.EndTime,               "  Check EndTime");
+   ok(jr.JobFiles == jr2.JobFiles,             "  Check JobFiles");
+   ok(jr.JobBytes == jr2.JobBytes,             "  Check JobBytes");
+   ok(jr.JobTDate == jr2.JobTDate,             "  Check JobTDate");
+   ok(!strcmp(jr.Job, jr2.Job),                "  Check Job");
+   ok(jr.JobStatus == jr2.JobStatus,           "  Check JobStatus");
+   ok(jr.JobType == jr2.JobType,               "  Check Type");
+   ok(jr.JobLevel == jr2.JobLevel,             "  Check Level");
+   ok(jr.ClientId == jr2.ClientId,             "  Check ClientId");
+   ok(!strcmp(jr.Name, jr2.Name),              "  Check Name");
+   ok(jr.PriorJobId == jr2.PriorJobId,         "  Check PriorJobId");
+   ok(jr.RealEndTime == jr2.RealEndTime,       "  Check RealEndTime");
+   ok(jr.JobId == jr2.JobId,                   "  Check JobId");
+   ok(jr.FileSetId == jr2.FileSetId,           "  Check FileSetId");
+   ok(jr.SchedTime == jr2.SchedTime,           "  Check SchedTime");
+   ok(jr.RealEndTime == jr2.RealEndTime,       "  Check RealEndTime");
+   ok(jr.ReadBytes == jr2.ReadBytes,           "  Check ReadBytes");
+   ok(jr.HasBase == jr2.HasBase,               "  Check HasBase");
+   ok(jr.PurgedFiles == jr2.PurgedFiles,       "  Check PurgedFiles");
+}
+
+
 #define aPATH "/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 #define aFILE "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 
-int list_files(void *ctx, int nb_col, char **row)
+static int list_files(void *ctx, int nb_col, char **row)
 {
    uint32_t *k = (uint32_t*) ctx;
    (*k)++;
@@ -177,6 +205,12 @@ int list_files(void *ctx, int nb_col, char **row)
    ok(!strcmp(row[1], aFILE aFILE ".txt"), "Check filename");
    ok(str_to_int64(row[2]) == 10, "Check FileIndex");
    ok(str_to_int64(row[3]) == jcr->JobId, "Check JobId");
+   return 1;
+}
+
+static int count_col(void *ctx, int nb_col, char **row)
+{
+   *((int32_t*) ctx) = nb_col;
    return 1;
 }
 
@@ -380,6 +414,11 @@ int main (int argc, char *argv[])
 
    /* ---------------------------------------------------------------- */
    Pmsg0(0, PLINE "Doing Basic SQL tests" PLINE);
+   ok(db_sql_query(db, "SELECT 1,2,3,4,5", count_col, &j), "Count 5 rows");
+   ok(j == 5, "Check number of columns");
+   ok(db_sql_query(db, "SELECT 1,2,3,4,5,'a','b','c','d','e'", 
+                   count_col, &j), "Count 10 rows");
+   ok(j == 10, "Check number of columns");
 
    bsnprintf(temp, sizeof(temp), "t%lld", pid);
    ok(db_sql_query(db, "SELECT 2", db_int_handler, &j), "Good SELECT query");
@@ -441,6 +480,7 @@ int main (int argc, char *argv[])
    ok(db_sql_query(db, buf, NULL, NULL), "Inserting quoted string");
 
    /* ---------------------------------------------------------------- */
+   Pmsg0(0, PLINE "Doing Job tests" PLINE);   
 
    JOB_DBR jr, jr2;
    memset(&jr, 0, sizeof(jr));
@@ -453,9 +493,26 @@ int main (int argc, char *argv[])
    Mmsg(buf, "%s-%lld", jr.Job, pid);
    strcpy(jr.Job, buf);
    ok(db_create_job_record(jcr, db, &jr), "Create Job record");
+   ok(db_update_job_start_record(jcr, db, &jr), "Update Start Record");
+   ok(db_update_job_end_record(jcr, db, &jr), "Update End Record");
+   jr2.JobId = jr.JobId;
+   ok(db_get_job_record(jcr, db, &jr2), "Get Job record by JobId");
+   cmp_job(jr, jr2);
+
+   memset(&jr2, 0, sizeof(jr2));
+   strcpy(jr2.Job, jr.Job);
+   ok(db_get_job_record(jcr, db, &jr2), "Get Job record by Job name");
+   cmp_job(jr, jr2);
+
+   memset(&jr2, 0, sizeof(jr2));
+   jr2.JobId = 99999;
+   nok(db_get_job_record(jcr, db, &jr2), "Get non existing Job record (JobId)");
+
+   memset(&jr2, 0, sizeof(jr2));
+   strcpy(jr2.Job, "test");
+   nok(db_get_job_record(jcr, db, &jr2), "Get non existing Job record (Job)");
 
    /* ---------------------------------------------------------------- */
-   
 
    ATTR_DBR ar;
    memset(&ar, 0, sizeof(ar));
@@ -638,9 +695,6 @@ int main (int argc, char *argv[])
    ok(db_create_media_record(jcr, db, &mr), "Create Media");
    nok(db_create_media_record(jcr, db, &mr), "Create Media twice");
 
-   /* ---------------------------------------------------------------- */
-   Pmsg0(0, PLINE "Doing Job tests" PLINE);
-   
    /* ---------------------------------------------------------------- */
    Pmsg0(0, PLINE "Doing ... tests" PLINE);
    
