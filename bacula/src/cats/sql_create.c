@@ -83,7 +83,7 @@ db_create_job_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
    strftime(dt, sizeof(dt), "%Y-%m-%d %H:%M:%S", &tm);
    JobTDate = (utime_t)stime;
 
-   len = strlen(jcr->comment);
+   len = strlen(jcr->comment);  /* TODO: use jr instead of jcr to get comment */
    buf.check_size(len*2+1);
    db_escape_string(jcr, mdb, buf.c_str(), jcr->comment, len);
 
