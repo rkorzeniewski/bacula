@@ -111,6 +111,10 @@ ing_test: Makefile ../findlib/libbacfind$(DEFAULT_ARCHIVE_TYPE) ../lib/libbac$(D
 	$(LIBTOOL_LINK) $(CXX) -g $(LDFLAGS) -L../cats -L. -L../lib -L../findlib -o $@ ing_test.o  \
 	  -lbacsql -lbacfind -lbac -lm $(DB_LIBS) $(LIBS) $(GETTEXT_LIBS) $(OPENSSL_LIBS)
 
+cats_test: Makefile ../findlib/libbacfind$(DEFAULT_ARCHIVE_TYPE) ../lib/libbac$(DEFAULT_ARCHIVE_TYPE) ../cats/libbacsql$(DEFAULT_ARCHIVE_TYPE) cats_test.o
+	$(LIBTOOL_LINK) $(CXX) -g $(LDFLAGS) -L../cats -L. -L../lib -L../findlib -o $@ cats_test.o  \
+	  -lbacsql -lbacfind -lbac -lm $(DB_LIBS) $(LIBS) $(GETTEXT_LIBS) $(OPENSSL_LIBS)
+
 gigaslam.o: gigaslam.c
 	$(CXX) $(CFLAGS) -c $<	
 
