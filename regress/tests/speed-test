@@ -17,6 +17,9 @@ JobName=speed
 
 ${rscripts}/cleanup
 ${rscripts}/copy-test-confs
+sed 's/Max Run Time/#Max Run Time/' $conf/bacula-dir.conf > $tmp/1
+sed 's/SpoolData/#SpoolData/' $tmp/1 > $conf/bacula-dir.conf
+
 echo "${cwd}/files" >${tmp}/file-list
 rm -rf ${tmp}/bacula-restores
 mkdir -p $cwd/files
