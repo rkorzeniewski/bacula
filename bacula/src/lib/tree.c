@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2002-2008 Free Software Foundation Europe e.V.
+   Copyright (C) 2002-2011 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -170,17 +170,19 @@ static char *tree_alloc(TREE_ROOT *root, int size)
 void free_tree(TREE_ROOT *root)
 {
    struct s_mem *mem, *rel;
+   uint32_t freed_blocks = 0;
 
    for (mem=root->mem; mem; ) {
       rel = mem;
       mem = mem->next;
       free(rel);
+      freed_blocks++;
    }
    if (root->cached_path) {
       free_pool_memory(root->cached_path);
       root->cached_path = NULL;
    }
-   Dmsg2(400, "Total size=%u blocks=%d\n", root->total_size, root->blocks);
+   Dmsg3(100, "Total size=%u blocks=%u freed_blocks=%u\n", root->total_size, root->blocks, freed_blocks);
    free(root);
    return;
 }
