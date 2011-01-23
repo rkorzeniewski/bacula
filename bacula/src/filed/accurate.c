@@ -204,14 +204,14 @@ static bool accurate_add_file(JCR *jcr, uint32_t len,
                               int32_t delta)
 {
    bool ret = true;
-   CurFile elt;
-   elt.seen = 0;
-
    CurFile *item;
-   /* we store CurFile, fname and ctime/mtime in the same chunk */
-   item = (CurFile *)jcr->file_list->hash_malloc(sizeof(CurFile)+len+3);
-   memcpy(item, &elt, sizeof(CurFile));
 
+   /* we store CurFile, fname and ctime/mtime in the same chunk */
+   /* TODO: see if len contains already the 3 \0 */
+   item = (CurFile *)jcr->file_list->hash_malloc(sizeof(CurFile)+len+3);
+   item->seen = 0;
+
+   /* TODO: see if we can optimize this part with memcpy instead of strcpy */
    item->fname  = (char *)item+sizeof(CurFile);
    strcpy(item->fname, fname);
 
