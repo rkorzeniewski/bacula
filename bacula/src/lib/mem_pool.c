@@ -404,7 +404,10 @@ void close_memory_pool()
       }
       pool_ctl[i].free_buf = NULL;
    }
-   Dmsg2(100, "Freed mem_pool count=%d size=%s\n", count, edit_uint64_with_commas(bytes, ed1));
+   Dmsg2(001, "Freed mem_pool count=%d size=%s\n", count, edit_uint64_with_commas(bytes, ed1));
+   if (debug_level >= 1) {
+      print_memory_pool_stats();
+   }
    V(mutex);
 
 }
