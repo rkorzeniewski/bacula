@@ -49,8 +49,11 @@
  */
 
 #include "bacula.h"
-
 #include "htable.h"
+
+#define PAGE_SIZE 4096
+#define MAX_PAGES 2400
+#define MAX_BUF_SIZE (MAX_PAGES * PAGE_SIZE)  /* approx 10MB */
 
 static const int dbglvl = 500;
 
@@ -103,10 +106,10 @@ char *htable::hash_malloc(int size)
 
    if (mem_block->rem < asize) {
       uint32_t mb_size;
-      if (total_size >= 1000000) {
-         mb_size = 1000000;
+      if (total_size >= (MAX_BUF_SIZE / 2)) {
+         mb_size = MAX_BUF_SIZE;
       } else {
-         mb_size = 100000;
+         mb_size = MAX_BUF_SIZE / 2;
       }
       malloc_big_buf(mb_size);
    }
@@ -168,7 +171,7 @@ void htable::init(void *item, void *link, int tsize)
    table = (hlink **)malloc(buckets * sizeof(hlink *));
    memset(table, 0, buckets * sizeof(hlink *));
 #ifdef BIG_MALLOC
-   malloc_big_buf(1000000);   /* ***FIXME*** need variable or some estimate */
+   malloc_big_buf(MAX_BUF_SIZE);   /* ***FIXME*** need variable or some estimate */
 #endif
 }
 

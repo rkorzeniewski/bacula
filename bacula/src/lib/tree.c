@@ -36,6 +36,9 @@
 #include "bacula.h"
 #include "findlib/find.h"
 
+#define PAGE_SIZE 4096
+#define MAX_PAGES 2400
+#define MAX_BUF_SIZE (MAX_PAGES * PAGE_SIZE)  /* approx 10MB */
 
 /* Forward referenced subroutines */
 static TREE_NODE *search_and_insert_tree_node(char *fname, int type,
@@ -90,8 +93,8 @@ TREE_ROOT *new_tree(int count)
    memset(root, 0, sizeof(TREE_ROOT));
    /* Assume filename + node  = 40 characters average length */
    size = count * (BALIGN(sizeof(TREE_NODE)) + 40);
-   if (count > 1000000 || size > 10000000) {
-      size = 10000000;
+   if (count > 1000000 || size > (MAX_BUF_SIZE / 2)) {
+      size = MAX_BUF_SIZE;
    }
    Dmsg2(400, "count=%d size=%d\n", count, size);
    malloc_buf(root, size);
@@ -149,10 +152,10 @@ static char *tree_alloc(TREE_ROOT *root, int size)
 
    if (root->mem->rem < asize) {
       uint32_t mb_size;
-      if (root->total_size >= 1000000) {
-         mb_size = 1000000;
+      if (root->total_size >= (MAX_BUF_SIZE / 2)) {
+         mb_size = MAX_BUF_SIZE;
       } else {
-         mb_size = 100000;
+         mb_size = MAX_BUF_SIZE / 2;
       }
       malloc_buf(root, mb_size);
    }
