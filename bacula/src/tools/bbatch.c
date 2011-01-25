@@ -110,7 +110,7 @@ static int list_handler(void *ctx, int num_fields, char **row)
 int main (int argc, char *argv[])
 {
    int ch;
-   bool use_batch = true;
+   bool disable_batch = false;
    char *restore_list=NULL;
    setlocale(LC_ALL, "");
    bindtextdomain("bacula", LOCALEDIR);
@@ -131,10 +131,10 @@ int main (int argc, char *argv[])
          restore_list=bstrdup(optarg);
          break;
       case 'B':
-	 use_batch = false;
+	 disable_batch = true;
          break;
       case 'b':
-	 use_batch = true;
+	 disable_batch = false;
          break;
       case 'd':                    /* debug level */
          if (*optarg == 't') {
@@ -197,7 +197,7 @@ int main (int argc, char *argv[])
       /* To use the -r option, the catalog should already contains records */
       
       if ((db = db_init_database(NULL, NULL, db_name, db_user, db_password,
-                                 db_host, 0, NULL, false, use_batch)) == NULL) {
+                                 db_host, 0, NULL, false, disable_batch)) == NULL) {
          Emsg0(M_ERROR_TERM, 0, _("Could not init Bacula database\n"));
       }
       if (!db_open_database(NULL, db)) {
@@ -215,10 +215,10 @@ int main (int argc, char *argv[])
       return 0;
    }
 
-   if (use_batch) {
-      printf("With new Batch mode\n");
-   } else {
+   if (disable_batch) {
       printf("Without new Batch mode\n");
+   } else {
+      printf("With new Batch mode\n");
    }
 
    i = nb;
