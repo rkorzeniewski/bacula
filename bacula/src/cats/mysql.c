@@ -86,7 +86,7 @@ B_DB_MYSQL::B_DB_MYSQL(JCR *jcr,
    if (db_socket) {
       m_db_socket = bstrdup(db_socket);
    }
-   db_port = db_port;
+   m_db_port = db_port;
 
    if (disable_batch_insert) {
       m_disabled_batch_insert = true;
