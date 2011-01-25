@@ -30,11 +30,12 @@
  *
  *  
  */
-#define __SQL_C
-#define BUILDING_CATS
+#define _BDB_PRIV_INTERFACE_
 
 #include "bacula.h"
 #include "cats/cats.h"
+#include "cats/bdb_priv.h"
+#include "cats/sql_glue.h"
 #include "cats/bvfs.h"
 #include "findlib/find.h"
  
@@ -201,6 +202,7 @@ static int list_files(void *ctx, int nb_col, char **row)
 {
    uint32_t *k = (uint32_t*) ctx;
    (*k)++;
+   ok(nb_col > 4, "Check result columns");
    ok(!strcmp(row[0], aPATH aPATH aPATH aPATH "/"), "Check path");
    ok(!strcmp(row[1], aFILE aFILE ".txt"), "Check filename");
    ok(str_to_int64(row[2]) == 10, "Check FileIndex");
@@ -344,11 +346,11 @@ int main (int argc, char *argv[])
    Pmsg1(0, PLINE "Test DB connection \"%s\"" PLINE, db_name);
 
    if (full_test) {
-      db = db_init(jcr /* JCR */, 
+      db = db_init_database(jcr /* JCR */, 
                    NULL /* dbi driver */,
                    db_name, db_user, db_password, db_address, db_port + 100,
                    NULL /* db_socket */,
-                   0 /* mult_db_connections */);
+                   0 /* mult_db_connections */, false);
       ok(db != NULL, "Test bad connection");
       if (!db) {
          report();
@@ -358,11 +360,11 @@ int main (int argc, char *argv[])
       db_close_database(jcr, db);
    }
 
-   db = db_init(jcr /* JCR */, 
+   db = db_init_database(jcr /* JCR */, 
                 NULL /* dbi driver */,
                 db_name, db_user, db_password, db_address, db_port,
                 NULL /* db_socket */,
-                0 /* mult_db_connections */);
+                false /* mult_db_connections */, false);
 
    ok(db != NULL, "Test db connection");
    if (!db) {
@@ -378,10 +380,11 @@ int main (int argc, char *argv[])
       report();
       exit (1);
    }
-   dbtype = db_type;
+   dbtype = db_get_type_index(db);
+
 
    /* Check if the SQL library is thread-safe */
-   db_check_backend_thread_safe();
+   //db_check_backend_thread_safe();
    ok(check_tables_version(jcr, db), "Check table version");
    ok(db_sql_query(db, "SELECT VersionId FROM Version", 
                    db_int_handler, &j), "SELECT VersionId");
@@ -525,7 +528,7 @@ int main (int argc, char *argv[])
    ar.FileType = FT_REG;
    jcr->JobId = ar.JobId = jr.JobId;
    jcr->JobStatus = JS_Running;
-   ok(db_create_file_attributes_record(jcr, db, &ar), "Inserting Filename");
+   ok(db_create_attributes_record(jcr, db, &ar), "Inserting Filename");
    ok(db_write_batch_file_records(jcr), "Commit batch session");
    Mmsg(buf, "SELECT FileIndex FROM File WHERE JobId=%lld",(int64_t)jcr->JobId);
    ok(db_sql_query(db, buf, db_int_handler, &j), "Get Inserted record");

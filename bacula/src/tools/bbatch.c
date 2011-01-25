@@ -81,6 +81,8 @@ PROG_COPYRIGHT
 " will start 3 thread and load dat1, dat and datx in your catalog\n"
 "See bbatch.c to generate datafile\n\n"
 "Usage: bbatch [ options ] -w working/dir -f datafile\n"
+"       -b                with batch mode\n"
+"       -B                without batch mode\n"
 "       -d <nn>           set debug level to <nn>\n"
 "       -dt               print timestamp in debug output\n"
 "       -n <name>         specify the database name (default bacula)\n"
@@ -108,6 +110,7 @@ static int list_handler(void *ctx, int num_fields, char **row)
 int main (int argc, char *argv[])
 {
    int ch;
+   bool use_batch = true;
    char *restore_list=NULL;
    setlocale(LC_ALL, "");
    bindtextdomain("bacula", LOCALEDIR);
@@ -122,12 +125,17 @@ int main (int argc, char *argv[])
 
    OSDependentInit();
 
-   while ((ch = getopt(argc, argv, "h:c:d:n:P:Su:vf:w:r:?")) != -1) {
+   while ((ch = getopt(argc, argv, "bBh:c:d:n:P:Su:vf:w:r:?")) != -1) {
       switch (ch) {
       case 'r':
          restore_list=bstrdup(optarg);
          break;
-
+      case 'B':
+	 use_batch = false;
+         break;
+      case 'b':
+	 use_batch = true;
+         break;
       case 'd':                    /* debug level */
          if (*optarg == 't') {
             dbg_timestamp = true;
@@ -189,7 +197,7 @@ int main (int argc, char *argv[])
       /* To use the -r option, the catalog should already contains records */
       
       if ((db = db_init_database(NULL, NULL, db_name, db_user, db_password,
-                                 db_host, 0, NULL, false, false)) == NULL) {
+                                 db_host, 0, NULL, false, use_batch)) == NULL) {
          Emsg0(M_ERROR_TERM, 0, _("Could not init Bacula database\n"));
       }
       if (!db_open_database(NULL, db)) {
@@ -207,11 +215,12 @@ int main (int argc, char *argv[])
       return 0;
    }
 
-#ifdef HAVE_BATCH_FILE_INSERT
-   printf("With new Batch mode\n");
-#else
-   printf("Without new Batch mode\n");
-#endif
+   if (use_batch) {
+      printf("With new Batch mode\n");
+   } else {
+      printf("Without new Batch mode\n");
+   }
+
    i = nb;
    while (--i >= 0) {
       pthread_t thid;
@@ -312,7 +321,7 @@ static void *do_batch(void *jcr)
          printf("\r%i", lineno);
       }
       fill_attr(&ar, data);
-      if (!db_create_file_attributes_record(bjcr, bjcr->db, &ar)) {
+      if (!db_create_attributes_record(bjcr, bjcr->db, &ar)) {
          Emsg0(M_ERROR_TERM, 0, _("Error while inserting file\n"));
       }
    }
