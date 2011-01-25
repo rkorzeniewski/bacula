@@ -77,6 +77,7 @@ void create_jcr_key();
 /* Allow only one thread to tweak d->fd at a time */
 static pthread_mutex_t fides_mutex = PTHREAD_MUTEX_INITIALIZER;
 static MSGS *daemon_msgs;              /* global messages */
+static char *catalog_db = NULL;       /* database type */
 static void (*message_callback)(int type, char *msg) = NULL;
 static FILE *trace_fd = NULL;
 #if defined(HAVE_WIN32)
@@ -220,6 +221,15 @@ void my_name_is(int argc, char *argv[], const char *name)
       }
       Dmsg2(500, "exepath=%s\nexename=%s\n", exepath, exename);
    }
+}
+
+void
+set_db_type(const char *name)
+{
+   if (catalog_db != NULL) {
+      free(catalog_db);
+   }
+   catalog_db = bstrdup(name);
 }
 
 /*
@@ -635,6 +645,10 @@ void term_msg()
    if (trace_fd) {
       fclose(trace_fd);
       trace_fd = NULL;
+   }
+   if (catalog_db) {
+      free(catalog_db);
+      catalog_db = NULL;
    }
    term_last_jobs_list();
 }

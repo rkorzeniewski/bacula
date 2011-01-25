@@ -1113,6 +1113,9 @@ static bool check_catalog(cat_op mode)
          db_sql_query(db, cleanup_running_job, NULL, NULL);
       }
 
+      /* Set type in global for debugging */
+      set_db_type(db_get_type(db));
+
       db_close_database(NULL, db);
    }
    return OK;
