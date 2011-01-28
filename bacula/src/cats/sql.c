@@ -443,122 +443,133 @@ list_dashes(B_DB *mdb, DB_LIST_HANDLER *send, void *ctx)
    send(ctx, "\n");
 }
 
-/*
- * If full_list is set, we list vertically, otherwise, we
- * list on one line horizontally.
- */
-void
-list_result(JCR *jcr, B_DB *mdb, DB_LIST_HANDLER *send, void *ctx, e_list_type type)
+/* Small handler to print the last line of a list xxx command */
+static void last_line_handler(void *vctx, const char *str)
+{
+   LIST_CTX *ctx = (LIST_CTX *)vctx;
+   bstrncat(ctx->line, str, sizeof(ctx->line));
+}
+
+int list_result(void *vctx, int nb_col, char **row)
 {
    SQL_FIELD *field;
-   SQL_ROW row;
    int i, col_len, max_len = 0;
    char buf[2000], ewc[30];
 
-   Dmsg0(800, "list_result starts\n");
-   if (sql_num_rows(mdb) == 0) {
-      send(ctx, _("No results to list.\n"));
-      return;
-   }
+   LIST_CTX *pctx = (LIST_CTX *)vctx;
+   DB_LIST_HANDLER *send = pctx->send;
+   e_list_type type = pctx->type;
+   B_DB *mdb = pctx->mdb;
+   void *ctx = pctx->ctx;
+   JCR *jcr = pctx->jcr;
 
-   Dmsg1(800, "list_result starts looking at %d fields\n", sql_num_fields(mdb));
-   /* determine column display widths */
-   sql_field_seek(mdb, 0);
-   for (i = 0; i < sql_num_fields(mdb); i++) {
-      Dmsg1(800, "list_result processing field %d\n", i);
-      field = sql_fetch_field(mdb);
-      if (!field) {
-         break;
-      }
-      col_len = cstrlen(field->name);
-      if (type == VERT_LIST) {
-         if (col_len > max_len) {
-            max_len = col_len;
-         }
-      } else {
-         if (sql_field_is_numeric(mdb, field->type) && (int)field->max_length > 0) { /* fixup for commas */
-            field->max_length += (field->max_length - 1) / 3;
-         }  
-         if (col_len < (int)field->max_length) {
-            col_len = field->max_length;
-         }  
-         if (col_len < 4 && !sql_field_is_not_null(mdb, field->flags)) {
-            col_len = 4;                 /* 4 = length of the word "NULL" */
-         }
-         field->max_length = col_len;    /* reset column info */
-      }
-   }
+   if (!pctx->once) {
+      pctx->once = true;
 
-   Dmsg0(800, "list_result finished first loop\n");
-   if (type == VERT_LIST) {
-      goto vertical_list;
-   }
-
-   Dmsg1(800, "list_result starts second loop looking at %d fields\n", sql_num_fields(mdb));
-   list_dashes(mdb, send, ctx);
-   send(ctx, "|");
-   sql_field_seek(mdb, 0);
-   for (i = 0; i < sql_num_fields(mdb); i++) {
-      Dmsg1(800, "list_result looking at field %d\n", i);
-      field = sql_fetch_field(mdb);
-      if (!field) {
-         break;
-      }
-      max_len = max_length(field->max_length);
-      bsnprintf(buf, sizeof(buf), " %-*s |", max_len, field->name);
-      send(ctx, buf);
-   }
-   send(ctx, "\n");
-   list_dashes(mdb, send, ctx);
-
-   Dmsg1(800, "list_result starts third loop looking at %d fields\n", sql_num_fields(mdb));
-   while ((row = sql_fetch_row(mdb)) != NULL) {
+      Dmsg1(800, "list_result starts looking at %d fields\n", sql_num_fields(mdb));
+      /* determine column display widths */
       sql_field_seek(mdb, 0);
-      send(ctx, "|");
       for (i = 0; i < sql_num_fields(mdb); i++) {
+         Dmsg1(800, "list_result processing field %d\n", i);
+         field = sql_fetch_field(mdb);
+         if (!field) {
+            break;
+         }
+         col_len = cstrlen(field->name);
+         if (type == VERT_LIST) {
+            if (col_len > max_len) {
+               max_len = col_len;
+            }
+         } else {
+            if (sql_field_is_numeric(mdb, field->type) && (int)field->max_length > 0) { /* fixup for commas */
+               field->max_length += (field->max_length - 1) / 3;
+            }  
+            if (col_len < (int)field->max_length) {
+               col_len = field->max_length;
+            }  
+            if (col_len < 4 && !sql_field_is_not_null(mdb, field->flags)) {
+               col_len = 4;                 /* 4 = length of the word "NULL" */
+            }
+            field->max_length = col_len;    /* reset column info */
+         }
+      }
+
+      pctx->num_rows++;
+
+      Dmsg0(800, "list_result finished first loop\n");
+      if (type == VERT_LIST) {
+         goto vertical_list;
+      }
+
+      Dmsg1(800, "list_result starts second loop looking at %d fields\n", 
+            sql_num_fields(mdb));
+
+      /* Keep the result to display the same line at the end of the table */
+      list_dashes(mdb, last_line_handler, pctx);
+      send(ctx, pctx->line);
+
+      send(ctx, "|");
+      sql_field_seek(mdb, 0);
+      for (i = 0; i < sql_num_fields(mdb); i++) {
+         Dmsg1(800, "list_result looking at field %d\n", i);
          field = sql_fetch_field(mdb);
          if (!field) {
             break;
          }
          max_len = max_length(field->max_length);
-         if (row[i] == NULL) {
-            bsnprintf(buf, sizeof(buf), " %-*s |", max_len, "NULL");
-         } else if (sql_field_is_numeric(mdb, field->type) && !jcr->gui && is_an_integer(row[i])) {
-            bsnprintf(buf, sizeof(buf), " %*s |", max_len,
-                      add_commas(row[i], ewc));
-         } else {
-            bsnprintf(buf, sizeof(buf), " %-*s |", max_len, row[i]);
-         }
+         bsnprintf(buf, sizeof(buf), " %-*s |", max_len, field->name);
          send(ctx, buf);
       }
       send(ctx, "\n");
+      list_dashes(mdb, send, ctx);      
    }
-   list_dashes(mdb, send, ctx);
-   return;
+   
+   Dmsg1(800, "list_result starts third loop looking at %d fields\n", 
+         sql_num_fields(mdb));
+
+   sql_field_seek(mdb, 0);
+   send(ctx, "|");
+   for (i = 0; i < sql_num_fields(mdb); i++) {
+      field = sql_fetch_field(mdb);
+      if (!field) {
+         break;
+      }
+      max_len = max_length(field->max_length);
+      if (row[i] == NULL) {
+         bsnprintf(buf, sizeof(buf), " %-*s |", max_len, "NULL");
+      } else if (sql_field_is_numeric(mdb, field->type) && !jcr->gui && is_an_integer(row[i])) {
+         bsnprintf(buf, sizeof(buf), " %*s |", max_len,
+                   add_commas(row[i], ewc));
+      } else {
+         bsnprintf(buf, sizeof(buf), " %-*s |", max_len, row[i]);
+      }
+      send(ctx, buf);
+   }
+   send(ctx, "\n");
+   return 0;
 
 vertical_list:
 
    Dmsg1(800, "list_result starts vertical list at %d fields\n", sql_num_fields(mdb));
-   while ((row = sql_fetch_row(mdb)) != NULL) {
-      sql_field_seek(mdb, 0);
-      for (i = 0; i < sql_num_fields(mdb); i++) {
-         field = sql_fetch_field(mdb);
-         if (!field) {
-            break;
-         }
-         if (row[i] == NULL) {
-            bsnprintf(buf, sizeof(buf), " %*s: %s\n", max_len, field->name, "NULL");
-         } else if (sql_field_is_numeric(mdb, field->type) && !jcr->gui && is_an_integer(row[i])) {
-            bsnprintf(buf, sizeof(buf), " %*s: %s\n", max_len, field->name,
-                add_commas(row[i], ewc));
-         } else {
-            bsnprintf(buf, sizeof(buf), " %*s: %s\n", max_len, field->name, row[i]);
-         }
-         send(ctx, buf);
+
+   sql_field_seek(mdb, 0);
+   for (i = 0; i < sql_num_fields(mdb); i++) {
+      field = sql_fetch_field(mdb);
+      if (!field) {
+         break;
       }
-      send(ctx, "\n");
+      if (row[i] == NULL) {
+         bsnprintf(buf, sizeof(buf), " %*s: %s\n", max_len, field->name, "NULL");
+      } else if (sql_field_is_numeric(mdb, field->type) && !jcr->gui && is_an_integer(row[i])) {
+         bsnprintf(buf, sizeof(buf), " %*s: %s\n", max_len, field->name,
+                   add_commas(row[i], ewc));
+      } else {
+         bsnprintf(buf, sizeof(buf), " %*s: %s\n", max_len, field->name, row[i]);
+      }
+      send(ctx, buf);
    }
-   return;
+   send(ctx, "\n");
+   return 0;
 }
 
 /* 

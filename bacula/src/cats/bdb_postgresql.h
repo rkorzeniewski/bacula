@@ -33,6 +33,7 @@ class B_DB_POSTGRESQL: public B_DB_PRIV {
 private:
    PGconn *m_db_handle;
    PGresult *m_result;
+   POOLMEM *m_buf;                        /* Buffer to manipulate queries */
 
 public:
    B_DB_POSTGRESQL(JCR *jcr, const char *db_driver, const char *db_name,
@@ -52,6 +53,7 @@ public:
    void db_start_transaction(JCR *jcr);
    void db_end_transaction(JCR *jcr);
    bool db_sql_query(const char *query, DB_RESULT_HANDLER *result_handler, void *ctx);
+   bool db_big_sql_query(const char *query, DB_RESULT_HANDLER *result_handler, void *ctx);
    void sql_free_result(void);
    SQL_ROW sql_fetch_row(void);
    bool sql_query(const char *query, int flags=0);

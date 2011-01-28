@@ -53,6 +53,7 @@ void db_start_transaction(JCR *jcr, B_DB *mdb);
 void db_end_transaction(JCR *jcr, B_DB *mdb);
 bool db_sql_query(B_DB *mdb, const char *query, int flags=0);
 bool db_sql_query(B_DB *mdb, const char *query, DB_RESULT_HANDLER *result_handler, void *ctx);
+bool db_big_sql_query(B_DB *mdb, const char *query, DB_RESULT_HANDLER *result_handler, void *ctx);
 
 #ifdef _BDB_PRIV_INTERFACE_
 void sql_free_result(B_DB *mdb);

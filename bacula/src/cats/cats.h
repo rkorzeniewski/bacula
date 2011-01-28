@@ -490,6 +490,12 @@ public:
    virtual void db_start_transaction(JCR *jcr) = 0;
    virtual void db_end_transaction(JCR *jcr) = 0;
    virtual bool db_sql_query(const char *query, DB_RESULT_HANDLER *result_handler, void *ctx) = 0;
+
+   /* By default, we use db_sql_query */
+   virtual bool db_big_sql_query(const char *query, 
+                                 DB_RESULT_HANDLER *result_handler, void *ctx) {
+      return db_sql_query(query, result_handler, ctx);
+   };
 };
 
 /* sql_query Query Flags */
@@ -505,10 +511,46 @@ public:
 #include "jcr.h"
 #include "sql_cmds.h"
 
+/* Object used in db_list_xxx function */
+class LIST_CTX {
+public:
+   char line[256];              /* Used to print last dash line */
+   int32_t num_rows;
+
+   e_list_type type;            /* Vertical/Horizontal */
+   DB_LIST_HANDLER *send;       /* send data back */
+   bool once;                   /* Used to print header one time */
+   void *ctx;                   /* send() user argument */
+   B_DB *mdb;
+   JCR *jcr;
+
+   void empty() {
+      once = false;
+      line[0] = '\0';
+   }
+
+   void send_dashes() {
+      if (*line) {
+         send(ctx, line);
+      }
+   }
+
+   LIST_CTX(JCR *j, B_DB *m, DB_LIST_HANDLER *h, void *c, e_list_type t) {
+      line[0] = '\0';
+      once = false;
+      num_rows = 0;
+      type = t;
+      send = h;
+      ctx = c;
+      jcr = j;
+      mdb = m;
+   }
+};
+
 /*
  * Some functions exported by sql.c for use within the cats directory.
  */
-void list_result(JCR *jcr, B_DB *mdb, DB_LIST_HANDLER *send, void *ctx, e_list_type type);
+int list_result(void *vctx, int cols, char **row);
 void list_dashes(B_DB *mdb, DB_LIST_HANDLER *send, void *ctx);
 int get_sql_record_max(JCR *jcr, B_DB *mdb);
 bool check_tables_version(JCR *jcr, B_DB *mdb);

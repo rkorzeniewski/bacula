@@ -121,6 +121,11 @@ bool db_sql_query(B_DB *mdb, const char *query, DB_RESULT_HANDLER *result_handle
    return mdb->db_sql_query(query, result_handler, ctx);
 }
 
+bool db_big_sql_query(B_DB *mdb, const char *query, DB_RESULT_HANDLER *result_handler, void *ctx)
+{
+   return mdb->db_big_sql_query(query, result_handler, ctx);
+}
+
 void sql_free_result(B_DB *mdb)
 {
    ((B_DB_PRIV *)mdb)->sql_free_result();

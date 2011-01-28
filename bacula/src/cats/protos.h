@@ -116,6 +116,7 @@ enum e_list_type {
    HORZ_LIST,
    VERT_LIST
 };
+
 void db_list_pool_records(JCR *jcr, B_DB *db, POOL_DBR *pr, DB_LIST_HANDLER sendit, void *ctx, e_list_type type);
 void db_list_job_records(JCR *jcr, B_DB *db, JOB_DBR *jr, DB_LIST_HANDLER sendit, void *ctx, e_list_type type);
 void db_list_job_totals(JCR *jcr, B_DB *db, JOB_DBR *jr, DB_LIST_HANDLER sendit, void *ctx);

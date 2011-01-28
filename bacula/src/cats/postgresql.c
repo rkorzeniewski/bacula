@@ -118,6 +118,7 @@ B_DB_POSTGRESQL::B_DB_POSTGRESQL(JCR *jcr,
    path = get_pool_memory(PM_FNAME);
    esc_name = get_pool_memory(PM_FNAME);
    esc_path = get_pool_memory(PM_FNAME);
+   m_buf =  get_pool_memory(PM_FNAME);
    m_allow_transactions = mult_db_connections;
 
    /*
@@ -246,6 +247,7 @@ bool B_DB_POSTGRESQL::db_open_database(JCR *jcr)
    }
 
    sql_query("SET datestyle TO 'ISO, YMD'");
+   sql_query("SET cursor_tuple_fraction=1");
    
    /*
     * Tell PostgreSQL we are using standard conforming strings
@@ -285,6 +287,7 @@ void B_DB_POSTGRESQL::db_close_database(JCR *jcr)
       free_pool_memory(path);
       free_pool_memory(esc_name);
       free_pool_memory(esc_path);
+      free_pool_memory(m_buf);
       if (m_db_driver) {
          free(m_db_driver);
       }
@@ -455,6 +458,72 @@ void B_DB_POSTGRESQL::db_end_transaction(JCR *jcr)
    db_unlock(this);
 }
 
+
+/*
+ * Submit a general SQL command (cmd), and for each row returned,
+ * the result_handler is called with the ctx.
+ */
+bool B_DB_POSTGRESQL::db_big_sql_query(const char *query, 
+                                       DB_RESULT_HANDLER *result_handler, 
+                                       void *ctx)
+{
+   SQL_ROW row;
+   bool retval = false;
+   bool in_transaction = m_transaction;
+   
+   Dmsg1(500, "db_sql_query starts with '%s'\n", query);
+
+   /* This code handles only SELECT queries */
+   if (strncasecmp(query, "SELECT", 6) != 0) {
+      return db_sql_query(query, result_handler, ctx);
+   }
+
+   db_lock(this);
+
+   if (!result_handler) {       /* no need of big_query without handler */
+      goto bail_out;
+   }
+
+   if (!in_transaction) {       /* CURSOR needs transaction */
+      sql_query("BEGIN");
+   }
+
+   Mmsg(m_buf, "DECLARE _bac_cursor CURSOR FOR %s", query);
+
+   if (!sql_query(m_buf)) {
+      Mmsg(errmsg, _("Query failed: %s: ERR=%s\n"), m_buf, sql_strerror());
+      Dmsg0(50, "db_sql_query failed\n");
+      goto bail_out;
+   }
+
+   do {
+      if (!sql_query("FETCH 100 FROM _bac_cursor")) {
+         goto bail_out;
+      }
+      while ((row = sql_fetch_row()) != NULL) {
+         Dmsg1(500, "Fetching %d rows\n", m_num_rows);
+         if (result_handler(ctx, m_num_fields, row))
+            break;
+      }
+      PQclear(m_result);
+      m_result = NULL;
+      
+   } while (m_num_rows > 0);    /* TODO: Can probably test against 100 */
+
+   sql_free_result();
+
+   if (!in_transaction) {
+      sql_query("COMMIT");  /* end transaction */
+   }
+
+   Dmsg0(500, "db_big_sql_query finished\n");
+   retval = true;
+
+bail_out:
+   db_unlock(this);
+   return retval;
+}
+
 /*
  * Submit a general SQL command (cmd), and for each row returned,
  * the result_handler is called with the ctx.
@@ -591,6 +660,11 @@ SQL_ROW B_DB_POSTGRESQL::sql_fetch_row(void)
    SQL_ROW row = NULL; /* by default, return NULL */
 
    Dmsg0(500, "sql_fetch_row start\n");
+
+   if (m_num_fields == 0) {     /* No field, no row */
+      Dmsg0(500, "sql_fetch_row finishes returning NULL, no fields\n");
+      return NULL;
+   }
 
    if (!m_rows || m_rows_size < m_num_fields) {
       if (m_rows) {

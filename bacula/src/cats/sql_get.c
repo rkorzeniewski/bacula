@@ -1158,7 +1158,7 @@ bool db_get_file_list(JCR *jcr, B_DB *mdb, char *jobids,
 
    Dmsg1(100, "q=%s\n", buf.c_str());
 
-   return db_sql_query(mdb, buf.c_str(), result_handler, ctx);
+   return db_big_sql_query(mdb, buf.c_str(), result_handler, ctx);
 }
 
 /**
