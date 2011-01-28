@@ -445,7 +445,6 @@ static int our_callback(JCR *jcr, FF_PKT *ff, bool top_level)
    case FT_INVALIDFS:
    case FT_INVALIDDT:
    case FT_NOOPEN:
-   case FT_REPARSE:
 //    return ff->file_save(jcr, ff, top_level);
 
    /* These items can be filtered */
@@ -459,6 +458,8 @@ static int our_callback(JCR *jcr, FF_PKT *ff, bool top_level)
    case FT_FIFO:
    case FT_SPEC:
    case FT_DIRNOCHG:
+   case FT_REPARSE:
+   case FT_JUNCTION:
       if (accept_file(ff)) {
          return ff->file_save(jcr, ff, top_level);
       } else {

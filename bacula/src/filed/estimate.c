@@ -82,6 +82,7 @@ static int tally_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
    case FT_INVALIDFS:
    case FT_INVALIDDT:
    case FT_REPARSE:
+   case FT_JUNCTION:
    case FT_DIREND:
    case FT_SPEC:
    case FT_RAW:

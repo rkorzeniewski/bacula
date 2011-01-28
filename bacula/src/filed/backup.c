@@ -353,13 +353,8 @@ int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
    case FT_NOFSCHG:
       /* Suppress message for /dev filesystems */
       if (!is_in_fileset(ff_pkt)) {
-#ifdef HAVE_WIN32
-         Jmsg(jcr, M_INFO, 1, _("     %s is a junction point or a different filesystem. Will not descend from %s into it.\n"),
-              ff_pkt->fname, ff_pkt->top_fname);
-#else
          Jmsg(jcr, M_INFO, 1, _("     %s is a different filesystem. Will not descend from %s into it.\n"),
               ff_pkt->fname, ff_pkt->top_fname);
-#endif
       }
       ff_pkt->type = FT_DIREND;       /* Backup only the directory entry */
       break;
@@ -373,6 +368,7 @@ int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
            ff_pkt->fname);
       break;
    case FT_REPARSE:
+   case FT_JUNCTION:
    case FT_DIREND:
       Dmsg1(130, "FT_DIREND: %s\n", ff_pkt->link);
       break;
@@ -538,7 +534,7 @@ int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
       do_read = ff_pkt->statp.st_size > 0;  
 #endif
    } else if (ff_pkt->type == FT_RAW || ff_pkt->type == FT_FIFO ||
-              ff_pkt->type == FT_REPARSE ||
+              ff_pkt->type == FT_REPARSE || ff_pkt->type == FT_JUNCTION ||
          (!is_portable_backup(&ff_pkt->bfd) && ff_pkt->type == FT_DIREND)) {
       do_read = true;
    }
@@ -557,7 +553,8 @@ int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
          tid = NULL;
       }
       int noatime = ff_pkt->flags & FO_NOATIME ? O_NOATIME : 0;
-      ff_pkt->bfd.reparse_point = ff_pkt->type == FT_REPARSE;
+      ff_pkt->bfd.reparse_point = (ff_pkt->type == FT_REPARSE || 
+                                   ff_pkt->type == FT_JUNCTION);
       if (bopen(&ff_pkt->bfd, ff_pkt->fname, O_RDONLY | O_BINARY | noatime, 0) < 0) {
          ff_pkt->ff_errno = errno;
          berrno be;
@@ -1197,6 +1194,7 @@ bool encode_and_send_attributes(JCR *jcr, FF_PKT *ff_pkt, int &data_stream)
       break;
    case FT_DIREND:
    case FT_REPARSE:
+   case FT_JUNCTION:
       /* Here link is the canonical filename (i.e. with trailing slash) */
       stat = sd->fsend("%ld %d %s%c%s%c%c%s%c%u%c", jcr->JobFiles,
                        ff_pkt->type, ff_pkt->link, 0, attribs, 0, 0, 
@@ -1385,6 +1383,7 @@ static void close_vss_backup_session(JCR *jcr)
          ff_pkt->object_name = (char *)"job_metadata.xml";
          ff_pkt->object = (char *)metadata;
          ff_pkt->object_len = (wcslen(metadata) + 1) * sizeof(WCHAR);
+         ff_pkt->object_index = (int)time(NULL);
          save_file(jcr, ff_pkt, true);
      }
    }

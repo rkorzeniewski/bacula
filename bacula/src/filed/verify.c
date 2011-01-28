@@ -108,6 +108,7 @@ static int verify_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
       jcr->num_files_examined--;      /* correct file count */
       return 1;                       /* ignored */
    case FT_REPARSE: 
+   case FT_JUNCTION:
    case FT_DIREND:
       Dmsg1(30, "FT_DIR saving: %s\n", ff_pkt->fname);
       break;
@@ -196,7 +197,8 @@ static int verify_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
       stat = dir->fsend("%d %d %s %s%c%s%c%s%c", jcr->JobFiles,
                         STREAM_UNIX_ATTRIBUTES, ff_pkt->VerifyOpts, ff_pkt->fname,
                         0, attribs, 0, ff_pkt->link, 0);
-   } else if (ff_pkt->type == FT_DIREND || ff_pkt->type == FT_REPARSE) {
+   } else if (ff_pkt->type == FT_DIREND || ff_pkt->type == FT_REPARSE ||
+              ff_pkt->type == FT_JUNCTION) {
       /* Here link is the canonical filename (i.e. with trailing slash) */
       stat = dir->fsend("%d %d %s %s%c%s%c%c", jcr->JobFiles,
                         STREAM_UNIX_ATTRIBUTES, ff_pkt->VerifyOpts, ff_pkt->link,

@@ -362,6 +362,7 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
       } /* End inner switch */
 
    case FT_REPARSE:
+   case FT_JUNCTION:
       bfd->reparse_point = true;
       /* Fall through wanted */
    case FT_DIRBEGIN:
