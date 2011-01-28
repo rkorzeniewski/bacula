@@ -478,11 +478,11 @@ bool B_DB_POSTGRESQL::db_big_sql_query(const char *query,
       return db_sql_query(query, result_handler, ctx);
    }
 
-   db_lock(this);
-
    if (!result_handler) {       /* no need of big_query without handler */
-      goto bail_out;
+      return false;
    }
+
+   db_lock(this);
 
    if (!in_transaction) {       /* CURSOR needs transaction */
       sql_query("BEGIN");
@@ -512,14 +512,14 @@ bool B_DB_POSTGRESQL::db_big_sql_query(const char *query,
 
    sql_free_result();
 
-   if (!in_transaction) {
-      sql_query("COMMIT");  /* end transaction */
-   }
-
    Dmsg0(500, "db_big_sql_query finished\n");
    retval = true;
 
 bail_out:
+   if (!in_transaction) {
+      sql_query("COMMIT");  /* end transaction */
+   }
+
    db_unlock(this);
    return retval;
 }
