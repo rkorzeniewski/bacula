@@ -1,4 +1,4 @@
-/*
+&/*
    Bacula® - The Network Backup Solution
 
    Copyright (C) 2002-2010 Free Software Foundation Europe e.V.
@@ -966,50 +966,50 @@ const char *batch_unlock_tables_query[] = {
 const char *batch_fill_path_query[] = {
    /* Mysql */
    "INSERT INTO Path (Path) "
-   "SELECT a.Path FROM "
-   "(SELECT DISTINCT Path FROM batch) AS a WHERE NOT EXISTS "
-   "(SELECT Path FROM Path AS p WHERE p.Path = a.Path)",
+      "SELECT a.Path FROM "
+         "(SELECT DISTINCT Path FROM batch) AS a WHERE NOT EXISTS "
+         "(SELECT Path FROM Path AS p WHERE p.Path = a.Path)",
 
    /* Postgresql */
    "INSERT INTO Path (Path) "
-   "SELECT a.Path FROM "
-   "(SELECT DISTINCT Path FROM batch) AS a "
-   "WHERE NOT EXISTS (SELECT Path FROM Path WHERE Path = a.Path) ",
+      "SELECT a.Path FROM "
+         "(SELECT DISTINCT Path FROM batch) AS a "
+       "WHERE NOT EXISTS (SELECT Path FROM Path WHERE Path = a.Path) ",
 
    /* SQLite3 */
    "INSERT INTO Path (Path) "
-   "SELECT DISTINCT Path FROM batch "
-   "EXCEPT SELECT Path FROM Path",
+      "SELECT DISTINCT Path FROM batch "
+      "EXCEPT SELECT Path FROM Path",
 
    /* Ingres */
    "INSERT INTO Path (Path) "
-   "SELECT DISTINCT b.Path FROM batch b "
-   "WHERE NOT EXISTS (SELECT Path FROM Path p WHERE p.Path = b.Path)"
+      "SELECT DISTINCT b.Path FROM batch b "
+       "WHERE NOT EXISTS (SELECT Path FROM Path p WHERE p.Path = b.Path)"
 };
 
 const char *batch_fill_filename_query[] = {
    /* Mysql */
    "INSERT INTO Filename (Name) "
-   "SELECT a.Name FROM "
-   "(SELECT DISTINCT Name FROM batch) AS a WHERE NOT EXISTS "
-   "(SELECT Name FROM Filename AS f WHERE f.Name = a.Name)",
+      "SELECT a.Name FROM "
+         "(SELECT DISTINCT Name FROM batch) AS a WHERE NOT EXISTS "
+         "(SELECT Name FROM Filename AS f WHERE f.Name = a.Name)",
 
    /* Postgresql */
    "INSERT INTO Filename (Name) "
-   "SELECT a.Name FROM "
-   "(SELECT DISTINCT Name FROM batch) as a "
-   "WHERE NOT EXISTS "
-   "(SELECT Name FROM Filename WHERE Name = a.Name)",
+      "SELECT a.Name FROM "
+         "(SELECT DISTINCT Name FROM batch) as a "
+       "WHERE NOT EXISTS "
+        "(SELECT Name FROM Filename WHERE Name = a.Name)",
 
    /* SQLite3 */
    "INSERT INTO Filename (Name) "
-   "SELECT DISTINCT Name FROM batch "
-   "EXCEPT SELECT Name FROM Filename",
+      "SELECT DISTINCT Name FROM batch "
+      "EXCEPT SELECT Name FROM Filename",
 
    /* Ingres */
    "INSERT INTO Filename (Name) "
-   "SELECT DISTINCT b.Name FROM batch b "
-   "WHERE NOT EXISTS (SELECT Name FROM Filename f WHERE f.Name = b.Name)"
+      "SELECT DISTINCT b.Name FROM batch b "
+       "WHERE NOT EXISTS (SELECT Name FROM Filename f WHERE f.Name = b.Name)"
 };
 
 const char *match_query[] = {
