@@ -353,15 +353,15 @@ bool start_storage_daemon_message_thread(JCR *jcr)
 extern "C" void msg_thread_cleanup(void *arg)
 {
    JCR *jcr = (JCR *)arg;
-   db_end_transaction(jcr, jcr->db);       /* terminate any open transaction */
+   db_end_transaction(jcr, jcr->db);        /* terminate any open transaction */
    jcr->lock();
    jcr->sd_msg_thread_done = true;
    jcr->SD_msg_chan = 0;
    jcr->unlock();
    pthread_cond_broadcast(&jcr->term_wait); /* wakeup any waiting threads */
    Dmsg2(100, "=== End msg_thread. JobId=%d usecnt=%d\n", jcr->JobId, jcr->use_count());
-   free_jcr(jcr);                     /* release jcr */
-   db_thread_cleanup(jcr->db);               /* remove thread specific data */
+   db_thread_cleanup(jcr->db);              /* remove thread specific data */
+   free_jcr(jcr);                           /* release jcr */
 }
 
 /*
