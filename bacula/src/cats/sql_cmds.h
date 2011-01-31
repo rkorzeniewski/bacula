@@ -31,17 +31,9 @@ extern const char CATS_IMP_EXP *client_backups;
 extern const char CATS_IMP_EXP *list_pool;
 extern const char CATS_IMP_EXP *drop_deltabs[];
 extern const char CATS_IMP_EXP *create_delindex;
-extern const char CATS_IMP_EXP *select_job;
-extern const char CATS_IMP_EXP *count_select_job;
-extern const char CATS_IMP_EXP *del_File;
 extern const char CATS_IMP_EXP *cnt_File;
-extern const char CATS_IMP_EXP *cnt_DelCand;
-extern const char CATS_IMP_EXP *del_Job;
 extern const char CATS_IMP_EXP *del_MAC;
-extern const char CATS_IMP_EXP *del_JobMedia;
-extern const char CATS_IMP_EXP *cnt_JobMedia;
 extern const char CATS_IMP_EXP *sel_JobMedia;
-extern const char CATS_IMP_EXP *upd_Purged;
 
 extern const char CATS_IMP_EXP *cleanup_created_job;
 extern const char CATS_IMP_EXP *cleanup_running_job;

@@ -83,35 +83,12 @@ const char *client_backups =
    " AND Job.FileSetId=FileSet.FileSetId"
    " ORDER BY Job.StartTime";
 
-
 /* ====== ua_prune.c */
-
-const char *del_File     = "DELETE FROM File WHERE JobId=%s";
-const char *upd_Purged   = "UPDATE Job Set PurgedFiles=1 WHERE JobId=%s";
-const char *cnt_DelCand  = "SELECT count(*) FROM DelCandidates";
-const char *del_Job      = "DELETE FROM Job WHERE JobId=%s";
-const char *del_JobMedia = "DELETE FROM JobMedia WHERE JobId=%s";
-const char *cnt_JobMedia = "SELECT count(*) FROM JobMedia WHERE MediaId=%s";
 
 const char *sel_JobMedia = 
    "SELECT DISTINCT JobMedia.JobId FROM JobMedia,Job "
    "WHERE MediaId=%s AND Job.JobId=JobMedia.JobId "
    "AND Job.JobTDate<%s";
-
-/* Count Select JobIds for File deletion */
-const char *count_select_job = 
-   "SELECT count(*) from Job "
-   "WHERE JobTDate<%s "
-   "AND ClientId=%s "
-   "AND PurgedFiles=0";
-
-
-/* Select JobIds for File deletion. */
-const char *select_job =
-   "SELECT DISTINCT JobId from Job "
-   "WHERE JobTDate<%s "
-   "AND ClientId=%s "
-   "AND PurgedFiles=0";
 
 /* Delete temp tables and indexes  */
 const char *drop_deltabs[] = {
