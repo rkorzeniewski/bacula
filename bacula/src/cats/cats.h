@@ -395,6 +395,13 @@ public:
          count += str.count;
       }
    }
+   void cat(const char *str) {
+      if (count > 0) {
+         pm_strcat(list, ",");
+      }
+      pm_strcat(list, str);
+      count++;
+   }
 private:
    db_list_ctx(const db_list_ctx&);            /* prohibit pass by value */
    db_list_ctx &operator=(const db_list_ctx&); /* prohibit class assignment */
