@@ -510,9 +510,10 @@ bool B_DB_POSTGRESQL::db_big_sql_query(const char *query,
       
    } while (m_num_rows > 0);    /* TODO: Can probably test against 100 */
 
-   sql_free_result();
+   sql_query("CLOSE _bac_cursor");
 
    Dmsg0(500, "db_big_sql_query finished\n");
+   sql_free_result();
    retval = true;
 
 bail_out:
