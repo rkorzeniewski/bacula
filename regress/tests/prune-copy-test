@@ -47,6 +47,7 @@ list volumes
 @#setdebug level=100 dir
 @# should copy two jobs
 @#setdebug level=51 storage=DiskChanger
+@sleep 2
 run job=copy-job yes
 wait
 messages
@@ -58,12 +59,14 @@ messages
 @#
 @# Now do another backup, but level Incremental
 @#
+@sleep 2
 run job=$JobName level=Incremental yes
 wait
 messages
 @#
 @# This final job that runs should be Incremental and
 @# not upgraded to full.
+@sleep 2
 @exec "touch $cwd/build/po/fr.po"
 run job=$JobName level=Incremental yes
 wait
