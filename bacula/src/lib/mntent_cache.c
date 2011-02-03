@@ -92,22 +92,12 @@
 #include <sys/mount.h>
 #endif
 
-static char cache_initialized = 0;
-
-/**
+/*
  * Protected data by mutex lock.
  */
 static pthread_mutex_t mntent_cache_lock = PTHREAD_MUTEX_INITIALIZER;
-static mntent_cache_entry_t *mntent_cache_entry_hashtable[NR_MNTENT_CACHE_ENTRIES];
 static mntent_cache_entry_t *previous_cache_hit = NULL;
-
-/**
- * Simple hash function.
- */
-static uint32_t mntent_hash_function(uint32_t dev)
-{
-   return (dev % NR_MNTENT_CACHE_ENTRIES);
-}
+static htable *mntent_cache_entry_hashtable = NULL;
 
 /**
  * Add a new entry to the cache.
@@ -116,38 +106,43 @@ static uint32_t mntent_hash_function(uint32_t dev)
 static void add_mntent_mapping(uint32_t dev, const char *special, const char *mountpoint,
                                const char *fstype, const char *mntopts)
 {
-   uint32_t hash;
+   int len;
    mntent_cache_entry_t *mce;
 
-   /**
-    * Select the correct hash bucket.
+   /*
+    * Calculate the length of all strings so we can allocate the buffer
+    * as one big chunk of memory using the hash_malloc method.
     */
-   hash = mntent_hash_function(dev);
-
-   /**
-    * See if this is the first being put into the hash bucket.
-    */
-   if (mntent_cache_entry_hashtable[hash] == (mntent_cache_entry_t *)NULL) {
-      mce = (mntent_cache_entry_t *)malloc(sizeof(mntent_cache_entry_t));
-      memset((caddr_t)mce, 0, sizeof(mntent_cache_entry_t));
-      mntent_cache_entry_hashtable[hash] = mce;
-   } else {
-      /**
-       * Walk the linked list in the hash bucket.
-       */
-      for (mce = mntent_cache_entry_hashtable[hash]; mce->next != NULL; mce = mce->next) ;
-      mce->next = (mntent_cache_entry_t *)malloc(sizeof(mntent_cache_entry_t));
-      mce = mce->next;
-      memset((caddr_t)mce, 0, sizeof(mntent_cache_entry_t));
-   }
-
-   mce->dev = dev;
-   mce->special = bstrdup(special);
-   mce->mountpoint = bstrdup(mountpoint);
-   mce->fstype = bstrdup(fstype);
+   len = strlen(special) + 1;
+   len += strlen(mountpoint) + 1;
+   len += strlen(fstype) + 1;
    if (mntopts) {
-      mce->mntopts = bstrdup(mntopts);
+      len += strlen(mntopts) + 1;
    }
+
+   /*
+    * We allocate all members of the hash entry in the same memory chunk.
+    */
+   mce = (mntent_cache_entry_t *)mntent_cache_entry_hashtable->hash_malloc(sizeof(mntent_cache_entry_t) + len);
+   mce->dev = dev;
+
+   mce->special = (char *)mce + sizeof(mntent_cache_entry_t);
+   strcpy(mce->special, special);
+
+   mce->mountpoint = mce->special + strlen(mce->special) + 1;
+   strcpy(mce->mountpoint, mountpoint);
+
+   mce->fstype = mce->mountpoint + strlen(mce->mountpoint) + 1;
+   strcpy(mce->fstype, fstype);
+
+   if (mntopts) {
+      mce->mntopts = mce->fstype + strlen(mce->fstype) + 1;
+      strcpy(mce->mntopts, mntopts);
+   } else {
+      mce->mntopts = NULL;
+   }
+
+   mntent_cache_entry_hashtable->insert(mce->dev, mce);
 }
 
 /**
@@ -317,15 +312,16 @@ static void refresh_mount_cache(void)
  */
 static void clear_mount_cache()
 {
-   uint32_t hash;
-   mntent_cache_entry_t *mce, *mce_next;
+   mntent_cache_entry_t *mce = NULL;
 
-   if (cache_initialized == 0) {
+   if (!mntent_cache_entry_hashtable) {
       /**
        * Initialize the hash table.
        */
-      memset((caddr_t)mntent_cache_entry_hashtable, 0, NR_MNTENT_CACHE_ENTRIES * sizeof(mntent_cache_entry_t *));
-      cache_initialized = 1;
+      mntent_cache_entry_hashtable = (htable *)malloc(sizeof(htable));
+      mntent_cache_entry_hashtable->init(mce, &mce->link,
+                                         NR_MNTENT_CACHE_ENTRIES,
+                                         NR_MNTENT_HTABLE_PAGES);
    } else {
       /**
        * Clear the previous_cache_hit.
@@ -333,33 +329,12 @@ static void clear_mount_cache()
       previous_cache_hit = NULL;
 
       /**
-       * Walk all hash buckets.
+       * Destroy the current content and (re)initialize the hashtable.
        */
-      for (hash = 0; hash < NR_MNTENT_CACHE_ENTRIES; hash++) {
-         /**
-          * Walk the content of this hash bucket.
-          */
-         mce = mntent_cache_entry_hashtable[hash];
-         mntent_cache_entry_hashtable[hash] = NULL;
-         while (mce != NULL) {
-            /**
-             * Save the pointer to the next entry.
-             */
-            mce_next = mce->next;
-
-            /**
-             * Free the structure.
-             */
-            if (mce->mntopts)
-               free(mce->mntopts);
-            free(mce->fstype);
-            free(mce->mountpoint);
-            free(mce->special);
-            free(mce);
-
-            mce = mce_next;
-         }
-      }
+      mntent_cache_entry_hashtable->destroy();
+      mntent_cache_entry_hashtable->init(mce, &mce->link,
+                                         NR_MNTENT_CACHE_ENTRIES,
+                                         NR_MNTENT_HTABLE_PAGES);
    }
 }
 
@@ -417,13 +392,12 @@ void flush_mntent_cache(void)
  */
 mntent_cache_entry_t *find_mntent_mapping(uint32_t dev)
 {
-   uint32_t hash;
-   mntent_cache_entry_t *mce;
+   mntent_cache_entry_t *mce = NULL;
 
    /**
     * Initialize the cache if that was not done before.
     */
-   if (cache_initialized == 0) {
+   if (!mntent_cache_entry_hashtable) {
       initialize_mntent_cache();
    }
 
@@ -439,25 +413,14 @@ mntent_cache_entry_t *find_mntent_mapping(uint32_t dev)
     */
    P(mntent_cache_lock);
 
-   /**
-    * Select the correct hash bucket.
-    */
-   hash = mntent_hash_function(dev);
-
-   /**
-    * Walk the hash bucket.
-    */
-   for (mce = mntent_cache_entry_hashtable[hash]; mce != NULL; mce = mce->next) {
-      if (mce->dev == dev) {
-         previous_cache_hit = mce;
-         V(mntent_cache_lock);
-         return mce;
-      }
+   mce = (mntent_cache_entry_t *)mntent_cache_entry_hashtable->lookup(dev);
+   if (mce) {
+      previous_cache_hit = mce;
    }
 
    /**
     * We are done walking the cache.
     */
    V(mntent_cache_lock);
-   return NULL;
+   return mce;
 }
