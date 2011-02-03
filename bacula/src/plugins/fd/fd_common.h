@@ -112,8 +112,8 @@ inline void operator delete[] (void *buf)
   sm_free(__FILE__, __LINE__, buf);
 }
 
-#define Dmsg(context, level, message, ...) bfuncs->DebugMessage(context, __FILE__, __LINE__, level, message, ##__VA_ARGS__)
-#define Jmsg(context, type, message, ...) bfuncs->JobMessage(context, __FILE__, __LINE__, type, 0, message, ##__VA_ARGS__)
+#define Dmsg(context, level,  ...) bfuncs->DebugMessage(context, __FILE__, __LINE__, level, __VA_ARGS__ )
+#define Jmsg(context, type,  ...) bfuncs->JobMessage(context, __FILE__, __LINE__, type, 0, __VA_ARGS__ )
 
 
 #ifdef USE_ADD_DRIVE
