@@ -840,8 +840,8 @@ const char *sql_bvfs_select[] = {
 };
 
 const char *sql_bvfs_list_files_default = 
-"SELECT 'F', PathId, T1.FilenameId, Filename.Name, "
-        "File.JobId, LStat, FileId "
+"SELECT 'F', T1.PathId, T1.FilenameId, Filename.Name, "
+        "File.JobId, File.LStat, File.FileId "
 "FROM Job, File, ( "
     "SELECT MAX(JobTDate) AS JobTDate, PathId, FilenameId "
       "FROM ( "
