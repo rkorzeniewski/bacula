@@ -541,7 +541,7 @@ static bool dot_bvfs_get_jobids(UAContext *ua, const char *cmd)
       if (!db_accurate_get_jobids(ua->jcr, ua->db, &jr, &tempids)) {
          return true;
       }
-      jobids.cat(tempids);
+      jobids.add(tempids);
    }
 
    ua->send_msg("%s\n", jobids.list);

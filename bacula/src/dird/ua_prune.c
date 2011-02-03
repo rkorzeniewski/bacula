@@ -539,7 +539,7 @@ int prune_jobs(UAContext *ua, CLIENT *client, POOL *pool, int JobType)
       jr.ClientId = elt->ClientId;   /* should be always the same */
       jr.FileSetId = elt->FileSetId;
       db_accurate_get_jobids(ua->jcr, ua->db, &jr, &tempids);
-      jobids.cat(tempids);
+      jobids.add(tempids);
    }
 
    /* Discard latest Verify level=InitCatalog job 

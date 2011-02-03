@@ -386,7 +386,7 @@ public:
    db_list_ctx() { list = get_pool_memory(PM_FNAME); reset(); }
    ~db_list_ctx() { free_pool_memory(list); list = NULL; }
    void reset() { *list = 0; count = 0;}
-   void cat(const db_list_ctx &str) {
+   void add(const db_list_ctx &str) {
       if (str.count > 0) {
          if (*list) {
             pm_strcat(list, ",");
@@ -395,7 +395,7 @@ public:
          count += str.count;
       }
    }
-   void cat(const char *str) {
+   void add(const char *str) {
       if (count > 0) {
          pm_strcat(list, ",");
       }
