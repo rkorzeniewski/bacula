@@ -51,8 +51,10 @@
 #include "bacula.h"
 
 #define PAGE_SIZE 4096
+#define MIN_PAGES 32
 #define MAX_PAGES 2400
-#define MAX_BUF_SIZE (MAX_PAGES * PAGE_SIZE)  /* approx 10MB */
+#define MIN_BUF_SIZE (MIN_PAGES * PAGE_SIZE) /* 128 Kb */
+#define MAX_BUF_SIZE (MAX_PAGES * PAGE_SIZE) /* approx 10MB */
 
 static const int dbglvl = 500;
 
@@ -96,17 +98,18 @@ void htable::hash_big_free()
  */
 char *htable::hash_malloc(int size)
 {
+   int mb_size;
    char *buf;
    int asize = BALIGN(size);
 
    if (mem_block->rem < asize) {
-      int mb_size;
-      if (total_size >= (MAX_BUF_SIZE / 2)) {
-         mb_size = MAX_BUF_SIZE;
+      if (total_size >= (extend_length / 2)) {
+         mb_size = extend_length;
       } else {
-         mb_size = MAX_BUF_SIZE / 2;
+         mb_size = extend_length / 2;
       }
       malloc_big_buf(mb_size);
+      Dmsg1(100, "Created new big buffer of %ld bytes\n", mb_size);
    }
    mem_block->rem -= asize;
    buf = mem_block->mem;
@@ -148,14 +151,16 @@ void htable::hash_index(uint64_t key)
 /*
  * tsize is the estimated number of entries in the hash table
  */
-htable::htable(void *item, void *link, int tsize)
+htable::htable(void *item, void *link, int tsize, int nr_pages)
 {
-   init(item, link, tsize);
+   init(item, link, tsize, nr_pages);
 }
 
-void htable::init(void *item, void *link, int tsize)
+void htable::init(void *item, void *link, int tsize, int nr_pages)
 {
    int pwr;
+   int pagesize;
+   int buffer_size;
 
    memset(this, 0, sizeof(htable));
    if (tsize < 31) {
@@ -166,13 +171,31 @@ void htable::init(void *item, void *link, int tsize)
       tsize >>= 1;
    }
    loffset = (char *)link - (char *)item;
-   mask = ~((~0)<<pwr);               /* 3 bits => table size = 8 */
+   mask = ~((~0) << pwr);             /* 3 bits => table size = 8 */
    rshift = 30 - pwr;                 /* start using bits 28, 29, 30 */
-   buckets = 1<<pwr;                  /* hash table size -- power of two */
+   buckets = 1 << pwr;                /* hash table size -- power of two */
    max_items = buckets * 4;           /* allow average 4 entries per chain */
    table = (hlink **)malloc(buckets * sizeof(hlink *));
    memset(table, 0, buckets * sizeof(hlink *));
-   malloc_big_buf(MAX_BUF_SIZE);   /* ***FIXME*** need variable or some estimate */
+
+#ifdef HAVE_GETPAGESIZE
+   pagesize = getpagesize();
+#else
+   pagesize = PAGE_SIZE;
+#endif
+   if (nr_pages == 0) {
+      buffer_size = MAX_BUF_SIZE;
+   } else {
+      buffer_size = pagesize * nr_pages;
+      if (buffer_size > MAX_BUF_SIZE) {
+         buffer_size = MAX_BUF_SIZE;
+      } else if (buffer_size < MIN_BUF_SIZE) {
+         buffer_size = MIN_BUF_SIZE;
+      }
+   }
+   malloc_big_buf(buffer_size);
+   extend_length = buffer_size;
+   Dmsg1(100, "Allocated big buffer of %ld bytes\n", buffer_size);
 }
 
 uint32_t htable::size()
@@ -477,7 +500,11 @@ struct MYJCR {
    hlink link;
 };
 
+#ifndef TEST_SMALL_HTABLE
 #define NITEMS 5000000
+#else
+#define NITEMS 5000
+#endif
 
 int main()
 {
@@ -488,8 +515,12 @@ int main()
    int count = 0;
 
    jcrtbl = (htable *)malloc(sizeof(htable));
-   jcrtbl->init(jcr, &jcr->link, NITEMS);
 
+#ifndef TEST_SMALL_HTABLE
+   jcrtbl->init(jcr, &jcr->link, NITEMS);
+#else
+   jcrtbl->init(jcr, &jcr->link, NITEMS, 128);
+#endif
    Dmsg1(000, "Inserting %d items\n", NITEMS);
    for (int i=0; i<NITEMS; i++) {
 #ifndef TEST_NON_CHAR

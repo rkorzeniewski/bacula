@@ -85,6 +85,7 @@ class htable : public SMARTALLOC {
    hlink *walkptr;                    /* table walk pointer */
    uint64_t hash;                     /* temp storage */
    uint64_t total_size;               /* total bytes malloced */
+   uint32_t extend_length;            /* number of bytes to allocate when extending buffer */
    uint32_t walk_index;               /* table walk index */
    uint32_t num_items;                /* current number of items */
    uint32_t max_items;                /* maximum items before growing */
@@ -101,9 +102,9 @@ class htable : public SMARTALLOC {
    void grow_table();                 /* grow the table */
 
 public:
-   htable(void *item, void *link, int tsize = 31);
+   htable(void *item, void *link, int tsize = 31, int nr_pages = 0);
    ~htable() { destroy(); }
-   void init(void *item, void *link, int tsize = 31);
+   void init(void *item, void *link, int tsize = 31, int nr_pages = 0);
    bool insert(char *key, void *item);
    bool insert(uint32_t key, void *item);
    bool insert(uint64_t key, void *item);
