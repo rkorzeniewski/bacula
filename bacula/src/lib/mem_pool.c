@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2010 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2011 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -47,6 +47,9 @@
  */
 
 #include "bacula.h"
+#ifdef HAVE_MALLOC_TRIM
+#include <malloc.h>
+#endif
 
 struct s_pool_ctl {
    int32_t size;                      /* default size */
@@ -69,7 +72,8 @@ static struct s_pool_ctl pool_ctl[] = {
    {  NLEN, NLEN,0, 0, NULL },        /* PM_NAME Bacula name */
    {  256,  256, 0, 0, NULL },        /* PM_FNAME filename buffers */
    {  512,  512, 0, 0, NULL },        /* PM_MESSAGE message buffer */
-   { 1024, 1024, 0, 0, NULL }         /* PM_EMSG error message buffer */
+   { 1024, 1024, 0, 0, NULL },        /* PM_EMSG error message buffer */
+  {  4096, 4096, 0, 0, NULL }         /* PM_BSOCK message buffer */
 };
 #else
 
@@ -79,7 +83,8 @@ static struct s_pool_ctl pool_ctl[] = {
    {  NLEN, NLEN,0, 0, NULL },        /* PM_NAME Bacula name */
    {   20,   20, 0, 0, NULL },        /* PM_FNAME filename buffers */
    {   20,   20, 0, 0, NULL },        /* PM_MESSAGE message buffer */
-   {   20,   20, 0, 0, NULL }         /* PM_EMSG error message buffer */
+   {   20,   20, 0, 0, NULL },        /* PM_EMSG error message buffer */
+   {   20,   20, 0, 0, NULL }         /* PM_BSOCK message buffer */
 };
 #endif
 
@@ -377,13 +382,13 @@ void garbage_collect_memory_pool()
    if (now >= last_garbage_collection + garbage_interval) {
       last_garbage_collection = now;
       V(mutex);
-      close_memory_pool();
+      garbage_collect_memory();
    } else {
       V(mutex);
    }
 }
 
-/* Release all pooled memory */
+/* Release all freed pooled memory */
 void close_memory_pool()
 {
    struct abufhead *buf, *next;
@@ -410,6 +415,21 @@ void close_memory_pool()
    }
    V(mutex);
 
+}
+
+/*
+ * Garbage collect and trim memory if possible
+ *  This should be called after all big memory usages
+ *  if possible.
+ */
+void garbage_collect_memory()
+{
+   close_memory_pool();         /* release free chain */
+#ifdef HAVE_MALLOC_TRIM
+   P(mutex);
+   malloc_trim(8192);
+   V(mutex);
+#endif
 }
 
 #ifdef DEBUG

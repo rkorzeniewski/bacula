@@ -66,7 +66,7 @@ void BSOCK::init()
 {
    memset(this, 0, sizeof(BSOCK));
    m_blocking = 1;
-   msg = get_pool_memory(PM_MESSAGE);
+   msg = get_pool_memory(PM_BSOCK);
    errmsg = get_pool_memory(PM_MESSAGE);
    /*
     * ****FIXME**** reduce this to a few hours once

@@ -576,7 +576,6 @@ void free_jcr(JCR *jcr)
 
    free_common_jcr(jcr);
    close_msg(NULL);                   /* flush any daemon messages */
-   garbage_collect_memory_pool();
    Dmsg0(dbglvl, "Exit free_jcr\n");
 }
 

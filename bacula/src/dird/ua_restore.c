@@ -294,7 +294,7 @@ int restore_cmd(UAContext *ua, const char *cmd)
    parse_ua_args(ua);
    run_cmd(ua, ua->cmd);
    free_rx(&rx);
-   close_memory_pool();            /* release freed pool memory */
+   garbage_collect_memory();       /* release unused memory */
    return 1;
 
 bail_out:
@@ -311,7 +311,7 @@ bail_out:
    }
 
    free_rx(&rx);
-   close_memory_pool();            /* release freed pool memory */
+   garbage_collect_memory();       /* release unused memory */
    return 0;
 
 }
@@ -1165,6 +1165,13 @@ static bool build_directory_tree(UAContext *ua, RESTORE_CTX *rx)
       }
    }
 #endif
+   /* 
+    * At this point, the tree is built, so we can garbage collect
+    * any memory released by the SQL engine that RedHat has 
+    * not returned to the OS :-( 
+    */
+    garbage_collect_memory();
+
    /*
     * Look at the first JobId on the list (presumably the oldest) and
     *  if it is marked purged, don't do the manual selection because

@@ -184,6 +184,7 @@ void free_tree(TREE_ROOT *root)
    }
    Dmsg3(100, "Total size=%u blocks=%u freed_blocks=%u\n", root->total_size, root->blocks, freed_blocks);
    free(root);
+   garbage_collect_memory();
    return;
 }
 

@@ -1593,6 +1593,7 @@ static int delete_pool(UAContext *ua)
 
 int memory_cmd(UAContext *ua, const char *cmd)
 {
+   garbage_collect_memory();
    list_dir_status_header(ua);
    sm_dump(false, true);
    return 1;

@@ -675,7 +675,7 @@ BSOCK *init_bsock(JCR * jcr, int sockfd, const char *who, const char *host, int 
    bsock->tls = NULL;
    bsock->errors = 0;
    bsock->m_blocking = 1;
-   bsock->msg = get_pool_memory(PM_MESSAGE);
+   bsock->msg = get_pool_memory(PM_BSOCK);
    bsock->errmsg = get_pool_memory(PM_MESSAGE);
    bsock->set_who(bstrdup(who));
    bsock->set_host(bstrdup(host));
@@ -695,7 +695,7 @@ BSOCK *dup_bsock(BSOCK *osock)
 {
    BSOCK *bsock = (BSOCK *)malloc(sizeof(BSOCK));
    memcpy(bsock, osock, sizeof(BSOCK));
-   bsock->msg = get_pool_memory(PM_MESSAGE);
+   bsock->msg = get_pool_memory(PM_BSOCK);
    bsock->errmsg = get_pool_memory(PM_MESSAGE);
    if (osock->who()) {
       bsock->set_who(bstrdup(osock->who()));
