@@ -1,0 +1,298 @@
+#
+# git-ls-files --others --exclude-from=.git/info/exclude
+# Lines that start with '#' are comments.
+# For a project mostly in C, the following would be a good set of
+# exclude patterns (uncomment them if you want to use them):
+# *.[oa]
+# *~
+
+# 
+*.la
+*.a
+*.o
+*.lo
+*~
+1
+2
+
+# /gui/
+/gui/diff
+/gui/config.status
+/gui/config.out
+/gui/config.log
+/gui/autom4te.cache
+/gui/kernsconfig
+
+# /gui/autoconf/
+/gui/autoconf/config.log
+/gui/autoconf/Make.common
+/gui/autoconf/config.h.in
+
+# /gui/bacula-web/
+/gui/bacula-web/%%*.php
+
+# /gui/bimagemgr/
+/gui/bimagemgr/Makefile
+/gui/bimagemgr/bacula-bimagemgr.spec
+
+# /regress/
+/regress/kerns.config
+/regress/1
+/regress/config
+/regress/config.out
+/regress/build
+/regress/bin
+/regress/test.out
+/regress/weird-files
+/regress/weird-files2
+/regress/diff
+/regress/tmp
+/regress/working
+/regress/Makefile
+/regress/test1.out
+/regress/time.out
+/regress/DartConfiguration.tcl
+/regress/DartTestfile.txt
+/regress/Testing
+
+# /regress/scripts/
+/regress/scripts/multi-client-bacula-dir.conf
+/regress/scripts/bacula-dir-2d.conf
+/regress/scripts/bacula-dir.conf.errors
+/regress/scripts/bacula-fd-2d.conf
+/regress/scripts/bconsole-2d.conf
+/regress/scripts/bacula-sd-2d.conf
+/regress/scripts/bacula-dir-migration.conf
+/regress/scripts/bacula-sd-migration.conf
+/regress/scripts/crypto-bacula-fd.conf
+/regress/scripts/new-test-bacula-dir.conf
+/regress/scripts/bacula-dir.conf
+/regress/scripts/bacula-fd.conf
+/regress/scripts/bacula-sd.conf
+/regress/scripts/console.conf
+/regress/scripts/bconsole.conf
+/regress/scripts/test-bacula-dir.conf
+/regress/scripts/test-bacula-fd.conf
+/regress/scripts/test-bacula-sd.conf
+/regress/scripts/test-console.conf
+/regress/scripts/testa-bacula-dir.conf
+/regress/scripts/bacula-dir-tape.conf
+/regress/scripts/bacula-sd-tape.conf
+/regress/scripts/bacula-sd-2tape.conf
+/regress/scripts/cleanup-tape
+/regress/scripts/cleanup-2tape
+/regress/scripts/prepare-two-tapes
+/regress/scripts/cleanup-2drive
+/regress/scripts/bacula-sd-2drive.conf
+/regress/scripts/bacula-sd-win32-tape.conf
+/regress/scripts/bacula-sd-2drive.conf
+/regress/scripts/bacula-dir-win32-tape.conf
+/regress/scripts/win32-bacula-dir-tape.conf
+/regress/scripts/bacula-dir-fifo.conf
+/regress/scripts/bacula-dir.conf.testrunscript
+/regress/scripts/bacula-sd-2disk-drive.conf
+/regress/scripts/bacula-sd-2disk.conf
+/regress/scripts/bacula-sd-fifo.conf
+/regress/scripts/bacula-dir.conf.maxtime
+/regress/scripts/bacula-dir.conf.regexwhere
+/regress/scripts/tls-bacula-dir.conf
+/regress/scripts/tls-bacula-fd.conf
+/regress/scripts/tls-bacula-sd.conf
+/regress/scripts/tls-auth-bacula-dir.conf
+/regress/scripts/tls-auth-bacula-fd.conf
+/regress/scripts/tls-auth-bacula-sd.conf
+/regress/scripts/tls-bacula-sd.conf.in
+/regress/scripts/testb-bacula-dir.conf
+/regress/scripts/ansi-sd-tape.conf
+/regress/scripts/win32-bacula-sd-tape.conf
+/regress/scripts/win32-bacula-fd.conf
+/regress/scripts/bacula-dir.conf.accurate
+/regress/scripts/update-ctest
+/regress/scripts/bacula-dir-strip.conf
+/regress/scripts/bacula-dir-faketape.conf
+/regress/scripts/bacula-sd-faketape.conf
+/regress/scripts/prepare-fake-autochanger
+/regress/scripts/win32-bacula-dir.conf
+/regress/scripts/win32-bacula-dir.conf.save
+/regress/scripts/win32-bacula-sd.conf.save
+/regress/scripts/bacula-dir-2client.conf
+/regress/scripts/prepare-big-autochanger
+/regress/scripts/bacula-dir-vtape.conf
+/regress/scripts/bacula-sd-vtape.conf
+/regress/scripts/regress-config
+/regress/scripts/bacula-dir-virtual.conf
+/regress/scripts/bacula-sd-virtual.conf
+/regress/scripts/mtx-changer.conf
+/regress/scripts/plugin-test-bacula-dir.conf
+/regress/scripts/broken-media-bug-bacula-dir.conf
+/regress/scripts/broken-media-bug-2-bacula-dir.conf
+/regress/scripts/broken-media-bug-2-bacula-sd.conf
+/regress/scripts/bacula-dir.conf.maxruntime
+
+# /regress/tests/
+/regress/tests/1
+/regress/tests/2
+
+# /rescue/
+/rescue/autom4te.cache
+/rescue/config.log
+/rescue/config.status
+/rescue/Makefile
+/rescue/config.out
+/rescue/autoconf/config.log
+/rescue/kernsconfig
+/rescue/diff
+/rescue/mkcdrec
+/rescue/mkCDrec_*
+
+# /rescue/autoconf/
+/rescue/autoconf/config.log
+/rescue/autoconf/Make.common
+/rescue/autoconf/config.h.in
+
+# /rescue/freebsd/
+/rescue/freebsd/Makefile
+/rescue/freebsd/diskinfo
+/rescue/freebsd/format.hda
+/rescue/freebsd/mount_drives
+/rescue/freebsd/partition.hda
+/rescue/freebsd/sfdisk
+/rescue/freebsd/start_network
+/rescue/freebsd/1
+/rescue/freebsd/bacula-fd
+/rescue/freebsd/bacula-fd.conf
+
+# /rescue/knoppix/
+/rescue/knoppix/Makefile
+/rescue/knoppix/diskinfo
+/rescue/knoppix/format.hda
+/rescue/knoppix/mount_drives
+/rescue/knoppix/partition.hda
+/rescue/knoppix/sfdisk
+/rescue/knoppix/start_network
+/rescue/knoppix/1
+/rescue/knoppix/bacula-fd
+/rescue/knoppix/bacula-fd.conf
+
+# /rescue/knoppix/cdrom/
+/rescue/knoppix/cdrom/Makefile
+
+# /rescue/knoppix/cdrom
+/rescue/knoppix/cdromMakefile
+
+# /rescue/linux/
+/rescue/linux/Makefile
+/rescue/linux/diskinfo
+/rescue/linux/format.hda
+/rescue/linux/mount_drives
+/rescue/linux/partition.hda
+/rescue/linux/sfdisk
+/rescue/linux/start_network
+/rescue/linux/1
+/rescue/linux/bacula-fd
+/rescue/linux/bacula-fd.conf
+
+# /rescue/linux/cdrom/
+/rescue/linux/cdrom/bootcd.iso
+/rescue/linux/cdrom/Makefile
+/rescue/linux/cdrom/cdtree
+
+# /rescue/linux/cdrom
+/rescue/linux/cdromformat.hda
+/rescue/linux/cdromformat.hdb
+/rescue/linux/cdromformat.sda
+/rescue/linux/cdromformat.sdb
+/rescue/linux/cdromstart_network
+/rescue/linux/cdrompartition.hda
+/rescue/linux/cdrompartition.hdb
+/rescue/linux/cdrommount_drives
+/rescue/linux/cdrometc.gz
+/rescue/linux/cdromdiskinfo
+/rescue/linux/cdromMakefile
+/rescue/linux/cdromcreate-lv
+/rescue/linux/cdromcreate-pv
+/rescue/linux/cdromcreate-vg
+
+# /rescue/linux/cdrombin/
+/rescue/linux/cdrombin/bacula-fd
+
+# /rescue/linux/cdrom/cdtree/
+/rescue/linux/cdrom/cdtree/root.tar.gz
+/rescue/linux/cdrom/cdtree/boot
+/rescue/linux/cdrom/cdtree/bacula-timmy
+/rescue/linux/cdrom/cdtree/bacula-rufus
+/rescue/linux/cdrom/cdtree/bacula-polymatou
+/rescue/linux/cdrom/cdtree/bacula-matou
+/rescue/linux/cdrom/cdtree/bacula-omally
+
+# /rescue/linux/cdrom/cdtree/boot/
+/rescue/linux/cdrom/cdtree/boot/map
+
+# /rescue/linux/cdrom/cdtree/boot/isolinux/
+/rescue/linux/cdrom/cdtree/boot/isolinux/boot.msg
+/rescue/linux/cdrom/cdtree/boot/isolinux/map
+/rescue/linux/cdrom/cdtree/boot/isolinux/initrd.img
+/rescue/linux/cdrom/cdtree/boot/isolinux/isolinux.cfg
+/rescue/linux/cdrom/cdtree/boot/isolinux/vmlinuz
+
+# /rescue/linux/cdrom/roottree/
+/rescue/linux/cdrom/roottree/var
+/rescue/linux/cdrom/roottree/tmp
+/rescue/linux/cdrom/roottree/sbin
+/rescue/linux/cdrom/roottree/proc
+/rescue/linux/cdrom/roottree/mnt
+/rescue/linux/cdrom/roottree/lib
+/rescue/linux/cdrom/roottree/initrd
+/rescue/linux/cdrom/roottree/dev
+/rescue/linux/cdrom/roottree/cdrom
+/rescue/linux/cdrom/roottree/bacula-rufus
+
+# /rescue/linux/cdrom/roottree/etc/
+/rescue/linux/cdrom/roottree/etc/init.d
+/rescue/linux/cdrom/roottree/etc/terminfo
+/rescue/linux/cdrom/roottree/etc/ssh
+/rescue/linux/cdrom/roottree/etc/shadow
+/rescue/linux/cdrom/roottree/etc/security
+/rescue/linux/cdrom/roottree/etc/passwd
+/rescue/linux/cdrom/roottree/etc/pam.d
+/rescue/linux/cdrom/roottree/etc/ld.so.cache
+/rescue/linux/cdrom/roottree/etc/gshadow
+/rescue/linux/cdrom/roottree/etc/group
+/rescue/linux/cdrom/roottree/etc/protocols
+/rescue/linux/cdrom/roottree/etc/services
+/rescue/linux/cdrom/roottree/etc/syslog.conf
+
+# /rescue/solaris/
+/rescue/solaris/Makefile
+/rescue/solaris/diskinfo
+/rescue/solaris/format.hda
+/rescue/solaris/mount_drives
+/rescue/solaris/partition.hda
+/rescue/solaris/sfdisk
+/rescue/solaris/start_network
+/rescue/solaris/1
+/rescue/solaris/bacula-fd
+/rescue/solaris/bacula-fd.conf
+platforms/osx/build
+platforms/osx/dl
+platforms/osx/products
+platforms/osx/tools
+TAGS
+
+# gui
+gui/binary-common-stamp
+gui/build-arch-stamp
+gui/build-indep-stamp
+gui/debian/brestore.debhelper.log
+gui/debian/brestore.substvars
+gui/debian/brestore/
+gui/debian/bweb-common.debhelper.log
+gui/debian/bweb-common.substvars
+gui/debian/bweb-common/
+gui/debian/bweb.debhelper.log
+gui/debian/bweb.substvars
+gui/debian/bweb/
+gui/debian/files
+gui/debian/sched-builder.debhelper.log
+gui/install-arch-stamp
+gui/install-indep-stamp
