@@ -44,7 +44,8 @@ INSNODIRTOOLS = bsmtp
 INSDIRTOOLS = bsmtp dbcheck bwild bregex
 INSTOOLS = $(INS@DIR_TOOLS@)
 
-SQL_INC=@SQL_INCLUDE@
+# This was SQL_INC=@SQL_INCLUDE@
+SQL_INC=
 
 .SUFFIXES:	.c .o
 .PHONY:
@@ -66,7 +67,7 @@ bregtest: Makefile bregtest.o ../lib/libbac$(DEFAULT_ARCHIVE_TYPE)
 	$(LIBTOOL_LINK) $(CXX) $(LDFLAGS) -L../lib -o $@ bregtest.o -lbac -lm $(DLIB) $(LIBS) $(GETTEXT_LIBS) $(OPENSSL_LIBS)
 
 dbcheck: Makefile dbcheck.o ../lib/libbac$(DEFAULT_ARCHIVE_TYPE) ../lib/libbaccfg$(DEFAULT_ARCHIVE_TYPE) \
-         ../cats/libbacsql$(DEFAULT_ARCHIVE_TYPE) ../cats/libbaccats$(DEFAULT_ARCHIVE_TYPE) $(DIRCONFOBJS)
+	 ../cats/libbacsql$(DEFAULT_ARCHIVE_TYPE) ../cats/libbaccats$(DEFAULT_ARCHIVE_TYPE) $(DIRCONFOBJS)
 	$(LIBTOOL_LINK) $(CXX) $(LDFLAGS) -L../lib -L../cats -o $@ dbcheck.o $(DIRCONFOBJS) \
 	  -lbacsql -lbaccats -lbaccfg -lbac -lm $(DB_LIBS) $(LIBS) $(GETTEXT_LIBS) $(OPENSSL_LIBS)
 
@@ -88,7 +89,7 @@ inc_conf.o: ../dird/inc_conf.c
 	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) $(PYTHON_INC) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
 
 testfind: Makefile ../lib/libbac$(DEFAULT_ARCHIVE_TYPE) ../lib/libbaccfg$(DEFAULT_ARCHIVE_TYPE) \
-          ../findlib/libbacfind$(DEFAULT_ARCHIVE_TYPE) $(FINDOBJS)
+	  ../findlib/libbacfind$(DEFAULT_ARCHIVE_TYPE) $(FINDOBJS)
 	$(LIBTOOL_LINK) $(CXX) -g $(LDFLAGS) -o $@ $(FINDOBJS) -L. -L../lib -L../findlib \
 	  $(DLIB) -lbacfind -lbaccfg -lbac -lm $(LIBS) $(GETTEXT_LIBS) $(OPENSSL_LIBS)
 
@@ -105,17 +106,17 @@ bwild:	Makefile ../lib/libbac$(DEFAULT_ARCHIVE_TYPE) bwild.o
 	  $(DLIB) -lbac -lm $(LIBS) $(GETTEXT_LIBS) $(OPENSSL_LIBS)
 
 bbatch: Makefile ../lib/libbac$(DEFAULT_ARCHIVE_TYPE) ../cats/libbacsql$(DEFAULT_ARCHIVE_TYPE) \
-        ../cats/libbaccats$(DEFAULT_ARCHIVE_TYPE) bbatch.o
+	../cats/libbaccats$(DEFAULT_ARCHIVE_TYPE) bbatch.o
 	$(LIBTOOL_LINK) $(CXX) -g $(LDFLAGS) -L../cats -L. -L../lib -o $@ bbatch.o \
 	  -lbacsql -lbaccats -lbac -lm $(DB_LIBS) $(LIBS) $(GETTEXT_LIBS) $(OPENSSL_LIBS)
 
 bvfs_test: Makefile ../findlib/libbacfind$(DEFAULT_ARCHIVE_TYPE) ../lib/libbac$(DEFAULT_ARCHIVE_TYPE) \
-           ../cats/libbacsql$(DEFAULT_ARCHIVE_TYPE) ../cats/libbaccats$(DEFAULT_ARCHIVE_TYPE) bvfs_test.o
+	   ../cats/libbacsql$(DEFAULT_ARCHIVE_TYPE) ../cats/libbaccats$(DEFAULT_ARCHIVE_TYPE) bvfs_test.o
 	$(LIBTOOL_LINK) $(CXX) -g $(LDFLAGS) -L../cats -L. -L../lib -L../findlib -o $@ bvfs_test.o  \
 	  -lbacsql -lbaccats -lbacfind -lbac -lm $(DB_LIBS) $(LIBS) $(GETTEXT_LIBS) $(OPENSSL_LIBS)
 
 ing_test: Makefile ../findlib/libbacfind$(DEFAULT_ARCHIVE_TYPE) ../lib/libbac$(DEFAULT_ARCHIVE_TYPE) \
-          ../cats/libbacsql$(DEFAULT_ARCHIVE_TYPE) ../cats/libbaccats$(DEFAULT_ARCHIVE_TYPE) ing_test.o
+	  ../cats/libbacsql$(DEFAULT_ARCHIVE_TYPE) ../cats/libbaccats$(DEFAULT_ARCHIVE_TYPE) ing_test.o
 	$(LIBTOOL_LINK) $(CXX) -g $(LDFLAGS) -L../cats -L. -L../lib -L../findlib -o $@ ing_test.o  \
 	  -lbacsql -lbaccats -lbacfind -lbac -lm $(DB_LIBS) $(LIBS) $(GETTEXT_LIBS) $(OPENSSL_LIBS)
 
