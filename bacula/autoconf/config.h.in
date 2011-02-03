@@ -414,7 +414,7 @@
 /* Define to 1 if you have the `getmntinfo' function. */
 #undef HAVE_GETMNTINFO
 
-/* Define to 1 if you have the `getpagesize' function. */
+/* Set if have getpagesize */
 #undef HAVE_GETPAGESIZE
 
 /* Define to 1 if you have the `getpid' function. */
