@@ -813,6 +813,10 @@ const char *sql_get_max_connections[] = {
    "SELECT 0"
 };
 
+/* TODO: Check for corner cases with MySQL and SQLite3
+ *  The Group By can return strange numbers when having multiple
+ *  version of a file in the same dataset.
+ */
 const char *sql_bvfs_select[] = {
    /* Mysql */
    "CREATE TABLE %s AS ( "
@@ -833,7 +837,12 @@ const char *sql_bvfs_select[] = {
           "WHERE FileIndex > 0)",
 
    /* SQLite3 */
-   "SELECT 0",
+   "CREATE TABLE %s AS "
+      "SELECT JobId, FileIndex, FileId, max(JobTDate) as JobTDate "
+        "FROM btemp%s "
+      "GROUP BY PathId, FilenameId "
+   "HAVING FileIndex > 0",
+   
 
    /* Ingres (TODO) */
    "SELECT 0"
