@@ -442,8 +442,8 @@ void MainWin::readSettings()
 void MainWin::treeItemClicked(QTreeWidgetItem *item, int /*column*/)
 {
    /* Is this a page that has been inserted into the hash  */
-   if (getFromHash(item)) {
-      Pages* page = getFromHash(item);
+   Pages* page = getFromHash(item);
+   if (page) {
       int stackindex = tabWidget->indexOf(page);
 
       if (stackindex >= 0) {
@@ -679,7 +679,9 @@ void MainWin::set_status(const char *buf)
 void MainWin::undockWindowButton()
 {
    Pages* page = (Pages*)tabWidget->currentWidget();
-   page->togglePageDocking();
+   if (page) {
+      page->togglePageDocking();
+   }
 }
 
 /*
@@ -694,7 +696,9 @@ void MainWin::toggleDockContextWindow()
    /* Is this a page that has been inserted into the hash  */
    if (getFromHash(currentitem)) {
       Pages* page = getFromHash(currentitem);
-      page->togglePageDocking();
+      if (page) {
+         page->togglePageDocking();
+      }
    }
 }
 
@@ -708,7 +712,9 @@ void MainWin::stackItemChanged(int)
    if (m_isClosing) return; /* if closing the application, do nothing here */
    Pages* page = (Pages*)tabWidget->currentWidget();
    /* run the virtual function in case this class overrides it */
-   page->currentStackItem();
+   if (page) {
+      page->currentStackItem();
+   }
    if (!m_waitState) {
       disconnect(treeWidget, SIGNAL(itemClicked(QTreeWidgetItem *, int)), this, SLOT(treeItemClicked(QTreeWidgetItem *, int)));
       disconnect(treeWidget, SIGNAL( currentItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)), this, SLOT(treeItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)));
