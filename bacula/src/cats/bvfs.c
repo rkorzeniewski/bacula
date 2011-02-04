@@ -26,8 +26,6 @@
    Switzerland, email:ftf@fsfeurope.org.
 */
 
-#define __SQL_C                       /* indicate that this is sql.c */
-
 #include "bacula.h"
 
 #if HAVE_SQLITE3 || HAVE_MYSQL || HAVE_POSTGRESQL || HAVE_INGRES || HAVE_DBI
