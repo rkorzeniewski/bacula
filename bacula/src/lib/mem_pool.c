@@ -435,7 +435,7 @@ void garbage_collect_memory()
 #ifdef DEBUG
 static const char *pool_name(int pool)
 {
-   static const char *name[] = {"NoPool", "NAME  ", "FNAME ", "MSG   ", "EMSG  "};
+   static const char *name[] = {"NoPool", "NAME  ", "FNAME ", "MSG   ", "EMSG  ", "BSOCK "};
    static char buf[30];
 
    if (pool >= 0 && pool <= PM_MAX) {
