@@ -1,6 +1,6 @@
 # Bacula RPM spec file
 #
-# Copyright (C) 2000-2010 Free Software Foundation Europe e.V.
+# Copyright (C) 2000-2011 Free Software Foundation Europe e.V.
 
 # Platform Build Configuration
 
@@ -89,6 +89,10 @@
 #Mandriva 2006          %if 0%{?mandriva_version} == 2006       
 #Mandriva 2007          %if 0%{?mandriva_version} == 2007       
 #Mandriva 2008          %if 0%{?mandriva_version} == 2008       
+#SCIENTIFIC LINUX 3     %if 0%{?sl_version} == 3
+#SCIENTIFIC LINUX 4     %if 0%{?sl_version} == 4
+#SCIENTIFIC LINUX 5     %if 0%{?sl_version} == 5
+
 
 
 %if 0%{?opensuse_bs}
@@ -209,6 +213,25 @@ BuildRequires: suse-release
 %define build_su111 1
 %define _dist "SLES 11"
 %endif
+
++%if 0%{?sl_version} == 3
++%define build_sl3
++%define _dist "Scientific Linux release 3"
++BuildRequires: fedora-release
++%endif
++
++%if 0%{?sl_version} == 4
++%define build_sl4
++%define _dist "Scientific Linux release 4"
++BuildRequires: fedora-release
++%endif
++
++%if 0%{?sl_version} == 5
++%define build_sl5
++%define _dist "Scientific Linux release 5"
++BuildRequires: fedora-release
++%endif
+
 
 %endif 
 # opensuse-bs?
