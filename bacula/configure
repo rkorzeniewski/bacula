@@ -20985,7 +20985,48 @@ fi
 TERM_LIB=""
 ac_fn_c_check_header_mongrel "$LINENO" "curses.h" "ac_cv_header_curses_h" "$ac_includes_default"
 if test "x$ac_cv_header_curses_h" = x""yes; then :
-   { $as_echo "$as_me:${as_lineno-$LINENO}: checking for tgetent in -lncurses" >&5
+
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for tgetent in -ltinfo" >&5
+$as_echo_n "checking for tgetent in -ltinfo... " >&6; }
+if test "${ac_cv_lib_tinfo_tgetent+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-ltinfo  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char tgetent ();
+int
+main ()
+{
+return tgetent ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_tinfo_tgetent=yes
+else
+  ac_cv_lib_tinfo_tgetent=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_tinfo_tgetent" >&5
+$as_echo "$ac_cv_lib_tinfo_tgetent" >&6; }
+if test "x$ac_cv_lib_tinfo_tgetent" = x""yes; then :
+   TERM_LIB="-ltinfo"
+else
+
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking for tgetent in -lncurses" >&5
 $as_echo_n "checking for tgetent in -lncurses... " >&6; }
 if test "${ac_cv_lib_ncurses_tgetent+set}" = set; then :
   $as_echo_n "(cached) " >&6
@@ -21024,7 +21065,8 @@ $as_echo "$ac_cv_lib_ncurses_tgetent" >&6; }
 if test "x$ac_cv_lib_ncurses_tgetent" = x""yes; then :
    TERM_LIB="-lncurses"
 else
-   { $as_echo "$as_me:${as_lineno-$LINENO}: checking for tgetent in -ltermcap" >&5
+
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for tgetent in -ltermcap" >&5
 $as_echo_n "checking for tgetent in -ltermcap... " >&6; }
 if test "${ac_cv_lib_termcap_tgetent+set}" = set; then :
   $as_echo_n "(cached) " >&6
@@ -21062,6 +21104,9 @@ fi
 $as_echo "$ac_cv_lib_termcap_tgetent" >&6; }
 if test "x$ac_cv_lib_termcap_tgetent" = x""yes; then :
    TERM_LIB="-ltermcap"
+fi
+
+
 fi
 
 
@@ -22143,13 +22188,13 @@ $as_echo "#define HAVE_OPENSSL_EXPORT_LIBRARY 1" >>confdefs.h
    fi
 
    if test "$support_crypto" = "yes"; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking for EVP_PKEY_encrypt_old in -lssl" >&5
-$as_echo_n "checking for EVP_PKEY_encrypt_old in -lssl... " >&6; }
-if test "${ac_cv_lib_ssl_EVP_PKEY_encrypt_old+set}" = set; then :
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking for EVP_PKEY_encrypt_old in -lcrypto" >&5
+$as_echo_n "checking for EVP_PKEY_encrypt_old in -lcrypto... " >&6; }
+if test "${ac_cv_lib_crypto_EVP_PKEY_encrypt_old+set}" = set; then :
   $as_echo_n "(cached) " >&6
 else
   ac_check_lib_save_LIBS=$LIBS
-LIBS="-lssl  $LIBS"
+LIBS="-lcrypto  $LIBS"
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -22169,17 +22214,17 @@ return EVP_PKEY_encrypt_old ();
 }
 _ACEOF
 if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_ssl_EVP_PKEY_encrypt_old=yes
+  ac_cv_lib_crypto_EVP_PKEY_encrypt_old=yes
 else
-  ac_cv_lib_ssl_EVP_PKEY_encrypt_old=no
+  ac_cv_lib_crypto_EVP_PKEY_encrypt_old=no
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
 LIBS=$ac_check_lib_save_LIBS
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_ssl_EVP_PKEY_encrypt_old" >&5
-$as_echo "$ac_cv_lib_ssl_EVP_PKEY_encrypt_old" >&6; }
-if test "x$ac_cv_lib_ssl_EVP_PKEY_encrypt_old" = x""yes; then :
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_crypto_EVP_PKEY_encrypt_old" >&5
+$as_echo "$ac_cv_lib_crypto_EVP_PKEY_encrypt_old" >&6; }
+if test "x$ac_cv_lib_crypto_EVP_PKEY_encrypt_old" = x""yes; then :
 
 $as_echo "#define HAVE_OPENSSLv1 1" >>confdefs.h
 
@@ -23705,35 +23750,35 @@ case `echo $DB_BACKENDS | wc -w | sed -e 's/^ *//'` in
    1)
       DEFAULT_DB_TYPE="${DB_BACKENDS}"
       if test x$use_libtool = xno; then
-         SHARED_CATALOG_TARGETS=""
+	 SHARED_CATALOG_TARGETS=""
       else
-         SHARED_CATALOG_TARGETS="libbaccats-${DEFAULT_DB_TYPE}.la"
+	 SHARED_CATALOG_TARGETS="libbaccats-${DEFAULT_DB_TYPE}.la"
       fi
       ;;
    *)
                         DEFAULT_DB_TYPE=`echo ${DB_BACKENDS} | cut -d' ' -f1`
 
                         if test x$use_libtool = xno; then
-         echo " "
-         echo " "
-         echo "You have specified two or more of the"
-         echo "supported databases: MySQL, PostgreSQL, Ingres, SQLite3 or DBI."
-         echo "This is not permitted when not using libtool Please reconfigure."
-         echo " "
-         echo "Aborting the configuration ..."
-         echo " "
-         echo " "
-         exit 1
+	 echo " "
+	 echo " "
+	 echo "You have specified two or more of the"
+	 echo "supported databases: MySQL, PostgreSQL, Ingres, SQLite3 or DBI."
+	 echo "This is not permitted when not using libtool Please reconfigure."
+	 echo " "
+	 echo "Aborting the configuration ..."
+	 echo " "
+	 echo " "
+	 exit 1
       fi
 
       SHARED_CATALOG_TARGETS=""
       for db_type in ${DB_BACKENDS}
       do
-         if test -z "${SHARED_CATALOG_TARGETS}"; then
-            SHARED_CATALOG_TARGETS="libbaccats-${db_type}.la"
-         else
-            SHARED_CATALOG_TARGETS="${SHARED_CATALOG_TARGETS} libbaccats-${db_type}.la"
-         fi
+	 if test -z "${SHARED_CATALOG_TARGETS}"; then
+	    SHARED_CATALOG_TARGETS="libbaccats-${db_type}.la"
+	 else
+	    SHARED_CATALOG_TARGETS="${SHARED_CATALOG_TARGETS} libbaccats-${db_type}.la"
+	 fi
       done
       ;;
 esac
@@ -23752,7 +23797,7 @@ support_batch_insert=yes
 if test "${enable_batch_insert+set}" = set; then :
   enableval=$enable_batch_insert;
        if test x$enableval = xno; then
-          support_batch_insert=no
+	  support_batch_insert=no
        fi
 
 
@@ -24051,11 +24096,11 @@ fi
       test "x$ac_cv_lib_pq_PQputCopyData" = "xyes"
       pkg=$?
       if test $pkg = 0; then
-         if test $support_batch_insert = yes ; then
+	 if test $support_batch_insert = yes ; then
 
 $as_echo "#define HAVE_DBI_BATCH_FILE_INSERT 1" >>confdefs.h
 
-         fi
+	 fi
       fi
    fi
 else
@@ -28567,15 +28612,15 @@ $as_echo "$ac_cv_lib_acl_acl_get_file" >&6; }
 if test "x$ac_cv_lib_acl_acl_get_file" = x""yes; then :
 
 	     have_acl=yes
-             if test $have_afs = yes; then
-                                                                if test -d /usr/lib64/; then
-                   FDLIBS="-L/usr/lib64 -lacl $FDLIBS"
-                else
-                   FDLIBS="-L/usr/lib -lacl $FDLIBS"
-                fi
-             else
-                FDLIBS="-lacl $FDLIBS"
-             fi
+	     if test $have_afs = yes; then
+								if test -d /usr/lib64/; then
+		   FDLIBS="-L/usr/lib64 -lacl $FDLIBS"
+		else
+		   FDLIBS="-L/usr/lib -lacl $FDLIBS"
+		fi
+	     else
+		FDLIBS="-lacl $FDLIBS"
+	     fi
 
 
 fi
@@ -28622,7 +28667,7 @@ $as_echo "$ac_cv_lib_pacl_acl_get_file" >&6; }
 if test "x$ac_cv_lib_pacl_acl_get_file" = x""yes; then :
 
 	     have_acl=yes
-             FDLIBS="-lpacl $FDLIBS"
+	     FDLIBS="-lpacl $FDLIBS"
 
 
 fi
@@ -28630,7 +28675,7 @@ fi
    fi
 
             if test $have_acl = no -a \
-           x${HAVE_SUN_OS_TRUE} = x; then
+	   x${HAVE_SUN_OS_TRUE} = x; then
       { $as_echo "$as_me:${as_lineno-$LINENO}: checking for acltotext in -lsec" >&5
 $as_echo_n "checking for acltotext in -lsec... " >&6; }
 if test "${ac_cv_lib_sec_acltotext+set}" = set; then :
@@ -28670,9 +28715,9 @@ $as_echo "$ac_cv_lib_sec_acltotext" >&6; }
 if test "x$ac_cv_lib_sec_acltotext" = x""yes; then :
 
 	     have_acl=yes
-             FDLIBS="-lsec $FDLIBS"
+	     FDLIBS="-lsec $FDLIBS"
 
-             { $as_echo "$as_me:${as_lineno-$LINENO}: checking for acl_totext in -lsec" >&5
+	     { $as_echo "$as_me:${as_lineno-$LINENO}: checking for acl_totext in -lsec" >&5
 $as_echo_n "checking for acl_totext in -lsec... " >&6; }
 if test "${ac_cv_lib_sec_acl_totext+set}" = set; then :
   $as_echo_n "(cached) " >&6
@@ -28710,7 +28755,7 @@ fi
 $as_echo "$ac_cv_lib_sec_acl_totext" >&6; }
 if test "x$ac_cv_lib_sec_acl_totext" = x""yes; then :
 
-                    have_extended_acl=yes
+		    have_extended_acl=yes
 
 
 fi
@@ -28722,16 +28767,16 @@ fi
    fi
 
             if test $have_acl = no -a \
-           x${HAVE_AIX_OS_TRUE} = x; then
+	   x${HAVE_AIX_OS_TRUE} = x; then
       ac_fn_c_check_func "$LINENO" "acl_get" "ac_cv_func_acl_get"
 if test "x$ac_cv_func_acl_get" = x""yes; then :
 
 	     have_acl=yes
 
-             ac_fn_c_check_func "$LINENO" "aclx_get" "ac_cv_func_aclx_get"
+	     ac_fn_c_check_func "$LINENO" "aclx_get" "ac_cv_func_aclx_get"
 if test "x$ac_cv_func_aclx_get" = x""yes; then :
 
-                    have_extended_acl=yes
+		    have_extended_acl=yes
 
 
 fi
@@ -28777,8 +28822,8 @@ fi
 have_xattr=no
 if test x$support_xattr = xyes -o x$support_xattr = xauto; then
                if test x${HAVE_FREEBSD_OS_TRUE} = x -o \
-           x${HAVE_NETBSD_OS_TRUE} = x -o \
-           x${HAVE_OPENBSD_OS_TRUE} = x; then
+	   x${HAVE_NETBSD_OS_TRUE} = x -o \
+	   x${HAVE_OPENBSD_OS_TRUE} = x; then
       ac_fn_c_check_header_mongrel "$LINENO" "sys/extattr.h" "ac_cv_header_sys_extattr_h" "$ac_includes_default"
 if test "x$ac_cv_header_sys_extattr_h" = x""yes; then :
 
@@ -28822,7 +28867,7 @@ done
 
 
       if test $have_xattr = no; then
-         for ac_func in extattr_get_file extattr_set_file extattr_list_file
+	 for ac_func in extattr_get_file extattr_set_file extattr_list_file
 do :
   as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
 ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"
@@ -28832,7 +28877,7 @@ eval as_val=\$$as_ac_var
 #define `$as_echo "HAVE_$ac_func" | $as_tr_cpp` 1
 _ACEOF
 
-	        have_xattr=yes
+		have_xattr=yes
 
 $as_echo "#define HAVE_EXTATTR_GET_FILE 1" >>confdefs.h
 
@@ -28850,8 +28895,8 @@ done
       fi
 
       if test $have_xattr = yes; then
-         have_extattr_string_in_libc=no
-         for ac_func in extattr_namespace_to_string extattr_string_to_namespace
+	 have_extattr_string_in_libc=no
+	 for ac_func in extattr_namespace_to_string extattr_string_to_namespace
 do :
   as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
 ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"
@@ -28861,7 +28906,7 @@ eval as_val=\$$as_ac_var
 #define `$as_echo "HAVE_$ac_func" | $as_tr_cpp` 1
 _ACEOF
 
-	        have_extattr_string_in_libc=yes
+		have_extattr_string_in_libc=yes
 
 $as_echo "#define HAVE_EXTATTR_NAMESPACE_TO_STRING 1" >>confdefs.h
 
@@ -28874,7 +28919,7 @@ fi
 done
 
 
-                                    if test $have_extattr_string_in_libc = no; then
+	 	 	 	 if test $have_extattr_string_in_libc = no; then
 	    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for extattr_namespace_to_string extattr_string_to_namespace in -lutil" >&5
 $as_echo_n "checking for extattr_namespace_to_string extattr_string_to_namespace in -lutil... " >&6; }
 if test "${ac_cv_lib_util_extattr_namespace_to_string_extattr_string_to_namespace+set}" = set; then :
@@ -28924,12 +28969,12 @@ $as_echo "#define HAVE_EXTATTR_STRING_TO_NAMESPACE 1" >>confdefs.h
 
 fi
 
-         fi
+	 fi
       fi
    fi
 
                if test $have_xattr = no -a \
-           x${HAVE_AIX_OS_TRUE} = x; then
+	   x${HAVE_AIX_OS_TRUE} = x; then
       ac_fn_c_check_header_mongrel "$LINENO" "sys/ea.h" "ac_cv_header_sys_ea_h" "$ac_includes_default"
 if test "x$ac_cv_header_sys_ea_h" = x""yes; then :
 
@@ -28994,7 +29039,7 @@ done
    fi
 
                if test $have_xattr = no -a \
-           x${HAVE_OSF1_OS_TRUE} = x; then
+	   x${HAVE_OSF1_OS_TRUE} = x; then
       ac_fn_c_check_header_mongrel "$LINENO" "sys/proplist.h" "ac_cv_header_sys_proplist_h" "$ac_includes_default"
 if test "x$ac_cv_header_sys_proplist_h" = x""yes; then :
 
@@ -29037,7 +29082,7 @@ done
    fi
 
                if test $have_xattr = no -a \
-           x${HAVE_SUN_OS_TRUE} = x; then
+	   x${HAVE_SUN_OS_TRUE} = x; then
       ac_fn_c_check_header_mongrel "$LINENO" "sys/attr.h" "ac_cv_header_sys_attr_h" "$ac_includes_default"
 if test "x$ac_cv_header_sys_attr_h" = x""yes; then :
 
@@ -29777,7 +29822,7 @@ if test "x${subsysdir}" = "x${sbindir}" ; then
    exit 1
 fi
 
-ac_config_files="$ac_config_files autoconf/Make.common Makefile manpages/Makefile scripts/startmysql scripts/stopmysql scripts/btraceback scripts/startit scripts/stopit scripts/bconsole scripts/gconsole scripts/bacula scripts/bacula-ctl-dir scripts/bacula-ctl-fd scripts/bacula-ctl-sd scripts/devel_bacula scripts/Makefile scripts/logrotate scripts/bacula.desktop.gnome1 scripts/bacula.desktop.gnome2 scripts/bacula.desktop.gnome1.consolehelper scripts/bacula.desktop.gnome2.consolehelper scripts/bacula.desktop.gnome1.xsu scripts/bacula.desktop.gnome2.xsu scripts/bgnome-console.console_apps scripts/mtx-changer scripts/disk-changer scripts/dvd-handler scripts/dvd-simulator scripts/bacula-tray-monitor.desktop scripts/logwatch/Makefile scripts/logwatch/logfile.bacula.conf scripts/wxconsole.console_apps scripts/wxconsole.desktop.consolehelper scripts/wxconsole.desktop.xsu scripts/bat.desktop scripts/bat.desktop.xsu scripts/bat.desktop.consolehelper scripts/bat.console_apps src/Makefile src/host.h src/console/Makefile src/console/bconsole.conf src/qt-console/tray-monitor/tray-monitor.pro src/qt-console/tray-monitor/tray-monitor.conf src/qt-console/bat.conf src/qt-console/bat.pro src/qt-console/bat.pro.mingw32 src/qt-console/install_conf_file src/wx-console/Makefile src/wx-console/bwx-console.conf src/tray-monitor/Makefile src/tray-monitor/tray-monitor.conf src/dird/Makefile src/dird/bacula-dir.conf src/lib/Makefile src/stored/Makefile src/stored/bacula-sd.conf src/filed/Makefile src/filed/bacula-fd.conf src/cats/Makefile src/cats/make_catalog_backup.pl src/cats/make_catalog_backup src/cats/delete_catalog_backup src/cats/create_postgresql_database src/cats/update_postgresql_tables src/cats/make_postgresql_tables src/cats/grant_postgresql_privileges src/cats/drop_postgresql_tables src/cats/drop_postgresql_database src/cats/create_mysql_database src/cats/update_mysql_tables src/cats/make_mysql_tables src/cats/grant_mysql_privileges src/cats/drop_mysql_tables src/cats/drop_mysql_database src/cats/create_sqlite3_database src/cats/update_sqlite3_tables src/cats/make_sqlite3_tables src/cats/grant_sqlite3_privileges src/cats/drop_sqlite3_tables src/cats/drop_sqlite3_database src/cats/create_ingres_database src/cats/update_ingres_tables src/cats/make_ingres_tables src/cats/grant_ingres_privileges src/cats/drop_ingres_tables src/cats/drop_ingres_database src/cats/sqlite src/cats/mysql src/cats/create_bacula_database src/cats/update_bacula_tables src/cats/grant_bacula_privileges src/cats/make_bacula_tables src/cats/drop_bacula_tables src/cats/drop_bacula_database src/findlib/Makefile src/tools/Makefile src/plugins/fd/Makefile src/plugins/sd/Makefile src/plugins/dir/Makefile src/win32/Makefile.inc po/Makefile.in updatedb/update_mysql_tables_9_to_10 updatedb/update_sqlite3_tables_9_to_10 updatedb/update_postgresql_tables_9_to_10 updatedb/update_mysql_tables_10_to_11 updatedb/update_sqlite3_tables_10_to_11 updatedb/update_postgresql_tables_10_to_11 updatedb/update_mysql_tables_11_to_12 updatedb/update_sqlite3_tables_11_to_12 updatedb/update_postgresql_tables_11_to_12 examples/nagios/check_bacula/Makefile $PFILES"
+ac_config_files="$ac_config_files autoconf/Make.common Makefile manpages/Makefile scripts/btraceback scripts/bconsole scripts/bacula scripts/bacula-ctl-dir scripts/bacula-ctl-fd scripts/bacula-ctl-sd scripts/devel_bacula scripts/Makefile scripts/logrotate scripts/bacula.desktop.gnome1 scripts/bacula.desktop.gnome2 scripts/bacula.desktop.gnome1.consolehelper scripts/bacula.desktop.gnome2.consolehelper scripts/bacula.desktop.gnome1.xsu scripts/bacula.desktop.gnome2.xsu scripts/bgnome-console.console_apps scripts/mtx-changer scripts/disk-changer scripts/dvd-handler scripts/dvd-simulator scripts/bacula-tray-monitor.desktop scripts/logwatch/Makefile scripts/logwatch/logfile.bacula.conf scripts/wxconsole.console_apps scripts/wxconsole.desktop.consolehelper scripts/wxconsole.desktop.xsu scripts/bat.desktop scripts/bat.desktop.xsu scripts/bat.desktop.consolehelper scripts/bat.console_apps src/Makefile src/host.h src/console/Makefile src/console/bconsole.conf src/qt-console/tray-monitor/tray-monitor.pro src/qt-console/tray-monitor/tray-monitor.conf src/qt-console/bat.conf src/qt-console/bat.pro src/qt-console/bat.pro.mingw32 src/qt-console/install_conf_file src/wx-console/Makefile src/wx-console/bwx-console.conf src/tray-monitor/Makefile src/tray-monitor/tray-monitor.conf src/dird/Makefile src/dird/bacula-dir.conf src/lib/Makefile src/stored/Makefile src/stored/bacula-sd.conf src/filed/Makefile src/filed/bacula-fd.conf src/cats/Makefile src/cats/make_catalog_backup.pl src/cats/make_catalog_backup src/cats/delete_catalog_backup src/cats/create_postgresql_database src/cats/update_postgresql_tables src/cats/make_postgresql_tables src/cats/grant_postgresql_privileges src/cats/drop_postgresql_tables src/cats/drop_postgresql_database src/cats/create_mysql_database src/cats/update_mysql_tables src/cats/make_mysql_tables src/cats/grant_mysql_privileges src/cats/drop_mysql_tables src/cats/drop_mysql_database src/cats/create_sqlite3_database src/cats/update_sqlite3_tables src/cats/make_sqlite3_tables src/cats/grant_sqlite3_privileges src/cats/drop_sqlite3_tables src/cats/drop_sqlite3_database src/cats/create_ingres_database src/cats/update_ingres_tables src/cats/make_ingres_tables src/cats/grant_ingres_privileges src/cats/drop_ingres_tables src/cats/drop_ingres_database src/cats/sqlite src/cats/mysql src/cats/create_bacula_database src/cats/update_bacula_tables src/cats/grant_bacula_privileges src/cats/make_bacula_tables src/cats/drop_bacula_tables src/cats/drop_bacula_database src/findlib/Makefile src/tools/Makefile src/plugins/fd/Makefile src/plugins/sd/Makefile src/plugins/dir/Makefile src/win32/Makefile.inc po/Makefile.in updatedb/update_mysql_tables_9_to_10 updatedb/update_sqlite3_tables_9_to_10 updatedb/update_postgresql_tables_9_to_10 updatedb/update_mysql_tables_10_to_11 updatedb/update_sqlite3_tables_10_to_11 updatedb/update_postgresql_tables_10_to_11 updatedb/update_mysql_tables_11_to_12 updatedb/update_sqlite3_tables_11_to_12 updatedb/update_postgresql_tables_11_to_12 examples/nagios/check_bacula/Makefile $PFILES"
 
 ac_config_commands="$ac_config_commands default"
 
@@ -30838,13 +30883,8 @@ do
     "autoconf/Make.common") CONFIG_FILES="$CONFIG_FILES autoconf/Make.common" ;;
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
     "manpages/Makefile") CONFIG_FILES="$CONFIG_FILES manpages/Makefile" ;;
-    "scripts/startmysql") CONFIG_FILES="$CONFIG_FILES scripts/startmysql" ;;
-    "scripts/stopmysql") CONFIG_FILES="$CONFIG_FILES scripts/stopmysql" ;;
     "scripts/btraceback") CONFIG_FILES="$CONFIG_FILES scripts/btraceback" ;;
-    "scripts/startit") CONFIG_FILES="$CONFIG_FILES scripts/startit" ;;
-    "scripts/stopit") CONFIG_FILES="$CONFIG_FILES scripts/stopit" ;;
     "scripts/bconsole") CONFIG_FILES="$CONFIG_FILES scripts/bconsole" ;;
-    "scripts/gconsole") CONFIG_FILES="$CONFIG_FILES scripts/gconsole" ;;
     "scripts/bacula") CONFIG_FILES="$CONFIG_FILES scripts/bacula" ;;
     "scripts/bacula-ctl-dir") CONFIG_FILES="$CONFIG_FILES scripts/bacula-ctl-dir" ;;
     "scripts/bacula-ctl-fd") CONFIG_FILES="$CONFIG_FILES scripts/bacula-ctl-fd" ;;
@@ -32492,13 +32532,12 @@ if test "${support_bat}" = "yes" ; then
       as_fn_error "Could not find qmake $PATH. Check your Qt installation" "$LINENO" 5
    fi
 
-   QMAKEBIN="qmake"
    cd src/qt-console
    echo "Creating bat Makefile"
    touch bat
    chmod 755 bat
    rm -f Makefile
-   $QMAKEBIN
+   $QMAKE
    ${MAKE:-make} clean
    cd ${BUILD_DIR}
 fi
@@ -32513,9 +32552,9 @@ chmod 755 install_conf_file build-depkgs-qt-console
 cd ${BUILD_DIR}
 
 cd scripts
-chmod 755 startmysql stopmysql bacula startit stopit btraceback mtx-changer
+chmod 755 bacula btraceback mtx-changer
 chmod 755 dvd-handler dvd-simulator
-chmod 755 bconsole gconsole mtx-changer devel_bacula logrotate
+chmod 755 bconsole mtx-changer devel_bacula logrotate
 cd ..
 
 c=updatedb
