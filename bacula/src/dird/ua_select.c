@@ -599,36 +599,51 @@ int select_media_dbr(UAContext *ua, MEDIA_DBR *mr)
 {
    int i;
 
+   int ret = 0;
+   POOLMEM *err = get_pool_memory(PM_FNAME);
    memset(mr, 0, sizeof(MEDIA_DBR));
 
    i = find_arg_with_value(ua, "volume");
    if (i >= 0) {
-      bstrncpy(mr->VolumeName, ua->argv[i], sizeof(mr->VolumeName));
+      if (is_name_valid(ua->argv[i], &err)) {
+         bstrncpy(mr->VolumeName, ua->argv[i], sizeof(mr->VolumeName));
+      } else {
+         goto bail_out;
+      }
    }
    if (mr->VolumeName[0] == 0) {
       POOL_DBR pr;
       memset(&pr, 0, sizeof(pr));
       /* Get the pool from pool=<pool-name> */
       if (!get_pool_dbr(ua, &pr)) {
-         return 0;
+         goto bail_out;
       }
       mr->PoolId = pr.PoolId;
       db_list_media_records(ua->jcr, ua->db, mr, prtit, ua, HORZ_LIST);
       if (!get_cmd(ua, _("Enter *MediaId or Volume name: "))) {
-         return 0;
+         goto bail_out;
       }
       if (ua->cmd[0] == '*' && is_a_number(ua->cmd+1)) {
          mr->MediaId = str_to_int64(ua->cmd+1);
-      } else {
+      } else if (is_name_valid(ua->cmd, &err)) {
          bstrncpy(mr->VolumeName, ua->cmd, sizeof(mr->VolumeName));
+      } else {
+         goto bail_out;
       }
    }
 
    if (!db_get_media_record(ua->jcr, ua->db, mr)) {
-      ua->error_msg("%s", db_strerror(ua->db));
-      return 0;
+      pm_strcpy(err, db_strerror(ua->db));
+      goto bail_out;
    }
-   return 1;
+   ret = 1;
+
+bail_out:
+   if (*err) {
+      ua->error_msg("%s", err);
+   }
+   free_pool_memory(err);
+   return ret;
 }
 
 
