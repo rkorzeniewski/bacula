@@ -68,6 +68,8 @@ db_create_job_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
    int len;
    utime_t JobTDate;
    char ed1[30],ed2[30];
+   char esc_job[MAX_ESCAPE_NAME_LENGTH];
+   char esc_name[MAX_ESCAPE_NAME_LENGTH];
 
    db_lock(mdb);
 
@@ -80,14 +82,17 @@ db_create_job_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
 
    len = strlen(jcr->comment);  /* TODO: use jr instead of jcr to get comment */
    buf.check_size(len*2+1);
-   db_escape_string(jcr, mdb, buf.c_str(), jcr->comment, len);
+   mdb->db_escape_string(jcr, buf.c_str(), jcr->comment, len);
+
+   mdb->db_escape_string(jcr, esc_job, jr->Job, strlen(jr->Job));
+   mdb->db_escape_string(jcr, esc_name, jr->Name, strlen(jr->Name));
 
    /* Must create it */
    Mmsg(mdb->cmd,
 "INSERT INTO Job (Job,Name,Type,Level,JobStatus,SchedTime,JobTDate,"
                  "ClientId,Comment) "
 "VALUES ('%s','%s','%c','%c','%c','%s',%s,%s,'%s')",
-           jr->Job, jr->Name, (char)(jr->JobType), (char)(jr->JobLevel),
+           esc_job, esc_name, (char)(jr->JobType), (char)(jr->JobLevel),
            (char)(jr->JobStatus), dt, edit_uint64(JobTDate, ed1),
            edit_int64(jr->ClientId, ed2), buf.c_str());
 
@@ -165,11 +170,17 @@ db_create_pool_record(JCR *jcr, B_DB *mdb, POOL_DBR *pr)
 {
    bool stat;        
    char ed1[30], ed2[30], ed3[50], ed4[50], ed5[50];
+   char esc_name[MAX_ESCAPE_NAME_LENGTH];
+   char esc_lf[MAX_ESCAPE_NAME_LENGTH];
+
    int num_rows;
+
 
    Dmsg0(200, "In create pool\n");
    db_lock(mdb);
-   Mmsg(mdb->cmd, "SELECT PoolId,Name FROM Pool WHERE Name='%s'", pr->Name);
+   mdb->db_escape_string(jcr, esc_name, pr->Name, strlen(pr->Name));
+   mdb->db_escape_string(jcr, esc_lf, pr->LabelFormat, strlen(pr->LabelFormat));
+   Mmsg(mdb->cmd, "SELECT PoolId,Name FROM Pool WHERE Name='%s'", esc_name);
    Dmsg1(200, "selectpool: %s\n", mdb->cmd);
 
    if (QUERY_DB(jcr, mdb, mdb->cmd)) {
@@ -190,7 +201,7 @@ db_create_pool_record(JCR *jcr, B_DB *mdb, POOL_DBR *pr)
 "MaxVolJobs,MaxVolFiles,MaxVolBytes,PoolType,LabelType,LabelFormat,"
 "RecyclePoolId,ScratchPoolId,ActionOnPurge) "
 "VALUES ('%s',%u,%u,%d,%d,%d,%d,%d,%s,%s,%u,%u,%s,'%s',%d,'%s',%s,%s,%d)",
-                  pr->Name,
+                  esc_name,
                   pr->NumVols, pr->MaxVols,
                   pr->UseOnce, pr->UseCatalog,
                   pr->AcceptAnyVolume,
@@ -199,7 +210,7 @@ db_create_pool_record(JCR *jcr, B_DB *mdb, POOL_DBR *pr)
                   edit_uint64(pr->VolUseDuration, ed2),
                   pr->MaxVolJobs, pr->MaxVolFiles,
                   edit_uint64(pr->MaxVolBytes, ed3),
-                  pr->PoolType, pr->LabelType, pr->LabelFormat,
+                  pr->PoolType, pr->LabelType, esc_lf,
                   edit_int64(pr->RecyclePoolId,ed4),
                   edit_int64(pr->ScratchPoolId,ed5),
                   pr->ActionOnPurge
@@ -228,11 +239,13 @@ db_create_device_record(JCR *jcr, B_DB *mdb, DEVICE_DBR *dr)
 {
    bool ok;
    char ed1[30], ed2[30];
+   char esc[MAX_ESCAPE_NAME_LENGTH];
    int num_rows;
 
    Dmsg0(200, "In create Device\n");
    db_lock(mdb);
-   Mmsg(mdb->cmd, "SELECT DeviceId,Name FROM Device WHERE Name='%s'", dr->Name);
+   mdb->db_escape_string(jcr, esc, dr->Name, strlen(dr->Name));
+   Mmsg(mdb->cmd, "SELECT DeviceId,Name FROM Device WHERE Name='%s'", esc);
    Dmsg1(200, "selectdevice: %s\n", mdb->cmd);
 
    if (QUERY_DB(jcr, mdb, mdb->cmd)) {
@@ -249,7 +262,7 @@ db_create_device_record(JCR *jcr, B_DB *mdb, DEVICE_DBR *dr)
    /* Must create it */
    Mmsg(mdb->cmd,
 "INSERT INTO Device (Name,MediaTypeId,StorageId) VALUES ('%s',%s,%s)",
-                  dr->Name,
+                  esc,
                   edit_uint64(dr->MediaTypeId, ed1),
                   edit_int64(dr->StorageId, ed2));
    Dmsg1(200, "Create Device: %s\n", mdb->cmd);
@@ -277,9 +290,11 @@ bool db_create_storage_record(JCR *jcr, B_DB *mdb, STORAGE_DBR *sr)
    SQL_ROW row;
    bool ok;
    int num_rows;
+   char esc[MAX_ESCAPE_NAME_LENGTH];
 
    db_lock(mdb);
-   Mmsg(mdb->cmd, "SELECT StorageId,AutoChanger FROM Storage WHERE Name='%s'", sr->Name);
+   mdb->db_escape_string(jcr, esc, sr->Name, strlen(sr->Name));
+   Mmsg(mdb->cmd, "SELECT StorageId,AutoChanger FROM Storage WHERE Name='%s'",esc);
 
    sr->StorageId = 0;
    sr->created = false;
@@ -310,7 +325,7 @@ bool db_create_storage_record(JCR *jcr, B_DB *mdb, STORAGE_DBR *sr)
 
    /* Must create it */
    Mmsg(mdb->cmd, "INSERT INTO Storage (Name,AutoChanger)"
-        " VALUES ('%s',%d)", sr->Name, sr->AutoChanger);
+        " VALUES ('%s',%d)", esc, sr->AutoChanger);
 
    sr->StorageId = sql_insert_autokey_record(mdb, mdb->cmd, NT_("Storage"));
    if (sr->StorageId == 0) {
@@ -337,10 +352,12 @@ db_create_mediatype_record(JCR *jcr, B_DB *mdb, MEDIATYPE_DBR *mr)
 {
    bool stat;        
    int num_rows;
+   char esc[MAX_ESCAPE_NAME_LENGTH];
 
    Dmsg0(200, "In create mediatype\n");
    db_lock(mdb);
-   Mmsg(mdb->cmd, "SELECT MediaTypeId,MediaType FROM MediaType WHERE MediaType='%s'", mr->MediaType);
+   mdb->db_escape_string(jcr, esc, mr->MediaType, strlen(mr->MediaType));
+   Mmsg(mdb->cmd, "SELECT MediaTypeId,MediaType FROM MediaType WHERE MediaType='%s'", esc);
    Dmsg1(200, "selectmediatype: %s\n", mdb->cmd);
 
    if (QUERY_DB(jcr, mdb, mdb->cmd)) {
@@ -388,10 +405,17 @@ db_create_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
    char ed9[50], ed10[50], ed11[50], ed12[50];
    struct tm tm;
    int num_rows;
+   char esc_name[MAX_ESCAPE_NAME_LENGTH];
+   char esc_mtype[MAX_ESCAPE_NAME_LENGTH];
+   char esc_status[MAX_ESCAPE_NAME_LENGTH];
+
 
    db_lock(mdb);
-   Mmsg(mdb->cmd, "SELECT MediaId FROM Media WHERE VolumeName='%s'",
-           mr->VolumeName);
+   mdb->db_escape_string(jcr, esc_name, mr->VolumeName, strlen(mr->VolumeName));
+   mdb->db_escape_string(jcr, esc_mtype, mr->MediaType, strlen(mr->MediaType));
+   mdb->db_escape_string(jcr, esc_status, mr->VolStatus, strlen(mr->VolStatus));
+
+   Mmsg(mdb->cmd, "SELECT MediaId FROM Media WHERE VolumeName='%s'", esc_name);
    Dmsg1(500, "selectpool: %s\n", mdb->cmd);
 
    if (QUERY_DB(jcr, mdb, mdb->cmd)) {
@@ -414,8 +438,8 @@ db_create_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
 "ScratchPoolId,RecyclePoolId,Enabled,ActionOnPurge)"
 "VALUES ('%s','%s',0,%u,%s,%s,%d,%s,%s,%u,%u,'%s',%d,%s,%d,%s,%s,%d,0,0,%d,%s,"
 "%s,%s,%s,%s,%d,%d)",
-          mr->VolumeName,
-          mr->MediaType, mr->PoolId,
+          esc_name,
+          esc_mtype, mr->PoolId,
           edit_uint64(mr->MaxVolBytes,ed1),
           edit_uint64(mr->VolCapacityBytes, ed2),
           mr->Recycle,
@@ -423,7 +447,7 @@ db_create_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
           edit_uint64(mr->VolUseDuration, ed4),
           mr->MaxVolJobs,
           mr->MaxVolFiles,
-          mr->VolStatus,
+          esc_status,
           mr->Slot,
           edit_uint64(mr->VolBytes, ed5),
           mr->InChanger,
@@ -481,9 +505,13 @@ int db_create_client_record(JCR *jcr, B_DB *mdb, CLIENT_DBR *cr)
    int stat;
    char ed1[50], ed2[50];
    int num_rows;
+   char esc_name[MAX_ESCAPE_NAME_LENGTH];
+   char esc_uname[MAX_ESCAPE_NAME_LENGTH];
 
    db_lock(mdb);
-   Mmsg(mdb->cmd, "SELECT ClientId,Uname FROM Client WHERE Name='%s'", cr->Name);
+   mdb->db_escape_string(jcr, esc_name, cr->Name, strlen(cr->Name));
+   mdb->db_escape_string(jcr, esc_uname, cr->Uname, strlen(cr->Uname));
+   Mmsg(mdb->cmd, "SELECT ClientId,Uname FROM Client WHERE Name='%s'",esc_name);
 
    cr->ClientId = 0;
    if (QUERY_DB(jcr, mdb, mdb->cmd)) {
@@ -517,7 +545,7 @@ int db_create_client_record(JCR *jcr, B_DB *mdb, CLIENT_DBR *cr)
    /* Must create it */
    Mmsg(mdb->cmd, "INSERT INTO Client (Name,Uname,AutoPrune,"
 "FileRetention,JobRetention) VALUES "
-"('%s','%s',%d,%s,%s)", cr->Name, cr->Uname, cr->AutoPrune,
+"('%s','%s',%d,%s,%s)", esc_name, esc_uname, cr->AutoPrune,
       edit_uint64(cr->FileRetention, ed1),
       edit_uint64(cr->JobRetention, ed2));
 
@@ -614,6 +642,7 @@ int db_create_path_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
  */
 int db_create_counter_record(JCR *jcr, B_DB *mdb, COUNTER_DBR *cr)
 {
+   char esc[MAX_ESCAPE_NAME_LENGTH];
    COUNTER_DBR mcr;
    int stat;
 
@@ -625,12 +654,12 @@ int db_create_counter_record(JCR *jcr, B_DB *mdb, COUNTER_DBR *cr)
       db_unlock(mdb);
       return 1;
    }
-
+   mdb->db_escape_string(jcr, esc, cr->Counter, strlen(cr->Counter));
    /* Must create it */
    Mmsg(mdb->cmd, "INSERT INTO Counters (Counter,\"MinValue\",\"MaxValue\",CurrentValue,"
       "WrapCounter) VALUES ('%s','%d','%d','%d','%s')",
-      cr->Counter, cr->MinValue, cr->MaxValue, cr->CurrentValue,
-      cr->WrapCounter);
+        esc, cr->MinValue, cr->MaxValue, cr->CurrentValue,
+        cr->WrapCounter);
 
    if (!INSERT_DB(jcr, mdb, mdb->cmd)) {
       Mmsg2(&mdb->errmsg, _("Create DB Counters record %s failed. ERR=%s\n"),
@@ -657,11 +686,16 @@ bool db_create_fileset_record(JCR *jcr, B_DB *mdb, FILESET_DBR *fsr)
    bool stat;
    struct tm tm;
    int num_rows;
+   char esc_fs[MAX_ESCAPE_NAME_LENGTH];
+   char esc_md5[MAX_ESCAPE_NAME_LENGTH];
 
+   /* TODO: Escape FileSet and MD5 */
    db_lock(mdb);
    fsr->created = false;
+   mdb->db_escape_string(jcr, esc_fs, fsr->FileSet, strlen(fsr->FileSet));
+   mdb->db_escape_string(jcr, esc_md5, fsr->MD5, strlen(fsr->MD5));
    Mmsg(mdb->cmd, "SELECT FileSetId,CreateTime FROM FileSet WHERE "
-"FileSet='%s' AND MD5='%s'", fsr->FileSet, fsr->MD5);
+                  "FileSet='%s' AND MD5='%s'", esc_fs, esc_md5);
 
    fsr->FileSetId = 0;
    if (QUERY_DB(jcr, mdb, mdb->cmd)) {
@@ -699,7 +733,7 @@ bool db_create_fileset_record(JCR *jcr, B_DB *mdb, FILESET_DBR *fsr)
 
    /* Must create it */
       Mmsg(mdb->cmd, "INSERT INTO FileSet (FileSet,MD5,CreateTime) "
-"VALUES ('%s','%s','%s')", fsr->FileSet, fsr->MD5, fsr->cCreateTime);
+"VALUES ('%s','%s','%s')", esc_fs, esc_md5, fsr->cCreateTime);
 
    fsr->FileSetId = sql_insert_autokey_record(mdb, mdb->cmd, NT_("FileSet"));
    if (fsr->FileSetId == 0) {

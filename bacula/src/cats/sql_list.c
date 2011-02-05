@@ -79,16 +79,19 @@ void
 db_list_pool_records(JCR *jcr, B_DB *mdb, POOL_DBR *pdbr,
                      DB_LIST_HANDLER *sendit, void *ctx, e_list_type type)
 {
+   char esc[MAX_ESCAPE_NAME_LENGTH];
    LIST_CTX lctx(jcr, mdb, sendit, ctx, type);
 
    db_lock(mdb);
+   mdb->db_escape_string(jcr, esc, pdbr->Name, strlen(pdbr->Name));
+
    if (type == VERT_LIST) {
       if (pdbr->Name[0] != 0) {
          Mmsg(mdb->cmd, "SELECT PoolId,Name,NumVols,MaxVols,UseOnce,UseCatalog,"
             "AcceptAnyVolume,VolRetention,VolUseDuration,MaxVolJobs,MaxVolBytes,"
             "AutoPrune,Recycle,PoolType,LabelFormat,Enabled,ScratchPoolId,"
             "RecyclePoolId,LabelType "
-            " FROM Pool WHERE Name='%s'", pdbr->Name);
+            " FROM Pool WHERE Name='%s'", esc);
       } else {
          Mmsg(mdb->cmd, "SELECT PoolId,Name,NumVols,MaxVols,UseOnce,UseCatalog,"
             "AcceptAnyVolume,VolRetention,VolUseDuration,MaxVolJobs,MaxVolBytes,"
@@ -99,7 +102,7 @@ db_list_pool_records(JCR *jcr, B_DB *mdb, POOL_DBR *pdbr,
    } else {
       if (pdbr->Name[0] != 0) {
          Mmsg(mdb->cmd, "SELECT PoolId,Name,NumVols,MaxVols,PoolType,LabelFormat "
-           "FROM Pool WHERE Name='%s'", pdbr->Name);
+           "FROM Pool WHERE Name='%s'", esc);
       } else {
          Mmsg(mdb->cmd, "SELECT PoolId,Name,NumVols,MaxVols,PoolType,LabelFormat "
            "FROM Pool ORDER BY PoolId");
@@ -152,9 +155,12 @@ db_list_media_records(JCR *jcr, B_DB *mdb, MEDIA_DBR *mdbr,
                       DB_LIST_HANDLER *sendit, void *ctx, e_list_type type)
 {
    char ed1[50];
+   char esc[MAX_ESCAPE_NAME_LENGTH];
    LIST_CTX lctx(jcr, mdb, sendit, ctx, type);
 
    db_lock(mdb);
+   mdb->db_escape_string(jcr, esc, mdbr->VolumeName, strlen(mdbr->VolumeName));
+
    if (type == VERT_LIST) {
       if (mdbr->VolumeName[0] != 0) {
          Mmsg(mdb->cmd, "SELECT MediaId,VolumeName,Slot,PoolId,"
@@ -165,7 +171,7 @@ db_list_media_records(JCR *jcr, B_DB *mdb, MEDIA_DBR *mdbr,
             "EndFile,EndBlock,VolParts,LabelType,StorageId,DeviceId,"
             "LocationId,RecycleCount,InitialWrite,ScratchPoolId,RecyclePoolId, "
             "Comment"
-            " FROM Media WHERE Media.VolumeName='%s'", mdbr->VolumeName);
+            " FROM Media WHERE Media.VolumeName='%s'", esc);
       } else {
          Mmsg(mdb->cmd, "SELECT MediaId,VolumeName,Slot,PoolId,"
             "MediaType,FirstWritten,LastWritten,LabelDate,VolJobs,"
@@ -182,7 +188,7 @@ db_list_media_records(JCR *jcr, B_DB *mdb, MEDIA_DBR *mdbr,
       if (mdbr->VolumeName[0] != 0) {
          Mmsg(mdb->cmd, "SELECT MediaId,VolumeName,VolStatus,Enabled,"
             "VolBytes,VolFiles,VolRetention,Recycle,Slot,InChanger,MediaType,LastWritten "
-            "FROM Media WHERE Media.VolumeName='%s'", mdbr->VolumeName);
+            "FROM Media WHERE Media.VolumeName='%s'", esc);
       } else {
          Mmsg(mdb->cmd, "SELECT MediaId,VolumeName,VolStatus,Enabled,"
             "VolBytes,VolFiles,VolRetention,Recycle,Slot,InChanger,MediaType,LastWritten "
@@ -333,6 +339,7 @@ db_list_job_records(JCR *jcr, B_DB *mdb, JOB_DBR *jr, DB_LIST_HANDLER *sendit,
 {
    char ed1[50];
    char limit[100];
+   char esc[MAX_ESCAPE_NAME_LENGTH];
    LIST_CTX lctx(jcr, mdb, sendit, ctx, type);
 
    db_lock(mdb);
@@ -368,13 +375,15 @@ db_list_job_records(JCR *jcr, B_DB *mdb, JOB_DBR *jr, DB_LIST_HANDLER *sendit,
       }
    } else {
       if (jr->Name[0] != 0) {
+         mdb->db_escape_string(jcr, esc, jr->Name, strlen(jr->Name));
          Mmsg(mdb->cmd,
-            "SELECT JobId,Name,StartTime,Type,Level,JobFiles,JobBytes,JobStatus "
-            "FROM Job WHERE Name='%s' ORDER BY StartTime,JobId ASC", jr->Name);
+           "SELECT JobId,Name,StartTime,Type,Level,JobFiles,JobBytes,JobStatus "
+             "FROM Job WHERE Name='%s' ORDER BY StartTime,JobId ASC", esc);
       } else if (jr->Job[0] != 0) {
+         mdb->db_escape_string(jcr, esc, jr->Job, strlen(jr->Job));
          Mmsg(mdb->cmd,
             "SELECT JobId,Name,StartTime,Type,Level,JobFiles,JobBytes,JobStatus "
-            "FROM Job WHERE Job='%s' ORDER BY StartTime,JobId ASC", jr->Job);
+            "FROM Job WHERE Job='%s' ORDER BY StartTime,JobId ASC", esc);
       } else if (jr->JobId != 0) {
          Mmsg(mdb->cmd,
             "SELECT JobId,Name,StartTime,Type,Level,JobFiles,JobBytes,JobStatus "
