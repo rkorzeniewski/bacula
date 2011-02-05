@@ -55,11 +55,8 @@
 int db_list_sql_query(JCR *jcr, B_DB *mdb, const char *query, DB_LIST_HANDLER *sendit,
                       void *ctx, int verbose, e_list_type type)
 {
-   LIST_CTX lctx(jcr, mdb, sendit, ctx, type);
-
    db_lock(mdb);
-
-   if (!db_big_sql_query(mdb, query, list_result, &lctx)) {
+   if (!sql_query(mdb, query, QF_STORE_RESULT)) {
       Mmsg(mdb->errmsg, _("Query failed: %s\n"), sql_strerror(mdb));
       if (verbose) {
          sendit(ctx, mdb->errmsg);
@@ -68,8 +65,7 @@ int db_list_sql_query(JCR *jcr, B_DB *mdb, const char *query, DB_LIST_HANDLER *s
       return 0;
    }
 
-   lctx.send_dashes();
-
+   list_result(jcr, mdb, sendit, ctx, type);
    sql_free_result(mdb);
    db_unlock(mdb);
    return 1;
@@ -80,7 +76,6 @@ db_list_pool_records(JCR *jcr, B_DB *mdb, POOL_DBR *pdbr,
                      DB_LIST_HANDLER *sendit, void *ctx, e_list_type type)
 {
    char esc[MAX_ESCAPE_NAME_LENGTH];
-   LIST_CTX lctx(jcr, mdb, sendit, ctx, type);
 
    db_lock(mdb);
    mdb->db_escape_string(jcr, esc, pdbr->Name, strlen(pdbr->Name));
@@ -109,12 +104,12 @@ db_list_pool_records(JCR *jcr, B_DB *mdb, POOL_DBR *pdbr,
       }
    }
 
-   if (!db_big_sql_query(mdb, mdb->cmd, list_result, &lctx)) {
+   if (!QUERY_DB(jcr, mdb, mdb->cmd)) {
       db_unlock(mdb);
       return;
    }
 
-   lctx.send_dashes();
+   list_result(jcr, mdb, sendit, ctx, type);
 
    sql_free_result(mdb);
    db_unlock(mdb);
@@ -123,8 +118,6 @@ db_list_pool_records(JCR *jcr, B_DB *mdb, POOL_DBR *pdbr,
 void
 db_list_client_records(JCR *jcr, B_DB *mdb, DB_LIST_HANDLER *sendit, void *ctx, e_list_type type)
 {
-   LIST_CTX lctx(jcr, mdb, sendit, ctx, type);
-
    db_lock(mdb);
    if (type == VERT_LIST) {
       Mmsg(mdb->cmd, "SELECT ClientId,Name,Uname,AutoPrune,FileRetention,"
@@ -135,11 +128,12 @@ db_list_client_records(JCR *jcr, B_DB *mdb, DB_LIST_HANDLER *sendit, void *ctx, 
          "FROM Client ORDER BY ClientId");
    }
 
-   if (!db_big_sql_query(mdb, mdb->cmd, list_result, &lctx)) {
+   if (!QUERY_DB(jcr, mdb, mdb->cmd)) {
       db_unlock(mdb);
       return;
    }
-   lctx.send_dashes();
+
+   list_result(jcr, mdb, sendit, ctx, type);
 
    sql_free_result(mdb);
    db_unlock(mdb);
@@ -156,7 +150,6 @@ db_list_media_records(JCR *jcr, B_DB *mdb, MEDIA_DBR *mdbr,
 {
    char ed1[50];
    char esc[MAX_ESCAPE_NAME_LENGTH];
-   LIST_CTX lctx(jcr, mdb, sendit, ctx, type);
 
    db_lock(mdb);
    mdb->db_escape_string(jcr, esc, mdbr->VolumeName, strlen(mdbr->VolumeName));
@@ -197,12 +190,12 @@ db_list_media_records(JCR *jcr, B_DB *mdb, MEDIA_DBR *mdbr,
       }
    }
 
-   if (!db_big_sql_query(mdb, mdb->cmd, list_result, &lctx)) {
+   if (!QUERY_DB(jcr, mdb, mdb->cmd)) {
       db_unlock(mdb);
       return;
    }
 
-   lctx.send_dashes();
+   list_result(jcr, mdb, sendit, ctx, type);
 
    sql_free_result(mdb);
    db_unlock(mdb);
@@ -212,8 +205,6 @@ void db_list_jobmedia_records(JCR *jcr, B_DB *mdb, uint32_t JobId,
                               DB_LIST_HANDLER *sendit, void *ctx, e_list_type type)
 {
    char ed1[50];
-   LIST_CTX lctx(jcr, mdb, sendit, ctx, type);
-
    db_lock(mdb);
    if (type == VERT_LIST) {
       if (JobId > 0) {                   /* do by JobId */
@@ -239,13 +230,12 @@ void db_list_jobmedia_records(JCR *jcr, B_DB *mdb, uint32_t JobId,
             "FROM JobMedia,Media WHERE Media.MediaId=JobMedia.MediaId");
       }
    }
-
-   if (!db_big_sql_query(mdb, mdb->cmd, list_result, &lctx)) {
+   if (!QUERY_DB(jcr, mdb, mdb->cmd)) {
       db_unlock(mdb);
       return;
    }
 
-   lctx.send_dashes();
+   list_result(jcr, mdb, sendit, ctx, type);
 
    sql_free_result(mdb);
    db_unlock(mdb);
@@ -255,7 +245,6 @@ void db_list_jobmedia_records(JCR *jcr, B_DB *mdb, uint32_t JobId,
 void db_list_copies_records(JCR *jcr, B_DB *mdb, uint32_t limit, char *JobIds,
                             DB_LIST_HANDLER *sendit, void *ctx, e_list_type type)
 {
-   LIST_CTX lctx(jcr, mdb, sendit, ctx, type);
    POOL_MEM str_limit(PM_MESSAGE);
    POOL_MEM str_jobids(PM_MESSAGE);
 
@@ -278,17 +267,19 @@ void db_list_copies_records(JCR *jcr, B_DB *mdb, uint32_t limit, char *JobIds,
     "WHERE Job.Type = '%c' %s ORDER BY Job.PriorJobId DESC %s",
         (char) JT_JOB_COPY, str_jobids.c_str(), str_limit.c_str());
 
-   if (JobIds && JobIds[0]) {
-      sendit(ctx, _("These JobIds have copies as follows:\n"));
-   } else {
-      sendit(ctx, _("The catalog contains copies as follows:\n"));
-   }
-
-   if (!db_big_sql_query(mdb, mdb->cmd, list_result, &lctx)) {
+   if (!QUERY_DB(jcr, mdb, mdb->cmd)) {
       goto bail_out;
    }
 
-   lctx.send_dashes();
+   if (sql_num_rows(mdb)) {
+      if (JobIds && JobIds[0]) {
+         sendit(ctx, _("These JobIds have copies as follows:\n"));
+      } else {
+         sendit(ctx, _("The catalog contains copies as follows:\n"));
+      }
+
+      list_result(jcr, mdb, sendit, ctx, type);
+   }
 
    sql_free_result(mdb);
 
@@ -300,7 +291,6 @@ void db_list_joblog_records(JCR *jcr, B_DB *mdb, uint32_t JobId,
                               DB_LIST_HANDLER *sendit, void *ctx, e_list_type type)
 {
    char ed1[50];
-   LIST_CTX lctx(jcr, mdb, sendit, ctx, type);
 
    if (JobId <= 0) {
       return;
@@ -313,12 +303,11 @@ void db_list_joblog_records(JCR *jcr, B_DB *mdb, uint32_t JobId,
       Mmsg(mdb->cmd, "SELECT LogText FROM Log "
            "WHERE Log.JobId=%s", edit_int64(JobId, ed1));
    }
-
-   if (!db_big_sql_query(mdb, mdb->cmd, list_result, &lctx)) {
+   if (!QUERY_DB(jcr, mdb, mdb->cmd)) {
       goto bail_out;
    }
 
-   lctx.send_dashes();
+   list_result(jcr, mdb, sendit, ctx, type);
 
    sql_free_result(mdb);
 
@@ -340,7 +329,6 @@ db_list_job_records(JCR *jcr, B_DB *mdb, JOB_DBR *jr, DB_LIST_HANDLER *sendit,
    char ed1[50];
    char limit[100];
    char esc[MAX_ESCAPE_NAME_LENGTH];
-   LIST_CTX lctx(jcr, mdb, sendit, ctx, type);
 
    db_lock(mdb);
    if (jr->limit > 0) {
@@ -394,12 +382,11 @@ db_list_job_records(JCR *jcr, B_DB *mdb, JOB_DBR *jr, DB_LIST_HANDLER *sendit,
            "FROM Job ORDER BY StartTime,JobId ASC%s", limit);
       }
    }
-
-   if (!db_big_sql_query(mdb, mdb->cmd, list_result, &lctx)) {
+   if (!QUERY_DB(jcr, mdb, mdb->cmd)) {
       db_unlock(mdb);
       return;
    }
-   lctx.send_dashes();
+   list_result(jcr, mdb, sendit, ctx, type);
 
    sql_free_result(mdb);
    db_unlock(mdb);
@@ -412,19 +399,18 @@ db_list_job_records(JCR *jcr, B_DB *mdb, JOB_DBR *jr, DB_LIST_HANDLER *sendit,
 void
 db_list_job_totals(JCR *jcr, B_DB *mdb, JOB_DBR *jr, DB_LIST_HANDLER *sendit, void *ctx)
 {
-   LIST_CTX lctx(jcr, mdb, sendit, ctx, HORZ_LIST);
-
    db_lock(mdb);
 
    /* List by Job */
    Mmsg(mdb->cmd, "SELECT  count(*) AS Jobs,sum(JobFiles) "
       "AS Files,sum(JobBytes) AS Bytes,Name AS Job FROM Job GROUP BY Name");
 
-   if (!db_sql_query(mdb, mdb->cmd, list_result, &lctx)) {
+   if (!QUERY_DB(jcr, mdb, mdb->cmd)) {
       db_unlock(mdb);
       return;
    }
-   lctx.send_dashes();
+
+   list_result(jcr, mdb, sendit, ctx, HORZ_LIST);
 
    sql_free_result(mdb);
 
@@ -432,13 +418,12 @@ db_list_job_totals(JCR *jcr, B_DB *mdb, JOB_DBR *jr, DB_LIST_HANDLER *sendit, vo
    Mmsg(mdb->cmd, "SELECT count(*) AS Jobs,sum(JobFiles) "
         "AS Files,sum(JobBytes) As Bytes FROM Job");
 
-   lctx.empty();
-   if (!db_sql_query(mdb, mdb->cmd, list_result, &lctx)) {
+   if (!QUERY_DB(jcr, mdb, mdb->cmd)) {
       db_unlock(mdb);
       return;
    }
 
-   lctx.send_dashes();
+   list_result(jcr, mdb, sendit, ctx, HORZ_LIST);
 
    sql_free_result(mdb);
    db_unlock(mdb);
@@ -447,8 +432,8 @@ db_list_job_totals(JCR *jcr, B_DB *mdb, JOB_DBR *jr, DB_LIST_HANDLER *sendit, vo
 void
 db_list_files_for_job(JCR *jcr, B_DB *mdb, JobId_t jobid, DB_LIST_HANDLER *sendit, void *ctx)
 {
-   LIST_CTX lctx(jcr, mdb, sendit, ctx, HORZ_LIST);
    char ed1[50];
+   LIST_CTX lctx(jcr, mdb, sendit, ctx, HORZ_LIST);
 
    db_lock(mdb);
 
@@ -482,10 +467,10 @@ db_list_files_for_job(JCR *jcr, B_DB *mdb, JobId_t jobid, DB_LIST_HANDLER *sendi
    }
 
    if (!db_big_sql_query(mdb, mdb->cmd, list_result, &lctx)) {
-      db_unlock(mdb);
-      return;
+       db_unlock(mdb);
+       return;
    }
-   
+
    lctx.send_dashes();
 
    sql_free_result(mdb);
@@ -495,8 +480,8 @@ db_list_files_for_job(JCR *jcr, B_DB *mdb, JobId_t jobid, DB_LIST_HANDLER *sendi
 void
 db_list_base_files_for_job(JCR *jcr, B_DB *mdb, JobId_t jobid, DB_LIST_HANDLER *sendit, void *ctx)
 {
-   LIST_CTX lctx(jcr, mdb, sendit, ctx, HORZ_LIST);
    char ed1[50];
+   LIST_CTX lctx(jcr, mdb, sendit, ctx, HORZ_LIST);
 
    db_lock(mdb);
 
@@ -521,9 +506,14 @@ db_list_base_files_for_job(JCR *jcr, B_DB *mdb, JobId_t jobid, DB_LIST_HANDLER *
            edit_int64(jobid, ed1));
    }
 
-   if (!db_big_sql_query(mdb, mdb->cmd, list_result, &lctx)) {
+   if (!QUERY_DB(jcr, mdb, mdb->cmd)) {
       db_unlock(mdb);
       return;
+   }
+
+   if (!db_big_sql_query(mdb, mdb->cmd, list_result, &lctx)) {
+       db_unlock(mdb);
+       return;
    }
 
    lctx.send_dashes();
