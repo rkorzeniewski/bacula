@@ -3238,13 +3238,8 @@ fi
 AC_OUTPUT([autoconf/Make.common \
 	   Makefile \
 	   manpages/Makefile \
-	   scripts/startmysql \
-	   scripts/stopmysql \
 	   scripts/btraceback \
-	   scripts/startit \
-	   scripts/stopit \
 	   scripts/bconsole \
-	   scripts/gconsole \
 	   scripts/bacula \
 	   scripts/bacula-ctl-dir \
 	   scripts/bacula-ctl-fd \
@@ -3380,9 +3375,9 @@ chmod 755 install_conf_file build-depkgs-qt-console
 cd ${BUILD_DIR}
 
 cd scripts
-chmod 755 startmysql stopmysql bacula startit stopit btraceback mtx-changer
+chmod 755 bacula btraceback mtx-changer
 chmod 755 dvd-handler dvd-simulator
-chmod 755 bconsole gconsole mtx-changer devel_bacula logrotate
+chmod 755 bconsole mtx-changer devel_bacula logrotate
 cd ..
 
 c=updatedb
