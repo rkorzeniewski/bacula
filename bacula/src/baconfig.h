@@ -540,10 +540,16 @@ extern int thr_setconcurrency(int);
 
 #endif
 
-#if defined(HAVE_DARWIN_OS) || defined(HAVE_OSF1_OS)
+#ifdef HAVE_DARWIN_OS
 /* Apparently someone forgot to wrap getdomainname as a C function */
-extern "C" int getdomainname(char *name, int len);
-#endif
+#ifdef  __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+int getdomainname(char *name, int len);
+#ifdef  __cplusplus
+}
+#endif /* __cplusplus */
+#endif /* HAVE_DARWIN_OS */
 
 
 
@@ -582,16 +588,28 @@ extern int h_errno;
  * the problem is no system headers declares the prototypes for these functions
  * this is done below
  */
-extern "C" int getdomainname(char *name, int namelen);
-extern "C" int setdomainname(char *name, int namelen);
+#ifdef  __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+int getdomainname(char *name, int namelen);
+int setdomainname(char *name, int namelen);
+#ifdef  __cplusplus
+}
+#endif /* __cplusplus */
 #endif /* HAVE_HPUX_OS */
 
 
 #ifdef HAVE_OSF1_OS
-extern "C" int fchdir(int filedes);
-extern "C" long gethostid(void);
-extern "C" int mknod(const char *path, int mode, dev_t device );
-#endif
+#ifdef  __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+int fchdir(int filedes);
+long gethostid(void);
+int getdomainname(char *name, int len);
+#ifdef  __cplusplus
+}
+#endif /* __cplusplus */
+#endif /* HAVE_OSF1_OS */
 
 
 /** Disabled because it breaks internationalisation...
