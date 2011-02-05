@@ -596,6 +596,8 @@ static bxattr_exit_code (*os_parse_xattr_streams)(JCR *jcr, int stream) = aix_xa
 
 #elif defined(HAVE_IRIX_OS)
 
+#include <sys/attributes.h>
+
 /*
  * Define the supported XATTR streams for this OS
  */
@@ -616,7 +618,7 @@ static xattr_naming_space xattr_naming_spaces[] = {
 
 static bxattr_exit_code irix_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
 {
-   int cnt, xattr_count = 0;
+   int cnt, length, xattr_count = 0;
    attrlist_cursor_t cursor;
    attrlist_t *attrlist;
    attrlist_ent_t *attrlist_ent;
@@ -628,7 +630,7 @@ static bxattr_exit_code irix_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
    berrno be;
 
    for (cnt = 0; xattr_naming_spaces[cnt].name != NULL; cnt++) {
-      memset(cursor, 0, sizeof(attrlist_cursor_t));
+      memset(&cursor, 0, sizeof(attrlist_cursor_t));
       while (1) {
          if (attr_list(jcr->last_fname, xattrbuf, ATTR_MAX_VALUELEN,
                        xattr_naming_spaces[cnt].flags, &cursor) != 0) {
@@ -678,7 +680,7 @@ static bxattr_exit_code irix_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
              * Retrieve the actual value of the xattr.
              */
             if (attr_get(jcr->last_fname, attrlist_ent->a_name, current_xattr->value,
-                         current_xattr->value_length, xattr_naming_spaces[cnt].flags) != 0) {
+                         &length, xattr_naming_spaces[cnt].flags) != 0) {
                switch (errno) {
                case ENOENT:
                case ENOATTR:
@@ -694,7 +696,7 @@ static bxattr_exit_code irix_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
                   free(current_xattr->value);
                   current_xattr->value = (char *)malloc(current_xattr->value_length);
                   if (attr_get(jcr->last_fname, attrlist_ent->a_name, current_xattr->value,
-                               current_xattr->value_length, xattr_naming_spaces[cnt].flags) != 0) {
+                               &length, xattr_naming_spaces[cnt].flags) != 0) {
                      switch (errno) {
                      case ENOENT:
                      case ENOATTR:
@@ -707,6 +709,8 @@ static bxattr_exit_code irix_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
                               jcr->last_fname, be.bstrerror());
                         goto bail_out;
                      }
+                  } else {
+                     current_xattr->value_length = length;
                   }
                   break;
                default:
@@ -716,6 +720,8 @@ static bxattr_exit_code irix_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
                         jcr->last_fname, be.bstrerror());
                   goto bail_out;
                }
+            } else {
+               current_xattr->value_length = length;
             }
 
             expected_serialize_len += sizeof(current_xattr->value_length) + current_xattr->value_length;
@@ -791,9 +797,10 @@ bail_out:
 static bxattr_exit_code irix_xattr_parse_streams(JCR *jcr, int stream)
 {
    char *bp;
-   int cnt, cmp_size, name_space_index;
+   int cnt, cmp_size, name_space_index, flags;
    xattr_t *current_xattr;
    alist *xattr_value_list;
+   bxattr_exit_code retval = bxattr_exit_error;
    berrno be;
 
    xattr_value_list = New(alist(10, not_owned_by_alist));
@@ -835,7 +842,7 @@ static bxattr_exit_code irix_xattr_parse_streams(JCR *jcr, int stream)
       flags = xattr_naming_spaces[name_space_index].flags | ATTR_CREATE;
       bp = strchr(current_xattr->name, '.');
       if (attr_set(jcr->last_fname, ++bp, current_xattr->value,
-                   current_xattr->value_len, flags) != 0) {
+                   current_xattr->value_length, flags) != 0) {
          switch (errno) {
          case ENOENT:
             retval = bxattr_exit_ok;
@@ -846,7 +853,7 @@ static bxattr_exit_code irix_xattr_parse_streams(JCR *jcr, int stream)
              */
             flags = xattr_naming_spaces[name_space_index].flags | ATTR_REPLACE;
             if (attr_set(jcr->last_fname, bp, current_xattr->value,
-                         current_xattr->value_len, flags) != 0) {
+                         current_xattr->value_length, flags) != 0) {
                switch (errno) {
                case ENOENT:
                   retval = bxattr_exit_ok;
@@ -1678,6 +1685,7 @@ static const char *xattr_skiplist[1] = { NULL };
 
 static bxattr_exit_code tru64_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
 {
+   int cnt;
    char *bp,
         *xattr_name,
         *xattr_value;
@@ -1708,7 +1716,7 @@ static bxattr_exit_code tru64_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
    case -1:
       switch (errno) {
       case EOPNOTSUPP:
-         retval = bacl_exit_ok;
+         retval = bxattr_exit_ok;
          goto bail_out;
       default:
          Mmsg2(jcr->errmsg, _("getproplist error on file \"%s\": ERR=%s\n"),
@@ -1732,7 +1740,7 @@ static bxattr_exit_code tru64_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
          case -1:
             switch (errno) {
             case EOPNOTSUPP:
-               retval = bacl_exit_ok;
+               retval = bxattr_exit_ok;
                goto bail_out;
             default:
                Mmsg2(jcr->errmsg, _("getproplist error on file \"%s\": ERR=%s\n"),
@@ -1749,7 +1757,7 @@ static bxattr_exit_code tru64_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
              * we are better of forgetting this xattr as it seems its list is changing at this
              * exact moment so we can never make a good backup copy of it.
              */
-            retval = bacl_exit_ok;
+            retval = bxattr_exit_ok;
             goto bail_out;
          default:
             break;
@@ -1758,7 +1766,7 @@ static bxattr_exit_code tru64_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
          /**
           * No xattr on file.
           */
-         retval = bacl_exit_ok;
+         retval = bxattr_exit_ok;
          goto bail_out;
       }
       break;
@@ -1890,6 +1898,7 @@ static bxattr_exit_code tru64_parse_xattr_streams(JCR *jcr, int stream)
    int32_t xattrbuf_size, cnt;
    xattr_t *current_xattr;
    alist *xattr_value_list;
+   bxattr_exit_code retval = bxattr_exit_error;
    berrno be;
 
    xattr_value_list = New(alist(10, not_owned_by_alist));
@@ -1938,7 +1947,7 @@ static bxattr_exit_code tru64_parse_xattr_streams(JCR *jcr, int stream)
    case -1:
       switch (errno) {
       case EOPNOTSUPP:
-         retval = bacl_exit_ok;
+         retval = bxattr_exit_ok;
          goto bail_out;
       default:
          Mmsg2(jcr->errmsg, _("setproplist error on file \"%s\": ERR=%s\n"),
