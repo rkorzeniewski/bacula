@@ -598,9 +598,10 @@ int select_pool_and_media_dbr(UAContext *ua, POOL_DBR *pr, MEDIA_DBR *mr)
 int select_media_dbr(UAContext *ua, MEDIA_DBR *mr)
 {
    int i;
-
    int ret = 0;
    POOLMEM *err = get_pool_memory(PM_FNAME);
+   *err=0;
+
    memset(mr, 0, sizeof(MEDIA_DBR));
 
    i = find_arg_with_value(ua, "volume");
@@ -639,7 +640,7 @@ int select_media_dbr(UAContext *ua, MEDIA_DBR *mr)
    ret = 1;
 
 bail_out:
-   if (*err) {
+   if (!ret && *err) {
       ua->error_msg("%s", err);
    }
    free_pool_memory(err);
