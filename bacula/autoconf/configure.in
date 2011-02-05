@@ -808,11 +808,12 @@ if test x$support_ipv6 = xyes; then
 fi
 
 TERM_LIB=""
-AC_CHECK_HEADER(curses.h, 
-  [ AC_CHECK_LIB(ncurses, tgetent, 
-    [ TERM_LIB="-lncurses" ],
-    [ AC_CHECK_LIB(termcap, tgetent, [ TERM_LIB="-ltermcap" ])
+AC_CHECK_HEADER(curses.h, [ 
+    AC_CHECK_LIB(tinfo, tgetent, [ TERM_LIB="-ltinfo" ], [
+      AC_CHECK_LIB(ncurses, tgetent, [ TERM_LIB="-lncurses" ], [
+	AC_CHECK_LIB(termcap, tgetent, [ TERM_LIB="-ltermcap" ])
     ])
+  ])
   ],
   [  AC_CHECK_HEADERS(curses.h)
      AC_CHECK_HEADER(term.h,
@@ -1183,7 +1184,7 @@ if test "x$with_openssl_directory" != "xno"; then
    fi
 
    if test "$support_crypto" = "yes"; then
-      AC_CHECK_LIB(ssl, EVP_PKEY_encrypt_old, AC_DEFINE(HAVE_OPENSSLv1, 1, [Set if have OpenSSL version 1.x]))
+      AC_CHECK_LIB(crypto, EVP_PKEY_encrypt_old, AC_DEFINE(HAVE_OPENSSLv1, 1, [Set if have OpenSSL version 1.x]))
    fi
 
    LIBS="${saved_LIBS}"
@@ -1741,9 +1742,9 @@ case `echo $DB_BACKENDS | wc -w | sed -e 's/^ *//'` in
    1)
       DEFAULT_DB_TYPE="${DB_BACKENDS}"
       if test x$use_libtool = xno; then
-         SHARED_CATALOG_TARGETS=""
+	 SHARED_CATALOG_TARGETS=""
       else
-         SHARED_CATALOG_TARGETS="libbaccats-${DEFAULT_DB_TYPE}.la"
+	 SHARED_CATALOG_TARGETS="libbaccats-${DEFAULT_DB_TYPE}.la"
       fi
       ;;
    *)
@@ -1756,26 +1757,26 @@ case `echo $DB_BACKENDS | wc -w | sed -e 's/^ *//'` in
       dnl For multiple backend we need libtool support.
       dnl ------------------------------------------------
       if test x$use_libtool = xno; then
-         echo " "
-         echo " "
-         echo "You have specified two or more of the"
-         echo "supported databases: MySQL, PostgreSQL, Ingres, SQLite3 or DBI."
-         echo "This is not permitted when not using libtool Please reconfigure."
-         echo " "
-         echo "Aborting the configuration ..."
-         echo " "
-         echo " "
-         exit 1
+	 echo " "
+	 echo " "
+	 echo "You have specified two or more of the"
+	 echo "supported databases: MySQL, PostgreSQL, Ingres, SQLite3 or DBI."
+	 echo "This is not permitted when not using libtool Please reconfigure."
+	 echo " "
+	 echo "Aborting the configuration ..."
+	 echo " "
+	 echo " "
+	 exit 1
       fi
 
       SHARED_CATALOG_TARGETS=""
       for db_type in ${DB_BACKENDS}
       do
-         if test -z "${SHARED_CATALOG_TARGETS}"; then
-            SHARED_CATALOG_TARGETS="libbaccats-${db_type}.la"
-         else
-            SHARED_CATALOG_TARGETS="${SHARED_CATALOG_TARGETS} libbaccats-${db_type}.la"
-         fi
+	 if test -z "${SHARED_CATALOG_TARGETS}"; then
+	    SHARED_CATALOG_TARGETS="libbaccats-${db_type}.la"
+	 else
+	    SHARED_CATALOG_TARGETS="${SHARED_CATALOG_TARGETS} libbaccats-${db_type}.la"
+	 fi
       done
       ;;
 esac
@@ -1803,7 +1804,7 @@ AC_ARG_ENABLE(batch-insert,
    AC_HELP_STRING([--enable-batch-insert], [enable the DB batch insert code @<:@default=yes@:>@]),
    [
        if test x$enableval = xno; then
-          support_batch_insert=no
+	  support_batch_insert=no
        fi
    ]
 )
@@ -1813,7 +1814,7 @@ if test x$support_batch_insert = xyes; then
 fi
 
 dnl -------------------------------------------
-dnl Check if mysql supports batch mode   
+dnl Check if mysql supports batch mode	 
 dnl -------------------------------------------
 if test ! -z "$MYSQL_LIB"; then
    AC_CHECK_LIB(mysql_r, mysql_thread_safe, AC_DEFINE(HAVE_MYSQL_THREAD_SAFE, 1, [Set if have mysql_thread_safe]))
@@ -1838,7 +1839,7 @@ if test ! -z "$POSTGRESQL_LIB"; then
    AC_CHECK_LIB(pq, PQputCopyData, AC_DEFINE(HAVE_PQ_COPY, 1, [Set if have PQputCopyData]))
    if test "x$ac_cv_lib_pq_PQputCopyData" = "xyes"; then
       if test $support_batch_insert = yes ; then
-         AC_DEFINE(HAVE_POSTGRESQL_BATCH_FILE_INSERT, 1, [Set if PostgreSQL DB batch insert code enabled])
+	 AC_DEFINE(HAVE_POSTGRESQL_BATCH_FILE_INSERT, 1, [Set if PostgreSQL DB batch insert code enabled])
       fi
    fi
 
@@ -1872,9 +1873,9 @@ if test ! -z "$DBI_LIBS"; then
       test "x$ac_cv_lib_pq_PQputCopyData" = "xyes"
       pkg=$?
       if test $pkg = 0; then
-         if test $support_batch_insert = yes ; then
-            AC_DEFINE(HAVE_DBI_BATCH_FILE_INSERT, 1, [Set if DBI DB batch insert code enabled])
-         fi
+	 if test $support_batch_insert = yes ; then
+	    AC_DEFINE(HAVE_DBI_BATCH_FILE_INSERT, 1, [Set if DBI DB batch insert code enabled])
+	 fi
       fi
    fi
 else 
@@ -2597,21 +2598,21 @@ if test x$support_acl = xyes -o x$support_acl = xauto; then
    dnl
    if test $have_acl = no; then
       AC_CHECK_LIB(acl, acl_get_file,
-         [
+	 [
 	     have_acl=yes
-             if test $have_afs = yes; then
-                dnl
-                dnl Because of possible naming conflict with AFS libacl make sure we use the one in /usr/lib64 or /usr/lib !!!
-                dnl
-                if test -d /usr/lib64/; then
-                   FDLIBS="-L/usr/lib64 -lacl $FDLIBS"
-                else
-                   FDLIBS="-L/usr/lib -lacl $FDLIBS"
-                fi
-             else
-                FDLIBS="-lacl $FDLIBS"
-             fi
-         ]
+	     if test $have_afs = yes; then
+		dnl
+		dnl Because of possible naming conflict with AFS libacl make sure we use the one in /usr/lib64 or /usr/lib !!!
+		dnl
+		if test -d /usr/lib64/; then
+		   FDLIBS="-L/usr/lib64 -lacl $FDLIBS"
+		else
+		   FDLIBS="-L/usr/lib -lacl $FDLIBS"
+		fi
+	     else
+		FDLIBS="-lacl $FDLIBS"
+	     fi
+	 ]
       )
    fi
 
@@ -2620,10 +2621,10 @@ if test x$support_acl = xyes -o x$support_acl = xauto; then
    dnl
    if test $have_acl = no; then
       AC_CHECK_LIB(pacl, acl_get_file,
-         [
+	 [
 	     have_acl=yes
-             FDLIBS="-lpacl $FDLIBS"
-         ]
+	     FDLIBS="-lpacl $FDLIBS"
+	 ]
       )
    fi
 
@@ -2631,18 +2632,18 @@ if test x$support_acl = xyes -o x$support_acl = xauto; then
    dnl Check for acltotext and acl_totext (Solaris)
    dnl
    if test $have_acl = no -a \
-           x${HAVE_SUN_OS_TRUE} = x; then
+	   x${HAVE_SUN_OS_TRUE} = x; then
       AC_CHECK_LIB(sec, acltotext,
-         [
+	 [
 	     have_acl=yes
-             FDLIBS="-lsec $FDLIBS"
+	     FDLIBS="-lsec $FDLIBS"
 
-             AC_CHECK_LIB(sec, acl_totext,
-                [
-                    have_extended_acl=yes
-                ]
-             )
-         ]
+	     AC_CHECK_LIB(sec, acl_totext,
+		[
+		    have_extended_acl=yes
+		]
+	     )
+	 ]
       )
    fi
 
@@ -2650,17 +2651,17 @@ if test x$support_acl = xyes -o x$support_acl = xauto; then
    dnl Check for acl_get and aclx_get (AIX)
    dnl
    if test $have_acl = no -a \
-           x${HAVE_AIX_OS_TRUE} = x; then
+	   x${HAVE_AIX_OS_TRUE} = x; then
       AC_CHECK_FUNC(acl_get,
-         [
+	 [
 	     have_acl=yes
 
-             AC_CHECK_FUNC(aclx_get,
-                [
-                    have_extended_acl=yes
-                ]
-             )
-         ]
+	     AC_CHECK_FUNC(aclx_get,
+		[
+		    have_extended_acl=yes
+		]
+	     )
+	 ]
       )
    fi
 
@@ -2700,44 +2701,44 @@ if test x$support_xattr = xyes -o x$support_xattr = xauto; then
    dnl When running on a BSD variant
    dnl
    if test x${HAVE_FREEBSD_OS_TRUE} = x -o \
-           x${HAVE_NETBSD_OS_TRUE} = x -o \
-           x${HAVE_OPENBSD_OS_TRUE} = x; then
+	   x${HAVE_NETBSD_OS_TRUE} = x -o \
+	   x${HAVE_OPENBSD_OS_TRUE} = x; then
       AC_CHECK_HEADER(sys/extattr.h, [ AC_DEFINE(HAVE_SYS_EXTATTR_H,1,[Defines if your system have the sys/extattr.h header file])] , )
       AC_CHECK_HEADER(libutil.h, [ AC_DEFINE(HAVE_LIBUTIL_H,1,[Defines if your system have the libutil.h header file])] , )
       AC_CHECK_FUNCS(extattr_get_link extattr_set_link extattr_list_link,
-         [
+	 [
 	     have_xattr=yes
 	     AC_DEFINE([HAVE_EXTATTR_GET_LINK],1,[Define to 1 if you have the 'extattr_get_link' function.])
 	     AC_DEFINE([HAVE_EXTATTR_SET_LINK],1,[Define to 1 if you have the 'extattr_set_link' function.])
 	     AC_DEFINE([HAVE_EXTATTR_LIST_LINK],1,[Define to 1 if you have the 'extattr_list_link' function.])
-         ]
+	 ]
       )
    
       if test $have_xattr = no; then
-         AC_CHECK_FUNCS(extattr_get_file extattr_set_file extattr_list_file,
+	 AC_CHECK_FUNCS(extattr_get_file extattr_set_file extattr_list_file,
 	    [
-	        have_xattr=yes
-	        AC_DEFINE([HAVE_EXTATTR_GET_FILE],1,[Define to 1 if you have the 'extattr_get_file' function.])
-	        AC_DEFINE([HAVE_EXTATTR_SET_FILE],1,[Define to 1 if you have the 'extattr_set_file' function.])
-	        AC_DEFINE([HAVE_EXTATTR_LIST_FILE],1,[Define to 1 if you have the 'extattr_list_file' function.])
+		have_xattr=yes
+		AC_DEFINE([HAVE_EXTATTR_GET_FILE],1,[Define to 1 if you have the 'extattr_get_file' function.])
+		AC_DEFINE([HAVE_EXTATTR_SET_FILE],1,[Define to 1 if you have the 'extattr_set_file' function.])
+		AC_DEFINE([HAVE_EXTATTR_LIST_FILE],1,[Define to 1 if you have the 'extattr_list_file' function.])
 	    ]
-         )
+	 )
       fi
    
       if test $have_xattr = yes; then
-         have_extattr_string_in_libc=no
-         AC_CHECK_FUNCS(extattr_namespace_to_string extattr_string_to_namespace,
+	 have_extattr_string_in_libc=no
+	 AC_CHECK_FUNCS(extattr_namespace_to_string extattr_string_to_namespace,
 	    [
-	        have_extattr_string_in_libc=yes
-	        AC_DEFINE([HAVE_EXTATTR_NAMESPACE_TO_STRING],1,[Define to 1 if you have the 'extattr_namespace_to_string' function.])
-	        AC_DEFINE([HAVE_EXTATTR_STRING_TO_NAMESPACE],1,[Define to 1 if you have the 'extattr_string_to_namespace' function.])
+		have_extattr_string_in_libc=yes
+		AC_DEFINE([HAVE_EXTATTR_NAMESPACE_TO_STRING],1,[Define to 1 if you have the 'extattr_namespace_to_string' function.])
+		AC_DEFINE([HAVE_EXTATTR_STRING_TO_NAMESPACE],1,[Define to 1 if you have the 'extattr_string_to_namespace' function.])
 	    ]
-         )
+	 )
 
-         dnl
-         dnl If extattr_namespace_to_string and extattr_string_to_namespace are not in libc see if they are in libutil
-         dnl
-         if test $have_extattr_string_in_libc = no; then
+	 dnl
+	 dnl If extattr_namespace_to_string and extattr_string_to_namespace are not in libc see if they are in libutil
+	 dnl
+	 if test $have_extattr_string_in_libc = no; then
 	    AC_CHECK_LIB(util, extattr_namespace_to_string extattr_string_to_namespace,
 	       [
 		   AC_DEFINE([HAVE_EXTATTR_NAMESPACE_TO_STRING],1,[Define to 1 if you have the 'extattr_namespace_to_string' function.])
@@ -2745,7 +2746,7 @@ if test x$support_xattr = xyes -o x$support_xattr = xauto; then
 		   FDLIBS="-lutil $FDLIBS"
 	       ]
 	    )
-         fi
+	 fi
       fi
    fi
 
@@ -2754,7 +2755,7 @@ if test x$support_xattr = xyes -o x$support_xattr = xauto; then
    dnl When running on AIX
    dnl
    if test $have_xattr = no -a \
-           x${HAVE_AIX_OS_TRUE} = x; then
+	   x${HAVE_AIX_OS_TRUE} = x; then
       AC_CHECK_HEADER(sys/ea.h, [ AC_DEFINE(HAVE_SYS_EA_H,1,[Defines if your system have the sys/ea.h header file])] , )
       AC_CHECK_FUNCS(llistea lgetea lsetea,
 	 [
@@ -2782,7 +2783,7 @@ if test x$support_xattr = xyes -o x$support_xattr = xauto; then
    dnl when running on a TRU64 OS.
    dnl
    if test $have_xattr = no -a \
-           x${HAVE_OSF1_OS_TRUE} = x; then
+	   x${HAVE_OSF1_OS_TRUE} = x; then
       AC_CHECK_HEADER(sys/proplist.h, [ AC_DEFINE(HAVE_SYS_PROPLIST_H,1,[Defines if your system have the sys/proplist.h header file])] , )
       AC_CHECK_FUNCS(getproplist get_proplist_entry sizeof_proplist_entry add_proplist_entry setproplist,
 	 [
@@ -2801,7 +2802,7 @@ if test x$support_xattr = xyes -o x$support_xattr = xauto; then
    dnl when running on a Solaris.
    dnl
    if test $have_xattr = no -a \
-           x${HAVE_SUN_OS_TRUE} = x; then
+	   x${HAVE_SUN_OS_TRUE} = x; then
       AC_CHECK_HEADER(sys/attr.h, [ AC_DEFINE(HAVE_SYS_ATTR_H,1,[Defines if your system have the sys/attr.h header file])] , )
       AC_CHECK_HEADER(sys/nvpair.h, [ AC_DEFINE(HAVE_SYS_NVPAIR_H,1,[Defines if your system have the sys/nvpair.h header file])] , )
       AC_CHECK_HEADER(attr.h, [ AC_DEFINE(HAVE_ATTR_H,1,[Defines if your system have the attr.h header file])] , )
@@ -3355,13 +3356,12 @@ if test "${support_bat}" = "yes" ; then
       AC_MSG_ERROR([Could not find qmake $PATH. Check your Qt installation])
    fi
 
-   QMAKEBIN="qmake"
    cd src/qt-console
    echo "Creating bat Makefile"
    touch bat
    chmod 755 bat
    rm -f Makefile
-   $QMAKEBIN
+   $QMAKE
    ${MAKE:-make} clean
    cd ${BUILD_DIR}
 fi
