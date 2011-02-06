@@ -32,8 +32,10 @@
 class B_DB_SQLITE: public B_DB_PRIV {
 private:
    struct sqlite3 *m_db_handle;
-   char **m_result;
+   char **m_result;             /* sql_store_results() and sql_query() */
+   char **m_col_names;          /* used to access fields when using db_sql_query() */
    char *m_sqlite_errmsg;
+   SQL_FIELD m_sql_field;       /* used when using db_sql_query() and sql_fetch_field() */
 
 public:
    B_DB_SQLITE(JCR *jcr, const char *db_driver, const char *db_name,
@@ -41,6 +43,13 @@ public:
                const char *db_address, int db_port, const char *db_socket,
                bool mult_db_connections, bool disable_batch_insert);
    ~B_DB_SQLITE();
+
+   /* Used internaly by sqlite.c to access fields in db_sql_query() */
+   void set_column_names(char **res, int nb) { 
+      m_col_names = res; 
+      m_num_fields = nb;
+      m_field_number = 0;
+   }
 
    /* low level operations */
    bool db_open_database(JCR *jcr);

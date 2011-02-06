@@ -404,8 +404,10 @@ void B_DB_SQLITE::db_end_transaction(JCR *jcr)
 }
 
 struct rh_data {
+   B_DB_SQLITE *mdb;
    DB_RESULT_HANDLER *result_handler;
    void *ctx;
+   bool initialized;
 };
 
 /*
@@ -415,9 +417,17 @@ static int sqlite_sqlite_result(void *arh_data, int num_fields, char **rows, cha
 {
    struct rh_data *rh_data = (struct rh_data *)arh_data;
 
+   /* The db_sql_query doesn't have access to m_results, so if we wan't to get
+    * fields information, we need to use col_names
+    */
+   if (!rh_data->initialized) {
+      rh_data->mdb->set_column_names(col_names, num_fields);
+      rh_data->initialized = true;
+   }
    if (rh_data->result_handler) {
       (*(rh_data->result_handler))(rh_data->ctx, num_fields, rows);
    }
+   
    return 0;
 }
 
@@ -438,15 +448,23 @@ bool B_DB_SQLITE::db_sql_query(const char *query, DB_RESULT_HANDLER *result_hand
       sqlite3_free(m_sqlite_errmsg);
       m_sqlite_errmsg = NULL;
    }
-   rh_data.result_handler = result_handler;
+   sql_free_result();
+
    rh_data.ctx = ctx;
-   stat = sqlite3_exec(m_db_handle, query, sqlite_sqlite_result, (void *)&rh_data, &m_sqlite_errmsg);
+   rh_data.mdb = this;
+   rh_data.initialized = false;
+   rh_data.result_handler = result_handler;
+
+   stat = sqlite3_exec(m_db_handle, query, sqlite_sqlite_result,
+                       (void *)&rh_data, &m_sqlite_errmsg);
+   
    if (stat != SQLITE_OK) {
       Mmsg(errmsg, _("Query failed: %s: ERR=%s\n"), query, sql_strerror());
       Dmsg0(500, "db_sql_query finished\n");
       goto bail_out;
    }
    Dmsg0(500, "db_sql_query finished\n");
+   sql_free_result();
    retval = true;
 
 bail_out:
@@ -497,6 +515,7 @@ void B_DB_SQLITE::sql_free_result(void)
       sqlite3_free_table(m_result);
       m_result = NULL;
    }
+   m_col_names = NULL;
    m_num_rows = m_num_fields = 0;
    db_unlock(this);
 }
@@ -554,6 +573,26 @@ SQL_FIELD *B_DB_SQLITE::sql_fetch_field(void)
 {
    int i, j, len;
 
+   /* We are in the middle of a db_sql_query and we want to get fields info */
+   if (m_col_names != NULL) {
+      if (m_num_fields > m_field_number) {
+         m_sql_field.name = m_col_names[m_field_number];
+         /* We don't have the maximum field length, so we can use 80 as
+          * estimation.
+          */
+         len = MAX(cstrlen(m_sql_field.name), 80/m_num_fields);
+         m_sql_field.max_length = len;
+
+         m_field_number++;
+         m_sql_field.type = 0;  /* not numeric */
+         m_sql_field.flags = 1; /* not null */
+         return &m_sql_field;
+      } else {                  /* too much fetch_field() */
+         return NULL;
+      }
+   }
+
+   /* We are after a sql_query() that stores the result in m_results */
    if (!m_fields || m_fields_size < m_num_fields) {
       if (m_fields) {
          free(m_fields);
