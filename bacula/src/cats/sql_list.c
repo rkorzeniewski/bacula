@@ -506,11 +506,6 @@ db_list_base_files_for_job(JCR *jcr, B_DB *mdb, JobId_t jobid, DB_LIST_HANDLER *
            edit_int64(jobid, ed1));
    }
 
-   if (!QUERY_DB(jcr, mdb, mdb->cmd)) {
-      db_unlock(mdb);
-      return;
-   }
-
    if (!db_big_sql_query(mdb, mdb->cmd, list_result, &lctx)) {
        db_unlock(mdb);
        return;
