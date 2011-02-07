@@ -190,7 +190,7 @@ char             *edit_utime             (utime_t val, char *buf, int buf_len);
 bool             is_a_number             (const char *num);
 bool             is_a_number_list        (const char *n);
 bool             is_an_integer           (const char *n);
-bool             is_name_valid           (char *name, POOLMEM **msg);
+bool             is_name_valid           (const char *name, POOLMEM **msg);
 
 /* jcr.c (most definitions are in src/jcr.h) */
 void     init_last_jobs_list();

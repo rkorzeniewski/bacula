@@ -466,13 +466,20 @@ bool is_an_integer(const char *n)
  * Check if the Volume name has legal characters
  * If ua is non-NULL send the message
  */
-bool is_name_valid(char *name, POOLMEM **msg)
+bool is_name_valid(const char *name, POOLMEM **msg)
 {
    int len;
-   char *p;
+   const char *p;
    /* Special characters to accept */
    const char *accept = ":.-_ ";
 
+   /* No name is invalid */
+   if (!name) {
+      if (msg) {
+         Mmsg(msg, _("Empty name not allowed.\n"));
+      }
+      return false;
+   }
    /* Restrict the characters permitted in the Volume name */
    for (p=name; *p; p++) {
       if (B_ISALPHA(*p) || B_ISDIGIT(*p) || strchr(accept, (int)(*p))) {
@@ -483,7 +490,7 @@ bool is_name_valid(char *name, POOLMEM **msg)
       }
       return false;
    }
-   len = strlen(name);
+   len = p - name;
    if (len >= MAX_NAME_LENGTH) {
       if (msg) {
          Mmsg(msg, _("Name too long.\n"));
