@@ -59,9 +59,32 @@ messages
 @################################################################
 @$out $cwd/tmp/log10.out
 setdebug level=1 director
+sql
+SELECT JobId, JobTDate, StartTime, EndTime FROM Job;
+
 list jobs
 prune jobs yes
 list jobs
+sql
+SELECT JobId, JobTDate, StartTime, EndTime FROM Job;
+
+@################################################################ 
+@# now do a restore
+@#
+@$out ${cwd}/tmp/log2.out
+list volumes 
+restore where=${cwd}/tmp/bacula-restores select storage=DiskChanger
+unmark *
+mark *
+done
+yes
+list volumes
+wait
+messages
+quit
+END_OF_DATA
+
+run_bacula
 @################################################################ 
 @# now do a restore
 @#
