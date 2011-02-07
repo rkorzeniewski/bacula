@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2009 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2011 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -145,6 +145,8 @@ void e_msg(const char *file, int line, int type, int level, const char *fmt,...)
 void Jmsg(JCR *jcr, int type, utime_t mtime, const char *fmt,...);
 void Qmsg(JCR *jcr, int type, utime_t mtime, const char *fmt,...);
 bool get_trace(void);
+const char *get_basename(const char *pathname);
+
 
 struct B_DB;
 typedef void (*sql_query_func)(JCR *jcr, const char *cmd);

@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2010 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2011 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -191,7 +191,7 @@ void my_name_is(int argc, char *argv[], const char *name)
       } else {
          l = argv[0];
 #if defined(HAVE_WIN32)
-         /* On Windows allow c: junk */
+         /* On Windows allow c: drive specification */
          if (l[1] == ':') {
             l += 2;
          }
@@ -907,27 +907,26 @@ send_to_file:
 
 /*********************************************************************
  *
- *  This subroutine returns the filename portion of a Windows 
- *  path.  It is used because Microsoft Visual Studio sets __FILE__ 
- *  to the full path.
+ *  This subroutine returns the filename portion of a path.  
+ *  It is used because some compilers set __FILE__ 
+ *  to the full path.  Try to return base + next higher path.
  */
 
-inline const char *
+const char *
 get_basename(const char *pathname)
 {
-#if defined(_MSC_VER)
-   const char *basename;
+   const char *basename, *basename2;
    
-   if ((basename = strrchr(pathname, '\\')) == NULL) {
+   if ((basename = strrchr(pathname, PathSeparator)) == NULL) {
       basename = pathname;
+      if ((basename2 = strrchr(pathname, PathSeparator)) != NULL) {
+         basename = basename2 + 1;
+      }
    } else {
       basename++;
    }
 
    return basename;
-#else
-   return pathname;
-#endif
 }
 
 /*
@@ -1517,7 +1516,7 @@ void q_msg(const char *file, int line, JCR *jcr, int type, utime_t mtime, const 
    POOLMEM *pool_buf;
 
    pool_buf = get_pool_memory(PM_EMSG);
-   i = Mmsg(pool_buf, "%s:%d ", file, line);
+   i = Mmsg(pool_buf, "%s:%d ", get_basename(file), line);
 
    for (;;) {
       maxlen = sizeof_pool_memory(pool_buf) - i - 1;

@@ -554,6 +554,9 @@ int getdomainname(char *name, int len);
 
 
 #if defined(HAVE_WIN32)
+/*
+ *   Windows
+ */
 #define DEFAULT_CONFIGDIR "C:\\Documents and Settings\\All Users\\Application Data\\Bacula"
 #define PathSeparator '\\'
 
@@ -565,6 +568,9 @@ extern void pause_msg(const char *file, const char *func, int line, const char *
 #define pause(msg) if (debug_level) pause_msg(__FILE__, __func__, __LINE__, (msg))
 
 #else
+/*
+ *   Unix/Linix
+ */
 #define PathSeparator '/'
 /* Define Winsock functions if we aren't on Windows */
 
