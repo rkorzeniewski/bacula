@@ -46,6 +46,7 @@ public:
    CONRES *cons;                      /* console resource */
    POOLMEM *cmd;                      /* return command/name buffer */
    POOLMEM *args;                     /* command line arguments */
+   POOLMEM *err;                      /* store error message */
    char *argk[MAX_CMD_ARGS];          /* argument keywords */
    char *argv[MAX_CMD_ARGS];          /* argument values */
    int argc;                          /* number of arguments */

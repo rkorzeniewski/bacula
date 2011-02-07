@@ -652,16 +652,19 @@ static int action_on_purge_cmd(UAContext *ua, const char *cmd)
       if (strcasecmp(ua->argk[i], NT_("allpools")) == 0) {
          allpools = true;
             
-      } else if (strcasecmp(ua->argk[i], NT_("volume")) == 0 && ua->argv[i]) {
+      } else if (strcasecmp(ua->argk[i], NT_("volume")) == 0 
+                 && is_name_valid(ua->argv[i], NULL)) {
          bstrncpy(mr.VolumeName, ua->argv[i], sizeof(mr.VolumeName));
 
-      } else if (strcasecmp(ua->argk[i], NT_("devicetype")) == 0 && ua->argv[i]) {
+      } else if (strcasecmp(ua->argk[i], NT_("devicetype")) == 0 
+                 && ua->argv[i]) {
          bstrncpy(mr.MediaType, ua->argv[i], sizeof(mr.MediaType));
          
       } else if (strcasecmp(ua->argk[i], NT_("drive")) == 0 && ua->argv[i]) {
          drive = atoi(ua->argv[i]);
 
-      } else if (strcasecmp(ua->argk[i], NT_("action")) == 0 && ua->argv[i]) {
+      } else if (strcasecmp(ua->argk[i], NT_("action")) == 0 
+                 && is_name_valid(ua->argv[i], NULL)) {
          action=ua->argv[i];
       }
    }
