@@ -143,7 +143,7 @@ enum {
 /* Forward referenced structures */
 class JCR;
 struct FF_PKT;
-struct B_DB;
+class  B_DB;
 struct ATTR_DBR;
 struct Plugin;
 struct save_pkt;

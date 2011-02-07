@@ -148,7 +148,7 @@ bool get_trace(void);
 const char *get_basename(const char *pathname);
 
 
-struct B_DB;
+class B_DB;
 typedef void (*sql_query_func)(JCR *jcr, const char *cmd);
 typedef void (*sql_escape_func)(JCR *jcr, B_DB* db, char *snew, char *old, int len);
 
