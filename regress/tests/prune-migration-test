@@ -85,23 +85,6 @@ quit
 END_OF_DATA
 
 run_bacula
-@################################################################ 
-@# now do a restore
-@#
-@$out ${cwd}/tmp/log2.out
-list volumes 
-restore where=${cwd}/tmp/bacula-restores select storage=DiskChanger
-unmark *
-mark *
-done
-yes
-list volumes
-wait
-messages
-quit
-END_OF_DATA
-
-run_bacula
 check_for_zombie_jobs storage=File
 stop_bacula
 
