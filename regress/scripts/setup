@@ -50,7 +50,7 @@ rm -f Makefile config.*
 check_exit_code
 # Cleanup any build in source
 make clean
-make ${MAKEOPT:-""}
+make $MAKEOPT
 check_exit_code
 make install
 if [ a$KEEP_SOURCE = a ]; then
