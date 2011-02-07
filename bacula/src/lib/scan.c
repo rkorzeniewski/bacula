@@ -1,14 +1,7 @@
 /*
- *   scan.c -- scanning routines for Bacula
- *
- *    Kern Sibbald, MM  separated from util.c MMIII
- *
- *   Version $Id$
- */
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2011 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -32,6 +25,12 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ *   scan.c -- scanning routines for Bacula
+ *
+ *    Kern Sibbald, MM  separated from util.c MMIII
+ *
+ */
 
 
 #include "bacula.h"
@@ -361,6 +360,7 @@ int bsscanf(const char *buf, const char *fmt, ...)
    int max_len = BIG;
    uint64_t value;
    bool error = false;
+   bool negative;
 
    va_start(ap, fmt);
    while (*fmt && !error) {
@@ -371,7 +371,6 @@ int bsscanf(const char *buf, const char *fmt, ...)
 switch_top:
          switch (*fmt++) {
          case 'u':
-         case 'd':
             value = 0;
             while (B_ISDIGIT(*buf)) {
                value = B_TIMES10(value) + *buf++ - '0';
@@ -385,6 +384,34 @@ switch_top:
 //             Dmsg0(000, "Store 32 bit int\n");
             } else {
                *((uint64_t *)vp) = (uint64_t)value;
+//             Dmsg0(000, "Store 64 bit int\n");
+            }
+            count++;
+            l = 0;
+            break;
+         case 'd':
+            value = 0;
+            if (*buf == '-') {
+               negative = true;
+               buf++;
+            } else {
+               negative = false;
+            }
+            while (B_ISDIGIT(*buf)) {
+               value = B_TIMES10(value) + *buf++ - '0';
+            }
+            if (negative) {
+               value = -value;
+            }
+            vp = (void *)va_arg(ap, void *);
+//          Dmsg2(000, "val=%lld at 0x%lx\n", value, (long unsigned)vp);
+            if (l == 0) {
+               *((int *)vp) = (int)value;
+            } else if (l == 1) {
+               *((int32_t *)vp) = (int32_t)value;
+//             Dmsg0(000, "Store 32 bit int\n");
+            } else {
+               *((int64_t *)vp) = (int64_t)value;
 //             Dmsg0(000, "Store 64 bit int\n");
             }
             count++;
