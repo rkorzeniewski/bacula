@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2001-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2001-2011 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -30,7 +30,6 @@
  *
  *     Kern Sibbald, August MMI
  *
- *     Version $Id$
  */
 
 #ifndef __UA_H_
@@ -46,7 +45,7 @@ public:
    CONRES *cons;                      /* console resource */
    POOLMEM *cmd;                      /* return command/name buffer */
    POOLMEM *args;                     /* command line arguments */
-   POOLMEM *err;                      /* store error message */
+   POOLMEM *errmsg;                   /* store error message */
    char *argk[MAX_CMD_ARGS];          /* argument keywords */
    char *argv[MAX_CMD_ARGS];          /* argument values */
    int argc;                          /* number of arguments */

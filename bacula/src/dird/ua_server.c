@@ -195,7 +195,7 @@ UAContext *new_ua_context(JCR *jcr)
    ua->db = jcr->db;
    ua->cmd = get_pool_memory(PM_FNAME);
    ua->args = get_pool_memory(PM_FNAME);
-   ua->err = get_pool_memory(PM_FNAME);
+   ua->errmsg = get_pool_memory(PM_FNAME);
    ua->verbose = true;
    ua->automount = true;
    return ua;
@@ -209,8 +209,8 @@ void free_ua_context(UAContext *ua)
    if (ua->args) {
       free_pool_memory(ua->args);
    }
-   if (ua->err) {
-      free_pool_memory(ua->err);
+   if (ua->errmsg) {
+      free_pool_memory(ua->errmsg);
    }
    if (ua->prompt) {
       free(ua->prompt);
