@@ -1305,7 +1305,7 @@ Press OK to proceed with the purge operation?</source>
     </message>
     <message>
         <location filename="../prefs.ui" line="159"/>
-        <source>Jolist Limit Options</source>
+        <source>Joblist Limit Options</source>
         <translation>Options de limitation sur JobList</translation>
     </message>
     <message>
