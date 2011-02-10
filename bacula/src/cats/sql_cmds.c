@@ -217,11 +217,6 @@ const char *uar_sel_filesetid =
          "WHERE Job.ClientId=%s "
         "GROUP BY FileSet";
 
-/* Find MediaType used by this Job */
-const char *uar_mediatype =
-   "SELECT MediaType FROM JobMedia,Media WHERE JobMedia.JobId=%s "
-   "AND JobMedia.MediaId=Media.MediaId";
-
 /*
  *  Find JobId, FileIndex for a given path/file and date
  *  for use when inserting individual files into the tree.
@@ -254,7 +249,7 @@ const char *uar_jobids_fileindex =
 
 /* Query to get list of files from table -- presuably built by an external program */
 const char *uar_jobid_fileindex_from_table = 
-   "SELECT JobId,FileIndex from %s";
+   "SELECT JobId,FileIndex FROM %s";
 
 /* Get the list of the last recent version per Delta with a given jobid list 
  * This is a tricky part because with SQL the result of 
