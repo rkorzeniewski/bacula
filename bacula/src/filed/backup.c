@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2010 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2011 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -139,7 +139,7 @@ bool blast_data_to_storage_daemon(JCR *jcr, char *addr)
 
    set_find_options((FF_PKT *)jcr->ff, jcr->incremental, jcr->mtime);
 
-   /** in accurate mode, we overwrite the find_one check function */
+   /** in accurate mode, we overload the find_one check function */
    if (jcr->accurate) {
       set_find_changed_function((FF_PKT *)jcr->ff, accurate_check_file);
    } 
@@ -318,7 +318,7 @@ int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
 #endif
    BSOCK *sd = jcr->store_bsock;
 
-   if (jcr->is_job_canceled()) {
+   if (jcr->is_canceled() || jcr->is_incomplete()) {
       return 0;
    }
 
@@ -747,9 +747,12 @@ int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
    }
 
 good_rtn:
-   rtnstat = jcr->is_job_canceled() ? 0 : 1; /* good return if not canceled */
+   rtnstat = jcr->is_canceled() ? 0 : 1; /* good return if not canceled */
 
 bail_out:
+   if (jcr->is_incomplete()) {
+      rtnstat = 0;
+   }
    if (ff_pkt->cmd_plugin && plugin_started) {
       send_plugin_name(jcr, sd, false); /* signal end of plugin data */
    }
@@ -1116,6 +1119,7 @@ bool encode_and_send_attributes(JCR *jcr, FF_PKT *ff_pkt, int &data_stream)
    int attr_stream;
    int comp_len;
    bool stat;
+   int hangup = get_hangup();
 #ifdef FD_NO_SEND_TEST
    return true;
 #endif
@@ -1145,12 +1149,19 @@ bool encode_and_send_attributes(JCR *jcr, FF_PKT *ff_pkt, int &data_stream)
    pm_strcpy(jcr->last_fname, ff_pkt->fname);
    jcr->unlock();
 
+   /* Debug code: check if we must hangup */
+   if (hangup && (jcr->JobFiles > (uint32_t)hangup)) {
+      jcr->setJobStatus(JS_Incomplete);
+      Jmsg1(jcr, M_FATAL, 0, "Debug hangup requested after %d files.\n", hangup);
+      return false;
+   }
+
    /**
     * Send Attributes header to Storage daemon
     *    <file-index> <stream> <info>
     */
    if (!sd->fsend("%ld %d 0", jcr->JobFiles, attr_stream)) {
-      if (!jcr->is_job_canceled()) {
+      if (!jcr->is_canceled()) {
          Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
                sd->bstrerror());
       }

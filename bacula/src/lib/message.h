@@ -147,7 +147,6 @@ void Qmsg(JCR *jcr, int type, utime_t mtime, const char *fmt,...);
 bool get_trace(void);
 const char *get_basename(const char *pathname);
 
-
 class B_DB;
 typedef void (*sql_query_func)(JCR *jcr, const char *cmd);
 typedef void (*sql_escape_func)(JCR *jcr, B_DB* db, char *snew, char *old, int len);

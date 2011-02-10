@@ -188,6 +188,9 @@ void jobstatus_to_ascii(int JobStatus, char *msg, int maxlen)
    case JS_Terminated:
       jobstat = _("OK");
       break;
+   case JS_Incomplete:
+      jobstat = _("Error: incomplete job");
+      break;
    case JS_FatalError:
    case JS_ErrorTerminated:
       jobstat = _("Error");

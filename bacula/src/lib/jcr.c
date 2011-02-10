@@ -845,11 +845,13 @@ static int get_status_priority(int JobStatus)
 {
    int priority = 0;
    switch (JobStatus) {
+   case JS_Incomplete:
+      priority = 10;
+      break;
    case JS_ErrorTerminated:
    case JS_FatalError:
    case JS_Canceled:
-   case JS_Incomplete:
-      priority = 10;
+      priority = 9;
       break;
    case JS_Error:
       priority = 8;

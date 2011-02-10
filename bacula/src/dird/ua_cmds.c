@@ -872,7 +872,6 @@ static int disable_cmd(UAContext *ua, const char *cmd)
    return 1;
 }
 
-
 static void do_storage_setdebug(UAContext *ua, STORE *store, int level, int trace_flag)
 {
    BSOCK *sd;
@@ -901,7 +900,16 @@ static void do_storage_setdebug(UAContext *ua, STORE *store, int level, int trac
    return;
 }
 
-static void do_client_setdebug(UAContext *ua, CLIENT *client, int level, int trace_flag)
+/*
+ * For the client, we have the following values that can be set
+ *  level = debug level
+ *  trace = send debug output to a file
+ *  hangup = how many records to send to SD before hanging up
+ *    obviously this is most useful for testing restarting
+ *    failed jobs.
+ */
+static void do_client_setdebug(UAContext *ua, CLIENT *client, 
+              int level, int trace, int hangup)
 {
    BSOCK *fd;
 
@@ -917,7 +925,7 @@ static void do_client_setdebug(UAContext *ua, CLIENT *client, int level, int tra
    }
    Dmsg0(120, "Connected to file daemon\n");
    fd = ua->jcr->file_bsock;
-   fd->fsend("setdebug=%d trace=%d\n", level, trace_flag);
+   fd->fsend("setdebug=%d trace=%d hangup=%d\n", level, trace, hangup);
    if (fd->recv() >= 0) {
       ua->send_msg("%s", fd->msg);
    }
@@ -928,7 +936,7 @@ static void do_client_setdebug(UAContext *ua, CLIENT *client, int level, int tra
 }
 
 
-static void do_all_setdebug(UAContext *ua, int level, int trace_flag)
+static void do_all_setdebug(UAContext *ua, int level, int trace_flag, int hangup)
 {
    STORE *store, **unique_store;
    CLIENT *client, **unique_client;
@@ -1001,7 +1009,7 @@ static void do_all_setdebug(UAContext *ua, int level, int trace_flag)
 
    /* Call each unique File daemon */
    for (j=0; j<i; j++) {
-      do_client_setdebug(ua, unique_client[j], level, trace_flag);
+      do_client_setdebug(ua, unique_client[j], level, trace_flag, hangup);
    }
    free(unique_client);
 }
@@ -1015,6 +1023,7 @@ static int setdebug_cmd(UAContext *ua, const char *cmd)
    CLIENT *client;
    int level;
    int trace_flag = -1;
+   int hangup = -1;
    int i;
 
    Dmsg1(120, "setdebug:%s:\n", cmd);
@@ -1040,10 +1049,17 @@ static int setdebug_cmd(UAContext *ua, const char *cmd)
       }
    }
 
+   /* Look for hangup (debug only)flag. -1 => not change */
+   i = find_arg_with_value(ua, "hangup");
+   if (i >= 0) {
+      hangup = atoi(ua->argv[i]);
+   }
+
+
    /* General debug? */
    for (i=1; i<ua->argc; i++) {
       if (strcasecmp(ua->argk[i], "all") == 0) {
-         do_all_setdebug(ua, level, trace_flag);
+         do_all_setdebug(ua, level, trace_flag, hangup);
          return 1;
       }
       if (strcasecmp(ua->argk[i], "dir") == 0 ||
@@ -1058,13 +1074,13 @@ static int setdebug_cmd(UAContext *ua, const char *cmd)
          if (ua->argv[i]) {
             client = GetClientResWithName(ua->argv[i]);
             if (client) {
-               do_client_setdebug(ua, client, level, trace_flag);
+               do_client_setdebug(ua, client, level, trace_flag, hangup);
                return 1;
             }
          }
          client = select_client_resource(ua);
          if (client) {
-            do_client_setdebug(ua, client, level, trace_flag);
+            do_client_setdebug(ua, client, level, trace_flag, hangup);
             return 1;
          }
       }
@@ -1110,11 +1126,11 @@ static int setdebug_cmd(UAContext *ua, const char *cmd)
    case 2:
       client = select_client_resource(ua);
       if (client) {
-         do_client_setdebug(ua, client, level, trace_flag);
+         do_client_setdebug(ua, client, level, trace_flag, hangup);
       }
       break;
    case 3:
-      do_all_setdebug(ua, level, trace_flag);
+      do_all_setdebug(ua, level, trace_flag, hangup);
       break;
    default:
       break;
@@ -1336,8 +1352,8 @@ static int estimate_cmd(UAContext *ua, const char *cmd)
       goto bail_out;
    }
 
-   bnet_fsend(jcr->file_bsock, "estimate listing=%d\n", listing);
-   while (bnet_recv(jcr->file_bsock) >= 0) {
+   jcr->file_bsock->fsend("estimate listing=%d\n", listing);
+   while (jcr->file_bsock->recv() >= 0) {
       ua->send_msg("%s", jcr->file_bsock->msg);
    }
 
@@ -1635,15 +1651,15 @@ static void do_mount_cmd(UAContext *ua, const char *command)
    bstrncpy(dev_name, store.store->dev_name(), sizeof(dev_name));
    bash_spaces(dev_name);
    if (slot > 0) {
-      bnet_fsend(sd, "%s %s drive=%d slot=%d", command, dev_name, drive, slot);
+      sd->fsend("%s %s drive=%d slot=%d", command, dev_name, drive, slot);
    } else {
-      bnet_fsend(sd, "%s %s drive=%d", command, dev_name, drive);
+      sd->fsend("%s %s drive=%d", command, dev_name, drive);
    }
-   while (bnet_recv(sd) >= 0) {
+   while (sd->recv() >= 0) {
       ua->send_msg("%s", sd->msg);
    }
-   bnet_sig(sd, BNET_TERMINATE);
-   bnet_close(sd);
+   sd->signal(BNET_TERMINATE);
+   sd->close();
    jcr->store_bsock = NULL;
 }
 

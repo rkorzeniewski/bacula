@@ -866,6 +866,7 @@ bool db_write_batch_file_records(JCR *jcr)
 
 bail_out:
    db_sql_query(jcr->db_batch, "DROP TABLE batch", NULL,NULL);
+   jcr->batch_started = false;
 
    return retval;
 }
@@ -1070,7 +1071,7 @@ bool db_create_attributes_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
    } else if (jcr->HasBase) {
       ret = db_create_base_file_attributes_record(jcr, mdb, ar);
    } else {
-      Jmsg0(jcr, M_FATAL, 0, _("Can't Copy/Migrate job using BaseJob"));
+      Jmsg0(jcr, M_FATAL, 0, _("Cannot Copy/Migrate job using BaseJob"));
       ret = true;               /* in copy/migration what do we do ? */
    }
 

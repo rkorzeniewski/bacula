@@ -370,9 +370,16 @@ struct FILESET_DBR {
 };
 
 /* Call back context for getting a 32/64 bit value from the database */
-struct db_int64_ctx {
+class db_int64_ctx {
+public:
    int64_t value;                     /* value returned */
    int count;                         /* number of values seen */
+
+   db_int64_ctx() : value(0), count(0) {};
+   ~db_int64_ctx() {};
+private:
+   db_int64_ctx(const db_int64_ctx&);            /* prohibit pass by value */
+   db_int64_ctx &operator=(const db_int64_ctx&); /* prohibit class assignment */
 };
 
 /* Call back context for getting a list of comma separated strings from the
@@ -506,7 +513,7 @@ public:
 };
 
 /* sql_query Query Flags */
-#define QF_STORE_RESULT	0x01
+#define QF_STORE_RESULT 0x01
 
 /* Use for better error location printing */
 #define UPDATE_DB(jcr, db, cmd) UpdateDB(__FILE__, __LINE__, jcr, db, cmd)

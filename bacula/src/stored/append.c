@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2010 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2011 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -41,6 +41,26 @@ static char OK_append[]  = "3000 OK append data\n";
 
 /* Forward referenced functions */
 
+
+/* 
+ * Check if we can mark this job incomplete
+ *
+ */
+void possible_incomplete_job(JCR *jcr, int32_t last_file_index)
+{
+   /*
+    * Note, here we decide if it is worthwhile to restart
+    *  the Job at this point. For the moment, if at least
+    *  10 Files have been seen, which is good for testing, but
+    *  for a production system, we probably want something like
+    *  100-1000 files, and some number of bytes of data.
+    *
+    *  ****FIXME**** update this
+    */
+   if (last_file_index > 10) {
+      jcr->setJobStatus(JS_Incomplete);
+   }
+}
 /*
  *  Append Data sent from File daemon
  *
@@ -153,6 +173,7 @@ bool do_append_data(JCR *jcr)
          }
          Jmsg1(jcr, M_FATAL, 0, _("Error reading data header from FD. ERR=%s\n"),
                fd->bstrerror());
+         possible_incomplete_job(jcr, last_file_index);
          ok = false;
          break;
       }
@@ -165,12 +186,25 @@ bool do_append_data(JCR *jcr)
 
       Dmsg2(890, "<filed: Header FilInx=%d stream=%d\n", file_index, stream);
 
-      if (!(file_index > 0 && (file_index == last_file_index ||
-          file_index == last_file_index + 1))) {
-         Jmsg0(jcr, M_FATAL, 0, _("File index from FD not positive or sequential\n"));
-         ok = false;
-         break;
+      /*
+       * We make sure the file_index is advancing sequentially.
+       * An incomplete job can start the file_index at any number.
+       * otherwise, it must start at 1.
+       */
+      if (jcr->incomplete && file_index > 0 && last_file_index == 0) {
+         goto fi_checked;
       }
+      if (file_index > 0 && (file_index == last_file_index ||
+          file_index == last_file_index + 1)) {
+         goto fi_checked;
+      }
+      Jmsg2(jcr, M_FATAL, 0, _("FI=%d from FD not positive or sequential=%d\n"),
+            file_index, last_file_index);
+      possible_incomplete_job(jcr, last_file_index);
+      ok = false;
+      break;
+
+fi_checked:
       if (file_index != last_file_index) {
          jcr->JobFiles = file_index;
          last_file_index = file_index;
@@ -222,6 +256,7 @@ bool do_append_data(JCR *jcr)
             Dmsg1(350, "Network read error from FD. ERR=%s\n", fd->bstrerror());
             Jmsg1(jcr, M_FATAL, 0, _("Network error reading from FD. ERR=%s\n"),
                   fd->bstrerror());
+            possible_incomplete_job(jcr, last_file_index);
          }
          ok = false;
          break;
@@ -293,7 +328,7 @@ bool do_append_data(JCR *jcr)
    }
 
 
-   if (!ok) {
+   if (!ok && (jcr->getJobStatus() != JS_Incomplete)) {
       discard_data_spool(dcr);
    } else {
       /* Note: if commit is OK, the device will remain blocked */
@@ -310,7 +345,7 @@ bool do_append_data(JCR *jcr)
     */
    release_device(dcr);
 
-   if (!ok || jcr->is_job_canceled()) {
+   if ((!ok || jcr->is_job_canceled()) && (jcr->getJobStatus() != JS_Incomplete)) {
       discard_attribute_spool(jcr);
    } else {
       commit_attribute_spool(jcr);

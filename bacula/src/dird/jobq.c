@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2003-2010 Free Software Foundation Europe e.V.
+   Copyright (C) 2003-2011 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -627,6 +627,7 @@ static bool reschedule_job(JCR *jcr, jobq_t *jq, jobq_item_t *je)
         * Reschedule this job by cleaning it up, but
         *  reuse the same JobId if possible.
         */
+      jcr->incomplete = jcr->is_incomplete();   /* save incomplete status */
       time_t now = time(NULL);
       jcr->reschedule_count++;
       jcr->sched_time = now + jcr->job->RescheduleInterval;
@@ -640,10 +641,11 @@ static bool reschedule_job(JCR *jcr, jobq_t *jq, jobq_item_t *je)
       jcr->JobStatus = -1;
       set_jcr_job_status(jcr, JS_WaitStartTime);
       jcr->SDJobStatus = 0;
+      jcr->JobErrors = 0;
       if (!allow_duplicate_job(jcr)) {
          return false;
       }
-      if (jcr->JobBytes == 0) {
+      if (jcr->JobBytes == 0 || jcr->incomplete) {
          Dmsg2(2300, "Requeue job=%d use=%d\n", jcr->JobId, jcr->use_count());
          V(jq->mutex);
          jobq_add(jq, jcr);     /* queue the job to run again */

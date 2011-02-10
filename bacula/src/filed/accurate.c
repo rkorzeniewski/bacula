@@ -184,14 +184,15 @@ bool accurate_finish(JCR *jcr)
 {
    bool ret=true;
    if (jcr->accurate) {
-      if (jcr->getJobLevel() == L_FULL) {
-         ret = accurate_send_base_file_list(jcr);
-      } else {
-         ret = accurate_send_deleted_list(jcr);
+      if (!jcr->incomplete) {
+         if (jcr->is_JobLevel(L_FULL)) {
+            ret = accurate_send_base_file_list(jcr);
+         } else if (!jcr->incomplete) {
+            ret = accurate_send_deleted_list(jcr);
+         }
       }
-      
       accurate_free(jcr);
-      if (jcr->getJobLevel() == L_FULL) {
+      if (!jcr->incomplete && jcr->is_JobLevel(L_FULL)) {
          Jmsg(jcr, M_INFO, 0, _("Space saved with Base jobs: %lld MB\n"), 
               jcr->base_size/(1024*1024));
       }
@@ -252,7 +253,7 @@ bool accurate_check_file(JCR *jcr, FF_PKT *ff_pkt)
 
    ff_pkt->delta_seq = 0;
 
-   if (!jcr->accurate) {
+   if (!jcr->accurate && !jcr->incomplete) {
       return true;
    }
 
@@ -279,7 +280,7 @@ bool accurate_check_file(JCR *jcr, FF_PKT *ff_pkt)
 
    decode_stat(elt.lstat, &statc, &LinkFIc); /* decode catalog stat */
 
-   if (jcr->getJobLevel() == L_FULL) {
+   if (!jcr->incomplete && (jcr->getJobLevel() == L_FULL)) {
       opts = ff_pkt->BaseJobOpts;
    } else {
       opts = ff_pkt->AccurateOpts;
@@ -375,7 +376,7 @@ bool accurate_check_file(JCR *jcr, FF_PKT *ff_pkt)
 
       /* TODO: cleanup and factorise this function with verify.c */
       case '5':                /* compare MD5 */
-      case '1':                 /* compare SHA1 */
+      case '1':                /* compare SHA1 */
         /*
           * The remainder of the function is all about getting the checksum.
           * First we initialise, then we read files, other streams and Finder Info.
@@ -385,8 +386,8 @@ bool accurate_check_file(JCR *jcr, FF_PKT *ff_pkt)
               ff_pkt->flags & (FO_MD5|FO_SHA1|FO_SHA256|FO_SHA512))) 
          {
 
-            if (!*elt.chksum) {
-               Jmsg(jcr, M_WARNING, 0, _("Can't verify checksum for %s\n"),
+            if (!*elt.chksum && !jcr->incomplete) {
+               Jmsg(jcr, M_WARNING, 0, _("Cannot verify checksum for %s\n"),
                     ff_pkt->fname);
                stat = true;
                break;

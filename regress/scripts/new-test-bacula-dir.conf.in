@@ -40,6 +40,9 @@ Job {
   Maximum Concurrent Jobs = 10
   SpoolData=yes
   Max Run Time = 30min
+  Reschedule On Error = yes
+  Reschedule Interval = 10
+  Reschedule Times = 1
 }
 
 Job {

@@ -85,6 +85,7 @@ static bool trace = true;
 #else
 static bool trace = false;
 #endif
+static int hangup = 0;
 
 /* Constants */
 const char *host_os = HOST_OS;
@@ -1028,6 +1029,20 @@ void set_trace(int trace_flag)
       bmicrosleep(0, 100000);         /* yield to prevent seg faults */
       fclose(ltrace_fd);
    }
+}
+
+void set_hangup(int hangup_value)
+{
+   if (hangup_value < 0) {
+      return;
+   } else {
+      hangup = hangup_value;
+   }
+}
+
+int get_hangup(void)
+{
+   return hangup;
 }
 
 bool get_trace(void)

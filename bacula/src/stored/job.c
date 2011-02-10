@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2010 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2011 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -49,22 +49,11 @@ extern bool do_mac(JCR *jcr);
 static char jobcmd[] = "JobId=%d job=%127s job_name=%127s client_name=%127s "
       "type=%d level=%d FileSet=%127s NoAttr=%d SpoolAttr=%d FileSetMD5=%127s "
       "SpoolData=%d WritePartAfterJob=%d PreferMountedVols=%d SpoolSize=%s "
-      "Resched=%d\n";
-static char oldjobcmd[] = "JobId=%d job=%127s job_name=%127s client_name=%127s "
-      "type=%d level=%d FileSet=%127s NoAttr=%d SpoolAttr=%d FileSetMD5=%127s "
-      "SpoolData=%d WritePartAfterJob=%d PreferMountedVols=%d SpoolSize=%s\n";
-static char oldoldjobcmd[] = "JobId=%d job=%127s job_name=%127s client_name=%127s "
-      "type=%d level=%d FileSet=%127s NoAttr=%d SpoolAttr=%d FileSetMD5=%127s "
-      "SpoolData=%d WritePartAfterJob=%d PreferMountedVols=%d\n";
-
-
+      "incomplete=%d VolSessionId=%d VolSessionTime=%d\n";
 
 /* Responses sent to Director daemon */
 static char OKjob[]     = "3000 OK Job SDid=%u SDtime=%u Authorization=%s\n";
 static char BAD_job[]   = "3915 Bad Job command. stat=%d CMD: %s\n";
-//static char OK_query[]  = "3001 OK query\n";
-//static char NO_query[]  = "3918 Query failed\n";
-//static char BAD_query[] = "3917 Bad query command: %s\n";
 
 /*
  * Director requests us to start a job
@@ -86,7 +75,6 @@ bool job_cmd(JCR *jcr)
    POOL_MEM job_name, client_name, job, fileset_name, fileset_md5;
    int JobType, level, spool_attributes, no_attributes, spool_data;
    int write_part_after_job, PreferMountedVols;
-   int Resched = 0;
    int stat;
    JCR *ojcr;
 
@@ -100,30 +88,16 @@ bool job_cmd(JCR *jcr)
               &JobType, &level, fileset_name.c_str(), &no_attributes,
               &spool_attributes, fileset_md5.c_str(), &spool_data,
               &write_part_after_job, &PreferMountedVols, spool_size,
-              &Resched);
-   if (stat != 15) {
-      /* Try old version */
-      stat = sscanf(dir->msg, oldjobcmd, &JobId, job.c_str(), job_name.c_str(),
-                 client_name.c_str(),
-                 &JobType, &level, fileset_name.c_str(), &no_attributes,
-                 &spool_attributes, fileset_md5.c_str(), &spool_data,
-                 &write_part_after_job, &PreferMountedVols, spool_size);
-      if (stat != 14) {
-         /* Try oldold version */
-         stat = sscanf(dir->msg, oldoldjobcmd, &JobId, job.c_str(), job_name.c_str(),
-                 client_name.c_str(),
-                 &JobType, &level, fileset_name.c_str(), &no_attributes,
-                 &spool_attributes, fileset_md5.c_str(), &spool_data,
-                 &write_part_after_job, &PreferMountedVols);
-         if (stat != 13) {
-            pm_strcpy(jcr->errmsg, dir->msg);
-            dir->fsend(BAD_job, stat, jcr->errmsg);
-            Dmsg1(100, ">dird: %s", dir->msg);
-            set_jcr_job_status(jcr, JS_ErrorTerminated);
-            return false;
-         }
-      }
+              &jcr->incomplete, &jcr->VolSessionId, &jcr->VolSessionTime);
+   if (stat != 17) {
+      pm_strcpy(jcr->errmsg, dir->msg);
+      dir->fsend(BAD_job, stat, jcr->errmsg);
+      Dmsg1(100, ">dird: %s", dir->msg);
+      set_jcr_job_status(jcr, JS_ErrorTerminated);
+      return false;
    }
+   Dmsg3(100, "==== incomplete=%d VolSesId=%d VolSesTime=%d\n", jcr->incomplete,
+         jcr->VolSessionId, jcr->VolSessionTime);
    /*
     * Since this job could be rescheduled, we
     *  check to see if we have it already. If so
@@ -136,8 +110,15 @@ bool job_cmd(JCR *jcr)
    }
    jcr->JobId = JobId;
    Dmsg2(800, "Start JobId=%d %p\n", JobId, jcr);
-   jcr->VolSessionId = newVolSessionId();
-   jcr->VolSessionTime = VolSessionTime;
+   /*
+    * If job rescheduled because previous was incomplete,
+    * the Resched flag is set and VolSessionId and VolSessionTime
+    * are given to us (same as restarted job).
+    */
+   if (!jcr->incomplete) {
+      jcr->VolSessionId = newVolSessionId();
+      jcr->VolSessionTime = VolSessionTime;
+   }
    bstrncpy(jcr->Job, job, sizeof(jcr->Job));
    unbash_spaces(job_name);
    jcr->job_name = get_pool_memory(PM_NAME);

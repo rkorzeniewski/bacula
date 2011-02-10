@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2010 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2011 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -168,7 +168,7 @@ static char OKsession[]   = "2000 OK session\n";
 static char OKstore[]     = "2000 OK storage\n";
 static char OKstoreend[]  = "2000 OK storage end\n";
 static char OKjob[]       = "2000 OK Job %s (%s) %s,%s,%s";
-static char OKsetdebug[]  = "2000 OK setdebug=%d\n";
+static char OKsetdebug[]  = "2000 OK setdebug=%d trace=%d hangup=%d\n";
 static char BADjob[]      = "2901 Bad Job\n";
 static char EndJob[]      = "2800 End Job TermCode=%d JobFiles=%u ReadBytes=%s"
                             " JobBytes=%s Errors=%u VSS=%d Encrypt=%d\n";
@@ -477,17 +477,29 @@ static int cancel_cmd(JCR *jcr)
 static int setdebug_cmd(JCR *jcr)
 {
    BSOCK *dir = jcr->dir_bsock;
-   int level, trace_flag;
+   int32_t level, trace, hangup;
+   int scan;
 
-   Dmsg1(110, "setdebug_cmd: %s", dir->msg);
-   if (sscanf(dir->msg, "setdebug=%d trace=%d", &level, &trace_flag) != 2 || level < 0) {
-      pm_strcpy(jcr->errmsg, dir->msg);
-      dir->fsend(_("2991 Bad setdebug command: %s\n"), jcr->errmsg);
-      return 0;
+   Dmsg1(50, "setdebug_cmd: %s", dir->msg);
+   scan = sscanf(dir->msg, "setdebug=%d trace=%d hangup=%d",
+       &level, &trace, &hangup);
+   if (scan != 3) {
+      Dmsg2(20, "sscanf failed: msg=%s scan=%d\n", dir->msg, scan);
+      if (sscanf(dir->msg, "setdebug=%d trace=%d", &level, &trace) != 2) {
+         pm_strcpy(jcr->errmsg, dir->msg);
+         dir->fsend(_("2991 Bad setdebug command: %s\n"), jcr->errmsg);
+         return 0;
+      } else {
+         hangup = -1;
+      }
    }
-   debug_level = level;
-   set_trace(trace_flag);
-   return dir->fsend(OKsetdebug, level);
+   if (level >= 0) {
+      debug_level = level;
+   }
+   set_trace(trace);
+   set_hangup(hangup);
+   Dmsg3(50, "level=%d trace=%d hangup=%d\n", level, get_trace(), get_hangup());
+   return dir->fsend(OKsetdebug, level, get_trace(), get_hangup());
 }
 
 
@@ -1499,11 +1511,14 @@ static int level_cmd(JCR *jcr)
    int mtime_only;
 
    level = get_memory(dir->msglen+1);
-   Dmsg1(100, "level_cmd: %s", dir->msg);
+   Dmsg1(10, "level_cmd: %s", dir->msg);
 
    /* keep compatibility with older directors */
    if (strstr(dir->msg, "accurate")) {
       jcr->accurate = true;
+   }
+   if (strstr(dir->msg, "incomplete")) {
+      jcr->incomplete = true;
    }
    if (sscanf(dir->msg, "level = %s ", level) != 1) {
       goto bail_out;
@@ -1737,6 +1752,7 @@ static int backup_cmd(JCR *jcr)
    BSOCK *sd = jcr->store_bsock;
    int ok = 0;
    int SDJobStatus;
+   int32_t FileIndex;
 
 #if defined(WIN32_VSS)
    // capture state here, if client is backed up by multiple directors
@@ -1748,6 +1764,11 @@ static int backup_cmd(JCR *jcr)
       P(vss_mutex);
    }
 #endif
+  
+   if (sscanf(dir->msg, "backup FileIndex=%ld\n", &FileIndex) == 1) {
+      jcr->JobFiles = FileIndex;
+      Dmsg1(100, "JobFiles=%ld\n", jcr->JobFiles);
+   }
 
    /**
     * Validate some options given to the backup make sense for the compiled in

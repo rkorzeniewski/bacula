@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2009 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2011 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -38,7 +38,6 @@
  *       to do the backup.
  *     When the File daemon finishes the job, update the DB.
  *
- *   Version $Id$
  */
 
 #include "bacula.h"
@@ -46,7 +45,7 @@
 #include "ua.h"
 
 /* Commands sent to File daemon */
-static char backupcmd[] = "backup\n";
+static char backupcmd[] = "backup FileIndex=%ld\n";
 static char storaddr[]  = "storage address=%s port=%d ssl=%d\n";
 
 /* Responses received from File daemon */
@@ -65,7 +64,7 @@ static char OldEndJob[]  = "2800 End Job TermCode=%d JobFiles=%u "
 bool do_backup_init(JCR *jcr)
 {
 
-   if (jcr->getJobLevel() == L_VIRTUAL_FULL) {
+   if (jcr->is_JobLevel(L_VIRTUAL_FULL)) {
       return do_vbackup_init(jcr);
    }
    free_rstorage(jcr);                   /* we don't read so release */
@@ -200,7 +199,7 @@ static bool is_checksum_needed_by_fileset(JCR *jcr)
                have_basejob_option = in_block = jcr->HasBase;
                break;
             case 'C':           /* Accurate keyword */
-               in_block = (jcr->getJobLevel() != L_FULL);
+               in_block = !jcr->is_JobLevel(L_FULL);
                break;
             case ':':           /* End of keyword */
                in_block = false;
@@ -239,35 +238,40 @@ static bool is_checksum_needed_by_fileset(JCR *jcr)
 bool send_accurate_current_files(JCR *jcr)
 {
    POOL_MEM buf;
-   bool ret=true;
    db_list_ctx jobids;
    db_list_ctx nb;
+   char ed1[50];
 
-   if (!jcr->accurate || job_canceled(jcr)) {
-      return true;
-   }
-   /* In base level, no previous job is used */
-   if (jcr->getJobLevel() == L_BASE) {
-      return true;
-   }
-   
-   if (jcr->getJobLevel() == L_FULL) {
-      /* On Full mode, if no previous base job, no accurate things */
-      if (!get_base_jobids(jcr, &jobids)) {
-         goto bail_out;
-      }
-      jcr->HasBase = true;
-      Jmsg(jcr, M_INFO, 0, _("Using BaseJobId(s): %s\n"), jobids.list);
-
+   /* For incomplete Jobs, we add our own id */
+   if (jcr->incomplete) {
+      edit_int64(jcr->JobId, ed1);   
+      jobids.add(ed1);
    } else {
-      /* For Incr/Diff level, we search for older jobs */
-      db_accurate_get_jobids(jcr, jcr->db, &jcr->jr, &jobids);
+      if (!jcr->accurate || job_canceled(jcr)) {
+         return true;
+      }
+      /* In base level, no previous job is used */
+      if (jcr->is_JobLevel(L_BASE)) {
+         return true;
+      }
+   
+      if (jcr->is_JobLevel(L_FULL)) {
+         /* On Full mode, if no previous base job, no accurate things */
+         if (!get_base_jobids(jcr, &jobids)) {
+            return true;
+         }
+         jcr->HasBase = true;
+         Jmsg(jcr, M_INFO, 0, _("Using BaseJobId(s): %s\n"), jobids.list);
 
-      /* We are in Incr/Diff, but no Full to build the accurate list... */
-      if (jobids.count == 0) {
-         ret=false;
-         Jmsg(jcr, M_FATAL, 0, _("Cannot find previous jobids.\n"));
-         goto bail_out;
+      } else {
+         /* For Incr/Diff level, we search for older jobs */
+         db_accurate_get_jobids(jcr, jcr->db, &jcr->jr, &jobids);
+
+         /* We are in Incr/Diff, but no Full to build the accurate list... */
+         if (jobids.count == 0) {
+            Jmsg(jcr, M_FATAL, 0, _("Cannot find previous jobids.\n"));
+            return false;  /* fail */
+         }
       }
    }
 
@@ -286,7 +290,7 @@ bool send_accurate_current_files(JCR *jcr)
 
    if (!db_open_batch_connexion(jcr, jcr->db)) {
       Jmsg0(jcr, M_FATAL, 0, "Can't get batch sql connexion");
-      return false;
+      return false;  /* Fail */
    }
    
    if (jcr->HasBase) {
@@ -301,12 +305,10 @@ bool send_accurate_current_files(JCR *jcr)
                        accurate_list_handler, (void *)jcr);
    } 
 
-   /* TODO: close the batch connexion ? (can be used very soon) */
+   /* TODO: close the batch connection ? (can be used very soon) */
 
    jcr->file_bsock->signal(BNET_EOD);
-
-bail_out:
-   return ret;
+   return true;
 }
 
 /*
@@ -322,8 +324,10 @@ bool do_backup(JCR *jcr)
    BSOCK   *fd;
    STORE *store;
    char ed1[100];
+   db_int64_ctx job;
+   POOL_MEM buf;
 
-   if (jcr->getJobLevel() == L_VIRTUAL_FULL) {
+   if (jcr->is_JobLevel(L_VIRTUAL_FULL)) {
       return do_vbackup(jcr);
    }
 
@@ -336,6 +340,31 @@ bool do_backup(JCR *jcr)
    if (!db_update_job_start_record(jcr, jcr->db, &jcr->jr)) {
       Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db));
       return false;
+   }
+
+   /* For incomplete Jobs, we add our own id */
+   if (jcr->incomplete) {
+      edit_int64(jcr->JobId, ed1);   
+      Mmsg(buf, "SELECT count(*) FROM File WHERE JobId=%s", ed1);
+      if (!db_sql_query(jcr->db, buf.c_str(), db_int64_handler, &job)) {
+         Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db));
+         return false;
+      }
+      jcr->JobFiles = job.value;
+      Mmsg(buf, "SELECT VolSessionId FROM Job WHERE JobId=%s", ed1);
+      if (!db_sql_query(jcr->db, buf.c_str(), db_int64_handler, &job)) {
+         Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db));
+         return false;
+      }
+      jcr->VolSessionId = job.value;
+      Mmsg(buf, "SELECT VolSessionTime FROM Job WHERE JobId=%s", ed1);
+      if (!db_sql_query(jcr->db, buf.c_str(), db_int64_handler, &job)) {
+         Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db));
+         return false;
+      }
+      jcr->VolSessionTime = job.value;
+      Dmsg4(100, "JobId=%s JobFiles=%ld VolSessionId=%ld VolSessionTime=%ld\n", ed1, 
+            jcr->JobFiles, jcr->VolSessionId, jcr->VolSessionTime);
    }
 
    /*
@@ -364,7 +393,7 @@ bool do_backup(JCR *jcr)
     * to avoid two threads from using the BSOCK structure at
     * the same time.
     */
-   if (!bnet_fsend(jcr->store_bsock, "run")) {
+   if (!jcr->store_bsock->fsend("run")) {
       return false;
    }
 
@@ -446,11 +475,12 @@ bool do_backup(JCR *jcr)
     * all files to FD.
     */
    if (!send_accurate_current_files(jcr)) {
-      goto bail_out;
+      goto bail_out;     /* error */
    }
 
    /* Send backup command */
-   fd->fsend(backupcmd);
+   fd->fsend(backupcmd, jcr->JobFiles);
+   Dmsg1(100, ">filed: %s", fd->msg);
    if (!response(jcr, fd, OKbackup, "backup", DISPLAY_ERROR)) {
       goto bail_out;
    }
@@ -459,10 +489,8 @@ bool do_backup(JCR *jcr)
    stat = wait_for_job_termination(jcr);
    db_write_batch_file_records(jcr);    /* used by bulk batch file insert */
 
-   if (jcr->HasBase && 
-       !db_commit_base_file_attributes_record(jcr, jcr->db)) 
-   {
-         Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db));
+   if (jcr->HasBase && !db_commit_base_file_attributes_record(jcr, jcr->db))  {
+      Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db));
    }
 
    if (stat == JS_Terminated) {
@@ -536,8 +564,11 @@ int wait_for_job_termination(JCR *jcr, int timeout)
       fd->signal(BNET_TERMINATE);   /* tell Client we are terminating */
    }
 
-   /* Force cancel in SD if failing */
-   if (job_canceled(jcr) || !fd_ok) {
+   /*
+    * Force cancel in SD if failing, but not for Incomplete jobs
+    *  so that we let the SD despool.
+    */
+   if (jcr->is_canceled() || !fd_ok) {
       cancel_storage_daemon_job(jcr);
    }
 
@@ -590,7 +621,7 @@ void backup_cleanup(JCR *jcr, int TermCode)
    utime_t RunTime;
    POOL_MEM base_info;
 
-   if (jcr->getJobLevel() == L_VIRTUAL_FULL) {
+   if (jcr->is_JobLevel(L_VIRTUAL_FULL)) {
       vbackup_cleanup(jcr, TermCode);
       return;
    }
@@ -636,6 +667,9 @@ void backup_cleanup(JCR *jcr, int TermCode)
          } else {
             term_msg = _("Backup OK");
          }
+         break;
+      case JS_Incomplete:
+         term_msg = _("Backup failed -- incomplete");
          break;
       case JS_Warnings:
          term_msg = _("Backup OK -- with warnings");
@@ -804,7 +838,7 @@ void update_bootstrap_file(JCR *jcr)
          fd = bpipe ? bpipe->wfd : NULL;
       } else {
          /* ***FIXME*** handle BASE */
-         fd = fopen(fname, jcr->getJobLevel()==L_FULL?"w+b":"a+b");
+         fd = fopen(fname, jcr->is_JobLevel(L_FULL)?"w+b":"a+b");
       }
       if (fd) {
          VolCount = db_get_job_volume_parameters(jcr, jcr->db, jcr->JobId,
