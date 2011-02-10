@@ -345,7 +345,7 @@ bool do_backup(JCR *jcr)
    /* For incomplete Jobs, we add our own id */
    if (jcr->incomplete) {
       edit_int64(jcr->JobId, ed1);   
-      Mmsg(buf, "SELECT count(*) FROM File WHERE JobId=%s", ed1);
+      Mmsg(buf, "SELECT max(FileIndex) FROM File WHERE JobId=%s", ed1);
       if (!db_sql_query(jcr->db, buf.c_str(), db_int64_handler, &job)) {
          Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db));
          return false;
