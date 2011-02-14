@@ -612,15 +612,23 @@ void *jobq_server(void *arg)
  */
 static bool reschedule_job(JCR *jcr, jobq_t *jq, jobq_item_t *je)
 {
+   bool resched = false;
    /*
-    * Reschedule the job if necessary and requested
+    * Reschedule the job if requested and possible
     */
-   if (jcr->job->RescheduleOnError &&
-       jcr->JobStatus != JS_Terminated &&
-       jcr->JobStatus != JS_Canceled &&
-       jcr->getJobType() == JT_BACKUP &&
-       (jcr->job->RescheduleTimes == 0 ||
-        jcr->reschedule_count < jcr->job->RescheduleTimes)) {
+   /* Basic condition is that more times remain */
+   if (jcr->job->RescheduleTimes == 0 ||
+       jcr->reschedule_count < jcr->job->RescheduleTimes) {
+      resched = 
+         /* Check for incomplete jobs */
+         (jcr->job->RescheduleIncompleteJobs && jcr->is_incomplete()) ||
+         /* Check for failed jobs */
+         (jcr->job->RescheduleOnError &&
+          jcr->JobStatus != JS_Terminated &&
+          jcr->JobStatus != JS_Canceled &&
+          jcr->getJobType() == JT_BACKUP);
+   }
+   if (resched) {
        char dt[50], dt2[50];
 
        /*
@@ -645,6 +653,7 @@ static bool reschedule_job(JCR *jcr, jobq_t *jq, jobq_item_t *je)
       if (!allow_duplicate_job(jcr)) {
          return false;
       }
+      /* Only jobs with no output or Incomplete jobs can run on same JCR */
       if (jcr->JobBytes == 0 || jcr->incomplete) {
          Dmsg2(2300, "Requeue job=%d use=%d\n", jcr->JobId, jcr->use_count());
          V(jq->mutex);
