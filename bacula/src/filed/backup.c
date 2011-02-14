@@ -1153,6 +1153,7 @@ bool encode_and_send_attributes(JCR *jcr, FF_PKT *ff_pkt, int &data_stream)
    if (hangup && (jcr->JobFiles > (uint32_t)hangup)) {
       jcr->setJobStatus(JS_Incomplete);
       Jmsg1(jcr, M_FATAL, 0, "Debug hangup requested after %d files.\n", hangup);
+      set_hangup(0);
       return false;
    }
 
