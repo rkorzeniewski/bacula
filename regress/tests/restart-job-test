@@ -22,10 +22,6 @@ setdebug level=0 trace=0 hangup=100 client
 @#setdebug level=20 dir
 label storage=File volume=TestVolume001
 run job=$JobName yes
-@# We sleep 10 seconds to let the first job fail
-@sleep 10
-@# Now the second job should run
-setdebug level=0 trace=0 hangup=0 client
 wait
 messages
 quit
