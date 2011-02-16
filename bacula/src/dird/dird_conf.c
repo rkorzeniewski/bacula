@@ -2051,11 +2051,13 @@ static void store_runscript(LEX *lc, RES_ITEM *item, int index, int pass)
 /* callback function for edit_job_codes */
 extern "C" char *job_code_callback_filesetname(JCR *jcr, const char* param)
 {
-   if (param[0] == 'f') {
+   if (param[0] == 'f' && jcr->fileset) {
       return jcr->fileset->name();
-   } else {
-      return NULL;
-   }
+
+   } else if (param[0] == 'h' && jcr->client) {
+      return jcr->client->address;
+   } 
+   return NULL;
 }
 
 bool parse_dir_config(CONFIG *config, const char *configfile, int exit_code)
