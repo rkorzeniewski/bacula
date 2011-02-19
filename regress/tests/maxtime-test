@@ -19,8 +19,9 @@ echo "${cwd}/build/po" >${cwd}/tmp/file-list
 start_test
 
 cat <<END_OF_DATA >${cwd}/tmp/bconcmds
-@$out ${cwd}/tmp/log1.out
+@$out /dev/null
 messages
+@$out ${cwd}/tmp/log1.out
 label volume=TestVolume001 pool=PoolA
 @$out ${cwd}/tmp/RUN_MAXTIME.log
 @# no media => have to wait
