@@ -351,6 +351,7 @@ bool do_backup(JCR *jcr)
          return false;
       }
       jcr->JobFiles = job.value;
+      Dmsg1(100, "==== FI=%ld\n", jcr->JobFiles);
       Mmsg(buf, "SELECT VolSessionId FROM Job WHERE JobId=%s", ed1);
       if (!db_sql_query(jcr->db, buf.c_str(), db_int64_handler, &job)) {
          Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db));
@@ -558,8 +559,13 @@ int wait_for_job_termination(JCR *jcr, int timeout)
       }
 
       if (is_bnet_error(fd)) {
+         int i = 0;
          Jmsg(jcr, M_FATAL, 0, _("Network error with FD during %s: ERR=%s\n"),
               job_type_to_str(jcr->getJobType()), fd->bstrerror());
+         while (i++ < 10 && jcr->job->RescheduleIncompleteJobs && jcr->is_canceled()) {
+            bmicrosleep(3, 0);
+         }
+            
       }
       fd->signal(BNET_TERMINATE);   /* tell Client we are terminating */
    }
@@ -568,7 +574,11 @@ int wait_for_job_termination(JCR *jcr, int timeout)
     * Force cancel in SD if failing, but not for Incomplete jobs
     *  so that we let the SD despool.
     */
-   if (jcr->is_canceled() || !fd_ok) {
+   Dmsg5(100, "cancel=%d fd_ok=%d FDJS=%d JS=%d SDJS=%d\n", jcr->is_canceled(), fd_ok, jcr->FDJobStatus,
+        jcr->JobStatus, jcr->SDJobStatus);
+   if (jcr->is_canceled() || (!jcr->job->RescheduleIncompleteJobs && !fd_ok)) {
+      Dmsg4(100, "fd_ok=%d FDJS=%d JS=%d SDJS=%d\n", fd_ok, jcr->FDJobStatus,
+           jcr->JobStatus, jcr->SDJobStatus);
       cancel_storage_daemon_job(jcr);
    }
 

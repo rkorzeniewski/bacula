@@ -4,6 +4,16 @@
 #   new files, do a Differental then a bunch of query commands
 #   and finally restore the two files.
 #
+
+
+# Query test no longer works because the query file is empty
+exit
+
+
+
+
+
+
 TestName="query-test"
 JobName=query
 . scripts/functions

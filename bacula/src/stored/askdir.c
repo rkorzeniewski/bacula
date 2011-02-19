@@ -481,7 +481,8 @@ bool dir_update_file_attributes(DCR *dcr, DEV_RECORD *rec)
    Dmsg1(1800, ">dird %s\n", dir->msg);    /* Attributes */
    if (rec->maskedStream == STREAM_UNIX_ATTRIBUTES || 
        rec->maskedStream == STREAM_UNIX_ATTRIBUTES_EX) {
-      dir->set_data_end();                 /* set offset of last valid data */
+      Dmsg2(100, "==== set_data_end FI=%ld %s\n", rec->FileIndex, rec->data);
+      dir->set_data_end(rec->FileIndex);    /* set offset of last valid data */
    }
    return dir->send();
 }

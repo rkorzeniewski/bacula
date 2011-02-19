@@ -191,6 +191,7 @@ public:
    bool is_incomplete() { return JobStatus == JS_Incomplete; };
    bool is_JobLevel(int32_t JobLevel) { return JobLevel == m_JobLevel; };
    bool is_JobType(int32_t JobType) { return JobType == m_JobType; };
+   bool is_JobStatus(int32_t aJobStatus) { return aJobStatus == JobStatus; };
    void set_JobLevel(int32_t JobLevel) { m_JobLevel = JobLevel; };
    void setJobLevel(int32_t JobLevel) { m_JobLevel = JobLevel; };
    void set_JobType(int32_t JobType) { m_JobType = JobType; };

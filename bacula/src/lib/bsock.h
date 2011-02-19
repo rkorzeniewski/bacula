@@ -86,6 +86,7 @@ private:
    int m_port;                        /* desired port */
    btimer_t *m_tid;                   /* timer id */
    boffset_t m_data_end;              /* offset of last valid data written */
+   int32_t m_FileIndex;               /* last valid attr spool FI */
    volatile bool m_timed_out: 1;      /* timed out in read/write */
    volatile bool m_terminated: 1;     /* set when BNET_TERMINATE arrives */
    bool m_duped: 1;                   /* set if duped BSOCK */

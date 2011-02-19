@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2004-2010 Free Software Foundation Europe e.V.
+   Copyright (C) 2004-2011 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -218,6 +218,7 @@ static bool despool_data(DCR *dcr, bool commit)
    JCR *jcr = dcr->jcr;
    int stat;
    char ec1[50];
+   BSOCK *dir = jcr->dir_bsock;
 
    Dmsg0(100, "Despooling data\n");
    if (jcr->dcr->job_spool_size == 0) {
@@ -303,6 +304,16 @@ static bool despool_data(DCR *dcr, bool commit)
                dcr->dev->print_name(), dcr->dev->bstrerror());
       }
       Dmsg3(800, "Write block ok=%d FI=%d LI=%d\n", ok, block->FirstIndex, block->LastIndex);
+   }
+
+   /*
+    * If this Job is incomplete, we need to backup the FileIndex
+    *  to the last correctly saved file so that the JobMedia
+    *  LastIndex is correct.
+    */
+   if (jcr->is_JobStatus(JS_Incomplete)) {
+      dcr->VolLastIndex = dir->get_FileIndex();
+      Dmsg1(100, "======= Set FI=%ld\n", dir->get_FileIndex());
    }
 
    if (!dir_create_jobmedia_record(dcr)) {
@@ -664,20 +675,37 @@ static bool blast_attr_spool_file(JCR *jcr, boffset_t size)
 
 bool commit_attribute_spool(JCR *jcr)
 {
-   boffset_t size;
+   boffset_t size, data_end;
    char ec1[30];
    char tbuf[100];
+   BSOCK *dir;
 
    Dmsg1(100, "Commit attributes at %s\n", bstrftimes(tbuf, sizeof(tbuf),
          (utime_t)time(NULL)));
    if (are_attributes_spooled(jcr)) {
-      if (fseeko(jcr->dir_bsock->m_spool_fd, 0, SEEK_END) != 0) {
+      dir = jcr->dir_bsock;
+      if (fseeko(dir->m_spool_fd, 0, SEEK_END) != 0) {
          berrno be;
          Jmsg(jcr, M_FATAL, 0, _("Fseek on attributes file failed: ERR=%s\n"),
               be.bstrerror());
          goto bail_out;
       }
-      size = ftello(jcr->dir_bsock->m_spool_fd);
+      size = ftello(dir->m_spool_fd);
+      if (jcr->is_JobStatus(JS_Incomplete)) {
+         data_end = dir->get_data_end();
+         /* Check and truncate to last valid data_end if necssary */
+         if (size > data_end) {
+            if (ftruncate(fileno(dir->m_spool_fd), data_end) != 0) {
+               berrno be;
+               Jmsg(jcr, M_FATAL, 0, _("Truncate on attributes file failed: ERR=%s\n"),
+                    be.bstrerror());
+               goto bail_out;
+            }
+            Dmsg2(100, "=== Attrib spool truncated from %lld to %lld\n", 
+                  size, data_end);
+            size = data_end;
+         }
+      }
       if (size < 0) {
          berrno be;
          Jmsg(jcr, M_FATAL, 0, _("Fseek on attributes file failed: ERR=%s\n"),
@@ -699,14 +727,14 @@ bool commit_attribute_spool(JCR *jcr)
          /* Can't read spool file from director side,
           * send content over network.
           */
-         jcr->dir_bsock->despool(update_attr_spool_size, size);
+         dir->despool(update_attr_spool_size, size);
       }
-      return close_attr_spool_file(jcr, jcr->dir_bsock);
+      return close_attr_spool_file(jcr, dir);
    }
    return true;
 
 bail_out:
-   close_attr_spool_file(jcr, jcr->dir_bsock);
+   close_attr_spool_file(jcr, dir);
    return false;
 }
 

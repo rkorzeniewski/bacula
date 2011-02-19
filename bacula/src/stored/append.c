@@ -181,6 +181,7 @@ bool do_append_data(JCR *jcr)
       if (sscanf(fd->msg, "%ld %ld", &file_index, &stream) != 2) {
          Jmsg1(jcr, M_FATAL, 0, _("Malformed data header from FD: %s\n"), fd->msg);
          ok = false;
+         possible_incomplete_job(jcr, last_file_index);
          break;
       }
 
@@ -301,6 +302,7 @@ fi_checked:
          if (ok && !jcr->is_job_canceled()) {
             Jmsg1(jcr, M_FATAL, 0, _("Error writing end session label. ERR=%s\n"),
                   dev->bstrerror());
+            possible_incomplete_job(jcr, last_file_index);
          }
          set_jcr_job_status(jcr, JS_ErrorTerminated);
          ok = false;
@@ -317,18 +319,15 @@ fi_checked:
             Jmsg2(jcr, M_FATAL, 0, _("Fatal append error on device %s: ERR=%s\n"),
                   dev->print_name(), dev->bstrerror());
             Dmsg0(100, _("Set ok=FALSE after write_block_to_device.\n"));
+            possible_incomplete_job(jcr, last_file_index);
          }
          set_jcr_job_status(jcr, JS_ErrorTerminated);
          ok = false;
       }
-      if (dev->VolCatInfo.VolCatName[0] == 0) {
-         Pmsg0(000, _("NULL Volume name. This shouldn't happen!!!\n"));
-         Dmsg0(000, _("NULL Volume name. This shouldn't happen!!!\n"));
-      }
    }
 
 
-   if (!ok && (jcr->getJobStatus() != JS_Incomplete)) {
+   if (!ok && !jcr->is_JobStatus(JS_Incomplete)) {
       discard_data_spool(dcr);
    } else {
       /* Note: if commit is OK, the device will remain blocked */
@@ -345,7 +344,7 @@ fi_checked:
     */
    release_device(dcr);
 
-   if ((!ok || jcr->is_job_canceled()) && (jcr->getJobStatus() != JS_Incomplete)) {
+   if ((!ok || jcr->is_job_canceled()) && !jcr->is_JobStatus(JS_Incomplete)) {
       discard_attribute_spool(jcr);
    } else {
       commit_attribute_spool(jcr);
