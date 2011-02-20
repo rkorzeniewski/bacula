@@ -616,17 +616,18 @@ static bool reschedule_job(JCR *jcr, jobq_t *jq, jobq_item_t *je)
    /*
     * Reschedule the job if requested and possible
     */
-   /* Basic condition is that more times remain */
+   /* Basic condition is that more reschedule times remain */
    if (jcr->job->RescheduleTimes == 0 ||
        jcr->reschedule_count < jcr->job->RescheduleTimes) {
       resched = 
          /* Check for incomplete jobs */
-         (jcr->job->RescheduleIncompleteJobs && jcr->is_incomplete()) ||
+         (jcr->job->RescheduleIncompleteJobs && 
+          jcr->is_incomplete() && jcr->is_JobType(JT_BACKUP)) ||
          /* Check for failed jobs */
          (jcr->job->RescheduleOnError &&
-          jcr->JobStatus != JS_Terminated &&
-          jcr->JobStatus != JS_Canceled &&
-          jcr->getJobType() == JT_BACKUP);
+          !jcr->is_JobStatus(JS_Terminated) &&
+          !jcr->is_JobStatus(JS_Canceled) &&
+          jcr->is_JobType(JT_BACKUP));
    }
    if (resched) {
        char dt[50], dt2[50];
