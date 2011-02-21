@@ -80,6 +80,7 @@ int       b_strerror(int errnum, char *buf, size_t bufsiz);
 char     *escape_filename(const char *file_path);
 int       Zdeflate(char *in, int in_len, char *out, int &out_len);
 int       Zinflate(char *in, int in_len, char *out, int &out_len);
+void      stack_trace();
 
 /* bnet.c */
 int32_t    bnet_recv             (BSOCK *bsock);

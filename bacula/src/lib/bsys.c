@@ -751,3 +751,61 @@ int Zinflate(char *in, int in_len, char *out, int &out_len)
    return 1;
 #endif
 }
+
+#if HAVE_BACKTRACE && HAVE_GCC
+#include <cxxabi.h>
+#include <execinfo.h>
+void stack_trace()
+{
+   const size_t max_depth = 100;
+   size_t stack_depth;
+   void *stack_addrs[max_depth];
+   char **stack_strings;
+   
+   stack_depth = backtrace(stack_addrs, max_depth);
+   stack_strings = backtrace_symbols(stack_addrs, stack_depth);
+   
+   for (size_t i = 3; i < stack_depth; i++) {
+      size_t sz = 200; // just a guess, template names will go much wider
+      char *function = (char *)malloc(sz);
+      char *begin = 0, *end = 0;
+      // find the parentheses and address offset surrounding the mangled name
+      for (char *j = stack_strings[i]; *j; ++j) {
+         if (*j == '(') {
+            begin = j;
+         }
+         else if (*j == '+') {
+            end = j;
+         }
+      }
+      if (begin && end) {
+         *begin++ = '\0';
+         *end = '\0';
+         // found our mangled name, now in [begin, end)
+         
+         int status;
+         char *ret = abi::__cxa_demangle(begin, function, &sz, &status);
+         if (ret) {
+            // return value may be a realloc() of the input
+            function = ret;
+         }
+         else {
+            // demangling failed, just pretend it's a C function with no args
+            strncpy(function, begin, sz);
+            strncat(function, "()", sz);
+            function[sz-1] = '\0';
+         }
+         Pmsg2(000, "    %s:%s\n", stack_strings[i], function);
+      }
+      else
+      {
+         // didn't find the mangled name, just print the whole line
+         Pmsg1(000, "    %s\n", stack_strings[i]);
+      }
+      free(function);
+   }
+   free(stack_strings); // malloc()ed by backtrace_symbols
+}
+#else /* HAVE_BACKTRACE && HAVE_GCC */
+void stack_trace() {}
+#endif /* HAVE_BACKTRACE && HAVE_GCC */
