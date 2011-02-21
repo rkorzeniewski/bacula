@@ -388,7 +388,7 @@ sub add_attribute
             $done=0;
         }
 
-        if ($l =~ /\Q$attr\E/i) {
+        if ($l =~ /^\s*\Q$attr\E/i) {
             if (!$obj || $cur_obj eq $obj) {
                 if (!$name || $cur_name eq $name) {
                     $l =~ s/\Q$attr\E\s*=\s*.+/$attr = $value/ig;
@@ -397,7 +397,7 @@ sub add_attribute
             }
         }
 
-        if ($l =~ /Name\s*=\s*"?([\w\d\.-]+)"?/i) {
+        if ($l =~ /^\s*Name\s*=\s*"?([\w\d\.-]+)"?/i) {
             $cur_name = $1;
         }
 
