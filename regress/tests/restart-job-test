@@ -24,6 +24,9 @@ label storage=File volume=TestVolume001
 run job=$JobName yes
 wait
 messages
+sql
+select * from JobMedia where JobId=1;
+
 quit
 END_OF_DATA
 

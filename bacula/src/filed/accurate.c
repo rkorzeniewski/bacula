@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2009 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2011 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -192,7 +192,7 @@ bool accurate_finish(JCR *jcr)
          }
       }
       accurate_free(jcr);
-      if (!jcr->incomplete && jcr->is_JobLevel(L_FULL)) {
+      if (jcr->is_JobLevel(L_FULL)) {
          Jmsg(jcr, M_INFO, 0, _("Space saved with Base jobs: %lld MB\n"), 
               jcr->base_size/(1024*1024));
       }

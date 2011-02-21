@@ -26,6 +26,9 @@ setdebug level=0 trace=0 hangup=100 client
 run job=$JobName yes
 wait
 messages
+sql
+select * from JobMedia;
+
 quit
 END_OF_DATA
 
@@ -42,6 +45,9 @@ setdebug level=0 trace=0 hangup=50 client
 run job=$JobName yes
 wait
 messages
+sql
+select * from JobMedia;
+
 @# 
 @# now do a restore
 @#

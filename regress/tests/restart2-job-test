@@ -29,6 +29,9 @@ END_OF_DATA
 
 run_bacula  
 
+# Note, the following stops and restarts the FD while it
+#  is running to simulate a crash, so it is normal if
+#  orphanned buffers are reported
 sleep 5
 $bin/bacula-ctl-fd stop
 sleep 5
@@ -39,6 +42,9 @@ cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @$out ${cwd}/tmp/log1.out
 wait
 messages
+sql
+select * from JobMedia where JobId=1;
+
 quit
 END_OF_DATA
 

@@ -31,6 +31,9 @@ setdebug level=200 trace=1 dir
 run job=$JobName yes
 wait
 messages
+sql
+select * from JobMedia;
+
 setdebug level=0 trace=0 dir
 @$out ${cwd}/tmp/log3.out
 list jobs
