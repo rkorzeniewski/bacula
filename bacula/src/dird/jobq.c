@@ -622,7 +622,8 @@ static bool reschedule_job(JCR *jcr, jobq_t *jq, jobq_item_t *je)
       resched = 
          /* Check for incomplete jobs */
          (jcr->job->RescheduleIncompleteJobs && 
-          jcr->is_incomplete() && jcr->is_JobType(JT_BACKUP)) ||
+          jcr->is_incomplete() && jcr->is_JobType(JT_BACKUP) &&
+          !jcr->is_JobLevel(L_BASE)) ||
          /* Check for failed jobs */
          (jcr->job->RescheduleOnError &&
           !jcr->is_JobStatus(JS_Terminated) &&

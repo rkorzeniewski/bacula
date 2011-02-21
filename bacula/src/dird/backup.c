@@ -242,36 +242,36 @@ bool send_accurate_current_files(JCR *jcr)
    db_list_ctx nb;
    char ed1[50];
 
+   /* In base level, no previous job is used and no restart incomplete jobs */
+   if (jcr->is_canceled() || jcr->is_JobLevel(L_BASE)) {
+      return true;
+   }
+   if (!jcr->accurate && !jcr->incomplete) {
+      return true;
+   }
+
    /* For incomplete Jobs, we add our own id */
    if (jcr->incomplete) {
       edit_int64(jcr->JobId, ed1);   
       jobids.add(ed1);
-   } else {
-      if (!jcr->accurate || job_canceled(jcr)) {
-         return true;
-      }
-      /* In base level, no previous job is used */
-      if (jcr->is_JobLevel(L_BASE)) {
-         return true;
-      }
+   }
    
-      if (jcr->is_JobLevel(L_FULL)) {
-         /* On Full mode, if no previous base job, no accurate things */
-         if (!get_base_jobids(jcr, &jobids)) {
-            return true;
-         }
-         jcr->HasBase = true;
-         Jmsg(jcr, M_INFO, 0, _("Using BaseJobId(s): %s\n"), jobids.list);
+   if (jcr->is_JobLevel(L_FULL)) {
+      /* On Full mode, if no previous base job, no accurate things */
+      if (!get_base_jobids(jcr, &jobids) && !jcr->incomplete) {
+         return true;
+      }
+      jcr->HasBase = true;
+      Jmsg(jcr, M_INFO, 0, _("Using BaseJobId(s): %s\n"), jobids.list);
 
-      } else {
-         /* For Incr/Diff level, we search for older jobs */
-         db_accurate_get_jobids(jcr, jcr->db, &jcr->jr, &jobids);
+   } else {
+      /* For Incr/Diff level, we search for older jobs */
+      db_accurate_get_jobids(jcr, jcr->db, &jcr->jr, &jobids);
 
-         /* We are in Incr/Diff, but no Full to build the accurate list... */
-         if (jobids.count == 0) {
-            Jmsg(jcr, M_FATAL, 0, _("Cannot find previous jobids.\n"));
-            return false;  /* fail */
-         }
+      /* We are in Incr/Diff, but no Full to build the accurate list... */
+      if (jobids.count == 0) {
+         Jmsg(jcr, M_FATAL, 0, _("Cannot find previous jobids.\n"));
+         return false;  /* fail */
       }
    }
 

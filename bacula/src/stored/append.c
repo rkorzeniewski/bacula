@@ -55,9 +55,10 @@ void possible_incomplete_job(JCR *jcr, int32_t last_file_index)
     *  for a production system, we probably want something like
     *  100-1000 files, and some number of bytes of data.
     *
-    *  ****FIXME**** update this
+    *  ****FIXME**** set last_file_index to something more
+    *    reasonable, and maybe check JobBytes.
     */
-   if (last_file_index > 10) {
+   if (jcr->spool_attributes && last_file_index > 10) {
       jcr->setJobStatus(JS_Incomplete);
    }
 }
