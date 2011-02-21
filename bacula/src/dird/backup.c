@@ -332,8 +332,13 @@ bool do_backup(JCR *jcr)
    }
 
    /* Print Job Start message */
-   Jmsg(jcr, M_INFO, 0, _("Start Backup JobId %s, Job=%s\n"),
-        edit_uint64(jcr->JobId, ed1), jcr->Job);
+   if (jcr->incomplete) {
+      Jmsg(jcr, M_INFO, 0, _("Restart Incomplete Backup JobId %s, Job=%s\n"),
+           edit_uint64(jcr->JobId, ed1), jcr->Job);
+   } else {
+      Jmsg(jcr, M_INFO, 0, _("Start Backup JobId %s, Job=%s\n"),
+           edit_uint64(jcr->JobId, ed1), jcr->Job);
+   }
 
    jcr->setJobStatus(JS_Running);
    Dmsg2(100, "JobId=%d JobLevel=%c\n", jcr->jr.JobId, jcr->jr.JobLevel);
