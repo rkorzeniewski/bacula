@@ -250,20 +250,14 @@ bool send_accurate_current_files(JCR *jcr)
       return true;
    }
 
-   /* For incomplete Jobs, we add our own id */
-   if (jcr->incomplete) {
-      edit_int64(jcr->JobId, ed1);   
-      jobids.add(ed1);
-   }
-   
    if (jcr->is_JobLevel(L_FULL)) {
       /* On Full mode, if no previous base job, no accurate things */
-      if (!get_base_jobids(jcr, &jobids) && !jcr->incomplete) {
+      if (get_base_jobids(jcr, &jobids)) {
+         jcr->HasBase = true;
+         Jmsg(jcr, M_INFO, 0, _("Using BaseJobId(s): %s\n"), jobids.list);
+      } else if (!jcr->incomplete) {
          return true;
       }
-      jcr->HasBase = true;
-      Jmsg(jcr, M_INFO, 0, _("Using BaseJobId(s): %s\n"), jobids.list);
-
    } else {
       /* For Incr/Diff level, we search for older jobs */
       db_accurate_get_jobids(jcr, jcr->db, &jcr->jr, &jobids);
@@ -273,6 +267,12 @@ bool send_accurate_current_files(JCR *jcr)
          Jmsg(jcr, M_FATAL, 0, _("Cannot find previous jobids.\n"));
          return false;  /* fail */
       }
+   }
+
+   /* For incomplete Jobs, we add our own id */
+   if (jcr->incomplete) {
+      edit_int64(jcr->JobId, ed1);   
+      jobids.add(ed1);
    }
 
    /* Don't send and store the checksum if fileset doesn't require it */
@@ -351,7 +351,10 @@ bool do_backup(JCR *jcr)
    if (jcr->incomplete) {
       edit_int64(jcr->JobId, ed1);   
       Mmsg(buf, "SELECT max(FileIndex) FROM File WHERE JobId=%s", ed1);
-      if (!db_sql_query(jcr->db, buf.c_str(), db_int64_handler, &job)) {
+      if (db_sql_query(jcr->db, buf.c_str(), db_int64_handler, &job)) {
+         Jmsg(jcr, M_INFO, 0, _("Found %ld files from prior incomplete Job.\n"),
+            (int32_t)job.value);
+      } else {
          Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db));
          return false;
       }
