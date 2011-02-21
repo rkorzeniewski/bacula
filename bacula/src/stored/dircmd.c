@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2001-2010 Free Software Foundation Europe e.V.
+   Copyright (C) 2001-2011 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -302,6 +302,8 @@ static bool setdebug_cmd(JCR *jcr)
 
 /*
  * Cancel a Job
+ *   Be careful, we switch to using the job's JCR! So, using
+ *   BSOCKs on that jcr can have two threads in the same code.
  */
 static bool cancel_cmd(JCR *cjcr)
 {
@@ -315,14 +317,14 @@ static bool cancel_cmd(JCR *cjcr)
          dir->fsend(_("3904 Job %s not found.\n"), Job);
       } else {
          oldStatus = jcr->JobStatus;
-         set_jcr_job_status(jcr, JS_Canceled);
+         jcr->setJobStatus(JS_Canceled);
          Dmsg2(800, "Cancel JobId=%d %p\n", jcr->JobId, jcr);
          if (!jcr->authenticated && oldStatus == JS_WaitFD) {
             pthread_cond_signal(&jcr->job_start_wait); /* wake waiting thread */
          }
          if (jcr->file_bsock) {
-            jcr->file_bsock->signal(BNET_TERMINATE);
             jcr->file_bsock->set_terminated();
+            jcr->file_bsock->set_timed_out();
             Dmsg2(800, "Term bsock jid=%d %p\n", jcr->JobId, jcr);
          } else {
             /* Still waiting for FD to connect, release it */
@@ -340,9 +342,7 @@ static bool cancel_cmd(JCR *cjcr)
             Dmsg1(100, "JobId=%u broadcast wait_device_release\n", (uint32_t)jcr->JobId);
             pthread_cond_broadcast(&wait_device_release);
          }
-         Jmsg(jcr, M_INFO, 0, _("JobId=%d Job=\"%s\" marked to be canceled.\n"), 
-            (int)jcr->JobId, jcr->Job);
-         dir->fsend(_("3000 Job %s marked to be canceled.\n"), jcr->Job);
+         dir->fsend(_("3000 JobId=%ld Job=\"%s\" marked to be canceled.\n"), jcr->JobId, jcr->Job);
          free_jcr(jcr);
       }
    } else {
