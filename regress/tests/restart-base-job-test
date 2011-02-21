@@ -31,6 +31,8 @@ setdebug level=0 trace=0 hangup=100 client
 run job=$JobName yes
 wait
 messages
+@$out ${cwd}/tmp/log3.out
+list jobs
 quit
 END_OF_DATA
 
@@ -58,4 +60,21 @@ stop_bacula
 
 check_two_logs
 check_restore_diff
+
+nb_B=`awk -F '|' '/RestartJob.+ B.+ B/ { gsub(/,/, "");print $7}' $tmp/log3.out`
+nb_F=`awk -F '|' '/RestartJob.+F/ { gsub(/,/, ""); print $7}' $tmp/log3.out`
+
+if [ $nb_F -ne $nb_B ]; then
+    print_debug "ERROR: Base and Full should have the same number of files"
+    estat=1
+fi 
+
+nb_B=`awk -F '|' '/RestartJob.+B.+B/ { gsub(/,/, ""); print $8}' $tmp/log3.out`
+nb_F=`awk -F '|' '/RestartJob.+F/ { gsub(/,/, ""); print $8}' $tmp/log3.out`
+
+if [ $nb_F -gt 1000000 ]; then
+    print_debug "ERROR: Base job should backup only one file"
+    estat=2
+fi
+
 end_test
