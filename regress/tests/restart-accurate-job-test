@@ -15,6 +15,7 @@ change_jobname NightlySave $JobName
 
 $bperl -e "add_attribute('$conf/bacula-dir.conf', 'Accurate', 'yes', 'Job', 'RestartJob')"
 start_test
+touch $cwd/build/po/testfile
 
 cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @$out /dev/null
@@ -42,6 +43,7 @@ cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 setdebug level=0 trace=0 hangup=50 client
 @exec "sh -c 'touch $cwd/build/po/*'"
 @exec "sh -c 'touch $cwd/build/src/dird/*'"
+@exec "rm $cwd/build/po/testfile"
 run job=$JobName yes
 wait
 messages
