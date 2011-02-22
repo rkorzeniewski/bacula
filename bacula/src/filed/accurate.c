@@ -184,6 +184,10 @@ bool accurate_finish(JCR *jcr)
 {
    bool ret = true;
 
+   if (jcr->is_canceled() || jcr->is_incomplete()) {
+      accurate_free(jcr);
+      return ret;
+   }
    if (jcr->accurate) {
       if (jcr->is_JobLevel(L_FULL)) {
          if (!jcr->incomplete) {
