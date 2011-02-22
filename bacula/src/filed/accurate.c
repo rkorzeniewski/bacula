@@ -182,14 +182,15 @@ void accurate_free(JCR *jcr)
 /* Send the deleted or the base file list and cleanup  */
 bool accurate_finish(JCR *jcr)
 {
-   bool ret=true;
+   bool ret = true;
+
    if (jcr->accurate) {
-      if (!jcr->incomplete) {
-         if (jcr->is_JobLevel(L_FULL)) {
+      if (jcr->is_JobLevel(L_FULL)) {
+         if (!jcr->incomplete) {
             ret = accurate_send_base_file_list(jcr);
-         } else if (!jcr->incomplete) {
-            ret = accurate_send_deleted_list(jcr);
          }
+      } else {
+         ret = accurate_send_deleted_list(jcr);
       }
       accurate_free(jcr);
       if (jcr->is_JobLevel(L_FULL)) {
