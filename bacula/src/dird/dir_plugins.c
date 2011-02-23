@@ -371,7 +371,7 @@ static bRC baculaSetValue(bpContext *ctx, bwVariable var, void *value)
          for (int i=0; ok && joblevels[i].level_name; i++) {
             if (strcasecmp(strval, joblevels[i].level_name) == 0) {
                if (joblevels[i].job_type == jcr->getJobType()) {
-                  jcr->set_JobLevel(joblevels[i].level);
+                  jcr->setJobLevel(joblevels[i].level);
                   jcr->jr.JobLevel = jcr->getJobLevel();
                   ok = false;
                }

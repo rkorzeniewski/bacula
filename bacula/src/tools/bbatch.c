@@ -131,10 +131,10 @@ int main (int argc, char *argv[])
          restore_list=bstrdup(optarg);
          break;
       case 'B':
-	 disable_batch = true;
+         disable_batch = true;
          break;
       case 'b':
-	 disable_batch = false;
+         disable_batch = false;
          break;
       case 'd':                    /* debug level */
          if (*optarg == 't') {
@@ -231,8 +231,8 @@ int main (int argc, char *argv[])
       bjcr->NumReadVolumes = 0;
       bjcr->NumWriteVolumes = 0;
       bjcr->JobId = getpid();
-      bjcr->set_JobType(JT_CONSOLE);
-      bjcr->set_JobLevel(L_FULL);
+      bjcr->setJobType(JT_CONSOLE);
+      bjcr->setJobLevel(L_FULL);
       bjcr->JobStatus = JS_Running;
       bjcr->where = bstrdup(files[i]);
       bjcr->job_name = get_pool_memory(PM_FNAME);

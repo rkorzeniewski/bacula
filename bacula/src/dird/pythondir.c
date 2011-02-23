@@ -294,7 +294,7 @@ int job_setattr(PyObject *self, char *attrname, PyObject *value)
          for (i=0; joblevels[i].level_name; i++) {
             if (strcmp(strval, joblevels[i].level_name) == 0) {
                if (joblevels[i].job_type == jcr->getJobType()) {
-                  jcr->set_JobLevel(joblevels[i].level);
+                  jcr->setJobLevel(joblevels[i].level);
                   jcr->jr.JobLevel = jcr->getJobLevel();
                   return 0;
                }

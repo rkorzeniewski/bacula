@@ -103,8 +103,8 @@ JCR *new_control_jcr(const char *base_name, int job_type)
    jcr->sd_auth_key = bstrdup("dummy"); /* dummy Storage daemon key */
    create_unique_job_name(jcr, base_name);
    jcr->sched_time = jcr->start_time;
-   jcr->set_JobType(job_type);
-   jcr->set_JobLevel(L_NONE);
+   jcr->setJobType(job_type);
+   jcr->setJobLevel(L_NONE);
    set_jcr_job_status(jcr, JS_Running);
    jcr->JobId = 0;
    return jcr;

@@ -284,7 +284,7 @@ void vbackup_cleanup(JCR *jcr, int TermCode)
    memset(&mr, 0, sizeof(mr));
    memset(&cr, 0, sizeof(cr));
 
-   jcr->set_JobLevel(L_FULL);         /* we want this to appear as a Full backup */
+   jcr->setJobLevel(L_FULL);         /* we want this to appear as a Full backup */
    jcr->jr.JobLevel = L_FULL;         /* we want this to appear as a Full backup */
    jcr->JobFiles = jcr->SDJobFiles;
    jcr->JobBytes = jcr->SDJobBytes;

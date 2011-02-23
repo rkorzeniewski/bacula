@@ -700,19 +700,19 @@ static void select_job_level(UAContext *ua, JCR *jcr)
 //       jcr->JobLevel = L_BASE;
 //       break;
       case 0:
-         jcr->set_JobLevel(L_FULL);
+         jcr->setJobLevel(L_FULL);
          break;
       case 1:
-         jcr->set_JobLevel(L_INCREMENTAL);
+         jcr->setJobLevel(L_INCREMENTAL);
          break;
       case 2:
-         jcr->set_JobLevel(L_DIFFERENTIAL);
+         jcr->setJobLevel(L_DIFFERENTIAL);
          break;
       case 3:
-         jcr->set_JobLevel(L_SINCE);
+         jcr->setJobLevel(L_SINCE);
          break;
       case 4:
-         jcr->set_JobLevel(L_VIRTUAL_FULL);
+         jcr->setJobLevel(L_VIRTUAL_FULL);
          break;
       default:
          break;
@@ -726,19 +726,19 @@ static void select_job_level(UAContext *ua, JCR *jcr)
       add_prompt(ua, _("Verify Volume Data (not yet implemented)"));
       switch (do_prompt(ua, "",  _("Select level"), NULL, 0)) {
       case 0:
-         jcr->set_JobLevel(L_VERIFY_INIT);
+         jcr->setJobLevel(L_VERIFY_INIT);
          break;
       case 1:
-         jcr->set_JobLevel(L_VERIFY_CATALOG);
+         jcr->setJobLevel(L_VERIFY_CATALOG);
          break;
       case 2:
-         jcr->set_JobLevel(L_VERIFY_VOLUME_TO_CATALOG);
+         jcr->setJobLevel(L_VERIFY_VOLUME_TO_CATALOG);
          break;
       case 3:
-         jcr->set_JobLevel(L_VERIFY_DISK_TO_CATALOG);
+         jcr->setJobLevel(L_VERIFY_DISK_TO_CATALOG);
          break;
       case 4:
-         jcr->set_JobLevel(L_VERIFY_DATA);
+         jcr->setJobLevel(L_VERIFY_DATA);
          break;
       default:
          break;
@@ -789,7 +789,7 @@ static bool display_job_parameters(UAContext *ua, JCR *jcr, JOB *job, const char
                  bstrutime(dt, sizeof(dt), jcr->sched_time),
                  jcr->JobPriority);
       }
-      jcr->set_JobLevel(L_FULL);
+      jcr->setJobLevel(L_FULL);
       break;
    case JT_BACKUP:
    case JT_VERIFY:
@@ -924,7 +924,7 @@ static bool display_job_parameters(UAContext *ua, JCR *jcr, JOB *job, const char
             jcr->RestoreJobId = ua->int64_val;
          }
       }
-      jcr->set_JobLevel(L_FULL);      /* default level */
+      jcr->setJobLevel(L_FULL);      /* default level */
       Dmsg1(800, "JobId to restore=%d\n", jcr->RestoreJobId);
       if (jcr->RestoreJobId == 0) {
          /* RegexWhere is take before RestoreWhere */
@@ -1081,7 +1081,7 @@ static bool display_job_parameters(UAContext *ua, JCR *jcr, JOB *job, const char
    case JT_COPY:
    case JT_MIGRATE:
       char *prt_type;
-      jcr->set_JobLevel(L_FULL);      /* default level */
+      jcr->setJobLevel(L_FULL);      /* default level */
       if (ua->api) {
          ua->signal(BNET_RUN_CMD);
          if (jcr->getJobType() == JT_COPY) {

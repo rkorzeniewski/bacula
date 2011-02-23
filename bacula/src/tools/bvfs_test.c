@@ -204,8 +204,8 @@ int main (int argc, char *argv[])
    }
    JCR *bjcr = new_jcr(sizeof(JCR), NULL);
    bjcr->JobId = getpid();
-   bjcr->set_JobType(JT_CONSOLE);
-   bjcr->set_JobLevel(L_FULL);
+   bjcr->setJobType(JT_CONSOLE);
+   bjcr->setJobLevel(L_FULL);
    bjcr->JobStatus = JS_Running;
    bjcr->client_name = get_pool_memory(PM_FNAME);
    pm_strcpy(bjcr->client_name, "Dummy.Client.Name");

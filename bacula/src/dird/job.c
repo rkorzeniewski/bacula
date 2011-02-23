@@ -1114,15 +1114,15 @@ void get_job_storage(USTORE *store, JOB *job, RUN *run)
 void set_jcr_defaults(JCR *jcr, JOB *job)
 {
    jcr->job = job;
-   jcr->set_JobType(job->JobType);
+   jcr->setJobType(job->JobType);
    jcr->JobStatus = JS_Created;
 
    switch (jcr->getJobType()) {
    case JT_ADMIN:
-      jcr->set_JobLevel(L_NONE);
+      jcr->setJobLevel(L_NONE);
       break;
    default:
-      jcr->set_JobLevel(job->JobLevel);
+      jcr->setJobLevel(job->JobLevel);
       break;
    }
 
@@ -1182,17 +1182,17 @@ void set_jcr_defaults(JCR *jcr, JOB *job)
    if (jcr->getJobLevel() == 0) {
       switch (jcr->getJobType()) {
       case JT_VERIFY:
-         jcr->set_JobLevel(L_VERIFY_CATALOG);
+         jcr->setJobLevel(L_VERIFY_CATALOG);
          break;
       case JT_BACKUP:
-         jcr->set_JobLevel(L_INCREMENTAL);
+         jcr->setJobLevel(L_INCREMENTAL);
          break;
       case JT_RESTORE:
       case JT_ADMIN:
-         jcr->set_JobLevel(L_NONE);
+         jcr->setJobLevel(L_NONE);
          break;
       default:
-         jcr->set_JobLevel(L_FULL);
+         jcr->setJobLevel(L_FULL);
          break;
       }
    }

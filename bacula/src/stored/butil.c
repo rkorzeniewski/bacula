@@ -92,8 +92,8 @@ JCR *setup_jcr(const char *name, char *dev_name, BSR *bsr,
    jcr->NumReadVolumes = 0;
    jcr->NumWriteVolumes = 0;
    jcr->JobId = 0;
-   jcr->set_JobType(JT_CONSOLE);
-   jcr->set_JobLevel(L_FULL);
+   jcr->setJobType(JT_CONSOLE);
+   jcr->setJobLevel(L_FULL);
    jcr->JobStatus = JS_Terminated;
    jcr->where = bstrdup("");
    jcr->job_name = get_pool_memory(PM_FNAME);

@@ -496,7 +496,7 @@ static void prt_runtime(UAContext *ua, sched_pkt *sp)
       db_close_database(jcr, jcr->db);
    }
    jcr->db = ua->db;                  /* restore ua db to jcr */
-   jcr->set_JobType(orig_jobtype);
+   jcr->setJobType(orig_jobtype);
 }
 
 /*

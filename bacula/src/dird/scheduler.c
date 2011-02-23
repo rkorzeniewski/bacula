@@ -200,7 +200,7 @@ again:
    ASSERT(job);
    set_jcr_defaults(jcr, job);
    if (run->level) {
-      jcr->set_JobLevel(run->level);  /* override run level */
+      jcr->setJobLevel(run->level);  /* override run level */
    }
    if (run->pool) {
       jcr->pool = run->pool;          /* override pool */

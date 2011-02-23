@@ -1079,7 +1079,7 @@ bool get_level_from_name(JCR *jcr, const char *level_name)
    bool found = false;
    for (int i=0; joblevels[i].level_name; i++) {
       if (strcasecmp(level_name, joblevels[i].level_name) == 0) {
-         jcr->set_JobLevel(joblevels[i].level);
+         jcr->setJobLevel(joblevels[i].level);
          found = true;
          break;
       }

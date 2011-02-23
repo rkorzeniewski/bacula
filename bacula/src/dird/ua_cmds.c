@@ -1190,7 +1190,7 @@ static int estimate_cmd(UAContext *ua, const char *cmd)
    JCR *jcr = ua->jcr;
    int accurate=-1;
 
-   jcr->set_JobLevel(L_FULL);
+   jcr->setJobLevel(L_FULL);
    for (int i=1; i<ua->argc; i++) {
       if (strcasecmp(ua->argk[i], NT_("client")) == 0 ||
           strcasecmp(ua->argk[i], NT_("fd")) == 0) {
@@ -1303,7 +1303,7 @@ static int estimate_cmd(UAContext *ua, const char *cmd)
    }
 
    jcr->job = job;
-   jcr->set_JobType(JT_BACKUP);
+   jcr->setJobType(JT_BACKUP);
    init_jcr_job_record(jcr);
 
    if (!get_or_create_client_record(jcr)) {

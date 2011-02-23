@@ -523,7 +523,7 @@ void *device_initialization(void *arg)
 
    pthread_detach(pthread_self());
    jcr = new_jcr(sizeof(JCR), stored_free_jcr);
-   jcr->set_JobType(JT_SYSTEM);
+   jcr->setJobType(JT_SYSTEM);
    /* Initialize FD start condition variable */
    int errstat = pthread_cond_init(&jcr->job_start_wait, NULL);
    if (errstat != 0) {

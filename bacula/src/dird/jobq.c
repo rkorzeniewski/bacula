@@ -675,7 +675,7 @@ static bool reschedule_job(JCR *jcr, jobq_t *jq, jobq_item_t *je)
       set_jcr_defaults(njcr, jcr->job);
       njcr->reschedule_count = jcr->reschedule_count;
       njcr->sched_time = jcr->sched_time;
-      njcr->set_JobLevel(jcr->getJobLevel());
+      njcr->setJobLevel(jcr->getJobLevel());
       njcr->pool = jcr->pool;
       njcr->run_pool_override = jcr->run_pool_override;
       njcr->full_pool = jcr->full_pool;

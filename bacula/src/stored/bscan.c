@@ -539,7 +539,7 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
 
          jr.PoolId = pr.PoolId;
          mjcr->start_time = jr.StartTime;
-         mjcr->set_JobLevel(jr.JobLevel);
+         mjcr->setJobLevel(jr.JobLevel);
 
          mjcr->client_name = get_pool_memory(PM_FNAME);
          pm_strcpy(mjcr->client_name, label.ClientName);
@@ -1310,8 +1310,8 @@ static JCR *create_jcr(JOB_DBR *jr, DEV_RECORD *rec, uint32_t JobId)
     *   the JobId and the ClientId.
     */
    jobjcr = new_jcr(sizeof(JCR), bscan_free_jcr);
-   jobjcr->set_JobType(jr->JobType);
-   jobjcr->set_JobLevel(jr->JobLevel);
+   jobjcr->setJobType(jr->JobType);
+   jobjcr->setJobLevel(jr->JobLevel);
    jobjcr->JobStatus = jr->JobStatus;
    bstrncpy(jobjcr->Job, jr->Job, sizeof(jobjcr->Job));
    jobjcr->JobId = JobId;      /* this is JobId on tape */

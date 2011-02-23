@@ -198,7 +198,7 @@ static bool append_data_cmd(JCR *jcr)
    Dmsg1(120, "Append data: %s", fd->msg);
    if (jcr->session_opened) {
       Dmsg1(110, "<bfiled: %s", fd->msg);
-      jcr->set_JobType(JT_BACKUP);
+      jcr->setJobType(JT_BACKUP);
       if (do_append_data(jcr)) {
          return true;
       } else {
@@ -331,7 +331,7 @@ static bool read_open_session(JCR *jcr)
    }
 
    jcr->session_opened = true;
-   jcr->set_JobType(JT_RESTORE);
+   jcr->setJobType(JT_RESTORE);
 
    /* Send "Ticket" to File Daemon */
    fd->fsend(OK_open, jcr->VolSessionId);
