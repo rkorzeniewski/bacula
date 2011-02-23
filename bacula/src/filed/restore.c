@@ -177,7 +177,7 @@ void do_restore(JCR *jcr)
    int non_support_xattr = 0;
 
    sd = jcr->store_bsock;
-   set_jcr_job_status(jcr, JS_Running);
+   jcr->setJobStatus(JS_Running);
 
    LockRes();
    CLIENT *client = (CLIENT *)GetNextRes(R_CLIENT, NULL);
@@ -188,7 +188,7 @@ void do_restore(JCR *jcr)
       buf_size = 0;                   /* use default */
    }
    if (!bnet_set_buffer_size(sd, buf_size, BNET_SETBUF_WRITE)) {
-      set_jcr_job_status(jcr, JS_ErrorTerminated);
+      jcr->setJobStatus(JS_ErrorTerminated);
       return;
    }
    jcr->buf_size = sd->msglen;
@@ -791,11 +791,11 @@ void do_restore(JCR *jcr)
    }
 
    close_previous_stream(rctx);
-   set_jcr_job_status(jcr, JS_Terminated);
+   jcr->setJobStatus(JS_Terminated);
    goto ok_out;
 
 bail_out:
-   set_jcr_job_status(jcr, JS_ErrorTerminated);
+   jcr->setJobStatus(JS_ErrorTerminated);
 
 ok_out:
    /*

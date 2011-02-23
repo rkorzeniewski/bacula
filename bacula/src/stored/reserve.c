@@ -69,7 +69,7 @@ bool use_cmd(JCR *jcr)
     * Get the device, media, and pool information
     */
    if (!use_storage_cmd(jcr)) {
-      set_jcr_job_status(jcr, JS_ErrorTerminated);
+      jcr->setJobStatus(JS_ErrorTerminated);
       memset(jcr->sd_auth_key, 0, strlen(jcr->sd_auth_key));
       return false;
    }

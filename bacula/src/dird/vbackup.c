@@ -193,7 +193,7 @@ _("This Job is not an Accurate backup so is not equivalent to a Full backup.\n")
     *
     */
    Dmsg0(110, "Open connection with storage daemon\n");
-   set_jcr_job_status(jcr, JS_WaitSD);
+   jcr->setJobStatus(JS_WaitSD);
    /*
     * Start conversation with Storage daemon
     */
@@ -223,7 +223,7 @@ _("This Job is not an Accurate backup so is not equivalent to a Full backup.\n")
    jcr->start_time = time(NULL);
    jcr->jr.StartTime = jcr->start_time;
    jcr->jr.JobTDate = jcr->start_time;
-   set_jcr_job_status(jcr, JS_Running);
+   jcr->setJobStatus(JS_Running);
 
    /* Update job start record */
    if (!db_update_job_start_record(jcr, jcr->db, &jcr->jr)) {
@@ -247,12 +247,12 @@ _("This Job is not an Accurate backup so is not equivalent to a Full backup.\n")
       return false;
    }
 
-   set_jcr_job_status(jcr, JS_Running);
+   jcr->setJobStatus(JS_Running);
 
    /* Pickup Job termination data */
    /* Note, the SD stores in jcr->JobFiles/ReadBytes/JobBytes/JobErrors */
    wait_for_storage_daemon_termination(jcr);
-   set_jcr_job_status(jcr, jcr->SDJobStatus);
+   jcr->setJobStatus(jcr->SDJobStatus);
    db_write_batch_file_records(jcr);    /* used by bulk batch file insert */
    if (jcr->JobStatus != JS_Terminated) {
       return false;
@@ -302,7 +302,7 @@ void vbackup_cleanup(JCR *jcr, int TermCode)
    if (!db_get_job_record(jcr, jcr->db, &jcr->jr)) {
       Jmsg(jcr, M_WARNING, 0, _("Error getting Job record for Job report: ERR=%s"),
          db_strerror(jcr->db));
-      set_jcr_job_status(jcr, JS_ErrorTerminated);
+      jcr->setJobStatus(JS_ErrorTerminated);
    }
 
    bstrncpy(cr.Name, jcr->client->name(), sizeof(cr.Name));
@@ -315,7 +315,7 @@ void vbackup_cleanup(JCR *jcr, int TermCode)
    if (!db_get_media_record(jcr, jcr->db, &mr)) {
       Jmsg(jcr, M_WARNING, 0, _("Error getting Media record for Volume \"%s\": ERR=%s"),
          mr.VolumeName, db_strerror(jcr->db));
-      set_jcr_job_status(jcr, JS_ErrorTerminated);
+      jcr->setJobStatus(JS_ErrorTerminated);
    }
 
    update_bootstrap_file(jcr);

@@ -157,7 +157,7 @@ bool do_migration_init(JCR *jcr)
    }
 
    if (jcr->previous_jr.JobId == 0 || jcr->ExpectedFiles == 0) {
-      set_jcr_job_status(jcr, JS_Terminated);
+      jcr->setJobStatus(JS_Terminated);
       Dmsg1(dbglevel, "JobId=%d expected files == 0\n", (int)jcr->JobId);
       if (jcr->previous_jr.JobId == 0) {
          Jmsg(jcr, M_INFO, 0, _("No previous Job found to %s.\n"), jcr->get_ActionName(0));
@@ -301,7 +301,7 @@ bool do_migration(JCR *jcr)
     *  so set a normal status, cleanup and return OK.
     */
    if (!mig_jcr) {
-      set_jcr_job_status(jcr, JS_Terminated);
+      jcr->setJobStatus(JS_Terminated);
       migration_cleanup(jcr, jcr->JobStatus);
       return true;
    }
@@ -311,7 +311,7 @@ bool do_migration(JCR *jcr)
            edit_int64(jcr->previous_jr.JobId, ed1),
            jcr->get_ActionName(0),
            db_strerror(jcr->db));
-      set_jcr_job_status(jcr, JS_Terminated);
+      jcr->setJobStatus(JS_Terminated);
       migration_cleanup(jcr, jcr->JobStatus);
       return true;
    }
@@ -322,7 +322,7 @@ bool do_migration(JCR *jcr)
          edit_int64(jcr->previous_jr.JobId, ed1),
          jcr->get_ActionName(1),
          jcr->get_OperationName());
-      set_jcr_job_status(jcr, JS_Terminated);
+      jcr->setJobStatus(JS_Terminated);
       migration_cleanup(jcr, jcr->JobStatus);
       return true;
    }
@@ -338,8 +338,8 @@ bool do_migration(JCR *jcr)
     *
     */
    Dmsg0(110, "Open connection with storage daemon\n");
-   set_jcr_job_status(jcr, JS_WaitSD);
-   set_jcr_job_status(mig_jcr, JS_WaitSD);
+   jcr->setJobStatus(JS_WaitSD);
+   mig_jcr->setJobStatus(JS_WaitSD);
    /*
     * Start conversation with Storage daemon
     */
@@ -373,7 +373,7 @@ bool do_migration(JCR *jcr)
    jcr->start_time = time(NULL);
    jcr->jr.StartTime = jcr->start_time;
    jcr->jr.JobTDate = jcr->start_time;
-   set_jcr_job_status(jcr, JS_Running);
+   jcr->setJobStatus(JS_Running);
 
    /* Update job start record for this migration control job */
    if (!db_update_job_start_record(jcr, jcr->db, &jcr->jr)) {
@@ -385,7 +385,7 @@ bool do_migration(JCR *jcr)
    mig_jcr->start_time = time(NULL);
    mig_jcr->jr.StartTime = mig_jcr->start_time;
    mig_jcr->jr.JobTDate = mig_jcr->start_time;
-   set_jcr_job_status(mig_jcr, JS_Running);
+   mig_jcr->setJobStatus(JS_Running);
 
    /* Update job start record for the real migration backup job */
    if (!db_update_job_start_record(mig_jcr, mig_jcr->db, &mig_jcr->jr)) {
@@ -415,13 +415,13 @@ bool do_migration(JCR *jcr)
    }
 
 
-   set_jcr_job_status(jcr, JS_Running);
-   set_jcr_job_status(mig_jcr, JS_Running);
+   jcr->setJobStatus(JS_Running);
+   mig_jcr->setJobStatus(JS_Running);
 
    /* Pickup Job termination data */
    /* Note, the SD stores in jcr->JobFiles/ReadBytes/JobBytes/JobErrors */
    wait_for_storage_daemon_termination(jcr);
-   set_jcr_job_status(jcr, jcr->SDJobStatus);
+   jcr->setJobStatus(jcr->SDJobStatus);
    db_write_batch_file_records(jcr);    /* used by bulk batch file insert */
    if (jcr->JobStatus != JS_Terminated) {
       return false;
@@ -1210,7 +1210,7 @@ void migration_cleanup(JCR *jcr, int TermCode)
       if (!db_get_job_record(jcr, jcr->db, &jcr->jr)) {
          Jmsg(jcr, M_WARNING, 0, _("Error getting Job record for Job report: ERR=%s"),
             db_strerror(jcr->db));
-         set_jcr_job_status(jcr, JS_ErrorTerminated);
+         jcr->setJobStatus(JS_ErrorTerminated);
       }
 
       update_bootstrap_file(mig_jcr);

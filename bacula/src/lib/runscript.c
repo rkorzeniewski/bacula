@@ -277,7 +277,7 @@ bool RUNSCRIPT::run(JCR *jcr, const char *name)
 bail_out:
    /* cancel running job properly */
    if (fail_on_error) {
-      set_jcr_job_status(jcr, JS_ErrorTerminated);
+      jcr->setJobStatus(JS_ErrorTerminated);
    }
    Dmsg1(100, "runscript failed. fail_on_error=%d\n", fail_on_error);
    return false;

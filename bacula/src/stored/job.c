@@ -93,7 +93,7 @@ bool job_cmd(JCR *jcr)
       pm_strcpy(jcr->errmsg, dir->msg);
       dir->fsend(BAD_job, stat, jcr->errmsg);
       Dmsg1(100, ">dird: %s", dir->msg);
-      set_jcr_job_status(jcr, JS_ErrorTerminated);
+      jcr->setJobStatus(JS_ErrorTerminated);
       return false;
    }
    Dmsg3(100, "==== incomplete=%d VolSesId=%d VolSesTime=%d\n", jcr->incomplete,
@@ -174,7 +174,7 @@ bool run_cmd(JCR *jcr)
       return false;
    }
 
-   set_jcr_job_status(jcr, JS_WaitFD);          /* wait for FD to connect */
+   jcr->setJobStatus(JS_WaitFD);          /* wait for FD to connect */
    dir_send_job_status(jcr);
 
    gettimeofday(&tv, &tz);
@@ -261,7 +261,7 @@ void handle_filed_connection(BSOCK *fd, char *job_name)
    }
 
    if (!jcr->authenticated) {
-      set_jcr_job_status(jcr, JS_ErrorTerminated);
+      jcr->setJobStatus(JS_ErrorTerminated);
    }
    pthread_cond_signal(&jcr->job_start_wait); /* wake waiting job */
    free_jcr(jcr);

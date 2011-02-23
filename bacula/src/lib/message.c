@@ -1270,7 +1270,7 @@ Jmsg(JCR *jcr, int type, utime_t mtime, const char *fmt,...)
     case M_FATAL:
        len = bsnprintf(rbuf, sizeof(rbuf), _("%s JobId %u: Fatal error: "), my_name, JobId);
        if (jcr) {
-          set_jcr_job_status(jcr, JS_FatalError);
+          jcr->setJobStatus(JS_FatalError);
        }
        if (jcr && jcr->JobErrors == 0) {
           jcr->JobErrors = 1;

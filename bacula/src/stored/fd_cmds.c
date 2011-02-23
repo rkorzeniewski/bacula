@@ -118,12 +118,12 @@ void run_job(JCR *jcr)
    dir->fsend(Job_start, jcr->Job);
    jcr->start_time = time(NULL);
    jcr->run_time = jcr->start_time;
-   set_jcr_job_status(jcr, JS_Running);
+   jcr->setJobStatus(JS_Running);
    dir_send_job_status(jcr);          /* update director */
    do_fd_commands(jcr);
    jcr->end_time = time(NULL);
    dequeue_messages(jcr);             /* send any queued messages */
-   set_jcr_job_status(jcr, JS_Terminated);
+   jcr->setJobStatus(JS_Terminated);
    generate_daemon_event(jcr, "JobEnd");
    dir->fsend(Job_end, jcr->Job, jcr->JobStatus, jcr->JobFiles,
       edit_uint64(jcr->JobBytes, ec1), jcr->JobErrors);
@@ -167,7 +167,7 @@ void do_fd_commands(JCR *jcr)
                   } else {
                      Jmsg0(jcr, M_FATAL, 0, _("Command error with FD, hanging up.\n"));
                   }
-                  set_jcr_job_status(jcr, JS_ErrorTerminated);
+                  jcr->setJobStatus(JS_ErrorTerminated);
                }
                quit = true;
             }

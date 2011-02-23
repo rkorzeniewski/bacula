@@ -317,7 +317,7 @@ default_path:
 
    dev->clear_append();
    dev->set_read();
-   set_jcr_job_status(jcr, JS_Running);
+   jcr->setJobStatus(JS_Running);
    dir_send_job_status(jcr);
    Jmsg(jcr, M_INFO, 0, _("Ready to read from volume \"%s\" on device %s.\n"),
       dcr->VolumeName, dev->print_name());

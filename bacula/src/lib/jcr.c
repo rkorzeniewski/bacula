@@ -863,12 +863,6 @@ static int get_status_priority(int JobStatus)
    return priority;
 }
 
-
-void set_jcr_job_status(JCR *jcr, int JobStatus)
-{
-   jcr->setJobStatus(JobStatus);
-}
-
 void JCR::setJobStatus(int newJobStatus)
 {
    JCR *jcr = this;
@@ -902,7 +896,7 @@ void JCR::setJobStatus(int newJobStatus)
    }
 
    if (oldJobStatus != jcr->JobStatus) {
-      Dmsg2(800, "leave set_job_status old=%c new=%c\n", oldJobStatus, newJobStatus);
+      Dmsg2(800, "leave setJobStatus old=%c new=%c\n", oldJobStatus, newJobStatus);
 //    generate_plugin_event(jcr, bEventStatusChange, NULL);
    }
 }

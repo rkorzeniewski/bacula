@@ -83,7 +83,7 @@ bool blast_data_to_storage_daemon(JCR *jcr, char *addr)
 
    sd = jcr->store_bsock;
 
-   set_jcr_job_status(jcr, JS_Running);
+   jcr->setJobStatus(JS_Running);
 
    Dmsg1(300, "bfiled: opened data connection %d to stored\n", sd->m_fd);
 
@@ -97,7 +97,7 @@ bool blast_data_to_storage_daemon(JCR *jcr, char *addr)
       buf_size = 0;                   /* use default */
    }
    if (!sd->set_buffer_size(buf_size, BNET_SETBUF_WRITE)) {
-      set_jcr_job_status(jcr, JS_ErrorTerminated);
+      jcr->setJobStatus(JS_ErrorTerminated);
       Jmsg(jcr, M_FATAL, 0, _("Cannot set buffer size FD->SD.\n"));
       return false;
    }
@@ -161,7 +161,7 @@ bool blast_data_to_storage_daemon(JCR *jcr, char *addr)
    /** Subroutine save_file() is called for each file */
    if (!find_files(jcr, (FF_PKT *)jcr->ff, save_file, plugin_save)) {
       ok = false;                     /* error */
-      set_jcr_job_status(jcr, JS_ErrorTerminated);
+      jcr->setJobStatus(JS_ErrorTerminated);
    }
 
    if (have_acl && jcr->acl_data->nr_errors > 0) {
@@ -831,7 +831,7 @@ static int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest,
          if ((zstat=deflateParams((z_stream*)jcr->pZLIB_compress_workset, 
               ff_pkt->GZIP_level, Z_DEFAULT_STRATEGY)) != Z_OK) {
             Jmsg(jcr, M_FATAL, 0, _("Compression deflateParams error: %d\n"), zstat);
-            set_jcr_job_status(jcr, JS_ErrorTerminated);
+            jcr->setJobStatus(JS_ErrorTerminated);
             goto err;
          }
       }
@@ -960,14 +960,14 @@ static int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest,
 
          if ((zstat=deflate((z_stream*)jcr->pZLIB_compress_workset, Z_FINISH)) != Z_STREAM_END) {
             Jmsg(jcr, M_FATAL, 0, _("Compression deflate error: %d\n"), zstat);
-            set_jcr_job_status(jcr, JS_ErrorTerminated);
+            jcr->setJobStatus(JS_ErrorTerminated);
             goto err;
          }
          compress_len = ((z_stream*)jcr->pZLIB_compress_workset)->total_out;
          /** reset zlib stream to be able to begin from scratch again */
          if ((zstat=deflateReset((z_stream*)jcr->pZLIB_compress_workset)) != Z_OK) {
             Jmsg(jcr, M_FATAL, 0, _("Compression deflateReset error: %d\n"), zstat);
-            set_jcr_job_status(jcr, JS_ErrorTerminated);
+            jcr->setJobStatus(JS_ErrorTerminated);
             goto err;
          }
 

@@ -47,7 +47,7 @@ int make_estimate(JCR *jcr)
 {
    int stat;
 
-   set_jcr_job_status(jcr, JS_Running);
+   jcr->setJobStatus(JS_Running);
 
    set_find_options((FF_PKT *)jcr->ff, jcr->incremental, jcr->mtime);
    /* in accurate mode, we overwrite the find_one check function */

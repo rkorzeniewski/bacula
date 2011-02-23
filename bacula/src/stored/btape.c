@@ -2212,7 +2212,7 @@ static void fillcmd()
     */
    Dmsg0(100, "just before acquire_device\n");
    if (!acquire_device_for_append(dcr)) {
-      set_jcr_job_status(jcr, JS_ErrorTerminated);
+      jcr->setJobStatus(JS_ErrorTerminated);
       exit_code = 1;
       return;
    }
@@ -2223,7 +2223,7 @@ static void fillcmd()
     * Write Begin Session Record
     */
    if (!write_session_label(dcr, SOS_LABEL)) {
-      set_jcr_job_status(jcr, JS_ErrorTerminated);
+      jcr->setJobStatus(JS_ErrorTerminated);
       Jmsg1(jcr, M_FATAL, 0, _("Write session label failed. ERR=%s\n"),
          dev->bstrerror());
       ok = false;
@@ -2336,10 +2336,10 @@ static void fillcmd()
       Dmsg0(100, "Write_end_session_label()\n");
       /* Create Job status for end of session label */
       if (!job_canceled(jcr) && ok) {
-         set_jcr_job_status(jcr, JS_Terminated);
+         jcr->setJobStatus(JS_Terminated);
       } else if (!ok) {
          Pmsg0(000, _("Job canceled.\n"));
-         set_jcr_job_status(jcr, JS_ErrorTerminated);
+         jcr->setJobStatus(JS_ErrorTerminated);
          exit_code = 1;
       }
       if (!write_session_label(dcr, EOS_LABEL)) {

@@ -224,7 +224,7 @@ bool do_verify(JCR *jcr)
       /*
        * Start conversation with Storage daemon
        */
-      set_jcr_job_status(jcr, JS_Blocked);
+      jcr->setJobStatus(JS_Blocked);
       if (!connect_to_storage_daemon(jcr, 10, SDConnectTimeout, 1)) {
          return false;
       }
@@ -258,12 +258,12 @@ bool do_verify(JCR *jcr)
     * OK, now connect to the File daemon
     *  and ask him for the files.
     */
-   set_jcr_job_status(jcr, JS_Blocked);
+   jcr->setJobStatus(JS_Blocked);
    if (!connect_to_file_daemon(jcr, 10, FDConnectTimeout, 1)) {
       goto bail_out;
    }
 
-   set_jcr_job_status(jcr, JS_Running);
+   jcr->setJobStatus(JS_Running);
    fd = jcr->file_bsock;
 
 
@@ -614,7 +614,7 @@ void get_attributes_and_compare_to_catalog(JCR *jcr, JobId_t JobId)
               &jcr->previous_jr, &fdbr)) {
             Jmsg(jcr, M_INFO, 0, _("New file: %s\n"), jcr->fname);
             Dmsg1(020, _("File not in catalog: %s\n"), jcr->fname);
-            set_jcr_job_status(jcr, JS_Differences);
+            jcr->setJobStatus(JS_Differences);
             continue;
          } else {
             /*
@@ -640,7 +640,7 @@ void get_attributes_and_compare_to_catalog(JCR *jcr, JobId_t JobId)
                   Jmsg(jcr, M_INFO, 0, _("      st_ino   differ. Cat: %s File: %s\n"),
                      edit_uint64((uint64_t)statc.st_ino, ed1),
                      edit_uint64((uint64_t)statf.st_ino, ed2));
-                  set_jcr_job_status(jcr, JS_Differences);
+                  jcr->setJobStatus(JS_Differences);
                }
                break;
             case 'p':                /* permissions bits */
@@ -648,7 +648,7 @@ void get_attributes_and_compare_to_catalog(JCR *jcr, JobId_t JobId)
                   prt_fname(jcr);
                   Jmsg(jcr, M_INFO, 0, _("      st_mode  differ. Cat: %x File: %x\n"),
                      (uint32_t)statc.st_mode, (uint32_t)statf.st_mode);
-                  set_jcr_job_status(jcr, JS_Differences);
+                  jcr->setJobStatus(JS_Differences);
                }
                break;
             case 'n':                /* number of links */
@@ -656,7 +656,7 @@ void get_attributes_and_compare_to_catalog(JCR *jcr, JobId_t JobId)
                   prt_fname(jcr);
                   Jmsg(jcr, M_INFO, 0, _("      st_nlink differ. Cat: %d File: %d\n"),
                      (uint32_t)statc.st_nlink, (uint32_t)statf.st_nlink);
-                  set_jcr_job_status(jcr, JS_Differences);
+                  jcr->setJobStatus(JS_Differences);
                }
                break;
             case 'u':                /* user id */
@@ -664,7 +664,7 @@ void get_attributes_and_compare_to_catalog(JCR *jcr, JobId_t JobId)
                   prt_fname(jcr);
                   Jmsg(jcr, M_INFO, 0, _("      st_uid   differ. Cat: %u File: %u\n"),
                      (uint32_t)statc.st_uid, (uint32_t)statf.st_uid);
-                  set_jcr_job_status(jcr, JS_Differences);
+                  jcr->setJobStatus(JS_Differences);
                }
                break;
             case 'g':                /* group id */
@@ -672,7 +672,7 @@ void get_attributes_and_compare_to_catalog(JCR *jcr, JobId_t JobId)
                   prt_fname(jcr);
                   Jmsg(jcr, M_INFO, 0, _("      st_gid   differ. Cat: %u File: %u\n"),
                      (uint32_t)statc.st_gid, (uint32_t)statf.st_gid);
-                  set_jcr_job_status(jcr, JS_Differences);
+                  jcr->setJobStatus(JS_Differences);
                }
                break;
             case 's':                /* size */
@@ -681,28 +681,28 @@ void get_attributes_and_compare_to_catalog(JCR *jcr, JobId_t JobId)
                   Jmsg(jcr, M_INFO, 0, _("      st_size  differ. Cat: %s File: %s\n"),
                      edit_uint64((uint64_t)statc.st_size, ed1),
                      edit_uint64((uint64_t)statf.st_size, ed2));
-                  set_jcr_job_status(jcr, JS_Differences);
+                  jcr->setJobStatus(JS_Differences);
                }
                break;
             case 'a':                /* access time */
                if (statc.st_atime != statf.st_atime) {
                   prt_fname(jcr);
                   Jmsg(jcr, M_INFO, 0, _("      st_atime differs\n"));
-                  set_jcr_job_status(jcr, JS_Differences);
+                  jcr->setJobStatus(JS_Differences);
                }
                break;
             case 'm':
                if (statc.st_mtime != statf.st_mtime) {
                   prt_fname(jcr);
                   Jmsg(jcr, M_INFO, 0, _("      st_mtime differs\n"));
-                  set_jcr_job_status(jcr, JS_Differences);
+                  jcr->setJobStatus(JS_Differences);
                }
                break;
             case 'c':                /* ctime */
                if (statc.st_ctime != statf.st_ctime) {
                   prt_fname(jcr);
                   Jmsg(jcr, M_INFO, 0, _("      st_ctime differs\n"));
-                  set_jcr_job_status(jcr, JS_Differences);
+                  jcr->setJobStatus(JS_Differences);
                }
                break;
             case 'd':                /* file size decrease */
@@ -711,7 +711,7 @@ void get_attributes_and_compare_to_catalog(JCR *jcr, JobId_t JobId)
                   Jmsg(jcr, M_INFO, 0, _("      st_size  decrease. Cat: %s File: %s\n"),
                      edit_uint64((uint64_t)statc.st_size, ed1),
                      edit_uint64((uint64_t)statf.st_size, ed2));
-                  set_jcr_job_status(jcr, JS_Differences);
+                  jcr->setJobStatus(JS_Differences);
                }
                break;
             case '5':                /* compare MD5 */
@@ -748,7 +748,7 @@ void get_attributes_and_compare_to_catalog(JCR *jcr, JobId_t JobId)
                prt_fname(jcr);
                Jmsg(jcr, M_INFO, 0, _("      %s differs. File=%s Cat=%s\n"),
                     stream_to_ascii(stream), buf, fdbr.Digest);
-               set_jcr_job_status(jcr, JS_Differences);
+               jcr->setJobStatus(JS_Differences);
             }
             do_Digest = CRYPTO_DIGEST_NONE;
          }
@@ -775,7 +775,7 @@ void get_attributes_and_compare_to_catalog(JCR *jcr, JobId_t JobId)
    /* missing_handler is called for each file found */
    db_sql_query(jcr->db, buf, missing_handler, (void *)jcr);
    if (jcr->fn_printed) {
-      set_jcr_job_status(jcr, JS_Differences);
+      jcr->setJobStatus(JS_Differences);
    }
    free_pool_memory(fname);
 }

@@ -51,7 +51,7 @@ static int read_digest(BFILE *bfd, DIGEST *digest, JCR *jcr);
  */
 void do_verify(JCR *jcr)
 {
-   set_jcr_job_status(jcr, JS_Running);
+   jcr->setJobStatus(JS_Running);
    jcr->buf_size = DEFAULT_NETWORK_BUFFER_SIZE;
    if ((jcr->big_buf = (char *) malloc(jcr->buf_size)) == NULL) {
       Jmsg1(jcr, M_ABORT, 0, _("Cannot malloc %d network read buffer\n"),
@@ -67,7 +67,7 @@ void do_verify(JCR *jcr)
       free(jcr->big_buf);
       jcr->big_buf = NULL;
    }
-   set_jcr_job_status(jcr, JS_Terminated);
+   jcr->setJobStatus(JS_Terminated);
 }
 
 /*

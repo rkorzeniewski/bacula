@@ -234,13 +234,13 @@ static bool despool_data(DCR *dcr, bool commit)
       Jmsg(jcr, M_INFO, 0, _("Committing spooled data to Volume \"%s\". Despooling %s bytes ...\n"),
          jcr->dcr->VolumeName,
          edit_uint64_with_commas(jcr->dcr->job_spool_size, ec1));
-      set_jcr_job_status(jcr, JS_DataCommitting);
+      jcr->setJobStatus(JS_DataCommitting);
    } else {
       Jmsg(jcr, M_INFO, 0, _("Writing spooled data to Volume. Despooling %s bytes ...\n"),
          edit_uint64_with_commas(jcr->dcr->job_spool_size, ec1));
-      set_jcr_job_status(jcr, JS_DataDespooling);
+      jcr->setJobStatus(JS_DataDespooling);
    }
-   set_jcr_job_status(jcr, JS_DataDespooling);
+   jcr->setJobStatus(JS_DataDespooling);
    dir_send_job_status(jcr);
    dcr->despool_wait = true;
    dcr->spooling = false;
@@ -302,6 +302,8 @@ static bool despool_data(DCR *dcr, bool commit)
                dcr->dev->print_name(), dcr->dev->bstrerror());
          Dmsg2(000, "Fatal append error on device %s: ERR=%s\n",
                dcr->dev->print_name(), dcr->dev->bstrerror());
+         /* Force in case Incomplete set */
+         jcr->forceJobStatus(JS_FatalError);
       }
       Dmsg3(800, "Write block ok=%d FI=%d LI=%d\n", ok, block->FirstIndex, block->LastIndex);
    }
@@ -319,6 +321,7 @@ static bool despool_data(DCR *dcr, bool commit)
    if (!dir_create_jobmedia_record(dcr)) {
       Jmsg2(jcr, M_FATAL, 0, _("Could not create JobMedia record for Volume=\"%s\" Job=%s\n"),
          dcr->getVolCatName(), jcr->Job);
+      jcr->forceJobStatus(JS_FatalError);  /* override any Incomplete */
    }
    /* Set new file/block parameters for current dcr */
    set_new_file_parameters(dcr);
@@ -334,7 +337,7 @@ static bool despool_data(DCR *dcr, bool commit)
       despool_elapsed = 1;
    }
 
-   Jmsg(dcr->jcr, M_INFO, 0, _("Despooling elapsed time = %02d:%02d:%02d, Transfer rate = %s Bytes/second\n"),
+   Jmsg(jcr, M_INFO, 0, _("Despooling elapsed time = %02d:%02d:%02d, Transfer rate = %s Bytes/second\n"),
          despool_elapsed / 3600, despool_elapsed % 3600 / 60, despool_elapsed % 60,
          edit_uint64_with_suffix(jcr->dcr->job_spool_size / despool_elapsed, ec1));
 
@@ -343,7 +346,7 @@ static bool despool_data(DCR *dcr, bool commit)
    lseek(rdcr->spool_fd, 0, SEEK_SET); /* rewind */
    if (ftruncate(rdcr->spool_fd, 0) != 0) {
       berrno be;
-      Jmsg(dcr->jcr, M_ERROR, 0, _("Ftruncate spool file failed: ERR=%s\n"),
+      Jmsg(jcr, M_ERROR, 0, _("Ftruncate spool file failed: ERR=%s\n"),
          be.bstrerror());
       /* Note, try continuing despite ftruncate problem */
    }
@@ -375,7 +378,7 @@ static bool despool_data(DCR *dcr, bool commit)
    if (!commit) {
       dcr->dev->dunblock();
    }
-   set_jcr_job_status(jcr, JS_Running);
+   jcr->setJobStatus(JS_Running);
    dir_send_job_status(jcr);
    return ok;
 }
@@ -393,6 +396,7 @@ static int read_block_from_spool_file(DCR *dcr)
    ssize_t stat;
    spool_hdr hdr;
    DEV_BLOCK *block = dcr->block;
+   JCR *jcr = dcr->jcr;
 
    rlen = sizeof(hdr);
    stat = read(dcr->spool_fd, (char *)&hdr, (size_t)rlen);
@@ -406,20 +410,23 @@ static int read_block_from_spool_file(DCR *dcr)
               be.bstrerror());
       } else {
          Pmsg2(000, _("Spool read error. Wanted %u bytes, got %d\n"), rlen, stat);
-         Jmsg2(dcr->jcr, M_FATAL, 0, _("Spool header read error. Wanted %u bytes, got %d\n"), rlen, stat);
+         Jmsg2(jcr, M_FATAL, 0, _("Spool header read error. Wanted %u bytes, got %d\n"), rlen, stat);
       }
+      jcr->forceJobStatus(JS_FatalError);  /* override any Incomplete */
       return RB_ERROR;
    }
    rlen = hdr.len;
    if (rlen > block->buf_len) {
       Pmsg2(000, _("Spool block too big. Max %u bytes, got %u\n"), block->buf_len, rlen);
-      Jmsg2(dcr->jcr, M_FATAL, 0, _("Spool block too big. Max %u bytes, got %u\n"), block->buf_len, rlen);
+      Jmsg2(jcr, M_FATAL, 0, _("Spool block too big. Max %u bytes, got %u\n"), block->buf_len, rlen);
+      jcr->forceJobStatus(JS_FatalError);  /* override any Incomplete */
       return RB_ERROR;
    }
    stat = read(dcr->spool_fd, (char *)block->buf, (size_t)rlen);
    if (stat != (ssize_t)rlen) {
       Pmsg2(000, _("Spool data read error. Wanted %u bytes, got %d\n"), rlen, stat);
       Jmsg2(dcr->jcr, M_FATAL, 0, _("Spool data read error. Wanted %u bytes, got %d\n"), rlen, stat);
+      jcr->forceJobStatus(JS_FatalError);  /* override any Incomplete */
       return RB_ERROR;
    }
    /* Setup write pointers */
@@ -510,6 +517,7 @@ static bool write_spool_header(DCR *dcr)
    spool_hdr hdr;
    ssize_t stat;
    DEV_BLOCK *block = dcr->block;
+   JCR *jcr = dcr->jcr;
 
    hdr.FirstIndex = block->FirstIndex;
    hdr.LastIndex = block->LastIndex;
@@ -520,11 +528,12 @@ static bool write_spool_header(DCR *dcr)
       stat = write(dcr->spool_fd, (char*)&hdr, sizeof(hdr));
       if (stat == -1) {
          berrno be;
-         Jmsg(dcr->jcr, M_FATAL, 0, _("Error writing header to spool file. ERR=%s\n"),
+         Jmsg(jcr, M_FATAL, 0, _("Error writing header to spool file. ERR=%s\n"),
               be.bstrerror());
+         jcr->forceJobStatus(JS_FatalError);  /* override any Incomplete */
       }
       if (stat != (ssize_t)sizeof(hdr)) {
-         Jmsg(dcr->jcr, M_ERROR, 0, _("Error writing header to spool file."
+         Jmsg(jcr, M_ERROR, 0, _("Error writing header to spool file."
               " Disk probably full. Attempting recovery. Wanted to write=%d got=%d\n"),
               (int)stat, (int)sizeof(hdr));
          /* If we wrote something, truncate it, then despool */
@@ -542,14 +551,16 @@ static bool write_spool_header(DCR *dcr)
             }
          }
          if (!despool_data(dcr, false)) {
-            Jmsg(dcr->jcr, M_FATAL, 0, _("Fatal despooling error."));
+            Jmsg(jcr, M_FATAL, 0, _("Fatal despooling error."));
+            jcr->forceJobStatus(JS_FatalError);  /* override any Incomplete */
             return false;
          }
          continue;                    /* try again */
       }
       return true;
    }
-   Jmsg(dcr->jcr, M_FATAL, 0, _("Retrying after header spooling error failed.\n"));
+   Jmsg(jcr, M_FATAL, 0, _("Retrying after header spooling error failed.\n"));
+   jcr->forceJobStatus(JS_FatalError);  /* override any Incomplete */
    return false;
 }
 
@@ -557,14 +568,16 @@ static bool write_spool_data(DCR *dcr)
 {
    ssize_t stat;
    DEV_BLOCK *block = dcr->block;
+   JCR *jcr = dcr->jcr;
 
    /* Write data */
    for (int retry=0; retry<=1; retry++) {
       stat = write(dcr->spool_fd, block->buf, (size_t)block->binbuf);
       if (stat == -1) {
          berrno be;
-         Jmsg(dcr->jcr, M_FATAL, 0, _("Error writing data to spool file. ERR=%s\n"),
+         Jmsg(jcr, M_FATAL, 0, _("Error writing data to spool file. ERR=%s\n"),
               be.bstrerror());
+         jcr->forceJobStatus(JS_FatalError);  /* override any Incomplete */
       }
       if (stat != (ssize_t)block->binbuf) {
          /*
@@ -584,7 +597,8 @@ static bool write_spool_data(DCR *dcr)
             }
          }
          if (!despool_data(dcr, false)) {
-            Jmsg(dcr->jcr, M_FATAL, 0, _("Fatal despooling error."));
+            Jmsg(jcr, M_FATAL, 0, _("Fatal despooling error."));
+            jcr->forceJobStatus(JS_FatalError);  /* override any Incomplete */
             return false;
          }
          if (!write_spool_header(dcr)) {
@@ -594,7 +608,8 @@ static bool write_spool_data(DCR *dcr)
       }
       return true;
    }
-   Jmsg(dcr->jcr, M_FATAL, 0, _("Retrying after data spooling error failed.\n"));
+   Jmsg(jcr, M_FATAL, 0, _("Retrying after data spooling error failed.\n"));
+   jcr->forceJobStatus(JS_FatalError);  /* override any Incomplete */
    return false;
 }
 
@@ -664,6 +679,7 @@ static bool blast_attr_spool_file(JCR *jcr, boffset_t size)
    
    if (jcr->dir_bsock->recv() <= 0) {
       Jmsg(jcr, M_FATAL, 0, _("Network error on BlastAttributes.\n"));
+      jcr->forceJobStatus(JS_FatalError);  /* override any Incomplete */
       return false;
    }
    
@@ -688,6 +704,7 @@ bool commit_attribute_spool(JCR *jcr)
          berrno be;
          Jmsg(jcr, M_FATAL, 0, _("Fseek on attributes file failed: ERR=%s\n"),
               be.bstrerror());
+         jcr->forceJobStatus(JS_FatalError);  /* override any Incomplete */
          goto bail_out;
       }
       size = ftello(dir->m_spool_fd);
@@ -699,6 +716,7 @@ bool commit_attribute_spool(JCR *jcr)
                berrno be;
                Jmsg(jcr, M_FATAL, 0, _("Truncate on attributes file failed: ERR=%s\n"),
                     be.bstrerror());
+               jcr->forceJobStatus(JS_FatalError);  /* override any Incomplete */
                goto bail_out;
             }
             Dmsg2(100, "=== Attrib spool truncated from %lld to %lld\n", 
@@ -710,6 +728,7 @@ bool commit_attribute_spool(JCR *jcr)
          berrno be;
          Jmsg(jcr, M_FATAL, 0, _("Fseek on attributes file failed: ERR=%s\n"),
               be.bstrerror());
+         jcr->forceJobStatus(JS_FatalError);  /* override any Incomplete */
          goto bail_out;
       }
       P(mutex);
@@ -718,7 +737,7 @@ bool commit_attribute_spool(JCR *jcr)
       }
       spool_stats.attr_size += size;
       V(mutex);
-      set_jcr_job_status(jcr, JS_AttrDespooling);
+      jcr->setJobStatus(JS_AttrDespooling);
       dir_send_job_status(jcr);
       Jmsg(jcr, M_INFO, 0, _("Sending spooled attrs to the Director. Despooling %s bytes ...\n"),
             edit_uint64_with_commas(size, ec1));
@@ -748,6 +767,7 @@ static bool open_attr_spool_file(JCR *jcr, BSOCK *bs)
       berrno be;
       Jmsg(jcr, M_FATAL, 0, _("fopen attr spool file %s failed: ERR=%s\n"), name,
            be.bstrerror());
+      jcr->forceJobStatus(JS_FatalError);  /* override any Incomplete */
       free_pool_memory(name);
       return false;
    }

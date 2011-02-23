@@ -174,7 +174,7 @@ void *sched_wait(void *arg)
    Dmsg0(2300, "Enter sched_wait.\n");
    free(arg);
    time_t wtime = jcr->sched_time - time(NULL);
-   set_jcr_job_status(jcr, JS_WaitStartTime);
+   jcr->setJobStatus(JS_WaitStartTime);
    /* Wait until scheduled time arrives */
    if (wtime > 0) {
       Jmsg(jcr, M_INFO, 0, _("Job %s waiting %d seconds for scheduled start time.\n"),
@@ -533,7 +533,7 @@ void *jobq_server(void *arg)
             if (!(jcr->JobPriority == Priority
                   || (jcr->JobPriority < Priority &&
                       jcr->job->allow_mixed_priority && running_allow_mix))) {
-               set_jcr_job_status(jcr, JS_WaitPriority);
+               jcr->setJobStatus(JS_WaitPriority);
                break;
             }
 
@@ -649,7 +649,7 @@ static bool reschedule_job(JCR *jcr, jobq_t *jq, jobq_item_t *je)
            jcr->Job, dt, (int)jcr->job->RescheduleInterval, dt2);
       dird_free_jcr_pointers(jcr);     /* partial cleanup old stuff */
       jcr->JobStatus = -1;
-      set_jcr_job_status(jcr, JS_WaitStartTime);
+      jcr->setJobStatus(JS_WaitStartTime);
       jcr->SDJobStatus = 0;
       jcr->JobErrors = 0;
       if (!allow_duplicate_job(jcr)) {
@@ -684,7 +684,7 @@ static bool reschedule_job(JCR *jcr, jobq_t *jq, jobq_item_t *je)
       njcr->run_inc_pool_override = jcr->run_inc_pool_override;
       njcr->diff_pool = jcr->diff_pool;
       njcr->JobStatus = -1;
-      set_jcr_job_status(njcr, jcr->JobStatus);
+      njcr->setJobStatus(jcr->JobStatus);
       if (jcr->rstore) {
          copy_rstorage(njcr, jcr->rstorage, _("previous Job"));
       } else {
@@ -731,7 +731,7 @@ static bool acquire_resources(JCR *jcr)
       Jmsg(jcr, M_FATAL, 0, _("Job canceled. Attempt to read and write same device.\n"
          "    Read storage \"%s\" (From %s) -- Write storage \"%s\" (From %s)\n"), 
          jcr->rstore->name(), jcr->rstore_source, jcr->wstore->name(), jcr->wstore_source);
-      set_jcr_job_status(jcr, JS_Canceled);
+      jcr->setJobStatus(JS_Canceled);
       return false;
    }
 #endif
@@ -739,7 +739,7 @@ static bool acquire_resources(JCR *jcr)
       Dmsg1(200, "Rstore=%s\n", jcr->rstore->name());
       if (!inc_read_store(jcr)) {
          Dmsg1(200, "Fail rncj=%d\n", jcr->rstore->NumConcurrentJobs);
-         set_jcr_job_status(jcr, JS_WaitStoreRes);
+         jcr->setJobStatus(JS_WaitStoreRes);
          return false;
       }
    }
@@ -758,7 +758,7 @@ static bool acquire_resources(JCR *jcr)
       }
    }
    if (skip_this_jcr) {
-      set_jcr_job_status(jcr, JS_WaitStoreRes);
+      jcr->setJobStatus(JS_WaitStoreRes);
       return false;
    }
 
@@ -768,7 +768,7 @@ static bool acquire_resources(JCR *jcr)
       /* Back out previous locks */
       dec_write_store(jcr);
       dec_read_store(jcr);
-      set_jcr_job_status(jcr, JS_WaitClientRes);
+      jcr->setJobStatus(JS_WaitClientRes);
       return false;
    }
    if (jcr->job->NumConcurrentJobs < jcr->job->MaxConcurrentJobs) {
@@ -778,7 +778,7 @@ static bool acquire_resources(JCR *jcr)
       dec_write_store(jcr);
       dec_read_store(jcr);
       jcr->client->NumConcurrentJobs--;
-      set_jcr_job_status(jcr, JS_WaitJobRes);
+      jcr->setJobStatus(JS_WaitJobRes);
       return false;
    }
 

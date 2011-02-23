@@ -194,6 +194,7 @@ public:
    bool is_JobStatus(int32_t aJobStatus) { return aJobStatus == JobStatus; };
    void setJobLevel(int32_t JobLevel) { m_JobLevel = JobLevel; };
    void setJobType(int32_t JobType) { m_JobType = JobType; };
+   void forceJobStatus(int32_t aJobStatus) { JobStatus = aJobStatus; };
    int32_t getJobType() const { return m_JobType; };
    int32_t getJobLevel() const { return m_JobLevel; };
    int32_t getJobStatus() const { return JobStatus; };

@@ -103,7 +103,7 @@ int connect_to_file_daemon(JCR *jcr, int retry_interval, int max_retry_time,
       }
 
       if (fd == NULL) {
-         set_jcr_job_status(jcr, JS_ErrorTerminated);
+         jcr->setJobStatus(JS_ErrorTerminated);
          return 0;
       }
       Dmsg0(10, "Opened connection with File daemon\n");
@@ -112,10 +112,10 @@ int connect_to_file_daemon(JCR *jcr, int retry_interval, int max_retry_time,
    }
    fd->res = (RES *)jcr->client;      /* save resource in BSOCK */
    jcr->file_bsock = fd;
-   set_jcr_job_status(jcr, JS_Running);
+   jcr->setJobStatus(JS_Running);
 
    if (!authenticate_file_daemon(jcr)) {
-      set_jcr_job_status(jcr, JS_ErrorTerminated);
+      jcr->setJobStatus(JS_ErrorTerminated);
       return 0;
    }
 
@@ -136,7 +136,7 @@ int connect_to_file_daemon(JCR *jcr, int retry_interval, int max_retry_time,
        if (strncmp(fd->msg, OKjob, strlen(OKjob)) != 0) {
           Jmsg(jcr, M_FATAL, 0, _("File daemon \"%s\" rejected Job command: %s\n"),
              jcr->client->hdr.name, fd->msg);
-          set_jcr_job_status(jcr, JS_ErrorTerminated);
+          jcr->setJobStatus(JS_ErrorTerminated);
           return 0;
        } else if (jcr->db) {
           CLIENT_DBR cr;
@@ -154,7 +154,7 @@ int connect_to_file_daemon(JCR *jcr, int retry_interval, int max_retry_time,
    } else {
       Jmsg(jcr, M_FATAL, 0, _("FD gave bad response to JobId command: %s\n"),
          bnet_strerror(fd));
-      set_jcr_job_status(jcr, JS_ErrorTerminated);
+      jcr->setJobStatus(JS_ErrorTerminated);
       return 0;
    }
    return 1;
@@ -471,7 +471,7 @@ static bool send_fileset(JCR *jcr)
    return true;
 
 bail_out:
-   set_jcr_job_status(jcr, JS_ErrorTerminated);
+   jcr->setJobStatus(JS_ErrorTerminated);
    return false;
 
 }
@@ -790,7 +790,7 @@ int get_attributes_and_put_in_catalog(JCR *jcr)
       if ((len = sscanf(fd->msg, "%ld %d %s", &file_index, &stream, Digest)) != 3) {
          Jmsg(jcr, M_FATAL, 0, _("<filed: bad attributes, expected 3 fields got %d\n"
 "msglen=%d msg=%s\n"), len, fd->msglen, fd->msg);
-         set_jcr_job_status(jcr, JS_ErrorTerminated);
+         jcr->setJobStatus(JS_ErrorTerminated);
          return 0;
       }
       p = fd->msg;
@@ -869,6 +869,6 @@ int get_attributes_and_put_in_catalog(JCR *jcr)
       }
       jcr->cached_attribute = false; 
    }
-   set_jcr_job_status(jcr, JS_Terminated);
+   jcr->setJobStatus(JS_Terminated);
    return 1;
 }

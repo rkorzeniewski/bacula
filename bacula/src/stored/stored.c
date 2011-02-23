@@ -612,7 +612,7 @@ void terminate_stored(int sig)
             free_jcr(jcr);
             continue;                 /* ignore console */
          }
-         set_jcr_job_status(jcr, JS_Canceled);
+         jcr->setJobStatus(JS_Canceled);
          fd = jcr->file_bsock;
          if (fd) {
             fd->set_timed_out();

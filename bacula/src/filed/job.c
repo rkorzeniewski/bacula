@@ -453,7 +453,7 @@ static int cancel_cmd(JCR *jcr)
          dir->fsend(_("2901 Job %s not found.\n"), Job);
       } else {
          generate_plugin_event(cjcr, bEventCancelCommand, NULL);
-         set_jcr_job_status(cjcr, JS_Canceled);
+         cjcr->setJobStatus(JS_Canceled);
          if (cjcr->store_bsock) {
             cjcr->store_bsock->set_timed_out();
             cjcr->store_bsock->set_terminated();
@@ -1483,7 +1483,7 @@ static int bootstrap_cmd(JCR *jcr)
       while (dir->recv() >= 0)
         {  }
       free_bootstrap(jcr);
-      set_jcr_job_status(jcr, JS_ErrorTerminated);
+      jcr->setJobStatus(JS_ErrorTerminated);
       return 0;
    }
 
@@ -1783,7 +1783,7 @@ static int backup_cmd(JCR *jcr)
       goto cleanup;
    }
 
-   set_jcr_job_status(jcr, JS_Blocked);
+   jcr->setJobStatus(JS_Blocked);
    jcr->setJobType(JT_BACKUP);
    Dmsg1(100, "begin backup ff=%p\n", jcr->ff);
 
@@ -1878,11 +1878,11 @@ static int backup_cmd(JCR *jcr)
     */
    Dmsg1(110, "begin blast ff=%p\n", (FF_PKT *)jcr->ff);
    if (!blast_data_to_storage_daemon(jcr, NULL)) {
-      set_jcr_job_status(jcr, JS_ErrorTerminated);
+      jcr->setJobStatus(JS_ErrorTerminated);
       bnet_suppress_error_messages(sd, 1);
       Dmsg0(110, "Error in blast_data.\n");
    } else {
-      set_jcr_job_status(jcr, JS_Terminated);
+      jcr->setJobStatus(JS_Terminated);
       /* Note, the above set status will not override an error */
       if (!(jcr->JobStatus == JS_Terminated || jcr->JobStatus == JS_Warnings)) {
          bnet_suppress_error_messages(sd, 1);
@@ -1892,7 +1892,7 @@ static int backup_cmd(JCR *jcr)
        * Expect to get response to append_data from Storage daemon
        */
       if (!response(jcr, sd, OK_append, "Append Data")) {
-         set_jcr_job_status(jcr, JS_ErrorTerminated);
+         jcr->setJobStatus(JS_ErrorTerminated);
          goto cleanup;
       }
 
@@ -1902,7 +1902,7 @@ static int backup_cmd(JCR *jcr)
       sd->fsend(append_end, jcr->Ticket);
       /* Get end OK */
       if (!response(jcr, sd, OK_end, "Append End")) {
-         set_jcr_job_status(jcr, JS_ErrorTerminated);
+         jcr->setJobStatus(JS_ErrorTerminated);
          goto cleanup;
       }
 
@@ -2111,14 +2111,14 @@ static int restore_cmd(JCR *jcr)
 
    jcr->setJobType(JT_RESTORE);
 
-   set_jcr_job_status(jcr, JS_Blocked);
+   jcr->setJobStatus(JS_Blocked);
 
    if (!open_sd_read_session(jcr)) {
-      set_jcr_job_status(jcr, JS_ErrorTerminated);
+      jcr->setJobStatus(JS_ErrorTerminated);
       goto bail_out;
    }
 
-   set_jcr_job_status(jcr, JS_Running);
+   jcr->setJobStatus(JS_Running);
 
    /**
     * Do restore of files and data
@@ -2158,7 +2158,7 @@ static int restore_cmd(JCR *jcr)
    do_restore(jcr);
    stop_dir_heartbeat(jcr);
 
-   set_jcr_job_status(jcr, JS_Terminated);
+   jcr->setJobStatus(JS_Terminated);
    if (jcr->JobStatus != JS_Terminated) {
       bnet_suppress_error_messages(sd, 1);
    }
@@ -2203,7 +2203,7 @@ bail_out:
    bfree_and_null(jcr->where);
 
    if (jcr->JobErrors) {
-      set_jcr_job_status(jcr, JS_ErrorTerminated);
+      jcr->setJobStatus(JS_ErrorTerminated);
    }
 
    Dmsg0(100, "Done in job.c\n");
@@ -2355,7 +2355,7 @@ static int send_bootstrap_file(JCR *jcr)
       berrno be;
       Jmsg(jcr, M_FATAL, 0, _("Could not open bootstrap file %s: ERR=%s\n"),
          jcr->RestoreBootstrap, be.bstrerror());
-      set_jcr_job_status(jcr, JS_ErrorTerminated);
+      jcr->setJobStatus(JS_ErrorTerminated);
       goto bail_out;
    }
    sd->msglen = pm_strcpy(sd->msg, bootstrap);
@@ -2367,7 +2367,7 @@ static int send_bootstrap_file(JCR *jcr)
    sd->signal(BNET_EOD);
    fclose(bs);
    if (!response(jcr, sd, OKSDbootstrap, "Bootstrap")) {
-      set_jcr_job_status(jcr, JS_ErrorTerminated);
+      jcr->setJobStatus(JS_ErrorTerminated);
       goto bail_out;
    }
    stat = 1;

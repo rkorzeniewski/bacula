@@ -439,7 +439,7 @@ void wait_for_storage_daemon_termination(JCR *jcr)
          break;
       }
    }
-   set_jcr_job_status(jcr, JS_Terminated);
+   jcr->setJobStatus(JS_Terminated);
 }
 
 /*
@@ -462,7 +462,7 @@ bool send_bootstrap_file(JCR *jcr, BSOCK *sd)
       berrno be;
       Jmsg(jcr, M_FATAL, 0, _("Could not open bootstrap file %s: ERR=%s\n"),
          jcr->RestoreBootstrap, be.bstrerror());
-      set_jcr_job_status(jcr, JS_ErrorTerminated);
+      jcr->setJobStatus(JS_ErrorTerminated);
       return false;
    }
    sd->fsend(bootstrap);

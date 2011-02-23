@@ -94,17 +94,17 @@ bool do_append_data(JCR *jcr)
    memset(&rec, 0, sizeof(rec));
 
    if (!fd->set_buffer_size(dcr->device->max_network_buffer_size, BNET_SETBUF_WRITE)) {
-      set_jcr_job_status(jcr, JS_ErrorTerminated);
+      jcr->setJobStatus(JS_ErrorTerminated);
       Jmsg0(jcr, M_FATAL, 0, _("Unable to set network buffer size.\n"));
       return false;
    }
 
    if (!acquire_device_for_append(dcr)) {
-      set_jcr_job_status(jcr, JS_ErrorTerminated);
+      jcr->setJobStatus(JS_ErrorTerminated);
       return false;
    }
 
-   set_jcr_job_status(jcr, JS_Running);
+   jcr->setJobStatus(JS_Running);
    dir_send_job_status(jcr);
 
    if (dev->VolCatInfo.VolCatName[0] == 0) {
@@ -125,7 +125,7 @@ bool do_append_data(JCR *jcr)
    if (!write_session_label(dcr, SOS_LABEL)) {
       Jmsg1(jcr, M_FATAL, 0, _("Write session label failed. ERR=%s\n"),
          dev->bstrerror());
-      set_jcr_job_status(jcr, JS_ErrorTerminated);
+      jcr->setJobStatus(JS_ErrorTerminated);
       ok = false;
    }
    if (dev->VolCatInfo.VolCatName[0] == 0) {
@@ -266,7 +266,7 @@ fi_checked:
    }
 
    /* Create Job status for end of session label */
-   set_jcr_job_status(jcr, ok?JS_Terminated:JS_ErrorTerminated);
+   jcr->setJobStatus(ok?JS_Terminated:JS_ErrorTerminated);
 
    if (ok) {
       /* Terminate connection with FD */
@@ -305,7 +305,7 @@ fi_checked:
                   dev->bstrerror());
             possible_incomplete_job(jcr, last_file_index);
          }
-         set_jcr_job_status(jcr, JS_ErrorTerminated);
+         jcr->setJobStatus(JS_ErrorTerminated);
          ok = false;
       }
       if (dev->VolCatInfo.VolCatName[0] == 0) {
@@ -322,7 +322,7 @@ fi_checked:
             Dmsg0(100, _("Set ok=FALSE after write_block_to_device.\n"));
             possible_incomplete_job(jcr, last_file_index);
          }
-         set_jcr_job_status(jcr, JS_ErrorTerminated);
+         jcr->setJobStatus(JS_ErrorTerminated);
          ok = false;
       }
    }

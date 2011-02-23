@@ -136,7 +136,7 @@ static bool open_bootstrap_file(JCR *jcr, bootstrap_info &info)
       berrno be;
       Jmsg(jcr, M_FATAL, 0, _("Could not open bootstrap file %s: ERR=%s\n"),
          jcr->RestoreBootstrap, be.bstrerror());
-      set_jcr_job_status(jcr, JS_ErrorTerminated);
+      jcr->setJobStatus(JS_ErrorTerminated);
       return false;
    }
 
@@ -183,7 +183,7 @@ static bool is_on_same_storage(JCR *jcr, char *new_one)
    if (!new_store) {
       Jmsg(jcr, M_FATAL, 0,
            _("Could not get storage resource '%s'.\n"), new_one);
-      set_jcr_job_status(jcr, JS_ErrorTerminated);
+      jcr->setJobStatus(JS_ErrorTerminated);
       return false;
    }
    /* if Port and Hostname/IP are same, we are talking to the same
@@ -275,7 +275,7 @@ static bool select_rstore(JCR *jcr, bootstrap_info &info)
    if (!(ustore.store = (STORE *)GetResWithName(R_STORAGE,info.storage))) {
       Jmsg(jcr, M_FATAL, 0,
            _("Could not get storage resource '%s'.\n"), info.storage);
-      set_jcr_job_status(jcr, JS_ErrorTerminated);
+      jcr->setJobStatus(JS_ErrorTerminated);
       return false;
    }
    
@@ -293,14 +293,14 @@ static bool select_rstore(JCR *jcr, bootstrap_info &info)
    dec_read_store(jcr);
    free_rstorage(jcr);
    set_rstorage(jcr, &ustore);
-   set_jcr_job_status(jcr, JS_WaitSD);
+   jcr->setJobStatus(JS_WaitSD);
    /*
     * Wait for up to 6 hours to increment read stoage counter 
     */
    for (i=0; i < MAX_TRIES; i++) {
       /* try to get read storage counter incremented */
       if (inc_read_store(jcr)) {
-         set_jcr_job_status(jcr, JS_Running);
+         jcr->setJobStatus(JS_Running);
          return true;
       }
       bmicrosleep(10, 0);       /* sleep 10 secs */
@@ -368,7 +368,7 @@ bool restore_bootstrap(JCR *jcr)
        *
        */
       Dmsg0(10, "Open connection with storage daemon\n");
-      set_jcr_job_status(jcr, JS_WaitSD);
+      jcr->setJobStatus(JS_WaitSD);
       /*
        * Start conversation with Storage daemon
        */
@@ -387,7 +387,7 @@ bool restore_bootstrap(JCR *jcr)
          /*
           * Start conversation with File daemon
           */
-         set_jcr_job_status(jcr, JS_WaitFD);
+         jcr->setJobStatus(JS_WaitFD);
          jcr->keep_sd_auth_key = true; /* don't clear the sd_auth_key now */
          if (!connect_to_file_daemon(jcr, 10, FDConnectTimeout, 1)) {
             goto bail_out;
@@ -395,7 +395,7 @@ bool restore_bootstrap(JCR *jcr)
          fd = jcr->file_bsock;
       }
 
-      set_jcr_job_status(jcr, JS_WaitSD);
+      jcr->setJobStatus(JS_WaitSD);
 
       /*
        * Send the bootstrap file -- what Volumes/files to restore
