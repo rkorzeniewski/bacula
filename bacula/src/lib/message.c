@@ -990,7 +990,7 @@ d_msg(const char *file, int line, int level, const char *fmt,...)
           len = strlen(buf);
           buf[len++] = ' ';
           buf[len] = 0;
-          fputs(buf, stdout);
+          pt_out(buf);
        }
     
 #ifdef FULL_LOCATION
