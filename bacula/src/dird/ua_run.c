@@ -525,8 +525,8 @@ static bool reset_restore_context(UAContext *ua, JCR *jcr, run_ctx &rc)
 
 
    /* If pool changed, update migration write storage */
-   if (jcr->getJobType() == JT_MIGRATE || jcr->getJobType() == JT_COPY ||
-      (jcr->getJobType() == JT_BACKUP && jcr->getJobLevel() == L_VIRTUAL_FULL)) {
+   if (jcr->is_JobType(JT_MIGRATE) || jcr->is_JobType(JT_COPY) ||
+      (jcr->is_JobType(JT_BACKUP) && jcr->is_JobLevel(L_VIRTUAL_FULL))) {
       if (!set_migration_wstorage(jcr, rc.pool)) {
          return false;
       }
