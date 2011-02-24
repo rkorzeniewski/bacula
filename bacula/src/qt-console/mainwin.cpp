@@ -778,7 +778,7 @@ void MainWin::closeCurrentPage()
 void MainWin::closePage(int item)
 {
    QTreeWidgetItem *currentitem;
-   Pages *page;
+   Pages *page = NULL;
 
    if (item >= 0) {
      page = (Pages *)tabWidget->widget(item);
