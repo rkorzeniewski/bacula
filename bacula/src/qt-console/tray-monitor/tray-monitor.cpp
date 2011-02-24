@@ -52,8 +52,8 @@ static CONFIG *config;
 static TrayUI *tray;
 
 /* Data received from DIR/FD/SD */
-static char OKqstatus[]   = "%c000 OK .status\n";
-static char DotStatusJob[] = "JobId=%d JobStatus=%c JobErrors=%d\n";
+//static char OKqstatus[]   = "%c000 OK .status\n";
+//static char DotStatusJob[] = "JobId=%d JobStatus=%c JobErrors=%d\n";
 
 
 void updateStatusIcon(monitoritem* item);
