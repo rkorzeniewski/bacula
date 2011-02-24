@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2009 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2011 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -31,8 +31,6 @@
  *   Kern Sibbald, MM
  *
  *   Split from reserve.c October 2008
- *
- *   Version $Id: reserve.c 7380 2008-07-14 10:42:59Z kerns $
  *
  */
 
@@ -611,12 +609,13 @@ bool free_volume(DEVICE *dev)
 {
    VOLRES *vol;
 
-   if (dev->vol == NULL) {
-      Dmsg1(dbglvl, "No vol on dev %s\n", dev->print_name());
-      return false;
-   }
    lock_volumes();
    vol = dev->vol;
+   if (vol == NULL) {
+      Dmsg1(dbglvl, "No vol on dev %s\n", dev->print_name());
+      unlock_volumes();
+      return false;
+   }
    /* Don't free a volume while it is being swapped */
    if (!vol->is_swapping()) {
       Dmsg1(dbglvl, "=== clear in_use vol=%s\n", vol->vol_name);

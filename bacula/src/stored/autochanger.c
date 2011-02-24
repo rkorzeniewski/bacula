@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2002-2010 Free Software Foundation Europe e.V.
+   Copyright (C) 2002-2011 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -321,8 +321,13 @@ static void lock_changer(DCR *dcr)
 {
    AUTOCHANGER *changer_res = dcr->device->changer_res;
    if (changer_res) {
+      int errstat;
       Dmsg1(200, "Locking changer %s\n", changer_res->hdr.name);
-      P(changer_res->changer_mutex);  /* Lock changer script */
+      if ((errstat=rwl_writelock(&changer_res->changer_lock)) != 0) {
+         berrno be;
+         Jmsg(dcr->jcr, M_ERROR_TERM, 0, _("Lock failure on autochanger. ERR=%s\n"),
+              be.bstrerror(errstat));
+      }
    }
 }
 
@@ -330,8 +335,13 @@ static void unlock_changer(DCR *dcr)
 {
    AUTOCHANGER *changer_res = dcr->device->changer_res;
    if (changer_res) {
+      int errstat;
       Dmsg1(200, "Unlocking changer %s\n", changer_res->hdr.name);
-      V(changer_res->changer_mutex);  /* Unlock changer script */
+      if ((errstat=rwl_writeunlock(&changer_res->changer_lock)) != 0) {
+         berrno be;
+         Jmsg(dcr->jcr, M_ERROR_TERM, 0, _("Unlock failure on autochanger. ERR=%s\n"),
+              be.bstrerror(errstat));
+      }
    }
 }
 
@@ -364,6 +374,7 @@ bool unload_autochanger(DCR *dcr, int loaded)
       return true;
    }
 
+   lock_changer(dcr);
    if (loaded < 0) {
       loaded = get_autochanger_loaded_slot(dcr);
    }
@@ -371,7 +382,6 @@ bool unload_autochanger(DCR *dcr, int loaded)
    if (loaded > 0) {
       POOL_MEM results(PM_MESSAGE);
       POOLMEM *changer = get_pool_memory(PM_FNAME);
-      lock_changer(dcr);
       Jmsg(jcr, M_INFO, 0,
            _("3307 Issuing autochanger \"unload slot %d, drive %d\" command.\n"),
            loaded, dev->drive_index);
@@ -394,11 +404,11 @@ bool unload_autochanger(DCR *dcr, int loaded)
       } else {
          dev->set_slot(0);         /* nothing loaded */
       }
-      unlock_changer(dcr);
 
       free_volume(dev);            /* Free any volume associated with this drive */
       free_pool_memory(changer);
    }
+   unlock_changer(dcr);
    if (ok) {
       dev->clear_unload();
    }
