@@ -296,25 +296,25 @@ bool send_level_command(JCR *jcr)
    BSOCK   *fd = jcr->file_bsock;
    const char *accurate = jcr->accurate?"accurate_":"";
    const char *not_accurate = "";
-   const char *incomplete = jcr->incomplete?" incomplete ":" ";
+   const char *rerunning = jcr->rerunning?" incomplete ":" ";
    /*
     * Send Level command to File daemon
     */
    switch (jcr->getJobLevel()) {
    case L_BASE:
-      fd->fsend(levelcmd, not_accurate, "base", incomplete, 0);
+      fd->fsend(levelcmd, not_accurate, "base", rerunning, 0);
       break;
    /* L_NONE is the console, sending something off to the FD */
    case L_NONE:
    case L_FULL:
-      fd->fsend(levelcmd, not_accurate, "full", incomplete, 0);
+      fd->fsend(levelcmd, not_accurate, "full", rerunning, 0);
       break;
    case L_DIFFERENTIAL:
-      fd->fsend(levelcmd, accurate, "differential", incomplete, 0);
+      fd->fsend(levelcmd, accurate, "differential", rerunning, 0);
       send_since_time(jcr);
       break;
    case L_INCREMENTAL:
-      fd->fsend(levelcmd, accurate, "incremental", incomplete, 0);
+      fd->fsend(levelcmd, accurate, "incremental", rerunning, 0);
       send_since_time(jcr);
       break;
    case L_SINCE:

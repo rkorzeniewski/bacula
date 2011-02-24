@@ -190,7 +190,7 @@ bool accurate_finish(JCR *jcr)
    }
    if (jcr->accurate) {
       if (jcr->is_JobLevel(L_FULL)) {
-         if (!jcr->incomplete) {
+         if (!jcr->rerunning) {
             ret = accurate_send_base_file_list(jcr);
          }
       } else {
@@ -258,7 +258,7 @@ bool accurate_check_file(JCR *jcr, FF_PKT *ff_pkt)
 
    ff_pkt->delta_seq = 0;
 
-   if (!jcr->accurate && !jcr->incomplete) {
+   if (!jcr->accurate && !jcr->rerunning) {
       return true;
    }
 
@@ -285,7 +285,7 @@ bool accurate_check_file(JCR *jcr, FF_PKT *ff_pkt)
 
    decode_stat(elt.lstat, &statc, &LinkFIc); /* decode catalog stat */
 
-   if (!jcr->incomplete && (jcr->getJobLevel() == L_FULL)) {
+   if (!jcr->rerunning && (jcr->getJobLevel() == L_FULL)) {
       opts = ff_pkt->BaseJobOpts;
    } else {
       opts = ff_pkt->AccurateOpts;
@@ -391,7 +391,7 @@ bool accurate_check_file(JCR *jcr, FF_PKT *ff_pkt)
               ff_pkt->flags & (FO_MD5|FO_SHA1|FO_SHA256|FO_SHA512))) 
          {
 
-            if (!*elt.chksum && !jcr->incomplete) {
+            if (!*elt.chksum && !jcr->rerunning) {
                Jmsg(jcr, M_WARNING, 0, _("Cannot verify checksum for %s\n"),
                     ff_pkt->fname);
                stat = true;

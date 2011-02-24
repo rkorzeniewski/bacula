@@ -49,7 +49,7 @@ extern bool do_mac(JCR *jcr);
 static char jobcmd[] = "JobId=%d job=%127s job_name=%127s client_name=%127s "
       "type=%d level=%d FileSet=%127s NoAttr=%d SpoolAttr=%d FileSetMD5=%127s "
       "SpoolData=%d WritePartAfterJob=%d PreferMountedVols=%d SpoolSize=%s "
-      "incomplete=%d VolSessionId=%d VolSessionTime=%d\n";
+      "rerunning=%d VolSessionId=%d VolSessionTime=%d\n";
 
 /* Responses sent to Director daemon */
 static char OKjob[]     = "3000 OK Job SDid=%u SDtime=%u Authorization=%s\n";
@@ -88,7 +88,7 @@ bool job_cmd(JCR *jcr)
               &JobType, &level, fileset_name.c_str(), &no_attributes,
               &spool_attributes, fileset_md5.c_str(), &spool_data,
               &write_part_after_job, &PreferMountedVols, spool_size,
-              &jcr->incomplete, &jcr->VolSessionId, &jcr->VolSessionTime);
+              &jcr->rerunning, &jcr->VolSessionId, &jcr->VolSessionTime);
    if (stat != 17) {
       pm_strcpy(jcr->errmsg, dir->msg);
       dir->fsend(BAD_job, stat, jcr->errmsg);
@@ -96,7 +96,7 @@ bool job_cmd(JCR *jcr)
       jcr->setJobStatus(JS_ErrorTerminated);
       return false;
    }
-   Dmsg3(100, "==== incomplete=%d VolSesId=%d VolSesTime=%d\n", jcr->incomplete,
+   Dmsg3(100, "==== rerunning=%d VolSesId=%d VolSesTime=%d\n", jcr->rerunning,
          jcr->VolSessionId, jcr->VolSessionTime);
    /*
     * Since this job could be rescheduled, we
@@ -115,7 +115,7 @@ bool job_cmd(JCR *jcr)
     * the Resched flag is set and VolSessionId and VolSessionTime
     * are given to us (same as restarted job).
     */
-   if (!jcr->incomplete) {
+   if (!jcr->rerunning) {
       jcr->VolSessionId = newVolSessionId();
       jcr->VolSessionTime = VolSessionTime;
    }

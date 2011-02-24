@@ -193,7 +193,7 @@ bool do_append_data(JCR *jcr)
        * An incomplete job can start the file_index at any number.
        * otherwise, it must start at 1.
        */
-      if (jcr->incomplete && file_index > 0 && last_file_index == 0) {
+      if (jcr->rerunning && file_index > 0 && last_file_index == 0) {
          goto fi_checked;
       }
       if (file_index > 0 && (file_index == last_file_index ||

@@ -1517,8 +1517,8 @@ static int level_cmd(JCR *jcr)
    if (strstr(dir->msg, "accurate")) {
       jcr->accurate = true;
    }
-   if (strstr(dir->msg, "incomplete")) {
-      jcr->incomplete = true;
+   if (strstr(dir->msg, "rerunning")) {
+      jcr->rerunning = true;
    }
    if (sscanf(dir->msg, "level = %s ", level) != 1) {
       goto bail_out;

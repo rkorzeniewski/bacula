@@ -265,7 +265,7 @@ public:
    bool keep_path_list;               /* Keep newly created path in a hash */
    bool accurate;                     /* true if job is accurate */
    bool HasBase;                      /* True if job use base jobs */
-   bool incomplete;                   /* finishing an incomplete job */
+   bool rerunning;                    /* rerunning an incomplete job */
 
    void *Python_job;                  /* Python Job Object */
    void *Python_events;               /* Python Events Object */

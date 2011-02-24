@@ -637,7 +637,7 @@ static bool reschedule_job(JCR *jcr, jobq_t *jq, jobq_item_t *je)
         * Reschedule this job by cleaning it up, but
         *  reuse the same JobId if possible.
         */
-      jcr->incomplete = jcr->is_incomplete();   /* save incomplete status */
+      jcr->rerunning = jcr->is_incomplete();   /* save incomplete status */
       time_t now = time(NULL);
       jcr->reschedule_count++;
       jcr->sched_time = now + jcr->job->RescheduleInterval;
@@ -656,7 +656,7 @@ static bool reschedule_job(JCR *jcr, jobq_t *jq, jobq_item_t *je)
          return false;
       }
       /* Only jobs with no output or Incomplete jobs can run on same JCR */
-      if (jcr->JobBytes == 0 || jcr->incomplete) {
+      if (jcr->JobBytes == 0 || jcr->rerunning) {
          Dmsg2(2300, "Requeue job=%d use=%d\n", jcr->JobId, jcr->use_count());
          V(jq->mutex);
          jobq_add(jq, jcr);     /* queue the job to run again */

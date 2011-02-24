@@ -246,7 +246,7 @@ bool send_accurate_current_files(JCR *jcr)
    if (jcr->is_canceled() || jcr->is_JobLevel(L_BASE)) {
       return true;
    }
-   if (!jcr->accurate && !jcr->incomplete) {
+   if (!jcr->accurate && !jcr->rerunning) {
       return true;
    }
 
@@ -255,7 +255,7 @@ bool send_accurate_current_files(JCR *jcr)
       if (get_base_jobids(jcr, &jobids)) {
          jcr->HasBase = true;
          Jmsg(jcr, M_INFO, 0, _("Using BaseJobId(s): %s\n"), jobids.list);
-      } else if (!jcr->incomplete) {
+      } else if (!jcr->rerunning) {
          return true;
       }
    } else {
@@ -270,7 +270,7 @@ bool send_accurate_current_files(JCR *jcr)
    }
 
    /* For incomplete Jobs, we add our own id */
-   if (jcr->incomplete) {
+   if (jcr->rerunning) {
       edit_int64(jcr->JobId, ed1);   
       jobids.add(ed1);
    }
@@ -332,7 +332,7 @@ bool do_backup(JCR *jcr)
    }
 
    /* Print Job Start message */
-   if (jcr->incomplete) {
+   if (jcr->rerunning) {
       Jmsg(jcr, M_INFO, 0, _("Restart Incomplete Backup JobId %s, Job=%s\n"),
            edit_uint64(jcr->JobId, ed1), jcr->Job);
    } else {
@@ -348,7 +348,7 @@ bool do_backup(JCR *jcr)
    }
 
    /* For incomplete Jobs, we add our own id */
-   if (jcr->incomplete) {
+   if (jcr->rerunning) {
       edit_int64(jcr->JobId, ed1);   
       Mmsg(buf, "SELECT max(FileIndex) FROM File WHERE JobId=%s", ed1);
       if (db_sql_query(jcr->db, buf.c_str(), db_int64_handler, &job)) {
