@@ -296,7 +296,7 @@ bool send_level_command(JCR *jcr)
    BSOCK   *fd = jcr->file_bsock;
    const char *accurate = jcr->accurate?"accurate_":"";
    const char *not_accurate = "";
-   const char *rerunning = jcr->rerunning?" incomplete ":" ";
+   const char *rerunning = jcr->rerunning?" rerunning ":" ";
    /*
     * Send Level command to File daemon
     */
