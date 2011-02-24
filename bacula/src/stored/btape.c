@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2010 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2011 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -1112,7 +1112,13 @@ static bool write_two_files()
    int len, i, j;
    int *p;
    bool rc = false;       /* bad return code */
+   DEVICE *dev = dcr->dev;
 
+   /*
+    * Set big max_file_size so that write_record_to_block
+    * doesn't insert any additional EOF marks
+    */
+   dev->max_file_size = 2 * num_recs * dev->max_block_size;
    Pmsg2(-1, _("\n=== Write, rewind, and re-read test ===\n\n"
       "I'm going to write %d records and an EOF\n"
       "then write %d records and an EOF, then rewind,\n"
