@@ -659,6 +659,13 @@ static bool reschedule_job(JCR *jcr, jobq_t *jq, jobq_item_t *je)
       if (jcr->JobBytes == 0 || jcr->rerunning) {
          Dmsg2(2300, "Requeue job=%d use=%d\n", jcr->JobId, jcr->use_count());
          V(jq->mutex);
+         /*
+          * Special test here since a Virtual Full gets marked
+          *  as a Full, so we look at the resource record
+          */
+         if (jcr->job->JobLevel == L_VIRTUAL_FULL) {
+            jcr->setJobLevel(L_VIRTUAL_FULL);
+         }
          jobq_add(jq, jcr);     /* queue the job to run again */
          P(jq->mutex);
          free_jcr(jcr);         /* release jcr */
@@ -675,7 +682,15 @@ static bool reschedule_job(JCR *jcr, jobq_t *jq, jobq_item_t *je)
       set_jcr_defaults(njcr, jcr->job);
       njcr->reschedule_count = jcr->reschedule_count;
       njcr->sched_time = jcr->sched_time;
-      njcr->setJobLevel(jcr->getJobLevel());
+      /*
+       * Special test here since a Virtual Full gets marked
+       *  as a Full, so we look at the resource record
+       */
+      if (jcr->job->JobLevel == L_VIRTUAL_FULL) {
+         njcr->setJobLevel(L_VIRTUAL_FULL);
+      } else {
+         njcr->setJobLevel(jcr->getJobLevel());
+      }
       njcr->pool = jcr->pool;
       njcr->run_pool_override = jcr->run_pool_override;
       njcr->full_pool = jcr->full_pool;
