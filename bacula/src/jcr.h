@@ -342,6 +342,7 @@ public:
    int32_t reschedule_count;          /* Number of times rescheduled */
    int32_t FDVersion;                 /* File daemon version number */
    int64_t spool_size;                /* Spool size for this job */
+   bool wasVirtualFull;               /* set if job was VirtualFull */
    bool spool_data;                   /* Spool data in SD */
    bool acquired_resource_locks;      /* set if resource locks acquired */
    bool term_wait_inited;             /* Set when cond var inited */

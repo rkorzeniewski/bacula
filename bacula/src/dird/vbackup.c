@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2008-2009 Free Software Foundation Europe e.V.
+   Copyright (C) 2008-2011 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -41,7 +41,6 @@
  *       to do the backup.
  *     When the File daemon finishes the job, update the DB.
  *
- *   Version $Id: $
  */
 
 #include "bacula.h"
@@ -141,6 +140,8 @@ bool do_vbackup(JCR *jcr)
    Dmsg2(100, "Read store=%s, write store=%s\n", 
       ((STORE *)jcr->rstorage->first())->name(),
       ((STORE *)jcr->wstorage->first())->name());
+
+   jcr->wasVirtualFull = true;        /* remember where we came from */
 
    /* Print Job Start message */
    Jmsg(jcr, M_INFO, 0, _("Start Virtual Backup JobId %s, Job=%s\n"),

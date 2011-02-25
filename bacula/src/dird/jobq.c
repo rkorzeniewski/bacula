@@ -663,7 +663,7 @@ static bool reschedule_job(JCR *jcr, jobq_t *jq, jobq_item_t *je)
           * Special test here since a Virtual Full gets marked
           *  as a Full, so we look at the resource record
           */
-         if (jcr->job->JobLevel == L_VIRTUAL_FULL) {
+         if (jcr->wasVirtualFull) {
             jcr->setJobLevel(L_VIRTUAL_FULL);
          }
          jobq_add(jq, jcr);     /* queue the job to run again */
@@ -686,7 +686,7 @@ static bool reschedule_job(JCR *jcr, jobq_t *jq, jobq_item_t *je)
        * Special test here since a Virtual Full gets marked
        *  as a Full, so we look at the resource record
        */
-      if (jcr->job->JobLevel == L_VIRTUAL_FULL) {
+      if (jcr->wasVirtualFull) {
          njcr->setJobLevel(L_VIRTUAL_FULL);
       } else {
          njcr->setJobLevel(jcr->getJobLevel());
