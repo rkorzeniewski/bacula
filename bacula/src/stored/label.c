@@ -512,6 +512,7 @@ bool rewrite_volume_label(DCR *dcr, bool recycle)
       dev->VolCatInfo.VolCatReads = 1;
    }
    Dmsg1(150, "dir_update_vol_info. Set Append vol=%s\n", dcr->VolumeName);
+   dev->VolCatInfo.VolFirstWritten = time(NULL);
    bstrncpy(dev->VolCatInfo.VolCatStatus, "Append", sizeof(dev->VolCatInfo.VolCatStatus));
    dev->setVolCatName(dcr->VolumeName);
    if (!dir_update_volume_info(dcr, true, true)) {  /* indicate doing relabel */
