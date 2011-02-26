@@ -126,7 +126,7 @@ check_files_written()
     FILES=`awk '/FD Files Written:/ { last=$4 } END { print last }' $LOG`
 
     if [ "$NB" != "$FILES" ]; then
-        print_debug "Expect $NB files, get $FILES"
+        print_debug "ERROR: Expect $NB files, get $FILES"
         bstat=2
     fi
 }

@@ -123,6 +123,7 @@ label volume=TestVolume003 storage=File pool=Default
 run job=backup level=incremental yes
 wait
 messages
+list files jobid=4
 @# 
 @# now do a restore
 @#
@@ -165,7 +166,7 @@ run_bconsole
 
 grep -e ' 0 *|' ${cwd}/tmp/log3.out > /dev/null
 if [ $? -ne 0 ]; then
-    print_debug "Can't purge the base job"
+    print_debug "ERROR: Can't purge the base job"
     estat=1
 fi
 
@@ -191,7 +192,7 @@ run_bconsole
 
 grep "po/fr.po^" ${cwd}/tmp/log5.out > /dev/null
 if [ $? -eq 0 ]; then
-    print_debug "Should not display fr.po as basefile"
+    print_debug "ERROR: Should not display fr.po as basefile"
     estat=2
 fi
 
