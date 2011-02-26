@@ -41,6 +41,7 @@ label storage=DiskChanger volume=ChangerVolume002 slot=2 Pool=Full drive=0
 run job=$JobName yes
 @sleep 2
 run job=$JobName yes
+@sleep 2
 wait
 list jobs
 @# should migrate two jobs
@@ -49,6 +50,7 @@ wait
 messages
 list jobs 
 wait
+@sleep 2
 @#
 @# Now do another backup, but level Incremental
 @#
