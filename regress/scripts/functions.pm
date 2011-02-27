@@ -3,7 +3,7 @@ use strict;
 
 =head1 LICENSE
 
-   BaculaÂ® - The Network Backup Solution
+   Bacula® - The Network Backup Solution
 
    Copyright (C) 2000-2009 Free Software Foundation Europe e.V.
 
@@ -25,7 +25,7 @@ use strict;
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
    02110-1301, USA.
 
-   BaculaÂ® is a registered trademark of Kern Sibbald.
+   Bacula® is a registered trademark of Kern Sibbald.
    The licensor of Bacula is the Free Software Foundation Europe
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zurich,
    Switzerland, email:ftf@fsfeurope.org.
@@ -33,6 +33,7 @@ use strict;
 =cut
 
 package scripts::functions;
+use File::Copy;
 # Export all functions needed to be used by a simple 
 # perl -Mscripts::functions -e '' script
 use Exporter;
@@ -44,17 +45,21 @@ our @EXPORT = qw(update_some_files create_many_files check_multiple_copies
                   stop_bacula get_resource set_maximum_concurrent_jobs get_time
                   add_attribute check_prune_list check_min_volume_size
                   check_max_volume_size $estat $bstat $rstat $zstat $cwd $bin
-                  $scripts $conf $rscripts $tmp $working extract_resource
-                  $db_name $db_user $db_password $src $tmpsrc);
+                  $scripts $conf $rscripts $tmp $working $dstat extract_resource
+                  $db_name $db_user $db_password $src $tmpsrc
+                  remote_init remote_config remote_stop remote_diff );
 
 
 use File::Copy qw/copy/;
 
-our ($cwd, $bin, $scripts, $conf, $rscripts, $tmp, $working, $estat, $bstat, $zstat, $rstat,
+our ($cwd, $bin, $scripts, $conf, $rscripts, $tmp, $working, $estat, $dstat,
+     $bstat, $zstat, $rstat, $debug,
+     $REMOTE_CLIENT, $REMOTE_ADDR, $REMOTE_FILE, $REMOTE_PORT, $REMOTE_PASSWORD,
+     $REMOTE_STORE_ADDR, $REGRESS_DEBUG,
      $db_name, $db_user, $db_password, $src, $tmpsrc, $HOST, $BASEPORT);
 
 END {
-    if ($estat || $rstat || $zstat || $bstat) {
+    if ($estat || $rstat || $zstat || $bstat || $dstat) {
         exit 1;
     }
 }
@@ -66,19 +71,22 @@ BEGIN {
         die "Could not find ./config file\n";
     }
     # load the ./config file in a subshell doesn't allow to use "env" to display all variable
-    open(IN, ". ./config; env |") or die "Could not run shell: $!\n";
+    open(IN, ". ./config; set |") or die "Could not run shell: $!\n";
     while ( my $l = <IN> ) {
         chomp ($l);
-        ($envar,$enval) = split (/=/,$l,2);
-        $ENV{$envar} = $enval;
+        if ($l =~ /^([\w\d]+)=(.+)/) {
+            next if ($1 eq 'SHELLOPTS'); # is in read-only
+            ($envar,$enval) = ($1, $2);
+            $ENV{$envar} = $enval;
+        }
     }
     close(IN);
     $cwd = `pwd`; 
     chomp($cwd);
 
     # set internal variable name and update environment variable
-    $ENV{db_name} = $db_name = $ENV{db_name} || 'regress';
-    $ENV{db_user} = $db_user = $ENV{db_user} || 'regress';
+    $ENV{db_name}     = $db_name     = $ENV{db_name}     || 'regress';
+    $ENV{db_user}     = $db_user     = $ENV{db_user}     || 'regress';
     $ENV{db_password} = $db_password = $ENV{db_password} || '';
 
     $ENV{bin}      = $bin      =  $ENV{bin}      || "$cwd/bin";
@@ -91,7 +99,14 @@ BEGIN {
     $ENV{rscripts} = $rscripts =  $ENV{rscripts} || "$cwd/scripts";
     $ENV{HOST}     = $HOST     =  $ENV{HOST}     || "localhost";
     $ENV{BASEPORT} = $BASEPORT =  $ENV{BASEPORT} || "8101";
-
+    $ENV{REGRESS_DEBUG} = $debug         = $ENV{REGRESS_DEBUG} || 0;
+    $ENV{REMOTE_CLIENT} = $REMOTE_CLIENT = $ENV{REMOTE_CLIENT} || 'remote-fd';
+    $ENV{REMOTE_ADDR}   = $REMOTE_ADDR   = $ENV{REMOTE_ADDR}   || undef;
+    $ENV{REMOTE_FILE}   = $REMOTE_FILE   = $ENV{REMOTE_FILE}   || "/tmp";
+    $ENV{REMOTE_PORT}   = $REMOTE_PORT   = $ENV{REMOTE_PORT}   || 9102;
+    $ENV{REMOTE_PASSWORD} = $REMOTE_PASSWORD = $ENV{REMOTE_PASSWORD} || "xxx";
+    $ENV{REMOTE_STORE_ADDR}=$REMOTE_STORE_ADDR=$ENV{REMOTE_STORE_ADDR} || undef;
+    
     $estat = $rstat = $bstat = $zstat = 0;
 }
 
@@ -365,7 +380,6 @@ sub set_maximum_concurrent_jobs
     add_attribute($file, "Maximum Concurrent Jobs", $nb, $obj, $name);
 }
 
-
 # You can add option to a resource
 #  add_attribute('$conf/bacula-dir.conf', 'FDTimeout', 1600, 'Director');
 #  add_attribute('$conf/bacula-dir.conf', 'FDTimeout', 1600, 'Storage', 'FileStorage');
@@ -548,4 +562,96 @@ sub get_time
     print strftime('%F %T', localtime(time+$sec)), "\n";
 }
 
+sub debug
+{
+    if ($debug) {
+        print join("\n", @_), "\n";
+    }
+}
+
+sub remote_config
+{
+    open(FP, ">$REMOTE_FILE/bacula-fd.conf") or 
+        die "ERROR: Can't open $REMOTE_FILE/bacula-fd.conf $?";
+    print FP "
+Director {
+  Name = $HOST-dir
+  Password = \"$REMOTE_PASSWORD\"
+}
+FileDaemon {
+  Name = remote-fd
+  FDport = $REMOTE_PORT
+  WorkingDirectory = $REMOTE_FILE/working
+  Pid Directory = $REMOTE_FILE/working
+  Maximum Concurrent Jobs = 20
+}
+Messages {
+  Name = Standard
+  director = $HOST-dir = all, !skipped, !restored
+}
+";  
+    close(FP);
+    system("mkdir -p '$REMOTE_FILE/working' '$REMOTE_FILE/save'");
+    system("rm -rf '$REMOTE_FILE/restore'");
+    my $pid = fork();
+    if (!$pid) {
+        close(STDIN);  open(STDIN, "/dev/null");
+        close(STDOUT); open(STDOUT, ">/dev/null");
+        close(STDERR); open(STDERR, ">/dev/null");        
+        exec("/opt/bacula/bin/bacula-fd -c $REMOTE_FILE/bacula-fd.conf");
+        exit 1;
+    }
+    sleep(2);
+    $pid = `cat $REMOTE_FILE/working/bacula-fd.$REMOTE_PORT.pid`;
+    chomp($pid);
+
+    # create files and tweak rights
+    create_many_files("$REMOTE_FILE/save", 5000);
+    chdir("$REMOTE_FILE/save");
+    my $d = 'A';
+    my $r = 0700;
+    for my $g ( split(' ', $( )) {
+        chmod $r++, $d;
+        chown $<, $g, $d++;
+    }
+
+    # create a simple script to execute
+    open(FP, ">test.sh") or die "Can't open test.sh $!";
+    print FP "#!/bin/sh\n";
+    print FP "echo this is a script";
+    close(FP);
+    chmod 0755, "test.sh";
+
+    if ($pid) {
+        system("ps $pid");
+        $estat = ($? != 0);
+    } else {
+        $estat = 1;
+    }
+}
+
+sub remote_diff
+{
+    debug("Doing diff between save and restore");
+    system("ssh $REMOTE_ADDR " . 
+     "$REMOTE_FILE/scripts/diff.pl -s $REMOTE_FILE/save -d $REMOTE_FILE/restore/$REMOTE_FILE/save");
+    $dstat = ($? != 0);
+}
+
+sub remote_stop
+{
+    debug("Kill remote bacula-fd");
+    system("ssh $REMOTE_ADDR " . 
+             "'test -f $REMOTE_FILE/working/bacula-fd.$REMOTE_PORT.pid && " . 
+              "kill `cat $REMOTE_FILE/working/bacula-fd.$REMOTE_PORT.pid`'");
+}
+
+sub remote_init
+{
+    system("ssh $REMOTE_ADDR mkdir -p '$REMOTE_FILE/scripts/'");
+    system("scp -q scripts/functions.pm scripts/diff.pl $REMOTE_ADDR:$REMOTE_FILE/scripts/");
+    system("scp -q config $REMOTE_ADDR:$REMOTE_FILE/");
+    debug("INFO: Configuring remote client");
+    system("ssh $REMOTE_ADDR 'cd $REMOTE_FILE && perl -Mscripts::functions -e remote_config'");
+}
 1;
