@@ -30,6 +30,13 @@ start_test
 
 echo $REMOTE_FILE/save > $tmp/file-list
 
+ssh $REMOTE_ADDR test -x /opt/bacula/bin/bacula-fd
+if [ $? != 0 ]; then
+    print_debug "ERROR: Need to install bacula on $REMOTE_ADDR"
+    echo "ERROR: Need to install bacula on $REMOTE_ADDR"
+    exit 1
+fi
+
 $bperl -e remote_stop
 $bperl -e remote_init
 $bperl -e remote_config

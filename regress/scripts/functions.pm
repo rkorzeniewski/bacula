@@ -622,6 +622,13 @@ Messages {
     close(FP);
     chmod 0755, "test.sh";
 
+    # create a hardlink
+    link("test.sh", "link-test.sh");
+
+    # play with some symlinks
+    symlink("test.sh", "sym-test.sh");
+    symlink("$REMOTE_FILE/save/test.sh", "sym-abs-test.sh");
+
     if ($pid) {
         system("ps $pid");
         $estat = ($? != 0);
