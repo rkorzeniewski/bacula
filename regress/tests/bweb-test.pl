@@ -223,7 +223,7 @@ if ($part{media}) {
     $sel->wait_for_page_to_load_ok("30000");
     $sel->is_text_present_ok("The current Volume retention period");
 
-    $sel->back();
+    $sel->go_back_ok();
     $sel->is_text_present_ok("Volume Infos");
     $sel->click_ok("//button[\@name='action' and \@value='purge']");
     $sel->wait_for_page_to_load_ok("30000");
@@ -407,7 +407,9 @@ if ($part{group}) {
     $sel->wait_for_page_to_load_ok("30000");
 
     ok(not $sel->is_checked("//input[\@name='client_group' and \@value='Empty']"));
-    $sel->click_ok("link=Group Statistics");
+
+    # click on Statistics -> Groups
+    $sel->click_ok("//ul[\@id='menu']/li[6]/ul/li[3]/a");
     $sel->wait_for_page_to_load_ok("30000");
 
     $sel->is_text_present_ok("All");
@@ -572,12 +574,10 @@ if ($part{config}) {
     $sel->open_ok("/cgi-bin/bweb/bweb.pl");
     $sel->click_ok("link=Configuration");
     $sel->wait_for_page_to_load_ok("30000");
-    $sel->is_text_present_ok("Main Configuration");
+    $sel->is_text_present_ok("SQL Connection");
 
-    $sel->click_ok("//button[\@name='action' and \@value='edit_main_conf']");
+    $sel->click_ok("//button[\@name='action' and \@value='edit_conf']");
     $sel->wait_for_page_to_load_ok("30000");
-    $sel->is_text_present_ok("Main Configuration");
-    
     $dbi = $sel->get_value("dbi");
     $user = $sel->get_value("user");
     $pass = $sel->get_value("password");
@@ -592,7 +592,7 @@ if ($part{config}) {
     $sel->click_ok("//button[\@name='action' and \@value='apply_conf']");
     $sel->wait_for_page_to_load_ok("30000");
 
-    $sel->click_ok("//button[\@name='action' and \@value='edit_main_conf']");
+    $sel->click_ok("//button[\@name='action' and \@value='edit_conf']");
     $sel->wait_for_page_to_load_ok("30000");
 
     is($sel->get_value("dbi"), "dbi:Pg:database=dbi1", "verify dbi");
@@ -605,80 +605,82 @@ if ($part{config}) {
     $sel->click_ok("//button[\@name='action' and \@value='apply_conf']");
     $sel->wait_for_page_to_load_ok("30000");
 
-    $sel->is_text_present_ok("Main Configuration");
+    $sel->is_text_present_ok("SQL Connection");
 
+    if(0) {                     # not used for now
     # test create conf
-    $sel->click_ok("//button[\@name='action' and \@value='add_conf']");
-    $sel->wait_for_page_to_load_ok("30000");
-    $sel->is_text_present_ok("Unnamed");
-
-    $sel->type_ok("name", "MyBweb2");
-    $sel->type_ok("new_dir", "bweb2-dir");
- 
-    $sel->type_ok("dbi", $dbi);
-    $sel->type_ok("user", $user);
-    $sel->type_ok("password", $pass);
- 
-    $sel->type_ok("stat_job_table", "JobHisto");
-    $sel->click_ok("//button[\@name='action' and \@value='apply_conf']");
-    $sel->wait_for_page_to_load_ok("30000");
-    $sel->is_text_present_ok("MyBweb2");
-    $sel->is_text_present_ok("bweb2-dir");
-
-    # test create other conf
-    $sel->click_ok("//button[\@name='action' and \@value='view_main_conf']");
-    $sel->wait_for_page_to_load_ok("30000");
-    $sel->is_text_present_ok("Main Configuration");
-
-    $sel->click_ok("//button[\@name='action' and \@value='add_conf']");
-    $sel->wait_for_page_to_load_ok("30000");
-    $sel->is_text_present_ok("Unnamed");
-
-    $sel->type_ok("name", "MyBweb3");
-    $sel->type_ok("new_dir", "bweb3-dir");
-    $sel->type_ok("user", "test");
-
-    $sel->click_ok("//button[\@name='action' and \@value='apply_conf']");
-    $sel->wait_for_page_to_load_ok("30000");
-    $sel->is_text_present_ok("MyBweb3");
-
-    $sel->click_ok("//button[\@name='action' and \@value='view_main_conf']");
-    $sel->wait_for_page_to_load_ok("30000");
-    $sel->is_text_present_ok("Main Configuration");
-    $sel->is_text_present_ok("MyBweb3");
-    $sel->is_text_present_ok("MyBweb2");
-
-    # test rename
-    $sel->click_ok("//input[\@name='dir' and \@value='bweb2-dir']");
-    $sel->click_ok("//button[\@name='action' and \@value='view_conf']");
-    $sel->wait_for_page_to_load_ok("30000");
-    $sel->is_text_present_ok("MyBweb2");
-    $sel->click_ok("//button[\@name='action' and \@value='edit_conf']");
-    $sel->wait_for_page_to_load_ok("30000");
-    $sel->is_text_present_ok("MyBweb2");
-    $sel->type_ok("new_dir", "bweb-dir");
-    $sel->click_ok("//button[\@name='action' and \@value='apply_conf']");
-    $sel->wait_for_page_to_load_ok("30000");
-    $sel->is_text_present_ok("MyBweb2");
-    $sel->is_text_present_ok("bweb-dir");
-    
-    # test delete
-    $sel->click_ok("//button[\@name='action' and \@value='view_main_conf']");
-    $sel->wait_for_page_to_load_ok("30000");
-    $sel->is_text_present_ok("MyBweb3");
-
-    $sel->click_ok("//input[\@name='dir' and \@value='bweb3-dir']");
+        $sel->click_ok("//button[\@name='action' and \@value='add_conf']");
+        $sel->wait_for_page_to_load_ok("30000");
+        $sel->is_text_present_ok("Unnamed");
+        
+        $sel->type_ok("name", "MyBweb2");
+        $sel->type_ok("new_dir", "bweb2-dir");
+        
+        $sel->type_ok("dbi", $dbi);
+        $sel->type_ok("user", $user);
+        $sel->type_ok("password", $pass);
+        
+        $sel->type_ok("stat_job_table", "JobHisto");
+        $sel->click_ok("//button[\@name='action' and \@value='apply_conf']");
+        $sel->wait_for_page_to_load_ok("30000");
+        $sel->is_text_present_ok("MyBweb2");
+        $sel->is_text_present_ok("bweb2-dir");
+        
+        # test create other conf
+        $sel->click_ok("//button[\@name='action' and \@value='view_main_conf']");
+        $sel->wait_for_page_to_load_ok("30000");
+        $sel->is_text_present_ok("Main Configuration");
+        
+        $sel->click_ok("//button[\@name='action' and \@value='add_conf']");
+        $sel->wait_for_page_to_load_ok("30000");
+        $sel->is_text_present_ok("Unnamed");
+        
+        $sel->type_ok("name", "MyBweb3");
+        $sel->type_ok("new_dir", "bweb3-dir");
+        $sel->type_ok("user", "test");
+        
+        $sel->click_ok("//button[\@name='action' and \@value='apply_conf']");
+        $sel->wait_for_page_to_load_ok("30000");
+        $sel->is_text_present_ok("MyBweb3");
+        
+        $sel->click_ok("//button[\@name='action' and \@value='view_main_conf']");
+        $sel->wait_for_page_to_load_ok("30000");
+        $sel->is_text_present_ok("Main Configuration");
+        $sel->is_text_present_ok("MyBweb3");
+        $sel->is_text_present_ok("MyBweb2");
+        
+        # test rename
+        $sel->click_ok("//input[\@name='dir' and \@value='bweb2-dir']");
+        $sel->click_ok("//button[\@name='action' and \@value='view_conf']");
+        $sel->wait_for_page_to_load_ok("30000");
+        $sel->is_text_present_ok("MyBweb2");
+        $sel->click_ok("//button[\@name='action' and \@value='edit_conf']");
+        $sel->wait_for_page_to_load_ok("30000");
+        $sel->is_text_present_ok("MyBweb2");
+        $sel->type_ok("new_dir", "bweb-dir");
+        $sel->click_ok("//button[\@name='action' and \@value='apply_conf']");
+        $sel->wait_for_page_to_load_ok("30000");
+        $sel->is_text_present_ok("MyBweb2");
+        $sel->is_text_present_ok("bweb-dir");
+        
+        # test delete
+        $sel->click_ok("//button[\@name='action' and \@value='view_main_conf']");
+        $sel->wait_for_page_to_load_ok("30000");
+        $sel->is_text_present_ok("MyBweb3");
+        
+        $sel->click_ok("//input[\@name='dir' and \@value='bweb3-dir']");
     $sel->click_ok("//button[\@name='action' and \@value='del_conf']");
-    ok($sel->get_confirmation() =~ /^Do you really want to remove this Director[\s\S]$/);
+        ok($sel->get_confirmation() =~ /^Do you really want to remove this Director[\s\S]$/);
     $sel->wait_for_page_to_load_ok("30000");
-    $sel->body_text_isnt("MyBweb3");
-    $sel->is_text_present_ok("MyBweb2");
-
-    $sel->click_ok("//input[\@name='dir' and \@value='bweb-dir']");
-    $sel->click_ok("//button[\@name='action' and \@value='del_conf']");
-    ok($sel->get_confirmation() =~ /^Do you really want to remove this Director[\s\S]$/);
-    $sel->wait_for_page_to_load_ok("30000");
-    $sel->body_text_isnt("MyBweb2");
+        $sel->body_text_isnt("MyBweb3");
+        $sel->is_text_present_ok("MyBweb2");
+        
+        $sel->click_ok("//input[\@name='dir' and \@value='bweb-dir']");
+        $sel->click_ok("//button[\@name='action' and \@value='del_conf']");
+        ok($sel->get_confirmation() =~ /^Do you really want to remove this Director[\s\S]$/);
+        $sel->wait_for_page_to_load_ok("30000");
+        $sel->body_text_isnt("MyBweb2");
+    }
 }
 
 if ($part{multidir}) {
