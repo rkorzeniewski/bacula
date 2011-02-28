@@ -40,18 +40,19 @@ fi
 $bperl -e remote_stop
 $bperl -e remote_init
 $bperl -e remote_config
-
-$bperl -e "add_attribute('$conf/bacula-dir.conf', 'clientrunbeforejob', '$REMOTE_FILE/save/test.sh', 'Job', 'CompressedTest')"
-$bperl -e "add_attribute('$conf/bacula-dir.conf', 'accurate', 'yes', 'Job', 'AccurateTest')"
-$bperl -e "add_attribute('$conf/bacula-dir.conf', 'address', '$REMOTE_ADDR', 'Client')"
-$bperl -e "add_attribute('$conf/bacula-dir.conf', 'password', '$REMOTE_PASSWORD', 'Client')"
-$bperl -e "add_attribute('$conf/bacula-dir.conf', 'address', '$REMOTE_STORE_ADDR', 'Storage')"
+cfg=$conf/bacula-dir.conf
+$bperl -e "add_attribute('$cfg', 'clientrunbeforejob', '$REMOTE_FILE/save/test.sh', 'Job', 'CompressedTest')"
+$bperl -e "add_attribute('$cfg', 'accurate', 'yes', 'Job', 'AccurateTest')"
+$bperl -e "add_attribute('$cfg', 'address', '$REMOTE_ADDR', 'Client')"
+$bperl -e "add_attribute('$cfg', 'password', '$REMOTE_PASSWORD', 'Client')"
+$bperl -e "add_attribute('$cfg', 'address', '$REMOTE_STORE_ADDR', 'Storage')"
 
 cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @output
 messages
-@$out ${cwd}/tmp/log1.out
+@$out ${cwd}/tmp/log4.out
 status client
+@$out ${cwd}/tmp/log1.out
 label storage=File volume=TestVolume001
 run job=$JobName storage=File yes
 wait
@@ -90,6 +91,14 @@ check_for_zombie_jobs storage=File
 stop_bacula
 
 check_two_logs
+
+version=`$bin/bacula-dir -? | awk '/Version:/ { print $2 }'`
+version_fd=`awk '/Version:/ { print $3 }' $tmp/log4.out`
+ 
+if [ "$version" != "$version_fd" ]; then
+    print_debug "ERROR: client version doesn't match $version ($version_fd)"
+    estat=1
+fi
 
 grep 'this is a script' $tmp/log3.out > /dev/null
 if [ $? != 0 ]; then

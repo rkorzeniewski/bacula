@@ -33,7 +33,6 @@ use strict;
 =cut
 
 package scripts::functions;
-use File::Copy;
 # Export all functions needed to be used by a simple 
 # perl -Mscripts::functions -e '' script
 use Exporter;
@@ -624,6 +623,10 @@ Messages {
 
     # create a hardlink
     link("test.sh", "link-test.sh");
+
+    # create long filename
+    mkdir("b" x 255) or print "can't create long dir $!\n";
+    copy("test.sh", ("b" x 255) . '/' . ("a" x 255)) or print "can't create long dir $!\n";
 
     # play with some symlinks
     symlink("test.sh", "sym-test.sh");
