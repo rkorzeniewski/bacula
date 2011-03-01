@@ -180,7 +180,10 @@ typedef enum {
   bVarWorkingDir = 13,
   bVarWhere      = 14,
   bVarRegexWhere = 15,
-  bVarExePath    = 16
+  bVarExePath    = 16,
+  bVarVersion    = 17,
+  bVarDistName   = 18,
+  bVarBEEF       = 19
 } bVariable;
 
 /* Events that are passed to plugin */

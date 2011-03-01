@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2007-2010 Free Software Foundation Europe e.V.
+   Copyright (C) 2007-2011 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -36,6 +36,9 @@
 
 extern CLIENT *me;
 extern DLL_IMP_EXP char *exepath;
+extern DLL_IMP_EXP char *version;
+extern DLL_IMP_EXP char *dist_name;
+extern DLL_IMP_EXP int beef;
 
 const int dbglvl = 150;
 #ifdef HAVE_WIN32
@@ -1026,6 +1029,15 @@ static bRC baculaGetValue(bpContext *ctx, bVariable var, void *value)
    case bVarExePath:
       *(char **)value = exepath;
       break;
+   case bVarVersion:
+      *(char **)value = version;
+      break;
+   case bVarDistName:
+      *(char **)value = dist_name;
+      break;
+   case bVarBEEF:
+      *((int *)value) = beef;
+      break;
    default:
       break;
    }
@@ -1100,6 +1112,9 @@ static bRC baculaGetValue(bpContext *ctx, bVariable var, void *value)
    case bVarFDName:             /* get warning with g++ if we missed one */
    case bVarWorkingDir:
    case bVarExePath:
+   case bVarVersion:
+   case bVarDistName:
+   case bVarBEEF:
       break;
    }
    return bRC_OK;
