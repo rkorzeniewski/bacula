@@ -35,11 +35,19 @@
 #ifndef TRAY_MONITOR_H
 #define TRAY_MONITOR_H
 
+#ifdef HAVE_WIN32
+# ifndef _STAT_DEFINED
+#  define _STAT_DEFINED 1 /* don't pull in MinGW struct stat from wchar.h */
+# endif
+#endif
+
 #include <QString>
 #include <QStringList>
+
 #include "bacula.h"
 #include "tray_conf.h"
 #include "jcr.h"
+
 
 struct job_defaults {
    QString job_name;

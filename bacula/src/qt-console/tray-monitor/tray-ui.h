@@ -30,6 +30,12 @@
 #ifndef TRAYUI_H
 #define TRAYUI_H
 
+#ifdef HAVE_WIN32
+# ifndef _STAT_DEFINED
+#  define _STAT_DEFINED 1 /* don't pull in MinGW struct stat from wchar.h */
+# endif
+#endif
+
 #include <QAction>
 #include <QApplication>
 #include <QButtonGroup>
@@ -50,10 +56,10 @@
 #include <QDebug>
 #include <QMessageBox>
 #include <QFont>
+
 #include "version.h"
 #include "ui/ui_run.h"
 #include "tray-monitor.h"
-
 
 class RunDlg: public QDialog, public Ui::runForm
 {

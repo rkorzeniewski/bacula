@@ -27,7 +27,6 @@
 */
 
 #include "tray-ui.h"
-#include "tray-monitor.h"
 
 int doconnect(monitoritem* item);
 int docmd(monitoritem* item, const char* command);
