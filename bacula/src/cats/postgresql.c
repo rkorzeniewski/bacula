@@ -118,6 +118,7 @@ B_DB_POSTGRESQL::B_DB_POSTGRESQL(JCR *jcr,
    path = get_pool_memory(PM_FNAME);
    esc_name = get_pool_memory(PM_FNAME);
    esc_path = get_pool_memory(PM_FNAME);
+   esc_obj = get_pool_memory(PM_FNAME);
    m_buf =  get_pool_memory(PM_FNAME);
    m_allow_transactions = mult_db_connections;
 
@@ -287,6 +288,7 @@ void B_DB_POSTGRESQL::db_close_database(JCR *jcr)
       free_pool_memory(path);
       free_pool_memory(esc_name);
       free_pool_memory(esc_path);
+      free_pool_memory(esc_obj);
       free_pool_memory(m_buf);
       if (m_db_driver) {
          free(m_db_driver);
