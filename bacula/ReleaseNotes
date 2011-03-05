@@ -1,10 +1,61 @@
 
-               Release Notes for Bacula 5.0.3
+               Release Notes for Bacula 5.2.0
 
   Bacula code: Total files = 1,088 Total lines = 219,172 (Using SLOCCount)
 
 General:
 --------
+
+This 5.2.0 version is a major release since the last version 5.0.3.
+It includes well over 50,000 lines of changes and a number of important
+new features:
+
+Compatibility:
+--------------
+ As always, both the Director and Storage daemon must be upgraded at
+ the same time.
+
+ Older 5.0.x and 3.0.x File Daemons are compatible with the 5.2.0
+ Director and Storage daemons. There should be no need to upgrade older File
+ Daemons.
+
+Changes and New Features:
+- Includes better handling for Windows repares points, mount points, and 
+  junction points.
+- A few path name length limits in Windows have been removed.
+- New SQL backend and ./configure that permits building multiple catalog
+  backends in one build, and has the main Bacula core code totally independent
+  of the SQL backend, which should simplify packaging (only the libbacsql.so/dll
+  needs to be changed.
+- New database format
+- Director selection option in bconsole
+- restorejob command in bconsole
+- Checkpoint of jobs so that in many cases they can be restarted
+- Maximum Bandwidth Per Job in several places
+- Disable batch insert config item
+- setbandwith command
+- limit command
+- Bacula Virtual File System for fast catalog access
+- New Pruning algoritm -- safer and faster
+- Additional security against injection of illegal characters
+- New block delta backup/restore
+- Indent lsmark during restore
+- Additional script variable editing
+- Improvements in ACL and xattr handling on additional platforms:
+  AIX, Darwind, FreeBSD, HPUX, IRIX, Solaris, Tru64
+- Many new plugin API features
+- Faster crc32 algorithm
+- Improved memory handling for restores
+- Improved hash table for hard links
+- Significant stability enhancements to bat
+- Many additional features for bat
+- Tray monitor for Windows
+- New FTP device handler for Storage daemon
+
+Bug fixes
+
+
+===========================================================================
 
 This 5.0.3 version is significant bug fix update to version 5.0.2.
 It includes new code and some new features.
