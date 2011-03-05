@@ -598,7 +598,7 @@ static struct cpl_keywords_t cpl_keywords[] = {
    {"fileset=",   ".fileset"       },
    {"client=",    ".client"        },
    {"job=",       ".jobs"          },
-   {"restore_job=",".jobs type=R"  },
+   {"restorejob=",".jobs type=R"  },
    {"level=",     ".level"         },
    {"storage=",   ".storage"       },
    {"schedule=",  ".schedule"      },
