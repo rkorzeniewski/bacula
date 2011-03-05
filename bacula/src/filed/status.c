@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2001-2010 Free Software Foundation Europe e.V.
+   Copyright (C) 2001-2011 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -37,6 +37,9 @@
 #include "lib/status.h"
 
 extern void *start_heap;
+
+extern bool GetWindowsVersionString(char *buf, int maxsiz);
+
 
 /* Forward referenced functions */
 static void  list_terminated_jobs(STATUS_PKT *sp);
@@ -87,6 +90,11 @@ static void  list_status_header(STATUS_PKT *sp)
         dt, num_jobs_run, job_count());
    sendit(msg.c_str(), len, sp);
 #if defined(HAVE_WIN32)
+   char buf[300];
+   if (GetWindowsVersionString(buf, sizeof(buf))) {
+      len = Mmsg(msg, "%s\n", buf);
+      sendit(msg.c_str(), len, sp);
+   }
    if (debug_level > 0) {
       if (!privs) {
          privs = enable_backup_privileges(NULL, 1);

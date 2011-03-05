@@ -543,7 +543,11 @@ static int job_cmd(JCR *jcr)
    Mmsg(jcr->errmsg, "JobId=%d Job=%s", jcr->JobId, jcr->Job);
    new_plugins(jcr);                  /* instantiate plugins for this jcr */
    generate_plugin_event(jcr, bEventJobStart, (void *)jcr->errmsg);
+#ifdef HAVE_WIN32
+   return dir->fsend(OKjob, VERSION, LSMDATE, win_os, DISTNAME, DISTVER);
+#else
    return dir->fsend(OKjob, VERSION, LSMDATE, HOST_OS, DISTNAME, DISTVER);
+#endif
 }
 
 static int runbefore_cmd(JCR *jcr)
