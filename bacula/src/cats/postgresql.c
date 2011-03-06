@@ -308,9 +308,6 @@ void B_DB_POSTGRESQL::db_close_database(JCR *jcr)
       if (m_db_socket) {
          free(m_db_socket);
       }
-      if (esc_obj) {
-         PQfreemem(esc_obj);
-      }
       delete this;
       if (db_list->size() == 0) {
          delete db_list;

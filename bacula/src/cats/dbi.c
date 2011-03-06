@@ -168,6 +168,7 @@ B_DB_DBI::B_DB_DBI(JCR *jcr,
    path = get_pool_memory(PM_FNAME);
    esc_name = get_pool_memory(PM_FNAME);
    esc_path = get_pool_memory(PM_FNAME);
+   esc_obj = get_pool_memory(PM_FNAME);
    m_allow_transactions = mult_db_connections;
 
    /*
@@ -352,6 +353,7 @@ void B_DB_DBI::db_close_database(JCR *jcr)
       free_pool_memory(path);
       free_pool_memory(esc_name);
       free_pool_memory(esc_path);
+      free_pool_memory(esc_obj);
       if (m_db_driver) {
          free(m_db_driver);
       }
