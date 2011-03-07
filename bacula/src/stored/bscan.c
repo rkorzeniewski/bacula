@@ -348,9 +348,11 @@ static bool bscan_mount_next_read_volume(DCR *dcr)
       mdcr->EndFile = dcr->EndFile;
       mdcr->VolMediaId = dcr->VolMediaId;
       mjcr->read_dcr->VolLastIndex = dcr->VolLastIndex;
-      if (!create_jobmedia_record(db, mjcr)) {
-         Pmsg2(000, _("Could not create JobMedia record for Volume=%s Job=%s\n"),
-            dev->getVolCatName(), mjcr->Job);
+      if( mjcr->bscan_insert_jobmedia_records ) {
+         if (!create_jobmedia_record(db, mjcr)) {
+            Pmsg2(000, _("Could not create JobMedia record for Volume=%s Job=%s\n"),
+               dev->getVolCatName(), mjcr->Job);
+         }
       }
    }
 
@@ -405,6 +407,9 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
    DEVICE *dev = dcr->dev;
    JCR *bjcr = dcr->jcr;
    DEV_BLOCK *block = dcr->block;
+   POOL_MEM sql_buffer;
+   db_int64_ctx jmr_count;
+
    char digest[BASE64_SIZE(CRYPTO_DIGEST_MAX_SIZE)];
 
    if (rec->data_len > 0) {
@@ -527,6 +532,7 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
                   jr.JobId);
             }
          }
+
          /* Create Client record if not already there */
          bstrncpy(cr.Name, label.ClientName, sizeof(cr.Name));
          create_client_record(db, &cr);
@@ -547,6 +553,19 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
          pm_strcpy(mjcr->fileset_name, label.FileSetName);
          bstrncpy(dcr->pool_type, label.PoolType, sizeof(dcr->pool_type));
          bstrncpy(dcr->pool_name, label.PoolName, sizeof(dcr->pool_name));
+
+         /* Look for existing Job Media records for this job.  If there are 
+            any, no new ones need be created.  This may occur if File 
+            Retention has expired before Job Retention, or if the volume
+            has already been bscan'd */
+         Mmsg(sql_buffer, "SELECT count(*) from JobMedia where JobId=%d", jr.JobId);
+         db_sql_query(db, sql_buffer.c_str(), db_int64_handler, &jmr_count); 
+         if( jmr_count.value > 0 ) {
+            //FIELD NAME TO BE DEFINED/CONFIRMED (maybe a struct?)
+            mjcr->bscan_insert_jobmedia_records = false; 
+         } else {
+            mjcr->bscan_insert_jobmedia_records = true;
+         }
 
          if (rec->VolSessionId != jr.VolSessionId) {
             Pmsg3(000, _("SOS_LABEL: VolSessId mismatch for JobId=%u. DB=%d Vol=%d\n"),
@@ -592,7 +611,9 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
 
          /* Create JobMedia record */
          mjcr->read_dcr->VolLastIndex = dcr->VolLastIndex;
-         create_jobmedia_record(db, mjcr);
+         if( mjcr->bscan_insert_jobmedia_records ) {
+            create_jobmedia_record(db, mjcr); 
+         }
          free_dcr(mjcr->read_dcr);
          free_jcr(mjcr);
 

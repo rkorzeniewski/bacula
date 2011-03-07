@@ -436,6 +436,7 @@ public:
    bool write_part_after_job;         /* Set to write part after job */
    bool PreferMountedVols;            /* Prefer mounted vols rather than new */
    bool Resched;                      /* Job may be rescheduled */
+   bool bscan_insert_jobmedia_records; /*Bscan: needs to insert job media records */
 
    /* Parmaters for Open Read Session */
    BSR *bsr;                          /* Bootstrap record -- has everything */
