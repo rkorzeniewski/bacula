@@ -410,7 +410,7 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
    case STREAM_WIN32_GZIP_DATA:
 #ifdef HAVE_LIBZ
       if (extract) {
-         uLong compress_len;
+         uLong compress_len = compress_buf_size;
          int stat;
 
          if (rec->maskedStream == STREAM_SPARSE_GZIP_DATA) {
@@ -436,11 +436,10 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
             wsize = rec->data_len;
          }
 
-         while ((stat=uncompress((Byte *)compress_buf, &compress_len,
-                                 (const Byte *)wbuf, (uLong)wsize)) == Z_BUF_ERROR)
-         {
+         while (compress_len < 10000000 && (stat=uncompress((Byte *)compress_buf, &compress_len,
+                                 (const Byte *)wbuf, (uLong)wsize)) == Z_BUF_ERROR) {
             /* The buffer size is too small, try with a bigger one */
-            compress_len = compress_len + (compress_len >> 1);
+            compress_len = 2 * compress_len;
             compress_buf = check_pool_memory_size(compress_buf,
                                                   compress_len);
          }
