@@ -142,6 +142,10 @@ platforms/redhat/bacula-dir
 platforms/redhat/bacula-fd
 platforms/redhat/bacula-sd
 
+# platforms/rpms
+platforms/rpms/redhat/*.spec
+platforms/rpms/suse/*.spec
+
 # platforms/suse/
 platforms/suse/Makefile
 platforms/suse/bacula
@@ -388,8 +392,6 @@ src/plugins/sd/main
 src/plugins/sd/Makefile
 
 # src/qt-console/
-src/qt-console/tray-monitor/tray-monitor.conf
-src/qt-console/tray-monitor/tray-monitor.pro
 src/qt-console/ui_*.h
 src/qt-console/bat
 src/qt-console/about-func
@@ -468,6 +470,16 @@ src/qt-console/testprogs/putz/obj
 src/qt-console/testprogs/putz/ui
 src/qt-console/testprogs/putz/Makefile
 src/qt-console/testprogs/putz/moc
+
+# src/qt-console/tray-monitor
+src/qt-console/tray-monitor/Makefile.mingw32
+src/qt-console/tray-monitor/Makefile.mingw32.Debug
+src/qt-console/tray-monitor/Makefile.mingw32.Release
+src/qt-console/tray-monitor/debug/
+src/qt-console/tray-monitor/moc/
+src/qt-console/tray-monitor/tray-monitor.conf
+src/qt-console/tray-monitor/tray-monitor.pro
+src/qt-console/tray-monitor/ui/
 
 # src/qt-console/ts/
 src/qt-console/ts/bat_fr.qm
