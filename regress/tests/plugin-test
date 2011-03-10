@@ -8,6 +8,8 @@ JobName=pluginTest
 
 scripts/cleanup
 scripts/copy-plugin-confs
+make -C $src/src/plugins/fd install-test-plugin
+
 file=encrypt-bug.jpg
 rm -rf ${cwd}/tmp/*
 echo "${cwd}/README" >${cwd}/tmp/file-list
@@ -26,6 +28,12 @@ run job=$JobName storage=File1 yes
 wait
 status client=$CLIENT
 messages
+setdebug level=50 trace=1 client=$CLIENT
+run job=TestPluginTest storage=File1 yes
+wait
+status client=$CLIENT
+messages
+setdebug level=50 trace=0 client=$CLIENT
 quit
 END_OF_DATA
 
@@ -39,7 +47,7 @@ messages
 @#
 @$out ${cwd}/tmp/log2.out
 setdebug level=50 client=$CLIENT
-restore where=${cwd}/tmp  select all storage=File1 done
+restore fileset=pluginSet where=${cwd}/tmp  select all storage=File1 done
 yes
 wait
 setdebug level=0 client=$CLIENT
@@ -67,7 +75,7 @@ cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @#
 @$out ${cwd}/tmp/log2.out
 @#setdebug level=50 client=$CLIENT
-restore where=${cwd}/tmp  select all storage=File1 done
+restore fileset=pluginSet where=${cwd}/tmp  select all storage=File1 done
 yes
 wait
 messages
@@ -75,6 +83,23 @@ quit
 END_OF_DATA
 
 run_bacula -d50
+run_bconsole
+
+cat <<END_OF_DATA >${cwd}/tmp/bconcmds
+messages
+@# 
+@# now do a restore
+@#
+@$out ${cwd}/tmp/log3.out
+setdebug level=50 client=$CLIENT trace=1
+restore fileset=TestPluginSet where=${cwd}/tmp  select all storage=File1 done
+yes
+wait
+setdebug level=0 client=$CLIENT trace=0
+messages
+quit
+END_OF_DATA
+
 run_bconsole
 
 check_for_zombie_jobs storage=File1
@@ -90,4 +115,40 @@ check_two_logs
 #
 diff ${cwd}/${file} ${cwd}/tmp/${file}
 dstat=$?
+
+# the test-plugin should create a RestoreObject, just check 
+# compare restore object before/after
+perl -ne '
+ chomp();
+ if (/Creating RestoreObject/) {
+   @elt = split(/\s/, $_, 7);
+   $clen = $elt[4];
+   $cdata = $elt[6];
+   $cname = $elt[5];
+ } elsif (/Get RestoreObject/) {
+   @elt = split(/\s/, $_, 8);
+   $glen = $elt[4];
+   $gdata = $elt[7];
+   $gname = $elt[6];
+ }
+ END {
+   $err=0;
+   if ($clen ne $glen) {
+     print "ERROR: $clen != $glen\n";
+     $err++;
+   }
+   if ($cdata ne $gdata) {
+     print "ERROR: <$cdata> != <$gdata>\n";
+     $err++;
+   }
+   if ($cname ne $gname) {
+     print "ERROR: $cname != $gname\n";
+     $err++;
+   }
+   exit $err;
+ }
+' working/*.trace
+
+estat=$?
+
 end_test
