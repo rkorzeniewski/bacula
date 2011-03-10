@@ -34,6 +34,7 @@
  */
 #include "bacula.h"
 #include "fd_plugins.h"
+#include <wchar.h>
 
 #undef malloc
 #undef free
@@ -50,8 +51,8 @@ static const int dbglvl = 000;
 
 #define PLUGIN_LICENSE      "Bacula AGPLv3"
 #define PLUGIN_AUTHOR       "Kern Sibbald"
-#define PLUGIN_DATE         "April 2010"
-#define PLUGIN_VERSION      "1"
+#define PLUGIN_DATE         "March 2011"
+#define PLUGIN_VERSION      "2"
 #define PLUGIN_DESCRIPTION  "Bacula Test File Daemon Plugin"
 
 /* Forward referenced functions */
@@ -245,8 +246,10 @@ static bRC handlePluginEvent(bpContext *ctx, bEvent *event, void *value)
          break;
       }
       rop = (restore_object_pkt *)value;
-      bfuncs->DebugMessage(ctx, fi, li, dbglvl, "test-plugin-fd: len=%d JobId=%d oname=%s\n",
-         rop->object_len, rop->JobId, rop->object_name);
+      bfuncs->DebugMessage(ctx, fi, li, dbglvl, 
+                        "Get RestoreObject len=%d JobId=%d oname=%s data=%s\n",
+                        rop->object_len, rop->JobId, rop->object_name, 
+                        rop->object);
       break;
    /* Plugin command e.g. plugin = <plugin-name>:<name-space>:read command:write command */
    case bEventRestoreCommand:
@@ -298,8 +301,12 @@ static bRC startBackupFile(bpContext *ctx, struct save_pkt *sp)
    }
    time_t now = time(NULL);
    sp->object_name = (char *)"james.xml";
-   sp->object = (char *)"This is test data for the restore object.";
-   sp->object_len = strlen(sp->object);
+   sp->object = (char *)"This is test data for the restore object. "
+   "garbage=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+   "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+   "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa."
+   "\0secret";
+   sp->object_len = strlen(sp->object)+1+6+1; /* str + 0 + secret + 0 */
    sp->index = 2;
    sp->type = FT_RESTORE_FIRST;
    sp->statp.st_mode = 0700 | S_IFREG;
@@ -309,6 +316,9 @@ static bRC startBackupFile(bpContext *ctx, struct save_pkt *sp)
    sp->statp.st_size = sp->object_len;
    sp->statp.st_blksize = 4096;
    sp->statp.st_blocks = 1;
+   bfuncs->DebugMessage(ctx, fi, li, dbglvl,
+                        "Creating RestoreObject len=%d oname=%s data=%s\n", 
+                        sp->object_len, sp->object_name, sp->object);
    p_ctx->backup = true;
    printf("test-plugin-fd: startBackupFile\n");
    return bRC_OK;
