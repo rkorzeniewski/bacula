@@ -20,6 +20,8 @@ Compatibility:
  Daemons.
 
 Changes and New Features:
+- Use of PostgreSQL cursor when doing large queries, should reduce the
+  memory usage during restore and accurate backups.
 - Includes better handling for Windows repares points, mount points, and 
   junction points.
 - A few path name length limits in Windows have been removed.
