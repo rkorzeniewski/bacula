@@ -73,7 +73,7 @@ BEGIN {
     open(IN, ". ./config; set |") or die "Could not run shell: $!\n";
     while ( my $l = <IN> ) {
         chomp ($l);
-        if ($l =~ /^([\w\d]+)=(.+)/) {
+        if ($l =~ /^([\w\d]+)='?([^']+)'?/) {
             next if ($1 eq 'SHELLOPTS'); # is in read-only
             ($envar,$enval) = ($1, $2);
             $ENV{$envar} = $enval;
@@ -571,7 +571,7 @@ sub debug
 sub remote_config
 {
     open(FP, ">$REMOTE_FILE/bacula-fd.conf") or 
-        die "ERROR: Can't open $REMOTE_FILE/bacula-fd.conf $?";
+        die "ERROR: Can't open $REMOTE_FILE/bacula-fd.conf $!";
     print FP "
 Director {
   Name = $HOST-dir
