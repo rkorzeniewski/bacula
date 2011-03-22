@@ -1,8 +1,8 @@
 #!/bin/sh
-/bin/cp -f ${rscripts}/new-test-bacula-dir.conf ${bin}/bacula-dir.conf
-/bin/cp -f ${rscripts}/test-bacula-sd.conf ${bin}/bacula-sd.conf
-/bin/cp -f ${rscripts}/test-bacula-fd.conf ${bin}/bacula-fd.conf
-/bin/cp -f ${rscripts}/test-console.conf ${bin}/bconsole.conf
-/bin/cp -f ${rscripts}/test-console.conf ${bin}/bat.conf
+/bin/cp -f ${rscripts}/new-test-bacula-dir.conf ${conf}/bacula-dir.conf
+/bin/cp -f ${rscripts}/test-bacula-sd.conf ${conf}/bacula-sd.conf
+/bin/cp -f ${rscripts}/test-bacula-fd.conf ${conf}/bacula-fd.conf
+/bin/cp -f ${rscripts}/test-console.conf ${conf}/bconsole.conf
+/bin/cp -f ${rscripts}/test-console.conf ${conf}/bat.conf
 
 ${rscripts}/set_tape_options
