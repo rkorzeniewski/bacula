@@ -197,7 +197,7 @@ void bRestore::displayFiles(int64_t pathid, QString path)
    QString limit=QString().setNum(Offset2Spin->value() - Offset1Spin->value());
    QString q = ".bvfs_lsdir jobid=" + m_jobids + arg 
       + " limit=" + limit + " offset=" + offset ;
-   qDebug() << q;
+   if (mainWin->m_miscDebug) qDebug() << q;
    if (m_console->dir_cmd(q, results)) {
       nb = results.size();
       FileList->setRowCount(nb);
@@ -397,7 +397,7 @@ void bRestoreTable::mouseMoveEvent(QMouseEvent *event)
    }
 
    QList<QTableWidgetItem *> lst = selectedItems();
-   qDebug() << this << " selectedItems: " << lst;
+   if (mainWin->m_miscDebug) qDebug() << this << " selectedItems: " << lst;
    if (lst.isEmpty()) {
       return;
    }
@@ -681,7 +681,7 @@ int64_t bRunRestore::runRestore(QString tablename)
    q += " when=\"" + WhenEditor->dateTime().toString("yyyy-MM-dd hh:mm:ss") + "\"";
    q += " done yes";
    
-   qDebug() << q;
+   if (mainWin->m_miscDebug) qDebug() << q;
    QStringList results;
    if (brestore->console()->dir_cmd(q, results)) {
       foreach (QString resultline, results) {
@@ -706,12 +706,13 @@ void bRunRestore::computeRestore()
    if (m_findexes.size() > 0) {
       q += " hardlink=" + m_findexes.join(",");
    }
-   qDebug() << q;
+   if (mainWin->m_miscDebug) qDebug() << q;
 
    QStringList results;
    if (brestore->console()->dir_cmd(q, results)) {
       if (results.size() == 1 && results[0] == "OK") {
-         qDebug() << "jobid=" << runRestore("b2123");
+         int64_t jobid = runRestore("b2123");
+         if (mainWin->m_miscDebug) qDebug() << "jobid=" << jobid;
          q = ".bvfs_cleanup path=b2123";
          brestore->console()->dir_cmd(q, results);
       }
