@@ -362,7 +362,6 @@ vtape::vtape()
    current_block = -1;
 
    max_block = VTAPE_MAX_BLOCK;
-   Dmsg0(0, "I'm a vtape device\n");
 }
 
 int vtape::get_fd()
