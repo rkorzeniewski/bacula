@@ -46,7 +46,7 @@ Item 36: Implement a Migration job type that will create a reverse
 Item 37: Separate "Storage" and "Device" in the bacula-dir.conf
 Item 38: Least recently used device selection for tape drives in autochanger.
 Item 39: Implement a Storage device like Amazon's S3.
-Item 40: Convert tray monitor on Windows to a stand alone program
+Item*40: Convert tray monitor on Windows to a stand alone program
 Item 41: Improve Bacula's tape and drive usage and cleaning management 
 Item 42: Relabel disk volume after recycling
 
