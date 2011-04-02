@@ -507,35 +507,37 @@ int  m_msg(const char *file, int line, POOLMEM *&pool_buf, const char *fmt, ...)
  *               OS Dependent defines
  * ============================================================= 
  */
-
-#ifndef HAVE_FSEEKO
-/* Bad news. This OS cannot handle 64 bit fseeks and ftells */
-#define fseeko fseek
-#define ftello ftell
-#endif
-
 #if defined (__digital__) && defined (__unix__)
 /* Tru64 - it does have fseeko and ftello , but since ftell/fseek are also 64 bit */
 /* take this 'shortcut' */
 #define fseeko fseek
 #define ftello ftell
+#else
+#ifndef HAVE_FSEEKO
+/* Bad news. This OS cannot handle 64 bit fseeks and ftells */
+#define fseeko fseek
+#define ftello ftell
+#endif
 #endif
 
-
 #ifdef HAVE_SUN_OS
-   /**
-    * On Solaris 2.5, threads are not timesliced by default, so we need to
-    * explictly increase the conncurrency level.
-    */
+/*
+ * On Solaris 2.5/2.6/7 and 8, threads are not timesliced by default,
+ * so we need to explictly increase the conncurrency level.
+ */
+#ifdef USE_THR_SETCONCURRENCY
 #include <thread.h>
 #define set_thread_concurrency(x)  thr_setconcurrency(x)
 extern int thr_setconcurrency(int);
 #define SunOS 1
+#else
+#define set_thread_concurrency(x)
+#endif
 
 #else
-
-
-/** Not needed on most systems */
+/*
+ * Not needed on most systems
+ */
 #define set_thread_concurrency(x)
 
 #endif
@@ -550,8 +552,6 @@ int getdomainname(char *name, int len);
 }
 #endif /* __cplusplus */
 #endif /* HAVE_DARWIN_OS */
-
-
 
 #if defined(HAVE_WIN32)
 /*
