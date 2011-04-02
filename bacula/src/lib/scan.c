@@ -32,15 +32,17 @@
  *
  */
 
-
 #include "bacula.h"
 #include "jcr.h"
 #include "findlib/find.h"
 
-/* Strip leading space from command line arguments */
+/*
+ * Strip leading space from command line arguments
+ */
 void strip_leading_space(char *str)
 {
    char *p = str;
+
    while (B_ISSPACE(*p)) {
       p++;
    }
@@ -49,35 +51,46 @@ void strip_leading_space(char *str)
    }
 }
 
-
-/* Strip any trailing junk from the command */
+/*
+ * Strip any trailing junk from the command
+ */
 void strip_trailing_junk(char *cmd)
 {
    char *p;
-   p = cmd + strlen(cmd) - 1;
 
-   /* strip trailing junk from command */
-   while ((p >= cmd) && (*p == '\n' || *p == '\r' || *p == ' '))
+   /*
+    * Strip trailing junk from command
+    */
+   p = cmd + strlen(cmd) - 1;
+   while ((p >= cmd) && (*p == '\n' || *p == '\r' || B_ISSPACE(*p))) {
       *p-- = 0;
+   }
 }
 
-/* Strip any trailing newline characters from the string */
+/*
+ * Strip any trailing newline characters from the string
+ */
 void strip_trailing_newline(char *cmd)
 {
    char *p;
-   p = cmd + strlen(cmd) - 1;
 
-   while ((p >= cmd) && (*p == '\n' || *p == '\r'))
+   p = cmd + strlen(cmd) - 1;
+   while ((p >= cmd) && (*p == '\n' || *p == '\r')) {
       *p-- = 0;
+   }
 }
 
-/* Strip any trailing slashes from a directory path */
+/*
+ * Strip any trailing slashes from a directory path
+ */
 void strip_trailing_slashes(char *dir)
 {
    char *p;
-   p = dir + strlen(dir) - 1;
 
-   /* strip trailing slashes */
+   /*
+    * Strip trailing slashes
+    */
+   p = dir + strlen(dir) - 1;
    while (p >= dir && IsPathSeparator(*p))
       *p-- = 0;
 }
@@ -121,9 +134,10 @@ bool skip_nonspaces(char **msg)
    return *p ? true : false;
 }
 
-/* folded search for string - case insensitive */
-int
-fstrsch(const char *a, const char *b)   /* folded case search */
+/*
+ * Folded search for string - case insensitive
+ */
+int fstrsch(const char *a, const char *b)   /* folded case search */
 {
    const char *s1,*s2;
    char c1, c2;
@@ -149,7 +163,6 @@ fstrsch(const char *a, const char *b)   /* folded case search */
    }
    return 1;
 }
-
 
 /*
  * Return next argument from command line.  Note, this
@@ -278,7 +291,9 @@ int parse_args_only(POOLMEM *cmd, POOLMEM **args, int *argc,
    strip_trailing_junk(*args);
    p = *args;
    *argc = 0;
-   /* Pick up all arguments */
+   /*
+    * Pick up all arguments
+    */
    while (*argc < max_args) {
       n = next_arg(&p);
       if (*n) {
@@ -291,14 +306,13 @@ int parse_args_only(POOLMEM *cmd, POOLMEM **args, int *argc,
    return 1;
 }
 
-
 /*
  * Given a full filename, split it into its path
  *  and filename parts. They are returned in pool memory
  *  in the arguments provided.
  */
 void split_path_and_filename(const char *fname, POOLMEM **path, int *pnl,
-        POOLMEM **file, int *fnl)
+                             POOLMEM **file, int *fnl)
 {
    const char *f;
    int slen;
