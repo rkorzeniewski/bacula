@@ -304,6 +304,9 @@ void ItemFormatterBase::setBytesFld(int index, const QString &fld)
    case BYTES_CONVERSION_SI:
       msg = convertBytesSI(qfld);
       break;
+   default:
+      msg = " ";
+      break;
    }
 
    setNumericFld(index, msg, qfld);
