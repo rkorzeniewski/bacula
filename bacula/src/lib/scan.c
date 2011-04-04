@@ -91,8 +91,9 @@ void strip_trailing_slashes(char *dir)
     * Strip trailing slashes
     */
    p = dir + strlen(dir) - 1;
-   while (p >= dir && IsPathSeparator(*p))
+   while (p >= dir && IsPathSeparator(*p)) {
       *p-- = 0;
+   }
 }
 
 /*
