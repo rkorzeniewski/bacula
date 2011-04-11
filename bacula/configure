@@ -29763,10 +29763,17 @@ solaris)
        platforms/solaris/bacula-fd \
        platforms/solaris/bacula-sd \
        platforms/solaris/bacula-dir"
-   if test x$DISTVER = x5.6 ; then
+   case ${DISTVER} in
+   5.5|5.6)
        $as_echo "#define HAVE_OLD_SOCKOPT 1" >>confdefs.h
-
-   fi
+       $as_echo "#define USE_THR_SETCONCURRENCY 1" >>confdefs.h
+      ;;
+   5.7|5.8)
+       $as_echo "#define USE_THR_SETCONCURRENCY 1" >>confdefs.h
+      ;;
+   *)
+      ;;
+   esac
    LIBS="$LIBS -lresolv -lrt"
   ;;
 suse)
