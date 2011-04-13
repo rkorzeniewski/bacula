@@ -4,7 +4,9 @@ dnl Process this file with autoconf to produce a configure script.
 dnl
 dnl require a recent autoconf
 AC_PREREQ(2.61)
-AC_INIT(src/version.h)
+AC_INIT([bacula], m4_esyscmd([sed -n -e 's/^.*VERSION.*"\(.*\)"$/\1/p' ../src/version.h src/version.h 2> /dev/null | tr -d '\n']))
+AC_CONFIG_SRCDIR(src/version.h)
+
 BUILD_DIR=`pwd`
 cd ..
 TOP_DIR=`pwd`
