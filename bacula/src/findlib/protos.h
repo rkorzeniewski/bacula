@@ -70,6 +70,8 @@ int   find_one_file(JCR *jcr, FF_PKT *ff,
 int   term_find_one(FF_PKT *ff);
 bool  has_file_changed(JCR *jcr, FF_PKT *ff_pkt);
 bool check_changes(JCR *jcr, FF_PKT *ff_pkt);
+void ff_pkt_set_link_digest(FF_PKT *ff_pkt, 
+                            int32_t digest_stream, const char *digest, uint32_t len);
 
 /* From get_priv.c */
 int enable_backup_privileges(JCR *jcr, int ignore_errors);

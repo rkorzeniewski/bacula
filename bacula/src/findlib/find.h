@@ -165,7 +165,10 @@ struct FF_PKT {
    POOLMEM *sys_fname;                /* system filename */
    POOLMEM *fname_save;               /* save when stripping path */
    POOLMEM *link_save;                /* save when stripping path */
+   char *digest;                      /* set to file digest when the file is a hardlink */
    struct stat statp;                 /* stat packet */
+   uint32_t digest_len;               /* set to the digest len when the file is a hardlink*/
+   int32_t digest_stream;             /* set to digest type when the file is hardlink */
    int32_t FileIndex;                 /* FileIndex of this file */
    int32_t LinkFI;                    /* FileIndex of main hard linked file */
    int32_t delta_seq;                 /* Delta Sequence number */

@@ -741,9 +741,27 @@ int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
          goto bail_out;
       }
 
+      /* Keep the checksum if this file is a hardlink */
+      if (ff_pkt->linked) {
+         ff_pkt_set_link_digest(ff_pkt, digest_stream, sd->msg, size);
+      }
+
       sd->msglen = size;
       sd->send();
       sd->signal(BNET_EOD);              /* end of checksum */
+   }
+
+   /* Check if original file has a digest, and send it */
+   if (ff_pkt->type == FT_LNKSAVED && ff_pkt->digest) {
+      Dmsg2(300, "Link %s digest %d\n", ff_pkt->fname, ff_pkt->digest_len);
+      sd->fsend("%ld %d 0", jcr->JobFiles, ff_pkt->digest_stream);
+
+      sd->msg = check_pool_memory_size(sd->msg, ff_pkt->digest_len);
+      memcpy(sd->msg, ff_pkt->digest, ff_pkt->digest_len);
+      sd->msglen = ff_pkt->digest_len;
+      sd->send();
+
+      sd->signal(BNET_EOD);              /* end of hardlink record */
    }
 
 good_rtn:
@@ -1199,7 +1217,7 @@ bool encode_and_send_attributes(JCR *jcr, FF_PKT *ff_pkt, int &data_stream)
    switch (ff_pkt->type) {
    case FT_LNK:
    case FT_LNKSAVED:
-      Dmsg2(300, "Link %s to %s\n", ff_pkt->fname, ff_pkt->link);
+      Dmsg3(300, "Link %d %s to %s\n", jcr->JobFiles, ff_pkt->fname, ff_pkt->link);
       stat = sd->fsend("%ld %d %s%c%s%c%s%c%s%c%u%c", jcr->JobFiles,
                        ff_pkt->type, ff_pkt->fname, 0, attribs, 0, 
                        ff_pkt->link, 0, attribsEx, 0, ff_pkt->delta_seq, 0);

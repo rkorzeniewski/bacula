@@ -59,6 +59,9 @@ struct f_link {
     dev_t dev;                        /* device */
     ino_t ino;                        /* inode with device is unique */
     uint32_t FileIndex;               /* Bacula FileIndex of this file */
+    int32_t digest_stream;            /* Digest type if needed */
+    uint32_t digest_len;              /* Digest len if needed */
+    char *digest;                     /* Checksum of the file if needed */
     char name[1];                     /* The name */
 };
 
@@ -326,6 +329,22 @@ static bool have_ignoredir(FF_PKT *ff_pkt)
    return false;
 }
 
+/* 
+ * When the current file is a hardlink, the backup code can compute
+ * the checksum and store it into the link_t structure.
+ */
+void
+ff_pkt_set_link_digest(FF_PKT *ff_pkt,
+                       int32_t digest_stream, const char *digest, uint32_t len)
+{
+   if (ff_pkt->linked && !ff_pkt->linked->digest) {     /* is a hardlink */
+      ff_pkt->linked->digest = (char *) bmalloc(len);
+      memcpy(ff_pkt->linked->digest, digest, len);
+      ff_pkt->linked->digest_len = len;
+      ff_pkt->linked->digest_stream = digest_stream;
+   }
+}
+
 /*
  * Find a single file.
  * handle_file is the callback for handling the file.
@@ -473,6 +492,9 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt,
              ff_pkt->type = FT_LNKSAVED;       /* Handle link, file already saved */
              ff_pkt->LinkFI = lp->FileIndex;
              ff_pkt->linked = 0;
+             ff_pkt->digest = lp->digest;
+             ff_pkt->digest_stream = lp->digest_stream;
+             ff_pkt->digest_len = lp->digest_len;
              rtn_stat = handle_file(jcr, ff_pkt, top_level);
              Dmsg3(400, "FT_LNKSAVED FI=%d LinkFI=%d file=%s\n", 
                 ff_pkt->FileIndex, lp->FileIndex, lp->name);
@@ -482,6 +504,9 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt,
       /* File not previously dumped. Chain it into our list. */
       len = strlen(fname) + 1;
       lp = (struct f_link *)bmalloc(sizeof(struct f_link) + len);
+      lp->digest = NULL;                /* set later */
+      lp->digest_stream = 0;            /* set later */
+      lp->digest_len = 0;               /* set later */
       lp->ino = ff_pkt->statp.st_ino;
       lp->dev = ff_pkt->statp.st_dev;
       lp->FileIndex = 0;                  /* set later */
@@ -808,16 +833,19 @@ int term_find_one(FF_PKT *ff)
 
    for (i =0 ; i < LINK_HASHTABLE_SIZE; i ++) {
    /* Free up list of hard linked files */
-       lp = ff->linkhash[i];
-       while (lp) {
-      lc = lp;
-      lp = lp->next;
-      if (lc) {
-         free(lc);
-         count++;
+      lp = ff->linkhash[i];
+      while (lp) {
+         lc = lp;
+         lp = lp->next;
+         if (lc) {
+            if (lc->digest) {
+               free(lc->digest);
+            }
+            free(lc);
+            count++;
+         }
       }
-   }
-       ff->linkhash[i] = NULL;
+      ff->linkhash[i] = NULL;
    }
    free(ff->linkhash);
    ff->linkhash = NULL;
