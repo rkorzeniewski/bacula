@@ -34,6 +34,7 @@ messages
 @$out ${cwd}/tmp/log1.out
 label storage=File
 TestVolume001
+setdebug level=500 client=localhost-fd trace=1
 run job=$JobName    
 yes
 wait
@@ -42,7 +43,7 @@ messages
 @# now do a restore
 @#
 @$out ${cwd}/tmp/log2.out
-setdebug level=200 client=localhost-fd
+setdebug level=200 client=localhost-fd trace=0
 restore where=${cwd}/tmp/bacula-restores storage=File
 5
 cd ${cwd}/weird-files/subdir
@@ -51,6 +52,21 @@ done
 yes
 wait
 messages
+@$out ${cwd}/tmp/log3.out
+@# They should all have a MD5
+sql
+SELECT Name, Md5
+  FROM File JOIN Filename USING (FilenameId)
+ WHERE Name LIKE 'hard%' OR Name = 'normalfile';
+
+@$out ${cwd}/tmp/log4.out
+@# As we backup two times the same directory, the number should be 4
+sql
+SELECT count(1), Md5
+  FROM File JOIN Filename USING (FilenameId)
+ WHERE Name = 'hardlink-to-normalfile' OR Name = 'normalfile'
+ GROUP By Md5;
+
 quit
 END_OF_DATA
 
@@ -62,4 +78,18 @@ check_two_logs
 diff ${cwd}/weird-files/subdir/another-hardlink \
   ${cwd}/tmp/bacula-restores/${cwd}/weird-files/subdir/another-hardlink 2>&1 >/dev/null
 dstat=$?
+
+grep ' 0 ' $tmp/log3.out > /dev/null
+if [ $? -eq 0 ]; then
+    print_debug "ERROR: All hardlinks should have checksums"
+    estat=1
+fi
+
+# if you change the file-list, adjust the number here
+grep ' 4 ' $tmp/log4.out > /dev/null
+if [ $? -ne 0 ]; then
+    print_debug "ERROR: All selected hardlinks should have the same checksum"
+    estat=1
+fi
+
 end_test
