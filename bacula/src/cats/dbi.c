@@ -1187,7 +1187,7 @@ bool B_DB_DBI::sql_batch_start(JCR *jcr)
                              "Name blob,"
                              "LStat tinyblob,"
                              "MD5 tinyblob,"
-                             "MarkId integer)")) {
+                             "DeltaSeq smallint)")) {
          Dmsg0(500, "sql_batch_start failed\n");
          goto bail_out;
       }
@@ -1252,7 +1252,7 @@ bool B_DB_DBI::sql_batch_start(JCR *jcr)
                              "Name blob,"
                              "LStat tinyblob,"
                              "MD5 tinyblob,"
-                             "MarkId integer)")) {
+                             "DeltaSeq smallint)")) {
          Dmsg0(500, "sql_batch_start failed\n");
          goto bail_out;
       }

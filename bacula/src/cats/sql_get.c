@@ -1155,7 +1155,7 @@ bool db_get_file_list(JCR *jcr, B_DB *mdb, char *jobids,
     * or Migration
     */
    Mmsg(buf,
-"SELECT Path.Path, Filename.Name, T1.FileIndex, T1.JobId, LStat, MarkId, MD5 "
+"SELECT Path.Path, Filename.Name, T1.FileIndex, T1.JobId, LStat, DeltaSeq, MD5 "
  "FROM ( %s ) AS T1 "
  "JOIN Filename ON (Filename.FilenameId = T1.FilenameId) "
  "JOIN Path ON (Path.PathId = T1.PathId) "
@@ -1286,7 +1286,7 @@ bool db_get_base_file_list(JCR *jcr, B_DB *mdb, bool use_md5,
    POOL_MEM buf(PM_MESSAGE);
          
    Mmsg(buf,
- "SELECT Path, Name, FileIndex, JobId, LStat, 0 As MarkId, MD5 "
+ "SELECT Path, Name, FileIndex, JobId, LStat, 0 As DeltaSeq, MD5 "
    "FROM new_basefile%lld ORDER BY JobId, FileIndex ASC",
         (uint64_t) jcr->JobId);
    

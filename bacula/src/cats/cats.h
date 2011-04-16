@@ -213,6 +213,7 @@ struct FILE_DBR {
    DBId_t FilenameId;
    DBId_t PathId;
    JobId_t  MarkId;
+   uint32_t DeltaSeq;
    char LStat[256];
    char Digest[BASE64_SIZE(CRYPTO_DIGEST_MAX_SIZE)];
    int DigestType;                    /* NO_SIG/MD5_SIG/SHA1_SIG */
@@ -437,7 +438,7 @@ typedef int (DB_RESULT_HANDLER)(void *, int, char **);
 #define db_unlock(mdb) mdb->_db_unlock(__FILE__, __LINE__)
 
 /* Current database version number for all drivers */
-#define BDB_VERSION 13
+#define BDB_VERSION 14
 
 class B_DB: public SMARTALLOC {
 protected:

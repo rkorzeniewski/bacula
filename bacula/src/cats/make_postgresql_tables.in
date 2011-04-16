@@ -53,6 +53,7 @@ CREATE TABLE File
     JobId	      integer	  not null,
     PathId	      integer	  not null,
     FilenameId	      integer	  not null,
+    DeltaSeq	      smallint    not null  default 0,
     MarkId	      integer	  not null  default 0,
     LStat	      text	  not null,
     Md5 	      text	  not null,

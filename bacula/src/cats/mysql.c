@@ -578,7 +578,7 @@ bool B_DB_MYSQL::sql_batch_start(JCR *jcr)
                               "Name blob,"
                               "LStat tinyblob,"
                               "MD5 tinyblob,"
-                              "MarkId integer)");
+                              "DeltaSeq integer)");
    db_unlock(this);
 
    return retval;

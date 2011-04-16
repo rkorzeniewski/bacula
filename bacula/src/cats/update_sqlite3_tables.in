@@ -46,7 +46,9 @@ CREATE TABLE RestoreObject (
    );
 CREATE INDEX restore_jobid_idx ON RestoreObject (JobId);
 
-UPDATE Version SET VersionId=13;
+ALTER TABLE File ADD COLUMN DeltaSeq smallint default 0;
+
+UPDATE Version SET VersionId=14;
 COMMIT;
 
 END-OF-DATA

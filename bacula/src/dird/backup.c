@@ -138,7 +138,7 @@ static bool get_base_jobids(JCR *jcr, db_list_ctx *jobids)
 /*
  * Foreach files in currrent list, send "/path/fname\0LStat\0MD5\0Delta" to FD
  *      row[0]=Path, row[1]=Filename, row[2]=FileIndex
- *      row[3]=JobId row[4]=LStat row[5]=MarkId row[6]=MD5
+ *      row[3]=JobId row[4]=LStat row[5]=DeltaSeq row[6]=MD5
  */
 static int accurate_list_handler(void *ctx, int num_fields, char **row)
 {

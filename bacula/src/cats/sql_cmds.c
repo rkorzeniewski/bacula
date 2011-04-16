@@ -263,7 +263,7 @@ const char *uar_jobid_fileindex_from_table =
  */
 const char *select_recent_version_with_basejob_default = 
 "SELECT FileId, Job.JobId AS JobId, FileIndex, File.PathId AS PathId, "
-       "File.FilenameId AS FilenameId, LStat, MD5, MarkId, "
+       "File.FilenameId AS FilenameId, LStat, MD5, DeltaSeq, "
        "Job.JobTDate AS JobTDate "
 "FROM Job, File, ( "
     "SELECT MAX(JobTDate) AS JobTDate, PathId, FilenameId "
@@ -294,13 +294,13 @@ const char *select_recent_version_with_basejob[] = {
 
    /* Postgresql */    /* The DISTINCT ON () permits to avoid extra join */
    "SELECT DISTINCT ON (FilenameId, PathId) JobTDate, JobId, FileId, "
-         "FileIndex, PathId, FilenameId, LStat, MD5, MarkId "
+         "FileIndex, PathId, FilenameId, LStat, MD5, DeltaSeq "
    "FROM "
-     "(SELECT FileId, JobId, PathId, FilenameId, FileIndex, LStat, MD5, MarkId "
+     "(SELECT FileId, JobId, PathId, FilenameId, FileIndex, LStat, MD5, DeltaSeq "
          "FROM File WHERE JobId IN (%s) "
         "UNION ALL "
        "SELECT File.FileId, File.JobId, PathId, FilenameId, "
-              "File.FileIndex, LStat, MD5, MarkId "
+              "File.FileIndex, LStat, MD5, DeltaSeq "
          "FROM BaseFiles JOIN File USING (FileId) "
         "WHERE BaseFiles.JobId IN (%s) "
        ") AS T JOIN Job USING (JobId) "
@@ -330,22 +330,22 @@ const char *select_recent_version_with_basejob[] = {
  */
 const char *select_recent_version_with_basejob_and_delta_default = 
 "SELECT FileId, Job.JobId AS JobId, FileIndex, File.PathId AS PathId, "
-       "File.FilenameId AS FilenameId, LStat, MD5, File.MarkId AS MarkId, "
+       "File.FilenameId AS FilenameId, LStat, MD5, File.DeltaSeq AS DeltaSeq, "
        "Job.JobTDate AS JobTDate "
 "FROM Job, File, ( "
-    "SELECT MAX(JobTDate) AS JobTDate, PathId, FilenameId, MarkId "
+    "SELECT MAX(JobTDate) AS JobTDate, PathId, FilenameId, DeltaSeq "
       "FROM ( "
-       "SELECT JobTDate, PathId, FilenameId, MarkId " /* Get all normal files */
+       "SELECT JobTDate, PathId, FilenameId, DeltaSeq " /*Get all normal files*/
          "FROM File JOIN Job USING (JobId) "          /* from selected backup */
         "WHERE File.JobId IN (%s) "
          "UNION ALL "
-       "SELECT JobTDate, PathId, FilenameId, MarkId " /* Get all files from */ 
+       "SELECT JobTDate, PathId, FilenameId, DeltaSeq " /*Get all files from */ 
          "FROM BaseFiles "                            /* BaseJob */
               "JOIN File USING (FileId) "
               "JOIN Job  ON    (BaseJobId = Job.JobId) "
         "WHERE BaseFiles.JobId IN (%s) "        /* Use Max(JobTDate) to find */
        ") AS tmp "
-       "GROUP BY PathId, FilenameId, MarkId "    /* the latest file version */
+       "GROUP BY PathId, FilenameId, DeltaSeq "    /* the latest file version */
     ") AS T1 "
 "WHERE (Job.JobId IN ( "  /* Security, we force JobId to be valid */
         "SELECT DISTINCT BaseJobId FROM BaseFiles WHERE JobId IN (%s)) "
@@ -360,18 +360,18 @@ const char *select_recent_version_with_basejob_and_delta[] = {
    select_recent_version_with_basejob_and_delta_default,
 
    /* Postgresql */    /* The DISTINCT ON () permits to avoid extra join */
-   "SELECT DISTINCT ON (FilenameId, PathId, MarkId) JobTDate, JobId, FileId, "
-         "FileIndex, PathId, FilenameId, LStat, MD5, MarkId "
+   "SELECT DISTINCT ON (FilenameId, PathId, DeltaSeq) JobTDate, JobId, FileId, "
+         "FileIndex, PathId, FilenameId, LStat, MD5, DeltaSeq "
    "FROM "
-     "(SELECT FileId, JobId, PathId, FilenameId, FileIndex, LStat, MD5, MarkId "
+    "(SELECT FileId, JobId, PathId, FilenameId, FileIndex, LStat, MD5,DeltaSeq "
          "FROM File WHERE JobId IN (%s) "
         "UNION ALL "
        "SELECT File.FileId, File.JobId, PathId, FilenameId, "
-              "File.FileIndex, LStat, MD5, MarkId "
+              "File.FileIndex, LStat, MD5, DeltaSeq "
          "FROM BaseFiles JOIN File USING (FileId) "
         "WHERE BaseFiles.JobId IN (%s) "
        ") AS T JOIN Job USING (JobId) "
-   "ORDER BY FilenameId, PathId, MarkId, JobTDate DESC ",
+   "ORDER BY FilenameId, PathId, DeltaSeq, JobTDate DESC ",
 
    /* SQLite3 */
    select_recent_version_with_basejob_and_delta_default,

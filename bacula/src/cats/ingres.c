@@ -1014,7 +1014,7 @@ bool B_DB_INGRES::sql_batch_start(JCR *jcr)
                            "Name VARBYTE(32000),"
                            "LStat VARBYTE(255),"
                            "MD5 VARBYTE(255),"
-                           "MarkId INTEGER)"
+                           "DeltaSeq SMALLINT)"
                            " ON COMMIT PRESERVE ROWS WITH NORECOVERY");
    db_unlock(this);
    return ok;

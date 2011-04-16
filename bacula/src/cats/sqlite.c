@@ -666,7 +666,7 @@ bool B_DB_SQLITE::sql_batch_start(JCR *jcr)
                               "Name blob,"
                               "LStat tinyblob,"
                               "MD5 tinyblob,"
-                              "MarkId integer)");
+                              "DeltaSeq integer)");
    db_unlock(this);
 
    return retval;

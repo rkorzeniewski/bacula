@@ -181,7 +181,7 @@ bool user_select_files_from_tree(TREE_CTX *tree)
  *
  *   See uar_sel_files in sql_cmds.c for query that calls us.
  *      row[0]=Path, row[1]=Filename, row[2]=FileIndex
- *      row[3]=JobId row[4]=LStat row[5]=MarkId
+ *      row[3]=JobId row[4]=LStat row[5]=DeltaSeq
  */
 int insert_tree_handler(void *ctx, int num_fields, char **row)
 {

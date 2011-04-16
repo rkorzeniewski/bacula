@@ -44,8 +44,10 @@ CREATE TABLE RestoreObject (
 
 CREATE INDEX jobhisto_jobid_idx ON JobHisto (JobId);
 
+ALTER TABLE File ADD COLUMN DeltaSeq smallint default 0;
+
 DELETE FROM Version;
-INSERT INTO Version (VersionId) VALUES (13);
+INSERT INTO Version (VersionId) VALUES (14);
 
 END-OF-DATA
 then

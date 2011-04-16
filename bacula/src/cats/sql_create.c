@@ -849,9 +849,9 @@ bool db_write_batch_file_records(JCR *jcr)
    }
    
    if (!db_sql_query(jcr->db_batch, 
-  "INSERT INTO File (FileIndex, JobId, PathId, FilenameId, LStat, MD5, MarkId) "
+"INSERT INTO File (FileIndex, JobId, PathId, FilenameId, LStat, MD5, DeltaSeq) "
     "SELECT batch.FileIndex, batch.JobId, Path.PathId, "
-           "Filename.FilenameId,batch.LStat, batch.MD5, batch.MarkId "
+           "Filename.FilenameId,batch.LStat, batch.MD5, batch.DeltaSeq "
       "FROM batch "
       "JOIN Path ON (batch.Path = Path.Path) "
       "JOIN Filename ON (batch.Name = Filename.Name)",
@@ -985,7 +985,7 @@ static int db_create_file_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
    /* Must create it */
    Mmsg(mdb->cmd,
         "INSERT INTO File (FileIndex,JobId,PathId,FilenameId,"
-        "LStat,MD5,MarkId) VALUES (%u,%u,%u,%u,'%s','%s',%u)",
+        "LStat,MD5,DeltaSeq) VALUES (%u,%u,%u,%u,'%s','%s',%u)",
         ar->FileIndex, ar->JobId, ar->PathId, ar->FilenameId,
         ar->attr, digest, ar->DeltaSeq);
 
