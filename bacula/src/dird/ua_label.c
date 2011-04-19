@@ -157,6 +157,7 @@ static bool get_user_slot_list(UAContext *ua, char *slot_list, int num_slots)
    return true;
 
 bail_out:
+   Dmsg1(100, "Problem with user selection ERR=%s\n", msg);
    return false;
 }
 

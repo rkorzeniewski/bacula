@@ -1864,7 +1864,7 @@ static void store_runscript_cmd(LEX *lc, RES_ITEM *item, int index, int pass)
       /* Each runscript command takes 2 entries in commands list */
       pm_strcpy(c, lc->str);
       ((RUNSCRIPT*) item->value)->commands->prepend(c); /* command line */
-      ((RUNSCRIPT*) item->value)->commands->prepend((void *)item->code); /* command type */
+      ((RUNSCRIPT*) item->value)->commands->prepend((void *)(intptr_t)item->code); /* command type */
    }
    scan_to_eol(lc);
 }

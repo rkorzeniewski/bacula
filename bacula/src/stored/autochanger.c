@@ -556,7 +556,6 @@ bool autochanger_cmd(DCR *dcr, BSOCK *dir, const char *cmd)
    POOLMEM *changer;
    BPIPE *bpipe;
    int len = sizeof_pool_memory(dir->msg) - 1;
-   bool ok = false;
    int stat;
 
    if (!dev->is_autochanger() || !dcr->device->changer_name ||
@@ -589,7 +588,7 @@ bool autochanger_cmd(DCR *dcr, BSOCK *dir, const char *cmd)
    bpipe = open_bpipe(changer, timeout, "r");
    if (!bpipe) {
       dir->fsend(_("3996 Open bpipe failed.\n"));
-      goto bail_out;
+      goto bail_out;            /* TODO: check if we need to return false */
    }
    if (bstrcmp(cmd, "list") || bstrcmp(cmd, "listall")) {
       /* Get output from changer */
@@ -618,7 +617,6 @@ bool autochanger_cmd(DCR *dcr, BSOCK *dir, const char *cmd)
       dir->fsend(_("Autochanger error: ERR=%s\n"), be.bstrerror());
    }
    bnet_sig(dir, BNET_EOD);
-   ok = true;
 
 bail_out:
    unlock_changer(dcr);

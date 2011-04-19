@@ -1612,7 +1612,7 @@ static int level_cmd(JCR *jcr)
    if (buf) {
       free_memory(buf);
    }
-   generate_plugin_event(jcr, bEventLevel, (void *)jcr->getJobLevel());
+   generate_plugin_event(jcr, bEventLevel, (void*)(intptr_t)jcr->getJobLevel());
    return dir->fsend(OKlevel);
 
 bail_out:
@@ -1977,7 +1977,7 @@ static int verify_cmd(JCR *jcr)
    dir->fsend(OKverify);
 
    generate_daemon_event(jcr, "JobStart");
-   generate_plugin_event(jcr, bEventLevel, (void *)jcr->getJobLevel());
+   generate_plugin_event(jcr, bEventLevel,(void *)(intptr_t)jcr->getJobLevel());
    generate_plugin_event(jcr, bEventStartVerifyJob);
 
    Dmsg1(110, "filed>dird: %s", dir->msg);

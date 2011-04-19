@@ -345,8 +345,8 @@ static bool dot_bvfs_restore(UAContext *ua, const char *cmd)
    int limit=2000, offset=0, i;
    char *path=NULL, *jobid=NULL, *username=NULL;
    char *empty = (char *)"";
-   char *fileid, *dirid, *hardlink, *id;
-   id = fileid = dirid = hardlink = empty;
+   char *fileid, *dirid, *hardlink;
+   fileid = dirid = hardlink = empty;
 
    if (!bvfs_parse_arg(ua, &pathid, &path, &jobid, &username,
                        &limit, &offset))

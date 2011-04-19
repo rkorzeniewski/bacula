@@ -445,8 +445,9 @@ bool accurate_check_file(JCR *jcr, FF_PKT *ff_pkt)
                   bin_to_base64(digest_buf, BASE64_SIZE(size), md, size, true);
 
                   if (strcmp(digest_buf, elt.chksum)) {
-                     Dmsg3(dbglvl-1, "%s      chksum  diff. Cat: %s File: %s\n",
+                     Dmsg4(dbglvl,"%s      %s chksum  diff. Cat: %s File: %s\n",
                            fname,
+                           digest_name,
                            elt.chksum,
                            digest_buf);
                      stat = true;

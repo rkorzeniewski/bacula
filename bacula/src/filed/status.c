@@ -249,7 +249,6 @@ static void  list_running_jobs_api(STATUS_PKT *sp)
    POOL_MEM msg(PM_MESSAGE);
    char b1[32], b2[32], b3[32];
    int len;
-   bool found = false;
    JCR *njcr;
    char dt[MAX_TIME_LENGTH];
    /*
@@ -299,7 +298,6 @@ static void  list_running_jobs_api(STATUS_PKT *sp)
          sendit(msg.c_str(), len, sp);
       }
 
-      found = true;
       if (njcr->store_bsock) {
          len = Mmsg(msg, " SDReadSeqNo=%" lld "\n fd=%d\n",
              njcr->store_bsock->read_seqno, njcr->store_bsock->m_fd);
