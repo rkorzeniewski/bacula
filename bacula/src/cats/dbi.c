@@ -1195,13 +1195,13 @@ bool B_DB_DBI::sql_batch_start(JCR *jcr)
       goto ok_out;
    case SQL_TYPE_POSTGRESQL:
       if (!sql_query("CREATE TEMPORARY TABLE batch ("
-                             "fileindex int,"
-                             "jobid int,"
-                             "path varchar,"
-                             "name varchar,"
-                             "lstat varchar,"
-                             "md5 varchar,"
-                             "markid int)")) {
+                             "FileIndex int,"
+                             "JobId int,"
+                             "Path varchar,"
+                             "Name varchar,"
+                             "LStat varchar,"
+                             "MD5 varchar,"
+                             "DeltaSeq int)")) {
          Dmsg0(500, "sql_batch_start failed\n");
          goto bail_out;
       }
