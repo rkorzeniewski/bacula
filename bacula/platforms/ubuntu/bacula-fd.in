@@ -42,6 +42,10 @@ if [ -n "`getent services ${NAME}`" ]; then
    BPORT=`getent services ${NAME} | awk '{ gsub("/tcp","",$2); print $2; }'`
 fi
 
+if [ -f /etc/default/$NAME ]; then
+   . /etc/default/$NAME
+fi
+
 mkdir -p @piddir@
 PIDFILE=@piddir@/${NAME}.${BPORT}.pid
 
