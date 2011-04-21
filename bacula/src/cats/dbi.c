@@ -336,9 +336,9 @@ void B_DB_DBI::db_close_database(JCR *jcr)
 {
    db_end_transaction(jcr);
    P(mutex);
-   sql_free_result();
    m_ref_count--;
    if (m_ref_count == 0) {
+      sql_free_result();
       db_list->remove(this);
       if (m_connected && m_db_handle) {
          dbi_shutdown_r(m_instance);

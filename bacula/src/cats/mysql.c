@@ -236,10 +236,10 @@ void B_DB_MYSQL::db_close_database(JCR *jcr)
 {
    db_end_transaction(jcr);
    P(mutex);
-   sql_free_result();
    m_ref_count--;
    Dmsg3(100, "closedb ref=%d connected=%d db=%p\n", m_ref_count, m_connected, m_db_handle);
    if (m_ref_count == 0) {
+      sql_free_result();
       db_list->remove(this);
       if (m_connected) {
          Dmsg1(100, "close db=%p\n", m_db_handle);

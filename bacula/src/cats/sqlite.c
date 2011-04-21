@@ -413,7 +413,7 @@ struct rh_data {
 /*
  * Convert SQLite's callback into Bacula DB callback
  */
-static int sqlite_sqlite_result(void *arh_data, int num_fields, char **rows, char **col_names)
+static int sqlite_result_handler(void *arh_data, int num_fields, char **rows, char **col_names)
 {
    struct rh_data *rh_data = (struct rh_data *)arh_data;
 
@@ -455,7 +455,7 @@ bool B_DB_SQLITE::db_sql_query(const char *query, DB_RESULT_HANDLER *result_hand
    rh_data.initialized = false;
    rh_data.result_handler = result_handler;
 
-   stat = sqlite3_exec(m_db_handle, query, sqlite_sqlite_result,
+   stat = sqlite3_exec(m_db_handle, query, sqlite_result_handler,
                        (void *)&rh_data, &m_sqlite_errmsg);
    
    if (stat != SQLITE_OK) {
@@ -482,9 +482,7 @@ bool B_DB_SQLITE::sql_query(const char *query, int flags)
 
    Dmsg1(500, "sql_query starts with '%s'\n", query);
 
-   if (m_result) {
-      sql_free_result();
-   }
+   sql_free_result();
    if (m_sqlite_errmsg) {
       sqlite3_free(m_sqlite_errmsg);
       m_sqlite_errmsg = NULL;
