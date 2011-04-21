@@ -11,7 +11,7 @@ bindir=@SQL_BINDIR@
 PATH="$bindir:$PATH"
 db_name=@db_name@
 
-DBVERSION=`psql ${db_name} -t --pset format=unaligned -c "select VersionId from Version"`
+DBVERSION=`psql -d ${db_name} -t --pset format=unaligned -c "select VersionId from Version" $*`
 if [ $DBVERSION != 11 ] ; then
    echo " "
    echo "The existing database is version $DBVERSION !!"

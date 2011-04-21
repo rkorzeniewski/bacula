@@ -10,7 +10,7 @@ bindir=@SQL_BINDIR@
 PATH="$bindir:$PATH"
 db_name=@db_name@
 
-mysql ${db_name} -e "select VersionId from Version\G" >/tmp/$$
+mysql $* -D ${db_name} -e "select VersionId from Version\G" >/tmp/$$
 DBVERSION=`sed -n -e 's/^VersionId: \(.*\)$/\1/p' /tmp/$$`
 if [ $DBVERSION != 11 ] ; then
    echo " "
