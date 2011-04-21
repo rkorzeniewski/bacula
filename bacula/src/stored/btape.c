@@ -317,7 +317,7 @@ int main(int margc, char *margv[])
 static void terminate_btape(int stat)
 {
 
-   sm_check(__FILE__, __LINE__, false);
+   Dsm_check(200);
    if (configfile) {
       free(configfile);
    }
@@ -748,7 +748,7 @@ static void rectestcmd()
       return;
    }
 
-   sm_check(__FILE__, __LINE__, false);
+   Dsm_check(200);
    block = new_block(dev);
    rec = new_record();
 
@@ -756,7 +756,7 @@ static void rectestcmd()
       rec->data = check_pool_memory_size(rec->data, i);
       memset(rec->data, i & 0xFF, i);
       rec->data_len = i;
-      sm_check(__FILE__, __LINE__, false);
+      Dsm_check(200);
       if (write_record_to_block(block, rec)) {
          empty_block(block);
          blkno++;
@@ -764,11 +764,11 @@ static void rectestcmd()
       } else {
          break;
       }
-      sm_check(__FILE__, __LINE__, false);
+      Dsm_check(200);
    }
    free_record(rec);
    free_block(block);
-   sm_check(__FILE__, __LINE__, false);
+   Dsm_check(200);
 }
 
 /*
@@ -1888,7 +1888,7 @@ static void wrcmd()
    if (!dev->is_open()) {
       open_the_device();
    }
-   sm_check(__FILE__, __LINE__, false);
+   Dsm_check(200);
    empty_block(block);
    if (verbose > 1) {
       dump_block(block, "test");
@@ -1899,7 +1899,7 @@ static void wrcmd()
    rec->data = check_pool_memory_size(rec->data, i);
    memset(rec->data, i & 0xFF, i);
    rec->data_len = i;
-   sm_check(__FILE__, __LINE__, false);
+   Dsm_check(200);
    if (!write_record_to_block(block, rec)) {
       Pmsg0(0, _("Error writing record to block.\n"));
       goto bail_out;
@@ -1913,8 +1913,7 @@ static void wrcmd()
    Pmsg0(0, _("Wrote block to device.\n"));
 
 bail_out:
-   sm_check(__FILE__, __LINE__, false);
-   sm_check(__FILE__, __LINE__, false);
+   Dsm_check(200);
 }
 
 /*
@@ -2798,7 +2797,7 @@ static void qfillcmd()
       count = 1000;
    }
 
-   sm_check(__FILE__, __LINE__, false);
+   Dsm_check(200);
 
    i = block->buf_len - 100;
    ASSERT (i > 0);
@@ -2833,7 +2832,7 @@ static void qfillcmd()
    scan_blocks();
 
 bail_out:
-   sm_check(__FILE__, __LINE__, false);
+   Dsm_check(200);
 }
 
 /*
@@ -2921,7 +2920,7 @@ do_tape_cmds()
    bool found;
 
    while (!quit && get_cmd("*")) {
-      sm_check(__FILE__, __LINE__, false);
+      Dsm_check(200);
       found = false;
       parse_args(cmd, &args, &argc, argk, argv, MAX_CMD_ARGS);
       for (i=0; i<comsize; i++)       /* search for command */

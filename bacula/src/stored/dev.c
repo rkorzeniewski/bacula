@@ -1958,7 +1958,7 @@ bool DEVICE::do_tape_mount(int mount, int dotimeout)
    int status, tries;
    berrno be;
 
-   Dsm_check(1);
+   Dsm_check(200);
    if (mount) {
       icmd = device->mount_command;
    } else {
@@ -1992,7 +1992,7 @@ bool DEVICE::do_tape_mount(int mount, int dotimeout)
       set_mounted(false);
       free_pool_memory(results);
       Dmsg0(200, "============ mount=0\n");
-      Dsm_check(1);
+      Dsm_check(200);
       return false;
    }
 
@@ -2015,7 +2015,7 @@ bool DEVICE::do_file_mount(int mount, int dotimeout)
    int status, tries, name_max, count;
    berrno be;
 
-   Dsm_check(1);
+   Dsm_check(200);
    if (mount) {
       icmd = device->mount_command;
    } else {
@@ -2115,7 +2115,7 @@ get_out:
       set_mounted(false);
       free_pool_memory(results);
       Dmsg0(200, "============ mount=0\n");
-      Dsm_check(1);
+      Dsm_check(200);
       return false;
    }
    

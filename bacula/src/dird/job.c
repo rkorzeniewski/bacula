@@ -104,7 +104,7 @@ bool setup_job(JCR *jcr)
    int errstat;
 
    jcr->lock();
-   sm_check(__FILE__, __LINE__, true);
+   Dsm_check(100);
    init_msg(jcr, jcr->messages);
 
    /* Initialize termination condition variable */
@@ -234,7 +234,7 @@ bool setup_job(JCR *jcr)
 
    generate_job_event(jcr, "JobInit");
    generate_plugin_event(jcr, bEventJobInit);
-   Dsm_check(1);
+   Dsm_check(100);
    return true;
 
 bail_out:
@@ -259,7 +259,7 @@ static void *job_thread(void *arg)
    JCR *jcr = (JCR *)arg;
 
    pthread_detach(pthread_self());
-   Dsm_check(1);
+   Dsm_check(100);
 
    Dmsg0(200, "=====Start Job=========\n");
    jcr->setJobStatus(JS_Running);   /* this will be set only if no error */
@@ -360,7 +360,7 @@ static void *job_thread(void *arg)
    generate_daemon_event(jcr, "JobEnd");
    generate_plugin_event(jcr, bEventJobEnd);
    Dmsg1(50, "======== End Job stat=%c ==========\n", jcr->JobStatus);
-   sm_check(__FILE__, __LINE__, true);
+   Dsm_check(100);
    return NULL;
 }
 
@@ -531,7 +531,7 @@ static void job_monitor_watchdog(watchdog_t *self)
 
    control_jcr = (JCR *)self->data;
 
-   Dsm_check(1);
+   Dsm_check(100);
    Dmsg1(800, "job_monitor_watchdog %p called\n", self);
 
    foreach_jcr(jcr) {

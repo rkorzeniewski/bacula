@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2007-2010 Free Software Foundation Europe e.V.
+   Copyright (C) 2007-2011 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -554,7 +554,11 @@ int32_t BSOCK::recv()
     * buffer is at least one byte longer than the message length.
     */
    msg[nbytes] = 0; /* terminate in case it is a string */
-   sm_check(__FILE__, __LINE__, false);
+   /*
+    * The following uses *lots* of resources so turn it on only for 
+    * serious debugging.
+    */
+   Dsm_check(300);
 
 get_out:
    if (m_use_locking) V(m_mutex);

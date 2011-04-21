@@ -401,7 +401,7 @@ void *handle_client_request(void *dirp)
    Dmsg0(100, "Done with term_find_files\n");
    free_jcr(jcr);                     /* destroy JCR record */
    Dmsg0(100, "Done with free_jcr\n");
-   Dsm_check(1);
+   Dsm_check(100);
    garbage_collect_memory_pool();
    return NULL;
 }

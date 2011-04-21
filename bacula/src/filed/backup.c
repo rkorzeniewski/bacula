@@ -1344,7 +1344,7 @@ void strip_path(FF_PKT *ff_pkt)
       pm_strcpy(ff_pkt->link_save, ff_pkt->link);
       Dmsg2(500, "strcpy link_save=%d link=%d\n", strlen(ff_pkt->link_save),
          strlen(ff_pkt->link));
-      sm_check(__FILE__, __LINE__, true);
+      Dsm_check(200);
    }
 
    /**
@@ -1383,7 +1383,7 @@ void unstrip_path(FF_PKT *ff_pkt)
       strcpy(ff_pkt->link, ff_pkt->link_save);
       Dmsg2(500, "strcpy link=%d link_save=%d\n", strlen(ff_pkt->link),
           strlen(ff_pkt->link_save));
-      sm_check(__FILE__, __LINE__, true);
+      Dsm_check(200);
    }
 }
 

@@ -163,7 +163,7 @@ bool run_cmd(JCR *jcr)
    struct timespec timeout;
    int errstat = 0;
 
-   Dsm_check(1);
+   Dsm_check(200);
    Dmsg1(200, "Run_cmd: %s\n", jcr->dir_bsock->msg);
 
    /* If we do not need the FD, we are doing a migrate, copy, or virtual
@@ -422,7 +422,7 @@ void stored_free_jcr(JCR *jcr)
       delete jcr->write_store;
       jcr->write_store = NULL;
    }
-   Dsm_check(1);
+   Dsm_check(200);
 
    if (jcr->JobId != 0)
       write_state_file(me->working_directory, "bacula-sd", get_first_port_host_order(me->sdaddrs));
