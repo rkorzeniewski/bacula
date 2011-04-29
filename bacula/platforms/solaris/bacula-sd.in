@@ -9,10 +9,21 @@
 #  For Bacula release @VERSION@ (@DATE@) -- @DISTNAME@
 #
 
+SD_USER=@sd_user@
+SD_GROUP=@sd_group@
+SD_OPTIONS=''
+
 case "$1" in
     start)
+       if [ "${SD_USER}" != '' ]; then
+          SD_OPTIONS="${SD_OPTIONS} -u ${SD_USER}"
+       fi
+       if [ "${SD_GROUP}" != '' ]; then
+          SD_OPTIONS="${SD_OPTIONS} -g ${SD_GROUP}"
+       fi
+
        echo "Starting the Bacula Storage daemon: "
-       @sbindir@/bacula-sd $2 -c @sysconfdir@/bacula-sd.conf
+       @sbindir@/bacula-sd $2 ${SD_OPTIONS} -c @sysconfdir@/bacula-sd.conf
        ;;
     stop)
        echo "Stopping the Bacula Storage daemon: "

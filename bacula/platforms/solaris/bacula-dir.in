@@ -9,11 +9,22 @@
 #  For Bacula release @VERSION@ (@DATE@) -- @DISTNAME@
 #
 
+DIR_USER=@dir_user@
+DIR_GROUP=@dir_group@
+DIR_OPTIONS=''
+
 RETVAL=0
 case "$1" in
     start)
+       if [ "${DIR_USER}" != '' ]; then
+          DIR_OPTIONS="${DIR_OPTIONS} -u ${DIR_USER}"
+       fi
+       if [ "${DIR_GROUP}" != '' ]; then
+          DIR_OPTIONS="${DIR_OPTIONS} -g ${DIR_GROUP}"
+       fi
+
        echo "Starting the Bacula Director: "
-       @sbindir@/bacula-dir $2 -c @sysconfdir@/bacula-dir.conf
+       @sbindir@/bacula-dir $2 ${DIR_OPTIONS} -c @sysconfdir@/bacula-dir.conf
        ;;
     stop)
        echo "Stopping the Director daemon: "

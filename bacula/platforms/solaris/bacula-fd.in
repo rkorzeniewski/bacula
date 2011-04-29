@@ -9,10 +9,21 @@
 #  For Bacula release @VERSION@ (@DATE@) -- @DISTNAME@
 #
 
+FD_USER=@fd_user@
+FD_GROUP=@fd_group@
+FD_OPTIONS=''
+
 case "$1" in
     start)
+       if [ "${FD_USER}" != '' ]; then
+          FD_OPTIONS="${FD_OPTIONS} -u ${FD_USER}"
+       fi
+       if [ "${FD_GROUP}" != '' ]; then
+          FD_OPTIONS="${FD_OPTIONS} -g ${FD_GROUP}"
+       fi
+
        echo "Starting the Bacula File daemon: "
-       @sbindir@/bacula-fd $2 -c @sysconfdir@/bacula-fd.conf
+       @sbindir@/bacula-fd $2 ${FD_OPTIONS} -c @sysconfdir@/bacula-fd.conf
        ;;
     stop)
        echo "Stopping the Bacula File daemon: "
