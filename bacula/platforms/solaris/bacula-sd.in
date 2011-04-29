@@ -1,12 +1,11 @@
-#! /bin/sh
+#!/bin/sh
 #
 # bacula       This shell script takes care of starting and stopping
 #	       the bacula Storage daemon.
 #
-# chkconfig: 2345 90 9
 # description: The Leading Open Source Backup Solution.
 #
-#  For Bacula release @VERSION@ (@DATE@) -- @DISTNAME@
+# For Bacula release @VERSION@ (@DATE@) -- @DISTNAME@
 #
 
 SD_USER=@sd_user@
@@ -15,11 +14,13 @@ SD_OPTIONS=''
 
 case "$1" in
     start)
-       if [ "${SD_USER}" != '' ]; then
-          SD_OPTIONS="${SD_OPTIONS} -u ${SD_USER}"
+       if [ ! -z "${DIR_USER}" ]; then
+          [ -z "${DIR_OPTIONS}" ] && DIR_OPTIONS="-u ${DIR_USER}" || \
+                                     DIR_OPTIONS="${DIR_OPTIONS} -u ${DIR_USER}"
        fi
-       if [ "${SD_GROUP}" != '' ]; then
-          SD_OPTIONS="${SD_OPTIONS} -g ${SD_GROUP}"
+       if [ ! -z "${DIR_GROUP}" ]; then
+          [ -z "${DIR_OPTIONS}" ] && DIR_OPTIONS="-g ${DIR_GROUP}" || \
+                                     DIR_OPTIONS="${DIR_OPTIONS} -g ${DIR_GROUP}"
        fi
 
        echo "Starting the Bacula Storage daemon: "
@@ -27,7 +28,18 @@ case "$1" in
        ;;
     stop)
        echo "Stopping the Bacula Storage daemon: "
-       pkill -x bacula-sd
+       if [ -x /usr/bin/zonename ]; then
+          case `/usr/bin/zonename` in
+             global)
+                pkill -z global -x bacula-sd
+                ;;
+             *)
+                pkill -x bacula-sd
+                ;;
+          esac
+       else
+          pkill -x bacula-sd
+       fi
        ;;
     restart)
        $0 stop
