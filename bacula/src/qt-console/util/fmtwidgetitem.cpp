@@ -87,6 +87,7 @@ Freeze::~Freeze()
 
 ItemFormatterBase::BYTES_CONVERSION ItemFormatterBase::cnvFlag(BYTES_CONVERSION_IEC);
 
+/* String to Electronic value based on K=1024 */
 QString convertBytesIEC(qint64 qfld)
 {
    static const qint64 KB = Q_INT64_C(1024);
@@ -132,6 +133,7 @@ QString convertBytesIEC(qint64 qfld)
    return QString("%1 %2iB").arg(qfld / 1000.0, 0, 'f', 2).arg(suffix);
 }
 
+/* String to human value based on k=1000 */
 QString convertBytesSI(qint64 qfld)
 {
    static const qint64 KB = Q_INT64_C(1000);

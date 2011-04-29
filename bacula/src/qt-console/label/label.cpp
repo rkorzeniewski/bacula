@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2007-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2007-2011 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -96,11 +96,15 @@ void labelPage::okButtonPushed()
                   .arg(storageCombo->currentText()) 
                   .arg(slotSpin->value());
    if (mainWin->m_commandDebug) {
-      Pmsg1(000, "sending command : %s\n",scmd.toUtf8().data());
+      Pmsg1(000, "sending command : %s\n", scmd.toUtf8().data());
    }
-   m_console->write_dir(scmd.toUtf8().data());
-   m_console->displayToPrompt(m_conn);
-   m_console->notify(m_conn, true);
+   if (m_console) {
+      m_console->write_dir(scmd.toUtf8().data());
+      m_console->displayToPrompt(m_conn);
+      m_console->notify(m_conn, true);
+   } else {
+      Pmsg0(000, "m_console==NULL !!!!!!\n");
+   }
    closeStackPage();
    mainWin->resetFocus();
 }
@@ -108,7 +112,11 @@ void labelPage::okButtonPushed()
 void labelPage::cancelButtonPushed()
 {
    this->hide();
-   m_console->notify(m_conn, true);
+   if (m_console) {
+      m_console->notify(m_conn, true);
+   } else {
+      Pmsg0(000, "m_console==NULL !!!!!!\n");
+   }
    closeStackPage();
    mainWin->resetFocus();
 }
