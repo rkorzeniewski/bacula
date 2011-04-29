@@ -12,7 +12,6 @@ DIR_USER=@dir_user@
 DIR_GROUP=@dir_group@
 DIR_OPTIONS=''
 
-RETVAL=0
 case "$1" in
     start)
        if [ ! -z "${DIR_USER}" ]; then
