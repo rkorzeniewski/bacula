@@ -38,7 +38,7 @@
 #include "restoretree.h"
 #include "pages.h"
 
-restoreTree::restoreTree()
+restoreTree::restoreTree() : Pages()
 {
    setupUi(this);
    m_name = tr("Version Browser");

@@ -37,13 +37,13 @@
 #include "run.h"
 
 
-runPage::runPage()
+runPage::runPage() : Pages()
 {
    init();
    show();
 }
 
-runPage::runPage(const QString &defJob)
+runPage::runPage(const QString &defJob) : Pages()
 {
    m_dockOnFirstUse = false;
    init();
@@ -56,6 +56,7 @@ runPage::runPage(const QString &defJob)
 runPage::runPage(const QString &defJob, const QString &level, 
                  const QString &pool, const QString &storage,
                  const QString &client, const QString &fileset)
+   : Pages()
 {
    m_dockOnFirstUse = false;
    init();

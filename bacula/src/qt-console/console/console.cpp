@@ -38,7 +38,7 @@
 #include "select.h"
 #include "run/run.h"
 
-Console::Console(QTabWidget *parent)
+Console::Console(QTabWidget *parent) : Pages()
 {
    QFont font;
    m_name = tr("Console");

@@ -311,7 +311,7 @@ void ItemFormatterBase::setBytesFld(int index, const QString &fld)
       break;
    }
 
-   setNumericFld(index, msg, qfld);
+   setNumericFld(index, msg, QVariant(qfld));
 }
 
 void ItemFormatterBase::setDurationFld(int index, const QString &fld)
@@ -354,7 +354,7 @@ void ItemFormatterBase::setDurationFld(int index, const QString &fld)
          msg += QString(" %1s").arg(dfld);
    }
 
-   setNumericFld(index, msg, fld.trimmed().toLongLong());
+   setNumericFld(index, msg, QVariant(fld.trimmed().toLongLong()));
 }
 
 void ItemFormatterBase::setVolStatusFld(int index, const QString &fld, bool center)

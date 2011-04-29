@@ -38,7 +38,7 @@
 
 static const int dbglvl = 100;
 
-restorePage::restorePage(int conn)
+restorePage::restorePage(int conn) : Pages()
 {
    Dmsg1(dbglvl, "Construcing restorePage Instance connection %i\n", conn);
    m_conn = conn;

@@ -37,7 +37,7 @@
 #include "label.h"
 #include <QMessageBox>
 
-labelPage::labelPage()
+labelPage::labelPage() : Pages()
 {
    QString deflt("");
    m_closeable = false;
@@ -48,7 +48,7 @@ labelPage::labelPage()
  * An overload of the constructor to have a default storage show in the
  * combobox on start.  Used from context sensitive in storage class.
  */
-labelPage::labelPage(QString &defString)
+labelPage::labelPage(QString &defString) : Pages()
 {
    showPage(defString);
 }

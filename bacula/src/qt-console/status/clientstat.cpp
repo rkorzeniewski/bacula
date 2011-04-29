@@ -42,6 +42,7 @@ static bool working = false;   /* prevent timer recursion */
  * Constructor for the class
  */
 ClientStat::ClientStat(QString &client, QTreeWidgetItem *parentTreeWidgetItem)
+   : Pages()
 {
    m_client = client;
    setupUi(this);

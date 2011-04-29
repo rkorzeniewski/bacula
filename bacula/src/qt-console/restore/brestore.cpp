@@ -38,7 +38,7 @@
 #include "restore.h"
 #include "util/fmtwidgetitem.h"
 
-bRestore::bRestore()
+bRestore::bRestore() : Pages()
 {
    m_name = tr("bRestore");
    m_client = "";

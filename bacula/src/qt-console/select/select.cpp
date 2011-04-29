@@ -39,7 +39,7 @@
 /*
  * Read the items for the selection
  */
-selectDialog::selectDialog(Console *console, int conn) 
+selectDialog::selectDialog(Console *console, int conn) : QDialog()
 {
    m_conn = conn;
    QDateTime dt;
@@ -104,7 +104,7 @@ void selectDialog::index_change(int index)
 /*
  * Read the items for the selection
  */
-yesnoPopUp::yesnoPopUp(Console *console, int conn) 
+yesnoPopUp::yesnoPopUp(Console *console, int conn)  : QDialog()
 {
    QMessageBox msgBox;
 

@@ -41,7 +41,7 @@
 #include "fileset/fileset.h"
 #include "util/fmtwidgetitem.h"
 
-FileSet::FileSet()
+FileSet::FileSet() : Pages()
 {
    setupUi(this);
    m_name = tr("FileSets");

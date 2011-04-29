@@ -57,6 +57,7 @@ spooling
  * Constructor for the class
  */
 StorStat::StorStat(QString &storage, QTreeWidgetItem *parentTreeWidgetItem)
+   : Pages()
 {
    m_storage = storage;
    setupUi(this);

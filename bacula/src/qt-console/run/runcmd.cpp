@@ -45,7 +45,7 @@
 /*
  * Setup all the combo boxes and display the dialog
  */
-runCmdPage::runCmdPage(int conn)
+runCmdPage::runCmdPage(int conn) : Pages()
 {
    m_name = tr("Restore Run");
    pgInitialize();

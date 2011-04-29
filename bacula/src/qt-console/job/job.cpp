@@ -32,7 +32,7 @@
 #include "mediainfo/mediainfo.h"
 #include "run/run.h"
 
-Job::Job(QString &jobId, QTreeWidgetItem *parentTreeWidgetItem)
+Job::Job(QString &jobId, QTreeWidgetItem *parentTreeWidgetItem) : Pages()
 {
    setupUi(this);
    pgInitialize(tr("Job"), parentTreeWidgetItem);

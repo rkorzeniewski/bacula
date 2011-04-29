@@ -37,7 +37,7 @@
 #include "restore.h"
 
 /* Constructor to have job id list default in */
-prerestorePage::prerestorePage(QString &data, unsigned int datatype)
+prerestorePage::prerestorePage(QString &data, unsigned int datatype) : Pages()
 {
    m_dataIn = data;
    m_dataInType = datatype;

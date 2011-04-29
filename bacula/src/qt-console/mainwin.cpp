@@ -861,7 +861,7 @@ void MainWin::setPreferences()
 }
 
 /* Preferences dialog */
-prefsDialog::prefsDialog()
+prefsDialog::prefsDialog() : QDialog()
 {
    setupUi(this);
 }

@@ -49,6 +49,7 @@
  */
 JobList::JobList(const QString &mediaName, const QString &clientName,
           const QString &jobName, const QString &filesetName, QTreeWidgetItem *parentTreeWidgetItem)
+   : Pages()
 {
    setupUi(this);
    m_name = "Jobs Run"; /* treeWidgetName has a virtual override in this class */

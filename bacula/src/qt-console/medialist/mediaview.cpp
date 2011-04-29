@@ -38,7 +38,7 @@
 #include "run/run.h"
 #include "util/fmtwidgetitem.h"
 
-MediaView::MediaView()
+MediaView::MediaView() : Pages()
 {
    setupUi(this);
    m_name = tr("Media");

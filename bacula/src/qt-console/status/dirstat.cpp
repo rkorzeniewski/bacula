@@ -40,7 +40,7 @@ static bool working = false;         /* prevent timer recursion */
 /*
  * Constructor for the class
  */
-DirStat::DirStat()
+DirStat::DirStat() : Pages()
 {
    setupUi(this);
    m_name = tr("Director Status");

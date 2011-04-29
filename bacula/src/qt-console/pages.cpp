@@ -50,7 +50,7 @@ bool isWin32Path(QString &fullPath)
 }
 
 /* Need to initialize variables here */
-Pages::Pages()
+Pages::Pages() : QWidget()
 {
    m_docked = false;
    m_onceDocked = false;
