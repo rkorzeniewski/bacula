@@ -205,11 +205,14 @@ void bRestore::displayFiles(int64_t pathid, QString path)
          int col=0;
          //PathId, FilenameId, fileid, jobid, lstat, path
          fieldlist = resultline.split("\t");
+         /*
+          * Note, the next line zaps variable "item", probably
+          *   because the input data in fieldlist is bad.
+          */
+         decode_stat(fieldlist.at(4).toLocal8Bit().data(), &statp, &LinkFI);
          TableItemFormatter item(*FileList, row++);
          item.setFileType(col++, QString("folder")); // folder or file
          item.setTextFld(col++, fieldlist.at(5)); // path
-         decode_stat(fieldlist.at(4).toLocal8Bit().data(), 
-                     &statp, &LinkFI);
          item.setBytesFld(col++, QString().setNum(statp.st_size));
          item.setDateFld(col++, statp.st_mtime); // date
          fieldlist.replace(3, m_jobids);      // use current jobids selection
