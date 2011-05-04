@@ -673,7 +673,6 @@ static int getJob_to_migrate(JCR *jcr)
    jids.list[0] = 0;
    jids.count = 0;
 
-
    /*
     * If MigrateJobId is set, then we migrate only that Job,
     *  otherwise, we go through the full selection of jobs to
@@ -681,8 +680,7 @@ static int getJob_to_migrate(JCR *jcr)
     */
    if (jcr->MigrateJobId != 0) {
       Dmsg1(dbglevel, "At Job start previous jobid=%u\n", jcr->MigrateJobId);
-      edit_uint64(jcr->MigrateJobId, ids.list);
-      ids.count = 1;
+      JobId = jcr->MigrateJobId;
    } else {
       switch (jcr->job->selection_type) {
       case MT_JOB:
@@ -830,28 +828,43 @@ static int getJob_to_migrate(JCR *jcr)
          Jmsg(jcr, M_FATAL, 0, _("Unknown %s Selection Type.\n"), jcr->get_OperationName());
          goto bail_out;
       }
-   }
 
-   /*
-    * Loop over all jobids except the last one, sending
-    *  them to start_migration_job(), which will start a job
-    *  for each of them.  For the last JobId, we handle it below.
-    */
-   p = ids.list;
-   if (ids.count == 0) {
-      Jmsg(jcr, M_INFO, 0, _("No JobIds found to %s.\n"), jcr->get_ActionName(0));
-      goto ok_out;
-   }
+      /*
+       * Loop over all jobids except the last one, sending
+       * them to start_migration_job(), which will start a job
+       * for each of them.  For the last JobId, we handle it below.
+       */
+      p = ids.list;
+      if (ids.count == 0) {
+         Jmsg(jcr, M_INFO, 0, _("No JobIds found to %s.\n"), jcr->get_ActionName(0));
+         goto ok_out;
+      }
 
-   Jmsg(jcr, M_INFO, 0, _("The following %u JobId%s chosen to be %s: %s\n"),
-      ids.count, (ids.count < 2) ? _(" was") : _("s were"),
-      jcr->get_ActionName(1), ids.list);
+      Jmsg(jcr, M_INFO, 0, _("The following %u JobId%s chosen to be %s: %s\n"),
+         ids.count, (ids.count < 2) ? _(" was") : _("s were"),
+         jcr->get_ActionName(1), ids.list);
 
-   Dmsg2(dbglevel, "Before loop count=%d ids=%s\n", ids.count, ids.list);
-   for (int i=1; i < (int)ids.count; i++) {
+      Dmsg2(dbglevel, "Before loop count=%d ids=%s\n", ids.count, ids.list);
+      for (int i=1; i < (int)ids.count; i++) {
+         JobId = 0;
+         stat = get_next_jobid_from_list(&p, &JobId);
+         Dmsg3(dbglevel, "getJobid_no=%d stat=%d JobId=%u\n", i, stat, JobId);
+         if (stat < 0) {
+            Jmsg(jcr, M_FATAL, 0, _("Invalid JobId found.\n"));
+            goto bail_out;
+         } else if (stat == 0) {
+            Jmsg(jcr, M_INFO, 0, _("No JobIds found to %s.\n"), jcr->get_ActionName(0));
+            goto ok_out;
+         }
+         jcr->MigrateJobId = JobId;
+         start_migration_job(jcr);
+         Dmsg0(dbglevel, "Back from start_migration_job\n");
+      }
+   
+      /* Now get the last JobId and handle it in the current job */
       JobId = 0;
       stat = get_next_jobid_from_list(&p, &JobId);
-      Dmsg3(dbglevel, "getJobid_no=%d stat=%d JobId=%u\n", i, stat, JobId);
+      Dmsg2(dbglevel, "Last get_next_jobid stat=%d JobId=%u\n", stat, (int)JobId);
       if (stat < 0) {
          Jmsg(jcr, M_FATAL, 0, _("Invalid JobId found.\n"));
          goto bail_out;
@@ -859,21 +872,6 @@ static int getJob_to_migrate(JCR *jcr)
          Jmsg(jcr, M_INFO, 0, _("No JobIds found to %s.\n"), jcr->get_ActionName(0));
          goto ok_out;
       }
-      jcr->MigrateJobId = JobId;
-      start_migration_job(jcr);
-      Dmsg0(dbglevel, "Back from start_migration_job\n");
-   }
-   
-   /* Now get the last JobId and handle it in the current job */
-   JobId = 0;
-   stat = get_next_jobid_from_list(&p, &JobId);
-   Dmsg2(dbglevel, "Last get_next_jobid stat=%d JobId=%u\n", stat, (int)JobId);
-   if (stat < 0) {
-      Jmsg(jcr, M_FATAL, 0, _("Invalid JobId found.\n"));
-      goto bail_out;
-   } else if (stat == 0) {
-      Jmsg(jcr, M_INFO, 0, _("No JobIds found to %s.\n"), jcr->get_ActionName(0));
-      goto ok_out;
    }
 
    jcr->previous_jr.JobId = JobId;
@@ -886,6 +884,7 @@ static int getJob_to_migrate(JCR *jcr)
            db_strerror(jcr->db));
       goto bail_out;
    }
+
    Jmsg(jcr, M_INFO, 0, _("%s using JobId=%s Job=%s\n"),
       jcr->get_OperationName(),
       edit_int64(jcr->previous_jr.JobId, ed1), jcr->previous_jr.Job);
