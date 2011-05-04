@@ -32,9 +32,9 @@
  */
 
 /* from attribs.c */
-void    encode_stat       (char *buf, struct stat *statp, int32_t LinkFI, int data_stream);
-int     decode_stat       (char *buf, struct stat *statp, int32_t *LinkFI);
-int32_t decode_LinkFI     (char *buf, struct stat *statp);
+void    encode_stat       (char *buf, struct stat *statp, int stat_size, int32_t LinkFI, int data_stream);
+int     decode_stat       (char *buf, struct stat *statp, int stat_size, int32_t *LinkFI);
+int32_t decode_LinkFI     (char *buf, struct stat *statp, int stat_size);
 int     encode_attribsEx  (JCR *jcr, char *attribsEx, FF_PKT *ff_pkt);
 bool    set_attributes    (JCR *jcr, ATTR *attr, BFILE *ofd);
 int     select_data_stream(FF_PKT *ff_pkt);

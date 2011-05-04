@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2002-2010 Free Software Foundation Europe e.V.
+   Copyright (C) 2002-2011 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -170,10 +170,17 @@ int select_data_stream(FF_PKT *ff_pkt)
  *   them in the encode_attribsEx() subroutine, but this is
  *   not recommended.
  */
-void encode_stat(char *buf, struct stat *statp, int32_t LinkFI, int data_stream)
+void encode_stat(char *buf, struct stat *statp, int stat_size, int32_t LinkFI, int data_stream)
 {
    char *p = buf;
 
+   /*
+    * We read the stat packet so make sure the caller's conception
+    *  is the same as ours.  They can be different if LARGEFILE is not
+    *  the same when compiling this library and the calling program.
+    */
+   ASSERT(stat_size == (int)sizeof(struct stat));
+      
    /**
     *  Encode a stat packet.  I should have done this more intelligently
     *   with a length so that it could be easily expanded.
@@ -245,10 +252,17 @@ void encode_stat(char *buf, struct stat *statp, int32_t LinkFI, int data_stream)
 
 
 /** Decode a stat packet from base64 characters */
-int decode_stat(char *buf, struct stat *statp, int32_t *LinkFI)
+int decode_stat(char *buf, struct stat *statp, int stat_size, int32_t *LinkFI)
 {
    char *p = buf;
    int64_t val;
+
+   /*
+    * We store into the stat packet so make sure the caller's conception
+    *  is the same as ours.  They can be different if LARGEFILE is not
+    *  the same when compiling this library and the calling program.
+    */
+   ASSERT(stat_size == (int)sizeof(struct stat));
 
    p += from_base64(&val, p);
    plug(statp->st_dev, val);
@@ -330,10 +344,16 @@ int decode_stat(char *buf, struct stat *statp, int32_t *LinkFI)
 }
 
 /** Decode a LinkFI field of encoded stat packet */
-int32_t decode_LinkFI(char *buf, struct stat *statp)
+int32_t decode_LinkFI(char *buf, struct stat *statp, int stat_size)
 {
    char *p = buf;
    int64_t val;
+   /*
+    * We store into the stat packet so make sure the caller's conception
+    *  is the same as ours.  They can be different if LARGEFILE is not
+    *  the same when compiling this library and the calling program.
+    */
+   ASSERT(stat_size == (int)sizeof(struct stat));
 
    skip_nonspaces(&p);                /* st_dev */
    p++;                               /* skip space */

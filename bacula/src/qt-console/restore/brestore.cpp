@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2007-2010 Free Software Foundation Europe e.V.
+   Copyright (C) 2007-2011 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -139,7 +139,7 @@ void bRestore::setJob()
    Pmsg0(000, "update done\n");
 }
 
-extern int decode_stat(char *buf, struct stat *statp, int32_t *LinkFI);
+extern int decode_stat(char *buf, struct stat *statp, int stat_size, int32_t *LinkFI);
 
 // refresh button with a filter or limit/offset change
 void bRestore::refreshView()
@@ -209,7 +209,7 @@ void bRestore::displayFiles(int64_t pathid, QString path)
           * Note, the next line zaps variable "item", probably
           *   because the input data in fieldlist is bad.
           */
-         decode_stat(fieldlist.at(4).toLocal8Bit().data(), &statp, &LinkFI);
+         decode_stat(fieldlist.at(4).toLocal8Bit().data(), &statp, sizeof(statp),  &LinkFI);
          TableItemFormatter item(*FileList, row++);
          item.setFileType(col++, QString("folder")); // folder or file
          item.setTextFld(col++, fieldlist.at(5)); // path
@@ -233,7 +233,7 @@ void bRestore::displayFiles(int64_t pathid, QString path)
          TableItemFormatter item(*FileList, row++);
          item.setTextFld(col++, fieldlist.at(5)); // name
          decode_stat(fieldlist.at(4).toLocal8Bit().data(), 
-                     &statp, &LinkFI);
+                     &statp, sizeof(statp), &LinkFI);
          item.setBytesFld(col++, QString().setNum(statp.st_size));
          item.setDateFld(col++, statp.st_mtime);
          // keep original info on the first cel that is never empty
@@ -290,7 +290,7 @@ void bRestore::displayFileVersion(QString pathid, QString fnid,
          item.setTextFld(col++, fieldlist.at(6)); // Volume
          item.setNumericFld(col++, fieldlist.at(3)); // JobId
          decode_stat(fieldlist.at(4).toLocal8Bit().data(), 
-                     &statp, &LinkFI);
+                     &statp, sizeof(statp), &LinkFI);
          item.setBytesFld(col++, QString().setNum(statp.st_size)); // size
          item.setDateFld(col++, statp.st_mtime); // date
          item.setTextFld(col++, fieldlist.at(5)); // chksum
@@ -463,7 +463,7 @@ void bRestoreTable::dropEvent(QDropEvent *event)
       }
       item.setTextFld(col++, fields.at(5)); // filename
       decode_stat(fields.at(4).toLocal8Bit().data(), 
-                  &statp, &LinkFI);
+                  &statp, sizeof(statp), &LinkFI);
       item.setBytesFld(col++, QString().setNum(statp.st_size)); // size
       item.setDateFld(col++, statp.st_mtime); // date
       item.setNumericFld(col++, fields.at(3)); // jobid
@@ -561,7 +561,7 @@ void bRestore::get_info_from_selection(QStringList &fileids,
          fileids << lst.at(2);
          jobids << lst.at(3);
          decode_stat(lst.at(4).toLocal8Bit().data(), 
-                     &statp, &LinkFI);
+                     &statp, sizeof(statp), &LinkFI);
          if (LinkFI) {
             findexes << lst.at(3) + "," + QString().setNum(LinkFI);
          }

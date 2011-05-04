@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2002-2010 Free Software Foundation Europe e.V.
+   Copyright (C) 2002-2011 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -205,7 +205,7 @@ int insert_tree_handler(void *ctx, int num_fields, char **row)
    } else {
       type = TN_FILE;
    }
-   hard_link = (decode_LinkFI(row[4], &statp) != 0);
+   hard_link = (decode_LinkFI(row[4], &statp, sizeof(statp)) != 0);
    node = insert_tree_node(row[0], row[1], type, tree->root, NULL);
    JobId = str_to_int64(row[3]);
    FileIndex = str_to_int64(row[2]);
@@ -322,7 +322,7 @@ static int set_extract(UAContext *ua, TREE_NODE *node, TREE_CTX *tree, bool extr
       fdbr.JobId = node->JobId;
       if (node->hard_link && db_get_file_attributes_record(ua->jcr, ua->db, cwd, NULL, &fdbr)) {
          int32_t LinkFI;
-         decode_stat(fdbr.LStat, &statp, &LinkFI); /* decode stat pkt */
+         decode_stat(fdbr.LStat, &statp, sizeof(statp), &LinkFI); /* decode stat pkt */
          /*
           * If we point to a hard linked file, traverse the tree to
           * find that file, and mark it to be restored as well. It
@@ -705,7 +705,7 @@ static int do_dircmd(UAContext *ua, TREE_CTX *tree, bool dot_cmd)
          }
          if (db_get_file_attributes_record(ua->jcr, ua->db, pcwd, NULL, &fdbr)) {
             int32_t LinkFI;
-            decode_stat(fdbr.LStat, &statp, &LinkFI); /* decode stat pkt */
+            decode_stat(fdbr.LStat, &statp, sizeof(statp), &LinkFI); /* decode stat pkt */
          } else {
             /* Something went wrong getting attributes -- print name */
             memset(&statp, 0, sizeof(statp));
@@ -750,7 +750,7 @@ static int estimatecmd(UAContext *ua, TREE_CTX *tree)
             fdbr.JobId = node->JobId;
             if (db_get_file_attributes_record(ua->jcr, ua->db, cwd, NULL, &fdbr)) {
                int32_t LinkFI;
-               decode_stat(fdbr.LStat, &statp, &LinkFI); /* decode stat pkt */
+               decode_stat(fdbr.LStat, &statp, sizeof(statp), &LinkFI); /* decode stat pkt */
                if (S_ISREG(statp.st_mode) && statp.st_size > 0) {
                   total_bytes += statp.st_size;
                }

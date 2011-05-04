@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2010 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2011 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -341,7 +341,7 @@ void do_restore(JCR *jcr)
          Dmsg3(100, "=== msglen=%d attrExlen=%d msg=%s\n", sd->msglen,
                strlen(attr->attrEx), sd->msg);
 
-         attr->data_stream = decode_stat(attr->attr, &attr->statp, &attr->LinkFI);
+         attr->data_stream = decode_stat(attr->attr, &attr->statp, sizeof(attr->statp), &attr->LinkFI);
 
          if (!is_restore_stream_supported(attr->data_stream)) {
             if (!non_support_data++) {

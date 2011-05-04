@@ -116,7 +116,7 @@ static bool accurate_send_base_file_list(JCR *jcr)
       if (elt->seen) {
          Dmsg2(dbglvl, "base file fname=%s seen=%i\n", elt->fname, elt->seen);
          /* TODO: skip the decode and use directly the lstat field */
-         decode_stat(elt->lstat, &statc, &LinkFIc); /* decode catalog stat */  
+         decode_stat(elt->lstat, &statc, sizeof(statc), &LinkFIc); /* decode catalog stat */  
          ff_pkt->fname = elt->fname;
          ff_pkt->statp = statc;
          encode_and_send_attributes(jcr, ff_pkt, stream);
@@ -158,7 +158,7 @@ static bool accurate_send_deleted_list(JCR *jcr)
       }
       Dmsg2(dbglvl, "deleted fname=%s seen=%i\n", elt->fname, elt->seen);
       /* TODO: skip the decode and use directly the lstat field */
-      decode_stat(elt->lstat, &statc, &LinkFIc); /* decode catalog stat */
+      decode_stat(elt->lstat, &statc, sizeof(statc), &LinkFIc); /* decode catalog stat */
       ff_pkt->fname = elt->fname;
       ff_pkt->statp.st_mtime = statc.st_mtime;
       ff_pkt->statp.st_ctime = statc.st_ctime;
@@ -283,7 +283,7 @@ bool accurate_check_file(JCR *jcr, FF_PKT *ff_pkt)
       goto bail_out;
    }
 
-   decode_stat(elt.lstat, &statc, &LinkFIc); /* decode catalog stat */
+   decode_stat(elt.lstat, &statc, sizeof(statc), &LinkFIc); /* decode catalog stat */
 
    if (!jcr->rerunning && (jcr->getJobLevel() == L_FULL)) {
       opts = ff_pkt->BaseJobOpts;

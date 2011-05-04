@@ -328,7 +328,7 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
       }
 
       if (file_is_included(ff, attr->fname) && !file_is_excluded(ff, attr->fname)) {
-         attr->data_stream = decode_stat(attr->attr, &attr->statp, &attr->LinkFI);
+         attr->data_stream = decode_stat(attr->attr, &attr->statp, sizeof(attr->statp), &attr->LinkFI);
          if (!is_restore_stream_supported(attr->data_stream)) {
             if (!non_support_data++) {
                Jmsg(jcr, M_ERROR, 0, _("%s stream not supported on this Client.\n"),

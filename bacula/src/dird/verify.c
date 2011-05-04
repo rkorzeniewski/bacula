@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2010 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2011 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -598,7 +598,7 @@ void get_attributes_and_compare_to_catalog(JCR *jcr, JobId_t JobId)
          jcr->JobFiles++;
          jcr->FileIndex = file_index;    /* remember attribute file_index */
          jcr->previous_jr.FileIndex = file_index;
-         decode_stat(attr, &statf, &LinkFIf);  /* decode file stat packet */
+         decode_stat(attr, &statf, sizeof(statf), &LinkFIf);  /* decode file stat packet */
          do_Digest = CRYPTO_DIGEST_NONE;
          jcr->fn_printed = false;
          pm_strcpy(jcr->fname, fname);  /* move filename into JCR */
@@ -626,7 +626,7 @@ void get_attributes_and_compare_to_catalog(JCR *jcr, JobId_t JobId)
 
          Dmsg3(400, "Found %s in catalog. inx=%d Opts=%s\n", jcr->fname,
             file_index, Opts_Digest);
-         decode_stat(fdbr.LStat, &statc, &LinkFIc); /* decode catalog stat */
+         decode_stat(fdbr.LStat, &statc, sizeof(statc), &LinkFIc); /* decode catalog stat */
          /*
           * Loop over options supplied by user and verify the
           * fields he requests.

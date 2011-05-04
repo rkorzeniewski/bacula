@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2008-2010 Free Software Foundation Europe e.V.
+   Copyright (C) 2008-2011 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -2396,7 +2396,7 @@ static bxattr_exit_code solaris_save_xattr(JCR *jcr, int fd, const char *xattr_n
        * The current implementation of xattr on Solaris doesn't support this, but if it ever does we are prepared.
        * Encode the stat struct into an ASCII representation.
        */
-      encode_stat(attribs, &st, 0, stream);
+      encode_stat(attribs, &st, sizeof(st), 0, stream);
       cnt = bsnprintf(buffer, sizeof(buffer), "%s%c%s%c%s%c",
                      target_attrname, 0, attribs, 0, (acl_text) ? acl_text : "", 0);
       break;
@@ -2417,7 +2417,7 @@ static bxattr_exit_code solaris_save_xattr(JCR *jcr, int fd, const char *xattr_n
           * first real xattr. Encode the stat struct into an ASCII representation and jump
           * out of the function.
           */
-         encode_stat(attribs, &st, 0, stream);
+         encode_stat(attribs, &st, sizeof(st), 0, stream);
          cnt = bsnprintf(buffer, sizeof(buffer),
                          "%s%c%s%c%s%c",
                          target_attrname, 0, attribs, 0, (acl_text) ? acl_text : "", 0);
@@ -2429,7 +2429,7 @@ static bxattr_exit_code solaris_save_xattr(JCR *jcr, int fd, const char *xattr_n
           * The current implementation of xattr on Solaris doesn't support this, but if it ever does we are prepared.
           * Encode the stat struct into an ASCII representation.
           */
-         encode_stat(attribs, &st, 0, stream);
+         encode_stat(attribs, &st, sizeof(st), 0, stream);
          cnt = bsnprintf(buffer, sizeof(buffer),
                          "%s%c%s%c%s%c",
                          target_attrname, 0, attribs, 0, (acl_text) ? acl_text : "", 0);
@@ -2447,7 +2447,7 @@ static bxattr_exit_code solaris_save_xattr(JCR *jcr, int fd, const char *xattr_n
             /*
              * Generate a xattr encoding with the reference to the target in there.
              */
-            encode_stat(attribs, &st, st.st_ino, stream);
+            encode_stat(attribs, &st, sizeof(st), st.st_ino, stream);
             cnt = bsnprintf(buffer, sizeof(buffer),
                             "%s%c%s%c%s%c",
                             target_attrname, 0, attribs, 0, xlce->target, 0);
@@ -2478,7 +2478,7 @@ static bxattr_exit_code solaris_save_xattr(JCR *jcr, int fd, const char *xattr_n
       /*
        * Encode the stat struct into an ASCII representation.
        */
-      encode_stat(attribs, &st, 0, stream);
+      encode_stat(attribs, &st, sizeof(st), 0, stream);
       cnt = bsnprintf(buffer, sizeof(buffer),
                      "%s%c%s%c%s%c",
                      target_attrname, 0, attribs, 0, (acl_text) ? acl_text : "", 0);
@@ -2522,7 +2522,7 @@ static bxattr_exit_code solaris_save_xattr(JCR *jcr, int fd, const char *xattr_n
       /*
        * Generate a xattr encoding with the reference to the target in there.
        */
-      encode_stat(attribs, &st, st.st_ino, stream);
+      encode_stat(attribs, &st, sizeof(st), st.st_ino, stream);
       cnt = bsnprintf(buffer, sizeof(buffer),
                       "%s%c%s%c%s%c",
                       target_attrname, 0, attribs, 0, link_source, 0);
@@ -2975,7 +2975,7 @@ static bxattr_exit_code solaris_restore_xattrs(JCR *jcr, bool is_extensible)
    /*
     * Decode the attributes from the stream.
     */
-   decode_stat(attribs, &st, &inum);
+   decode_stat(attribs, &st, sizeof(st), &inum);
 
    /*
     * Decode the next field (acl_text).

@@ -1149,7 +1149,7 @@ bool encode_and_send_attributes(JCR *jcr, FF_PKT *ff_pkt, int &data_stream)
       Jmsg0(jcr, M_FATAL, 0, _("Invalid file flags, no supported data stream type.\n"));
       return false;
    }
-   encode_stat(attribs, &ff_pkt->statp, ff_pkt->LinkFI, data_stream);
+   encode_stat(attribs, &ff_pkt->statp, sizeof(ff_pkt->statp), ff_pkt->LinkFI, data_stream);
 
    /** Now possibly extend the attributes */
    if (ff_pkt->type == FT_RESTORE_FIRST) {
