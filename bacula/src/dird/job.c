@@ -697,7 +697,7 @@ bool allow_duplicate_job(JCR *jcr)
    JOB *job = jcr->job;
    JCR *djcr;                /* possible duplicate job */
 
-   if (job->AllowDuplicateJobs) {
+   if (jcr->no_check_duplicates || job->AllowDuplicateJobs) {
       return true;
    }
    Dmsg0(800, "Enter allow_duplicate_job\n");
