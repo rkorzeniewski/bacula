@@ -61,6 +61,8 @@ public:
    bool mod;
    int spool_data;
    bool spool_data_set;
+   int allow_duplicates;
+   bool allow_duplicates_set;
 
    /* Methods */
    run_ctx() { memset(this, 0, sizeof(run_ctx)); 
@@ -486,7 +488,6 @@ static bool reset_restore_context(UAContext *ua, JCR *jcr, run_ctx &rc)
       rc.plugin_options = NULL;
    }
 
-
    if (rc.replace) {
       jcr->replace = 0;
       for (i=0; ReplaceOptions[i].name; i++) {
@@ -522,7 +523,6 @@ static bool reset_restore_context(UAContext *ua, JCR *jcr, run_ctx &rc)
       jcr->cloned = rc.cloned;
       rc.cloned = false;
    }
-
 
    /* If pool changed, update migration write storage */
    if (jcr->is_JobType(JT_MIGRATE) || jcr->is_JobType(JT_COPY) ||
@@ -1161,7 +1161,7 @@ static bool scan_command_line_arguments(UAContext *ua, run_ctx &rc)
       "job",                          /*  Used in a switch() */
       "jobid",                        /* 1 */
       "client",                       /* 2 */
-      "fd",
+      "fd",                           /* 3 */
       "fileset",                      /* 4 */
       "level",                        /* 5 */
       "storage",                      /* 6 */
@@ -1172,7 +1172,7 @@ static bool scan_command_line_arguments(UAContext *ua, run_ctx &rc)
       "replace",                      /* 11 */
       "when",                         /* 12 */
       "priority",                     /* 13 */
-      "yes",          /* 14  -- if you change this change YES_POS too */
+      "yes",                          /* 14  -- if you change this change YES_POS too */
       "verifyjob",                    /* 15 */
       "files",                        /* 16 number of files to restore */
       "catalog",                      /* 17 override catalog */
@@ -1186,7 +1186,9 @@ static bool scan_command_line_arguments(UAContext *ua, run_ctx &rc)
       "pluginoptions",                /* 25 */
       "spooldata",                    /* 26 */
       "comment",                      /* 27 */
-      NULL};
+      "allowduplicates",              /* 28 */
+      NULL
+   };
 
 #define YES_POS 14
 
@@ -1199,7 +1201,8 @@ static bool scan_command_line_arguments(UAContext *ua, run_ctx &rc)
    rc.fileset_name = NULL;
    rc.verify_job_name = NULL;
    rc.previous_job_name = NULL;
-   rc.spool_data_set = 0;
+   rc.spool_data_set = false;
+   rc.allow_duplicates_set = false;
    rc.comment = NULL;
 
    for (i=1; i<ua->argc; i++) {
@@ -1340,22 +1343,18 @@ static bool scan_command_line_arguments(UAContext *ua, run_ctx &rc)
                rc.files = atoi(ua->argv[i]);
                kw_ok = true;
                break;
-
             case 17: /* catalog */
                rc.catalog_name = ua->argv[i];
                kw_ok = true;
                break;
-
             case 18: /* since */
                rc.since = ua->argv[i];
                kw_ok = true; 
                break;
-
             case 19: /* cloned */
                rc. cloned = true;
                kw_ok = true;
                break;
-
             case 20: /* write verify list output */
                rc.verify_list = ua->argv[i];
                kw_ok = true;
@@ -1412,7 +1411,7 @@ static bool scan_command_line_arguments(UAContext *ua, run_ctx &rc)
                   return false;
                }
                if (is_yesno(ua->argv[i], &rc.spool_data)) {
-                  rc.spool_data_set = 1;
+                  rc.spool_data_set = true;
                   kw_ok = true;
                } else {
                   ua->send_msg(_("Invalid spooldata flag.\n"));
@@ -1421,6 +1420,19 @@ static bool scan_command_line_arguments(UAContext *ua, run_ctx &rc)
             case 27: /* comment */
                rc.comment = ua->argv[i];
                kw_ok = true;
+               break;
+            case 28: /* allowduplicates */
+               if (rc.allow_duplicates_set) {
+                  ua->send_msg(_("AllowDuplicates flag specified twice.\n"));
+                  return false;
+               }
+               if (is_yesno(ua->argv[i], &rc.allow_duplicates)) {
+                  rc.allow_duplicates_set = true;
+                  kw_ok = true;
+               } else {
+                  ua->send_msg(_("Invalid allowduplicates flag.\n"));
+               }
+               break;
             default:
                break;
             }
@@ -1510,6 +1522,11 @@ static bool scan_command_line_arguments(UAContext *ua, run_ctx &rc)
    }
    Dmsg1(900, "Spooling data: %s\n", (rc.job->spool_data ? "Yes" : "No"));
 
+   if (rc.allow_duplicates_set) {
+      rc.job->AllowDuplicateJobs = rc.allow_duplicates;
+   }
+   Dmsg1(900, "Allow Duplicate Jobs: %s\n", (rc.job->AllowDuplicateJobs ? "Yes" : "No"));
+
    if (rc.store_name) {
       rc.store->store = GetStoreResWithName(rc.store_name);
       pm_strcpy(rc.store->store_source, _("command line"));
@@ -1572,7 +1589,6 @@ static bool scan_command_line_arguments(UAContext *ua, run_ctx &rc)
       return false;
    }
    Dmsg1(800, "Using restore client=%s\n", rc.client->name());
-
 
    if (rc.fileset_name) {
       rc.fileset = GetFileSetResWithName(rc.fileset_name);
