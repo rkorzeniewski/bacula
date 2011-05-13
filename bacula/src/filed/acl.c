@@ -480,7 +480,7 @@ static acl_type_t bac_to_os_acltype(bacl_type acltype)
    case BACL_TYPE_DEFAULT:
       ostype = ACL_TYPE_DEFAULT;
       break;
-#ifdef ACL_TYPE_NFS4
+#ifdef HAVE_ACL_TYPE_NFS4
       /**
        * FreeBSD has an additional acl type named ACL_TYPE_NFS4.
        */
@@ -488,7 +488,7 @@ static acl_type_t bac_to_os_acltype(bacl_type acltype)
       ostype = ACL_TYPE_NFS4;
       break;
 #endif
-#ifdef ACL_TYPE_DEFAULT_DIR
+#ifdef HAVE_ACL_TYPE_DEFAULT_DIR
    case BACL_TYPE_DEFAULT_DIR:
       /**
        * TRU64 has an additional acl type named ACL_TYPE_DEFAULT_DIR.
@@ -496,7 +496,7 @@ static acl_type_t bac_to_os_acltype(bacl_type acltype)
       ostype = ACL_TYPE_DEFAULT_DIR;
       break;
 #endif
-#ifdef ACL_TYPE_EXTENDED
+#ifdef HAVE_ACL_TYPE_EXTENDED
    case BACL_TYPE_EXTENDED:
       /**
        * MacOSX has an additional acl type named ACL_TYPE_EXTENDED.
@@ -680,12 +680,10 @@ static bacl_exit_code generic_get_acl_from_os(JCR *jcr, bacl_type acltype)
       jcr->acl_data->content_length = 0;
       acl_free(acl);
       return bacl_exit_error;
-   }
-
-   /**
-    * Handle errors gracefully.
-    */
-   if (acl == (acl_t)NULL) {
+   } else {
+      /**
+       * Handle errors gracefully.
+       */
       switch (errno) {
 #if defined(BACL_ENOTSUP)
       case BACL_ENOTSUP:
@@ -696,7 +694,9 @@ static bacl_exit_code generic_get_acl_from_os(JCR *jcr, bacl_type acltype)
           * when we change from one filesystem to an other.
           */
          jcr->acl_data->flags &= ~BACL_FLAG_SAVE_NATIVE;
-         break;                       /* not supported */
+         pm_strcpy(jcr->acl_data->content, "");
+         jcr->acl_data->content_length = 0;
+         return bacl_exit_ok;
 #endif
       case ENOENT:
          pm_strcpy(jcr->acl_data->content, "");
@@ -714,13 +714,6 @@ static bacl_exit_code generic_get_acl_from_os(JCR *jcr, bacl_type acltype)
          return bacl_exit_error;
       }
    }
-
-   /**
-    * Not supported, just pretend there is nothing to see
-    */
-   pm_strcpy(jcr->acl_data->content, "");
-   jcr->acl_data->content_length = 0;
-   return bacl_exit_ok;
 }
 
 /**
@@ -810,7 +803,7 @@ static int os_default_acl_streams[1] = { -1 };
 
 static bacl_exit_code darwin_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
 {
-#if defined(ACL_TYPE_EXTENDED)
+#if defined(HAVE_ACL_TYPE_EXTENDED)
    /**
     * On MacOS X, acl_get_file (name, ACL_TYPE_ACCESS)
     * and acl_get_file (name, ACL_TYPE_DEFAULT)
@@ -838,7 +831,7 @@ static bacl_exit_code darwin_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
 
 static bacl_exit_code darwin_parse_acl_streams(JCR *jcr, int stream)
 {
-#if defined(ACL_TYPE_EXTENDED)
+#if defined(HAVE_ACL_TYPE_EXTENDED)
       return generic_set_acl_on_os(jcr, BACL_TYPE_EXTENDED);
 #else
       return generic_set_acl_on_os(jcr, BACL_TYPE_ACCESS);

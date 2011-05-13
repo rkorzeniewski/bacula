@@ -114,12 +114,6 @@
 /* Define if you have zlib */
 #undef HAVE_LIBZ
 
-/* Define if you have libacl */
-#undef HAVE_ACL
-
-/* Define if you have AFS acls */
-#undef HAVE_AFS_ACL
-
 /* General libs */
 #undef LIBS
 
@@ -226,6 +220,18 @@
 
 /* Normal acl support */
 #undef HAVE_ACL
+
+/* Defines if your system have the ACL_TYPE_DEFAULT_DIR acl type */
+#undef HAVE_ACL_TYPE_DEFAULT_DIR
+
+/* Defines if your system have the ACL_TYPE_EXTENDED acl type */
+#undef HAVE_ACL_TYPE_EXTENDED
+
+/* Defines if your system have the ACL_TYPE_NFS4 acl type */
+#undef HAVE_ACL_TYPE_NFS4
+
+/* Define to 1 if you have the 'add_proplist_entry' function. */
+#undef HAVE_ADD_PROPLIST_ENTRY
 
 /* Defines if your system has AFS support */
 #undef HAVE_AFS
