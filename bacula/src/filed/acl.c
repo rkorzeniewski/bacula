@@ -515,6 +515,36 @@ static acl_type_t bac_to_os_acltype(bacl_type acltype)
    return ostype;
 }
 
+static int acl_count_entries(acl_t acl)
+{
+   int count = 0;
+#if defined(HAVE_FREEBSD_OS) || \
+    defined(HAVE_LINUX_OS)
+   acl_entry_t ace;
+   int entry_available;
+
+   entry_available = acl_get_entry(acl, ACL_FIRST_ENTRY, &ace);
+   while (entry_available == 1) {
+      count++;
+      entry_available = acl_get_entry(acl, ACL_NEXT_ENTRY, &ace);
+   }
+#elif defined(HAVE_IRIX_OS)
+   count = acl->acl_cnt;
+#elif defined(HAVE_OSF1_OS)
+   count = acl->acl_num;
+#elif defined(HAVE_DARWIN_OS)
+   acl_entry_t ace;
+   int entry_available;
+
+   entry_available = acl_get_entry(acl, ACL_FIRST_ENTRY, &ace);
+   while (entry_available == 0) {
+      count++;
+      entry_available = acl_get_entry(acl, ACL_NEXT_ENTRY, &ace);
+   }
+#endif
+   return count;
+}
+
 #if !defined(HAVE_DARWIN_OS)
 /**
  * See if an acl is a trivial one (e.g. just the stat bits encoded as acl.)
@@ -606,30 +636,23 @@ static bacl_exit_code generic_get_acl_from_os(JCR *jcr, bacl_type acltype)
    acl_type_t ostype;
    char *acl_text;
    berrno be;
+   bacl_exit_code retval = bacl_exit_ok;
 
    ostype = bac_to_os_acltype(acltype);
    acl = acl_get_file(jcr->last_fname, ostype);
    if (acl) {
-#if defined(HAVE_IRIX_OS)
       /**
        * From observation, IRIX's acl_get_file() seems to return a
        * non-NULL acl with a count field of -1 when a file has no ACL
        * defined, while IRIX's acl_to_text() returns NULL when presented
        * with such an ACL. 
        *
-       * Checking the count in the acl structure before calling
-       * acl_to_text() lets us avoid error messages about files
-       * with no ACLs, without modifying the flow of the code used for 
-       * other operating systems, and it saves making some calls
-       * to acl_to_text() besides.
+       * For all other implmentations we check if there are more then
+       * zero entries in the acl returned.
        */
-      if (acl->acl_cnt <= 0) {
-         pm_strcpy(jcr->acl_data->content, "");
-         jcr->acl_data->content_length = 0;
-         acl_free(acl);
-         return bacl_exit_ok;
+      if (acl_count_entries(acl) <= 0) {
+         goto bail_out;
       }
-#endif
 
       /**
        * Make sure this is not just a trivial ACL.
@@ -640,10 +663,7 @@ static bacl_exit_code generic_get_acl_from_os(JCR *jcr, bacl_type acltype)
           * The ACLs simply reflect the (already known) standard permissions
           * So we don't send an ACL stream to the SD.
           */
-         pm_strcpy(jcr->acl_data->content, "");
-         jcr->acl_data->content_length = 0;
-         acl_free(acl);
-         return bacl_exit_ok;
+         goto bail_out;
       }
 #endif
 #if defined(HAVE_FREEBSD_OS) && defined(_PC_ACL_NFS4)
@@ -655,15 +675,15 @@ static bacl_exit_code generic_get_acl_from_os(JCR *jcr, bacl_type acltype)
                 * The ACLs simply reflect the (already known) standard permissions
                 * So we don't send an ACL stream to the SD.
                 */
-               pm_strcpy(jcr->acl_data->content, "");
-               jcr->acl_data->content_length = 0;
-               acl_free(acl);
-               return bacl_exit_ok;
+               goto bail_out;
             }
          }
       }
 #endif
 
+      /**
+       * Convert the internal acl representation into an text representation.
+       */
       if ((acl_text = acl_to_text(acl, NULL)) != NULL) {
          jcr->acl_data->content_length = pm_strcpy(jcr->acl_data->content, acl_text);
          acl_free(acl);
@@ -676,10 +696,8 @@ static bacl_exit_code generic_get_acl_from_os(JCR *jcr, bacl_type acltype)
       Dmsg2(100, "acl_to_text error file=%s ERR=%s\n",  
             jcr->last_fname, be.bstrerror());
 
-      pm_strcpy(jcr->acl_data->content, "");
-      jcr->acl_data->content_length = 0;
-      acl_free(acl);
-      return bacl_exit_error;
+      retval = bacl_exit_error;
+      goto bail_out;
    } else {
       /**
        * Handle errors gracefully.
@@ -694,14 +712,10 @@ static bacl_exit_code generic_get_acl_from_os(JCR *jcr, bacl_type acltype)
           * when we change from one filesystem to an other.
           */
          jcr->acl_data->flags &= ~BACL_FLAG_SAVE_NATIVE;
-         pm_strcpy(jcr->acl_data->content, "");
-         jcr->acl_data->content_length = 0;
-         return bacl_exit_ok;
+         goto bail_out;
 #endif
       case ENOENT:
-         pm_strcpy(jcr->acl_data->content, "");
-         jcr->acl_data->content_length = 0;
-         return bacl_exit_ok;
+         goto bail_out;
       default:
          /* Some real error */
          Mmsg2(jcr->errmsg, _("acl_get_file error on file \"%s\": ERR=%s\n"),
@@ -709,11 +723,18 @@ static bacl_exit_code generic_get_acl_from_os(JCR *jcr, bacl_type acltype)
          Dmsg2(100, "acl_get_file error file=%s ERR=%s\n",  
                jcr->last_fname, be.bstrerror());
 
-         pm_strcpy(jcr->acl_data->content, "");
-         jcr->acl_data->content_length = 0;
-         return bacl_exit_error;
+         retval = bacl_exit_error;
+         goto bail_out;
       }
    }
+
+bail_out:
+   if (acl) {
+      acl_free(acl);
+   }
+   pm_strcpy(jcr->acl_data->content, "");
+   jcr->acl_data->content_length = 0;
+   return retval;
 }
 
 /**
