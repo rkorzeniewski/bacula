@@ -682,7 +682,7 @@ static bacl_exit_code generic_get_acl_from_os(JCR *jcr, bacl_type acltype)
 #endif
 
       /**
-       * Convert the internal acl representation into an text representation.
+       * Convert the internal acl representation into a text representation.
        */
       if ((acl_text = acl_to_text(acl, NULL)) != NULL) {
          jcr->acl_data->content_length = pm_strcpy(jcr->acl_data->content, acl_text);
