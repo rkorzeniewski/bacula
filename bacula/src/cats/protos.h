@@ -44,6 +44,7 @@
 bool db_open_batch_connexion(JCR *jcr, B_DB *mdb);
 char *db_strerror(B_DB *mdb);
 int db_int64_handler(void *ctx, int num_fields, char **row);
+int db_strtime_handler(void *ctx, int num_fields, char **row);
 int db_list_handler(void *ctx, int num_fields, char **row);
 void db_debug_print(JCR *jcr, FILE *fp);
 int db_int_handler(void *ctx, int num_fields, char **row);
