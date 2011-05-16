@@ -38,8 +38,6 @@
  *   - Solaris (POSIX and NFSv4/ZFS acls)
  *   - Tru64
  *
- * Next to OS specific acls we support AFS acls using the pioctl interface.
- *
  * We handle two different types of ACLs: access and default ACLS.
  * On most systems that support default ACLs they only apply to directories.
  *
@@ -64,7 +62,7 @@
 #include "bacula.h"
 #include "filed.h"
   
-#if !defined(HAVE_ACL) && !defined(HAVE_AFS_ACL)
+#if !defined(HAVE_ACL)
 /**
  * Entry points when compiled without support for ACLs or on an unsupported platform.
  */
