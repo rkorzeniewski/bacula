@@ -2636,10 +2636,14 @@ if test x$support_acl = xyes -o x$support_acl = xauto; then
 	 ]
       )
 
-      AC_CHECK_DECL([ACL_TYPE_DEFAULT_DIR],
-                    [AC_DEFINE(HAVE_ACL_TYPE_DEFAULT_DIR,1,[Defines if your system have the ACL_TYPE_DEFAULT_DIR acl type])],
-                    [],
-                    [[#include <sys/acl.h>]])
+      AC_MSG_CHECKING(for ACL_TYPE_DEFAULT_DIR in acl.h include file)
+      grep ACL_TYPE_DEFAULT_DIR /usr/include/sys/acl.h > /dev/null 2>&1
+      if test $? = 0; then
+         AC_DEFINE(HAVE_ACL_TYPE_DEFAULT_DIR,1,[Defines if your system have the ACL_TYPE_DEFAULT_DIR acl type])
+         AC_MSG_RESULT(yes)
+      else
+         AC_MSG_RESULT(no)
+      fi
    fi
 
    dnl
@@ -2647,10 +2651,14 @@ if test x$support_acl = xyes -o x$support_acl = xauto; then
    dnl
    if test $have_acl = yes -a \
            x${HAVE_DARWIN_OS_TRUE} = x; then
-      AC_CHECK_DECL([ACL_TYPE_EXTENDED],
-                    [AC_DEFINE(HAVE_ACL_TYPE_EXTENDED,1,[Defines if your system have the ACL_TYPE_EXTENDED acl type])],
-                    [],
-                    [[#include <sys/acl.h>]])
+      AC_MSG_CHECKING(for ACL_TYPE_EXTENDED in acl.h include file)
+      grep ACL_TYPE_EXTENDED /usr/include/sys/acl.h > /dev/null 2>&1
+      if test $? = 0; then
+         AC_DEFINE(HAVE_ACL_TYPE_EXTENDED,1,[Defines if your system have the ACL_TYPE_EXTENDED acl type])
+         AC_MSG_RESULT(yes)
+      else
+         AC_MSG_RESULT(no)
+      fi
    fi
 
    dnl
@@ -2658,10 +2666,14 @@ if test x$support_acl = xyes -o x$support_acl = xauto; then
    dnl
    if test $have_acl = yes -a \
            x${HAVE_FREEBSD_OS_TRUE} = x; then
-      AC_CHECK_DECL([ACL_TYPE_NFS4],
-                    [AC_DEFINE(HAVE_ACL_TYPE_NFS4,1,[Defines if your system have the ACL_TYPE_NFS4 acl type])],
-                    [],
-                    [[#include <sys/acl.h>]])
+      AC_MSG_CHECKING(for ACL_TYPE_NFS4 in acl.h include file)
+      grep ACL_TYPE_NFS4 /usr/include/sys/acl.h > /dev/null 2>&1
+      if test $? = 0; then
+         AC_DEFINE(HAVE_ACL_TYPE_NFS4,1,[Defines if your system have the ACL_TYPE_NFS4 acl type])
+         AC_MSG_RESULT(yes)
+      else
+         AC_MSG_RESULT(no)
+      fi
    fi
 
    dnl
