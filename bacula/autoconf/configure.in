@@ -2912,6 +2912,7 @@ PFILES="platforms/Makefile"
 PSCMD="ps -e"
 WIN32=
 MACOSX=
+COMPRESS_MANPAGES=yes
 
 hostname=`uname -n | cut -d '.' -f 1`
 if test x${hostname} = x ; then
@@ -3139,6 +3140,7 @@ solaris)
        platforms/solaris/bacula-fd \
        platforms/solaris/bacula-sd \
        platforms/solaris/bacula-dir"
+   COMPRESS_MANPAGES=
    case ${DISTVER} in
    5.5|5.6)
       AC_DEFINE(HAVE_OLD_SOCKOPT)
@@ -3196,6 +3198,7 @@ AC_SUBST(WIN32)
 AC_SUBST(MACOSX)
 AC_SUBST(DISTNAME)
 AC_SUBST(DISTVER)
+AC_SUBST(COMPRESS_MANPAGES)
 
 dnl common parts of the Makefile
 MCOMMON=./autoconf/Make.common
