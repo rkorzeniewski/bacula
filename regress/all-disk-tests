@@ -21,7 +21,9 @@ nice tests/bscan-test
 nice tests/bsr-opt-test
 nice tests/comment-test
 nice tests/compressed-test
+nice tests/lzo-test
 nice tests/compress-encrypt-test
+nice tests/lzo-encrypt-test
 nice tests/concurrent-jobs-test
 nice tests/copy-job-test
 nice tests/copy-jobspan-test
@@ -64,6 +66,7 @@ nice tests/maxvol2-test
 nice tests/messages-test
 nice tests/next-vol-test
 nice tests/sparse-compressed-test
+nice tests/sparse-lzo-test
 nice tests/sparse-test
 nice tests/strip-test
 nice tests/two-jobs-test

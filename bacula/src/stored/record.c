@@ -109,12 +109,16 @@ const char *stream_to_ascii(char *buf, int stream, int fi)
          return "contWIN32-DATA";
       case STREAM_WIN32_GZIP_DATA:
          return "contWIN32-GZIP";
+      case STREAM_WIN32_COMPRESSED_DATA:
+         return "contWIN32-COMPRESSED";
       case STREAM_MD5_DIGEST:
          return "contMD5";
       case STREAM_SHA1_DIGEST:
          return "contSHA1";
       case STREAM_GZIP_DATA:
          return "contGZIP";
+      case STREAM_COMPRESSED_DATA:
+         return "contCOMPRESSED";
       case STREAM_UNIX_ATTRIBUTES_EX:
          return "contUNIX-ATTR-EX";
       case STREAM_RESTORE_OBJECT:
@@ -123,6 +127,8 @@ const char *stream_to_ascii(char *buf, int stream, int fi)
          return "contSPARSE-DATA";
       case STREAM_SPARSE_GZIP_DATA:
          return "contSPARSE-GZIP";
+      case STREAM_SPARSE_COMPRESSED_DATA:
+         return "contSPARSE-COMPRESSED";
       case STREAM_PROGRAM_NAMES:
          return "contPROG-NAMES";
       case STREAM_PROGRAM_DATA:
@@ -143,10 +149,14 @@ const char *stream_to_ascii(char *buf, int stream, int fi)
          return "contENCRYPTED-FILE";
       case STREAM_ENCRYPTED_FILE_GZIP_DATA:
          return "contENCRYPTED-GZIP";
+      case STREAM_ENCRYPTED_FILE_COMPRESSED_DATA:
+         return "contENCRYPTED-COMPRESSED";
       case STREAM_ENCRYPTED_WIN32_DATA:
          return "contENCRYPTED-WIN32-DATA";
       case STREAM_ENCRYPTED_WIN32_GZIP_DATA:
          return "contENCRYPTED-WIN32-GZIP";
+      case STREAM_ENCRYPTED_WIN32_COMPRESSED_DATA:
+         return "contENCRYPTED-WIN32-COMPRESSED";
       case STREAM_ENCRYPTED_MACOS_FORK_DATA:
          return "contENCRYPTED-MACOS-RSRC";
       case STREAM_PLUGIN_NAME:
@@ -167,12 +177,16 @@ const char *stream_to_ascii(char *buf, int stream, int fi)
       return "WIN32-DATA";
    case STREAM_WIN32_GZIP_DATA:
       return "WIN32-GZIP";
+   case STREAM_WIN32_COMPRESSED_DATA:
+      return "WIN32-COMPRESSED";
    case STREAM_MD5_DIGEST:
       return "MD5";
    case STREAM_SHA1_DIGEST:
       return "SHA1";
    case STREAM_GZIP_DATA:
       return "GZIP";
+   case STREAM_COMPRESSED_DATA:
+      return "COMPRESSED";
    case STREAM_UNIX_ATTRIBUTES_EX:
       return "UNIX-ATTR-EX";
    case STREAM_RESTORE_OBJECT:
@@ -181,6 +195,8 @@ const char *stream_to_ascii(char *buf, int stream, int fi)
       return "SPARSE-DATA";
    case STREAM_SPARSE_GZIP_DATA:
       return "SPARSE-GZIP";
+   case STREAM_SPARSE_COMPRESSED_DATA:
+      return "SPARSE-COMPRESSED";
    case STREAM_PROGRAM_NAMES:
       return "PROG-NAMES";
    case STREAM_PROGRAM_DATA:
@@ -203,10 +219,14 @@ const char *stream_to_ascii(char *buf, int stream, int fi)
       return "ENCRYPTED-FILE";
    case STREAM_ENCRYPTED_FILE_GZIP_DATA:
       return "ENCRYPTED-GZIP";
+   case STREAM_ENCRYPTED_FILE_COMPRESSED_DATA:
+      return "ENCRYPTED-COMPRESSED";
    case STREAM_ENCRYPTED_WIN32_DATA:
       return "ENCRYPTED-WIN32-DATA";
    case STREAM_ENCRYPTED_WIN32_GZIP_DATA:
       return "ENCRYPTED-WIN32-GZIP";
+   case STREAM_ENCRYPTED_WIN32_COMPRESSED_DATA:
+      return "ENCRYPTED-WIN32-COMPRESSED";
    case STREAM_ENCRYPTED_MACOS_FORK_DATA:
       return "ENCRYPTED-MACOS-RSRC";
 

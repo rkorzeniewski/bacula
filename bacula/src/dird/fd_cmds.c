@@ -379,7 +379,7 @@ static bool send_fileset(JCR *jcr)
                bool done=false;         /* print warning only if compression enabled in FS */ 
                int j = 0;
                for (k=0; fo->opts[k]!='\0'; k++) {                   
-                 /* Z compress option is followed by the single-digit compress level */
+                 /* Z compress option is followed by the single-digit compress level or 'o' */
                  if (fo->opts[k]=='Z') {
                     done=true;
                     k++;                /* skip option and level */

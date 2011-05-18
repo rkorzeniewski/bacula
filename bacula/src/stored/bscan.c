@@ -734,8 +734,11 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
       break;
 
    case STREAM_GZIP_DATA:
+   case STREAM_COMPRESSED_DATA:
    case STREAM_ENCRYPTED_FILE_GZIP_DATA:
+   case STREAM_ENCRYPTED_FILE_COMPRESSED_DATA:
    case STREAM_ENCRYPTED_WIN32_GZIP_DATA:
+   case STREAM_ENCRYPTED_WIN32_COMPRESSED_DATA:
       /* No correct, we should (decrypt and) expand it 
          done using JCR 
       */
@@ -744,12 +747,14 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
       break;
 
    case STREAM_SPARSE_GZIP_DATA:
+   case STREAM_SPARSE_COMPRESSED_DATA:
       mjcr->JobBytes += rec->data_len - sizeof(uint64_t); /* No correct, we should expand it */
       free_jcr(mjcr);                 /* done using JCR */
       break;
 
    /* Win32 GZIP stream */
    case STREAM_WIN32_GZIP_DATA:
+   case STREAM_WIN32_COMPRESSED_DATA:
       mjcr->JobBytes += rec->data_len;
       free_jcr(mjcr);                 /* done using JCR */
       break;

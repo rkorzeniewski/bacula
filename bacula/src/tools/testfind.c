@@ -35,6 +35,7 @@
 #include "bacula.h"
 #include "dird/dird.h"
 #include "findlib/find.h"
+#include "ch.h"
 
 #if defined(HAVE_WIN32)
 #define isatty(fd) (fd==0)
@@ -629,10 +630,19 @@ static void set_options(findFOPTS *fo, const char *opts)
       case 'W':
          fo->flags |= FO_ENHANCEDWILD;
          break;
-      case 'Z':                 /* gzip compression */
-         fo->flags |= FO_GZIP;
-         fo->GZIP_level = *++p - '0';
-         Dmsg1(200, "Compression level=%d\n", fo->GZIP_level);
+      case 'Z':                 /* compression */
+         p++;                   /* skip Z */
+         if (*p >= '0' && *p <= '9') {
+            fo->flags |= FO_COMPRESS;
+            fo->Compress_algo = COMPRESS_GZIP;
+            fo->Compress_level = *p - '0';
+         }
+         else if (*p == 'o') {
+            fo->flags |= FO_COMPRESS;
+            fo->Compress_algo = COMPRESS_LZO1X;
+            fo->Compress_level = 1; /* not used with LZO */
+         }
+         Dmsg2(200, "Compression alg=%d level=%d\n", fo->Compress_algo, fo->Compress_level);
          break;
       case 'X':
          fo->flags |= FO_XATTR;

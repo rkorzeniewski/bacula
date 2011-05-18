@@ -192,7 +192,8 @@ find_files(JCR *jcr, FF_PKT *ff, int file_save(JCR *jcr, FF_PKT *ff_pkt, bool to
          for (j=0; j<incexe->opts_list.size(); j++) {
             findFOPTS *fo = (findFOPTS *)incexe->opts_list.get(j);
             ff->flags |= fo->flags;
-            ff->GZIP_level = fo->GZIP_level;
+            ff->Compress_algo = fo->Compress_algo;
+            ff->Compress_level = fo->Compress_level;
             ff->strip_path = fo->strip_path;
             ff->fstypes = fo->fstype;
             ff->drivetypes = fo->drivetype;
@@ -300,7 +301,8 @@ static bool accept_file(FF_PKT *ff)
    for (j = 0; j < incexe->opts_list.size(); j++) {
       findFOPTS *fo = (findFOPTS *)incexe->opts_list.get(j);
       ff->flags = fo->flags;
-      ff->GZIP_level = fo->GZIP_level;
+      ff->Compress_algo = fo->Compress_algo;
+      ff->Compress_level = fo->Compress_level;
       ff->fstypes = fo->fstype;
       ff->drivetypes = fo->drivetype;
 

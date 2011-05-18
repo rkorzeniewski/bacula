@@ -114,6 +114,9 @@
 /* Define if you have zlib */
 #undef HAVE_LIBZ
 
+/* Define if you have lzo lib */
+#undef HAVE_LZO
+
 /* Define if you have libacl */
 #undef HAVE_ACL
 

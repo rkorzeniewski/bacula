@@ -34,6 +34,7 @@
 
 #include "bacula.h"
 #include "filed.h"
+#include "ch.h"
 
 #if defined(WIN32_VSS)
 #include "vss.h"
@@ -1385,9 +1386,18 @@ static int set_options(findFOPTS *fo, const char *opts)
       case 'W':
          fo->flags |= FO_ENHANCEDWILD;
          break;
-      case 'Z':                 /* gzip compression */
-         fo->flags |= FO_GZIP;
-         fo->GZIP_level = *++p - '0';
+      case 'Z':                 /* compression */
+         p++;                   /* skip Z */
+         if (*p >= '0' && *p <= '9') {
+            fo->flags |= FO_COMPRESS;
+            fo->Compress_algo = COMPRESS_GZIP;
+            fo->Compress_level = *p - '0';
+         }
+         else if (*p == 'o') {
+            fo->flags |= FO_COMPRESS;
+            fo->Compress_algo = COMPRESS_LZO1X;
+            fo->Compress_level = 1; /* not used with LZO */
+         }
          break;
       case 'K':
          fo->flags |= FO_NOATIME;

@@ -2496,6 +2496,19 @@ fi
 AC_SUBST(ZLIBS)
 
 dnl
+dnl Check for lzo
+dnl
+AC_CHECK_HEADERS(lzo/lzoconf.h)
+AC_CHECK_HEADERS(lzo/lzo1x.h)
+AC_CHECK_LIB(lzo2, lzo1x_1_compress, [LZOLIBS="-llzo2"])
+have_lzo=no
+if test x$LZOLIBS = x-llzo2; then
+   AC_DEFINE(HAVE_LZO)
+   have_lzo=yes
+fi
+AC_SUBST(LZOLIBS)
+
+dnl
 dnl Check for ACL support and libraries
 dnl
 support_acl=auto
@@ -3468,6 +3481,7 @@ Configuration on `date`:
    TLS support: 	    ${support_tls}
    Encryption support:	    ${support_crypto} 
    ZLIB support:	    ${have_zlib}
+   LZO support: 	    ${have_lzo}
    enable-smartalloc:	    ${support_smartalloc} 
    enable-lockmgr:	    ${support_lockmgr}
    bat support: 	    ${support_bat}

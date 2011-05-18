@@ -35,6 +35,7 @@
 
 #include "bacula.h"
 #include "filed.h"
+#include "ch.h"
 
 #ifdef HAVE_DARWIN_OS
 const bool have_darwin_os = true;
@@ -110,12 +111,22 @@ bool blast_data_to_storage_daemon(JCR *jcr, char *addr)
     *  Note, we adjust the read size to be smaller so that the
     *  same output buffer can be used without growing it.
     *
+    *  For LZO1X compression the recommended value is :
+    *                  output_block_size = input_block_size + (input_block_size / 16) + 64 + 3 + sizeof(comp_stream_header)
+    *
     * The zlib compression workset is initialized here to minimize
     *  the "per file" load. The jcr member is only set, if the init 
     *  was successful.
+    *
+    *  For the same reason, lzo compression is initialized here.
     */
+#ifdef HAVE_LZO
+   jcr->compress_buf_size = MAX(jcr->buf_size + (jcr->buf_size / 16) + 67 + sizeof(comp_stream_header), jcr->buf_size + ((jcr->buf_size+999) / 1000) + 30);
+   jcr->compress_buf = get_memory(jcr->compress_buf_size);
+#else
    jcr->compress_buf_size = jcr->buf_size + ((jcr->buf_size+999) / 1000) + 30;
    jcr->compress_buf = get_memory(jcr->compress_buf_size);
+#endif
    
 #ifdef HAVE_LIBZ
    z_stream *pZlibStream = (z_stream*)malloc(sizeof(z_stream));  
@@ -129,6 +140,17 @@ bool blast_data_to_storage_daemon(JCR *jcr, char *addr)
          jcr->pZLIB_compress_workset = pZlibStream;
       } else {
          free (pZlibStream);
+      }
+   }
+#endif
+
+#ifdef HAVE_LZO
+   lzo_voidp pLzoMem = (lzo_voidp) malloc(LZO1X_1_MEM_COMPRESS);
+   if (pLzoMem) {
+      if (lzo_init() == LZO_E_OK) {
+         jcr->LZO_compress_workset = pLzoMem;
+      } else {
+         free (pLzoMem);
       }
    }
 #endif
@@ -207,6 +229,11 @@ bool blast_data_to_storage_daemon(JCR *jcr, char *addr)
       free (jcr->pZLIB_compress_workset);
       jcr->pZLIB_compress_workset = NULL;
    }
+   if (jcr->LZO_compress_workset) {
+      free (jcr->LZO_compress_workset);
+      jcr->LZO_compress_workset = NULL;
+   }
+
    crypto_session_end(jcr);
 
 
@@ -604,7 +631,7 @@ int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
                goto good_rtn;
             }
             flags = ff_pkt->flags;
-            ff_pkt->flags &= ~(FO_GZIP|FO_SPARSE|FO_OFFSETS);
+            ff_pkt->flags &= ~(FO_COMPRESS|FO_SPARSE|FO_OFFSETS);
             if (flags & FO_ENCRYPT) {
                rsrc_stream = STREAM_ENCRYPTED_MACOS_FORK_DATA;
             } else {
@@ -821,13 +848,14 @@ static int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest,
 
    Dmsg1(300, "Saving data, type=%d\n", ff_pkt->type);
 
-#ifdef HAVE_LIBZ
+#if defined(HAVE_LIBZ) || defined(HAVE_LZO)
    uLong compress_len = 0;
    uLong max_compress_len = 0;
    const Bytef *cbuf = NULL;
+ #ifdef HAVE_LIBZ
    int zstat;
 
-   if (ff_pkt->flags & FO_GZIP) {
+   if ((ff_pkt->flags & FO_COMPRESS) && ff_pkt->Compress_algo == COMPRESS_GZIP) {
       if ((ff_pkt->flags & FO_SPARSE) || (ff_pkt->flags & FO_OFFSETS)) {
          cbuf = (Bytef *)jcr->compress_buf + OFFSET_FADDR_SIZE;
          max_compress_len = jcr->compress_buf_size - OFFSET_FADDR_SIZE;
@@ -847,13 +875,38 @@ static int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest,
       if (((z_stream*)jcr->pZLIB_compress_workset)->total_in == 0) {
          /** set gzip compression level - must be done per file */
          if ((zstat=deflateParams((z_stream*)jcr->pZLIB_compress_workset, 
-              ff_pkt->GZIP_level, Z_DEFAULT_STRATEGY)) != Z_OK) {
+              ff_pkt->Compress_level, Z_DEFAULT_STRATEGY)) != Z_OK) {
             Jmsg(jcr, M_FATAL, 0, _("Compression deflateParams error: %d\n"), zstat);
             jcr->setJobStatus(JS_ErrorTerminated);
             goto err;
          }
       }
    }
+ #endif
+ #ifdef HAVE_LZO
+   Bytef *cbuf2;
+   int lzores;
+   comp_stream_header ch;
+
+   memset(&ch, 0, sizeof(comp_stream_header));
+   cbuf2 = NULL;
+
+   if ((ff_pkt->flags & FO_COMPRESS) && ff_pkt->Compress_algo == COMPRESS_LZO1X) {
+      if ((ff_pkt->flags & FO_SPARSE) || (ff_pkt->flags & FO_OFFSETS)) {
+         cbuf = (Bytef *)jcr->compress_buf + OFFSET_FADDR_SIZE;
+         cbuf2 = (Bytef *)jcr->compress_buf + OFFSET_FADDR_SIZE + sizeof(comp_stream_header);
+         max_compress_len = jcr->compress_buf_size - OFFSET_FADDR_SIZE;
+      } else {
+         cbuf = (Bytef *)jcr->compress_buf;
+         cbuf2 = (Bytef *)jcr->compress_buf + sizeof(comp_stream_header);
+         max_compress_len = jcr->compress_buf_size; /* set max length */
+      }
+      ch.magic = COMPRESS_LZO1X;
+      ch.version = COMP_HEAD_VERSION;
+      wbuf = jcr->compress_buf;    /* compressed output here */
+      cipher_input = (uint8_t *)jcr->compress_buf; /* encrypt compressed data */
+   }
+ #endif
 #else
    const uint32_t max_compress_len = 0;
 #endif
@@ -968,7 +1021,7 @@ static int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest,
 
 #ifdef HAVE_LIBZ
       /** Do compression if turned on */
-      if (ff_pkt->flags & FO_GZIP && jcr->pZLIB_compress_workset) {
+      if (ff_pkt->flags & FO_COMPRESS && ff_pkt->Compress_algo == COMPRESS_GZIP && jcr->pZLIB_compress_workset) {
          Dmsg3(400, "cbuf=0x%x rbuf=0x%x len=%u\n", cbuf, rbuf, sd->msglen);
          
          ((z_stream*)jcr->pZLIB_compress_workset)->next_in   = (Bytef *)rbuf;
@@ -989,13 +1042,45 @@ static int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest,
             goto err;
          }
 
-         Dmsg2(400, "compressed len=%d uncompressed len=%d\n", compress_len, 
+         Dmsg2(400, "GZIP compressed len=%d uncompressed len=%d\n", compress_len, 
                sd->msglen);
 
          sd->msglen = compress_len;      /* set compressed length */
          cipher_input_len = compress_len;
       }
 #endif
+#ifdef HAVE_LZO
+      /** Do compression if turned on */
+      if (ff_pkt->flags & FO_COMPRESS && ff_pkt->Compress_algo == COMPRESS_LZO1X && jcr->LZO_compress_workset) {
+         ser_declare;
+         ser_begin(cbuf, sizeof(comp_stream_header));
+
+         Dmsg3(400, "cbuf=0x%x rbuf=0x%x len=%u\n", cbuf, rbuf, sd->msglen);
+
+         lzores = lzo1x_1_compress((const unsigned char*)rbuf, sd->msglen, cbuf2, &compress_len, jcr->LZO_compress_workset);
+         if (lzores == LZO_E_OK && compress_len <= max_compress_len)
+         {
+            /* complete header */
+            ser_uint32(COMPRESS_LZO1X);
+            ser_uint32(compress_len);
+            ser_uint16(ch.level);
+            ser_uint16(ch.version);
+         } else {
+            /** this should NEVER happen */
+            Jmsg(jcr, M_FATAL, 0, _("Compression LZO error: %d\n"), lzores);
+            jcr->setJobStatus(JS_ErrorTerminated);
+            goto err;
+         }
+
+         Dmsg2(400, "LZO compressed len=%d uncompressed len=%d\n", compress_len, 
+               sd->msglen);
+
+         compress_len += sizeof(comp_stream_header); /* add size of header */
+         sd->msglen = compress_len;      /* set compressed length */
+         cipher_input_len = compress_len;
+      }
+#endif
+
       /**
        * Note, here we prepend the current record length to the beginning
        *  of the encrypted data. This is because both sparse and compression

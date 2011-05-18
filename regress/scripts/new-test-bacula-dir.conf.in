@@ -132,6 +132,34 @@ Job {
 }
 
 Job {
+  Name = "LZOTest"
+  Type = Backup
+  Client=@hostname@-fd
+  FileSet="LZOSet"
+  Storage = File
+  Messages = Standard
+  Pool = Default
+  Maximum Concurrent Jobs = 10
+  Write Bootstrap = "@working_dir@/NightlySave.bsr"
+  Max Run Time = 30min
+  SpoolData=yes
+}
+
+Job {
+  Name = "SparseLZOTest"
+  Type = Backup
+  Client=@hostname@-fd
+  FileSet="SparseLZOSet"
+  Storage = File
+  Messages = Standard
+  Pool = Default
+  Write Bootstrap = "@working_dir@/NightlySave.bsr"
+  Max Run Time = 30min
+  SpoolData=yes
+  Maximum Concurrent Jobs = 10
+}
+
+Job {
   Name = "FIFOTest"
   Type = Backup
   Client=@hostname@-fd 
@@ -239,6 +267,17 @@ FileSet {
 }
 
 FileSet {
+  Name = "LZOSet"
+  Include {
+    Options {
+      signature=MD5
+      compression=LZO
+    }
+    File = <@tmpdir@/file-list
+  }
+}
+
+FileSet {
   Name = "FIFOSet"
   Include {
     Options {
@@ -256,6 +295,18 @@ FileSet {
     Options {
       signature=MD5 
       compression=GZIP
+      sparse=yes
+    }
+    File = <@tmpdir@/file-list
+  }
+}
+
+FileSet {
+  Name = "SparseLZOSet"
+  Include {
+    Options {
+      signature=MD5
+      compression=LZO
       sparse=yes
     }
     File = <@tmpdir@/file-list

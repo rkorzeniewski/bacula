@@ -43,7 +43,7 @@
  */
 #define FO_PORTABLE_DATA (1<<0)       /* Data is portable */
 #define FO_MD5           (1<<1)       /* Do MD5 checksum */
-#define FO_GZIP          (1<<2)       /* Do Zlib compression */
+#define FO_COMPRESS      (1<<2)       /* Do compression */
 #define FO_NO_RECURSION  (1<<3)       /* no recursion in directories */
 #define FO_MULTIFS       (1<<4)       /* multiple file systems */
 #define FO_SPARSE        (1<<5)       /* do sparse file checking */

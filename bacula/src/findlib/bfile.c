@@ -79,8 +79,10 @@ bool is_win32_stream(int stream)
    switch (stream) {
    case STREAM_WIN32_DATA:
    case STREAM_WIN32_GZIP_DATA:
+   case STREAM_WIN32_COMPRESSED_DATA:
    case STREAM_ENCRYPTED_WIN32_DATA:
    case STREAM_ENCRYPTED_WIN32_GZIP_DATA:
+   case STREAM_ENCRYPTED_WIN32_COMPRESSED_DATA:
       return true;
    }
    return false;
@@ -99,12 +101,16 @@ const char *stream_to_ascii(int stream)
       return _("MD5 digest");
    case STREAM_GZIP_DATA:
       return _("GZIP data");
+   case STREAM_COMPRESSED_DATA:
+      return _("Compressed data");
    case STREAM_UNIX_ATTRIBUTES_EX:
       return _("Extended attributes");
    case STREAM_SPARSE_DATA:
       return _("Sparse data");
    case STREAM_SPARSE_GZIP_DATA:
       return _("GZIP sparse data");
+   case STREAM_SPARSE_COMPRESSED_DATA:
+      return _("Compressed sparse data");
    case STREAM_PROGRAM_NAMES:
       return _("Program names");
    case STREAM_PROGRAM_DATA:
@@ -115,6 +121,8 @@ const char *stream_to_ascii(int stream)
       return _("Win32 data");
    case STREAM_WIN32_GZIP_DATA:
       return _("Win32 GZIP data");
+   case STREAM_WIN32_COMPRESSED_DATA:
+      return _("Win32 compressed data");
    case STREAM_MACOS_FORK_DATA:
       return _("MacOS Fork data");
    case STREAM_HFSPLUS_ATTRIBUTES:
@@ -137,8 +145,12 @@ const char *stream_to_ascii(int stream)
       return _("Encrypted session data");
    case STREAM_ENCRYPTED_FILE_GZIP_DATA:
       return _("Encrypted GZIP data");
+   case STREAM_ENCRYPTED_FILE_COMPRESSED_DATA:
+      return _("Encrypted compressed data");
    case STREAM_ENCRYPTED_WIN32_GZIP_DATA:
       return _("Encrypted Win32 GZIP data");
+   case STREAM_ENCRYPTED_WIN32_COMPRESSED_DATA:
+      return _("Encrypted Win32 Compressed data");
    case STREAM_ENCRYPTED_MACOS_FORK_DATA:
       return _("Encrypted MacOS fork data");
    case STREAM_ACL_AIX_TEXT:
@@ -422,6 +434,13 @@ bool is_restore_stream_supported(int stream)
    case STREAM_SPARSE_GZIP_DATA:
    case STREAM_WIN32_GZIP_DATA:
 #endif
+#ifndef HAVE_LZO
+   case STREAM_COMPRESSED_DATA:
+   case STREAM_SPARSE_COMPRESSED_DATA:
+   case STREAM_WIN32_COMPRESSED_DATA:
+   case STREAM_ENCRYPTED_FILE_COMPRESSED_DATA:
+   case STREAM_ENCRYPTED_WIN32_COMPRESSED_DATA:
+#endif
    case STREAM_MACOS_FORK_DATA:
    case STREAM_HFSPLUS_ATTRIBUTES:
    case STREAM_ENCRYPTED_MACOS_FORK_DATA:
@@ -432,6 +451,13 @@ bool is_restore_stream_supported(int stream)
    case STREAM_GZIP_DATA:
    case STREAM_SPARSE_GZIP_DATA:
    case STREAM_WIN32_GZIP_DATA:
+#endif
+#ifdef HAVE_LZO
+   case STREAM_COMPRESSED_DATA:
+   case STREAM_SPARSE_COMPRESSED_DATA:
+   case STREAM_WIN32_COMPRESSED_DATA:
+   case STREAM_ENCRYPTED_FILE_COMPRESSED_DATA:
+   case STREAM_ENCRYPTED_WIN32_COMPRESSED_DATA:
 #endif
    case STREAM_WIN32_DATA:
    case STREAM_UNIX_ATTRIBUTES:
@@ -452,6 +478,8 @@ bool is_restore_stream_supported(int stream)
    case STREAM_ENCRYPTED_FILE_GZIP_DATA:
    case STREAM_ENCRYPTED_WIN32_DATA:
    case STREAM_ENCRYPTED_WIN32_GZIP_DATA:
+   case STREAM_ENCRYPTED_FILE_COMPRESSED_DATA:
+   case STREAM_ENCRYPTED_WIN32_COMPRESSED_DATA:
 #endif
    case 0:                            /* compatibility with old tapes */
       return true;
@@ -862,6 +890,13 @@ bool is_restore_stream_supported(int stream)
    case STREAM_SPARSE_GZIP_DATA:
    case STREAM_WIN32_GZIP_DATA:    
 #endif
+#ifndef HAVE_LZO
+   case STREAM_COMPRESSED_DATA:
+   case STREAM_SPARSE_COMPRESSED_DATA:
+   case STREAM_WIN32_COMPRESSED_DATA:
+   case STREAM_ENCRYPTED_FILE_COMPRESSED_DATA:
+   case STREAM_ENCRYPTED_WIN32_COMPRESSED_DATA:
+#endif
 #ifndef HAVE_DARWIN_OS
    case STREAM_MACOS_FORK_DATA:
    case STREAM_HFSPLUS_ATTRIBUTES:
@@ -873,6 +908,13 @@ bool is_restore_stream_supported(int stream)
    case STREAM_GZIP_DATA:
    case STREAM_SPARSE_GZIP_DATA:
    case STREAM_WIN32_GZIP_DATA:    
+#endif
+#ifdef HAVE_LZO
+   case STREAM_COMPRESSED_DATA:
+   case STREAM_SPARSE_COMPRESSED_DATA:
+   case STREAM_WIN32_COMPRESSED_DATA:
+   case STREAM_ENCRYPTED_FILE_COMPRESSED_DATA:
+   case STREAM_ENCRYPTED_WIN32_COMPRESSED_DATA:
 #endif
    case STREAM_WIN32_DATA:
    case STREAM_UNIX_ATTRIBUTES:

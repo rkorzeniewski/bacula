@@ -35,6 +35,7 @@
 
 #include "bacula.h"
 #include "stored.h"
+#include "ch.h"
 #include "findlib/find.h"
 
 extern bool parse_sd_config(CONFIG *config, const char *configfile, int exit_code);
@@ -463,6 +464,102 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
          return true;
       }
 #endif
+      break;
+
+   /* Compressed data stream */
+   case STREAM_COMPRESSED_DATA:
+   case STREAM_SPARSE_COMPRESSED_DATA:
+   case STREAM_WIN32_COMPRESSED_DATA:
+      if (extract) {
+         uint32_t comp_magic, comp_len;
+         uint16_t comp_level, comp_version;
+#ifdef HAVE_LZO
+         lzo_uint compress_len;
+         const unsigned char *cbuf;
+         int r, real_compress_len;
+#endif
+
+         if (rec->maskedStream == STREAM_SPARSE_COMPRESSED_DATA) {
+            ser_declare;
+            uint64_t faddr;
+            char ec1[50];
+            wbuf = rec->data + OFFSET_FADDR_SIZE;
+            wsize = rec->data_len - OFFSET_FADDR_SIZE;
+            ser_begin(rec->data, OFFSET_FADDR_SIZE);
+            unser_uint64(faddr);
+            if (fileAddr != faddr) {
+               fileAddr = faddr;
+               if (blseek(&bfd, (boffset_t)fileAddr, SEEK_SET) < 0) {
+                  berrno be;
+                  Emsg3(M_ERROR, 0, _("Seek to %s error on %s: ERR=%s\n"),
+                     edit_uint64(fileAddr, ec1), attr->ofname, be.bstrerror());
+                  extract = false;
+                  return true;
+               }
+            }
+         } else {
+            wbuf = rec->data;
+            wsize = rec->data_len;
+         }
+
+         /* read compress header */
+         unser_declare;
+         unser_begin(wbuf, sizeof(comp_stream_header));
+         unser_uint32(comp_magic);
+         unser_uint32(comp_len);
+         unser_uint16(comp_level);
+         unser_uint16(comp_version);
+         Dmsg4(200, "Compressed data stream found: magic=0x%x, len=%d, level=%d, ver=0x%x\n", comp_magic, comp_len,
+                                 comp_level, comp_version);
+
+         /* version check */
+         if (comp_version != COMP_HEAD_VERSION) {
+            Emsg1(M_ERROR, 0, _("Compressed header version error. version=0x%x\n"), comp_version);
+            return false;
+         }
+         /* size check */
+         if (comp_len + sizeof(comp_stream_header) != wsize) {
+            Emsg2(M_ERROR, 0, _("Compressed header size error. comp_len=%d, msglen=%d\n"),
+                 comp_len, wsize);
+            return false;
+         }
+
+          switch(comp_magic) {
+#ifdef HAVE_LZO
+            case COMPRESS_LZO1X:
+               compress_len = compress_buf_size;
+               cbuf = (const unsigned char*) wbuf + sizeof(comp_stream_header);
+               real_compress_len = wsize - sizeof(comp_stream_header);
+               Dmsg2(200, "Comp_len=%d msglen=%d\n", compress_len, wsize);
+               while ((r=lzo1x_decompress_safe(cbuf, real_compress_len,
+                                               (unsigned char *)compress_buf, &compress_len, NULL)) == LZO_E_OUTPUT_OVERRUN)
+               {
+
+                  /* The buffer size is too small, try with a bigger one */
+                  compress_len = 2 * compress_len;
+                  compress_buf = check_pool_memory_size(compress_buf,
+                                                  compress_len);
+               }
+               if (r != LZO_E_OK) {
+                  Emsg1(M_ERROR, 0, _("LZO uncompression error. ERR=%d\n"), r);
+                  extract = false;
+                  return true;
+               }
+               break;
+#endif
+            default:
+               Emsg1(M_ERROR, 0, _("Compression algorithm 0x%x found, but not supported!\n"), comp_magic);
+               extract = false;
+               return true;
+         }
+
+         Dmsg2(100, "Write uncompressed %d bytes, total before write=%d\n", compress_len, total);
+         store_data(&bfd, compress_buf, compress_len);
+         total += compress_len;
+         fileAddr += compress_len;
+         Dmsg2(100, "Compress len=%d uncompressed=%d\n", rec->data_len,
+            compress_len);
+      }
       break;
 
    case STREAM_MD5_DIGEST:

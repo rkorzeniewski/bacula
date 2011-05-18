@@ -77,6 +77,7 @@ int readdir_r(DIR *dirp, struct dirent *entry, struct dirent **result);
 struct s_included_file {
    struct s_included_file *next;
    uint32_t options;                  /* backup options */
+   uint32_t algo;                     /* compression algorithm. 4 letters stored as an interger */
    int level;                         /* compression level */
    int len;                           /* length of fname */
    int pattern;                       /* set if wild card pattern */
@@ -108,7 +109,8 @@ enum {
 /* File options structure */
 struct findFOPTS {
    uint32_t flags;                    /* options in bits */
-   int GZIP_level;                    /* GZIP level */
+   uint32_t Compress_algo;            /* compression algorithm. 4 letters stored as an interger */
+   int Compress_level;                /* compression level */
    int strip_path;                    /* strip path count */
    char VerifyOpts[MAX_FOPTS];        /* verify options */
    char AccurateOpts[MAX_FOPTS];      /* accurate mode options */
@@ -196,7 +198,8 @@ struct FF_PKT {
 
    /* Values set by accept_file while processing Options */
    uint32_t flags;                    /* backup options */
-   int GZIP_level;                    /* compression level */
+   uint32_t Compress_algo;            /* compression algorithm. 4 letters stored as an interger */
+   int Compress_level;                /* compression level */
    int strip_path;                    /* strip path count */
    bool cmd_plugin;                   /* set if we have a command plugin */
    alist fstypes;                     /* allowed file system types */
