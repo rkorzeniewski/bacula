@@ -830,6 +830,7 @@ int get_attributes_and_put_in_catalog(JCR *jcr)
          ar->FilenameId = 0;
          ar->Digest = NULL;
          ar->DigestType = CRYPTO_DIGEST_NONE;
+         ar->DeltaSeq = 0;
          jcr->cached_attribute = true;
 
          Dmsg2(dbglvl, "dird<filed: stream=%d %s\n", stream, jcr->fname);
