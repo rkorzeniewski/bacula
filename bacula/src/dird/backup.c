@@ -246,7 +246,7 @@ bool send_accurate_current_files(JCR *jcr)
    if (jcr->is_canceled() || jcr->is_JobLevel(L_BASE)) {
       return true;
    }
-   if (!jcr->accurate && !jcr->rerunning) {
+   if (!jcr->accurate) {
       return true;
    }
 
@@ -255,7 +255,7 @@ bool send_accurate_current_files(JCR *jcr)
       if (get_base_jobids(jcr, &jobids)) {
          jcr->HasBase = true;
          Jmsg(jcr, M_INFO, 0, _("Using BaseJobId(s): %s\n"), jobids.list);
-      } else if (!jcr->rerunning) {
+      } else {
          return true;
       }
    } else {
@@ -267,12 +267,6 @@ bool send_accurate_current_files(JCR *jcr)
          Jmsg(jcr, M_FATAL, 0, _("Cannot find previous jobids.\n"));
          return false;  /* fail */
       }
-   }
-
-   /* For incomplete Jobs, we add our own id */
-   if (jcr->rerunning) {
-      edit_int64(jcr->JobId, ed1);   
-      jobids.add(ed1);
    }
 
    /* Don't send and store the checksum if fileset doesn't require it */
@@ -332,48 +326,14 @@ bool do_backup(JCR *jcr)
    }
 
    /* Print Job Start message */
-   if (jcr->rerunning) {
-      Jmsg(jcr, M_INFO, 0, _("Restart Incomplete Backup JobId %s, Job=%s\n"),
-           edit_uint64(jcr->JobId, ed1), jcr->Job);
-   } else {
-      Jmsg(jcr, M_INFO, 0, _("Start Backup JobId %s, Job=%s\n"),
-           edit_uint64(jcr->JobId, ed1), jcr->Job);
-   }
+   Jmsg(jcr, M_INFO, 0, _("Start Backup JobId %s, Job=%s\n"),
+        edit_uint64(jcr->JobId, ed1), jcr->Job);
 
    jcr->setJobStatus(JS_Running);
    Dmsg2(100, "JobId=%d JobLevel=%c\n", jcr->jr.JobId, jcr->jr.JobLevel);
    if (!db_update_job_start_record(jcr, jcr->db, &jcr->jr)) {
       Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db));
       return false;
-   }
-
-   /* For incomplete Jobs, we add our own id */
-   if (jcr->rerunning) {
-      edit_int64(jcr->JobId, ed1);   
-      Mmsg(buf, "SELECT max(FileIndex) FROM File WHERE JobId=%s", ed1);
-      if (db_sql_query(jcr->db, buf.c_str(), db_int64_handler, &job)) {
-         Jmsg(jcr, M_INFO, 0, _("Found %ld files from prior incomplete Job.\n"),
-            (int32_t)job.value);
-      } else {
-         Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db));
-         return false;
-      }
-      jcr->JobFiles = job.value;
-      Dmsg1(100, "==== FI=%ld\n", jcr->JobFiles);
-      Mmsg(buf, "SELECT VolSessionId FROM Job WHERE JobId=%s", ed1);
-      if (!db_sql_query(jcr->db, buf.c_str(), db_int64_handler, &job)) {
-         Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db));
-         return false;
-      }
-      jcr->VolSessionId = job.value;
-      Mmsg(buf, "SELECT VolSessionTime FROM Job WHERE JobId=%s", ed1);
-      if (!db_sql_query(jcr->db, buf.c_str(), db_int64_handler, &job)) {
-         Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db));
-         return false;
-      }
-      jcr->VolSessionTime = job.value;
-      Dmsg4(100, "JobId=%s JobFiles=%ld VolSessionId=%ld VolSessionTime=%ld\n", ed1, 
-            jcr->JobFiles, jcr->VolSessionId, jcr->VolSessionTime);
    }
 
    /*

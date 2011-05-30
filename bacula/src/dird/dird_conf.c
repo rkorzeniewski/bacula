@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2010 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2011 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -326,7 +326,6 @@ RES_ITEM job_items[] = {
    {"clientrunafterjob",  store_short_runscript,  ITEM(res_job.RunScripts),  0, 0, 0},
    {"maximumconcurrentjobs", store_pint32, ITEM(res_job.MaxConcurrentJobs), 0, ITEM_DEFAULT, 1},
    {"rescheduleonerror", store_bool, ITEM(res_job.RescheduleOnError), 0, ITEM_DEFAULT, false},
-   {"rescheduleincompletejobs", store_bool, ITEM(res_job.RescheduleIncompleteJobs), 0, ITEM_DEFAULT, true},
    {"rescheduleinterval", store_time, ITEM(res_job.RescheduleInterval), 0, ITEM_DEFAULT, 60 * 30},
    {"rescheduletimes",    store_pint32, ITEM(res_job.RescheduleTimes), 0, 0, 5},
    {"priority",           store_pint32, ITEM(res_job.Priority), 0, ITEM_DEFAULT, 10},
