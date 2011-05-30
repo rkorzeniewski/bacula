@@ -494,7 +494,7 @@ int accurate_cmd(JCR *jcr)
    BSOCK *dir = jcr->dir_bsock;
    int lstat_pos, chksum_pos;
    int32_t nb;
-   uint16_t delta_seq;
+   uint32_t delta_seq;
 
    if (job_canceled(jcr)) {
       return true;
