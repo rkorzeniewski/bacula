@@ -199,6 +199,15 @@ char *bvfs_parent_dir(char *path)
    char *p = path;
    int len = strlen(path) - 1;
 
+   /* windows directory / */
+   if (len == 2 && B_ISALPHA(path[0]) 
+                && path[1] == ':' 
+                && path[2] == '/')
+   {
+      len = 0;
+      path[0] = '\0';
+   }
+
    if (len >= 0 && path[len] == '/') {      /* if directory, skip last / */
       path[len] = '\0';
    }
