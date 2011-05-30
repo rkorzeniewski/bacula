@@ -153,6 +153,9 @@ public:
       offset+=limit;
    }
 
+   /* Clear all cache */
+   void clear_cache();
+
    /* Compute restore list */
    bool compute_restore_list(char *fileid, char *dirid, char *hardlink, 
                              char *output_table);

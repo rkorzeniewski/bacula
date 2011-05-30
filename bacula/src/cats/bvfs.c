@@ -836,6 +836,15 @@ static bool check_temp(char *output_table)
    return false;
 }
 
+void Bvfs::clear_cache()
+{
+   db_sql_query(db, "BEGIN",                     NULL, NULL);
+   db_sql_query(db, "UPDATE Job SET HasCache=0", NULL, NULL);
+   db_sql_query(db, "TRUNCATE PathHierarchy",    NULL, NULL);
+   db_sql_query(db, "TRUNCATE PathVisibility",   NULL, NULL);
+   db_sql_query(db, "COMMIT",                    NULL, NULL);
+}
+
 bool Bvfs::drop_restore_list(char *output_table)
 {
    POOL_MEM query;
