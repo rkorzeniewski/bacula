@@ -75,6 +75,7 @@ static CONFIG *config;
 #define MAX_ID_LIST_LEN 10000000
 
 /* Forward referenced functions */
+static void print_catalog_details(CAT *catalog, const char *working_dir);
 static int make_id_list(const char *query, ID_LIST *id_list);
 static int delete_id_list(const char *query, ID_LIST *id_list);
 static int make_name_list(const char *query, NAME_LIST *name_list);
@@ -232,10 +233,7 @@ int main (int argc, char *argv[])
 
          /* Print catalog information and exit (-B) */
          if (print_catalog) {
-            POOLMEM *buf = get_pool_memory(PM_MESSAGE);
-            printf("%s\nworking_dir=%s\n", catalog->display(buf),
-                    working_directory);
-            free_pool_memory(buf);
+            print_catalog_details(catalog, director->working_directory);
             exit(0);
          }
 
@@ -334,6 +332,26 @@ int main (int argc, char *argv[])
    term_msg();
    lmgr_cleanup_main();
    return 0;
+}
+
+static void print_catalog_details(CAT *catalog, const char *working_dir)
+{
+   POOLMEM *buf = get_pool_memory(PM_MESSAGE);
+
+   /*
+    * Instantiate a B_DB class and see what db_type gets assigned to it.
+    */
+   db = db_init_database(NULL, catalog->db_driver, catalog->db_name, catalog->db_user,
+                         catalog->db_password, catalog->db_address,
+                         catalog->db_port, catalog->db_socket,
+                         catalog->mult_db_connections,
+                         catalog->disable_batch_insert);
+   if (db) {
+      printf("%sdb_type=%s\nworking_dir=%s\n", catalog->display(buf),
+             db->db_get_type(), working_directory);
+      db_close_database(NULL, db);
+   }
+   free_pool_memory(buf);
 }
 
 static void do_interactive_mode()
