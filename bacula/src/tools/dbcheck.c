@@ -108,9 +108,7 @@ static bool check_idx(const char *col_name);
 static bool create_tmp_idx(const char *idx_name, const char *table_name,
               const char *col_name);
 static bool drop_tmp_idx(const char *idx_name, const char *table_name);
-#ifdef HAVE_MYSQL
 static int check_idx_handler(void *ctx, int num_fields, char **row);
-#endif
 
 static void usage()
 {
@@ -1348,7 +1346,6 @@ bool python_set_prog(JCR*, char const*) { return false; }
  *  that to improve the performance.
  */
 
-#ifdef HAVE_MYSQL
 #define MAXIDX          100
 typedef struct s_idx_list {
    char *key_name;
@@ -1370,6 +1367,7 @@ static int check_idx_handler(void *ctx, int num_fields, char **row)
    char *name, *key_name, *col_name;
    int i, len;
    int found = false;
+
    name = (char *)ctx;
    key_name = row[2];
    col_name = row[4];
@@ -1399,46 +1397,44 @@ static int check_idx_handler(void *ctx, int num_fields, char **row)
    }
    return 0;
 }
-#endif
 
 /*
  * Return TRUE if "one column" index over *col_name exists
  */
 static bool check_idx(const char *col_name)
 {
-#ifdef HAVE_MYSQL
    int i;
    int found = false;
-
-   memset(&idx_list, 0, sizeof(idx_list));
    const char *query = "SHOW INDEX FROM File";
-   if (!db_sql_query(db, query, check_idx_handler, (void *)col_name)) {
-      printf("%s\n", db_strerror(db));
-   }
 
-   for(i = 0; (idx_list[i].key_name != NULL) && (i < MAXIDX) ; i++) {
-      /*
-       * NOTE : if (idx_list[i].count_key > 1) then index idx_list[i].key_name is "multiple-column" index
-       */
-      if ((idx_list[i].count_key == 1) && (idx_list[i].count_col == 1)) {
+   switch (db_get_type_index(db)) {
+   case SQL_TYPE_MYSQL:
+      memset(&idx_list, 0, sizeof(idx_list));
+      if (!db_sql_query(db, query, check_idx_handler, (void *)col_name)) {
+         printf("%s\n", db_strerror(db));
+      }
+      for (i = 0; (idx_list[i].key_name != NULL) && (i < MAXIDX) ; i++) {
          /*
-          * "one column" index over *col_name found
+          * NOTE : if (idx_list[i].count_key > 1) then index idx_list[i].key_name is "multiple-column" index
           */
-         found = true;
+         if ((idx_list[i].count_key == 1) && (idx_list[i].count_col == 1)) {
+            /*
+             * "one column" index over *col_name found
+             */
+            found = true;
+         }
       }
-   }
-   if (found) {
-      if (verbose) {
-         printf(_("Ok. Index over the %s column already exists and dbcheck will work faster.\n"), col_name);
+      if (found) {
+         if (verbose) {
+            printf(_("Ok. Index over the %s column already exists and dbcheck will work faster.\n"), col_name);
+         }
+      } else {
+         printf(_("Note. Index over the %s column not found, that can greatly slow down dbcheck.\n"), col_name);
       }
-   } else {
-      printf(_("Note. Index over the %s column not found, that can greatly slow down dbcheck.\n"), col_name);
+      return found;
+   default:
+      return true;
    }
-
-   return found;
-#else
-   return true;
-#endif
 }
 
 /*
