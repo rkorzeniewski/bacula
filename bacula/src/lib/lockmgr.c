@@ -971,8 +971,6 @@ void dbg_print_lock(FILE *fp)
 #ifdef _TEST_IT
 
 #include "lockmgr.h"
-#define BTHREAD_MUTEX_NO_PRIORITY      {PTHREAD_MUTEX_INITIALIZER, 0}
-#define BTHREAD_MUTEX_PRIORITY(p)      {PTHREAD_MUTEX_INITIALIZER, p}
 #undef P
 #undef V
 #define P(x) bthread_mutex_lock_p(&(x), __FILE__, __LINE__)
