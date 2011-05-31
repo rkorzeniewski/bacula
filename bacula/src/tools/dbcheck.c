@@ -42,8 +42,10 @@
 
 extern bool parse_dir_config(CONFIG *config, const char *configfile, int exit_code);
 
-/* Dummy functions */
-int generate_daemon_event(JCR *jcr, const char *event) 
+/*
+ * Dummy functions
+ */
+int generate_daemon_event(JCR *jcr, const char *event)
    { return 1; }
 
 typedef struct s_id_ctx {
@@ -62,7 +64,9 @@ typedef struct s_name_ctx {
    int tot_ids;                       /* total to process */
 } NAME_LIST;
 
-/* Global variables */
+/*
+ * Global variables
+ */
 static bool fix = false;
 static bool batch = false;
 static B_DB *db;
@@ -71,10 +75,13 @@ static NAME_LIST name_list;
 static char buf[20000];
 static bool quit = false;
 static CONFIG *config;
+static const char *idx_tmp_name;
 
 #define MAX_ID_LIST_LEN 10000000
 
-/* Forward referenced functions */
+/*
+ * Forward referenced functions
+ */
 static void print_catalog_details(CAT *catalog, const char *working_dir);
 static int make_id_list(const char *query, ID_LIST *id_list);
 static int delete_id_list(const char *query, ID_LIST *id_list);
@@ -98,16 +105,12 @@ static void repair_bad_filenames();
 static void do_interactive_mode();
 static bool yes_no(const char *prompt);
 static bool check_idx(const char *col_name);
-static bool create_tmp_idx(const char *idx_name, const char *table_name, 
+static bool create_tmp_idx(const char *idx_name, const char *table_name,
               const char *col_name);
 static bool drop_tmp_idx(const char *idx_name, const char *table_name);
 #ifdef HAVE_MYSQL
 static int check_idx_handler(void *ctx, int num_fields, char **row);
 #endif
-
-
-/* Global variables */
-static const char *idx_tmp_name;
 
 static void usage()
 {
@@ -142,7 +145,7 @@ int main (int argc, char *argv[])
    lmgr_init_thread();
 
    my_name_is(argc, argv, "dbcheck");
-   init_msg(NULL, NULL);              /* setup message handler */
+   init_msg(NULL, NULL);           /* setup message handler */
 
    memset(&id_list, 0, sizeof(id_list));
    memset(&name_list, 0, sizeof(name_list));
@@ -152,19 +155,15 @@ int main (int argc, char *argv[])
       case 'B':
          print_catalog = true;     /* get catalog information from config */
          break;
-
       case 'b':                    /* batch */
          batch = true;
          break;
-
       case 'C':                    /* CatalogName */
           catalogname = optarg;
          break;
-
       case 'c':                    /* configfile */
           configfile = optarg;
          break;
-
       case 'd':                    /* debug level */
          if (*optarg == 't') {
             dbg_timestamp = true;
@@ -175,15 +174,12 @@ int main (int argc, char *argv[])
             }
          }
          break;
-
       case 'f':                    /* fix inconsistencies */
          fix = true;
          break;
-
       case 'v':
          verbose++;
          break;
-
       case '?':
       default:
          usage();
@@ -231,7 +227,9 @@ int main (int argc, char *argv[])
          }
          set_working_directory(director->working_directory);
 
-         /* Print catalog information and exit (-B) */
+         /*
+          * Print catalog information and exit (-B)
+          */
          if (print_catalog) {
             print_catalog_details(catalog, director->working_directory);
             exit(0);
@@ -257,7 +255,9 @@ int main (int argc, char *argv[])
          usage();
       }
 
-      /* This is needed by SQLite to find the db */
+      /*
+       * This is needed by SQLite to find the db
+       */
       working_directory = argv[0];
       db_name = "bacula";
       user = db_name;
@@ -296,14 +296,18 @@ int main (int argc, char *argv[])
       }
    }
 
-   /* Open database */
+   /*
+    * Open database
+    */
    db = db_init_database(NULL, NULL, db_name, user, password, dbhost, dbport, NULL, false, false);
    if (!db_open_database(NULL, db)) {
       Emsg1(M_FATAL, 0, "%s", db_strerror(db));
           return 1;
    }
 
-   /* drop temporary index idx_tmp_name if it already exists */
+   /*
+    * Drop temporary index idx_tmp_name if it already exists
+    */
    drop_tmp_idx("idxPIchk", "File");
 
    if (batch) {
@@ -324,7 +328,9 @@ int main (int argc, char *argv[])
       do_interactive_mode();
    }
 
-   /* drop temporary index idx_tmp_name */
+   /*
+    * Drop temporary index idx_tmp_name
+    */
    drop_tmp_idx("idxPIchk", "File");
 
    db_close_database(NULL, db);
@@ -515,7 +521,6 @@ static int print_job_handler(void *ctx, int num_fields, char **row)
    return 0;
 }
 
-
 static int print_jobmedia_handler(void *ctx, int num_fields, char **row)
 {
    printf(_("Orphaned JobMediaId=%s JobId=%s Volume=\"%s\"\n"),
@@ -543,7 +548,6 @@ static int print_client_handler(void *ctx, int num_fields, char **row)
               NPRT(row[0]), NPRT(row[1]));
    return 0;
 }
-
 
 /*
  * Called here with each id to be added to the list
@@ -623,7 +627,6 @@ static int name_list_handler(void *ctx, int num_fields, char **row)
    return 0;
 }
 
-
 /*
  * Construct name list
  */
@@ -650,7 +653,6 @@ static void print_name_list(NAME_LIST *name_list)
    }
 }
 
-
 /*
  * Free names in the list
  */
@@ -669,7 +671,9 @@ static void eliminate_duplicate_filenames()
 
    printf(_("Checking for duplicate Filename entries.\n"));
 
-   /* Make list of duplicated names */
+   /*
+    * Make list of duplicated names
+    */
    query = "SELECT Name, count(Name) as Count FROM Filename GROUP BY  Name "
            "HAVING count(Name) > 1";
 
@@ -684,9 +688,13 @@ static void eliminate_duplicate_filenames()
       return;
    }
    if (fix) {
-      /* Loop through list of duplicate names */
+      /*
+       * Loop through list of duplicate names
+       */
       for (int i=0; i<name_list.num_ids; i++) {
-         /* Get all the Ids of each name */
+         /*
+          * Get all the Ids of each name
+          */
          db_escape_string(NULL, db, esc_name, name_list.name[i], strlen(name_list.name[i]));
          bsnprintf(buf, sizeof(buf), "SELECT FilenameId FROM Filename WHERE Name='%s'", esc_name);
          if (verbose > 1) {
@@ -698,7 +706,9 @@ static void eliminate_duplicate_filenames()
          if (verbose) {
             printf(_("Found %d for: %s\n"), id_list.num_ids, name_list.name[i]);
          }
-         /* Force all records to use the first id then delete the other ids */
+         /*
+          * Force all records to use the first id then delete the other ids
+          */
          for (int j=1; j<id_list.num_ids; j++) {
             char ed1[50], ed2[50];
             bsnprintf(buf, sizeof(buf), "UPDATE File SET FilenameId=%s WHERE FilenameId=%s",
@@ -726,8 +736,9 @@ static void eliminate_duplicate_paths()
 
    printf(_("Checking for duplicate Path entries.\n"));
 
-   /* Make list of duplicated names */
-
+   /*
+    * Make list of duplicated names
+    */
    query = "SELECT Path, count(Path) as Count FROM Path "
            "GROUP BY Path HAVING count(Path) > 1";
 
@@ -742,9 +753,13 @@ static void eliminate_duplicate_paths()
       return;
    }
    if (fix) {
-      /* Loop through list of duplicate names */
+      /*
+       * Loop through list of duplicate names
+       */
       for (int i=0; i<name_list.num_ids; i++) {
-         /* Get all the Ids of each name */
+         /*
+          * Get all the Ids of each name
+          */
          db_escape_string(NULL, db, esc_name, name_list.name[i], strlen(name_list.name[i]));
          bsnprintf(buf, sizeof(buf), "SELECT PathId FROM Path WHERE Path='%s'", esc_name);
          if (verbose > 1) {
@@ -756,7 +771,9 @@ static void eliminate_duplicate_paths()
          if (verbose) {
             printf(_("Found %d for: %s\n"), id_list.num_ids, name_list.name[i]);
          }
-         /* Force all records to use the first id then delete the other ids */
+         /*
+          * Force all records to use the first id then delete the other ids
+          */
          for (int j=1; j<id_list.num_ids; j++) {
             char ed1[50], ed2[50];
             bsnprintf(buf, sizeof(buf), "UPDATE File SET PathId=%s WHERE PathId=%s",
@@ -786,7 +803,9 @@ static void eliminate_orphaned_jobmedia_records()
    if (!make_id_list(query, &id_list)) {
       exit(1);
    }
-   /* Loop doing 300000 at a time */
+   /*
+    * Loop doing 300000 at a time
+    */
    while (id_list.num_ids != 0) {
       printf(_("Found %d orphaned JobMedia records.\n"), id_list.num_ids);
       if (id_list.num_ids && verbose && yes_no(_("Print them? (yes/no): "))) {
@@ -794,7 +813,7 @@ static void eliminate_orphaned_jobmedia_records()
             char ed1[50];
             bsnprintf(buf, sizeof(buf),
 "SELECT JobMedia.JobMediaId,JobMedia.JobId,Media.VolumeName FROM JobMedia,Media "
-"WHERE JobMedia.JobMediaId=%s AND Media.MediaId=JobMedia.MediaId", 
+"WHERE JobMedia.JobMediaId=%s AND Media.MediaId=JobMedia.MediaId",
                edit_int64(id_list.Id[i], ed1));
             if (!db_sql_query(db, buf, print_jobmedia_handler, NULL)) {
                printf("%s\n", db_strerror(db));
@@ -830,7 +849,9 @@ static void eliminate_orphaned_file_records()
    if (!make_id_list(query, &id_list)) {
       exit(1);
    }
-   /* Loop doing 300000 at a time */
+   /*
+    * Loop doing 300000 at a time
+    */
    while (id_list.num_ids != 0) {
       printf(_("Found %d orphaned File records.\n"), id_list.num_ids);
       if (name_list.num_ids && verbose && yes_no(_("Print them? (yes/no): "))) {
@@ -838,7 +859,7 @@ static void eliminate_orphaned_file_records()
             char ed1[50];
             bsnprintf(buf, sizeof(buf),
 "SELECT File.FileId,File.JobId,Filename.Name FROM File,Filename "
-"WHERE File.FileId=%s AND File.FilenameId=Filename.FilenameId", 
+"WHERE File.FileId=%s AND File.FilenameId=Filename.FilenameId",
                edit_int64(id_list.Id[i], ed1));
             if (!db_sql_query(db, buf, print_file_handler, NULL)) {
                printf("%s\n", db_strerror(db));
@@ -863,10 +884,14 @@ static void eliminate_orphaned_file_records()
 static void eliminate_orphaned_path_records()
 {
    idx_tmp_name = NULL;
-   /* check the existence of the required "one column" index */
+   /*
+    * Check the existence of the required "one column" index
+    */
    if (!check_idx("PathId"))  {
       if (yes_no(_("Create temporary index? (yes/no): "))) {
-         /* create temporary index PathId  */
+         /*
+          * create temporary index PathId
+          */
          create_tmp_idx("idxPIchk", "File", "PathId");
       }
    }
@@ -882,13 +907,15 @@ static void eliminate_orphaned_path_records()
    if (!make_id_list(query, &id_list)) {
       exit(1);
    }
-   /* Loop doing 300000 at a time */
+   /*
+    * Loop doing 300000 at a time
+    */
    while (id_list.num_ids != 0) {
       printf(_("Found %d orphaned Path records.\n"), id_list.num_ids);
       if (id_list.num_ids && verbose && yes_no(_("Print them? (yes/no): "))) {
          for (int i=0; i < id_list.num_ids; i++) {
             char ed1[50];
-            bsnprintf(buf, sizeof(buf), "SELECT Path FROM Path WHERE PathId=%s", 
+            bsnprintf(buf, sizeof(buf), "SELECT Path FROM Path WHERE PathId=%s",
                edit_int64(id_list.Id[i], ed1));
             db_sql_query(db, buf, print_name_handler, NULL);
          }
@@ -905,18 +932,24 @@ static void eliminate_orphaned_path_records()
       if (!make_id_list(query, &id_list)) {
          exit(1);
       }
-   } 
-   /* drop temporary index idx_tmp_name */
+   }
+   /*
+    * Drop temporary index idx_tmp_name
+    */
    drop_tmp_idx("idxPIchk", "File");
 }
 
 static void eliminate_orphaned_filename_records()
 {
    idx_tmp_name = NULL;
-   /* check the existence of the required "one column" index */
+   /*
+    * Check the existence of the required "one column" index
+    */
    if (!check_idx("FilenameId") )      {
       if (yes_no(_("Create temporary index? (yes/no): "))) {
-         /* create temporary index FilenameId  */
+         /*
+          * Create temporary index FilenameId
+          */
          create_tmp_idx("idxFIchk", "File", "FilenameId");
       }
    }
@@ -932,13 +965,15 @@ static void eliminate_orphaned_filename_records()
    if (!make_id_list(query, &id_list)) {
       exit(1);
    }
-   /* Loop doing 300000 at a time */
+   /*
+    * Loop doing 300000 at a time
+    */
    while (id_list.num_ids != 0) {
       printf(_("Found %d orphaned Filename records.\n"), id_list.num_ids);
       if (id_list.num_ids && verbose && yes_no(_("Print them? (yes/no): "))) {
          for (int i=0; i < id_list.num_ids; i++) {
             char ed1[50];
-            bsnprintf(buf, sizeof(buf), "SELECT Name FROM Filename WHERE FilenameId=%s", 
+            bsnprintf(buf, sizeof(buf), "SELECT Name FROM Filename WHERE FilenameId=%s",
                edit_int64(id_list.Id[i], ed1));
             db_sql_query(db, buf, print_name_handler, NULL);
          }
@@ -956,7 +991,9 @@ static void eliminate_orphaned_filename_records()
          exit(1);
       }
    }
-   /* drop temporary index idx_tmp_name */
+   /*
+    * Drop temporary index idx_tmp_name
+    */
    drop_tmp_idx("idxFIchk", "File");
 
 }
@@ -1000,7 +1037,8 @@ static void eliminate_orphaned_client_records()
    const char *query;
 
    printf(_("Checking for orphaned Client entries.\n"));
-   /* In English:
+   /*
+    * In English:
     *   Wiffle through Client for every Client
     *   joining with the Job table including every Client even if
     *   there is not a match in Job (left outer join), then
@@ -1041,7 +1079,8 @@ static void eliminate_orphaned_job_records()
    const char *query;
 
    printf(_("Checking for orphaned Job entries.\n"));
-   /* In English:
+   /*
+    * In English:
     *   Wiffle through Job for every Job
     *   joining with the Client table including every Job even if
     *   there is not a match in Client (left outer join), then
@@ -1080,7 +1119,6 @@ static void eliminate_orphaned_job_records()
       delete_id_list("DELETE FROM Log WHERE JobId=%s", &id_list);
    }
 }
-
 
 static void eliminate_admin_records()
 {
@@ -1148,9 +1186,6 @@ static void eliminate_restore_records()
    }
 }
 
-
-
-
 static void repair_bad_filenames()
 {
    const char *query;
@@ -1170,7 +1205,7 @@ static void repair_bad_filenames()
       for (i=0; i < id_list.num_ids; i++) {
          char ed1[50];
          bsnprintf(buf, sizeof(buf),
-            "SELECT Name FROM Filename WHERE FilenameId=%s", 
+            "SELECT Name FROM Filename WHERE FilenameId=%s",
                 edit_int64(id_list.Id[i], ed1));
          if (!db_sql_query(db, buf, print_name_handler, NULL)) {
             printf("%s\n", db_strerror(db));
@@ -1188,12 +1223,14 @@ static void repair_bad_filenames()
          int len;
          char ed1[50];
          bsnprintf(buf, sizeof(buf),
-            "SELECT Name FROM Filename WHERE FilenameId=%s", 
+            "SELECT Name FROM Filename WHERE FilenameId=%s",
                edit_int64(id_list.Id[i], ed1));
          if (!db_sql_query(db, buf, get_name_handler, name)) {
             printf("%s\n", db_strerror(db));
          }
-         /* Strip trailing slash(es) */
+         /*
+          * Strip trailing slash(es)
+          */
          for (len=strlen(name); len > 0 && IsPathSeparator(name[len-1]); len--)
             {  }
          if (len == 0) {
@@ -1255,11 +1292,15 @@ static void repair_bad_paths()
          if (!db_sql_query(db, buf, get_name_handler, name)) {
             printf("%s\n", db_strerror(db));
          }
-         /* Strip trailing blanks */
+         /*
+          * Strip trailing blanks
+          */
          for (len=strlen(name); len > 0 && name[len-1]==' '; len--) {
             name[len-1] = 0;
          }
-         /* Add trailing slash */
+         /*
+          * Add trailing slash
+          */
          len = pm_strcat(&name, "/");
          db_escape_string(NULL, db, esc_name, name, len);
          bsnprintf(buf, sizeof(buf), "UPDATE Path SET Path='%s' WHERE PathId=%s",
@@ -1271,7 +1312,6 @@ static void repair_bad_paths()
       }
    }
 }
-
 
 /*
  * Gen next input command from the terminal
@@ -1303,7 +1343,6 @@ static bool yes_no(const char *prompt)
 
 bool python_set_prog(JCR*, char const*) { return false; }
 
-
 /*
  * The code below to add indexes is needed only for MySQL, and
  *  that to improve the performance.
@@ -1319,13 +1358,14 @@ typedef struct s_idx_list {
 
 static IDX_LIST idx_list[MAXIDX];
 
-/* 
+/*
  * Called here with each table index to be added to the list
  */
 static int check_idx_handler(void *ctx, int num_fields, char **row)
 {
-   /* Table | Non_unique | Key_name | Seq_in_index | Column_name |...
-    * File  |          0 | PRIMARY  |            1 | FileId      |... 
+   /*
+    * Table | Non_unique | Key_name | Seq_in_index | Column_name |...
+    * File  |          0 | PRIMARY  |            1 | FileId      |...
     */
    char *name, *key_name, *col_name;
    int i, len;
@@ -1343,7 +1383,9 @@ static int check_idx_handler(void *ctx, int num_fields, char **row)
          break;
       }
    }
-   /* if the new Key_name, add it to the list */
+   /*
+    * If the new Key_name, add it to the list
+    */
    if (!found) {
       len = strlen(key_name) + 1;
       idx_list[i].key_name = (char *)malloc(len);
@@ -1375,9 +1417,13 @@ static bool check_idx(const char *col_name)
    }
 
    for(i = 0; (idx_list[i].key_name != NULL) && (i < MAXIDX) ; i++) {
-      /* NOTE : if (idx_list[i].count_key > 1) then index idx_list[i].key_name is "multiple-column" index */
+      /*
+       * NOTE : if (idx_list[i].count_key > 1) then index idx_list[i].key_name is "multiple-column" index
+       */
       if ((idx_list[i].count_key == 1) && (idx_list[i].count_col == 1)) {
-         /* "one column" index over *col_name found */
+         /*
+          * "one column" index over *col_name found
+          */
          found = true;
       }
    }
@@ -1398,12 +1444,12 @@ static bool check_idx(const char *col_name)
 /*
  * Create temporary one-column index
  */
-static bool create_tmp_idx(const char *idx_name, const char *table_name, 
-               const char *col_name)
+static bool create_tmp_idx(const char *idx_name, const char *table_name,
+                           const char *col_name)
 {
    idx_tmp_name = NULL;
    printf(_("Create temporary index... This may take some time!\n"));
-   bsnprintf(buf, sizeof(buf), "CREATE INDEX %s ON %s (%s)", idx_name, table_name, col_name); 
+   bsnprintf(buf, sizeof(buf), "CREATE INDEX %s ON %s (%s)", idx_name, table_name, col_name);
    if (verbose) {
       printf("%s\n", buf);
    }
