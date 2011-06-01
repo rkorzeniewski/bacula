@@ -1248,6 +1248,7 @@ static void repair_bad_filenames()
          }
          db_sql_query(db, buf, NULL, NULL);
       }
+      free_pool_memory(name);
    }
 }
 
@@ -1309,6 +1310,7 @@ static void repair_bad_paths()
          }
          db_sql_query(db, buf, NULL, NULL);
       }
+      free_pool_memory(name);
    }
 }
 
