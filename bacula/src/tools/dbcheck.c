@@ -340,7 +340,7 @@ int main (int argc, char *argv[])
 
 static void print_catalog_details(CAT *catalog, const char *working_dir)
 {
-   POOLMEM *buf = get_pool_memory(PM_MESSAGE);
+   POOLMEM *catalog_details = get_pool_memory(PM_MESSAGE);
 
    /*
     * Instantiate a B_DB class and see what db_type gets assigned to it.
@@ -351,11 +351,11 @@ static void print_catalog_details(CAT *catalog, const char *working_dir)
                          catalog->mult_db_connections,
                          catalog->disable_batch_insert);
    if (db) {
-      printf("%sdb_type=%s\nworking_dir=%s\n", catalog->display(buf),
+      printf("%sdb_type=%s\nworking_dir=%s\n", catalog->display(catalog_details),
              db->db_get_type(), working_directory);
       db_close_database(NULL, db);
    }
-   free_pool_memory(buf);
+   free_pool_memory(catalog_details);
 }
 
 static void do_interactive_mode()
@@ -505,9 +505,10 @@ static int print_name_handler(void *ctx, int num_fields, char **row)
 
 static int get_name_handler(void *ctx, int num_fields, char **row)
 {
-   POOLMEM *buf = (POOLMEM *)ctx;
+   POOLMEM *name = (POOLMEM *)ctx;
+
    if (row[0]) {
-      pm_strcpy(&buf, row[0]);
+      pm_strcpy(&name, row[0]);
    }
    return 0;
 }
