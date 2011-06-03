@@ -1233,7 +1233,7 @@ static bool term_fileset(JCR *jcr)
          }
       }
       dlistString *node;
-      foreach_dlist(node, incexe->name_list) {
+      foreach_dlist(node, &incexe->name_list) {
          Dmsg1(400, "F %s\n", node->c_str());
       }
       foreach_dlist(node, &incexe->plugin_list) {
