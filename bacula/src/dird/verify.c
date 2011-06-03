@@ -560,7 +560,7 @@ void get_attributes_and_compare_to_catalog(JCR *jcr, JobId_t JobId)
       char Opts_Digest[MAXSTRING];        /* Verify Opts or MD5/SHA1 digest */
 
       if (job_canceled(jcr)) {
-         return;
+         goto bail_out;
       }
       fname = check_pool_memory_size(fname, fd->msglen);
       jcr->fname = check_pool_memory_size(jcr->fname, fd->msglen);
@@ -569,7 +569,7 @@ void get_attributes_and_compare_to_catalog(JCR *jcr, JobId_t JobId)
             fname)) != 3) {
          Jmsg3(jcr, M_FATAL, 0, _("bird<filed: bad attributes, expected 3 fields got %d\n"
 " mslen=%d msg=%s\n"), len, fd->msglen, fd->msg);
-         return;
+         goto bail_out;
       }
       /*
        * We read the Options or Signature into fname
@@ -740,7 +740,7 @@ void get_attributes_and_compare_to_catalog(JCR *jcr, JobId_t JobId)
          if (jcr->FileIndex != (uint32_t)file_index) {
             Jmsg2(jcr, M_FATAL, 0, _("MD5/SHA1 index %d not same as attributes %d\n"),
                file_index, jcr->FileIndex);
-            return;
+            goto bail_out;
          }
          if (do_Digest != CRYPTO_DIGEST_NONE) {
             db_escape_string(jcr, jcr->db, buf, Opts_Digest, strlen(Opts_Digest));
@@ -759,7 +759,7 @@ void get_attributes_and_compare_to_catalog(JCR *jcr, JobId_t JobId)
       berrno be;
       Jmsg2(jcr, M_FATAL, 0, _("bdird<filed: bad attributes from filed n=%d : %s\n"),
                         n, be.bstrerror());
-      return;
+      goto bail_out;
    }
 
    /* Now find all the files that are missing -- i.e. all files in
@@ -777,6 +777,8 @@ void get_attributes_and_compare_to_catalog(JCR *jcr, JobId_t JobId)
    if (jcr->fn_printed) {
       jcr->setJobStatus(JS_Differences);
    }
+
+bail_out:
    free_pool_memory(fname);
 }
 
