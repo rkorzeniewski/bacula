@@ -479,11 +479,6 @@ bool dir_update_file_attributes(DCR *dcr, DEV_RECORD *rec)
    ser_bytes(rec->data, rec->data_len);
    dir->msglen = ser_length(dir->msg);
    Dmsg1(1800, ">dird %s\n", dir->msg);    /* Attributes */
-   if (rec->maskedStream == STREAM_UNIX_ATTRIBUTES || 
-       rec->maskedStream == STREAM_UNIX_ATTRIBUTES_EX) {
-      Dmsg2(100, "==== set_data_end FI=%ld %s\n", rec->FileIndex, rec->data);
-      dir->set_data_end(rec->FileIndex);    /* set offset of last valid data */
-   }
    return dir->send();
 }
 

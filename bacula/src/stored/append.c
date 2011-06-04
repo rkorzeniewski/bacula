@@ -43,24 +43,9 @@ static char OK_append[]  = "3000 OK append data\n";
 
 
 /* 
- * Check if we can mark this job incomplete
- *
  */
 void possible_incomplete_job(JCR *jcr, int32_t last_file_index)
 {
-   /*
-    * Note, here we decide if it is worthwhile to restart
-    *  the Job at this point. For the moment, if at least
-    *  10 Files have been seen, which is good for testing, but
-    *  for a production system, we probably want something like
-    *  100-1000 files, and some number of bytes of data.
-    *
-    *  ****FIXME**** set last_file_index to something more
-    *    reasonable, and maybe check JobBytes.
-    */
-   if (jcr->spool_attributes && last_file_index > 10) {
-      jcr->setJobStatus(JS_Incomplete);
-   }
 }
 /*
  *  Append Data sent from File daemon
