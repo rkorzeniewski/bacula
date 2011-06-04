@@ -18,19 +18,23 @@ nothing:
 
 depend:
 
-install:
-	$(MKDIR) $(DESTDIR)/$(mandir)/man8
-	for I in ${MAN8}; \
-	  do ($(RMF) $$I.gz; gzip -c $$I >$$I.gz; \
-	     $(INSTALL_DATA) $$I.gz $(DESTDIR)$(mandir)/man8/$$I.gz; \
-	     rm -f $$I.gz); \
+compress-manpages: install-manpages
+
+install-manpages:
+	$(MKDIR) $(DESTDIR)/$(mandir)/man8 $(DESTDIR)/$(mandir)/man1
+	for I in ${MAN8}; do \
+	     $(INSTALL_DATA) $$I $(DESTDIR)$(mandir)/man8/$$I; \
 	done
-	$(MKDIR) $(DESTDIR)/$(mandir)/man1
-	for I in ${MAN1}; \
-	  do ($(RMF) $$I.gz; gzip -c $$I >$$I.gz; \
-	     $(INSTALL_DATA) $$I.gz $(DESTDIR)$(mandir)/man1/$$I.gz; \
-	     rm -f $$I.gz); \
+	for I in ${MAN1}; do \
+	     $(INSTALL_DATA) $$I $(DESTDIR)$(mandir)/man1/$$I; \
 	done
+
+install: install-manpages
+	if [ x@COMPRESS_MANPAGES@ = "xyes" ]; then \
+	 for I in $(DESTDIR)/$(mandir)/man8/* $(DESTDIR)/$(mandir)/man1/*; do \
+	  gzip $$I; \
+	 done; \
+	fi
 
 uninstall:
 	for I in ${MAN8}; \
