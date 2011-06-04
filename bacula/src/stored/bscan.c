@@ -865,11 +865,11 @@ static void bscan_free_jcr(JCR *jcr)
 
    if (jcr->file_bsock) {
       Dmsg0(200, "Close File bsock\n");
-      bnet_close(jcr->file_bsock);
+      jcr->file_bsock->close();
    }
    if (jcr->store_bsock) {
       Dmsg0(200, "Close Store bsock\n");
-      bnet_close(jcr->store_bsock);
+      jcr->store_bsock->close();
    }
    if (jcr->RestoreBootstrap) {
       free(jcr->RestoreBootstrap);

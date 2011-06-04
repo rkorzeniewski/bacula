@@ -488,15 +488,15 @@ static bool copy_fileset(FF_PKT *ff, JCR *jcr)
             set_options(current_opts, fo->opts);
 
             for (k=0; k<fo->regex.size(); k++) {
-               // bnet_fsend(fd, "R %s\n", fo->regex.get(k));
+               // fd->fsend("R %s\n", fo->regex.get(k));
                current_opts->regex.append(bstrdup((const char *)fo->regex.get(k)));
             }
             for (k=0; k<fo->regexdir.size(); k++) {
-               // bnet_fsend(fd, "RD %s\n", fo->regexdir.get(k));
+               // fd->fsend("RD %s\n", fo->regexdir.get(k));
                current_opts->regexdir.append(bstrdup((const char *)fo->regexdir.get(k)));
             }
             for (k=0; k<fo->regexfile.size(); k++) {
-               // bnet_fsend(fd, "RF %s\n", fo->regexfile.get(k));
+               // fd->fsend("RF %s\n", fo->regexfile.get(k));
                current_opts->regexfile.append(bstrdup((const char *)fo->regexfile.get(k)));
             }
             for (k=0; k<fo->wild.size(); k++) {
