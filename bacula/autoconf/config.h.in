@@ -1,4 +1,4 @@
-/* autoconf/config.h.in.  Generated from configure.in by autoheader.  */
+/* autoconf/config.h.in.  Generated from autoconf/configure.in by autoheader.  */
 /* ------------------------------------------------------------------------- */
 /* --                     CONFIGURE SPECIFIED FEATURES                    -- */
 /* ------------------------------------------------------------------------- */
@@ -113,6 +113,12 @@
 
 /* Define if you have zlib */
 #undef HAVE_LIBZ
+
+/* Define if you have libacl */
+#undef HAVE_ACL
+
+/* Define if you have AFS acls */
+#undef HAVE_AFS_ACL
 
 /* General libs */
 #undef LIBS
@@ -233,15 +239,6 @@
 /* Define to 1 if you have the 'add_proplist_entry' function. */
 #undef HAVE_ADD_PROPLIST_ENTRY
 
-/* Defines if your system has AFS support */
-#undef HAVE_AFS
-
-/* Andrew FileSystem ACL support */
-#undef HAVE_AFS_ACL
-
-/* Define to 1 if you have the <afs/stds.h> header file. */
-#undef HAVE_AFS_STDS_H
-
 /* Define to 1 if you have `alloca', as a function or macro. */
 #undef HAVE_ALLOCA
 
@@ -263,6 +260,10 @@
 
 /* Defines if your system have the attr.h header file */
 #undef HAVE_ATTR_H
+
+/* Defines if your system have the cxxabi.h and execinfo.h header files for
+   backtrace() */
+#undef HAVE_BACKTRACE
 
 /* Set if Bacula bat Qt4 GUI support enabled */
 #undef HAVE_BAT
@@ -290,8 +291,8 @@
 /* Define to 1 if you have the <curses.h> header file. */
 #undef HAVE_CURSES_H
 
-/* Set if you have the DBI driver */
-#undef HAVE_DBI
+/* Define to 1 if you have the <cxxabi.h> header file. */
+#undef HAVE_CXXABI_H
 
 /* Set if DBI DB batch insert code enabled */
 #undef HAVE_DBI_BATCH_FILE_INSERT
@@ -336,6 +337,9 @@
 
 /* Set if you have an Embedded MySQL Database */
 #undef HAVE_EMBEDDED_MYSQL
+
+/* Define to 1 if you have the <execinfo.h> header file. */
+#undef HAVE_EXECINFO_H
 
 /* Define to 1 if you have the 'extattr_get_file' function. */
 #undef HAVE_EXTATTR_GET_FILE
@@ -394,6 +398,9 @@
 /* Define to 1 if you have the `getcwd' function. */
 #undef HAVE_GETCWD
 
+/* Define to 1 if you have the 'getea' function. */
+#undef HAVE_GETEA
+
 /* Define to 1 if you have the `getegid' function. */
 #undef HAVE_GETEGID
 
@@ -427,6 +434,9 @@
 /* Define to 1 if you have the `getpid' function. */
 #undef HAVE_GETPID
 
+/* Define to 1 if you have the 'getproplist' function. */
+#undef HAVE_GETPROPLIST
+
 /* Define if the GNU gettext() function is already present or preinstalled. */
 #undef HAVE_GETTEXT
 
@@ -438,6 +448,9 @@
 
 /* Define to 1 if you have the 'getxattr' function. */
 #undef HAVE_GETXATTR
+
+/* Define to 1 if you have the 'get_proplist_entry' function. */
+#undef HAVE_GET_PROPLIST_ENTRY
 
 /* Define to 1 if you have the <grp.h> header file. */
 #undef HAVE_GRP_H
@@ -453,9 +466,6 @@
 
 /* Define to 1 if you have the `inet_pton' function. */
 #undef HAVE_INET_PTON
-
-/* Set if have Ingres Database */
-#undef HAVE_INGRES
 
 /* Define if you have the 'intmax_t' type in <stdint.h> or <inttypes.h>. */
 #undef HAVE_INTMAX_T
@@ -484,6 +494,9 @@
 
 /* Define if your <locale.h> file defines LC_MESSAGES. */
 #undef HAVE_LC_MESSAGES
+
+/* Define to 1 if you have the 'lgetea' function. */
+#undef HAVE_LGETEA
 
 /* Define to 1 if you have the 'lgetxattr' function. */
 #undef HAVE_LGETXATTR
@@ -524,11 +537,17 @@
 /* Define to 1 if you have the <limits.h> header file. */
 #undef HAVE_LIMITS_H
 
+/* Define to 1 if you have the 'listea' function. */
+#undef HAVE_LISTEA
+
 /* Define to 1 if you have the 'listxattr' function. */
 #undef HAVE_LISTXATTR
 
 /* Little Endian */
 #undef HAVE_LITTLE_ENDIAN
+
+/* Define to 1 if you have the 'llistea' function. */
+#undef HAVE_LLISTEA
 
 /* Define to 1 if you have the 'llistxattr' function. */
 #undef HAVE_LLISTXATTR
@@ -544,6 +563,9 @@
 
 /* Define if you have the 'long long' type. */
 #undef HAVE_LONG_LONG
+
+/* Define to 1 if you have the 'lsetea' function. */
+#undef HAVE_LSETEA
 
 /* Define to 1 if you have the 'lsetxattr' function. */
 #undef HAVE_LSETXATTR
@@ -647,6 +669,9 @@
 /* Define to 1 if you have the `select' function. */
 #undef HAVE_SELECT
 
+/* Define to 1 if you have the 'setea' function. */
+#undef HAVE_SETEA
+
 /* Define to 1 if you have the `setenv' function. */
 #undef HAVE_SETENV
 
@@ -658,6 +683,9 @@
 
 /* Define to 1 if you have the `setpgrp' function. */
 #undef HAVE_SETPGRP
+
+/* Define to 1 if you have the 'setproplist' function. */
+#undef HAVE_SETPROPLIST
 
 /* Define to 1 if you have the `setreuid' function. */
 #undef HAVE_SETREUID
@@ -673,6 +701,9 @@
 
 /* Define to 1 if you have the `signal' function. */
 #undef HAVE_SIGNAL
+
+/* Define to 1 if you have the 'sizeof_proplist_entry' function. */
+#undef HAVE_SIZEOF_PROPLIST_ENTRY
 
 /* Define to 1 if you have the `snprintf' function. */
 #undef HAVE_SNPRINTF
@@ -781,6 +812,9 @@
    */
 #undef HAVE_SYS_DIR_H
 
+/* Defines if your system have the sys/ea.h header file */
+#undef HAVE_SYS_EA_H
+
 /* Defines if your system have the sys/extattr.h header file */
 #undef HAVE_SYS_EXTATTR_H
 
@@ -802,6 +836,9 @@
 
 /* Define to 1 if you have the <sys/prctl.h> header file. */
 #undef HAVE_SYS_PRCTL_H
+
+/* Defines if your system have the sys/proplist.h header file */
+#undef HAVE_SYS_PROPLIST_H
 
 /* Define to 1 if you have the <sys/select.h> header file. */
 #undef HAVE_SYS_SELECT_H
@@ -1111,5 +1148,3 @@
 /* Define to the type of an unsigned integer type wide enough to hold a
    pointer, if such a type exists, and if the system does not define it. */
 #undef uintptr_t
-
-#undef HAVE_BACKTRACE

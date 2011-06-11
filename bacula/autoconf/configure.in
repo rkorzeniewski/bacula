@@ -1715,11 +1715,11 @@ BA_CHECK_MYSQL_DB
 
 BA_CHECK_SQLITE3_DB
 
-BA_CHECK_INGRES_DB
+#BA_CHECK_INGRES_DB
 
-BA_CHECK_DBI_DB
+#BA_CHECK_DBI_DB
 
-BA_CHECK_DBI_DRIVER
+#BA_CHECK_DBI_DRIVER
 
 dnl -------------------------------------------
 dnl Make sure at least one database backend is found
@@ -1728,7 +1728,7 @@ if test "x${db_backends}" = "x" ; then
    echo " "
    echo " "
    echo "You have not specified either --enable-client-only or one of the"
-   echo "supported databases: MySQL, PostgreSQL, Ingres, SQLite3 or DBI."
+   echo "supported databases: MySQL, PostgreSQL, or SQLite3."
    echo "This is not permitted. Please reconfigure."
    echo " "
    echo "Aborting the configuration ..."
@@ -1762,7 +1762,7 @@ case `echo $DB_BACKENDS | wc -w | sed -e 's/^ *//'` in
 	 echo " "
 	 echo " "
 	 echo "You have specified two or more of the"
-	 echo "supported databases: MySQL, PostgreSQL, Ingres, SQLite3 or DBI."
+	 echo "supported databases: MySQL, PostgreSQL, or SQLite3."
 	 echo "This is not permitted when not using libtool Please reconfigure."
 	 echo " "
 	 echo "Aborting the configuration ..."
@@ -2563,10 +2563,10 @@ if test x$support_acl = xyes -o x$support_acl = xauto; then
       AC_MSG_CHECKING(for ACL_TYPE_DEFAULT_DIR in acl.h include file)
       grep ACL_TYPE_DEFAULT_DIR /usr/include/sys/acl.h > /dev/null 2>&1
       if test $? = 0; then
-         AC_DEFINE(HAVE_ACL_TYPE_DEFAULT_DIR,1,[Defines if your system have the ACL_TYPE_DEFAULT_DIR acl type])
-         AC_MSG_RESULT(yes)
+	 AC_DEFINE(HAVE_ACL_TYPE_DEFAULT_DIR,1,[Defines if your system have the ACL_TYPE_DEFAULT_DIR acl type])
+	 AC_MSG_RESULT(yes)
       else
-         AC_MSG_RESULT(no)
+	 AC_MSG_RESULT(no)
       fi
    fi
 
@@ -2574,14 +2574,14 @@ if test x$support_acl = xyes -o x$support_acl = xauto; then
    dnl On OSX check for availability of ACL_TYPE_EXTENDED
    dnl
    if test $have_acl = yes -a \
-           x${HAVE_DARWIN_OS_TRUE} = x; then
+	   x${HAVE_DARWIN_OS_TRUE} = x; then
       AC_MSG_CHECKING(for ACL_TYPE_EXTENDED in acl.h include file)
       grep ACL_TYPE_EXTENDED /usr/include/sys/acl.h > /dev/null 2>&1
       if test $? = 0; then
-         AC_DEFINE(HAVE_ACL_TYPE_EXTENDED,1,[Defines if your system have the ACL_TYPE_EXTENDED acl type])
-         AC_MSG_RESULT(yes)
+	 AC_DEFINE(HAVE_ACL_TYPE_EXTENDED,1,[Defines if your system have the ACL_TYPE_EXTENDED acl type])
+	 AC_MSG_RESULT(yes)
       else
-         AC_MSG_RESULT(no)
+	 AC_MSG_RESULT(no)
       fi
    fi
 
@@ -2589,14 +2589,14 @@ if test x$support_acl = xyes -o x$support_acl = xauto; then
    dnl On FreeBSD check for availability of ACL_TYPE_NFS4
    dnl
    if test $have_acl = yes -a \
-           x${HAVE_FREEBSD_OS_TRUE} = x; then
+	   x${HAVE_FREEBSD_OS_TRUE} = x; then
       AC_MSG_CHECKING(for ACL_TYPE_NFS4 in acl.h include file)
       grep ACL_TYPE_NFS4 /usr/include/sys/acl.h > /dev/null 2>&1
       if test $? = 0; then
-         AC_DEFINE(HAVE_ACL_TYPE_NFS4,1,[Defines if your system have the ACL_TYPE_NFS4 acl type])
-         AC_MSG_RESULT(yes)
+	 AC_DEFINE(HAVE_ACL_TYPE_NFS4,1,[Defines if your system have the ACL_TYPE_NFS4 acl type])
+	 AC_MSG_RESULT(yes)
       else
-         AC_MSG_RESULT(no)
+	 AC_MSG_RESULT(no)
       fi
    fi
 
@@ -3291,12 +3291,6 @@ AC_OUTPUT([autoconf/Make.common \
 	   src/cats/grant_sqlite3_privileges \
 	   src/cats/drop_sqlite3_tables \
 	   src/cats/drop_sqlite3_database \
-	   src/cats/create_ingres_database \
-	   src/cats/update_ingres_tables \
-	   src/cats/make_ingres_tables \
-	   src/cats/grant_ingres_privileges \
-	   src/cats/drop_ingres_tables \
-	   src/cats/drop_ingres_database \
 	   src/cats/sqlite \
 	   src/cats/mysql \
 	   src/cats/create_bacula_database \
@@ -3381,8 +3375,8 @@ chmod 755 $c/grant_sqlite3_privileges  $c/drop_sqlite3_tables	 $c/drop_sqlite3_d
 chmod 755 $c/create_postgresql_database  $c/update_postgresql_tables $c/make_postgresql_tables
 chmod 755 $c/grant_postgresql_privileges $c/drop_postgresql_tables   $c/drop_postgresql_database
 
-chmod 755 $c/create_ingres_database  $c/update_ingres_tables $c/make_ingres_tables
-chmod 755 $c/grant_ingres_privileges $c/drop_ingres_tables   $c/drop_ingres_database
+#chmod 755 $c/create_ingres_database  $c/update_ingres_tables $c/make_ingres_tables
+#chmod 755 $c/grant_ingres_privileges $c/drop_ingres_tables   $c/drop_ingres_database
 
 
 chmod 755 $c/make_catalog_backup $c/delete_catalog_backup  $c/make_catalog_backup.pl
