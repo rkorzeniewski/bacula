@@ -302,28 +302,14 @@ void B_DB_SQLITE::db_escape_string(JCR *jcr, char *snew, char *old, int len)
  */
 char *B_DB_SQLITE::db_escape_object(JCR *jcr, char *old, int len)
 {
-   char *n, *o;
+   int l;
+   int max = len*2;           /* TODO: too big, should be *4/3 */
 
-   n = esc_obj = check_pool_memory_size(esc_obj, len*2+1);
-   o = old;
-   while (len--) {
-      switch (*o) {
-      case '\'':
-         *n++ = '\'';
-         *n++ = '\'';
-         o++;
-         break;
-      case 0:
-         *n++ = '\\';
-         *n++ = 0;
-         o++;
-         break;
-      default:
-         *n++ = *o++;
-         break;
-      }
-   }
-   *n = 0;
+   esc_obj = check_pool_memory_size(esc_obj, max);
+   l = bin_to_base64(esc_obj, max, old, len, true);
+   esc_obj[l] = 0;
+   ASSERT(l < max);    /* TODO: add check for l */
+
    return esc_obj;
 }
 
@@ -332,6 +318,7 @@ char *B_DB_SQLITE::db_escape_object(JCR *jcr, char *old, int len)
  *
  * TODO: need to be implemented (escape \0)
  */
+
 void B_DB_SQLITE::db_unescape_object(JCR *jcr, char *from, int32_t expected_len,
                                      POOLMEM **dest, int32_t *dest_len)
 {
@@ -341,8 +328,8 @@ void B_DB_SQLITE::db_unescape_object(JCR *jcr, char *from, int32_t expected_len,
       return;
    }
    *dest = check_pool_memory_size(*dest, expected_len+1);
+   base64_to_bin(*dest, expected_len+1, from, strlen(from));
    *dest_len = expected_len;
-   memcpy(*dest, from, expected_len);
    (*dest)[expected_len]=0;
 }
 

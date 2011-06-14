@@ -133,7 +133,7 @@ static struct cmdstruct commands[] = {                                      /* C
  { NT_("help"),       help_cmd,      _("Print help on specific command"),  
    NT_("add autodisplay automount cancel create delete disable\n\tenable estimate exit gui label list llist"
        "\n\tmessages memory mount prune purge python quit query\n\trestore relabel release reload run status"
-       "\n\tsetdebug setip show sqlquery time trace unmount umount\n\tupdate use var version wait"),         false},
+       "\n\tsetdebug setip show sqlquery time trace unmount\n\tumount update use var version wait"),         false},
 
  { NT_("label"),      label_cmd,     _("Label a tape"), NT_("storage=<storage> volume=<vol> pool=<pool> slot=<slot> barcodes"), false},
  { NT_("list"),       list_cmd,      _("List objects from catalog"), 
@@ -793,7 +793,6 @@ static int python_cmd(UAContext *ua, const char *cmd)
 #endif /* HAVE_PYTHON */
    return 1;
 }
-
 
 /*
  * Set a new address in a Client resource. We do this only

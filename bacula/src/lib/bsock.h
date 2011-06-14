@@ -143,7 +143,14 @@ public:
    bool is_timed_out() { return m_timed_out; };
    bool is_stop() { return errors || is_terminated(); }
    bool is_error() { errno = b_errno; return errors; }
-   void set_data_end() { if (m_spool) m_data_end = ftello(m_spool_fd); };
+   void set_data_end(int32_t FileIndex) { 
+          if (m_spool && FileIndex > m_FileIndex) {
+              m_FileIndex = FileIndex - 1;
+              m_data_end = ftello(m_spool_fd);
+           }
+        };
+   boffset_t get_data_end() { return m_data_end; };
+   int32_t get_FileIndex() { return m_FileIndex; };
    void set_spooling() { m_spool = true; };
    void clear_spooling() { m_spool = false; };
    void set_duped() { m_duped = true; };

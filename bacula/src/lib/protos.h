@@ -48,6 +48,7 @@ int       to_base64              (intmax_t value, char *where);
 int       from_base64            (intmax_t *value, char *where);
 int       bin_to_base64          (char *buf, int buflen, char *bin, int binlen, 
                                   int compatible);
+int       base64_to_bin(char *dest, int destlen, char *src, int srclen);
 
 /* bsys.c */
 char     *bstrncpy               (char *dest, const char *src, int maxlen);
