@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2010 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2011 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -171,7 +171,7 @@ static bool is_on_same_storage(JCR *jcr, char *new_one)
    if (jcr->FDVersion < 2) {
       return true;
    }
-   /* we are in init loop ? shoudn't fall here */
+   /* we are in init loop ? shoudn't fail here */
    if (!*new_one) {
       return true;
    }
@@ -181,9 +181,8 @@ static bool is_on_same_storage(JCR *jcr, char *new_one)
    }
    new_store = (STORE *)GetResWithName(R_STORAGE, new_one);
    if (!new_store) {
-      Jmsg(jcr, M_FATAL, 0,
+      Jmsg(jcr, M_WARNING, 0,
            _("Could not get storage resource '%s'.\n"), new_one);
-      jcr->setJobStatus(JS_ErrorTerminated);
       return false;
    }
    /* if Port and Hostname/IP are same, we are talking to the same
