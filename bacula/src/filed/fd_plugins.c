@@ -789,7 +789,10 @@ static bool is_plugin_compatible(Plugin *plugin)
            plugin->file, info->plugin_license);
       return false;
    }
-      
+   if (info->size != sizeof(pInfo)) {
+      Jmsg(NULL, M_ERROR, 0, _("Plugin size mismatch.\n"));
+      return false;
+   }
    return true;
 }
 
