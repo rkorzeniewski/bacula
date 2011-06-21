@@ -118,10 +118,11 @@ case `uname -s` in
       )
       ;;
    Darwin)
-      chmod +a "user:$uid allow read execute" $d/acl-dir
-      chmod +a "user:root allow write execute" $d/acl-dir
-      chmod +a "user:nobody deny read write execute" $d/acl-dir
-      chmod +a "user:nobody deny read write execute" $d/bconsole
+      username=`id -un`
+      chmod +a "user:$username allow read,execute" $d/acl-dir
+      chmod +a "user:root allow write,execute" $d/acl-dir
+      chmod +a "user:nobody deny read,write,execute" $d/acl-dir
+      chmod +a "user:nobody deny read,write,execute" $d/bconsole
       chmod +a "group:nogroup allow execute" $d/bconsole
       cp ${cwd}/bin/bconsole $d/acl-dir
       cp ${cwd}/bin/bconsole $d/other
