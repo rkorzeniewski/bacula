@@ -32,7 +32,7 @@ install-manpages:
 install: install-manpages
 	if [ x@COMPRESS_MANPAGES@ = "xyes" ]; then \
 	 for I in $(DESTDIR)/$(mandir)/man8/* $(DESTDIR)/$(mandir)/man1/*; do \
-	  gzip $$I; \
+	  gzip -f $$I; \
 	 done; \
 	fi
 
