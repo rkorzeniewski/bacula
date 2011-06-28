@@ -545,6 +545,11 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
                   extract = false;
                   return true;
                }
+               Dmsg2(100, "Write uncompressed %d bytes, total before write=%d\n", compress_len, total);
+               store_data(&bfd, compress_buf, compress_len);
+               total += compress_len;
+               fileAddr += compress_len;
+               Dmsg2(100, "Compress len=%d uncompressed=%d\n", rec->data_len, compress_len);
                break;
 #endif
             default:
@@ -553,12 +558,6 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
                return true;
          }
 
-         Dmsg2(100, "Write uncompressed %d bytes, total before write=%d\n", compress_len, total);
-         store_data(&bfd, compress_buf, compress_len);
-         total += compress_len;
-         fileAddr += compress_len;
-         Dmsg2(100, "Compress len=%d uncompressed=%d\n", rec->data_len,
-            compress_len);
       }
       break;
 
