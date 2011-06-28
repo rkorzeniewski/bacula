@@ -114,6 +114,15 @@
 /* Define if you have zlib */
 #undef HAVE_LIBZ
 
+/* Define if you have lzo lib */
+#undef HAVE_LZO
+
+/* Define to 1 if you have the <lzo/lzo1x.h> header file. */
+#undef HAVE_LZO_LZO1X_H
+
+/* Define to 1 if you have the <lzo/lzoconf.h> header file. */
+#undef HAVE_LZO_LZOCONF_H
+
 /* Define if you have libacl */
 #undef HAVE_ACL
 
