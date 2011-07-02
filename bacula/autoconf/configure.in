@@ -2544,18 +2544,7 @@ if test x$support_acl = xyes -o x$support_acl = xauto; then
       AC_CHECK_LIB(acl, acl_get_file,
 	 [
 	     have_acl=yes
-	     if test x$have_afs = xyes; then
-		dnl
-		dnl Because of possible naming conflict with AFS libacl make sure we use the one in /usr/lib64 or /usr/lib !!!
-		dnl
-		if test -d /usr/lib64/; then
-		   FDLIBS="-L/usr/lib64 -lacl $FDLIBS"
-		else
-		   FDLIBS="-L/usr/lib -lacl $FDLIBS"
-		fi
-	     else
-		FDLIBS="-lacl $FDLIBS"
-	     fi
+	     FDLIBS="-lacl $FDLIBS"
 	 ]
       )
    fi
@@ -3492,7 +3481,6 @@ Configuration on `date`:
    build-dird:		    ${build_dird}
    build-stored:	    ${build_stored}
    Plugin support:	    ${have_plugins}
-   AFS support: 	    ${have_afs}
    ACL support: 	    ${have_acl}
    XATTR support:	    ${have_xattr}
    Python support:	    ${support_python} ${PYTHON_LIBS}
