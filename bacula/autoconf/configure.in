@@ -2544,7 +2544,7 @@ if test x$support_acl = xyes -o x$support_acl = xauto; then
       AC_CHECK_LIB(acl, acl_get_file,
 	 [
 	     have_acl=yes
-	     if test $have_afs = yes; then
+	     if test x$have_afs = xyes; then
 		dnl
 		dnl Because of possible naming conflict with AFS libacl make sure we use the one in /usr/lib64 or /usr/lib !!!
 		dnl
