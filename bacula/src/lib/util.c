@@ -723,7 +723,7 @@ void decode_session_key(char *decode, char *session, char *key, int maxlen)
  *  %r = Recipients
  *  %v = Volume name
  *  %b = Job Bytes
- *  %f = Job Files
+ *  %F = Job Files
  *
  *  omsg = edited output message
  *  imsg = input string containing edit codes (%x)
@@ -809,7 +809,7 @@ POOLMEM *edit_job_codes(JCR *jcr, char *omsg, char *imsg, const char *to, job_co
                str = _("*none*");
             }
             break;
-         case 'f':                    /* Job Files */
+         case 'F':                    /* Job Files */
             str = edit_uint64(jcr->JobFiles, add);
             break;
          case 'b':                    /* Job Bytes */
