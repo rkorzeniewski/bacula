@@ -39,5 +39,6 @@
 #define PRIO_SD_VOL_LIST      10           /* vol_list_lock */
 #define PRIO_SD_READ_VOL_LIST 12           /* read_vol_list */
 #define PRIO_SD_DEV_SPOOL     14           /* dev.spool_mutex */
+#define PRIO_SD_ACH_ACCESS    16           /* autochanger lock mutex */
 
 #endif

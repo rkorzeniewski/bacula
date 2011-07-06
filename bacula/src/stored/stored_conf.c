@@ -630,7 +630,9 @@ void save_resource(int type, RES_ITEM *items, int pass)
          foreach_alist(dev, res->res_changer.device) {
             dev->changer_res = (AUTOCHANGER *)&res->res_changer;
          }
-         if ((errstat = rwl_init(&res->res_changer.changer_lock)) != 0) {
+         if ((errstat = rwl_init(&res->res_changer.changer_lock, 
+                                 PRIO_SD_ACH_ACCESS)) != 0)
+         {
             berrno be;
             Jmsg1(NULL, M_ERROR_TERM, 0, _("Unable to init lock: ERR=%s\n"), 
                   be.bstrerror(errstat));
