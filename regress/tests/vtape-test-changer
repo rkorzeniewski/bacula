@@ -41,9 +41,9 @@ cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 messages
 @$out ${cwd}/tmp/log6.out
 @#setdebug level=200 storage=LTO1
-label barcodes pool=Scratch slots=1-4 storage=LTO1-ANSI_6 drive=6
+label barcodes pool=Scratch slots=1-14 storage=LTO1-ANSI_6 drive=6
 yes
-label barcodes pool=Scratch slots=5-40 storage=LTO1 drive=3
+label barcodes pool=Scratch slots=15-40 storage=LTO1 drive=3
 yes
 messages
 list volumes
@@ -102,15 +102,15 @@ check_for_zombie_jobs storage=LTO3 client=$clientname
 check_for_zombie_jobs storage=LTO1-ANSI_6 client=$clientname
 
 # test update slots
-# remove volume vol20 from autochanger
-grep -v vol20 ${cwd}/working/ach/barcodes > ${cwd}/tmp/1
+# remove volume vol35 from autochanger
+grep -v vol35 ${cwd}/working/ach/barcodes > ${cwd}/tmp/1
 cp ${cwd}/tmp/1 ${cwd}/working/ach/barcodes
 
 cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @$out ${cwd}/tmp/log3.out
-list volume=vol20
-update slots slots=5-40 storage=LTO1 drive=3
-list volume=vol20
+list volume=vol35
+update slots slots=15-40 storage=LTO1 drive=3
+list volume=vol35
 END_OF_DATA
 
 run_bconsole
@@ -121,7 +121,7 @@ check_two_logs
 check_restore_diff
 
 # get InChanger flag
-RES=`awk -F'|' '/vol20.+Append/ { print $11 }' ${cwd}/tmp/log3.out`
+RES=`awk -F'|' '/vol35.+Append/ { print $11 }' ${cwd}/tmp/log3.out`
 set $RES
 if [ $1 -eq $2 ]; then
     print_debug "ERROR: Error in update slots"
