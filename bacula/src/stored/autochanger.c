@@ -405,10 +405,14 @@ bool unload_autochanger(DCR *dcr, int loaded)
          dev->set_slot(0);         /* nothing loaded */
       }
 
-      free_volume(dev);            /* Free any volume associated with this drive */
       free_pool_memory(changer);
    }
    unlock_changer(dcr);
+
+   if (loaded > 0) {           /* free_volume outside from changer lock */
+      free_volume(dev);        /* Free any volume associated with this drive */
+   }
+
    if (ok) {
       dev->clear_unload();
    }
