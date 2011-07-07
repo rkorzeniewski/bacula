@@ -718,6 +718,7 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
    case STREAM_WIN32_DATA:
    case STREAM_FILE_DATA:
    case STREAM_SPARSE_DATA:
+   case STREAM_MACOS_FORK_DATA:
    case STREAM_ENCRYPTED_FILE_DATA:
    case STREAM_ENCRYPTED_WIN32_DATA:
    case STREAM_ENCRYPTED_MACOS_FORK_DATA:
@@ -819,6 +820,7 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
 
    case STREAM_UNIX_ACCESS_ACL:          /* Deprecated Standard ACL attributes on UNIX */
    case STREAM_UNIX_DEFAULT_ACL:         /* Deprecated Default ACL attributes on UNIX */
+   case STREAM_HFSPLUS_ATTRIBUTES:
    case STREAM_ACL_AIX_TEXT:
    case STREAM_ACL_DARWIN_ACCESS_ACL:
    case STREAM_ACL_FREEBSD_DEFAULT_ACL:
