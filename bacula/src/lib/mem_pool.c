@@ -47,8 +47,9 @@
  */
 
 #include "bacula.h"
+
 #ifdef HAVE_MALLOC_TRIM
-#include <malloc.h>
+extern "C" int malloc_trim (size_t pad);
 #endif
 
 struct s_pool_ctl {
