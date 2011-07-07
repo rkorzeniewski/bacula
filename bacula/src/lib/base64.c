@@ -74,9 +74,9 @@ base64_init(void)
  * stored (not including the EOS).
  */
 int
-to_base64(intmax_t value, char *where)
+to_base64(int64_t value, char *where)
 {
-   uintmax_t val;
+   uint64_t val;
    int i = 0;
    int n;
 
@@ -98,7 +98,7 @@ to_base64(intmax_t value, char *where)
    val = value;
    where[i] = 0;
    do {
-      where[--i] = base64_digits[val & (uintmax_t)0x3F];
+      where[--i] = base64_digits[val & (uint64_t)0x3F];
       val >>= 6;
    } while (val);
    return n;
@@ -112,9 +112,9 @@ to_base64(intmax_t value, char *where)
  * Returns the value.
  */
 int
-from_base64(intmax_t *value, char *where)
+from_base64(int64_t *value, char *where)
 {
-   uintmax_t val = 0;
+   uint64_t val = 0;
    int i, neg;
 
    if (!base64_inited)
@@ -131,7 +131,7 @@ from_base64(intmax_t *value, char *where)
       val += base64_map[(uint8_t)where[i++]];
    }
 
-   *value = neg ? -(intmax_t)val : (intmax_t)val;
+   *value = neg ? -(int64_t)val : (int64_t)val;
    return i;
 }
 
@@ -324,24 +324,24 @@ int main(int argc, char *argv[])
 
 #ifdef xxx
       p = where;
-      p += to_base64((intmax_t)(statp.st_atime), p);
+      p += to_base64((int64_t)(statp.st_atime), p);
       *p++ = ' ';
-      p += to_base64((intmax_t)t, p);
+      p += to_base64((int64_t)t, p);
       printf("%s %s\n", fname, where);
 
-      printf("%s %lld\n", "st_dev", (intmax_t)statp.st_dev);
-      printf("%s %lld\n", "st_ino", (intmax_t)statp.st_ino);
-      printf("%s %lld\n", "st_mode", (intmax_t)statp.st_mode);
-      printf("%s %lld\n", "st_nlink", (intmax_t)statp.st_nlink);
-      printf("%s %lld\n", "st_uid", (intmax_t)statp.st_uid);
-      printf("%s %lld\n", "st_gid", (intmax_t)statp.st_gid);
-      printf("%s %lld\n", "st_rdev", (intmax_t)statp.st_rdev);
-      printf("%s %lld\n", "st_size", (intmax_t)statp.st_size);
-      printf("%s %lld\n", "st_blksize", (intmax_t)statp.st_blksize);
-      printf("%s %lld\n", "st_blocks", (intmax_t)statp.st_blocks);
-      printf("%s %lld\n", "st_atime", (intmax_t)statp.st_atime);
-      printf("%s %lld\n", "st_mtime", (intmax_t)statp.st_mtime);
-      printf("%s %lld\n", "st_ctime", (intmax_t)statp.st_ctime);
+      printf("%s %lld\n", "st_dev", (int64_t)statp.st_dev);
+      printf("%s %lld\n", "st_ino", (int64_t)statp.st_ino);
+      printf("%s %lld\n", "st_mode", (int64_t)statp.st_mode);
+      printf("%s %lld\n", "st_nlink", (int64_t)statp.st_nlink);
+      printf("%s %lld\n", "st_uid", (int64_t)statp.st_uid);
+      printf("%s %lld\n", "st_gid", (int64_t)statp.st_gid);
+      printf("%s %lld\n", "st_rdev", (int64_t)statp.st_rdev);
+      printf("%s %lld\n", "st_size", (int64_t)statp.st_size);
+      printf("%s %lld\n", "st_blksize", (int64_t)statp.st_blksize);
+      printf("%s %lld\n", "st_blocks", (int64_t)statp.st_blocks);
+      printf("%s %lld\n", "st_atime", (int64_t)statp.st_atime);
+      printf("%s %lld\n", "st_mtime", (int64_t)statp.st_mtime);
+      printf("%s %lld\n", "st_ctime", (int64_t)statp.st_ctime);
 #endif
 
       if (debug_level)

@@ -162,7 +162,7 @@ void do_restore(JCR *jcr)
    char ec1[50];                      /* Buffer printing huge values */
    uint32_t buf_size;                 /* client buffer size */
    int stat;
-   intmax_t rsrc_len = 0;             /* Original length of resource fork */
+   int64_t rsrc_len = 0;              /* Original length of resource fork */
    r_ctx rctx;
    ATTR *attr;
    /* ***FIXME*** make configurable */
