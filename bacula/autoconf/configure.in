@@ -3389,6 +3389,8 @@ chmod 755 $c/make_catalog_backup $c/delete_catalog_backup  $c/make_catalog_backu
 chmod 755 $c/sqlite
 chmod 755 $c/mysql
 
+chmod 755 $c/install-default-backend
+
 chmod 755 src/win32/build-depkgs-mingw32
 
 if test "x$ac_cv_sys_largefile_CFLAGS" != "xno" ; then

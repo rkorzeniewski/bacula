@@ -1,6 +1,6 @@
 #!/bin/sh
 
-LIBTOOL=@LIBTOOL@
+LIBTOOL="@BUILD_DIR@/libtool"
 
 if [ $# -lt 3 ]; then
    echo "Usage: $0 <default_backend> <library_version> <install_dir>"
