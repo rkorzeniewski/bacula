@@ -1,7 +1,7 @@
 
-               Release Notes for Bacula 5.2.0
+               Release Notes for Bacula 5.2.0 Beta 1
 
-  Bacula code: Total files = 1,088 Total lines = 219,172 (Using SLOCCount)
+  Bacula code: Total files = 1,110 Total lines = 231,439 (Using SLOCCount)
 
 General:
 --------
@@ -15,44 +15,53 @@ Compatibility:
  As always, both the Director and Storage daemon must be upgraded at
  the same time.
 
+ The new pruning algorithm will not allow to prune jobs that are essential to
+ restore since the last Full backup.  (TODO: see for an option...)
+
  Older 5.0.x and 3.0.x File Daemons are compatible with the 5.2.0
  Director and Storage daemons. There should be no need to upgrade older File
  Daemons.
 
-Changes and New Features:
+Changes:
+
+Speed and Memory Usage Enhancements:
+- Implement LZO compression algorithm
+- New Pruning algoritm -- safer and faster
 - Use of PostgreSQL cursor when doing large queries, should reduce the
   memory usage during restore and accurate backups.
-- Includes better handling for Windows repares points, mount points, and 
-  junction points.
-- A few path name length limits in Windows have been removed.
-- New SQL backend and ./configure that permits building multiple catalog
-  backends in one build, and has the main Bacula core code totally independent
-  of the SQL backend, which should simplify packaging (only the libbacsql.so/dll
-  needs to be changed.
-- New database format
-- Director selection option in bconsole
-- restorejob command in bconsole
-- Checkpoint of jobs so that in many cases they can be restarted
-- Maximum Bandwidth Per Job in several places
-- Disable batch insert config item
-- setbandwith command
-- limit command
+- limit command in some list commands
 - Bacula Virtual File System for fast catalog access
-- New Pruning algoritm -- safer and faster
+- Faster crc32 algorithm
+
+Security Enhancements:
 - Additional security against injection of illegal characters
-- New block delta backup/restore
-- Indent lsmark during restore
-- Additional script variable editing
+- Possible fnmatch problem
+
+Features Enhancements:
 - Improvements in ACL and xattr handling on additional platforms:
   AIX, Darwind, FreeBSD, HPUX, IRIX, Solaris, Tru64
-- Many new plugin API features
-- Faster crc32 algorithm
-- Improved memory handling for restores
-- Improved hash table for hard links
-- Significant stability enhancements to bat
-- Many additional features for bat
 - Tray monitor for Windows
-- New FTP device handler for Storage daemon
+- New SQL backend and ./configure that permits building multiple catalog
+  backends in one build, and has the main Bacula core code totally independent
+  of the SQL backend, which should simplify packaging (only the
+  libbacsql.so/dll needs to be changed.
+- Indent lsmark during restore
+- Disable batch insert config item
+- Director selection option in bconsole
+- restorejob command in bconsole
+- Many additional features for bat such as "brestore" panel
+- Improved hash table for hard links
+- Additional script variable editing such as %b (JobBytes), %F (JobFiles) 
+  and %h (Client Address)
+
+Other Enhancements:
+- Includes better handling for Windows repares points, mount points, and 
+  junction points.
+- New database format
+- Many new plugin API features
+- Improved memory handling for restores
+- Significant stability enhancements to bat
+- A few path name length limits in Windows have been removed.
 
 Bug fixes
 
