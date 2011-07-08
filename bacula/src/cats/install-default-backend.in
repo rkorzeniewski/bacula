@@ -1,0 +1,33 @@
+#!/bin/sh
+
+LIBTOOL=@LIBTOOL@
+
+if [ $# -lt 3 ]; then
+   echo "Usage: $0 <default_backend> <library_version> <install_dir>"
+   exit 1
+fi
+
+default_backend=$1
+library_version=$2
+install_dir=$3
+
+#
+# Find out what the shared lib extension is for this platform.
+#
+shrext_cmds="`${LIBTOOL} --config | grep shrext_cmds`"
+eval $shrext_cmds
+if [ -z "${shrext_cmds}" ]; then
+   echo "Failed to determine default shared library extension"
+   exit 1
+fi
+
+if [ -f ${install_dir}/libbaccats-${default_backend}-${library_version}${shrext_cmds} ]; then
+   #
+   # Create a default catalog library pointing to one of the shared libs.
+   #
+   rm -f ${install_dir}/libbaccats-${library_version}${shrext_cmds}
+   ln -s ${install_dir}/libbaccats-${default_backend}-${library_version}${shrext_cmds} \
+         ${install_dir}/libbaccats-${library_version}${shrext_cmds}
+fi
+
+exit 0

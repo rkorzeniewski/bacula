@@ -230,8 +230,7 @@ libtool-install: all
 	for db_type in @DB_BACKENDS@; do \
 	    $(LIBTOOL_INSTALL_FINISH) $(INSTALL_LIB) libbaccats-$${db_type}.la $(DESTDIR)$(libdir); \
 	done
-	$(CP) $(DESTDIR)$(libdir)/libbaccats-@DEFAULT_DB_TYPE@-$(LIBBACCATS_LT_RELEASE).so \
-	      $(DESTDIR)$(libdir)/libbaccats-$(LIBBACCATS_LT_RELEASE).so
+	./install-default-backend @DEFAULT_DB_TYPE@ $(LIBBACCATS_LT_RELEASE) $(DESTDIR)$(libdir)
 
 libtool-uninstall:
 	$(LIBTOOL_UNINSTALL) $(RMF) $(DESTDIR)$(libdir)/libbacsql.la

@@ -3304,6 +3304,7 @@ AC_OUTPUT([autoconf/Make.common \
 	   src/cats/make_bacula_tables \
 	   src/cats/drop_bacula_tables \
 	   src/cats/drop_bacula_database \
+	   src/cats/install-default-backend \
 	   src/findlib/Makefile \
 	   src/tools/Makefile \
 	   src/plugins/fd/Makefile \
