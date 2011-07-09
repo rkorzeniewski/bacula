@@ -1,10 +1,10 @@
 #!/bin/sh
 #
-# Shell script to update PostgreSQL tables from version 12 to 13
+# Shell script to update PostgreSQL tables from version 12 to 14
 #  or Bacula Community version 5.0.x to 5.2.x
 #
 echo " "
-echo "This script will update a Bacula PostgreSQL database from version 12 to 13"
+echo "This script will update a Bacula PostgreSQL database from version 12 to 14"
 echo "	which is needed to convert from Bacula Enterprise version 2.6.x to 4.0.x"
 echo "	or Bacula Community version 5.0.x to 5.2.x"
 echo " "
@@ -17,7 +17,7 @@ DBVERSION=`psql -d ${db_name} -t --pset format=unaligned -c "select VersionId fr
 if [ $DBVERSION != 12 ] ; then
    echo " "
    echo "The existing database is version $DBVERSION !!"
-   echo "This script can only update an existing version 12 database to version 13."
+   echo "This script can only update an existing version 12 database to version 14."
    echo "Error. Cannot upgrade this database."
    echo " "
    exit 1
