@@ -15,18 +15,20 @@ install_dir=$3
 # Find out what the shared lib extension is for this platform.
 #
 eval `${LIBTOOL} --config | grep shrext_cmds`
-if [ -z "${shrext_cmds}" ]; then
+eval SHLIB_EXT=$shrext_cmds
+
+if [ -z "${SHLIB_EXT}" ]; then
    echo "Failed to determine default shared library extension"
    exit 1
 fi
 
-if [ -f ${install_dir}/libbaccats-${default_backend}-${library_version}${shrext_cmds} ]; then
+if [ -f ${install_dir}/libbaccats-${default_backend}-${library_version}${SHLIB_EXT} ]; then
    #
    # Create a default catalog library pointing to one of the shared libs.
    #
-   rm -f ${install_dir}/libbaccats-${library_version}${shrext_cmds}
-   ln -s ${install_dir}/libbaccats-${default_backend}-${library_version}${shrext_cmds} \
-         ${install_dir}/libbaccats-${library_version}${shrext_cmds}
+   rm -f ${install_dir}/libbaccats-${library_version}${SHLIB_EXT}
+   ln -s ${install_dir}/libbaccats-${default_backend}-${library_version}${SHLIB_EXT} \
+         ${install_dir}/libbaccats-${library_version}${SHLIB_EXT}
 fi
 
 exit 0
