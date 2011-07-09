@@ -14,8 +14,7 @@ install_dir=$3
 #
 # Find out what the shared lib extension is for this platform.
 #
-shrext_cmds="`${LIBTOOL} --config | grep shrext_cmds`"
-eval $shrext_cmds
+eval `${LIBTOOL} --config | grep shrext_cmds`
 if [ -z "${shrext_cmds}" ]; then
    echo "Failed to determine default shared library extension"
    exit 1
