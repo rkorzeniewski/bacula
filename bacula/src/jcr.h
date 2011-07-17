@@ -320,6 +320,7 @@ public:
    uint32_t ExpectedFiles;            /* Expected restore files */
    uint32_t MediaId;                  /* DB record IDs associated with this job */
    uint32_t FileIndex;                /* Last FileIndex processed */
+   utime_t MaxRunSchedTime;           /* max run time in seconds from Scheduled time*/
    POOLMEM *fname;                    /* name to put into catalog */
    JOB_DBR jr;                        /* Job DB record for current job */
    JOB_DBR previous_jr;               /* previous job database record */

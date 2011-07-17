@@ -42,7 +42,7 @@ static void job_monitor_watchdog(watchdog_t *self);
 static void job_monitor_destructor(watchdog_t *self);
 static bool job_check_maxwaittime(JCR *jcr);
 static bool job_check_maxruntime(JCR *jcr);
-static bool job_check_maxschedruntime(JCR *jcr);
+static bool job_check_maxrunschedtime(JCR *jcr);
 
 /* Imported subroutines */
 extern void term_scheduler();
@@ -272,9 +272,9 @@ static void *job_thread(void *arg)
       Jmsg(jcr, M_FATAL, 0, _("Job canceled because max start delay time exceeded.\n"));
    }
 
-   if (job_check_maxschedruntime(jcr)) {
+   if (job_check_maxrunschedtime(jcr)) {
       jcr->setJobStatus(JS_Canceled);
-      Jmsg(jcr, M_FATAL, 0, _("Job canceled because max sched run time exceeded.\n"));
+      Jmsg(jcr, M_FATAL, 0, _("Job canceled because max run sched time exceeded.\n"));
    }
 
    /* TODO : check if it is used somewhere */
@@ -553,9 +553,9 @@ static void job_monitor_watchdog(watchdog_t *self)
          Qmsg(jcr, M_FATAL, 0, _("Max run time exceeded. Job canceled.\n"));
          cancel = true;
       /* check MaxRunSchedTime */ 
-      } else if (job_check_maxschedruntime(jcr)) {
+      } else if (job_check_maxrunschedtime(jcr)) {
          jcr->setJobStatus(JS_Canceled);
-         Qmsg(jcr, M_FATAL, 0, _("Max sched run time exceeded. Job canceled.\n"));
+         Qmsg(jcr, M_FATAL, 0, _("Max run sched time exceeded. Job canceled.\n"));
          cancel = true;
       }
 
@@ -647,14 +647,14 @@ static bool job_check_maxruntime(JCR *jcr)
  * Check if MaxRunSchedTime has expired and if the job can be
  *   canceled.
  */
-static bool job_check_maxschedruntime(JCR *jcr)
+static bool job_check_maxrunschedtime(JCR *jcr)
 {
-   if (jcr->job->MaxRunSchedTime == 0 || job_canceled(jcr)) {
+   if (jcr->MaxRunSchedTime == 0 || job_canceled(jcr)) {
       return false;
    }
-   if ((watchdog_time - jcr->sched_time) < jcr->job->MaxRunSchedTime) {
+   if ((watchdog_time - jcr->sched_time) < jcr->MaxRunSchedTime) {
       Dmsg3(200, "Job %p (%s) with MaxRunSchedTime %d not expired\n",
-            jcr, jcr->Job, jcr->job->MaxRunSchedTime);
+            jcr, jcr->Job, jcr->MaxRunSchedTime);
       return false;
    }
 
@@ -1168,6 +1168,7 @@ void set_jcr_defaults(JCR *jcr, JOB *job)
    jcr->spool_size = job->spool_size;
    jcr->write_part_after_job = job->write_part_after_job;
    jcr->accurate = job->accurate;
+   jcr->MaxRunSchedTime = job->MaxRunSchedTime;
    if (jcr->RestoreBootstrap) {
       free(jcr->RestoreBootstrap);
       jcr->RestoreBootstrap = NULL;

@@ -365,9 +365,9 @@ static RES_ITEM fs_items[] = {
  *   name          handler     value                 code flags    default_value
  */
 static RES_ITEM sch_items[] = {
-   {"name",     store_name,  ITEM(res_sch.hdr.name), 0, ITEM_REQUIRED, 0},
-   {"description", store_str, ITEM(res_sch.hdr.desc), 0, 0, 0},
-   {"run",      store_run,   ITEM(res_sch.run),      0, 0, 0},
+   {"name",        store_name,  ITEM(res_sch.hdr.name), 0, ITEM_REQUIRED, 0},
+   {"description", store_str,   ITEM(res_sch.hdr.desc), 0, 0, 0},
+   {"run",         store_run,   ITEM(res_sch.run),      0, 0, 0},
    {NULL, NULL, {0}, 0, 0, 0}
 };
 
@@ -700,6 +700,9 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
       }
       if (res->res_job.MaxStartDelay) {
          sendit(sock, _("  --> MaxStartDelay=%u\n"), res->res_job.MaxStartDelay);
+      }
+      if (res->res_job.MaxRunSchedTime) {
+         sendit(sock, _("  --> MaxRunSchedTime=%u\n"), res->res_job.MaxRunSchedTime);
       }
       if (res->res_job.storage) {
          STORE *store;
