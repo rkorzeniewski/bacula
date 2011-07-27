@@ -1303,18 +1303,6 @@ static bxattr_exit_code bsd_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
       attrnamespace = os_default_xattr_namespaces[namespace_index];
 
       /*
-       * Convert the numeric attrnamespace into a string representation and make a private copy of that string.
-       * The extattr_namespace_to_string functions returns a strdupped string which we need to free.
-       */
-      if (extattr_namespace_to_string(attrnamespace, &current_attrnamespace) != 0) {
-         Mmsg2(jcr->errmsg, _("Failed to convert %d into namespace on file \"%s\"\n"),
-               attrnamespace, jcr->last_fname);
-         Dmsg2(100, "Failed to convert %d into namespace on file \"%s\"\n",
-               attrnamespace, jcr->last_fname);
-         goto bail_out;
-      }
-
-      /*
        * First get the length of the available list with extended attributes.
        * If we get EPERM on system namespace, don't return error.
        * This is expected for normal users trying to archive the system
@@ -1333,8 +1321,6 @@ static bxattr_exit_code bsd_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
 #endif
          case EPERM:
             if (attrnamespace == EXTATTR_NAMESPACE_SYSTEM) {
-               actuallyfree(current_attrnamespace);
-               current_attrnamespace = NULL;
                continue;
             }
             /*
@@ -1382,6 +1368,18 @@ static bxattr_exit_code bsd_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
          break;
       }
       xattr_list[xattr_list_len] = '\0';
+
+      /*
+       * Convert the numeric attrnamespace into a string representation and make a private copy of that string.
+       * The extattr_namespace_to_string functions returns a strdupped string which we need to free.
+       */
+      if (extattr_namespace_to_string(attrnamespace, &current_attrnamespace) != 0) {
+         Mmsg2(jcr->errmsg, _("Failed to convert %d into namespace on file \"%s\"\n"),
+               attrnamespace, jcr->last_fname);
+         Dmsg2(100, "Failed to convert %d into namespace on file \"%s\"\n",
+               attrnamespace, jcr->last_fname);
+         goto bail_out;
+      }
 
       /*
        * Walk the list of extended attributes names and retrieve the data.
