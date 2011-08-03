@@ -24,6 +24,8 @@ rm -f ${cwd}/build/po/test.po >/dev/null
 
 touch ${cwd}/tmp/log2.out
 
+$bperl -e 'add_attribute("$conf/bacula-dir.conf", "Allow Duplicate Jobs", "no", "Job", "MigVolBackup")'
+
 start_test
 
 #
