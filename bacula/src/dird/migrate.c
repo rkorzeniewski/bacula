@@ -213,8 +213,10 @@ bool do_migration_init(JCR *jcr)
    /* Don't let WatchDog checks Max*Time value on this Job */
    mig_jcr->no_maxtime = true;
 
-   /* Don't check for duplicates on migration and copy jobs */
-   mig_jcr->no_check_duplicates = true;
+   /*
+    * Don't check for duplicates on migration and copy jobs
+    */
+   mig_jcr->job->IgnoreDuplicateJobChecking = true;
 
    Dmsg4(dbglevel, "mig_jcr: Name=%s JobId=%d Type=%c Level=%c\n",
       mig_jcr->jr.Name, (int)mig_jcr->jr.JobId, 
@@ -915,7 +917,7 @@ static void start_migration_job(JCR *jcr)
    UAContext *ua = new_ua_context(jcr);
    char ed1[50];
    ua->batch = true;
-   Mmsg(ua->cmd, "run job=\"%s\" jobid=%s allowduplicates=yes", jcr->job->name(),
+   Mmsg(ua->cmd, "run job=\"%s\" jobid=%s ignoreduplicatecheck=yes", jcr->job->name(),
         edit_uint64(jcr->MigrateJobId, ed1));
    Dmsg2(dbglevel, "=============== %s cmd=%s\n", jcr->get_OperationName(), ua->cmd);
    parse_ua_args(ua);                 /* parse command */

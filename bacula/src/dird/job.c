@@ -696,11 +696,19 @@ bool allow_duplicate_job(JCR *jcr)
 {
    JOB *job = jcr->job;
    JCR *djcr;                /* possible duplicate job */
+   bool cancel_dup = false;
+   bool cancel_me = false;
 
-   if (jcr->no_check_duplicates || job->AllowDuplicateJobs) {
+   /*
+    * See if AllowDuplicateJobs is set or
+    * if duplicate checking is disabled for this job.
+    */
+   if (job->AllowDuplicateJobs || job->IgnoreDuplicateJobChecking) {
       return true;
    }
+
    Dmsg0(800, "Enter allow_duplicate_job\n");
+
    /*
     * After this point, we do not want to allow any duplicate
     * job to run.
@@ -710,9 +718,16 @@ bool allow_duplicate_job(JCR *jcr)
       if (jcr == djcr || djcr->JobId == 0) {
          continue;                   /* do not cancel this job or consoles */
       }
+
+      /*
+       * See if this Job has the IgnoreDuplicateJobChecking flag set, ignore it for any
+       * checking against other jobs.
+       */
+      if (djcr->job && djcr->job->IgnoreDuplicateJobChecking) {
+         continue;
+      }
+
       if (strcmp(job->name(), djcr->job->name()) == 0) {
-         bool cancel_dup = false;
-         bool cancel_me = false; 
          if (job->DuplicateJobProximity > 0) {
             utime_t now = (utime_t)time(NULL);
             if ((now - djcr->start_time) > job->DuplicateJobProximity) {
@@ -751,9 +766,12 @@ bool allow_duplicate_job(JCR *jcr)
                  djcr->JobId);
               break;     /* get out of foreach_jcr */
             }
-         }   
-         /* Cancel one of the two jobs (me or dup) */
-         /* If CancelQueuedDuplicates is set do so only if job is queued */
+         }
+
+         /*
+          * Cancel one of the two jobs (me or dup)
+          * If CancelQueuedDuplicates is set do so only if job is queued.
+          */
          if (job->CancelQueuedDuplicates) {
              switch (djcr->JobStatus) {
              case JS_Created:
@@ -769,8 +787,11 @@ bool allow_duplicate_job(JCR *jcr)
                 break;
              }
          }
+
          if (cancel_dup || job->CancelRunningDuplicates) {
-            /* Zap the duplicated job djcr */
+            /*
+             * Zap the duplicated job djcr
+             */
             UAContext *ua = new_ua_context(jcr);
             Jmsg(jcr, M_INFO, 0, _("Cancelling duplicate JobId=%d.\n"), djcr->JobId);
             cancel_job(ua, djcr);
@@ -779,7 +800,9 @@ bool allow_duplicate_job(JCR *jcr)
             free_ua_context(ua);
             Dmsg2(800, "Cancel dup %p JobId=%d\n", djcr, djcr->JobId);
          } else {
-            /* Zap current job */
+            /*
+             * Zap current job
+             */
             Jmsg(jcr, M_FATAL, 0, _("JobId %d already running. Duplicate job not allowed.\n"),
                djcr->JobId);
             Dmsg2(800, "Cancel me %p JobId=%d\n", jcr, jcr->JobId);

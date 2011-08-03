@@ -439,6 +439,7 @@ public:
    bool CancelQueuedDuplicates;       /* Cancel queued jobs */
    bool CancelRunningDuplicates;      /* Cancel Running jobs */
    bool PurgeMigrateJob;              /* Purges source job on completion */
+   bool IgnoreDuplicateJobChecking;   /* Ignore Duplicate Job Checking */
 
    alist *base;                       /* Base jobs */   
 

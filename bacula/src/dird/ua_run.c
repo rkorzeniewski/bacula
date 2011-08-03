@@ -61,8 +61,8 @@ public:
    bool mod;
    int spool_data;
    bool spool_data_set;
-   int allow_duplicates;
-   bool allow_duplicates_set;
+   int ignoreduplicatecheck;
+   bool ignoreduplicatecheck_set;
 
    /* Methods */
    run_ctx() { memset(this, 0, sizeof(run_ctx)); 
@@ -1186,7 +1186,7 @@ static bool scan_command_line_arguments(UAContext *ua, run_ctx &rc)
       "pluginoptions",                /* 25 */
       "spooldata",                    /* 26 */
       "comment",                      /* 27 */
-      "allowduplicates",              /* 28 */
+      "ignoreduplicatecheck",         /* 28 */
       NULL
    };
 
@@ -1202,7 +1202,7 @@ static bool scan_command_line_arguments(UAContext *ua, run_ctx &rc)
    rc.verify_job_name = NULL;
    rc.previous_job_name = NULL;
    rc.spool_data_set = false;
-   rc.allow_duplicates_set = false;
+   rc.ignoreduplicatecheck = false;
    rc.comment = NULL;
 
    for (i=1; i<ua->argc; i++) {
@@ -1421,16 +1421,16 @@ static bool scan_command_line_arguments(UAContext *ua, run_ctx &rc)
                rc.comment = ua->argv[i];
                kw_ok = true;
                break;
-            case 28: /* allowduplicates */
-               if (rc.allow_duplicates_set) {
-                  ua->send_msg(_("AllowDuplicates flag specified twice.\n"));
+            case 28: /* ignoreduplicatecheck */
+               if (rc.ignoreduplicatecheck_set) {
+                  ua->send_msg(_("IgnoreDuplicateCheck flag specified twice.\n"));
                   return false;
                }
-               if (is_yesno(ua->argv[i], &rc.allow_duplicates)) {
-                  rc.allow_duplicates_set = true;
+               if (is_yesno(ua->argv[i], &rc.ignoreduplicatecheck)) {
+                  rc.ignoreduplicatecheck_set = true;
                   kw_ok = true;
                } else {
-                  ua->send_msg(_("Invalid allowduplicates flag.\n"));
+                  ua->send_msg(_("Invalid ignoreduplicatecheck flag.\n"));
                }
                break;
             default:
@@ -1522,10 +1522,10 @@ static bool scan_command_line_arguments(UAContext *ua, run_ctx &rc)
    }
    Dmsg1(900, "Spooling data: %s\n", (rc.job->spool_data ? "Yes" : "No"));
 
-   if (rc.allow_duplicates_set) {
-      rc.job->AllowDuplicateJobs = rc.allow_duplicates;
+   if (rc.ignoreduplicatecheck) {
+      rc.job->IgnoreDuplicateJobChecking = rc.ignoreduplicatecheck;
    }
-   Dmsg1(900, "Allow Duplicate Jobs: %s\n", (rc.job->AllowDuplicateJobs ? "Yes" : "No"));
+   Dmsg1(900, "Ignore Duplicate Job Check: %s\n", (rc.job->IgnoreDuplicateJobChecking ? "Yes" : "No"));
 
    if (rc.store_name) {
       rc.store->store = GetStoreResWithName(rc.store_name);
