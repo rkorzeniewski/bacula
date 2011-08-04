@@ -2,22 +2,21 @@
 #
 # Make full release
 #
-# Bacula git repos
-bacula=${bacula:-/home/kern/bacula/k}
-docs=${docs:-/home/kern/bacula/docs}
-rescue=${rescue:-/home/kern/bacula/rescue}
-export push=yes
-export updatepo=yes
 
-current=$(cd $bacula ; git branch | awk '/*/ { print $2 }')
-branch=${1:-$current}
+# Source config
+. ./config
 
-./makeclean
-./makebacularel $bacula $branch
-./makedocsrel $bacula $docs $branch
-./makerescuerel $rescue $branch
-./makewinrel $bacula $branch | tee win$$.log
+echo "Creating release version: ${ver}"
 
+cd $cwd
+
+./makebacularel $bacula $remote $branch $ver
+./makedocsrel $bacula $docs $remote $branch $ver
+./makewinrel $bacula $remote $branch $ver | tee win$$.log
+
+# strip ./configure strerror from Win log file
+sed -i -e 's%strerror%%' win$$.log
+# check for warning and error messages
 grep -i warning win$$.log >/dev/null
 if [ $? -eq 0 ] ; then
   echo " "

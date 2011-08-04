@@ -1,0 +1,48 @@
+#
+# Configuration for release scripts
+
+#
+# Set to the Branch you are working on
+#
+branch=Branch-5.1
+# 
+# set reltype to release or beta -- for upload and setting DEVELOPER
+reltype=beta
+
+
+repo=$reltype
+
+# Bacula git repos
+bacula=${bacula:-${HOME}/bee/bacula}
+docs=${docs:-${HOME}/bee/docs}
+
+#
+# Set the following to your remote name.  By default it is origin.
+remote=${remote:-origin}
+
+export push=no
+#
+# Note, you will probably want to set updatepo=no if you
+#   run this script multiple times for a given release.
+export updatepo=no
+
+cwd=`pwd`
+
+cd ${bacula}/bacula
+if [ $? -ne 0 ]; then
+   echo "Directory: $1 does not exist"
+   exit 1
+fi
+current=`git branch | awk '/*/ { print $2 }'`
+git checkout ${branch}
+git pull ${remote} ${branch}
+if [ $? -ne 0 ]; then
+   echo "Checkout of branch ${branch} failed."
+   exit 1
+fi
+ver=`sed -n -e 's/^.*VERSION.*"\(.*\)"$/\1/p' src/version.h`
+lsmdate=`sed -n -e 's/^.*LSMDATE.*"\(.*\)"$/\1/p' src/version.h`
+
+git checkout ${current}
+
+cd $cwd
