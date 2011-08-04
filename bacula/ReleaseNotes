@@ -22,7 +22,7 @@ Compatibility:
 ================== Warning !!!!!! ==========================
 
  The new pruning algorithm will not allow to prune jobs that are essential to
- restore since the last Full backup.  (TODO: see for an option...)
+ restore since the last Full backup. Pruning of volumes are not affected.
 
 New Catalog format in version 5.2.0
 -----------------------------------
@@ -74,7 +74,7 @@ Speed and Memory Usage Enhancements:
 
 Security Enhancements:
 - Additional security against injection of illegal characters
-- Possible fnmatch problem
+- Fix possible fnmatch problem
 
 Features Enhancements:
 - Improvements in ACL and xattr handling on additional platforms:
@@ -102,12 +102,10 @@ Other Enhancements:
 - Significant stability enhancements to bat
 - A few path name length limits in Windows have been removed.
 
-Bug fixes
-
 
 ===========================================================================
 
-This 5.0.3 version is significant bug fix update to version 5.0.2.
+The 5.0.3 version is significant bug fix update to version 5.0.2.
 It includes new code and some new features.
 There is no database change since prior versions of 5.0.
 
