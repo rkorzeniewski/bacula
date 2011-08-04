@@ -13,8 +13,6 @@ use strict;
 use POSIX q/strftime/;
 
 my $d='';
-my $cur;
-my %elt;
 my $last_txt='';
 my %bugs;
 my $refs = shift || '';
@@ -25,8 +23,6 @@ while (my $l = <FP>) {
     # remove non useful messages
     next if ($l =~ /(tweak|typo|cleanup|regress:|again|.gitignore|fix compilation|technotes)/ixs);
     next if ($l =~ /update (version|technotes|kernstodo|projects|releasenotes|version|home|release|todo|notes|changelog|tpl|configure)/i);
-
-    next if ($l =~ /bacula-web:/);
 
     if ($for_bweb) {
         next if ($l !~ /bweb/ixs);
@@ -46,7 +42,6 @@ while (my $l = <FP>) {
     if ($l =~ /(\d+): (.+)/) {
         # use date as 01Jan70
         my $dnow = strftime('%d%b%y', localtime($1));
-        my $cur = strftime('%Y%m%d', localtime($1));
         my $txt = $2;
 
         # avoid identical multiple commit message
@@ -59,12 +54,10 @@ while (my $l = <FP>) {
 
         # if we are the same day, just add entry
         if ($dnow ne $d) {
+            print "\n$dnow\n";
             $d = $dnow;
-            if (!exists $elt{$cur}) {
-                push @{$elt{$cur}}, "\n\n$dnow";
-            }
         }
-        push @{$elt{$cur}},  " - $txt";
+        print "- $txt\n";
 
     } else {
         print STDERR "invalid format: $l\n";
@@ -73,9 +66,5 @@ while (my $l = <FP>) {
 
 close(FP);
 
-foreach my $d (sort {$b <=> $a} keys %elt) {
-    print join("\n", @{$elt{$d}});
-}
-
-print "\n\nBug fixes\n";
+print "\nBug fixes\n";
 print join(" ", sort keys %bugs), "\n";
