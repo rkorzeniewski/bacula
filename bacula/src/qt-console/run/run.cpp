@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2007-2010 Free Software Foundation Europe e.V.
+   Copyright (C) 2007-2011 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -177,6 +177,7 @@ void runPage::job_name_change(int index)
    (void)index;
    job_defs.job_name = jobCombo->currentText();
    if (m_console->get_job_defaults(job_defs)) {
+      QString cmd;
       typeLabel->setText("<H3>"+job_defs.type+"</H3>");
       filesetCombo->setCurrentIndex(filesetCombo->findText(job_defs.fileset_name, Qt::MatchExactly));
       levelCombo->setCurrentIndex(levelCombo->findText(job_defs.level, Qt::MatchExactly));
@@ -184,5 +185,11 @@ void runPage::job_name_change(int index)
       poolCombo->setCurrentIndex(poolCombo->findText(job_defs.pool_name, Qt::MatchExactly));
       storageCombo->setCurrentIndex(storageCombo->findText(job_defs.store_name, Qt::MatchExactly));
       messagesCombo->setCurrentIndex(messagesCombo->findText(job_defs.messages_name, Qt::MatchExactly));
+      m_console->level_list.clear();
+      cmd = ".levels " + job_defs.type;
+      m_console->dir_cmd(cmd, m_console->level_list);
+      levelCombo->clear();
+      levelCombo->addItems(m_console->level_list);
+      levelCombo->setCurrentIndex(levelCombo->findText(job_defs.level, 0 /*Qt::MatchExactly*/));
    }
 }

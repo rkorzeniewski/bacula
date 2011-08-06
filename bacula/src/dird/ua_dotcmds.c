@@ -43,6 +43,8 @@
 #include "findlib/find.h"
 
 /* Imported variables */
+extern struct s_jl joblevels[];
+extern struct s_jt jobtypes[];
 
 /* Imported functions */
 extern void do_messages(UAContext *ua, const char *cmd);
@@ -1004,14 +1006,30 @@ static bool locationscmd(UAContext *ua, const char *cmd)
 
 static bool levelscmd(UAContext *ua, const char *cmd)
 {
-   ua->send_msg("Incremental\n");
-   ua->send_msg("Full\n");
-   ua->send_msg("Differential\n");
-   ua->send_msg("VirtualFull\n");
-   ua->send_msg("Catalog\n");
-   ua->send_msg("InitCatalog\n");
-   ua->send_msg("VolumeToCatalog\n");
-   ua->send_msg("Base\n");
+   int i;
+   /* Note some levels are blank, which means none is needed */
+   if (ua->argc == 1) {
+      for (i=0; joblevels[i].level_name; i++) {
+         if (joblevels[i].level_name[0] != ' ') {
+            ua->send_msg("%s\n", joblevels[i].level_name);
+         }
+      }
+   } else if (ua->argc == 2) {
+      int jobtype = 0;
+      /* Assume that first argument is the Job Type */
+      for (i=0; jobtypes[i].type_name; i++) {
+         if (strcasecmp(ua->argk[1], jobtypes[i].type_name) == 0) {
+            jobtype = jobtypes[i].job_type;
+            break;
+         }
+      }
+      for (i=0; joblevels[i].level_name; i++) {
+         if ((joblevels[i].job_type == jobtype) && (joblevels[i].level_name[0] != ' ')) {
+            ua->send_msg("%s\n", joblevels[i].level_name);
+         }
+      }
+   }
+
    return true;
 }
 
