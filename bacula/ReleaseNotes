@@ -7,8 +7,8 @@ General:
 --------
 
 This 5.2.0 version is a major release since the last version 5.0.3.
-It includes well over 50,000 lines of changes and a number of important
-new features:
+It includes well over 50,000 lines of changes made by 19 contributors
+and a number of important new features:
 
 Compatibility:
 --------------
@@ -64,7 +64,7 @@ size.
 Changes:
 
 Speed and Memory Usage Enhancements:
-- Implement LZO compression algorithm
+- Implement LZO compression algorithm (need lzo2 headers to activate this option)
 - New Pruning algoritm -- safer and faster
 - Use of PostgreSQL cursor when doing large queries, should reduce the
   memory usage during restore and accurate backups.
