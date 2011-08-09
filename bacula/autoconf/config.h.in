@@ -271,7 +271,8 @@
 #undef HAVE_ATTR_H
 
 /* Defines if your system have the cxxabi.h and execinfo.h header files for
-   backtrace() */
+ *   backtrace() 
+ */
 #undef HAVE_BACKTRACE
 
 /* Set if Bacula bat Qt4 GUI support enabled */
