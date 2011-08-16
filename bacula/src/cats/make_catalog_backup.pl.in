@@ -45,15 +45,6 @@ my $cat = shift or die "Usage: $0 catalogname";
 my $dir_conf='@sbindir@/dbcheck -B -c @sysconfdir@/bacula-dir.conf';
 my $wd = "@working_dir@";
 
-sub dump_sqlite
-{
-    my %args = @_;
-
-    exec("echo .dump | sqlite '$wd/$args{db_name}.db' > '$wd/$args{db_name}.sql'");
-    print "Error while executing sqlite dump $!\n";
-    return 1;
-}
-
 sub dump_sqlite3
 {
     my %args = @_;
