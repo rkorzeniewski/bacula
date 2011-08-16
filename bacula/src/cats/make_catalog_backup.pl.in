@@ -41,8 +41,6 @@ use strict;
 
 =cut
 
-$ENV{PATH}="@SQL_BINDIR@:$ENV{PATH}";
-
 my $cat = shift or die "Usage: $0 catalogname";
 my $dir_conf='@sbindir@/dbcheck -B -c @sysconfdir@/bacula-dir.conf';
 my $wd = "@working_dir@";
@@ -122,13 +120,14 @@ password=$args{db_password}
 sub dump_catalog
 {
     my %args = @_;
-    if ($args{db_type} eq 'SQLite') {
-        dump_sqlite(%args);
-    } elsif ($args{db_type} eq 'SQLite3') {
+    if ($args{db_type} eq 'SQLite3') {
+        $ENV{PATH}="@SQLITE_BINDIR@:$ENV{PATH}";
         dump_sqlite3(%args);
     } elsif ($args{db_type} eq 'PostgreSQL') {
+        $ENV{PATH}="@POSTGRESQL_BINDIR@:$ENV{PATH}";
         dump_pgsql(%args);
     } elsif ($args{db_type} eq 'MySQL') {
+        $ENV{PATH}="@MYSQL_BINDIR@:$ENV{PATH}";
         dump_mysql(%args);
     } else {
         die "This database type isn't supported";
