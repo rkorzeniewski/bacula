@@ -193,7 +193,7 @@ static struct cmdstruct commands[] = {                                      /* C
        "\n\t pool=<pool> recycle=<yes/no> slot=<number>\n\t inchanger=<yes/no>"
        "\n\t maxvolbytes=<size> maxvolfiles=<nb> maxvoljobs=<nb>"
        "\n\t enable=<yes/no> recyclepool=<pool> actiononpurge=<action>"),true},
- { NT_("use"),        use_cmd,       _("Use catalog xxx"), NT_(""),     false},
+ { NT_("use"),        use_cmd,       _("Use catalog xxx"), NT_("catalog=<catalog>"),     false},
  { NT_("var"),        var_cmd,       _("Does variable expansion"), NT_(""),  false},
  { NT_("version"),    version_cmd,   _("Print Director version"),  NT_(""),  true},
  { NT_("wait"),       wait_cmd,      _("Wait until no jobs are running"), 

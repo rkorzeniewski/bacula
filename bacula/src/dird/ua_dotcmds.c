@@ -71,6 +71,7 @@ static bool mediatypescmd(UAContext *ua, const char *cmd);
 static bool locationscmd(UAContext *ua, const char *cmd);
 static bool mediacmd(UAContext *ua, const char *cmd);
 static bool aopcmd(UAContext *ua, const char *cmd);
+static bool catalogscmd(UAContext *ua, const char *cmd);
 
 static bool dot_bvfs_lsdirs(UAContext *ua, const char *cmd);
 static bool dot_bvfs_lsfiles(UAContext *ua, const char *cmd);
@@ -91,6 +92,7 @@ static struct cmdstruct commands[] = { /* help */  /* can be used in runscript *
  { NT_(".api"),        api_cmd,                  NULL,       false},
  { NT_(".backups"),    backupscmd,               NULL,       false},
  { NT_(".clients"),    clientscmd,               NULL,       true},
+ { NT_(".catalogs"),   catalogscmd,              NULL,       false},
  { NT_(".defaults"),   defaultscmd,              NULL,       false},
  { NT_(".die"),        admin_cmds,               NULL,       false},
  { NT_(".dump"),       admin_cmds,               NULL,       false},
@@ -782,6 +784,19 @@ static bool filesetscmd(UAContext *ua, const char *cmd)
    foreach_res(fs, R_FILESET) {
       if (acl_access_ok(ua, FileSet_ACL, fs->name())) {
          ua->send_msg("%s\n", fs->name());
+      }
+   }
+   UnlockRes();
+   return true;
+}
+
+static bool catalogscmd(UAContext *ua, const char *cmd)
+{
+   CAT *cat;
+   LockRes();
+   foreach_res(cat, R_CATALOG) {
+      if (acl_access_ok(ua, Catalog_ACL, cat->name())) {
+         ua->send_msg("%s\n", cat->name());
       }
    }
    UnlockRes();

@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2010 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2011 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -610,6 +610,7 @@ static struct cpl_keywords_t cpl_keywords[] = {
    {"mark",       ".ls"            },
    {"m",          ".ls"            },
    {"unmark",     ".lsmark"        },
+   {"catalog=",   ".catalogs"      },
    {"actiononpurge=", ".actiononpurge" }
 };
 #define key_size ((int)(sizeof(cpl_keywords)/sizeof(struct cpl_keywords_t)))
