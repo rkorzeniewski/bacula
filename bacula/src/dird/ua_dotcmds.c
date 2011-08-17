@@ -168,8 +168,7 @@ bool do_a_dot_command(UAContext *ua)
       }
    }
    if (!found) {
-      pm_strcat(user->msg, _(": is an invalid command.\n"));
-      ua->error_msg("%s", user->msg);
+      ua->error_msg("%s%s", ua->argk[0], _(": is an invalid command.\n"));
       ok = false;
    }
    return ok;
