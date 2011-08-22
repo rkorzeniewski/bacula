@@ -338,7 +338,7 @@ dnl -------------------------------------------------------------------------
 dnl  If the user has not set --htmldir, we default to /usr/share/doc/bacula/html
 dnl -------------------------------------------------------------------------
 if test x$htmldir = x${docdir} ; then
-   htmldir=`eval echo ${docdir}bacula/html`
+   htmldir=`eval echo ${docdir}/html`
 fi
 
 dnl -------------------------------------------------------------------------
