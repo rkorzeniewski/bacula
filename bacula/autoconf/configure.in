@@ -337,12 +337,12 @@ fi
 dnl -------------------------------------------------------------------------
 dnl  If the user has not set --htmldir, we default to /usr/share/doc/bacula/html
 dnl -------------------------------------------------------------------------
-if test x$htmldir = x${docdir} ; then
-   htmldir=`eval echo ${docdir}/html`
+if test x$htmldir = x'/usr/share/doc/bacula/' ; then
+   htmldir=`eval echo ${docdir}html`
 fi
 
 dnl -------------------------------------------------------------------------
-dnl  If the user has not set --docdir, we default to /usr/share/doc/
+dnl  If the user has not set --docdir, we default to /usr/share/doc/bacula
 dnl -------------------------------------------------------------------------
 if test x$docdir = x'/usr/share/doc/' ; then
    docdir=`eval echo ${docdir}bacula`
