@@ -18570,8 +18570,8 @@ if test x$mandir = x'${prefix}/man' ; then
    mandir=/usr/share/man
 fi
 
-if test x$htmldir = x${docdir} ; then
-   htmldir=`eval echo ${docdir}/html`
+if test x$htmldir = x'/usr/share/doc/bacula/' ; then
+   htmldir=`eval echo ${docdir}html`
 fi
 
 if test x$docdir = x'/usr/share/doc/' ; then
