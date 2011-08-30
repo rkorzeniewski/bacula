@@ -10,7 +10,7 @@ db_name=${db_name:-@db_name@}
 # use SQL_ASCII to be able to put any filename into
 #  the database even those created with unusual character sets
 
-PSQLVERSION=`psql -d template1 -c 'select version()' | awk '/PostgreSQL/ {print $2}' | cut -d '.' -f 1,2`
+PSQLVERSION=`psql -d template1 -c 'select version()' $* | awk '/PostgreSQL/ {print $2}' | cut -d '.' -f 1,2`
 
 #
 # Note, LC_COLLATE and LC_TYPE are needed on 8.4 and beyond, but are
