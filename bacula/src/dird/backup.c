@@ -240,7 +240,6 @@ bool send_accurate_current_files(JCR *jcr)
    POOL_MEM buf;
    db_list_ctx jobids;
    db_list_ctx nb;
-   char ed1[50];
 
    /* In base level, no previous job is used and no restart incomplete jobs */
    if (jcr->is_canceled() || jcr->is_JobLevel(L_BASE)) {
