@@ -703,7 +703,7 @@ bool allow_duplicate_job(JCR *jcr)
     * See if AllowDuplicateJobs is set or
     * if duplicate checking is disabled for this job.
     */
-   if (job->AllowDuplicateJobs || job->IgnoreDuplicateJobChecking) {
+   if (job->AllowDuplicateJobs || jcr->IgnoreDuplicateJobChecking) {
       return true;
    }
 
@@ -720,10 +720,10 @@ bool allow_duplicate_job(JCR *jcr)
       }
 
       /*
-       * See if this Job has the IgnoreDuplicateJobChecking flag set, ignore it for any
-       * checking against other jobs.
+       * See if this Job has the IgnoreDuplicateJobChecking flag set, ignore it
+       * for any checking against other jobs.
        */
-      if (djcr->job && djcr->job->IgnoreDuplicateJobChecking) {
+      if (djcr->IgnoreDuplicateJobChecking) {
          continue;
       }
 
@@ -1186,11 +1186,12 @@ void set_jcr_defaults(JCR *jcr, JOB *job)
       pm_strcpy(jcr->catalog_source, _("Client resource"));
    }
    jcr->fileset = job->fileset;
+   jcr->accurate = job->accurate;
    jcr->messages = job->messages;
    jcr->spool_data = job->spool_data;
    jcr->spool_size = job->spool_size;
    jcr->write_part_after_job = job->write_part_after_job;
-   jcr->accurate = job->accurate;
+   jcr->IgnoreDuplicateJobChecking = job->IgnoreDuplicateJobChecking;
    jcr->MaxRunSchedTime = job->MaxRunSchedTime;
    if (jcr->RestoreBootstrap) {
       free(jcr->RestoreBootstrap);

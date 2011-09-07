@@ -205,6 +205,21 @@ bail_out:
 int modify_job_parameters(UAContext *ua, JCR *jcr, run_ctx &rc)
 {
    int i, opt;
+   
+   /* Some options are not available through the menu
+    * TODO: Add an advanced menu?
+    */
+   if (rc.spool_data_set) {
+      jcr->spool_data = rc.spool_data;
+   }
+
+   /* Used by migration jobs that can have the same name,
+    * but can run at the same time
+    */
+   if (rc.ignoreduplicatecheck_set) {
+      jcr->IgnoreDuplicateJobChecking = rc.ignoreduplicatecheck;
+   }
+
    /*
     * At user request modify parameters of job to be run.
     */
@@ -1516,16 +1531,6 @@ static bool scan_command_line_arguments(UAContext *ua, run_ctx &rc)
       return false;
    }
    Dmsg1(100, "Using pool %s\n", rc.pool->name());
-
-   if (rc.spool_data_set) {
-      rc.job->spool_data = rc.spool_data;
-   }
-   Dmsg1(900, "Spooling data: %s\n", (rc.job->spool_data ? "Yes" : "No"));
-
-   if (rc.ignoreduplicatecheck) {
-      rc.job->IgnoreDuplicateJobChecking = rc.ignoreduplicatecheck;
-   }
-   Dmsg1(900, "Ignore Duplicate Job Check: %s\n", (rc.job->IgnoreDuplicateJobChecking ? "Yes" : "No"));
 
    if (rc.store_name) {
       rc.store->store = GetStoreResWithName(rc.store_name);
