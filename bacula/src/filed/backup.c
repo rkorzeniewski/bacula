@@ -187,11 +187,11 @@ bool blast_data_to_storage_daemon(JCR *jcr, char *addr)
    }
 
    if (have_acl && jcr->acl_data->nr_errors > 0) {
-      Jmsg(jcr, M_ERROR, 0, _("Encountered %ld acl errors while doing backup\n"),
+      Jmsg(jcr, M_WARNING, 0, _("Encountered %ld acl errors while doing backup\n"),
            jcr->acl_data->nr_errors);
    }
    if (have_xattr && jcr->xattr_data->nr_errors > 0) {
-      Jmsg(jcr, M_ERROR, 0, _("Encountered %ld xattr errors while doing backup\n"),
+      Jmsg(jcr, M_WARNING, 0, _("Encountered %ld xattr errors while doing backup\n"),
            jcr->xattr_data->nr_errors);
    }
 
@@ -675,7 +675,7 @@ int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
              * print the error message set by the lower level routine in jcr->errmsg.
              */
             if (jcr->acl_data->nr_errors < ACL_REPORT_ERR_MAX_PER_JOB) {
-               Jmsg(jcr, M_ERROR, 0, "%s", jcr->errmsg);
+               Jmsg(jcr, M_WARNING, 0, "%s", jcr->errmsg);
             }
             jcr->acl_data->nr_errors++;
             break;
@@ -699,7 +699,7 @@ int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
              * print the error message set by the lower level routine in jcr->errmsg.
              */
             if (jcr->xattr_data->nr_errors < XATTR_REPORT_ERR_MAX_PER_JOB) {
-               Jmsg(jcr, M_ERROR, 0, "%s", jcr->errmsg);
+               Jmsg(jcr, M_WARNING, 0, "%s", jcr->errmsg);
             }
             jcr->xattr_data->nr_errors++;
             break;

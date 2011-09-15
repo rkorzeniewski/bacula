@@ -833,15 +833,15 @@ ok_out:
    Dmsg2(10, "End Do Restore. Files=%d Bytes=%s\n", jcr->JobFiles,
       edit_uint64(jcr->JobBytes, ec1));
    if (have_acl && jcr->acl_data->nr_errors > 0) {
-      Jmsg(jcr, M_ERROR, 0, _("Encountered %ld acl errors while doing restore\n"),
+      Jmsg(jcr, M_WARNING, 0, _("Encountered %ld acl errors while doing restore\n"),
            jcr->acl_data->nr_errors);
    }
    if (have_xattr && jcr->xattr_data->nr_errors > 0) {
-      Jmsg(jcr, M_ERROR, 0, _("Encountered %ld xattr errors while doing restore\n"),
+      Jmsg(jcr, M_WARNING, 0, _("Encountered %ld xattr errors while doing restore\n"),
            jcr->xattr_data->nr_errors);
    }
    if (non_support_data > 1 || non_support_attr > 1) {
-      Jmsg(jcr, M_ERROR, 0, _("%d non-supported data streams and %d non-supported attrib streams ignored.\n"),
+      Jmsg(jcr, M_WARNING, 0, _("%d non-supported data streams and %d non-supported attrib streams ignored.\n"),
          non_support_data, non_support_attr);
    }
    if (non_support_rsrc) {
