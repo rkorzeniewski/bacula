@@ -58,18 +58,6 @@ typedef enum {
 #define ACL_TYPE_NONE 0x0
 #endif
 
-#if defined(HAVE_FREEBSD_OS)
-#define BACL_ENOTSUP          EOPNOTSUPP
-#elif defined(HAVE_DARWIN_OS)
-#define BACL_ENOTSUP          EOPNOTSUPP
-#elif defined(HAVE_HPUX_OS)
-#define BACL_ENOTSUP          EOPNOTSUPP
-#elif defined(HAVE_IRIX_OS)
-#define BACL_ENOTSUP          ENOSYS
-#elif defined(HAVE_LINUX_OS) 
-#define BACL_ENOTSUP          ENOTSUP
-#endif
-
 #define BACL_FLAG_SAVE_NATIVE	0x01
 #define BACL_FLAG_SAVE_AFS	0x02
 
