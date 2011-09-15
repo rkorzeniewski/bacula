@@ -755,6 +755,12 @@ static bacl_exit_code generic_set_acl_on_os(JCR *jcr, bacl_type acltype)
       switch (errno) {
       case ENOENT:
          return bacl_exit_ok;
+#if defined(BACL_ENOTSUP)
+      case BACL_ENOTSUP:
+         Mmsg1(jcr->errmsg, _("acl_delete_def_file error on file \"%s\": filesystem doesn't support ACLs\n"),
+               jcr->last_fname);
+         return bacl_exit_ok;
+#endif
       default:
          Mmsg2(jcr->errmsg, _("acl_delete_def_file error on file \"%s\": ERR=%s\n"),
                jcr->last_fname, be.bstrerror());
@@ -797,6 +803,15 @@ static bacl_exit_code generic_set_acl_on_os(JCR *jcr, bacl_type acltype)
       case ENOENT:
          acl_free(acl);
          return bacl_exit_ok;
+#if defined(BACL_ENOTSUP)
+      case BACL_ENOTSUP:
+         Mmsg1(jcr->errmsg, _("acl_set_file error on file \"%s\": filesystem doesn't support ACLs\n"),
+               jcr->last_fname);
+         Dmsg2(100, "acl_set_file error acl=%s file=%s filesystem doesn't support ACLs\n",
+               jcr->acl_data->content, jcr->last_fname);
+         acl_free(acl);
+         return bacl_exit_ok;
+#endif
       default:
          Mmsg2(jcr->errmsg, _("acl_set_file error on file \"%s\": ERR=%s\n"),
                jcr->last_fname, be.bstrerror());
