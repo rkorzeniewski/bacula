@@ -3361,15 +3361,35 @@ bxattr_exit_code build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
 
 bxattr_exit_code parse_xattr_streams(JCR *jcr, int stream)
 {
+   int ret;
+   berrno be;
+   struct stat st;
    unsigned int cnt;
 
    /*
     * See if we are changing from one device to an other.
     * We save the current device we are restoring to and compare
     * it with the current st_dev in the last stat performed on
-    * the file we are currently storing.
+    * the file we are currently restoring.
     */
-   if (jcr->xattr_data->current_dev != ff_pkt->statp.st_dev) {
+   ret = lstat(jcr->last_fname, &st);
+   switch (ret) {
+   case -1:
+      switch (errno) {
+      case ENOENT:
+         return bxattr_exit_ok;
+      default:
+         Mmsg2(jcr->errmsg, _("Unable to stat file \"%s\": ERR=%s\n"),
+               jcr->last_fname, be.bstrerror());
+         Dmsg2(100, "Unable to stat file \"%s\": ERR=%s\n",
+               jcr->last_fname, be.bstrerror());
+         return bxattr_exit_error;
+      }
+      break;
+   case 0:
+      break;
+   }
+   if (jcr->xattr_data->current_dev != st.st_dev) {
       /*
        * Reset the acl save flags.
        */
@@ -3379,9 +3399,12 @@ bxattr_exit_code parse_xattr_streams(JCR *jcr, int stream)
       /*
        * Save that we started restoring to a new filesystem.
        */
-      jcr->xattr_data->current_dev = ff_pkt->statp.st_dev;
+      jcr->xattr_data->current_dev = st.st_dev;
    }
 
+   /*
+    * See if we are still restoring native xattr to this filesystem.
+    */
    if ((jcr->xattr_data->flags & BXATTR_FLAG_RESTORE_NATIVE) && os_parse_xattr_streams) {
       /*
        * See if we can parse this stream, and ifso give it a try.

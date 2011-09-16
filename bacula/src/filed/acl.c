@@ -1850,15 +1850,35 @@ bacl_exit_code build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
 
 bacl_exit_code parse_acl_streams(JCR *jcr, int stream)
 {
+   int ret;
+   berrno be;
+   struct stat st;
    unsigned int cnt;
 
    /*
     * See if we are changing from one device to an other.
     * We save the current device we are restoring to and compare
     * it with the current st_dev in the last stat performed on
-    * the file we are currently storing.
+    * the file we are currently restoring.
     */
-   if (jcr->acl_data->current_dev != ff_pkt->statp.st_dev) {
+   ret = lstat(jcr->last_fname, &st);
+   switch (ret) {
+   case -1:
+      switch (errno) {
+      case ENOENT:
+         return bacl_exit_ok;
+      default:
+         Mmsg2(jcr->errmsg, _("Unable to stat file \"%s\": ERR=%s\n"),
+               jcr->last_fname, be.bstrerror());
+         Dmsg2(100, "Unable to stat file \"%s\": ERR=%s\n",
+               jcr->last_fname, be.bstrerror());
+         return bacl_exit_error;
+      }
+      break;
+   case 0:
+      break;
+   }
+   if (jcr->acl_data->current_dev != st.st_dev) {
       /*
        * Reset the acl save flags.
        */
@@ -1866,9 +1886,9 @@ bacl_exit_code parse_acl_streams(JCR *jcr, int stream)
       jcr->acl_data->flags |= BACL_FLAG_RESTORE_NATIVE;
 
       /*
-       * Save that we started retoring to a new filesystem.
+       * Save that we started restoring to a new filesystem.
        */
-      jcr->acl_data->current_dev = ff_pkt->statp.st_dev;
+      jcr->acl_data->current_dev = st.st_dev;
    }
 
    switch (stream) {
