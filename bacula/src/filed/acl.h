@@ -62,13 +62,15 @@ typedef enum {
     defined(HAVE_DARWIN_OS) || \
     defined(HAVE_HPUX_OS) || \
     defined(HAVE_LINUX_OS)
-#define BACL_ENOTSUP          EOPNOTSUPP
+#define BACL_ENOTSUP EOPNOTSUPP
 #elif defined(HAVE_IRIX_OS)
-#define BACL_ENOTSUP          ENOSYS
+#define BACL_ENOTSUP ENOSYS
 #endif
 
-#define BACL_FLAG_SAVE_NATIVE	0x01
-#define BACL_FLAG_SAVE_AFS	0x02
+#define BACL_FLAG_SAVE_NATIVE    0x01
+#define BACL_FLAG_SAVE_AFS       0x02
+#define BACL_FLAG_RESTORE_NATIVE 0x04
+#define BACL_FLAG_RESTORE_AFS    0x08
 
 /*
  * Internal tracking data.

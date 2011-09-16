@@ -757,9 +757,16 @@ static bacl_exit_code generic_set_acl_on_os(JCR *jcr, bacl_type acltype)
          return bacl_exit_ok;
 #if defined(BACL_ENOTSUP)
       case BACL_ENOTSUP:
+         /**
+          * If the filesystem reports it doesn't support ACLs we clear the
+          * BACL_FLAG_RESTORE_NATIVE flag so we skip ACL restores on all other files
+          * on the same filesystem. The BACL_FLAG_RESTORE_NATIVE flag gets set again
+          * when we change from one filesystem to an other.
+          */
+         jcr->acl_data->flags &= ~BACL_FLAG_RESTORE_NATIVE;
          Mmsg1(jcr->errmsg, _("acl_delete_def_file error on file \"%s\": filesystem doesn't support ACLs\n"),
                jcr->last_fname);
-         return bacl_exit_ok;
+         return bacl_exit_error;
 #endif
       default:
          Mmsg2(jcr->errmsg, _("acl_delete_def_file error on file \"%s\": ERR=%s\n"),
@@ -805,12 +812,19 @@ static bacl_exit_code generic_set_acl_on_os(JCR *jcr, bacl_type acltype)
          return bacl_exit_ok;
 #if defined(BACL_ENOTSUP)
       case BACL_ENOTSUP:
+         /**
+          * If the filesystem reports it doesn't support ACLs we clear the
+          * BACL_FLAG_RESTORE_NATIVE flag so we skip ACL restores on all other files
+          * on the same filesystem. The BACL_FLAG_RESTORE_NATIVE flag gets set again
+          * when we change from one filesystem to an other.
+          */
+         jcr->acl_data->flags &= ~BACL_FLAG_RESTORE_NATIVE;
          Mmsg1(jcr->errmsg, _("acl_set_file error on file \"%s\": filesystem doesn't support ACLs\n"),
                jcr->last_fname);
          Dmsg2(100, "acl_set_file error acl=%s file=%s filesystem doesn't support ACLs\n",
                jcr->acl_data->content, jcr->last_fname);
          acl_free(acl);
-         return bacl_exit_ok;
+         return bacl_exit_error;
 #endif
       default:
          Mmsg2(jcr->errmsg, _("acl_set_file error on file \"%s\": ERR=%s\n"),
@@ -1042,6 +1056,13 @@ static bacl_exit_code freebsd_parse_acl_streams(JCR *jcr, int stream)
          return bacl_exit_error;
       }
    case 0:
+      /**
+       * If the filesystem reports it doesn't support ACLs we clear the
+       * BACL_FLAG_RESTORE_NATIVE flag so we skip ACL restores on all other files
+       * on the same filesystem. The BACL_FLAG_RESTORE_NATIVE flag gets set again
+       * when we change from one filesystem to an other.
+       */
+      jcr->acl_data->flags &= ~BACL_FLAG_SAVE_NATIVE;
       Mmsg2(jcr->errmsg, _("Trying to restore acl on file \"%s\" on filesystem without %s acl support\n"),
             jcr->last_fname, acl_type_name);
       return bacl_exit_error;
@@ -1354,6 +1375,21 @@ static bacl_exit_code hpux_parse_acl_streams(JCR *jcr, int stream)
       switch (errno) {
       case ENOENT:
          return bacl_exit_ok;
+#if defined(BACL_ENOTSUP)
+      case BACL_ENOTSUP:
+         /**
+          * If the filesystem reports it doesn't support ACLs we clear the
+          * BACL_FLAG_RESTORE_NATIVE flag so we skip ACL restores on all other files
+          * on the same filesystem. The BACL_FLAG_RESTORE_NATIVE flag gets set again
+          * when we change from one filesystem to an other.
+          */
+         jcr->acl_data->flags &= ~BACL_FLAG_SAVE_NATIVE;
+         Mmsg1(jcr->errmsg, _("setacl error on file \"%s\": filesystem doesn't support ACLs\n"),
+               jcr->last_fname);
+         Dmsg2(100, "setacl error acl=%s file=%s filesystem doesn't support ACLs\n",
+               jcr->acl_data->content, jcr->last_fname);
+         return bacl_exit_error;
+#endif
       default:
          Mmsg2(jcr->errmsg, _("setacl error on file \"%s\": ERR=%s\n"),
                jcr->last_fname, be.bstrerror());
@@ -1528,6 +1564,13 @@ static bacl_exit_code solaris_parse_acl_streams(JCR *jcr, int stream)
       acl_enabled = pathconf(jcr->last_fname, _PC_ACL_ENABLED);
       switch (acl_enabled) {
       case 0:
+         /**
+          * If the filesystem reports it doesn't support ACLs we clear the
+          * BACL_FLAG_RESTORE_NATIVE flag so we skip ACL restores on all other files
+          * on the same filesystem. The BACL_FLAG_RESTORE_NATIVE flag gets set again
+          * when we change from one filesystem to an other.
+          */
+         jcr->acl_data->flags &= ~BACL_FLAG_RESTORE_NATIVE;
          Mmsg1(jcr->errmsg, _("Trying to restore acl on file \"%s\" on filesystem without acl support\n"),
                jcr->last_fname);
          return bacl_exit_error;
@@ -1796,7 +1839,7 @@ bacl_exit_code build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
        * Call the appropriate function.
        */
       if (os_build_acl_streams) {
-         return (*os_build_acl_streams)(jcr, ff_pkt);
+         return os_build_acl_streams(jcr, ff_pkt);
       }
    } else {
       return bacl_exit_ok;
@@ -1809,6 +1852,25 @@ bacl_exit_code parse_acl_streams(JCR *jcr, int stream)
 {
    unsigned int cnt;
 
+   /**
+    * See if we are changing from one device to an other.
+    * We save the current device we are scanning and compare
+    * it with the current st_dev in the last stat performed on
+    * the file we are currently storing.
+    */
+   if (jcr->acl_data->current_dev != ff_pkt->statp.st_dev) {
+      /**
+       * Reset the acl save flags.
+       */
+      jcr->acl_data->flags = 0;
+      jcr->acl_data->flags |= BACL_FLAG_RESTORE_NATIVE;
+
+      /**
+       * Save that we started scanning a new filesystem.
+       */
+      jcr->acl_data->current_dev = ff_pkt->statp.st_dev;
+   }
+
    switch (stream) {
 #if defined(HAVE_ACL)
    case STREAM_UNIX_ACCESS_ACL:
@@ -1816,18 +1878,24 @@ bacl_exit_code parse_acl_streams(JCR *jcr, int stream)
       /**
        * Handle legacy ACL streams.
        */
-      if (os_parse_acl_streams) {
-         return (*os_parse_acl_streams)(jcr, stream);
+      if ((jcr->acl_data->flags & BACL_FLAG_RESTORE_NATIVE) && os_parse_acl_streams) {
+         return os_parse_acl_streams(jcr, stream);
+      } else {
+         /**
+          * Increment error count but don't log an error again for the same filesystem.
+          */
+         jcr->acl_data->nr_errors++;
+         return bacl_exit_ok;
       }
       break;
    default:
-      if (os_parse_acl_streams) {
+      if ((jcr->acl_data->flags & BACL_FLAG_RESTORE_NATIVE) && os_parse_acl_streams) {
          /**
           * Walk the os_access_acl_streams array with the supported Access ACL streams for this OS.
           */
          for (cnt = 0; cnt < sizeof(os_access_acl_streams) / sizeof(int); cnt++) {
             if (os_access_acl_streams[cnt] == stream) {
-               return (*os_parse_acl_streams)(jcr, stream);
+               return os_parse_acl_streams(jcr, stream);
             }
          }
          /**
@@ -1835,9 +1903,15 @@ bacl_exit_code parse_acl_streams(JCR *jcr, int stream)
           */
          for (cnt = 0; cnt < sizeof(os_default_acl_streams) / sizeof(int); cnt++) {
             if (os_default_acl_streams[cnt] == stream) {
-               return (*os_parse_acl_streams)(jcr, stream);
+               return os_parse_acl_streams(jcr, stream);
             }
          }
+      } else {
+         /**
+          * Increment error count but don't log an error again for the same filesystem.
+          */
+         jcr->acl_data->nr_errors++;
+         return bacl_exit_ok;
       }
       break;
 #else
