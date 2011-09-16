@@ -30,9 +30,9 @@
 #define __XATTR_H
 
 #if defined(HAVE_LINUX_OS)
-#define BXATTR_ENOTSUP          EOPNOTSUPP
+#define BXATTR_ENOTSUP EOPNOTSUPP
 #elif defined(HAVE_DARWIN_OS)
-#define BXATTR_ENOTSUP          ENOTSUP
+#define BXATTR_ENOTSUP ENOTSUP
 #endif
 
 /*
@@ -60,6 +60,9 @@ struct xattr_link_cache_entry_t {
    char target[PATH_MAX];
 };
 
+#define BXATTR_FLAG_SAVE_NATIVE    0x01
+#define BXATTR_FLAG_RESTORE_NATIVE 0x02
+
 /*
  * Internal tracking data.
  */
@@ -69,6 +72,8 @@ struct xattr_data_t {
    uint32_t nr_errors;
    uint32_t nr_saved;
    alist *link_cache;
+   uint32_t current_dev;
+   uint32_t flags;              /* See BXATTR_FLAG_* */
 };
 
 /*

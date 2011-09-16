@@ -345,7 +345,15 @@ static bxattr_exit_code aix_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
       switch (errno) {
       case ENOENT:
       case EFORMAT:
+         return bxattr_exit_ok;
       case ENOTSUP:
+         /*
+          * If the filesystem reports it doesn't support XATTRs we clear the
+          * BXATTR_FLAG_SAVE_NATIVE flag so we skip XATTR saves on all other files
+          * on the same filesystem. The BXATTR_FLAG_SAVE_NATIVE flags gets sets again
+          * when we change from one filesystem to an other.
+          */
+         jcr->xattr_data->flags &= ~BXATTR_FLAG_SAVE_NATIVE;
          return bxattr_exit_ok;
       default:
          Mmsg2(jcr->errmsg, _("llistea error on file \"%s\": ERR=%s\n"),
@@ -376,7 +384,6 @@ static bxattr_exit_code aix_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
       switch (errno) {
       case ENOENT:
       case EFORMAT:
-      case ENOTSUP:
          retval = bxattr_exit_ok;
          goto bail_out;
       default:
@@ -439,7 +446,6 @@ static bxattr_exit_code aix_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
          switch (errno) {
          case ENOENT:
          case EFORMAT:
-         case ENOTSUP:
             retval = bxattr_exit_ok;
             goto bail_out;
          default:
@@ -467,7 +473,6 @@ static bxattr_exit_code aix_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
             switch (errno) {
             case ENOENT:
             case EFORMAT:
-            case ENOTSUP:
                retval = bxattr_exit_ok;
                goto bail_out;
             default:
@@ -568,7 +573,15 @@ static bxattr_exit_code aix_xattr_parse_streams(JCR *jcr, int stream)
          switch (errno) {
          case ENOENT:
          case EFORMAT:
+            goto bail_out;
          case ENOTSUP:
+            /*
+             * If the filesystem reports it doesn't support XATTRs we clear the
+             * BXATTR_FLAG_RESTORE_NATIVE flag so we skip XATTR restores on all other files
+             * on the same filesystem. The BXATTR_FLAG_RESTORE_NATIVE flags gets sets again
+             * when we change from one filesystem to an other.
+             */
+            jcr->xattr_data->flags &= ~BXATTR_FLAG_RESTORE_NATIVE;
             goto bail_out;
          default:
             Mmsg2(jcr->errmsg, _("lsetea error on file \"%s\": ERR=%s\n"),
@@ -966,7 +979,15 @@ static bxattr_exit_code generic_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
    case -1:
       switch (errno) {
       case ENOENT:
+         return bxattr_exit_ok;
       case BXATTR_ENOTSUP:
+         /*
+          * If the filesystem reports it doesn't support XATTRs we clear the
+          * BXATTR_FLAG_SAVE_NATIVE flag so we skip XATTR saves on all other files
+          * on the same filesystem. The BXATTR_FLAG_SAVE_NATIVE flags gets sets again
+          * when we change from one filesystem to an other.
+          */
+         jcr->xattr_data->flags &= ~BXATTR_FLAG_SAVE_NATIVE;
          return bxattr_exit_ok;
       default:
          Mmsg2(jcr->errmsg, _("llistxattr error on file \"%s\": ERR=%s\n"),
@@ -996,7 +1017,6 @@ static bxattr_exit_code generic_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
    case -1:
       switch (errno) {
       case ENOENT:
-      case BXATTR_ENOTSUP:
          retval = bxattr_exit_ok;
          goto bail_out;
       default:
@@ -1077,7 +1097,6 @@ static bxattr_exit_code generic_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
       case -1:
          switch (errno) {
          case ENOENT:
-         case BXATTR_ENOTSUP:
             retval = bxattr_exit_ok;
             goto bail_out;
          default:
@@ -1104,7 +1123,6 @@ static bxattr_exit_code generic_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
          if (xattr_value_len < 0) {
             switch (errno) {
             case ENOENT:
-            case BXATTR_ENOTSUP:
                retval = bxattr_exit_ok;
                goto bail_out;
             default:
@@ -1204,7 +1222,15 @@ static bxattr_exit_code generic_xattr_parse_streams(JCR *jcr, int stream)
       if (lsetxattr(jcr->last_fname, current_xattr->name, current_xattr->value, current_xattr->value_length, 0) != 0) {
          switch (errno) {
          case ENOENT:
+            goto bail_out;
          case BXATTR_ENOTSUP:
+            /*
+             * If the filesystem reports it doesn't support XATTRs we clear the
+             * BXATTR_FLAG_RESTORE_NATIVE flag so we skip XATTR restores on all other files
+             * on the same filesystem. The BXATTR_FLAG_RESTORE_NATIVE flags gets sets again
+             * when we change from one filesystem to an other.
+             */
+            jcr->xattr_data->flags &= ~BXATTR_FLAG_RESTORE_NATIVE;
             goto bail_out;
          default:
             Mmsg2(jcr->errmsg, _("lsetxattr error on file \"%s\": ERR=%s\n"),
@@ -1714,6 +1740,13 @@ static bxattr_exit_code tru64_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
    case -1:
       switch (errno) {
       case EOPNOTSUPP:
+         /*
+          * If the filesystem reports it doesn't support XATTRs we clear the
+          * BXATTR_FLAG_SAVE_NATIVE flag so we skip XATTR saves on all other files
+          * on the same filesystem. The BXATTR_FLAG_SAVE_NATIVE flags gets sets again
+          * when we change from one filesystem to an other.
+          */
+         jcr->xattr_data->flags &= ~BXATTR_FLAG_SAVE_NATIVE;
          retval = bxattr_exit_ok;
          goto bail_out;
       default:
@@ -1737,9 +1770,6 @@ static bxattr_exit_code tru64_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
          switch (xattr_list_len) {
          case -1:
             switch (errno) {
-            case EOPNOTSUPP:
-               retval = bxattr_exit_ok;
-               goto bail_out;
             default:
                Mmsg2(jcr->errmsg, _("getproplist error on file \"%s\": ERR=%s\n"),
                      jcr->last_fname, be.bstrerror());
@@ -1761,7 +1791,7 @@ static bxattr_exit_code tru64_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
             break;
          }
       } else {
-         /**
+         /*
           * No xattr on file.
           */
          retval = bxattr_exit_ok;
@@ -1945,6 +1975,13 @@ static bxattr_exit_code tru64_parse_xattr_streams(JCR *jcr, int stream)
    case -1:
       switch (errno) {
       case EOPNOTSUPP:
+         /*
+          * If the filesystem reports it doesn't support XATTRs we clear the
+          * BXATTR_FLAG_RESTORE_NATIVE flag so we skip XATTR restores on all other files
+          * on the same filesystem. The BXATTR_FLAG_RESTORE_NATIVE flags gets sets again
+          * when we change from one filesystem to an other.
+          */
+         jcr->xattr_data->flags &= ~BXATTR_FLAG_RESTORE_NATIVE;
          retval = bxattr_exit_ok;
          goto bail_out;
       default:
@@ -3296,26 +3333,72 @@ static bxattr_exit_code (*os_parse_xattr_streams)(JCR *jcr, int stream) = solari
  */
 bxattr_exit_code build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
 {
-   if (os_build_xattr_streams) {
-      return (*os_build_xattr_streams)(jcr, ff_pkt);
+   /**
+    * See if we are changing from one device to an other.
+    * We save the current device we are scanning and compare
+    * it with the current st_dev in the last stat performed on
+    * the file we are currently storing.
+    */
+   if (jcr->xattr_data->current_dev != ff_pkt->statp.st_dev) {
+      /*
+       * Reset the acl save flags.
+       */
+      jcr->xattr_data->flags = 0;
+      jcr->xattr_data->flags |= BXATTR_FLAG_SAVE_NATIVE;
+
+      /*
+       * Save that we started scanning a new filesystem.
+       */
+      jcr->xattr_data->current_dev = ff_pkt->statp.st_dev;
    }
-   return bxattr_exit_error;
+
+   if ((jcr->xattr_data->flags & BXATTR_FLAG_SAVE_NATIVE) && os_parse_xattr_streams) {
+      return os_build_xattr_streams(jcr, ff_pkt);
+   } else {
+      return bxattr_exit_ok;
+   }
 }
 
 bxattr_exit_code parse_xattr_streams(JCR *jcr, int stream)
 {
    unsigned int cnt;
 
-   if (os_parse_xattr_streams) {
+   /**
+    * See if we are changing from one device to an other.
+    * We save the current device we are restoring to and compare
+    * it with the current st_dev in the last stat performed on
+    * the file we are currently storing.
+    */
+   if (jcr->xattr_data->current_dev != ff_pkt->statp.st_dev) {
+      /*
+       * Reset the acl save flags.
+       */
+      jcr->xattr_data->flags = 0;
+      jcr->xattr_data->flags |= BXATTR_FLAG_RESTORE_NATIVE;
+
+      /*
+       * Save that we started restoring to a new filesystem.
+       */
+      jcr->xattr_data->current_dev = ff_pkt->statp.st_dev;
+   }
+
+   if ((jcr->xattr_data->flags & BXATTR_FLAG_RESTORE_NATIVE) && os_parse_xattr_streams) {
       /*
        * See if we can parse this stream, and ifso give it a try.
        */
       for (cnt = 0; cnt < sizeof(os_default_xattr_streams) / sizeof(int); cnt++) {
          if (os_default_xattr_streams[cnt] == stream) {
-            return (*os_parse_xattr_streams)(jcr, stream);
+            return os_parse_xattr_streams(jcr, stream);
          }
       }
+   } else {
+      /*
+       * Increment error count but don't log an error again for the same filesystem.
+       */
+      jcr->xattr_data->nr_errors++;
+      return bxattr_exit_ok;
    }
+
    /*
     * Issue a warning and discard the message. But pretend the restore was ok.
     */
