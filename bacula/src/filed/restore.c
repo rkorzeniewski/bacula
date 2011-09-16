@@ -113,7 +113,7 @@ static int bclose_chksize(JCR *jcr, BFILE *bfd, boffset_t osize)
    fsize = blseek(bfd, 0, SEEK_CUR);
    bclose(bfd);
    if (fsize > 0 && fsize != osize) {
-      Qmsg3(jcr, M_ERROR, 0, _("Size of data or stream of %s not correct. Original %s, restored %s.\n"),
+      Qmsg3(jcr, M_WARNING, 0, _("Size of data or stream of %s not correct. Original %s, restored %s.\n"),
             jcr->last_fname, edit_uint64(osize, ec1),
             edit_uint64(fsize, ec2));
       return -1;
@@ -133,12 +133,12 @@ bool restore_finderinfo(JCR *jcr, POOLMEM *buf, int32_t buflen)
    Dmsg0(130, "Restoring Finder Info\n");
    jcr->ff->flags |= FO_HFSPLUS;
    if (buflen != 32) {
-      Jmsg(jcr, M_ERROR, 0, _("Invalid length of Finder Info (got %d, not 32)\n"), buflen);
+      Jmsg(jcr, M_WARNING, 0, _("Invalid length of Finder Info (got %d, not 32)\n"), buflen);
       return false;
    }
 
    if (setattrlist(jcr->last_fname, &attrList, buf, buflen, 0) != 0) {
-      Jmsg(jcr, M_ERROR, 0, _("Could not set Finder Info on %s\n"), jcr->last_fname);
+      Jmsg(jcr, M_WARNING, 0, _("Could not set Finder Info on %s\n"), jcr->last_fname);
       return false;
    }
 
@@ -360,8 +360,8 @@ void do_restore(JCR *jcr)
 
          if (!is_restore_stream_supported(attr->data_stream)) {
             if (!non_support_data++) {
-               Jmsg(jcr, M_ERROR, 0, _("%s stream not supported on this Client.\n"),
-                  stream_to_ascii(attr->data_stream));
+               Jmsg(jcr, M_WARNING, 0, _("%s stream not supported on this Client.\n"),
+                    stream_to_ascii(attr->data_stream));
             }
             continue;
          }
@@ -635,7 +635,7 @@ void do_restore(JCR *jcr)
             if (rctx.extract) {
                if (rctx.prev_stream != rctx.stream) {
                   if (bopen_rsrc(&rctx.forkbfd, jcr->last_fname, O_WRONLY | O_TRUNC | O_BINARY, 0) < 0) {
-                     Jmsg(jcr, M_ERROR, 0, _("Cannot open resource fork for %s.\n"), jcr->last_fname);
+                     Jmsg(jcr, M_WARNING, 0, _("Cannot open resource fork for %s.\n"), jcr->last_fname);
                      rctx.extract = false;
                      continue;
                   }
@@ -804,7 +804,7 @@ void do_restore(JCR *jcr)
 
       default:
          close_previous_stream(rctx);
-         Jmsg(jcr, M_ERROR, 0, _("Unknown stream=%d ignored. This shouldn't happen!\n"),
+         Jmsg(jcr, M_WARNING, 0, _("Unknown stream=%d ignored. This shouldn't happen!\n"),
               rctx.stream);
          Dmsg2(0, "Unknown stream=%d data=%s\n", rctx.stream, sd->msg);
          break;
