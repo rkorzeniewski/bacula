@@ -3333,7 +3333,7 @@ static bxattr_exit_code (*os_parse_xattr_streams)(JCR *jcr, int stream) = solari
  */
 bxattr_exit_code build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
 {
-   /**
+   /*
     * See if we are changing from one device to an other.
     * We save the current device we are scanning and compare
     * it with the current st_dev in the last stat performed on
@@ -3363,7 +3363,7 @@ bxattr_exit_code parse_xattr_streams(JCR *jcr, int stream)
 {
    unsigned int cnt;
 
-   /**
+   /*
     * See if we are changing from one device to an other.
     * We save the current device we are restoring to and compare
     * it with the current st_dev in the last stat performed on
