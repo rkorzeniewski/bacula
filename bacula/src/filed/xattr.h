@@ -29,6 +29,12 @@
 #ifndef __XATTR_H
 #define __XATTR_H
 
+#if defined(HAVE_LINUX_OS)
+#define BXATTR_ENOTSUP          EOPNOTSUPP
+#elif defined(HAVE_DARWIN_OS)
+#define BXATTR_ENOTSUP          ENOTSUP
+#endif
+
 /*
  * Magic used in the magic field of the xattr struct.
  * This way we can see we encounter a valid xattr struct.

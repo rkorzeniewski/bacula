@@ -701,9 +701,8 @@ static bacl_exit_code generic_get_acl_from_os(JCR *jcr, bacl_type acltype)
        * Handle errors gracefully.
        */
       switch (errno) {
-      case ENOSYS:
-      case ENOTSUP:
-      case EOPNOTSUPP:
+#if defined(BACL_ENOTSUP)
+      case BACL_ENOTSUP:
          /**
           * If the filesystem reports it doesn't support ACLs we clear the
           * BACL_FLAG_SAVE_NATIVE flag so we skip ACL saves on all other files
@@ -712,6 +711,7 @@ static bacl_exit_code generic_get_acl_from_os(JCR *jcr, bacl_type acltype)
           */
          jcr->acl_data->flags &= ~BACL_FLAG_SAVE_NATIVE;
          goto bail_out;
+#endif
       case ENOENT:
          goto bail_out;
       default:
@@ -755,12 +755,12 @@ static bacl_exit_code generic_set_acl_on_os(JCR *jcr, bacl_type acltype)
       switch (errno) {
       case ENOENT:
          return bacl_exit_ok;
-      case ENOSYS:
-      case ENOTSUP:
-      case EOPNOTSUPP:
+#if defined(BACL_ENOTSUP)
+      case BACL_ENOTSUP:
          Mmsg1(jcr->errmsg, _("acl_delete_def_file error on file \"%s\": filesystem doesn't support ACLs\n"),
                jcr->last_fname);
          return bacl_exit_ok;
+#endif
       default:
          Mmsg2(jcr->errmsg, _("acl_delete_def_file error on file \"%s\": ERR=%s\n"),
                jcr->last_fname, be.bstrerror());
@@ -803,15 +803,15 @@ static bacl_exit_code generic_set_acl_on_os(JCR *jcr, bacl_type acltype)
       case ENOENT:
          acl_free(acl);
          return bacl_exit_ok;
-      case ENOSYS:
-      case ENOTSUP:
-      case EOPNOTSUPP:
+#if defined(BACL_ENOTSUP)
+      case BACL_ENOTSUP:
          Mmsg1(jcr->errmsg, _("acl_set_file error on file \"%s\": filesystem doesn't support ACLs\n"),
                jcr->last_fname);
          Dmsg2(100, "acl_set_file error acl=%s file=%s filesystem doesn't support ACLs\n",
                jcr->acl_data->content, jcr->last_fname);
          acl_free(acl);
          return bacl_exit_ok;
+#endif
       default:
          Mmsg2(jcr->errmsg, _("acl_set_file error on file \"%s\": ERR=%s\n"),
                jcr->last_fname, be.bstrerror());
@@ -1262,9 +1262,8 @@ static bacl_exit_code hpux_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
 
    if ((n = getacl(jcr->last_fname, 0, acls)) < 0) {
       switch (errno) {
-      case ENOSYS:
-      case ENOTSUP:
-      case EOPNOTSUPP:
+#if defined(BACL_ENOTSUP)
+      case BACL_ENOTSUP:
          /**
           * Not supported, just pretend there is nothing to see
           *
@@ -1277,6 +1276,7 @@ static bacl_exit_code hpux_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
          pm_strcpy(jcr->acl_data->content, "");
          jcr->acl_data->content_length = 0;
          return bacl_exit_ok;
+#endif
       case ENOENT:
          pm_strcpy(jcr->acl_data->content, "");
          jcr->acl_data->content_length = 0;

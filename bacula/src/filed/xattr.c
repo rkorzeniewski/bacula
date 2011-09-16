@@ -966,8 +966,7 @@ static bxattr_exit_code generic_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
    case -1:
       switch (errno) {
       case ENOENT:
-      case ENOTSUP:
-      case EOPNOTSUPP:
+      case BXATTR_ENOTSUP:
          return bxattr_exit_ok;
       default:
          Mmsg2(jcr->errmsg, _("llistxattr error on file \"%s\": ERR=%s\n"),
@@ -997,8 +996,7 @@ static bxattr_exit_code generic_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
    case -1:
       switch (errno) {
       case ENOENT:
-      case ENOTSUP:
-      case EOPNOTSUPP:
+      case BXATTR_ENOTSUP:
          retval = bxattr_exit_ok;
          goto bail_out;
       default:
@@ -1079,8 +1077,7 @@ static bxattr_exit_code generic_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
       case -1:
          switch (errno) {
          case ENOENT:
-         case ENOTSUP:
-         case EOPNOTSUPP:
+         case BXATTR_ENOTSUP:
             retval = bxattr_exit_ok;
             goto bail_out;
          default:
@@ -1107,8 +1104,7 @@ static bxattr_exit_code generic_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
          if (xattr_value_len < 0) {
             switch (errno) {
             case ENOENT:
-            case ENOTSUP:
-            case EOPNOTSUPP:
+            case BXATTR_ENOTSUP:
                retval = bxattr_exit_ok;
                goto bail_out;
             default:
@@ -1208,8 +1204,7 @@ static bxattr_exit_code generic_xattr_parse_streams(JCR *jcr, int stream)
       if (lsetxattr(jcr->last_fname, current_xattr->name, current_xattr->value, current_xattr->value_length, 0) != 0) {
          switch (errno) {
          case ENOENT:
-         case ENOTSUP:
-         case EOPNOTSUPP:
+         case BXATTR_ENOTSUP:
             goto bail_out;
          default:
             Mmsg2(jcr->errmsg, _("lsetxattr error on file \"%s\": ERR=%s\n"),
