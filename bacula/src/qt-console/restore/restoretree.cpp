@@ -232,8 +232,7 @@ void restoreTree::populateDirectoryTree()
          cmd += " WHERE File.FilenameId=" + QString("%1").arg(m_nullFileNameId);
       else
          cmd += " WHERE File.FilenameId IN (SELECT FilenameId FROM Filename WHERE Name='')";
-      cmd += " AND File.Jobid IN (" + m_checkedJobs + ")"
-         " ORDER BY Path";
+      cmd += " AND File.Jobid IN (" + m_checkedJobs + ")";
       if (mainWin->m_sqlDebug)
          Pmsg1(000, "Query cmd : %s\n", cmd.toUtf8().data());
       prBar1->setValue(ontask++);
@@ -255,16 +254,15 @@ void restoreTree::populateDirectoryTree()
          if (mainWin->m_miscDebug)
             Pmsg1(000, "Done with query %i results\n", results.count());
          QStringList fieldlist;
-         foreach(QString resultline, results) {
+         foreach(const QString &resultline, results) {
             /* Update progress bar periodically */
             if ((++m_debugCnt && 0x3FF) == 0) {
                prBar2->setValue(m_debugCnt);
             }
             fieldlist = resultline.split("\t");
             int fieldcnt = 0;
-            QString field;
             /* Iterate through fields in the record */
-            foreach (field, fieldlist) {
+            foreach (const QString &field, fieldlist) {
                if (fieldcnt == 0 ) {
                   parseDirectory(field);
                } else if (fieldcnt == 1) {
@@ -323,141 +321,47 @@ void restoreTree::setJobsCheckedList()
  * Function to parse a directory into all possible subdirectories, then add to
  * The tree.
  */
-void restoreTree::parseDirectory(QString &dir_in)
+void restoreTree::parseDirectory(const QString &dir_in)
 {
-   /* m_debugTrap is to only print debugs for a few occurennces of calling parseDirectory
-    * instead of printing out what could potentially a whole bunch */
-   if (m_debugCnt > 2)
-      m_debugTrap = false;
-   /* Truncate everything after the last / */
-   if (dir_in.right(1) != "/") {
-      dir_in.truncate(dir_in.lastIndexOf("/") + 1);
-   }
-   if ((mainWin->m_miscDebug) && (m_debugTrap))
-      Pmsg1(000, "parsing %s\n", dir_in.toUtf8().data());
+   // bail out if already processed
+   if (m_dirPaths.contains(dir_in))
+     return;
+   // search for parent...
+   int pos=dir_in.lastIndexOf("/",-2);
 
-   /* split and add if not in yet */
-   QString direct, path;
-   int index;
-   bool done = false;
-   QStringList pathAfter, dirAfter;
-   /* start from the end, turn /etc/somedir/subdir/ into /etc/somedir and subdir/ 
-    * if not added into tree, then try /etc/ and somedir/ if not added, then try
-    * / and etc/ .  That should succeed, then add the ones that failed in reverse */
-   while (((index = dir_in.lastIndexOf("/", -2)) != -1) && (!done)) {
-      direct = path = dir_in;
-      path.replace(index+1, dir_in.length()-index-1,"");
-      direct.replace(0, index+1, "");
-      if ((mainWin->m_miscDebug) && (m_debugTrap)) {
-         QString msg = QString("length = \"%1\" index = \"%2\" Adding \"%3\" \"%4\"\n")
-                    .arg(dir_in.length()).arg(index).arg(path).arg(direct);
-         Pmsg0(000, msg.toUtf8().data());
-      }
-      if (addDirectory(path, direct)) { done = true; }
-      else {
-         if ((mainWin->m_miscDebug) && (m_debugTrap)) {
-            Pmsg0(000, "Saving for later\n");
-         }
-         pathAfter.prepend(path);
-         dirAfter.prepend(direct);
-      }
-      dir_in = path;
-   }
+   if (pos != -1)
+   {
+     QString parent=dir_in.left(pos+1);
+     QString subdir=dir_in.mid(pos+1);
 
-   for (int k=0; k<pathAfter.count(); k++) {
-      if (addDirectory(pathAfter[k], dirAfter[k])) {
-         if ((mainWin->m_miscDebug) && (m_debugTrap))
-            Pmsg2(000, "Adding After %s %s\n", pathAfter[k].toUtf8().data(), dirAfter[k].toUtf8().data());
-      } else {
-         if ((mainWin->m_miscDebug) && (m_debugTrap))
-            Pmsg2(000, "Error Adding %s %s\n", pathAfter[k].toUtf8().data(), dirAfter[k].toUtf8().data());
-      }
-   }
-}
+     QTreeWidgetItem *item       = NULL;
+     QTreeWidgetItem *parentItem = m_dirPaths.value(parent);
+     
+     if (parentItem==0) {
+       // recurse to build parent...
+       parseDirectory(parent);
+       parentItem = m_dirPaths.value(parent);
+     }
 
-
-/*
- * Function called from fill directory when a directory is found to see if this
- * directory exists in the directory pane and then add it to the directory pane
- */
-bool restoreTree::addDirectory(QString &m_cwd, QString &newdirr)
-{
-   QString newdir = newdirr;
-   QString fullPath = m_cwd + newdirr;
-   bool ok = true, added = false;
-
-   if ((mainWin->m_miscDebug) && (m_debugTrap)) {
-      QString msg = QString("In addDirectory cwd \"%1\" newdir \"%2\"\n")
-                    .arg(m_cwd)
-                    .arg(newdir);
-      Pmsg0(000, msg.toUtf8().data());
+     /* new directories to add */
+     item = new QTreeWidgetItem(parentItem);
+     item->setText(0, subdir);
+     item->setData(0, Qt::UserRole, QVariant(dir_in));
+     item->setCheckState(0, Qt::Unchecked);
+     /* Store the current state of the check status in column 1, which at
+      * this point has no text*/
+     item->setData(1, Qt::UserRole, QVariant(Qt::Unchecked));
+     m_dirPaths.insert(dir_in,item);
    }
-
-   if (!m_slashTrap) {
-      /* add unix '/' directory first */
-      if (m_dirPaths.empty() && !isWin32Path(fullPath)) {
-         m_slashTrap = true;
-         QTreeWidgetItem *item = new QTreeWidgetItem(directoryTree);
-         QString text("/");
-         item->setText(0, text.toUtf8().data());
-         item->setData(0, Qt::UserRole, QVariant(text));
-         item->setData(1, Qt::UserRole, QVariant(Qt::Unchecked));
-         item->setIcon(0, QIcon(QString::fromUtf8(":images/folder.png")));
-         if ((mainWin->m_miscDebug) && (m_debugTrap)) {
-            Pmsg1(000, "Pre Inserting %s\n", text.toUtf8().data());
-         }
-         m_dirPaths.insert(text, item);
-      }
-      /* no need to check for windows drive if unix */
-      if (isWin32Path(m_cwd)) {
-         if (!m_dirPaths.contains(m_cwd)) {
-            if (m_cwd.count('/') > 1) { return false; }
-            /* this is a windows drive add the base widget */
-            QTreeWidgetItem *item = new QTreeWidgetItem(directoryTree);
-            item->setText(0, m_cwd);
-            item->setData(0, Qt::UserRole, QVariant(fullPath));
-            item->setData(1, Qt::UserRole, QVariant(Qt::Unchecked));
-            item->setIcon(0, QIcon(QString::fromUtf8(":images/folder.png")));
-            if ((mainWin->m_miscDebug) && (m_debugTrap)) {
-               Pmsg0(000, "Added Base \"letter\":/\n");
-            }
-            m_dirPaths.insert(m_cwd, item);
-         }
-      }
+   else
+   {
+     QTreeWidgetItem *item = new QTreeWidgetItem(directoryTree);
+     item->setText(0, dir_in);
+     item->setData(0, Qt::UserRole, QVariant(dir_in));
+     item->setData(1, Qt::UserRole, QVariant(Qt::Unchecked));
+     item->setIcon(0, QIcon(QString::fromUtf8(":images/folder.png")));
+     m_dirPaths.insert(dir_in,item);
    }
- 
-   /* is it already existent ?? */
-   if (!m_dirPaths.contains(fullPath)) {
-      QTreeWidgetItem *item = NULL;
-      QTreeWidgetItem *parent = m_dirPaths.value(m_cwd);
-      if (parent) {
-         /* new directories to add */
-         item = new QTreeWidgetItem(parent);
-         item->setText(0, newdir.toUtf8().data());
-         item->setData(0, Qt::UserRole, QVariant(fullPath));
-         item->setCheckState(0, Qt::Unchecked);
-         /* Store the current state of the check status in column 1, which at
-          * this point has no text*/
-         item->setData(1, Qt::UserRole, QVariant(Qt::Unchecked));
-      } else {
-         ok = false;
-         if ((mainWin->m_miscDebug) && (m_debugTrap)) {
-            QString msg = QString("In else of if parent cwd \"%1\" newdir \"%2\"\n")
-                 .arg(m_cwd)
-                 .arg(newdir);
-            Pmsg0(000, msg.toUtf8().data());
-         }
-      }
-      /* insert into hash */
-      if (ok) {
-         if ((mainWin->m_miscDebug) && (m_debugTrap)) {
-            Pmsg1(000, "Inserting %s\n", fullPath.toUtf8().data());
-         }
-         m_dirPaths.insert(fullPath, item);
-         added = true;
-      }
-   }
-   return added;
 }
 
 /*
