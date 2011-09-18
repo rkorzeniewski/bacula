@@ -259,7 +259,7 @@ int authenticate_storagedaemon(JCR *jcr)
 
    if (!auth_success) {
       Jmsg(jcr, M_FATAL, 0, _("Authorization key rejected by Storage daemon.\n"
-       "Please see http://www.bacula.org/en/rel-manual/Bacula_Freque_Asked_Questi.html#SECTION003760000000000000000 for help.\n"));
+       "Please see " MANUAL_AUTH_URL " for help.\n"));
       goto auth_fatal;
    }
 
