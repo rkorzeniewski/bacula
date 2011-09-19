@@ -1,7 +1,54 @@
-              Changelog on version 5.2.0
+              Changelog on version 5.2.0rc2
+
+19Sep11
+ - Update auth troubleshooting URL to use MANUAL_AUTH_URL macro
+ - Define MANUAL_AUTH_URL in baconfig.h
+
+17Sep11
+ - Fix #1762 about bat version browser performance problem
+
+16Sep11
+ - On restore we don't have a full FF_PKT so we lstat the file.
+ - Add XATTR and ACL flags for backup and restore.
+ - Lower some messages from level M_ERROR to M_WARNING in acl/xatttr.
+
+07Sep11
+ - Fix spooldata and ignoreduplicates run command options to use JCR instead of 
+  the Job resource.
+
+30Aug11
+ - Fix #1761 about create_postgresql_database
+
+22Aug11
+ - Apply htmldir fix provided by Philipp
+
+20Aug11
+ - Fix possible buffer overrun in exchange plugin
+
+17Aug11
+ - Add help for "use" command as suggested by Thomas Mueller
+ - Fix error message with bad dot commands
+
+16Aug11
+ - Drop unused sqlite_dump function from make_catalog_backup.pl
+ - Adapt make_catalog_backup.pl for backend
+
+09Aug11
+ - Fix backtrace detection in configure
+
+06Aug11
+ - Make bat run dialog present only allowed levels
+
+05Aug11
+ - Fix bat seg fault in FileSet view
 
 Bug fixes
-1389 1444 1448 1466 1467 1468 1476 1481 1486 1488 1493 1494 1497 1499 1501 1502 1504 1509 1511 1513 1516 1524 1526 1527 1532 1536 1538 1541 1542 1549 1551 1553 1554 1558 1559 1560 1564 1567 1568 1569 1571 1574 1577 1581 1582 1584 1587 1594 1595 1600 1601 1603 1604 1606 1608 1610 1612 1623 1624 1633 1643 1648 1655 1661 1666 1669 1672 1675 1684 1685 1695 1696 1699 1700 1703 1735 1664 1741 1749
+1761 1762
+
+Version 5.2.0rc1
+
+Bug fixes
+1389 1444 1448 1466 1467 1468 1476 1481 1486 1488 1493 1494 1497 1499 1501 1502 1504 1509 1511 1513 1516 1524 1526 1527 1532 1536 1538 1541 1542 1549 1551 1553 1554 1558 1559 1560 1564 1567 1568 1569 1571 1574 1577 1581 1582 1584 1587 1594 1595 1600 1601 1603 1604 1606 1608 1610 1612 1623 1624 1633 1643 1648 1655 1661 1666 1669 1672 1675 1684 1685 1695 1696 1699 1700 1703 1735 1664 1741 1749 
 
 08Jul11
  - Fix libtool definition and make the helper script executable.
