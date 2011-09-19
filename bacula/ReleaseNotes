@@ -1,5 +1,5 @@
 
-               Release Notes for Bacula 5.2.0 Beta 1
+               Release Notes for Bacula 5.2.0 Beta 2
 
   Bacula code: Total files = 1,110 Total lines = 231,439 (Using SLOCCount)
 
@@ -100,6 +100,7 @@ Other Enhancements:
 - Many new plugin API features
 - Improved memory handling for restores
 - Significant stability enhancements to bat
+- xattr/ACL restore failure are now printed as Warning
 - A few path name length limits in Windows have been removed.
 
 
