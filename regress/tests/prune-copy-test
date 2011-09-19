@@ -75,6 +75,10 @@ messages
 @sleep 1
 setdebug level=1 director
 list jobs
+sql
+SELECT JobId, Name, JobTDate, StartTime, Type, Level, JobFiles, JobStatus
+FROM Job ORDER BY StartTime;
+
 prune jobs yes
 list jobs
 @################################################################ 
