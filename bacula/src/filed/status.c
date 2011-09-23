@@ -149,11 +149,11 @@ static void  list_status_header(STATUS_PKT *sp)
    len = Mmsg(msg, _(" Sizeof: boffset_t=%d size_t=%d debug=%d trace=%d\n"),
          sizeof(boffset_t), sizeof(size_t), debug_level, get_trace());
    sendit(msg.c_str(), len, sp);
-   if (debug_level > 0 && plugin_list->size() > 0) {
+   if (debug_level > 0 && bplugin_list->size() > 0) {
       Plugin *plugin;
       int len;
       pm_strcpy(msg, "Plugin: ");
-      foreach_alist(plugin, plugin_list) {
+      foreach_alist(plugin, bplugin_list) {
          len = pm_strcat(msg, plugin->file);
          if (len > 80) {
             pm_strcat(msg, "\n   ");

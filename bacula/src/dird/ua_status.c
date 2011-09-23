@@ -305,12 +305,12 @@ void list_dir_status_header(UAContext *ua)
             edit_uint64_with_commas(sm_max_buffers, b5));
 
    /* TODO: use this function once for all daemons */
-   if (debug_level > 0 && plugin_list->size() > 0) {
+   if (debug_level > 0 && bplugin_list->size() > 0) {
       int len;
       Plugin *plugin;
       POOL_MEM msg(PM_FNAME);
       pm_strcpy(msg, " Plugin: ");
-      foreach_alist(plugin, plugin_list) {
+      foreach_alist(plugin, bplugin_list) {
          len = pm_strcat(msg, plugin->file);
          if (len > 80) {
             pm_strcat(msg, "\n   ");

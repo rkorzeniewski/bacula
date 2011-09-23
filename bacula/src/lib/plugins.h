@@ -40,7 +40,7 @@
  ****************************************************************************/
 
 #ifndef BUILD_PLUGIN
-extern DLL_IMP_EXP alist *plugin_list;
+extern DLL_IMP_EXP alist *bplugin_list;
 #endif
 
 /* Universal return codes from all plugin functions */

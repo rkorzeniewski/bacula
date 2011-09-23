@@ -74,7 +74,7 @@ void generate_plugin_event(JCR *jcr, bEventType eventType, void *value)
    Plugin *plugin;
    int i = 0;
 
-   if (!plugin_list || !jcr || !jcr->plugin_ctx_list) {
+   if (!bplugin_list || !jcr || !jcr->plugin_ctx_list) {
       return;
    }
 
@@ -83,7 +83,7 @@ void generate_plugin_event(JCR *jcr, bEventType eventType, void *value)
 
    Dmsg2(dbglvl, "plugin_ctx_list=%p JobId=%d\n", jcr->plugin_ctx_list, jcr->JobId);
 
-   foreach_alist(plugin, plugin_list) {
+   foreach_alist(plugin, bplugin_list) {
       bRC rc;
       rc = plug_func(plugin)->handlePluginEvent(&plugin_ctx_list[i++], &event, value);
       if (rc != bRC_OK) {
@@ -115,7 +115,7 @@ void load_dir_plugins(const char *plugin_dir)
       return;
    }
 
-   plugin_list = New(alist(10, not_owned_by_alist));
+   bplugin_list = New(alist(10, not_owned_by_alist));
    load_plugins((void *)&binfo, (void *)&bfuncs, plugin_dir, plugin_type, NULL);
    dbg_plugin_add_hook(dump_dir_plugin);
 }
@@ -128,11 +128,11 @@ void new_plugins(JCR *jcr)
    Plugin *plugin;
    int i = 0;
 
-   if (!plugin_list) {
+   if (!bplugin_list) {
       return;
    }
 
-   int num = plugin_list->size();
+   int num = bplugin_list->size();
 
    if (num == 0) {
       return;
@@ -142,7 +142,7 @@ void new_plugins(JCR *jcr)
 
    bpContext *plugin_ctx_list = jcr->plugin_ctx_list;
    Dmsg2(dbglvl, "Instantiate plugin_ctx_list=%p JobId=%d\n", jcr->plugin_ctx_list, jcr->JobId);
-   foreach_alist(plugin, plugin_list) {
+   foreach_alist(plugin, bplugin_list) {
       /* Start a new instance of each plugin */
       plugin_ctx_list[i].bContext = (void *)jcr;
       plugin_ctx_list[i].pContext = NULL;
@@ -158,13 +158,13 @@ void free_plugins(JCR *jcr)
    Plugin *plugin;
    int i = 0;
 
-   if (!plugin_list || !jcr->plugin_ctx_list) {
+   if (!bplugin_list || !jcr->plugin_ctx_list) {
       return;
    }
 
    bpContext *plugin_ctx_list = (bpContext *)jcr->plugin_ctx_list;
    Dmsg2(dbglvl, "Free instance plugin_ctx_list=%p JobId=%d\n", jcr->plugin_ctx_list, jcr->JobId);
-   foreach_alist(plugin, plugin_list) {
+   foreach_alist(plugin, bplugin_list) {
       /* Free the plugin instance */
       plug_func(plugin)->freePlugin(&plugin_ctx_list[i]);
       plugin_ctx_list[i].bContext = NULL;

@@ -160,7 +160,7 @@ void generate_plugin_event(JCR *jcr, bEventType eventType, void *value)
    bool call_if_canceled = false;
    bRC rc;
 
-   if (!plugin_list || !jcr || !jcr->plugin_ctx_list) {
+   if (!bplugin_list || !jcr || !jcr->plugin_ctx_list) {
       return;                         /* Return if no plugins loaded */
    }
    
@@ -210,7 +210,7 @@ void generate_plugin_event(JCR *jcr, bEventType eventType, void *value)
     * Pass event to every plugin (except if name is set). If name
     *   is set, we pass it only to the plugin with that name.
     */
-   foreach_alist(plugin, plugin_list) {
+   foreach_alist(plugin, bplugin_list) {
       if (name && !for_this_plug(plugin, name, len)) {
          i++;
          continue;
@@ -236,7 +236,7 @@ bool plugin_check_file(JCR *jcr, char *fname)
    int rc = bRC_OK;
    int i = 0;
 
-   if (!plugin_list || !jcr || !jcr->plugin_ctx_list || jcr->is_job_canceled()) {
+   if (!bplugin_list || !jcr || !jcr->plugin_ctx_list || jcr->is_job_canceled()) {
       return false;                      /* Return if no plugins loaded */
    }
 
@@ -245,7 +245,7 @@ bool plugin_check_file(JCR *jcr, char *fname)
    Dmsg2(dbglvl, "plugin_ctx=%p JobId=%d\n", jcr->plugin_ctx_list, jcr->JobId);
 
    /* Pass event to every plugin */
-   foreach_alist(plugin, plugin_list) {
+   foreach_alist(plugin, bplugin_list) {
       jcr->plugin_ctx = &plugin_ctx_list[i++];
       jcr->plugin = plugin;
       if (is_plugin_disabled(jcr)) {
@@ -326,7 +326,7 @@ int plugin_save(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
    POOL_MEM fname(PM_FNAME);
    POOL_MEM link(PM_FNAME);
 
-   if (!plugin_list || !jcr->plugin_ctx_list || jcr->is_job_canceled()) {
+   if (!bplugin_list || !jcr->plugin_ctx_list || jcr->is_job_canceled()) {
       Jmsg1(jcr, M_FATAL, 0, "Command plugin \"%s\" requested, but is not loaded.\n", cmd);
       return 1;                            /* Return if no plugins loaded */
    }
@@ -340,7 +340,7 @@ int plugin_save(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
    }
 
    /* Note, we stop the loop on the first plugin that matches the name */
-   foreach_alist(plugin, plugin_list) {
+   foreach_alist(plugin, bplugin_list) {
       Dmsg4(dbglvl, "plugin=%s plen=%d cmd=%s len=%d\n", plugin->file, plugin->file_len, cmd, len);
       if (!for_this_plug(plugin, cmd, len)) {
          i++;
@@ -557,7 +557,7 @@ bool plugin_name_stream(JCR *jcr, char *name)
    /*
     * Search for correct plugin as specified on the command 
     */
-   foreach_alist(plugin, plugin_list) {
+   foreach_alist(plugin, bplugin_list) {
       bEvent event;
       Dmsg3(dbglvl, "plugin=%s cmd=%s len=%d\n", plugin->file, cmd, len);
       if (!for_this_plug(plugin, cmd, len)) {
@@ -724,13 +724,13 @@ void load_fd_plugins(const char *plugin_dir)
       return;
    }
 
-   plugin_list = New(alist(10, not_owned_by_alist));
+   bplugin_list = New(alist(10, not_owned_by_alist));
    if (!load_plugins((void *)&binfo, (void *)&bfuncs, plugin_dir, plugin_type,
                      is_plugin_compatible)) {
       /* Either none found, or some error */
-      if (plugin_list->size() == 0) {
-         delete plugin_list;
-         plugin_list = NULL;
+      if (bplugin_list->size() == 0) {
+         delete bplugin_list;
+         bplugin_list = NULL;
          Dmsg0(dbglvl, "No plugins loaded\n");
          return;
       }
@@ -747,7 +747,7 @@ void load_fd_plugins(const char *plugin_dir)
     * Verify that the plugin is acceptable, and print information
     *  about it.
     */
-   foreach_alist(plugin, plugin_list) {
+   foreach_alist(plugin, bplugin_list) {
       Jmsg(NULL, M_INFO, 0, _("Loaded plugin: %s\n"), plugin->file);
       Dmsg1(dbglvl, "Loaded plugin: %s\n", plugin->file);
    }
@@ -799,7 +799,7 @@ static bool is_plugin_compatible(Plugin *plugin)
 
 /**
  * Create a new instance of each plugin for this Job
- *   Note, plugin_list can exist but jcr->plugin_ctx_list can
+ *   Note, bplugin_list can exist but jcr->plugin_ctx_list can
  *   be NULL if no plugins were loaded.
  */
 void new_plugins(JCR *jcr)
@@ -807,7 +807,7 @@ void new_plugins(JCR *jcr)
    Plugin *plugin;
    int i = 0;
 
-   if (!plugin_list) {
+   if (!bplugin_list) {
       Dmsg0(dbglvl, "plugin list is NULL\n");
       return;
    }
@@ -815,7 +815,7 @@ void new_plugins(JCR *jcr)
       return;
    }
 
-   int num = plugin_list->size();
+   int num = bplugin_list->size();
 
    if (num == 0) {
       Dmsg0(dbglvl, "No plugins loaded\n");
@@ -826,7 +826,7 @@ void new_plugins(JCR *jcr)
 
    bpContext *plugin_ctx_list = (bpContext *)jcr->plugin_ctx_list;
    Dmsg2(dbglvl, "Instantiate plugin_ctx=%p JobId=%d\n", plugin_ctx_list, jcr->JobId);
-   foreach_alist(plugin, plugin_list) {
+   foreach_alist(plugin, bplugin_list) {
       /* Start a new instance of each plugin */
       bacula_ctx *b_ctx = (bacula_ctx *)malloc(sizeof(bacula_ctx));
       memset(b_ctx, 0, sizeof(bacula_ctx));
@@ -847,13 +847,13 @@ void free_plugins(JCR *jcr)
    Plugin *plugin;
    int i = 0;
 
-   if (!plugin_list || !jcr->plugin_ctx_list) {
+   if (!bplugin_list || !jcr->plugin_ctx_list) {
       return;                         /* no plugins, nothing to do */
    }
 
    bpContext *plugin_ctx_list = (bpContext *)jcr->plugin_ctx_list;
    Dmsg2(dbglvl, "Free instance plugin_ctx=%p JobId=%d\n", plugin_ctx_list, jcr->JobId);
-   foreach_alist(plugin, plugin_list) {   
+   foreach_alist(plugin, bplugin_list) {   
       /* Free the plugin instance */
       plug_func(plugin)->freePlugin(&plugin_ctx_list[i]);
       free(plugin_ctx_list[i++].bContext);     /* free Bacula private context */

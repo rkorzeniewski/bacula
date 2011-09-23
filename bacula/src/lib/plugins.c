@@ -50,7 +50,7 @@ int readdir_r(DIR *dirp, struct dirent *entry, struct dirent **result);
 static const int dbglvl = 50;
 
 /* All loaded plugins */
-alist *plugin_list = NULL;
+alist *bplugin_list = NULL;
 
 /*
  * Create a new plugin "class" entry and enter it in the
@@ -199,7 +199,7 @@ bool load_plugins(void *binfo, void *bfuncs, const char *plugin_dir,
       }
 
       found = true;                /* found a plugin */
-      plugin_list->append(plugin);
+      bplugin_list->append(plugin);
    }
 
 get_out:
@@ -222,10 +222,10 @@ void unload_plugins()
 {
    Plugin *plugin;
 
-   if (!plugin_list) {
+   if (!bplugin_list) {
       return;
    }
-   foreach_alist(plugin, plugin_list) {
+   foreach_alist(plugin, bplugin_list) {
       /* Shut it down and unload it */
       plugin->unloadPlugin();
       dlclose(plugin->pHandle);
@@ -234,8 +234,8 @@ void unload_plugins()
       }
       free(plugin);
    }
-   delete plugin_list;
-   plugin_list = NULL;
+   delete bplugin_list;
+   bplugin_list = NULL;
 }
 
 /*
@@ -258,10 +258,10 @@ void dbg_print_plugin(FILE *fp)
    Plugin *plugin;
    fprintf(fp, "Attempt to dump plugins. Hook count=%d\n", dbg_plugin_hook_count);
 
-   if (!plugin_list) {
+   if (!bplugin_list) {
       return;
    }
-   foreach_alist(plugin, plugin_list) {
+   foreach_alist(plugin, bplugin_list) {
       for(int i=0; i < dbg_plugin_hook_count; i++) {
 //       dbg_plugin_hook_t *fct = dbg_plugin_hooks[i];
          fprintf(fp, "Plugin %p name=\"%s\" disabled=%d\n",
