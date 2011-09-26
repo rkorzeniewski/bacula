@@ -43,14 +43,19 @@
 bool B_DB::db_match_database(const char *db_driver, const char *db_name,
                              const char *db_address, int db_port)
 {
-   if (bstrcmp(m_db_driver, db_driver) &&
-       bstrcmp(m_db_name, db_name) &&
-       bstrcmp(m_db_address, db_address) &&
-       m_db_port == db_port) {
-      return true;
-   }
+   bool match;
 
-   return false;
+   if (db_driver) {
+      match = strcasecmp(m_db_driver, db_driver) == 0 &&
+              bstrcmp(m_db_name, db_name) &&
+              bstrcmp(m_db_address, db_address) &&
+              m_db_port == db_port;
+   } else {
+      match = bstrcmp(m_db_name, db_name) &&
+              bstrcmp(m_db_address, db_address) &&
+              m_db_port == db_port;
+   }
+   return match;
 }
 
 B_DB *B_DB::db_clone_database_connection(JCR *jcr, bool mult_db_connections)
