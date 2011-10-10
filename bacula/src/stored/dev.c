@@ -246,11 +246,11 @@ init_dev(JCR *jcr, DEVRES *device)
       dev->max_block_size = 0;
    }
    if (dev->max_block_size % TAPE_BSIZE != 0) {
-      Jmsg2(jcr, M_WARNING, 0, _("Max block size %u not multiple of device %s block size.\n"),
-         dev->max_block_size, dev->print_name());
+      Jmsg3(jcr, M_WARNING, 0, _("Max block size %u not multiple of device %s block size=%d.\n"),
+         dev->max_block_size, dev->print_name(), TAPE_BSIZE);
    }
    if (dev->max_volume_size != 0 && dev->max_volume_size < (dev->max_block_size << 4)) {
-      Jmsg(jcr, M_ERROR_TERM, 0, _("Max Vol Size < 8 * Max Block Size on device %s\n"), 
+      Jmsg(jcr, M_ERROR_TERM, 0, _("Max Vol Size < 8 * Max Block Size for device %s\n"), 
            dev->print_name());
    }
 
