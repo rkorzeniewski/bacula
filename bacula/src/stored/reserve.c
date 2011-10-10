@@ -453,7 +453,7 @@ bool find_suitable_device_for_job(JCR *jcr, RCTX &rctx)
 
                if (vol->dev->is_autochanger()) {
                   Dmsg1(dbglvl, "vol=%s is in changer\n", vol->vol_name);
-                  if (!is_vol_in_autochanger(rctx, vol)) {
+                  if (!is_vol_in_autochanger(rctx, vol) || !vol->dev->autoselect) {
                      continue;
                   }
                } else if (strcmp(device_name, vol->dev->device->hdr.name) != 0) {
