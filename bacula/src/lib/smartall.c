@@ -212,10 +212,8 @@ void sm_free(const char *file, int line, void *fp)
 
    if (((unsigned char *)cp)[head->ablen - 1] != ((((intptr_t) cp) & 0xFF) ^ 0xC5)) {
       V(mutex);
-      Dmsg4(0, "Overrun buffer: len=%d addr=%p allocated: %s:%d\n",
-         head->ablen, fp,
-         get_basename(head->abfname), head->ablineno);
-      Emsg2(M_ABORT, 0, _("Buffer overrun called from %s:%d\n"), file, line);
+      Emsg6(M_ABORT, 0, _("Overrun buffer: len=%d addr=%p allocated: %s:%d called from %s:%d\n"), 
+         head->ablen, fp, get_basename(head->abfname), head->ablineno, file, line);
    }
    if (sm_buffers > 0) {
       sm_buffers--;
