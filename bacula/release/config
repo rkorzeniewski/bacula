@@ -15,16 +15,17 @@ repo=$reltype
 # Bacula git repos
 bacula=${bacula:-${HOME}/bee/bacula}
 docs=${docs:-${HOME}/bee/docs}
+gpgkey=${gpgkey:-bacula}
 
 #
 # Set the following to your remote name.  By default it is origin.
 remote=${remote:-origin}
+push=no
 
-export push=no
 #
 # Note, you will probably want to set updatepo=no if you
 #   run this script multiple times for a given release.
-export updatepo=no
+updatepo=no
 
 cwd=`pwd`
 
@@ -44,5 +45,6 @@ ver=`sed -n -e 's/^.*VERSION.*"\(.*\)"$/\1/p' src/version.h`
 lsmdate=`sed -n -e 's/^.*LSMDATE.*"\(.*\)"$/\1/p' src/version.h`
 
 git checkout ${current}
+export push updatepo gpgkey
 
 cd $cwd
