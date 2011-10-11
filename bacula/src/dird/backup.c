@@ -384,15 +384,15 @@ bool do_backup(JCR *jcr)
    jcr->setJobStatus(JS_Running);
    fd = jcr->file_bsock;
 
+   if (!send_level_command(jcr)) {
+      goto bail_out;
+   }
+
    if (!send_include_list(jcr)) {
       goto bail_out;
    }
 
    if (!send_exclude_list(jcr)) {
-      goto bail_out;
-   }
-
-   if (!send_level_command(jcr)) {
       goto bail_out;
    }
 
