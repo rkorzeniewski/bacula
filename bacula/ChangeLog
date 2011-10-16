@@ -1,6 +1,7 @@
               Changelog on version 5.2.0
 
 16Oct11
+ - Update po files
  - Eliminate complier warning
  - Pull files from master
  - Fix small things in Windows depkgs build scripts
