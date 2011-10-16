@@ -1,5 +1,5 @@
 
-               Release Notes for Bacula 5.2.0 Beta 2
+               Release Notes for Bacula 5.2.0
 
   Bacula code: Total files = 1,110 Total lines = 231,439 (Using SLOCCount)
 
@@ -21,20 +21,22 @@ Compatibility:
 
 ================== Warning !!!!!! ==========================
 
- The new pruning algorithm will not allow to prune jobs that are essential to
- restore since the last Full backup. Pruning of volumes are not affected.
+ The new pruning algorithm will not allow pruning of jobs that are essential to
+ restore since the last Full backup. This is, of course, correct and desirable,
+ but it is different from older Bacula versions that could inappropriately
+ prune jobs. Pruning of volumes is not affected.
 
 New Catalog format in version 5.2.0
 -----------------------------------
 This release of Bacula uses a new catalog format. We provide a set of
 scripts that permit to convert a 5.0.x (version 12) catalog to 5.2.0 (version
-14).  The Bacula project rpms distributed on Source Forge will automatically
+14).  The Bacula project rpm spec files have been modified to
 detect the database change and do the upgrade for you.  We strongly
 recommend that you save a copy of your existing database before upgrading
 using rpms.
 
 The simplest way to upgrade the database assuming you are building from
-source:
+source (i.e. manually):
 1. Stop any current version of Bacula from running.
 2. Save a copy of your existing database.
 3. Configure, build, and install the 5.2.0 version of Bacula
@@ -83,7 +85,8 @@ Features Enhancements:
 - New SQL backend and ./configure that permits building multiple catalog
   backends in one build, and has the main Bacula core code totally independent
   of the SQL backend, which should simplify packaging (only the
-  libbacsql.so/dll needs to be changed.
+  libbacsql.so/dll needs to be changed to switch from one database backend
+  to another (e.g. MySQL to PostgreSQL).
 - Indent lsmark during restore
 - Disable batch insert config item
 - Director selection option in bconsole
