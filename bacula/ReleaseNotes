@@ -26,6 +26,12 @@ Compatibility:
  but it is different from older Bacula versions that could inappropriately
  prune jobs. Pruning of volumes is not affected.
 
+Building Bat:
+-------------
+To build Bat, you need Qt4 version 4.6.2.  If you build with any other
+version it is likely not to work.  If you do not have version 4.6.2, on
+your system, you can dlownload the Bacula depkgs_qt version 16Dec10.
+
 New Catalog format in version 5.2.0
 -----------------------------------
 This release of Bacula uses a new catalog format. We provide a set of

@@ -1,18 +1,18 @@
 # Bacula RPM spec file
 #
-# Copyright (C) 2000-2010 Free Software Foundation Europe e.V.
+# Copyright (C) 2000-2011 Free Software Foundation Europe e.V.
 
 # Platform Build Configuration
 
 # basic defines for every build
 %define _release           1
-%define _version           5.0.1
-%define depkgs_qt_version  28Jul09
+%define _version           5.2.0
+%define depkgs_qt_version  16Dec10
 
 # this is the QT version in depkgs_qt
-%define qt4ver             4.3.4
+%define qt4ver             4.6.2
 
-%define _packager D. Scott Barninger <barninger@fairfieldcomputers.com>
+%define _packager Kern Sibbald <kern@sibbald.com>
 
 %define manpage_ext gz
 

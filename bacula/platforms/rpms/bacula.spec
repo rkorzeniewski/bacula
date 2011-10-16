@@ -6,9 +6,9 @@
 
 # basic defines for every build
 %define _release           1
-%define _version           5.0.3
-%define _packager D. Scott Barninger <barninger@fairfieldcomputers.com>
-%define depkgs_version 18Dec09
+%define _version           5.2.0
+%define _packager Kern Sibbald <kern@sibbald.com>
+%define depkgs_version 15May10
 
 # postgresql defines - defaults for most platforms
 # pass changes if required
@@ -331,6 +331,8 @@ Source2: http://www.prdownloads.sourceforge.net/bacula/depkgs-%{depkgs_version}.
 %define rhel5 0
 %{?build_rhel5:%define rhel5 1}
 %{?build_rhel5:%define fc6 1}
+%define rhel6 0
+%{?build_rhel6:%define rhel6 1}
 # CentOS build
 %define centos3 0
 %{?build_centos3:%define centos3 1}
@@ -341,6 +343,8 @@ Source2: http://www.prdownloads.sourceforge.net/bacula/depkgs-%{depkgs_version}.
 %define centos5 0
 %{?build_centos5:%define centos5 1}
 %{?build_centos5:%define fc6 1}
+%define centos6 0
+%{?build_centos6:%define centos6 1}
 # SL build
 %define sl3 0
 %{?build_sl3:%define sl3 1}
@@ -391,7 +395,7 @@ Source2: http://www.prdownloads.sourceforge.net/bacula/depkgs-%{depkgs_version}.
 %define suse 1
 %endif
 %define rhel 0
-%if %{rhel3} || %{rhel4} || %{rhel5} || %{centos3} || %{centos4} || %{centos5}
+%if %{rhel3} || %{rhel4} || %{rhel5} || %{rhel6} || %{centos3} || %{centos4} || %{centos5} || %{centos6}
 %define rhel 1
 %endif
 %define scil 0
@@ -591,7 +595,11 @@ Requires: glibc, readline, %{name}-libs
 Conflicts: bacula
 Requires: termcap
 %else
+%if %{rhel6}
+Requires: compat-libtermcap
+%else
 Requires: libtermcap
+%endif
 %endif
 
 %if %{mysql}
@@ -1108,7 +1116,7 @@ rm -f $RPM_BUILD_DIR/Release_Notes-%{version}-%{release}.txt
 
 %if %{mysql}
 %pre mysql
-# test for bacula database older than version 13
+# test for bacula database older than version 14
 # note: this ASSUMES no password has been set for bacula database
 DB_VER=`mysql 2>/dev/null bacula -e 'select * from Version;'|tail -n 1`
 %endif
@@ -1149,7 +1157,7 @@ DB_VER=`echo 'select * from Version;' | psql bacula 2>/dev/null | tail -3 | head
 
 %if ! %{client_only}
 if [ -n "$DB_VER" ] && [ "$DB_VER" -lt "12" ]; then
-    echo "This bacula upgrade will update a bacula database from version 12 to 13."
+    echo "This bacula upgrade will update a bacula database from version 12 to 14."
     echo "You appear to be running database version $DB_VER. You must first update"
     echo "your database to version 12 and then install this upgrade. The alternative"
     echo "is to use %{script_dir}/drop_%{db_backend}_tables to delete all your your current"
@@ -1264,7 +1272,7 @@ if [ -z "$DB_VER" ]; then
     %{script_dir}/make_mysql_tables
 
 # check to see if we need to upgrade a 3.x database
-elif [ "$DB_VER" -lt "13" ]; then
+elif [ "$DB_VER" -lt "14" ]; then
     echo "This release requires an upgrade to your bacula database."
     echo "Backing up your current database..."
     mysqldump -f --opt bacula | bzip2 > %{working_dir}/bacula_backup.sql.bz2
@@ -1281,7 +1289,7 @@ fi
 if [ -s %{working_dir}/bacula.db ]; then
         DB_VER=`echo "select * from Version;" | %{sqlite_bindir}/sqlite3 2>/dev/null %{working_dir}/bacula.db | tail -n 1`
         # check to see if we need to upgrade a 3.x database
-        if [ "$DB_VER" -lt "13" ] && [ "$DB_VER" -ge "12" ]; then
+        if [ "$DB_VER" -lt "14" ] && [ "$DB_VER" -ge "12" ]; then
                 echo "This release requires an upgrade to your bacula database."
                 echo "Backing up your current database..."
                 echo ".dump" | %{sqlite_bindir}/sqlite3 %{working_dir}/bacula.db | bzip2 > %{working_dir}/bacula_backup.sql.bz2
@@ -1319,7 +1327,7 @@ if [ -z "$DB_VER" ]; then
     %{script_dir}/grant_postgresql_privileges
 
 # check to see if we need to upgrade a 5.0.x database
-elif [ "$DB_VER" -lt "13" ]; then
+elif [ "$DB_VER" -lt "14" ]; then
     echo "This release requires an upgrade to your bacula database."
     echo "Backing up your current database..."
     pg_dump bacula | bzip2 > %{working_dir}/bacula_backup.sql.bz2

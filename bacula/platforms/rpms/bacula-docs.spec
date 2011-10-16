@@ -1,13 +1,13 @@
 # Bacula RPM spec file
 #
-# Copyright (C) 2000-2010 Free Software Foundation Europe e.V.
+# Copyright (C) 2000-2011 Free Software Foundation Europe e.V.
 
 # Platform Build Configuration
 
 # basic defines for every build
 %define _release           1
-%define _version           5.0.0
-%define _packager D. Scott Barninger <barninger@fairfieldcomputers.com>
+%define _version           5.2.0
+%define _packager Kern Sibbald <kern@sibbald.com>
 
 %define _prefix        /usr
 %define _sbindir       %_prefix/sbin
