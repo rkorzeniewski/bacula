@@ -913,8 +913,7 @@ send_to_file:
  *  to the full path.  Try to return base + next higher path.
  */
 
-const char *
-get_basename(const char *pathname)
+const char *get_basename(const char *pathname)
 {
    const char *basename, *basename2;
    
