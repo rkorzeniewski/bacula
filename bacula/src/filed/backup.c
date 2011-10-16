@@ -121,7 +121,7 @@ bool blast_data_to_storage_daemon(JCR *jcr, char *addr)
     *  For the same reason, lzo compression is initialized here.
     */
 #ifdef HAVE_LZO
-   jcr->compress_buf_size = MAX(jcr->buf_size + (jcr->buf_size / 16) + 67 + sizeof(comp_stream_header), jcr->buf_size + ((jcr->buf_size+999) / 1000) + 30);
+   jcr->compress_buf_size = MAX(jcr->buf_size + (jcr->buf_size / 16) + 67 + (int)sizeof(comp_stream_header), jcr->buf_size + ((jcr->buf_size+999) / 1000) + 30);
    jcr->compress_buf = get_memory(jcr->compress_buf_size);
 #else
    jcr->compress_buf_size = jcr->buf_size + ((jcr->buf_size+999) / 1000) + 30;
