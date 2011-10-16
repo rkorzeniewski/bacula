@@ -1,5 +1,29 @@
               Changelog on version 5.2.0
 
+16Oct11
+ - Eliminate complier warning
+ - Pull files from master
+ - Fix small things in Windows depkgs build scripts
+ - Update autoconf conf file for Win32
+ - Fix Win32 build after new debug patch in smartall.c
+ - Ensure log files in first backup are restored
+
+11Oct11
+ - allow to use ./sign alone
+ - Modify ./release/sign to be able to use an other gpgkey (idea from Bruno)
+ - Send level command before fileset as sugested by Bastian. Fix #1768
+ - Enhance smartalloc abort
+
+10Oct11
+ - First attempt to fix vtape-autoselect-test bug
+ - Add more info to tape error msgs
+
+26Sep11
+ - Fix lurking bug in match when db_driver is not set (everything but DBI).
+
+23Sep11
+ - Fix bug #1764 plugin_list shadows global variable of mysql 5.5
+
 19Sep11
  - Update auth troubleshooting URL to use MANUAL_AUTH_URL macro
  - Define MANUAL_AUTH_URL in baconfig.h
