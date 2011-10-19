@@ -917,8 +917,9 @@ static void start_migration_job(JCR *jcr)
    UAContext *ua = new_ua_context(jcr);
    char ed1[50];
    ua->batch = true;
-   Mmsg(ua->cmd, "run job=\"%s\" jobid=%s ignoreduplicatecheck=yes", jcr->job->name(),
-        edit_uint64(jcr->MigrateJobId, ed1));
+   Mmsg(ua->cmd, "run job=\"%s\" jobid=%s allowduplicates=yes pool=\"%s\"", 
+        jcr->job->name(), edit_uint64(jcr->MigrateJobId, ed1),
+        jcr->pool->name());
    Dmsg2(dbglevel, "=============== %s cmd=%s\n", jcr->get_OperationName(), ua->cmd);
    parse_ua_args(ua);                 /* parse command */
    JobId_t jobid = run_cmd(ua, ua->cmd);
