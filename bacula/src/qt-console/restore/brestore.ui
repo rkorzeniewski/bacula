@@ -135,7 +135,7 @@
         </sizepolicy>
        </property>
        <property name="title">
-        <string>File list -- drage below for restore</string>
+        <string>File list -- drag below for restore</string>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout">
         <item>
