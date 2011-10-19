@@ -1,5 +1,9 @@
               Changelog on version 5.2.0
 
+19Oct11
+ - Try to eliminate multiple blank lines output in bat
+ - Remove Version browser from bat (broken) -- use brestore panel instead
+
 16Oct11
  - Update Specs and ReleaseNotes
  - Update po files
