@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2007-2010 Free Software Foundation Europe e.V.
+   Copyright (C) 2007-2011 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -47,6 +47,7 @@ DirComm::DirComm(Console *parent, int conn):  m_notifier(NULL),  m_api_set(false
    m_sock = NULL;
    m_at_prompt = false;
    m_at_main_prompt = false;
+   m_sent_blank = false;
    m_conn = conn;
    m_in_command = 0;
    m_in_select = false;
@@ -257,6 +258,19 @@ int DirComm::write(const char *msg)
    m_at_prompt = false;
    m_at_main_prompt = false;
    if (mainWin->m_commDebug) Pmsg2(000, "conn %i send: %s\n", m_conn, msg);
+   /*
+    * Ensure we send only one blank line.  Multiple blank lines are
+    *  simply discarded, it keeps the console output looking nicer.
+    */
+   if (m_sock->msglen == 0 || (m_sock->msglen == 1 && *m_sock->msg == '\n')) {
+      if (!m_sent_blank) {
+         m_sent_blank = true;
+         return m_sock->send();
+      } else {
+         return -1;             /* discard multiple blanks */
+      }
+   }
+   m_sent_blank = false;        /* clear flag */
    return m_sock->send();
 }
 
