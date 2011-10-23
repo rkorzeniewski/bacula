@@ -78,8 +78,27 @@ int32_t read_nbytes(BSOCK * bsock, char *ptr, int32_t nbytes)
       errno = 0;
       nread = socketRead(bsock->m_fd, ptr, nleft);
       if (bsock->is_timed_out() || bsock->is_terminated()) {
-         return nread;
+         return -1;
       }
+
+#ifdef HAVE_WIN32
+      /*
+       * For Windows, we must simulate Unix erro on a socket
+       *  error in order to handle errors correctly.
+       */
+      if (nread == SOCKET_ERROR) {
+        DWORD err = WSAGetLastError();
+        nread = -1;
+        if (err == WSAEINTR) {
+           errno = EINTR;
+        } else if (err == WSAEWOULDBLOCK) {
+           errno = EAGAIN;
+        } else {
+           errno = EIO;            /* some other error */
+        }
+     }
+#endif
+
       if (nread == -1) {
          if (errno == EINTR) {
             continue;
@@ -90,7 +109,7 @@ int32_t read_nbytes(BSOCK * bsock, char *ptr, int32_t nbytes)
          }
       }
       if (nread <= 0) {
-         return nread;             /* error, or EOF */
+         return -1;                /* error, or EOF */
       }
       nleft -= nread;
       ptr += nread;
@@ -134,8 +153,27 @@ int32_t write_nbytes(BSOCK * bsock, char *ptr, int32_t nbytes)
          errno = 0;
          nwritten = socketWrite(bsock->m_fd, ptr, nleft);
          if (bsock->is_timed_out() || bsock->is_terminated()) {
-            return nwritten;
+            return -1;
          }
+
+#ifdef HAVE_WIN32
+         /*
+          * For Windows, we must simulate Unix erro on a socket
+          *  error in order to handle errors correctly.
+          */
+         if (nwritten == SOCKET_ERROR) {
+            DWORD err = WSAGetLastError();
+            nwritten = -1;
+            if (err == WSAEINTR) {
+               errno = EINTR;
+            } else if (err == WSAEWOULDBLOCK) {
+               errno = EAGAIN;
+            } else {
+               errno = EIO;        /* some other error */
+            }
+         }
+#endif
+
       } while (nwritten == -1 && errno == EINTR);
       /*
        * If connection is non-blocking, we will get EAGAIN, so
@@ -154,7 +192,7 @@ int32_t write_nbytes(BSOCK * bsock, char *ptr, int32_t nbytes)
          continue;
       }
       if (nwritten <= 0) {
-         return nwritten;          /* error */
+         return -1;                /* error */
       }
       nleft -= nwritten;
       ptr += nwritten;
