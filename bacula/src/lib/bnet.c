@@ -83,7 +83,7 @@ int32_t read_nbytes(BSOCK * bsock, char *ptr, int32_t nbytes)
 
 #ifdef HAVE_WIN32
       /*
-       * For Windows, we must simulate Unix erro on a socket
+       * For Windows, we must simulate Unix errno on a socket
        *  error in order to handle errors correctly.
        */
       if (nread == SOCKET_ERROR) {
@@ -158,7 +158,7 @@ int32_t write_nbytes(BSOCK * bsock, char *ptr, int32_t nbytes)
 
 #ifdef HAVE_WIN32
          /*
-          * For Windows, we must simulate Unix erro on a socket
+          * For Windows, we must simulate Unix errno on a socket
           *  error in order to handle errors correctly.
           */
          if (nwritten == SOCKET_ERROR) {
