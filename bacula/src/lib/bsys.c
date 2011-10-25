@@ -547,12 +547,15 @@ bail_out:
 /*
  * Write the state file
  */
+static pthread_mutex_t state_mutex = PTHREAD_MUTEX_INITIALIZER;
+
 void write_state_file(char *dir, const char *progname, int port)
 {
    int sfd;
    bool ok = false;
    POOLMEM *fname = get_pool_memory(PM_FNAME);
-
+   
+   P(state_mutex);                    /* Only one job at a time can call here */
    Mmsg(&fname, "%s/%s.%d.state", dir, progname, port);
    /* Create new state file */
    unlink(fname);
@@ -590,6 +593,7 @@ bail_out:
    if (!ok) {
       unlink(fname);
    }
+   V(state_mutex);
    free_pool_memory(fname);
 }
 
