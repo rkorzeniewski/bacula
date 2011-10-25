@@ -78,7 +78,7 @@ void Console::startTimer()
 {
    m_timer = new QTimer(this);
    QWidget::connect(m_timer, SIGNAL(timeout()), this, SLOT(poll_messages()));
-   m_timer->start(mainWin->m_checkMessagesInterval*1000);
+   m_timer->start(mainWin->m_checkMessagesInterval*30000);
 }
 
 void Console::stopTimer()
@@ -112,7 +112,6 @@ void Console::poll_messages()
 
    DirComm *dircomm = m_dircommHash.value(conn);
    if (mainWin->m_checkMessages && dircomm->m_at_main_prompt && hasFocus() && !mainWin->getWaitState()){
-      messagesPending(true);
       dircomm->write(".messages");
       displayToPrompt(conn);
       messagesPending(false);
