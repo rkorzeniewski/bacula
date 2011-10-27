@@ -86,7 +86,7 @@ if [ $? -eq 0 ]; then
     estat=1
 fi
 
-nb=`awk '/\| +[1-9]/ { print $0 } ' $tmp/log4.out | wc -l`
+nb=`awk '/\| +[1-9]/ { print $0 } ' $tmp/log4.out | wc -l | sed -e 's/^ *//'`
 if [ "$nb" != 1 ]; then
     print_debug "ERROR: All selected hardlinks should have the same checksum"
     estat=1
