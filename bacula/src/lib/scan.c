@@ -62,7 +62,7 @@ void strip_trailing_junk(char *cmd)
     * Strip trailing junk from command
     */
    p = cmd + strlen(cmd) - 1;
-   while ((p >= cmd) && (*p == '\n' || *p == '\r' || B_ISSPACE(*p))) {
+   while ((p >= cmd) && (*p == '\n' || *p == '\r' || *p == ' ')) {
       *p-- = 0;
    }
 }
