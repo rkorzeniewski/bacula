@@ -97,7 +97,11 @@ AC_HELP_STRING([--with-dbi@<:@=DIR@:>@], [Include DBI support. DIR is the DBD ba
         fi
      fi
      DBI_INCLUDE=-I$DBI_INCDIR
-     DBI_LIBS="-R $DBI_LIBDIR -L$DBI_LIBDIR -ldbi"
+     if test x$use_libtool != xno; then
+        DBI_LIBS="-R $DBI_LIBDIR -L$DBI_LIBDIR -ldbi"
+     else
+        DBI_LIBS="-L$DBI_LIBDIR -ldbi"
+     fi
      DBI_LIB=$DBI_LIBDIR/libdbi.a
      DBI_DBD_DRIVERDIR="-D DBI_DRIVER_DIR=\\\"$DRIVERDIR\\\""
      DB_LIBS="${DB_LIBS} ${DBI_LIBS}"
@@ -391,7 +395,11 @@ AC_HELP_STRING([--with-mysql@<:@=DIR@:>@], [Include MySQL support. DIR is the My
      MYSQL_INCLUDE=-I$MYSQL_INCDIR
      if test -f $MYSQL_LIBDIR/libmysqlclient_r.a \
           -o -f $MYSQL_LIBDIR/libmysqlclient_r.so; then
-        MYSQL_LIBS="-R $MYSQL_LIBDIR -L$MYSQL_LIBDIR -lmysqlclient_r -lz"
+        if test x$use_libtool != xno; then
+           MYSQL_LIBS="-R $MYSQL_LIBDIR -L$MYSQL_LIBDIR -lmysqlclient_r -lz"
+        else
+           MYSQL_LIBS="-L$MYSQL_LIBDIR -lmysqlclient_r -lz"
+        fi
         MYSQL_LFLAGS="-L$MYSQL_LIBDIR -lmysqlclient_r -lz"
         AC_DEFINE(HAVE_THREAD_SAFE_MYSQL, 1, [Set if Thread Safe MySQL can be checked using mysql_thread_safe])
         DB_LIBS="${DB_LIBS} ${MYSQL_LIBS}"
@@ -491,7 +499,11 @@ AC_HELP_STRING([--with-embedded-mysql@<:@=DIR@:>@], [Include MySQL support. DIR 
                 fi
         fi
      MYSQL_INCLUDE=-I$MYSQL_INCDIR
-     MYSQL_LIBS="-R $MYSQL_LIBDIR -L$MYSQL_LIBDIR -lmysqld -lz -lm -lcrypt"
+     if test x$use_libtool != xno; then
+        MYSQL_LIBS="-R $MYSQL_LIBDIR -L$MYSQL_LIBDIR -lmysqld -lz -lm -lcrypt"
+     else
+        MYSQL_LIBS="-L$MYSQL_LIBDIR -lmysqld -lz -lm -lcrypt"
+     fi
      MYSQL_LFLAGS="-L$MYSQL_LIBDIR -lmysqld -lz -lm -lcrypt"
      MYSQL_LIB=$MYSQL_LIBDIR/libmysqld.a
      DB_LIBS="${DB_LIBS} ${MYSQL_LIBS}"
@@ -554,7 +566,11 @@ AC_HELP_STRING([--with-ingres@<:@=DIR@:>@], [Include Ingres support. DIR is the 
         fi
      fi
      INGRES_INCLUDE=-I$INGRES_INCDIR
-     INGRES_LIBS="-R $INGRES_LIBDIR -L$INGRES_LIBDIR -lq.1 -lcompat.1 -lframe.1"
+     if test x$use_libtool != xno; then
+        INGRES_LIBS="-R $INGRES_LIBDIR -L$INGRES_LIBDIR -lq.1 -lcompat.1 -lframe.1"
+     else
+        INGRES_LIBS="-L$INGRES_LIBDIR -lq.1 -lcompat.1 -lframe.1"
+     fi
      DB_LIBS="${DB_LIBS} ${INGRES_LIBS}"
      AC_DEFINE(HAVE_INGRES, 1, [Set if have Ingres Database])
      AC_MSG_RESULT(yes)
@@ -636,7 +652,11 @@ AC_HELP_STRING([--with-sqlite3@<:@=DIR@:>@], [Include SQLite3 support. DIR is th
         fi
      fi
      SQLITE_INCLUDE=-I$SQLITE_INCDIR
-     SQLITE_LIBS="-R $SQLITE_LIBDIR -L$SQLITE_LIBDIR -lsqlite3"
+     if test x$use_libtool != xno; then
+        SQLITE_LIBS="-R $SQLITE_LIBDIR -L$SQLITE_LIBDIR -lsqlite3"
+     else
+        SQLITE_LIBS="-L$SQLITE_LIBDIR -lsqlite3"
+     fi
      SQLITE_LFLAGS="-L$SQLITE_LIBDIR -lsqlite3"
      SQLITE_LIB=$SQLITE_LIBDIR/libsqlite3.a
      DB_LIBS="${DB_LIBS} ${SQLITE_LIBS}"
@@ -736,9 +756,17 @@ AC_HELP_STRING([--with-postgresql@<:@=DIR@:>@], [Include PostgreSQL support. DIR
      AC_MSG_RESULT(yes)
 
      POSTGRESQL_INCLUDE=-I$POSTGRESQL_INCDIR
-     POSTGRESQL_LIBS="-R $POSTGRESQL_LIBDIR -L$POSTGRESQL_LIBDIR -lpq"
+     if test x$use_libtool != xno; then
+        POSTGRESQL_LIBS="-R $POSTGRESQL_LIBDIR -L$POSTGRESQL_LIBDIR -lpq"
+     else
+        POSTGRESQL_LIBS="-L$POSTGRESQL_LIBDIR -lpq"
+     fi
      AC_CHECK_FUNC(crypt, , AC_CHECK_LIB(crypt, crypt, [POSTGRESQL_LIBS="$POSTGRESQL_LIBS -lcrypt"]))
-     POSTGRESQL_LFLAGS=`echo ${POSTGRESQL_LIBS} | sed -e "s#-R $POSTGRESQL_LIBDIR##"`
+     if test x$use_libtool != xno; then
+        POSTGRESQL_LFLAGS=`echo ${POSTGRESQL_LIBS} | sed -e "s#-R $POSTGRESQL_LIBDIR##"`
+     else
+        POSTGRESQL_LFLAGS="${POSTGRESQL_LIBS}"
+     fi
      POSTGRESQL_LIB=$POSTGRESQL_LIBDIR/libpq.a
      DB_LIBS="${DB_LIBS} ${POSTGRESQL_LIBS}"
 
