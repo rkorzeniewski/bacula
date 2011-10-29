@@ -117,12 +117,6 @@
 /* Define if you have lzo lib */
 #undef HAVE_LZO
 
-/* Define to 1 if you have the <lzo/lzo1x.h> header file. */
-#undef HAVE_LZO_LZO1X_H
-
-/* Define to 1 if you have the <lzo/lzoconf.h> header file. */
-#undef HAVE_LZO_LZOCONF_H
-
 /* Define if you have libacl */
 #undef HAVE_ACL
 
@@ -270,9 +264,7 @@
 /* Defines if your system have the attr.h header file */
 #undef HAVE_ATTR_H
 
-/* Defines if your system have the cxxabi.h and execinfo.h header files for
- *   backtrace() 
- */
+/* Define to 1 if you have the `backtrace' function. */
 #undef HAVE_BACKTRACE
 
 /* Set if Bacula bat Qt4 GUI support enabled */
@@ -300,9 +292,6 @@
 
 /* Define to 1 if you have the <curses.h> header file. */
 #undef HAVE_CURSES_H
-
-/* Define to 1 if you have the <cxxabi.h> header file. */
-#undef HAVE_CXXABI_H
 
 /* Set if DBI DB batch insert code enabled */
 #undef HAVE_DBI_BATCH_FILE_INSERT
@@ -347,9 +336,6 @@
 
 /* Set if you have an Embedded MySQL Database */
 #undef HAVE_EMBEDDED_MYSQL
-
-/* Define to 1 if you have the <execinfo.h> header file. */
-#undef HAVE_EXECINFO_H
 
 /* Define to 1 if you have the 'extattr_get_file' function. */
 #undef HAVE_EXTATTR_GET_FILE
@@ -582,6 +568,12 @@
 
 /* Define to 1 if you have the `lstat' function. */
 #undef HAVE_LSTAT
+
+/* Define to 1 if you have the <lzo/lzo1x.h> header file. */
+#undef HAVE_LZO_LZO1X_H
+
+/* Define to 1 if you have the <lzo/lzoconf.h> header file. */
+#undef HAVE_LZO_LZOCONF_H
 
 /* Define to 1 if you have the <malloc.h> header file. */
 #undef HAVE_MALLOC_H
