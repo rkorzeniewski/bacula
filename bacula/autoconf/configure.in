@@ -1814,14 +1814,28 @@ dnl -------------------------------------------
 dnl Check if mysql supports batch mode	 
 dnl -------------------------------------------
 if test ! -z "$MYSQL_LIB"; then
-   AC_CHECK_LIB(mysql_r, mysql_thread_safe, AC_DEFINE(HAVE_MYSQL_THREAD_SAFE, 1, [Set if have mysql_thread_safe]))
+   dnl For mysql checking
+   saved_LIBS="${LIBS}"
+   LIBS="${saved_LIBS} ${MYSQL_LFLAGS}"
+
+   AC_CHECK_LIB(mysqlclient_r, mysql_thread_safe, AC_DEFINE(HAVE_MYSQL_THREAD_SAFE, 1, [Set if have mysql_thread_safe]))
+
+   dnl Revert after mysql checks
+   LIBS="${saved_LIBS}"
 fi
 
 dnl -------------------------------------------
 dnl Check if sqlite supports batch mode   
 dnl -------------------------------------------
 if test ! -z "SQLITE_LIB"; then
+   dnl For sqlite checking
+   saved_LIBS="${LIBS}"
+   LIBS="${saved_LIBS} ${SQLITE_LFLAGS}"
+
    AC_CHECK_LIB(sqlite3, sqlite3_threadsafe, AC_DEFINE(HAVE_SQLITE3_THREADSAFE, 1, [Set if have sqlite3_threadsafe]))
+
+   dnl Revert after sqlite checks
+   LIBS="${saved_LIBS}"
 fi
 
 dnl -------------------------------------------
@@ -1830,7 +1844,7 @@ dnl -------------------------------------------
 if test ! -z "$POSTGRESQL_LIB"; then
    dnl For postgresql checking
    saved_LIBS="${LIBS}"
-   LIBS="${saved_LIBS} ${POSTGRESQL_LIB}"
+   LIBS="${saved_LIBS} ${POSTGRESQL_LFLAGS}"
    
    AC_CHECK_LIB(pq, PQisthreadsafe, AC_DEFINE(HAVE_PQISTHREADSAFE, 1, [Set if have PQisthreadsafe]))
    AC_CHECK_LIB(pq, PQputCopyData, AC_DEFINE(HAVE_PQ_COPY, 1, [Set if have PQputCopyData]))

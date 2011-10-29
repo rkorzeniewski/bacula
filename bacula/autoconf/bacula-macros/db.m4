@@ -392,6 +392,7 @@ AC_HELP_STRING([--with-mysql@<:@=DIR@:>@], [Include MySQL support. DIR is the My
      if test -f $MYSQL_LIBDIR/libmysqlclient_r.a \
           -o -f $MYSQL_LIBDIR/libmysqlclient_r.so; then
         MYSQL_LIBS="-R $MYSQL_LIBDIR -L$MYSQL_LIBDIR -lmysqlclient_r -lz"
+        MYSQL_LFLAGS="-L$MYSQL_LIBDIR -lmysqlclient_r -lz"
         AC_DEFINE(HAVE_THREAD_SAFE_MYSQL, 1, [Set if Thread Safe MySQL can be checked using mysql_thread_safe])
         DB_LIBS="${DB_LIBS} ${MYSQL_LIBS}"
      fi
@@ -413,9 +414,11 @@ AC_HELP_STRING([--with-mysql@<:@=DIR@:>@], [Include MySQL support. DIR is the My
   else
      AC_MSG_RESULT(no)
   fi
-]
-)
+],[
+  AC_MSG_RESULT(no)
+])
 
+AC_MSG_CHECKING(for MySQL embedded support)
 AC_ARG_WITH(embedded-mysql,
 AC_HELP_STRING([--with-embedded-mysql@<:@=DIR@:>@], [Include MySQL support. DIR is the MySQL base install directory, default is to search through a number of common places for the MySQL files.]),
 [
@@ -489,6 +492,7 @@ AC_HELP_STRING([--with-embedded-mysql@<:@=DIR@:>@], [Include MySQL support. DIR 
         fi
      MYSQL_INCLUDE=-I$MYSQL_INCDIR
      MYSQL_LIBS="-R $MYSQL_LIBDIR -L$MYSQL_LIBDIR -lmysqld -lz -lm -lcrypt"
+     MYSQL_LFLAGS="-L$MYSQL_LIBDIR -lmysqld -lz -lm -lcrypt"
      MYSQL_LIB=$MYSQL_LIBDIR/libmysqld.a
      DB_LIBS="${DB_LIBS} ${MYSQL_LIBS}"
 
@@ -509,8 +513,9 @@ AC_HELP_STRING([--with-embedded-mysql@<:@=DIR@:>@], [Include MySQL support. DIR 
   else
      AC_MSG_RESULT(no)
   fi
-]
-)
+],[
+  AC_MSG_RESULT(no)
+])
 
 AC_SUBST(MYSQL_LIBS)
 AC_SUBST(MYSQL_INCLUDE)
@@ -632,6 +637,7 @@ AC_HELP_STRING([--with-sqlite3@<:@=DIR@:>@], [Include SQLite3 support. DIR is th
      fi
      SQLITE_INCLUDE=-I$SQLITE_INCDIR
      SQLITE_LIBS="-R $SQLITE_LIBDIR -L$SQLITE_LIBDIR -lsqlite3"
+     SQLITE_LFLAGS="-L$SQLITE_LIBDIR -lsqlite3"
      SQLITE_LIB=$SQLITE_LIBDIR/libsqlite3.a
      DB_LIBS="${DB_LIBS} ${SQLITE_LIBS}"
 
@@ -732,6 +738,7 @@ AC_HELP_STRING([--with-postgresql@<:@=DIR@:>@], [Include PostgreSQL support. DIR
      POSTGRESQL_INCLUDE=-I$POSTGRESQL_INCDIR
      POSTGRESQL_LIBS="-R $POSTGRESQL_LIBDIR -L$POSTGRESQL_LIBDIR -lpq"
      AC_CHECK_FUNC(crypt, , AC_CHECK_LIB(crypt, crypt, [POSTGRESQL_LIBS="$POSTGRESQL_LIBS -lcrypt"]))
+     POSTGRESQL_LFLAGS=`echo ${POSTGRESQL_LIBS} | sed -e "s#-R $POSTGRESQL_LIBDIR##"`
      POSTGRESQL_LIB=$POSTGRESQL_LIBDIR/libpq.a
      DB_LIBS="${DB_LIBS} ${POSTGRESQL_LIBS}"
 
