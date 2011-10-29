@@ -19,6 +19,26 @@ Compatibility:
  Director and Storage daemons. There should be no need to upgrade older File
  Daemons.
 
+Main New Features:
+------------------
+- LZO Compression
+- New Tray Monitor
+- Purge Migration Job
+- Changes in Bvfs (Bacula Virtual FileSystem)
+- Changes in the Pruning Algorithm
+- Ability to Verify any specified Job
+- Additions to RunScript variables
+- Additions to the Plugin API
+- ACL enhancements
+- XATTR enhancements
+- Class Based Dtabase Backend Drivers
+- Hash List Enhancements
+
+Some of the above are described below; all the above are
+described in more detail in the New Features chapter of the
+manual.
+
+
 ================== Warning !!!!!! ==========================
 
  The new pruning algorithm will not allow pruning of jobs that are essential to
