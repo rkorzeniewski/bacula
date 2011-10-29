@@ -387,7 +387,7 @@ dnl CHECKING COMMAND LINE OPTIONS
 dnl --------------------------------------------------------------------------
 
 dnl -------------------------------------------
-dnl gnome (default off)
+dnl gnome -- no longer supported
 dnl -------------------------------------------
 AC_ARG_ENABLE(gnome,
    AC_HELP_STRING([--enable-gnome], [enable build of bgnome-console GUI @<:@default=no@:>@]),
@@ -3233,7 +3233,6 @@ AC_OUTPUT([autoconf/Make.common \
 	   scripts/bacula.desktop.gnome2.consolehelper \
 	   scripts/bacula.desktop.gnome1.xsu \
 	   scripts/bacula.desktop.gnome2.xsu \
-	   scripts/bgnome-console.console_apps \
 	   scripts/mtx-changer \
 	   scripts/disk-changer \
 	   scripts/dvd-handler \
