@@ -9,6 +9,10 @@ Bug fixes
 1700 1703 1735 1741 1749 1751 1761 1762 1764 1768 1770 1771 2710
 
 29Oct11
+29Oct11
+ - Add script to list authors
+ - Update AUTHORS
+ - Add new updatedb files
  - Make PurgeMigrationJob directive name correspond to doc
  - Put Win exchange plugin debug code on level 100
  - Remove old gnome console files
