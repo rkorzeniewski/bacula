@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bacula 3.0.2\n"
 "Report-Msgid-Bugs-To: bacula-devel@lists.sourceforge.net\n"
-"POT-Creation-Date: 2011-10-16 21:07+0200\n"
+"POT-Creation-Date: 2011-10-29 11:54+0200\n"
 "PO-Revision-Date: 2009-12-01 16:04-0300\n"
 "Last-Translator: Victor Hugo dos Santos <listas.vhs@gmail.com>\n"
 "Language-Team: Bacula Spanish Team <bacula-users-es@lists.sourceforge.net>\n"
@@ -782,7 +782,7 @@ msgstr "Archivo: %s\n"
 msgid "Start Admin JobId %d, Job=%s\n"
 msgstr "Inicio Admin JobId %d, Job=%s\n"
 
-#: src/dird/admin.c:92 src/dird/vbackup.c:304 src/dird/migrate.c:1215
+#: src/dird/admin.c:92 src/dird/vbackup.c:304 src/dird/migrate.c:1216
 #: src/dird/backup.c:620
 #, c-format
 msgid "Error getting Job record for Job report: ERR=%s"
@@ -1388,7 +1388,7 @@ msgstr "No es posible obtener o crear un registro FileSet.\n"
 msgid "Error getting Client record for Job report: ERR=%s"
 msgstr "Error al obtener registro de Clientes para reporte de Job: ERR=%s"
 
-#: src/dird/vbackup.c:317 src/dird/migrate.c:1245 src/dird/backup.c:633
+#: src/dird/vbackup.c:317 src/dird/migrate.c:1246 src/dird/backup.c:633
 #, c-format
 msgid "Error getting Media record for Volume \"%s\": ERR=%s"
 msgstr "Error al obtener registro de Media para Volumen \"%s\": ERR=%s"
@@ -4355,8 +4355,8 @@ msgid "No %s SQL selection pattern specified.\n"
 msgstr "Ninguno %s patrón de selección de SQL especificado.\n"
 
 #: src/dird/migrate.c:715 src/dird/migrate.c:734 src/dird/migrate.c:755
-#: src/dird/migrate.c:791 src/dird/migrate.c:818 src/dird/migrate.c:943
-#: src/dird/migrate.c:976 src/dird/migrate.c:1105
+#: src/dird/migrate.c:791 src/dird/migrate.c:818 src/dird/migrate.c:944
+#: src/dird/migrate.c:977 src/dird/migrate.c:1106
 #, c-format
 msgid "SQL failed. ERR=%s\n"
 msgstr "Fallo SQL. ERR=%s\n"
@@ -4399,97 +4399,97 @@ msgstr "s eran"
 msgid "%s using JobId=%s Job=%s\n"
 msgstr "%s utilizando JobId=%s Job=%s\n"
 
-#: src/dird/migrate.c:926
+#: src/dird/migrate.c:927
 msgid "Could not start migration job.\n"
 msgstr "No se pudo arrancar el Job de migración.\n"
 
-#: src/dird/migrate.c:928
+#: src/dird/migrate.c:929
 #, c-format
 msgid "%s JobId %d started.\n"
 msgstr "%s JobId %d iniciado.\n"
 
-#: src/dird/migrate.c:947
+#: src/dird/migrate.c:948
 #, c-format
 msgid "No %s found to %s.\n"
 msgstr "Ninguno %s encontrado para %s.\n"
 
-#: src/dird/migrate.c:951
+#: src/dird/migrate.c:952
 #, c-format
 msgid "SQL error. Expected 1 MediaId got %d\n"
 msgstr "SQL error. Esperaba 1 MediaId, obtuvo %d\n"
 
-#: src/dird/migrate.c:980 src/dird/migrate.c:1110
+#: src/dird/migrate.c:981 src/dird/migrate.c:1111
 #, c-format
 msgid "No %ss found to %s.\n"
 msgstr "Ninguno %ss encontrado para %s.\n"
 
-#: src/dird/migrate.c:1002
+#: src/dird/migrate.c:1003
 msgid "Selection Type 'pooluncopiedjobs' only applies to Copy Jobs"
 msgstr ""
 "Selección del tipo 'pooluncopiedjos' sólo se aplica a Trabajos de Copia(Copy "
 "Jobs)"
 
-#: src/dird/migrate.c:1011
+#: src/dird/migrate.c:1012
 #, c-format
 msgid "SQL to get uncopied jobs failed. ERR=%s\n"
 msgstr "Fallo SQL para obtener uncopied jobs. ERR=%s\n"
 
-#: src/dird/migrate.c:1034
+#: src/dird/migrate.c:1035
 #, c-format
 msgid "No %s %s selection pattern specified.\n"
 msgstr "Ninguno %s %s patrón de selección especificados.\n"
 
-#: src/dird/migrate.c:1045
+#: src/dird/migrate.c:1046
 #, c-format
 msgid "SQL to get %s failed. ERR=%s\n"
 msgstr "Fallo SQL para obtener %s. ERR=%s\n"
 
-#: src/dird/migrate.c:1050
+#: src/dird/migrate.c:1051
 #, c-format
 msgid "Query of Pool \"%s\" returned no Jobs to %s.\n"
 msgstr "Consulta de Pool \"%s\" No regreso Jobs  para %s.\n"
 
-#: src/dird/migrate.c:1059
+#: src/dird/migrate.c:1060
 #, c-format
 msgid "Could not compile regex pattern \"%s\" ERR=%s\n"
 msgstr "No se ha podido compilar patrón regex  \"%s\" ERR=%s\n"
 
-#: src/dird/migrate.c:1088
+#: src/dird/migrate.c:1089
 #, c-format
 msgid "Regex pattern matched no Jobs to %s.\n"
 msgstr "Patrón Regex no encontró Jobs para %s.\n"
 
-#: src/dird/migrate.c:1253
+#: src/dird/migrate.c:1254
 #, c-format
 msgid "%s OK -- with warnings"
 msgstr "%s OK -- con alertas"
 
-#: src/dird/migrate.c:1255
+#: src/dird/migrate.c:1256
 #, c-format
 msgid "%s OK"
 msgstr "%s OK"
 
-#: src/dird/migrate.c:1260
+#: src/dird/migrate.c:1261
 #, c-format
 msgid "*** %s Error ***"
 msgstr "*** %s Error ***"
 
-#: src/dird/migrate.c:1270
+#: src/dird/migrate.c:1271
 #, c-format
 msgid "%s Canceled"
 msgstr "%s Cancelado"
 
-#: src/dird/migrate.c:1279
+#: src/dird/migrate.c:1280
 #, c-format
 msgid "Inappropriate %s term code"
 msgstr "Inadecuado código de terminación %s"
 
-#: src/dird/migrate.c:1289
+#: src/dird/migrate.c:1290
 #, c-format
 msgid "%s -- no files to %s"
 msgstr "%s -- ninguno archivo para %s"
 
-#: src/dird/migrate.c:1304
+#: src/dird/migrate.c:1305
 #, fuzzy, c-format
 msgid ""
 "%s %s %s (%s):\n"
@@ -4554,17 +4554,17 @@ msgstr ""
 " Terminación: %s\n"
 "\n"
 
-#: src/dird/migrate.c:1415
+#: src/dird/migrate.c:1416
 #, c-format
 msgid "No Next Pool specification found in Pool \"%s\".\n"
 msgstr "Especificación Next Pool no encontrada en Pool \"%s\".\n"
 
-#: src/dird/migrate.c:1421
+#: src/dird/migrate.c:1422
 #, c-format
 msgid "No Storage specification found in Next Pool \"%s\".\n"
 msgstr "Especificación Storage no encontrada en Next Pool \"%s\".\n"
 
-#: src/dird/migrate.c:1427
+#: src/dird/migrate.c:1428
 msgid "Storage from Pool's NextPool resource"
 msgstr "Storage desde recurso Pool's NextPool "
 
@@ -6657,14 +6657,14 @@ msgstr "Conectando al Director %s:%d\n"
 
 #: src/tray-monitor/tray-monitor.c:937
 #: src/qt-console/tray-monitor/tray-monitor.cpp:359
-#: src/qt-console/bcomm/dircomm.cpp:100
+#: src/qt-console/bcomm/dircomm.cpp:101
 #, c-format
 msgid "Connecting to Director %s:%d"
 msgstr "Conectando con Director %s:%d"
 
 #: src/tray-monitor/tray-monitor.c:938 src/wx-console/console_thread.cpp:428
 #: src/qt-console/tray-monitor/tray-monitor.cpp:361
-#: src/qt-console/bcomm/dircomm.cpp:170
+#: src/qt-console/bcomm/dircomm.cpp:171
 msgid "Director daemon"
 msgstr "Servicio Director"
 
@@ -13827,20 +13827,20 @@ msgstr "Niño muerto con la señal %d: %s"
 msgid "Invalid errno. No error message possible."
 msgstr "Invalido errorno. Imposible mensaje de error."
 
-#: src/lib/bnet.c:115
+#: src/lib/bnet.c:134
 #, c-format
 msgid "Attr spool write error. ERR=%s\n"
 msgstr "Error de escritura en cola de atributo. ERR=%s\n"
 
-#: src/lib/bnet.c:241 src/lib/bnet.c:282
+#: src/lib/bnet.c:279 src/lib/bnet.c:320
 msgid "TLS connection initialization failed.\n"
 msgstr "Ha fallado la conexión de inicialización TLS.\n"
 
-#: src/lib/bnet.c:249
+#: src/lib/bnet.c:287
 msgid "TLS Negotiation failed.\n"
 msgstr "Negociación TLS fallida.\n"
 
-#: src/lib/bnet.c:255 src/lib/bnet.c:297
+#: src/lib/bnet.c:293 src/lib/bnet.c:335
 msgid ""
 "TLS certificate verification failed. Peer certificate did not match a "
 "required commonName\n"
@@ -13848,7 +13848,7 @@ msgstr ""
 "Comprobación de certificados TLS fallido. Certificado equivalente no "
 "corresponde con el commonName requerido\n"
 
-#: src/lib/bnet.c:304
+#: src/lib/bnet.c:342
 #, c-format
 msgid ""
 "TLS host certificate verification failed. Host name \"%s\" did not match "
@@ -13857,39 +13857,39 @@ msgstr ""
 "Fallo en verificación en certificado TLS de la maquina. Nombre de la maquina "
 "\"%s\" no coincide con el certificado presentado\n"
 
-#: src/lib/bnet.c:321
+#: src/lib/bnet.c:359
 msgid "TLS enabled but not configured.\n"
 msgstr "TLS activado, pero no configurado.\n"
 
-#: src/lib/bnet.c:327
+#: src/lib/bnet.c:365
 msgid "TLS enable but not configured.\n"
 msgstr "TLS permitido, pero no configurado.\n"
 
-#: src/lib/bnet.c:385
+#: src/lib/bnet.c:423
 msgid "No problem."
 msgstr "No hay problema."
 
-#: src/lib/bnet.c:388
+#: src/lib/bnet.c:426
 msgid "Authoritative answer for host not found."
 msgstr "Respuesta autoritativa para el host no encontrado."
 
-#: src/lib/bnet.c:391
+#: src/lib/bnet.c:429
 msgid "Non-authoritative for host not found, or ServerFail."
 msgstr "Non-autoritativa para la maquina no encontrada, o ServerFail."
 
-#: src/lib/bnet.c:394
+#: src/lib/bnet.c:432
 msgid "Non-recoverable errors, FORMERR, REFUSED, or NOTIMP."
 msgstr "Errores no recuperables, FORMERR, RECHAZADO o NOTIMP."
 
-#: src/lib/bnet.c:397
+#: src/lib/bnet.c:435
 msgid "Valid name, no data record of resquested type."
 msgstr "Nombre válido, ningún registro de datos del tipo solicitado."
 
-#: src/lib/bnet.c:400
+#: src/lib/bnet.c:438
 msgid "Unknown error."
 msgstr "Error desconocido."
 
-#: src/lib/bnet.c:659
+#: src/lib/bnet.c:697
 #, c-format
 msgid "Unknown sig %d"
 msgstr "Sig desconocido %d"
@@ -14135,12 +14135,12 @@ msgstr ""
 msgid "Could not open pid file. %s ERR=%s\n"
 msgstr "No se pudo abrir el archivo pid. %s ERR=%s\n"
 
-#: src/lib/bsys.c:562
+#: src/lib/bsys.c:565
 #, c-format
 msgid "Could not create state file. %s ERR=%s\n"
 msgstr "No es posible crear el archivo de estado. %s ERR=%s\n"
 
-#: src/lib/bsys.c:581
+#: src/lib/bsys.c:584
 #, c-format
 msgid "Write final hdr error: ERR=%s\n"
 msgstr "Error de escritura HDR final: ERR=%s\n"
@@ -15865,13 +15865,13 @@ msgid "You must enter a number between 1 and %d\n"
 msgstr "Debe de introducir un numero entre 1 y %d\n"
 
 #: src/console/console.c:1160 src/wx-console/console_thread.cpp:399
-#: src/qt-console/bcomm/dircomm.cpp:128
+#: src/qt-console/bcomm/dircomm.cpp:129
 #, c-format
 msgid "Failed to initialize TLS context for Console \"%s\".\n"
 msgstr "Fallo al inicializar el contexto TLS para la consola \"%s\".\n"
 
 #: src/console/console.c:1180 src/wx-console/console_thread.cpp:420
-#: src/qt-console/bcomm/dircomm.cpp:151
+#: src/qt-console/bcomm/dircomm.cpp:152
 #, c-format
 msgid "Failed to initialize TLS context for Director \"%s\".\n"
 msgstr "Fallo al inicializar el contexto TLS para el Director \"%s\".\n"
@@ -19410,12 +19410,12 @@ msgstr ""
 " -? imprimir este mensaje.\n"
 "\n"
 
-#: src/qt-console/bcomm/dircomm.cpp:89
+#: src/qt-console/bcomm/dircomm.cpp:90
 #, c-format
 msgid "Already connected\"%s\".\n"
 msgstr "Ya conectado\"%s\".\n"
 
-#: src/qt-console/bcomm/dircomm.cpp:102
+#: src/qt-console/bcomm/dircomm.cpp:103
 #, c-format
 msgid ""
 "Connecting to Director %s:%d\n"
@@ -19424,35 +19424,35 @@ msgstr ""
 "Conectando con Director %s:%d\n"
 "\n"
 
-#: src/qt-console/bcomm/dircomm.cpp:205
+#: src/qt-console/bcomm/dircomm.cpp:206
 msgid "Initializing ..."
 msgstr "Inicializando ..."
 
-#: src/qt-console/bcomm/dircomm.cpp:220 src/qt-console/console/console.cpp:143
+#: src/qt-console/bcomm/dircomm.cpp:221 src/qt-console/console/console.cpp:142
 msgid "Connected"
 msgstr "Conectado"
 
-#: src/qt-console/bcomm/dircomm.cpp:331
+#: src/qt-console/bcomm/dircomm.cpp:345
 msgid "Command completed ..."
 msgstr "Comando completado ..."
 
-#: src/qt-console/bcomm/dircomm.cpp:338 src/qt-console/console/console.cpp:374
+#: src/qt-console/bcomm/dircomm.cpp:352 src/qt-console/console/console.cpp:373
 msgid "Processing command ..."
 msgstr "Procesando comando ..."
 
-#: src/qt-console/bcomm/dircomm.cpp:345
+#: src/qt-console/bcomm/dircomm.cpp:359
 msgid "At main prompt waiting for input ..."
 msgstr "En prompt principal esperando por una entrada..."
 
-#: src/qt-console/bcomm/dircomm.cpp:352 src/qt-console/bcomm/dircomm.cpp:364
+#: src/qt-console/bcomm/dircomm.cpp:366 src/qt-console/bcomm/dircomm.cpp:378
 msgid "At prompt waiting for input ..."
 msgstr "En prompt esperando por una entrada..."
 
-#: src/qt-console/bcomm/dircomm.cpp:372
+#: src/qt-console/bcomm/dircomm.cpp:386
 msgid "Command failed."
 msgstr "Comando fallido."
 
-#: src/qt-console/bcomm/dircomm.cpp:444
+#: src/qt-console/bcomm/dircomm.cpp:458
 msgid "Director disconnected."
 msgstr "Director desconectado."
 

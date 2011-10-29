@@ -1,6 +1,5 @@
 # List of source files containing translatable strings.
 # To generate this file, type 'make gen-potfiles'
-./platforms/freebsd/tapetest.c
 ./src/dird/jobq.c
 ./src/dird/ua_select.c
 ./src/dird/bsr.c
@@ -152,7 +151,6 @@
 ./src/win32/filed/plugins/root_node.c
 ./src/win32/filed/plugins/exchange-fd.c
 ./src/win32/filed/plugins/node.c
-./src/win32/filed/plugins/delta-fd.c
 ./src/win32/filed/plugins/bpipe-fd.c
 ./src/win32/filed/plugins/store_node.c
 ./src/win32/filed/plugins/storage_group_node.c
