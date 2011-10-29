@@ -312,7 +312,7 @@ RES_ITEM job_items[] = {
    {"prunejobs",   store_bool, ITEM(res_job.PruneJobs), 0, ITEM_DEFAULT, false},
    {"prunefiles",  store_bool, ITEM(res_job.PruneFiles), 0, ITEM_DEFAULT, false},
    {"prunevolumes",store_bool, ITEM(res_job.PruneVolumes), 0, ITEM_DEFAULT, false},
-   {"purgemigratejob",   store_bool, ITEM(res_job.PurgeMigrateJob), 0, ITEM_DEFAULT, false},
+   {"purgemigrationjob",  store_bool, ITEM(res_job.PurgeMigrateJob), 0, ITEM_DEFAULT, false},
    {"enabled",     store_bool, ITEM(res_job.enabled), 0, ITEM_DEFAULT, true},
    {"spoolattributes",store_bool, ITEM(res_job.SpoolAttributes), 0, ITEM_DEFAULT, false},
    {"spooldata",   store_bool, ITEM(res_job.spool_data), 0, ITEM_DEFAULT, false},

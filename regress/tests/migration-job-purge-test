@@ -1,7 +1,7 @@
 #!/bin/sh
 #
 # Run a simple backup of the Bacula build directory then migrate it
-#   to another device, and see if PurgeMigrateJob works as expected.
+#   to another device, and see if PurgeMigrationJob works as expected.
 #
 # This script uses the virtual disk autochanger
 #
@@ -17,7 +17,7 @@ echo "${cwd}/build" >${cwd}/tmp/file-list
 
 change_jobname NightlySave $JobName
 
-$bperl -e 'add_attribute("$conf/bacula-dir.conf", "PurgeMigrateJob", "yes", "Job", "migrate-job")'
+$bperl -e 'add_attribute("$conf/bacula-dir.conf", "PurgeMigrationJob", "yes", "Job", "migrate-job")'
 
 start_test
 
