@@ -6,7 +6,7 @@
 
 # basic defines for every build
 %define _release           1
-%define _version           5.2.0
+%define _version           5.2.1
 %define _packager Kern Sibbald <kern@sibbald.com>
 %define depkgs_version 15May10
 
