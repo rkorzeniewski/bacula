@@ -55,7 +55,6 @@ DLL_IMP_EXP void *sm_malloc(const char *fname, int lineno, unsigned int nbytes);
 DLL_IMP_EXP void sm_free(const char *file, int line, void *fp);
 DLL_IMP_EXP void *reallymalloc(const char *fname, int lineno, unsigned int nbytes);
 DLL_IMP_EXP void reallyfree(const char *file, int line, void *fp);
-DLL_IMP_EXP void sm_check(const char *fname, int lineno, bool dump);
 
 #ifndef bmalloc
 # define bmalloc(s)      sm_malloc(__FILE__, __LINE__, (s))
