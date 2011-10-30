@@ -1,21 +1,28 @@
 
-               Release Notes for Bacula 5.2.0
+               Release Notes for Bacula 5.2.1
 
   Bacula code: Total files = 1,110 Total lines = 231,439 (Using SLOCCount)
 
 General:
 --------
 
-This 5.2.0 version is a major release since the last version 5.0.3.
+This 5.2.1 version is a major release since the last version 5.0.3.
 It includes well over 299,387 lines of changes made by 20 contributors,
-lots of bug fixes, and a number of important new features:
+lots of bug fixes (see below), 1,851 software commits,and a 
+number of important new features:
+
+Version 5.2.0
+-------------
+Version 5.2.0 was short lived, because Marco (thanks) found
+a number of last minute bugs. So the first official release of 5.2
+is 5.2.1.
 
 Compatibility:
 --------------
  As always, both the Director and Storage daemon must be upgraded at
  the same time.
 
- Older 5.0.x and 3.0.x File Daemons are compatible with the 5.2.0
+ Older 5.0.x and 3.0.x File Daemons are compatible with the 5.2.1
  Director and Storage daemons. There should be no need to upgrade older File
  Daemons.
 
@@ -38,7 +45,7 @@ Some of the above are described below; all the above are
 described in more detail in the New Features chapter of the
 manual.
 
-Bug fixes since 5.0.3:
+Closed Bugs since 5.0.3:
 ---------------------
 1389 1444 1448 1466 1467 1468 1476 1481 1486 1488 1493 1494 1497 1499 1501
 1502 1504 1509 1511 1513 1516 1524 1526 1527 1532 1536 1538 1541 1542 1549
@@ -61,10 +68,51 @@ To build Bat, you need Qt4 version 4.6.2.  If you build with any other
 version it is likely not to work.  If you do not have version 4.6.2, on
 your system, you can download the Bacula depkgs_qt version 16Dec10.
 
-New Catalog format in version 5.2.0
------------------------------------
+Packaging the SQL backend:
+--------------------------
+The main Bacula Director code is independent of the SQL backend
+in this version. This means that the Bacula Director can be packaged
+by itself, then each of the different SQL backends supported can
+be packaged separately.  It is possible to build all the DB backends
+at the same time.
+
+- configure can be run with multiple database configure options.
+   --with-sqlite3
+   --with-mysql
+   --with-postgresql
+
+Order of testing for database is
+- postgresql
+- mysql
+- sqlite3
+
+Each configured backend generates a libbaccats-<backend_name>-<version>.so
+A dummy catalog library is created named libbaccats-version.so
+
+At configure time the first detected backend is used as the so called default
+backend and at install time the dummy libbaccats-<version>.so is replaced with
+the default backend type.
+
+If you configure all 3 backends you get 3 backend libraries and the postgresql
+gets installed as the default.  When you want to switch the default you can
+copy one of the 3 backend libraries over the libbaccats-<version>.so e.g.
+
+cp libbaccats-postgresql-<version>.so libbaccats-<version>.so
+
+And update the default backend in the following files:
+
+create_bacula_database
+drop_bacula_database
+drop_bacula_tables
+grant_bacula_privileges
+make_bacula_tables
+make_catalog_backup
+update_bacula_tables 
+
+New Catalog format in version 5.2.0 and greater
+-----------------------------------------------
 This release of Bacula uses a new catalog format. We provide a set of
-scripts that permit to convert a 5.0.x (version 12) catalog to 5.2.0 (version
+scripts that permit to convert a 5.0.x (version 12) catalog to 5.2.1 (version
 14).  The Bacula project rpm spec files have been modified to
 detect the database change and do the upgrade for you.  We strongly
 recommend that you save a copy of your existing database before upgrading
@@ -74,7 +122,7 @@ The simplest way to upgrade the database assuming you are building from
 source (i.e. manually):
 1. Stop any current version of Bacula from running.
 2. Save a copy of your existing database.
-3. Configure, build, and install the 5.2.0 version of Bacula
+3. Configure, build, and install the 5.2.1 version of Bacula
    Note the new ./configure options in the manuals see the link
    at the bottom of this file.
 4. cd <your-scripts-installation-directory>

@@ -1,4 +1,4 @@
-              Changelog on version 5.2.0
+              Changelog on version 5.2.1
 
 Bug fixes
 1389 1444 1448 1466 1467 1468 1476 1481 1486 1488 1493 1494 1497 1499 1501
@@ -8,7 +8,16 @@ Bug fixes
 1633 1643 1648 1655 1661 1664 1666 1669 1672 1675 1684 1685 1695 1696 1699
 1700 1703 1735 1741 1749 1751 1761 1762 1764 1768 1770 1771 2710
 
+
+
+30Oct11
+ - Change name of authors -- confuses Mac
+ - Don't define HAVE_POSTGRESQL twice
+ - Don't use the -R (runtime link path) when not using libtool for the linking.
+
 29Oct11
+ - Fix detection of batch insert enabler functions.
+
 29Oct11
  - Add script to list authors
  - Update AUTHORS
