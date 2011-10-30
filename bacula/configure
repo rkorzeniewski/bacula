@@ -23716,7 +23716,11 @@ $as_echo "#define HAVE_POSTGRESQL 1" >>confdefs.h
 $as_echo "yes" >&6; }
 
      POSTGRESQL_INCLUDE=-I$POSTGRESQL_INCDIR
-     POSTGRESQL_LIBS="-R $POSTGRESQL_LIBDIR -L$POSTGRESQL_LIBDIR -lpq"
+     if test x$use_libtool != xno; then
+        POSTGRESQL_LIBS="-R $POSTGRESQL_LIBDIR -L$POSTGRESQL_LIBDIR -lpq"
+     else
+        POSTGRESQL_LIBS="-L$POSTGRESQL_LIBDIR -lpq"
+     fi
      ac_fn_c_check_func "$LINENO" "crypt" "ac_cv_func_crypt"
 if test "x$ac_cv_func_crypt" = x""yes; then :
 
@@ -23763,6 +23767,11 @@ fi
 
 fi
 
+     if test x$use_libtool != xno; then
+        POSTGRESQL_LFLAGS=`echo ${POSTGRESQL_LIBS} | sed -e "s#-R $POSTGRESQL_LIBDIR##"`
+     else
+        POSTGRESQL_LFLAGS="${POSTGRESQL_LIBS}"
+     fi
      POSTGRESQL_LIB=$POSTGRESQL_LIBDIR/libpq.a
      DB_LIBS="${DB_LIBS} ${POSTGRESQL_LIBS}"
 
@@ -23893,7 +23902,12 @@ $as_echo "no" >&6; }
      MYSQL_INCLUDE=-I$MYSQL_INCDIR
      if test -f $MYSQL_LIBDIR/libmysqlclient_r.a \
           -o -f $MYSQL_LIBDIR/libmysqlclient_r.so; then
-        MYSQL_LIBS="-R $MYSQL_LIBDIR -L$MYSQL_LIBDIR -lmysqlclient_r -lz"
+        if test x$use_libtool != xno; then
+           MYSQL_LIBS="-R $MYSQL_LIBDIR -L$MYSQL_LIBDIR -lmysqlclient_r -lz"
+        else
+           MYSQL_LIBS="-L$MYSQL_LIBDIR -lmysqlclient_r -lz"
+        fi
+        MYSQL_LFLAGS="-L$MYSQL_LIBDIR -lmysqlclient_r -lz"
 
 $as_echo "#define HAVE_THREAD_SAFE_MYSQL 1" >>confdefs.h
 
@@ -23922,10 +23936,16 @@ $as_echo "yes" >&6; }
 $as_echo "no" >&6; }
   fi
 
+else
+
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
 
 fi
 
 
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for MySQL embedded support" >&5
+$as_echo_n "checking for MySQL embedded support... " >&6; }
 
 # Check whether --with-embedded-mysql was given.
 if test "${with_embedded_mysql+set}" = set; then :
@@ -24001,7 +24021,12 @@ $as_echo "no" >&6; }
                 fi
         fi
      MYSQL_INCLUDE=-I$MYSQL_INCDIR
-     MYSQL_LIBS="-R $MYSQL_LIBDIR -L$MYSQL_LIBDIR -lmysqld -lz -lm -lcrypt"
+     if test x$use_libtool != xno; then
+        MYSQL_LIBS="-R $MYSQL_LIBDIR -L$MYSQL_LIBDIR -lmysqld -lz -lm -lcrypt"
+     else
+        MYSQL_LIBS="-L$MYSQL_LIBDIR -lmysqld -lz -lm -lcrypt"
+     fi
+     MYSQL_LFLAGS="-L$MYSQL_LIBDIR -lmysqld -lz -lm -lcrypt"
      MYSQL_LIB=$MYSQL_LIBDIR/libmysqld.a
      DB_LIBS="${DB_LIBS} ${MYSQL_LIBS}"
 
@@ -24029,6 +24054,10 @@ $as_echo "yes" >&6; }
 $as_echo "no" >&6; }
   fi
 
+else
+
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
 
 fi
 
@@ -24097,7 +24126,12 @@ $as_echo "no" >&6; }
         fi
      fi
      SQLITE_INCLUDE=-I$SQLITE_INCDIR
-     SQLITE_LIBS="-R $SQLITE_LIBDIR -L$SQLITE_LIBDIR -lsqlite3"
+     if test x$use_libtool != xno; then
+        SQLITE_LIBS="-R $SQLITE_LIBDIR -L$SQLITE_LIBDIR -lsqlite3"
+     else
+        SQLITE_LIBS="-L$SQLITE_LIBDIR -lsqlite3"
+     fi
+     SQLITE_LFLAGS="-L$SQLITE_LIBDIR -lsqlite3"
      SQLITE_LIB=$SQLITE_LIBDIR/libsqlite3.a
      DB_LIBS="${DB_LIBS} ${SQLITE_LIBS}"
 
@@ -24219,13 +24253,16 @@ $as_echo "#define USE_BATCH_FILE_INSERT 1" >>confdefs.h
 fi
 
 if test ! -z "$MYSQL_LIB"; then
-   { $as_echo "$as_me:${as_lineno-$LINENO}: checking for mysql_thread_safe in -lmysql_r" >&5
-$as_echo_n "checking for mysql_thread_safe in -lmysql_r... " >&6; }
-if test "${ac_cv_lib_mysql_r_mysql_thread_safe+set}" = set; then :
+      saved_LIBS="${LIBS}"
+   LIBS="${saved_LIBS} ${MYSQL_LFLAGS}"
+
+   { $as_echo "$as_me:${as_lineno-$LINENO}: checking for mysql_thread_safe in -lmysqlclient_r" >&5
+$as_echo_n "checking for mysql_thread_safe in -lmysqlclient_r... " >&6; }
+if test "${ac_cv_lib_mysqlclient_r_mysql_thread_safe+set}" = set; then :
   $as_echo_n "(cached) " >&6
 else
   ac_check_lib_save_LIBS=$LIBS
-LIBS="-lmysql_r  $LIBS"
+LIBS="-lmysqlclient_r  $LIBS"
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -24245,25 +24282,30 @@ return mysql_thread_safe ();
 }
 _ACEOF
 if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_mysql_r_mysql_thread_safe=yes
+  ac_cv_lib_mysqlclient_r_mysql_thread_safe=yes
 else
-  ac_cv_lib_mysql_r_mysql_thread_safe=no
+  ac_cv_lib_mysqlclient_r_mysql_thread_safe=no
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
 LIBS=$ac_check_lib_save_LIBS
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_mysql_r_mysql_thread_safe" >&5
-$as_echo "$ac_cv_lib_mysql_r_mysql_thread_safe" >&6; }
-if test "x$ac_cv_lib_mysql_r_mysql_thread_safe" = x""yes; then :
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_mysqlclient_r_mysql_thread_safe" >&5
+$as_echo "$ac_cv_lib_mysqlclient_r_mysql_thread_safe" >&6; }
+if test "x$ac_cv_lib_mysqlclient_r_mysql_thread_safe" = x""yes; then :
 
 $as_echo "#define HAVE_MYSQL_THREAD_SAFE 1" >>confdefs.h
 
 fi
 
+
+      LIBS="${saved_LIBS}"
 fi
 
 if test ! -z "SQLITE_LIB"; then
+      saved_LIBS="${LIBS}"
+   LIBS="${saved_LIBS} ${SQLITE_LFLAGS}"
+
    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for sqlite3_threadsafe in -lsqlite3" >&5
 $as_echo_n "checking for sqlite3_threadsafe in -lsqlite3... " >&6; }
 if test "${ac_cv_lib_sqlite3_sqlite3_threadsafe+set}" = set; then :
@@ -24306,11 +24348,13 @@ $as_echo "#define HAVE_SQLITE3_THREADSAFE 1" >>confdefs.h
 
 fi
 
+
+      LIBS="${saved_LIBS}"
 fi
 
 if test ! -z "$POSTGRESQL_LIB"; then
       saved_LIBS="${LIBS}"
-   LIBS="${saved_LIBS} ${POSTGRESQL_LIB}"
+   LIBS="${saved_LIBS} ${POSTGRESQL_LFLAGS}"
 
    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for PQisthreadsafe in -lpq" >&5
 $as_echo_n "checking for PQisthreadsafe in -lpq... " >&6; }
