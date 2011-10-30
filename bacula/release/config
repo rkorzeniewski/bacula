@@ -4,7 +4,7 @@
 #
 # Set to the Branch you are working on
 #
-branch=Branch-5.1
+branch=Branch-5.2
 # 
 # set reltype to release or beta -- for upload and setting DEVELOPER
 reltype=release
