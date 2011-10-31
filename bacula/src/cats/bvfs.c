@@ -660,10 +660,8 @@ bool Bvfs::ls_dirs()
    POOL_MEM query;
    POOL_MEM filter;
    if (*pattern) {
-      int len = strlen(pattern);
-      query.check_size(len*2+1);
-      db_escape_string(jcr, db, query.c_str(), pattern, len);
-      Mmsg(filter, " AND Path2.Path %s '%s' ", match_query[db_get_type_index(db)], query.c_str());
+      Mmsg(filter, " AND Path2.Path %s '%s' ", 
+           match_query[db_get_type_index(db)], pattern);
    }
 
    if (!dir_filenameid) {
@@ -756,10 +754,8 @@ bool Bvfs::ls_files()
 
    edit_uint64(pwd_id, pathid);
    if (*pattern) {
-      int len = strlen(pattern);
-      query.check_size(len*2+1);
-      db_escape_string(jcr, db, query.c_str(), pattern, len);
-      Mmsg(filter, " AND Filename.Name %s '%s' ", match_query[db_get_type_index(db)], query.c_str());
+      Mmsg(filter, " AND Filename.Name %s '%s' ", 
+           match_query[db_get_type_index(db)], pattern);
    }
 
    build_ls_files_query(db, query, 

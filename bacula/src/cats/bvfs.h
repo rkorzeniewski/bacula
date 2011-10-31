@@ -84,8 +84,8 @@ public:
    }
 
    void set_pattern(char *p) {
-      uint32_t len = strlen(p)*2+1;
-      pattern = check_pool_memory_size(pattern, len);
+      uint32_t len = strlen(p);
+      pattern = check_pool_memory_size(pattern, len*2+1);
       db_escape_string(jcr, db, pattern, p, len);
    }
 

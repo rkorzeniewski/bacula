@@ -1001,7 +1001,7 @@ const char *match_query[] = {
    "~",
 
    /* SQLite3 */
-   "MATCH",
+   "LIKE",                      /* MATCH doesn't seems to work anymore... */
 
    /* Ingres */
    "~"
