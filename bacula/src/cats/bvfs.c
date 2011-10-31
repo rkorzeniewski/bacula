@@ -378,7 +378,17 @@ static void update_path_hierarchy_cache(JCR *jcr,
       free(result);
    }
 
-   Mmsg(mdb->cmd, 
+   if (mdb->db_get_type_index() == SQL_TYPE_SQLITE3) {
+      Mmsg(mdb->cmd, 
+ "INSERT INTO PathVisibility (PathId, JobId) "
+   "SELECT DISTINCT h.PPathId AS PathId, %s "
+     "FROM PathHierarchy AS h "
+    "WHERE h.PathId IN (SELECT PathId FROM PathVisibility WHERE JobId=%s) "
+      "AND h.PPathId NOT IN (SELECT PathId FROM PathVisibility WHERE JobId=%s)",
+           jobid, jobid, jobid );
+
+   } else {
+      Mmsg(mdb->cmd, 
   "INSERT INTO PathVisibility (PathId, JobId)  "
    "SELECT a.PathId,%s "
    "FROM ( "
@@ -390,6 +400,7 @@ static void update_path_hierarchy_cache(JCR *jcr,
           "FROM PathVisibility "
          "WHERE JobId=%s) AS b ON (a.PathId = b.PathId) "
    "WHERE b.PathId IS NULL",  jobid, jobid, jobid);
+   }
 
    do {
       QUERY_DB(jcr, mdb, mdb->cmd);
