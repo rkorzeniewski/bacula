@@ -445,7 +445,6 @@ void bvfs_update_cache(JCR *jcr, B_DB *mdb)
    db_list_ctx jobids_list;
 
    db_lock(mdb);
-   db_start_transaction(jcr, mdb);
 
 #ifdef xxx
    /* TODO: Remove this code when updating make_bacula_table script */
@@ -496,7 +495,6 @@ void bvfs_update_cache(JCR *jcr, B_DB *mdb)
 
    bvfs_update_path_hierarchy_cache(jcr, mdb, jobids_list.list);
 
-   db_end_transaction(jcr, mdb);
    db_start_transaction(jcr, mdb);
    Dmsg0(dbglevel, "Cleaning pathvisibility\n");
    Mmsg(mdb->cmd, 
