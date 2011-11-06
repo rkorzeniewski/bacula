@@ -318,6 +318,9 @@ static void terminate_btape(int stat)
 {
 
    Dsm_check(200);
+   free_jcr(jcr);
+   jcr = NULL;
+
    if (configfile) {
       free(configfile);
    }
@@ -339,8 +342,6 @@ static void terminate_btape(int stat)
       free_bsr(bsr);
    }
 
-   free_jcr(jcr);
-   jcr = NULL;
 
    free_volume_lists();
 
