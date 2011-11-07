@@ -4,7 +4,7 @@
 # a base64 encoded tar of the content.
 #
 
-bindir=@SQL_BINDIR@
+bindir=@INGRES_BINDIR@
 PATH="$bindir:$PATH"
 db_name=${db_name:-@db_name@}
 db_user=${db_user:-@db_user@}

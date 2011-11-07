@@ -166,7 +166,7 @@ AC_HELP_STRING([--with-dbi-driver@<:@=DRIVER@:>@], [Suport for DBI driver. DRIVE
         "mysql")
            db_prog="mysql"
            if test -f /usr/local/mysql/bin/mysql; then
-              SQL_BINDIR=/usr/local/mysql/bin
+              MYSQL_BINDIR=/usr/local/mysql/bin
               if test -f /usr/local/mysql/lib64/mysql/libmysqlclient_r.a \
                  -o -f /usr/local/mysql/lib64/mysql/libmysqlclient_r.so; then
                  MYSQL_LIBDIR=/usr/local/mysql/lib64/mysql
@@ -174,7 +174,7 @@ AC_HELP_STRING([--with-dbi-driver@<:@=DRIVER@:>@], [Suport for DBI driver. DRIVE
                  MYSQL_LIBDIR=/usr/local/mysql/lib/mysql
               fi
            elif test -f /usr/bin/mysql; then
-              SQL_BINDIR=/usr/bin
+              MYSQL_BINDIR=/usr/bin
               if test -f /usr/lib64/mysql/libmysqlclient_r.a \
                   -o -f /usr/lib64/mysql/libmysqlclient_r.so; then  
                   MYSQL_LIBDIR=/usr/lib64/mysql
@@ -185,7 +185,7 @@ AC_HELP_STRING([--with-dbi-driver@<:@=DRIVER@:>@], [Suport for DBI driver. DRIVE
                   MYSQL_LIBDIR=/usr/lib
               fi
            elif test -f /usr/local/bin/mysql; then
-              SQL_BINDIR=/usr/local/bin
+              MYSQL_BINDIR=/usr/local/bin
               if test -f /usr/local/lib64/mysql/libmysqlclient_r.a \
                   -o -f /usr/local/lib64/mysql/libmysqlclient_r.so; then  
                   MYSQL_LIBDIR=/usr/local/lib64/mysql
@@ -196,7 +196,7 @@ AC_HELP_STRING([--with-dbi-driver@<:@=DRIVER@:>@], [Suport for DBI driver. DRIVE
                   MYSQL_LIBDIR=/usr/local/lib
               fi
            elif test -f $withval/bin/mysql; then
-              SQL_BINDIR=$withval/bin
+              MYSQL_BINDIR=$withval/bin
               if test -f $withval/lib64/mysql/libmysqlclient_r.a \
                   -o -f $withval/lib64/mysql/libmysqlclient_r.so; then
                   MYSQL_LIBDIR=$withval/lib64/mysql

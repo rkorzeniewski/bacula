@@ -7,13 +7,12 @@ echo "This script will update a Bacula SQLite3 database from version 11 to 12"
 echo "	which is needed to convert from Bacula Community version 3.0.x to 5.0.x"
 echo " "
 
-bindir=@SQL_BINDIR@
+bindir=@SQLITE_BINDIR@
 PATH="$bindir:$PATH"
 cd @working_dir@
-sqlite=@DB_TYPE@
 db_name=@db_name@
 
-DBV=`${sqlite} ${db_name} $sbin/regress.db <<END
+DBV=`${sqlite} ${db_name}.db <<END
 select VersionId from Version;
 END`
 if [ $DBVERSION != 11 ] ; then
@@ -25,8 +24,7 @@ if [ $DBVERSION != 11 ] ; then
    exit 1
 fi
 
-
-${sqlite} $* ${db_name}.db <<END-OF-DATA
+sqlite3 $* ${db_name}.db <<END-OF-DATA
 BEGIN;
 ALTER TABLE Job ADD COLUMN HasCache TINYINT DEFAULT 0;
 ALTER TABLE Job ADD COLUMN Reviewed TINYINT DEFAULT 0;

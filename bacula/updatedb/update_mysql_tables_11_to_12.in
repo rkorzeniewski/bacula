@@ -6,9 +6,9 @@ echo " "
 echo "This script will update a Bacula MySQL database from version 11 to 12"
 echo " which is needed to convert from Bacula Community version 3.0.x to 5.0.x"
 echo " "
-bindir=@SQL_BINDIR@
+bindir=@MYSQL_BINDIR@
 PATH="$bindir:$PATH"
-db_name=@db_name@
+db_name=${db_name:-@db_name@}
 
 mysql $* -D ${db_name} -e "select VersionId from Version\G" >/tmp/$$
 DBVERSION=`sed -n -e 's/^VersionId: \(.*\)$/\1/p' /tmp/$$`
