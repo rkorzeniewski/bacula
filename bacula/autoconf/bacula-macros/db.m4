@@ -121,6 +121,25 @@ AC_HELP_STRING([--with-dbi@<:@=DIR@:>@], [Include DBI support. DIR is the DBD ba
      fi
      uncomment_dbi=" "
 
+     dnl -------------------------------------------
+     dnl Push the DB_PROG onto the stack of supported database backends for DBI
+     dnl -------------------------------------------
+     DB_BACKENDS="${DB_BACKENDS} ${DB_PROG}"
+
+     dnl -------------------------------------------
+     dnl Check if dbi supports batch mode
+     dnl -------------------------------------------
+     if test "x$support_batch_insert" = "xyes"; then
+         if test $DB_PROG = postgresql; then
+             AC_CHECK_LIB(pq, PQisthreadsafe, AC_DEFINE(HAVE_PQISTHREADSAFE))
+             AC_CHECK_LIB(pq, PQputCopyData, AC_DEFINE(HAVE_PQ_COPY))
+             test "x$ac_cv_lib_pq_PQputCopyData" = "xyes"
+             pkg=$?
+             if test $pkg = 0; then
+                 AC_DEFINE(HAVE_DBI_BATCH_FILE_INSERT, 1, [Set if DBI DB batch insert code enabled])
+             fi
+         fi
+     fi
   else
      AC_MSG_RESULT(no)
   fi
@@ -132,7 +151,6 @@ AC_SUBST(DBI_LIBS)
 AC_SUBST(DBI_INCLUDE)
 AC_SUBST(DBI_BINDIR)
 AC_SUBST(DBI_DBD_DRIVERDIR)  
-AC_SUBST(uncomment_dbi)
 
 ])
 
@@ -203,7 +221,7 @@ AC_HELP_STRING([--with-dbi-driver@<:@=DRIVER@:>@], [Suport for DBI driver. DRIVE
         ;;
         "postgresql")
            db_prog="postgresql"
-           PG_CONFIG=`which pg_config`
+           PG_CONFIG=`which pg_config 2>/dev/null`
            if test -n "$PG_CONFIG"; then
               POSTGRESQL_BINDIR=`"$PG_CONFIG" --bindir`
               POSTGRESQL_LIBDIR=`"$PG_CONFIG" --libdir`
@@ -400,7 +418,6 @@ AC_HELP_STRING([--with-mysql@<:@=DIR@:>@], [Include MySQL support. DIR is the My
         else
            MYSQL_LIBS="-L$MYSQL_LIBDIR -lmysqlclient_r -lz"
         fi
-        MYSQL_LFLAGS="-L$MYSQL_LIBDIR -lmysqlclient_r -lz"
         AC_DEFINE(HAVE_THREAD_SAFE_MYSQL, 1, [Set if Thread Safe MySQL can be checked using mysql_thread_safe])
         DB_LIBS="${DB_LIBS} ${MYSQL_LIBS}"
      fi
@@ -418,6 +435,30 @@ AC_HELP_STRING([--with-mysql@<:@=DIR@:>@], [Include MySQL support. DIR is the My
          DB_BACKENDS="mysql"
      else
          DB_BACKENDS="${DB_BACKENDS} mysql"
+     fi
+
+     dnl -------------------------------------------
+     dnl Check if mysql supports batch mode
+     dnl -------------------------------------------
+     if test "x$support_batch_insert" = "xyes"; then
+         dnl For mysql checking
+         saved_LDFLAGS="${LDFLAGS}"
+         LDFLAGS="${saved_LDFLAGS} -L$MYSQL_LIBDIR"
+         saved_LIBS="${LIBS}"
+         LIBS="${saved_LIBS} -lz"
+
+         AC_CHECK_LIB(mysqlclient_r, mysql_thread_safe, AC_DEFINE(HAVE_MYSQL_THREAD_SAFE, 1, [Set if have mysql_thread_safe]))
+         if test "x$ac_cv_lib_mysqlclient_r_mysql_thread_safe" = "xyes"; then
+             if test -z "${batch_insert_db_backends}"; then
+                 batch_insert_db_backends="MySQL"
+             else
+                 batch_insert_db_backends="${batch_insert_db_backends} MySQL"
+             fi
+         fi
+
+         dnl Revert after mysql checks
+         LDFLAGS="${saved_LDFLAGS}"
+         LIBS="${saved_LIBS}"
      fi
   else
      AC_MSG_RESULT(no)
@@ -504,7 +545,6 @@ AC_HELP_STRING([--with-embedded-mysql@<:@=DIR@:>@], [Include MySQL support. DIR 
      else
         MYSQL_LIBS="-L$MYSQL_LIBDIR -lmysqld -lz -lm -lcrypt"
      fi
-     MYSQL_LFLAGS="-L$MYSQL_LIBDIR -lmysqld -lz -lm -lcrypt"
      MYSQL_LIB=$MYSQL_LIBDIR/libmysqld.a
      DB_LIBS="${DB_LIBS} ${MYSQL_LIBS}"
 
@@ -521,6 +561,30 @@ AC_HELP_STRING([--with-embedded-mysql@<:@=DIR@:>@], [Include MySQL support. DIR 
          DB_BACKENDS="mysql"
      else
          DB_BACKENDS="${DB_BACKENDS} mysql"
+     fi
+
+     dnl -------------------------------------------
+     dnl Check if mysql supports batch mode
+     dnl -------------------------------------------
+     if test "x$support_batch_insert" = "xyes"; then
+         dnl For mysql checking
+         saved_LDFLAGS="${LDFLAGS}"
+         LDFLAGS="${saved_LDFLAGS} -L$MYSQL_LIBDIR"
+         saved_LIBS="${LIBS}"
+         LIBS="${saved_LIBS} -lz -lm -lcrypt"
+
+         AC_CHECK_LIB(mysqlclient_r, mysql_thread_safe, AC_DEFINE(HAVE_MYSQL_THREAD_SAFE, 1, [Set if have mysql_thread_safe]))
+         if test "x$ac_cv_lib_mysqlclient_r_mysql_thread_safe" = "xyes"; then
+             if test -z "${batch_insert_db_backends}"; then
+                 batch_insert_db_backends="MySQL"
+             else
+                 batch_insert_db_backends="${batch_insert_db_backends} MySQL"
+             fi
+         fi
+
+         dnl Revert after mysql checks
+         LDFLAGS="${saved_LDFLAGS}"
+         LIBS="${saved_LIBS}"
      fi
   else
      AC_MSG_RESULT(no)
@@ -657,7 +721,6 @@ AC_HELP_STRING([--with-sqlite3@<:@=DIR@:>@], [Include SQLite3 support. DIR is th
      else
         SQLITE_LIBS="-L$SQLITE_LIBDIR -lsqlite3"
      fi
-     SQLITE_LFLAGS="-L$SQLITE_LIBDIR -lsqlite3"
      SQLITE_LIB=$SQLITE_LIBDIR/libsqlite3.a
      DB_LIBS="${DB_LIBS} ${SQLITE_LIBS}"
 
@@ -673,6 +736,27 @@ AC_HELP_STRING([--with-sqlite3@<:@=DIR@:>@], [Include SQLite3 support. DIR is th
          DB_BACKENDS="sqlite3"
      else
          DB_BACKENDS="${DB_BACKENDS} sqlite3"
+     fi
+
+     dnl -------------------------------------------
+     dnl Check if sqlite supports batch mode
+     dnl -------------------------------------------
+     if test "x$support_batch_insert" = "xyes"; then
+         dnl For sqlite checking
+         saved_LDFLAGS="${LDFLAGS}"
+         LDFLAGS="${saved_LDFLAGS} -L$SQLITE_LIBDIR"
+
+         AC_CHECK_LIB(sqlite3, sqlite3_threadsafe, AC_DEFINE(HAVE_SQLITE3_THREADSAFE, 1, [Set if have sqlite3_threadsafe]))
+         if test "x$ac_cv_lib_sqlite3_sqlite3_threadsafe" = "xyes"; then
+             if test -z "${batch_insert_db_backends}"; then
+                 batch_insert_db_backends="SQLite3"
+             else
+                 batch_insert_db_backends="${batch_insert_db_backends} SQLite3"
+             fi
+         fi
+
+         dnl Revert after sqlite checks
+         LDFLAGS="${saved_LDFLAGS}"
      fi
   else
      AC_MSG_RESULT(no)
@@ -695,7 +779,7 @@ AC_HELP_STRING([--with-postgresql@<:@=DIR@:>@], [Include PostgreSQL support. DIR
 [
   if test "$withval" != "no"; then
       if test "$withval" = "yes"; then
-          PG_CONFIG=`which pg_config`
+          PG_CONFIG=`which pg_config 2>/dev/null`
           if test -n "$PG_CONFIG"; then
               POSTGRESQL_INCDIR=`"$PG_CONFIG" --includedir`
               POSTGRESQL_LIBDIR=`"$PG_CONFIG" --libdir`
@@ -762,11 +846,6 @@ AC_HELP_STRING([--with-postgresql@<:@=DIR@:>@], [Include PostgreSQL support. DIR
         POSTGRESQL_LIBS="-L$POSTGRESQL_LIBDIR -lpq"
      fi
      AC_CHECK_FUNC(crypt, , AC_CHECK_LIB(crypt, crypt, [POSTGRESQL_LIBS="$POSTGRESQL_LIBS -lcrypt"]))
-     if test x$use_libtool != xno; then
-        POSTGRESQL_LFLAGS=`echo ${POSTGRESQL_LIBS} | sed -e "s#-R $POSTGRESQL_LIBDIR##"`
-     else
-        POSTGRESQL_LFLAGS="${POSTGRESQL_LIBS}"
-     fi
      POSTGRESQL_LIB=$POSTGRESQL_LIBDIR/libpq.a
      DB_LIBS="${DB_LIBS} ${POSTGRESQL_LIBS}"
 
@@ -779,6 +858,43 @@ AC_HELP_STRING([--with-postgresql@<:@=DIR@:>@], [Include PostgreSQL support. DIR
          DB_BACKENDS="postgresql"
      else
          DB_BACKENDS="${DB_BACKENDS} postgresql"
+     fi
+
+     dnl -------------------------------------------
+     dnl Check if postgresql supports batch mode
+     dnl -------------------------------------------
+     if test "x$support_batch_insert" = "xyes"; then
+         dnl For postgresql checking
+         saved_LDFLAGS="${LDFLAGS}"
+         LDFLAGS="${saved_LDFLAGS} -L$POSTGRESQL_LIBDIR"
+         saved_LIBS="${LIBS}"
+         if test "x$ac_cv_lib_crypt_crypt" = "xyes" ; then
+            LIBS="${saved_LIBS} -lcrypt"
+         fi
+
+         AC_CHECK_LIB(pq, PQisthreadsafe, AC_DEFINE(HAVE_PQISTHREADSAFE, 1, [Set if have PQisthreadsafe]))
+         AC_CHECK_LIB(pq, PQputCopyData, AC_DEFINE(HAVE_PQ_COPY, 1, [Set if have PQputCopyData]))
+         if test "x$ac_cv_lib_pq_PQputCopyData" = "xyes"; then
+             if test $support_batch_insert = yes ; then
+                 AC_DEFINE(HAVE_POSTGRESQL_BATCH_FILE_INSERT, 1, [Set if PostgreSQL DB batch insert code enabled])
+                 if test -z "${batch_insert_db_backends}"; then
+                     batch_insert_db_backends="PostgreSQL"
+                 else
+                     batch_insert_db_backends="${batch_insert_db_backends} PostgreSQL"
+                 fi
+             fi
+         fi
+
+         if test x$ac_cv_lib_pq_PQisthreadsafe != xyes -a x$support_batch_insert = xyes
+         then
+             echo "WARNING: Your PostgreSQL client library is too old to detect "
+             echo "if it was compiled with --enable-thread-safety, consider to "
+             echo "upgrade it in order to avoid problems with Batch insert mode"
+         fi
+
+         dnl Revert after postgresql checks
+         LDFLAGS="${saved_LDFLAGS}"
+         LIBS="${saved_LIBS}"
      fi
   else
      AC_MSG_RESULT(no)
