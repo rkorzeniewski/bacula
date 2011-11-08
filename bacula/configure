@@ -628,11 +628,11 @@ X_PRE_LIBS
 X_CFLAGS
 XMKMF
 GETCONF
-uncomment_dbi
 SHARED_CATALOG_TARGETS
 DEFAULT_DB_TYPE
 DB_LIBS
 DB_BACKENDS
+uncomment_dbi
 SQLITE_BINDIR
 SQLITE_INCLUDE
 SQLITE_LIBS
@@ -971,11 +971,11 @@ with_sd_group
 with_fd_user
 with_fd_group
 with_sbin_perm
+enable_batch_insert
 with_postgresql
 with_mysql
 with_embedded_mysql
 with_sqlite3
-enable_batch_insert
 enable_largefile
 with_x
 enable_acl
@@ -21401,6 +21401,7 @@ build_client_only=no
 build_dird=yes
 build_stored=yes
 db_backends=""
+batch_insert_db_backends=""
 support_lockmgr=no
 
 
@@ -23641,6 +23642,27 @@ fi
 
 
 
+support_batch_insert=yes
+# Check whether --enable-batch-insert was given.
+if test "${enable_batch_insert+set}" = set; then :
+  enableval=$enable_batch_insert;
+       if test x$enableval = xno; then
+	  support_batch_insert=no
+       fi
+
+
+fi
+
+
+if test x$support_batch_insert = xyes; then
+
+$as_echo "#define USE_BATCH_FILE_INSERT 1" >>confdefs.h
+
+fi
+
+
+uncomment_dbi="#"
+
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for PostgreSQL support" >&5
 $as_echo_n "checking for PostgreSQL support... " >&6; }
@@ -23650,7 +23672,7 @@ if test "${with_postgresql+set}" = set; then :
   withval=$with_postgresql;
   if test "$withval" != "no"; then
       if test "$withval" = "yes"; then
-          PG_CONFIG=`which pg_config`
+          PG_CONFIG=`which pg_config 2>/dev/null`
           if test -n "$PG_CONFIG"; then
               POSTGRESQL_INCDIR=`"$PG_CONFIG" --includedir`
               POSTGRESQL_LIBDIR=`"$PG_CONFIG" --libdir`
@@ -23767,11 +23789,6 @@ fi
 
 fi
 
-     if test x$use_libtool != xno; then
-        POSTGRESQL_LFLAGS=`echo ${POSTGRESQL_LIBS} | sed -e "s#-R $POSTGRESQL_LIBDIR##"`
-     else
-        POSTGRESQL_LFLAGS="${POSTGRESQL_LIBS}"
-     fi
      POSTGRESQL_LIB=$POSTGRESQL_LIBDIR/libpq.a
      DB_LIBS="${DB_LIBS} ${POSTGRESQL_LIBS}"
 
@@ -23784,6 +23801,122 @@ fi
          DB_BACKENDS="postgresql"
      else
          DB_BACKENDS="${DB_BACKENDS} postgresql"
+     fi
+
+                    if test "x$support_batch_insert" = "xyes"; then
+                  saved_LDFLAGS="${LDFLAGS}"
+         LDFLAGS="${saved_LDFLAGS} -L$POSTGRESQL_LIBDIR"
+         saved_LIBS="${LIBS}"
+         if test "x$ac_cv_lib_crypt_crypt" = "xyes" ; then
+            LIBS="${saved_LIBS} -lcrypt"
+         fi
+
+         { $as_echo "$as_me:${as_lineno-$LINENO}: checking for PQisthreadsafe in -lpq" >&5
+$as_echo_n "checking for PQisthreadsafe in -lpq... " >&6; }
+if test "${ac_cv_lib_pq_PQisthreadsafe+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lpq  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char PQisthreadsafe ();
+int
+main ()
+{
+return PQisthreadsafe ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_pq_PQisthreadsafe=yes
+else
+  ac_cv_lib_pq_PQisthreadsafe=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_pq_PQisthreadsafe" >&5
+$as_echo "$ac_cv_lib_pq_PQisthreadsafe" >&6; }
+if test "x$ac_cv_lib_pq_PQisthreadsafe" = x""yes; then :
+
+$as_echo "#define HAVE_PQISTHREADSAFE 1" >>confdefs.h
+
+fi
+
+         { $as_echo "$as_me:${as_lineno-$LINENO}: checking for PQputCopyData in -lpq" >&5
+$as_echo_n "checking for PQputCopyData in -lpq... " >&6; }
+if test "${ac_cv_lib_pq_PQputCopyData+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lpq  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char PQputCopyData ();
+int
+main ()
+{
+return PQputCopyData ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_pq_PQputCopyData=yes
+else
+  ac_cv_lib_pq_PQputCopyData=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_pq_PQputCopyData" >&5
+$as_echo "$ac_cv_lib_pq_PQputCopyData" >&6; }
+if test "x$ac_cv_lib_pq_PQputCopyData" = x""yes; then :
+
+$as_echo "#define HAVE_PQ_COPY 1" >>confdefs.h
+
+fi
+
+         if test "x$ac_cv_lib_pq_PQputCopyData" = "xyes"; then
+             if test $support_batch_insert = yes ; then
+
+$as_echo "#define HAVE_POSTGRESQL_BATCH_FILE_INSERT 1" >>confdefs.h
+
+                 if test -z "${batch_insert_db_backends}"; then
+                     batch_insert_db_backends="PostgreSQL"
+                 else
+                     batch_insert_db_backends="${batch_insert_db_backends} PostgreSQL"
+                 fi
+             fi
+         fi
+
+         if test x$ac_cv_lib_pq_PQisthreadsafe != xyes -a x$support_batch_insert = xyes
+         then
+             echo "WARNING: Your PostgreSQL client library is too old to detect "
+             echo "if it was compiled with --enable-thread-safety, consider to "
+             echo "upgrade it in order to avoid problems with Batch insert mode"
+         fi
+
+                  LDFLAGS="${saved_LDFLAGS}"
+         LIBS="${saved_LIBS}"
      fi
   else
      { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
@@ -23907,7 +24040,6 @@ $as_echo "no" >&6; }
         else
            MYSQL_LIBS="-L$MYSQL_LIBDIR -lmysqlclient_r -lz"
         fi
-        MYSQL_LFLAGS="-L$MYSQL_LIBDIR -lmysqlclient_r -lz"
 
 $as_echo "#define HAVE_THREAD_SAFE_MYSQL 1" >>confdefs.h
 
@@ -23930,6 +24062,66 @@ $as_echo "yes" >&6; }
          DB_BACKENDS="mysql"
      else
          DB_BACKENDS="${DB_BACKENDS} mysql"
+     fi
+
+                    if test "x$support_batch_insert" = "xyes"; then
+                  saved_LDFLAGS="${LDFLAGS}"
+         LDFLAGS="${saved_LDFLAGS} -L$MYSQL_LIBDIR"
+         saved_LIBS="${LIBS}"
+         LIBS="${saved_LIBS} -lz"
+
+         { $as_echo "$as_me:${as_lineno-$LINENO}: checking for mysql_thread_safe in -lmysqlclient_r" >&5
+$as_echo_n "checking for mysql_thread_safe in -lmysqlclient_r... " >&6; }
+if test "${ac_cv_lib_mysqlclient_r_mysql_thread_safe+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lmysqlclient_r  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char mysql_thread_safe ();
+int
+main ()
+{
+return mysql_thread_safe ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_mysqlclient_r_mysql_thread_safe=yes
+else
+  ac_cv_lib_mysqlclient_r_mysql_thread_safe=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_mysqlclient_r_mysql_thread_safe" >&5
+$as_echo "$ac_cv_lib_mysqlclient_r_mysql_thread_safe" >&6; }
+if test "x$ac_cv_lib_mysqlclient_r_mysql_thread_safe" = x""yes; then :
+
+$as_echo "#define HAVE_MYSQL_THREAD_SAFE 1" >>confdefs.h
+
+fi
+
+         if test "x$ac_cv_lib_mysqlclient_r_mysql_thread_safe" = "xyes"; then
+             if test -z "${batch_insert_db_backends}"; then
+                 batch_insert_db_backends="MySQL"
+             else
+                 batch_insert_db_backends="${batch_insert_db_backends} MySQL"
+             fi
+         fi
+
+                  LDFLAGS="${saved_LDFLAGS}"
+         LIBS="${saved_LIBS}"
      fi
   else
      { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
@@ -24026,7 +24218,6 @@ $as_echo "no" >&6; }
      else
         MYSQL_LIBS="-L$MYSQL_LIBDIR -lmysqld -lz -lm -lcrypt"
      fi
-     MYSQL_LFLAGS="-L$MYSQL_LIBDIR -lmysqld -lz -lm -lcrypt"
      MYSQL_LIB=$MYSQL_LIBDIR/libmysqld.a
      DB_LIBS="${DB_LIBS} ${MYSQL_LIBS}"
 
@@ -24048,6 +24239,66 @@ $as_echo "yes" >&6; }
          DB_BACKENDS="mysql"
      else
          DB_BACKENDS="${DB_BACKENDS} mysql"
+     fi
+
+                    if test "x$support_batch_insert" = "xyes"; then
+                  saved_LDFLAGS="${LDFLAGS}"
+         LDFLAGS="${saved_LDFLAGS} -L$MYSQL_LIBDIR"
+         saved_LIBS="${LIBS}"
+         LIBS="${saved_LIBS} -lz -lm -lcrypt"
+
+         { $as_echo "$as_me:${as_lineno-$LINENO}: checking for mysql_thread_safe in -lmysqlclient_r" >&5
+$as_echo_n "checking for mysql_thread_safe in -lmysqlclient_r... " >&6; }
+if test "${ac_cv_lib_mysqlclient_r_mysql_thread_safe+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lmysqlclient_r  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char mysql_thread_safe ();
+int
+main ()
+{
+return mysql_thread_safe ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_mysqlclient_r_mysql_thread_safe=yes
+else
+  ac_cv_lib_mysqlclient_r_mysql_thread_safe=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_mysqlclient_r_mysql_thread_safe" >&5
+$as_echo "$ac_cv_lib_mysqlclient_r_mysql_thread_safe" >&6; }
+if test "x$ac_cv_lib_mysqlclient_r_mysql_thread_safe" = x""yes; then :
+
+$as_echo "#define HAVE_MYSQL_THREAD_SAFE 1" >>confdefs.h
+
+fi
+
+         if test "x$ac_cv_lib_mysqlclient_r_mysql_thread_safe" = "xyes"; then
+             if test -z "${batch_insert_db_backends}"; then
+                 batch_insert_db_backends="MySQL"
+             else
+                 batch_insert_db_backends="${batch_insert_db_backends} MySQL"
+             fi
+         fi
+
+                  LDFLAGS="${saved_LDFLAGS}"
+         LIBS="${saved_LIBS}"
      fi
   else
      { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
@@ -24131,7 +24382,6 @@ $as_echo "no" >&6; }
      else
         SQLITE_LIBS="-L$SQLITE_LIBDIR -lsqlite3"
      fi
-     SQLITE_LFLAGS="-L$SQLITE_LIBDIR -lsqlite3"
      SQLITE_LIB=$SQLITE_LIBDIR/libsqlite3.a
      DB_LIBS="${DB_LIBS} ${SQLITE_LIBS}"
 
@@ -24150,6 +24400,63 @@ $as_echo "yes" >&6; }
          DB_BACKENDS="sqlite3"
      else
          DB_BACKENDS="${DB_BACKENDS} sqlite3"
+     fi
+
+                    if test "x$support_batch_insert" = "xyes"; then
+                  saved_LDFLAGS="${LDFLAGS}"
+         LDFLAGS="${saved_LDFLAGS} -L$SQLITE_LIBDIR"
+
+         { $as_echo "$as_me:${as_lineno-$LINENO}: checking for sqlite3_threadsafe in -lsqlite3" >&5
+$as_echo_n "checking for sqlite3_threadsafe in -lsqlite3... " >&6; }
+if test "${ac_cv_lib_sqlite3_sqlite3_threadsafe+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lsqlite3  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char sqlite3_threadsafe ();
+int
+main ()
+{
+return sqlite3_threadsafe ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_sqlite3_sqlite3_threadsafe=yes
+else
+  ac_cv_lib_sqlite3_sqlite3_threadsafe=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_sqlite3_sqlite3_threadsafe" >&5
+$as_echo "$ac_cv_lib_sqlite3_sqlite3_threadsafe" >&6; }
+if test "x$ac_cv_lib_sqlite3_sqlite3_threadsafe" = x""yes; then :
+
+$as_echo "#define HAVE_SQLITE3_THREADSAFE 1" >>confdefs.h
+
+fi
+
+         if test "x$ac_cv_lib_sqlite3_sqlite3_threadsafe" = "xyes"; then
+             if test -z "${batch_insert_db_backends}"; then
+                 batch_insert_db_backends="SQLite3"
+             else
+                 batch_insert_db_backends="${batch_insert_db_backends} SQLite3"
+             fi
+         fi
+
+                  LDFLAGS="${saved_LDFLAGS}"
      fi
   else
      { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
@@ -24174,6 +24481,10 @@ fi
 #BA_CHECK_DBI_DB
 
 #BA_CHECK_DBI_DRIVER
+
+if test -z "${batch_insert_db_backends}"; then
+   batch_insert_db_backends="None"
+fi
 
 if test "x${db_backends}" = "x" ; then
    echo " "
@@ -24232,332 +24543,6 @@ fi
 
 
 
-
-
-support_batch_insert=yes
-# Check whether --enable-batch-insert was given.
-if test "${enable_batch_insert+set}" = set; then :
-  enableval=$enable_batch_insert;
-       if test x$enableval = xno; then
-	  support_batch_insert=no
-       fi
-
-
-fi
-
-
-if test x$support_batch_insert = xyes; then
-
-$as_echo "#define USE_BATCH_FILE_INSERT 1" >>confdefs.h
-
-fi
-
-if test ! -z "$MYSQL_LIB"; then
-      saved_LIBS="${LIBS}"
-   LIBS="${saved_LIBS} ${MYSQL_LFLAGS}"
-
-   { $as_echo "$as_me:${as_lineno-$LINENO}: checking for mysql_thread_safe in -lmysqlclient_r" >&5
-$as_echo_n "checking for mysql_thread_safe in -lmysqlclient_r... " >&6; }
-if test "${ac_cv_lib_mysqlclient_r_mysql_thread_safe+set}" = set; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lmysqlclient_r  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char mysql_thread_safe ();
-int
-main ()
-{
-return mysql_thread_safe ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_mysqlclient_r_mysql_thread_safe=yes
-else
-  ac_cv_lib_mysqlclient_r_mysql_thread_safe=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_mysqlclient_r_mysql_thread_safe" >&5
-$as_echo "$ac_cv_lib_mysqlclient_r_mysql_thread_safe" >&6; }
-if test "x$ac_cv_lib_mysqlclient_r_mysql_thread_safe" = x""yes; then :
-
-$as_echo "#define HAVE_MYSQL_THREAD_SAFE 1" >>confdefs.h
-
-fi
-
-
-      LIBS="${saved_LIBS}"
-fi
-
-if test ! -z "SQLITE_LIB"; then
-      saved_LIBS="${LIBS}"
-   LIBS="${saved_LIBS} ${SQLITE_LFLAGS}"
-
-   { $as_echo "$as_me:${as_lineno-$LINENO}: checking for sqlite3_threadsafe in -lsqlite3" >&5
-$as_echo_n "checking for sqlite3_threadsafe in -lsqlite3... " >&6; }
-if test "${ac_cv_lib_sqlite3_sqlite3_threadsafe+set}" = set; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lsqlite3  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char sqlite3_threadsafe ();
-int
-main ()
-{
-return sqlite3_threadsafe ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_sqlite3_sqlite3_threadsafe=yes
-else
-  ac_cv_lib_sqlite3_sqlite3_threadsafe=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_sqlite3_sqlite3_threadsafe" >&5
-$as_echo "$ac_cv_lib_sqlite3_sqlite3_threadsafe" >&6; }
-if test "x$ac_cv_lib_sqlite3_sqlite3_threadsafe" = x""yes; then :
-
-$as_echo "#define HAVE_SQLITE3_THREADSAFE 1" >>confdefs.h
-
-fi
-
-
-      LIBS="${saved_LIBS}"
-fi
-
-if test ! -z "$POSTGRESQL_LIB"; then
-      saved_LIBS="${LIBS}"
-   LIBS="${saved_LIBS} ${POSTGRESQL_LFLAGS}"
-
-   { $as_echo "$as_me:${as_lineno-$LINENO}: checking for PQisthreadsafe in -lpq" >&5
-$as_echo_n "checking for PQisthreadsafe in -lpq... " >&6; }
-if test "${ac_cv_lib_pq_PQisthreadsafe+set}" = set; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lpq  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char PQisthreadsafe ();
-int
-main ()
-{
-return PQisthreadsafe ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_pq_PQisthreadsafe=yes
-else
-  ac_cv_lib_pq_PQisthreadsafe=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_pq_PQisthreadsafe" >&5
-$as_echo "$ac_cv_lib_pq_PQisthreadsafe" >&6; }
-if test "x$ac_cv_lib_pq_PQisthreadsafe" = x""yes; then :
-
-$as_echo "#define HAVE_PQISTHREADSAFE 1" >>confdefs.h
-
-fi
-
-   { $as_echo "$as_me:${as_lineno-$LINENO}: checking for PQputCopyData in -lpq" >&5
-$as_echo_n "checking for PQputCopyData in -lpq... " >&6; }
-if test "${ac_cv_lib_pq_PQputCopyData+set}" = set; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lpq  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char PQputCopyData ();
-int
-main ()
-{
-return PQputCopyData ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_pq_PQputCopyData=yes
-else
-  ac_cv_lib_pq_PQputCopyData=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_pq_PQputCopyData" >&5
-$as_echo "$ac_cv_lib_pq_PQputCopyData" >&6; }
-if test "x$ac_cv_lib_pq_PQputCopyData" = x""yes; then :
-
-$as_echo "#define HAVE_PQ_COPY 1" >>confdefs.h
-
-fi
-
-   if test "x$ac_cv_lib_pq_PQputCopyData" = "xyes"; then
-      if test $support_batch_insert = yes ; then
-
-$as_echo "#define HAVE_POSTGRESQL_BATCH_FILE_INSERT 1" >>confdefs.h
-
-      fi
-   fi
-
-   if test x$ac_cv_lib_pq_PQisthreadsafe != xyes -a x$support_batch_insert = xyes
-   then
-      echo "WARNING: Your PostgreSQL client library is too old to detect "
-      echo "if it was compiled with --enable-thread-safety, consider to "
-      echo "upgrade it in order to avoid problems with Batch insert mode"
-      echo
-   fi
-
-      LIBS="${saved_LIBS}"
-fi
-
-if test ! -z "$DBI_LIBS"; then
-            DB_BACKENDS="${DB_BACKENDS} ${DB_PROG}"
-
-            if test $DB_PROG = postgresql; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking for PQisthreadsafe in -lpq" >&5
-$as_echo_n "checking for PQisthreadsafe in -lpq... " >&6; }
-if test "${ac_cv_lib_pq_PQisthreadsafe+set}" = set; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lpq  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char PQisthreadsafe ();
-int
-main ()
-{
-return PQisthreadsafe ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_pq_PQisthreadsafe=yes
-else
-  ac_cv_lib_pq_PQisthreadsafe=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_pq_PQisthreadsafe" >&5
-$as_echo "$ac_cv_lib_pq_PQisthreadsafe" >&6; }
-if test "x$ac_cv_lib_pq_PQisthreadsafe" = x""yes; then :
-  $as_echo "#define HAVE_PQISTHREADSAFE 1" >>confdefs.h
-
-fi
-
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking for PQputCopyData in -lpq" >&5
-$as_echo_n "checking for PQputCopyData in -lpq... " >&6; }
-if test "${ac_cv_lib_pq_PQputCopyData+set}" = set; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lpq  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char PQputCopyData ();
-int
-main ()
-{
-return PQputCopyData ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_pq_PQputCopyData=yes
-else
-  ac_cv_lib_pq_PQputCopyData=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_pq_PQputCopyData" >&5
-$as_echo "$ac_cv_lib_pq_PQputCopyData" >&6; }
-if test "x$ac_cv_lib_pq_PQputCopyData" = x""yes; then :
-  $as_echo "#define HAVE_PQ_COPY 1" >>confdefs.h
-
-fi
-
-      test "x$ac_cv_lib_pq_PQputCopyData" = "xyes"
-      pkg=$?
-      if test $pkg = 0; then
-	 if test $support_batch_insert = yes ; then
-
-$as_echo "#define HAVE_DBI_BATCH_FILE_INSERT 1" >>confdefs.h
-
-	 fi
-      fi
-   fi
-else
-            uncomment_dbi="#"
-fi
 
 
 
@@ -33209,28 +33194,28 @@ Configuration on `date`:
    File Daemon User:	     ${fd_user}
    File Daemon Group:	     ${fd_group}
 
-   Large file support:	    $largefile_support
-   Bacula conio support:    ${got_conio} ${CONS_LIBS}
-   readline support:	    ${got_readline} ${PRTREADLINE_SRC}
-   TCP Wrappers support:    ${TCPW_MSG} ${WRAPLIBS}
-   TLS support: 	    ${support_tls}
-   Encryption support:	    ${support_crypto}
-   ZLIB support:	    ${have_zlib}
-   LZO support: 	    ${have_lzo}
-   enable-smartalloc:	    ${support_smartalloc}
-   enable-lockmgr:	    ${support_lockmgr}
-   bat support: 	    ${support_bat}
-   enable-gnome:	    ${support_gnome} ${gnome_version}
-   enable-bwx-console:	    ${support_wx_console} ${wx_version}
-   enable-tray-monitor:     ${support_tray_monitor}
-   client-only: 	    ${build_client_only}
-   build-dird:		    ${build_dird}
-   build-stored:	    ${build_stored}
-   Plugin support:	    ${have_plugins}
-   ACL support: 	    ${have_acl}
-   XATTR support:	    ${have_xattr}
-   Python support:	    ${support_python} ${PYTHON_LIBS}
-   Batch insert enabled:    ${support_batch_insert}
+   Large file support:	     $largefile_support
+   Bacula conio support:     ${got_conio} ${CONS_LIBS}
+   readline support:	     ${got_readline} ${PRTREADLINE_SRC}
+   TCP Wrappers support:     ${TCPW_MSG} ${WRAPLIBS}
+   TLS support: 	     ${support_tls}
+   Encryption support:	     ${support_crypto}
+   ZLIB support:	     ${have_zlib}
+   LZO support: 	     ${have_lzo}
+   enable-smartalloc:	     ${support_smartalloc}
+   enable-lockmgr:	     ${support_lockmgr}
+   bat support: 	     ${support_bat}
+   enable-gnome:	     ${support_gnome} ${gnome_version}
+   enable-bwx-console:	     ${support_wx_console} ${wx_version}
+   enable-tray-monitor:      ${support_tray_monitor}
+   client-only: 	     ${build_client_only}
+   build-dird:		     ${build_dird}
+   build-stored:	     ${build_stored}
+   Plugin support:	     ${have_plugins}
+   ACL support: 	     ${have_acl}
+   XATTR support:	     ${have_xattr}
+   Python support:	     ${support_python} ${PYTHON_LIBS}
+   Batch insert enabled:     ${batch_insert_db_backends}
 
   " > config.out
 
