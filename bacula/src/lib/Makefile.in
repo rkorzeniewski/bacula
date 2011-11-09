@@ -48,7 +48,7 @@ INCLUDE_FILES = ../baconfig.h ../bacula.h ../bc_types.h \
 #
 # libbac
 #
-LIBBAC_SRCS = attr.c base64.c berrno.c bsys.c bget_msg.c \
+LIBBAC_SRCS = attr.c base64.c berrno.c bsys.c binflate.c bget_msg.c \
 	      bnet.c bnet_server.c runscript.c \
 	      bsock.c bpipe.c bsnprintf.c btime.c \
 	      cram-md5.c crc32.c crypto.c daemon.c edit.c fnmatch.c \
