@@ -18,6 +18,8 @@ DEBUG=@DEBUG@
 
 GETTEXT_LIBS = @LIBINTL@
 
+DB_LIBS=@DB_LIBS@
+
 first_rule: all
 dummy:
 
