@@ -2079,10 +2079,8 @@ extern "C" char *job_code_callback_director(JCR *jcr, const char* param)
          break;
       case 'x':
          return jcr->spool_data ? yes : no;
-         break;
       case 'D':
          return my_name;
-         break;
    }
    return NULL;
 }
