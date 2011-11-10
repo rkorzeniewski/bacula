@@ -84,7 +84,7 @@ extern bool despool_attributes_from_file(JCR *jcr, const char *file);
 
 /* dird_conf.c */
 extern const char *level_to_str(int level);
-extern "C" char *job_code_callback_filesetname(JCR *jcr, const char*);
+extern "C" char *job_code_callback_director(JCR *jcr, const char*);
 
 /* expand.c */
 int variable_expansion(JCR *jcr, char *inp, POOLMEM **exp);

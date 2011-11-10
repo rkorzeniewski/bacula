@@ -1878,7 +1878,7 @@ static void store_short_runscript(LEX *lc, RES_ITEM *item, int index, int pass)
 
    if (pass == 2) {
       RUNSCRIPT *script = new_runscript();
-      script->set_job_code_callback(job_code_callback_filesetname);
+      script->set_job_code_callback(job_code_callback_director);
 
       script->set_command(lc->str);
 
@@ -2025,7 +2025,7 @@ static void store_runscript(LEX *lc, RES_ITEM *item, int index, int pass)
        *  - POOLMEM command string (ex: /bin/true) 
        *  - int command type (ex: SHELL_CMD)
        */
-      res_runscript.set_job_code_callback(job_code_callback_filesetname);
+      res_runscript.set_job_code_callback(job_code_callback_director);
       while ((c=(char*)res_runscript.commands->pop()) != NULL) {
          t = (intptr_t)res_runscript.commands->pop();
          RUNSCRIPT *script = new_runscript();
@@ -2051,14 +2051,39 @@ static void store_runscript(LEX *lc, RES_ITEM *item, int index, int pass)
 }
 
 /* callback function for edit_job_codes */
-extern "C" char *job_code_callback_filesetname(JCR *jcr, const char* param)
+/* See ../lib/util.c, function edit_job_codes, for more remaining codes */
+extern "C" char *job_code_callback_director(JCR *jcr, const char* param)
 {
-   if (param[0] == 'f' && jcr->fileset) {
-      return jcr->fileset->name();
-
-   } else if (param[0] == 'h' && jcr->client) {
-      return jcr->client->address;
-   } 
+   static char yes[] = "yes";
+   static char no[] = "no";
+   switch (param[0]) {
+      case 'f':
+         if (jcr->fileset) {
+            return jcr->fileset->name();
+         }
+         break;
+      case 'h':
+         if (jcr->client) {
+            return jcr->client->address;
+         }
+         break;
+      case 'p':
+         if (jcr->pool) {
+            return jcr->pool->name();
+         }
+         break;
+      case 'w':
+         if (jcr->wstore) {
+            return jcr->wstore->name();
+         }
+         break;
+      case 'x':
+         return jcr->spool_data ? yes : no;
+         break;
+      case 'D':
+         return my_name;
+         break;
+   }
    return NULL;
 }
 

@@ -550,6 +550,19 @@ static int job_cmd(JCR *jcr)
 #endif
 }
 
+extern "C" char *job_code_callback_filed(JCR *jcr, const char* param)
+{
+   switch (param[0]) {
+      case 'D':
+         if (jcr->director) { 
+            return jcr->director->hdr.name;
+         }
+         break;
+   }
+   return NULL;
+
+}
+
 static int runbefore_cmd(JCR *jcr)
 {
    bool ok;
@@ -569,6 +582,7 @@ static int runbefore_cmd(JCR *jcr)
 
    /* Run the command now */
    script = new_runscript();
+   script->set_job_code_callback(job_code_callback_filed);
    script->set_command(cmd);
    script->when = SCRIPT_Before;
    ok = script->run(jcr, "ClientRunBeforeJob");
@@ -617,6 +631,7 @@ static int runafter_cmd(JCR *jcr)
    unbash_spaces(msg);
 
    cmd = new_runscript();
+   cmd->set_job_code_callback(job_code_callback_filed);
    cmd->set_command(msg);
    cmd->on_success = true;
    cmd->on_failure = false;
@@ -635,6 +650,7 @@ static int runscript_cmd(JCR *jcr)
    int on_success, on_failure, fail_on_error;
 
    RUNSCRIPT *cmd = new_runscript() ;
+   cmd->set_job_code_callback(job_code_callback_filed);
 
    Dmsg1(100, "runscript_cmd: '%s'\n", dir->msg);
    /* Note, we cannot sscanf into bools */
@@ -815,7 +831,7 @@ void add_file_to_fileset(JCR *jcr, const char *fname, bool is_file)
    case '|':
       p++;                            /* skip over | */
       fn = get_pool_memory(PM_FNAME);
-      fn = edit_job_codes(jcr, fn, p, "");
+      fn = edit_job_codes(jcr, fn, p, "", job_code_callback_filed);
       bpipe = open_bpipe(fn, 0, "r");
       if (!bpipe) {
          berrno be;
