@@ -35,7 +35,7 @@ fi
 
 estat=$?
 
-if [ "$debug" eq 1 ]; then
+if [ "$debug" = 1 ]; then
     cat $tmp/1
 fi
 
