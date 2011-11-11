@@ -34,6 +34,12 @@
 #define _MNTENT_CACHE_H 1
 
 /*
+ * Don't use the mountlist data when its older then this amount
+ * of seconds but perform a rescan of the mountlist.
+ */
+#define MNTENT_RESCAN_INTERVAL		1800
+
+/*
  * Initial size of number of hash entries we expect in the cache.
  * If more are needed the hash table will grow as needed.
  */
@@ -54,8 +60,6 @@ struct mntent_cache_entry_t {
 };
 
 mntent_cache_entry_t *find_mntent_mapping(uint32_t dev);
-
-void preload_mntent_cache(void);
 void flush_mntent_cache(void);
 
 #endif /* _MNTENT_CACHE_H */

@@ -99,12 +99,17 @@ static pthread_mutex_t mntent_cache_lock = PTHREAD_MUTEX_INITIALIZER;
 static mntent_cache_entry_t *previous_cache_hit = NULL;
 static htable *mntent_cache_entry_hashtable = NULL;
 
+/*
+ * Last time a rescan of the mountlist took place.
+ */
+static time_t last_rescan = 0;
+
 /**
  * Add a new entry to the cache.
  * This function should be called with a write lock on the mntent_cache.
  */
-static void add_mntent_mapping(uint32_t dev, const char *special, const char *mountpoint,
-                               const char *fstype, const char *mntopts)
+static inline void add_mntent_mapping(uint32_t dev, const char *special, const char *mountpoint,
+                                      const char *fstype, const char *mntopts)
 {
    int len;
    mntent_cache_entry_t *mce;
@@ -364,11 +369,6 @@ static void initialize_mntent_cache(void)
    V(mntent_cache_lock);
 }
 
-void preload_mntent_cache(void)
-{
-   initialize_mntent_cache();
-}
-
 void flush_mntent_cache(void)
 {
    /**
@@ -393,12 +393,25 @@ void flush_mntent_cache(void)
 mntent_cache_entry_t *find_mntent_mapping(uint32_t dev)
 {
    mntent_cache_entry_t *mce = NULL;
+   time_t now;
 
    /**
     * Initialize the cache if that was not done before.
     */
    if (!mntent_cache_entry_hashtable) {
       initialize_mntent_cache();
+      last_rescan = time(NULL);
+   } else {
+      /**
+       * We rescan the mountlist when called when more then
+       * MNTENT_RESCAN_INTERVAL seconds have past since the
+       * last rescan. This way we never work with data older
+       * then MNTENT_RESCAN_INTERVAL seconds.
+       */
+      now = time(NULL);
+      if ((now - last_rescan) > MNTENT_RESCAN_INTERVAL) {
+         initialize_mntent_cache();
+      }
    }
 
    /**
@@ -414,6 +427,29 @@ mntent_cache_entry_t *find_mntent_mapping(uint32_t dev)
    P(mntent_cache_lock);
 
    mce = (mntent_cache_entry_t *)mntent_cache_entry_hashtable->lookup(dev);
+
+   /**
+    * If we fail to lookup the mountpoint its probably a mountpoint added
+    * after we did our initial scan. Lets rescan the mountlist and try
+    * the lookup again.
+    */
+   if (!mce) {
+      /**
+       * Make sure the cache is empty (either by flushing it or by initializing it.)
+       */
+      clear_mount_cache();
+
+      /**
+       * Refresh the cache.
+       */
+      refresh_mount_cache();
+
+      mce = (mntent_cache_entry_t *)mntent_cache_entry_hashtable->lookup(dev);
+   }
+
+   /*
+    * Store the last successfull lookup as the previous_cache_hit.
+    */
    if (mce) {
       previous_cache_hit = mce;
    }
