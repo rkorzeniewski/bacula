@@ -108,8 +108,11 @@ static time_t last_rescan = 0;
  * Add a new entry to the cache.
  * This function should be called with a write lock on the mntent_cache.
  */
-static inline void add_mntent_mapping(uint32_t dev, const char *special, const char *mountpoint,
-                                      const char *fstype, const char *mntopts)
+static inline void add_mntent_mapping(uint32_t dev,
+                                      const char *special,
+                                      const char *mountpoint,
+                                      const char *fstype,
+                                      const char *mntopts)
 {
    int len;
    mntent_cache_entry_t *mce;
@@ -396,6 +399,13 @@ mntent_cache_entry_t *find_mntent_mapping(uint32_t dev)
    time_t now;
 
    /**
+    * Shortcut when we get a request for the same device again.
+    */
+   if (previous_cache_hit && previous_cache_hit->dev == dev) {
+      return previous_cache_hit;
+   }
+
+   /**
     * Initialize the cache if that was not done before.
     */
    if (!mntent_cache_entry_hashtable) {
@@ -412,13 +422,6 @@ mntent_cache_entry_t *find_mntent_mapping(uint32_t dev)
       if ((now - last_rescan) > MNTENT_RESCAN_INTERVAL) {
          initialize_mntent_cache();
       }
-   }
-
-   /**
-    * Shortcut when we get a request for the same device again.
-    */
-   if (previous_cache_hit && previous_cache_hit->dev == dev) {
-      return previous_cache_hit;
    }
 
    /**
