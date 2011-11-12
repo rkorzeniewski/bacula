@@ -60,6 +60,5 @@ struct mntent_cache_entry_t {
 };
 
 mntent_cache_entry_t *find_mntent_mapping(uint32_t dev);
-void flush_mntent_cache(void);
 
 #endif /* _MNTENT_CACHE_H */

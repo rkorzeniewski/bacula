@@ -348,14 +348,10 @@ static void clear_mount_cache()
 
 /**
  * Initialize the cache for use.
+ * This function should be called with a write lock on the mntent_cache.
  */
 static void initialize_mntent_cache(void)
 {
-   /**
-    * Lock the cache while we update it.
-    */
-   P(mntent_cache_lock);
-
    /**
     * Make sure the cache is empty (either by flushing it or by initializing it.)
     */
@@ -365,29 +361,18 @@ static void initialize_mntent_cache(void)
     * Refresh the cache.
     */
    refresh_mount_cache();
-
-   /**
-    * We are done updating the cache.
-    */
-   V(mntent_cache_lock);
 }
 
-void flush_mntent_cache(void)
+/**
+ * Flush the current content from the cache.
+ * This function should be called with a write lock on the mntent_cache.
+ */
+static void flush_mntent_cache(void)
 {
-   /**
-    * Lock the cache while we update it.
-    */
-   P(mntent_cache_lock);
-
    /**
     * Make sure the cache is empty (either by flushing it or by initializing it.)
     */
    clear_mount_cache();
-
-   /**
-    * We are done updating the cache.
-    */
-   V(mntent_cache_lock);
 }
 
 /**
@@ -399,10 +384,16 @@ mntent_cache_entry_t *find_mntent_mapping(uint32_t dev)
    time_t now;
 
    /**
+    * Lock the cache.
+    */
+   P(mntent_cache_lock);
+
+   /**
     * Shortcut when we get a request for the same device again.
     */
    if (previous_cache_hit && previous_cache_hit->dev == dev) {
-      return previous_cache_hit;
+      mce = previous_cache_hit;
+      goto ok_out;
    }
 
    /**
@@ -423,11 +414,6 @@ mntent_cache_entry_t *find_mntent_mapping(uint32_t dev)
          initialize_mntent_cache();
       }
    }
-
-   /**
-    * Lock the cache while we walk it.
-    */
-   P(mntent_cache_lock);
 
    mce = (mntent_cache_entry_t *)mntent_cache_entry_hashtable->lookup(dev);
 
@@ -457,9 +443,7 @@ mntent_cache_entry_t *find_mntent_mapping(uint32_t dev)
       previous_cache_hit = mce;
    }
 
-   /**
-    * We are done walking the cache.
-    */
+ok_out:
    V(mntent_cache_lock);
    return mce;
 }
