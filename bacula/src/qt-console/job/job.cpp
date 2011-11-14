@@ -40,7 +40,6 @@ Job::Job(QString &jobId, QTreeWidgetItem *parentTreeWidgetItem) : Pages()
    thisitem->setIcon(0,QIcon(QString::fromUtf8(":images/joblog.png")));
    m_cursor = new QTextCursor(textJobLog->document());
 
-   m_bwlimit = 0;
    m_jobId = jobId;
    m_timer = NULL;
    getFont();
@@ -50,7 +49,6 @@ Job::Job(QString &jobId, QTreeWidgetItem *parentTreeWidgetItem) : Pages()
    connect(pbCancel, SIGNAL(clicked()), this, SLOT(cancelJob()));
    connect(pbRun, SIGNAL(clicked()), this, SLOT(rerun()));
    connect(list_Volume, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this, SLOT(showInfoVolume(QListWidgetItem *)));
-   connect(spin_Bwlimit, SIGNAL(valueChanged(int)), this, SLOT(storeBwLimit(int)));
 
    populateAll();
    dockPage();
@@ -225,10 +223,6 @@ void Job::populateText()
   
 }
 
-void Job::storeBwLimit(int val)
-{
-   m_bwlimit = val;
-}
 
 void Job::updateRunInfo()
 {
@@ -237,14 +231,6 @@ void Job::updateRunInfo()
    QStringList lst;
    bool parseit=false;
    QChar equal = '=';
-
-   if (m_bwlimit >= 100) {
-      cmd = QString("setbandwidth limit=" + QString::number(m_bwlimit) 
-                    + " jobid=" + m_jobId);
-      m_console->dir_cmd(cmd, results);
-      results.clear();
-      m_bwlimit = 0;
-   }
 
    cmd = QString(".status client=\"" + m_client + "\" running");
 /*
@@ -325,19 +311,7 @@ void Job::updateRunInfo()
 //         } else if (lst[0] == "JobStarted") {
 //            Started->setText(lst[1]);
 
-            if (lst[0] == "Bwlimit") {
-               int val = lst[1].toInt();
-               if (val > 0) {
-                  chk_Bwlimit->setChecked(true);
-                  spin_Bwlimit->setEnabled(true);
-                  spin_Bwlimit->setValue(lst[1].toInt()/1024);
-               } else {
-                  chk_Bwlimit->setEnabled(false);
-                  spin_Bwlimit->setEnabled(false);
-                  spin_Bwlimit->setValue(0);
-               }
-               
-            } else if (lst[0] == "Errors") {
+            if (lst[0] == "Errors") {
                label_JobErrors->setText(lst[1]);
                
             } else if (lst[0] == "Bytes/sec") {

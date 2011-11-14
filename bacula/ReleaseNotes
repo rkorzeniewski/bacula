@@ -57,7 +57,7 @@ Closed Bugs since 5.0.3:
 Note on bug 1612 where Bacula does not save a checksum for hard links during
 full backup, but expects one during accurate differential backups. You need
 a Full backup with the 5.2.x code to have these checksums in the Catalog.
-Doing Incr/Diff over a 5.0.x Full backup will still display lots of errors.
+Doing Incr/Diff over a 5.0.x Full backup will still display lot of errors.
 
 
 

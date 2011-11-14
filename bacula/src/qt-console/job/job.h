@@ -45,7 +45,6 @@ public slots:
    void cancelJob();
    void showInfoVolume(QListWidgetItem *);
    void rerun();
-   void storeBwLimit(int val);
 
 private slots:
 
@@ -59,7 +58,6 @@ private:
    QString m_jobId;
    QString m_client;
    QTimer *m_timer;
-   int m_bwlimit;
 };
 
 #endif /* _JOB_H_ */
