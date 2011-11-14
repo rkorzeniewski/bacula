@@ -35,6 +35,7 @@
 #include "bacula.h"
 #include "dird/dird.h"
 #include "findlib/find.h"
+#include "lib/mntent_cache.h"
 #include "ch.h"
 
 #if defined(HAVE_WIN32)
@@ -240,6 +241,8 @@ main (int argc, char *const *argv)
 "Hard links     : %d\n"),
      num_files, max_file_len, max_path_len,
      trunc_fname, trunc_path, hard_links);
+
+   flush_mntent_cache();
 
    term_msg();
 

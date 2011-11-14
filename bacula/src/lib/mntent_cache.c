@@ -365,14 +365,21 @@ static void initialize_mntent_cache(void)
 
 /**
  * Flush the current content from the cache.
- * This function should be called with a write lock on the mntent_cache.
  */
-static void flush_mntent_cache(void)
+void flush_mntent_cache(void)
 {
    /**
-    * Make sure the cache is empty (either by flushing it or by initializing it.)
+    * Lock the cache.
     */
-   clear_mount_cache();
+   P(mntent_cache_lock);
+
+   if (mntent_cache_entry_hashtable) {
+      previous_cache_hit = NULL;
+      mntent_cache_entry_hashtable->destroy();
+      mntent_cache_entry_hashtable = NULL;
+   }
+
+   V(mntent_cache_lock);
 }
 
 /**
@@ -423,16 +430,7 @@ mntent_cache_entry_t *find_mntent_mapping(uint32_t dev)
     * the lookup again.
     */
    if (!mce) {
-      /**
-       * Make sure the cache is empty (either by flushing it or by initializing it.)
-       */
-      clear_mount_cache();
-
-      /**
-       * Refresh the cache.
-       */
-      refresh_mount_cache();
-
+      initialize_mntent_cache();
       mce = (mntent_cache_entry_t *)mntent_cache_entry_hashtable->lookup(dev);
    }
 

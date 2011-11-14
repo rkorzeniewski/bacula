@@ -34,6 +34,7 @@
 
 #include "bacula.h"
 #include "filed.h"
+#include "lib/mntent_cache.h"
 
 #ifdef HAVE_PYTHON
 
@@ -295,6 +296,7 @@ void terminate_filed(int sig)
    bnet_stop_thread_server(server_tid);
    generate_daemon_event(NULL, "Exit");
    unload_plugins();
+   flush_mntent_cache();
    write_state_file(me->working_directory, "bacula-fd", get_first_port_host_order(me->FDaddrs));
    delete_pid_file(me->pid_directory, "bacula-fd", get_first_port_host_order(me->FDaddrs));
 
