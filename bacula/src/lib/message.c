@@ -834,7 +834,7 @@ void dispatch_message(JCR *jcr, int type, utime_t mtime, char *msg)
                       delivery_error(_("Msg delivery error: fopen %s failed: ERR=%s\n"), name,
                             be.bstrerror());
                       free_pool_memory(name);
-                      V(fides_mutex);
+                      msgs->clear_in_use();
                       break;
                    }
                    d->mail_filename = name;
