@@ -665,6 +665,29 @@ static bool open_dest_file(JCR *jcr, DEST *d, const char *mode)
    return true;
 }
 
+/* Split the output for syslog (it converts \n to ' ' and is
+ * limited to 1024c
+ */
+static void send_to_syslog(int mode, const char *msg)
+{
+   int len;
+   char buf[1024];
+   const char *p2;
+   const char *p = msg;
+
+   while (*p && ((p2 = strchr(p, '\n')) != NULL))
+   {
+      len = MIN(sizeof(buf) - 1, p2 - p + 1); /* Add 1 to keep \n */
+      strncpy(buf, p, len);
+      buf[len] = 0;
+      syslog(mode, "%s", buf);
+      p = p2+1;                 /* skip \n */
+   }
+   if (*p != 0) {               /* no \n at the end ? */
+      syslog(mode, "%s", p);
+   }
+}
+
 /*
  * Handle sending the message to the appropriate place
  */
@@ -796,7 +819,7 @@ void dispatch_message(JCR *jcr, int type, utime_t mtime, char *msg)
                 /*
                  * We really should do an openlog() here.
                  */
-                syslog(LOG_DAEMON|LOG_ERR, "%s", msg);
+                send_to_syslog(LOG_DAEMON|LOG_ERR, msg);
                 break;
              case MD_OPERATOR:
                 Dmsg1(850, "OPERATOR for following msg: %s\n", msg);
