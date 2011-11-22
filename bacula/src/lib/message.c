@@ -666,7 +666,7 @@ static bool open_dest_file(JCR *jcr, DEST *d, const char *mode)
 }
 
 /* Split the output for syslog (it converts \n to ' ' and is
- * limited to 1024c
+ *   limited to 1024 characters per syslog message
  */
 static void send_to_syslog(int mode, const char *msg)
 {
@@ -675,9 +675,8 @@ static void send_to_syslog(int mode, const char *msg)
    const char *p2;
    const char *p = msg;
 
-   while (*p && ((p2 = strchr(p, '\n')) != NULL))
-   {
-      len = MIN(sizeof(buf) - 1, p2 - p + 1); /* Add 1 to keep \n */
+   while (*p && ((p2 = strchr(p, '\n')) != NULL)) {
+      len = MIN((int)sizeof(buf) - 1, p2 - p + 1); /* Add 1 to keep \n */
       strncpy(buf, p, len);
       buf[len] = 0;
       syslog(mode, "%s", buf);
