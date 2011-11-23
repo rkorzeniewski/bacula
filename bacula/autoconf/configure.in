@@ -3125,6 +3125,38 @@ unknown)
   ;;
 esac  
 
+dnl -------------------------------------------
+dnl systemd (default off)
+dnl -------------------------------------------
+AC_ARG_WITH(systemd,
+   AC_HELP_STRING([--with-systemd@<:@=UNITDIR@:>@], [Include systemd support. UNITDIR is where systemd system .service files are located, default is to ask systemctl.]),
+   [
+       if test "$withval" != "no"; then
+           if test "$withval" = "yes"; then
+               SYSTEMD_UNITDIR="`systemctl show | grep UnitPath | cut -d " " -f2`"
+           else
+               SYSTEMD_UNITDIR="${withval}"
+           fi
+
+	   PFILES="${PFILES} \
+	           platforms/systemd/Makefile \
+	           platforms/systemd/bacula-dir.service \
+	           platforms/systemd/bacula-fd.service \
+	           platforms/systemd/bacula-sd.service"
+           AC_DEFINE(HAVE_SYSTEMD, 1, [Define to 1 if systemd support should be enabled])
+           AC_MSG_RESULT(yes)
+	   support_systemd="yes"
+       else
+           AC_MSG_RESULT(no)
+	   support_systemd="no"
+       fi
+   ],[
+       support_systemd="no"
+       AC_MSG_RESULT(no)
+   ]
+)
+AC_SUBST(SYSTEMD_UNITDIR)
+
 AC_SUBST(hostname)
 
 LIBS="$PTHREAD_LIB $LIBS"
@@ -3426,6 +3458,7 @@ Configuration on `date`:
    ACL support: 	     ${have_acl}
    XATTR support:	     ${have_xattr}
    Python support:	     ${support_python} ${PYTHON_LIBS}
+   systemd support:	     ${support_systemd} ${SYSTEMD_UNITDIR}
    Batch insert enabled:     ${batch_insert_db_backends}
 
   " > config.out
