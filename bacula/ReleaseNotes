@@ -26,6 +26,11 @@ Compatibility:
 
 Changes since 5.2.1:
 -----------------
+ - Implement -t option for Bat
+ - Require correct Qt version 4.6.2 or later to build bat
+ - Get new lib/plugins.h
+ - Pull new SD plugin files from Master
+ - Fix script to set mode of cats scripts
  - Add Systemd configure options
  - Split messages line by line before sending it to syslog() fix #3325
  - Fix bvfs_restore on MySQL

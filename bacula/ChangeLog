@@ -2,6 +2,14 @@
 
 Version 5.2.2
 23Nov11
+ - Implement -t option for Bat
+ - Require correct Qt version to build bat
+ - Get new lib/plugins.h
+ - Pull files from Master
+ - Add systemd files
+ - Update po files
+ - Fix script to set mode of cats scripts
+ - Create systemd dir if not already exists
  - Add Systemd configure options
 
 17Nov11
