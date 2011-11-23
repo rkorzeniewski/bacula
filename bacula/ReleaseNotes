@@ -1,18 +1,18 @@
 
-               Release Notes for Bacula 5.2.1
+               Release Notes for Bacula 5.2.2
 
   Bacula code: Total files = 1,110 Total lines = 231,439 (Using SLOCCount)
 
 General:
 --------
+The 5.2.2 version is an important bug fix release. It contains also some
+aditions and performance improvements. 
 
-This 5.2.1 version is a major release since the last version 5.0.3.
+The 5.2.1 version is a major release since the last version 5.0.3.
 It includes well over 299,387 lines of changes made by 20 contributors,
 lots of bug fixes (see below), 1,851 software commits,and a 
 number of important new features:
 
-Version 5.2.0
--------------
 Version 5.2.0 was short lived, because Marco (thanks) found
 a number of last minute bugs. So the first official release of 5.2
 is 5.2.1.
@@ -22,12 +22,12 @@ Compatibility:
  As always, both the Director and Storage daemon must be upgraded at
  the same time.
 
- Older 5.0.x and 3.0.x File Daemons are compatible with the 5.2.1
+ Older 5.0.x and 3.0.x File Daemons are compatible with the 5.2.2
  Director and Storage daemons. There should be no need to upgrade older File
  Daemons.
 
-Main New Features:
-------------------
+5.2 New Features:
+-----------------
 - LZO Compression
 - New Tray Monitor
 - Purge Migration Job
