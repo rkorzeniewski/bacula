@@ -369,12 +369,6 @@ static void send_device_status(DEVICE *dev, STATUS_PKT *sp)
               dev->num_reserved(), dev->blocked());
    sendit(msg, len, sp);
 
-   locked = dev->lock_holder;
-   if (locked) {
-      len = Mmsg(msg, _("Waiting for device locked by: %s\n"), locked);
-      sendit(msg, len, sp);
-   }
-
    len = Mmsg(msg, _("Device parameters:\n"));
    sendit(msg, len, sp);
 
