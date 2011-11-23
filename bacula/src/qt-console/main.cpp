@@ -168,6 +168,9 @@ int main(int argc, char *argv[])
    if (!check_resources()) {
       Emsg1(M_ERROR_TERM, 0, _("Please correct configuration file: %s\n"), configfile);
    }
+   if (test_config) {
+      exit(0);
+   }
 
    mainWin = new MainWin;
    mainWin->show();
