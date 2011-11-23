@@ -6,7 +6,55 @@
 General:
 --------
 The 5.2.2 version is an important bug fix release. It contains also some
-aditions and performance improvements. 
+additions and performance improvements. 
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+If you are upgrading directly from 5.0.3 to this version, please see the
+important notices below for version 5.2.1, particularly
+the database upgrade and the difference in packaging the
+SQL shared libraries.
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+Compatibility:
+--------------
+ As always, both the Director and Storage daemon must be upgraded at
+ the same time.
+
+ Older 5.0.x and 3.0.x File Daemons are compatible with the 5.2.2
+ Director and Storage daemons. There should be no need to upgrade older File
+ Daemons.
+
+Changes since 5.2.1:
+-----------------
+ - Add Systemd configure options
+ - Split messages line by line before sending it to syslog() fix #3325
+ - Fix bvfs_restore on MySQL
+ - Fix #3308 where a SMTP problem can block the director
+ - Change locking scheme of the mountpoint cache.
+ - Enhance mountcache with rescan option after interval.
+ - Add %D option to edit_job_code, simplify callbacks on director side
+ - Move Zdeflate and Zinflate to seperate file.
+ - Put libraries in the correct order for non shared libs.
+ - Remove last traces of @SQL_BINDIR@ and @DB_TYPE@
+ - Fix bug #1774
+ - Move batch insert detection into db.m4
+ - bat: try to fix offset button problem when clicking too much on previous
+ - bvfs: Use single transaction for each job during update
+ - Add missing bwild & bregex man8 pages
+ - Fix compilation issue of wx-console #1778
+ - bvfs: fix filter for pattern= bvfs parameter
+ - Improve speed of BVFS with SQLite, Thanks to J.Starek
+ - bvfs: add clear_cache function
+ - bvfs: Handle windows drive when building path hierarchy
+
+Closed Bugs Since 5.2.1
+-----------------------
+1774 1778 3308 3325
+
+
+================================================================
+
+Version 5.2.1
 
 The 5.2.1 version is a major release since the last version 5.0.3.
 It includes well over 299,387 lines of changes made by 20 contributors,
@@ -22,11 +70,11 @@ Compatibility:
  As always, both the Director and Storage daemon must be upgraded at
  the same time.
 
- Older 5.0.x and 3.0.x File Daemons are compatible with the 5.2.2
+ Older 5.0.x and 3.0.x File Daemons are compatible with the 5.2.1
  Director and Storage daemons. There should be no need to upgrade older File
  Daemons.
 
-5.2 New Features:
+5.2.1 New Features:
 -----------------
 - LZO Compression
 - New Tray Monitor

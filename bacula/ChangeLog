@@ -1,6 +1,6 @@
               Changelog on version 5.2.2
 
-
+Version 5.2.2
 23Nov11
  - Add Systemd configure options
 
@@ -53,7 +53,6 @@ Bug fixes
 
 
 Version 5.2.1
-
 
 30Oct11
  - Don't define HAVE_POSTGRESQL twice
