@@ -152,9 +152,10 @@ At configure time the first detected backend is used as the so called default
 backend and at install time the dummy libbaccats-<version>.so is replaced with
 the default backend type.
 
-If you configure all 3 backends you get 3 backend libraries and the postgresql
-gets installed as the default.  When you want to switch the default you can
-copy one of the 3 backend libraries over the libbaccats-<version>.so e.g.
+If you configure all three backends you get three backend libraries and the
+postgresql gets installed as the default.  When you want to switch the default
+you can copy one of the three backend libraries over the
+libbaccats-<version>.so e.g.
 
 cp libbaccats-postgresql-<version>.so libbaccats-<version>.so
 
