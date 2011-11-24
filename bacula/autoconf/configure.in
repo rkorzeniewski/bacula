@@ -3128,6 +3128,7 @@ esac
 dnl -------------------------------------------
 dnl systemd (default off)
 dnl -------------------------------------------
+AC_MSG_CHECKING(for systemd support)
 AC_ARG_WITH(systemd,
    AC_HELP_STRING([--with-systemd@<:@=UNITDIR@:>@], [Include systemd support. UNITDIR is where systemd system .service files are located, default is to ask systemctl.]),
    [
