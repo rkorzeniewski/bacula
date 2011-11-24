@@ -475,6 +475,9 @@ void free_resource(RES *sres, int type)
       if (res->res_store.subsys_directory) {
          free(res->res_store.subsys_directory);
       }
+      if (res->res_store.plugin_directory) {
+         free(res->res_store.plugin_directory);
+      }
       if (res->res_store.scripts_directory) {
          free(res->res_store.scripts_directory);
       }
