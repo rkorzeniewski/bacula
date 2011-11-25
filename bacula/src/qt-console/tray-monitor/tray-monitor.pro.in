@@ -6,7 +6,8 @@
 #
 #  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 #    
-CONFIG += qt cross-win32
+# CONFIG options for Windows are pulled from win32/qmake.conf
+CONFIG += qt
 #CONFIG += qt debug 
 
 cross-win32 {
