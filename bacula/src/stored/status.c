@@ -327,7 +327,6 @@ static void send_device_status(DEVICE *dev, STATUS_PKT *sp)
 {
    POOL_MEM msg(PM_MESSAGE);
    int len;
-   char *locked;
 
    len = Mmsg(msg, _("Configured device capabilities:\n"));
    sendit(msg, len, sp);
