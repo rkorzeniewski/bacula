@@ -6,7 +6,8 @@
 #
 #  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 #    
-CONFIG += qt
+CONFIG += qt cross-win32
+#CONFIG += qt debug 
 
 cross-win32 {
   LIBS       +=  -mwindows -L../../win32/release32 -lbacula
