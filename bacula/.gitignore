@@ -479,6 +479,7 @@ src/qt-console/tray-monitor/Makefile.mingw32
 src/qt-console/tray-monitor/Makefile.mingw32.Debug
 src/qt-console/tray-monitor/Makefile.mingw32.Release
 src/qt-console/tray-monitor/debug/
+src/qt-console/tray-monitor/release/
 src/qt-console/tray-monitor/moc/
 src/qt-console/tray-monitor/tray-monitor.conf
 src/qt-console/tray-monitor/tray-monitor.pro
