@@ -28,33 +28,37 @@ These are the steps to complete for making a new release.
 
 8. Make sure everything is pushed including the docs.
 
-9. Run a full regression test (./nightly-all) on as many
+9. Diff the prior version against the current one:
+    git diff Release-5.2.1..HEAD >diff (where 5.2.1 is the prior)
+   and check for debug messages that have level zero, new text
+   in non-debug messages that is not setup for translation.
+
+10. Run a full regression test (./nightly-all) on as many
    platforms as possible.
 
-10. Check the CDash Bacula output pages to make sure there are
+11. Check the CDash Bacula output pages to make sure there are
     no overlooked problems.
 
-11. Cut the release (i.e. make the .tar.gz files) by copying
+12. Cut the release (i.e. make the .tar.gz files) by copying
    the release directory out of the build tree, ensuring that
    your config file is properly set, and that your signing
    key is properly setup, and running the ./makeall script.
 
-12. Ensure that the Windows builds were done properly.
+13. Ensure that the Windows builds were done properly.
 
-13. detar the main bacula source release
+14. detar the main bacula source release
 
-14. Run a regression on the detared file (ensures that all files
+15. Run a regression on the detared file (ensures that all files
     are actually in the tar and that it is not corrupt).
 
-15. push the tags (once pushed they can be corrected but it is more
+16. push the tags (once pushed they can be corrected but it is more
     complicated than simply re-running the ./makeall script)
 
-16. Upload the release files to Source Forge.
+17. Upload the release files to Source Forge.
 
-17. Update the release version and date on the main bacula.org page
+18. Update the release version and date on the main bacula.org page
 
-18. Update the news item to announce the release.
+19. Update the news item to announce the release.
 
-19. Send the release announcement to the users, devel, and announce 
+20. Send the release announcement to the users, devel, and announce 
     mailing lists.
-
