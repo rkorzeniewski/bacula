@@ -238,8 +238,9 @@ bool do_migration_init(JCR *jcr)
 /*
  * set_migration_next_pool() called by do_migration_init()
  * at differents stages.
- * The  idea here is tofactorize the NextPool's search code and
- * to permit do_migration_init() to return with NextPool set in jcr struct.
+ * The  idea here is to make a common subroutine for the 
+ *   NextPool's search code and to permit do_migration_init() 
+ *   to return with NextPool set in jcr struct.
  */
 static bool set_migration_next_pool(JCR *jcr, POOL **retpool)
 {
