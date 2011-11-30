@@ -201,7 +201,7 @@ void catalog_request(JCR *jcr, BSOCK *bs)
             send_volume_info_to_storage_daemon(jcr, bs, &mr);
          } else {
             /* Not suitable volume */
-            bs->fsend(_("1998 Volume \"%s\" status is %s, %s.\n"), mr.VolumeName,
+            bs->fsend(_("1998 Volume \"%s\" catalog status is %s, %s.\n"), mr.VolumeName,
                mr.VolStatus, reason);
          }
 
