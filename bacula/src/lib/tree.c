@@ -36,9 +36,9 @@
 #include "bacula.h"
 #include "findlib/find.h"
 
-#define PAGE_SIZE 4096
+#define B_PAGE_SIZE 4096
 #define MAX_PAGES 2400
-#define MAX_BUF_SIZE (MAX_PAGES * PAGE_SIZE)  /* approx 10MB */
+#define MAX_BUF_SIZE (MAX_PAGES * B_PAGE_SIZE)  /* approx 10MB */
 
 /* Forward referenced subroutines */
 static TREE_NODE *search_and_insert_tree_node(char *fname, int type,
