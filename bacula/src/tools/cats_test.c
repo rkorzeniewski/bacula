@@ -335,8 +335,8 @@ int main (int argc, char *argv[])
     */
 
    jcr = new_jcr(sizeof(JCR), NULL);
-   jcr->set_JobType(JT_CONSOLE);
-   jcr->set_JobLevel(L_NONE);
+   jcr->setJobType(JT_CONSOLE);
+   jcr->setJobLevel(L_NONE);
    jcr->JobStatus = JS_Running;
    bstrncpy(jcr->Job, "**dummy**", sizeof(jcr->Job));
    jcr->JobId = pid;      /* this is JobId on tape */
