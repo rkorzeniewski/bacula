@@ -213,9 +213,9 @@ static bool accurate_add_file(JCR *jcr, uint32_t len,
    CurFile *item;
 
    /* we store CurFile, fname and ctime/mtime in the same chunk 
-    * we need some extra bytes to handle an empty chksum
+    * we need one extra byte to handle an empty chksum
     */
-   item = (CurFile *)jcr->file_list->hash_malloc(sizeof(CurFile)+len+3);
+   item = (CurFile *)jcr->file_list->hash_malloc(sizeof(CurFile)+len+1);
    item->seen = 0;
 
    /* TODO: see if we can optimize this part with memcpy instead of strcpy */
