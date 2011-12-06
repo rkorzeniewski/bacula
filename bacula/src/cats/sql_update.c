@@ -135,12 +135,19 @@ int
 db_update_stats(JCR *jcr, B_DB *mdb, utime_t age)
 {
    char ed1[30];
+   int rows;
    utime_t now = (utime_t)time(NULL);
    edit_uint64(now - age, ed1);
 
+   db_lock(mdb);
+
    Mmsg(mdb->cmd, fill_jobhisto, ed1);
    QUERY_DB(jcr, mdb, mdb->cmd); /* TODO: get a message ? */
-   return sql_affected_rows(mdb);
+   rows = sql_affected_rows(mdb);
+
+   db_unlock(mdb);
+
+   return rows;
 }
 
 /*
