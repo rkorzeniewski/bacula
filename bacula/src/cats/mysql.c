@@ -296,7 +296,7 @@ void B_DB_MYSQL::db_close_database(JCR *jcr)
 void B_DB_MYSQL::db_thread_cleanup(void)
 { 
 #ifndef HAVE_WIN32
-   my_thread_end();
+   mysql_thread_end();
 #endif
 }
 
