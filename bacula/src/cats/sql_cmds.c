@@ -995,7 +995,7 @@ const char *batch_fill_filename_query[] = {
 
 const char *match_query[] = {
    /* Mysql */
-   "MATCH",
+   "REGEXP",
 
    /* Postgresql */
    "~",
