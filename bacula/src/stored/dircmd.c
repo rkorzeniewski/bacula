@@ -1117,7 +1117,7 @@ static bool changer_cmd(JCR *jcr)
       }
    } else {  /* error on scanf */
       pm_strcpy(jcr->errmsg, dir->msg);
-      dir->fsend(_("3908 Error scanning autocharger drives/list/slots command: %s\n"),
+      dir->fsend(_("3908 Error scanning autochanger drives/list/slots command: %s\n"),
          jcr->errmsg);
    }
    dir->signal(BNET_EOD);
