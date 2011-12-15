@@ -77,5 +77,5 @@ foreach my $d (sort {$b <=> $a} keys %elt) {
     print join("\n", @{$elt{$d}});
 }
 
-print "\n\nBug fixes\n";
+print "\n\nBugs fixed/closed since last release:\n";
 print join(" ", sort keys %bugs), "\n";
