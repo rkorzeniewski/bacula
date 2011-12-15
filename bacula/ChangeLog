@@ -1,4 +1,35 @@
-              Changelog on version 5.2.2
+              Changelog on version 5.2.3
+
+Version 5.2.3
+
+15Dec11
+ - Revert patch from Ben to not compress man pages on Solaris fix #1801
+
+14Dec11
+ - Fix bug #3322 don't poll when operator is labeling tapes
+
+13Dec11
+ - bvfs: Fix mysql REGEXP operator
+
+12Dec11
+ - Fix Mysql 5.5.18 symbol lookup
+
+08Dec11
+ - fix utf8/iso8859 problems
+
+06Dec11
+ - Fix #3419, update stats problem
+
+05Dec11
+ - Fix cats_test to use the new method names.
+ - Update accurate code to use 1 byte instead of 3
+ - Fix segfault in accurate code
+
+03Dec11
+ - Fix compilation warning on FreeBSD
+
+Bugs fixed/closed since last release:
+1801 3322 3419
 
 Version 5.2.2
 23Nov11

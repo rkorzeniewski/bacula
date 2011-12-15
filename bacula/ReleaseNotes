@@ -1,7 +1,47 @@
 
-               Release Notes for Bacula 5.2.2
+               Release Notes for Bacula 5.2.3
 
   Bacula code: Total files = 1,110 Total lines = 231,439 (Using SLOCCount)
+
+General:
+--------
+The 5.2.3 version is an bug fix release.
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+If you are upgrading directly from 5.0.3 to this version, please see the
+important notices below for version 5.2.2, particularly
+the database upgrade and the difference in packaging the
+SQL shared libraries.
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+Compatibility:
+--------------
+ As always, both the Director and Storage daemon must be upgraded at
+ the same time.
+
+ Older 5.0.x and 3.0.x File Daemons are compatible with the 5.2.3
+ Director and Storage daemons. There should be no need to upgrade older File
+ Daemons.
+
+Changes since 5.2.2:
+
+ - Revert patch from Ben to not compress man pages on Solaris fix #1801
+ - Fix bug #3322 don't poll when operator is labeling tapes
+ - bvfs: Fix mysql REGEXP operator
+ - Fix Mysql 5.5.18 symbol lookup
+ - fix utf8/iso8859 problems
+ - Fix #3419, update stats problem
+ - Fix cats_test to use the new method names.
+ - Update accurate code to use 1 byte instead of 3
+ - Fix segfault in accurate code
+ - Fix compilation warning on FreeBSD
+
+Bugs fixed/closed since last release:
+1801 3322 3419
+
+
+================================================================
+Version 5.2.2
 
 General:
 --------
