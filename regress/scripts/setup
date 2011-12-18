@@ -20,6 +20,9 @@ if [ ! -d ${BACULA_SOURCE} ] ; then
    exit 1
 fi
 
+MAKEOPTS=${MAKEOPT:-"-j3"}
+
+
 # we build and setup binaries to the $cwd/bin directory not $bin
 rm -rf build bin
 # Copy new source
@@ -50,10 +53,10 @@ rm -f Makefile config.*
 check_exit_code
 # Cleanup any build in source
 make clean
-make $MAKEOPT
+make ${MAKEOPT}
 check_exit_code
 make install
-if [ a$KEEP_SOURCE = a ]; then
+if [ a${KEEP_SOURCE} = a ]; then
    rm -rf examples patches
    check_exit_code
    # eliminate non-essential directories to reduce
