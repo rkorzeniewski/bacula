@@ -58,7 +58,10 @@ These are the steps to complete for making a new release.
 
 18. Update the release version and date on the main bacula.org page
 
-19. Update the news item to announce the release.
+19. Update the link to the release version in the "Current Release" 
+    in the menu (inc/header.php).
 
-20. Send the release announcement to the users, devel, and announce 
+20. Update the news item to announce the release.
+
+21. Send the release announcement to the users, devel, and announce 
     mailing lists.
