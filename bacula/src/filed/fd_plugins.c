@@ -216,7 +216,7 @@ void generate_plugin_event(JCR *jcr, bEventType eventType, void *value)
          continue;
       }
       plugin_ctx = &plugin_ctx_list[i++];
-      if (is_plugin_disabled(plugin_ctx)) {
+      if (!plugin_ctx || is_plugin_disabled(plugin_ctx)) {
          continue;
       }
       rc = plug_func(plugin)->handlePluginEvent(plugin_ctx, &event, value);
