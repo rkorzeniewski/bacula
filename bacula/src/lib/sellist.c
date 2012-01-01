@@ -34,7 +34,6 @@
  */
 
 #include "bacula.h"
-#include "sellist.h"
 
 /*
  * Returns next item
