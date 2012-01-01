@@ -39,7 +39,7 @@ INCLUDE_FILES = ../baconfig.h ../bacula.h ../bc_types.h \
 		fnmatch.h guid_to_name.h htable.h lex.h \
 		lib.h md5.h mem_pool.h message.h mntent_cache.h \
 		openssl.h plugins.h protos.h queue.h rblist.h \
-		runscript.h rwlock.h serial.h sha1.h \
+		runscript.h rwlock.h serial.h sellist.h sha1.h \
 		smartall.h status.h tls.h tree.h var.h \
 		waitq.h watchdog.h workq.h \
 		parse_conf.h \
@@ -55,7 +55,7 @@ LIBBAC_SRCS = attr.c base64.c berrno.c bsys.c binflate.c bget_msg.c \
 	      guid_to_name.c hmac.c jcr.c lex.c alist.c dlist.c \
 	      md5.c message.c mem_pool.c mntent_cache.c openssl.c \
 	      plugins.c priv.c queue.c bregex.c \
-	      rwlock.c scan.c serial.c sha1.c \
+	      rwlock.c scan.c sellist.c serial.c sha1.c \
 	      signal.c smartall.c rblist.c tls.c tree.c \
 	      util.c var.c watchdog.c workq.c btimers.c \
 	      address_conf.c breg.c htable.c lockmgr.c devlock.c
@@ -167,7 +167,7 @@ devlock_test: Makefile
 
 htable_test: Makefile
 	rm -f htable.o
-	$(CXX) -DTEST_SMALL_HTABLE -DTEST_NON_CHAR -DTEST_PROGRAM $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE)  $(CFLAGS) htable.c
+	$(CXX) -DTEST_SMALL_HTABLE -DTEST_NON_CHAR -DTEST_PROGRAM $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE)	$(CFLAGS) htable.c
 	$(LIBTOOL_LINK) $(CXX) $(LDFLAGS) -L. -o $@ htable.o $(DLIB) -lbac -lm $(LIBS) $(OPENSSL_LIBS)
 	rm -f htable.o
 	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) htable.c
