@@ -1,7 +1,7 @@
 /*
    Bacula(R) - The Network Backup Solution
 
-   Copyright (C) 2011-2011 Free Software Foundation Europe e.V.
+   Copyright (C) 2011-2012 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -54,8 +54,12 @@ public:
    bool set_string(char *string, bool scan);
    int64_t first();
    int64_t next();
-   int size() const;
-   char *get_errmsg();
+   void begin();
+   /* size() valid only if scan enabled on string */
+   int size() const { return num_items; };
+   char *get_list() { return str; };
+   /* if errmsg == NULL, no error */
+   char *get_errmsg() { return errmsg; };
 };
 
 /*
@@ -81,31 +85,24 @@ inline sellist::~sellist()
 }
 
 /*
- * Return list size, but only if scan enabled on string
- */
-inline int sellist::size() const
-{
-   return num_items;
-}
-
-/*
- * Return error message or NULL if none
- */
-inline char *sellist::get_errmsg()
-{
-   return errmsg;
-}
-
-/*
  * Returns first item
  *   error if returns -1 and errmsg set
  *   end of items if returns -1 and errmsg NULL
  */
 inline int64_t sellist::first()
 {
+   begin();
+   return next();
+}
+
+/*
+ * Reset to walk list from beginning
+ */
+inline void sellist::begin()
+{
    e = str;
    end = 0;
    beg = 1;
    errmsg = NULL;
-   return next();
 }
+
