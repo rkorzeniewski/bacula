@@ -1,7 +1,7 @@
 /*
    Bacula(R) - The Network Backup Solution
 
-   Copyright (C) 2011-2011 Free Software Foundation Europe e.V.
+   Copyright (C) 2011-2012 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -42,12 +42,12 @@
  */
 int64_t sellist::next()
 {
-   if (e == NULL) {
-      goto bail_out;
-   }
    errmsg = NULL;
    if (beg <= end) {
       return beg++;
+   }
+   if (e == NULL) {
+      goto bail_out;
    }
    /*
     * As we walk the list, we set EOF in
