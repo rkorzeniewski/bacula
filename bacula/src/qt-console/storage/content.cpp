@@ -179,7 +179,7 @@ void Content::statusStorageWindow()
 void Content::populateContent()
 {
    char buf[200];
-   time_t t;
+   time_t tim;
    struct tm tm;
 
    QStringList results_all;
@@ -244,16 +244,16 @@ void Content::populateContent()
          /* Pool */
          slotitem.setTextFld(index++, fld.next());
          
-         t = fld.next().toInt();
-         if (t > 0) {
+         tim = fld.next().toInt();
+         if (tim > 0) {
             /* LastW */
-            localtime_r(&t, &tm);
+            localtime_r(&tim, &tm);
             strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", &tm);
             slotitem.setTextFld(index++, QString(buf));
             
             /* Expire */
-            t = fld.next().toInt();
-            localtime_r(&t, &tm);
+            tim = fld.next().toInt();
+            localtime_r(&tim, &tm);
             strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", &tm);
             slotitem.setTextFld(index++, QString(buf));
          }

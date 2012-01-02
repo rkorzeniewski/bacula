@@ -40,6 +40,15 @@
 
 #include "bacula.h"
 
+const char *get_restore_objects = 
+   "SELECT JobId,ObjectLength,ObjectFullLength,ObjectIndex,"
+           "ObjectType,ObjectCompression,FileIndex,ObjectName,"
+           "RestoreObject,PluginName "
+    "FROM RestoreObject "
+   "WHERE JobId IN (%s) "
+     "AND ObjectType = %d "
+   "ORDER BY ObjectIndex ASC";
+
 const char *cleanup_created_job =
    "UPDATE Job SET JobStatus='f', StartTime=SchedTime, EndTime=SchedTime "
    "WHERE JobStatus = 'C'";

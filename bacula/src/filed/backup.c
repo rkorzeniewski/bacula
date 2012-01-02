@@ -1320,7 +1320,6 @@ bool encode_and_send_attributes(JCR *jcr, FF_PKT *ff_pkt, int &data_stream)
       ff_pkt->object_compression = 0;
       if (ff_pkt->object_len > 1000) {
          /* Big object, compress it */
-         int stat;
          comp_len = ff_pkt->object_len + 1000;
          POOLMEM *comp_obj = get_memory(comp_len);
          stat = Zdeflate(ff_pkt->object, ff_pkt->object_len, comp_obj, comp_len);

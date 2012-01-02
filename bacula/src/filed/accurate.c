@@ -380,7 +380,9 @@ bool accurate_check_file(JCR *jcr, FF_PKT *ff_pkt)
             stat = true;
          }
          break;
-
+      case 'A':                 /* Always backup a file */
+         stat = true;
+         break;
       /* TODO: cleanup and factorise this function with verify.c */
       case '5':                /* compare MD5 */
       case '1':                /* compare SHA1 */
@@ -496,7 +498,7 @@ int accurate_cmd(JCR *jcr)
    BSOCK *dir = jcr->dir_bsock;
    int lstat_pos, chksum_pos;
    int32_t nb;
-   uint32_t delta_seq;
+   uint16_t delta_seq;
 
    if (job_canceled(jcr)) {
       return true;
