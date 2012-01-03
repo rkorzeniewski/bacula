@@ -497,6 +497,7 @@ static bxattr_exit_code aix_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
                   jcr->last_fname, MAX_XATTR_STREAM);
             goto bail_out;
          }
+         break;
       }
 
       if (xattr_value_list == NULL) {
@@ -507,7 +508,6 @@ static bxattr_exit_code aix_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
       current_xattr = NULL;
       xattr_count++;
       bp = strchr(bp, '\0') + 1;
-      break;
    }
 
    free(xattr_list);
