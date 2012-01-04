@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2006-2011 Free Software Foundation Europe e.V.
+   Copyright (C) 2006-2008 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -29,6 +29,8 @@
  * Manipulation routines for BREGEXP list
  *
  *  Eric Bollengier, March 2007
+ *
+ *  Version $Id$
  *
  */
 

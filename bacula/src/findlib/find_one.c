@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2010 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2009 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -33,6 +33,8 @@
       Kern Sibbald, MM
 
    Thanks to the TAR programmers.
+
+     Version $Id$
 
  */
 
@@ -420,9 +422,9 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt,
     * Ignore this entry if no_dump() returns true
     */
    if (no_dump(jcr, ff_pkt)) {
-           Dmsg1(100, "'%s' ignored (NODUMP flag set)\n",
-                 ff_pkt->fname);
-           return 1;
+      Dmsg1(100, "'%s' ignored (NODUMP flag set)\n",
+            ff_pkt->fname);
+      return 1;
    }
 
    /*
