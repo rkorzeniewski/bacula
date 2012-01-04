@@ -232,8 +232,14 @@ again:
    if (run->spool_data_set) {
       jcr->spool_data = run->spool_data;
    }
+   if (run->accurate_set) {     /* overwrite accurate mode */
+      jcr->accurate = run->accurate;
+   }
    if (run->write_part_after_job_set) {
       jcr->write_part_after_job = run->write_part_after_job;
+   }
+   if (run->MaxRunSchedTime_set) {
+      jcr->MaxRunSchedTime = run->MaxRunSchedTime;
    }
    Dmsg0(dbglvl, "Leave wait_for_next_job()\n");
    return jcr;
@@ -265,7 +271,6 @@ static void find_runs()
    int nh_hour, nh_mday, nh_wday, nh_month, nh_wom, nh_woy;
 
    Dmsg0(dbglvl, "enter find_runs()\n");
-
 
    /* compute values for time now */
    now = time(NULL);
