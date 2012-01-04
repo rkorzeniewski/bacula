@@ -58,7 +58,7 @@ LIBBAC_SRCS = attr.c base64.c berrno.c bsys.c binflate.c bget_msg.c \
 	      rwlock.c scan.c sellist.c serial.c sha1.c \
 	      signal.c smartall.c rblist.c tls.c tree.c \
 	      util.c var.c watchdog.c workq.c btimers.c \
-	      address_conf.c breg.c htable.c lockmgr.c devlock.c ini.c
+	      address_conf.c breg.c htable.c lockmgr.c devlock.c
 
 LIBBAC_OBJS = $(LIBBAC_SRCS:.c=.o)
 LIBBAC_LOBJS = $(LIBBAC_SRCS:.c=.lo)
@@ -66,7 +66,7 @@ LIBBAC_LOBJS = $(LIBBAC_SRCS:.c=.lo)
 #
 # libbaccfg (config functions)
 #
-LIBBACCFG_SRCS = parse_conf.c res.c
+LIBBACCFG_SRCS = ini.c parse_conf.c res.c
 LIBBACCFG_OBJS = $(LIBBACCFG_SRCS:.c=.o)
 LIBBACCFG_LOBJS = $(LIBBACCFG_SRCS:.c=.lo)
 
@@ -210,7 +210,7 @@ bsnprintf: Makefile bsnprintf.o
 ini: Makefile ini.o
 	rm -f ini.o
 	$(CXX) -DTEST_PROGRAM $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE)  $(CFLAGS) ini.c
-	$(LIBTOOL_LINK) $(CXX) $(LDFLAGS) -L. -o $@ ini.o -lbac $(DLIB) -lm $(LIBS) $(OPENSSL_LIBS)
+	$(LIBTOOL_LINK) $(CXX) $(LDFLAGS) -L. -o $@ ini.o -lbaccfg -lbac $(DLIB) -lm $(LIBS) $(OPENSSL_LIBS)
 	rm -f ini.o
 	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) ini.c
 
