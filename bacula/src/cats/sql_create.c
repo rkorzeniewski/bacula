@@ -1211,7 +1211,7 @@ bool db_create_restore_object_record(JCR *jcr, B_DB *mdb, ROBJECT_DBR *ro)
         "VALUES ('%s','%s','%s',%d,%d,%d,%d,%d,%d,%u)",
         mdb->esc_name, esc_plug_name, mdb->esc_obj,
         ro->object_len, ro->object_full_len, ro->object_index, 
-        FT_RESTORE_FIRST, ro->object_compression, ro->FileIndex, ro->JobId);
+        ro->FileType, ro->object_compression, ro->FileIndex, ro->JobId);
 
    ro->RestoreObjectId = sql_insert_autokey_record(mdb, mdb->cmd, NT_("RestoreObject"));
    if (ro->RestoreObjectId == 0) {

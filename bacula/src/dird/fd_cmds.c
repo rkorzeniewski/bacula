@@ -692,9 +692,15 @@ static int restore_object_handler(void *ctx, int num_fields, char **row)
       return 1;
    }
 
-   fd->fsend("restoreobject JobId=%s %s,%s,%s,%s,%s,%s\n",
-      row[0], row[1], row[2], row[3], row[4], row[5], row[6]);
-
+   if (jcr->FDVersion < 5) {    /* Old version without PluginName */
+      fd->fsend("restoreobject JobId=%s %s,%s,%s,%s,%s,%s\n",
+                row[0], row[1], row[2], row[3], row[4], row[5], row[6]);
+   } else {
+      /* bash spaces from PluginName */
+      bash_spaces(row[9]);      
+      fd->fsend("restoreobject JobId=%s %s,%s,%s,%s,%s,%s,%s\n",
+                row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[9]);
+   }
    Dmsg1(010, "Send obj hdr=%s", fd->msg);
 
    fd->msglen = pm_strcpy(fd->msg, row[7]);
@@ -725,6 +731,7 @@ static int restore_object_handler(void *ctx, int num_fields, char **row)
 
 bool send_restore_objects(JCR *jcr)
 {
+   char ed1[50];
    POOL_MEM query(PM_MESSAGE);
    BSOCK *fd;
    OBJ_CTX octx;
@@ -734,14 +741,16 @@ bool send_restore_objects(JCR *jcr)
    }
    octx.jcr = jcr;
    octx.count = 0;
-   Mmsg(query, "SELECT JobId,ObjectLength,ObjectFullLength,ObjectIndex,"
-                      "ObjectType,ObjectCompression,FileIndex,ObjectName,"
-                      "RestoreObject "
-               "FROM RestoreObject "
-              "WHERE JobId IN (%s) "
-              "ORDER BY ObjectIndex ASC", jcr->JobIds);
    
    /* restore_object_handler is called for each file found */
+   
+   /* send restore objects for all jobs involved  */
+   Mmsg(query, get_restore_objects, jcr->JobIds, FT_RESTORE_FIRST);
+   db_sql_query(jcr->db, query.c_str(), restore_object_handler, (void *)&octx);
+
+   /* send config objects for the current restore job */
+   Mmsg(query, get_restore_objects, 
+        edit_uint64(jcr->JobId, ed1), FT_PLUGIN_CONFIG_FILLED);
    db_sql_query(jcr->db, query.c_str(), restore_object_handler, (void *)&octx);
 
    /*
