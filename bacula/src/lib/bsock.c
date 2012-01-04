@@ -811,6 +811,13 @@ int BSOCK::set_blocking()
 #endif
 }
 
+void BSOCK::set_killable(bool killable)
+{
+   if (m_jcr) {
+      m_jcr->set_killable(killable);
+   }
+}
+
 /*
  * Restores socket flags
  */
