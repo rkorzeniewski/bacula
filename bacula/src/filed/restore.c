@@ -340,7 +340,7 @@ void do_restore(JCR *jcr)
           * Restore objects should be ignored here -- they are
           * returned at the beginning of the restore. 
           */
-         if (rctx.type == FT_RESTORE_FIRST) {
+         if (IS_FT_OBJECT(rctx.type)) {
             continue;
          }
 
@@ -374,9 +374,13 @@ void do_restore(JCR *jcr)
           */
          jcr->num_files_examined++;
          rctx.extract = false;
+         stat = CF_CORE;        /* By default, let Bacula's core handle it */
+
          if (jcr->plugin) {
             stat = plugin_create_file(jcr, attr, &rctx.bfd, jcr->replace);
-         } else {
+         } 
+         
+         if (stat == CF_CORE) {
             stat = create_file(jcr, attr, &rctx.bfd, jcr->replace);
          }
          jcr->lock();  
@@ -387,8 +391,7 @@ void do_restore(JCR *jcr)
          switch (stat) {
          case CF_ERROR:
          case CF_SKIP:
-            pm_strcpy(jcr->last_fname, attr->ofname);
-            jcr->last_type = attr->type;
+            jcr->JobFiles++;
             break;
          case CF_EXTRACT:
             /*
@@ -415,7 +418,7 @@ void do_restore(JCR *jcr)
                }
 
                /*
-                * Count the resource forks not as regular files being restored.
+                * Do not count the resource forks as regular files being restored.
                 */
                if (rsrc_len == 0) {
                   jcr->JobFiles++;
