@@ -1119,16 +1119,6 @@ static bool check_catalog(cat_op mode)
       /* Set type in global for debugging */
       set_db_type(db_get_type(db));
 
-#ifdef BEEF_DEMO
-      /*
-       * Demo mode only allows SQLite3
-       */
-      if (!bstrcmp(db_get_type(db), "SQLite3")) {
-         Jmsg(NULL, M_FATAL, 0, _("Failed to initialize database backend\n"));
-         OK = false;
-      }
-#endif
-
       db_close_database(NULL, db);
    }
    return OK;
