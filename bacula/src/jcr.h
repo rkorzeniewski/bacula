@@ -148,7 +148,7 @@ class BSOCK;
 struct FF_PKT;
 class  B_DB;
 struct ATTR_DBR;
-struct Plugin;
+class Plugin;
 struct save_pkt;
 struct bpContext;
 struct xattr_private_data_t;
