@@ -116,7 +116,7 @@ case `uname -s` in
       ( cd $cwd/build
         getfacl -R acl > $cwd/tmp/org
         getfattr -h -n user.bacula.test $d/other > $cwd/tmp/attr.org
-        getfattr -h -n user.bacula.secondtest $d/other > $cwd/tmp/attr.org
+        getfattr -h -n user.bacula.secondtest $d/other >> $cwd/tmp/attr.org
       )
       ;;
    Darwin)
@@ -134,7 +134,7 @@ case `uname -s` in
       ( cd $cwd/build
         ls -lde -R acl > $cwd/tmp/org
         xattr -p bacula.test $d/other > $cwd/tmp/attr.org
-        xattr -p bacula.secondtest $d/other > $cwd/tmp/attr.org
+        xattr -p bacula.secondtest $d/other >> $cwd/tmp/attr.org
       )
       ;;
    SunOS)
@@ -165,7 +165,7 @@ EOF
       ( cd $cwd/build
         /bin/ls -ldv -R acl > $cwd/tmp/org
         /bin/runat $d/other 'cat bacula.test' > $cwd/tmp/attr.org
-        /bin/runat $d/other 'cat bacula.secondtest' > $cwd/tmp/attr.org
+        /bin/runat $d/other 'cat bacula.secondtest' >> $cwd/tmp/attr.org
       )
       ;;
    FreeBSD)
@@ -185,7 +185,7 @@ EOF
            getfacl $file
         done > $cwd/tmp/org
         getextattr user bacula.test $d/other > $cwd/tmp/attr.org
-        getextattr user bacula.secondtest $d/other > $cwd/tmp/attr.org
+        getextattr user bacula.secondtest $d/other >> $cwd/tmp/attr.org
       )
       ;;
    NetBSD)
@@ -196,7 +196,7 @@ EOF
       ( cd $cwd/build
         cp /dev/null $cwd/tmp/org
         getextattr user bacula.test $d/other > $cwd/tmp/attr.org
-        getextattr user bacula.secondtest $d/other > $cwd/tmp/attr.org
+        getextattr user bacula.secondtest $d/other >> $cwd/tmp/attr.org
       )
       ;;
 esac
@@ -235,21 +235,21 @@ case `uname -s` in
       ( cd $cwd/tmp/bacula-restores/$cwd/build
         getfacl -R acl > $cwd/tmp/new
         getfattr -h -n user.bacula.test $d/other > $cwd/tmp/attr.new
-        getfattr -h -n user.bacula.secondtest $d/other > $cwd/tmp/attr.new
+        getfattr -h -n user.bacula.secondtest $d/other >> $cwd/tmp/attr.new
       )
       ;;
    Darwin)
       ( cd $cwd/tmp/bacula-restores/$cwd/build
         ls -lde -R acl > $cwd/tmp/new
         xattr -p bacula.test $d/other > $cwd/tmp/attr.new
-        xattr -p bacula.secondtest $d/other > $cwd/tmp/attr.new
+        xattr -p bacula.secondtest $d/other >> $cwd/tmp/attr.new
       )
       ;;
    SunOS)
       ( cd $cwd/tmp/bacula-restores/$cwd/build
         /bin/ls -ldv -R acl > $cwd/tmp/new
         /bin/runat $d/other 'cat bacula.test' > $cwd/tmp/attr.new
-        /bin/runat $d/other 'cat bacula.secondtest' > $cwd/tmp/attr.new
+        /bin/runat $d/other 'cat bacula.secondtest' >> $cwd/tmp/attr.new
       )
       ;;
    FreeBSD)
@@ -259,14 +259,14 @@ case `uname -s` in
            getfacl $file
         done > $cwd/tmp/new
         getextattr user bacula.test $d/other > $cwd/tmp/attr.new
-        getextattr user bacula.secondtest $d/other > $cwd/tmp/attr.new
+        getextattr user bacula.secondtest $d/other >> $cwd/tmp/attr.new
       )
       ;;
    NetBSD)
       ( cd $cwd/tmp/bacula-restores/$cwd/build
         cp /dev/null $cwd/tmp/new
         getextattr user bacula.test $d/other > $cwd/tmp/attr.new
-        getextattr user bacula.secondtest $d/other > $cwd/tmp/attr.new
+        getextattr user bacula.secondtest $d/other >> $cwd/tmp/attr.new
       )
       ;;
 esac
