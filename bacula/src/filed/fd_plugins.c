@@ -1300,6 +1300,10 @@ static bRC baculaGetValue(bpContext *ctx, bVariable var, void *value)
       *((char **)value) = jcr->Job;
       Dmsg1(dbglvl, "Bacula: return Job name=%s\n", jcr->Job);
       break;
+   case bVarPrevJobName:
+      *((char **)value) = jcr->PrevJob;
+      Dmsg1(dbglvl, "Bacula: return Previous Job name=%s\n", jcr->PrevJob);
+      break;
    case bVarJobStatus:
       *((int *)value) = jcr->JobStatus;
       Dmsg1(dbglvl, "Bacula: return bVarJobStatus=%d\n", jcr->JobStatus);

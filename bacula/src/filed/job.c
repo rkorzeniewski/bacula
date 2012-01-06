@@ -1602,12 +1602,15 @@ static int level_cmd(JCR *jcr)
       if (jcr->getJobLevel() == L_NONE) {
          jcr->setJobLevel(L_SINCE);     /* if no other job level set, do it now */
       }
-      if (sscanf(dir->msg, "level = since_utime %s mtime_only=%d",
-                 buf, &mtime_only) != 2) {
-         goto bail_out;
+      if (sscanf(dir->msg, "level = since_utime %s mtime_only=%d prev_job=%127s",
+                 buf, &mtime_only, jcr->PrevJob) != 3) {
+         if (sscanf(dir->msg, "level = since_utime %s mtime_only=%d",
+                    buf, &mtime_only) != 2) {
+            goto bail_out;
+         }
       }
       since_time = str_to_uint64(buf);  /* this is the since time */
-      Dmsg1(100, "since_time=%lld\n", since_time);
+      Dmsg2(100, "since_time=%lld prev_job=%s\n", since_time, jcr->PrevJob);
       char ed1[50], ed2[50];
       /*
        * Sync clocks by polling him for the time. We take

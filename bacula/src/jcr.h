@@ -334,6 +334,7 @@ public:
    JCR *mig_jcr;                      /* JCR for migration/copy job */
    char FSCreateTime[MAX_TIME_LENGTH]; /* FileSet CreateTime as returned from DB */
    char since[MAX_TIME_LENGTH];       /* since time */
+   char PrevJob[MAX_NAME_LENGTH];     /* Previous job name assiciated with since time */
    union {
       JobId_t RestoreJobId;           /* Id specified by UA */
       JobId_t MigrateJobId;
@@ -396,6 +397,7 @@ public:
    int32_t buf_size;                  /* length of buffer */
    FF_PKT *ff;                        /* Find Files packet */
    char stored_addr[MAX_NAME_LENGTH]; /* storage daemon address */
+   char PrevJob[MAX_NAME_LENGTH];     /* Previous job name assiciated with since time */
    uint32_t StartFile;
    uint32_t EndFile;
    uint32_t StartBlock;

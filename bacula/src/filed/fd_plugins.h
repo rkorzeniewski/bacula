@@ -185,7 +185,8 @@ typedef enum {
   bVarExePath    = 16,
   bVarVersion    = 17,
   bVarDistName   = 18,
-  bVarBEEF       = 19
+  bVarBEEF       = 19,
+  bVarPrevJobName = 20
 } bVariable;
 
 /* Events that are passed to plugin */
