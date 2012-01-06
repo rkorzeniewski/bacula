@@ -198,9 +198,12 @@ static inline void push_delayed_restore_stream(r_ctx &rctx, BSOCK *sd)
  * This can either be a delayed restore or direct restore.
  */
 static inline bool do_restore_acl(JCR *jcr,
-                                  int stream)
+                                  int stream,
+                                  char *content,
+                                  uint32_t content_length)
+
 {
-   switch (parse_acl_streams(jcr, stream)) {
+   switch (parse_acl_streams(jcr, stream, content, content_length)) {
    case bacl_exit_fatal:
       return false;
    case bacl_exit_error:
@@ -208,10 +211,10 @@ static inline bool do_restore_acl(JCR *jcr,
        * Non-fatal errors, count them and when the number is under ACL_REPORT_ERR_MAX_PER_JOB
        * print the error message set by the lower level routine in jcr->errmsg.
        */
-      if (jcr->acl_data->nr_errors < ACL_REPORT_ERR_MAX_PER_JOB) {
+      if (jcr->acl_data->u.parse->nr_errors < ACL_REPORT_ERR_MAX_PER_JOB) {
          Jmsg(jcr, M_WARNING, 0, "%s", jcr->errmsg);
       }
-      jcr->acl_data->nr_errors++;
+      jcr->acl_data->u.parse->nr_errors++;
       break;
    case bacl_exit_ok:
       break;
@@ -224,9 +227,11 @@ static inline bool do_restore_acl(JCR *jcr,
  * This can either be a delayed restore or direct restore.
  */
 static inline bool do_restore_xattr(JCR *jcr,
-                                    int stream)
+                                    int stream,
+                                    char *content,
+                                    uint32_t content_length)
 {
-   switch (parse_xattr_streams(jcr, stream)) {
+   switch (parse_xattr_streams(jcr, stream, content, content_length)) {
    case bxattr_exit_fatal:
       return false;
    case bxattr_exit_error:
@@ -234,10 +239,10 @@ static inline bool do_restore_xattr(JCR *jcr,
        * Non-fatal errors, count them and when the number is under XATTR_REPORT_ERR_MAX_PER_JOB
        * print the error message set by the lower level routine in jcr->errmsg.
        */
-      if (jcr->xattr_data->nr_errors < XATTR_REPORT_ERR_MAX_PER_JOB) {
+      if (jcr->xattr_data->u.parse->nr_errors < XATTR_REPORT_ERR_MAX_PER_JOB) {
          Jmsg(jcr, M_WARNING, 0, "%s", jcr->errmsg);
       }
-      jcr->xattr_data->nr_errors++;
+      jcr->xattr_data->u.parse->nr_errors++;
       break;
    case bxattr_exit_ok:
       break;
@@ -297,9 +302,7 @@ static inline bool pop_delayed_data_streams(JCR *jcr, r_ctx &rctx)
       case STREAM_ACL_AIX_AIXC:
       case STREAM_ACL_AIX_NFS4:
       case STREAM_ACL_FREEBSD_NFS4_ACL:
-         pm_memcpy(jcr->acl_data->content, rds->content, rds->content_length);
-         jcr->acl_data->content_length = rds->content_length;
-         if (!do_restore_acl(jcr, rds->stream)) {
+         if (!do_restore_acl(jcr, rds->stream, rds->content, rds->content_length)) {
             goto bail_out;
          }
          free(rds->content);
@@ -313,9 +316,7 @@ static inline bool pop_delayed_data_streams(JCR *jcr, r_ctx &rctx)
       case STREAM_XATTR_FREEBSD:
       case STREAM_XATTR_LINUX:
       case STREAM_XATTR_NETBSD:
-         pm_memcpy(jcr->xattr_data->content, rds->content, rds->content_length);
-         jcr->xattr_data->content_length = rds->content_length;
-         if (!do_restore_xattr(jcr, rds->stream)) {
+         if (!do_restore_xattr(jcr, rds->stream, rds->content, rds->content_length)) {
             goto bail_out;
          }
          free(rds->content);
@@ -457,13 +458,15 @@ void do_restore(JCR *jcr)
    attr = rctx.attr = new_attr(jcr);
    if (have_acl) {
       jcr->acl_data = (acl_data_t *)malloc(sizeof(acl_data_t));
-      memset((caddr_t)jcr->acl_data, 0, sizeof(acl_data_t));
-      jcr->acl_data->content = get_pool_memory(PM_MESSAGE);
+      memset(jcr->acl_data, 0, sizeof(acl_data_t));
+      jcr->acl_data->u.parse = (acl_parse_data_t *)malloc(sizeof(acl_parse_data_t));
+      memset(jcr->acl_data->u.parse, 0, sizeof(acl_parse_data_t));
    }
    if (have_xattr) {
       jcr->xattr_data = (xattr_data_t *)malloc(sizeof(xattr_data_t));
-      memset((caddr_t)jcr->xattr_data, 0, sizeof(xattr_data_t));
-      jcr->xattr_data->content = get_pool_memory(PM_MESSAGE);
+      memset(jcr->xattr_data, 0, sizeof(xattr_data_t));
+      jcr->xattr_data->u.parse = (xattr_parse_data_t *)malloc(sizeof(xattr_parse_data_t));
+      memset(jcr->xattr_data->u.parse, 0, sizeof(xattr_parse_data_t));
    }
 
    while (bget_msg(sd) >= 0 && !job_canceled(jcr)) {
@@ -908,9 +911,7 @@ void do_restore(JCR *jcr)
             if (jcr->last_type != FT_DIREND) {
                push_delayed_restore_stream(rctx, sd);
             } else {
-               pm_memcpy(jcr->acl_data->content, sd->msg, sd->msglen);
-               jcr->acl_data->content_length = sd->msglen;
-               if (!do_restore_acl(jcr, rctx.stream)) {
+               if (!do_restore_acl(jcr, rctx.stream, sd->msg, sd->msglen)) {
                   goto bail_out;
                }
             }
@@ -947,9 +948,7 @@ void do_restore(JCR *jcr)
             if (jcr->last_type != FT_DIREND) {
                push_delayed_restore_stream(rctx, sd);
             } else {
-               pm_memcpy(jcr->xattr_data->content, sd->msg, sd->msglen);
-               jcr->xattr_data->content_length = sd->msglen;
-               if (!do_restore_xattr(jcr, rctx.stream)) {
+               if (!do_restore_xattr(jcr, rctx.stream, sd->msg, sd->msglen)) {
                   goto bail_out;
                }
             }
@@ -971,9 +970,7 @@ void do_restore(JCR *jcr)
             break;
          }
          if (have_xattr) {
-            pm_memcpy(jcr->xattr_data->content, sd->msg, sd->msglen);
-            jcr->xattr_data->content_length = sd->msglen;
-            if (!do_restore_xattr(jcr, rctx.stream)) {
+            if (!do_restore_xattr(jcr, rctx.stream, sd->msg, sd->msglen)) {
                goto bail_out;
             }
          } else {
@@ -1057,13 +1054,13 @@ ok_out:
     */
    Dmsg2(10, "End Do Restore. Files=%d Bytes=%s\n", jcr->JobFiles,
       edit_uint64(jcr->JobBytes, ec1));
-   if (have_acl && jcr->acl_data->nr_errors > 0) {
+   if (have_acl && jcr->acl_data->u.parse->nr_errors > 0) {
       Jmsg(jcr, M_WARNING, 0, _("Encountered %ld acl errors while doing restore\n"),
-           jcr->acl_data->nr_errors);
+           jcr->acl_data->u.parse->nr_errors);
    }
-   if (have_xattr && jcr->xattr_data->nr_errors > 0) {
+   if (have_xattr && jcr->xattr_data->u.parse->nr_errors > 0) {
       Jmsg(jcr, M_WARNING, 0, _("Encountered %ld xattr errors while doing restore\n"),
-           jcr->xattr_data->nr_errors);
+           jcr->xattr_data->u.parse->nr_errors);
    }
    if (non_support_data > 1 || non_support_attr > 1) {
       Jmsg(jcr, M_WARNING, 0, _("%d non-supported data streams and %d non-supported attrib streams ignored.\n"),
@@ -1127,13 +1124,13 @@ ok_out:
    }
 
    if (have_acl && jcr->acl_data) {
-      free_pool_memory(jcr->acl_data->content);
+      free(jcr->acl_data->u.parse);
       free(jcr->acl_data);
       jcr->acl_data = NULL;
    }
 
    if (have_xattr && jcr->xattr_data) {
-      free_pool_memory(jcr->xattr_data->content);
+      free(jcr->xattr_data->u.parse);
       free(jcr->xattr_data);
       jcr->xattr_data = NULL;
    }

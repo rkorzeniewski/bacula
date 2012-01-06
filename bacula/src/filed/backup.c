@@ -170,14 +170,18 @@ bool blast_data_to_storage_daemon(JCR *jcr, char *addr)
 
    if (have_acl) {
       jcr->acl_data = (acl_data_t *)malloc(sizeof(acl_data_t));
-      memset((caddr_t)jcr->acl_data, 0, sizeof(acl_data_t));
-      jcr->acl_data->content = get_pool_memory(PM_MESSAGE);
+      memset(jcr->acl_data, 0, sizeof(acl_data_t));
+      jcr->acl_data->u.build = (acl_build_data_t *)malloc(sizeof(acl_build_data_t));
+      memset(jcr->acl_data->u.build, 0, sizeof(acl_build_data_t));
+      jcr->acl_data->u.build->content = get_pool_memory(PM_MESSAGE);
    }
 
    if (have_xattr) {
       jcr->xattr_data = (xattr_data_t *)malloc(sizeof(xattr_data_t));
-      memset((caddr_t)jcr->xattr_data, 0, sizeof(xattr_data_t));
-      jcr->xattr_data->content = get_pool_memory(PM_MESSAGE);
+      memset(jcr->xattr_data, 0, sizeof(xattr_data_t));
+      jcr->xattr_data->u.build = (xattr_build_data_t *)malloc(sizeof(xattr_build_data_t));
+      memset(jcr->xattr_data->u.build, 0, sizeof(xattr_build_data_t));
+      jcr->xattr_data->u.build->content = get_pool_memory(PM_MESSAGE);
    }
 
    /** Subroutine save_file() is called for each file */
@@ -186,13 +190,13 @@ bool blast_data_to_storage_daemon(JCR *jcr, char *addr)
       jcr->setJobStatus(JS_ErrorTerminated);
    }
 
-   if (have_acl && jcr->acl_data->nr_errors > 0) {
+   if (have_acl && jcr->acl_data->u.build->nr_errors > 0) {
       Jmsg(jcr, M_WARNING, 0, _("Encountered %ld acl errors while doing backup\n"),
-           jcr->acl_data->nr_errors);
+           jcr->acl_data->u.build->nr_errors);
    }
-   if (have_xattr && jcr->xattr_data->nr_errors > 0) {
+   if (have_xattr && jcr->xattr_data->u.build->nr_errors > 0) {
       Jmsg(jcr, M_WARNING, 0, _("Encountered %ld xattr errors while doing backup\n"),
-           jcr->xattr_data->nr_errors);
+           jcr->xattr_data->u.build->nr_errors);
    }
 
    close_vss_backup_session(jcr);
@@ -204,12 +208,14 @@ bool blast_data_to_storage_daemon(JCR *jcr, char *addr)
    sd->signal(BNET_EOD);            /* end of sending data */
 
    if (have_acl && jcr->acl_data) {
-      free_pool_memory(jcr->acl_data->content);
+      free_pool_memory(jcr->acl_data->u.build->content);
+      free(jcr->acl_data->u.build);
       free(jcr->acl_data);
       jcr->acl_data = NULL;
    }
    if (have_xattr && jcr->xattr_data) {
-      free_pool_memory(jcr->xattr_data->content);
+      free_pool_memory(jcr->xattr_data->u.build->content);
+      free(jcr->xattr_data->u.build);
       free(jcr->xattr_data);
       jcr->xattr_data = NULL;
    }
@@ -706,10 +712,10 @@ int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
              * ACL_REPORT_ERR_MAX_PER_JOB print the error message set by the
              * lower level routine in jcr->errmsg.
              */
-            if (jcr->acl_data->nr_errors < ACL_REPORT_ERR_MAX_PER_JOB) {
+            if (jcr->acl_data->u.build->nr_errors < ACL_REPORT_ERR_MAX_PER_JOB) {
                Jmsg(jcr, M_WARNING, 0, "%s", jcr->errmsg);
             }
-            jcr->acl_data->nr_errors++;
+            jcr->acl_data->u.build->nr_errors++;
             break;
          case bacl_exit_ok:
             break;
@@ -732,10 +738,10 @@ int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
              * XATTR_REPORT_ERR_MAX_PER_JOB print the error message set by the
              * lower level routine in jcr->errmsg.
              */
-            if (jcr->xattr_data->nr_errors < XATTR_REPORT_ERR_MAX_PER_JOB) {
+            if (jcr->xattr_data->u.build->nr_errors < XATTR_REPORT_ERR_MAX_PER_JOB) {
                Jmsg(jcr, M_WARNING, 0, "%s", jcr->errmsg);
             }
-            jcr->xattr_data->nr_errors++;
+            jcr->xattr_data->u.build->nr_errors++;
             break;
          case bxattr_exit_ok:
             break;
