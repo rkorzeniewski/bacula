@@ -164,7 +164,6 @@ void generate_plugin_event(JCR *jcr, bEventType eventType, void *value)
    int len = 0;
    bool call_if_canceled = false;
    restore_object_pkt *rop;
-   bRC rc;
 
    if (!bplugin_list || !jcr || !jcr->plugin_ctx_list) {
       return;                         /* Return if no plugins loaded */
@@ -240,10 +239,7 @@ void generate_plugin_event(JCR *jcr, bEventType eventType, void *value)
       if (is_plugin_disabled(plugin_ctx)) {
          continue;
       }
-      rc = plug_func(plugin)->handlePluginEvent(plugin_ctx, &event, value);
-      if (rc != bRC_OK) {
-         break;
-      }
+      plug_func(plugin)->handlePluginEvent(plugin_ctx, &event, value);
    }
    return;
 }
@@ -1008,7 +1004,8 @@ static bool is_plugin_compatible(Plugin *plugin)
       return false;
    }
    if (strcmp(info->plugin_license, "Bacula AGPLv3") != 0 &&
-       strcmp(info->plugin_license, "AGPLv3") != 0) {
+       strcmp(info->plugin_license, "AGPLv3") != 0 &&
+       strcmp(info->plugin_license, "Bacula Systems(R) SA") != 0) {
       Jmsg(NULL, M_ERROR, 0, _("Plugin license incompatible. Plugin=%s license=%s\n"),
            plugin->file, info->plugin_license);
       Dmsg2(50, "Plugin license incompatible. Plugin=%s license=%s\n",
