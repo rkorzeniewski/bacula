@@ -3299,6 +3299,10 @@ AC_OUTPUT([autoconf/Make.common \
 	   updatedb/update_sqlite3_tables_12_to_14 \
 	   updatedb/update_postgresql_tables_12_to_14 \
 	   examples/nagios/check_bacula/Makefile \
+	   platforms/rpms/redhat/bacula.spec \
+	   platforms/rpms/redhat/bacula-bat.spec \
+	   platforms/rpms/redhat/bacula-docs.spec \
+	   platforms/rpms/redhat/bacula-mtx.spec \
 	   $PFILES ],  
      [ ]
 )
