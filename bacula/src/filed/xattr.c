@@ -1017,8 +1017,9 @@ static const char *xattr_skiplist[3] = {
 static int os_default_xattr_streams[1] = {
    STREAM_XATTR_LINUX
 };
-static const char *xattr_acl_skiplist[2] = {
+static const char *xattr_acl_skiplist[3] = {
    "system.posix_acl_access",
+   "system.posix_acl_default",
    NULL
 };
 static const char *xattr_skiplist[1] = {
