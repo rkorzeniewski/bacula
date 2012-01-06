@@ -224,7 +224,6 @@ static bxattr_exit_code unserialize_xattr_stream(JCR *jcr,
 {
    unser_declare;
    xattr_t *current_xattr;
-   bxattr_exit_code retval = bxattr_exit_ok;
 
    /**
     * Parse the stream and call restore_xattr_on_file for each extended attribute.
@@ -298,7 +297,7 @@ static bxattr_exit_code unserialize_xattr_stream(JCR *jcr,
    }
 
    unser_end(content, content_length);
-   return retval;
+   return bxattr_exit_ok;
 }
 #endif
 
@@ -2098,6 +2097,8 @@ static bxattr_exit_code tru64_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
        * Send the datastream to the SD.
        */
       retval = send_xattr_stream(jcr, os_default_xattr_streams[0]);
+   } else {
+      retval = bxattr_exit_ok;
    }
 
 bail_out:
@@ -2868,36 +2869,36 @@ static bxattr_exit_code solaris_save_xattr(JCR *jcr, int fd, const char *xattr_n
       break;
    }
 
-   if (retval) {
-      retval = send_xattr_stream(jcr, stream);
-      if (retval == bxattr_exit_ok) {
-         jcr->xattr_data->u.build->nr_saved++;
-      }
+   /*
+    * We build a new xattr stream send it to the SD.
+    */
+   retval = send_xattr_stream(jcr, stream);
+   if (retval != bxattr_exit_ok) {
+       goto bail_out;
    }
+   jcr->xattr_data->u.build->nr_saved++;
 
    /*
     * Recursivly call solaris_save_extended_attributes for archiving the attributes
     * available on this extended attribute.
     */
-   if (retval) {
-      retval = solaris_save_xattrs(jcr, xattr_namespace, attrname);
+   retval = solaris_save_xattrs(jcr, xattr_namespace, attrname);
       
-      /*
-       * The recursive call could change our working dir so change back to the wanted workdir.
-       */
-      if (fchdir(fd) < 0) {
-         switch (errno) {
-         case ENOENT:
-            retval = bxattr_exit_ok;
-            goto bail_out;
-         default:
-            Mmsg2(jcr->errmsg,
-                  _("Unable to chdir to xattr space of file \"%s\": ERR=%s\n"),
-                  jcr->last_fname, be.bstrerror());
-            Dmsg3(100, "Unable to fchdir to xattr space of file \"%s\" using fd %d: ERR=%s\n",
-                  jcr->last_fname, fd, be.bstrerror());
-            goto bail_out;
-         }
+   /*
+    * The recursive call could change our working dir so change back to the wanted workdir.
+    */
+   if (fchdir(fd) < 0) {
+      switch (errno) {
+      case ENOENT:
+         retval = bxattr_exit_ok;
+         goto bail_out;
+      default:
+         Mmsg2(jcr->errmsg,
+               _("Unable to chdir to xattr space of file \"%s\": ERR=%s\n"),
+               jcr->last_fname, be.bstrerror());
+         Dmsg3(100, "Unable to fchdir to xattr space of file \"%s\" using fd %d: ERR=%s\n",
+               jcr->last_fname, fd, be.bstrerror());
+         goto bail_out;
       }
    }
 
