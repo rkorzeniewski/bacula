@@ -41,7 +41,7 @@
 
 
 class sellist : public SMARTALLOC {
-   char *errmsg;
+   const char *errmsg;
    char *p, *e, *h;
    char esave, hsave;
    int64_t beg, end;
@@ -59,7 +59,7 @@ public:
    int size() const { return num_items; };
    char *get_list() { return str; };
    /* if errmsg == NULL, no error */
-   char *get_errmsg() { return errmsg; };
+   const char *get_errmsg() { return errmsg; };
 };
 
 /*
@@ -70,7 +70,8 @@ inline sellist::sellist()
    num_items = 0;
    max = 99999;
    str = NULL;
-   e = errmsg = NULL;
+   e = NULL;
+   errmsg = NULL;
 }   
 
 /*
@@ -105,4 +106,3 @@ inline void sellist::begin()
    beg = 1;
    errmsg = NULL;
 }
-
