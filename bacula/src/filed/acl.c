@@ -1809,7 +1809,7 @@ static bacl_exit_code solaris_parse_acl_streams(JCR *jcr,
              */
             if ((acl_enabled & (_ACL_ACLENT_ENABLED | _ACL_ACE_ENABLED)) == 0) {
                Mmsg1(jcr->errmsg,
-                     _("Trying to restore acl on file \"%s\" on filesystem without aclent acl support\n"),
+                     _("Trying to restore POSIX acl on file \"%s\" on filesystem without aclent acl support\n"),
                      jcr->last_fname);
                return bacl_exit_error;
             }
@@ -1820,7 +1820,7 @@ static bacl_exit_code solaris_parse_acl_streams(JCR *jcr,
              */
             if ((acl_enabled & _ACL_ACE_ENABLED) == 0) {
                Mmsg1(jcr->errmsg,
-                     _("Trying to restore acl on file \"%s\" on filesystem without ace acl support\n"),
+                     _("Trying to restore NFSv4 acl on file \"%s\" on filesystem without ace acl support\n"),
                      jcr->last_fname);
                return bacl_exit_error;
             }
