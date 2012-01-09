@@ -152,7 +152,31 @@ static bool acl_is_trivial(struct acl *acl)
 
 static bool acl_nfs4_is_trivial(nfs4_acl_int_t *acl)
 {
+#if 0
    return (acl->aclEntryN > 0 ? false : true);
+#else
+   int i;
+   int count = acl->aclEntryN;
+   nfs4_ace_int_t *ace;
+
+   for (i = 0; i < count; i++) {
+      ace = &acl->aclEntry[i];
+      if (!((ace->flags & ACE4_ID_SPECIAL) != 0 &&
+            (ace->aceWho.special_whoid == ACE4_WHO_OWNER ||
+             ace->aceWho.special_whoid == ACE4_WHO_GROUP ||
+             ace->aceWho.special_whoid == ACE4_WHO_EVERYONE) &&
+             ace->aceType == ACE4_ACCESS_ALLOWED_ACE_TYPE &&
+             ace->aceFlags == 0 &&
+            (ace->aceMask & ~(ACE4_READ_DATA |
+                              ACE4_LIST_DIRECTORY |
+                              ACE4_WRITE_DATA |
+                              ACE4_ADD_FILE |
+                              ACE4_EXECUTE)) == 0)) {
+         return false;
+      }
+   }
+   return true;
+#endif
 }
 
 /*
@@ -179,10 +203,21 @@ static bacl_exit_code aix_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
    /*
     * First see how big the buffers should be.
     */
+   memset(&type, 0, sizeof(acl_type_t));
    type.u64 = ACL_ANY;
-   if (aclx_get(jcr->last_fname, GET_ACLINFO_ONLY, &type, NULL, &aclsize, NULL) < 0) {
+   if (aclx_get(jcr->last_fname, GET_ACLINFO_ONLY, &type, NULL, &aclsize, &mode) < 0) {
       switch (errno) {
       case ENOENT:
+         retval = bacl_exit_ok;
+         goto bail_out;
+      case ENOSYS:
+         /*
+          * If the filesystem reports it doesn't support ACLs we clear the
+          * BACL_FLAG_SAVE_NATIVE flag so we skip ACL saves on all other files
+          * on the same filesystem. The BACL_FLAG_SAVE_NATIVE flag gets set again
+          * when we change from one filesystem to an other.
+          */
+         jcr->acl_data->flags &= ~BACL_FLAG_SAVE_NATIVE;
          retval = bacl_exit_ok;
          goto bail_out;
       default:
@@ -291,6 +326,32 @@ bail_out:
    return retval;
 }
 
+/*
+ * See if a specific type of ACLs are supported on the filesystem
+ * the file is located on.
+ */
+static inline bool aix_query_acl_support(JCR *jcr,
+                                         uint64_t aclType,
+                                         acl_type_t *pacl_type_info)
+{
+   unsigned int i;
+   acl_types_list_t acl_type_list;
+   size_t acl_type_list_len = sizeof(acl_types_list_t);
+
+   memset(&acl_type_list, 0, sizeof(acl_type_list));
+   if (aclx_gettypes(jcr->last_fname, &acl_type_list, &acl_type_list_len)) {
+      return false;
+   }
+
+   for (i = 0; i < acl_type_list.num_entries; i++) {
+      if (acl_type_list.entries[i].u64 == aclType) {
+         memcpy(pacl_type_info, acl_type_list.entries + i, sizeof(acl_type_t));
+         return true;
+      }
+   }
+   return false;
+}
+
 static bacl_exit_code aix_parse_acl_streams(JCR *jcr,
                                             int stream,
                                             char *content,
@@ -315,10 +376,20 @@ static bacl_exit_code aix_parse_acl_streams(JCR *jcr,
       retval = bacl_exit_ok;
       goto bail_out;
    case STREAM_ACL_AIX_AIXC:
-      type.u64 = ACL_AIXC;
+      if (!aix_query_acl_support(jcr, ACL_AIXC, &type)) {
+         Mmsg1(jcr->errmsg,
+               _("Trying to restore POSIX acl on file \"%s\" on filesystem without AIXC acl support\n"),
+               jcr->last_fname);
+         goto bail_out;
+      }
       break;
    case STREAM_ACL_AIX_NFS4:
-      type.u64 = ACL_NFS4;
+      if (!aix_query_acl_support(jcr, ACL_NFS4, &type)) {
+         Mmsg1(jcr->errmsg,
+               _("Trying to restore NFSv4 acl on file \"%s\" on filesystem without NFS4 acl support\n"),
+               jcr->last_fname);
+         goto bail_out;
+      }
       break;
    default:
       goto bail_out;
@@ -379,6 +450,16 @@ static bacl_exit_code aix_parse_acl_streams(JCR *jcr,
    if (aclx_put(jcr->last_fname, SET_ACL, type, aclbuf, aclsize, 0) < 0) {
       switch (errno) {
       case ENOENT:
+         retval = bacl_exit_ok;
+         goto bail_out;
+      case ENOSYS:
+         /*
+          * If the filesystem reports it doesn't support ACLs we clear the
+          * BACL_FLAG_RESTORE_NATIVE flag so we skip ACL restores on all other files
+          * on the same filesystem. The BACL_FLAG_RESTORE_NATIVE flag gets set again
+          * when we change from one filesystem to an other.
+          */
+         jcr->acl_data->flags &= ~BACL_FLAG_RESTORE_NATIVE;
          retval = bacl_exit_ok;
          goto bail_out;
       default:
