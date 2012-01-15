@@ -258,7 +258,7 @@ bool accurate_check_file(JCR *jcr, FF_PKT *ff_pkt)
    char *fname;
    CurFile elt;
 
-   ff_pkt->delta_seq = 0;
+   ff_pkt->delta_seq = -1;
 
    if (!jcr->accurate && !jcr->rerunning) {
       return true;
