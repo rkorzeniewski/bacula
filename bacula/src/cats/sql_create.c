@@ -656,7 +656,7 @@ int db_create_counter_record(JCR *jcr, B_DB *mdb, COUNTER_DBR *cr)
    }
    mdb->db_escape_string(jcr, esc, cr->Counter, strlen(cr->Counter));
    /* Must create it */
-   Mmsg(mdb->cmd, "INSERT INTO Counters (Counter,'MinValue','MaxValue',CurrentValue,"
+   Mmsg(mdb->cmd, "INSERT INTO Counters (Counter,MinValue,MaxValue,CurrentValue,"
       "WrapCounter) VALUES ('%s','%d','%d','%d','%s')",
         esc, cr->MinValue, cr->MaxValue, cr->CurrentValue,
         cr->WrapCounter);
