@@ -261,7 +261,6 @@ void Content::populateContent()
       row++;
    }
 
-
    tableContent->verticalHeader()->hide();
    tableContent->sortByColumn(0, Qt::AscendingOrder);
    tableContent->setSortingEnabled(true);
@@ -276,11 +275,15 @@ void Content::populateContent()
 
    tableDrive->verticalHeader()->hide();
    QStringList drives = results_all.filter(QRegExp("^D\\|[0-9]+\\|"));
+   tableDrive->setRowCount(drives.size());
+
    row = 0;
    foreach (resultline, drives) {
       fieldlist = resultline.split("|");
-      if (fieldlist.size() < 4)
+      if (fieldlist.size() < 4) {
+         Pmsg1(0, "Discarding %s\n", resultline.data());
          continue; /* some fields missing, ignore row */
+      }
 
       int index=0;
       QStringListIterator fld(fieldlist);
