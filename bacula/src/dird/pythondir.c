@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2004-2008 Free Software Foundation Europe e.V.
+   Copyright (C) 2004-2012 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -31,7 +31,6 @@
  *
  * Kern Sibbald, November MMIV
  *
- *   Version $Id$
  *
  */
 
@@ -420,7 +419,7 @@ static PyObject *job_cancel(PyObject *self, PyObject *args)
 // PyEval_ReleaseLock();
    UAContext *ua = new_ua_context(jcr);
    ua->batch = true;
-   if (!cancel_job(ua, jcr)) {
+   if (!cancel_job(ua, jcr, true)) {
       /* ***FIXME*** raise exception */
       return NULL;
    }
