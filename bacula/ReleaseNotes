@@ -23,8 +23,19 @@ Compatibility:
  Director and Storage daemons. There should be no need to upgrade older File
  Daemons.
 
-Changes since 5.2.2:
+Most important changes since 5.2.3:
+- Fix LZO detection so that it correctly detects presense of header
+  files.
+- Switch the way we handle shared object versioning.
+- Backport Enterprise spec files to platforms/rpms
+- Switch to using Qt 4.7.4 (you must download new 
+  depkgs-qt-24Dec11.tar.gz
+- Update depkgs to depkgs-24Dec11.tar.gz
+- Enhancements to File daemon and Storage daemon plugins
+- Compiler warning cleanups
+- xattr fixes
 
+Changes since 5.2.3:
 
 17Jan12
  - Definitive fix for MySQL MaxValue problem bug #1810
