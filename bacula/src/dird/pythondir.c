@@ -419,7 +419,7 @@ static PyObject *job_cancel(PyObject *self, PyObject *args)
 // PyEval_ReleaseLock();
    UAContext *ua = new_ua_context(jcr);
    ua->batch = true;
-   if (!cancel_job(ua, jcr, true)) {
+   if (!cancel_job(ua, jcr)) {
       /* ***FIXME*** raise exception */
       return NULL;
    }
