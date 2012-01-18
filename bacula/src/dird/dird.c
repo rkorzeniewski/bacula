@@ -1144,7 +1144,7 @@ static void cleanup_old_files()
    POOLMEM *cleanup = get_pool_memory(PM_MESSAGE);
    POOLMEM *results = get_pool_memory(PM_MESSAGE);
    copy_base_name(cleanup);
-   pm_strcat(cleanup, "*.bsr");
+   pm_strcat(cleanup, "*.restore.*.bsr");
    run_program(cleanup, 0, results);
    copy_base_name(cleanup);
    pm_strcat(cleanup, "*.mail");
