@@ -2,8 +2,15 @@
 
 Version 5.2.4
 
+18Jan12
+ - Prepare for adding IPv6 to Windows in the future
+ - Fix bug #1822 Schedule run line parsing fails if value is keyword
+ - Revert to 5.0 size computation in accurate elements, may fix #1821
+ - Mark that a file was found in the accurate list in the ff_pkt with a
+   variable
 
 17Jan12
+ - Fix Windows build
  - Update po files
  - Definitive fix for MySQL MaxValue problem
  - Fix python module compilation

@@ -14,6 +14,12 @@ the database upgrade and the difference in packaging the
 SQL shared libraries.
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+If you store .bsr or .mail files in the Bacula working
+directory, please be aware that they will all be deleted
+each time the Director starts.
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 Compatibility:
 --------------
  As always, both the Director and Storage daemon must be upgraded at
@@ -34,10 +40,16 @@ Most important changes since 5.2.3:
 - Enhancements to File daemon and Storage daemon plugins
 - Compiler warning cleanups
 - xattr fixes
+- Cleanup old files in the working directory when the Director starts
 
 Changes since 5.2.3:
 
-17Jan12
+18Jan12
+ - Prepare for adding IPv6 to Windows in the future
+ - Fix bug #1822 Schedule run line parsing fails if value is keyword
+ - Revert to 5.0 size computation in accurate elements, may fix #1821
+ - Mark that a file was found in the accurate list in the ff_pkt with a
+   variable
  - Definitive fix for MySQL MaxValue problem bug #1810
  - Initialize delta_seq to -1 because 0 means that we have already a version
  - Adapt bfileview for bvfs tables
@@ -73,7 +85,7 @@ Changes since 5.2.3:
  - Fix #3210 about slow restore with bvfs
 
 Bugs fixed/closed since last release:
-1802 1806 1807 1810 1811 1815 3210
+1802 1806 1807 1810 1811 1815 1821 1822 3210
 
 
 ==============================================================
