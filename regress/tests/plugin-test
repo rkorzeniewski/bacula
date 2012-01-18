@@ -122,28 +122,33 @@ perl -ne '
  chomp();
  if (/Creating RestoreObject/) {
    @elt = split(/\s/, $_, 7);
-   $clen = $elt[4];
-   $cdata = $elt[6];
-   $cname = $elt[5];
+   $ro{$elt[5]}{clen} = $elt[4];
+   $ro{$elt[5]}{cdata} = $elt[6];
  } elsif (/Get RestoreObject/) {
-   @elt = split(/\s/, $_, 8);
-   $glen = $elt[4];
-   $gdata = $elt[7];
-   $gname = $elt[6];
+   @elt = split(/\s/, $_, 9);
+   $ro{$elt[6]}{glen} = $elt[4];
+   $ro{$elt[6]}{gdata} = $elt[8];
  }
  END {
    $err=0;
-   if ($clen ne $glen) {
-     print "ERROR: $clen != $glen\n";
-     $err++;
+   delete $ro{"oname=RestoreOptions"};
+   if (scalar(keys %ro) == 0) {
+     $err = 1;
+     print "ERROR: No restore object found\n";
    }
-   if ($cdata ne $gdata) {
-     print "ERROR: <$cdata> != <$gdata>\n";
-     $err++;
-   }
-   if ($cname ne $gname) {
-     print "ERROR: $cname != $gname\n";
-     $err++;
+   foreach my $k (keys %ro) {
+      if ($ro{$k}{clen} ne $ro{$k}{glen}) {
+        print "ERROR: $k $ro{$k}{clen} != $ro{$k}{glen}\n";
+        $err++;
+      } else {
+        print "OK: $k $ro{$k}{clen} == $ro{$k}{glen}\n";
+      }
+      if ($ro{$k}{cdata} ne $ro{$k}{gdata}) {
+        print "ERROR: $k <$ro{$k}{cdata}> != <$ro{$k}{gdata}>\n";
+        $err++;
+      } else {
+        print "OK: $k $ro{$k}{gdata} == $ro{$k}{gdata}\n";
+      }
    }
    exit $err;
  }
