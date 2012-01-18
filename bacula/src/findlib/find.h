@@ -184,6 +184,7 @@ struct FF_PKT {
    int ff_errno;                      /* errno */
    BFILE bfd;                         /* Bacula file descriptor */
    time_t save_time;                  /* start of incremental time */
+   bool accurate_found;               /* Found in the accurate hash (valid after check_changes()) */
    bool dereference;                  /* follow links (not implemented) */
    bool null_output_device;           /* using null output device */
    bool incremental;                  /* incremental save */

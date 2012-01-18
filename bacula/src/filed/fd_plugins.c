@@ -359,6 +359,7 @@ bRC plugin_option_handle_file(JCR *jcr, FF_PKT *ff_pkt, struct save_pkt *sp)
    sp->statp = ff_pkt->statp;
    sp->fname = ff_pkt->fname;
    sp->delta_seq = ff_pkt->delta_seq;
+   sp->accurate_found = ff_pkt->accurate_found;
 
    if (!bplugin_list || !jcr->plugin_ctx_list || jcr->is_job_canceled()) {
       Jmsg1(jcr, M_FATAL, 0, "Command plugin \"%s\" requested, but is not loaded.\n", cmd);
@@ -1636,6 +1637,7 @@ static bRC baculaCheckChanges(bpContext *ctx, struct save_pkt *sp)
     * plugin 
     */
    sp->delta_seq = ff_pkt->delta_seq;
+   sp->accurate_found = ff_pkt->accurate_found;
 
 bail_out:
    Dmsg1(100, "checkChanges=%i\n", ret);

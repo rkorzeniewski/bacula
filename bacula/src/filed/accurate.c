@@ -258,7 +258,8 @@ bool accurate_check_file(JCR *jcr, FF_PKT *ff_pkt)
    char *fname;
    CurFile elt;
 
-   ff_pkt->delta_seq = -1;
+   ff_pkt->delta_seq = 0;
+   ff_pkt->accurate_found = false;
 
    if (!jcr->accurate && !jcr->rerunning) {
       return true;
@@ -278,6 +279,7 @@ bool accurate_check_file(JCR *jcr, FF_PKT *ff_pkt)
       goto bail_out;
    }
 
+   ff_pkt->accurate_found = true;
    ff_pkt->delta_seq = elt.delta_seq;
 
    if (elt.seen) { /* file has been seen ? */

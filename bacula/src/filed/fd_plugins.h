@@ -102,6 +102,7 @@ struct save_pkt {
    int32_t type;                      /* FT_xx for this file */             
    uint32_t flags;                    /* Bacula internal flags */
    bool portable;                     /* set if data format is portable */
+   bool accurate_found;               /* Found in accurate list (valid after check_changes()) */
    char *cmd;                         /* command */
    uint32_t delta_seq;                /* Delta sequence number */
    char *object_name;                 /* Object name to create */
