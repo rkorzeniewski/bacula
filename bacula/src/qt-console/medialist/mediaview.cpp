@@ -115,25 +115,37 @@ void MediaView::purgePushed()
 
 bool MediaView::getSelection(QStringList &list)
 {
-   QList<QTableWidgetItem*> items = m_tableMedia->selectedItems();
+   int i, nb, nr_rows, row;
+   bool *tab;
    QTableWidgetItem *it;
-   int row;
-   int *tab;
-   int nb = items.count();
+   QList<QTableWidgetItem*> items = m_tableMedia->selectedItems();
+
+   /*
+    * See if anything is selected.
+    */
+   nb = items.count();
    if (!nb) {
       return false;
    }
-   tab = (int *) malloc (nb * sizeof(int));
-   memset(tab, 0, sizeof(int)*nb);
-   for (int i = 0; i < nb; ++i) {
+
+   /*
+    * Create a nibble map for each row so we can see if its
+    * selected or not.
+    */
+   nr_rows = m_tableMedia->rowCount();
+   tab = (bool *)malloc (nr_rows * sizeof(bool));
+   memset(tab, 0, sizeof(bool) * nr_rows);
+
+   for (i = 0; i < nb; ++i) {
       row = items[i]->row();
       if (!tab[row]) {
-         tab[row]=1;
+         tab[row] = true;
          it = m_tableMedia->item(row, 0);
          list.append(it->text());
       }
    }
    free(tab);
+
    return list.count() > 0;
 }
 
