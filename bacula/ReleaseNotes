@@ -5,11 +5,11 @@
 
 General:
 --------
-The 5.2.3 version is an bug fix release.
+The 5.2.4 version is an bug fix release.
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 If you are upgrading directly from 5.0.3 to this version, please see the
-important notices below for version 5.2.2, particularly
+important notices below for version 5.2.3, particularly
 the database upgrade and the difference in packaging the
 SQL shared libraries.
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
