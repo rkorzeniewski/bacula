@@ -1,7 +1,7 @@
 /*
    Bacula(R) - The Network Backup Solution
 
-   Copyright (C) 2003-2011 Free Software Foundation Europe e.V.
+   Copyright (C) 2003-2012 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -47,6 +47,15 @@
          (*((void **)&(var))=(void*)((list)->next())))
 #endif
 
+#ifdef HAVE_TYPEOF
+#define foreach_alist_index(inx, var, list) \
+        for(inx=0; ((var)=(typeof(var))(list)->get(inx)); inx++ )
+#else
+#define foreach_alist_index(inx, var, list) \
+    for(inx=0; ((*((void **)&(var))=(void*)((list)->get(inx)))); inx++ )
+#endif
+
+
 
 
 /* Second arg of init */
@@ -81,6 +90,7 @@ public:
    void *first();
    void *last();
    void * operator [](int index) const;
+   int current() const { return cur_item; };
    int size() const;
    void destroy();
    void grow(int num);

@@ -1,7 +1,7 @@
 /*
    Bacula(R) - The Network Backup Solution
 
-   Copyright (C) 2007-2011 Free Software Foundation Europe e.V.
+   Copyright (C) 2007-2012 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -49,7 +49,12 @@ int readdir_r(DIR *dirp, struct dirent *entry, struct dirent **result);
 
 static const int dbglvl = 50;
 
-/* All loaded plugins */
+/* 
+ * List of all loaded plugins.
+ *
+ * NOTE!!! This is a global do not try walking it with
+ *   foreach_alist, you must use foreach_alist_index !!!!!!
+ */
 alist *bplugin_list = NULL;
 
 /*

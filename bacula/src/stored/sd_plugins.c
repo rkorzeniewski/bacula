@@ -119,8 +119,8 @@ int generate_plugin_event(JCR *jcr, bsdEventType eventType, void *value)
 
    Dmsg2(dbglvl, "sd-plugin_ctx_list=%p JobId=%d\n", jcr->plugin_ctx_list, jcr->JobId);
 
-   foreach_alist(plugin, bplugin_list) {
-      plugin_ctx = &plugin_ctx_list[i++];
+   foreach_alist_index(i, plugin, bplugin_list) {
+      plugin_ctx = &plugin_ctx_list[i];
       if (is_plugin_disabled(plugin_ctx)) {
          continue;
       }
@@ -158,6 +158,7 @@ void dump_sd_plugin(Plugin *plugin, FILE *fp)
 void load_sd_plugins(const char *plugin_dir)
 {
    Plugin *plugin;
+   int i;
 
    Dmsg0(dbglvl, "Load sd plugins\n");
    if (!plugin_dir) {
@@ -179,7 +180,7 @@ void load_sd_plugins(const char *plugin_dir)
     * Verify that the plugin is acceptable, and print information
     *  about it.
     */
-   foreach_alist(plugin, bplugin_list) {
+   foreach_alist_index(i, plugin, bplugin_list) {
       Jmsg(NULL, M_INFO, 0, _("Loaded plugin: %s\n"), plugin->file);
       Dmsg1(dbglvl, "Loaded plugin: %s\n", plugin->file);
    }
@@ -262,14 +263,14 @@ void new_plugins(JCR *jcr)
 
    bpContext *plugin_ctx_list = jcr->plugin_ctx_list;
    Dmsg2(dbglvl, "Instantiate sd-plugin_ctx_list=%p JobId=%d\n", jcr->plugin_ctx_list, jcr->JobId);
-   foreach_alist(plugin, bplugin_list) {
+   foreach_alist_index(i, plugin, bplugin_list) {
       /* Start a new instance of each plugin */
       bacula_ctx *b_ctx = (bacula_ctx *)malloc(sizeof(bacula_ctx));
       memset(b_ctx, 0, sizeof(bacula_ctx));
       b_ctx->jcr = jcr;
       plugin_ctx_list[i].bContext = (void *)b_ctx;
       plugin_ctx_list[i].pContext = NULL;
-      if (sdplug_func(plugin)->newPlugin(&plugin_ctx_list[i++]) != bRC_OK) {
+      if (sdplug_func(plugin)->newPlugin(&plugin_ctx_list[i]) != bRC_OK) {
          b_ctx->disabled = true;
       }
    }
@@ -289,10 +290,10 @@ void free_plugins(JCR *jcr)
 
    bpContext *plugin_ctx_list = (bpContext *)jcr->plugin_ctx_list;
    Dmsg2(dbglvl, "Free instance sd-plugin_ctx_list=%p JobId=%d\n", jcr->plugin_ctx_list, jcr->JobId);
-   foreach_alist(plugin, bplugin_list) {
+   foreach_alist_index(i, plugin, bplugin_list) {
       /* Free the plugin instance */
       sdplug_func(plugin)->freePlugin(&plugin_ctx_list[i]);
-      free(plugin_ctx_list[i++].bContext);     /* free Bacula private context */
+      free(plugin_ctx_list[i].bContext);     /* free Bacula private context */
    }
    free(plugin_ctx_list);
    jcr->plugin_ctx_list = NULL;
