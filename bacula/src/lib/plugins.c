@@ -159,7 +159,7 @@ bool load_plugins(void *binfo, void *bfuncs, const char *plugin_dir,
       plugin->file_len = strstr(plugin->file, type) - plugin->file;
       plugin->pHandle = dlopen(fname.c_str(), RTLD_NOW);
       if (!plugin->pHandle) {
-         char *error = dlerror();
+         char *error = (char *)dlerror();
          Jmsg(NULL, M_ERROR, 0, _("dlopen plugin %s failed: ERR=%s\n"), 
               fname.c_str(), NPRT(error));
          Dmsg2(dbglvl, "dlopen plugin %s failed: ERR=%s\n", fname.c_str(), 
