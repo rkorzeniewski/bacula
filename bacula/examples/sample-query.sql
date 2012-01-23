@@ -18,7 +18,7 @@
 SELECT DISTINCT Job.JobId as JobId, Client.Name as Client,
   Path.Path,Filename.Name,StartTime,Level,JobFiles,JobBytes
  FROM Client,Job,File,Filename,Path WHERE Client.ClientId=Job.ClientId
- AND JobStatus='T' AND Job.JobId=File.JobId
+ AND JobStatus IN ('T','W') AND Job.JobId=File.JobId
  AND Path.PathId=File.PathId AND Filename.FilenameId=File.FilenameId
  AND Filename.Name='%1' 
  ORDER BY Job.StartTime LIMIT 20;
@@ -47,7 +47,7 @@ SELECT DISTINCT Job.JobId,Client.Name AS Client,StartTime,JobFiles,JobBytes,
  FROM Client,Job,JobMedia,Media
  WHERE Client.Name='%1'
  AND Client.ClientId=Job.ClientId
- AND Level='F' AND JobStatus='T'
+ AND Level='F' AND JobStatus IN ('T', 'W')
  AND JobMedia.JobId=Job.JobId AND JobMedia.MediaId=Media.MediaId
  ORDER BY Job.StartTime DESC LIMIT 20;
 # 4
@@ -58,7 +58,7 @@ SELECT DISTINCT Job.JobId,Client.Name as Client,Level,StartTime,JobFiles,JobByte
  FROM Client,Job,JobMedia,Media
  WHERE Client.Name='%1'
  AND Client.ClientId=Job.ClientId
- AND JobStatus='T'
+ AND JobStatus IN ('T', 'W')
  AND JobMedia.JobId=Job.JobId AND JobMedia.MediaId=Media.MediaId
  AND Job.StartTime >= '%2'
  ORDER BY Job.StartTime;
@@ -71,7 +71,7 @@ SELECT DISTINCT Job.JobId as JobId,Client.Name as Client,
  FROM Client,Job,JobMedia,Media,FileSet
  WHERE Client.Name='%1'
  AND Client.ClientId=Job.ClientId AND Job.Type='B'
- AND Job.JobStatus='T' AND Job.FileSetId=FileSet.FileSetId
+ AND Job.JobStatus IN ('T','W') AND Job.FileSetId=FileSet.FileSetId
  AND JobMedia.JobId=Job.JobId AND JobMedia.MediaId=Media.MediaId
  ORDER BY Job.StartTime;
 # 6
@@ -115,7 +115,7 @@ INSERT INTO temp SELECT Job.JobId,JobTDate,Job.ClientId,Job.Level,
   StartTime,VolumeName,JobMedia.StartFile,VolSessionId,VolSessionTime
  FROM Client,Job,JobMedia,Media WHERE Client.Name='%1'
  AND Client.ClientId=Job.ClientId
- AND Level='F' AND JobStatus='T'
+ AND Level='F' AND JobStatus IN ('T', 'W')
  AND JobMedia.JobId=Job.JobId 
  AND JobMedia.MediaId=Media.MediaId
  ORDER BY Job.JobTDate DESC LIMIT 1;
@@ -123,7 +123,7 @@ INSERT INTO temp SELECT Job.JobId,JobTDate,Job.ClientId,Job.Level,
 INSERT INTO temp2 SELECT Job.JobId,Job.StartTime,Media.VolumeName,Job.Level,
   JobMedia.StartFile,Job.VolSessionId,Job.VolSessionTime
  FROM temp,Job,JobMedia,Media WHERE temp.JobId=Job.JobId
- AND Job.Level='F' AND Job.JobStatus='T'
+ AND Job.Level='F' AND Job.JobStatus IN ('T', 'W')
  AND JobMedia.JobId=Job.JobId
  AND JobMedia.MediaId=Media.MediaId;
 # Now add subsequent incrementals
@@ -132,7 +132,7 @@ INSERT INTO temp2 SELECT DISTINCT Job.JobId,Job.StartTime,Media.VolumeName,
  FROM Job,temp,JobMedia,Media
  WHERE Job.JobTDate>temp.JobTDate 
  AND Job.ClientId=temp.ClientId
- AND Job.Level IN ('I','D') AND JobStatus='T'
+ AND Job.Level IN ('I','D') AND JobStatus IN ('T', 'W')
  AND JobMedia.JobId=Job.JobId 
  AND JobMedia.MediaId=Media.MediaId;
 # list results
