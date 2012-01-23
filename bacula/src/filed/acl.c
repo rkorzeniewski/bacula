@@ -312,7 +312,7 @@ static bacl_exit_code aix_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
       }
    }
 
-   jcr->acl_data->u.build->u.build->content_length = strlen(jcr->acl_data->u.build->content) + 1;
+   jcr->acl_data->u.build->content_length = strlen(jcr->acl_data->u.build->content) + 1;
    switch (type.u64) {
    case ACL_AIXC:
       retval = send_acl_stream(jcr, STREAM_ACL_AIX_AIXC);
