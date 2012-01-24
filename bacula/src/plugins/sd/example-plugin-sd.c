@@ -31,9 +31,8 @@
  *  Kern Sibbald, October 2007
  *
  */
-#ifdef working
 #include "bacula.h"
-#include "sd_plugins.h"
+#include "stored.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -179,5 +178,3 @@ static bRC handlePluginEvent(bpContext *ctx, bsdEvent *event, void *value)
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* working */
