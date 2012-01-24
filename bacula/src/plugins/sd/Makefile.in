@@ -19,7 +19,7 @@ LIBDIR=../../lib
 
 all: example-plugin-sd.la
 
-example-plugin-sd.lo: example-plugin-sd.c ${SDDIR}/dir_plugins.h
+example-plugin-sd.lo: example-plugin-sd.c ${SDDIR}/sd_plugins.h
 	$(LIBTOOL_COMPILE) $(CXX) $(DEFS) $(DEBUG) $(CFLAGS) -I../.. -I${SDDIR} -c example-plugin-sd.c
 
 example-plugin-sd.la: Makefile example-plugin-sd$(DEFAULT_OBJECT_TYPE)
