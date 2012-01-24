@@ -18,6 +18,12 @@ LIBDIR=../../lib
 
 all: bpipe-fd.la test-plugin-fd.la delta-test-fd.la
 
+example-plugin-fd.lo: example-plugin-fd.c ${FDDIR}/fd_plugins.h
+	$(LIBTOOL_COMPILE) $(CXX) $(DEFS) $(DEBUG) $(CPPFLAGS) $(CFLAGS) -I../.. -I${FDDIR} -c example-plugin-fd.c
+
+example-plugin-fd.la: Makefile example-plugin-fd$(DEFAULT_OBJECT_TYPE)
+	$(LIBTOOL_LINK) $(CXX) $(LDFLAGS) -shared example-plugin-fd.lo -o $@ -rpath $(plugindir) -module -export-dynamic -avoid-version
+
 bpipe-fd.lo: bpipe-fd.c ${FDDIR}/fd_plugins.h
 	$(LIBTOOL_COMPILE) $(CXX) $(DEFS) $(DEBUG) $(CPPFLAGS) $(CFLAGS) -I../.. -I${FDDIR} -c bpipe-fd.c
 
