@@ -1,4 +1,24 @@
-              Changelog on version 5.2.4
+              Changelog on version 5.2.5
+
+Version 5.2.5
+
+25Jan12
+ - Disable usage of JS_Warning waiting for a more complete implementation
+
+24Jan12
+ - Removed old sd plugins which doesn't work anymore.
+
+23Jan12
+ - Adapt sample-query.sql for Warning job status
+
+20Jan12
+ - Fix location of Qt dlls for Win64 build
+
+18Jan12
+ - Fix MediaView::getSelection
+
+Bugs fixed/closed since last release:
+1824 (1814 1806 1818 non-bugs)
 
 Version 5.2.4
 

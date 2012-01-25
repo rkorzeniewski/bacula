@@ -1,11 +1,50 @@
 
-               Release Notes for Bacula 5.2.4
+               Release Notes for Bacula 5.2.5
 
   Bacula code: Total files = 1,110 Total lines = 231,439 (Using SLOCCount)
 
 General:
 --------
-The 5.2.4 version is an bug fix release.
+The 5.2.5 version is a bug fix release.
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+If you are upgrading directly from 5.0.3 to this version, please see the
+important notices below for version 5.2.3, particularly
+the database upgrade and the difference in packaging the
+SQL shared libraries.
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+If you store .bsr or .mail files in the Bacula working
+directory, please be aware that they will all be deleted
+each time the Director starts.
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+Compatibility:
+--------------
+ As always, both the Director and Storage daemon must be upgraded at
+ the same time.
+
+ Older 5.0.x and 3.0.x File Daemons are compatible with the 5.2.3
+ Director and Storage daemons. There should be no need to upgrade older File
+ Daemons.
+
+Changes since 5.2.4:
+
+25Jan12
+ - Disable usage of JS_Warning waiting for a more complete implementation
+ - Removed old sd plugins which doesn't work anymore.
+ - Adapt sample-query.sql for Warning job status
+ - Fix location of Qt dlls for Win64 build
+ - Fix MediaView::getSelection
+
+Bugs fixed/closed since last release:
+1824 (1814 1806 1818 non-bugs)
+
+=============================================================
+General:
+--------
+The 5.2.4 version is a bug fix release.
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 If you are upgrading directly from 5.0.3 to this version, please see the
