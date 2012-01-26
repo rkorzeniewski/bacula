@@ -545,6 +545,12 @@ static bool dot_bvfs_get_jobids(UAContext *ua, const char *cmd)
       return true;
    }
 
+   /* When in level base, we don't rely on any Full/Incr/Diff */
+   if (jr.JobLevel == L_BASE) {
+      ua->send_msg("%s\n", edit_int64(jr.JobId, ed1));
+      return true;
+   }
+
    /* If we have the "all" option, we do a search on all defined fileset
     * for this client
     */
