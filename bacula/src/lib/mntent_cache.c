@@ -104,6 +104,13 @@ static htable *mntent_cache_entry_hashtable = NULL;
  */
 static time_t last_rescan = 0;
 
+static const char *skipped_fs_types[] = {
+#if defined(HAVE_LINUX_OS)
+   "rootfs",
+#endif
+   NULL
+};
+
 /**
  * Add a new entry to the cache.
  * This function should be called with a write lock on the mntent_cache.
@@ -153,6 +160,18 @@ static inline void add_mntent_mapping(uint32_t dev,
    mntent_cache_entry_hashtable->insert(mce->dev, mce);
 }
 
+static inline bool skip_fstype(const char *fstype)
+{
+   int i;
+
+   for (i = 0; skipped_fs_types[i]; i++) {
+      if (bstrcmp(fstype, skipped_fs_types[i]))
+         return true;
+   }
+
+   return false;
+}
+
 /**
  * OS specific function to load the different mntents into the cache.
  * This function should be called with a write lock on the mntent_cache.
@@ -186,6 +205,10 @@ static void refresh_mount_cache(void)
 #endif
 
    while ((mnt = getmntent(fp)) != (struct mntent *)NULL) {
+      if (skip_fstype(mnt->mnt_type)) {
+         continue;
+      }
+
       if (stat(mnt->mnt_dir, &st) < 0) {
          continue;
       }
@@ -201,6 +224,10 @@ static void refresh_mount_cache(void)
       return;
 
    while (getmntent(fp, &mnt) == 0) {
+      if (skip_fstype(mnt.mnt_fstype)) {
+         continue;
+      }
+
       if (stat(mnt.mnt_mountp, &st) < 0) {
          continue;
       }
@@ -228,7 +255,8 @@ static void refresh_mount_cache(void)
 
    if ((cnt = getmntinfo(&mntinfo, flags)) > 0) {
       while (cnt > 0) {
-         if (stat(mntinfo->f_mntonname, &st) == 0) {
+         if (!skip_fstype(mntinfo->f_fstypename) &&
+             stat(mntinfo->f_mntonname, &st) == 0) {
             add_mntent_mapping(st.st_dev,
                                mntinfo->f_mntfromname,
                                mntinfo->f_mntonname,
@@ -261,6 +289,10 @@ static void refresh_mount_cache(void)
    current = entries;
    while (cnt < n_entries) {
       vmp = (struct vmount *)current;
+
+      if (skip_fstype(ve->vfsent_name)) {
+         continue;
+      }
 
       if (stat(current + vmp->vmt_data[VMT_STUB].vmt_off, &st) < 0) {
          continue;
@@ -299,6 +331,10 @@ static void refresh_mount_cache(void)
    cnt = 0;
    current = entries;
    while (cnt < n_entries) {
+      if (skip_fstype(current->f_fstypename)) {
+         continue;
+      }
+
       if (stat(current->f_mntonname, &st) < 0) {
          continue;
       }
