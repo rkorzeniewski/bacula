@@ -207,7 +207,10 @@ static bool dot_bvfs_clear_cache(UAContext *ua, const char *cmd)
       Bvfs fs(ua->jcr, ua->db);
       fs.clear_cache();
       ua->info_msg("OK\n");
-   } 
+   } else {
+      ua->error_msg("Can't find 'yes' argument\n");
+   }
+
    close_db(ua);
    return true;
 }
