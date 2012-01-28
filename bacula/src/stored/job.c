@@ -67,14 +67,14 @@ static char BAD_job[]   = "3915 Bad Job command. stat=%d CMD: %s\n";
  */
 bool job_cmd(JCR *jcr)
 {
-   int JobId;
+   int32_t JobId;
    char auth_key[100];
    char spool_size[30];
    char seed[100];
    BSOCK *dir = jcr->dir_bsock;
    POOL_MEM job_name, client_name, job, fileset_name, fileset_md5;
-   int JobType, level, spool_attributes, no_attributes, spool_data;
-   int write_part_after_job, PreferMountedVols;
+   int32_t JobType, level, spool_attributes, no_attributes, spool_data;
+   int32_t write_part_after_job, PreferMountedVols;
    int stat;
    JCR *ojcr;
 
