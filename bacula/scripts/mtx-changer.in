@@ -83,6 +83,29 @@ make_temp_file() {
 }
 
 #
+#  Create a temporary file for stderr
+#
+#  Note, this file is used because sometime mtx emits
+#  unexpected error messages followed by the output
+#  expected during success.
+#  So we separate STDOUT and STDERR in
+#  certain of the mtx commands. The contents of STDERR
+#  is then printed after the STDOUT produced by mtx
+#  thus we sometimes get better changer results. 
+#
+make_err_file() {
+  ERRFILE=`mktemp @working_dir@/mtx.err.XXXXXXXXXX`
+  if test x${ERRFILE} = x; then
+     ERRFILE="@working_dir@/mtx.err.$$"
+     if test -f ${ERRFILE}; then
+	echo "ERROR: Temp file security problem on: ${ERRFILE}"
+	exit 1
+     fi
+  fi
+}
+
+
+#
 # The purpose of this function to wait a maximum 
 #   time for the drive. It will
 #   return as soon as the drive is ready, or after
@@ -160,17 +183,25 @@ case $cmd in
       if test ${offline_sleep} -ne 0 ; then
 	sleep ${offline_sleep}
       fi
-      ${MTX} -f $ctl unload $slot $drive
+      make_err_file
+      ${MTX} -f $ctl unload $slot $drive 2>${ERRFILE}
+      rtn=$?
+      cat ${ERRFILE}
+      rm -f ${ERRFILE} >/dev/null 2>&1
+      exit $rtn
       ;;
 
    load)
       debug "Doing mtx -f $ctl load $slot $drive"
-      ${MTX} -f $ctl load $slot $drive
+      make_err_file
+      ${MTX} -f $ctl load $slot $drive 2>${ERRFILE}
       rtn=$?
       if test ${load_sleep} -ne 0 ; then
 	sleep ${load_sleep}
       fi
       wait_for_drive $device
+      cat ${ERRFILE}
+      rm -f ${ERRFILE} >/dev/null 2>&1
       exit $rtn
       ;;
 
