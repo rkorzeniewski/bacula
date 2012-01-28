@@ -687,6 +687,7 @@ static bool mount_cmd(JCR *jcr)
          /* In both of these two cases, we (the user) unmounted the Volume */
          case BST_UNMOUNTED_WAITING_FOR_SYSOP:
          case BST_UNMOUNTED:
+            Dmsg2(100, "Unmounted changer=%d slot=%d\n", dev->is_autochanger(), slot);
             if (dev->is_autochanger() && slot > 0) {
                try_autoload_device(jcr, dcr, slot, "");
             }
@@ -735,6 +736,7 @@ static bool mount_cmd(JCR *jcr)
             break;
 
          case BST_NOT_BLOCKED:
+            Dmsg2(100, "Not blocked changer=%d slot=%d\n", dev->is_autochanger(), slot);
             if (dev->is_autochanger() && slot > 0) {
                try_autoload_device(jcr, dcr, slot, "");
             }
