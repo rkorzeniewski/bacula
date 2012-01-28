@@ -287,7 +287,7 @@ static bool die_cmd(JCR *jcr)
 static bool setdebug_cmd(JCR *jcr)
 {
    BSOCK *dir = jcr->dir_bsock;
-   int level, trace_flag;
+   int32_t level, trace_flag;
 
    Dmsg1(10, "setdebug_cmd: %s", dir->msg);
    if (sscanf(dir->msg, "setdebug=%d trace=%d", &level, &trace_flag) != 2 || level < 0) {
@@ -374,8 +374,7 @@ static bool do_label(JCR *jcr, int relabel)
    DCR *dcr;
    DEVICE *dev;
    bool ok = false;
-   int slot;
-   int drive;
+   int32_t slot, drive;
 
    newname = get_memory(dir->msglen+1);
    oldname = get_memory(dir->msglen+1);
@@ -655,8 +654,8 @@ static bool mount_cmd(JCR *jcr)
    BSOCK *dir = jcr->dir_bsock;
    DEVICE *dev;
    DCR *dcr;
-   int drive;
-   int slot = 0;
+   int32_t drive;
+   int32_t slot = 0;
    bool ok;
 
    ok = sscanf(dir->msg, "mount %127s drive=%d slot=%d", devname.c_str(), 
@@ -664,6 +663,7 @@ static bool mount_cmd(JCR *jcr)
    if (!ok) {
       ok = sscanf(dir->msg, "mount %127s drive=%d", devname.c_str(), &drive) == 2;
    }
+   Dmsg3(100, "ok=%d drive=%d slot=%d\n", ok, drive, slot);
    if (ok) {
       dcr = find_device(jcr, devname, drive);
       if (dcr) {
@@ -809,7 +809,7 @@ static bool unmount_cmd(JCR *jcr)
    BSOCK *dir = jcr->dir_bsock;
    DEVICE *dev;
    DCR *dcr;
-   int drive;
+   int32_t drive;
 
    if (sscanf(dir->msg, "unmount %127s drive=%d", devname.c_str(), &drive) == 2) {
       dcr = find_device(jcr, devname, drive);
@@ -908,7 +908,7 @@ static bool action_on_purge_cmd(JCR *jcr)
 
    char devname[MAX_NAME_LENGTH];
    char volumename[MAX_NAME_LENGTH];
-   int action;
+   int32_t action;
 
    /* TODO: Need to find a free device and ask for slot to the director */
    if (sscanf(dir->msg, 
@@ -946,7 +946,7 @@ static bool release_cmd(JCR *jcr)
    BSOCK *dir = jcr->dir_bsock;
    DEVICE *dev;
    DCR *dcr;
-   int drive;
+   int32_t drive;
 
    if (sscanf(dir->msg, "release %127s drive=%d", devname.c_str(), &drive) == 2) {
       dcr = find_device(jcr, devname, drive);
@@ -1135,8 +1135,7 @@ static bool readlabel_cmd(JCR *jcr)
    BSOCK *dir = jcr->dir_bsock;
    DEVICE *dev;
    DCR *dcr;
-   int Slot;
-   int drive;
+   int32_t Slot, drive;
 
    if (sscanf(dir->msg, "readlabel %127s Slot=%d drive=%d", devname.c_str(), 
        &Slot, &drive) == 3) {
