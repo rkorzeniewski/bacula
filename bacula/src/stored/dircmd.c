@@ -153,6 +153,7 @@ void *handle_connection_request(void *arg)
 
    if (bs->recv() <= 0) {
       Emsg1(M_ERROR, 0, _("Connection request from %s failed.\n"), bs->who());
+      bmicrosleep(5, 0);   /* make user wait 5 seconds */
       bs->close();
       return NULL;
    }
@@ -163,6 +164,7 @@ void *handle_connection_request(void *arg)
    if (bs->msglen < 25 || bs->msglen > (int)sizeof(name)) {
       Dmsg1(000, "<filed: %s", bs->msg);
       Emsg2(M_ERROR, 0, _("Invalid connection from %s. Len=%d\n"), bs->who(), bs->msglen);
+      bmicrosleep(5, 0);   /* make user wait 5 seconds */
       bs->close();
       return NULL;
    }
