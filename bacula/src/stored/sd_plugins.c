@@ -107,10 +107,20 @@ int generate_plugin_event(JCR *jcr, bsdEventType eventType, void *value)
    int i = 0;
    bRC rc = bRC_OK;
 
-   if (!bplugin_list || !jcr || !jcr->plugin_ctx_list) {
+   if (!bplugin_list) {
+      Dmsg0(dbglvl, "No bplugin_list: generate_plugin_event ignored.\n");
+      return bRC_OK;
+   }
+   if (!jcr) {
+      Dmsg0(dbglvl, "No jcr: generate_plugin_event ignored.\n");
+      return bRC_OK;
+   }
+   if (!jcr->plugin_ctx_list) {
+      Dmsg0(dbglvl, "No plugin_ctx_list: generate_plugin_event ignored.\n");
       return bRC_OK;                  /* Return if no plugins loaded */
    }
    if (jcr->is_job_canceled()) {
+      Dmsg0(dbglvl, "Cancel return from generate_plugin_event\n");
       return bRC_Cancel;
    }
 
@@ -249,6 +259,12 @@ void new_plugins(JCR *jcr)
       return;
    }
    if (jcr->is_job_canceled()) {
+      return;
+   }
+   /*
+    * If plugins already loaded, just return
+    */
+   if (jcr->plugin_ctx_list) {
       return;
    }
 
