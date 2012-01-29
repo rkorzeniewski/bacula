@@ -104,7 +104,7 @@ int generate_plugin_event(JCR *jcr, bsdEventType eventType, void *value)
    bpContext *plugin_ctx;
    bsdEvent event;
    Plugin *plugin;
-   int i = 0;
+   int i;
    bRC rc = bRC_OK;
 
    if (!bplugin_list) {
@@ -251,7 +251,7 @@ static bool is_plugin_compatible(Plugin *plugin)
 void new_plugins(JCR *jcr)
 {
    Plugin *plugin;
-   int i = 0;
+   int i;
 
    Dmsg0(dbglvl, "=== enter new_plugins ===\n");
    if (!bplugin_list) {
@@ -298,7 +298,7 @@ void new_plugins(JCR *jcr)
 void free_plugins(JCR *jcr)
 {
    Plugin *plugin;
-   int i = 0;
+   int i;
 
    if (!bplugin_list || !jcr->plugin_ctx_list) {
       return;
