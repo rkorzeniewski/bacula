@@ -193,7 +193,6 @@ static int os_default_acl_streams[1] = {
 
 static bacl_exit_code aix_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
 {
-   berrno be;
    mode_t mode;
    acl_type_t type;
    size_t aclsize, acltxtsize;
@@ -206,6 +205,8 @@ static bacl_exit_code aix_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
    memset(&type, 0, sizeof(acl_type_t));
    type.u64 = ACL_ANY;
    if (aclx_get(jcr->last_fname, GET_ACLINFO_ONLY, &type, NULL, &aclsize, &mode) < 0) {
+      berrno be;
+
       switch (errno) {
       case ENOENT:
          retval = bacl_exit_ok;
@@ -239,6 +240,8 @@ static bacl_exit_code aix_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
     * Retrieve the ACL info.
     */
    if (aclx_get(jcr->last_fname, 0, &type, aclbuf, &aclsize, &mode) < 0) {
+      berrno be;
+
       switch (errno) {
       case ENOENT:
          retval = bacl_exit_ok;
@@ -358,7 +361,6 @@ static bacl_exit_code aix_parse_acl_streams(JCR *jcr,
                                             uint32_t content_length)
 {
    int cnt;
-   berrno be;
    acl_type_t type;
    size_t aclsize;
    bacl_exit_code retval = bacl_exit_error;
@@ -402,6 +404,8 @@ static bacl_exit_code aix_parse_acl_streams(JCR *jcr,
    aclbuf = check_pool_memory_size(aclbuf, content_length);
    aclsize = content_length;
    if (aclx_scanStr(content, aclbuf, &aclsize, type) < 0) {
+      berrno be;
+
       switch (errno) {
       case ENOSPC:
          /*
@@ -431,7 +435,7 @@ static bacl_exit_code aix_parse_acl_streams(JCR *jcr,
             default:
                Mmsg2(jcr->errmsg,
                      _("aclx_scanStr error on file \"%s\": ERR=%s\n"),
-                     jcr->last_fname, be.bstrerror());
+                     jcr->last_fname, be.bstrerror(errno));
                Dmsg2(100, "aclx_scanStr error file=%s ERR=%s\n",
                      jcr->last_fname, be.bstrerror());
                goto bail_out;
@@ -448,6 +452,8 @@ static bacl_exit_code aix_parse_acl_streams(JCR *jcr,
    }
 
    if (aclx_put(jcr->last_fname, SET_ACL, type, aclbuf, aclsize, 0) < 0) {
+      berrno be;
+
       switch (errno) {
       case ENOENT:
          retval = bacl_exit_ok;
@@ -748,7 +754,6 @@ static bacl_exit_code generic_get_acl_from_os(JCR *jcr, bacl_type acltype)
    acl_t acl;
    acl_type_t ostype;
    char *acl_text;
-   berrno be;
    bacl_exit_code retval = bacl_exit_ok;
 
    ostype = bac_to_os_acltype(acltype);
@@ -805,6 +810,7 @@ static bacl_exit_code generic_get_acl_from_os(JCR *jcr, bacl_type acltype)
          return bacl_exit_ok;
       }
 
+      berrno be;
       Mmsg2(jcr->errmsg,
             _("acl_to_text error on file \"%s\": ERR=%s\n"),
             jcr->last_fname, be.bstrerror());
@@ -814,6 +820,8 @@ static bacl_exit_code generic_get_acl_from_os(JCR *jcr, bacl_type acltype)
       retval = bacl_exit_error;
       goto bail_out;
    } else {
+      berrno be;
+
       /*
        * Handle errors gracefully.
        */
@@ -863,7 +871,6 @@ static bacl_exit_code generic_set_acl_on_os(JCR *jcr,
 {
    acl_t acl;
    acl_type_t ostype;
-   berrno be;
 
    /*
     * If we get empty default ACLs, clear ACLs now
@@ -873,6 +880,8 @@ static bacl_exit_code generic_set_acl_on_os(JCR *jcr,
       if (acl_delete_def_file(jcr->last_fname) == 0) {
          return bacl_exit_ok;
       }
+      berrno be;
+
       switch (errno) {
       case ENOENT:
          return bacl_exit_ok;
@@ -900,6 +909,8 @@ static bacl_exit_code generic_set_acl_on_os(JCR *jcr,
 
    acl = acl_from_text(content);
    if (acl == NULL) {
+      berrno be;
+
       Mmsg2(jcr->errmsg,
             _("acl_from_text error on file \"%s\": ERR=%s\n"),
             jcr->last_fname, be.bstrerror());
@@ -914,6 +925,8 @@ static bacl_exit_code generic_set_acl_on_os(JCR *jcr,
     * As it does the right thing, given valid input, just ignore acl_valid().
     */
    if (acl_valid(acl) != 0) {
+      berrno be;
+
       Mmsg2(jcr->errmsg,
             _("acl_valid error on file \"%s\": ERR=%s\n"),
             jcr->last_fname, be.bstrerror());
@@ -931,6 +944,8 @@ static bacl_exit_code generic_set_acl_on_os(JCR *jcr,
     * don't save acls of symlinks (which cannot have acls anyhow)
     */
    if (acl_set_file(jcr->last_fname, ostype, acl) != 0 && jcr->last_type != FT_LNK) {
+      berrno be;
+
       switch (errno) {
       case ENOENT:
          acl_free(acl);
@@ -1046,7 +1061,6 @@ static bacl_exit_code freebsd_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
 {
    int acl_enabled = 0;
    bacl_type acltype = BACL_TYPE_NONE;
-   berrno be;
 
 #if defined(_PC_ACL_NFS4)
    /*
@@ -1054,7 +1068,9 @@ static bacl_exit_code freebsd_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
     */
    acl_enabled = pathconf(jcr->last_fname, _PC_ACL_NFS4);
    switch (acl_enabled) {
-   case -1:
+   case -1: {
+      berrno be;
+
       switch (errno) {
       case ENOENT:
          return bacl_exit_ok;
@@ -1066,6 +1082,7 @@ static bacl_exit_code freebsd_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
                jcr->last_fname, be.bstrerror());
          return bacl_exit_error;
       }
+   }
    case 0:
       break;
    default:
@@ -1080,7 +1097,9 @@ static bacl_exit_code freebsd_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
        */
       acl_enabled = pathconf(jcr->last_fname, _PC_ACL_EXTENDED);
       switch (acl_enabled) {
-      case -1:
+      case -1: {
+         berrno be;
+
          switch (errno) {
          case ENOENT:
             return bacl_exit_ok;
@@ -1092,6 +1111,7 @@ static bacl_exit_code freebsd_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
                   jcr->last_fname, be.bstrerror());
             return bacl_exit_error;
          }
+      }
       case 0:
          break;
       default:
@@ -1167,7 +1187,6 @@ static bacl_exit_code freebsd_parse_acl_streams(JCR *jcr,
 {
    int acl_enabled = 0;
    const char *acl_type_name;
-   berrno be;
 
    /*
     * First make sure the filesystem supports acls.
@@ -1192,7 +1211,9 @@ static bacl_exit_code freebsd_parse_acl_streams(JCR *jcr,
    }
 
    switch (acl_enabled) {
-   case -1:
+   case -1: {
+      berrno be;
+
       switch (errno) {
       case ENOENT:
          return bacl_exit_ok;
@@ -1204,6 +1225,7 @@ static bacl_exit_code freebsd_parse_acl_streams(JCR *jcr,
                content, jcr->last_fname, be.bstrerror());
          return bacl_exit_error;
       }
+   }
    case 0:
       /*
        * If the filesystem reports it doesn't support ACLs we clear the
@@ -1464,9 +1486,10 @@ static bacl_exit_code hpux_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
    int n;
    struct acl_entry acls[NACLENTRIES];
    char *acl_text;
-   berrno be;
 
    if ((n = getacl(jcr->last_fname, 0, acls)) < 0) {
+      berrno be;
+
       switch (errno) {
 #if defined(BACL_ENOTSUP)
       case BACL_ENOTSUP:
@@ -1521,6 +1544,8 @@ static bacl_exit_code hpux_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
 
          return send_acl_stream(jcr, STREAM_ACL_HPUX_ACL_ENTRY);
       }
+
+      berrno be;
       Mmsg2(jcr->errmsg,
             _("acltostr error on file \"%s\": ERR=%s\n"),
             jcr->last_fname, be.bstrerror());
@@ -1538,10 +1563,11 @@ static bacl_exit_code hpux_parse_acl_streams(JCR *jcr,
 {
    int n, stat;
    struct acl_entry acls[NACLENTRIES];
-   berrno be;
 
    n = strtoacl(content, 0, NACLENTRIES, acls, ACL_FILEOWNER, ACL_FILEGROUP);
    if (n <= 0) {
+      berrno be;
+
       Mmsg2(jcr->errmsg,
             _("strtoacl error on file \"%s\": ERR=%s\n"),
             jcr->last_fname, be.bstrerror());
@@ -1550,6 +1576,8 @@ static bacl_exit_code hpux_parse_acl_streams(JCR *jcr,
       return bacl_exit_error;
    }
    if (strtoacl(content, n, NACLENTRIES, acls, ACL_FILEOWNER, ACL_FILEGROUP) != n) {
+      berrno be;
+
       Mmsg2(jcr->errmsg,
             _("strtoacl error on file \"%s\": ERR=%s\n"),
             jcr->last_fname, be.bstrerror());
@@ -1564,8 +1592,9 @@ static bacl_exit_code hpux_parse_acl_streams(JCR *jcr,
     * This is only true for the old acl streams as in the new implementation we
     * don't save acls of symlinks (which cannot have acls anyhow)
     */
-   if (setacl(jcr->last_fname, n, acls) != 0 &&
-       jcr->last_type != FT_LNK) {
+   if (setacl(jcr->last_fname, n, acls) != 0 && jcr->last_type != FT_LNK) {
+      berrno be;
+
       switch (errno) {
       case ENOENT:
          return bacl_exit_ok;
@@ -1665,7 +1694,6 @@ static bacl_exit_code solaris_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
    acl_t *aclp;
    char *acl_text;
    bacl_exit_code stream_status = bacl_exit_error;
-   berrno be;
 
    /*
     * See if filesystem supports acls.
@@ -1683,7 +1711,9 @@ static bacl_exit_code solaris_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
       pm_strcpy(jcr->acl_data->u.build->content, "");
       jcr->acl_data->u.build->content_length = 0;
       return bacl_exit_ok;
-   case -1:
+   case -1: {
+      berrno be;
+
       switch (errno) {
       case ENOENT:
          return bacl_exit_ok;
@@ -1695,6 +1725,7 @@ static bacl_exit_code solaris_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
                jcr->last_fname, be.bstrerror());
          return bacl_exit_error;
       }
+   }
    default:
       break;
    }
@@ -1703,6 +1734,8 @@ static bacl_exit_code solaris_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
     * Get ACL info: don't bother allocating space if there is only a trivial ACL.
     */
    if (acl_get(jcr->last_fname, ACL_NO_TRIVIAL, &aclp) != 0) {
+      berrno be;
+
       switch (errno) {
       case ENOENT:
          return bacl_exit_ok;
@@ -1763,7 +1796,6 @@ static bacl_exit_code solaris_parse_acl_streams(JCR *jcr,
 {
    acl_t *aclp;
    int acl_enabled, error;
-   berrno be;
 
    switch (stream) {
    case STREAM_UNIX_ACCESS_ACL:
@@ -1786,7 +1818,9 @@ static bacl_exit_code solaris_parse_acl_streams(JCR *jcr,
                _("Trying to restore acl on file \"%s\" on filesystem without acl support\n"),
                jcr->last_fname);
          return bacl_exit_error;
-      case -1:
+      case -1: {
+         berrno be;
+
          switch (errno) {
          case ENOENT:
             return bacl_exit_ok;
@@ -1798,6 +1832,7 @@ static bacl_exit_code solaris_parse_acl_streams(JCR *jcr,
                   content, jcr->last_fname, be.bstrerror());
             return bacl_exit_error;
          }
+      }
       default:
          /*
           * On a filesystem with ACL support make sure this particular ACL type can be restored.
@@ -1940,7 +1975,6 @@ static bacl_exit_code solaris_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
    int n;
    aclent_t *acls;
    char *acl_text;
-   berrno be;
 
    n = acl(jcr->last_fname, GETACLCNT, 0, NULL);
    if (n < MIN_ACL_ENTRIES)
@@ -1967,6 +2001,7 @@ static bacl_exit_code solaris_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
          return send_acl_stream(jcr, STREAM_ACL_SOLARIS_ACLENT);
       }
 
+      berrno be;
       Mmsg2(jcr->errmsg,
             _("acltotext error on file \"%s\": ERR=%s\n"),
             jcr->last_fname, be.bstrerror());
@@ -1985,10 +2020,11 @@ static bacl_exit_code solaris_parse_acl_streams(JCR *jcr,
 {
    int n;
    aclent_t *acls;
-   berrno be;
 
    acls = aclfromtext(content, &n);
    if (!acls) {
+      berrno be;
+
       Mmsg2(jcr->errmsg,
             _("aclfromtext error on file \"%s\": ERR=%s\n"),
             jcr->last_fname, be.bstrerror());
@@ -2002,6 +2038,8 @@ static bacl_exit_code solaris_parse_acl_streams(JCR *jcr,
     * not have attributes, and the file it is linked to may not yet be restored.
     */
    if (acl(jcr->last_fname, SETACL, n, acls) == -1 && jcr->last_type != FT_LNK) {
+      berrno be;
+
       switch (errno) {
       case ENOENT:
          actuallyfree(acls);
@@ -2088,7 +2126,6 @@ bacl_exit_code parse_acl_streams(JCR *jcr,
                                  uint32_t content_length)
 {
    int ret;
-   berrno be;
    struct stat st;
    unsigned int cnt;
 
@@ -2100,7 +2137,9 @@ bacl_exit_code parse_acl_streams(JCR *jcr,
     */
    ret = lstat(jcr->last_fname, &st);
    switch (ret) {
-   case -1:
+   case -1: {
+      berrno be;
+
       switch (errno) {
       case ENOENT:
          return bacl_exit_ok;
@@ -2113,6 +2152,7 @@ bacl_exit_code parse_acl_streams(JCR *jcr,
          return bacl_exit_error;
       }
       break;
+   }
    case 0:
       break;
    }

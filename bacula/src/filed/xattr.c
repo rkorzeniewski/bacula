@@ -350,14 +350,15 @@ static bxattr_exit_code aix_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
    xattr_t *current_xattr = NULL;
    alist *xattr_value_list = NULL;
    bxattr_exit_code retval = bxattr_exit_error;
-   berrno be;
 
    /*
     * First get the length of the available list with extended attributes.
     */
    xattr_list_len = llistea(jcr->last_fname, NULL, 0);
    switch (xattr_list_len) {
-   case -1:
+   case -1: {
+      berrno be;
+
       switch (errno) {
       case ENOENT:
       case EFORMAT:
@@ -380,6 +381,7 @@ static bxattr_exit_code aix_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
          return bxattr_exit_error;
       }
       break;
+   }
    case 0:
       return bxattr_exit_ok;
    default:
@@ -397,7 +399,9 @@ static bxattr_exit_code aix_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
     */
    xattr_list_len = llistea(jcr->last_fname, xattr_list, xattr_list_len);
    switch (xattr_list_len) {
-   case -1:
+   case -1: {
+      berrno be;
+
       switch (errno) {
       case ENOENT:
       case EFORMAT:
@@ -412,6 +416,7 @@ static bxattr_exit_code aix_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
          goto bail_out;
       }
       break;
+   }
    default:
       break;
    }
@@ -461,7 +466,9 @@ static bxattr_exit_code aix_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
        */
       xattr_value_len = lgetea(jcr->last_fname, bp, NULL, 0);
       switch (xattr_value_len) {
-      case -1:
+      case -1: {
+         berrno be;
+
          switch (errno) {
          case ENOENT:
          case EFORMAT:
@@ -476,6 +483,7 @@ static bxattr_exit_code aix_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
             goto bail_out;
          }
          break;
+      }
       case 0:
          current_xattr->value = NULL;
          current_xattr->value_length = 0;
@@ -490,6 +498,8 @@ static bxattr_exit_code aix_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
 
          xattr_value_len = lgetea(jcr->last_fname, bp, current_xattr->value, xattr_value_len);
          if (xattr_value_len < 0) {
+            berrno be;
+
             switch (errno) {
             case ENOENT:
             case EFORMAT:
@@ -588,7 +598,6 @@ static bxattr_exit_code aix_parse_xattr_streams(JCR *jcr,
 {
    xattr_t *current_xattr;
    alist *xattr_value_list;
-   berrno be;
 
    xattr_value_list = New(alist(10, not_owned_by_alist));
 
@@ -605,6 +614,8 @@ static bxattr_exit_code aix_parse_xattr_streams(JCR *jcr,
                  current_xattr->name,
                  current_xattr->value,
                  current_xattr->value_length, 0) != 0) {
+         berrno be;
+
          switch (errno) {
          case ENOENT:
          case EFORMAT:
@@ -694,13 +705,14 @@ static bxattr_exit_code irix_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
    uint32_t expected_serialize_len = 0;
    bxattr_exit_code retval = bxattr_exit_error;
    POOLMEM *xattrbuf = get_memory(ATTR_MAX_VALUELEN);
-   berrno be;
 
    for (cnt = 0; xattr_naming_spaces[cnt].name != NULL; cnt++) {
       memset(&cursor, 0, sizeof(attrlist_cursor_t));
       while (1) {
          if (attr_list(jcr->last_fname, xattrbuf, ATTR_MAX_VALUELEN,
                        xattr_naming_spaces[cnt].flags, &cursor) != 0) {
+            berrno be;
+
             switch (errno) {
             case ENOENT:
                retval = bxattr_exit_ok;
@@ -751,6 +763,8 @@ static bxattr_exit_code irix_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
              */
             if (attr_get(jcr->last_fname, attrlist_ent->a_name, current_xattr->value,
                          &length, xattr_naming_spaces[cnt].flags) != 0) {
+               berrno be;
+
                switch (errno) {
                case ENOENT:
                case ENOATTR:
@@ -775,7 +789,7 @@ static bxattr_exit_code irix_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
                      default:
                         Mmsg2(jcr->errmsg,
                               _("attr_list error on file \"%s\": ERR=%s\n"),
-                              jcr->last_fname, be.bstrerror());
+                              jcr->last_fname, be.bstrerror(errno));
                         Dmsg2(100, "attr_list error file=%s ERR=%s\n",
                               jcr->last_fname, be.bstrerror());
                         goto bail_out;
@@ -881,7 +895,6 @@ static bxattr_exit_code irix_parse_xattr_streams(JCR *jcr,
    xattr_t *current_xattr;
    alist *xattr_value_list;
    bxattr_exit_code retval = bxattr_exit_error;
-   berrno be;
 
    xattr_value_list = New(alist(10, not_owned_by_alist));
 
@@ -927,6 +940,8 @@ static bxattr_exit_code irix_parse_xattr_streams(JCR *jcr,
       bp = strchr(current_xattr->name, '.');
       if (attr_set(jcr->last_fname, ++bp, current_xattr->value,
                    current_xattr->value_length, flags) != 0) {
+         berrno be;
+
          switch (errno) {
          case ENOENT:
             retval = bxattr_exit_ok;
@@ -945,7 +960,7 @@ static bxattr_exit_code irix_parse_xattr_streams(JCR *jcr,
                default:
                   Mmsg2(jcr->errmsg,
                         _("attr_set error on file \"%s\": ERR=%s\n"),
-                        jcr->last_fname, be.bstrerror());
+                        jcr->last_fname, be.bstrerror(errno));
                   Dmsg2(100, "attr_set error file=%s ERR=%s\n",
                         jcr->last_fname, be.bstrerror());
                   goto bail_out;
@@ -1066,14 +1081,15 @@ static bxattr_exit_code generic_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
    xattr_t *current_xattr = NULL;
    alist *xattr_value_list = NULL;
    bxattr_exit_code retval = bxattr_exit_error;
-   berrno be;
 
    /*
     * First get the length of the available list with extended attributes.
     */
    xattr_list_len = llistxattr(jcr->last_fname, NULL, 0);
    switch (xattr_list_len) {
-   case -1:
+   case -1: {
+      berrno be;
+
       switch (errno) {
       case ENOENT:
          return bxattr_exit_ok;
@@ -1096,6 +1112,7 @@ static bxattr_exit_code generic_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
          return bxattr_exit_error;
       }
       break;
+   }
    case 0:
       return bxattr_exit_ok;
    default:
@@ -1113,7 +1130,9 @@ static bxattr_exit_code generic_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
     */
    xattr_list_len = llistxattr(jcr->last_fname, xattr_list, xattr_list_len);
    switch (xattr_list_len) {
-   case -1:
+   case -1: {
+      berrno be;
+
       switch (errno) {
       case ENOENT:
          retval = bxattr_exit_ok;
@@ -1127,6 +1146,7 @@ static bxattr_exit_code generic_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
          goto bail_out;
       }
       break;
+   }
    default:
       break;
    }
@@ -1194,7 +1214,9 @@ static bxattr_exit_code generic_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
        */
       xattr_value_len = lgetxattr(jcr->last_fname, bp, NULL, 0);
       switch (xattr_value_len) {
-      case -1:
+      case -1: {
+         berrno be;
+
          switch (errno) {
          case ENOENT:
             retval = bxattr_exit_ok;
@@ -1208,6 +1230,7 @@ static bxattr_exit_code generic_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
             goto bail_out;
          }
          break;
+      }
       case 0:
          current_xattr->value = NULL;
          current_xattr->value_length = 0;
@@ -1222,6 +1245,8 @@ static bxattr_exit_code generic_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
 
          xattr_value_len = lgetxattr(jcr->last_fname, bp, current_xattr->value, xattr_value_len);
          if (xattr_value_len < 0) {
+            berrno be;
+
             switch (errno) {
             case ENOENT:
                retval = bxattr_exit_ok;
@@ -1318,7 +1343,6 @@ static bxattr_exit_code generic_parse_xattr_streams(JCR *jcr,
 {
    xattr_t *current_xattr;
    alist *xattr_value_list;
-   berrno be;
 
    xattr_value_list = New(alist(10, not_owned_by_alist));
 
@@ -1332,6 +1356,8 @@ static bxattr_exit_code generic_parse_xattr_streams(JCR *jcr,
 
    foreach_alist(current_xattr, xattr_value_list) {
       if (lsetxattr(jcr->last_fname, current_xattr->name, current_xattr->value, current_xattr->value_length, 0) != 0) {
+         berrno be;
+
          switch (errno) {
          case ENOENT:
             goto bail_out;
@@ -1468,7 +1494,6 @@ static bxattr_exit_code bsd_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
    xattr_t *current_xattr = NULL;
    alist *xattr_value_list = NULL;
    bxattr_exit_code retval = bxattr_exit_error;
-   berrno be;
 
    /*
     * Loop over all available xattr namespaces.
@@ -1487,7 +1512,9 @@ static bxattr_exit_code bsd_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
        */
       xattr_list_len = extattr_list_link(jcr->last_fname, attrnamespace, NULL, 0);
       switch (xattr_list_len) {
-      case -1:
+      case -1: {
+         berrno be;
+
          switch (errno) {
          case ENOENT:
             retval = bxattr_exit_ok;
@@ -1511,6 +1538,7 @@ static bxattr_exit_code bsd_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
             goto bail_out;
          }
          break;
+      }
       case 0:
          continue;
       default:
@@ -1529,7 +1557,9 @@ static bxattr_exit_code bsd_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
       xattr_list_len = extattr_list_link(jcr->last_fname, attrnamespace,
                                          xattr_list, xattr_list_len);
       switch (xattr_list_len) {
-      case -1:
+      case -1: {
+         berrno be;
+
          switch (errno) {
          case ENOENT:
             retval = bxattr_exit_ok;
@@ -1543,6 +1573,7 @@ static bxattr_exit_code bsd_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
             goto bail_out;
          }
          break;
+      }
       default:
          break;
       }
@@ -1643,7 +1674,9 @@ static bxattr_exit_code bsd_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
          xattr_value_len = extattr_get_link(jcr->last_fname, attrnamespace,
                                             current_attrname, NULL, 0);
          switch (xattr_value_len) {
-         case -1:
+         case -1: {
+            berrno be;
+
             switch (errno) {
             case ENOENT:
                retval = bxattr_exit_ok;
@@ -1657,6 +1690,7 @@ static bxattr_exit_code bsd_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
                goto bail_out;
             }
             break;
+         }
          case 0:
             current_xattr->value = NULL;
             current_xattr->value_length = 0;
@@ -1673,6 +1707,8 @@ static bxattr_exit_code bsd_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
                                                current_attrname, current_xattr->value,
                                                xattr_value_len);
             if (xattr_value_len < 0) {
+               berrno be;
+
                switch (errno) {
                case ENOENT:
                   retval = bxattr_exit_ok;
@@ -1786,7 +1822,6 @@ static bxattr_exit_code bsd_parse_xattr_streams(JCR *jcr,
    alist *xattr_value_list;
    int current_attrnamespace, cnt;
    char *attrnamespace, *attrname;
-   berrno be;
 
    xattr_value_list = New(alist(10, not_owned_by_alist));
 
@@ -1832,6 +1867,8 @@ static bxattr_exit_code bsd_parse_xattr_streams(JCR *jcr,
       cnt = extattr_set_link(jcr->last_fname, current_attrnamespace,
                              attrname, current_xattr->value, current_xattr->value_length);
       if (cnt < 0 || cnt != (int)current_xattr->value_length) {
+         berrno be;
+
          switch (errno) {
          case ENOENT:
             goto bail_out;
@@ -1914,7 +1951,6 @@ static bxattr_exit_code tru64_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
    struct proplistname_args prop_args;
    bxattr_exit_code retval = bxattr_exit_error;
    POOLMEM *xattrbuf = get_pool_memory(PM_MESSAGE);
-   berrno be;
 
    xattrbuf_size = sizeof_pool_memory(xattrbuf);
    xattrbuf_min_size = 0;
@@ -1925,7 +1961,9 @@ static bxattr_exit_code tru64_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
     * See what xattr are available.
     */
    switch (xattr_list_len) {
-   case -1:
+   case -1: {
+      berrno be;
+
       switch (errno) {
       case EOPNOTSUPP:
          /*
@@ -1947,6 +1985,7 @@ static bxattr_exit_code tru64_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
          goto bail_out;
       }
       break;
+   }
    case 0:
       if (xattrbuf_min_size) {
          /*
@@ -1958,7 +1997,9 @@ static bxattr_exit_code tru64_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
          xattr_list_len = getproplist(jcr->last_fname, 1, &prop_args, xattrbuf_size,
                                    xattrbuf, &xattrbuf_min_size);
          switch (xattr_list_len) {
-         case -1:
+         case -1: {
+            berrno be;
+
             switch (errno) {
             default:
                Mmsg2(jcr->errmsg,
@@ -1969,6 +2010,7 @@ static bxattr_exit_code tru64_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
                goto bail_out;
             }
             break;
+         }
          case 0:
             /*
              * This should never happen as we sized the buffer according to the minimumsize
@@ -2129,7 +2171,6 @@ static bxattr_exit_code tru64_parse_xattr_streams(JCR *jcr,
    xattr_t *current_xattr;
    alist *xattr_value_list;
    bxattr_exit_code retval = bxattr_exit_error;
-   berrno be;
 
    xattr_value_list = New(alist(10, not_owned_by_alist));
 
@@ -2178,7 +2219,9 @@ static bxattr_exit_code tru64_parse_xattr_streams(JCR *jcr,
     */
    cnt = setproplist(jcr->last_fname, 1, xattrbuf_size, xattrbuf);
    switch (cnt) {
-   case -1:
+   case -1: {
+      berrno be;
+
       switch (errno) {
       case EOPNOTSUPP:
          /*
@@ -2200,6 +2243,7 @@ static bxattr_exit_code tru64_parse_xattr_streams(JCR *jcr,
          goto bail_out;
       }
       break;
+   }
    default:
       break;
    }
@@ -2476,7 +2520,6 @@ static bxattr_exit_code solaris_save_xattr_acl(JCR *jcr, int fd, const char *att
 #ifdef HAVE_EXTENDED_ACL
    int flags;
    acl_t *aclp = NULL;
-   berrno be;
 
    /*
     * See if this attribute has an ACL
@@ -2488,6 +2531,8 @@ static bxattr_exit_code solaris_save_xattr_acl(JCR *jcr, int fd, const char *att
        */
       if ((fd != -1 && facl_get(fd, ACL_NO_TRIVIAL, &aclp) != 0) ||
            acl_get(attrname, ACL_NO_TRIVIAL, &aclp) != 0) {
+         berrno be;
+
          switch (errno) {
          case ENOENT:
             return bxattr_exit_ok;
@@ -2523,7 +2568,6 @@ static bxattr_exit_code solaris_save_xattr_acl(JCR *jcr, int fd, const char *att
 #else /* HAVE_EXTENDED_ACL */
    int n;
    aclent_t *acls = NULL;
-   berrno be;
 
    /*
     * See if this attribute has an ACL
@@ -2538,6 +2582,8 @@ static bxattr_exit_code solaris_save_xattr_acl(JCR *jcr, int fd, const char *att
       acls = (aclent_t *)malloc(n * sizeof(aclent_t));
       if ((fd != -1 && facl(fd, GETACL, n, acls) != n) ||
           acl(attrname, GETACL, n, acls) != n) {
+         berrno be;
+
          switch (errno) {
          case ENOENT:
             free(acls);
@@ -2558,6 +2604,8 @@ static bxattr_exit_code solaris_save_xattr_acl(JCR *jcr, int fd, const char *att
        */
       if (!acl_is_trivial(n, acls)) {
          if ((*acl_text = acltotext(acls, n)) == NULL) {
+            berrno be;
+
             Mmsg3(jcr->errmsg,
                   _("Unable to get acl text on xattr %s on file \"%s\": ERR=%s\n"),
                   attrname, jcr->last_fname, be.bstrerror());
@@ -2615,7 +2663,6 @@ static bxattr_exit_code solaris_save_xattr(JCR *jcr, int fd, const char *xattr_n
    char attribs[MAXSTRING];
    char buffer[XATTR_BUFSIZ];
    bxattr_exit_code retval = bxattr_exit_error;
-   berrno be;
 
    bsnprintf(target_attrname, sizeof(target_attrname), "%s%s", xattr_namespace, attrname);
 
@@ -2623,6 +2670,8 @@ static bxattr_exit_code solaris_save_xattr(JCR *jcr, int fd, const char *xattr_n
     * Get the stats of the extended or extensible attribute.
     */
    if (fstatat(fd, attrname, &st, AT_SYMLINK_NOFOLLOW) < 0) {
+      berrno be;
+
       switch (errno) {
       case ENOENT:
          retval = bxattr_exit_ok;
@@ -2754,6 +2803,8 @@ static bxattr_exit_code solaris_save_xattr(JCR *jcr, int fd, const char *xattr_n
        * Open the extended or extensible attribute file.
        */
       if ((attrfd = openat(fd, attrname, O_RDONLY)) < 0) {
+         berrno be;
+
          switch (errno) {
          case ENOENT:
             retval = bxattr_exit_ok;
@@ -2775,6 +2826,8 @@ static bxattr_exit_code solaris_save_xattr(JCR *jcr, int fd, const char *xattr_n
        * Encode the stat struct into an ASCII representation.
        */
       if (readlink(attrname, link_source, sizeof(link_source)) < 0) {
+         berrno be;
+
          switch (errno) {
          case ENOENT:
             retval = bxattr_exit_ok;
@@ -2888,6 +2941,8 @@ static bxattr_exit_code solaris_save_xattr(JCR *jcr, int fd, const char *xattr_n
     * The recursive call could change our working dir so change back to the wanted workdir.
     */
    if (fchdir(fd) < 0) {
+      berrno be;
+
       switch (errno) {
       case ENOENT:
          retval = bxattr_exit_ok;
@@ -2920,7 +2975,6 @@ static bxattr_exit_code solaris_save_xattrs(JCR *jcr, const char *xattr_namespac
    struct dirent *dp;
    char current_xattr_namespace[PATH_MAX];
    bxattr_exit_code retval = bxattr_exit_error;
-   berrno be;
  
    /*
     * Determine what argument to use. Use attr_parent when set
@@ -2944,6 +2998,8 @@ static bxattr_exit_code solaris_save_xattrs(JCR *jcr, const char *xattr_namespac
     * Open the file on which to save the xattrs read-only.
     */
    if ((filefd = open(name, O_RDONLY | O_NONBLOCK)) < 0) {
+      berrno be;
+
       switch (errno) {
       case ENOENT:
          retval = bxattr_exit_ok;
@@ -2962,6 +3018,8 @@ static bxattr_exit_code solaris_save_xattrs(JCR *jcr, const char *xattr_namespac
     * Open the xattr naming space.
     */
    if ((attrdirfd = openat(filefd, ".", O_RDONLY | O_XATTR)) < 0) {
+      berrno be;
+
       switch (errno) {
       case EINVAL:
          /*
@@ -2989,6 +3047,8 @@ static bxattr_exit_code solaris_save_xattrs(JCR *jcr, const char *xattr_namespac
    * attributes should be saved.
    */
    if (fchdir(attrdirfd) < 0) {
+      berrno be;
+
       Mmsg2(jcr->errmsg,
             _("Unable to chdir to xattr space on file \"%s\": ERR=%s\n"),
             jcr->last_fname, be.bstrerror());
@@ -3008,6 +3068,8 @@ static bxattr_exit_code solaris_save_xattrs(JCR *jcr, const char *xattr_namespac
 
    if ((fd = dup(attrdirfd)) == -1 ||
        (dirp = fdopendir(fd)) == (DIR *)NULL) {
+      berrno be;
+
       Mmsg2(jcr->errmsg,
             _("Unable to list the xattr space on file \"%s\": ERR=%s\n"),
             jcr->last_fname, be.bstrerror());
@@ -3098,7 +3160,6 @@ static bxattr_exit_code solaris_restore_xattr_acl(JCR *jcr,
 #ifdef HAVE_EXTENDED_ACL
    int error;
    acl_t *aclp = NULL;
-   berrno be;
 
    if ((error = acl_fromtext(acl_text, &aclp)) != 0) {
       Mmsg1(jcr->errmsg,
@@ -3109,6 +3170,8 @@ static bxattr_exit_code solaris_restore_xattr_acl(JCR *jcr,
 
    if ((fd != -1 && facl_set(fd, aclp) != 0) ||
         acl_set(attrname, aclp) != 0) {
+      berrno be;
+
       Mmsg3(jcr->errmsg,
             _("Unable to restore acl of xattr %s on file \"%s\": ERR=%s\n"),
             attrname, jcr->last_fname, be.bstrerror());
@@ -3125,12 +3188,13 @@ static bxattr_exit_code solaris_restore_xattr_acl(JCR *jcr,
 #else /* HAVE_EXTENDED_ACL */
    int n;
    aclent_t *acls = NULL;
-   berrno be;
 
    acls = aclfromtext(acl_text, &n);
    if (!acls) {
       if ((fd != -1 && facl(fd, SETACL, n, acls) != 0) ||
            acl(attrname, SETACL, n, acls) != 0) {
+         berrno be;
+
          Mmsg3(jcr->errmsg,
                _("Unable to restore acl of xattr %s on file \"%s\": ERR=%s\n"),
                attrname, jcr->last_fname, be.bstrerror());
@@ -3166,7 +3230,6 @@ static bxattr_exit_code solaris_restore_xattrs(JCR *jcr,
    struct stat st;
    struct timeval times[2];
    bxattr_exit_code retval = bxattr_exit_error;
-   berrno be;
 
    /*
     * Parse the xattr stream. First the part that is the same for all xattrs.
@@ -3189,6 +3252,8 @@ static bxattr_exit_code solaris_restore_xattrs(JCR *jcr,
     * Open the file on which to restore the xattrs read-only.
     */
    if ((filefd = open(jcr->last_fname, O_RDONLY | O_NONBLOCK)) < 0) {
+      berrno be;
+
       Mmsg2(jcr->errmsg,
             _("Unable to open file \"%s\": ERR=%s\n"),
             jcr->last_fname, be.bstrerror());
@@ -3201,6 +3266,8 @@ static bxattr_exit_code solaris_restore_xattrs(JCR *jcr,
     * Open the xattr naming space and make it the current working dir.
     */
    if ((attrdirfd = openat(filefd, ".", O_RDONLY | O_XATTR)) < 0) {
+      berrno be;
+
       Mmsg2(jcr->errmsg,
             _("Unable to open xattr space on file \"%s\": ERR=%s\n"),
             jcr->last_fname, be.bstrerror());
@@ -3210,6 +3277,8 @@ static bxattr_exit_code solaris_restore_xattrs(JCR *jcr,
    }
 
    if (fchdir(attrdirfd) < 0) {
+      berrno be;
+
       Mmsg2(jcr->errmsg,
             _("Unable to chdir to xattr space on file \"%s\": ERR=%s\n"),
             jcr->last_fname, be.bstrerror());
@@ -3227,6 +3296,8 @@ static bxattr_exit_code solaris_restore_xattrs(JCR *jcr,
       *bp = '\0';
 
       if ((fd = open(target_attrname, O_RDONLY | O_NONBLOCK)) < 0) {
+         berrno be;
+
          Mmsg3(jcr->errmsg,
                _("Unable to open xattr %s on file \"%s\": ERR=%s\n"),
                target_attrname, jcr->last_fname, be.bstrerror());
@@ -3242,6 +3313,8 @@ static bxattr_exit_code solaris_restore_xattrs(JCR *jcr,
        * Open the xattr naming space.
        */
       if ((fd = openat(filefd, ".", O_RDONLY | O_XATTR)) < 0) {
+         berrno be;
+
          Mmsg3(jcr->errmsg,
                _("Unable to open xattr space %s on file \"%s\": ERR=%s\n"),
                target_attrname, jcr->last_fname, be.bstrerror());
@@ -3257,6 +3330,8 @@ static bxattr_exit_code solaris_restore_xattrs(JCR *jcr,
        * Make the xattr space our current workingdir.
        */
       if (fchdir(attrdirfd) < 0) {
+         berrno be;
+
          Mmsg3(jcr->errmsg,
                _("Unable to chdir to xattr space %s on file \"%s\": ERR=%s\n"),
                target_attrname, jcr->last_fname, be.bstrerror());
@@ -3295,6 +3370,8 @@ static bxattr_exit_code solaris_restore_xattrs(JCR *jcr,
        */
       unlinkat(attrdirfd, target_attrname, 0);
       if (mkfifo(target_attrname, st.st_mode) < 0) {
+         berrno be;
+
          Mmsg3(jcr->errmsg,
                _("Unable to mkfifo xattr %s on file \"%s\": ERR=%s\n"),
                target_attrname, jcr->last_fname, be.bstrerror());
@@ -3311,6 +3388,8 @@ static bxattr_exit_code solaris_restore_xattrs(JCR *jcr,
        */
       unlinkat(attrdirfd, target_attrname, 0);
       if (mknod(target_attrname, st.st_mode, st.st_rdev) < 0) {
+         berrno be;
+
          Mmsg3(jcr->errmsg,
                _("Unable to mknod xattr %s on file \"%s\": ERR=%s\n"),
                target_attrname, jcr->last_fname, be.bstrerror());
@@ -3328,6 +3407,8 @@ static bxattr_exit_code solaris_restore_xattrs(JCR *jcr,
       if (!bstrcmp(target_attrname, ".")) {
          unlinkat(attrdirfd, target_attrname, AT_REMOVEDIR);
          if (mkdir(target_attrname, st.st_mode) < 0) {
+            berrno be;
+
             Jmsg3(jcr, M_WARNING, 0, _("Unable to mkdir xattr %s on file \"%s\": ERR=%s\n"),
                target_attrname, jcr->last_fname, be.bstrerror());
             Dmsg3(100, "Unable to mkdir xattr %s on file \"%s\": ERR=%s\n",
@@ -3345,6 +3426,8 @@ static bxattr_exit_code solaris_restore_xattrs(JCR *jcr,
 
          unlinkat(attrdirfd, target_attrname, 0);
          if (link(linked_target, target_attrname) < 0) {
+            berrno be;
+
             Mmsg4(jcr->errmsg,
                   _("Unable to link xattr %s to %s on file \"%s\": ERR=%s\n"),
                   target_attrname, linked_target, jcr->last_fname, be.bstrerror());
@@ -3375,6 +3458,8 @@ static bxattr_exit_code solaris_restore_xattrs(JCR *jcr,
          }
 
          if ((attrfd = openat(attrdirfd, target_attrname, O_RDWR | O_CREAT | O_TRUNC, st.st_mode)) < 0) {
+            berrno be;
+
             Mmsg3(jcr->errmsg,
                   _("Unable to open xattr %s on file \"%s\": ERR=%s\n"),
                   target_attrname, jcr->last_fname, be.bstrerror());
@@ -3407,6 +3492,8 @@ static bxattr_exit_code solaris_restore_xattrs(JCR *jcr,
          while (cnt > 0) {
             cnt = write(attrfd, data, cnt);
             if (cnt < 0) {
+               berrno be;
+
                Mmsg3(jcr->errmsg,
                      _("Unable to restore data of xattr %s on file \"%s\": ERR=%s\n"),
                      target_attrname, jcr->last_fname, be.bstrerror());
@@ -3428,6 +3515,8 @@ static bxattr_exit_code solaris_restore_xattrs(JCR *jcr,
       linked_target = bp;
 
       if (symlink(linked_target, target_attrname) < 0) {
+         berrno be;
+
          Mmsg4(jcr->errmsg,
                _("Unable to symlink xattr %s to %s on file \"%s\": ERR=%s\n"),
                target_attrname, linked_target, jcr->last_fname, be.bstrerror());
@@ -3450,6 +3539,8 @@ static bxattr_exit_code solaris_restore_xattrs(JCR *jcr,
     */
    if (!is_extensible) {
       if (fchownat(attrdirfd, target_attrname, st.st_uid, st.st_gid, AT_SYMLINK_NOFOLLOW) < 0) {
+         berrno be;
+
          switch (errno) {
          case EINVAL:
             /*
@@ -3488,6 +3579,8 @@ static bxattr_exit_code solaris_restore_xattrs(JCR *jcr,
       times[1].tv_usec = 0;
 
       if (futimesat(attrdirfd, target_attrname, times) < 0) {
+         berrno be;
+
          Mmsg3(jcr->errmsg,
                _("Unable to restore filetimes of xattr %s on file \"%s\": ERR=%s\n"),
                target_attrname, jcr->last_fname, be.bstrerror());
@@ -3651,7 +3744,6 @@ bxattr_exit_code parse_xattr_streams(JCR *jcr,
                                      uint32_t content_length)
 {
    int ret;
-   berrno be;
    struct stat st;
    unsigned int cnt;
 
@@ -3663,7 +3755,9 @@ bxattr_exit_code parse_xattr_streams(JCR *jcr,
     */
    ret = lstat(jcr->last_fname, &st);
    switch (ret) {
-   case -1:
+   case -1: {
+      berrno be;
+
       switch (errno) {
       case ENOENT:
          return bxattr_exit_ok;
@@ -3676,6 +3770,7 @@ bxattr_exit_code parse_xattr_streams(JCR *jcr,
          return bxattr_exit_error;
       }
       break;
+   }
    case 0:
       break;
    }
