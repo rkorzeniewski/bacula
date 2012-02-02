@@ -122,6 +122,13 @@ B_DB_POSTGRESQL::B_DB_POSTGRESQL(JCR *jcr,
    m_buf =  get_pool_memory(PM_FNAME);
    m_allow_transactions = mult_db_connections;
 
+   /* At this time, when mult_db_connections == true, this is for 
+    * specific console command such as bvfs or batch mode, and we don't
+    * want to share a batch mode or bvfs. In the future, we can change
+    * the creation function to add this parameter.
+    */
+   m_dedicated = mult_db_connections; 
+
    /*
     * Initialize the private members.
     */

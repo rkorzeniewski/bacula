@@ -458,6 +458,7 @@ protected:
    char *m_db_password;                   /* database password */
    int m_db_port;                         /* port for host name address */
    bool m_disabled_batch_insert;          /* explicitly disabled batch insert mode ? */
+   bool m_dedicated;                      /* is this connection dedicated? */
 
 public:
    POOLMEM *errmsg;                       /* nicely edited error message */
