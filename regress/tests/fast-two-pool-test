@@ -56,7 +56,7 @@ list volumes
 list jobs
 status storage=tape
 messages
-setdebug level=150 storage=tape
+setdebug level=200 storage=tape
 @#setdebug level=200 client          
 restore where=${cwd}/tmp/bacula-restores select all storage=tape done
 yes
