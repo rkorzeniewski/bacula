@@ -46,6 +46,7 @@ wait
 list jobs
 @# should migrate two jobs
 run job=migrate-job yes
+run job=migrate-job yes
 wait
 messages
 list jobs 
