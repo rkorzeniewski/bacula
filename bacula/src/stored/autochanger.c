@@ -425,6 +425,7 @@ bool unload_autochanger(DCR *dcr, int loaded)
 static bool unload_other_drive(DCR *dcr, int slot)
 {
    DEVICE *dev = NULL;
+   DEVICE *dev_save;
    bool found = false;
    AUTOCHANGER *changer = dcr->dev->device->changer_res;
    DEVRES *device;
@@ -437,16 +438,35 @@ static bool unload_other_drive(DCR *dcr, int slot)
       return true;
    }
 
+   /*
+    * We look for the slot number corresponding to the tape
+    *   we want in other drives, and if possible, unload
+    *   it.
+    */
+   Dmsg0(100, "Wiffle through devices looking for slot\n");
    foreach_alist(device, changer->device) {
-      if (device->dev && device->dev->get_slot() == slot) {
+      dev = device->dev;
+      if (!dev) {
+         continue;
+      }
+      dev_save = dcr->dev;
+      dcr->dev = dev;
+      if (dev->get_slot() <= 0 && get_autochanger_loaded_slot(dcr) <= 0) {
+         dcr->dev = dev_save;
+         continue;
+      }
+      dcr->dev = dev_save;
+      if (dev->get_slot() == slot) {
          found = true;
-         dev = device->dev;
          break;
       }
    }
    if (!found) {
+      Dmsg1(100, "Slot=%d not found in another device\n", slot);
       return true;
-   }
+   } else {
+      Dmsg1(100, "Slot=%d found in another device\n", slot);
+   }   
 
    /* The Volume we want is on another device. */
    if (dev->is_busy()) {
