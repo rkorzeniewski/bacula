@@ -236,6 +236,7 @@ static bool use_storage_cmd(JCR *jcr)
       }
    }  while (ok && dir->recv() >= 0);
 
+#ifdef xxxx
    /* Developer debug code */
    char *device_name;
    if (debug_level >= dbglvl) {
@@ -248,6 +249,7 @@ static bool use_storage_cmd(JCR *jcr)
          }
       }
    }
+#endif
 
    init_jcr_device_wait_timers(jcr);
    jcr->dcr = new_dcr(jcr, NULL, NULL);         /* get a dcr */
@@ -272,6 +274,12 @@ static bool use_storage_cmd(JCR *jcr)
       bool fail = false;
       rctx.notify_dir = true;
 
+      /* Put new dcr in proper location */
+      if (rctx.append) {
+         rctx.jcr->dcr = jcr->dcr;
+      } else {
+         rctx.jcr->read_dcr = jcr->dcr;
+      }
       lock_reservations();
       for ( ; !fail && !job_canceled(jcr); ) {
          pop_reserve_messages(jcr);
