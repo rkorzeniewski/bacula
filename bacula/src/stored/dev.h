@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2011 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2012 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -225,6 +225,7 @@ public:
    bthread_mutex_t m_mutex;           /* access control */
    bthread_mutex_t spool_mutex;       /* mutex for updating spool_size */
    bthread_mutex_t acquire_mutex;     /* mutex for acquire code */
+   pthread_mutex_t read_acquire_mutex; /* mutex for acquire read code */
    pthread_cond_t wait;               /* thread wait variable */
    pthread_cond_t wait_next_vol;      /* wait for tape to be mounted */
    pthread_t no_wait_id;              /* this thread must not wait */

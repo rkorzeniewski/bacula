@@ -1,7 +1,7 @@
 /*
    Bacula(R) - The Network Backup Solution
 
-   Copyright (C) 2002-2011 Free Software Foundation Europe e.V.
+   Copyright (C) 2002-2012 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -40,7 +40,6 @@ static void attach_dcr_to_dev(DCR *dcr);
 static void detach_dcr_from_dev(DCR *dcr);
 static void set_dcr_from_vol(DCR *dcr, VOL_LIST *vol);
 
-
 /*********************************************************************
  * Acquire device for reading. 
  *  The drive should have previously been reserved by calling 
@@ -62,6 +61,7 @@ bool acquire_device_for_read(DCR *dcr)
    int vol_label_status;
    int retry = 0;
    
+   P(dev->read_acquire_mutex);
    Dmsg2(950, "dcr=%p dev=%p\n", dcr, dcr->dev);
    Dmsg2(950, "MediaType dcr=%s dev=%s\n", dcr->media_type, dev->device->media_type);
    dev->dblock(BST_DOING_ACQUIRE);
@@ -151,7 +151,13 @@ bool acquire_device_for_read(DCR *dcr)
       release_reserve_messages(jcr);         /* release queued messages */
       unlock_reservations();
 
-      if (stat == 1) {
+      if (stat == 1) { /* found new device to use */
+         /*
+          * Switching devices, so acquire lock on new device,
+          *   then release the old one.
+          */
+         P(dcr->dev->read_acquire_mutex);
+         V(dev->read_acquire_mutex);
          dev = dcr->dev;                     /* get new device pointer */
          dev->dblock(BST_DOING_ACQUIRE); 
 
@@ -349,6 +355,7 @@ get_out:
    }
    Dmsg2(950, "dcr=%p dev=%p\n", dcr, dcr->dev);
    Dmsg2(950, "MediaType dcr=%s dev=%s\n", dcr->media_type, dev->device->media_type);
+   V(dev->read_acquire_mutex);
    return ok;
 }
 
