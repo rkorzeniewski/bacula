@@ -282,11 +282,6 @@ bool accurate_check_file(JCR *jcr, FF_PKT *ff_pkt)
    ff_pkt->accurate_found = true;
    ff_pkt->delta_seq = elt.delta_seq;
 
-   if (elt.seen) { /* file has been seen ? */
-      Dmsg1(dbglvl, "accurate %s (already seen)\n", fname);
-      goto bail_out;
-   }
-
    decode_stat(elt.lstat, &statc, sizeof(statc), &LinkFIc); /* decode catalog stat */
 
    if (!jcr->rerunning && (jcr->getJobLevel() == L_FULL)) {
