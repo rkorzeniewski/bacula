@@ -426,6 +426,9 @@ TREE_NODE *tree_relcwd(char *path, TREE_ROOT *root, TREE_NODE *node)
           && strncmp(cd->fname, path, len) == 0) {
          break;
       }
+      if (fnmatch(path, cd->fname, len) == 0) {
+         break;
+      }
    }
    if (!cd || (cd->type == TN_FILE && !tree_node_has_child(cd))) {
       return NULL;
