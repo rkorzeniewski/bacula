@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2010 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2012 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -122,8 +122,9 @@ get_win32_driveletters(FF_PKT *ff, char* szDrives)
    return 0;
 #endif
    int nCount;
-   /* Can be already filled by plugin, so check that everything
-    * is on upper case. TODO: can check for dupplicate?
+   /*
+    * Can be already filled by plugin, so check that all
+    *   letters are in upper case. There should be no duplicates.
     */
    for (nCount = 0; nCount < 27 && szDrives[nCount] ; nCount++) {
       szDrives[nCount] = toupper(szDrives[nCount]);

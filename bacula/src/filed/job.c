@@ -1902,6 +1902,7 @@ static int backup_cmd(JCR *jcr)
         /* tell vss which drives to snapshot */   
         char szWinDriveLetters[27];
         *szWinDriveLetters=0;
+        /* Plugin driver can return drive letters */
         generate_plugin_event(jcr, bEventVssPrepareSnapshot, szWinDriveLetters);
         if (get_win32_driveletters(jcr->ff, szWinDriveLetters)) {
             Jmsg(jcr, M_INFO, 0, _("Generate VSS snapshots. Driver=\"%s\", Drive(s)=\"%s\"\n"), g_pVSSClient->GetDriverName(), szWinDriveLetters);
