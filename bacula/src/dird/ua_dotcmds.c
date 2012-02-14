@@ -123,7 +123,7 @@ static struct cmdstruct commands[] = { /* help */  /* can be used in runscript *
  { NT_(".bvfs_cleanup"), dot_bvfs_cleanup,       NULL,       true},
  { NT_(".bvfs_clear_cache"),dot_bvfs_clear_cache,NULL,       false},
  { NT_(".types"),      typescmd,                 NULL,       false}
-             };
+};
 #define comsize ((int)(sizeof(commands)/sizeof(struct cmdstruct)))
 
 /*
