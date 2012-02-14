@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2002-2011 Free Software Foundation Europe e.V.
+   Copyright (C) 2002-2012 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -409,6 +409,8 @@ TREE_NODE *tree_relcwd(char *path, TREE_ROOT *root, TREE_NODE *node)
    char *p;
    int len;
    TREE_NODE *cd;
+   char save_char;
+   int match;
 
    if (*path == 0) {
       return node;
@@ -426,7 +428,12 @@ TREE_NODE *tree_relcwd(char *path, TREE_ROOT *root, TREE_NODE *node)
           && strncmp(cd->fname, path, len) == 0) {
          break;
       }
-      if (fnmatch(path, cd->fname, len) == 0) {
+      /* fnmatch has no len in call so we truncate the string */
+      save_char = path[len];
+      path[len] = 0;
+      match = fnmatch(path, cd->fname, 0) == 0;
+      path[len] = save_char;
+      if (match) {
          break;
       }
    }
