@@ -859,7 +859,7 @@ bool Bvfs::compute_restore_list(char *fileid, char *dirid, char *hardlink,
 {
    POOL_MEM query;
    POOL_MEM tmp, tmp2;
-   int64_t id, jobid;
+   int64_t id, jobid, prev_jobid;
    bool init=false;
    bool ret=false;
    /* check args */
@@ -873,6 +873,15 @@ bool Bvfs::compute_restore_list(char *fileid, char *dirid, char *hardlink,
    if (!check_temp(output_table)) {
       return false;
    }
+
+   db_lock(db);
+
+   /* Cleanup old tables first */
+   Mmsg(query, "DROP TABLE btemp%s", output_table);
+   db_sql_query(db, query.c_str());
+
+   Mmsg(query, "DROP TABLE %s", output_table);
+   db_sql_query(db, query.c_str());
 
    Mmsg(query, "CREATE TABLE btemp%s AS ", output_table);
 
@@ -891,7 +900,7 @@ bool Bvfs::compute_restore_list(char *fileid, char *dirid, char *hardlink,
       if (!db_sql_query(db, tmp.c_str(), get_path_handler, (void *)&tmp2)) {
          Dmsg0(dbglevel, "Can't search for path\n");
          /* print error */
-         return false;
+         goto bail_out;
       }
       if (!strcmp(tmp2.c_str(), "")) { /* path not found */
          Dmsg3(dbglevel, "Path not found %lld q=%s s=%s\n",
@@ -943,11 +952,11 @@ bool Bvfs::compute_restore_list(char *fileid, char *dirid, char *hardlink,
    }
 
    /* expect jobid,fileindex */
-   int64_t prev_jobid=0;
+   prev_jobid=0;
    while (get_next_id_from_list(&hardlink, &jobid) == 1) {
       if (get_next_id_from_list(&hardlink, &id) != 1) {
          Dmsg0(dbglevel, "hardlink should be two by two\n");
-         return false;
+         goto bail_out;
       }
       if (jobid != prev_jobid) { /* new job */
          if (prev_jobid == 0) {  /* first jobid */
@@ -1009,6 +1018,7 @@ bool Bvfs::compute_restore_list(char *fileid, char *dirid, char *hardlink,
 bail_out:
    Mmsg(query, "DROP TABLE btemp%s", output_table);
    db_sql_query(db, query.c_str(), NULL, NULL);
+   db_unlock(db);
    return ret;
 }
 
