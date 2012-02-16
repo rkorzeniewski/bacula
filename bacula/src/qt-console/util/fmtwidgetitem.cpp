@@ -283,13 +283,13 @@ void ItemFormatterBase::setBoolFld(int index, int fld, bool center)
 void ItemFormatterBase::setNumericFld(int index, const QString &fld)
 {
    setRightFld(index, fld.trimmed());
-   setSortValue(index, fld.toDouble() );
+   setSortValue(index, fld.toDouble());
 }
 
 void ItemFormatterBase::setNumericFld(int index, const QString &fld, const QVariant &sortval)
 {
    setRightFld(index, fld.trimmed());
-   setSortValue(index, sortval );
+   setSortValue(index, sortval);
 }
 
 void ItemFormatterBase::setBytesFld(int index, const QString &fld)

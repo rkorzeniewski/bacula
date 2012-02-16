@@ -286,7 +286,7 @@ void bRestore::displayFileVersion(QString pathid, QString fnid,
          //PathId, FilenameId, fileid, jobid, lstat, Md5, VolName, Inchanger
          fieldlist = resultline.split("\t");
          TableItemFormatter item(*FileRevisions, row++);
-         item.setInChanger(col++, fieldlist.at(7));    // inchanger
+         item.setInChanger(col++, fieldlist.at(7)); // inchanger
          item.setTextFld(col++, fieldlist.at(6)); // Volume
          item.setNumericFld(col++, fieldlist.at(3)); // JobId
          decode_stat(fieldlist.at(4).toLocal8Bit().data(), 

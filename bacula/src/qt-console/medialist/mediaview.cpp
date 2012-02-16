@@ -336,7 +336,7 @@ void MediaView::populateTable()
 
       foreach (resultline, results) { // should have only one result
          int index = 0;
-         QString Slot, VolBytes, MediaType, LastWritten, VolStatus;
+         QString VolBytes, MediaType, LastWritten, VolStatus;
          fieldlist = resultline.split("\t");
          if (fieldlist.size() != 10) {
             continue;
@@ -350,8 +350,8 @@ void MediaView::populateTable()
          /* Online */
          mediaitem.setInChanger(index++, fld.next());
 
-         Slot = fld.next();            // Slot
-         mediaitem.setNumericFld(index++, Slot);
+         /* Slot */
+         mediaitem.setNumericFld(index++, fld.next());
 
          MediaType = fld.next();
          VolStatus = fld.next();

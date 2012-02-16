@@ -146,7 +146,7 @@ void Storage::populateTree()
             QStringListIterator fld(fieldlist);
  
             /* storage id */
-            storageItem.setNumericFld(index++, fld.next() );
+            storageItem.setNumericFld(index++, fld.next());
 
             /* changer */
             QString changer = fld.next();

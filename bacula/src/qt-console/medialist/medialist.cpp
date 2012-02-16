@@ -207,8 +207,7 @@ void MediaList::populateTree()
             int inchanger = fld.next().toInt();
             if (inchanger) {
                mediaitem.setNumericFld(index++, fld.next()); 
-            }
-            else {
+            } else {
                /* volume not in changer, show blank slot */
                mediaitem.setNumericFld(index++, ""); 
                fld.next();
