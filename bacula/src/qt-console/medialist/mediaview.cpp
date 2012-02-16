@@ -351,7 +351,7 @@ void MediaView::populateTable()
          mediaitem.setInChanger(index++, fld.next());
 
          Slot = fld.next();            // Slot
-         mediaitem.setTextFld(index++, Slot);
+         mediaitem.setNumericFld(index++, Slot);
 
          MediaType = fld.next();
          VolStatus = fld.next();
