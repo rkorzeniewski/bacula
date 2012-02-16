@@ -1,7 +1,64 @@
 
-               Release Notes for Bacula 5.2.5
+               Release Notes for Bacula 5.2.6
 
   Bacula code: Total files = 1,110 Total lines = 231,439 (Using SLOCCount)
+
+General:
+--------
+The 5.2.6 version is a bug fix release.
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+If you are upgrading directly from 5.0.3 to this version, please see the
+important notices below for version 5.2.3, particularly
+the database upgrade and the difference in packaging the
+SQL shared libraries.
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+If you store .bsr or .mail files in the Bacula working
+directory, please be aware that they will all be deleted
+each time the Director starts.
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+Compatibility:
+--------------
+ As always, both the Director and Storage daemon must be upgraded at
+ the same time.
+
+ Older 5.0.x and 3.0.x File Daemons are compatible with the 5.2.3
+ Director and Storage daemons. There should be no need to upgrade older File
+ Daemons.
+
+New Feature:
+ - The restore tree cd command accepts wild cards within each
+   part of a path. Wild cards apply only to a single part at a
+   time: i.e. cd a*/b*/xx* will match abc/bcd/xxfxx
+   but */xx* will not match the above filename.
+
+Changes since 5.2.5:
+
+15Feb12
+ - Fix #1831 by dropping the table before creating it
+ - Make cd accept wildcards
+ - Remove bad optimization from Accurate code
+ - Lock read acquire in SD to prevent to read jobs getting the same thing
+ - Implement more robust check in other drives for tape slot wanted
+ - Fix lost dcr point -- memory loss in Copy/Migration + possible confusion
+ - Ensure that bvfs SQL link is not shared
+ - Fix error printing in acl and xattr code.
+ - Backport better error debug output for sd plugins.
+ - Add wait on bad connection for security
+ - Make mtx-changer more fault tolerant
+ - Fix 32/64 bit problems in SD sscanf commands
+ - Skip certain filesystem types on some platforms.
+ - Allow BVFS to browse and restore Base jobs
+ - Add error message to .bvfs_clear_cache command
+ - Fix plugin bug with multiple simultaneous jobs
+
+Bugs fixed/closed since last release:
+1831
+
+===============================================================
 
 General:
 --------
