@@ -1,9 +1,9 @@
 #!/bin/sh
 #
-# Shell script to update MySQL tables from Bacula Community version 5.0.x to 5.2.x
+# Shell script to update sqlite3 tables from Bacula Community version 5.0.x to 5.2.x
 #
 echo " "
-echo "This script will update a Bacula MySQL database from version 12 to 14"
+echo "This script will update a Bacula sqlite3 database from version 12 to 14"
 echo "	which is needed to convert from Bacula Community version 5.0.x to 5.2.x"
 echo " "
 
