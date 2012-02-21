@@ -2,6 +2,12 @@
 
 Version 5.2.6
 
+17Feb12
+ - Fix old exchange-fd plugin Accurate checkFile code.
+
+16Feb12
+ - Insert the slot field as a numeric field.
+ - Update Change log and Release notes
 
 15Feb12
  - Fix #1831 by dropping the table before creating it

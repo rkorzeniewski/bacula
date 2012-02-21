@@ -37,7 +37,9 @@ New Feature:
 
 Changes since 5.2.5:
 
-15Feb12
+17Feb12
+ - Fix old exchange-fd plugin Accurate checkFile code.
+ - Insert the slot field as a numeric field.
  - Fix #1831 by dropping the table before creating it
  - Make cd accept wildcards
  - Remove bad optimization from Accurate code
