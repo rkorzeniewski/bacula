@@ -178,14 +178,19 @@ find_files(JCR *jcr, FF_PKT *ff, int file_save(JCR *jcr, FF_PKT *ff_pkt, bool to
    findFILESET *fileset = ff->fileset;
    if (fileset) {
       int i, j;
+      /* TODO: We probably need be move the initialization in the fileset loop,
+       * at this place flags options are "concatenated" accross Include {} blocks
+       * (not only Options{} blocks inside a Include{})
+       */
       ff->flags = 0;
-      ff->VerifyOpts[0] = 'V';
-      ff->VerifyOpts[1] = 0;
-      strcpy(ff->AccurateOpts, "Cmcs");  /* mtime+ctime+size by default */
-      strcpy(ff->BaseJobOpts, "Jspug5"); /* size+perm+user+group+chk  */
       for (i=0; i<fileset->include_list.size(); i++) {
          findINCEXE *incexe = (findINCEXE *)fileset->include_list.get(i);
          fileset->incexe = incexe;
+
+         strcpy(ff->VerifyOpts, "V");
+         strcpy(ff->AccurateOpts, "Cmcs");  /* mtime+ctime+size by default */
+         strcpy(ff->BaseJobOpts, "Jspug5"); /* size+perm+user+group+chk  */
+
          /*
           * By setting all options, we in effect OR the global options
           *   which is what we want.
@@ -200,7 +205,7 @@ find_files(JCR *jcr, FF_PKT *ff, int file_save(JCR *jcr, FF_PKT *ff_pkt, bool to
             ff->drivetypes = fo->drivetype;
             ff->plugin = fo->plugin; /* TODO: generate a plugin event ? */
             ff->opt_plugin = (ff->plugin != NULL)? true : false;
-            bstrncat(ff->VerifyOpts, fo->VerifyOpts, sizeof(ff->VerifyOpts));
+            bstrncat(ff->VerifyOpts, fo->VerifyOpts, sizeof(ff->VerifyOpts)); /* TODO: Concat or replace? */
             if (fo->AccurateOpts[0]) {
                bstrncpy(ff->AccurateOpts, fo->AccurateOpts, sizeof(ff->AccurateOpts));
             }
@@ -208,7 +213,8 @@ find_files(JCR *jcr, FF_PKT *ff, int file_save(JCR *jcr, FF_PKT *ff_pkt, bool to
                bstrncpy(ff->BaseJobOpts, fo->BaseJobOpts, sizeof(ff->BaseJobOpts));
             }
          }
-         Dmsg3(50, "Verify=<%s> Accurate=<%s> BaseJob=<%s>\n", ff->VerifyOpts, ff->AccurateOpts, ff->BaseJobOpts);
+         Dmsg4(50, "Verify=<%s> Accurate=<%s> BaseJob=<%s> flags=<%d>\n", 
+               ff->VerifyOpts, ff->AccurateOpts, ff->BaseJobOpts, ff->flags);
          dlistString *node;
          foreach_dlist(node, &incexe->name_list) {
             char *fname = node->c_str();
