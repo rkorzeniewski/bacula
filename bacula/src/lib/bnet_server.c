@@ -207,7 +207,7 @@ bnet_thread_server(dlist *addrs, int max_clients, workq_t *client_wq,
             sockaddr_to_ascii(&cli_addr, buf, sizeof(buf));
             V(mutex);
             BSOCK *bs;
-            bs = init_bsock(NULL, newsockfd, "client", buf, fd_ptr->port, &cli_addr);
+            bs = init_bsock(NULL, newsockfd, "client", buf, ntohs(fd_ptr->port), &cli_addr);
             if (bs == NULL) {
                Jmsg0(NULL, M_ABORT, 0, _("Could not create client BSOCK.\n"));
             }
