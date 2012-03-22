@@ -640,7 +640,6 @@ bool autochanger_cmd(DCR *dcr, BSOCK *dir, const char *cmd)
       be.set_errno(stat);
       dir->fsend(_("Autochanger error: ERR=%s\n"), be.bstrerror());
    }
-   bnet_sig(dir, BNET_EOD);
 
 bail_out:
    unlock_changer(dcr);
