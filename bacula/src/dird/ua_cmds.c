@@ -1298,6 +1298,7 @@ static int estimate_cmd(UAContext *ua, const char *cmd)
 
    jcr->job = job;
    jcr->setJobType(JT_BACKUP);
+   jcr->start_time = time(NULL);
    init_jcr_job_record(jcr);
 
    if (!get_or_create_client_record(jcr)) {
