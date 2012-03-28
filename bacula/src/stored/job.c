@@ -74,7 +74,7 @@ bool job_cmd(JCR *jcr)
    BSOCK *dir = jcr->dir_bsock;
    POOL_MEM job_name, client_name, job, fileset_name, fileset_md5;
    int32_t JobType, level, spool_attributes, no_attributes, spool_data;
-   int32_t write_part_after_job, PreferMountedVols;
+   int32_t write_part_after_job, PreferMountedVols, rerunning;
    int stat;
    JCR *ojcr;
 
@@ -88,7 +88,7 @@ bool job_cmd(JCR *jcr)
               &JobType, &level, fileset_name.c_str(), &no_attributes,
               &spool_attributes, fileset_md5.c_str(), &spool_data,
               &write_part_after_job, &PreferMountedVols, spool_size,
-              &jcr->rerunning, &jcr->VolSessionId, &jcr->VolSessionTime);
+              &rerunning, &jcr->VolSessionId, &jcr->VolSessionTime);
    if (stat != 17) {
       pm_strcpy(jcr->errmsg, dir->msg);
       dir->fsend(BAD_job, stat, jcr->errmsg);
@@ -96,6 +96,7 @@ bool job_cmd(JCR *jcr)
       jcr->setJobStatus(JS_ErrorTerminated);
       return false;
    }
+   jcr->rerunning = (rerunning) ? true : false;
    Dmsg3(100, "==== rerunning=%d VolSesId=%d VolSesTime=%d\n", jcr->rerunning,
          jcr->VolSessionId, jcr->VolSessionTime);
    /*
