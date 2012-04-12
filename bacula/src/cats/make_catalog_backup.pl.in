@@ -69,10 +69,13 @@ sub dump_pgsql
     if ($args{db_port}) {
         $ENV{PGPORT}=$args{db_port};
     }
-
+    if ($args{db_user}) {
+        $ENV{PGUSER}=$args{db_user};
+    }
+    if ($args{db_password}) {
+        $ENV{PGPASSWORD}=$args{db_password};
+    }
     $ENV{PGDATABASE}=$args{db_name};
-    $ENV{PGUSER}=$args{db_user};
-    $ENV{PGPASSWORD}=$args{db_password};
     exec("HOME='$wd' pg_dump -c > '$wd/$args{db_name}.sql'");
     print "Error while executing postgres dump $!\n";
     return 1;               # in case of error
