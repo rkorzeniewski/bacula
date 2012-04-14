@@ -245,17 +245,17 @@ void update_slots(UAContext *ua)
       slot_list[vl->Slot] = 0;        /* clear Slot */
       mr.Slot = vl->Slot;
       mr.InChanger = 1;
-      mr.MediaId = 0;                 /* Get by VolumeName */
+      mr.MediaId = 0;                 /* Force using VolumeName */
       if (vl->VolName) {
          bstrncpy(mr.VolumeName, vl->VolName, sizeof(mr.VolumeName));
       } else {
          mr.VolumeName[0] = 0;
       }
       set_storageid_in_mr(store.store, &mr);
-      /* Set InChanger to zero for this Slot */
       Dmsg4(100, "Before make unique: Vol=%s slot=%d inchanger=%d sid=%d\n",
             mr.VolumeName, mr.Slot, mr.InChanger, mr.StorageId);
       db_lock(ua->db);
+      /* Set InChanger to zero for this Slot */
       db_make_inchanger_unique(ua->jcr, ua->db, &mr);
       db_unlock(ua->db);
       Dmsg4(100, "After make unique: Vol=%s slot=%d inchanger=%d sid=%d\n",
@@ -271,6 +271,7 @@ void update_slots(UAContext *ua)
       if (db_get_media_record(ua->jcr, ua->db, &mr)) {
          Dmsg4(100, "After get MR: Vol=%s slot=%d inchanger=%d sid=%d\n",
             mr.VolumeName, mr.Slot, mr.InChanger, mr.StorageId);
+         /* If Slot, Inchanger, and StorageId have changed, update the Media record */
          if (mr.Slot != vl->Slot || !mr.InChanger || mr.StorageId != store.store->StorageId) {
             mr.Slot = vl->Slot;
             mr.InChanger = 1;
