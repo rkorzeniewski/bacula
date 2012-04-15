@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2008-2011 Free Software Foundation Europe e.V.
+   Copyright (C) 2008-2012 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -282,7 +282,6 @@ void vbackup_cleanup(JCR *jcr, int TermCode)
    POOL_MEM query(PM_MESSAGE);
 
    Dmsg2(100, "Enter backup_cleanup %d %c\n", TermCode, TermCode);
-   memset(&mr, 0, sizeof(mr));
    memset(&cr, 0, sizeof(cr));
 
    jcr->setJobLevel(L_FULL);         /* we want this to appear as a Full backup */

@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2011 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2012 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -294,7 +294,6 @@ static int add_cmd(UAContext *ua, const char *cmd)
    }
 
    memset(&pr, 0, sizeof(pr));
-   memset(&mr, 0, sizeof(mr));
 
    if (!get_pool_dbr(ua, &pr)) {
       return 1;
@@ -398,8 +397,8 @@ static int add_cmd(UAContext *ua, const char *cmd)
       bsnprintf(mr.VolumeName, sizeof(mr.VolumeName), name, i);
       mr.Slot = Slot++;
       mr.InChanger = InChanger;
-      mr.StorageId = store->StorageId;
       mr.Enabled = 1;
+      set_storageid_in_mr(store, &mr);
       Dmsg1(200, "Create Volume %s\n", mr.VolumeName);
       if (!db_create_media_record(ua->jcr, ua->db, &mr)) {
          ua->error_msg("%s", db_strerror(ua->db));

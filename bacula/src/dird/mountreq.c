@@ -1,21 +1,7 @@
 /*
- *
- *   Bacula Director -- mountreq.c -- handles the message channel
- *    Mount request from the Storage daemon.
- *
- *     Kern Sibbald, March MMI
- *
- *    This routine runs as a thread and must be thread reentrant.
- *
- *  Basic tasks done here:
- *      Handle Mount services.
- *
- *   Version $Id$
- */
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2001-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2001-2012 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -39,6 +25,19 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ *
+ *   Bacula Director -- mountreq.c -- handles the message channel
+ *    Mount request from the Storage daemon.
+ *
+ *     Kern Sibbald, March MMI
+ *
+ *    This routine runs as a thread and must be thread reentrant.
+ *
+ *  Basic tasks done here:
+ *      Handle Mount services.
+ *
+ */
 
 #include "bacula.h"
 #include "dird.h"
@@ -69,15 +68,15 @@ typedef struct mnt_req_s {
 
 void mount_request(JCR *jcr, BSOCK *bs, char *buf)
 {
-   MNT_REQ *mr;
+   MNT_REQ *mreq;
 
-   mr = (MNT_REQ *) malloc(sizeof(MNT_REQ));
-   memset(mr, 0, sizeof(MNT_REQ));
-   mr->jcr = jcr;
-   mr->bs = bs;
+   mreq = (MNT_REQ *) malloc(sizeof(MNT_REQ));
+   memset(mreq, 0, sizeof(MNT_REQ));
+   mreq->jcr = jcr;
+   mreq->bs = bs;
    P(mutex);
    num_reqs++;
-   qinsert(&mountq, &mr->bq);
+   qinsert(&mountq, &mreq->bq);
    V(mutex);
    return;
 }

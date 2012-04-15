@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2010 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2012 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -42,12 +42,16 @@ extern int authenticate_user_agent(UAContext *ua);
 
 /* autoprune.c */
 extern void do_autoprune(JCR *jcr);
-extern void prune_volumes(JCR *jcr, bool InChanger, MEDIA_DBR *mr);
+extern void prune_volumes(JCR *jcr, bool InChanger, MEDIA_DBR *mr,
+              STORE *store);
 
 /* autorecycle.c */
-extern bool recycle_oldest_purged_volume(JCR *jcr, bool InChanger, MEDIA_DBR *mr);
+extern bool recycle_oldest_purged_volume(JCR *jcr, bool InChanger,
+              MEDIA_DBR *mr, STORE *store);
+
 extern int recycle_volume(JCR *jcr, MEDIA_DBR *mr);
-extern bool find_recycled_volume(JCR *jcr, bool InChanger, MEDIA_DBR *mr);
+extern bool find_recycled_volume(JCR *jcr, bool InChanger,
+                MEDIA_DBR *mr, STORE *store);
 
 /* backup.c */
 extern int wait_for_job_termination(JCR *jcr, int timeout=0);
@@ -168,14 +172,16 @@ extern void wait_for_storage_daemon_termination(JCR *jcr);
 extern bool send_bootstrap_file(JCR *jcr, BSOCK *sd);
 
 /* next_vol.c */
+void set_storageid_in_mr(STORE *store, MEDIA_DBR *mr);
 int find_next_volume_for_append(JCR *jcr, MEDIA_DBR *mr, int index,
                                 bool create, bool purge);
 bool has_volume_expired(JCR *jcr, MEDIA_DBR *mr);
 void check_if_volume_valid_or_recyclable(JCR *jcr, MEDIA_DBR *mr, const char **reason);
-bool get_scratch_volume(JCR *jcr, bool InChanger, MEDIA_DBR *mr);
+bool get_scratch_volume(JCR *jcr, bool InChanger, MEDIA_DBR *mr,
+        STORE *store);
 
 /* newvol.c */
-bool newVolume(JCR *jcr, MEDIA_DBR *mr);
+bool newVolume(JCR *jcr, MEDIA_DBR *mr, STORE *store);
 
 /* python.c */
 int generate_job_event(JCR *jcr, const char *event);

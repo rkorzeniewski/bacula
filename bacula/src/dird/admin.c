@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2003-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2003-2012 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -34,7 +34,6 @@
  *  Basic tasks done here:
  *     Display the job report.
  *
- *   Version $Id$
  */
 
 #include "bacula.h"
@@ -84,7 +83,6 @@ void admin_cleanup(JCR *jcr, int TermCode)
    MEDIA_DBR mr;
 
    Dmsg0(100, "Enter backup_cleanup()\n");
-   memset(&mr, 0, sizeof(mr));
 
    update_job_end(jcr, TermCode);
 

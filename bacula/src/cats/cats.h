@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2011 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2012 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -282,7 +282,13 @@ public:
 
 
 /* Media record -- same as the database */
-struct MEDIA_DBR {
+class MEDIA_DBR {
+public:
+   MEDIA_DBR() { memset(this, 0, sizeof(MEDIA_DBR)); };
+   ~MEDIA_DBR() {  };
+   void clear() { memset(this, 0, sizeof(MEDIA_DBR)); };
+   void copy(MEDIA_DBR *omr) { memcpy(this, omr, sizeof(MEDIA_DBR)); };
+
    DBId_t MediaId;                    /* Unique volume id */
    char VolumeName[MAX_NAME_LENGTH];  /* Volume name */
    char MediaType[MAX_NAME_LENGTH];   /* Media type */

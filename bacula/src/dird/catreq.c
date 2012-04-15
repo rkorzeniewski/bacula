@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2001-2010 Free Software Foundation Europe e.V.
+   Copyright (C) 2001-2012 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -114,7 +114,6 @@ void catalog_request(JCR *jcr, BSOCK *bs)
    utime_t VolFirstWritten;
    utime_t VolLastWritten;
 
-   memset(&mr, 0, sizeof(mr));
    memset(&sdmr, 0, sizeof(sdmr));
    memset(&jm, 0, sizeof(jm));
    Dsm_check(100);      
@@ -141,7 +140,7 @@ void catalog_request(JCR *jcr, BSOCK *bs)
       ok = db_get_pool_record(jcr, jcr->db, &pr);
       if (ok) {
          mr.PoolId = pr.PoolId;
-         mr.StorageId = jcr->wstore->StorageId;
+         set_storageid_in_mr(jcr->wstore, &mr);
          mr.ScratchPoolId = pr.ScratchPoolId;
          ok = find_next_volume_for_append(jcr, &mr, index, fnv_create_vol, fnv_prune);
          Dmsg3(050, "find_media ok=%d idx=%d vol=%s\n", ok, index, mr.VolumeName);
@@ -276,20 +275,6 @@ void catalog_request(JCR *jcr, BSOCK *bs)
          mr.LastWritten = VolLastWritten;
       }
 
-      /*
-       * Update to point to the last device used to write the Volume.
-       *   However, do so only if we are writing the tape, i.e.
-       *   the number of VolWrites has increased.
-       */
-      if (jcr->wstore && jcr->wstore->StorageId && sdmr.VolWrites > mr.VolWrites) {
-         Dmsg2(050, "Update StorageId old=%d new=%d\n",
-               mr.StorageId, jcr->wstore->StorageId);
-         if (jcr->wstore->StorageId == 0) {
-            Jmsg(jcr, M_ERROR, 0, _("Attempt to set StorageId to zero.\n"));
-         } else {
-            mr.StorageId = jcr->wstore->StorageId;
-         }
-      }
 
       /* Copy updated values to original media record */
       mr.VolJobs      = sdmr.VolJobs;
@@ -308,6 +293,26 @@ void catalog_request(JCR *jcr, BSOCK *bs)
       }
       if (sdmr.VolWriteTime >= 0) {
          mr.VolWriteTime = sdmr.VolWriteTime;
+      }
+
+      /*
+       * Update to point to the last device used to write the Volume.
+       *   However, do so only if we are writing the tape, i.e.
+       *   the number of VolWrites has increased.
+       */
+      if (jcr->wstore && jcr->wstore->StorageId && sdmr.VolWrites > mr.VolWrites) {
+         Dmsg2(050, "Update StorageId old=%d new=%d\n",
+               mr.StorageId, jcr->wstore->StorageId);
+         if (jcr->wstore->StorageId == 0) {
+            Jmsg(jcr, M_ERROR, 0, _("Attempt to set StorageId to zero.\n"));
+            db_unlock(jcr->db);
+            return;
+         } else {
+            set_storageid_in_mr(jcr->wstore, &mr);
+         }
+      } else {
+         /* ***FIXME*** is this correct? */
+         set_storageid_in_mr(NULL, &mr);
       }
 
       Dmsg2(400, "db_update_media_record. Stat=%s Vol=%s\n", mr.VolStatus, mr.VolumeName);
@@ -357,6 +362,7 @@ void catalog_request(JCR *jcr, BSOCK *bs)
       Jmsg1(jcr, M_FATAL, 0, _("Invalid Catalog request: %s"), omsg);
       free_memory(omsg);
    }
+
    Dmsg1(400, ">CatReq response: %s", bs->msg);
    Dmsg1(400, "Leave catreq jcr 0x%x\n", jcr);
    return;

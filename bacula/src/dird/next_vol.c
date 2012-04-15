@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2001-2010 Free Software Foundation Europe e.V.
+   Copyright (C) 2001-2012 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -40,10 +40,17 @@
 
 static int const dbglvl = 50;   /* debug level */
 
+/* Set storage id if possible */
+void set_storageid_in_mr(STORE *store, MEDIA_DBR *mr)
+{
+   if (store != NULL) {
+      mr->StorageId = store->StorageId;
+   }
+}
+
 /*
  *  Items needed:
  *   mr.PoolId must be set
- *   mr.StorageId should also be set
  *   mr.ScratchPoolId could be set (used if create==true)
  *   jcr->wstore
  *   jcr->db
@@ -76,37 +83,45 @@ int find_next_volume_for_append(JCR *jcr, MEDIA_DBR *mr, int index,
       /*
        *  1. Look for volume with "Append" status.
        */
+      set_storageid_in_mr(store, mr);  /* put StorageId in new record */
       ok = db_find_next_volume(jcr, jcr->db, index, InChanger, mr);
 
       if (!ok) {
+         /*
+          * No volume found, apply algorithm
+          */
          Dmsg4(dbglvl, "after find_next_vol ok=%d index=%d InChanger=%d Vstat=%s\n",
                ok, index, InChanger, mr->VolStatus);
          /*
           * 2. Try finding a recycled volume
           */
-         ok = find_recycled_volume(jcr, InChanger, mr);
+         ok = find_recycled_volume(jcr, InChanger, mr, store);
+         set_storageid_in_mr(store, mr);  /* put StorageId in new record */
          Dmsg2(dbglvl, "find_recycled_volume ok=%d FW=%d\n", ok, mr->FirstWritten);
          if (!ok) {
             /*
              * 3. Try recycling any purged volume
              */
-            ok = recycle_oldest_purged_volume(jcr, InChanger, mr);
+            ok = recycle_oldest_purged_volume(jcr, InChanger, mr, store);
+            set_storageid_in_mr(store, mr);  /* put StorageId in new record */
             if (!ok) {
                /*
                 * 4. Try pruning Volumes
                 */
                if (prune) {
                   Dmsg0(dbglvl, "Call prune_volumes\n");
-                  prune_volumes(jcr, InChanger, mr);
+                  prune_volumes(jcr, InChanger, mr, store);
                }
-               ok = recycle_oldest_purged_volume(jcr, InChanger, mr);
+               ok = recycle_oldest_purged_volume(jcr, InChanger, mr, store);
+               set_storageid_in_mr(store, mr);  /* put StorageId in new record */
                if (!ok && create) {
                   Dmsg4(dbglvl, "after prune volumes_vol ok=%d index=%d InChanger=%d Vstat=%s\n",
                         ok, index, InChanger, mr->VolStatus);
                   /*
                    * 5. Try pulling a volume from the Scratch pool
                    */ 
-                  ok = get_scratch_volume(jcr, InChanger, mr);
+                  ok = get_scratch_volume(jcr, InChanger, mr, store);
+                  set_storageid_in_mr(store, mr);  /* put StorageId in new record */
                   Dmsg4(dbglvl, "after get scratch volume ok=%d index=%d InChanger=%d Vstat=%s\n",
                         ok, index, InChanger, mr->VolStatus);
                }
@@ -126,7 +141,7 @@ int find_next_volume_for_append(JCR *jcr, MEDIA_DBR *mr, int index,
             /*
              * 6. Try "creating" a new Volume
              */
-            ok = newVolume(jcr, mr);
+            ok = newVolume(jcr, mr, store);
          }
          /*
           *  Look at more drastic ways to find an Appendable Volume
@@ -136,7 +151,9 @@ int find_next_volume_for_append(JCR *jcr, MEDIA_DBR *mr, int index,
             Dmsg2(dbglvl, "No next volume found. PurgeOldest=%d\n RecyleOldest=%d",
                 jcr->pool->purge_oldest_volume, jcr->pool->recycle_oldest_volume);
             /* Find oldest volume to recycle */
+            set_storageid_in_mr(store, mr);   /* update storage id */
             ok = db_find_next_volume(jcr, jcr->db, -1, InChanger, mr);
+            set_storageid_in_mr(store, mr);  /* update storageid */
             Dmsg1(dbglvl, "Find oldest=%d Volume\n", ok);
             if (ok && prune) {
                UAContext *ua;
@@ -245,6 +262,7 @@ bool has_volume_expired(JCR *jcr, MEDIA_DBR *mr)
    if (expired) {
       /* Need to update media */
       Dmsg1(dbglvl, "Vol=%s has expired update media record\n", mr->VolumeName);
+      set_storageid_in_mr(NULL, mr);
       if (!db_update_media_record(jcr, jcr->db, mr)) {
          Jmsg(jcr, M_ERROR, 0, _("Catalog error updating volume \"%s\". ERR=%s"),
               mr->VolumeName, db_strerror(jcr->db));
@@ -346,7 +364,8 @@ void check_if_volume_valid_or_recyclable(JCR *jcr, MEDIA_DBR *mr, const char **r
 
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
-bool get_scratch_volume(JCR *jcr, bool InChanger, MEDIA_DBR *mr)
+bool get_scratch_volume(JCR *jcr, bool InChanger, MEDIA_DBR *mr,
+                        STORE *store)
 {
    MEDIA_DBR smr;                        /* for searching scratch pool */
    POOL_DBR spr, pr;
@@ -365,7 +384,6 @@ bool get_scratch_volume(JCR *jcr, bool InChanger, MEDIA_DBR *mr)
    bstrncpy(spr.Name, "Scratch", sizeof(spr.Name));
    spr.PoolId = mr->ScratchPoolId;
    if (db_get_pool_record(jcr, jcr->db, &spr)) {
-      memset(&smr, 0, sizeof(smr));
       smr.PoolId = spr.PoolId;
       if (InChanger) {       
          smr.StorageId = mr->StorageId;  /* want only Scratch Volumes in changer */
@@ -378,13 +396,14 @@ bool get_scratch_volume(JCR *jcr, bool InChanger, MEDIA_DBR *mr)
        *  recycling any existing purged volumes, then
        *  try to take the oldest volume.
        */
+      set_storageid_in_mr(store, &smr);  /* put StorageId in new record */
       if (db_find_next_volume(jcr, jcr->db, 1, InChanger, &smr)) {
          found = true;
 
-      } else if (find_recycled_volume(jcr, InChanger, &smr)) {
+      } else if (find_recycled_volume(jcr, InChanger, &smr, store)) {
          found = true;
 
-      } else if (recycle_oldest_purged_volume(jcr, InChanger, &smr)) {
+      } else if (recycle_oldest_purged_volume(jcr, InChanger, &smr, store)) {
          found = true;
       }
 
@@ -411,7 +430,8 @@ bool get_scratch_volume(JCR *jcr, bool InChanger, MEDIA_DBR *mr)
             goto bail_out;
          }
 
-         memcpy(mr, &smr, sizeof(MEDIA_DBR)); 
+         mr->copy(&smr);
+         set_storageid_in_mr(store, mr);
 
          /* Set default parameters from current pool */
          set_pool_dbr_defaults_in_media_dbr(mr, &pr);

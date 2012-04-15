@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2002-2008 Free Software Foundation Europe e.V.
+   Copyright (C) 2002-2012 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -32,7 +32,6 @@
  *
  *     Kern Sibbald, May MMII
  *
- *   Version $Id$
  */
 
 #include "bacula.h"
@@ -85,7 +84,8 @@ void do_autoprune(JCR *jcr)
  *   volume and no appendable volumes are available.
  *
  */
-void prune_volumes(JCR *jcr, bool InChanger, MEDIA_DBR *mr) 
+void prune_volumes(JCR *jcr, bool InChanger, MEDIA_DBR *mr,
+        STORE *store)
 {
    int count;
    int i;
@@ -123,7 +123,7 @@ void prune_volumes(JCR *jcr, bool InChanger, MEDIA_DBR *mr)
       ed2[0] = 0;
    }
 
-   if(mr->ScratchPoolId) {
+   if (mr->ScratchPoolId) {
       edit_int64(mr->ScratchPoolId, ed3);
       bstrncat(ed2, ed3, sizeof(ed2));
       bstrncat(ed2, ",", sizeof(ed2));
@@ -165,7 +165,6 @@ void prune_volumes(JCR *jcr, bool InChanger, MEDIA_DBR *mr)
    /* Visit each Volume and Prune it until we find one that is purged */
    for (i=0; i<ids.num_ids; i++) {
       MEDIA_DBR lmr;
-      memset(&lmr, 0, sizeof(lmr));
       lmr.MediaId = ids.DBId[i];
       Dmsg1(100, "Get record MediaId=%d\n", (int)lmr.MediaId);
       if (!db_get_media_record(jcr, jcr->db, &lmr)) {
@@ -221,7 +220,8 @@ void prune_volumes(JCR *jcr, bool InChanger, MEDIA_DBR *mr)
           */
          if (lmr.PoolId == mr->PoolId) {
             Dmsg2(100, "Got Vol=%s MediaId=%d purged.\n", lmr.VolumeName, (int)lmr.MediaId);
-            memcpy(mr, &lmr, sizeof(lmr));
+            mr->copy(&lmr);
+            set_storageid_in_mr(store, mr);
             break;                        /* got a volume */
          }
       }

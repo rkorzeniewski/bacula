@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2008 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2012 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -37,7 +37,6 @@
  *  Basic tasks done here:
  *      If possible create a new Media entry
  *
- *   Version $Id$
  */
 
 #include "bacula.h"
@@ -54,7 +53,7 @@ static bool perform_full_name_substitution(JCR *jcr, MEDIA_DBR *mr, POOL_DBR *pr
  *  The media record must have the PoolId filled in when
  *   calling this routine.
  */
-bool newVolume(JCR *jcr, MEDIA_DBR *mr)
+bool newVolume(JCR *jcr, MEDIA_DBR *mr, STORE *store)
 {
    POOL_DBR pr;
 
@@ -67,7 +66,7 @@ bool newVolume(JCR *jcr, MEDIA_DBR *mr)
       goto bail_out;
    }
    if (pr.MaxVols == 0 || pr.NumVols < pr.MaxVols) {
-      memset(mr, 0, sizeof(MEDIA_DBR));
+      mr->clear();
       set_pool_dbr_defaults_in_media_dbr(mr, &pr);
       jcr->VolumeName[0] = 0;
       bstrncpy(mr->MediaType, jcr->wstore->media_type, sizeof(mr->MediaType));
@@ -98,6 +97,7 @@ bool newVolume(JCR *jcr, MEDIA_DBR *mr)
       }
       pr.NumVols++;
       mr->Enabled = 1;
+      set_storageid_in_mr(store, mr);
       if (db_create_media_record(jcr, jcr->db, mr) &&
          db_update_pool_record(jcr, jcr->db, &pr)) {
          db_unlock(jcr->db);
@@ -133,7 +133,6 @@ static bool create_simple_name(JCR *jcr, MEDIA_DBR *mr, POOL_DBR *pr)
    }
    for (int i=(int)ctx.value+1; i<(int)ctx.value+100; i++) {
       MEDIA_DBR tmr;
-      memset(&tmr, 0, sizeof(tmr));
       sprintf(num, "%04d", i);
       bstrncpy(tmr.VolumeName, name, sizeof(tmr.VolumeName));
       bstrncat(tmr.VolumeName, num, sizeof(tmr.VolumeName));

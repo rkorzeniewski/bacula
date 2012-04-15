@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2002-2010 Free Software Foundation Europe e.V.
+   Copyright (C) 2002-2012 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -618,6 +618,7 @@ static void do_truncate_on_purge(UAContext *ua, MEDIA_DBR *mr,
    if (ok) {
       mr->VolBytes = VolBytes;
       mr->VolFiles = 0;
+      set_storageid_in_mr(NULL, mr);
       if (!db_update_media_record(ua->jcr, ua->db, mr)) {
          ua->error_msg(_("Can't update volume size in the catalog\n"));
       }
@@ -645,7 +646,6 @@ static int action_on_purge_cmd(UAContext *ua, const char *cmd)
    BSOCK *sd = NULL;
    
    memset(&pr, 0, sizeof(pr));
-   memset(&mr, 0, sizeof(mr));
 
    /* Look at arguments */
    for (int i=1; i<ua->argc; i++) {
@@ -674,7 +674,6 @@ static int action_on_purge_cmd(UAContext *ua, const char *cmd)
    if (!store) {
       goto bail_out;
    }
-   mr.StorageId = store->StorageId;
 
    if (!open_db(ua)) {
       Dmsg0(100, "Can't open db\n");
@@ -703,6 +702,7 @@ static int action_on_purge_cmd(UAContext *ua, const char *cmd)
    mr.Recycle = 1;
    mr.Enabled = 1;
    mr.VolBytes = 10000;
+   set_storageid_in_mr(store, &mr);
    bstrncpy(mr.VolStatus, "Purged", sizeof(mr.VolStatus));
    if (!db_get_media_ids(ua->jcr, ua->db, &mr, &nb, &results)) {
       Dmsg0(100, "No results from db_get_media_ids\n");
@@ -723,7 +723,7 @@ static int action_on_purge_cmd(UAContext *ua, const char *cmd)
     * Loop over the candidate Volumes and actually truncate them
     */
    for (int i=0; i < nb; i++) {
-      memset(&mr, 0, sizeof(mr));
+      mr.clear();
       mr.MediaId = results[i];
       if (db_get_media_record(ua->jcr, ua->db, &mr)) {         
          /* TODO: ask for drive and change Pool */
@@ -762,6 +762,7 @@ bool mark_media_purged(UAContext *ua, MEDIA_DBR *mr)
        strcmp(mr->VolStatus, "Used")   == 0 ||
        strcmp(mr->VolStatus, "Error")  == 0) {
       bstrncpy(mr->VolStatus, "Purged", sizeof(mr->VolStatus));
+      set_storageid_in_mr(NULL, mr);
       if (!db_update_media_record(jcr, ua->db, mr)) {
          return false;
       }

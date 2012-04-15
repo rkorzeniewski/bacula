@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2001-2011 Free Software Foundation Europe e.V.
+   Copyright (C) 2001-2012 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -453,7 +453,6 @@ static void prt_runtime(UAContext *ua, sched_pkt *sp)
    int orig_jobtype;
 
    orig_jobtype = jcr->getJobType();
-   memset(&mr, 0, sizeof(mr));
    if (sp->job->JobType == JT_BACKUP) {
       jcr->db = NULL;
       ok = complete_jcr_for_job(jcr, sp->job, sp->pool);
@@ -463,8 +462,8 @@ static void prt_runtime(UAContext *ua, sched_pkt *sp)
       }
       if (ok) {
          mr.PoolId = jcr->jr.PoolId;
-         mr.StorageId = sp->store->StorageId;
          jcr->wstore = sp->store;
+         set_storageid_in_mr(jcr->wstore, &mr);
          Dmsg0(250, "call find_next_volume_for_append\n");
          /* no need to set ScratchPoolId, since we use fnv_no_create_vol */
          ok = find_next_volume_for_append(jcr, &mr, 1, fnv_no_create_vol, fnv_no_prune);

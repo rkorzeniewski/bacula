@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2009 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2012 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -280,7 +280,6 @@ static int do_list_cmd(UAContext *ua, const char *cmd, e_list_type llist)
 
    memset(&jr, 0, sizeof(jr));
    memset(&pr, 0, sizeof(pr));
-   memset(&mr, 0, sizeof(mr));
 
    Dmsg1(20, "list: %s\n", cmd);
 
@@ -536,7 +535,6 @@ static bool list_nextvol(UAContext *ua, int ndays)
    MEDIA_DBR mr;
    POOL_DBR pr;
 
-   memset(&mr, 0, sizeof(mr));
    int i = find_arg_with_value(ua, "job");
    if (i <= 0) {
       if ((job = select_job_resource(ua)) == NULL) {
@@ -569,7 +567,7 @@ static bool list_nextvol(UAContext *ua, int ndays)
       }
       mr.PoolId = jcr->jr.PoolId;
       get_job_storage(&store, job, run);
-      mr.StorageId = store.store->StorageId;
+      set_storageid_in_mr(store.store, &mr);
       /* no need to set ScratchPoolId, since we use fnv_no_create_vol */
       if (!find_next_volume_for_append(jcr, &mr, 1, fnv_no_create_vol, fnv_prune)) {
          ua->error_msg(_("Could not find next Volume for Job %s (Pool=%s, Level=%s).\n"),

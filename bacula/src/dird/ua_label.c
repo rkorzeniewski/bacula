@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2003-2011 Free Software Foundation Europe e.V.
+   Copyright (C) 2003-2012 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -243,11 +243,11 @@ void update_slots(UAContext *ua)
          Dmsg2(100, "Got Vol=%s from SD for Slot=%d\n", vl->VolName, vl->Slot);
       }
       slot_list[vl->Slot] = 0;        /* clear Slot */
-      memset(&mr, 0, sizeof(mr));
       mr.Slot = vl->Slot;
       mr.InChanger = 1;
-      mr.StorageId = store.store->StorageId;
+      set_storageid_in_mr(store.store, &mr);
       /* Set InChanger to zero for this Slot */
+      /**** ***FIXME**** */
       db_lock(ua->db);
       db_make_inchanger_unique(ua->jcr, ua->db, &mr);
       db_unlock(ua->db);
@@ -256,17 +256,16 @@ void update_slots(UAContext *ua)
          ua->info_msg(_("No VolName for Slot=%d InChanger set to zero.\n"), vl->Slot);
          continue;
       }
-      memset(&mr, 0, sizeof(mr));
-      bstrncpy(mr.VolumeName, vl->VolName, sizeof(mr.VolumeName));
       db_lock(ua->db);
+      bstrncpy(mr.VolumeName, vl->VolName, sizeof(mr.VolumeName));
       if (db_get_media_record(ua->jcr, ua->db, &mr)) {
          if (mr.Slot != vl->Slot || !mr.InChanger || mr.StorageId != store.store->StorageId) {
             mr.Slot = vl->Slot;
             mr.InChanger = 1;
-            mr.StorageId = store.store->StorageId;
             if (have_enabled) {
                mr.Enabled = Enabled;
             }
+            set_storageid_in_mr(store.store, &mr);
             if (!db_update_media_record(ua->jcr, ua->db, &mr)) {
                ua->error_msg("%s", db_strerror(ua->db));
             } else {
@@ -286,9 +285,9 @@ void update_slots(UAContext *ua)
       }
       db_unlock(ua->db);
    }
-   memset(&mr, 0, sizeof(mr));
+   mr.clear();
    mr.InChanger = 1;
-   mr.StorageId = store.store->StorageId;
+   set_storageid_in_mr(store.store, &mr);
    db_lock(ua->db);
    for (int i=1; i <= max_slots; i++) {
       if (slot_list[i]) {
@@ -363,7 +362,6 @@ static int do_label(UAContext *ua, const char *cmd, int relabel)
       /* Check for oldvolume=name */
       i = find_arg_with_value(ua, "oldvolume");
       if (i >= 0) {
-         memset(&omr, 0, sizeof(omr));
          bstrncpy(omr.VolumeName, ua->argv[i], sizeof(omr.VolumeName));
          if (db_get_media_record(ua->jcr, ua->db, &omr)) {
             goto checkVol;
@@ -402,7 +400,6 @@ checkName:
          continue;
       }
 
-      memset(&mr, 0, sizeof(mr));
       bstrncpy(mr.VolumeName, ua->cmd, sizeof(mr.VolumeName));
       /* If VolBytes are zero the Volume is not labeled */
       if (db_get_media_record(ua->jcr, ua->db, &mr)) {
@@ -434,7 +431,7 @@ checkName:
       }
       mr.InChanger = mr.Slot > 0;  /* if slot give assume in changer */
    }
-   mr.StorageId = store.store->StorageId;
+   set_storageid_in_mr(store.store, &mr);
 
    bstrncpy(mr.MediaType, store.store->media_type, sizeof(mr.MediaType));
 
@@ -547,14 +544,13 @@ static void label_from_barcodes(UAContext *ua, int drive)
    if (!select_pool_dbr(ua, &pr)) {
       goto bail_out;
    }
-   memset(&omr, 0, sizeof(omr));
 
    /* Fire off the label requests */
    for (vl=vol_list; vl; vl=vl->next) {
       if (!vl->VolName || !slot_list[vl->Slot]) {
          continue;
       }
-      memset(&mr, 0, sizeof(mr));
+      mr.clear();
       bstrncpy(mr.VolumeName, vl->VolName, sizeof(mr.VolumeName));
       media_record_exists = false;
       if (db_get_media_record(ua->jcr, ua->db, &mr)) {
@@ -563,7 +559,7 @@ static void label_from_barcodes(UAContext *ua, int drive)
                 vl->Slot, mr.VolumeName);
              mr.Slot = vl->Slot;
              mr.InChanger = mr.Slot > 0;  /* if slot give assume in changer */
-             mr.StorageId = store->StorageId;
+             set_storageid_in_mr(store, &mr);
              if (!db_update_media_record(ua->jcr, ua->db, &mr)) {
                 ua->error_msg(_("Error setting InChanger: ERR=%s"), db_strerror(ua->db));
              }
@@ -572,7 +568,7 @@ static void label_from_barcodes(UAContext *ua, int drive)
           media_record_exists = true;
       }
       mr.InChanger = mr.Slot > 0;  /* if slot give assume in changer */
-      mr.StorageId = store->StorageId;
+      set_storageid_in_mr(store, &mr);
       /*
        * Deal with creating cleaning tape here. Normal tapes created in
        *  send_label_request() below
@@ -582,7 +578,7 @@ static void label_from_barcodes(UAContext *ua, int drive)
             mr.VolBytes = 1;             /* any bytes to indicate it exists */
             bstrncpy(mr.VolStatus, "Cleaning", sizeof(mr.VolStatus));
             mr.MediaType[0] = 0;
-            mr.StorageId = store->StorageId;
+            set_storageid_in_mr(store, &mr);
             if (!db_update_media_record(ua->jcr, ua->db, &mr)) {
                 ua->error_msg("%s", db_strerror(ua->db));
             }
@@ -594,6 +590,7 @@ static void label_from_barcodes(UAContext *ua, int drive)
             set_pool_dbr_defaults_in_media_dbr(&mr, &pr);
             bstrncpy(mr.VolStatus, "Cleaning", sizeof(mr.VolStatus));
             mr.MediaType[0] = 0;
+            set_storageid_in_mr(store, &mr);
             if (db_create_media_record(ua->jcr, ua->db, &mr)) {
                ua->send_msg(_("Catalog record for cleaning tape \"%s\" successfully created.\n"),
                   mr.VolumeName);
@@ -721,7 +718,7 @@ static bool send_label_request(UAContext *ua, MEDIA_DBR *mr, MEDIA_DBR *omr,
       if (media_record_exists) {      /* we update it */
          mr->VolBytes = VolBytes;
          mr->InChanger = mr->Slot > 0;  /* if slot give assume in changer */
-         mr->StorageId = ua->jcr->wstore->StorageId;
+         set_storageid_in_mr(ua->jcr->wstore, mr);
          if (!db_update_media_record(ua->jcr, ua->db, mr)) {
              ua->error_msg("%s", db_strerror(ua->db));
              ok = false;
@@ -730,8 +727,8 @@ static bool send_label_request(UAContext *ua, MEDIA_DBR *mr, MEDIA_DBR *omr,
          set_pool_dbr_defaults_in_media_dbr(mr, pr);
          mr->VolBytes = VolBytes;
          mr->InChanger = mr->Slot > 0;  /* if slot give assume in changer */
-         mr->StorageId = ua->jcr->wstore->StorageId;
          mr->Enabled = 1;
+         set_storageid_in_mr(ua->jcr->wstore, mr);
          if (db_create_media_record(ua->jcr, ua->db, mr)) {
             ua->info_msg(_("Catalog record for Volume \"%s\", Slot %d  successfully created.\n"),
             mr->VolumeName, mr->Slot);
@@ -1041,7 +1038,6 @@ static void content_send_info(UAContext *ua, char type, int Slot, char *vol_name
    const char *slot_api_empty_format="%c|%i||||||||\n";
 
    if (is_volume_name_legal(NULL, vol_name)) {
-      memset(&mr, 0, sizeof(mr));
       bstrncpy(mr.VolumeName, vol_name, sizeof(mr.VolumeName));
       if (db_get_media_record(ua->jcr, ua->db, &mr)) {
          memset(&pr, 0, sizeof(POOL_DBR));
@@ -1268,7 +1264,6 @@ void status_slots(UAContext *ua, STORE *store_r)
          }
       }
 
-      memset(&mr, 0, sizeof(mr));
       bstrncpy(mr.VolumeName, vl->VolName, sizeof(mr.VolumeName));
       db_lock(ua->db);
       if (mr.VolumeName[0] && db_get_media_record(ua->jcr, ua->db, &mr)) {

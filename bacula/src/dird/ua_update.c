@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2010 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2012 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -299,6 +299,7 @@ static void update_volslot(UAContext *ua, char *val, MEDIA_DBR *mr)
     * Make sure to use db_update... rather than doing this directly,
     *   so that any Slot is handled correctly.
     */
+   set_storageid_in_mr(NULL, mr);
    if (!db_update_media_record(ua->jcr, ua->db, mr)) {
       ua->error_msg(_("Error updating media record Slot: ERR=%s"), db_strerror(ua->db));
    } else {
@@ -407,7 +408,6 @@ static void update_all_vols_from_pool(UAContext *ua, const char *pool_name)
    MEDIA_DBR mr;
 
    memset(&pr, 0, sizeof(pr));
-   memset(&mr, 0, sizeof(mr));
 
    bstrncpy(pr.Name, pool_name, sizeof(pr.Name));
    if (!get_pool_dbr(ua, &pr)) {
@@ -431,7 +431,6 @@ static void update_all_vols(UAContext *ua)
    MEDIA_DBR mr;
 
    memset(&pr, 0, sizeof(pr));
-   memset(&mr, 0, sizeof(mr));
    
    if (!db_get_pool_ids(ua->jcr, ua->db, &num_pools, &ids)) {
       ua->error_msg(_("Error obtaining pool ids. ERR=%s\n"), db_strerror(ua->db));
@@ -465,6 +464,7 @@ static void update_volenabled(UAContext *ua, char *val, MEDIA_DBR *mr)
    if (mr->Enabled < 0) {
       return;
    }
+   set_storageid_in_mr(NULL, mr);
    if (!db_update_media_record(ua->jcr, ua->db, mr)) {
       ua->error_msg(_("Error updating media record Enabled: ERR=%s"),
                     db_strerror(ua->db));
@@ -482,6 +482,7 @@ static void update_vol_actiononpurge(UAContext *ua, char *val, MEDIA_DBR *mr)
       mr->ActionOnPurge = 0;
    }
    
+   set_storageid_in_mr(NULL, mr);
    if (!db_update_media_record(ua->jcr, ua->db, mr)) {
       ua->error_msg(_("Error updating media record ActionOnPurge: ERR=%s"),
                     db_strerror(ua->db));
@@ -722,6 +723,7 @@ static int update_volume(UAContext *ua)
           * Make sure to use db_update... rather than doing this directly,
           *   so that any Slot is handled correctly.
           */
+         set_storageid_in_mr(NULL, &mr);
          if (!db_update_media_record(ua->jcr, ua->db, &mr)) {
             ua->error_msg(_("Error updating media record Slot: ERR=%s"), db_strerror(ua->db));
          } else {

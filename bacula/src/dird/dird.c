@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2010 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2012 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -1021,15 +1021,15 @@ static bool check_catalog(cat_op mode)
       STORE *store;
       foreach_res(store, R_STORAGE) {
          STORAGE_DBR sr;
-         MEDIATYPE_DBR mr;
+         MEDIATYPE_DBR mtr;
          memset(&sr, 0, sizeof(sr));
-         memset(&mr, 0, sizeof(mr));
+         memset(&mtr, 0, sizeof(mtr));
          if (store->media_type) {
-            bstrncpy(mr.MediaType, store->media_type, sizeof(mr.MediaType));
-            mr.ReadOnly = 0;
-            db_create_mediatype_record(NULL, db, &mr);
+            bstrncpy(mtr.MediaType, store->media_type, sizeof(mtr.MediaType));
+            mtr.ReadOnly = 0;
+            db_create_mediatype_record(NULL, db, &mtr);
          } else {
-            mr.MediaTypeId = 0;
+            mtr.MediaTypeId = 0;
          }
          bstrncpy(sr.Name, store->name(), sizeof(sr.Name));
          sr.AutoChanger = store->autochanger;
