@@ -76,7 +76,7 @@ bool do_admin(JCR *jcr)
  */
 void admin_cleanup(JCR *jcr, int TermCode)
 {
-   char sdt[50], edt[50];
+   char sdt[50], edt[50], schedt[50];
    char term_code[100];
    const char *term_msg;
    int msg_type;
@@ -110,18 +110,22 @@ void admin_cleanup(JCR *jcr, int TermCode)
       sprintf(term_code, _("Inappropriate term code: %c\n"), jcr->JobStatus);
       break;
    }
-   bstrftime(sdt, sizeof(sdt), jcr->jr.StartTime);
-   bstrftime(edt, sizeof(edt), jcr->jr.EndTime);
+   bstrftimes(schedt, sizeof(schedt), jcr->jr.SchedTime);
+   bstrftimes(sdt, sizeof(sdt), jcr->jr.StartTime);
+   bstrftimes(edt, sizeof(edt), jcr->jr.EndTime);
+
 
    Jmsg(jcr, msg_type, 0, _("Bacula " VERSION " (" LSMDATE "): %s\n"
 "  JobId:                  %d\n"
 "  Job:                    %s\n"
+"  Scheduled time:         %s\n"
 "  Start time:             %s\n"
 "  End time:               %s\n"
 "  Termination:            %s\n\n"),
         edt,
         jcr->jr.JobId,
         jcr->jr.Job,
+        schedt,
         sdt,
         edt,
         term_msg);
