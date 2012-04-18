@@ -535,7 +535,7 @@ int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
       set_portable_backup(&ff_pkt->bfd); /* disable Win32 BackupRead() */
    }
 
-   if (ff_pkt->cmd_plugin) {
+   if (ff_pkt->cmd_plugin && !ff_pkt->no_read) {
       do_plugin_set = true;
 
    /* option and cmd plugin are not compatible together */

@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2007-2011 Free Software Foundation Europe e.V.
+   Copyright (C) 2007-2012 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -101,6 +101,7 @@ struct save_pkt {
    struct stat statp;                 /* System stat() packet for file */
    int32_t type;                      /* FT_xx for this file */             
    uint32_t flags;                    /* Bacula internal flags */
+   bool no_read;                      /* During the save, the file should not be saved */
    bool portable;                     /* set if data format is portable */
    bool accurate_found;               /* Found in accurate list (valid after check_changes()) */
    char *cmd;                         /* command */
@@ -187,7 +188,8 @@ typedef enum {
   bVarVersion    = 17,
   bVarDistName   = 18,
   bVarBEEF       = 19,
-  bVarPrevJobName = 20
+  bVarPrevJobName = 20,
+  bVarPrefixLinks = 21
 } bVariable;
 
 /* Events that are passed to plugin */
@@ -299,7 +301,7 @@ typedef enum {
 
 
 #define FD_PLUGIN_MAGIC     "*FDPluginData*" 
-#define FD_PLUGIN_INTERFACE_VERSION  5
+#define FD_PLUGIN_INTERFACE_VERSION  6
 
 typedef struct s_pluginInfo {
    uint32_t size;

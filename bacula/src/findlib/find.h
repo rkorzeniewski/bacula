@@ -188,6 +188,7 @@ struct FF_PKT {
    bool dereference;                  /* follow links (not implemented) */
    bool null_output_device;           /* using null output device */
    bool incremental;                  /* incremental save */
+   bool no_read;                      /* Do not read this file when using Plugin */
    char VerifyOpts[20];
    char AccurateOpts[20];
    char BaseJobOpts[20];
