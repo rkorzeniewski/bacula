@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2011 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2012 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -469,7 +469,7 @@ static bool open_the_device()
    block = new_block(dev);
    dev->r_dlock();
    Dmsg1(200, "Opening device %s\n", dcr->VolumeName);
-   if (dev->open(dcr, OPEN_READ_WRITE) < 0) {
+   if (!dev->open(dcr, OPEN_READ_WRITE)) {
       Emsg1(M_FATAL, 0, _("dev open failed: %s\n"), dev->errmsg);
       ok = false;
       goto bail_out;

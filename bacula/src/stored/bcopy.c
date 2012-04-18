@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2002-2010 Free Software Foundation Europe e.V.
+   Copyright (C) 2002-2012 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -200,7 +200,7 @@ int main (int argc, char *argv[])
    Dmsg0(100, "About to acquire device for writing\n");
    /* For we must now acquire the device for writing */
    out_dev->r_dlock();
-   if (out_dev->open(out_jcr->dcr, OPEN_READ_WRITE) < 0) {
+   if (!out_dev->open(out_jcr->dcr, OPEN_READ_WRITE)) {
       Emsg1(M_FATAL, 0, _("dev open failed: %s\n"), out_dev->errmsg);
       out_dev->dunlock();
       exit(1);

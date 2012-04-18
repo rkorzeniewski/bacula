@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2010 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2012 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -294,7 +294,7 @@ bool first_open_device(DCR *dcr)
        mode = OPEN_READ_ONLY;
     }
    Dmsg0(129, "Opening device.\n");
-   if (dev->open(dcr, mode) < 0) {
+   if (!dev->open(dcr, mode)) {
       Emsg1(M_FATAL, 0, _("dev open failed: %s\n"), dev->errmsg);
       ok = false;
       goto bail_out;
@@ -319,7 +319,7 @@ bool open_device(DCR *dcr)
    } else {
       mode = OPEN_READ_WRITE;
    }
-   if (dev->open(dcr, mode) < 0) {
+   if (!dev->open(dcr, mode)) {
       /* If polling, ignore the error */
       /* If DVD, also ignore the error, very often you cannot open the device
        * (when there is no DVD, or when the one inserted is a wrong one) */

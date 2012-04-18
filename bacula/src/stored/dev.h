@@ -409,7 +409,7 @@ public:
    void clear_volhdr();          /* in dev.c */
    void close();                 /* in dev.c */
    void close_part(DCR *dcr);    /* in dev.c */
-   int open(DCR *dcr, int mode); /* in dev.c */
+   bool open(DCR *dcr, int mode); /* in dev.c */
    void term(void);              /* in dev.c */
    ssize_t read(void *buf, size_t len); /* in dev.c */
    ssize_t write(const void *buf, size_t len);  /* in dev.c */

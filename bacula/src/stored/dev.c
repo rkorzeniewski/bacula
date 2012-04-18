@@ -344,8 +344,8 @@ ssize_t DEVICE::d_write(int fd, const void *buffer, size_t count)
  * Open the device with the operating system and
  * initialize buffer pointers.
  *
- * Returns:  -1  on error
- *           fd  on success
+ * Returns:  true on success
+ *           false on error
  *
  * Note, for a tape, the VolName is the name we give to the
  *    volume (not really used here), but for a file, the
@@ -353,13 +353,13 @@ ssize_t DEVICE::d_write(int fd, const void *buffer, size_t count)
  *    In the case of a file, the full name is the device name
  *    (archive_name) with the VolName concatenated.
  */
-int
+bool
 DEVICE::open(DCR *dcr, int omode)
 {
    int preserve = 0;
    if (is_open()) {
       if (openmode == omode) {
-         return m_fd;
+         return true;
       } else {
          d_close(m_fd);
          clear_opened();
@@ -387,7 +387,7 @@ DEVICE::open(DCR *dcr, int omode)
    }
    state |= preserve;                 /* reset any important state info */
    Dmsg2(100, "preserve=0x%x fd=%d\n", preserve, m_fd);
-   return m_fd;
+   return m_fd >= 0;
 }
 
 void DEVICE::set_mode(int new_mode) 
@@ -567,8 +567,8 @@ void DEVICE::open_file_device(DCR *dcr, int omode)
       Mmsg2(errmsg, _("Could not open: %s, ERR=%s\n"), archive_name.c_str(), 
             be.bstrerror());
       Dmsg1(100, "open failed: %s", errmsg);
-//    Jmsg1(NULL, M_WARNING, 0, "%s", errmsg);
-   } else {
+   }
+   if (m_fd >= 0) {
       dev_errno = 0;
       file = 0;
       file_addr = 0;

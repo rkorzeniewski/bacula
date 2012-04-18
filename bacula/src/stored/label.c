@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2010 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2012 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -79,7 +79,7 @@ int read_dev_volume_label(DCR *dcr)
       dev->VolHdr.VolumeName[0]?dev->VolHdr.VolumeName:"*NULL*");
 
    if (!dev->is_open()) {
-      if (dev->open(dcr, OPEN_READ_ONLY) < 0) {
+      if (!dev->open(dcr, OPEN_READ_ONLY)) {
          return VOL_IO_ERROR;
       }
    }
@@ -322,9 +322,9 @@ bool write_new_volume_label_to_dev(DCR *dcr, const char *VolName,
    dev->setVolCatName(VolName);
    dcr->setVolCatName(VolName);
    Dmsg1(150, "New VolName=%s\n", VolName);
-   if (dev->open(dcr, OPEN_READ_WRITE) < 0) {
+   if (!dev->open(dcr, OPEN_READ_WRITE)) {
       /* If device is not tape, attempt to create it */
-      if (dev->is_tape() || dev->open(dcr, CREATE_READ_WRITE) < 0) {
+      if (dev->is_tape() || !dev->open(dcr, CREATE_READ_WRITE)) {
          Jmsg3(dcr->jcr, M_WARNING, 0, _("Open device %s Volume \"%s\" failed: ERR=%s\n"),
                dev->print_name(), dcr->VolumeName, dev->bstrerror());
          goto bail_out;
@@ -425,7 +425,7 @@ bool rewrite_volume_label(DCR *dcr, bool recycle)
    DEVICE *dev = dcr->dev;
    JCR *jcr = dcr->jcr;
 
-   if (dev->open(dcr, OPEN_READ_WRITE) < 0) {
+   if (!dev->open(dcr, OPEN_READ_WRITE)) {
        Jmsg3(jcr, M_WARNING, 0, _("Open device %s Volume \"%s\" failed: ERR=%s\n"),
              dev->print_name(), dcr->VolumeName, dev->bstrerror());
       return false;
@@ -463,7 +463,7 @@ bool rewrite_volume_label(DCR *dcr, bool recycle)
                   dev->print_name(), dev->print_errmsg());
             return false;
          }
-         if (dev->open(dcr, OPEN_READ_WRITE) < 0) {
+         if (!dev->open(dcr, OPEN_READ_WRITE)) {
             Jmsg2(jcr, M_FATAL, 0,
                _("Failed to re-open DVD after truncate on device %s: ERR=%s\n"),
                dev->print_name(), dev->print_errmsg());

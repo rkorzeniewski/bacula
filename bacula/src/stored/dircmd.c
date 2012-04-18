@@ -477,7 +477,7 @@ static void label_volume_if_ok(DCR *dcr, char *oldname,
    }
    /* Set old volume name for open if relabeling */
    dcr->setVolCatName(volname);
-   if (dev->open(dcr, mode) < 0) {
+   if (!dev->open(dcr, mode)) {
       dir->fsend(_("3910 Unable to open device \"%s\": ERR=%s\n"),
          dev->print_name(), dev->bstrerror());
       goto bail_out;      
@@ -694,7 +694,7 @@ static bool mount_cmd(JCR *jcr)
                try_autoload_device(jcr, dcr, slot, "");
             }
             /* We freed the device, so reopen it and wake any waiting threads */
-            if (dev->open(dcr, OPEN_READ_ONLY) < 0) {
+            if (!dev->open(dcr, OPEN_READ_ONLY)) {
                dir->fsend(_("3901 Unable to open device \"%s\": ERR=%s\n"),
                   dev->print_name(), dev->bstrerror());
                if (dev->blocked() == BST_UNMOUNTED) {
@@ -752,7 +752,7 @@ static bool mount_cmd(JCR *jcr)
                              dev->print_name());
                }
             } else if (dev->is_tape()) {
-               if (dev->open(dcr, OPEN_READ_ONLY) < 0) {
+               if (!dev->open(dcr, OPEN_READ_ONLY)) {
                   dir->fsend(_("3901 Unable to open device \"%s\": ERR=%s\n"),
                      dev->print_name(), dev->bstrerror());
                   break;

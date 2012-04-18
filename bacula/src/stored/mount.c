@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2002-2010 Free Software Foundation Europe e.V.
+   Copyright (C) 2002-2012 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -188,10 +188,10 @@ mount_next_vol:
       mode = OPEN_READ_WRITE;
    }
    /* Try autolabel if enabled */
-   if (dev->open(dcr, mode) < 0) {
+   if (!dev->open(dcr, mode)) {
       try_autolabel(false);      /* try to create a new volume label */
    }
-   while (dev->open(dcr, mode) < 0) {
+   while (!dev->open(dcr, mode)) {
       Dmsg1(150, "open_device failed: ERR=%s\n", dev->bstrerror());
       if ((dev->is_file() && dev->is_removable()) || dev->is_dvd()) {
          bool ok = true;
@@ -202,7 +202,7 @@ mount_next_vol:
             }
          }
          if (ok && dev->scan_dir_for_volume(dcr)) {
-            if (dev->open(dcr, mode) >= 0) {
+            if (dev->open(dcr, mode)) {
                break;                    /* got a valid volume */
             }
          }

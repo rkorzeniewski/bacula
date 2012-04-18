@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2005-2011 Free Software Foundation Europe e.V.
+   Copyright (C) 2005-2012 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -360,33 +360,13 @@ int dvd_open_next_part(DCR *dcr)
             return -1;
          }
       }
-
-#ifdef neeeded
-      Dmsg2(400, "num_dvd_parts=%d part=%d\n", dev->num_dvd_parts, dev->part);
-      make_spooled_dvd_filename(dev, archive_name);   /* makes spool name */
-      
-      /* Check if the next part exists in spool directory . */
-      Dmsg1(100, "Check if part on spool: %s\n", archive_name.c_str());
-      if ((stat(archive_name.c_str(), &buf) == 0) || (errno != ENOENT)) {
-         Dmsg1(29, "======= Part %s is in the way, deleting it...\n", archive_name.c_str());
-         /* Then try to unlink it */
-         if (unlink(archive_name.c_str()) < 0) {
-            berrno be;
-            dev->set_part_spooled(false);
-            dev->dev_errno = errno;
-            Mmsg2(dev->errmsg, _("open_next_part can't unlink existing part %s, ERR=%s\n"), 
-                   archive_name.c_str(), be.bstrerror());
-            return -1;
-         }
-      }
-#endif
    }
 
    Dmsg2(400, "Call dev->open(vol=%s, mode=%d)\n", dcr->getVolCatName(), 
          dev->openmode);
 
    /* Open next part.  Note, this sets part_size for part opened. */
-   if (dev->open(dcr, OPEN_READ_ONLY) < 0) {
+   if (!dev->open(dcr, OPEN_READ_ONLY)) {
       return -1;
    } 
    dev->set_labeled();                   /* all next parts are "labeled" */
@@ -415,7 +395,7 @@ static bool dvd_open_first_part(DCR *dcr, int mode)
    dev->part = 1;
    dev->part_start = 0;
 
-   if (dev->open(dcr, mode) < 0) {
+   if (!dev->open(dcr, mode)) {
       Dmsg0(400, "open dev() failed\n");
       return false;
    }
