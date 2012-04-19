@@ -66,7 +66,7 @@ private:
 public:
    devlock(int reason, bool can_take=false);
    ~devlock();
-   int init(int priority);
+   int init(int initial_priority);
    int destroy();
    int take_lock(take_lock_t *hold, int reason);
    int return_lock(take_lock_t *hold);
