@@ -325,57 +325,65 @@ AC_HELP_STRING([--with-mysql@<:@=DIR@:>@], [Include MySQL support. DIR is the My
 [
   if test "$withval" != "no"; then
         if test "$withval" = "yes"; then
-           if test -f /usr/local/mysql/include/mysql/mysql.h; then
-                   MYSQL_INCDIR=/usr/local/mysql/include/mysql
-                   if test -f /usr/local/mysql/lib64/mysql/libmysqlclient_r.a \
-                        -o -f /usr/local/mysql/lib64/mysql/libmysqlclient_r.so; then
-                           MYSQL_LIBDIR=/usr/local/mysql/lib64/mysql
-                   else
-                           MYSQL_LIBDIR=/usr/local/mysql/lib/mysql
-                   fi
-                   MYSQL_BINDIR=/usr/local/mysql/bin
+           MYSQL_CONFIG=`which mysql_config 2>/dev/null`
+           if test "x$MYSQL_CONFIG" != x; then
+              MYSQL_BINDIR="${MYSQL_CONFIG%/*}"
+              MYSQL_LIBDIR=`"$MYSQL_CONFIG" --variable=pkglibdir`
+              MYSQL_INCDIR=`"$MYSQL_CONFIG" --variable=pkgincludedir`
+           elif test -f /usr/local/mysql/include/mysql/mysql.h; then
+              MYSQL_INCDIR=/usr/local/mysql/include/mysql
+              if test -f /usr/local/mysql/lib64/mysql/libmysqlclient_r.a \
+                      -o -f /usr/local/mysql/lib64/mysql/libmysqlclient_r.so; then
+                 MYSQL_LIBDIR=/usr/local/mysql/lib64/mysql
+              else
+                 MYSQL_LIBDIR=/usr/local/mysql/lib/mysql
+              fi
+              MYSQL_BINDIR=/usr/local/mysql/bin
            elif test -f /usr/include/mysql/mysql.h; then
-                   MYSQL_INCDIR=/usr/include/mysql
-                   if test -f /usr/lib64/mysql/libmysqlclient_r.a \
-                        -o -f /usr/lib64/mysql/libmysqlclient_r.so; then  
-                           MYSQL_LIBDIR=/usr/lib64/mysql
-                   elif test -f /usr/lib64/libmysqlclient_r.a \
+              MYSQL_INCDIR=/usr/include/mysql
+              if test -f /usr/lib64/mysql/libmysqlclient_r.a \
+                      -o -f /usr/lib64/mysql/libmysqlclient_r.so; then  
+                 MYSQL_LIBDIR=/usr/lib64/mysql
+              elif test -f /usr/lib64/libmysqlclient_r.a \
                         -o -f /usr/lib64/libmysqlclient_r.so; then
-                           MYSQL_LIBDIR=/usr/lib64
-                   elif test -f /usr/lib/mysql/libmysqlclient_r.a \
-                          -o -f /usr/lib/mysql/libmysqlclient_r.so; then
-                           MYSQL_LIBDIR=/usr/lib/mysql
-                   else
-                           MYSQL_LIBDIR=/usr/lib
-                   fi
-                   MYSQL_BINDIR=/usr/bin
+                 MYSQL_LIBDIR=/usr/lib64
+              elif test -f /usr/lib/x86_64-linux-gnu/libmysqlclient_r.a \
+                        -o -f /usr/lib/x86_64-linux-gnu/libmysqlclient_r.so; then
+                 MYSQL_LIBDIR=/usr/lib/x86_64-linux-gnu
+              elif test -f /usr/lib/mysql/libmysqlclient_r.a \
+                        -o -f /usr/lib/mysql/libmysqlclient_r.so; then
+                 MYSQL_LIBDIR=/usr/lib/mysql
+              else
+                 MYSQL_LIBDIR=/usr/lib
+              fi
+              MYSQL_BINDIR=/usr/bin
            elif test -f /usr/include/mysql.h; then
-                   MYSQL_INCDIR=/usr/include
-                   if test -f /usr/lib64/libmysqlclient_r.a \
-                        -o -f /usr/lib64/libmysqlclient_r.so; then
-                           MYSQL_LIBDIR=/usr/lib64
-                   else
-                           MYSQL_LIBDIR=/usr/lib
-                   fi
-                   MYSQL_BINDIR=/usr/bin
+              MYSQL_INCDIR=/usr/include
+              if test -f /usr/lib64/libmysqlclient_r.a \
+                      -o -f /usr/lib64/libmysqlclient_r.so; then
+                 MYSQL_LIBDIR=/usr/lib64
+              else
+                 MYSQL_LIBDIR=/usr/lib
+              fi
+              MYSQL_BINDIR=/usr/bin
            elif test -f /usr/local/include/mysql/mysql.h; then
-                   MYSQL_INCDIR=/usr/local/include/mysql
-                   if test -f /usr/local/lib64/mysql/libmysqlclient_r.a \
-                        -o -f /usr/local/lib64/mysql/libmysqlclient_r.so; then
-                           MYSQL_LIBDIR=/usr/local/lib64/mysql
-                   else
-                           MYSQL_LIBDIR=/usr/local/lib/mysql
-                   fi
-                   MYSQL_BINDIR=/usr/local/bin
+              MYSQL_INCDIR=/usr/local/include/mysql
+              if test -f /usr/local/lib64/mysql/libmysqlclient_r.a \
+                      -o -f /usr/local/lib64/mysql/libmysqlclient_r.so; then
+                 MYSQL_LIBDIR=/usr/local/lib64/mysql
+              else
+                 MYSQL_LIBDIR=/usr/local/lib/mysql
+              fi
+              MYSQL_BINDIR=/usr/local/bin
            elif test -f /usr/local/include/mysql.h; then
-                   MYSQL_INCDIR=/usr/local/include
-                   if test -f /usr/local/lib64/libmysqlclient_r.a \
-                        -o -f /usr/local/lib64/libmysqlclient_r.so; then
-                           MYSQL_LIBDIR=/usr/local/lib64
-                   else
-                           MYSQL_LIBDIR=/usr/local/lib
-                   fi
-                   MYSQL_BINDIR=/usr/local/bin
+              MYSQL_INCDIR=/usr/local/include
+              if test -f /usr/local/lib64/libmysqlclient_r.a \
+                      -o -f /usr/local/lib64/libmysqlclient_r.so; then
+                 MYSQL_LIBDIR=/usr/local/lib64
+              else
+                 MYSQL_LIBDIR=/usr/local/lib
+              fi
+              MYSQL_BINDIR=/usr/local/bin
            else
               AC_MSG_RESULT(no)
               AC_MSG_ERROR(Unable to find mysql.h in standard locations)
