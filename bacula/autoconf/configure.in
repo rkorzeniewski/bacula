@@ -2347,6 +2347,13 @@ AC_CHECK_FUNCS( \
    [echo 'configure: cannot find needed function.'; exit 1]
 )
 
+AC_CHECK_DECL(
+    F_CLOSEM,
+    AC_DEFINE(HAVE_FCNTL_F_CLOSEM),
+    ,
+    [#include <fcntl.h>]
+)
+
 AC_CHECK_FUNC(closefrom, [AC_DEFINE(HAVE_CLOSEFROM, 1, [Define to 1 if you have the 'closefrom' function.])])
 AC_CHECK_FUNCS(getpagesize, [AC_DEFINE(HAVE_GETPAGESIZE, 1, [Set if have getpagesize])])
 AC_CHECK_FUNCS(malloc_trim, [AC_DEFINE(HAVE_MALLOC_TRIM, 1, [Set if have malloc_trim])])

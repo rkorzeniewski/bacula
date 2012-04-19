@@ -77,7 +77,15 @@ daemon_start()
       low_fd = 2;                     /* don't close debug output */
    }
 
-#ifdef HAVE_CLOSEFROM
+#if defined(HAVE_FCNTL_F_CLOSEM)
+   /*
+    * fcntl(fd, F_CLOSEM) needs the minimum filedescriptor
+    * to close. the current code sets the last one to keep
+    * open. So increment it with 1 and use that as argument.
+    */
+   low_fd++;
+   fcntl(low_fd, F_CLOSEM);
+#elif defined(HAVE_CLOSEFROM)
    /*
     * closefrom needs the minimum filedescriptor to close.
     * the current code sets the last one to keep open.
