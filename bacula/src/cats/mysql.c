@@ -588,6 +588,11 @@ bool B_DB_MYSQL::sql_batch_start(JCR *jcr)
                               "DeltaSeq integer)");
    db_unlock(this);
 
+   /*
+    * Keep track of the number of changes in batch mode.
+    */
+   changes = 0;
+
    return retval;
 }
 
@@ -599,6 +604,13 @@ bool B_DB_MYSQL::sql_batch_start(JCR *jcr)
 bool B_DB_MYSQL::sql_batch_end(JCR *jcr, const char *error)
 {
    m_status = 0;
+
+   /*
+    * Flush any pending inserts.
+    */
+   if (changes) {
+      return sql_query(cmd);
+   }
 
    return true;
 }
@@ -624,12 +636,41 @@ bool B_DB_MYSQL::sql_batch_insert(JCR *jcr, ATTR_DBR *ar)
       digest = ar->Digest;
    }
 
-   Mmsg(cmd, "INSERT INTO batch VALUES "
-        "(%u,%s,'%s','%s','%s','%s',%u)",
-        ar->FileIndex, edit_int64(ar->JobId,ed1), esc_path,
-        esc_name, ar->attr, digest, ar->DeltaSeq);
+   /*
+    * Try to batch up multiple inserts using multi-row inserts.
+    */
+   if (changes == 0) {
+      Mmsg(cmd, "INSERT INTO batch VALUES "
+           "(%u,%s,'%s','%s','%s','%s',%u)",
+           ar->FileIndex, edit_int64(ar->JobId,ed1), esc_path,
+           esc_name, ar->attr, digest, ar->DeltaSeq);
+      changes++;
+   } else {
+      /*
+       * We use the esc_obj for temporary storage otherwise
+       * we keep on copying data.
+       */
+      Mmsg(esc_obj, ",(%u,%s,'%s','%s','%s','%s',%u)",
+           ar->FileIndex, edit_int64(ar->JobId,ed1), esc_path,
+           esc_name, ar->attr, digest, ar->DeltaSeq);
+      pm_strcat(cmd, esc_obj);
+      changes++;
+   }
 
-   return sql_query(cmd);
+   /*
+    * See if we need to flush the query buffer filled
+    * with multi-row inserts.
+    */
+   if ((changes % MYSQL_CHANGES_PER_BATCH_INSERT) == 0) {
+      if (!sql_query(cmd)) {
+         changes = 0;
+         return false;
+      } else {
+         changes = 0;
+      }
+   } else {
+      return true;
+   }
 }
 
 /*

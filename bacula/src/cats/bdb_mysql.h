@@ -29,6 +29,13 @@
 #ifndef __BDB_MYSQL_H_
 #define __BDB_MYSQL_H_ 1
 
+/*
+ * Number of insert statements to batch-up in batch insert
+ * mode. We use multi-row inserts only in the batch mode
+ * on the private database connection.
+ */
+#define MYSQL_CHANGES_PER_BATCH_INSERT 32
+
 class B_DB_MYSQL: public B_DB_PRIV {
 private:
    MYSQL *m_db_handle;
