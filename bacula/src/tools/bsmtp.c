@@ -63,11 +63,7 @@
      copyright.  See:
         http://archives.neohapsis.com/archives/postfix/2000-05/1520.html
  
-
-   Version $Id$
-
  */
-
 
 #include "bacula.h"
 #include "jcr.h"
@@ -77,9 +73,13 @@
 #include <lmcons.h>
 #endif
 
-/* Dummy functions */
+/*
+ * Dummy functions
+ */
 int generate_daemon_event(JCR *jcr, const char *event) 
-   { return 1; }
+{
+   return 1;
+}
 
 #ifndef MAXSTRING
 #define MAXSTRING 254
@@ -202,10 +202,9 @@ _("\n"
 
 /*
  * Return the offset west from localtime to UTC in minutes
-  * Same as timezone.tz_minuteswest
-  *   Unix tz_offset coded by:  Attila Fülöp
-  */
-
+ * Same as timezone.tz_minuteswest
+ *   Unix tz_offset coded by:  Attila Fülöp
+ */
 static long tz_offset(time_t lnow, struct tm &tm)
 {
 #if defined(HAVE_WIN32)
@@ -247,12 +246,11 @@ static void get_date_string(char *buf, int buf_len)
 
    my_timezone = tz_offset(now, tm);
    strftime(buf, buf_len, "%a, %d %b %Y %H:%M:%S", &tm);
-   sprintf(tzbuf, " %+2.2ld%2.2u", -my_timezone / 60, abs(my_timezone) % 60);
+   snprintf(tzbuf, sizeof(tzbuf), " %+2.2ld%2.2u", -my_timezone / 60, abs(my_timezone) % 60);
    strcat(buf, tzbuf);              /* add +0100 */
    strftime(tzbuf, sizeof(tzbuf), " (%Z)", &tm);
    strcat(buf, tzbuf);              /* add (CEST) */
 }
-
 
 /*********************************************************************
  *
@@ -260,18 +258,25 @@ static void get_date_string(char *buf, int buf_len)
  */
 int main (int argc, char *argv[])
 {
-    char buf[1000];
-    struct sockaddr_in sin;
-    struct hostent *hp;
-    int i, ch;
-    unsigned long maxlines, lines;
+   char buf[1000];
+   int i, ch;
+   unsigned long maxlines, lines;
 #if defined(HAVE_WIN32)
-    SOCKET s;
+   SOCKET s;
 #else
-    int s, r;
-    struct passwd *pwd;
+   int s, r;
+   struct passwd *pwd;
 #endif
-    char *cp, *p;
+   char *cp, *p;
+#ifdef HAVE_GETADDRINFO
+   int res;
+   struct addrinfo hints;
+   struct addrinfo *ai, *rp;
+   char mail_port[10];
+#else
+   struct hostent *hp;
+   struct sockaddr_in sin;
+#endif
     
    setlocale(LC_ALL, "en_US");
    bindtextdomain("bacula", LOCALEDIR);
@@ -345,7 +350,6 @@ int main (int argc, char *argv[])
       exit(1);
    }
 
-
    /*
     *  Determine SMTP server
     */
@@ -372,12 +376,28 @@ int main (int argc, char *argv[])
       Pmsg1(0, _("Fatal gethostname error: ERR=%s\n"), strerror(errno));
       exit(1);
    }
+#ifdef HAVE_GETADDRINFO
+   memset(&hints, 0, sizeof(struct addrinfo));
+   hints.ai_family = AF_UNSPEC;
+   hints.ai_socktype = 0;
+   hints.ai_protocol = 0;
+   hints.ai_flags = AI_CANONNAME;
+
+   if ((res = getaddrinfo(my_hostname, NULL, &hints, &ai)) != 0) {
+      Pmsg2(0, _("Fatal getaddrinfo for myself failed \"%s\": ERR=%s\n"),
+            my_hostname, gai_strerror(res));
+      exit(1);
+   }
+   strcpy(my_hostname, ai->ai_canonname);
+   freeaddrinfo(ai);
+#else
    if ((hp = gethostbyname(my_hostname)) == NULL) {
-      Pmsg2(0, _("Fatal gethostbyname for myself failed \"%s\": ERR=%s\n"), my_hostname,
-         strerror(errno));
+      Pmsg2(0, _("Fatal gethostbyname for myself failed \"%s\": ERR=%s\n"),
+            my_hostname, strerror(errno));
       exit(1);
    }
    strcpy(my_hostname, hp->h_name);
+#endif
    Dmsg1(20, "My hostname is: %s\n", my_hostname);
 
    /*
@@ -389,15 +409,15 @@ int main (int argc, char *argv[])
       LPSTR lpszBuffer = (LPSTR)alloca(dwSize);
 
       if (GetUserName(lpszBuffer, &dwSize)) {
-         sprintf(buf, "%s@%s", lpszBuffer, my_hostname);
+         snprintf(buf, sizeof(buf), "%s@%s", lpszBuffer, my_hostname);
       } else {
-         sprintf(buf, "unknown-user@%s", my_hostname);
+         snprintf(buf, sizeof(buf), "unknown-user@%s", my_hostname);
       }
 #else
       if ((pwd = getpwuid(getuid())) == 0) {
-         sprintf(buf, "userid-%d@%s", (int)getuid(), my_hostname);
+         snprintf(buf, sizeof(buf), "userid-%d@%s", (int)getuid(), my_hostname);
       } else {
-         sprintf(buf, "%s@%s", pwd->pw_name, my_hostname);
+         snprintf(buf, sizeof(buf), "%s@%s", pwd->pw_name, my_hostname);
       }
 #endif
       from_addr = bstrdup(buf);
@@ -407,14 +427,57 @@ int main (int argc, char *argv[])
    /*
     *  Connect to smtp daemon on mailhost.
     */
-hp:
+lookup_host:
+#ifdef HAVE_GETADDRINFO
+   memset(&hints, 0, sizeof(struct addrinfo));
+   hints.ai_family = AF_UNSPEC;
+   hints.ai_socktype = SOCK_STREAM;
+   hints.ai_protocol = IPPROTO_TCP;
+   hints.ai_flags = 0;
+   snprintf(mail_port, sizeof(mail_port), "%d", mailport);
+
+   if ((res = getaddrinfo(mailhost, mail_port, &hints, &ai)) != 0) {
+      Pmsg2(0, _("Error unknown mail host \"%s\": ERR=%s\n"),
+            mailhost, gai_strerror(res));
+      if (!strcasecmp(mailhost, "localhost")) {
+         Pmsg0(0, _("Retrying connection using \"localhost\".\n"));
+         mailhost = "localhost";
+         goto lookup_host;
+      }
+      exit(1);
+   }
+
+   for (rp = ai; rp != NULL; rp = rp->ai_next) {
+#if defined(HAVE_WIN32)
+      s = WSASocket(rp->ai_family, rp->ai_socktype, rp->ai_protocol, NULL, 0, 0);
+#else
+      s = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
+#endif
+      if (s < 0) {
+         continue;
+      }
+
+      if (connect(s, rp->ai_addr, rp->ai_addrlen) != -1) {
+         break;
+      }
+
+      close(s);
+   }
+
+   if (!rp) {
+      Pmsg1(0, _("Failed to connect to mailhost %s\n"), mailhost);
+      exit(1);
+   }
+
+   freeaddrinfo(ai);
+#else
    if ((hp = gethostbyname(mailhost)) == NULL) {
       Pmsg2(0, _("Error unknown mail host \"%s\": ERR=%s\n"), mailhost,
          strerror(errno));
       if (strcasecmp(mailhost, "localhost") != 0) {
          Pmsg0(0, _("Retrying connection using \"localhost\".\n"));
          mailhost = "localhost";
-         goto hp;
+         goto lookup_host;
       }
       exit(1);
    }
@@ -443,6 +506,7 @@ hp:
       exit(1);
    }
    Dmsg0(20, "Connected\n");
+#endif
 
 #if defined(HAVE_WIN32)
    int fdSocket = _open_osfhandle(s, _O_RDWR | _O_BINARY);

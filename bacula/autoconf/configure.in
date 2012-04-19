@@ -2415,6 +2415,58 @@ if test $ac_cv_struct_sockaddr_sa_len = yes; then
   AC_DEFINE(HAVE_SA_LEN, 1, [Define if sa_len field exists in struct sockaddr])
 fi
 
+dnl
+dnl check for working getaddrinfo()
+dnl
+dnl Note that if the system doesn't have gai_strerror(), we
+dnl can't use getaddrinfo() because we can't get strings
+dnl describing the error codes.
+dnl
+AC_CACHE_CHECK(for working getaddrinfo, ac_cv_working_getaddrinfo,
+   [
+       AC_TRY_RUN(
+          [
+              #include <netdb.h>
+              #include <string.h>
+              #include <sys/types.h>
+              #include <sys/socket.h>
+
+              void main(void) {
+                  struct addrinfo hints, *ai;
+                  int error;
+
+                  memset(&hints, 0, sizeof(hints));
+                  hints.ai_family = AF_UNSPEC;
+                  hints.ai_socktype = SOCK_STREAM;
+                  error = getaddrinfo("127.0.0.1", NULL, &hints, &ai);
+                  if (error) {
+                      exit(1);
+                  }
+                  if (ai->ai_addr->sa_family != AF_INET) {
+                      exit(1);
+                  }
+                  exit(0);
+              }
+          ],[
+              ac_cv_working_getaddrinfo="yes"
+          ],[
+              ac_cv_working_getaddrinfo="no"
+          ],[
+              ac_cv_working_getaddrinfo="yes"
+          ]
+       )
+   ]
+)
+AC_CHECK_FUNC(gai_strerror, [AC_DEFINE(HAVE_GAI_STRERROR, 1, [Define to 1 if you have the 'gai_strerror' function.])])
+
+if test "$ac_cv_working_getaddrinfo" = "yes"; then
+  if test "$ac_cv_func_gai_strerror" != "yes"; then
+    ac_cv_working_getaddrinfo="no"
+  else
+    AC_DEFINE(HAVE_GETADDRINFO, 1, [Define to 1 if getaddrinfo exists and works])
+  fi
+fi
+
 AC_FUNC_STRFTIME
 AC_FUNC_VPRINTF
 AC_FUNC_ALLOCA

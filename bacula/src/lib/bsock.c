@@ -199,7 +199,7 @@ bool BSOCK::open(JCR *jcr, const char *name, char *host, char *service,
     */
    if ((addr_list = bnet_host2ipaddrs(host, 0, &errstr)) == NULL) {
       /* Note errstr is not malloc'ed */
-      Qmsg2(jcr, M_ERROR, 0, _("gethostbyname() for host \"%s\" failed: ERR=%s\n"),
+      Qmsg2(jcr, M_ERROR, 0, _("bnet_host2ipaddrs() for host \"%s\" failed: ERR=%s\n"),
             host, errstr);
       Dmsg2(100, "bnet_host2ipaddrs() for host %s failed: ERR=%s\n",
             host, errstr);

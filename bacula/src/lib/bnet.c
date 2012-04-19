@@ -35,7 +35,6 @@
  *
  */
 
-
 #include "bacula.h"
 #include "jcr.h"
 #include <netdb.h>
@@ -54,14 +53,15 @@
 #define socketClose(fd)           close(fd)
 #endif
 
+#ifndef HAVE_GETADDRINFO
 static pthread_mutex_t ip_mutex = PTHREAD_MUTEX_INITIALIZER;
+#endif
 
 /*
  * Read a nbytes from the network.
  * It is possible that the total bytes require in several
  * read requests
  */
-
 int32_t read_nbytes(BSOCK * bsock, char *ptr, int32_t nbytes)
 {
    int32_t nleft, nread;
@@ -408,6 +408,64 @@ int bnet_wait_data_intr(BSOCK * bsock, int sec)
 #define NO_DATA         4          /* Valid name, no data record of requested type. */
 #endif
 
+#if HAVE_GETADDRINFO
+const char *resolv_host(int family, const char *host, dlist *addr_list)
+{
+   int res;
+   struct addrinfo hints;
+   struct addrinfo *ai, *rp;
+   IPADDR *addr;
+
+   memset(&hints, 0, sizeof(struct addrinfo));
+   hints.ai_family = family;
+   hints.ai_socktype = 0;
+   hints.ai_protocol = 0;
+   hints.ai_flags = 0;
+
+   res = getaddrinfo(host, NULL, &hints, &ai);
+   if (res != 0) {
+      return gai_strerror(res);
+   }
+
+   for (rp = ai; rp != NULL; rp = rp->ai_next) {
+      switch (rp->ai_addr->sa_family) {
+      case AF_INET:
+         addr = New(IPADDR(rp->ai_addr->sa_family));
+         addr->set_type(IPADDR::R_MULTIPLE);
+         /*
+          * Some serious casting to get the struct in_addr *
+          * rp->ai_addr == struct sockaddr
+          * as this is AF_INET family we can cast that
+          * to struct_sockaddr_in. Of that we need the
+          * address of the sin_addr member which contains a
+          * struct in_addr
+          */
+         addr->set_addr4(&(((struct sockaddr_in *)rp->ai_addr)->sin_addr));
+         break;
+#ifdef HAVE_IPV6
+      case AF_INET6:
+         addr = New(IPADDR(rp->ai_addr->sa_family));
+         addr->set_type(IPADDR::R_MULTIPLE);
+         /*
+          * Some serious casting to get the struct in6_addr *
+          * rp->ai_addr == struct sockaddr
+          * as this is AF_INET6 family we can cast that
+          * to struct_sockaddr_in6. Of that we need the
+          * address of the sin6_addr member which contains a
+          * struct in6_addr
+          */
+         addr->set_addr6(&(((struct sockaddr_in6 *)rp->ai_addr)->sin6_addr));
+         break;
+#endif
+      default:
+         continue;
+      }
+      addr_list->append(addr);
+   }
+   freeaddrinfo(ai);
+   return NULL;
+}
+#else
 /*
  * Get human readable error for gethostbyname()
  */
@@ -440,21 +498,12 @@ static const char *gethost_strerror()
    return msg;
 }
 
-
-
-
-static IPADDR *add_any(int family)
-{
-   IPADDR *addr = New(IPADDR(family));
-   addr->set_type(IPADDR::R_MULTIPLE);
-   addr->set_addr_any();
-   return addr;
-}
-
-static const char *resolv_host(int family, const char *host, dlist * addr_list)
+static const char *resolv_host(int family, const char *host, dlist *addr_list)
 {
    struct hostent *hp;
    const char *errmsg;
+   char **p;
+   IPADDR *addr;
 
    P(ip_mutex);                       /* gethostbyname() is not thread safe */
 #ifdef HAVE_GETHOSTBYNAME2
@@ -467,23 +516,37 @@ static const char *resolv_host(int family, const char *host, dlist * addr_list)
       V(ip_mutex);
       return errmsg;
    } else {
-      char **p;
       for (p = hp->h_addr_list; *p != 0; p++) {
-         IPADDR *addr =  New(IPADDR(hp->h_addrtype));
-         addr->set_type(IPADDR::R_MULTIPLE);
-         if (addr->get_family() == AF_INET) {
-             addr->set_addr4((struct in_addr*)*p);
-         }
+         switch (hp->h_addrtype) {
+         case AF_INET:
+            addr = New(IPADDR(hp->h_addrtype));
+            addr->set_type(IPADDR::R_MULTIPLE);
+            addr->set_addr4((struct in_addr *)*p);
+            break;
 #ifdef HAVE_IPV6
-         else {
-             addr->set_addr6((struct in6_addr*)*p);
-         }
+          case AF_INET6:
+            addr = New(IPADDR(hp->h_addrtype));
+            addr->set_type(IPADDR::R_MULTIPLE);
+            addr->set_addr6((struct in6_addr *)*p);
+            break;
 #endif
+         default:
+            continue;
+         }
          addr_list->append(addr);
       }
       V(ip_mutex);
    }
    return NULL;
+}
+#endif
+
+static IPADDR *add_any(int family)
+{
+   IPADDR *addr = New(IPADDR(family));
+   addr->set_type(IPADDR::R_MULTIPLE);
+   addr->set_addr_any();
+   return addr;
 }
 
 /*
@@ -569,8 +632,6 @@ BSOCK *bnet_connect(JCR * jcr, int retry_interval, utime_t max_retry_time,
    return bsock;
 }
 
-
-
 /*
  * Return the string for the error that occurred
  * on the socket. Only the first error is retained.
@@ -653,7 +714,6 @@ void bnet_restore_blocking (BSOCK *bsock, int flags)
 {
    bsock->restore_blocking(flags);
 }
-
 
 /*
  * Send a network "signal" to the other end
