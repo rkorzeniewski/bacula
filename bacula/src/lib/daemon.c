@@ -47,6 +47,7 @@ daemon_start()
 {
 #if !defined(HAVE_WIN32)
    int i;
+   int fd;
    pid_t cpid;
    mode_t oldmask;
 #ifdef DEVELOPER
@@ -75,9 +76,20 @@ daemon_start()
    if (debug_level > 0) {
       low_fd = 2;                     /* don't close debug output */
    }
+
+#ifdef HAVE_CLOSEFROM
+   /*
+    * closefrom needs the minimum filedescriptor to close.
+    * the current code sets the last one to keep open.
+    * So increment it with 1 and use that as argument.
+    */
+   low_fd++;
+   closefrom(low_fd);
+#else
    for (i=sysconf(_SC_OPEN_MAX)-1; i > low_fd; i--) {
       close(i);
    }
+#endif
 
    /* Move to root directory. For debug we stay
     * in current directory so dumps go there.
@@ -102,7 +114,6 @@ daemon_start()
     *  send total garbage to our socket.
     *
     */
-   int fd;
    fd = open("/dev/null", O_RDONLY, 0644);
    if (fd > 2) {
       close(fd);

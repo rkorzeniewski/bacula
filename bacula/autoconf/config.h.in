@@ -280,6 +280,9 @@
 /* Define to 1 if you have the `chflags' function. */
 #undef HAVE_CHFLAGS
 
+/* Define to 1 if you have the 'closefrom' function. */
+#undef HAVE_CLOSEFROM
+
 /* Set if Bacula conio support enabled */
 #undef HAVE_CONIO
 
