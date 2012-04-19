@@ -1264,6 +1264,11 @@ hostname=`uname -n | cut -d '.' -f 1`
 if test x${hostname} = x ; then
   hostname="localhost"
 fi
+dnl Make sure hostname is resolved
+ping -c 1 $hostname 2>/dev/null 1>/dev/null
+if test ! $? = 0; then
+  hostname="localhost"
+fi
 AC_ARG_WITH(hostname,
    AC_HELP_STRING([--with-hostname=RESNAME], [specify host name for daemons]),
    [
@@ -2857,16 +2862,6 @@ PSCMD="ps -e"
 WIN32=
 MACOSX=
 COMPRESS_MANPAGES=yes
-
-hostname=`uname -n | cut -d '.' -f 1`
-if test x${hostname} = x ; then
-   hostname="localhost"
-fi
-dnl Make sure hostname is resolved
-ping -c 1 $hostname 2>/dev/null 1>/dev/null
-if test ! $? = 0; then
-  hostname="localhost"
-fi
 
 case "$DISTNAME" in
 aix)
