@@ -917,6 +917,46 @@ static bool check_resources()
       }
    }
 
+   /* Loop over Storages */
+   STORE *store;
+   foreach_res(store, R_STORAGE) {
+      /* tls_require implies tls_enable */
+      if (store->tls_require) {
+         if (have_tls) {
+            store->tls_enable = true;
+         } else {
+            Jmsg(NULL, M_FATAL, 0, _("TLS required but not configured in Bacula.\n"));
+            OK = false;
+            continue;
+         }
+      }
+
+      need_tls = store->tls_enable || store->tls_authenticate;
+
+      if ((!store->tls_ca_certfile && !store->tls_ca_certdir) && need_tls) {
+         Jmsg(NULL, M_FATAL, 0, _("Neither \"TLS CA Certificate\""
+              " or \"TLS CA Certificate Dir\" are defined for Storage \"%s\" in %s.\n"),
+              store->name(), configfile);
+         OK = false;
+      }
+
+      /* If everything is well, attempt to initialize our per-resource TLS context */
+      if (OK && (need_tls || store->tls_require)) {
+        /* Initialize TLS context:
+         * Args: CA certfile, CA certdir, Certfile, Keyfile,
+         * Keyfile PEM Callback, Keyfile CB Userdata, DHfile, Verify Peer */
+         store->tls_ctx = new_tls_context(store->tls_ca_certfile,
+            store->tls_ca_certdir, store->tls_certfile,
+            store->tls_keyfile, NULL, NULL, NULL, true);
+
+         if (!store->tls_ctx) {
+            Jmsg(NULL, M_FATAL, 0, _("Failed to initialize TLS context for Storage \"%s\" in %s.\n"),
+                 store->name(), configfile);
+            OK = false;
+         }
+      }
+   }
+
    UnlockRes();
    if (OK) {
       close_msg(NULL);                /* close temp message handler */
@@ -934,7 +974,6 @@ static bool check_resources()
 static bool check_catalog(cat_op mode)
 {
    bool OK = true;
-   bool need_tls;
 
    /* Loop over databases */
    CAT *catalog;
@@ -1044,41 +1083,6 @@ static bool check_catalog(cat_op mode)
             if (!db_update_storage_record(NULL, db, &sr)) {
                Jmsg(NULL, M_FATAL, 0, _("Could not update storage record for %s\n"),
                     store->name());
-               OK = false;
-            }
-         }
-
-         /* tls_require implies tls_enable */
-         if (store->tls_require) {
-            if (have_tls) {
-               store->tls_enable = true;
-            } else {
-               Jmsg(NULL, M_FATAL, 0, _("TLS required but not configured in Bacula.\n"));
-               OK = false;
-            }
-         } 
-
-         need_tls = store->tls_enable || store->tls_authenticate;
-
-         if ((!store->tls_ca_certfile && !store->tls_ca_certdir) && need_tls) {
-            Jmsg(NULL, M_FATAL, 0, _("Neither \"TLS CA Certificate\""
-                 " or \"TLS CA Certificate Dir\" are defined for Storage \"%s\" in %s.\n"),
-                 store->name(), configfile);
-            OK = false;
-         }
-
-         /* If everything is well, attempt to initialize our per-resource TLS context */
-         if (OK && (need_tls || store->tls_require)) {
-           /* Initialize TLS context:
-            * Args: CA certfile, CA certdir, Certfile, Keyfile,
-            * Keyfile PEM Callback, Keyfile CB Userdata, DHfile, Verify Peer */
-            store->tls_ctx = new_tls_context(store->tls_ca_certfile,
-               store->tls_ca_certdir, store->tls_certfile,
-               store->tls_keyfile, NULL, NULL, NULL, true);
-         
-            if (!store->tls_ctx) {
-               Jmsg(NULL, M_FATAL, 0, _("Failed to initialize TLS context for Storage \"%s\" in %s.\n"),
-                    store->name(), configfile);
                OK = false;
             }
          }
