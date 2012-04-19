@@ -1865,6 +1865,7 @@ AC_CHECK_HEADERS( \
    stdarg.h \
    stdlib.h \
    stdint.h \
+   inttypes.h \
    string.h \
    strings.h \
    termios.h \

@@ -67,6 +67,8 @@
 #ifndef __sgi
 #include <stdint.h>
 #endif
+#elif HAVE_INTTYPES_H
+#include <inttypes.h>
 #endif
 #if HAVE_STDARG_H
 #include <stdarg.h>
