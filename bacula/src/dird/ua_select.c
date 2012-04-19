@@ -299,7 +299,7 @@ JOB *select_job_resource(UAContext *ua)
 JOB *get_restore_job(UAContext *ua)
 {
    JOB *job;
-   int i = find_arg_with_value(ua, "restore_job");
+   int i = find_arg_with_value(ua, "restorejob");
    if (i >= 0 && acl_access_ok(ua, Job_ACL, ua->argv[i])) {
       job = (JOB *)GetResWithName(R_JOB, ua->argv[i]);
       if (job && job->JobType == JT_RESTORE) {
