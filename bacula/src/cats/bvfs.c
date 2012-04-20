@@ -270,7 +270,10 @@ static void build_path_hierarchy(JCR *jcr, B_DB *mdb,
               "SELECT PPathId FROM PathHierarchy WHERE PathId = %s",
               pathid);
 
-         QUERY_DB(jcr, mdb, mdb->cmd);
+         if (!QUERY_DB(jcr, mdb, mdb->cmd)) {
+            goto bail_out;      /* Query failed, just leave */
+         }
+
          /* Do we have a result ? */
          if (sql_num_rows(mdb) > 0) {
             ppathid_cache.insert(pathid);
@@ -293,7 +296,9 @@ static void build_path_hierarchy(JCR *jcr, B_DB *mdb,
                  "VALUES (%s,%lld)",
                  pathid, (uint64_t) parent.PathId);
             
-            INSERT_DB(jcr, mdb, mdb->cmd);
+            if (!INSERT_DB(jcr, mdb, mdb->cmd)) {
+               goto bail_out;   /* Can't insert the record, just leave */
+            }
 
             edit_uint64(parent.PathId, pathid);
             path = mdb->path;   /* already done */
@@ -320,7 +325,7 @@ static void update_path_hierarchy_cache(JCR *jcr,
                                         JobId_t JobId)
 {
    Dmsg0(dbglevel, "update_path_hierarchy_cache()\n");
-
+   int ret;
    uint32_t num;
    char jobid[50];
    edit_uint64(JobId, jobid);
@@ -344,7 +349,11 @@ static void update_path_hierarchy_cache(JCR *jcr,
                              "FROM BaseFiles JOIN File AS F USING (FileId) "
                             "WHERE BaseFiles.JobId = %s) AS B",
         jobid, jobid);
-   QUERY_DB(jcr, mdb, mdb->cmd);
+
+   if (!QUERY_DB(jcr, mdb, mdb->cmd)) {
+      Dmsg1(dbglevel, "Can't fill PathVisibility %d\n", (uint32_t)JobId );
+      goto bail_out;
+   }
 
    /* Now we have to do the directory recursion stuff to determine missing
     * visibility We try to avoid recursion, to be as fast as possible We also
@@ -360,7 +369,11 @@ static void update_path_hierarchy_cache(JCR *jcr,
         "AND PathHierarchy.PathId IS NULL "
       "ORDER BY Path", jobid);
    Dmsg1(dbglevel_sql, "q=%s\n", mdb->cmd);
-   QUERY_DB(jcr, mdb, mdb->cmd);
+
+   if (!QUERY_DB(jcr, mdb, mdb->cmd)) {
+      Dmsg1(dbglevel, "Can't get new Path %d\n", (uint32_t)JobId );
+      goto bail_out;
+   }
 
    /* TODO: I need to reuse the DB connection without emptying the result 
     * So, now i'm copying the result in memory to be able to query the
@@ -412,8 +425,8 @@ static void update_path_hierarchy_cache(JCR *jcr,
    }
 
    do {
-      QUERY_DB(jcr, mdb, mdb->cmd);
-   } while (sql_affected_rows(mdb) > 0);
+      ret = QUERY_DB(jcr, mdb, mdb->cmd);
+   } while (ret && sql_affected_rows(mdb) > 0);
    
    Mmsg(mdb->cmd, "UPDATE Job SET HasCache=1 WHERE JobId=%s", jobid);
    UPDATE_DB(jcr, mdb, mdb->cmd);
