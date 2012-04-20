@@ -186,7 +186,10 @@ static bool dot_bvfs_update(UAContext *ua, const char *cmd)
 
    int pos = find_arg_with_value(ua, "jobid");
    if (pos != -1 && is_a_number_list(ua->argv[pos])) {
-      bvfs_update_path_hierarchy_cache(ua->jcr, ua->db, ua->argv[pos]);
+      if (!bvfs_update_path_hierarchy_cache(ua->jcr, ua->db, ua->argv[pos])) {
+         ua->error_msg("ERROR: BVFS reported a problem for %s\n", 
+                       ua->argv[pos]);
+      }
    } else {
       /* update cache for all jobids */
       bvfs_update_cache(ua->jcr, ua->db);

@@ -197,7 +197,7 @@ private:
 #define bvfs_is_version(row) ((row)[BVFS_Type][0] == BVFS_FILE_VERSION)
 
 
-void bvfs_update_path_hierarchy_cache(JCR *jcr, B_DB *mdb, char *jobids);
+int bvfs_update_path_hierarchy_cache(JCR *jcr, B_DB *mdb, char *jobids);
 void bvfs_update_cache(JCR *jcr, B_DB *mdb);
 char *bvfs_parent_dir(char *path);
 

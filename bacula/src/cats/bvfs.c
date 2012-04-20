@@ -318,14 +318,16 @@ bail_out:
 
 /* 
  * Internal function to update path_hierarchy cache with a shared pathid cache
+ * return Error 0
+ *        OK    1
  */
-static void update_path_hierarchy_cache(JCR *jcr,
+static int update_path_hierarchy_cache(JCR *jcr,
                                         B_DB *mdb,
                                         pathid_cache &ppathid_cache,
                                         JobId_t JobId)
 {
    Dmsg0(dbglevel, "update_path_hierarchy_cache()\n");
-   int ret;
+   int ret=0;
    uint32_t num;
    char jobid[50];
    edit_uint64(JobId, jobid);
@@ -337,6 +339,7 @@ static void update_path_hierarchy_cache(JCR *jcr,
    
    if (!QUERY_DB(jcr, mdb, mdb->cmd) || sql_num_rows(mdb) > 0) {
       Dmsg1(dbglevel, "already computed %d\n", (uint32_t)JobId );
+      ret = 1;
       goto bail_out;
    }
 
@@ -434,6 +437,7 @@ static void update_path_hierarchy_cache(JCR *jcr,
 bail_out:
    db_end_transaction(jcr, mdb);
    db_unlock(mdb);
+   return ret;
 }
 
 /* 
@@ -524,24 +528,28 @@ void bvfs_update_cache(JCR *jcr, B_DB *mdb)
 /*
  * Update the bvfs cache for given jobids (1,2,3,4)
  */
-void
+int
 bvfs_update_path_hierarchy_cache(JCR *jcr, B_DB *mdb, char *jobids)
 {
    pathid_cache ppathid_cache;
    JobId_t JobId;
    char *p;
+   int ret=1;
 
    for (p=jobids; ; ) {
       int stat = get_next_jobid_from_list(&p, &JobId);
       if (stat < 0) {
-         return;
+         return 0;
       }
       if (stat == 0) {
          break;
       }
       Dmsg1(dbglevel, "Updating cache for %lld\n", (uint64_t)JobId);
-      update_path_hierarchy_cache(jcr, mdb, ppathid_cache, JobId);
+      if (!update_path_hierarchy_cache(jcr, mdb, ppathid_cache, JobId)) {
+         ret = 0;
+      }
    }
+   return ret;
 }
 
 /* 
@@ -557,7 +565,9 @@ bool Bvfs::ch_dir(const char *path)
 {
    pm_strcpy(db->path, path);
    db->pnl = strlen(db->path);
+   db_lock(db);
    ch_dir(db_get_path_record(jcr, db)); 
+   db_unlock(db);
    return pwd_id != 0;
 }
 
@@ -604,8 +614,12 @@ void Bvfs::get_all_file_versions(DBId_t pathid, DBId_t fnid, const char *client)
 
 DBId_t Bvfs::get_root()
 {
+   int p;
    *db->path = 0;
-   return db_get_path_record(jcr, db);
+   db_lock(db);
+   p = db_get_path_record(jcr, db);
+   db_unlock(db);
+   return p;
 }
 
 static int path_handler(void *ctx, int fields, char **row)
