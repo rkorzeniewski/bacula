@@ -1338,13 +1338,13 @@ static bRC baculaGetValue(bpContext *ctx, bVariable var, void *value)
    case bVarRegexWhere:
       *(char **)value = jcr->RegexWhere;
       break;
-
    case bVarFDName:             /* get warning with g++ if we missed one */
    case bVarWorkingDir:
    case bVarExePath:
    case bVarVersion:
    case bVarDistName:
    case bVarBEEF:
+   case bVarPrefixLinks:
       break;
    }
    return bRC_OK;
