@@ -1,7 +1,37 @@
 
-               Release Notes for Bacula 5.2.6
+               Release Notes for Bacula 5.2.7
 
   Bacula code: Total files = 1,110 Total lines = 231,439 (Using SLOCCount)
+
+General:
+--------
+The 5.2.7 version is a bug fix release.
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+Please note that with this version of Bacula, during the install
+of the shared libraries from the src/cats, src/lib, and src/findlib
+directories, any old Bacula libraries in the installation 
+destination directory will be removed.  This should not cause
+any problems and at least keeps the installation library cleaner.
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+For packagers, if you change options, naming, and the way 
+we link our shared object files, as at least one of you does,
+you are creating a situation where the user may not be able
+to run multiple versions of Bacula on the same machine, which
+is often very useful, and in addition, you create a configuration
+that the project cannot properly support.
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+If you are upgrading from a version older than 5.2.6, please
+read all the old ReleaseNotes of all versions released
+after the version you are upgrading from. There area
+many important notices sumarized here, and we do not 
+repeat them each bug fix release.
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 
 General:
 --------
