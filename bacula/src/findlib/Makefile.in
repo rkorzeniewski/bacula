@@ -76,6 +76,7 @@ uninstall-includes:
 
 libtool-install: all
 	$(MKDIR) $(DESTDIR)$(libdir)
+	$(RMF) $(DESTDIR)$(libdir)/libbacfind-*.so $(DESTDIR)$(libdir)/libbacfind.la
 	$(LIBTOOL_INSTALL_FINISH) $(INSTALL_LIB) libbacfind$(DEFAULT_ARCHIVE_TYPE) $(DESTDIR)$(libdir)
 
 libtool-uninstall:

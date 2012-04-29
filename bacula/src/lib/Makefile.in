@@ -145,73 +145,73 @@ Makefile: $(srcdir)/Makefile.in $(topdir)/config.status
 	  && CONFIG_FILES=$(thisdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
 
 lockmgr_test: Makefile
-	rm -f lockmgr.o
+	$(RMF) lockmgr.o
 	$(CXX) -D _TEST_IT $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE)  $(CFLAGS) lockmgr.c
 	$(LIBTOOL_LINK) $(CXX) $(LDFLAGS) -L. -o $@ lockmgr.o $(DLIB) -lbac -lm $(LIBS) $(OPENSSL_LIBS)
 	rm -f lockmgr.o
 	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) lockmgr.c
 
 base64_test: Makefile 
-	rm -f base64.o
-	$(CXX) -DBIN_TEST $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE)  $(CFLAGS) base64.c
+	$(RMF) base64.o
+	$(CXX) -DBIN_TEST $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE)	$(CFLAGS) base64.c
 	$(LIBTOOL_LINK) $(CXX) $(LDFLAGS) -L. -o $@ base64.o $(DLIB) -lbac -lm $(LIBS) $(OPENSSL_LIBS)
 	rm -f base64.o
 	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) base64.c
 
 rwlock_test: Makefile
-	rm -f rwlock.o
+	$(RMF) rwlock.o
 	$(CXX) -DTEST_RWLOCK $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE)  $(CFLAGS) rwlock.c
 	$(LIBTOOL_LINK) $(CXX) $(LDFLAGS) -L. -o $@ rwlock.o $(DLIB) -lbac -lm $(LIBS) $(OPENSSL_LIBS)
 	rm -f rwlock.o
 	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) rwlock.c
 
 devlock_test: Makefile
-	rm -f devlock.o
+	$(RMF) devlock.o
 	$(CXX) -DTEST_devlock $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE)  $(CFLAGS) devlock.c
 	$(LIBTOOL_LINK) $(CXX) $(LDFLAGS) -L. -o $@ devlock.o $(DLIB) -lbac -lm $(LIBS) $(OPENSSL_LIBS)
-	rm -f devlock.o
+	$(RMF) devlock.o
 	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) devlock.c
 
 htable_test: Makefile
-	rm -f htable.o
+	$(RMF) htable.o
 	$(CXX) -DTEST_SMALL_HTABLE -DTEST_NON_CHAR -DTEST_PROGRAM $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE)	$(CFLAGS) htable.c
 	$(LIBTOOL_LINK) $(CXX) $(LDFLAGS) -L. -o $@ htable.o $(DLIB) -lbac -lm $(LIBS) $(OPENSSL_LIBS)
-	rm -f htable.o
+	$(RMF) htable.o
 	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) htable.c
 
 crc32sum: Makefile crc32.o	 
-	rm -f crc32.o
+	$(RMF) crc32.o
 	$(CXX) -DCRC32_SUM $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE)  $(CFLAGS) crc32.c
 	$(LIBTOOL_LINK) $(CXX) $(LDFLAGS) -L. -o $@ crc32.o $(DLIB) -lbac -lm $(LIBS) $(OPENSSL_LIBS)
-	rm -f crc32.o
+	$(RMF) crc32.o
 	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) crc32.c
 
 md5sum: Makefile md5.o	 
-	rm -f md5.o
+	$(RMF) md5.o
 	$(CXX) -DMD5_SUM $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE)  $(CFLAGS) md5.c
 	$(LIBTOOL_LINK) $(CXX) $(LDFLAGS) -L. -o $@ md5.o $(DLIB) -lbac -lm $(LIBS) $(OPENSSL_LIBS)
-	rm -f md5.o
+	$(RMF) md5.o
 	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) md5.c
 
 sha1sum: Makefile sha1.o
-	rm -f sha1.o
+	$(RMF) sha1.o
 	$(CXX) -DSHA1_SUM $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE)	$(CFLAGS) sha1.c
 	$(LIBTOOL_LINK) $(CXX) $(LDFLAGS) -L. -o $@ sha1.o $(DLIB) -lbac -lm $(LIBS) $(OPENSSL_LIBS)
-	rm -f sha1.o
+	$(RMF) sha1.o
 	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) sha1.c
 
 bsnprintf: Makefile bsnprintf.o
-	rm -f bsnprintf.o
+	$(RMF) bsnprintf.o
 	$(CXX) -DTEST_PROGRAM $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE)  $(CFLAGS) bsnprintf.c
 	$(LIBTOOL_LINK) $(CXX) $(LDFLAGS) -L. -o $@ bsnprintf.o $(DLIB) -lbac -lm $(LIBS) $(OPENSSL_LIBS)
-	rm -f bsnprintf.o
+	$(RMF) bsnprintf.o
 	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) bsnprintf.c
 
 ini: Makefile ini.o
-	rm -f ini.o
+	$(RMF) ini.o
 	$(CXX) -DTEST_PROGRAM $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE)  $(CFLAGS) ini.c
 	$(LIBTOOL_LINK) $(CXX) $(LDFLAGS) -L. -o $@ ini.o -lbaccfg -lbac $(DLIB) -lm $(LIBS) $(OPENSSL_LIBS)
-	rm -f ini.o
+	$(RMF) ini.o
 	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) ini.c
 
 install-includes:
@@ -227,6 +227,9 @@ uninstall-includes:
 
 libtool-install: all
 	$(MKDIR) $(DESTDIR)$(libdir)
+	$(RMF) $(DESTDIR)$(libdir)/libbac-*.so $(DESTDIR)$(libdir)/libbac.la
+	$(RMF) $(DESTDIR)$(libdir)/libbaccfg-*.so $(DESTDIR)$(libdir)/libbaccfg.la
+	$(RMF) $(DESTDIR)$(libdir)/libbacpy-*.so $(DESTDIR)$(libdir)/libbacpy.la
 	$(LIBTOOL_INSTALL_FINISH) $(INSTALL_LIB) libbac.la $(DESTDIR)$(libdir)
 	$(LIBTOOL_INSTALL_FINISH) $(INSTALL_LIB) libbaccfg.la $(DESTDIR)$(libdir)
 	$(LIBTOOL_INSTALL_FINISH) $(INSTALL_LIB) libbacpy.la $(DESTDIR)$(libdir)
