@@ -1104,7 +1104,7 @@ static bool changer_cmd(JCR *jcr)
          dev = dcr->dev;
          dev->dlock();                 /* Use P to avoid indefinite block */
          if (!dev->device->changer_res) {
-            dir->fsend(_("3995 Device \"%s\" is not an autochanger.\n"), 
+            dir->fsend(_("3998 Device \"%s\" is not an autochanger.\n"), 
                dev->print_name());
          /* Under certain "safe" conditions, we can steal the lock */
          } else if (safe_cmd || !dev->is_open() || dev->can_steal_lock()) {

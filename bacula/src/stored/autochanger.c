@@ -512,10 +512,17 @@ bool unload_dev(DCR *dcr, DEVICE *dev)
    save_dev = dcr->dev;               /* save dcr device */
    dcr->dev = dev;                    /* temporarily point dcr at other device */
 
-   if (dev->get_slot() <= 0 && get_autochanger_loaded_slot(dcr) <= 0) {
+   /* Update slot if not set or not always_open */
+   if (dev->get_slot() <= 0 || !dev->has_cap(CAP_ALWAYSOPEN)) {
+      get_autochanger_loaded_slot(dcr);
+   }
+
+   /* Fail if we have no slot to unload */
+   if (dev->get_slot() <= 0) {
       dcr->dev = save_dev;
       return false;
    }
+   
    save_slot = dcr->VolCatInfo.Slot;
    dcr->VolCatInfo.Slot = dev->get_slot();
 
@@ -543,7 +550,7 @@ bool unload_dev(DCR *dcr, DEVICE *dev)
    if (stat != 0) {
       berrno be;
       be.set_errno(stat);
-      Jmsg(jcr, M_INFO, 0, _("3995 Bad autochanger \"unload slot %d, drive %d\": ERR=%s.\n"),
+      Jmsg(jcr, M_INFO, 0, _("3997 Bad autochanger \"unload slot %d, drive %d\": ERR=%s.\n"),
               dev->get_slot(), dev->drive_index, be.bstrerror());
 
       Dmsg3(100, "Bad autochanger \"unload slot %d, drive %d\": ERR=%s.\n",
