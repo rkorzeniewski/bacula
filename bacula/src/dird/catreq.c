@@ -275,6 +275,20 @@ void catalog_request(JCR *jcr, BSOCK *bs)
          mr.LastWritten = VolLastWritten;
       }
 
+      /*
+       * Update to point to the last device used to write the Volume.
+       *   However, do so only if we are writing the tape, i.e.
+       *   the number of VolWrites has increased.
+       */
+      if (jcr->wstore && sdmr.VolWrites > mr.VolWrites) {
+         Dmsg2(050, "Update StorageId old=%d new=%d\n",
+               mr.StorageId, jcr->wstore->StorageId);
+         /* Update StorageId after write */
+         set_storageid_in_mr(jcr->wstore, &mr);
+      } else {
+         /* Nothing written, reset same StorageId */
+         set_storageid_in_mr(NULL, &mr);
+      }
 
       /* Copy updated values to original media record */
       mr.VolJobs      = sdmr.VolJobs;
@@ -293,26 +307,6 @@ void catalog_request(JCR *jcr, BSOCK *bs)
       }
       if (sdmr.VolWriteTime >= 0) {
          mr.VolWriteTime = sdmr.VolWriteTime;
-      }
-
-      /*
-       * Update to point to the last device used to write the Volume.
-       *   However, do so only if we are writing the tape, i.e.
-       *   the number of VolWrites has increased.
-       */
-      if (jcr->wstore && jcr->wstore->StorageId && sdmr.VolWrites > mr.VolWrites) {
-         Dmsg2(050, "Update StorageId old=%d new=%d\n",
-               mr.StorageId, jcr->wstore->StorageId);
-         if (jcr->wstore->StorageId == 0) {
-            Jmsg(jcr, M_ERROR, 0, _("Attempt to set StorageId to zero.\n"));
-            db_unlock(jcr->db);
-            return;
-         } else {
-            set_storageid_in_mr(jcr->wstore, &mr);
-         }
-      } else {
-         /* ***FIXME*** is this correct? */
-         set_storageid_in_mr(NULL, &mr);
       }
 
       Dmsg2(400, "db_update_media_record. Stat=%s Vol=%s\n", mr.VolStatus, mr.VolumeName);
