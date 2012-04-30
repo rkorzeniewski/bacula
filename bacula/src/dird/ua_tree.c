@@ -194,7 +194,7 @@ int insert_tree_handler(void *ctx, int num_fields, char **row)
    int32_t delta_seq;
    JobId_t JobId;
 
-   Dmsg4(100, "Path=%s%s FI=%s JobId=%s\n", row[0], row[1],
+   Dmsg4(150, "Path=%s%s FI=%s JobId=%s\n", row[0], row[1],
          row[2], row[3]);
    if (*row[1] == 0) {                 /* no filename => directory */
       if (!IsPathSeparator(*row[0])) { /* Must be Win32 directory */
@@ -210,7 +210,7 @@ int insert_tree_handler(void *ctx, int num_fields, char **row)
    JobId = str_to_int64(row[3]);
    FileIndex = str_to_int64(row[2]);
    delta_seq = str_to_int64(row[5]);
-   Dmsg5(100, "node=0x%p JobId=%s FileIndex=%s Delta=%s node.delta=%d\n",
+   Dmsg5(150, "node=0x%p JobId=%s FileIndex=%s Delta=%s node.delta=%d\n",
          node, row[3], row[2], row[5], node->delta_seq);
 
    /* TODO: check with hardlinks */

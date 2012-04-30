@@ -138,7 +138,7 @@ int bget_dirmsg(BSOCK *bs)
 
    for ( ; !bs->is_stop() && !bs->is_timed_out(); ) {
       n = bs->recv();
-      Dmsg2(100, "bget_dirmsg %d: %s\n", n, bs->msg);
+      Dmsg2(200, "bget_dirmsg %d: %s\n", n, bs->msg);
 
       if (bs->is_stop() || bs->is_timed_out()) {
          return n;                    /* error or terminate */
