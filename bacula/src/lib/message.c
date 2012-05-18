@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2011 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2012 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -91,6 +91,24 @@ static int hangup = 0;
 const char *host_os = HOST_OS;
 const char *distname = DISTNAME;
 const char *distver = DISTVER;
+
+/*
+ * Walk back in a string from end looking for a
+ *  path separator.  
+ *  This routine is passed the start of the string and
+ *  the end of the string, it returns either the beginning
+ *  of the string or where it found a path separator.
+ */
+static const char *bstrrpath(const char *start, const char *end)
+{
+   while ( end > start ) {
+      end--;   
+      if (IsPathSeparator(*end)) {
+         break;
+      }
+   }
+   return end;
+}
 
 /* Some message class methods */
 void MSGS::lock()
@@ -937,17 +955,15 @@ send_to_file:
 
 const char *get_basename(const char *pathname)
 {
-   const char *basename, *basename2;
+   const char *basename;
    
-   if ((basename = strrchr(pathname, PathSeparator)) == NULL) {
-      basename = pathname;
-      if ((basename2 = strrchr(pathname, PathSeparator)) != NULL) {
-         basename = basename2 + 1;
-      }
+   if ((basename = bstrrpath(pathname, pathname+strlen(pathname))) == pathname) {
+      /* empty */
+   } else if ((basename = bstrrpath(pathname, basename-1)) == pathname) {
+      /* empty */
    } else {
       basename++;
    }
-
    return basename;
 }
 
