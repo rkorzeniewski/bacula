@@ -93,7 +93,7 @@ extern "C" void *sd_heartbeat_thread(void *arg)
             Dmsg2(100, "Got %d bytes from SD. MSG=%s\n", sd->msglen, sd->msg);
          }
       }
-      Dmsg2(100, "wait_intr=%d stop=%d\n", n, is_bnet_stop(sd));
+      Dmsg2(200, "wait_intr=%d stop=%d\n", n, is_bnet_stop(sd));
    }
    sd->close();
    dir->close();
