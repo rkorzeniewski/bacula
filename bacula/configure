@@ -25576,6 +25576,7 @@ for ac_header in \
    stdarg.h \
    stdlib.h \
    stdint.h \
+   inttypes.h \
    string.h \
    strings.h \
    termios.h \
@@ -28045,6 +28046,22 @@ fi
 done
 
 
+ac_fn_c_check_decl "$LINENO" "F_CLOSEM" "ac_cv_have_decl_F_CLOSEM" "#include <fcntl.h>
+
+"
+if test "x$ac_cv_have_decl_F_CLOSEM" = xyes; then :
+  $as_echo "#define HAVE_FCNTL_F_CLOSEM 1" >>confdefs.h
+
+fi
+
+
+ac_fn_c_check_func "$LINENO" "closefrom" "ac_cv_func_closefrom"
+if test "x$ac_cv_func_closefrom" = xyes; then :
+
+$as_echo "#define HAVE_CLOSEFROM 1" >>confdefs.h
+
+fi
+
 for ac_func in getpagesize
 do :
   ac_fn_c_check_func "$LINENO" "getpagesize" "ac_cv_func_getpagesize"
@@ -28378,6 +28395,80 @@ if test $ac_cv_struct_sockaddr_sa_len = yes; then
 
 $as_echo "#define HAVE_SA_LEN 1" >>confdefs.h
 
+fi
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for working getaddrinfo" >&5
+$as_echo_n "checking for working getaddrinfo... " >&6; }
+if ${ac_cv_working_getaddrinfo+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+
+       if test "$cross_compiling" = yes; then :
+
+              ac_cv_working_getaddrinfo="yes"
+
+
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+              #include <netdb.h>
+              #include <string.h>
+              #include <sys/types.h>
+              #include <sys/socket.h>
+
+              void main(void) {
+                  struct addrinfo hints, *ai;
+                  int error;
+
+                  memset(&hints, 0, sizeof(hints));
+                  hints.ai_family = AF_UNSPEC;
+                  hints.ai_socktype = SOCK_STREAM;
+                  error = getaddrinfo("127.0.0.1", NULL, &hints, &ai);
+                  if (error) {
+                      exit(1);
+                  }
+                  if (ai->ai_addr->sa_family != AF_INET) {
+                      exit(1);
+                  }
+                  exit(0);
+              }
+
+_ACEOF
+if ac_fn_c_try_run "$LINENO"; then :
+
+              ac_cv_working_getaddrinfo="yes"
+
+else
+
+              ac_cv_working_getaddrinfo="no"
+
+fi
+rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
+  conftest.$ac_objext conftest.beam conftest.$ac_ext
+fi
+
+
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_working_getaddrinfo" >&5
+$as_echo "$ac_cv_working_getaddrinfo" >&6; }
+ac_fn_c_check_func "$LINENO" "gai_strerror" "ac_cv_func_gai_strerror"
+if test "x$ac_cv_func_gai_strerror" = xyes; then :
+
+$as_echo "#define HAVE_GAI_STRERROR 1" >>confdefs.h
+
+fi
+
+
+if test "$ac_cv_working_getaddrinfo" = "yes"; then
+  if test "$ac_cv_func_gai_strerror" != "yes"; then
+    ac_cv_working_getaddrinfo="no"
+  else
+
+$as_echo "#define HAVE_GETADDRINFO 1" >>confdefs.h
+
+  fi
 fi
 
 for ac_func in strftime
