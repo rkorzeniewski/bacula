@@ -875,7 +875,7 @@ putline(char *newl, int newlen)
        nptr = (struct lstr *)((char *)lptr + newlen + PHDRL);
        /* Appropriate byte alignment - for Intel 2 byte, but on
           Sparc we need 8 byte alignment, so we always do 8 */
-       if (((long unsigned)nptr & 7) != 0) { /* test four byte alignment */
+       if (((long unsigned)nptr & 7) != 0) { /* test eight byte alignment */
            p = (char *)nptr;
            nptr = (struct lstr *)((((long unsigned) p) & ~7) + 8);
        }
