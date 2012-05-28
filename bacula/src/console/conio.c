@@ -146,9 +146,9 @@ static char *kE;                             /* end */
  */
 typedef struct s_stab {
    struct s_stab *next;
+   char *str;
    int len;
    int func;
-   char *str;
 } stab_t;
 
 #define MAX_STAB 30
@@ -871,13 +871,13 @@ putline(char *newl, int newlen)
        nptr->nextl->prevl = lptr;
        lptr->len += nptr->len;
    }
-   if (lptr->len > newlen + 2 * PHDRL) { /* split buffer */
+   if (lptr->len > newlen + 2 * PHDRL + 7) { /* split buffer */
        nptr = (struct lstr *)((char *)lptr + newlen + PHDRL);
-       /* Appropriate byte alignment - normally 2 byte, but on
-          sparc we need 4 byte alignment, so we always do 4 */
-       if (((long unsigned)nptr & 3) != 0) { /* test four byte alignment */
+       /* Appropriate byte alignment - for Intel 2 byte, but on
+          Sparc we need 8 byte alignment, so we always do 8 */
+       if (((long unsigned)nptr & 7) != 0) { /* test four byte alignment */
            p = (char *)nptr;
-           nptr = (struct lstr *)((((long unsigned) p) & ~3) + 4);
+           nptr = (struct lstr *)((((long unsigned) p) & ~7) + 8);
        }
        nptr->len = lptr->len - ((char *)nptr - (char *)lptr);
        lptr->len -= nptr->len;
