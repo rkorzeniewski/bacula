@@ -502,7 +502,7 @@ bool write_block_to_dev(DCR *dcr)
       dev->file_size = 0;             /* reset file size */
 
       if (!dev->weof(1)) {            /* write eof */
-         Dmsg0(190, "WEOF error in max file size.\n");
+         Dmsg0(50, "WEOF error in max file size.\n");
          Jmsg(jcr, M_FATAL, 0, _("Unable to write EOF. ERR=%s\n"), 
             dev->bstrerror());
          terminate_writing_volume(dcr);
@@ -733,7 +733,7 @@ static bool terminate_writing_volume(DCR *dcr)
    /* Create a JobMedia record to indicated end of tape */
    dev->VolCatInfo.VolCatFiles = dev->file;
    if (!dir_create_jobmedia_record(dcr)) {
-      Dmsg0(190, "Error from create JobMedia\n");
+      Dmsg0(50, "Error from create JobMedia\n");
       dev->dev_errno = EIO;
        Jmsg2(dcr->jcr, M_FATAL, 0, _("Could not create JobMedia record for Volume=\"%s\" Job=%s\n"),
             dcr->getVolCatName(), dcr->jcr->Job);
@@ -745,7 +745,7 @@ static bool terminate_writing_volume(DCR *dcr)
       Jmsg(dcr->jcr, M_ERROR, 0, _("Error writing final EOF to tape. This Volume may not be readable.\n"
            "%s"), dev->errmsg);
       ok = false;
-      Dmsg0(100, "WEOF error.\n");
+      Dmsg0(50, "Error writing final EOF to volume.\n");
    }
    if (ok) {
       ok = write_ansi_ibm_labels(dcr, ANSI_EOV_LABEL, dev->VolHdr.VolumeName);
@@ -767,8 +767,9 @@ static bool terminate_writing_volume(DCR *dcr)
    
    if (!dir_update_volume_info(dcr, false, true)) {
       ok = false;
+      Dmsg0(50, "Error updating volume info.\n");
    }
-   Dmsg1(100, "dir_update_volume_info terminate writing -- %s\n", ok?"OK":"ERROR");
+   Dmsg1(50, "dir_update_volume_info terminate writing -- %s\n", ok?"OK":"ERROR");
 
    /*
     * Walk through all attached dcrs setting flag to call
@@ -788,6 +789,7 @@ static bool terminate_writing_volume(DCR *dcr)
       dev->VolCatInfo.VolCatErrors++;
       /* This may not be fatal since we already wrote an EOF */
       Jmsg(dcr->jcr, M_ERROR, 0, "%s", dev->errmsg);
+      Dmsg0(50, "Writing second EOF failed.\n");
    }
 
    dev->set_ateot();                  /* no more writing this tape */
@@ -807,7 +809,7 @@ static bool do_new_file_bookkeeping(DCR *dcr)
 
    /* Create a JobMedia record so restore can seek */
    if (!dir_create_jobmedia_record(dcr)) {
-      Dmsg0(190, "Error from create_job_media.\n");
+      Dmsg0(50, "Error from create_job_media.\n");
       dev->dev_errno = EIO;
       Jmsg2(jcr, M_FATAL, 0, _("Could not create JobMedia record for Volume=\"%s\" Job=%s\n"),
            dcr->getVolCatName(), jcr->Job);
@@ -817,7 +819,7 @@ static bool do_new_file_bookkeeping(DCR *dcr)
    }
    dev->VolCatInfo.VolCatFiles = dev->file;
    if (!dir_update_volume_info(dcr, false, false)) {
-      Dmsg0(190, "Error from update_vol_info.\n");
+      Dmsg0(50, "Error from update_vol_info.\n");
       terminate_writing_volume(dcr);
       dev->dev_errno = EIO;
       return false;
