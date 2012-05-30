@@ -35,6 +35,7 @@
 #include "bacula.h"
 #include "jcr.h"
 #include <netdb.h>
+#include <netinet/tcp.h>
 
 #ifndef ENODATA                    /* not defined on BSD systems */
 #define ENODATA EPIPE
@@ -258,10 +259,10 @@ bool BSOCK::open(JCR *jcr, const char *name, char *host, char *service,
       }
 #if defined(TCP_KEEPIDLE)
       if (heart_beat) {
-         int opt = heart_beat
-         if (setsockopt(sockfd, IPPROTO_IP, TCP_KEEPIDLE, (sockopt_val_t)&opt, sizeof(opt)) < 0) {
+         int opt = heart_beat;
+         if (setsockopt(sockfd, SOL_TCP, TCP_KEEPIDLE, (sockopt_val_t)&opt, sizeof(opt)) < 0) {
             berrno be;
-            Qmsg1(jcr, M_WARNING, 0, _("Cannot set SO_KEEPIDLE on socket: %s\n"),
+            Qmsg1(jcr, M_WARNING, 0, _("Cannot set TCP_KEEPIDLE on socket: %s\n"),
                   be.bstrerror());
          }
       }
