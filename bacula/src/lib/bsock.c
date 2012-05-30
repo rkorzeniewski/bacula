@@ -218,9 +218,21 @@ bool BSOCK::open(JCR *jcr, const char *name, char *host, char *service,
       if ((sockfd = socket(ipaddr->get_family(), SOCK_STREAM, 0)) < 0) {
          berrno be;
          save_errno = errno;
-         *fatal = 1;
-         Pmsg3(000, _("Socket open error. proto=%d port=%d. ERR=%s\n"),
-            ipaddr->get_family(), ipaddr->get_port_host_order(), be.bstrerror());
+         switch (errno) {
+#ifdef EAFNOSUPPORT
+         case EAFNOSUPPORT:
+            /*
+             * The name lookup of the host returned an address in a protocol family
+             * we don't support. Suppress the error and try the next address.
+             */
+            break;
+#endif
+         default:
+            *fatal = 1;
+            Pmsg3(000, _("Socket open error. proto=%d port=%d. ERR=%s\n"),
+               ipaddr->get_family(), ipaddr->get_port_host_order(), be.bstrerror());
+            break;
+         }
          continue;
       }
 
