@@ -264,7 +264,7 @@ static bool die_cmd(JCR *jcr)
 {
 #ifdef DEVELOPER
    JCR *djcr = NULL;
-   int a;
+   int a, b;
    BSOCK *dir = jcr->dir_bsock;
    pthread_mutex_t m=PTHREAD_MUTEX_INITIALIZER;
 
@@ -276,6 +276,8 @@ static bool die_cmd(JCR *jcr)
    
    Pmsg1(000, "I have been requested to die ... (%s)\n", dir->msg);
    a = djcr->JobId;   /* ref NULL pointer */
+   b = a;             /* Keep compiler quiet */
+   a = b;
 #endif
    return 0;
 }
