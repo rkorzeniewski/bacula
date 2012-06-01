@@ -448,6 +448,7 @@ static bxattr_exit_code aix_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
        * Each xattr valuepair starts with a magic so we can parse it easier.
        */
       current_xattr = (xattr_t *)malloc(sizeof(xattr_t));
+      memset(current_xattr, 0, sizeof(xattr_t));
       current_xattr->magic = XATTR_MAGIC;
       expected_serialize_len += sizeof(current_xattr->magic);
 
@@ -739,6 +740,7 @@ static bxattr_exit_code irix_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
              * Each xattr valuepair starts with a magic so we can parse it easier.
              */
             current_xattr = (xattr_t *)malloc(sizeof(xattr_t));
+            memset(current_xattr, 0, sizeof(xattr_t));
             current_xattr->magic = XATTR_MAGIC;
             expected_serialize_len += sizeof(current_xattr->magic);
 
@@ -1197,6 +1199,7 @@ static bxattr_exit_code generic_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
        * Each xattr valuepair starts with a magic so we can parse it easier.
        */
       current_xattr = (xattr_t *)malloc(sizeof(xattr_t));
+      memset(current_xattr, 0, sizeof(xattr_t));
       current_xattr->magic = XATTR_MAGIC;
       expected_serialize_len += sizeof(current_xattr->magic);
 
@@ -1655,6 +1658,7 @@ static bxattr_exit_code bsd_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
           * Each xattr valuepair starts with a magic so we can parse it easier.
           */
          current_xattr = (xattr_t *)malloc(sizeof(xattr_t));
+         memset(current_xattr, 0, sizeof(xattr_t));
          current_xattr->magic = XATTR_MAGIC;
          expected_serialize_len += sizeof(current_xattr->magic);
 
@@ -2082,6 +2086,7 @@ static bxattr_exit_code tru64_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
        * Each xattr valuepair starts with a magic so we can parse it easier.
        */
       current_xattr = (xattr_t *)malloc(sizeof(xattr_t));
+      memset(current_xattr, 0, sizeof(xattr_t));
       current_xattr->magic = XATTR_MAGIC;
       expected_serialize_len += sizeof(current_xattr->magic);
 
