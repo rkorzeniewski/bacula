@@ -77,7 +77,6 @@
  *   it can always be turned on, but we advise to use it only
  *   for debug
  */
-#if DEVELOPER
 # ifndef _USE_LOCKMGR
 #  define _USE_LOCKMGR
 # endif /* _USE_LOCKMGR */
@@ -98,7 +97,6 @@
  * dozens of thread, so turn this only for debugging.
  */
 /* #define USE_LOCKMGR_SAFEKILL */
-#endif  /* DEVELOPER */
 
 #if !HAVE_LINUX_OS && !HAVE_SUN_OS && !HAVE_DARWIN_OS && !HAVE_FREEBSD_OS
 # undef _USE_LOCKMGR
