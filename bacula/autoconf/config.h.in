@@ -296,6 +296,10 @@
    */
 #undef HAVE_DCGETTEXT
 
+/* Define to 1 if you have the declaration of `cygwin_conv_path', and to 0 if
+   you don't. */
+#undef HAVE_DECL_CYGWIN_CONV_PATH
+
 /* Define to 1 if you have the declaration of `feof_unlocked', and to 0 if you
    don't. */
 #undef HAVE_DECL_FEOF_UNLOCKED
@@ -324,11 +328,20 @@
    */
 #undef HAVE_DIRENT_H
 
+/* Define if you have the GNU dld library. */
+#undef HAVE_DLD
+
+/* Define to 1 if you have the `dlerror' function. */
+#undef HAVE_DLERROR
+
 /* Define to 1 if you have the <dlfcn.h> header file. */
 #undef HAVE_DLFCN_H
 
 /* Define to 1 if you don't have `vprintf' but do have `_doprnt.' */
 #undef HAVE_DOPRNT
+
+/* Define if you have the _dyld_func_lookup function. */
+#undef HAVE_DYLD
 
 /* Set if you have an Embedded MySQL Database */
 #undef HAVE_EMBEDDED_MYSQL
@@ -366,6 +379,9 @@
 /* Define to 1 if you have the 'fchownat' function. */
 #undef HAVE_FCHOWNAT
 
+/* Set if you have 'F_CLOSEM' fcntl flag */
+#undef HAVE_FCNTL_F_CLOSEM
+
 /* Define to 1 if you have the <fcntl.h> header file. */
 #undef HAVE_FCNTL_H
 
@@ -386,6 +402,12 @@
 
 /* Define to 1 if you have the `fwprintf' function. */
 #undef HAVE_FWPRINTF
+
+/* Define to 1 if you have the 'gai_strerror' function. */
+#undef HAVE_GAI_STRERROR
+
+/* Define to 1 if getaddrinfo exists and works */
+#undef HAVE_GETADDRINFO
 
 /* Define to 1 if you have the `getcwd' function. */
 #undef HAVE_GETCWD
@@ -465,7 +487,7 @@
 /* Define to 1 if the system has the type `intptr_t'. */
 #undef HAVE_INTPTR_T
 
-/* Define if <inttypes.h> exists and doesn't clash with <sys/types.h>. */
+/* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
 
 /* Define if <inttypes.h> exists, doesn't clash with <sys/types.h>, and
@@ -498,6 +520,12 @@
 
 /* Define to 1 if you have the <libc.h> header file. */
 #undef HAVE_LIBC_H
+
+/* Define if you have the libdl library or equivalent. */
+#undef HAVE_LIBDL
+
+/* Define if libdlloader will be built on this platform */
+#undef HAVE_LIBDLLOADER
 
 /* Define to 1 if you have the `inet' library (-linet). */
 #undef HAVE_LIBINET
@@ -693,6 +721,9 @@
 
 /* Define if the SHA-2 family of digest algorithms is available */
 #undef HAVE_SHA2
+
+/* Define if you have the shl_load function. */
+#undef HAVE_SHL_LOAD
 
 /* Define to 1 if you have the `signal' function. */
 #undef HAVE_SIGNAL
