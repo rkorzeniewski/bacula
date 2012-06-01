@@ -2351,7 +2351,7 @@ AC_CHECK_FUNCS( \
 
 AC_CHECK_DECL(
     F_CLOSEM,
-    AC_DEFINE(HAVE_FCNTL_F_CLOSEM),
+    AC_DEFINE(HAVE_FCNTL_F_CLOSEM, 1, [Set if you have 'F_CLOSEM' fcntl flag]),
     ,
     [#include <fcntl.h>]
 )
