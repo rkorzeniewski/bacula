@@ -40,7 +40,7 @@
 /*
  * We need Qt version 4.7.4 or later to be able to comple correctly
  */
-#if QT_VERSION < 0x040602
+#if QT_VERSION < 0x040704
 #error "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
 #error "You need Qt version 4.7.4 or later to build Bat"
 #error "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
