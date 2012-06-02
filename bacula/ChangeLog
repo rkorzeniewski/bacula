@@ -1,4 +1,110 @@
-              Changelog on version 5.2.6
+              Changelog on version 5.2.7
+
+Version 5.2.7
+
+
+02Jun12
+ - Correct Qt version needed for bat
+
+01Jun12
+ - Turn on SD deadlock detection by default
+ - Fix bug #1880 ltdl.m4 missing for new feature.
+ - Fix bug #1870 GNU binutils-gold build failure.
+ - Fix bug #1874 crash with xattr support on a BTRFS filesystem
+
+31May12
+ - Add new empty netinet/tcp.h so Windows compile works
+ - Eliminate compiler warning in stored/dircmd.c
+
+30May12
+ - Fix TCP Heartbeat code
+
+28May12
+ - Align conio.c struct at 8 bytes to fix Sparc bus error.
+
+18May12
+ - Fix get_basename() -- rewrite
+
+15May12
+ - Apply James' exchange-fd.c regression fix
+
+05May12
+ - Add first Dutch translation
+
+30Apr12
+ - Ensure that StorageId is updated after write
+ - Fix updating of cached slots + error message numbering
+
+29Apr12
+ - Remove old shared objects before install
+
+22Apr12
+ - Add missing dummy bVarPrefixLinks variable retrieval.
+ - Rebuild configure.
+ - Fix mysql config for older versions of mysql+config.
+
+20Apr12
+ - Fix problem in BVFS with concurrent queries
+ - Add more checks to bvfs
+
+19Apr12
+ - Try to use multi-row insert statements for mysql.
+ - On some platforms intptr_t is in an other include file.
+ - Add support for fcntl(fd, F_CLOSEM) to close filedescriptors.
+ - Use closefrom if available instead of trying to close fds ourself.
+ - Fix class member shadowing.
+ - Move storages tls initialization to proper place.
+ - Fix Copyright on init scripts suse, add specific daemon user & group
+ - Add support for new POSIX getaddrinfo interface.
+ - Recompile configure.in
+ - Apply MSQL detection fixes from bug #1829
+ - Recompile configure.in
+ - Fix bug #1805 cannot specify hostname in ./configure
+ - Require latest Qtlibs
+ - Fix restore_job restore keyword
+
+18Apr12
+ - Allow plugin to backup a directory
+ - Print seconds in schedule time as noted in bug #1854
+ - Change dev->open() to return bool
+
+17Apr12
+ - Fix #1857 about restore cd command that blocks on empty directory
+
+15Apr12
+ - Backport new StorageId code
+
+14Apr12
+ - More definitive fix for update slots bug
+
+13Apr12
+ - Fix old update slots bug
+
+12Apr12
+ - Fix #4062 on make_catalog_backup.pl script when user/password are empty
+
+28Mar12
+ - Fix bug #1853: bacula-sd dead but pid file exists.
+
+23Mar12
+ - Fix bug #1841 estimate command level=differential goes wrong in accurate 
+  mode.
+
+22Mar12
+ - Fix bug #1842 Incorrect port number reported
+ - Fix bug #1848 bsock.c:335 Socket has errors=1 on call to client
+
+10Mar12
+ - Force the re-initialization of BaseJobOpts, AccurateOpts and VerifyOpts 
+  between two Include{}
+
+08Mar12
+ - Add test-deltaseq source
+ - Rename delta-test plugin to test-deltaseq
+
+Bugs fixed/closed since last release:
+1805 1829 1841 1842 1848 1853 1854 1857 1870 1874 1880 4062
+
 
 Version 5.2.6
 

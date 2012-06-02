@@ -5,7 +5,8 @@
 
 General:
 --------
-The 5.2.7 version is a bug fix release.
+The 5.2.7 version is a significan bug fix release. (The
+diff file between 5.2.6 and this one is over 25,000 lines).
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 Please note that with this version of Bacula, during the install
@@ -25,12 +26,71 @@ that the project cannot properly support.
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-If you are upgrading from a version older than 5.2.6, please
+If you are upgrading from a version older than 5.2.7, please
 read all the old ReleaseNotes of all versions released
 after the version you are upgrading from. There area
 many important notices sumarized here, and we do not 
 repeat them each bug fix release.
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+Compatibility:
+--------------
+ As always, both the Director and Storage daemon must be upgraded at
+ the same time.
+
+ Older 5.0.x and 3.0.x File Daemons are compatible with the 5.2.3
+ Director and Storage daemons. There should be no need to upgrade older File
+ Daemons.
+
+Changes since 5.2.6:
+--------------------
+02Jun12
+ - Correct Qt version needed for bat
+ - Turn on SD deadlock detection by default
+ - Fix bug #1880 ltdl.m4 missing for new feature.
+ - Fix bug #1870 GNU binutils-gold build failure.
+ - Add new empty netinet/tcp.h so Windows compile works
+ - Eliminate compiler warning in stored/dircmd.c
+ - Fix TCP Heartbeat code
+ - Align conio.c struct at 8 bytes to fix Sparc bus error.
+ - Fix get_basename() -- rewrite
+ - Apply James' exchange-fd.c regression fix
+ - Add first Dutch translation
+ - Ensure that StorageId is updated after write
+ - Fix updating of cached slots + error message numbering
+ - Remove old shared objects before install
+ - Add missing dummy bVarPrefixLinks variable retrieval.
+ - Fix mysql config for older versions of mysql+config.
+ - Fix problem in BVFS with concurrent queries
+ - Add more checks to bvfs
+ - Try to use multi-row insert statements for mysql.
+ - On some platforms intptr_t is in an other include file.
+ - Add support for fcntl(fd, F_CLOSEM) to close filedescriptors.
+ - Use closefrom if available instead of trying to close fds ourself.
+ - Fix class member shadowing.
+ - Move storages tls initialization to proper place.
+ - Fix Copyright on init scripts suse, add specific daemon user & group
+ - Add support for new POSIX getaddrinfo interface.
+ - Apply MSQL detection fixes from bug #1829
+ - Fix bug #1805 cannot specify hostname in ./configure
+ - Fix restore_job restore keyword
+ - Allow plugin to backup a directory
+ - Print seconds in schedule time as noted in bug #1854
+ - Fix #1857 about restore cd command that blocks on empty directory
+ - Backport new StorageId code
+ - More definitive fix for update slots bug
+ - Fix #4062 on make_catalog_backup.pl script when user/password are empty
+ - Fix bug #1853: bacula-sd dead but pid file exists.
+ - Fix bug #1841 estimate command level=differential goes wrong in accurate 
+   mode.
+ - Fix bug #1842 Incorrect port number reported
+ - Fix bug #1848 bsock.c:335 Socket has errors=1 on call to client
+ - Force the re-initialization of BaseJobOpts, AccurateOpts and VerifyOpts 
+   between two Include{}
+
+Bugs fixed/closed since last release:
+1805 1829 1841 1842 1848 1853 1854 1857 1870 1874 1880 4062
+
 
 
 General:
