@@ -668,9 +668,8 @@ bool B_DB_MYSQL::sql_batch_insert(JCR *jcr, ATTR_DBR *ar)
       } else {
          changes = 0;
       }
-   } else {
-      return true;
    }
+   return true;
 }
 
 /*
