@@ -41,6 +41,10 @@
 #define ENODATA EPIPE
 #endif
 
+#ifndef SOL_TCP
+#define SOL_TCP IPPROTO_TCP
+#endif
+
 #ifdef HAVE_WIN32
 #define socketRead(fd, buf, len)  ::recv(fd, buf, len, 0)
 #define socketWrite(fd, buf, len) ::send(fd, buf, len, 0)
