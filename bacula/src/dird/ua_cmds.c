@@ -1316,16 +1316,6 @@ static int estimate_cmd(UAContext *ua, const char *cmd)
       return 1;
    }
 
-   if (!send_include_list(jcr)) {
-      ua->error_msg(_("Error sending include list.\n"));
-      goto bail_out;
-   }
-
-   if (!send_exclude_list(jcr)) {
-      ua->error_msg(_("Error sending exclude list.\n"));
-      goto bail_out;
-   }
-
    /* The level string change if accurate mode is enabled */
    if (accurate >= 0) {
       jcr->accurate = accurate;
@@ -1334,6 +1324,16 @@ static int estimate_cmd(UAContext *ua, const char *cmd)
    }
 
    if (!send_level_command(jcr)) {
+      goto bail_out;
+   }
+
+   if (!send_include_list(jcr)) {
+      ua->error_msg(_("Error sending include list.\n"));
+      goto bail_out;
+   }
+
+   if (!send_exclude_list(jcr)) {
+      ua->error_msg(_("Error sending exclude list.\n"));
       goto bail_out;
    }
 
