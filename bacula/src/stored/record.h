@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2010 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2012 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -172,6 +172,7 @@ struct Volume_Label {
   char LabelProg[50];                 /* Label program name */
   char ProgVersion[50];               /* Program version */
   char ProgDate[50];                  /* Program build date/time */
+
 };
 
 #define SER_LENGTH_Volume_Label 1024   /* max serialised length of volume label */

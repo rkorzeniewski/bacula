@@ -317,7 +317,7 @@ public:
    int is_tape() const { return (dev_type == B_TAPE_DEV || 
                                  dev_type == B_VTAPE_DEV); }
    int is_ftp() const { return dev_type == B_FTP_DEV; }
-   int is_file() const { return dev_type == B_FILE_DEV; }
+   int is_file() const { return (dev_type == B_FILE_DEV); }
    int is_fifo() const { return dev_type == B_FIFO_DEV; }
    int is_dvd() const  { return dev_type == B_DVD_DEV; }
    int is_vtl() const  { return dev_type == B_VTL_DEV; }
@@ -485,6 +485,10 @@ inline const char *DEVICE::strerror() const { return errmsg; }
 inline const char *DEVICE::archive_name() const { return dev_name; }
 inline const char *DEVICE::print_name() const { return prt_name; }
 
+
+#define CHECK_BLOCK_NUMBERS    true
+#define NO_BLOCK_NUMBER_CHECK  false
+
 /*
  * Device Context (or Control) Record.
  *  There is one of these records for each Job that is using
@@ -590,6 +594,16 @@ public:
    bool do_unload();
    bool do_load(bool is_writing);
    bool is_tape_position_ok();
+
+   /* Methods in block.c */
+   bool write_block_to_device();
+   bool write_block_to_dev();
+   bool read_block_from_device(bool check_block_numbers);
+   bool read_block_from_dev(bool check_block_numbers);
+
+   /* Methods in label.c */
+   bool rewrite_volume_label(bool recycle);
+   
 };
 
 /*

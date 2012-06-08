@@ -31,8 +31,6 @@
  *
  *   Kern E. Sibbald, October 2002
  *
- *
- *   Version $Id$
  */
 
 #include "bacula.h"
@@ -215,7 +213,7 @@ int main (int argc, char *argv[])
    ok = read_records(in_jcr->dcr, record_cb, mount_next_read_volume);
 
    if (ok || out_dev->can_write()) {
-      if (!write_block_to_device(out_jcr->dcr)) {
+      if (!out_jcr->dcr->write_block_to_device()) {
          Pmsg0(000, _("Write of last block failed.\n"));
       }
    }
@@ -273,10 +271,10 @@ static bool record_cb(DCR *in_dcr, DEV_RECORD *rec)
             /* Skipping record, because does not match BSR filter */
            return true;
         }
-         while (!write_record_to_block(out_block, rec)) {
+         while (!write_record_to_block(out_jcr->dcr, rec)) {
             Dmsg2(150, "!write_record_to_block data_len=%d rem=%d\n", rec->data_len,
                        rec->remainder);
-            if (!write_block_to_device(out_jcr->dcr)) {
+            if (!out_jcr->dcr->write_block_to_device()) {
                Dmsg2(90, "Got write_block_to_dev error on device %s: ERR=%s\n",
                   out_dev->print_name(), out_dev->bstrerror());
                Jmsg(out_jcr, M_FATAL, 0, _("Cannot fixup device error. %s\n"),
@@ -284,7 +282,7 @@ static bool record_cb(DCR *in_dcr, DEV_RECORD *rec)
                return false;
             }
          }
-         if (!write_block_to_device(out_jcr->dcr)) {
+         if (!out_jcr->dcr->write_block_to_device()) {
             Dmsg2(90, "Got write_block_to_dev error on device %s: ERR=%s\n",
                out_dev->print_name(), out_dev->bstrerror());
             Jmsg(out_jcr, M_FATAL, 0, _("Cannot fixup device error. %s\n"),
@@ -309,10 +307,10 @@ static bool record_cb(DCR *in_dcr, DEV_RECORD *rec)
       return true;
    }
    records++;
-   while (!write_record_to_block(out_block, rec)) {
+   while (!write_record_to_block(out_jcr->dcr, rec)) {
       Dmsg2(150, "!write_record_to_block data_len=%d rem=%d\n", rec->data_len,
                  rec->remainder);
-      if (!write_block_to_device(out_jcr->dcr)) {
+      if (!out_jcr->dcr->write_block_to_device()) {
          Dmsg2(90, "Got write_block_to_dev error on device %s: ERR=%s\n",
             out_dev->print_name(), out_dev->bstrerror());
          Jmsg(out_jcr, M_FATAL, 0, _("Cannot fixup device error. %s\n"),

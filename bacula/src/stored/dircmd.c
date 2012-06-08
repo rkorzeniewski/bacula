@@ -515,7 +515,7 @@ static void label_volume_if_ok(DCR *dcr, char *oldname,
    case VOL_IO_ERROR:
    case VOL_NO_LABEL:
       if (!write_new_volume_label_to_dev(dcr, newname, poolname, 
-           relabel, true /* write dvd now */)) {
+              relabel, true /* write dvd now */)) {
          dir->fsend(_("3912 Failed to label Volume: ERR=%s\n"), dev->bstrerror());
          break;
       }

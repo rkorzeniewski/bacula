@@ -265,7 +265,7 @@ read_volume:
     */
    recycle = strcmp(dev->VolCatInfo.VolCatStatus, "Recycle") == 0;
    if (dev->VolHdr.LabelType == PRE_LABEL || recycle) {
-      if (!rewrite_volume_label(dcr, recycle)) {
+      if (!dcr->rewrite_volume_label(recycle)) {
          mark_volume_in_error();
          goto mount_next_vol;
       }

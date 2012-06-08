@@ -660,7 +660,7 @@ DCR *new_dcr(JCR *jcr, DCR *dcr, DEVICE *dev)
          detach_dcr_from_dev(dcr);
       }
       /* Use job spoolsize prior to device spoolsize */
-      if (jcr->spool_size) {
+      if (jcr && jcr->spool_size) {
          dcr->max_job_spool_size = jcr->spool_size;
       } else {
          dcr->max_job_spool_size = dev->device->max_job_spool_size;

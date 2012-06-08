@@ -283,7 +283,7 @@ static void do_blocks(char *infname)
    DEV_BLOCK *block = dcr->block;
    char buf1[100], buf2[100];
    for ( ;; ) {
-      if (!read_block_from_device(dcr, NO_BLOCK_NUMBER_CHECK)) {
+      if (!dcr->read_block_from_device(NO_BLOCK_NUMBER_CHECK)) {
          Dmsg1(100, "!read_block(): ERR=%s\n", dev->bstrerror());
          if (dev->at_eot()) {
             if (!mount_next_read_volume(dcr)) {
@@ -294,7 +294,7 @@ static void do_blocks(char *infname)
             /* Read and discard Volume label */
             DEV_RECORD *record;
             record = new_record();
-            read_block_from_device(dcr, NO_BLOCK_NUMBER_CHECK);
+            dcr->read_block_from_device(NO_BLOCK_NUMBER_CHECK);
             read_record_from_block(dcr, block, record);
             get_session_record(dev, record, &sessrec);
             free_record(record);

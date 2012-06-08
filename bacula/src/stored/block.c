@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2001-2010 Free Software Foundation Europe e.V.
+   Copyright (C) 2001-2012 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -335,11 +335,10 @@ static bool unser_block_header(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
  *        : false on failure
  *
  */
-bool write_block_to_device(DCR *dcr)
+bool DCR::write_block_to_device()
 {
    bool stat = true;
-   DEVICE *dev = dcr->dev;
-   JCR *jcr = dcr->jcr;
+   DCR *dcr = this;
 
    if (dcr->spooling) {
       stat = write_block_to_spool_file(dcr);
@@ -379,7 +378,7 @@ bool write_block_to_device(DCR *dcr)
       }
    }
 
-   if (!write_block_to_dev(dcr)) {
+   if (!dcr->write_block_to_dev()) {
        if (job_canceled(jcr) || jcr->getJobType() == JT_SYSTEM) {
           stat = false;
        } else {
@@ -401,15 +400,13 @@ bail_out:
  *  Returns: true  on success or EOT
  *           false on hard error
  */
-bool write_block_to_dev(DCR *dcr)
+bool DCR::write_block_to_dev()
 {
    ssize_t stat = 0;
    uint32_t wlen;                     /* length to write */
    int hit_max1, hit_max2;
    bool ok = true;
-   DEVICE *dev = dcr->dev;
-   JCR *jcr = dcr->jcr;
-   DEV_BLOCK *block = dcr->block;
+   DCR *dcr = this;
 
 #ifdef NO_TAPE_WRITE_TEST
    empty_block(block);
@@ -690,7 +687,7 @@ static void reread_last_block(DCR *dcr)
          DEV_BLOCK *lblock = new_block(dev);
          /* Note, this can destroy dev->errmsg */
          dcr->block = lblock;
-         if (!read_block_from_dev(dcr, NO_BLOCK_NUMBER_CHECK)) {
+         if (!dcr->read_block_from_dev(NO_BLOCK_NUMBER_CHECK)) {
             Jmsg(jcr, M_ERROR, 0, _("Re-read last block at EOT failed. ERR=%s"), 
                  dev->errmsg);
          } else {
@@ -919,13 +916,13 @@ static bool do_dvd_size_checks(DCR *dcr)
  * Read block with locking
  *
  */
-bool read_block_from_device(DCR *dcr, bool check_block_numbers)
+bool DCR::read_block_from_device(bool check_block_numbers)
 {
    bool ok;
-   DEVICE *dev = dcr->dev;
+
    Dmsg0(250, "Enter read_block_from_device\n");
    dev->r_dlock();
-   ok = read_block_from_dev(dcr, check_block_numbers);
+   ok = read_block_from_dev(check_block_numbers);
    dev->dunlock();
    Dmsg0(250, "Leave read_block_from_device\n");
    return ok;
@@ -936,14 +933,12 @@ bool read_block_from_device(DCR *dcr, bool check_block_numbers)
  *  the block header.  For a file, the block may be partially
  *  or completely in the current buffer.
  */
-bool read_block_from_dev(DCR *dcr, bool check_block_numbers)
+bool DCR::read_block_from_dev(bool check_block_numbers)
 {
    ssize_t stat;
    int looping;
    int retry;
-   JCR *jcr = dcr->jcr;
-   DEVICE *dev = dcr->dev;
-   DEV_BLOCK *block = dcr->block;
+   DCR *dcr = this;
 
    if (job_canceled(jcr)) {
       return false;

@@ -214,10 +214,10 @@ fi_checked:
             stream_to_ascii(buf1, rec.Stream,rec.FileIndex),
             rec.data_len);
 
-         while (!write_record_to_block(dcr->block, &rec)) {
+         while (!write_record_to_block(dcr, &rec)) {
             Dmsg2(850, "!write_record_to_block data_len=%d rem=%d\n", rec.data_len,
                        rec.remainder);
-            if (!write_block_to_device(dcr)) {
+            if (!dcr->write_block_to_device()) {
                Dmsg2(90, "Got write_block_to_dev error on device %s. %s\n",
                   dev->print_name(), dev->bstrerror());
                ok = false;
@@ -293,13 +293,9 @@ fi_checked:
          jcr->setJobStatus(JS_ErrorTerminated);
          ok = false;
       }
-      if (dev->VolCatInfo.VolCatName[0] == 0) {
-         Pmsg0(000, _("NULL Volume name. This shouldn't happen!!!\n"));
-         Dmsg0(000, _("NULL Volume name. This shouldn't happen!!!\n"));
-      }
       Dmsg0(90, "back from write_end_session_label()\n");
       /* Flush out final partial block of this session */
-      if (!write_block_to_device(dcr)) {
+      if (!dcr->write_block_to_device()) {
          /* Print only if ok and not cancelled to avoid spurious messages */
          if (ok && !jcr->is_job_canceled()) {
             Jmsg2(jcr, M_FATAL, 0, _("Fatal append error on device %s: ERR=%s\n"),

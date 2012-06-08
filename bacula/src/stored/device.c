@@ -146,7 +146,7 @@ bool fixup_device_block_write_error(DCR *dcr, int retries)
     *  empty label_blk, and nothing will be written.
     */
    Dmsg0(190, "write label block to dev\n");
-   if (!write_block_to_dev(dcr)) {
+   if (!dcr->write_block_to_dev()) {
       berrno be;
       Pmsg1(0, _("write_block_to_device Volume label failed. ERR=%s"),
         be.bstrerror(dev->dev_errno));
@@ -181,7 +181,7 @@ bool fixup_device_block_write_error(DCR *dcr, int retries)
 
    /* Write overflow block to device */
    Dmsg0(190, "Write overflow block to dev\n");
-   if (!write_block_to_dev(dcr)) {
+   if (!dcr->write_block_to_dev()) {
       berrno be;
       Dmsg1(0, _("write_block_to_device overflow block failed. ERR=%s"),
         be.bstrerror(dev->dev_errno));

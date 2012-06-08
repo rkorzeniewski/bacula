@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2010 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2012 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -57,12 +57,11 @@
 #define WRITE_RECHDR_LENGTH RECHDR2_LENGTH
 
 /* Tape label and version definitions */
-#define BaculaId    "Bacula 1.0 immortal\n"
-#define OldBaculaId "Bacula 0.9 mortal\n"
-#define BaculaTapeVersion 11
+#define BaculaId         "Bacula 1.0 immortal\n"
+#define OldBaculaId      "Bacula 0.9 mortal\n"
+#define BaculaTapeVersion                11
 #define OldCompatibleBaculaTapeVersion1  10
 #define OldCompatibleBaculaTapeVersion2   9
-
 
 /*
  * This is the Media structure for a block header

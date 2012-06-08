@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2006-2011 Free Software Foundation Europe e.V.
+   Copyright (C) 2006-2012 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -122,7 +122,7 @@ ok_out:
       Dmsg1(100, "ok=%d\n", ok);
       if (ok || dev->can_write()) {
          /* Flush out final partial block of this session */
-         if (!write_block_to_device(jcr->dcr)) {
+         if (!jcr->dcr->write_block_to_device()) {
             Jmsg2(jcr, M_FATAL, 0, _("Fatal append error on device %s: ERR=%s\n"),
                   dev->print_name(), dev->bstrerror());
             Dmsg0(100, _("Set ok=FALSE after write_block_to_device.\n"));
@@ -238,10 +238,10 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
       jcr->JobId,
       FI_to_ascii(buf1, rec->FileIndex), rec->VolSessionId,
       stream_to_ascii(buf2, rec->Stream, rec->FileIndex), rec->data_len);
-   while (!write_record_to_block(jcr->dcr->block, rec)) {
+   while (!write_record_to_block(jcr->dcr, rec)) {
       Dmsg4(200, "!write_record_to_block blkpos=%u:%u len=%d rem=%d\n", 
             dev->file, dev->block_num, rec->data_len, rec->remainder);
-      if (!write_block_to_device(jcr->dcr)) {
+      if (!jcr->dcr->write_block_to_device()) {
          Dmsg2(90, "Got write_block_to_dev error on device %s. %s\n",
             dev->print_name(), dev->bstrerror());
          Jmsg2(jcr, M_FATAL, 0, _("Fatal append error on device %s: ERR=%s\n"),

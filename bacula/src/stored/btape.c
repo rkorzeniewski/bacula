@@ -733,7 +733,7 @@ static void capcmd()
  */
 static void rectestcmd()
 {
-   DEV_BLOCK *block;
+   DEV_BLOCK *save_block;
    DEV_RECORD *rec;
    int i, blkno = 0;
 
@@ -750,7 +750,8 @@ static void rectestcmd()
    }
 
    Dsm_check(200);
-   block = new_block(dev);
+   save_block = dcr->block;
+   dcr->block = new_block(dev);
    rec = new_record();
 
    for (i=1; i<500000; i++) {
@@ -758,8 +759,8 @@ static void rectestcmd()
       memset(rec->data, i & 0xFF, i);
       rec->data_len = i;
       Dsm_check(200);
-      if (write_record_to_block(block, rec)) {
-         empty_block(block);
+      if (write_record_to_block(dcr, rec)) {
+         empty_block(dcr->block);
          blkno++;
          Pmsg2(0, _("Block %d i=%d\n"), blkno, i);
       } else {
@@ -768,7 +769,8 @@ static void rectestcmd()
       Dsm_check(200);
    }
    free_record(rec);
-   free_block(block);
+   free_block(dcr->block);
+   dcr->block = save_block;     /* restore block to dcr */
    Dsm_check(200);
 }
 
@@ -803,33 +805,33 @@ static bool re_read_block_test()
    rec->data = check_pool_memory_size(rec->data, block->buf_len);
    len = rec->data_len = block->buf_len-100;
    memset(rec->data, 1, rec->data_len);
-   if (!write_record_to_block(block, rec)) {
+   if (!write_record_to_block(dcr, rec)) {
       Pmsg0(0, _("Error writing record to block.\n"));
       goto bail_out;
    }
-   if (!write_block_to_dev(dcr)) {
+   if (!dcr->write_block_to_dev()) {
       Pmsg0(0, _("Error writing block to device.\n"));
       goto bail_out;
    } else {
       Pmsg1(0, _("Wrote first record of %d bytes.\n"), rec->data_len);
    }
    memset(rec->data, 2, rec->data_len);
-   if (!write_record_to_block(block, rec)) {
+   if (!write_record_to_block(dcr, rec)) {
       Pmsg0(0, _("Error writing record to block.\n"));
       goto bail_out;
    }
-   if (!write_block_to_dev(dcr)) {
+   if (!dcr->write_block_to_dev()) {
       Pmsg0(0, _("Error writing block to device.\n"));
       goto bail_out;
    } else {
       Pmsg1(0, _("Wrote second record of %d bytes.\n"), rec->data_len);
    }
    memset(rec->data, 3, rec->data_len);
-   if (!write_record_to_block(block, rec)) {
+   if (!write_record_to_block(dcr, rec)) {
       Pmsg0(0, _("Error writing record to block.\n"));
       goto bail_out;
    }
-   if (!write_block_to_dev(dcr)) {
+   if (!dcr->write_block_to_dev()) {
       Pmsg0(0, _("Error writing block to device.\n"));
       goto bail_out;
    } else {
@@ -855,7 +857,7 @@ static bool re_read_block_test()
       goto bail_out;
    }
    Pmsg0(0, _("Backspace record OK.\n"));
-   if (!read_block_from_dev(dcr, NO_BLOCK_NUMBER_CHECK)) {
+   if (!dcr->read_block_from_dev(NO_BLOCK_NUMBER_CHECK)) {
       berrno be;
       Pmsg1(0, _("Read block failed! ERR=%s\n"), be.bstrerror(dev->dev_errno));
       goto bail_out;
@@ -965,11 +967,11 @@ static bool speed_test_bacula(fill_mode_t mode, uint64_t nb_gb, uint32_t nb)
       init_speed();
       for ( ; written < nb_gb; ) {
 
-         if (!write_record_to_block(block, rec)) {
+         if (!write_record_to_block(dcr, rec)) {
             Pmsg0(0, _("\nError writing record to block.\n"));
             goto bail_out;
          }
-         if (!write_block_to_dev(dcr)) {
+         if (!dcr->write_block_to_dev()) {
             Pmsg0(0, _("\nError writing block to device.\n"));
             goto bail_out;
          }
@@ -1143,11 +1145,11 @@ static bool write_two_files()
       for (j=0; j<len; j++) {
          *p++ = i;
       }
-      if (!write_record_to_block(block, rec)) {
+      if (!write_record_to_block(dcr, rec)) {
          Pmsg0(0, _("Error writing record to block.\n"));
          goto bail_out;
       }
-      if (!write_block_to_dev(dcr)) {
+      if (!dcr->write_block_to_dev()) {
          Pmsg0(0, _("Error writing block to device.\n"));
          goto bail_out;
       }
@@ -1159,11 +1161,11 @@ static bool write_two_files()
       for (j=0; j<len; j++) {
          *p++ = i;
       }
-      if (!write_record_to_block(block, rec)) {
+      if (!write_record_to_block(dcr, rec)) {
          Pmsg0(0, _("Error writing record to block.\n"));
          goto bail_out;
       }
-      if (!write_block_to_dev(dcr)) {
+      if (!dcr->write_block_to_dev()) {
          Pmsg0(0, _("Error writing block to device.\n"));
          goto bail_out;
       }
@@ -1220,7 +1222,7 @@ static bool write_read_test()
    /* Now read it back */
    for (i=1; i<=2*num_recs; i++) {
 read_again:
-      if (!read_block_from_dev(dcr, NO_BLOCK_NUMBER_CHECK)) {
+      if (!dcr->read_block_from_dev(NO_BLOCK_NUMBER_CHECK)) {
          berrno be;
          if (dev_state(dev, ST_EOF)) {
             Pmsg0(-1, _("Got EOF on tape.\n"));
@@ -1339,7 +1341,7 @@ static bool position_test()
          goto bail_out;
       }
 read_again:
-      if (!read_block_from_dev(dcr, NO_BLOCK_NUMBER_CHECK)) {
+      if (!dcr->read_block_from_dev(NO_BLOCK_NUMBER_CHECK)) {
          berrno be;
          if (dev_state(dev, ST_EOF)) {
             Pmsg0(-1, _("Got EOF on tape.\n"));
@@ -1874,7 +1876,7 @@ static void fsrcmd()
 static void rbcmd()
 {
    dev->open(dcr, OPEN_READ_ONLY);
-   read_block_from_dev(dcr, NO_BLOCK_NUMBER_CHECK);  
+   dcr->read_block_from_dev(NO_BLOCK_NUMBER_CHECK);
 }
 
 /*
@@ -1901,11 +1903,11 @@ static void wrcmd()
    memset(rec->data, i & 0xFF, i);
    rec->data_len = i;
    Dsm_check(200);
-   if (!write_record_to_block(block, rec)) {
+   if (!write_record_to_block(dcr, rec)) {
       Pmsg0(0, _("Error writing record to block.\n"));
       goto bail_out;
    }
-   if (!write_block_to_dev(dcr)) {
+   if (!dcr->write_block_to_dev()) {
       Pmsg0(0, _("Error writing block to device.\n"));
       goto bail_out;
    } else {
@@ -2050,7 +2052,7 @@ static void scan_blocks()
    dev->update_pos(dcr);
    tot_files = dev->file;
    for (;;) {
-      if (!read_block_from_device(dcr, NO_BLOCK_NUMBER_CHECK)) {
+      if (!dcr->read_block_from_device(NO_BLOCK_NUMBER_CHECK)) {
          Dmsg1(100, "!read_block(): ERR=%s\n", dev->bstrerror());
          if (dev->state & ST_EOT) {
             if (blocks > 0) {
@@ -2272,7 +2274,7 @@ static void fillcmd()
          stream_to_ascii(buf1, rec.Stream, rec.FileIndex),
          rec.data_len);
 
-      while (!write_record_to_block(block, &rec)) {
+      while (!write_record_to_block(dcr, &rec)) {
          /*
           * When we get here we have just filled a block
           */
@@ -2354,7 +2356,7 @@ static void fillcmd()
          exit_code = 1;
       }
       /* Write out final block of this session */
-      if (!write_block_to_device(dcr)) {
+      if (!dcr->write_block_to_device()) {
          Pmsg0(-1, _("Set ok=false after write_block_to_device.\n"));
          ok = false;
          exit_code = 1;
@@ -2552,7 +2554,7 @@ static bool do_unfill()
       goto bail_out;
    }
    Pmsg1(-1, _("Reading block %u.\n"), last_block_num);
-   if (!read_block_from_device(dcr, NO_BLOCK_NUMBER_CHECK)) {
+   if (!dcr->read_block_from_device(NO_BLOCK_NUMBER_CHECK)) {
       Pmsg1(-1, _("Error reading block: ERR=%s\n"), dev->bstrerror());
       goto bail_out;
    }
@@ -2604,7 +2606,7 @@ static bool do_unfill()
       goto bail_out;
    }
    Pmsg1(-1, _("Reading block %d.\n"), dev->block_num);
-   if (!read_block_from_device(dcr, NO_BLOCK_NUMBER_CHECK)) {
+   if (!dcr->read_block_from_device(NO_BLOCK_NUMBER_CHECK)) {
       Pmsg1(-1, _("Error reading block: ERR=%s\n"), dev->bstrerror());
       goto bail_out;
    }
@@ -2620,7 +2622,7 @@ static bool do_unfill()
       goto bail_out;
    }
    Pmsg1(-1, _("Reading block %d.\n"), dev->block_num);
-   if (!read_block_from_device(dcr, NO_BLOCK_NUMBER_CHECK)) {
+   if (!dcr->read_block_from_device(NO_BLOCK_NUMBER_CHECK)) {
       Pmsg1(-1, _("Error reading block: ERR=%s\n"), dev->bstrerror());
       goto bail_out;
    }
@@ -2707,7 +2709,7 @@ static int flush_block(DEV_BLOCK *block, int dump)
    /* Copy block */
    this_file = dev->file;
    this_block_num = dev->block_num;
-   if (!write_block_to_dev(dcr)) {
+   if (!dcr->write_block_to_dev()) {
       Pmsg3(000, _("Last block at: %u:%u this_dev_block_num=%d\n"),
                   last_file, last_block_num, this_block_num);
       if (vol_num == 1) {
@@ -2817,11 +2819,11 @@ static void qfillcmd()
          printf("+");
          fflush(stdout);
       }
-      if (!write_record_to_block(block, rec)) {
+      if (!write_record_to_block(dcr, rec)) {
          Pmsg0(0, _("Error writing record to block.\n"));
          goto bail_out;
       }
-      if (!write_block_to_dev(dcr)) {
+      if (!dcr->write_block_to_dev()) {
          Pmsg0(0, _("Error writing block to device.\n"));
          goto bail_out;
       }

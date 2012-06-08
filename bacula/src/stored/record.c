@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2001-2010 Free Software Foundation Europe e.V.
+   Copyright (C) 2001-2012 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -288,11 +288,14 @@ void free_record(DEV_RECORD *rec)
  *  non-zero), and 2. The remaining bytes to write may not
  *  all fit into the block.
  */
-bool write_record_to_block(DEV_BLOCK *block, DEV_RECORD *rec)
+bool write_record_to_block(DCR *dcr, DEV_RECORD *rec)
 {
    ser_declare;
    uint32_t remlen;
    char buf1[100], buf2[100];
+   DEV_BLOCK *block;
+
+   block = dcr->block;
 
    remlen = block->buf_len - block->binbuf;
 

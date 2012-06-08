@@ -89,6 +89,7 @@
 void set_os_device_parameters(DCR *dcr);   
 static bool dev_get_os_pos(DEVICE *dev, struct mtget *mt_stat);
 static const char *mode_to_str(int mode);
+static DEVICE *m_init_dev(JCR *jcr, DEVRES *device, bool new_init);
 
 /*
  * Allocate and initialize the DEVICE structure
@@ -103,6 +104,13 @@ static const char *mode_to_str(int mode);
  */
 DEVICE *
 init_dev(JCR *jcr, DEVRES *device)
+{
+   DEVICE *dev = m_init_dev(jcr, device, false);
+   return dev;
+}
+
+static DEVICE *
+m_init_dev(JCR *jcr, DEVRES *device, bool new_init)
 {
    struct stat statp;
    int errstat;
@@ -196,6 +204,7 @@ init_dev(JCR *jcr, DEVRES *device)
    dev->drive_index = device->drive_index;
    dev->autoselect = device->autoselect;
    dev->dev_type = device->dev_type;
+   dev->device = device;
    if (dev->is_tape()) { /* No parts on tapes */
       dev->max_part_size = 0;
    } else {
@@ -205,8 +214,6 @@ init_dev(JCR *jcr, DEVRES *device)
    if (dev->vol_poll_interval && dev->vol_poll_interval < 60) {
       dev->vol_poll_interval = 60;
    }
-   /* Link the dev and device structures together */
-   dev->device = device;
    device->dev = dev;
 
    if (dev->is_fifo()) {
@@ -521,7 +528,7 @@ void DEVICE::open_device(DCR *dcr, int omode)
 }
 
 /*
- * Open a file device
+ * Open a file device.
  */
 void DEVICE::open_file_device(DCR *dcr, int omode) 
 {
@@ -1407,6 +1414,7 @@ void DEVICE::lock_door()
 {
 #ifdef MTLOCK
    struct mtop mt_com;
+   if (!is_tape()) return;
    mt_com.mt_op = MTLOCK;
    mt_com.mt_count = 1;
    d_ioctl(m_fd, MTIOCTOP, (char *)&mt_com);
@@ -1417,6 +1425,7 @@ void DEVICE::unlock_door()
 {
 #ifdef MTUNLOCK
    struct mtop mt_com;
+   if (!is_tape()) return;
    mt_com.mt_op = MTUNLOCK;
    mt_com.mt_count = 1;
    d_ioctl(m_fd, MTIOCTOP, (char *)&mt_com);
@@ -1497,7 +1506,7 @@ bool DEVICE::reposition(DCR *dcr, uint32_t rfile, uint32_t rblock)
       return fsr(rblock-block_num);
    } else {
       while (rblock > block_num) {
-         if (!read_block_from_dev(dcr, NO_BLOCK_NUMBER_CHECK)) {
+         if (!dcr->read_block_from_dev(NO_BLOCK_NUMBER_CHECK)) {
             berrno be;
             dev_errno = errno;
             Dmsg2(30, "Failed to find requested block on %s: ERR=%s",
@@ -1812,10 +1821,13 @@ boffset_t DEVICE::lseek(DCR *dcr, boffset_t offset, int whence)
    return -1;
 }
 
-
+/*
+ * Truncate a volume.
+ */
 bool DEVICE::truncate(DCR *dcr) /* We need the DCR for DVD-writing */
 {
    struct stat st;
+   DEVICE *dev = this;
 
    Dmsg1(100, "truncate %s\n", print_name());
    switch (dev_type) {
@@ -1825,62 +1837,64 @@ bool DEVICE::truncate(DCR *dcr) /* We need the DCR for DVD-writing */
       /* maybe we should rewind and write and eof ???? */
       return true;                    /* we don't really truncate tapes */
    case B_FILE_DEV:
-      if (ftruncate(m_fd, 0) != 0) {
-         berrno be;
-         Mmsg2(errmsg, _("Unable to truncate device %s. ERR=%s\n"), 
-               print_name(), be.bstrerror());
-         return false;
-      }
-          
-      /*
-       * Check for a successful ftruncate() and issue a work-around for devices 
-       * (mostly cheap NAS) that don't support truncation. 
-       * Workaround supplied by Martin Schmid as a solution to bug #1011.
-       * 1. close file
-       * 2. delete file
-       * 3. open new file with same mode
-       * 4. change ownership to original
-       */
-
-      if (fstat(m_fd, &st) != 0) {
-         berrno be;
-         Mmsg2(errmsg, _("Unable to stat device %s. ERR=%s\n"), 
-               print_name(), be.bstrerror());
-         return false;
-      }
-          
-      if (st.st_size != 0) {             /* ftruncate() didn't work */
-         POOL_MEM archive_name(PM_FNAME);
-                
-         pm_strcpy(archive_name, dev_name);
-         if (!IsPathSeparator(archive_name.c_str()[strlen(archive_name.c_str())-1])) {
-            pm_strcat(archive_name, "/");
-         }
-         pm_strcat(archive_name, dcr->VolumeName);
-                   
-         Mmsg2(errmsg, _("Device %s doesn't support ftruncate(). Recreating file %s.\n"), 
-               print_name(), archive_name.c_str());
-
-         /* Close file and blow it away */
-         ::close(m_fd);
-         ::unlink(archive_name.c_str());
-                   
-         /* Recreate the file -- of course, empty */
-         set_mode(CREATE_READ_WRITE);
-         if ((m_fd = ::open(archive_name.c_str(), mode, st.st_mode)) < 0) {
+      for ( ;; ) {
+         if (ftruncate(dev->m_fd, 0) != 0) {
             berrno be;
-            dev_errno = errno;
-            Mmsg2(errmsg, _("Could not reopen: %s, ERR=%s\n"), archive_name.c_str(), 
-                  be.bstrerror());
-            Dmsg1(100, "reopen failed: %s", errmsg);
-            Emsg0(M_FATAL, 0, errmsg);
+            Mmsg2(errmsg, _("Unable to truncate device %s. ERR=%s\n"), 
+                  print_name(), be.bstrerror());
             return false;
          }
+
+         /*
+          * Check for a successful ftruncate() and issue a work-around for devices 
+          * (mostly cheap NAS) that don't support truncation. 
+          * Workaround supplied by Martin Schmid as a solution to bug #1011.
+          * 1. close file
+          * 2. delete file
+          * 3. open new file with same mode
+          * 4. change ownership to original
+          */
+
+         if (fstat(dev->m_fd, &st) != 0) {
+            berrno be;
+            Mmsg2(errmsg, _("Unable to stat device %s. ERR=%s\n"), 
+                  print_name(), be.bstrerror());
+            return false;
+         }
+             
+         if (st.st_size != 0) {             /* ftruncate() didn't work */
+            POOL_MEM archive_name(PM_FNAME);
                    
-         /* Reset proper owner */
-         chown(archive_name.c_str(), st.st_uid, st.st_gid);  
+            pm_strcpy(archive_name, dev_name);
+            if (!IsPathSeparator(archive_name.c_str()[strlen(archive_name.c_str())-1])) {
+               pm_strcat(archive_name, "/");
+            }
+            pm_strcat(archive_name, dcr->VolumeName);
+                      
+            Mmsg2(errmsg, _("Device %s doesn't support ftruncate(). Recreating file %s.\n"), 
+                  print_name(), archive_name.c_str());
+
+            /* Close file and blow it away */
+            ::close(dev->m_fd);
+            ::unlink(archive_name.c_str());
+                      
+            /* Recreate the file -- of course, empty */
+            dev->set_mode(CREATE_READ_WRITE);
+            if ((dev->m_fd = ::open(archive_name.c_str(), mode, st.st_mode)) < 0) {
+               berrno be;
+               dev_errno = errno;
+               Mmsg2(errmsg, _("Could not reopen: %s, ERR=%s\n"), archive_name.c_str(), 
+                     be.bstrerror());
+               Dmsg1(100, "reopen failed: %s", errmsg);
+               Emsg0(M_FATAL, 0, errmsg);
+               return false;
+            }
+                      
+            /* Reset proper owner */
+            chown(archive_name.c_str(), st.st_uid, st.st_gid);  
+         }
+         break;
       }
-          
       return true;
    }
    return false;
@@ -2290,6 +2304,7 @@ dev_vol_name(DEVICE *dev)
  */
 void DEVICE::term(void)
 {
+   DEVICE *dev = NULL;
    Dmsg1(900, "term dev: %s\n", print_name());
    close();
    if (dev_name) {
@@ -2317,6 +2332,9 @@ void DEVICE::term(void)
       device->dev = NULL;
    }
    delete this;
+   if (dev) {
+      dev->term();
+   }
 }
 
 /*

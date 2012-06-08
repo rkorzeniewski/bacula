@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2010 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2012 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -80,15 +80,8 @@ DEV_BLOCK *dup_block(DEV_BLOCK *eblock);
 void    init_block_write(DEV_BLOCK *block);
 void    empty_block(DEV_BLOCK *block);
 void    free_block(DEV_BLOCK *block);
-bool    write_block_to_device(DCR *dcr);
-bool    write_block_to_dev(DCR *dcr);
 void    print_block_read_errors(JCR *jcr, DEV_BLOCK *block);
 void    ser_block_header(DEV_BLOCK *block);
-
-#define CHECK_BLOCK_NUMBERS    true
-#define NO_BLOCK_NUMBER_CHECK  false
-bool    read_block_from_device(DCR *dcr, bool check_block_numbers);
-bool    read_block_from_dev(DCR *dcr, bool check_block_numbers);
 
 /* From butil.c -- utilities for SD tool programs */
 void    print_ls_output(const char *fname, const char *link, int type, struct stat *statp);
@@ -151,20 +144,18 @@ int      read_dev_volume_label(DCR *dcr);
 int      read_dvd_volume_label(DCR *dcr, bool write);
 void     create_session_label(DCR *dcr, DEV_RECORD *rec, int label);
 void     create_volume_label(DEVICE *dev, const char *VolName, const char *PoolName, bool dvdnow);
-bool     write_new_volume_label_to_dev(DCR *dcr, const char *VolName, 
-           const char *PoolName, bool relabel, bool dvdnow);
 #define ANSI_VOL_LABEL 0
 #define ANSI_EOF_LABEL 1
 #define ANSI_EOV_LABEL 2
 bool     write_ansi_ibm_labels(DCR *dcr, int type, const char *VolName);
 int      read_ansi_ibm_label(DCR *dcr);
 bool     write_session_label(DCR *dcr, int label);
-bool     write_volume_label_to_block(DCR *dcr);
-bool     rewrite_volume_label(DCR *dcr, bool recycle);
 void     dump_volume_label(DEVICE *dev);
 void     dump_label_record(DEVICE *dev, DEV_RECORD *rec, int verbose);
 bool     unser_volume_label(DEVICE *dev, DEV_RECORD *rec);
 bool     unser_session_label(SESSION_LABEL *label, DEV_RECORD *rec);
+bool     write_new_volume_label_to_dev(DCR *dcr, const char *VolName, 
+            const char *PoolName, bool relabel, bool dvdnow);
 
 /* From locks.c */
 void     _lock_device(const char *file, int line, DEVICE *dev);
@@ -200,7 +191,7 @@ void     create_restore_volume_list(JCR *jcr);
 /* From record.c */
 const char *FI_to_ascii(char *buf, int fi);
 const char *stream_to_ascii(char *buf, int stream, int fi);
-bool        write_record_to_block(DEV_BLOCK *block, DEV_RECORD *rec);
+bool        write_record_to_block(DCR *dcr, DEV_RECORD *rec);
 bool        can_write_record_to_block(DEV_BLOCK *block, DEV_RECORD *rec);
 bool        read_record_from_block(DCR *dcr, DEV_BLOCK *block, DEV_RECORD *rec);
 DEV_RECORD *new_record();

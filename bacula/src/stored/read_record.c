@@ -83,7 +83,7 @@ bool read_records(DCR *dcr,
          ok = false;
          break;
       }
-      if (!read_block_from_device(dcr, CHECK_BLOCK_NUMBERS)) {
+      if (!dcr->read_block_from_device(CHECK_BLOCK_NUMBERS)) {
          if (dev->at_eot()) {
             DEV_RECORD *trec = new_record();
             Jmsg(jcr, M_INFO, 0, _("End of Volume at file %u on device %s, Volume \"%s\"\n"),
@@ -119,7 +119,7 @@ bool read_records(DCR *dcr,
              *  and pass it off to the callback routine, then continue
              *  most likely reading the previous record.
              */
-            read_block_from_device(dcr, NO_BLOCK_NUMBER_CHECK);
+            dcr->read_block_from_device(NO_BLOCK_NUMBER_CHECK);
             read_record_from_block(dcr, block, trec);
             handle_session_record(dev, trec, &sessrec);
             ok = record_cb(dcr, trec);
