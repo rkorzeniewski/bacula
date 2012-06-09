@@ -1458,12 +1458,16 @@ bool run_console_command(JCR *jcr, const char *cmd)
    bool ok;
    JCR *ljcr = new_control_jcr("-RunScript-", JT_CONSOLE);
    ua = new_ua_context(ljcr);
-   /* run from runscript and check if commands are autorized */
+   /* run from runscript and check if commands are authorized */
    ua->runscript = true;
    Mmsg(ua->cmd, "%s", cmd);
    Dmsg1(100, "Console command: %s\n", ua->cmd);
    parse_ua_args(ua);
-   ok= do_a_command(ua);
+   if (ua->argc > 0 && ua->argk[0][0] == '.') {
+      ok = do_a_dot_command(ua);
+   } else {
+     ok = do_a_command(ua);
+   }
    free_ua_context(ua);
    free_jcr(ljcr);
    return ok;
