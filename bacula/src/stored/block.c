@@ -951,7 +951,13 @@ bool DCR::read_block_from_dev(bool check_block_numbers)
    Dmsg1(250, "Full read in read_block_from_device() len=%d\n",
          block->buf_len);
 
-// ASSERT(dev->is_open());
+   if (!dev->is_open()) {
+      Mmsg4(dev->errmsg, _("Attempt to read closed device: fd=%d at file:blk %u:%u on device %s\n"),
+         dev->fd(), dev->file, dev->block_num, dev->print_name());
+      Jmsg(dcr->jcr, M_FATAL, 0, "%s", dev->errmsg);
+      block->read_len = 0;
+      return false;
+    }
 
 reread:
    if (looping > 1) {
