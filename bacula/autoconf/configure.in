@@ -958,7 +958,7 @@ AC_ARG_WITH(python,
 		PYTHON_LIBS=`/usr/bin/python-config --libs`
 	     else
 		for python_root in /usr /usr/local /usr/sfw; do
-		   for ver in python2.2 python2.3 python2.4 python2.5 python2.6 python3; do
+		   for ver in python2.2 python2.3 python2.4 python2.5 python2.6 python2.7 python3; do
 		      if test -f $python_root/include/${ver}/Python.h; then
 			 PYTHON_INCDIR=-I$python_root/include/${ver}
 			 if test -d $python_root/lib64/${ver}/config; then
@@ -2435,35 +2435,35 @@ dnl
 AC_CACHE_CHECK(for working getaddrinfo, ac_cv_working_getaddrinfo,
    [
        AC_TRY_RUN(
-          [
-              #include <netdb.h>
-              #include <string.h>
-              #include <sys/types.h>
-              #include <sys/socket.h>
+	  [
+	      #include <netdb.h>
+	      #include <string.h>
+	      #include <sys/types.h>
+	      #include <sys/socket.h>
 
-              void main(void) {
-                  struct addrinfo hints, *ai;
-                  int error;
+	      void main(void) {
+		  struct addrinfo hints, *ai;
+		  int error;
 
-                  memset(&hints, 0, sizeof(hints));
-                  hints.ai_family = AF_UNSPEC;
-                  hints.ai_socktype = SOCK_STREAM;
-                  error = getaddrinfo("127.0.0.1", NULL, &hints, &ai);
-                  if (error) {
-                      exit(1);
-                  }
-                  if (ai->ai_addr->sa_family != AF_INET) {
-                      exit(1);
-                  }
-                  exit(0);
-              }
-          ],[
-              ac_cv_working_getaddrinfo="yes"
-          ],[
-              ac_cv_working_getaddrinfo="no"
-          ],[
-              ac_cv_working_getaddrinfo="yes"
-          ]
+		  memset(&hints, 0, sizeof(hints));
+		  hints.ai_family = AF_UNSPEC;
+		  hints.ai_socktype = SOCK_STREAM;
+		  error = getaddrinfo("127.0.0.1", NULL, &hints, &ai);
+		  if (error) {
+		      exit(1);
+		  }
+		  if (ai->ai_addr->sa_family != AF_INET) {
+		      exit(1);
+		  }
+		  exit(0);
+	      }
+	  ],[
+	      ac_cv_working_getaddrinfo="yes"
+	  ],[
+	      ac_cv_working_getaddrinfo="no"
+	  ],[
+	      ac_cv_working_getaddrinfo="yes"
+	  ]
        )
    ]
 )
