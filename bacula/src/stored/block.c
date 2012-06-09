@@ -941,10 +941,14 @@ bool DCR::read_block_from_dev(bool check_block_numbers)
    DCR *dcr = this;
 
    if (job_canceled(jcr)) {
+      Mmsg(dev->errmsg, _("Job failed or canceled.\n"));
+      block->read_len = 0;
       return false;
    }
    
    if (dev->at_eot()) {
+      Mmsg(dev->errmsg, _("Attempt to read past end of tape or file.\n"));
+      block->read_len = 0;
       return false;
    }
    looping = 0;
@@ -954,7 +958,7 @@ bool DCR::read_block_from_dev(bool check_block_numbers)
    if (!dev->is_open()) {
       Mmsg4(dev->errmsg, _("Attempt to read closed device: fd=%d at file:blk %u:%u on device %s\n"),
          dev->fd(), dev->file, dev->block_num, dev->print_name());
-      Jmsg(dcr->jcr, M_FATAL, 0, "%s", dev->errmsg);
+      Jmsg(dcr->jcr, M_WARNING, 0, "%s", dev->errmsg);
       block->read_len = 0;
       return false;
     }
