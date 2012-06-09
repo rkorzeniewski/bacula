@@ -28375,7 +28375,8 @@ ac_fn_c_check_decl "$LINENO" "F_CLOSEM" "ac_cv_have_decl_F_CLOSEM" "#include <fc
 
 "
 if test "x$ac_cv_have_decl_F_CLOSEM" = xyes; then :
-  $as_echo "#define HAVE_FCNTL_F_CLOSEM 1" >>confdefs.h
+
+$as_echo "#define HAVE_FCNTL_F_CLOSEM 1" >>confdefs.h
 
 fi
 
@@ -30726,6 +30727,7 @@ if test "${with_systemd+set}" = set; then :
 
 	   PFILES="${PFILES} \
 		   platforms/systemd/Makefile \
+		   platforms/systemd/bacula.conf \
 		   platforms/systemd/bacula-dir.service \
 		   platforms/systemd/bacula-fd.service \
 		   platforms/systemd/bacula-sd.service"
