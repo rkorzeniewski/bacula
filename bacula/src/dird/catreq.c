@@ -541,7 +541,8 @@ static void update_attribute(JCR *jcr, char *msg, int32_t msglen)
    } else if (crypto_digest_stream_type(Stream) != CRYPTO_DIGEST_NONE) {
       fname = p;
       if (ar->FileIndex != FileIndex) {
-         Jmsg(jcr, M_WARNING, 0, _("Got %s but not same File as attributes\n"), stream_to_ascii(Stream));
+         Jmsg3(jcr, M_WARNING, 0, _("%s not same File=%d as attributes=%d\n"), 
+            stream_to_ascii(Stream), FileIndex, ar->FileIndex);
       } else {
          /* Update digest in catalog */
          char digestbuf[BASE64_SIZE(CRYPTO_DIGEST_MAX_SIZE)];
