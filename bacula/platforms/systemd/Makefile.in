@@ -11,13 +11,17 @@ INSTALL_PROGRAM = @INSTALL_PROGRAM@
 # should be /lib/systemd/system and get be get with
 # systemctl show | grep UnitPath | cut -d " " -f2
 SYSTEMD_UNITDIR = @SYSTEMD_UNITDIR@
+SYSTEMD_TMPFILES = /etc/tmpfiles.d
 
 nothing:
 
-install: install-dir install-autostart
+install: install-dir install-conf install-autostart
 
 install-dir: $(DESTDIR)/$(SYSTEMD_UNITDIR)
-	mkdir -p $(DESTDIR)/$(SYSTEMD_UNITDIR)
+	mkdir -p $(DESTDIR)/$(SYSTEMD_UNITDIR) $(DESTDIR)/$(SYSTEMD_TMPFILES)
+
+install-conf:
+	@$(INSTALL_PROGRAM) -m 644 bacula.conf $(DESTDIR)/$(SYSTEMD_TMPFILES)/bacula.conf
 
 install-autostart: install-autostart-fd install-autostart-sd install-autostart-dir
 
@@ -61,7 +65,7 @@ install-autostart-dir:
 	fi
 
 
-uninstall: uninstall-autostart
+uninstall: uninstall-autostart uninstall-conf
 
 uninstall-autostart: uninstall-autostart-fd uninstall-autostart-sd uninstall-autostart-dir
 
@@ -87,14 +91,17 @@ uninstall-autostart-dir:
 	fi
 	@rm -f	$(DESTDIR)$(SYSTEMD_UNITDIR)/bacula-dir.service
 
+uninstall-conf:
+	@rm -f	$(DESTDIR)/$(SYSTEMD_TMPFILES)/bacula.conf
+
 clean:
 	@rm -f 1 2 3
 
 distclean: clean
 	@rm -f Makefile bacula-*.spec bacula.*.spec bacula.spec
-	@rm -f bacula-sd.service bacula-fd.service bacula-dir.service
+	@rm -f bacula.conf bacula-sd.service bacula-fd.service bacula-dir.service
 
 devclean: clean
 	@rm -f Makefile bacula-*.spec bacula.*.spec bacula.spec
-	@rm -f bacula-sd.service bacula-fd.service bacula-dir.service
+	@rm -f bacula.conf bacula-sd.service bacula-fd.service bacula-dir.service
 
