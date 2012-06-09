@@ -1,8 +1,8 @@
 
 #undef  VERSION
-#define VERSION "5.2.7"
-#define BDATE   "02 June 2012"
-#define LSMDATE "02Jun12"
+#define VERSION "5.2.8"
+#define BDATE   "10 June 2012"
+#define LSMDATE "10Jun12"
 
 #define PROG_COPYRIGHT "Copyright (C) %d-2012 Free Software Foundation Europe e.V.\n"
 #define BYEAR "2012"       /* year for copyright messages in progs */
@@ -54,7 +54,7 @@
 #define TRACE_FILE 1
 
 /* If this is set stdout will not be closed on startup */
-/* #define DEVELOPER 1 */
+#define DEVELOPER 1
 
 /* adjust DEVELOPER_MODE for status command */
 #ifdef DEVELOPER
