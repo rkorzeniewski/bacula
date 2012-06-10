@@ -1907,7 +1907,9 @@ static int backup_cmd(JCR *jcr)
         if (get_win32_driveletters(jcr->ff, szWinDriveLetters)) {
             Jmsg(jcr, M_INFO, 0, _("Generate VSS snapshots. Driver=\"%s\", Drive(s)=\"%s\"\n"), g_pVSSClient->GetDriverName(), szWinDriveLetters);
             if (!g_pVSSClient->CreateSnapshots(szWinDriveLetters)) {               
-               Jmsg(jcr, M_FATAL, 0, _("CreateSGenerate VSS snapshots failed.\n"));
+               berrno be;
+               Jmsg(jcr, M_FATAL, 0, _("CreateSGenerate VSS snapshots failed. ERR=%s\n"),
+                    be.bstrerror());
             } else {
                /* tell user if snapshot creation of a specific drive failed */
                int i;
@@ -1927,7 +1929,9 @@ static int backup_cmd(JCR *jcr)
             Jmsg(jcr, M_FATAL, 0, _("No drive letters found for generating VSS snapshots.\n"));
         }
       } else {
-         Jmsg(jcr, M_FATAL, 0, _("VSS was not initialized properly.\n"));
+         berrno be;
+         Jmsg(jcr, M_FATAL, 0, _("VSS was not initialized properly. ERR=%s\n"),
+            be.bstrerror());
       } 
       run_scripts(jcr, jcr->RunScripts, "ClientAfterVSS");
    }
