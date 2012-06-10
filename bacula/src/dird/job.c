@@ -762,6 +762,7 @@ bool allow_duplicate_job(JCR *jcr)
              */
             if (cancel_me) {
               /* Zap current job */
+              jcr->setJobStatus(JS_Canceled);
               Jmsg(jcr, M_FATAL, 0, _("JobId %d already running. Duplicate job not allowed.\n"),
                  djcr->JobId);
               break;     /* get out of foreach_jcr */
@@ -796,6 +797,7 @@ bool allow_duplicate_job(JCR *jcr)
             Jmsg(jcr, M_INFO, 0, _("Cancelling duplicate JobId=%d.\n"), djcr->JobId);
             cancel_job(ua, djcr);
             bmicrosleep(0, 500000);
+            djcr->setJobStatus(JS_Canceled);
             cancel_job(ua, djcr);
             free_ua_context(ua);
             Dmsg2(800, "Cancel dup %p JobId=%d\n", djcr, djcr->JobId);
@@ -803,6 +805,7 @@ bool allow_duplicate_job(JCR *jcr)
             /*
              * Zap current job
              */
+            jcr->setJobStatus(JS_Canceled);
             Jmsg(jcr, M_FATAL, 0, _("JobId %d already running. Duplicate job not allowed.\n"),
                djcr->JobId);
             Dmsg2(800, "Cancel me %p JobId=%d\n", jcr, jcr->JobId);
