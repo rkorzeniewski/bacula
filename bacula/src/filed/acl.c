@@ -38,6 +38,8 @@
  *   - Solaris (POSIX and NFSv4/ZFS acls)
  *   - Tru64
  *
+ * Next to OS specific acls we support AFS acls using the pioctl interface.
+ *
  * We handle two different types of ACLs: access and default ACLS.
  * On most systems that support default ACLs they only apply to directories.
  *
@@ -63,7 +65,7 @@
 #include "bacula.h"
 #include "filed.h"
   
-#if !defined(HAVE_ACL)
+#if !defined(HAVE_ACL) && !defined(HAVE_AFS_ACL)
 /**
  * Entry points when compiled without support for ACLs or on an unsupported platform.
  */
@@ -431,7 +433,9 @@ static bacl_exit_code aix_parse_acl_streams(JCR *jcr,
                if (cnt < 3) {
                   continue;
                }
-               /* FALL THROUGH */
+               /*
+                * FALLTHROUGH
+                */
             default:
                Mmsg2(jcr->errmsg,
                      _("aclx_scanStr error on file \"%s\": ERR=%s\n"),
@@ -1977,8 +1981,9 @@ static bacl_exit_code solaris_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
    char *acl_text;
 
    n = acl(jcr->last_fname, GETACLCNT, 0, NULL);
-   if (n < MIN_ACL_ENTRIES)
+   if (n < MIN_ACL_ENTRIES) {
       return bacl_exit_error;
+   }
 
    acls = (aclent_t *)malloc(n * sizeof(aclent_t));
    if (acl(jcr->last_fname, GETACL, n, acls) == n) {
@@ -2072,7 +2077,86 @@ static bacl_exit_code (*os_parse_acl_streams)
 #endif /* HAVE_SUN_OS */
 #endif /* HAVE_ACL */
 
-/*
+#if defined(HAVE_AFS_ACL)
+
+#if defined(HAVE_AFS_AFSINT_H) && defined(HAVE_AFS_VENUS_H)
+#include <afs/afsint.h>
+#include <afs/venus.h>
+#else
+#error "configure failed to detect availability of afs/afsint.h and/or afs/venus.h"
+#endif
+
+/**
+ * External references to functions in the libsys library function not in current include files.
+ */
+extern "C" {
+long pioctl(char *pathp, long opcode, struct ViceIoctl *blobp, int follow);
+}
+
+static bacl_exit_code afs_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
+{
+   int error;
+   struct ViceIoctl vip;
+   char acl_text[BUFSIZ];
+
+   /*
+    * AFS ACLs can only be set on a directory, so no need to try to
+    * request them for anything other then that.
+    */
+   if (ff_pkt->type != FT_DIREND) {
+      return bacl_exit_ok;
+   }
+
+   vip.in = NULL;
+   vip.in_size = 0;
+   vip.out = acl_text;
+   vip.out_size = sizeof(acl_text);
+   memset((caddr_t)acl_text, 0, sizeof(acl_text));
+
+   if ((error = pioctl(jcr->last_fname, VIOCGETAL, &vip, 0)) < 0) {
+      berrno be;
+
+      Mmsg2(jcr->errmsg,
+            _("pioctl VIOCGETAL error on file \"%s\": ERR=%s\n"),
+            jcr->last_fname, be.bstrerror());
+      Dmsg2(100, "pioctl VIOCGETAL error file=%s ERR=%s\n",
+            jcr->last_fname, be.bstrerror());
+      return bacl_exit_error;
+   }
+   jcr->acl_data->u.build->content_length =
+   pm_strcpy(jcr->acl_data->u.build->content, acl_text);
+   return send_acl_stream(jcr, STREAM_ACL_AFS_TEXT);
+}
+
+static bacl_exit_code afs_parse_acl_stream(JCR *jcr,
+                                           int stream,
+                                           char *content,
+                                           uint32_t content_length)
+{
+   int error;
+   struct ViceIoctl vip;
+
+   vip.in = content;
+   vip.in_size = content_length;
+   vip.out = NULL;
+   vip.out_size = 0;
+
+   if ((error = pioctl(jcr->last_fname, VIOCSETAL, &vip, 0)) < 0) {
+      berrno be;
+
+      Mmsg2(jcr->errmsg,
+            _("pioctl VIOCSETAL error on file \"%s\": ERR=%s\n"),
+            jcr->last_fname, be.bstrerror());
+      Dmsg2(100, "pioctl VIOCSETAL error file=%s ERR=%s\n",
+            jcr->last_fname, be.bstrerror());
+
+      return bacl_exit_error;
+   }
+   return bacl_exit_ok;
+}
+#endif /* HAVE_AFS_ACL */
+
+/**
  * Entry points when compiled with support for ACLs on a supported platform.
  */
 
@@ -2083,7 +2167,7 @@ bacl_exit_code build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
 {
    /*
     * See if we are changing from one device to an other.
-    * We save the current device we are restoring to and compare
+    * We save the current device we are scanning and compare
     * it with the current st_dev in the last stat performed on
     * the file we are currently storing.
     */
@@ -2093,14 +2177,35 @@ bacl_exit_code build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
        */
       jcr->acl_data->flags = 0;
 
+#if defined(HAVE_AFS_ACL)
+      /*
+       * AFS is a non OS specific filesystem so see if this path is on an AFS filesystem
+       * Set the BACL_FLAG_SAVE_AFS flag if it is. If not set the BACL_FLAG_SAVE_NATIVE flag.
+       */
+      if (fstype_equals(jcr->last_fname, "afs")) {
+         jcr->acl_data->flags |= BACL_FLAG_SAVE_AFS;
+      } else {
+         jcr->acl_data->flags |= BACL_FLAG_SAVE_NATIVE;
+      }
+#else
       jcr->acl_data->flags |= BACL_FLAG_SAVE_NATIVE;
+#endif
 
-      /**
+      /*
        * Save that we started scanning a new filesystem.
        */
       jcr->acl_data->current_dev = ff_pkt->statp.st_dev;
    }
 
+#if defined(HAVE_AFS_ACL)
+   /*
+    * See if the BACL_FLAG_SAVE_AFS flag is set which lets us know if we should
+    * save AFS ACLs.
+    */
+   if (jcr->acl_data->flags & BACL_FLAG_SAVE_AFS) {
+      return afs_build_acl_streams(jcr, ff_pkt);
+   }
+#endif
 #if defined(HAVE_ACL)
    /*
     * See if the BACL_FLAG_SAVE_NATIVE flag is set which lets us know if we should
@@ -2161,7 +2266,20 @@ bacl_exit_code parse_acl_streams(JCR *jcr,
        * Reset the acl save flags.
        */
       jcr->acl_data->flags = 0;
+
+#if defined(HAVE_AFS_ACL)
+      /*
+       * AFS is a non OS specific filesystem so see if this path is on an AFS filesystem
+       * Set the BACL_FLAG_RESTORE_AFS flag if it is. If not set the BACL_FLAG_RETORE_NATIVE flag.
+       */
+      if (fstype_equals(jcr->last_fname, "afs")) {
+         jcr->acl_data->flags |= BACL_FLAG_RESTORE_AFS;
+      } else {
+         jcr->acl_data->flags |= BACL_FLAG_RESTORE_NATIVE;
+      }
+#else
       jcr->acl_data->flags |= BACL_FLAG_RESTORE_NATIVE;
+#endif
 
       /*
        * Save that we started restoring to a new filesystem.
@@ -2170,6 +2288,18 @@ bacl_exit_code parse_acl_streams(JCR *jcr,
    }
 
    switch (stream) {
+#if defined(HAVE_AFS_ACL)
+   case STREAM_ACL_AFS_TEXT:
+      if (jcr->acl_data->flags & BACL_FLAG_RESTORE_AFS) {
+         return afs_parse_acl_stream(jcr, stream, content, content_length);
+      } else {
+         /*
+          * Increment error count but don't log an error again for the same filesystem.
+          */
+         jcr->acl_data->u.parse->nr_errors++;
+         return bacl_exit_ok;
+      }
+#endif
 #if defined(HAVE_ACL)
    case STREAM_UNIX_ACCESS_ACL:
    case STREAM_UNIX_DEFAULT_ACL:

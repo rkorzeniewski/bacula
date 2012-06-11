@@ -49,9 +49,6 @@
 /* Define if you have GCC */
 #undef HAVE_GCC
 
-/* Define if you have the Andrew File System.  */
-#undef AFS
-
 /* Define If you want find -nouser and -nogroup to make tables of
    used UIDs and GIDs at startup instead of using getpwuid or
    getgrgid when needed.  Speeds up -nouser and -nogroup unless you
@@ -116,9 +113,6 @@
 
 /* Define if you have libacl */
 #undef HAVE_ACL
-
-/* Define if you have AFS acls */
-#undef HAVE_AFS_ACL
 
 /* General libs */
 #undef LIBS
