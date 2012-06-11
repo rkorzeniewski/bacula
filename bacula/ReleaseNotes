@@ -1,11 +1,11 @@
 
-               Release Notes for Bacula 5.2.8
+               Release Notes for Bacula 5.2.9
 
   Bacula code: Total files = 1,110 Total lines = 231,439 (Using SLOCCount)
 
 General:
 --------
-The 5.2.8 version is a bug fix release. 
+The 5.2.9 version is a bug fix release. 
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 Please note that with this version of Bacula, during the install
@@ -44,8 +44,9 @@ Compatibility:
 Changes since 5.2.7:
 --------------------
 
-10Jun12
- - Apply readline without TERM_LIB dependency patch from bug #1871
+11Jun12
+ - Remove bad TERM_LIB patch from version 5.2.8 
+     "Apply readline without TERM_LIB dependency patch from bug #1871"
  - Ensure cancel status is set for canceled duplicate jobs -- partial fix for 
    bug #1851
  - Enhance Win32 error messages -- fixes bug #1879
@@ -63,10 +64,16 @@ Changes since 5.2.7:
  - Fix compiler warning.
 
 Bugs fixed/closed since last release:
-1851 1871 1879 1884 1886 1888
+1851 1879 1884 1886 1888
 
 
 ====================================================================
+
+General:
+--------
+Version 5.2.8 was a short lived version because it had a TERM_LIB
+patch that broke on Solaris and other machines.  That patch was
+removed in 5.2.9.
 
 General:
 --------

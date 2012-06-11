@@ -1,4 +1,8 @@
-              Changelog on version 5.2.8
+              Changelog on version 5.2.9
+
+Version 5.2.9
+11Jun12
+ - Remove patch: Apply readline without TERM_LIB dependency patch from bug #1871
 
 Version 5.2.8
 
