@@ -1,7 +1,39 @@
-              Changelog on version 5.2.7
+              Changelog on version 5.2.8
+
+Version 5.2.8
+
+10Jun12
+ - Apply readline without TERM_LIB dependency patch from bug #1871
+ - Ensure cancel status is set for canceled duplicate jobs -- partial fix for 
+   bug #1851
+ - Enhance Win32 error messages -- fixes bug #1879
+
+09Jun12
+ - Apply patch from bug 1876 to permit dot commands in a runscript
+ - Remove config variables from examples/devices fixes bug #1884
+ - Add more debug code for bug 1885
+ - Add more debug to block.c when read rejected
+ - Fail job that attempts to read from closed device -- reported in bug 1885 but 
+   not fixed
+ - Detect Python 2.7 fixes bug #1888
+ - Recompile configure
+ - Apply systemd patch from bug #1886
+
+08Jun12
+ - Rewrite some SD subroutines as class members
+
+05Jun12
+ - New overhaul of xattr code.
+
+03Jun12
+ - Use IPPROTO_TCP for SOL_TCP if SOL_TCP isn't defined.
+ - Fix compiler warning.
+
+Bugs fixed/closed since last release:
+1851 1871 1879 1884 1886 1888
+
 
 Version 5.2.7
-
 
 02Jun12
  - Correct Qt version needed for bat

@@ -1,7 +1,72 @@
 
-               Release Notes for Bacula 5.2.7
+               Release Notes for Bacula 5.2.8
 
   Bacula code: Total files = 1,110 Total lines = 231,439 (Using SLOCCount)
+
+General:
+--------
+The 5.2.8 version is a bug fix release. 
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+Please note that with this version of Bacula, during the install
+of the shared libraries from the src/cats, src/lib, and src/findlib
+directories, any old Bacula libraries in the installation 
+destination directory will be removed.  This should not cause
+any problems and at least keeps the installation library cleaner.
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+For packagers, if you change options, naming, and the way 
+we link our shared object files, as at least one of you does,
+you are creating a situation where the user may not be able
+to run multiple versions of Bacula on the same machine, which
+is often very useful, and in addition, you create a configuration
+that the project cannot properly support.
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+If you are upgrading from a version older than 5.2.7, please
+read all the old ReleaseNotes of all versions released
+after the version you are upgrading from. There area
+many important notices sumarized here, and we do not 
+repeat them each bug fix release.
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+Compatibility:
+--------------
+ As always, both the Director and Storage daemon must be upgraded at
+ the same time.
+
+ Older 5.0.x and 3.0.x File Daemons are compatible with the 5.2.8
+ Director and Storage daemons. There should be no need to upgrade older File
+ Daemons.
+
+Changes since 5.2.7:
+--------------------
+
+10Jun12
+ - Apply readline without TERM_LIB dependency patch from bug #1871
+ - Ensure cancel status is set for canceled duplicate jobs -- partial fix for 
+   bug #1851
+ - Enhance Win32 error messages -- fixes bug #1879
+ - Apply patch from bug 1876 to permit dot commands in a runscript
+ - Remove config variables from examples/devices fixes bug #1884
+ - Add more debug code for bug 1885
+ - Add more debug to block.c when read rejected
+ - Fail job that attempts to read from closed device -- reported in bug 1885 but 
+   not fixed
+ - Detect Python 2.7 fixes bug #1888
+ - Apply systemd patch from bug #1886
+ - Rewrite some SD subroutines as class members
+ - New overhaul of xattr code.
+ - Use IPPROTO_TCP for SOL_TCP if SOL_TCP isn't defined.
+ - Fix compiler warning.
+
+Bugs fixed/closed since last release:
+1851 1871 1879 1884 1886 1888
+
+
+====================================================================
 
 General:
 --------
