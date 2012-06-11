@@ -17,7 +17,6 @@ for i in $bacula $docs ; do
   git checkout ${branch}
   git push ${remote} ${branch}
   git push ${remote} tag ${fulltag}
-  echo "Pushed ${remote} and push tag ${fulltag} in $i"
+  echo "Pushed ${remote} and git push ${remote} tag ${fulltag} in $i"
   git checkout ${current}
 done
-
