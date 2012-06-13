@@ -724,11 +724,6 @@ bool BSOCK::set_buffer_size(uint32_t size, int rw)
          Qmsg1(get_jcr(), M_WARNING, 0,
                _("Warning network buffer = %d bytes not max size.\n"), dbuf_size);
       }
-      if (dbuf_size % TAPE_BSIZE != 0) {
-         Qmsg1(get_jcr(), M_ABORT, 0,
-               _("Network buffer size %d not multiple of tape block size.\n"),
-               dbuf_size);
-      }
    }
    if (size != 0) {
       dbuf_size = size;
@@ -747,11 +742,6 @@ bool BSOCK::set_buffer_size(uint32_t size, int rw)
       if (dbuf_size != start_size) {
          Qmsg1(get_jcr(), M_WARNING, 0,
                _("Warning network buffer = %d bytes not max size.\n"), dbuf_size);
-      }
-      if (dbuf_size % TAPE_BSIZE != 0) {
-         Qmsg1(get_jcr(), M_ABORT, 0,
-               _("Network buffer size %d not multiple of tape block size.\n"),
-               dbuf_size);
       }
    }
 
