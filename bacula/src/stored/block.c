@@ -79,7 +79,7 @@ void dump_block(DEV_BLOCK *b, const char *msg)
       rhl = RECHDR1_LENGTH;
    }
 
-   if (block_len > 100000) {
+   if (block_len > 4000000) {
       Dmsg3(20, "Dump block %s 0x%x blocksize too big %u\n", msg, b, block_len);
       return;
    }
@@ -187,7 +187,7 @@ void empty_block(DEV_BLOCK *block)
  * in the buffer should have already been reserved by
  * init_block.
  */
-static void ser_block_header(DEV_BLOCK *block, bool do_checksum)
+static uint32_t ser_block_header(DEV_BLOCK *block, bool do_checksum)
 {
    ser_declare;
    uint32_t CheckSum = 0;
@@ -212,6 +212,7 @@ static void ser_block_header(DEV_BLOCK *block, bool do_checksum)
    Dmsg1(1390, "ser_bloc_header: checksum=%x\n", CheckSum);
    ser_begin(block->buf, BLKHDR2_LENGTH);
    ser_uint32(CheckSum);              /* now add checksum to block header */
+   return CheckSum;
 }
 
 /*
@@ -318,6 +319,7 @@ static bool unser_block_header(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
             block_len, BlockCheckSum, CheckSum);
          if (block->read_errors == 0 || verbose >= 2) {
             Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
+            dump_block(block, "with checksum error");
          }
          block->read_errors++;
          if (!forge_on) {
@@ -469,7 +471,12 @@ bool DCR::write_block_to_dev()
       }
    }
 
+#ifdef DEBUG_BLOCK_CHECKSUM
+   uint32_t checksum;
+   checksum = ser_block_header(block, dev->do_checksum());
+#else
    ser_block_header(block, dev->do_checksum());
+#endif
 
    /* Limit maximum Volume size to value specified by user */
    hit_max1 = (dev->max_volume_size > 0) &&
@@ -548,6 +555,15 @@ bool DCR::write_block_to_dev()
       stat = dev->write(block->buf, (size_t)wlen);
 
    } while (stat == -1 && (errno == EBUSY || errno == EIO) && retry++ < 3);
+
+#ifdef DEBUG_BLOCK_CHECKSUM
+   uint32_t achecksum = ser_block_header(block, dev->do_checksum());
+   if (checksum != achecksum) {
+      Jmsg2(jcr, M_ERROR, 0, _("Block checksum changed during write: before=%ud after=%ud\n"),
+         checksum, achecksum);
+      dump_block(block, "with checksum error");
+   }
+#endif
 
 #ifdef DEBUG_BLOCK_ZEROING
    if (bp[0] == 0 && bp[1] == 0 && bp[2] == 0 && block->buf[12] == 0) {
