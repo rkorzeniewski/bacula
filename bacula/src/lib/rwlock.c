@@ -113,6 +113,11 @@ int rwl_destroy(brwlock_t *rwl)
   return (stat != 0 ? stat : (stat1 != 0 ? stat1 : stat2));
 }
 
+bool rwl_is_init(brwlock_t *rwl)
+{
+   return (rwl->valid == RWLOCK_VALID);
+}
+
 /*
  * Handle cleanup when the read lock condition variable
  * wait is released.

@@ -241,7 +241,9 @@ bail_out:
 
 void B_DB_MYSQL::db_close_database(JCR *jcr)
 {
-   db_end_transaction(jcr);
+   if (m_connected) {
+      db_end_transaction(jcr);
+   }
    P(mutex);
    m_ref_count--;
    Dmsg3(100, "closedb ref=%d connected=%d db=%p\n", m_ref_count, m_connected, m_db_handle);
@@ -256,7 +258,9 @@ void B_DB_MYSQL::db_close_database(JCR *jcr)
 //       mysql_server_end();
 #endif
       }
-      rwl_destroy(&m_lock);
+      if (rwl_is_init(&m_lock)) {
+         rwl_destroy(&m_lock);
+      }
       free_pool_memory(errmsg);
       free_pool_memory(cmd);
       free_pool_memory(cached_path);

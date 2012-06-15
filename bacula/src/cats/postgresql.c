@@ -278,7 +278,9 @@ bail_out:
 
 void B_DB_POSTGRESQL::db_close_database(JCR *jcr)
 {
-   db_end_transaction(jcr);
+   if (m_connected) {
+      db_end_transaction(jcr);
+   }
    P(mutex);
    m_ref_count--;
    if (m_ref_count == 0) {
@@ -287,7 +289,9 @@ void B_DB_POSTGRESQL::db_close_database(JCR *jcr)
       if (m_connected && m_db_handle) {
          PQfinish(m_db_handle);
       }
-      rwl_destroy(&m_lock);
+      if (rwl_is_init(&m_lock)) {
+         rwl_destroy(&m_lock);
+      }
       free_pool_memory(errmsg);
       free_pool_memory(cmd);
       free_pool_memory(cached_path);

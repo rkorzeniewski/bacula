@@ -73,6 +73,7 @@ typedef struct s_rwsteal_tag {
  */
 extern int rwl_init(brwlock_t *wrlock, int priority=0);
 extern int rwl_destroy(brwlock_t *rwlock);
+extern bool rwl_is_init(brwlock_t *rwl);
 extern int rwl_readlock(brwlock_t *rwlock);
 extern int rwl_readtrylock(brwlock_t *rwlock);
 extern int rwl_readunlock(brwlock_t *rwlock);
