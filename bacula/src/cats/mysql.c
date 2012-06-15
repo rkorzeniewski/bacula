@@ -248,7 +248,9 @@ void B_DB_MYSQL::db_close_database(JCR *jcr)
    m_ref_count--;
    Dmsg3(100, "closedb ref=%d connected=%d db=%p\n", m_ref_count, m_connected, m_db_handle);
    if (m_ref_count == 0) {
-      sql_free_result();
+      if (m_connected) {
+         sql_free_result();
+      }
       db_list->remove(this);
       if (m_connected) {
          Dmsg1(100, "close db=%p\n", m_db_handle);
