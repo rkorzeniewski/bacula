@@ -51,6 +51,7 @@ DirComm::DirComm(Console *parent, int conn):  m_notifier(NULL),  m_api_set(false
    m_conn = conn;
    m_in_command = 0;
    m_in_select = false;
+   m_notify = false;
 }
 
 DirComm::~DirComm()
@@ -65,6 +66,7 @@ void DirComm::terminate()
          m_notifier->setEnabled(false);
          delete m_notifier;
          m_notifier = NULL;
+         m_notify = false;
       }
       if (mainWin->m_connDebug)
          Pmsg2(000, "DirComm %i terminating connections %s\n", m_conn, m_console->m_dir->name());
@@ -211,6 +213,7 @@ bool DirComm::connect_dir()
    m_notifier = new QSocketNotifier(m_sock->m_fd, QSocketNotifier::Read, 0);
    QObject::connect(m_notifier, SIGNAL(activated(int)), this, SLOT(notify_read_dir(int)));
    m_notifier->setEnabled(true);
+   m_notify = true;
 
    write(".api 1");
    m_api_set = true;
@@ -454,6 +457,7 @@ int DirComm::read()
             m_notifier->setEnabled(false);
             delete m_notifier;
             m_notifier = NULL;
+            m_notify = false;
          }
          mainWin->set_status(_("Director disconnected."));
          stat = BNET_HARDEOF;
@@ -489,7 +493,7 @@ void DirComm::notify_read_dir(int /* fd */)
  *
  * When we are in a bat dialog, we want to control *all* output
  * from the Directory, so we set notify to off.
- *    m_console->notifiy(false);
+ *    m_console->notify(false);
  */
 bool DirComm::notify(bool enable) 
 { 
@@ -498,10 +502,9 @@ bool DirComm::notify(bool enable)
    mainWin->m_notify = enable;
    if (m_notifier) {
       prev_enabled = m_notifier->isEnabled();   
-      if (prev_enabled != enable) {
-         m_notifier->setEnabled(enable);
-      }
-      if (mainWin->m_connDebug) Pmsg3(000, "conn=%i notify=%d prev=%d\n", m_conn, enable, prev_enabled);
+      m_notifier->setEnabled(enable);
+      m_notify = enable;
+      if (mainWin->m_connDebug) Pmsg3(000, "conn=%i set_notify=%d prev=%d\n", m_conn, enable, prev_enabled);
    } else if (mainWin->m_connDebug) {
       Pmsg2(000, "m_notifier does not exist: %i %s\n", m_conn, m_console->m_dir->name());
    }
@@ -510,7 +513,7 @@ bool DirComm::notify(bool enable)
 
 bool DirComm::is_notify_enabled() const
 {
-   return mainWin->m_notify;
+   return m_notify;
 }
 
 /*

@@ -159,6 +159,7 @@ void Console::populateLists(bool /*forcenew*/)
       }
    }
    populateLists(conn);
+   notify(conn, true);
 }
 
 void Console::populateLists(int conn)
@@ -237,13 +238,15 @@ bool Console::dir_cmd(int conn, const char *cmd, QStringList &results)
    mainWin->waitEnter();
    DirComm *dircomm = m_dircommHash.value(conn);
    int stat;
-   bool prev_notify = mainWin->m_notify;
+   bool prev_notify = is_notify_enabled(conn);
 
    if (mainWin->m_connDebug) {
       QString dbgmsg = QString("dir_cmd conn %1 %2 %3\n").arg(conn).arg(m_dir->name()).arg(cmd);
       Pmsg1(000, "%s", dbgmsg.toUtf8().data());
    }
-   notify(conn, false);
+   if (prev_notify) {
+      notify(conn, false);
+   }
    dircomm->write(cmd);
    while ((stat = dircomm->read()) > 0 && dircomm->is_in_command()) {
       if (mainWin->m_displayAll) display_text(dircomm->msg());
@@ -294,7 +297,7 @@ bool Console::sql_cmd(int &conn, const char *query, QStringList &results, bool d
    DirComm *dircomm = m_dircommHash.value(conn);
    int stat;
    POOL_MEM cmd(PM_MESSAGE);
-   bool prev_notify = mainWin->m_notify;
+   bool prev_notify = is_notify_enabled(conn);
 
    if (!is_connectedGui()) {
       return false;
@@ -332,6 +335,9 @@ bool Console::sql_cmd(int &conn, const char *query, QStringList &results, bool d
    }
    discardToPrompt(conn);
    mainWin->waitExit();
+   if (donotify && prev_notify) {
+      dircomm->notify(true);
+   }
    return !mainWin->isClosing();      /* return false if closing */
 }
 
@@ -393,12 +399,13 @@ void Console::write_dir(int conn, const char *msg, bool dowait)
 bool Console::get_job_defaults(struct job_defaults &job_defs)
 {
    int conn;
+   getDirComm(conn);
    return get_job_defaults(conn, job_defs, true);
 }
 
 bool Console::get_job_defaults(int &conn, struct job_defaults &job_defs)
 {
-   return get_job_defaults(conn, job_defs, false);
+   return get_job_defaults(conn, job_defs, true);
 }
 
 /*  
@@ -410,14 +417,14 @@ bool Console::get_job_defaults(int &conn, struct job_defaults &job_defs, bool do
    QString scmd;
    int stat;
    char *def;
-   bool prev_notify = mainWin->m_notify;
+   bool prev_notify = is_notify_enabled(conn);
    bool rtn = false;
+   DirComm *dircomm = m_dircommHash.value(conn);
 
    if (donotify) {
-      conn = notifyOff();
+      dircomm->notify(false);
    }
    beginNewCommand(conn);
-   DirComm *dircomm = m_dircommHash.value(conn);
    bool prevWaitState = mainWin->getWaitState();
    if (!prevWaitState)
       mainWin->waitEnter();
@@ -714,14 +721,22 @@ int Console::notifyOff()
 bool Console::notify(int conn, bool enable)
 { 
    DirComm *dircomm = m_dircommHash.value(conn);
-   return dircomm->notify(enable);
+   if (dircomm) {
+      return dircomm->notify(enable);
+   } else {
+      return false;
+   }
 }
 
 /* knowing a connection, return notify state */
 bool Console::is_notify_enabled(int conn) const
 {
    DirComm *dircomm = m_dircommHash.value(conn);
-   return dircomm->is_notify_enabled();
+   if (dircomm) {
+      return dircomm->is_notify_enabled();
+   } else {
+      return false;
+   }
 }
 
 void Console::setDirectorTreeItem(QTreeWidgetItem *item)
@@ -871,7 +886,6 @@ bool Console::getDirComm(int &conn)
  */
 bool Console::findDirComm(int &conn)
 {
-   int i = 1;
    QHash<int, DirComm*>::const_iterator iter = m_dircommHash.constBegin();
    while (iter != m_dircommHash.constEnd()) {
       DirComm *dircomm = iter.value();
@@ -881,8 +895,7 @@ bool Console::findDirComm(int &conn)
       }
       if (mainWin->m_connDebug) {
          Pmsg4(000, "currentDirComm=%d at_prompt=%d at_main=%d && notify=%d\n",                                      
-            i, dircomm->m_at_prompt, dircomm->m_at_main_prompt, dircomm->is_notify_enabled());
-         i++;
+            dircomm->m_conn, dircomm->m_at_prompt, dircomm->m_at_main_prompt, dircomm->is_notify_enabled());
       }
       ++iter;
    }
