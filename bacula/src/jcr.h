@@ -410,6 +410,7 @@ public:
    CRYPTO_CTX crypto;                 /* Crypto ctx */
    DIRRES* director;                  /* Director resource */
    bool VSS;                          /* VSS used by FD */
+   bool got_metadata;                 /* set when found job_metadata */
    bool multi_restore;                /* Dir can do multiple storage restore */
    htable *file_list;                 /* Previous file list (accurate mode) */
    uint64_t base_size;                /* compute space saved with base job */

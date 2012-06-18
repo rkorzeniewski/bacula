@@ -84,7 +84,6 @@ static int session_cmd(JCR *jcr);
 static int response(JCR *jcr, BSOCK *sd, char *resp, const char *cmd);
 static void filed_free_jcr(JCR *jcr);
 static int open_sd_read_session(JCR *jcr);
-static int send_bootstrap_file(JCR *jcr);
 static int runscript_cmd(JCR *jcr);
 static int runbefore_cmd(JCR *jcr);
 static int runafter_cmd(JCR *jcr);
@@ -188,7 +187,6 @@ static char OK_close[]     = "3000 OK close Status = %d\n";
 static char OK_open[]      = "3000 OK open ticket = %d\n";
 static char OK_data[]      = "3000 OK data\n";
 static char OK_append[]    = "3000 OK append data\n";
-static char OKSDbootstrap[]= "3000 OK bootstrap\n";
 
 
 /* Commands sent to Storage Daemon */
@@ -765,9 +763,7 @@ static int restore_object_cmd(JCR *jcr)
    /* we still need to do this to detect a vss restore */
    if (strcmp(rop.object_name, "job_metadata.xml") == 0) {
       Dmsg0(100, "got job metadata\n");
-      //free_and_null_pool_memory(jcr->job_metadata);
-      jcr->job_metadata = rop.object; /* this is like a boolean in the restore case */
-      // rop.object = NULL; /* but not this */
+      jcr->got_metadata = true;
    }
    
    generate_plugin_event(jcr, bEventRestoreObject, (void *)&rop);
@@ -2122,8 +2118,7 @@ static int restore_cmd(JCR *jcr)
     * No need to enable VSS for restore if we do not have plugin
     *  data to restore 
     */
-   enable_vss = jcr->job_metadata != NULL;
-   jcr->job_metadata = NULL;
+   enable_vss = jcr->got_metadata;
 
    Dmsg2(50, "g_pVSSClient = %p, enable_vss = %d\n", g_pVSSClient, enable_vss);
    // capture state here, if client is backed up by multiple directors
@@ -2274,7 +2269,6 @@ bail_out:
       dir->fsend(OKstoreend);
       ret = 1;     /* we continue the loop, waiting for next part */
    } else {
-      end_restore_cmd(jcr);
       ret = 0;     /* we stop here */
    }
 
@@ -2282,6 +2276,9 @@ bail_out:
       ret = 0;     /* we stop here */
    }
 
+   if (ret == 0) {
+      end_restore_cmd(jcr);  /* stopping so send bEventEndRestoreJob */
+   }
    return ret;
 }
 
@@ -2323,10 +2320,6 @@ static int open_sd_read_session(JCR *jcr)
       Dmsg1(110, "filed: got Ticket=%d\n", jcr->Ticket);
    } else {
       Jmsg(jcr, M_FATAL, 0, _("Bad response from stored to read open command\n"));
-      return 0;
-   }
-
-   if (!send_bootstrap_file(jcr)) {
       return 0;
    }
 
@@ -2397,43 +2390,4 @@ int response(JCR *jcr, BSOCK *sd, char *resp, const char *cmd)
          cmd, resp, sd->msg);
    }
    return 0;
-}
-
-static int send_bootstrap_file(JCR *jcr)
-{
-   FILE *bs;
-   char buf[2000];
-   BSOCK *sd = jcr->store_bsock;
-   const char *bootstrap = "bootstrap\n";
-   int stat = 0;
-
-   Dmsg1(400, "send_bootstrap_file: %s\n", jcr->RestoreBootstrap);
-   if (!jcr->RestoreBootstrap) {
-      return 1;
-   }
-   bs = fopen(jcr->RestoreBootstrap, "rb");
-   if (!bs) {
-      berrno be;
-      Jmsg(jcr, M_FATAL, 0, _("Could not open bootstrap file %s: ERR=%s\n"),
-         jcr->RestoreBootstrap, be.bstrerror());
-      jcr->setJobStatus(JS_ErrorTerminated);
-      goto bail_out;
-   }
-   sd->msglen = pm_strcpy(sd->msg, bootstrap);
-   sd->send();
-   while (fgets(buf, sizeof(buf), bs)) {
-      sd->msglen = Mmsg(sd->msg, "%s", buf);
-      sd->send();
-   }
-   sd->signal(BNET_EOD);
-   fclose(bs);
-   if (!response(jcr, sd, OKSDbootstrap, "Bootstrap")) {
-      jcr->setJobStatus(JS_ErrorTerminated);
-      goto bail_out;
-   }
-   stat = 1;
-
-bail_out:
-   free_bootstrap(jcr);
-   return stat;
 }

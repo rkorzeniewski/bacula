@@ -535,7 +535,7 @@ int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
       set_portable_backup(&ff_pkt->bfd); /* disable Win32 BackupRead() */
    }
 
-   if (ff_pkt->cmd_plugin && !ff_pkt->no_read) {
+   if (ff_pkt->cmd_plugin) {
       do_plugin_set = true;
 
    /* option and cmd plugin are not compatible together */
@@ -602,7 +602,7 @@ int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
       do_read = true;
    }
 
-   if (ff_pkt->cmd_plugin) {
+   if (ff_pkt->cmd_plugin && !ff_pkt->no_read) {
       do_read = true;
    }
 
@@ -1098,12 +1098,16 @@ static int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest,
 #ifdef HAVE_LZO
       /** Do compression if turned on */
       if (ff_pkt->flags & FO_COMPRESS && ff_pkt->Compress_algo == COMPRESS_LZO1X && jcr->LZO_compress_workset) {
+         lzo_uint len;          /* TODO: See with the latest patch how to handle lzo_uint with 64bit */
+
          ser_declare;
          ser_begin(cbuf, sizeof(comp_stream_header));
 
          Dmsg3(400, "cbuf=0x%x rbuf=0x%x len=%u\n", cbuf, rbuf, sd->msglen);
 
-         lzores = lzo1x_1_compress((const unsigned char*)rbuf, sd->msglen, cbuf2, &compress_len, jcr->LZO_compress_workset);
+         lzores = lzo1x_1_compress((const unsigned char*)rbuf, sd->msglen, cbuf2, 
+                                   &len, jcr->LZO_compress_workset);
+         compress_len = len;
          if (lzores == LZO_E_OK && compress_len <= max_compress_len)
          {
             /* complete header */
@@ -1536,10 +1540,11 @@ static void close_vss_backup_session(JCR *jcr)
             Jmsg(jcr, msg_type, 0, _("VSS Writer (BackupComplete): %s\n"), g_pVSSClient->GetWriterInfo(i));
          }
       }
+      /* Generate Job global writer metadata */
       WCHAR *metadata = g_pVSSClient->GetMetadata();
       if (metadata) {
          FF_PKT *ff_pkt = jcr->ff;
-         ff_pkt->fname = (char *)"job";
+         ff_pkt->fname = (char *)"*all*"; /* for all plugins */
          ff_pkt->type = FT_RESTORE_FIRST;
          ff_pkt->LinkFI = 0;
          ff_pkt->object_name = (char *)"job_metadata.xml";
