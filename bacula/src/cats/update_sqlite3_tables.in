@@ -38,7 +38,7 @@ CREATE TABLE RestoreObject (
    ObjectIndex INTEGER DEFAULT 0,
    ObjectType INTEGER DEFAULT 0,
    FileIndex INTEGER UNSIGNED DEFAULT 0,
-   ObejctCompression INTEGER DEFAULT 0,
+   ObjectCompression INTEGER DEFAULT 0,
    JobId INTEGER UNSIGNED REFERENCES Job NOT NULL,
    PRIMARY KEY(RestoreObjectId)
    );
