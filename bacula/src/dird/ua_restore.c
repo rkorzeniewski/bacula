@@ -1530,8 +1530,13 @@ void find_storage_resource(UAContext *ua, RESTORE_CTX &rx, char *Storage, char *
             if (acl_access_ok(ua, Storage_ACL, store->name())) {
                rx.store = store;
                Dmsg1(200, "Set store=%s\n", rx.store->name());
-               ua->warning_msg(_("Storage \"%s\" not found, using Storage \"%s\" from MediaType \"%s\".\n"),
-                  Storage, store->name(), MediaType);
+               if (Storage == NULL) {
+                  ua->warning(_("Using Storage \"%s\" from MediaType \"%s\".\n"),
+                     store->name(), MediaType);
+               } else {
+                  ua->warning_msg(_("Storage \"%s\" not found, using Storage \"%s\" from MediaType \"%s\".\n"),
+                     Storage, store->name(), MediaType);
+               }
             }
             UnlockRes();
             return;
