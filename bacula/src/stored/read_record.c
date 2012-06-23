@@ -48,7 +48,7 @@ static void handle_session_record(DEVICE *dev, DEV_RECORD *rec, SESSION_LABEL *s
 static BSR *position_to_first_file(JCR *jcr, DCR *dcr);
 static bool try_repositioning(JCR *jcr, DEV_RECORD *rec, DCR *dcr);
 #ifdef DEBUG
-static char *rec_state_to_str(DEV_RECORD *rec);
+static char *rec_state_bits_to_str(DEV_RECORD *rec);
 #endif
 
 static const int dbglvl = 500;
@@ -189,23 +189,23 @@ bool read_records(DCR *dcr,
          rec = new_record();
          recs->prepend(rec);
          Dmsg3(dbglvl, "New record for state=%s SI=%d ST=%d\n",
-             rec_state_to_str(rec),
+             rec_state_bits_to_str(rec),
              block->VolSessionId, block->VolSessionTime);
       }
-      Dmsg3(dbglvl, "Before read rec loop. stat=%s blk=%d rem=%d\n", rec_state_to_str(rec),
+      Dmsg3(dbglvl, "Before read rec loop. stat=%s blk=%d rem=%d\n", rec_state_bits_to_str(rec),
             block->BlockNumber, rec->remainder);
       record = 0;
-      rec->state = 0;
+      rec->state_bits = 0;
       lastFileIndex = no_FileIndex;
       Dmsg1(dbglvl, "Block %s empty\n", is_block_empty(rec)?"is":"NOT");
-      for (rec->state=0; ok && !is_block_empty(rec); ) {
+      for (rec->state_bits=0; ok && !is_block_empty(rec); ) {
          if (!read_record_from_block(dcr, block, rec)) {
-            Dmsg3(400, "!read-break. state=%s blk=%d rem=%d\n", rec_state_to_str(rec),
+            Dmsg3(400, "!read-break. state_bits=%s blk=%d rem=%d\n", rec_state_bits_to_str(rec),
                   block->BlockNumber, rec->remainder);
             break;
          }
-         Dmsg5(dbglvl, "read-OK. state=%s blk=%d rem=%d file:block=%u:%u\n",
-                 rec_state_to_str(rec), block->BlockNumber, rec->remainder,
+         Dmsg5(dbglvl, "read-OK. state_bits=%s blk=%d rem=%d file:block=%u:%u\n",
+                 rec_state_bits_to_str(rec), block->BlockNumber, rec->remainder,
                  dev->file, dev->block_num);
          /*
           * At this point, we have at least a record header.
@@ -214,8 +214,8 @@ bool read_records(DCR *dcr,
           *  get all the data.
           */
          record++;
-         Dmsg6(dbglvl, "recno=%d state=%s blk=%d SI=%d ST=%d FI=%d\n", record,
-            rec_state_to_str(rec), block->BlockNumber,
+         Dmsg6(dbglvl, "recno=%d state_bits=%s blk=%d SI=%d ST=%d FI=%d\n", record,
+            rec_state_bits_to_str(rec), block->BlockNumber,
             rec->VolSessionId, rec->VolSessionTime, rec->FileIndex);
 
          if (rec->FileIndex == EOM_LABEL) { /* end of tape? */
@@ -268,7 +268,7 @@ bool read_records(DCR *dcr,
                Dmsg4(dbglvl, "BSR no match: clear rem=%d FI=%d before set_eof pos %u:%u\n",
                   rec->remainder, rec->FileIndex, dev->file, dev->block_num);
                rec->remainder = 0;
-               rec->state &= ~REC_PARTIAL_RECORD;
+               rec->state_bits &= ~REC_PARTIAL_RECORD;
                if (try_repositioning(jcr, rec, dcr)) {
                   break;
                }
@@ -277,14 +277,14 @@ bool read_records(DCR *dcr,
          }
          dcr->VolLastIndex = rec->FileIndex;  /* let caller know where we are */
          if (is_partial_record(rec)) {
-            Dmsg6(dbglvl, "Partial, break. recno=%d state=%s blk=%d SI=%d ST=%d FI=%d\n", record,
-               rec_state_to_str(rec), block->BlockNumber,
+            Dmsg6(dbglvl, "Partial, break. recno=%d state_bits=%s blk=%d SI=%d ST=%d FI=%d\n", record,
+               rec_state_bits_to_str(rec), block->BlockNumber,
                rec->VolSessionId, rec->VolSessionTime, rec->FileIndex);
             break;                    /* read second part of record */
          }
 
-         Dmsg6(dbglvl, "OK callback. recno=%d state=%s blk=%d SI=%d ST=%d FI=%d\n", record,
-               rec_state_to_str(rec), block->BlockNumber,
+         Dmsg6(dbglvl, "OK callback. recno=%d state_bits=%s blk=%d SI=%d ST=%d FI=%d\n", record,
+               rec_state_bits_to_str(rec), block->BlockNumber,
                rec->VolSessionId, rec->VolSessionTime, rec->FileIndex);
          if (lastFileIndex != no_FileIndex && lastFileIndex != rec->FileIndex) {
             if (is_this_bsr_done(jcr->bsr, rec) && try_repositioning(jcr, rec, dcr)) {
@@ -369,7 +369,7 @@ static bool try_repositioning(JCR *jcr, DEV_RECORD *rec, DCR *dcr)
       if (dev_addr > bsr_addr) {
          return false;
       }
-      Dmsg4(10, "Try_Reposition from (file:block) %u:%u to %u:%u\n",
+      Dmsg4(dbglvl, "Try_Reposition from (file:block) %u:%u to %u:%u\n",
             dev->file, dev->block_num, file, block);
       dev->reposition(dcr, file, block);
       rec->Block = 0;
@@ -437,23 +437,23 @@ static void handle_session_record(DEVICE *dev, DEV_RECORD *rec, SESSION_LABEL *s
 }
 
 #ifdef DEBUG
-static char *rec_state_to_str(DEV_RECORD *rec)
+static char *rec_state_bits_to_str(DEV_RECORD *rec)
 {
    static char buf[200];
    buf[0] = 0;
-   if (rec->state & REC_NO_HEADER) {
+   if (rec->state_bits & REC_NO_HEADER) {
       bstrncat(buf, "Nohdr,", sizeof(buf));
    }
    if (is_partial_record(rec)) {
       bstrncat(buf, "partial,", sizeof(buf));
    }
-   if (rec->state & REC_BLOCK_EMPTY) {
+   if (rec->state_bits & REC_BLOCK_EMPTY) {
       bstrncat(buf, "empty,", sizeof(buf));
    }
-   if (rec->state & REC_NO_MATCH) {
+   if (rec->state_bits & REC_NO_MATCH) {
       bstrncat(buf, "Nomatch,", sizeof(buf));
    }
-   if (rec->state & REC_CONTINUATION) {
+   if (rec->state_bits & REC_CONTINUATION) {
       bstrncat(buf, "cont,", sizeof(buf));
    }
    if (buf[0]) {

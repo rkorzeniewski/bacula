@@ -50,6 +50,13 @@ enum {
    VOL_NO_MEDIA                           /* Hard error -- no media present */
 };
 
+enum rec_state {
+   st_none,                               /* No state */
+   st_header,                             /* Write header */
+   st_header_cont,
+   st_data,
+};
+
 
 /*  See block.h for RECHDR_LENGTH */
 
@@ -78,8 +85,8 @@ enum {
 #define REC_CONTINUATION     (1<<4)   /* Continuation record found */
 #define REC_ISTAPE           (1<<5)   /* Set if device is tape */
 
-#define is_partial_record(r) ((r)->state & REC_PARTIAL_RECORD)
-#define is_block_empty(r)    ((r)->state & REC_BLOCK_EMPTY)
+#define is_partial_record(r) ((r)->state_bits & REC_PARTIAL_RECORD)
+#define is_block_empty(r)    ((r)->state_bits & REC_BLOCK_EMPTY)
 
 /*
  * DEV_RECORD for reading and writing records.
@@ -102,7 +109,9 @@ struct DEV_RECORD {
    int32_t  maskedStream;             /* Masked Stream without high bits */
    uint32_t data_len;                 /* current record length */
    uint32_t remainder;                /* remaining bytes to read/write */
-   uint32_t state;                    /* state bits */
+   uint32_t remlen;                   /* temp remainder bytes */
+   uint32_t state_bits;               /* state bits */
+   rec_state state;                   /* state of write_record_to_block */
    BSR *bsr;                          /* pointer to bsr that matched */
    uint8_t  ser_buf[WRITE_RECHDR_LENGTH];   /* serialized record header goes here */
    POOLMEM *data;                     /* Record data. This MUST be a memory pool item */
