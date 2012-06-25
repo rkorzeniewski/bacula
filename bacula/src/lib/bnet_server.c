@@ -64,15 +64,16 @@ void bnet_stop_thread_server(pthread_t tid)
 }
 
 /*
-        Become Threaded Network Server
-    This function is able to handle multiple server ips in
-    ipv4 and ipv6 style. The Addresse are give in a comma
-    seperated string in bind_addr
-    In the moment it is inpossible to bind different ports.
-*/
-void
-bnet_thread_server(dlist *addrs, int max_clients, workq_t *client_wq,
-                   void *handle_client_request(void *bsock))
+ * Become Threaded Network Server
+ *
+ * This function is able to handle multiple server ips in
+ * ipv4 and ipv6 style. The Addresse are give in a comma
+ * seperated string in bind_addr
+ *
+ * At the moment it is inpossible to bind different ports.
+ */
+void bnet_thread_server(dlist *addr_list, int max_clients, workq_t *client_wq,
+                        void *handle_client_request(void *bsock))
 {
    int newsockfd, stat;
    socklen_t clilen;
@@ -82,7 +83,7 @@ bnet_thread_server(dlist *addrs, int max_clients, workq_t *client_wq,
 #ifdef HAVE_LIBWRAP
    struct request_info request;
 #endif
-   IPADDR *p;
+   IPADDR *ipaddr, *next;
    struct s_sockfd {
       dlink link;                     /* this MUST be the first item */
       int fd;
@@ -92,23 +93,37 @@ bnet_thread_server(dlist *addrs, int max_clients, workq_t *client_wq,
    dlist sockfds;
 
    char allbuf[256 * 10];
-   Dmsg1(100, "Addresses %s\n", build_addresses_str(addrs, allbuf, sizeof(allbuf)));
 
-   foreach_dlist(p, addrs) {
+   /*
+    * Remove any duplicate addresses.
+    */
+   for (ipaddr = (IPADDR *)addr_list->first(); ipaddr; ipaddr = (IPADDR *)addr_list->next(ipaddr)) {
+      for (next = (IPADDR *)addr_list->next(ipaddr); next; next = (IPADDR *)addr_list->next(next)) {
+         if (ipaddr->get_sockaddr_len() == next->get_sockaddr_len() &&
+             !memcmp(ipaddr->get_sockaddr(), next->get_sockaddr(),
+                     ipaddr->get_sockaddr_len())) {
+            addr_list->remove(next);
+         }
+      }
+   }
+
+   Dmsg1(100, "Addresses %s\n", build_addresses_str(addr_list, allbuf, sizeof(allbuf)));
+
+   foreach_dlist(ipaddr, addr_list) {
       /* Allocate on stack from -- no need to free */
       fd_ptr = (s_sockfd *)alloca(sizeof(s_sockfd));
-      fd_ptr->port = p->get_port_net_order();
+      fd_ptr->port = ipaddr->get_port_net_order();
       /*
        * Open a TCP socket
        */
-      for (tlog= 60; (fd_ptr->fd=socket(p->get_family(), SOCK_STREAM, 0)) < 0; tlog -= 10) {
+      for (tlog= 60; (fd_ptr->fd=socket(ipaddr->get_family(), SOCK_STREAM, 0)) < 0; tlog -= 10) {
          if (tlog <= 0) {
             berrno be;
             char curbuf[256];
             Emsg3(M_ABORT, 0, _("Cannot open stream socket. ERR=%s. Current %s All %s\n"),
                        be.bstrerror(),
-                       p->build_address_str(curbuf, sizeof(curbuf)),
-                       build_addresses_str(addrs, allbuf, sizeof(allbuf)));
+                       ipaddr->build_address_str(curbuf, sizeof(curbuf)),
+                       build_addresses_str(addr_list, allbuf, sizeof(allbuf)));
          }
          bmicrosleep(10, 0);
       }
@@ -123,7 +138,7 @@ bnet_thread_server(dlist *addrs, int max_clients, workq_t *client_wq,
       }
 
       int tmax = 30 * (60 / 5);    /* wait 30 minutes max */
-      for (tlog = 0; bind(fd_ptr->fd, p->get_sockaddr(), p->get_sockaddr_len()) < 0; tlog -= 5) {
+      for (tlog = 0; bind(fd_ptr->fd, ipaddr->get_sockaddr(), ipaddr->get_sockaddr_len()) < 0; tlog -= 5) {
          berrno be;
          if (tlog <= 0) {
             tlog = 2 * 60;         /* Complain every 2 minutes */

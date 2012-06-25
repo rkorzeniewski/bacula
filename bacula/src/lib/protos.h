@@ -246,7 +246,7 @@ void       set_db_type           (const char *name);
 void       register_message_callback(void msg_callback(int type, char *msg));
 
 /* bnet_server.c */
-void       bnet_thread_server(dlist *addr, int max_clients, workq_t *client_wq,
+void       bnet_thread_server(dlist *addr_list, int max_clients, workq_t *client_wq,
                    void *handle_client_request(void *bsock));
 void       bnet_stop_thread_server(pthread_t tid);
 void             bnet_server             (int port, void handle_client_request(BSOCK *bsock));

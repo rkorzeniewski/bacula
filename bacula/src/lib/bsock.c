@@ -192,7 +192,7 @@ bool BSOCK::open(JCR *jcr, const char *name, char *host, char *service,
 {
    int sockfd = -1;
    dlist *addr_list;
-   IPADDR *ipaddr;
+   IPADDR *ipaddr, *next;
    bool connected = false;
    int turnon = 1;
    const char *errstr;
@@ -210,6 +210,19 @@ bool BSOCK::open(JCR *jcr, const char *name, char *host, char *service,
             host, errstr);
       *fatal = 1;
       return false;
+   }
+
+   /*
+    * Remove any duplicate addresses.
+    */
+   for (ipaddr = (IPADDR *)addr_list->first(); ipaddr; ipaddr = (IPADDR *)addr_list->next(ipaddr)) {
+      for (next = (IPADDR *)addr_list->next(ipaddr); next; next = (IPADDR *)addr_list->next(next)) {
+         if (ipaddr->get_sockaddr_len() == next->get_sockaddr_len() &&
+             !memcmp(ipaddr->get_sockaddr(), next->get_sockaddr(),
+                     ipaddr->get_sockaddr_len())) {
+            addr_list->remove(next);
+         }
+      }
    }
 
    foreach_dlist(ipaddr, addr_list) {
