@@ -215,11 +215,13 @@ bool BSOCK::open(JCR *jcr, const char *name, char *host, char *service,
    /*
     * Remove any duplicate addresses.
     */
-   for (ipaddr = (IPADDR *)addr_list->first(); ipaddr; ipaddr = (IPADDR *)addr_list->next(ipaddr)) {
-      for (next = (IPADDR *)addr_list->next(ipaddr); next; next = (IPADDR *)addr_list->next(next)) {
+   for (ipaddr = (IPADDR *)addr_list->first();
+        ipaddr; ipaddr = (IPADDR *)addr_list->next(ipaddr)) {
+      for (next = (IPADDR *)addr_list->next(ipaddr); next;
+           next = (IPADDR *)addr_list->next(next)) {
          if (ipaddr->get_sockaddr_len() == next->get_sockaddr_len() &&
-             !memcmp(ipaddr->get_sockaddr(), next->get_sockaddr(),
-                     ipaddr->get_sockaddr_len())) {
+             memcmp(ipaddr->get_sockaddr(), next->get_sockaddr(),
+                    ipaddr->get_sockaddr_len()) == 0) {
             addr_list->remove(next);
          }
       }
