@@ -418,8 +418,8 @@ const char *resolv_host(int family, const char *host, dlist *addr_list)
 
    memset(&hints, 0, sizeof(struct addrinfo));
    hints.ai_family = family;
-   hints.ai_socktype = 0;
-   hints.ai_protocol = 0;
+   hints.ai_socktype = SOCK_STREAM;
+   hints.ai_protocol = IPPROTO_TCP;
    hints.ai_flags = 0;
 
    res = getaddrinfo(host, NULL, &hints, &ai);
