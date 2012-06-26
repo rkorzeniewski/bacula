@@ -84,3 +84,5 @@ extern const char CATS_IMP_EXP *batch_unlock_tables_query[];
 extern const char CATS_IMP_EXP *batch_fill_path_query[];
 extern const char CATS_IMP_EXP *batch_fill_filename_query[];
 extern const char CATS_IMP_EXP *match_query[];
+extern const char CATS_IMP_EXP *select_counter_values[];
+extern const char CATS_IMP_EXP *update_counter_values[];

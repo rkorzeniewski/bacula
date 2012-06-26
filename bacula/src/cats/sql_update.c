@@ -253,10 +253,9 @@ int db_update_counter_record(JCR *jcr, B_DB *mdb, COUNTER_DBR *cr)
    db_lock(mdb);
    mdb->db_escape_string(jcr, esc, cr->Counter, strlen(cr->Counter));
    Mmsg(mdb->cmd,
-"UPDATE Counters SET Counters.MinValue=%d,Counters.MaxValue=%d,CurrentValue=%d,"
-"WrapCounter='%s' WHERE Counter='%s'",
-      cr->MinValue, cr->MaxValue, cr->CurrentValue,
-      cr->WrapCounter, esc);
+        update_counter_values[mdb->db_get_type_index()],
+        cr->MinValue, cr->MaxValue, cr->CurrentValue,
+        cr->WrapCounter, esc);
 
    int stat = UPDATE_DB(jcr, mdb, mdb->cmd);
    db_unlock(mdb);

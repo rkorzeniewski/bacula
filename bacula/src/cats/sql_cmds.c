@@ -40,7 +40,7 @@
 
 #include "bacula.h"
 
-const char *get_restore_objects = 
+const char *get_restore_objects =
    "SELECT JobId,ObjectLength,ObjectFullLength,ObjectIndex,"
            "ObjectType,ObjectCompression,FileIndex,ObjectName,"
            "RestoreObject,PluginName "
@@ -52,18 +52,18 @@ const char *get_restore_objects =
 const char *cleanup_created_job =
    "UPDATE Job SET JobStatus='f', StartTime=SchedTime, EndTime=SchedTime "
    "WHERE JobStatus = 'C'";
-const char *cleanup_running_job = 
+const char *cleanup_running_job =
    "UPDATE Job SET JobStatus='f', EndTime=StartTime WHERE JobStatus = 'R'";
 
 /* For sql_update.c db_update_stats */
 const char *fill_jobhisto =
-        "INSERT INTO JobHisto (" 
+        "INSERT INTO JobHisto ("
            "JobId, Job, Name, Type, Level, ClientId, JobStatus, "
            "SchedTime, StartTime, EndTime, RealEndTime, JobTDate, "
            "VolSessionId, VolSessionTime, JobFiles, JobBytes, ReadBytes, "
            "JobErrors, JobMissingFiles, PoolId, FileSetId, PriorJobId, "
            "PurgedFiles, HasBase, Reviewed, Comment ) "
-        "SELECT " 
+        "SELECT "
            "JobId, Job, Name, Type, Level, ClientId, JobStatus, "
            "SchedTime, StartTime, EndTime, RealEndTime, JobTDate, "
            "VolSessionId, VolSessionTime, JobFiles, JobBytes, ReadBytes, "
@@ -87,14 +87,14 @@ const char *client_backups =
    " WHERE Client.Name='%s'"
    " AND FileSet='%s'"
    " AND Client.ClientId=Job.ClientId"
-   " AND JobStatus IN ('T','W') AND Type='B'" 
+   " AND JobStatus IN ('T','W') AND Type='B'"
    " AND JobMedia.JobId=Job.JobId AND JobMedia.MediaId=Media.MediaId"
    " AND Job.FileSetId=FileSet.FileSetId"
    " ORDER BY Job.StartTime";
 
 /* ====== ua_prune.c */
 
-const char *sel_JobMedia = 
+const char *sel_JobMedia =
    "SELECT DISTINCT JobMedia.JobId FROM JobMedia,Job "
    "WHERE MediaId=%s AND Job.JobId=JobMedia.JobId "
    "AND Job.JobTDate<%s";
@@ -117,7 +117,7 @@ const char *uar_list_jobs =
    "FROM Client,Job WHERE Client.ClientId=Job.ClientId AND JobStatus IN ('T','W') "
    "AND Type='B' ORDER BY StartTime DESC LIMIT 20";
 
-const char *uar_print_jobs =  
+const char *uar_print_jobs =
    "SELECT DISTINCT JobId,Level,JobFiles,JobBytes,StartTime,VolumeName"
    " FROM Job JOIN JobMedia USING (JobId) JOIN Media USING (MediaId) "
    " WHERE JobId IN (%s) "
@@ -199,7 +199,7 @@ const char *uar_list_temp =
    " ORDER BY StartTime ASC";
 
 
-const char *uar_sel_jobid_temp = 
+const char *uar_sel_jobid_temp =
    "SELECT DISTINCT JobId,StartTime FROM temp ORDER BY StartTime ASC";
 
 const char *uar_sel_all_temp1 = "SELECT * FROM temp1";
@@ -257,20 +257,20 @@ const char *uar_jobids_fileindex =
    "ORDER BY Job.StartTime DESC LIMIT 1";
 
 /* Query to get list of files from table -- presuably built by an external program */
-const char *uar_jobid_fileindex_from_table = 
+const char *uar_jobid_fileindex_from_table =
    "SELECT JobId,FileIndex FROM %s ORDER BY JobId, FileIndex ASC";
 
-/* Get the list of the last recent version per Delta with a given jobid list 
- * This is a tricky part because with SQL the result of 
+/* Get the list of the last recent version per Delta with a given jobid list
+ * This is a tricky part because with SQL the result of
  *
  * SELECT MAX(A), B, C, D FROM... GROUP BY (B,C)
  *
  * doesn't give the good result (for D).
  *
  * With PostgreSQL, we can use DISTINCT ON(), but with Mysql or Sqlite,
- * we need an extra join using JobTDate. 
+ * we need an extra join using JobTDate.
  */
-const char *select_recent_version_with_basejob_default = 
+static const char *select_recent_version_with_basejob_default =
 "SELECT FileId, Job.JobId AS JobId, FileIndex, File.PathId AS PathId, "
        "File.FilenameId AS FilenameId, LStat, MD5, DeltaSeq, "
        "Job.JobTDate AS JobTDate "
@@ -281,7 +281,7 @@ const char *select_recent_version_with_basejob_default =
           "FROM File JOIN Job USING (JobId) "    /* from selected backup */
          "WHERE File.JobId IN (%s) "
           "UNION ALL "
-        "SELECT JobTDate, PathId, FilenameId "   /* Get all files from */ 
+        "SELECT JobTDate, PathId, FilenameId "   /* Get all files from */
           "FROM BaseFiles "                      /* BaseJob */
                "JOIN File USING (FileId) "
                "JOIN Job  ON    (BaseJobId = Job.JobId) "
@@ -334,10 +334,10 @@ const char *select_recent_version_with_basejob[] = {
  * If we detect a gap, we can discard further pieces
  * If a file starts at 1 instead of 0, the file has been deleted, and further
  * pieces are useless.
- * 
+ *
  * This control should be reset for each new file
  */
-const char *select_recent_version_with_basejob_and_delta_default = 
+static const char *select_recent_version_with_basejob_and_delta_default =
 "SELECT FileId, Job.JobId AS JobId, FileIndex, File.PathId AS PathId, "
        "File.FilenameId AS FilenameId, LStat, MD5, File.DeltaSeq AS DeltaSeq, "
        "Job.JobTDate AS JobTDate "
@@ -348,7 +348,7 @@ const char *select_recent_version_with_basejob_and_delta_default =
          "FROM File JOIN Job USING (JobId) "          /* from selected backup */
         "WHERE File.JobId IN (%s) "
          "UNION ALL "
-       "SELECT JobTDate, PathId, FilenameId, DeltaSeq " /*Get all files from */ 
+       "SELECT JobTDate, PathId, FilenameId, DeltaSeq " /*Get all files from */
          "FROM BaseFiles "                            /* BaseJob */
               "JOIN File USING (FileId) "
               "JOIN Job  ON    (BaseJobId = Job.JobId) "
@@ -392,7 +392,7 @@ const char *select_recent_version_with_basejob_and_delta[] = {
 /* Get the list of the last recent version with a given BaseJob jobid list
  * We don't handle Delta with BaseJobs, they have only Full files
  */
-const char *select_recent_version_default = 
+static const char *select_recent_version_default =
   "SELECT j1.JobId AS JobId, f1.FileId AS FileId, f1.FileIndex AS FileIndex, "
           "f1.PathId AS PathId, f1.FilenameId AS FilenameId, "
           "f1.LStat AS LStat, f1.MD5 AS MD5, j1.JobTDate "
@@ -426,10 +426,10 @@ const char *select_recent_version[] = {
    select_recent_version_default
 };
 
-/* We don't create this table as TEMPORARY because MySQL MyISAM 
+/* We don't create this table as TEMPORARY because MySQL MyISAM
  * 5.0 and 5.1 are unable to run further queries in this mode
  */
-const char *create_temp_accurate_jobids_default =
+static const char *create_temp_accurate_jobids_default =
  "CREATE TABLE btemp3%s AS "
     "SELECT JobId, StartTime, EndTime, JobTDate, PurgedFiles "
       "FROM Job JOIN FileSet USING (FileSetId) "
@@ -540,7 +540,7 @@ const char *create_deltabs[] = {
    "JobStatus BINARY(1))",
 
    /* Postgresql */
-   "CREATE TEMPORARY TABLE DelCandidates (" 
+   "CREATE TEMPORARY TABLE DelCandidates ("
    "JobId INTEGER NOT NULL, "
    "PurgedFiles SMALLINT, "
    "FileSetId INTEGER, "
@@ -556,7 +556,7 @@ const char *create_deltabs[] = {
    "JobStatus CHAR)",
 
    /* Ingres */
-   "DECLARE GLOBAL TEMPORARY TABLE DelCandidates (" 
+   "DECLARE GLOBAL TEMPORARY TABLE DelCandidates ("
    "JobId INTEGER NOT NULL, "
    "PurgedFiles SMALLINT, "
    "FileSetId INTEGER, "
@@ -569,7 +569,7 @@ const char *create_deltabs[] = {
 
 /* Select the first available Copy Job that must be upgraded to a Backup job when the original backup job is expired. */
 
-const char *uap_upgrade_copies_oldest_job_default = 
+static const char *uap_upgrade_copies_oldest_job_default =
 "CREATE TEMPORARY TABLE cpy_tmp AS "
        "SELECT MIN(JobId) AS JobId FROM Job "     /* Choose the oldest job */
         "WHERE Type='%c' "                        /* JT_JOB_COPY */
@@ -738,7 +738,7 @@ const char *uar_create_temp1[] = {
    "ON COMMIT PRESERVE ROWS WITH NORECOVERY"
 };
 
-/* Query to get all files in a directory -- no recursing   
+/* Query to get all files in a directory -- no recursing
  *  Note, for PostgreSQL since it respects the "Single Value
  *  rule", the results of the SELECT will be unoptimized.
  *  I.e. the same file will be restored multiple times, once
@@ -846,13 +846,13 @@ const char *sql_bvfs_select[] = {
         "FROM btemp%s "
       "GROUP BY PathId, FilenameId "
    "HAVING FileIndex > 0",
-   
+
 
    /* Ingres (TODO) */
    "SELECT 0"
 };
 
-const char *sql_bvfs_list_files_default = 
+static const char *sql_bvfs_list_files_default =
 "SELECT 'F', T1.PathId, T1.FilenameId, Filename.Name, "
         "File.JobId, File.LStat, File.FileId "
 "FROM Job, File, ( "
@@ -1014,4 +1014,44 @@ const char *match_query[] = {
 
    /* Ingres */
    "~"
+};
+
+static const char *select_counter_values_default =
+   "SELECT MinValue, MaxValue, CurrentValue, WrapCounter "
+   "FROM Counters WHERE Counter='%s'";
+
+const char *select_counter_values[] = {
+   /* Mysql */
+   "SELECT Counters.MinValue, Counters.MaxValue, CurrentValue, WrapCounter "
+   "FROM Counters WHERE Counter='%s'",
+
+   /* Postgresql */
+   select_counter_values_default,
+
+   /* SQLite3 */
+   select_counter_values_default,
+
+   /* Ingres */
+   select_counter_values_default
+};
+
+static const char *update_counter_values_default =
+   "UPDATE Counters SET "
+   "MinValue=%d, MaxValue=%d, CurrentValue=%d, WrapCounter='%s'"
+   "WHERE Counter='%s'";
+
+const char *update_counter_values[] = {
+   /* Mysql */
+   "UPDATE Counters SET "
+   "Counters.MinValue=%d, Counters.MaxValue=%d, CurrentValue=%d, WrapCounter='%s'"
+   "WHERE Counter='%s'",
+
+   /* Postgresql */
+   update_counter_values_default,
+
+   /* SQLite3 */
+   update_counter_values_default,
+
+   /* Ingres */
+   update_counter_values_default
 };

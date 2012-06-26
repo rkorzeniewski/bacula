@@ -756,9 +756,7 @@ int db_get_counter_record(JCR *jcr, B_DB *mdb, COUNTER_DBR *cr)
    db_lock(mdb);
    mdb->db_escape_string(jcr, esc, cr->Counter, strlen(cr->Counter));
 
-   Mmsg(mdb->cmd, "SELECT Counters.MinValue,Counters.MaxValue,CurrentValue,WrapCounter "
-      "FROM Counters WHERE Counter='%s'", esc);
-
+   Mmsg(mdb->cmd, select_counter_values[mdb->db_get_type_index()], esc);
    if (QUERY_DB(jcr, mdb, mdb->cmd)) {
       num_rows = sql_num_rows(mdb);
 
