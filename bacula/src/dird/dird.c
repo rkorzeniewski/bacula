@@ -110,7 +110,7 @@ static void usage()
    fprintf(stderr, _(
 PROG_COPYRIGHT
 "\nVersion: %s (%s)\n\n"
-"Usage: dird [-f -s] [-c config_file] [-d debug_level] [config_file]\n"
+"Usage: bacula-dir [-f -s] [-c config_file] [-d debug_level] [config_file]\n"
 "       -c <file>   set configuration file to file\n"
 "       -d <nn>     set debug level to <nn>\n"
 "       -dt         print timestamp in debug output\n"

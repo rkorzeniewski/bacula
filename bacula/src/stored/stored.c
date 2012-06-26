@@ -85,7 +85,7 @@ static void usage()
    fprintf(stderr, _(
 PROG_COPYRIGHT
 "\nVersion: %s (%s)\n\n"
-"Usage: stored [options] [-c config_file] [config_file]\n"
+"Usage: bacula-sd [options] [-c config_file] [config_file]\n"
 "        -c <file>   use <file> as configuration file\n"
 "        -d <nn>     set debug level to <nn>\n"
 "        -dt         print timestamp in debug output\n"
