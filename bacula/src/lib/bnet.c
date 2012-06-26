@@ -576,16 +576,14 @@ dlist *bnet_host2ipaddrs(const char *host, int family, const char **errstr)
       addr->set_type(IPADDR::R_MULTIPLE);
       addr->set_addr4(&inaddr);
       addr_list->append(addr);
-   } else
 #ifdef HAVE_IPV6
-   if (inet_pton(AF_INET6, host, &inaddr6) > 1) {
+   } else if (inet_pton(AF_INET6, host, &inaddr6) == 1) {
       addr = New(IPADDR(AF_INET6));
       addr->set_type(IPADDR::R_MULTIPLE);
       addr->set_addr6(&inaddr6);
       addr_list->append(addr);
-   } else
 #endif
-   {
+   } else {
       if (family != 0) {
          errmsg = resolv_host(family, host, addr_list);
          if (errmsg) {
