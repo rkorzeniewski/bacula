@@ -1,4 +1,40 @@
-              Changelog on version 5.2.9
+              Changelog on version 5.2.10
+Version 5.2.10
+
+26Jun12
+ - Fix inet_pton call.
+ - Real fix of bug #1897 5.2.9 breaks IPv6 connectivity
+ - Fix bug #1891 wrong daemon name printed with -? option
+ - Fix bug #1859 INSERT INTO Counters fails
+
+25Jun12
+ - First try at fixing bug #1897 5.2.9 breaks IPv6 connectivity
+
+23Jun12
+ - Convert write_rec_to_block() to a state machine
+
+18Jun12
+ - Fix bat from eating all Dir connections -- fixes bug #1872
+ - Back port fixes from BEE to fix Windows bug #1892
+
+15Jun12
+ - Add block checksum flag to version.h
+ - Add block checksum debug code
+ - Fix bug #1893 dbcheck -B gives rwl_writelock error.
+
+13Jun12
+ - Remove restriction of network buffer size being multiple of a tape block
+
+11Jun12
+ - Recompile configure.in
+ - Add rudimentary support for saving AFS acls.
+
+04Jun12
+ - Send level before the fileset in estimate_cmd() like in backup()
+
+Bugs fixed/closed since last release:
+1859 1872 1891 1892 1893 1897
+
 
 Version 5.2.9
 11Jun12

@@ -1,7 +1,75 @@
 
-               Release Notes for Bacula 5.2.9
+               Release Notes for Bacula 5.2.10
 
   Bacula code: Total files = 1,110 Total lines = 231,439 (Using SLOCCount)
+
+General:
+--------
+The 5.2.10 version is a significant bug fix release. 
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+Please note that with this version of Bacula, during the install
+of the shared libraries from the src/cats, src/lib, and src/findlib
+directories, any old Bacula libraries in the installation 
+destination directory will be removed.  This should not cause
+any problems and at least keeps the installation library cleaner.
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+For packagers, if you change options, naming, and the way 
+we link our shared object files, as at least one of you does,
+you are creating a situation where the user may not be able
+to run multiple versions of Bacula on the same machine, which
+is often very useful, and in addition, you create a configuration
+that the project cannot properly support.
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+If you are upgrading from a version older than 5.2.7, please
+read all the old ReleaseNotes of all versions released
+after the version you are upgrading from. There area
+many important notices sumarized here, and we do not 
+repeat them each bug fix release.
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+Compatibility:
+--------------
+ As always, both the Director and Storage daemon must be upgraded at
+ the same time.
+
+ Older 5.0.x and 3.0.x File Daemons are compatible with the 5.2.8
+ Director and Storage daemons. There should be no need to upgrade older File
+ Daemons.
+
+Major changes since 5.2.9:
+- IPv6 networking should work correctly now
+- SQL Counter problems resolved
+- Bat hanging after running a number of jobs
+- dbcheck rw_writelock problem
+- Add rudimentary support for backing up AFS
+- Windows VSS restore bug
+
+26Jun12
+ - Fix inet_pton call.
+ - Real fix of bug #1897 5.2.9 breaks IPv6 connectivity
+ - Fix bug #1891 wrong daemon name printed with -? option
+ - Fix bug #1859 INSERT INTO Counters fails
+ - First try at fixing bug #1897 5.2.9 breaks IPv6 connectivity
+ - Convert write_rec_to_block() to a state machine
+ - Fix bat from eating all Dir connections -- fixes bug #1872
+ - Back port fixes from BEE to fix Windows restore bug #1892
+ - Add block checksum flag to version.h
+ - Add block checksum debug code
+ - Fix bug #1893 dbcheck -B gives rwl_writelock error.
+ - Remove restriction of network buffer size being multiple of a tape block
+ - Add rudimentary support for saving AFS acls.
+ - Send level before the fileset in estimate_cmd() like in backup()
+
+Bugs fixed/closed since last release:
+1859 1872 1891 1892 1893 1897
+
+
+===============================================================
 
 General:
 --------
