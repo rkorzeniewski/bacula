@@ -328,7 +328,6 @@
 ./src/win32/compat/mswinver.h
 ./src/win32/compat/compat.h
 ./src/win32/compat/arpa/inet.h
-./src/win32/compat/winconfig.h
 ./src/win32/compat/pwd.h
 ./src/win32/compat/winsock.h
 ./src/win32/compat/mingwconfig.h

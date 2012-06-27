@@ -5,7 +5,8 @@
 
 General:
 --------
-The 5.2.10 version is a significant bug fix release. 
+The 5.2.10 version is a significant bug fix release including 
+our first cut at AFS support.
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 Please note that with this version of Bacula, during the install
@@ -25,7 +26,7 @@ that the project cannot properly support.
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-If you are upgrading from a version older than 5.2.7, please
+If you are upgrading from a version older than 5.2.9, please
 read all the old ReleaseNotes of all versions released
 after the version you are upgrading from. There area
 many important notices sumarized here, and we do not 
@@ -37,17 +38,20 @@ Compatibility:
  As always, both the Director and Storage daemon must be upgraded at
  the same time.
 
- Older 5.0.x and 3.0.x File Daemons are compatible with the 5.2.8
+ Older 5.0.x and 3.0.x File Daemons are compatible with the 5.2.9
  Director and Storage daemons. There should be no need to upgrade older File
  Daemons.
 
 Major changes since 5.2.9:
-- IPv6 networking should work correctly now
-- SQL Counter problems resolved
-- Bat hanging after running a number of jobs
-- dbcheck rw_writelock problem
+- Fix IPv6 networking
+- Fix SQL Counter problems 
+- Fix Bat hanging after running a number of jobs
+- Fix dbcheck rw_writelock problem
+- Fix Windows VSS restore bug
+
+New Feature:
 - Add rudimentary support for backing up AFS
-- Windows VSS restore bug
+
 
 26Jun12
  - Fix inet_pton call.

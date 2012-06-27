@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bacula 5.2.7\n"
 "Report-Msgid-Bugs-To: bacula-devel@lists.sourceforge.net\n"
-"POT-Creation-Date: 2012-06-10 10:10+0200\n"
+"POT-Creation-Date: 2012-06-27 15:41+0200\n"
 "PO-Revision-Date: 2012-05-05 11:52+0100\n"
 "Last-Translator: W. van den Akker <wvdakker@wilsoft.nl>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -732,12 +732,12 @@ msgid "Bacula "
 msgstr ""
 
 #: src/dird/dird.c:112
-#, c-format
+#, fuzzy, c-format
 msgid ""
 "\n"
 "Version: %s (%s)\n"
 "\n"
-"Usage: dird [-f -s] [-c config_file] [-d debug_level] [config_file]\n"
+"Usage: bacula-dir [-f -s] [-c config_file] [-d debug_level] [config_file]\n"
 "       -c <file>   set configuration file to file\n"
 "       -d <nn>     set debug level to <nn>\n"
 "       -dt         print timestamp in debug output\n"
@@ -752,6 +752,16 @@ msgid ""
 "       -?          print this message.\n"
 "\n"
 msgstr ""
+"\n"
+"Versie: %s (%s) %s %s %s\n"
+"\n"
+"Specificatie: tray-monitor [-c configuratiebestand] [-d debug_level]\n"
+"       -c <file>     gebruik configuratiebestand\n"
+"       -d <nn>       instellen debug level op <nn>\n"
+"       -dt           weergeven tijd in debug output\n"
+"       -t            test - lees configuratie en stop\n"
+"       -?            geef deze melding.\n"
+"\n"
 
 #: src/dird/dird.c:258 src/stored/stored.c:227 src/console/console.c:1109
 #: src/filed/filed.c:218 src/qt-console/main.cpp:165
@@ -1955,11 +1965,11 @@ msgstr ""
 msgid "No job specified.\n"
 msgstr ""
 
-#: src/dird/ua_cmds.c:1210
+#: src/dird/ua_cmds.c:1221
 msgid "Error sending include list.\n"
 msgstr ""
 
-#: src/dird/ua_cmds.c:1215
+#: src/dird/ua_cmds.c:1226
 msgid "Error sending exclude list.\n"
 msgstr ""
 
@@ -3085,12 +3095,17 @@ msgstr ""
 msgid "Warning default storage overridden by \"%s\" on command line.\n"
 msgstr ""
 
-#: src/dird/ua_restore.c:1533
+#: src/dird/ua_restore.c:1534
+#, c-format
+msgid "Using Storage \"%s\" from MediaType \"%s\".\n"
+msgstr ""
+
+#: src/dird/ua_restore.c:1537
 #, c-format
 msgid "Storage \"%s\" not found, using Storage \"%s\" from MediaType \"%s\".\n"
 msgstr ""
 
-#: src/dird/ua_restore.c:1541
+#: src/dird/ua_restore.c:1546
 #, c-format
 msgid ""
 "\n"
@@ -3152,7 +3167,7 @@ msgid ""
 "resource.\n"
 msgstr ""
 
-#: src/dird/fd_cmds.c:500 src/filed/job.c:858
+#: src/dird/fd_cmds.c:500 src/filed/job.c:854
 #, c-format
 msgid "Cannot run program: %s. ERR=%s\n"
 msgstr ""
@@ -3195,8 +3210,8 @@ msgid ""
 msgstr ""
 
 #: src/dird/fd_cmds.c:825 src/dird/fd_cmds.c:884 src/dird/catreq.c:443
-#: src/cats/sqlite.c:381 src/cats/ingres.c:458 src/cats/postgresql.c:448
-#: src/cats/dbi.c:559 src/cats/mysql.c:365
+#: src/cats/sqlite.c:387 src/cats/ingres.c:464 src/cats/postgresql.c:454
+#: src/cats/dbi.c:565 src/cats/mysql.c:371
 #, c-format
 msgid "Attribute create error. %s"
 msgstr ""
@@ -4983,7 +4998,7 @@ msgid ""
 "%s: ERR=%s\n"
 msgstr ""
 
-#: src/dird/restore.c:137 src/dird/msgchan.c:463 src/filed/job.c:2414
+#: src/dird/restore.c:137 src/dird/msgchan.c:463
 #, c-format
 msgid "Could not open bootstrap file %s: ERR=%s\n"
 msgstr ""
@@ -5805,13 +5820,13 @@ msgstr ""
 msgid "Invalid Catalog Update; DB not open: %s"
 msgstr ""
 
-#: src/dird/catreq.c:671 src/dird/catreq.c:686 src/lib/bsock.c:622
+#: src/dird/catreq.c:671 src/dird/catreq.c:686 src/lib/bsock.c:637
 #, c-format
 msgid "fread attr spool error. ERR=%s\n"
 msgstr ""
 
 #: src/dird/msgchan.c:106 src/tray-monitor/tray-monitor.c:952
-#: src/filed/job.c:1771 src/qt-console/tray-monitor/tray-monitor.cpp:375
+#: src/filed/job.c:1767 src/qt-console/tray-monitor/tray-monitor.cpp:375
 msgid "Storage daemon"
 msgstr ""
 
@@ -6127,14 +6142,14 @@ msgstr ""
 
 #: src/tray-monitor/tray-monitor.c:937
 #: src/qt-console/tray-monitor/tray-monitor.cpp:359
-#: src/qt-console/bcomm/dircomm.cpp:101
+#: src/qt-console/bcomm/dircomm.cpp:103
 #, c-format
 msgid "Connecting to Director %s:%d"
 msgstr ""
 
 #: src/tray-monitor/tray-monitor.c:938
 #: src/qt-console/tray-monitor/tray-monitor.cpp:361
-#: src/qt-console/bcomm/dircomm.cpp:171
+#: src/qt-console/bcomm/dircomm.cpp:173
 msgid "Director daemon"
 msgstr ""
 
@@ -6758,7 +6773,7 @@ msgstr ""
 msgid "3927 Error scanning release command: %s\n"
 msgstr ""
 
-#: src/stored/dircmd.c:1034 src/filed/job.c:1531
+#: src/stored/dircmd.c:1034 src/filed/job.c:1527
 #, c-format
 msgid "Could not create bootstrap file %s: ERR=%s\n"
 msgstr ""
@@ -8035,8 +8050,8 @@ msgstr ""
 msgid "Could not ready device %s for append.\n"
 msgstr ""
 
-#: src/stored/acquire.c:515 src/stored/spool.c:321 src/stored/block.c:367
-#: src/stored/block.c:735 src/stored/block.c:811
+#: src/stored/acquire.c:515 src/stored/spool.c:321 src/stored/block.c:369
+#: src/stored/block.c:751 src/stored/block.c:827
 #, c-format
 msgid "Could not create JobMedia record for Volume=\"%s\" Job=%s\n"
 msgstr ""
@@ -8144,11 +8159,11 @@ msgstr ""
 msgid "unknown: %d"
 msgstr ""
 
-#: src/stored/record.c:427
+#: src/stored/record.c:392
 msgid "Damaged buffer\n"
 msgstr ""
 
-#: src/stored/record.c:603
+#: src/stored/record.c:649
 #, c-format
 msgid "Sanity check failed. maxlen=%d datalen=%d. Block discarded.\n"
 msgstr ""
@@ -8303,7 +8318,7 @@ msgid ""
 "\n"
 "Version: %s (%s)\n"
 "\n"
-"Usage: stored [options] [-c config_file] [config_file]\n"
+"Usage: bacula-sd [options] [-c config_file] [config_file]\n"
 "        -c <file>   use <file> as configuration file\n"
 "        -d <nn>     set debug level to <nn>\n"
 "        -dt         print timestamp in debug output\n"
@@ -10907,191 +10922,196 @@ msgstr ""
 msgid "%d block read errors not printed.\n"
 msgstr ""
 
-#: src/stored/block.c:248 src/stored/block.c:264 src/stored/block.c:274
+#: src/stored/block.c:249 src/stored/block.c:265 src/stored/block.c:275
 #, c-format
 msgid ""
 "Volume data error at %u:%u! Wanted ID: \"%s\", got \"%s\". Buffer "
 "discarded.\n"
 msgstr ""
 
-#: src/stored/block.c:289
+#: src/stored/block.c:290
 #, c-format
 msgid ""
 "Volume data error at %u:%u! Block length %u is insane (too large), probably "
 "due to a bad archive.\n"
 msgstr ""
 
-#: src/stored/block.c:315
+#: src/stored/block.c:316
 #, c-format
 msgid ""
 "Volume data error at %u:%u!\n"
 "Block checksum mismatch in block=%u len=%d: calc=%x blk=%x\n"
 msgstr ""
 
-#: src/stored/block.c:431
+#: src/stored/block.c:433
 #, c-format
 msgid "Cannot write block. Device at EOM. dev=%s\n"
 msgstr ""
 
-#: src/stored/block.c:436
+#: src/stored/block.c:438
 #, c-format
 msgid "Attempt to write on read-only Volume. dev=%s\n"
 msgstr ""
 
-#: src/stored/block.c:441
+#: src/stored/block.c:443
 #, c-format
 msgid "Attempt to write on closed device=%s\n"
 msgstr ""
 
-#: src/stored/block.c:488
+#: src/stored/block.c:495
 #, c-format
 msgid "User defined maximum volume capacity %s exceeded on device %s.\n"
 msgstr ""
 
-#: src/stored/block.c:503
+#: src/stored/block.c:510
 #, c-format
 msgid "Unable to write EOF. ERR=%s\n"
 msgstr ""
 
-#: src/stored/block.c:529 src/stored/block.c:554
+#: src/stored/block.c:536 src/stored/block.c:570
 msgid "Write block header zeroed.\n"
 msgstr ""
 
-#: src/stored/block.c:573
+#: src/stored/block.c:562
+#, c-format
+msgid "Block checksum changed during write: before=%ud after=%ud\n"
+msgstr ""
+
+#: src/stored/block.c:589
 #, c-format
 msgid "Write error at %u:%u on device %s. ERR=%s.\n"
 msgstr ""
 
-#: src/stored/block.c:580
+#: src/stored/block.c:596
 #, c-format
 msgid "End of Volume \"%s\" at %u:%u on device %s. Write of %u bytes got %d.\n"
 msgstr ""
 
-#: src/stored/block.c:661 src/stored/block.c:667
+#: src/stored/block.c:677 src/stored/block.c:683
 #, c-format
 msgid "Backspace file at EOT failed. ERR=%s\n"
 msgstr ""
 
-#: src/stored/block.c:674
+#: src/stored/block.c:690
 #, c-format
 msgid "Backspace record at EOT failed. ERR=%s\n"
 msgstr ""
 
-#: src/stored/block.c:691
+#: src/stored/block.c:707
 #, c-format
 msgid "Re-read last block at EOT failed. ERR=%s"
 msgstr ""
 
-#: src/stored/block.c:701
+#: src/stored/block.c:717
 #, c-format
 msgid ""
 "Re-read of last block: block numbers differ by more than one.\n"
 "Probable tape misconfiguration and data loss. Read block=%u Want block=%u.\n"
 msgstr ""
 
-#: src/stored/block.c:706
+#: src/stored/block.c:722
 #, c-format
 msgid ""
 "Re-read of last block OK, but block numbers differ. Read block=%u Want block="
 "%u.\n"
 msgstr ""
 
-#: src/stored/block.c:710
+#: src/stored/block.c:726
 msgid "Re-read of last block succeeded.\n"
 msgstr ""
 
-#: src/stored/block.c:742
+#: src/stored/block.c:758
 #, c-format
 msgid ""
 "Error writing final EOF to tape. This Volume may not be readable.\n"
 "%s"
 msgstr ""
 
-#: src/stored/block.c:756
+#: src/stored/block.c:772
 #, c-format
 msgid ""
 "Error writing final part to DVD. This Volume may not be readable.\n"
 "%s"
 msgstr ""
 
-#: src/stored/block.c:860
+#: src/stored/block.c:876
 #, c-format
 msgid ""
 "Error while writing, current part number is less than the total number of "
 "parts (%d/%d, device=%s)\n"
 msgstr ""
 
-#: src/stored/block.c:868
+#: src/stored/block.c:884
 #, c-format
 msgid "Unable to open device next part %s: ERR=%s\n"
 msgstr ""
 
-#: src/stored/block.c:888
+#: src/stored/block.c:904
 #, c-format
 msgid ""
 "End of Volume \"%s\" at %u:%u on device %s (part_size=%s, free_space=%s, "
 "free_space_errno=%d, errmsg=%s).\n"
 msgstr ""
 
-#: src/stored/block.c:901
+#: src/stored/block.c:917
 #, c-format
 msgid ""
 "End of Volume \"%s\" at %u:%u on device %s (part_size=%s, free_space=%s, "
 "free_space_errno=%d).\n"
 msgstr ""
 
-#: src/stored/block.c:944
+#: src/stored/block.c:960
 #, fuzzy
 msgid "Job failed or canceled.\n"
 msgstr "Terugzetten geannuleerd.\n"
 
-#: src/stored/block.c:950
+#: src/stored/block.c:966
 msgid "Attempt to read past end of tape or file.\n"
 msgstr ""
 
-#: src/stored/block.c:959
+#: src/stored/block.c:975
 #, c-format
 msgid "Attempt to read closed device: fd=%d at file:blk %u:%u on device %s\n"
 msgstr ""
 
-#: src/stored/block.c:969
+#: src/stored/block.c:985
 #, c-format
 msgid "Block buffer size looping problem on device %s\n"
 msgstr ""
 
-#: src/stored/block.c:981
+#: src/stored/block.c:997
 #, c-format
 msgid "Unable to open device part=%d %s: ERR=%s\n"
 msgstr ""
 
-#: src/stored/block.c:1007
+#: src/stored/block.c:1023
 #, c-format
 msgid "Read error on fd=%d at file:blk %u:%u on device %s. ERR=%s.\n"
 msgstr ""
 
-#: src/stored/block.c:1020
+#: src/stored/block.c:1036
 #, c-format
 msgid "Read zero bytes at %u:%u on device %s.\n"
 msgstr ""
 
-#: src/stored/block.c:1044
+#: src/stored/block.c:1060
 #, c-format
 msgid ""
 "Volume data error at %u:%u! Very short block of %d bytes on device %s "
 "discarded.\n"
 msgstr ""
 
-#: src/stored/block.c:1069
+#: src/stored/block.c:1085
 #, c-format
 msgid "Block length %u is greater than buffer %u. Attempting recovery.\n"
 msgstr ""
 
-#: src/stored/block.c:1088
+#: src/stored/block.c:1104
 #, c-format
 msgid "Setting block buffer size to %u bytes.\n"
 msgstr ""
 
-#: src/stored/block.c:1103
+#: src/stored/block.c:1119
 #, c-format
 msgid ""
 "Volume data error at %u:%u! Short block of %d bytes on device %s discarded.\n"
@@ -11304,56 +11324,56 @@ msgstr "Selecteer Pool"
 msgid "No input string given.\n"
 msgstr ""
 
-#: src/lib/rwlock.c:302
+#: src/lib/rwlock.c:307
 msgid "rwl_writeunlock called too many times.\n"
 msgstr ""
 
-#: src/lib/rwlock.c:307
+#: src/lib/rwlock.c:312
 msgid "rwl_writeunlock by non-owner.\n"
 msgstr ""
 
-#: src/lib/rwlock.c:432 src/lib/save/devlock.c:501 src/lib/devlock.c:501
+#: src/lib/rwlock.c:437 src/lib/save/devlock.c:501 src/lib/devlock.c:501
 #, c-format
 msgid "Thread %d found unchanged elements %d times\n"
 msgstr ""
 
-#: src/lib/rwlock.c:502 src/lib/save/devlock.c:571 src/lib/devlock.c:571
+#: src/lib/rwlock.c:507 src/lib/save/devlock.c:571 src/lib/devlock.c:571
 #, c-format
 msgid "%02d: interval %d, writes %d, reads %d\n"
 msgstr ""
 
-#: src/lib/rwlock.c:512 src/lib/save/devlock.c:581 src/lib/devlock.c:581
+#: src/lib/rwlock.c:517 src/lib/save/devlock.c:581 src/lib/devlock.c:581
 #, c-format
 msgid "data %02d: value %d, %d writes\n"
 msgstr ""
 
-#: src/lib/rwlock.c:517 src/lib/save/devlock.c:586 src/lib/devlock.c:586
+#: src/lib/rwlock.c:522 src/lib/save/devlock.c:586 src/lib/devlock.c:586
 #, c-format
 msgid "Total: %d thread writes, %d data writes\n"
 msgstr ""
 
-#: src/lib/rwlock.c:589 src/lib/save/devlock.c:658 src/lib/devlock.c:658
+#: src/lib/rwlock.c:594 src/lib/save/devlock.c:658 src/lib/devlock.c:658
 msgid "Try write lock"
 msgstr ""
 
-#: src/lib/rwlock.c:595 src/lib/save/devlock.c:664 src/lib/devlock.c:664
+#: src/lib/rwlock.c:600 src/lib/save/devlock.c:664 src/lib/devlock.c:664
 msgid "Try read lock"
 msgstr ""
 
-#: src/lib/rwlock.c:651 src/lib/save/devlock.c:720 src/lib/devlock.c:720
+#: src/lib/rwlock.c:656 src/lib/save/devlock.c:720 src/lib/devlock.c:720
 msgid "Create thread"
 msgstr ""
 
-#: src/lib/rwlock.c:661 src/lib/save/devlock.c:730 src/lib/devlock.c:730
+#: src/lib/rwlock.c:666 src/lib/save/devlock.c:730 src/lib/devlock.c:730
 msgid "Join thread"
 msgstr ""
 
-#: src/lib/rwlock.c:663 src/lib/save/devlock.c:732 src/lib/devlock.c:732
+#: src/lib/rwlock.c:668 src/lib/save/devlock.c:732 src/lib/devlock.c:732
 #, c-format
 msgid "%02d: interval %d, updates %d, r_collisions %d, w_collisions %d\n"
 msgstr ""
 
-#: src/lib/rwlock.c:675 src/lib/save/devlock.c:744 src/lib/devlock.c:744
+#: src/lib/rwlock.c:680 src/lib/save/devlock.c:744 src/lib/devlock.c:744
 #, c-format
 msgid "data %02d: value %d, %d updates\n"
 msgstr ""
@@ -11384,141 +11404,136 @@ msgstr ""
 msgid "bnet_host2ipaddrs() for host \"%s\" failed: ERR=%s\n"
 msgstr ""
 
-#: src/lib/bsock.c:237
+#: src/lib/bsock.c:252
 #, c-format
 msgid "Socket open error. proto=%d port=%d. ERR=%s\n"
 msgstr ""
 
-#: src/lib/bsock.c:250
+#: src/lib/bsock.c:265
 #, c-format
 msgid "Source address bind error. proto=%d. ERR=%s\n"
 msgstr ""
 
-#: src/lib/bsock.c:261 src/lib/bsock.c:297 src/lib/bnet_server.c:201
+#: src/lib/bsock.c:276 src/lib/bsock.c:312 src/lib/bnet_server.c:218
 #, c-format
 msgid "Cannot set SO_KEEPALIVE on socket: %s\n"
 msgstr ""
 
-#: src/lib/bsock.c:269
+#: src/lib/bsock.c:284
 #, c-format
 msgid "Cannot set TCP_KEEPIDLE on socket: %s\n"
 msgstr ""
 
-#: src/lib/bsock.c:316
+#: src/lib/bsock.c:331
 #, c-format
 msgid "Could not init bsock mutex. ERR=%s\n"
 msgstr ""
 
-#: src/lib/bsock.c:351
+#: src/lib/bsock.c:366
 #, c-format
 msgid "Socket has errors=%d on call to %s:%s:%d\n"
 msgstr ""
 
-#: src/lib/bsock.c:358
+#: src/lib/bsock.c:373
 #, c-format
 msgid "Socket is terminated=%d on call to %s:%s:%d\n"
 msgstr ""
 
-#: src/lib/bsock.c:366
+#: src/lib/bsock.c:381
 #, c-format
 msgid "Socket has insane msglen=%d on call to %s:%s:%d\n"
 msgstr ""
 
-#: src/lib/bsock.c:404
+#: src/lib/bsock.c:419
 #, c-format
 msgid "Write error sending %d bytes to %s:%s:%d: ERR=%s\n"
 msgstr ""
 
-#: src/lib/bsock.c:410
+#: src/lib/bsock.c:425
 #, c-format
 msgid "Wrote %d bytes to %s:%s:%d, but only %d accepted.\n"
 msgstr ""
 
-#: src/lib/bsock.c:499 src/lib/bsock.c:560
+#: src/lib/bsock.c:514 src/lib/bsock.c:575
 #, c-format
 msgid "Read expected %d got %d from %s:%s:%d\n"
 msgstr ""
 
-#: src/lib/bsock.c:519
+#: src/lib/bsock.c:534
 #, c-format
 msgid "Packet size too big from \"%s:%s:%d. Terminating connection.\n"
 msgstr ""
 
-#: src/lib/bsock.c:549
+#: src/lib/bsock.c:564
 #, c-format
 msgid "Read error from %s:%s:%d: ERR=%s\n"
 msgstr ""
 
-#: src/lib/bsock.c:640
+#: src/lib/bsock.c:655
 msgid "fread attr spool I/O error.\n"
 msgstr ""
 
-#: src/lib/bsock.c:701
+#: src/lib/bsock.c:716
 msgid "Could not malloc BSOCK data buffer\n"
 msgstr ""
 
-#: src/lib/bsock.c:719 src/lib/bsock.c:743
+#: src/lib/bsock.c:734 src/lib/bsock.c:753
 #, c-format
 msgid "sockopt error: %s\n"
 msgstr ""
 
-#: src/lib/bsock.c:725 src/lib/bsock.c:749
+#: src/lib/bsock.c:740 src/lib/bsock.c:759
 #, c-format
 msgid "Warning network buffer = %d bytes not max size.\n"
 msgstr ""
 
-#: src/lib/bsock.c:729 src/lib/bsock.c:753
-#, c-format
-msgid "Network buffer size %d not multiple of tape block size.\n"
-msgstr ""
-
-#: src/lib/bsock.c:774 src/lib/bsock.c:808
+#: src/lib/bsock.c:779 src/lib/bsock.c:813
 #, c-format
 msgid "fcntl F_GETFL error. ERR=%s\n"
 msgstr ""
 
-#: src/lib/bsock.c:780 src/lib/bsock.c:814 src/lib/bsock.c:846
+#: src/lib/bsock.c:785 src/lib/bsock.c:819 src/lib/bsock.c:851
 #, c-format
 msgid "fcntl F_SETFL error. ERR=%s\n"
 msgstr ""
 
-#: src/lib/bsock.c:1019 src/qt-console/bcomm/dircomm_auth.cpp:112
+#: src/lib/bsock.c:1024 src/qt-console/bcomm/dircomm_auth.cpp:112
 #, c-format
 msgid "Director authorization problem at \"%s:%d\"\n"
 msgstr ""
 
-#: src/lib/bsock.c:1026 src/qt-console/bcomm/dircomm_auth.cpp:119
+#: src/lib/bsock.c:1031 src/qt-console/bcomm/dircomm_auth.cpp:119
 #, c-format
 msgid ""
 "Authorization problem: Remote server at \"%s:%d\" did not advertise required "
 "TLS support.\n"
 msgstr ""
 
-#: src/lib/bsock.c:1034 src/qt-console/bcomm/dircomm_auth.cpp:127
+#: src/lib/bsock.c:1039 src/qt-console/bcomm/dircomm_auth.cpp:127
 #, c-format
 msgid ""
 "Authorization problem with Director at \"%s:%d\": Remote server requires "
 "TLS.\n"
 msgstr ""
 
-#: src/lib/bsock.c:1046 src/qt-console/bcomm/dircomm_auth.cpp:138
+#: src/lib/bsock.c:1051 src/qt-console/bcomm/dircomm_auth.cpp:138
 #, c-format
 msgid "TLS negotiation failed with Director at \"%s:%d\"\n"
 msgstr ""
 
-#: src/lib/bsock.c:1056 src/qt-console/bcomm/dircomm_auth.cpp:150
+#: src/lib/bsock.c:1061 src/qt-console/bcomm/dircomm_auth.cpp:150
 #, c-format
 msgid ""
 "Bad response to Hello command: ERR=%s\n"
 "The Director at \"%s:%d\" is probably not running.\n"
 msgstr ""
 
-#: src/lib/bsock.c:1065 src/qt-console/bcomm/dircomm_auth.cpp:159
+#: src/lib/bsock.c:1070 src/qt-console/bcomm/dircomm_auth.cpp:159
 #, c-format
 msgid "Director at \"%s:%d\" rejected Hello command\n"
 msgstr ""
 
-#: src/lib/bsock.c:1075 src/qt-console/bcomm/dircomm_auth.cpp:171
+#: src/lib/bsock.c:1080 src/qt-console/bcomm/dircomm_auth.cpp:171
 #, c-format
 msgid ""
 "Authorization problem with Director at \"%s:%d\"\n"
@@ -11657,51 +11672,51 @@ msgstr ""
 msgid "%s JobId %u: Security violation: "
 msgstr ""
 
-#: src/lib/bnet_server.c:108
+#: src/lib/bnet_server.c:125
 #, c-format
 msgid "Cannot open stream socket. ERR=%s. Current %s All %s\n"
 msgstr ""
 
-#: src/lib/bnet_server.c:121
+#: src/lib/bnet_server.c:138
 #, c-format
 msgid "Cannot set SO_REUSEADDR on socket: %s\n"
 msgstr ""
 
-#: src/lib/bnet_server.c:130
+#: src/lib/bnet_server.c:147
 #, c-format
 msgid "Cannot bind port %d: ERR=%s: Retrying ...\n"
 msgstr ""
 
-#: src/lib/bnet_server.c:135
+#: src/lib/bnet_server.c:152
 #, c-format
 msgid "Cannot bind port %d: ERR=%s.\n"
 msgstr ""
 
-#: src/lib/bnet_server.c:146
+#: src/lib/bnet_server.c:163
 #, c-format
 msgid "Could not init client queue: ERR=%s\n"
 msgstr ""
 
-#: src/lib/bnet_server.c:165
+#: src/lib/bnet_server.c:182
 #, c-format
 msgid "Error in select: %s\n"
 msgstr ""
 
-#: src/lib/bnet_server.c:186
+#: src/lib/bnet_server.c:203
 #, c-format
 msgid "Connection from %s:%d refused by hosts.access\n"
 msgstr ""
 
-#: src/lib/bnet_server.c:212
+#: src/lib/bnet_server.c:229
 msgid "Could not create client BSOCK.\n"
 msgstr ""
 
-#: src/lib/bnet_server.c:219
+#: src/lib/bnet_server.c:236
 #, c-format
 msgid "Could not add job to client queue: ERR=%s\n"
 msgstr ""
 
-#: src/lib/bnet_server.c:236
+#: src/lib/bnet_server.c:253
 #, c-format
 msgid "Could not destroy client queue: ERR=%s\n"
 msgstr ""
@@ -12673,7 +12688,7 @@ msgstr ""
 msgid "Unknown error."
 msgstr ""
 
-#: src/lib/bnet.c:757
+#: src/lib/bnet.c:755
 #, c-format
 msgid "Unknown sig %d"
 msgstr ""
@@ -13792,7 +13807,7 @@ msgstr ""
 msgid "Plugin: \"%s\" not found.\n"
 msgstr ""
 
-#: src/findlib/match.c:210 src/tools/testfind.c:654 src/filed/job.c:1456
+#: src/findlib/match.c:210 src/tools/testfind.c:654 src/filed/job.c:1452
 #, c-format
 msgid "Unknown include/exclude option: %c\n"
 msgstr ""
@@ -13923,7 +13938,7 @@ msgid "More than one Path!: %s for path: %s\n"
 msgstr ""
 
 #: src/cats/sql_create.c:595 src/cats/sql_get.c:205 src/cats/sql_get.c:258
-#: src/cats/sql_get.c:640 src/cats/sql_get.c:722 src/cats/sql_get.c:1041
+#: src/cats/sql_get.c:640 src/cats/sql_get.c:722 src/cats/sql_get.c:1039
 #: src/cats/sql.c:340 src/cats/sql.c:347 src/cats/postgresql.c:165
 #, c-format
 msgid "error fetching row: %s\n"
@@ -13983,7 +13998,7 @@ msgstr ""
 msgid "Cannot Copy/Migrate job using BaseJob"
 msgstr ""
 
-#: src/cats/sql_create.c:1165 src/cats/sql_get.c:1138
+#: src/cats/sql_create.c:1165 src/cats/sql_get.c:1136
 msgid "ERR=JobIds are empty\n"
 msgstr ""
 
@@ -14094,66 +14109,66 @@ msgstr ""
 msgid "Client record not found in Catalog.\n"
 msgstr ""
 
-#: src/cats/sql_get.c:767
+#: src/cats/sql_get.c:765
 #, c-format
 msgid "More than one Counter!: %d\n"
 msgstr ""
 
-#: src/cats/sql_get.c:772
+#: src/cats/sql_get.c:770
 #, c-format
 msgid "error fetching Counter row: %s\n"
 msgstr ""
 
-#: src/cats/sql_get.c:792
+#: src/cats/sql_get.c:790
 #, c-format
 msgid "Counter record: %s not found in Catalog.\n"
 msgstr ""
 
-#: src/cats/sql_get.c:832
+#: src/cats/sql_get.c:830
 #, c-format
 msgid "Error got %s FileSets but expected only one!\n"
 msgstr ""
 
-#: src/cats/sql_get.c:837
+#: src/cats/sql_get.c:835
 #, c-format
 msgid "FileSet record \"%s\" not found.\n"
 msgstr ""
 
-#: src/cats/sql_get.c:847
+#: src/cats/sql_get.c:845
 msgid "FileSet record not found in Catalog.\n"
 msgstr ""
 
-#: src/cats/sql_get.c:943
+#: src/cats/sql_get.c:941
 #, c-format
 msgid "Media id select failed: ERR=%s\n"
 msgstr ""
 
-#: src/cats/sql_get.c:981
+#: src/cats/sql_get.c:979
 #, c-format
 msgid "query dbids failed: ERR=%s\n"
 msgstr ""
 
-#: src/cats/sql_get.c:1036
+#: src/cats/sql_get.c:1034
 #, c-format
 msgid "More than one Volume!: %s\n"
 msgstr ""
 
-#: src/cats/sql_get.c:1092
+#: src/cats/sql_get.c:1090
 #, c-format
 msgid "Media record MediaId=%s not found.\n"
 msgstr ""
 
-#: src/cats/sql_get.c:1095
+#: src/cats/sql_get.c:1093
 #, c-format
 msgid "Media record for Volume \"%s\" not found.\n"
 msgstr ""
 
-#: src/cats/sql_get.c:1102
+#: src/cats/sql_get.c:1100
 #, c-format
 msgid "Media record for MediaId=%u not found in Catalog.\n"
 msgstr ""
 
-#: src/cats/sql_get.c:1105
+#: src/cats/sql_get.c:1103
 #, c-format
 msgid "Media record for Vol=%s not found in Catalog.\n"
 msgstr ""
@@ -14226,9 +14241,9 @@ msgstr ""
 msgid "unknown"
 msgstr ""
 
-#: src/cats/sqlite.c:456 src/cats/ingres.c:490 src/cats/postgresql.c:500
-#: src/cats/postgresql.c:547 src/cats/dbi.c:625 src/cats/cats.c:149
-#: src/cats/mysql.c:387
+#: src/cats/sqlite.c:462 src/cats/ingres.c:496 src/cats/postgresql.c:506
+#: src/cats/postgresql.c:553 src/cats/dbi.c:631 src/cats/cats.c:149
+#: src/cats/mysql.c:393
 #, c-format
 msgid "Query failed: %s: ERR=%s\n"
 msgstr ""
@@ -14249,7 +14264,7 @@ msgid ""
 "It is probably not running or your password is incorrect.\n"
 msgstr ""
 
-#: src/cats/ingres.c:1081
+#: src/cats/ingres.c:1087
 msgid "A user name for Ingres must be supplied.\n"
 msgstr ""
 
@@ -14330,39 +14345,39 @@ msgid ""
 "exceeded.\n"
 msgstr ""
 
-#: src/cats/postgresql.c:344
+#: src/cats/postgresql.c:350
 msgid "PQescapeStringConn returned non-zero.\n"
 msgstr ""
 
-#: src/cats/postgresql.c:362
+#: src/cats/postgresql.c:368
 msgid "PQescapeByteaConn returned NULL.\n"
 msgstr ""
 
-#: src/cats/postgresql.c:393
+#: src/cats/postgresql.c:399
 msgid "PQunescapeByteaConn returned NULL.\n"
 msgstr ""
 
-#: src/cats/postgresql.c:807
+#: src/cats/postgresql.c:813
 #, c-format
 msgid "error fetching currval: %s\n"
 msgstr ""
 
-#: src/cats/postgresql.c:998 src/cats/dbi.c:1271
+#: src/cats/postgresql.c:1004 src/cats/dbi.c:1277
 #, c-format
 msgid "error starting batch mode: %s"
 msgstr ""
 
-#: src/cats/postgresql.c:1028 src/cats/postgresql.c:1035
+#: src/cats/postgresql.c:1034 src/cats/postgresql.c:1041
 #, c-format
 msgid "error ending batch mode: %s"
 msgstr ""
 
-#: src/cats/postgresql.c:1082
+#: src/cats/postgresql.c:1088
 #, c-format
 msgid "error copying in batch mode: %s"
 msgstr ""
 
-#: src/cats/postgresql.c:1104
+#: src/cats/postgresql.c:1110
 msgid "A user name for PostgreSQL must be supplied.\n"
 msgstr ""
 
@@ -14399,20 +14414,20 @@ msgid ""
 "exceeded.\n"
 msgstr ""
 
-#: src/cats/dbi.c:1433
+#: src/cats/dbi.c:1439
 #, c-format
 msgid "error inserting batch mode: %s"
 msgstr ""
 
-#: src/cats/dbi.c:1450
+#: src/cats/dbi.c:1456
 msgid "Driver type not specified in Catalog resource.\n"
 msgstr ""
 
-#: src/cats/dbi.c:1454
+#: src/cats/dbi.c:1460
 msgid "Invalid driver type, must be \"dbi:<type>\"\n"
 msgstr ""
 
-#: src/cats/dbi.c:1458
+#: src/cats/dbi.c:1464
 msgid "A user name for DBI must be supplied.\n"
 msgstr ""
 
@@ -14444,7 +14459,7 @@ msgid ""
 "incorrect.\n"
 msgstr ""
 
-#: src/cats/mysql.c:686
+#: src/cats/mysql.c:692
 msgid "A user name for MySQL must be supplied.\n"
 msgstr ""
 
@@ -14581,12 +14596,12 @@ msgstr ""
 msgid "You must enter a number between 1 and %d\n"
 msgstr ""
 
-#: src/console/console.c:1160 src/qt-console/bcomm/dircomm.cpp:129
+#: src/console/console.c:1160 src/qt-console/bcomm/dircomm.cpp:131
 #, c-format
 msgid "Failed to initialize TLS context for Console \"%s\".\n"
 msgstr ""
 
-#: src/console/console.c:1180 src/qt-console/bcomm/dircomm.cpp:152
+#: src/console/console.c:1180 src/qt-console/bcomm/dircomm.cpp:154
 #, c-format
 msgid "Failed to initialize TLS context for Director \"%s\".\n"
 msgstr ""
@@ -15611,10 +15626,10 @@ msgid "Bacula Client: Last Job had Warnings"
 msgstr ""
 
 #: src/filed/xattr.c:96 src/filed/xattr.c:111 src/filed/xattr.c:119
-#: src/filed/fd_plugins.c:694 src/filed/fd_plugins.c:708 src/filed/acl.c:105
-#: src/filed/acl.c:120 src/filed/acl.c:128 src/filed/backup.c:993
-#: src/filed/backup.c:1189 src/filed/backup.c:1226 src/filed/backup.c:1239
-#: src/filed/backup.c:1315 src/filed/backup.c:1413
+#: src/filed/fd_plugins.c:694 src/filed/fd_plugins.c:708 src/filed/acl.c:107
+#: src/filed/acl.c:122 src/filed/acl.c:130 src/filed/backup.c:993
+#: src/filed/backup.c:1193 src/filed/backup.c:1230 src/filed/backup.c:1243
+#: src/filed/backup.c:1319 src/filed/backup.c:1417
 #, c-format
 msgid "Network send error to SD. ERR=%s\n"
 msgstr ""
@@ -15874,7 +15889,7 @@ msgstr ""
 msgid "Failed to restore extended attributes on file \"%s\"\n"
 msgstr ""
 
-#: src/filed/xattr.c:3814 src/filed/acl.c:2148
+#: src/filed/xattr.c:3814 src/filed/acl.c:2253
 #, c-format
 msgid "Unable to stat file \"%s\": ERR=%s\n"
 msgstr ""
@@ -16018,179 +16033,189 @@ msgstr ""
 msgid "No Director resource defined in %s\n"
 msgstr ""
 
-#: src/filed/acl.c:226 src/filed/acl.c:251
+#: src/filed/acl.c:228 src/filed/acl.c:253
 #, c-format
 msgid "aclx_get error on file \"%s\": ERR=%s\n"
 msgstr ""
 
-#: src/filed/acl.c:277
+#: src/filed/acl.c:279
 #, c-format
 msgid "Unknown acl type encountered on file \"%s\": %ld\n"
 msgstr ""
 
-#: src/filed/acl.c:301 src/filed/acl.c:310
+#: src/filed/acl.c:303 src/filed/acl.c:312
 #, c-format
 msgid "Failed to convert acl into text on file \"%s\"\n"
 msgstr ""
 
-#: src/filed/acl.c:383
+#: src/filed/acl.c:385
 #, c-format
 msgid ""
 "Trying to restore POSIX acl on file \"%s\" on filesystem without AIXC acl "
 "support\n"
 msgstr ""
 
-#: src/filed/acl.c:391
+#: src/filed/acl.c:393
 #, c-format
 msgid ""
 "Trying to restore NFSv4 acl on file \"%s\" on filesystem without NFS4 acl "
 "support\n"
 msgstr ""
 
-#: src/filed/acl.c:437 src/filed/acl.c:447
+#: src/filed/acl.c:441 src/filed/acl.c:451
 #, c-format
 msgid "aclx_scanStr error on file \"%s\": ERR=%s\n"
 msgstr ""
 
-#: src/filed/acl.c:473
+#: src/filed/acl.c:477
 #, c-format
 msgid "aclx_put error on file \"%s\": ERR=%s\n"
 msgstr ""
 
-#: src/filed/acl.c:815
+#: src/filed/acl.c:819
 #, c-format
 msgid "acl_to_text error on file \"%s\": ERR=%s\n"
 msgstr ""
 
-#: src/filed/acl.c:845
+#: src/filed/acl.c:849
 #, c-format
 msgid "acl_get_file error on file \"%s\": ERR=%s\n"
 msgstr ""
 
-#: src/filed/acl.c:898
+#: src/filed/acl.c:902
 #, c-format
 msgid ""
 "acl_delete_def_file error on file \"%s\": filesystem doesn't support ACLs\n"
 msgstr ""
 
-#: src/filed/acl.c:904
+#: src/filed/acl.c:908
 #, c-format
 msgid "acl_delete_def_file error on file \"%s\": ERR=%s\n"
 msgstr ""
 
-#: src/filed/acl.c:915
+#: src/filed/acl.c:919
 #, c-format
 msgid "acl_from_text error on file \"%s\": ERR=%s\n"
 msgstr ""
 
-#: src/filed/acl.c:931
+#: src/filed/acl.c:935
 #, c-format
 msgid "acl_valid error on file \"%s\": ERR=%s\n"
 msgstr ""
 
-#: src/filed/acl.c:963
+#: src/filed/acl.c:967
 #, c-format
 msgid "acl_set_file error on file \"%s\": filesystem doesn't support ACLs\n"
 msgstr ""
 
-#: src/filed/acl.c:972
+#: src/filed/acl.c:976
 #, c-format
 msgid "acl_set_file error on file \"%s\": ERR=%s\n"
 msgstr ""
 
-#: src/filed/acl.c:1079 src/filed/acl.c:1108 src/filed/acl.c:1222
-#: src/filed/acl.c:1722 src/filed/acl.c:1829
+#: src/filed/acl.c:1083 src/filed/acl.c:1112 src/filed/acl.c:1226
+#: src/filed/acl.c:1726 src/filed/acl.c:1833
 #, c-format
 msgid "pathconf error on file \"%s\": ERR=%s\n"
 msgstr ""
 
-#: src/filed/acl.c:1238
+#: src/filed/acl.c:1242
 #, c-format
 msgid ""
 "Trying to restore acl on file \"%s\" on filesystem without %s acl support\n"
 msgstr ""
 
-#: src/filed/acl.c:1515
+#: src/filed/acl.c:1519
 #, c-format
 msgid "getacl error on file \"%s\": ERR=%s\n"
 msgstr ""
 
-#: src/filed/acl.c:1550
+#: src/filed/acl.c:1554
 #, c-format
 msgid "acltostr error on file \"%s\": ERR=%s\n"
 msgstr ""
 
-#: src/filed/acl.c:1572 src/filed/acl.c:1582
+#: src/filed/acl.c:1576 src/filed/acl.c:1586
 #, c-format
 msgid "strtoacl error on file \"%s\": ERR=%s\n"
 msgstr ""
 
-#: src/filed/acl.c:1611
+#: src/filed/acl.c:1615
 #, c-format
 msgid "setacl error on file \"%s\": filesystem doesn't support ACLs\n"
 msgstr ""
 
-#: src/filed/acl.c:1619
+#: src/filed/acl.c:1623
 #, c-format
 msgid "setacl error on file \"%s\": ERR=%s\n"
 msgstr ""
 
-#: src/filed/acl.c:1744
+#: src/filed/acl.c:1748
 #, c-format
 msgid "acl_get error on file \"%s\": ERR=%s\n"
 msgstr ""
 
-#: src/filed/acl.c:1818
+#: src/filed/acl.c:1822
 #, c-format
 msgid ""
 "Trying to restore acl on file \"%s\" on filesystem without acl support\n"
 msgstr ""
 
-#: src/filed/acl.c:1847
+#: src/filed/acl.c:1851
 #, c-format
 msgid ""
 "Trying to restore POSIX acl on file \"%s\" on filesystem without aclent acl "
 "support\n"
 msgstr ""
 
-#: src/filed/acl.c:1858
+#: src/filed/acl.c:1862
 #, c-format
 msgid ""
 "Trying to restore NFSv4 acl on file \"%s\" on filesystem without ace acl "
 "support\n"
 msgstr ""
 
-#: src/filed/acl.c:1874
+#: src/filed/acl.c:1878
 #, c-format
 msgid "acl_fromtext error on file \"%s\": ERR=%s\n"
 msgstr ""
 
-#: src/filed/acl.c:1888 src/filed/acl.c:1896
+#: src/filed/acl.c:1892 src/filed/acl.c:1900
 #, c-format
 msgid "wrong encoding of acl type in acl stream on file \"%s\"\n"
 msgstr ""
 
-#: src/filed/acl.c:1921
+#: src/filed/acl.c:1925
 #, c-format
 msgid "acl_set error on file \"%s\": ERR=%s\n"
 msgstr ""
 
-#: src/filed/acl.c:2006
+#: src/filed/acl.c:2011
 #, c-format
 msgid "acltotext error on file \"%s\": ERR=%s\n"
 msgstr ""
 
-#: src/filed/acl.c:2029
+#: src/filed/acl.c:2034
 #, c-format
 msgid "aclfromtext error on file \"%s\": ERR=%s\n"
 msgstr ""
 
-#: src/filed/acl.c:2049
+#: src/filed/acl.c:2054
 #, c-format
 msgid "acl(SETACL) error on file \"%s\": ERR=%s\n"
 msgstr ""
 
-#: src/filed/acl.c:2221
+#: src/filed/acl.c:2120
+#, fuzzy, c-format
+msgid "pioctl VIOCGETAL error on file \"%s\": ERR=%s\n"
+msgstr "Lees fout op bestand %s. FOUT=%s\n"
+
+#: src/filed/acl.c:2148
+#, fuzzy, c-format
+msgid "pioctl VIOCSETAL error on file \"%s\": ERR=%s\n"
+msgstr "Lees fout op bestand %s. FOUT=%s\n"
+
+#: src/filed/acl.c:2351
 #, c-format
 msgid "Can't restore ACLs of %s - incompatible acl stream encountered - %d\n"
 msgstr ""
@@ -16342,34 +16367,34 @@ msgstr ""
 msgid "Compression deflateReset error: %d\n"
 msgstr ""
 
-#: src/filed/backup.c:1116
+#: src/filed/backup.c:1120
 #, c-format
 msgid "Compression LZO error: %d\n"
 msgstr "Compressie LZO fout: %d\n"
 
-#: src/filed/backup.c:1161 src/filed/backup.c:1177
+#: src/filed/backup.c:1165 src/filed/backup.c:1181
 msgid "Encryption error\n"
 msgstr "Fout in versleuteling \n"
 
-#: src/filed/backup.c:1203
+#: src/filed/backup.c:1207
 #, c-format
 msgid "Read error on file %s. ERR=%s\n"
 msgstr "Lees fout op bestand %s. FOUT=%s\n"
 
-#: src/filed/backup.c:1206
+#: src/filed/backup.c:1210
 #, c-format
 msgid "Too many errors. JobErrors=%d.\n"
 msgstr "Te veel fouten. OpdrachtFouten=%d.\n"
 
-#: src/filed/backup.c:1216
+#: src/filed/backup.c:1220
 msgid "Encryption padding error\n"
 msgstr ""
 
-#: src/filed/backup.c:1280
+#: src/filed/backup.c:1284
 msgid "Invalid file flags, no supported data stream type.\n"
 msgstr ""
 
-#: src/filed/backup.c:1536
+#: src/filed/backup.c:1540
 #, c-format
 msgid "VSS Writer (BackupComplete): %s\n"
 msgstr ""
@@ -16578,247 +16603,247 @@ msgstr ""
 msgid "Failed to retrieve current UserName\n"
 msgstr ""
 
-#: src/filed/job.c:458
+#: src/filed/job.c:456
 #, c-format
 msgid "2901 Job %s not found.\n"
 msgstr ""
 
-#: src/filed/job.c:468
+#: src/filed/job.c:466
 #, c-format
 msgid "2001 Job %s marked to be canceled.\n"
 msgstr ""
 
-#: src/filed/job.c:471
+#: src/filed/job.c:469
 msgid "2902 Error scanning cancel command.\n"
 msgstr ""
 
-#: src/filed/job.c:494
+#: src/filed/job.c:492
 #, c-format
 msgid "2991 Bad setdebug command: %s\n"
 msgstr ""
 
-#: src/filed/job.c:517
+#: src/filed/job.c:515
 #, c-format
 msgid "Bad estimate command: %s"
 msgstr ""
 
-#: src/filed/job.c:518
+#: src/filed/job.c:516
 msgid "2992 Bad estimate command.\n"
 msgstr ""
 
-#: src/filed/job.c:541
+#: src/filed/job.c:539
 #, c-format
 msgid "Bad Job Command: %s"
 msgstr ""
 
-#: src/filed/job.c:580
+#: src/filed/job.c:578
 #, c-format
 msgid "Bad RunBeforeJob command: %s\n"
 msgstr ""
 
-#: src/filed/job.c:581 src/filed/job.c:600
+#: src/filed/job.c:579 src/filed/job.c:598
 msgid "2905 Bad RunBeforeJob command.\n"
 msgstr ""
 
-#: src/filed/job.c:611
+#: src/filed/job.c:609
 msgid "2905 Bad RunBeforeNow command.\n"
 msgstr ""
 
-#: src/filed/job.c:630
+#: src/filed/job.c:628
 #, c-format
 msgid "Bad RunAfter command: %s\n"
 msgstr ""
 
-#: src/filed/job.c:631
+#: src/filed/job.c:629
 msgid "2905 Bad RunAfterJob command.\n"
 msgstr ""
 
-#: src/filed/job.c:667
+#: src/filed/job.c:665
 #, c-format
 msgid "Bad RunScript command: %s\n"
 msgstr ""
 
-#: src/filed/job.c:668
+#: src/filed/job.c:666
 msgid "2905 Bad RunScript command.\n"
 msgstr ""
 
-#: src/filed/job.c:722
+#: src/filed/job.c:720
 #, c-format
 msgid "Bad RestoreObject command: %s\n"
 msgstr ""
 
-#: src/filed/job.c:789
+#: src/filed/job.c:785
 msgid "2909 Bad RestoreObject command.\n"
 msgstr ""
 
-#: src/filed/job.c:828
+#: src/filed/job.c:824
 #, c-format
 msgid "Plugin Directory not defined. Cannot use plugin: \"%s\"\n"
 msgstr ""
 
-#: src/filed/job.c:870
+#: src/filed/job.c:866
 #, c-format
 msgid "Error running program: %s. stat=%d: ERR=%s\n"
 msgstr ""
 
-#: src/filed/job.c:881
+#: src/filed/job.c:877
 #, c-format
 msgid "Cannot open FileSet input file: %s. ERR=%s\n"
 msgstr ""
 
-#: src/filed/job.c:1027
+#: src/filed/job.c:1023
 #, c-format
 msgid "REGEX %s compile error. ERR=%s\n"
 msgstr ""
 
-#: src/filed/job.c:1178
+#: src/filed/job.c:1174
 #, c-format
 msgid "Invalid FileSet command: %s\n"
 msgstr ""
 
-#: src/filed/job.c:1651
+#: src/filed/job.c:1647
 #, c-format
 msgid ""
 "DIR and FD clocks differ by %lld seconds, FD automatically compensating.\n"
 msgstr ""
 
-#: src/filed/job.c:1660
+#: src/filed/job.c:1656
 #, c-format
 msgid "Unknown backup level: %s\n"
 msgstr ""
 
-#: src/filed/job.c:1673
+#: src/filed/job.c:1669
 #, c-format
 msgid "Bad level command: %s\n"
 msgstr ""
 
-#: src/filed/job.c:1695
+#: src/filed/job.c:1691
 #, c-format
 msgid "Bad session command: %s"
 msgstr ""
 
-#: src/filed/job.c:1756
+#: src/filed/job.c:1752
 #, c-format
 msgid "Bad storage command: %s"
 msgstr ""
 
-#: src/filed/job.c:1777
+#: src/filed/job.c:1773
 #, c-format
 msgid "Failed to connect to Storage daemon: %s:%d\n"
 msgstr ""
 
-#: src/filed/job.c:1789
+#: src/filed/job.c:1785
 msgid "Failed to authenticate Storage daemon.\n"
 msgstr ""
 
-#: src/filed/job.c:1836
+#: src/filed/job.c:1832
 msgid "ACL support not configured for your machine.\n"
 msgstr ""
 
-#: src/filed/job.c:1840
+#: src/filed/job.c:1836
 msgid "XATTR support not configured for your machine.\n"
 msgstr ""
 
-#: src/filed/job.c:1849
+#: src/filed/job.c:1845
 msgid "Cannot contact Storage daemon\n"
 msgstr ""
 
-#: src/filed/job.c:1868
+#: src/filed/job.c:1864
 #, c-format
 msgid "Bad response to append open: %s\n"
 msgstr ""
 
-#: src/filed/job.c:1873
+#: src/filed/job.c:1869
 msgid "Bad response from stored to open command\n"
 msgstr ""
 
-#: src/filed/job.c:1905
+#: src/filed/job.c:1901
 #, c-format
 msgid "Generate VSS snapshots. Driver=\"%s\", Drive(s)=\"%s\"\n"
 msgstr ""
 
-#: src/filed/job.c:1908
+#: src/filed/job.c:1904
 #, c-format
 msgid "CreateSGenerate VSS snapshots failed. ERR=%s\n"
 msgstr ""
 
-#: src/filed/job.c:1915
+#: src/filed/job.c:1911
 #, c-format
 msgid "Generate VSS snapshot of drive \"%c:\\\" failed.\n"
 msgstr ""
 
-#: src/filed/job.c:1921
+#: src/filed/job.c:1917
 #, c-format
 msgid "VSS Writer (PrepareForBackup): %s\n"
 msgstr ""
 
-#: src/filed/job.c:1926
+#: src/filed/job.c:1922
 msgid "No drive letters found for generating VSS snapshots.\n"
 msgstr ""
 
-#: src/filed/job.c:1930
+#: src/filed/job.c:1926
 #, c-format
 msgid "VSS was not initialized properly. ERR=%s\n"
 msgstr ""
 
-#: src/filed/job.c:1981
+#: src/filed/job.c:1977
 msgid "Append Close with SD failed.\n"
 msgstr ""
 
-#: src/filed/job.c:1985
+#: src/filed/job.c:1981
 #, c-format
 msgid "Bad status %d returned from Storage Daemon.\n"
 msgstr ""
 
-#: src/filed/job.c:2015
+#: src/filed/job.c:2011
 #, c-format
 msgid "2994 Bad verify command: %s\n"
 msgstr ""
 
-#: src/filed/job.c:2030 src/filed/job.c:2071
+#: src/filed/job.c:2026 src/filed/job.c:2067
 #, c-format
 msgid "2994 Bad verify level: %s\n"
 msgstr ""
 
-#: src/filed/job.c:2143
+#: src/filed/job.c:2138
 #, c-format
 msgid "Bad replace command. CMD=%s\n"
 msgstr ""
 
-#: src/filed/job.c:2166
+#: src/filed/job.c:2161
 #, c-format
 msgid "Bad where regexp. where=%s\n"
 msgstr ""
 
-#: src/filed/job.c:2204
+#: src/filed/job.c:2199
 #, c-format
 msgid "VSS was not initialized properly. VSS support is disabled. ERR=%s\n"
 msgstr ""
 
-#: src/filed/job.c:2249
+#: src/filed/job.c:2244
 #, c-format
 msgid "VSS Writer (RestoreComplete): %s\n"
 msgstr ""
 
-#: src/filed/job.c:2297
+#: src/filed/job.c:2294
 msgid "Improper calling sequence.\n"
 msgstr ""
 
-#: src/filed/job.c:2317
+#: src/filed/job.c:2314
 #, c-format
 msgid "Bad response to SD read open: %s\n"
 msgstr ""
 
-#: src/filed/job.c:2322
+#: src/filed/job.c:2319
 msgid "Bad response from stored to read open command\n"
 msgstr ""
 
-#: src/filed/job.c:2390
+#: src/filed/job.c:2383
 #, c-format
 msgid "Comm error with SD. bad response to %s. ERR=%s\n"
 msgstr ""
 
-#: src/filed/job.c:2393
+#: src/filed/job.c:2386
 #, c-format
 msgid "Bad response to %s command. Wanted %s, got %s\n"
 msgstr ""
@@ -17025,12 +17050,12 @@ msgstr ""
 "       -?            geef deze melding.\n"
 "\n"
 
-#: src/qt-console/bcomm/dircomm.cpp:90
+#: src/qt-console/bcomm/dircomm.cpp:92
 #, c-format
 msgid "Already connected\"%s\".\n"
 msgstr "Al verbonden\"%s\".\n"
 
-#: src/qt-console/bcomm/dircomm.cpp:103
+#: src/qt-console/bcomm/dircomm.cpp:105
 #, c-format
 msgid ""
 "Connecting to Director %s:%d\n"
@@ -17039,35 +17064,35 @@ msgstr ""
 "Verbinden met Director %s:%d\n"
 "\n"
 
-#: src/qt-console/bcomm/dircomm.cpp:206
+#: src/qt-console/bcomm/dircomm.cpp:208
 msgid "Initializing ..."
 msgstr "Initialiseren ..."
 
-#: src/qt-console/bcomm/dircomm.cpp:221 src/qt-console/console/console.cpp:142
+#: src/qt-console/bcomm/dircomm.cpp:224 src/qt-console/console/console.cpp:142
 msgid "Connected"
 msgstr "Verbonden"
 
-#: src/qt-console/bcomm/dircomm.cpp:345
+#: src/qt-console/bcomm/dircomm.cpp:348
 msgid "Command completed ..."
 msgstr "Opdracht gereed ..."
 
-#: src/qt-console/bcomm/dircomm.cpp:352 src/qt-console/console/console.cpp:373
+#: src/qt-console/bcomm/dircomm.cpp:355 src/qt-console/console/console.cpp:379
 msgid "Processing command ..."
 msgstr "Opdracht aan het uitvoeren ..."
 
-#: src/qt-console/bcomm/dircomm.cpp:359
+#: src/qt-console/bcomm/dircomm.cpp:362
 msgid "At main prompt waiting for input ..."
 msgstr "Wacht op invoer op opdrachtregel in hoofdscherm ..."
 
-#: src/qt-console/bcomm/dircomm.cpp:366 src/qt-console/bcomm/dircomm.cpp:378
+#: src/qt-console/bcomm/dircomm.cpp:369 src/qt-console/bcomm/dircomm.cpp:381
 msgid "At prompt waiting for input ..."
 msgstr "Wacht op invoer op opdrachtregel ..."
 
-#: src/qt-console/bcomm/dircomm.cpp:386
+#: src/qt-console/bcomm/dircomm.cpp:389
 msgid "Command failed."
 msgstr "Opdracht mislukt."
 
-#: src/qt-console/bcomm/dircomm.cpp:458
+#: src/qt-console/bcomm/dircomm.cpp:462
 msgid "Director disconnected."
 msgstr "Director niet verbonden."
 
@@ -17141,14 +17166,6 @@ msgstr ""
 #, fuzzy
 #~ msgid "Unable to stat ControlDevice %s: ERR=%s\n"
 #~ msgstr "Kan job cond variabele niet initialiseren: ERR=%s\n"
-
-#, fuzzy
-#~ msgid "pioctl VIOCGETAL error on file \"%s\": ERR=%s\n"
-#~ msgstr "Lees fout op bestand %s. FOUT=%s\n"
-
-#, fuzzy
-#~ msgid "pioctl VIOCSETAL error on file \"%s\": ERR=%s\n"
-#~ msgstr "Lees fout op bestand %s. FOUT=%s\n"
 
 #~ msgid ""
 #~ "Copyright (C) 2005 Christian Masopust\n"
