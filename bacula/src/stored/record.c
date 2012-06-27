@@ -444,10 +444,9 @@ bool write_record_to_block(DCR *dcr, DEV_RECORD *rec)
           *  that did not previously fit into the block.
           */
           if (!write_header_to_block(block, rec)) {
-             rec->state = st_header_cont;
-             return false;
+             return false;        /* write block then come back here */
           }
-          rec->state = st_data;
+          rec->state = st_data;  /* after header, now write data */
           continue;
 
       /* Write continuation header */
