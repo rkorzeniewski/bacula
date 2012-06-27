@@ -239,10 +239,18 @@ bool BSOCK::open(JCR *jcr, const char *name, char *host, char *service,
          berrno be;
          save_errno = errno;
          switch (errno) {
+#ifdef EPFNOSUPPORT
+         case EPFNOSUPPORT:
+            /*
+             * The name lookup of the host returned an address in a protocol family
+             * we don't support. Suppress the error and try the next address.
+             */
+            break;
+#endif
 #ifdef EAFNOSUPPORT
          case EAFNOSUPPORT:
             /*
-             * The name lookup of the host returned an address in a protocol family
+             * The name lookup of the host returned an address in a address family
              * we don't support. Suppress the error and try the next address.
              */
             break;
