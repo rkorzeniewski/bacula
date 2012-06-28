@@ -1,6 +1,9 @@
               Changelog on version 5.2.10
 Version 5.2.10
 
+27Jun12
+ - Add extra test for unsupported Protocol Families.
+
 26Jun12
  - Fix inet_pton call.
  - Real fix of bug #1897 5.2.9 breaks IPv6 connectivity

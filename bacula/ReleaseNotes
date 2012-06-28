@@ -53,7 +53,8 @@ New Feature:
 - Add rudimentary support for backing up AFS
 
 
-26Jun12
+28Jun12
+ - Add extra test for unsupported Protocol Families.
  - Fix inet_pton call.
  - Real fix of bug #1897 5.2.9 breaks IPv6 connectivity
  - Fix bug #1891 wrong daemon name printed with -? option
