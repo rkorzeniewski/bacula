@@ -97,6 +97,7 @@ static char *reply_addr = NULL;
 static int mailport = 25;
 static char my_hostname[MAXSTRING];
 static bool content_utf8 = false;
+static bool any_protocol = false;
 
 /* 
  * Take input that may have names and other stuff and strip
@@ -186,6 +187,7 @@ static void usage()
 _("\n"
 "Usage: %s [-f from] [-h mailhost] [-s subject] [-c copy] [recipient ...]\n"
 "       -8          set charset to UTF-8\n"
+"       -a          use any ip protocol to connect"
 "       -c          set the Cc: field\n"
 "       -d <nn>     set debug level to <nn>\n"
 "       -dt         print a timestamp in debug output\n"
@@ -290,6 +292,10 @@ int main (int argc, char *argv[])
       case '8':
          content_utf8 = true;
          break;
+      case 'a':
+         any_protocol = true;
+         break;
+
       case 'c':
          Dmsg1(20, "cc=%s\n", optarg);
          cc_addr = optarg;
@@ -430,7 +436,7 @@ int main (int argc, char *argv[])
 lookup_host:
 #ifdef HAVE_GETADDRINFO
    memset(&hints, 0, sizeof(struct addrinfo));
-   hints.ai_family = AF_UNSPEC;
+   hints.ai_family = (any_protocol) ? AF_UNSPEC : AF_INET;
    hints.ai_socktype = SOCK_STREAM;
    hints.ai_protocol = IPPROTO_TCP;
    hints.ai_flags = 0;
