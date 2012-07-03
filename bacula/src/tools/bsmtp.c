@@ -85,6 +85,12 @@ int generate_daemon_event(JCR *jcr, const char *event)
 #define MAXSTRING 254
 #endif
 
+enum resolv_type {
+   RESOLV_PROTO_ANY,
+   RESOLV_PROTO_IPV4,
+   RESOLV_PROTO_IPV6
+};
+
 static FILE *sfp;
 static FILE *rfp;
 
@@ -97,7 +103,7 @@ static char *reply_addr = NULL;
 static int mailport = 25;
 static char my_hostname[MAXSTRING];
 static bool content_utf8 = false;
-static bool any_protocol = false;
+static resolv_type default_resolv_type = RESOLV_PROTO_IPV4;
 
 /* 
  * Take input that may have names and other stuff and strip
@@ -186,8 +192,12 @@ static void usage()
    fprintf(stderr,
 _("\n"
 "Usage: %s [-f from] [-h mailhost] [-s subject] [-c copy] [recipient ...]\n"
+"       -4          forces bsmtp to use IPv4 addresses only.\n"
+#ifdef HAVE_IPV6
+"       -6          forces bsmtp to use IPv6 addresses only.\n"
+#endif
 "       -8          set charset to UTF-8\n"
-"       -a          use any ip protocol to connect"
+"       -a          use any ip protocol for address resolution\n"
 "       -c          set the Cc: field\n"
 "       -d <nn>     set debug level to <nn>\n"
 "       -dt         print a timestamp in debug output\n"
@@ -279,6 +289,11 @@ int main (int argc, char *argv[])
    struct hostent *hp;
    struct sockaddr_in sin;
 #endif
+#ifdef HAVE_IPV6
+   const char *options = "468ac:d:f:h:r:s:l:?";
+#else
+   const char *options = "48ac:d:f:h:r:s:l:?";
+#endif
     
    setlocale(LC_ALL, "en_US");
    bindtextdomain("bacula", LOCALEDIR);
@@ -287,14 +302,24 @@ int main (int argc, char *argv[])
    my_name_is(argc, argv, "bsmtp");
    maxlines = 0;
 
-   while ((ch = getopt(argc, argv, "8c:d:f:h:r:s:l:?")) != -1) {
+   while ((ch = getopt(argc, argv, options)) != -1) {
       switch (ch) {
+      case '4':
+         default_resolv_type = RESOLV_PROTO_IPV4;
+         break;
+
+#ifdef HAVE_IPV6
+      case '6':
+         default_resolv_type = RESOLV_PROTO_IPV6;
+         break;
+#endif
+
       case '8':
          content_utf8 = true;
          break;
 
       case 'a':
-         any_protocol = true;
+         default_resolv_type = RESOLV_PROTO_ANY;
          break;
 
       case 'c':
@@ -437,16 +462,31 @@ int main (int argc, char *argv[])
 lookup_host:
 #ifdef HAVE_GETADDRINFO
    memset(&hints, 0, sizeof(struct addrinfo));
-   hints.ai_family = (any_protocol) ? AF_UNSPEC : AF_INET;
+   switch (default_resolv_type) {
+   case RESOLV_PROTO_ANY:
+      hints.ai_family = AF_UNSPEC;
+      break;
+   case RESOLV_PROTO_IPV4:
+      hints.ai_family = AF_INET;
+      break;
+#ifdef HAVE_IPV6
+   case RESOLV_PROTO_IPV6:
+      hints.ai_family = AF_INET6;
+      break;
+#endif
+   default:
+      hints.ai_family = AF_UNSPEC;
+      break;
+   }
    hints.ai_socktype = SOCK_STREAM;
-   hints.ai_protocol = IPPROTO_TCP;
+   hints.ai_protocol = 0;
    hints.ai_flags = 0;
    snprintf(mail_port, sizeof(mail_port), "%d", mailport);
 
    if ((res = getaddrinfo(mailhost, mail_port, &hints, &ai)) != 0) {
       Pmsg2(0, _("Error unknown mail host \"%s\": ERR=%s\n"),
             mailhost, gai_strerror(res));
-      if (!strcasecmp(mailhost, "localhost")) {
+      if (strcasecmp(mailhost, "localhost")) {
          Pmsg0(0, _("Retrying connection using \"localhost\".\n"));
          mailhost = "localhost";
          goto lookup_host;

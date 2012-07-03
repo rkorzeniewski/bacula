@@ -2,7 +2,7 @@
 .\" First parameter, NAME, should be all caps
 .\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
 .\" other parameters are allowed: see man(7), man(1)
-.TH BSMTP 1 "6 December 2009" "Kern Sibbald" "Network backup, recovery and verification"
+.TH BSMTP 1 "3 July 2012" "Kern Sibbald" "Network backup, recovery and verification"
 .\" Please adjust this date whenever revising the manpage.
 .\"
 .SH NAME
@@ -23,8 +23,17 @@ operator.
 
 .SH OPTIONS
 .TP
+.B \-4
+Forces bsmtp to use IPv4 addresses only.
+.TP
+.B \-6
+Forces bsmtp to use IPv6 addresses only.
+.TP
 .B \-8
 Encode the mail in UTF-8.
+.TP
+.B \-a
+Use any ip protocol for address resolution.
 .TP
 .B \-c
 Set the \fBCc:\fR header.
