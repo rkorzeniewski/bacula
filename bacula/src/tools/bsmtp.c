@@ -292,6 +292,7 @@ int main (int argc, char *argv[])
       case '8':
          content_utf8 = true;
          break;
+
       case 'a':
          any_protocol = true;
          break;
