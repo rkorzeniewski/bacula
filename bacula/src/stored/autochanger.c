@@ -209,6 +209,10 @@ int autoload_device(DCR *dcr, int writing, BSOCK *dir)
                     slot, drive);
             Dmsg2(100, "load slot %d, drive %d, status is OK.\n", slot, drive);
             dev->set_slot(slot);      /* set currently loaded slot */
+            if (dev->vol) {
+               /* We just swapped this Volume so it cannot be swapping any more */
+               dev->vol->clear_swapping();
+            }
          } else {
             berrno be;
             be.set_errno(status);
