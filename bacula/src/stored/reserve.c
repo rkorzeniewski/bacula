@@ -672,7 +672,7 @@ static int reserve_device(RCTX &rctx)
       Dmsg3(dbglvl, "Vol=%s num_writers=%d, have_vol=%d\n", 
          rctx.VolumeName, dcr->dev->num_writers, rctx.have_volume);
       if (rctx.have_volume) {
-         Dmsg0(dbglvl, "Call reserve_volume\n");
+         Dmsg0(dbglvl, "Call reserve_volume for append.\n");
          if (reserve_volume(dcr, rctx.VolumeName)) {
             Dmsg1(dbglvl, "Reserved vol=%s\n", rctx.VolumeName);
          } else {
