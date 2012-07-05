@@ -1277,27 +1277,26 @@ void status_slots(UAContext *ua, STORE *store_r)
          }
       }
 
+      memset(&mr, 0, sizeof(MEDIA_DBR));
       bstrncpy(mr.VolumeName, vl->VolName, sizeof(mr.VolumeName));
-      db_lock(ua->db);
+
       if (mr.VolumeName[0] && db_get_media_record(ua->jcr, ua->db, &mr)) {
          memset(&pr, 0, sizeof(POOL_DBR));
          pr.PoolId = mr.PoolId;
          if (!db_get_pool_record(ua->jcr, ua->db, &pr)) {
             strcpy(pr.Name, "?");
          }
-         db_unlock(ua->db);
 
          /* Print information */
          ua->send_msg(slot_hformat,
                       vl->Slot, ((vl->Slot==mr.Slot)?' ':'*'),
                       mr.VolumeName, mr.VolStatus, mr.MediaType, pr.Name);
-         continue;
+
       } else {                  /* TODO: get information from catalog  */
          ua->send_msg(slot_hformat,
                       vl->Slot, '*',
                       mr.VolumeName, "?", "?", "?");
       }
-      db_unlock(ua->db);
    }
 
    /* Display the rest of the autochanger
