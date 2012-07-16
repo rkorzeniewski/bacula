@@ -285,6 +285,10 @@ bool makepath(ATTR *attr, const char *apath, mode_t mode, mode_t parent_mode,
 
    /* Now set the proper owner and modes */
 #if defined(HAVE_WIN32)
+
+   /* Don't propagate the hidden attribute to parent directories */
+   parent_mode &= ~S_ISVTX;
+
    if (path[1] == ':') {
       p = &path[3];
    } else {
