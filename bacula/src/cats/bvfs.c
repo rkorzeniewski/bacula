@@ -914,8 +914,9 @@ bool Bvfs::compute_restore_list(char *fileid, char *dirid, char *hardlink,
 
    if (*fileid) {               /* Select files with their direct id */
       init=true;
-      Mmsg(tmp,"SELECT JobId, JobTDate, FileIndex, FilenameId, PathId, FileId "
-                  "FROM File JOIN Job USING (JobId) WHERE FileId IN (%s)",
+      Mmsg(tmp,"SELECT Job.JobId, JobTDate, FileIndex, FilenameId, "
+                      "PathId, FileId "
+                 "FROM File JOIN Job USING (JobId) WHERE FileId IN (%s)",
            fileid);
       pm_strcat(query, tmp.c_str());
    }
@@ -956,7 +957,7 @@ bool Bvfs::compute_restore_list(char *fileid, char *dirid, char *hardlink,
          query.strcat(" UNION ");
       }
 
-      Mmsg(tmp, "SELECT JobId, JobTDate, File.FileIndex, File.FilenameId, "
+      Mmsg(tmp, "SELECT Job.JobId, JobTDate, File.FileIndex, File.FilenameId, "
                         "File.PathId, FileId "
                    "FROM Path JOIN File USING (PathId) JOIN Job USING (JobId) "
                   "WHERE Path.Path LIKE '%s' AND File.JobId IN (%s) ", 
@@ -994,7 +995,7 @@ bool Bvfs::compute_restore_list(char *fileid, char *dirid, char *hardlink,
             tmp.strcat(") UNION ");
             query.strcat(tmp.c_str());
          }
-         Mmsg(tmp,   "SELECT JobId, JobTDate, FileIndex, FilenameId, "
+         Mmsg(tmp,   "SELECT Job.JobId, JobTDate, FileIndex, FilenameId, "
                             "PathId, FileId "
                        "FROM File JOIN Job USING (JobId) WHERE JobId = %lld " 
                         "AND FileIndex IN (%lld", jobid, id);

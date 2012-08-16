@@ -221,7 +221,7 @@ const char *uar_sel_fileset =
  * use Ids to select the FileSet name. (like in accurate)
  */
 const char *uar_sel_filesetid =
-   "SELECT MAX(FileSetId) "
+   "SELECT MAX(FileSet.FileSetId) "
      "FROM FileSet JOIN Job USING (FileSetId) "
          "WHERE Job.ClientId=%s "
         "GROUP BY FileSet";
