@@ -246,27 +246,32 @@ bool has_file_changed(JCR *jcr, FF_PKT *ff_pkt)
    }
 
    if (statp.st_mtime != ff_pkt->statp.st_mtime) {
-      /* TODO: add time of changes */
       Jmsg(jcr, M_ERROR, 0, _("%s mtime changed during backup.\n"), ff_pkt->fname);
+      Dmsg3(50, "%s mtime (%lld) changed during backup (%lld).\n", ff_pkt->fname,
+            (int64_t)ff_pkt->statp.st_mtime, (int64_t)statp.st_mtime);
       return true;
    }
 
    if (statp.st_ctime != ff_pkt->statp.st_ctime) {
-      /* TODO: add time of changes */
       Jmsg(jcr, M_ERROR, 0, _("%s ctime changed during backup.\n"), ff_pkt->fname);
+      Dmsg3(50, "%s ctime (%lld) changed during backup (%lld).\n", ff_pkt->fname,
+            (int64_t)ff_pkt->statp.st_ctime, (int64_t)statp.st_ctime);
       return true;
    }
   
    if (statp.st_size != ff_pkt->statp.st_size) {
       /* TODO: add size change */
       Jmsg(jcr, M_ERROR, 0, _("%s size changed during backup.\n"),ff_pkt->fname);
+      Dmsg3(50, "%s size (%lld) changed during backup (%lld).\n", ff_pkt->fname,
+            (int64_t)ff_pkt->statp.st_size, (int64_t)statp.st_size);
       return true;
    }
 
    if ((statp.st_blksize != ff_pkt->statp.st_blksize) ||
        (statp.st_blocks  != ff_pkt->statp.st_blocks)) {
-      /* TODO: add size change */
       Jmsg(jcr, M_ERROR, 0, _("%s size changed during backup.\n"),ff_pkt->fname);
+      Dmsg3(50, "%s size (%lld) changed during backup (%lld).\n", ff_pkt->fname,
+            (int64_t)ff_pkt->statp.st_blocks, (int64_t)statp.st_blocks);
       return true;
    }
 

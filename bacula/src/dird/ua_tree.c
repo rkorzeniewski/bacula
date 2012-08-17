@@ -224,9 +224,12 @@ int insert_tree_handler(void *ctx, int num_fields, char **row)
             tree_remove_node(tree->root, node);
 
          } else {
-            Dmsg3(0, "Something is wrong with Delta, skipt it "
-                  "fname=%s d1=%d d2=%d\n", 
-                  row[1], node->delta_seq, delta_seq);
+            tree->ua->warning_msg(_("Something is wrong with the Delta sequence of %s, "
+                                    "skiping new parts. Current sequence is %d\n"),
+                                  row[1], node->delta_seq);
+            
+            Dmsg3(0, "Something is wrong with Delta, skip it "
+                  "fname=%s d1=%d d2=%d\n", row[1], node->delta_seq, delta_seq);
          }
          return 0;
       }

@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2011 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2012 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -199,11 +199,11 @@ static void debug_list_volumes(const char *imsg)
    lock_volumes();
    foreach_dlist(vol, vol_list) {
       if (vol->dev) {
-         Mmsg(msg, "List %s: %s in_use=%d on device %s\n", imsg, 
-              vol->vol_name, vol->is_in_use(), vol->dev->print_name());
+         Mmsg(msg, "List %s: %s in_use=%d swap=%d on device %s\n", imsg, 
+              vol->vol_name, vol->is_in_use(), vol->is_swapping(), vol->dev->print_name());
       } else {
-         Mmsg(msg, "List %s: %s in_use=%d no dev\n", imsg, vol->vol_name, 
-              vol->is_in_use());
+         Mmsg(msg, "List %s: %s in_use=%d swap=%d no dev\n", imsg, vol->vol_name, 
+              vol->is_in_use(), vol->is_swapping());
       }
       Dmsg1(dbglvl, "%s", msg.c_str());
    }
@@ -428,7 +428,7 @@ VOLRES *reserve_volume(DCR *dcr, const char *VolumeName)
             Dmsg3(dbglvl, "==== Swap vol=%s from dev=%s to %s\n", 
                VolumeName, vol->dev->print_name(), dev->print_name());
             free_volume(dev);            /* free any volume attached to our drive */
-            Dmsg0(50, "set_unload\n");
+            Dmsg1(50, "set_unload dev=%s\n", dev->print_name());
             dev->set_unload();           /* Unload any volume that is on our drive */
             dcr->dev = vol->dev;         /* temp point to other dev */
             slot = get_autochanger_loaded_slot(dcr);  /* get slot on other drive */
@@ -446,9 +446,11 @@ VOLRES *reserve_volume(DCR *dcr, const char *VolumeName)
                vol->dev->is_busy(), vol->is_swapping(),
                VolumeName, vol->dev->print_name(), dev->print_name());
             if (vol->is_swapping() && dev->swap_dev) {
-               Dmsg2(dbglvl, "Swap vol=%s dev=%s\n", vol->vol_name, dev->swap_dev->print_name());
+               Dmsg3(dbglvl, "Swap failed vol=%s from=%s to dev=%s\n", 
+                 vol->vol_name, dev->swap_dev->print_name(), dev->print_name());
             } else {
-               Dmsg1(dbglvl, "swap_dev=%p\n", dev->swap_dev);
+               Dmsg3(dbglvl, "Swap failed vol=%s from=%p to dev=%s\n", 
+                  vol->vol_name, dev->swap_dev, dev->print_name());
             }
             debug_list_volumes("failed swap");
             vol = NULL;                  /* device busy */
@@ -573,10 +575,12 @@ bool volume_unused(DCR *dcr)
       debug_list_volumes("null vol cannot unreserve_volume");
       return false;
    }
+
+   Dmsg1(dbglvl, "=== clear in_use vol=%s\n", dev->vol->vol_name);
+   dev->vol->clear_in_use();
+
    if (dev->vol->is_swapping()) {
       Dmsg1(dbglvl, "vol_unused: vol being swapped on %s\n", dev->print_name());
-      Dmsg1(dbglvl, "=== clear in_use vol=%s\n", dev->vol->vol_name);
-      dev->vol->clear_in_use();
       debug_list_volumes("swapping vol cannot free_volume");
       return false;
    }
@@ -589,8 +593,6 @@ bool volume_unused(DCR *dcr)
     */
    Dmsg4(dbglvl, "=== set not reserved vol=%s num_writers=%d dev_reserved=%d dev=%s\n",
       dev->vol->vol_name, dev->num_writers, dev->num_reserved(), dev->print_name());
-   Dmsg1(dbglvl, "=== clear in_use vol=%s\n", dev->vol->vol_name);
-   dev->vol->clear_in_use();
    if (dev->is_tape() || dev->is_autochanger()) {
       return true;
    } else {

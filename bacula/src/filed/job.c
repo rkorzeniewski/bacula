@@ -890,6 +890,14 @@ void add_file_to_fileset(JCR *jcr, const char *fname, bool is_file)
    }
 }
 
+findINCEXE *get_incexe(JCR *jcr)
+{
+   if (jcr->ff && jcr->ff->fileset) {
+      return jcr->ff->fileset->incexe;
+   }
+   return NULL;
+}
+
 void set_incexe(JCR *jcr, findINCEXE *incexe)
 {
    findFILESET *fileset = jcr->ff->fileset;

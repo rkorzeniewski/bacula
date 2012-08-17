@@ -138,6 +138,20 @@ ok_out:
          commit_data_spool(jcr->dcr);
       }
 
+      /*
+       * Don't use time_t for job_elapsed as time_t can be 32 or 64 bits,
+       *   and the subsequent Jmsg() editing will break
+       */
+      int32_t job_elapsed = time(NULL) - jcr->run_time;
+
+      if (job_elapsed <= 0) {
+         job_elapsed = 1;
+      }
+
+      Jmsg(jcr, M_INFO, 0, _("Elapsed time=%02d:%02d:%02d, Transfer rate=%s Bytes/second\n"),
+            job_elapsed / 3600, job_elapsed % 3600 / 60, job_elapsed % 60,
+            edit_uint64_with_suffix(jcr->JobBytes / job_elapsed, ec1));
+
       if (ok && dev->is_dvd()) {
          ok = dvd_close_job(jcr->dcr);   /* do DVD cleanup if any */
       }

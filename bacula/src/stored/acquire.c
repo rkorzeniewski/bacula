@@ -338,11 +338,11 @@ default_path:
 
 get_out:
    dev->dlock();
+   dcr->clear_reserved();
    /* If failed and not writing plugin close device */
-   if (!ok && dev->num_writers == 0) {
+   if (!ok && dev->num_writers == 0 && dev->num_reserved() == 0) {
       generate_plugin_event(jcr, bsdEventDeviceClose, dcr);
    }
-   dcr->clear_reserved();
    /* 
     * Normally we are blocked, but in at least one error case above 
     *   we are not blocked because we unsuccessfully tried changing
@@ -539,6 +539,7 @@ bool release_device(DCR *dcr)
        *   there are no writers. It was probably reserved.
        */
       volume_unused(dcr);
+      generate_plugin_event(jcr, bsdEventDeviceClose, dcr);
    }
    Dmsg3(100, "%d writers, %d reserve, dev=%s\n", dev->num_writers, dev->num_reserved(),
          dev->print_name());

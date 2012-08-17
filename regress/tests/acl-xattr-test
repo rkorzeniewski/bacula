@@ -103,20 +103,20 @@ cp ${cwd}/bin/bconsole $d
 
 case `uname -s` in
    Linux)
-      setfacl -m d:user:$uid:r-x $d/acl-dir
-      setfacl -m d:user:root:-wx $d/acl-dir
-      setfacl -m user:nobody:--- $d/acl-dir
-      setfacl -m user:nobody:--- $d/bconsole
-      setfacl -m group:nogroup:--x $d/bconsole
+      setfacl -m d:user:$uid:r-x $d/acl-dir 2>/dev/null 1>/dev/null
+      setfacl -m d:user:root:-wx $d/acl-dir 2>/dev/null 1>/dev/null
+      setfacl -m user:nobody:--- $d/acl-dir 2>/dev/null 1>/dev/null
+      setfacl -m user:nobody:--- $d/bconsole 2>/dev/null 1>/dev/null
+      setfacl -m group:nogroup:--x $d/bconsole 2>/dev/null 1>/dev/null
       cp ${cwd}/bin/bconsole $d/acl-dir
       cp ${cwd}/bin/bconsole $d/other
       setfattr -h -n user.bacula.test -v rulez $d/other 2>/dev/null 1>/dev/null
       setfattr -h -n user.bacula.secondtest -v rulez $d/other 2>/dev/null 1>/dev/null
 
       ( cd $cwd/build
-        getfacl -R acl > $cwd/tmp/org
-        getfattr -h -n user.bacula.test $d/other > $cwd/tmp/attr.org
-        getfattr -h -n user.bacula.secondtest $d/other >> $cwd/tmp/attr.org
+        getfacl -R acl 2>/dev/null > $cwd/tmp/org
+        getfattr -h -n user.bacula.test $d/other 2>/dev/null > $cwd/tmp/attr.org
+        getfattr -h -n user.bacula.secondtest $d/other 2>/dev/null >> $cwd/tmp/attr.org
       )
       ;;
    Darwin)
@@ -133,8 +133,8 @@ case `uname -s` in
 
       ( cd $cwd/build
         ls -lde -R acl > $cwd/tmp/org
-        xattr -p bacula.test $d/other > $cwd/tmp/attr.org
-        xattr -p bacula.secondtest $d/other >> $cwd/tmp/attr.org
+        xattr -p bacula.test $d/other 2>/dev/null > $cwd/tmp/attr.org
+        xattr -p bacula.secondtest $d/other 2>/dev/null >> $cwd/tmp/attr.org
       )
       ;;
    SunOS)
@@ -169,7 +169,7 @@ EOF
       )
       ;;
    FreeBSD)
-      setfacl -m d:user:$uid:r-x $d/acl-dir
+      setfacl -m d:user:$uid:r-x $d/acl-dir 
       setfacl -m d:user:root:-wx $d/acl-dir
       setfacl -m user:nobody:--- $d/acl-dir
       setfacl -m user:nobody:--- $d/bconsole
@@ -184,8 +184,8 @@ EOF
         do
            getfacl $file
         done > $cwd/tmp/org
-        getextattr user bacula.test $d/other > $cwd/tmp/attr.org
-        getextattr user bacula.secondtest $d/other >> $cwd/tmp/attr.org
+        getextattr user bacula.test $d/other 2>/dev/null > $cwd/tmp/attr.org
+        getextattr user bacula.secondtest $d/other 2>/dev/null >> $cwd/tmp/attr.org
       )
       ;;
    NetBSD)
@@ -208,10 +208,10 @@ cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @$out /dev/null
 messages
 @$out ${cwd}/tmp/log1.out
-label volume=TestVolume001 storage=File pool=File
+label volume=TestVolume001 storage=File1 pool=File slot=1 drive=0
 setdebug level=400 trace=1 client
 setdebug level=300 trace=1 director
-setdebug level=300 trace=1 storage
+setdebug level=300 trace=1 storage=File1
 run job=$JobName yes
 wait
 messages
@@ -227,15 +227,15 @@ quit
 END_OF_DATA
 
 run_bacula
-check_for_zombie_jobs storage=File
+check_for_zombie_jobs storage=File1
 stop_bacula
 
 case `uname -s` in
    Linux)
       ( cd $cwd/tmp/bacula-restores/$cwd/build
         getfacl -R acl > $cwd/tmp/new
-        getfattr -h -n user.bacula.test $d/other > $cwd/tmp/attr.new
-        getfattr -h -n user.bacula.secondtest $d/other >> $cwd/tmp/attr.new
+        getfattr -h -n user.bacula.test $d/other 2>/dev/null > $cwd/tmp/attr.new
+        getfattr -h -n user.bacula.secondtest $d/other 2>/dev/null >> $cwd/tmp/attr.new
       )
       ;;
    Darwin)

@@ -250,6 +250,10 @@ void *rblist::any(void *item)
 {
    void *x;
 
+   if (!item) {
+      return NULL;
+   }
+
    x = item;
    if ((down && !left(x) && right(x)) || (!down && right(x))) {
       /* Move down to right one */
@@ -335,7 +339,6 @@ void rblist::destroy()
 
    x = first();
 // printf("head=%p first=%p left=%p right=%p\n", head, x, left(x), right(x));
-
    for (  ; (y=any(x)); ) {
       /* Prune the last item */
       if (parent(x)) {
@@ -349,9 +352,9 @@ void rblist::destroy()
          if (head == x) {  
             head = NULL;
          }
-//       if (num_items<30) {
-//          printf("free nitems=%d item=%p left=%p right=%p\n", num_items, x, left(x), right(x));
-//       }   
+//          if (num_items<30) {
+//             printf("free nitems=%d item=%p left=%p right=%p\n", num_items, x, left(x), right(x));
+//          }   
          free((void *)x);      /* free previous node */
          num_items--;
       }

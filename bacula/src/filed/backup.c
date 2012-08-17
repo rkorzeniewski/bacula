@@ -459,6 +459,9 @@ int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
       jcr->JobErrors++;
       return 1;
    }
+   case FT_DELETED:
+      Dmsg1(130, "FT_DELETED: %s\n", ff_pkt->fname);
+      break;
    default:
       Jmsg(jcr, M_NOTSAVED, 0,  _("     Unknown file type %d; not saved: %s\n"), 
            ff_pkt->type, ff_pkt->fname);
@@ -576,7 +579,10 @@ int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
    if (IS_FT_OBJECT(ff_pkt->type)) {
       goto good_rtn;
    }
-
+   /** Meta data only for deleted files */
+   if (ff_pkt->type == FT_DELETED) {
+      goto good_rtn;
+   }
    /** Set up the encryption context and send the session data to the SD */
    if (has_file_data && jcr->crypto.pki_encrypt) {
       if (!crypto_session_send(jcr, sd)) {

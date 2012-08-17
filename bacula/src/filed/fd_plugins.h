@@ -215,7 +215,6 @@ typedef enum {
   bEventEndFileSet                      = 19,
   bEventPluginCommand                   = 20, /* Sent during FileSet creation */
   bEventVssBeforeCloseRestore           = 21,
-
   /* Add drives to VSS snapshot 
    *  argument: char[27] drivelist
    * You need to add them without duplicates, 
@@ -223,7 +222,8 @@ typedef enum {
    */
   bEventVssPrepareSnapshot              = 22,
   bEventOptionPlugin                    = 23,
-  bEventHandleBackupFile                = 24 /* Used with Options Plugin */
+  bEventHandleBackupFile                = 24, /* Used with Options Plugin */
+  bEventComponentInfo                   = 25  /* Plugin component */
 } bEventType;
 
 typedef struct s_bEvent {
@@ -283,6 +283,7 @@ typedef struct s_baculaFuncs {
    bRC (*NewInclude)(bpContext *ctx);
    bRC (*NewPreInclude)(bpContext *ctx);
    bRC (*checkChanges)(bpContext *ctx, struct save_pkt *sp);
+   bRC (*AcceptFile)(bpContext *ctx, struct save_pkt *sp); /* Need fname and statp */
 } bFuncs;
 
 
@@ -299,9 +300,9 @@ typedef enum {
   pVarDescription = 2
 } pVariable;
 
+# define FD_PLUGIN_MAGIC  "*FDPluginData*" 
 
-#define FD_PLUGIN_MAGIC     "*FDPluginData*" 
-#define FD_PLUGIN_INTERFACE_VERSION  6
+#define FD_PLUGIN_INTERFACE_VERSION  7
 
 typedef struct s_pluginInfo {
    uint32_t size;

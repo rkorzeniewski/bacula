@@ -375,6 +375,7 @@ extern "C" void *msg_thread(void *arg)
    JCR *jcr = (JCR *)arg;
    BSOCK *sd;
    int JobStatus;
+   int n;
    char Job[MAX_NAME_LENGTH];
    uint32_t JobFiles, JobErrors;
    uint64_t JobBytes;
@@ -388,7 +389,8 @@ extern "C" void *msg_thread(void *arg)
    /* Read the Storage daemon's output.
     */
    Dmsg0(100, "Start msg_thread loop\n");
-   while (!job_canceled(jcr) && bget_dirmsg(sd) >= 0) {
+   n = 0;
+   while (!job_canceled(jcr) && (n=bget_dirmsg(sd)) >= 0) {
       Dmsg1(400, "<stored: %s", sd->msg);
       if (sscanf(sd->msg, Job_start, Job) == 1) {
          continue;
@@ -402,6 +404,13 @@ extern "C" void *msg_thread(void *arg)
          break;
       }
       Dmsg1(400, "end loop use=%d\n", jcr->use_count());
+   }
+   if (n == BNET_HARDEOF) {
+      /*
+       * This probably should be M_FATAL, but I am not 100% sure
+       *  that this return *always* corresponds to a dropped line.
+       */
+      Qmsg(jcr, M_ERROR, 0, _("Director's comm line to SD dropped.\n"));
    }
    if (is_bnet_error(sd)) {
       jcr->SDJobStatus = JS_ErrorTerminated;

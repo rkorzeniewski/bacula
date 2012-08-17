@@ -1,6 +1,6 @@
 /*
 
-   Copyright (C) 2007-2010 Kern Sibbald
+   Copyright (C) 2007-2012 Kern Sibbald
 
    You may freely use this code to create your own plugin provided
    it is to write a plugin for Bacula licensed under AGPLv3
@@ -39,6 +39,7 @@ static bRC startRestoreFile(bpContext *ctx, const char *cmd);
 static bRC endRestoreFile(bpContext *ctx);
 static bRC createFile(bpContext *ctx, struct restore_pkt *rp);
 static bRC setFileAttributes(bpContext *ctx, struct restore_pkt *rp);
+static bRC checkFile(bpContext *ctx, char *fname);
 
 
 /* Pointers to Bacula functions */
@@ -72,7 +73,8 @@ static pFuncs pluginFuncs = {
    endRestoreFile,
    pluginIO,
    createFile,
-   setFileAttributes
+   setFileAttributes,
+   checkFile
 };
 
 /*
@@ -184,14 +186,16 @@ static bRC handlePluginEvent(bpContext *ctx, bEvent *event, void *value)
    case bEventEndRestoreJob:
       printf("plugin: EndRestoreJob\n");
       break;
-
    /* Plugin command e.g. plugin = <plugin-name>:<name-space>:command */
    case bEventRestoreCommand:
       printf("plugin: backup command=%s\n", NPRT((char *)value));
       break;
-
    case bEventBackupCommand:
       printf("plugin: backup command=%s\n", NPRT((char *)value));
+      break;
+
+   case bEventComponentInfo:
+      printf("plugin: Component=%s\n", NPRT((char *)value));
       break;
 
    default:
@@ -277,6 +281,12 @@ static bRC createFile(bpContext *ctx, struct restore_pkt *rp)
  *  set directory permissions, ...
  */
 static bRC setFileAttributes(bpContext *ctx, struct restore_pkt *rp)
+{
+   return bRC_OK;
+}
+
+/* When using Incremental dump, all previous dumps are necessary */
+static bRC checkFile(bpContext *ctx, char *fname)
 {
    return bRC_OK;
 }

@@ -35,7 +35,7 @@
 #include "stored.h"
 #include "sd_plugins.h"
 
-const int dbglvl = 50;
+const int dbglvl = 150;
 const char *plugin_type = "-sd.so";
 
 
@@ -261,7 +261,7 @@ void new_plugins(JCR *jcr)
    if (jcr->is_job_canceled()) {
       return;
    }
-   /*
+   /* 
     * If plugins already loaded, just return
     */
    if (jcr->plugin_ctx_list) {

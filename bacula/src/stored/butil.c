@@ -51,23 +51,23 @@ static void my_free_jcr(JCR *jcr);
 extern char *configfile;
 
 #ifdef DEBUG
-char *rec_state_to_str(DEV_RECORD *rec)
+char *rec_state_bits_to_str(DEV_RECORD *rec)
 {
    static char buf[200];
    buf[0] = 0;
-   if (rec->state & REC_NO_HEADER) {
+   if (rec->state_bits & REC_NO_HEADER) {
       strcat(buf, _("Nohdr,"));
    }
    if (is_partial_record(rec)) {
       strcat(buf, _("partial,"));
    }
-   if (rec->state & REC_BLOCK_EMPTY) {
+   if (rec->state_bits & REC_BLOCK_EMPTY) {
       strcat(buf, _("empty,"));
    }
-   if (rec->state & REC_NO_MATCH) {
+   if (rec->state_bits & REC_NO_MATCH) {
       strcat(buf, _("Nomatch,"));
    }
-   if (rec->state & REC_CONTINUATION) {
+   if (rec->state_bits & REC_CONTINUATION) {
       strcat(buf, _("cont,"));
    }
    if (buf[0]) {

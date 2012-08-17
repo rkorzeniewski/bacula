@@ -194,6 +194,7 @@ scripts/Makefile
 scripts/bacula
 scripts/btraceback
 scripts/fd
+scripts/reset-storageid
 scripts/startit
 scripts/startmysql
 scripts/stopit
@@ -379,6 +380,7 @@ src/plugins/dir/*.o
 src/plugins/dir/*.so
 src/plugins/dir/main
 src/plugins/dir/Makefile
+src/plugins/dir/.libs
 
 # src/plugins/fd/
 src/plugins/fd/*.o
@@ -479,6 +481,7 @@ src/qt-console/tray-monitor/Makefile.mingw32
 src/qt-console/tray-monitor/Makefile.mingw32.Debug
 src/qt-console/tray-monitor/Makefile.mingw32.Release
 src/qt-console/tray-monitor/debug/
+src/qt-console/tray-monitor/release/
 src/qt-console/tray-monitor/moc/
 src/qt-console/tray-monitor/tray-monitor.conf
 src/qt-console/tray-monitor/tray-monitor.pro

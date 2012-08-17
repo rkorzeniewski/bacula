@@ -953,9 +953,9 @@ bool is_restore_stream_supported(int stream)
 int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
 {
    if (bfd->cmd_plugin && plugin_bopen) {
-      Dmsg1(50, "call plugin_bopen fname=%s\n", fname);
+      Dmsg1(400, "call plugin_bopen fname=%s\n", fname);
       bfd->fid = plugin_bopen(bfd, fname, flags, mode);
-      Dmsg1(50, "Plugin bopen stat=%d\n", bfd->fid);
+      Dmsg1(400, "Plugin bopen stat=%d\n", bfd->fid);
       return bfd->fid;
    }
 

@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2007-2010 Free Software Foundation Europe e.V.
+   Copyright (C) 2007-2012 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -69,6 +69,7 @@ static bRC startRestoreFile(bpContext *ctx, const char *cmd);
 static bRC endRestoreFile(bpContext *ctx);
 static bRC createFile(bpContext *ctx, struct restore_pkt *rp);
 static bRC setFileAttributes(bpContext *ctx, struct restore_pkt *rp);
+static bRC checkFile(bpContext *ctx, char *fname);
 
 /* Pointers to Bacula functions */
 static bFuncs *bfuncs = NULL;
@@ -83,7 +84,7 @@ static pInfo pluginInfo = {
    PLUGIN_AUTHOR,
    PLUGIN_DATE,
    PLUGIN_VERSION,
-   PLUGIN_DESCRIPTION,
+   PLUGIN_DESCRIPTION
 };
 
 /* Plugin entry points for Bacula */
@@ -103,7 +104,8 @@ static pFuncs pluginFuncs = {
    endRestoreFile,
    pluginIO,
    createFile,
-   setFileAttributes
+   setFileAttributes,
+   checkFile
 };
 
 static struct ini_items test_items[] = {
@@ -257,6 +259,7 @@ static bRC handlePluginEvent(bpContext *ctx, bEvent *event, void *value)
    case bEventStartBackupJob:
       break;
    case bEventRestoreObject:
+   {
       printf("Plugin RestoreObject\n");
       if (!value) {
          bfuncs->DebugMessage(ctx, fi, li, dbglvl, "test-plugin-fd: End restore objects\n");
@@ -264,13 +267,27 @@ static bRC handlePluginEvent(bpContext *ctx, bEvent *event, void *value)
       }
       rop = (restore_object_pkt *)value;
       bfuncs->DebugMessage(ctx, fi, li, dbglvl, 
-                           "Get RestoreObject len=%d JobId=%d oname=%s type=%d data=%s\n",
+                           "Get RestoreObject len=%d JobId=%d oname=%s type=%d data=%.127s\n",
                            rop->object_len, rop->JobId, rop->object_name, rop->object_type,
                            rop->object);
+      FILE *fp;
+      POOLMEM *q;
+      char *working;
+      static int _nb=0;
+      q = get_pool_memory(PM_FNAME);
+
+      bfuncs->getBaculaValue(ctx, bVarWorkingDir, &working);
+      Mmsg(q, "%s/restore.%d", working, _nb++);
+      if ((fp = fopen(q, "w")) != NULL) {
+         fwrite(rop->object, rop->object_len, 1, fp);
+         fclose(fp);
+      }
+
+      free_pool_memory(q);
 
       if (!strcmp(rop->object_name, INI_RESTORE_OBJECT_NAME)) {
          ConfigFile ini;
-         if (ini.dump_string(rop->object, rop->object_len)) {
+         if (!ini.dump_string(rop->object, rop->object_len)) {
             break;
          }
          ini.register_items(test_items, sizeof(struct ini_items));
@@ -283,12 +300,14 @@ static bRC handlePluginEvent(bpContext *ctx, bEvent *event, void *value)
       }
 
       break;
+   }
    /* Plugin command e.g. plugin = <plugin-name>:<name-space>:read command:write command */
    case bEventRestoreCommand:
       /* Fall-through wanted */
    case bEventEstimateCommand:
       /* Fall-through wanted */
    case bEventBackupCommand:
+   {
       char *p;
       bfuncs->DebugMessage(ctx, fi, li, dbglvl, "test-plugin-fd: pluginEvent cmd=%s\n", (char *)value);
       p_ctx->cmd = strdup((char *)value);
@@ -316,10 +335,15 @@ static bRC handlePluginEvent(bpContext *ctx, bEvent *event, void *value)
       printf("test-plugin-fd: plugin=%s fname=%s reader=%s writer=%s\n", 
           p_ctx->cmd, p_ctx->fname, p_ctx->reader, p_ctx->writer);
       break;
+   }
    case bEventPluginCommand:
       break;
    case bEventVssBeforeCloseRestore:
       break;
+   case bEventComponentInfo:
+      printf("plugin: Component=%s\n", NPRT((char *)value));
+      break;
+
    default:
       printf("test-plugin-fd: unknown event=%d\n", event->eventType);
       break;
@@ -338,14 +362,230 @@ static bRC startBackupFile(bpContext *ctx, struct save_pkt *sp)
    }
 
    if (p_ctx->nb_obj == 0) {
+      sp->fname = (char *)"takeme.h";
+      bfuncs->DebugMessage(ctx, fi, li, dbglvl, "AcceptFile=%s = %d\n", 
+                           sp->fname, bfuncs->AcceptFile(ctx, sp));
+
+      sp->fname = (char *)"/path/to/excludeme.o";
+      bfuncs->DebugMessage(ctx, fi, li, dbglvl, "AcceptFile=%s = %d\n", 
+                           sp->fname, bfuncs->AcceptFile(ctx, sp));
+
+      sp->fname = (char *)"/path/to/excludeme.c";
+      bfuncs->DebugMessage(ctx, fi, li, dbglvl, "AcceptFile=%s = %d\n", 
+                           sp->fname, bfuncs->AcceptFile(ctx, sp));
+   }
+
+   if (p_ctx->nb_obj == 0) {
       sp->object_name = (char *)"james.xml";
       sp->object = (char *)"This is test data for the restore object. "
   "garbage=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
   "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-  "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa."
+  "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+  "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+  "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+  "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+  "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+  "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+  "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+  "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+  "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+  "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+  "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+  "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+  "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+  "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+  "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+  "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+  "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+  "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+  "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+  "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+  "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+  "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+  "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+  "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+  "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+  "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+  "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+  "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+  "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+  "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+  "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+  "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+  "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+  "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+  "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+  "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+  "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+  "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+  "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+  "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+  "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+  "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+  "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+  "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+  "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+  "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+  "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+  "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+  "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
   "\0secret";
       sp->object_len = strlen(sp->object)+1+6+1; /* str + 0 + secret + 0 */
       sp->type = FT_RESTORE_FIRST;
+
+      static int _nb=0;
+      POOLMEM *q = get_pool_memory(PM_FNAME);
+      char *working;
+      FILE *fp;
+
+      bfuncs->getBaculaValue(ctx, bVarWorkingDir, &working);
+      Mmsg(q, "%s/torestore.%d", working, _nb++);
+      if ((fp = fopen(q, "w")) != NULL) {
+         fwrite(sp->object, sp->object_len, 1, fp);
+         fclose(fp);
+      }
+      free_pool_memory(q);
    
    } else if (p_ctx->nb_obj == 1) {
       ConfigFile ini;
@@ -370,7 +610,7 @@ static bRC startBackupFile(bpContext *ctx, struct save_pkt *sp)
    sp->statp.st_blksize = 4096;
    sp->statp.st_blocks = 1;
    bfuncs->DebugMessage(ctx, fi, li, dbglvl,
-                        "Creating RestoreObject len=%d oname=%s data=%s\n", 
+                        "Creating RestoreObject len=%d oname=%s data=%.127s\n", 
                         sp->object_len, sp->object_name, sp->object);
 
    printf("test-plugin-fd: startBackupFile\n");
@@ -457,6 +697,11 @@ static bRC setFileAttributes(bpContext *ctx, struct restore_pkt *rp)
    return bRC_OK;
 }
 
+/* When using Incremental dump, all previous dumps are necessary */
+static bRC checkFile(bpContext *ctx, char *fname)
+{
+   return bRC_OK;
+}
 
 #ifdef __cplusplus
 }

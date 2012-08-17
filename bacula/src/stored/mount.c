@@ -243,7 +243,7 @@ read_volume:
     * Check that volcatinfo is good   
     */
    if (!dev->haveVolCatInfo()) {
-      Dmsg0(100, "Do not have volcatinfo\n");
+      Dmsg0(210, "Do not have volcatinfo\n");
       if (!find_a_volume()) {
          goto mount_next_vol;
       }
@@ -579,7 +579,11 @@ void DCR::do_swapping(bool is_writing)
          Dmsg2(100, "Vol=%s on dev=%s\n", dev->swap_dev->vol->vol_name,
               dev->swap_dev->print_name());
       }
+      Dmsg2(100, "Set swap_dev=NULL for dev=%s swap_dev=%s\n",
+         dev->print_name(), dev->swap_dev->print_name());
       dev->swap_dev = NULL;
+   } else {
+      Dmsg0(100, "No swap_dev set\n");
    }
 }
 

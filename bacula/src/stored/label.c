@@ -215,7 +215,7 @@ int read_dev_volume_label(DCR *dcr)
    }
 
 
-   if (debug_level >= 10) {
+   if (debug_level >= 200) {
       dump_volume_label(dev);
    }
    Dmsg0(130, "Leave read_volume_label() VOL_OK\n");

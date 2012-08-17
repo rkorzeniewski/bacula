@@ -50,7 +50,6 @@ int32_t path_max;              /* path name max length */
 #define bmalloc(x) sm_malloc(__FILE__, __LINE__, x)
 #endif
 static int our_callback(JCR *jcr, FF_PKT *ff, bool top_level);
-static bool accept_file(FF_PKT *ff);
 
 static const int fnmode = 0;
 
@@ -187,9 +186,12 @@ find_files(JCR *jcr, FF_PKT *ff, int file_save(JCR *jcr, FF_PKT *ff_pkt, bool to
          findINCEXE *incexe = (findINCEXE *)fileset->include_list.get(i);
          fileset->incexe = incexe;
 
+         /* Here, we reset some values between two different Include{} */
          strcpy(ff->VerifyOpts, "V");
          strcpy(ff->AccurateOpts, "Cmcs");  /* mtime+ctime+size by default */
          strcpy(ff->BaseJobOpts, "Jspug5"); /* size+perm+user+group+chk  */
+         ff->plugin = NULL;
+         ff->opt_plugin = false;
 
          /*
           * By setting all options, we in effect OR the global options
@@ -203,8 +205,10 @@ find_files(JCR *jcr, FF_PKT *ff, int file_save(JCR *jcr, FF_PKT *ff_pkt, bool to
             ff->strip_path = fo->strip_path;
             ff->fstypes = fo->fstype;
             ff->drivetypes = fo->drivetype;
-            ff->plugin = fo->plugin; /* TODO: generate a plugin event ? */
-            ff->opt_plugin = (ff->plugin != NULL)? true : false;
+            if (fo->plugin != NULL) {
+               ff->plugin = fo->plugin; /* TODO: generate a plugin event ? */
+               ff->opt_plugin = true;
+            }
             bstrncat(ff->VerifyOpts, fo->VerifyOpts, sizeof(ff->VerifyOpts)); /* TODO: Concat or replace? */
             if (fo->AccurateOpts[0]) {
                bstrncpy(ff->AccurateOpts, fo->AccurateOpts, sizeof(ff->AccurateOpts));
@@ -285,7 +289,7 @@ bool is_in_fileset(FF_PKT *ff)
 }
 
 
-static bool accept_file(FF_PKT *ff)
+bool accept_file(FF_PKT *ff)
 {
    int i, j, k;
    int fnm_flags;

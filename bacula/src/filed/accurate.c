@@ -265,6 +265,10 @@ bool accurate_check_file(JCR *jcr, FF_PKT *ff_pkt)
       return true;
    }
 
+   if (!jcr->file_list) {
+      return true;              /* Not initialized properly */
+   }
+
    strip_path(ff_pkt);
  
    if (S_ISDIR(ff_pkt->statp.st_mode)) {

@@ -69,6 +69,7 @@ bxattr_exit_code parse_xattr_streams(JCR *jcr, int stream, char *content, uint32
 /* from job.c */
 findINCEXE *new_exclude(JCR *jcr);
 findINCEXE *new_preinclude(JCR *jcr);
+findINCEXE *get_incexe(JCR *jcr);
 void set_incexe(JCR *jcr, findINCEXE *incexe);
 void new_options(JCR *jcr, findINCEXE *incexe);
 void add_file_to_fileset(JCR *jcr, const char *fname, bool is_file); 

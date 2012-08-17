@@ -748,8 +748,9 @@ static bool terminate_writing_volume(DCR *dcr)
    if (!dir_create_jobmedia_record(dcr)) {
       Dmsg0(50, "Error from create JobMedia\n");
       dev->dev_errno = EIO;
-       Jmsg2(dcr->jcr, M_FATAL, 0, _("Could not create JobMedia record for Volume=\"%s\" Job=%s\n"),
+        Mmsg2(dev->errmsg, _("Could not create JobMedia record for Volume=\"%s\" Job=%s\n"),
             dcr->getVolCatName(), dcr->jcr->Job);
+       Jmsg(dcr->jcr, M_FATAL, 0, "%s", dev->errmsg);
        ok = false;
    }
    dcr->block->write_failed = true;
@@ -779,6 +780,7 @@ static bool terminate_writing_volume(DCR *dcr)
    }
    
    if (!dir_update_volume_info(dcr, false, true)) {
+      Mmsg(dev->errmsg, _("Error sending Volume info to Director.\n"));
       ok = false;
       Dmsg0(50, "Error updating volume info.\n");
    }
@@ -994,8 +996,9 @@ reread:
         dev->part <= dev->num_dvd_parts) {
       Dmsg0(400, "Call dvd_open_next_part\n");
       if (dvd_open_next_part(dcr) < 0) {
-         Jmsg3(dcr->jcr, M_FATAL, 0, _("Unable to open device part=%d %s: ERR=%s\n"),
+         Mmsg3(dev->errmsg, _("Unable to open device part=%d %s: ERR=%s\n"),
                dev->part, dev->print_name(), dev->bstrerror());
+         Jmsg(dcr->jcr, M_FATAL, 0, "%s", dev->errmsg);
          dev->dev_errno = EIO;
          return false;
       }
@@ -1090,7 +1093,8 @@ reread:
       if (dev->is_tape()) {
          Dmsg0(250, "BSR for reread; block too big for buffer.\n");
          if (!dev->bsr(1)) {
-            Jmsg(jcr, M_ERROR, 0, "%s", dev->bstrerror());
+            Mmsg(dev->errmsg, "%s", dev->bstrerror());
+            Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
             block->read_len = 0;
             return false;
          }

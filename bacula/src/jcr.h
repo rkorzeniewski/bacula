@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2011 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2012 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -239,7 +239,9 @@ public:
    uint32_t JobFiles;                 /* Number of files written, this job */
    uint32_t JobErrors;                /* Number of non-fatal errors this job */
    uint32_t JobWarnings;              /* Number of warning messages */
+   uint32_t LastRate;                 /* Last sample bytes/sec */
    uint64_t JobBytes;                 /* Number of bytes processed this job */
+   uint64_t LastJobBytes;             /* Last sample number bytes */
    uint64_t ReadBytes;                /* Bytes read -- before compression */
    FileId_t FileId;                   /* Last FileId used */
    volatile int32_t JobStatus;        /* ready, running, blocked, terminated */
@@ -247,6 +249,7 @@ public:
    time_t sched_time;                 /* job schedule time, i.e. when it should start */
    time_t start_time;                 /* when job actually started */
    time_t run_time;                   /* used for computing speed */
+   time_t last_time;                  /* Last sample time */
    time_t end_time;                   /* job end time */
    time_t wait_time_sum;              /* cumulative wait time since job start */
    time_t wait_time;                  /* timestamp when job have started to wait */
@@ -328,6 +331,8 @@ public:
    uint32_t FileIndex;                /* Last FileIndex processed */
    utime_t MaxRunSchedTime;           /* max run time in seconds from Scheduled time*/
    POOLMEM *fname;                    /* name to put into catalog */
+   POOLMEM *component_fname;          /* Component info file name */
+   FILE *component_fd;                /* Component info file desc */
    JOB_DBR jr;                        /* Job DB record for current job */
    JOB_DBR previous_jr;               /* previous job database record */
    JOB *previous_job;                 /* Job resource of migration previous job */
@@ -398,6 +403,7 @@ public:
    FF_PKT *ff;                        /* Find Files packet */
    char stored_addr[MAX_NAME_LENGTH]; /* storage daemon address */
    char PrevJob[MAX_NAME_LENGTH];     /* Previous job name assiciated with since time */
+   uint32_t ExpectedFiles;            /* Expected restore files */
    uint32_t StartFile;
    uint32_t EndFile;
    uint32_t StartBlock;
@@ -410,7 +416,7 @@ public:
    CRYPTO_CTX crypto;                 /* Crypto ctx */
    DIRRES* director;                  /* Director resource */
    bool VSS;                          /* VSS used by FD */
-   bool got_metadata;                 /* set when found job_metadata */
+   bool got_metadata;                 /* set when found job_metatdata */
    bool multi_restore;                /* Dir can do multiple storage restore */
    htable *file_list;                 /* Previous file list (accurate mode) */
    uint64_t base_size;                /* compute space saved with base job */

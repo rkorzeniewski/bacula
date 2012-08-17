@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2007-2010 Free Software Foundation Europe e.V.
+   Copyright (C) 2007-2012 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -66,6 +66,7 @@ static bRC startRestoreFile(bpContext *ctx, const char *cmd);
 static bRC endRestoreFile(bpContext *ctx);
 static bRC createFile(bpContext *ctx, struct restore_pkt *rp);
 static bRC setFileAttributes(bpContext *ctx, struct restore_pkt *rp);
+static bRC checkFile(bpContext *ctx, char *fname);
 
 static char *apply_rp_codes(struct plugin_ctx * p_ctx);
 
@@ -82,7 +83,7 @@ static pInfo pluginInfo = {
    PLUGIN_AUTHOR,
    PLUGIN_DATE,
    PLUGIN_VERSION,
-   PLUGIN_DESCRIPTION,
+   PLUGIN_DESCRIPTION
 };
 
 /* Plugin entry points for Bacula */
@@ -102,7 +103,8 @@ static pFuncs pluginFuncs = {
    endRestoreFile,
    pluginIO,
    createFile,
-   setFileAttributes
+   setFileAttributes,
+   checkFile
 };
 
 /*
@@ -475,6 +477,12 @@ static bRC setFileAttributes(bpContext *ctx, struct restore_pkt *rp)
    return bRC_OK;
 }
 
+/* When using Incremental dump, all previous dumps are necessary */
+static bRC checkFile(bpContext *ctx, char *fname)
+{
+   return bRC_OK;
+}
+
 /*************************************************************************
  * Apply codes in writer command:
  * %w -> "where"
@@ -562,7 +570,6 @@ static char *apply_rp_codes(struct plugin_ctx * p_ctx)
    }
    return omsg;
 }
-
 
 #ifdef __cplusplus
 }
