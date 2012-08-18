@@ -35,7 +35,7 @@
 #include "stored.h"
 #include "sd_plugins.h"
 
-const int dbglvl = 150;
+const int dbglvl = 250;
 const char *plugin_type = "-sd.so";
 
 

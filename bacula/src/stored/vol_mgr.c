@@ -430,9 +430,9 @@ VOLRES *reserve_volume(DCR *dcr, const char *VolumeName)
             free_volume(dev);            /* free any volume attached to our drive */
             Dmsg1(50, "set_unload dev=%s\n", dev->print_name());
             dev->set_unload();           /* Unload any volume that is on our drive */
-            dcr->dev = vol->dev;         /* temp point to other dev */
+            dcr->set_dev(vol->dev);      /* temp point to other dev */
             slot = get_autochanger_loaded_slot(dcr);  /* get slot on other drive */
-            dcr->dev = dev;              /* restore dev */
+            dcr->set_dev(dev);           /* restore dev */
             vol->set_slot(slot);         /* save slot */
             vol->dev->set_unload();      /* unload the other drive */
             vol->set_swapping();         /* swap from other drive */
@@ -475,36 +475,6 @@ get_out:
    unlock_volumes();
    return vol;
 }
-
-/* 
- * Switch from current device to given device  
- *   (not yet used) 
- */
-#ifdef xxx
-void switch_device(DCR *dcr, DEVICE *dev)
-{
-   DCR save_dcr;
-
-   dev->dlock();
-   memcpy(&save_dcr, dcr, sizeof(save_dcr));
-   clean_device(dcr);                  /* clean up the dcr */
-
-   dcr->dev = dev;                     /* get new device pointer */
-   Jmsg(dcr->jcr, M_INFO, 0, _("Device switch. New device %s chosen.\n"),
-      dcr->dev->print_name());
-
-   bstrncpy(dcr->VolumeName, save_dcr.VolumeName, sizeof(dcr->VolumeName));
-   bstrncpy(dcr->media_type, save_dcr.media_type, sizeof(dcr->media_type));
-   dcr->VolCatInfo.Slot = save_dcr.VolCatInfo.Slot;
-   bstrncpy(dcr->pool_name, save_dcr.pool_name, sizeof(dcr->pool_name));
-   bstrncpy(dcr->pool_type, save_dcr.pool_type, sizeof(dcr->pool_type));
-   bstrncpy(dcr->dev_name, dev->dev_name, sizeof(dcr->dev_name));
-
-// dcr->set_reserved();
-
-   dev->dunlock();
-}
-#endif
 
 /*
  * Search for a Volume name in the Volume list.

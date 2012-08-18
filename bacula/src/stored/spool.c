@@ -365,7 +365,7 @@ static bool despool_data(DCR *dcr, bool commit)
    free_pool_memory(rdev->errmsg);
    /* Be careful to NULL the jcr and free rdev after free_dcr() */
    rdcr->jcr = NULL;
-   rdcr->dev = NULL;
+   rdcr->set_dev(NULL);
    free_dcr(rdcr);
    free(rdev);
    dcr->spooling = true;           /* turn on spooling again */

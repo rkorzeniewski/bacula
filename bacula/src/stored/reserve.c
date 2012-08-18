@@ -58,7 +58,8 @@ static char use_device[]  = "use device=%127s\n";
 
 /* Responses sent to Director daemon */
 static char OK_device[] = "3000 OK use device device=%s\n";
-static char NO_device[] = "3924 Device \"%s\" not in SD Device resources.\n";
+static char NO_device[] = "3924 Device \"%s\" not in SD Device"
+   " resources or no matching Media Type.\n";
 static char BAD_use[]   = "3913 Bad use command: %s\n";
 
 bool use_cmd(JCR *jcr) 
@@ -157,11 +158,11 @@ void DCR::unreserve_device()
          dev->num_writers = 0;
       }
       if (dev->num_reserved() == 0 && dev->num_writers == 0) {
+         generate_plugin_event(jcr, bsdEventDeviceClose, this);
          volume_unused(this);
       }
    }
    unlock_volumes();
-   generate_plugin_event(jcr, bsdEventDeviceClose, this);
    dev->dunlock();
 }
 

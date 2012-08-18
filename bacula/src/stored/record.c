@@ -400,6 +400,27 @@ static bool write_data_to_block(DEV_BLOCK *block, DEV_RECORD *rec)
    }
    return true;
 }
+
+/*
+ * Write a Record to the block
+ *
+ *  Returns: false means the block could not be written to tape/disk.
+ *           true  on success (all bytes written to the block).
+ */
+bool DCR::write_record(DEV_RECORD *rec)
+{
+   while (!write_record_to_block(this, rec)) {
+      Dmsg2(850, "!write_record_to_block data_len=%d rem=%d\n", rec->data_len,
+                 rec->remainder);
+      if (!write_block_to_device()) {
+         Dmsg2(90, "Got write_block_to_dev error on device %s. %s\n",
+            dev->print_name(), dev->bstrerror());
+         return false;
+      }
+   }
+   return true;
+}
+
 /*
  * Write a Record to the block
  *

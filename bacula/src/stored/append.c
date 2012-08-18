@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2011 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2012 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -89,8 +89,7 @@ bool do_append_data(JCR *jcr)
       return false;
    }
 
-   jcr->setJobStatus(JS_Running);
-   dir_send_job_status(jcr);
+   jcr->sendJobStatus(JS_Running);
 
    if (dev->VolCatInfo.VolCatName[0] == 0) {
       Pmsg0(000, _("NULL Volume name. This shouldn't happen!!!\n"));
@@ -214,18 +213,10 @@ fi_checked:
             stream_to_ascii(buf1, rec.Stream,rec.FileIndex),
             rec.data_len);
 
-         while (!write_record_to_block(dcr, &rec)) {
-            Dmsg2(850, "!write_record_to_block data_len=%d rem=%d\n", rec.data_len,
-                       rec.remainder);
-            if (!dcr->write_block_to_device()) {
-               Dmsg2(90, "Got write_block_to_dev error on device %s. %s\n",
-                  dev->print_name(), dev->bstrerror());
-               ok = false;
-               break;
-            }
-         }
+         ok = dcr->write_record(&rec);
          if (!ok) {
-            Dmsg0(400, "Not OK\n");
+            Dmsg2(90, "Got write_block_to_dev error on device %s. %s\n",
+                  dcr->dev->print_name(), dcr->dev->bstrerror());
             break;
          }
          jcr->JobBytes += rec.data_len;   /* increment bytes this job */
@@ -261,21 +252,6 @@ fi_checked:
       fd->fsend("3999 Failed append\n");
    }
 
-   /*
-    * Don't use time_t for job_elapsed as time_t can be 32 or 64 bits,
-    *   and the subsequent Jmsg() editing will break
-    */
-   int32_t job_elapsed = time(NULL) - jcr->run_time;
-
-   if (job_elapsed <= 0) {
-      job_elapsed = 1;
-   }
-
-   Jmsg(dcr->jcr, M_INFO, 0, _("Job write elapsed time = %02d:%02d:%02d, Transfer rate = %s Bytes/second\n"),
-         job_elapsed / 3600, job_elapsed % 3600 / 60, job_elapsed % 60,
-         edit_uint64_with_suffix(jcr->JobBytes / job_elapsed, ec));
-
-
    Dmsg1(200, "Write EOS label JobStatus=%c\n", jcr->JobStatus);
 
    /*
@@ -308,7 +284,6 @@ fi_checked:
       }
    }
 
-
    if (!ok && !jcr->is_JobStatus(JS_Incomplete)) {
       discard_data_spool(dcr);
    } else {
@@ -319,6 +294,20 @@ fi_checked:
    if (ok) {
       ok = dvd_close_job(dcr);  /* do DVD cleanup if any */
    }
+
+   /*
+    * Don't use time_t for job_elapsed as time_t can be 32 or 64 bits,
+    *   and the subsequent Jmsg() editing will break
+    */
+   int32_t job_elapsed = time(NULL) - jcr->run_time;
+
+   if (job_elapsed <= 0) {
+      job_elapsed = 1;
+   }
+
+   Jmsg(dcr->jcr, M_INFO, 0, _("Elapsed time=%02d:%02d:%02d, Transfer rate=%s Bytes/second\n"),
+         job_elapsed / 3600, job_elapsed % 3600 / 60, job_elapsed % 60,
+         edit_uint64_with_suffix(jcr->JobBytes / job_elapsed, ec));
    
    /*
     * Release the device -- and send final Vol info to DIR
@@ -332,7 +321,7 @@ fi_checked:
       commit_attribute_spool(jcr);
    }
 
-   dir_send_job_status(jcr);          /* update director */
+   jcr->sendJobStatus();          /* update director */
 
    Dmsg1(100, "return from do_append_data() ok=%d\n", ok);
    return ok;

@@ -249,8 +249,10 @@ void *handle_connection_request(void *arg)
    }
 bail_out:
    generate_daemon_event(jcr, "JobEnd");
+   generate_plugin_event(jcr, bsdEventJobEnd);
    dequeue_messages(jcr);             /* send any queued messages */
    bs->signal(BNET_TERMINATE);
+   free_plugins(jcr);                 /* release instantiated plugins */
    free_jcr(jcr);
    return NULL;
 }
@@ -264,7 +266,7 @@ static bool die_cmd(JCR *jcr)
 {
 #ifdef DEVELOPER
    JCR *djcr = NULL;
-   int a, b;
+   int a;
    BSOCK *dir = jcr->dir_bsock;
    pthread_mutex_t m=PTHREAD_MUTEX_INITIALIZER;
 
@@ -276,8 +278,7 @@ static bool die_cmd(JCR *jcr)
    
    Pmsg1(000, "I have been requested to die ... (%s)\n", dir->msg);
    a = djcr->JobId;   /* ref NULL pointer */
-   b = a;             /* Keep compiler quiet */
-   a = b;
+   djcr->JobId = a;
 #endif
    return 0;
 }
@@ -315,43 +316,51 @@ static bool cancel_cmd(JCR *cjcr)
    int oldStatus;
    char Job[MAX_NAME_LENGTH];
    JCR *jcr;
+   int status;
+   const char *reason;
 
    if (sscanf(dir->msg, "cancel Job=%127s", Job) == 1) {
-      if (!(jcr=get_jcr_by_full_name(Job))) {
-         dir->fsend(_("3904 Job %s not found.\n"), Job);
-      } else {
-         oldStatus = jcr->JobStatus;
-         jcr->setJobStatus(JS_Canceled);
-         Dmsg2(800, "Cancel JobId=%d %p\n", jcr->JobId, jcr);
-         if (!jcr->authenticated && oldStatus == JS_WaitFD) {
-            pthread_cond_signal(&jcr->job_start_wait); /* wake waiting thread */
-         }
-         if (jcr->file_bsock) {
-            jcr->file_bsock->set_terminated();
-            jcr->file_bsock->set_timed_out();
-            Dmsg2(800, "Term bsock jid=%d %p\n", jcr->JobId, jcr);
-         } else {
-            /* Still waiting for FD to connect, release it */
-            pthread_cond_signal(&jcr->job_start_wait); /* wake waiting job */
-            Dmsg2(800, "Signal FD connect jid=%d %p\n", jcr->JobId, jcr);
-         }
-         /* If thread waiting on mount, wake him */
-         if (jcr->dcr && jcr->dcr->dev && jcr->dcr->dev->waiting_for_mount()) {
-            pthread_cond_broadcast(&jcr->dcr->dev->wait_next_vol);
-            Dmsg1(100, "JobId=%u broadcast wait_device_release\n", (uint32_t)jcr->JobId);
-            pthread_cond_broadcast(&wait_device_release);
-         }
-         if (jcr->read_dcr && jcr->read_dcr->dev && jcr->read_dcr->dev->waiting_for_mount()) {
-            pthread_cond_broadcast(&jcr->read_dcr->dev->wait_next_vol);
-            Dmsg1(100, "JobId=%u broadcast wait_device_release\n", (uint32_t)jcr->JobId);
-            pthread_cond_broadcast(&wait_device_release);
-         }
-         dir->fsend(_("3000 JobId=%ld Job=\"%s\" marked to be canceled.\n"), jcr->JobId, jcr->Job);
-         free_jcr(jcr);
-      }
+      status = JS_Canceled;
+      reason = "canceled";
    } else {
       dir->fsend(_("3903 Error scanning cancel command.\n"));
+      goto bail_out;
    }
+   if (!(jcr=get_jcr_by_full_name(Job))) {
+      dir->fsend(_("3904 Job %s not found.\n"), Job);
+   } else {
+      oldStatus = jcr->JobStatus;
+      jcr->setJobStatus(status);
+      Dmsg2(800, "Cancel JobId=%d %p\n", jcr->JobId, jcr);
+      if (!jcr->authenticated && oldStatus == JS_WaitFD) {
+         pthread_cond_signal(&jcr->job_start_wait); /* wake waiting thread */
+      }
+      if (jcr->file_bsock) {
+         jcr->file_bsock->set_terminated();
+         jcr->file_bsock->set_timed_out();
+         Dmsg2(800, "Term bsock jid=%d %p\n", jcr->JobId, jcr);
+      } else {
+         /* Still waiting for FD to connect, release it */
+         pthread_cond_signal(&jcr->job_start_wait); /* wake waiting job */
+         Dmsg2(800, "Signal FD connect jid=%d %p\n", jcr->JobId, jcr);
+      }
+      /* If thread waiting on mount, wake him */
+      if (jcr->dcr && jcr->dcr->dev && jcr->dcr->dev->waiting_for_mount()) {
+         pthread_cond_broadcast(&jcr->dcr->dev->wait_next_vol);
+         Dmsg1(100, "JobId=%u broadcast wait_device_release\n", (uint32_t)jcr->JobId);
+         pthread_cond_broadcast(&wait_device_release);
+      }
+      if (jcr->read_dcr && jcr->read_dcr->dev && jcr->read_dcr->dev->waiting_for_mount()) {
+         pthread_cond_broadcast(&jcr->read_dcr->dev->wait_next_vol);
+         Dmsg1(100, "JobId=%u broadcast wait_device_release\n", (uint32_t)jcr->JobId);
+         pthread_cond_broadcast(&wait_device_release);
+      }
+      dir->fsend(_("3000 JobId=%ld Job=\"%s\" marked to be %s.\n"), 
+         jcr->JobId, jcr->Job, reason);
+      free_jcr(jcr);
+   }
+
+bail_out:
    dir->signal(BNET_EOD);
    return 1;
 }
@@ -535,6 +544,9 @@ static void label_volume_if_ok(DCR *dcr, char *oldname,
    }
 
 bail_out:
+   if (dev->is_open() && !dev->has_cap(CAP_ALWAYSOPEN)) {
+      dev->close();
+   }
    if (!dev->is_open()) {
       dev->clear_volhdr();
    }
@@ -767,6 +779,9 @@ static bool mount_cmd(JCR *jcr)
                   dir->fsend(_("3905 Device \"%s\" open but no Bacula volume is mounted.\n"
                                     "If this is not a blank tape, try unmounting and remounting the Volume.\n"),
                              dev->print_name());
+               }
+               if (dev->is_open() && !dev->has_cap(CAP_ALWAYSOPEN)) {
+                  dev->close();
                }
             } else if (dev->is_unmountable()) {
                if (dev->mount(1)) {
@@ -1182,7 +1197,7 @@ static void read_volume_label(JCR *jcr, DCR *dcr, DEVICE *dev, int Slot)
    BSOCK *dir = jcr->dir_bsock;
    bsteal_lock_t hold;
 
-   dcr->dev = dev;
+   dcr->set_dev(dev);
    steal_device_lock(dev, &hold, BST_WRITING_LABEL);
 
    if (!try_autoload_device(jcr, dcr, Slot, "")) {

@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2002-2011 Free Software Foundation Europe e.V.
+   Copyright (C) 2002-2012 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -72,21 +72,6 @@ bool init_autochangers()
                device->hdr.name);
             OK = false;
          }   
-
-#ifdef xxx_needed
-         if (media_type == NULL) {
-            media_type = device->media_type;     /* get Media Type of first device */
-            continue;
-         }     
-         /* Ensure that other devices Media Types are the same */
-         if (strcmp(media_type, device->media_type) != 0) {
-            Jmsg(NULL, M_ERROR, 0, 
-               _("Media Type not the same for all devices in changer %s. Cannot continue.\n"),
-               changer->hdr.name);
-            OK = false;
-            continue;
-         }
-#endif
       }
    }
    return OK;
@@ -264,7 +249,6 @@ int get_autochanger_loaded_slot(DCR *dcr)
       return -1;
    }
    if (!dcr->device->changer_command) {
-//    Jmsg(jcr, M_FATAL, 0, _("3992 Missing Changer command.\n"));
       return -1;
    }
    if (dev->get_slot() > 0) {
@@ -280,7 +264,7 @@ int get_autochanger_loaded_slot(DCR *dcr)
    changer = get_pool_memory(PM_FNAME);
    lock_changer(dcr);
    /* Suppress info when polling */
-   if (!dev->poll) {
+   if (!dev->poll && debug_level >= 1) {
       Jmsg(jcr, M_INFO, 0, _("3301 Issuing autochanger \"loaded? drive %d\" command.\n"),
            drive);
    }
@@ -292,14 +276,14 @@ int get_autochanger_loaded_slot(DCR *dcr)
       loaded = str_to_int32(results.c_str());
       if (loaded > 0) {
          /* Suppress info when polling */
-         if (!dev->poll) {
+         if (!dev->poll && debug_level >= 1) {
             Jmsg(jcr, M_INFO, 0, _("3302 Autochanger \"loaded? drive %d\", result is Slot %d.\n"),
                  drive, loaded);
          }
          dev->set_slot(loaded);
       } else {
          /* Suppress info when polling */
-         if (!dev->poll) {
+         if (!dev->poll && debug_level >= 1) {
             Jmsg(jcr, M_INFO, 0, _("3302 Autochanger \"loaded? drive %d\", result: nothing loaded.\n"),
                  drive);
          }
@@ -454,12 +438,12 @@ static bool unload_other_drive(DCR *dcr, int slot)
          continue;
       }
       dev_save = dcr->dev;
-      dcr->dev = dev;
+      dcr->set_dev(dev);
       if (dev->get_slot() <= 0 && get_autochanger_loaded_slot(dcr) <= 0) {
-         dcr->dev = dev_save;
+         dcr->set_dev(dev_save);
          continue;
       }
-      dcr->dev = dev_save;
+      dcr->set_dev(dev_save);
       if (dev->get_slot() == slot) {
          found = true;
          break;
@@ -514,7 +498,7 @@ bool unload_dev(DCR *dcr, DEVICE *dev)
    }
 
    save_dev = dcr->dev;               /* save dcr device */
-   dcr->dev = dev;                    /* temporarily point dcr at other device */
+   dcr->set_dev(dev);                 /* temporarily point dcr at other device */
 
    /* Update slot if not set or not always_open */
    if (dev->get_slot() <= 0 || !dev->has_cap(CAP_ALWAYSOPEN)) {
@@ -523,7 +507,7 @@ bool unload_dev(DCR *dcr, DEVICE *dev)
 
    /* Fail if we have no slot to unload */
    if (dev->get_slot() <= 0) {
-      dcr->dev = save_dev;
+      dcr->set_dev(save_dev);
       return false;
    }
    
@@ -550,7 +534,7 @@ bool unload_dev(DCR *dcr, DEVICE *dev)
    Dmsg1(100, "Run program=%s\n", changer_cmd);
    int stat = run_program_full_output(changer_cmd, timeout, results.addr());
    dcr->VolCatInfo.Slot = save_slot;
-   dcr->dev = save_dev;
+   dcr->set_dev(save_dev);
    if (stat != 0) {
       berrno be;
       be.set_errno(stat);
@@ -612,6 +596,12 @@ bool autochanger_cmd(DCR *dcr, BSOCK *dir, const char *cmd)
       dir->fsend("drives=%d\n", drives);
       Dmsg1(100, "drives=%d\n", drives);
       return true;
+   }
+
+   /* If listing, reprobe changer */
+   if (bstrcmp(cmd, "list") || bstrcmp(cmd, "listall")) {
+      dcr->dev->set_slot(0);
+      get_autochanger_loaded_slot(dcr);
    }
 
    changer = get_pool_memory(PM_FNAME);

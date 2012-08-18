@@ -548,19 +548,12 @@ public:
    VOLUME_CAT_INFO VolCatInfo;        /* Catalog info for desired volume */
 
    /* Methods */
+   void set_dev(DEVICE *ndev) { dev = ndev; }; 
    bool found_in_use() const { return m_found_in_use; };
    void set_found_in_use() { m_found_in_use = true; };
    void clear_found_in_use() { m_found_in_use = false; };
    bool is_reserved() const { return m_reserved; };
    bool is_dev_locked() { return m_dev_locked; }
-#ifdef SD_DEBUG_LOCK
-   void _dlock(const char *, int);      /* in lock.c */
-   void _dunlock(const char *, int);    /* in lock.c */
-#else
-   void dlock() { dev->dlock(); m_dev_locked = true; }
-   void dunlock() { m_dev_locked = false; dev->dunlock(); }
-#endif
-   void dblock(int why) { dev->dblock(why); }
    void setVolCatInfo(bool valid) { VolCatInfo.is_valid = valid; };
    bool haveVolCatInfo() const { return VolCatInfo.is_valid; };
    void setVolCatName(const char *name) {
@@ -569,6 +562,18 @@ public:
    };
    char *getVolCatName() { return VolCatInfo.VolCatName; };
 
+   /* Methods in lock.c */
+   void dblock(int why) { dev->dblock(why); }
+#ifdef SD_DEBUG_LOCK
+   void _dlock(const char *, int);      /* in lock.c */
+   void _dunlock(const char *, int);    /* in lock.c */
+#else
+   void dlock() { dev->dlock(); m_dev_locked = true; }
+   void dunlock() { m_dev_locked = false; dev->dunlock(); }
+#endif
+
+   /* Methods in record.c */
+   bool write_record(DEV_RECORD *rec);
 
    /* Methods in reserve.c */
    void clear_reserved();

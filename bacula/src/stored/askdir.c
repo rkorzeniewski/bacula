@@ -48,7 +48,6 @@ static char Create_job_media[] = "CatReq Job=%s CreateJobMedia"
    " FirstIndex=%u LastIndex=%u StartFile=%u EndFile=%u"
    " StartBlock=%u EndBlock=%u Copy=%d Strip=%d MediaId=%s\n";
 static char FileAttributes[] = "UpdCat Job=%s FileAttributes ";
-static char Job_status[]     = "Status Job=%s JobStatus=%d\n";
 
 /* Responses received from the Director */
 static char OK_media[] = "1000 OK VolName=%127s VolJobs=%u VolFiles=%lu"
@@ -147,7 +146,7 @@ bool dir_update_changer(JCR *jcr, AUTOCHANGER *changer)
  */
 bool dir_send_job_status(JCR *jcr)
 {
-   return jcr->dir_bsock->fsend(Job_status, jcr->Job, jcr->JobStatus);
+   return jcr->sendJobStatus();
 }
 
 /**
@@ -369,16 +368,18 @@ bool dir_update_volume_info(DCR *dcr, bool label, bool update_LastWritten)
     Dmsg1(100, ">dird %s", dir->msg);
 
    /* Do not lock device here because it may be locked from label */
-   if (!do_get_volume_info(dcr)) {
-      Jmsg(jcr, M_FATAL, 0, "%s", jcr->errmsg);
-      Dmsg2(100, _("Didn't get vol info vol=%s: ERR=%s"), 
-         vol->VolCatName, jcr->errmsg);
-      goto bail_out;
+   if (!jcr->is_canceled()) {
+      if (!do_get_volume_info(dcr)) {
+         Jmsg(jcr, M_FATAL, 0, "%s", jcr->errmsg);
+         Dmsg2(100, _("Didn't get vol info vol=%s: ERR=%s"), 
+            vol->VolCatName, jcr->errmsg);
+         goto bail_out;
+      }
+      Dmsg1(420, "get_volume_info() %s", dir->msg);
+      /* Update dev Volume info in case something changed (e.g. expired) */
+      dev->VolCatInfo = dcr->VolCatInfo;
+      ok = true;
    }
-   Dmsg1(420, "get_volume_info() %s", dir->msg);
-   /* Update dev Volume info in case something changed (e.g. expired) */
-   dev->VolCatInfo = dcr->VolCatInfo;
-   ok = true;
 
 bail_out:
    V(vol_info_mutex);
@@ -541,8 +542,7 @@ bool dir_ask_sysop_to_create_appendable_volume(DCR *dcr)
          }
       }
 
-      jcr->setJobStatus(JS_WaitMedia);
-      dir_send_job_status(jcr);
+      jcr->sendJobStatus(JS_WaitMedia);
 
       stat = wait_for_sysop(dcr);
       Dmsg1(100, "Back from wait_for_sysop stat=%d\n", stat);
@@ -571,8 +571,7 @@ bool dir_ask_sysop_to_create_appendable_volume(DCR *dcr)
    }
 
 get_out:
-   jcr->setJobStatus(JS_Running);
-   dir_send_job_status(jcr);
+   jcr->sendJobStatus(JS_Running);
    Dmsg0(100, "leave dir_ask_sysop_to_mount_create_appendable_volume\n");
    return true;
 }
@@ -642,8 +641,7 @@ bool dir_ask_sysop_to_mount_volume(DCR *dcr, int mode)
                dcr->VolumeName, dev->print_name(), jcr->Job);
       }
 
-      jcr->setJobStatus(JS_WaitMount);
-      dir_send_job_status(jcr);
+      jcr->sendJobStatus(JS_WaitMount);
 
       stat = wait_for_sysop(dcr);          /* wait on device */
       Dmsg1(100, "Back from wait_for_sysop stat=%d\n", stat);
@@ -674,8 +672,7 @@ bool dir_ask_sysop_to_mount_volume(DCR *dcr, int mode)
    }
 
 get_out:
-   jcr->setJobStatus(JS_Running);
-   dir_send_job_status(jcr);
+   jcr->sendJobStatus(JS_Running);
    Dmsg0(400, "leave dir_ask_sysop_to_mount_volume\n");
    return true;
 }
