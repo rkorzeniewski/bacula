@@ -193,7 +193,7 @@ const char *FI_to_ascii(char *buf, int fi);
 const char *stream_to_ascii(char *buf, int stream, int fi);
 bool        write_record_to_block(DCR *dcr, DEV_RECORD *rec);
 bool        can_write_record_to_block(DEV_BLOCK *block, DEV_RECORD *rec);
-bool        read_record_from_block(DCR *dcr, DEV_BLOCK *block, DEV_RECORD *rec);
+bool        read_record_from_block(DCR *dcr, DEV_RECORD *rec);
 DEV_RECORD *new_record();
 void        free_record(DEV_RECORD *rec);
 void        empty_record(DEV_RECORD *rec);

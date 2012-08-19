@@ -546,7 +546,7 @@ uint64_t get_record_address(DEV_RECORD *rec)
  *                 routine may have to be called again with a new
  *                 block if the entire record was not read.
  */
-bool read_record_from_block(DCR *dcr, DEV_BLOCK *block, DEV_RECORD *rec)
+bool read_record_from_block(DCR *dcr, DEV_RECORD *rec)
 {
    ser_declare;
    uint32_t remlen;
@@ -558,45 +558,45 @@ bool read_record_from_block(DCR *dcr, DEV_BLOCK *block, DEV_RECORD *rec)
    uint32_t rhl;
    char buf1[100], buf2[100];
 
-   remlen = block->binbuf;
+   remlen = dcr->block->binbuf;
 
    /* Clear state flags */
    rec->state_bits = 0;
-   if (block->dev->is_tape()) {
+   if (dcr->block->dev->is_tape()) {
       rec->state_bits |= REC_ISTAPE;
    }
-   rec->Block = ((DEVICE *)block->dev)->EndBlock;
-   rec->File = ((DEVICE *)block->dev)->EndFile;
+   rec->Block = ((DEVICE *)(dcr->block->dev))->EndBlock;
+   rec->File = ((DEVICE *)(dcr->block->dev))->EndFile;
 
    /*
     * Get the header. There is always a full header,
     * otherwise we find it in the next block.
     */
-   Dmsg3(450, "Block=%d Ver=%d size=%u\n", block->BlockNumber, block->BlockVer,
-         block->block_len);
-   if (block->BlockVer == 1) {
+   Dmsg3(450, "Block=%d Ver=%d size=%u\n", dcr->block->BlockNumber, dcr->block->BlockVer,
+         dcr->block->block_len);
+   if (dcr->block->BlockVer == 1) {
       rhl = RECHDR1_LENGTH;
    } else {
       rhl = RECHDR2_LENGTH;
    }
    if (remlen >= rhl) {
       Dmsg4(450, "Enter read_record_block: remlen=%d data_len=%d rem=%d blkver=%d\n",
-            remlen, rec->data_len, rec->remainder, block->BlockVer);
+            remlen, rec->data_len, rec->remainder, dcr->block->BlockVer);
 
-      unser_begin(block->bufp, WRITE_RECHDR_LENGTH);
-      if (block->BlockVer == 1) {
+      unser_begin(dcr->block->bufp, WRITE_RECHDR_LENGTH);
+      if (dcr->block->BlockVer == 1) {
          unser_uint32(VolSessionId);
          unser_uint32(VolSessionTime);
       } else {
-         VolSessionId = block->VolSessionId;
-         VolSessionTime = block->VolSessionTime;
+         VolSessionId = dcr->block->VolSessionId;
+         VolSessionTime = dcr->block->VolSessionTime;
       }
       unser_int32(FileIndex);
       unser_int32(Stream);
       unser_uint32(data_bytes);
 
-      block->bufp += rhl;
-      block->binbuf -= rhl;
+      dcr->block->bufp += rhl;
+      dcr->block->binbuf -= rhl;
       remlen -= rhl;
 
       /* If we are looking for more (remainder!=0), we reject anything
@@ -633,10 +633,10 @@ bool read_record_from_block(DCR *dcr, DEV_BLOCK *block, DEV_RECORD *rec)
       rec->VolSessionTime = VolSessionTime;
       rec->FileIndex = FileIndex;
       if (FileIndex > 0) {
-         if (block->FirstIndex == 0) {
-            block->FirstIndex = FileIndex;
+         if (dcr->block->FirstIndex == 0) {
+            dcr->block->FirstIndex = FileIndex;
          }
-         block->LastIndex = FileIndex;
+         dcr->block->LastIndex = FileIndex;
       }
 
       Dmsg6(450, "rd_rec_blk() got FI=%s SessId=%d Strm=%s len=%u\n"
@@ -655,7 +655,7 @@ bool read_record_from_block(DCR *dcr, DEV_BLOCK *block, DEV_RECORD *rec)
        */
       Dmsg0(450, "read_record_block: nothing\n");
       rec->state_bits |= (REC_NO_HEADER | REC_BLOCK_EMPTY);
-      empty_block(block);                      /* mark block empty */
+      empty_block(dcr->block);                 /* mark block empty */
       return false;
    }
 
@@ -666,7 +666,7 @@ bool read_record_from_block(DCR *dcr, DEV_BLOCK *block, DEV_RECORD *rec)
        *   continuing with this block.
        */
       rec->state_bits |= (REC_NO_HEADER | REC_BLOCK_EMPTY);
-      empty_block(block);
+      empty_block(dcr->block);
       Jmsg2(dcr->jcr, M_WARNING, 0, _("Sanity check failed. maxlen=%d datalen=%d. Block discarded.\n"),
          MAX_BLOCK_LENGTH, data_bytes);
       return false;
@@ -684,15 +684,15 @@ bool read_record_from_block(DCR *dcr, DEV_BLOCK *block, DEV_RECORD *rec)
     */
    if (remlen >= data_bytes) {
       /* Got whole record */
-      memcpy(rec->data+rec->data_len, block->bufp, data_bytes);
-      block->bufp += data_bytes;
-      block->binbuf -= data_bytes;
+      memcpy(rec->data+rec->data_len, dcr->block->bufp, data_bytes);
+      dcr->block->bufp += data_bytes;
+      dcr->block->binbuf -= data_bytes;
       rec->data_len += data_bytes;
    } else {
       /* Partial record */
-      memcpy(rec->data+rec->data_len, block->bufp, remlen);
-      block->bufp += remlen;
-      block->binbuf -= remlen;
+      memcpy(rec->data+rec->data_len, dcr->block->bufp, remlen);
+      dcr->block->bufp += remlen;
+      dcr->block->binbuf -= remlen;
       rec->data_len += remlen;
       rec->remainder = 1;             /* partial record transferred */
       Dmsg1(450, "read_record_block: partial xfered=%d\n", rec->data_len);

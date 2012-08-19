@@ -38,6 +38,19 @@
 #include "bacula.h"
 #include "stored.h"
 
+#ifdef DEBUG_BLOCK_CHECKSUM
+static const bool debug_block_checksum = true;
+#else
+static const bool debug_block_checksum = false;
+#endif
+
+#ifdef NO_TAPE_WRITE_TEST
+static const bool no_tape_write_test = true;
+#else
+static const bool no_tape_write_test = false;
+#endif
+
+
 static bool terminate_writing_volume(DCR *dcr);
 static bool do_new_file_bookkeeping(DCR *dcr);
 static bool do_dvd_size_checks(DCR *dcr);
@@ -345,6 +358,7 @@ bool DCR::write_block_to_device()
    DCR *dcr = this;
 
    if (dcr->spooling) {
+      Dmsg0(100, "Write to spool\n");
       stat = write_block_to_spool_file(dcr);
       return stat;
    }
@@ -363,6 +377,7 @@ bool DCR::write_block_to_device()
    if (dcr->NewVol || dcr->NewFile) {
       if (job_canceled(jcr)) {
          stat = false;
+         Dmsg0(100, "Canceled\n");
          goto bail_out;
       }
       /* Create a jobmedia record for this job */
@@ -372,6 +387,7 @@ bool DCR::write_block_to_device()
             dcr->getVolCatName(), jcr->Job);
          set_new_volume_parameters(dcr);
          stat = false;
+         Dmsg0(100, "cannot create media record\n");
          goto bail_out;
       }
       if (dcr->NewVol) {
@@ -411,11 +427,12 @@ bool DCR::write_block_to_dev()
    int hit_max1, hit_max2;
    bool ok = true;
    DCR *dcr = this;
+   uint32_t checksum;
 
-#ifdef NO_TAPE_WRITE_TEST
-   empty_block(block);
-   return true;
-#endif
+   if (no_tape_write_test) {
+      empty_block(block);
+      return true;
+   }
    if (job_canceled(jcr)) {
       return false;
    }
@@ -433,18 +450,22 @@ bool DCR::write_block_to_dev()
       Dmsg0(100, "return write_block_to_dev with ST_WEOT\n");
       dev->dev_errno = ENOSPC;
       Jmsg1(jcr, M_FATAL, 0,  _("Cannot write block. Device at EOM. dev=%s\n"), dev->print_name());
+      Dmsg1(100, "Attempt to write on read-only Volume. dev=%s\n", dev->print_name());
       return false;
    }
    if (!dev->can_append()) {
       dev->dev_errno = EIO;
       Jmsg1(jcr, M_FATAL, 0, _("Attempt to write on read-only Volume. dev=%s\n"), dev->print_name());
+      Dmsg1(100, "Attempt to write on read-only Volume. dev=%s\n", dev->print_name());
+      return false;
+   }
+ 
+   if (!dev->is_open()) {
+      Jmsg1(jcr, M_FATAL, 0, _("Attempt to write on closed device=%s\n"), dev->print_name());
+      Dmsg1(100, "Attempt to write on closed device=%s\n", dev->print_name());
       return false;
    }
 
-   if (!dev->is_open()) {
-      Jmsg1(jcr, M_FATAL, 0, _("Attempt to write on closed device=%s\n"), dev->print_name());
-      return false;
-   }
    /*
     * Clear to the end of the buffer if it is not full,
     *  and on tape devices, apply min and fixed blocking.
@@ -473,12 +494,7 @@ bool DCR::write_block_to_dev()
       }
    }
 
-#ifdef DEBUG_BLOCK_CHECKSUM
-   uint32_t checksum;
    checksum = ser_block_header(block, dev->do_checksum());
-#else
-   ser_block_header(block, dev->do_checksum());
-#endif
 
    /* Limit maximum Volume size to value specified by user */
    hit_max1 = (dev->max_volume_size > 0) &&
@@ -558,14 +574,14 @@ bool DCR::write_block_to_dev()
 
    } while (stat == -1 && (errno == EBUSY || errno == EIO) && retry++ < 3);
 
-#ifdef DEBUG_BLOCK_CHECKSUM
-   uint32_t achecksum = ser_block_header(block, dev->do_checksum());
-   if (checksum != achecksum) {
-      Jmsg2(jcr, M_ERROR, 0, _("Block checksum changed during write: before=%ud after=%ud\n"),
-         checksum, achecksum);
-      dump_block(block, "with checksum error");
+   if (debug_block_checksum) {
+      uint32_t achecksum = ser_block_header(block, dev->do_checksum());
+      if (checksum != achecksum) {
+         Jmsg2(jcr, M_ERROR, 0, _("Block checksum changed during write: before=%ud after=%ud\n"),
+            checksum, achecksum);
+         dump_block(block, "with checksum error");
+      }
    }
-#endif
 
 #ifdef DEBUG_BLOCK_ZEROING
    if (bp[0] == 0 && bp[1] == 0 && bp[2] == 0 && block->buf[12] == 0) {
@@ -1067,6 +1083,7 @@ reread:
       Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
       dev->set_short_block();   
       block->read_len = block->binbuf = 0;
+      Dmsg2(200, "set block=%p binbuf=%d\n", block, block->binbuf);
       return false;             /* return error */
    }
 

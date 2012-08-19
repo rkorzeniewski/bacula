@@ -1756,7 +1756,8 @@ void DEVICE::close()
    case B_VTL_DEV:
    case B_VTAPE_DEV:
    case B_TAPE_DEV:
-      unlock_door(); 
+      unlock_door();
+      /* Fall through wanted */
    default:
       d_close(m_fd);
       break;
