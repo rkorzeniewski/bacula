@@ -29,12 +29,12 @@ dummy:
 
 GETTEXT_LIBS = @LIBINTL@
 
-FINDOBJS = testfind.o ../dird/dird_conf.o ../dird/inc_conf.o ../dird/run_conf.o
+FINDOBJS = testfind.o ../dird/dird_conf.o ../dird/inc_conf.o ../dird/ua_acl.o ../dird/run_conf.o
 
 # these are the objects that are changed by the .configure process
 EXTRAOBJS = @OBJLIST@
 
-DIRCONFOBJS = ../dird/dird_conf.o ../dird/run_conf.o ../dird/inc_conf.o
+DIRCONFOBJS = ../dird/dird_conf.o ../dird/ua_acl.o ../dird/run_conf.o ../dird/inc_conf.o
 
 NODIRTOOLS = bsmtp
 DIRTOOLS = bsmtp dbcheck drivetype fstype testfind testls bregex bwild bbatch bregtest bvfs_test ing_test
@@ -77,6 +77,9 @@ drivetype: Makefile drivetype.o ../lib/libbac$(DEFAULT_ARCHIVE_TYPE) ../findlib/
 	  $(DLIB) $(LIBS) $(GETTEXT_LIBS) $(OPENSSL_LIBS)
 
 dird_conf.o: ../dird/dird_conf.c
+	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) $(PYTHON_INC) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
+
+ua_acl.o: ../dird/ua_acl.c
 	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) $(PYTHON_INC) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
 
 run_conf.o: ../dird/run_conf.c
