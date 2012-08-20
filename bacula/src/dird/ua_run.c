@@ -374,7 +374,7 @@ int modify_job_parameters(UAContext *ua, JCR *jcr, run_ctx &rc)
             goto try_again;
          }
          /* Where */
-         if (!get_cmd(ua, _("Please enter path prefix for restore (/ for none): "))) {
+         if (!get_cmd(ua, _("Please enter the full path prefix for restore (/ for none): "))) {
             break;
          }
          if (jcr->RegexWhere) { /* cannot use regexwhere and where */
@@ -594,7 +594,7 @@ try_again_reg:
    switch (do_prompt(ua, "", _("Select parameter to modify"), NULL, 0)) {
    case 0:
       /* Strip prefix */
-      if (get_cmd(ua, _("Please enter path prefix to strip: "))) {
+      if (get_cmd(ua, _("Please enter the path prefix to strip: "))) {
          if (strip_prefix) bfree(strip_prefix);
          strip_prefix = bstrdup(ua->cmd);
       }
@@ -602,7 +602,7 @@ try_again_reg:
       goto try_again_reg;
    case 1:
       /* Add prefix */
-      if (get_cmd(ua, _("Please enter path prefix to add (/ for none): "))) {
+      if (get_cmd(ua, _("Please enter the path prefix to add (/ for none): "))) {
          if (IsPathSeparator(ua->cmd[0]) && ua->cmd[1] == '\0') {
             ua->cmd[0] = 0;
          }
@@ -613,7 +613,7 @@ try_again_reg:
       goto try_again_reg;
    case 2:
       /* Add suffix */
-      if (get_cmd(ua, _("Please enter file suffix to add: "))) {
+      if (get_cmd(ua, _("Please enter the file suffix to add: "))) {
          if (add_suffix) bfree(add_suffix);
          add_suffix = bstrdup(ua->cmd);
       }      
