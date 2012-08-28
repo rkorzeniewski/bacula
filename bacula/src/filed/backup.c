@@ -1440,8 +1440,10 @@ static bool do_strip(int count, char *in)
    while (*in && !IsPathSeparator(*in)) {    
       out++; in++;
    }
-   out++; in++;
-   numsep++;                     /* one separator seen */
+   if (*in) {                    /* Not at the end of the string */
+      out++; in++;
+      numsep++;                  /* one separator seen */
+   }
    for (stripped=0; stripped<count && *in; stripped++) {
       while (*in && !IsPathSeparator(*in)) {
          in++;                   /* skip chars */
