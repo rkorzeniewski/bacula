@@ -1352,7 +1352,7 @@ bool encode_and_send_attributes(JCR *jcr, FF_PKT *ff_pkt, int &data_stream)
     * For a directory, link is the same as fname, but with trailing
     * slash. For a linked file, link is the link.
     */
-   if (ff_pkt->type != FT_DELETED) { /* already stripped */
+   if (!IS_FT_OBJECT(ff_pkt->type) && ff_pkt->type != FT_DELETED) { /* already stripped */
       strip_path(ff_pkt);
    }
    switch (ff_pkt->type) {
@@ -1414,7 +1414,8 @@ bool encode_and_send_attributes(JCR *jcr, FF_PKT *ff_pkt, int &data_stream)
                        attribsEx, 0, ff_pkt->delta_seq, 0);
       break;
    }
-   if (ff_pkt->type != FT_DELETED) {
+
+   if (!IS_FT_OBJECT(ff_pkt->type) && ff_pkt->type != FT_DELETED) {
       unstrip_path(ff_pkt);
    }
 
