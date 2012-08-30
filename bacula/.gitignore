@@ -541,6 +541,7 @@ src/tools/bregtest
 src/tools/grow
 src/tools/.libs
 src/tools/bvfs_test
+src/tools/bpluginfo
 
 # src/tray-monitor/
 src/tray-monitor/tray-monitor.conf
