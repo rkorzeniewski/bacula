@@ -523,6 +523,8 @@ static bool dot_bvfs_versions(UAContext *ua, const char *cmd)
  *  -> returns needed jobids to restore
  * .bvfs_get_jobids jobid=1 all
  *  -> returns needed jobids to restore with all filesets a JobId=1 time
+ * .bvfs_get_jobids ujobid=JobName
+ *  -> returns needed jobids to restore
  */
 static bool dot_bvfs_get_jobids(UAContext *ua, const char *cmd)
 {
@@ -538,6 +540,11 @@ static bool dot_bvfs_get_jobids(UAContext *ua, const char *cmd)
    }
 
    memset(&jr, 0, sizeof(JOB_DBR));
+
+   if ((pos = find_arg_with_value(ua, "ujobid")) >= 0) {
+      bstrncpy(jr.Job, ua->argv[pos], sizeof(jr.Job));
+   }
+
    if ((pos = find_arg_with_value(ua, "jobid")) >= 0) {
       jr.JobId = str_to_int64(ua->argv[pos]);
    }
