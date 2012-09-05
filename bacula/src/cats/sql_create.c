@@ -655,9 +655,9 @@ int db_create_counter_record(JCR *jcr, B_DB *mdb, COUNTER_DBR *cr)
       return 1;
    }
    mdb->db_escape_string(jcr, esc, cr->Counter, strlen(cr->Counter));
+
    /* Must create it */
-   Mmsg(mdb->cmd, "INSERT INTO Counters (Counter,Counters.MinValue,Counters.MaxValue,CurrentValue,"
-      "WrapCounter) VALUES ('%s','%d','%d','%d','%s')",
+   Mmsg(mdb->cmd, insert_counter_values[db_get_type_index(mdb)],
         esc, cr->MinValue, cr->MaxValue, cr->CurrentValue,
         cr->WrapCounter);
 
@@ -672,7 +672,6 @@ int db_create_counter_record(JCR *jcr, B_DB *mdb, COUNTER_DBR *cr)
    db_unlock(mdb);
    return stat;
 }
-
 
 /**
  * Create a FileSet record. This record is unique in the

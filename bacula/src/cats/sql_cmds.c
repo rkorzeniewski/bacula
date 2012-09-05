@@ -1016,6 +1016,27 @@ const char *match_query[] = {
    "~"
 };
 
+static const char *insert_counter_values_default =
+   "INSERT INTO Counters (Counter, MinValue, "
+   "MaxValue, CurrentValue, WrapCounter) "
+   "VALUES ('%s','%d','%d','%d','%s')";
+
+const char *insert_counter_values[] = {
+   /* Mysql */
+   "INSERT INTO Counters (Counter, Counters.MinValue, "
+   "Counters.MaxValue, CurrentValue, WrapCounter) "
+   "VALUES ('%s','%d','%d','%d','%s')",
+
+   /* Postgresql */
+   insert_counter_values_default,
+
+   /* SQLite3 */
+   insert_counter_values_default,
+
+   /* Ingres */
+   insert_counter_values_default
+};
+
 static const char *select_counter_values_default =
    "SELECT MinValue, MaxValue, CurrentValue, WrapCounter "
    "FROM Counters WHERE Counter='%s'";
