@@ -8,7 +8,7 @@
 .SH NAME
  dbcheck \- Bacula's Catalog Database Check/Clean program
 .SH SYNOPSIS
-.B bcopy 
+.B dbcheck
 .RI [ options ]
 .I working-directory
 .I bacula-database
@@ -19,46 +19,57 @@
 .br
 .SH DESCRIPTION
 This manual page documents briefly the
-.B dbcheck 
+.B dbcheck
 command.
 .PP
 dbcheck will not repair your database if it is broken. Please see your
 vendor's instructions for fixing broken database.
 
 dbcheck is a simple program that will search for logical
-inconsistencies in the Bacula tables in your database, and optionally fix them. 
+inconsistencies in the Bacula tables in your database, and optionally fix them.
 It is a database maintenance routine, in the sense that it can
 detect and remove unused rows, but it is not a database repair
 routine. To repair a database, see the tools furnished by the
 database vendor.  Normally dbcheck should never need to be run,
 but if Bacula has crashed or you have a lot of Clients, Pools, or
-Jobs that you have removed, it could be useful.  
-                             
-It is called: 
-
-Usage: dbcheck [-c config] [-C catalog name] [-d debug_level]     []
-       -b              batch mode
-       -C              catalog name in the director conf file
-       -c              director conf filename
-       -B              print catalog configuration and exit
-       -dnn            set debug level to nn
-       -dt             print timestamp in debug output
-       -f              fix inconsistencies
-       -v              verbose
-       -?              print this message
-
-If the -c option is given with the Director's conf file, there is no
-need to enter any of the command line arguments, in particular the working
-directory as dbcheck will read them from the file. 
-
-If the -f option is specified, dbcheck will repair (fix) the
-inconsistencies it finds. Otherwise, it will report only. 
-
-If the -b option is specified, dbcheck will run in batch mode, and it will
-proceed to examine and fix (if -f is set) all programmed inconsistency
-checks.  If the -b option is not specified, dbcheck will enter interactive
-mode and prompt with the following:
-
+Jobs that you have removed, it could be useful.
+.SH OPTIONS
+A summary of options is included below.
+.TP
+.B \-?
+Show version and usage of program.
+.TP
+.BI \-b
+If specified, dbcheck will run in batch mode, and it will proceed to examine
+and fix (if \-f is set) all programmed inconsistency checks. By default,
+dbcheck will enter interactive mode (see below).
+.TP
+.BI \-C\  catalog
+catalog name in the director conf file.
+.TP
+.BI \-c\  config
+If the \-c option is given with the Director's conf file, there is no need to
+enter any of the command line arguments, in particular the working directory
+as dbcheck will read them from the file.
+.TP
+.BI \-B
+print catalog configuration and exit.
+.TP
+.BI -d\  nn
+set debug level to \fInn\fP.
+.TP
+.BI \-dt
+print timestamp in debug output.
+.TP
+.BI \-f
+If specified, dbcheck will repair (fix) the inconsistencies it finds.
+Otherwise, it will report only.
+.TP
+.BI \-v
+Set verbose mode.
+.SH INTERACTIVE MODE
+In interactive mode dbcheck will prompt with the following:
+.PP
 Hello, this is the database check/correct program.
 Please select the function you want to perform.
      1) Toggle modify database flag
@@ -80,13 +91,13 @@ Please select the function you want to perform.
     17) Quit
 Select function number:
 
-By entering 1 or 2, you can toggle the modify database flag (-f option) and
-the verbose flag (-v).  It can be helpful and reassuring to turn off the
+By entering 1 or 2, you can toggle the modify database flag (\-f option) and
+the verbose flag (\-v).  It can be helpful and reassuring to turn off the
 modify database flag, then select one or more of the consistency checks
 (items 3 through 9) to see what will be done, then toggle the modify flag
 on and re-run the check.
 
-The inconsistencies examined are the following: 
+The inconsistencies examined are the following:
 
 .BR
 Duplicate filename records.  This can happen if you accidentally run two
@@ -168,12 +179,12 @@ Orphaned Job records.  If no client is defined for a job or you do not run
    useless).
 
 .BR
-All Admin records. This command will remove all Admin records, 
-   regardless of their age.  
+All Admin records. This command will remove all Admin records,
+   regardless of their age.
 
 .BR
-All Restore records. This command will remove all Restore records, 
-   regardless of their age. 
+All Restore records. This command will remove all Restore records,
+   regardless of their age.
 
 By the way, I personally run dbcheck only where I have messed up
 my database due to a bug in developing Bacula code, so normally
@@ -187,5 +198,5 @@ waste their time running dbcheck too often.
 .br
 .SH AUTHOR
 This manual page was written by Jose Luis Tallon
-.nh 
+.nh
 <jltallon@adv\-solutions.net>.
