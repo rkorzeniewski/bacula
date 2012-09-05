@@ -76,7 +76,7 @@ wait_for_drive() {
     done
 }
 
-LOCKFILE="${LOCKDIR}/mtx-changer:`echo $ctl | tr / _'"
+LOCKFILE="${LOCKDIR}/mtx-changer:`echo $ctl | tr / _`"
 
 changer_lock() {
 	make_temp_file lock
