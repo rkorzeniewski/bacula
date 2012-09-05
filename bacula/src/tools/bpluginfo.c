@@ -376,7 +376,7 @@ int getplugintype(progdata * pdata)
       return FDPLUGIN;
    } else
       if (pinfo->psdinfo.plugin_magic &&
-     strcmp(pinfo->psdinfo.plugin_magic, DIR_PLUGIN_MAGIC) == 0) {
+     strcmp(pinfo->psdinfo.plugin_magic, SD_PLUGIN_MAGIC) == 0) {
       return SDPLUGIN;
    } else {
       return ERRORPLUGIN;
