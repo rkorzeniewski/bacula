@@ -10,9 +10,7 @@ bindir=@MYSQL_BINDIR@
 PATH="$bindir:$PATH"
 db_name=${db_name:-@db_name@}
 
-if mysql $* -f <<END-OF-DATA
-USE ${db_name};
-
+if mysql -D ${db_name} $* -f <<END-OF-DATA
 -- Fix bad index on Media table
 DROP INDEX inx8 ON Media;
 CREATE UNIQUE INDEX inx8 ON Media (VolumeName(128));

@@ -10,8 +10,7 @@ bindir=@MYSQL_BINDIR@
 PATH="$bindir:$PATH"
 db_name=${db_name:-@db_name@}
 
-if mysql $* -f <<END-OF-DATA
-USE ${db_name};
+if mysql -D ${db_name} $* -f <<END-OF-DATA
 --
 -- Note, we use BLOB rather than TEXT because in MySQL,
 --  BLOBs are identical to TEXT except that BLOB is case

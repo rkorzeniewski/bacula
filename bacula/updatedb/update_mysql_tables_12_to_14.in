@@ -8,9 +8,9 @@ echo " which is needed to convert from Bacula Community version 5.0.x to 5.2.x"
 echo " "
 bindir=@MYSQL_BINDIR@
 PATH="$bindir:$PATH"
-db_name=@db_name@
+db_name=${db_name:-@db_name@}
 
-mysql $* -D ${db_name} -e "select VersionId from Version\G" >/tmp/$$
+mysql -D ${db_name} $* -e "select VersionId from Version\G" >/tmp/$$
 DBVERSION=`sed -n -e 's/^VersionId: \(.*\)$/\1/p' /tmp/$$`
 if [ $DBVERSION != 12 ] ; then
    echo " "
@@ -21,9 +21,7 @@ if [ $DBVERSION != 12 ] ; then
    exit 1
 fi
 
-if mysql $* -f <<END-OF-DATA
-USE ${db_name};
-
+if mysql -D ${db_name} $* -f <<END-OF-DATA
 CREATE TABLE RestoreObject (
    RestoreObjectId INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,
    ObjectName BLOB NOT NULL,
