@@ -1316,7 +1316,7 @@ AC_SUBST(bsrdir)
 dnl ------------------------------------------
 dnl Where to place logdir (bsr files)
 dnl ------------------------------------------
-logdir=/tmp
+logdir=`eval echo ${prefix}/var/bacula/working`
 AC_ARG_WITH(logdir,
    AC_HELP_STRING([--with-logdir=PATH], [specify path of Bacula logs directory]),
    [

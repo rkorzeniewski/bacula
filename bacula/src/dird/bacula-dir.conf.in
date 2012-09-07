@@ -261,7 +261,7 @@ Messages {
 #          time to time as it will grow indefinitely. However, it will
 #          also keep all your messages if they scroll off the console.
 #
-  append = "@working_dir@/log" = all, !skipped
+  append = "@logdir@/bacula.log" = all, !skipped
   catalog = all
 }
 
@@ -273,7 +273,7 @@ Messages {
   mailcommand = "@sbindir@/bsmtp -h @smtp_host@ -f \"\(Bacula\) \<%r\>\" -s \"Bacula daemon message\" %r"
   mail = @job_email@ = all, !skipped            
   console = all, !skipped, !saved
-  append = "@working_dir@/log" = all, !skipped
+  append = "@logdir@/bacula.log" = all, !skipped
 }
 
 # Default pool definition
