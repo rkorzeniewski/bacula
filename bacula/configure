@@ -23540,7 +23540,7 @@ fi
 
 
 
-bsrdir=/tmp
+bsrdir=`eval echo ${prefix}/var/bacula/working`
 
 # Check whether --with-bsrdir was given.
 if test "${with_bsrdir+set}" = set; then :
@@ -29478,7 +29478,7 @@ fi
       AFS_CFLAGS="-I${with_afsdir}/include"
    else
       if test -d ${with_afsdir}/include/openafs/afs/ ; then
-         AFS_CFLAGS="-I${with_afsdir}/include/openafs"
+	 AFS_CFLAGS="-I${with_afsdir}/include/openafs"
       fi
    fi
 
@@ -29502,8 +29502,8 @@ done
    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
-          #include <afs/afsint.h>
-          #include <afs/venus.h>
+	  #include <afs/afsint.h>
+	  #include <afs/venus.h>
 
 _ACEOF
 if ac_fn_c_try_cpp "$LINENO"; then :
@@ -29520,11 +29520,11 @@ rm -f conftest.err conftest.i conftest.$ac_ext
             { $as_echo "$as_me:${as_lineno-$LINENO}: checking for pioctl in AFS libsys" >&5
 $as_echo_n "checking for pioctl in AFS libsys... " >&6; }
    for dir in ${with_afsdir}/lib \
-              ${with_afsdir}/lib/afs \
-              ${with_afsdir}/lib/openafs \
-              ${with_afsdir}/lib64 \
-              ${with_afsdir}/lib64/afs \
-              ${with_afsdir}/lib64/openafs
+	      ${with_afsdir}/lib/afs \
+	      ${with_afsdir}/lib/openafs \
+	      ${with_afsdir}/lib64 \
+	      ${with_afsdir}/lib64/afs \
+	      ${with_afsdir}/lib64/openafs
    do
       for arch_type in .a .so
       do
@@ -29638,15 +29638,15 @@ $as_echo "$ac_cv_lib_acl_acl_get_file" >&6; }
 if test "x$ac_cv_lib_acl_acl_get_file" = xyes; then :
 
 	     have_acl=yes
-             if test $have_afs = yes; then
-                                                                if test -d /usr/lib64/; then
-                   FDLIBS="-L/usr/lib64 -lacl $FDLIBS"
-                else
-                   FDLIBS="-L/usr/lib -lacl $FDLIBS"
-                fi
-             else
-                FDLIBS="-lacl $FDLIBS"
-             fi
+	     if test $have_afs = yes; then
+								if test -d /usr/lib64/; then
+		   FDLIBS="-L/usr/lib64 -lacl $FDLIBS"
+		else
+		   FDLIBS="-L/usr/lib -lacl $FDLIBS"
+		fi
+	     else
+		FDLIBS="-lacl $FDLIBS"
+	     fi
 
 
 fi
