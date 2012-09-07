@@ -1301,7 +1301,7 @@ AC_SUBST(scriptdir)
 dnl ------------------------------------------
 dnl Where to place bsrdir (bsr files)
 dnl ------------------------------------------
-bsrdir=/tmp
+bsrdir=`eval echo ${prefix}/var/bacula/working`
 AC_ARG_WITH(bsrdir,
    AC_HELP_STRING([--with-bsrdir=PATH], [specify path of Bacula bsrs directory]),
    [
@@ -2561,7 +2561,7 @@ if test x$support_afs = xyes -o x$support_afs = xauto; then
       AFS_CFLAGS="-I${with_afsdir}/include"
    else
       if test -d ${with_afsdir}/include/openafs/afs/ ; then
-         AFS_CFLAGS="-I${with_afsdir}/include/openafs"
+	 AFS_CFLAGS="-I${with_afsdir}/include/openafs"
       fi
    fi
 
@@ -2573,8 +2573,8 @@ if test x$support_afs = xyes -o x$support_afs = xauto; then
    AC_CHECK_HEADERS(afs/afsint.h)
    AC_TRY_CPP(
        [
-          #include <afs/afsint.h>
-          #include <afs/venus.h>
+	  #include <afs/afsint.h>
+	  #include <afs/venus.h>
        ],
        AC_DEFINE(HAVE_AFS_VENUS_H,1,[Define to 1 if you have the <afs/venus.h> header file.])
    )
@@ -2587,11 +2587,11 @@ if test x$support_afs = xyes -o x$support_afs = xauto; then
    dnl
    AC_MSG_CHECKING(for pioctl in AFS libsys)
    for dir in ${with_afsdir}/lib \
-              ${with_afsdir}/lib/afs \
-              ${with_afsdir}/lib/openafs \
-              ${with_afsdir}/lib64 \
-              ${with_afsdir}/lib64/afs \
-              ${with_afsdir}/lib64/openafs
+	      ${with_afsdir}/lib/afs \
+	      ${with_afsdir}/lib/openafs \
+	      ${with_afsdir}/lib64 \
+	      ${with_afsdir}/lib64/afs \
+	      ${with_afsdir}/lib64/openafs
    do
       for arch_type in .a .so
       do
@@ -2660,18 +2660,18 @@ if test x$support_acl = xyes -o x$support_acl = xauto; then
       AC_CHECK_LIB(acl, acl_get_file,
 	 [
 	     have_acl=yes
-             if test $have_afs = yes; then
-                dnl
-                dnl Because of possible naming conflict with AFS libacl make sure we use the one in /usr/lib64 or /usr/lib !!!
-                dnl
-                if test -d /usr/lib64/; then
-                   FDLIBS="-L/usr/lib64 -lacl $FDLIBS"
-                else
-                   FDLIBS="-L/usr/lib -lacl $FDLIBS"
-                fi
-             else
-                FDLIBS="-lacl $FDLIBS"
-             fi
+	     if test $have_afs = yes; then
+		dnl
+		dnl Because of possible naming conflict with AFS libacl make sure we use the one in /usr/lib64 or /usr/lib !!!
+		dnl
+		if test -d /usr/lib64/; then
+		   FDLIBS="-L/usr/lib64 -lacl $FDLIBS"
+		else
+		   FDLIBS="-L/usr/lib -lacl $FDLIBS"
+		fi
+	     else
+		FDLIBS="-lacl $FDLIBS"
+	     fi
 	 ]
       )
    fi
