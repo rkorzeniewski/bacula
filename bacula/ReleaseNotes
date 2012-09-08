@@ -1,7 +1,80 @@
 
-               Release Notes for Bacula 5.2.10
+               Release Notes for Bacula 5.2.11
 
   Bacula code: Total files = 1,110 Total lines = 231,439 (Using SLOCCount)
+
+General:
+--------
+Version 5.2.11 version is a bug fix release.
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+Please note that with this version of Bacula, during the install
+of the shared libraries from the src/cats, src/lib, and src/findlib
+directories, any old Bacula libraries in the installation 
+destination directory will be removed.  This should not cause
+any problems and at least keeps the installation library cleaner.
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+For packagers, if you change options, naming, and the way 
+we link our shared object files, as at least one of you does,
+you are creating a situation where the user may not be able
+to run multiple versions of Bacula on the same machine, which
+is often very useful, and in addition, you create a configuration
+that the project cannot properly support.
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+If you are upgrading from a version older than 5.2.10, please
+read all the old ReleaseNotes of all versions released
+after the version you are upgrading from. There area
+many important notices sumarized here, and we do not 
+repeat them each bug fix release.
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+Compatibility:
+--------------
+ As always, both the Director and Storage daemon must be upgraded at
+ the same time.
+
+ Older 5.0.x and 3.0.x File Daemons are compatible with the 5.2.11
+ Director and Storage daemons. There should be no need to upgrade older File
+ Daemons.
+
+Important changes since last release:
+ - A new bpluginfo utility tool
+ - Make dump_resource respect console ACL's (security fix)
+ - Add chio-changer-openbsd submitted in bug #1903
+ - Important Copy job bug fixed.
+
+08Sep12
+ - Clean up error message generation during update attributes -- should fix bug 
+  #1823
+ - Eliminate heartbeat error messages. Fixes bug #1925
+ - Apply patch from bug #1911 to implement --with-logdir
+ - Add chio-changer-openbsd submitted in bug #1903
+ - mysql database install/update scripts patch. Fixes bug #1901
+ - Delegate uid/gid changing to systemd. Fixes bug #1905
+ - Fix bug #1906
+ - Fix manpage errors, fixes bug #1907
+ - Final fix for #1859 missed one query.
+ - bpluginfo - Utility tool display various information
+ - Backport more master code
+ - Fix Makefile.in so that testfind builds with acl dependency
+ - Make dump_resource respect console ACL's (security fix)
+ - backport code from master
+ - Fix #1923 about MySQL 4 support for BVFS
+ - Fix #1902 about bad status slots output
+ - Fix Sigma Copy bug #4377
+ - Fix bsmtp
+ - Reset bsmtp to only send to IPv4 mailhosts.
+
+Bugs fixed/closed since last release:
+1823 1859 1901 1902 1903 1905 1906 1907 1911 1923 1925 4377
+
+
+
+=======================================================
 
 General:
 --------

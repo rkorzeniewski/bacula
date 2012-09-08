@@ -1,4 +1,56 @@
-              Changelog on version 5.2.10
+              Changelog on version 5.2.11
+
+Version 5.2.11
+
+08Sep12
+ - Clean up error message generation during update attributes -- should fix bug 
+  #1823
+ - Eliminate heartbeat error messages. Fixes bug #1925
+
+07Sep12
+ - Set bsrdir default to workingdir
+ - Recompile configure.in
+ - Apply patch from bug #1911 to implement --with-logdir
+
+06Sep12
+ - Add chio-changer-openbsd submitted in bug #1903
+ - mysql database install/update scripts patch. Fixes bug #1901
+ - Delegate uid/gid changing to systemd. Fixes bug #1905
+
+05Sep12
+ - Fix bug #1906
+ - Fix manpage errors, fixes bug #1907
+ - Final fix for #1859 missed one query.
+
+30Aug12
+ - bpluginfo - Utility tool display various information
+
+19Aug12
+ - Backport more master code
+ - Fix Makefile.in so that testfind builds with acl dependency
+
+18Aug12
+ - Make dump_resource respect console ACL's
+ - Backport more from master
+
+17Aug12
+ - backport code from master
+
+16Aug12
+ - Fix #1923 about MySQL 4 support for BVFS
+
+05Jul12
+ - Fix #1902 about bad status slots output
+ - Fix Sigma Copy bug #4377
+
+03Jul12
+ - Fix bsmtp
+ - Reset bsmtp to only send to IPv4 mailhosts.
+
+Bugs fixed/closed since last release:
+1823 1859 1901 1902 1903 1905 1906 1907 1911 1923 1925 4377
+
+
 Version 5.2.10
 
 27Jun12
