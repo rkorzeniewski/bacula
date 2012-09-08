@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2003-2008 Free Software Foundation Europe e.V.
+   Copyright (C) 2003-2012 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -31,8 +31,6 @@
  *    If configured, sends heartbeats to Dir
  *
  *    Kern Sibbald, May MMIII
- *
- *   Version $Id$
  *
  */
 
@@ -67,26 +65,34 @@ extern "C" void *sd_heartbeat_thread(void *arg)
    jcr->hb_bsock = sd;
    jcr->hb_started = true;
    jcr->hb_dir_bsock = dir;
+   dir->m_suppress_error_msgs = true;
+   sd->m_suppress_error_msgs = true;
 
    /* Hang reading the socket to the SD, and every time we get
-    *   a heartbeat or we get a wait timeout (1 minute), we
+    *   a heartbeat or we get a wait timeout (5 seconds), we
     *   check to see if we need to send a heartbeat to the
     *   Director.
     */
-   for ( ; !is_bnet_stop(sd); ) {
+   while (!sd->is_stop()) {
       n = bnet_wait_data_intr(sd, WAIT_INTERVAL);
+      if (n < 0 || sd->is_stop()) {
+         break;
+      }
       if (me->heartbeat_interval) {
          now = time(NULL);
          if (now-last_heartbeat >= me->heartbeat_interval) {
-            bnet_sig(dir, BNET_HEARTBEAT);
+            dir->signal(BNET_HEARTBEAT);
+            if (dir->is_stop()) {
+               break;
+            }
             last_heartbeat = now;
          }
       }
-      if (n < 0 || is_bnet_stop(sd)) {
-         break;
-      }
-      if (n == 1) {                   /* input waiting */
-         sd->recv();                  /* read it -- probably heartbeat from sd */
+      if (n == 1) {               /* input waiting */
+         sd->recv();              /* read it -- probably heartbeat from sd */
+         if (sd->is_stop()) {
+            break;
+         }
          if (sd->msglen <= 0) {
             Dmsg1(100, "Got BNET_SIG %d from SD\n", sd->msglen);
          } else {
@@ -170,14 +176,18 @@ extern "C" void *dir_heartbeat_thread(void *arg)
 
    jcr->hb_bsock = dir;
    jcr->hb_started = true;
+   dir->m_suppress_error_msgs = true;
 
-   for ( ; !is_bnet_stop(dir); ) {
+   while (!dir->is_stop()) {
       time_t now, next;
 
       now = time(NULL);
       next = now - last_heartbeat;
       if (next >= me->heartbeat_interval) {
          dir->signal(BNET_HEARTBEAT);
+         if (dir->is_stop()) {
+            break;
+         }
          last_heartbeat = now;
       }
       bmicrosleep(next, 0);
