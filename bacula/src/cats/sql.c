@@ -713,15 +713,12 @@ bool db_open_batch_connexion(JCR *jcr, B_DB *mdb)
 {
    bool multi_db;
 
-   if (mdb->batch_insert_available())
-      multi_db = true;   /* we force a new connection only if batch insert is enabled */
-   else
-      multi_db = false;
+   multi_db = mdb->batch_insert_available();
 
    if (!jcr->db_batch) {
       jcr->db_batch = db_clone_database_connection(mdb, jcr, multi_db);
       if (!jcr->db_batch) {
-         Mmsg0(&mdb->errmsg, _("Could not init database batch connection"));
+         Mmsg0(&mdb->errmsg, _("Could not init database batch connection\n"));
          Jmsg(jcr, M_FATAL, 0, "%s", mdb->errmsg);
          return false;
       }

@@ -570,6 +570,7 @@ int db_create_path_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
    int stat;
    int num_rows;
 
+   mdb->errmsg[0] = 0;
    mdb->esc_name = check_pool_memory_size(mdb->esc_name, 2*mdb->pnl+2);
    db_escape_string(jcr, mdb, mdb->esc_name, mdb->path, mdb->pnl);
 
@@ -1006,6 +1007,7 @@ static int db_create_filename_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
    SQL_ROW row;
    int num_rows;
 
+   mdb->errmsg[0] = 0;
    mdb->esc_name = check_pool_memory_size(mdb->esc_name, 2*mdb->fnl+2);
    db_escape_string(jcr, mdb, mdb->esc_name, mdb->fname, mdb->fnl);
    
@@ -1052,25 +1054,30 @@ bool db_create_attributes_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
 {
    bool ret;
 
+   mdb->errmsg[0] = 0;
    /*
     * Make sure we have an acceptable attributes record.
     */
    if (!(ar->Stream == STREAM_UNIX_ATTRIBUTES ||
          ar->Stream == STREAM_UNIX_ATTRIBUTES_EX)) {
-      Jmsg(jcr, M_FATAL, 0, _("Attempt to put non-attributes into catalog. Stream=%d\n"));
+      Mmsg1(&mdb->errmsg, _("Attempt to put non-attributes into catalog. Stream=%d\n"),
+         ar->Stream);
+      Jmsg(jcr, M_FATAL, 0, "%s", mdb->errmsg); 
       return false;
    }
 
    if (ar->FileType != FT_BASE) {
       if (mdb->batch_insert_available()) {
          ret = db_create_batch_file_attributes_record(jcr, mdb, ar);
+         /* Error message already printed */
       } else {
          ret = db_create_file_attributes_record(jcr, mdb, ar);
       }
    } else if (jcr->HasBase) {
       ret = db_create_base_file_attributes_record(jcr, mdb, ar);
    } else {
-      Jmsg0(jcr, M_FATAL, 0, _("Cannot Copy/Migrate job using BaseJob"));
+      Mmsg0(&mdb->errmsg, _("Cannot Copy/Migrate job using BaseJob.\n"));
+      Jmsg(jcr, M_FATAL, 0, "%s", mdb->errmsg);
       ret = true;               /* in copy/migration what do we do ? */
    }
 

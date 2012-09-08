@@ -440,7 +440,7 @@ static void update_attribute(JCR *jcr, char *msg, int32_t msglen)
       if (jcr->cached_attribute) {
          Dmsg2(400, "Cached attr. Stream=%d fname=%s\n", ar->Stream, ar->fname);
          if (!db_create_attributes_record(jcr, jcr->db, ar)) {
-            Jmsg1(jcr, M_FATAL, 0, _("Attribute create error. %s"), db_strerror(jcr->db));
+            Jmsg1(jcr, M_FATAL, 0, _("Attribute create error: ERR=%s"), db_strerror(jcr->db));
          }
          jcr->cached_attribute = false;
       }

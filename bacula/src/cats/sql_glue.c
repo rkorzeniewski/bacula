@@ -113,16 +113,19 @@ void db_end_transaction(JCR *jcr, B_DB *mdb)
 
 bool db_sql_query(B_DB *mdb, const char *query, int flags)
 {
+   mdb->errmsg[0] = 0;
    return mdb->db_sql_query(query, flags);
 }
 
 bool db_sql_query(B_DB *mdb, const char *query, DB_RESULT_HANDLER *result_handler, void *ctx)
 {
+   mdb->errmsg[0] = 0;
    return mdb->db_sql_query(query, result_handler, ctx);
 }
 
 bool db_big_sql_query(B_DB *mdb, const char *query, DB_RESULT_HANDLER *result_handler, void *ctx)
 {
+   mdb->errmsg[0] = 0;
    return mdb->db_big_sql_query(query, result_handler, ctx);
 }
 
@@ -138,6 +141,7 @@ SQL_ROW sql_fetch_row(B_DB *mdb)
 
 bool sql_query(B_DB *mdb, const char *query, int flags)
 {
+   mdb->errmsg[0] = 0;
    return ((B_DB_PRIV *)mdb)->sql_query(query, flags);
 }
 
