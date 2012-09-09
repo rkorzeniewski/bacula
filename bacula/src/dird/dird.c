@@ -35,6 +35,19 @@
 
 #include "bacula.h"
 #include "dird.h"
+#ifndef HAVE_REGEX_H
+#include "lib/bregex.h"
+#else
+#include <regex.h>
+#endif
+#ifdef HAVE_DIRENT_H
+#include <dirent.h>
+#define NAMELEN(dirent) (strlen((dirent)->d_name))
+#endif
+#ifndef HAVE_READDIR_R
+int readdir_r(DIR *dirp, struct dirent *entry, struct dirent **result);
+#endif
+
 
 #ifdef HAVE_PYTHON
 
@@ -283,8 +296,6 @@ int main (int argc, char *argv[])
 
    drop(uid, gid, false);                    /* reduce privileges if requested */
 
-   cleanup_old_files();
-
    /* If we are in testing mode, we don't try to fix the catalog */
    cat_op mode=(test_config)?CHECK_CONNECTION:UPDATE_AND_FIX;
 
@@ -297,6 +308,8 @@ int main (int argc, char *argv[])
    }
 
    my_name_is(0, NULL, director->name());    /* set user defined name */
+
+   cleanup_old_files();
 
    /* Plug database interface for library routines */
    p_sql_query = (sql_query_func)dir_sql_query;
@@ -1128,31 +1141,108 @@ static bool check_catalog(cat_op mode)
    return OK;
 }
 
-static void copy_base_name(POOLMEM *cleanup)
-{
-   int len = strlen(director->working_directory);
-#if defined(HAVE_WIN32)
-   pm_strcpy(cleanup, "del /q ");
-#else
-   pm_strcpy(cleanup, "/bin/rm -f ");
-#endif
-   pm_strcat(cleanup, director->working_directory);
-   if (len > 0 && !IsPathSeparator(director->working_directory[len-1])) {
-      pm_strcat(cleanup, "/");
-   }
-   pm_strcat(cleanup, my_name);
-}
-
 static void cleanup_old_files()
 {
+   DIR* dp;
+   struct dirent *entry, *result;
+   int rc, name_max;
+   int my_name_len = strlen(my_name);
+   int len = strlen(director->working_directory);
    POOLMEM *cleanup = get_pool_memory(PM_MESSAGE);
-   POOLMEM *results = get_pool_memory(PM_MESSAGE);
-   copy_base_name(cleanup);
-   pm_strcat(cleanup, "*.restore.*.bsr");
-   run_program(cleanup, 0, results);
-   copy_base_name(cleanup);
-   pm_strcat(cleanup, "*.mail");
-   run_program(cleanup, 0, results);
+   POOLMEM *basename = get_pool_memory(PM_MESSAGE);
+   regex_t preg1, preg2, pexc1;
+   char prbuf[500];
+   const int nmatch = 30;
+   regmatch_t pmatch[nmatch];
+   berrno be;
+
+   /* Includes */
+   const char *pat1 = ".*\\.restore\\..*\\.bsr$";
+   const char *pat2 = ".*\\.mail$";
+
+   /* Excludes */
+   const char *exc1 = ".*\\ ";
+
+   /* Setup working directory prefix */
+   pm_strcpy(basename, director->working_directory);
+   if (len > 0 && !IsPathSeparator(director->working_directory[len-1])) {
+      pm_strcat(basename, "/");
+   }
+
+   /* Compile regex expressions */
+   rc = regcomp(&preg1, pat1, REG_EXTENDED);
+   if (rc != 0) {
+      regerror(rc, &preg1, prbuf, sizeof(prbuf));
+      Dmsg2(500,  _("Could not compile regex pattern \"%s\" ERR=%s\n"),
+           pat1, prbuf);
+      goto get_out4;
+   }
+   rc = regcomp(&preg2, pat2, REG_EXTENDED);
+   if (rc != 0) {
+      regerror(rc, &preg2, prbuf, sizeof(prbuf));
+      Pmsg2(100,  _("Could not compile regex pattern \"%s\" ERR=%s\n"),
+           pat2, prbuf);
+      goto get_out3;
+   }
+
+   rc = regcomp(&pexc1, exc1, REG_EXTENDED);
+   if (rc != 0) {
+      regerror(rc, &pexc1, prbuf, sizeof(prbuf));
+      Pmsg2(100,  _("Could not compile regex pattern \"%s\" ERR=%s\n"),
+           exc1, prbuf);
+      goto get_out2;
+   }
+
+   name_max = pathconf(".", _PC_NAME_MAX);
+   if (name_max < 1024) {
+      name_max = 1024;
+   }
+      
+   if (!(dp = opendir(director->working_directory))) {
+      berrno be;
+      Pmsg2(100, "Failed to open working dir %s for cleanup: ERR=%s\n", 
+            director->working_directory, be.bstrerror());
+      goto get_out1;
+      return;
+   }
+
+   entry = (struct dirent *)malloc(sizeof(struct dirent) + name_max + 1000);
+   while (1) {
+      if ((readdir_r(dp, entry, &result) != 0) || (result == NULL)) {
+         break;
+      }
+      /* Exclude any name with ., .., not my_name or containing a space */
+      if (strcmp(result->d_name, ".") == 0 || strcmp(result->d_name, "..") == 0 ||
+          strncmp(result->d_name, my_name, my_name_len) != 0) {
+         Dmsg1(500, "Skipped: %s\n", result->d_name);
+         continue;    
+      }
+      rc = regexec(&pexc1, result->d_name, nmatch, pmatch,  0);
+      if (rc == 0) {
+         Dmsg1(500, "Excluded: %s\n", result->d_name);
+         continue;
+      }
+
+      /* Unlink files that match regexes */
+      if (regexec(&preg1, result->d_name, nmatch, pmatch,  0) == 0 ||
+          regexec(&preg2, result->d_name, nmatch, pmatch,  0) == 0) {
+         pm_strcpy(cleanup, basename);
+         pm_strcat(cleanup, result->d_name);
+         Dmsg1(100, "Unlink: %s\n", cleanup);
+         unlink(cleanup);
+      }
+   }
+
+   free(entry);
+   closedir(dp);
+/* Be careful to free up the correct resources */
+get_out1:
+   regfree(&pexc1);
+get_out2:
+   regfree(&preg2);
+get_out3:
+   regfree(&preg1);
+get_out4:
    free_pool_memory(cleanup);
-   free_pool_memory(results);
+   free_pool_memory(basename);
 }

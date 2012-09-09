@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2011 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2012 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -35,10 +35,79 @@
  */
 
 #include "bacula.h"
-
+#ifndef HAVE_REGEX_H
+#include "lib/bregex.h"
+#else
+#include <regex.h>
+#endif
 
 static pthread_mutex_t timer_mutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t timer = PTHREAD_COND_INITIALIZER;
+
+/*
+ * This routine is a somewhat safer unlink in that it
+ *   allows you to ensure that there are no spaces in the 
+ *   filename to be deleted, and it also allows you to run
+ *   a regex on the filename before excepting it. It also
+ *   requires the file to be in the working directory.
+ */
+int safer_unlink(const char *pathname, const char *regx)
+{
+   int rc;
+   regex_t preg1, pexc1;
+   char prbuf[500];
+   const int nmatch = 30;
+   regmatch_t pmatch[nmatch];
+   int rtn;
+
+   /* Excludes */
+   const char *exc1 = ".*\\ ";
+
+   /* Name must start with working directory */
+   if (strncmp(pathname, working_directory, strlen(working_directory)) != 0) {
+      Pmsg1(000, "Safe_unlink excluded: %s\n", pathname);
+      return EROFS;
+   }
+
+   /* Compile regex expressions */
+   rc = regcomp(&preg1, regx, REG_EXTENDED);
+   if (rc != 0) {
+      regerror(rc, &preg1, prbuf, sizeof(prbuf));
+      Pmsg2(000,  _("safe_unlink could not compile regex pattern \"%s\" ERR=%s\n"),
+           regx, prbuf);
+      return ENOENT;
+   }
+
+   rc = regcomp(&pexc1, exc1, REG_EXTENDED);
+   if (rc != 0) {
+      regerror(rc, &pexc1, prbuf, sizeof(prbuf));
+      Pmsg2(000,  _("safe_unlink could not compile regex pattern \"%s\" ERR=%s\n"),
+           exc1, prbuf);
+      regfree(&preg1);
+      return ENOENT;
+   }
+
+   rc = regexec(&pexc1, pathname, nmatch, pmatch,  0);
+   if (rc == 0) {
+      Pmsg1(000, "safe_unlink excluded: %s\n", pathname);
+      rtn = EROFS;
+      goto get_out;
+   }
+
+   /* Unlink files that match regexes */
+   if (regexec(&preg1, pathname, nmatch, pmatch,  0) == 0) {
+      Dmsg1(100, "safe_unlink unlinking: %s\n", pathname);
+      rtn = unlink(pathname);
+   } else {
+      Pmsg2(000, "safe_unlink regex failed: regex=%s file=%s\n", regx, pathname);
+      rtn = EROFS;
+   }
+
+get_out:
+   regfree(&preg1);
+   regfree(&pexc1);
+   return rtn;
+}
 
 /*
  * This routine will sleep (sec, microsec).  Note, however, that if a

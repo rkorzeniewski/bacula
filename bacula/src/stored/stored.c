@@ -259,7 +259,6 @@ int main (int argc, char *argv[])
 
    cleanup_old_files();
 
-
    /* Ensure that Volume Session Time and Id are both
     * set and are both non-zero.
     */
@@ -459,23 +458,97 @@ static int check_resources()
 
 static void cleanup_old_files()
 {
-   POOLMEM *cleanup = get_pool_memory(PM_MESSAGE);
-   POOLMEM *results = get_pool_memory(PM_MESSAGE);
+   DIR* dp;
+   struct dirent *entry, *result;
+   int rc, name_max;
+   int my_name_len = strlen(my_name);
    int len = strlen(me->working_directory);
-#if defined(HAVE_WIN32)
-   pm_strcpy(cleanup, "del /q ");
-#else
-   pm_strcpy(cleanup, "/bin/rm -f ");
-#endif
-   pm_strcat(cleanup, me->working_directory);
+   POOLMEM *cleanup = get_pool_memory(PM_MESSAGE);
+   POOLMEM *basename = get_pool_memory(PM_MESSAGE);
+   regex_t preg1, pexc1;
+   char prbuf[500];
+   const int nmatch = 30;
+   regmatch_t pmatch[nmatch];
+   berrno be;
+
+   /* Includes */
+   const char *pat1 = ".*\\.spool$";
+
+   /* Excludes */
+   const char *exc1 = ".*\\ ";
+
+   /* Setup working directory prefix */
+   pm_strcpy(basename, me->working_directory);
    if (len > 0 && !IsPathSeparator(me->working_directory[len-1])) {
-      pm_strcat(cleanup, "/");
+      pm_strcat(basename, "/");
    }
-   pm_strcat(cleanup, my_name);
-   pm_strcat(cleanup, "*.spool");
-   run_program(cleanup, 0, results);
+
+   /* Compile regex expressions */
+   rc = regcomp(&preg1, pat1, REG_EXTENDED);
+   if (rc != 0) {
+      regerror(rc, &preg1, prbuf, sizeof(prbuf));
+      Dmsg2(500,  _("Could not compile regex pattern \"%s\" ERR=%s\n"),
+           pat1, prbuf);
+      goto get_out3;
+   }
+
+   rc = regcomp(&pexc1, exc1, REG_EXTENDED);
+   if (rc != 0) {
+      regerror(rc, &pexc1, prbuf, sizeof(prbuf));
+      Pmsg2(100,  _("Could not compile regex pattern \"%s\" ERR=%s\n"),
+           exc1, prbuf);
+      goto get_out2;
+   }
+
+   name_max = pathconf(".", _PC_NAME_MAX);
+   if (name_max < 1024) {
+      name_max = 1024;
+   }
+      
+   if (!(dp = opendir(me->working_directory))) {
+      berrno be;
+      Pmsg2(100, "Failed to open working dir %s for cleanup: ERR=%s\n", 
+            me->working_directory, be.bstrerror());
+      goto get_out1;
+   }
+
+   //Dmsg1(000, "my_name=%s\n", my_name);
+   
+   entry = (struct dirent *)malloc(sizeof(struct dirent) + name_max + 1000);
+   while (1) {
+      if ((readdir_r(dp, entry, &result) != 0) || (result == NULL)) {
+         break;
+      }
+      /* Exclude any name with ., .., not my_name or containing a space */
+      if (strcmp(result->d_name, ".") == 0 || strcmp(result->d_name, "..") == 0 ||
+          strncmp(result->d_name, my_name, my_name_len) != 0) {
+         Dmsg1(500, "Skipped: %s\n", result->d_name);
+         continue;    
+      }
+      rc = regexec(&pexc1, result->d_name, nmatch, pmatch,  0);
+      if (rc == 0) {
+         Dmsg1(500, "Excluded: %s\n", result->d_name);
+         continue;
+      }
+
+      /* Unlink files that match regexes */
+      if (regexec(&preg1, result->d_name, nmatch, pmatch,  0) == 0) {
+         pm_strcpy(cleanup, basename);
+         pm_strcat(cleanup, result->d_name);
+         Dmsg1(500, "Unlink: %s\n", cleanup);
+         unlink(cleanup);
+      }
+   }
+
+   free(entry);
+   closedir(dp);
+get_out1:
+   regfree(&pexc1);
+get_out2:
+   regfree(&preg1);
+get_out3:
    free_pool_memory(cleanup);
-   free_pool_memory(results);
+   free_pool_memory(basename);
 }
 
 
