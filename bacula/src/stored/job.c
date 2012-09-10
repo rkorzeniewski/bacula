@@ -111,6 +111,8 @@ bool job_cmd(JCR *jcr)
    }
    jcr->JobId = JobId;
    Dmsg2(800, "Start JobId=%d %p\n", JobId, jcr);
+   set_jcr_in_tsd(jcr);
+
    /*
     * If job rescheduled because previous was incomplete,
     * the Resched flag is set and VolSessionId and VolSessionTime

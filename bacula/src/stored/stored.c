@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2011 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2012 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -249,6 +249,7 @@ int main (int argc, char *argv[])
    read_state_file(me->working_directory, "bacula-sd", 
                    get_first_port_host_order(me->sdaddrs));
 
+   set_jcr_in_tsd(INVALID_JCR);
    /* Make sure on Solaris we can run concurrent, watch dog + servers + misc */
    set_thread_concurrency(me->max_concurrent_jobs * 2 + 4);
    lmgr_init_thread(); /* initialize the lockmanager stack */
