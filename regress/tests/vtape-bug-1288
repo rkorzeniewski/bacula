@@ -26,7 +26,7 @@ sed -i 's/Pool {/Pool { LabelFormat = "vol"/' bin/bacula-dir.conf
 sed -i 's/SpoolData = yes/SpoolData = no/' bin/bacula-dir.conf
 sed -i 's/Maximum Volume Size = 30M//'  bin/bacula-sd.conf
 sed -i 's/Maximum File Size = 7M//'  bin/bacula-sd.conf
-sed -i 's!Client Run Before Job = "/bin/sleep 2"!!' bin/bacula-dir.conf
+sed -i 's!Client Run Before Job = "sleep 2"!!' bin/bacula-dir.conf
 scripts/prepare-fake-autochanger
 
 echo "${cwd}/build" >${cwd}/tmp/file-list

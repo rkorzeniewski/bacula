@@ -14,7 +14,7 @@ require_vtape
 
 scripts/cleanup
 scripts/copy-tape-confs
-sed 's:Job {:Job { ClientRunBeforeJob = "/bin/sleep 5":' \
+sed 's:Job {:Job { ClientRunBeforeJob = "sleep 5":' \
     $rscripts/bacula-dir-vtape.conf > $conf/bacula-dir.conf
 sed 's/VTape/VTape; maximum concurrent jobs = 3/' \
     $rscripts/bacula-sd-vtape.conf | \

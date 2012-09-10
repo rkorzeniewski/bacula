@@ -48,9 +48,9 @@ Job {
 }
 Job {
   Name = RUN_ERR3
-  ClientRunBeforeJob="/bin/sleep 10"
+  ClientRunBeforeJob="sleep 10"
   RunScript {
-    Command = "/bin/sleep 600"
+    Command = "sleep 600"
     RunsWhen = After
     RunsOnFailure = Yes
   }
@@ -58,9 +58,9 @@ Job {
 }
 Job {
   Name = RUN_ERR4
-  ClientRunBeforeJob="/bin/sleep 10"
+  ClientRunBeforeJob="sleep 10"
   RunScript {
-    Command = "/bin/sleep 40"
+    Command = "sleep 40"
     RunsWhen = After
     RunsOnFailure = Yes
   }
@@ -319,20 +319,20 @@ check_duration ${cwd}/tmp/logfile5.out 30
 check_duration ${cwd}/tmp/logfile6.out 30
 
 check_duration ${cwd}/tmp/logfile8.out 550 lt
-grep 'ClientAfterJob "/bin/sleep 600"' tmp/logfile8.out >/dev/null
+grep 'ClientAfterJob "sleep 600"' tmp/logfile8.out >/dev/null
 if [ $? -ne 0 ]; then
     print_debug "Can't find ClientAfterJob"
     bstat=2
 fi
 
 check_duration ${cwd}/tmp/logfile9.out 550 lt
-grep 'ClientAfterJob "/bin/sleep 600"' tmp/logfile9.out >/dev/null
+grep 'ClientAfterJob "sleep 600"' tmp/logfile9.out >/dev/null
 if [ $? -ne 0 ]; then
     print_debug "Can't find ClientAfterJob"
     bstat=2
 fi
 
-grep 'ClientAfterJob "/bin/sleep 40"' tmp/logfile10.out >/dev/null
+grep 'ClientAfterJob "sleep 40"' tmp/logfile10.out >/dev/null
 if [ $? -ne 0 ]; then
     print_debug "Can't find ClientAfterJob"
     bstat=2

@@ -43,7 +43,7 @@ Job {
   Maximum Concurrent Jobs = 10
   SpoolData = yes
 # Prefer Mounted Volumes = no
-  Client Run Before Job = "/bin/sleep 2"
+  Client Run Before Job = "sleep 2"
 }
 
 Job {
