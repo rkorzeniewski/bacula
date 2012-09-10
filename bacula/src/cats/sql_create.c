@@ -891,6 +891,11 @@ bool db_create_batch_file_attributes_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
    Dmsg1(dbglevel, "Fname=%s\n", ar->fname);
    Dmsg0(dbglevel, "put_file_into_catalog\n");
 
+   if (jcr->batch_started && jcr->db_batch->changes > 800000) {
+      db_write_batch_file_records(jcr);
+      jcr->db_batch->changes = 0;
+   }
+
    /* Open the dedicated connexion */
    if (!jcr->batch_started) {
       if (!db_open_batch_connexion(jcr, mdb)) {
@@ -904,17 +909,10 @@ bool db_create_batch_file_attributes_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
       }
       jcr->batch_started = true;
    }
-   B_DB *bdb = jcr->db_batch;
 
-   split_path_and_file(jcr, bdb, ar->fname);
+   split_path_and_file(jcr, jcr->db_batch, ar->fname);
 
-   if (bdb->changes > 800000) {
-      db_write_batch_file_records(jcr);
-      bdb->changes = 0;
-      sql_batch_start(jcr, bdb);
-   }
-
-   return sql_batch_insert(jcr, bdb, ar);
+   return sql_batch_insert(jcr, jcr->db_batch, ar);
 }
 
 /**
