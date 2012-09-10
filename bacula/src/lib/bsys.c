@@ -46,10 +46,9 @@ static pthread_cond_t timer = PTHREAD_COND_INITIALIZER;
 
 /*
  * This routine is a somewhat safer unlink in that it
- *   allows you to ensure that there are no spaces in the 
- *   filename to be deleted, and it also allows you to run
- *   a regex on the filename before excepting it. It also
- *   requires the file to be in the working directory.
+ *   allows you to run a regex on the filename before 
+ *   excepting it. It also requires the file to be in 
+ *   the working directory.
  */
 int safer_unlink(const char *pathname, const char *regx)
 {
@@ -60,38 +59,19 @@ int safer_unlink(const char *pathname, const char *regx)
    regmatch_t pmatch[nmatch];
    int rtn;
 
-   /* Excludes */
-   const char *exc1 = ".*\\ ";
-
    /* Name must start with working directory */
    if (strncmp(pathname, working_directory, strlen(working_directory)) != 0) {
       Pmsg1(000, "Safe_unlink excluded: %s\n", pathname);
       return EROFS;
    }
 
-   /* Compile regex expressions */
+   /* Compile regex expression */
    rc = regcomp(&preg1, regx, REG_EXTENDED);
    if (rc != 0) {
       regerror(rc, &preg1, prbuf, sizeof(prbuf));
       Pmsg2(000,  _("safe_unlink could not compile regex pattern \"%s\" ERR=%s\n"),
            regx, prbuf);
       return ENOENT;
-   }
-
-   rc = regcomp(&pexc1, exc1, REG_EXTENDED);
-   if (rc != 0) {
-      regerror(rc, &pexc1, prbuf, sizeof(prbuf));
-      Pmsg2(000,  _("safe_unlink could not compile regex pattern \"%s\" ERR=%s\n"),
-           exc1, prbuf);
-      regfree(&preg1);
-      return ENOENT;
-   }
-
-   rc = regexec(&pexc1, pathname, nmatch, pmatch,  0);
-   if (rc == 0) {
-      Pmsg1(000, "safe_unlink excluded: %s\n", pathname);
-      rtn = EROFS;
-      goto get_out;
    }
 
    /* Unlink files that match regexes */
@@ -102,8 +82,6 @@ int safer_unlink(const char *pathname, const char *regx)
       Pmsg2(000, "safe_unlink regex failed: regex=%s file=%s\n", regx, pathname);
       rtn = EROFS;
    }
-
-get_out:
    regfree(&preg1);
    regfree(&pexc1);
    return rtn;

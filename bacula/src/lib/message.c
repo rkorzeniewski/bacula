@@ -74,6 +74,9 @@ void create_jcr_key();
 
 /* Static storage */
 
+/* Exclude spaces but require .mail at end */
+#define MAIL_REGEX "^[^ ]+\\.mail$"
+
 /* Allow only one thread to tweak d->fd at a time */
 static pthread_mutex_t fides_mutex = PTHREAD_MUTEX_INITIALIZER;
 static MSGS *daemon_msgs;              /* global messages */
@@ -589,7 +592,7 @@ rem_temp_file:
             fclose(d->fd);
             d->fd = NULL;
             /* Exclude spaces in mail_filename */
-            safer_unlink(d->mail_filename, ".*\\.mail$");
+            safer_unlink(d->mail_filename, MAIL_REGEX);
             free_pool_memory(d->mail_filename);
             d->mail_filename = NULL;
             Dmsg0(850, "end mail or mail on error\n");
