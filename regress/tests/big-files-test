@@ -28,6 +28,9 @@ sed 's%# Label Format%  Label Format%' ${cwd}/bin/bacula-dir.conf > ${cwd}/tmp/1
 # sed 's%Type = Backup%Type = Backup; Accurate = yes%' ${cwd}/tmp/1 > ${cwd}/bin/bacula-dir.conf
 sed 's%Type = Backup%Type = Backup%' ${cwd}/tmp/1 > ${cwd}/bin/bacula-dir.conf
 
+$bperl -e "add_attribute('$conf/bacula-dir.conf', 'Max Run Time', '90min', 'Job')"
+$bperl -e "add_attribute('$conf/bacula-dir.conf', 'SpoolData', 'no', 'Job')"
+
 change_jobname MonsterFileSet $JobName
 start_test
 
@@ -40,7 +43,7 @@ status all
 list pools
 messages
 @#setdebug level=110 storage=File
-run job=$JobName storage=File yes
+run job=$JobName spooldata=no storage=File yes
 list pools
 list volumes
 wait
@@ -51,7 +54,7 @@ where Client.Name = 'localhost-fd' group by JobId, Level, StartTime,
 JobFiles order by JobId desc ;
 
 messages
-run job=$JobName storage=File yes
+run job=$JobName spooldata=no storage=File yes
 wait
 messages
 @# 
@@ -59,7 +62,7 @@ messages
 @#
 @$out ${cwd}/tmp/log2.out
 @#setdebug level=400 storage=File
-restore where=${cwd}/tmp/bacula-restores select storage=File
+restore where=${cwd}/many-files/bacula-restores select storage=File
 unmark *
 mark *
 count
