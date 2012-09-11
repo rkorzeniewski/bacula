@@ -2,6 +2,11 @@
 
 Version 5.2.11
 
+10Sep12
+ - Add JobId to SD debug output
+ - Commit batch session every 800,000 files
+ - Simplify safer delete code using a single regex
+
 08Sep12
  - Clean up error message generation during update attributes -- should fix bug 
   #1823

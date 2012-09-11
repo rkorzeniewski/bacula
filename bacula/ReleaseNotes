@@ -47,7 +47,10 @@ Important changes since last release:
  - Add chio-changer-openbsd submitted in bug #1903
  - Important Copy job bug fixed.
 
-08Sep12
+10Sep12
+ - Add JobId to SD debug output
+ - Commit batch session every 800,000 files
+ - Simplify safer delete code using a single regex
  - Clean up error message generation during update attributes -- should fix bug 
   #1823
  - Eliminate heartbeat error messages. Fixes bug #1925
@@ -71,7 +74,6 @@ Important changes since last release:
 
 Bugs fixed/closed since last release:
 1823 1859 1901 1902 1903 1905 1906 1907 1911 1923 1925 4377
-
 
 
 =======================================================
