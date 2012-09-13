@@ -1,4 +1,10 @@
-              Changelog on version 5.2.11
+              Changelog on version 5.2.12
+
+Version 5.2.12
+
+13Sep12
+ - Fix accurate option in the estimate command
+  - Fix bug #1932 director crash.
 
 Version 5.2.11
 

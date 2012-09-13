@@ -1,11 +1,11 @@
 
-               Release Notes for Bacula 5.2.11
+               Release Notes for Bacula 5.2.12
 
   Bacula code: Total files = 1,110 Total lines = 231,439 (Using SLOCCount)
 
 General:
 --------
-Version 5.2.11 version is a bug fix release.
+Version 5.2.12 version is a bug fix release.
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 Please note that with this version of Bacula, during the install
@@ -37,7 +37,7 @@ Compatibility:
  As always, both the Director and Storage daemon must be upgraded at
  the same time.
 
- Older 5.0.x and 3.0.x File Daemons are compatible with the 5.2.11
+ Older 5.0.x and 3.0.x File Daemons are compatible with the 5.2.12
  Director and Storage daemons. There should be no need to upgrade older File
  Daemons.
 
@@ -46,6 +46,10 @@ Important changes since last release:
  - Make dump_resource respect console ACL's (security fix)
  - Add chio-changer-openbsd submitted in bug #1903
  - Important Copy job bug fixed.
+
+12Sep12
+ - Fix accurate option in the estimate command
+  - Fix bug #1932 director crash.
 
 10Sep12
  - Add JobId to SD debug output
@@ -74,7 +78,12 @@ Important changes since last release:
 
 Bugs fixed/closed since last release:
 1823 1859 1901 1902 1903 1905 1906 1907 1911 1923 1925 4377
+1932
 
+
+=======================================================
+
+Version 5.2.11 was short lived because of a crash
 
 =======================================================
 
