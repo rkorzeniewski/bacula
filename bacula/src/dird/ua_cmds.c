@@ -1249,8 +1249,8 @@ static int estimate_cmd(UAContext *ua, const char *cmd)
             }
             continue;
          } else {
-           ua->error_msg(_("Level value missing.\n"));
-           return 1;
+            ua->error_msg(_("Level value missing.\n"));
+            return 1;
          }
       }
       if (strcasecmp(ua->argk[i], NT_("accurate")) == 0) {
@@ -1262,6 +1262,7 @@ static int estimate_cmd(UAContext *ua, const char *cmd)
             continue;
          } else {
             ua->error_msg(_("Accurate value missing.\n"));
+            return 1;
          }
       }
    }
