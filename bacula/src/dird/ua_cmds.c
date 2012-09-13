@@ -1254,9 +1254,14 @@ static int estimate_cmd(UAContext *ua, const char *cmd)
          }
       }
       if (strcasecmp(ua->argk[i], NT_("accurate")) == 0) {
-         if (!is_yesno(ua->argv[i], &accurate)) {
-            ua->error_msg(_("Invalid value for accurate. " 
-                            "It must be yes or no.\n"));
+         if (ua->argv[i]) {
+            if (!is_yesno(ua->argv[i], &accurate)) {
+               ua->error_msg(_("Invalid value for accurate. " 
+                               "It must be yes or no.\n"));
+            }
+            continue;
+         } else {
+            ua->error_msg(_("Accurate value missing.\n"));
          }
       }
    }
