@@ -53,7 +53,7 @@ static pthread_cond_t timer = PTHREAD_COND_INITIALIZER;
 int safer_unlink(const char *pathname, const char *regx)
 {
    int rc;
-   regex_t preg1, pexc1;
+   regex_t preg1;
    char prbuf[500];
    const int nmatch = 30;
    regmatch_t pmatch[nmatch];
@@ -83,7 +83,6 @@ int safer_unlink(const char *pathname, const char *regx)
       rtn = EROFS;
    }
    regfree(&preg1);
-   regfree(&pexc1);
    return rtn;
 }
 
