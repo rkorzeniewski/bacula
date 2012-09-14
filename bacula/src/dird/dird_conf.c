@@ -224,6 +224,7 @@ static RES_ITEM store_items[] = {
    {"allowcompression",  store_bool, ITEM(res_store.AllowCompress), 0, ITEM_DEFAULT, true},
    {"heartbeatinterval", store_time, ITEM(res_store.heartbeat_interval), 0, ITEM_DEFAULT, 0},
    {"maximumconcurrentjobs", store_pint32, ITEM(res_store.MaxConcurrentJobs), 0, ITEM_DEFAULT, 1},
+   {"maximumconcurrentreadjobs", store_pint32, ITEM(res_store.MaxConcurrentReadJobs), 0, ITEM_DEFAULT, 0},
    {"sddport", store_pint32, ITEM(res_store.SDDport), 0, 0, 0}, /* deprecated */
    {"tlsauthenticate",      store_bool,      ITEM(res_store.tls_authenticate), 0, 0, 0},
    {"tlsenable",            store_bool,      ITEM(res_store.tls_enable), 0, 0, 0},

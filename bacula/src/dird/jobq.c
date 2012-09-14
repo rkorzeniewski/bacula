@@ -809,7 +809,10 @@ static pthread_mutex_t rstore_mutex = PTHREAD_MUTEX_INITIALIZER;
 bool inc_read_store(JCR *jcr)
 {
    P(rstore_mutex);
-   if (jcr->rstore->NumConcurrentJobs < jcr->rstore->MaxConcurrentJobs) {
+   if (jcr->rstore->NumConcurrentJobs < jcr->rstore->MaxConcurrentJobs &&
+       (jcr->getJobType() == JT_RESTORE ||
+        jcr->rstore->MaxConcurrentReadJobs == 0 ||
+        jcr->rstore->NumConcurrentReadJobs < jcr->rstore->MaxConcurrentReadJobs)) {
       jcr->rstore->NumConcurrentReadJobs++;
       jcr->rstore->NumConcurrentJobs++;
       Dmsg1(200, "Inc rncj=%d\n", jcr->rstore->NumConcurrentJobs);

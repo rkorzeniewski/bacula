@@ -294,6 +294,7 @@ public:
    char *media_type;
    alist *device;                     /* Alternate devices for this Storage */
    int32_t MaxConcurrentJobs;         /* Maximum concurrent jobs */
+   int32_t MaxConcurrentReadJobs;     /* Maximum concurrent jobs reading */
    int32_t NumConcurrentJobs;         /* number of concurrent jobs running */
    int32_t NumConcurrentReadJobs;     /* number of jobs reading */
    char *tls_ca_certfile;             /* TLS CA Certificate File */
