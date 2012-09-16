@@ -588,13 +588,18 @@ void close_msg(JCR *jcr)
             }
             free_memory(line);
 rem_temp_file:
-            /* Remove temp mail file */
-            fclose(d->fd);
-            d->fd = NULL;
-            /* Exclude spaces in mail_filename */
-            safer_unlink(d->mail_filename, MAIL_REGEX);
-            free_pool_memory(d->mail_filename);
-            d->mail_filename = NULL;
+            /* Remove temp file */
+            if (d->fd) {
+               fclose(d->fd);
+               d->fd = NULL;
+            }
+            if (d->mail_filename) {
+               /* Exclude spaces in mail_filename */
+               safer_unlink(d->mail_filename, MAIL_REGEX);
+               unlink(d->mail_filename);
+               free_pool_memory(d->mail_filename);
+               d->mail_filename = NULL;
+            }
             Dmsg0(850, "end mail or mail on error\n");
             break;
          default:
