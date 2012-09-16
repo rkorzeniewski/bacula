@@ -596,7 +596,6 @@ rem_temp_file:
             if (d->mail_filename) {
                /* Exclude spaces in mail_filename */
                safer_unlink(d->mail_filename, MAIL_REGEX);
-               unlink(d->mail_filename);
                free_pool_memory(d->mail_filename);
                d->mail_filename = NULL;
             }
