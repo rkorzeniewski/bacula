@@ -517,6 +517,11 @@ void close_msg(JCR *jcr)
       return;
    }
    msgs->wait_not_in_use();          /* leaves fides_mutex set */
+   /* Note get_closing() does not lock because we are already locked */
+   if (msgs->get_closing()) {
+      msgs->unlock();
+      return;
+   }
    msgs->set_closing();
    msgs->unlock();
 
