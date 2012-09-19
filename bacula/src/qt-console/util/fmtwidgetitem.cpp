@@ -130,7 +130,7 @@ QString convertBytesIEC(qint64 qfld)
 
    /* having divided for a smaller unit, now we can safely convert to double and
       use the extra room for decimals */
-   return QString("%1 %2iB").arg(qfld / 1000.0, 0, 'f', 2).arg(suffix);
+   return QString("%1 %2iB").arg(qfld / 1024.0, 0, 'f', 2).arg(suffix);
 }
 
 /* String to human value based on k=1000 */
