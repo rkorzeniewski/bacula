@@ -118,6 +118,7 @@ enum {
   )
 
 #define job_waiting(jcr) \
+ (jcr->job_started &&    \
   (jcr->JobStatus == JS_WaitFD       || \
    jcr->JobStatus == JS_WaitSD       || \
    jcr->JobStatus == JS_WaitMedia    || \
@@ -130,7 +131,7 @@ enum {
    jcr->SDJobStatus == JS_WaitMedia  || \
    jcr->SDJobStatus == JS_WaitMount  || \
    jcr->SDJobStatus == JS_WaitDevice || \
-   jcr->SDJobStatus == JS_WaitMaxJobs)
+   jcr->SDJobStatus == JS_WaitMaxJobs))
 
 
 
@@ -199,6 +200,7 @@ public:
    void setJobLevel(int32_t JobLevel) { m_JobLevel = JobLevel; };
    void setJobType(int32_t JobType) { m_JobType = JobType; };
    void forceJobStatus(int32_t aJobStatus) { JobStatus = aJobStatus; };
+   void setJobStarted();
    int32_t getJobType() const { return m_JobType; };
    int32_t getJobLevel() const { return m_JobLevel; };
    int32_t getJobStatus() const { return JobStatus; };
@@ -253,6 +255,7 @@ public:
    time_t end_time;                   /* job end time */
    time_t wait_time_sum;              /* cumulative wait time since job start */
    time_t wait_time;                  /* timestamp when job have started to wait */
+   time_t job_started_time;           /* Time when the MaxRunTime start to count */
    POOLMEM *client_name;              /* client name */
    POOLMEM *JobIds;                   /* User entered string of JobIds */
    POOLMEM *RestoreBootstrap;         /* Bootstrap file to restore */
@@ -276,6 +279,7 @@ public:
    bool accurate;                     /* true if job is accurate */
    bool HasBase;                      /* True if job use base jobs */
    bool rerunning;                    /* rerunning an incomplete job */
+   bool job_started;                  /* Set when the job is actually started */
 
    void *Python_job;                  /* Python Job Object */
    void *Python_events;               /* Python Events Object */

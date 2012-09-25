@@ -232,6 +232,9 @@ _("This Job is not an Accurate backup so is not equivalent to a Full backup.\n")
       return false;
    }
 
+   /* Declare the job started to start the MaxRunTime check */
+   jcr->setJobStarted();
+
    /*
     * Start the job prior to starting the message thread below
     * to avoid two threads from using the BSOCK structure at

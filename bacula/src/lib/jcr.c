@@ -892,6 +892,12 @@ bool JCR::sendJobStatus(int newJobStatus)
    return true; 
 }
 
+void JCR::setJobStarted()
+{
+   JCR *jcr = this;
+   jcr->job_started = true;
+   jcr->job_started_time = time(NULL);
+}
 
 void JCR::setJobStatus(int newJobStatus)
 {

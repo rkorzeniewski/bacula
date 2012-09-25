@@ -365,6 +365,8 @@ bool do_migration(JCR *jcr)
    }
    Dmsg0(150, "Storage daemon connection OK\n");
 
+   /* Declare the job started to start the MaxRunTime check */
+   jcr->setJobStarted();
 
    /*    
     * We re-update the job start record so that the start

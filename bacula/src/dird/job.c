@@ -611,7 +611,7 @@ static bool job_check_maxruntime(JCR *jcr)
    JOB *job = jcr->job;
    utime_t run_time;
 
-   if (job_canceled(jcr) || jcr->JobStatus == JS_Created) {
+   if (job_canceled(jcr) || !jcr->job_started) {
       return false;
    }
    if (jcr->job->MaxRunTime == 0 && job->FullMaxRunTime == 0 &&

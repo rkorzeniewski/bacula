@@ -418,6 +418,10 @@ bool do_backup(JCR *jcr)
       goto bail_out;
    }
 
+   /* Declare the job started to start the MaxRunTime check */
+   jcr->setJobStarted();
+
+   /* Send and run the RunBefore */
    if (!send_runscripts_commands(jcr)) {
       goto bail_out;
    }

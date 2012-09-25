@@ -432,6 +432,9 @@ bool restore_bootstrap(JCR *jcr)
          goto bail_out;
       }
 
+      /* Declare the job started to start the MaxRunTime check */
+      jcr->setJobStarted();
+
       /* Only pass "global" commands to the FD once */
       if (first_time) {
          first_time = false;
