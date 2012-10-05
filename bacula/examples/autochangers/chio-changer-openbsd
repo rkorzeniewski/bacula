@@ -95,7 +95,7 @@ case ${cmd} in
 	list)
 		${CHIO} -f ${ctl} status -v slot | \
 			sed -ne 's/^slot *\([0-9]*:\).*FULL.*voltag.*<\(.*\):.*/\1\2/p' | \
-			awk -F: '{print $1 + 1 ":" $2 }'
+			awk -F: '{ print $1 + 1 ":" $2 }'
 		exit $?
 		;;
 
@@ -105,10 +105,13 @@ case ${cmd} in
 		;;
 
 	loaded)
-		local _slot=`${CHIO} -f ${ctl} status -v | egrep '^slot.*<ACCESS> voltag: <:[0-9]>$' | awk '{ print $2 }' | awk -F: '{ print $1 + 1 }'`
-		[ -z "${_slot}" ] && _slot=0
-		echo ${_slot}
-		exit $?
+		# XXX output the first empty slot if the drive is loaded
+		_slot=`${CHIO} -f ${ctl} status -v | egrep '^slot.*<ACCESS> voltag: <:[0-9]>$' | awk '{ print $2 }' | awk -F: '{ print $1 + 1 }'`
+		rtn=$?
+		_loaded=`${CHIO} -f ${ctl} status -v | egrep "^drive ${drive}: <ACCESS,FULL> voltag: <.*:[0-9]>"`
+		[ -z "${_slot}" -o -z "${_loaded}" ] && _slot=0
+		echo ${_slot} | awk '{ print $1 }'
+		exit ${rtn}
 		;;
 	slots)
 		${CHIO} -f ${ctl} params | awk "/slots/{print \$2}"
