@@ -169,6 +169,7 @@ struct FF_PKT {
    POOLMEM *sys_fname;                /* system filename */
    POOLMEM *fname_save;               /* save when stripping path */
    POOLMEM *link_save;                /* save when stripping path */
+   POOLMEM *ignoredir_fname;          /* used to ignore directories */
    char *digest;                      /* set to file digest when the file is a hardlink */
    struct stat statp;                 /* stat packet */
    uint32_t digest_len;               /* set to the digest len when the file is a hardlink*/

@@ -103,6 +103,7 @@ static FF_PKT *new_dir_ff_pkt(FF_PKT *ff_pkt)
    dir_ff_pkt->linkhash = NULL;
    dir_ff_pkt->fname_save = NULL;
    dir_ff_pkt->link_save = NULL;
+   dir_ff_pkt->ignoredir_fname = NULL;
    return dir_ff_pkt;
 }
 
@@ -119,6 +120,9 @@ static void free_dir_ff_pkt(FF_PKT *dir_ff_pkt)
    }
    if (dir_ff_pkt->link_save) {
       free_pool_memory(dir_ff_pkt->link_save);
+   }
+   if (dir_ff_pkt->ignoredir_fname) {
+      free_pool_memory(dir_ff_pkt->ignoredir_fname);
    }
    free(dir_ff_pkt);
 }
@@ -308,7 +312,6 @@ bool check_changes(JCR *jcr, FF_PKT *ff_pkt)
 static bool have_ignoredir(FF_PKT *ff_pkt)
 {
    struct stat sb;
-   char tmp_name[MAXPATHLEN];
    char *ignoredir;
 
    /* Ensure that pointers are defined */
@@ -318,14 +321,11 @@ static bool have_ignoredir(FF_PKT *ff_pkt)
    ignoredir = ff_pkt->fileset->incexe->ignoredir;
    
    if (ignoredir) {
-      if (strlen(ff_pkt->fname) + strlen(ignoredir) + 2 > MAXPATHLEN) {
-         return false;
+      if (!ff_pkt->ignoredir_fname) {
+         ff_pkt->ignoredir_fname = get_pool_memory(PM_FNAME);
       }
-
-      strcpy(tmp_name, ff_pkt->fname);
-      strcat(tmp_name, "/");
-      strcat(tmp_name, ignoredir);
-      if (stat(tmp_name, &sb) == 0) {
+      Mmsg(ff_pkt->ignoredir_fname, "%s/%s", ff_pkt->fname, ignoredir);
+      if (stat(ff_pkt->ignoredir_fname, &sb) == 0) {
          Dmsg2(100, "Directory '%s' ignored (found %s)\n",
                ff_pkt->fname, ignoredir);
          return true;      /* Just ignore this directory */

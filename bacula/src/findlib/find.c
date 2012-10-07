@@ -505,6 +505,9 @@ term_find_files(FF_PKT *ff)
    if (ff->link_save) {
       free_pool_memory(ff->link_save);
    }
+   if (ff->ignoredir_fname) {
+      free_pool_memory(ff->ignoredir_fname);
+   }
    hard_links = term_find_one(ff);
    free(ff);
    return hard_links;
