@@ -57,7 +57,7 @@ struct xattr_t {
  */
 struct xattr_link_cache_entry_t {
    uint32_t inum;
-   char target[PATH_MAX];
+   char *target;
 };
 
 #define BXATTR_FLAG_SAVE_NATIVE    0x01

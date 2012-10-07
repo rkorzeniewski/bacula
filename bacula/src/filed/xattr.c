@@ -2430,7 +2430,7 @@ static int os_default_xattr_streams[1] = {
  * This code creates a temporary cache with entries for each xattr which has
  * a link count > 1 (which indicates it has one or more hard linked counterpart(s))
  */
-static xattr_link_cache_entry_t *find_xattr_link_cache_entry(JCR *jcr, ino_t inum)
+static inline xattr_link_cache_entry_t *find_xattr_link_cache_entry(JCR *jcr, ino_t inum)
 {
    xattr_link_cache_entry_t *ptr;
 
@@ -2442,19 +2442,35 @@ static xattr_link_cache_entry_t *find_xattr_link_cache_entry(JCR *jcr, ino_t inu
    return NULL;
 }
 
-static void add_xattr_link_cache_entry(JCR *jcr, ino_t inum, char *target)
+static inline void add_xattr_link_cache_entry(JCR *jcr, ino_t inum, char *target)
 {
    xattr_link_cache_entry_t *ptr;
 
    ptr = (xattr_link_cache_entry_t *)malloc(sizeof(xattr_link_cache_entry_t));
    memset(ptr, 0, sizeof(xattr_link_cache_entry_t));
    ptr->inum = inum;
-   bstrncpy(ptr->target, target, sizeof(ptr->target));
+   ptr->target = bstrdup(target);
 
    if (!jcr->xattr_data->u.build->link_cache) {
       jcr->xattr_data->u.build->link_cache = New(alist(10, not_owned_by_alist));
    }
    jcr->xattr_data->u.build->link_cache->append(ptr);
+}
+
+static inline void drop_xattr_link_cache(JCR *jcr)
+{
+   xattr_link_cache_entry_t *ptr;
+
+   /*
+    * Walk the list of xattr link cache entries and free allocated memory on traversing.
+    */
+   foreach_alist(ptr, jcr->xattr_data->u.build->link_cache) {
+      free(ptr->target);
+      free(ptr);
+   }
+
+   delete jcr->xattr_data->u.build->link_cache;
+   jcr->xattr_data->u.build->link_cache = NULL;
 }
 
 #if defined(HAVE_SYS_NVPAIR_H) && defined(_PC_SATTR_ENABLED)
@@ -3680,8 +3696,7 @@ static bxattr_exit_code solaris_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
       retval = solaris_save_xattrs(jcr, NULL, NULL);
       chdir(cwd);
       if (jcr->xattr_data->u.build->link_cache) {
-         delete jcr->xattr_data->u.build->link_cache;
-         jcr->xattr_data->u.build->link_cache = NULL;
+         drop_xattr_link_cache(jcr);
       }
    }
    return retval;
