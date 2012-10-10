@@ -35,6 +35,7 @@
  *   - AIX (Extended Attributes)
  *   - Darwin (Extended Attributes)
  *   - FreeBSD (Extended Attributes)
+ *   - GNU HURD (Extended Attributes)
  *   - IRIX (Extended Attributes)
  *   - Linux (Extended Attributes)
  *   - NetBSD (Extended Attributes)
@@ -1035,7 +1036,8 @@ static bxattr_exit_code (*os_parse_xattr_streams)
                         irix_parse_xattr_streams;
 
 #elif defined(HAVE_DARWIN_OS) || \
-      defined(HAVE_LINUX_OS)
+      defined(HAVE_LINUX_OS) || \
+      defined(HAVE_HURD_OS)
 
 #if (!defined(HAVE_LISTXATTR) && !defined(HAVE_LLISTXATTR)) || \
     (!defined(HAVE_GETXATTR) && !defined(HAVE_LGETXATTR)) || \
@@ -1072,6 +1074,16 @@ static int os_default_xattr_streams[1] = {
 static const char *xattr_acl_skiplist[3] = {
    "system.posix_acl_access",
    "system.posix_acl_default",
+   NULL
+};
+static const char *xattr_skiplist[1] = {
+   NULL
+};
+#elif defined(HAVE_HURD_OS)
+static int os_default_xattr_streams[1] = {
+   STREAM_XATTR_HURD
+};
+static const char *xattr_acl_skiplist[1] = {
    NULL
 };
 static const char *xattr_skiplist[1] = {

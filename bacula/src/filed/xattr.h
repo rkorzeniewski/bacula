@@ -33,6 +33,8 @@
 #define BXATTR_ENOTSUP EOPNOTSUPP
 #elif defined(HAVE_DARWIN_OS)
 #define BXATTR_ENOTSUP ENOTSUP
+#elif defined(HAVE_HURD_OS)
+#define BXATTR_ENOTSUP ENOTSUP
 #endif
 
 /*

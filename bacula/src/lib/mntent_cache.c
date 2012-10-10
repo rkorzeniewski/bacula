@@ -68,10 +68,15 @@
 #include <sys/stat.h>
 
 #if defined(HAVE_GETMNTENT)
-#if defined(HAVE_LINUX_OS) || defined(HAVE_HPUX_OS) || defined(HAVE_AIX_OS)
+#if defined(HAVE_LINUX_OS) || \
+    defined(HAVE_HPUX_OS) || \
+    defined(HAVE_AIX_OS)
 #include <mntent.h>
 #elif defined(HAVE_SUN_OS)
 #include <sys/mnttab.h>
+#elif defined(HAVE_HURD_OS)
+#include <hurd/paths.h>
+#include <mntent.h>
 #endif /* HAVE_GETMNTENT */
 #elif defined(HAVE_GETMNTINFO)
 #if defined(HAVE_OPENBSD_OS)
@@ -181,7 +186,11 @@ static void refresh_mount_cache(void)
 #if defined(HAVE_GETMNTENT)
    FILE *fp;
    struct stat st;
-#if defined(HAVE_LINUX_OS) || defined(HAVE_HPUX_OS) || defined(HAVE_IRIX_OS) || defined(HAVE_AIX_OS)
+#if defined(HAVE_LINUX_OS) || \
+    defined(HAVE_HPUX_OS) || \
+    defined(HAVE_IRIX_OS) || \
+    defined(HAVE_AIX_OS) || \
+    defined(HAVE_HURD_OS)
    struct mntent *mnt;
 
 #if defined(HAVE_LINUX_OS)
@@ -200,6 +209,10 @@ static void refresh_mount_cache(void)
    }
 #elif defined(HAVE_AIX_OS)
    if ((fp = setmntent(MNTTAB, "r")) == (FILE *)NULL) {
+      return;
+   }
+#elif defined(HAVE_HURD_OS)
+   if ((fp = setmntent(_PATH_MNTTAB, "r")) == (FILE *)NULL) {
       return;
    }
 #endif

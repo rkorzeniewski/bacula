@@ -32,6 +32,7 @@
  *   - AIX (pre-5.3 and post 5.3 acls, acl_get and aclx_get interface)
  *   - Darwin
  *   - FreeBSD (POSIX and NFSv4/ZFS acls)
+ *   - GNU Hurd
  *   - HPUX
  *   - IRIX
  *   - Linux
@@ -543,7 +544,8 @@ static bacl_exit_code (*os_parse_acl_streams)
       defined(HAVE_FREEBSD_OS) || \
       defined(HAVE_IRIX_OS) || \
       defined(HAVE_OSF1_OS) || \
-      defined(HAVE_LINUX_OS)
+      defined(HAVE_LINUX_OS) || \
+      defined(HAVE_HURD_OS)
 
 #include <sys/types.h>
 
@@ -642,7 +644,8 @@ static int acl_count_entries(acl_t acl)
 {
    int count = 0;
 #if defined(HAVE_FREEBSD_OS) || \
-    defined(HAVE_LINUX_OS)
+    defined(HAVE_LINUX_OS) || \
+    defined(HAVE_HURD_OS)
    acl_entry_t ace;
    int entry_available;
 
@@ -684,7 +687,8 @@ static bool acl_is_trivial(acl_t acl)
    acl_entry_t ace;
    acl_tag_t tag;
 #if defined(HAVE_FREEBSD_OS) || \
-    defined(HAVE_LINUX_OS)
+    defined(HAVE_LINUX_OS) || \
+    defined(HAVE_HURD_OS)
    int entry_available;
 
    entry_available = acl_get_entry(acl, ACL_FIRST_ENTRY, &ace);
@@ -1275,7 +1279,8 @@ static bacl_exit_code (*os_parse_acl_streams)
                       freebsd_parse_acl_streams;
 
 #elif defined(HAVE_IRIX_OS) || \
-      defined(HAVE_LINUX_OS)
+      defined(HAVE_LINUX_OS) || \
+      defined(HAVE_HURD_OS)
 /*
  * Define the supported ACL streams for these OSes
  */
@@ -1292,6 +1297,13 @@ static int os_access_acl_streams[1] = {
 };
 static int os_default_acl_streams[1] = {
    STREAM_ACL_LINUX_DEFAULT_ACL
+};
+#elif defined(HAVE_HURD_OS)
+static int os_access_acl_streams[1] = {
+   STREAM_ACL_HURD_ACCESS_ACL
+};
+static int os_default_acl_streams[1] = {
+   STREAM_ACL_HURD_DEFAULT_ACL
 };
 #endif
 

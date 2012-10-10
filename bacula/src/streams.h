@@ -169,6 +169,13 @@
 #define STREAM_ACL_FREEBSD_NFS4_ACL      1017    /* FreeBSD specific acl_t string representation
                                                   * from acl_to_text (NFSv4 or ZFS acl)
                                                   */
+#define STREAM_ACL_HURD_DEFAULT_ACL      1018    /* GNU HURD specific acl_t string representation
+                                                  * from acl_to_text (POSIX acl) for default acls.
+                                                  */
+#define STREAM_ACL_HURD_ACCESS_ACL       1019    /* GNU HURD specific acl_t string representation
+                                                  * from acl_to_text (POSIX acl) for access acls.
+                                                  */
+#define STREAM_XATTR_HURD                1989    /* GNU HURD specific extended attributes */
 #define STREAM_XATTR_IRIX                1990    /* IRIX specific extended attributes */
 #define STREAM_XATTR_TRU64               1991    /* TRU64 specific extended attributes */
 #define STREAM_XATTR_AIX                 1992    /* AIX specific extended attributes */

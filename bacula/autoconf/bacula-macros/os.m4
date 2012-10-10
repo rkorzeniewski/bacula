@@ -62,6 +62,14 @@ else
         BA_CONDITIONAL(HAVE_SUN_OS, $FALSEPRG)
 fi
 
+if test $HAVE_UNAME=yes -a x`uname -s` = xGNU
+then
+        BA_CONDITIONAL(HAVE_HURD_OS, $TRUEPRG)
+        AC_DEFINE(HAVE_HURD_OS)
+else
+        BA_CONDITIONAL(HAVE_HURD_OS, $FALSEPRG)
+fi
+
 if test $HAVE_UNAME=yes -a x`uname -s` = xOSF1
 then
         BA_CONDITIONAL(HAVE_OSF1_OS, $TRUEPRG)
@@ -168,6 +176,9 @@ then
 elif test $HAVE_UNAME=yes -a x`uname -s` = xSunOS
 then
         DISTNAME=solaris
+elif test $HAVE_UNAME=yes -a x`uname -s` = xGNU
+then
+        DISTNAME=hurd
 elif test $HAVE_UNAME=yes -a x`uname -s` = xFreeBSD
 then
         DISTNAME=freebsd

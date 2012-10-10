@@ -3152,6 +3152,16 @@ freebsd)
        platforms/freebsd/bacula-dir"
    largefile_support="yes"
   ;;
+hurd)
+   DISTVER=`uname -r`
+   TAPEDRIVE="/dev/nst0"
+   PSCMD="ps -e -o pid,command"
+   PFILES="${PFILES} \
+       platforms/hurd/Makefile \
+       platforms/hurd/bacula-fd \
+       platforms/hurd/bacula-sd \
+       platforms/hurd/bacula-dir"
+  ;;
 hpux)
    PSCMD="UNIX95=1; ps -e -o pid,comm"
    CFLAGS="${CFLAGS} -D_XOPEN_SOURCE_EXTENDED=1"
