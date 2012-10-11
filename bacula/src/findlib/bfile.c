@@ -187,6 +187,12 @@ const char *stream_to_ascii(int stream)
       return _("AIX Specific NFSv4 ACL attribs");
    case STREAM_ACL_FREEBSD_NFS4_ACL:
       return _("FreeBSD Specific NFSv4/ZFS ACL attribs");
+   case STREAM_ACL_HURD_DEFAULT_ACL:
+      return _("GNU Hurd Specific Default ACL attribs");
+   case STREAM_ACL_HURD_ACCESS_ACL:
+      return _("GNU Hurd Specific Access ACL attribs");
+   case STREAM_XATTR_HURD:
+      return _("GNU Hurd Specific Extended attribs");
    case STREAM_XATTR_IRIX:
       return _("IRIX Specific Extended attribs");
    case STREAM_XATTR_TRU64:

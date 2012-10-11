@@ -302,11 +302,14 @@ static inline bool pop_delayed_data_streams(JCR *jcr, r_ctx &rctx)
       case STREAM_ACL_AIX_AIXC:
       case STREAM_ACL_AIX_NFS4:
       case STREAM_ACL_FREEBSD_NFS4_ACL:
+      case STREAM_ACL_HURD_DEFAULT_ACL:
+      case STREAM_ACL_HURD_ACCESS_ACL:
          if (!do_restore_acl(jcr, rds->stream, rds->content, rds->content_length)) {
             goto bail_out;
          }
          free(rds->content);
          break;
+      case STREAM_XATTR_HURD:
       case STREAM_XATTR_IRIX:
       case STREAM_XATTR_TRU64:
       case STREAM_XATTR_AIX:
@@ -892,6 +895,8 @@ void do_restore(JCR *jcr)
       case STREAM_ACL_AIX_AIXC:
       case STREAM_ACL_AIX_NFS4:
       case STREAM_ACL_FREEBSD_NFS4_ACL:
+      case STREAM_ACL_HURD_DEFAULT_ACL:
+      case STREAM_ACL_HURD_ACCESS_ACL:
          /*
           * Do not restore ACLs when
           * a) The current file is not extracted
@@ -920,6 +925,7 @@ void do_restore(JCR *jcr)
          }
          break;
 
+      case STREAM_XATTR_HURD:
       case STREAM_XATTR_IRIX:
       case STREAM_XATTR_TRU64:
       case STREAM_XATTR_AIX:
