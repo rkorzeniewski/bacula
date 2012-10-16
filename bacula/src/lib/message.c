@@ -130,7 +130,7 @@ void MSGS::unlock()
 void MSGS::wait_not_in_use()     /* leaves fides_mutex set */
 {
    lock();
-   while (m_in_use) {
+   while (m_in_use || m_closing) {
       unlock();
       bmicrosleep(0, 200);         /* wait */
       lock();
