@@ -208,24 +208,6 @@ int modify_job_parameters(UAContext *ua, JCR *jcr, run_ctx &rc)
 {
    int i, opt;
    
-   /* Some options are not available through the menu
-    * TODO: Add an advanced menu?
-    */
-   if (rc.spool_data_set) {
-      jcr->spool_data = rc.spool_data;
-   }
-
-   if (rc.accurate_set) {
-      jcr->accurate = rc.accurate;
-   }
-
-   /* Used by migration jobs that can have the same name,
-    * but can run at the same time
-    */
-   if (rc.ignoreduplicatecheck_set) {
-      jcr->IgnoreDuplicateJobChecking = rc.ignoreduplicatecheck;
-   }
-
    /*
     * At user request modify parameters of job to be run.
     */
@@ -570,6 +552,25 @@ static bool reset_restore_context(UAContext *ua, JCR *jcr, run_ctx &rc)
       jcr->RestoreJobId = str_to_int64(rc.jid);
       rc.jid = 0;
    }
+
+   /* Some options are not available through the menu
+    * TODO: Add an advanced menu?
+    */
+   if (rc.spool_data_set) {
+      jcr->spool_data = rc.spool_data;
+   }
+
+   if (rc.accurate_set) {
+      jcr->accurate = rc.accurate;
+   }
+
+   /* Used by migration jobs that can have the same name,
+    * but can run at the same time
+    */
+   if (rc.ignoreduplicatecheck_set) {
+      jcr->IgnoreDuplicateJobChecking = rc.ignoreduplicatecheck;
+   }
+
    return true;
 }
 
