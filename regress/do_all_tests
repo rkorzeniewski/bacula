@@ -9,9 +9,9 @@ echo " " >>test.out
 echo "Test results" >>test.out
 echo " " >>test.out
 ./starttime
-nice ./all-disk-tests
-nice ./all-tape-tests
-nice ./all-changer-tests
+./all-disk-tests
+./all-tape-tests
+./all-changer-tests
 echo " "
 echo "End do_all tests"
 echo "End do_all tests" >>test.out
