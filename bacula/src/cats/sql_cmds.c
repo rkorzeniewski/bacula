@@ -817,17 +817,27 @@ const char *sql_get_max_connections[] = {
    "SELECT 0"
 };
 
-/* TODO: Check for corner cases with MySQL and SQLite3
+/*
  *  The Group By can return strange numbers when having multiple
  *  version of a file in the same dataset.
  */
+const char *default_sql_bvfs_select = 
+"CREATE TABLE %s AS "
+"SELECT File.JobId, File.FileIndex, File.FileId "
+"FROM Job, File, ( "
+    "SELECT MAX(JobTDate) AS JobTDate, PathId, FilenameId "
+       "FROM btemp%s GROUP BY PathId, FilenameId "
+    ") AS T1 JOIN Filename USING (FilenameId) "
+"WHERE T1.JobTDate = Job.JobTDate "
+  "AND Job.JobId = File.JobId "
+  "AND T1.PathId = File.PathId "
+  "AND T1.FilenameId = File.FilenameId "
+  "AND File.FileIndex > 0 "
+  "AND Job.JobId IN (SELECT DISTINCT JobId FROM btemp%s) ";
+
 const char *sql_bvfs_select[] = {
    /* Mysql */
-   "CREATE TABLE %s AS ( "
-      "SELECT JobId, FileIndex, FileId, max(JobTDate) as JobTDate "
-        "FROM btemp%s "
-      "GROUP BY PathId, FilenameId "
-   "HAVING FileIndex > 0)",
+   default_sql_bvfs_select,
 
    /* Postgresql */
    "CREATE TABLE %s AS ( "
@@ -841,12 +851,7 @@ const char *sql_bvfs_select[] = {
           "WHERE FileIndex > 0)",
 
    /* SQLite3 */
-   "CREATE TABLE %s AS "
-      "SELECT JobId, FileIndex, FileId, max(JobTDate) as JobTDate "
-        "FROM btemp%s "
-      "GROUP BY PathId, FilenameId "
-   "HAVING FileIndex > 0",
-
+   default_sql_bvfs_select,
 
    /* Ingres (TODO) */
    "SELECT 0"
@@ -867,13 +872,15 @@ static const char *sql_bvfs_list_files_default =
                "JOIN File USING (FileId) "
                "JOIN Job  ON    (BaseJobId = Job.JobId) "
          "WHERE BaseFiles.JobId IN (%s)   AND PathId = %s "
-       ") AS tmp GROUP BY PathId, FilenameId LIMIT %lld OFFSET %lld"
+       ") AS tmp GROUP BY PathId, FilenameId "
+     "LIMIT %lld OFFSET %lld"
     ") AS T1 JOIN Filename USING (FilenameId) "
 "WHERE T1.JobTDate = Job.JobTDate "
   "AND Job.JobId = File.JobId "
   "AND T1.PathId = File.PathId "
   "AND T1.FilenameId = File.FilenameId "
   "AND Filename.Name != '' "
+  "AND File.FileIndex > 0 "
   " %s "                     /* AND Name LIKE '' */
   "AND (Job.JobId IN ( "
         "SELECT DISTINCT BaseJobId FROM BaseFiles WHERE JobId IN (%s)) "
@@ -886,20 +893,24 @@ const char *sql_bvfs_list_files[] = {
 
    /* JobId PathId JobId PathId WHERE? Filename? Limit Offset*/
    /* Postgresql */
- "SELECT DISTINCT ON (FilenameId) 'F', PathId, T.FilenameId, "
-  "Filename.Name, JobId, LStat, FileId "
-   "FROM "
-       "(SELECT FileId, JobId, PathId, FilenameId, FileIndex, LStat, MD5 "
-          "FROM File WHERE JobId IN (%s) AND PathId = %s "
-         "UNION ALL "
-        "SELECT File.FileId, File.JobId, PathId, FilenameId, "
-               "File.FileIndex, LStat, MD5 "
-          "FROM BaseFiles JOIN File USING (FileId) "
-         "WHERE BaseFiles.JobId IN (%s) AND File.PathId = %s "
-        ") AS T JOIN Job USING (JobId) JOIN Filename USING (FilenameId) "
-        " WHERE Filename.Name != '' "
-        " %s "               /* AND Name LIKE '' */
-   "ORDER BY FilenameId, StartTime DESC LIMIT %lld OFFSET %lld",
+ "SELECT Type, PathId, FilenameId, Name, JobId, LStat, FileId "
+  "FROM ("
+   "SELECT DISTINCT ON (FilenameId) 'F' as Type, PathId, T.FilenameId, "
+    "Filename.Name, JobId, LStat, FileId, FileIndex "
+     "FROM "
+         "(SELECT FileId, JobId, PathId, FilenameId, FileIndex, LStat, MD5 "
+            "FROM File WHERE JobId IN (%s) AND PathId = %s "
+           "UNION ALL "
+          "SELECT File.FileId, File.JobId, PathId, FilenameId, "
+                 "File.FileIndex, LStat, MD5 "
+            "FROM BaseFiles JOIN File USING (FileId) "
+           "WHERE BaseFiles.JobId IN (%s) AND File.PathId = %s "
+          ") AS T JOIN Job USING (JobId) JOIN Filename USING (FilenameId) "
+          " WHERE Filename.Name != '' "
+          " %s "               /* AND Name LIKE '' */
+     "ORDER BY FilenameId, StartTime DESC "
+   ") AS A WHERE A.FileIndex > 0 "
+   "LIMIT %lld OFFSET %lld ",
 
    /* SQLite */
    sql_bvfs_list_files_default,

@@ -1020,8 +1020,8 @@ bool Bvfs::compute_restore_list(char *fileid, char *dirid, char *hardlink,
       goto bail_out;
    }
 
-   /* TODO: handle basejob and SQLite3 */
-   Mmsg(query, sql_bvfs_select[db_get_type_index(db)], output_table, output_table);
+   Mmsg(query, sql_bvfs_select[db_get_type_index(db)], 
+        output_table, output_table, output_table);
 
    /* TODO: handle jobid filter */
    Dmsg1(dbglevel_sql, "q=%s\n", query.c_str());
