@@ -8,7 +8,15 @@
 #  within the timeout period (900 seconds).
 #
 if [ -f bin/timelimit ] ; then
-   WARNTIME=900 KILLTIME=5 bin/timelimit $*
+   WARNTIME=900 KILLTIME=50 bin/timelimit $*
+   if [ $? .ne. 0 ] ; then
+      echo " "
+      echo "=== Test $* timed out ==="
+      echo " "
+      echo " " >>test.out
+      echo "=== Test $* timed out ===" >>test.out
+      echo " " >>test.out
+   fi
 else
    nice $*
 fi
