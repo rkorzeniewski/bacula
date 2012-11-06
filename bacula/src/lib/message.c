@@ -798,7 +798,7 @@ void dispatch_message(JCR *jcr, int type, utime_t mtime, char *msg)
           switch (d->dest_code) {
              case MD_CATALOG:
                 char ed1[50];
-                if (!jcr || !jcr->db) {
+                if (!jcr || !jcr->db || !jcr->db->is_connected()) {
                    break;
                 }
                 if (p_sql_query && p_sql_escape) {
@@ -806,7 +806,7 @@ void dispatch_message(JCR *jcr, int type, utime_t mtime, char *msg)
                    POOLMEM *esc_msg = get_pool_memory(PM_MESSAGE);
                    
                    int len = strlen(msg) + 1;
-                   esc_msg = check_pool_memory_size(esc_msg, len*2+1);
+                   esc_msg = check_pool_memory_size(esc_msg, len * 2 + 1);
                    p_sql_escape(jcr, jcr->db, esc_msg, msg, len);
 
                    bstrutime(dt, sizeof(dt), mtime);
