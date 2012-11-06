@@ -465,7 +465,8 @@ const char *create_temp_basefile[] = {
    /* Mysql */
    "CREATE TEMPORARY TABLE basefile%lld ("
    "Path BLOB NOT NULL,"
-   "Name BLOB NOT NULL)",
+   "Name BLOB NOT NULL,"
+   "INDEX (Path(255), Name(255)))",
 
    /* Postgresql */
    "CREATE TEMPORARY TABLE basefile%lld ("
