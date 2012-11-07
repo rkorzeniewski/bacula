@@ -219,7 +219,8 @@ CREATE TABLE media
     primary key (mediaid)
 );
 
-create unique index media_volumename_id on media (volumename);
+CREATE UNIQUE INDEX media_volumename_id ON Media (VolumeName);
+CREATE INDEX media_poolid_idx ON Media (PoolId);
 
  
 CREATE TABLE MediaType (
