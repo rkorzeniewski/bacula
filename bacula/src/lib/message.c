@@ -544,20 +544,39 @@ void close_msg(JCR *jcr)
             if (!d->fd) {
                break;
             }
-            if (
-                (d->dest_code == MD_MAIL_ON_ERROR && jcr &&
-                  (jcr->JobStatus == JS_Terminated || jcr->JobStatus == JS_Warnings)) 
-                ||
-                (d->dest_code == MD_MAIL_ON_SUCCESS && jcr &&
-                 jcr->JobStatus == JS_ErrorTerminated)
-                ) {
-               goto rem_temp_file;
+
+            switch (d->dest_code) {
+            case MD_MAIL_ON_ERROR:
+               if (jcr) {
+                  switch (jcr->JobStatus) {
+                  case JS_Terminated:
+                  case JS_Warnings:
+                     goto rem_temp_file;
+                  default:
+                     break;
+                  }
+               }
+               break;
+            case MD_MAIL_ON_SUCCESS:
+               if (jcr) {
+                  switch (jcr->JobStatus) {
+                  case JS_Terminated:
+                  case JS_Warnings:
+                     break;
+                  default:
+                     goto rem_temp_file;
+                  }
+               }
+               break;
+            default:
+               break;
             }
 
             if (!(bpipe=open_mail_pipe(jcr, cmd, d))) {
                Pmsg0(000, _("open mail pipe failed.\n"));
                goto rem_temp_file;
             }
+
             Dmsg0(850, "Opened mail pipe\n");
             len = d->max_len+10;
             line = get_memory(len);
