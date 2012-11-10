@@ -65,7 +65,6 @@ extern int job_setattr(PyObject *self, char *attrname, PyObject *value);
 /* Forward referenced subroutines */
 void terminate_dird(int sig);
 static bool check_resources();
-static void dir_sql_query(JCR *jcr, const char *cmd);
 static void cleanup_old_files();
   
 /* Exported subroutines */
@@ -117,6 +116,32 @@ static bool check_catalog(cat_op mode);
 
 #define CONFIG_FILE "bacula-dir.conf" /* default configuration file */
 
+/*
+ * This allows the message handler to operate on the database
+ *   by using a pointer to this function. The pointer is
+ *   needed because the other daemons do not have access
+ *   to the database.  If the pointer is
+ *   not defined (other daemons), then writing the database
+ *   is disabled.
+ */
+static bool dir_sql_query(JCR *jcr, const char *cmd)
+{
+   if (!jcr || !jcr->db || !jcr->db->is_connected()) {
+      return false;
+   }
+
+   return db_sql_query(jcr->db, cmd);
+}
+
+static bool dir_sql_escape(JCR *jcr, B_DB *mdb, char *snew, char *old, int len)
+{
+   if (!jcr || !jcr->db || !jcr->db->is_connected()) {
+      return false;
+   }
+
+   db_escape_string(jcr, mdb, snew, old, len);
+   return true;
+}
 
 static void usage()
 {
@@ -313,7 +338,7 @@ int main (int argc, char *argv[])
 
    /* Plug database interface for library routines */
    p_sql_query = (sql_query_func)dir_sql_query;
-   p_sql_escape = (sql_escape_func)db_escape_string;
+   p_sql_escape = (sql_escape_func)dir_sql_escape;
 
    FDConnectTimeout = (int)director->FDConnectTimeout;
    SDConnectTimeout = (int)director->SDConnectTimeout;
@@ -363,22 +388,6 @@ int main (int argc, char *argv[])
    terminate_dird(0);
 
    return 0;
-}
-
-/*
- * This allows the message handler to operate on the database
- *   by using a pointer to this function. The pointer is
- *   needed because the other daemons do not have access
- *   to the database.  If the pointer is
- *   not defined (other daemons), then writing the database
- *   is disabled. 
- */
-static void dir_sql_query(JCR *jcr, const char *cmd)
-{
-   if (!jcr || !jcr->db) {
-      return;
-   }
-   db_sql_query(jcr->db, cmd, NULL, NULL);
 }
 
 /* Cleanup and then exit */

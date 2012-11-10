@@ -148,8 +148,8 @@ bool get_trace(void);
 const char *get_basename(const char *pathname);
 
 class B_DB;
-typedef void (*sql_query_func)(JCR *jcr, const char *cmd);
-typedef void (*sql_escape_func)(JCR *jcr, B_DB* db, char *snew, char *old, int len);
+typedef bool (*sql_query_func)(JCR *jcr, const char *cmd);
+typedef bool (*sql_escape_func)(JCR *jcr, B_DB *db, char *snew, char *old, int len);
 
 extern DLL_IMP_EXP sql_query_func     p_sql_query;
 extern DLL_IMP_EXP sql_escape_func    p_sql_escape;

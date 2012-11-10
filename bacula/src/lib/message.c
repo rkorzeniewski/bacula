@@ -817,7 +817,7 @@ void dispatch_message(JCR *jcr, int type, utime_t mtime, char *msg)
           switch (d->dest_code) {
              case MD_CATALOG:
                 char ed1[50];
-                if (!jcr || !jcr->db || !jcr->db->is_connected()) {
+                if (!jcr || !jcr->db) {
                    break;
                 }
                 if (p_sql_query && p_sql_escape) {
@@ -826,12 +826,16 @@ void dispatch_message(JCR *jcr, int type, utime_t mtime, char *msg)
                    
                    int len = strlen(msg) + 1;
                    esc_msg = check_pool_memory_size(esc_msg, len * 2 + 1);
-                   p_sql_escape(jcr, jcr->db, esc_msg, msg, len);
-
-                   bstrutime(dt, sizeof(dt), mtime);
-                   Mmsg(cmd, "INSERT INTO Log (JobId, Time, LogText) VALUES (%s,'%s','%s')",
-                         edit_int64(jcr->JobId, ed1), dt, esc_msg);
-                   p_sql_query(jcr, cmd);
+                   if (p_sql_escape(jcr, jcr->db, esc_msg, msg, len)) {
+                      bstrutime(dt, sizeof(dt), mtime);
+                      Mmsg(cmd, "INSERT INTO Log (JobId, Time, LogText) VALUES (%s,'%s','%s')",
+                            edit_int64(jcr->JobId, ed1), dt, esc_msg);
+                      if (!p_sql_query(jcr, cmd)) {
+                         delivery_error(_("Msg delivery error: Unable to store data in database.\n"));
+                      }
+                   } else {
+                      delivery_error(_("Msg delivery error: Unable to store data in database.\n"));
+                   }
                    
                    free_pool_memory(cmd);
                    free_pool_memory(esc_msg);
