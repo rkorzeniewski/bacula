@@ -147,10 +147,12 @@ static bool get_user_slot_list(UAContext *ua, char *slot_list, int num_slots)
          slot_list[i] = 1;
       }
    }
-   Dmsg0(100, "Slots turned on:\n");
-   for (i=1; i <= num_slots; i++) {
-      if (slot_list[i]) {
-         Dmsg1(100, "%d\n", i);
+   if (debug_level >= 100) {
+      Dmsg0(100, "Slots turned on:\n");
+      for (i=1; i <= num_slots; i++) {
+         if (slot_list[i]) {
+            Dmsg1(100, "%d\n", i);
+         }
       }
    }
    return true;
