@@ -129,7 +129,9 @@ int prunecmd(UAContext *ua, const char *cmd)
 
    switch (kw) {
    case 0:  /* prune files */
-      client = get_client_resource(ua);
+      if (!(client = get_client_resource(ua))) {
+         return false;
+      }
       if (find_arg_with_value(ua, "pool") >= 0) {
          pool = get_pool_resource(ua);
       } else {
@@ -140,13 +142,15 @@ int prunecmd(UAContext *ua, const char *cmd)
          if (!confirm_retention(ua, &pool->FileRetention, "File")) {
             return false;
          }
-      } else if (!client || !confirm_retention(ua, &client->FileRetention, "File")) {
+      } else if (!confirm_retention(ua, &client->FileRetention, "File")) {
          return false;
       }
       prune_files(ua, client, pool);
       return true;
    case 1:  /* prune jobs */
-      client = get_client_resource(ua);
+      if (!(client = get_client_resource(ua))) {
+         return false;
+      }
       if (find_arg_with_value(ua, "pool") >= 0) {
          pool = get_pool_resource(ua);
       } else {
@@ -157,7 +161,7 @@ int prunecmd(UAContext *ua, const char *cmd)
          if (!confirm_retention(ua, &pool->JobRetention, "Job")) {
             return false;
          }
-      } else if (!client || !confirm_retention(ua, &client->JobRetention, "Job")) {
+      } else if (!confirm_retention(ua, &client->JobRetention, "Job")) {
          return false;
       }
       /* ****FIXME**** allow user to select JobType */
