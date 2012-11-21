@@ -255,7 +255,6 @@ void lex_unget_char(LEX *lf)
    } else {
       lf->col_no--;                   /* Backup to re-read char */
    }
-
 }
 
 
@@ -587,6 +586,13 @@ lex_get_token(LEX *lf, int expect)
          }
          if (ch == '"') {
             token = T_QUOTED_STRING;
+            /*
+             * Since we may be scanning a quoted list of names,
+             *  we get the next character (a comma indicates another
+             *  one), then we put it back for rescanning.
+             */
+            lex_get_char(lf);
+            lex_unget_char(lf);
             lf->state = lex_none;
             break;
          }
