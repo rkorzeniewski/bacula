@@ -56,7 +56,7 @@ bool acl_access_ok(UAContext *ua, int acl, const char *item, int len)
    }
 
    /* If no console resource => default console and all is permitted */
-   if (!ua->cons) {
+   if (!ua || !ua->cons) {
       Dmsg0(1400, "Root cons access OK.\n");
       return true;                    /* No cons resource -> root console OK for everything */
    }
