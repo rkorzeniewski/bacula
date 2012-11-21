@@ -690,6 +690,57 @@ char *bfgets(char *s, int size, FILE *fd)
 }
 
 /*
+ * Bacula's implementation of fgets(). The difference is that it handles
+ *   being interrupted by a signal (e.g. a SIGCHLD) and it has a
+ *   different calling sequence which implements input lines of
+ *   up to a million characters.
+ */
+char *bfgets(POOLMEM *&s, FILE *fd)
+{
+   int ch;
+   int soft_max;
+   int i = 0;
+
+   s[0] = 0;
+   soft_max = sizeof_pool_memory(s) - 10;
+   for ( ;; ) {
+      do {
+         errno = 0;
+         ch = fgetc(fd);
+      } while (ch == EOF && ferror(fd) && (errno == EINTR || errno == EAGAIN));
+      if (ch == EOF) {
+         if (i == 0) {
+            return NULL;
+         } else {
+            return s;
+         }
+      }
+      if (i > soft_max) {
+         /* Insanity check */
+         if (soft_max > 1000000) {
+            return s;
+         }
+         s = check_pool_memory_size(s, soft_max+10000);
+         soft_max = sizeof_pool_memory(s) - 10;
+      }
+      s[i++] = ch;
+      s[i] = 0;
+      if (ch == '\r') { /* Support for Mac/Windows file format */
+         ch = fgetc(fd);
+         if (ch != '\n') { /* Mac (\r only) */
+            (void)ungetc(ch, fd); /* Push next character back to fd */
+         }
+         s[i-1] = '\n';
+         break;
+      }
+      if (ch == '\n') {
+         break;
+      }
+   }
+   return s;
+}
+
+/*
  * Make a "unique" filename.  It is important that if
  *   called again with the same "what" that the result
  *   will be identical. This allows us to use the file

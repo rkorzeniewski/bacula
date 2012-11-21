@@ -139,6 +139,8 @@ LEX *lex_close_file(LEX *lf)
    }
    Dmsg1(dbglvl, "Close cfg file %s\n", lf->fname);
    free(lf->fname);
+   free_memory(lf->line);
+   lf->line = NULL;
    if (of) {
       of->options = lf->options;      /* preserve options */
       memcpy(lf, of, sizeof(LEX));
@@ -169,7 +171,6 @@ LEX *lex_open_file(LEX *lf, const char *filename, LEX_ERROR_HANDLER *scan_error)
    FILE *fd;
    BPIPE *bpipe = NULL;
    char *fname = bstrdup(filename);
-
 
    if (fname[0] == '|') {
       if ((bpipe = open_bpipe(fname+1, 0, "rb")) == NULL) {
@@ -206,6 +207,7 @@ LEX *lex_open_file(LEX *lf, const char *filename, LEX_ERROR_HANDLER *scan_error)
    lf->fd = fd;
    lf->bpipe = bpipe;
    lf->fname = fname;
+   lf->line = get_memory(5000);
    lf->state = lex_none;
    lf->ch = L_EOL;
    Dmsg1(dbglvl, "Return lex=%x\n", lf);
@@ -225,7 +227,7 @@ int lex_get_char(LEX *lf)
          " You may have a open double quote without the closing double quote.\n"));
    }
    if (lf->ch == L_EOL) {
-      if (bfgets(lf->line, MAXSTRING, lf->fd) == NULL) {
+      if (bfgets(lf->line, lf->fd) == NULL) {
          lf->ch = L_EOF;
          if (lf->next) {
             lex_close_file(lf);

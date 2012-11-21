@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2012 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -31,8 +31,6 @@
  *    Lexical scanning of configuration files, used by parsers.
  *
  *   Kern Sibbald, MM
- *
- *   Version $Id$
  *
  */
 
@@ -106,7 +104,7 @@ typedef struct s_lex_context {
    int options;                       /* scan options */
    char *fname;                       /* filename */
    FILE *fd;                          /* file descriptor */
-   char line[MAXSTRING];              /* input line */
+   POOLMEM *line;                     /* input line */
    char str[MAXSTRING];               /* string being scanned */
    int str_len;                       /* length of string */
    int line_no;                       /* file line number */
