@@ -403,6 +403,9 @@ static int job_select_handler(void *ctx, int num_fields, char **row)
    struct accurate_check_ctx *res;
    ASSERT(num_fields == 6);
 
+   /* Quick fix for #5507, avoid locking res_head after db_lock() */
+
+#ifdef bug5507
    /* If this job doesn't exist anymore in the configuration, delete it */
    if (GetResWithName(R_JOB, row[0]) == NULL) {
       return 0;
@@ -417,6 +420,7 @@ static int job_select_handler(void *ctx, int num_fields, char **row)
    if (GetResWithName(R_CLIENT, row[2]) == NULL) {
       return 0;
    }
+#endif
 
    /* Don't compute accurate things for Verify jobs */
    if (*row[5] == 'V') {
@@ -526,7 +530,7 @@ int prune_jobs(UAContext *ua, CLIENT *client, POOL *pool, int JobType)
 
    /* The job_select_handler will skip jobs or filesets that are no longer
     * in the configuration file. Interesting ClientId/FileSetId will be
-    * added to jobids_check
+    * added to jobids_check (currently disabled in 6.0.7b)
     */
    if (!db_sql_query(ua->db, query.c_str(), job_select_handler, jobids_check)) {
       ua->error_msg("%s", db_strerror(ua->db));
