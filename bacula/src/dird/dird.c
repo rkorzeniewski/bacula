@@ -564,7 +564,7 @@ void reload_config(int sig)
          Jmsg(NULL, M_ERROR, 0, _("Resetting previous configuration.\n"));
       }
       reload_table[rtable].res_table = config->save_resources();
-      /* Now restore old resoure values */
+      /* Now restore old resource values */
       int num = r_last - r_first + 1;
       RES **res_tab = reload_table[table].res_table;
       for (int i=0; i<num; i++) {
