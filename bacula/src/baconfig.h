@@ -58,7 +58,7 @@
 #define ioctl_req_t int
 #endif
 
-#define MANUAL_AUTH_URL "http://www.bacula.org/en/rel-manual/Bacula_Freque_Asked_Questi.html#SECTION003760000000000000000"
+#define MANUAL_AUTH_URL "http://www.bacula.org/en/rel-manual/Bacula_Freque_Asked_Questi.html#SECTION00260000000000000000"
 
 #ifdef PROTOTYPES
 # define __PROTO(p)     p
