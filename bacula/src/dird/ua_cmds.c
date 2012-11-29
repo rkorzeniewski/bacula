@@ -1420,7 +1420,7 @@ static int delete_cmd(UAContext *ua, const char *cmd)
       return 1;
    case 2:
       int i;
-      while ((i=find_arg(ua, "jobid")) > 0) {
+      while ((i = find_arg(ua, "jobid")) > 0) {
          delete_job(ua);
          *ua->argk[i] = 0;         /* zap keyword already visited */
       }
@@ -1450,52 +1450,66 @@ static int delete_cmd(UAContext *ua, const char *cmd)
    return 1;
 }
 
-
 /*
- * delete_job has been modified to parse JobID lists like the
- * following:
+ * delete_job has been modified to parse JobID lists like the following:
  * delete JobID=3,4,6,7-11,14
  *
  * Thanks to Phil Stracchino for the above addition.
  */
-
 static void delete_job(UAContext *ua)
 {
+   int i;
    JobId_t JobId;
-   char *s,*sep,*tok;
+   char *s, *sep, *tok;
 
-   int i = find_arg_with_value(ua, NT_("jobid"));
+   i = find_arg_with_value(ua, NT_("jobid"));
    if (i >= 0) {
-      if (strchr(ua->argv[i], ',') != NULL || strchr(ua->argv[i], '-') != NULL) {
-        s = bstrdup(ua->argv[i]);
-        tok = s;
-        /*
-         * We could use strtok() here.  But we're not going to, because:
-         * (a) strtok() is deprecated, having been replaced by strsep();
-         * (b) strtok() is broken in significant ways.
-         * we could use strsep() instead, but it's not universally available.
-         * so we grow our own using strchr().
-         */
-        sep = strchr(tok, ',');
-        while (sep != NULL) {
-           *sep = '\0';
-           if (!delete_job_id_range(ua, tok)) {
-              JobId = str_to_int64(tok);
-              do_job_delete(ua, JobId);
-           }
-           tok = ++sep;
-           sep = strchr(tok, ',');
-        }
-        /* pick up the last token */
-        if (!delete_job_id_range(ua, tok)) {
-            JobId = str_to_int64(tok);
-            do_job_delete(ua, JobId);
-        }
+      if (strchr(ua->argv[i], ',') || strchr(ua->argv[i], '-')) {
+         s = bstrdup(ua->argv[i]);
+         tok = s;
+
+         /*
+          * We could use strtok() here.  But we're not going to, because:
+          * (a) strtok() is deprecated, having been replaced by strsep();
+          * (b) strtok() is broken in significant ways.
+          * we could use strsep() instead, but it's not universally available.
+          * so we grow our own using strchr().
+          */
+         sep = strchr(tok, ',');
+         while (sep != NULL) {
+            *sep = '\0';
+            if (!delete_job_id_range(ua, tok)) {
+               if (is_a_number(tok)) {
+                  JobId = (JobId_t)str_to_uint64(tok);
+                  do_job_delete(ua, JobId);
+               } else {
+                  ua->warning_msg(_("Illegal JobId %s ignored\n"), tok);
+               }
+            }
+            tok = ++sep;
+            sep = strchr(tok, ',');
+         }
+
+         /*
+          * Pick up the last token
+          */
+         if (!delete_job_id_range(ua, tok)) {
+            if (is_a_number(tok)) {
+               JobId = (JobId_t)str_to_uint64(tok);
+               do_job_delete(ua, JobId);
+            } else {
+               ua->warning_msg(_("Illegal JobId %s ignored\n"), tok);
+            }
+         }
 
          free(s);
       } else {
-         JobId = str_to_int64(ua->argv[i]);
-        do_job_delete(ua, JobId);
+         if (is_a_number(ua->argv[i])) {
+            JobId = (JobId_t)str_to_uint64(ua->argv[i]);
+            do_job_delete(ua, JobId);
+         } else {
+            ua->warning_msg(_("Illegal JobId %s ignored\n"), ua->argv[i]);
+         }
       }
    } else if (!get_pint(ua, _("Enter JobId to delete: "))) {
       return;
@@ -1506,24 +1520,50 @@ static void delete_job(UAContext *ua)
 }
 
 /*
- * we call delete_job_id_range to parse range tokens and iterate over ranges
+ * We call delete_job_id_range to parse range tokens and iterate over ranges
  */
 static bool delete_job_id_range(UAContext *ua, char *tok)
 {
+   char buf[64];
    char *tok2;
-   JobId_t j,j1,j2;
+   JobId_t j, j1, j2;
 
    tok2 = strchr(tok, '-');
    if (!tok2) {
       return false;
    }
+
    *tok2 = '\0';
    tok2++;
-   j1 = str_to_int64(tok);
-   j2 = str_to_int64(tok2);
-   for (j=j1; j<=j2; j++) {
-      do_job_delete(ua, j);
+
+   if (is_a_number(tok) && is_a_number(tok2)) {
+      j1 = (JobId_t)str_to_uint64(tok);
+      j2 = (JobId_t)str_to_uint64(tok2);
+
+      if (j1 > j2) {
+         /*
+          * See if the range is big if more then 25 Jobs are deleted
+          * ask the user for confirmation.
+          */
+         if ((j2 - j1) > 25) {
+            bsnprintf(buf, sizeof(buf),
+                      _("Are you sure you want to delete %d JobIds ? (yes/no): "),
+                      j2 - j1);
+            if (!get_yesno(ua, buf)) {
+               return true;
+            }
+         }
+         for (j = j1; j <= j2; j++) {
+            do_job_delete(ua, j);
+         }
+      } else {
+         ua->warning_msg(_("Illegal JobId range %s - %s should define increasing JobIds, ignored\n"),
+                         tok, tok2);
+      }
+   } else {
+      ua->warning_msg(_("Illegal JobId range %s - %s, ignored\n"), tok, tok2);
    }
+
    return true;
 }
 
@@ -1536,7 +1576,7 @@ static void do_job_delete(UAContext *ua, JobId_t JobId)
 
    edit_int64(JobId, ed1);
    purge_jobs_from_catalog(ua, ed1);
-   ua->send_msg(_("Job %s and associated records deleted from the catalog.\n"), ed1);
+   ua->send_msg(_("Jobid %s and associated records deleted from the catalog.\n"), ed1);
 }
 
 /*
