@@ -1139,13 +1139,15 @@ p_msg(const char *file, int line, int level, const char *fmt,...)
 
 #ifdef FULL_LOCATION
     if (level >= 0) {
-       len = bsnprintf(buf, sizeof(buf), "%s: %s:%d ", my_name, get_basename(file), line);
+       len = bsnprintf(buf, sizeof(buf), "%s: %s:%d-%u ", 
+             my_name, get_basename(file), line, get_jobid_from_tsd());
     } else {
        len = 0;
     }
 #else
-    len = 0;
+       len = 0;
 #endif
+
     va_start(arg_ptr, fmt);
     bvsnprintf(buf+len, sizeof(buf)-len, (char *)fmt, arg_ptr);
     va_end(arg_ptr);
