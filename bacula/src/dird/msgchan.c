@@ -269,6 +269,9 @@ bool start_storage_daemon_job(JCR *jcr, alist *rstore, alist *wstore, bool send_
       } else {
          ok = false;
       }
+      if (ok) {
+         Jmsg(jcr, M_INFO, 0, _("Using Device \"%s\" to read.\n"), device_name.c_str());
+      }
    }
 
    /* Do write side of storage daemon */
@@ -304,6 +307,9 @@ bool start_storage_daemon_job(JCR *jcr, alist *rstore, alist *wstore, bool send_
       } else {
          ok = false;
       }
+      if (ok) {
+         Jmsg(jcr, M_INFO, 0, _("Using Device \"%s\" to write.\n"), device_name.c_str());
+      }
    }
    if (!ok) {
       POOL_MEM err_msg;
@@ -317,8 +323,6 @@ bool start_storage_daemon_job(JCR *jcr, alist *rstore, alist *wstore, bool send_
               "     Storage daemon didn't accept Device \"%s\" command.\n"), 
               device_name.c_str());
       }
-   } else {
-      Jmsg(jcr, M_INFO, 0, _("Using Device \"%s\"\n"), device_name.c_str());
    }
    return ok;
 }
