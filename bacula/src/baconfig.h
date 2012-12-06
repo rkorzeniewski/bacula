@@ -415,6 +415,8 @@ void b_memset(const char *file, int line, void *mem, int val, size_t num);
 #define Jmsg4(jcr, typ, lvl, msg, a1, a2, a3, a4) j_msg(__FILE__, __LINE__, jcr, typ, lvl, msg, a1, a2, a3, a4)
 #define Jmsg5(jcr, typ, lvl, msg, a1, a2, a3, a4, a5) j_msg(__FILE__, __LINE__, jcr, typ, lvl, msg, a1, a2, a3, a4, a5)
 #define Jmsg6(jcr, typ, lvl, msg, a1, a2, a3, a4, a5, a6) j_msg(__FILE__, __LINE__, jcr, typ, lvl, msg, a1, a2, a3, a4, a5, a6)
+#define Jmsg7(jcr, typ, lvl, msg, a1, a2, a3, a4, a5, a6, a7) j_msg(__FILE__, __LINE__, jcr, typ, lvl, msg, a1, a2, a3, a4, a5, a6, a7)
+#define Jmsg8(jcr, typ, lvl, msg, a1, a2, a3, a4, a5, a6, a7, a8) j_msg(__FILE__, __LINE__, jcr, typ, lvl, msg, a1, a2, a3, a4, a5, a6, a7, a8)
 
 /** Queued Job Error Messages that are delivered according to the message resource */
 #define Qmsg0(jcr, typ, lvl, msg)             q_msg(__FILE__, __LINE__, jcr, typ, lvl, msg)
