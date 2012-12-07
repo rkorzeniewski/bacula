@@ -619,13 +619,13 @@ bool dir_ask_sysop_to_mount_volume(DCR *dcr, int mode)
       if (!dev->poll && (stat == W_TIMEOUT || stat == W_MOUNT)) {
          char *msg;
          if (mode == ST_APPEND) {
-            msg = _("Please mount Volume \"%s\" or label a new one for:\n"
+            msg = _("Please mount append Volume \"%s\" or label a new one for:\n"
               "    Job:          %s\n"
               "    Storage:      %s\n"
               "    Pool:         %s\n"
               "    Media type:   %s\n");
          } else {
-            msg = _("Please mount Volume \"%s\" for:\n"
+            msg = _("Please mount read Volume \"%s\" for:\n"
               "    Job:          %s\n"
               "    Storage:      %s\n"
               "    Pool:         %s\n"
