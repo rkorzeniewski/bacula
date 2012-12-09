@@ -94,6 +94,13 @@ libtool: Makefile $(LIBTOOL_DEPS)
 installdirs:
 	$(MKDIR) $(DESTDIR)$(sbindir)
 	$(MKDIR) $(DESTDIR)$(sysconfdir)
+	chmod 760 $(DESTDIR)$(sysconfdir)
+	-if test "x$(dir_user)" != "x" ; then \
+	   chown $(dir_user) $(DESTDIR)$(sysconfdir); \
+	fi
+	-if test "x$(dir_group)" != "x" ; then \
+	   chgrp $(dir_group) $(DESTDIR)$(sysconfdir); \
+	fi
 	$(MKDIR) $(DESTDIR)$(scriptdir)
 	$(MKDIR) $(DESTDIR)$(docdir)
 	$(MKDIR) $(DESTDIR)$(archivedir)
