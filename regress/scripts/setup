@@ -40,6 +40,12 @@ scripts/create_sed
 echo "s%File = @sbindir@%File = @BUILD_DIR@%g" >tmp/t$$
 sed -f tmp/t$$ build/src/dird/bacula-dir.conf.in >tmp/o$$
 cp tmp/o$$ build/src/dird/bacula-dir.conf.in
+
+# Now turn on DEVELOPER for regression testing
+echo "s%^.*define DEVELOPER 1.*$%#define DEVELOPER 1%g" >tmp/t$$
+sed -f tmp/t$$ build/src/version.h >tmp/o$$
+cp tmp/o$$ build/src/version.h
+
 rm -f tmp/t$$ tmp/o$$
 # remove unneeded directories
 rm -rf build/txt build/src/testprogs
