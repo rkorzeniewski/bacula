@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 1981-2010 Free Software Foundation Europe e.V.
+   Copyright (C) 1981-2012 Free Software Foundation Europe e.V.
              Yes, that is 1981 no error.
 
    The main author of Bacula is Kern Sibbald, with contributions from
@@ -54,12 +54,15 @@
 #include <signal.h>
 #include <string.h>
 #include <ctype.h>
+#define HAVE_CONIO 1
 #else
 
 /* We are in Bacula */
 #include "bacula.h"
 
 #endif
+
+#ifdef HAVE_CONIO
 
 #include <curses.h>
 #include <term.h>
@@ -69,8 +72,10 @@
 extern "C" int tgetent(void *, const char *);
 extern "C" int tgetnum(const char *);
 extern "C" char *tgetstr (const char*, char**);
-#endif
+# Note: the following on older (Solaris 10) systems 
+#  may need to be moved to after the #endif
 extern "C" char *tgoto (const char *, int, int);
+#endif
 #elif defined(__sgi)
 extern "C" int tgetent(char *, char *);
 extern "C" int tgetnum(char id[2]);
@@ -1189,3 +1194,5 @@ static void asdell()
 {
    t_send(t_dl);
 }
+
+#endif
