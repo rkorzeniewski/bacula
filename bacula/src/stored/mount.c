@@ -863,11 +863,11 @@ bool mount_next_read_volume(DCR *dcr)
     * End Of Tape -- mount next Volume (if another specified)
     */
    if (jcr->NumReadVolumes > 1 && jcr->CurReadVolume < jcr->NumReadVolumes) {
-      dev->Lock();
+      dev->dlock();
       dev->close();
       dev->set_read();
       dcr->set_reserved();
-      dev->Unlock();
+      dev->dunlock();
       if (!acquire_device_for_read(dcr)) {
          Jmsg2(jcr, M_FATAL, 0, _("Cannot open Dev=%s, Vol=%s\n"), dev->print_name(),
                dcr->VolumeName);

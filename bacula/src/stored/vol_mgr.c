@@ -443,10 +443,9 @@ VOLRES *reserve_volume(DCR *dcr, const char *VolumeName)
             vol->dev = dev;              /* point the Volume at our drive */
             dev->vol = vol;              /* point our drive at the Volume */
          } else {
-            Jmsg8(jcr, M_WARNING, 0, "Need volume for %s from other drive, "
+            Jmsg7(dcr->jcr, M_WARNING, 0, "Need volume from other drive, "
                "but swap not possible. Status: read=%d num_writers=%d "
                "num_reserve=%d swap=%d vol=%s from dev=%s to %s\n", 
-               dcr->is_write_acquire()?"write":"read",
                vol->dev->can_read(), vol->dev->num_writers,
                vol->dev->num_reserved(), vol->is_swapping(),
                VolumeName, vol->dev->print_name(), dev->print_name());
