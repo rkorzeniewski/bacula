@@ -23486,7 +23486,7 @@ if test "$ac_res" != no; then :
 fi
 
 
-working_dir=`eval echo ${prefix}/var/bacula/working`
+working_dir=`eval echo ${prefix}/opt/bacula/working`
 
 # Check whether --with-working-dir was given.
 if test "${with_working_dir+set}" = set; then :
@@ -23570,7 +23570,7 @@ fi
 
 
 
-bsrdir=`eval echo ${prefix}/var/bacula/working`
+bsrdir=`eval echo ${prefix}/opt/bacula/bsr`
 
 # Check whether --with-bsrdir was given.
 if test "${with_bsrdir+set}" = set; then :
@@ -23585,7 +23585,7 @@ fi
 
 
 
-logdir=`eval echo ${prefix}/var/bacula/working`
+logdir=`eval echo ${prefix}/opt/bacula/log`
 
 # Check whether --with-logdir was given.
 if test "${with_logdir+set}" = set; then :
