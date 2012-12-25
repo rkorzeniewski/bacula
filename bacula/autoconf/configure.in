@@ -1216,7 +1216,7 @@ AC_SEARCH_LIBS(dlopen, [dl])
 dnl ------------------------------------------
 dnl Where to place working dir
 dnl ------------------------------------------
-working_dir=`eval echo ${prefix}/var/bacula/working`
+working_dir=`eval echo ${prefix}/opt/bacula/working`
 AC_ARG_WITH(working-dir,
    AC_HELP_STRING([--with-working-dir=PATH], [specify path of Bacula working directory]),
    [
@@ -1301,7 +1301,7 @@ AC_SUBST(scriptdir)
 dnl ------------------------------------------
 dnl Where to place bsrdir (bsr files)
 dnl ------------------------------------------
-bsrdir=`eval echo ${prefix}/var/bacula/working`
+bsrdir=`eval echo ${prefix}/opt/bacula/bsr`
 AC_ARG_WITH(bsrdir,
    AC_HELP_STRING([--with-bsrdir=PATH], [specify path of Bacula bsrs directory]),
    [
@@ -1316,7 +1316,7 @@ AC_SUBST(bsrdir)
 dnl ------------------------------------------
 dnl Where to place logdir (bsr files)
 dnl ------------------------------------------
-logdir=`eval echo ${prefix}/var/bacula/working`
+logdir=`eval echo ${prefix}/opt/bacula/log`
 AC_ARG_WITH(logdir,
    AC_HELP_STRING([--with-logdir=PATH], [specify path of Bacula logs directory]),
    [
