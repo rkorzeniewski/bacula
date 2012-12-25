@@ -475,13 +475,18 @@ bool write_block_to_spool_file(DCR *dcr)
    }
    V(mutex);
    if (despool) {
-      char ec1[30], ec2[30], ec3[30], ec4[30];
-      Jmsg(dcr->jcr, M_INFO, 0, _("User specified spool size reached: "
-         "JobSpoolSize=%s MaxJobSpool=%s DevSpoolSize=%s MaxDevSpool=%s\n"),
-         edit_uint64_with_commas(dcr->job_spool_size, ec1),
-         edit_uint64_with_commas(dcr->max_job_spool_size, ec2),
-         edit_uint64_with_commas(dcr->dev->spool_size, ec3),
-         edit_uint64_with_commas(dcr->dev->max_spool_size, ec4));
+      char ec1[30], ec2[30];
+      if (dcr->max_job_spool_size > 0) {
+         Jmsg(dcr->jcr, M_INFO, 0, _("User specified Job spool size reached: "
+            "JobSpoolSize=%s MaxJobSpoolSize=%s\n"),
+            edit_uint64_with_commas(dcr->job_spool_size, ec1),
+            edit_uint64_with_commas(dcr->max_job_spool_size, ec2));
+      } else {
+         Jmsg(dcr->jcr, M_INFO, 0, _("User specified Device spool size reached: "
+            "DevSpoolSize=%s MaxDevSpoolSize=%s\n"),
+            edit_uint64_with_commas(dcr->dev->spool_size, ec1),
+            edit_uint64_with_commas(dcr->dev->max_spool_size, ec2));
+      }
 
       if (!despool_data(dcr, false)) {
          Pmsg0(000, _("Bad return from despool in write_block.\n"));
