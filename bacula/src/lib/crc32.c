@@ -70,6 +70,12 @@ main()
 
 #include "bacula.h"
 
+#ifdef HAVE_DARWIN_OS
+#if !defined(HAVE_LITTLE_ENDIAN) && !defined(HAVE_BIG_ENDIAN)
+#define HAVE_LITTLE_ENDIAN
+#endif
+#endif
+
 #if !defined(HAVE_LITTLE_ENDIAN) && !defined(HAVE_BIG_ENDIAN)
 #error Either HAVE_LITTLE_ENDIAN or HAVE_BIG_ENDIAN must be defined!
 #endif

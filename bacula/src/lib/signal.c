@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2011 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2012 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -133,6 +133,7 @@ static void dbg_print_bacula()
 extern "C" void signal_handler(int sig)
 {
    static int already_dead = 0;
+   int chld_status=-1;
 
    /* If we come back more than once, get out fast! */
    if (already_dead) {
@@ -193,6 +194,13 @@ extern "C" void signal_handler(int sig)
          strcpy((char *)working_directory, "/tmp/");
       }
       unlink("./core");               /* get rid of any old core file */
+
+#ifdef DEVELOPER /* When DEVELOPER not set, this is done below */
+      /* print information about the current state into working/<file>.bactrace */
+      dbg_print_bacula();
+#endif
+
+
       sprintf(pid_buf, "%d", (int)main_pid);
       Dmsg1(300, "Working=%s\n", working_directory);
       Dmsg1(300, "btpath=%s\n", btpath);
@@ -226,13 +234,18 @@ extern "C" void signal_handler(int sig)
       sigaction(sig,  &sigdefault, NULL);
       if (pid > 0) {
          Dmsg0(500, "Doing waitpid\n");
-         waitpid(pid, NULL, 0);       /* wait for child to produce dump */
+         waitpid(pid, &chld_status, 0);   /* wait for child to produce dump */
          Dmsg0(500, "Done waitpid\n");
       } else {
          Dmsg0(500, "Doing sleep\n");
          bmicrosleep(30, 0);
       }
-      fprintf(stderr, _("It looks like the traceback worked ...\n"));
+      if (WEXITSTATUS(chld_status) == 0) {
+         fprintf(stderr, _("It looks like the traceback worked...\n"));
+      } else {
+         fprintf(stderr, _("The btraceback call returned %d\n"), 
+                           WEXITSTATUS(chld_status));
+      }
       /* If we want it printed, do so */
 #ifdef direct_print
       if (prt_kaboom) {
@@ -256,8 +269,12 @@ extern "C" void signal_handler(int sig)
          fprintf(stderr, " ==== End traceback output ====\n\n");
       }
 #endif
+
+#ifndef DEVELOPER /* When DEVELOPER set, this is done above */
       /* print information about the current state into working/<file>.bactrace */
       dbg_print_bacula();
+#endif
+
    }
 #endif
    exit_handler(sig);
