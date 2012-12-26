@@ -7,7 +7,6 @@ echo " " >>test.out
 echo "Start non-root disk tests"
 echo "Start non-root disk tests" >>test.out
 rm -f dumps/*
-<<<<<<< HEAD
 ./run tests/acl-xattr-test
 ./run tests/action-on-purge-test
 ./run tests/allowcompress-test
@@ -63,7 +62,7 @@ rm -f dumps/*
 ./run tests/restore2-by-file-test
 ./run tests/restore-by-file-test
 ./run tests/restore-disk-seek-test
-./run tests/./runscript-test
+./run tests/runscript-test
 ./run tests/source-addr-test
 ./run tests/stats-test
 ./run tests/six-vol-test
