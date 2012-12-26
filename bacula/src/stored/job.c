@@ -97,7 +97,7 @@ bool job_cmd(JCR *jcr)
       return false;
    }
    jcr->rerunning = (rerunning) ? true : false;
-   Dmsg3(100, "==== rerunning=%d VolSesId=%d VolSesTime=%d\n", jcr->rerunning,
+   Dmsg3(100, "rerunning=%d VolSesId=%d VolSesTime=%d\n", jcr->rerunning,
          jcr->VolSessionId, jcr->VolSessionTime);
    /*
     * Since this job could be rescheduled, we
