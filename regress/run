@@ -9,7 +9,7 @@
 #
 if [ -f bin/timelimit ] ; then
    WARNTIME=900 KILLTIME=50 bin/timelimit $*
-   if [ $? .ne. 0 ] ; then
+   if [ $? != 0 ] ; then
       echo " "
       echo "=== Test $* timed out ==="
       echo " "
@@ -20,3 +20,6 @@ if [ -f bin/timelimit ] ; then
 else
    nice $*
 fi
+#echo " "
+#echo " "
+#grep -e" \!\!\!\!" -e"===\ Test" test.out
