@@ -68,7 +68,6 @@ rm -f dumps/*
 ./run tests/six-vol-test
 ./run tests/span-vol-test
 ./run tests/maxbytes-test
-./run tests/maxbw-test
 ./run tests/maxtime-test
 ./run tests/maxuseduration-test
 ./run tests/maxvol-test
