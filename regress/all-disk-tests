@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# ./run all tests
+# Run all tests
 #
 echo " "
 echo " " >>test.out
@@ -41,24 +41,15 @@ rm -f dumps/*
 ./run tests/regexwhere-test
 # The following two can uses *lots* of disk space
 #   so they are normally turned off, but if you have
-#   at least two GB free, you can ./run them
+#   at least two GB free, you can run them
 #./run tests/sparse-encrypt-test
 #./run tests/gigaslam-sparse-test
-#./run tests/delta-big-test
-#./run tests/delta3-test
 ./run tests/differential-test
 ./run tests/four-concurrent-jobs-test
 ./run tests/four-jobs-test
 ./run tests/incremental-test
-./run tests/opt-plugin-test
-./run tests/delta2-test
-./run tests/delta-options-test
 ./run tests/query-test
 ./run tests/recycle-test
-./run tests/restart-job-test
-./run tests/restart2-job-test
-./run tests/restart2-base-job-test
-./run tests/restart-accurate-job-test
 ./run tests/restore2-by-file-test
 ./run tests/restore-by-file-test
 ./run tests/restore-disk-seek-test
@@ -78,7 +69,6 @@ rm -f dumps/*
 ./run tests/sparse-lzo-test
 ./run tests/sparse-test
 ./run tests/strip-test
-./run tests/sqlite-test
 ./run tests/two-jobs-test
 ./run tests/two-vol-test
 ./run tests/verify-cat-test
@@ -92,9 +82,8 @@ rm -f dumps/*
 ./run tests/migration-volume-test
 ./run tests/migration-time-test
 ./run tests/multi-storage-test
-# prune-test does not work for now
+# Disabled because certain pruning turned off
 #./run tests/prune-test
-./run tests/prune-pool-test
 ./run tests/prune-config-test
 ./run tests/prune-migration-test
 ./run tests/prune-copy-test
