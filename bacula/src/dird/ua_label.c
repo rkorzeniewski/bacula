@@ -415,7 +415,10 @@ checkName:
          continue;
       }
 
+      /* Search by Media name so set VolumeName and clear MediaId. */
+      mr.MediaId = 0;
       bstrncpy(mr.VolumeName, ua->cmd, sizeof(mr.VolumeName));
+
       /* If VolBytes are zero the Volume is not labeled */
       if (db_get_media_record(ua->jcr, ua->db, &mr)) {
          if (mr.VolBytes != 0) {
