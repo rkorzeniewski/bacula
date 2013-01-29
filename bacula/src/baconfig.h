@@ -72,8 +72,16 @@
    Emsg1(M_ERROR, 0, _("Failed ASSERT: %s\n"), #x); \
    Pmsg1(000, _("Failed ASSERT: %s\n"), #x); \
    jcr[0] = 0; }
+
+#define ASSERT2(x,y) if (!(x)) { \
+   assert_msg =  y; \
+   Emsg1(M_ERROR, 0, _("Failed ASSERT: %s\n"), #x); \
+   Pmsg1(000, _("Failed ASSERT: %s\n"), #x); \
+   char *jcr = NULL; \
+   jcr[0] = 0; }
 #else
 #define ASSERT(x)
+#define ASSERT2(x, y)
 #endif
 
 /* Allow printing of NULL pointers */
@@ -638,5 +646,16 @@ int getdomainname(char *name, int len);
 
 /** Determine endianes */
 static inline bool bigendian() { return htonl(1) == 1L; }
+
+#ifndef __GNUC__
+#define __PRETTY_FUNCTION__ __func__
+#endif
+#ifdef ENTER_LEAVE
+#define Enter(lvl) Dmsg1(lvl, "Enter: %s\n", __PRETTY_FUNCTION__)
+#define Leave(lvl) Dmsg1(lvl, "Leave: %s\n", __PRETTY_FUNCTION__)
+#else
+#define Enter(lvl)
+#define Leave(lvl)
+#endif
 
 #endif /* _BACONFIG_H */

@@ -455,16 +455,33 @@ public:
     * Locking and blocking calls
     */
 #ifdef  SD_DEBUG_LOCK
-   void _r_dlock(const char *, int, bool locked=false);      /* in lock.c */
-   void _r_dunlock(const char *, int);    /* in lock.c */
-   void _dlock(const char *, int);        /* in lock.c */
-   void _dunlock(const char *, int);      /* in lock.c */
+   void dbg_rLock(const char *, int, bool locked=false);    /* in lock.c */
+   void dbg_rUnlock(const char *, int);                     /* in lock.c */
+   void dbg_Lock(const char *, int);                        /* in lock.c */
+   void dbg_Unlock(const char *, int);                      /* in lock.c */
+   void dbg_Lock_acquire(const char *, int);                /* in lock.c */
+   void dbg_Unlock_acquire(const char *, int);              /* in lock.c */
+   void dbg_Lock_read_acquire(const char *, int);           /* in lock.c */
+   void dbg_Unlock_read_acquire(const char *, int);         /* in lock.c */
 #else
-   void r_dlock(bool locked=false);       /* in lock.c */
-   void r_dunlock() { dunlock(); }
-   void dlock() { P(m_mutex); } 
-   void dunlock() { V(m_mutex); } 
+   void rLock(bool locked=false);         /* in lock.c */
+   void rUnlock();                        /* in lock.c */
+   void Lock();                           /* in lock.c */
+   void Unlock();                         /* in lock.c */
+   void Lock_acquire();                   /* in lock.c */
+   void Unlock_acquire();                 /* in lock.c */
+   void Lock_read_acquire();              /* in lock.c */
+   void Unlock_read_acquire();            /* in lock.c */
+   void Lock_VolCatInfo();                /* in lock.c */
+   void Unlock_VolCatInfo();              /* in lock.c */
 #endif
+   int init_mutex();                      /* in lock.c */
+   int init_acquire_mutex();              /* in lock.c */
+   int init_read_acquire_mutex();         /* in lock.c */
+   int init_volcat_mutex();               /* in lock.c */
+   int init_adata_mutex();                /* in lock.c */
+   void set_mutex_priorities();           /* in lock.c */
+   int next_vol_timedwait(const struct timespec *timeout);  /* in lock.c */
    void dblock(int why);                  /* in lock.c */
    void dunblock(bool locked=false);      /* in lock.c */
    bool is_device_unmounted();            /* in lock.c */
@@ -504,6 +521,7 @@ inline const char *DEVICE::print_name() const { return prt_name; }
 class DCR {
 private:
    bool m_dev_locked;                 /* set if dev already locked */
+   int m_dev_lock;                    /* non-zero if rLock already called */
    bool m_reserved;                   /* set if reserved device */
    bool m_found_in_use;               /* set if a volume found in use */
 
@@ -511,6 +529,7 @@ public:
    dlink dev_link;                    /* link to attach to dev */
    JCR *jcr;                          /* pointer to JCR */
    bthread_mutex_t m_mutex;           /* access control */
+   pthread_mutex_t r_mutex;           /* rLock pre-mutex */
    DEVICE * volatile dev;             /* pointer to device */
    DEVRES *device;                    /* pointer to device resource */
    DEV_BLOCK *block;                  /* pointer to block */
@@ -549,6 +568,8 @@ public:
 
    /* Methods */
    void set_dev(DEVICE *ndev) { dev = ndev; }; 
+   void inc_dev_lock() { m_dev_lock++; };
+   void dec_dev_lock() { m_dev_lock--; };
    bool found_in_use() const { return m_found_in_use; };
    void set_found_in_use() { m_found_in_use = true; };
    void clear_found_in_use() { m_found_in_use = false; };
@@ -564,12 +585,12 @@ public:
 
    /* Methods in lock.c */
    void dblock(int why) { dev->dblock(why); }
-#ifdef SD_DEBUG_LOCK
-   void _dlock(const char *, int);      /* in lock.c */
-   void _dunlock(const char *, int);    /* in lock.c */
+#ifdef  SD_DEBUG_LOCK
+   void dbg_mLock(const char *, int, bool locked);    /* in lock.c */
+   void dbg_mUnlock(const char *, int);               /* in lock.c */
 #else
-   void dlock() { dev->dlock(); m_dev_locked = true; }
-   void dunlock() { m_dev_locked = false; dev->dunlock(); }
+   void mLock(bool locked);
+   void mUnlock();
 #endif
 
    /* Methods in record.c */

@@ -108,7 +108,7 @@ bool fixup_device_block_write_error(DCR *dcr, int retries)
    block_device(dev, BST_DOING_ACQUIRE);
 
    /* Continue unlocked, but leave BLOCKED */
-   dev->dunlock();
+   dev->Unlock();
 
    bstrncpy(PrevVolName, dev->getVolCatName(), sizeof(PrevVolName));
    bstrncpy(dev->VolHdr.PrevVolumeName, PrevVolName, sizeof(dev->VolHdr.PrevVolumeName));
@@ -127,11 +127,11 @@ bool fixup_device_block_write_error(DCR *dcr, int retries)
    if (!dcr->mount_next_write_volume()) {
       free_block(label_blk);
       dcr->block = block;
-      dev->dlock();  
+      dev->Lock();  
       goto bail_out;
    }
    Dmsg2(050, "must_unload=%d dev=%s\n", dev->must_unload(), dev->print_name());
-   dev->dlock();                    /* lock again */
+   dev->Lock();                    /* lock again */
 
    dev->VolCatInfo.VolCatJobs++;              /* increment number of jobs on vol */
    dir_update_volume_info(dcr, false, false); /* send Volume info to Director */
@@ -279,7 +279,7 @@ bool first_open_device(DCR *dcr)
       return false;
    }
 
-   dev->r_dlock();
+   dev->rLock();
 
    /* Defer opening files */
    if (!dev->is_tape()) {
@@ -302,7 +302,7 @@ bool first_open_device(DCR *dcr)
    Dmsg1(129, "open dev %s OK\n", dev->print_name());
 
 bail_out:
-   dev->dunlock();
+   dev->Unlock();
    return ok;
 }
 

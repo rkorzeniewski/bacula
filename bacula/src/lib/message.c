@@ -50,6 +50,7 @@ sql_escape_func p_sql_escape = NULL;
  *    daemons include this file.
  */
 const char *working_directory = NULL;       /* working directory path stored here */
+const char *assert_msg = (char *)NULL; /* ASSERT2 error message */
 int verbose = 0;                      /* increase User messages */
 int debug_level = 0;                  /* debug level */
 bool dbg_timestamp = false;           /* print timestamp in debug output */

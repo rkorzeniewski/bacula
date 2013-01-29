@@ -307,7 +307,7 @@ static void send_blocked_status(DEVICE *dev, STATUS_PKT *sp)
       {
          DCR *dcr;
          bool found_jcr = false;
-         dev->dlock();
+         dev->Lock();
          foreach_dlist(dcr, dev->attached_dcrs) {
             if (dcr->jcr->JobStatus == JS_WaitMount) {
                len = Mmsg(msg, _("    Device is BLOCKED waiting for mount of volume \"%s\",\n"
@@ -328,7 +328,7 @@ static void send_blocked_status(DEVICE *dev, STATUS_PKT *sp)
                found_jcr = true;
             }
          }
-         dev->dunlock();
+         dev->Unlock();
          if (!found_jcr) {
             len = Mmsg(msg, _("    Device is BLOCKED waiting for media.\n"));
             sendit(msg, len, sp);
@@ -410,7 +410,7 @@ static void send_device_status(DEVICE *dev, STATUS_PKT *sp)
    sendit(msg, len, sp);
    DCR *dcr = NULL; 
    bool found = false;
-   dev->dlock();
+   dev->Lock();
    foreach_dlist(dcr, dev->attached_dcrs) {
       if (dcr->jcr) {
          if (found) {
@@ -421,7 +421,7 @@ static void send_device_status(DEVICE *dev, STATUS_PKT *sp)
          found = true;
       }
    }
-   dev->dunlock();
+   dev->Unlock();
    sendit("\n", 1, sp);
 
    len = Mmsg(msg, _("Device parameters:\n"));

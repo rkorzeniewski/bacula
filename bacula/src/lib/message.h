@@ -159,6 +159,7 @@ extern DLL_IMP_EXP bool          dbg_timestamp;          /* print timestamp in d
 extern DLL_IMP_EXP bool          prt_kaboom;             /* Print kaboom output */
 extern DLL_IMP_EXP int           verbose;
 extern DLL_IMP_EXP char          my_name[];
+extern DLL_IMP_EXP const char   *assert_msg;             /* Assert error message */
 extern DLL_IMP_EXP const char *  working_directory;
 extern DLL_IMP_EXP utime_t       daemon_start_time;
 

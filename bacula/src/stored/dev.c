@@ -32,7 +32,7 @@
  *              Kern Sibbald, MM
  *
  *     NOTE!!!! None of these routines are reentrant. You must
- *        use dev->r_dlock() and dev->unlock() at a higher level,
+ *        use dev->rLock() and dev->Unlock() at a higher level,
  *        or use the xxx_device() equivalents.  By moving the
  *        thread synchronization to a higher level, we permit
  *        the higher level routines to "seize" the device and
@@ -264,7 +264,7 @@ m_init_dev(JCR *jcr, DEVRES *device, bool new_init)
    dev->errmsg = get_pool_memory(PM_EMSG);
    *dev->errmsg = 0;
 
-   if ((errstat = pthread_mutex_init(&dev->m_mutex, NULL)) != 0) {
+   if ((errstat = dev->init_mutex()) != 0) {
       berrno be;
       dev->dev_errno = errstat;
       Mmsg1(dev->errmsg, _("Unable to init mutex: ERR=%s\n"), be.bstrerror(errstat));
@@ -285,25 +285,25 @@ m_init_dev(JCR *jcr, DEVRES *device, bool new_init)
    if ((errstat = pthread_mutex_init(&dev->spool_mutex, NULL)) != 0) {
       berrno be;
       dev->dev_errno = errstat;
-      Mmsg1(dev->errmsg, _("Unable to init mutex: ERR=%s\n"), be.bstrerror(errstat));
+      Mmsg1(dev->errmsg, _("Unable to init spool mutex: ERR=%s\n"), be.bstrerror(errstat));
       Jmsg0(jcr, M_ERROR_TERM, 0, dev->errmsg);
    }
-   if ((errstat = pthread_mutex_init(&dev->acquire_mutex, NULL)) != 0) {
+   if ((errstat = dev->init_acquire_mutex()) != 0) {
       berrno be;
       dev->dev_errno = errstat;
-      Mmsg1(dev->errmsg, _("Unable to init mutex: ERR=%s\n"), be.bstrerror(errstat));
+      Mmsg1(dev->errmsg, _("Unable to init acquire mutex: ERR=%s\n"), be.bstrerror(errstat));
       Jmsg0(jcr, M_ERROR_TERM, 0, dev->errmsg);
    }
-   /* Ensure that we respect this order in P/V operations */
-   bthread_mutex_set_priority(&dev->m_mutex,       PRIO_SD_DEV_ACCESS);
-   bthread_mutex_set_priority(&dev->spool_mutex,   PRIO_SD_DEV_SPOOL);
-   bthread_mutex_set_priority(&dev->acquire_mutex, PRIO_SD_DEV_ACQUIRE);
-   if ((errstat = pthread_mutex_init(&dev->read_acquire_mutex, NULL)) != 0) {
+   if ((errstat = dev->init_read_acquire_mutex()) != 0) {
       berrno be;
       dev->dev_errno = errstat;
-      Mmsg1(dev->errmsg, _("Unable to init mutex: ERR=%s\n"), be.bstrerror(errstat));
+      Mmsg1(dev->errmsg, _("Unable to init read acquire mutex: ERR=%s\n"), be.bstrerror(errstat));
       Jmsg0(jcr, M_ERROR_TERM, 0, dev->errmsg);
    }
+
+   dev->set_mutex_priorities();
+
+
 #ifdef xxx
    if ((errstat = rwl_init(&dev->lock)) != 0) {
       berrno be;

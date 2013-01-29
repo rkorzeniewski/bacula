@@ -197,13 +197,13 @@ int main (int argc, char *argv[])
    }
    Dmsg0(100, "About to acquire device for writing\n");
    /* For we must now acquire the device for writing */
-   out_dev->r_dlock();
+   out_dev->rLock(false);
    if (!out_dev->open(out_jcr->dcr, OPEN_READ_WRITE)) {
       Emsg1(M_FATAL, 0, _("dev open failed: %s\n"), out_dev->errmsg);
-      out_dev->dunlock();
+      out_dev->Unlock();
       exit(1);
    }
-   out_dev->dunlock();
+   out_dev->Unlock();
    if (!acquire_device_for_append(out_jcr->dcr)) {
       free_jcr(in_jcr);
       exit(1);
