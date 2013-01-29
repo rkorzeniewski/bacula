@@ -479,7 +479,6 @@ public:
    int init_acquire_mutex();              /* in lock.c */
    int init_read_acquire_mutex();         /* in lock.c */
    int init_volcat_mutex();               /* in lock.c */
-   int init_adata_mutex();                /* in lock.c */
    void set_mutex_priorities();           /* in lock.c */
    int next_vol_timedwait(const struct timespec *timeout);  /* in lock.c */
    void dblock(int why);                  /* in lock.c */
