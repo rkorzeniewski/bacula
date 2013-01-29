@@ -197,6 +197,11 @@ start_job:
       }
       return JobId;
    }
+   if (strncasecmp(ua->cmd, _("no"), strlen(ua->cmd)) == 0) {
+      goto bail_out;
+   }
+   ua->send_msg(_("\nBad response: %s. You must answer yes, mod, or no.\n\n"), ua->cmd);
+   goto try_again;
 
 bail_out:
    ua->send_msg(_("Job not run.\n"));
