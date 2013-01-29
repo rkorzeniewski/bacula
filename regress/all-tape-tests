@@ -27,7 +27,7 @@ rm -f dumps/*
 ./run tests/relabel-tape
 ./run tests/restore-by-file-tape
 ./run tests/small-file-size-tape
-./run tests/t./runcate-bug-tape
+./run tests/truncate-bug-tape
 ./run tests/verify-vol-tape
 # ./run tests/manual-two-vol-tape
 echo "End all non-root tape tests"
