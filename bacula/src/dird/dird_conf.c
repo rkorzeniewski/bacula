@@ -474,6 +474,12 @@ struct s_jl joblevels[] = {
    {"VolumeToCatalog", L_VERIFY_VOLUME_TO_CATALOG,   JT_VERIFY},
    {"DiskToCatalog", L_VERIFY_DISK_TO_CATALOG,   JT_VERIFY},
    {"Data",          L_VERIFY_DATA,     JT_VERIFY},
+   {"Full",          L_FULL,            JT_COPY},
+   {"Incremental",   L_INCREMENTAL,     JT_COPY},
+   {"Differential",  L_DIFFERENTIAL,    JT_COPY},
+   {"Full",          L_FULL,            JT_MIGRATE},
+   {"Incremental",   L_INCREMENTAL,     JT_MIGRATE},
+   {"Differential",  L_DIFFERENTIAL,    JT_MIGRATE},
    {" ",             L_NONE,            JT_ADMIN},
    {" ",             L_NONE,            JT_RESTORE},
    {NULL,            0,                          0}
