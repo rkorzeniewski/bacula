@@ -371,7 +371,8 @@ int DirComm::read()
       case BNET_TEXT_INPUT:
          if (mainWin->m_commDebug) Pmsg4(000, "conn %i TEXT_INPUT at_prompt=%d  m_in_select=%d notify=%d\n", 
                m_conn, m_at_prompt, m_in_select, is_notify_enabled());
-         if (!m_in_select && is_notify_enabled()) {
+         //if (!m_in_select && is_notify_enabled()) {
+         if (!m_in_select) {
             mainWin->waitExit();
             new textInputDialog(m_console, m_conn);
          } else {
