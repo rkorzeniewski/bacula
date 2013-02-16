@@ -76,11 +76,11 @@ int main(int argc, char *argv[])
    QTextCodec::setCodecForCStrings(QTextCodec::codecForName("UTF-8"));
      
    QTranslator qtTranslator;
-   qtTranslator.load(QString("qt_") + QLocale::system().name());
+   qtTranslator.load(QString("qt_") + QLocale::system().name(),QLibraryInfo::location(QLibraryInfo::TranslationsPath));
    app->installTranslator(&qtTranslator);
 
    QTranslator batTranslator;
-   batTranslator.load(QString("bat_") + QLocale::system().name());
+   batTranslator.load(QString("bat_") + QLocale::system().name(),QLibraryInfo::location(QLibraryInfo::TranslationsPath));
    app->installTranslator(&batTranslator);
 
    register_message_callback(message_callback);
