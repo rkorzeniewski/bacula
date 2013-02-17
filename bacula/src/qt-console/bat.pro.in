@@ -31,6 +31,10 @@ qwt {
   LIBS        += @QWT_LDFLAGS@ @QWT_LIB@
 }
 
+macx {
+  ICON = images/bat_icon.icns
+}
+
 RESOURCES    = main.qrc
 MOC_DIR      = moc
 OBJECTS_DIR  = obj
