@@ -631,33 +631,6 @@ public:
    
 };
 
-/*
- * Volume reservation class -- see reserve.c
- */
-class VOLRES { 
-   bool m_swapping;                   /* set when swapping to another drive */
-   bool m_in_use;                     /* set when volume reserved or in use */
-   int32_t m_slot;                    /* slot of swapping volume */
-   uint32_t m_JobId;                  /* JobId for read volumes */
-public:
-   dlink link;
-   char *vol_name;                    /* Volume name */
-   DEVICE *dev;                       /* Pointer to device to which we are attached */
-
-   bool is_swapping() const { return m_swapping; };
-   void set_swapping() { m_swapping = true; };
-   void clear_swapping() { m_swapping = false; };
-   bool is_in_use() const { return m_in_use; };
-   void set_in_use() { m_in_use = true; };
-   void clear_in_use() { m_in_use = false; };
-   void set_slot(int32_t slot) { m_slot = slot; };
-   void clear_slot() { m_slot = -1; };
-   int32_t get_slot() const { return m_slot; };
-   uint32_t get_jobid() const { return m_JobId; };
-   void set_jobid(uint32_t JobId) { m_JobId = JobId; };
-};
-
-
 /* Get some definition of function to position
  *  to the end of the medium in MTEOM. System
  *  dependent. Arrgggg!

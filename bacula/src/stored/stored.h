@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2011 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2013 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -28,7 +28,6 @@
 /*
  * Storage daemon specific defines and includes
  *
- *  Version $Id$
  */
 
 #ifndef __STORED_H_
@@ -65,6 +64,7 @@ const int sd_dbglvl = 300;
 #include "stored_conf.h"
 #include "bsr.h"
 #include "jcr.h"
+#include "vol_mgr.h"
 #include "reserve.h"
 #include "protos.h"
 #ifdef HAVE_LIBZ

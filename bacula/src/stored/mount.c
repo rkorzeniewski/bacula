@@ -37,6 +37,8 @@
 #include "bacula.h"                   /* pull in global headers */
 #include "stored.h"                   /* pull in Storage Deamon headers */
 
+static pthread_mutex_t mount_mutex = PTHREAD_MUTEX_INITIALIZER;
+
 enum {
    try_next_vol = 1,
    try_read_vol,
@@ -77,27 +79,27 @@ bool DCR::mount_next_write_volume()
       dev->print_name());
 
    init_device_wait_timers(dcr);
+
+   P(mount_mutex);
    
    /*
     * Attempt to mount the next volume. If something non-fatal goes
     *  wrong, we come back here to re-try (new op messages, re-read
     *  Volume, ...)
     */
-   lock_volumes();
-
 mount_next_vol:
    Dmsg1(150, "mount_next_vol retry=%d\n", retry);
    /* Ignore retry if this is poll request */
    if (retry++ > 4) {
       /* Last ditch effort before giving up, force operator to respond */
       VolCatInfo.Slot = 0;
-      unlock_volumes();
+      V(mount_mutex);
       if (!dir_ask_sysop_to_mount_volume(dcr, ST_APPEND)) {
          Jmsg(jcr, M_FATAL, 0, _("Too many errors trying to mount device %s.\n"),
               dev->print_name());
          goto no_lock_bail_out;
       }
-      lock_volumes();
+      P(mount_mutex);
       Dmsg1(150, "Continue after dir_ask_sysop_to_mount. must_load=%d\n", dev->must_load());
    }
    if (job_canceled(jcr)) {
@@ -162,13 +164,13 @@ mount_next_vol:
    Dmsg2(250, "Ask=%d autochanger=%d\n", ask, autochanger);
 
    if (ask) {
-      unlock_volumes();
+      V(mount_mutex);
       dcr->setVolCatInfo(false);   /* out of date when Vols unlocked */
       if (!dir_ask_sysop_to_mount_volume(dcr, ST_APPEND)) {
          Dmsg0(150, "Error return ask_sysop ...\n");
          goto no_lock_bail_out;
       }
-      lock_volumes();
+      P(mount_mutex);
    }
    if (job_canceled(jcr)) {
       goto bail_out;
@@ -306,11 +308,11 @@ read_volume:
    Dmsg1(150, "set APPEND, normal return from mount_next_write_volume. dev=%s\n",
       dev->print_name());
 
-   unlock_volumes();
+   V(mount_mutex);
    return true;
 
 bail_out:
-   unlock_volumes();
+   V(mount_mutex);
 
 no_lock_bail_out:
    return false;
@@ -320,7 +322,8 @@ no_lock_bail_out:
  * This routine is meant to be called once the first pass
  *   to ensure that we have a candidate volume to mount.
  *   Otherwise, we ask the sysop to created one.
- * Note, the the Volumes are locked on entry and exit.
+ * Note, mount_mutex is already locked on entry and thus
+ *   must remain locked on exit from this function.
  */
 bool DCR::find_a_volume()
 {
@@ -344,12 +347,12 @@ bool DCR::find_a_volume()
             if (job_canceled(jcr)) {
                return false;
             }
-            unlock_volumes();
+            V(mount_mutex);
             if (!dir_ask_sysop_to_create_appendable_volume(dcr)) {
-               lock_volumes();
+               P(mount_mutex);
                return false;
              }
-             lock_volumes();
+             P(mount_mutex);
              if (job_canceled(jcr)) {
                 return false;
              }

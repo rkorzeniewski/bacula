@@ -535,6 +535,7 @@ bool release_device(DCR *dcr)
       dev->close();
       free_volume(dev);
    }
+   unlock_volumes();
 
    /* Fire off Alert command and include any output */
    if (!job_canceled(jcr) && dcr->device->alert_command) {
@@ -567,7 +568,6 @@ bool release_device(DCR *dcr)
    Dmsg2(100, "JobId=%u broadcast wait_device_release at %s\n", 
          (uint32_t)jcr->JobId, bstrftimes(tbuf, sizeof(tbuf), (utime_t)time(NULL)));
    pthread_cond_broadcast(&wait_device_release);
-   unlock_volumes();
 
    /*
     * If we are the thread that blocked the device, then unblock it
