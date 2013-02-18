@@ -22,6 +22,7 @@ sed -f ${out} ${rscripts}/testb-bacula-dir.conf.in >${rscripts}/testb-bacula-dir
 sed -f ${out} ${rscripts}/test-bacula-fd.conf.in >${rscripts}/test-bacula-fd.conf
 sed -f ${out} ${rscripts}/test-bacula-sd.conf.in >${rscripts}/test-bacula-sd.conf
 sed -f ${out} ${rscripts}/test-console.conf.in >${rscripts}/test-console.conf
+sed -f ${out} ${rscripts}/virtualfull-extreme-bacula-dir.conf.in >${rscripts}/virtualfull-extreme-bacula-dir.conf
 sed -f ${out} ${rscripts}/crypto-bacula-fd.conf.in >${rscripts}/crypto-bacula-fd.conf
 sed -f ${out} ${rscripts}/bacula-dir-tape.conf.in >${rscripts}/bacula-dir-tape.conf
 sed -f ${out} ${rscripts}/bacula-dir-2client.conf.in >${rscripts}/bacula-dir-2client.conf
