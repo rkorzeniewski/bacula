@@ -1,7 +1,122 @@
 
-               Release Notes for Bacula 5.2.12
+               Release Notes for Bacula 5.2.13
 
   Bacula code: Total files = 1,110 Total lines = 231,439 (Using SLOCCount)
+
+General:
+--------
+This is an important bug fix release.
+
+Version 5.2.13 version has 20 bug fixes since the last 
+release.  Some of the bug fixes are important.
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+Please note that with this version of Bacula, during the install
+of the shared libraries from the src/cats, src/lib, and src/findlib
+directories, any old Bacula libraries in the installation 
+destination directory will be removed.  This should not cause
+any problems and at least keeps the installation library cleaner.
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+For packagers, if you change options, naming, and the way 
+we link our shared object files, as at least one of you does,
+you are creating a situation where the user may not be able
+to run multiple versions of Bacula on the same machine, which
+is often very useful, and in addition, you create a configuration
+that the project cannot properly support.
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+If you are upgrading from a version older than 5.2.10, please
+read all the old ReleaseNotes of all versions released
+after the version you are upgrading from. There area
+many important notices sumarized here, and we do not 
+repeat them each bug fix release.
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+Compatibility:
+--------------
+ As always, both the Director and Storage daemon must be upgraded at
+ the same time.
+
+ Older 5.0.x and 3.0.x File Daemons are compatible with the 5.2.13
+ Director and Storage daemons. There should be no need to upgrade older File
+ Daemons.
+
+Important changes since last release:
+
+19Feb13
+ - Fix build/configure problems with bpluginfo.c
+ - Refactor lock_volumes so most lock a vol rather than globally
+ - Add virtualfull-extreme test
+ - Apply patch for chio-changer-openbsd from bug #1984 -- Implements listall
+ - Add bat Mac patch from bug #1953
+ - Fix bug #1812 cannot run Copy/Migrate jobs from bat
+ - Fix loading of bat translations. Patch from bug #1890
+ - Fix text input in bat. Fixe bug #1965
+ - Remove Device from show command as it is not used or updated
+ - Fix #1982 update enabled keyword in help command
+ - Fix update_postgresql_tables 10 to 11
+ - Clean after building doc binaries requested by Willem vd Akker for Debian 
+   build
+ - Require Qt version 4.8.4
+ - Fix bug #1955 that OK to run? does not retry on bad response
+ - Backport new lock calls + debug for SD
+ - Fix bug #1975 new label ignored when first is duplicate.
+ - Pull src/lib changes from master
+ - Pull SD files from master
+ - Turn off prune-test
+ - Add logdir and bsrdir to regression config
+ - Add bsrdir and logdir to regress-config
+ - Changed default directories from /var/bacula to /opt/bacula
+ - Make spool size max message more explicit
+ - Display more info when maximum spool size is reached
+ - Fix TERM defs for Solaris 11 in conio.c
+ - Allow group to cd to sysconfdir
+ - Make sysconfdir belong to Bacula user/group and exclude others
+ - Fix Virtual Full file close bug -- race condition
+ - Enhance mount message to include read/append
+ - Improve vol_mgr swap messages
+ - Enhance output of Using Device to include for read/write
+ - Add jobid to Pmsg output
+ - Fix bug #1959 input validation on delete of jobs.
+ - Fix bug #1956 Authorization Errors false
+ - Add workaround for #5507 where autoprune and reload are in deadlock
+ - Allow conf file quoted strings to be used in a list
+ - Make bfgets handle very long lines
+ - Avoid seg fault by checking for NULL client -- reported by Arno
+ - Final fix of bug #1943
+ - Fix bug #1948 MailOnSuccess get executed on error.
+ - Fix missing index on Media table
+ - Fix bug #1943 no message storage on closed database connection.
+ - Fix bug #1946 Fix problem with MySQL with big Base jobs.
+ - Reduce wait time in regression RunScripts
+ - Implement a timeout on regression tests of 15 minutes
+ - Fix #5346 .bvfs_lsfiles and .bvfs_restore to handle deleted files
+ - Fix spooldata, accurate and ingnoreduplicate run argument
+ - Fix messages segfault
+ - Implement feature request #1939
+ - fix #1938 about PATH_MAX on hurd
+ - fix #1938 about MAXPATHLEN on hurd
+ - Fix bug #1937 OpenBSD autochanger example script
+ - Fix #4996 about MaxRunTime canceling the job too early
+ - Fix bug #1934 Wrong values at media list in BAT
+ - Fix race condition in close_msg that causes seg fault
+ - Fix double unlink
+ - More tests for freeing NULL pointers
+ - Add MaximumConcurrentReadJobs directive to Storage resource
+ - Add ujobid to .bvfs_get_jobids
+ - Avoid problem when stripping a relative path
+ - Fix #4513 about HIDDEN attribute set to parent directory during restore
+
+Bugs fixed/closed since last release:
+1812 1890 1934 1937 1938 1939 1943 1946 1948 1953 1955 1956 1959 1965 1975
+1982 1984 4513 4996 5346 5507
+
+
+=================================================================
+
 
 General:
 --------

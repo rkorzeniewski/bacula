@@ -1,4 +1,179 @@
-              Changelog on version 5.2.12
+              Changelog on version 5.2.13
+
+
+Release version 5.2.13
+
+19Feb13
+ - Fix build/configure problems with bpluginfo.c
+ - Add missing vol_mgr.h file
+ - Add timer to run_multiple
+
+18Feb13
+ - Refactor lock_volumes so most lock a vol rather than globally
+ - Add virtualfull-extreme test
+
+17Feb13
+ - Apply patch for chio-changer-openbsd from bug #1984 -- Implements listall
+ - Add bat Mac patch from bug #1953
+
+16Feb13
+ - Fix bug #1812 cannot run Copy/Migrate jobs from bat
+ - Fix loading of bat translations. Patch from bug #1890
+ - Fix text input in bat. Fixe bug #1965
+ - Remove Device from show command as it is not used or updated
+
+13Feb13
+ - Fix #1982 update enabled keyword in help command
+
+08Feb13
+ - Fix update_postgresql_tables 10 to 11
+
+30Jan13
+ - Clean after building doc binaries requested by Willem vd Akker for Debian 
+  build
+
+29Jan13
+ - Remove unused method
+ - Require Qt version 4.8.4
+ - Fix bug #1955 that OK to run? does not retry on bad response
+ - Backport new lock calls + debug for SD
+
+26Jan13
+ - Remove old todo
+
+09Jan13
+ - Fix bug #1975 new label ignored when first is duplicate.
+
+31Dec12
+ - Require Qt 4.8.1 to build bat
+
+27Dec12
+ - Make compile of timelimit a bit more portable
+
+26Dec12
+ - Tweek turn off prune-test
+ - Pull src/lib changes from master
+ - Pull SD files from master
+
+25Dec12
+ - Turn off prune-test
+ - Add logdir and bsrdir to regression config
+ - Add bsrdir and logdir to regress-config
+ - Rebuild configure
+ - Changed default directories from /var/bacula to /opt/bacula
+ - Fix patches from master
+ - Make spool size max message more explicit
+ - Display more info when maximum spool size is reached
+
+23Dec12
+ - Fix TERM defs for Solaris 11 in conio.c
+
+21Dec12
+ - Force DEVELOPER on during regression setup
+
+14Dec12
+ - Allow group to cd to sysconfdir
+
+09Dec12
+ - Make sysconfdir belong to Bacula user/group and exclude others
+
+07Dec12
+ - Fix Virtual Full file close bug -- race condition
+ - Enhance mount message to include read/append
+
+06Dec12
+ - Improve vol_mgr swap messages
+ - Add Jmsg7 and Jmsg8
+ - Enhance output of Using Device to include for read/write
+
+04Dec12
+ - Add jobid to Pmsg output
+
+29Nov12
+ - Fix bug #1959 input validation on delete of jobs.
+
+24Nov12
+ - Fix bug #1956 Authorization Errors false
+
+23Nov12
+ - Add workaround for #5507 where autoprune and reload are in deadlock
+
+21Nov12
+ - Allow conf file quoted strings to be used in a list
+ - Make bfgets handle very long lines
+ - Backport from Enterprise
+
+17Nov12
+ - Avoid seg fault by checking for NULL client -- reported by Arno
+
+10Nov12
+ - Final fix of bug #1943
+
+08Nov12
+ - Fix bug #1948 MailOnSuccess get executed on error.
+
+07Nov12
+ - Fix missing index on Media table
+
+06Nov12
+ - Fix bug #1943 no message storage on closed database connection.
+ - Fix bug #1946 Fix problem with MySQL with big Base jobs.
+
+02Nov12
+ - Reduce wait time in regression RunScripts
+ - Attempt to indicate timed out tests
+ - Implement a timeout on regression tests of 15 minutes
+ - Fix #5346 .bvfs_lsfiles and .bvfs_restore to handle deleted files
+
+01Nov12
+ - Fix spooldata, accurate and ingnoreduplicate run argument
+
+21Oct12
+ - Add remote regress test script
+
+16Oct12
+ - Fix messages segfault
+
+10Oct12
+ - Recompile configure.in
+ - Implement feature request #1939
+
+07Oct12
+ - fix #1938 about PATH_MAX on hurd
+ - fix #1938 about MAXPATHLEN on hurd
+
+05Oct12
+ - Fix bug #1937 OpenBSD autochanger example script
+
+25Sep12
+ - Fix #4996 about MaxRunTime canceling the job too early
+
+19Sep12
+ - Fix bug #1934 Wrong values at media list in BAT
+
+18Sep12
+ - Fix race condition in close_msg that causes seg fault
+
+16Sep12
+ - Fix double unlink
+ - More tests for freeing NULL pointers
+
+14Sep12
+ - Add MaximumConcurrentReadJobs directive to Storage resource
+
+03Sep12
+ - Add ujobid to .bvfs_get_jobids
+
+28Aug12
+ - Do not try to strip RestoreObject during attribute encoding
+ - Avoid problem when stripping a relative path
+
+16Jul12
+ - Fix #4513 about HIDDEN attribute set to parent directory during restore
+
+Bugs fixed/closed since last release:
+1812 1890 1934 1937 1938 1939 1943 1946 1948 1953 1955 1956 1959 1965 1975 1982 1984 4513 4996 5346 5507
+
 
 Version 5.2.12
 
