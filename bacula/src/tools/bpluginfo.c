@@ -47,10 +47,10 @@
 #include <dlfcn.h>
 #endif
 #include "bacula.h"
-#include "fd_plugins.h"
-#include "dir_plugins.h"
+#include "../filed/fd_plugins.h"
+#include "../dird/dir_plugins.h"
 // I can't include sd_plugins.h here ...
-#include "stored.h"
+#include "../stored/stored.h"
 #include "assert_macro.h"
 
 extern "C" {
