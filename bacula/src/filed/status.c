@@ -281,20 +281,11 @@ static void  list_running_jobs_api(STATUS_PKT *sp)
          sec = 1;
       }
       bps = (int)(njcr->JobBytes / sec);
-<<<<<<< HEAD
-      len = Mmsg(msg, " Files=%s\n Bytes=%s\n Bytes/sec=%s\n Errors=%d\n"
-                 " Bwlimit=%d\n",
-                 edit_uint64(njcr->JobFiles, b1),
-                 edit_uint64(njcr->JobBytes, b2),
-                 edit_uint64(bps, b3),
-                 njcr->JobErrors, njcr->max_bandwidth);
-=======
       len = Mmsg(msg, " Files=%s\n Bytes=%s\n Bytes/sec=%s\n Errors=%d\n",
                  edit_uint64(njcr->JobFiles, b1),
                  edit_uint64(njcr->JobBytes, b2),
                  edit_uint64(bps, b3),
                  njcr->JobErrors);
->>>>>>> caaa5db... Implement RestoreObject for sqlite + cleanups
       sendit(msg.c_str(), len, sp);
       len = Mmsg(msg, " Files Examined=%s\n",
            edit_uint64(njcr->num_files_examined, b1));
