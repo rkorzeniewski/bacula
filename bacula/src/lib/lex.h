@@ -93,7 +93,7 @@ typedef struct s_lex_context {
    char *fname;                       /* filename */
    FILE *fd;                          /* file descriptor */
    POOLMEM *line;                     /* input line */
-   char str[MAXSTRING];               /* string being scanned */
+   POOLMEM *str;                      /* string being scanned */
    int str_len;                       /* length of string */
    int line_no;                       /* file line number */
    int col_no;                        /* char position on line */

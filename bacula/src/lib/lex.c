@@ -127,6 +127,8 @@ LEX *lex_close_file(LEX *lf)
    free(lf->fname);
    free_memory(lf->line);
    lf->line = NULL;
+   free_memory(lf->str);
+   lf->str = NULL;
    if (of) {
       of->options = lf->options;      /* preserve options */
       memcpy(lf, of, sizeof(LEX));
@@ -196,6 +198,7 @@ LEX *lex_open_file(LEX *lf, const char *filename, LEX_ERROR_HANDLER *scan_error)
    lf->line = get_memory(5000);
    lf->state = lex_none;
    lf->ch = L_EOL;
+   lf->str = get_memory(5000);
    Dmsg1(dbglvl, "Return lex=%x\n", lf);
    return lf;
 }
@@ -249,7 +252,7 @@ void lex_unget_char(LEX *lf)
  */
 static void add_str(LEX *lf, int ch)
 {
-   if (lf->str_len >= MAXSTRING-3) {
+   if (lf->str_len >= sizeof_pool_memory(lf->str)) {
       Emsg3(M_ERROR_TERM, 0, _(
            _("Config token too long, file: %s, line %d, begins at line %d\n")),
              lf->fname, lf->line_no, lf->begin_line_no);
