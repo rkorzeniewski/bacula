@@ -1,29 +1,17 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2012 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  * Director external function prototypes
@@ -60,7 +48,11 @@ extern bool do_backup(JCR *jcr);
 extern void backup_cleanup(JCR *jcr, int TermCode);
 extern void update_bootstrap_file(JCR *jcr);
 extern bool send_accurate_current_files(JCR *jcr);
-
+extern char *get_storage_address(CLIENT *cli, STORE *store);
+extern bool run_storage_and_start_message_thread(JCR *jcr, BSOCK *sd);
+extern bool send_client_addr_to_sd(JCR *jcr);
+extern bool send_store_addr_to_fd(JCR *jcr, STORE *store,
+               char *store_address, uint32_t store_port);
 
 /* vbackup.c */
 extern bool do_vbackup_init(JCR *jcr);
@@ -97,9 +89,11 @@ int variable_expansion(JCR *jcr, char *inp, POOLMEM **exp);
 /* fd_cmds.c */
 extern int connect_to_file_daemon(JCR *jcr, int retry_interval,
                                   int max_retry_time, int verbose);
+extern bool send_ls_fileset(JCR *jcr, const char *path);
 extern bool send_include_list(JCR *jcr);
 extern bool send_exclude_list(JCR *jcr);
 extern bool send_level_command(JCR *jcr);
+extern bool send_bwlimit(JCR *jcr, const char *Job);
 extern int get_attributes_and_put_in_catalog(JCR *jcr);
 extern void get_attributes_and_compare_to_catalog(JCR *jcr, JobId_t JobId);
 extern int put_file_into_catalog(JCR *jcr, long file_index, char *fname,
@@ -107,6 +101,7 @@ extern int put_file_into_catalog(JCR *jcr, long file_index, char *fname,
 extern void get_level_since_time(JCR *jcr, char *since, int since_len);
 extern int send_runscripts_commands(JCR *jcr);
 extern bool send_restore_objects(JCR *jcr);
+extern bool send_component_info(JCR *jcr);
 
 /* getmsg.c */
 enum e_prtmsg {
@@ -124,8 +119,9 @@ extern bool get_or_create_client_record(JCR *jcr);
 extern bool get_or_create_fileset_record(JCR *jcr);
 extern DBId_t get_or_create_pool_record(JCR *jcr, char *pool_name);
 extern void apply_pool_overrides(JCR *jcr);
+extern bool apply_wstorage_overrides(JCR *jcr, POOL *original_pool);
 extern JobId_t run_job(JCR *jcr);
-extern bool cancel_job(UAContext *ua, JCR *jcr);
+extern bool cancel_job(UAContext *ua, JCR *jcr, bool cancel = true);
 extern void get_job_storage(USTORE *store, JOB *job, RUN *run);
 extern void init_jcr_job_record(JCR *jcr);
 extern void update_job_end(JCR *jcr, int TermCode);
@@ -151,17 +147,20 @@ extern void sd_msg_thread_send_signal(JCR *jcr, int sig);
 extern bool inc_read_store(JCR *jcr);
 extern void dec_read_store(JCR *jcr);
 
-/* migration.c */
-extern bool do_migration(JCR *jcr);
-extern bool do_migration_init(JCR *jcr);
-extern void migration_cleanup(JCR *jcr, int TermCode);
-extern bool set_migration_wstorage(JCR *jcr, POOL *pool);
+/* mac.c */
+extern bool do_mac(JCR *jcr);
+extern bool do_mac_init(JCR *jcr);
+extern void mac_cleanup(JCR *jcr, int TermCode, int writeTermCode);
+extern bool set_mac_wstorage(UAContext *ua, JCR *jcr, POOL *pool,
+               POOL *next_pool, const char *source);
 
 
 /* mountreq.c */
 extern void mount_request(JCR *jcr, BSOCK *bs, char *buf);
 
 /* msgchan.c */
+extern BSOCK *open_sd_bsock(UAContext *ua);
+extern void close_sd_bsock(UAContext *ua);
 extern bool connect_to_storage_daemon(JCR *jcr, int retry_interval,
                               int max_retry_time, int verbose);
 extern bool start_storage_daemon_job(JCR *jcr, alist *rstore, alist *wstore,
@@ -183,10 +182,6 @@ bool get_scratch_volume(JCR *jcr, bool InChanger, MEDIA_DBR *mr,
 /* newvol.c */
 bool newVolume(JCR *jcr, MEDIA_DBR *mr, STORE *store);
 
-/* python.c */
-int generate_job_event(JCR *jcr, const char *event);
-
-
 /* restore.c */
 extern bool do_restore(JCR *jcr);
 extern bool do_restore_init(JCR *jcr);
@@ -196,6 +191,7 @@ extern void restore_cleanup(JCR *jcr, int TermCode);
 /* ua_acl.c */
 bool acl_access_ok(UAContext *ua, int acl, const char *item);
 bool acl_access_ok(UAContext *ua, int acl, const char *item, int len);
+bool have_restricted_acl(UAContext *ua, int acl);
 
 /* ua_cmds.c */
 bool do_a_command(UAContext *ua);
@@ -216,7 +212,8 @@ void set_pooldbr_from_poolres(POOL_DBR *pr, POOL *pool, e_pool_op op);
 int update_pool_references(JCR *jcr, B_DB *db, POOL *pool);
 
 /* ua_input.c */
-int get_cmd(UAContext *ua, const char *prompt, bool subprompt=false);
+bool get_cmd(UAContext *ua, const char *prompt, bool subprompt=false);
+bool get_selection_list(UAContext *ua, sellist &sl, const char *prompt, bool subprompt=false);
 bool get_pint(UAContext *ua, const char *prompt);
 bool get_yesno(UAContext *ua, const char *prompt);
 bool is_yesno(char *val, int *ret);
@@ -236,6 +233,7 @@ void update_vol_pool(UAContext *ua, char *val, MEDIA_DBR *mr, POOL_DBR *opr);
 void prtit(void *ctx, const char *msg);
 bool complete_jcr_for_job(JCR *jcr, JOB *job, POOL *pool);
 RUN *find_next_run(RUN *run, JOB *job, utime_t &runtime, int ndays);
+bool acl_access_jobid_ok(UAContext *ua, const char *jobids);
 
 /* ua_restore.c */
 void find_storage_resource(UAContext *ua, RESTORE_CTX &rx, char *Storage, char *MediaType);
@@ -250,7 +248,7 @@ JCR *new_control_jcr(const char *base_name, int job_type);
 void free_ua_context(UAContext *ua);
 
 /* ua_select.c */
-STORE   *select_storage_resource(UAContext *ua);
+STORE   *select_storage_resource(UAContext *ua, bool unique=false);
 JOB     *select_job_resource(UAContext *ua);
 JOB     *select_enable_disable_job_resource(UAContext *ua, bool enable);
 JOB     *select_restore_job_resource(UAContext *ua);
@@ -262,10 +260,12 @@ bool    select_pool_dbr(UAContext *ua, POOL_DBR *pr, const char *argk="pool");
 bool    select_client_dbr(UAContext *ua, CLIENT_DBR *cr);
 
 void    start_prompt(UAContext *ua, const char *msg);
-void    add_prompt(UAContext *ua, const char *prompt);
+void    add_prompt(UAContext *ua, const char *prompt, char *unique=NULL);
 int     do_prompt(UAContext *ua, const char *automsg, const char *msg, char *prompt, int max_prompt);
+int     do_alist_prompt(UAContext *ua, const char *automsg, const char *msg,
+              alist *selected);
 CAT    *get_catalog_resource(UAContext *ua);
-STORE  *get_storage_resource(UAContext *ua, bool use_default);
+STORE  *get_storage_resource(UAContext *ua, bool use_default, bool unique=false);
 int     get_storage_drive(UAContext *ua, STORE *store);
 int     get_storage_slot(UAContext *ua, STORE *store);
 int     get_media_type(UAContext *ua, char *MediaType, int max_media);
@@ -274,6 +274,7 @@ bool    get_client_dbr(UAContext *ua, CLIENT_DBR *cr);
 POOL   *get_pool_resource(UAContext *ua);
 JOB    *get_restore_job(UAContext *ua);
 POOL   *select_pool_resource(UAContext *ua);
+int  select_running_jobs(UAContext *ua, alist *jcrs, const char *reason);
 CLIENT *get_client_resource(UAContext *ua);
 int     get_job_dbr(UAContext *ua, JOB_DBR *jr);
 

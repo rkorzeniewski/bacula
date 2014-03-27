@@ -8,7 +8,6 @@ LIBBACCFG_LT_RELEASE = @LIBBACCFG_LT_RELEASE@
 LIBBACPY_LT_RELEASE = @LIBBACPY_LT_RELEASE@
 
 #
-python = @PYTHON_INCDIR@
 
 srcdir =	.
 VPATH = 	.
@@ -43,7 +42,7 @@ INCLUDE_FILES = ../baconfig.h ../bacula.h ../bc_types.h \
 		smartall.h status.h tls.h tree.h var.h \
 		waitq.h watchdog.h workq.h \
 		parse_conf.h ini.h \
-		pythonlib.h lockmgr.h devlock.h
+		lockmgr.h devlock.h
 
 #
 # libbac
@@ -73,7 +72,7 @@ LIBBACCFG_LOBJS = $(LIBBACCFG_SRCS:.c=.lo)
 #
 # libbacpy (python functions)
 #
-LIBBACPY_SRCS = pythonlib.c
+LIBBACPY_SRCS =
 LIBBACPY_OBJS = $(LIBBACPY_SRCS:.c=.o)
 LIBBACPY_LOBJS = $(LIBBACPY_SRCS:.c=.lo)
 
@@ -84,29 +83,22 @@ LIBBACPY_LOBJS = $(LIBBACPY_SRCS:.c=.lo)
 # inference rules
 .c.o:
 	@echo "Compiling $<"
-	$(NO_ECHO)$(CXX) $(DEFS) $(DEBUG) -c $(WCFLAGS) $(CPPFLAGS) $(PYTHON_INC) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
+	$(NO_ECHO)$(CXX) $(DEFS) $(DEBUG) -c $(WCFLAGS) $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
 
 .c.lo:
 	@echo "Compiling $<"
-	$(NO_ECHO)$(LIBTOOL_COMPILE) $(CXX) $(DEFS) $(DEBUG) -c $(WCFLAGS) $(CPPFLAGS) $(PYTHON_INC) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
+	$(NO_ECHO)$(LIBTOOL_COMPILE) $(CXX) $(DEFS) $(DEBUG) -c $(WCFLAGS) $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
 
 .cc.o:
 	@echo "Compiling $<"
-	$(NO_ECHO)$(CXX) $(DEFS) $(DEBUG) -c $(WCFLAGS) $(CPPFLAGS) $(PYTHON_INC) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
+	$(NO_ECHO)$(CXX) $(DEFS) $(DEBUG) -c $(WCFLAGS) $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
 
 .cc.lo:
 	@echo "Compiling $<"
-	$(NO_ECHO)$(LIBTOOL_COMPILE) $(CXX) $(DEFS) $(DEBUG) -c $(WCFLAGS) $(CPPFLAGS) $(PYTHON_INC) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
+	$(NO_ECHO)$(LIBTOOL_COMPILE) $(CXX) $(DEFS) $(DEBUG) -c $(WCFLAGS) $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
 
 # specific build rules
 
-pythonlib.o: pythonlib.c
-	@echo "Compiling $<"
-	$(NO_ECHO)$(CXX) $(DEFS) $(DEBUG) -c $(WCFLAGS) $(CPPFLAGS) $(python) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
-
-pythonlib.lo: pythonlib.c
-	@echo "Compiling $<"
-	$(NO_ECHO)$(LIBTOOL_COMPILE) $(CXX) $(DEFS) $(DEBUG) -c $(WCFLAGS) $(CPPFLAGS) $(python) -I../configlib -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
 
 #-------------------------------------------------------------------------
 all: Makefile libbac$(DEFAULT_ARCHIVE_TYPE) libbaccfg$(DEFAULT_ARCHIVE_TYPE) libbacpy$(DEFAULT_ARCHIVE_TYPE) 
@@ -138,7 +130,7 @@ libbacpy.a: $(LIBBACPY_OBJS)
 
 libbacpy.la: Makefile $(LIBBACPY_LOBJS) 
 	@echo "Making $@ ..."
-	$(LIBTOOL_LINK) $(CXX) $(DEFS) $(DEBUG) $(LDFLAGS) -o $@ $(LIBBACPY_LOBJS) -export-dynamic -rpath $(libdir) -release $(LIBBACPY_LT_RELEASE) $(PYTHON_LIBS) $(OPENSSL_LIBS) $(LIBS)
+	$(LIBTOOL_LINK) $(CXX) $(DEFS) $(DEBUG) $(LDFLAGS) -o $@ $(LIBBACPY_LOBJS) -export-dynamic -rpath $(libdir) -release $(LIBBACPY_LT_RELEASE) $(OPENSSL_LIBS) $(LIBS)
 
 Makefile: $(srcdir)/Makefile.in $(topdir)/config.status
 	cd $(topdir) \
@@ -269,7 +261,7 @@ depend:
 	@$(SED) "/^# DO NOT DELETE:/,$$ d" Makefile.bak > Makefile
 	@$(ECHO) "# DO NOT DELETE: nice dependency list follows" >> Makefile
 	@for src in $(LIBBAC_SRCS) $(LIBBACCFG_SRCS) $(LIBBACPY_SRCS); do \
-	    $(CXX) -S -M -MT `basename $$src .c`$(DEFAULT_OBJECT_TYPE) $(CPPFLAGS) $(XINC) $(PYTHON_INC) -I$(srcdir) -I$(basedir) $$src >> Makefile; \
+	    $(CXX) -S -M -MT `basename $$src .c`$(DEFAULT_OBJECT_TYPE) $(CPPFLAGS) $(XINC) -I$(srcdir) -I$(basedir) $$src >> Makefile; \
 	done
 	@if test -f Makefile ; then \
 	    $(RMF) Makefile.bak; \

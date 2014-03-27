@@ -1,29 +1,17 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2008 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  *   Main configuration file parser for Bacula File Daemon (Client)
@@ -44,9 +32,8 @@
  *      definitions as well as any specific store routines
  *      for the resource records.
  *
- *     Kern Sibbald, September MM
+ *     Written by Kern Sibbald, September MM
  *
- *   Version $Id$
  */
 
 #include "bacula.h"
@@ -79,6 +66,10 @@ URES res_all;
 #endif
 int32_t res_all_size = sizeof(res_all);
 
+/* Forward definition for encyption cipher/digest type  */
+static void store_cipher_type(LEX *lc, RES_ITEM *item, int index, int pass);
+static void store_digest_type(LEX *lc, RES_ITEM *item, int index, int pass);
+
 /* Definition of records permitted within each
  * resource with the routine to process the record
  * information.
@@ -109,6 +100,8 @@ static RES_ITEM cli_items[] = {
    {"pkikeypair",            store_dir,       ITEM(res_client.pki_keypair_file), 0, 0, 0},
    {"pkisigner",             store_alist_str, ITEM(res_client.pki_signing_key_files), 0, 0, 0},
    {"pkimasterkey",          store_alist_str, ITEM(res_client.pki_master_key_files), 0, 0, 0},
+   {"pkicipher",             store_cipher_type, ITEM(res_client.pki_cipher), 0, 0, 0},
+   {"pkipigest",             store_digest_type, ITEM(res_client.pki_digest), 0, 0, 0},
 #endif
    {"tlsauthenticate",       store_bool,    ITEM(res_client.tls_authenticate),  0, 0, 0},
    {"tlsenable",             store_bool,    ITEM(res_client.tls_enable),  0, 0, 0},
@@ -118,6 +111,8 @@ static RES_ITEM cli_items[] = {
    {"tlscertificate",        store_dir,       ITEM(res_client.tls_certfile), 0, 0, 0},
    {"tlskey",                store_dir,       ITEM(res_client.tls_keyfile), 0, 0, 0},
    {"verid",                 store_str,       ITEM(res_client.verid), 0, 0, 0},
+   {"maximumbandwidthperjob",store_speed,   ITEM(res_client.max_bandwidth_per_job), 0, 0, 0},
+   {"disablecommand",        store_alist_str, ITEM(res_client.disable_cmds), 0, 0, 0},
    {NULL, NULL, {0}, 0, 0, 0}
 };
 
@@ -138,6 +133,8 @@ static RES_ITEM dir_items[] = {
    {"tlskey",               store_dir,       ITEM(res_dir.tls_keyfile), 0, 0, 0},
    {"tlsdhfile",            store_dir,       ITEM(res_dir.tls_dhfile), 0, 0, 0},
    {"tlsallowedcn",         store_alist_str, ITEM(res_dir.tls_allowed_cns), 0, 0, 0},
+   {"maximumbandwidthperjob", store_speed,     ITEM(res_dir.max_bandwidth_per_job), 0, 0, 0},
+   {"disablecommand",        store_alist_str, ITEM(res_dir.disable_cmds), 0, 0, 0},
    {NULL, NULL, {0}, 0, 0, 0}
 };
 
@@ -156,6 +153,75 @@ RES_TABLE resources[] = {
    {NULL,            NULL,        0}
 };
 
+/* Cipher/Digest keyword structure */
+struct s_ct {
+   const char *type_name;
+   int32_t type_value;
+};
+
+struct s_ct ciphertypes[] = {
+   {"aes128",        CRYPTO_CIPHER_AES_128_CBC},
+   {"aes192",        CRYPTO_CIPHER_AES_192_CBC},
+   {"aes256",        CRYPTO_CIPHER_AES_256_CBC},
+   {"blowfish",      CRYPTO_CIPHER_BLOWFISH_CBC},
+   {NULL,            0}
+};
+
+struct s_ct digesttypes[] = {
+   {"md5",         CRYPTO_DIGEST_MD5},
+   {"sha1",        CRYPTO_DIGEST_SHA1},
+   {"sha256",      CRYPTO_DIGEST_SHA256},
+//   {"sha512",      CRYPTO_DIGEST_SHA512}, /* Not working yet */
+   {NULL,                             0}
+};
+
+/*
+ * Store cipher type
+ *
+ */
+static void store_cipher_type(LEX *lc, RES_ITEM *item, int index, int pass)
+{
+   int i;
+
+   lex_get_token(lc, T_NAME);
+   /* Store the type both pass 1 and pass 2 */
+   for (i=0; ciphertypes[i].type_name; i++) {
+      if (strcasecmp(lc->str, ciphertypes[i].type_name) == 0) {
+         *(uint32_t *)(item->value) = ciphertypes[i].type_value;
+         i = 0;
+         break;
+      }
+   }
+   if (i != 0) {
+      scan_err1(lc, _("Expected a Cipher Type keyword, got: %s"), lc->str);
+   }
+   scan_to_eol(lc);
+   set_bit(index, res_all.hdr.item_present);
+}
+
+/*
+ * Store digest type
+ *
+ */
+static void store_digest_type(LEX *lc, RES_ITEM *item, int index, int pass)
+{
+   int i;
+
+   lex_get_token(lc, T_NAME);
+   /* Store the type both pass 1 and pass 2 */
+   for (i=0; digesttypes[i].type_name; i++) {
+      if (strcasecmp(lc->str, digesttypes[i].type_name) == 0) {
+         *(uint32_t *)(item->value) = digesttypes[i].type_value;
+         i = 0;
+         break;
+      }
+   }
+   if (i != 0) {
+      scan_err1(lc, _("Expected a Cipher Type keyword, got: %s"), lc->str);
+   }
+   scan_to_eol(lc);
+   set_bit(index, res_all.hdr.item_present);
+}
 
 /* Dump contents of resource */
 void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fmt, ...), void *sock)
@@ -227,7 +293,7 @@ void free_resource(RES *sres, int type)
       if (res->res_dir.address) {
          free(res->res_dir.address);
       }
-      if (res->res_dir.tls_ctx) { 
+      if (res->res_dir.tls_ctx) {
          free_tls_context(res->res_dir.tls_ctx);
       }
       if (res->res_dir.tls_ca_certfile) {
@@ -247,6 +313,12 @@ void free_resource(RES *sres, int type)
       }
       if (res->res_dir.tls_allowed_cns) {
          delete res->res_dir.tls_allowed_cns;
+      }
+      if (res->res_dir.disable_cmds) {
+         delete res->res_dir.disable_cmds;
+      }
+      if (res->res_dir.disabled_cmds_array) {
+         free(res->res_dir.disabled_cmds_array);
       }
       break;
    case R_CLIENT:
@@ -272,7 +344,7 @@ void free_resource(RES *sres, int type)
          free_addresses(res->res_client.FDsrc_addr);
       }
 
-      if (res->res_client.pki_keypair_file) { 
+      if (res->res_client.pki_keypair_file) {
          free(res->res_client.pki_keypair_file);
       }
       if (res->res_client.pki_keypair) {
@@ -302,7 +374,7 @@ void free_resource(RES *sres, int type)
          delete res->res_client.pki_recipients;
       }
 
-      if (res->res_client.tls_ctx) { 
+      if (res->res_client.tls_ctx) {
          free_tls_context(res->res_client.tls_ctx);
       }
       if (res->res_client.tls_ca_certfile) {
@@ -316,6 +388,12 @@ void free_resource(RES *sres, int type)
       }
       if (res->res_client.tls_keyfile) {
          free(res->res_client.tls_keyfile);
+      }
+      if (res->res_client.disable_cmds) {
+         delete res->res_client.disable_cmds;
+      }
+      if (res->res_client.disabled_cmds_array) {
+         free(res->res_client.disabled_cmds_array);
       }
       if (res->res_client.verid) {
          free(res->res_client.verid);

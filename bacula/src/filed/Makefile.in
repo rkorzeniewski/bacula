@@ -22,8 +22,6 @@ DEBUG=@DEBUG@
 
 GETTEXT_LIBS = @LIBINTL@
 
-PYTHON_LIBS = @PYTHON_LIBS@
-PYTHON_INC = @PYTHON_INCDIR@
 AFS_CFLAGS = @AFS_CFLAGS@
 AFS_LIBS = @AFS_LIBS@
 
@@ -33,7 +31,7 @@ dummy:
 #
 SVRSRCS = filed.c authenticate.c acl.c backup.c estimate.c \
 	  fd_plugins.c accurate.c \
-	  filed_conf.c heartbeat.c job.c pythonfd.c \
+	  filed_conf.c heartbeat.c job.c \
 	  restore.c status.c verify.c verify_vol.c xattr.c
 SVROBJS = $(SVRSRCS:.c=.o)
 
@@ -43,13 +41,8 @@ EXTRAOBJS = @OBJLIST@
 CAP_LIBS = @CAP_LIBS@
 FDLIBS = @FDLIBS@		  # extra libs for File daemon
 ZLIBS = @ZLIBS@
-LZOLIBS = @LZOLIBS@
-
-# extra items for linking on Win32
-WIN32OBJS = win32/winmain.o win32/winlib.a win32/winres.res
-win32 = $(WIN32OBJS) -luser32 -lgdi32
-
-WIN32LIBS = $(@WIN32@)
+LZO_LIBS = @LZO_LIBS@
+LZO_INC= @LZO_INC@
 
 .SUFFIXES:	.c .o
 .PHONY:
@@ -58,15 +51,15 @@ WIN32LIBS = $(@WIN32@)
 # inference rules
 .c.o:
 	@echo "Compiling $<"
-	$(NO_ECHO)$(CXX) $(DEFS) $(DEBUG) -c $(WCFLAGS) $(CPPFLAGS) $(PYTHON_INC) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
+	$(NO_ECHO)$(CXX) $(DEFS) $(DEBUG) -c $(WCFLAGS) $(CPPFLAGS) $(LZO_INC) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
 #-------------------------------------------------------------------------
-all: Makefile @WIN32@ bacula-fd @STATIC_FD@
+all: Makefile bacula-fd @STATIC_FD@
 	@echo "==== Make of filed is good ===="
 	@echo " "
 
 acl.o: acl.c
 	@echo "Compiling $<"
-	$(NO_ECHO)$(CXX) $(DEFS) $(DEBUG) -c $(WCFLAGS) $(CPPFLAGS) $(PYTHON_INC) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) $(AFS_CFLAGS) $<
+	$(NO_ECHO)$(CXX) $(DEFS) $(DEBUG) -c $(WCFLAGS) $(CPPFLAGS) $(LZO_INC) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) $(AFS_CFLAGS) $<
 
 win32/winlib.a:
 	@if test -f win32/Makefile -a "${GMAKE}" != "none"; then \
@@ -93,16 +86,16 @@ win32:	$(WIN32OBJS)
 	fi
 	@rm -f bacula-fd.exe
 
-bacula-fd:  Makefile $(SVROBJS) ../findlib/libbacfind$(DEFAULT_ARCHIVE_TYPE) ../lib/libbacpy$(DEFAULT_ARCHIVE_TYPE) ../lib/libbaccfg$(DEFAULT_ARCHIVE_TYPE) ../lib/libbac$(DEFAULT_ARCHIVE_TYPE) @WIN32@
+bacula-fd:  Makefile $(SVROBJS) ../findlib/libbacfind$(DEFAULT_ARCHIVE_TYPE) ../lib/libbacpy$(DEFAULT_ARCHIVE_TYPE) ../lib/libbaccfg$(DEFAULT_ARCHIVE_TYPE) ../lib/libbac$(DEFAULT_ARCHIVE_TYPE)
 	@echo "Linking $@ ..."
 	$(LIBTOOL_LINK) $(CXX) $(WLDFLAGS) $(LDFLAGS) -L../lib -L../findlib -o $@ $(SVROBJS) \
-	  $(WIN32LIBS) $(FDLIBS) $(ZLIBS) -lbacfind -lbacpy -lbaccfg -lbac -lm $(PYTHON_LIBS) $(LIBS) \
-	  $(DLIB) $(WRAPLIBS) $(GETTEXT_LIBS) $(OPENSSL_LIBS) $(CAP_LIBS) $(AFS_LIBS) $(LZOLIBS)
+	  $(WIN32LIBS) $(FDLIBS) $(ZLIBS) -lbacfind -lbacpy -lbaccfg -lbac -lm $(LIBS) \
+	  $(DLIB) $(WRAPLIBS) $(GETTEXT_LIBS) $(OPENSSL_LIBS) $(CAP_LIBS) $(AFS_LIBS) $(LZO_LIBS)
 
-static-bacula-fd: Makefile $(SVROBJS) ../findlib/libbacfind.a ../lib/libbacpy$(DEFAULT_ARCHIVE_TYPE) ../lib/libbaccfg$(DEFAULT_ARCHIVE_TYPE) ../lib/libbac$(DEFAULT_ARCHIVE_TYPE) @WIN32@
+static-bacula-fd: Makefile $(SVROBJS) ../findlib/libbacfind.a ../lib/libbacpy$(DEFAULT_ARCHIVE_TYPE) ../lib/libbaccfg$(DEFAULT_ARCHIVE_TYPE) ../lib/libbac$(DEFAULT_ARCHIVE_TYPE)
 	$(LIBTOOL_LINK) $(CXX) $(WLDFLAGS) $(LDFLAGS) -static -L../lib -L../findlib -o $@ $(SVROBJS) \
-	   $(WIN32LIBS) $(FDLIBS) $(ZLIBS) -lbacfind -lbacpy -lbaccfg -lbac -lm $(PYTHON_LIBS) $(LIBS) \
-	   $(DLIB) $(WRAPLIBS) $(GETTEXT_LIBS) $(OPENSSL_LIBS) $(CAP_LIBS) $(AFS_LIBS) $(LZOLIBS)
+	   $(WIN32LIBS) $(FDLIBS) $(ZLIBS) -lbacfind -lbacpy -lbaccfg -lbac -lm $(LIBS) \
+	   $(DLIB) $(WRAPLIBS) $(GETTEXT_LIBS) $(OPENSSL_LIBS) $(CAP_LIBS) $(AFS_LIBS) $(LZO_LIBS)
 	strip $@
 
 Makefile: $(srcdir)/Makefile.in $(topdir)/config.status
@@ -154,14 +147,10 @@ install: all
 	   $(LIBTOOL_INSTALL) $(INSTALL_PROGRAM) static-bacula-fd $(DESTDIR)$(sbindir)/static-bacula-fd; \
 	fi
 
-
-
 uninstall:
 	(cd $(DESTDIR)$(sbindir); $(RMF) bacula-fd)
 	(cd $(DESTDIR)$(sysconfdir); $(RMF) bacula-fd.conf)
 	(cd $(DESTDIR)$(sysconfdir); $(RMF) bacula-fd.conf.new)
-
-
 
 # Semi-automatic generation of dependencies:
 # Use gcc -MM because X11 `makedepend' doesn't work on all systems
@@ -172,7 +161,7 @@ depend:
 	@$(MV) Makefile Makefile.bak
 	@$(SED) "/^# DO NOT DELETE:/,$$ d" Makefile.bak > Makefile
 	@$(ECHO) "# DO NOT DELETE: nice dependency list follows" >> Makefile
-	@$(CXX) -S -M $(CPPFLAGS) $(AFS_CFLAGS) $(XINC) $(PYTHON_INC) -I$(srcdir) -I$(basedir) *.c >> Makefile
+	@$(CXX) -S -M $(CPPFLAGS) $(XINC) $(LZO_INC) -I$(srcdir) -I$(basedir) *.c >> Makefile
 	@if test -f Makefile ; then \
 	    $(RMF) Makefile.bak; \
 	else \

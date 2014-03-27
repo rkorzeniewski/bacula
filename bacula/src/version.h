@@ -1,39 +1,34 @@
 
 #undef  VERSION
-#define VERSION "5.2.13"
-#define BDATE   "19 February 2013"
-#define LSMDATE "19Jan13"
+#define VERSION "7.0.0"
+#define BDATE   "28 March 2014"
+#define LSMDATE "28Mar14"
 
-#define PROG_COPYRIGHT "Copyright (C) %d-2012 Free Software Foundation Europe e.V.\n"
-#define BYEAR "2013"       /* year for copyright messages in progs */
+#define PROG_COPYRIGHT "Copyright (C) %d-2014 Free Software Foundation Europe e.V.\n"
+#define BYEAR "2014"       /* year for copyright messages in progs */
+
+/*
+ * Versions of packages needed to build Bacula components
+ */
+#define DEPKGS_QT_VERSION  "01Jan13"
+#define DEPKGS_VERSION     "29Feb12"
+#define BQT4_VERSION       "4.8.4"
+
 
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2013 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 
 /* Shared object library versions */
@@ -54,7 +49,7 @@
 #define TRACE_FILE 1
 
 /* If this is set stdout will not be closed on startup */
-/* #define DEVELOPER 1 */
+#define DEVELOPER 1
 
 /* adjust DEVELOPER_MODE for status command */
 #ifdef DEVELOPER
@@ -91,7 +86,7 @@
 #define USE_LOCKMGR_PRIORITY
 
 /*
- * Enable thread verification before kill 
+ * Enable thread verification before kill
  *
  * Note, this extra check have a high cost when using
  * dozens of thread, so turn this only for debugging.
@@ -115,7 +110,7 @@
  */
 // #define USE_FTP
 
-/* 
+/*
  * for fastest speed but you must have a UPS to avoid unwanted shutdowns
  */
 //#define SQLITE3_INIT_QUERY "PRAGMA synchronous = OFF"
@@ -126,14 +121,14 @@
 #define SQLITE3_INIT_QUERY "PRAGMA synchronous = NORMAL"
 
 /*
- * This should always be on. It enables data encryption code 
+ * This should always be on. It enables data encryption code
  *  providing it is configured.
  */
 #define DATA_ENCRYPTION 1
 
 /*
  * This uses a Bacula specific bsnprintf rather than the sys lib
- *  version because it is much more secure. It should always be 
+ *  version because it is much more secure. It should always be
  *  on.
  */
 #define USE_BSNPRINTF 1
@@ -167,7 +162,7 @@
 
 
 /* The following are turned on for performance testing */
-/*  
+/*
  * If you turn on the NO_ATTRIBUTES_TEST and rebuild, the SD
  *  will receive the attributes from the FD, will write them
  *  to disk, then when the data is written to tape, it will
@@ -178,11 +173,11 @@
  */
 /* #define NO_ATTRIBUTES_TEST 1 */
 
-/* 
+/*
 * If you turn on NO_TAPE_WRITE_TEST and rebuild, the SD
 *  will do all normal actions, but will not write to the
 *  Volume.  Note, this means a lot of functions such as
-*  labeling will not work, so you must use it only when 
+*  labeling will not work, so you must use it only when
 *  Bacula is going to append to a Volume. This will eliminate
 *  the time it takes to write to the Volume (not the time
 *  it takes to do any positioning).

@@ -1,29 +1,17 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2012 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  * Bacula JCR Structure definition for Daemons and the Library
@@ -31,8 +19,7 @@
  *  to all daemons and used by the library routines, and a
  *  daemon specific part that is enabled with #defines.
  *
- * Kern Sibbald, Nov MM
- *
+ *  Written by Kern Sibbald, Nov MM
  */
 
 
@@ -75,7 +62,6 @@
 #define JS_Differences           'D'  /* Verify differences */
 #define JS_ErrorTerminated       'E'  /* Job terminated in error */
 #define JS_WaitFD                'F'  /* waiting on File daemon */
-#define JS_Incomplete            'I'  /* Incomplete Job */
 #define JS_DataCommitting        'L'  /* Committing data (last despool) */
 #define JS_WaitMount             'M'  /* waiting for Mount */
 #define JS_Running               'R'  /* running */
@@ -95,7 +81,7 @@
 #define JS_WaitPriority          'p'  /* Waiting for higher priority jobs to finish */
 #define JS_WaitDevice            'q'  /* Queued waiting for device */
 #define JS_WaitStoreRes          's'  /* Waiting for storage resource */
-#define JS_WaitStartTime         't'  /* Waiting for start time */ 
+#define JS_WaitStartTime         't'  /* Waiting for start time */
 
 
 /* Migration selection types */
@@ -140,8 +126,8 @@ enum {
 
 #define endeach_jcr(jcr) jcr_walk_end(jcr)
 
-#define SD_APPEND 1
-#define SD_READ   0
+#define SD_APPEND true
+#define SD_READ   false
 
 /* Forward referenced structures */
 class JCR;
@@ -193,7 +179,6 @@ public:
    void destroy_mutex(void) {pthread_mutex_destroy(&mutex); };
    bool is_job_canceled() {return job_canceled(this); };
    bool is_canceled() {return job_canceled(this); };
-   bool is_incomplete() { return JobStatus == JS_Incomplete; };
    bool is_JobLevel(int32_t JobLevel) { return JobLevel == m_JobLevel; };
    bool is_JobType(int32_t JobType) { return JobType == m_JobType; };
    bool is_JobStatus(int32_t aJobStatus) { return aJobStatus == JobStatus; };
@@ -205,8 +190,7 @@ public:
    int32_t getJobLevel() const { return m_JobLevel; };
    int32_t getJobStatus() const { return JobStatus; };
    bool no_client_used() const {
-      return (m_JobType == JT_MIGRATE || m_JobType == JT_COPY ||
-              m_JobLevel == L_VIRTUAL_FULL);
+      return (m_JobLevel == L_VIRTUAL_FULL);
    };
    const char *get_OperationName();       /* in lib/jcr.c */
    const char *get_ActionName(bool past); /* in lib/jcr.c */
@@ -244,11 +228,12 @@ public:
    uint32_t LastRate;                 /* Last sample bytes/sec */
    uint64_t JobBytes;                 /* Number of bytes processed this job */
    uint64_t LastJobBytes;             /* Last sample number bytes */
-   uint64_t ReadBytes;                /* Bytes read -- before compression */
+   uint64_t ReadBytes;                /* Bytes read */
    FileId_t FileId;                   /* Last FileId used */
    volatile int32_t JobStatus;        /* ready, running, blocked, terminated */
    int32_t JobPriority;               /* Job priority */
    time_t sched_time;                 /* job schedule time, i.e. when it should start */
+   time_t initial_sched_time;         /* original sched time before any reschedules are done */
    time_t start_time;                 /* when job actually started */
    time_t run_time;                   /* used for computing speed */
    time_t last_time;                  /* Last sample time */
@@ -280,6 +265,7 @@ public:
    bool HasBase;                      /* True if job use base jobs */
    bool rerunning;                    /* rerunning an incomplete job */
    bool job_started;                  /* Set when the job is actually started */
+   bool sd_calls_client;              /* Set for SD to call client (FD/SD) */
 
    void *Python_job;                  /* Python Job Object */
    void *Python_events;               /* Python Events Object */
@@ -312,12 +298,14 @@ public:
    BSOCK *ua;                         /* User agent */
    JOB *job;                          /* Job resource */
    JOB *verify_job;                   /* Job resource of verify previous job */
+   alist *plugin_config;              /* List of ConfigFile needed for restore */
    alist *rstorage;                   /* Read storage possibilities */
    STORE *rstore;                     /* Selected read storage */
    alist *wstorage;                   /* Write storage possibilities */
    STORE *wstore;                     /* Selected write storage */
    CLIENT *client;                    /* Client resource */
    POOL *pool;                        /* Pool resource = write for migration */
+   POOL *next_pool;                   /* Next pool override */
    POOL *rpool;                       /* Read pool. Used only in migration */
    POOL *full_pool;                   /* Full backup pool resource */
    POOL *inc_pool;                    /* Incremental backup pool resource */
@@ -333,14 +321,13 @@ public:
    uint32_t ExpectedFiles;            /* Expected restore files */
    uint32_t MediaId;                  /* DB record IDs associated with this job */
    uint32_t FileIndex;                /* Last FileIndex processed */
-   utime_t MaxRunSchedTime;           /* max run time in seconds from Scheduled time*/
+   utime_t MaxRunSchedTime;           /* max run time in seconds from Initial Scheduled time */
    POOLMEM *fname;                    /* name to put into catalog */
-   POOLMEM *component_fname;          /* Component info file name */
-   FILE *component_fd;                /* Component info file desc */
+   POOLMEM *media_type;               /* Set if user supplied Storage */
    JOB_DBR jr;                        /* Job DB record for current job */
    JOB_DBR previous_jr;               /* previous job database record */
    JOB *previous_job;                 /* Job resource of migration previous job */
-   JCR *mig_jcr;                      /* JCR for migration/copy job */
+   JCR *wjcr;                         /* JCR for migration/copy write job */
    char FSCreateTime[MAX_TIME_LENGTH]; /* FileSet CreateTime as returned from DB */
    char since[MAX_TIME_LENGTH];       /* since time */
    char PrevJob[MAX_NAME_LENGTH];     /* Previous job name assiciated with since time */
@@ -350,6 +337,7 @@ public:
    };
    POOLMEM *client_uname;             /* client uname */
    POOLMEM *pool_source;              /* Where pool came from */
+   POOLMEM *next_pool_source;         /* Where next pool came from */
    POOLMEM *rpool_source;             /* Where migrate read pool came from */
    POOLMEM *rstore_source;            /* Where read storage came from */
    POOLMEM *wstore_source;            /* Where write storage came from */
@@ -358,6 +346,7 @@ public:
    int32_t NumVols;                   /* Number of Volume used in pool */
    int32_t reschedule_count;          /* Number of times rescheduled */
    int32_t FDVersion;                 /* File daemon version number */
+   int32_t SDVersion;                 /* Storage daemon version number */
    int64_t spool_size;                /* Spool size for this job */
    volatile bool sd_msg_thread_done;  /* Set when Storage message thread done */
    bool wasVirtualFull;               /* set if job was VirtualFull */
@@ -377,11 +366,14 @@ public:
    bool keep_sd_auth_key;             /* Clear or not the SD auth key after connection*/
    bool use_accurate_chksum;          /* Use or not checksum option in accurate code */
    bool run_pool_override;
+   bool run_next_pool_override;       /* Next pool is overridden */
    bool run_full_pool_override;
    bool run_inc_pool_override;
    bool run_diff_pool_override;
    bool sd_canceled;                  /* set if SD canceled */
    bool RescheduleIncompleteJobs;     /* set if incomplete can be rescheduled */
+   bool use_all_JobIds;               /* Use all jobids present in command line */
+   bool sd_client;                    /* This job runs as SD client */
 #endif /* DIRECTOR_DAEMON */
 
 
@@ -390,10 +382,13 @@ public:
    uint32_t num_files_examined;       /* files examined this job */
    POOLMEM *last_fname;               /* last file saved/verified */
    POOLMEM *job_metadata;             /* VSS job metadata */
+   pthread_cond_t job_start_wait;     /* Wait for SD to start Job */
    acl_data_t *acl_data;              /* ACLs for backup/restore */
    xattr_data_t *xattr_data;          /* Extended Attributes for backup/restore */
    int32_t last_type;                 /* type of last file saved/verified */
    int incremental;                   /* set if incremental for SINCE */
+   time_t last_stat_time;             /* Last time stats sent to Dir */
+   time_t stat_interval;              /* Stats send interval */
    utime_t mtime;                     /* begin time for SINCE */
    int listing;                       /* job listing in estimate */
    long Ticket;                       /* Ticket */
@@ -440,11 +435,16 @@ public:
    POOLMEM *job_name;                 /* base Job name (not unique) */
    POOLMEM *fileset_name;             /* FileSet */
    POOLMEM *fileset_md5;              /* MD5 for FileSet */
+   char stored_addr[MAX_NAME_LENGTH]; /* storage daemon address */
+   char client_addr[MAX_NAME_LENGTH]; /* client daemon address */
    VOL_LIST *VolList;                 /* list to read */
    int32_t NumWriteVolumes;           /* number of volumes written */
    int32_t NumReadVolumes;            /* total number of volumes to read */
    int32_t CurReadVolume;             /* current read volume number */
    int32_t label_errors;              /* count of label errors */
+   int32_t DIRVersion;                /* Director version number */
+   int32_t FDVersion;                 /* File daemon version number */
+   int32_t SDVersion;                 /* Storage daemon version number */
    bool session_opened;
    long Ticket;                       /* ticket for this job */
    bool ignore_label_errors;          /* ignore Volume label errors */
@@ -454,13 +454,14 @@ public:
    bool spool_data;                   /* set to spool data */
    int32_t CurVol;                    /* Current Volume count */
    DIRRES* director;                  /* Director resource */
-   alist *write_store;                /* list of write storage devices sent by DIR */ 
+   alist *write_store;                /* list of write storage devices sent by DIR */
    alist *read_store;                 /* list of read devices sent by DIR */
    alist *reserve_msgs;               /* reserve fail messages */
    bool write_part_after_job;         /* Set to write part after job */
    bool PreferMountedVols;            /* Prefer mounted vols rather than new */
    bool Resched;                      /* Job may be rescheduled */
    bool bscan_insert_jobmedia_records; /*Bscan: needs to insert job media records */
+   bool sd_client;                    /* Set if acting as client */
 
    /* Parmaters for Open Read Session */
    BSR *bsr;                          /* Bootstrap record -- has everything */
@@ -484,7 +485,7 @@ public:
 
 /*
  * Setting a NULL in tsd doesn't clear the tsd but instead tells
- *   pthreads not to call the tsd destructor. Consequently, we 
+ *   pthreads not to call the tsd destructor. Consequently, we
  *   define this *invalid* jcr address and stuff it in the tsd
  *   when the jcr is not valid.
  */

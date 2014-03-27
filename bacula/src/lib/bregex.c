@@ -35,29 +35,17 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2006-2010 Free Software Foundation Europe e.V.
+   Copyright (C) 2006-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 
 
@@ -726,7 +714,7 @@ void re_compile_fastmap(regex_t * bufp)
    bufp->fastmap_accurate = 1;
 }
 
-/* 
+/*
  * star is coded as:
  * 1: failure_jump 2
  *    ... code for operand of star
@@ -1465,7 +1453,7 @@ int regcomp(regex_t * bufp, const char *regex, int cflags)
       char *p, *lcase = bstrdup(regex);
       for( p = lcase; *p ; p++) {
          *p = tolower(*p);
-      } 
+      }
       re_compile_pattern(bufp, (unsigned char *)lcase);
       bfree(lcase);
    } else {
@@ -1477,12 +1465,12 @@ int regcomp(regex_t * bufp, const char *regex, int cflags)
    return 0;
 }
 
-void re_registers_to_regmatch(regexp_registers_t old_regs, 
-                              regmatch_t pmatch[], 
+void re_registers_to_regmatch(regexp_registers_t old_regs,
+                              regmatch_t pmatch[],
                               size_t nmatch)
 {
    size_t i=0;
-   
+
    /* We have to set the last entry to -1 */
    nmatch = nmatch - 1;
    for (i=0; (i < nmatch) && (old_regs->start[i] > -1) ; i++) {
@@ -1491,7 +1479,7 @@ void re_registers_to_regmatch(regexp_registers_t old_regs,
    }
 
    pmatch[i].rm_eo = pmatch[i].rm_so = -1;
-} 
+}
 
 int regexec(regex_t * preg, const char *string, size_t nmatch,
             regmatch_t pmatch[], int eflags)
@@ -1503,7 +1491,7 @@ int regexec(regex_t * preg, const char *string, size_t nmatch,
    if (stat >= 0) {
       re_registers_to_regmatch(&regs, pmatch, nmatch);
    }
-   /* stat is the start position in the string base 0 where       
+   /* stat is the start position in the string base 0 where
     *  the pattern was found or negative if not found.
     */
    return stat < 0 ? -1 : 0;

@@ -1,29 +1,17 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2003-2011 Free Software Foundation Europe e.V.
+   Copyright (C) 2003-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  * Bacula Catalog Database routines specific to PostgreSQL
@@ -32,7 +20,7 @@
  *    Dan Langille, December 2003
  *    based upon work done by Kern Sibbald, March 2000
  *
- * Major rewrite by Marco van Wieringen, January 2010 for catalog refactoring.
+ *   Class wrapper by Marco van Wieringen, January 2010
  */
 
 #include "bacula.h"
@@ -61,15 +49,15 @@ static dlist *db_list = NULL;
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 B_DB_POSTGRESQL::B_DB_POSTGRESQL(JCR *jcr,
-                                 const char *db_driver,
-                                 const char *db_name,
-                                 const char *db_user,
-                                 const char *db_password,
-                                 const char *db_address,
-                                 int db_port, 
-                                 const char *db_socket,
-                                 bool mult_db_connections,
-                                 bool disable_batch_insert)
+   const char *db_driver,
+   const char *db_name,
+   const char *db_user,
+   const char *db_password,
+   const char *db_address,
+   int db_port,
+   const char *db_socket,
+   bool mult_db_connections,
+   bool disable_batch_insert)
 {
    /*
     * Initialize the parent class members.
@@ -122,12 +110,12 @@ B_DB_POSTGRESQL::B_DB_POSTGRESQL(JCR *jcr,
    m_buf =  get_pool_memory(PM_FNAME);
    m_allow_transactions = mult_db_connections;
 
-   /* At this time, when mult_db_connections == true, this is for 
+   /* At this time, when mult_db_connections == true, this is for
     * specific console command such as bvfs or batch mode, and we don't
     * want to share a batch mode or bvfs. In the future, we can change
     * the creation function to add this parameter.
     */
-   m_dedicated = mult_db_connections; 
+   m_dedicated = mult_db_connections;
 
    /*
     * Initialize the private members.
@@ -177,12 +165,12 @@ static bool pgsql_check_database_encoding(JCR *jcr, B_DB_POSTGRESQL *mdb)
          /*
           * Something is wrong with database encoding
           */
-         Mmsg(mdb->errmsg, 
+         Mmsg(mdb->errmsg,
               _("Encoding error for database \"%s\". Wanted SQL_ASCII, got %s\n"),
               mdb->get_db_name(), row[0]);
          Jmsg(jcr, M_WARNING, 0, "%s", mdb->errmsg);
          Dmsg1(50, "%s", mdb->errmsg);
-      } 
+      }
    }
    return ret;
 }
@@ -256,7 +244,7 @@ bool B_DB_POSTGRESQL::db_open_database(JCR *jcr)
 
    sql_query("SET datestyle TO 'ISO, YMD'");
    sql_query("SET cursor_tuple_fraction=1");
-   
+
    /*
     * Tell PostgreSQL we are using standard conforming strings
     * and avoid warnings such as:
@@ -344,7 +332,7 @@ void B_DB_POSTGRESQL::db_thread_cleanup(void)
 void B_DB_POSTGRESQL::db_escape_string(JCR *jcr, char *snew, char *old, int len)
 {
    int error;
-  
+
    PQescapeStringConn(m_db_handle, snew, old, len, &error);
    if (error) {
       Jmsg(jcr, M_FATAL, 0, _("PQescapeStringConn returned non-zero.\n"));
@@ -403,7 +391,7 @@ void B_DB_POSTGRESQL::db_unescape_object(JCR *jcr, char *from, int32_t expected_
    *dest = check_pool_memory_size(*dest, new_len+1);
    memcpy(*dest, obj, new_len);
    (*dest)[new_len]=0;
-   
+
    PQfreemem(obj);
 
    Dmsg1(010, "obj size: %d\n", *dest_len);
@@ -475,14 +463,14 @@ void B_DB_POSTGRESQL::db_end_transaction(JCR *jcr)
  * Submit a general SQL command (cmd), and for each row returned,
  * the result_handler is called with the ctx.
  */
-bool B_DB_POSTGRESQL::db_big_sql_query(const char *query, 
-                                       DB_RESULT_HANDLER *result_handler, 
+bool B_DB_POSTGRESQL::db_big_sql_query(const char *query,
+                                       DB_RESULT_HANDLER *result_handler,
                                        void *ctx)
 {
    SQL_ROW row;
    bool retval = false;
    bool in_transaction = m_transaction;
-   
+
    Dmsg1(500, "db_sql_query starts with '%s'\n", query);
 
    /* This code handles only SELECT queries */
@@ -519,7 +507,7 @@ bool B_DB_POSTGRESQL::db_big_sql_query(const char *query,
       }
       PQclear(m_result);
       m_result = NULL;
-      
+
    } while (m_num_rows > 0);    /* TODO: Can probably test against 100 */
 
    sql_query("CLOSE _bac_cursor");
@@ -852,7 +840,7 @@ SQL_FIELD *B_DB_POSTGRESQL::sql_fetch_field(void)
             } else {
                 this_length = cstrlen(PQgetvalue(m_result, j, i));
             }
-         
+
             if (max_length < this_length) {
                max_length = this_length;
             }
@@ -961,7 +949,7 @@ bool B_DB_POSTGRESQL::sql_batch_start(JCR *jcr)
       Dmsg0(500, "sql_batch_start failed\n");
       return false;
    }
-   
+
    /*
     * We are starting a new query.  reset everything.
     */
@@ -1019,18 +1007,18 @@ bool B_DB_POSTGRESQL::sql_batch_end(JCR *jcr, const char *error)
 
    Dmsg0(500, "sql_batch_end started\n");
 
-   do { 
+   do {
       res = PQputCopyEnd(m_db_handle, error);
    } while (res == 0 && --count > 0);
 
    if (res == 1) {
       Dmsg0(500, "ok\n");
-      m_status = 1;
+      m_status = 0;
    }
-   
+
    if (res <= 0) {
       Dmsg0(500, "we failed\n");
-      m_status = 0;
+      m_status = 1;
       Mmsg1(&errmsg, _("error ending batch mode: %s"), PQerrorMessage(m_db_handle));
       Dmsg1(500, "failure %s\n", errmsg);
    }
@@ -1039,12 +1027,15 @@ bool B_DB_POSTGRESQL::sql_batch_end(JCR *jcr, const char *error)
    pg_result = PQgetResult(m_db_handle);
    if (PQresultStatus(pg_result) != PGRES_COMMAND_OK) {
       Mmsg1(&errmsg, _("error ending batch mode: %s"), PQerrorMessage(m_db_handle));
-      m_status = 0;
+      m_status = 1;
    }
-   PQclear(pg_result); 
+
+   /* Get some statistics to compute the best plan */
+   sql_query("ANALYZE batch");
+
+   PQclear(pg_result);
 
    Dmsg0(500, "sql_batch_end finishing\n");
-
    return true;
 }
 
@@ -1068,11 +1059,11 @@ bool B_DB_POSTGRESQL::sql_batch_insert(JCR *jcr, ATTR_DBR *ar)
       digest = ar->Digest;
    }
 
-   len = Mmsg(cmd, "%u\t%s\t%s\t%s\t%s\t%s\t%u\n", 
-              ar->FileIndex, edit_int64(ar->JobId, ed1), esc_path, 
+   len = Mmsg(cmd, "%u\t%s\t%s\t%s\t%s\t%s\t%u\n",
+              ar->FileIndex, edit_int64(ar->JobId, ed1), esc_path,
               esc_name, ar->attr, digest, ar->DeltaSeq);
 
-   do { 
+   do {
       res = PQputCopyData(m_db_handle, cmd, len);
    } while (res == 0 && --count > 0);
 
@@ -1098,10 +1089,10 @@ bool B_DB_POSTGRESQL::sql_batch_insert(JCR *jcr, ATTR_DBR *ar)
  * Initialize database data structure. In principal this should
  * never have errors, or it is really fatal.
  */
-B_DB *db_init_database(JCR *jcr, const char *db_driver, const char *db_name, 
-                       const char *db_user, const char *db_password, 
-                       const char *db_address, int db_port, 
-                       const char *db_socket, bool mult_db_connections, 
+B_DB *db_init_database(JCR *jcr, const char *db_driver, const char *db_name,
+                       const char *db_user, const char *db_password,
+                       const char *db_address, int db_port,
+                       const char *db_socket, bool mult_db_connections,
                        bool disable_batch_insert)
 {
    B_DB_POSTGRESQL *mdb = NULL;
@@ -1124,8 +1115,8 @@ B_DB *db_init_database(JCR *jcr, const char *db_driver, const char *db_name,
       }
    }
    Dmsg0(100, "db_init_database first time\n");
-   mdb = New(B_DB_POSTGRESQL(jcr, db_driver, db_name, db_user, db_password, 
-                             db_address, db_port, db_socket, 
+   mdb = New(B_DB_POSTGRESQL(jcr, db_driver, db_name, db_user, db_password,
+                             db_address, db_port, db_socket,
                              mult_db_connections, disable_batch_insert));
 
 bail_out:

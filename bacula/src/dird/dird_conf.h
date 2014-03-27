@@ -1,34 +1,22 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2011 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  * Director specific configuration and defines
  *
- *     Kern Sibbald, Feb MM
+ *     Written by Kern Sibbald, Feb MM
  *
  */
 
@@ -115,6 +103,7 @@ public:
    char *subsys_directory;            /* SubsysDirectory */
    MSGS *messages;                    /* Daemon message handler */
    uint32_t MaxConcurrentJobs;        /* Max concurrent jobs for whole director */
+   uint32_t MaxSpawnedJobs;           /* Max Jobs that can be started by Migration/Copy */
    uint32_t MaxConsoleConnect;        /* Max concurrent console session */
    utime_t FDConnectTimeout;          /* timeout for connect in seconds */
    utime_t SDConnectTimeout;          /* timeout in seconds */
@@ -141,7 +130,7 @@ inline char *DIRRES::name() const { return hdr.name; }
 /*
  * Device Resource
  *  This resource is a bit different from the other resources
- *  because it is not defined in the Director 
+ *  because it is not defined in the Director
  *  by DEVICE { ... }, but rather by a "reference" such as
  *  DEVICE = xxx; Then when the Director connects to the
  *  SD, it requests the information about the device.
@@ -257,6 +246,7 @@ public:
    utime_t JobRetention;              /* job retention period in seconds */
    utime_t heartbeat_interval;        /* Interval to send heartbeats */
    char *address;
+   char *fd_storage_address;          /* Storage address to use from FD side  */
    char *password;
    CAT *catalog;                      /* Catalog resource */
    int32_t MaxConcurrentJobs;         /* Maximum concurrent jobs */
@@ -271,6 +261,8 @@ public:
    bool tls_enable;                   /* Enable TLS */
    bool tls_require;                  /* Require TLS */
    bool AutoPrune;                    /* Do automatic pruning? */
+   bool sd_calls_client;              /* SD calls the client */
+   int64_t max_bandwidth;             /* Limit speed on this client */
 
    /* Methods */
    char *name() const;
@@ -290,6 +282,7 @@ public:
    uint32_t SDport;                   /* port where Directors connect */
    uint32_t SDDport;                  /* data port for File daemon */
    char *address;
+   char *fd_storage_address;          /* Storage address to use from FD side  */
    char *password;
    char *media_type;
    alist *device;                     /* Alternate devices for this Storage */
@@ -318,7 +311,7 @@ public:
 };
 
 inline char *STORE::dev_name() const
-{ 
+{
    DEVICE *dev = (DEVICE *)device->first();
    return dev->name();
 }
@@ -336,9 +329,9 @@ public:
    POOLMEM *store_source;
 
    /* Methods */
-   USTORE() { store = NULL; store_source = get_pool_memory(PM_MESSAGE); 
+   USTORE() { store = NULL; store_source = get_pool_memory(PM_MESSAGE);
               *store_source = 0; };
-   ~USTORE() { destroy(); }   
+   ~USTORE() { destroy(); }
    void set_source(const char *where);
    void destroy();
 };
@@ -401,6 +394,7 @@ public:
    int64_t spool_size;                /* Size of spool file for this job */
    int32_t MaxConcurrentJobs;         /* Maximum concurrent jobs */
    int32_t NumConcurrentJobs;         /* number of concurrent jobs running */
+   uint32_t MaxSpawnedJobs;           /* Max Jobs that can be started by Migration/Copy */
    bool allow_mixed_priority;         /* Allow jobs with higher priority concurrently with this */
 
    MSGS      *messages;               /* How and where to send messages */
@@ -409,6 +403,7 @@ public:
    FILESET   *fileset;                /* What to backup -- Fileset */
    alist     *storage;                /* Where is device -- list of Storage to be used */
    POOL      *pool;                   /* Where is media -- Media Pool */
+   POOL      *next_pool;              /* Next Pool for Copy/Migrate/VirtualFull */
    POOL      *full_pool;              /* Pool for Full backups */
    POOL      *inc_pool;               /* Pool for Incremental backups */
    POOL      *diff_pool;              /* Pool for Differental backups */
@@ -442,7 +437,8 @@ public:
    bool PurgeMigrateJob;              /* Purges source job on completion */
    bool IgnoreDuplicateJobChecking;   /* Ignore Duplicate Job Checking */
 
-   alist *base;                       /* Base jobs */   
+   alist *base;                       /* Base jobs */
+   int64_t max_bandwidth;             /* Speed limit on this job */
 
    /* Methods */
    char *name() const;
@@ -516,7 +512,10 @@ public:
    RES   hdr;
 
    RUN *run;
+   char *name() const;
 };
+
+inline char *SCHED::name() const { return hdr.name; }
 
 /*
  *   Counter Resource
@@ -622,8 +621,11 @@ public:
    bool accurate_set;                 /* accurate given */
    bool write_part_after_job;         /* Write part after job override */
    bool write_part_after_job_set;     /* Write part after job override given */
-   
+   bool priority_set;                 /* priority override given */
+   bool level_set;                    /* level override given */
+
    POOL *pool;                        /* Pool override */
+   POOL *next_pool;                   /* Next pool override */
    POOL *full_pool;                   /* Pool override */
    POOL *inc_pool;                    /* Pool override */
    POOL *diff_pool;                   /* Pool override */
@@ -635,10 +637,10 @@ public:
    time_t last_run;                   /* last time run */
    time_t next_run;                   /* next time to run */
    char hour[nbytes_for_bits(24)];    /* bit set for each hour */
-   char mday[nbytes_for_bits(31)];    /* bit set for each day of month */
+   char mday[nbytes_for_bits(32)];    /* bit set for each day of month */
    char month[nbytes_for_bits(12)];   /* bit set for each month */
    char wday[nbytes_for_bits(7)];     /* bit set for each day of the week */
-   char wom[nbytes_for_bits(5)];      /* week of month */
+   char wom[nbytes_for_bits(6)];      /* week of month */
    char woy[nbytes_for_bits(54)];     /* week of year */
 };
 

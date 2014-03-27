@@ -1,36 +1,24 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2012 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  *
  *  Configuration parser for Director Run Configuration
  *   directives, which are part of the Schedule Resource
  *
- *     Kern Sibbald, May MM
+ *     Written by Kern Sibbald, May MM
  *
  */
 
@@ -44,7 +32,7 @@ extern "C" { // work around visual compiler mangling variables
 #else
 extern URES res_all;
 #endif
-extern struct s_jl joblevels[];
+extern s_jl joblevels[];
 
 /* Forward referenced subroutines */
 
@@ -61,7 +49,8 @@ enum e_state {
    s_monthly,
    s_hourly,
    s_wom,                           /* 1st, 2nd, ...*/
-   s_woy                            /* week of year w00 - w53 */
+   s_woy,                           /* week of year w00 - w53 */
+   s_ldom                           /* last day of month */
 };
 
 struct s_keyw {
@@ -74,6 +63,7 @@ struct s_keyw {
 static struct s_keyw keyw[] = {
   {NT_("on"),         s_none,    0},
   {NT_("at"),         s_at,      0},
+  {NT_("lastday"),    s_ldom,    0},
 
   {NT_("sun"),        s_wday,    0},
   {NT_("mon"),        s_wday,    1},
@@ -124,12 +114,14 @@ static struct s_keyw keyw[] = {
   {NT_("3rd"),        s_wom,     2},
   {NT_("4th"),        s_wom,     3},
   {NT_("5th"),        s_wom,     4},
+  {NT_("6th"),        s_wom,     5},
 
   {NT_("first"),      s_wom,     0},
   {NT_("second"),     s_wom,     1},
   {NT_("third"),      s_wom,     2},
   {NT_("fourth"),     s_wom,     3},
   {NT_("fifth"),      s_wom,     4},
+  {NT_("sixth"),      s_wom,     5},
   {NULL,         s_none,    0}
 };
 
@@ -145,13 +137,17 @@ static void set_defaults()
    set_bits(0, 30, lrun.mday);
    set_bits(0, 6,  lrun.wday);
    set_bits(0, 11, lrun.month);
-   set_bits(0, 4,  lrun.wom);
+   set_bits(0, 5,  lrun.wom);
    set_bits(0, 53, lrun.woy);
 }
 
 
-/* Keywords (RHS) permitted in Run records */
-static struct s_kw RunFields[] = {
+/*
+ * Keywords (RHS) permitted in Run records
+ *
+ *    name              token
+ */
+s_kw RunFields[] = {
    {"pool",              'P'},
    {"fullpool",          'f'},
    {"incrementalpool",   'i'},
@@ -164,6 +160,7 @@ static struct s_kw RunFields[] = {
    {"writepartafterjob", 'W'},
    {"maxrunschedtime",   'm'},
    {"accurate",          'a'},
+   {"nextpool",          'N'},
    {NULL,                 0}
 };
 
@@ -239,6 +236,7 @@ void store_run(LEX *lc, RES_ITEM *item, int index, int pass)
                   if (strcasecmp(lc->str, joblevels[j].level_name) == 0) {
                      lrun.level = joblevels[j].level;
                      lrun.job_type = joblevels[j].job_type;
+                     lrun.level_set = true;
                      j = 0;
                      break;
                   }
@@ -252,9 +250,11 @@ void store_run(LEX *lc, RES_ITEM *item, int index, int pass)
                token = lex_get_token(lc, T_PINT32);
                if (pass == 2) {
                   lrun.Priority = lc->pint32_val;
+                  lrun.priority_set = true;
                }
                break;
             case 'P':                 /* Pool */
+            case 'N':                 /* NextPool */
             case 'f':                 /* FullPool */
             case 'i':                 /* IncPool */
             case 'd':                 /* DifPool */
@@ -269,6 +269,9 @@ void store_run(LEX *lc, RES_ITEM *item, int index, int pass)
                   switch(RunFields[i].token) {
                   case 'P':
                      lrun.pool = (POOL *)res;
+                     break;
+                  case 'N':
+                     lrun.next_pool = (POOL *)res;
                      break;
                   case 'f':
                      lrun.full_pool = (POOL *)res;
@@ -307,7 +310,7 @@ void store_run(LEX *lc, RES_ITEM *item, int index, int pass)
                }
                break;
             case 'm':           /* max run sched time */
-               token = lex_get_token(lc, T_QUOTED_STRING); 
+               token = lex_get_token(lc, T_QUOTED_STRING);
                if (!duration_to_utime(lc->str, &utime)) {
                   scan_err1(lc, _("expected a time period, got: %s"), lc->str);
                   return;
@@ -359,7 +362,7 @@ void store_run(LEX *lc, RES_ITEM *item, int index, int pass)
    set_defaults();
 
    for ( ; token != T_EOL; (token = lex_get_token(lc, T_ALL))) {
-      int len; 
+      int len;
       bool pm = false;
       bool am = false;
       switch (token) {
@@ -437,7 +440,7 @@ void store_run(LEX *lc, RES_ITEM *item, int index, int pass)
          break;
       case s_wom:                  /* Week of month 1st, ... */
          if (!have_wom) {
-            clear_bits(0, 4, lrun.wom);
+            clear_bits(0, 5, lrun.wom);
             have_wom = true;
          }
          set_bit(code, lrun.wom);
@@ -477,11 +480,11 @@ void store_run(LEX *lc, RES_ITEM *item, int index, int pass)
          } else if (len != 2) {
             scan_err0(lc, _("Bad time specification."));
             /* NOT REACHED */
-         }   
-         /* 
+         }
+         /*
           * Note, according to NIST, 12am and 12pm are ambiguous and
           *  can be defined to anything.  However, 12:01am is the same
-          *  as 00:01 and 12:01pm is the same as 12:01, so we define 
+          *  as 00:01 and 12:01pm is the same as 12:01, so we define
           *  12am as 00:00 and 12pm as 12:00.
           */
          if (pm) {
@@ -504,6 +507,13 @@ void store_run(LEX *lc, RES_ITEM *item, int index, int pass)
          break;
       case s_at:
          have_at = true;
+         break;
+      case s_ldom:
+         if (!have_mday) {
+            clear_bits(0, 30, lrun.mday);
+            have_mday = true;
+         }
+         set_bit(31, lrun.mday);   /* day 32 => last day of month */
          break;
       case s_range:
          p = strchr(lc->str, '-');
@@ -556,7 +566,7 @@ void store_run(LEX *lc, RES_ITEM *item, int index, int pass)
          /* lookup first half of keyword range (week days or months) */
          lcase(lc->str);
          for (i=0; keyw[i].name; i++) {
-            if (strcmp(lc->str, keyw[i].name) == 0) {
+            if (strcasecmp(lc->str, keyw[i].name) == 0) {
                state = keyw[i].state;
                code   = keyw[i].code;
                i = 0;
@@ -571,7 +581,7 @@ void store_run(LEX *lc, RES_ITEM *item, int index, int pass)
          /* Lookup end of range */
          lcase(p);
          for (i=0; keyw[i].name; i++) {
-            if (strcmp(p, keyw[i].name) == 0) {
+            if (strcasecmp(p, keyw[i].name) == 0) {
                state2  = keyw[i].state;
                code2   = keyw[i].code;
                i = 0;
@@ -608,13 +618,13 @@ void store_run(LEX *lc, RES_ITEM *item, int index, int pass)
          } else {
             /* Must be position */
             if (!have_wom) {
-               clear_bits(0, 4, lrun.wom);
+               clear_bits(0, 5, lrun.wom);
                have_wom = true;
             }
             if (code < code2) {
                set_bits(code, code2, lrun.wom);
             } else {
-               set_bits(code, 4, lrun.wom);
+               set_bits(code, 5, lrun.wom);
                set_bits(0, code2, lrun.wom);
             }
          }
@@ -626,7 +636,7 @@ void store_run(LEX *lc, RES_ITEM *item, int index, int pass)
       case s_weekly:
          have_mday = have_wom = have_woy = true;
          set_bits(0, 30, lrun.mday);
-         set_bits(0, 4,  lrun.wom);
+         set_bits(0, 5,  lrun.wom);
          set_bits(0, 53, lrun.woy);
          break;
       case s_daily:

@@ -1,29 +1,17 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2002-2012 Free Software Foundation Europe e.V.
+   Copyright (C) 2002-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  *
@@ -32,6 +20,7 @@
  *
  *     Kern Sibbald, May MMII
  *
+ *   Version $Id$
  */
 
 #include "bacula.h"
@@ -91,9 +80,10 @@ void prune_volumes(JCR *jcr, bool InChanger, MEDIA_DBR *mr,
    int i;
    dbid_list ids;
    struct del_ctx prune_list;
-   POOL_MEM query(PM_MESSAGE);
+   POOL_MEM query(PM_MESSAGE), changer(PM_MESSAGE);
    UAContext *ua;
    char ed1[50], ed2[100], ed3[50];
+
    POOL_DBR spr;
 
    Dmsg1(100, "Prune volumes PoolId=%d\n", jcr->jr.PoolId);
@@ -132,7 +122,7 @@ void prune_volumes(JCR *jcr, bool InChanger, MEDIA_DBR *mr,
    Dmsg1(100, "Scratch pool(s)=%s\n", ed2);
    /*
     * ed2 ends up with scratch poolid and current poolid or
-    *   just current poolid if there is no scratch pool 
+    *   just current poolid if there is no scratch pool
     */
    bstrncat(ed2, ed1, sizeof(ed2));
 
@@ -144,15 +134,12 @@ void prune_volumes(JCR *jcr, bool InChanger, MEDIA_DBR *mr,
         "(PoolId=%s OR RecyclePoolId IN (%s)) AND MediaType='%s' %s"
         "ORDER BY LastWritten ASC,MediaId";
 
+   set_storageid_in_mr(store, mr);
    if (InChanger) {
-      char changer[100];
-      /* Ensure it is in this autochanger */
-      bsnprintf(changer, sizeof(changer), "AND InChanger=1 AND StorageId=%s ",
-         edit_int64(mr->StorageId, ed3));
-      Mmsg(query, select, ed1, ed2, mr->MediaType, changer);
-   } else {
-      Mmsg(query, select, ed1, ed2, mr->MediaType, "");
+      Mmsg(changer, "AND InChanger=1 AND StorageId IN (%s) ", edit_int64(mr->StorageId, ed3));
    }
+
+   Mmsg(query, select, ed1, ed2, mr->MediaType, changer.c_str());
 
    Dmsg1(100, "query=%s\n", query.c_str());
    if (!db_get_query_dbids(ua->jcr, ua->db, query, ids)) {
@@ -188,10 +175,10 @@ void prune_volumes(JCR *jcr, bool InChanger, MEDIA_DBR *mr,
             prune_list.num_ids = 0;             /* reset count */
          }
          if (!is_volume_purged(ua, &lmr)) {
-            Dmsg1(050, "Vol=%s not pruned\n", lmr.VolumeName);
+            Dmsg1(100, "Vol=%s not pruned\n", lmr.VolumeName);
             continue;
          }
-         Dmsg1(050, "Vol=%s is purged\n", lmr.VolumeName);
+         Dmsg1(100, "Vol=%s is purged\n", lmr.VolumeName);
 
          /*
           * Since we are also pruning the Scratch pool, continue
@@ -200,10 +187,11 @@ void prune_volumes(JCR *jcr, bool InChanger, MEDIA_DBR *mr,
           */
          if (InChanger) {
             if (!lmr.InChanger || (lmr.StorageId != mr->StorageId)) {
-               Dmsg1(100, "Vol=%s not inchanger or correct StoreId\n", lmr.VolumeName);
+               Dmsg1(100, "Vol=%s not inchanger\n", lmr.VolumeName);
                continue;                  /* skip this volume, ie not loadable */
             }
          }
+
          if (!lmr.Recycle) {
             Dmsg1(100, "Vol=%s not recyclable\n", lmr.VolumeName);
             continue;
@@ -215,7 +203,7 @@ void prune_volumes(JCR *jcr, bool InChanger, MEDIA_DBR *mr,
          }
 
          /*
-          * If purged and not moved to another Pool, 
+          * If purged and not moved to another Pool,
           *   then we stop pruning and take this volume.
           */
          if (lmr.PoolId == mr->PoolId) {

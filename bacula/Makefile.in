@@ -19,8 +19,7 @@ dummy:
 
 # --client-only directories
 fd_subdirs = src scripts src/lib src/findlib src/filed \
-       @READLINE_SRC@ @BAT_DIR@ @TRAY_MONITOR_DIR@ @WX_DIR@ \
-       src/console @FD_PLUGIN_DIR@
+       @READLINE_SRC@ @BAT_DIR@ src/console @FD_PLUGIN_DIR@
 
 # Non-client-only directores
 subdirs =    src/cats @DIRD_DIR@ @STORED_DIR@ src/tools

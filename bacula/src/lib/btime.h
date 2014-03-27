@@ -1,38 +1,23 @@
-
-/*
-
-  See btime.c for defintions.
-
-     Version $Id$
-
- */
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
+
+/*
+ * See btime.c for defintions.
+ *  Kern Sibbald, MM
+ */
 
 
 #ifndef __btime_INCLUDED
@@ -45,12 +30,14 @@ utime_t btime_to_utime(btime_t bt); /* bacula time to utime_t */
 
 int tm_wom(int mday, int wday);
 int tm_woy(time_t stime);
+int tm_ldom(int month, int year);
 
 char *bstrutime(char *dt, int maxlen, utime_t tim);
 char *bstrftime(char *dt, int maxlen, utime_t tim);
 char *bstrftimes(char *dt, int maxlen, utime_t tim);
 char *bstrftime_ny(char *dt, int maxlen, utime_t tim);
 char *bstrftime_nc(char *dt, int maxlen, utime_t tim);
+char *bstrftime_dn(char *dt, int maxlen, utime_t tim);
 utime_t str_to_utime(char *str);
 
 

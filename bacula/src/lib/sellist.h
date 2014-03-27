@@ -1,29 +1,17 @@
 /*
-   Bacula(R) - The Network Backup Solution
+   Bacula® - The Network Backup Solution
 
-   Copyright (C) 2011-2012 Free Software Foundation Europe e.V.
+   Copyright (C) 2011-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
-
-   Bacula(R) is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
+   Bacula® is a registered trademark of Kern Sibbald.
 */
 /*
  *  Kern Sibbald, January  MMXII
@@ -32,6 +20,9 @@
  *   representing items selected. Ranges of the form nn-mm
  *   are also permitted.
  */
+
+#ifndef __SELLIST_H_
+#define __SELLIST_H_
 
 /*
  * Loop var through each member of list
@@ -44,20 +35,25 @@ class sellist : public SMARTALLOC {
    const char *errmsg;
    char *p, *e, *h;
    char esave, hsave;
+   bool all;
    int64_t beg, end;
    int64_t max;
    int num_items;
    char *str;
+   char *expanded;
 public:
    sellist();
    ~sellist();
    bool set_string(char *string, bool scan);
+   bool is_all() { return all; };
    int64_t first();
    int64_t next();
    void begin();
    /* size() valid only if scan enabled on string */
    int size() const { return num_items; };
    char *get_list() { return str; };
+   /* get the list of all jobids */
+   char *get_expanded_list();
    /* if errmsg == NULL, no error */
    const char *get_errmsg() { return errmsg; };
 };
@@ -69,19 +65,24 @@ inline sellist::sellist()
 {
    num_items = 0;
    max = 99999;
+   expanded = NULL;
    str = NULL;
    e = NULL;
    errmsg = NULL;
-}   
+}
 
 /*
  * Destroy the list
  */
-inline sellist::~sellist() 
+inline sellist::~sellist()
 {
    if (str) {
       free(str);
       str = NULL;
+   }
+   if (expanded) {
+      free(expanded);
+      expanded = NULL;
    }
 }
 
@@ -104,5 +105,8 @@ inline void sellist::begin()
    e = str;
    end = 0;
    beg = 1;
+   all = false;
    errmsg = NULL;
 }
+
+#endif /* __SELLIST_H_ */

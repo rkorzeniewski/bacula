@@ -1,29 +1,17 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2011 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
  /*
   * Originally written by Kern Sibbald for inclusion in apcupsd,
@@ -67,7 +55,7 @@ void bnet_stop_thread_server(pthread_t tid)
  * Become Threaded Network Server
  *
  * This function is able to handle multiple server ips in
- * ipv4 and ipv6 style. The Addresse are give in a comma
+ * ipv4 and ipv6 style. The Addresses are given in a comma
  * seperated string in bind_addr
  *
  * At the moment it is inpossible to bind different ports.
@@ -77,13 +65,13 @@ void bnet_thread_server(dlist *addr_list, int max_clients, workq_t *client_wq,
 {
    int newsockfd, stat;
    socklen_t clilen;
-   struct sockaddr cli_addr;       /* client's address */
+   struct sockaddr_storage clientaddr;   /* client's address */
    int tlog;
    int turnon = 1;
 #ifdef HAVE_LIBWRAP
    struct request_info request;
 #endif
-   IPADDR *ipaddr, *next;
+   IPADDR *ipaddr;
    struct s_sockfd {
       dlink link;                     /* this MUST be the first item */
       int fd;
@@ -94,23 +82,13 @@ void bnet_thread_server(dlist *addr_list, int max_clients, workq_t *client_wq,
 
    char allbuf[256 * 10];
 
+   remove_duplicate_addresses(addr_list);
+
+   Dmsg1(20, "Addresses %s\n", build_addresses_str(addr_list, allbuf, sizeof(allbuf)));
+
    /*
-    * Remove any duplicate addresses.
+    * Listen on each address provided.
     */
-   for (ipaddr = (IPADDR *)addr_list->first(); ipaddr;
-        ipaddr = (IPADDR *)addr_list->next(ipaddr)) {
-      for (next = (IPADDR *)addr_list->next(ipaddr); next;
-           next = (IPADDR *)addr_list->next(next)) {
-         if (ipaddr->get_sockaddr_len() == next->get_sockaddr_len() &&
-             memcmp(ipaddr->get_sockaddr(), next->get_sockaddr(),
-                    ipaddr->get_sockaddr_len()) == 0) {
-            addr_list->remove(next);
-         }
-      }
-   }
-
-   Dmsg1(100, "Addresses %s\n", build_addresses_str(addr_list, allbuf, sizeof(allbuf)));
-
    foreach_dlist(ipaddr, addr_list) {
       /* Allocate on stack from -- no need to free */
       fd_ptr = (s_sockfd *)alloca(sizeof(s_sockfd));
@@ -139,22 +117,35 @@ void bnet_thread_server(dlist *addr_list, int max_clients, workq_t *client_wq,
                be.bstrerror());
       }
 
-      int tmax = 30 * (60 / 5);    /* wait 30 minutes max */
-      for (tlog = 0; bind(fd_ptr->fd, ipaddr->get_sockaddr(), ipaddr->get_sockaddr_len()) < 0; tlog -= 5) {
+      int tmax = 1 * (60 / 5);    /* wait 1 minute max */
+      for (tlog = 0; bind(fd_ptr->fd, ipaddr->get_sockaddr(), ipaddr->get_sockaddr_len()) == SOCKET_ERROR; tlog -= 5) {
          berrno be;
          if (tlog <= 0) {
-            tlog = 2 * 60;         /* Complain every 2 minutes */
+            tlog = 1 * 60;         /* Complain every 1 minute */
             Emsg2(M_WARNING, 0, _("Cannot bind port %d: ERR=%s: Retrying ...\n"),
                   ntohs(fd_ptr->port), be.bstrerror());
+            Dmsg2(20, "Cannot bind port %d: ERR=%s: Retrying ...\n",
+                  ntohs(fd_ptr->port), be.bstrerror());
+
          }
          bmicrosleep(5, 0);
          if (--tmax <= 0) {
             Emsg2(M_ABORT, 0, _("Cannot bind port %d: ERR=%s.\n"), ntohs(fd_ptr->port),
                   be.bstrerror());
+            Pmsg2(000, "Aborting cannot bind port %d: ERR=%s.\n", ntohs(fd_ptr->port),
+                  be.bstrerror());
          }
       }
-      listen(fd_ptr->fd, 50);      /* tell system we are ready */
-      sockfds.append(fd_ptr);
+      if (listen(fd_ptr->fd, 50) < 0) {      /* tell system we are ready */
+         berrno be;
+         Emsg2(M_ABORT, 0, _("Cannot bind port %d: ERR=%s.\n"), ntohs(fd_ptr->port),
+               be.bstrerror());
+      } else {
+         sockfds.append(fd_ptr);
+      }
+   }
+   if (sockfds.size() == 0) {
+      Emsg0(M_ABORT, 0, _("No addr/port found to listen on.\n"));
    }
    /* Start work queue thread */
    if ((stat = workq_init(client_wq, max_clients, handle_client_request)) != 0) {
@@ -187,10 +178,12 @@ void bnet_thread_server(dlist *addr_list, int max_clients, workq_t *client_wq,
          if (FD_ISSET(fd_ptr->fd, &sockset)) {
             /* Got a connection, now accept it. */
             do {
-               clilen = sizeof(cli_addr);
-               newsockfd = accept(fd_ptr->fd, &cli_addr, &clilen);
-            } while (newsockfd < 0 && errno == EINTR);
-            if (newsockfd < 0) {
+               clilen = sizeof(clientaddr);
+               newsockfd = accept(fd_ptr->fd, (struct sockaddr *)&clientaddr, &clilen);
+               newsockfd = set_socket_errno(newsockfd);
+            } while (newsockfd == SOCKET_ERROR && (errno == EINTR || errno == EAGAIN));
+            if (newsockfd == SOCKET_ERROR) {
+               Dmsg2(20, "Accept=%d errno=%d\n", newsockfd, errno);
                continue;
             }
 #ifdef HAVE_LIBWRAP
@@ -201,8 +194,9 @@ void bnet_thread_server(dlist *addr_list, int max_clients, workq_t *client_wq,
                V(mutex);
                Jmsg2(NULL, M_SECURITY, 0,
                      _("Connection from %s:%d refused by hosts.access\n"),
-                     sockaddr_to_ascii(&cli_addr, buf, sizeof(buf)),
-                     sockaddr_get_port(&cli_addr));
+                     sockaddr_to_ascii((struct sockaddr *)&clientaddr,
+                                       sizeof(clientaddr), buf, sizeof(buf)),
+                     sockaddr_get_port((struct sockaddr *)&clientaddr));
                close(newsockfd);
                continue;
             }
@@ -221,10 +215,11 @@ void bnet_thread_server(dlist *addr_list, int max_clients, workq_t *client_wq,
 
             /* see who client is. i.e. who connected to us. */
             P(mutex);
-            sockaddr_to_ascii(&cli_addr, buf, sizeof(buf));
+            sockaddr_to_ascii((struct sockaddr *)&clientaddr, sizeof(clientaddr), buf, sizeof(buf));
             V(mutex);
             BSOCK *bs;
-            bs = init_bsock(NULL, newsockfd, "client", buf, ntohs(fd_ptr->port), &cli_addr);
+            bs = init_bsock(NULL, newsockfd, "client", buf, ntohs(fd_ptr->port),
+                    (struct sockaddr *)&clientaddr);
             if (bs == NULL) {
                Jmsg0(NULL, M_ABORT, 0, _("Could not create client BSOCK.\n"));
             }

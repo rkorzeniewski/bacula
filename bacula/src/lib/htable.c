@@ -1,29 +1,17 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2003-2011 Free Software Foundation Europe e.V.
+   Copyright (C) 2003-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  *  Bacula hash table routines
@@ -56,7 +44,8 @@
 #define MIN_BUF_SIZE (MIN_PAGES * B_PAGE_SIZE) /* 128 Kb */
 #define MAX_BUF_SIZE (MAX_PAGES * B_PAGE_SIZE) /* approx 10MB */
 
-static const int dbglvl = 500;
+#define dbglvl     500
+#define dbglvl_mem DT_MEMORY|100
 
 /* ===================================================================
  *    htable
@@ -76,7 +65,7 @@ void htable::malloc_big_buf(int size)
    mem_block = hmem;
    hmem->mem = mem_block->first;
    hmem->rem = (char *)hmem + size - hmem->mem;
-   Dmsg3(100, "malloc buf=%p size=%d rem=%d\n", hmem, size, hmem->rem);
+   Dmsg3(dbglvl_mem, "malloc buf=%p size=%d rem=%d\n", hmem, size, hmem->rem);
 }
 
 /* This routine frees the whole tree */
@@ -87,13 +76,13 @@ void htable::hash_big_free()
    for (hmem=mem_block; hmem; ) {
       rel = hmem;
       hmem = hmem->next;
-      Dmsg1(100, "free malloc buf=%p\n", rel);
+      Dmsg1(dbglvl_mem, "free malloc buf=%p\n", rel);
       free(rel);
    }
 }
 
 /*
- * Normal hash malloc routine that gets a 
+ * Normal hash malloc routine that gets a
  *  "small" buffer from the big buffer
  */
 char *htable::hash_malloc(int size)
@@ -109,7 +98,7 @@ char *htable::hash_malloc(int size)
          mb_size = extend_length / 2;
       }
       malloc_big_buf(mb_size);
-      Dmsg1(100, "Created new big buffer of %ld bytes\n", mb_size);
+      Dmsg1(dbglvl_mem, "Created new big buffer of %ld bytes\n", mb_size);
    }
    mem_block->rem -= asize;
    buf = mem_block->mem;
@@ -195,7 +184,7 @@ void htable::init(void *item, void *link, int tsize, int nr_pages)
    }
    malloc_big_buf(buffer_size);
    extend_length = buffer_size;
-   Dmsg1(100, "Allocated big buffer of %ld bytes\n", buffer_size);
+   Dmsg1(dbglvl_mem, "Allocated big buffer of %ld bytes\n", buffer_size);
 }
 
 uint32_t htable::size()
@@ -205,7 +194,7 @@ uint32_t htable::size()
 
 /*
  * Take each hash link and walk down the chain of items
- *  that hash there counting them (i.e. the hits), 
+ *  that hash there counting them (i.e. the hits),
  *  then report that number.
  * Obiously, the more hits in a chain, the more time
  *  it takes to reference them. Empty chains are not so
@@ -242,6 +231,7 @@ void htable::stats()
    }
    printf("buckets=%d num_items=%d max_items=%d\n", buckets, num_items, max_items);
    printf("max hits in a bucket = %d\n", max);
+   printf("total bytes malloced = %lld\n", (long long int)total_size);
    printf("total bytes malloced = %lld\n", (long long int)total_size);
    printf("total blocks malloced = %d\n", blocks);
 }

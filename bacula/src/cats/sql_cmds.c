@@ -1,35 +1,23 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2002-2010 Free Software Foundation Europe e.V.
+   Copyright (C) 2002-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  *  This file contains all the SQL commands that are either issued by the
  *  Director or which are database backend specific.
  *
- *     Kern Sibbald, July MMII
+ *     Written by Kern Sibbald, July MMII
  */
 /*
  * Note, PostgreSQL imposes some constraints on using DISTINCT and GROUP BY
@@ -316,9 +304,6 @@ const char *select_recent_version_with_basejob[] = {
    "ORDER BY FilenameId, PathId, JobTDate DESC ",
 
    /* SQLite3 */
-   select_recent_version_with_basejob_default,
-
-   /* Ingres */
    select_recent_version_with_basejob_default
 };
 
@@ -383,9 +368,6 @@ const char *select_recent_version_with_basejob_and_delta[] = {
    "ORDER BY FilenameId, PathId, DeltaSeq, JobTDate DESC ",
 
    /* SQLite3 */
-   select_recent_version_with_basejob_and_delta_default,
-
-   /* Ingres */
    select_recent_version_with_basejob_and_delta_default
 };
 
@@ -420,9 +402,6 @@ const char *select_recent_version[] = {
     "ORDER BY FilenameId, PathId, JobTDate DESC ",
 
    /* SQLite3 */
-   select_recent_version_default,
-
-   /* Ingres */
    select_recent_version_default
 };
 
@@ -447,18 +426,7 @@ const char *create_temp_accurate_jobids[] = {
    create_temp_accurate_jobids_default,
 
    /* SQLite3 */
-   create_temp_accurate_jobids_default,
-
-   /* Ingres */
-   "DECLARE GLOBAL TEMPORARY TABLE btemp3%s AS "
-   "SELECT JobId, StartTime, EndTime, JobTDate, PurgedFiles "
-   "FROM Job JOIN FileSet USING (FileSetId) "
-   "WHERE ClientId = %s "
-   "AND Level='F' AND JobStatus IN ('T','W') AND Type='B' "
-   "AND StartTime<'%s' "
-   "AND FileSet.FileSet=(SELECT FileSet FROM FileSet WHERE FileSetId = %s) "
-   "ORDER BY Job.JobTDate DESC FETCH FIRST 1 ROW ONLY "
-   "ON COMMIT PRESERVE ROWS WITH NORECOVERY"
+   create_temp_accurate_jobids_default
 };
 
 const char *create_temp_basefile[] = {
@@ -476,13 +444,7 @@ const char *create_temp_basefile[] = {
    /* SQLite3 */
    "CREATE TEMPORARY TABLE basefile%lld ("
    "Path TEXT,"
-   "Name TEXT)",
-
-   /* Ingres */
-   "DECLARE GLOBAL TEMPORARY TABLE basefile%lld ("
-   "Path VARBYTE(32000) NOT NULL,"
-   "Name VARBYTE(32000) NOT NULL) "
-   "ON COMMIT PRESERVE ROWS WITH NORECOVERY"
+   "Name TEXT)"
 };
 
 const char *create_temp_new_basefile[] = {
@@ -514,18 +476,7 @@ const char *create_temp_new_basefile[] = {
    "FROM ( %s ) AS Temp "
    "JOIN Filename ON (Filename.FilenameId = Temp.FilenameId) "
    "JOIN Path ON (Path.PathId = Temp.PathId) "
-   "WHERE Temp.FileIndex > 0",
-
-   /* Ingres */
-   "DECLARE GLOBAL TEMPORARY TABLE new_basefile%lld AS "
-   "SELECT Path.Path AS Path, Filename.Name AS Name, Temp.FileIndex AS FileIndex,"
-   "Temp.JobId AS JobId, Temp.LStat AS LStat, Temp.FileId AS FileId, "
-   "Temp.MD5 AS MD5 "
-   "FROM ( %s ) AS Temp "
-   "JOIN Filename ON (Filename.FilenameId = Temp.FilenameId) "
-   "JOIN Path ON (Path.PathId = Temp.PathId) "
-   "WHERE Temp.FileIndex > 0 "
-   "ON COMMIT PRESERVE ROWS WITH NORECOVERY"
+   "WHERE Temp.FileIndex > 0"
 };
 
 /* ====== ua_prune.c */
@@ -554,16 +505,7 @@ const char *create_deltabs[] = {
    "PurgedFiles TINYINT, "
    "FileSetId INTEGER UNSIGNED, "
    "JobFiles INTEGER UNSIGNED, "
-   "JobStatus CHAR)",
-
-   /* Ingres */
-   "DECLARE GLOBAL TEMPORARY TABLE DelCandidates ("
-   "JobId INTEGER NOT NULL, "
-   "PurgedFiles SMALLINT, "
-   "FileSetId INTEGER, "
-   "JobFiles INTEGER, "
-   "JobStatus CHAR(1)) "
-   "ON COMMIT PRESERVE ROWS WITH NORECOVERY"
+   "JobStatus CHAR)"
 };
 
 /* ======= ua_purge.c */
@@ -593,23 +535,7 @@ const char *uap_upgrade_copies_oldest_job[] = {
    uap_upgrade_copies_oldest_job_default,
 
    /* SQLite3 */
-   uap_upgrade_copies_oldest_job_default,
-
-   /* Ingres */
-   "DECLARE GLOBAL TEMPORARY TABLE cpy_tmp AS "
-       "SELECT MIN(JobId) AS JobId FROM Job "     /* Choose the oldest job */
-        "WHERE Type='%c' "                        /* JT_JOB_COPY */
-          "AND ( PriorJobId IN (%s) "             /* JobId selection */
-              "OR "
-               " PriorJobId IN ( "
-                  "SELECT PriorJobId "
-                    "FROM Job "
-                   "WHERE JobId IN (%s) "         /* JobId selection */
-                    " AND Type='B' "
-                 ") "
-              ") "
-          "GROUP BY PriorJobId "           /* one result per copy */
-   "ON COMMIT PRESERVE ROWS WITH NORECOVERY"
+   uap_upgrade_copies_oldest_job_default
 };
 
 /* ======= ua_restore.c */
@@ -644,17 +570,7 @@ const char *uar_file[] = {
    "AND Client.ClientId=Job.ClientId "
    "AND Job.JobId=File.JobId AND File.FileIndex > 0 "
    "AND Path.PathId=File.PathId AND Filename.FilenameId=File.FilenameId "
-   "AND Filename.Name='%s' ORDER BY StartTime DESC LIMIT 20",
-
-   /* Ingres */
-   "SELECT Job.JobId as JobId,"
-   "Path.Path||Filename.Name as Name, "
-   "StartTime,Type as JobType,JobStatus,JobFiles,JobBytes "
-   "FROM Client,Job,File,Filename,Path WHERE Client.Name='%s' "
-   "AND Client.ClientId=Job.ClientId "
-   "AND Job.JobId=File.JobId AND File.FileIndex > 0 "
-   "AND Path.PathId=File.PathId AND Filename.FilenameId=File.FilenameId "
-   "AND Filename.Name='%s' ORDER BY StartTime DESC FETCH FIRST 20 ROWS ONLY"
+   "AND Filename.Name='%s' ORDER BY StartTime DESC LIMIT 20"
 };
 
 const char *uar_create_temp[] = {
@@ -698,22 +614,7 @@ const char *uar_create_temp[] = {
    "VolumeName TEXT,"
    "StartFile INTEGER UNSIGNED,"
    "VolSessionId INTEGER UNSIGNED,"
-   "VolSessionTime INTEGER UNSIGNED)",
-
-   /* Ingres */
-   "DECLARE GLOBAL TEMPORARY TABLE temp ("
-   "JobId INTEGER NOT NULL,"
-   "JobTDate BIGINT,"
-   "ClientId INTEGER,"
-   "Level CHAR(1),"
-   "JobFiles INTEGER,"
-   "JobBytes BIGINT,"
-   "StartTime TIMESTAMP WITHOUT TIME ZONE,"
-   "VolumeName VARBYTE(128),"
-   "StartFile INTEGER,"
-   "VolSessionId INTEGER,"
-   "VolSessionTime INTEGER) "
-   "ON COMMIT PRESERVE ROWS WITH NORECOVERY"
+   "VolSessionTime INTEGER UNSIGNED)"
 };
 
 const char *uar_create_temp1[] = {
@@ -730,13 +631,7 @@ const char *uar_create_temp1[] = {
    /* SQLite3 */
    "CREATE TEMPORARY TABLE temp1 ("
    "JobId INTEGER UNSIGNED NOT NULL,"
-   "JobTDate BIGINT UNSIGNED)",
-
-   /* Ingres */
-   "DECLARE GLOBAL TEMPORARY TABLE temp1 ("
-   "JobId INTEGER NOT NULL,"
-   "JobTDate BIGINT) "
-   "ON COMMIT PRESERVE ROWS WITH NORECOVERY"
+   "JobTDate BIGINT UNSIGNED)"
 };
 
 /* Query to get all files in a directory -- no recursing
@@ -777,17 +672,7 @@ const char *uar_jobid_fileindex_from_dir[] = {
    "AND Job.ClientId=Client.ClientId "
    "AND Path.PathId=File.Pathid "
    "AND Filename.FilenameId=File.FilenameId "
-   "GROUP BY File.FileIndex ",
-
-   /* Ingres */
-   "SELECT Job.JobId,File.FileIndex FROM Job,File,Path,Filename,Client "
-   "WHERE Job.JobId IN (%s) "
-   "AND Job.JobId=File.JobId "
-   "AND Path.Path='%s' "
-   "AND Client.Name='%s' "
-   "AND Job.ClientId=Client.ClientId "
-   "AND Path.PathId=File.Pathid "
-   "AND Filename.FilenameId=File.FilenameId"
+   "GROUP BY File.FileIndex "
 };
 
 const char *sql_media_order_most_recently_written[] = {
@@ -798,10 +683,7 @@ const char *sql_media_order_most_recently_written[] = {
    "ORDER BY LastWritten IS NULL,LastWritten DESC,MediaId",
 
    /* SQLite3 */
-   "ORDER BY LastWritten IS NULL,LastWritten DESC,MediaId",
-
-   /* Ingres */
-   "ORDER BY IFNULL(LastWritten, '1970-01-01 00:00:00') DESC,MediaId"
+   "ORDER BY LastWritten IS NULL,LastWritten DESC,MediaId"
 };
 
 const char *sql_get_max_connections[] = {
@@ -812,9 +694,6 @@ const char *sql_get_max_connections[] = {
    "SHOW max_connections",
 
    /* SQLite3 */
-   "SELECT 0",
-
-   /* Ingres (TODO) */
    "SELECT 0"
 };
 
@@ -822,7 +701,7 @@ const char *sql_get_max_connections[] = {
  *  The Group By can return strange numbers when having multiple
  *  version of a file in the same dataset.
  */
-const char *default_sql_bvfs_select = 
+const char *default_sql_bvfs_select =
 "CREATE TABLE %s AS "
 "SELECT File.JobId, File.FileIndex, File.FileId "
 "FROM Job, File, ( "
@@ -852,10 +731,7 @@ const char *sql_bvfs_select[] = {
           "WHERE FileIndex > 0)",
 
    /* SQLite3 */
-   default_sql_bvfs_select,
-
-   /* Ingres (TODO) */
-   "SELECT 0"
+   default_sql_bvfs_select
 };
 
 static const char *sql_bvfs_list_files_default =
@@ -917,11 +793,73 @@ const char *sql_bvfs_list_files[] = {
    sql_bvfs_list_files_default,
 
    /* SQLite3 */
-   sql_bvfs_list_files_default,
-
-   /* Ingres (TODO) */
    sql_bvfs_list_files_default
 };
+
+/* Basically the same thing than select_recent_version_with_basejob_and_delta_default,
+ * but we specify a single file with FilenameId/PathId
+ *
+ * Input:
+ * 1 JobId to look at
+ * 2 FilenameId
+ * 3 PathId
+ * 4 JobId to look at
+ * 5 FilenameId
+ * 6 PathId
+ * 7 Jobid
+ * 8 JobId
+ */
+const char *bvfs_select_delta_version_with_basejob_and_delta_default =
+"SELECT FileId, Job.JobId AS JobId, FileIndex, File.PathId AS PathId, "
+       "File.FilenameId AS FilenameId, LStat, MD5, File.DeltaSeq AS DeltaSeq, "
+       "Job.JobTDate AS JobTDate "
+"FROM Job, File, ( "
+    "SELECT MAX(JobTDate) AS JobTDate, PathId, FilenameId, DeltaSeq "
+      "FROM ( "
+       "SELECT JobTDate, PathId, FilenameId, DeltaSeq " /*Get all normal files*/
+         "FROM File JOIN Job USING (JobId) "          /* from selected backup */
+        "WHERE File.JobId IN (%s) AND FilenameId = %s AND PathId = %s "
+         "UNION ALL "
+       "SELECT JobTDate, PathId, FilenameId, DeltaSeq " /*Get all files from */
+         "FROM BaseFiles "                            /* BaseJob */
+              "JOIN File USING (FileId) "
+              "JOIN Job  ON    (BaseJobId = Job.JobId) "
+        "WHERE BaseFiles.JobId IN (%s) "        /* Use Max(JobTDate) to find */
+             " AND FilenameId = %s AND PathId = %s "
+       ") AS tmp "
+       "GROUP BY PathId, FilenameId, DeltaSeq "    /* the latest file version */
+    ") AS T1 "
+"WHERE (Job.JobId IN ( "  /* Security, we force JobId to be valid */
+        "SELECT DISTINCT BaseJobId FROM BaseFiles WHERE JobId IN (%s)) "
+        "OR Job.JobId IN (%s)) "
+  "AND T1.JobTDate = Job.JobTDate " /* Join on JobTDate to get the orginal */
+  "AND Job.JobId = File.JobId "     /* Job/File record */
+  "AND T1.PathId = File.PathId "
+  "AND T1.FilenameId = File.FilenameId";
+
+
+const char *bvfs_select_delta_version_with_basejob_and_delta[] = {
+   /* MySQL */
+   bvfs_select_delta_version_with_basejob_and_delta_default,
+
+   /* Postgresql */    /* The DISTINCT ON () permits to avoid extra join */
+   "SELECT DISTINCT ON (FilenameId, PathId, DeltaSeq) JobTDate, JobId, FileId, "
+         "FileIndex, PathId, FilenameId, LStat, MD5, DeltaSeq "
+   "FROM "
+    "(SELECT FileId, JobId, PathId, FilenameId, FileIndex, LStat, MD5,DeltaSeq "
+         "FROM File WHERE JobId IN (%s) AND FilenameId = %s AND PathId = %s "
+        "UNION ALL "
+       "SELECT File.FileId, File.JobId, PathId, FilenameId, "
+              "File.FileIndex, LStat, MD5, DeltaSeq "
+         "FROM BaseFiles JOIN File USING (FileId) "
+        "WHERE BaseFiles.JobId IN (%s) AND FilenameId = %s AND PathId = %s "
+       ") AS T JOIN Job USING (JobId) "
+   "ORDER BY FilenameId, PathId, DeltaSeq, JobTDate DESC ",
+
+   /* SQLite3 */
+   bvfs_select_delta_version_with_basejob_and_delta_default
+};
+
 
 const char *batch_lock_path_query[] = {
    /* Mysql */
@@ -931,9 +869,6 @@ const char *batch_lock_path_query[] = {
    "BEGIN; LOCK TABLE Path IN SHARE ROW EXCLUSIVE MODE",
 
    /* SQLite3 */
-   "BEGIN",
-
-   /* Ingres */
    "BEGIN"
 };
 
@@ -945,9 +880,6 @@ const char *batch_lock_filename_query[] = {
    "BEGIN; LOCK TABLE Filename IN SHARE ROW EXCLUSIVE MODE",
 
    /* SQLite3 */
-   "BEGIN",
-
-   /* Ingres */
    "BEGIN"
 };
 
@@ -959,9 +891,6 @@ const char *batch_unlock_tables_query[] = {
    "COMMIT",
 
    /* SQLite3 */
-   "COMMIT",
-
-   /* Ingres */
    "COMMIT"
 };
 
@@ -981,12 +910,7 @@ const char *batch_fill_path_query[] = {
    /* SQLite3 */
    "INSERT INTO Path (Path) "
       "SELECT DISTINCT Path FROM batch "
-      "EXCEPT SELECT Path FROM Path",
-
-   /* Ingres */
-   "INSERT INTO Path (Path) "
-      "SELECT DISTINCT b.Path FROM batch b "
-       "WHERE NOT EXISTS (SELECT Path FROM Path p WHERE p.Path = b.Path)"
+      "EXCEPT SELECT Path FROM Path"
 };
 
 const char *batch_fill_filename_query[] = {
@@ -1006,12 +930,7 @@ const char *batch_fill_filename_query[] = {
    /* SQLite3 */
    "INSERT INTO Filename (Name) "
       "SELECT DISTINCT Name FROM batch "
-      "EXCEPT SELECT Name FROM Filename",
-
-   /* Ingres */
-   "INSERT INTO Filename (Name) "
-      "SELECT DISTINCT b.Name FROM batch b "
-       "WHERE NOT EXISTS (SELECT Name FROM Filename f WHERE f.Name = b.Name)"
+      "EXCEPT SELECT Name FROM Filename"
 };
 
 const char *match_query[] = {
@@ -1022,10 +941,7 @@ const char *match_query[] = {
    "~",
 
    /* SQLite3 */
-   "LIKE",                      /* MATCH doesn't seems to work anymore... */
-
-   /* Ingres */
-   "~"
+   "LIKE"                      /* MATCH doesn't seems to work anymore... */
 };
 
 static const char *insert_counter_values_default =
@@ -1043,9 +959,6 @@ const char *insert_counter_values[] = {
    insert_counter_values_default,
 
    /* SQLite3 */
-   insert_counter_values_default,
-
-   /* Ingres */
    insert_counter_values_default
 };
 
@@ -1062,9 +975,6 @@ const char *select_counter_values[] = {
    select_counter_values_default,
 
    /* SQLite3 */
-   select_counter_values_default,
-
-   /* Ingres */
    select_counter_values_default
 };
 
@@ -1083,8 +993,28 @@ const char *update_counter_values[] = {
    update_counter_values_default,
 
    /* SQLite3 */
-   update_counter_values_default,
-
-   /* Ingres */
    update_counter_values_default
+};
+
+static const char *expired_volumes_defaults =
+"SELECT Media.VolumeName  AS volumename, "
+       "Media.LastWritten AS lastwritten "
+" FROM  Media "
+" WHERE VolStatus IN ('Full', 'Used') "
+     " AND ( Media.LastWritten +  Media.VolRetention ) < NOW() "
+     " %s ";
+
+const char *expired_volumes[] = {
+   /* Mysql */
+   expired_volumes_defaults,
+
+   /* Postgresql */
+   "SELECT Media.VolumeName, Media.LastWritten "
+   " FROM  Media "
+   " WHERE VolStatus IN ('Full', 'Used') "
+     " AND ( Media.LastWritten + (interval '1 second' * Media.VolRetention ) < NOW()) "
+     " %s ",
+
+   /* SQLite3 */
+   expired_volumes_defaults
 };

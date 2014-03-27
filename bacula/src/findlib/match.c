@@ -1,39 +1,27 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2008 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
- *     Old style 
+ *     Old style
  *
  *  Routines used to keep and match include and exclude
  *   filename/pathname patterns.
  *
  *  Note, this file is used for the old style include and
  *   excludes, so is deprecated. The new style code is
- *   found in find.c.   
+ *   found in find.c.
  *  This code is still used for lists in testls and bextract.
  *
  *   Kern E. Sibbald, December MMI
@@ -236,14 +224,6 @@ void add_fname_to_include_list(FF_PKT *ff, int prefixed, const char *fname)
          break;
       }
    }
-#if defined(HAVE_WIN32)
-   /* Convert any \'s into /'s */
-   for (p=inc->fname; *p; p++) {
-      if (*p == '\\') {
-         *p = '/';
-      }
-   }
-#endif
    inc->next = NULL;
    /* Chain this one on the end of the list */
    if (!ff->included_files_list) {
@@ -256,7 +236,7 @@ void add_fname_to_include_list(FF_PKT *ff, int prefixed, const char *fname)
          { }
       next->next = inc;
    }
-   Dmsg4(100, "add_fname_to_include prefix=%d compres=%d alg= %d fname=%s\n", 
+   Dmsg4(100, "add_fname_to_include prefix=%d compres=%d alg= %d fname=%s\n",
          prefixed, !!(inc->options & FO_COMPRESS), inc->algo, inc->fname);
 }
 
@@ -283,14 +263,6 @@ void add_fname_to_exclude_list(FF_PKT *ff, const char *fname)
    exc->next = *list;
    exc->len = len;
    strcpy(exc->fname, fname);
-#if defined(HAVE_WIN32)
-   /* Convert any \'s into /'s */
-   for (char *p=exc->fname; *p; p++) {
-      if (*p == '\\') {
-         *p = '/';
-      }
-   }
-#endif
    *list = exc;
 }
 
@@ -386,16 +358,6 @@ file_in_excluded_list(struct s_excluded_file *exc, const char *file)
 int file_is_excluded(FF_PKT *ff, const char *file)
 {
    const char *p;
-
-#if defined(HAVE_WIN32)
-   /*
-    *  ***NB*** this removes the drive from the exclude
-    *  rule.  Why?????
-    */
-   if (file[1] == ':') {
-      file += 2;
-   }
-#endif
 
    if (file_in_excluded_list(ff->excluded_paths_list, file)) {
       return 1;

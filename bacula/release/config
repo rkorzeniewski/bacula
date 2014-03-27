@@ -4,28 +4,30 @@
 #
 # Set to the Branch you are working on
 #
-branch=Branch-5.2
-# 
+branch=${branch:-Branch-5.3}
+#
 # set reltype to release or beta -- for upload and setting DEVELOPER
-reltype=release
-
+reltype=beta
 
 repo=$reltype
 
 # Bacula git repos
-bacula=${bacula:-${HOME}/bacula/k}
+bacula=${bacula:-${HOME}/bee/bacula}
 docs=${docs:-${HOME}/bacula/docs}
-gpgkey=${gpgkey:-bacula}
+
+# Limit bw to upload on the website
+max_bw=${max_bw:-80}
+upload_opt="--bwlimit=$max_bw"
 
 #
 # Set the following to your remote name.  By default it is origin.
-remote=${remote:-origin}
-push=no
+remote=bs
 
+export push=no
 #
 # Note, you will probably want to set updatepo=no if you
 #   run this script multiple times for a given release.
-updatepo=no
+export updatepo=no
 
 cwd=`pwd`
 
@@ -35,18 +37,15 @@ if [ $? -ne 0 ]; then
    exit 1
 fi
 current=`git branch | awk '/*/ { print $2 }'`
-git checkout ${branch}
-git pull ${remote} ${branch}
+git checkout ${branch} >/dev/null 2>&1
+git pull ${remote} ${branch} >/dev/null 2>&1
 if [ $? -ne 0 ]; then
-   echo "Checkout of branch ${branch} failed."
+   echo "Checkout or Pull of branch ${branch} failed."
    exit 1
 fi
-ver=`sed -n -e 's/^.*VERSION.*"\(.*\)"$/\1/p' src/version.h`
-lsmdate=`sed -n -e 's/^.*LSMDATE.*"\(.*\)"$/\1/p' src/version.h`
+ver=`sed -n -e 's/^#define VERSION.*"\(.*\)"$/\1/p' src/version.h`
+lsmdate=`sed -n -e 's/^#define LSMDATE.*"\(.*\)"$/\1/p' src/version.h`
 
-git checkout ${current}
-export push
-export updatepo
-export gpgkey
+git checkout $current >/dev/null 2>&1
 
 cd $cwd

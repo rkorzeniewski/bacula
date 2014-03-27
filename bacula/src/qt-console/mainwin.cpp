@@ -3,27 +3,15 @@
 
    Copyright (C) 2007-2010 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 
 /*
@@ -32,7 +20,7 @@
  *
  *   Kern Sibbald, January MMVII
  *
- */ 
+ */
 
 #include "bat.h"
 #include "version.h"
@@ -56,7 +44,7 @@
 #include "status/dirstat.h"
 #include "util/fmtwidgetitem.h"
 
-/* 
+/*
  * Daemon message callback
  */
 void message_callback(int /* type */, char *msg)
@@ -97,7 +85,7 @@ MainWin::MainWin(QWidget *parent) : QMainWindow(parent)
    foreach(Console *console, m_consoleHash) {
       console->connect_dir();
    }
-   /* 
+   /*
     * Note, the notifier is now a global flag, although each notifier
     *  can be individually turned on and off at a socket level.  Once
     *  the notifier is turned off, we don't accept anything from anyone
@@ -169,8 +157,8 @@ void MainWin::createPages()
       item->setForeground(0, redBrush);
 
       /*
-       * Create instances in alphabetic order of the rest 
-       *  of the classes that will by default exist under each Director.  
+       * Create instances in alphabetic order of the rest
+       *  of the classes that will by default exist under each Director.
        */
       new bRestore();
       new Clients();
@@ -317,7 +305,7 @@ void MainWin::disconnectSignals()
  */
 void MainWin::waitEnter()
 {
-   if (m_waitState || m_isClosing) { 
+   if (m_waitState || m_isClosing) {
       return;
    }
    m_waitState = true;
@@ -363,7 +351,7 @@ void MainWin::disconnectConsoleSignals(Console *console)
 }
 
 
-/* 
+/*
  * Two functions to respond to menu items to repop lists and execute reload and repopulate
  * the lists for jobs, clients, filesets .. ..
  */
@@ -378,8 +366,8 @@ void MainWin::reloadRepopLists()
    m_currentConsole->populateLists(false);
 }
 
-/* 
- * Reimplementation of QWidget closeEvent virtual function   
+/*
+ * Reimplementation of QWidget closeEvent virtual function
  */
 void MainWin::closeEvent(QCloseEvent *event)
 {
@@ -425,7 +413,7 @@ void MainWin::writeSettings()
 }
 
 void MainWin::readSettings()
-{ 
+{
    QSettings settings("bacula.org", "bat");
 
    settings.beginGroup("MainWin");
@@ -437,7 +425,7 @@ void MainWin::readSettings()
 
 /*
  * This subroutine is called with an item in the Page Selection window
- *   is clicked 
+ *   is clicked
  */
 void MainWin::treeItemClicked(QTreeWidgetItem *item, int /*column*/)
 {
@@ -490,7 +478,7 @@ void MainWin::treeItemChanged(QTreeWidgetItem *currentitem, QTreeWidgetItem *pre
       nextPage = NULL;
       nextConsole = NULL;
    }
-          
+
    /* The Previous item */
 
    /* this condition prevents a segfault.  The first time there is no previousitem*/
@@ -518,7 +506,7 @@ void MainWin::treeItemChanged(QTreeWidgetItem *currentitem, QTreeWidgetItem *pre
    }
 
    /* process the current (next) item */
-   
+
    if ((nextPage) || (nextConsole)) {
       if (nextConsole != previousConsole) {
          /* make connections to the current console */
@@ -533,7 +521,7 @@ void MainWin::treeItemChanged(QTreeWidgetItem *currentitem, QTreeWidgetItem *pre
       /* set the value for the currently active console */
       int stackindex = tabWidget->indexOf(nextPage);
       nextPage->firstUseDock();
-   
+
       /* Is this page currently on the stack or is it undocked */
       if (stackindex >= 0) {
          /* put this page on the top of the stack */
@@ -556,22 +544,22 @@ void MainWin::treeItemChanged(QTreeWidgetItem *currentitem, QTreeWidgetItem *pre
    }
 }
 
-void MainWin::labelButtonClicked() 
+void MainWin::labelButtonClicked()
 {
    new labelPage();
 }
 
-void MainWin::runButtonClicked() 
+void MainWin::runButtonClicked()
 {
    new runPage("");
 }
 
-void MainWin::estimateButtonClicked() 
+void MainWin::estimateButtonClicked()
 {
    new estimatePage();
 }
 
-void MainWin::browseButtonClicked() 
+void MainWin::browseButtonClicked()
 {
 //   new restoreTree();
 }
@@ -593,7 +581,7 @@ void MainWin::statusPageButtonClicked()
    }
 }
 
-void MainWin::restoreButtonClicked() 
+void MainWin::restoreButtonClicked()
 {
    new prerestorePage();
    if (mainWin->m_miscDebug) Pmsg0(000, "in restoreButtonClicked after prerestorePage\n");
@@ -636,8 +624,9 @@ void MainWin::input_line()
 void MainWin::about()
 {
    QMessageBox::about(this, tr("About bat"),
-      tr("<br><h2>bat %1 (%2), by Dirk H Bartley and Kern Sibbald</h2>"
+      tr("<br><h2>Bat %1 (%2), by Dirk H Bartley and Kern Sibbald</h2>"
          "<p>Copyright &copy; 2007-%3 Free Software Foundation Europe e.V."
+         "<p>Improved by Bacula Systems SA."
          "<p>The <b>bat</b> is an administrative console"
          " interface to the Director.").arg(VERSION).arg(BDATE).arg(BYEAR));
 }
@@ -684,14 +673,14 @@ void MainWin::undockWindowButton()
 }
 
 /*
- * Function to respond to action on page selector context menu to toggle the 
+ * Function to respond to action on page selector context menu to toggle the
  * dock status of the window associated with the page selectors current
  * tree widget item.
  */
 void MainWin::toggleDockContextWindow()
 {
    QTreeWidgetItem *currentitem = treeWidget->currentItem();
-   
+
    /* Is this a page that has been inserted into the hash  */
    if (getFromHash(currentitem)) {
       Pages* page = getFromHash(currentitem);
@@ -787,8 +776,8 @@ void MainWin::closePage(int item)
       if (getFromHash(currentitem)) {
          page = getFromHash(currentitem);
       }
-   }   
-   
+   }
+
    if (page) {
       if (page->isCloseable()) {
          page->closeStackPage();
@@ -978,7 +967,7 @@ void MainWin::readPreferences()
    settings.beginGroup("Misc");
    m_longList = settings.value("longList", false).toBool();
    ItemFormatterBase::setBytesConversion(
-         (ItemFormatterBase::BYTES_CONVERSION) settings.value("byteConvert", 
+         (ItemFormatterBase::BYTES_CONVERSION) settings.value("byteConvert",
          ItemFormatterBase::BYTES_CONVERSION_IEC).toInt());
    m_openPlot = settings.value("openplot", false).toBool();
    m_openBrowser = settings.value("openbrowser", false).toBool();

@@ -1,29 +1,17 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2012 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  * Bacula Catalog Database Find record interface routines
@@ -32,13 +20,13 @@
  *        that a simple search by name or id. Such simple
  *        request are in get.c
  *
- *    Kern Sibbald, December 2000
+ *    Written by Kern Sibbald, December 2000
  *
  */
 
 #include "bacula.h"
 
-#if HAVE_SQLITE3 || HAVE_MYSQL || HAVE_POSTGRESQL || HAVE_INGRES || HAVE_DBI
+#if HAVE_SQLITE3 || HAVE_MYSQL || HAVE_POSTGRESQL
 
 #include "cats.h"
 #include "bdb_priv.h"
@@ -80,7 +68,7 @@ db_find_job_start_time(JCR *jcr, B_DB *mdb, JOB_DBR *jr, POOLMEM **stime, char *
 "SELECT StartTime, Job FROM Job WHERE JobStatus IN ('T','W') AND Type='%c' AND "
 "Level='%c' AND Name='%s' AND ClientId=%s AND FileSetId=%s "
 "ORDER BY StartTime DESC LIMIT 1",
-           jr->JobType, L_FULL, esc_name, 
+           jr->JobType, L_FULL, esc_name,
            edit_int64(jr->ClientId, ed1), edit_int64(jr->FileSetId, ed2));
 
       if (jr->JobLevel == L_DIFFERENTIAL) {
@@ -118,7 +106,7 @@ db_find_job_start_time(JCR *jcr, B_DB *mdb, JOB_DBR *jr, POOLMEM **stime, char *
       }
    } else {
       Dmsg1(100, "Submitting: %s\n", mdb->cmd);
-      Mmsg(mdb->cmd, "SELECT StartTime, Job FROM Job WHERE Job.JobId=%s", 
+      Mmsg(mdb->cmd, "SELECT StartTime, Job FROM Job WHERE Job.JobId=%s",
            edit_int64(jr->JobId, ed1));
    }
 
@@ -160,7 +148,7 @@ bail_out:
  *          true  on success, jr is unchanged, but stime and job are set
  */
 bool
-db_find_last_job_start_time(JCR *jcr, B_DB *mdb, JOB_DBR *jr, 
+db_find_last_job_start_time(JCR *jcr, B_DB *mdb, JOB_DBR *jr,
                             POOLMEM **stime, char *job, int JobLevel)
 {
    SQL_ROW row;
@@ -176,7 +164,7 @@ db_find_last_job_start_time(JCR *jcr, B_DB *mdb, JOB_DBR *jr,
 "SELECT StartTime, Job FROM Job WHERE JobStatus IN ('T','W') AND Type='%c' AND "
 "Level='%c' AND Name='%s' AND ClientId=%s AND FileSetId=%s "
 "ORDER BY StartTime DESC LIMIT 1",
-      jr->JobType, JobLevel, esc_name, 
+      jr->JobType, JobLevel, esc_name,
       edit_int64(jr->ClientId, ed1), edit_int64(jr->FileSetId, ed2));
    if (!QUERY_DB(jcr, mdb, mdb->cmd)) {
       Mmsg2(&mdb->errmsg, _("Query error for start time request: ERR=%s\nCMD=%s\n"),
@@ -270,13 +258,13 @@ db_find_last_jobid(JCR *jcr, B_DB *mdb, const char *Name, JOB_DBR *jr)
 "SELECT JobId FROM Job WHERE Type='V' AND Level='%c' AND "
 " JobStatus IN ('T','W') AND Name='%s' AND "
 "ClientId=%s ORDER BY StartTime DESC LIMIT 1",
-           L_VERIFY_INIT, esc_name, 
+           L_VERIFY_INIT, esc_name,
            edit_int64(jr->ClientId, ed1));
    } else if (jr->JobLevel == L_VERIFY_VOLUME_TO_CATALOG ||
               jr->JobLevel == L_VERIFY_DISK_TO_CATALOG ||
               jr->JobType == JT_BACKUP) {
       if (Name) {
-         mdb->db_escape_string(jcr, esc_name, (char*)Name, 
+         mdb->db_escape_string(jcr, esc_name, (char*)Name,
                                MIN(strlen(Name), sizeof(esc_name)));
          Mmsg(mdb->cmd,
 "SELECT JobId FROM Job WHERE Type='B' AND JobStatus IN ('T','W') AND "
@@ -284,7 +272,7 @@ db_find_last_jobid(JCR *jcr, B_DB *mdb, const char *Name, JOB_DBR *jr)
       } else {
          Mmsg(mdb->cmd,
 "SELECT JobId FROM Job WHERE Type='B' AND JobStatus IN ('T','W') AND "
-"ClientId=%s ORDER BY StartTime DESC LIMIT 1", 
+"ClientId=%s ORDER BY StartTime DESC LIMIT 1",
            edit_int64(jr->ClientId, ed1));
       }
    } else {
@@ -351,14 +339,19 @@ db_find_next_volume(JCR *jcr, B_DB *mdb, int item, bool InChanger, MEDIA_DBR *mr
          "ScratchPoolId,RecyclePoolId,VolReadTime,VolWriteTime,ActionOnPurge "
          "FROM Media WHERE PoolId=%s AND MediaType='%s' AND VolStatus IN ('Full',"
          "'Recycle','Purged','Used','Append') AND Enabled=1 "
-         "ORDER BY LastWritten LIMIT 1", 
+         "ORDER BY LastWritten LIMIT 1",
          edit_int64(mr->PoolId, ed1), esc_type);
      item = 1;
    } else {
       POOL_MEM changer(PM_FNAME);
       /* Find next available volume */
+      /* ***FIXME***
+       * replace switch with
+       *  if (StorageId == 0)
+       *    break;
+       */
       if (InChanger) {
-         Mmsg(changer, "AND InChanger=1 AND StorageId=%s",
+         Mmsg(changer, " AND InChanger=1 AND StorageId=%s ",
               edit_int64(mr->StorageId, ed1));
       }
       if (strcmp(mr->VolStatus, "Recycle") == 0 ||
@@ -463,4 +456,4 @@ db_find_next_volume(JCR *jcr, B_DB *mdb, int item, bool InChanger, MEDIA_DBR *mr
    return numrows;
 }
 
-#endif /* HAVE_SQLITE3 || HAVE_MYSQL || HAVE_POSTGRESQL || HAVE_INGRES || HAVE_DBI */
+#endif /* HAVE_SQLITE3 || HAVE_MYSQL || HAVE_POSTGRESQL */

@@ -1,33 +1,21 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2007-2011 Kern Sibbald
+   Copyright (C) 2007-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation, which is 
-   listed in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  * Written by Kern Sibbald, July 2007 to replace idcache.c
- * 
+ *
  *  Program to convert uid and gid into names, and cache the results
  *   for preformance reasons.
  *
@@ -148,7 +136,7 @@ char *guid_list::uid_to_name(uid_t uid, char *name, int maxlen)
       if (fitem != item) {               /* item already there this shouldn't happen */
          free(item->name);
          free(item);
-         item = fitem;   
+         item = fitem;
       }
    }
    bstrncpy(name, item->name, maxlen);
@@ -174,7 +162,7 @@ char *guid_list::gid_to_name(gid_t gid, char *name, int maxlen)
       if (fitem != item) {               /* item already there this shouldn't happen */
          free(item->name);
          free(item);
-         item = fitem;   
+         item = fitem;
       }
    }
 
@@ -196,11 +184,11 @@ int main()
       printf("uid=%d name=%s  gid=%d name=%s\n", i, list->uid_to_name(i, ed1, sizeof(ed1)),
          i, list->gid_to_name(i, ed2, sizeof(ed2)));
    }
-    
+
    free_guid_list(list);
    sm_dump(false);     /* unit test */
 
    return 0;
 }
- 
+
 #endif

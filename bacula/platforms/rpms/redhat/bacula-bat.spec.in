@@ -1,20 +1,27 @@
 #
 # Bacula RPM spec file
 #
-# Copyright (C) 2000-2012 Bacula Systems SA
+# Copyright (C) 2000-2014 Bacula Systems SA
+#
 
 # Platform Build Configuration
 
 # basic defines for every build
-%define _release           1
+%define _release           @RELEASE@
 %define _version           @VERSION@
-%define depkgs_qt_version  24Dec11
+%define depkgs_qt_version  @DEPKGS_QT_VERSION@
 %define product            bacula
+%define base_package_name %{product}
 
-# this is the QT version in depkgs_qt
-%define qt4ver             4.7.4
+# Don't strip binaries
+%define __os_install_post %{nil}
+%define __debug_install_post %{nil}
+%define debug_package %{nil}
 
-%define _packager Kern Sibbald <kern@baculasystems.com>
+# this is the Qt version in depkgs_qt
+%define qt4ver             @BQT_VERSION@
+
+%define _packager Kern Sibbald <kern@sibbald.com>
 
 %define manpage_ext gz
 
@@ -30,6 +37,8 @@
 %define _subsysdir     /opt/bacula/working
 %define sqlite_bindir  /opt/bacula/sqlite
 %define _mandir        /usr/share/man
+%define docs_dir       /opt/bacula/docs
+%define archive_dir    /opt/bacula/archive
 %define sysconf_dir    /opt/bacula/etc
 %define script_dir     /opt/bacula/scripts
 %define working_dir    /opt/bacula/working
@@ -90,8 +99,11 @@
 exit 1
 %endif
 
+%define sqlite 0
+%{?build_sqlite:%define sqlite 1}
+
 Summary: Bacula - The Network Backup Solution
-Name: %{product}-bat
+Name: %{base_package_name}-bat
 Version: %{_version}
 Release: %{_release}
 Group: System Environment/Daemons
@@ -116,7 +128,7 @@ Requires: libgcc
 Requires: libpng
 Requires: libstdc++
 Requires: zlib
-Requires: %{product}-libs
+Requires: %{base_package_name}-libs
 
 %if %{suse}
 Requires: freetype2
@@ -161,7 +173,7 @@ This is the Bacula Administration Tool (bat) graphical user interface package.
 It is an add-on to the client or server packages.
 
 # Don't strip symbols
-%define debug_package %{nil} 
+%define debug_package %{nil}
 
 # Must explicitly enable debug pkg on SuSE
 # but not in opensuse_bs
@@ -206,7 +218,7 @@ cd ${cwd}
 %endif
 
 # hostname is the build hostname, so use XXX_HOSTNAME_XXX for Address parameter
-sed -i s/hostname/basename/ src/console/bconsole.conf.in src/dird/bacula-dir.conf.in src/qt-console/bat.conf.in src/tray-monitor/tray-monitor.conf.in 
+sed -i s/hostname/basename/ src/console/bconsole.conf.in src/dird/bacula-dir.conf.in src/qt-console/bat.conf.in
 
 # Main Bacula configuration with bat
 %configure \
@@ -214,6 +226,8 @@ sed -i s/hostname/basename/ src/console/bconsole.conf.in src/dird/bacula-dir.con
         --sbindir=%{_sbindir} \
         --sysconfdir=%{sysconf_dir} \
         --mandir=%{_mandir} \
+        --docdir=%{docs_dir} \
+        --with-archivedir=%{archive_dir} \
         --with-scriptdir=%{script_dir} \
         --with-working-dir=%{working_dir} \
         --with-plugindir=%{script_dir} \
@@ -273,6 +287,8 @@ ln -sf consolehelper $RPM_BUILD_ROOT/usr/bin/bat
 %attr(-, root, %{daemon_group}) %{_sbindir}/bat
 %attr(-, root, %{daemon_group}) %dir %{sysconf_dir}
 %attr(-, root, %{daemon_group}) %config(noreplace) %{sysconf_dir}/bat.conf
+%attr(-, root, %{daemon_group}) %{docs_dir}/*.html
+%attr(-, root, %{daemon_group}) %{docs_dir}/*.png
 /usr/share/pixmaps/bat_icon.png
 /usr/share/applications/bat.desktop
 
@@ -303,19 +319,21 @@ fi
 %post
 if [ -d %{sysconf_dir} ]; then
    cd %{sysconf_dir}
-   for string in XXX_REPLACE_WITH_DIRECTOR_PASSWORD_XXX XXX_REPLACE_WITH_CLIENT_PASSWORD_XXX XXX_REPLACE_WITH_STORAGE_PASSWORD_XXX XXX_REPLACE_WITH_DIRECTOR_MONITOR_PASSWORD_XXX XXX_REPLACE_WITH_CLIENT_MONITOR_PASSWORD_XXX XXX_REPLACE_WITH_STORAGE_MONITOR_PASSWORD_XXX; do
-      pass=`openssl rand -base64 33`
-      for file in *.conf; do
-         sed "s@${string}@${pass}@g" $file > $file.new
-         cp -f $file.new $file; rm -f $file.new
-      done
-   done
-# put actual hostname in conf file
-   host=`hostname`
-   string="XXX_HOSTNAME_XXX"
+   if [ ! -f .rpm.sed ]; then
+       (umask 0177
+        echo "# This file is used to ensure that all passwords will" > .rpm.sed
+        echo "# match between configuration files"                  >> .rpm.sed
+       )
+       for string in XXX_REPLACE_WITH_DIRECTOR_PASSWORD_XXX XXX_REPLACE_WITH_CLIENT_PASSWORD_XXX XXX_REPLACE_WITH_STORAGE_PASSWORD_XXX XXX_REPLACE_WITH_DIRECTOR_MONITOR_PASSWORD_XXX XXX_REPLACE_WITH_CLIENT_MONITOR_PASSWORD_XXX XXX_REPLACE_WITH_STORAGE_MONITOR_PASSWORD_XXX; do
+           pass=`openssl rand -base64 33`
+           echo "s@${string}@${pass}@g" >> .rpm.sed
+       done
+   fi
+   host=`hostname -s`
    for file in *.conf; do
-      sed "s@${string}@${host}@g" $file >$file.new
-      cp -f $file.new $file; rm -f $file.new
+      sed -f .rpm.sed $file > $file.new
+      sed "s@XXX_HOSTNAME_XXX@${host}@g" $file.new > $file
+      rm -f $file.new
    done
 fi
 /sbin/ldconfig
@@ -325,17 +343,5 @@ fi
 rm -rf $RPM_BUILD_DIR/depkgs-qt
 
 %changelog
-* Sun Oct 03 2010 D. Scott Barninger <barninger@fairfieldcomputers.com>
-- fix bug 1639
-* Sun Mar 14 2010 D. Scott Barninger <barninger@fairfieldcomputers.com>
-- Fix for QT mkspecs location on FC12
-- allow user to build without embedded static QT
-* Sat Feb 27 2010 D. Scott Barninger <barninger@fairfieldcomputers.com>
-- add dependency on bacula-libs
-* Sat Feb 13 2010 D. Scott Barninger <barninger@fairfieldcomputers.com>
-- create file to allow bat to run nonroot with kdesu
-- add dependency information
-* Sat Jan 30 2010 D. Scott Barninger <barninger@fairfieldcomputers.com>
-- fix consolehelper/xsu for suse packages
 * Sat Aug 1 2009 Kern Sibbald <kern@sibbald.com>
 - Split bat into separate bacula-bat.spec

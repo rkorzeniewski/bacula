@@ -1,29 +1,17 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2011 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  * Prototypes for finlib directory of Bacula
@@ -64,13 +52,13 @@ struct s_included_file *get_next_included_file(FF_PKT *ff,
                            struct s_included_file *inc);
 
 /* From find_one.c */
-int   find_one_file(JCR *jcr, FF_PKT *ff, 
+int   find_one_file(JCR *jcr, FF_PKT *ff,
                int handle_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level),
                char *p, dev_t parent_device, bool top_level);
 int   term_find_one(FF_PKT *ff);
 bool  has_file_changed(JCR *jcr, FF_PKT *ff_pkt);
 bool check_changes(JCR *jcr, FF_PKT *ff_pkt);
-void ff_pkt_set_link_digest(FF_PKT *ff_pkt, 
+void ff_pkt_set_link_digest(FF_PKT *ff_pkt,
                             int32_t digest_stream, const char *digest, uint32_t len);
 
 /* From get_priv.c */

@@ -1,29 +1,17 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2013 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  * Storage daemon specific defines and includes
@@ -35,10 +23,17 @@
 
 #define STORAGE_DAEMON 1
 
-/* Set to debug mutexes */
-//#define SD_DEBUG_LOCK
+/* Set to debug Lock() and Unlock() only */
+#define DEV_DEBUG_LOCK
+
+/*
+ * Set to define all SD locks except Lock()
+ *  currently this does not work. More locks
+ *  must be converted.
+ */
+#define SD_DEBUG_LOCK
 #ifdef SD_DEBUG_LOCK
-const int sd_dbglvl = 3;
+const int sd_dbglvl = 300;
 #else
 const int sd_dbglvl = 300;
 #endif
@@ -61,6 +56,8 @@ const int sd_dbglvl = 300;
 #include "block.h"
 #include "record.h"
 #include "dev.h"
+#include "file_dev.h"
+#include "tape_dev.h"
 #include "stored_conf.h"
 #include "bsr.h"
 #include "jcr.h"
@@ -71,10 +68,6 @@ const int sd_dbglvl = 300;
 #include <zlib.h>                     /* compression headers */
 #else
 #define uLongf uint32_t
-#endif
-#ifdef HAVE_LZO
-#include <lzo/lzoconf.h>
-#include <lzo/lzo1x.h>
 #endif
 #ifdef HAVE_FNMATCH
 #include <fnmatch.h>
@@ -89,13 +82,15 @@ const int sd_dbglvl = 300;
 int readdir_r(DIR *dirp, struct dirent *entry, struct dirent **result);
 #endif
 
-#include "vtape.h"
+#include "file_dev.h"
+#include "tape_dev.h"
+#include "vtape_dev.h"
 #include "sd_plugins.h"
 
 /* Daemon globals from stored.c */
 extern STORES *me;                    /* "Global" daemon resource */
 extern bool forge_on;                 /* proceed inspite of I/O errors */
 extern pthread_mutex_t device_release_mutex;
-extern pthread_cond_t wait_device_release; /* wait for any device to be released */                           
+extern pthread_cond_t wait_device_release; /* wait for any device to be released */
 
 #endif /* __STORED_H_ */

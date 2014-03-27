@@ -1,29 +1,17 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2012 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  * Miscellaneous Bacula memory and thread safe routines
@@ -45,9 +33,82 @@ static pthread_mutex_t timer_mutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t timer = PTHREAD_COND_INITIALIZER;
 
 /*
+ * Quote a string
+ */
+POOLMEM *quote_string(POOLMEM *snew, const char *old)
+{
+   char *n;
+   int i;
+
+   if (!old) {
+      strcpy(snew, "null");
+      return snew;
+   }
+   n = snew;
+   *n++ = '"';
+   for (i=0; old[i]; i++) {
+      switch (old[i]) {
+      case '"':
+         *n++ = '\\';
+         *n++ = '"';
+         break;
+      case '\\':
+         *n++ = '\\';
+         *n++ = '\\';
+         break;
+      default:
+         *n++ = old[i];
+         break;
+      }
+   }
+   *n++ = '"';
+   *n = 0;
+   return snew;
+}
+
+/*
+ * Quote a where (list of addresses separated by spaces)
+ */
+POOLMEM *quote_where(POOLMEM *snew, const char *old)
+{
+   char *n;
+   int i;
+
+   if (!old) {
+      strcpy(snew, "null");
+      return snew;
+   }
+   n = snew;
+   *n++ = '"';
+   for (i=0; old[i]; i++) {
+      switch (old[i]) {
+      case ' ':
+         *n++ = '"';
+         *n++ = ',';
+         *n++ = '"';
+         break;
+      case '"':
+         *n++ = '\\';
+         *n++ = '"';
+         break;
+      case '\\':
+         *n++ = '\\';
+         *n++ = '\\';
+         break;
+      default:
+         *n++ = old[i];
+         break;
+      }
+   }
+   *n++ = '"';
+   *n = 0;
+   return snew;
+}
+
+/*
  * This routine is a somewhat safer unlink in that it
- *   allows you to run a regex on the filename before 
- *   excepting it. It also requires the file to be in 
+ *   allows you to run a regex on the filename before
+ *   excepting it. It also requires the file to be in
  *   the working directory.
  */
 int safer_unlink(const char *pathname, const char *regx)
@@ -119,7 +180,7 @@ int bmicrosleep(int32_t sec, int32_t usec)
       timeout.tv_sec++;
    }
 
-   Dmsg2(200, "pthread_cond_timedwait sec=%lld usec=%d\n", sec, usec);
+   Dmsg2(200, "pthread_cond_timedwait sec=%d usec=%d\n", sec, usec);
    /* Note, this unlocks mutex during the sleep */
    P(timer_mutex);
    stat = pthread_cond_timedwait(&timer, &timer_mutex, &timeout);
@@ -191,14 +252,25 @@ bool bstrcmp(const char *s1, const char *s2)
 }
 
 /*
+ * Allows one or both pointers to be NULL
+ */
+bool bstrcasecmp(const char *s1, const char *s2)
+{
+   if (s1 == s2) return true;
+   if (s1 == NULL || s2 == NULL) return false;
+   return strcasecmp(s1, s2) == 0;
+}
+
+
+/*
  * Get character length of UTF-8 string
  *
  * Valid UTF-8 codes
- * U-00000000 - U-0000007F: 0xxxxxxx 
- * U-00000080 - U-000007FF: 110xxxxx 10xxxxxx 
- * U-00000800 - U-0000FFFF: 1110xxxx 10xxxxxx 10xxxxxx 
- * U-00010000 - U-001FFFFF: 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx 
- * U-00200000 - U-03FFFFFF: 111110xx 10xxxxxx 10xxxxxx 10xxxxxx 10xxxxxx 
+ * U-00000000 - U-0000007F: 0xxxxxxx
+ * U-00000080 - U-000007FF: 110xxxxx 10xxxxxx
+ * U-00000800 - U-0000FFFF: 1110xxxx 10xxxxxx 10xxxxxx
+ * U-00010000 - U-001FFFFF: 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
+ * U-00200000 - U-03FFFFFF: 111110xx 10xxxxxx 10xxxxxx 10xxxxxx 10xxxxxx
  * U-04000000 - U-7FFFFFFF: 1111110x 10xxxxxx 10xxxxxx 10xxxxxx 10xxxxxx 10xxxxxx
  */
 int cstrlen(const char *str)
@@ -465,7 +537,7 @@ void create_pid_file(char *dir, const char *progname, int port)
            read(pidfd, &pidbuf, sizeof(pidbuf)) < 0 ||
            sscanf(pidbuf, "%d", &oldpid) != 1) {
          berrno be;
-         Emsg2(M_ERROR_TERM, 0, _("Cannot open pid file. %s ERR=%s\n"), fname, 
+         Emsg2(M_ERROR_TERM, 0, _("Cannot open pid file. %s ERR=%s\n"), fname,
                be.bstrerror());
       }
       /* Some OSes (IRIX) don't bother to clean out the old pid files after a crash, and
@@ -494,7 +566,7 @@ void create_pid_file(char *dir, const char *progname, int port)
       del_pid_file_ok = TRUE;         /* we created it so we can delete it */
    } else {
       berrno be;
-      Emsg2(M_ERROR_TERM, 0, _("Could not open pid file. %s ERR=%s\n"), fname, 
+      Emsg2(M_ERROR_TERM, 0, _("Could not open pid file. %s ERR=%s\n"), fname,
             be.bstrerror());
    }
    free_pool_memory(fname);
@@ -553,7 +625,7 @@ void read_state_file(char *dir, const char *progname, int port)
    if ((sfd = open(fname, O_RDONLY|O_BINARY)) < 0) {
       berrno be;
       Dmsg3(010, "Could not open state file. sfd=%d size=%d: ERR=%s\n",
-                    sfd, sizeof(hdr), be.bstrerror());
+            sfd, (int)sizeof(hdr), be.bstrerror());
       goto bail_out;
    }
    if ((stat=read(sfd, &hdr, hdr_size)) != hdr_size) {
@@ -597,7 +669,7 @@ void write_state_file(char *dir, const char *progname, int port)
    int sfd;
    bool ok = false;
    POOLMEM *fname = get_pool_memory(PM_FNAME);
-   
+
    P(state_mutex);                    /* Only one job at a time can call here */
    Mmsg(&fname, "%s/%s.%d.state", dir, progname, port);
    /* Create new state file */
@@ -774,6 +846,19 @@ char *escape_filename(const char *file_path)
    return escaped_path;
 }
 
+/*
+ * For the moment preventing suspensions is only
+ *  implement on Windows.
+ */
+#ifndef HAVE_WIN32
+void prevent_os_suspensions()
+{ }
+
+void allow_os_suspensions()
+{ }
+#endif
+
+
 #if HAVE_BACKTRACE && HAVE_GCC
 #include <cxxabi.h>
 #include <execinfo.h>
@@ -783,10 +868,10 @@ void stack_trace()
    size_t stack_depth;
    void *stack_addrs[max_depth];
    char **stack_strings;
-   
+
    stack_depth = backtrace(stack_addrs, max_depth);
    stack_strings = backtrace_symbols(stack_addrs, stack_depth);
-   
+
    for (size_t i = 3; i < stack_depth; i++) {
       size_t sz = 200; /* just a guess, template names will go much wider */
       char *function = (char *)actuallymalloc(sz);
@@ -803,7 +888,7 @@ void stack_trace()
          *begin++ = '\0';
          *end = '\0';
          /* found our mangled name, now in [begin, end] */
-         
+
          int status;
          char *ret = abi::__cxa_demangle(begin, function, &sz, &status);
          if (ret) {

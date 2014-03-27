@@ -5,14 +5,14 @@
 #
 # You may need to change the name of your tape drive
 #   on the "Archive Device" directive in the Device
-#   resource.  If you change the Name and/or the 
+#   resource.  If you change the Name and/or the
 #   "Media Type" in the Device resource, please ensure
 #   that dird.conf has corresponding changes.
 #
 
 Storage {                             # definition of myself
   Name = @basename@-sd
-  SDPort = @sd_port@                  # Director's port      
+  SDPort = @sd_port@                  # Director's port
   WorkingDirectory = "@working_dir@"
   Pid Directory = "@piddir@"
   Maximum Concurrent Jobs = 20
@@ -46,19 +46,78 @@ Director {
 #
 # Devices supported by this Storage daemon
 # To connect, the Director's bacula-dir.conf must have the
-#  same Name and MediaType. 
+#  same Name and MediaType.
 #
 
+#
+# Define a Virtual autochanger
+#
+Autochanger {
+  Name = FileChgr1
+  Device = FileChgr1-Dev1, FileChgr1-Dev2
+  Changer Command = ""
+  Changer Device = /dev/null
+}
+
 Device {
-  Name = FileStorage
-  Media Type = File
+  Name = FileChgr1-Dev1
+  Media Type = File1
   Archive Device = @archivedir@
   LabelMedia = yes;                   # lets Bacula label unlabeled media
   Random Access = Yes;
   AutomaticMount = yes;               # when device opened, read it
   RemovableMedia = no;
   AlwaysOpen = no;
+  Maximum Concurrent Jobs = 5
 }
+
+Device {
+  Name = FileChgr1-Dev2
+  Media Type = File1
+  Archive Device = @archivedir@
+  LabelMedia = yes;                   # lets Bacula label unlabeled media
+  Random Access = Yes;
+  AutomaticMount = yes;               # when device opened, read it
+  RemovableMedia = no;
+  AlwaysOpen = no;
+  Maximum Concurrent Jobs = 5
+}
+
+#
+# Define a second Virtual autochanger
+#
+Autochanger {
+  Name = FileChgr2
+  Device = FileChgr2-Dev1, FileChgr2-Dev2
+  Changer Command = ""
+  Changer Device = /dev/null
+}
+
+Device {
+  Name = FileChgr2-Dev1
+  Media Type = File2
+  Archive Device = @archivedir@
+  LabelMedia = yes;                   # lets Bacula label unlabeled media
+  Random Access = Yes;
+  AutomaticMount = yes;               # when device opened, read it
+  RemovableMedia = no;
+  AlwaysOpen = no;
+  Maximum Concurrent Jobs = 5
+}
+
+Device {
+  Name = FileChgr2-Dev2
+  Media Type = File2
+  Archive Device = @archivedir@
+  LabelMedia = yes;                   # lets Bacula label unlabeled media
+  Random Access = Yes;
+  AutomaticMount = yes;               # when device opened, read it
+  RemovableMedia = no;
+  AlwaysOpen = no;
+  Maximum Concurrent Jobs = 5
+}
+
+
 
 #
 # An autochanger device with two drives
@@ -84,13 +143,13 @@ Device {
 #  #
 #  # Enable the Alert command only if you have the mtx package loaded
 #  # Note, apparently on some systems, tapeinfo resets the SCSI controller
-#  #  thus if you turn this on, make sure it does not reset your SCSI 
+#  #  thus if you turn this on, make sure it does not reset your SCSI
 #  #  controller.  I have never had any problems, and smartctl does
 #  #  not seem to cause such problems.
 #  #
 #  Alert Command = "sh -c 'tapeinfo -f %c |grep TapeAlert|cat'"
-#  If you have smartctl, enable this, it has more info than tapeinfo 
-#  Alert Command = "sh -c 'smartctl -H -l error %c'"  
+#  If you have smartctl, enable this, it has more info than tapeinfo
+#  Alert Command = "sh -c 'smartctl -H -l error %c'"
 #}
 
 #Device {
@@ -105,8 +164,8 @@ Device {
 #  AutoChanger = yes
 #  # Enable the Alert command only if you have the mtx package loaded
 #  Alert Command = "sh -c 'tapeinfo -f %c |grep TapeAlert|cat'"
-#  If you have smartctl, enable this, it has more info than tapeinfo 
-#  Alert Command = "sh -c 'smartctl -H -l error %c'"  
+#  If you have smartctl, enable this, it has more info than tapeinfo
+#  Alert Command = "sh -c 'smartctl -H -l error %c'"
 #}
 
 #
@@ -126,8 +185,8 @@ Device {
 ## AutoChanger = yes
 #  # Enable the Alert command only if you have the mtx package loaded
 ## Alert Command = "sh -c 'tapeinfo -f %c |grep TapeAlert|cat'"
-## If you have smartctl, enable this, it has more info than tapeinfo 
-## Alert Command = "sh -c 'smartctl -H -l error %c'"  
+## If you have smartctl, enable this, it has more info than tapeinfo
+## Alert Command = "sh -c 'smartctl -H -l error %c'"
 #}
 
 #
@@ -147,8 +206,8 @@ Device {
 ## AutoChanger = yes
 #  # Enable the Alert command only if you have the mtx package loaded
 ## Alert Command = "sh -c 'tapeinfo -f %c |grep TapeAlert|cat'"
-## If you have smartctl, enable this, it has more info than tapeinfo 
-## Alert Command = "sh -c 'smartctl -H -l error %c'"  
+## If you have smartctl, enable this, it has more info than tapeinfo
+## Alert Command = "sh -c 'smartctl -H -l error %c'"
 #}
 
 #
@@ -168,18 +227,38 @@ Device {
 ## AutoChanger = yes
 #  # Enable the Alert command only if you have the mtx package loaded
 ## Alert Command = "sh -c 'tapeinfo -f %c |grep TapeAlert|cat'"
-## If you have smartctl, enable this, it has more info than tapeinfo 
-## Alert Command = "sh -c 'smartctl -H -l error %c'"  
+## If you have smartctl, enable this, it has more info than tapeinfo
+## Alert Command = "sh -c 'smartctl -H -l error %c'"
 #}
 
-
-
+#
+# An HP-UX tape drive
+#
+#Device {
+#  Name = Drive-1                      #
+#  Drive Index = 0
+#  Media Type = DLT-8000
+#  Archive Device = /dev/rmt/1mnb
+#  AutomaticMount = yes;               # when device opened, read it
+#  AlwaysOpen = yes;
+#  RemovableMedia = yes;
+#  RandomAccess = no;
+#  AutoChanger = no
+#  Two EOF = yes
+#  Hardware End of Medium = no
+#  Fast Forward Space File = no
+#  #
+#  # Enable the Alert command only if you have the mtx package loaded
+#  Alert Command = "sh -c 'tapeinfo -f %c |grep TapeAlert|cat'"
+#  If you have smartctl, enable this, it has more info than tapeinfo
+#  Alert Command = "sh -c 'smartctl -H -l error %c'"
+#}
 
 #
 # A FreeBSD tape drive
 #
 #Device {
-#  Name = DDS-4 
+#  Name = DDS-4
 #  Description = "DDS-4 for FreeBSD"
 #  Media Type = DDS-4
 #  Archive Device = /dev/nsa1
@@ -191,12 +270,12 @@ Device {
 #  Backward Space Record = no
 #  Fast Forward Space File = no
 #  TWO EOF = yes
-#  If you have smartctl, enable this, it has more info than tapeinfo 
-#  Alert Command = "sh -c 'smartctl -H -l error %c'"  
+#  If you have smartctl, enable this, it has more info than tapeinfo
+#  Alert Command = "sh -c 'smartctl -H -l error %c'"
 #}
 
-# 
-# Send all messages to the Director, 
+#
+# Send all messages to the Director,
 # mount messages also are sent to the email address
 #
 Messages {

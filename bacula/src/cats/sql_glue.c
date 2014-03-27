@@ -1,30 +1,17 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2009-2011 Free Software Foundation Europe e.V.
+   Copyright (C) 2009-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  * Bacula Glue code for the catalog refactoring.
@@ -34,7 +21,7 @@
 
 #include "bacula.h"
 
-#if HAVE_SQLITE3 || HAVE_MYSQL || HAVE_POSTGRESQL || HAVE_INGRES || HAVE_DBI
+#if HAVE_SQLITE3 || HAVE_MYSQL || HAVE_POSTGRESQL
 
 #include "cats.h"
 #include "bdb_priv.h"
@@ -94,8 +81,8 @@ char *db_escape_object(JCR *jcr, B_DB *mdb, char *old, int len)
    return mdb->db_escape_object(jcr, old, len);
 }
 
-void db_unescape_object(JCR *jcr, B_DB *mdb, 
-                        char *from, int32_t expected_len, 
+void db_unescape_object(JCR *jcr, B_DB *mdb,
+                        char *from, int32_t expected_len,
                         POOLMEM **dest, int32_t *len)
 {
    mdb->db_unescape_object(jcr, from, expected_len, dest, len);
@@ -210,4 +197,4 @@ bool sql_batch_insert(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
    return ((B_DB_PRIV *)mdb)->sql_batch_insert(jcr, ar);
 }
 
-#endif /* HAVE_SQLITE3 || HAVE_MYSQL || HAVE_POSTGRESQL || HAVE_INGRES || HAVE_DBI */
+#endif /* HAVE_SQLITE3 || HAVE_MYSQL || HAVE_POSTGRESQL */

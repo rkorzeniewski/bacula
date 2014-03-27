@@ -1,29 +1,17 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2010 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  * Authenticate Director who is attempting to connect.
@@ -35,6 +23,8 @@
 #include "bacula.h"
 #include "filed.h"
 
+extern CLIENT *me;                 /* my resource */
+
 const int dbglvl = 50;
 
 /* Version at end of Hello
@@ -43,9 +33,13 @@ const int dbglvl = 50;
  *   2 13Mar09 - added the ability to restore from multiple storages
  *   3 03Sep10 - added the restore object command for vss plugin 4.0
  *   4 25Nov10 - added bandwidth command 5.1
- *   5 24Nov11 - added new restore object command format (pluginname) 6.0
+ *   5 01Jan14 - added SD Calls Client and api version to status command
  */
-static char OK_hello[]  = "2000 OK Hello 5\n";
+#define FD_VERSION 5
+
+static char hello_sd[]  = "Hello Bacula SD: Start Job %s %d\n";
+
+static char hello_dir[]  = "2000 OK Hello %d\n";
 static char Dir_sorry[] = "2999 Authentication failed.\n";
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
@@ -62,26 +56,20 @@ static bool authenticate(int rcode, BSOCK *bs, JCR* jcr)
    bool auth_success = false;
    alist *verify_list = NULL;
    btimer_t *tid = NULL;
+   int dir_version = 0;
 
    if (rcode != R_DIRECTOR) {
       Dmsg1(dbglvl, "I only authenticate directors, not %d\n", rcode);
       Jmsg1(jcr, M_FATAL, 0, _("I only authenticate directors, not %d\n"), rcode);
       goto auth_fatal;
    }
-   if (bs->msglen < 25 || bs->msglen > 500) {
-      Dmsg2(dbglvl, "Bad Hello command from Director at %s. Len=%d.\n",
-            bs->who(), bs->msglen);
-      char addr[64];
-      char *who = bnet_get_peer(bs, addr, sizeof(addr)) ? bs->who() : addr;
-      Jmsg2(jcr, M_FATAL, 0, _("Bad Hello command from Director at %s. Len=%d.\n"),
-             who, bs->msglen);
-      goto auth_fatal;
-   }
+
    dirname = check_pool_memory_size(dirname, bs->msglen);
 
-   if (sscanf(bs->msg, "Hello Director %s calling", dirname) != 1) {
+   if (sscanf(bs->msg, "Hello Director %s calling %d", dirname, &dir_version) != 2 &&
+       sscanf(bs->msg, "Hello Director %s calling", dirname) != 1) {
       char addr[64];
-      char *who = bnet_get_peer(bs, addr, sizeof(addr)) ? bs->who() : addr;
+      char *who = bs->get_peer(addr, sizeof(addr)) ? bs->who() : addr;
       bs->msg[100] = 0;
       Dmsg2(dbglvl, "Bad Hello command from Director at %s: %s\n",
             bs->who(), bs->msg);
@@ -96,8 +84,8 @@ static bool authenticate(int rcode, BSOCK *bs, JCR* jcr)
    }
    if (!director) {
       char addr[64];
-      char *who = bnet_get_peer(bs, addr, sizeof(addr)) ? bs->who() : addr;
-      Jmsg2(jcr, M_FATAL, 0, _("Connection from unknown Director %s at %s rejected.\n"), 
+      char *who = bs->get_peer(addr, sizeof(addr)) ? bs->who() : addr;
+      Jmsg2(jcr, M_FATAL, 0, _("Connection from unknown Director %s at %s rejected.\n"),
             dirname, who);
       goto auth_fatal;
    }
@@ -123,7 +111,7 @@ static bool authenticate(int rcode, BSOCK *bs, JCR* jcr)
 
    tid = start_bsock_timer(bs, AUTH_TIMEOUT);
    /* Challenge the director */
-   auth_success = cram_md5_challenge(bs, director->password, tls_local_need, compatible);  
+   auth_success = cram_md5_challenge(bs, director->password, tls_local_need, compatible);
    if (job_canceled(jcr)) {
       auth_success = false;
       goto auth_fatal;                   /* quick exit */
@@ -132,13 +120,13 @@ static bool authenticate(int rcode, BSOCK *bs, JCR* jcr)
       auth_success = cram_md5_respond(bs, director->password, &tls_remote_need, &compatible);
       if (!auth_success) {
           char addr[64];
-          char *who = bnet_get_peer(bs, addr, sizeof(addr)) ? bs->who() : addr;
-          Dmsg1(dbglvl, "cram_get_auth failed for %s\n", who);
+          char *who = bs->get_peer(addr, sizeof(addr)) ? bs->who() : addr;
+          Dmsg1(dbglvl, "cram_get_auth respond failed for Director: %s\n", who);
       }
    } else {
        char addr[64];
-       char *who = bnet_get_peer(bs, addr, sizeof(addr)) ? bs->who() : addr;
-       Dmsg1(dbglvl, "cram_auth failed for %s\n", who);
+       char *who = bs->get_peer(addr, sizeof(addr)) ? bs->who() : addr;
+       Dmsg1(dbglvl, "cram_auth challenge failed for Director %s\n", who);
    }
    if (!auth_success) {
        Emsg1(M_FATAL, 0, _("Incorrect password given by Director at %s.\n"),
@@ -204,11 +192,11 @@ int authenticate_director(JCR *jcr)
    BSOCK *dir = jcr->dir_bsock;
 
    if (!authenticate(R_DIRECTOR, dir, jcr)) {
-      bnet_fsend(dir, "%s", Dir_sorry);
+      dir->fsend("%s", Dir_sorry);
       Emsg0(M_FATAL, 0, _("Unable to authenticate Director\n"));
       return 0;
    }
-   return bnet_fsend(dir, "%s", OK_hello);
+   return dir->fsend(hello_dir, FD_VERSION);
 }
 
 /*
@@ -222,6 +210,7 @@ int authenticate_storagedaemon(JCR *jcr)
    int tls_remote_need = BNET_TLS_NONE;
    int compatible = true;
    bool auth_success = false;
+   int sd_version = 0;
 
    btimer_t *tid = start_bsock_timer(sd, AUTH_TIMEOUT);
 
@@ -243,19 +232,25 @@ int authenticate_storagedaemon(JCR *jcr)
       goto auth_fatal;
    }
 
+
+   sd->fsend(hello_sd, jcr->Job, FD_VERSION);
+   Dmsg1(100, "Send to SD: %s\n", sd->msg);
+
    /* Respond to SD challenge */
+   Dmsg0(050, "==== respond to SD challenge\n");
    auth_success = cram_md5_respond(sd, jcr->sd_auth_key, &tls_remote_need, &compatible);
    if (job_canceled(jcr)) {
       auth_success = false;     /* force quick exit */
       goto auth_fatal;
    }
    if (!auth_success) {
-      Dmsg1(dbglvl, "cram_respond failed for %s\n", sd->who());
+      Dmsg1(dbglvl, "cram_respond failed for SD: %s\n", sd->who());
    } else {
       /* Now challenge him */
+      Dmsg0(050, "==== Challenge SD\n");
       auth_success = cram_md5_challenge(sd, jcr->sd_auth_key, tls_local_need, compatible);
       if (!auth_success) {
-         Dmsg1(dbglvl, "cram_challenge failed for %s\n", sd->who());
+         Dmsg1(dbglvl, "cram_challenge failed for SD: %s\n", sd->who());
       }
    }
 
@@ -263,11 +258,13 @@ int authenticate_storagedaemon(JCR *jcr)
       Jmsg(jcr, M_FATAL, 0, _("Authorization key rejected by Storage daemon.\n"
        "Please see " MANUAL_AUTH_URL " for help.\n"));
       goto auth_fatal;
+   } else {
+      Dmsg0(050, "Authorization with SD is OK\n");
    }
 
    /* Verify that the remote host is willing to meet our TLS requirements */
    if (tls_remote_need < tls_local_need && tls_local_need != BNET_TLS_OK && tls_remote_need != BNET_TLS_OK) {
-      Jmsg(jcr, M_FATAL, 0, _("Authorization problem: Remote server did not" 
+      Jmsg(jcr, M_FATAL, 0, _("Authorization problem: Remote server did not"
            " advertize required TLS support.\n"));
       Dmsg2(dbglvl, "remote_need=%d local_need=%d\n", tls_remote_need, tls_local_need);
       auth_success = false;
@@ -293,6 +290,13 @@ int authenticate_storagedaemon(JCR *jcr)
          sd->free_tls();                    /* yes, shutdown tls */
       }
    }
+   if (sd->recv() <= 0) {
+      auth_success = false;
+      goto auth_fatal;
+   }
+   sscanf(sd->msg, "3000 OK Hello %d", &sd_version);
+
+   /* At this point, we have successfully connected */
 
 auth_fatal:
    /* Destroy session key */

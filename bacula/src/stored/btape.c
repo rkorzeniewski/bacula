@@ -1,29 +1,17 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2012 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  *
@@ -43,7 +31,7 @@
 #include "stored.h"
 
 #ifdef USE_VTAPE
-#include "vtape.h"
+#include "vtape_dev.h"
 #endif
 
 /* Dummy functions */
@@ -54,6 +42,7 @@ extern bool parse_sd_config(CONFIG *config, const char *configfile, int exit_cod
 extern void free_config_resources();
 
 /* Exported variables */
+void *start_heap;
 int quit = 0;
 char buf[100000];
 int bsize = TAPE_BSIZE;
@@ -166,7 +155,7 @@ int main(int margc, char *margv[])
    uint32_t x32, y32;
    uint64_t x64, y64;
    char buf[1000];
-   
+
    setlocale(LC_ALL, "");
    bindtextdomain("bacula", LOCALEDIR);
    textdomain("bacula");
@@ -198,7 +187,7 @@ int main(int margc, char *margv[])
    bsnprintf(buf, sizeof(buf), "%" llu, x64);
    i = bsscanf(buf, "%llu", &y64);
    if (i != 1 || x64 != y64) {
-      Pmsg3(-1, _("64 bit printf/scanf problem. i=%d x64=%" llu " y64=%" llu "\n"), 
+      Pmsg3(-1, _("64 bit printf/scanf problem. i=%d x64=%" llu " y64=%" llu "\n"),
             i, x64, y64);
       exit(1);
    }
@@ -273,6 +262,8 @@ int main(int margc, char *margv[])
 
    config = new_config_parser();
    parse_sd_config(config, configfile, M_ERROR_TERM);
+   setup_me();
+   load_sd_plugins(me->plugin_directory);
 
    /* See if we can open a device */
    if (margc == 0) {
@@ -285,7 +276,7 @@ int main(int margc, char *margv[])
       exit(1);
    }
 
-   jcr = setup_jcr("btape", margv[0], bsr, NULL, 0); /* write */
+   jcr = setup_jcr("btape", margv[0], bsr, NULL, SD_APPEND);
    if (!jcr) {
       exit(1);
    }
@@ -321,14 +312,6 @@ static void terminate_btape(int stat)
    free_jcr(jcr);
    jcr = NULL;
 
-   if (configfile) {
-      free(configfile);
-   }
-   if (config) {
-      config->free_resources();
-      free(config);
-      config = NULL;
-   }
    if (args) {
       free_pool_memory(args);
       args = NULL;
@@ -349,11 +332,22 @@ static void terminate_btape(int stat)
       dev->term();
    }
 
-   if (debug_level > 10)
+   if (configfile) {
+      free(configfile);
+   }
+
+   if (config) {
+      config->free_resources();
+      free(config);
+      config = NULL;
+   }
+
+   if (chk_dbglvl(10))
       print_memory_pool_stats();
 
    if (this_block) {
       free_block(this_block);
+      this_block = NULL;
    }
 
    stop_watchdog();
@@ -381,7 +375,7 @@ static void print_total_speed()
    char ec1[50], ec2[50];
    uint64_t rate = total_size / total_time;
    Pmsg2(000, _("Total Volume bytes=%sB. Total Write rate = %sB/s\n"),
-         edit_uint64_with_suffix(total_size, ec1), 
+         edit_uint64_with_suffix(total_size, ec1),
          edit_uint64_with_suffix(rate, ec2));
 }
 
@@ -467,7 +461,7 @@ static bool open_the_device()
    bool ok = true;
 
    block = new_block(dev);
-   dev->rLock();
+   dev->rLock(false);
    Dmsg1(200, "Opening device %s\n", dcr->VolumeName);
    if (!dev->open(dcr, OPEN_READ_WRITE)) {
       Emsg1(M_FATAL, 0, _("dev open failed: %s\n"), dev->errmsg);
@@ -517,7 +511,7 @@ static void labelcmd()
  */
 static void readlabelcmd()
 {
-   int save_debug_level = debug_level;
+   int64_t save_debug_level = debug_level;
    int stat;
 
    stat = read_dev_volume_label(dcr);
@@ -530,6 +524,9 @@ static void readlabelcmd()
       break;
    case VOL_IO_ERROR:
       Pmsg1(0, _("I/O error on device: ERR=%s"), dev->bstrerror());
+      break;
+   case VOL_TYPE_ERROR:
+      Pmsg1(0, _("Volume type error: ERR=%s\n"), dev->errmsg);
       break;
    case VOL_NAME_ERROR:
       Pmsg0(0, _("Volume name error\n"));
@@ -904,7 +901,7 @@ static bool speed_test_raw(fill_mode_t mode, uint64_t nb_gb, uint32_t nb)
    init_total_speed();
    fill_buffer(mode, block->buf, block->buf_len);
 
-   Pmsg3(0, _("Begin writing %i files of %sB with raw blocks of %u bytes.\n"), 
+   Pmsg3(0, _("Begin writing %i files of %sB with raw blocks of %u bytes.\n"),
          nb, edit_uint64_with_suffix(nb_gb, ed1), block->buf_len);
 
    for (uint32_t j=0; j<nb; j++) {
@@ -959,7 +956,7 @@ static bool speed_test_bacula(fill_mode_t mode, uint64_t nb_gb, uint32_t nb)
 
    fill_buffer(mode, rec->data, rec->data_len);
 
-   Pmsg3(0, _("Begin writing %i files of %sB with blocks of %u bytes.\n"), 
+   Pmsg3(0, _("Begin writing %i files of %sB with blocks of %u bytes.\n"),
          nb, edit_uint64_with_suffix(nb_gb, ed1), block->buf_len);
 
    for (uint32_t j=0; j<nb; j++) {
@@ -1012,10 +1009,10 @@ static int btape_find_arg(const char *keyword)
 #define ok(a)    if (!(a)) return
 
 /*
- * For file (/dev/zero, /dev/urandom, normal?) 
+ * For file (/dev/zero, /dev/urandom, normal?)
  *    use raw mode to write a suite of 3 files of 1, 2, 4, 8 GB
  *    use qfill mode to write the same
- * 
+ *
  */
 static void speed_test()
 {
@@ -1054,7 +1051,7 @@ static void speed_test()
 
    if (do_raw) {
       dev->rewind(dcr);
-      if (do_zero) { 
+      if (do_zero) {
          Pmsg0(0, _("Test with zero data, should give the "
                     "maximum throughput.\n"));
          if (file_size) {
@@ -1066,7 +1063,7 @@ static void speed_test()
          }
       }
 
-      if (do_random) { 
+      if (do_random) {
          Pmsg0(0, _("Test with random data, should give the minimum "
                     "throughput.\n"));
          if (file_size) {
@@ -1085,14 +1082,14 @@ static void speed_test()
          Pmsg0(0, _("Test with zero data and bacula block structure.\n"));
          if (file_size) {
             ok(speed_test_bacula(FILL_ZERO, file_size, nb_file));
-         } else { 
+         } else {
             ok(speed_test_bacula(FILL_ZERO, 1, nb_file));
             ok(speed_test_bacula(FILL_ZERO, 2, nb_file));
                ok(speed_test_bacula(FILL_ZERO, 4, nb_file));
          }
       }
-   
-      if (do_random) { 
+
+      if (do_random) {
          Pmsg0(0, _("Test with random data, should give the minimum "
                     "throughput.\n"));
          if (file_size) {
@@ -1258,7 +1255,7 @@ read_again:
 bail_out:
    free_record(rec);
    if (!rc) {
-      exit_code = 1;   
+      exit_code = 1;
    }
    return rc;
 }
@@ -1493,7 +1490,7 @@ try_again:
    dcr->VolCatInfo.Slot = slot;
    /* Find out what is loaded, zero means device is unloaded */
    Pmsg0(-1, _("3301 Issuing autochanger \"loaded\" command.\n"));
-   changer = edit_device_codes(dcr, changer, 
+   changer = edit_device_codes(dcr, changer,
                 dcr->device->changer_command, "loaded");
    status = run_program(changer, timeout, results);
    Dmsg3(100, "run_prog: %s stat=%d result=\"%s\"\n", changer, status, results);
@@ -1517,7 +1514,7 @@ try_again:
       dev->close();
       Pmsg2(-1, _("3302 Issuing autochanger \"unload %d %d\" command.\n"),
          loaded, dev->drive_index);
-      changer = edit_device_codes(dcr, changer, 
+      changer = edit_device_codes(dcr, changer,
                    dcr->device->changer_command, "unload");
       status = run_program(changer, timeout, results);
       Pmsg2(-1, _("unload status=%s %d\n"), status==0?_("OK"):_("Bad"), status);
@@ -1536,7 +1533,7 @@ try_again:
    dcr->VolCatInfo.Slot = slot;
    Pmsg2(-1, _("3303 Issuing autochanger \"load %d %d\" command.\n"),
       slot, dev->drive_index);
-   changer = edit_device_codes(dcr, changer, 
+   changer = edit_device_codes(dcr, changer,
                 dcr->device->changer_command, "load");
    Dmsg1(100, "Changer=%s\n", changer);
    dev->close();
@@ -2136,7 +2133,7 @@ bail_out:
 
 static void statcmd()
 {
-   int debug = debug_level;
+   int64_t debug = debug_level;
    debug_level = 30;
    Pmsg2(0, _("Device status: %u. ERR=%s\n"), status_dev(dev), dev->bstrerror());
 #ifdef xxxx
@@ -2270,7 +2267,7 @@ static void fillcmd()
       mix_buffer(FILL_RANDOM, rec.data, rec.data_len);
 
       Dmsg4(250, "before write_rec FI=%d SessId=%d Strm=%s len=%d\n",
-         rec.FileIndex, rec.VolSessionId, 
+         rec.FileIndex, rec.VolSessionId,
          stream_to_ascii(buf1, rec.Stream, rec.FileIndex),
          rec.data_len);
 
@@ -2334,7 +2331,7 @@ static void fillcmd()
       /* Get out after writing 1000 blocks to the second tape */
       if (BlockNumber > 1000 && stop != 0) {      /* get out */
          char ed1[50];
-         Pmsg1(-1, "Done writing %s records ...\n", 
+         Pmsg1(-1, "Done writing %s records ...\n",
              edit_uint64_with_commas(write_count, ed1));
          break;
       }
@@ -2635,6 +2632,7 @@ bail_out:
    free_block(last_block1);
    free_block(last_block2);
    free_block(first_block);
+   last_block = first_block = last_block1 = last_block2 = NULL;
    return rc;
 }
 
@@ -2699,7 +2697,7 @@ static int flush_block(DEV_BLOCK *block, int dump)
    DEV_BLOCK *tblock;
    uint32_t this_file, this_block_num;
 
-   dev->rLock();
+   dev->rLock(false);
    if (!this_block) {
       this_block = new_block(dev);
    }
@@ -2745,7 +2743,7 @@ static int flush_block(DEV_BLOCK *block, int dump)
       vol_size = dev->VolCatInfo.VolCatBytes;
       Pmsg4(000, _("End of tape %d:%d. Volume Bytes=%s. Write rate = %sB/s\n"),
          dev->file, dev->block_num,
-         edit_uint64_with_commas(dev->VolCatInfo.VolCatBytes, ec1), 
+         edit_uint64_with_commas(dev->VolCatInfo.VolCatBytes, ec1),
          edit_uint64_with_suffix(rate, ec2));
 
       if (simple) {
@@ -2878,7 +2876,7 @@ static void rawfill_cmd()
    berrno be;
    printf(_("Write failed at block %u. stat=%d ERR=%s\n"), block_num, stat,
       be.bstrerror(my_errno));
-   
+
    print_speed(jcr->JobBytes);
    weofcmd();
 }
@@ -3035,7 +3033,7 @@ bool dir_find_next_appendable_volume(DCR *dcr)
    return dcr->VolumeName[0] != 0;
 }
 
-bool dir_ask_sysop_to_mount_volume(DCR *dcr, int /* mode */)
+bool dir_ask_sysop_to_mount_volume(DCR *dcr, bool /* writing */)
 {
    DEVICE *dev = dcr->dev;
    Dmsg0(20, "Enter dir_ask_sysop_to_mount_volume\n");
@@ -3107,7 +3105,7 @@ static bool my_mount_next_read_volume(DCR *dcr)
    }
    rate = VolBytes / now;
    Pmsg3(-1, _("Read block=%u, VolBytes=%s rate=%sB/s\n"), block->BlockNumber,
-            edit_uint64_with_commas(VolBytes, ec1), 
+            edit_uint64_with_commas(VolBytes, ec1),
             edit_uint64_with_suffix(rate, ec2));
 
    if (strcmp(dcr->VolumeName, "TestVolume2") == 0) {

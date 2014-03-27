@@ -1,5 +1,51 @@
-              Changelog on version 5.2.13
+              Changelog on version 7.0.0
 
+Release version 7.0.0
+
+24Mar14
+ - Add Josip Almasi to AUTHORS
+ - [PATCH] Support for restricted consoles in BAT config
+ - [PATCH] Fix for free director directive
+ - [PATCH] Fix auto-select restricted console for director in bconsole
+ - Realign output display
+ - Update ua_output.c from Branch-6.7
+ - Add some missing Branch-6.7 updates
+ - Added needed empty directories to Baculum
+ - Fix for support PostgreSQL, MySQL and SQLite
+ - Framework adjusting to Baculum database connections
+ - Framework fix for lower case tables names in MySQL
+ - Fix for Baculum SQLite support
+ - Initial commit Baculum
+ - Add Marcin to AUTHORS file
+ - Strip trailing blanks
+ - Update copyright year
+ - Update LICENSE and header files
+ - Remove old file
+ - Add new header in misc files
+ - Remove tray-monitor bwx-console manual installation
+ - Remove FD python and examples
+ - Fixup spec files
+ - Remove pythonlib from lib
+ - Update package-list
+ - Fix SDCallsClient daemon synchronization
+ - Add debug code + make 127.0.0.1 same as localhost for tls tests
+ - Fix multiple DIRs in console
+ - Make failure for bat to connect to DIR non-fatal
+ - Fix bat style to one that works
+ - Take disk-changer from Branch-6.7
+ - Simplify Version output
+ - Fix FDVersion for SD Calls Client test
+ - Update accurate test
+ - Update differential test
+ - Add new regress timing scripts
+ - Improve plugin make clean
+ - Implement regress FORCE_SDCALLS
+ - Remove win32 tray-monitor and wx-console directories
+ - Remove regress-config need only regress-config.in
+ - Add configure archivedir
+ - Improve SQL failure reporting
+ - Major backport from BEE to community
+ - Add copyright to mtx-changer.in
 
 Release version 5.2.13
 
@@ -29,7 +75,7 @@ Release version 5.2.13
  - Fix update_postgresql_tables 10 to 11
 
 30Jan13
- - Clean after building doc binaries requested by Willem vd Akker for Debian 
+ - Clean after building doc binaries requested by Willem vd Akker for Debian
   build
 
 29Jan13
@@ -189,7 +235,7 @@ Version 5.2.11
  - Simplify safer delete code using a single regex
 
 08Sep12
- - Clean up error message generation during update attributes -- should fix bug 
+ - Clean up error message generation during update attributes -- should fix bug
   #1823
  - Eliminate heartbeat error messages. Fixes bug #1925
 
@@ -285,7 +331,7 @@ Version 5.2.8
 
 10Jun12
  - Apply readline without TERM_LIB dependency patch from bug #1871
- - Ensure cancel status is set for canceled duplicate jobs -- partial fix for 
+ - Ensure cancel status is set for canceled duplicate jobs -- partial fix for
    bug #1851
  - Enhance Win32 error messages -- fixes bug #1879
 
@@ -294,7 +340,7 @@ Version 5.2.8
  - Remove config variables from examples/devices fixes bug #1884
  - Add more debug code for bug 1885
  - Add more debug to block.c when read rejected
- - Fail job that attempts to read from closed device -- reported in bug 1885 but 
+ - Fail job that attempts to read from closed device -- reported in bug 1885 but
    not fixed
  - Detect Python 2.7 fixes bug #1888
  - Recompile configure
@@ -400,7 +446,7 @@ Version 5.2.7
  - Fix bug #1853: bacula-sd dead but pid file exists.
 
 23Mar12
- - Fix bug #1841 estimate command level=differential goes wrong in accurate 
+ - Fix bug #1841 estimate command level=differential goes wrong in accurate
   mode.
 
 22Mar12
@@ -408,7 +454,7 @@ Version 5.2.7
  - Fix bug #1848 bsock.c:335 Socket has errors=1 on call to client
 
 10Mar12
- - Force the re-initialization of BaseJobOpts, AccurateOpts and VerifyOpts 
+ - Force the re-initialization of BaseJobOpts, AccurateOpts and VerifyOpts
   between two Include{}
 
 08Mar12
@@ -516,7 +562,7 @@ Version 5.2.4
  - Back out bad MinValue patch
 
 14Jan12
- - Fix bug #1810 use single quotes instead of double quotes for MinValue and 
+ - Fix bug #1810 use single quotes instead of double quotes for MinValue and
   MaxValue in catalog
 
 11Jan12
@@ -524,7 +570,7 @@ Version 5.2.4
  - Set job status to running when restore job really starts
 
 10Jan12
- - Remove ifdeffing that turned off JS_Warning status -- must have been missed 
+ - Remove ifdeffing that turned off JS_Warning status -- must have been missed
   test code
  - Add support for soname setting in libtool.
 
@@ -768,7 +814,7 @@ Version 5.2.1
  - Lower some messages from level M_ERROR to M_WARNING in acl/xatttr.
 
 07Sep11
- - Fix spooldata and ignoreduplicates run command options to use JCR instead of 
+ - Fix spooldata and ignoreduplicates run command options to use JCR instead of
   the Job resource.
 
 30Aug11
@@ -824,7 +870,7 @@ Version 5.2.0rc1
 - Fix #1602 about Uninstall /S that should not prompt for user interaction
 
 05Jul11
-- Change JobFiles display from %f to %F in RunScript because %f was already 
+- Change JobFiles display from %f to %F in RunScript because %f was already
   affected to Fileset name
 
 28Jun11
@@ -834,7 +880,7 @@ Version 5.2.0rc1
 21Jun11
 - Solaris make doesn't like comments in make rules.
 - Fix OSX acl regression test.
-- Storing the result in a local variable from sql_num_fields saves us a lot of 
+- Storing the result in a local variable from sql_num_fields saves us a lot of
   callbacks.
 
 15Jun11
@@ -854,7 +900,7 @@ Version 5.2.0rc1
 - Fix small memory leak when job get canceled.
 
 01Jun11
-- Fix small memory leak in dbcheck not calling free_pool_memory for name 
+- Fix small memory leak in dbcheck not calling free_pool_memory for name
   variable.
 - Remove global variable shadowing by local variable.
 
@@ -881,7 +927,7 @@ Version 5.2.0rc1
 - AC_CHECK_DECL doesn't seem to work so lets do it somewhat differently.
 
 13May11
-- First attempt at fixing bug #1735 where acls on OSX doesn't seem to reach the 
+- First attempt at fixing bug #1735 where acls on OSX doesn't seem to reach the
   backup.
 
 10May11
@@ -890,7 +936,7 @@ Version 5.2.0rc1
 04May11
 - Don't force job duplicate checking on copy and migration jobs.
 - Simplify the code path in migration and copy jobs
-- Allow duplicate job check override from run cmdline for migrate and copy 
+- Allow duplicate job check override from run cmdline for migrate and copy
   jobs.
 - Initialize spool_data_set as boolean.
 - Add stat packet size to encode/decode_ routines to detect compile differences
@@ -910,7 +956,7 @@ Version 5.2.0rc1
 21Apr11
 - Use user arguments when upgrading catalog
 - Change all sm_checks into Dsm_check for performance reasons
-- Free database results on class destruction (e.g. when reference count == 
+- Free database results on class destruction (e.g. when reference count ==
   0)
 
 20Apr11
@@ -1004,7 +1050,6 @@ Version 5.2.0rc1
 - Comment out unused variables in tray-monitor
 - Fix uninitialized variable in bat
 - Fix lock race conditions in bug #1675
-- Add missing code for rename incomplete to rerunning
 - Rename incomplete to rerunning for clarity
 
 23Feb11
@@ -1021,7 +1066,6 @@ Version 5.2.0rc1
 - Add %h option in runscript to get client address
 
 21Feb11
-- Rework Incomplete job intereaction with Base and Accurate
 - Fix seg fault during cancel in SD
 
 19Feb11
@@ -1054,7 +1098,7 @@ Version 5.2.0rc1
 - Use old list_result() in db_list_xxx for good formating
 
 04Feb11
-- Increase Windows backup/restore privileges possible fix to Virtual Disk 
+- Increase Windows backup/restore privileges possible fix to Virtual Disk
   ticket
 
 05Feb11
@@ -1063,10 +1107,10 @@ Version 5.2.0rc1
 
 03Feb11
 - Add configure magic for detecting getpagesize
-- Implement mntent_cache on top of the new htable code using a small htable big 
+- Implement mntent_cache on top of the new htable code using a small htable big
   buffer of 128 Kb to start with.
-- Added support to htable for giving a hint on the number of pages to allocate 
-  for the buffer used for hash_mallocs so we can have htables without the 
+- Added support to htable for giving a hint on the number of pages to allocate
+  for the buffer used for hash_mallocs so we can have htables without the
   previous default of 10 Mb.
 
 05Feb11
@@ -1076,20 +1120,20 @@ Version 5.2.0rc1
 - Add patch from bug #1574 for Scientific Linux spec
 - Apply patches from bug #1672 to clean up configuration
 - Check if volume name is valid in select_media_dbr()
-- Small change to exporting functions not found in include files on some 
-  platforms. Wrap it as one extern "C" block just like its done on most platforms 
+- Small change to exporting functions not found in include files on some
+  platforms. Wrap it as one extern "C" block just like its done on most platforms
   in the proper include files.
-- Fixed some compile errors in IRIX and TRU64 xattr code which is kind of hard 
-  to test without a proper platform. Compiled it now using some tricks on an 
-  other platform defining it is the given platform and fix the compile errors 
+- Fixed some compile errors in IRIX and TRU64 xattr code which is kind of hard
+  to test without a proper platform. Compiled it now using some tricks on an
+  other platform defining it is the given platform and fix the compile errors
   that way using a fake header file.
 
 04Feb11
 - Improve bat stability by checking if page valid
 - Fix segfault with print_memory_pool_stats()
-- Drop last SQL_INC leftovers. Due to backend abstraction there is no need to 
-  include backend specific include files anywhere then in the backend driver 
-  which use now per backend specific include directives. SQL_INC is not set by 
+- Drop last SQL_INC leftovers. Due to backend abstraction there is no need to
+  include backend specific include files anywhere then in the backend driver
+  which use now per backend specific include directives. SQL_INC is not set by
   configure anymore and should not be used anymore.
 
 03Feb11
@@ -1114,22 +1158,22 @@ Version 5.2.0rc1
 - Fix bad character in cats/sql_cmds.c
 
 31Jan11
-- Removed old queries from sql_cmds.[ch] which are no longer referenced and 
+- Removed old queries from sql_cmds.[ch] which are no longer referenced and
   thus polluting the namespace for no obvious reason.
 - Fix possible core-dump as seen in regression testing
 
 28Jan11
 - Ensure that we always close the transaction in db_big_sql_query()
-- Implement db_big_sql_query() that uses cursor on PostgreSQL and limit memory 
+- Implement db_big_sql_query() that uses cursor on PostgreSQL and limit memory
   usage in db_list_xxx
 - Detect mount/junction points and ignore junctions in Windows
 
 25Jan11
-- Added set_db_type function to set global debug symbol removed when doing 
-  class based catalog backends. Coding is a bit different as we need get_db_type 
-  which needs a bdb class so we have to set it as part of the loop over all 
-  catalogs. This way we may set the global variable a couple of times but the 
-  code frees the global variable if needed so other then being somewhat overkill 
+- Added set_db_type function to set global debug symbol removed when doing
+  class based catalog backends. Coding is a bit different as we need get_db_type
+  which needs a bdb class so we have to set it as part of the loop over all
+  catalogs. This way we may set the global variable a couple of times but the
+  code frees the global variable if needed so other then being somewhat overkill
   no harm is done.
 - Drop removed catalog function prototype.
 - Fix logic inversion.
@@ -1162,7 +1206,7 @@ Version 5.2.0rc1
 - Fix #1685 about JobBytes counter when using Accurate/BaseJobs with checksum
 
 12Jan11
-- Ignore replace=xx for directories. Corrects (not total solution) ticket 2317 
+- Ignore replace=xx for directories. Corrects (not total solution) ticket 2317
   and bug #1444
 - Add restore replace=never test ticket 2317
 - Add replace=xxx on restore command line
@@ -1211,14 +1255,14 @@ Version 5.2.0rc1
 - Fix compiler warning.
 
 19Dec10
-- Set proper status of autochanger slots with 0 on startup -- no volume rather 
+- Set proper status of autochanger slots with 0 on startup -- no volume rather
   than unknown
 
 14Dec10
 - Add indentation in lsmark command output
 
 17Dec10
-- Change SELECT count(*) to SELECT 1 .. LIMIT 1 to speed up PostgreSQL and 
+- Change SELECT count(*) to SELECT 1 .. LIMIT 1 to speed up PostgreSQL and
   Innodb in is_volume_purged()
 
 01Dec10
@@ -1232,14 +1276,14 @@ Version 5.2.0rc1
 - Fix end plugin stream index
 
 16Dec10
-- Add missing switch values although the code works this is cleaner. Give 
-  better error when trying to restore a particular type of acl on a filesystem 
+- Add missing switch values although the code works this is cleaner. Give
+  better error when trying to restore a particular type of acl on a filesystem
   without support for those types of acls.
 
 15Dec10
-- Added support for NFSv4 ACLs added to FreeBSD 8.1. Some small updates to some 
+- Added support for NFSv4 ACLs added to FreeBSD 8.1. Some small updates to some
   comments of other ACL implementations.
-- Added additional extended attributes used under FreeBSD for the storage of 
+- Added additional extended attributes used under FreeBSD for the storage of
   ACLs.
 
 14Dec10
@@ -1279,7 +1323,7 @@ Version 5.2.0rc1
 - Prepare for adding high bits to Stream
 - Use new FO_xxx bits in backup/restore and plugins
 - Define new stream bits
-- Separate definitions of streams, filetypes, and fileoptions to separate 
+- Separate definitions of streams, filetypes, and fileoptions to separate
   files
 - Rename bEventVssSnapshotLetters to bEventPrepareSnapshot
 - rename plugin->len to plugin->file_len
@@ -1389,7 +1433,7 @@ Version 5.2.0rc1
 - Set daemon name and host name to zero
 
 05Nov10
-- Permit to get Where/RegexWhere from Plugin and give access to Accurate 
+- Permit to get Where/RegexWhere from Plugin and give access to Accurate
   data
 - Allow Plugin command without argument
 - Fix compilation problem on win64
@@ -1419,18 +1463,18 @@ Version 5.2.0rc1
 - Use start-stop-daemon handler to run daemons as bacula:bacula
 
 26Sep10
-- Reverted the change of TRU64 to OSF1 for the OS detection rules. Although 
+- Reverted the change of TRU64 to OSF1 for the OS detection rules. Although
   Compaq/HP renamed OSF1 to TRU64 lets leave it for now.
-- Fix new IRIX xattr code. Be a bit smarter when freeing data and do it in the 
+- Fix new IRIX xattr code. Be a bit smarter when freeing data and do it in the
   exception handler (e.g. after the goto label)
 - Fix some trivial errors and implemented the restore of IRIX xattrs.
 - Added first try at supporting IRIX extended attributes.
 
 25Sep10
-- Added configure logic for detecting the TRU64 extended attributes interface. 
-  Also made the acl and xattr configure logic use the HAVE_XXX_OS_TRUE variable 
-  which is set by BA_CHECK_OPSYS macro so we only check for a certain interface 
-  that we know only exist on a certain platform when we are running on that 
+- Added configure logic for detecting the TRU64 extended attributes interface.
+  Also made the acl and xattr configure logic use the HAVE_XXX_OS_TRUE variable
+  which is set by BA_CHECK_OPSYS macro so we only check for a certain interface
+  that we know only exist on a certain platform when we are running on that
   platform. This should make the configure output much cleaner.
 
 24Sep10
@@ -1484,30 +1528,30 @@ Version 5.2.0rc1
 
 23Sep10
 - Add missing new stream definitions.
-- Added xattr interface found in AIX 6.x and higher which mimics the Linux/OSF 
-  interface but has just a bit different named functions and the error codes 
-  are somewhat different so its not a perfect match to extend the generic 
-  interface (which is named generic now instead of the linux interface as it 
+- Added xattr interface found in AIX 6.x and higher which mimics the Linux/OSF
+  interface but has just a bit different named functions and the error codes
+  are somewhat different so its not a perfect match to extend the generic
+  interface (which is named generic now instead of the linux interface as it
   used by Linux and OSX).
 - Added configure support for the AIX extended attributes interface.
-- Added extra check for Solaris xattr support so we don't get false positives 
+- Added extra check for Solaris xattr support so we don't get false positives
   on other os-es (AIX) etc.
 
 22Sep10
-- First compiling version of AIX 5.3 and later acl code using the new aclx_get 
+- First compiling version of AIX 5.3 and later acl code using the new aclx_get
   and aclx_put interface.
-- AIX also supports setmntent/getmntent so use that instead of much more 
-  complicated other interface which is left for AIX systems that might not 
+- AIX also supports setmntent/getmntent so use that instead of much more
+  complicated other interface which is left for AIX systems that might not
   support the setmntent/getmntent interface.
 
 17Sep10
 - Handle the old stream using the old system call just to be safe for now.
 
 16Sep10
-- First steps for adding new interface for acls added to AIX 5.3 and later. 
-  Added 2 new streams and basic code to handle these streams. Next step is the 
+- First steps for adding new interface for acls added to AIX 5.3 and later.
+  Added 2 new streams and basic code to handle these streams. Next step is the
   actual implementation.
-- Rewrote ACL configure logic to be somewhat better readable in the same style 
+- Rewrote ACL configure logic to be somewhat better readable in the same style
   as the new xattr configure logic.
 
 22Sep10
@@ -1524,7 +1568,7 @@ Version 5.2.0rc1
 - Add skeleton of new bat run dialogs
 
 18Sep10
-- Fix getmntinfo handling on FreeBSD as it seems its the same as OSX (no real 
+- Fix getmntinfo handling on FreeBSD as it seems its the same as OSX (no real
   surprise).
 
 10Sep10
@@ -1535,19 +1579,19 @@ Version 5.2.0rc1
 - Tweack project file to mark Item 7 done
 
 30Aug10
-- Fix the insert_autokey_record functions to be 64bit compliant. This fixes a 
-  long standing bug in the postgresql code where the id was converted using 
+- Fix the insert_autokey_record functions to be 64bit compliant. This fixes a
+  long standing bug in the postgresql code where the id was converted using
   atoi which is now changed into a str_to_int64.
 
 17Aug10
-- When moving zlib into its seperate ZLIBS variable forgot to update the stored 
-  Makefile.in which still uses FDLIBS. But as FDLIBS now only contains libraries 
-  explicitly needed for building the filed this doesn't work. This should fix 
-  that. This is mostly a problem on Solaris like operating system as the linker 
+- When moving zlib into its seperate ZLIBS variable forgot to update the stored
+  Makefile.in which still uses FDLIBS. But as FDLIBS now only contains libraries
+  explicitly needed for building the filed this doesn't work. This should fix
+  that. This is mostly a problem on Solaris like operating system as the linker
   doesn't load all dependency libs and gives unresolved symbols.
 
 20Sep10
-- Fix bug #1623 about indexes that are already created or deleted in postgresql 
+- Fix bug #1623 about indexes that are already created or deleted in postgresql
   upgrade process.
 - First cut of bat rerun a Job from Jobs Run
 - Allow sorting of more bat media columns
@@ -1590,7 +1634,7 @@ Version 5.2.0rc1
 
 12Aug10
 - Make third argument of DEVICE::d_ioctl optionnal to emulate varg
-- Use SMARTALLOC+memset instead of overload new/delete that doesn't work in 
+- Use SMARTALLOC+memset instead of overload new/delete that doesn't work in
   bat
 
 02Sep10
@@ -1704,9 +1748,9 @@ Version 5.2.0rc1
 - Fix #1600 about problems with Accurate code on MySQL
 
 26Jun10
-- Fix bug #1587 if you have clients with different catalogs configured, both 
+- Fix bug #1587 if you have clients with different catalogs configured, both
   catalogs contains all clients after a reload or restart of the dir
-- Fix bug #1577 During migration: ERROR in block.c:950 Failed ASSERT: dev->is_open() 
+- Fix bug #1577 During migration: ERROR in block.c:950 Failed ASSERT: dev->is_open()
   by moving and commenting out the ASSERT()
 
 24Jun10
@@ -1747,7 +1791,7 @@ Version 5.2.0rc1
 - Attempt to fix duplicate job kill seg fault
 - Replace pthread_kill by my_thread_send_signal() in jcr.c
 - Fix postgresql error in grant script
-- fix #1595 about batch mode detection problem for postgresql with non standard 
+- fix #1595 about batch mode detection problem for postgresql with non standard
   install dir
 - Add TestName to gdb traceback
 - Fix accurate code
@@ -1767,7 +1811,7 @@ Version 5.2.0rc1
 
 11Jun10
 - Add new upgrade script from DB vers 12 to 13
-- Add BDB_VERSION for scripts + prepare update 11 to 12 + automate BDB_VERSION 
+- Add BDB_VERSION for scripts + prepare update 11 to 12 + automate BDB_VERSION
   checking
 
 09Jun10
@@ -1784,7 +1828,7 @@ Version 5.2.0rc1
 
 01Jun10
 - Fix segfault on "cancel jobid=" command
-- Create table with jobids as a temporary table and move the sql definition to 
+- Create table with jobids as a temporary table and move the sql definition to
   sql_cmds.c. We use a default query for all databases but Ingres.
 - Update makefiles for new libtool revision
 - Simplify libtool revision and use VERSION as default
@@ -1794,7 +1838,7 @@ Version 5.2.0rc1
 - Convert all Jmsg on the watchdog thread to Qmsg
 
 30May10
-- Don't set socket buffer size unless explicite set by users. Suggested change 
+- Don't set socket buffer size unless explicite set by users. Suggested change
   from bug #1493
 - Fix bug #1554 Windows installer doesn't honor /S flag
 
@@ -1806,10 +1850,10 @@ Version 5.2.0rc1
 
 27May10
 - Fix bug #1581 ASSERTs in src/dird/jobq.c can never trigger
-- Removed workaround for bug in Ingres with insert into tables with sequences 
-  from the batch insert temporary table. Added comment to the Ingres make table 
-  script to document the bug numbers which should be fixed in the Ingres 
-  version to be able to run batch inserts and currently known patch numbers for 
+- Removed workaround for bug in Ingres with insert into tables with sequences
+  from the batch insert temporary table. Added comment to the Ingres make table
+  script to document the bug numbers which should be fixed in the Ingres
+  version to be able to run batch inserts and currently known patch numbers for
   Solaris x86 and Linux x86_64.
 
 25May10
@@ -1827,23 +1871,23 @@ Version 5.2.0rc1
 - Do not use mtime with basejobs
 
 18May10
-- Optimize the selection process for saving either AFS or Native ACLS by 
-  keeping track of the filesystem we are doing a backup of. This way we don't 
-  have to check if a filesystem is still either AFS or not as when we know if 
-  it is all files on the same filesystem are either AFS or not. We also clear 
-  the native save flag when a filesystem says it doesn't support acls so we 
+- Optimize the selection process for saving either AFS or Native ACLS by
+  keeping track of the filesystem we are doing a backup of. This way we don't
+  have to check if a filesystem is still either AFS or not as when we know if
+  it is all files on the same filesystem are either AFS or not. We also clear
+  the native save flag when a filesystem says it doesn't support acls so we
   don't keep on trying saving acls on filesystem that don't support them.
 
 16May10
-- Added preliminary AFS acl support. The code may need some testing on a real 
-  AFS enabled server as most of the code was written using information available 
+- Added preliminary AFS acl support. The code may need some testing on a real
+  AFS enabled server as most of the code was written using information available
   on the Internet. The code compiles and links on Linux using OpenAFS 1.4.
-- Added fstype rewrite code so we have a uniform way of retrieving the fstype 
-  on Linux and OSF1 without the need to add code for each new filesystem added 
+- Added fstype rewrite code so we have a uniform way of retrieving the fstype
+  on Linux and OSF1 without the need to add code for each new filesystem added
   to a OS.
 
 14May10
-- First stab at a simple script to dump the content of the complete Ingres 
+- First stab at a simple script to dump the content of the complete Ingres
   bacula database for disaster recovery purposes.
 
 10May10
@@ -1873,10 +1917,10 @@ Version 5.2.0rc1
 - Fix RestoreObject for PostgreSQL
 
 01May10
-- Move some AC_MSG_RESULT macros around so the configure output looks somewhat 
+- Move some AC_MSG_RESULT macros around so the configure output looks somewhat
   cleaner.
-- Move libz out of FDLIBS into a seperate variable as we need it for libbac.so 
-  now too as it also has libz compiled functions. This way we keep the FDLIBS 
+- Move libz out of FDLIBS into a seperate variable as we need it for libbac.so
+  now too as it also has libz compiled functions. This way we keep the FDLIBS
   cleaner with only extra libs need for the Filed to compile.
 - Fix RestoreObject schema on PostgreSQL
 - Fix insertion of RestoreObject
@@ -1887,9 +1931,9 @@ Version 5.2.0rc1
 - Rework sql queries for update copies
 
 30Apr10
-- Don't hardcode temporary table creation as some backend have a somewhat 
+- Don't hardcode temporary table creation as some backend have a somewhat
   different SQL syntax.
-- Added missing column in Ingres database definition for new database object as 
+- Added missing column in Ingres database definition for new database object as
   reported by Stefan.
 
 28Apr10
@@ -1898,9 +1942,9 @@ Version 5.2.0rc1
 - Fix File and Job Retention in show pool command
 
 27Apr10
-- Add Polish translation. This translation project is sponsored by Inteos Sp. z 
+- Add Polish translation. This translation project is sponsored by Inteos Sp. z
   o.o. based in Warsaw, PL.
-- Change Ingres query filter to set a realy early timestamp instead of an empty 
+- Change Ingres query filter to set a realy early timestamp instead of an empty
   string which doesn't seem to work on all Ingres versions.
 - Add new file I missed from James' plugin patch
 
@@ -1915,19 +1959,19 @@ Version 5.2.0rc1
 - Put attr.c debug on dbglvl
 
 24Apr10
-- Use lwps cmd in dbx and no threads as it seems to give some strange side 
-  effects e.g. doesn't work and lwps seems to always work. So lwps it is 
+- Use lwps cmd in dbx and no threads as it seems to give some strange side
+  effects e.g. doesn't work and lwps seems to always work. So lwps it is
   then.
 - Fix #1559 problem when restoring pruned jobs with a regexp
-- Do some work on the btraceback on Solaris, we test to see what debugger is 
-  available and we prefer the debuggers in this order: dbx, gdb, mdb. Also 
-  enchanced the dbx bactrace somewhat that it always dumps all available 
-  threads (e.g. we also changed from lwp to threads for dbx). We also print 
-  some variables that the gdb script also dumps on a bactrace. Hopefully we get 
-  some better dumps using this. The mdb is used as a last resort as it should 
-  be always installed on a Solaris box (dbx and gdb may not) but at the moment 
-  I'm still trying to find out how to get some more understandable dumps from 
-  mdb as its rather rudimentary and more a crash debugger then a source code 
+- Do some work on the btraceback on Solaris, we test to see what debugger is
+  available and we prefer the debuggers in this order: dbx, gdb, mdb. Also
+  enchanced the dbx bactrace somewhat that it always dumps all available
+  threads (e.g. we also changed from lwp to threads for dbx). We also print
+  some variables that the gdb script also dumps on a bactrace. Hopefully we get
+  some better dumps using this. The mdb is used as a last resort as it should
+  be always installed on a Solaris box (dbx and gdb may not) but at the moment
+  I'm still trying to find out how to get some more understandable dumps from
+  mdb as its rather rudimentary and more a crash debugger then a source code
   debugger.
 - Fix for bug #1560 bcopy cannot find Volume
 - Add beef
@@ -1942,31 +1986,31 @@ Version 5.2.0rc1
 - Fix cancel crash bug #1551
 
 21Apr10
-- A timestamp can only be assigned to a timestamp in Ingres unless we convert 
-  it inline. But why should we the code to get Timestamps is already there so 
+- A timestamp can only be assigned to a timestamp in Ingres unless we convert
+  it inline. But why should we the code to get Timestamps is already there so
   change it and we are allright.
 - For Ingres always enable batch mode inserts.
 - reindent some Ingres DECLARE queries so they are better readable.
-- Lets not use the mdb->transaction bool but create a private one named mdb->explicit_commit 
-  as mdb->transaction is used by the bacula core and we need a private setting 
+- Lets not use the mdb->transaction bool but create a private one named mdb->explicit_commit
+  as mdb->transaction is used by the bacula core and we need a private setting
   for Ingres.
-- Lets have a single exit from db_write_batch_file_records where we always drop 
+- Lets have a single exit from db_write_batch_file_records where we always drop
   the temporary batch table.
 - Fix job_metadata name problem
 - Allow traceback with gdb on Solaris
 
 20Apr10
-- Implement IS_NUM for Ingres by using eqsqlda.h IISQ_ values for numeric types 
+- Implement IS_NUM for Ingres by using eqsqlda.h IISQ_ values for numeric types
   supported by Ingres.
 - Correct Pool display in SD status. Fixes bug #1541
 - Add performance notes in make_xxx_tables.in files
 
 19Apr10
-- Fix Ingres problems with queries with have both an LIMIT and OFFSET clause as 
-  we need to reorder this query for Ingres to be understandable we need some 
-  more regexp magic for now. Lets make things exentsible and allow for multiple 
-  regexps all being fired on a query transforming it into the query to execute. 
-  Dropped the encoding check which is for postgresql but not interesting for 
+- Fix Ingres problems with queries with have both an LIMIT and OFFSET clause as
+  we need to reorder this query for Ingres to be understandable we need some
+  more regexp magic for now. Lets make things exentsible and allow for multiple
+  regexps all being fired on a query transforming it into the query to execute.
+  Dropped the encoding check which is for postgresql but not interesting for
   Ingres now we use VARBYTE and not VARCHAR.
 - Fix cancel crash reported by Stephen Thompson
 - Check if sql backend is thread-safe
@@ -1991,9 +2035,9 @@ Version 5.2.0rc1
 
 17Apr10
 - Update Ingres temporary table definitions with new datatypes and lengths.
-- Added extra check to scream when we encounter a database datatype which we 
-  don't support yet. This should never happen as we should implement new 
-  datatypes when we use them in the schema but some defensive programming 
+- Added extra check to scream when we encounter a database datatype which we
+  don't support yet. This should never happen as we should implement new
+  datatypes when we use them in the schema but some defensive programming
   doesn't hurt.
 - Some small indent changes.
 - Possible fix for big-files-test
@@ -2001,41 +2045,41 @@ Version 5.2.0rc1
 - Add back line accidentally deleted -- fixes verify-vol tests
 - Remove inappropriate comments and unused line
 - Fix badly named index
-- First stab at rewriting the ingres database schema to allow bigger path and 
-  filenames up to the current limit of 32000 bytes. Also reindented the database 
-  definitions to the Bacula standards which make it somewhat easier to read. 
-  Implemented the retrieval of some additional datatypes in the ingres backend 
+- First stab at rewriting the ingres database schema to allow bigger path and
+  filenames up to the current limit of 32000 bytes. Also reindented the database
+  definitions to the Bacula standards which make it somewhat easier to read.
+  Implemented the retrieval of some additional datatypes in the ingres backend
   now we switched some types from VARCHAR to VARBYTE.
 
 16Apr10
 - Remove closelog() in bpipe fixes bug #1536
 - Convert restore object to use STREAM_RESTORE_OBJECT; cleaner code
-- For now the Ingres type is not TEXT but VARCHAR(256) so lets define the 
+- For now the Ingres type is not TEXT but VARCHAR(256) so lets define the
   temporary table that way.
-- Seperate some basejob queries into sql_cmds.c so the code is cleaner and we 
+- Seperate some basejob queries into sql_cmds.c so the code is cleaner and we
   can specify the Ingres specific definition of a temporary table.
-- Remove some strange includes halve way this file which seems to be some 
+- Remove some strange includes halve way this file which seems to be some
   copied code from the top of the file.
 - Fix RestoreObject make_sqlite3_table.in syntax
 
 15Apr10
-- DISTINCT ON postgresql queries won't work on Ingres so try if the MySQL 
+- DISTINCT ON postgresql queries won't work on Ingres so try if the MySQL
   queries do any better on Ingres.
-- Small changes to btraceback script so on solaris we don't get strange errors 
-  as PNAME is not a single binary name and that doesn't work to great for doing 
+- Small changes to btraceback script so on solaris we don't get strange errors
+  as PNAME is not a single binary name and that doesn't work to great for doing
   a gcore.
 - Add install and uninstall of btraceback.mdb script
 
 14Apr10
 - Remove bad index tips on mysql creation script
 - Apply James' patch with my restore object changes
-- Add vss_close_backup_session after find_files + add object_name to restore 
+- Add vss_close_backup_session after find_files + add object_name to restore
   object
 
 13Apr10
-- Ingres doesn't understand a query string with ORDER BY LastWritten IS NULL,LastWritten 
-  DESC,MediaId and we must rewrite it to ORDER BY IFNULL(LastWritten, '') 
-  DESC,MediaId which we now do by using an array with the correct order statement 
+- Ingres doesn't understand a query string with ORDER BY LastWritten IS NULL,LastWritten
+  DESC,MediaId and we must rewrite it to ORDER BY IFNULL(LastWritten, '')
+  DESC,MediaId which we now do by using an array with the correct order statement
   per backend in sql_cmds just as some of the other database specific queries.
 
 12Apr10
@@ -2049,8 +2093,8 @@ Version 5.2.0rc1
 10Apr10
 - Extract restore object and send to FD first cut
 - Add Ingres RestoreObject SQL changes
-- Rename sql_insert_id into sql_insert_autokey_record so things are somewhat 
-  cleaner in name and things don't seem to imply we are just a mysql_insert_id 
+- Rename sql_insert_id into sql_insert_autokey_record so things are somewhat
+  cleaner in name and things don't seem to imply we are just a mysql_insert_id
   replacement, which we are not.
 
 09Apr10
@@ -2081,10 +2125,10 @@ Version 5.2.0rc1
 - Start RESTORE_OBJECT code
 
 08Apr10
-- Fixed postgresql grant script which I seem to have updated while I thought I 
-  updated the Ingres one. Also added a missing entry as reported by Martin 
+- Fixed postgresql grant script which I seem to have updated while I thought I
+  updated the Ingres one. Also added a missing entry as reported by Martin
   Simmons.
-- First attempt at using mdb on Solaris instead of dbx which isn't standard on 
+- First attempt at using mdb on Solaris instead of dbx which isn't standard on
   most current Solaris versions.
 - fix grant_postgresql_privileges doesn t grant permissions on jobhisto_jobid_seq
 - Add back something that for whatever reason got lost on last big merge.
@@ -2100,41 +2144,41 @@ Version 5.2.0rc1
 05Apr10
 - Added empty db_check_backend_thread_safe to dbi backend.
 - Change cryptic aop name
-- Make sql_insert_id a atomic function which executes the insert query and when 
-  that succeeds retrieves the id the database used for storing the inserted 
-  record. Some databases want this to be atomic (e.g. without a COMMIT in 
+- Make sql_insert_id a atomic function which executes the insert query and when
+  that succeeds retrieves the id the database used for storing the inserted
+  record. Some databases want this to be atomic (e.g. without a COMMIT in
   between.) Coding wise this is also much cleaner.
 - Drop have_insert_id in mdb as its always true for all backends.
-- Lets call it COMMIT and not END as that seems to be the counterpart of BEGIN 
-  for transactions. Updated Ingres lock queries to only start a transaction as 
+- Lets call it COMMIT and not END as that seems to be the counterpart of BEGIN
+  for transactions. Updated Ingres lock queries to only start a transaction as
   the current SQL is not valid Ingres SQL.
 
 04Apr10
-- First attempt at making things multi-threaded and make it possible to have 
-  multiple connections to the database without having the dreaded ERR=E_LQ002E 
-  The 'execute immediate' query has been issued outside of a DBMS session. This 
+- First attempt at making things multi-threaded and make it possible to have
+  multiple connections to the database without having the dreaded ERR=E_LQ002E
+  The 'execute immediate' query has been issued outside of a DBMS session. This
   compiles but seems to give some problems so into the debugger it is.
-- Use -lq.1 -lcompat.1 as shared libraries instead of linking with -lingres 
-  which is a static library. Also need to change generated code of esqlcc a bit 
+- Use -lq.1 -lcompat.1 as shared libraries instead of linking with -lingres
+  which is a static library. Also need to change generated code of esqlcc a bit
   to get things to link with the IIsqlca function.
-- As we have a multithreaded application let tell that to esqlcc so it can 
+- As we have a multithreaded application let tell that to esqlcc so it can
   optimize for that.
 - Fix bscan segfault with new comment field
 
 03Apr10
-- Creating a database as an other user and giving grants doesn't seem to work 
-  for Ingres. Strange so for now create everything using the -u${db_user} 
-  option. This is something that needs to be investigated as it should be 
+- Creating a database as an other user and giving grants doesn't seem to work
+  for Ingres. Strange so for now create everything using the -u${db_user}
+  option. This is something that needs to be investigated as it should be
   possible to have an different owner of the database.
 - Create user in the right database for Ingres.
-- Do all Ingres operations as the user invoking the script just as for all the 
-  other databases. The grant script will make sure the db_user will have the 
+- Do all Ingres operations as the user invoking the script just as for all the
+  other databases. The grant script will make sure the db_user will have the
   proper access rights to the database tables and sequences.
 - Fix username argument to sql for Ingres grants.
 - Replace ASSERT in block.c with fail Job
 - Make the Ingres grant script work.
 - Use uint32_t for max_concurrent_jobs
-- Fix grant script to set grants on correct sequence names and not PostgreSQL 
+- Fix grant script to set grants on correct sequence names and not PostgreSQL
   names.
 - Add new item to projects
 
@@ -2142,10 +2186,10 @@ Version 5.2.0rc1
 - Fix bug #1542 File Daemon outputs usage message to stdout instead of stderr
 - Apply James' rename events patch
 - Apply James' plugin patch
-- Added limit_filter which rewrites queries which use the LIMIT functions into 
-  something Ingres can understand. Removed all static functions from the 
-  myingres.sh file as they are no longer an exported interface (we can always 
-  put that back when we have the need to export more functions). Some other 
+- Added limit_filter which rewrites queries which use the LIMIT functions into
+  something Ingres can understand. Removed all static functions from the
+  myingres.sh file as they are no longer an exported interface (we can always
+  put that back when we have the need to export more functions). Some other
   rewrites of the code to make it somewhat cleaner.
 
 01Apr10
@@ -2166,7 +2210,7 @@ Version 5.2.0rc1
 
 27Mar10
 - Fix compiler warning.
-- Fix database locking calling db_lock and returning from function without 
+- Fix database locking calling db_lock and returning from function without
   calling db_unlock.
 - Apply James' wide char patch
 - Patch from James
@@ -2206,7 +2250,7 @@ Version 5.2.0rc1
 - syntax fix, test improved, empty results fixed
 - Add read_vol_list mutex to lockmgr prio
 - Fix #1527 about deadlock during migration
-- When including term.h we don't need prototypes for tgetent, tgetnum and 
+- When including term.h we don't need prototypes for tgetent, tgetnum and
   tgetstr as they are defined in term.h on Solaris.
 
 10Mar10
@@ -2237,8 +2281,8 @@ Version 5.2.0rc1
 - Fix bug #1524 verify fails after adding or removing files
 - Fix bug 1523.
 - Apply fix suggested by Andreas in bug #1502 for mediaview column sort problem
-- Lets not generate the ingres code automatically when the .sc or .sh files 
-  changes as it seems these files get outdated on some systems and then this 
+- Lets not generate the ingres code automatically when the .sc or .sh files
+  changes as it seems these files get outdated on some systems and then this
   rule kicks in on systems that don't have the esqlcc ingres compiler installed.
 
 04Mar10
@@ -2249,18 +2293,18 @@ Version 5.2.0rc1
 
 05Mar10
 - This adds sql debugging to these classes that Eric wrote.
-- This is a 1/2 fix of the issue. It allows for the sorting of the two non 
-  graphic columns, but still does not allow for sorting the graphic columns. 
-  The issue is with last. By setting the sort value, you are setting the value 
-  on the last. To experiment with what I mean, use the set background that I 
+- This is a 1/2 fix of the issue. It allows for the sorting of the two non
+  graphic columns, but still does not allow for sorting the graphic columns.
+  The issue is with last. By setting the sort value, you are setting the value
+  on the last. To experiment with what I mean, use the set background that I
   have commented out in this commit.
 
 04Mar10
 - Create AddExclude entry point for plugins
 
 03Mar10
-- Lets generate ingres code by calling esqlcc and not esqlc as we want c++ 
-  code. Replaced some strncpy by bstrncpy calls. Add dependency in Makefile of 
+- Lets generate ingres code by calling esqlcc and not esqlc as we want c++
+  code. Replaced some strncpy by bstrncpy calls. Add dependency in Makefile of
   generated code on it source file.
 - Another file to add James' code to get VssObject
 - Add James' code to get VssObject
@@ -2268,7 +2312,7 @@ Version 5.2.0rc1
 - Display AllowCompress warning message only if compression used in FileSet
 
 01Mar10
-- Added comment on dbi backend needing a recent version of libdbi from CVS as 
+- Added comment on dbi backend needing a recent version of libdbi from CVS as
   the version currently released 0.8.3 wont work for compiling the code.
 - Add Warning check to SQL
 - Fix readline to use TERM_LIB found for conio
@@ -2316,8 +2360,8 @@ Version 5.2.0rc1
 - Added patch from Stefan Reddig -- improved ingres db test
 - Added patch from Stefan Reddig -- added some checks, db test prog
 - bug report 1505
-- This version fixes an issue where the console window would start out not 
-  docked. It is fixed by initiating the variables in the Pages class with a 
+- This version fixes an issue where the console window would start out not
+  docked. It is fixed by initiating the variables in the Pages class with a
   constructor.
 
 19Feb10
@@ -2342,7 +2386,7 @@ Version 5.2.0rc1
 - Avoid error message if git not installed
 
 15Feb10
-- Apply fix to previous fix of Copy problem. Fix proposed by reporter of bug 
+- Apply fix to previous fix of Copy problem. Fix proposed by reporter of bug
   #1476
 - Set default Allow Duplicate Jobs = yes
 - Better cancel + fix Allow Dups code
@@ -2367,7 +2411,7 @@ Version 5.2.0rc1
 - Add code to check and prevent setting StorageId to zero
 
 12Feb10
-- Lets call the Ingres version of the tables also version 12 as it already has 
+- Lets call the Ingres version of the tables also version 12 as it already has
   all the new tables introduced in version 12 on the other backends.
 - First cut at fixing AllowDuplicateJobs bugs
 - Fix bug #1501 -t does not print errors
@@ -2384,7 +2428,7 @@ Version 5.2.0rc1
 
 10Feb10
 - Work around SQLite3 bug in bat submitted by Andreas Piesk a.piesk@gmx.net
-- Move shared object numbers into version.h + use -release for libtool rather 
+- Move shared object numbers into version.h + use -release for libtool rather
   than -version-info
 - Make mtx-changer errors clearer
 - Check for existence of mtx-changer.conf in mtx-changer script
@@ -2407,7 +2451,7 @@ Version 5.2.0rc1
 
 07Feb10
 - Fix Mysql database upgrade.
-- Fix bug #1488 -- create delivery_error() subroutine to avoid recursion and 
+- Fix bug #1488 -- create delivery_error() subroutine to avoid recursion and
   race conditions in messages.c
 - Upgrade cats lib also to 5.1.0
 
@@ -2416,7 +2460,7 @@ Version 5.2.0rc1
 - Move msg trace into subroutine
 - Move bat help files into help subdirectory
 - Add bat help files to Win64 installer
-- Win -- add help files to installer + stop any running bacula-fd before 
+- Win -- add help files to installer + stop any running bacula-fd before
   install
 - Fix bug #1481 -- bat consumes all console file descriptors
 - Update date on win32 rc file
@@ -2436,7 +2480,7 @@ Version 5.2.0rc1
 - Implement new "purge volume action" command to trigg ActionOnPurge.
 - Disable action_on_purge message in Storage
 - Change db_get_media_ids() to use more MEDIA_DBR info in search
-- Remove qmake-qt4 code so tht alternate qt4 build works. Fixes build problems 
+- Remove qmake-qt4 code so tht alternate qt4 build works. Fixes build problems
   in bug #1468
 - Make configure.in changes recommended by Markus Elfring
 - Patch from checks multple CNs when using TLS
@@ -2448,10 +2492,10 @@ Version 5.2.0rc1
 - Fix seg fault in SQlite driver
 
 29Jan10
-- - fixed the database/table scripts - db_user was missing - updated database 
-  schema - fixed missing statements in sql*.h - since there is a db_type for 
-  Ingres now, there have to be 5, not 4, members in the arrays - worked alot on 
-  myingres.c - queries seems to be working, but the first INSERT fails with a 
+- - fixed the database/table scripts - db_user was missing - updated database
+  schema - fixed missing statements in sql*.h - since there is a db_type for
+  Ingres now, there have to be 5, not 4, members in the arrays - worked alot on
+  myingres.c - queries seems to be working, but the first INSERT fails with a
   segfault
 - Remove old bdb files + change DQUEUE to use dlist
 - Change copyright date
@@ -2489,7 +2533,7 @@ Release version 5.0.3
 - Fix compilation problem with zlib
 
 02Aug10
-- Remove comments field from tls-duplicate-job-test -- add back next database 
+- Remove comments field from tls-duplicate-job-test -- add back next database
   upgrade
 
 01Aug10
@@ -2590,9 +2634,9 @@ Release version 5.0.3
 - Fix SD crash due to mismatched lock/unlock in error condition
 
 26Jun10
-- Fix bug #1587 if you have clients with different catalogs configured, both 
+- Fix bug #1587 if you have clients with different catalogs configured, both
   catalogs contains all clients after a reload or restart of the dir
-- Fix bug #1577 During migration: ERROR in block.c:950 Failed ASSERT: dev->is_open() 
+- Fix bug #1577 During migration: ERROR in block.c:950 Failed ASSERT: dev->is_open()
   by moving and commenting out the ASSERT()
 
 23Jun10
@@ -2627,7 +2671,7 @@ Release version 5.0.3
 18Jun10
 - Attempt to fix duplicate job kill seg fault
 - Replace pthread_kill by my_thread_send_signal() in jcr.c
-- fix #1595 about batch mode detection problem for postgresql with non standard 
+- fix #1595 about batch mode detection problem for postgresql with non standard
   install dir
 - Fix accurate code
 - Add TestName to gdb traceback
@@ -2767,18 +2811,18 @@ Release Version 5.0.2
 - Fix bug #1524 verify fails after adding or removing files
 - Fix bug 1523.
 - Apply fix suggested by Andreas in bug #1502 for mediaview column sort problem
-- Lets not generate the ingres code automatically when the .sc or .sh files 
-  changes as it seems these files get outdated on some systems and then this 
+- Lets not generate the ingres code automatically when the .sc or .sh files
+  changes as it seems these files get outdated on some systems and then this
   rule kicks in on systems that don't have the esqlcc ingres compiler installed.
 - Fix CentOS detection in regression get-os script
 
 05Mar10
 - Create subroutines to add exclusion for plugins
 - This adds sql debugging to these classes that Eric wrote.
-- This is a 1/2 fix of the issue. It allows for the sorting of the two non 
-  graphic columns, but still does not allow for sorting the graphic columns. 
-  The issue is with last. By setting the sort value, you are setting the value 
-  on the last. To experiment with what I mean, use the set background that I 
+- This is a 1/2 fix of the issue. It allows for the sorting of the two non
+  graphic columns, but still does not allow for sorting the graphic columns.
+  The issue is with last. By setting the sort value, you are setting the value
+  on the last. To experiment with what I mean, use the set background that I
   have commented out in this commit.
 
 03Mar10
@@ -2786,7 +2830,7 @@ Release Version 5.0.2
 - Display AllowCompress warning message only if compression used in FileSet
 
 01Mar10
-- Added comment on dbi backend needing a recent version of libdbi from CVS as 
+- Added comment on dbi backend needing a recent version of libdbi from CVS as
   the version currently released 0.8.3 wont work for compiling the code.
 - Add Warning check to SQL
 - Fix readline to use TERM_LIB found for conio
@@ -2878,7 +2922,7 @@ Release Version 4.0.1
 - Switch to AGPLv3
 
 22Jul10
-- Clear class buffer in operator new + add safe_free and correct some calls to 
+- Clear class buffer in operator new + add safe_free and correct some calls to
   use it
 - Really free free pool memory before sm_dump
 - Garbage collect memory pool at end of job and before sm_dump
@@ -2890,7 +2934,7 @@ Release Version 4.0.1
 - Add exclude code + fix a few orphaned buffers
 
 19Jul10
-- Fix malloc of wrong size causing buffer overrun on restore with Windows 
+- Fix malloc of wrong size causing buffer overrun on restore with Windows
   plugins
 - Fix free of unallocated buffer in win plugin code
 - Add debug info to smartall.c for buffer overrun
@@ -2970,7 +3014,7 @@ Release Version 4.0.0
 Release Version 4.0.0-RC3
 
 19Jun10
-- Move some AC_MSG_RESULT macros around so the configure output looks somewhat 
+- Move some AC_MSG_RESULT macros around so the configure output looks somewhat
   cleaner.
 - Save any dumps during regression to dumps directory
 - Fix crash from rw_lock/unlock miss match
@@ -2980,7 +3024,7 @@ Release Version 4.0.0-RC3
 
 18Jun10
 - Fix postgresql error in grant script
-- fix #1595 about batch mode detection problem for postgresql with non standard 
+- fix #1595 about batch mode detection problem for postgresql with non standard
   install dir
 - Fix accurate code
 
@@ -2997,7 +3041,7 @@ Release Version 4.0.0-RC3
 - Fix restore object compression flag -- James
 
 11Jun10
-- Add BDB_VERSION for scripts + prepare update 11 to 12 + automate BDB_VERSION 
+- Add BDB_VERSION for scripts + prepare update 11 to 12 + automate BDB_VERSION
   checking
 
 07Jun10
@@ -3024,7 +3068,7 @@ Release Version 4.0.0-RC3
 - Fix problem with BaseJob and Accurate FileSet options on client side
 
 12May10
-- Adjusted path handling to make 'where' work. 'where' is basically ignored. a 
+- Adjusted path handling to make 'where' work. 'where' is basically ignored. a
   'regexwhere' that affects plugin paths will probably still break things
 
 11May10
@@ -3034,15 +3078,15 @@ Release Version 4.0.0-RC3
 10May10
 - memory leak fixes
 - make tocharstring() report line and file correctly for sm_alloc
-- use free instead of delete to free memory allocated with wcsdup remove DOS 
+- use free instead of delete to free memory allocated with wcsdup remove DOS
   EOLs
 - Free some memory allocated in find_filespec
 - plugin: Use smartalloc in find_filespec
-- update find_filespec to allocate it's own memory and not retain any pointers 
+- update find_filespec to allocate it's own memory and not retain any pointers
   from the caller
 
 08May10
-- remove GUID from the writer 'directory' name. Rely on the name of the instance_{GUID} 
+- remove GUID from the writer 'directory' name. Rely on the name of the instance_{GUID}
   dummy file instead
 - add some deletes back in now that find_filespec does the expected
 - Clean some stale code and superfluous debugging output
@@ -3069,29 +3113,29 @@ Release Version 4.0.0-RC1
 - Fix xml_name in plugin
 
 03May10
-- Fix case order in vss_writer to resolve crash at the end of the writer 
+- Fix case order in vss_writer to resolve crash at the end of the writer
   backup
 - Fix segfault when loading Plugins
 
 01May10
 - Fix insertion of RestoreObject
 - Fix RestoreObject schema on PostgreSQL
-- Use lwps cmd in dbx and no threads as it seems to give some strange side 
-  effects e.g. doesn't work and lwps seems to always work. So lwps it is 
+- Use lwps cmd in dbx and no threads as it seems to give some strange side
+  effects e.g. doesn't work and lwps seems to always work. So lwps it is
   then.
-- Do some work on the btraceback on Solaris, we test to see what debugger is 
-  available and we prefer the debuggers in this order: dbx, gdb, mdb. Also 
-  enchanced the dbx bactrace somewhat that it always dumps all available 
-  threads (e.g. we also changed from lwp to threads for dbx). We also print 
-  some variables that the gdb script also dumps on a bactrace. Hopefully we get 
-  some better dumps using this. The mdb is used as a last resort as it should 
-  be always installed on a Solaris box (dbx and gdb may not) but at the moment 
-  I'm still trying to find out how to get some more understandable dumps from 
-  mdb as its rather rudimentary and more a crash debugger then a source code 
+- Do some work on the btraceback on Solaris, we test to see what debugger is
+  available and we prefer the debuggers in this order: dbx, gdb, mdb. Also
+  enchanced the dbx bactrace somewhat that it always dumps all available
+  threads (e.g. we also changed from lwp to threads for dbx). We also print
+  some variables that the gdb script also dumps on a bactrace. Hopefully we get
+  some better dumps using this. The mdb is used as a last resort as it should
+  be always installed on a Solaris box (dbx and gdb may not) but at the moment
+  I'm still trying to find out how to get some more understandable dumps from
+  mdb as its rather rudimentary and more a crash debugger then a source code
   debugger.
 - Remove RestoreObjects when pruning Jobs
 - Fix File and Job Retention in show pool command
-- Add Polish translation. This translation project is sponsored by Inteos Sp. z 
+- Add Polish translation. This translation project is sponsored by Inteos Sp. z
   o.o. based in Warsaw, PL.
 - Fix bug #1538 Start Scripts return incorrect value
 - Fix bug #1564 init scripts not LSB compliant
@@ -3145,7 +3189,7 @@ Release Version 4.0.0-RC1
 - Add File and Line info to rw_lock for lmgr
 
 27Mar10
-- Fix database locking calling db_lock and returning from function without 
+- Fix database locking calling db_lock and returning from function without
   calling db_unlock.
 
 26Mar10
@@ -3186,30 +3230,30 @@ Release Version 4.0.0-RC1
 - Fix bug #1524 verify fails after adding or removing files
 - Fix bug 1523.
 - Apply fix suggested by Andreas in bug #1502 for mediaview column sort problem
-- Lets not generate the ingres code automatically when the .sc or .sh files 
-  changes as it seems these files get outdated on some systems and then this 
+- Lets not generate the ingres code automatically when the .sc or .sh files
+  changes as it seems these files get outdated on some systems and then this
   rule kicks in on systems that don't have the esqlcc ingres compiler installed.
 - Fix CentOS detection in regression get-os script
 
 05Mar10
 - Create subroutines to add exclusion for plugins
 - This adds sql debugging to these classes that Eric wrote.
-- This is a 1/2 fix of the issue. It allows for the sorting of the two non 
-  graphic columns, but still does not allow for sorting the graphic columns. 
-  The issue is with last. By setting the sort value, you are setting the value 
-  on the last. To experiment with what I mean, use the set background that I 
+- This is a 1/2 fix of the issue. It allows for the sorting of the two non
+  graphic columns, but still does not allow for sorting the graphic columns.
+  The issue is with last. By setting the sort value, you are setting the value
+  on the last. To experiment with what I mean, use the set background that I
   have commented out in this commit.
 
 03Mar10
 - Fix configure.in
-- Lets generate ingres code by calling esqlcc and not esqlc as we want c++ 
-  code. Replaced some strncpy by bstrncpy calls. Add dependency in Makefile of 
+- Lets generate ingres code by calling esqlcc and not esqlc as we want c++
+  code. Replaced some strncpy by bstrncpy calls. Add dependency in Makefile of
   generated code on it source file.
 - Fix OpenSSL 1.x problem in crypto.c on Fedora 12
 - Display AllowCompress warning message only if compression used in FileSet
 
 01Mar10
-- Added comment on dbi backend needing a recent version of libdbi from CVS as 
+- Added comment on dbi backend needing a recent version of libdbi from CVS as
   the version currently released 0.8.3 wont work for compiling the code.
 - Add Warning check to SQL
 - Fix readline to use TERM_LIB found for conio
@@ -3241,22 +3285,22 @@ Release Version 4.0.0-RC1
 - Replace MIN by code as recommended by Marco to avoid compiler warning
 - Make script more portable
 - Add Fedora 11 and 12 build tags.
-- Lets close the Ingres cursor otherwise the code complains the cursor is still 
+- Lets close the Ingres cursor otherwise the code complains the cursor is still
   open when we try to reuse it.
-- Fix segv when indicator field is null. Also added some extra checks around 
+- Fix segv when indicator field is null. Also added some extra checks around
   free calls so we don't try to free null pointers.
-- Changed strcpy to bstrncpy and sprintf to bsnprintf and changed the bsnprintf 
+- Changed strcpy to bstrncpy and sprintf to bsnprintf and changed the bsnprintf
   format.
 - Small indent changes
 
 20Feb10
-- Sync between master and this branch as some ingres changes did go into master 
+- Sync between master and this branch as some ingres changes did go into master
   but not into this branch.
-- Remove include file that makes the compile complain and doesn't seem to be 
+- Remove include file that makes the compile complain and doesn't seem to be
   used as removing makes the code compile ok.
 - Some small indent changes.
 - Reindented myingres.sc to Bacula "style" and regenerated myingres.c
-- Merged in rejects from previous patch and regenerated new myingres.c from 
+- Merged in rejects from previous patch and regenerated new myingres.c from
   myingres.sc using esqlc. Changed sprintf into snprintf.
 - Added patch from Stefan Reddig -- fixed date types, errmsg
 - Added patch from Stefan Reddig -- improved ingres db test
@@ -3269,8 +3313,8 @@ Release Version 4.0.0-RC1
 - Remove mysql version variable.
 - Enable readline support.
 - bug report 1505
-- This version fixes an issue where the console window would start out not 
-  docked. It is fixed by initiating the variables in the Pages class with a 
+- This version fixes an issue where the console window would start out not
+  docked. It is fixed by initiating the variables in the Pages class with a
   constructor.
 
 19Feb10
@@ -3284,22 +3328,22 @@ Release Version 4.0.0-RC1
 - Replace MIN by code as recommended by Marco to avoid compiler warning
 - Make script more portable
 - Add Fedora 11 and 12 build tags.
-- Lets close the Ingres cursor otherwise the code complains the cursor is still 
+- Lets close the Ingres cursor otherwise the code complains the cursor is still
   open when we try to reuse it.
-- Fix segv when indicator field is null. Also added some extra checks around 
+- Fix segv when indicator field is null. Also added some extra checks around
   free calls so we don't try to free null pointers.
-- Changed strcpy to bstrncpy and sprintf to bsnprintf and changed the bsnprintf 
+- Changed strcpy to bstrncpy and sprintf to bsnprintf and changed the bsnprintf
   format.
 - Small indent changes
 
 20Feb10
-- Sync between master and this branch as some ingres changes did go into master 
+- Sync between master and this branch as some ingres changes did go into master
   but not into this branch.
-- Remove include file that makes the compile complain and doesn't seem to be 
+- Remove include file that makes the compile complain and doesn't seem to be
   used as removing makes the code compile ok.
 - Some small indent changes.
 - Reindented myingres.sc to Bacula "style" and regenerated myingres.c
-- Merged in rejects from previous patch and regenerated new myingres.c from 
+- Merged in rejects from previous patch and regenerated new myingres.c from
   myingres.sc using esqlc. Changed sprintf into snprintf.
 - Added patch from Stefan Reddig -- fixed date types, errmsg
 - Added patch from Stefan Reddig -- improved ingres db test
@@ -3312,8 +3356,8 @@ Release Version 4.0.0-RC1
 - Remove mysql version variable.
 - Enable readline support.
 - bug report 1505
-- This version fixes an issue where the console window would start out not 
-  docked. It is fixed by initiating the variables in the Pages class with a 
+- This version fixes an issue where the console window would start out not
+  docked. It is fixed by initiating the variables in the Pages class with a
   constructor.
 
 19Feb10
@@ -3779,7 +3823,7 @@ Release Version 5.0.0
 - update
 
 09Nov09
-- Optimize SQL to determine file selection with directories. It is enabled for 
+- Optimize SQL to determine file selection with directories. It is enabled for
   ascii path.
 
 07Nov09
@@ -3840,7 +3884,7 @@ Release Version 5.0.0
 - update bat on win32 project file
 
 27Oct09
-- Small fix to Eric great patch for readline commandcompletion so it also 
+- Small fix to Eric great patch for readline commandcompletion so it also
   compiles on non gcc compilers.
 - Add readline completion for commands and argument
 
@@ -3874,7 +3918,7 @@ Release Version 5.0.0
 - Disallow Qmsg when despooling
 - Fix Qmsg race condition reported by Eric
 - add test for bad messages ressource
-- bat: Display a nice graphic on media usage depending on the average size for 
+- bat: Display a nice graphic on media usage depending on the average size for
   this mediatype.
 
 22Oct09
@@ -3887,12 +3931,12 @@ Release Version 5.0.0
 - Make new configure per Marco's request
 - bat: add new Expired button in MediaView
 - fix vtape test
-- Redirect errors to /dev/null and only run uname -p on Linux where we know it 
+- Redirect errors to /dev/null and only run uname -p on Linux where we know it
   works. This is probably the most portable way of doing things.
 
 20Oct09
-- Add MediaView form that displays the Media list in a QTableWidget. It permits 
-  to search and sort media. Rename current "Media" tab to "Pool" as it displays 
+- Add MediaView form that displays the Media list in a QTableWidget. It permits
+  to search and sort media. Rename current "Media" tab to "Pool" as it displays
   Pools
 - Permit to use MediaId or VolumeName in MediaEdit panel
 - add StringList to handle locations, volstatus and mediatypes
@@ -3911,7 +3955,7 @@ Release Version 5.0.0
 18Oct09
 - update fr.po
 - Added acl and xattr regression tests for FreeBSD
-- Use getfattr and setfattr on Linux not attr as that is a XFS tool which works 
+- Use getfattr and setfattr on Linux not attr as that is a XFS tool which works
   too but is not native.
 - Don't enable SUN compiler by default and make the configdir configurable.
 - Add test when ActionOnPurge=None Add test for update volume=xxx actiononpurge=yyy
@@ -3921,7 +3965,7 @@ Release Version 5.0.0
 - update regress
 
 17Oct09
-- Ensure that Ubuntu /var/run is created in init.d scripts suggested by nick 
+- Ensure that Ubuntu /var/run is created in init.d scripts suggested by nick
   <nick@fisk.me.uk>
 - Implement Dan's suggestion to avoid IPv6 problems
 - Add makeall for release
@@ -3936,7 +3980,7 @@ Release Version 5.0.0
 - Add Marco's run regression wrapper script
 - Possible fix for problem with Volume in another drive
 - Make new configure from Marco's configure.in
-- Try to unmount by running the unmount command specified in the config on file 
+- Try to unmount by running the unmount command specified in the config on file
   and dvd devices.
 - Fix switching read device reported by Nicolae Mihalache <mache@abcpages.com>
 
@@ -3947,7 +3991,7 @@ Release Version 5.0.0
 - Add comments to fileregexp test
 - Add more debug in filregexp test
 - Eliminate compiler warning
-- Fix bug #1391 Job status improperly set due to subtle variable overload 
+- Fix bug #1391 Job status improperly set due to subtle variable overload
   problem
 
 14Oct09
@@ -3962,7 +4006,7 @@ Release Version 5.0.0
 - Fix #1352 about double free with regexp and big filenames on windows
 
 11Oct09
-- Small update to cache the current attrspace we are saving and make a private 
+- Small update to cache the current attrspace we are saving and make a private
   copy of that string representation.
 - Change acl and xattr errors from Qmsg to Jmsg
 - Add comment
@@ -3983,29 +4027,29 @@ Release Version 5.0.0
 - fix bash/sh problem in disk-changer.in
 - Fix some comments
 - remove old db_get_int_handler()
-- Add support when extattr_get_file is supported but extattr_get_link is 
+- Add support when extattr_get_file is supported but extattr_get_link is
   not.
 - Regenerated config.h.in
 
 08Oct09
-- Implement transfer and listall command in mtx-changer and disk-changer 
+- Implement transfer and listall command in mtx-changer and disk-changer
   scripts
 - Add new autochanger command to get all information about content
 
 07Oct09
-- As things are no longer as generic rename the generic to the linux interface 
+- As things are no longer as generic rename the generic to the linux interface
   (b.t.w. OSX also implements this interface)
-- Just as with serializing first unserialize all xattr structures in memory and 
+- Just as with serializing first unserialize all xattr structures in memory and
   then walk that list for restoring them.
 - delete the alist in the destroy function
-- Implement the extattr xBSD interface Moved some code around to be able to 
-  reuse the encoding and decoding for both the extattr and xattr interface Use 
-  an alist for storing the xattr list so we don't have to count the number of 
+- Implement the extattr xBSD interface Moved some code around to be able to
+  reuse the encoding and decoding for both the extattr and xattr interface Use
+  an alist for storing the xattr list so we don't have to count the number of
   xattr first
-- Use extattr interface for all xBSD filesystems. Added OpenBSD also to the 
+- Use extattr interface for all xBSD filesystems. Added OpenBSD also to the
   mix.
-- As it seems FreeBSD doesn't have the llistxattr or listxattr interface as 
-  Linux, OSX and NetBSD have but has an interface named extattr. This is a 
+- As it seems FreeBSD doesn't have the llistxattr or listxattr interface as
+  Linux, OSX and NetBSD have but has an interface named extattr. This is a
   first breakdown to implement that interface.
 
 05Oct09
@@ -4040,7 +4084,7 @@ Release Version 5.0.0
 - Implement console 'timeout' feature using bacula socket timers
 - revert the update_bacula_table script change with bad indexes
 - Add index modification in update_sqlite/sqlite3/postgresql scripts
-- Remove the inx4 index for SQLite2/3 (FilenameId, PathId) on File table. 
+- Remove the inx4 index for SQLite2/3 (FilenameId, PathId) on File table.
   Replace it by an index over (JobId, PathId, FilenameId).
 
 28Sep09
@@ -4063,9 +4107,9 @@ Release Version 5.0.0
 - Fix Alpha ifdefing -- should fix bug #1359
 
 22Sep09
-- Remove the file_fp_idx index for Postgresql (FilenameId, PathId) on File 
-  table. It is useless for common usage, and causes performance issues. This 
-  index fragments over the time and the update cost grows very quickly. (This 
+- Remove the file_fp_idx index for Postgresql (FilenameId, PathId) on File
+  table. It is useless for common usage, and causes performance issues. This
+  index fragments over the time and the update cost grows very quickly. (This
   index is not present on Mysql schema)
 
 21Sep09
@@ -4140,14 +4184,14 @@ Release Version 5.0.0
 09Sep09
 - Keep valgrind happy
 - Fix Exclude Dir Containing ignored when scanning the top_level dir
-- Update the new exclude-dir-test with multiple Include {} section and different 
+- Update the new exclude-dir-test with multiple Include {} section and different
   Exclude Dir Contain directive.
 - Add patch for #1370
-- Fix #1370 about the implementation of the "Exclude Dir Containing" option on 
+- Fix #1370 about the implementation of the "Exclude Dir Containing" option on
   FD.
 - Add new exclude-dir-test
 - Add patch for 3.0.2 release
-- Fix #1369 about segfault when using ExcludeDirContaining before defining 
+- Fix #1369 about segfault when using ExcludeDirContaining before defining
   Options{} block.
 - Verify if the Exclude Dir Containing directive does his job
 - Add a regress script for Exclude Dir Containing option
@@ -4160,15 +4204,15 @@ Release Version 5.0.0
 
 07Sep09
 - fix compilation warning
-- Make output of new commands .lsdir/.lsfile more usable. Fix Bvfs with new 
+- Make output of new commands .lsdir/.lsfile more usable. Fix Bvfs with new
   db_list object
 - Fix header defines
-- Remove some #ifdef-ed code and make it just as the acl and xattr code use a 
+- Remove some #ifdef-ed code and make it just as the acl and xattr code use a
   const bool to enable the code.
 - Redone comments
-- Move restore struct defintions to seperate include file. Small change to 
+- Move restore struct defintions to seperate include file. Small change to
   acl.h and xattr.h to use define inline with other header files.
-- Move finderinfo restore into seperate function so we can use cleaner coding 
+- Move finderinfo restore into seperate function so we can use cleaner coding
   in the restore loop.
 - Loose #ifdef and use const bool wrapper for some cleaner coding.
 - Added support for acl and xattr regression test on Solaris
@@ -4195,7 +4239,7 @@ Release Version 5.0.0
 03Sep09
 - btape: Add speed command
 - btape: Add speed information on qfill and raw command
-- Commit patch for: Fix bug #1355 Director crashes with double free in Accurate 
+- Commit patch for: Fix bug #1355 Director crashes with double free in Accurate
   SQL query
 - Include file,blk in btape fill output
 - Create exit_code for fill with multiple tapes
@@ -4211,7 +4255,7 @@ Release Version 5.0.0
 - Attempt to fix SQLite3 seg fault in list routines
 - Merge master with SF
 - Update tape tests for hardware certification
-- Rename .lsdirs/.lsfiles/.update to .bvfs_xxx to avoid confusion with future 
+- Rename .lsdirs/.lsfiles/.update to .bvfs_xxx to avoid confusion with future
   commands
 - Update tape tests for hardware certification
 - Eliminate xattr.c compiler warning
@@ -4219,9 +4263,9 @@ Release Version 5.0.0
 31Aug09
 - Prohibit copy and assignment in db_list_ctx
 - Use new db_list_ctx class instead of bad POOLMEM*
-- Exclude OSX resource forks from saving using the xattr code Exclude OSX acl 
-  data from saving using the xattr code when normal acl mode is also enabled. 
-  Make excluding certain xattr in the generic functions somewhat easier for 
+- Exclude OSX resource forks from saving using the xattr code Exclude OSX acl
+  data from saving using the xattr code when normal acl mode is also enabled.
+  Make excluding certain xattr in the generic functions somewhat easier for
   certain OS specific attributes.
 - Fix Win32/64 build
 
@@ -4254,12 +4298,12 @@ Release Version 5.0.0
 - Test of git commit.
 - bat: fix variable name
 - bat: Simplify the code to make TableWidget in read-only
-- Free Volume in several places. Fixes virtual-changer problem and possibly bug 
+- Free Volume in several places. Fixes virtual-changer problem and possibly bug
   #1346.
 - Add SD Volume debug code
 
 22Aug09
-- Don't print different filesystem. Will not descend message if directory 
+- Don't print different filesystem. Will not descend message if directory
   explicitly excluded
 - capitalize bytes in message
 
@@ -4275,57 +4319,57 @@ Release Version 5.0.0
 - in status slots command, unlock db just after sql query
 
 19Aug09
-- Add BWEBCONF env variable to specify the bweb.conf path without touching the 
+- Add BWEBCONF env variable to specify the bweb.conf path without touching the
   Bweb.pm file with lighttpd
 - Fix bat crash due to alignment diff in bat and core code
 - Fix acl-xattr-test by using attr
-- Add BWEBCONF env variable to specify the bweb.conf path without touching the 
+- Add BWEBCONF env variable to specify the bweb.conf path without touching the
   Bweb.pm file with lighttpd
 - Ensure that timestamp put in SQL log
 
 15Aug09
-- prevent status page from requesting status before it has been brought to the 
+- prevent status page from requesting status before it has been brought to the
   front
 - Move global acquire lock to lock by device
 - Restrict acquire to one job at a time
 - Fix acquire.c locking
 - Try to fix acquire not to block during despooling
 - Add fullname parameter to btime in order to debug regress script.
-- No need to flush the members of the xattr link cache as they are not dynamically 
+- No need to flush the members of the xattr link cache as they are not dynamically
   created. Small oversight from my side, was thinking I had a memory leak.
 - fix couple of segfault in acl/xattr code
 - Eliminate git pull in config_dart
-- Some small fixes to the counting and some small relayout of small code 
+- Some small fixes to the counting and some small relayout of small code
   sniplets.
-- Lets first output statistics before freeing them. Saves a rather stupid 
+- Lets first output statistics before freeing them. Saves a rather stupid
   segmentation fault.
 - Fix merge conflict leftover
-- Add all acl and xattr related variables which are either global or already 
-  part of the JCR into a simple structure and reference that from the JCR 
+- Add all acl and xattr related variables which are either global or already
+  part of the JCR into a simple structure and reference that from the JCR
   structure.
 
 14Aug09
-- Some small fixes to the counting and some small relayout of small code 
+- Some small fixes to the counting and some small relayout of small code
   sniplets.
-- Lets first output statistics before freeing them. Saves a rather stupid 
+- Lets first output statistics before freeing them. Saves a rather stupid
   segmentation fault.
 - Ignore regress time.out file
 - Fix merge conflict leftover
-- Add all acl and xattr related variables which are either global or already 
-  part of the JCR into a simple structure and reference that from the JCR 
+- Add all acl and xattr related variables which are either global or already
+  part of the JCR into a simple structure and reference that from the JCR
   structure.
 - fix compilation problem reported by Dan
 - Correct spelling of writing -- reported by Dan
-- Loose void pointer and use C++ supported declaration elsewhere defined 
+- Loose void pointer and use C++ supported declaration elsewhere defined
   structure.
-- Move global variables into jcr private xattr data structure so we can have 
+- Move global variables into jcr private xattr data structure so we can have
   parallel saves of xattr on solaris.
 
 13Aug09
 - update lock manager to get better traces
 - Fix files wiped out by merge
 - Missed commiting one file last time
-- bat: Add a re-run button on job info page, that allows to run the selected 
+- bat: Add a re-run button on job info page, that allows to run the selected
   job with the same properties (level, pool, etc...)
 - bat: small fix on hrule
 - fix missing copyright
@@ -4337,13 +4381,13 @@ Release Version 5.0.0
 - Add .lsfiles, .lsdirs, .update command to interface user with bvfs object
 - More comments
 - Update virtual regress comments
-- bat: fix sql with volreadtime volwritetime bat: add drive=0 in update slots 
+- bat: fix sql with volreadtime volwritetime bat: add drive=0 in update slots
   command
-- bat: Put the content panel as a child of the Storage item bat: use slot 
+- bat: Put the content panel as a child of the Storage item bat: use slot
   selection in update slots command and in label command
 
 11Aug09
-- bat: fix volreadtime/volwritetime and messages in stderr about unknown 
+- bat: fix volreadtime/volwritetime and messages in stderr about unknown
   slots
 - Change backup-acl to acl-xattr-test and make it skip if acl/xattr not installed
 - Use tmp instead of /tmp + fix strip-test so diff works
@@ -4375,33 +4419,32 @@ Release Version 5.0.0
 - Small change to comments
 - Added comment on entry points
 - Added missing ENOENT switch case.
-- Fix problem with counting xattr and returning a non-ok on count 0, also added 
-  some extra comment and make sure the xattr_value_list is initialized to NULL 
+- Fix problem with counting xattr and returning a non-ok on count 0, also added
+  some extra comment and make sure the xattr_value_list is initialized to NULL
   and checked on bail_out.
 - Loose default_stream parameter.
 - Changed snprintf to bsnprintf
 - Use bstrncpy instead of strncpy
 - Fixed Jmsg4 to Mmsg4
-- Added support for counting xattr errors and only print a limited set of 
-  errors but count all. The lower level functions now store there error message 
+- Added support for counting xattr errors and only print a limited set of
+  errors but count all. The lower level functions now store there error message
   in jcr->errmsg so the upper level routines have access to them.
-- Added support for counting acl errors and only print a limited set of errors 
-  but count all. The lower level functions now store there error message in 
+- Added support for counting acl errors and only print a limited set of errors
+  but count all. The lower level functions now store there error message in
   jcr->errmsg so the upper level routines have access to them.
 - Small changes to ifdef layout.
 - Drop unneeded target for libbacfind.a
-- Moved the berrno as a local variable of the function and not a local context 
+- Moved the berrno as a local variable of the function and not a local context
   variable. Same as previous change for acl.c
-- Make sure it compiles and moved the berrno as a local variable of the function 
+- Make sure it compiles and moved the berrno as a local variable of the function
   and not a local context variable. Moved tri-state enum to protos.h
-- Moved list of supported xattr to start of per OS implementation like in 
+- Moved list of supported xattr to start of per OS implementation like in
   acl.c
 - Imported patch from older git tree.
 - bat: init storage content view
 
 08Aug09
 - Fix cats.h date
-- Start adding Incomplete Job status
 - bat: display a Warning symbole when having Errors>0 and Status=T
 - Add data end tracking an attribute spooling
 - Fix compiler warning in bvfs code
@@ -4410,8 +4453,8 @@ Release Version 5.0.0
 - Ignore src/tools/bvfs_test
 
 07Aug09
-- bvfs: Add example to list files versions bvfs: Fix directory listing bvfs: 
-  Add limit/offset implementation to save resources on director bvfs: Create 
+- bvfs: Add example to list files versions bvfs: Fix directory listing bvfs:
+  Add limit/offset implementation to save resources on director bvfs: Create
   cache tables on the fly when using Bvfs object (for testing)
 - Bvfs: Create cache tables when updating the cache if they don't exist
 
@@ -4421,7 +4464,7 @@ Release Version 5.0.0
 - add user handler to print directory add -j, -p to bvfs_test tool
 - Document FT_DELETED FileIndex=0 special value in database Schema
 - Add the rest of files for new Bvfs
-- Add a new Bvfs class that implements brestore instant navigation cache inside 
+- Add a new Bvfs class that implements brestore instant navigation cache inside
   Bacula. Works for Mysql, Postgresql and Sqlite3
 - bat: fix compiler warning for unreferenced argument
 - fix mysql case problem in bweb/bresto
@@ -4440,7 +4483,7 @@ Release Version 5.0.0
 - Apply patch for regress from Frank Sweester
 - connect button from mediainfo to real actions
 - bat fill mediainfo fields
-- bat: Go to the media info panel when double-click on job page or media 
+- bat: Go to the media info panel when double-click on job page or media
   list
 
 03Aug09
@@ -4533,7 +4576,7 @@ Release Version 5.0.0
 - Remove docs from spec
 - Split docs into bacula-docs.spec
 - Move bat and mtx to their own spec files
-- found a bug. Joblist page would not come up unless dockPage was called when 
+- found a bug. Joblist page would not come up unless dockPage was called when
   page was opened with initial paramaters.
 
 01Aug09
@@ -4551,7 +4594,7 @@ Release Version 5.0.0
 31Jul09
 - Split docs out of bacula.spec
 - Insert the tabbed widgets as opposed to adding to the end.
-- Don't dock the page for dirstat and restore tree until the page selector tree 
+- Don't dock the page for dirstat and restore tree until the page selector tree
   widget is clicked.
 - I like this sorting method better.
 - Update bacula.spec
@@ -4598,7 +4641,7 @@ Release Version 5.0.0
 - Attempt to fix SQLite seg fault problem
 - Fix Expired option in media list to select Used media
 - Set selection items on top.
-- this should resolve issues that people are having with this splitter. If you 
+- this should resolve issues that people are having with this splitter. If you
   try to make it too large, it just snaps back.
 
 23Jul09
@@ -4614,7 +4657,7 @@ Release Version 5.0.0
 - Modify setJobStatus so cancel has same priority as fatal errors
 - Fix Solaris compiler warning in signal.c
 - Change selection behavior in the director status screen.
-- Do not restore spliiter settings if the settings do not contain settings for 
+- Do not restore spliiter settings if the settings do not contain settings for
   that splitter.
 - This is committing most of the patch received from Eric.
 
@@ -4627,7 +4670,7 @@ Release Version 5.0.0
 - es.po merged with bacula.pot 3.0.2
 
 19Jul09
-- This is the change that may be used in the future to resolve the issue with 
+- This is the change that may be used in the future to resolve the issue with
   text input required during a console communication.
 - Final changes
 - Add es lingua
@@ -4653,7 +4696,7 @@ Release Version 5.0.0
 
 16Jul09
 - Remove print and save menu
-- Simplify the main screen, removing the status dir console icon and the "go 
+- Simplify the main screen, removing the status dir console icon and the "go
   back" one
 - fix spell
 - fix case problem in field name
@@ -4670,11 +4713,11 @@ Release Version 5.0.0
 - Fix #1323 about a problem when mounting a requested volume during a restore.
 - Use the read as primary color in bweb
 - Fix script for vtape tests
-- Fix graph_font parameter to work with graph module Avoid warning messages in 
+- Fix graph_font parameter to work with graph module Avoid warning messages in
   apache log with graph module
 - Update
 - update INSTALL file
-- update apache section in INSTALL file and try to choose better color for 
+- update apache section in INSTALL file and try to choose better color for
   graphs.
 - Fix Spanish files translated
 
@@ -4684,7 +4727,7 @@ Release Version 5.0.0
 - Make CONF::init header and .c file agree about types
 - update
 - update cloud project
-- Force the client_encoding to SQL_ASCII when database is already using this 
+- Force the client_encoding to SQL_ASCII when database is already using this
   mode.
 - Fix #1335 about postgresql error message during copy session
 - Add documentation about new restore menu
@@ -4721,7 +4764,7 @@ Release Version 5.0.0
 09Jul09
 - More changes in es.po (37%)
 - add --with-hostname to ./configure
-- Changed ACL_OTHER into ACL_OTHER_OBJ as IRIX doesn't seem to have ACL_OTHER. 
+- Changed ACL_OTHER into ACL_OTHER_OBJ as IRIX doesn't seem to have ACL_OTHER.
   Fixes bug #1333
 
 06Jul09
@@ -4739,14 +4782,14 @@ Release Version 5.0.0
 
 03Jul09
 - Correct registered trademark notice
-- Should fix the first part #1323 about the restore option "List Jobs where a 
+- Should fix the first part #1323 about the restore option "List Jobs where a
   given File is saved" wich display deleted files
 
 02Jul09
 - Add estimate accurate doc
 - add accurate=yes/no test for estimate
 - Update help page with accurate=yes/no
-- Add estimate accurate=yes/no ebl Change the code to check jcr->accurate and 
+- Add estimate accurate=yes/no ebl Change the code to check jcr->accurate and
   not jcr->job->accurate
 - Add estimate test
 - Make estimate command accurate compatible. Should fix #1318
@@ -4781,17 +4824,17 @@ Release Version 5.0.0
 - Added symbols required for win32 build
 
 25Jun09
-- Modify xattr.c and acl.c not to fail the job on errors. This should fix bug 
+- Modify xattr.c and acl.c not to fail the job on errors. This should fix bug
   #1305.
 
 23Jun09
-- Fix 2 rather big bugs in the xattr and acl code and fix a small memory leak 
+- Fix 2 rather big bugs in the xattr and acl code and fix a small memory leak
   on a particular code path for Linux xattr/acl handling.
 - update newfeature with project 37
 - Update FileSetId when initializing job.
 - fix compilation problem
 - add a note about /sys/class/scsi_tape/nst0/default_compression, fix #1314
-- Add '*' when volume is online when displaying volume list in restore. Should 
+- Add '*' when volume is online when displaying volume list in restore. Should
   complete project 31.
 
 21Jun09
@@ -4802,12 +4845,12 @@ Release Version 5.0.0
 - Fix bat install for 3.x
 
 19Jun09
-- Add a boolean to console class to allow for the warning popup, except in 
-  cases where I want to prevent the popup. So far this is only for purging 
+- Add a boolean to console class to allow for the warning popup, except in
+  cases where I want to prevent the popup. So far this is only for purging
   jobs.
 - Correct a misspelling in a relatively trivial spot.
-- Add job type and first volume of the job to the 4th pane the version table. 
-  This is so that when looking at what version to restore with copy jobs the 
+- Add job type and first volume of the job to the 4th pane the version table.
+  This is so that when looking at what version to restore with copy jobs the
   user can make a better decision as to which job to restore from
 
 18Jun09
@@ -4833,20 +4876,20 @@ Release Version 5.0.0
 - Add a previous page button to the button bar.
 
 13Jun09
-- Add feature in pages to have a console command that does not set the console 
+- Add feature in pages to have a console command that does not set the console
   current. Then also use that feature in joblist to purge or delete a job.
-- Add a stringlist and a foreach after populating to at least acknowledge to 
-  the user that a new fileset. Bat would not show the fileset until the database 
+- Add a stringlist and a foreach after populating to at least acknowledge to
+  the user that a new fileset. Bat would not show the fileset until the database
   table had the fileset which was not until used.
 
 12Jun09
 - Remove non-portable code referencing pthread_t fixes bug #1308.
 - Remove non-portable code referencing pthread_t
-- Create patch that may fix bug #1298 and bug #1304, which causes an SD crash 
+- Create patch that may fix bug #1298 and bug #1304, which causes an SD crash
   after canceling a job.
 
 11Jun09
-- When looking at what got backed up from a windows differential, found a bug 
+- When looking at what got backed up from a windows differential, found a bug
   where it would create many "Bases". This fixes it subtly.
 
 09Jun09
@@ -4857,7 +4900,7 @@ Release Version 5.0.0
 - Commit migrate patch for bug #1303
 
 05Jun09
-- Improve error messages when a migration sql query is used and correct the 
+- Improve error messages when a migration sql query is used and correct the
   problem identified in bug #1303 with starting Job names containing spaces.
 - Fix #1306 when building static bconsole
 
@@ -4870,11 +4913,11 @@ Release Version 5.0.0
 - update
 
 01Jun09
-- Setting actions up like this I think is better. No restore from job or time 
+- Setting actions up like this I think is better. No restore from job or time
   if more than one job selected.
-- Add columns for first media and volume count. Change some semantics of how 
+- Add columns for first media and volume count. Change some semantics of how
   signals execute functions when a selection list is changed.
-- Prevent warnings from showing as dialog boxes that can interupt multiple 
+- Prevent warnings from showing as dialog boxes that can interupt multiple
   operations performed in a foreach.
 
 31May09
@@ -4882,7 +4925,7 @@ Release Version 5.0.0
 
 30May09
 - A fix for mysql database sql syntax.
-- Add columns to the tree to show read/write time, scratch pool, recycle 
+- Add columns to the tree to show read/write time, scratch pool, recycle
   count.
 - Somehow I was losing the refresh jobs action. This should keep it in.
 
@@ -4892,26 +4935,26 @@ Release Version 5.0.0
 
 28May09
 - Correct incorrect placement of trap for m_firstpopulated.
-- There was an issue with empty directories. The director would print node xxx 
-  has no children and bat would interpret that as a directory. This fixes it 
+- There was an issue with empty directories. The director would print node xxx
+  has no children and bat would interpret that as a directory. This fixes it
   but it may not be the best solution.
 - update
 
 27May09
-- Make sure that vtape directory is created during -tape tests ebl change grep 
+- Make sure that vtape directory is created during -tape tests ebl change grep
   -e to grep -E to make source-addr-test working as expected
 - Simplify mysql bresto part. Should be faster, but need tests
 
 26May09
 - On vacation I am having a little fun !!
 - Add documentation for new directives DirSourceAddress and FDSourceAddress
-- Apply Steve Polyack patch to add DirSourceAddress and FDSourceAddress directives. 
+- Apply Steve Polyack patch to add DirSourceAddress and FDSourceAddress directives.
   That permits to choose the outgoing interface.
 - make fileregexp-test working with git repository
 
 25May09
-- Apply Marco's patch: mvw Allow acl and xattr to be explicitly enabled and 
-  fail the configure if we are asked to enable acl or xattr support and the OS 
+- Apply Marco's patch: mvw Allow acl and xattr to be explicitly enabled and
+  fail the configure if we are asked to enable acl or xattr support and the OS
   doesn't support acls or xattrs.
 - Add more Spanish site modifications
 
@@ -4923,7 +4966,7 @@ Release Version 5.0.0
 - Disable scratchpool-pool-test because it hangs
 - Rework printed message when files are purged on restore
 - Turn off useless End of file message during restore.
-- When doing a tree selection restore, look at the PurgedFiles column in the 
+- When doing a tree selection restore, look at the PurgedFiles column in the
   first JobId, and if non-zero, the Job was purged, so do not do selection
 - Yet another try to get qmake to install bat correctly
 
@@ -4932,7 +4975,7 @@ Release Version 5.0.0
 
 20May09
 - Add Spanish directory
-- Fix race in director job start which was allowing the number of concurrent 
+- Fix race in director job start which was allowing the number of concurrent
   jobs to exceed the maximum
 
 19May09
@@ -4942,14 +4985,14 @@ Release Version 5.0.0
 - update
 - Fix #1029 about resolution address order. Thanks to David.
 - Add patch for #1029
-- During jcr destruction hold jcr_chaing lock only for minimum time necessary. 
+- During jcr destruction hold jcr_chaing lock only for minimum time necessary.
   This should fix the SD deadlock in bug #1287.
-- Simplify messages printed by SD when reserve fails. This should fix bug 
+- Simplify messages printed by SD when reserve fails. This should fix bug
   #1285
 - Add sleep in vtape changer to simulate real hardware
 
 17May09
-- speed up mysql to compute restore table ebl speed up mysql when computing 
+- speed up mysql to compute restore table ebl speed up mysql when computing
   media list ebl fix media list display ebl fix bresto problem with drag&drop
 
 16May09
@@ -4960,20 +5003,20 @@ Release Version 5.0.0
 - Back out unwanted change. Should fix problem reported by Yuri
 - add index on temporary table to speed up mysql part during restore
 - Fix display of / on bfileview
-- Yet another attempt to get qmake to generate valid Makefiles that installs 
+- Yet another attempt to get qmake to generate valid Makefiles that installs
   the binaries. It seems to require the binary to exist at qmake time
-- Apply fix to sql_cmds.c suggested by Ulrich Leodolter <ulrich.leodolter at 
+- Apply fix to sql_cmds.c suggested by Ulrich Leodolter <ulrich.leodolter at
   obvsg.at> which prevents restore by file selection from using Copy jobs.
 - fix drag&drop
 
 14May09
-- Add new nagios_plugin_check_bacula.tgz from Masopust, Christian <christian.masopust 
+- Add new nagios_plugin_check_bacula.tgz from Masopust, Christian <christian.masopust
   at siemens.com>
-- Reduce bconsole help to fit in 80 columns kes Add bconsole @help command kes 
+- Reduce bconsole help to fit in 80 columns kes Add bconsole @help command kes
   Fix Show FileSet command to handle spaces
 - Allow specification of base daemon resource name. --with-basename=<name>
 - Fix bat to automatically use installed bat.conf
-- bat not installed even if configured. Fix by working around apparent bug in 
+- bat not installed even if configured. Fix by working around apparent bug in
   qmake
 
 13May09
@@ -5002,7 +5045,7 @@ Release Version 5.0.0
 - small fix
 
 05May09
-- ebl Make working the "compute with directories" option --This line, and those 
+- ebl Make working the "compute with directories" option --This line, and those
   below, will be ignored--
 
 04May09
@@ -5022,13 +5065,13 @@ Release Version 5.0.0
 - Update
 - update
 - Only define winapi's for 32 bit build. Already defined for 64 bit apparently...
-- Change GetComputerName to GetComputerNameEx so that in a cluster we get the 
-  name of the vserver instead of the local machine. Added prototypes for 
+- Change GetComputerName to GetComputerNameEx so that in a cluster we get the
+  name of the vserver instead of the local machine. Added prototypes for
   GetComputerNameEx which appear to be missing.
 
 02May09
 - 3.0.1
-- Don't run backup at same time as restore to avoid deadlock in concurrent 
+- Don't run backup at same time as restore to avoid deadlock in concurrent
   test
 
 01May09
@@ -5046,9 +5089,9 @@ Release Version 5.0.0
 - Add bypool option
 - add bypool option
 - Fix error message
-- Fix bug #1282 Setting job.Priority in python crashes director by checking if 
+- Fix bug #1282 Setting job.Priority in python crashes director by checking if
   string addr is NULL. Not tested.
-- Fix bug #1281 allow all on restore command line to restore pruned JobIds 
+- Fix bug #1281 allow all on restore command line to restore pruned JobIds
   without prompting.
 - Add vectorized bat image
 
@@ -5056,14 +5099,14 @@ Release Version 5.0.0
 - Check for job_canceled() in fd_plugin code
 - Update Win32/64 table creation to have new DB version 11 format
 - Remove illegal Options in Exclude of default Win32/64 bacula-dir.conf
-- This is the fix to http://bugs.bacula.org/view.php?id=1276. The select class 
-  was just not working with the new requirements of setting and clearing the 
+- This is the fix to http://bugs.bacula.org/view.php?id=1276. The select class
+  was just not working with the new requirements of setting and clearing the
   notify.
 
 27Apr09
-- Fix bug #1274 where a migration job can be canceled like the original job by 
+- Fix bug #1274 where a migration job can be canceled like the original job by
   the MaxRunTime directive.
-- Added fix for bug #1275 where acl or xattr data is saved for virtual filenames 
+- Added fix for bug #1275 where acl or xattr data is saved for virtual filenames
   generated by filed plugins.
 
 26Apr09
@@ -5071,7 +5114,7 @@ Release Version 5.0.0
 - Permits to eject Used tape
 - update ScriptAlias
 - Remove Reposition info message
-- Fix platform scripts not to clean configured files during 'make clean' use 
+- Fix platform scripts not to clean configured files during 'make clean' use
   'make distclean' to clean everything.
 
 25Apr09
@@ -5086,7 +5129,7 @@ Release Version 5.0.0
 
 16Apr09
 - Add additional mysql connection debug code
-- Fix bug #1246 Sometimes access denied with VSS enabled. UCS conversion cache 
+- Fix bug #1246 Sometimes access denied with VSS enabled. UCS conversion cache
   was not properly flushed at the end of a Job
 
 15Apr09
@@ -5113,7 +5156,7 @@ Release Version 5.0.0
 - Test postgresql encoding at the start of the test
 
 11Apr09
-- Modify insertion of read Volumes in SD to be done before the drive reservation. 
+- Modify insertion of read Volumes in SD to be done before the drive reservation.
   This ensures that a Volume to be read will not be reserved for writing.
 - Clean old patchnotes
 - Turn developer back on

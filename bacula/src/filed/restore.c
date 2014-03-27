@@ -1,29 +1,17 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2012 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  *  Bacula File Daemon  restore.c Restorefiles.
@@ -368,7 +356,7 @@ void do_restore(JCR *jcr)
    r_ctx rctx;
    ATTR *attr;
    /* ***FIXME*** make configurable */
-   crypto_digest_t signing_algorithm = have_sha2 ? 
+   crypto_digest_t signing_algorithm = have_sha2 ?
                                        CRYPTO_DIGEST_SHA256 : CRYPTO_DIGEST_SHA1;
    memset(&rctx, 0, sizeof(rctx));
    rctx.jcr = jcr;
@@ -396,7 +384,7 @@ void do_restore(JCR *jcr)
    } else {
       buf_size = 0;                   /* use default */
    }
-   if (!bnet_set_buffer_size(sd, buf_size, BNET_SETBUF_WRITE)) {
+   if (!sd->set_buffer_size(buf_size, BNET_SETBUF_WRITE)) {
       jcr->setJobStatus(JS_ErrorTerminated);
       return;
    }
@@ -426,7 +414,7 @@ void do_restore(JCR *jcr)
          rctx.fork_cipher_ctx.buf = get_memory(CRYPTO_CIPHER_MAX_BLOCK_SIZE);
       }
    }
-   
+
    /*
     * Get a record from the Storage daemon. We are guaranteed to
     *   receive records in the following order:
@@ -488,7 +476,7 @@ void do_restore(JCR *jcr)
       }
       /* Strip off new stream high bits */
       rctx.stream = rctx.full_stream & STREAMMASK_TYPE;
-      Dmsg5(150, "Got hdr: Files=%d FilInx=%d size=%d Stream=%d, %s.\n", 
+      Dmsg5(150, "Got hdr: Files=%d FilInx=%d size=%d Stream=%d, %s.\n",
             jcr->JobFiles, file_index, rctx.size, rctx.stream, stream_to_ascii(rctx.stream));
 
       /*
@@ -499,13 +487,13 @@ void do_restore(JCR *jcr)
          goto bail_out;
       }
       if (rctx.size != (uint32_t)sd->msglen) {
-         Jmsg2(jcr, M_FATAL, 0, _("Actual data size %d not same as header %d\n"), 
+         Jmsg2(jcr, M_FATAL, 0, _("Actual data size %d not same as header %d\n"),
                sd->msglen, rctx.size);
          Dmsg2(50, "Actual data size %d not same as header %d\n",
                sd->msglen, rctx.size);
          goto bail_out;
       }
-      Dmsg3(130, "Got stream: %s len=%d extract=%d\n", stream_to_ascii(rctx.stream), 
+      Dmsg3(130, "Got stream: %s len=%d extract=%d\n", stream_to_ascii(rctx.stream),
             sd->msglen, rctx.extract);
 
       /*
@@ -544,7 +532,7 @@ void do_restore(JCR *jcr)
          }
          /*
           * Restore objects should be ignored here -- they are
-          * returned at the beginning of the restore. 
+          * returned at the beginning of the restore.
           */
          if (IS_FT_OBJECT(rctx.type)) {
             continue;
@@ -557,14 +545,17 @@ void do_restore(JCR *jcr)
             goto bail_out;
          }
 
-         Dmsg3(100, "File %s\nattrib=%s\nattribsEx=%s\n", attr->fname,
-               attr->attr, attr->attrEx);
+         attr->data_stream = decode_stat(attr->attr, &attr->statp, sizeof(attr->statp), &attr->LinkFI);
+
+         Dmsg5(100, "Stream %d: %s, File %s\nattrib=%s\nattribsEx=%s\n",
+               attr->data_stream, stream_to_ascii(attr->data_stream),
+               attr->fname, attr->attr, attr->attrEx);
          Dmsg3(100, "=== msglen=%d attrExlen=%d msg=%s\n", sd->msglen,
                strlen(attr->attrEx), sd->msg);
 
-         attr->data_stream = decode_stat(attr->attr, &attr->statp, sizeof(attr->statp), &attr->LinkFI);
-
          if (!is_restore_stream_supported(attr->data_stream)) {
+            Dmsg2(15, "Non-supported data stream %d: %s\n",
+               attr->data_stream, stream_to_ascii(attr->data_stream));
             if (!non_support_data++) {
                Jmsg(jcr, M_WARNING, 0, _("%s stream not supported on this Client.\n"),
                     stream_to_ascii(attr->data_stream));
@@ -584,12 +575,12 @@ void do_restore(JCR *jcr)
 
          if (jcr->plugin) {
             stat = plugin_create_file(jcr, attr, &rctx.bfd, jcr->replace);
-         } 
-         
+         }
+
          if (stat == CF_CORE) {
             stat = create_file(jcr, attr, &rctx.bfd, jcr->replace);
          }
-         jcr->lock();  
+         jcr->lock();
          pm_strcpy(jcr->last_fname, attr->ofname);
          jcr->last_type = attr->type;
          jcr->unlock();
@@ -675,7 +666,7 @@ void do_restore(JCR *jcr)
 
          if (jcr->crypto.digest) {
             crypto_digest_free(jcr->crypto.digest);
-         }  
+         }
          jcr->crypto.digest = crypto_digest_new(jcr, signing_algorithm);
          if (!jcr->crypto.digest) {
             Jmsg0(jcr, M_FATAL, 0, _("Could not create digest.\n"));
@@ -687,9 +678,9 @@ void do_restore(JCR *jcr)
          /*
           * Decode and save session keys.
           */
-         cryptoerr = crypto_session_decode((uint8_t *)sd->msg, (uint32_t)sd->msglen, 
+         cryptoerr = crypto_session_decode((uint8_t *)sd->msg, (uint32_t)sd->msglen,
                         jcr->crypto.pki_recipients, &rctx.cs);
-         switch(cryptoerr) {
+         switch (cryptoerr) {
          case CRYPTO_ERROR_NONE:
             /*
              * Success
@@ -701,11 +692,19 @@ void do_restore(JCR *jcr)
          case CRYPTO_ERROR_DECRYPTION:
             Jmsg(jcr, M_ERROR, 0, _("Decrypt of the session key failed.\n"));
             break;
+         case CRYPTO_ERROR_NOSIGNER:
+            Jmsg(jcr, M_ERROR, 0, _("Signer not found. Decryption failed.\n"));
+            break;
+         case CRYPTO_ERROR_INVALID_DIGEST:
+            Jmsg(jcr, M_ERROR, 0, _("Unsupported digest algorithm. Decrypt failed.\n"));
+            break;
+         case CRYPTO_ERROR_INVALID_CRYPTO:
+            Jmsg(jcr, M_ERROR, 0, _("Unsupported encryption algorithm. Decrypt failed.\n"));
+            break;
          default:
-            /*
-             * Shouldn't happen
-             */
-            Jmsg1(jcr, M_ERROR, 0, _("An error occurred while decoding encrypted session data stream: %s\n"), crypto_strerror(cryptoerr));
+            /* This shouldn't happen */
+            Jmsg2(jcr, M_ERROR, 0, _("An error=%d occurred while decoding encrypted session data stream: ERR=%s\n"),
+               cryptoerr, crypto_strerror(cryptoerr));
             break;
          }
 
@@ -735,7 +734,7 @@ void do_restore(JCR *jcr)
          /*
           * Force an expected, consistent stream type here
           */
-         if (rctx.extract && (rctx.prev_stream == rctx.stream 
+         if (rctx.extract && (rctx.prev_stream == rctx.stream
                          || rctx.prev_stream == STREAM_UNIX_ATTRIBUTES
                          || rctx.prev_stream == STREAM_UNIX_ATTRIBUTES_EX
                          || rctx.prev_stream == STREAM_ENCRYPTED_SESSION_DATA)) {
@@ -747,7 +746,7 @@ void do_restore(JCR *jcr)
                rctx.flags |= FO_SPARSE;
             }
 
-            if (rctx.stream == STREAM_GZIP_DATA 
+            if (rctx.stream == STREAM_GZIP_DATA
                   || rctx.stream == STREAM_SPARSE_GZIP_DATA
                   || rctx.stream == STREAM_WIN32_GZIP_DATA
                   || rctx.stream == STREAM_ENCRYPTED_FILE_GZIP_DATA
@@ -766,7 +765,7 @@ void do_restore(JCR *jcr)
                   || rctx.stream == STREAM_ENCRYPTED_WIN32_DATA
                   || rctx.stream == STREAM_ENCRYPTED_FILE_COMPRESSED_DATA
                   || rctx.stream == STREAM_ENCRYPTED_WIN32_COMPRESSED_DATA
-                  || rctx.stream == STREAM_ENCRYPTED_WIN32_GZIP_DATA) {               
+                  || rctx.stream == STREAM_ENCRYPTED_WIN32_GZIP_DATA) {
                /*
                 * Set up a decryption context
                 */
@@ -778,7 +777,7 @@ void do_restore(JCR *jcr)
                      continue;
                   }
 
-                  if ((rctx.cipher_ctx.cipher = crypto_cipher_new(rctx.cs, false, 
+                  if ((rctx.cipher_ctx.cipher = crypto_cipher_new(rctx.cs, false,
                            &rctx.cipher_ctx.block_size)) == NULL) {
                      Jmsg1(jcr, M_ERROR, 0, _("Failed to initialize decryption context for %s\n"), jcr->last_fname);
                      free_session(rctx);
@@ -790,7 +789,8 @@ void do_restore(JCR *jcr)
                rctx.flags |= FO_ENCRYPT;
             }
 
-            if (is_win32_stream(rctx.stream) && !have_win32_api()) {
+            if (is_win32_stream(rctx.stream) &&
+                (win32decomp || !have_win32_api())) {
                set_portable_backup(&rctx.bfd);
                /*
                 * "decompose" BackupWrite data
@@ -1019,7 +1019,7 @@ void do_restore(JCR *jcr)
          if (!close_previous_stream(jcr, rctx)) {
             goto bail_out;
          }
-         Dmsg1(50, "restore stream_plugin_name=%s\n", sd->msg);
+         Dmsg1(150, "restore stream_plugin_name=%s\n", sd->msg);
          plugin_name_stream(jcr, sd->msg);
          break;
 
@@ -1182,7 +1182,7 @@ static const char *zlib_strerror(int stat)
 }
 #endif
 
-static int do_file_digest(JCR *jcr, FF_PKT *ff_pkt, bool top_level) 
+static int do_file_digest(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
 {
    Dmsg1(50, "do_file_digest jcr=%p\n", jcr);
    return (digest_file(jcr, ff_pkt, jcr->crypto.digest));
@@ -1201,7 +1201,7 @@ static bool verify_signature(JCR *jcr, r_ctx &rctx)
    DIGEST *digest = NULL;
    crypto_error_t err;
    uint64_t saved_bytes;
-   crypto_digest_t signing_algorithm = have_sha2 ? 
+   crypto_digest_t signing_algorithm = have_sha2 ?
                                        CRYPTO_DIGEST_SHA256 : CRYPTO_DIGEST_SHA1;
    crypto_digest_t algorithm;
    SIGNATURE *sig = rctx.sig;
@@ -1214,8 +1214,8 @@ static bool verify_signature(JCR *jcr, r_ctx &rctx)
       return true;
    }
    if (!sig) {
-      if (rctx.type == FT_REGE || rctx.type == FT_REG || rctx.type == FT_RAW) { 
-         Jmsg1(jcr, M_ERROR, 0, _("Missing cryptographic signature for %s\n"), 
+      if (rctx.type == FT_REGE || rctx.type == FT_REG || rctx.type == FT_RAW) {
+         Jmsg1(jcr, M_ERROR, 0, _("Missing cryptographic signature for %s\n"),
                jcr->last_fname);
          goto bail_out;
       }
@@ -1232,15 +1232,15 @@ static bool verify_signature(JCR *jcr, r_ctx &rctx)
          Dmsg0(50, "== Got digest\n");
          /*
           * We computed jcr->crypto.digest using signing_algorithm while writing
-          * the file. If it is not the same as the algorithm used for 
-          * this file, punt by releasing the computed algorithm and 
+          * the file. If it is not the same as the algorithm used for
+          * this file, punt by releasing the computed algorithm and
           * computing by re-reading the file.
           */
          if (algorithm != signing_algorithm) {
             if (jcr->crypto.digest) {
                crypto_digest_free(jcr->crypto.digest);
                jcr->crypto.digest = NULL;
-            }  
+            }
          }
          if (jcr->crypto.digest) {
              /*
@@ -1248,13 +1248,13 @@ static bool verify_signature(JCR *jcr, r_ctx &rctx)
               */
             if ((err = crypto_sign_verify(sig, keypair, jcr->crypto.digest)) != CRYPTO_ERROR_NONE) {
                Dmsg1(50, "Bad signature on %s\n", jcr->last_fname);
-               Jmsg2(jcr, M_ERROR, 0, _("Signature validation failed for file %s: ERR=%s\n"), 
+               Jmsg2(jcr, M_ERROR, 0, _("Signature validation failed for file %s: ERR=%s\n"),
                      jcr->last_fname, crypto_strerror(err));
                goto bail_out;
             }
-         } else {   
+         } else {
             /*
-             * Signature found, digest allocated.  Old method, 
+             * Signature found, digest allocated.  Old method,
              * re-read the file and compute the digest
              */
             jcr->crypto.digest = digest;
@@ -1263,9 +1263,9 @@ static bool verify_signature(JCR *jcr, r_ctx &rctx)
              * Checksum the entire file
              * Make sure we don't modify JobBytes by saving and restoring it
              */
-            saved_bytes = jcr->JobBytes;                     
+            saved_bytes = jcr->JobBytes;
             if (find_one_file(jcr, jcr->ff, do_file_digest, jcr->last_fname, (dev_t)-1, 1) != 0) {
-               Jmsg(jcr, M_ERROR, 0, _("Digest one file failed for file: %s\n"), 
+               Jmsg(jcr, M_ERROR, 0, _("Digest one file failed for file: %s\n"),
                     jcr->last_fname);
                jcr->JobBytes = saved_bytes;
                goto bail_out;
@@ -1277,7 +1277,7 @@ static bool verify_signature(JCR *jcr, r_ctx &rctx)
              */
             if ((err = crypto_sign_verify(sig, keypair, digest)) != CRYPTO_ERROR_NONE) {
                Dmsg1(50, "Bad signature on %s\n", jcr->last_fname);
-               Jmsg2(jcr, M_ERROR, 0, _("Signature validation failed for file %s: ERR=%s\n"), 
+               Jmsg2(jcr, M_ERROR, 0, _("Signature validation failed for file %s: ERR=%s\n"),
                      jcr->last_fname, crypto_strerror(err));
                goto bail_out;
             }
@@ -1333,7 +1333,7 @@ bool sparse_data(JCR *jcr, BFILE *bfd, uint64_t *addr, char **data, uint32_t *le
          if (blseek(bfd, (boffset_t)*addr, SEEK_SET) < 0) {
             berrno be;
             Jmsg3(jcr, M_ERROR, 0, _("Seek to %s error on %s: ERR=%s\n"),
-                  edit_uint64(*addr, ec1), jcr->last_fname, 
+                  edit_uint64(*addr, ec1), jcr->last_fname,
                   be.bstrerror(bfd->berrno));
             return false;
          }
@@ -1419,7 +1419,7 @@ bool decompress_data(JCR *jcr, int32_t stream, char **data, uint32_t *length)
       uLong compress_len;
       int stat;
 
-      /* 
+      /*
        * NOTE! We only use uLong and Byte because they are
        * needed by the zlib routines, they should not otherwise
        * be used in Bacula.
@@ -1465,23 +1465,55 @@ static void unser_crypto_packet_len(RESTORE_CIPHER_CTX *ctx)
 
 bool store_data(JCR *jcr, BFILE *bfd, char *data, const int32_t length, bool win32_decomp)
 {
+   ssize_t wstat;
+
    if (jcr->crypto.digest) {
       crypto_digest_update(jcr->crypto.digest, (uint8_t *)data, length);
    }
    if (win32_decomp) {
       if (!processWin32BackupAPIBlock(bfd, data, length)) {
          berrno be;
-         Jmsg2(jcr, M_ERROR, 0, _("Write error in Win32 Block Decomposition on %s: %s\n"), 
+         Jmsg2(jcr, M_ERROR, 0, _("Write error in Win32 Block Decomposition on %s: %s\n"),
                jcr->last_fname, be.bstrerror(bfd->berrno));
          return false;
       }
-   } else if (bwrite(bfd, data, length) != (ssize_t)length) {
+   } else if ((wstat=bwrite(bfd, data, length)) != (ssize_t)length) {
       berrno be;
-      Jmsg2(jcr, M_ERROR, 0, _("Write error on %s: %s\n"), 
-            jcr->last_fname, be.bstrerror(bfd->berrno));
+      int type = M_ERROR;
+      int len = strlen(jcr->last_fname);
+      /*
+       * If this is the first write and the "file" is a directory
+       *  or a drive letter, then only issue a warning as we are
+       *  not able to reset the metadata, then continue.
+       * If the above is true and we have an error code 91
+       *  (directory not empty), supress the error entirely.
+       */
+      if (bfd->block == 0 && len >= 2 && (jcr->last_fname[len-1] == '/' ||
+          jcr->last_fname[len-1] == ':')) {
+         type = M_WARNING;
+         if (bfd->lerror == 91) {  /* Directory not empty */
+            type = 0;              /* suppress error */
+         }
+      }
+      if (type != 0) {
+         if (wstat >= 0) {
+            /* Insufficient bytes written */
+            Jmsg4(jcr, type, 0, _("Wrong write size error at %lld block=%d wanted=%d wrote=%d\n"),
+               bfd->total_bytes, bfd->block, length, wstat);
+         } else {
+            /* Error */
+            Jmsg6(jcr, type, 0, _("Write write error at %lld block=%d write_len=%d lerror=%d on %s: ERR=%s\n"),
+               bfd->total_bytes, bfd->block, length, bfd->lerror,
+               jcr->last_fname, be.bstrerror(bfd->berrno));
+         }
+      }
+
+      /* Ignore errors? */
+      if (type == M_WARNING || type == 0 || no_win32_write_errors) {
+         return true;
+      }
       return false;
    }
-
    return true;
 }
 
@@ -1516,16 +1548,16 @@ int32_t extract_data(JCR *jcr, BFILE *bfd, POOLMEM *buf, int32_t buflen,
        * crypto_cipher_update() will process only whole blocks,
        * buffering the remaining input.
        */
-      cipher_ctx->buf = check_pool_memory_size(cipher_ctx->buf, 
+      cipher_ctx->buf = check_pool_memory_size(cipher_ctx->buf,
                         cipher_ctx->buf_len + wsize + cipher_ctx->block_size);
 
       /*
        * Decrypt the input block
        */
-      if (!crypto_cipher_update(cipher_ctx->cipher, 
-                                (const u_int8_t *)wbuf, 
-                                wsize, 
-                                (u_int8_t *)&cipher_ctx->buf[cipher_ctx->buf_len], 
+      if (!crypto_cipher_update(cipher_ctx->cipher,
+                                (const u_int8_t *)wbuf,
+                                wsize,
+                                (u_int8_t *)&cipher_ctx->buf[cipher_ctx->buf_len],
                                 &decrypted_len)) {
          /*
           * Decryption failed. Shouldn't happen.
@@ -1597,7 +1629,7 @@ int32_t extract_data(JCR *jcr, BFILE *bfd, POOLMEM *buf, int32_t buflen,
       /* Move any remaining data to start of buffer */
       if (cipher_ctx->buf_len > 0) {
          Dmsg1(130, "Moving %u buffered bytes to start of buffer\n", cipher_ctx->buf_len);
-         memmove(cipher_ctx->buf, &cipher_ctx->buf[cipher_ctx->packet_len], 
+         memmove(cipher_ctx->buf, &cipher_ctx->buf[cipher_ctx->packet_len],
             cipher_ctx->buf_len);
       }
       /*
@@ -1624,7 +1656,7 @@ static bool close_previous_stream(JCR *jcr, r_ctx &rctx)
    if (rctx.extract) {
       if (rctx.size > 0 && !is_bopen(&rctx.bfd)) {
          Jmsg0(rctx.jcr, M_ERROR, 0, _("Logic error: output file should be open\n"));
-         Dmsg2(000, "=== logic error size=%d bopen=%d\n", rctx.size, 
+         Dmsg2(000, "=== logic error size=%d bopen=%d\n", rctx.size,
             is_bopen(&rctx.bfd));
       }
 
@@ -1687,7 +1719,7 @@ again:
    /*
     * Write out the remaining block and free the cipher context
     */
-   cipher_ctx->buf = check_pool_memory_size(cipher_ctx->buf, cipher_ctx->buf_len + 
+   cipher_ctx->buf = check_pool_memory_size(cipher_ctx->buf, cipher_ctx->buf_len +
                                             cipher_ctx->block_size);
 
    if (!crypto_cipher_finalize(cipher_ctx->cipher, (uint8_t *)&cipher_ctx->buf[cipher_ctx->buf_len],
@@ -1695,7 +1727,7 @@ again:
       /*
        * Writing out the final, buffered block failed. Shouldn't happen.
        */
-      Jmsg3(jcr, M_ERROR, 0, _("Decryption error. buf_len=%d decrypt_len=%d on file %s\n"), 
+      Jmsg3(jcr, M_ERROR, 0, _("Decryption error. buf_len=%d decrypt_len=%d on file %s\n"),
             cipher_ctx->buf_len, decrypted_len, jcr->last_fname);
    }
 
@@ -1743,7 +1775,7 @@ again:
     */
    if (cipher_ctx->buf_len > 0) {
       Dmsg1(130, "Moving %u buffered bytes to start of buffer\n", cipher_ctx->buf_len);
-      memmove(cipher_ctx->buf, &cipher_ctx->buf[cipher_ctx->packet_len], 
+      memmove(cipher_ctx->buf, &cipher_ctx->buf[cipher_ctx->packet_len],
          cipher_ctx->buf_len);
    }
    /*

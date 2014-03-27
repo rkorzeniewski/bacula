@@ -1,29 +1,17 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2008-2012 Free Software Foundation Europe e.V.
+   Copyright (C) 2008-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /**
  * Functions to handle Extended Attributes for bacula.
@@ -167,7 +155,7 @@ static void xattr_drop_internal_table(alist *xattr_value_list)
  *    value - The actual content of the extended attribute
  *
  * This is repeated 1 or more times.
- * 
+ *
  */
 static uint32_t serialize_xattr_stream(JCR *jcr,
                                        uint32_t expected_serialize_len,
@@ -480,6 +468,7 @@ static bxattr_exit_code aix_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
        * Each xattr valuepair starts with a magic so we can parse it easier.
        */
       current_xattr = (xattr_t *)malloc(sizeof(xattr_t));
+      memset(current_xattr, 0, sizeof(xattr_t));
       current_xattr->magic = XATTR_MAGIC;
       expected_serialize_len += sizeof(current_xattr->magic);
 
@@ -778,6 +767,7 @@ static bxattr_exit_code irix_xattr_build_streams(JCR *jcr, FF_PKT *ff_pkt)
              * Each xattr valuepair starts with a magic so we can parse it easier.
              */
             current_xattr = (xattr_t *)malloc(sizeof(xattr_t));
+            memset(current_xattr, 0, sizeof(xattr_t));
             current_xattr->magic = XATTR_MAGIC;
             expected_serialize_len += sizeof(current_xattr->magic);
 
@@ -1741,8 +1731,8 @@ static bxattr_exit_code bsd_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
           * Each xattr valuepair starts with a magic so we can parse it easier.
           */
          current_xattr = (xattr_t *)malloc(sizeof(xattr_t));
+         memset(current_xattr, 0, sizeof(xattr_t));
          current_xattr->magic = XATTR_MAGIC;
-         current_xattr->value = NULL;
          expected_serialize_len += sizeof(current_xattr->magic);
 
          /*
@@ -2145,6 +2135,7 @@ static bxattr_exit_code tru64_build_xattr_streams(JCR *jcr, FF_PKT *ff_pkt)
        * Each xattr valuepair starts with a magic so we can parse it easier.
        */
       current_xattr = (xattr_t *)malloc(sizeof(xattr_t));
+      memset(current_xattr, 0, sizeof(xattr_t));
       current_xattr->magic = XATTR_MAGIC;
       expected_serialize_len += sizeof(current_xattr->magic);
 
@@ -2712,7 +2703,7 @@ static bxattr_exit_code solaris_save_xattrs(JCR *jcr, const char *xattr_namespac
  * This is stored as an opaque stream of bytes with the following encoding:
  *
  * <xattr_name>\0<stat_buffer>\0<acl_string>\0<actual_xattr_data>
- * 
+ *
  * or for a hardlinked or symlinked attribute
  *
  * <xattr_name>\0<stat_buffer>\0<xattr_link_source>\0
@@ -3008,7 +2999,7 @@ static bxattr_exit_code solaris_save_xattr(JCR *jcr, int fd, const char *xattr_n
     * available on this extended attribute.
     */
    retval = solaris_save_xattrs(jcr, xattr_namespace, attrname);
-      
+
    /*
     * The recursive call could change our working dir so change back to the wanted workdir.
     */
@@ -3047,7 +3038,7 @@ static bxattr_exit_code solaris_save_xattrs(JCR *jcr, const char *xattr_namespac
    struct dirent *dp;
    char current_xattr_namespace[PATH_MAX];
    bxattr_exit_code retval = bxattr_exit_error;
- 
+
    /*
     * Determine what argument to use. Use attr_parent when set
     * (recursive call) or jcr->last_fname for first call. Also save

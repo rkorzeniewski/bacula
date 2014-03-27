@@ -1,29 +1,17 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2002-2012 Free Software Foundation Europe e.V.
+   Copyright (C) 2002-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  *   Parse a Bootstrap Records (used for restores)
@@ -36,29 +24,32 @@
 #include "bacula.h"
 #include "stored.h"
 
+static void s_err(const char *file, int line, LEX *lc, const char *msg, ...);
+static bool add_restore_volume(JCR *jcr, VOL_LIST *vol);
+
 typedef BSR * (ITEM_HANDLER)(LEX *lc, BSR *bsr);
 
-static BSR *store_vol(LEX *lc, BSR *bsr);
-static BSR *store_mediatype(LEX *lc, BSR *bsr);
-static BSR *store_device(LEX *lc, BSR *bsr);
 static BSR *store_client(LEX *lc, BSR *bsr);
-static BSR *store_job(LEX *lc, BSR *bsr);
-static BSR *store_jobid(LEX *lc, BSR *bsr);
 static BSR *store_count(LEX *lc, BSR *bsr);
-static BSR *store_jobtype(LEX *lc, BSR *bsr);
-static BSR *store_joblevel(LEX *lc, BSR *bsr);
-static BSR *store_findex(LEX *lc, BSR *bsr);
-static BSR *store_sessid(LEX *lc, BSR *bsr);
-static BSR *store_volfile(LEX *lc, BSR *bsr);
-static BSR *store_volblock(LEX *lc, BSR *bsr);
-static BSR *store_voladdr(LEX *lc, BSR *bsr);
-static BSR *store_sesstime(LEX *lc, BSR *bsr);
-static BSR *store_include(LEX *lc, BSR *bsr);
+static BSR *store_device(LEX *lc, BSR *bsr);
 static BSR *store_exclude(LEX *lc, BSR *bsr);
-static BSR *store_stream(LEX *lc, BSR *bsr);
-static BSR *store_slot(LEX *lc, BSR *bsr);
 static BSR *store_fileregex(LEX *lc, BSR *bsr);
+static BSR *store_findex(LEX *lc, BSR *bsr);
+static BSR *store_include(LEX *lc, BSR *bsr);
+static BSR *store_jobid(LEX *lc, BSR *bsr);
+static BSR *store_joblevel(LEX *lc, BSR *bsr);
+static BSR *store_job(LEX *lc, BSR *bsr);
+static BSR *store_jobtype(LEX *lc, BSR *bsr);
+static BSR *store_mediatype(LEX *lc, BSR *bsr);
 static BSR *store_nothing(LEX *lc, BSR *bsr);
+static BSR *store_sessid(LEX *lc, BSR *bsr);
+static BSR *store_sesstime(LEX *lc, BSR *bsr);
+static BSR *store_slot(LEX *lc, BSR *bsr);
+static BSR *store_stream(LEX *lc, BSR *bsr);
+static BSR *store_voladdr(LEX *lc, BSR *bsr);
+static BSR *store_volblock(LEX *lc, BSR *bsr);
+static BSR *store_volfile(LEX *lc, BSR *bsr);
+static BSR *store_vol(LEX *lc, BSR *bsr);
 static bool is_fast_rejection_ok(BSR *bsr);
 static bool is_positioning_ok(BSR *bsr);
 
@@ -71,27 +62,27 @@ struct kw_items {
  * List of all keywords permitted in bsr files and their handlers
  */
 struct kw_items items[] = {
-   {"volume", store_vol},
-   {"mediatype", store_mediatype},
-   {"client", store_client},
-   {"job", store_job},
-   {"jobid", store_jobid},
-   {"count", store_count},
+   {"client",    store_client},
+   {"count",     store_count},
+   {"device",    store_device},
+   {"exclude",   store_exclude},
    {"fileindex", store_findex},
-   {"jobtype", store_jobtype},
-   {"joblevel", store_joblevel},
-   {"volsessionid", store_sessid},
-   {"volsessiontime", store_sesstime},
-   {"include", store_include},
-   {"exclude", store_exclude},
-   {"volfile", store_volfile},
-   {"volblock", store_volblock},
-   {"voladdr",  store_voladdr},
-   {"stream",   store_stream},
-   {"slot",     store_slot},
-   {"device",   store_device},
    {"fileregex", store_fileregex},
-   {"storage",  store_nothing},
+   {"include",   store_include},
+   {"jobid",     store_jobid},
+   {"joblevel",  store_joblevel},
+   {"job",       store_job},
+   {"jobtype",   store_jobtype},
+   {"mediatype", store_mediatype},
+   {"slot",      store_slot},
+   {"storage",   store_nothing},
+   {"stream",    store_stream},
+   {"voladdr",   store_voladdr},
+   {"volblock",  store_volblock},
+   {"volume",    store_vol},
+   {"volfile",   store_volfile},
+   {"volsessionid",   store_sessid},
+   {"volsessiontime", store_sesstime},
    {NULL, NULL}
 };
 
@@ -103,30 +94,6 @@ static BSR *new_bsr()
    BSR *bsr = (BSR *)malloc(sizeof(BSR));
    memset(bsr, 0, sizeof(BSR));
    return bsr;
-}
-
-/*
- * Format a scanner error message
- */
-static void s_err(const char *file, int line, LEX *lc, const char *msg, ...)
-{
-   JCR *jcr = (JCR *)(lc->caller_ctx);
-   va_list arg_ptr;
-   char buf[MAXSTRING];
-
-   va_start(arg_ptr, msg);
-   bvsnprintf(buf, sizeof(buf), msg, arg_ptr);
-   va_end(arg_ptr);
-
-   if (jcr) {
-      Jmsg(jcr, M_FATAL, 0, _("Bootstrap file error: %s\n"
-"            : Line %d, col %d of file %s\n%s\n"),
-         buf, lc->line_no, lc->col_no, lc->fname, lc->line);
-   } else {
-      e_msg(file, line, M_FATAL, 0, _("Bootstrap file error: %s\n"
-"            : Line %d, col %d of file %s\n%s\n"),
-         buf, lc->line_no, lc->col_no, lc->fname, lc->line);
-   }
 }
 
 
@@ -196,34 +163,227 @@ BSR *parse_bsr(JCR *jcr, char *fname)
    return root_bsr;
 }
 
-static bool is_fast_rejection_ok(BSR *bsr)
+static BSR *store_client(LEX *lc, BSR *bsr)
 {
-   /*
-    * Although, this can be optimized, for the moment, require
-    *  all bsrs to have both sesstime and sessid set before
-    *  we do fast rejection.
-    */
-   for ( ; bsr; bsr=bsr->next) {
-      if (!(bsr->sesstime && bsr->sessid)) {
-         return false;
+   int token;
+   BSR_CLIENT *client;
+
+   for (;;) {
+      token = lex_get_token(lc, T_NAME);
+      if (token == T_ERROR) {
+         return NULL;
+      }
+      client = (BSR_CLIENT *)malloc(sizeof(BSR_CLIENT));
+      memset(client, 0, sizeof(BSR_CLIENT));
+      bstrncpy(client->ClientName, lc->str, sizeof(client->ClientName));
+      /* Add it to the end of the client chain */
+      if (!bsr->client) {
+         bsr->client = client;
+      } else {
+         BSR_CLIENT *bc = bsr->client;
+         for ( ;bc->next; bc=bc->next)
+            { }
+         bc->next = client;
+      }
+      token = lex_get_token(lc, T_ALL);
+      if (token != T_COMMA) {
+         break;
       }
    }
-   return true;
+   return bsr;
 }
 
-static bool is_positioning_ok(BSR *bsr)
+static BSR *store_count(LEX *lc, BSR *bsr)
 {
-   /*
-    * Every bsr should have a volfile entry and a volblock entry
-    * or a VolAddr
-    *   if we are going to use positioning
-    */
-   for ( ; bsr; bsr=bsr->next) {
-      if (!((bsr->volfile && bsr->volblock) || bsr->voladdr)) {
-         return false;
+   int token;
+
+   token = lex_get_token(lc, T_PINT32);
+   if (token == T_ERROR) {
+      return NULL;
+   }
+   bsr->count = lc->pint32_val;
+   scan_to_eol(lc);
+   return bsr;
+}
+
+/* Shove the Device name in each Volume in the current bsr */
+static BSR *store_device(LEX *lc, BSR *bsr)
+{
+   int token;
+
+   token = lex_get_token(lc, T_STRING);
+   if (token == T_ERROR) {
+      return NULL;
+   }
+   if (!bsr->volume) {
+      Emsg1(M_ERROR,0, _("Device \"%s\" in bsr at inappropriate place.\n"),
+         lc->str);
+      return bsr;
+   }
+   BSR_VOLUME *bv;
+   for (bv=bsr->volume; bv; bv=bv->next) {
+      bstrncpy(bv->device, lc->str, sizeof(bv->device));
+   }
+   return bsr;
+}
+
+static BSR *store_findex(LEX *lc, BSR *bsr)
+{
+   int token;
+   BSR_FINDEX *findex;
+
+   for (;;) {
+      token = lex_get_token(lc, T_PINT32_RANGE);
+      if (token == T_ERROR) {
+         return NULL;
+      }
+      findex = (BSR_FINDEX *)malloc(sizeof(BSR_FINDEX));
+      memset(findex, 0, sizeof(BSR_FINDEX));
+      findex->findex = lc->pint32_val;
+      findex->findex2 = lc->pint32_val2;
+      /* Add it to the end of the chain */
+      if (!bsr->FileIndex) {
+         bsr->FileIndex = findex;
+      } else {
+         /* Add to end of chain */
+         BSR_FINDEX *bs = bsr->FileIndex;
+         for ( ;bs->next; bs=bs->next)
+            {  }
+         bs->next = findex;
+      }
+      token = lex_get_token(lc, T_ALL);
+      if (token != T_COMMA) {
+         break;
       }
    }
-   return true;
+   return bsr;
+}
+
+static BSR *store_fileregex(LEX *lc, BSR *bsr)
+{
+   int token;
+   int rc;
+
+   token = lex_get_token(lc, T_STRING);
+   if (token == T_ERROR) {
+      return NULL;
+   }
+
+   if (bsr->fileregex) free(bsr->fileregex);
+   bsr->fileregex = bstrdup(lc->str);
+
+   if (bsr->fileregex_re == NULL)
+      bsr->fileregex_re = (regex_t *)bmalloc(sizeof(regex_t));
+
+   rc = regcomp(bsr->fileregex_re, bsr->fileregex, REG_EXTENDED|REG_NOSUB);
+   if (rc != 0) {
+      char prbuf[500];
+      regerror(rc, bsr->fileregex_re, prbuf, sizeof(prbuf));
+      Emsg2(M_ERROR, 0, _("REGEX '%s' compile error. ERR=%s\n"),
+            bsr->fileregex, prbuf);
+      return NULL;
+   }
+   return bsr;
+}
+
+static BSR *store_jobid(LEX *lc, BSR *bsr)
+{
+   int token;
+   BSR_JOBID *jobid;
+
+   for (;;) {
+      token = lex_get_token(lc, T_PINT32_RANGE);
+      if (token == T_ERROR) {
+         return NULL;
+      }
+      jobid = (BSR_JOBID *)malloc(sizeof(BSR_JOBID));
+      memset(jobid, 0, sizeof(BSR_JOBID));
+      jobid->JobId = lc->pint32_val;
+      jobid->JobId2 = lc->pint32_val2;
+      /* Add it to the end of the chain */
+      if (!bsr->JobId) {
+         bsr->JobId = jobid;
+      } else {
+         /* Add to end of chain */
+         BSR_JOBID *bs = bsr->JobId;
+         for ( ;bs->next; bs=bs->next)
+            {  }
+         bs->next = jobid;
+      }
+      token = lex_get_token(lc, T_ALL);
+      if (token != T_COMMA) {
+         break;
+      }
+   }
+   return bsr;
+}
+
+
+static BSR *store_jobtype(LEX *lc, BSR *bsr)
+{
+   /* *****FIXME****** */
+   Pmsg0(-1, _("JobType not yet implemented\n"));
+   return bsr;
+}
+
+
+static BSR *store_joblevel(LEX *lc, BSR *bsr)
+{
+   /* *****FIXME****** */
+   Pmsg0(-1, _("JobLevel not yet implemented\n"));
+   return bsr;
+}
+
+static BSR *store_job(LEX *lc, BSR *bsr)
+{
+   int token;
+   BSR_JOB *job;
+
+   for (;;) {
+      token = lex_get_token(lc, T_NAME);
+      if (token == T_ERROR) {
+         return NULL;
+      }
+      job = (BSR_JOB *)malloc(sizeof(BSR_JOB));
+      memset(job, 0, sizeof(BSR_JOB));
+      bstrncpy(job->Job, lc->str, sizeof(job->Job));
+      /* Add it to the end of the client chain */
+      if (!bsr->job) {
+         bsr->job = job;
+      } else {
+         /* Add to end of chain */
+         BSR_JOB *bc = bsr->job;
+         for ( ;bc->next; bc=bc->next)
+            { }
+         bc->next = job;
+      }
+      token = lex_get_token(lc, T_ALL);
+      if (token != T_COMMA) {
+         break;
+      }
+   }
+   return bsr;
+}
+
+/* Shove the MediaType in each Volume in the current bsr */
+static BSR *store_mediatype(LEX *lc, BSR *bsr)
+{
+   int token;
+
+   token = lex_get_token(lc, T_STRING);
+   if (token == T_ERROR) {
+      return NULL;
+   }
+   if (!bsr->volume) {
+      Emsg1(M_ERROR,0, _("MediaType %s in bsr at inappropriate place.\n"),
+         lc->str);
+      return bsr;
+   }
+   BSR_VOLUME *bv;
+   for (bv=bsr->volume; bv; bv=bv->next) {
+      bstrncpy(bv->MediaType, lc->str, sizeof(bv->MediaType));
+   }
+   return bsr;
 }
 
 static BSR *store_vol(LEX *lc, BSR *bsr)
@@ -266,26 +426,36 @@ static BSR *store_vol(LEX *lc, BSR *bsr)
    return bsr;
 }
 
-/* Shove the MediaType in each Volume in the current bsr */
-static BSR *store_mediatype(LEX *lc, BSR *bsr)
+static bool is_positioning_ok(BSR *bsr)
 {
-   int token;
-
-   token = lex_get_token(lc, T_STRING);
-   if (token == T_ERROR) {
-      return NULL;
+   /*
+    * Every bsr should have a volfile entry and a volblock entry
+    * or a VolAddr
+    *   if we are going to use positioning
+    */
+   for ( ; bsr; bsr=bsr->next) {
+      if (!((bsr->volfile && bsr->volblock) || bsr->voladdr)) {
+         return false;
+      }
    }
-   if (!bsr->volume) {
-      Emsg1(M_ERROR,0, _("MediaType %s in bsr at inappropriate place.\n"),
-         lc->str);
-      return bsr;
-   }
-   BSR_VOLUME *bv;
-   for (bv=bsr->volume; bv; bv=bv->next) {
-      bstrncpy(bv->MediaType, lc->str, sizeof(bv->MediaType));
-   }
-   return bsr;
+   return true;
 }
+
+static bool is_fast_rejection_ok(BSR *bsr)
+{
+   /*
+    * Although, this can be optimized, for the moment, require
+    *  all bsrs to have both sesstime and sessid set before
+    *  we do fast rejection.
+    */
+   for ( ; bsr; bsr=bsr->next) {
+      if (!(bsr->sesstime && bsr->sessid)) {
+         return false;
+      }
+   }
+   return true;
+}
+
 
 static BSR *store_nothing(LEX *lc, BSR *bsr)
 {
@@ -297,212 +467,6 @@ static BSR *store_nothing(LEX *lc, BSR *bsr)
    }
    return bsr;
 }
-
-/* Shove the Device name in each Volume in the current bsr */
-static BSR *store_device(LEX *lc, BSR *bsr)
-{
-   int token;
-
-   token = lex_get_token(lc, T_STRING);
-   if (token == T_ERROR) {
-      return NULL;
-   }
-   if (!bsr->volume) {
-      Emsg1(M_ERROR,0, _("Device \"%s\" in bsr at inappropriate place.\n"),
-         lc->str);
-      return bsr;
-   }
-   BSR_VOLUME *bv;
-   for (bv=bsr->volume; bv; bv=bv->next) {
-      bstrncpy(bv->device, lc->str, sizeof(bv->device));
-   }
-   return bsr;
-}
-
-
-
-static BSR *store_client(LEX *lc, BSR *bsr)
-{
-   int token;
-   BSR_CLIENT *client;
-
-   for (;;) {
-      token = lex_get_token(lc, T_NAME);
-      if (token == T_ERROR) {
-         return NULL;
-      }
-      client = (BSR_CLIENT *)malloc(sizeof(BSR_CLIENT));
-      memset(client, 0, sizeof(BSR_CLIENT));
-      bstrncpy(client->ClientName, lc->str, sizeof(client->ClientName));
-      /* Add it to the end of the client chain */
-      if (!bsr->client) {
-         bsr->client = client;
-      } else {
-         BSR_CLIENT *bc = bsr->client;
-         for ( ;bc->next; bc=bc->next)
-            { }
-         bc->next = client;
-      }
-      token = lex_get_token(lc, T_ALL);
-      if (token != T_COMMA) {
-         break;
-      }
-   }
-   return bsr;
-}
-
-static BSR *store_job(LEX *lc, BSR *bsr)
-{
-   int token;
-   BSR_JOB *job;
-
-   for (;;) {
-      token = lex_get_token(lc, T_NAME);
-      if (token == T_ERROR) {
-         return NULL;
-      }
-      job = (BSR_JOB *)malloc(sizeof(BSR_JOB));
-      memset(job, 0, sizeof(BSR_JOB));
-      bstrncpy(job->Job, lc->str, sizeof(job->Job));
-      /* Add it to the end of the client chain */
-      if (!bsr->job) {
-         bsr->job = job;
-      } else {
-         /* Add to end of chain */
-         BSR_JOB *bc = bsr->job;
-         for ( ;bc->next; bc=bc->next)
-            { }
-         bc->next = job;
-      }
-      token = lex_get_token(lc, T_ALL);
-      if (token != T_COMMA) {
-         break;
-      }
-   }
-   return bsr;
-}
-
-static BSR *store_findex(LEX *lc, BSR *bsr)
-{
-   int token;
-   BSR_FINDEX *findex;
-
-   for (;;) {
-      token = lex_get_token(lc, T_PINT32_RANGE);
-      if (token == T_ERROR) {
-         return NULL;
-      }
-      findex = (BSR_FINDEX *)malloc(sizeof(BSR_FINDEX));
-      memset(findex, 0, sizeof(BSR_FINDEX));
-      findex->findex = lc->pint32_val;
-      findex->findex2 = lc->pint32_val2;
-      /* Add it to the end of the chain */
-      if (!bsr->FileIndex) {
-         bsr->FileIndex = findex;
-      } else {
-         /* Add to end of chain */
-         BSR_FINDEX *bs = bsr->FileIndex;
-         for ( ;bs->next; bs=bs->next)
-            {  }
-         bs->next = findex;
-      }
-      token = lex_get_token(lc, T_ALL);
-      if (token != T_COMMA) {
-         break;
-      }
-   }
-   return bsr;
-}
-
-
-static BSR *store_jobid(LEX *lc, BSR *bsr)
-{
-   int token;
-   BSR_JOBID *jobid;
-
-   for (;;) {
-      token = lex_get_token(lc, T_PINT32_RANGE);
-      if (token == T_ERROR) {
-         return NULL;
-      }
-      jobid = (BSR_JOBID *)malloc(sizeof(BSR_JOBID));
-      memset(jobid, 0, sizeof(BSR_JOBID));
-      jobid->JobId = lc->pint32_val;
-      jobid->JobId2 = lc->pint32_val2;
-      /* Add it to the end of the chain */
-      if (!bsr->JobId) {
-         bsr->JobId = jobid;
-      } else {
-         /* Add to end of chain */
-         BSR_JOBID *bs = bsr->JobId;
-         for ( ;bs->next; bs=bs->next)
-            {  }
-         bs->next = jobid;
-      }
-      token = lex_get_token(lc, T_ALL);
-      if (token != T_COMMA) {
-         break;
-      }
-   }
-   return bsr;
-}
-
-
-static BSR *store_count(LEX *lc, BSR *bsr)
-{
-   int token;
-
-   token = lex_get_token(lc, T_PINT32);
-   if (token == T_ERROR) {
-      return NULL;
-   }
-   bsr->count = lc->pint32_val;
-   scan_to_eol(lc);
-   return bsr;
-}
-
-static BSR *store_fileregex(LEX *lc, BSR *bsr)
-{
-   int token;
-   int rc;
- 
-   token = lex_get_token(lc, T_STRING);
-   if (token == T_ERROR) {
-      return NULL;
-   }
-
-   if (bsr->fileregex) free(bsr->fileregex);
-   bsr->fileregex = bstrdup(lc->str);
-
-   if (bsr->fileregex_re == NULL)
-      bsr->fileregex_re = (regex_t *)bmalloc(sizeof(regex_t));
-
-   rc = regcomp(bsr->fileregex_re, bsr->fileregex, REG_EXTENDED|REG_NOSUB);
-   if (rc != 0) {
-      char prbuf[500];
-      regerror(rc, bsr->fileregex_re, prbuf, sizeof(prbuf));
-      Emsg2(M_ERROR, 0, _("REGEX '%s' compile error. ERR=%s\n"),
-            bsr->fileregex, prbuf);
-      return NULL;
-   }
-   return bsr;
-}
-
-static BSR *store_jobtype(LEX *lc, BSR *bsr)
-{
-   /* *****FIXME****** */
-   Pmsg0(-1, _("JobType not yet implemented\n"));
-   return bsr;
-}
-
-
-static BSR *store_joblevel(LEX *lc, BSR *bsr)
-{
-   /* *****FIXME****** */
-   Pmsg0(-1, _("JobLevel not yet implemented\n"));
-   return bsr;
-}
-
 
 
 
@@ -836,7 +800,7 @@ void dump_sesstime(BSR_SESSTIME *sesstime)
 
 void dump_bsr(BSR *bsr, bool recurse)
 {
-   int save_debug = debug_level;
+   int64_t save_debug = debug_level;
    debug_level = 1;
    if (!bsr) {
       Pmsg0(-1, _("BSR is NULL\n"));
@@ -950,6 +914,75 @@ static VOL_LIST *new_restore_volume()
 }
 
 /*
+ * Create a list of Volumes (and Slots and Start positions) to be
+ *  used in the current restore job.
+ */
+void create_restore_volume_list(JCR *jcr)
+{
+   char *p, *n;
+   VOL_LIST *vol;
+
+   /*
+    * Build a list of volumes to be processed
+    */
+   jcr->NumReadVolumes = 0;
+   jcr->CurReadVolume = 0;
+   if (jcr->bsr) {
+      BSR *bsr = jcr->bsr;
+      if (!bsr->volume || !bsr->volume->VolumeName[0]) {
+         return;
+      }
+      for ( ; bsr; bsr=bsr->next) {
+         BSR_VOLUME *bsrvol;
+         BSR_VOLFILE *volfile;
+         uint32_t sfile = UINT32_MAX;
+
+         /* Find minimum start file so that we can forward space to it */
+         for (volfile = bsr->volfile; volfile; volfile=volfile->next) {
+            if (volfile->sfile < sfile) {
+               sfile = volfile->sfile;
+            }
+         }
+         /* Now add volumes for this bsr */
+         for (bsrvol = bsr->volume; bsrvol; bsrvol=bsrvol->next) {
+            vol = new_restore_volume();
+            bstrncpy(vol->VolumeName, bsrvol->VolumeName, sizeof(vol->VolumeName));
+            bstrncpy(vol->MediaType,  bsrvol->MediaType,  sizeof(vol->MediaType));
+            bstrncpy(vol->device, bsrvol->device, sizeof(vol->device));
+            vol->Slot = bsrvol->Slot;
+            vol->start_file = sfile;
+            if (add_restore_volume(jcr, vol)) {
+               jcr->NumReadVolumes++;
+               Dmsg2(400, "Added volume=%s mediatype=%s\n", vol->VolumeName,
+                  vol->MediaType);
+            } else {
+               Dmsg1(400, "Duplicate volume %s\n", vol->VolumeName);
+               free((char *)vol);
+            }
+            sfile = 0;                /* start at beginning of second volume */
+         }
+      }
+   } else {
+      /* This is the old way -- deprecated */
+      for (p = jcr->dcr->VolumeName; p && *p; ) {
+         n = strchr(p, '|');             /* volume name separator */
+         if (n) {
+            *n++ = 0;                    /* Terminate name */
+         }
+         vol = new_restore_volume();
+         bstrncpy(vol->VolumeName, p, sizeof(vol->VolumeName));
+         bstrncpy(vol->MediaType, jcr->dcr->media_type, sizeof(vol->MediaType));
+         if (add_restore_volume(jcr, vol)) {
+            jcr->NumReadVolumes++;
+         } else {
+            free((char *)vol);
+         }
+         p = n;
+      }
+   }
+}
+
+/*
  * Add current volume to end of list, only if the Volume
  * is not already in the list.
  *
@@ -1002,71 +1035,27 @@ void free_restore_volume_list(JCR *jcr)
    jcr->VolList = NULL;
 }
 
+
 /*
- * Create a list of Volumes (and Slots and Start positions) to be
- *  used in the current restore job.
+ * Format a scanner error message
  */
-void create_restore_volume_list(JCR *jcr)
+static void s_err(const char *file, int line, LEX *lc, const char *msg, ...)
 {
-   char *p, *n;
-   VOL_LIST *vol;
+   JCR *jcr = (JCR *)(lc->caller_ctx);
+   va_list arg_ptr;
+   char buf[MAXSTRING];
 
-   /*
-    * Build a list of volumes to be processed
-    */
-   jcr->NumReadVolumes = 0;
-   jcr->CurReadVolume = 0;
-   if (jcr->bsr) {
-      BSR *bsr = jcr->bsr;
-      if (!bsr->volume || !bsr->volume->VolumeName) {
-         return;
-      }
-      for ( ; bsr; bsr=bsr->next) {
-         BSR_VOLUME *bsrvol;
-         BSR_VOLFILE *volfile;
-         uint32_t sfile = UINT32_MAX;
+   va_start(arg_ptr, msg);
+   bvsnprintf(buf, sizeof(buf), msg, arg_ptr);
+   va_end(arg_ptr);
 
-         /* Find minimum start file so that we can forward space to it */
-         for (volfile = bsr->volfile; volfile; volfile=volfile->next) {
-            if (volfile->sfile < sfile) {
-               sfile = volfile->sfile;
-            }
-         }
-         /* Now add volumes for this bsr */
-         for (bsrvol = bsr->volume; bsrvol; bsrvol=bsrvol->next) {
-            vol = new_restore_volume();
-            bstrncpy(vol->VolumeName, bsrvol->VolumeName, sizeof(vol->VolumeName));
-            bstrncpy(vol->MediaType,  bsrvol->MediaType,  sizeof(vol->MediaType));
-            bstrncpy(vol->device, bsrvol->device, sizeof(vol->device));
-            vol->Slot = bsrvol->Slot;
-            vol->start_file = sfile;
-            if (add_restore_volume(jcr, vol)) {
-               jcr->NumReadVolumes++;
-               Dmsg2(400, "Added volume=%s mediatype=%s\n", vol->VolumeName,
-                  vol->MediaType);
-            } else {
-               Dmsg1(400, "Duplicate volume %s\n", vol->VolumeName);
-               free((char *)vol);
-            }
-            sfile = 0;                /* start at beginning of second volume */
-         }
-      }
+   if (jcr) {
+      Jmsg(jcr, M_FATAL, 0, _("Bootstrap file error: %s\n"
+"            : Line %d, col %d of file %s\n%s\n"),
+         buf, lc->line_no, lc->col_no, lc->fname, lc->line);
    } else {
-      /* This is the old way -- deprecated */
-      for (p = jcr->dcr->VolumeName; p && *p; ) {
-         n = strchr(p, '|');             /* volume name separator */
-         if (n) {
-            *n++ = 0;                    /* Terminate name */
-         }
-         vol = new_restore_volume();
-         bstrncpy(vol->VolumeName, p, sizeof(vol->VolumeName));
-         bstrncpy(vol->MediaType, jcr->dcr->media_type, sizeof(vol->MediaType));
-         if (add_restore_volume(jcr, vol)) {
-            jcr->NumReadVolumes++;
-         } else {
-            free((char *)vol);
-         }
-         p = n;
-      }
+      e_msg(file, line, M_FATAL, 0, _("Bootstrap file error: %s\n"
+"            : Line %d, col %d of file %s\n%s\n"),
+         buf, lc->line_no, lc->col_no, lc->fname, lc->line);
    }
 }

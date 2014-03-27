@@ -1,29 +1,17 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2012 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  *
@@ -62,7 +50,7 @@ bool newVolume(JCR *jcr, MEDIA_DBR *mr, STORE *store)
    /* See if we can create a new Volume */
    db_lock(jcr->db);
    pr.PoolId = mr->PoolId;
-   if (!db_get_pool_record(jcr, jcr->db, &pr)) {
+   if (!db_get_pool_numvols(jcr, jcr->db, &pr)) {
       goto bail_out;
    }
    if (pr.MaxVols == 0 || pr.NumVols < pr.MaxVols) {
@@ -70,7 +58,6 @@ bool newVolume(JCR *jcr, MEDIA_DBR *mr, STORE *store)
       set_pool_dbr_defaults_in_media_dbr(mr, &pr);
       jcr->VolumeName[0] = 0;
       bstrncpy(mr->MediaType, jcr->wstore->media_type, sizeof(mr->MediaType));
-      generate_job_event(jcr, "NewVolume"); /* return bool */
       generate_plugin_event(jcr, bDirEventNewVolume); /* return void... */
       if (jcr->VolumeName[0] && is_volume_name_legal(NULL, jcr->VolumeName)) {
          bstrncpy(mr->VolumeName, jcr->VolumeName, sizeof(mr->VolumeName));
@@ -92,7 +79,7 @@ bool newVolume(JCR *jcr, MEDIA_DBR *mr, STORE *store)
                goto bail_out;
             }
          }
-      } else {                                       
+      } else {
          goto bail_out;
       }
       pr.NumVols++;
@@ -100,9 +87,10 @@ bool newVolume(JCR *jcr, MEDIA_DBR *mr, STORE *store)
       set_storageid_in_mr(store, mr);
       if (db_create_media_record(jcr, jcr->db, mr) &&
          db_update_pool_record(jcr, jcr->db, &pr)) {
-         db_unlock(jcr->db);
-         Jmsg(jcr, M_INFO, 0, _("Created new Volume \"%s\" in catalog.\n"), mr->VolumeName);
+         Jmsg(jcr, M_INFO, 0, _("Created new Volume=\"%s\", Pool=\"%s\", MediaType=\"%s\" in catalog.\n"),
+            mr->VolumeName, pr.Name, mr->MediaType);
          Dmsg1(90, "Created new Volume=%s\n", mr->VolumeName);
+         db_unlock(jcr->db);
          return true;
       } else {
          Jmsg(jcr, M_ERROR, 0, "%s", db_strerror(jcr->db));
@@ -125,7 +113,7 @@ static bool create_simple_name(JCR *jcr, MEDIA_DBR *mr, POOL_DBR *pr)
    mr->VolumeName[0] = 0;
    bstrncpy(name, pr->LabelFormat, sizeof(name));
    ctx.value = 0;
-   Mmsg(query, "SELECT MAX(MediaId) FROM Media,Pool WHERE Pool.PoolId=%s", 
+   Mmsg(query, "SELECT MAX(MediaId) FROM Media,Pool WHERE Pool.PoolId=%s",
         edit_int64(pr->PoolId, ed1));
    if (!db_sql_query(jcr->db, query.c_str(), db_int64_handler, (void *)&ctx)) {
       Jmsg(jcr, M_WARNING, 0, _("SQL failed, but ignored. ERR=%s\n"), db_strerror(jcr->db));

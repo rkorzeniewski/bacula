@@ -1,29 +1,17 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2004-2012 Free Software Foundation Europe e.V.
+   Copyright (C) 2004-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /**
  * Functions to handle ACLs for bacula.
@@ -62,10 +50,10 @@
  *   Major rewrite by Marco van Wieringen, November 2008
  *   Major overhaul by Marco van Wieringen, January 2012
  */
-  
+
 #include "bacula.h"
 #include "filed.h"
-  
+
 #if !defined(HAVE_ACL) && !defined(HAVE_AFS_ACL)
 /**
  * Entry points when compiled without support for ACLs or on an unsupported platform.
@@ -771,7 +759,7 @@ static bacl_exit_code generic_get_acl_from_os(JCR *jcr, bacl_type acltype)
        * From observation, IRIX's acl_get_file() seems to return a
        * non-NULL acl with a count field of -1 when a file has no ACL
        * defined, while IRIX's acl_to_text() returns NULL when presented
-       * with such an ACL. 
+       * with such an ACL.
        *
        * For all other implmentations we check if there are more then
        * zero entries in the acl returned.
@@ -822,7 +810,7 @@ static bacl_exit_code generic_get_acl_from_os(JCR *jcr, bacl_type acltype)
       Mmsg2(jcr->errmsg,
             _("acl_to_text error on file \"%s\": ERR=%s\n"),
             jcr->last_fname, be.bstrerror());
-      Dmsg2(100, "acl_to_text error file=%s ERR=%s\n",  
+      Dmsg2(100, "acl_to_text error file=%s ERR=%s\n",
             jcr->last_fname, be.bstrerror());
 
       retval = bacl_exit_error;
@@ -852,7 +840,7 @@ static bacl_exit_code generic_get_acl_from_os(JCR *jcr, bacl_type acltype)
          Mmsg2(jcr->errmsg,
                _("acl_get_file error on file \"%s\": ERR=%s\n"),
                jcr->last_fname, be.bstrerror());
-         Dmsg2(100, "acl_get_file error file=%s ERR=%s\n",  
+         Dmsg2(100, "acl_get_file error file=%s ERR=%s\n",
                jcr->last_fname, be.bstrerror());
 
          retval = bacl_exit_error;
@@ -922,7 +910,7 @@ static bacl_exit_code generic_set_acl_on_os(JCR *jcr,
       Mmsg2(jcr->errmsg,
             _("acl_from_text error on file \"%s\": ERR=%s\n"),
             jcr->last_fname, be.bstrerror());
-      Dmsg3(100, "acl_from_text error acl=%s file=%s ERR=%s\n",  
+      Dmsg3(100, "acl_from_text error acl=%s file=%s ERR=%s\n",
             content, jcr->last_fname, be.bstrerror());
       return bacl_exit_error;
    }
@@ -938,7 +926,7 @@ static bacl_exit_code generic_set_acl_on_os(JCR *jcr,
       Mmsg2(jcr->errmsg,
             _("acl_valid error on file \"%s\": ERR=%s\n"),
             jcr->last_fname, be.bstrerror());
-      Dmsg3(100, "acl_valid error acl=%s file=%s ERR=%s\n",  
+      Dmsg3(100, "acl_valid error acl=%s file=%s ERR=%s\n",
             content, jcr->last_fname, be.bstrerror());
       acl_free(acl);
       return bacl_exit_error;
@@ -1413,7 +1401,7 @@ static bacl_exit_code tru64_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
        * Tru64 has next to BACL_TYPE_DEFAULT also BACL_TYPE_DEFAULT_DIR acls.
        * This is an inherited acl for all subdirs.
        * See http://www.helsinki.fi/atk/unix/dec_manuals/DOC_40D/AQ0R2DTE/DOCU_018.HTM
-       * Section 21.5 Default ACLs 
+       * Section 21.5 Default ACLs
        */
       if (generic_get_acl_from_os(jcr, BACL_TYPE_DEFAULT_DIR) == bacl_exit_fatal) {
          return bacl_exit_error;
@@ -1530,7 +1518,7 @@ static bacl_exit_code hpux_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
          Mmsg2(jcr->errmsg,
                _("getacl error on file \"%s\": ERR=%s\n"),
                jcr->last_fname, be.bstrerror());
-         Dmsg2(100, "getacl error file=%s ERR=%s\n",  
+         Dmsg2(100, "getacl error file=%s ERR=%s\n",
                jcr->last_fname, be.bstrerror());
 
          pm_strcpy(jcr->acl_data->u.build->content, "");
@@ -1565,7 +1553,7 @@ static bacl_exit_code hpux_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
       Mmsg2(jcr->errmsg,
             _("acltostr error on file \"%s\": ERR=%s\n"),
             jcr->last_fname, be.bstrerror());
-      Dmsg3(100, "acltostr error acl=%s file=%s ERR=%s\n",  
+      Dmsg3(100, "acltostr error acl=%s file=%s ERR=%s\n",
             jcr->acl_data->u.build->content, jcr->last_fname, be.bstrerror());
       return bacl_exit_error;
    }
@@ -1587,7 +1575,7 @@ static bacl_exit_code hpux_parse_acl_streams(JCR *jcr,
       Mmsg2(jcr->errmsg,
             _("strtoacl error on file \"%s\": ERR=%s\n"),
             jcr->last_fname, be.bstrerror());
-      Dmsg3(100, "strtoacl error acl=%s file=%s ERR=%s\n",  
+      Dmsg3(100, "strtoacl error acl=%s file=%s ERR=%s\n",
             content, jcr->last_fname, be.bstrerror());
       return bacl_exit_error;
    }
@@ -1597,7 +1585,7 @@ static bacl_exit_code hpux_parse_acl_streams(JCR *jcr,
       Mmsg2(jcr->errmsg,
             _("strtoacl error on file \"%s\": ERR=%s\n"),
             jcr->last_fname, be.bstrerror());
-      Dmsg3(100, "strtoacl error acl=%s file=%s ERR=%s\n",  
+      Dmsg3(100, "strtoacl error acl=%s file=%s ERR=%s\n",
             content, jcr->last_fname, be.bstrerror());
 
       return bacl_exit_error;
@@ -1737,7 +1725,7 @@ static bacl_exit_code solaris_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
          Mmsg2(jcr->errmsg,
                _("pathconf error on file \"%s\": ERR=%s\n"),
                jcr->last_fname, be.bstrerror());
-         Dmsg2(100, "pathconf error file=%s ERR=%s\n",  
+         Dmsg2(100, "pathconf error file=%s ERR=%s\n",
                jcr->last_fname, be.bstrerror());
          return bacl_exit_error;
       }
@@ -1759,7 +1747,7 @@ static bacl_exit_code solaris_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
          Mmsg2(jcr->errmsg,
                _("acl_get error on file \"%s\": ERR=%s\n"),
                jcr->last_fname, acl_strerror(errno));
-         Dmsg2(100, "acl_get error file=%s ERR=%s\n",  
+         Dmsg2(100, "acl_get error file=%s ERR=%s\n",
                jcr->last_fname, acl_strerror(errno));
          return bacl_exit_error;
       }
@@ -1844,7 +1832,7 @@ static bacl_exit_code solaris_parse_acl_streams(JCR *jcr,
             Mmsg2(jcr->errmsg,
                   _("pathconf error on file \"%s\": ERR=%s\n"),
                   jcr->last_fname, be.bstrerror());
-            Dmsg3(100, "pathconf error acl=%s file=%s ERR=%s\n",  
+            Dmsg3(100, "pathconf error acl=%s file=%s ERR=%s\n",
                   content, jcr->last_fname, be.bstrerror());
             return bacl_exit_error;
          }
@@ -1889,7 +1877,7 @@ static bacl_exit_code solaris_parse_acl_streams(JCR *jcr,
          Mmsg2(jcr->errmsg,
                _("acl_fromtext error on file \"%s\": ERR=%s\n"),
                jcr->last_fname, acl_strerror(error));
-         Dmsg3(100, "acl_fromtext error acl=%s file=%s ERR=%s\n",  
+         Dmsg3(100, "acl_fromtext error acl=%s file=%s ERR=%s\n",
                content, jcr->last_fname, acl_strerror(error));
          return bacl_exit_error;
       }
@@ -1936,7 +1924,7 @@ static bacl_exit_code solaris_parse_acl_streams(JCR *jcr,
             Mmsg2(jcr->errmsg,
                   _("acl_set error on file \"%s\": ERR=%s\n"),
                   jcr->last_fname, acl_strerror(error));
-            Dmsg3(100, "acl_set error acl=%s file=%s ERR=%s\n",  
+            Dmsg3(100, "acl_set error acl=%s file=%s ERR=%s\n",
                   content, jcr->last_fname, acl_strerror(error));
             acl_free(aclp);
             return bacl_exit_error;
@@ -2022,7 +2010,7 @@ static bacl_exit_code solaris_build_acl_streams(JCR *jcr, FF_PKT *ff_pkt)
       Mmsg2(jcr->errmsg,
             _("acltotext error on file \"%s\": ERR=%s\n"),
             jcr->last_fname, be.bstrerror());
-      Dmsg3(100, "acltotext error acl=%s file=%s ERR=%s\n",  
+      Dmsg3(100, "acltotext error acl=%s file=%s ERR=%s\n",
             jcr->acl_data->u.build->content, jcr->last_fname, be.bstrerror());
    }
 
@@ -2045,7 +2033,7 @@ static bacl_exit_code solaris_parse_acl_streams(JCR *jcr,
       Mmsg2(jcr->errmsg,
             _("aclfromtext error on file \"%s\": ERR=%s\n"),
             jcr->last_fname, be.bstrerror());
-      Dmsg3(100, "aclfromtext error acl=%s file=%s ERR=%s\n",  
+      Dmsg3(100, "aclfromtext error acl=%s file=%s ERR=%s\n",
             content, jcr->last_fname, be.bstrerror());
       return bacl_exit_error;
    }

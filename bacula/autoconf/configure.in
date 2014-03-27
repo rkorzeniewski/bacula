@@ -4,7 +4,7 @@ dnl Process this file with autoconf to produce a configure script.
 dnl
 dnl require a recent autoconf
 AC_PREREQ(2.61)
-AC_INIT([bacula], m4_esyscmd([sed -n -e 's/^.*VERSION.*"\(.*\)"$/\1/p' ../src/version.h src/version.h 2> /dev/null | tr -d '\n']))
+AC_INIT([bacula], m4_esyscmd([sed -n -e 's/^#define VERSION.*"\(.*\)"$/\1/p' ../src/version.h src/version.h 2> /dev/null | tr -d '\n']))
 AC_CONFIG_SRCDIR(src/version.h)
 
 BUILD_DIR=`pwd`
@@ -15,14 +15,6 @@ AC_SUBST(BUILD_DIR)
 AC_SUBST(TOP_DIR)
 AC_CONFIG_AUX_DIR(${BUILD_DIR}/autoconf)
 AC_CONFIG_HEADERS(src/config.h:autoconf/config.h.in)
-
-dnl minimal Win32 stuff for "make clean"
-WIN32BUILDDIR=${BUILD_DIR}/src/win32
-WIN32MAINDIR=${BUILD_DIR}
-WIN32TOPDIR=${TOP_DIR}	  
-AC_SUBST(WIN32BUILDDIR)
-AC_SUBST(WIN32MAINDIR)
-AC_SUBST(WIN32TOPDIR)
 
 dnl search for true and false programs.
 AC_PATH_PROGS(TRUEPRG, true, :)
@@ -35,16 +27,23 @@ if test "x$BACULA" != x; then
    post_host=`echo -${BACULA} | tr 'A-Z ' 'a-z-'`
 fi
 BACULA=${BACULA:-Bacula}
-VERSION=`sed -n -e 's/^.*VERSION.*"\(.*\)"$/\1/p' ${srcdir}/src/version.h`
-DATE=`sed -n -e 's/^.*[ \t]*BDATE.*"\(.*\)"$/\1/p' ${srcdir}/src/version.h`
-LSMDATE=`sed -n -e 's/^.*LSMDATE.*"\(.*\)"$/\1/p' ${srcdir}/src/version.h`
-BDB_VERSION=`sed -n -e 's/^.*BDB_VERSION \(.*\)$/\1/p' ${srcdir}/src/cats/cats.h`
-AC_SUBST(VERSION)dnl 
-AC_SUBST(DATE)dnl 
-AC_SUBST(LSMDATE)dnl 
+VERSION=`sed -n -e 's/^#define VERSION.*"\(.*\)"$/\1/p' ${srcdir}/src/version.h`
+RELEASE=`sed -n -e 's/^#define RELEASE.*"\(.*\)"$/\1/p' ${srcdir}/src/version.h`
+DATE=`sed -n -e 's/^#define BDATE.*"\(.*\)"$/\1/p' ${srcdir}/src/version.h`
+LSMDATE=`sed -n -e 's/^#define LSMDATE.*"\(.*\)"$/\1/p' ${srcdir}/src/version.h`
+BDB_VERSION=`sed -n -e 's/^#define BDB_VERSION \(.*\)$/\1/p' ${srcdir}/src/cats/cats.h`
+DEPKGS_VERSION=`sed -n -e 's/^#define DEPKGS_VERSION \(.*\)$/\1/p' ${srcdir}/src/cats/cats.h`
+DEPKGS_QT_VERSION=`sed -n -e 's/^#define DEPKGS_QT_VERSION.*"\(.*\)"$/\1/p' ${srcdir}/src/version.h`
+BQT_VERSION=`sed -n -e 's/^#define BQT_VERSION.*"\(.*\)"$/\1/p' ${srcdir}/src/version.h`
+AC_SUBST(VERSION)dnl
+AC_SUBST(DATE)dnl
+AC_SUBST(LSMDATE)dnl
 AC_SUBST(BACULA)dnl
 AC_SUBST(post_host)dnl
 AC_SUBST(BDB_VERSION)dnl
+AC_SUBST(DEPKGS_QT_VERSION)dnl
+AC_SUBST(DEPKGS_VERSION)dnl
+AC_SUBST(BQT4_VERSION)dnl
 
 dnl src/lib
 dnl can be overwritten by specific values from version.h
@@ -130,23 +129,17 @@ AC_PATH_PROG(DVDRWFORMAT, dvd+rw-format, dvd+rw-format)
 AC_PATH_PROG(PKGCONFIG, pkg-config, pkg-config)
 AC_PATH_PROG(QMAKE, qmake, none)
 AC_PATH_PROG(GMAKE, gmake, none)
-AC_ARG_VAR(WXCONFIG, [wx-config command. On some systems, you must set it to wx-config-2.6 to use wxWidgets 2.6.])
-if test "x$WXCONFIG" = x; then
-   WXCONFIG=wx-config
-fi
-AC_PATH_PROG(WXCONFIG, ${WXCONFIG}, ${WXCONFIG})
-AC_ARG_VAR(WXFLAGS, [Parameters to pass to wx-config (e.g. --unicode=no).])
 AC_PATH_PROG(CDRECORD, cdrecord, cdrecord)
 AC_PATH_PROG(PIDOF, pidof, pidof)
 AC_PROG_AWK
 # Some AWK programs fail, so test it and warn the user
-if echo xfoo | $AWK 'BEGIN { prog=ARGV[1]; ARGC=1 } 
+if echo xfoo | $AWK 'BEGIN { prog=ARGV[1]; ARGC=1 }
       { if ((prog == $2) || (("(" prog ")") == $2) ||
       (("[" prog "]") == $2) ||
       ((prog ":") == $2)) { print $1 ; exit 0 } }' xfoo>/dev/null; then :;
 else
   AC_MSG_ERROR([!!!!!!!!! WARNING !!!!!!!!!!!!!!
-   The regex engine of $AWK is too broken to be used you 
+   The regex engine of $AWK is too broken to be used you
    might want to install GNU AWK.
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!])
 fi
@@ -318,7 +311,7 @@ libdir=`eval echo ${libdir}`
 includedir=`eval echo ${includedir}`
 localedir=`eval echo ${datarootdir}/locale`
 AC_DEFINE_UNQUOTED(SYSCONFDIR, "$sysconfdir")
-AC_DEFINE_UNQUOTED(LOCALEDIR, "$localedir") 
+AC_DEFINE_UNQUOTED(LOCALEDIR, "$localedir")
 
 dnl ------------------------------------------------------------------
 dnl If the user has not set --sbindir, we set our default as /sbin
@@ -349,7 +342,7 @@ if test x$docdir = x'/usr/share/doc/' ; then
    docdir=`eval echo ${docdir}bacula`
 fi
 
-	    
+	
 AC_PATH_PROGS(MSGFMT, msgfmt, no)
 if test "$MSGFMT" = "no"
 then
@@ -362,15 +355,11 @@ fi
 
 support_smartalloc=yes
 support_readline=yes
+support_lzo=yes
 support_conio=yes
-support_gnome=no
 support_bat=no
-support_wx_console=no
-support_tray_monitor=no
 support_tls=no
 support_crypto=no
-gnome_version=
-wx_version=
 support_static_tools=no
 support_static_fd=no
 support_static_sd=no
@@ -389,32 +378,13 @@ dnl CHECKING COMMAND LINE OPTIONS
 dnl --------------------------------------------------------------------------
 
 dnl -------------------------------------------
-dnl gnome -- no longer supported
-dnl -------------------------------------------
-AC_ARG_ENABLE(gnome,
-   AC_HELP_STRING([--enable-gnome], [enable build of bgnome-console GUI @<:@default=no@:>@]),
-   [
-       if test x$enableval = xyes; then
-	  support_gnome=yes
-       fi
-   ]
-)
-
-GNOME_DIR=
-if test x$support_gnome = xyes; then
-   AC_MSG_ERROR(bgnome-console no longer supported)
-   AC_MSG_ERROR(--enable-gnome option no longer supported)
-fi
-# AC_SUBST(GNOME_DIR)
-
-dnl -------------------------------------------
 dnl bat (default off)
 dnl -------------------------------------------
 AC_ARG_ENABLE(bat,
    AC_HELP_STRING([--enable-bat], [enable build of bat Qt4 GUI @<:@default=no@:>@]),
    [
        if test x$enableval = xyes; then
-	  AC_DEFINE(HAVE_BAT, 1, [Set if Bacula bat Qt4 GUI support enabled]) 
+	  AC_DEFINE(HAVE_BAT, 1, [Set if Bacula bat Qt4 GUI support enabled])
 	  support_bat=yes
        fi
    ]
@@ -431,9 +401,9 @@ if test x$support_bat = xyes; then
    fi
 fi
 
-dnl 
+dnl
 dnl  The qwt library was used with bat, but that is no longer the case
-dnl 
+dnl
 got_qwt=no
 QWT_INC=
 QWT_LDFLAGS=
@@ -458,13 +428,13 @@ dnl		    QWT="qwt"
 dnl		 fi
 dnl		 ;;
 dnl	      esac
-dnl	  ]    
+dnl	  ]
 dnl    )
 
 dnl    dnl
 dnl    dnl Search in standard places, or --with-qwt not specified
 dnl    dnl
-dnl    if test $no_qwt = no; then 
+dnl    if test $no_qwt = no; then
 dnl	  if test x$QWT_INC = x; then
 dnl	     for root in /usr /usr/local; do
 dnl		for ver in qwt qwt5 qwt-qt4; do
@@ -500,69 +470,6 @@ AC_SUBST(QWT_LDFLAGS)
 AC_SUBST(QWT_LIB)
 AC_SUBST(QWT)
 
-dnl -------------------------------------------
-dnl bwx-console (default off)
-dnl -------------------------------------------
-AC_ARG_ENABLE(bwx-console,
-   AC_HELP_STRING([--enable-bwx-console], [enable build of wxWidgets console @<:@default=no@:>@]),
-   [
-       if test x$enableval = xyes; then
-	  support_wx_console=yes
-       fi
-   ]
-)
-
-WX_DIR=
-if test x$support_wx_console = xyes; then
-   abc=`$WXCONFIG $WXFLAGS --cppflags`
-   pkg=$?
-   if test $pkg = 0; then
-      wx_version="wxWidgets `$WXCONFIG $WXFLAGS --release`"
-      WXCONS_CPPFLAGS=`$WXCONFIG $WXFLAGS --cppflags`
-      WXCONS_LDFLAGS=`$WXCONFIG $WXFLAGS --libs`
-
-      AC_SUBST(WXCONS_CPPFLAGS)
-      AC_SUBST(WXCONS_LDFLAGS)
-      WX_DIR="src/wx-console"
-   else
-      echo " "
-      echo "wx-config program not found. bwx-console disabled."
-      echo " "
-      support_wx_console=no
-   fi
-fi
-AC_SUBST(WX_DIR)
-
-dnl -------------------------------------------
-dnl tray-monitor (default off)
-dnl -------------------------------------------
-AC_ARG_ENABLE(tray-monitor,
-   AC_HELP_STRING([--enable-tray-monitor], [enable build of Gnome tray monitor (compatible with KDE @<:@default=no@:>@]),
-   [
-       if test x$enableval = xyes; then
-	  support_tray_monitor=yes
-       fi
-   ]
-)
-
-TRAY_MONITOR_DIR=
-if test x$support_tray_monitor = xyes; then
-   abc=`$PKGCONFIG --exists gtk+-2.0`
-   pkg=$?
-   if test $pkg = 0; then
-      TRAY_MONITOR_CPPFLAGS=`$PKGCONFIG --cflags gtk+-2.0`
-      TRAY_MONITOR_LDFLAGS=`$PKGCONFIG --libs gtk+-2.0`
-      AC_SUBST(TRAY_MONITOR_CPPFLAGS)
-      AC_SUBST(TRAY_MONITOR_LDFLAGS)
-      TRAY_MONITOR_DIR=src/tray-monitor
-      abc=`$PKGCONFIG --atleast-version=2.4 gtk+-2.0`
-      pkg=$?
-      if test $pkg = 0; then
-	 AC_DEFINE(HAVE_GTK_2_4, 1, [Set if you have GTK 4.2 or greater loaded])
-      fi
-   fi
-fi
-AC_SUBST(TRAY_MONITOR_DIR)
 
 dnl -------------------------------------------
 dnl smartalloc (default off)
@@ -605,7 +512,7 @@ AC_ARG_ENABLE(static-tools,
    [
        if test x$enableval = xyes; then
 	  if test x$use_libtool = xyes; then
-	     AC_MSG_ERROR([Libtool is enabled, not compatible with static tools, 
+	     AC_MSG_ERROR([Libtool is enabled, not compatible with static tools,
   please rerun configure with --disable-libtool])
 	  fi
 	  support_static_tools=yes
@@ -627,7 +534,7 @@ AC_ARG_ENABLE(static-fd,
    [
        if test x$enableval = xyes; then
 	  if test x$use_libtool = xyes; then
-	     AC_MSG_ERROR([Libtool is enabled, not compatible with static tools, 
+	     AC_MSG_ERROR([Libtool is enabled, not compatible with static tools,
   please rerun configure with --disable-libtool])
 	  fi
 	  support_static_fd=yes
@@ -649,7 +556,7 @@ AC_ARG_ENABLE(static-sd,
    [
        if test x$enableval = xyes; then
 	  if test x$use_libtool = xyes; then
-	     AC_MSG_ERROR([Libtool is enabled, not compatible with static tools, 
+	     AC_MSG_ERROR([Libtool is enabled, not compatible with static tools,
   please rerun configure with --disable-libtool])
 	  fi
 	  support_static_sd=yes
@@ -671,7 +578,7 @@ AC_ARG_ENABLE(static-dir,
    [
        if test x$enableval = xyes; then
 	  if test x$use_libtool = xyes; then
-	     AC_MSG_ERROR([Libtool is enabled, not compatible with static tools, 
+	     AC_MSG_ERROR([Libtool is enabled, not compatible with static tools,
   please rerun configure with --disable-libtool])
 	  fi
 	  support_static_dir=yes
@@ -693,7 +600,7 @@ AC_ARG_ENABLE(static-cons,
    [
        if test x$enableval = xyes; then
 	  if test x$use_libtool = xyes; then
-	     AC_MSG_ERROR([Libtool is enabled, not compatible with static tools, 
+	     AC_MSG_ERROR([Libtool is enabled, not compatible with static tools,
   please rerun configure with --disable-libtool])
 	  fi
 	  support_static_cons=yes
@@ -702,16 +609,10 @@ AC_ARG_ENABLE(static-cons,
 )
 
 STATIC_CONS=
-STATIC_GNOME_CONS=
-STATIC_WX_CONS=
 if test x$support_static_cons = xyes; then
    STATIC_CONS="static-bconsole"
-   STATIC_GNOME_CONS="static-bgnome-console"
-   STATIC_WX_CONS="static-bwx-console"
 fi
 AC_SUBST(STATIC_CONS)
-AC_SUBST(STATIC_GNOME_CONS)
-AC_SUBST(STATIC_WX_CONS)
 
 dnl -------------------------------------------
 dnl client_only  (default off)
@@ -784,18 +685,18 @@ AC_ARG_ENABLE(conio,
        fi
    ]
 )
-  
+
 
 dnl ---------------------------------------------------
 dnl Check for IPv6 support
 dnl ---------------------------------------------------
 dnl this allows you to turn it completely off
 support_ipv6=yes
-AC_ARG_ENABLE(ipv6,   
+AC_ARG_ENABLE(ipv6,
    AC_HELP_STRING([--enable-ipv6], [enable ipv6 support @<:@default=yes@:>@]),
    [
        if test x$enableval = xno; then
-	  support_ipv6=no  
+	  support_ipv6=no
        fi
    ]
 )
@@ -812,7 +713,7 @@ if test x$support_ipv6 = xyes; then
 fi
 
 TERM_LIB=""
-AC_CHECK_HEADER(curses.h, [ 
+AC_CHECK_HEADER(curses.h, [
     AC_CHECK_LIB(tinfo, tgetent, [ TERM_LIB="-ltinfo" ], [
       AC_CHECK_LIB(ncurses, tgetent, [ TERM_LIB="-lncurses" ], [
 	AC_CHECK_LIB(termcap, tgetent, [ TERM_LIB="-ltermcap" ])
@@ -821,7 +722,7 @@ AC_CHECK_HEADER(curses.h, [
   ],
   [  AC_CHECK_HEADERS(curses.h)
      AC_CHECK_HEADER(term.h,
-       [ AC_CHECK_LIB(curses, tgetent, 
+       [ AC_CHECK_LIB(curses, tgetent,
 	 [ TERM_LIB="-lcurses" ] )
        ])
   ])
@@ -835,7 +736,7 @@ if test x$support_conio = xyes; then
       CONS_SRC="conio.c"
       got_conio="yes"
       support_readline=no
-      AC_DEFINE(HAVE_CONIO, 1, [Set if Bacula conio support enabled]) 
+      AC_DEFINE(HAVE_CONIO, 1, [Set if Bacula conio support enabled])
    else
       echo " "; echo "Required libraries not found. CONIO turned off ..."; echo " "
    fi
@@ -854,9 +755,6 @@ AC_ARG_ENABLE(readline,
        fi
    ]
 )
-if test x$TERM_LIB = x ; then
-   support_readline=no
-fi
 
 got_readline="no"
 READLINE_SRC=
@@ -877,14 +775,14 @@ if test x$support_readline = xyes; then
 		CONS_LDFLAGS="-L${with_readline}/lib"
 		with_readline="${with_readline}/include/readline"
 	     else
-		with_readline="/usr/include/readline" 
+		with_readline="/usr/include/readline"
 	     fi
 
-	     AC_CHECK_HEADER(${with_readline}/readline.h, 
+	     AC_CHECK_HEADER(${with_readline}/readline.h,
 		[
 		    AC_DEFINE(HAVE_READLINE, 1, [Set to enable readline support])
-		    CONS_LIBS="-lreadline -lhistory $TERM_LIB"
-		    got_readline="yes"	 
+		    CONS_LIBS="-lreadline -lhistory ${TERM_LIB}"
+		    got_readline="yes"	
 		], [
 		    echo " "
 		    echo "readline.h not found. readline turned off ..."
@@ -895,20 +793,20 @@ if test x$support_readline = xyes; then
 	  esac
       ],[
 	 dnl check for standard readline library
-	 AC_CHECK_HEADER(/usr/include/readline/readline.h, 
+	 AC_CHECK_HEADER(/usr/include/readline/readline.h,
 	    [
 		AC_DEFINE(HAVE_READLINE, 1, [Set to enable readline support])
 		got_readline="yes"
 		CONS_INC="-I/usr/include/readline"
-		CONS_LIBS="-lreadline $TERM_LIB"
+		CONS_LIBS="-lreadline ${TERM_LIB}"
 	    ], [
 		dnl Did not find standard library, so try Bacula's default
-		AC_CHECK_HEADER(${TOP_DIR}/depkgs/readline/readline.h, 
+		AC_CHECK_HEADER(${TOP_DIR}/depkgs/readline/readline.h,
 		    [
 			AC_DEFINE(HAVE_READLINE, 1, [Set to enable readline support])
-			got_readline="yes"   
+			got_readline="yes"
 			CONS_INC="-I${TOP_DIR}/depkgs/readline"
-			CONS_LIBS="-lreadline -lhistory $TERM_LIB"
+			CONS_LIBS="-lreadline -lhistory ${TERM_LIB}"
 			CONS_LDFLAGS="-L${TOP_DIR}/depkgs/readline"
 			PRTREADLINE_SRC="${TOP_DIR}/depkgs/readline"
 		    ], [
@@ -919,7 +817,7 @@ if test x$support_readline = xyes; then
 		)
 	    ]
 	 )
-      ]    
+      ]
    )
 fi
 
@@ -935,7 +833,8 @@ MAKE_SHELL=/bin/sh
 AC_SUBST(MAKE_SHELL)
 AC_HEADER_STAT
 AC_HEADER_DIRENT
-AC_CHECK_FUNCS(strcasecmp select setenv putenv tcgetattr lstat lchown)
+AC_CHECK_FUNCS(strcasecmp select setenv putenv tcgetattr)
+AC_CHECK_FUNCS(lstat lchown lchmod futimes fchmod fchown)
 AC_CHECK_FUNCS(nanosleep nl_langinfo)
 AC_CHECK_HEADERS(varargs.h)
 
@@ -949,7 +848,7 @@ AC_MSG_CHECKING(for Python support)
 AC_ARG_WITH(python,
    AC_HELP_STRING([--with-python@<:@=DIR@:>@], [Include Python support. DIR is the Python base install directory, default is to search through a number of common places for the Python files.]),
    [
-       PYTHON_INCDIR= 
+       PYTHON_INCDIR=
        PYTHON_LIBS=
        if test "$withval" != "no"; then
 	  if test "$withval" = "yes"; then
@@ -966,7 +865,7 @@ AC_ARG_WITH(python,
 			 else
 			    PYTHON_LIBS="-L$python_root/lib/${ver}/config -l${ver}"
 			 fi
-			 break 
+			 break
 		      fi
 		   done
 		done
@@ -1045,7 +944,7 @@ AC_CHECK_FUNC(socket,
 dnl -----------------------------------------------------------
 dnl Check whether user wants TCP wrappers support (default off)
 dnl -----------------------------------------------------------
-TCPW_MSG="no" 
+TCPW_MSG="no"
 WRAPLIBS=""
 AC_ARG_WITH(tcp-wrappers,
    AC_HELP_STRING([--with-tcp-wrappers@<:@=DIR@:>@], [enable tcpwrappers support]),
@@ -1056,7 +955,7 @@ AC_ARG_WITH(tcp-wrappers,
 	  AC_SEARCH_LIBS(nanosleep, [rt])
 	  AC_MSG_CHECKING(for libwrap)
 	  AC_TRY_LINK(
-	     [ 
+	     [
 	       #include <sys/types.h>
 	       #include <tcpd.h>
 	       int deny_severity = 0;
@@ -1067,7 +966,7 @@ AC_ARG_WITH(tcp-wrappers,
 	     ], [
 		 AC_MSG_RESULT(yes)
 		 AC_DEFINE(HAVE_LIBWRAP, 1, [Set to enable libwraper support])
-		 TCPW_MSG="yes" 
+		 TCPW_MSG="yes"
 		 LIBS="$saved_LIBS"
 		 WRAPLIBS="-lwrap"
 	     ], [
@@ -1085,7 +984,7 @@ AC_ARG_WITH(tcp-wrappers,
 		   ], [
 		      AC_MSG_RESULT(yes)
 		      AC_DEFINE(HAVE_LIBWRAP, 1, [Set to enable libwraper support])
-		      TCPW_MSG="yes" 
+		      TCPW_MSG="yes"
 		      LIBS="$saved_LIBS"
 		      WRAPLIBS="-lwrap"
 		   ], [
@@ -1097,6 +996,7 @@ AC_ARG_WITH(tcp-wrappers,
        fi
    ]
 )
+
 
 dnl -----------------------------------------------------------
 dnl Check whether OpenSSL is available
@@ -1216,11 +1116,11 @@ AC_SEARCH_LIBS(dlopen, [dl])
 dnl ------------------------------------------
 dnl Where to place working dir
 dnl ------------------------------------------
-working_dir=`eval echo ${prefix}/opt/bacula/working`
+working_dir=`eval echo /opt/bacula/working`
 AC_ARG_WITH(working-dir,
    AC_HELP_STRING([--with-working-dir=PATH], [specify path of Bacula working directory]),
    [
-       if test "x$withval" != "xno" ; then     
+       if test "x$withval" != "xno" ; then
 	 working_dir=$withval
        fi
    ]
@@ -1235,7 +1135,7 @@ archivedir=/tmp
 AC_ARG_WITH(archivedir,
    AC_HELP_STRING([--with-archivedir=PATH], [specify path of SD archive directory]),
    [
-       if test "x$withval" != "xno" ; then     
+       if test "x$withval" != "xno" ; then
 	  archivedir=$withval
        fi
    ]
@@ -1250,7 +1150,7 @@ basename=`hostname`
 AC_ARG_WITH(basename,
    AC_HELP_STRING([--with-basename=RESNAME], [specify base resource name for daemons]),
    [
-       if test "x$withval" != "xno" ; then     
+       if test "x$withval" != "xno" ; then
 	  basename=$withval
        fi
    ]
@@ -1289,7 +1189,7 @@ scriptdir=`eval echo ${sysconfdir}`
 AC_ARG_WITH(scriptdir,
    AC_HELP_STRING([--with-scriptdir=PATH], [specify path of Bacula scripts directory]),
    [
-       if test "x$withval" != "xno" ; then     
+       if test "x$withval" != "xno" ; then
 	  scriptdir=$withval
        fi
    ]
@@ -1301,11 +1201,11 @@ AC_SUBST(scriptdir)
 dnl ------------------------------------------
 dnl Where to place bsrdir (bsr files)
 dnl ------------------------------------------
-bsrdir=`eval echo ${prefix}/opt/bacula/bsr`
+bsrdir=`eval echo /opt/bacula/bsr`
 AC_ARG_WITH(bsrdir,
    AC_HELP_STRING([--with-bsrdir=PATH], [specify path of Bacula bsrs directory]),
    [
-       if test "x$withval" != "xno" ; then     
+       if test "x$withval" != "xno" ; then
 	  bsrdir=$withval
        fi
    ]
@@ -1314,13 +1214,13 @@ AC_ARG_WITH(bsrdir,
 AC_SUBST(bsrdir)
 
 dnl ------------------------------------------
-dnl Where to place logdir (bsr files)
+dnl Where to place logdir
 dnl ------------------------------------------
-logdir=`eval echo ${prefix}/opt/bacula/log`
+logdir=`eval echo /opt/bacula/log`
 AC_ARG_WITH(logdir,
    AC_HELP_STRING([--with-logdir=PATH], [specify path of Bacula logs directory]),
    [
-       if test "x$withval" != "xno" ; then     
+       if test "x$withval" != "xno" ; then
 	  logdir=$withval
        fi
    ]
@@ -1336,7 +1236,7 @@ plugindir=`eval echo ${libdir}`
 AC_ARG_WITH(plugindir,
    AC_HELP_STRING([--with-plugindir=PATH], [specify path of Bacula plugins directory]),
    [
-       if test "x$withval" != "xno" ; then     
+       if test "x$withval" != "xno" ; then
 	  plugindir=$withval
        fi
    ]
@@ -1351,7 +1251,7 @@ dump_email=root@localhost
 AC_ARG_WITH(dump-email,
    AC_HELP_STRING([--with-dump-email=EMAIL], [dump email address]),
    [
-       if test "x$withval" != "xno" ; then     
+       if test "x$withval" != "xno" ; then
 	  dump_email=$withval
        fi
    ]
@@ -1366,7 +1266,7 @@ job_email=root@localhost
 AC_ARG_WITH(job-email,
    AC_HELP_STRING([--with-job-email=EMAIL], [job output email address]),
    [
-       if test "x$withval" != "xno" ; then     
+       if test "x$withval" != "xno" ; then
 	  job_email=$withval
        fi
    ]
@@ -1381,7 +1281,7 @@ smtp_host=localhost
 AC_ARG_WITH(smtp_host,
    AC_HELP_STRING([--with-smtp-host=HOST], [SMTP mail host address]),
    [
-       if test "x$withval" != "xno" ; then     
+       if test "x$withval" != "xno" ; then
 	  smtp_host=$withval
        fi
    ]
@@ -1396,7 +1296,7 @@ piddir=/var/run
 AC_ARG_WITH(pid-dir,
    AC_HELP_STRING([--with-pid-dir=PATH], [specify location of Bacula pid files]),
    [
-       if test "x$withval" != "xno" ; then   
+       if test "x$withval" != "xno" ; then
 	  piddir=$withval
        fi
    ]
@@ -1419,7 +1319,7 @@ fi
 AC_ARG_WITH(subsys-dir,
    AC_HELP_STRING([--with-subsys-dir=PATH], [specify location of Bacula subsys file]),
    [
-       if test "x$withval" != "xno" ; then   
+       if test "x$withval" != "xno" ; then
 	  subsysdir=$withval
        fi
    ]
@@ -1434,7 +1334,7 @@ baseport=9101
 AC_ARG_WITH(baseport,
    AC_HELP_STRING([--with-baseport=PORT], [specify base port address for daemons]),
    [
-       if test "x$withval" != "xno" ; then   
+       if test "x$withval" != "xno" ; then
 	  baseport=$withval
        fi
    ]
@@ -1456,7 +1356,7 @@ dir_password=
 AC_ARG_WITH(dir-password,
    AC_HELP_STRING([--with-dir-password=PASSWORD], [specify Director's password]),
    [
-       if test "x$withval" != "xno" ; then     
+       if test "x$withval" != "xno" ; then
 	  dir_password=$withval
        fi
    ]
@@ -1475,7 +1375,7 @@ fd_password=
 AC_ARG_WITH(fd-password,
    AC_HELP_STRING([--with-fd-password=PASSWORD], [specify Client's password]),
    [
-       if test "x$withval" != "xno" ; then     
+       if test "x$withval" != "xno" ; then
 	  fd_password=$withval
        fi
    ]
@@ -1494,7 +1394,7 @@ sd_password=
 AC_ARG_WITH(sd-password,
    AC_HELP_STRING([--with-sd-password=PASSWORD], [specify Storage daemon's password]),
    [
-       if test "x$withval" != "xno" ; then     
+       if test "x$withval" != "xno" ; then
 	  sd_password=$withval
        fi
    ]
@@ -1513,7 +1413,7 @@ mon_dir_password=
 AC_ARG_WITH(mon-dir-password,
    AC_HELP_STRING([--with-mon-dir-password=PASSWORD], [specify Director's password used by the monitor]),
    [
-       if test "x$withval" != "xno" ; then     
+       if test "x$withval" != "xno" ; then
 	  mon_dir_password=$withval
        fi
    ]
@@ -1532,7 +1432,7 @@ mon_fd_password=
 AC_ARG_WITH(mon-fd-password,
    AC_HELP_STRING([--with-mon-fd-password=PASSWORD], [specify Client's password used by the monitor]),
    [
-       if test "x$withval" != "xno" ; then     
+       if test "x$withval" != "xno" ; then
 	  mon_fd_password=$withval
        fi
    ]
@@ -1551,7 +1451,7 @@ mon_sd_password=
 AC_ARG_WITH(mon-sd-password,
    AC_HELP_STRING([--with-mon-sd-password=PASSWORD], [specify Storage daemon's password used by the monitor]),
    [
-       if test "x$withval" != "xno" ; then     
+       if test "x$withval" != "xno" ; then
 	  mon_sd_password=$withval
        fi
    ]
@@ -1580,7 +1480,7 @@ db_name=bacula
 AC_ARG_WITH(db_name,
    AC_HELP_STRING([--with-db-name=DBNAME], [specify database name @<:@default=bacula@:>@]),
    [
-       if test "x$withval" != "x" ; then   
+       if test "x$withval" != "x" ; then
 	  db_name=$withval
        fi
    ]
@@ -1591,7 +1491,7 @@ db_user=bacula
 AC_ARG_WITH(db_user,
    AC_HELP_STRING([--with-db-user=UNAME], [specify database user @<:@default=bacula@:>@]),
    [
-       if test "x$withval" != "x" ; then   
+       if test "x$withval" != "x" ; then
 	  db_user=$withval
        fi
    ]
@@ -1602,7 +1502,7 @@ db_password=
 AC_ARG_WITH(db_password,
    AC_HELP_STRING([--with-db-password=PWD], [specify database password @<:@default=*none*@:>@]),
    [
-       if test "x$withval" != "x" ; then   
+       if test "x$withval" != "x" ; then
 	  db_password=$withval
        fi
    ]
@@ -1630,7 +1530,7 @@ dir_user=
 AC_ARG_WITH(dir_user,
    AC_HELP_STRING([--with-dir-user=USER], [specify user for Director daemon]),
    [
-       if test "x$withval" != "x" ; then   
+       if test "x$withval" != "x" ; then
 	   dir_user=$withval
        fi
    ]
@@ -1640,7 +1540,7 @@ dir_group=
 AC_ARG_WITH(dir_group,
    AC_HELP_STRING([--with-dir-group=GROUP], [specify group for Director daemon]),
    [
-       if test "x$withval" != "x" ; then   
+       if test "x$withval" != "x" ; then
 	  dir_group=$withval
        fi
    ]
@@ -1650,7 +1550,7 @@ sd_user=
 AC_ARG_WITH(sd_user,
    AC_HELP_STRING([--with-sd-user=USER], [specify user for Storage daemon]),
    [
-       if test "x$withval" != "x" ; then   
+       if test "x$withval" != "x" ; then
 	  sd_user=$withval
        fi
    ]
@@ -1660,7 +1560,7 @@ sd_group=
 AC_ARG_WITH(sd_group,
    AC_HELP_STRING([--with-sd-group=GROUP], [specify group for Storage daemon]),
    [
-       if test "x$withval" != "x" ; then   
+       if test "x$withval" != "x" ; then
 	  sd_group=$withval
        fi
    ]
@@ -1670,7 +1570,7 @@ fd_user=
 AC_ARG_WITH(fd_user,
    AC_HELP_STRING([--with-fd-user=USER], [specify user for File daemon]),
    [
-       if test "x$withval" != "x" ; then   
+       if test "x$withval" != "x" ; then
 	  fd_user=$withval
        fi
    ]
@@ -1680,7 +1580,7 @@ fd_group=
 AC_ARG_WITH(fd_group,
    AC_HELP_STRING([--with-fd-group=GROUP], [specify group for File daemon]),
    [
-       if test "x$withval" != "x" ; then   
+       if test "x$withval" != "x" ; then
 	  fd_group=$withval
        fi
    ]
@@ -1700,7 +1600,7 @@ SBINPERM=0750
 AC_ARG_WITH(sbin-perm,
    AC_HELP_STRING([--with-sbin-perm=MODE], [specify permissions for sbin binaries @<:@default=0750@:>@]),
    [
-       if test "x$withval" != "x" ; then   
+       if test "x$withval" != "x" ; then
 	  SBINPERM=$withval
        fi
    ]
@@ -1739,12 +1639,6 @@ BA_CHECK_POSTGRESQL_DB
 BA_CHECK_MYSQL_DB
 
 BA_CHECK_SQLITE3_DB
-
-#BA_CHECK_INGRES_DB
-
-#BA_CHECK_DBI_DB
-
-#BA_CHECK_DBI_DRIVER
 
 dnl -------------------------------------------
 dnl If no batch insert backend are enable set
@@ -1844,7 +1738,7 @@ if test -z "$CFLAGS" -o "$CFLAGS" = "-g -O2"; then
    CFLAGS="$CCOPTS"
 fi
 
-dnl A few others 
+dnl A few others
 AC_EXEEXT
 
 dnl See if we can use 64 bit file addresses
@@ -1899,7 +1793,7 @@ AC_STRUCT_ST_BLOCKS
 AC_STRUCT_TIMEZONE
 
 dnl --------------------------------------------------------------------------
-dnl Check for utime.h structure 
+dnl Check for utime.h structure
 dnl --------------------------------------------------------------------------
 AC_CACHE_CHECK(for utime.h, ba_cv_header_utime_h,
    [
@@ -1966,7 +1860,7 @@ test $ba_cv_header_ioctl_req_t = yes && AC_DEFINE(HAVE_IOCTL_ULINT_REQUEST, 1, [
 
 dnl Note: it is more correct to use AC_LANG(C++) but some of the older
 dnl   *BSD systems still use old style C prototypes, which are wrong with
-dnl   compiled with a C++ compiler. 
+dnl   compiled with a C++ compiler.
 AC_LANG(C)
 
 dnl --------------------------------------------------------------------------
@@ -2026,7 +1920,7 @@ if test $fstype = no; then
       AC_DEFINE(FSTYPE_AIX_STATFS) fstype=AIX
    )
 fi
-if test $fstype = no; then  
+if test $fstype = no; then
    AC_TRY_CPP(
       [
 	  #include <mntent.h>
@@ -2034,10 +1928,10 @@ if test $fstype = no; then
       AC_DEFINE(FSTYPE_MNTENT) fstype=4.3BSD
    )
 fi
-if test $fstype = no; then  
+if test $fstype = no; then
    AC_EGREP_HEADER(f_type;, sys/mount.h, AC_DEFINE(FSTYPE_STATFS) fstype=4.4BSD/OSF1)
 fi
-if test $fstype = no; then  
+if test $fstype = no; then
    AC_TRY_CPP(
       [
 	  #include <sys/mount.h>
@@ -2114,7 +2008,7 @@ AC_CACHE_CHECK([for intmax_t type], ac_cv_have_intmax_t,
 	      intmax_t a; a = 1;
 	  ], [
 	      ac_cv_have_intmax_t="yes"
-	  ], [ 
+	  ], [
 	      AC_TRY_COMPILE(
 		 [
 		     #include <stdint.h>
@@ -2127,7 +2021,7 @@ AC_CACHE_CHECK([for intmax_t type], ac_cv_have_intmax_t,
 		 ]
 	      )
 	  ]
-       )       
+       )
    ]
 )
 if test "x$ac_cv_have_intmax_t" = "xyes" ; then
@@ -2144,7 +2038,7 @@ AC_CACHE_CHECK([for u_intmax_t type], ac_cv_have_u_intmax_t,
 	      u_intmax_t a; a = 1;
 	  ], [
 	      ac_cv_have_u_intmax_t="yes"
-	  ], [ 
+	  ], [
 	      AC_TRY_COMPILE(
 		 [
 		     #include <stdint.h>
@@ -2184,7 +2078,7 @@ if test "x$ac_cv_have_intxx_t" = "xyes" ; then
    AC_DEFINE(HAVE_INTXX_T)
    have_intxx_t=1
 fi
-   
+
 AC_CACHE_CHECK([for int64_t type], ac_cv_have_int64_t,
    [
        AC_TRY_COMPILE(
@@ -2204,7 +2098,7 @@ if test "x$ac_cv_have_int64_t" = "xyes" ; then
    AC_DEFINE(HAVE_INT64_T)
    have_int64_t=1
 fi
-   
+
 AC_CACHE_CHECK([for u_intXX_t types], ac_cv_have_u_intxx_t,
    [
        AC_TRY_COMPILE(
@@ -2264,7 +2158,7 @@ then
       ], [
 	  AC_MSG_RESULT(no)
       ]
-   ) 
+   )
 fi
 
 if test -z "$have_u_intxx_t" ; then
@@ -2274,7 +2168,7 @@ if test -z "$have_u_intxx_t" ; then
 	     [
 		 #include <sys/types.h>
 	     ], [
-		 uint8_t a; uint16_t b; 
+		 uint8_t a; uint16_t b;
 		 uint32_t c; a = b = c = 1;
 	     ], [
 		ac_cv_have_uintxx_t="yes"
@@ -2297,7 +2191,7 @@ then
       [
 	  #include <sys/bitypes.h>
       ], [
-	  int64_t a; u_int64_t b; 
+	  int64_t a; u_int64_t b;
 	  a = b = 1;
       ], [
 	  AC_DEFINE(HAVE_U_INT64_T)
@@ -2306,7 +2200,7 @@ then
       ], [
 	  AC_MSG_RESULT(no)
       ]
-   ) 
+   )
 fi
 
 if (test -z "$have_uintxx_t" && \
@@ -2317,7 +2211,7 @@ then
       [
 	  #include <sys/bitypes.h>
       ], [
-	  uint8_t a; uint16_t b; 
+	  uint8_t a; uint16_t b;
 	  uint32_t c; a = b = c = 1;
       ], [
 	  AC_DEFINE(HAVE_UINTXX_T)
@@ -2325,7 +2219,7 @@ then
       ], [
 	  AC_MSG_RESULT(no)
       ]
-   ) 
+   )
 fi
 
 dnl --------------------------------------------------------------------------
@@ -2365,7 +2259,7 @@ AC_CHECK_FUNCS(strtoll, [AC_DEFINE(HAVE_STRTOLL)])
 AC_CHECK_FUNCS(posix_fadvise)
 AC_CHECK_FUNCS(fdatasync)
 
-AC_CHECK_FUNCS(chflags) 
+AC_CHECK_FUNCS(chflags)
 
 AC_CHECK_FUNCS(snprintf vsnprintf gethostid fseeko)
 
@@ -2402,6 +2296,8 @@ AC_CHECK_FUNC(gethostbyname_r,
 AC_CHECK_FUNCS(inet_pton, [AC_DEFINE(HAVE_INET_PTON)])
 AC_CHECK_FUNCS(inet_ntop, [AC_DEFINE(HAVE_INET_NTOP)])
 AC_CHECK_FUNCS(gethostbyname2, [AC_DEFINE(HAVE_GETHOSTBYNAME2)])
+AC_CHECK_FUNCS(getnameinfo, [AC_DEFINE(HAVE_GETNAMEINFO)])
+
 
 dnl ----------------------------
 dnl check sa_len of sockaddr
@@ -2498,24 +2394,6 @@ if test x$ZLIBS = x-lz; then
    have_zlib=yes
 fi
 AC_SUBST(ZLIBS)
-
-dnl
-dnl Check for lzo
-dnl
-have_lzo=no
-AC_CHECK_HEADER(lzo/lzoconf.h, 
-[
-   AC_CHECK_HEADER(lzo/lzo1x.h,
-   [
-      AC_CHECK_LIB(lzo2, lzo1x_1_compress,
-      [
-	 LZOLIBS="-llzo2"
-	 AC_DEFINE(HAVE_LZO,1,[Define to 1 if you have LZO compression])
-	 have_lzo=yes
-      ])
-   ])
-])
-AC_SUBST(LZOLIBS)
 
 dnl
 dnl Check if we have AFS on this system
@@ -2623,6 +2501,75 @@ if test x$support_afs = xyes -o x$support_afs = xauto; then
 fi
 AC_SUBST(AFS_CFLAGS)
 AC_SUBST(AFS_LIBS)
+
+dnl ---------------------------------------------------
+dnl Check for lzo support/directory (default on)
+dnl ---------------------------------------------------
+dnl this allows you to turn it completely off
+
+AC_ARG_ENABLE(lzo,
+   AC_HELP_STRING([--disable-lzo], [disable lzo support @<:@default=yes@:>@]),
+   [
+       if test x$enableval = xno; then
+	  support_lzo=no
+       fi
+   ]
+)
+
+LZO_INC=
+LZO_LIBS=
+LZO_LDFLAGS=
+
+have_lzo="no"
+if test x$support_lzo = xyes; then
+   AC_ARG_WITH(lzo,
+      AC_HELP_STRING([--with-lzo@<:@=DIR@:>@], [specify lzo library directory]),
+      [
+	  case "$with_lzo" in
+	  no)
+	     :
+	     ;;
+	  yes|*)
+	     if test -f ${with_lzo}/include/lzo/lzoconf.h; then
+		LZO_INC="-I${with_lzo}/include"
+		LZO_LDFLAGS="-L${with_lzo}/lib"
+		with_lzo="${with_lzo}/include"
+	     else
+		with_lzo="/usr/include"
+	     fi
+
+	     AC_CHECK_HEADER(${with_lzo}/lzo/lzoconf.h,
+		[
+		    AC_DEFINE(HAVE_LZO, 1, [Define to 1 if you have LZO compression])
+		    LZO_LIBS="${LZO_LDFLAGS} -lzo2"
+		    have_lzo="yes"	
+		], [
+		    echo " "
+		    echo "lzoconf.h not found. lzo turned off ..."
+		    echo " "
+		]
+	     )
+	     ;;
+	  esac
+      ],[
+	 AC_CHECK_HEADER(lzo/lzoconf.h,
+	 [
+	    AC_CHECK_HEADER(lzo/lzo1x.h,
+	    [
+	       AC_CHECK_LIB(lzo2, lzo1x_1_compress,
+	       [
+		 LZO_LIBS="-llzo2"
+		 AC_DEFINE(HAVE_LZO,1,[Define to 1 if you have LZO compression])
+		 have_lzo=yes
+	       ])
+	    ])
+	 ])
+      ])
+fi
+
+AC_SUBST(LZO_INC)
+AC_SUBST(LZO_LIBS)
+
 
 dnl
 dnl Check for ACL support and libraries
@@ -2767,7 +2714,7 @@ if test x$support_acl = xyes -o x$support_acl = xauto; then
    fi
 
    if test x$support_acl = xyes -a $have_acl != yes; then
-      AC_MSG_ERROR([acl support explicitly enabled but no supported acl implementation found, 
+      AC_MSG_ERROR([acl support explicitly enabled but no supported acl implementation found,
   please either load the acl libraries or rerun configure without --enable-acl])
    else
       if test $have_acl = yes; then
@@ -2814,7 +2761,7 @@ if test x$support_xattr = xyes -o x$support_xattr = xauto; then
 	     AC_DEFINE([HAVE_EXTATTR_LIST_LINK],1,[Define to 1 if you have the 'extattr_list_link' function.])
 	 ]
       )
-   
+
       if test $have_xattr = no; then
 	 AC_CHECK_FUNCS(extattr_get_file extattr_set_file extattr_list_file,
 	    [
@@ -2825,7 +2772,7 @@ if test x$support_xattr = xyes -o x$support_xattr = xauto; then
 	    ]
 	 )
       fi
-   
+
       if test $have_xattr = yes; then
 	 have_extattr_string_in_libc=no
 	 AC_CHECK_FUNCS(extattr_namespace_to_string extattr_string_to_namespace,
@@ -2956,7 +2903,7 @@ if test x$support_xattr = xyes -o x$support_xattr = xauto; then
    fi
 
    if test x$support_xattr = xyes -a $have_xattr != yes; then
-      AC_MSG_ERROR([xattr support explicitly enabled but no supported xattr implementation found, 
+      AC_MSG_ERROR([xattr support explicitly enabled but no supported xattr implementation found,
   please either load the xattr libraries or rerun configure without --enable-xattr])
    else
       if test $have_xattr = yes; then
@@ -3039,7 +2986,6 @@ dnl
 dnl PFILES are platform specific files
 PFILES="platforms/Makefile"
 PSCMD="ps -e"
-WIN32=
 MACOSX=
 COMPRESS_MANPAGES=yes
 
@@ -3049,8 +2995,8 @@ aix)
    PSCMD="ps -e -o pid,comm"
    PFILES="${PFILES} \
       platforms/aix/Makefile"
-   TAPEDRIVE="/dev/rmt0.1" 
-  ;;	 
+   TAPEDRIVE="/dev/rmt0.1"
+  ;;	
 alpha)
    DISTVER=`uname -r`
    PTHREAD_LIB="-lpthread -lexc"
@@ -3077,13 +3023,6 @@ bsdi)
        platforms/bsdi/bacula-sd \
        platforms/bsdi/bacula-dir"
    largefile_support="yes"
-  ;;
-cygwin)
-   DISTVER=`uname -a |awk '{print $3}'`
-   TAPEDRIVE="/dev/nrst0"
-   WIN32=win32
-   WCFLAGS="-mwindows"
-   WLDFLAGS="-mwindows"
   ;;
 darwin)
    DISTVER=`uname -r`
@@ -3126,7 +3065,7 @@ debian)
 	 platforms/ubuntu/bacula-fd \
 	 platforms/ubuntu/bacula-sd \
 	 platforms/ubuntu/bacula-dir"
-   else 
+   else
       PFILES="${PFILES} \
 	 platforms/debian/Makefile \
 	 platforms/debian/bacula-fd \
@@ -3313,7 +3252,7 @@ unknown)
 *)
   echo " === Something went wrong. Unknown DISTNAME $DISTNAME ==="
   ;;
-esac  
+esac
 
 dnl -------------------------------------------
 dnl systemd (default off)
@@ -3357,7 +3296,6 @@ AC_DEFINE_UNQUOTED(lld, "$lld")
 AC_DEFINE_UNQUOTED(llu, "$llu")
 AC_SUBST(TAPEDRIVE)
 AC_SUBST(PSCMD)
-AC_SUBST(WIN32)
 AC_SUBST(MACOSX)
 AC_SUBST(DISTNAME)
 AC_SUBST(DISTVER)
@@ -3379,7 +3317,7 @@ if test "x${subsysdir}" = "x${sbindir}" ; then
    echo " "
    echo " "
    exit 1
-fi 
+fi
 
 AC_OUTPUT([autoconf/Make.common \
 	   Makefile \
@@ -3393,22 +3331,12 @@ AC_OUTPUT([autoconf/Make.common \
 	   scripts/devel_bacula \
 	   scripts/Makefile \
 	   scripts/logrotate \
-	   scripts/bacula.desktop.gnome1 \
-	   scripts/bacula.desktop.gnome2 \
-	   scripts/bacula.desktop.gnome1.consolehelper \
-	   scripts/bacula.desktop.gnome2.consolehelper \
-	   scripts/bacula.desktop.gnome1.xsu \
-	   scripts/bacula.desktop.gnome2.xsu \
 	   scripts/mtx-changer \
 	   scripts/disk-changer \
 	   scripts/dvd-handler \
 	   scripts/dvd-simulator \
-	   scripts/bacula-tray-monitor.desktop \
 	   scripts/logwatch/Makefile \
 	   scripts/logwatch/logfile.bacula.conf \
-	   scripts/wxconsole.console_apps \
-	   scripts/wxconsole.desktop.consolehelper \
-	   scripts/wxconsole.desktop.xsu \
 	   scripts/bat.desktop \
 	   scripts/bat.desktop.xsu \
 	   scripts/bat.desktop.consolehelper \
@@ -3417,16 +3345,10 @@ AC_OUTPUT([autoconf/Make.common \
 	   src/host.h \
 	   src/console/Makefile \
 	   src/console/bconsole.conf \
-	   src/qt-console/tray-monitor/tray-monitor.pro \
-	   src/qt-console/tray-monitor/tray-monitor.conf \
 	   src/qt-console/bat.conf \
 	   src/qt-console/bat.pro \
 	   src/qt-console/bat.pro.mingw32 \
 	   src/qt-console/install_conf_file \
-	   src/wx-console/Makefile \
-	   src/wx-console/bwx-console.conf \
-	   src/tray-monitor/Makefile \
-	   src/tray-monitor/tray-monitor.conf \
 	   src/dird/Makefile \
 	   src/dird/bacula-dir.conf \
 	   src/lib/Makefile \
@@ -3470,7 +3392,6 @@ AC_OUTPUT([autoconf/Make.common \
 	   src/plugins/fd/Makefile \
 	   src/plugins/sd/Makefile \
 	   src/plugins/dir/Makefile \
-	   src/win32/Makefile.inc \
 	   po/Makefile.in \
 	   updatedb/update_mysql_tables_9_to_10 \
 	   updatedb/update_sqlite3_tables_9_to_10 \
@@ -3481,15 +3402,16 @@ AC_OUTPUT([autoconf/Make.common \
 	   updatedb/update_mysql_tables_11_to_12 \
 	   updatedb/update_sqlite3_tables_11_to_12 \
 	   updatedb/update_postgresql_tables_11_to_12 \
-	   updatedb/update_mysql_tables_12_to_14 \
-	   updatedb/update_sqlite3_tables_12_to_14 \
-	   updatedb/update_postgresql_tables_12_to_14 \
 	   examples/nagios/check_bacula/Makefile \
 	   platforms/rpms/redhat/bacula.spec \
 	   platforms/rpms/redhat/bacula-bat.spec \
 	   platforms/rpms/redhat/bacula-docs.spec \
 	   platforms/rpms/redhat/bacula-mtx.spec \
-	   $PFILES ],  
+	   platforms/rpms/suse/bacula.spec \
+	   platforms/rpms/suse/bacula-bat.spec \
+	   platforms/rpms/suse/bacula-docs.spec \
+	   platforms/rpms/suse/bacula-mtx.spec \
+	   $PFILES ],
      [ ]
 )
 
@@ -3503,6 +3425,7 @@ if test "${support_bat}" = "yes" ; then
    touch bat
    chmod 755 bat
    rm -f Makefile
+   rm -rf moc32 obj32
    $QMAKE
    ${MAKE:-make} clean
    cd ${BUILD_DIR}
@@ -3522,9 +3445,9 @@ chmod 755 install_conf_file build-depkgs-qt-console
 cd ${BUILD_DIR}
 
 cd scripts
-chmod 755 bacula btraceback mtx-changer
+chmod 755 bacula btraceback mtx-changer storage-ctl bsg_persist
 chmod 755 dvd-handler dvd-simulator
-chmod 755 bconsole mtx-changer devel_bacula logrotate
+chmod 755 bconsole disk-changer devel_bacula logrotate
 cd ..
 
 c=updatedb
@@ -3558,8 +3481,6 @@ chmod 755 $c/mysql
 
 chmod 755 $c/install-default-backend
 
-chmod 755 src/win32/build-depkgs-mingw32
-
 if test "x$ac_cv_sys_largefile_CFLAGS" != "xno" ; then
    largefile_support="yes"
 fi
@@ -3589,74 +3510,71 @@ ${MAKE:-make} clean
 echo "
 Configuration on `date`:
 
-   Host:		     ${host}${post_host} -- ${DISTNAME} ${DISTVER}
-   Bacula version:	     ${BACULA} ${VERSION} (${DATE})
-   Source code location:     ${srcdir}
-   Install binaries:	     ${sbindir}
-   Install libraries:	     ${libdir}
-   Install config files:     ${sysconfdir}
-   Scripts directory:	     ${scriptdir}
-   Archive directory:	     ${archivedir}
-   Working directory:	     ${working_dir}
-   PID directory:	     ${piddir}
-   Subsys directory:	     ${subsysdir}
-   Man directory:	     ${mandir}
-   Data directory:	     ${datarootdir}
-   Plugin directory:	     ${plugindir}
-   C Compiler:		     ${CC} ${CCVERSION}
-   C++ Compiler:	     ${CXX} ${CXXVERSION}
-   Compiler flags:	     ${WCFLAGS} ${CFLAGS} 
-   Linker flags:	     ${WLDFLAGS} ${LDFLAGS}
-   Libraries:		     ${LIBS}
-   Statically Linked Tools:  ${support_static_tools}
-   Statically Linked FD:     ${support_static_fd}
-   Statically Linked SD:     ${support_static_sd}
-   Statically Linked DIR:    ${support_static_dir}
-   Statically Linked CONS:   ${support_static_cons}
-   Database backends:	     ${db_backends}
-   Database port:	     ${db_port}
-   Database name:	     ${db_name}
-   Database user:	     ${db_user}
- 
-   Job Output Email:	     ${job_email}
-   Traceback Email:	     ${dump_email}
-   SMTP Host Address:	     ${smtp_host}
- 
-   Director Port:	     ${dir_port}
-   File daemon Port:	     ${fd_port}
-   Storage daemon Port:      ${sd_port}
- 
-   Director User:	     ${dir_user}
-   Director Group:	     ${dir_group}
-   Storage Daemon User:      ${sd_user}
-   Storage DaemonGroup:      ${sd_group}
-   File Daemon User:	     ${fd_user}
-   File Daemon Group:	     ${fd_group}
- 
-   Large file support:	     $largefile_support
-   Bacula conio support:     ${got_conio} ${CONS_LIBS}
-   readline support:	     ${got_readline} ${PRTREADLINE_SRC}
-   TCP Wrappers support:     ${TCPW_MSG} ${WRAPLIBS}
-   TLS support: 	     ${support_tls}
-   Encryption support:	     ${support_crypto} 
-   ZLIB support:	     ${have_zlib}
-   LZO support: 	     ${have_lzo}
-   enable-smartalloc:	     ${support_smartalloc} 
-   enable-lockmgr:	     ${support_lockmgr}
-   bat support: 	     ${support_bat}
-   enable-gnome:	     ${support_gnome} ${gnome_version}
-   enable-bwx-console:	     ${support_wx_console} ${wx_version}
-   enable-tray-monitor:      ${support_tray_monitor}
-   client-only: 	     ${build_client_only}
-   build-dird:		     ${build_dird}
-   build-stored:	     ${build_stored}
-   Plugin support:	     ${have_plugins}
-   AFS support: 	     ${have_afs}
-   ACL support: 	     ${have_acl}
-   XATTR support:	     ${have_xattr}
-   Python support:	     ${support_python} ${PYTHON_LIBS}
-   systemd support:	     ${support_systemd} ${SYSTEMD_UNITDIR}
-   Batch insert enabled:     ${batch_insert_db_backends}
+   Host:		    ${host}${post_host} -- ${DISTNAME} ${DISTVER}
+   Bacula version:	    ${BACULA} ${VERSION} (${DATE})
+   Source code location:    ${srcdir}
+   Install binaries:	    ${sbindir}
+   Install libraries:	    ${libdir}
+   Install config files:    ${sysconfdir}
+   Scripts directory:	    ${scriptdir}
+   Archive directory:	    ${archivedir}
+   Working directory:	    ${working_dir}
+   PID directory:	    ${piddir}
+   Subsys directory:	    ${subsysdir}
+   Man directory:	    ${mandir}
+   Data directory:	    ${datarootdir}
+   Plugin directory:	    ${plugindir}
+   C Compiler:		    ${CC} ${CCVERSION}
+   C++ Compiler:	    ${CXX} ${CXXVERSION}
+   Compiler flags:	    ${WCFLAGS} ${CFLAGS}
+   Linker flags:	    ${WLDFLAGS} ${LDFLAGS}
+   Libraries:		    ${LIBS}
+   Statically Linked Tools: ${support_static_tools}
+   Statically Linked FD:    ${support_static_fd}
+   Statically Linked SD:    ${support_static_sd}
+   Statically Linked DIR:   ${support_static_dir}
+   Statically Linked CONS:  ${support_static_cons}
+   Database backends:	    ${db_backends}
+   Database port:	    ${db_port}
+   Database name:	    ${db_name}
+   Database user:	    ${db_user}
+
+   Job Output Email:	    ${job_email}
+   Traceback Email:	    ${dump_email}
+   SMTP Host Address:	    ${smtp_host}
+
+   Director Port:	    ${dir_port}
+   File daemon Port:	    ${fd_port}
+   Storage daemon Port:     ${sd_port}
+
+   Director User:	    ${dir_user}
+   Director Group:	    ${dir_group}
+   Storage Daemon User:     ${sd_user}
+   Storage DaemonGroup:     ${sd_group}
+   File Daemon User:	    ${fd_user}
+   File Daemon Group:	    ${fd_group}
+
+   Large file support:	    $largefile_support
+   Bacula conio support:    ${got_conio} ${CONS_LIBS}
+   readline support:	    ${got_readline} ${PRTREADLINE_SRC}
+   TCP Wrappers support:    ${TCPW_MSG} ${WRAPLIBS}
+   TLS support: 	    ${support_tls}
+   Encryption support:	    ${support_crypto}
+   ZLIB support:	    ${have_zlib}
+   LZO support: 	    ${have_lzo}
+   enable-smartalloc:	    ${support_smartalloc}
+   enable-lockmgr:	    ${support_lockmgr}
+   bat support: 	    ${support_bat}
+   client-only: 	    ${build_client_only}
+   build-dird:		    ${build_dird}
+   build-stored:	    ${build_stored}
+   Plugin support:	    ${have_plugins}
+   AFS support: 	    ${have_afs}
+   ACL support: 	    ${have_acl}
+   XATTR support:	    ${have_xattr}
+   Python support:	    ${support_python} ${PYTHON_LIBS}
+   systemd support:	    ${support_systemd} ${SYSTEMD_UNITDIR}
+   Batch insert enabled:    ${batch_insert_db_backends}
 
   " > config.out
 

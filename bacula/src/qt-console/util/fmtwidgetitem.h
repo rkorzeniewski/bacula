@@ -3,32 +3,20 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2007-2010 Free Software Foundation Europe e.V.
+   Copyright (C) 2007-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
- *   TreeView formatting helpers - Riccardo Ghetta, May 2008 
+ *   TreeView formatting helpers - Riccardo Ghetta, May 2008
  */
 
 class QWidget;
@@ -80,7 +68,7 @@ public:
    };
 
 public:
-   virtual ~ItemFormatterBase(); 
+   virtual ~ItemFormatterBase();
 
    /* Prints Yes if fld is != 0, No otherwise. Centers field if center true*/
    void setBoolFld(int index, const QString &fld, bool center = true);
@@ -110,19 +98,19 @@ public:
 
    /* fld value interpreted as volume status. Colored accordingly */
    void setVolStatusFld(int index, const QString &fld, bool center = true);
-  
+
    /* fld value interpreted as job status. Colored accordingly */
    void setJobStatusFld(int index, const QString &status, bool center = true);
-  
+
    /* fld value interpreted as job type. */
    void setJobTypeFld(int index, const QString &fld, bool center = false);
-  
+
    /* fld value interpreted as job level. */
    void setJobLevelFld(int index, const QString &fld, bool center = false);
 
    /* fld value interpreted as Online/Offline */
    void setInChanger(int index, const QString &InChanger);
-  
+
    /* fld value interpreted as file or folder */
    void setFileType(int index, const QString &type);
 
@@ -186,14 +174,14 @@ class TableItemFormatter : public ItemFormatterBase
 {
 private:
 
-   /* specialized widget item - allows an optional data property for sorting */ 
+   /* specialized widget item - allows an optional data property for sorting */
    class BatSortingTableItem : public QTableWidgetItem
    {
    private:
       static const int SORTDATA_ROLE = Qt::UserRole + 100;
    public:
       BatSortingTableItem();
-      
+
       /* uses the sort data if available, reverts to default behavior othervise */
       virtual bool operator< ( const QTableWidgetItem & o ) const;
 

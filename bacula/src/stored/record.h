@@ -1,29 +1,17 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2012 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  * Record, and label definitions for Bacula
@@ -47,14 +35,15 @@ enum {
    VOL_CREATE_ERROR,                      /* Error creating label */
    VOL_VERSION_ERROR,                     /* Bacula version error */
    VOL_LABEL_ERROR,                       /* Bad label type */
-   VOL_NO_MEDIA                           /* Hard error -- no media present */
+   VOL_NO_MEDIA,                          /* Hard error -- no media present */
+   VOL_TYPE_ERROR                         /* Volume type (aligned/non-aligned) error */
 };
 
 enum rec_state {
    st_none,                               /* No state */
    st_header,                             /* Write header */
-   st_header_cont,
-   st_data,
+   st_cont_header,                        /* Write continuation header */
+   st_data                                /* Write data record */
 };
 
 
@@ -80,13 +69,13 @@ enum rec_state {
 /* Record state bit definitions */
 #define REC_NO_HEADER        (1<<0)   /* No header read */
 #define REC_PARTIAL_RECORD   (1<<1)   /* returning partial record */
-#define REC_BLOCK_EMPTY      (1<<2)   /* not enough data in block */
+#define REC_BLOCK_EMPTY      (1<<2)   /* Not enough data in block */
 #define REC_NO_MATCH         (1<<3)   /* No match on continuation data */
 #define REC_CONTINUATION     (1<<4)   /* Continuation record found */
 #define REC_ISTAPE           (1<<5)   /* Set if device is tape */
 
 #define is_partial_record(r) ((r)->state_bits & REC_PARTIAL_RECORD)
-#define is_block_empty(r)    ((r)->state_bits & REC_BLOCK_EMPTY)
+#define is_block_marked_empty(r) ((r)->state_bits & (REC_BLOCK_EMPTY))
 
 /*
  * DEV_RECORD for reading and writing records.
@@ -100,20 +89,25 @@ struct DEV_RECORD {
    /* File and Block are always returned during reading
     *  and writing records.
     */
+   uint64_t StreamLen;                /* Expected data stream length */
    uint32_t File;                     /* File number */
    uint32_t Block;                    /* Block number */
    uint32_t VolSessionId;             /* sequential id within this session */
    uint32_t VolSessionTime;           /* session start time */
    int32_t  FileIndex;                /* sequential file number */
    int32_t  Stream;                   /* Full Stream number with high bits */
+   int32_t  last_FI;                  /* previous fi for adata */
+   int32_t  last_Stream;              /* previous stream for adata */
    int32_t  maskedStream;             /* Masked Stream without high bits */
    uint32_t data_len;                 /* current record length */
    uint32_t remainder;                /* remaining bytes to read/write */
+   uint32_t adata_remainder;          /* remaining adata bytes to read/write */
    uint32_t remlen;                   /* temp remainder bytes */
+   uint32_t data_bytes;               /* data_bytes */
    uint32_t state_bits;               /* state bits */
-   rec_state state;                   /* state of write_record_to_block */
+   rec_state wstate;                  /* state of write_record_to_block */
+   rec_state rstate;                  /* state of read_record_from_block */
    BSR *bsr;                          /* pointer to bsr that matched */
-   uint8_t  ser_buf[WRITE_RECHDR_LENGTH];   /* serialized record header goes here */
    POOLMEM *data;                     /* Record data. This MUST be a memory pool item */
    int32_t match_stat;                /* bsr match status */
    uint32_t last_VolSessionId;        /* used in sequencing FI for Vbackup */
@@ -181,7 +175,6 @@ struct Volume_Label {
   char LabelProg[50];                 /* Label program name */
   char ProgVersion[50];               /* Program version */
   char ProgDate[50];                  /* Program build date/time */
-
 };
 
 #define SER_LENGTH_Volume_Label 1024   /* max serialised length of volume label */

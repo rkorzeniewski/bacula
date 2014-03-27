@@ -1,29 +1,17 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2008-2012 Free Software Foundation Europe e.V.
+   Copyright (C) 2008-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  *
@@ -52,7 +40,7 @@ static const int dbglevel = 10;
 static bool create_bootstrap_file(JCR *jcr, char *jobids);
 void vbackup_cleanup(JCR *jcr, int TermCode);
 
-/* 
+/*
  * Called here before the job is run to do the job
  *   specific setup.
  */
@@ -79,7 +67,7 @@ bool do_vbackup_init(JCR *jcr)
    /*
     * Note, at this point, pool is the pool for this job.  We
     *  transfer it to rpool (read pool), and a bit later,
-    *  pool will be changed to point to the write pool, 
+    *  pool will be changed to point to the write pool,
     *  which comes from pool->NextPool.
     */
    jcr->rpool = jcr->pool;            /* save read pool */
@@ -97,27 +85,11 @@ bool do_vbackup_init(JCR *jcr)
       Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db));
    }
 
-
-   /*
-    * If the original backup pool has a NextPool, make sure a 
-    *  record exists in the database. Note, in this case, we
-    *  will be backing up from pool to pool->NextPool.
-    */
-   if (jcr->pool->NextPool) {
-      jcr->jr.PoolId = get_or_create_pool_record(jcr, jcr->pool->NextPool->name());
-      if (jcr->jr.PoolId == 0) {
-         return false;
-      }
-   }
-   if (!set_migration_wstorage(jcr, jcr->pool)) {
+   if (!apply_wstorage_overrides(jcr, jcr->pool)) {
       return false;
    }
-   jcr->pool = jcr->pool->NextPool;
-   pm_strcpy(jcr->pool_source, _("Job Pool's NextPool resource"));
 
    Dmsg2(dbglevel, "Write pool=%s read rpool=%s\n", jcr->pool->name(), jcr->rpool->name());
-
-// create_clones(jcr);
 
    return true;
 }
@@ -131,13 +103,15 @@ bool do_vbackup_init(JCR *jcr)
  */
 bool do_vbackup(JCR *jcr)
 {
-   char ed1[100];
-   BSOCK *sd;
-   char *p;
+   char        level_computed = L_FULL;
+   char        ed1[100];
+   BSOCK      *sd;
+   char       *p;
+   sellist     sel;
    db_list_ctx jobids;
 
    Dmsg2(100, "rstorage=%p wstorage=%p\n", jcr->rstorage, jcr->wstorage);
-   Dmsg2(100, "Read store=%s, write store=%s\n", 
+   Dmsg2(100, "Read store=%s, write store=%s\n",
       ((STORE *)jcr->rstorage->first())->name(),
       ((STORE *)jcr->wstorage->first())->name());
 
@@ -147,19 +121,100 @@ bool do_vbackup(JCR *jcr)
    Jmsg(jcr, M_INFO, 0, _("Start Virtual Backup JobId %s, Job=%s\n"),
         edit_uint64(jcr->JobId, ed1), jcr->Job);
    if (!jcr->accurate) {
-      Jmsg(jcr, M_WARNING, 0, 
+      Jmsg(jcr, M_WARNING, 0,
 _("This Job is not an Accurate backup so is not equivalent to a Full backup.\n"));
    }
 
-   jcr->jr.JobLevel = L_VIRTUAL_FULL;
-   db_accurate_get_jobids(jcr, jcr->db, &jcr->jr, &jobids);
-   Dmsg1(10, "Accurate jobids=%s\n", jobids.list);
+   if (jcr->JobIds && *jcr->JobIds) {
+      JOB_DBR jr;
+      db_list_ctx status;
+      POOL_MEM query(PM_MESSAGE);
+
+      memset(&jr, 0, sizeof(jr));
+
+      if (is_an_integer(jcr->JobIds)) {
+         /* Single JobId, so start the accurate code based on this id */
+
+         jr.JobId = str_to_int64(jcr->JobIds);
+         if (!db_get_job_record(jcr, jcr->db, &jr)) {
+            Jmsg(jcr, M_ERROR, 0,
+                 _("Unable to get Job record for JobId=%s: ERR=%s\n"),
+                 jcr->JobIds, db_strerror(jcr->db));
+            return false;
+         }
+         Jmsg(jcr, M_INFO,0,_("Selecting jobs to build the Full state at %s\n"),
+              jr.cStartTime);
+
+         jr.JobLevel = L_INCREMENTAL; /* Take Full+Diff+Incr */
+         db_accurate_get_jobids(jcr, jcr->db, &jr, &jobids);
+
+      } else if (sel.set_string(jcr->JobIds, true)) {
+         /* Found alljobid keyword */
+         if (jcr->use_all_JobIds) {
+            jobids.count = sel.size();
+            pm_strcpy(jobids.list, sel.get_expanded_list());
+
+         /* Need to apply some filter on the job name */
+         } else {
+            Mmsg(query,
+                 "SELECT JobId FROM Job "
+                  "WHERE Job.Name = '%s' "
+                    "AND Job.JobId IN (%s) "
+                  "ORDER BY JobTDate ASC",
+                 jcr->job->name(),
+                 sel.get_expanded_list());
+
+            db_sql_query(jcr->db, query.c_str(),  db_list_handler, &jobids);
+         }
+
+         if (jobids.count == 0) {
+            Jmsg(jcr, M_FATAL, 0, _("No valid Jobs found from user selection.\n"));
+            return false;
+         }
+
+         Jmsg(jcr, M_INFO, 0, _("Using user supplied JobIds=%s\n"),
+              jobids.list);
+
+         /* Check status */
+         Mmsg(query,
+              "SELECT Level FROM Job "
+               "WHERE Job.JobId IN (%s) "
+               "GROUP BY Level",
+              jobids.list);
+
+         /* Will produce something like F,D,I or F,I */
+         db_sql_query(jcr->db, query.c_str(),  db_list_handler, &status);
+
+         /* If no full found in the list, we build a "virtualdiff" or
+          * a "virtualinc".
+          */
+         if (strchr(status.list, L_FULL) == NULL) {
+            if (strchr(status.list, L_DIFFERENTIAL)) {
+               level_computed = L_DIFFERENTIAL;
+               Jmsg(jcr, M_INFO, 0, _("No previous Full found in list, "
+                                      "using Differential level\n"));
+
+            } else {
+               level_computed = L_INCREMENTAL;
+               Jmsg(jcr, M_INFO, 0, _("No previous Full found in list, "
+                                      "using Incremental level\n"));
+            }
+         }
+      }
+
+   } else {                     /* No argument provided */
+      jcr->jr.JobLevel = L_VIRTUAL_FULL;
+      db_accurate_get_jobids(jcr, jcr->db, &jcr->jr, &jobids);
+      Dmsg1(10, "Accurate jobids=%s\n", jobids.list);
+   }
+
    if (jobids.count == 0) {
       Jmsg(jcr, M_FATAL, 0, _("No previous Jobs found.\n"));
       return false;
    }
 
-   jcr->jr.JobLevel = L_FULL;
+   /* Full by default, or might be Incr/Diff when jobid= is used */
+   jcr->jr.JobLevel = level_computed;
 
    /*
     * Now we find the last job that ran and store it's info in
@@ -211,14 +266,14 @@ _("This Job is not an Accurate backup so is not equivalent to a Full backup.\n")
    }
    Dmsg0(100, "Storage daemon connection OK\n");
 
-   /*    
+   /*
     * We re-update the job start record so that the start
-    *  time is set after the run before job.  This avoids 
+    *  time is set after the run before job.  This avoids
     *  that any files created by the run before job will
     *  be saved twice.  They will be backed up in the current
     *  job, but not in the next one unless they are changed.
     *  Without this, they will be backed up in this job and
-    *  in the next job run because in that case, their date 
+    *  in the next job run because in that case, their date
     *   is after the start of this run.
     */
    jcr->start_time = time(NULL);
@@ -295,8 +350,8 @@ void vbackup_cleanup(JCR *jcr, int TermCode)
 
    /* Update final items to set them to the previous job's values */
    Mmsg(query, "UPDATE Job SET StartTime='%s',EndTime='%s',"
-               "JobTDate=%s WHERE JobId=%s", 
-      jcr->previous_jr.cStartTime, jcr->previous_jr.cEndTime, 
+               "JobTDate=%s WHERE JobId=%s",
+      jcr->previous_jr.cStartTime, jcr->previous_jr.cEndTime,
       edit_uint64(jcr->previous_jr.JobTDate, ec1),
       edit_uint64(jcr->JobId, ec3));
    db_sql_query(jcr->db, query.c_str(), NULL, NULL);
@@ -518,8 +573,8 @@ static bool create_bootstrap_file(JCR *jcr, char *jobids)
 
    complete_bsr(ua, rx.bsr);
    jcr->ExpectedFiles = write_bsr_file(ua, rx);
-   if (debug_level >= 10) {
-      Dmsg1(000,  "Found %d files to consolidate.\n", jcr->ExpectedFiles);
+   if (chk_dbglvl(10)) {
+      Pmsg1(000,  "Found %d files to consolidate.\n", jcr->ExpectedFiles);
    }
    if (jcr->ExpectedFiles == 0) {
       free_ua_context(ua);

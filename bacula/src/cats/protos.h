@@ -1,36 +1,24 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2009 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  *
  *  Database routines that are exported by the cats library for
  *    use elsewhere in Bacula (mainly the Director).
  *
- *    Version $Id$
+ *    Written by Kern Sibbald, MM
  */
 
 #ifndef __SQL_PROTOS_H
@@ -49,6 +37,7 @@ int db_list_handler(void *ctx, int num_fields, char **row);
 void db_debug_print(JCR *jcr, FILE *fp);
 int db_int_handler(void *ctx, int num_fields, char **row);
 void db_check_backend_thread_safe();
+int db_string_list_handler(void *ctx, int num_fields, char **row);
 
 /* sql_create.c */
 int db_create_path_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar);
@@ -69,6 +58,7 @@ bool db_create_restore_object_record(JCR *jcr, B_DB *mdb, ROBJECT_DBR *ar);
 bool db_create_base_file_attributes_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar);
 bool db_commit_base_file_attributes_record(JCR *jcr, B_DB *mdb);
 bool db_create_base_file_list(JCR *jcr, B_DB *mdb, char *jobids);
+void db_disable_batch_insert(bool disable);
 
 /* sql_delete.c */
 int db_delete_pool_record(JCR *jcr, B_DB *db, POOL_DBR *pool_dbr);
@@ -82,12 +72,13 @@ int db_find_next_volume(JCR *jcr, B_DB *mdb, int index, bool InChanger, MEDIA_DB
 bool db_find_failed_job_since(JCR *jcr, B_DB *mdb, JOB_DBR *jr, POOLMEM *stime, int &JobLevel);
 
 /* sql_get.c */
-bool db_get_volume_jobids(JCR *jcr, B_DB *mdb, 
+bool db_get_volume_jobids(JCR *jcr, B_DB *mdb,
                          MEDIA_DBR *mr, db_list_ctx *lst);
 bool db_get_base_file_list(JCR *jcr, B_DB *mdb, bool use_md5,
                            DB_RESULT_HANDLER *result_handler,void *ctx);
 int db_get_path_record(JCR *jcr, B_DB *mdb);
-bool db_get_pool_record(JCR *jcr, B_DB *db, POOL_DBR *pdbr);
+bool db_get_pool_record(JCR *jcr, B_DB *mdb, POOL_DBR *pdbr);
+bool db_get_pool_numvols(JCR *jcr, B_DB *mdb, POOL_DBR *pdbr);
 int db_get_client_record(JCR *jcr, B_DB *mdb, CLIENT_DBR *cr);
 bool db_get_job_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr);
 int db_get_job_volume_names(JCR *jcr, B_DB *mdb, JobId_t JobId, POOLMEM **VolumeNames);
@@ -112,11 +103,13 @@ bool db_get_used_base_jobids(JCR *jcr, B_DB *mdb, POOLMEM *jobids, db_list_ctx *
 /* sql_list.c */
 enum e_list_type {
    HORZ_LIST,
-   VERT_LIST
+   VERT_LIST,
+   FAILED_JOBS,
+   INCOMPLETE_JOBS
 };
 
 void db_list_pool_records(JCR *jcr, B_DB *db, POOL_DBR *pr, DB_LIST_HANDLER sendit, void *ctx, e_list_type type);
-void db_list_job_records(JCR *jcr, B_DB *db, JOB_DBR *jr, DB_LIST_HANDLER sendit, void *ctx, e_list_type type);
+alist *db_list_job_records(JCR *jcr, B_DB *db, JOB_DBR *jr, DB_LIST_HANDLER sendit, void *ctx, e_list_type type);
 void db_list_job_totals(JCR *jcr, B_DB *db, JOB_DBR *jr, DB_LIST_HANDLER sendit, void *ctx);
 void db_list_files_for_job(JCR *jcr, B_DB *db, uint32_t jobid, DB_LIST_HANDLER sendit, void *ctx);
 void db_list_media_records(JCR *jcr, B_DB *mdb, MEDIA_DBR *mdbr, DB_LIST_HANDLER *sendit, void *ctx, e_list_type type);

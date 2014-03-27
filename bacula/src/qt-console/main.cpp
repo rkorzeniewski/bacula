@@ -1,36 +1,24 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2007-2012 Free Software Foundation Europe e.V.
+   Copyright (C) 2007-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  *  Main program for bat (qt-console)
  *
- *   Kern Sibbald, January MMVII
+ *   Written by Kern Sibbald, January MMVII
  *
- */ 
+ */
 
 
 #include "bat.h"
@@ -50,7 +38,7 @@ MainWin *mainWin;
 QApplication *app;
 
 /* Forward referenced functions */
-void terminate_console(int sig);                                
+void terminate_console(int sig);
 static void usage();
 static int check_resources();
 
@@ -71,10 +59,11 @@ int main(int argc, char *argv[])
    bool test_config = false;
 
 
-   app = new QApplication(argc, argv);        
+   app = new QApplication(argc, argv);
+   app->setStyle(new QPlastiqueStyle());
    app->setQuitOnLastWindowClosed(true);
    QTextCodec::setCodecForCStrings(QTextCodec::codecForName("UTF-8"));
-     
+
    QTranslator qtTranslator;
    qtTranslator.load(QString("qt_") + QLocale::system().name(),QLibraryInfo::location(QLibraryInfo::TranslationsPath));
    app->installTranslator(&qtTranslator);
@@ -236,7 +225,7 @@ static int check_resources()
          ok = false;
       }
    }
-   
+
    if (numdir == 0) {
       Emsg1(M_FATAL, 0, _("No Director resource defined in %s\n"
                           "Without that I don't how to speak to the Director :-(\n"), configfile);

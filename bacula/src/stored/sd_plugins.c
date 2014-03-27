@@ -1,29 +1,17 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2007-2011 Free Software Foundation Europe e.V.
+   Copyright (C) 2007-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation, which is 
-   listed in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  * Main program to test loading and running Bacula plugins.
@@ -41,13 +29,14 @@ const char *plugin_type = "-sd.so";
 
 /* Forward referenced functions */
 static bRC baculaGetValue(bpContext *ctx, bsdrVariable var, void *value);
+static bRC baculaGetGlobal(bsdrGlobalVariable var, void *value);
 static bRC baculaSetValue(bpContext *ctx, bsdwVariable var, void *value);
 static bRC baculaRegisterEvents(bpContext *ctx, ...);
 static bRC baculaJobMsg(bpContext *ctx, const char *file, int line,
   int type, utime_t mtime, const char *fmt, ...);
 static bRC baculaDebugMsg(bpContext *ctx, const char *file, int line,
   int level, const char *fmt, ...);
-static char *baculaEditDeviceCodes(DCR *dcr, char *omsg, 
+static char *baculaEditDeviceCodes(DCR *dcr, char *omsg,
   const char *imsg, const char *cmd);
 static bool is_plugin_compatible(Plugin *plugin);
 
@@ -67,10 +56,11 @@ static bsdFuncs bfuncs = {
    baculaSetValue,
    baculaJobMsg,
    baculaDebugMsg,
-   baculaEditDeviceCodes
+   baculaEditDeviceCodes,
+   baculaGetGlobal
 };
 
-/* 
+/*
  * Bacula private context
  */
 struct bacula_ctx {
@@ -97,7 +87,7 @@ static bool is_plugin_disabled(JCR *jcr)
 #endif
 
 /*
- * Create a plugin event 
+ * Create a plugin event
  */
 int generate_plugin_event(JCR *jcr, bsdEventType eventType, void *value)
 {
@@ -119,9 +109,17 @@ int generate_plugin_event(JCR *jcr, bsdEventType eventType, void *value)
       Dmsg0(dbglvl, "No plugin_ctx_list: generate_plugin_event ignored.\n");
       return bRC_OK;                  /* Return if no plugins loaded */
    }
-   if (jcr->is_job_canceled()) {
-      Dmsg0(dbglvl, "Cancel return from generate_plugin_event\n");
-      return bRC_Cancel;
+
+   /* Always handle JobEnd and DeviceClose requests */
+   switch (eventType) {
+   case bsdEventJobEnd:
+   case bsdEventDeviceClose:
+      break;               /* pass these through even if canceled */
+   default:
+      if (jcr->is_job_canceled()) {
+         Dmsg0(dbglvl, "Cancel return from generate_plugin_event\n");
+         return bRC_Cancel;
+      }
    }
 
    bpContext *plugin_ctx_list = (bpContext *)jcr->plugin_ctx_list;
@@ -139,9 +137,37 @@ int generate_plugin_event(JCR *jcr, bsdEventType eventType, void *value)
          break;
       }
    }
-
    return rc;
 }
+
+
+/*
+ * Create a global plugin event -- i.e. no context
+ */
+int generate_global_plugin_event(bsdGlobalEventType eventType, void *value)
+{
+   bsdEvent event;
+   Plugin *plugin;
+   int i;
+   bRC rc = bRC_OK;
+
+   if (!bplugin_list) {
+      Dmsg0(dbglvl, "No bplugin_list: generate_global_plugin_event ignored.\n");
+      return bRC_OK;
+   }
+   event.eventType = eventType;
+
+   foreach_alist_index(i, plugin, bplugin_list) {
+      if (sdplug_func(plugin)->handleGlobalPluginEvent != NULL) {
+         rc = sdplug_func(plugin)->handleGlobalPluginEvent(&event, value);
+         if (rc != bRC_OK) {
+            break;
+         }
+      }
+   }
+   return rc;
+}
+
 
 /*
  * Print to file the plugin info.
@@ -176,7 +202,7 @@ void load_sd_plugins(const char *plugin_dir)
       return;
    }
    bplugin_list = New(alist(10, not_owned_by_alist));
-   if (!load_plugins((void *)&binfo, (void *)&bfuncs, plugin_dir, plugin_type, 
+   if (!load_plugins((void *)&binfo, (void *)&bfuncs, plugin_dir, plugin_type,
                 is_plugin_compatible)) {
       /* Either none found, or some error */
       if (bplugin_list->size() == 0) {
@@ -186,7 +212,7 @@ void load_sd_plugins(const char *plugin_dir)
          return;
       }
    }
-   /* 
+   /*
     * Verify that the plugin is acceptable, and print information
     *  about it.
     */
@@ -207,13 +233,13 @@ static bool is_plugin_compatible(Plugin *plugin)
 {
    psdInfo *info = (psdInfo *)plugin->pinfo;
    Dmsg0(50, "is_plugin_compatible called\n");
-   if (debug_level >= 50) {
+   if (chk_dbglvl(50)) {
       dump_sd_plugin(plugin, stdin);
    }
    if (strcmp(info->plugin_magic, SD_PLUGIN_MAGIC) != 0) {
       Jmsg(NULL, M_ERROR, 0, _("Plugin magic wrong. Plugin=%s wanted=%s got=%s\n"),
            plugin->file, SD_PLUGIN_MAGIC, info->plugin_magic);
-      Dmsg3(50, "Plugin magic wrong. Plugin=%s wanted=%s got=%s\n",
+      Dmsg3(000, "Plugin magic wrong. Plugin=%s wanted=%s got=%s\n",
            plugin->file, SD_PLUGIN_MAGIC, info->plugin_magic);
 
       return false;
@@ -221,7 +247,7 @@ static bool is_plugin_compatible(Plugin *plugin)
    if (info->version != SD_PLUGIN_INTERFACE_VERSION) {
       Jmsg(NULL, M_ERROR, 0, _("Plugin version incorrect. Plugin=%s wanted=%d got=%d\n"),
            plugin->file, SD_PLUGIN_INTERFACE_VERSION, info->version);
-      Dmsg3(50, "Plugin version incorrect. Plugin=%s wanted=%d got=%d\n",
+      Dmsg3(000, "Plugin version incorrect. Plugin=%s wanted=%d got=%d\n",
            plugin->file, SD_PLUGIN_INTERFACE_VERSION, info->version);
       return false;
    }
@@ -230,7 +256,7 @@ static bool is_plugin_compatible(Plugin *plugin)
        strcmp(info->plugin_license, "Bacula Systems(R) SA") != 0) {
       Jmsg(NULL, M_ERROR, 0, _("Plugin license incompatible. Plugin=%s license=%s\n"),
            plugin->file, info->plugin_license);
-      Dmsg2(50, "Plugin license incompatible. Plugin=%s license=%s\n",
+      Dmsg2(000, "Plugin license incompatible. Plugin=%s license=%s\n",
            plugin->file, info->plugin_license);
       return false;
    }
@@ -240,7 +266,7 @@ static bool is_plugin_compatible(Plugin *plugin)
            plugin->file, sizeof(psdInfo), info->size);
       return false;
    }
-      
+
    return true;
 }
 
@@ -261,7 +287,7 @@ void new_plugins(JCR *jcr)
    if (jcr->is_job_canceled()) {
       return;
    }
-   /* 
+   /*
     * If plugins already loaded, just return
     */
    if (jcr->plugin_ctx_list) {
@@ -322,6 +348,21 @@ void free_plugins(JCR *jcr)
  *
  * ==============================================================
  */
+
+/* Get a global. No job context */
+static bRC baculaGetGlobal(bsdrGlobalVariable var, void *value)
+{
+   if (!value) {
+      return bRC_Error;
+   }
+   switch (var) {
+   default:
+      break;
+   }
+   return bRC_OK;
+}
+
+
 static bRC baculaGetValue(bpContext *ctx, bsdrVariable var, void *value)
 {
    JCR *jcr;
@@ -352,16 +393,16 @@ static bRC baculaGetValue(bpContext *ctx, bsdrVariable var, void *value)
 
 static bRC baculaSetValue(bpContext *ctx, bsdwVariable var, void *value)
 {
-   JCR *jcr;   
+   JCR *jcr;
    if (!value || !ctx) {
       return bRC_Error;
    }
-// Dmsg1(dbglvl, "bacula: baculaGetValue var=%d\n", var);
+// Dmsg1(dbglvl, "bacula: baculaSetValue var=%d\n", var);
    jcr = ((bacula_ctx *)ctx->bContext)->jcr;
    if (!jcr) {
       return bRC_Error;
    }
-// Dmsg1(dbglvl, "Bacula: jcr=%p\n", jcr); 
+// Dmsg1(dbglvl, "Bacula: jcr=%p\n", jcr);
    /* Nothing implemented yet */
    Dmsg1(dbglvl, "sd-plugin: baculaSetValue var=%d\n", var);
    return bRC_OK;
@@ -413,7 +454,7 @@ static bRC baculaDebugMsg(bpContext *ctx, const char *file, int line,
    return bRC_OK;
 }
 
-static char *baculaEditDeviceCodes(DCR *dcr, char *omsg, 
+static char *baculaEditDeviceCodes(DCR *dcr, char *omsg,
   const char *imsg, const char *cmd)
 {
    return edit_device_codes(dcr, omsg, imsg, cmd);
@@ -429,7 +470,7 @@ int main(int argc, char *argv[])
    JCR *jcr2 = &mjcr2;
 
    strcpy(my_name, "test-dir");
-    
+
    getcwd(plugin_dir, sizeof(plugin_dir)-1);
    load_sd_plugins(plugin_dir);
 
@@ -448,7 +489,7 @@ int main(int argc, char *argv[])
 
    unload_plugins();
 
-   Dmsg0(dbglvl, "sd-plugin: OK ...\n");
+   Dmsg0(dbglvl, "sd-plugin: Test OK ...\n");
    close_memory_pool();
    sm_dump(false);
    return 0;

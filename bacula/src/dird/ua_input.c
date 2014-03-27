@@ -1,29 +1,17 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2001-2010 Free Software Foundation Europe e.V.
+   Copyright (C) 2001-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  *
@@ -42,18 +30,18 @@
 
 /* Exported functions */
 
-/* 
+/*
  * If subprompt is set, we send a BNET_SUB_PROMPT signal otherwise
  *   send a BNET_TEXT_INPUT signal.
  */
-int get_cmd(UAContext *ua, const char *prompt, bool subprompt)
+bool get_cmd(UAContext *ua, const char *prompt, bool subprompt)
 {
    BSOCK *sock = ua->UA_sock;
    int stat;
 
    ua->cmd[0] = 0;
    if (!sock || ua->batch) {          /* No UA or batch mode */
-      return 0;
+      return false;
    }
    if (!subprompt && ua->api) {
       sock->signal(BNET_TEXT_INPUT);
@@ -67,8 +55,8 @@ int get_cmd(UAContext *ua, const char *prompt, bool subprompt)
       if (stat == BNET_SIGNAL) {
          continue;                    /* ignore signals */
       }
-      if (is_bnet_stop(sock)) {
-         return 0;                    /* error or terminate */
+      if (sock->is_stop()) {
+         return false;               /* error or terminate */
       }
       pm_strcpy(ua->cmd, sock->msg);
       strip_trailing_junk(ua->cmd);
@@ -77,11 +65,33 @@ int get_cmd(UAContext *ua, const char *prompt, bool subprompt)
       }
       /* Lone dot => break */
       if (ua->cmd[0] == '.' && ua->cmd[1] == 0) {
-         return 0;
+         return false;
       }
       break;
    }
-   return 1;
+   return true;
+}
+
+/*
+ * Get a selection list
+ *  We get a command from the user, scan it, then
+ *  return when OK
+ * Returns true if OK
+ *         false if error
+ */
+bool get_selection_list(UAContext *ua, sellist &sl,
+                        const char *prompt, bool subprompt)
+{
+   for ( ;; ) {
+      if (!get_cmd(ua, prompt, subprompt)) {
+         return false;
+      }
+      if (sl.set_string(ua->cmd, true) < 0 && sl.get_errmsg()) {
+         ua->send_msg("%s", sl.get_errmsg());
+         continue;
+      }
+      return true;
+   }
 }
 
 /*
@@ -171,12 +181,12 @@ bool get_yesno(UAContext *ua, const char *prompt)
    }
 }
 
-/* 
+/*
  *  Gets an Enabled value => 0, 1, 2, yes, no, archived
  *  Returns: 0, 1, 2 if OK
  *           -1 on error
  */
-int get_enabled(UAContext *ua, const char *val) 
+int get_enabled(UAContext *ua, const char *val)
 {
    int Enabled = -1;
 
@@ -184,14 +194,14 @@ int get_enabled(UAContext *ua, const char *val)
      Enabled = 1;
    } else if (strcasecmp(val, "no") == 0 || strcasecmp(val, "false") == 0) {
       Enabled = 0;
-   } else if (strcasecmp(val, "archived") == 0) { 
+   } else if (strcasecmp(val, "archived") == 0) {
       Enabled = 2;
    } else {
       Enabled = atoi(val);
    }
    if (Enabled < 0 || Enabled > 2) {
       ua->error_msg(_("Invalid Enabled value, it must be yes, no, archived, 0, 1, or 2\n"));
-      return -1;     
+      return -1;
    }
    return Enabled;
 }

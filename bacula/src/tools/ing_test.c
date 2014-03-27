@@ -1,29 +1,17 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2009-2011 Free Software Foundation Europe e.V.
+   Copyright (C) 2009-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  *
@@ -40,7 +28,7 @@
 #include "bacula.h"
 #include "cats/cats.h"
 #include "cats/sql_glue.h"
- 
+
 /* Local variables */
 static B_DB *db;
 static const char *file = "COPYRIGHT";
@@ -106,7 +94,7 @@ int main (int argc, char *argv[])
    init_stack_dump();
 
    Dmsg0(0, "Starting ing_test tool\n");
-   
+
    my_name_is(argc, argv, "ing_test");
    init_msg(NULL, NULL);
 
@@ -185,7 +173,7 @@ int main (int argc, char *argv[])
       Pmsg0(0, _("Wrong number of arguments: \n"));
       usage();
    }
-   
+
    if ((db = db_init_database(NULL, NULL, db_name, db_user, db_password,
                               db_host, 0, NULL, false, false)) == NULL) {
       Emsg0(M_ERROR_TERM, 0, _("Could not init Bacula database\n"));
@@ -304,7 +292,7 @@ int main (int argc, char *argv[])
    }
 
 
-   /* 
+   /*
     * datatypes test
     */
    Pmsg0(0, "\ndatatypes test... (TODO)\n\n");

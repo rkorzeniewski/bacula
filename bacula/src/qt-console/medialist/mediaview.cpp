@@ -3,29 +3,17 @@
 
    Copyright (C) 2007-2010 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
- 
+
 #include "bat.h"
 #include <QAbstractEventDispatcher>
 #include <QMenu>
@@ -50,7 +38,7 @@ MediaView::MediaView() : Pages()
    connect(m_pbPurge, SIGNAL(pressed()), this, SLOT(purgePushed()));
    connect(m_pbDelete, SIGNAL(pressed()), this, SLOT(deletePushed()));
    connect(m_pbPrune, SIGNAL(pressed()), this, SLOT(prunePushed()));
-   connect(m_tableMedia, SIGNAL(itemDoubleClicked(QTableWidgetItem*)), 
+   connect(m_tableMedia, SIGNAL(itemDoubleClicked(QTableWidgetItem*)),
            this, SLOT(showInfoForMedia(QTableWidgetItem *)));
 
    /* mp_treeWidget, Storage Tree Tree Widget inherited from ui_medialist.h */
@@ -82,7 +70,7 @@ void MediaView::editPushed()
    QStringList sel;
    QString cmd;
    getSelection(sel);
-   
+
    for(int i=0; i<sel.count(); i++) {
       cmd = sel.at(i);
       new MediaEdit(mainWin->getFromHash(this), cmd);
@@ -205,7 +193,7 @@ void MediaView::populateForm()
    m_cbLocation->addItems(m_console->location_list);
 }
 
-/* 
+/*
  * If chkExpired button is checked, we can remove all non Expired
  * entries
  */
@@ -237,7 +225,7 @@ void MediaView::filterExipired(QStringList &list)
 }
 
 /*
- * The main meat of the class!!  The function that querries the director and 
+ * The main meat of the class!!  The function that querries the director and
  * creates the widgets with appropriate values.
  */
 void MediaView::populateTable()
@@ -260,7 +248,7 @@ void MediaView::populateTable()
    if (m_cbPool->currentText() != "") {
       cmd = " Pool.Name = '" + m_cbPool->currentText() + "'";
       where.append(cmd);
-   } 
+   }
 
    if (m_cbStatus->currentText() != "") {
       cmd = " Media.VolStatus = '" + m_cbStatus->currentText() + "'";
@@ -305,22 +293,22 @@ void MediaView::populateTable()
    if (m_console->sql_cmd(query, results)) {
       foreach (resultline, results) {
          fieldlist = resultline.split("\t");
-         if (fieldlist.at(1).toInt() >= 1) { 
+         if (fieldlist.at(1).toInt() >= 1) {
             //           MediaType
-            hash_size[fieldlist.at(2)] 
-               = fieldlist.at(0).toFloat(); 
+            hash_size[fieldlist.at(2)]
+               = fieldlist.at(0).toFloat();
          }
       }
-   }      
-   
+   }
+
    m_tableMedia->clearContents();
-   query = 
+   query =
       "SELECT VolumeName, InChanger, "
       "Slot, MediaType, VolStatus, VolBytes, Pool.Name,  "
       "LastWritten, Media.VolRetention "
       "FROM Media JOIN Pool USING (PoolId) "
       "LEFT JOIN Location ON (Media.LocationId=Location.LocationId) "
-      + cmd + 
+      + cmd +
       " ORDER BY VolumeName LIMIT " + m_sbLimit->cleanText();
 
    m_tableMedia->sortByColumn(0, Qt::AscendingOrder);
@@ -345,8 +333,8 @@ void MediaView::populateTable()
          TableItemFormatter mediaitem(*m_tableMedia, row);
 
          /* VolumeName */
-         mediaitem.setTextFld(index++, fld.next()); 
-         
+         mediaitem.setTextFld(index++, fld.next());
+
          /* Online */
          mediaitem.setInChanger(index++, fld.next());
 
@@ -384,10 +372,10 @@ void MediaView::populateTable()
             t = str_to_utime(LastWritten.toAscii().data());
             t = t + stat.toULongLong();
             ttime = t;
-            localtime_r(&ttime, &tm);         
+            localtime_r(&ttime, &tm);
             strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", &tm);
          }
-         
+
          /* LastWritten */
          mediaitem.setTextFld(index++, LastWritten);
 
@@ -439,7 +427,7 @@ void MediaView::currentStackItem()
 //    setConsoleCurrent();
 //    new relabelDialog(m_console, m_currentVolumeName);
 // }
-// 
+//
 // /*
 //  * Called from the signal of the context sensitive menu to purge!
 //  */
@@ -449,14 +437,14 @@ void MediaView::currentStackItem()
 //    consoleCommand(cmd);
 //    populateTable();
 // }
-// 
+//
 // void MediaView::allVolumes()
 // {
 //    QString cmd = "update volume allfrompools";
 //    consoleCommand(cmd);
 //    populateTable();
 // }
-// 
+//
 //  /*
 //   * Called from the signal of the context sensitive menu to purge!
 //   */
@@ -470,4 +458,4 @@ void MediaView::currentStackItem()
 //     consoleCommand(cmd);
 //     populateTable();
 //  }
-//  
+//

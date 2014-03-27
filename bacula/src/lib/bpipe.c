@@ -1,29 +1,17 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2002-2011 Free Software Foundation Europe e.V.
+   Copyright (C) 2002-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  *   bpipe.c bi-directional pipe
@@ -57,6 +45,15 @@ int num_execvp_errors = (int)(sizeof(execvp_errors)/sizeof(int));
 #if !defined(HAVE_WIN32)
 static void build_argc_argv(char *cmd, int *bargc, char *bargv[], int max_arg);
 
+void build_sh_argc_argv(char *cmd, int *bargc, char *bargv[], int max_arg)
+{
+   bargv[0] = (char *)"/bin/sh";
+   bargv[1] = (char *)"-c";
+   bargv[2] = cmd;
+   bargv[3] = NULL;
+   *bargc = 3;
+}
+
 /*
  * Run an external program. Optionally wait a specified number
  *   of seconds. Program killed if wait exceeded. We open
@@ -69,7 +66,7 @@ BPIPE *open_bpipe(char *prog, int wait, const char *mode)
    int bargc, i;
    int readp[2], writep[2];
    POOLMEM *tprog;
-   int mode_read, mode_write;
+   int mode_read, mode_write, mode_shell;
    BPIPE *bpipe;
    int save_errno;
 
@@ -77,10 +74,17 @@ BPIPE *open_bpipe(char *prog, int wait, const char *mode)
    memset(bpipe, 0, sizeof(BPIPE));
    mode_read = (mode[0] == 'r');
    mode_write = (mode[0] == 'w' || mode[1] == 'w');
+   /* mode is at least 2 bytes long, can be 3, rs, rws, ws */
+   mode_shell = (mode[1] == 's' || (mode[1] && mode[2] == 's'));
    /* Build arguments for running program. */
    tprog = get_pool_memory(PM_FNAME);
    pm_strcpy(tprog, prog);
-   build_argc_argv(tprog, &bargc, bargv, MAX_ARGV);
+   if (mode_shell) {
+      build_sh_argc_argv(tprog, &bargc, bargv, MAX_ARGV);
+
+   } else {
+      build_argc_argv(tprog, &bargc, bargv, MAX_ARGV);
+   }
 #ifdef  xxxxxx
    printf("argc=%d\n", bargc);
    for (i=0; i<bargc; i++) {
@@ -370,7 +374,7 @@ int run_program(char *prog, int wait, POOLMEM *&results)
 
 /*
  * Run an external program. Optionally wait a specified number
- *   of seconds. Program killed if wait exceeded (it is done by the 
+ *   of seconds. Program killed if wait exceeded (it is done by the
  *   watchdog, as fgets is a blocking function).
  *
  *   If the watchdog kills the program, fgets returns, and ferror is set
@@ -393,12 +397,12 @@ int run_program_full_output(char *prog, int wait, POOLMEM *&results)
    char *buf;
    const int bufsize = 32000;
 
-   
+
    Dsm_check(200);
 
    tmp = get_pool_memory(PM_MESSAGE);
    buf = (char *)malloc(bufsize+1);
-   
+
    results[0] = 0;
    mode = (char *)"r";
    bpipe = open_bpipe(prog, wait, mode);
@@ -406,7 +410,7 @@ int run_program_full_output(char *prog, int wait, POOLMEM *&results)
       stat1 = ENOENT;
       goto bail_out;
    }
-   
+
    Dsm_check(200);
    tmp[0] = 0;
    while (1) {
@@ -448,7 +452,7 @@ int run_program_full_output(char *prog, int wait, POOLMEM *&results)
    Dmsg3(1900, "resadr=0x%x reslen=%d res=%s\n", results, strlen(results), results);
    stat2 = close_bpipe(bpipe);
    stat1 = stat2 != 0 ? stat2 : stat1;
-   
+
    Dmsg1(900, "Run program returning %d\n", stat1);
 bail_out:
    free_pool_memory(tmp);

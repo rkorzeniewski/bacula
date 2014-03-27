@@ -1,29 +1,17 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2010 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /**
  * General header file configurations that apply to
@@ -74,7 +62,7 @@
    jcr[0] = 0; }
 
 #define ASSERT2(x,y) if (!(x)) { \
-   assert_msg =  y; \
+   set_assert_msg(__FILE__, __LINE__, y); \
    Emsg1(M_ERROR, 0, _("Failed ASSERT: %s\n"), #x); \
    Pmsg1(000, _("Failed ASSERT: %s\n"), #x); \
    char *jcr = NULL; \
@@ -166,7 +154,7 @@ void InitWinAPIWrapper();
 
 
 /* Use the following for strings not to be translated */
-#define NT_(s) (s)   
+#define NT_(s) (s)
 
 /* This should go away! ****FIXME***** */
 #define MAXSTRING 500
@@ -186,7 +174,7 @@ void InitWinAPIWrapper();
 /* All tape operations MUST be a multiple of this */
 #define TAPE_BSIZE 1024
 
-#ifdef DEV_BSIZE 
+#ifdef DEV_BSIZE
 #define B_DEV_BSIZE DEV_BSIZE
 #endif
 
@@ -319,6 +307,13 @@ typedef off_t     boffset_t;
 void b_memset(const char *file, int line, void *mem, int val, size_t num);
 #endif
 
+/* First we look if we have a debug_level set,
+ * then we look for simple debug level without tags
+ * then finally we check if tags are set on debug_level and lvl
+ */
+#define chk_dbglvl(lvl) (debug_level > 0 && (                              \
+     ((((lvl) & DT_ALL) == 0)        && ((lvl) <= (debug_level & ~DT_ALL))) || \
+     (((lvl) & DT_ALL & debug_level) && (((lvl) & ~DT_ALL) <= (debug_level & ~DT_ALL)))))
 
 /**
  * The digit following Dmsg and Emsg indicates the number of substitutions in
@@ -327,20 +322,20 @@ void b_memset(const char *file, int line, void *mem, int val, size_t num);
  */
 /** Debug Messages that are printed */
 #ifdef DEBUG
-#define Dmsg0(lvl, msg)             if ((lvl)<=debug_level) d_msg(__FILE__, __LINE__, lvl, msg)
-#define Dmsg1(lvl, msg, a1)         if ((lvl)<=debug_level) d_msg(__FILE__, __LINE__, lvl, msg, a1)
-#define Dmsg2(lvl, msg, a1, a2)     if ((lvl)<=debug_level) d_msg(__FILE__, __LINE__, lvl, msg, a1, a2)
-#define Dmsg3(lvl, msg, a1, a2, a3) if ((lvl)<=debug_level) d_msg(__FILE__, __LINE__, lvl, msg, a1, a2, a3)
-#define Dmsg4(lvl, msg, arg1, arg2, arg3, arg4) if ((lvl)<=debug_level) d_msg(__FILE__, __LINE__, lvl, msg, arg1, arg2, arg3, arg4)
-#define Dmsg5(lvl, msg, a1, a2, a3, a4, a5) if ((lvl)<=debug_level) d_msg(__FILE__, __LINE__, lvl, msg, a1, a2, a3, a4, a5)
-#define Dmsg6(lvl, msg, a1, a2, a3, a4, a5, a6) if ((lvl)<=debug_level) d_msg(__FILE__, __LINE__, lvl, msg, a1, a2, a3, a4, a5, a6)
-#define Dmsg7(lvl, msg, a1, a2, a3, a4, a5, a6, a7) if ((lvl)<=debug_level) d_msg(__FILE__, __LINE__, lvl, msg, a1, a2, a3, a4, a5, a6, a7)
-#define Dmsg8(lvl, msg, a1, a2, a3, a4, a5, a6, a7, a8) if ((lvl)<=debug_level) d_msg(__FILE__, __LINE__, lvl, msg, a1, a2, a3, a4, a5, a6, a7, a8)
-#define Dmsg9(lvl,msg,a1,a2,a3,a4,a5,a6,a7,a8,a9) if ((lvl)<=debug_level) d_msg(__FILE__,__LINE__,lvl,msg,a1,a2,a3,a4,a5,a6,a7,a8,a9)
-#define Dmsg10(lvl,msg,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10) if ((lvl)<=debug_level) d_msg(__FILE__,__LINE__,lvl,msg,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10)
-#define Dmsg11(lvl,msg,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11) if ((lvl)<=debug_level) d_msg(__FILE__,__LINE__,lvl,msg,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11)
-#define Dmsg12(lvl,msg,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12) if ((lvl)<=debug_level) d_msg(__FILE__,__LINE__,lvl,msg,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12)
-#define Dmsg13(lvl,msg,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12,a13) if ((lvl)<=debug_level) d_msg(__FILE__,__LINE__,lvl,msg,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12,a13)
+#define Dmsg0(lvl, msg)             if (chk_dbglvl(lvl)) d_msg(__FILE__, __LINE__, lvl, msg)
+#define Dmsg1(lvl, msg, a1)         if (chk_dbglvl(lvl)) d_msg(__FILE__, __LINE__, lvl, msg, a1)
+#define Dmsg2(lvl, msg, a1, a2)     if (chk_dbglvl(lvl)) d_msg(__FILE__, __LINE__, lvl, msg, a1, a2)
+#define Dmsg3(lvl, msg, a1, a2, a3) if (chk_dbglvl(lvl)) d_msg(__FILE__, __LINE__, lvl, msg, a1, a2, a3)
+#define Dmsg4(lvl, msg, arg1, arg2, arg3, arg4) if (chk_dbglvl(lvl)) d_msg(__FILE__, __LINE__, lvl, msg, arg1, arg2, arg3, arg4)
+#define Dmsg5(lvl, msg, a1, a2, a3, a4, a5) if (chk_dbglvl(lvl)) d_msg(__FILE__, __LINE__, lvl, msg, a1, a2, a3, a4, a5)
+#define Dmsg6(lvl, msg, a1, a2, a3, a4, a5, a6) if (chk_dbglvl(lvl)) d_msg(__FILE__, __LINE__, lvl, msg, a1, a2, a3, a4, a5, a6)
+#define Dmsg7(lvl, msg, a1, a2, a3, a4, a5, a6, a7) if (chk_dbglvl(lvl)) d_msg(__FILE__, __LINE__, lvl, msg, a1, a2, a3, a4, a5, a6, a7)
+#define Dmsg8(lvl, msg, a1, a2, a3, a4, a5, a6, a7, a8) if (chk_dbglvl(lvl)) d_msg(__FILE__, __LINE__, lvl, msg, a1, a2, a3, a4, a5, a6, a7, a8)
+#define Dmsg9(lvl,msg,a1,a2,a3,a4,a5,a6,a7,a8,a9) if (chk_dbglvl(lvl)) d_msg(__FILE__,__LINE__,lvl,msg,a1,a2,a3,a4,a5,a6,a7,a8,a9)
+#define Dmsg10(lvl,msg,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10) if (chk_dbglvl(lvl)) d_msg(__FILE__,__LINE__,lvl,msg,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10)
+#define Dmsg11(lvl,msg,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11) if (chk_dbglvl(lvl)) d_msg(__FILE__,__LINE__,lvl,msg,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11)
+#define Dmsg12(lvl,msg,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12) if (chk_dbglvl(lvl)) d_msg(__FILE__,__LINE__,lvl,msg,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12)
+#define Dmsg13(lvl,msg,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12,a13) if (chk_dbglvl(lvl)) d_msg(__FILE__,__LINE__,lvl,msg,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12,a13)
 #else
 #define Dmsg0(lvl, msg)
 #define Dmsg1(lvl, msg, a1)
@@ -457,7 +452,7 @@ int  Mmsg(POOL_MEM &msgbuf, const char *fmt,...);
 
 
 class JCR;
-void d_msg(const char *file, int line, int level, const char *fmt,...);
+void d_msg(const char *file, int line, int64_t level, const char *fmt,...);
 void p_msg(const char *file, int line, int level, const char *fmt,...);
 void e_msg(const char *file, int line, int type, int level, const char *fmt,...);
 void j_msg(const char *file, int line, JCR *jcr, int type, utime_t mtime, const char *fmt,...);
@@ -470,14 +465,14 @@ int  m_msg(const char *file, int line, POOLMEM *&pool_buf, const char *fmt, ...)
 #ifndef HAVE_WXCONSOLE
 #undef strdup
 #define strdup(buf) bad_call_on_strdup_use_bstrdup(buf)
-#else 
+#else
 /* Groan, WxWidgets has its own way of doing NLS so cleanup */
 #ifndef ENABLE_NLS
 #undef _
 #undef setlocale
 #undef textdomain
 #undef bindtextdomain
-#endif  
+#endif
 #endif
 
 /** Use our fgets which handles interrupts */
@@ -517,7 +512,7 @@ int  m_msg(const char *file, int line, POOLMEM *&pool_buf, const char *fmt, ...)
 
 /* =============================================================
  *               OS Dependent defines
- * ============================================================= 
+ * =============================================================
  */
 #if defined (__digital__) && defined (__unix__)
 /* Tru64 - it does have fseeko and ftello , but since ftell/fseek are also 64 bit */
@@ -569,7 +564,6 @@ int getdomainname(char *name, int len);
 /*
  *   Windows
  */
-#define DEFAULT_CONFIGDIR "C:\\Documents and Settings\\All Users\\Application Data\\Bacula"
 #define PathSeparator '\\'
 
 inline bool IsPathSeparator(int ch) { return ch == '/' || ch == '\\'; }
@@ -650,12 +644,21 @@ static inline bool bigendian() { return htonl(1) == 1L; }
 #ifndef __GNUC__
 #define __PRETTY_FUNCTION__ __func__
 #endif
+#ifdef HAVE_SUN_OS
+#undef ENTER_LEAVE
+#endif
 #ifdef ENTER_LEAVE
 #define Enter(lvl) Dmsg1(lvl, "Enter: %s\n", __PRETTY_FUNCTION__)
 #define Leave(lvl) Dmsg1(lvl, "Leave: %s\n", __PRETTY_FUNCTION__)
 #else
 #define Enter(lvl)
 #define Leave(lvl)
+#endif
+
+#ifdef __GNUC__x
+# define CHECK_FORMAT(fun, f, a) __attribute__ ((format (fun, f, a)))
+#else
+# define CHECK_FORMAT(fun, f, a)
 #endif
 
 #endif /* _BACONFIG_H */

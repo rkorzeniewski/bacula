@@ -1,29 +1,17 @@
 /*
-   Bacula(R) - The Network Backup Solution
+   Bacula® - The Network Backup Solution
 
-   Copyright (C) 2007-2012 Free Software Foundation Europe e.V.
+   Copyright (C) 2007-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation, which is 
-   listed in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
-
-   Bacula(R) is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
+   Bacula® is a registered trademark of Kern Sibbald.
 */
 /*
  *    Plugin load/unloader for all Bacula daemons
@@ -49,7 +37,7 @@ int readdir_r(DIR *dirp, struct dirent *entry, struct dirent **result);
 
 static const int dbglvl = 50;
 
-/* 
+/*
  * List of all loaded plugins.
  *
  * NOTE!!! This is a global do not try walking it with
@@ -60,7 +48,7 @@ alist *bplugin_list = NULL;
 /*
  * Create a new plugin "class" entry and enter it in the
  *  list of plugins.  Note, this is not the same as
- *  an instance of the plugin. 
+ *  an instance of the plugin.
  */
 Plugin *new_plugin()
 {
@@ -91,7 +79,7 @@ static void close_plugin(Plugin *plugin)
 /*
  * Load all the plugins in the specified directory.
  */
-bool load_plugins(void *binfo, void *bfuncs, const char *plugin_dir, 
+bool load_plugins(void *binfo, void *bfuncs, const char *plugin_dir,
         const char *type, bool is_plugin_compatible(Plugin *plugin))
 {
    bool found = false;
@@ -114,13 +102,13 @@ bool load_plugins(void *binfo, void *bfuncs, const char *plugin_dir,
 
    if (!(dp = opendir(plugin_dir))) {
       berrno be;
-      Jmsg(NULL, M_ERROR_TERM, 0, _("Failed to open Plugin directory %s: ERR=%s\n"), 
+      Jmsg(NULL, M_ERROR_TERM, 0, _("Failed to open Plugin directory %s: ERR=%s\n"),
             plugin_dir, be.bstrerror());
-      Dmsg2(dbglvl, "Failed to open Plugin directory %s: ERR=%s\n", 
+      Dmsg2(dbglvl, "Failed to open Plugin directory %s: ERR=%s\n",
             plugin_dir, be.bstrerror());
       goto get_out;
    }
-   
+
    len = strlen(plugin_dir);
    if (len > 0) {
       need_slash = !IsPathSeparator(plugin_dir[len - 1]);
@@ -131,13 +119,13 @@ bool load_plugins(void *binfo, void *bfuncs, const char *plugin_dir,
 
       if ((readdir_r(dp, entry, &result) != 0) || (result == NULL)) {
          if (!found) {
-            Jmsg(NULL, M_WARNING, 0, _("Failed to find any plugins in %s\n"), 
+            Jmsg(NULL, M_WARNING, 0, _("Failed to find any plugins in %s\n"),
                   plugin_dir);
             Dmsg1(dbglvl, "Failed to find any plugins in %s\n", plugin_dir);
          }
          break;
       }
-      if (strcmp(result->d_name, ".") == 0 || 
+      if (strcmp(result->d_name, ".") == 0 ||
           strcmp(result->d_name, "..") == 0) {
          continue;
       }
@@ -149,7 +137,7 @@ bool load_plugins(void *binfo, void *bfuncs, const char *plugin_dir,
          continue;
       }
       Dmsg2(dbglvl, "Found plugin: name=%s len=%d\n", result->d_name, len);
-       
+
       pm_strcpy(fname, plugin_dir);
       if (need_slash) {
          pm_strcat(fname, "/");
@@ -165,9 +153,9 @@ bool load_plugins(void *binfo, void *bfuncs, const char *plugin_dir,
       plugin->pHandle = dlopen(fname.c_str(), RTLD_NOW);
       if (!plugin->pHandle) {
          const char *error = dlerror();
-         Jmsg(NULL, M_ERROR, 0, _("dlopen plugin %s failed: ERR=%s\n"), 
+         Jmsg(NULL, M_ERROR, 0, _("dlopen plugin %s failed: ERR=%s\n"),
               fname.c_str(), NPRT(error));
-         Dmsg2(dbglvl, "dlopen plugin %s failed: ERR=%s\n", fname.c_str(), 
+         Dmsg2(dbglvl, "dlopen plugin %s failed: ERR=%s\n", fname.c_str(),
                NPRT(error));
          close_plugin(plugin);
          continue;
@@ -178,7 +166,7 @@ bool load_plugins(void *binfo, void *bfuncs, const char *plugin_dir,
       if (!loadPlugin) {
          Jmsg(NULL, M_ERROR, 0, _("Lookup of loadPlugin in plugin %s failed: ERR=%s\n"),
             fname.c_str(), NPRT(dlerror()));
-         Dmsg2(dbglvl, "Lookup of loadPlugin in plugin %s failed: ERR=%s\n", 
+         Dmsg2(dbglvl, "Lookup of loadPlugin in plugin %s failed: ERR=%s\n",
             fname.c_str(), NPRT(dlerror()));
          close_plugin(plugin);
          continue;
@@ -199,7 +187,7 @@ bool load_plugins(void *binfo, void *bfuncs, const char *plugin_dir,
          continue;
       }
       if (!is_plugin_compatible) {
-         Dmsg0(50, "Plugin compatibility pointer not set.\n");   
+         Dmsg0(50, "Plugin compatibility pointer not set.\n");
       } else if (!is_plugin_compatible(plugin)) {
          close_plugin(plugin);
          continue;
@@ -223,7 +211,7 @@ get_out:
 }
 
 /*
- * Unload all the loaded plugins 
+ * Unload all the loaded plugins
  */
 void unload_plugins()
 {

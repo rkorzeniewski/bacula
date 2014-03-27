@@ -3,41 +3,29 @@
 
    Copyright (C) 2007-2010 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
- 
+
 /*
  *  Run Command Dialog class
  *
  *  This is called when a Run Command signal is received from the
- *    Director. We parse the Director's output and throw up a 
+ *    Director. We parse the Director's output and throw up a
  *    dialog box.  This happens, for example, after the user finishes
  *    selecting files to be restored. The Director will then submit a
  *    run command, that causes this page to be popped up.
  *
  *   Kern Sibbald, March MMVII
  *
- */ 
+ */
 
 #include "bat.h"
 #include "run.h"
@@ -74,7 +62,7 @@ void runCmdPage::fill()
 
    clientCombo->addItems(m_console->client_list);
    filesetCombo->addItems(m_console->fileset_list);
-   replaceCombo->addItems(QStringList() << tr("never") << tr("always") << tr("ifnewer") 
+   replaceCombo->addItems(QStringList() << tr("never") << tr("always") << tr("ifnewer")
         << tr("ifolder"));
    replaceCombo->setCurrentIndex(replaceCombo->findText(tr("never"), Qt::MatchExactly));
    storageCombo->addItems(m_console->storage_list);
@@ -127,7 +115,7 @@ void runCmdPage::fill()
       if (item.startsWith("Priority:")) {
          bool okay;
          int pri = val.toInt(&okay, 10);
-         if (okay) 
+         if (okay)
             prioritySpin->setValue(pri);
          continue;
       }
@@ -154,7 +142,7 @@ void runCmdPage::okButtonPushed()
    QTextStream(&pri) << " priority=\"" << prioritySpin->value() << "\"";
    cmd += pri;
    cmd += " yes\n";
-   
+
    setConsoleCurrent();
    QString displayhtml("<font color=\"blue\">");
    displayhtml += cmd + "</font>\n";

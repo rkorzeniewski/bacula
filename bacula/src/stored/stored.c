@@ -1,29 +1,17 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2012 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  * Second generation Storage daemon.
@@ -42,9 +30,9 @@
 
 /* TODO: fix problem with bls, bextract
  * that use findlib and already declare
- * filed plugins 
+ * filed plugins
  */
-#include "sd_plugins.h"         
+#include "sd_plugins.h"
 
 /* Imported functions */
 extern bool parse_sd_config(CONFIG *config, const char *configfile, int exit_code);
@@ -246,7 +234,7 @@ int main (int argc, char *argv[])
 
    create_pid_file(me->pid_directory, "bacula-sd",
                    get_first_port_host_order(me->sdaddrs));
-   read_state_file(me->working_directory, "bacula-sd", 
+   read_state_file(me->working_directory, "bacula-sd",
                    get_first_port_host_order(me->sdaddrs));
 
    set_jcr_in_tsd(INVALID_JCR);
@@ -345,7 +333,7 @@ static int check_resources()
 
    DIRRES *director;
    STORES *store;
-   foreach_res(store, R_STORAGE) { 
+   foreach_res(store, R_STORAGE) {
       /* tls_require implies tls_enable */
       if (store->tls_require) {
          if (have_tls) {
@@ -390,7 +378,7 @@ static int check_resources()
             store->tls_keyfile, NULL, NULL, store->tls_dhfile,
             store->tls_verify_peer);
 
-         if (!store->tls_ctx) { 
+         if (!store->tls_ctx) {
             Jmsg(NULL, M_FATAL, 0, _("Failed to initialize TLS context for Storage \"%s\" in %s.\n"),
                  store->hdr.name, configfile);
             OK = false;
@@ -398,7 +386,7 @@ static int check_resources()
       }
    }
 
-   foreach_res(director, R_DIRECTOR) { 
+   foreach_res(director, R_DIRECTOR) {
       /* tls_require implies tls_enable */
       if (director->tls_require) {
          director->tls_enable = true;
@@ -437,7 +425,7 @@ static int check_resources()
             director->tls_keyfile, NULL, NULL, director->tls_dhfile,
             director->tls_verify_peer);
 
-         if (!director->tls_ctx) { 
+         if (!director->tls_ctx) {
             Jmsg(NULL, M_FATAL, 0, _("Failed to initialize TLS context for Director \"%s\" in %s.\n"),
                  director->hdr.name, configfile);
             OK = false;
@@ -447,7 +435,7 @@ static int check_resources()
 
    OK = init_autochangers();
 
-   
+
    if (OK) {
       close_msg(NULL);                   /* close temp message handler */
       init_msg(NULL, me->messages);      /* open daemon message handler */
@@ -497,10 +485,10 @@ static void cleanup_old_files()
    if (name_max < 1024) {
       name_max = 1024;
    }
-      
+
    if (!(dp = opendir(me->working_directory))) {
       berrno be;
-      Pmsg2(000, "Failed to open working dir %s for cleanup: ERR=%s\n", 
+      Pmsg2(000, "Failed to open working dir %s for cleanup: ERR=%s\n",
             me->working_directory, be.bstrerror());
       goto get_out1;
    }
@@ -514,7 +502,7 @@ static void cleanup_old_files()
       if (strcmp(result->d_name, ".") == 0 || strcmp(result->d_name, "..") == 0 ||
           strncmp(result->d_name, my_name, my_name_len) != 0) {
          Dmsg1(500, "Skipped: %s\n", result->d_name);
-         continue;    
+         continue;
       }
 
       /* Unlink files that match regex */
@@ -607,7 +595,8 @@ void *device_initialization(void *arg)
       jcr->dcr = NULL;
    }
 #endif
-   free_jcr(jcr); 
+   free_plugins(jcr);
+   free_jcr(jcr);
    init_done = true;
    UnlockRes();
    return NULL;
@@ -694,7 +683,7 @@ void terminate_stored(int sig)
       config = NULL;
    }
 
-   if (debug_level > 10) {
+   if (chk_dbglvl(10)) {
       print_memory_pool_stats();
    }
    term_msg();

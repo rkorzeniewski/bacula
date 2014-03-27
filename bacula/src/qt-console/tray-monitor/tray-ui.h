@@ -1,30 +1,17 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2011-2011 Free Software Foundation Europe e.V.
+   Copyright (C) 2011-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation, which is 
-   listed in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 
 #ifndef TRAYUI_H
@@ -83,7 +70,7 @@ public:
 
       qDebug() << "start getting elements";
       get_list(item, ".jobs type=B", res.job_list);
-      
+
       if (res.job_list.length() == 0) {
          QMessageBox msgBox;
          msgBox.setText("This restricted console doesn't have access to Backup jobs");
@@ -205,7 +192,7 @@ public:
        return hash.value(QString(title));
     }
 
-    void clearText(char *title) 
+    void clearText(char *title)
     {
        QPlainTextEdit *w = getTextEdit(title);
        if (!w) {
@@ -214,7 +201,7 @@ public:
        w->clear();
     }
 
-    void appendText(char *title, char *line) 
+    void appendText(char *title, char *line)
     {
        QPlainTextEdit *w = getTextEdit(title);
        if (!w) {
@@ -257,7 +244,7 @@ public:
         director = NULL;
         if (TrayMonitor->objectName().isEmpty())
             TrayMonitor->setObjectName(QString::fromUtf8("TrayMonitor"));
-        TrayMonitor->setWindowIcon(QIcon(":/images/cartridge1.png")); 
+        TrayMonitor->setWindowIcon(QIcon(":/images/cartridge1.png"));
         TrayMonitor->resize(789, 595);
         centralwidget = new QWidget(TrayMonitor);
         centralwidget->setObjectName(QString::fromUtf8("centralwidget"));
@@ -311,15 +298,15 @@ public:
         QAction* actAbout = new QAction(QApplication::translate("TrayMonitor",
                                "About",
                                 0, QApplication::UnicodeUTF8),TrayMonitor);
-	QAction* actRun = new QAction(QApplication::translate("TrayMonitor",
+        QAction* actRun = new QAction(QApplication::translate("TrayMonitor",
                                "Run...",
                                 0, QApplication::UnicodeUTF8),TrayMonitor);
-	stmenu->addAction(actShow);
+        stmenu->addAction(actShow);
         stmenu->addAction(actRun);
         stmenu->addAction(actAbout);
         stmenu->addSeparator();
-	stmenu->addAction(actQuit);
-        
+        stmenu->addAction(actQuit);
+
         connect(actRun, SIGNAL(triggered()), this, SLOT(cb_run()));
         connect(actShow, SIGNAL(triggered()), this, SLOT(cb_show()));
         connect(actQuit, SIGNAL(triggered()), this, SLOT(cb_quit()));
@@ -328,11 +315,11 @@ public:
         connect(tray, SIGNAL(activated(QSystemTrayIcon::ActivationReason)),
                 this, SLOT(cb_trayIconActivated(QSystemTrayIcon::ActivationReason)));
 
-	tray->setContextMenu(stmenu);
-	QIcon icon(":/images/cartridge1.png");
-	tray->setIcon(icon);
+        tray->setContextMenu(stmenu);
+        QIcon icon(":/images/cartridge1.png");
+        tray->setIcon(icon);
         tray->setToolTip(QString("Bacula Tray Monitor"));
-	tray->show();
+        tray->show();
 
         retranslateUi(TrayMonitor);
         QMetaObject::connectSlotsByName(TrayMonitor);

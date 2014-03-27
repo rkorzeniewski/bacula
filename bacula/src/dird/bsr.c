@@ -1,29 +1,17 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2002-2010 Free Software Foundation Europe e.V.
+   Copyright (C) 2002-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  *
@@ -62,7 +50,7 @@ static void free_findex(RBSR_FINDEX *fi)
    }
 }
 
-/* 
+/*
  * Get storage device name from Storage resource
  */
 static bool get_storage_device(char *device, char *storage)
@@ -71,7 +59,7 @@ static bool get_storage_device(char *device, char *storage)
    if (storage[0] == 0) {
       return false;
    }
-   store = (STORE *)GetResWithName(R_STORAGE, storage);    
+   store = (STORE *)GetResWithName(R_STORAGE, storage);
    if (!store) {
       return false;
    }
@@ -200,7 +188,7 @@ static void make_unique_restore_filename(UAContext *ua, POOL_MEM &fname)
    JCR *jcr = ua->jcr;
    int i = find_arg_with_value(ua, "bootstrap");
    if (i >= 0) {
-      Mmsg(fname, "%s", ua->argv[i]);              
+      Mmsg(fname, "%s", ua->argv[i]);
       jcr->unlink_bsr = false;
    } else {
       P(mutex);
@@ -249,7 +237,7 @@ uint32_t write_bsr_file(UAContext *ua, RESTORE_CTX &rx)
 
    ua->send_msg(_("Bootstrap records written to %s\n"), fname.c_str());
 
-   if (debug_level >= 10) {
+   if (chk_dbglvl(10)) {
       print_bsr(ua, rx);
    }
 
@@ -279,7 +267,7 @@ static void display_vol_info(UAContext *ua, RESTORE_CTX &rx, JobId_t JobId)
             } else {
                online = ' ';
             }
-            Mmsg(volmsg, "%c%-25s %-25s %-25s", 
+            Mmsg(volmsg, "%c%-25s %-25s %-25s",
                  online, bsr->VolParams[i].VolumeName,
                  bsr->VolParams[i].Storage, Device);
             add_prompt(ua, volmsg.c_str());
@@ -295,7 +283,7 @@ void display_bsr_info(UAContext *ua, RESTORE_CTX &rx)
 
    /* Tell the user what he will need to mount */
    ua->send_msg("\n");
-   ua->send_msg(_("The job will require the following\n"
+   ua->send_msg(_("The Job will require the following (*=>InChanger):\n"
                   "   Volume(s)                 Storage(s)                SD Device(s)\n"
                   "===========================================================================\n"));
    /* Create Unique list of Volumes using prompt list */
@@ -312,11 +300,12 @@ void display_bsr_info(UAContext *ua, RESTORE_CTX &rx)
    for (int i=0; i < ua->num_prompts; i++) {
       ua->send_msg("   %s\n", ua->prompt[i]);
       free(ua->prompt[i]);
+      if (ua->unique[i]) free(ua->unique[i]);
    }
    if (ua->num_prompts == 0) {
       ua->send_msg(_("No Volumes found to restore.\n"));
    } else {
-      ua->send_msg(_("\nVolumes marked with \"*\" are online.\n"));
+      ua->send_msg(_("\nVolumes marked with \"*\" are in the Autochanger.\n"));
    }
    ua->num_prompts = 0;
    ua->send_msg("\n");
@@ -327,7 +316,7 @@ void display_bsr_info(UAContext *ua, RESTORE_CTX &rx)
 /*
  * Write bsr data for a single bsr record
  */
-static uint32_t write_bsr_item(RBSR *bsr, UAContext *ua, 
+static uint32_t write_bsr_item(RBSR *bsr, UAContext *ua,
                    RESTORE_CTX &rx, FILE *fd, bool &first, uint32_t &LastIndex)
 {
    char ed1[50], ed2[50];
@@ -392,7 +381,7 @@ static uint32_t write_bsr_item(RBSR *bsr, UAContext *ua,
  * Here we actually write out the details of the bsr file.
  *  Note, there is one bsr for each JobId, but the bsr may
  *  have multiple volumes, which have been entered in the
- *  order they were written.  
+ *  order they were written.
  * The bsrs must be written out in the order the JobIds
  *  are found in the jobid list.
  */
@@ -562,7 +551,7 @@ void add_findex_all(RBSR *bsr, uint32_t JobId)
          nbsr->next->JobId = JobId;
 
          /* If we use regexp to restore, set it for each jobid */
-         if (bsr->fileregex) { 
+         if (bsr->fileregex) {
             nbsr->next->fileregex = bstrdup(bsr->fileregex);
          }
 

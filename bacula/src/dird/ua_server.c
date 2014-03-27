@@ -1,29 +1,17 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  *
@@ -31,7 +19,6 @@
  *
  *     Kern Sibbald, September MM
  *
- *    Version $Id$
  */
 
 #include "bacula.h"
@@ -163,11 +150,14 @@ static void *handle_UA_client_request(void *arg)
             }
             if (!ua->api) user->signal(BNET_EOD);     /* send end of command */
          }
-      } else if (is_bnet_stop(user)) {
+      } else if (user->is_stop()) {
          ua->quit = true;
       } else { /* signal */
          user->signal(BNET_POLL);
       }
+
+      /* At the end of each command, revert to the main shared SQL link */
+      ua->db = ua->shared_db;
    }
 
 getout:
@@ -192,7 +182,7 @@ UAContext *new_ua_context(JCR *jcr)
    ua = (UAContext *)malloc(sizeof(UAContext));
    memset(ua, 0, sizeof(UAContext));
    ua->jcr = jcr;
-   ua->db = jcr->db;
+   ua->shared_db = ua->db = jcr->db;
    ua->cmd = get_pool_memory(PM_FNAME);
    ua->args = get_pool_memory(PM_FNAME);
    ua->errmsg = get_pool_memory(PM_FNAME);
@@ -215,10 +205,10 @@ void free_ua_context(UAContext *ua)
    if (ua->prompt) {
       free(ua->prompt);
    }
-   if (ua->UA_sock) {
-      bnet_close(ua->UA_sock);
-      ua->UA_sock = NULL;
+   if (ua->unique) {
+      free(ua->unique);
    }
+   free_bsock(ua->UA_sock);
    free(ua);
 }
 

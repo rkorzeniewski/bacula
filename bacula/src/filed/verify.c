@@ -1,29 +1,17 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2011 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  *  Bacula File Daemon  verify.c  Verify files.
@@ -107,7 +95,7 @@ static int verify_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
    case FT_DIRBEGIN:
       jcr->num_files_examined--;      /* correct file count */
       return 1;                       /* ignored */
-   case FT_REPARSE: 
+   case FT_REPARSE:
    case FT_JUNCTION:
    case FT_DIREND:
       Dmsg1(30, "FT_DIR saving: %s\n", ff_pkt->fname);
@@ -211,7 +199,7 @@ static int verify_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
    }
    Dmsg2(20, "bfiled>bdird: attribs len=%d: msg=%s\n", dir->msglen, dir->msg);
    if (!stat) {
-      Jmsg(jcr, M_FATAL, 0, _("Network error in send to Director: ERR=%s\n"), bnet_strerror(dir));
+      Jmsg(jcr, M_FATAL, 0, _("Network error in send to Director: ERR=%s\n"), dir->bstrerror());
       return 0;
    }
 
@@ -254,7 +242,7 @@ static int verify_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
          uint32_t size;
 
          size = sizeof(md);
-         
+
          if (digest_file(jcr, ff_pkt, digest) != 0) {
             jcr->JobErrors++;
             goto good_rtn;
@@ -263,7 +251,7 @@ static int verify_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
          if (crypto_digest_finalize(digest, (uint8_t *)md, &size)) {
             char *digest_buf;
             const char *digest_name;
-            
+
             digest_buf = (char *)malloc(BASE64_SIZE(size));
             digest_name = crypto_digest_name(digest);
 
@@ -368,11 +356,11 @@ static int read_digest(BFILE *bfd, DIGEST *digest, JCR *jcr)
             continue;                 /* skip block of zeros */
          }
       }
-      
+
       crypto_digest_update(digest, (uint8_t *)buf, n);
 
       /* Can be used by BaseJobs or with accurate, update only for Verify
-       * jobs 
+       * jobs
        */
       if (jcr->getJobType() == JT_VERIFY) {
          jcr->JobBytes += n;

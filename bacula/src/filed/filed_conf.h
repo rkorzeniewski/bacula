@@ -1,36 +1,22 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  * Bacula File Daemon specific configuration
  *
  *     Kern Sibbald, Sep MM
- *
- *   Version $Id$
  */
 
 /*
@@ -69,7 +55,10 @@ struct DIRRES {
    char *tls_keyfile;                 /* TLS Server Key File */
    char *tls_dhfile;                  /* TLS Diffie-Hellman Parameters */
    alist *tls_allowed_cns;            /* TLS Allowed Clients */
+   uint64_t max_bandwidth_per_job;    /* Bandwidth limitation (per director) */
    TLS_CONTEXT *tls_ctx;              /* Shared TLS Context */
+   alist *disable_cmds;               /* Commands to disable */
+   bool *disabled_cmds_array;         /* Disabled commands array */
 };
 
 struct CLIENT {
@@ -91,6 +80,8 @@ struct CLIENT {
    char *pki_keypair_file;            /* PKI Key Pair File */
    alist *pki_signing_key_files;      /* PKI Signing Key Files */
    alist *pki_master_key_files;       /* PKI Master Key Files */
+   uint32_t pki_cipher;               /* PKI Cipher type */
+   uint32_t pki_digest;               /* PKI Digest type */
    bool tls_authenticate;             /* Authenticate with TLS */
    bool tls_enable;                   /* Enable TLS */
    bool tls_require;                  /* Require TLS */
@@ -104,6 +95,9 @@ struct CLIENT {
    alist *pki_recipients;             /* Shared PKI Recipients */
    TLS_CONTEXT *tls_ctx;              /* Shared TLS Context */
    char *verid;                       /* Custom Id to print in version command */
+   uint64_t max_bandwidth_per_job;    /* Bandwidth limitation (global) */
+   alist *disable_cmds;               /* Commands to disable */
+   bool *disabled_cmds_array;         /* Disabled commands array */
 };
 
 

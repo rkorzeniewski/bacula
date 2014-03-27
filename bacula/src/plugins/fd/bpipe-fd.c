@@ -1,29 +1,17 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2007-2012 Free Software Foundation Europe e.V.
+   Copyright (C) 2007-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation, which is 
-   listed in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  * A simple pipe plugin for the Bacula File Daemon
@@ -142,16 +130,16 @@ bRC loadPlugin(bInfo *lbinfo, bFuncs *lbfuncs, pInfo **pinfo, pFuncs **pfuncs)
 }
 
 /*
- * External entry point to unload the plugin 
+ * External entry point to unload the plugin
  */
-bRC unloadPlugin() 
+bRC unloadPlugin()
 {
 // printf("bpipe-fd: Unloaded\n");
    return bRC_OK;
 }
 
 /*
- * The following entry points are accessed through the function 
+ * The following entry points are accessed through the function
  *   pointers we supplied to Bacula. Each plugin type (dir, fd, sd)
  *   has its own set of entry points that the plugin must define.
  */
@@ -189,7 +177,7 @@ static bRC freePlugin(bpContext *ctx)
 /*
  * Return some plugin value (none defined)
  */
-static bRC getPluginValue(bpContext *ctx, pVariable var, void *value) 
+static bRC getPluginValue(bpContext *ctx, pVariable var, void *value)
 {
    return bRC_OK;
 }
@@ -197,7 +185,7 @@ static bRC getPluginValue(bpContext *ctx, pVariable var, void *value)
 /*
  * Set a plugin value (none defined)
  */
-static bRC setPluginValue(bpContext *ctx, pVariable var, void *value) 
+static bRC setPluginValue(bpContext *ctx, pVariable var, void *value)
 {
    return bRC_OK;
 }
@@ -221,7 +209,7 @@ static bRC handlePluginEvent(bpContext *ctx, bEvent *event, void *value)
     */
    switch (event->eventType) {
    case bEventPluginCommand:
-      bfuncs->DebugMessage(ctx, fi, li, dbglvl, 
+      bfuncs->DebugMessage(ctx, fi, li, dbglvl,
                            "bpipe-fd: PluginCommand=%s\n", (char *)value);
       break;
    case bEventJobStart:
@@ -282,7 +270,7 @@ static bRC handlePluginEvent(bpContext *ctx, bEvent *event, void *value)
       }
       *p++ = 0;           /* terminate reader string */
       p_ctx->writer = p;
-//    printf("bpipe-fd: plugin=%s fname=%s reader=%s writer=%s\n", 
+//    printf("bpipe-fd: plugin=%s fname=%s reader=%s writer=%s\n",
 //         p_ctx->cmd, p_ctx->fname, p_ctx->reader, p_ctx->writer);
       break;
 
@@ -293,7 +281,7 @@ static bRC handlePluginEvent(bpContext *ctx, bEvent *event, void *value)
    return bRC_OK;
 }
 
-/* 
+/*
  * Start the backup of a specific file
  */
 static bRC startBackupFile(bpContext *ctx, struct save_pkt *sp)
@@ -339,7 +327,7 @@ static bRC pluginIO(bpContext *ctx, struct io_pkt *io)
    if (!p_ctx) {
       return bRC_Error;
    }
-    
+
    io->status = 0;
    io->io_errno = 0;
    switch(io->func) {
@@ -349,11 +337,11 @@ static bRC pluginIO(bpContext *ctx, struct io_pkt *io)
          char *writer_codes = apply_rp_codes(p_ctx);
 
          p_ctx->fd = popen(writer_codes, "w");
-         bfuncs->DebugMessage(ctx, fi, li, dbglvl, "bpipe-fd: IO_OPEN fd=%d writer=%s\n", 
+         bfuncs->DebugMessage(ctx, fi, li, dbglvl, "bpipe-fd: IO_OPEN fd=%d writer=%s\n",
              p_ctx->fd, writer_codes);
          if (!p_ctx->fd) {
             io->io_errno = errno;
-            bfuncs->JobMessage(ctx, fi, li, M_FATAL, 0, 
+            bfuncs->JobMessage(ctx, fi, li, M_FATAL, 0,
                "Open pipe writer=%s failed: ERR=%s\n", writer_codes, strerror(errno));
             if (writer_codes) {
                free(writer_codes);
@@ -365,11 +353,11 @@ static bRC pluginIO(bpContext *ctx, struct io_pkt *io)
          }
       } else {
          p_ctx->fd = popen(p_ctx->reader, "r");
-         bfuncs->DebugMessage(ctx, fi, li, dbglvl, "bpipe-fd: IO_OPEN fd=%p reader=%s\n", 
+         bfuncs->DebugMessage(ctx, fi, li, dbglvl, "bpipe-fd: IO_OPEN fd=%p reader=%s\n",
             p_ctx->fd, p_ctx->reader);
          if (!p_ctx->fd) {
             io->io_errno = errno;
-            bfuncs->JobMessage(ctx, fi, li, M_FATAL, 0, 
+            bfuncs->JobMessage(ctx, fi, li, M_FATAL, 0,
                "Open pipe reader=%s failed: ERR=%s\n", p_ctx->reader, strerror(errno));
             return bRC_Error;
          }
@@ -385,9 +373,9 @@ static bRC pluginIO(bpContext *ctx, struct io_pkt *io)
       io->status = fread(io->buf, 1, io->count, p_ctx->fd);
 //    bfuncs->DebugMessage(ctx, fi, li, dbglvl, "bpipe-fd: IO_READ buf=%p len=%d\n", io->buf, io->status);
       if (io->status == 0 && ferror(p_ctx->fd)) {
-         bfuncs->JobMessage(ctx, fi, li, M_FATAL, 0, 
+         bfuncs->JobMessage(ctx, fi, li, M_FATAL, 0,
             "Pipe read error: ERR=%s\n", strerror(errno));
-         bfuncs->DebugMessage(ctx, fi, li, dbglvl, 
+         bfuncs->DebugMessage(ctx, fi, li, dbglvl,
             "Pipe read error: ERR=%s\n", strerror(errno));
          return bRC_Error;
       }
@@ -402,9 +390,9 @@ static bRC pluginIO(bpContext *ctx, struct io_pkt *io)
       io->status = fwrite(io->buf, 1, io->count, p_ctx->fd);
 //    printf("bpipe-fd: IO_WRITE buf=%p len=%d\n", io->buf, io->status);
       if (io->status == 0 && ferror(p_ctx->fd)) {
-         bfuncs->JobMessage(ctx, fi, li, M_FATAL, 0, 
+         bfuncs->JobMessage(ctx, fi, li, M_FATAL, 0,
             "Pipe write error\n");
-         bfuncs->DebugMessage(ctx, fi, li, dbglvl, 
+         bfuncs->DebugMessage(ctx, fi, li, dbglvl,
             "Pipe read error: ERR=%s\n", strerror(errno));
          return bRC_Error;
       }
@@ -416,6 +404,28 @@ static bRC pluginIO(bpContext *ctx, struct io_pkt *io)
          return bRC_Error;
       }
       io->status = pclose(p_ctx->fd);
+
+      /* Problem during execution */
+      if (io->status < 0) {
+         io->io_errno = errno;
+         bfuncs->JobMessage(ctx, fi, li, M_ERROR, 0, "bpipe-fd: Error closing stream for pseudo file %s: %d (%s)\n",
+                            p_ctx->fname, io->status, strerror(errno));
+
+      /* Problem inside the subprogram */
+      } else if (io->status > 0) {
+         int status=1;
+         if (WIFEXITED(io->status)) {    /* process exit()ed */
+            status = WEXITSTATUS(io->status);
+
+         } else if (WIFSIGNALED(io->status)) {  /* process died */
+#ifndef HAVE_WIN32
+            status = WTERMSIG(io->status);
+#endif
+         }
+         bfuncs->DebugMessage(ctx, fi, li, dbglvl, "bpipe-fd: exit=%d\n", io->status);
+         bfuncs->JobMessage(ctx, fi, li, M_ERROR, 0, "bpipe-fd: Error closing stream for pseudo file %s: exit %d\n",
+               p_ctx->fname, status);
+      }
       break;
 
    case IO_SEEK:
@@ -448,7 +458,7 @@ static bRC endRestoreFile(bpContext *ctx)
 /*
  * This is called during restore to create the file (if necessary)
  * We must return in rp->create_status:
- *   
+ *
  *  CF_ERROR    -- error
  *  CF_SKIP     -- skip processing this file
  *  CF_EXTRACT  -- extract the file (i.e.call i/o routines)
@@ -526,9 +536,9 @@ static char *apply_rp_codes(struct plugin_ctx * p_ctx)
       }
    }
 
-   /* Required mem: 
-    * len(imsg) 
-    * + number of "where" codes * (len(where)-2) 
+   /* Required mem:
+    * len(imsg)
+    * + number of "where" codes * (len(where)-2)
     * - number of "replace" codes
     */
    omsg = (char*)malloc(strlen(imsg) + (w_count * (strlen(p_ctx->where)-2)) - r_count + 1);

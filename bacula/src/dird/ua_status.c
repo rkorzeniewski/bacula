@@ -1,29 +1,17 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2001-2012 Free Software Foundation Europe e.V.
+   Copyright (C) 2001-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  *
@@ -38,8 +26,10 @@
 #include "dird.h"
 
 extern void *start_heap;
+extern utime_t last_reload_time;
 
 static void list_scheduled_jobs(UAContext *ua);
+static void llist_scheduled_jobs(UAContext *ua);
 static void list_running_jobs(UAContext *ua);
 static void list_terminated_jobs(UAContext *ua);
 static void do_storage_status(UAContext *ua, STORE *store, char *cmd);
@@ -76,7 +66,7 @@ bool dot_status_cmd(UAContext *ua, const char *cmd)
          ua->send_msg(OKqstatus, ua->argk[2]);
          foreach_jcr(njcr) {
             if (njcr->JobId != 0 && acl_access_ok(ua, Job_ACL, njcr->job->name())) {
-               ua->send_msg(DotStatusJob, edit_int64(njcr->JobId, ed1), 
+               ua->send_msg(DotStatusJob, edit_int64(njcr->JobId, ed1),
                         njcr->JobStatus, njcr->JobErrors);
             }
          }
@@ -86,7 +76,7 @@ bool dot_status_cmd(UAContext *ua, const char *cmd)
          if ((last_jobs) && (last_jobs->size() > 0)) {
             job = (s_last_job*)last_jobs->last();
             if (acl_access_ok(ua, Job_ACL, job->Job)) {
-               ua->send_msg(DotStatusJob, edit_int64(job->JobId, ed1), 
+               ua->send_msg(DotStatusJob, edit_int64(job->JobId, ed1),
                      job->JobStatus, job->Errors);
             }
          }
@@ -109,10 +99,12 @@ bool dot_status_cmd(UAContext *ua, const char *cmd)
          do_client_status(ua, client, ua->argk[2]);
       }
    } else if (strcasecmp(ua->argk[1], "storage") == 0) {
-      store = get_storage_resource(ua, false /*no default*/);
-      if (store) {
-         do_storage_status(ua, store, ua->argk[2]);
+      store = get_storage_resource(ua, false /*no default*/, true/*unique*/);
+      if (!store) {
+         ua->send_msg("1900 Bad .status command, wrong argument.\n");
+         return false;
       }
+      do_storage_status(ua, store, ua->argk[2]);
    } else {
       ua->send_msg("1900 Bad .status command, wrong argument.\n");
       return false;
@@ -142,7 +134,11 @@ int status_cmd(UAContext *ua, const char *cmd)
    Dmsg1(20, "status:%s:\n", cmd);
 
    for (i=1; i<ua->argc; i++) {
-      if (strcasecmp(ua->argk[i], NT_("all")) == 0) {
+      if (strcasecmp(ua->argk[i], NT_("schedule")) == 0 ||
+          strcasecmp(ua->argk[i], NT_("scheduled")) == 0) {
+         llist_scheduled_jobs(ua);
+         return 1;
+      } else if (strcasecmp(ua->argk[i], NT_("all")) == 0) {
          do_all_status(ua);
          return 1;
       } else if (strcasecmp(ua->argk[i], NT_("dir")) == 0 ||
@@ -156,7 +152,7 @@ int status_cmd(UAContext *ua, const char *cmd)
          }
          return 1;
       } else {
-         store = get_storage_resource(ua, false/*no default*/);
+         store = get_storage_resource(ua, false/*no default*/, true/*unique*/);
          if (store) {
             if (find_arg(ua, NT_("slots")) > 0) {
                status_slots(ua, store);
@@ -175,6 +171,7 @@ int status_cmd(UAContext *ua, const char *cmd)
       add_prompt(ua, NT_("Director"));
       add_prompt(ua, NT_("Storage"));
       add_prompt(ua, NT_("Client"));
+      add_prompt(ua, NT_("Scheduled"));
       add_prompt(ua, NT_("All"));
       Dmsg0(20, "do_prompt: select daemon\n");
       if ((item=do_prompt(ua, "",  _("Select daemon type for status"), prmt, sizeof(prmt))) < 0) {
@@ -186,7 +183,7 @@ int status_cmd(UAContext *ua, const char *cmd)
          do_director_status(ua);
          break;
       case 1:
-         store = select_storage_resource(ua);
+         store = select_storage_resource(ua, true/*unique*/);
          if (store) {
             do_storage_status(ua, store, NULL);
          }
@@ -198,6 +195,9 @@ int status_cmd(UAContext *ua, const char *cmd)
          }
          break;
       case 3:
+         llist_scheduled_jobs(ua);
+         break;
+      case 4:
          do_all_status(ua);
          break;
       default:
@@ -305,7 +305,7 @@ void list_dir_status_header(UAContext *ua)
             edit_uint64_with_commas(sm_max_buffers, b5));
 
    /* TODO: use this function once for all daemons */
-   if (debug_level > 0 && bplugin_list->size() > 0) {
+   if (bplugin_list->size() > 0) {
       int len;
       Plugin *plugin;
       POOL_MEM msg(PM_FNAME);
@@ -348,6 +348,21 @@ static void do_storage_status(UAContext *ua, STORE *store, char *cmd)
    BSOCK *sd;
    USTORE lstore;
 
+
+   if (!acl_access_ok(ua, Storage_ACL, store->name())) {
+      ua->error_msg(_("No authorization for Storage \"%s\"\n"), store->name());
+      return;
+   }
+   /*
+    * The Storage daemon is problematic because it shows information
+    *  related to multiple Jobs, so if there is a Client or Job
+    *  ACL restriction, we forbid all access to the Storage.
+    */
+   if (have_restricted_acl(ua, Client_ACL) ||
+       have_restricted_acl(ua, Job_ACL)) {
+      ua->error_msg(_("Restricted Client or Job does not permit access to  Storage daemons\n"));
+      return;
+   }
    lstore.store = store;
    pm_strcpy(lstore.store_source, _("unknown source"));
    set_wstorage(ua->jcr, &lstore);
@@ -357,25 +372,28 @@ static void do_storage_status(UAContext *ua, STORE *store, char *cmd)
    if (!connect_to_storage_daemon(ua->jcr, 1, 15, 0)) {
       ua->send_msg(_("\nFailed to connect to Storage daemon %s.\n====\n"),
          store->name());
-      if (ua->jcr->store_bsock) {
-         bnet_close(ua->jcr->store_bsock);
-         ua->jcr->store_bsock = NULL;
-      }
+      free_bsock(ua->jcr->store_bsock);
       return;
    }
-   Dmsg0(20, _("Connected to storage daemon\n"));
+   Dmsg0(20, "Connected to storage daemon\n");
    sd = ua->jcr->store_bsock;
    if (cmd) {
-      sd->fsend(".status %s", cmd);
+      POOL_MEM devname;
+      int i = find_arg_with_value(ua, "device");
+      if (i>0) {
+         Mmsg(devname, "device=%s", ua->argv[i]);
+         bash_spaces(devname.c_str());
+      }
+      sd->fsend(".status %s api=%d api_opts=%s %s",
+                cmd, ua->api, ua->api_opts, devname.c_str());
    } else {
       sd->fsend("status");
    }
    while (sd->recv() >= 0) {
       ua->send_msg("%s", sd->msg);
    }
-   sd->signal( BNET_TERMINATE);
-   sd->close();
-   ua->jcr->store_bsock = NULL;
+   sd->signal(BNET_TERMINATE);
+   free_bsock(ua->jcr->store_bsock);
    return;
 }
 
@@ -383,8 +401,11 @@ static void do_client_status(UAContext *ua, CLIENT *client, char *cmd)
 {
    BSOCK *fd;
 
+   if (!acl_access_ok(ua, Client_ACL, client->name())) {
+      ua->error_msg(_("No authorization for Client \"%s\"\n"), client->name());
+      return;
+   }
    /* Connect to File daemon */
-
    ua->jcr->client = client;
    /* Release any old dummy key */
    if (ua->jcr->sd_auth_key) {
@@ -399,16 +420,13 @@ static void do_client_status(UAContext *ua, CLIENT *client, char *cmd)
    if (!connect_to_file_daemon(ua->jcr, 1, 15, 0)) {
       ua->send_msg(_("Failed to connect to Client %s.\n====\n"),
          client->name());
-      if (ua->jcr->file_bsock) {
-         bnet_close(ua->jcr->file_bsock);
-         ua->jcr->file_bsock = NULL;
-      }
+      free_bsock(ua->jcr->file_bsock);
       return;
    }
    Dmsg0(20, _("Connected to file daemon\n"));
    fd = ua->jcr->file_bsock;
    if (cmd) {
-      fd->fsend(".status %s", cmd);
+      fd->fsend(".status %s api=%d api_opts=%s", cmd, ua->api, ua->api_opts);
    } else {
       fd->fsend("status");
    }
@@ -416,8 +434,7 @@ static void do_client_status(UAContext *ua, CLIENT *client, char *cmd)
       ua->send_msg("%s", fd->msg);
    }
    fd->signal(BNET_TERMINATE);
-   fd->close();
-   ua->jcr->file_bsock = NULL;
+   free_bsock(ua->jcr->file_bsock);
 
    return;
 }
@@ -426,10 +443,20 @@ static void prt_runhdr(UAContext *ua)
 {
    if (!ua->api) {
       ua->send_msg(_("\nScheduled Jobs:\n"));
-      ua->send_msg(_("Level          Type     Pri  Scheduled          Name               Volume\n"));
+      ua->send_msg(_("Level          Type     Pri  Scheduled          Job Name           Volume\n"));
       ua->send_msg(_("===================================================================================\n"));
    }
 }
+
+static void prt_lrunhdr(UAContext *ua)
+{
+   if (!ua->api) {
+      ua->send_msg(_("\nScheduled Jobs:\n"));
+      ua->send_msg(_("Level          Type     Pri  Scheduled          Job Name           Schedule\n"));
+      ua->send_msg(_("=====================================================================================\n"));
+   }
+}
+
 
 /* Scheduling packet */
 struct sched_pkt {
@@ -499,6 +526,182 @@ static void prt_runtime(UAContext *ua, sched_pkt *sp)
 }
 
 /*
+ * Detailed listing of all scheduler jobs
+ */
+static void llist_scheduled_jobs(UAContext *ua)
+{
+   utime_t runtime;
+   RUN *run;
+   JOB *job;
+   int level, num_jobs = 0;
+   int priority;
+   bool hdr_printed = false;
+   char sched_name[MAX_NAME_LENGTH];
+   char job_name[MAX_NAME_LENGTH];
+   SCHED *sched;
+   int days, i, limit;
+   time_t now = time(NULL);
+   time_t next;
+   const char *level_ptr;
+
+   Dmsg0(200, "enter list_sched_jobs()\n");
+
+   i = find_arg_with_value(ua, NT_("days"));
+   if (i >= 0) {
+     days = atoi(ua->argv[i]);
+     if (((days < 0) || (days > 500)) && !ua->api) {
+       ua->send_msg(_("Ignoring invalid value for days. Max is 500.\n"));
+       days = 10;
+     }
+   } else {
+      days = 10;
+   }
+
+   i = find_arg_with_value(ua, NT_("limit"));
+   if (i >= 0) {
+     limit = atoi(ua->argv[i]);
+     if (((limit < 0) || (limit > 2000)) && !ua->api) {
+       ua->send_msg(_("Ignoring invalid value for limit. Max is 2000.\n"));
+       limit = 100;
+     }
+   } else {
+      limit = 100;
+   }
+
+   i = find_arg_with_value(ua, NT_("time"));
+   if (i >= 0) {
+      now = str_to_utime(ua->argv[i]);
+      if (now == 0) {
+         ua->send_msg(_("Ignoring invalid time.\n"));
+         now = time(NULL);
+      }
+   }
+
+   i = find_arg_with_value(ua, NT_("schedule"));
+   if (i >= 0) {
+      bstrncpy(sched_name, ua->argv[i], sizeof(sched_name));
+   } else {
+      sched_name[0] = 0;
+   }
+
+   i = find_arg_with_value(ua, NT_("job"));
+   if (i >= 0) {
+      bstrncpy(job_name, ua->argv[i], sizeof(job_name));
+   } else {
+      job_name[0] = 0;
+   }
+
+   /* Loop through all jobs */
+   LockRes();
+   foreach_res(job, R_JOB) {
+      sched = job->schedule;
+      if (sched == NULL || !job->enabled) { /* scheduled? or enabled? */
+         continue;                    /* no, skip this job */
+      }
+      if (job_name[0] && bstrcmp(job_name, job->name()) != 0) {
+         continue;
+      }
+      for (run=sched->run; run; run=run->next) {
+         next = now;
+         for (i=0; i<days; i++) {
+            struct tm tm;
+            int mday, wday, month, wom, woy, ldom;
+            char dt[MAX_TIME_LENGTH];
+            bool ok;
+
+            /* compute values for next time */
+            (void)localtime_r(&next, &tm);
+            mday = tm.tm_mday - 1;
+            wday = tm.tm_wday;
+            month = tm.tm_mon;
+            wom = mday / 7;
+            woy = tm_woy(next);                    /* get week of year */
+            ldom = tm_ldom(month, tm.tm_year + 1900);
+
+//#define xxx_debug
+#ifdef xxx_debug
+            Dmsg6(000, "m=%d md=%d wd=%d wom=%d woy=%d ldom=%d\n",
+               month, mday, wday, wom, woy, ldom);
+            Dmsg6(000, "bitset bsm=%d bsmd=%d bswd=%d bswom=%d bswoy=%d bsldom=%d\n",
+               bit_is_set(month, run->month),
+               bit_is_set(mday, run->mday),
+               bit_is_set(wday, run->wday),
+               bit_is_set(wom, run->wom),
+               bit_is_set(woy, run->woy),
+               bit_is_set(31, run->mday));
+#endif
+
+            ok = (bit_is_set(mday, run->mday) &&
+                  bit_is_set(wday, run->wday) &&
+                  bit_is_set(month, run->month) &&
+                  bit_is_set(wom, run->wom) &&
+                  bit_is_set(woy, run->woy)) ||
+                 (bit_is_set(month, run->month) &&
+                  bit_is_set(31, run->mday) && mday == ldom);
+            if (!ok) {
+               next += 24 * 60 * 60;   /* Add one day */
+               continue;
+            }
+            for (int j=0; j < 24; j++) {
+               if (bit_is_set(j, run->hour)) {
+                  tm.tm_hour = j;
+                  tm.tm_min = run->minute;
+                  tm.tm_sec = 0;
+                  runtime = mktime(&tm);
+                  bstrftime_dn(dt, sizeof(dt), runtime);
+                  break;
+               }
+            }
+
+            level = job->JobLevel;
+            if (run->level) {
+               level = run->level;
+            }
+            switch (job->JobType) {
+            case JT_ADMIN:
+            case JT_RESTORE:
+               level_ptr = " ";
+               break;
+            default:
+               level_ptr = level_to_str(level);
+               break;
+            }
+            priority = job->Priority;
+            if (run->Priority) {
+               priority = run->Priority;
+            }
+            if (!hdr_printed) {
+               prt_lrunhdr(ua);
+               hdr_printed = true;
+            }
+            if (ua->api) {
+               ua->send_msg(_("%-14s\t%-8s\t%3d\t%-18s\t%-18s\t%s\n"),
+                  level_ptr, job_type_to_str(job->JobType), priority, dt,
+                  job->name(), sched->name());
+            } else {
+               ua->send_msg(_("%-14s %-8s %3d  %-18s %-18s %s\n"),
+                  level_ptr, job_type_to_str(job->JobType), priority, dt,
+                  job->name(), sched->name());
+            }
+            next += 24 * 60 * 60;   /* Add one day */
+            num_jobs++;
+            if (num_jobs >= limit) {
+               goto get_out;
+            }
+         }
+      } /* end loop over run pkts */
+   } /* end for loop over resources */
+get_out:
+   UnlockRes();
+   if (num_jobs == 0 && !ua->api) {
+      ua->send_msg(_("No Scheduled Jobs.\n"));
+   }
+   if (!ua->api) ua->send_msg("====\n");
+   Dmsg0(200, "Leave ;list_sched_jobs_runs()\n");
+}
+
+
+/*
  * Sort items by runtime, priority
  */
 static int my_compare(void *item1, void *item2)
@@ -530,6 +733,7 @@ static void list_scheduled_jobs(UAContext *ua)
    int level, num_jobs = 0;
    int priority;
    bool hdr_printed = false;
+   char sched_name[MAX_NAME_LENGTH];
    dlist sched;
    sched_pkt *sp;
    int days, i;
@@ -545,11 +749,21 @@ static void list_scheduled_jobs(UAContext *ua)
        days = 1;
      }
    }
+   i = find_arg_with_value(ua, NT_("schedule"));
+   if (i >= 0) {
+      bstrncpy(sched_name, ua->argv[i], sizeof(sched_name));
+   } else {
+      sched_name[0] = 0;
+   }
 
    /* Loop through all jobs */
    LockRes();
    foreach_res(job, R_JOB) {
       if (!acl_access_ok(ua, Job_ACL, job->name()) || !job->enabled) {
+         continue;
+      }
+      if (sched_name[0] && job->schedule &&
+          strcasecmp(job->schedule->name(), sched_name) != 0) {
          continue;
       }
       for (run=NULL; (run = find_next_run(run, job, runtime, days)); ) {
@@ -612,20 +826,22 @@ static void list_running_jobs(UAContext *ua)
             ua->send_msg(_("Console connected at %s\n"), dt);
          }
          continue;
-      }       
+      }
       njobs++;
    }
    endeach_jcr(jcr);
 
    if (njobs == 0) {
       /* Note the following message is used in regress -- don't change */
-      if (!ua->api)  ua->send_msg(_("No Jobs running.\n====\n"));
+      if (!ua->api)  {
+         ua->send_msg(_("No Jobs running.\n====\n"));
+      }
       Dmsg0(200, "leave list_run_jobs()\n");
       return;
    }
    njobs = 0;
    if (!ua->api) {
-      ua->send_msg(_(" JobId Level   Name                       Status\n"));
+      ua->send_msg(_(" JobId  Type Level     Files     Bytes  Name              Status\n"));
       ua->send_msg(_("======================================================================\n"));
    }
    foreach_jcr(jcr) {
@@ -699,10 +915,17 @@ static void list_running_jobs(UAContext *ua)
          msg = _("is waiting on max total jobs");
          break;
       case JS_WaitStartTime:
-         msg = _("is waiting for its start time");
+         emsg = (char *) get_pool_memory(PM_FNAME);
+         Mmsg(emsg, _("is waiting for its start time (%s)"),
+              bstrftime_ny(dt, sizeof(dt), jcr->sched_time));
+         pool_mem = true;
+         msg = emsg;
          break;
       case JS_WaitPriority:
          msg = _("is waiting for higher priority jobs to finish");
+         break;
+      case JS_WaitDevice:
+         msg = _("is waiting for a Shared Storage device");
          break;
       case JS_DataCommitting:
          msg = _("SD committing Data");
@@ -779,18 +1002,21 @@ static void list_running_jobs(UAContext *ua)
          break;
       }
 
-      if (ua->api) {
+      if (ua->api == 1) {
          bash_spaces(jcr->comment);
          ua->send_msg(_("%6d\t%-6s\t%-20s\t%s\t%s\n"),
                       jcr->JobId, level, jcr->Job, msg, jcr->comment);
          unbash_spaces(jcr->comment);
       } else {
-         ua->send_msg(_("%6d %-6s  %-20s %s\n"),
-            jcr->JobId, level, jcr->Job, msg);
-         /* Display comments if any */
-         if (*jcr->comment) {
-            ua->send_msg(_("               %-30s\n"), jcr->comment);
-         }
+         char b1[50], b2[50], b3[50];
+         level[4] = 0;
+         bstrncpy(b1, job_type_to_str(jcr->getJobType()), sizeof(b1));
+         b1[4] = 0;
+         ua->send_msg(_("%6d  %-4s %-3s %10s %10s %-17s %s\n"),
+            jcr->JobId, b1, level,
+            edit_uint64_with_commas(jcr->JobFiles, b2),
+            edit_uint64_with_suffix(jcr->JobBytes, b3),
+            jcr->job->name(), msg);
       }
 
       if (pool_mem) {
@@ -799,7 +1025,9 @@ static void list_running_jobs(UAContext *ua)
       }
    }
    endeach_jcr(jcr);
-   if (!ua->api) ua->send_msg("====\n");
+   if (!ua->api) {
+      ua->send_msg("====\n");
+   }
    Dmsg0(200, "leave list_run_jobs()\n");
 }
 
@@ -871,7 +1099,7 @@ static void list_terminated_jobs(UAContext *ua)
          termstat = _("Other");
          break;
       }
-      if (ua->api) {
+      if (ua->api == 1) {
          ua->send_msg(_("%6d\t%-6s\t%8s\t%10s\t%-7s\t%-8s\t%s\n"),
             je->JobId,
             level,
@@ -889,6 +1117,8 @@ static void list_terminated_jobs(UAContext *ua)
             dt, JobName);
       }
    }
-   if (!ua->api) ua->send_msg(_("\n"));
+   if (!ua->api) {
+      ua->send_msg(_("\n"));
+   }
    unlock_last_jobs_list();
 }

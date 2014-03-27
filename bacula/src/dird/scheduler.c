@@ -1,29 +1,17 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2011 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  *
@@ -44,7 +32,7 @@
 #define DBGLVL 0
 #else
 #undef SCHED_DEBUG
-#define DBGLVL 200
+#define DBGLVL DT_SCHEDULER|200
 #endif
 
 const int dbglvl = DBGLVL;
@@ -73,7 +61,7 @@ static void dump_job(job_item *ji, const char *msg);
 
 /* Imported variables */
 
-/**
+/*
  * called by reload_config to tell us that the schedules
  * we may have based our next jobs to run queues have been
  * invalidated.  In fact the schedules may not have changed
@@ -81,7 +69,7 @@ static void dump_job(job_item *ji, const char *msg);
  * on are new and no longer have a valid last_run time which
  * causes us to double run schedules that get put into the list
  * because run_nh = 1.
- */   
+ */
 static bool schedules_invalidated = false;
 void invalidate_schedules(void) {
     schedules_invalidated = true;
@@ -154,7 +142,7 @@ again:
       time_t twait;
       /** discard scheduled queue and rebuild with new schedule objects. **/
       lock_jobs();
-      if (schedules_invalidated) { 
+      if (schedules_invalidated) {
           dump_job(next_job, "Invalidated job");
           free(next_job);
           while (!jobs_to_run->empty()) {
@@ -204,6 +192,10 @@ again:
    if (run->pool) {
       jcr->pool = run->pool;          /* override pool */
       jcr->run_pool_override = true;
+   }
+   if (run->next_pool) {
+      jcr->next_pool = run->next_pool; /* override next pool */
+      jcr->run_next_pool_override = true;
    }
    if (run->full_pool) {
       jcr->full_pool = run->full_pool; /* override full pool */
@@ -266,9 +258,9 @@ static void find_runs()
    JOB *job;
    SCHED *sched;
    struct tm tm;
-   int hour, mday, wday, month, wom, woy;
+   int hour, mday, wday, month, wom, woy, ldom;
    /* Items corresponding to above at the next hour */
-   int nh_hour, nh_mday, nh_wday, nh_month, nh_wom, nh_woy;
+   int nh_hour, nh_mday, nh_wday, nh_month, nh_wom, nh_woy, nh_ldom;
 
    Dmsg0(dbglvl, "enter find_runs()\n");
 
@@ -281,6 +273,7 @@ static void find_runs()
    month = tm.tm_mon;
    wom = mday / 7;
    woy = tm_woy(now);                     /* get week of year */
+   ldom = tm_ldom(month, tm.tm_year + 1900);
 
    Dmsg7(dbglvl, "now = %x: h=%d m=%d md=%d wd=%d wom=%d woy=%d\n",
          now, hour, month, mday, wday, wom, woy);
@@ -298,6 +291,7 @@ static void find_runs()
    nh_month = tm.tm_mon;
    nh_wom = nh_mday / 7;
    nh_woy = tm_woy(next_hour);              /* get week of year */
+   nh_ldom = tm_ldom(nh_month, tm.tm_year + 1900);
 
    Dmsg7(dbglvl, "nh = %x: h=%d m=%d md=%d wd=%d wom=%d woy=%d\n",
          next_hour, nh_hour, nh_month, nh_mday, nh_wday, nh_wom, nh_woy);
@@ -317,40 +311,47 @@ static void find_runs()
           */
 #ifdef xxxx
          Dmsg0(000, "\n");
-         Dmsg6(000, "run h=%d m=%d md=%d wd=%d wom=%d woy=%d\n",
-            hour, month, mday, wday, wom, woy);
-         Dmsg6(000, "bitset bsh=%d bsm=%d bsmd=%d bswd=%d bswom=%d bswoy=%d\n",
+         Dmsg7(000, "run h=%d m=%d md=%d wd=%d wom=%d woy=%d ldom=%d\n",
+            hour, month, mday, wday, wom, woy, ldom);
+         Dmsg7(000, "bitset bsh=%d bsm=%d bsmd=%d bswd=%d bswom=%d bswoy=%d bsldom=%d\n",
             bit_is_set(hour, run->hour),
             bit_is_set(month, run->month),
             bit_is_set(mday, run->mday),
             bit_is_set(wday, run->wday),
             bit_is_set(wom, run->wom),
-            bit_is_set(woy, run->woy));
+            bit_is_set(woy, run->woy),
+            bit_is_set(31, run->mday));
 
-         Dmsg6(000, "nh_run h=%d m=%d md=%d wd=%d wom=%d woy=%d\n",
-            nh_hour, nh_month, nh_mday, nh_wday, nh_wom, nh_woy);
-         Dmsg6(000, "nh_bitset bsh=%d bsm=%d bsmd=%d bswd=%d bswom=%d bswoy=%d\n",
+
+         Dmsg7(000, "nh_run h=%d m=%d md=%d wd=%d wom=%d woy=%d ldom=%d\n",
+            nh_hour, nh_month, nh_mday, nh_wday, nh_wom, nh_woy, nh_ldom);
+         Dmsg7(000, "nh_bitset bsh=%d bsm=%d bsmd=%d bswd=%d bswom=%d bswoy=%d bsldom=%d\n",
             bit_is_set(nh_hour, run->hour),
             bit_is_set(nh_month, run->month),
             bit_is_set(nh_mday, run->mday),
             bit_is_set(nh_wday, run->wday),
             bit_is_set(nh_wom, run->wom),
-            bit_is_set(nh_woy, run->woy));
+            bit_is_set(nh_woy, run->woy),
+            bit_is_set(31, run->mday));
 #endif
 
          run_now = bit_is_set(hour, run->hour) &&
-            bit_is_set(mday, run->mday) &&
-            bit_is_set(wday, run->wday) &&
-            bit_is_set(month, run->month) &&
-            bit_is_set(wom, run->wom) &&
-            bit_is_set(woy, run->woy);
+            ((bit_is_set(mday, run->mday) &&
+              bit_is_set(wday, run->wday) &&
+              bit_is_set(month, run->month) &&
+              bit_is_set(wom, run->wom) &&
+              bit_is_set(woy, run->woy)) ||
+             (bit_is_set(month, run->month) &&
+              bit_is_set(31, run->mday) && mday == ldom));
 
          run_nh = bit_is_set(nh_hour, run->hour) &&
-            bit_is_set(nh_mday, run->mday) &&
-            bit_is_set(nh_wday, run->wday) &&
-            bit_is_set(nh_month, run->month) &&
-            bit_is_set(nh_wom, run->wom) &&
-            bit_is_set(nh_woy, run->woy);
+            ((bit_is_set(nh_mday, run->mday) &&
+              bit_is_set(nh_wday, run->wday) &&
+              bit_is_set(nh_month, run->month) &&
+              bit_is_set(nh_wom, run->wom) &&
+              bit_is_set(nh_woy, run->woy)) ||
+             (bit_is_set(nh_month, run->month) &&
+              bit_is_set(31, run->mday) && nh_mday == nh_ldom));
 
          Dmsg3(dbglvl, "run@%p: run_now=%d run_nh=%d\n", run, run_now, run_nh);
 
@@ -384,14 +385,14 @@ static void add_job(JOB *job, RUN *run, time_t now, time_t runtime)
     */
    if (((runtime - run->last_run) < 61) || ((runtime+59) < now)) {
 #ifdef SCHED_DEBUG
-      Dmsg4(000, "Drop: Job=\"%s\" run=%lld. last_run=%lld. now=%lld\n", job->hdr.name, 
+      Dmsg4(000, "Drop: Job=\"%s\" run=%lld. last_run=%lld. now=%lld\n", job->hdr.name,
             (utime_t)runtime, (utime_t)run->last_run, (utime_t)now);
       fflush(stdout);
 #endif
       return;
    }
 #ifdef SCHED_DEBUG
-   Dmsg4(000, "Add: Job=\"%s\" run=%lld last_run=%lld now=%lld\n", job->hdr.name, 
+   Dmsg4(000, "Add: Job=\"%s\" run=%lld last_run=%lld now=%lld\n", job->hdr.name,
             (utime_t)runtime, (utime_t)run->last_run, (utime_t)now);
 #endif
    /* accept to run this job */
@@ -432,12 +433,12 @@ static void dump_job(job_item *ji, const char *msg)
 {
 #ifdef SCHED_DEBUG
    char dt[MAX_TIME_LENGTH];
-   int save_debug = debug_level;
-   if (debug_level < dbglvl) {
+   int64_t save_debug = debug_level;
+   if (!chk_dbglvl(dbglvl)) {
       return;
    }
    bstrftime_nc(dt, sizeof(dt), ji->runtime);
-   Dmsg4(dbglvl, "%s: Job=%s priority=%d run %s\n", msg, ji->job->hdr.name, 
+   Dmsg4(dbglvl, "%s: Job=%s priority=%d run %s\n", msg, ji->job->hdr.name,
       ji->Priority, dt);
    fflush(stdout);
    debug_level = save_debug;

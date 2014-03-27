@@ -1,29 +1,17 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2005-2011 Free Software Foundation Europe e.V.
+   Copyright (C) 2005-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  * openssl.c OpenSSL support functions
@@ -98,7 +86,7 @@ static unsigned long get_openssl_thread_id(void)
    return (unsigned long)getpid();
 #else
    /*
-    * Comparison without use of pthread_equal() is mandated by the OpenSSL API 
+    * Comparison without use of pthread_equal() is mandated by the OpenSSL API
     *
     * Note: this creates problems with the new Win32 pthreads
     *   emulation code, which defines pthread_t as a structure.
@@ -204,14 +192,14 @@ void openssl_cleanup_threads(void)
 
    /* Unset thread ID callback */
    CRYPTO_set_id_callback(NULL);
-  
+
    /* Deallocate static lock mutexes */
    numlocks = CRYPTO_num_locks();
    for (i = 0; i < numlocks; i++) {
       if ((stat = pthread_mutex_destroy(&mutexes[i])) != 0) {
          berrno be;
          /* We don't halt execution, reporting the error should be sufficient */
-         Jmsg1(NULL, M_ERROR, 0, _("Unable to destroy mutex: ERR=%s\n"), 
+         Jmsg1(NULL, M_ERROR, 0, _("Unable to destroy mutex: ERR=%s\n"),
                be.bstrerror(stat));
       }
    }

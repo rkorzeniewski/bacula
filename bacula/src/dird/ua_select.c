@@ -1,29 +1,17 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2001-2012 Free Software Foundation Europe e.V.
+   Copyright (C) 2001-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  *
@@ -150,17 +138,28 @@ int do_keyword_prompt(UAContext *ua, const char *msg, const char **list)
 
 /*
  * Select a Storage resource from prompt list
+ *  If unique is set storage resources that have the main address are
+ *   combined into one (i.e. they are all part of the same)
+ *   storage.  Note, not all commands want this.
  */
-STORE *select_storage_resource(UAContext *ua)
+STORE *select_storage_resource(UAContext *ua, bool unique)
 {
    char name[MAX_NAME_LENGTH];
    STORE *store;
 
+   /* Does user want a full selection? */
+   if (unique && find_arg(ua, NT_("select")) > 0) {
+      unique = false;
+   }
    start_prompt(ua, _("The defined Storage resources are:\n"));
    LockRes();
    foreach_res(store, R_STORAGE) {
       if (acl_access_ok(ua, Storage_ACL, store->name())) {
-         add_prompt(ua, store->name());
+         if (unique) {
+            add_prompt(ua, store->name(), store->address);
+         } else {
+            add_prompt(ua, store->name());
+         }
       }
    }
    UnlockRes();
@@ -244,7 +243,7 @@ CAT *get_catalog_resource(UAContext *ua)
 
 
 /*
- * Select a job to enable or disable   
+ * Select a job to enable or disable
  */
 JOB *select_enable_disable_job_resource(UAContext *ua, bool enable)
 {
@@ -293,7 +292,7 @@ JOB *select_job_resource(UAContext *ua)
    return job;
 }
 
-/* 
+/*
  * Select a Restore Job resource from argument or prompt
  */
 JOB *get_restore_job(UAContext *ua)
@@ -490,7 +489,7 @@ bool select_client_dbr(UAContext *ua, CLIENT_DBR *cr)
 bool get_pool_dbr(UAContext *ua, POOL_DBR *pr, const char *argk)
 {
    if (pr->Name[0]) {                 /* If name already supplied */
-      if (db_get_pool_record(ua->jcr, ua->db, pr) &&
+      if (db_get_pool_numvols(ua->jcr, ua->db, pr) &&
           acl_access_ok(ua, Pool_ACL, pr->Name)) {
          return true;
       }
@@ -517,7 +516,7 @@ bool select_pool_dbr(UAContext *ua, POOL_DBR *pr, const char *argk)
       if (strcasecmp(ua->argk[i], argk) == 0 && ua->argv[i] &&
           acl_access_ok(ua, Pool_ACL, ua->argv[i])) {
          bstrncpy(pr->Name, ua->argv[i], sizeof(pr->Name));
-         if (!db_get_pool_record(ua->jcr, ua->db, pr)) {
+         if (!db_get_pool_numvols(ua->jcr, ua->db, pr)) {
             ua->error_msg(_("Could not find Pool \"%s\": ERR=%s"), ua->argv[i],
                      db_strerror(ua->db));
             pr->PoolId = 0;
@@ -543,7 +542,7 @@ bool select_pool_dbr(UAContext *ua, POOL_DBR *pr, const char *argk)
    }
    for (i=0; i < num_pools; i++) {
       opr.PoolId = ids[i];
-      if (!db_get_pool_record(ua->jcr, ua->db, &opr) ||
+      if (!db_get_pool_numvols(ua->jcr, ua->db, &opr) ||
           !acl_access_ok(ua, Pool_ACL, opr.Name)) {
          continue;
       }
@@ -562,7 +561,7 @@ bool select_pool_dbr(UAContext *ua, POOL_DBR *pr, const char *argk)
    if (!bstrcmp(name, _("*None*"))) {
      bstrncpy(opr.Name, name, sizeof(opr.Name));
 
-     if (!db_get_pool_record(ua->jcr, ua->db, &opr)) {
+     if (!db_get_pool_numvols(ua->jcr, ua->db, &opr)) {
         ua->error_msg(_("Could not find Pool \"%s\": ERR=%s"), name, db_strerror(ua->db));
         return false;
      }
@@ -695,7 +694,7 @@ POOL *get_pool_resource(UAContext *ua)
 /*
  * List all jobs and ask user to select one
  */
-int select_job_dbr(UAContext *ua, JOB_DBR *jr)
+static int select_job_dbr(UAContext *ua, JOB_DBR *jr)
 {
    db_list_job_records(ua->jcr, ua->db, jr, prtit, ua, HORZ_LIST);
    if (!get_pint(ua, _("Enter the JobId to select: "))) {
@@ -769,28 +768,39 @@ void start_prompt(UAContext *ua, const char *msg)
   if (ua->max_prompts == 0) {
      ua->max_prompts = 10;
      ua->prompt = (char **)bmalloc(sizeof(char *) * ua->max_prompts);
+     ua->unique = (char **)bmalloc(sizeof(char *) * ua->max_prompts);
   }
   ua->num_prompts = 1;
   ua->prompt[0] = bstrdup(msg);
+  ua->unique[0] = NULL;
 }
 
 /*
- * Add to prompts -- keeping them unique
+ * Add to prompts -- keeping them unique by name
  */
-void add_prompt(UAContext *ua, const char *prompt)
+void add_prompt(UAContext *ua, const char *prompt, char *unique)
 {
    int i;
    if (ua->num_prompts == ua->max_prompts) {
       ua->max_prompts *= 2;
       ua->prompt = (char **)brealloc(ua->prompt, sizeof(char *) *
          ua->max_prompts);
+      ua->unique = (char **)brealloc(ua->unique, sizeof(char *) *
+         ua->max_prompts);
     }
     for (i=1; i < ua->num_prompts; i++) {
        if (strcmp(ua->prompt[i], prompt) == 0) {
           return;
+       } else if (unique && strcmp(ua->unique[i], unique) == 0) {
+          return;
        }
     }
-    ua->prompt[ua->num_prompts++] = bstrdup(prompt);
+    ua->prompt[ua->num_prompts] = bstrdup(prompt);
+    if (unique) {
+       ua->unique[ua->num_prompts++] = bstrdup(unique);
+    } else {
+       ua->unique[ua->num_prompts++] = NULL;
+    }
 }
 
 /*
@@ -801,7 +811,7 @@ void add_prompt(UAContext *ua, const char *prompt)
  *               is copied to prompt if not NULL
  *             prompt is set to the chosen prompt item string
  */
-int do_prompt(UAContext *ua, const char *automsg, const char *msg, 
+int do_prompt(UAContext *ua, const char *automsg, const char *msg,
               char *prompt, int max_prompt)
 {
    int i, item;
@@ -880,9 +890,99 @@ int do_prompt(UAContext *ua, const char *automsg, const char *msg,
 done:
    for (i=0; i < ua->num_prompts; i++) {
       free(ua->prompt[i]);
+      if (ua->unique[i]) free(ua->unique[i]);
    }
    ua->num_prompts = 0;
    return item>0 ? item-1 : item;
+}
+
+/*
+ * Display prompts and get user's choice
+ *
+ *  Returns: -1 on error
+ *            number of items selected and the choices are
+ *               copied to selected if not NULL
+ *            selected is an alist of the prompts chosen
+ *              Note! selected must already be initialized.
+ */
+int do_alist_prompt(UAContext *ua, const char *automsg, const char *msg,
+              alist *selected)
+{
+   int i, item;
+   char pmsg[MAXSTRING];
+   BSOCK *user = ua->UA_sock;
+   sellist sl;
+
+   /* First item is the prompt string, not the items */
+   if (ua->num_prompts == 1) {
+      ua->error_msg(_("Selection list for \"%s\" is empty!\n"), automsg);
+      item = -1;                    /* list is empty ! */
+      goto done;
+   }
+   if (ua->num_prompts == 2) {
+      item = 1;
+      selected->append(bstrdup(ua->prompt[1]));
+      ua->send_msg(_("Automatically selected %s: %s\n"), automsg, ua->prompt[1]);
+      goto done;
+   }
+   /* If running non-interactive, bail out */
+   if (ua->batch) {
+      /* First print the choices he wanted to make */
+      ua->send_msg(ua->prompt[0]);
+      for (i=1; i < ua->num_prompts; i++) {
+         ua->send_msg("%6d: %s\n", i, ua->prompt[i]);
+      }
+      /* Now print error message */
+      ua->send_msg(_("Your request has multiple choices for \"%s\". Selection is not possible in batch mode.\n"), automsg);
+      item = -1;
+      goto done;
+   }
+   if (ua->api) user->signal(BNET_START_SELECT);
+   ua->send_msg(ua->prompt[0]);
+   for (i=1; i < ua->num_prompts; i++) {
+      if (ua->api) {
+         ua->send_msg("%s", ua->prompt[i]);
+      } else {
+         ua->send_msg("%6d: %s\n", i, ua->prompt[i]);
+      }
+   }
+   if (ua->api) user->signal(BNET_END_SELECT);
+
+   sprintf(pmsg, "%s (1-%d): ", msg, ua->num_prompts-1);
+
+   for ( ;; ) {
+      /* Either a . or an @ will get you out of the loop */
+      if (ua->api) user->signal(BNET_SELECT_INPUT);
+
+      if (!get_selection_list(ua, sl, pmsg, false)) {
+         item = -1;
+         break;
+      }
+
+      if (sl.is_all()) {
+         for (i=1; i < ua->num_prompts; i++) {
+            selected->append(bstrdup(ua->prompt[i]));
+         }
+      } else {
+         while ( (item = sl.next()) > 0) {
+            if (item < 1 || item >= ua->num_prompts) {
+               ua->warning_msg(_("Please enter a number between 1 and %d\n"), ua->num_prompts-1);
+               continue;
+            }
+            selected->append(bstrdup(ua->prompt[item]));
+         }
+      }
+      item = selected->size();
+      break;
+   }
+
+done:
+   for (i=0; i < ua->num_prompts; i++) {
+      free(ua->prompt[i]);
+      if (ua->unique[i]) free(ua->unique[i]);
+   }
+   ua->num_prompts = 0;
+   return item;
 }
 
 
@@ -897,7 +997,7 @@ done:
  * If use_default is set, we assume that any keyword without a value
  *   is the name of the Storage resource wanted.
  */
-STORE *get_storage_resource(UAContext *ua, bool use_default)
+STORE *get_storage_resource(UAContext *ua, bool use_default, bool unique)
 {
    char *store_name = NULL;
    STORE *store = NULL;
@@ -963,14 +1063,15 @@ STORE *get_storage_resource(UAContext *ua, bool use_default)
                ua->error_msg(_("Expecting ujobid=xxx, got: %s.\n"), ua->argk[i]);
                return NULL;
             }
-            if (!(jcr=get_jcr_by_full_name(ua->argv[i]))) {
-               ua->error_msg(_("Job \"%s\" is not running.\n"), ua->argv[i]);
-               return NULL;
+            if ((jcr=get_jcr_by_full_name(ua->argv[i]))) {
+               store = jcr->wstore;
+               free_jcr(jcr);
+               /* The job might not be running, so we try to see other keywords */
+               if (store) {
+                  break;
+               }
             }
-            store = jcr->wstore;
-            free_jcr(jcr);
-            break;
-        }
+         }
       }
    }
    if (store && !acl_access_ok(ua, Storage_ACL, store->name())) {
@@ -988,7 +1089,7 @@ STORE *get_storage_resource(UAContext *ua, bool use_default)
    }
    /* No keywords found, so present a selection list */
    if (!store) {
-      store = select_storage_resource(ua);
+      store = select_storage_resource(ua, unique);
    }
    return store;
 }
@@ -1072,6 +1173,7 @@ int get_media_type(UAContext *ua, char *MediaType, int max_media)
    return (do_prompt(ua, _("Media Type"), _("Select the Media Type"), MediaType, max_media) < 0) ? 0 : 1;
 }
 
+
 bool get_level_from_name(JCR *jcr, const char *level_name)
 {
    /* Look up level name and pull code */
@@ -1084,4 +1186,188 @@ bool get_level_from_name(JCR *jcr, const char *level_name)
       }
    }
    return found;
+}
+
+static int count_running_jobs(UAContext *ua)
+{
+   int tjobs = 0;                  /* total # number jobs */
+   int njobs = 0;
+   JCR *jcr;
+   /* Count Jobs running */
+   foreach_jcr(jcr) {
+      if (jcr->JobId == 0) {      /* this is us */
+         continue;
+      }
+      tjobs++;                    /* count of all jobs */
+      if (!acl_access_ok(ua, Job_ACL, jcr->job->name())) {
+         continue;               /* skip not authorized */
+      }
+      njobs++;                   /* count of authorized jobs */
+   }
+   endeach_jcr(jcr);
+
+   if (njobs == 0) {            /* no authorized */
+      if (tjobs == 0) {
+         ua->send_msg(_("No Jobs running.\n"));
+      } else {
+         ua->send_msg(_("None of your jobs are running.\n"));
+      }
+   }
+   return njobs;
+}
+
+
+/* Get a list of running jobs
+ * "reason" is used in user messages
+ * can be: cancel, limit, ...
+ *  Returns: -1 on error
+ *           nb of JCR on success (should be free_jcr() after)
+ */
+int select_running_jobs(UAContext *ua, alist *jcrs, const char *reason)
+{
+   int i;
+   JCR *jcr = NULL;
+   int njobs = 0;
+   char JobName[MAX_NAME_LENGTH];
+   char temp[256];
+   alist *selected = NULL;
+
+   for (i=1; i<ua->argc; i++) {
+      if (strcasecmp(ua->argk[i], NT_("jobid")) == 0) {
+         sellist sl;
+         int32_t JobId;
+
+         if (sl.set_string(ua->argv[i], true) < 0 && sl.get_errmsg()) {
+            ua->send_msg("%s", sl.get_errmsg());
+            break;
+         }
+
+         foreach_sellist(JobId, &sl) {
+            jcr = get_jcr_by_id(JobId);
+            if (jcr && jcr->job && acl_access_ok(ua, Job_ACL, jcr->job->name())) {
+               jcrs->append(jcr);
+
+            } else if (jcr) {
+               ua->error_msg(_("Unauthorized command from this console "
+                               "for JobId=%d.\n"), JobId);
+               free_jcr(jcr);
+
+            } else {
+               if (debug_level > 5) {
+                  ua->warning_msg(_("Warning Job JobId=%d is not running. "
+                                    "Continuing anyway...\n"), JobId);
+               }
+            }
+         }
+         break;
+
+      /* TODO: might want to implement filters (client, status, etc...) */
+      } else if (strcasecmp(ua->argk[i], NT_("all")) == 0) {
+         foreach_jcr(jcr) {
+            if (jcr->JobId == 0) {      /* this is us */
+               continue;
+            }
+            if (!acl_access_ok(ua, Job_ACL, jcr->job->name())) {
+               continue;               /* skip not authorized */
+            }
+            jcr->inc_use_count();
+            jcrs->append(jcr);
+         }
+         endeach_jcr(jcr);
+
+         if (jcrs->size() > 0 && find_arg(ua, NT_("yes")) < 0) {
+            char nbuf[1000];
+            bsnprintf(nbuf, sizeof(nbuf),  _("Confirm %s of %d Job%s (yes/no): "),
+                      reason, jcrs->size(), jcrs->size()>1?"s":"");
+            if (!get_yesno(ua, nbuf) || ua->pint32_val == 0) {
+               return -1;
+            }
+         }
+         break;
+
+      } else if (strcasecmp(ua->argk[i], NT_("job")) == 0) {
+         if (!ua->argv[i]) {
+            break;
+         }
+         if (!(jcr=get_jcr_by_partial_name(ua->argv[i]))) {
+            ua->warning_msg(_("Warning Job %s is not running. Continuing anyway ...\n"), ua->argv[i]);
+            jcr = new_jcr(sizeof(JCR), dird_free_jcr);
+            bstrncpy(jcr->Job, ua->argv[i], sizeof(jcr->Job));
+         }
+         if (jcr && jcr->job && acl_access_ok(ua, Job_ACL, jcr->job->name())) {
+            jcrs->append(jcr);
+         }
+         break;
+
+      } else if (strcasecmp(ua->argk[i], NT_("ujobid")) == 0) {
+         if (!ua->argv[i]) {
+            break;
+         }
+         if (!(jcr=get_jcr_by_full_name(ua->argv[i]))) {
+            ua->warning_msg(_("Warning Job %s is not running. Continuing anyway ...\n"), ua->argv[i]);
+            jcr = new_jcr(sizeof(JCR), dird_free_jcr);
+            bstrncpy(jcr->Job, ua->argv[i], sizeof(jcr->Job));
+         }
+         if (jcr && jcr->job && acl_access_ok(ua, Job_ACL, jcr->job->name())) {
+            jcrs->append(jcr);
+         }
+         break;
+      }
+   }
+
+   if (jcrs->size() == 0) {
+      /*
+       * If we still do not have a jcr,
+       *   throw up a list and ask the user to select one.
+       */
+      char *item;
+      char buf[1000];
+      njobs = count_running_jobs(ua);
+      if (njobs == 0) {
+         goto bail_out;
+      }
+      start_prompt(ua, _("Select Job(s):\n"));
+      foreach_jcr(jcr) {
+         char ed1[50];
+         if (jcr->JobId == 0) {      /* this is us */
+            continue;
+         }
+         bsnprintf(buf, sizeof(buf), _("JobId=%s Job=%s"), edit_int64(jcr->JobId, ed1), jcr->Job);
+         add_prompt(ua, buf);
+      }
+      endeach_jcr(jcr);
+      bsnprintf(temp, sizeof(temp), _("Choose Job list to %s"), _(reason));
+      selected = New(alist(5, owned_by_alist));
+      if (do_alist_prompt(ua, _("Job"), temp, selected) < 0) {
+         goto bail_out;
+      }
+      /* Possibly ask for confirmation */
+      if (selected->size() > 0 && find_arg(ua, NT_("yes")) < 0) {
+         char nbuf[1000];
+         foreach_alist(item, selected) {
+            ua->send_msg("%s\n", item);
+         }
+         bsnprintf(nbuf, sizeof(nbuf),  _("Confirm %s of %d Job%s (yes/no): "),
+                   reason, selected->size(), selected->size()>1?"s":"");
+         if (!get_yesno(ua, nbuf) || ua->pint32_val == 0) {
+            goto bail_out;
+         }
+      }
+
+      foreach_alist(item, selected) {
+         if (sscanf(item, "JobId=%d Job=%127s", &njobs, JobName) != 2) {
+            ua->warning_msg(_("Job \"%s\" not found.\n"), item);
+            continue;
+         }
+         jcr = get_jcr_by_full_name(JobName);
+         if (jcr) {
+            jcrs->append(jcr);
+         } else {
+            ua->warning_msg(_("Job \"%s\" not found.\n"), JobName);
+         }
+      }
+   }
+bail_out:
+   if (selected) delete selected;
+   return jcrs->size();
 }

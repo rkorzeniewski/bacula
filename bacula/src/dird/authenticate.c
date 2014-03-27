@@ -1,40 +1,26 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2001-2008 Free Software Foundation Europe e.V.
+   Copyright (C) 2001-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  *
- *   Bacula Director -- authorize.c -- handles authorization of
+ *   Bacula Director -- authenticate.c -- handles authorization of
  *     Storage and File daemons.
  *
- *     Kern Sibbald, May MMI
+ *    Written by: Kern Sibbald, May MMI
  *
  *    This routine runs as a thread and must be thread reentrant.
- *
- *   Version $Id$
  *
  */
 
@@ -45,14 +31,21 @@ static const int dbglvl = 50;
 
 extern DIRRES *director;
 
-/* Commands sent to Storage daemon and File daemon and received
- *  from the User Agent */
-static char hello[]    = "Hello Director %s calling\n";
+/* Version at end of Hello
+ *   prior to 06Aug13 no version
+ *   1 06Aug13 - added comm line compression
+ */
+#define DIR_VERSION 1
 
-/* Response from Storage daemon */
-static char OKhello[]      = "3000 OK Hello\n";
-static char FDOKhello[]    = "2000 OK Hello\n";
-static char FDOKnewHello[] = "2000 OK Hello %d\n";
+
+/* Command sent to SD */
+static char hello[]    = "Hello %sDirector %s calling %d\n";
+
+/* Responses from Storage and File daemons */
+static char OKhello[]      = "3000 OK Hello";
+static char SDOKnewHello[] = "3000 OK Hello %d";
+static char FDOKhello[]    = "2000 OK Hello";
+static char FDOKnewHello[] = "2000 OK Hello %d";
 
 /* Sent to User Agent */
 static char Dir_sorry[]  = "1999 You are not authorized.\n";
@@ -78,10 +71,11 @@ bool authenticate_storage_daemon(JCR *jcr, STORE *store)
    bash_spaces(dirname);
    /* Timeout Hello after 1 min */
    btimer_t *tid = start_bsock_timer(sd, AUTH_TIMEOUT);
-   if (!sd->fsend(hello, dirname)) {
+   /* Sent Hello SD: Bacula Director <dirname> calling <version> */
+   if (!sd->fsend(hello, "SD: Bacula ", dirname, DIR_VERSION)) {
       stop_bsock_timer(tid);
-      Dmsg1(dbglvl, _("Error sending Hello to Storage daemon. ERR=%s\n"), bnet_strerror(sd));
-      Jmsg(jcr, M_FATAL, 0, _("Error sending Hello to Storage daemon. ERR=%s\n"), bnet_strerror(sd));
+      Dmsg1(dbglvl, _("Error sending Hello to Storage daemon. ERR=%s\n"), sd->bstrerror());
+      Jmsg(jcr, M_FATAL, 0, _("Error sending Hello to Storage daemon. ERR=%s\n"), sd->bstrerror());
       return 0;
    }
 
@@ -158,7 +152,9 @@ bool authenticate_storage_daemon(JCR *jcr, STORE *store)
    }
    Dmsg1(110, "<stored: %s", sd->msg);
    stop_bsock_timer(tid);
-   if (strncmp(sd->msg, OKhello, sizeof(OKhello)) != 0) {
+   jcr->SDVersion = 0;
+   if (sscanf(sd->msg, SDOKnewHello, &jcr->SDVersion) != 1 &&
+       strncmp(sd->msg, OKhello, sizeof(OKhello)) != 0) {
       Dmsg0(dbglvl, _("Storage daemon rejected Hello command\n"));
       Jmsg2(jcr, M_FATAL, 0, _("Storage daemon at \"%s:%d\" rejected Hello command\n"),
          sd->host(), sd->port());
@@ -187,9 +183,11 @@ int authenticate_file_daemon(JCR *jcr)
    bash_spaces(dirname);
    /* Timeout Hello after 1 min */
    btimer_t *tid = start_bsock_timer(fd, AUTH_TIMEOUT);
-   if (!fd->fsend(hello, dirname)) {
+   if (!fd->fsend(hello, "", dirname, DIR_VERSION)) {
       stop_bsock_timer(tid);
-      Jmsg(jcr, M_FATAL, 0, _("Error sending Hello to File daemon at \"%s:%d\". ERR=%s\n"), 
+      Jmsg(jcr, M_FATAL, 0, _("Error sending Hello to File daemon at \"%s:%d\". ERR=%s\n"),
+           fd->host(), fd->port(), fd->bstrerror());
+      Dmsg3(50, _("Error sending Hello to File daemon at \"%s:%d\". ERR=%s\n"),
            fd->host(), fd->port(), fd->bstrerror());
       return 0;
    }
@@ -264,7 +262,7 @@ int authenticate_file_daemon(JCR *jcr)
    if (fd->recv() <= 0) {
       stop_bsock_timer(tid);
       Dmsg1(dbglvl, _("Bad response from File daemon to Hello command: ERR=%s\n"),
-         bnet_strerror(fd));
+         fd->bstrerror());
       Jmsg(jcr, M_FATAL, 0, _("Bad response from File daemon at \"%s:%d\" to Hello command: ERR=%s\n"),
          fd->host(), fd->port(), fd->bstrerror());
       return 0;
@@ -297,14 +295,16 @@ int authenticate_user_agent(UAContext *uac)
    bool auth_success = false;
    TLS_CONTEXT *tls_ctx = NULL;
    alist *verify_list = NULL;
- 
+   int ua_version = 0;
+
    if (ua->msglen < 16 || ua->msglen >= MAX_NAME_LENGTH + 15) {
       Emsg4(M_ERROR, 0, _("UA Hello from %s:%s:%d is invalid. Len=%d\n"), ua->who(),
             ua->host(), ua->port(), ua->msglen);
       return 0;
    }
 
-   if (sscanf(ua->msg, "Hello %127s calling\n", name) != 1) {
+   if (sscanf(ua->msg, "Hello %127s calling %d", name, &ua_version) != 2 &&
+       sscanf(ua->msg, "Hello %127s calling", name) != 1) {
       ua->msg[100] = 0;               /* terminate string */
       Emsg4(M_ERROR, 0, _("UA Hello from %s:%s:%d is invalid. Got: %s\n"), ua->who(),
             ua->host(), ua->port(), ua->msg);
@@ -416,6 +416,7 @@ auth_done:
       sleep(5);
       return 0;
    }
-   ua->fsend(_("1000 OK: %s Version: %s (%s)\n"), my_name, VERSION, BDATE);
+   ua->fsend(_("1000 OK: %d %s Version: %s (%s)\n"),
+      DIR_VERSION, my_name, VERSION, BDATE);
    return 1;
 }

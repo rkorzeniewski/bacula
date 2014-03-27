@@ -1,29 +1,17 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2011 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  *  Subroutines to handle waiting for operator intervention
@@ -44,7 +32,7 @@ const int dbglvl = 400;
 /*
  * Wait for SysOp to mount a tape on a specific device
  *
- *   Returns: W_ERROR, W_TIMEOUT, W_POLL, W_MOUNT, or W_WAKE 
+ *   Returns: W_ERROR, W_TIMEOUT, W_POLL, W_MOUNT, or W_WAKE
  */
 int wait_for_sysop(DCR *dcr)
 {
@@ -59,7 +47,7 @@ int wait_for_sysop(DCR *dcr)
    DEVICE *dev = dcr->dev;
    JCR *jcr = dcr->jcr;
 
-   dev->Lock();  
+   dev->Lock();
    Dmsg1(dbglvl, "Enter blocked=%s\n", dev->print_blocked());
 
    /*
@@ -100,12 +88,12 @@ int wait_for_sysop(DCR *dcr)
       timeout.tv_nsec = tv.tv_usec * 1000;
       timeout.tv_sec = tv.tv_sec + add_wait;
 
-      Dmsg4(dbglvl, "I'm going to sleep on device %s. HB=%d rem_wait=%d add_wait=%d\n", 
+      Dmsg4(dbglvl, "I'm going to sleep on device %s. HB=%d rem_wait=%d add_wait=%d\n",
          dev->print_name(), (int)me->heartbeat_interval, dev->rem_wait_sec, add_wait);
       start = time(NULL);
 
       /* Wait required time */
-      stat = pthread_cond_timedwait(&dev->wait_next_vol, &dev->m_mutex, &timeout);
+      stat = dev->next_vol_timedwait(&timeout);
 
       Dmsg2(dbglvl, "Wokeup from sleep on device stat=%d blocked=%s\n", stat,
          dev->print_blocked());
@@ -136,7 +124,7 @@ int wait_for_sysop(DCR *dcr)
       }
 
       /*
-       * Continue waiting if operator is labeling volumes 
+       * Continue waiting if operator is labeling volumes
        */
       if (dev->blocked() == BST_WRITING_LABEL) {
          continue;
@@ -171,7 +159,7 @@ int wait_for_sysop(DCR *dcr)
 
       /*
        * If we did not timeout, then some event happened, so
-       *   return to check if state changed.   
+       *   return to check if state changed.
        */
       if (stat != ETIMEDOUT) {
          berrno be;
@@ -180,7 +168,7 @@ int wait_for_sysop(DCR *dcr)
          break;
       }
 
-      /* 
+      /*
        * At this point, we know we woke up because of a timeout,
        *   that was due to a heartbeat, because any other reason would
        *   have caused us to return, so update the wait counters and continue.
@@ -192,7 +180,7 @@ int wait_for_sysop(DCR *dcr)
       /* If the user did not unmount the tape and we are polling, ensure
        *  that we poll at the correct interval.
        */
-      if (!unmounted && dev->vol_poll_interval && 
+      if (!unmounted && dev->vol_poll_interval &&
            add_wait > dev->vol_poll_interval - total_waited) {
          add_wait = dev->vol_poll_interval - total_waited;
       }
@@ -212,16 +200,16 @@ int wait_for_sysop(DCR *dcr)
 
 
 /*
- * Wait for any device to be released, then we return, so 
+ * Wait for any device to be released, then we return, so
  *  higher level code can rescan possible devices.  Since there
  *  could be a job waiting for a drive to free up, we wait a maximum
- *  of 1 minute then retry just in case a broadcast was lost, and 
+ *  of 1 minute then retry just in case a broadcast was lost, and
  *  we return to rescan the devices.
- * 
+ *
  * Returns: true  if a device has changed state
  *          false if the total wait time has expired.
  */
-bool wait_for_device(JCR *jcr, int &retries)
+bool wait_for_any_device(JCR *jcr, int &retries)
 {
    struct timeval tv;
    struct timezone tz;
@@ -231,12 +219,12 @@ bool wait_for_device(JCR *jcr, int &retries)
    const int max_wait_time = 1 * 60;       /* wait 1 minute */
    char ed1[50];
 
-   Dmsg0(dbglvl, "Enter wait_for_device\n");
+   Dmsg0(dbglvl, "Enter wait_for_any_device\n");
    P(device_release_mutex);
 
    if (++retries % 5 == 0) {
       /* Print message every 5 minutes */
-      Jmsg(jcr, M_MOUNT, 0, _("JobId=%s, Job %s waiting to reserve a device.\n"), 
+      Jmsg(jcr, M_MOUNT, 0, _("JobId=%s, Job %s waiting to reserve a device.\n"),
          edit_uint64(jcr->JobId, ed1), jcr->Job);
    }
 
@@ -254,6 +242,53 @@ bool wait_for_device(JCR *jcr, int &retries)
    Dmsg1(dbglvl, "Return from wait_device ok=%d\n", ok);
    return ok;
 }
+
+/*
+ * Wait for a specific device to be released
+ *  We wait a maximum of 1 minute then
+ *  retry just in case a broadcast was lost.
+ *
+ * Returns: true  if the device has changed state
+ *          false if the total wait time has expired.
+ */
+bool wait_for_device(DCR *dcr, int &retries)
+{
+   struct timeval tv;
+   struct timezone tz;
+   struct timespec timeout;
+   JCR *jcr = dcr->jcr;
+   DEVICE *dev = dcr->dev;
+   int stat = 0;
+   bool ok = true;
+   const int max_wait_time = 1 * 60;       /* wait 1 minute */
+   char ed1[50];
+
+   Dmsg3(40, "Enter wait_for_device. busy=%d dcrvol=%s devvol=%s\n",
+      dev->is_busy(), dcr->VolumeName, dev->getVolCatName());
+
+   P(device_release_mutex);
+
+   if (++retries % 5 == 0) {
+      /* Print message every 5 minutes */
+      Jmsg(jcr, M_MOUNT, 0, _("JobId=%s, Job %s waiting device %s.\n"),
+         edit_uint64(jcr->JobId, ed1), jcr->Job, dcr->dev->print_name());
+   }
+
+   gettimeofday(&tv, &tz);
+   timeout.tv_nsec = tv.tv_usec * 1000;
+   timeout.tv_sec = tv.tv_sec + max_wait_time;
+
+   Dmsg0(dbglvl, "Going to wait for a device.\n");
+
+   /* Wait required time */
+   stat = pthread_cond_timedwait(&wait_device_release, &device_release_mutex, &timeout);
+   Dmsg1(dbglvl, "Wokeup from sleep on device stat=%d\n", stat);
+
+   V(device_release_mutex);
+   Dmsg1(dbglvl, "Return from wait_device ok=%d\n", ok);
+   return ok;
+}
+
 
 #ifdef xxx
 /*

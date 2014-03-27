@@ -1,29 +1,17 @@
 /*
-   Bacula(R) - The Network Backup Solution
+   Bacula® - The Network Backup Solution
 
-   Copyright (C) 2007-2011 Free Software Foundation Europe e.V.
+   Copyright (C) 2007-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation, which is 
-   listed in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
-
-   Bacula(R) is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
+   Bacula® is a registered trademark of Kern Sibbald.
 */
 /*
  * Sample Storage daemon Plugin program
@@ -99,17 +87,17 @@ loadPlugin(bsdInfo *lbinfo, bsdFuncs *lbfuncs, psdInfo **pinfo, psdFuncs **pfunc
 }
 
 /*
- * External entry point to unload the plugin 
+ * External entry point to unload the plugin
  */
 bRC DLL_IMP_EXP
-unloadPlugin() 
+unloadPlugin()
 {
    printf("example-plugin-sd: Unloaded\n");
    return bRC_OK;
 }
 
 /*
- * The following entry points are accessed through the function 
+ * The following entry points are accessed through the function
  *   pointers we supplied to Bacula. Each plugin type (dir, fd, sd)
  *   has its own set of entry points that the plugin must define.
  */
@@ -139,7 +127,7 @@ static bRC freePlugin(bpContext *ctx)
 /*
  * Return some plugin value (none defined)
  */
-static bRC getPluginValue(bpContext *ctx, psdVariable var, void *value) 
+static bRC getPluginValue(bpContext *ctx, psdVariable var, void *value)
 {
    printf("example-plugin-sd: getPluginValue var=%d\n", var);
    return bRC_OK;
@@ -148,7 +136,7 @@ static bRC getPluginValue(bpContext *ctx, psdVariable var, void *value)
 /*
  * Set a plugin value (none defined)
  */
-static bRC setPluginValue(bpContext *ctx, psdVariable var, void *value) 
+static bRC setPluginValue(bpContext *ctx, psdVariable var, void *value)
 {
    printf("example-plugin-sd: setPluginValue var=%d\n", var);
    return bRC_OK;

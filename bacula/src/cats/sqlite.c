@@ -1,36 +1,24 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2011 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  * Bacula Catalog Database routines specific to SQLite
  *
- *    Kern Sibbald, January 2002
+ *    Written by Kern Sibbald, January 2002
  *
- * Major rewrite by Marco van Wieringen, January 2010 for catalog refactoring.
+ *  Add class wrapper Marco van Wieringen, January 2010
  */
 
 #include "bacula.h"
@@ -57,7 +45,7 @@ static dlist *db_list = NULL;
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 /*
- * When using mult_db_connections = true, 
+ * When using mult_db_connections = true,
  * sqlite can be BUSY. We just need sleep a little in this case.
  */
 static int sqlite_busy_handler(void *arg, int calls)
@@ -112,12 +100,12 @@ B_DB_SQLITE::B_DB_SQLITE(JCR *jcr,
    esc_obj  = get_pool_memory(PM_FNAME);
    m_allow_transactions = mult_db_connections;
 
-   /* At this time, when mult_db_connections == true, this is for 
+   /* At this time, when mult_db_connections == true, this is for
     * specific console command such as bvfs or batch mode, and we don't
     * want to share a batch mode or bvfs. In the future, we can change
     * the creation function to add this parameter.
     */
-   m_dedicated = mult_db_connections; 
+   m_dedicated = mult_db_connections;
 
    /*
     * Initialize the private members.
@@ -187,7 +175,7 @@ bool B_DB_SQLITE::db_open_database(JCR *jcr)
    for (m_db_handle = NULL; !m_db_handle && retry++ < 10; ) {
       ret = sqlite3_open(db_path, &m_db_handle);
       if (ret != SQLITE_OK) {
-         m_sqlite_errmsg = (char *)sqlite3_errmsg(m_db_handle); 
+         m_sqlite_errmsg = (char *)sqlite3_errmsg(m_db_handle);
          sqlite3_close(m_db_handle);
          m_db_handle = NULL;
       } else {
@@ -204,7 +192,7 @@ bool B_DB_SQLITE::db_open_database(JCR *jcr)
          db_path, m_sqlite_errmsg ? m_sqlite_errmsg : _("unknown"));
       free(db_path);
       goto bail_out;
-   }       
+   }
    m_connected = true;
    free(db_path);
 
@@ -220,7 +208,6 @@ bool B_DB_SQLITE::db_open_database(JCR *jcr)
    if (!check_tables_version(jcr, this)) {
       goto bail_out;
    }
-
    retval = true;
 
 bail_out:
@@ -427,7 +414,7 @@ static int sqlite_result_handler(void *arh_data, int num_fields, char **rows, ch
    if (rh_data->result_handler) {
       (*(rh_data->result_handler))(rh_data->ctx, num_fields, rows);
    }
-   
+
    return 0;
 }
 
@@ -457,7 +444,7 @@ bool B_DB_SQLITE::db_sql_query(const char *query, DB_RESULT_HANDLER *result_hand
 
    stat = sqlite3_exec(m_db_handle, query, sqlite_result_handler,
                        (void *)&rh_data, &m_sqlite_errmsg);
-   
+
    if (stat != SQLITE_OK) {
       Mmsg(errmsg, _("Query failed: %s: ERR=%s\n"), query, sql_strerror());
       Dmsg0(500, "db_sql_query finished\n");
@@ -648,7 +635,7 @@ bool B_DB_SQLITE::sql_field_is_numeric(int field_type)
    }
 }
 
-/* 
+/*
  * Returns true if OK
  *         false if failed
  */
@@ -671,7 +658,7 @@ bool B_DB_SQLITE::sql_batch_start(JCR *jcr)
 }
 
 /* set error to something to abort operation */
-/* 
+/*
  * Returns true if OK
  *         false if failed
  */
@@ -682,7 +669,7 @@ bool B_DB_SQLITE::sql_batch_end(JCR *jcr, const char *error)
    return true;
 }
 
-/* 
+/*
  * Returns true if OK
  *         false if failed
  */
@@ -716,9 +703,9 @@ bool B_DB_SQLITE::sql_batch_insert(JCR *jcr, ATTR_DBR *ar)
  * never have errors, or it is really fatal.
  */
 B_DB *db_init_database(JCR *jcr, const char *db_driver, const char *db_name,
-                       const char *db_user, const char *db_password, 
-                       const char *db_address, int db_port, 
-                       const char *db_socket, bool mult_db_connections, 
+                       const char *db_user, const char *db_password,
+                       const char *db_address, int db_port,
+                       const char *db_socket, bool mult_db_connections,
                        bool disable_batch_insert)
 {
    B_DB *mdb = NULL;

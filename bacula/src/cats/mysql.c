@@ -1,38 +1,26 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2011 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  * Bacula Catalog Database routines specific to MySQL
  *   These are MySQL specific routines -- hopefully all
  *    other files are generic.
  *
- *    Kern Sibbald, March 2000
+ *    Written by Kern Sibbald, March 2000
  *
- * Major rewrite by Marco van Wieringen, January 2010 for catalog refactoring.
+ *  Class wrapper by Marco van Wieringen, January 2010
  */
 
 #include "bacula.h"
@@ -116,12 +104,12 @@ B_DB_MYSQL::B_DB_MYSQL(JCR *jcr,
    esc_obj = get_pool_memory(PM_FNAME);
    m_allow_transactions = mult_db_connections;
 
-   /* At this time, when mult_db_connections == true, this is for 
+   /* At this time, when mult_db_connections == true, this is for
     * specific console command such as bvfs or batch mode, and we don't
     * want to share a batch mode or bvfs. In the future, we can change
     * the creation function to add this parameter.
     */
-   m_dedicated = mult_db_connections; 
+   m_dedicated = mult_db_connections;
 
    /*
     * Initialize the private members.
@@ -307,7 +295,7 @@ void B_DB_MYSQL::db_close_database(JCR *jcr)
  *  to cleanup any thread specific data that it created.
  */
 void B_DB_MYSQL::db_thread_cleanup(void)
-{ 
+{
 #ifndef HAVE_WIN32
    mysql_thread_end();
 #endif
@@ -575,7 +563,7 @@ bool B_DB_MYSQL::sql_field_is_numeric(int field_type)
    return IS_NUM(field_type);
 }
 
-/* 
+/*
  * Returns true if OK
  *         false if failed
  */
@@ -603,7 +591,7 @@ bool B_DB_MYSQL::sql_batch_start(JCR *jcr)
 }
 
 /* set error to something to abort operation */
-/* 
+/*
  * Returns true if OK
  *         false if failed
  */
@@ -621,7 +609,7 @@ bool B_DB_MYSQL::sql_batch_end(JCR *jcr, const char *error)
    return true;
 }
 
-/* 
+/*
  * Returns true if OK
  *         false if failed
  */

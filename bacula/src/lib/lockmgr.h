@@ -1,29 +1,17 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2008-2010 Free Software Foundation Europe e.V.
+   Copyright (C) 2008-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation, which is 
-   listed in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 
 #ifndef _LOCKMGR_H
@@ -46,7 +34,7 @@ typedef struct bthread_mutex_t
    int priority;
 } bthread_mutex_t;
 
-/* 
+/*
  * We decide that a thread won't lock more than LMGR_MAX_LOCK at the same time
  */
 #define LMGR_MAX_LOCK 32
@@ -71,7 +59,7 @@ int bthread_cond_timedwait_p(pthread_cond_t *cond,
                              const char *file="*unknown*", int line=0);
 
 /* Replacement of pthread_mutex_lock()  but with real pthread_mutex_t */
-int bthread_mutex_lock_p(pthread_mutex_t *m, 
+int bthread_mutex_lock_p(pthread_mutex_t *m,
                          const char *file="*unknown*", int line=0);
 
 /* Replacement for pthread_mutex_unlock() but with real pthread_mutex_t */
@@ -79,11 +67,11 @@ int bthread_mutex_unlock_p(pthread_mutex_t *m,
                            const char *file="*unknown*", int line=0);
 
 /* Replacement of pthread_mutex_lock() */
-int bthread_mutex_lock_p(bthread_mutex_t *m, 
+int bthread_mutex_lock_p(bthread_mutex_t *m,
                          const char *file="*unknown*", int line=0);
 
 /* Replacement of pthread_mutex_unlock() */
-int bthread_mutex_unlock_p(bthread_mutex_t *m, 
+int bthread_mutex_unlock_p(bthread_mutex_t *m,
                            const char *file="*unknown*", int line=0);
 
 /*  Test if this mutex is locked by the current thread
@@ -91,8 +79,8 @@ int bthread_mutex_unlock_p(bthread_mutex_t *m,
  *     1 - locked by the current thread
  */
 int lmgr_mutex_is_locked(void *m);
-                   
-/* 
+
+/*
  * Use them when you want use your lock yourself (ie rwlock)
  */
 
@@ -100,15 +88,15 @@ int lmgr_mutex_is_locked(void *m);
 void lmgr_pre_lock(void *m, int prio=0,
                    const char *file="*unknown*", int line=0);
 
-/* Call after getting it */ 
+/* Call after getting it */
 void lmgr_post_lock();
 
 /* Same as pre+post lock */
-void lmgr_do_lock(void *m, int prio=0, 
+void lmgr_do_lock(void *m, int prio=0,
                   const char *file="*unknown*", int line=0);
 
 /* Call just before releasing the lock */
-void lmgr_do_unlock(void *m); 
+void lmgr_do_unlock(void *m);
 
 /* We use C++ mangling to make integration eaysier */
 int pthread_mutex_init(bthread_mutex_t *m, const pthread_mutexattr_t *attr);
@@ -128,7 +116,7 @@ void lmgr_init_thread();
 void lmgr_cleanup_thread();
 
 /*
- * Call this at the end of the program, it will release the 
+ * Call this at the end of the program, it will release the
  * global lock manager
  */
 void lmgr_cleanup_main();
@@ -142,6 +130,19 @@ void lmgr_dump();
  * Search a deadlock
  */
 bool lmgr_detect_deadlock();
+
+/* Bit flags */
+#define LMGR_EVENT_NONE    0
+#define LMGR_EVENT_DUP     1       /* use strdup() to copy the comment (will set FREE) */
+#define LMGR_EVENT_FREE    2       /* use free() when overwriting/deleting the comment */
+#define LMGR_EVENT_INVALID 4       /* Used to mark the record invalid */
+
+/*
+ * Add event to the thread event list
+ */
+void lmgr_add_event_p(const char *comment, intptr_t user_data, int32_t flags, const char *file, int32_t line);
+#define lmgr_add_event(c, u) lmgr_add_event_p(c, u, 0, __FILE__, __LINE__)
+#define lmgr_add_event_flag(c, u, f) lmgr_add_event_p(c, u, (f), __FILE__, __LINE__)
 
 /*
  * Search a deadlock after a fatal signal
@@ -158,10 +159,10 @@ int lmgr_thread_create(pthread_t *thread,
                        const pthread_attr_t *attr,
                        void *(*start_routine)(void*), void *arg);
 
-/* 
+/*
  * Can use SAFEKILL to check if the argument is a valid threadid
  */
-int bthread_kill(pthread_t thread, int sig, 
+int bthread_kill(pthread_t thread, int sig,
                  const char *file="*unknown*", int line=0);
 
 #define BTHREAD_MUTEX_NO_PRIORITY      {PTHREAD_MUTEX_INITIALIZER, 0}
@@ -179,9 +180,11 @@ int bthread_kill(pthread_t thread, int sig,
 #define bthread_cond_wait(x,y)     bthread_cond_wait_p(x,y, __FILE__, __LINE__)
 #define bthread_cond_timedwait(x,y,z) bthread_cond_timedwait_p(x,y,z, __FILE__, __LINE__)
 
-/* 
+/*
  * Define _LOCKMGR_COMPLIANT to use real pthread functions
  */
+#define real_P(x) lmgr_p(&(x))
+#define real_V(x) lmgr_v(&(x))
 
 #ifdef _LOCKMGR_COMPLIANT
 # define P(x) lmgr_p(&(x))
@@ -203,6 +206,8 @@ int bthread_kill(pthread_t thread, int sig,
 #else   /* _USE_LOCKMGR */
 
 # define lmgr_detect_deadloc()
+# define lmgr_add_event_p(c, u, f, l)
+# define lmgr_add_event(c, u)
 # define lmgr_dump()
 # define lmgr_init_thread()
 # define lmgr_cleanup_thread()

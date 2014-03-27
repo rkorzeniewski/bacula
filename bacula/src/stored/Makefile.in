@@ -24,50 +24,65 @@ first_rule: all
 dummy:
 
 # bacula-sd
-SDOBJS =  stored.o ansi_label.o vtape.o \
+SDOBJS =  stored.o ansi_label.o vtape_dev.o \
 	  autochanger.o acquire.o append.o \
 	  askdir.o authenticate.o \
-	  block.o butil.o dev.o \
-	  device.o dircmd.o dvd.o ebcdic.o fd_cmds.o job.o \
-	  label.o lock.o mac.o match_bsr.o mount.o parse_bsr.o \
-	  pythonsd.o read.o read_record.o record.o \
+	  block.o block_util.o butil.o dev.o os.o file_dev.o tape_dev.o \
+	  device.o dircmd.o ebcdic.o fd_cmds.o job.o \
+	  label.o lock.o match_bsr.o mount.o parse_bsr.o \
+	  read.o read_records.o \
+	  record_read.o record_write.o record_util.o \
 	  reserve.o scan.o sd_plugins.o \
-	  spool.o status.o stored_conf.o vol_mgr.o wait.o
+	  spool.o status.o stored_conf.o \
+	  vbackup.o vol_mgr.o wait.o
 
 # btape
-TAPEOBJS = btape.o block.o butil.o dev.o device.o label.o vtape.o \
-	   lock.o ansi_label.o dvd.o ebcdic.o \
-	   autochanger.o acquire.o mount.o record.o read_record.o \
+TAPEOBJS = btape.o block.o block_util.o butil.o \
+	   dev.o os.o file_dev.o tape_dev.o \
+	   device.o label.o vtape_dev.o \
+	   lock.o ansi_label.o ebcdic.o \
+	   autochanger.o acquire.o mount.o record_util.o \
+	   read_records.o record_read.o record_write.o \
 	   reserve.o stored_conf.o match_bsr.o parse_bsr.o scan.o \
-	   sd_plugins.o spool.o vol_mgr.o wait.o
+	   sd_plugins.o status.o spool.o vol_mgr.o wait.o
 
 # bls
-BLSOBJS = bls.o block.o butil.o device.o dev.o label.o match_bsr.o vtape.o \
-	  ansi_label.o dvd.o ebcdic.o lock.o \
-	  autochanger.o acquire.o mount.o parse_bsr.o record.o	\
-	  read_record.o reserve.o scan.o stored_conf.o spool.o \
-	  sd_plugins.o vol_mgr.o wait.o
+BLSOBJS = bls.o block.o block_util.o butil.o device.o \
+	  dev.o os.o file_dev.o tape_dev.o label.o match_bsr.o vtape_dev.o \
+	  ansi_label.o ebcdic.o lock.o \
+	  autochanger.o acquire.o mount.o parse_bsr.o \
+	  record_read.o record_write.o record_util.o \
+	  read_records.o reserve.o scan.o stored_conf.o spool.o \
+	  sd_plugins.o status.o vol_mgr.o wait.o
 
 # bextract
-BEXTOBJS = bextract.o block.o device.o dev.o label.o record.o vtape.o \
-	   ansi_label.o dvd.o ebcdic.o lock.o \
+BEXTOBJS = bextract.o block.o block_util.o device.o \
+	   dev.o os.o file_dev.o tape_dev.o label.o vtape_dev.o \
+	   ansi_label.o ebcdic.o lock.o \
 	   autochanger.o acquire.o mount.o match_bsr.o parse_bsr.o butil.o \
-	   read_record.o reserve.o scan.o stored_conf.o spool.o \
-	   sd_plugins.o vol_mgr.o wait.o
+	   read_records.o record_read.o record_write.o record_util.o \
+	   reserve.o scan.o stored_conf.o spool.o \
+	   sd_plugins.o status.o vol_mgr.o wait.o
 
 # bscan
-SCNOBJS = bscan.o block.o device.o dev.o label.o vtape.o \
-	  ansi_label.o dvd.o ebcdic.o lock.o \
-	  autochanger.o acquire.o mount.o record.o match_bsr.o parse_bsr.o \
-	  butil.o read_record.o scan.o reserve.o stored_conf.o spool.o \
-	  sd_plugins.o vol_mgr.o wait.o
+SCNOBJS = bscan.o block.o block_util.o device.o \
+	  dev.o os.o file_dev.o tape_dev.o label.o vtape_dev.o \
+	  ansi_label.o ebcdic.o lock.o \
+	  autochanger.o acquire.o mount.o \
+	  record_read.o record_write.o read_records.o record_util.o \
+	  match_bsr.o parse_bsr.o \
+	  butil.o scan.o reserve.o stored_conf.o spool.o \
+	  sd_plugins.o status.o vol_mgr.o wait.o
 
 # bcopy
-COPYOBJS = bcopy.o block.o device.o dev.o label.o vtape.o \
-	   ansi_label.o dvd.o ebcdic.o lock.o \
-	   autochanger.o acquire.o mount.o record.o match_bsr.o parse_bsr.o \
-	   butil.o read_record.o reserve.o \
-	   sd_plugins.o scan.o stored_conf.o spool.o vol_mgr.o wait.o
+COPYOBJS = bcopy.o block.o block_util.o device.o \
+	   dev.o os.o file_dev.o tape_dev.o label.o vtape_dev.o \
+	   ansi_label.o ebcdic.o lock.o \
+	   autochanger.o acquire.o mount.o \
+	   record_read.o record_write.o read_records.o record_util.o \
+	   match_bsr.o parse_bsr.o butil.o reserve.o \
+	   sd_plugins.o scan.o status.o stored_conf.o spool.o \
+	   vol_mgr.o wait.o
 
 
 
@@ -76,7 +91,8 @@ EXTRAOBJS = @OBJLIST@
 
 CAP_LIBS = @CAP_LIBS@
 ZLIBS=@ZLIBS@
-LZOLIBS = @LZOLIBS@
+LZO_LIBS= @LZO_LIBS@
+LZO_INC= @LZO_INC@
 
 
 .SUFFIXES:	.c .o
@@ -127,11 +143,11 @@ bls:	Makefile $(BLSOBJS) ../findlib/libbacfind$(DEFAULT_ARCHIVE_TYPE) ../lib/lib
 bextract.o: bextract.c
 	@echo "Compiling $<"
 	$(NO_ECHO)$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) \
-	   -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
+	   -I$(basedir) $(DINCLUDE) $(CFLAGS) $(LZO_INC) $<
 
 bextract: Makefile $(BEXTOBJS) ../findlib/libbacfind$(DEFAULT_ARCHIVE_TYPE) ../lib/libbaccfg$(DEFAULT_ARCHIVE_TYPE) ../lib/libbac$(DEFAULT_ARCHIVE_TYPE)
 	@echo "Compiling $<"
-	$(LIBTOOL_LINK) $(CXX) $(TTOOL_LDFLAGS) $(LDFLAGS) -L../lib -L../findlib -o $@ $(BEXTOBJS) $(DLIB) $(ZLIBS) $(LZOLIBS) \
+	$(LIBTOOL_LINK) $(CXX) $(TTOOL_LDFLAGS) $(LDFLAGS) -L../lib -L../findlib -o $@ $(BEXTOBJS) $(DLIB) $(ZLIBS) $(LZO_LIBS) \
 	   -lbacfind -lbaccfg -lbac -lm $(LIBS) $(GETTEXT_LIBS) $(OPENSSL_LIBS)
 
 bscan.o: bscan.c

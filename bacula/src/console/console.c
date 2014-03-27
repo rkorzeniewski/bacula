@@ -1,29 +1,17 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2011 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  *
@@ -320,7 +308,7 @@ static void read_and_process_input(FILE *input, BSOCK *UA_sock)
       if (!stop) {
          fflush(stdout);
       }
-      if (is_bnet_stop(UA_sock)) {
+      if (UA_sock->is_stop()) {
          break;                       /* error or term */
       } else if (stat == BNET_SIGNAL) {
          if (UA_sock->msglen == BNET_SUB_PROMPT) {
@@ -333,7 +321,7 @@ static void read_and_process_input(FILE *input, BSOCK *UA_sock)
 
 /*
  * Call-back for reading a passphrase for an encrypted PEM file
- * This function uses getpass(), 
+ * This function uses getpass(),
  *  which uses a static buffer and is NOT thread-safe.
  */
 static int tls_pem_callback(char *buf, int size, const void *userdata)
@@ -399,7 +387,7 @@ get_previous_keyword(int current_point, int nb)
             break;
          }
       }
-      
+
       /* find the end of the command */
       for (; i >= 0; i--) {
          if (rl_line_buffer[i] != ' ') {
@@ -407,12 +395,12 @@ get_previous_keyword(int current_point, int nb)
             break;
          }
       }
-      
+
       /* no end of string */
       if (end == -1) {
          return NULL;
       }
-      
+
       /* look for the start of the command */
       for (start = end; start > 0; start--) {
          if (rl_line_buffer[start] == '"') {
@@ -520,7 +508,7 @@ void get_items(const char *what)
    }
 }
 
-typedef enum 
+typedef enum
 {
    ITEM_ARG,       /* item with simple list like .jobs */
    ITEM_HELP       /* use help item=xxx and detect all arguments */
@@ -528,9 +516,9 @@ typedef enum
 
 /* Generator function for command completion.  STATE lets us know whether
  * to start from scratch; without any state (i.e. STATE == 0), then we
- * start at the top of the list. 
+ * start at the top of the list.
  */
-static char *item_generator(const char *text, int state, 
+static char *item_generator(const char *text, int state,
                             const char *item, cpl_item_t type)
 {
   static int list_index, len;
@@ -538,7 +526,7 @@ static char *item_generator(const char *text, int state,
 
   /* If this is a new word to complete, initialize now.  This includes
    * saving the length of TEXT for efficiency, and initializing the index
-   *  variable to 0. 
+   *  variable to 0.
    */
   if (!state)
   {
@@ -559,7 +547,7 @@ static char *item_generator(const char *text, int state,
   {
      name = (char *)items->list[list_index];
      list_index++;
-     
+
      if (strncmp(name, text, len) == 0) {
         char *ret = (char *) actuallymalloc(strlen(name)+1);
         strcpy(ret, name);
@@ -568,10 +556,10 @@ static char *item_generator(const char *text, int state,
   }
 
   /* If no names matched, then return NULL. */
-  return ((char *)NULL);   
+  return ((char *)NULL);
 }
 
-/* gobal variables for the type and the item to search 
+/* gobal variables for the type and the item to search
  * the readline API doesn' permit to pass user data.
  */
 static const char *cpl_item;
@@ -619,7 +607,7 @@ static struct cpl_keywords_t cpl_keywords[] = {
  * region of rl_line_buffer that contains the word to complete.  TEXT is
  * the word to complete.  We can use the entire contents of rl_line_buffer
  * in case we want to do some simple parsing.  Return the array of matches,
- * or NULL if there aren't any. 
+ * or NULL if there aren't any.
  */
 static char **readline_completion(const char *text, int start, int end)
 {
@@ -630,7 +618,7 @@ static char **readline_completion(const char *text, int start, int end)
 
    /* If this word is at the start of the line, then it is a command
     * to complete.  Otherwise it is the name of a file in the current
-    * directory. 
+    * directory.
     */
    s = get_previous_keyword(start, 0);
    cmd = get_first_keyword();
@@ -644,14 +632,14 @@ static char **readline_completion(const char *text, int start, int end)
             break;
          }
       }
-      
+
       if (!found) {             /* we try to get help with the first command */
          cpl_item = cmd;
          cpl_type = ITEM_HELP;
          /* we don't want to append " " at the end */
-         rl_completion_suppress_append=true; 
+         rl_completion_suppress_append=true;
          matches = rl_completion_matches(text, cpl_generator);
-      } 
+      }
       free(s);
    } else {                     /* nothing on the line, display all commands */
       cpl_item = ".help all";
@@ -830,7 +818,7 @@ again:
       }
       else
 #endif
-      if (fgets(sock->msg, len, input) == NULL) {
+      if (bfgets(sock->msg, input) == NULL) {
          return -1;
 
       }
@@ -890,10 +878,8 @@ bool select_director(const char *director, DIRRES **ret_dir, CONRES **ret_cons)
    int numcon=0, numdir=0;
    int i=0, item=0;
    BSOCK *UA_sock;
-   DIRRES *dir=NULL;
-   CONRES *cons=NULL;
-   struct sockaddr client_addr;
-   memset(&client_addr, 0, sizeof(client_addr));
+   DIRRES *dir = NULL;
+   CONRES *cons = NULL;
 
    *ret_cons = NULL;
    *ret_dir = NULL;
@@ -911,12 +897,12 @@ bool select_director(const char *director, DIRRES **ret_dir, CONRES **ret_cons)
 
    if (numdir == 1) {           /* No choose */
       dir = (DIRRES *)GetNextRes(R_DIRECTOR, NULL);
-   } 
- 
+   }
+
    if (director) {    /* Command line choice overwrite the no choose option */
       LockRes();
       foreach_res(dir, R_DIRECTOR) {
-         if (bstrcmp(dir->hdr.name, director)) {
+         if (bstrcasecmp(dir->hdr.name, director)) {
             break;
          }
       }
@@ -927,26 +913,26 @@ bool select_director(const char *director, DIRRES **ret_dir, CONRES **ret_cons)
       }
    }
 
-   if (!dir) {                  /* prompt for director */
-      UA_sock = init_bsock(NULL, 0, "", "", 0, &client_addr);
+   if (dir == NULL) {               /* prompt for director */
+      UA_sock = new_bsock();
 try_again:
       sendit(_("Available Directors:\n"));
       LockRes();
       numdir = 0;
       foreach_res(dir, R_DIRECTOR) {
-         senditf( _("%2d:  %s at %s:%d\n"), 1+numdir++, dir->hdr.name, 
+         senditf( _("%2d:  %s at %s:%d\n"), 1+numdir++, dir->hdr.name,
                   dir->address, dir->DIRport);
       }
       UnlockRes();
-      if (get_cmd(stdin, _("Select Director by entering a number: "), 
-                  UA_sock, 600) < 0) 
+      if (get_cmd(stdin, _("Select Director by entering a number: "),
+                  UA_sock, 600) < 0)
       {
          (void)WSACleanup();               /* Cleanup Windows sockets */
          return 0;
       }
       if (!is_a_number(UA_sock->msg)) {
          senditf(_("%s is not a number. You must enter a number between "
-                   "1 and %d\n"), 
+                   "1 and %d\n"),
                  UA_sock->msg, numdir);
          goto try_again;
       }
@@ -955,7 +941,7 @@ try_again:
          senditf(_("You must enter a number between 1 and %d\n"), numdir);
          goto try_again;
       }
-      term_bsock(UA_sock);
+      free_bsock(UA_sock);
       LockRes();
       for (i=0; i<item; i++) {
          dir = (DIRRES *)GetNextRes(R_DIRECTOR, (RES *)dir);
@@ -966,18 +952,24 @@ try_again:
    /* Look for a console linked to this director */
    for (i=0; i<numcon; i++) {
       cons = (CONRES *)GetNextRes(R_CONSOLE, (RES *)cons);
-      if (cons->director && strcmp(cons->director, dir->hdr.name) == 0) {
+      if (cons->director && strcasecmp(cons->director, dir->hdr.name) == 0) {
          break;
       }
-      cons = NULL;
+      if (i == (numcon - 1)) {
+         cons = NULL;
+      }
    }
+
    /* Look for the first non-linked console */
    if (cons == NULL) {
       for (i=0; i<numcon; i++) {
          cons = (CONRES *)GetNextRes(R_CONSOLE, (RES *)cons);
-         if (cons->director == NULL)
+         if (cons->director == NULL) {
             break;
-         cons = NULL;
+         }
+         if (i == (numcon - 1)) {
+            cons = NULL;
+         }
       }
    }
 
@@ -989,7 +981,7 @@ try_again:
 
    *ret_dir = dir;
    *ret_cons = cons;
-   
+
    return 1;
 }
 
@@ -1001,7 +993,7 @@ try_again:
 int main(int argc, char *argv[])
 {
    int ch;
-   char *director=NULL;
+   char *director = NULL;
    bool list_directors=false;
    bool no_signals = false;
    bool test_config = false;
@@ -1136,7 +1128,8 @@ int main(int argc, char *argv[])
 
    start_watchdog();                        /* Start socket watchdog */
 
-   if(!select_director(director, &dir, &cons)) {
+   if (!select_director(director, &dir, &cons)) {
+      terminate_console(0);
       return 1;
    }
 
@@ -1150,7 +1143,7 @@ int main(int argc, char *argv[])
 
       /* Initialize TLS context:
        * Args: CA certfile, CA certdir, Certfile, Keyfile,
-       * Keyfile PEM Callback, Keyfile CB Userdata, DHfile, Verify Peer   
+       * Keyfile PEM Callback, Keyfile CB Userdata, DHfile, Verify Peer
        */
       cons->tls_ctx = new_tls_context(cons->tls_ca_certfile,
          cons->tls_ca_certdir, cons->tls_certfile,
@@ -1191,9 +1184,11 @@ int main(int argc, char *argv[])
    } else {
       heart_beat = 0;
    }
-   UA_sock = bnet_connect(NULL, 5, 15, heart_beat, "Director daemon", dir->address,
-                          NULL, dir->DIRport, 0);
-   if (UA_sock == NULL) {
+   if (!UA_sock) {
+      UA_sock = new_bsock();
+   }
+   if (!UA_sock->connect(NULL, 5, 15, heart_beat, "Director daemon", dir->address,
+                          NULL, dir->DIRport, 0)) {
       terminate_console(0);
       return 1;
    }
@@ -1308,7 +1303,7 @@ static int check_resources()
          OK = false;
       }
    }
-   
+
    if (numdir == 0) {
       Emsg1(M_FATAL, 0, _("No Director resource defined in %s\n"
                           "Without that I don't how to speak to the Director :-(\n"), configfile);
@@ -1447,7 +1442,7 @@ static int execcmd(FILE *input, BSOCK *UA_sock)
          argk[1], be.bstrerror(errno));
       return 1;
    }
-  
+
    while (fgets(line, sizeof(line), bpipe->rfd)) {
       senditf("%s", line);
    }
@@ -1481,10 +1476,10 @@ static int quitcmd(FILE *input, BSOCK *UA_sock)
 static int helpcmd(FILE *input, BSOCK *UA_sock)
 {
    int i;
-   for (i=0; i<comsize; i++) { 
+   for (i=0; i<comsize; i++) {
       senditf("  %-10s %s\n", commands[i].key, commands[i].help);
    }
-   return 1;   
+   return 1;
 }
 
 

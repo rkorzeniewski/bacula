@@ -1,29 +1,17 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2011 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  * Bacula floating point time and date routines -- John Walker
@@ -32,8 +20,8 @@
  *
  */
 
-
-/* Concerning times. There are a number of differnt time standards
+/*
+ * Concerning times. There are a number of different time standards
  * in Bacula (fdate_t, ftime_t, time_t (Unix standard), btime_t, and
  *  utime_t).  fdate_t and ftime_t are deprecated and should no longer
  *  be used, and in general, Unix time time_t should no longer be used,
@@ -74,8 +62,19 @@ char *bstrftimes(char *dt, int maxlen, utime_t utime)
    return dt;
 }
 
+/* Formatted time with day name for user display: dd-Mon hh:mm */
+char *bstrftime_dn(char *dt, int maxlen, utime_t utime)
+{
+   time_t time = (time_t)utime;
+   struct tm tm;
 
-/* Formatted time for user display: dd-Mon hh:mm */
+   /* ***FIXME**** the format and localtime_r() should be user configurable */
+   (void)localtime_r(&time, &tm);
+   strftime(dt, maxlen, "%a %d-%b %H:%M", &tm);
+   return dt;
+}
+
+/* Formatted time (no year) for user display: dd-Mon hh:mm */
 char *bstrftime_ny(char *dt, int maxlen, utime_t utime)
 {
    time_t time = (time_t)utime;
@@ -183,9 +182,34 @@ utime_t btime_to_utime(btime_t bt)
 }
 
 /*
+ * Definition of a leap year from Wikipedia.
+ *  I knew it anyway but better check.
+ */
+static bool is_leap_year(int year)
+{
+   if (year % 400 == 0) return true;
+   if (year % 100 == 0) return false;
+   if (year % 4 == 0) return true;
+   return false;
+}
+
+/*
+ * Return the last day of the month, base 0
+ *   month=0-11, year is actual year
+ *   ldom is base 0
+ */
+int tm_ldom(int month, int year)
+{                     /* jan feb mar apr may jun jul aug sep oct nov dec */
+   static int dom[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+
+   if (is_leap_year(year) && month == 1) return 28;
+   return dom[month] - 1;
+}
+
+/*
  * Return the week of the month, base 0 (wom)
  *   given tm_mday and tm_wday. Value returned
- *   can be from 0 to 4 => week1, ... week5
+ *   can be from 0 to 5 => week1, ... week6
  */
 int tm_wom(int mday, int wday)
 {
@@ -223,7 +247,7 @@ int tm_woy(time_t stime)
    tm_yday = tm.tm_yday;
    tm.tm_mon = 0;
    tm.tm_mday = 4;
-   tm.tm_isdst = 0;                   /* 4 Jan is not DST */ 
+   tm.tm_isdst = 0;                   /* 4 Jan is not DST */
    time4 = mktime(&tm);
    (void)localtime_r(&time4, &tm);
    fty = 1 - tm.tm_wday;
@@ -257,8 +281,8 @@ void get_current_time(struct date_time *dt)
 }
 
 
-/*  date_encode  --  Encode civil date as a Julian day number.  */
 
+/*  date_encode  --  Encode civil date as a Julian day number.  */
 /* Deprecated. Do not use. */
 fdate_t date_encode(uint32_t year, uint8_t month, uint8_t day)
 {

@@ -1,34 +1,22 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2012 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  *
  *  Dumb program to do an "ls" of a Bacula 1.0 mortal file.
- * 
+ *
  *  Kern Sibbald, MM
  *
  */
@@ -60,6 +48,7 @@ static uint32_t num_files = 0;
 static ATTR *attr;
 static CONFIG *config;
 
+void *start_heap;
 #define CONFIG_FILE "bacula-sd.conf"
 char *configfile = NULL;
 STORES *me = NULL;                    /* our Global resource */
@@ -218,6 +207,8 @@ int main (int argc, char *argv[])
 
    config = new_config_parser();
    parse_sd_config(config, configfile, M_ERROR_TERM);
+   setup_me();
+   load_sd_plugins(me->plugin_directory);
 
    if (ff->included_files_list == NULL) {
       add_fname_to_include_list(ff, 0, "/");
@@ -227,7 +218,7 @@ int main (int argc, char *argv[])
       if (bsrName) {
          bsr = parse_bsr(NULL, bsrName);
       }
-      jcr = setup_jcr("bls", argv[i], bsr, VolumeName, 1); /* acquire for read */
+      jcr = setup_jcr("bls", argv[i], bsr, VolumeName, SD_READ);
       if (!jcr) {
          exit(1);
       }
@@ -374,10 +365,18 @@ static void do_ls(char *infname)
  */
 static bool record_cb(DCR *dcr, DEV_RECORD *rec)
 {
-   if (rec->FileIndex < 0) {
-      get_session_record(dev, rec, &sessrec);
+   if (verbose && rec->FileIndex < 0) {
+      dump_label_record(dcr->dev, rec, verbose);
       return true;
    }
+   if (verbose) {
+      char buf1[100], buf2[100];
+      Pmsg6(000, "Record: FI=%s SessId=%d Strm=%s len=%u remlen=%d data_len=%d\n",
+         FI_to_ascii(buf1, rec->FileIndex), rec->VolSessionId,
+         stream_to_ascii(buf2, rec->Stream, rec->FileIndex), rec->data_bytes, rec->remlen,
+         rec->data_len);
+   }
+
    /* File Attributes stream */
    if (rec->maskedStream == STREAM_UNIX_ATTRIBUTES ||
        rec->maskedStream == STREAM_UNIX_ATTRIBUTES_EX) {
@@ -396,7 +395,7 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
 
       if (file_is_included(ff, attr->fname) && !file_is_excluded(ff, attr->fname)) {
          if (verbose) {
-            Pmsg5(-1, _("FileIndex=%d VolSessionId=%d VolSessionTime=%d Stream=%d DataLen=%d\n"),
+            Pmsg5(000, _("FileIndex=%d VolSessionId=%d VolSessionTime=%d Stream=%d DataLen=%d\n"),
                   rec->FileIndex, rec->VolSessionId, rec->VolSessionTime, rec->Stream, rec->data_len);
          }
          print_ls_output(jcr, attr);
@@ -406,11 +405,11 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
       char data[100];
       int len = MIN(rec->data_len+1, sizeof(data));
       bstrncpy(data, rec->data, len);
-      Pmsg1(000, "Plugin data: %s\n", data);
+      Dmsg1(100, "Plugin data: %s\n", data);
    } else if (rec->Stream == STREAM_RESTORE_OBJECT) {
-      Pmsg0(000, "Restore Object record\n");
+      Dmsg0(100, "Restore Object record\n");
    }
-      
+
    return true;
 }
 
@@ -451,7 +450,7 @@ static void get_session_record(DEVICE *dev, DEV_RECORD *rec, SESSION_LABEL *sess
       break;
    default:
       rtype = _("Unknown");
-      Dmsg1(10, "FI rtype=%d unknown\n", rec->FileIndex);     
+      Dmsg1(10, "FI rtype=%d unknown\n", rec->FileIndex);
       break;
    }
    Dmsg5(10, "%s Record: VolSessionId=%d VolSessionTime=%d JobId=%d DataLen=%d\n",
@@ -471,9 +470,9 @@ bool    dir_ask_sysop_to_create_appendable_volume(DCR *dcr) { return 1; }
 bool    dir_update_file_attributes(DCR *dcr, DEV_RECORD *rec) { return 1;}
 bool    dir_send_job_status(JCR *jcr) {return 1;}
 int     generate_job_event(JCR *jcr, const char *event) { return 1; }
-       
 
-bool dir_ask_sysop_to_mount_volume(DCR *dcr, int /*mode*/)
+
+bool dir_ask_sysop_to_mount_volume(DCR *dcr, bool /*writing*/)
 {
    DEVICE *dev = dcr->dev;
    fprintf(stderr, _("Mount Volume \"%s\" on device %s and press return when ready: "),
@@ -487,7 +486,9 @@ bool dir_get_volume_info(DCR *dcr, enum get_vol_info_rw  writing)
 {
    Dmsg0(100, "Fake dir_get_volume_info\n");
    dcr->setVolCatName(dcr->VolumeName);
+#ifdef BUILD_DVD
    dcr->VolCatInfo.VolCatParts = find_num_dvd_parts(dcr);
+#endif
    Dmsg2(500, "Vol=%s num_parts=%d\n", dcr->getVolCatName(), dcr->VolCatInfo.VolCatParts);
    return 1;
 }

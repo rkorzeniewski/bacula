@@ -1,36 +1,22 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  * Definitions for locking and blocking functions in the SD
  *
  * Kern Sibbald, pulled out of dev.h June 2007
- *
- *   Version $Id$
  *
  */
 
@@ -38,11 +24,63 @@
 #ifndef __LOCK_H
 #define __LOCK_H 1
 
+void    _lock_reservations(const char *file="**Unknown**", int line=0);
+void    _unlock_reservations();
+void    _lock_volumes(const char *file="**Unknown**", int line=0);
+void    _unlock_volumes();
+
+#ifdef  SD_DEBUG_LOCK
+
+#define lock_reservations() \
+         do { Dmsg3(sd_dbglvl, "lock_reservations at %s:%d precnt=%d\n", \
+              __FILE__, __LINE__, \
+              reservations_lock_count); \
+              _lock_reservations(__FILE__, __LINE__); \
+              Dmsg0(sd_dbglvl, "lock_reservations: got lock\n"); \
+         } while (0)
+#define unlock_reservations() \
+         do { Dmsg3(sd_dbglvl, "unlock_reservations at %s:%d precnt=%d\n", \
+              __FILE__, __LINE__, \
+              reservations_lock_count); \
+                   _unlock_reservations(); } while (0)
+
+#define lock_volumes() \
+         do { Dmsg3(sd_dbglvl, "lock_volumes at %s:%d precnt=%d\n", \
+              __FILE__, __LINE__, \
+              vol_list_lock_count); \
+              _lock_volumes(__FILE__, __LINE__); \
+              Dmsg0(sd_dbglvl, "lock_volumes: got lock\n"); \
+         } while (0)
+
+#define unlock_volumes() \
+         do { Dmsg3(sd_dbglvl, "unlock_volumes at %s:%d precnt=%d\n", \
+              __FILE__, __LINE__, \
+              vol_list_lock_count); \
+                   _unlock_volumes(); } while (0)
+
+#else
+
+#define lock_reservations() _lock_reservations(__FILE__, __LINE__)
+#define unlock_reservations() _unlock_reservations()
+#define lock_volumes() _lock_volumes(__FILE__, __LINE__)
+#define unlock_volumes() _unlock_volumes()
+
+#endif
+
+#ifdef DEV_DEBUG_LOCK
+#define Lock() dbg_Lock(__FILE__, __LINE__)
+#define Unlock() dbg_Unlock(__FILE__, __LINE__)
+#define rLock(locked) dbg_rLock(__FILE__, __LINE__, locked)
+#define rUnlock() dbg_rUnlock(__FILE__, __LINE__)
+#endif
+
 #ifdef SD_DEBUG_LOCK
-#define r_dlock()   _r_dlock(__FILE__, __LINE__);    /* in lock.c */
-#define r_dunlock() _r_dunlock(__FILE__, __LINE__);  /* in lock.c */
-#define dlock()     _dlock(__FILE__, __LINE__);      /* in lock.c */
-#define dunlock()   _dunlock(__FILE__, __LINE__);    /* in lock.c */
+#define Lock_acquire() dbg_Lock_acquire(__FILE__, __LINE__)
+#define Unlock_acquire() dbg_Unlock_acquire(__FILE__, __LINE__)
+#define Lock_read_acquire() dbg_Lock_read_acquire(__FILE__, __LINE__)
+#define Unlock_read_acquire() dbg_Unlock_read_acquire(__FILE__, __LINE__)
+#define Lock_VolCatInfo() dbg_Lock_VolCatInfo(__FILE__, __LINE__)
+#define Unlock_VolCatInfo() dbg_Unlock_VolCatInfo(__FILE__, __LINE__)
 #endif
 
 #define block_device(d, s)          _block_device(__FILE__, __LINE__, (d), s)

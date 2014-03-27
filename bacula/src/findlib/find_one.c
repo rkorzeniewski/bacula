@@ -1,29 +1,17 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2010 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
 
@@ -87,7 +75,7 @@ static inline int LINKHASH(const struct stat &info)
 /*
  * Create a new directory Find File packet, but copy
  *   some of the essential info from the current packet.
- *   However, be careful to zero out the rest of the 
+ *   However, be careful to zero out the rest of the
  *   packet.
  */
 static FF_PKT *new_dir_ff_pkt(FF_PKT *ff_pkt)
@@ -244,7 +232,7 @@ bool has_file_changed(JCR *jcr, FF_PKT *ff_pkt)
 
    if (lstat(ff_pkt->fname, &statp) != 0) {
       berrno be;
-      Jmsg(jcr, M_WARNING, 0, 
+      Jmsg(jcr, M_WARNING, 0,
            _("Cannot stat file %s: ERR=%s\n"),ff_pkt->fname,be.bstrerror());
       return true;
    }
@@ -262,20 +250,12 @@ bool has_file_changed(JCR *jcr, FF_PKT *ff_pkt)
             (int64_t)ff_pkt->statp.st_ctime, (int64_t)statp.st_ctime);
       return true;
    }
-  
-   if (statp.st_size != ff_pkt->statp.st_size) {
-      /* TODO: add size change */
-      Jmsg(jcr, M_ERROR, 0, _("%s size changed during backup.\n"),ff_pkt->fname);
+
+   if ((int64_t)statp.st_size != (int64_t)ff_pkt->statp.st_size) {
+      Jmsg(jcr, M_ERROR, 0, _("%s size of %lld changed during backup to %lld.n"),ff_pkt->fname,
+         (int64_t)ff_pkt->statp.st_size, (int64_t)statp.st_size);
       Dmsg3(50, "%s size (%lld) changed during backup (%lld).\n", ff_pkt->fname,
             (int64_t)ff_pkt->statp.st_size, (int64_t)statp.st_size);
-      return true;
-   }
-
-   if ((statp.st_blksize != ff_pkt->statp.st_blksize) ||
-       (statp.st_blocks  != ff_pkt->statp.st_blocks)) {
-      Jmsg(jcr, M_ERROR, 0, _("%s size changed during backup.\n"),ff_pkt->fname);
-      Dmsg3(50, "%s size (%lld) changed during backup (%lld).\n", ff_pkt->fname,
-            (int64_t)ff_pkt->statp.st_blocks, (int64_t)statp.st_blocks);
       return true;
    }
 
@@ -288,7 +268,7 @@ bool has_file_changed(JCR *jcr, FF_PKT *ff_pkt)
  */
 bool check_changes(JCR *jcr, FF_PKT *ff_pkt)
 {
-   /* in special mode (like accurate backup), the programmer can 
+   /* in special mode (like accurate backup), the programmer can
     * choose his comparison function.
     */
    if (ff_pkt->check_fct) {
@@ -301,10 +281,10 @@ bool check_changes(JCR *jcr, FF_PKT *ff_pkt)
    if (ff_pkt->incremental &&
        (ff_pkt->statp.st_mtime < ff_pkt->save_time &&
         ((ff_pkt->flags & FO_MTIMEONLY) ||
-         ff_pkt->statp.st_ctime < ff_pkt->save_time))) 
+         ff_pkt->statp.st_ctime < ff_pkt->save_time)))
    {
       return false;
-   } 
+   }
 
    return true;
 }
@@ -319,7 +299,7 @@ static bool have_ignoredir(FF_PKT *ff_pkt)
       return false;
    }
    ignoredir = ff_pkt->fileset->incexe->ignoredir;
-   
+
    if (ignoredir) {
       if (!ff_pkt->ignoredir_fname) {
          ff_pkt->ignoredir_fname = get_pool_memory(PM_FNAME);
@@ -329,12 +309,12 @@ static bool have_ignoredir(FF_PKT *ff_pkt)
          Dmsg2(100, "Directory '%s' ignored (found %s)\n",
                ff_pkt->fname, ignoredir);
          return true;      /* Just ignore this directory */
-      } 
+      }
    }
    return false;
 }
 
-/* 
+/*
  * When the current file is a hardlink, the backup code can compute
  * the checksum and store it into the link_t structure.
  */
@@ -359,7 +339,7 @@ ff_pkt_set_link_digest(FF_PKT *ff_pkt,
  *  descending into a directory.
  */
 int
-find_one_file(JCR *jcr, FF_PKT *ff_pkt, 
+find_one_file(JCR *jcr, FF_PKT *ff_pkt,
                int handle_file(JCR *jcr, FF_PKT *ff, bool top_level),
                char *fname, dev_t parent_device, bool top_level)
 {
@@ -435,8 +415,8 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt,
     * since our last "save_time", presumably the last Full save
     * or Incremental.
     */
-   if (   !S_ISDIR(ff_pkt->statp.st_mode) 
-       && !check_changes(jcr, ff_pkt)) 
+   if (   !S_ISDIR(ff_pkt->statp.st_mode)
+       && !check_changes(jcr, ff_pkt))
    {
       Dmsg1(500, "Non-directory incremental: %s\n", ff_pkt->fname);
       ff_pkt->type = FT_NOCHG;
@@ -458,6 +438,7 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt,
           ff_pkt->ff_errno = errno;
           return handle_file(jcr, ff_pkt, top_level);
        }
+       return -1; /* ignore */
    }
 #endif
 
@@ -501,7 +482,7 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt,
              ff_pkt->digest_stream = lp->digest_stream;
              ff_pkt->digest_len = lp->digest_len;
              rtn_stat = handle_file(jcr, ff_pkt, top_level);
-             Dmsg3(400, "FT_LNKSAVED FI=%d LinkFI=%d file=%s\n", 
+             Dmsg3(400, "FT_LNKSAVED FI=%d LinkFI=%d file=%s\n",
                 ff_pkt->FileIndex, lp->FileIndex, lp->name);
              return rtn_stat;
          }
@@ -542,11 +523,11 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt,
       if (ff_pkt->linked) {
          ff_pkt->linked->FileIndex = ff_pkt->FileIndex;
       }
-      Dmsg3(400, "FT_REG FI=%d linked=%d file=%s\n", ff_pkt->FileIndex, 
+      Dmsg3(400, "FT_REG FI=%d linked=%d file=%s\n", ff_pkt->FileIndex,
          ff_pkt->linked ? 1 : 0, fname);
       if (ff_pkt->flags & FO_KEEPATIME) {
          utime(fname, &restore_times);
-      }       
+      }
       return rtn_stat;
 
 
@@ -613,32 +594,8 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt,
       }
       /*
        * We have set st_rdev to 1 if it is a reparse point, otherwise 0,
-       *  if st_rdev is 2, it is a mount point 
+       *  if st_rdev is 2, it is a mount point
        */
-#if defined(HAVE_WIN32)
-      /*
-       * A reparse point (WIN32_REPARSE_POINT)
-       *  is something special like one of the following: 
-       *  IO_REPARSE_TAG_DFS              0x8000000A
-       *  IO_REPARSE_TAG_DFSR             0x80000012
-       *  IO_REPARSE_TAG_HSM              0xC0000004
-       *  IO_REPARSE_TAG_HSM2             0x80000006
-       *  IO_REPARSE_TAG_SIS              0x80000007
-       *  IO_REPARSE_TAG_SYMLINK          0xA000000C
-       *
-       * A junction point is a:
-       *  IO_REPARSE_TAG_MOUNT_POINT      0xA0000003
-       * which can be either a link to a Volume (WIN32_MOUNT_POINT)
-       * or a link to a directory (WIN32_JUNCTION_POINT)
-       *
-       * Ignore WIN32_REPARSE_POINT and WIN32_JUNCTION_POINT
-       */
-      if (ff_pkt->statp.st_rdev == WIN32_REPARSE_POINT) {
-         ff_pkt->type = FT_REPARSE;
-      } else if (ff_pkt->statp.st_rdev == WIN32_JUNCTION_POINT) {
-         ff_pkt->type = FT_JUNCTION;
-      }
-#endif 
       /*
        * Note, we return the directory to the calling program (handle_file)
        * when we first see the directory (FT_DIRBEGIN.
@@ -677,15 +634,10 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt,
        * to cross, or we may be restricted by a list of permitted
        * file systems.
        */
-      bool is_win32_mount_point = false;
-#if defined(HAVE_WIN32)
-      is_win32_mount_point = ff_pkt->statp.st_rdev == WIN32_MOUNT_POINT;
-#endif
       if (!top_level && ff_pkt->flags & FO_NO_RECURSION) {
          ff_pkt->type = FT_NORECURSE;
          recurse = false;
-      } else if (!top_level && (parent_device != ff_pkt->statp.st_dev ||
-                 is_win32_mount_point)) {
+      } else if (!top_level && (parent_device != ff_pkt->statp.st_dev)) {
          if(!(ff_pkt->flags & FO_MULTIFS)) {
             ff_pkt->type = FT_NOFSCHG;
             recurse = false;
@@ -833,7 +785,7 @@ int term_find_one(FF_PKT *ff)
    int count = 0;
    int i;
 
-   
+
    if (ff->linkhash == NULL) return 0;
 
    for (i =0 ; i < LINK_HASHTABLE_SIZE; i ++) {

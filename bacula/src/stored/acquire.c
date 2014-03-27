@@ -1,34 +1,22 @@
 /*
-   Bacula(R) - The Network Backup Solution
+   Bacula® - The Network Backup Solution
 
-   Copyright (C) 2002-2013 Free Software Foundation Europe e.V.
+   Copyright (C) 2002-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
-
-   Bacula(R) is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
+   Bacula® is a registered trademark of Kern Sibbald.
 */
 /*
  *  Routines to acquire and release a device for read/write
  *
- *   Kern Sibbald, August MMII
+ *   Written by Kern Sibbald, August MMII
  *
  */
 
@@ -38,13 +26,11 @@
 static int const rdbglvl = 100;
 
 /* Forward referenced functions */
-static void attach_dcr_to_dev(DCR *dcr);
-static void detach_dcr_from_dev(DCR *dcr);
 static void set_dcr_from_vol(DCR *dcr, VOL_LIST *vol);
 
 /*********************************************************************
- * Acquire device for reading. 
- *  The drive should have previously been reserved by calling 
+ * Acquire device for reading.
+ *  The drive should have previously been reserved by calling
  *  reserve_device_for_read(). We read the Volume label from the block and
  *  leave the block pointers just after the label.
  *
@@ -62,7 +48,7 @@ bool acquire_device_for_read(DCR *dcr)
    int i;
    int vol_label_status;
    int retry = 0;
-   
+
    Enter(rdbglvl);
    dev = dcr->dev;
    dev->Lock_read_acquire();
@@ -71,7 +57,7 @@ bool acquire_device_for_read(DCR *dcr)
    dev->dblock(BST_DOING_ACQUIRE);
 
    if (dev->num_writers > 0) {
-      Jmsg2(jcr, M_FATAL, 0, _("Acquire read: num_writers=%d not zero. Job %d canceled.\n"), 
+      Jmsg2(jcr, M_FATAL, 0, _("Acquire read: num_writers=%d not zero. Job %d canceled.\n"),
          dev->num_writers, jcr->JobId);
       goto get_out;
    }
@@ -80,7 +66,7 @@ bool acquire_device_for_read(DCR *dcr)
    vol = jcr->VolList;
    if (!vol) {
       char ed1[50];
-      Jmsg(jcr, M_FATAL, 0, _("No volumes specified for reading. Job %s canceled.\n"), 
+      Jmsg(jcr, M_FATAL, 0, _("No volumes specified for reading. Job %s canceled.\n"),
          edit_int64(jcr->JobId, ed1));
       goto get_out;
    }
@@ -91,12 +77,17 @@ bool acquire_device_for_read(DCR *dcr)
    if (!vol) {
       Jmsg(jcr, M_FATAL, 0, _("Logic error: no next volume to read. Numvol=%d Curvol=%d\n"),
          jcr->NumReadVolumes, jcr->CurReadVolume);
-      goto get_out;                   /* should not happen */   
+      goto get_out;                   /* should not happen */
    }
    set_dcr_from_vol(dcr, vol);
 
+   if (generate_plugin_event(jcr, bsdEventDeviceOpen, dcr) != bRC_OK) {
+      Jmsg(jcr, M_FATAL, 0, _("generate_plugin_event(bsdEventDeviceOpen) Failed\n"));
+      goto get_out;
+   }
+
    Dmsg2(rdbglvl, "Want Vol=%s Slot=%d\n", vol->VolumeName, vol->Slot);
-    
+
    /*
     * If the MediaType requested for this volume is not the
     *  same as the current drive, we attempt to find the same
@@ -115,12 +106,16 @@ bool acquire_device_for_read(DCR *dcr)
       DIRSTORE *store;
       int stat;
 
-      Jmsg3(jcr, M_INFO, 0, _("Changing read device. Want Media Type=\"%s\" have=\"%s\"\n"
-                              "  device=%s\n"), 
-            dcr->media_type, dev->device->media_type, dev->print_name());
-      Dmsg3(rdbglvl, "Changing read device. Want Media Type=\"%s\" have=\"%s\"\n"
-                              "  device=%s\n", 
-            dcr->media_type, dev->device->media_type, dev->print_name());
+      Jmsg4(jcr, M_INFO, 0, _("Changing read device. Want Media Type=\"%s\" have=\"%s\"\n"
+                              "  %s device=%s\n"),
+            dcr->media_type, dev->device->media_type, dev->print_type(),
+            dev->print_name());
+      Dmsg4(rdbglvl, "Changing read device. Want Media Type=\"%s\" have=\"%s\"\n"
+                              "  %s device=%s\n",
+            dcr->media_type, dev->device->media_type,
+            dev->print_type(), dev->print_name());
+
+      generate_plugin_event(jcr, bsdEventDeviceClose, dcr);
 
       dev->dunblock(DEV_UNLOCKED);
 
@@ -133,14 +128,14 @@ bool acquire_device_for_read(DCR *dcr)
       rctx.device_name = vol->device;
       store = new DIRSTORE;
       memset(store, 0, sizeof(DIRSTORE));
-      store->name[0] = 0; /* No dir name */
+      store->name[0] = 0; /* No storage name */
       bstrncpy(store->media_type, vol->MediaType, sizeof(store->media_type));
       bstrncpy(store->pool_name, dcr->pool_name, sizeof(store->pool_name));
       bstrncpy(store->pool_type, dcr->pool_type, sizeof(store->pool_type));
       store->append = false;
       rctx.store = store;
       clean_device(dcr);                     /* clean up the dcr */
-      
+
       /*
        * Search for a new device
        */
@@ -156,17 +151,22 @@ bool acquire_device_for_read(DCR *dcr)
          dcr->dev->Lock_read_acquire();      /* lock new one */
          dev->Unlock_read_acquire();         /* release old one */
          dev = dcr->dev;                     /* get new device pointer */
-         dev->dblock(BST_DOING_ACQUIRE); 
+         dev->dblock(BST_DOING_ACQUIRE);
 
          dcr->VolumeName[0] = 0;
-         Jmsg(jcr, M_INFO, 0, _("Media Type change.  New read device %s chosen.\n"),
-            dev->print_name());
-         Dmsg1(50, "Media Type change.  New read device %s chosen.\n", dev->print_name());
+         Jmsg(jcr, M_INFO, 0, _("Media Type change.  New read %s device %s chosen.\n"),
+            dev->print_type(), dev->print_name());
+         Dmsg2(50, "Media Type change.  New read %s device %s chosen.\n",
+            dev->print_type(), dev->print_name());
+         if (generate_plugin_event(jcr, bsdEventDeviceOpen, dcr) != bRC_OK) {
+            Jmsg(jcr, M_FATAL, 0, _("generate_plugin_event(bsdEventDeviceOpen) Failed\n"));
+            goto get_out;
+         }
          bstrncpy(dcr->VolumeName, vol->VolumeName, sizeof(dcr->VolumeName));
          dcr->setVolCatName(vol->VolumeName);
          bstrncpy(dcr->media_type, vol->MediaType, sizeof(dcr->media_type));
          dcr->VolCatInfo.Slot = vol->Slot;
-         dcr->VolCatInfo.InChanger = vol->Slot > 0; 
+         dcr->VolCatInfo.InChanger = vol->Slot > 0;
          bstrncpy(dcr->pool_name, store->pool_name, sizeof(dcr->pool_name));
          bstrncpy(dcr->pool_type, store->pool_type, sizeof(dcr->pool_type));
       } else {
@@ -196,12 +196,12 @@ bool acquire_device_for_read(DCR *dcr)
    /* Volume info is always needed because of VolParts */
    Dmsg1(rdbglvl, "dir_get_volume_info vol=%s\n", dcr->VolumeName);
    if (!dir_get_volume_info(dcr, GET_VOL_INFO_FOR_READ)) {
-      Dmsg2(rdbglvl, "dir_get_vol_info failed for vol=%s: %s\n", 
+      Dmsg2(rdbglvl, "dir_get_vol_info failed for vol=%s: %s\n",
          dcr->VolumeName, jcr->errmsg);
       Jmsg1(jcr, M_WARNING, 0, "Read acquire: %s", jcr->errmsg);
    }
    dev->set_load();                /* set to load volume */
-   
+
    for ( ;; ) {
       /* If not polling limit retries */
       if (!dev->poll && retry++ > 10) {
@@ -216,8 +216,8 @@ bool acquire_device_for_read(DCR *dcr)
       }
 
       dcr->do_unload();
-      dcr->do_swapping(false/*!is_writing*/);
-      dcr->do_load(false /*!is_writing*/);
+      dcr->do_swapping(SD_READ);
+      dcr->do_load(SD_READ);
       set_dcr_from_vol(dcr, vol);          /* refresh dcr with desired volume info */
 
       /*
@@ -228,13 +228,13 @@ bool acquire_device_for_read(DCR *dcr)
       Dmsg1(rdbglvl, "open vol=%s\n", dcr->VolumeName);
       if (!dev->open(dcr, OPEN_READ_ONLY)) {
          if (!dev->poll) {
-            Jmsg3(jcr, M_WARNING, 0, _("Read open device %s Volume \"%s\" failed: ERR=%s\n"),
-                  dev->print_name(), dcr->VolumeName, dev->bstrerror());
+            Jmsg4(jcr, M_WARNING, 0, _("Read open %s device %s Volume \"%s\" failed: ERR=%s\n"),
+                  dev->print_type(), dev->print_name(), dcr->VolumeName, dev->bstrerror());
          }
          goto default_path;
       }
       Dmsg1(rdbglvl, "opened dev %s OK\n", dev->print_name());
-      
+
       /* Read Volume Label */
       Dmsg0(rdbglvl, "calling read-vol-label\n");
       vol_label_status = read_dev_volume_label(dcr);
@@ -255,8 +255,11 @@ bool acquire_device_for_read(DCR *dcr)
             Jmsg(jcr, M_WARNING, 0, "Read acquire: %s", jcr->errmsg);
          }
          goto default_path;
+      case VOL_TYPE_ERROR:
+         Jmsg(jcr, M_FATAL, 0, dev->errmsg);
+         goto get_out;
       case VOL_NAME_ERROR:
-         Dmsg3(rdbglvl, "Vol name=%s want=%s drv=%s.\n", dev->VolHdr.VolumeName, 
+         Dmsg3(rdbglvl, "Vol name=%s want=%s drv=%s.\n", dev->VolHdr.VolumeName,
                dcr->VolumeName, dev->print_name());
          if (dev->is_volume_to_unload()) {
             goto default_path;
@@ -264,7 +267,7 @@ bool acquire_device_for_read(DCR *dcr)
          dev->set_unload();              /* force unload of unwanted tape */
          if (!unload_autochanger(dcr, -1)) {
             /* at least free the device so we can re-open with correct volume */
-            dev->close();                                                          
+            dev->close();
             free_volume(dev);
          }
          dev->set_load();
@@ -274,7 +277,7 @@ bool acquire_device_for_read(DCR *dcr)
 default_path:
          Dmsg0(rdbglvl, "default path\n");
          tape_previously_mounted = true;
-         
+
          /*
           * If the device requires mount, close it, so the device can be ejected.
           */
@@ -282,29 +285,29 @@ default_path:
             dev->close();
             free_volume(dev);
          }
-         
+
          /* Call autochanger only once unless ask_sysop called */
          if (try_autochanger) {
             int stat;
             Dmsg2(rdbglvl, "calling autoload Vol=%s Slot=%d\n",
                dcr->VolumeName, dcr->VolCatInfo.Slot);
-            stat = autoload_device(dcr, 0, NULL);
+            stat = autoload_device(dcr, SD_READ, NULL);
             if (stat > 0) {
                try_autochanger = false;
                continue;              /* try reading volume mounted */
             }
          }
-         
+
          /* Mount a specific volume and no other */
          Dmsg0(rdbglvl, "calling dir_ask_sysop\n");
-         if (!dir_ask_sysop_to_mount_volume(dcr, ST_READ)) {
+         if (!dir_ask_sysop_to_mount_volume(dcr, SD_READ)) {
             goto get_out;             /* error return */
          }
 
          /* Volume info is always needed because of VolParts */
          Dmsg1(150, "dir_get_volume_info vol=%s\n", dcr->VolumeName);
          if (!dir_get_volume_info(dcr, GET_VOL_INFO_FOR_READ)) {
-            Dmsg2(150, "dir_get_vol_info failed for vol=%s: %s\n", 
+            Dmsg2(150, "dir_get_vol_info failed for vol=%s: %s\n",
                   dcr->VolumeName, jcr->errmsg);
             Jmsg1(jcr, M_WARNING, 0, "Read acquire: %s", jcr->errmsg);
          }
@@ -318,24 +321,28 @@ default_path:
    } /* end for loop */
 
    if (!ok) {
-      Jmsg1(jcr, M_FATAL, 0, _("Too many errors trying to mount device %s for reading.\n"),
-            dev->print_name());
+      Jmsg2(jcr, M_FATAL, 0, _("Too many errors trying to mount %s device %s for reading.\n"),
+            dev->print_type(), dev->print_name());
       goto get_out;
    }
 
    dev->clear_append();
    dev->set_read();
    jcr->sendJobStatus(JS_Running);
-   Jmsg(jcr, M_INFO, 0, _("Ready to read from volume \"%s\" on device %s.\n"),
-      dcr->VolumeName, dev->print_name());
+   Jmsg(jcr, M_INFO, 0, _("Ready to read from volume \"%s\" on %s device %s.\n"),
+      dcr->VolumeName, dev->print_type(), dev->print_name());
 
 get_out:
    dev->Lock();
    dcr->clear_reserved();
-   /* 
-    * Normally we are blocked, but in at least one error case above 
+   /* If failed and not writing plugin close device */
+   if (!ok && dev->num_writers == 0 && dev->num_reserved() == 0) {
+      generate_plugin_event(jcr, bsdEventDeviceClose, dcr);
+   }
+   /*
+    * Normally we are blocked, but in at least one error case above
     *   we are not blocked because we unsuccessfully tried changing
-    *   devices.  
+    *   devices.
     */
    if (dev->is_blocked()) {
       dev->dunblock(DEV_LOCKED);
@@ -372,14 +379,14 @@ DCR *acquire_device_for_append(DCR *dcr)
    dev->Lock();
    Dmsg1(100, "acquire_append device is %s\n", dev->is_tape()?"tape":
         (dev->is_dvd()?"DVD":"disk"));
-
-
    /*
     * With the reservation system, this should not happen
     */
    if (dev->can_read()) {
-      Jmsg1(jcr, M_FATAL, 0, _("Want to append, but device %s is busy reading.\n"), dev->print_name());
-      Dmsg1(200, "Want to append but device %s is busy reading.\n", dev->print_name());
+      Mmsg2(jcr->errmsg, "Want to append but %s device %s is busy reading.\n",
+         dev->print_type(), dev->print_name());
+      Jmsg(jcr, M_FATAL, 0, jcr->errmsg);
+      Dmsg0(50, jcr->errmsg);
       goto get_out;
    }
 
@@ -411,10 +418,10 @@ DCR *acquire_device_for_append(DCR *dcr)
       if (!dcr->mount_next_write_volume()) {
          if (!job_canceled(jcr)) {
             /* Reduce "noise" -- don't print if job canceled */
-            Jmsg(jcr, M_FATAL, 0, _("Could not ready device %s for append.\n"),
-               dev->print_name());
-            Dmsg1(200, "Could not ready device %s for append.\n", 
-               dev->print_name());
+            Mmsg2(jcr->errmsg, _("Could not ready %s device %s for append.\n"),
+               dev->print_type(), dev->print_name());
+            Jmsg(jcr, M_FATAL, 0, jcr->errmsg);
+            Dmsg0(50, jcr->errmsg);
          }
          dev->Lock();
          unblock_device(dev);
@@ -425,13 +432,20 @@ DCR *acquire_device_for_append(DCR *dcr)
       unblock_device(dev);
    }
 
+   if (generate_plugin_event(jcr, bsdEventDeviceOpen, dcr) != bRC_OK) {
+      Mmsg0(jcr->errmsg,  _("generate_plugin_event(bsdEventDeviceOpen) Failed\n"));
+      Jmsg(jcr, M_FATAL, 0, jcr->errmsg);
+      Dmsg0(50, jcr->errmsg);
+      goto get_out;
+   }
+
    dev->num_writers++;                /* we are now a writer */
    if (jcr->NumWriteVolumes == 0) {
       jcr->NumWriteVolumes = 1;
    }
    dev->VolCatInfo.VolCatJobs++;              /* increment number of jobs on vol */
-   Dmsg4(100, "=== nwriters=%d nres=%d vcatjob=%d dev=%s\n", 
-      dev->num_writers, dev->num_reserved(), dev->VolCatInfo.VolCatJobs, 
+   Dmsg4(100, "=== nwriters=%d nres=%d vcatjob=%d dev=%s\n",
+      dev->num_writers, dev->num_reserved(), dev->VolCatInfo.VolCatJobs,
       dev->print_name());
    dir_update_volume_info(dcr, false, false); /* send Volume info to Director */
    ok = true;
@@ -462,6 +476,7 @@ bool release_device(DCR *dcr)
    char tbuf[100];
    int was_blocked = BST_NOT_BLOCKED;
 
+
    dev->Lock();
    if (!dev->is_blocked()) {
       block_device(dev, BST_RELEASING);
@@ -477,6 +492,7 @@ bool release_device(DCR *dcr)
 
    if (dev->can_read()) {
       VOLUME_CAT_INFO *vol = &dev->VolCatInfo;
+      generate_plugin_event(jcr, bsdEventDeviceClose, dcr);
       dev->clear_read();              /* clear read bit */
       Dmsg2(150, "dir_update_vol_info. label=%d Vol=%s\n",
          dev->is_labeled(), vol->VolCatName);
@@ -486,7 +502,7 @@ bool release_device(DCR *dcr)
          volume_unused(dcr);
       }
    } else if (dev->num_writers > 0) {
-      /* 
+      /*
        * Note if WEOT is set, we are at the end of the tape
        *   and may not be positioned correctly, so the
        *   job_media_record and update_vol_info have already been
@@ -495,7 +511,7 @@ bool release_device(DCR *dcr)
       dev->num_writers--;
       Dmsg1(100, "There are %d writers in release_device\n", dev->num_writers);
       if (dev->is_labeled()) {
-         Dmsg2(200, "dir_create_jobmedia. Release vol=%s dev=%s\n", 
+         Dmsg2(200, "dir_create_jobmedia. Release vol=%s dev=%s\n",
                dev->getVolCatName(), dev->print_name());
          if (!dev->at_weot() && !dir_create_jobmedia_record(dcr)) {
             Jmsg2(jcr, M_FATAL, 0, _("Could not create JobMedia record for Volume=\"%s\" Job=%s\n"),
@@ -507,31 +523,33 @@ bool release_device(DCR *dcr)
             write_ansi_ibm_labels(dcr, ANSI_EOF_LABEL, dev->VolHdr.VolumeName);
          }
          if (!dev->at_weot()) {
-            dev->VolCatInfo.VolCatFiles = dev->file;   /* set number of files */
+            dev->VolCatInfo.VolCatFiles = dev->get_file();   /* set number of files */
             /* Note! do volume update before close, which zaps VolCatInfo */
             dir_update_volume_info(dcr, false, false); /* send Volume info to Director */
-            Dmsg2(200, "dir_update_vol_info. Release vol=%s dev=%s\n", 
+            Dmsg2(200, "dir_update_vol_info. Release vol=%s dev=%s\n",
                   dev->getVolCatName(), dev->print_name());
          }
          if (dev->num_writers == 0) {         /* if not being used */
             volume_unused(dcr);               /*  we obviously are not using the volume */
+            generate_plugin_event(jcr, bsdEventDeviceClose, dcr);
          }
       }
 
    } else {
-      /*                
+      /*
        * If we reach here, it is most likely because the job
        *   has failed, since the device is not in read mode and
        *   there are no writers. It was probably reserved.
        */
       volume_unused(dcr);
+      generate_plugin_event(jcr, bsdEventDeviceClose, dcr);
    }
    Dmsg3(100, "%d writers, %d reserve, dev=%s\n", dev->num_writers, dev->num_reserved(),
          dev->print_name());
 
    /* If no writers, close if file or !CAP_ALWAYS_OPEN */
    if (dev->num_writers == 0 && (!dev->is_tape() || !dev->has_cap(CAP_ALWAYSOPEN))) {
-      dvd_remove_empty_part(dcr);        /* get rid of any empty spool part */
+      generate_plugin_event(jcr, bsdEventDeviceClose, dcr);
       dev->close();
       free_volume(dev);
    }
@@ -565,7 +583,7 @@ bool release_device(DCR *dcr)
       free_pool_memory(alert);
    }
    pthread_cond_broadcast(&dev->wait_next_vol);
-   Dmsg2(100, "JobId=%u broadcast wait_device_release at %s\n", 
+   Dmsg2(100, "JobId=%u broadcast wait_device_release at %s\n",
          (uint32_t)jcr->JobId, bstrftimes(tbuf, sizeof(tbuf), (utime_t)time(NULL)));
    pthread_cond_broadcast(&wait_device_release);
 
@@ -581,7 +599,7 @@ bool release_device(DCR *dcr)
    }
 
    if (dcr->keep_dcr) {
-      detach_dcr_from_dev(dcr);
+      dev->detach_dcr_from_dev(dcr);
    } else {
       free_dcr(dcr);
    }
@@ -605,7 +623,7 @@ bool clean_device(DCR *dcr)
 /*
  * Create a new Device Control Record and attach
  *   it to the device (if this is a real job).
- * Note, this has been updated so that it can be called first 
+ * Note, this has been updated so that it can be called first
  *   without a DEVICE, then a second or third time with a DEVICE,
  *   and each time, it should cleanup and point to the new device.
  *   This should facilitate switching devices.
@@ -615,41 +633,30 @@ bool clean_device(DCR *dcr)
  *   this dcr in the right place
  *
  */
-DCR *new_dcr(JCR *jcr, DCR *dcr, DEVICE *dev)
+DCR *new_dcr(JCR *jcr, DCR *dcr, DEVICE *dev, bool writing)
 {
+   DEVICE *odev;
    if (!dcr) {
-      int errstat;
       dcr = (DCR *)malloc(sizeof(DCR));
       memset(dcr, 0, sizeof(DCR));
       dcr->tid = pthread_self();
       dcr->spool_fd = -1;
-      if ((errstat = pthread_mutex_init(&dcr->m_mutex, NULL)) != 0) {
-         berrno be;
-         dev->dev_errno = errstat;
-         Mmsg1(dev->errmsg, _("Unable to init mutex: ERR=%s\n"), be.bstrerror(errstat));
-         Jmsg0(jcr, M_ERROR_TERM, 0, dev->errmsg);
-      }
-      if ((errstat = pthread_mutex_init(&dcr->r_mutex, NULL)) != 0) {
-         berrno be;
-         dev->dev_errno = errstat;
-         Mmsg1(dev->errmsg, _("Unable to init r_mutex: ERR=%s\n"), be.bstrerror(errstat));
-         Jmsg0(jcr, M_ERROR_TERM, 0, dev->errmsg);
-      }
    }
    dcr->jcr = jcr;                 /* point back to jcr */
+   odev = dcr->dev;
+   if (dcr->attached_to_dev && odev) {
+      Dmsg2(100, "Detach 0x%x from olddev %s\n", dcr, odev->print_name());
+      odev->detach_dcr_from_dev(dcr);
+   }
+   ASSERT2(!dcr->attached_to_dev, "DCR is attached. Wrong!");
    /* Set device information, possibly change device */
    if (dev) {
-      if (dcr->block) {
-         free_block(dcr->block);
-      }
+      dcr->free_blocks();
       dcr->block = new_block(dev);
       if (dcr->rec) {
          free_record(dcr->rec);
       }
       dcr->rec = new_record();
-      if (dcr->attached_to_dev) {
-         detach_dcr_from_dev(dcr);
-      }
       /* Use job spoolsize prior to device spoolsize */
       if (jcr && jcr->spool_size) {
          dcr->max_job_spool_size = jcr->spool_size;
@@ -658,7 +665,13 @@ DCR *new_dcr(JCR *jcr, DCR *dcr, DEVICE *dev)
       }
       dcr->device = dev->device;
       dcr->set_dev(dev);
-      attach_dcr_to_dev(dcr);
+      Dmsg2(100, "Attach 0x%x to dev %s\n", dcr, dev->print_name());
+      dev->attach_dcr_to_dev(dcr);
+   }
+   if (writing) {
+      dcr->set_writing();
+   } else {
+      dcr->clear_writing();
    }
    return dcr;
 }
@@ -692,57 +705,46 @@ static void remove_dcr_from_dcrs(DCR *dcr)
 }
 #endif
 
-static void attach_dcr_to_dev(DCR *dcr)
+void DEVICE::attach_dcr_to_dev(DCR *dcr)
 {
-   DEVICE *dev;
-   JCR *jcr;
+   JCR *jcr = dcr->jcr;
 
-   P(dcr->m_mutex);
-   dev = dcr->dev;
+   Lock_dcrs();
    jcr = dcr->jcr;
    if (jcr) Dmsg1(500, "JobId=%u enter attach_dcr_to_dev\n", (uint32_t)jcr->JobId);
    /* ***FIXME*** return error if dev not initiated */
-   if (!dcr->attached_to_dev && dev->initiated && jcr && jcr->getJobType() != JT_SYSTEM) {
-      dev->Lock();
-      Dmsg4(200, "Attach Jid=%d dcr=%p size=%d dev=%s\n", (uint32_t)jcr->JobId, 
-         dcr, dev->attached_dcrs->size(), dev->print_name());
-      dev->attached_dcrs->append(dcr);  /* attach dcr to device */
-      dev->Unlock();
+   if (!dcr->attached_to_dev && initiated && jcr && jcr->getJobType() != JT_SYSTEM) {
+      Dmsg4(200, "Attach Jid=%d dcr=%p size=%d dev=%s\n", (uint32_t)jcr->JobId,
+         dcr, attached_dcrs->size(), print_name());
+      attached_dcrs->append(dcr);  /* attach dcr to device */
       dcr->attached_to_dev = true;
    }
-   V(dcr->m_mutex);
+   Unlock_dcrs();
 }
 
-/* 
- * DCR is locked before calling this routine
+/*
+ * Note!! Do not enter with dev->Lock() since unreserve_device()
+ *   is going to lock it too.
  */
-static void locked_detach_dcr_from_dev(DCR *dcr)
+void DEVICE::detach_dcr_from_dev(DCR *dcr)
 {
-   DEVICE *dev = dcr->dev;
    Dmsg0(500, "Enter detach_dcr_from_dev\n"); /* jcr is NULL in some cases */
 
+   Lock();
+   Lock_dcrs();
    /* Detach this dcr only if attached */
-   if (dcr->attached_to_dev && dev) {
-      dcr->unreserve_device();
-      dev->Lock();
-      Dmsg4(200, "Detach Jid=%d dcr=%p size=%d to dev=%s\n", (uint32_t)dcr->jcr->JobId, 
-         dcr, dev->attached_dcrs->size(), dev->print_name());
+   if (dcr->attached_to_dev) {
+      dcr->unreserve_device(true);
+      Dmsg4(200, "Detach Jid=%d dcr=%p size=%d to dev=%s\n", (uint32_t)dcr->jcr->JobId,
+         dcr, attached_dcrs->size(), print_name());
       dcr->attached_to_dev = false;
-      if (dev->attached_dcrs->size()) {
-         dev->attached_dcrs->remove(dcr);  /* detach dcr from device */
+      if (attached_dcrs->size()) {
+         attached_dcrs->remove(dcr);  /* detach dcr from device */
       }
-//    remove_dcr_from_dcrs(dcr);      /* remove dcr from jcr list */
-      dev->Unlock();
    }
    dcr->attached_to_dev = false;
-}
-
-
-static void detach_dcr_from_dev(DCR *dcr)
-{
-   P(dcr->m_mutex);
-   locked_detach_dcr_from_dev(dcr);
-   V(dcr->m_mutex);
+   Unlock_dcrs();
+   Unlock();
 }
 
 /*
@@ -753,14 +755,13 @@ void free_dcr(DCR *dcr)
 {
    JCR *jcr;
 
-   P(dcr->m_mutex);
    jcr = dcr->jcr;
 
-   locked_detach_dcr_from_dev(dcr);
-
-   if (dcr->block) {
-      free_block(dcr->block);
+   if (dcr->dev) {
+      dcr->dev->detach_dcr_from_dev(dcr);
    }
+
+   dcr->free_blocks();
    if (dcr->rec) {
       free_record(dcr->rec);
    }
@@ -770,21 +771,18 @@ void free_dcr(DCR *dcr)
    if (jcr && jcr->read_dcr == dcr) {
       jcr->read_dcr = NULL;
    }
-   V(dcr->m_mutex);
-   pthread_mutex_destroy(&dcr->m_mutex);
-   pthread_mutex_destroy(&dcr->r_mutex);
    free(dcr);
 }
 
 static void set_dcr_from_vol(DCR *dcr, VOL_LIST *vol)
 {
-   /*    
-    * Note, if we want to be able to work from a .bsr file only          
+   /*
+    * Note, if we want to be able to work from a .bsr file only
     *  for disaster recovery, we must "simulate" reading the catalog
     */
    bstrncpy(dcr->VolumeName, vol->VolumeName, sizeof(dcr->VolumeName));
    dcr->setVolCatName(vol->VolumeName);
    bstrncpy(dcr->media_type, vol->MediaType, sizeof(dcr->media_type));
    dcr->VolCatInfo.Slot = vol->Slot;
-   dcr->VolCatInfo.InChanger = vol->Slot > 0; 
+   dcr->VolCatInfo.InChanger = vol->Slot > 0;
 }

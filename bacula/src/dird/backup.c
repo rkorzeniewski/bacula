@@ -1,29 +1,17 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2012 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  *
@@ -51,18 +39,28 @@ static char storaddr[]  = "storage address=%s port=%d ssl=%d\n";
 /* Responses received from File daemon */
 static char OKbackup[]   = "2000 OK backup\n";
 static char OKstore[]    = "2000 OK storage\n";
+/* Pre 17 Aug 2013 */
 static char EndJob[]     = "2800 End Job TermCode=%d JobFiles=%u "
-                           "ReadBytes=%llu JobBytes=%llu Errors=%u "  
+                           "ReadBytes=%llu JobBytes=%llu Errors=%u "
                            "VSS=%d Encrypt=%d\n";
 /* Pre 1.39.29 (04Dec06) EndJob */
 static char OldEndJob[]  = "2800 End Job TermCode=%d JobFiles=%u "
                            "ReadBytes=%llu JobBytes=%llu Errors=%u\n";
-/* 
+
+/* Commands sent to Storage daemon */
+static char clientaddr[] = "client address=%s port=%d ssl=%d\n";
+
+/* Commands received from Storage daemon */
+static char OKclient[]   = "3000 OK client command\n";
+
+/*
  * Called here before the job is run to do the job
  *   specific setup.
  */
 bool do_backup_init(JCR *jcr)
 {
+   /* Make local copy */
+   jcr->RescheduleIncompleteJobs = jcr->job->RescheduleIncompleteJobs;
 
    if (jcr->is_JobLevel(L_VIRTUAL_FULL)) {
       return do_vbackup_init(jcr);
@@ -73,7 +71,7 @@ bool do_backup_init(JCR *jcr)
       return false;
    }
 
-   /* 
+   /*
     * Get definitive Job level and since time
     */
    get_level_since_time(jcr, jcr->since, sizeof(jcr->since));
@@ -147,22 +145,22 @@ static int accurate_list_handler(void *ctx, int num_fields, char **row)
    if (job_canceled(jcr)) {
       return 1;
    }
-   
+
    if (row[2][0] == '0') {           /* discard when file_index == 0 */
       return 0;
    }
 
    /* sending with checksum */
-   if (jcr->use_accurate_chksum 
-       && num_fields == 7 
+   if (jcr->use_accurate_chksum
+       && num_fields == 7
        && row[6][0] /* skip checksum = '0' */
        && row[6][1])
-   { 
-      jcr->file_bsock->fsend("%s%s%c%s%c%s%c%s", 
-                             row[0], row[1], 0, row[4], 0, row[6], 0, row[5]); 
+   {
+      jcr->file_bsock->fsend("%s%s%c%s%c%s%c%s",
+                             row[0], row[1], 0, row[4], 0, row[6], 0, row[5]);
    } else {
-      jcr->file_bsock->fsend("%s%s%c%s%c%c%s", 
-                             row[0], row[1], 0, row[4], 0, 0, row[5]); 
+      jcr->file_bsock->fsend("%s%s%c%s%c%c%s",
+                             row[0], row[1], 0, row[4], 0, 0, row[5]);
    }
    return 0;
 }
@@ -183,13 +181,13 @@ static bool is_checksum_needed_by_fileset(JCR *jcr)
    }
 
    f = jcr->job->fileset;
-   
+
    for (int i=0; i < f->num_includes; i++) { /* Parse all Include {} */
       inc = f->include_items[i];
-      
+
       for (int j=0; j < inc->num_opts; j++) { /* Parse all Options {} */
          fopts = inc->opts_list[j];
-         
+
          for (char *k=fopts->opts; *k ; k++) { /* Try to find one request */
             switch (*k) {
             case 'V':           /* verify */
@@ -222,7 +220,7 @@ static bool is_checksum_needed_by_fileset(JCR *jcr)
    if (!have_basejob_option && jcr->HasBase) {
       return true;
    }
-   
+
    Dmsg0(50, "Checksum will be sent to FD\n");
    return false;
 }
@@ -240,12 +238,12 @@ bool send_accurate_current_files(JCR *jcr)
    POOL_MEM buf;
    db_list_ctx jobids;
    db_list_ctx nb;
+   char ed1[50];
 
-   /* In base level, no previous job is used and no restart incomplete jobs */
    if (jcr->is_canceled() || jcr->is_JobLevel(L_BASE)) {
       return true;
    }
-   if (!jcr->accurate) {
+   if (!jcr->accurate && !jcr->rerunning) {
       return true;
    }
 
@@ -254,7 +252,7 @@ bool send_accurate_current_files(JCR *jcr)
       if (get_base_jobids(jcr, &jobids)) {
          jcr->HasBase = true;
          Jmsg(jcr, M_INFO, 0, _("Using BaseJobId(s): %s\n"), jobids.list);
-      } else {
+      } else if (!jcr->rerunning) {
          return true;
       }
    } else {
@@ -268,39 +266,147 @@ bool send_accurate_current_files(JCR *jcr)
       }
    }
 
+   if (jcr->rerunning) {
+      edit_int64(jcr->JobId, ed1);
+      jobids.add(ed1);
+   }
+
    /* Don't send and store the checksum if fileset doesn't require it */
    jcr->use_accurate_chksum = is_checksum_needed_by_fileset(jcr);
 
    if (jcr->JobId) {            /* display the message only for real jobs */
-      Jmsg(jcr, M_INFO, 0, _("Sending Accurate information.\n"));
+      Jmsg(jcr, M_INFO, 0, _("Sending Accurate information to the FD.\n"));
    }
 
    /* to be able to allocate the right size for htable */
    Mmsg(buf, "SELECT sum(JobFiles) FROM Job WHERE JobId IN (%s)", jobids.list);
    db_sql_query(jcr->db, buf.c_str(), db_list_handler, &nb);
    Dmsg2(200, "jobids=%s nb=%s\n", jobids.list, nb.list);
-   jcr->file_bsock->fsend("accurate files=%s\n", nb.list); 
+   jcr->file_bsock->fsend("accurate files=%s\n", nb.list);
 
    if (!db_open_batch_connexion(jcr, jcr->db)) {
       Jmsg0(jcr, M_FATAL, 0, "Can't get batch sql connexion");
       return false;  /* Fail */
    }
-   
+
    if (jcr->HasBase) {
       jcr->nb_base_files = str_to_int64(nb.list);
-      db_create_base_file_list(jcr, jcr->db, jobids.list);
-      db_get_base_file_list(jcr, jcr->db, jcr->use_accurate_chksum,
-                            accurate_list_handler, (void *)jcr);
+      if (!db_create_base_file_list(jcr, jcr->db, jobids.list)) {
+         Jmsg1(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db));
+         return false;
+      }
+      if (!db_get_base_file_list(jcr, jcr->db, jcr->use_accurate_chksum,
+                            accurate_list_handler, (void *)jcr)) {
+         Jmsg1(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db));
+         return false;
+      }
 
    } else {
-      db_get_file_list(jcr, jcr->db_batch,
+      if (!db_get_file_list(jcr, jcr->db_batch,
                        jobids.list, jcr->use_accurate_chksum, false /* no delta */,
-                       accurate_list_handler, (void *)jcr);
-   } 
+                       accurate_list_handler, (void *)jcr)) {
+         Jmsg1(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db));
+         return false;
+      }
+   }
 
    /* TODO: close the batch connection ? (can be used very soon) */
-
    jcr->file_bsock->signal(BNET_EOD);
+   return true;
+}
+
+bool send_store_addr_to_fd(JCR *jcr, STORE *store,
+                           char *store_address, uint32_t store_port)
+{
+   int tls_need = BNET_TLS_NONE;
+
+   /* TLS Requirement */
+   if (store->tls_enable) {
+      if (store->tls_require) {
+         tls_need = BNET_TLS_REQUIRED;
+      } else {
+         tls_need = BNET_TLS_OK;
+      }
+   }
+
+   /*
+    * Send Storage address to the FD
+    */
+   jcr->file_bsock->fsend(storaddr, store_address, store_port, tls_need);
+   if (!response(jcr, jcr->file_bsock, OKstore, "Storage", DISPLAY_ERROR)) {
+      return false;
+   }
+   return true;
+}
+
+bool send_client_addr_to_sd(JCR *jcr)
+{
+   int tls_need = BNET_TLS_NONE;
+   BSOCK *sd = jcr->store_bsock;
+
+   /* TLS Requirement for the client */
+   if (jcr->client->tls_enable) {
+      if (jcr->client->tls_require) {
+         tls_need = BNET_TLS_REQUIRED;
+      } else {
+         tls_need = BNET_TLS_OK;
+      }
+   }
+   /*
+    * Send Client address to the SD
+    */
+   sd->fsend(clientaddr, jcr->client->address, jcr->client->FDport, tls_need);
+   if (!response(jcr, sd, OKclient, "Client", DISPLAY_ERROR)) {
+      return false;
+   }
+   return true;
+}
+
+/*
+ * Allow to specify the address used by the Client to
+ * connect to the storage daemon in the Client resource
+ * or in the Storage resource.
+ */
+char *get_storage_address(CLIENT *client, STORE *store)
+{
+   char *store_address;
+
+   if (client && client->fd_storage_address) {
+      Dmsg0(10, "Using Client resource FD Storage Address to contact the Storage\n");
+      store_address = client->fd_storage_address;
+
+   } else if (store->fd_storage_address) {
+      Dmsg0(10, "Using Storage resource FD Storage Address to contact the Storage\n");
+      store_address = store->fd_storage_address;
+
+   } else {
+      Dmsg0(10, "Using default Storage address\n");
+      store_address = store->address;
+   }
+   return store_address;
+}
+
+bool run_storage_and_start_message_thread(JCR *jcr, BSOCK *sd)
+{
+   /*
+    * Start the job prior to starting the message thread below
+    * to avoid two threads from using the BSOCK structure at
+    * the same time.
+    */
+   if (!sd->fsend("run")) {
+      return false;
+   }
+
+   /*
+    * Now start a Storage daemon message thread.  Note,
+    *   this thread is used to provide the catalog services
+    *   for the backup job, including inserting the attributes
+    *   into the catalog.  See catalog_update() in catreq.c
+    */
+   if (!start_storage_daemon_message_thread(jcr)) {
+      return false;
+   }
+   Dmsg0(150, "Storage daemon connection OK\n");
    return true;
 }
 
@@ -313,9 +419,10 @@ bool send_accurate_current_files(JCR *jcr)
 bool do_backup(JCR *jcr)
 {
    int stat;
-   int tls_need = BNET_TLS_NONE;
-   BSOCK   *fd;
+   BSOCK   *fd, *sd;
    STORE *store;
+   char *store_address;
+   uint32_t store_port;
    char ed1[100];
    db_int64_ctx job;
    POOL_MEM buf;
@@ -326,7 +433,7 @@ bool do_backup(JCR *jcr)
 
    /* Print Job Start message */
    Jmsg(jcr, M_INFO, 0, _("Start Backup JobId %s, Job=%s\n"),
-        edit_uint64(jcr->JobId, ed1), jcr->Job);
+           edit_uint64(jcr->JobId, ed1), jcr->Job);
 
    jcr->setJobStatus(JS_Running);
    Dmsg2(100, "JobId=%d JobLevel=%c\n", jcr->jr.JobId, jcr->jr.JobLevel);
@@ -334,6 +441,7 @@ bool do_backup(JCR *jcr)
       Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db));
       return false;
    }
+
 
    /*
     * Open a message channel connection with the Storage
@@ -355,27 +463,17 @@ bool do_backup(JCR *jcr)
    if (!start_storage_daemon_job(jcr, NULL, jcr->wstorage)) {
       return false;
    }
-
+   sd = jcr->store_bsock;
+   jcr->sd_calls_client = jcr->client->sd_calls_client;
    /*
-    * Start the job prior to starting the message thread below
-    * to avoid two threads from using the BSOCK structure at
-    * the same time.
+    * Note startup sequence of SD/FD is different depending on
+    *  whether the SD listens (normal) or the SD calls the FD.
     */
-   if (!jcr->store_bsock->fsend("run")) {
-      return false;
+   if (!jcr->sd_calls_client) {
+      if (!run_storage_and_start_message_thread(jcr, sd)) {
+         goto bail_out;
+      }
    }
-
-   /*
-    * Now start a Storage daemon message thread.  Note,
-    *   this thread is used to provide the catalog services
-    *   for the backup job, including inserting the attributes
-    *   into the catalog.  See catalog_update() in catreq.c
-    */
-   if (!start_storage_daemon_message_thread(jcr)) {
-      return false;
-   }
-   Dmsg0(150, "Storage daemon connection OK\n");
-
    jcr->setJobStatus(JS_WaitFD);
    if (!connect_to_file_daemon(jcr, 10, FDConnectTimeout, 1)) {
       goto bail_out;
@@ -396,25 +494,47 @@ bool do_backup(JCR *jcr)
       goto bail_out;
    }
 
-   /*
-    * send Storage daemon address to the File daemon
-    */
+   /* TODO: See priority with bandwidth parameter */
+   if (jcr->job->max_bandwidth > 0) {
+      jcr->max_bandwidth = jcr->job->max_bandwidth;
+   } else if (jcr->client->max_bandwidth > 0) {
+      jcr->max_bandwidth = jcr->client->max_bandwidth;
+   }
+
+   if (jcr->max_bandwidth > 0) {
+      send_bwlimit(jcr, jcr->Job); /* Old clients don't have this command */
+   }
+
    store = jcr->wstore;
-   if (store->SDDport == 0) {
-      store->SDDport = store->SDport;
-   }
 
-   /* TLS Requirement */
-   if (store->tls_enable) {
-      if (store->tls_require) {
-         tls_need = BNET_TLS_REQUIRED;
-      } else {
-         tls_need = BNET_TLS_OK;
+   if (jcr->sd_calls_client) {
+      if (jcr->FDVersion < 5) {
+         Jmsg(jcr, M_FATAL, 0, _("The File daemon does not support SDCallsClient.\n"));
+         goto bail_out;
       }
+      if (!send_client_addr_to_sd(jcr)) {
+         goto bail_out;
+      }
+
+      if (!run_storage_and_start_message_thread(jcr, sd)) {
+         goto bail_out;
+      }
+
+      store_address = jcr->wstore->address;  /* dummy */
+      store_port = 0;           /* flag that SD calls FD */
+   } else {
+      /*
+       * send Storage daemon address to the File daemon
+       */
+      if (store->SDDport == 0) {
+         store->SDDport = store->SDport;
+      }
+
+      store_address = get_storage_address(jcr->client, store);
+      store_port = store->SDDport;
    }
 
-   fd->fsend(storaddr, store->address, store->SDDport, tls_need);
-   if (!response(jcr, fd, OKstore, "Storage", DISPLAY_ERROR)) {
+   if (!send_store_addr_to_fd(jcr, store, store_address, store_port)) {
       goto bail_out;
    }
 
@@ -426,14 +546,14 @@ bool do_backup(JCR *jcr)
       goto bail_out;
    }
 
-   /*    
+   /*
     * We re-update the job start record so that the start
-    *  time is set after the run before job.  This avoids 
+    *  time is set after the run before job.  This avoids
     *  that any files created by the run before job will
     *  be saved twice.  They will be backed up in the current
     *  job, but not in the next one unless they are changed.
     *  Without this, they will be backed up in this job and
-    *  in the next job run because in that case, their date 
+    *  in the next job run because in that case, their date
     *   is after the start of this run.
     */
    jcr->start_time = time(NULL);
@@ -461,14 +581,15 @@ bool do_backup(JCR *jcr)
    stat = wait_for_job_termination(jcr);
    db_write_batch_file_records(jcr);    /* used by bulk batch file insert */
 
-   if (jcr->HasBase && !db_commit_base_file_attributes_record(jcr, jcr->db))  {
-      Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db));
+   if (jcr->HasBase) {
+      db_commit_base_file_attributes_record(jcr, jcr->db);
+      /* Any error already printed */
    }
 
-   if (stat == JS_Terminated) {
+   if (!jcr->is_canceled() && stat == JS_Terminated) {
       backup_cleanup(jcr, stat);
       return true;
-   }     
+   }
    return false;
 
 /* Come here only after starting SD thread */
@@ -501,16 +622,14 @@ int wait_for_job_termination(JCR *jcr, int timeout)
    int Encrypt = 0;
    btimer_t *tid=NULL;
 
-   jcr->setJobStatus(JS_Running);
-
    if (fd) {
       if (timeout) {
          tid = start_bsock_timer(fd, timeout); /* TODO: New timeout directive??? */
       }
       /* Wait for Client to terminate */
       while ((n = bget_dirmsg(fd)) >= 0) {
-         if (!fd_ok && 
-             (sscanf(fd->msg, EndJob, &jcr->FDJobStatus, &JobFiles,
+         if (!fd_ok &&
+              (sscanf(fd->msg, EndJob, &jcr->FDJobStatus, &JobFiles,
                      &ReadBytes, &JobBytes, &JobErrors, &VSS, &Encrypt) == 7 ||
               sscanf(fd->msg, OldEndJob, &jcr->FDJobStatus, &JobFiles,
                      &ReadBytes, &JobBytes, &JobErrors) == 5)) {
@@ -529,20 +648,19 @@ int wait_for_job_termination(JCR *jcr, int timeout)
          stop_bsock_timer(tid);
       }
 
-      if (is_bnet_error(fd)) {
+      if (fd->is_error() && jcr->getJobStatus() != JS_Canceled) {
          int i = 0;
          Jmsg(jcr, M_FATAL, 0, _("Network error with FD during %s: ERR=%s\n"),
               job_type_to_str(jcr->getJobType()), fd->bstrerror());
-         while (i++ < 10 && jcr->job->RescheduleIncompleteJobs && jcr->is_canceled()) {
+         while (i++ < 20 && jcr->job->RescheduleIncompleteJobs && jcr->is_canceled()) {
             bmicrosleep(3, 0);
          }
-            
       }
       fd->signal(BNET_TERMINATE);   /* tell Client we are terminating */
    }
 
    /*
-    * Force cancel in SD if failing, but not for Incomplete jobs
+    * Force cancel in SD if failing,
     *  so that we let the SD despool.
     */
    Dmsg5(100, "cancel=%d fd_ok=%d FDJS=%d JS=%d SDJS=%d\n", jcr->is_canceled(), fd_ok, jcr->FDJobStatus,
@@ -565,16 +683,17 @@ int wait_for_job_termination(JCR *jcr, int timeout)
       jcr->JobWarnings = JobWarnings;
       jcr->VSS = VSS;
       jcr->Encrypt = Encrypt;
-   } else {
+   } else if (jcr->getJobStatus() != JS_Canceled) {
       Jmsg(jcr, M_FATAL, 0, _("No Job status returned from FD.\n"));
    }
 
-// Dmsg4(100, "fd_ok=%d FDJS=%d JS=%d SDJS=%d\n", fd_ok, jcr->FDJobStatus,
-//   jcr->JobStatus, jcr->SDJobStatus);
-
    /* Return the first error status we find Dir, FD, or SD */
-   if (!fd_ok || is_bnet_error(fd)) { /* if fd not set, that use !fd_ok */
-      jcr->FDJobStatus = JS_ErrorTerminated;
+   if (!fd_ok || fd->is_error()) { /* if fd not set, that use !fd_ok */
+      if (jcr->getJobStatus() == JS_Canceled) {
+         jcr->FDJobStatus = JS_Canceled;
+      } else {
+         jcr->FDJobStatus = JS_ErrorTerminated;
+      }
    }
    if (jcr->JobStatus != JS_Terminated) {
       return jcr->JobStatus;
@@ -591,16 +710,18 @@ int wait_for_job_termination(JCR *jcr, int timeout)
 void backup_cleanup(JCR *jcr, int TermCode)
 {
    char sdt[50], edt[50], schedt[50];
-   char ec1[30], ec2[30], ec3[30], ec4[30], ec5[30], compress[50];
+   char ec1[30], ec2[30], ec3[30], ec4[30], ec5[30];
    char ec6[30], ec7[30], ec8[30], elapsed[50];
+   char data_compress[200];
    char term_code[100], fd_term_msg[100], sd_term_msg[100];
    const char *term_msg;
    int msg_type = M_INFO;
    MEDIA_DBR mr;
    CLIENT_DBR cr;
-   double kbps, compression;
+   double kbps, compression, ratio;
    utime_t RunTime;
    POOL_MEM base_info;
+   POOL_MEM vol_info;
 
    if (jcr->is_JobLevel(L_VIRTUAL_FULL)) {
       vbackup_cleanup(jcr, TermCode);
@@ -616,12 +737,12 @@ void backup_cleanup(JCR *jcr, int TermCode)
     * JS_Terminated almost everywhere instead of (JS_Terminated || JS_Warning)
     * as we do with is_canceled()
     */
-   if (jcr->getJobStatus() == JS_Terminated && 
+   if (jcr->getJobStatus() == JS_Terminated &&
         (jcr->JobErrors || jcr->SDErrors || jcr->JobWarnings)) {
       TermCode = JS_Warnings;
    }
 #endif
-         
+
    update_job_end(jcr, TermCode);
 
    if (!db_get_job_record(jcr, jcr->db, &jcr->jr)) {
@@ -652,9 +773,6 @@ void backup_cleanup(JCR *jcr, int TermCode)
          } else {
             term_msg = _("Backup OK");
          }
-         break;
-      case JS_Incomplete:
-         term_msg = _("Backup failed -- incomplete");
          break;
       case JS_Warnings:
          term_msg = _("Backup OK -- with warnings");
@@ -707,25 +825,35 @@ void backup_cleanup(JCR *jcr, int TermCode)
    }
 
    if (jcr->ReadBytes == 0) {
-      bstrncpy(compress, "None", sizeof(compress));
+      bstrncpy(data_compress, "None", sizeof(data_compress));
    } else {
       compression = (double)100 - 100.0 * ((double)jcr->JobBytes / (double)jcr->ReadBytes);
       if (compression < 0.5) {
-         bstrncpy(compress, "None", sizeof(compress));
+         bstrncpy(data_compress, "None", sizeof(data_compress));
       } else {
-         bsnprintf(compress, sizeof(compress), "%.1f %%", compression);
+         if (jcr->JobBytes > 0) {
+            ratio = (double)jcr->ReadBytes / (double)jcr->JobBytes;
+         } else {
+            ratio = 1.0;
+         }
+         bsnprintf(data_compress, sizeof(data_compress), "%.1f%% %.1f:1",
+            compression, ratio);
       }
    }
    jobstatus_to_ascii(jcr->FDJobStatus, fd_term_msg, sizeof(fd_term_msg));
    jobstatus_to_ascii(jcr->SDJobStatus, sd_term_msg, sizeof(sd_term_msg));
 
    if (jcr->HasBase) {
-      Mmsg(base_info, "  Base files/Used files:  %lld/%lld (%.2f%%)\n",
-           jcr->nb_base_files, 
-           jcr->nb_base_files_used, 
+      Mmsg(base_info, _("  Base files/Used files:  %lld/%lld (%.2f%%)\n"),
+           jcr->nb_base_files,
+           jcr->nb_base_files_used,
            jcr->nb_base_files_used*100.0/jcr->nb_base_files);
    }
-// bmicrosleep(15, 0);                /* for debugging SIGHUP */
+   /* Edit string for last volume size */
+   Mmsg(vol_info, _("%s (%sB)"),
+        edit_uint64_with_commas(mr.VolBytes, ec7),
+        edit_uint64_with_suffix(mr.VolBytes, ec8));
+
 
    Jmsg(jcr, msg_type, 0, _("%s %s %s (%s):\n"
 "  Build OS:               %s %s %s\n"
@@ -755,7 +883,7 @@ void backup_cleanup(JCR *jcr, int TermCode)
 "  Volume name(s):         %s\n"
 "  Volume Session Id:      %d\n"
 "  Volume Session Time:    %d\n"
-"  Last Volume Bytes:      %s (%sB)\n"
+"  Last Volume Bytes:      %s\n"
 "  Non-fatal FD errors:    %d\n"
 "  SD Errors:              %d\n"
 "  FD termination status:  %s\n"
@@ -783,7 +911,7 @@ void backup_cleanup(JCR *jcr, int TermCode)
         edit_uint64_with_commas(jcr->SDJobBytes, ec5),
         edit_uint64_with_suffix(jcr->SDJobBytes, ec6),
         kbps,
-        compress,
+        data_compress,
         base_info.c_str(),
         jcr->VSS?_("yes"):_("no"),
         jcr->Encrypt?_("yes"):_("no"),
@@ -791,8 +919,7 @@ void backup_cleanup(JCR *jcr, int TermCode)
         jcr->VolumeName,
         jcr->VolSessionId,
         jcr->VolSessionTime,
-        edit_uint64_with_commas(mr.VolBytes, ec7),
-        edit_uint64_with_suffix(mr.VolBytes, ec8),
+        vol_info.c_str(),
         jcr->JobErrors,
         jcr->SDErrors,
         fd_term_msg,
@@ -849,7 +976,7 @@ void update_bootstrap_file(JCR *jcr)
             }
             fprintf(fd, "VolSessionId=%u\n", jcr->VolSessionId);
             fprintf(fd, "VolSessionTime=%u\n", jcr->VolSessionTime);
-            fprintf(fd, "VolAddr=%s-%s\n", 
+            fprintf(fd, "VolAddr=%s-%s\n",
                     edit_uint64(VolParams[i].StartAddr, ed1),
                     edit_uint64(VolParams[i].EndAddr, ed2));
             fprintf(fd, "FileIndex=%d-%d\n", VolParams[i].FirstIndex,

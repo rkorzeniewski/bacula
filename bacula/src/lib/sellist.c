@@ -1,29 +1,17 @@
 /*
-   Bacula(R) - The Network Backup Solution
+   Bacula® - The Network Backup Solution
 
-   Copyright (C) 2011-2012 Free Software Foundation Europe e.V.
+   Copyright (C) 2011-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
-
-   Bacula(R) is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
+   Bacula® is a registered trademark of Kern Sibbald.
 */
 /*
  *  Kern Sibbald, January  MMXII
@@ -57,7 +45,7 @@ int64_t sellist::next()
    for (p=e; p && *p; p=e) {
       /* Check for list */
       e = strchr(p, ',');
-      if (e) {
+      if (e) {                       /* have list */
          esave = *e;
          *e++ = 0;
       } else {
@@ -69,7 +57,7 @@ int64_t sellist::next()
          errmsg = _("Negative numbers not permitted.\n");
          goto bail_out;
       }
-      if (h) {
+      if (h) {                        /* have range */
          hsave = *h;
          *h++ = 0;
          if (!is_an_integer(h)) {
@@ -87,9 +75,20 @@ int64_t sellist::next()
             errmsg = _("Range end not bigger than start.\n");
             goto bail_out;
          }
-      } else {
+      } else {                           /* not list, not range */
          hsave = 0;
          skip_spaces(&p);
+         /* Check for abort (.) */
+         if (*p == '.') {
+            errmsg = _("User cancel requested.\n");
+            goto bail_out;
+         }
+         /* Check for all keyword */
+         if (strncasecmp(p, "all", 3) == 0) {
+            all = true;
+            errmsg = NULL;
+            return 0;
+         }
          if (!is_an_integer(p)) {
             errmsg = _("Input value is not an integer.\n");
             goto bail_out;
@@ -135,6 +134,10 @@ bool sellist::set_string(char *string, bool scan=true)
     *  then scan through it once to find any
     *  errors.
     */
+   if (expanded) {
+      free(expanded);
+      expanded = NULL;
+   }
    if (str) {
       free(str);
    }
@@ -156,10 +159,51 @@ bool sellist::set_string(char *string, bool scan=true)
    return true;
 }
 
+/* Get the expanded list of all ids, very useful for SQL queries */
+char *sellist::get_expanded_list()
+{
+   int32_t expandedsize = 512;
+   int32_t len;
+   int64_t val;
+   char    *p, *tmp;
+   char    ed1[50];
+
+   if (!expanded) {
+      p = expanded = (char *)malloc(expandedsize * sizeof(char));
+      *p = 0;
+
+      while ((val = next()) >= 0) {
+         edit_int64(val, ed1);
+         len = strlen(ed1);
+
+         /* Alloc more space if needed */
+         if ((p + len + 1) > (expanded + expandedsize)) {
+            expandedsize = expandedsize * 2;
+
+            tmp = (char *) realloc(expanded, expandedsize);
+
+            /* Compute new addresses for p and expanded */
+            p = tmp + (p - expanded);
+            expanded = tmp;
+         }
+
+         /* If not at the begining of the string, add a "," */
+         if (p != expanded) {
+            strcpy(p, ",");
+            p++;
+         }
+
+         strcpy(p, ed1);
+         p += len;
+      }
+   }
+   return expanded;
+}
+
 #ifdef TEST_PROGRAM
 int main(int argc, char **argv, char **env)
 {
-   char *msg;
+   const char *msg;
    sellist sl;
    int i;
 
@@ -171,27 +215,35 @@ int main(int argc, char **argv, char **env)
 
    strip_trailing_junk(argv[1]);
    sl.set_string(argv[1]);
+
+   //Dmsg1(000, "get_list=%s\n", sl.get_list());
+
+   /* If the list is very long, Dmsg will truncate it */
+   Dmsg1(000, "get_expanded_list=%s\n", NPRT(sl.get_expanded_list()));
+
    if ((msg = sl.get_errmsg())) {
       goto bail_out;
    }
-   while ((i=sl.next()) >= 0) {
-      Dmsg1(000, "%d\n", i);
+   while ((i=sl.next()) > 0) {
+      Dmsg1(000, "rtn=%d\n", i);
    }
    if ((msg = sl.get_errmsg())) {
       goto bail_out;
    }
-   printf("\nPass 2\n");
+   printf("\nPass 2 argv[1]=%s\n", argv[1]);
    sl.set_string(argv[1]);
-   while ((i=sl.next()) >= 0) {
-      Dmsg1(000, "%d\n", i);
+   while ((i=sl.next()) > 0) {
+      Dmsg1(000, "rtn=%d\n", i);
    }
-   if ((msg = sl.get_errmsg())) {
+   msg = sl.get_errmsg();
+   Dmsg2(000, "rtn=%d msg=%s\n", i, NPRT(msg));
+   if (msg) {
       goto bail_out;
    }
    return 0;
 
 bail_out:
-   Dmsg1(000, "Error: %s\n", msg);
+   Dmsg1(000, "Error: %s\n", NPRT(msg));
    return 1;
 
 }

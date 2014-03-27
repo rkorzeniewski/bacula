@@ -1,29 +1,17 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2010 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  *
@@ -156,7 +144,7 @@ public:
 
 inline char *MSGS::name() const { return hdr.name; }
 
-/* 
+/*
  * Old C style configuration routines -- deprecated do not use.
  */
 //int   parse_config(const char *cf, LEX_ERROR_HANDLER *scan_error = NULL, int err_type=M_ERROR_TERM);
@@ -179,7 +167,7 @@ public:
    /* The below are not yet implemented */
    int32_t m_r_first;                  /* first daemon resource type */
    int32_t m_r_last;                   /* last daemon resource type */
-   RES_TABLE *m_resources;             /* pointer to table of permitted resources */      
+   RES_TABLE *m_resources;             /* pointer to table of permitted resources */
    RES **m_res_head;                   /* pointer to defined resources */
    brwlock_t m_res_lock;               /* resource lock */
 
@@ -200,7 +188,7 @@ public:
    RES **save_resources();
    RES **new_res_head();
 };
- 
+
 CONFIG *new_config_parser();
 
 
@@ -219,7 +207,7 @@ const char *res_to_str(int rcode);
 #ifdef HAVE_TYPEOF
 #define foreach_res(var, type) \
         for((var)=NULL; ((var)=(typeof(var))GetNextRes((type), (RES *)var));)
-#else 
+#else
 #define foreach_res(var, type) \
     for(var=NULL; (*((void **)&(var))=(void *)GetNextRes((type), (RES *)var));)
 #endif

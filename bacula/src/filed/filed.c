@@ -1,34 +1,22 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2010 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  *  Bacula File Daemon
  *
- *    Kern Sibbald, March MM
+ *    Written by Kern Sibbald, March MM
  *
  */
 
@@ -36,21 +24,8 @@
 #include "filed.h"
 #include "lib/mntent_cache.h"
 
-#ifdef HAVE_PYTHON
-
-#undef _POSIX_C_SOURCE
-#include <Python.h>
-
-#include "lib/pythonlib.h"
-
 /* Imported Functions */
-extern PyObject *job_getattr(PyObject *self, char *attrname);
-extern int job_setattr(PyObject *self, char *attrname, PyObject *value);
-
-#endif /* HAVE_PYTHON */
-
-/* Imported Functions */
-extern void *handle_client_request(void *dir_sock);
+extern void *handle_connection_request(void *dir_sock);
 extern bool parse_fd_config(CONFIG *config, const char *configfile, int exit_code);
 
 /* Forward referenced functions */
@@ -60,6 +35,7 @@ static bool check_resources();
 CLIENT *me;                           /* my resource */
 bool no_signals = false;
 void *start_heap;
+extern struct s_cmds cmds[];
 
 #define CONFIG_FILE "bacula-fd.conf" /* default config file */
 
@@ -73,21 +49,22 @@ static void usage()
 {
    fprintf(stderr, _(
 PROG_COPYRIGHT
-"\nVersion: %s (%s)\n\n"
+"\n%sVersion: %s (%s)\n\n"
 "Usage: bacula-fd [-f -s] [-c config_file] [-d debug_level]\n"
-"        -c <file>   use <file> as configuration file\n"
-"        -d <nn>     set debug level to <nn>\n"
-"        -dt         print a timestamp in debug output\n"
-"        -f          run in foreground (for debugging)\n"
-"        -g          groupid\n"
-"        -k          keep readall capabilities\n"
-"        -m          print kaboom output (for debugging)\n"
-"        -s          no signals (for debugging)\n"
-"        -t          test configuration file and exit\n"
-"        -u          userid\n"
-"        -v          verbose user messages\n"
-"        -?          print this message.\n"
-"\n"), 2000, VERSION, BDATE);
+"     -c <file>        use <file> as configuration file\n"
+"     -d <n>[,<tags>]  set debug level to <nn>, debug tags to <tags>\n"
+"     -dt              print a timestamp in debug output\n"
+"     -f               run in foreground (for debugging)\n"
+"     -g               groupid\n"
+"     -k               keep readall capabilities\n"
+"     -m               print kaboom output (for debugging)\n"
+"     -s               no signals (for debugging)\n"
+"     -t               test configuration file and exit\n"
+"     -T               set trace on\n"
+"     -u               userid\n"
+"     -v               verbose user messages\n"
+"     -?               print this message.\n"
+"\n"), 2000, "", VERSION, BDATE);
 
    exit(1);
 }
@@ -109,9 +86,6 @@ int main (int argc, char *argv[])
    bool keep_readall_caps = false;
    char *uid = NULL;
    char *gid = NULL;
-#ifdef HAVE_PYTHON
-   init_python_interpreter_args python_args;
-#endif /* HAVE_PYTHON */
 
    start_heap = sbrk(0);
    setlocale(LC_ALL, "");
@@ -123,7 +97,7 @@ int main (int argc, char *argv[])
    init_msg(NULL, NULL);
    daemon_start_time = time(NULL);
 
-   while ((ch = getopt(argc, argv, "c:d:fg:kmstu:v?")) != -1) {
+   while ((ch = getopt(argc, argv, "c:d:fg:kmstTu:v?D:")) != -1) {
       switch (ch) {
       case 'c':                    /* configuration file */
          if (configfile != NULL) {
@@ -136,9 +110,17 @@ int main (int argc, char *argv[])
          if (*optarg == 't') {
             dbg_timestamp = true;
          } else {
+            char *p;
+            /* We probably find a tag list -d 10,sql,bvfs */
+            if ((p = strchr(optarg, ',')) != NULL) {
+               *p = 0;
+            }
             debug_level = atoi(optarg);
             if (debug_level <= 0) {
                debug_level = 1;
+            }
+            if (p) {
+               debug_parse_tags(p+1, &debug_level);
             }
          }
          break;
@@ -165,6 +147,10 @@ int main (int argc, char *argv[])
 
       case 't':
          test_config = true;
+         break;
+
+      case 'T':
+         set_trace(true);
          break;
 
       case 'u':                    /* set userid */
@@ -252,18 +238,6 @@ int main (int argc, char *argv[])
    me += 1000000;
 #endif
 
-#ifdef HAVE_PYTHON
-   python_args.progname = me->hdr.name;
-   python_args.scriptdir = me->scripts_directory;
-   python_args.modulename = "FDStartUp";
-   python_args.configfile = configfile;
-   python_args.workingdir = me->working_directory;
-   python_args.job_getattr = job_getattr;
-   python_args.job_setattr = job_setattr;
-
-   init_python_interpreter(&python_args);
-#endif /* HAVE_PYTHON */
-
    if (!no_signals) {
       start_watchdog();               /* start watchdog thread */
       init_jcr_subsystem();           /* start JCR watchdogs etc. */
@@ -275,7 +249,8 @@ int main (int argc, char *argv[])
    foreach_dlist(p, me->FDaddrs) {
       Dmsg1(10, "filed: listening on port %d\n", p->get_port_host_order());
    }
-   bnet_thread_server(me->FDaddrs, me->MaxConcurrentJobs, &dir_workq, handle_client_request);
+   bnet_thread_server(me->FDaddrs, me->MaxConcurrentJobs, &dir_workq,
+      handle_connection_request);
 
    terminate_filed(0);
    exit(0);                           /* should never get here */
@@ -326,6 +301,9 @@ void terminate_filed(int sig)
 */
 static bool check_resources()
 {
+   int i;
+   bool found;
+   char *cmd;
    bool OK = true;
    DIRRES *director;
    bool need_tls;
@@ -351,6 +329,37 @@ static bool check_resources()
              OK = false;
          }
       }
+
+      /* Construct disabled command array */
+      for (i=0; cmds[i].cmd; i++) { }  /* Count commands */
+      if (me->disable_cmds) {
+         me->disabled_cmds_array = (bool *)malloc(i);
+         memset(me->disabled_cmds_array, 0, i);
+         foreach_alist(cmd, me->disable_cmds) {
+            found = false;
+            for (i=0; cmds[i].cmd; i++) {
+               if (strncasecmp(cmds[i].cmd, cmd, strlen(cmd)) == 0) {
+                  me->disabled_cmds_array[i] = true;
+                  found = true;
+                  break;
+               }
+            }
+            if (!found) {
+               Jmsg(NULL, M_FATAL, 0, _("Disable Command \"%s\" not found.\n"),
+                  cmd);
+               OK = false;
+            }
+         }
+      }
+#ifdef xxxDEBUG
+      for (i=0; cmds[i].cmd; i++) { }  /* Count commands */
+      while (i-- >= 0) {
+         if (me->disabled_cmds_array[i]) {
+            Dmsg1(050, "Command: %s disabled.\n", cmds[i].cmd);
+         }
+      }
+#endif
+
       /* tls_require implies tls_enable */
       if (me->tls_require) {
 #ifndef HAVE_TLS
@@ -378,7 +387,7 @@ static bool check_resources()
             me->tls_ca_certdir, me->tls_certfile, me->tls_keyfile,
             NULL, NULL, NULL, true);
 
-         if (!me->tls_ctx) { 
+         if (!me->tls_ctx) {
             Emsg2(M_FATAL, 0, _("Failed to initialize TLS context for File daemon \"%s\" in %s.\n"),
                                 me->hdr.name, configfile);
             OK = false;
@@ -474,6 +483,15 @@ static bool check_resources()
             me->pki_recipients->append(crypto_keypair_dup(me->pki_keypair));
          }
 
+         /* Put a default cipher (not possible in the filed_conf.c structure */
+         if (!me->pki_cipher) {
+            me->pki_cipher = CRYPTO_CIPHER_AES_128_CBC;
+         }
+
+         /* Put a default digest (not possible in the filed_conf.c structure */
+         if (!me->pki_digest) {
+            me->pki_digest = CRYPTO_DIGEST_DEFAULT;
+         }
 
          /* If additional keys have been specified, load them up */
          if (me->pki_master_key_files) {
@@ -509,7 +527,39 @@ static bool check_resources()
       OK = false;
    }
 
-   foreach_res(director, R_DIRECTOR) { 
+   foreach_res(director, R_DIRECTOR) {
+
+      /* Construct disabled command array */
+      for (i=0; cmds[i].cmd; i++) { }  /* Count commands */
+      if (me->disable_cmds) {
+         director->disabled_cmds_array = (bool *)malloc(i);
+         memset(director->disabled_cmds_array, 0, i);
+         foreach_alist(cmd, director->disable_cmds) {
+            found = false;
+            for (i=0; cmds[i].cmd; i++) {
+               if (strncasecmp(cmds[i].cmd, cmd, strlen(cmd)) == 0) {
+                  director->disabled_cmds_array[i] = true;
+                  found = true;
+                  break;
+               }
+            }
+            if (!found) {
+               Jmsg(NULL, M_FATAL, 0, _("Disable Command \"%s\" not found.\n"),
+                  cmd);
+               OK = false;
+            }
+         }
+      }
+
+#ifdef xxxDEBUG
+      for (i=0; cmds[i].cmd; i++) { }  /* Count commands */
+      while (i-- >= 0) {
+         if (director->disabled_cmds_array[i]) {
+            Dmsg1(050, "Command: %s disabled for Director.\n", cmds[i].cmd);
+         }
+      }
+#endif
+
       /* tls_require implies tls_enable */
       if (director->tls_require) {
 #ifndef HAVE_TLS
@@ -553,7 +603,7 @@ static bool check_resources()
             director->tls_keyfile, NULL, NULL, director->tls_dhfile,
             director->tls_verify_peer);
 
-         if (!director->tls_ctx) { 
+         if (!director->tls_ctx) {
             Emsg2(M_FATAL, 0, _("Failed to initialize TLS context for Director \"%s\" in %s.\n"),
                                 director->hdr.name, configfile);
             OK = false;

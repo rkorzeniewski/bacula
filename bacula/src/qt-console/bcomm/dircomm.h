@@ -3,29 +3,17 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2007-2009 Free Software Foundation Europe e.V.
+   Copyright (C) 2007-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  *   Version $Id$
@@ -57,7 +45,7 @@ public:
    ~DirComm();
    Console *m_console;
    int  sock_read();
-   bool authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons, 
+   bool authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons,
           char *buf, int buflen);
    bool is_connected() { return m_sock != NULL; };
    bool is_ready() { return is_connected() && m_at_prompt && m_at_main_prompt; };
@@ -66,7 +54,7 @@ public:
    bool is_notify_enabled() const;
    bool is_in_command() const { return m_in_command > 0; };
    void terminate();
-   bool connect_dir();                     
+   bool connect_dir();
    int read(void);
    int write(const char *msg);
    int write(QString msg);
@@ -75,7 +63,7 @@ public slots:
    void notify_read_dir(int fd);
 
 private:
-   BSOCK *m_sock;   
+   BSOCK *m_sock;
    bool m_at_prompt;
    bool m_at_main_prompt;
    bool m_sent_blank;

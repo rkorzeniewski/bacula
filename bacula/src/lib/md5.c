@@ -1,29 +1,17 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2011 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  * This code implements the MD5 message-digest algorithm.
@@ -132,7 +120,7 @@ void MD5Update(struct MD5Context *ctx, unsigned char *buf, unsigned len)
 }
 
 /*
- * Final wrapup - pad to 64-byte boundary with the bit pattern 
+ * Final wrapup - pad to 64-byte boundary with the bit pattern
  * 1 0* (64-bit count of bits processed, MSB-first)
  */
 void MD5Final(unsigned char digest[16], struct MD5Context *ctx)
@@ -173,7 +161,7 @@ void MD5Final(unsigned char digest[16], struct MD5Context *ctx)
     MD5Transform(ctx->buf, (uint32_t *) ctx->in);
     byteReverse((unsigned char *) ctx->buf, 4);
     memcpy(digest, ctx->buf, 16);
-    memset(ctx, 0, sizeof(ctx));        /* In case it's sensitive */
+    memset(ctx, 0, sizeof(*ctx));        /* In case it's sensitive */
 }
 
 
@@ -298,7 +286,7 @@ static bool decode = false;
  * Reads a single ASCII file and prints the HEX md5 sum.
  */
 #include <stdio.h>
-int main(int argc, char *argv[]) 
+int main(int argc, char *argv[])
 {
    FILE *fd;
    MD5Context ctx;
@@ -309,7 +297,7 @@ int main(int argc, char *argv[])
    while ((ch = getopt(argc, argv, "d?")) != -1) {
       switch (ch) {
       case 'd':
-         decode = true;                
+         decode = true;
          break;
       case '?':
       default:
@@ -339,10 +327,10 @@ int main(int argc, char *argv[])
    }
    MD5Final((unsigned char *)signature, &ctx);
    for (int i=0; i < 16; i++) {
-      printf("%02x", signature[i]& 0xFF); 
+      printf("%02x", signature[i]& 0xFF);
    }
 #ifdef OUTPUT_BASE64
-   char MD5buf[40];                 /* 24 should do */ 
+   char MD5buf[40];                 /* 24 should do */
    memset(MD5buf, 0, 40);
    bin_to_base64(MD5buf, sizeof(MD5buf), (char *)signature, 16, true); /* encode 16 bytes */
    printf("  %s", MD5buf);

@@ -1,29 +1,17 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2012 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  *
@@ -39,7 +27,7 @@
  *        Obviously, no zzz_dev() is allowed to call
  *        a www_device() or everything falls apart.
  *
- * Concerning the routines dev->r_lock()() and block_device()
+ * Concerning the routines dev->rLock()() and block_device()
  *  see the end of this module for details.  In general,
  *  blocking a device leaves it in a state where all threads
  *  other than the current thread block when they attempt to
@@ -53,11 +41,19 @@
  *
  *   Kern Sibbald, MM, MMI
  *
- *   Version $Id$
  */
 
 #include "bacula.h"                   /* pull in global headers */
+#ifdef HAVE_SYS_STATVFS_H
+#include <sys/statvfs.h>
+#else
+#define statvfs statfs
+#endif
+/* statvfs.h defines ST_APPEND, which is also used by Bacula */
+#undef ST_APPEND
+
 #include "stored.h"                   /* pull in Storage Deamon headers */
+
 
 /* Forward referenced functions */
 
@@ -76,7 +72,7 @@
  * We enter with device locked, and
  *     exit with device locked.
  *
- * Note, we are called only from one place in block.c for the daemons.  
+ * Note, we are called only from one place in block.c for the daemons.
  *     The btape utility calls it from btape.c.
  *
  *  Returns: true  on success
@@ -86,14 +82,18 @@ bool fixup_device_block_write_error(DCR *dcr, int retries)
 {
    char PrevVolName[MAX_NAME_LENGTH];
    DEV_BLOCK *label_blk;
-   DEV_BLOCK *block = dcr->block;
+   DEV_BLOCK *block;
    char b1[30], b2[30];
    time_t wait_time;
    char dt[MAX_TIME_LENGTH];
    JCR *jcr = dcr->jcr;
-   DEVICE *dev = dcr->dev;
-   int blocked = dev->blocked();         /* save any previous blocked status */
+   DEVICE *dev;
+   int blocked;              /* save any previous blocked status */
    bool ok = false;
+
+   dev = dcr->dev;
+   blocked = dev->blocked();
+   block = dcr->block;
 
    wait_time = time(NULL);
 
@@ -122,15 +122,22 @@ bool fixup_device_block_write_error(DCR *dcr, int retries)
         edit_uint64_with_commas(dev->VolCatInfo.VolCatBlocks, b2),
         bstrftime(dt, sizeof(dt), time(NULL)));
 
-   Dmsg1(050, "set_unload dev=%s\n", dev->print_name());
+   Dmsg1(150, "set_unload dev=%s\n", dev->print_name());
    dev->set_unload();
+
+   /* Clear DCR Start/End Block/File positions */
+   dcr->StartBlock = dcr->EndBlock = 0;
+   dcr->StartFile  = dcr->EndFile = 0;
+
    if (!dcr->mount_next_write_volume()) {
       free_block(label_blk);
       dcr->block = block;
-      dev->Lock();  
+      dev->Lock();
       goto bail_out;
    }
-   Dmsg2(050, "must_unload=%d dev=%s\n", dev->must_unload(), dev->print_name());
+   Dmsg2(150, "must_unload=%d dev=%s\n", dev->must_unload(), dev->print_name());
+
+   dev->notify_newvol_in_attached_dcrs(dcr->VolumeName);
    dev->Lock();                    /* lock again */
 
    dev->VolCatInfo.VolCatJobs++;              /* increment number of jobs on vol */
@@ -157,22 +164,6 @@ bool fixup_device_block_write_error(DCR *dcr, int retries)
    free_block(label_blk);
    dcr->block = block;
 
-   /*
-    * Walk through all attached jcrs indicating the volume has changed
-    */
-   Dmsg1(100, "Notify vol change. Volume=%s\n", dev->getVolCatName());
-   DCR *mdcr;
-   foreach_dlist(mdcr, dev->attached_dcrs) {
-      JCR *mjcr = mdcr->jcr;
-      if (mjcr->JobId == 0) {
-         continue;                 /* ignore console */
-      }
-      mdcr->NewVol = true;
-      if (jcr != mjcr) {
-         bstrncpy(mdcr->VolumeName, dcr->VolumeName, sizeof(mdcr->VolumeName));
-      }
-   }
-
    /* Clear NewVol now because dir_get_volume_info() already done */
    jcr->dcr->NewVol = false;
    set_new_volume_parameters(dcr);
@@ -187,7 +178,7 @@ bool fixup_device_block_write_error(DCR *dcr, int retries)
         be.bstrerror(dev->dev_errno));
       /* Note: recursive call */
       if (retries-- <= 0 || !fixup_device_block_write_error(dcr, retries)) {
-         Jmsg2(jcr, M_FATAL, 0, 
+         Jmsg2(jcr, M_FATAL, 0,
               _("Catastrophic error. Cannot write overflow block to device %s. ERR=%s"),
               dev->print_name(), be.bstrerror(dev->dev_errno));
          goto bail_out;
@@ -216,8 +207,11 @@ void set_start_vol_position(DCR *dcr)
       dcr->StartBlock = dev->block_num;
       dcr->StartFile = dev->file;
    } else {
-      dcr->StartBlock = (uint32_t)dev->file_addr;
-      dcr->StartFile  = (uint32_t)(dev->file_addr >> 32);
+      /*
+       * Note: we only update the DCR values for blocks
+       */
+      dcr->StartBlock = dcr->EndBlock = (uint32_t)dev->file_addr;
+      dcr->StartFile  = dcr->EndFile = (uint32_t)(dev->file_addr >> 32);
    }
 }
 
@@ -229,8 +223,17 @@ void set_start_vol_position(DCR *dcr)
 void set_new_volume_parameters(DCR *dcr)
 {
    JCR *jcr = dcr->jcr;
-   if (dcr->NewVol && !dir_get_volume_info(dcr, GET_VOL_INFO_FOR_WRITE)) {
-      Jmsg1(jcr, M_ERROR, 0, "%s", jcr->errmsg);
+   Dmsg1(40, "set_new_volume_parameters dev=%s\n", dcr->dev->print_name());
+   if (dcr->NewVol) {
+      while (dcr->VolumeName[0] == 0) {
+         int retries = 5;
+         wait_for_device(dcr, retries);
+      }
+      if (dir_get_volume_info(dcr, GET_VOL_INFO_FOR_WRITE)) {
+         dcr->dev->clear_wait();
+      } else {
+         Dmsg1(40, "getvolinfo failed. No new Vol: %s", jcr->errmsg);
+      }
    }
    set_new_file_parameters(dcr);
    jcr->NumWriteVolumes++;
@@ -247,6 +250,8 @@ void set_new_file_parameters(DCR *dcr)
    set_start_vol_position(dcr);
 
    /* Reset indicies */
+   Dmsg3(1000, "Reset indices Vol=%s were: FI=%d LI=%d\n", dcr->VolumeName,
+      dcr->VolFirstIndex, dcr->VolLastIndex);
    dcr->VolFirstIndex = 0;
    dcr->VolLastIndex = 0;
    dcr->NewFile = false;
@@ -279,7 +284,7 @@ bool first_open_device(DCR *dcr)
       return false;
    }
 
-   dev->rLock();
+   dev->rLock(false);
 
    /* Defer opening files */
    if (!dev->is_tape()) {
@@ -302,14 +307,14 @@ bool first_open_device(DCR *dcr)
    Dmsg1(129, "open dev %s OK\n", dev->print_name());
 
 bail_out:
-   dev->Unlock();
+   dev->rUnlock();
    return ok;
 }
 
 /*
  * Make sure device is open, if not do so
  */
-bool open_device(DCR *dcr)
+bool open_dev(DCR *dcr)
 {
    DEVICE *dev = dcr->dev;
    /* Open device */
@@ -326,10 +331,103 @@ bool open_device(DCR *dcr)
       if (!dev->poll && !dev->is_dvd() && !dev->is_removable()) {
          Jmsg2(dcr->jcr, M_FATAL, 0, _("Unable to open device %s: ERR=%s\n"),
             dev->print_name(), dev->bstrerror());
-         Pmsg2(000, _("Unable to open archive %s: ERR=%s\n"), 
+         Pmsg2(000, _("Unable to open archive %s: ERR=%s\n"),
             dev->print_name(), dev->bstrerror());
       }
       return false;
    }
    return true;
+}
+
+/*
+ */
+void DEVICE::updateVolCatBytes(uint64_t bytes)
+{
+   DEVICE *dev;
+   Lock_VolCatInfo();
+   dev = this;
+   dev->VolCatInfo.VolCatAmetaBytes += bytes;
+   dev->VolCatInfo.VolCatBytes += bytes;
+   setVolCatInfo(false);
+   Unlock_VolCatInfo();
+}
+
+void DEVICE::updateVolCatBlocks(uint32_t blocks)
+{
+   DEVICE *dev;
+   Lock_VolCatInfo();
+   dev = this;
+   dev->VolCatInfo.VolCatAmetaBlocks += blocks;
+   dev->VolCatInfo.VolCatBlocks += blocks;
+   setVolCatInfo(false);
+   Unlock_VolCatInfo();
+}
+
+void DEVICE::updateVolCatWrites(uint32_t writes)
+{
+   DEVICE *dev;
+   Lock_VolCatInfo();
+   dev = this;
+   dev->VolCatInfo.VolCatAmetaWrites += writes;
+   dev->VolCatInfo.VolCatWrites += writes;
+   setVolCatInfo(false);
+   Unlock_VolCatInfo();
+}
+
+void DEVICE::updateVolCatReads(uint32_t reads)
+{
+   DEVICE *dev;
+   Lock_VolCatInfo();
+   dev = this;
+   dev->VolCatInfo.VolCatAmetaReads += reads;
+   dev->VolCatInfo.VolCatReads += reads;
+   setVolCatInfo(false);
+   Unlock_VolCatInfo();
+}
+
+void DEVICE::updateVolCatReadBytes(uint64_t bytes)
+{
+   DEVICE *dev;
+   Lock_VolCatInfo();
+   dev = this;
+   dev->VolCatInfo.VolCatAmetaRBytes += bytes;
+   dev->VolCatInfo.VolCatRBytes += bytes;
+   setVolCatInfo(false);
+   Unlock_VolCatInfo();
+}
+
+void DEVICE::set_nospace()
+{
+   state |= ST_NOSPACE;
+}
+
+void DEVICE::clear_nospace()
+{
+   state &= ~ST_NOSPACE;
+}
+
+/* Put device in append mode */
+void DEVICE::set_append()
+{
+   state &= ~(ST_NOSPACE|ST_READ|ST_EOT|ST_EOF|ST_WEOT);  /* remove EOF/EOT flags */
+   state |= ST_APPEND;
+}
+
+/* Clear append mode */
+void DEVICE::clear_append()
+{
+   state &= ~ST_APPEND;
+}
+
+/* Put device in read mode */
+void DEVICE::set_read()
+{
+   state &= ~(ST_APPEND|ST_EOT|ST_EOF|ST_WEOT);  /* remove EOF/EOT flags */
+   state |= ST_READ;
+}
+
+/* Clear read mode */
+void DEVICE::clear_read()
+{
+   state &= ~ST_READ;
 }

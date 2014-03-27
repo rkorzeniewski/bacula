@@ -1,29 +1,17 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2002-2011 Free Software Foundation Europe e.V.
+   Copyright (C) 2002-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  *
@@ -93,44 +81,46 @@ int restore_cmd(UAContext *ua, const char *cmd)
    rx.BaseJobIds = get_pool_memory(PM_FNAME);
    rx.query = get_pool_memory(PM_FNAME);
    rx.bsr = new_bsr();
+   rx.hardlinks_in_mem = true;
 
-   i = find_arg_with_value(ua, "comment");
-   if (i >= 0) {
-      rx.comment = ua->argv[i];
-      if (!is_comment_legal(ua, rx.comment)) {
-         goto bail_out;
+   if (!open_new_client_db(ua)) {
+      goto bail_out;
+   }
+
+   for (i = 0; i < ua->argc ; i++) {
+      if (!ua->argv[i]) {
+         continue;           /* skip if no value given */
       }
-   }
+      if (strcasecmp(ua->argk[i], "comment") == 0) {
+         rx.comment = ua->argv[i];
+         if (!is_comment_legal(ua, rx.comment)) {
+            goto bail_out;
+         }
 
-   i = find_arg_with_value(ua, "where");
-   if (i >= 0) {
-      rx.where = ua->argv[i];
-   }
+      } else if (strcasecmp(ua->argk[i], "where") == 0) {
+         rx.where = ua->argv[i];
 
-   i = find_arg_with_value(ua, "replace");
-   if (i >= 0) {
-      rx.replace = ua->argv[i];
-   }
-   
+      } else if (strcasecmp(ua->argk[i], "replace") == 0) {
+         rx.replace = ua->argv[i];
 
-   i = find_arg_with_value(ua, "strip_prefix");
-   if (i >= 0) {
-      strip_prefix = ua->argv[i];
-   }
+      } else if (strcasecmp(ua->argk[i], "strip_prefix") == 0) {
+         strip_prefix = ua->argv[i];
 
-   i = find_arg_with_value(ua, "add_prefix");
-   if (i >= 0) {
-      add_prefix = ua->argv[i];
-   }
+      } else if (strcasecmp(ua->argk[i], "add_prefix") == 0) {
+         add_prefix = ua->argv[i];
 
-   i = find_arg_with_value(ua, "add_suffix");
-   if (i >= 0) {
-      add_suffix = ua->argv[i];
-   }
+      } else if (strcasecmp(ua->argk[i], "add_suffix") == 0) {
+         add_suffix = ua->argv[i];
 
-   i = find_arg_with_value(ua, "regexwhere");
-   if (i >= 0) {
-      rx.RegexWhere = ua->argv[i];
+      } else if (strcasecmp(ua->argk[i], "regexwhere") == 0) {
+         rx.RegexWhere = ua->argv[i];
+
+      } else if (strcasecmp(ua->argk[i], "optimizespeed") == 0) {
+         if (strcasecmp(ua->argv[i], "0") || strcasecmp(ua->argv[i], "no") ||
+             strcasecmp(ua->argv[i], "false")) {
+            rx.hardlinks_in_mem = false;
+         }
+      }
    }
 
    if (strip_prefix || add_suffix || add_prefix) {
@@ -155,10 +145,6 @@ int restore_cmd(UAContext *ua, const char *cmd)
          ua->error_msg(_("\"where\" specification not authorized.\n"));
          goto bail_out;
       }
-   }
-
-   if (!open_client_db(ua)) {
-      goto bail_out;
    }
 
    /* Ensure there is at least one Restore Job */
@@ -214,7 +200,7 @@ int restore_cmd(UAContext *ua, const char *cmd)
       if (rx.selected_files==1) {
          ua->info_msg(_("\n1 file selected to be restored.\n\n"));
       } else {
-         ua->info_msg(_("\n%s files selected to be restored.\n\n"), 
+         ua->info_msg(_("\n%s files selected to be restored.\n\n"),
             edit_uint64_with_commas(rx.selected_files, ed1));
       }
    } else {
@@ -250,14 +236,19 @@ int restore_cmd(UAContext *ua, const char *cmd)
 
    /* Build run command */
    pm_strcpy(buf, "");
+   if (rx.RestoreMediaType[0]) {
+      Mmsg(buf, " mediatype=\"%s\"", rx.RestoreMediaType);
+      pm_strcat(ua->cmd, buf);
+      pm_strcpy(buf, "");
+   }
    if (rx.RegexWhere) {
       escaped_where_name = escape_filename(rx.RegexWhere);
-      Mmsg(buf, " regexwhere=\"%s\"", 
+      Mmsg(buf, " regexwhere=\"%s\"",
            escaped_where_name ? escaped_where_name : rx.RegexWhere);
 
    } else if (rx.where) {
       escaped_where_name = escape_filename(rx.where);
-      Mmsg(buf," where=\"%s\"", 
+      Mmsg(buf," where=\"%s\"",
            escaped_where_name ? escaped_where_name : rx.where);
    }
    pm_strcat(ua->cmd, buf);
@@ -279,7 +270,7 @@ int restore_cmd(UAContext *ua, const char *cmd)
    if (escaped_where_name != NULL) {
       bfree(escaped_where_name);
    }
-   
+
    if (regexp) {
       bfree(regexp);
    }
@@ -288,7 +279,13 @@ int restore_cmd(UAContext *ua, const char *cmd)
       pm_strcat(ua->cmd, " yes");    /* pass it on to the run command */
    }
    Dmsg1(200, "Submitting: %s\n", ua->cmd);
-   /* Transfer jobids to jcr to for picking up restore objects */
+   /*
+    * Transfer jobids, to jcr to
+    *  pass to run_cmd().  Note, these are fields and
+    *  other things that are not passed on the command
+    *  line.
+    */
+   /* ***FIXME*** pass jobids on command line */
    jcr->JobIds = rx.JobIds;
    rx.JobIds = NULL;
    parse_ua_args(ua);
@@ -316,7 +313,7 @@ bail_out:
 
 }
 
-/* 
+/*
  * Fill the rx->BaseJobIds and display the list
  */
 static void get_and_display_basejobs(UAContext *ua, RESTORE_CTX *rx)
@@ -326,7 +323,7 @@ static void get_and_display_basejobs(UAContext *ua, RESTORE_CTX *rx)
    if (!db_get_used_base_jobids(ua->jcr, ua->db, rx->JobIds, &jobids)) {
       ua->warning_msg("%s", db_strerror(ua->db));
    }
-   
+
    if (jobids.count) {
       POOL_MEM q;
       Mmsg(q, uar_print_jobs, jobids.list);
@@ -393,7 +390,7 @@ static int get_client_name(UAContext *ua, RESTORE_CTX *rx)
 static int get_restore_client_name(UAContext *ua, RESTORE_CTX &rx)
 {
    /* Start with same name as backup client */
-   bstrncpy(rx.RestoreClientName, rx.ClientName, sizeof(rx.RestoreClientName));    
+   bstrncpy(rx.RestoreClientName, rx.ClientName, sizeof(rx.RestoreClientName));
 
    /* try command line argument */
    int i = find_arg_with_value(ua, NT_("restoreclient"));
@@ -487,6 +484,7 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
             break;
          }
       }
+
       if (!found_kw) {
          ua->error_msg(_("Unknown keyword: %s\n"), ua->argk[i]);
          return 0;
@@ -769,7 +767,7 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
 
       case 11:                        /* Choose a jobid and select jobs */
          if (!get_cmd(ua, _("Enter JobId to get the state to restore: ")) ||
-             !is_an_integer(ua->cmd)) 
+             !is_an_integer(ua->cmd))
          {
             return 0;
          }
@@ -799,7 +797,7 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
    POOLMEM *JobIds = get_pool_memory(PM_FNAME);
    *JobIds = 0;
    rx->TotalFiles = 0;
-   /*        
+   /*
     * Find total number of files to be restored, and filter the JobId
     *  list to contain only ones permitted by the ACL conditions.
     */
@@ -929,7 +927,7 @@ static bool insert_file_into_findex_list(UAContext *ua, RESTORE_CTX *rx, char *f
    strip_trailing_newline(file);
    split_path_and_filename(ua, rx, file);
    if (*rx->JobIds == 0) {
-      Mmsg(rx->query, uar_jobid_fileindex, date, rx->path, rx->fname, 
+      Mmsg(rx->query, uar_jobid_fileindex, date, rx->path, rx->fname,
            rx->ClientName);
    } else {
       Mmsg(rx->query, uar_jobids_fileindex, rx->JobIds, date,
@@ -955,7 +953,7 @@ static bool insert_file_into_findex_list(UAContext *ua, RESTORE_CTX *rx, char *f
  */
 static bool insert_dir_into_findex_list(UAContext *ua, RESTORE_CTX *rx, char *dir,
                                         char *date)
-{  
+{
    strip_trailing_junk(dir);
    if (*rx->JobIds == 0) {
       ua->error_msg(_("No JobId specified cannot continue.\n"));
@@ -1099,6 +1097,7 @@ static void add_delta_list_findex(RESTORE_CTX *rx, struct delta_list *lst)
    add_findex(rx->bsr, lst->JobId, lst->FileIndex);
 }
 
+
 static bool build_directory_tree(UAContext *ua, RESTORE_CTX *rx)
 {
    TREE_CTX tree;
@@ -1114,6 +1113,7 @@ static bool build_directory_tree(UAContext *ua, RESTORE_CTX *rx)
    tree.root = new_tree(rx->TotalFiles);
    tree.ua = ua;
    tree.all = rx->all;
+   tree.hardlinks_in_mem = rx->hardlinks_in_mem;
    last_JobId = 0;
    /*
     * For display purposes, the same JobId, with different volumes may
@@ -1139,8 +1139,8 @@ static bool build_directory_tree(UAContext *ua, RESTORE_CTX *rx)
 
 #define new_get_file_list
 #ifdef new_get_file_list
-   if (!db_get_file_list(ua->jcr, ua->db, 
-                         rx->JobIds, false /* do not use md5 */, 
+   if (!db_get_file_list(ua->jcr, ua->db,
+                         rx->JobIds, false /* do not use md5 */,
                          true /* get delta */,
                          insert_tree_handler, (void *)&tree))
    {
@@ -1167,10 +1167,10 @@ static bool build_directory_tree(UAContext *ua, RESTORE_CTX *rx)
       }
    }
 #endif
-   /* 
+   /*
     * At this point, the tree is built, so we can garbage collect
-    * any memory released by the SQL engine that RedHat has 
-    * not returned to the OS :-( 
+    * any memory released by the SQL engine that RedHat has
+    * not returned to the OS :-(
     */
     garbage_collect_memory();
 
@@ -1318,7 +1318,7 @@ static bool select_backups_before_date(UAContext *ua, RESTORE_CTX *rx, char *dat
       memset(&pr, 0, sizeof(pr));
       bstrncpy(pr.Name, rx->pool->name(), sizeof(pr.Name));
       if (db_get_pool_record(ua->jcr, ua->db, &pr)) {
-         bsnprintf(pool_select, sizeof(pool_select), "AND Media.PoolId=%s ", 
+         bsnprintf(pool_select, sizeof(pool_select), "AND Media.PoolId=%s ",
             edit_int64(pr.PoolId, ed1));
       } else {
          ua->warning_msg(_("Pool \"%s\" not found, using any pool.\n"), pr.Name);
@@ -1385,7 +1385,7 @@ static bool select_backups_before_date(UAContext *ua, RESTORE_CTX *rx, char *dat
    if (rx->JobIds[0] != 0) {
       if (find_arg(ua, NT_("copies")) > 0) {
          /* Display a list of all copies */
-         db_list_copies_records(ua->jcr, ua->db, 0, rx->JobIds, 
+         db_list_copies_records(ua->jcr, ua->db, 0, rx->JobIds,
                                 prtit, ua, HORZ_LIST);
       }
       /* Display a list of Jobs selected for this restore */
@@ -1417,9 +1417,23 @@ static int restore_count_handler(void *ctx, int num_fields, char **row)
 static int jobid_fileindex_handler(void *ctx, int num_fields, char **row)
 {
    RESTORE_CTX *rx = (RESTORE_CTX *)ctx;
+   JobId_t JobId = str_to_int64(row[0]);
 
-   Dmsg2(200, "JobId=%s FileIndex=%s\n", row[0], row[1]);
-   rx->JobId = str_to_int64(row[0]);
+   Dmsg3(200, "JobId=%s JobIds=%s FileIndex=%s\n", row[0], rx->JobIds, row[1]);
+
+   /* New JobId, add it to JobIds
+    * The list is sorted by JobId, so we need a cache for the previous value
+    *
+    * It will permit to find restore objects to send during the restore
+    */
+   if (rx->JobId != JobId) {
+      if (*rx->JobIds) {
+         pm_strcat(rx->JobIds, ",");
+      }
+      pm_strcat(rx->JobIds, row[0]);
+      rx->JobId = JobId;
+   }
+
    add_findex(rx->bsr, rx->JobId, str_to_int64(row[1]));
    rx->found = true;
    rx->selected_files++;
@@ -1481,7 +1495,7 @@ static void free_name_list(NAME_LIST *name_list)
    name_list->num_ids = 0;
 }
 
-void find_storage_resource(UAContext *ua, RESTORE_CTX &rx, char *Storage, char *MediaType) 
+void find_storage_resource(UAContext *ua, RESTORE_CTX &rx, char *Storage, char *MediaType)
 {
    STORE *store;
 
@@ -1514,10 +1528,17 @@ void find_storage_resource(UAContext *ua, RESTORE_CTX &rx, char *Storage, char *
          }
       }
       if (store && (store != rx.store)) {
-         ua->info_msg(_("Warning default storage overridden by \"%s\" on command line.\n"),
+         ua->info_msg(_("\nWarning Storage is overridden by \"%s\" on the command line.\n"),
             store->name());
          rx.store = store;
-         Dmsg1(200, "Set store=%s\n", rx.store->name());
+         bstrncpy(rx.RestoreMediaType, MediaType, sizeof(rx.RestoreMediaType));
+         if (strcmp(MediaType, store->media_type) != 0) {
+            ua->info_msg(_("This may not work because of two different MediaTypes:\n"
+               "  Storage MediaType=\"%s\"\n"
+               "  Volume  MediaType=\"%s\".\n\n"),
+               store->media_type, MediaType);
+         }
+         Dmsg2(200, "Set store=%s MediaType=%s\n", rx.store->name(), rx.RestoreMediaType);
       }
       return;
    }

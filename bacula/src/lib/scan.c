@@ -1,29 +1,17 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2011 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  *   scan.c -- scanning routines for Bacula
@@ -172,13 +160,13 @@ int fstrsch(const char *a, const char *b)   /* folded case search */
  * Called with pointer to pointer to command line. This
  *   pointer is updated to point to the remainder of the
  *   command line.
- * 
+ *
  * Returns pointer to next argument -- don't store the result
  *   in the pointer you passed as an argument ...
  *   The next argument is terminated by a space unless within
  *   quotes. Double quote characters (unless preceded by a \) are
  *   stripped.
- *   
+ *
  */
 char *next_arg(char **s)
 {
@@ -264,14 +252,14 @@ int parse_args(POOLMEM *cmd, POOLMEM **args, int *argc,
  * This routine parses the input command line.
  *   It makes a copy in args, then builds an
  *   argc, argk, but no argv (values).
- *   This routine is useful for scanning command lines where the data 
+ *   This routine is useful for scanning command lines where the data
  *   is a filename and no keywords are expected.  If we scan a filename
  *   for keywords, any = in the filename will be interpreted as the
  *   end of a keyword, and this is not good.
  *
  *  argc = count of arguments
  *  argk[i] = argument keyword (part preceding =)
- *  argv[i] = NULL                         
+ *  argv[i] = NULL
  *
  *  example:  arg1 arg2=abc arg3=
  *
@@ -363,6 +351,10 @@ void split_path_and_filename(const char *fname, POOLMEM **path, int *pnl,
 
 /*
  * Extremely simple sscanf. Handles only %(u,d,ld,qd,qu,lu,lld,llu,c,nns)
+ *
+ * Note, BIG is the default maximum length when no length
+ *   has been specified for %s. If it is not big enough, then
+ *   simply add a length such as %10000s.
  */
 const int BIG = 1000;
 int bsscanf(const char *buf, const char *fmt, ...)

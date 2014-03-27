@@ -1,35 +1,23 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2012 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  *
  *   Bacula Director daemon -- this is the main program
  *
- *     Kern Sibbald, March MM
+ *     Written by Kern Sibbald, March MM
  *
  */
 
@@ -48,25 +36,11 @@
 int readdir_r(DIR *dirp, struct dirent *entry, struct dirent **result);
 #endif
 
-
-#ifdef HAVE_PYTHON
-
-#undef _POSIX_C_SOURCE
-#include <Python.h>
-
-#include "lib/pythonlib.h"
-
-/* Imported Functions */
-extern PyObject *job_getattr(PyObject *self, char *attrname);
-extern int job_setattr(PyObject *self, char *attrname, PyObject *value);
-
-#endif /* HAVE_PYTHON */
-
 /* Forward referenced subroutines */
 void terminate_dird(int sig);
 static bool check_resources();
 static void cleanup_old_files();
-  
+
 /* Exported subroutines */
 extern "C" void reload_config(int sig);
 extern void invalidate_schedules();
@@ -89,7 +63,7 @@ static char *runjob = NULL;
 static bool background = true;
 static void init_reload(void);
 static CONFIG *config;
- 
+
 /* Globals Exported */
 DIRRES *director;                     /* Director resource */
 int FDConnectTimeout;
@@ -185,9 +159,6 @@ int main (int argc, char *argv[])
    bool test_config = false;
    char *uid = NULL;
    char *gid = NULL;
-#ifdef HAVE_PYTHON
-   init_python_interpreter_args python_args;
-#endif /* HAVE_PYTHON */
 
    start_heap = sbrk(0);
    setlocale(LC_ALL, "");
@@ -304,9 +275,9 @@ int main (int argc, char *argv[])
       if (background) {
          daemon_start();
          init_stack_dump();              /* grab new pid */
-      }   
+      }
       /* Create pid must come after we are a daemon -- so we have our final pid */
-      create_pid_file(director->pid_directory, "bacula-dir", 
+      create_pid_file(director->pid_directory, "bacula-dir",
                       get_first_port_host_order(director->DIRaddrs));
       read_state_file(director->working_directory, "bacula-dir",
                       get_first_port_host_order(director->DIRaddrs));
@@ -327,8 +298,8 @@ int main (int argc, char *argv[])
    if (!check_catalog(mode)) {
       Jmsg((JCR *)NULL, M_ERROR_TERM, 0, _("Please correct configuration file: %s\n"), configfile);
    }
-   
-   if (test_config) {      
+
+   if (test_config) {
       terminate_dird(0);
    }
 
@@ -349,18 +320,6 @@ int main (int argc, char *argv[])
 
    init_console_msg(working_directory);
 
-#ifdef HAVE_PYTHON
-   python_args.progname = director->name();
-   python_args.scriptdir = director->scripts_directory;
-   python_args.modulename = "DirStartUp";
-   python_args.configfile = configfile;
-   python_args.workingdir = director->working_directory;
-   python_args.job_getattr = job_getattr;
-   python_args.job_setattr = job_setattr;
-
-   init_python_interpreter(&python_args);
-#endif /* HAVE_PYTHON */
-
    Dmsg0(200, "Start UA server\n");
    start_UA_server(director->DIRaddrs);
 
@@ -371,8 +330,6 @@ int main (int argc, char *argv[])
    init_job_server(director->MaxConcurrentJobs);
 
    dbg_jcr_add_hook(db_debug_print); /* used to debug B_DB connexion after fatal signal */
-
-//   init_device_resources();
 
    Dmsg0(200, "wait for next job\n");
    /* Main loop -- call scheduler to get next job to run */
@@ -525,7 +482,7 @@ void reload_config(int sig)
    JCR *jcr;
    int njobs = 0;                     /* number of running jobs */
    int table, rtable;
-   bool ok;       
+   bool ok;
 
    if (already_here) {
       abort();                        /* Oops, recursion -> die */
@@ -666,7 +623,7 @@ static bool check_resources()
          OK = false;
       }
 
-      if ((!director->tls_ca_certfile && !director->tls_ca_certdir) && 
+      if ((!director->tls_ca_certfile && !director->tls_ca_certdir) &&
            need_tls && director->tls_verify_peer) {
          Jmsg(NULL, M_FATAL, 0, _("Neither \"TLS CA Certificate\" or \"TLS CA"
               " Certificate Dir\" are defined for Director \"%s\" in %s."
@@ -685,7 +642,7 @@ static bool check_resources()
             director->tls_ca_certdir, director->tls_certfile,
             director->tls_keyfile, NULL, NULL, director->tls_dhfile,
             director->tls_verify_peer);
-         
+
          if (!director->tls_ctx) {
             Jmsg(NULL, M_FATAL, 0, _("Failed to initialize TLS context for Director \"%s\" in %s.\n"),
                  director->name(), configfile);
@@ -714,11 +671,11 @@ static bool check_resources()
          /* Handle RunScripts alists specifically */
          if (jobdefs->RunScripts) {
             RUNSCRIPT *rs, *elt;
-            
+
             if (!job->RunScripts) {
                job->RunScripts = New(alist(10, not_owned_by_alist));
             }
-           
+
             foreach_alist(rs, jobdefs->RunScripts) {
                elt = copy_runscript(rs);
                job->RunScripts->append(elt); /* we have to free it */
@@ -860,7 +817,7 @@ static bool check_resources()
       }
 
       need_tls = cons->tls_enable || cons->tls_authenticate;
-      
+
       if (!cons->tls_certfile && need_tls) {
          Jmsg(NULL, M_FATAL, 0, _("\"TLS Certificate\" file not defined for Console \"%s\" in %s.\n"),
             cons->name(), configfile);
@@ -873,7 +830,7 @@ static bool check_resources()
          OK = false;
       }
 
-      if ((!cons->tls_ca_certfile && !cons->tls_ca_certdir) 
+      if ((!cons->tls_ca_certfile && !cons->tls_ca_certdir)
             && need_tls && cons->tls_verify_peer) {
          Jmsg(NULL, M_FATAL, 0, _("Neither \"TLS CA Certificate\" or \"TLS CA"
             " Certificate Dir\" are defined for Console \"%s\" in %s."
@@ -890,7 +847,7 @@ static bool check_resources()
          cons->tls_ctx = new_tls_context(cons->tls_ca_certfile,
             cons->tls_ca_certdir, cons->tls_certfile,
             cons->tls_keyfile, NULL, NULL, cons->tls_dhfile, cons->tls_verify_peer);
-         
+
          if (!cons->tls_ctx) {
             Jmsg(NULL, M_FATAL, 0, _("Failed to initialize TLS context for File daemon \"%s\" in %s.\n"),
                cons->name(), configfile);
@@ -930,7 +887,7 @@ static bool check_resources()
             client->tls_ca_certdir, client->tls_certfile,
             client->tls_keyfile, NULL, NULL, NULL,
             true);
-         
+
          if (!client->tls_ctx) {
             Jmsg(NULL, M_FATAL, 0, _("Failed to initialize TLS context for File daemon \"%s\" in %s.\n"),
                client->name(), configfile);
@@ -987,8 +944,8 @@ static bool check_resources()
    return OK;
 }
 
-/* 
- * In this routine, 
+/*
+ * In this routine,
  *  - we can check the connection (mode=CHECK_CONNECTION)
  *  - we can synchronize the catalog with the configuration (mode=UPDATE_CATALOG)
  *  - we can synchronize, and fix old job records (mode=UPDATE_AND_FIX)
@@ -1071,7 +1028,7 @@ static bool check_catalog(cat_op mode)
                   client->name(), client->catalog->name(), catalog->name());
             continue;
          }
-         Dmsg2(500, "create cat=%s for client=%s\n", 
+         Dmsg2(500, "create cat=%s for client=%s\n",
                client->catalog->name(), client->name());
          memset(&cr, 0, sizeof(cr));
          bstrncpy(cr.Name, client->name(), sizeof(cr.Name));
@@ -1095,7 +1052,7 @@ static bool check_catalog(cat_op mode)
          bstrncpy(sr.Name, store->name(), sizeof(sr.Name));
          sr.AutoChanger = store->autochanger;
          if (!db_create_storage_record(NULL, db, &sr)) {
-            Jmsg(NULL, M_FATAL, 0, _("Could not create storage record for %s\n"), 
+            Jmsg(NULL, M_FATAL, 0, _("Could not create storage record for %s\n"),
                  store->name());
             OK = false;
          }
@@ -1187,10 +1144,10 @@ static void cleanup_old_files()
    if (name_max < 1024) {
       name_max = 1024;
    }
-      
+
    if (!(dp = opendir(director->working_directory))) {
       berrno be;
-      Pmsg2(000, "Failed to open working dir %s for cleanup: ERR=%s\n", 
+      Pmsg2(000, "Failed to open working dir %s for cleanup: ERR=%s\n",
             director->working_directory, be.bstrerror());
       goto get_out1;
       return;
@@ -1205,7 +1162,7 @@ static void cleanup_old_files()
       if (strcmp(result->d_name, ".") == 0 || strcmp(result->d_name, "..") == 0 ||
           strncmp(result->d_name, my_name, my_name_len) != 0) {
          Dmsg1(500, "Skipped: %s\n", result->d_name);
-         continue;    
+         continue;
       }
 
       /* Unlink files that match regexes */

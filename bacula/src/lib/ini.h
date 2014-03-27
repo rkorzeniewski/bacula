@@ -4,7 +4,7 @@
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
    This program is Free Software; you can modify it under the terms of
-   version three of the GNU Affero General Public License as published by the 
+   version three of the GNU Affero General Public License as published by the
    Free Software Foundation, which is listed in the file LICENSE.
 
    This program is distributed in the hope that it will be useful, but
@@ -28,24 +28,24 @@
 #ifndef INI_H
 #define INI_H
 
-/* 
+/*
  * Plugin has a internal C structure that describes the configuration:
  * struct ini_items[]
  *
  * The ConfigFile object can generate a text file that describes the C
  * structure. This text format is saved as RestoreObject in the catalog.
- * 
+ *
  *   struct ini_items[]  -> register_items()  -> serialize() -> RestoreObject R1
  *
  * On the Director side, at the restore time, we can analyse this text to
  * get the C structure.
- * 
+ *
  * RestoreObject R1 -> write to disk -> unserialize() -> struct ini_items[]
  *
  * Once done, we can ask questions to the user at the restore time and fill
  * the C struct with answers. The Director can send back as a RestoreObject
  * the result of the questionnaire.
- * 
+ *
  * struct ini_items[] -> UAContext -> dump_result() -> FD as RestoreObject R2
  *
  * On the Plugin side, it can get back the C structure and use it.
@@ -66,8 +66,8 @@ typedef union {
 } item_value;
 
 /* These functions are used to convert a string to the appropriate value */
-typedef 
-bool (INI_ITEM_HANDLER)(LEX *lc, ConfigFile *inifile, 
+typedef
+bool (INI_ITEM_HANDLER)(LEX *lc, ConfigFile *inifile,
                         struct ini_items *item);
 
 /* If no items are registred at the scan time, we detect this list from
@@ -79,9 +79,10 @@ struct ini_items {
    const char *comment;         /* comment associated, used in prompt */
 
    int required;                /* optional required or not */
+   const char *default_value;   /* optional default value */
+
    const char *re_value;        /* optional regexp associated */
    const char *in_values;       /* optional list of values */
-   const char *default_value;   /* optional default value */
 
    bool found;                  /* if val is set */
    item_value val;              /* val contains the value */
@@ -119,19 +120,24 @@ public:
    JCR *jcr;                    /* JCR needed for Jmsg */
    int version;                 /* Internal version check */
    int sizeof_ini_items;        /* Extra check when using dynamic loading */
+   bool unlink_temp_file;       /* Unlink temp file when destroying object */
    struct ini_items *items;     /* Structure of the config file */
    POOLMEM *out_fname;          /* Can be used to dump config to disk */
    POOLMEM *edit;               /* Can be used to build result file */
+   char *plugin_name;           /* Used to store owner of this ConfigFile */
 
    ConfigFile() {
       lc = NULL;
       jcr = NULL;
       items = NULL;
       out_fname = NULL;
+      plugin_name = NULL;
 
       version = 1;
       items_allocated = false;
+      unlink_temp_file = true;
       edit = get_pool_memory(PM_FNAME);
+      edit[0] = 0;
       sizeof_ini_items = sizeof(struct ini_items);
    }
 
@@ -143,18 +149,35 @@ public:
          free_pool_memory(edit);
       }
       if (out_fname) {
-         unlink(out_fname);
+         if (unlink_temp_file) {
+            unlink(out_fname);
+         }
          free_pool_memory(out_fname);
       }
+      if (plugin_name) {
+         free(plugin_name);
+      }
+      clear_items();
       free_items();
    }
 
    /* Dump a config string to out_fname */
    bool dump_string(const char *buf, int32_t len);
 
+   void set_plugin_name(char *n) {
+      if (plugin_name) {
+         free(plugin_name);
+      }
+      plugin_name = bstrdup(n);
+   }
+
    /* JCR needed for Jmsg */
    void set_jcr(JCR *ajcr) {
       jcr = ajcr;
+   }
+
+   void set_unlink_temp_file(bool val) {
+      unlink_temp_file = val;
    }
 
    /* Free malloced items such as char* or alist or items */
@@ -166,7 +189,7 @@ public:
    /* Dump the item table to a file (used on plugin side) */
    bool serialize(const char *fname);
 
-   /* Dump the item table format to a buffer (used on plugin side) 
+   /* Dump the item table format to a buffer (used on plugin side)
     * returns the length of the buffer, -1 if error
     */
    int serialize(POOLMEM **buf);
@@ -189,14 +212,20 @@ public:
       }
       return false;
    }
-   
+
    /* Parse a ini file with a item list previously registred (plugin side) */
    bool parse(const char *filename);
 
    /* Create a item list from a ini file (director side) */
    bool unserialize(const char *filename);
+
+   /* Get Menu for an entry */
+   char *get_menu(int index, POOLMEM **dest);
+
+   /* Check if an entry is a part of a menu */
+   bool is_in_menu(int index, const char *menu);
 };
-                              
+
 /*
  * Standard global parsers defined in ini.c
  * When called with lc=NULL, it converts the item value back in inifile->edit

@@ -1,29 +1,17 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2012 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  * Prototypes for lib directory of Bacula
@@ -34,6 +22,9 @@
 #define __LIBPROTOS_H
 
 class JCR;
+
+/* address_conf.c */
+void remove_duplicate_addresses(dlist *addr_list);
 
 /* attr.c */
 ATTR     *new_attr(JCR *jcr);
@@ -46,16 +37,19 @@ void      print_ls_output(JCR *jcr, ATTR *attr);
 void      base64_init            (void);
 int       to_base64              (int64_t value, char *where);
 int       from_base64            (int64_t *value, char *where);
-int       bin_to_base64          (char *buf, int buflen, char *bin, int binlen, 
+int       bin_to_base64          (char *buf, int buflen, char *bin, int binlen,
                                   int compatible);
 int       base64_to_bin(char *dest, int destlen, char *src, int srclen);
 
 /* bsys.c */
+POOLMEM  *quote_string           (POOLMEM *snew, const char *old);
+POOLMEM  *quote_where            (POOLMEM *snew, const char *old);
 char     *bstrncpy               (char *dest, const char *src, int maxlen);
 char     *bstrncpy               (char *dest, POOL_MEM &src, int maxlen);
 char     *bstrncat               (char *dest, const char *src, int maxlen);
 char     *bstrncat               (char *dest, POOL_MEM &src, int maxlen);
 bool      bstrcmp                (const char *s1, const char *s2);
+bool      bstrcasecmp            (const char *s1, const char *s2);
 int       cstrlen                (const char *str);
 void     *b_malloc               (const char *file, int line, size_t size);
 #ifndef bmalloc
@@ -86,20 +80,10 @@ void      stack_trace();
 int       safer_unlink(const char *pathname, const char *regex);
 
 /* bnet.c */
-int32_t    bnet_recv             (BSOCK *bsock);
-bool       bnet_send             (BSOCK *bsock);
-bool       bnet_fsend            (BSOCK *bs, const char *fmt, ...);
-bool       bnet_set_buffer_size  (BSOCK *bs, uint32_t size, int rw);
-bool       bnet_sig              (BSOCK *bs, int sig);
 bool       bnet_tls_server       (TLS_CONTEXT *ctx, BSOCK *bsock,
                                   alist *verify_list);
 bool       bnet_tls_client       (TLS_CONTEXT *ctx, BSOCK *bsock,
                                   alist *verify_list);
-BSOCK *    bnet_connect          (JCR *jcr, int retry_interval,
-               utime_t max_retry_time, utime_t heart_beat, 
-               const char *name, char *host, char *service,
-               int port, int verbose);
-void       bnet_close            (BSOCK *bsock);
 BSOCK *    init_bsock            (JCR *jcr, int sockfd, const char *who, const char *ip,
                                   int port, struct sockaddr *client_addr);
 #ifdef HAVE_WIN32
@@ -112,15 +96,9 @@ BSOCK *    dup_bsock             (BSOCK *bsock);
 void       term_bsock            (BSOCK *bsock);
 const char *bnet_strerror         (BSOCK *bsock);
 const char *bnet_sig_to_ascii     (BSOCK *bsock);
-int        bnet_wait_data        (BSOCK *bsock, int sec);
-int        bnet_wait_data_intr   (BSOCK *bsock, int sec);
-bool       is_bnet_stop          (BSOCK *bsock);
-int        is_bnet_error         (BSOCK *bsock);
-void       bnet_suppress_error_messages(BSOCK *bsock, bool flag);
 dlist *bnet_host2ipaddrs(const char *host, int family, const char **errstr);
-int        bnet_set_blocking     (BSOCK *sock);
-int        bnet_set_nonblocking  (BSOCK *sock);
 void       bnet_restore_blocking (BSOCK *sock, int flags);
+int        set_socket_errno(int sockstat);
 
 /* bget_msg.c */
 int      bget_msg(BSOCK *sock);
@@ -147,7 +125,7 @@ bool               crypto_digest_update        (DIGEST *digest, const uint8_t *d
 bool               crypto_digest_finalize      (DIGEST *digest, uint8_t *dest, uint32_t *length);
 void               crypto_digest_free          (DIGEST *digest);
 SIGNATURE *        crypto_sign_new             (JCR *jcr);
-crypto_error_t     crypto_sign_get_digest      (SIGNATURE *sig, X509_KEYPAIR *keypair, 
+crypto_error_t     crypto_sign_get_digest      (SIGNATURE *sig, X509_KEYPAIR *keypair,
                                                 crypto_digest_t &algorithm, DIGEST **digest);
 crypto_error_t     crypto_sign_verify          (SIGNATURE *sig, X509_KEYPAIR *keypair, DIGEST *digest);
 int                crypto_sign_add_signer      (SIGNATURE *sig, DIGEST *digest, X509_KEYPAIR *keypair);
@@ -157,7 +135,7 @@ void               crypto_sign_free            (SIGNATURE *sig);
 CRYPTO_SESSION *   crypto_session_new          (crypto_cipher_t cipher, alist *pubkeys);
 void               crypto_session_free         (CRYPTO_SESSION *cs);
 bool               crypto_session_encode       (CRYPTO_SESSION *cs, uint8_t *dest, uint32_t *length);
-crypto_error_t     crypto_session_decode       (const uint8_t *data, uint32_t length, alist *keypairs, CRYPTO_SESSION **session); 
+crypto_error_t     crypto_session_decode       (const uint8_t *data, uint32_t length, alist *keypairs, CRYPTO_SESSION **session);
 CRYPTO_SESSION *   crypto_session_decode       (const uint8_t *data, uint32_t length);
 CIPHER_CONTEXT *   crypto_cipher_new           (CRYPTO_SESSION *cs, bool encrypt, uint32_t *blocksize);
 bool               crypto_cipher_update        (CIPHER_CONTEXT *cipher_ctx, const uint8_t *data, uint32_t length, const uint8_t *dest, uint32_t *written);
@@ -214,7 +192,7 @@ int      job_count();
 JCR     *get_jcr_from_tsd();
 void     set_jcr_in_tsd(JCR *jcr);
 void     remove_jcr_from_tsd(JCR *jcr);
-uint32_t get_jobid_from_tsd();             
+uint32_t get_jobid_from_tsd();
 uint32_t get_jobid_from_tid(pthread_t tid);
 
 
@@ -228,9 +206,14 @@ int       lex_get_token          (LEX *lf, int expect);
 void      lex_set_default_error_handler (LEX *lf);
 int       lex_set_error_handler_error_type (LEX *lf, int err_type);
 
+/* Required typedef, not in a C file */
+extern "C" {
+typedef char *(*job_code_callback_t)(JCR *, const char *);
+}
+
 /* message.c */
 void       my_name_is            (int argc, char *argv[], const char *name);
-void       init_msg              (JCR *jcr, MSGS *msg);
+void       init_msg              (JCR *jcr, MSGS *msg, job_code_callback_t job_code_callback = NULL);
 void       term_msg              (void);
 void       close_msg             (JCR *jcr);
 void       add_msg_dest          (MSGS *msg, int dest, int type, char *where, char *dest_code);
@@ -245,6 +228,7 @@ bool       get_trace             (void);
 void       set_hangup            (int hangup_value);
 int        get_hangup            (void);
 void       set_db_type           (const char *name);
+void       set_assert_msg        (const char *file, int line, const char *msg);
 void       register_message_callback(void msg_callback(int type, char *msg));
 
 /* bnet_server.c */
@@ -256,9 +240,7 @@ int              net_connect             (int port);
 BSOCK *          bnet_bind               (int port);
 BSOCK *          bnet_accept             (BSOCK *bsock, char *who);
 
-/* pythonlib.c */
 typedef int (EVENT_HANDLER)(JCR *jcr, const char *event);
-//EVENT_HANDLER *generate_daemon_event;
 int generate_daemon_event(JCR *jcr, const char *event);
 
 /* signal.c */
@@ -312,11 +294,6 @@ bool             get_tls_enable          (TLS_CONTEXT *ctx);
 
 
 /* util.c */
-
-extern "C" {
-typedef char *(*job_code_callback_t)(JCR *, const char *);
-}
-
 bool             is_buf_zero             (char *buf, int len);
 void             lcase                   (char *str);
 void             bash_spaces             (char *str);
@@ -341,7 +318,6 @@ void             decode_session_key      (char *decode, char *session, char *key
 POOLMEM *        edit_job_codes          (JCR *jcr, char *omsg, char *imsg, const char *to, job_code_callback_t job_code_callback = NULL);
 void             set_working_directory   (char *wd);
 const char *     last_path_separator     (const char *str);
-
 
 /* watchdog.c */
 int start_watchdog(void);

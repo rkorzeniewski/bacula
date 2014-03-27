@@ -1,29 +1,17 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2005-2011 Free Software Foundation Europe e.V.
+   Copyright (C) 2005-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  * crypto.c Encryption support functions
@@ -232,7 +220,7 @@ IMPLEMENT_STACK_OF(RecipientInfo)
 #define sk_SignerInfo_is_sorted(st) SKM_sk_is_sorted(SignerInfo, (st))
 
 #define d2i_ASN1_SET_OF_SignerInfo(st, pp, length, d2i_func, free_func, ex_tag, ex_class) \
-        SKM_ASN1_SET_OF_d2i(SignerInfo, (st), (pp), (length), (d2i_func), (free_func), (ex_tag), (ex_class)) 
+        SKM_ASN1_SET_OF_d2i(SignerInfo, (st), (pp), (length), (d2i_func), (free_func), (ex_tag), (ex_class))
 #define i2d_ASN1_SET_OF_SignerInfo(st, pp, i2d_func, ex_tag, ex_class, is_set) \
         SKM_ASN1_SET_OF_i2d(SignerInfo, (st), (pp), (i2d_func), (ex_tag), (ex_class), (is_set))
 #define ASN1_seq_pack_SignerInfo(st, i2d_func, buf, len) \
@@ -262,7 +250,7 @@ IMPLEMENT_STACK_OF(RecipientInfo)
 #define sk_RecipientInfo_is_sorted(st) SKM_sk_is_sorted(RecipientInfo, (st))
 
 #define d2i_ASN1_SET_OF_RecipientInfo(st, pp, length, d2i_func, free_func, ex_tag, ex_class) \
-        SKM_ASN1_SET_OF_d2i(RecipientInfo, (st), (pp), (length), (d2i_func), (free_func), (ex_tag), (ex_class)) 
+        SKM_ASN1_SET_OF_d2i(RecipientInfo, (st), (pp), (length), (d2i_func), (free_func), (ex_tag), (ex_class))
 #define i2d_ASN1_SET_OF_RecipientInfo(st, pp, i2d_func, ex_tag, ex_class, is_set) \
         SKM_ASN1_SET_OF_i2d(RecipientInfo, (st), (pp), (i2d_func), (ex_tag), (ex_class), (is_set))
 #define ASN1_seq_pack_RecipientInfo(st, i2d_func, buf, len) \
@@ -369,7 +357,7 @@ static ASN1_OCTET_STRING *openssl_cert_keyid(X509 *cert) {
  *  Returns: A pointer to a X509 KEYPAIR object on success.
  *           NULL on failure.
  */
-X509_KEYPAIR *crypto_keypair_new(void) 
+X509_KEYPAIR *crypto_keypair_new(void)
 {
    X509_KEYPAIR *keypair;
 
@@ -465,7 +453,7 @@ int crypto_keypair_load_cert(X509_KEYPAIR *keypair, const char *file)
 
    /* Validate the public key type (only RSA is supported) */
    if (EVP_PKEY_type(keypair->pubkey->type) != EVP_PKEY_RSA) {
-       Jmsg1(NULL, M_ERROR, 0, 
+       Jmsg1(NULL, M_ERROR, 0,
              _("Unsupported key type provided: %d\n"), EVP_PKEY_type(keypair->pubkey->type));
        goto err;
    }
@@ -656,7 +644,7 @@ bool crypto_digest_update(DIGEST *digest, const uint8_t *data, uint32_t length)
       Dmsg0(150, "digest update failed\n");
       openssl_post_errors(digest->jcr, M_ERROR, _("OpenSSL digest update failed"));
       return false;
-   } else { 
+   } else {
       return true;
    }
 }
@@ -725,7 +713,7 @@ SIGNATURE *crypto_sign_new(JCR *jcr)
  * Returns: CRYPTO_ERROR_NONE on success, with the newly allocated DIGEST in digest.
  *          A crypto_error_t value on failure.
  */
-crypto_error_t crypto_sign_get_digest(SIGNATURE *sig, X509_KEYPAIR *keypair, 
+crypto_error_t crypto_sign_get_digest(SIGNATURE *sig, X509_KEYPAIR *keypair,
                                       crypto_digest_t &type, DIGEST **digest)
 {
    STACK_OF(SignerInfo) *signers;
@@ -1215,7 +1203,7 @@ crypto_error_t crypto_session_decode(const uint8_t *data, uint32_t length, alist
          /* Match against the subjectKeyIdentifier */
          if (M_ASN1_OCTET_STRING_cmp(keypair->keyid, ri->subjectKeyIdentifier) == 0) {
             /* Match found, extract symmetric encryption session data */
-            
+
             /* RSA is required. */
             assert(EVP_PKEY_type(keypair->privkey->type) == EVP_PKEY_RSA);
 
@@ -1283,7 +1271,7 @@ CIPHER_CONTEXT *crypto_cipher_new(CRYPTO_SESSION *cs, bool encrypt, uint32_t *bl
     * Acquire a cipher instance for the given ASN.1 cipher NID
     */
    if ((ec = EVP_get_cipherbyobj(cs->cryptoData->contentEncryptionAlgorithm)) == NULL) {
-      Jmsg1(NULL, M_ERROR, 0, 
+      Jmsg1(NULL, M_ERROR, 0,
          _("Unsupported contentEncryptionAlgorithm: %d\n"), OBJ_obj2nid(cs->cryptoData->contentEncryptionAlgorithm));
       free(cipher_ctx);
       return NULL;
@@ -1316,7 +1304,7 @@ CIPHER_CONTEXT *crypto_cipher_new(CRYPTO_SESSION *cs, bool encrypt, uint32_t *bl
       openssl_post_errors(M_ERROR, _("Encryption session provided an invalid IV"));
       goto err;
    }
-   
+
    /* Add the key and IV to the cipher context */
    if (!EVP_CipherInit_ex(&cipher_ctx->ctx, NULL, NULL, cs->session_key, M_ASN1_STRING_data(cs->cryptoData->iv), -1)) {
       openssl_post_errors(M_ERROR, _("OpenSSL cipher context key/IV initialization failed"));
@@ -1388,7 +1376,7 @@ int init_crypto (void)
 
    if ((stat = openssl_init_threads()) != 0) {
       berrno be;
-      Jmsg1(NULL, M_ABORT, 0, 
+      Jmsg1(NULL, M_ABORT, 0,
         _("Unable to init OpenSSL threading: ERR=%s\n"), be.bstrerror(stat));
    }
 
@@ -1518,7 +1506,7 @@ bool crypto_digest_update(DIGEST *digest, const uint8_t *data, uint32_t length)
    }
 }
 
-bool crypto_digest_finalize(DIGEST *digest, uint8_t *dest, uint32_t *length) 
+bool crypto_digest_finalize(DIGEST *digest, uint8_t *dest, uint32_t *length)
 {
    switch (digest->type) {
    case CRYPTO_DIGEST_MD5:
@@ -1558,8 +1546,8 @@ int cleanup_crypto (void) { return 0; }
 
 SIGNATURE *crypto_sign_new(JCR *jcr) { return NULL; }
 
-crypto_error_t crypto_sign_get_digest (SIGNATURE *sig, X509_KEYPAIR *keypair, 
-                                       crypto_digest_t &type, DIGEST **digest) 
+crypto_error_t crypto_sign_get_digest (SIGNATURE *sig, X509_KEYPAIR *keypair,
+                                       crypto_digest_t &type, DIGEST **digest)
    { return CRYPTO_ERROR_INTERNAL; }
 
 crypto_error_t crypto_sign_verify (SIGNATURE *sig, X509_KEYPAIR *keypair, DIGEST *digest) { return CRYPTO_ERROR_INTERNAL; }
@@ -1606,7 +1594,7 @@ int crypto_default_pem_callback(char *buf, int size, const void *userdata)
  * Returns the ASCII name of the digest type.
  * Returns: ASCII name of digest type.
  */
-const char *crypto_digest_name(DIGEST *digest) 
+const char *crypto_digest_name(DIGEST *digest)
 {
    switch (digest->type) {
    case CRYPTO_DIGEST_MD5:

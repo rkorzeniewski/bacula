@@ -1,34 +1,22 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2012 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  * Catalog header file
  *
- * by Kern E. Sibbald
+ *   Written by Kern E. Sibbald
  *
  * Anyone who accesses the database will need to include
  * this file.
@@ -390,7 +378,7 @@ private:
 };
 
 /* Call back context for getting a list of comma separated strings from the
- * database 
+ * database
  */
 class db_list_ctx {
 public:
@@ -425,15 +413,12 @@ typedef enum {
    SQL_INTERFACE_TYPE_MYSQL      = 0,
    SQL_INTERFACE_TYPE_POSTGRESQL = 1,
    SQL_INTERFACE_TYPE_SQLITE3    = 2,
-   SQL_INTERFACE_TYPE_INGRES     = 3,
-   SQL_INTERFACE_TYPE_DBI        = 4
 } SQL_INTERFACETYPE;
 
 typedef enum {
    SQL_TYPE_MYSQL      = 0,
    SQL_TYPE_POSTGRESQL = 1,
    SQL_TYPE_SQLITE3    = 2,
-   SQL_TYPE_INGRES     = 3,
    SQL_TYPE_UNKNOWN    = 99
 } SQL_DBTYPE;
 
@@ -514,7 +499,7 @@ public:
    virtual bool db_sql_query(const char *query, DB_RESULT_HANDLER *result_handler, void *ctx) = 0;
 
    /* By default, we use db_sql_query */
-   virtual bool db_big_sql_query(const char *query, 
+   virtual bool db_big_sql_query(const char *query,
                                  DB_RESULT_HANDLER *result_handler, void *ctx) {
       return db_sql_query(query, result_handler, ctx);
    };

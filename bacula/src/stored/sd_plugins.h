@@ -1,29 +1,17 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2007-2011 Free Software Foundation Europe e.V.
+   Copyright (C) 2007-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation, which is 
-   listed in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  * Interface definition for Bacula Plugins
@@ -31,8 +19,8 @@
  * Kern Sibbald, October 2007
  *
  */
- 
-#ifndef __SD_PLUGINS_H 
+
+#ifndef __SD_PLUGINS_H
 #define __SD_PLUGINS_H
 
 #ifndef _BACULA_H
@@ -71,28 +59,33 @@ extern "C" {
 
 /* Bacula Variable Ids */
 typedef enum {
-  bsdVarJob       = 1,
-  bsdVarLevel     = 2,
-  bsdVarType      = 3,
-  bsdVarJobId     = 4,
-  bsdVarClient    = 5,
-  bsdVarNumVols   = 6,
-  bsdVarPool      = 7,
-  bsdVarStorage   = 8,
-  bsdVarCatalog   = 9,
-  bsdVarMediaType = 10,
-  bsdVarJobName   = 11,
-  bsdVarJobStatus = 12,
-  bsdVarPriority  = 13,
-  bsdVarVolumeName = 14,
-  bsdVarCatalogRes = 15,
-  bsdVarJobErrors  = 16,
-  bsdVarJobFiles   = 17,
-  bsdVarSDJobFiles = 18,
-  bsdVarSDErrors   = 19,
+  bsdVarJob         = 1,
+  bsdVarLevel       = 2,
+  bsdVarType        = 3,
+  bsdVarJobId       = 4,
+  bsdVarClient      = 5,
+  bsdVarNumVols     = 6,
+  bsdVarPool        = 7,
+  bsdVarStorage     = 8,
+  bsdVarCatalog     = 9,
+  bsdVarMediaType   = 10,
+  bsdVarJobName     = 11,
+  bsdVarJobStatus   = 12,
+  bsdVarPriority    = 13,
+  bsdVarVolumeName  = 14,
+  bsdVarCatalogRes  = 15,
+  bsdVarJobErrors   = 16,
+  bsdVarJobFiles    = 17,
+  bsdVarSDJobFiles  = 18,
+  bsdVarSDErrors    = 19,
   bsdVarFDJobStatus = 20,
   bsdVarSDJobStatus = 21
 } bsdrVariable;
+
+typedef enum {
+  bsdVarDevTypes    = 1
+} bsdrGlobalVariable;
+
 
 typedef enum {
   bsdwVarJobReport  = 1,
@@ -111,28 +104,34 @@ typedef enum {
   bsdEventDeviceClose    = 6
 } bsdEventType;
 
+typedef enum {
+  bsdGlobalEventDeviceInit = 1
+} bsdGlobalEventType;
+
+
 typedef struct s_bsdEvent {
    uint32_t eventType;
 } bsdEvent;
 
 typedef struct s_sdbaculaInfo {
    uint32_t size;
-   uint32_t version;  
+   uint32_t version;
 } bsdInfo;
 
 /* Bacula interface version and function pointers */
-typedef struct s_sdbaculaFuncs {  
+typedef struct s_sdbaculaFuncs {
    uint32_t size;
    uint32_t version;
    bRC (*registerBaculaEvents)(bpContext *ctx, ...);
    bRC (*getBaculaValue)(bpContext *ctx, bsdrVariable var, void *value);
    bRC (*setBaculaValue)(bpContext *ctx, bsdwVariable var, void *value);
-   bRC (*JobMessage)(bpContext *ctx, const char *file, int line, 
+   bRC (*JobMessage)(bpContext *ctx, const char *file, int line,
        int type, utime_t mtime, const char *fmt, ...);
    bRC (*DebugMessage)(bpContext *ctx, const char *file, int line,
        int level, const char *fmt, ...);
    char *(*EditDeviceCodes)(DCR *dcr, char *omsg,
        const char *imsg, const char *cmd);
+   bRC (*getBaculaGlobal)(bsdrGlobalVariable var, void *value);
 } bsdFuncs;
 
 /* Bacula Subroutines */
@@ -140,7 +139,7 @@ void load_sd_plugins(const char *plugin_dir);
 void new_plugins(JCR *jcr);
 void free_plugins(JCR *jcr);
 int generate_plugin_event(JCR *jcr, bsdEventType event, void *value=NULL);
-
+int generate_global_plugin_event(bsdGlobalEventType event, void *value=NULL);
 
 
 /****************************************************************************
@@ -155,8 +154,9 @@ typedef enum {
 } psdVariable;
 
 
-#define SD_PLUGIN_MAGIC     "*SDPluginData*" 
-#define SD_PLUGIN_INTERFACE_VERSION  1
+# define SD_PLUGIN_MAGIC  "*BaculaSDPluginData*"
+
+#define SD_PLUGIN_INTERFACE_VERSION  ( 12 )
 
 typedef struct s_sdpluginInfo {
    uint32_t size;
@@ -169,10 +169,10 @@ typedef struct s_sdpluginInfo {
    const char *plugin_description;
 } psdInfo;
 
-/* 
+/*
  * Functions that must be defined in every plugin
  */
-typedef struct s_sdpluginFuncs {  
+typedef struct s_sdpluginFuncs {
    uint32_t size;
    uint32_t version;
    bRC (*newPlugin)(bpContext *ctx);
@@ -180,6 +180,7 @@ typedef struct s_sdpluginFuncs {
    bRC (*getPluginValue)(bpContext *ctx, psdVariable var, void *value);
    bRC (*setPluginValue)(bpContext *ctx, psdVariable var, void *value);
    bRC (*handlePluginEvent)(bpContext *ctx, bsdEvent *event, void *value);
+   bRC (*handleGlobalPluginEvent)(bsdEvent *event, void *value);
 } psdFuncs;
 
 #define sdplug_func(plugin) ((psdFuncs *)(plugin->pfuncs))

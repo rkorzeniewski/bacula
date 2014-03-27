@@ -1,34 +1,22 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2011 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /**
  *   Bacula Director -- restore.c -- responsible for restoring files
  *
- *     Kern Sibbald, November MM
+ *     Written by Kern Sibbald, November MM
  *
  *    This routine is run as a separate thread.
  *
@@ -47,11 +35,12 @@
 
 #include "bacula.h"
 #include "dird.h"
+#include "lib/ini.h"
 
 /* Commands sent to File daemon */
-static char restorecmd[]  = "restore replace=%c prelinks=%d where=%s\n";
-static char restorecmdR[] = "restore replace=%c prelinks=%d regexwhere=%s\n";
-static char storaddr[]    = "storage address=%s port=%d ssl=0 Authorization=%s\n";
+static char restorecmd[]  = "restore %sreplace=%c prelinks=%d where=%s\n";
+static char restorecmdR[] = "restore %sreplace=%c prelinks=%d regexwhere=%s\n";
+static char storaddr[]    = "storage address=%s port=%d ssl=%d Authorization=%s\n";
 
 /* Responses received from File daemon */
 static char OKrestore[]   = "2000 OK restore\n";
@@ -65,6 +54,7 @@ static void build_restore_command(JCR *jcr, POOL_MEM &ret)
 {
    char replace, *where, *cmd;
    char empty = '\0';
+   char files[100];
 
    /* Build the restore command */
 
@@ -75,7 +65,7 @@ static void build_restore_command(JCR *jcr, POOL_MEM &ret)
    } else {
       replace = REPLACE_ALWAYS;       /* always replace */
    }
-   
+
    if (jcr->RegexWhere) {
       where = jcr->RegexWhere;             /* override */
       cmd = restorecmdR;
@@ -92,13 +82,18 @@ static void build_restore_command(JCR *jcr, POOL_MEM &ret)
 
    } else {                           /* nothing was specified */
       where = &empty;                 /* use default */
-      cmd   = restorecmd;                    
+      cmd   = restorecmd;
    }
-   
+
    jcr->prefix_links = jcr->job->PrefixLinks;
 
    bash_spaces(where);
-   Mmsg(ret, cmd, replace, jcr->prefix_links, where);
+   if (jcr->FDVersion < 7) {
+      Mmsg(ret, cmd, "", replace, jcr->prefix_links, where);
+   } else {
+      snprintf(files, sizeof(files), "files=%d ", jcr->ExpectedFiles);
+      Mmsg(ret, cmd, files, replace, jcr->prefix_links, where);
+   }
    unbash_spaces(where);
 }
 
@@ -114,8 +109,8 @@ struct bootstrap_info
 /**
  * Open the bootstrap file and find the first Storage=
  * Returns ok if able to open
- * It fills the storage name (should be the first line) 
- * and the file descriptor to the bootstrap file, 
+ * It fills the storage name (should be the first line)
+ * and the file descriptor to the bootstrap file,
  * it should be used for next operations, and need to be closed
  * at the end.
  */
@@ -198,11 +193,11 @@ static bool is_on_same_storage(JCR *jcr, char *new_one)
 
 /**
  * Check if the current line contains Storage="xxx", and compare the
- * result to the current storage. We use UAContext to analyse the bsr 
+ * result to the current storage. We use UAContext to analyse the bsr
  * string.
  *
  * Returns true if we need to change the storage, and it set the new
- * Storage resource name in "storage" arg. 
+ * Storage resource name in "storage" arg.
  */
 static bool check_for_new_storage(JCR *jcr, bootstrap_info &info)
 {
@@ -244,7 +239,7 @@ static bool send_bootstrap_file(JCR *jcr, BSOCK *sock,
    while(fgets(ua->cmd, UA_CMD_SIZE, bs)) {
       if (check_for_new_storage(jcr, info)) {
          /* Otherwise, we need to contact another storage daemon.
-          * Reset bs to the beginning of the current segment. 
+          * Reset bs to the beginning of the current segment.
           */
          fseeko(bs, pos, SEEK_SET);
          break;
@@ -277,24 +272,22 @@ static bool select_rstore(JCR *jcr, bootstrap_info &info)
       jcr->setJobStatus(JS_ErrorTerminated);
       return false;
    }
-   
+
    /*
-    * What does this do???????????  KES
+    * This releases the store_bsock between calls to the SD.
+    *  I think.
     */
-   if (jcr->store_bsock) {
-      jcr->store_bsock->destroy();
-      jcr->store_bsock = NULL;
-   }
-   
+   free_bsock(jcr->store_bsock);
+
    /*
-    * release current read storage and get a new one 
+    * release current read storage and get a new one
     */
    dec_read_store(jcr);
    free_rstorage(jcr);
    set_rstorage(jcr, &ustore);
    jcr->setJobStatus(JS_WaitSD);
    /*
-    * Wait for up to 6 hours to increment read stoage counter 
+    * Wait for up to 6 hours to increment read stoage counter
     */
    for (i=0; i < MAX_TRIES; i++) {
       /* try to get read storage counter incremented */
@@ -310,12 +303,12 @@ static bool select_rstore(JCR *jcr, bootstrap_info &info)
    }
    /* Failed to inc_read_store() */
    free_rstorage(jcr);
-   Jmsg(jcr, M_FATAL, 0, 
+   Jmsg(jcr, M_FATAL, 0,
       _("Could not acquire read storage lock for \"%s\""), info.storage);
    return false;
 }
 
-/* 
+/*
  * Clean the bootstrap_info struct
  */
 static void close_bootstrap_file(bootstrap_info &info)
@@ -339,23 +332,24 @@ static void close_bootstrap_file(bootstrap_info &info)
  */
 bool restore_bootstrap(JCR *jcr)
 {
+   int tls_need = BNET_TLS_NONE;
    BSOCK *fd = NULL;
    BSOCK *sd;
+   char *store_address;
+   uint32_t store_port;
    bool first_time = true;
    bootstrap_info info;
    POOL_MEM restore_cmd(PM_MESSAGE);
    bool ret = false;
 
-   /* this command is used for each part */
-   build_restore_command(jcr, restore_cmd);
-   
+
    /* Open the bootstrap file */
    if (!open_bootstrap_file(jcr, info)) {
       goto bail_out;
    }
    /* Read the bootstrap file */
    while (!feof(info.bs)) {
-      
+
       if (!select_rstore(jcr, info)) {
          goto bail_out;
       }
@@ -392,6 +386,7 @@ bool restore_bootstrap(JCR *jcr)
             goto bail_out;
          }
          fd = jcr->file_bsock;
+         build_restore_command(jcr, restore_cmd);
       }
 
       jcr->setJobStatus(JS_Running);
@@ -404,29 +399,59 @@ bool restore_bootstrap(JCR *jcr)
          goto bail_out;
       }
 
-      if (!sd->fsend("run")) {
-         goto bail_out;
+      if (jcr->sd_calls_client) {
+         /*
+          * SD must call "client" i.e. FD
+          */
+         if (jcr->FDVersion < 5) {
+            Jmsg(jcr, M_FATAL, 0, _("The File daemon does not support SDCallsClient.\n"));
+            goto bail_out;
+         }
+         if (!send_client_addr_to_sd(jcr)) {
+            goto bail_out;
+         }
+         if (!run_storage_and_start_message_thread(jcr, sd)) {
+            goto bail_out;
+         }
+         store_address = jcr->wstore->address;  /* dummy */
+         store_port = 0;           /* flag that SD calls FD */
+
+      } else {
+         /*
+          * Default case where FD must call the SD
+          */
+         if (!run_storage_and_start_message_thread(jcr, sd)) {
+            goto bail_out;
+         }
+
+         /*
+          * send Storage daemon address to the File daemon,
+          *   then wait for File daemon to make connection
+          *   with Storage daemon.
+          */
+         if (jcr->rstore->SDDport == 0) {
+            jcr->rstore->SDDport = jcr->rstore->SDport;
+         }
+
+         store_address = get_storage_address(jcr->client, jcr->rstore);
+         store_port = jcr->rstore->SDDport;
       }
-      /*
-       * Now start a Storage daemon message thread
-       */
-      if (!start_storage_daemon_message_thread(jcr)) {
-         goto bail_out;
+
+      /* TLS Requirement */
+      if (jcr->rstore->tls_enable) {
+         if (jcr->rstore->tls_require) {
+            tls_need = BNET_TLS_REQUIRED;
+         } else {
+            tls_need = BNET_TLS_OK;
+         }
       }
-      Dmsg0(50, "Storage daemon connection OK\n");
 
       /*
-       * send Storage daemon address to the File daemon,
-       *   then wait for File daemon to make connection
-       *   with Storage daemon.
+       * Send storage address to FD
+       *  if port==0 FD must wait for SD to call it.
        */
-      if (jcr->rstore->SDDport == 0) {
-         jcr->rstore->SDDport = jcr->rstore->SDport;
-      }
-      fd->fsend(storaddr, jcr->rstore->address, jcr->rstore->SDDport,
-                jcr->sd_auth_key);
+      fd->fsend(storaddr, store_address, store_port, tls_need, jcr->sd_auth_key);
       memset(jcr->sd_auth_key, 0, strlen(jcr->sd_auth_key));
-
       Dmsg1(6, "dird>filed: %s\n", fd->msg);
       if (!response(jcr, fd, OKstore, "Storage", DISPLAY_ERROR)) {
          goto bail_out;
@@ -441,14 +466,9 @@ bool restore_bootstrap(JCR *jcr)
          if (!send_runscripts_commands(jcr)) {
             goto bail_out;
          }
-         if (!send_restore_objects(jcr)) {
-            Dmsg0(000, "FAIL: Send restore objects\n");
-            goto bail_out;
-         }
       }
 
       fd->fsend("%s", restore_cmd.c_str());
-
       if (!response(jcr, fd, OKrestore, "Restore", DISPLAY_ERROR)) {
          goto bail_out;
       }
@@ -527,7 +547,7 @@ bail_out:
    return false;
 }
 
-bool do_restore_init(JCR *jcr) 
+bool do_restore_init(JCR *jcr)
 {
    free_wstorage(jcr);
    return true;
@@ -556,7 +576,7 @@ void restore_cleanup(JCR *jcr, int TermCode)
 
    if (job_canceled(jcr)) {
       cancel_storage_daemon_job(jcr);
-   }  
+   }
 
    switch (TermCode) {
    case JS_Terminated:

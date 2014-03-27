@@ -1,29 +1,17 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2012 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  *   lex.h
@@ -87,7 +75,7 @@ enum lex_state {
    lex_quoted_string,
    lex_include_quoted_string,
    lex_include,
-   lex_utf8_bom,      /* we are parsing out a utf8 byte order mark */ 
+   lex_utf8_bom,      /* we are parsing out a utf8 byte order mark */
    lex_utf16_le_bom   /* we are parsing out a utf-16 (little endian) byte order mark */
 };
 
@@ -97,7 +85,7 @@ enum lex_state {
 #define LOPT_NO_EXTERN           0x4  /* Don't follow @ command */
 
 class BPIPE;                          /* forward reference */
-  
+
 /* Lexical context */
 typedef struct s_lex_context {
    struct s_lex_context *next;        /* pointer to next lexical context */

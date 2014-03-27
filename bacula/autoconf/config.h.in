@@ -383,6 +383,12 @@
 /* Define to 1 if you have the `fchdir' function. */
 #undef HAVE_FCHDIR
 
+/* Define to 1 if you have the `fchmod' function. */
+#undef HAVE_FCHMOD
+
+/* Define to 1 if you have the `fchown' function. */
+#undef HAVE_FCHOWN
+
 /* Define to 1 if you have the 'fchownat' function. */
 #undef HAVE_FCHOWNAT
 
@@ -403,6 +409,9 @@
 
 /* Define to 1 if you have the 'fstatat' function. */
 #undef HAVE_FSTATAT
+
+/* Define to 1 if you have the `futimes' function. */
+#undef HAVE_FUTIMES
 
 /* Define to 1 if you have the 'futimesat' function. */
 #undef HAVE_FUTIMESAT
@@ -449,6 +458,9 @@
 /* Define to 1 if you have the `getmntinfo' function. */
 #undef HAVE_GETMNTINFO
 
+/* Define to 1 if you have the `getnameinfo' function. */
+#undef HAVE_GETNAMEINFO
+
 /* Set if have getpagesize */
 #undef HAVE_GETPAGESIZE
 
@@ -475,9 +487,6 @@
 
 /* Define to 1 if you have the <grp.h> header file. */
 #undef HAVE_GRP_H
-
-/* Set if you have GTK 4.2 or greater loaded */
-#undef HAVE_GTK_2_4
 
 /* Define if you have the iconv() function. */
 #undef HAVE_ICONV
@@ -509,6 +518,9 @@
 
 /* Define if you have <langinfo.h> and nl_langinfo(CODESET). */
 #undef HAVE_LANGINFO_CODESET
+
+/* Define to 1 if you have the `lchmod' function. */
+#undef HAVE_LCHMOD
 
 /* Define to 1 if you have the `lchown' function. */
 #undef HAVE_LCHOWN

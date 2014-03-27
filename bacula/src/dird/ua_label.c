@@ -1,29 +1,17 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2003-2012 Free Software Foundation Europe e.V.
+   Copyright (C) 2003-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  *
@@ -52,8 +40,8 @@ static bool send_label_request(UAContext *ua, MEDIA_DBR *mr, MEDIA_DBR *omr,
 static vol_list_t *get_vol_list_from_SD(UAContext *ua, bool scan);
 static void free_vol_list(vol_list_t *vol_list);
 static bool is_cleaning_tape(UAContext *ua, MEDIA_DBR *mr, POOL_DBR *pr);
-static BSOCK *open_sd_bsock(UAContext *ua);
-static void close_sd_bsock(UAContext *ua);
+BSOCK *open_sd_bsock(UAContext *ua);
+void close_sd_bsock(UAContext *ua);
 static char *get_volume_name_from_SD(UAContext *ua, int Slot, int drive);
 static int get_num_slots_from_SD(UAContext *ua);
 
@@ -378,6 +366,7 @@ static int do_label(UAContext *ua, const char *cmd, int relabel)
       i = find_arg_with_value(ua, "oldvolume");
       if (i >= 0) {
          bstrncpy(omr.VolumeName, ua->argv[i], sizeof(omr.VolumeName));
+         omr.MediaId = 0;
          if (db_get_media_record(ua->jcr, ua->db, &omr)) {
             goto checkVol;
          }
@@ -415,10 +404,8 @@ checkName:
          continue;
       }
 
-      /* Search by Media name so set VolumeName and clear MediaId. */
-      mr.MediaId = 0;
       bstrncpy(mr.VolumeName, ua->cmd, sizeof(mr.VolumeName));
-
+      mr.MediaId = 0;
       /* If VolBytes are zero the Volume is not labeled */
       if (db_get_media_record(ua->jcr, ua->db, &mr)) {
          if (mr.VolBytes != 0) {
@@ -484,9 +471,9 @@ checkName:
          bstrncpy(dev_name, store.store->dev_name(), sizeof(dev_name));
          ua->info_msg(_("Requesting to mount %s ...\n"), dev_name);
          bash_spaces(dev_name);
-         bnet_fsend(sd, "mount %s drive=%d", dev_name, drive);
+         sd->fsend("mount %s drive=%d", dev_name, drive);
          unbash_spaces(dev_name);
-         while (bnet_recv(sd) >= 0) {
+         while (sd->recv() >= 0) {
             ua->send_msg("%s", sd->msg);
             /* Here we can get
              *  3001 OK mount. Device=xxx      or
@@ -525,7 +512,7 @@ static void label_from_barcodes(UAContext *ua, int drive)
    char *slot_list;
    int max_slots;
 
-  
+
    max_slots = get_num_slots_from_SD(ua);
    if (max_slots <= 0) {
       ua->warning_msg(_("No slots in changer to scan.\n"));
@@ -698,14 +685,14 @@ static bool send_label_request(UAContext *ua, MEDIA_DBR *mr, MEDIA_DBR *omr,
       bash_spaces(omr->VolumeName);
       sd->fsend("relabel %s OldName=%s NewName=%s PoolName=%s "
                      "MediaType=%s Slot=%d drive=%d",
-                 dev_name, omr->VolumeName, mr->VolumeName, pr->Name, 
+                 dev_name, omr->VolumeName, mr->VolumeName, pr->Name,
                  mr->MediaType, mr->Slot, drive);
       ua->send_msg(_("Sending relabel command from \"%s\" to \"%s\" ...\n"),
          omr->VolumeName, mr->VolumeName);
    } else {
       sd->fsend("label %s VolumeName=%s PoolName=%s MediaType=%s "
                      "Slot=%d drive=%d",
-                 dev_name, mr->VolumeName, pr->Name, mr->MediaType, 
+                 dev_name, mr->VolumeName, pr->Name, mr->MediaType,
                  mr->Slot, drive);
       ua->send_msg(_("Sending label command for Volume \"%s\" Slot %d ...\n"),
          mr->VolumeName, mr->Slot);
@@ -766,30 +753,6 @@ static bool send_label_request(UAContext *ua, MEDIA_DBR *mr, MEDIA_DBR *omr,
    return ok;
 }
 
-static BSOCK *open_sd_bsock(UAContext *ua)
-{
-   STORE *store = ua->jcr->wstore;
-
-   if (!ua->jcr->store_bsock) {
-      ua->send_msg(_("Connecting to Storage daemon %s at %s:%d ...\n"),
-         store->name(), store->address, store->SDport);
-      if (!connect_to_storage_daemon(ua->jcr, 10, SDConnectTimeout, 1)) {
-         ua->error_msg(_("Failed to connect to Storage daemon.\n"));
-         return NULL;
-      }
-   }
-   return ua->jcr->store_bsock;
-}
-
-static void close_sd_bsock(UAContext *ua)
-{
-   if (ua->jcr->store_bsock) {
-      bnet_sig(ua->jcr->store_bsock, BNET_TERMINATE);
-      bnet_close(ua->jcr->store_bsock);
-      ua->jcr->store_bsock = NULL;
-   }
-}
-
 static char *get_volume_name_from_SD(UAContext *ua, int Slot, int drive)
 {
    STORE *store = ua->jcr->wstore;
@@ -847,10 +810,10 @@ static vol_list_t *get_vol_list_from_SD(UAContext *ua, bool scan)
    bstrncpy(dev_name, store->dev_name(), sizeof(dev_name));
    bash_spaces(dev_name);
    /* Ask for autochanger list of volumes */
-   bnet_fsend(sd, NT_("autochanger list %s \n"), dev_name);
+   sd->fsend(NT_("autochanger list %s \n"), dev_name);
 
    /* Read and organize list of Volumes */
-   while (bnet_recv(sd) >= 0) {
+   while (sd->recv() >= 0) {
       char *p;
       int Slot;
       strip_trailing_junk(sd->msg);
@@ -916,7 +879,7 @@ static vol_list_t *get_vol_list_from_SD(UAContext *ua, bool scan)
          for (vol_list_t *tvl=vol_list; tvl; tvl=tvl->next) {
             if (tvl->Slot > vl->Slot) {
                /* no previous item, update vol_list directly */
-               if (prev == vol_list) {  
+               if (prev == vol_list) {
                   vl->next = vol_list;
                   vol_list = vl;
 
@@ -1064,29 +1027,29 @@ static void content_send_info(UAContext *ua, char type, int Slot, char *vol_name
             strcpy(pr.Name, "?");
          }
          ua->send_msg(slot_api_full_format, type,
-                      Slot, mr.Slot, mr.VolumeName, 
-                      edit_uint64(mr.VolBytes, ed1), 
-                      mr.VolStatus, mr.MediaType, pr.Name, 
+                      Slot, mr.Slot, mr.VolumeName,
+                      edit_uint64(mr.VolBytes, ed1),
+                      mr.VolStatus, mr.MediaType, pr.Name,
                       edit_uint64(mr.LastWritten, ed2),
                       edit_uint64(mr.LastWritten+mr.VolRetention, ed3));
-         
+
       } else {                  /* Media unknown */
          ua->send_msg(slot_api_full_format,
-                      type, Slot, 0, mr.VolumeName, "?", "?", "?", "?", 
+                      type, Slot, 0, mr.VolumeName, "?", "?", "?", "?",
                       "0", "0");
-         
+
       }
    } else {
       ua->send_msg(slot_api_empty_format, type, Slot);
    }
-}         
+}
 
-/* 
+/*
  * Input (output of mxt-changer listall):
  *
  * Drive content:         D:Drive num:F:Slot loaded:Volume Name
  * D:0:F:2:vol2        or D:Drive num:E
- * D:1:F:42:vol42   
+ * D:1:F:42:vol42
  * D:3:E
  *
  * Slot content:
@@ -1099,8 +1062,8 @@ static void content_send_info(UAContext *ua, char type, int Slot, char *vol_name
  * I:11:E              or I:Slot num:E
  * I:12:F:vol40
  *
- * If a drive is loaded, the slot *should* be empty 
- * 
+ * If a drive is loaded, the slot *should* be empty
+ *
  * Output:
  *
  * Drive list:       D|Drive num|Slot loaded|Volume Name
@@ -1136,10 +1099,10 @@ void status_content(UAContext *ua, STORE *store)
    bstrncpy(dev_name, store->dev_name(), sizeof(dev_name));
    bash_spaces(dev_name);
    /* Ask for autochanger list of volumes */
-   bnet_fsend(sd, NT_("autochanger listall %s \n"), dev_name);
+   sd->fsend(NT_("autochanger listall %s \n"), dev_name);
 
    /* Read and organize list of Drive, Slots and I/O Slots */
-   while (bnet_recv(sd) >= 0) {
+   while (sd->recv() >= 0) {
       strip_trailing_junk(sd->msg);
 
       /* Check for returned SD messages */

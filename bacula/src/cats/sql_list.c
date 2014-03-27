@@ -1,41 +1,28 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2009 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  * Bacula Catalog Database List records interface routines
  *
- *    Kern Sibbald, March 2000
+ *    Written by Kern Sibbald, March 2000
  *
- *    Version $Id: sql_list.c 8508 2009-03-07 20:59:46Z kerns $
  */
 
 #include "bacula.h"
 
-#if HAVE_SQLITE3 || HAVE_MYSQL || HAVE_POSTGRESQL || HAVE_INGRES || HAVE_DBI
+#if HAVE_SQLITE3 || HAVE_MYSQL || HAVE_POSTGRESQL
 
 #include "cats.h"
 #include "bdb_priv.h"
@@ -162,7 +149,7 @@ db_list_media_records(JCR *jcr, B_DB *mdb, MEDIA_DBR *mdbr,
             "VolUseDuration,MaxVolJobs,MaxVolFiles,MaxVolBytes,InChanger,"
             "EndFile,EndBlock,VolParts,LabelType,StorageId,DeviceId,"
             "LocationId,RecycleCount,InitialWrite,ScratchPoolId,RecyclePoolId, "
-            "Comment"
+            "ActionOnPurge,Comment"
             " FROM Media WHERE Media.VolumeName='%s'", esc);
       } else {
          Mmsg(mdb->cmd, "SELECT MediaId,VolumeName,Slot,PoolId,"
@@ -172,7 +159,7 @@ db_list_media_records(JCR *jcr, B_DB *mdb, MEDIA_DBR *mdbr,
             "VolUseDuration,MaxVolJobs,MaxVolFiles,MaxVolBytes,InChanger,"
             "EndFile,EndBlock,VolParts,LabelType,StorageId,DeviceId,"
             "LocationId,RecycleCount,InitialWrite,ScratchPoolId,RecyclePoolId, "
-            "Comment"
+            "ActionOnPurge,Comment"
             " FROM Media WHERE Media.PoolId=%s ORDER BY MediaId",
             edit_int64(mdbr->PoolId, ed1));
       }
@@ -252,15 +239,15 @@ void db_list_copies_records(JCR *jcr, B_DB *mdb, uint32_t limit, char *JobIds,
    }
 
    if (JobIds && JobIds[0]) {
-      Mmsg(str_jobids, " AND (Job.PriorJobId IN (%s) OR Job.JobId IN (%s)) ", 
-           JobIds, JobIds);      
+      Mmsg(str_jobids, " AND (Job.PriorJobId IN (%s) OR Job.JobId IN (%s)) ",
+           JobIds, JobIds);
    }
 
    db_lock(mdb);
-   Mmsg(mdb->cmd, 
+   Mmsg(mdb->cmd,
    "SELECT DISTINCT Job.PriorJobId AS JobId, Job.Job, "
                    "Job.JobId AS CopyJobId, Media.MediaType "
-     "FROM Job " 
+     "FROM Job "
      "JOIN JobMedia USING (JobId) "
      "JOIN Media    USING (MediaId) "
     "WHERE Job.Type = '%c' %s ORDER BY Job.PriorJobId DESC %s",
@@ -297,10 +284,10 @@ void db_list_joblog_records(JCR *jcr, B_DB *mdb, uint32_t JobId,
    db_lock(mdb);
    if (type == VERT_LIST) {
       Mmsg(mdb->cmd, "SELECT Time,LogText FROM Log "
-           "WHERE Log.JobId=%s", edit_int64(JobId, ed1));
+           "WHERE Log.JobId=%s ORDER BY LogId ASC", edit_int64(JobId, ed1));
    } else {
       Mmsg(mdb->cmd, "SELECT LogText FROM Log "
-           "WHERE Log.JobId=%s", edit_int64(JobId, ed1));
+           "WHERE Log.JobId=%s ORDER BY LogId ASC", edit_int64(JobId, ed1));
    }
    if (!QUERY_DB(jcr, mdb, mdb->cmd)) {
       goto bail_out;
@@ -321,13 +308,15 @@ bail_out:
  *  Currently, we return all jobs or if jr->JobId is set,
  *  only the job with the specified id.
  */
-void
+alist *
 db_list_job_records(JCR *jcr, B_DB *mdb, JOB_DBR *jr, DB_LIST_HANDLER *sendit,
                     void *ctx, e_list_type type)
 {
    char ed1[50];
    char limit[100];
+   char status[100];
    char esc[MAX_ESCAPE_NAME_LENGTH];
+   alist *list = NULL;
 
    db_lock(mdb);
    if (jr->limit > 0) {
@@ -335,7 +324,8 @@ db_list_job_records(JCR *jcr, B_DB *mdb, JOB_DBR *jr, DB_LIST_HANDLER *sendit,
    } else {
       limit[0] = 0;
    }
-   if (type == VERT_LIST) {
+   switch (type) {
+   case VERT_LIST:
       if (jr->JobId == 0 && jr->Job[0] == 0) {
          Mmsg(mdb->cmd,
             "SELECT JobId,Job,Job.Name,PurgedFiles,Type,Level,"
@@ -343,7 +333,7 @@ db_list_job_records(JCR *jcr, B_DB *mdb, JOB_DBR *jr, DB_LIST_HANDLER *sendit,
             "StartTime,EndTime,RealEndTime,JobTDate,"
             "VolSessionId,VolSessionTime,JobFiles,JobErrors,"
             "JobMissingFiles,Job.PoolId,Pool.Name as PooLname,PriorJobId,"
-            "Job.FileSetId,FileSet.FileSet "
+            "Job.FileSetId,FileSet.FileSet,Job.HasCache "
             "FROM Job,Client,Pool,FileSet WHERE "
             "Client.ClientId=Job.ClientId AND Pool.PoolId=Job.PoolId "
             "AND FileSet.FileSetId=Job.FileSetId  ORDER BY StartTime%s", limit);
@@ -354,13 +344,14 @@ db_list_job_records(JCR *jcr, B_DB *mdb, JOB_DBR *jr, DB_LIST_HANDLER *sendit,
             "StartTime,EndTime,RealEndTime,JobTDate,"
             "VolSessionId,VolSessionTime,JobFiles,JobErrors,"
             "JobMissingFiles,Job.PoolId,Pool.Name as PooLname,PriorJobId,"
-            "Job.FileSetId,FileSet.FileSet "
+            "Job.FileSetId,FileSet.FileSet,Job.HasCache "
             "FROM Job,Client,Pool,FileSet WHERE Job.JobId=%s AND "
             "Client.ClientId=Job.ClientId AND Pool.PoolId=Job.PoolId "
             "AND FileSet.FileSetId=Job.FileSetId",
             edit_int64(jr->JobId, ed1));
       }
-   } else {
+      break;
+   case HORZ_LIST:
       if (jr->Name[0] != 0) {
          mdb->db_escape_string(jcr, esc, jr->Name, strlen(jr->Name));
          Mmsg(mdb->cmd,
@@ -380,15 +371,19 @@ db_list_job_records(JCR *jcr, B_DB *mdb, JOB_DBR *jr, DB_LIST_HANDLER *sendit,
            "SELECT JobId,Name,StartTime,Type,Level,JobFiles,JobBytes,JobStatus "
            "FROM Job ORDER BY StartTime,JobId ASC%s", limit);
       }
+      break;
+   default:
+      break;
    }
    if (!QUERY_DB(jcr, mdb, mdb->cmd)) {
       db_unlock(mdb);
-      return;
+      return NULL;
    }
+   sql_data_seek(mdb, 0);
    list_result(jcr, mdb, sendit, ctx, type);
-
    sql_free_result(mdb);
    db_unlock(mdb);
+   return list;
 }
 
 /*
@@ -516,4 +511,4 @@ db_list_base_files_for_job(JCR *jcr, B_DB *mdb, JobId_t jobid, DB_LIST_HANDLER *
    db_unlock(mdb);
 }
 
-#endif /* HAVE_SQLITE3 || HAVE_MYSQL || HAVE_POSTGRESQL || HAVE_INGRES || HAVE_DBI */
+#endif /* HAVE_SQLITE3 || HAVE_MYSQL || HAVE_POSTGRESQL */

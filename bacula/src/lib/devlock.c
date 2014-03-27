@@ -1,29 +1,17 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2001-2011 Free Software Foundation Europe e.V.
+   Copyright (C) 2001-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  * Bacula Thread Read/Write locking code. It permits
@@ -49,7 +37,7 @@
  *           errno on failure
  */
 
-devlock *new_devlock()                          
+devlock *new_devlock()
 {
    devlock *lock;
    lock = (devlock *)malloc(sizeof (devlock));
@@ -57,14 +45,14 @@ devlock *new_devlock()
    return lock;
 }
 
-int devlock::init(int priority)                            
+int devlock::init(int init_priority)
 {
    int stat;
    devlock *rwl = this;
 
    rwl->r_active = rwl->w_active = 0;
    rwl->r_wait = rwl->w_wait = 0;
-   rwl->priority = priority;
+   rwl->priority = init_priority;
    if ((stat = pthread_mutex_init(&rwl->mutex, NULL)) != 0) {
       return stat;
    }
@@ -273,7 +261,7 @@ int devlock::writelock(int areason, bool acan_take)
       rwl->w_active++;                /* we are running */
       rwl->writer_id = pthread_self(); /* save writer thread's id */
       lmgr_post_lock();
-   } 
+   }
    rwl->reason = areason;
    rwl->can_take = acan_take;
    pthread_mutex_unlock(&rwl->mutex);

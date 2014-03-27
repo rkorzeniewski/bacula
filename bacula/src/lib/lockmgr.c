@@ -1,36 +1,24 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2008-2011 Free Software Foundation Europe e.V.
+   Copyright (C) 2008-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation, which is 
-   listed in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 
 /*
   How to use mutex with bad order usage detection
  ------------------------------------------------
 
- Note: see file mutex_list.h for current mutexes with 
+ Note: see file mutex_list.h for current mutexes with
        defined priorities.
 
  Instead of using:
@@ -47,13 +35,13 @@
 
  Mutex that doesn't need this extra check can be declared as pthread_mutex_t.
  You can use this object on pthread_mutex_lock/unlock/cond_wait/cond_timewait.
- 
+
  With dynamic creation, you can use:
     bthread_mutex_t mutex;
     pthread_mutex_init(&mutex);
     bthread_mutex_set_priority(&mutex, 10);
     pthread_mutex_destroy(&mutex);
- 
+
  */
 
 #define _LOCKMGR_COMPLIANT
@@ -70,8 +58,14 @@
    Pmsg3(000, _("ASSERT failed at %s:%i: %s \n"), f, l, #x); \
    jcr[0] = 0; }
 
+#define ASSERT2_p(x,m,f,l) if (!(x)) {          \
+   char *jcr = NULL; \
+   set_assert_msg(f, l, m); \
+   Pmsg4(000, _("ASSERT failed at %s:%i: %s (%s)\n"), f, l, #x, m);        \
+   jcr[0] = 0; }
+
 /*
-  Inspired from 
+  Inspired from
   http://www.cs.berkeley.edu/~kamil/teaching/sp03/041403.pdf
 
   This lock manager will replace some pthread calls. It can be
@@ -87,6 +81,7 @@
 
 */
 
+#define DBGLEVEL_EVENT 50
 
 /*
  * pthread_mutex_lock for memory allocator and other
@@ -149,7 +144,7 @@ public:
    void init(void *n, void *c) {
       node = n;
       child = c;
-      seen = LMGR_WHITE;      
+      seen = LMGR_WHITE;
    }
 
    void mark_as_seen(lmgr_color_t c) {
@@ -172,10 +167,10 @@ class lmgr_lock_t: public SMARTALLOC
 {
 public:
    dlink link;
-   void *lock;
+   void *lock;                  /* Link to the mutex (or any value) */
    lmgr_state_t state;
    int max_priority;
-   int priority;
+   int priority;                /* Current node priority */
 
    const char *file;
    int line;
@@ -199,7 +194,7 @@ public:
 
 };
 
-/* 
+/*
  * Get the child list, ret must be already allocated
  */
 static void search_all_node(dlist *g, lmgr_node_t *v, alist *ret)
@@ -257,6 +252,34 @@ static bool contains_cycle(dlist *g)
 
 /****************************************************************/
 
+/* lmgr_thread_event struct, some call can add events, and they will
+ * be dumped during a lockdump
+ */
+typedef struct
+{
+   int32_t     id;              /* Id of the event */
+   int32_t     global_id;       /* Current global id */
+   int32_t     flags;           /* Flags for this event */
+
+   int32_t     line;            /* from which line in filename */
+   const char *from;            /* From where in the code (filename) */
+
+   char       *comment;         /* Comment */
+   intptr_t    user_data;       /* Optionnal user data (will print address) */
+
+}  lmgr_thread_event;
+
+static int32_t global_event_id=0;
+
+/* Keep this number of event per thread */
+#ifdef _TEST_IT
+# define LMGR_THREAD_EVENT_MAX  15
+#else
+# define LMGR_THREAD_EVENT_MAX  1024
+#endif
+
+#define lmgr_thread_event_get_pos(x)   ((x) % LMGR_THREAD_EVENT_MAX)
+
 class lmgr_thread_t: public SMARTALLOC
 {
 public:
@@ -268,30 +291,120 @@ public:
    int max;
    int max_priority;
 
+   lmgr_thread_event events[LMGR_THREAD_EVENT_MAX];
+   int event_id;
+
    lmgr_thread_t() {
       int status;
       if ((status = pthread_mutex_init(&mutex, NULL)) != 0) {
          berrno be;
          Pmsg1(000, _("pthread key create failed: ERR=%s\n"),
                  be.bstrerror(status));
-         ASSERT(0);
+         ASSERT2(0, "pthread_mutex_init failed");
       }
+      event_id = 0;
       thread_id = pthread_self();
       current = -1;
       max = 0;
       max_priority = 0;
    }
 
+   /* Add event to the event list of the thread */
+   void add_event(const char *comment, intptr_t user_data, int32_t flags,
+                  const char *from, int32_t line)
+   {
+      char *p;
+      int   i = lmgr_thread_event_get_pos(event_id);
+
+      events[i].flags = LMGR_EVENT_INVALID;
+      p = events[i].comment;
+      events[i].comment = (char *)"*Freed*";
+
+      /* Shared between thread, just an indication about timing */
+      events[i].global_id = global_event_id++;
+      events[i].id = event_id;
+      events[i].line = line;
+      events[i].from = from;
+
+      /* It means we are looping over the ring, so we need
+       * to check if the memory need to be freed
+       */
+      if (event_id >= LMGR_THREAD_EVENT_MAX) {
+         if (events[i].flags & LMGR_EVENT_FREE) {
+            free(p);
+         }
+      }
+
+      /* We need to copy the memory */
+      if (flags & LMGR_EVENT_DUP) {
+         events[i].comment = bstrdup(comment);
+         flags |= LMGR_EVENT_FREE; /* force the free */
+
+      } else {
+         events[i].comment = (char *)comment;
+      }
+      events[i].user_data = user_data;
+      events[i].flags = flags;  /* mark it valid */
+      event_id++;
+   }
+
+   void free_event_list() {
+      /* We first check how far we go in the event list */
+      int max = MIN(event_id, LMGR_THREAD_EVENT_MAX);
+      char *p;
+
+      for (int i = 0; i < max ; i++) {
+         if (events[i].flags & LMGR_EVENT_FREE) {
+            p = events[i].comment;
+            events[i].flags = LMGR_EVENT_INVALID;
+            events[i].comment = (char *)"*Freed*";
+            free(p);
+         }
+      }
+   }
+
+   void print_event(lmgr_thread_event *ev, FILE *fp) {
+      if (ev->flags & LMGR_EVENT_INVALID) {
+         return;
+      }
+      fprintf(fp, "    %010d id=%010d %s data=%p at %s:%d\n",
+              ev->global_id,
+              ev->id,
+              NPRT(ev->comment),
+              (void *)ev->user_data,
+              ev->from,
+              ev->line);
+   }
+
    void _dump(FILE *fp) {
-      fprintf(fp, "threadid=%p max=%i current=%i\n", 
+      fprintf(fp, "threadid=%p max=%i current=%i\n",
               (void *)thread_id, max, current);
       for(int i=0; i<=current; i++) {
-         fprintf(fp, "   lock=%p state=%s priority=%i %s:%i\n", 
-                 lock_list[i].lock, 
+         fprintf(fp, "   lock=%p state=%s priority=%i %s:%i\n",
+                 lock_list[i].lock,
                  (lock_list[i].state=='W')?"Wanted ":"Granted",
                  lock_list[i].priority,
                  lock_list[i].file, lock_list[i].line);
-      } 
+      }
+
+      if (debug_flags & DEBUG_PRINT_EVENT) {
+         /* Debug events */
+         fprintf(fp, "   events:\n");
+
+         /* Display events between (event_id % LMGR_THREAD_EVENT_MAX) and LMGR_THREAD_EVENT_MAX */
+         if (event_id > LMGR_THREAD_EVENT_MAX) {
+            for (int i = event_id % LMGR_THREAD_EVENT_MAX ; i < LMGR_THREAD_EVENT_MAX ; i++)
+            {
+               print_event(&events[i], fp);
+            }
+         }
+
+         /* Display events between 0 and event_id % LMGR_THREAD_EVENT_MAX*/
+         for (int i = 0 ;  i < (event_id % LMGR_THREAD_EVENT_MAX) ; i++)
+         {
+            print_event(&events[i], fp);
+         }
+      }
    }
 
    void dump(FILE *fp) {
@@ -305,12 +418,20 @@ public:
    /*
     * Call before a lock operation (mark mutex as WANTED)
     */
-   virtual void pre_P(void *m, int priority, 
-                      const char *f="*unknown*", int l=0) 
+   virtual void pre_P(void *m, int priority,
+                      const char *f="*unknown*", int l=0)
    {
       int max_prio = max_priority;
-      ASSERT_p(current < LMGR_MAX_LOCK, f, l);
-      ASSERT_p(current >= -1, f, l);
+
+      if (chk_dbglvl(DBGLEVEL_EVENT) || debug_flags & DEBUG_MUTEX_EVENT) {
+         /* Keep track of this event */
+         add_event("P()", (intptr_t)m, 0, f, l);
+      }
+
+      /* Fail if too many locks in use */
+      ASSERT2_p(current < LMGR_MAX_LOCK, "Too many locks in use", f, l);
+      /* Fail if the "current" value is out of bounds */
+      ASSERT2_p(current >= -1, "current lock value is out of bounds", f, l);
       lmgr_p(&mutex);
       {
          current++;
@@ -324,18 +445,29 @@ public:
          max_priority = MAX(priority, max_priority);
       }
       lmgr_v(&mutex);
-      ASSERT_p(!priority || priority >= max_prio, f, l);
+
+      /* Fail if we tried to lock a mutex with a lower priority than
+       * the current value. It means that you need to lock mutex in a
+       * different order to ensure that the priority field is always
+       * increasing. The mutex priority list is defined in mutex_list.h.
+       *
+       * Look the *.lockdump generated to get the list of all mutexes,
+       * and where they were granted to find the priority problem.
+       */
+      ASSERT2_p(!priority || priority >= max_prio,
+                "Mutex priority problem found, locking done in wrong order",
+                f, l);
    }
 
    /*
     * Call after the lock operation (mark mutex as GRANTED)
     */
    virtual void post_P() {
-      ASSERT(current >= 0);
+      ASSERT2(current >= 0, "Lock stack when negative");
       ASSERT(lock_list[current].state == LMGR_LOCK_WANTED);
       lock_list[current].state = LMGR_LOCK_GRANTED;
    }
-   
+
    /* Using this function is some sort of bug */
    void shift_list(int i) {
       for(int j=i+1; j<=current; j++) {
@@ -357,7 +489,14 @@ public:
     * Remove the mutex from the list
     */
    virtual void do_V(void *m, const char *f="*unknown*", int l=0) {
-      ASSERT_p(current >= 0, f, l);
+      int old_current = current;
+
+      /* Keep track of this event */
+      if (chk_dbglvl(DBGLEVEL_EVENT) || debug_flags & DEBUG_MUTEX_EVENT) {
+         add_event("V()", (intptr_t)m, 0, f, l);
+      }
+
+      ASSERT2_p(current >= 0, "No previous P found, the mutex list is empty", f, l);
       lmgr_p(&mutex);
       {
          if (lock_list[current].lock == m) {
@@ -365,16 +504,15 @@ public:
             lock_list[current].state = LMGR_LOCK_EMPTY;
             current--;
          } else {
-            ASSERT(current > 0);
-            Pmsg3(0, "ERROR: wrong P/V order search lock=%p %s:%i\n", m, f, l);
-            Pmsg4(000, "ERROR: wrong P/V order pos=%i lock=%p %s:%i\n",
-                    current, lock_list[current].lock, lock_list[current].file, 
+            Pmsg3(0, "ERROR: V out of order lock=%p %s:%i dumping locks...\n", m, f, l);
+            Pmsg4(000, "  wrong P/V order pos=%i lock=%p %s:%i\n",
+                    current, lock_list[current].lock, lock_list[current].file,
                     lock_list[current].line);
             for (int i=current-1; i >= 0; i--) { /* already seen current */
-               Pmsg4(000, "ERROR: wrong P/V order pos=%i lock=%p %s:%i\n",
+               Pmsg4(000, "  wrong P/V order pos=%i lock=%p %s:%i\n",
                      i, lock_list[i].lock, lock_list[i].file, lock_list[i].line);
                if (lock_list[i].lock == m) {
-                  Pmsg3(000, "ERROR: FOUND P pos=%i %s:%i\n", i, f, l);
+                  Pmsg3(000, "ERROR: FOUND P for out of order V at pos=%i %s:%i\n", i, f, l);
                   shift_list(i);
                   current--;
                   break;
@@ -383,17 +521,20 @@ public:
          }
          /* reset max_priority to the last one */
          if (current >= 0) {
-            max_priority = lock_list[current].max_priority; 
+            max_priority = lock_list[current].max_priority;
          } else {
             max_priority = 0;
          }
       }
       lmgr_v(&mutex);
+      /* ASSERT2 should be called outside from the mutex lock */
+      ASSERT2_p(current != old_current, "V() called without a previous P()", f, l);
    }
 
    virtual ~lmgr_thread_t() {destroy();}
 
    void destroy() {
+      free_event_list();
       pthread_mutex_destroy(&mutex);
    }
 } ;
@@ -412,7 +553,7 @@ class lmgr_dummy_thread_t: public lmgr_thread_t
  *
  */
 
-pthread_once_t key_lmgr_once = PTHREAD_ONCE_INIT; 
+pthread_once_t key_lmgr_once = PTHREAD_ONCE_INIT;
 static pthread_key_t lmgr_key;  /* used to get lgmr_thread_t object */
 
 static dlist *global_mgr = NULL;  /* used to store all lgmr_thread_t objects */
@@ -483,8 +624,8 @@ bool lmgr_detect_deadlock_unlocked()
             g->append(node);
          }
       }
-   }      
-   
+   }
+
    //foreach_dlist(node, g) {
    //   printf("g n=%p c=%p\n", node->node, node->child);
    //}
@@ -493,7 +634,7 @@ bool lmgr_detect_deadlock_unlocked()
    if (ret) {
       printf("Found a deadlock !!!!\n");
    }
-   
+
    delete g;
    return ret;
 }
@@ -508,7 +649,7 @@ bool lmgr_detect_deadlock()
    bool ret=false;
    if (!lmgr_is_active()) {
       return ret;
-   } 
+   }
 
    lmgr_p(&lmgr_global_mutex);
    {
@@ -529,7 +670,7 @@ bool lmgr_detect_deadlock()
 }
 
 /*
- * !!! WARNING !!! 
+ * !!! WARNING !!!
  * Use this function is used only after a fatal signal
  * We don't use locking to display the information
  */
@@ -574,8 +715,12 @@ void *check_deadlock(void *)
    while (!bmicrosleep(30, 0)) {
       pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, &old);
       if (lmgr_detect_deadlock()) {
+         /* If we have information about P()/V(), display them */
+         if (debug_flags & DEBUG_MUTEX_EVENT || chk_dbglvl(DBGLEVEL_EVENT)) {
+            debug_flags |= DEBUG_PRINT_EVENT;
+         }
          lmgr_dump();
-         ASSERT(0);
+         ASSERT2(0, "Lock deadlock");   /* Abort if we found a deadlock */
       }
       pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, &old);
       pthread_testcancel();
@@ -610,7 +755,7 @@ void create_lmgr_key()
       berrno be;
       Pmsg1(000, _("pthread key create failed: ERR=%s\n"),
             be.bstrerror(status));
-      ASSERT(0);
+      ASSERT2(0, "pthread_key_create failed");
    }
 
    lmgr_thread_t *n=NULL;
@@ -622,7 +767,7 @@ void create_lmgr_key()
          berrno be;
          Pmsg1(000, _("pthread_create failed: ERR=%s\n"),
                be.bstrerror(status));
-         ASSERT(0);
+         ASSERT2(0, "pthread_create failed");
       }
    }
 }
@@ -638,7 +783,7 @@ void lmgr_init_thread()
       berrno be;
       Pmsg1(000, _("pthread key create failed: ERR=%s\n"),
             be.bstrerror(status));
-      ASSERT(0);
+      ASSERT2(0, "pthread_once failed");
    }
    lmgr_thread_t *l = New(lmgr_thread_t());
    pthread_setspecific(lmgr_key, l);
@@ -666,7 +811,7 @@ void lmgr_cleanup_thread()
 void lmgr_cleanup_main()
 {
    dlist *temp;
-   
+
    if (!global_mgr) {
       return;
    }
@@ -683,7 +828,14 @@ void lmgr_cleanup_main()
    lmgr_v(&lmgr_global_mutex);
 }
 
-/* 
+void lmgr_add_event_p(const char *comment, intptr_t user_data, int32_t flags,
+                      const char *file, int32_t line)
+{
+   lmgr_thread_t *self = lmgr_get_thread_info();
+   self->add_event(comment, user_data, flags, file, line);
+}
+
+/*
  * Set the priority of the lmgr mutex object
  */
 void bthread_mutex_set_priority(bthread_mutex_t *m, int prio)
@@ -710,14 +862,14 @@ int pthread_mutex_destroy(bthread_mutex_t *m)
    return pthread_mutex_destroy(&m->mutex);
 }
 
-/* 
+/*
  * Replacement for pthread_kill (only with USE_LOCKMGR_SAFEKILL)
  */
-int bthread_kill(pthread_t thread, int sig, 
+int bthread_kill(pthread_t thread, int sig,
                  const char *file, int line)
 {
    bool thread_found_in_process=false;
-   
+
    /* We doesn't allow to send signal to ourself */
    ASSERT(!pthread_equal(thread, pthread_self()));
 
@@ -739,7 +891,7 @@ int bthread_kill(pthread_t thread, int sig,
    /* Sending a signal to non existing thread can create problem
     * so, we can stop here.
     */
-   ASSERT(thread_found_in_process == true);
+   ASSERT2(thread_found_in_process, "Wanted to pthread_kill non-existant thread");
 
    Dmsg3(100, "%s:%d send kill to existing thread %p\n", file, line, thread);
    return pthread_kill(thread, sig);
@@ -747,14 +899,14 @@ int bthread_kill(pthread_t thread, int sig,
 
 /*
  * Replacement for pthread_mutex_lock()
- * Returns always ok 
+ * Returns always ok
  */
 int bthread_mutex_lock_p(bthread_mutex_t *m, const char *file, int line)
 {
    lmgr_thread_t *self = lmgr_get_thread_info();
    self->pre_P(m, m->priority, file, line);
    lmgr_p(&m->mutex);
-   self->post_P();   
+   self->post_P();
    return 0;
 }
 
@@ -772,14 +924,14 @@ int bthread_mutex_unlock_p(bthread_mutex_t *m, const char *file, int line)
 
 /*
  * Replacement for pthread_mutex_lock() but with real pthread_mutex_t
- * Returns always ok 
+ * Returns always ok
  */
 int bthread_mutex_lock_p(pthread_mutex_t *m, const char *file, int line)
 {
    lmgr_thread_t *self = lmgr_get_thread_info();
    self->pre_P(m, 0, file, line);
    lmgr_p(m);
-   self->post_P();   
+   self->post_P();
    return 0;
 }
 
@@ -804,7 +956,7 @@ int bthread_cond_wait_p(pthread_cond_t *cond,
 {
    int ret;
    lmgr_thread_t *self = lmgr_get_thread_info();
-   self->do_V(m, file, line);   
+   self->do_V(m, file, line);
    ret = pthread_cond_wait(cond, m);
    self->pre_P(m, 0, file, line);
    self->post_P();
@@ -820,7 +972,7 @@ int bthread_cond_timedwait_p(pthread_cond_t *cond,
 {
    int ret;
    lmgr_thread_t *self = lmgr_get_thread_info();
-   self->do_V(m, file, line);   
+   self->do_V(m, file, line);
    ret = pthread_cond_timedwait(cond, m, abstime);
    self->pre_P(m, 0, file, line);
    self->post_P();
@@ -835,7 +987,7 @@ int bthread_cond_wait_p(pthread_cond_t *cond,
 {
    int ret;
    lmgr_thread_t *self = lmgr_get_thread_info();
-   self->do_V(m, file, line);   
+   self->do_V(m, file, line);
    ret = pthread_cond_wait(cond, &m->mutex);
    self->pre_P(m, m->priority, file, line);
    self->post_P();
@@ -851,14 +1003,14 @@ int bthread_cond_timedwait_p(pthread_cond_t *cond,
 {
    int ret;
    lmgr_thread_t *self = lmgr_get_thread_info();
-   self->do_V(m, file, line);   
+   self->do_V(m, file, line);
    ret = pthread_cond_timedwait(cond, &m->mutex, abstime);
    self->pre_P(m, m->priority, file, line);
    self->post_P();
    return ret;
 }
 
-/*  Test if this mutex is locked by the current thread 
+/*  Test if this mutex is locked by the current thread
  *  returns:
  *     0 - unlocked
  *     1 - locked by the current thread
@@ -923,7 +1075,7 @@ typedef struct {
    void *arg;
 } lmgr_thread_arg_t;
 
-extern "C" 
+extern "C"
 void *lmgr_thread_launcher(void *x)
 {
    void *ret=NULL;
@@ -946,7 +1098,7 @@ int lmgr_thread_create(pthread_t *thread,
                        void *(*start_routine)(void*), void *arg)
 {
    /* lmgr should be active (lmgr_init_thread() call in main()) */
-   ASSERT(lmgr_is_active());
+   ASSERT2(lmgr_is_active(), "Lock manager not active");
    /* Will be freed by the child */
    lmgr_thread_arg_t *a = (lmgr_thread_arg_t*) malloc(sizeof(lmgr_thread_arg_t));
    a->start_routine = start_routine;
@@ -957,7 +1109,7 @@ int lmgr_thread_create(pthread_t *thread,
 #else  /* _USE_LOCKMGR */
 
 /*
- * !!! WARNING !!! 
+ * !!! WARNING !!!
  * Use this function is used only after a fatal signal
  * We don't use locking to display information
  */
@@ -993,7 +1145,7 @@ void *self_lock(void *temp)
    P(mutex1);
    P(mutex1);
    V(mutex1);
-   
+
    return NULL;
 }
 
@@ -1039,7 +1191,7 @@ void *th2(void *temp)
 {
    P(mutex2);
    P(mutex1);
-   
+
    lmgr_dump();
 
    sleep(10);
@@ -1055,7 +1207,7 @@ void *th1(void *temp)
    P(mutex1);
    sleep(2);
    P(mutex2);
-   
+
    lmgr_dump();
 
    sleep(10);
@@ -1097,8 +1249,32 @@ void *th_prio(void *a) {
    char buf[512];
    bstrncpy(buf, my_prog, sizeof(buf));
    bstrncat(buf, " priority", sizeof(buf));
-   int ret = system(buf);
+   intptr_t ret = system(buf);
    return (void*) ret;
+}
+
+void *th_event1(void *a) {
+   for (int i=0; i < 10000; i++) {
+      if ((i % 7) == 0) {
+         lmgr_add_event_flag("strdup test", i, LMGR_EVENT_DUP);
+      } else {
+         lmgr_add_event("My comment", i);
+      }
+   }
+   sleep(5);
+   return NULL;
+}
+
+void *th_event2(void *a) {
+   for (int i=0; i < 10000; i++) {
+      if ((i % 2) == 0) {
+         lmgr_add_event_flag(bstrdup("free test"), i, LMGR_EVENT_FREE);
+      } else {
+         lmgr_add_event("My comment", i);
+      }
+   }
+   sleep(5);
+   return NULL;
 }
 
 int err=0;
@@ -1135,7 +1311,7 @@ int report()
    return err>0;
 }
 
-/* 
+/*
  * TODO:
  *  - Must detect multiple lock
  *  - lock/unlock in wrong order
@@ -1145,9 +1321,10 @@ int main(int argc, char **argv)
 {
    void *ret=NULL;
    lmgr_thread_t *self;
-   pthread_t id1, id2, id3, tab[200];
+   pthread_t id1, id2, id3, id4, id5, tab[200];
    bthread_mutex_t bmutex1;
    pthread_mutex_t pmutex2;
+   debug_level = 10;
    my_prog = argv[0];
 
    use_undertaker = false;
@@ -1194,7 +1371,7 @@ int main(int argc, char **argv)
    nok(lmgr_detect_deadlock(), "Check for multiple lock");
    V(mutex1);
    pthread_join(id1, NULL);
-   pthread_join(id2, NULL);   
+   pthread_join(id2, NULL);
    pthread_join(id3, NULL);
 
 
@@ -1212,8 +1389,8 @@ int main(int argc, char **argv)
    nok(lmgr_detect_deadlock(), "Check for multiple rwlock");
 
    pthread_join(id1, NULL);
-   pthread_join(id2, NULL);   
-   pthread_join(id3, NULL);   
+   pthread_join(id2, NULL);
+   pthread_join(id3, NULL);
 
    rwl_writelock(&wr);
    P(mutex1);
@@ -1244,9 +1421,9 @@ int main(int argc, char **argv)
    P(mutex4);
    P(mutex5);
    P(mutex6);
-   ok(lmgr_mutex_is_locked(&mutex6) == 1, "Check if mutex is locked"); 
+   ok(lmgr_mutex_is_locked(&mutex6) == 1, "Check if mutex is locked");
    V(mutex6);
-   ok(lmgr_mutex_is_locked(&mutex6) == 0, "Check if mutex is locked"); 
+   ok(lmgr_mutex_is_locked(&mutex6) == 0, "Check if mutex is locked");
    V(mutex5);
    V(mutex4);
 
@@ -1297,7 +1474,24 @@ int main(int argc, char **argv)
    V(mutex_p1);
    V(mutex_p2);
 
-//   lmgr_dump();
+   for (int i=0; i < 10000; i++) {
+      if ((i % 7) == 0) {
+         lmgr_add_event_flag("xxxxxxxxxxxxxxxx strdup test xxxxxxxxxxxxxxxx", i, LMGR_EVENT_DUP);
+      } else {
+         lmgr_add_event("My comment", i);
+      }
+   }
+
+   pthread_create(&id4, NULL, th_event1, NULL);
+   pthread_create(&id5, NULL, th_event2, NULL);
+
+   sleep(2);
+
+   lmgr_dump();
+
+   pthread_join(id4, NULL);
+   pthread_join(id5, NULL);
+
 //
 //   pthread_create(&id3, NULL, th3, NULL);
 //

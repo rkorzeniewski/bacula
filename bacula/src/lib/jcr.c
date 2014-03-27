@@ -1,29 +1,17 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2012 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  * Manipulation routines for Job Control Records and
@@ -41,7 +29,7 @@
  *  The result is that there is one lock/unlock for each entry
  *  in the list while traversing it rather than a single lock
  *  at the beginning of a traversal and one at the end.  This
- *  incurs slightly more overhead, but effectively eliminates 
+ *  incurs slightly more overhead, but effectively eliminates
  *  the possibilty of race conditions.  In addition, with the
  *  exception of the global locking of the list during the
  *  re-reading of the config file, no recursion is needed.
@@ -75,7 +63,7 @@ static void unlock_jcr_chain();
 int num_jobs_run;
 dlist *last_jobs = NULL;
 const int max_last_jobs = 10;
- 
+
 static dlist *jcrs = NULL;            /* JCR chain */
 static pthread_mutex_t jcr_lock = PTHREAD_MUTEX_INITIALIZER;
 
@@ -85,7 +73,7 @@ static pthread_mutex_t last_jobs_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 static pthread_key_t jcr_key;         /* Pointer to jcr for each thread */
 
-pthread_once_t key_once = PTHREAD_ONCE_INIT; 
+pthread_once_t key_once = PTHREAD_ONCE_INIT;
 
 static char Job_status[]     = "Status Job=%s JobStatus=%d\n";
 
@@ -352,9 +340,10 @@ JCR *new_jcr(int size, JCR_free_HANDLER *daemon_free_jcr)
    }
    jcr->job_end_push.init(1, false);
    jcr->sched_time = time(NULL);
+   jcr->initial_sched_time = jcr->sched_time;
    jcr->daemon_free_jcr = daemon_free_jcr;    /* plug daemon free routine */
    jcr->init_mutex();
-   jcr->inc_use_count();   
+   jcr->inc_use_count();
    jcr->VolumeName = get_pool_memory(PM_FNAME);
    jcr->VolumeName[0] = 0;
    jcr->errmsg = get_pool_memory(PM_MESSAGE);
@@ -423,7 +412,6 @@ static void free_common_jcr(JCR *jcr)
       jcr->msg_queue = NULL;
       pthread_mutex_destroy(&jcr->msg_queue_mutex);
    }
-   close_msg(jcr);                    /* close messages for this job */
 
    /* do this after closing messages */
    if (jcr->client_name) {
@@ -445,10 +433,8 @@ static void free_common_jcr(JCR *jcr)
       jcr->VolumeName = NULL;
    }
 
-   if (jcr->dir_bsock) {
-      bnet_close(jcr->dir_bsock);
-      jcr->dir_bsock = NULL;
-   }
+   free_bsock(jcr->dir_bsock);
+
    if (jcr->errmsg) {
       free_pool_memory(jcr->errmsg);
       jcr->errmsg = NULL;
@@ -498,7 +484,7 @@ void free_jcr(JCR *jcr)
 {
    struct s_last_job *je;
 
-   Dmsg3(dbglvl, "Enter free_jcr jid=%u use_count=%d Job=%s\n", 
+   Dmsg3(dbglvl, "Enter free_jcr jid=%u use_count=%d Job=%s\n",
          jcr->JobId, jcr->use_count(), jcr->Job);
 
 #endif
@@ -510,7 +496,7 @@ void free_jcr(JCR *jcr)
          jcr->use_count(), jcr->JobId);
    }
    if (jcr->JobId > 0) {
-      Dmsg3(dbglvl, "Dec free_jcr jid=%u use_count=%d Job=%s\n", 
+      Dmsg3(dbglvl, "Dec free_jcr jid=%u use_count=%d Job=%s\n",
          jcr->JobId, jcr->use_count(), jcr->Job);
    }
    if (jcr->use_count() > 0) {          /* if in use */
@@ -518,13 +504,14 @@ void free_jcr(JCR *jcr)
       return;
    }
    if (jcr->JobId > 0) {
-      Dmsg3(dbglvl, "remove jcr jid=%u use_count=%d Job=%s\n", 
+      Dmsg3(dbglvl, "remove jcr jid=%u use_count=%d Job=%s\n",
             jcr->JobId, jcr->use_count(), jcr->Job);
    }
    remove_jcr(jcr);                   /* remove Jcr from chain */
    unlock_jcr_chain();
 
    dequeue_messages(jcr);
+   close_msg(jcr);                    /* close messages for this job */
    job_end_pop(jcr);                  /* pop and call hooked routines */
 
    Dmsg1(dbglvl, "End job=%d\n", jcr->JobId);
@@ -577,7 +564,6 @@ void free_jcr(JCR *jcr)
    }
 
    free_common_jcr(jcr);
-   close_msg(NULL);                   /* flush any daemon messages */
    Dmsg0(dbglvl, "Exit free_jcr\n");
 }
 
@@ -588,7 +574,7 @@ void free_jcr(JCR *jcr)
 void remove_jcr_from_tsd(JCR *jcr)
 {
    JCR *tjcr = get_jcr_from_tsd();
-   if (tjcr == jcr) { 
+   if (tjcr == jcr) {
       set_jcr_in_tsd(INVALID_JCR);
    }
 }
@@ -598,11 +584,6 @@ void JCR::set_killable(bool killable)
    JCR *jcr = this;
    jcr->lock();
    jcr->my_thread_killable = killable;
-   if (killable) {
-      jcr->my_thread_id = pthread_self();
-   } else {
-      memset(&jcr->my_thread_id, 0, sizeof(jcr->my_thread_id));
-   }
    jcr->unlock();
 }
 
@@ -616,7 +597,7 @@ void set_jcr_in_tsd(JCR *jcr)
    int status = pthread_setspecific(jcr_key, (void *)jcr);
    if (status != 0) {
       berrno be;
-      Jmsg1(jcr, M_ABORT, 0, _("pthread_setspecific failed: ERR=%s\n"), 
+      Jmsg1(jcr, M_ABORT, 0, _("pthread_setspecific failed: ERR=%s\n"),
             be.bstrerror(status));
    }
 }
@@ -650,7 +631,7 @@ JCR *get_jcr_from_tsd()
    return jcr;
 }
 
- 
+
 /*
  * Find which JobId corresponds to the current thread
  */
@@ -678,7 +659,7 @@ JCR *get_jcr_by_id(uint32_t JobId)
    foreach_jcr(jcr) {
       if (jcr->JobId == JobId) {
          jcr->inc_use_count();
-         Dmsg3(dbglvl, "Inc get_jcr jid=%u use_count=%d Job=%s\n", 
+         Dmsg3(dbglvl, "Inc get_jcr jid=%u use_count=%d Job=%s\n",
             jcr->JobId, jcr->use_count(), jcr->Job);
          break;
       }
@@ -724,7 +705,7 @@ JCR *get_jcr_by_session(uint32_t SessionId, uint32_t SessionTime)
       if (jcr->VolSessionId == SessionId &&
           jcr->VolSessionTime == SessionTime) {
          jcr->inc_use_count();
-         Dmsg3(dbglvl, "Inc get_jcr jid=%u use_count=%d Job=%s\n", 
+         Dmsg3(dbglvl, "Inc get_jcr jid=%u use_count=%d Job=%s\n",
             jcr->JobId, jcr->use_count(), jcr->Job);
          break;
       }
@@ -753,7 +734,7 @@ JCR *get_jcr_by_partial_name(char *Job)
    foreach_jcr(jcr) {
       if (strncmp(Job, jcr->Job, len) == 0) {
          jcr->inc_use_count();
-         Dmsg3(dbglvl, "Inc get_jcr jid=%u use_count=%d Job=%s\n", 
+         Dmsg3(dbglvl, "Inc get_jcr jid=%u use_count=%d Job=%s\n",
             jcr->JobId, jcr->use_count(), jcr->Job);
          break;
       }
@@ -779,7 +760,7 @@ JCR *get_jcr_by_full_name(char *Job)
    foreach_jcr(jcr) {
       if (strcmp(jcr->Job, Job) == 0) {
          jcr->inc_use_count();
-         Dmsg3(dbglvl, "Inc get_jcr jid=%u use_count=%d Job=%s\n", 
+         Dmsg3(dbglvl, "Inc get_jcr jid=%u use_count=%d Job=%s\n",
             jcr->JobId, jcr->use_count(), jcr->Job);
          break;
       }
@@ -809,7 +790,7 @@ static void update_wait_time(JCR *jcr, int newJobStatus)
       enter_in_waittime = false; /* not a Wait situation */
       break;
    }
-   
+
    /*
     * If we were previously waiting and are not any more
     *   we want to update the wait_time variable, which is
@@ -840,16 +821,13 @@ static void update_wait_time(JCR *jcr, int newJobStatus)
    }
 }
 
-/* 
+/*
  * Priority runs from 0 (lowest) to 10 (highest)
  */
 static int get_status_priority(int JobStatus)
 {
    int priority = 0;
    switch (JobStatus) {
-   case JS_Incomplete:
-      priority = 10;
-      break;
    case JS_ErrorTerminated:
    case JS_FatalError:
    case JS_Canceled:
@@ -874,7 +852,7 @@ bool JCR::sendJobStatus()
    if (jcr->dir_bsock) {
       return jcr->dir_bsock->fsend(Job_status, jcr->Job, jcr->JobStatus);
    }
-   return true; 
+   return true;
 }
 
 /*
@@ -889,7 +867,7 @@ bool JCR::sendJobStatus(int newJobStatus)
          return jcr->dir_bsock->fsend(Job_status, jcr->Job, jcr->JobStatus);
       }
    }
-   return true; 
+   return true;
 }
 
 void JCR::setJobStarted()
@@ -906,7 +884,7 @@ void JCR::setJobStatus(int newJobStatus)
    int oldJobStatus = jcr->JobStatus;
    priority = get_status_priority(newJobStatus);
    old_priority = get_status_priority(oldJobStatus);
-   
+
    Dmsg2(800, "set_jcr_job_status(%s, %c)\n", Job, newJobStatus);
 
    /* Update wait_time depending on newJobStatus and oldJobStatus */
@@ -920,7 +898,7 @@ void JCR::setJobStatus(int newJobStatus)
    /*
     * If status priority is > than proposed new status, change it.
     * If status priority == new priority and both are zero, take
-    *   the new status. 
+    *   the new status.
     * If it is not zero, then we keep the first non-zero "error" that
     *   occurred.
     */
@@ -985,9 +963,9 @@ static void unlock_jcr_chain()
  *   released with:
  *
  *    free_jcr(jcr);
- *  
+ *
  */
-JCR *jcr_walk_start() 
+JCR *jcr_walk_start()
 {
    JCR *jcr;
    lock_jcr_chain();
@@ -995,7 +973,7 @@ JCR *jcr_walk_start()
    if (jcr) {
       jcr->inc_use_count();
       if (jcr->JobId > 0) {
-         Dmsg3(dbglvl, "Inc walk_start jid=%u use_count=%d Job=%s\n", 
+         Dmsg3(dbglvl, "Inc walk_start jid=%u use_count=%d Job=%s\n",
             jcr->JobId, jcr->use_count(), jcr->Job);
       }
    }
@@ -1015,7 +993,7 @@ JCR *jcr_walk_next(JCR *prev_jcr)
    if (jcr) {
       jcr->inc_use_count();
       if (jcr->JobId > 0) {
-         Dmsg3(dbglvl, "Inc walk_next jid=%u use_count=%d Job=%s\n", 
+         Dmsg3(dbglvl, "Inc walk_next jid=%u use_count=%d Job=%s\n",
             jcr->JobId, jcr->use_count(), jcr->Job);
       }
    }
@@ -1033,7 +1011,7 @@ void jcr_walk_end(JCR *jcr)
 {
    if (jcr) {
       if (jcr->JobId > 0) {
-         Dmsg3(dbglvl, "Free walk_end jid=%u use_count=%d Job=%s\n", 
+         Dmsg3(dbglvl, "Free walk_end jid=%u use_count=%d Job=%s\n",
             jcr->JobId, jcr->use_count(), jcr->Job);
       }
       free_jcr(jcr);
@@ -1101,7 +1079,7 @@ static void jcr_timeout_check(watchdog_t *self)
             bs->set_timed_out();
             Qmsg(jcr, M_ERROR, 0, _(
 "Watchdog sending kill after %d secs to thread stalled reading Storage daemon.\n"),
-                 watchdog_time - timer_start);
+                 (int)(watchdog_time - timer_start));
             jcr->my_thread_send_signal(TIMEOUT_SIGNAL);
          }
       }
@@ -1113,7 +1091,7 @@ static void jcr_timeout_check(watchdog_t *self)
             bs->set_timed_out();
             Qmsg(jcr, M_ERROR, 0, _(
 "Watchdog sending kill after %d secs to thread stalled reading File daemon.\n"),
-                 watchdog_time - timer_start);
+                 (int)(watchdog_time - timer_start));
             jcr->my_thread_send_signal(TIMEOUT_SIGNAL);
          }
       }
@@ -1125,7 +1103,7 @@ static void jcr_timeout_check(watchdog_t *self)
             bs->set_timed_out();
             Qmsg(jcr, M_ERROR, 0, _(
 "Watchdog sending kill after %d secs to thread stalled reading Director.\n"),
-                 watchdog_time - timer_start);
+                 (int)(watchdog_time - timer_start));
             jcr->my_thread_send_signal(TIMEOUT_SIGNAL);
          }
       }
@@ -1135,8 +1113,8 @@ static void jcr_timeout_check(watchdog_t *self)
    Dmsg0(dbglvl, "Finished JCR timeout checks\n");
 }
 
-/* 
- * Return next JobId from comma separated list   
+/*
+ * Return next JobId from comma separated list
  *
  * Returns:
  *   1 if next JobId returned
@@ -1178,7 +1156,7 @@ extern "C" void timeout_handler(int sig)
    return;                            /* thus interrupting the function */
 }
 
-/* Used to display specific daemon information after a fatal signal 
+/* Used to display specific daemon information after a fatal signal
  * (like B_DB in the director)
  */
 #define MAX_DBG_HOOK 10
@@ -1191,8 +1169,14 @@ void dbg_jcr_add_hook(dbg_jcr_hook_t *hook)
    dbg_jcr_hooks[dbg_jcr_handler_count++] = hook;
 }
 
+/* on win32, the pthread_t is a struct, so we don't display it */
+#ifdef HAVE_MINGW_W64
+# define get_threadid(a) (void *)0
+#else
+# define get_threadid(a) (void *)(a)
+#endif
 /*
- * !!! WARNING !!! 
+ * !!! WARNING !!!
  *
  * This function should be used ONLY after a fatal signal. We walk through the
  * JCR chain without doing any lock, Bacula should not be running.
@@ -1207,11 +1191,11 @@ void dbg_print_jcr(FILE *fp)
    fprintf(fp, "Attempt to dump current JCRs. njcrs=%d\n", jcrs->size());
 
    for (JCR *jcr = (JCR *)jcrs->first(); jcr ; jcr = (JCR *)jcrs->next(jcr)) {
-      fprintf(fp, "threadid=%p JobId=%d JobStatus=%c jcr=%p name=%s\n", 
-              (void *)jcr->my_thread_id, (int)jcr->JobId, jcr->JobStatus, jcr, jcr->Job);
+      fprintf(fp, "threadid=%p JobId=%d JobStatus=%c jcr=%p name=%s\n",
+              get_threadid(jcr->my_thread_id), (int)jcr->JobId, jcr->JobStatus, jcr, jcr->Job);
       fprintf(fp, "threadid=%p killable=%d JobId=%d JobStatus=%c "
                   "jcr=%p name=%s\n",
-              (void *)jcr->my_thread_id, jcr->is_killable(),
+              get_threadid(jcr->my_thread_id), jcr->is_killable(),
               (int)jcr->JobId, jcr->JobStatus, jcr, jcr->Job);
       fprintf(fp, "\tuse_count=%i\n", jcr->use_count());
       fprintf(fp, "\tJobType=%c JobLevel=%c\n",
@@ -1222,9 +1206,9 @@ void dbg_print_jcr(FILE *fp)
       bstrftime(buf4, sizeof(buf4), jcr->wait_time);
       fprintf(fp, "\tsched_time=%s start_time=%s\n\tend_time=%s wait_time=%s\n",
               buf1, buf2, buf3, buf4);
-      fprintf(fp, "\tdb=%p db_batch=%p batch_started=%i\n", 
+      fprintf(fp, "\tdb=%p db_batch=%p batch_started=%i\n",
               jcr->db, jcr->db_batch, jcr->batch_started);
-      
+
       /*
        * Call all the jcr debug hooks
        */

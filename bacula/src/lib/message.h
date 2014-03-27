@@ -1,29 +1,17 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2011 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  * Define Message Types for Bacula
@@ -139,12 +127,44 @@ struct MQUEUE_ITEM {
    char msg[1];
 };
 
- 
-void d_msg(const char *file, int line, int level, const char *fmt,...);
-void e_msg(const char *file, int line, int type, int level, const char *fmt,...);
-void Jmsg(JCR *jcr, int type, utime_t mtime, const char *fmt,...);
-void Qmsg(JCR *jcr, int type, utime_t mtime, const char *fmt,...);
+/* Debug options */
+#define DEBUG_CLEAR_FLAGS           /* 0    clear debug_flags */
+#define DEBUG_NO_WIN32_WRITE_ERROR  /* i    continue even after win32 errors */
+#define DEBUG_WIN32DECOMP           /* d */
+#define DEBUG_DBG_TIMESTAMP         /* t    turn on timestamp in trace file */
+#define DEBUG_DBG_NO_TIMESTAMP      /* T    turn off timestamp in trace file */
+#define DEBUG_TRUNCATE_TRACE        /* c    clear trace file if opened */
+
+/* Bits (1, 2, 4, ...) for debug_flags used by set_debug_flags() */
+#define DEBUG_MUTEX_EVENT           (1 << 0)    /* l */
+#define DEBUG_PRINT_EVENT           (1 << 1)    /* p */
+
+/* Tags that can be used with the setdebug command
+ * We can extend this list to use 64bit
+ * When adding new ones, keep existing one
+ * Corresponding strings are defined in messages.c (debugtags)
+ */
+#define    DT_LOCK       (1<<30)                /* lock    */
+#define    DT_NETWORK    (1<<29)                /* network */
+#define    DT_PLUGIN     (1<<28)                /* plugin  */
+#define    DT_VOLUME     (1<<27)                /* volume  */
+#define    DT_SQL        (1<<26)                /* sql     */
+#define    DT_BVFS       (1<<25)                /* bvfs    */
+#define    DT_MEMORY     (1<<24)                /* memory  */
+#define    DT_SCHEDULER  (1<<23)                /* scheduler */
+#define    DT_PROTOCOL   (1<<22)                /* protocol */
+#define    DT_ALL        (0x7FFF0000)           /* all (up to debug_level 65635, 15 flags available) */
+
+bool debug_find_tag(const char *tagname, bool add, int64_t *current_level);
+bool debug_parse_tags(const char *options, int64_t *current_level);
+
+
+void d_msg(const char *file, int line, int64_t level, const char *fmt,...) CHECK_FORMAT(printf, 4, 5);
+void e_msg(const char *file, int line, int type, int level, const char *fmt,...) CHECK_FORMAT(printf, 5, 6);;
+void Jmsg(JCR *jcr, int type, utime_t mtime, const char *fmt,...) CHECK_FORMAT(printf, 4, 5);
+void Qmsg(JCR *jcr, int type, utime_t mtime, const char *fmt,...) CHECK_FORMAT(printf, 4, 5);
 bool get_trace(void);
+void set_debug_flags(char *options);
 const char *get_basename(const char *pathname);
 
 class B_DB;
@@ -154,12 +174,12 @@ typedef bool (*sql_escape_func)(JCR *jcr, B_DB *db, char *snew, char *old, int l
 extern DLL_IMP_EXP sql_query_func     p_sql_query;
 extern DLL_IMP_EXP sql_escape_func    p_sql_escape;
 
-extern DLL_IMP_EXP int           debug_level;
+extern DLL_IMP_EXP int64_t       debug_level;
+extern DLL_IMP_EXP int32_t       debug_flags;
 extern DLL_IMP_EXP bool          dbg_timestamp;          /* print timestamp in debug output */
 extern DLL_IMP_EXP bool          prt_kaboom;             /* Print kaboom output */
 extern DLL_IMP_EXP int           verbose;
 extern DLL_IMP_EXP char          my_name[];
-extern DLL_IMP_EXP const char   *assert_msg;             /* Assert error message */
 extern DLL_IMP_EXP const char *  working_directory;
 extern DLL_IMP_EXP utime_t       daemon_start_time;
 

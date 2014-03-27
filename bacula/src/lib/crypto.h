@@ -1,29 +1,17 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2005-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2005-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  * crypto.h Encryption support functions
@@ -76,10 +64,17 @@ typedef enum {
    CRYPTO_DIGEST_SHA512 = 4
 } crypto_digest_t;
 
+
+#ifdef HAVE_SHA2
+# define CRYPTO_DIGEST_DEFAULT CRYPTO_DIGEST_SHA256
+#else
+# define CRYPTO_DIGEST_DEFAULT CRYPTO_DIGEST_SHA1
+#endif
+
 /* Cipher Types */
 typedef enum {
    /* These are not stored on disk */
-   CRYPTO_CIPHER_AES_128_CBC,
+   CRYPTO_CIPHER_AES_128_CBC,   /* Keep AES128 as the first one */
    CRYPTO_CIPHER_AES_192_CBC,
    CRYPTO_CIPHER_AES_256_CBC,
    CRYPTO_CIPHER_BLOWFISH_CBC

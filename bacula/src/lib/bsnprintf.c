@@ -1,29 +1,17 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2005-2012 Free Software Foundation Europe e.V.
+   Copyright (C) 2005-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  * Copyright Patrick Powell 1995
@@ -52,7 +40,7 @@
  *  For Bacula we turn this off, and it silently ignores
  *  formats that could pose a security problem.
  */
-#undef SECURITY_PROBLEM 
+#undef SECURITY_PROBLEM
 
 #ifdef USE_BSNPRINTF
 
@@ -83,7 +71,7 @@ static int32_t fmtfp(char *buffer, int32_t currlen, int32_t maxlen,
 /*
  *  NOTE!!!! do not use this #define with a construct such
  *    as outch(--place);.  It just will NOT work, because the
- *    decrement of place is done ONLY if there is room in the 
+ *    decrement of place is done ONLY if there is room in the
  *    output buffer.
  */
 #define outch(c) {int len=currlen; if (currlen < maxlen) \
@@ -124,8 +112,8 @@ static int32_t fmtfp(char *buffer, int32_t currlen, int32_t maxlen,
 /*
   You might ask why does Bacula have it's own printf routine? Well,
   There are two reasons: 1. Here (as opposed to library routines), we
-  define %d and %ld to be 32 bit; %lld and %q to be 64 bit.  2. We 
-  disable %n for security reasons.                
+  define %d and %ld to be 32 bit; %lld and %q to be 64 bit.  2. We
+  disable %n for security reasons.
  */
 
 int bsnprintf(char *str, int32_t size, const char *fmt,  ...)
@@ -342,7 +330,7 @@ int bvsnprintf(char *buffer, int32_t maxlen, const char *format, va_list args)
             currlen = fmtfp(buffer, currlen, maxlen, fvalue, min, max, flags);
             break;
          case 'c':
-            ch = va_arg(args, int); 
+            ch = va_arg(args, int);
             outch(ch);
             break;
          case 's':
@@ -496,7 +484,7 @@ static int32_t fmtwstr(char *buffer, int32_t currlen, int32_t maxlen,
       --padlen;
    }
    while (*value && (cnt < max)) {
-      
+
       ch = (*value++) & 0xff;
       outch(ch);
       ++cnt;
@@ -661,12 +649,11 @@ static int32_t fmtfp(char *buffer, int32_t currlen, int32_t maxlen,
    int fplace = 0;
    int padlen = 0;                 /* amount to pad */
    int zpadlen = 0;
-   int caps = 0;
    int64_t intpart;
    int64_t fracpart;
    const char *cvt_str;
 
-   /* 
+   /*
     * AIX manpage says the default is 0, but Solaris says the default
     * is 6, and sprintf on AIX defaults to 6
     */
@@ -682,16 +669,11 @@ static int32_t fmtfp(char *buffer, int32_t currlen, int32_t maxlen,
    else if (flags & DP_F_SPACE)
       signvalue = ' ';
 
-#if 0
-   if (flags & DP_F_UP)
-      caps = 1;                    /* Should characters be upper case? */
-#endif
-
 #ifndef HAVE_FCVT
    intpart = (int64_t)ufvalue;
 
-   /* 
-    * Sorry, we only support 9 digits past the decimal because of our 
+   /*
+    * Sorry, we only support 9 digits past the decimal because of our
     * conversion method
     */
    if (max > 9)
@@ -713,7 +695,7 @@ static int32_t fmtfp(char *buffer, int32_t currlen, int32_t maxlen,
 #endif
 
    /* Convert integer part */
-   cvt_str = caps ? "0123456789ABCDEF" : "0123456789abcdef";
+   cvt_str = "0123456789";
    do {
       iconvert[iplace++] = cvt_str[(int)(intpart % 10)];
       intpart = (intpart / 10);
@@ -725,11 +707,11 @@ static int32_t fmtfp(char *buffer, int32_t currlen, int32_t maxlen,
    iconvert[iplace] = 0;
 
    /* Convert fractional part */
-   cvt_str = caps ? "0123456789ABCDEF" : "0123456789abcdef";
-   do {
+   cvt_str = "0123456789";
+   for (int fiter = max; fiter > 0; fiter--) {
       fconvert[fplace++] = cvt_str[fracpart % 10];
       fracpart = (fracpart / 10);
-   } while (fracpart && (fplace < (int)sizeof(fconvert)));
+   }
 
    if (fplace == (int)sizeof(fconvert)) {
       fplace--;
@@ -889,9 +871,10 @@ int main(int argc, char *argv[])
       "%3.2f",
       "%.0f",
       "%.1f",
+      "%.2f",
       NULL
    };
-   double fp_nums[] = { -1.5, 134.21, 91340.2, 341.1234, 0203.9, 0.96, 0.996,
+   double fp_nums[] = { 1.05, -1.5, 134.21, 91340.2, 341.1234, 0203.9, 0.96, 0.996,
       0.9996, 1.996, 4.136, 6442452944.1234, 0, 23365.5
    };
 #endif
@@ -967,8 +950,6 @@ int main(int argc, char *argv[])
       NULL
    };
    const wchar_t *ls_nums[] = { L"abc", L"def", L"ghi", L"123", L"4567", L"a", L"bb", L"ccccccc", NULL};
-
-
 
    int x, y;
    int fail = 0;

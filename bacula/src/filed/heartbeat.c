@@ -1,29 +1,17 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2003-2012 Free Software Foundation Europe e.V.
+   Copyright (C) 2003-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  *  Bacula File Daemon heartbeat routines
@@ -65,8 +53,8 @@ extern "C" void *sd_heartbeat_thread(void *arg)
    jcr->hb_bsock = sd;
    jcr->hb_started = true;
    jcr->hb_dir_bsock = dir;
-   dir->m_suppress_error_msgs = true;
-   sd->m_suppress_error_msgs = true;
+   dir->suppress_error_messages(true);
+   sd->suppress_error_messages(true);
 
    /* Hang reading the socket to the SD, and every time we get
     *   a heartbeat or we get a wait timeout (5 seconds), we
@@ -74,7 +62,7 @@ extern "C" void *sd_heartbeat_thread(void *arg)
     *   Director.
     */
    while (!sd->is_stop()) {
-      n = bnet_wait_data_intr(sd, WAIT_INTERVAL);
+      n = sd->wait_data_intr(WAIT_INTERVAL);
       if (n < 0 || sd->is_stop()) {
          break;
       }
@@ -99,10 +87,14 @@ extern "C" void *sd_heartbeat_thread(void *arg)
             Dmsg2(100, "Got %d bytes from SD. MSG=%s\n", sd->msglen, sd->msg);
          }
       }
-      Dmsg2(200, "wait_intr=%d stop=%d\n", n, is_bnet_stop(sd));
+      Dmsg2(200, "wait_intr=%d stop=%d\n", n, sd->is_stop());
    }
-   sd->close();
-   dir->close();
+   /*
+    * Note, since sd and dir are local dupped sockets, this
+    *  is one place where we can call destroy().
+    */
+   sd->destroy();
+   dir->destroy();
    jcr->hb_bsock = NULL;
    jcr->hb_started = false;
    jcr->hb_dir_bsock = NULL;
@@ -176,7 +168,7 @@ extern "C" void *dir_heartbeat_thread(void *arg)
 
    jcr->hb_bsock = dir;
    jcr->hb_started = true;
-   dir->m_suppress_error_msgs = true;
+   dir->suppress_error_messages(true);
 
    while (!dir->is_stop()) {
       time_t now, next;
@@ -192,7 +184,7 @@ extern "C" void *dir_heartbeat_thread(void *arg)
       }
       bmicrosleep(next, 0);
    }
-   dir->close();
+   dir->destroy();
    jcr->hb_bsock = NULL;
    jcr->hb_started = false;
    return NULL;

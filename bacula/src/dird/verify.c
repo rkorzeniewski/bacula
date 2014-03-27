@@ -1,29 +1,17 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2011 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  *
@@ -47,25 +35,22 @@
 
 /* Commands sent to File daemon */
 static char verifycmd[] = "verify level=%s\n";
-static char storaddr[]  = "storage address=%s port=%d ssl=0 Authorization=%s\n";
 
 /* Responses received from File daemon */
 static char OKverify[]  = "2000 OK verify\n";
-static char OKstore[]   = "2000 OK storage\n";
 
-/* Responses received from the Storage daemon */
+/* Commands received from Storage daemon */
 static char OKbootstrap[] = "3000 OK bootstrap\n";
 
 /* Forward referenced functions */
 static void prt_fname(JCR *jcr);
 static int missing_handler(void *ctx, int num_fields, char **row);
 
-
-/* 
+/*
  * Called here before the job is run to do the job
  *   specific setup.
  */
-bool do_verify_init(JCR *jcr) 
+bool do_verify_init(JCR *jcr)
 {
    if (!allow_duplicate_job(jcr)) {
       return false;
@@ -100,11 +85,13 @@ bool do_verify_init(JCR *jcr)
 bool do_verify(JCR *jcr)
 {
    const char *level;
-   BSOCK   *fd;
+   BSOCK *fd, *sd;
    int stat;
    char ed1[100];
    JOB_DBR jr;
    JobId_t verify_jobid = 0;
+   char *store_address;
+   uint32_t store_port;
    const char *Name;
 
    free_wstorage(jcr);                   /* we don't write */
@@ -220,7 +207,6 @@ bool do_verify(JCR *jcr)
       edit_uint64(jcr->JobId, ed1), level_to_str(jcr->getJobLevel()), jcr->Job);
 
    if (jcr->getJobLevel() == L_VERIFY_VOLUME_TO_CATALOG) {
-      BSOCK *sd;
       /*
        * Start conversation with Storage daemon
        */
@@ -235,6 +221,7 @@ bool do_verify(JCR *jcr)
          return false;
       }
       sd = jcr->store_bsock;
+      jcr->sd_calls_client = jcr->client->sd_calls_client;
       /*
        * Send the bootstrap file -- what Volumes/files to restore
        */
@@ -242,17 +229,11 @@ bool do_verify(JCR *jcr)
           !response(jcr, sd, OKbootstrap, "Bootstrap", DISPLAY_ERROR)) {
          goto bail_out;
       }
-      if (!sd->fsend("run")) {
-         return false;
+      if (!jcr->sd_calls_client) {
+         if (!run_storage_and_start_message_thread(jcr, sd)) {
+            return false;
+         }
       }
-      /*
-       * Now start a Storage daemon message thread
-       */
-      if (!start_storage_daemon_message_thread(jcr)) {
-         return false;
-      }
-      Dmsg0(50, "Storage daemon connection OK\n");
-
    }
    /*
     * OK, now connect to the File daemon
@@ -289,15 +270,34 @@ bool do_verify(JCR *jcr)
       level = "catalog";
       break;
    case L_VERIFY_VOLUME_TO_CATALOG:
-      /*
-       * send Storage daemon address to the File daemon
-       */
-      if (jcr->rstore->SDDport == 0) {
-         jcr->rstore->SDDport = jcr->rstore->SDport;
+      if (jcr->sd_calls_client) {
+         if (jcr->FDVersion < 5) {
+            Jmsg(jcr, M_FATAL, 0, _("The File daemon does not support SDCallsClient.\n"));
+            goto bail_out;
+         }
+
+         if (!send_client_addr_to_sd(jcr)) {
+            goto bail_out;
+         }
+
+         if (!run_storage_and_start_message_thread(jcr, jcr->store_bsock)) {
+            return false;
+         }
+         store_address = jcr->rstore->address;  /* dummy */
+         store_port = 0;           /* flag that SD calls FD */
+      } else {
+         /*
+          * send Storage daemon address to the File daemon
+          */
+         if (jcr->rstore->SDDport == 0) {
+            jcr->rstore->SDDport = jcr->rstore->SDport;
+         }
+
+         store_address = get_storage_address(jcr->client, jcr->rstore);
+         store_port = jcr->rstore->SDDport;
       }
-      bnet_fsend(fd, storaddr, jcr->rstore->address, 
-                 jcr->rstore->SDDport, jcr->sd_auth_key);
-      if (!response(jcr, fd, OKstore, "Storage", DISPLAY_ERROR)) {
+
+      if (!send_store_addr_to_fd(jcr, jcr->rstore, store_address, store_port)) {
          goto bail_out;
       }
 
@@ -752,7 +752,7 @@ void get_attributes_and_compare_to_catalog(JCR *jcr, JobId_t JobId)
       }
       jcr->JobFiles = file_index;
    }
-   if (is_bnet_error(fd)) {
+   if (fd->is_error()) {
       berrno be;
       Jmsg2(jcr, M_FATAL, 0, _("bdird<filed: bad attributes from filed n=%d : %s\n"),
                         n, be.bstrerror());

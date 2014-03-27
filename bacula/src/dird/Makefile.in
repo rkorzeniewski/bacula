@@ -22,9 +22,6 @@ DEBUG=@DEBUG@
 GETTEXT_LIBS = @LIBINTL@
 CAP_LIBS = @CAP_LIBS@
 
-PYTHON_LIBS = @PYTHON_LIBS@
-PYTHON_INC = @PYTHON_INCDIR@
-
 DB_LIBS=@DB_LIBS@
 
 first_rule: all
@@ -35,9 +32,8 @@ SVRSRCS = dird.c admin.c authenticate.c \
 	  autoprune.c backup.c bsr.c \
 	  catreq.c dir_plugins.c dird_conf.c expand.c \
 	  fd_cmds.c getmsg.c inc_conf.c job.c \
-	  jobq.c migrate.c \
+	  jobq.c mac.c mac_sql.c \
 	  mountreq.c msgchan.c next_vol.c newvol.c \
-	  pythondir.c \
 	  recycle.c restore.c run_conf.c \
 	  scheduler.c \
 	  ua_acl.c ua_cmds.c ua_dotcmds.c \
@@ -58,7 +54,7 @@ EXTRAOBJS = @OBJLIST@
 # inference rules
 .c.o:
 	@echo "Compiling $<"
-	$(NO_ECHO)$(CXX) $(DEFS) $(DEBUG) -c $(WCFLAGS) $(CPPFLAGS) $(PYTHON_INC) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
+	$(NO_ECHO)$(CXX) $(DEFS) $(DEBUG) -c $(WCFLAGS) $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
 #-------------------------------------------------------------------------
 all: Makefile bacula-dir @STATIC_DIR@
 	@echo "==== Make of dird is good ===="
@@ -69,14 +65,14 @@ bacula-dir: Makefile $(SVROBJS) ../lib/libbac$(DEFAULT_ARCHIVE_TYPE) ../lib/libb
 	    ../cats/libbaccats$(DEFAULT_ARCHIVE_TYPE) ../findlib/libbacfind$(DEFAULT_ARCHIVE_TYPE)
 	@echo "Linking $@ ..."
 	$(LIBTOOL_LINK) $(CXX) $(WLDFLAGS) $(LDFLAGS) -L../lib -L../cats -L../findlib -o $@ $(SVROBJS) \
-	      -lbacfind -lbacsql -lbaccats -lbacpy -lbaccfg -lbac -lm $(PYTHON_LIBS) $(DLIB) $(DB_LIBS) $(LIBS) \
+	      -lbacfind -lbacsql -lbaccats -lbacpy -lbaccfg -lbac -lm $(DLIB) $(DB_LIBS) $(LIBS) \
 	      $(WRAPLIBS) $(GETTEXT_LIBS) $(OPENSSL_LIBS) $(CAP_LIBS)
 
 static-bacula-dir:  Makefile $(SVROBJS) ../lib/libbac$(DEFAULT_ARCHIVE_TYPE) ../lib/libbaccfg$(DEFAULT_ARCHIVE_TYPE) \
 		   ../lib/libbacpy$(DEFAULT_ARCHIVE_TYPE) ../cats/libbacsql$(DEFAULT_ARCHIVE_TYPE) \
 		   ../cats/libbaccats$(DEFAULT_ARCHIVE_TYPE) ../findlib/libbacfind$(DEFAULT_ARCHIVE_TYPE)
 	$(LIBTOOL_LINK) $(CXX) $(WLDFLAGS) $(LDFLAGS) -static -L../lib -L../cats -L../findlib -o $@ $(SVROBJS) \
-	      -lbacfind -lbacsql -lbaccats -lbacpy -lbaccfg -lbac -lm $(PYTHON_LIBS) $(DLIB) $(DB_LIBS) $(LIBS) \
+	      -lbacfind -lbacsql -lbaccats -lbacpy -lbaccfg -lbac -lm $(DLIB) $(DB_LIBS) $(LIBS) \
 	      $(WRAPLIBS) $(GETTEXT_LIBS) $(OPENSSL_LIBS) $(CAP_LIBS)
 	strip $@
 
@@ -127,7 +123,7 @@ install: all
 
 
 uninstall:
-	(cd $(DESTDIR)$(sbindir); $(RMF) bacula-dir)
+	(cd $(DESTDIR)$(sbindir); $(RMF) bacula-dir
 	(cd $(DESTDIR)$(sysconfdir); $(RMF) bacula-dir.conf bacula-dir.conf.new)
 	(cd $(DESTDIR)$(scriptdir); $(RMF) query.sql)
 
@@ -142,7 +138,7 @@ depend:
 	@$(MV) Makefile Makefile.bak
 	@$(SED) "/^# DO NOT DELETE:/,$$ d" Makefile.bak > Makefile
 	@$(ECHO) "# DO NOT DELETE: nice dependency list follows" >> Makefile
-	@$(CXX) -S -M $(CPPFLAGS) $(XINC) $(PYTHON_INC) -I$(srcdir) -I$(basedir) *.c >> Makefile
+	@$(CXX) -S -M $(CPPFLAGS) $(XINC) -I$(srcdir) -I$(basedir) *.c >> Makefile
 	@if test -f Makefile ; then \
 	    $(RMF) Makefile.bak; \
 	else \

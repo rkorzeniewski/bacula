@@ -6,7 +6,7 @@
 # *.[oa]
 # *~
 
-# 
+#
 *.la
 *.a
 *.o
@@ -93,6 +93,7 @@ oldtxt
 kerns-bs-config
 libtool
 config.status.lineno
+win32
 
 # autoconf/
 autoconf/autom4te.cache
@@ -170,6 +171,8 @@ po/*.mo
 po/*.gmo
 
 # scripts/
+scripts/bs_alert
+scripts/bsg_persist
 scripts/breload
 scripts/make_catalog_backup.pl
 scripts/bacula_config
@@ -295,6 +298,7 @@ src/cats/.libs
 src/cats/libbacsql.a
 
 # src/console/
+src/console/bbconsjson
 src/console/console.conf
 src/console/test-console.conf
 src/console/test-bconsole.conf
@@ -309,6 +313,7 @@ src/console/static-bconsole
 src/console/.libs
 
 # src/dird/
+src/dird/bdirjson
 src/dird/1
 src/dird/2
 src/dird/3
@@ -324,6 +329,7 @@ src/dird/filelist.exc
 src/dird/.libs
 
 # src/filed/
+src/filed/bfdjson
 src/filed/Makefile
 src/filed/bacula-fd
 src/filed/bacula-fd.conf
@@ -376,7 +382,7 @@ src/lib/libbaccfg.a
 src/lib/libbacpy.a
 
 # src/plugins/dir/
-src/plugins/dir/*.o   
+src/plugins/dir/*.o
 src/plugins/dir/*.so
 src/plugins/dir/main
 src/plugins/dir/Makefile
@@ -492,6 +498,7 @@ src/qt-console/ts/bat_fr.qm
 src/qt-console/ts/bat_de.qm
 
 # src/stored/
+src/stored/bsdjson
 src/stored/1
 src/stored/2
 src/stored/Makefile
@@ -523,6 +530,7 @@ src/stored/unmount-simulator
 src/stored/.libs
 
 # src/tools/
+src/tools/find_bad_jobmedia.pl
 src/tools/ing_test
 src/tools/bregex
 src/tools/bwild
@@ -542,6 +550,7 @@ src/tools/grow
 src/tools/.libs
 src/tools/bvfs_test
 src/tools/bpluginfo
+src/tools/timelimit
 
 # src/tray-monitor/
 src/tray-monitor/tray-monitor.conf
@@ -571,6 +580,7 @@ src/win32/debug
 src/win32/release32
 src/win32/release64
 src/win32/dll
+src/win32/build.log
 
 # src/win32
 src/win32*.user
@@ -778,6 +788,15 @@ src/wx-console/bwx-console.conf
 src/wx-console/.libs
 
 # updatedb/
+updatedb/update_mysql_tables_1014_to_1015
+updatedb/update_mysql_tables_1015_to_1016
+updatedb/update_mysql_tables_12_to_13
+updatedb/update_mysql_tables_13_to_14
+updatedb/update_mysql_tables_14_to_1014
+updatedb/update_postgresql_tables_1014_to_1015
+updatedb/update_postgresql_tables_12_to_13
+updatedb/update_postgresql_tables_13_to_14
+updatedb/update_postgresql_tables_14_to_1014
 updatedb/update_mysql_tables_12_to_14
 updatedb/update_postgresql_tables_12_to_14
 updatedb/update_sqlite3_tables_12_to_14

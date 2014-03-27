@@ -25,9 +25,8 @@ dummy:
 INCLUDE_FILES = bfile.h find.h protos.h 
 
 #
-LIBBACFIND_SRCS = find.c match.c find_one.c attribs.c create_file.c \
-		  bfile.c drivetype.c enable_priv.c fstype.c mkpath.c \
-		  savecwd.c
+LIBBACFIND_SRCS = find.c match.c find_one.c file_attrs.c file_create.c \
+		  bfile.c drivetype.c priv.c fstype.c makepath.c
 LIBBACFIND_OBJS = $(LIBBACFIND_SRCS:.c=.o)
 LIBBACFIND_LOBJS = $(LIBBACFIND_SRCS:.c=.lo)
 

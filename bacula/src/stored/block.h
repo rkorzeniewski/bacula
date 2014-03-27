@@ -1,34 +1,22 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2012 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  * Block definitions for Bacula media data format.
  *
- *    Kern Sibbald, MM
+ *    Written by Kern Sibbald, MM
  *
  */
 
@@ -53,7 +41,13 @@
 
 /* Record header definitions */
 #define RECHDR1_LENGTH      20
-#define RECHDR2_LENGTH      12
+/*
+ * Record header consists of:
+ *  int32_t FileIndex
+ *  int32_t Stream
+ *  uint32_t data_length
+ */
+#define RECHDR2_LENGTH  (3*sizeof(int32_t))
 #define WRITE_RECHDR_LENGTH RECHDR2_LENGTH
 
 /* Tape label and version definitions */
@@ -66,16 +60,23 @@
 /*
  * This is the Media structure for a block header
  *  Note, when written, it is serialized.
+   16 bytes
 
    uint32_t CheckSum;
    uint32_t block_len;
    uint32_t BlockNumber;
    char     Id[BLKHDR_ID_LENGTH];
 
- * for BB02 block, we also have
+ * for BB02 block, we have
+   24 bytes
 
+   uint32_t CheckSum;
+   uint32_t block_len;
+   uint32_t BlockNumber;
+   char     Id[BLKHDR_ID_LENGTH];
    uint32_t VolSessionId;
    uint32_t VolSessionTime;
+
  */
 
 class DEVICE;                         /* for forward reference */
@@ -96,20 +97,29 @@ struct DEV_BLOCK {
     *   For writes, it is bytes not yet written.
     *   For reads, it is remaining bytes not yet read.
     */
+   uint64_t BlockAddr;                /* Block address */
    uint32_t binbuf;                   /* bytes in buffer */
    uint32_t block_len;                /* length of current block read */
    uint32_t buf_len;                  /* max/default block length */
+   uint32_t reclen;                   /* Last record length put in block */
    uint32_t BlockNumber;              /* sequential Bacula block number */
    uint32_t read_len;                 /* bytes read into buffer, if zero, block empty */
    uint32_t VolSessionId;             /* */
    uint32_t VolSessionTime;           /* */
    uint32_t read_errors;              /* block errors (checksum, header, ...) */
+   uint32_t CheckSum;                 /* Block checksum */
    int      BlockVer;                 /* block version 1 or 2 */
    bool     write_failed;             /* set if write failed */
    bool     block_read;               /* set when block read */
+   bool     needs_write;              /* block must be written */
+   bool     no_header;                /* Set if no block header */
+   bool     new_fi;                   /* New FI arrived */
    int32_t  FirstIndex;               /* first index this block */
    int32_t  LastIndex;                /* last index this block */
+   int32_t  rechdr_items;             /* number of items in rechdr queue */
    char    *bufp;                     /* pointer into buffer */
+   char     ser_buf[BLKHDR2_LENGTH];  /* Serial buffer for data */
+   POOLMEM *rechdr_queue;             /* record header queue */
    POOLMEM *buf;                      /* actual data buffer */
 };
 

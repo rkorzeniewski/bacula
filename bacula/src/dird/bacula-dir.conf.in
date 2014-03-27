@@ -18,7 +18,7 @@ Director {                            # define myself
   QueryFile = "@scriptdir@/query.sql"
   WorkingDirectory = "@working_dir@"
   PidDirectory = "@piddir@"
-  Maximum Concurrent Jobs = 1
+  Maximum Concurrent Jobs = 20
   Password = "@dir_password@"         # Console password
   Messages = Daemon
 }
@@ -27,12 +27,13 @@ JobDefs {
   Name = "DefaultJob"
   Type = Backup
   Level = Incremental
-  Client = @basename@-fd 
+  Client = @basename@-fd
   FileSet = "Full Set"
   Schedule = "WeeklyCycle"
-  Storage = File
+  Storage = File1
   Messages = Standard
   Pool = File
+  SpoolAttributes = yes
   Priority = 10
   Write Bootstrap = "@working_dir@/%c.bsr"
 }
@@ -50,6 +51,16 @@ Job {
 #  Name = "BackupClient2"
 #  Client = @basename@2-fd
 #  JobDefs = "DefaultJob"
+#}
+
+#Job {
+#  Name = "BackupClient1-to-Tape"
+#  JobDefs = "DefaultJob"
+#  Storage = LTO-4
+#  Spool Data = yes    # Avoid shoe-shine
+#  Pool = Default
+#}
+
 #}
 
 # Backup the catalog database (after the nightly save)
@@ -76,10 +87,10 @@ Job {
 Job {
   Name = "RestoreFiles"
   Type = Restore
-  Client=@basename@-fd                 
-  FileSet="Full Set"                  
-  Storage = File                      
-  Pool = Default
+  Client=@basename@-fd
+  FileSet="Full Set"
+  Storage = File1
+  Pool = File
   Messages = Standard
   Where = @archivedir@/bacula-restores
 }
@@ -92,7 +103,7 @@ FileSet {
     Options {
       signature = MD5
     }
-#    
+#
 #  Put your list of files here, preceded by 'File =', one per line
 #    or include an external list with:
 #
@@ -118,6 +129,7 @@ FileSet {
     File = @archivedir@
     File = /proc
     File = /tmp
+    File = /sys
     File = /.journal
     File = /.fsck
   }
@@ -158,7 +170,7 @@ Client {
   FDPort = @fd_port@
   Catalog = MyCatalog
   Password = "@fd_password@"          # password for FileDaemon
-  File Retention = 30 days            # 30 days
+  File Retention = 60 days            # 60 days
   Job Retention = 6 months            # six months
   AutoPrune = yes                     # Prune expired Jobs/Files
 }
@@ -168,70 +180,57 @@ Client {
 #  You should change Name, Address, and Password before using
 #
 #Client {
-#  Name = @basename@2-fd                
+#  Name = @basename@2-fd
 #  Address = @hostname@2
 #  FDPort = @fd_port@
 #  Catalog = MyCatalog
-#  Password = "@fd_password@2"         # password for FileDaemon 2
-#  File Retention = 30 days            # 30 days
-#  Job Retention = 6 months            # six months
-#  AutoPrune = yes                     # Prune expired Jobs/Files
+#  Password = "@fd_password@2"        # password for FileDaemon 2
+#  File Retention = 60 days           # 60 days
+#  Job Retention = 6 months           # six months
+#  AutoPrune = yes                    # Prune expired Jobs/Files
 #}
 
 
-# Definition of file storage device
+# Definition of file Virtual Autochanger device
 Storage {
-  Name = File
-# Do not use "localhost" here    
+  Name = File1
+# Do not use "localhost" here
   Address = @hostname@                # N.B. Use a fully qualified name here
   SDPort = @sd_port@
   Password = "@sd_password@"
-  Device = FileStorage
-  Media Type = File
+  Device = FileChgr1
+  Media Type = File1
+  Maximum Concurrent Jobs = 10        # run up to 10 jobs a the same time
 }
 
+# Definition of a second file Virtual Autochanger device
+#   Possibly pointing to a different disk drive
+Storage {
+  Name = File2
+# Do not use "localhost" here
+  Address = @hostname@                # N.B. Use a fully qualified name here
+  SDPort = @sd_port@
+  Password = "@sd_password@"
+  Device = FileChgr2
+  Media Type = File2
+  Maximum Concurrent Jobs = 10        # run up to 10 jobs a the same time
+}
 
-
-# Definition of DDS tape storage device
+# Definition of LTO-4 tape Autochanger device
 #Storage {
-#  Name = DDS-4    
+#  Name = LTO-4
 #  Do not use "localhost" here
-#  Address = @hostname@                # N.B. Use a fully qualified name here
+#  Address = @hostname@               # N.B. Use a fully qualified name here
 #  SDPort = @sd_port@
-#  Password = "@sd_password@"          # password for Storage daemon
-#  Device = DDS-4                      # must be same as Device in Storage daemon
-#  Media Type = DDS-4                  # must be same as MediaType in Storage daemon
-#  Autochanger = yes                   # enable for autochanger device
+#  Password = "@sd_password@"         # password for Storage daemon
+#  Device = LTO-4                     # must be same as Device in Storage daemon
+#  Media Type = LTO-4                 # must be same as MediaType in Storage daemon
+#  Maximum Concurrent Jobs = 10
 #}
-
-# Definition of 8mm tape storage device
-#Storage {
-#  Name = "8mmDrive"
-#  Do not use "localhost" here
-#  Address = @hostname@                # N.B. Use a fully qualified name here
-#  SDPort = @sd_port@
-#  Password = "@sd_password@"
-#  Device = "Exabyte 8mm"
-#  MediaType = "8mm"
-#}
-
-# Definition of DVD storage device
-#Storage {
-#  Name = "DVD"
-#  Do not use "localhost" here
-#  Address = @hostname@                # N.B. Use a fully qualified name here
-#  SDPort = @sd_port@
-#  Password = "@sd_password@"
-#  Device = "DVD Writer"
-#  MediaType = "DVD"
-#}
-
 
 # Generic catalog service
 Catalog {
   Name = MyCatalog
-# Uncomment the following line if you want the dbi driver
-@uncomment_dbi@ dbdriver = "dbi:@DEFAULT_DB_TYPE@"; dbaddress = 127.0.0.1; dbport = @db_port@
   dbname = "@db_name@"; dbuser = "@db_user@"; dbpassword = "@db_password@"
 }
 
@@ -246,14 +245,14 @@ Messages {
 #  What this does is, it sets the email address that emails would display
 #  in the FROM field, which is by default the same email as they're being
 #  sent to.  However, if you send email to more than one address, then
-#  you'll have to set the FROM address manually, to a single address. 
+#  you'll have to set the FROM address manually, to a single address.
 #  for example, a 'no-reply@mydomain.com', is better since that tends to
 #  tell (most) people that its coming from an automated source.
 
 #
   mailcommand = "@sbindir@/bsmtp -h @smtp_host@ -f \"\(Bacula\) \<%r\>\" -s \"Bacula: %t %e of %c %l\" %r"
   operatorcommand = "@sbindir@/bsmtp -h @smtp_host@ -f \"\(Bacula\) \<%r\>\" -s \"Bacula: Intervention needed for %j\" %r"
-  mail = @job_email@ = all, !skipped            
+  mail = @job_email@ = all, !skipped
   operator = @job_email@ = mount
   console = all, !skipped, !saved
 #
@@ -271,7 +270,7 @@ Messages {
 Messages {
   Name = Daemon
   mailcommand = "@sbindir@/bsmtp -h @smtp_host@ -f \"\(Bacula\) \<%r\>\" -s \"Bacula daemon message\" %r"
-  mail = @job_email@ = all, !skipped            
+  mail = @job_email@ = all, !skipped
   console = all, !skipped, !saved
   append = "@logdir@/bacula.log" = all, !skipped
 }
@@ -283,6 +282,8 @@ Pool {
   Recycle = yes                       # Bacula can automatically recycle Volumes
   AutoPrune = yes                     # Prune expired volumes
   Volume Retention = 365 days         # one year
+  Maximum Volume Bytes = 50G          # Limit Volume size to something reasonable
+  Maximum Volumes = 100               # Limit number of Volumes in Pool
 }
 
 # File Pool definition
@@ -294,6 +295,7 @@ Pool {
   Volume Retention = 365 days         # one year
   Maximum Volume Bytes = 50G          # Limit Volume size to something reasonable
   Maximum Volumes = 100               # Limit number of Volumes in Pool
+  Label Format = "Vol-"               # Auto label
 }
 
 

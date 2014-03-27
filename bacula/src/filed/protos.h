@@ -1,32 +1,20 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2010 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
- * Written by Kern Sibbald, MM 
+ * Written by Kern Sibbald, MM
  *
  */
 
@@ -72,7 +60,7 @@ findINCEXE *new_preinclude(JCR *jcr);
 findINCEXE *get_incexe(JCR *jcr);
 void set_incexe(JCR *jcr, findINCEXE *incexe);
 void new_options(JCR *jcr, findINCEXE *incexe);
-void add_file_to_fileset(JCR *jcr, const char *fname, bool is_file); 
+void add_file_to_fileset(JCR *jcr, const char *fname, bool is_file);
 int add_options_to_fileset(JCR *jcr, const char *item);
 int add_wild_to_fileset(JCR *jcr, const char *item, int type);
 int add_regex_to_fileset(JCR *jcr, const char *item, int type);

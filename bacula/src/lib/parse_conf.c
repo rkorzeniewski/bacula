@@ -1,29 +1,17 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2012 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  *   Master Configuration routines.
@@ -149,7 +137,7 @@ struct s_kw {
 };
 
 /*
- * Tape Label types permitted in Pool records 
+ * Tape Label types permitted in Pool records
  *
  *   tape label      label code = token
  */
@@ -322,7 +310,7 @@ void store_msgs(LEX *lc, RES_ITEM *item, int index, int pass)
  */
 static void scan_types(LEX *lc, MSGS *msg, int dest_code, char *where, char *cmd)
 {
-   int i; 
+   int i;
    bool found, is_not;
    int msg_type = 0;
    char *str;
@@ -531,7 +519,7 @@ void store_alist_res(LEX *lc, RES_ITEM *item, int index, int pass)
                item->name, lc->line_no, lc->line);
             return;
          }
-         Dmsg5(900, "Append %p to alist %p size=%d i=%d %s\n", 
+         Dmsg5(900, "Append %p to alist %p size=%d i=%d %s\n",
                res, list, list->size(), i, item->name);
          list->append(res);
          (item->value)[i] = (char *)list;
@@ -557,11 +545,11 @@ void store_alist_str(LEX *lc, RES_ITEM *item, int index, int pass)
       if (*(item->value) == NULL) {
          list = New(alist(10, owned_by_alist));
       } else {
-         list = (alist *)(*(item->value));    
+         list = (alist *)(*(item->value));
       }
 
       lex_get_token(lc, T_STRING);   /* scan next item */
-      Dmsg4(900, "Append %s to alist %p size=%d %s\n", 
+      Dmsg4(900, "Append %s to alist %p size=%d %s\n",
          lc->str, list, list->size(), item->name);
       list->append(bstrdup(lc->str));
       *(item->value) = (char *)list;
@@ -634,7 +622,7 @@ enum store_unit_type {
 } ;
 
 /* Store a size in bytes */
-static void store_int_unit(LEX *lc, RES_ITEM *item, int index, int pass, 
+static void store_int_unit(LEX *lc, RES_ITEM *item, int index, int pass,
                            bool size32, enum store_unit_type type)
 {
    int token;
@@ -678,7 +666,7 @@ static void store_int_unit(LEX *lc, RES_ITEM *item, int index, int pass,
       }
       break;
    default:
-      scan_err2(lc, _("expected a %s, got: %s"), 
+      scan_err2(lc, _("expected a %s, got: %s"),
                 (type == STORE_SIZE)?_("size"):_("speed"), lc->str);
       return;
    }
@@ -858,15 +846,15 @@ parse_config(const char *cf, LEX_ERROR_HANDLER *scan_error, int err_type)
 {
    int ok;
    CONFIG *config = new_config_parser();
-   config->init(cf, scan_error, err_type, (void *)&res_all, res_all_size,    
+   config->init(cf, scan_error, err_type, (void *)&res_all, res_all_size,
                 r_first, r_last, resources, res_head);
    ok = config->parse_config();
    free(config);
    return ok;
 }
 #endif
-      
-   
+
+
 bool CONFIG::parse_config()
 {
    LEX *lc = NULL;
@@ -1067,7 +1055,7 @@ const char *get_default_configdir()
 
 /*
  * Returns false on error
- *         true  on OK, with full_path set to where config file should be 
+ *         true  on OK, with full_path set to where config file should be
  */
 static bool
 find_config_file(const char *config_file, char *full_path, int max_path)

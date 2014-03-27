@@ -1,29 +1,17 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2001-2011 Free Software Foundation Europe e.V.
+   Copyright (C) 2001-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  *
@@ -40,7 +28,7 @@
 #include "findlib/find.h"
 #include "cats/cats.h"
 #include "cats/sql_glue.h"
- 
+
 /* Dummy functions */
 int generate_daemon_event(JCR *jcr, const char *event) { return 1; }
 extern bool parse_sd_config(CONFIG *config, const char *configfile, int exit_code);
@@ -104,6 +92,8 @@ static int num_files = 0;
 
 static CONFIG *config;
 #define CONFIG_FILE "bacula-sd.conf"
+
+void *start_heap;
 char *configfile = NULL;
 STORES *me = NULL;                    /* our Global resource */
 bool forge_on = false;                /* proceed inspite of I/O errors */
@@ -135,7 +125,8 @@ PROG_COPYRIGHT
 "       -v                verbose\n"
 "       -V <Volumes>      specify Volume names (separated by |)\n"
 "       -w <dir>          specify working directory (default from conf file)\n"
-"       -?                print this message\n\n"), 2001, VERSION, BDATE);
+"       -?                print this message\n\n"),
+      2001, VERSION, BDATE);
    exit(1);
 }
 
@@ -190,7 +181,7 @@ int main (int argc, char *argv[])
       case 'h':
          db_host = optarg;
          break;
-         
+
       case 't':
          db_port = atoi(optarg);
          break;
@@ -255,14 +246,9 @@ int main (int argc, char *argv[])
 
    config = new_config_parser();
    parse_sd_config(config, configfile, M_ERROR_TERM);
-   LockRes();
-   me = (STORES *)GetNextRes(R_STORAGE, NULL);
-   if (!me) {
-      UnlockRes();
-      Emsg1(M_ERROR_TERM, 0, _("No Storage resource defined in %s. Cannot continue.\n"),
-         configfile);
-   }
-   UnlockRes();
+   setup_me();
+   load_sd_plugins(me->plugin_directory);
+
    /* Check if -w option given, otherwise use resource for working directory */
    if (wd) {
       working_directory = wd;
@@ -283,7 +269,7 @@ int main (int argc, char *argv[])
          working_directory);
    }
 
-   bjcr = setup_jcr("bscan", argv[0], bsr, VolumeName, 1); /* read device */
+   bjcr = setup_jcr("bscan", argv[0], bsr, VolumeName, SD_READ);
    if (!bjcr) {
       exit(1);
    }
@@ -293,7 +279,7 @@ int main (int argc, char *argv[])
       struct stat sb;
       fstat(dev->fd(), &sb);
       currentVolumeSize = sb.st_size;
-      Pmsg1(000, _("First Volume Size = %s\n"), 
+      Pmsg1(000, _("First Volume Size = %s\n"),
          edit_uint64(currentVolumeSize, ed1));
    }
 
@@ -335,7 +321,7 @@ static bool bscan_mount_next_read_volume(DCR *dcr)
    Dmsg1(100, "Walk attached jcrs. Volume=%s\n", dev->getVolCatName());
    foreach_dlist(mdcr, dev->attached_dcrs) {
       JCR *mjcr = mdcr->jcr;
-      Dmsg1(000, "========== JobId=%u ========\n", mjcr->JobId);
+      Dmsg1(100, "========== JobId=%u ========\n", mjcr->JobId);
       if (mjcr->JobId == 0) {
          continue;
       }
@@ -369,7 +355,7 @@ static bool bscan_mount_next_read_volume(DCR *dcr)
       struct stat sb;
       fstat(dev->fd(), &sb);
       currentVolumeSize = sb.st_size;
-      Pmsg1(000, _("First Volume Size = %s\n"), 
+      Pmsg1(000, _("First Volume Size = %s\n"),
          edit_uint64(currentVolumeSize, ed1));
    }
    return stat;
@@ -451,7 +437,7 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
          bstrncpy(pr.Name, dev->VolHdr.PoolName, sizeof(pr.Name));
          bstrncpy(pr.PoolType, dev->VolHdr.PoolType, sizeof(pr.PoolType));
          num_pools++;
-         if (db_get_pool_record(bjcr, db, &pr)) {
+         if (db_get_pool_numvols(bjcr, db, &pr)) {
             if (verbose) {
                Pmsg1(000, _("Pool record for %s found in DB.\n"), pr.Name);
             }
@@ -554,15 +540,15 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
          bstrncpy(dcr->pool_type, label.PoolType, sizeof(dcr->pool_type));
          bstrncpy(dcr->pool_name, label.PoolName, sizeof(dcr->pool_name));
 
-         /* Look for existing Job Media records for this job.  If there are 
-            any, no new ones need be created.  This may occur if File 
+         /* Look for existing Job Media records for this job.  If there are
+            any, no new ones need be created.  This may occur if File
             Retention has expired before Job Retention, or if the volume
             has already been bscan'd */
          Mmsg(sql_buffer, "SELECT count(*) from JobMedia where JobId=%d", jr.JobId);
-         db_sql_query(db, sql_buffer.c_str(), db_int64_handler, &jmr_count); 
+         db_sql_query(db, sql_buffer.c_str(), db_int64_handler, &jmr_count);
          if( jmr_count.value > 0 ) {
             //FIELD NAME TO BE DEFINED/CONFIRMED (maybe a struct?)
-            mjcr->bscan_insert_jobmedia_records = false; 
+            mjcr->bscan_insert_jobmedia_records = false;
          } else {
             mjcr->bscan_insert_jobmedia_records = true;
          }
@@ -612,7 +598,7 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
          /* Create JobMedia record */
          mjcr->read_dcr->VolLastIndex = dcr->VolLastIndex;
          if( mjcr->bscan_insert_jobmedia_records ) {
-            create_jobmedia_record(db, mjcr); 
+            create_jobmedia_record(db, mjcr);
          }
          free_dcr(mjcr->read_dcr);
          free_jcr(mjcr);
@@ -740,11 +726,11 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
    case STREAM_ENCRYPTED_FILE_COMPRESSED_DATA:
    case STREAM_ENCRYPTED_WIN32_GZIP_DATA:
    case STREAM_ENCRYPTED_WIN32_COMPRESSED_DATA:
-      /* No correct, we should (decrypt and) expand it 
-         done using JCR 
+      /* No correct, we should (decrypt and) expand it
+         done using JCR
       */
       mjcr->JobBytes += rec->data_len;
-      free_jcr(mjcr);                 
+      free_jcr(mjcr);
       break;
 
    case STREAM_SPARSE_GZIP_DATA:
@@ -874,14 +860,8 @@ static void bscan_free_jcr(JCR *jcr)
 {
    Dmsg0(200, "Start bscan free_jcr\n");
 
-   if (jcr->file_bsock) {
-      Dmsg0(200, "Close File bsock\n");
-      jcr->file_bsock->close();
-   }
-   if (jcr->store_bsock) {
-      Dmsg0(200, "Close Store bsock\n");
-      jcr->store_bsock->close();
-   }
+   free_bsock(jcr->file_bsock);
+   free_bsock(jcr->store_bsock);
    if (jcr->RestoreBootstrap) {
       free(jcr->RestoreBootstrap);
    }
@@ -1041,7 +1021,7 @@ static int create_pool_record(B_DB *db, POOL_DBR *pr)
 static int create_client_record(B_DB *db, CLIENT_DBR *cr)
 {
    /*
-    * Note, update_db can temporarily be set false while 
+    * Note, update_db can temporarily be set false while
     * updating the database, so we must ensure that ClientId is non-zero.
     */
    if (!update_db) {
@@ -1197,7 +1177,7 @@ static int update_job_record(B_DB *db, JOB_DBR *jr, SESSION_LABEL *elabel,
       return 0;
    }
    if (verbose) {
-      Pmsg3(000, _("Updated Job termination record for JobId=%u Level=%s TermStat=%c\n"), 
+      Pmsg3(000, _("Updated Job termination record for JobId=%u Level=%s TermStat=%c\n"),
          jr->JobId, job_level_to_str(mjcr->getJobLevel()), jr->JobStatus);
    }
    if (verbose > 1) {
@@ -1352,7 +1332,7 @@ static JCR *create_jcr(JOB_DBR *jr, DEV_RECORD *rec, uint32_t JobId)
    jobjcr->VolSessionId = rec->VolSessionId;
    jobjcr->VolSessionTime = rec->VolSessionTime;
    jobjcr->ClientId = jr->ClientId;
-   jobjcr->dcr = jobjcr->read_dcr = new_dcr(jobjcr, NULL, dev);
+   jobjcr->dcr = jobjcr->read_dcr = new_dcr(jobjcr, NULL, dev, SD_READ);
 
    return jobjcr;
 }
@@ -1366,7 +1346,7 @@ bool    dir_update_file_attributes(DCR *dcr, DEV_RECORD *rec) { return 1;}
 bool    dir_send_job_status(JCR *jcr) {return 1;}
 int     generate_job_event(JCR *jcr, const char *event) { return 1; }
 
-bool dir_ask_sysop_to_mount_volume(DCR *dcr, int /*mode*/)
+bool dir_ask_sysop_to_mount_volume(DCR *dcr, bool /*writing*/)
 {
    DEVICE *dev = dcr->dev;
    Dmsg0(20, "Enter dir_ask_sysop_to_mount_volume\n");
@@ -1378,11 +1358,13 @@ bool dir_ask_sysop_to_mount_volume(DCR *dcr, int /*mode*/)
    return true;
 }
 
-bool dir_get_volume_info(DCR *dcr, enum get_vol_info_rw  writing)
+bool dir_get_volume_info(DCR *dcr, enum get_vol_info_rw writing)
 {
    Dmsg0(100, "Fake dir_get_volume_info\n");
    dcr->setVolCatName(dcr->VolumeName);
+#ifdef BUILD_DVD
    dcr->VolCatInfo.VolCatParts = find_num_dvd_parts(dcr);
+#endif
    Dmsg2(500, "Vol=%s num_parts=%d\n", dcr->getVolCatName(), dcr->VolCatInfo.VolCatParts);
    return 1;
 }

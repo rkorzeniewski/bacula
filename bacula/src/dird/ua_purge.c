@@ -1,29 +1,17 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2002-2012 Free Software Foundation Europe e.V.
+   Copyright (C) 2002-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  *
@@ -43,7 +31,7 @@
 /* Forward referenced functions */
 static int purge_files_from_client(UAContext *ua, CLIENT *client);
 static int purge_jobs_from_client(UAContext *ua, CLIENT *client);
-static int action_on_purge_cmd(UAContext *ua, const char *cmd);
+int truncate_cmd(UAContext *ua, const char *cmd);
 
 static const char *select_jobsfiles_from_client =
    "SELECT JobId FROM Job "
@@ -59,10 +47,11 @@ static const char *select_jobs_from_client =
  *
  *     Purge Files (from) [Job|JobId|Client|Volume]
  *     Purge Jobs  (from) [Client|Volume]
+ *     Purge Volumes
  *
  *  N.B. Not all above is implemented yet.
  */
-int purgecmd(UAContext *ua, const char *cmd)
+int purge_cmd(UAContext *ua, const char *cmd)
 {
    int i;
    CLIENT *client;
@@ -86,15 +75,21 @@ int purgecmd(UAContext *ua, const char *cmd)
       NT_("Volume"),
       NULL};
 
-   ua->warning_msg(_(
-      "\nThis command can be DANGEROUS!!!\n\n"
-      "It purges (deletes) all Files from a Job,\n"
-      "JobId, Client or Volume; or it purges (deletes)\n"
-      "all Jobs from a Client or Volume without regard\n"
-      "to retention periods. Normally you should use the\n"
-      "PRUNE command, which respects retention periods.\n"));
+   /* Special case for the "Action On Purge", this option is working only on
+    * Purged volume, so no jobs or files will be purged.
+    * We are skiping this message if "purge volume action=xxx"
+    */
+   if (!(find_arg(ua, "volume") >= 0 && find_arg(ua, "action") >= 0)) {
+      ua->warning_msg(_(
+        "\nThis command can be DANGEROUS!!!\n\n"
+        "It purges (deletes) all Files from a Job,\n"
+        "JobId, Client or Volume; or it purges (deletes)\n"
+        "all Jobs from a Client or Volume without regard\n"
+        "to retention periods. Normally you should use the\n"
+        "PRUNE command, which respects retention periods.\n"));
+   }
 
-   if (!open_db(ua)) {
+   if (!open_new_client_db(ua)) {
       return 1;
    }
    switch (find_arg_keyword(ua, keywords)) {
@@ -140,7 +135,7 @@ int purgecmd(UAContext *ua, const char *cmd)
    case 2:
       /* Perform ActionOnPurge (action=truncate) */
       if (find_arg(ua, "action") >= 0) {
-         return action_on_purge_cmd(ua, ua->cmd);
+         return truncate_cmd(ua, ua->cmd);
       }
 
       while ((i=find_arg(ua, NT_("volume"))) >= 0) {
@@ -250,7 +245,7 @@ static int purge_jobs_from_client(UAContext *ua, CLIENT *client)
    del.max_ids = 1000;
    del.JobId = (JobId_t *)malloc(sizeof(JobId_t) * del.max_ids);
    del.PurgedFiles = (char *)malloc(del.max_ids);
-   
+
    ua->info_msg(_("Begin purging jobs from Client \"%s\"\n"), cr.Name);
 
    Mmsg(query, select_jobs_from_client, edit_int64(cr.ClientId, ed1));
@@ -291,6 +286,10 @@ void purge_files_from_jobs(UAContext *ua, char *jobs)
    Mmsg(query, "DELETE FROM BaseFiles WHERE JobId IN (%s)", jobs);
    db_sql_query(ua->db, query.c_str(), NULL, (void *)NULL);
    Dmsg1(050, "Delete BaseFiles sql=%s\n", query.c_str());
+
+   Mmsg(query, "DELETE FROM PathVisibility WHERE JobId IN (%s)", jobs);
+   db_sql_query(ua->db, query.c_str(), NULL, (void *)NULL);
+   Dmsg1(050, "Delete PathVisibility sql=%s\n", query.c_str());
 
    /*
     * Now mark Job as having files purged. This is necessary to
@@ -385,7 +384,7 @@ void purge_files_from_job_list(UAContext *ua, del_ctx &del)
 void upgrade_copies(UAContext *ua, char *jobs)
 {
    POOL_MEM query(PM_MESSAGE);
-   
+
    db_lock(ua->db);
 
    /* Do it in two times for mysql */
@@ -426,10 +425,6 @@ void purge_jobs_from_catalog(UAContext *ua, char *jobs)
    Mmsg(query, "DELETE FROM RestoreObject WHERE JobId IN (%s)", jobs);
    db_sql_query(ua->db, query.c_str(), NULL, (void *)NULL);
    Dmsg1(050, "Delete RestoreObject sql=%s\n", query.c_str());
-
-   Mmsg(query, "DELETE FROM PathVisibility WHERE JobId IN (%s)", jobs);
-   db_sql_query(ua->db, query.c_str(), NULL, (void *)NULL);
-   Dmsg1(050, "Delete PathVisibility sql=%s\n", query.c_str());
 
    upgrade_copies(ua, jobs);
 
@@ -489,10 +484,10 @@ bool purge_jobs_from_volume(UAContext *ua, MEDIA_DBR *mr, bool force)
       purge_jobs_from_catalog(ua, jobids);
    }
 
-   ua->info_msg(_("%d File%s on Volume \"%s\" purged from catalog.\n"), 
+   ua->info_msg(_("%d File%s on Volume \"%s\" purged from catalog.\n"),
                 lst.count, lst.count<=1?"":"s", mr->VolumeName);
 
-   purged = is_volume_purged(ua, mr, force); 
+   purged = is_volume_purged(ua, mr, force);
 
 bail_out:
    return purged;
@@ -523,13 +518,14 @@ bool is_volume_purged(UAContext *ua, MEDIA_DBR *mr, bool force)
    }
 
    if (strcmp(mr->VolStatus, "Purged") == 0) {
+      Dmsg1(100, "Volume=%s already purged.\n", mr->VolumeName);
       purged = true;
       goto bail_out;
    }
 
    /* If purged, mark it so */
    cnt.count = 0;
-   Mmsg(query, "SELECT 1 FROM JobMedia WHERE MediaId=%s LIMIT 1", 
+   Mmsg(query, "SELECT 1 FROM JobMedia WHERE MediaId=%s LIMIT 1",
         edit_int64(mr->MediaId, ed1));
    if (!db_sql_query(ua->db, query.c_str(), del_count_handler, (void *)&cnt)) {
       ua->error_msg("%s", db_strerror(ua->db));
@@ -540,6 +536,8 @@ bool is_volume_purged(UAContext *ua, MEDIA_DBR *mr, bool force)
    if (cnt.count == 0) {
       ua->warning_msg(_("There are no more Jobs associated with Volume \"%s\". Marking it purged.\n"),
          mr->VolumeName);
+      Dmsg1(100, "There are no more Jobs associated with Volume \"%s\". Marking it purged.\n",
+         mr->VolumeName);
       if (!(purged = mark_media_purged(ua, mr))) {
          ua->error_msg("%s", db_strerror(ua->db));
       }
@@ -548,33 +546,18 @@ bail_out:
    return purged;
 }
 
-static BSOCK *open_sd_bsock(UAContext *ua)
-{
-   STORE *store = ua->jcr->wstore;
-
-   if (!ua->jcr->store_bsock) {
-      ua->send_msg(_("Connecting to Storage daemon %s at %s:%d ...\n"),
-         store->name(), store->address, store->SDport);
-      if (!connect_to_storage_daemon(ua->jcr, 10, SDConnectTimeout, 1)) {
-         ua->error_msg(_("Failed to connect to Storage daemon.\n"));
-         return NULL;
-      }
-   }
-   return ua->jcr->store_bsock;
-}
-
-/* 
+/*
  * Called here to send the appropriate commands to the SD
  *  to do truncate on purge.
  */
-static void do_truncate_on_purge(UAContext *ua, MEDIA_DBR *mr, 
+static void do_truncate_on_purge(UAContext *ua, MEDIA_DBR *mr,
                                  char *pool, char *storage,
                                  int drive, BSOCK *sd)
 {
    int dvd;
    bool ok=false;
    uint64_t VolBytes = 0;
-   
+
    /* TODO: Return if not mr->Recyle ? */
    if (!mr->Recycle) {
       return;
@@ -594,14 +577,14 @@ static void do_truncate_on_purge(UAContext *ua, MEDIA_DBR *mr,
    bash_spaces(mr->MediaType);
    bash_spaces(pool);
    bash_spaces(storage);
-      
+
    /* Do it by relabeling the Volume, which truncates it */
    sd->fsend("relabel %s OldName=%s NewName=%s PoolName=%s "
              "MediaType=%s Slot=%d drive=%d\n",
                 storage,
                 mr->VolumeName, mr->VolumeName,
                 pool, mr->MediaType, mr->Slot, drive);
-      
+
    unbash_spaces(mr->VolumeName);
    unbash_spaces(mr->MediaType);
    unbash_spaces(pool);
@@ -628,44 +611,51 @@ static void do_truncate_on_purge(UAContext *ua, MEDIA_DBR *mr,
    }
 }
 
-/* 
+/*
  * Implement Bacula bconsole command  purge action
- *     purge action= pool= volume= storage= devicetype= 
+ *     purge action=truncate pool= volume= storage= mediatype=
+ * or
+ *     truncate pool= volume= storage= mediatype=
+ *
+ * Note, later we might want to rename this action_on_purge_cmd() as
+ *  was the original, but only if we add additional actions such as
+ *  erase, ... For the moment, we only do a truncate.
+ *
  */
-static int action_on_purge_cmd(UAContext *ua, const char *cmd)
+int truncate_cmd(UAContext *ua, const char *cmd)
 {
    bool allpools = false;
    int drive = -1;
    int nb = 0;
    uint32_t *results = NULL;
-   const char *action = "all";
+   const char *action = "truncate";
    STORE *store = NULL;
    POOL *pool = NULL;
    MEDIA_DBR mr;
    POOL_DBR pr;
    BSOCK *sd = NULL;
-   
+
    memset(&pr, 0, sizeof(pr));
 
    /* Look at arguments */
    for (int i=1; i<ua->argc; i++) {
       if (strcasecmp(ua->argk[i], NT_("allpools")) == 0) {
          allpools = true;
-            
-      } else if (strcasecmp(ua->argk[i], NT_("volume")) == 0 
+
+      } else if (strcasecmp(ua->argk[i], NT_("volume")) == 0
                  && is_name_valid(ua->argv[i], NULL)) {
          bstrncpy(mr.VolumeName, ua->argv[i], sizeof(mr.VolumeName));
 
-      } else if (strcasecmp(ua->argk[i], NT_("devicetype")) == 0 
+      } else if (strcasecmp(ua->argk[i], NT_("mediatype")) == 0
                  && ua->argv[i]) {
          bstrncpy(mr.MediaType, ua->argv[i], sizeof(mr.MediaType));
-         
+
       } else if (strcasecmp(ua->argk[i], NT_("drive")) == 0 && ua->argv[i]) {
          drive = atoi(ua->argv[i]);
 
-      } else if (strcasecmp(ua->argk[i], NT_("action")) == 0 
+      } else if (strcasecmp(ua->argk[i], NT_("action")) == 0
                  && is_name_valid(ua->argv[i], NULL)) {
-         action=ua->argv[i];
+         action = ua->argv[i];
       }
    }
 
@@ -695,7 +685,7 @@ static int action_on_purge_cmd(UAContext *ua, const char *cmd)
       mr.PoolId = pr.PoolId;
    }
 
-   /* 
+   /*
     * Look for all Purged volumes that can be recycled, are enabled and
     *  have more the 10,000 bytes.
     */
@@ -708,7 +698,7 @@ static int action_on_purge_cmd(UAContext *ua, const char *cmd)
       Dmsg0(100, "No results from db_get_media_ids\n");
       goto bail_out;
    }
-   
+
    if (!nb) {
       ua->send_msg(_("No Volumes found to perform %s action.\n"), action);
       goto bail_out;
@@ -725,23 +715,19 @@ static int action_on_purge_cmd(UAContext *ua, const char *cmd)
    for (int i=0; i < nb; i++) {
       mr.clear();
       mr.MediaId = results[i];
-      if (db_get_media_record(ua->jcr, ua->db, &mr)) {         
+      if (db_get_media_record(ua->jcr, ua->db, &mr)) {
          /* TODO: ask for drive and change Pool */
-         if (!strcasecmp("truncate", action) || !strcasecmp("all", action)) {
+         if (strcasecmp("truncate", action) == 0) {
             do_truncate_on_purge(ua, &mr, pr.Name, store->dev_name(), drive, sd);
          }
       } else {
-         Dmsg1(0, "Can't find MediaId=%lld\n", (uint64_t) mr.MediaId);
+         Dmsg1(0, "Can't find MediaId=%lld\n", (uint64_t)mr.MediaId);
       }
    }
 
 bail_out:
    close_db(ua);
-   if (sd) {
-      sd->signal(BNET_TERMINATE);
-      sd->close();
-      ua->jcr->store_bsock = NULL;
-   }
+   close_sd_bsock(ua);
    ua->jcr->wstore = NULL;
    if (results) {
       free(results);
@@ -767,7 +753,6 @@ bool mark_media_purged(UAContext *ua, MEDIA_DBR *mr)
          return false;
       }
       pm_strcpy(jcr->VolumeName, mr->VolumeName);
-      generate_job_event(jcr, "VolumePurged");
       generate_plugin_event(jcr, bDirEventVolumePurged);
       /*
        * If the RecyclePool is defined, move the volume there
@@ -778,12 +763,12 @@ bool mark_media_purged(UAContext *ua, MEDIA_DBR *mr)
          memset(&newpr, 0, sizeof(POOL_DBR));
          newpr.PoolId = mr->RecyclePoolId;
          oldpr.PoolId = mr->PoolId;
-         if (   db_get_pool_record(jcr, ua->db, &oldpr) 
-             && db_get_pool_record(jcr, ua->db, &newpr)) 
+         if (   db_get_pool_numvols(jcr, ua->db, &oldpr)
+             && db_get_pool_numvols(jcr, ua->db, &newpr))
          {
             /* check if destination pool size is ok */
             if (newpr.MaxVols > 0 && newpr.NumVols >= newpr.MaxVols) {
-               ua->error_msg(_("Unable move recycled Volume in full " 
+               ua->error_msg(_("Unable move recycled Volume in full "
                               "Pool \"%s\" MaxVols=%d\n"),
                         newpr.Name, newpr.MaxVols);
 
@@ -795,10 +780,10 @@ bool mark_media_purged(UAContext *ua, MEDIA_DBR *mr)
          }
       }
 
-      /* Send message to Job report, if it is a *real* job */           
+      /* Send message to Job report, if it is a *real* job */
       if (jcr && jcr->JobId > 0) {
          Jmsg(jcr, M_INFO, 0, _("All records pruned from Volume \"%s\"; marking it \"Purged\"\n"),
-            mr->VolumeName); 
+            mr->VolumeName);
       }
       return true;
    } else {

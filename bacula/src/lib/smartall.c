@@ -1,29 +1,17 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2011 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
 
@@ -144,7 +132,7 @@ static void *smalloc(const char *fname, int lineno, unsigned int nbytes)
    } else {
       Emsg0(M_ABORT, 0, _("Out of memory\n"));
    }
-   Dmsg4(1150, "smalloc %d at %p from %s:%d\n", nbytes, buf, fname, lineno);
+   Dmsg4(DT_MEMORY|50, "smalloc %d at %p from %s:%d\n", nbytes, buf, fname, lineno);
 #if    SMALLOC_SANITY_CHECK > 0
    if (sm_bytes > SMALLOC_SANITY_CHECK) {
       Emsg0(M_ABORT, 0, _("Too much memory used."));
@@ -185,7 +173,7 @@ void sm_free(const char *file, int line, void *fp)
    struct abufhead *head = (struct abufhead *)cp;
 
    P(mutex);
-   Dmsg4(1150, "sm_free %d at %p from %s:%d\n",
+   Dmsg4(DT_MEMORY|50, "sm_free %d at %p from %s:%d\n",
          head->ablen, fp,
          get_basename(head->abfname), head->ablineno);
 
@@ -212,7 +200,7 @@ void sm_free(const char *file, int line, void *fp)
 
    if (((unsigned char *)cp)[head->ablen - 1] != ((((intptr_t) cp) & 0xFF) ^ 0xC5)) {
       V(mutex);
-      Emsg6(M_ABORT, 0, _("Overrun buffer: len=%d addr=%p allocated: %s:%d called from %s:%d\n"), 
+      Emsg6(M_ABORT, 0, _("Overrun buffer: len=%d addr=%p allocated: %s:%d called from %s:%d\n"),
          head->ablen, fp, get_basename(head->abfname), head->ablineno, file, line);
    }
    if (sm_buffers > 0) {
@@ -288,7 +276,7 @@ void *sm_realloc(const char *fname, int lineno, void *ptr, unsigned int size)
    void *buf;
    char *cp = (char *) ptr;
 
-   Dmsg4(1400, "sm_realloc %s:%d %p %d\n", get_basename(fname), (uint32_t)lineno, ptr, size);
+   Dmsg4(DT_MEMORY|50, "sm_realloc %s:%d %p %d\n", get_basename(fname), (uint32_t)lineno, ptr, size);
    if (size <= 0) {
       e_msg(fname, lineno, M_ABORT, 0, _("sm_realloc size: %d\n"), size);
    }
@@ -328,7 +316,7 @@ void *sm_realloc(const char *fname, int lineno, void *ptr, unsigned int size)
       /* All done.  Free and dechain the original buffer. */
       sm_free(fname, lineno, ptr);
    }
-   Dmsg4(4150, _("sm_realloc %d at %p from %s:%d\n"), size, buf, get_basename(fname), (uint32_t)lineno);
+   Dmsg4(DT_MEMORY|60, _("sm_realloc %d at %p from %s:%d\n"), size, buf, get_basename(fname), (uint32_t)lineno);
    return buf;
 }
 
@@ -359,7 +347,7 @@ void *actuallycalloc(unsigned int nelem, unsigned int elsize)
 
 void *actuallyrealloc(void *ptr, unsigned int size)
 {
-   Dmsg2(1400, "Actuallyrealloc %p %d\n", ptr, size);
+   Dmsg2(DT_MEMORY|40, "Actuallyrealloc %p %d\n", ptr, size);
    return realloc(ptr, size);
 }
 
@@ -374,7 +362,7 @@ void actuallyfree(void *cp)
 /*  SM_DUMP  --  Print orphaned buffers (and dump them if BUFDUMP is
  *               True).
  */
-void sm_dump(bool bufdump, bool in_use) 
+void sm_dump(bool bufdump, bool in_use)
 {
    struct abufhead *ap;
 
@@ -399,7 +387,7 @@ void sm_dump(bool bufdump, bool in_use)
          uint32_t memsize = ap->ablen - (HEAD_SIZE + 1);
          char *cp = ((char *)ap) + HEAD_SIZE;
 
-         Pmsg6(0, "%s buffer: %s %d bytes at %p from %s:%d\n", 
+         Pmsg6(0, "%s buffer: %s %d bytes at %p from %s:%d\n",
             in_use?"In use":"Orphaned",
             my_name, memsize, cp, get_basename(ap->abfname), ap->ablineno);
          if (bufdump) {
@@ -465,7 +453,7 @@ int sm_check_rtn(const char *fname, int lineno, bool bufdump)
       }
       badbuf |= bad;
       if (bad) {
-         Pmsg2(0, 
+         Pmsg2(0,
             _("\nDamaged buffers found at %s:%d\n"), get_basename(fname), (uint32_t)lineno);
 
          if (bad & 0x1) {
@@ -490,7 +478,7 @@ int sm_check_rtn(const char *fname, int lineno, bool bufdump)
             uint32_t memsize = ap->ablen - (HEAD_SIZE + 1);
             char errmsg[80];
 
-            Pmsg4(0, 
+            Pmsg4(0,
               _("Damaged buffer:  %6u bytes allocated at line %d of %s %s\n"),
                memsize, ap->ablineno, my_name, get_basename(ap->abfname)
             );

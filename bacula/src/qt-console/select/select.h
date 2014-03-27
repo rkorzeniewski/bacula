@@ -1,3 +1,18 @@
+/*
+   Bacula® - The Network Backup Solution
+
+   Copyright (C) 2000-2014 Free Software Foundation Europe e.V.
+
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
+
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
+
+   Bacula® is a registered trademark of Kern Sibbald.
+*/
 
 #ifndef _SELECT_H_
 #define _SELECT_H_
@@ -8,7 +23,7 @@
 
 class selectDialog : public QDialog, public Ui::selectForm
 {
-   Q_OBJECT 
+   Q_OBJECT
 
 public:
    selectDialog(Console *console, int conn);
@@ -26,7 +41,7 @@ private:
 
 class yesnoPopUp : public QDialog
 {
-   Q_OBJECT 
+   Q_OBJECT
 
 public:
    yesnoPopUp(Console *console, int conn);

@@ -1,5 +1,5 @@
 # Finnish translations for branch package.
-# Copyright (C) 2007 Kern Sibbald
+# Copyright (C) 2007-2014 Kern Sibbald
 # This file is distributed under the same license as the branch package.
 # Kern Sibbald <kern@sibbald.com>, 2007.
 #

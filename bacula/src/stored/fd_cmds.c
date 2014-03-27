@@ -1,34 +1,22 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2011 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  * This file handles commands from the File daemon.
  *
- *  Kern Sibbald, MM
+ *   Written by Kern Sibbald, MM
  *
  * We get here because the Director has initiated a Job with
  *  the Storage daemon, then done the same with the File daemon,
@@ -42,6 +30,9 @@
 #include "bacula.h"
 #include "stored.h"
 
+/* Forward referenced functions */
+static bool response(JCR *jcr, BSOCK *bs, const char *resp, const char *cmd);
+
 /* Imported variables */
 extern STORES *me;
 
@@ -51,6 +42,7 @@ static char ferrmsg[]      = "3900 Invalid command\n";
 /* Imported functions */
 extern bool do_append_data(JCR *jcr);
 extern bool do_read_data(JCR *jcr);
+extern bool do_backup_job(JCR *jcr);
 
 /* Forward referenced FD commands */
 static bool append_open_session(JCR *jcr);
@@ -92,19 +84,20 @@ static char NOT_opened[]      = "3902 Error session not opened\n";
 static char OK_end[]          = "3000 OK end\n";
 static char OK_close[]        = "3000 OK close Status = %d\n";
 static char OK_open[]         = "3000 OK open ticket = %d\n";
-static char ERROR_append[]    = "3903 Error append data\n";
+static char ERROR_append[]    = "3903 Error append data: %s\n";
 
 /* Information sent to the Director */
 static char Job_start[] = "3010 Job %s start\n";
-char Job_end[]   =
+char Job_end[] =
    "3099 Job %s end JobStatus=%d JobFiles=%d JobBytes=%s JobErrors=%u\n";
 
 /*
- * Run a File daemon Job -- File daemon already authorized
- *  Director sends us this command.
+ * Run a Client Job -- Client already authorized
+ *  Note: this can be either a backup or restore or
+ *    migrate/copy job.
  *
  * Basic task here is:
- * - Read a command from the File daemon
+ * - Read a command from the Client -- FD or SD
  * - Execute it
  *
  */
@@ -119,7 +112,40 @@ void run_job(JCR *jcr)
    jcr->start_time = time(NULL);
    jcr->run_time = jcr->start_time;
    jcr->sendJobStatus(JS_Running);
-   do_fd_commands(jcr);
+   /*
+    * A migrate or copy job does both a restore (read_data) and
+    *   a backup (append_data).
+    * Otherwise we do the commands that the client sends
+    *   which are for normal backup or restore jobs.
+    */
+   Dmsg3(050, "==== JobType=%c run_job=%d sd_client=%d\n", jcr->getJobType(), jcr->JobId, jcr->sd_client);
+   if (jcr->is_JobType(JT_BACKUP) && jcr->sd_client) {
+      jcr->session_opened = true;
+      Dmsg0(050, "Do: receive for 3000 OK data then append");
+      if (!response(jcr, jcr->file_bsock, "3000 OK data\n", "Append data")) {
+         Dmsg1(050, "Expect: 3000 OK data, got: %s", jcr->file_bsock->msg);
+         Jmsg0(jcr, M_FATAL, 0, "Append data not accepted\n");
+         goto bail_out;
+      }
+      append_data_cmd(jcr);
+      append_end_session(jcr);
+   } else if (jcr->is_JobType(JT_MIGRATE) || jcr->is_JobType(JT_COPY)) {
+      jcr->session_opened = true;
+      Dmsg1(050, "Do: read_data_cmd file_bsock=%p\n", jcr->file_bsock);
+      read_data_cmd(jcr);
+      if (!response(jcr, jcr->file_bsock, "3000 OK data\n", "Data received")) {
+         Dmsg1(050, "Expect 3000 OK data, got: %s", jcr->file_bsock->msg);
+         Jmsg0(jcr, M_FATAL, 0, "Read data not accepted\n");
+         jcr->file_bsock->signal(BNET_EOD);
+         goto bail_out;
+      }
+      jcr->file_bsock->signal(BNET_EOD);
+   } else {
+      /* Either a Backup or Restore job */
+      Dmsg0(050, "Do: do_client_commands\n");
+      do_client_commands(jcr);
+   }
+bail_out:
    jcr->end_time = time(NULL);
    dequeue_messages(jcr);             /* send any queued messages */
    jcr->setJobStatus(JS_Terminated);
@@ -127,15 +153,16 @@ void run_job(JCR *jcr)
    generate_plugin_event(jcr, bsdEventJobEnd);
    dir->fsend(Job_end, jcr->Job, jcr->JobStatus, jcr->JobFiles,
       edit_uint64(jcr->JobBytes, ec1), jcr->JobErrors);
+   Dmsg1(100, "==== %s", dir->msg);
    dir->signal(BNET_EOD);             /* send EOD to Director daemon */
    free_plugins(jcr);                 /* release instantiated plugins */
    return;
 }
 
 /*
- * Now talk to the FD and do what he says
+ * Now talk to the Client (FD/SD) and do what he says
  */
-void do_fd_commands(JCR *jcr)
+void do_client_commands(JCR *jcr)
 {
    int i;
    bool found, quit;
@@ -147,7 +174,7 @@ void do_fd_commands(JCR *jcr)
 
       /* Read command coming from the File daemon */
       stat = fd->recv();
-      if (is_bnet_stop(fd)) {         /* hardeof or error */
+      if (fd->is_stop()) {            /* hard eof or error */
          break;                       /* connection terminated */
       }
       if (stat <= 0) {
@@ -163,7 +190,7 @@ void do_fd_commands(JCR *jcr)
                /* Note fd->msg command may be destroyed by comm activity */
                if (!job_canceled(jcr)) {
                   if (jcr->errmsg[0]) {
-                     Jmsg1(jcr, M_FATAL, 0, _("Command error with FD, hanging up. %s\n"),
+                     Jmsg1(jcr, M_FATAL, 0, _("Command error with FD, hanging up. ERR=%s\n"),
                            jcr->errmsg);
                   } else {
                      Jmsg0(jcr, M_FATAL, 0, _("Command error with FD, hanging up.\n"));
@@ -200,12 +227,12 @@ static bool append_data_cmd(JCR *jcr)
    if (jcr->session_opened) {
       Dmsg1(110, "<bfiled: %s", fd->msg);
       jcr->setJobType(JT_BACKUP);
+      jcr->errmsg[0] = 0;
       if (do_append_data(jcr)) {
          return true;
       } else {
-         pm_strcpy(jcr->errmsg, _("Append data error.\n"));
-         bnet_suppress_error_messages(fd, 1); /* ignore errors at this point */
-         fd->fsend(ERROR_append);
+         fd->suppress_error_messages(true); /* ignore errors at this point */
+         fd->fsend(ERROR_append, jcr->errmsg);
       }
    } else {
       pm_strcpy(jcr->errmsg, _("Attempt to append on non-open session.\n"));
@@ -362,4 +389,31 @@ static bool read_close_session(JCR *jcr)
 
    jcr->session_opened = false;
    return true;
+}
+
+/*
+ * Get response from FD or SD
+ * sent. Check that the response agrees with what we expect.
+ *
+ *  Returns: false on failure
+ *           true  on success
+ */
+static bool response(JCR *jcr, BSOCK *bs, const char *resp, const char *cmd)
+{
+   int n;
+
+   if (bs->is_error()) {
+      return false;
+   }
+   if ((n = bs->recv()) >= 0) {
+      if (strcmp(bs->msg, resp) == 0) {
+         return true;
+      }
+      Jmsg(jcr, M_FATAL, 0, _("Bad response to %s command: wanted %s, got %s\n"),
+            cmd, resp, bs->msg);
+      return false;
+   }
+   Jmsg(jcr, M_FATAL, 0, _("Socket error on %s command: ERR=%s\n"),
+         cmd, bs->bstrerror());
+   return false;
 }

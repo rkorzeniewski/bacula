@@ -1,29 +1,17 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2005-2009 Free Software Foundation Europe e.V.
+   Copyright (C) 2005-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  *
@@ -32,9 +20,6 @@
  *
  *   Kern Sibbald, MMV
  *
- *
- *
- *   Version $Id$
  */
 
 #include "bacula.h"                   /* pull in global headers */
@@ -51,7 +36,7 @@ static bool same_label_names(char *bacula_name, char *ansi_name);
 /*
  * We read an ANSI label and compare the Volume name. We require
  * a VOL1 record of 80 characters followed by a HDR1 record containing
- * BACULA.DATA in the filename field. We then read up to 3 more 
+ * BACULA.DATA in the filename field. We then read up to 3 more
  * header records (they are not required) and an EOF, at which
  * point, all is good.
  *
@@ -61,9 +46,9 @@ static bool same_label_names(char *bacula_name, char *ansi_name);
  *    VOL_IO_ERROR      I/O error on read
  *    VOL_NAME_ERROR    Wrong name in VOL1 record
  *    VOL_LABEL_ERROR   Probably an ANSI label, but something wrong
- *      
- */ 
-int read_ansi_ibm_label(DCR *dcr) 
+ *
+ */
+int read_ansi_ibm_label(DCR *dcr)
 {
    DEVICE * volatile dev = dcr->dev;
    JCR *jcr = dcr->jcr;
@@ -125,7 +110,7 @@ int read_ansi_ibm_label(DCR *dcr)
                   Dmsg0(100, "Found IBM label.\n");
                   Dmsg0(100, "Got IBM VOL1 label\n");
                }
-            }       
+            }
          }
          if (!ok) {
             Dmsg0(100, "No VOL1 label\n");
@@ -135,10 +120,10 @@ int read_ansi_ibm_label(DCR *dcr)
 
 
          /* Compare Volume Names allow special wild card */
-         if (VolName && *VolName && *VolName != '*') { 
+         if (VolName && *VolName && *VolName != '*') {
             if (!same_label_names(VolName, &label[4])) {
                char *p = &label[4];
-               char *q;  
+               char *q;
 
                free_volume(dev);
                /* Store new Volume name */
@@ -206,7 +191,7 @@ int read_ansi_ibm_label(DCR *dcr)
    Dmsg0(100, "Too many records in ANSI/IBM label.\n");
    Mmsg0(jcr->errmsg, _("Too many records in while reading ANSI/IBM label.\n"));
    return VOL_LABEL_ERROR;
-}  
+}
 
 /*
  * ANSI/IBM VOL1 label
@@ -214,7 +199,7 @@ int read_ansi_ibm_label(DCR *dcr)
  * Pos   count   Function      What Bacula puts
  * 0-3     4     "VOL1"          VOL1
  * 4-9     6     Volume name     Volume name
- * 10-10   1     Access code 
+ * 10-10   1     Access code
  * 11-36   26    Unused
  *
  * ANSI
@@ -254,7 +239,7 @@ int read_ansi_ibm_label(DCR *dcr)
  * 5-9     5     Block length         32000
  * 10-14   5     Rec length           32000
  * 15-15   1     Density
- * 16-16   1     Continued 
+ * 16-16   1     Continued
  * 17-33   17    Job
  * 34-35   2     Recording
  * 36-36   1     cr/lf ctl
@@ -264,7 +249,7 @@ int read_ansi_ibm_label(DCR *dcr)
  * 50-51   2     offset
  * 52-79   28    reserved
 
- */ 
+ */
 
 static const char *labels[] = {"HDR", "EOF", "EOV"};
 

@@ -1,29 +1,17 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2010 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  *
@@ -36,15 +24,14 @@
  *    daemon because we interact more directly with the user
  *    i.e. printf, ...
  *
- *   Version $Id$
  */
 
 #include "bacula.h"
 #include "stored.h"
 
 /* Forward referenced functions */
-static DCR *setup_to_access_device(JCR *jcr, char *dev_name, const char *VolumeName, int mode);
-static DEVRES *find_device_res(char *device_name, int mode);
+static DCR *setup_to_access_device(JCR *jcr, char *dev_name, const char *VolumeName, bool writing);
+static DEVRES *find_device_res(char *device_name, bool writing);
 static void my_free_jcr(JCR *jcr);
 
 /* Imported variables -- eliminate some day */
@@ -78,11 +65,26 @@ char *rec_state_bits_to_str(DEV_RECORD *rec)
 #endif
 
 /*
+ * Setup a pointer to my resource me
+ */
+void setup_me()
+{
+   LockRes();
+   me = (STORES *)GetNextRes(R_STORAGE, NULL);
+   if (!me) {
+      UnlockRes();
+      Emsg1(M_ERROR_TERM, 0, _("No Storage resource defined in %s. Cannot continue.\n"),
+         configfile);
+   }
+   UnlockRes();
+}
+
+/*
  * Setup a "daemon" JCR for the various standalone
  *  tools (e.g. bls, bextract, bscan, ...)
  */
 JCR *setup_jcr(const char *name, char *dev_name, BSR *bsr,
-               const char *VolumeName, int mode)
+               const char *VolumeName, bool writing)
 {
    DCR *dcr;
    JCR *jcr = new_jcr(sizeof(JCR), my_free_jcr);
@@ -105,12 +107,10 @@ JCR *setup_jcr(const char *name, char *dev_name, BSR *bsr,
    pm_strcpy(jcr->fileset_name, "Dummy.fileset.name");
    jcr->fileset_md5 = get_pool_memory(PM_FNAME);
    pm_strcpy(jcr->fileset_md5, "Dummy.fileset.md5");
-   jcr->comment = get_pool_memory(PM_MESSAGE);
-   *jcr->comment = '\0';
    init_autochangers();
    create_volume_lists();
 
-   dcr = setup_to_access_device(jcr, dev_name, VolumeName, mode);
+   dcr = setup_to_access_device(jcr, dev_name, VolumeName, writing);
    if (!dcr) {
       return NULL;
    }
@@ -127,8 +127,8 @@ JCR *setup_jcr(const char *name, char *dev_name, BSR *bsr,
  *   If the caller wants read access, acquire the device, otherwise,
  *     the caller will do it.
  */
-static DCR *setup_to_access_device(JCR *jcr, char *dev_name, 
-              const char *VolumeName, int mode)
+static DCR *setup_to_access_device(JCR *jcr, char *dev_name,
+              const char *VolumeName, bool writing)
 {
    DEVICE *dev;
    char *p;
@@ -164,7 +164,7 @@ static DCR *setup_to_access_device(JCR *jcr, char *dev_name,
       }
    }
 
-   if ((device=find_device_res(dev_name, mode)) == NULL) {
+   if ((device=find_device_res(dev_name, writing)) == NULL) {
       Jmsg2(jcr, M_FATAL, 0, _("Cannot find device \"%s\" in config file %s.\n"),
            dev_name, configfile);
       return NULL;
@@ -176,7 +176,7 @@ static DCR *setup_to_access_device(JCR *jcr, char *dev_name,
       return NULL;
    }
    device->dev = dev;
-   jcr->dcr = dcr = new_dcr(jcr, NULL, dev);
+   jcr->dcr = dcr = new_dcr(jcr, NULL, dev, writing);
    if (VolName[0]) {
       bstrncpy(dcr->VolumeName, VolName, sizeof(dcr->VolumeName));
    }
@@ -184,7 +184,7 @@ static DCR *setup_to_access_device(JCR *jcr, char *dev_name,
 
    create_restore_volume_list(jcr);
 
-   if (mode) {                        /* read only access? */
+   if (!writing) {                      /* read only access? */
       Dmsg0(100, "Acquire device for read\n");
       if (!acquire_device_for_read(dcr)) {
          return NULL;
@@ -245,7 +245,7 @@ static void my_free_jcr(JCR *jcr)
  * Returns: NULL on failure
  *          Device resource pointer on success
  */
-static DEVRES *find_device_res(char *device_name, int read_access)
+static DEVRES *find_device_res(char *device_name, bool write_access)
 {
    bool found = false;
    DEVRES *device;
@@ -283,11 +283,10 @@ static DEVRES *find_device_res(char *device_name, int read_access)
             configfile);
       return NULL;
    }
-   if (read_access) {
-      Pmsg1(0, _("Using device: \"%s\" for reading.\n"), device_name);
-   }
-   else {
+   if (write_access) {
       Pmsg1(0, _("Using device: \"%s\" for writing.\n"), device_name);
+   } else {
+      Pmsg1(0, _("Using device: \"%s\" for reading.\n"), device_name);
    }
    return device;
 }

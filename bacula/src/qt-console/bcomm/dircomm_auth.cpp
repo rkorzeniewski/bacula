@@ -1,29 +1,17 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2001-2009 Free Software Foundation Europe e.V.
+   Copyright (C) 2001-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 
 /*
@@ -33,31 +21,38 @@
  *
  *     Kern Sibbald, June MMI   adapted to bat, Jan MMVI
  *
- *     Version $Id$
- *
  */
 
 
 #include "bat.h"
 
+/*
+ * Version at end of Hello
+ *   prior to 06Aug13 no version
+ *   1 21Oct13 - added comm line compression
+ */
+#define BAT_VERSION 1
+
 
 /* Commands sent to Director */
-static char hello[]    = "Hello %s calling\n";
+static char hello[]    = "Hello %s calling %d\n";
 
 /* Response from Director */
-static char OKhello[]   = "1000 OK:";
+static char oldOKhello[]   = "1000 OK:";
+static char newOKhello[]   = "1000 OK: %d";
 
 /* Forward referenced functions */
 
 /*
  * Authenticate Director
  */
-bool DirComm::authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons, 
-                char *errmsg, int errmsg_len) 
+bool DirComm::authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons,
+                char *errmsg, int errmsg_len)
 {
    BSOCK *dir = jcr->dir_bsock;
    int tls_local_need = BNET_TLS_NONE;
    int tls_remote_need = BNET_TLS_NONE;
+   int dir_version = 0;
    bool tls_authenticate;
    int compatible = true;
    char bashed_name[MAX_NAME_LENGTH];
@@ -103,7 +98,7 @@ bool DirComm::authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons,
 
    /* Timeout Hello after 15 secs */
    dir->start_timer(15);
-   dir->fsend(hello, bashed_name);
+   dir->fsend(hello, bashed_name, BAT_VERSION);
 
    /* respond to Dir challenge */
    if (!cram_md5_respond(dir, password, &tls_remote_need, &compatible) ||
@@ -155,14 +150,17 @@ bool DirComm::authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons,
 
    dir->stop_timer();
    Dmsg1(10, "<dird: %s", dir->msg);
-   if (strncmp(dir->msg, OKhello, sizeof(OKhello)-1) != 0) {
+   if (strncmp(dir->msg, oldOKhello, sizeof(oldOKhello)-1) != 0) {
       bsnprintf(errmsg, errmsg_len, _("Director at \"%s:%d\" rejected Hello command\n"),
          dir->host(), dir->port());
       return false;
    } else {
-      if (m_conn == 0) { 
-         bsnprintf(errmsg, errmsg_len, "%s", dir->msg);
-      }
+      /* If Dir version exists, get it */
+      sscanf(dir->msg, newOKhello, &dir_version);
+   }
+
+   if (m_conn == 0) {
+      bsnprintf(errmsg, errmsg_len, "%s", dir->msg);
    }
    return true;
 

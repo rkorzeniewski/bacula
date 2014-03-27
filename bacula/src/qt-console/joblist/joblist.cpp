@@ -3,34 +3,22 @@
 
    Copyright (C) 2007-2009 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  *   Version $Id$
  *
  *   Dirk Bartley, March 2007
  */
- 
+
 #include "bat.h"
 #include <QAbstractEventDispatcher>
 #include <QTableWidgetItem>
@@ -122,8 +110,8 @@ void JobList::populateTable()
 
    /* Set up the Header for the table */
    QStringList headerlist = (QStringList()
-      << tr("Job Id") << tr("Job Name") << tr("Client") << tr("Job Starttime") 
-      << tr("Job Type") << tr("Job Level") << tr("Job Files") 
+      << tr("Job Id") << tr("Job Name") << tr("Client") << tr("Job Starttime")
+      << tr("Job Type") << tr("Job Level") << tr("Job Files")
       << tr("Job Bytes") << tr("Job Status")  << tr("Purged") << tr("File Set")
       << tr("Pool Name") << tr("First Volume") << tr("VolCount"));
 
@@ -169,7 +157,7 @@ void JobList::populateTable()
             continue; /* some fields missing, ignore row */
 
          TableItemFormatter jobitem(*mp_tableWidget, row);
-  
+
          /* Iterate through fields in the record */
          QStringListIterator fld(fieldlist);
          int col = 0;
@@ -217,11 +205,11 @@ void JobList::populateTable()
          jobitem.setNumericFld(col++, fld.next());
          row++;
       }
-   } 
+   }
    /* set default sorting */
    mp_tableWidget->sortByColumn(m_jobIdIndex, Qt::DescendingOrder);
    mp_tableWidget->setSortingEnabled(true);
-   
+
    /* Resize the columns */
    mp_tableWidget->resizeColumnsToContents();
    mp_tableWidget->resizeRowsToContents();
@@ -278,7 +266,7 @@ void JobList::fillQueryString(QString &query)
       m_mediaName = volumeComboBox->itemText(volumeIndex);
    QString distinct = "";
    if (m_mediaName != tr("Any")) { distinct = "DISTINCT "; }
-   query += "SELECT " + distinct + "Job.JobId AS JobId, Job.Name AS JobName, " 
+   query += "SELECT " + distinct + "Job.JobId AS JobId, Job.Name AS JobName, "
             " Client.Name AS Client,"
             " Job.Starttime AS JobStart, Job.Type AS JobType,"
             " Job.Level AS BackupLevel, Job.Jobfiles AS FileCount,"
@@ -396,7 +384,7 @@ void JobList::treeWidgetName(QString &desc)
  */
 void JobList::createConnections()
 {
-   /* connect to the action specific to this pages class that shows up in the 
+   /* connect to the action specific to this pages class that shows up in the
     * page selector tree */
    connect(actionRefreshJobList, SIGNAL(triggered()), this, SLOT(populateTable()));
    connect(refreshButton, SIGNAL(pressed()), this, SLOT(populateTable()));

@@ -1,34 +1,22 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2009-2010 Free Software Foundation Europe e.V.
+   Copyright (C) 2009-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation, which is 
-   listed in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 
 #include "bacula.h"
 
-#if HAVE_SQLITE3 || HAVE_MYSQL || HAVE_POSTGRESQL || HAVE_INGRES || HAVE_DBI
+#if HAVE_SQLITE3 || HAVE_MYSQL || HAVE_POSTGRESQL
 
 #include "cats.h"
 #include "bdb_priv.h"
@@ -42,16 +30,16 @@
 static int result_handler(void *ctx, int fields, char **row)
 {
    if (fields == 4) {
-      Pmsg4(0, "%s\t%s\t%s\t%s\n", 
+      Pmsg4(0, "%s\t%s\t%s\t%s\n",
             row[0], row[1], row[2], row[3]);
    } else if (fields == 5) {
-      Pmsg5(0, "%s\t%s\t%s\t%s\t%s\n", 
+      Pmsg5(0, "%s\t%s\t%s\t%s\t%s\n",
             row[0], row[1], row[2], row[3], row[4]);
    } else if (fields == 6) {
-      Pmsg6(0, "%s\t%s\t%s\t%s\t%s\t%s\n", 
+      Pmsg6(0, "%s\t%s\t%s\t%s\t%s\t%s\n",
             row[0], row[1], row[2], row[3], row[4], row[5]);
    } else if (fields == 7) {
-      Pmsg7(0, "%s\t%s\t%s\t%s\t%s\t%s\t%s\n", 
+      Pmsg7(0, "%s\t%s\t%s\t%s\t%s\t%s\t%s\n",
             row[0], row[1], row[2], row[3], row[4], row[5], row[6]);
    }
    return 0;
@@ -64,7 +52,10 @@ Bvfs::Bvfs(JCR *j, B_DB *mdb) {
    jobids = get_pool_memory(PM_NAME);
    prev_dir = get_pool_memory(PM_NAME);
    pattern = get_pool_memory(PM_NAME);
-   *jobids = *prev_dir = *pattern = 0;
+   filename = get_pool_memory(PM_NAME);
+   tmp = get_pool_memory(PM_NAME);
+   escaped_list = get_pool_memory(PM_NAME);
+   *filename = *jobids = *prev_dir = *pattern = 0;
    dir_filenameid = pwd_id = offset = 0;
    see_copies = see_all_versions = false;
    limit = 1000;
@@ -72,12 +63,16 @@ Bvfs::Bvfs(JCR *j, B_DB *mdb) {
    list_entries = result_handler;
    user_data = this;
    username = NULL;
+   job_acl = client_acl = pool_acl = fileset_acl = NULL;
 }
 
 Bvfs::~Bvfs() {
    free_pool_memory(jobids);
    free_pool_memory(pattern);
    free_pool_memory(prev_dir);
+   free_pool_memory(filename);
+   free_pool_memory(tmp);
+   free_pool_memory(escaped_list);
    if (username) {
       free(username);
    }
@@ -85,26 +80,94 @@ Bvfs::~Bvfs() {
    jcr->dec_use_count();
 }
 
+char *Bvfs::escape_list(alist *lst)
+{
+   char *elt;
+   int len;
+
+   /* List is empty, reject everything */
+   if (!lst || lst->size() == 0) {
+      Mmsg(escaped_list, "''");
+      return escaped_list;
+   }
+
+   *tmp = 0;
+   *escaped_list = 0;
+
+   foreach_alist(elt, lst) {
+      if (elt && *elt) {
+         len = strlen(elt);
+         /* Escape + ' ' */
+         tmp = check_pool_memory_size(tmp, 2 * len + 2 + 2);
+
+         tmp[0] = '\'';
+         db_escape_string(jcr, db, tmp + 1 , elt, len);
+         pm_strcat(tmp, "'");
+
+         if (*escaped_list) {
+            pm_strcat(escaped_list, ",");
+         }
+
+         pm_strcat(escaped_list, tmp);
+      }
+   }
+   return escaped_list;
+}
+
 void Bvfs::filter_jobid()
 {
-   if (!username) {
+   POOL_MEM query;
+   POOL_MEM sub_where;
+   POOL_MEM sub_join;
+
+   /* No ACL, no username, no check */
+   if (!job_acl && !fileset_acl && !client_acl && !pool_acl && !username) {
+      Dmsg0(dbglevel_sql, "No ACL\n");
       return;
    }
 
-   /* Query used by Bweb to filter clients, activated when using
-    * set_username() 
-    */
-   POOL_MEM query;
-   Mmsg(query,
-      "SELECT DISTINCT JobId FROM Job JOIN Client USING (ClientId) "
+   if (job_acl) {
+      Mmsg(sub_where, " AND Job.Name IN (%s) ", escape_list(job_acl));
+   }
+
+   if (fileset_acl) {
+      Mmsg(query, " AND FileSet.FileSet IN (%s) ", escape_list(fileset_acl));
+      pm_strcat(sub_where, query.c_str());
+      pm_strcat(sub_join, " JOIN FileSet USING (FileSetId) ");
+   }
+
+   if (client_acl) {
+      Mmsg(query, " AND Client.Name IN (%s) ", escape_list(client_acl));
+      pm_strcat(sub_where, query.c_str());
+   }
+
+   if (pool_acl) {
+      Mmsg(query, " AND Pool.Name IN (%s) ", escape_list(pool_acl));
+      pm_strcat(sub_where, query.c_str());
+      pm_strcat(sub_join, " JOIN Pool USING (PoolId) ");
+   }
+
+   if (username) {
+      /* Query used by Bweb to filter clients, activated when using
+       * set_username()
+       */
+      Mmsg(query,
+      "SELECT DISTINCT JobId FROM Job JOIN Client USING (ClientId) %s "
         "JOIN (SELECT ClientId FROM client_group_member "
         "JOIN client_group USING (client_group_id) "
         "JOIN bweb_client_group_acl USING (client_group_id) "
         "JOIN bweb_user USING (userid) "
        "WHERE bweb_user.username = '%s' "
       ") AS filter USING (ClientId) "
-        " WHERE JobId IN (%s)", 
-        username, jobids);
+        " WHERE JobId IN (%s) %s",
+           sub_join.c_str(), username, jobids, sub_where.c_str());
+
+   } else {
+      Mmsg(query,
+      "SELECT DISTINCT JobId FROM Job JOIN Client USING (ClientId) %s "
+      " WHERE JobId IN (%s) %s",
+           sub_join.c_str(), jobids, sub_where.c_str());
+   }
 
    db_list_ctx ctx;
    Dmsg1(dbglevel_sql, "q=%s\n", query.c_str());
@@ -124,13 +187,13 @@ void Bvfs::set_jobids(char *ids)
    filter_jobid();
 }
 
-/* 
+/*
  * TODO: Find a way to let the user choose how he wants to display
  * files and directories
  */
 
 
-/* 
+/*
  * Working Object to store PathId already seen (avoid
  * database queries), equivalent to %cache_ppathid in perl
  */
@@ -171,7 +234,7 @@ public:
       bool ret = cache_ppathid->lookup(pathid) != NULL;
       return ret;
    }
-   
+
    void insert(char *pathid) {
       hlink *h = get_hlink();
       cache_ppathid->insert(pathid, h);
@@ -200,8 +263,8 @@ char *bvfs_parent_dir(char *path)
    int len = strlen(path) - 1;
 
    /* windows directory / */
-   if (len == 2 && B_ISALPHA(path[0]) 
-                && path[1] == ':' 
+   if (len == 2 && B_ISALPHA(path[0])
+                && path[1] == ':'
                 && path[2] == '/')
    {
       len = 0;
@@ -243,12 +306,12 @@ char *bvfs_basename_dir(char *path)
       if (*p == '/') {
          p++;                  /* skip first / */
       }
-   } 
+   }
    return p;
 }
 
-static void build_path_hierarchy(JCR *jcr, B_DB *mdb, 
-                                 pathid_cache &ppathid_cache, 
+static void build_path_hierarchy(JCR *jcr, B_DB *mdb,
+                                 pathid_cache &ppathid_cache,
                                  char *org_pathid, char *path)
 {
    Dmsg1(dbglevel, "build_path_hierarchy(%s)\n", path);
@@ -266,7 +329,7 @@ static void build_path_hierarchy(JCR *jcr, B_DB *mdb,
    {
       if (!ppathid_cache.lookup(pathid))
       {
-         Mmsg(mdb->cmd, 
+         Mmsg(mdb->cmd,
               "SELECT PPathId FROM PathHierarchy WHERE PathId = %s",
               pathid);
 
@@ -290,12 +353,12 @@ static void build_path_hierarchy(JCR *jcr, B_DB *mdb,
                goto bail_out;
             }
             ppathid_cache.insert(pathid);
-            
+
             Mmsg(mdb->cmd,
                  "INSERT INTO PathHierarchy (PathId, PPathId) "
                  "VALUES (%s,%lld)",
                  pathid, (uint64_t) parent.PathId);
-            
+
             if (!INSERT_DB(jcr, mdb, mdb->cmd)) {
                goto bail_out;   /* Can't insert the record, just leave */
             }
@@ -309,14 +372,14 @@ static void build_path_hierarchy(JCR *jcr, B_DB *mdb,
           */
          goto bail_out;
       }
-   }   
+   }
 
 bail_out:
    mdb->path = bkp;
    mdb->fnl = 0;
 }
 
-/* 
+/*
  * Internal function to update path_hierarchy cache with a shared pathid cache
  * return Error 0
  *        OK    1
@@ -331,12 +394,12 @@ static int update_path_hierarchy_cache(JCR *jcr,
    uint32_t num;
    char jobid[50];
    edit_uint64(JobId, jobid);
- 
+
    db_lock(mdb);
    db_start_transaction(jcr, mdb);
 
    Mmsg(mdb->cmd, "SELECT 1 FROM Job WHERE JobId = %s AND HasCache=1", jobid);
-   
+
    if (!QUERY_DB(jcr, mdb, mdb->cmd) || sql_num_rows(mdb) > 0) {
       Dmsg1(dbglevel, "already computed %d\n", (uint32_t)JobId );
       ret = 1;
@@ -362,7 +425,7 @@ static int update_path_hierarchy_cache(JCR *jcr,
     * visibility We try to avoid recursion, to be as fast as possible We also
     * only work on not allready hierarchised directories...
     */
-   Mmsg(mdb->cmd, 
+   Mmsg(mdb->cmd,
      "SELECT PathVisibility.PathId, Path "
        "FROM PathVisibility "
             "JOIN Path ON( PathVisibility.PathId = Path.PathId) "
@@ -378,21 +441,21 @@ static int update_path_hierarchy_cache(JCR *jcr,
       goto bail_out;
    }
 
-   /* TODO: I need to reuse the DB connection without emptying the result 
+   /* TODO: I need to reuse the DB connection without emptying the result
     * So, now i'm copying the result in memory to be able to query the
     * catalog descriptor again.
     */
    num = sql_num_rows(mdb);
    if (num > 0) {
       char **result = (char **)malloc (num * 2 * sizeof(char *));
-      
+
       SQL_ROW row;
       int i=0;
       while((row = sql_fetch_row(mdb))) {
          result[i++] = bstrdup(row[0]);
          result[i++] = bstrdup(row[1]);
       }
-      
+
       i=0;
       while (num > 0) {
          build_path_hierarchy(jcr, mdb, ppathid_cache, result[i], result[i+1]);
@@ -404,7 +467,7 @@ static int update_path_hierarchy_cache(JCR *jcr,
    }
 
    if (mdb->db_get_type_index() == SQL_TYPE_SQLITE3) {
-      Mmsg(mdb->cmd, 
+      Mmsg(mdb->cmd,
  "INSERT INTO PathVisibility (PathId, JobId) "
    "SELECT DISTINCT h.PPathId AS PathId, %s "
      "FROM PathHierarchy AS h "
@@ -413,7 +476,7 @@ static int update_path_hierarchy_cache(JCR *jcr,
            jobid, jobid, jobid );
 
    } else {
-      Mmsg(mdb->cmd, 
+      Mmsg(mdb->cmd,
   "INSERT INTO PathVisibility (PathId, JobId)  "
    "SELECT a.PathId,%s "
    "FROM ( "
@@ -430,7 +493,7 @@ static int update_path_hierarchy_cache(JCR *jcr,
    do {
       ret = QUERY_DB(jcr, mdb, mdb->cmd);
    } while (ret && sql_affected_rows(mdb) > 0);
-   
+
    Mmsg(mdb->cmd, "UPDATE Job SET HasCache=1 WHERE JobId=%s", jobid);
    UPDATE_DB(jcr, mdb, mdb->cmd);
 
@@ -440,7 +503,7 @@ bail_out:
    return ret;
 }
 
-/* 
+/*
  * Find an store the filename descriptor for empty directories Filename.Name=''
  */
 DBId_t Bvfs::get_dir_filenameid()
@@ -449,11 +512,153 @@ DBId_t Bvfs::get_dir_filenameid()
    if (dir_filenameid) {
       return dir_filenameid;
    }
-   POOL_MEM q;
-   Mmsg(q, "SELECT FilenameId FROM Filename WHERE Name = ''");
-   db_sql_query(db, q.c_str(), db_int_handler, &id);
+   Mmsg(db->cmd, "SELECT FilenameId FROM Filename WHERE Name = ''");
+   db_sql_query(db, db->cmd, db_int_handler, &id);
    dir_filenameid = id;
    return dir_filenameid;
+}
+
+/* Compute the cache for the bfileview compoment */
+void Bvfs::fv_update_cache()
+{
+   int64_t pathid;
+   int64_t size=0, count=0;
+
+   Dmsg0(dbglevel, "fv_update_cache()\n");
+
+   if (!*jobids) {
+      return;                   /* Nothing to build */
+   }
+
+   db_lock(db);
+   db_start_transaction(jcr, db);
+
+   pathid = get_root();
+
+   fv_compute_size_and_count(pathid, &size, &count);
+
+   db_end_transaction(jcr, db);
+   db_unlock(db);
+}
+
+/* Not yet working */
+void Bvfs::fv_get_big_files(int64_t pathid, int64_t min_size, int32_t limit)
+{
+   Mmsg(db->cmd,
+        "SELECT FilenameId AS filenameid, Name AS name, size "
+          "FROM ( "
+         "SELECT FilenameId, base64_decode_lstat(8,LStat) AS size "
+           "FROM File "
+          "WHERE PathId  = %lld "
+            "AND JobId = %s "
+        ") AS S INNER JOIN Filename USING (FilenameId) "
+     "WHERE S.size > %lld "
+     "ORDER BY S.size DESC "
+     "LIMIT %d ", pathid, jobids, min_size, limit);
+}
+
+/* Get the current path size and files count */
+void Bvfs::fv_get_current_size_and_count(int64_t pathid, int64_t *size, int64_t *count)
+{
+   SQL_ROW row;
+
+   *size = *count = 0;
+
+   Mmsg(db->cmd,
+ "SELECT Size AS size, Files AS files "
+  " FROM PathVisibility "
+ " WHERE PathId = %lld "
+   " AND JobId = %s ", pathid, jobids);
+
+   if (!QUERY_DB(jcr, db, db->cmd)) {
+      return;
+   }
+
+   if ((row = sql_fetch_row(db))) {
+      *size = str_to_int64(row[0]);
+      *count =  str_to_int64(row[1]);
+   }
+}
+
+/* Compute for the current path the size and files count */
+void Bvfs::fv_get_size_and_count(int64_t pathid, int64_t *size, int64_t *count)
+{
+   SQL_ROW row;
+
+   *size = *count = 0;
+
+   Mmsg(db->cmd,
+ "SELECT sum(base64_decode_lstat(8,LStat)) AS size, count(1) AS files "
+  " FROM File "
+ " WHERE PathId = %lld "
+   " AND JobId = %s ", pathid, jobids);
+
+   if (!QUERY_DB(jcr, db, db->cmd)) {
+      return;
+   }
+
+   if ((row = sql_fetch_row(db))) {
+      *size = str_to_int64(row[0]);
+      *count =  str_to_int64(row[1]);
+   }
+}
+
+void Bvfs::fv_compute_size_and_count(int64_t pathid, int64_t *size, int64_t *count)
+{
+   Dmsg1(dbglevel, "fv_compute_size_and_count(%lld)\n", pathid);
+
+   fv_get_current_size_and_count(pathid, size, count);
+   if (*size > 0) {
+      return;
+   }
+
+   /* Update stats for the current directory */
+   fv_get_size_and_count(pathid, size, count);
+
+   /* Update stats for all sub directories */
+   Mmsg(db->cmd,
+        " SELECT PathId "
+          " FROM PathVisibility "
+               " INNER JOIN PathHierarchy USING (PathId) "
+         " WHERE PPathId  = %lld "
+           " AND JobId = %s ", pathid, jobids);
+
+   QUERY_DB(jcr, db, db->cmd);
+   int num = sql_num_rows(db);
+
+   if (num > 0) {
+      int64_t *result = (int64_t *)malloc (num * sizeof(int64_t));
+      SQL_ROW row;
+      int i=0;
+
+      while((row = sql_fetch_row(db))) {
+         result[i++] = str_to_int64(row[0]); /* PathId */
+      }
+
+      i=0;
+      while (num > 0) {
+         int64_t c=0, s=0;
+         fv_compute_size_and_count(result[i], &s, &c);
+         *size += s;
+         *count += c;
+
+         i++;
+         num--;
+      }
+      free(result);
+   }
+
+   fv_update_size_and_count(pathid, *size, *count);
+}
+
+void Bvfs::fv_update_size_and_count(int64_t pathid, int64_t size, int64_t count)
+{
+   Mmsg(db->cmd,
+        "UPDATE PathVisibility SET Files = %lld, Size = %lld "
+        " WHERE JobId = %s "
+        " AND PathId = %lld ", count, size, jobids, pathid);
+
+   UPDATE_DB(jcr, db, db->cmd);
 }
 
 void bvfs_update_cache(JCR *jcr, B_DB *mdb)
@@ -477,14 +682,14 @@ void bvfs_update_cache(JCR *jcr, B_DB *mdb)
            "PPathId integer NOT NULL, "
            "CONSTRAINT pathhierarchy_pkey "
            "PRIMARY KEY (PathId))");
-      QUERY_DB(jcr, mdb, mdb->cmd); 
+      QUERY_DB(jcr, mdb, mdb->cmd);
 
       Mmsg(mdb->cmd,
            "CREATE INDEX pathhierarchy_ppathid "
            "ON PathHierarchy (PPathId)");
       QUERY_DB(jcr, mdb, mdb->cmd);
 
-      Mmsg(mdb->cmd, 
+      Mmsg(mdb->cmd,
            "CREATE TABLE PathVisibility ("
            "PathId integer NOT NULL, "
            "JobId integer NOT NULL, "
@@ -494,7 +699,7 @@ void bvfs_update_cache(JCR *jcr, B_DB *mdb)
            "PRIMARY KEY (JobId, PathId))");
       QUERY_DB(jcr, mdb, mdb->cmd);
 
-      Mmsg(mdb->cmd, 
+      Mmsg(mdb->cmd,
            "CREATE INDEX pathvisibility_jobid "
            "ON PathVisibility (JobId)");
       QUERY_DB(jcr, mdb, mdb->cmd);
@@ -502,7 +707,7 @@ void bvfs_update_cache(JCR *jcr, B_DB *mdb)
    }
 #endif
 
-   Mmsg(mdb->cmd, 
+   Mmsg(mdb->cmd,
  "SELECT JobId from Job "
   "WHERE HasCache = 0 "
     "AND Type IN ('B') AND JobStatus IN ('T', 'f', 'A') "
@@ -514,7 +719,7 @@ void bvfs_update_cache(JCR *jcr, B_DB *mdb)
 
    db_start_transaction(jcr, mdb);
    Dmsg0(dbglevel, "Cleaning pathvisibility\n");
-   Mmsg(mdb->cmd, 
+   Mmsg(mdb->cmd,
         "DELETE FROM PathVisibility "
          "WHERE NOT EXISTS "
         "(SELECT 1 FROM Job WHERE JobId=PathVisibility.JobId)");
@@ -552,7 +757,33 @@ bvfs_update_path_hierarchy_cache(JCR *jcr, B_DB *mdb, char *jobids)
    return ret;
 }
 
-/* 
+/*
+ * Update the bvfs fileview for given jobids
+ */
+void
+bvfs_update_fv_cache(JCR *jcr, B_DB *mdb, char *jobids)
+{
+   char *p;
+   JobId_t JobId;
+   Bvfs bvfs(jcr, mdb);
+
+   for (p=jobids; ; ) {
+      int stat = get_next_jobid_from_list(&p, &JobId);
+      if (stat < 0) {
+         return;
+      }
+      if (stat == 0) {
+         break;
+      }
+
+      Dmsg1(dbglevel, "Trying to create cache for %lld\n", (int64_t)JobId);
+
+      bvfs.set_jobid(JobId);
+      bvfs.fv_update_cache();
+   }
+}
+
+/*
  * Update the bvfs cache for current jobids
  */
 void Bvfs::update_cache()
@@ -566,12 +797,12 @@ bool Bvfs::ch_dir(const char *path)
    pm_strcpy(db->path, path);
    db->pnl = strlen(db->path);
    db_lock(db);
-   ch_dir(db_get_path_record(jcr, db)); 
+   ch_dir(db_get_path_record(jcr, db));
    db_unlock(db);
    return pwd_id != 0;
 }
 
-/* 
+/*
  * Get all file versions for a specified client
  * TODO: Handle basejobs using different client
  */
@@ -589,7 +820,7 @@ void Bvfs::get_all_file_versions(DBId_t pathid, DBId_t fnid, const char *client)
 
    POOL_MEM query;
 
-   Mmsg(query,//    1           2              3       
+   Mmsg(query,//    1           2              3
 "SELECT 'V', File.PathId, File.FilenameId,  File.Md5, "
 //         4          5           6
         "File.JobId, File.LStat, File.FileId, "
@@ -608,6 +839,29 @@ void Bvfs::get_all_file_versions(DBId_t pathid, DBId_t fnid, const char *client)
   "%s ORDER BY FileId LIMIT %d OFFSET %d"
         ,edit_uint64(fnid, ed1), edit_uint64(pathid, ed2), client, q.c_str(),
         limit, offset);
+   Dmsg1(dbglevel_sql, "q=%s\n", query.c_str());
+   db_sql_query(db, query.c_str(), list_entries, user_data);
+}
+
+/*
+ * Get all volumes for a specific file
+ */
+void Bvfs::get_volumes(DBId_t  fileid)
+{
+   Dmsg1(dbglevel, "get_volumes(%lld)\n", (uint64_t)fileid);
+
+   char ed1[50];
+   POOL_MEM query;
+
+   Mmsg(query,
+//                          7                8
+"SELECT 'L',0,0,0,0,0,0, Media.VolumeName, Media.InChanger "
+"FROM File JOIN JobMedia USING (JobId) JOIN Media USING (MediaId) "
+"WHERE File.FileId = %s "
+  "AND File.FileIndex >= JobMedia.FirstIndex "
+  "AND File.FileIndex <= JobMedia.LastIndex "
+  " ORDER BY JobMediaId LIMIT %d OFFSET %d"
+        ,edit_uint64(fileid, ed1), limit, offset);
    Dmsg1(dbglevel_sql, "q=%s\n", query.c_str());
    db_sql_query(db, query.c_str(), list_entries, user_data);
 }
@@ -632,15 +886,15 @@ int Bvfs::_handle_path(void *ctx, int fields, char **row)
 {
    if (bvfs_is_dir(row)) {
       /* can have the same path 2 times */
-      if (strcmp(row[BVFS_Name], prev_dir)) {
-         pm_strcpy(prev_dir, row[BVFS_Name]);
+      if (strcmp(row[BVFS_PathId], prev_dir)) {
+         pm_strcpy(prev_dir, row[BVFS_PathId]);
          return list_entries(user_data, fields, row);
       }
    }
    return 0;
 }
 
-/* 
+/*
  * Retrieve . and .. information
  */
 void Bvfs::ls_special_dirs()
@@ -658,7 +912,7 @@ void Bvfs::ls_special_dirs()
    *prev_dir = 0;
 
    POOL_MEM query;
-   Mmsg(query, 
+   Mmsg(query,
 "(SELECT PPathId AS PathId, '..' AS Path "
     "FROM  PathHierarchy "
    "WHERE  PathId = %s "
@@ -694,8 +948,9 @@ bool Bvfs::ls_dirs()
    POOL_MEM query;
    POOL_MEM filter;
    if (*pattern) {
-      Mmsg(filter, " AND Path2.Path %s '%s' ", 
+      Mmsg(filter, " AND Path2.Path %s '%s' ",
            match_query[db_get_type_index(db)], pattern);
+
    }
 
    if (!dir_filenameid) {
@@ -755,17 +1010,17 @@ bool Bvfs::ls_dirs()
    return nb_record == limit;
 }
 
-void build_ls_files_query(B_DB *db, POOL_MEM &query, 
-                          const char *JobId, const char *PathId,  
+void build_ls_files_query(B_DB *db, POOL_MEM &query,
+                          const char *JobId, const char *PathId,
                           const char *filter, int64_t limit, int64_t offset)
 {
    if (db_get_type_index(db) == SQL_TYPE_POSTGRESQL) {
-      Mmsg(query, sql_bvfs_list_files[db_get_type_index(db)], 
-           JobId, PathId, JobId, PathId, 
+      Mmsg(query, sql_bvfs_list_files[db_get_type_index(db)],
+           JobId, PathId, JobId, PathId,
            filter, limit, offset);
    } else {
-      Mmsg(query, sql_bvfs_list_files[db_get_type_index(db)], 
-           JobId, PathId, JobId, PathId, 
+      Mmsg(query, sql_bvfs_list_files[db_get_type_index(db)],
+           JobId, PathId, JobId, PathId,
            limit, offset, filter, JobId, JobId);
    }
 }
@@ -788,11 +1043,14 @@ bool Bvfs::ls_files()
 
    edit_uint64(pwd_id, pathid);
    if (*pattern) {
-      Mmsg(filter, " AND Filename.Name %s '%s' ", 
+      Mmsg(filter, " AND Filename.Name %s '%s' ",
            match_query[db_get_type_index(db)], pattern);
+
+   } else if (*filename) {
+      Mmsg(filter, " AND Filename.Name = '%s' ", filename);
    }
 
-   build_ls_files_query(db, query, 
+   build_ls_files_query(db, query,
                         jobids, pathid, filter.c_str(),
                         limit, offset);
 
@@ -807,8 +1065,8 @@ bool Bvfs::ls_files()
 }
 
 
-/* 
- * Return next Id from comma separated list   
+/*
+ * Return next Id from comma separated list
  *
  * Returns:
  *   1 if next Id returned
@@ -881,7 +1139,7 @@ bool Bvfs::drop_restore_list(char *output_table)
    return false;
 }
 
-bool Bvfs::compute_restore_list(char *fileid, char *dirid, char *hardlink, 
+bool Bvfs::compute_restore_list(char *fileid, char *dirid, char *hardlink,
                                 char *output_table)
 {
    POOL_MEM query;
@@ -924,7 +1182,7 @@ bool Bvfs::compute_restore_list(char *fileid, char *dirid, char *hardlink,
    /* Add a directory content */
    while (get_next_id_from_list(&dirid, &id) == 1) {
       Mmsg(tmp, "SELECT Path FROM Path WHERE PathId=%lld", id);
-      
+
       if (!db_sql_query(db, tmp.c_str(), get_path_handler, (void *)&tmp2)) {
          Dmsg0(dbglevel, "Can't search for path\n");
          /* print error */
@@ -940,10 +1198,10 @@ bool Bvfs::compute_restore_list(char *fileid, char *dirid, char *hardlink,
       char *p = tmp.c_str();
       for (char *s = tmp2.c_str(); *s ; s++) {
          if (*s == '%' || *s == '_' || *s == '\\') {
-            *p = '\\'; 
+            *p = '\\';
             p++;
          }
-         *p = *s; 
+         *p = *s;
          p++;
       }
       *p = '\0';
@@ -960,8 +1218,8 @@ bool Bvfs::compute_restore_list(char *fileid, char *dirid, char *hardlink,
       Mmsg(tmp, "SELECT Job.JobId, JobTDate, File.FileIndex, File.FilenameId, "
                         "File.PathId, FileId "
                    "FROM Path JOIN File USING (PathId) JOIN Job USING (JobId) "
-                  "WHERE Path.Path LIKE '%s' AND File.JobId IN (%s) ", 
-           tmp2.c_str(), jobids); 
+                  "WHERE Path.Path LIKE '%s' AND File.JobId IN (%s) ",
+           tmp2.c_str(), jobids);
       query.strcat(tmp.c_str());
       init = true;
 
@@ -974,8 +1232,8 @@ bool Bvfs::compute_restore_list(char *fileid, char *dirid, char *hardlink,
                         "JOIN File USING (FileId) "
                         "JOIN Job ON (BaseFiles.JobId = Job.JobId) "
                         "JOIN Path USING (PathId) "
-                  "WHERE Path.Path LIKE '%s' AND BaseFiles.JobId IN (%s) ", 
-           tmp2.c_str(), jobids); 
+                  "WHERE Path.Path LIKE '%s' AND BaseFiles.JobId IN (%s) ",
+           tmp2.c_str(), jobids);
       query.strcat(tmp.c_str());
    }
 
@@ -997,7 +1255,7 @@ bool Bvfs::compute_restore_list(char *fileid, char *dirid, char *hardlink,
          }
          Mmsg(tmp,   "SELECT Job.JobId, JobTDate, FileIndex, FilenameId, "
                             "PathId, FileId "
-                       "FROM File JOIN Job USING (JobId) WHERE JobId = %lld " 
+                       "FROM File JOIN Job USING (JobId) WHERE JobId = %lld "
                         "AND FileIndex IN (%lld", jobid, id);
          prev_jobid = jobid;
 
@@ -1020,7 +1278,7 @@ bool Bvfs::compute_restore_list(char *fileid, char *dirid, char *hardlink,
       goto bail_out;
    }
 
-   Mmsg(query, sql_bvfs_select[db_get_type_index(db)], 
+   Mmsg(query, sql_bvfs_select[db_get_type_index(db)],
         output_table, output_table, output_table);
 
    /* TODO: handle jobid filter */
@@ -1032,7 +1290,7 @@ bool Bvfs::compute_restore_list(char *fileid, char *dirid, char *hardlink,
 
    /* MySQL need it */
    if (db_get_type_index(db) == SQL_TYPE_MYSQL) {
-      Mmsg(query, "CREATE INDEX idx_%s ON %s (JobId)", 
+      Mmsg(query, "CREATE INDEX idx_%s ON %s (JobId)",
            output_table, output_table);
       Dmsg1(dbglevel_sql, "q=%s\n", query.c_str());
       if (!db_sql_query(db, query.c_str(), NULL, NULL)) {
@@ -1050,4 +1308,4 @@ bail_out:
    return ret;
 }
 
-#endif /* HAVE_SQLITE3 || HAVE_MYSQL || HAVE_POSTGRESQL || HAVE_INGRES || HAVE_DBI */
+#endif /* HAVE_SQLITE3 || HAVE_MYSQL || HAVE_POSTGRESQL */

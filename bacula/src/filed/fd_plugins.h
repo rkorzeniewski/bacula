@@ -1,38 +1,26 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2007-2012 Free Software Foundation Europe e.V.
+   Copyright (C) 2007-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation, which is 
-   listed in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  * Application Programming Interface (API) definition for Bacula Plugins
  *
- * Kern Sibbald, October 2007
+ *  Written by Kern Sibbald, October 2007
  *
  */
- 
-#ifndef __FD_PLUGINS_H 
+
+#ifndef __FD_PLUGINS_H
 #define __FD_PLUGINS_H
 
 #ifndef _BACULA_H
@@ -81,7 +69,7 @@ struct restore_object_pkt {
    char *object_name;                 /* Object name */
    char *object;                      /* restore object data to save */
    char *plugin_name;                 /* Plugin name */
-   int32_t object_type;               /* FT_xx for this file */             
+   int32_t object_type;               /* FT_xx for this file */
    int32_t object_len;                /* restore object length */
    int32_t object_full_len;           /* restore object uncompressed length */
    int32_t object_index;              /* restore object index */
@@ -99,7 +87,7 @@ struct save_pkt {
    char *fname;                       /* Full path and filename */
    char *link;                        /* Link name if any */
    struct stat statp;                 /* System stat() packet for file */
-   int32_t type;                      /* FT_xx for this file */             
+   int32_t type;                      /* FT_xx for this file */
    uint32_t flags;                    /* Bacula internal flags */
    bool no_read;                      /* During the save, the file should not be saved */
    bool portable;                     /* set if data format is portable */
@@ -153,7 +141,7 @@ struct io_pkt {
    char *buf;                         /* read/write buffer */
    const char *fname;                 /* open filename */
    int32_t status;                    /* return status */
-   int32_t io_errno;                  /* errno code */  
+   int32_t io_errno;                  /* errno code */
    int32_t lerror;                    /* Win32 error code */
    int32_t whence;                    /* lseek argument */
    boffset_t offset;                  /* lseek argument */
@@ -215,9 +203,9 @@ typedef enum {
   bEventEndFileSet                      = 19,
   bEventPluginCommand                   = 20, /* Sent during FileSet creation */
   bEventVssBeforeCloseRestore           = 21,
-  /* Add drives to VSS snapshot 
+  /* Add drives to VSS snapshot
    *  argument: char[27] drivelist
-   * You need to add them without duplicates, 
+   * You need to add them without duplicates,
    * see fd_common.h add_drive() copy_drives() to get help
    */
   bEventVssPrepareSnapshot              = 22,
@@ -244,7 +232,7 @@ void new_plugins(JCR *jcr);
 void free_plugins(JCR *jcr);
 void generate_plugin_event(JCR *jcr, bEventType event, void *value=NULL);
 bool send_plugin_name(JCR *jcr, BSOCK *sd, bool start);
-bool plugin_name_stream(JCR *jcr, char *name);    
+bool plugin_name_stream(JCR *jcr, char *name);
 int plugin_create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace);
 bool plugin_set_attributes(JCR *jcr, ATTR *attr, BFILE *ofd);
 int plugin_save(JCR *jcr, FF_PKT *ff_pkt, bool top_level);
@@ -257,21 +245,21 @@ bRC plugin_option_handle_file(JCR *jcr, FF_PKT *ff_pkt, struct save_pkt *sp);
 extern "C" {
 #endif
 
-/* 
- * Bacula interface version and function pointers -- 
+/*
+ * Bacula interface version and function pointers --
  *  i.e. callbacks from the plugin to Bacula
  */
-typedef struct s_baculaFuncs {  
+typedef struct s_baculaFuncs {
    uint32_t size;
    uint32_t version;
    bRC (*registerBaculaEvents)(bpContext *ctx, ...);
    bRC (*getBaculaValue)(bpContext *ctx, bVariable var, void *value);
    bRC (*setBaculaValue)(bpContext *ctx, bVariable var, void *value);
-   bRC (*JobMessage)(bpContext *ctx, const char *file, int line, 
-       int type, utime_t mtime, const char *fmt, ...);     
+   bRC (*JobMessage)(bpContext *ctx, const char *file, int line,
+       int type, utime_t mtime, const char *fmt, ...);
    bRC (*DebugMessage)(bpContext *ctx, const char *file, int line,
        int level, const char *fmt, ...);
-   void *(*baculaMalloc)(bpContext *ctx, const char *file, int line, 
+   void *(*baculaMalloc)(bpContext *ctx, const char *file, int line,
        size_t size);
    void (*baculaFree)(bpContext *ctx, const char *file, int line, void *mem);
    bRC (*AddExclude)(bpContext *ctx, const char *file);
@@ -300,9 +288,9 @@ typedef enum {
   pVarDescription = 2
 } pVariable;
 
-# define FD_PLUGIN_MAGIC  "*FDPluginData*" 
+# define FD_PLUGIN_MAGIC  "*FDPluginData*"
 
-#define FD_PLUGIN_INTERFACE_VERSION  7
+#define FD_PLUGIN_INTERFACE_VERSION  ( 12 )
 
 typedef struct s_pluginInfo {
    uint32_t size;
@@ -319,7 +307,7 @@ typedef struct s_pluginInfo {
  * This is a set of function pointers that Bacula can call
  *  within the plugin.
  */
-typedef struct s_pluginFuncs {  
+typedef struct s_pluginFuncs {
    uint32_t size;
    uint32_t version;
    bRC (*newPlugin)(bpContext *ctx);

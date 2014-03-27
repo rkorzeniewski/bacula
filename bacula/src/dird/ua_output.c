@@ -1,29 +1,17 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2012 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  *
@@ -96,14 +84,14 @@ int gui_cmd(UAContext *ua, const char *cmd)
    return 1;
 }
 
-/* 
- * Enter with Resources locked 
+/*
+ * Enter with Resources locked
  */
 static void show_disabled_jobs(UAContext *ua)
 {
    JOB *job;
    bool first = true;
-   foreach_res(job, R_JOB) {   
+   foreach_res(job, R_JOB) {
       if (!acl_access_ok(ua, Job_ACL, job->name())) {
          continue;
       }
@@ -238,8 +226,8 @@ bail_out:
  *  list jobs           - lists all jobs run
  *  list jobid=nnn      - list job data for jobid
  *  list ujobid=uname   - list job data for unique jobid
- *  list job=name       - list all jobs with "name"   
- *  list jobname=name   - same as above 
+ *  list job=name       - list all jobs with "name"
+ *  list jobname=name   - same as above
  *  list jobmedia jobid=<nn>
  *  list jobmedia job=name
  *  list joblog jobid=<nn>
@@ -347,7 +335,7 @@ static int do_list_cmd(UAContext *ua, const char *cmd, e_list_type llist)
                db_list_base_files_for_job(ua->jcr, ua->db, jobid, prtit, ua);
             }
          }
-      
+
       /* List FILES */
       } else if (strcasecmp(ua->argk[i], NT_("files")) == 0) {
 
@@ -448,6 +436,7 @@ static int do_list_cmd(UAContext *ua, const char *cmd, e_list_type llist)
             free_pool_memory(VolumeName);
             done = true;
          }
+
          /* if no job or jobid keyword found, then we list all media */
          if (!done) {
             int num_pools;
@@ -514,7 +503,7 @@ static int do_list_cmd(UAContext *ua, const char *cmd, e_list_type llist)
                }
             } else if (strcasecmp(ua->argk[j], NT_("limit")) == 0 && ua->argv[j]) {
                limit = atoi(ua->argv[j]);
-            } 
+            }
          }
          db_list_copies_records(ua->jcr,ua->db,limit,jobids,prtit,ua,llist);
       } else if (strcasecmp(ua->argk[i], NT_("limit")) == 0
@@ -530,7 +519,7 @@ static int do_list_cmd(UAContext *ua, const char *cmd, e_list_type llist)
 static bool list_nextvol(UAContext *ua, int ndays)
 {
    JOB *job;
-   JCR *jcr;          
+   JCR *jcr;
    USTORE store;
    RUN *run;
    utime_t runtime;
@@ -608,9 +597,9 @@ RUN *find_next_run(RUN *run, JOB *job, utime_t &runtime, int ndays)
    SCHED *sched;
    struct tm tm, runtm;
    int mday, wday, month, wom, i;
-   int woy;
+   int woy, ldom;
    int day;
-   int is_scheduled;
+   bool is_scheduled;
 
    sched = job->schedule;
    if (sched == NULL) {            /* scheduled? */
@@ -641,11 +630,16 @@ RUN *find_next_run(RUN *run, JOB *job, utime_t &runtime, int ndays)
          month = tm.tm_mon;
          wom = mday / 7;
          woy = tm_woy(future);
+         ldom = tm_ldom(month, tm.tm_year + 1900);
 
-         is_scheduled = bit_is_set(mday, run->mday) && bit_is_set(wday, run->wday) &&
-            bit_is_set(month, run->month) && bit_is_set(wom, run->wom) &&
-            bit_is_set(woy, run->woy);
- 
+         is_scheduled = (bit_is_set(mday, run->mday) &&
+                         bit_is_set(wday, run->wday) &&
+                         bit_is_set(month, run->month) &&
+                         bit_is_set(wom, run->wom) &&
+                         bit_is_set(woy, run->woy)) ||
+                        (bit_is_set(month, run->month) &&
+                         bit_is_set(31, run->mday) && mday == ldom);
+
 #ifdef xxx
          Pmsg2(000, "day=%d is_scheduled=%d\n", day, is_scheduled);
          Pmsg1(000, "bit_set_mday=%d\n", bit_is_set(mday, run->mday));
@@ -710,11 +704,11 @@ bool complete_jcr_for_job(JCR *jcr, JOB *job, POOL *pool)
    }
 
    Dmsg0(100, "complete_jcr open db\n");
-   jcr->db = db_init_database(jcr, jcr->catalog->db_driver, jcr->catalog->db_name, 
+   jcr->db = db_init_database(jcr, jcr->catalog->db_driver, jcr->catalog->db_name,
                               jcr->catalog->db_user,
                               jcr->catalog->db_password, jcr->catalog->db_address,
                               jcr->catalog->db_port, jcr->catalog->db_socket,
-                              jcr->catalog->mult_db_connections, 
+                              jcr->catalog->mult_db_connections,
                               jcr->catalog->disable_batch_insert);
    if (!jcr->db || !db_open_database(jcr, jcr->db)) {
       Jmsg(jcr, M_FATAL, 0, _("Could not open database \"%s\".\n"),
@@ -886,7 +880,7 @@ void bmsg(UAContext *ua, const char *fmt, va_list arg_ptr)
 
 }
 #endif
- 
+
 void bsendmsg(void *ctx, const char *fmt, ...)
 {
    va_list arg_ptr;
@@ -900,7 +894,7 @@ void bsendmsg(void *ctx, const char *fmt, ...)
  * programs
  */
 /*
- * This is a message that should be displayed on the user's 
+ * This is a message that should be displayed on the user's
  *  console.
  */
 void UAContext::send_msg(const char *fmt, ...)
@@ -927,7 +921,7 @@ void UAContext::error_msg(const char *fmt, ...)
    va_end(arg_ptr);
 }
 
-/*  
+/*
  * This is a warning message, that should bring up a warning
  *  dialog box on the GUI. The command is not aborted, but something
  *  went wrong.
@@ -943,7 +937,7 @@ void UAContext::warning_msg(const char *fmt, ...)
    va_end(arg_ptr);
 }
 
-/* 
+/*
  * This is an information message that should probably be put
  *  into the status line of a GUI program.
  */

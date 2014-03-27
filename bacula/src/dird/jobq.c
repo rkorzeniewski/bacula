@@ -1,29 +1,17 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2003-2011 Free Software Foundation Europe e.V.
+   Copyright (C) 2003-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  * Bacula job queue routines.
@@ -120,8 +108,8 @@ int jobq_destroy(jobq_t *jq)
    P(jq->mutex);
    jq->valid = 0;                      /* prevent any more operations */
 
-   /* 
-    * If any threads are active, wake them 
+   /*
+    * If any threads are active, wake them
     */
    if (jq->num_workers > 0) {
       jq->quit = true;
@@ -182,7 +170,7 @@ void *sched_wait(void *arg)
    }
    /* Check every 30 seconds if canceled */
    while (wtime > 0) {
-      Dmsg3(2300, "Waiting on sched time, jobid=%d secs=%d use=%d\n", 
+      Dmsg3(2300, "Waiting on sched time, jobid=%d secs=%d use=%d\n",
          jcr->JobId, wtime, jcr->use_count());
       if (wtime > 30) {
          wtime = 30;
@@ -213,7 +201,7 @@ int jobq_add(jobq_t *jq, JCR *jcr)
    pthread_t id;
    wait_pkt *sched_pkt;
 
-   if (!jcr->term_wait_inited) { 
+   if (!jcr->term_wait_inited) {
       /* Initialize termination condition variable */
       if ((stat = pthread_cond_init(&jcr->term_wait, NULL)) != 0) {
          berrno be;
@@ -221,8 +209,8 @@ int jobq_add(jobq_t *jq, JCR *jcr)
          return stat;
       }
       jcr->term_wait_inited = true;
-   }                           
-                             
+   }
+
    Dmsg3(2300, "jobq_add jobid=%d jcr=0x%x use_count=%d\n", jcr->JobId, jcr, jcr->use_count());
    if (jq->valid != JOBQ_VALID) {
       Jmsg0(jcr, M_ERROR, 0, "Jobq_add queue not initialized.\n");
@@ -236,7 +224,7 @@ int jobq_add(jobq_t *jq, JCR *jcr)
       sched_pkt = (wait_pkt *)malloc(sizeof(wait_pkt));
       sched_pkt->jcr = jcr;
       sched_pkt->jq = jq;
-      stat = pthread_create(&id, &jq->attr, sched_wait, (void *)sched_pkt);        
+      stat = pthread_create(&id, &jq->attr, sched_wait, (void *)sched_pkt);
       if (stat != 0) {                /* thread not created */
          berrno be;
          Jmsg1(jcr, M_ERROR, 0, _("pthread_thread_create: ERR=%s\n"), be.bstrerror(stat));
@@ -342,7 +330,7 @@ static int start_server(jobq_t *jq)
 
    /*
     * if any threads are idle, wake one.
-    *   Actually we do a broadcast because on /lib/tls 
+    *   Actually we do a broadcast because on /lib/tls
     *   these signals seem to get lost from time to time.
     */
    if (jq->idle_workers > 0) {
@@ -437,6 +425,7 @@ void *jobq_server(void *arg)
          jq->running_jobs->append(je);
 
          /* Attach jcr to this thread while we run the job */
+         jcr->my_thread_id = pthread_self();
          jcr->set_killable(true);
          set_jcr_in_tsd(jcr);
          Dmsg1(2300, "Took jobid=%d from ready and appended to run\n", jcr->JobId);
@@ -452,6 +441,9 @@ void *jobq_server(void *arg)
          /* Job finished detach from thread */
          remove_jcr_from_tsd(je->jcr);
          je->jcr->set_killable(false);
+
+         /* Clear the threadid, probably not necessary */
+         memset(&jcr->my_thread_id, 0, sizeof(jcr->my_thread_id));
 
          Dmsg2(2300, "Back from user engine jobid=%d use=%d.\n", jcr->JobId,
             jcr->use_count());
@@ -502,7 +494,7 @@ void *jobq_server(void *arg)
             running_allow_mix = true;
             for ( ; re; ) {
                Dmsg2(2300, "JobId %d is also running with %s\n",
-                     re->jcr->JobId, 
+                     re->jcr->JobId,
                      re->jcr->job->allow_mixed_priority ? "mix" : "no mix");
                if (!re->jcr->job->allow_mixed_priority) {
                   running_allow_mix = false;
@@ -619,11 +611,7 @@ static bool reschedule_job(JCR *jcr, jobq_t *jq, jobq_item_t *je)
    /* Basic condition is that more reschedule times remain */
    if (jcr->job->RescheduleTimes == 0 ||
        jcr->reschedule_count < jcr->job->RescheduleTimes) {
-      resched = 
-         /* Check for incomplete jobs */
-         (jcr->job->RescheduleIncompleteJobs && 
-          jcr->is_incomplete() && jcr->is_JobType(JT_BACKUP) &&
-          !jcr->is_JobLevel(L_BASE)) ||
+      resched =
          /* Check for failed jobs */
          (jcr->job->RescheduleOnError &&
           !jcr->is_JobStatus(JS_Terminated) &&
@@ -654,7 +642,7 @@ static bool reschedule_job(JCR *jcr, jobq_t *jq, jobq_item_t *je)
       if (!allow_duplicate_job(jcr)) {
          return false;
       }
-      /* Only jobs with no output or Incomplete jobs can run on same JCR */
+      /* Only jobs with no output jobs can run on same JCR */
       if (jcr->JobBytes == 0) {
          Dmsg2(2300, "Requeue job=%d use=%d\n", jcr->JobId, jcr->use_count());
          V(jq->mutex);
@@ -676,11 +664,12 @@ static bool reschedule_job(JCR *jcr, jobq_t *jq, jobq_item_t *je)
        *   the old JobId or there will be database record
        *   conflicts.  We now create a new job, copying the
        *   appropriate fields.
-       */           
+       */
       JCR *njcr = new_jcr(sizeof(JCR), dird_free_jcr);
       set_jcr_defaults(njcr, jcr->job);
       njcr->reschedule_count = jcr->reschedule_count;
       njcr->sched_time = jcr->sched_time;
+      njcr->initial_sched_time = jcr->initial_sched_time;
       /*
        * Special test here since a Virtual Full gets marked
        *  as a Full, so we look at the resource record
@@ -692,6 +681,8 @@ static bool reschedule_job(JCR *jcr, jobq_t *jq, jobq_item_t *je)
       }
       njcr->pool = jcr->pool;
       njcr->run_pool_override = jcr->run_pool_override;
+      njcr->next_pool = jcr->next_pool;
+      njcr->run_next_pool_override = jcr->run_next_pool_override;
       njcr->full_pool = jcr->full_pool;
       njcr->run_full_pool_override = jcr->run_full_pool_override;
       njcr->inc_pool = jcr->inc_pool;
@@ -743,7 +734,7 @@ static bool acquire_resources(JCR *jcr)
 #ifdef xxx
    if (jcr->rstore && jcr->rstore == jcr->wstore) {    /* possible deadlock */
       Jmsg(jcr, M_FATAL, 0, _("Job canceled. Attempt to read and write same device.\n"
-         "    Read storage \"%s\" (From %s) -- Write storage \"%s\" (From %s)\n"), 
+         "    Read storage \"%s\" (From %s) -- Write storage \"%s\" (From %s)\n"),
          jcr->rstore->name(), jcr->rstore_source, jcr->wstore->name(), jcr->wstore_source);
       jcr->setJobStatus(JS_Canceled);
       return false;
@@ -757,7 +748,7 @@ static bool acquire_resources(JCR *jcr)
          return false;
       }
    }
-   
+
    if (jcr->wstore) {
       Dmsg1(200, "Wstore=%s\n", jcr->wstore->name());
       if (jcr->wstore->NumConcurrentJobs < jcr->wstore->MaxConcurrentJobs) {
@@ -802,7 +793,7 @@ static bool acquire_resources(JCR *jcr)
 
 static pthread_mutex_t rstore_mutex = PTHREAD_MUTEX_INITIALIZER;
 
-/* 
+/*
  * Note: inc_read_store() and dec_read_store() are
  *   called from select_rstore() in src/dird/restore.c
  */

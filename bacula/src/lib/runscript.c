@@ -1,29 +1,17 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2006-2011 Free Software Foundation Europe e.V.
+   Copyright (C) 2006-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  * Manipulation routines for RunScript list
@@ -36,7 +24,7 @@
 #include "bacula.h"
 #include "jcr.h"
 #include "runscript.h"
-               
+
 /*
  * This function pointer is set only by the Director (dird.c),
  * and is not set in the File daemon, because the File
@@ -51,7 +39,7 @@ RUNSCRIPT *new_runscript()
    RUNSCRIPT *cmd = (RUNSCRIPT *)malloc(sizeof(RUNSCRIPT));
    memset(cmd, 0, sizeof(RUNSCRIPT));
    cmd->reset_default();
-   
+
    return cmd;
 }
 
@@ -63,7 +51,7 @@ void RUNSCRIPT::reset_default(bool free_strings)
    if (free_strings && target) {
      free_pool_memory(target);
    }
-   
+
    target = NULL;
    command = NULL;
    on_success = true;
@@ -87,7 +75,7 @@ RUNSCRIPT *copy_runscript(RUNSCRIPT *src)
    dst->set_command(src->command, src->cmd_type);
    dst->set_target(src->target);
 
-   return dst;   
+   return dst;
 }
 
 void free_runscript(RUNSCRIPT *script)
@@ -106,7 +94,7 @@ void free_runscript(RUNSCRIPT *script)
 int run_scripts(JCR *jcr, alist *runscripts, const char *label)
 {
    Dmsg2(200, "runscript: running all RUNSCRIPT object (%s) JobStatus=%c\n", label, jcr->JobStatus);
-   
+
    RUNSCRIPT *script;
    bool runit;
 
@@ -130,13 +118,13 @@ int run_scripts(JCR *jcr, alist *runscripts, const char *label)
       runit = false;
 
       if ((script->when & SCRIPT_Before) && (when & SCRIPT_Before)) {
-         if ((script->on_success && 
+         if ((script->on_success &&
               (jcr->JobStatus == JS_Running || jcr->JobStatus == JS_Created))
-            || (script->on_failure && 
+            || (script->on_failure &&
                 (job_canceled(jcr) || jcr->JobStatus == JS_Differences))
             )
          {
-            Dmsg4(200, "runscript: Run it because SCRIPT_Before (%s,%i,%i,%c)\n", 
+            Dmsg4(200, "runscript: Run it because SCRIPT_Before (%s,%i,%i,%c)\n",
                   script->command, script->on_success, script->on_failure,
                   jcr->JobStatus );
             runit = true;
@@ -148,7 +136,7 @@ int run_scripts(JCR *jcr, alist *runscripts, const char *label)
             || (script->on_failure && job_canceled(jcr))
             )
          {
-            Dmsg4(200, "runscript: Run it because SCRIPT_AfterVSS (%s,%i,%i,%c)\n", 
+            Dmsg4(200, "runscript: Run it because SCRIPT_AfterVSS (%s,%i,%i,%c)\n",
                   script->command, script->on_success, script->on_failure,
                   jcr->JobStatus );
             runit = true;
@@ -158,11 +146,11 @@ int run_scripts(JCR *jcr, alist *runscripts, const char *label)
       if ((script->when & SCRIPT_After) && (when & SCRIPT_After)) {
          if ((script->on_success &&
               (jcr->JobStatus == JS_Terminated || jcr->JobStatus == JS_Warnings))
-            || (script->on_failure && 
+            || (script->on_failure &&
                 (job_canceled(jcr) || jcr->JobStatus == JS_Differences))
             )
          {
-            Dmsg4(200, "runscript: Run it because SCRIPT_After (%s,%i,%i,%c)\n", 
+            Dmsg4(200, "runscript: Run it because SCRIPT_After (%s,%i,%i,%c)\n",
                   script->command, script->on_success, script->on_failure,
                   jcr->JobStatus );
             runit = true;
@@ -233,7 +221,7 @@ bool RUNSCRIPT::run(JCR *jcr, const char *name)
 
    ecmd = edit_job_codes(jcr, ecmd, this->command, "", this->job_code_callback);
    Dmsg1(100, "runscript: running '%s'...\n", ecmd);
-   Jmsg(jcr, M_INFO, 0, _("%s: run %s \"%s\"\n"), 
+   Jmsg(jcr, M_INFO, 0, _("%s: run %s \"%s\"\n"),
         cmd_type==SHELL_CMD?"shell command":"console command", name, ecmd);
 
    switch (cmd_type) {
@@ -303,7 +291,7 @@ void RUNSCRIPT::debug()
    Dmsg1(200,  _("  --> RunWhen=%u\n"),  when);
 }
 
-void RUNSCRIPT::set_job_code_callback(job_code_callback_t arg_job_code_callback) 
+void RUNSCRIPT::set_job_code_callback(job_code_callback_t arg_job_code_callback)
 {
    this->job_code_callback = arg_job_code_callback;
 }

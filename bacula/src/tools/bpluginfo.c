@@ -1,6 +1,6 @@
 /*
  * Contributed in 2012 by Inteos sp. z o.o.
- * 
+ *
  * Utility tool display various information about Bacula plugin,
  * including but not limited to:
  * - Name and Author of the plugin
@@ -12,29 +12,17 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2006-2012 Free Software Foundation Europe e.V.
+   Copyright (C) 2006-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 
 #include <stdio.h>
@@ -97,7 +85,7 @@ union _plugfuncs {
  */
 /*
  * TODO: change to union
- * 
+ *
 typedef union _baculafuncs baculafuncs;
 union _baculafuncs {
    bDirFuncs bdirfuncs;
@@ -120,7 +108,7 @@ struct _baculafuncs {
    void (*baculaFree) (void *ctx, const char *file, int line, void *mem);
 };
 
-/* 
+/*
  * bDirInfo
  * bInfo
  * bsdInfo
@@ -251,13 +239,13 @@ void freepdata(progdata * pdata)
 
 /*
  * parse execution arguments and fills required pdata structure fields
- * 
+ *
  * input:
  *    pdata - pointer to program data structure
  *    argc, argv - execution envinroment variables
  * output:
  *    pdata - required structure fields
- * 
+ *
  * supported options:
  * -v    verbose flag
  * -i    list plugin header info only (default)
@@ -330,10 +318,10 @@ void parse_args(progdata * pdata, int argc, char *argv[])
              progdir = MALLOC(PATH_MAX);
              ASSERT_MEMORY(progdir);
              dirtmp = getcwd(dirtmp, PATH_MAX);
-      
+
              strcat(dirtmp, "/");
              strcat(dirtmp, argv[i]);
-      
+
              if (realpath(dirtmp, progdir) == NULL) {
                 /* error in resolving path */
                 FREE(progdir);
@@ -352,7 +340,7 @@ void parse_args(progdata * pdata, int argc, char *argv[])
 
 /*
  * checks a plugin type based on a plugin magic string
- * 
+ *
  * input:
  *    pdata - program data with plugin info structure
  * output:
@@ -385,7 +373,7 @@ int getplugintype(progdata * pdata)
 
 /*
  * prints any available information about a plugin
- * 
+ *
  * input:
  *    pdata - program data with plugin info structure
  * output:
@@ -448,7 +436,7 @@ void dump_pluginfo(progdata * pdata)
 
 /*
  * prints any available information about plugin' functions
- * 
+ *
  * input:
  *    pdata - program data with plugin info structure
  * output:
@@ -555,7 +543,7 @@ void dump_plugfuncs(progdata * pdata)
 /*
  * input parameters:
  *    argv[0] [options] <plugin_filename.so>
- * 
+ *
  * exit codes:
  *    0 - success
  *    1 - cannot load a plugin

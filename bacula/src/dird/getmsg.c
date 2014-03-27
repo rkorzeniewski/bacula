@@ -1,29 +1,17 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2010 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  *
@@ -94,10 +82,6 @@ static void set_jcr_sd_job_status(JCR *jcr, int SDJobStatus)
       jcr->wait_time = time(NULL);
    }
    jcr->SDJobStatus = SDJobStatus;
-   if (jcr->SDJobStatus == JS_Incomplete) {
-      jcr->setJobStatus(JS_Incomplete);
-   }
-      
 }
 
 /*
@@ -112,7 +96,7 @@ static void set_jcr_sd_job_status(JCR *jcr, int SDJobStatus)
  *  to the appropriate handler.  If the message is
  *  in any other format, it will be returned.
  *
- *  E.g. any message beginning with a digit will be passed   
+ *  E.g. any message beginning with a digit will be passed
  *       through to the caller.
  *  All other messages are expected begin with some identifier
  *    -- for the moment only the first character is checked, but
@@ -122,7 +106,7 @@ static void set_jcr_sd_job_status(JCR *jcr, int SDJobStatus)
  *    place (Job message, catalog request, ...). The Job is used to lookup
  *    the JCR so that the action is performed on the correct jcr, and
  *    the rest of the message is up to the user.  Note, DevUpd uses
- *    *System* for the Job name, and hence no JCR is obtained. This   
+ *    *System* for the Job name, and hence no JCR is obtained. This
  *    is a *rare* case where a jcr is not really needed.
  *
  */
@@ -242,7 +226,7 @@ int bget_dirmsg(BSOCK *bs)
       if (bs->msg[0] == 'B') {        /* SD sending file spool attributes */
          Dmsg2(100, "Blast attributes jcr 0x%x: %s", jcr, bs->msg);
          char filename[256];
-         if (sscanf(bs->msg, "BlastAttr Job=%127s File=%255s", 
+         if (sscanf(bs->msg, "BlastAttr Job=%127s File=%255s",
                     Job, filename) != 2) {
             Jmsg1(jcr, M_ERROR, 0, _("Malformed message: %s\n"), bs->msg);
             continue;
@@ -258,6 +242,20 @@ int bget_dirmsg(BSOCK *bs)
       if (bs->msg[0] == 'M') {        /* Mount request */
          Dmsg1(900, "Mount req: %s", bs->msg);
          mount_request(jcr, bs, msg);
+         continue;
+      }
+      /* Get Progress: files, bytes, bytes/sec */
+      if (bs->msg[0] == 'P') {       /* Progress report */
+         uint32_t files, bps;
+         uint64_t bytes;
+         if (sscanf(bs->msg, "Progress Job=x files=%ld bytes=%lld bps=%ld\n",
+             &files, &bytes, &bps) == 3) {
+           Dmsg2(900, "JobId=%d %s", jcr->JobId, bs->msg);
+           /* Save progress data */
+           jcr->JobFiles = files;
+           jcr->JobBytes = bytes;
+           jcr->LastRate = bps;
+         }
          continue;
       }
       if (bs->msg[0] == 'S') {       /* Status change */
@@ -286,8 +284,8 @@ int bget_dirmsg(BSOCK *bs)
              &dev_append, &dev_read,
              &dev_num_writers, &dev_open,
              &dev_labeled, &dev_offline, &dev_reserved,
-             &dev_max_writers, &dev_autoselect, 
-             &dev_autochanger, 
+             &dev_max_writers, &dev_autoselect,
+             &dev_autochanger,
              changer_name.c_str(), media_type.c_str(),
              volume_name.c_str(),
              &dev_read_time, &dev_write_time, &dev_read_bytes,
@@ -356,7 +354,7 @@ bool response(JCR *jcr, BSOCK *bs, char *resp, const char *cmd, e_prtmsg prtmsg)
 {
    int n;
 
-   if (is_bnet_error(bs)) {
+   if (bs->is_error()) {
       return false;
    }
    if ((n = bget_dirmsg(bs)) >= 0) {
@@ -370,6 +368,6 @@ bool response(JCR *jcr, BSOCK *bs, char *resp, const char *cmd, e_prtmsg prtmsg)
       return false;
    }
    Jmsg(jcr, M_FATAL, 0, _("Socket error on %s command: ERR=%s\n"),
-         cmd, bnet_strerror(bs));
+         cmd, bs->bstrerror());
    return false;
 }

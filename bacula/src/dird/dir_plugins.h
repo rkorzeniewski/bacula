@@ -1,29 +1,17 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2007-2011 Free Software Foundation Europe e.V.
+   Copyright (C) 2007-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation, which is 
-   listed in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  * Interface definition for Bacula Plugins
@@ -31,8 +19,8 @@
  * Kern Sibbald, October 2007
  *
  */
- 
-#ifndef __DIR_PLUGINS_H 
+
+#ifndef __DIR_PLUGINS_H
 #define __DIR_PLUGINS_H
 
 #ifndef _BACULA_H
@@ -72,11 +60,11 @@ extern "C" {
 /* Bacula Variable Ids */       /* return value */
 typedef enum {
   bDirVarJob       = 1,            // string
-  bDirVarLevel     = 2,            // int   
-  bDirVarType      = 3,            // int   
-  bDirVarJobId     = 4,            // int   
+  bDirVarLevel     = 2,            // int
+  bDirVarType      = 3,            // int
+  bDirVarJobId     = 4,            // int
   bDirVarClient    = 5,            // string
-  bDirVarNumVols   = 6,            // int   
+  bDirVarNumVols   = 6,            // int
   bDirVarPool      = 7,            // string
   bDirVarStorage   = 8,            // string
   bDirVarWriteStorage = 9,         // string
@@ -84,16 +72,16 @@ typedef enum {
   bDirVarCatalog   = 11,           // string
   bDirVarMediaType = 12,           // string
   bDirVarJobName   = 13,           // string
-  bDirVarJobStatus = 14,           // int   
-  bDirVarPriority  = 15,           // int   
+  bDirVarJobStatus = 14,           // int
+  bDirVarPriority  = 15,           // int
   bDirVarVolumeName = 16,          // string
-  bDirVarCatalogRes = 17,          // NYI      
-  bDirVarJobErrors  = 18,          // int   
-  bDirVarJobFiles   = 19,          // int   
-  bDirVarSDJobFiles = 20,          // int   
-  bDirVarSDErrors   = 21,          // int   
-  bDirVarFDJobStatus = 22,         // int   
-  bDirVarSDJobStatus = 23          // int   
+  bDirVarCatalogRes = 17,          // NYI
+  bDirVarJobErrors  = 18,          // int
+  bDirVarJobFiles   = 19,          // int
+  bDirVarSDJobFiles = 20,          // int
+  bDirVarSDErrors   = 21,          // int
+  bDirVarFDJobStatus = 22,         // int
+  bDirVarSDJobStatus = 23          // int
 } brDirVariable;
 
 typedef enum {
@@ -123,18 +111,18 @@ typedef struct s_bDirEvent {
 
 typedef struct s_dirbaculaInfo {
    uint32_t size;
-   uint32_t version;  
+   uint32_t version;
 } bDirInfo;
 
 /* Bacula interface version and function pointers */
-typedef struct s_dirbaculaFuncs {  
+typedef struct s_dirbaculaFuncs {
    uint32_t size;
    uint32_t version;
    bRC (*registerBaculaEvents)(bpContext *ctx, ...);
    bRC (*getBaculaValue)(bpContext *ctx, brDirVariable var, void *value);
    bRC (*setBaculaValue)(bpContext *ctx, bwDirVariable var, void *value);
-   bRC (*JobMessage)(bpContext *ctx, const char *file, int line, 
-                     int type, utime_t mtime, const char *fmt, ...);     
+   bRC (*JobMessage)(bpContext *ctx, const char *file, int line,
+                     int type, utime_t mtime, const char *fmt, ...);
    bRC (*DebugMessage)(bpContext *ctx, const char *file, int line,
                        int level, const char *fmt, ...);
 } bDirFuncs;
@@ -160,7 +148,7 @@ typedef enum {
 } pDirVariable;
 
 
-#define DIR_PLUGIN_MAGIC     "*DirPluginData*" 
+#define DIR_PLUGIN_MAGIC     "*DirPluginData*"
 #define DIR_PLUGIN_INTERFACE_VERSION  1
 
 typedef struct s_dirpluginInfo {
@@ -174,7 +162,7 @@ typedef struct s_dirpluginInfo {
    const char *plugin_description;
 } pDirInfo;
 
-typedef struct s_dirpluginFuncs {  
+typedef struct s_dirpluginFuncs {
    uint32_t size;
    uint32_t version;
    bRC (*newPlugin)(bpContext *ctx);

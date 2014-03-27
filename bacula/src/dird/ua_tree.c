@@ -1,29 +1,17 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2002-2011 Free Software Foundation Europe e.V.
+   Copyright (C) 2002-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  *
@@ -171,7 +159,6 @@ bool user_select_files_from_tree(TREE_CTX *tree)
    return stat;
 }
 
-
 /*
  * This callback routine is responsible for inserting the
  *  items it gets into the directory tree. For each JobId selected
@@ -193,6 +180,8 @@ int insert_tree_handler(void *ctx, int num_fields, char **row)
    int FileIndex;
    int32_t delta_seq;
    JobId_t JobId;
+   HL_ENTRY *entry = NULL;
+   int32_t LinkFI;
 
    Dmsg4(150, "Path=%s%s FI=%s JobId=%s\n", row[0], row[1],
          row[2], row[3]);
@@ -205,13 +194,14 @@ int insert_tree_handler(void *ctx, int num_fields, char **row)
    } else {
       type = TN_FILE;
    }
-   hard_link = (decode_LinkFI(row[4], &statp, sizeof(statp)) != 0);
+   decode_stat(row[4], &statp, sizeof(statp), &LinkFI);
+   hard_link = (LinkFI != 0);
    node = insert_tree_node(row[0], row[1], type, tree->root, NULL);
    JobId = str_to_int64(row[3]);
    FileIndex = str_to_int64(row[2]);
    delta_seq = str_to_int64(row[5]);
-   Dmsg5(150, "node=0x%p JobId=%s FileIndex=%s Delta=%s node.delta=%d\n",
-         node, row[3], row[2], row[5], node->delta_seq);
+   Dmsg6(150, "node=0x%p JobId=%s FileIndex=%s Delta=%s node.delta=%d LinkFI=%d\n",
+         node, row[3], row[2], row[5], node->delta_seq, LinkFI);
 
    /* TODO: check with hardlinks */
    if (delta_seq > 0) {
@@ -227,7 +217,7 @@ int insert_tree_handler(void *ctx, int num_fields, char **row)
             tree->ua->warning_msg(_("Something is wrong with the Delta sequence of %s, "
                                     "skiping new parts. Current sequence is %d\n"),
                                   row[1], node->delta_seq);
-            
+
             Dmsg3(0, "Something is wrong with Delta, skip it "
                   "fname=%s d1=%d d2=%d\n", row[1], node->delta_seq, delta_seq);
          }
@@ -265,6 +255,27 @@ int insert_tree_handler(void *ctx, int num_fields, char **row)
             node->extract_dir = true;   /* if dir, extract it */
          }
       }
+      /* insert file having hardlinks into hardlink hashtable */
+      if (statp.st_nlink > 1 && type != TN_DIR && type != TN_DIR_NLS) {
+         if (!LinkFI) {
+            /* first occurrence - file hardlinked to */
+            entry = (HL_ENTRY *)tree->root->hardlinks.hash_malloc(sizeof(HL_ENTRY));
+            entry->key = (((uint64_t) JobId) << 32) + FileIndex;
+            entry->node = node;
+            tree->root->hardlinks.insert(entry->key, entry);
+         } else if (tree->hardlinks_in_mem) {
+            /* hardlink to known file index: lookup original file */
+            uint64_t file_key = (((uint64_t) JobId) << 32) + LinkFI;
+            HL_ENTRY *first_hl = (HL_ENTRY *) tree->root->hardlinks.lookup(file_key);
+            if (first_hl && first_hl->node) {
+               /* then add hardlink entry to linked node*/
+               entry = (HL_ENTRY *)tree->root->hardlinks.hash_malloc(sizeof(HL_ENTRY));
+               entry->key = (((uint64_t) JobId) << 32) + FileIndex;
+               entry->node = first_hl->node;
+               tree->root->hardlinks.insert(entry->key, entry);
+            }
+         }
+      }
    }
    if (node->inserted) {
       tree->FileCount++;
@@ -277,7 +288,6 @@ int insert_tree_handler(void *ctx, int num_fields, char **row)
    return 0;
 }
 
-
 /*
  * Set extract to value passed. We recursively walk
  *  down the tree setting all children if the
@@ -286,8 +296,6 @@ int insert_tree_handler(void *ctx, int num_fields, char **row)
 static int set_extract(UAContext *ua, TREE_NODE *node, TREE_CTX *tree, bool extract)
 {
    TREE_NODE *n;
-   FILE_DBR fdbr;
-   struct stat statp;
    int count = 0;
 
    node->extract = extract;
@@ -314,33 +322,41 @@ static int set_extract(UAContext *ua, TREE_NODE *node, TREE_CTX *tree, bool extr
          }
       }
    } else if (extract) {
-      char cwd[2000];
-      /*
-       * Ordinary file, we get the full path, look up the
-       * attributes, decode them, and if we are hard linked to
-       * a file that was saved, we must load that file too.
-       */
-      tree_getpath(node, cwd, sizeof(cwd));
-      fdbr.FileId = 0;
-      fdbr.JobId = node->JobId;
-      if (node->hard_link && db_get_file_attributes_record(ua->jcr, ua->db, cwd, NULL, &fdbr)) {
-         int32_t LinkFI;
-         decode_stat(fdbr.LStat, &statp, sizeof(statp), &LinkFI); /* decode stat pkt */
+      uint64_t key = 0;
+      if (tree->hardlinks_in_mem) {
+         if (node->hard_link) {
+            key = (((uint64_t) node->JobId) << 32) + node->FileIndex;  /* every hardlink is in hashtable, and it points to linked file */
+         }
+      } else {
+         /* Get the hard link if it exists */
+         FILE_DBR fdbr;
+         struct stat statp;
+         char cwd[2000];
          /*
-          * If we point to a hard linked file, traverse the tree to
-          * find that file, and mark it to be restored as well. It
-          * must have the Link we just obtained and the same JobId.
+          * Ordinary file, we get the full path, look up the
+          * attributes, decode them, and if we are hard linked to
+          * a file that was saved, we must load that file too.
           */
-         if (LinkFI) {
-            for (n=first_tree_node(tree->root); n; n=next_tree_node(n)) {
-               if (n->FileIndex == LinkFI && n->JobId == node->JobId) {
-                  n->extract = true;
-                  if (n->type == TN_DIR || n->type == TN_DIR_NLS) {
-                     n->extract_dir = true;
-                  }
-                  break;
-               }
-            }
+         tree_getpath(node, cwd, sizeof(cwd));
+         fdbr.FileId = 0;
+         fdbr.JobId = node->JobId;
+         if (node->hard_link && db_get_file_attributes_record(ua->jcr, ua->db, cwd, NULL, &fdbr)) {
+            int32_t LinkFI;
+            decode_stat(fdbr.LStat, &statp, sizeof(statp), &LinkFI); /* decode stat pkt */
+            key = (((uint64_t) node->JobId) << 32) + LinkFI;  /* lookup by linked file's fileindex */
+         }
+      }
+      /* If file hard linked and we have a key */
+      if (node->hard_link && key != 0) {
+         /*
+          * If we point to a hard linked file, find that file in
+          * hardlinks hashmap, and mark it to be restored as well.
+          */
+         HL_ENTRY *entry = (HL_ENTRY *)tree->root->hardlinks.lookup(key);
+         if (entry && entry->node) {
+            n = entry->node;
+            n->extract = true;
+            n->extract_dir = (n->type == TN_DIR || n->type == TN_DIR_NLS);
          }
       }
    }
@@ -488,7 +504,7 @@ static int dot_lsdircmd(UAContext *ua, TREE_CTX *tree)
          }
       }
    }
- 
+
    return 1;
 }
 
@@ -516,7 +532,7 @@ static int dot_lscmd(UAContext *ua, TREE_CTX *tree)
          ua->send_msg("%s%s\n", node->fname, tree_node_has_child(node)?"/":"");
       }
    }
- 
+
    return 1;
 }
 
@@ -608,8 +624,8 @@ static int lsmarkcmd(UAContext *ua, TREE_CTX *tree)
 /*
  * This is actually the long form used for "dir"
  */
-static void ls_output(guid_list *guid, char *buf, const char *fname, const char *tag, 
-                      struct stat *statp, bool dot_cmd) 
+static void ls_output(guid_list *guid, char *buf, const char *fname, const char *tag,
+                      struct stat *statp, bool dot_cmd)
 {
    char *p;
    const char *f;
@@ -623,7 +639,7 @@ static void ls_output(guid_list *guid, char *buf, const char *fname, const char 
       *p++ = ',';
       n = sprintf(p, "%d,", (uint32_t)statp->st_nlink);
       p += n;
-      n = sprintf(p, "%s,%s,", 
+      n = sprintf(p, "%s,%s,",
                   guid->uid_to_name(statp->st_uid, en1, sizeof(en1)),
                   guid->gid_to_name(statp->st_gid, en2, sizeof(en2)));
       p += n;
@@ -636,7 +652,7 @@ static void ls_output(guid_list *guid, char *buf, const char *fname, const char 
    } else {
       n = sprintf(p, "  %2d ", (uint32_t)statp->st_nlink);
       p += n;
-      n = sprintf(p, "%-8.8s %-8.8s", 
+      n = sprintf(p, "%-8.8s %-8.8s",
                   guid->uid_to_name(statp->st_uid, en1, sizeof(en1)),
                   guid->gid_to_name(statp->st_gid, en2, sizeof(en2)));
       p += n;

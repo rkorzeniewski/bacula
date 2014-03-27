@@ -1,29 +1,17 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2007-2011 Free Software Foundation Europe e.V.
+   Copyright (C) 2007-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation, which is 
-   listed in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  * Main program to test loading and running Bacula plugins.
@@ -67,7 +55,7 @@ static bDirFuncs bfuncs = {
    baculaDebugMsg
 };
 
-/* 
+/*
  * Bacula private context
  */
 struct bacula_ctx {
@@ -94,7 +82,7 @@ static bool is_plugin_disabled(JCR *jcr)
 #endif
 
 /*
- * Create a plugin event 
+ * Create a plugin event
  */
 int generate_plugin_event(JCR *jcr, bDirEventType eventType, void *value)
 {
@@ -163,7 +151,7 @@ void load_dir_plugins(const char *plugin_dir)
       return;
    }
    bplugin_list = New(alist(10, not_owned_by_alist));
-   if (!load_plugins((void *)&binfo, (void *)&bfuncs, plugin_dir, plugin_type, 
+   if (!load_plugins((void *)&binfo, (void *)&bfuncs, plugin_dir, plugin_type,
                 is_plugin_compatible)) {
       /* Either none found, or some error */
       if (bplugin_list->size() == 0) {
@@ -173,7 +161,7 @@ void load_dir_plugins(const char *plugin_dir)
          return;
       }
    }
-   /* 
+   /*
     * Verify that the plugin is acceptable, and print information
     *  about it.
     */
@@ -194,7 +182,7 @@ static bool is_plugin_compatible(Plugin *plugin)
 {
    pDirInfo *info = (pDirInfo *)plugin->pinfo;
    Dmsg0(50, "is_plugin_compatible called\n");
-   if (debug_level >= 50) {
+   if (chk_dbglvl(50)) {
       dump_dir_plugin(plugin, stdin);
    }
    if (strcmp(info->plugin_magic, DIR_PLUGIN_MAGIC) != 0) {
@@ -227,7 +215,7 @@ static bool is_plugin_compatible(Plugin *plugin)
            plugin->file, sizeof(pDirInfo), info->size);
       return false;
    }
-      
+
    return true;
 }
 
@@ -347,7 +335,7 @@ static bRC baculaGetValue(bpContext *ctx, brDirVariable var, void *value)
       POOL_DBR pr;
       memset(&pr, 0, sizeof(pr));
       bstrncpy(pr.Name, jcr->pool->hdr.name, sizeof(pr.Name));
-      if (!db_get_pool_record(jcr, jcr->db, &pr)) {
+      if (!db_get_pool_numvols(jcr, jcr->db, &pr)) {
          ret=bRC_Error;
       }
       *((int *)value) = pr.NumVols;
@@ -435,11 +423,11 @@ static bRC baculaGetValue(bpContext *ctx, brDirVariable var, void *value)
    case bDirVarFDJobStatus:
       *((int *)value) = jcr->FDJobStatus;
       Dmsg1(dbglvl, "Bacula: return bDirVarFDJobStatus=%c\n", jcr->FDJobStatus);
-      break;      
+      break;
    case bDirVarSDJobStatus:
       *((int *)value) = jcr->SDJobStatus;
       Dmsg1(dbglvl, "Bacula: return bDirVarSDJobStatus=%c\n", jcr->SDJobStatus);
-      break;      
+      break;
    default:
       break;
    }
@@ -448,7 +436,7 @@ static bRC baculaGetValue(bpContext *ctx, brDirVariable var, void *value)
 
 static bRC baculaSetValue(bpContext *ctx, bwDirVariable var, void *value)
 {
-   JCR *jcr;   
+   JCR *jcr;
    if (!value || !ctx) {
       return bRC_Error;
    }
@@ -457,7 +445,7 @@ static bRC baculaSetValue(bpContext *ctx, bwDirVariable var, void *value)
    if (!jcr) {
       return bRC_Error;
    }
-// Dmsg1(dbglvl, "Bacula: jcr=%p\n", jcr); 
+// Dmsg1(dbglvl, "Bacula: jcr=%p\n", jcr);
    /* Nothing implemented yet */
    Dmsg1(dbglvl, "dir-plugin: baculaSetValue var=%d\n", var);
    return bRC_OK;
@@ -519,7 +507,7 @@ int main(int argc, char *argv[])
    JCR *jcr2 = &mjcr2;
 
    strcpy(my_name, "test-dir");
-    
+
    getcwd(plugin_dir, sizeof(plugin_dir)-1);
    load_dir_plugins(plugin_dir);
 

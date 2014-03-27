@@ -3,36 +3,24 @@
 
    Copyright (C) 2007-2010 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
- 
+
 /*
  *
  *  Storage Class
  *
  *   Dirk Bartley, March 2007
  *
- */ 
+ */
 
 #include "bat.h"
 #include <QAbstractEventDispatcher>
@@ -69,7 +57,7 @@ Storage::~Storage()
 }
 
 /*
- * The main meat of the class!!  The function that querries the director and 
+ * The main meat of the class!!  The function that querries the director and
  * creates the widgets with appropriate values.
  */
 void Storage::populateTree()
@@ -85,7 +73,7 @@ void Storage::populateTree()
    m_checkcurwidget = true;
 
    QStringList headerlist = (QStringList() << tr("Name") << tr("Id")
-        << tr("Changer") << tr("Slot") << tr("Status") << tr("Enabled") << tr("Pool") 
+        << tr("Changer") << tr("Slot") << tr("Status") << tr("Enabled") << tr("Pool")
         << tr("Media Type") );
 
    m_topItem = new QTreeWidgetItem(mp_treeWidget);
@@ -144,7 +132,7 @@ void Storage::populateTree()
 
             int index = 1;
             QStringListIterator fld(fieldlist);
- 
+
             /* storage id */
             storageItem.setNumericFld(index++, fld.next());
 
@@ -171,7 +159,7 @@ void Storage::mediaList(QTreeWidgetItem *parent, const QString &storageID)
 {
    QString query("SELECT Media.VolumeName AS Media, Media.Slot AS Slot,"
                  " Media.VolStatus AS VolStatus, Media.Enabled AS Enabled,"
-                 " Pool.Name AS MediaPool, Media.MediaType AS MediaType" 
+                 " Pool.Name AS MediaPool, Media.MediaType AS MediaType"
                  " From Media"
                  " JOIN Pool ON (Media.PoolId=Pool.PoolId)"
                  " WHERE Media.StorageId='" + storageID + "'"
@@ -187,11 +175,11 @@ void Storage::mediaList(QTreeWidgetItem *parent, const QString &storageID)
       QString resultline;
       QString field;
       QStringList fieldlist;
- 
+
       foreach (resultline, results) {
          fieldlist = resultline.split("\t");
          if (fieldlist.size() < 6)
-             continue; 
+             continue;
 
          /* Iterate through fields in the record */
          QStringListIterator fld(fieldlist);
@@ -199,8 +187,8 @@ void Storage::mediaList(QTreeWidgetItem *parent, const QString &storageID)
          TreeItemFormatter fmt(*parent, 2);
 
          /* volname */
-         fmt.setTextFld(index++, fld.next()); 
- 
+         fmt.setTextFld(index++, fld.next());
+
          /* skip the next two columns, unused by media */
          index += 2;
 
@@ -211,13 +199,13 @@ void Storage::mediaList(QTreeWidgetItem *parent, const QString &storageID)
          fmt.setVolStatusFld(index++, fld.next());
 
          /* enabled */
-         fmt.setBoolFld(index++, fld.next()); 
+         fmt.setBoolFld(index++, fld.next());
 
          /* pool */
-         fmt.setTextFld(index++, fld.next()); 
+         fmt.setTextFld(index++, fld.next());
 
          /* media type */
-         fmt.setTextFld(index++, fld.next()); 
+         fmt.setTextFld(index++, fld.next());
 
       }
    }
@@ -297,8 +285,8 @@ void Storage::treeItemChanged(QTreeWidgetItem *currentwidgetitem, QTreeWidgetIte
    }
 }
 
-/* 
- * Setup a context menu 
+/*
+ * Setup a context menu
  * Made separate from populate so that it would not create context menu over and
  * over as the tree is repopulated.
  */
@@ -335,7 +323,7 @@ void Storage::createContextMenu()
 
 void Storage::contentWindow()
 {
-   if (m_currentStorage != "" && m_currentAutoChanger) { 
+   if (m_currentStorage != "" && m_currentAutoChanger) {
       QTreeWidgetItem *parentItem = mainWin->getFromHash(this);
       new Content(m_currentStorage, parentItem);
    }

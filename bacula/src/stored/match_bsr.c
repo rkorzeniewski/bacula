@@ -1,29 +1,17 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2002-2010 Free Software Foundation Europe e.V.
+   Copyright (C) 2002-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  *   Match Bootstrap Records (used for restores) against
@@ -36,7 +24,7 @@
 /*
  * ***FIXME***
  * Also for efficiency, once a bsr is done, it really should be
- *   delinked from the bsr chain.  This will avoid the above 
+ *   delinked from the bsr chain.  This will avoid the above
  *   problem and make traversal of the bsr chain more efficient.
  *
  *   To be done ...
@@ -275,7 +263,7 @@ static bool get_smallest_voladdr(BSR_VOLADDR *va, uint64_t *ret)
  *   that has already been consumed, and this will cause the
  *   bsr to be used, thus we may seek back and re-read the
  *   same records, causing an error.  This deficiency must
- *   be fixed.  For the moment, it has been kludged in 
+ *   be fixed.  For the moment, it has been kludged in
  *   read_record.c to avoid seeking back if find_next_bsr
  *   returns a bsr pointing to a smaller address (file/block).
  *
@@ -317,7 +305,7 @@ static BSR *find_smallest_volfile(BSR *found_bsr, BSR *bsr)
          bsr_sfile = vf->sfile;
       }
    }
-    
+
    /* if the bsr file is less than the found_bsr file, return bsr */
    if (found_bsr_sfile > bsr_sfile) {
       return_bsr = bsr;
@@ -402,7 +390,7 @@ static int match_all(BSR *bsr, DEV_RECORD *rec, VOLUME_LABEL *volrec,
 
    if (!match_volfile(bsr, bsr->volfile, rec, 1)) {
       if (bsr->volfile) {
-         Dmsg3(dbglevel, "Fail on file=%u. bsr=%u,%u\n", 
+         Dmsg3(dbglevel, "Fail on file=%u. bsr=%u,%u\n",
                rec->File, bsr->volfile->sfile, bsr->volfile->efile);
       }
       goto no_match;
@@ -410,7 +398,7 @@ static int match_all(BSR *bsr, DEV_RECORD *rec, VOLUME_LABEL *volrec,
 
    if (!match_voladdr(bsr, bsr->voladdr, rec, 1)) {
       if (bsr->voladdr) {
-         Dmsg3(dbglevel, "Fail on Addr=%llu. bsr=%llu,%llu\n", 
+         Dmsg3(dbglevel, "Fail on Addr=%llu. bsr=%llu,%llu\n",
                get_record_address(rec), bsr->voladdr->saddr, bsr->voladdr->eaddr);
       }
       goto no_match;
@@ -435,11 +423,13 @@ static int match_all(BSR *bsr, DEV_RECORD *rec, VOLUME_LABEL *volrec,
          rec->FileIndex, bsr->FileIndex->findex, bsr->FileIndex->findex2);
       goto no_match;
    }
-   Dmsg3(dbglevel, "match on findex=%d. bsr=%d,%d\n",
-         rec->FileIndex, bsr->FileIndex->findex, bsr->FileIndex->findex2);
+   if (bsr->FileIndex) {
+      Dmsg3(dbglevel, "match on findex=%d. bsr=%d,%d\n",
+            rec->FileIndex, bsr->FileIndex->findex, bsr->FileIndex->findex2);
+   }
 
    if (!match_fileregex(bsr, rec, jcr)) {
-     Dmsg1(dbglevel, "Fail on fileregex='%s'\n", bsr->fileregex);
+     Dmsg1(dbglevel, "Fail on fileregex='%s'\n", NPRT(bsr->fileregex));
      goto no_match;
    }
 
@@ -712,7 +702,7 @@ static int match_sesstime(BSR *bsr, BSR_SESSTIME *sesstime, DEV_RECORD *rec, boo
    return 0;
 }
 
-/* 
+/*
  * Note, we cannot mark bsr done based on session id because we may
  *  have interleaved records, and there may be more of what we want
  *  later.
@@ -774,7 +764,7 @@ uint64_t get_bsr_start_addr(BSR *bsr, uint32_t *file, uint32_t *block)
          bsr_addr = bsr->voladdr->saddr;
          sfile = bsr_addr>>32;
          sblock = (uint32_t)bsr_addr;
-         
+
       } else if (bsr->volfile && bsr->volblock) {
          bsr_addr = (((uint64_t)bsr->volfile->sfile)<<32)|bsr->volblock->sblock;
          sfile = bsr->volfile->sfile;

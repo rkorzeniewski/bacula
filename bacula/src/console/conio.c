@@ -1,39 +1,24 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 1981-2012 Free Software Foundation Europe e.V.
-             Yes, that is 1981 no error.
+   Copyright (C) 1981-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
+
 /*
-      Generalized console input/output handler
-      A maintanable replacement for readline()
+  Generalized console input/output handler
+  A maintanable replacement for readline()
 
-         Updated for Bacula, Kern Sibbald, December MMIII
-
-      This code is in part derived from code that I wrote in
-      1981, so some of it is a bit old and could use a cleanup.
+  Written in 1981, updated for Bacula, Kern Sibbald, December MMIII
 
 */
 
@@ -45,7 +30,6 @@
  *    it is the start of a series of chars (up to 5)
  *  Each subsequent character starts with 10 (i.e. (c & 0xC0) == 0x80)
  */
-
 
 #ifdef  TEST_PROGRAM
 #include <stdio.h>
@@ -72,7 +56,7 @@
 extern "C" int tgetent(void *, const char *);
 extern "C" int tgetnum(const char *);
 extern "C" char *tgetstr (const char*, char**);
-# Note: the following on older (Solaris 10) systems 
+# Note: the following on older (Solaris 10) systems
 #  may need to be moved to after the #endif
 extern "C" char *tgoto (const char *, int, int);
 #endif

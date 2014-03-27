@@ -1,29 +1,17 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2012 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  *  Signal handlers for Bacula daemons
@@ -49,6 +37,7 @@
 #endif
 
 extern char my_name[];
+extern char fail_time[];
 extern char *exepath;
 extern char *exename;
 extern bool prt_kaboom;
@@ -78,7 +67,7 @@ extern void dbg_print_plugin(FILE *fp);
 extern void dbg_print_lock(FILE *fp);
 
 /*
- * !!! WARNING !!! 
+ * !!! WARNING !!!
  *
  * This function should be used ONLY after a violent signal. We walk through the
  * JCR chain without locking, Bacula should not be running.
@@ -87,16 +76,16 @@ static void dbg_print_bacula()
 {
    char buf[512];
 
-   snprintf(buf, sizeof(buf), "%s/%s.%d.bactrace", 
+   snprintf(buf, sizeof(buf), "%s/%s.%d.lockdump",
             working_directory, my_name, (int)getpid());
    FILE *fp = fopen(buf, "a+") ;
    if (!fp) {
       fp = stderr;
    }
-   
+
    fprintf(stderr, "Dumping: %s\n", buf);
 
-   /* Print also B_DB and RWLOCK structure 
+   /* Print also B_DB and RWLOCK structure
     * Can add more info about JCR with dbg_jcr_add_hook()
     */
    dbg_print_lock(fp);
@@ -108,7 +97,7 @@ static void dbg_print_bacula()
 #ifdef direct_print
       if (prt_kaboom) {
          rewind(fp);
-         printf("\n\n ==== bactrace output ====\n\n");
+         printf("\n\n ==== lockdump output ====\n\n");
          while (fgets(buf, (int)sizeof(buf), fp) != NULL) {
             printf("%s", buf);
          }
@@ -117,7 +106,7 @@ static void dbg_print_bacula()
 #else
       if (prt_kaboom) {
          char buf1[512];
-         printf("\n\n ==== bactrace output ====\n\n");
+         printf("\n\n ==== lockdump output ====\n\n");
          snprintf(buf1, sizeof(buf1), "/bin/cat %s", buf);
          system(buf1);
          printf(" ==== End baktrace output ====\n\n");
@@ -134,6 +123,7 @@ extern "C" void signal_handler(int sig)
 {
    static int already_dead = 0;
    int chld_status=-1;
+   utime_t now;
 
    /* If we come back more than once, get out fast! */
    if (already_dead) {
@@ -144,14 +134,21 @@ extern "C" void signal_handler(int sig)
    if (sig == SIGCHLD || sig == SIGUSR2) {
       return;
    }
+   /* FreeBSD seems to generate a signal of 0, which is of course undefined */
+   if (sig == 0) {
+      return;
+   }
    already_dead++;
    /* Don't use Emsg here as it may lock and thus block us */
    if (sig == SIGTERM) {
        syslog(LOG_DAEMON|LOG_ERR, "Shutting down Bacula service: %s ...\n", my_name);
    } else {
       fprintf(stderr, _("Bacula interrupted by signal %d: %s\n"), sig, get_signal_name(sig));
-      syslog(LOG_DAEMON|LOG_ERR, 
+      syslog(LOG_DAEMON|LOG_ERR,
          _("Bacula interrupted by signal %d: %s\n"), sig, get_signal_name(sig));
+      /* Edit current time for showing in the dump */
+      now = time(NULL);
+      bstrftimes(fail_time, 30, now);
    }
 
 #ifdef TRACEBACK
@@ -164,8 +161,8 @@ extern "C" void signal_handler(int sig)
       pid_t pid;
       int exelen = strlen(exepath);
 
-      fprintf(stderr, _("Kaboom! %s, %s got signal %d - %s. Attempting traceback.\n"),
-              exename, my_name, sig, get_signal_name(sig));
+      fprintf(stderr, _("Kaboom! %s, %s got signal %d - %s at %s. Attempting traceback.\n"),
+              exename, my_name, sig, get_signal_name(sig), fail_time);
       fprintf(stderr, _("Kaboom! exepath=%s\n"), exepath);
 
       if (exelen + 12 > (int)sizeof(btpath)) {
@@ -196,7 +193,7 @@ extern "C" void signal_handler(int sig)
       unlink("./core");               /* get rid of any old core file */
 
 #ifdef DEVELOPER /* When DEVELOPER not set, this is done below */
-      /* print information about the current state into working/<file>.bactrace */
+      /* print information about the current state into working/<file>.lockdump */
       dbg_print_bacula();
 #endif
 
@@ -243,15 +240,15 @@ extern "C" void signal_handler(int sig)
       if (WEXITSTATUS(chld_status) == 0) {
          fprintf(stderr, _("It looks like the traceback worked...\n"));
       } else {
-         fprintf(stderr, _("The btraceback call returned %d\n"), 
+         fprintf(stderr, _("The btraceback call returned %d\n"),
                            WEXITSTATUS(chld_status));
       }
       /* If we want it printed, do so */
 #ifdef direct_print
       if (prt_kaboom) {
          FILE *fd;
-         snprintf(buf, sizeof(buf), "%s/bacula.%s.traceback", working_directory, pid_buf); 
-         fd = fopen(buf, "r"); 
+         snprintf(buf, sizeof(buf), "%s/bacula.%s.traceback", working_directory, pid_buf);
+         fd = fopen(buf, "r");
          if (fd != NULL) {
             printf("\n\n ==== Traceback output ====\n\n");
             while (fgets(buf, (int)sizeof(buf), fd) != NULL) {
@@ -271,7 +268,7 @@ extern "C" void signal_handler(int sig)
 #endif
 
 #ifndef DEVELOPER /* When DEVELOPER set, this is done above */
-      /* print information about the current state into working/<file>.bactrace */
+      /* print information about the current state into working/<file>.lockdump */
       dbg_print_bacula();
 #endif
 
@@ -403,7 +400,7 @@ void init_signals(void terminate(int sig))
    sigaction(SIGEMT,    &sighandle, NULL);
 #endif
 #ifdef SIGIOT
-   sigaction(SIGIOT,    &sighandle, NULL);                     
+   sigaction(SIGIOT,    &sighandle, NULL);
 #endif
    sigaction(SIGBUS,    &sighandle, NULL);
    sigaction(SIGFPE,    &sighandle, NULL);

@@ -1,29 +1,17 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2001-2011 Free Software Foundation Europe e.V.
+   Copyright (C) 2001-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  *  Challenge Response Authentication Method using MD5 (CRAM-MD5)
@@ -69,23 +57,23 @@ bool cram_md5_challenge(BSOCK *bs, const char *password, int tls_local_need, int
    /* Send challenge -- no hashing yet */
    bsnprintf(chal, sizeof(chal), "<%u.%u@%s>", (uint32_t)random(), (uint32_t)time(NULL), host);
    if (compatible) {
-      Dmsg2(dbglvl, "send: auth cram-md5 %s ssl=%d\n", chal, tls_local_need);
+      Dmsg2(dbglvl, "send: auth cram-md5 challenge %s ssl=%d\n", chal, tls_local_need);
       if (!bs->fsend("auth cram-md5 %s ssl=%d\n", chal, tls_local_need)) {
-         Dmsg1(dbglvl, "Bnet send challenge comm error. ERR=%s\n", bs->bstrerror());
+         Dmsg1(dbglvl, "Send challenge comm error. ERR=%s\n", bs->bstrerror());
          return false;
       }
    } else {
       /* Old non-compatible system */
-      Dmsg2(dbglvl, "send: auth cram-md5 %s ssl=%d\n", chal, tls_local_need);
+      Dmsg2(dbglvl, "send: auth cram-md5 challenge %s ssl=%d\n", chal, tls_local_need);
       if (!bs->fsend("auth cram-md5 %s ssl=%d\n", chal, tls_local_need)) {
-         Dmsg1(dbglvl, "Bnet send challenge comm error. ERR=%s\n", bs->bstrerror());
+         Dmsg1(dbglvl, "Send challenge comm error. ERR=%s\n", bs->bstrerror());
          return false;
       }
    }
 
    /* Read hashed response to challenge */
    if (bs->wait_data(180) <= 0 || bs->recv() <= 0) {
-      Dmsg1(dbglvl, "Bnet receive challenge response comm error. ERR=%s\n", bs->bstrerror());
+      Dmsg1(dbglvl, "Receive cram-md5 response comm error. ERR=%s\n", bs->bstrerror());
       bmicrosleep(5, 0);
       return false;
    }
@@ -97,7 +85,7 @@ bool cram_md5_challenge(BSOCK *bs, const char *password, int tls_local_need, int
    if (ok) {
       Dmsg1(dbglvl, "Authenticate OK %s\n", host);
    } else {
-      bin_to_base64(host, sizeof(host), (char *)hmac, 16, false);     
+      bin_to_base64(host, sizeof(host), (char *)hmac, 16, false);
       ok = strcmp(bs->msg, host) == 0;
       if (!ok) {
          Dmsg2(dbglvl, "Authenticate NOT OK: wanted %s, got %s\n", host, bs->msg);
@@ -133,7 +121,7 @@ bool cram_md5_respond(BSOCK *bs, const char *password, int *tls_remote_need, int
       *compatible = true;
    } else if (sscanf(bs->msg, "auth cram-md5 %s ssl=%d", chal, tls_remote_need) != 2) {
       if (sscanf(bs->msg, "auth cram-md5 %s\n", chal) != 1) {
-         Dmsg1(dbglvl, "Cannot scan challenge: %s", bs->msg);
+         Dmsg1(dbglvl, "Cannot scan received response to challenge: %s", bs->msg);
          bs->fsend(_("1999 Authorization failed.\n"));
          bmicrosleep(5, 0);
          return false;
@@ -142,6 +130,7 @@ bool cram_md5_respond(BSOCK *bs, const char *password, int *tls_remote_need, int
 
    hmac_md5((uint8_t *)chal, strlen(chal), (uint8_t *)password, strlen(password), hmac);
    bs->msglen = bin_to_base64(bs->msg, 50, (char *)hmac, 16, *compatible) + 1;
+// Don't turn the following on except for local debugging -- security
 // Dmsg3(100, "get_auth: chal=%s pw=%s hmac=%s\n", chal, password, bs->msg);
    if (!bs->send()) {
       Dmsg1(dbglvl, "Send challenge failed. ERR=%s\n", bs->bstrerror());
@@ -149,7 +138,7 @@ bool cram_md5_respond(BSOCK *bs, const char *password, int *tls_remote_need, int
    }
    Dmsg1(99, "sending resp to challenge: %s\n", bs->msg);
    if (bs->wait_data(180) <= 0 || bs->recv() <= 0) {
-      Dmsg1(dbglvl, "Receive chanllenge response failed. ERR=%s\n", bs->bstrerror());
+      Dmsg1(dbglvl, "Receive cram-md5 response failed. ERR=%s\n", bs->bstrerror());
       bmicrosleep(5, 0);
       return false;
    }

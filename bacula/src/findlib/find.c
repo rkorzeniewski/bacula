@@ -1,29 +1,17 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2012 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  * Main routine for finding files on a file system.
@@ -111,51 +99,12 @@ set_find_changed_function(FF_PKT *ff, bool check_fct(JCR *jcr, FF_PKT *ff))
  * the function returns the number of used drives and
  * fills "drives" with up to 26 (A..Z) drive names
  *
+ * szDrives must be at least 27 bytes long
  */
 int
 get_win32_driveletters(FF_PKT *ff, char* szDrives)
 {
-   /* szDrives must be at least 27 bytes long */
-
-#if !defined(HAVE_WIN32)
-   return 0;
-#endif
-   int nCount;
-   /*
-    * Can be already filled by plugin, so check that all
-    *   letters are in upper case. There should be no duplicates.
-    */
-   for (nCount = 0; nCount < 27 && szDrives[nCount] ; nCount++) {
-      szDrives[nCount] = toupper(szDrives[nCount]);
-   }
-
-   findFILESET *fileset = ff->fileset;
-   if (fileset) {
-      int i;
-      dlistString *node;
-      
-      for (i=0; i<fileset->include_list.size(); i++) {
-         findINCEXE *incexe = (findINCEXE *)fileset->include_list.get(i);
-         
-         /* look through all files and check */
-         foreach_dlist(node, &incexe->name_list) {
-            char *fname = node->c_str();
-            /* fname should match x:/ */
-            if (strlen(fname) >= 2 && B_ISALPHA(fname[0]) 
-               && fname[1] == ':') {
-               
-               /* always add in uppercase */
-               char ch = toupper(fname[0]);
-               /* if not found in string, add drive letter */
-               if (!strchr(szDrives,ch)) {
-                  szDrives[nCount] = ch;
-                  szDrives[nCount+1] = 0;
-                  nCount++;
-               }                                
-            }            
-         }
-      }
-   }
+   int nCount = 0;
    return nCount;
 }
 
@@ -168,7 +117,7 @@ get_win32_driveletters(FF_PKT *ff, char* szDrives)
  */
 int
 find_files(JCR *jcr, FF_PKT *ff, int file_save(JCR *jcr, FF_PKT *ff_pkt, bool top_level),
-           int plugin_save(JCR *jcr, FF_PKT *ff_pkt, bool top_level)) 
+           int plugin_save(JCR *jcr, FF_PKT *ff_pkt, bool top_level))
 {
    ff->file_save = file_save;
    ff->plugin_save = plugin_save;
@@ -217,7 +166,7 @@ find_files(JCR *jcr, FF_PKT *ff, int file_save(JCR *jcr, FF_PKT *ff_pkt, bool to
                bstrncpy(ff->BaseJobOpts, fo->BaseJobOpts, sizeof(ff->BaseJobOpts));
             }
          }
-         Dmsg4(50, "Verify=<%s> Accurate=<%s> BaseJob=<%s> flags=<%d>\n", 
+         Dmsg4(50, "Verify=<%s> Accurate=<%s> BaseJob=<%s> flags=<%d>\n",
                ff->VerifyOpts, ff->AccurateOpts, ff->BaseJobOpts, ff->flags);
          dlistString *node;
          foreach_dlist(node, &incexe->name_list) {
@@ -240,6 +189,14 @@ find_files(JCR *jcr, FF_PKT *ff, int file_save(JCR *jcr, FF_PKT *ff_pkt, bool to
             Dmsg1(dbglvl, "PluginCommand: %s\n", fname);
             ff->top_fname = fname;
             ff->cmd_plugin = true;
+
+            /* Make sure that opt plugin is not set
+             * The current implementation doesn't allow option plugin
+             * and command plugin to run at the same time
+             */
+            ff->opt_plugin = false;
+            ff->plugin = NULL;
+
             plugin_save(jcr, ff, true);
             ff->cmd_plugin = false;
             if (job_canceled(jcr)) {
@@ -253,7 +210,7 @@ find_files(JCR *jcr, FF_PKT *ff, int file_save(JCR *jcr, FF_PKT *ff_pkt, bool to
 
 /*
  * Test if the currently selected directory (in ff->fname) is
- *  explicitly in the Include list or explicitly in the Exclude 
+ *  explicitly in the Include list or explicitly in the Exclude
  *  list.
  */
 bool is_in_fileset(FF_PKT *ff)

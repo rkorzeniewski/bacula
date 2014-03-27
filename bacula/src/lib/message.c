@@ -1,39 +1,27 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2012 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  * Bacula message handling routines
  *
  * NOTE: don't use any Jmsg or Qmsg calls within this file,
- *   except in q_msg or j_msg (setup routines), 
+ *   except in q_msg or j_msg (setup routines),
  *   otherwise you may get into recursive calls if there are
  *   errors, and that can lead to looping or deadlocks.
  *
- *   Kern Sibbald, April 2000
+ *   Written by Kern Sibbald, April 2000
  *
  */
 
@@ -49,24 +37,28 @@ sql_escape_func p_sql_escape = NULL;
  *  This is where we define "Globals" because all the
  *    daemons include this file.
  */
-const char *working_directory = NULL;       /* working directory path stored here */
-const char *assert_msg = (char *)NULL; /* ASSERT2 error message */
-int verbose = 0;                      /* increase User messages */
-int debug_level = 0;                  /* debug level */
-bool dbg_timestamp = false;           /* print timestamp in debug output */
-bool prt_kaboom = false;              /* Print kaboom output */
-utime_t daemon_start_time = 0;        /* Daemon start time */
+const char *working_directory = NULL; /* working directory path stored here */
+const char *assert_msg = NULL;        /* ASSERT2 error message */
 const char *version = VERSION " (" BDATE ")";
 const char *dist_name = DISTNAME " " DISTVER;
-int beef = BEEF;
-char my_name[30] = {0};               /* daemon name is stored here */
-char host_name[50] = {0};             /* host machine name */
 char *exepath = (char *)NULL;
 char *exename = (char *)NULL;
-int console_msg_pending = false;
+char *catalog_db = NULL;              /* database type */
 char con_fname[500];                  /* Console filename */
+char my_name[30] = {0};               /* daemon name is stored here */
+char host_name[50] = {0};             /* host machine name */
+char fail_time[30] = {0};             /* Time of failure */
+int verbose = 0;                      /* increase User messages */
+int64_t debug_level = 0;              /* debug level */
+int32_t debug_flags = 0;              /* debug flags */
+int beef = BEEF;
+int console_msg_pending = false;
+utime_t daemon_start_time = 0;        /* Daemon start time */
 FILE *con_fd = NULL;                  /* Console file descriptor */
 brwlock_t con_lock;                   /* Console lock structure */
+bool dbg_timestamp = false;           /* print timestamp in debug output */
+bool prt_kaboom = false;              /* Print kaboom output */
+job_code_callback_t message_job_code_callback = NULL;   /* Job code callback. Only used by director. */
 
 /* Forward referenced functions */
 
@@ -81,7 +73,6 @@ void create_jcr_key();
 /* Allow only one thread to tweak d->fd at a time */
 static pthread_mutex_t fides_mutex = PTHREAD_MUTEX_INITIALIZER;
 static MSGS *daemon_msgs;              /* global messages */
-static char *catalog_db = NULL;       /* database type */
 static void (*message_callback)(int type, char *msg) = NULL;
 static FILE *trace_fd = NULL;
 #if defined(HAVE_WIN32)
@@ -98,7 +89,7 @@ const char *distver = DISTVER;
 
 /*
  * Walk back in a string from end looking for a
- *  path separator.  
+ *  path separator.
  *  This routine is passed the start of the string and
  *  the end of the string, it returns either the beginning
  *  of the string or where it found a path separator.
@@ -106,12 +97,22 @@ const char *distver = DISTVER;
 static const char *bstrrpath(const char *start, const char *end)
 {
    while ( end > start ) {
-      end--;   
+      end--;
       if (IsPathSeparator(*end)) {
          break;
       }
    }
    return end;
+}
+
+/*
+ * Returns: 0 if not configured
+ *         -1 on error
+ *          1 OK
+ */
+int generate_daemon_event(JCR *jcr, const char *event)
+{
+   return 0;
 }
 
 /* Some message class methods */
@@ -174,7 +175,50 @@ static void delivery_error(const char *fmt,...)
    fflush(stdout);
    syslog(LOG_DAEMON|LOG_ERR, "%s", pool_buf);
    free_memory(pool_buf);
-}                 
+}
+
+void set_debug_flags(char *options)
+{
+   for (char *p = options; *p ; p++) {
+      switch(*p) {
+      case '0':                 /* clear flags */
+         debug_flags = 0;
+         break;
+
+      case 'i':                 /* used by FD */
+      case 'd':                 /* used by FD */
+         break;
+
+      case 't':
+         dbg_timestamp = true;
+         break;
+
+      case 'T':
+         dbg_timestamp = false;
+         break;
+
+      case 'c':
+         /* truncate the trace file */
+         if (trace && trace_fd) {
+            ftruncate(fileno(trace_fd), 0);
+         }
+         break;
+
+      case 'l':
+         /* Turn on/off add_events for P()/V() */
+         debug_flags |= DEBUG_MUTEX_EVENT;
+         break;
+
+      case 'p':
+         /* Display event stack during lockdump */
+         debug_flags |= DEBUG_PRINT_EVENT;
+         break;
+
+      default:
+         Dmsg1(000, "Unknown debug flag %c\n", *p);
+      }
+   }
+}
 
 void register_message_callback(void msg_callback(int type, char *msg))
 {
@@ -246,6 +290,16 @@ void my_name_is(int argc, char *argv[], const char *name)
    }
 }
 
+/* Set special ASSERT2 message where debugger can find it */
+void
+set_assert_msg(const char *file, int line, const char *msg)
+{
+   char buf[2000];
+   bsnprintf(buf, sizeof(buf), "ASSERT at %s:%d-%u ERR=%s",
+      get_basename(file), line, get_jobid_from_tsd(), msg);
+   assert_msg = bstrdup(buf);
+}
+
 void
 set_db_type(const char *name)
 {
@@ -264,7 +318,7 @@ set_db_type(const char *name)
  *   non-NULL     -> initialize jcr using Message resource
  */
 void
-init_msg(JCR *jcr, MSGS *msg)
+init_msg(JCR *jcr, MSGS *msg, job_code_callback_t job_code_callback)
 {
    DEST *d, *dnew, *temp_chain = NULL;
    int i;
@@ -276,6 +330,8 @@ init_msg(JCR *jcr, MSGS *msg)
       create_jcr_key();
       set_jcr_in_tsd(INVALID_JCR);
    }
+
+   message_job_code_callback = job_code_callback;
 
 #if !defined(HAVE_WIN32)
    /*
@@ -345,7 +401,6 @@ init_msg(JCR *jcr, MSGS *msg)
    }
 
    Dmsg2(250, "Copy message resource %p to %p\n", msg, temp_chain);
-
 }
 
 /* Initialize so that the console (User Agent) can
@@ -470,7 +525,7 @@ static BPIPE *open_mail_pipe(JCR *jcr, POOLMEM *&cmd, DEST *d)
    BPIPE *bpipe;
 
    if (d->mail_cmd) {
-      cmd = edit_job_codes(jcr, cmd, d->mail_cmd, d->where);
+      cmd = edit_job_codes(jcr, cmd, d->mail_cmd, d->where, message_job_code_callback);
    } else {
       Mmsg(cmd, "/usr/lib/sendmail -F Bacula %s", d->where);
    }
@@ -613,13 +668,13 @@ void close_msg(JCR *jcr)
             }
             free_memory(line);
 rem_temp_file:
-            /* Remove temp file */
+            /* Remove temp mail file */
             if (d->fd) {
-               fclose(d->fd);
-               d->fd = NULL;
+              fclose(d->fd);
+              d->fd = NULL;
             }
+            /* Exclude spaces in mail_filename */
             if (d->mail_filename) {
-               /* Exclude spaces in mail_filename */
                safer_unlink(d->mail_filename, MAIL_REGEX);
                free_pool_memory(d->mail_filename);
                d->mail_filename = NULL;
@@ -655,9 +710,11 @@ void free_msgs_res(MSGS *msgs)
    for (d=msgs->dest_chain; d; ) {
       if (d->where) {
          free(d->where);
+         d->where = NULL;
       }
       if (d->mail_cmd) {
          free(d->mail_cmd);
+         d->mail_cmd = NULL;
       }
       old = d;                        /* save pointer to release */
       d = d->next;                    /* point to next buffer */
@@ -705,7 +762,7 @@ void term_msg()
    term_last_jobs_list();
 }
 
-static bool open_dest_file(JCR *jcr, DEST *d, const char *mode) 
+static bool open_dest_file(JCR *jcr, DEST *d, const char *mode)
 {
    d->fd = fopen(d->where, mode);
    if (!d->fd) {
@@ -824,7 +881,7 @@ void dispatch_message(JCR *jcr, int type, utime_t mtime, char *msg)
                 if (p_sql_query && p_sql_escape) {
                    POOLMEM *cmd = get_pool_memory(PM_MESSAGE);
                    POOLMEM *esc_msg = get_pool_memory(PM_MESSAGE);
-                   
+
                    int len = strlen(msg) + 1;
                    esc_msg = check_pool_memory_size(esc_msg, len * 2 + 1);
                    if (p_sql_escape(jcr, jcr->db, esc_msg, msg, len)) {
@@ -837,7 +894,7 @@ void dispatch_message(JCR *jcr, int type, utime_t mtime, char *msg)
                    } else {
                       delivery_error(_("Msg delivery error: Unable to store data in database.\n"));
                    }
-                   
+
                    free_pool_memory(cmd);
                    free_pool_memory(esc_msg);
                 }
@@ -985,15 +1042,15 @@ send_to_file:
 
 /*********************************************************************
  *
- *  This subroutine returns the filename portion of a path.  
- *  It is used because some compilers set __FILE__ 
+ *  This subroutine returns the filename portion of a path.
+ *  It is used because some compilers set __FILE__
  *  to the full path.  Try to return base + next higher path.
  */
 
 const char *get_basename(const char *pathname)
 {
    const char *basename;
-   
+
    if ((basename = bstrrpath(pathname, pathname+strlen(pathname))) == pathname) {
       /* empty */
    } else if ((basename = bstrrpath(pathname, basename-1)) == pathname) {
@@ -1005,7 +1062,7 @@ const char *get_basename(const char *pathname)
 }
 
 /*
- * print or write output to trace file 
+ * print or write output to trace file
  */
 static void pt_out(char *buf)
 {
@@ -1044,7 +1101,7 @@ static void pt_out(char *buf)
  *  are not printed.
  */
 void
-d_msg(const char *file, int line, int level, const char *fmt,...)
+d_msg(const char *file, int line, int64_t level, const char *fmt,...)
 {
     char      buf[5000];
     int       len;
@@ -1057,7 +1114,7 @@ d_msg(const char *file, int line, int level, const char *fmt,...)
        level = -level;
     }
 
-    if (level <= debug_level) {
+    if (chk_dbglvl(level)) {
        if (dbg_timestamp) {
           mtime = time(NULL);
           bstrftimes(buf, sizeof(buf), mtime);
@@ -1066,10 +1123,10 @@ d_msg(const char *file, int line, int level, const char *fmt,...)
           buf[len] = 0;
           pt_out(buf);
        }
-    
+
 #ifdef FULL_LOCATION
        if (details) {
-          len = bsnprintf(buf, sizeof(buf), "%s: %s:%d-%u ", 
+          len = bsnprintf(buf, sizeof(buf), "%s: %s:%d-%u ",
                 my_name, get_basename(file), line, get_jobid_from_tsd());
        } else {
           len = 0;
@@ -1140,7 +1197,7 @@ p_msg(const char *file, int line, int level, const char *fmt,...)
 
 #ifdef FULL_LOCATION
     if (level >= 0) {
-       len = bsnprintf(buf, sizeof(buf), "%s: %s:%d-%u ", 
+       len = bsnprintf(buf, sizeof(buf), "%s: %s:%d-%u ",
              my_name, get_basename(file), line, get_jobid_from_tsd());
     } else {
        len = 0;
@@ -1153,7 +1210,7 @@ p_msg(const char *file, int line, int level, const char *fmt,...)
     bvsnprintf(buf+len, sizeof(buf)-len, (char *)fmt, arg_ptr);
     va_end(arg_ptr);
 
-    pt_out(buf);     
+    pt_out(buf);
 }
 
 
@@ -1168,7 +1225,7 @@ p_msg(const char *file, int line, int level, const char *fmt,...)
  *  are not printed.
  */
 void
-t_msg(const char *file, int line, int level, const char *fmt,...)
+t_msg(const char *file, int line, int64_t level, const char *fmt,...)
 {
     char      buf[5000];
     int       len;
@@ -1180,7 +1237,7 @@ t_msg(const char *file, int line, int level, const char *fmt,...)
        level = -level;
     }
 
-    if (level <= debug_level) {
+    if (chk_dbglvl(level)) {
        if (!trace_fd) {
           bsnprintf(buf, sizeof(buf), "%s/%s.trace", working_directory ? working_directory : ".", my_name);
           trace_fd = fopen(buf, "a+b");
@@ -1319,7 +1376,7 @@ Jmsg(JCR *jcr, int type, utime_t mtime, const char *fmt,...)
     if (jcr) {
        if (!jcr->dequeuing_msgs) { /* Avoid recursion */
           /* Dequeue messages to keep the original order  */
-          dequeue_messages(jcr); 
+          dequeue_messages(jcr);
        }
        msgs = jcr->jcr_msgs;
        JobId = jcr->JobId;
@@ -1365,7 +1422,7 @@ Jmsg(JCR *jcr, int type, utime_t mtime, const char *fmt,...)
        }
        break;
     case M_SECURITY:
-       len = bsnprintf(rbuf, sizeof(rbuf), _("%s JobId %u: Security violation: "), 
+       len = bsnprintf(rbuf, sizeof(rbuf), _("%s JobId %u: Security violation: "),
                my_name, JobId);
        break;
     default:
@@ -1623,4 +1680,106 @@ void q_msg(const char *file, int line, JCR *jcr, int type, utime_t mtime, const 
 
    Qmsg(jcr, type, mtime, "%s", pool_buf);
    free_memory(pool_buf);
+}
+
+
+/* not all in alphabetical order.  New commands are added after existing commands with similar letters
+   to prevent breakage of existing user scripts.  */
+struct debugtags {
+   const char *tag;             /* command */
+   int64_t     bit;             /* bit to set */
+   const char *help;            /* main purpose */
+};
+
+/* setdebug tag=all,-plugin */
+static struct debugtags debug_tags[] = {
+ { NT_("lock"),        DT_LOCK,     _("Debug lock information")},
+ { NT_("network"),     DT_NETWORK,  _("Debug network information")},
+ { NT_("plugin"),      DT_PLUGIN,   _("Debug plugin information")},
+ { NT_("volume"),      DT_VOLUME,   _("Debug volume information")},
+ { NT_("sql"),         DT_SQL,      _("Debug SQL queries")},
+ { NT_("bvfs"),        DT_BVFS,     _("Debug BVFS queries")},
+ { NT_("memory"),      DT_MEMORY,   _("Debug memory allocation")},
+ { NT_("scheduler"),   DT_SCHEDULER,_("Debug scheduler information")},
+ { NT_("protocol"),    DT_PROTOCOL, _("Debug protocol information")},
+ { NT_("all"),         DT_ALL,      _("Debug all information")},
+ { NULL,               0,   NULL}
+};
+
+/* Allow +-, */
+bool debug_find_tag(const char *tagname, bool add, int64_t *current_level)
+{
+   Dmsg3(010, "add=%d tag=%s level=%lld\n", add, tagname, *current_level);
+   if (!*tagname) {
+      /* Nothing in the buffer */
+      return true;
+   }
+   for (int i=0; debug_tags[i].tag ; i++) {
+      if (strcasecmp(debug_tags[i].tag, tagname) == 0) {
+         if (add) {
+            *current_level |= debug_tags[i].bit;
+         } else {
+            *current_level &= ~(debug_tags[i].bit);
+         }
+         return true;
+      }
+   }
+   return false;
+}
+
+bool debug_parse_tags(const char *options, int64_t *current_level)
+{
+   bool operation;              /* + => true, - false */
+   char *p, *t, tag[256];
+   int max = sizeof(tag) - 1;
+   bool ret=true;
+   int64_t level= *current_level;
+
+   t = tag;
+   *tag = 0;
+   operation = true;            /* add by default */
+
+   if (!options) {
+      Dmsg0(100, "No options for tags\n");
+      return false;
+   }
+
+   for (p = (char *)options; *p ; p++) {
+      if (*p == ',' || *p == '+' || *p == '-' || *p == '!') {
+         /* finish tag keyword */
+         *t = 0;
+         /* handle tag */
+         ret &= debug_find_tag(tag, operation, &level);
+
+         if (*p == ',') {
+            /* reset tag */
+            t = tag;
+            *tag = 0;
+            operation = true;
+
+         } else {
+            /* reset tag */
+            t = tag;
+            *tag = 0;
+            operation = (*p == '+');
+         }
+
+      } else if (isalpha(*p) && (t - tag) < max) {
+         *t++ = *p;
+
+      } else {                  /* not isalpha or too long */
+         Dmsg1(010, "invalid %c\n", *p);
+         return false;
+      }
+   }
+
+   /* At the end, finish the string and look it */
+   *t = 0;
+   if (t > tag) {               /* something found */
+      /* handle tag */
+      ret &= debug_find_tag(tag, operation, &level);
+   }
+
+   *current_level = level;
+   return ret;
 }

@@ -1,29 +1,17 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2012 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  * Append code for Storage daemon
@@ -39,22 +27,15 @@
 static char OK_data[]    = "3000 OK data\n";
 static char OK_append[]  = "3000 OK append data\n";
 
-/* Forward referenced functions */
-
-
-/* 
- */
-void possible_incomplete_job(JCR *jcr, int32_t last_file_index)
-{
-}
 /*
- *  Append Data sent from File daemon
+ *  Append Data sent from Client (FD/SD)
  *
  */
 bool do_append_data(JCR *jcr)
 {
    int32_t n;
    int32_t file_index, stream, last_file_index;
+   uint64_t stream_len;
    BSOCK *fd = jcr->file_bsock;
    bool ok = true;
    DEV_RECORD rec;
@@ -64,15 +45,17 @@ bool do_append_data(JCR *jcr)
    char ec[50];
 
 
-   if (!dcr) { 
-      Jmsg0(jcr, M_FATAL, 0, _("DCR is NULL!!!\n"));
+   if (!dcr) {
+      pm_strcpy(jcr->errmsg, _("DCR is NULL!!!\n"));
+      Jmsg0(jcr, M_FATAL, 0, jcr->errmsg);
       return false;
-   }                                              
+   }
    dev = dcr->dev;
-   if (!dev) { 
-      Jmsg0(jcr, M_FATAL, 0, _("DEVICE is NULL!!!\n"));
+   if (!dev) {
+      pm_strcpy(jcr->errmsg, _("DEVICE is NULL!!!\n"));
+      Jmsg0(jcr, M_FATAL, 0, jcr->errmsg);
       return false;
-   }                                              
+   }
 
    Dmsg1(100, "Start append data. res=%d\n", dev->num_reserved());
 
@@ -80,7 +63,8 @@ bool do_append_data(JCR *jcr)
 
    if (!fd->set_buffer_size(dcr->device->max_network_buffer_size, BNET_SETBUF_WRITE)) {
       jcr->setJobStatus(JS_ErrorTerminated);
-      Jmsg0(jcr, M_FATAL, 0, _("Unable to set network buffer size.\n"));
+      pm_strcpy(jcr->errmsg, _("Unable to set network buffer size.\n"));
+      Jmsg0(jcr, M_FATAL, 0, jcr->errmsg);
       return false;
    }
 
@@ -91,6 +75,7 @@ bool do_append_data(JCR *jcr)
 
    jcr->sendJobStatus(JS_Running);
 
+   //ASSERT(dev->VolCatInfo.VolCatName[0]);
    if (dev->VolCatInfo.VolCatName[0] == 0) {
       Pmsg0(000, _("NULL Volume name. This shouldn't happen!!!\n"));
    }
@@ -100,6 +85,7 @@ bool do_append_data(JCR *jcr)
    begin_attribute_spool(jcr);
 
    Dmsg0(100, "Just after acquire_device_for_append\n");
+   //ASSERT(dev->VolCatInfo.VolCatName[0]);
    if (dev->VolCatInfo.VolCatName[0] == 0) {
       Pmsg0(000, _("NULL Volume name. This shouldn't happen!!!\n"));
    }
@@ -112,6 +98,7 @@ bool do_append_data(JCR *jcr)
       jcr->setJobStatus(JS_ErrorTerminated);
       ok = false;
    }
+   //ASSERT(dev->VolCatInfo.VolCatName[0]);
    if (dev->VolCatInfo.VolCatName[0] == 0) {
       Pmsg0(000, _("NULL Volume name. This shouldn't happen!!!\n"));
    }
@@ -149,44 +136,43 @@ bool do_append_data(JCR *jcr)
        *  The stream header consists of the following:
        *    file_index (sequential Bacula file index, base 1)
        *    stream     (Bacula number to distinguish parts of data)
-       *    info       (Info for Storage daemon -- compressed, encrypted, ...)
-       *       info is not currently used, so is read, but ignored!
+       *    stream_len (Expected length of this stream. This
+       *       will be the size backed up if the file does not
+       *       grow during the backup.
        */
      if ((n=bget_msg(fd)) <= 0) {
          if (n == BNET_SIGNAL && fd->msglen == BNET_EOD) {
+            Dmsg0(200, "Got EOD on reading header.\n");
             break;                    /* end of data */
          }
-         Jmsg1(jcr, M_FATAL, 0, _("Error reading data header from FD. ERR=%s\n"),
-               fd->bstrerror());
-         possible_incomplete_job(jcr, last_file_index);
+         Jmsg3(jcr, M_FATAL, 0, _("Error reading data header from FD. n=%d msglen=%d ERR=%s\n"),
+               n, fd->msglen, fd->bstrerror());
          ok = false;
          break;
       }
 
-      if (sscanf(fd->msg, "%ld %ld", &file_index, &stream) != 2) {
+      if (sscanf(fd->msg, "%ld %ld %lld", &file_index, &stream, &stream_len) != 3) {
          Jmsg1(jcr, M_FATAL, 0, _("Malformed data header from FD: %s\n"), fd->msg);
          ok = false;
-         possible_incomplete_job(jcr, last_file_index);
          break;
       }
 
-      Dmsg2(890, "<filed: Header FilInx=%d stream=%d\n", file_index, stream);
+      Dmsg3(890, "<filed: Header FilInx=%d stream=%d stream_len=%lld\n",
+         file_index, stream, stream_len);
 
       /*
        * We make sure the file_index is advancing sequentially.
-       * An incomplete job can start the file_index at any number.
-       * otherwise, it must start at 1.
        */
       if (jcr->rerunning && file_index > 0 && last_file_index == 0) {
          goto fi_checked;
       }
+      Dmsg2(400, "file_index=%d last_file_index=%d\n", file_index, last_file_index);
       if (file_index > 0 && (file_index == last_file_index ||
           file_index == last_file_index + 1)) {
          goto fi_checked;
       }
-      Jmsg2(jcr, M_FATAL, 0, _("FI=%d from FD not positive or sequential=%d\n"),
+      Jmsg2(jcr, M_FATAL, 0, _("FI=%d from FD not positive or last_FI=%d\n"),
             file_index, last_file_index);
-      possible_incomplete_job(jcr, last_file_index);
       ok = false;
       break;
 
@@ -204,12 +190,13 @@ fi_checked:
          rec.VolSessionTime = jcr->VolSessionTime;
          rec.FileIndex = file_index;
          rec.Stream = stream;
+         rec.StreamLen = stream_len;
          rec.maskedStream = stream & STREAMMASK_TYPE;   /* strip high bits */
          rec.data_len = fd->msglen;
          rec.data = fd->msg;            /* use message buffer */
 
          Dmsg4(850, "before writ_rec FI=%d SessId=%d Strm=%s len=%d\n",
-            rec.FileIndex, rec.VolSessionId, 
+            rec.FileIndex, rec.VolSessionId,
             stream_to_ascii(buf1, rec.Stream,rec.FileIndex),
             rec.data_len);
 
@@ -227,14 +214,13 @@ fi_checked:
          send_attrs_to_dir(jcr, &rec);
          Dmsg0(650, "Enter bnet_get\n");
       }
-      Dmsg1(650, "End read loop with FD. Stat=%d\n", n);
+      Dmsg2(650, "End read loop with FD. JobFiles=%d Stat=%d\n", jcr->JobFiles, n);
 
       if (fd->is_error()) {
          if (!jcr->is_job_canceled()) {
             Dmsg1(350, "Network read error from FD. ERR=%s\n", fd->bstrerror());
             Jmsg1(jcr, M_FATAL, 0, _("Network error reading from FD. ERR=%s\n"),
                   fd->bstrerror());
-            possible_incomplete_job(jcr, last_file_index);
          }
          ok = false;
          break;
@@ -245,9 +231,9 @@ fi_checked:
    jcr->setJobStatus(ok?JS_Terminated:JS_ErrorTerminated);
 
    if (ok) {
-      /* Terminate connection with FD */
+      /* Terminate connection with Client */
       fd->fsend(OK_append);
-      do_fd_commands(jcr);               /* finish dialog with FD */
+      do_client_commands(jcr);            /* finish dialog with Client */
    } else {
       fd->fsend("3999 Failed append\n");
    }
@@ -264,12 +250,10 @@ fi_checked:
          if (ok && !jcr->is_job_canceled()) {
             Jmsg1(jcr, M_FATAL, 0, _("Error writing end session label. ERR=%s\n"),
                   dev->bstrerror());
-            possible_incomplete_job(jcr, last_file_index);
          }
          jcr->setJobStatus(JS_ErrorTerminated);
          ok = false;
       }
-      Dmsg0(90, "back from write_end_session_label()\n");
       /* Flush out final partial block of this session */
       if (!dcr->write_block_to_device()) {
          /* Print only if ok and not cancelled to avoid spurious messages */
@@ -277,22 +261,17 @@ fi_checked:
             Jmsg2(jcr, M_FATAL, 0, _("Fatal append error on device %s: ERR=%s\n"),
                   dev->print_name(), dev->bstrerror());
             Dmsg0(100, _("Set ok=FALSE after write_block_to_device.\n"));
-            possible_incomplete_job(jcr, last_file_index);
          }
          jcr->setJobStatus(JS_ErrorTerminated);
          ok = false;
       }
    }
 
-   if (!ok && !jcr->is_JobStatus(JS_Incomplete)) {
+   if (!ok) {
       discard_data_spool(dcr);
    } else {
       /* Note: if commit is OK, the device will remain blocked */
       commit_data_spool(dcr);
-   }
-
-   if (ok) {
-      ok = dvd_close_job(dcr);  /* do DVD cleanup if any */
    }
 
    /*
@@ -308,14 +287,14 @@ fi_checked:
    Jmsg(dcr->jcr, M_INFO, 0, _("Elapsed time=%02d:%02d:%02d, Transfer rate=%s Bytes/second\n"),
          job_elapsed / 3600, job_elapsed % 3600 / 60, job_elapsed % 60,
          edit_uint64_with_suffix(jcr->JobBytes / job_elapsed, ec));
-   
+
    /*
     * Release the device -- and send final Vol info to DIR
     *  and unlock it.
     */
    release_device(dcr);
 
-   if ((!ok || jcr->is_job_canceled()) && !jcr->is_JobStatus(JS_Incomplete)) {
+   if (!ok || jcr->is_job_canceled()) {
       discard_attribute_spool(jcr);
    } else {
       commit_attribute_spool(jcr);
@@ -331,7 +310,7 @@ fi_checked:
 /* Send attributes and digest to Director for Catalog */
 bool send_attrs_to_dir(JCR *jcr, DEV_RECORD *rec)
 {
-   if (rec->maskedStream == STREAM_UNIX_ATTRIBUTES    || 
+   if (rec->maskedStream == STREAM_UNIX_ATTRIBUTES    ||
        rec->maskedStream == STREAM_UNIX_ATTRIBUTES_EX ||
        rec->maskedStream == STREAM_RESTORE_OBJECT     ||
        crypto_digest_stream_type(rec->maskedStream) != CRYPTO_DIGEST_NONE) {
@@ -340,7 +319,7 @@ bool send_attrs_to_dir(JCR *jcr, DEV_RECORD *rec)
          if (are_attributes_spooled(jcr)) {
             dir->set_spooling();
          }
-         Dmsg0(850, "Send attributes to dir.\n");
+         Dmsg1(850, "Send attributes to dir. FI=%d\n", rec->FileIndex);
          if (!dir_update_file_attributes(jcr->dcr, rec)) {
             Jmsg(jcr, M_FATAL, 0, _("Error updating file attributes. ERR=%s\n"),
                dir->bstrerror());

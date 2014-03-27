@@ -1,29 +1,17 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2011 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  *  Bacula memory pool routines.
@@ -47,6 +35,7 @@
  */
 
 #include "bacula.h"
+#define dbglvl DT_MEMORY|800
 
 #ifdef HAVE_MALLOC_TRIM
 extern "C" int malloc_trim (size_t pad);
@@ -120,7 +109,7 @@ POOLMEM *sm_get_pool_memory(const char *fname, int lineno, int pool)
          pool_ctl[pool].max_used = pool_ctl[pool].in_use;
       }
       V(mutex);
-      Dmsg3(1800, "sm_get_pool_memory reuse %p to %s:%d\n", buf, fname, lineno);
+      Dmsg3(dbglvl, "sm_get_pool_memory reuse %p to %s:%d\n", buf, fname, lineno);
       sm_new_owner(fname, lineno, (char *)buf);
       return (POOLMEM *)((char *)buf+HEAD_SIZE);
    }
@@ -136,7 +125,7 @@ POOLMEM *sm_get_pool_memory(const char *fname, int lineno, int pool)
       pool_ctl[pool].max_used = pool_ctl[pool].in_use;
    }
    V(mutex);
-   Dmsg3(1800, "sm_get_pool_memory give %p to %s:%d\n", buf, fname, lineno);
+   Dmsg3(dbglvl, "sm_get_pool_memory give %p to %s:%d\n", buf, fname, lineno);
    return (POOLMEM *)((char *)buf+HEAD_SIZE);
 }
 
@@ -217,13 +206,15 @@ void sm_free_pool_memory(const char *fname, int lineno, POOLMEM *obuf)
    if (pool == 0) {
       free((char *)buf);              /* free nonpooled memory */
    } else {                           /* otherwise link it to the free pool chain */
-#ifdef DEBUG
+
+   /* Disabled because it hangs in #5507 */
+#ifdef xDEBUG
       struct abufhead *next;
       /* Don't let him free the same buffer twice */
       for (next=pool_ctl[pool].free_buf; next; next=next->next) {
          if (next == buf) {
-            Dmsg4(1800, "free_pool_memory %p pool=%d from %s:%d\n", buf, pool, fname, lineno);
-            Dmsg4(1800, "bad free_pool_memory %p pool=%d from %s:%d\n", buf, pool, fname, lineno);
+            Dmsg4(dbglvl, "free_pool_memory %p pool=%d from %s:%d\n", buf, pool, fname, lineno);
+            Dmsg4(dbglvl, "bad free_pool_memory %p pool=%d from %s:%d\n", buf, pool, fname, lineno);
             V(mutex);                 /* unblock the pool */
             ASSERT(next != buf);      /* attempt to free twice */
          }
@@ -232,7 +223,7 @@ void sm_free_pool_memory(const char *fname, int lineno, POOLMEM *obuf)
       buf->next = pool_ctl[pool].free_buf;
       pool_ctl[pool].free_buf = buf;
    }
-   Dmsg4(1800, "free_pool_memory %p pool=%d from %s:%d\n", buf, pool, fname, lineno);
+   Dmsg4(dbglvl, "free_pool_memory %p pool=%d from %s:%d\n", buf, pool, fname, lineno);
    V(mutex);
 }
 
@@ -356,7 +347,7 @@ void free_pool_memory(POOLMEM *obuf)
       buf->next = pool_ctl[pool].free_buf;
       pool_ctl[pool].free_buf = buf;
    }
-   Dmsg2(1800, "free_pool_memory %p pool=%d\n", buf, pool);
+   Dmsg2(dbglvl, "free_pool_memory %p pool=%d\n", buf, pool);
    V(mutex);
 }
 #endif /* SMARTALLOC */
@@ -410,8 +401,8 @@ void close_memory_pool()
       }
       pool_ctl[i].free_buf = NULL;
    }
-   Dmsg2(001, "Freed mem_pool count=%d size=%s\n", count, edit_uint64_with_commas(bytes, ed1));
-   if (debug_level >= 1) {
+   Dmsg2(DT_MEMORY|001, "Freed mem_pool count=%d size=%s\n", count, edit_uint64_with_commas(bytes, ed1));
+   if (chk_dbglvl(DT_MEMORY|1)) {
       print_memory_pool_stats();
    }
    V(mutex);

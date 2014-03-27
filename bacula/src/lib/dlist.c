@@ -1,29 +1,17 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2003-2011 Free Software Foundation Europe e.V.
+   Copyright (C) 2003-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 /*
  *  Bacula doubly linked list routines.
@@ -270,7 +258,7 @@ void *dlist::binary_search(void *item, int compare(void *item1, void *item2))
       }
    }
    /*
-    * low == high can only happen if low just 
+    * low == high can only happen if low just
     *   got incremented from cur, and we have
     *   not yet tested cur+1
     */
@@ -312,6 +300,7 @@ void dlist::remove(void *item)
    if (num_items == 0) {
       head = tail = NULL;
    }
+   ilink->prev = ilink->next = NULL;
 }
 
 void *dlist::next(void *item)
@@ -420,7 +409,7 @@ int main()
 
    /* The following may seem a bit odd, but we create a chaing
     *  of jcr objects.  Within a jcr object, there is a buf
-    *  that points to a malloced string containing data   
+    *  that points to a malloced string containing data
     */
    jcr_chain = New(dlist(jcr, &jcr->link));
    printf("append 20 items 0-19\n");

@@ -6,29 +6,17 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2006-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2006-2014 Free Software Foundation Europe e.V.
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version three of the GNU Affero General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   The main author of Bacula is Kern Sibbald, with contributions from many
+   others, a complete list can be found in the file AUTHORS.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU Affero General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
    Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
 
 
@@ -46,7 +34,7 @@
 /* Usage:
  *
  * #include "lib/breg.h"
- * 
+ *
  * BREGEXP *breg = new_bregexp("!/prod!/test!");
  * char *filename = breg->replace("/prod/data.dat");
  *   or
@@ -81,10 +69,10 @@ public:
 };
 
 /* create new BREGEXP and compile regex_t */
-BREGEXP *new_bregexp(const char *motif); 
+BREGEXP *new_bregexp(const char *motif);
 
 /* launch each bregexp on filename */
-int run_bregexp(alist *bregexps, const char *fname); 
+int run_bregexp(alist *bregexps, const char *fname);
 
 /* free BREGEXP (and all POOLMEM) */
 void free_bregexp(BREGEXP *script);
@@ -99,19 +87,19 @@ bool apply_bregexps(const char *fname, alist *bregexps, char **result);
 void free_bregexps(alist *bregexps); /* you have to free alist */
 
 /* get regexp size */
-int bregexp_get_build_where_size(char *strip_prefix, 
-                                 char *add_prefix, 
+int bregexp_get_build_where_size(char *strip_prefix,
+                                 char *add_prefix,
                                  char *add_suffix);
 
-/* get a bregexp string from user arguments 
+/* get a bregexp string from user arguments
  * you must allocate it with bregexp_get_build_where_size();
  */
 char *bregexp_build_where(char *dest, int str_size,
-                          char *strip_prefix, 
-                          char *add_prefix, 
+                          char *strip_prefix,
+                          char *add_prefix,
                           char *add_suffix);
 
-/* escape a string to regexp format (sep and \) 
+/* escape a string to regexp format (sep and \)
  * dest must be long enough (dest = 2*src + 1)
  */
 char *bregexp_escape_string(char *dest, const char *src, const char sep);
