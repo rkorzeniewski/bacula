@@ -11,6 +11,8 @@ out="${tmp}/sed_tmp"
 # set ports and other default parameters
 BASEPORT=${BASEPORT:-8101}
 AUTOCHANGER_SCRIPT=${AUTOCHANGER_SCRIPT:-mtx-changer}
+REMOTE_HOST_ADDR=${REMOTE_HOST_ADDR:-localhost}
+REMOTE_HOST_NAME=${REMOTE_HOST_NAME:-localhost}
 LIBDBI=${LIBDBI:-}
 libdbi=${LIBDBI}
 srcdir=${BACULA_SOURCE}
@@ -28,24 +30,28 @@ else
   os=${os}-`./scripts/get-os`
 fi
 dbengine=`echo ${WHICHDB} | sed -e 's/--with-//' -e 's/=.*//'`
-bversion=`sed -n -e 's/^.*VERSION.*"\(.*\)"$/\1/p' ${srcdir}/src/version.h`
-bdate=`sed -n -e 's/^.*LSMDATE.*"\(.*\)"$/\1/p' ${srcdir}/src/version.h`
+bversion=`sed -n -e 's/^#define VERSION.*"\(.*\)"$/\1/p' ${srcdir}/src/version.h`
+bdate=`sed -n -e 's/^#define LSMDATE.*"\(.*\)"$/\1/p' ${srcdir}/src/version.h`
 builddir="${src}"
 
 # Create sed command script
-echo "s%@sbindir@%${bin}%g" >${out}
+echo "s%@remotehostaddr@%${REMOTE_HOST_ADDR}%g" >${out}
+echo "s%@remotedirname@%${REMOTE_DIR_NAME}%g" >>${out}
+echo "s%@sbindir@%${bin}%g" >>${out}
 echo "s%@scriptdir@%${scripts}%g" >>${out}
 echo "s%@working_dir@%${working}%g" >>${out}
 echo "s%@piddir@%${working}%g" >>${out}
 echo "s%@subsysdir@%${working}%g" >>${out}
 echo "s%@job_email@%${EMAIL}%g" >>${out}
 echo "s%@tape_drive@%${TAPE_DRIVE}%g" >>${out}
+echo "s%@tape_control@%${TAPE_CONTROL}%g" >>${out}
 echo "s%@autochanger@%${AUTOCHANGER}%g" >>${out}
 echo "s%@changer_script@%${AUTOCHANGER_SCRIPT}%g" >>${out}
 echo "s%@tmpdir@%${tmp}%g" >>${out}
 echo "s%@hostname@%${HOST}%g" >>${out}
 echo "s%@changer_path@%${AUTOCHANGER_PATH}%g" >>${out}
 echo "s%@tape_drive1@%${TAPE_DRIVE1}%g" >>${out}
+echo "s%@tape_control1@%${TAPE_CONTROL1}%g" >>${out}
 echo "s%@smtp_host@%${SMTP_HOST}%g" >>${out}
 echo "s%@disk_drive@%${tmp}/disk-changer%g" >>${out}
 echo "s%@hostname@%${hostname}%g" >>${out}

@@ -24,10 +24,10 @@ change_jobname BackupClient1 $JobName
 start_test
 
 cat <<END_OF_DATA >${tmp}/bconcmds
-@$out /dev/null
+@output /dev/null
 messages
 @$out ${tmp}/log1.out
-label volume=TestVolume001 storage=File pool=File
+label volume=TestVolume001 storage=File1 pool=File slot=1 drive=0
 run job=$JobName yes
 wait
 messages
@@ -59,7 +59,7 @@ END_OF_DATA
 
 run_bconsole
 
-check_for_zombie_jobs storage=File
+check_for_zombie_jobs storage=File1
 stop_bacula
 
 #

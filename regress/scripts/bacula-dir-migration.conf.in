@@ -42,6 +42,18 @@ Job {
 }
 
 Job {
+  Name = "Save"
+  Type = Backup
+  Client=@hostname@-fd 
+  FileSet="Full Set"
+  Storage = File
+  Messages = Standard
+  Pool = Default
+  Write Bootstrap = "@working_dir@/Save.bsr"
+  Maximum Concurrent Jobs = 4
+}
+
+Job {
   Name = "migrate-job"
   Type = Migrate
   Level = Full

@@ -29,7 +29,7 @@ start_test
 
 # Write out bconsole commands
 cat <<END_OF_DATA >${cwd}/tmp/bconcmds
-@$out /dev/null
+@output /dev/null
 messages
 @$out ${cwd}/tmp/log1.out
 @# setdebug level=100 storage=File
@@ -70,7 +70,11 @@ list jobs
 @#
 @$out ${cwd}/tmp/log2.out
 list volumes 
-restore where=${cwd}/tmp/bacula-restores select storage=DiskChanger
+@#setdebug level=15 director
+@#setdebug level=150 storage=DiskChanger
+@# Note, here we are restoring from the original backup,
+@#  so if you specify storage=DiskChanger the restore will fail
+restore where=${cwd}/tmp/bacula-restores select
 unmark *
 mark *
 done

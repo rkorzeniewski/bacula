@@ -21,7 +21,7 @@ change_jobname CompressedTest $JobName
 start_test
 
 cat <<END_OF_DATA >${cwd}/tmp/bconcmds
-@$out /dev/null
+@output /dev/null
 messages
 @$out ${cwd}/tmp/log1.out
 setdebug level=100 storage=File
@@ -40,7 +40,7 @@ echo "ficheriro1.txt" >${cwd}/tmp/build/ficheriro1.txt
 echo "ficheriro2.txt" >${cwd}/tmp/build/ficheriro2.txt
 
 cat <<END_OF_DATA >${cwd}/tmp/bconcmds
-@$out /dev/null
+@output /dev/null
 messages
 @$out ${cwd}/tmp/log1.out
 @# Force differential on the second Volume
@@ -53,10 +53,11 @@ END_OF_DATA
 run_bconsole
 
 scripts/check_for_zombie_jobs storage=File
+echo "ficheriro1.txt" >${cwd}/tmp/build/ficheriro1.txt
 echo "ficheriro2.txt" >${cwd}/tmp/build/ficheriro2.txt
 
 cat <<END_OF_DATA >${cwd}/tmp/bconcmds
-@$out /dev/null
+@output /dev/null
 messages
 @$out ${cwd}/tmp/log1.out
 run level=incremental job=$JobName yes

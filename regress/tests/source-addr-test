@@ -25,12 +25,14 @@ PATH=$PATH:/sbin:/usr/sbin
 #  the interface defined by INTERFACE=
 #
 os=`uname`
+INTERFACE=lo
 if [ $os = 'FreeBSD' ]; then
    INTERFACE=bge0
    IP=`ifconfig ${INTERFACE} | perl -ne '/inet (.+?) / && print $1'`
 elif [ $os = 'Linux' ]; then
-   INTERFACE=eth0
-   IP=`ifconfig ${INTERFACE} | perl -ne '/inet addr:(.+?) / && print $1'`
+#  INTERFACE=eth0
+   INTERFACE=lo
+   IP=`ifconfig ${INTERFACE} | perl -ne '/inet (addr:)?(.+?) / && print $2'`
 fi
 
 if [ "$IP" = '' ]; then
@@ -40,7 +42,7 @@ fi
 
 outf="tmp/sed_tmp"
 echo "s/PidDirectory/DirSourceAddress=$IP; PidDirectory/g" > $outf
-echo "s/Address =/Address = 127.0.0.1 #/g" >> $outf 
+echo "s/Address =/Address = \"127.0.0.1\" #/g" >> $outf 
 cp $scripts/bacula-dir.conf $tmp/1
 sed -f ${outf} ${cwd}/tmp/1 > $scripts/bacula-dir.conf 
 
@@ -57,11 +59,12 @@ change_jobname BackupClient1 $JobName
 start_test
 
 cat <<END_OF_DATA >${cwd}/tmp/bconcmds
-@$out /dev/null
+@output /dev/null
 messages
 @$out ${cwd}/tmp/log1.out
-@#label volume=TestVolume001 storage=File pool=File
-@#setdebug level=100 storage=File
+@#label volume=TestVolume001 storage=File1 pool=File slot=1 drive=0
+@#setdebug level=100 storage=File1
+setbandwidth client limit=1000
 run job=$JobName yes
 @sleep 3
 messages
@@ -72,14 +75,14 @@ run_bacula
 
 sleep 5
 print_debug "Detecting connections to SD sourced from ${IP}"
-netstat -tan | grep -E "127.0.0.1(.|:)$SDPORT .* ${IP}" > $tmp/log3.out
+netstat -tan | grep -E "127\.0\.0\.1(.|:)$SDPORT .* ${IP}" > $tmp/log3.out
 if [ $? -ne 0 ]; then
    stat=2
    print_debug "Couldn't detect a connection to the SD sourced from SourceAddress ${IP}" 
 fi
 
 print_debug "and connections to FD sourced from ${IP}"
-netstat -tan | grep -E "127.0.0.1(.|:)$FDPORT .* ${IP}" >> $tmp/log3.out
+netstat -tan | grep -E "127\.0\.0\.1(.|:)$FDPORT .* ${IP}" >> $tmp/log3.out
 if [ $? -ne 0 ]; then
    stat=2
    print_debug "Couldn't detect a connection to the FD sourced from SourceAddress ${IP}"
@@ -94,11 +97,8 @@ if [ "$debug" = 1 ] ; then
 fi
 
 cat <<END_OF_DATA >${cwd}/tmp/bconcmds
-@$out /dev/null
-messages
-@$out ${cwd}/tmp/log1.out
-label volume=TestVolume001 storage=File pool=File
-@#setdebug level=100 storage=File
+@output /dev/null
+setbandwidth client limit=1000000
 wait
 messages
 @# 
@@ -113,7 +113,7 @@ quit
 END_OF_DATA
 
 run_bconsole
-check_for_zombie_jobs storage=File
+check_for_zombie_jobs storage=File1
 stop_bacula
 check_two_logs
 check_restore_diff

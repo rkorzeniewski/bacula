@@ -56,6 +56,16 @@ if [ $? != 0 ] ; then
   zstat=1
   exit 1
 fi
+grep " READ " ${tmp}/sd.out 2>&1 >/dev/null
+if [ $? = 0 ]; then
+  echo " "
+  echo "  !!!! Zombie \"Read\" Jobs in Storage daemon !!!!"
+  echo "  !!!! Zombie \"Read\" Jobs in Storage daemon !!!!" >>test.out
+  cat ${tmp}/sd.out
+  echo " "
+  zstat=1
+  exit 1
+fi
 grep "ERROR" ${tmp}/log*.out 2>&1 >/dev/null
 if [ $? = 0 ] ; then
   echo " "

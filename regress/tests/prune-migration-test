@@ -30,10 +30,10 @@ start_test
 
 # Write out bconsole commands
 cat <<END_OF_DATA >${cwd}/tmp/bconcmds
-@$out /dev/null
+@output /dev/null
 messages
 @$out ${cwd}/tmp/log1.out
-setdebug level=000 storage=File
+setdebug level=100 storage=File
 label storage=File volume=FileVolume001 Pool=Default
 label storage=DiskChanger volume=ChangerVolume001 slot=1 Pool=Full drive=0
 label storage=DiskChanger volume=ChangerVolume002 slot=2 Pool=Full drive=0
@@ -45,6 +45,7 @@ run job=$JobName yes
 wait
 list jobs
 @# should migrate two jobs
+setdebug level=150 storage=File
 run job=migrate-job yes
 run job=migrate-job yes
 wait

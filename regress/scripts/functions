@@ -15,12 +15,17 @@ check_encoding()
 start_test()
 {
    check_encoding
+   rm -rf ${working}/@*
    # Turn off email
    outf="${tmp}/sed_tmp"
    echo "s%  mail =%# mail = %g" >${outf}
    echo "s%  operator =%# operator =%g" >>${outf}
    cp ${conf}/bacula-dir.conf ${tmp}/1
    sed -f ${outf} ${tmp}/1 > ${conf}/bacula-dir.conf
+   if [ x$FORCE_SDCALLS = xyes ]; then
+      $bperl -e 'add_attribute("$conf/bacula-dir.conf", "SD Calls Client", "yes", "Client")'
+   fi   
+   ./test_starttime
    echo " "
    echo " "
    echo " === Starting $TestName at `date +%R:%S` ==="
@@ -150,7 +155,7 @@ get_duration()
 check_duration()
 {
    LOG=$1
-   TIME=$2
+   $2
    OP=${3-gt}
 
    get_duration $LOG
@@ -279,40 +284,83 @@ check_two_logs()
       print_debug "Found database encoding error"
       bstat=2
    fi
+   grep "Orphaned buffer" ${tmp}/log1.out ${tmp}/log2.out
+   if test $? -eq 0; then
+      estat=1
+   fi
 }
 
 check_restore_diff()
 {
    if test "$debug" -eq 1 ; then
-      $rscripts/diff.pl -s ${src} -d ${tmp}/bacula-restores${src}
+      $rscripts/diff.pl -notop -s ${src} -d ${tmp}/bacula-restores${src} 2>&1 >/tmp/d$$
+      if test $? -ne 0; then
+         dstat=1
+         cat /tmp/d$$
+         ls -Rl ${src}
+         ls -Rl ${tmp}/bacula-restores${src}
+      fi
+      rm -f /tmp/d$$
       diff -ur ${src} ${tmp}/bacula-restores${src}
    else 
+      $rscripts/diff.pl -notop -s ${src} -d ${tmp}/bacula-restores${src} 2>&1 >/dev/null
+      if test $? -ne 0; then
+         dstat=1
+      fi
       diff -ur ${src} ${tmp}/bacula-restores${src} 2>&1 >/dev/null
    fi
-   dstat=$?
+   if test $? -ne 0; then
+     dstat=1
+   fi
 }
 
 check_restore_bin_diff()
 {
    if test "$debug" -eq 1 ; then
-      $rscripts/diff.pl -s ${bin} -d ${tmp}/bacula-restores${bin}
+      $rscripts/diff.pl -notop -s ${bin} -d ${tmp}/bacula-restores${bin} 2>&1 >/tmp/d$$
+      if test $? -ne 0; then
+         dstat=1
+         cat /tmp/d$$
+         ls -Rl ${src}
+         ls -Rl ${tmp}/bacula-restores${src}
+      fi
+      rm -f /tmp/d$$
       diff -ur ${bin} ${tmp}/bacula-restores${bin}
    else 
+      $rscripts/diff.pl -notop -s ${bin} -d ${tmp}/bacula-restores${bin} 2>&1 >/dev/null
+      if test $? -ne 0; then
+         dstat=1
+      fi
       diff -ur ${bin} ${tmp}/bacula-restores${bin} 2>&1 >/dev/null
    fi
-   dstat=$?
+   if test $? -ne 0; then
+      dstat=1
+   fi
 }
 
 
 check_restore_tmp_build_diff()
 {
    if test "$debug" -eq 1 ; then
-      $rscripts/diff.pl -s ${tmpsrc} -d ${tmp}/bacula-restores${tmpsrc}
+      $rscripts/diff.pl -notop -s ${tmpsrc} -d ${tmp}/bacula-restores${tmpsrc} 2>&1 >/tmp/d$$
+      if test $? -ne 0; then
+         dstat=1
+         cat /tmp/d$$
+         ls -Rl ${src}
+         ls -Rl ${tmp}/bacula-restores${src}
+      fi
+      rm -f /tmp/d$$
       diff -ur ${tmpsrc} ${tmp}/bacula-restores${tmpsrc}
    else
+      $rscripts/diff.pl -notop -s ${tmpsrc} -d ${tmp}/bacula-restores${tmpsrc} 2>&1 >/dev/null
+      if test $? -ne 0; then
+         dstat=1
+      fi
       diff -ur ${tmpsrc} ${tmp}/bacula-restores${tmpsrc} 2>&1 >/dev/null
    fi
-   dstat=$?
+   if test $? -ne 0; then
+      dstat=1
+   fi
 }
 
 # bstat is backup error
@@ -326,53 +374,58 @@ end_test()
    if [ x$notracedump != xyes ]; then 
       cat ${working}/bacula.*.traceback 2>/dev/null
       cp -f  ${working}/bacula.*.traceback ${dumps} 2>/dev/null
-      cat ${working}/*.bactrace 2>/dev/null
-      cp -f ${working}/*.bactrace ${dumps} 2>/dev/null
+      cat ${working}/*.lockdump 2>/dev/null
+      cp -f ${working}/*.lockdump ${dumps} 2>/dev/null
    fi
    if [ -f $tmp/err.log ]; then
       cat $tmp/err.log
    fi
+   d=`./test_duration`
+   t=`date +%R:%S`
    if [ $estat != 0 ] ; then
       echo " "
-      echo "  !!!!! $TestName failed!!! `date +%R:%S` !!!!! "
-      echo "   Status: estat=$estat zombie=$zstat backup=$bstat restore=$rstat diff=$dstat"
-      echo "  !!!!! $TestName failed!!! `date +%R:%S` !!!!! " >>test.out
-      echo "   Status: estat=$estat zombie=$zstat backup=$bstat restore=$rstat diff=$dstat" >>test.out
+      echo "  !!!!! $TestName failed!!! $t $d !!!!! "
+      echo "     Status: estat=$estat zombie=$zstat backup=$bstat restore=$rstat diff=$dstat"
+      echo " " >>test.out
+      echo "  !!!!! $TestName failed!!! $t $d !!!!! " >>test.out
+      echo "     Status: estat=$estat zombie=$zstat backup=$bstat restore=$rstat diff=$dstat" >>test.out
       echo " "
       exit 1
    fi
    if [ $zstat != 0 ] ; then
       echo " "
-      echo "  !!!!! $TestName failed!!! `date +%R:%S` !!!!! "
-      echo "   Status: zombie=$zstat backup=$bstat restore=$rstat diff=$dstat"
-      echo "  !!!!! $TestName failed!!! `date +%R:%S` !!!!! " >>test.out
-      echo "   Status: zombie=$zstat backup=$bstat restore=$rstat diff=$dstat" >>test.out
+      echo "  !!!!! $TestName failed!!! $t $d !!!!! "
+      echo "     Status: zombie=$zstat backup=$bstat restore=$rstat diff=$dstat"
+      echo " " >>test.out
+      echo "  !!!!! $TestName failed!!! $t $d !!!!! " >>test.out
+      echo "     Status: zombie=$zstat backup=$bstat restore=$rstat diff=$dstat" >>test.out
       echo " "
       exit 1
    fi
    if [ $dstat != 0 -o $bstat != 0 -o $rstat != 0 ] ; then
       echo " "
-      echo " "
-      echo "  !!!!! $TestName failed!!! `date +%R:%S` !!!!! "
-      echo "   Status: zombie=$zstat backup=$bstat restore=$rstat diff=$dstat"
-      echo "  !!!!! $TestName failed!!! `date +%R:%S` !!!!! " >>test.out
-      echo "   Status: zombie=$zstat backup=$bstat restore=$rstat diff=$dstat" >>test.out
+      echo "  !!!!! $TestName failed!!! $t $d !!!!! "
+      echo "     Status: zombie=$zstat backup=$bstat restore=$rstat diff=$dstat"
+      echo " " >>test.out
+      echo "  !!!!! $TestName failed!!! $t %d !!!!! " >>test.out
+      echo "     Status: zombie=$zstat backup=$bstat restore=$rstat diff=$dstat" >>test.out
       if [ $bstat != 0 -o $rstat != 0 ] ; then
-         echo "  !!!!! Bad termination status       !!!!! "
-         echo "  !!!!! Bad termination status       !!!!! " >>test.out
+         echo "     !!! Bad termination status       !!! "
+         echo "     !!! Bad termination status       !!! " >>test.out
       else
-         echo "  !!!!! Restored files differ          !!!!! "
-         echo "  !!!!! Restored files differ          !!!!! " >>test.out
+         echo "     !!! Restored files differ        !!! "
+         echo "     !!! Restored files differ        !!! " >>test.out
       fi
-      echo "   Status: backup=$bstat restore=$rstat diff=$dstat"
-      echo "   Status: backup=$bstat restore=$rstat diff=$dstat" >>test.out
-      echo "   Test owner of $SITE_NAME is $EMAIL"
-      echo "   Test owner of $SITE_NAME is $EMAIL" >>test.out
+      echo "     Status: backup=$bstat restore=$rstat diff=$dstat"
+      echo "     Status: backup=$bstat restore=$rstat diff=$dstat" >>test.out
+      echo "     Test owner of $SITE_NAME is $EMAIL"
+      echo "     Test owner of $SITE_NAME is $EMAIL" >>test.out
+      echo " " >>test.out
       echo " "
       exit 1
    else
-      echo "  ===== $TestName OK `date +%R:%S` ===== "
-      echo "  ===== $TestName OK `date +%R:%S` ===== " >>test.out
+      echo "  ===== $TestName OK $t $d ===== "
+      echo "  ===== $TestName OK $t $d ===== " >>test.out
       if test "$debug" -eq 0 ; then
          ${rscripts}/cleanup
       fi
@@ -391,23 +444,12 @@ copy_test_confs()
    ${rscripts}/cleanup
 }
 
-disable_pluguins()
+disable_plugins()
 {
    for i in ${conf}/bacula-fd.conf; do
       sed 's/Plugin/#Plugin/' $i > $tmp/1
       cp -f $tmp/1 $i
    done
-}
-
-update_win32()
-{
-   if [ -d $cwd/build/src/win32/release32   \
-     -a -d $cwd/build/src/win32/release64 ] \
-   || [ -d $cwd/release32 -a -d $cwd/release64 ]
-   then
-       echo -ne "Try to upgrade the FileDaemon:\t"
-       wget -qO - "$WIN32_ADDR:8091/install"
-   fi
 }
 
 debug_wait()

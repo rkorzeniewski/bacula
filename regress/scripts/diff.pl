@@ -28,6 +28,7 @@ my %dst_attr;
 my @exclude;
 my $hash;
 my $ret=0;
+my $notop=0;
 
 GetOptions("src=s"   => \$src,        # source directory
            "dst=s"   => \$dst,        # dest directory
@@ -36,6 +37,7 @@ GetOptions("src=s"   => \$src,        # source directory
            "wattr"   => \$wattr,      # windows attributes
            "mtime-dir" => \$mtimedir, # check mtime on directories
            "exclude=s@" => \@exclude, # exclude some files
+           "notop"   => \$notop,      # Exclude top directory
            "help"    => \$help,
     ) or pod2usage(-verbose => 1, 
                    -exitval => 1);
@@ -54,6 +56,7 @@ my $dir = getcwd;
 
 chdir($src) or die "ERROR: Can't access to $src";
 $hash = \%src_attr;
+
 find(\&wanted_src, '.');
 
 if ($wattr) {    
@@ -83,6 +86,12 @@ if ($wattr) {
 
 foreach my $f (keys %src_attr)
 {
+    if ($notop && $f eq '.') {
+        delete $src_attr{$f};
+        delete $dst_attr{$f};
+        next;
+    }
+
     if (!defined $dst_attr{$f}) {
         $ret++;
         print "diff.pl ERROR: Can't find $f in dst\n";
@@ -135,6 +144,10 @@ sub compare
             if ($k =~ /time/) {
                 ($val1, $val2) = 
                     (map { strftime('%F %T', localtime($_)) } ($val1, $val2));
+            }
+            if ($k =~ /mode/) {
+                ($val1, $val2) = 
+                    (map { sprintf('%o', $_) } ($val1, $val2));
             }
             print "diff.pl ERROR: src and dst $f2 differ on $k ($val1 != $val2)\n";
         }

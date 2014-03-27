@@ -1,10 +1,15 @@
 #!/bin/sh
 #
-# This script will test prune algo 
+# This script will test prune algo
 #
+
+echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+echo " This test is will fail because of the workaround for the bug #5507"
+echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+
 . scripts/functions
 
-TestName="prune-test"
+TestName="prune-config-test"
 JobName=NightlySave
 
 scripts/cleanup
@@ -25,7 +30,7 @@ $bperl -e 'print get_resource("$conf/bacula-dir.conf", "Job", "NightlySave")' | 
 cat $tmp/1 >> $conf/bacula-dir.conf
 
 cat <<EOF > ${cwd}/tmp/bconcmds
-@$out /dev/null
+@output /dev/null
 messages
 @$out $tmp/log1.out
 label storage=File volume=TestVolume001

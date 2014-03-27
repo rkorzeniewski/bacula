@@ -25,6 +25,7 @@ fi
     --with-pid-dir=${1}/working \
     --with-subsys-dir=${1}/working \
     --with-plugindir=${1}/bin/plugins \
+    --with-logdir=${1}/working \
     --enable-smartalloc \
     --enable-lockmgr \
     --disable-readline \

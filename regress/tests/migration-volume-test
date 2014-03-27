@@ -1,4 +1,4 @@
-#!/bin/sh
+                                  #!/bin/sh
 #
 # Run a backup of the Bacula build directory on two Volumes
 #   then migrate it to another device.             
@@ -28,7 +28,7 @@ start_test
 
 # Write out bconsole commands
 cat <<END_OF_DATA >${cwd}/tmp/bconcmds
-@$out /dev/null
+@output /dev/null
 messages
 @$out ${cwd}/tmp/log1.out
 label storage=File volume=FileVolume001 Pool=Default

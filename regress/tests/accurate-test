@@ -274,7 +274,7 @@ check_for_zombie_jobs storage=File
 check_two_logs
 check_restore_diff
 
-rm -rf ${cwd}/tmp/bacula-restores ${cwd}/build/accurate/bacula-restores
+rm -rf ${cwd}/tmp/bacula-restores
 
 ################################################################
 p Check with bscan
@@ -317,7 +317,7 @@ check_for_zombie_jobs storage=File
 check_two_logs
 check_restore_diff
 
-rm -rf ${cwd}/tmp/bacula-restores
+rm -rf ${cwd}/tmp/bacula-restores  ${cwd}/build/accurate/bacula-restores
 
 ################################################################
 p Now do a test with other attributes: owner, gid, rights

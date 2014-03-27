@@ -19,7 +19,7 @@ $bperl -e 'add_attribute("$conf/bacula-dir.conf", "AutoPrune", "No", "Client")'
 $bperl -e 'add_attribute("$conf/bacula-dir.conf", "Job Retention", "1s", "Client")'
 
 cat <<EOF > ${cwd}/tmp/bconcmds
-@$out /dev/null
+@output /dev/null
 messages
 @$out $tmp/log1.out
 label storage=File volume=TestVolume001

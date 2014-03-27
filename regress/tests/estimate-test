@@ -26,10 +26,10 @@ mkdir -p ${cwd}/build/src/test
 touch ${cwd}/build/src/test/test1 ${cwd}/build/src/test/test2
 
 cat <<END_OF_DATA >$tmp/bconcmds
-@$out /dev/null
+@output /dev/null
 messages
 @$out $tmp/log1.out
-label volume=TestVolume001 storage=File pool=File
+label volume=TestVolume001 storage=File1 pool=File slot=1 drive=1
 run job=$JobName yes
 wait
 messages
@@ -52,7 +52,7 @@ check_restore_diff
 mv ${cwd}/build/src/test ${cwd}/build/po/test
 
 cat <<END_OF_DATA >$tmp/bconcmds
-@$out /dev/null
+@output /dev/null
 messages
 @$out $tmp/log3.out
 estimate listing job=$JobName level=incremental
@@ -63,7 +63,7 @@ END_OF_DATA
 run_bconsole
 
 cat <<END_OF_DATA >$tmp/bconcmds
-@$out /dev/null
+@output /dev/null
 messages
 @$out $tmp/log4.out
 estimate listing job=$JobName level=incremental accurate=yes
@@ -77,7 +77,7 @@ cp $scripts/bacula-dir.conf $tmp/1
 sed 's/JobDefs {/JobDefs { Accurate=yes/' $tmp/1>$scripts/bacula-dir.conf
 
 cat <<END_OF_DATA >$tmp/bconcmds
-@$out /dev/null
+@output /dev/null
 messages
 @$out $tmp/log5.out
 reload
@@ -89,7 +89,7 @@ END_OF_DATA
 run_bconsole
 
 cat <<END_OF_DATA >$tmp/bconcmds
-@$out /dev/null
+@output /dev/null
 messages
 @$out $tmp/log6.out
 estimate listing job=$JobName level=incremental accurate=no
@@ -125,7 +125,7 @@ if [ $? = 0 ]; then
     dstat=2
 fi
 
-check_for_zombie_jobs storage=File
+check_for_zombie_jobs storage=File1
 
 stop_bacula
 end_test

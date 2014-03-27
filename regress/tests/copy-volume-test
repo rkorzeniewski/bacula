@@ -32,9 +32,10 @@ start_test
 
 # Write out bconsole commands
 cat <<END_OF_DATA >${cwd}/tmp/bconcmds
-@$out /dev/null
+@output /dev/null
 messages
 @$out ${cwd}/tmp/log1.out
+setdebug level=50 storage=DiskChanger
 label storage=File volume=FileVolume001 Pool=Default
 label storage=File volume=FileVolume002 Pool=Scratch
 update Volume=FileVolume001 MaxVolBytes=3000000 pool=Default
@@ -86,7 +87,9 @@ messages
 @#  Use File instead of DiskChanger
 @#  Files are there        
 @############################################################
-restore where=${cwd}/tmp/bacula-restores select storage=DiskChanger
+@# Note, here we are restoring from the original backup,
+@#  so if you specify storage=DiskChanger the restore will fail
+restore where=${cwd}/tmp/bacula-restores select
 unmark *
 mark *
 done
@@ -112,9 +115,12 @@ cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @#  Files are there
 @############################################################
 @$out ${cwd}/tmp/log3.out
+setdebug level=50 storage=DiskChanger
 purge volume=FileVolume001 yes
 purge volume=FileVolume002 yes
-restore where=${cwd}/tmp/bacula-restores select storage=DiskChanger
+@# Note, here we are restoring from the original backup,
+@#  so if you specify storage=DiskChanger the restore will fail
+restore where=${cwd}/tmp/bacula-restores select
 unmark *
 mark *
 done
@@ -145,6 +151,7 @@ cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 run job=$JobName yes
 wait
 messages
+setdebug level=50 storage=DiskChanger
 restore where=${cwd}/tmp/bacula-restores select all
 done
 yes
