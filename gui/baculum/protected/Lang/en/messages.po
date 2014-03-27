@@ -1,0 +1,791 @@
+msgid ""
+msgstr ""
+"PO-Revision-Date: 2014-03-08 19:45+0100\n"
+"Project-Id-Version: \n"
+"POT-Creation-Date: \n"
+"Last-Translator: Marcin Haba <marcin.haba@bacula.pl>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=iso-8859-1\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 1.5.4\n"
+
+msgid "Language:"
+msgstr "Language:"
+
+msgid "select language"
+msgstr "select language"
+
+msgid "English"
+msgstr "English"
+
+msgid "Polish"
+msgstr "Polish"
+
+msgid "&lt; Previous"
+msgstr "&lt; Previous"
+
+msgid "Language"
+msgstr "Language"
+
+msgid "Licence"
+msgstr "Licence"
+
+msgid "Database"
+msgstr "Database"
+
+msgid "Authorization"
+msgstr "Authorization"
+
+msgid "Finish"
+msgstr "Finish"
+
+msgid "Console"
+msgstr "Console"
+
+msgid "« Previous"
+msgstr "&laquo; Previous"
+
+msgid "Next »"
+msgstr "Next &raquo;"
+
+msgid "&laquo; Previous"
+msgstr "&laquo; Previous"
+
+msgid "Step 1 - select language"
+msgstr "Step 1 - select language"
+
+msgid "Please select language."
+msgstr "Please select language."
+
+msgid "Step 2 - acceptance of a license"
+msgstr "Step 2 - acceptance of a license"
+
+msgid "Step 3 - params of Bacula database connection"
+msgstr "Step 3 - params of Bacula database connection"
+
+msgid "Step 4 - Baculum access to bconsole"
+msgstr "Step 4 - Baculum access to bconsole"
+
+msgid "Step 5 - authorization params to Baculum"
+msgstr "Step 5 - authorization params to Baculum"
+
+msgid "Step 6 - Finish"
+msgstr "Step 6 - Finish"
+
+msgid "Next &raquo;"
+msgstr "Next &raquo;"
+
+msgid "Save"
+msgstr "Save"
+
+msgid "I have read the license terms and agree to"
+msgstr "I have read the license terms and agree to"
+
+msgid "Database type:"
+msgstr "Database type:"
+
+msgid "select database"
+msgstr "select database"
+
+msgid "Need to move on to accept the license."
+msgstr "Need to move on to accept the license."
+
+msgid "Database name:"
+msgstr "Database name:"
+
+msgid "Please select database type."
+msgstr "Please select database type."
+
+msgid "Please enter database name."
+msgstr "Please enter database name."
+
+msgid "Login:"
+msgstr "Login:"
+
+msgid "Please enter login."
+msgstr "Please enter login."
+
+msgid "Password:"
+msgstr "Password:"
+
+msgid "IP address (or hostname):"
+msgstr "IP address (or hostname):"
+
+msgid "Please enter IP address or hostname."
+msgstr "Please enter IP address or hostname."
+
+msgid "Port:"
+msgstr "Port:"
+
+msgid "Please enter database port."
+msgstr "Please enter database port."
+
+msgid "SQLite database path:"
+msgstr "SQLite database path:"
+
+msgid "Please enter database path."
+msgstr "Please enter database path."
+
+msgid "Connection test:"
+msgstr "Connection test:"
+
+msgid "Loading..."
+msgstr "Loading..."
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Connection error"
+msgstr "Connection error"
+
+msgid "test"
+msgstr "test"
+
+msgid "Bconsole binary file path:"
+msgstr "Bconsole binary file path:"
+
+msgid "Please enter bconsole path."
+msgstr "Please enter bconsole path."
+
+msgid "Bconsole config file path:"
+msgstr "Bconsole config file path:"
+
+msgid "Please enter bconsole config file path."
+msgstr "Please enter bconsole config file path."
+
+msgid "Use sudo:"
+msgstr "Use sudo:"
+
+msgid "Bconsole connection test:"
+msgstr "Bconsole connection test:"
+
+msgid "Administration login:"
+msgstr "Administration login:"
+
+msgid "Administration password:"
+msgstr "Administration password:"
+
+msgid "Please enter password."
+msgstr "Please enter password."
+
+msgid "Password must be longer than 4 chars."
+msgstr "Password must be longer than 4 chars."
+
+msgid "Retype administration password:"
+msgstr "Retype administration password:"
+
+msgid "Please enter retype password."
+msgstr "Please enter retype password."
+
+msgid "Passwords must be the same."
+msgstr "Passwords must be the same."
+
+msgid "Database parameters"
+msgstr "Database parameters"
+
+msgid "Database port:"
+msgstr "Database port:"
+
+msgid "Bconsole access"
+msgstr "Bconsole access"
+
+msgid "Use sudo for bconsole requests:"
+msgstr "Use sudo for bconsole requests:"
+
+msgid "Authorization to Baculum panel"
+msgstr "Authorization to Baculum panel"
+
+msgid "Step 7 - Finish"
+msgstr "Step 7 - Finish"
+
+msgid "Storage name:"
+msgstr "Storage name:"
+
+msgid "Console status"
+msgstr "Console status"
+
+msgid "Drive number:"
+msgstr "Drive number:"
+
+msgid "Slot number:"
+msgstr "Slot number:"
+
+msgid "Mount"
+msgstr "Mount"
+
+msgid "Release"
+msgstr "Release"
+
+msgid "Umount"
+msgstr "Umount"
+
+msgid "Status"
+msgstr "Status"
+
+msgid "Available actions"
+msgstr "Available actions"
+
+msgid "Close"
+msgstr "Close"
+
+msgid "Operation is in progress"
+msgstr "Operation is in progress"
+
+msgid "Volume status:"
+msgstr "Volume status:"
+
+msgid "Pool:"
+msgstr "Pool:"
+
+msgid "Recycle:"
+msgstr "Recycle:"
+
+msgid "Enabled:"
+msgstr "Enabled:"
+
+msgid "In changer:"
+msgstr "In changer:"
+
+msgid "Apply"
+msgstr "Apply"
+
+msgid "Volume name:"
+msgstr "Volume name:"
+
+msgid "Client name:"
+msgstr "Client name:"
+
+msgid "Information about version"
+msgstr "Information about version"
+
+msgid "Pool name:"
+msgstr "Pool name:"
+
+msgid "Purge"
+msgstr "Purge"
+
+msgid "Prune"
+msgstr "Prune"
+
+msgid "Switch the window view (normal/details)"
+msgstr "Switch the window view (normal/details)"
+
+msgid "Maximum volumes:"
+msgstr "Maximum volumes:"
+
+msgid "AutoPrune:"
+msgstr "AutoPrune:"
+
+msgid "Action on purge:"
+msgstr "Action on purge:"
+
+msgid "Label format:"
+msgstr "Label format:"
+
+msgid "Scratch pool:"
+msgstr "Scratch pool:"
+
+msgid "Recycle pool:"
+msgstr "Recycle pool:"
+
+msgid "Restore configuration"
+msgstr "Restore configuration"
+
+msgid "Update volumes"
+msgstr "Update volumes"
+
+msgid "Client:"
+msgstr "Client:"
+
+msgid "Job name:"
+msgstr "Job name:"
+
+msgid "Storage:"
+msgstr "Storage:"
+
+msgid "Level:"
+msgstr "Level:"
+
+msgid "FileSet:"
+msgstr "FileSet:"
+
+msgid "Priority:"
+msgstr "Priority:"
+
+msgid "Run job"
+msgstr "Run job"
+
+msgid "Estimate job"
+msgstr "Estimate job"
+
+msgid "Accurate:"
+msgstr "Accurate:"
+
+msgid "Storage Daemons"
+msgstr "Storage Daemons"
+
+msgid "Clients"
+msgstr "Clients"
+
+msgid "Volumes"
+msgstr "Volumes"
+
+msgid "Pools"
+msgstr "Pools"
+
+msgid "Jobs"
+msgstr "Jobs"
+
+msgid "Limit:"
+msgstr "Limit:"
+
+msgid "Search:"
+msgstr "Search:"
+
+msgid "View mode:"
+msgstr "View mode:"
+
+msgid "simple"
+msgstr "simple"
+
+msgid "details"
+msgstr "details"
+
+msgid "Retention period value must be integer."
+msgstr "Retention period value must be integer."
+
+msgid "There is not possible to run selected action because:"
+msgstr "There is not possible to run selected action because:"
+
+msgid "Drive number must be integer."
+msgstr "Drive number must be integer."
+
+msgid "Slot number must be integer."
+msgstr "Slot number must be integer."
+
+msgid "File retention value must be integer."
+msgstr "File retention value must be integer."
+
+msgid "Job retention value must be integer."
+msgstr "Job retention value must be integer."
+
+msgid "Vol. use duration value must be integer."
+msgstr "Vol. use duration value must be integer."
+
+msgid "Max vol. jobs:"
+msgstr "Max vol. jobs:"
+
+msgid "Max vol. jobs value must be integer."
+msgstr "Max vol. jobs value must be integer."
+
+msgid "Max vol. files:"
+msgstr "Max vol. files:"
+
+msgid "Max vol. files value must be integer."
+msgstr "Max vol. files value must be integer."
+
+msgid "Max vol. bytes:"
+msgstr "Max vol. bytes:"
+
+msgid "Max vol. bytes value must be integer."
+msgstr "Max vol. bytes value must be integer."
+
+msgid "Slot value must be integer."
+msgstr "Slot value must be integer."
+
+msgid "Max volumes value must be integer."
+msgstr "Max volumes value must be integer."
+
+msgid "Use duration value must be integer."
+msgstr "Use duration value must be integer."
+
+msgid "Label format value must not be empty."
+msgstr "Label format value must not be empty."
+
+msgid "Priority value must be integer greather than 0."
+msgstr "Priority value must be integer greather than 0."
+
+msgid "File retention value must be positive integer or zero."
+msgstr "File retention value must be positive integer or zero."
+
+msgid "Job retention value must be positive integer or zero."
+msgstr "Job retention value must be positive integer or zero."
+
+msgid "File retention (in days):"
+msgstr "File retention (in days):"
+
+msgid "Job retention (in days):"
+msgstr "Job retention (in days):"
+
+msgid "select pool"
+msgstr "select pool"
+
+msgid "Retention period (in hours):"
+msgstr "Retention period (in hours):"
+
+msgid "Vol. use duration (in hours):"
+msgstr "Vol. use duration (in hours):"
+
+msgid "Job to restore:"
+msgstr "Job to restore:"
+
+msgid "Backup from client:"
+msgstr "Backup from client:"
+
+msgid "Restore to client:"
+msgstr "Restore to client:"
+
+msgid "Backup for restore:"
+msgstr "Backup for restore:"
+
+msgid "Step 1 - select source backup client"
+msgstr "Step 1 - select source backup client"
+
+msgid "Client"
+msgstr "Client"
+
+msgid "Backup"
+msgstr "Backup"
+
+msgid "Step 2 - select backup to restore"
+msgstr "Step 2 - select backup to restore"
+
+msgid "Backup selection method:"
+msgstr "Backup selection method:"
+
+msgid "Only selected backup"
+msgstr "Only selected backup"
+
+msgid "FileSet resource:"
+msgstr "FileSet resource:"
+
+msgid "Storage resource:"
+msgstr "Storage resource:"
+
+msgid "Pool resource:"
+msgstr "Pool resource:"
+
+msgid "Step 3 - select files to restore"
+msgstr "Step 3 - select files to restore"
+
+msgid "Files"
+msgstr "Files"
+
+msgid ""
+"For see a file versions please double click file on the left files browser."
+msgstr ""
+"For see a file versions please double click file on the left files browser."
+
+msgid ""
+"For add a file to restore please drag a file from frame on left or from "
+"above frame and drop it here"
+msgstr ""
+"For add a file to restore please drag a file from frame on left or from "
+"above frame and drop it here"
+
+msgid ""
+"It seems that there is no files for choosing or file records in database for "
+"this job has been purged (file retention period expired)"
+msgstr ""
+"It seems that there is no files for choosing or file records in database for "
+"this job has been purged (file retention period expired)"
+
+msgid "Group most recent backups"
+msgstr "Group most recent backups"
+
+msgid "Where"
+msgstr "Where"
+
+msgid "Restore to directory:"
+msgstr "Restore to directory:"
+
+msgid "Step 4 - select destination for restore"
+msgstr "Step 4 - select destination for restore"
+
+msgid "Step 5 - options for restore"
+msgstr "Step 5 - options for restore"
+
+msgid "Replace files:"
+msgstr "Replace files:"
+
+msgid "Options"
+msgstr "Options"
+
+msgid "Restore job priority:"
+msgstr "Restore job priority:"
+
+msgid "do not replace files"
+msgstr "do not replace files"
+
+msgid "if files from restore are older"
+msgstr "if files from restore are older"
+
+msgid "if files from restore are newer"
+msgstr "if files from restore are newer"
+
+msgid "always replace files"
+msgstr "always replace files"
+
+msgid "Source parameters"
+msgstr "Source parameters"
+
+msgid "Backup data from client:"
+msgstr "Backup data from client:"
+
+msgid "FileSet for restore:"
+msgstr "FileSet for restore:"
+
+msgid "Files for restore"
+msgstr "Files for restore"
+
+msgid "Selected files count:"
+msgstr "Selected files count:"
+
+msgid "Destination parameters"
+msgstr "Destination parameters"
+
+msgid "Restore to path:"
+msgstr "Restore to path:"
+
+msgid "Restore job options"
+msgstr "Restore job options"
+
+msgid "Run restore"
+msgstr "Run restore"
+
+msgid "Run"
+msgstr "Run"
+
+msgid "Cancel"
+msgstr "Cancel"
+
+msgid ""
+"There is no backup for restore. Please go to previous step and select "
+"another client for restore or proceed backups for the client selected in "
+"previous step."
+msgstr ""
+"There is no backup for restore. Please go to previous step and select "
+"another client for restore or proceed backups for the client selected in "
+"previous step."
+
+msgid "Database file path (SQLite only):"
+msgstr "Database file path (SQLite only):"
+
+msgid "Selected directories count:"
+msgstr "Selected directories count:"
+
+msgid "Delete job"
+msgstr "Delete job"
+
+msgid "Cancel job"
+msgstr "Cancel job"
+
+msgid "NOTE!"
+msgstr "NOTE!"
+
+msgid "Baculum needs access to bconsole by the web server."
+msgstr "Baculum needs access to bconsole by the web server."
+
+msgid "Director:"
+msgstr "Director:"
+
+msgid "Jobs for run"
+msgstr "Jobs for run"
+
+msgid "Run job again"
+msgstr "Run job again"
+
+msgid "Job status"
+msgstr "Job status"
+
+msgid "Bacula console"
+msgstr "Bacula console"
+
+msgid "show console"
+msgstr "show console"
+
+msgid "hide console"
+msgstr "hide console"
+
+msgid "volumes tools"
+msgstr "volumes tools"
+
+msgid "Label volume(s)"
+msgstr "Label volume(s)"
+
+msgid "Update slots using barcodes"
+msgstr "Update slots using barcodes"
+
+msgid "Update slots without barcodes"
+msgstr "Update slots without barcodes"
+
+msgid "Label name:"
+msgstr "Label name:"
+
+msgid "Label"
+msgstr "Label"
+
+msgid "Use barcodes as label:"
+msgstr "Use barcodes as label:"
+
+msgid "Slots for label:"
+msgstr "Slots for label:"
+
+msgid "Slots for update:"
+msgstr "Slots for update:"
+
+msgid "Update barcodes slots"
+msgstr "Update barcodes slots"
+
+msgid "Update slots scan"
+msgstr "Update slots scan"
+
+msgid "Label name have to contain string value from set [0-9a-zA-Z_-]."
+msgstr "Label name has to contain string value from set [0-9a-zA-Z_-]."
+
+msgid "Slots for label have to contain string value from set [0-9-,]."
+msgstr "Slots for label have to contain string value from set [0-9-,]."
+
+msgid "Drive has to contain digit value from set [0-9]."
+msgstr "Drive has to contain digit value from set [0-9]."
+
+msgid "Slots for update have to contain string value from set [0-9-,]."
+msgstr "Slots for update have to contain string value from set [0-9-,]."
+
+msgid "Baculum problem"
+msgstr "Baculum problem"
+
+msgid "What can I do"
+msgstr "What can I do"
+
+msgid "Please check Baculum logs if there are some errors."
+msgstr "Please check Baculum logs if there are some errors."
+
+msgid "Please check Web Server logs if there are some errors."
+msgstr "Please check Web Server logs if there are some errors."
+
+msgid "Please check other system logs if there are some errors."
+msgstr "Please check other system logs if there are some errors."
+
+msgid "Error 2 - problem with connection to database."
+msgstr "Error 2 - problem with connection to database."
+
+msgid "Please check if Catalog database service is running."
+msgstr "Please check if Catalog database service is running."
+
+msgid ""
+"Please check if Web Server user is allowed for connection to Catalog "
+"database."
+msgstr ""
+"Please check if Web Server user is allowed for connection to Catalog "
+"database."
+
+msgid "Please re-run"
+msgstr "Please re-run"
+
+msgid "Baculum Initial Wizard"
+msgstr "Baculum Initial Wizard"
+
+msgid "and on step"
+msgstr "and on step"
+
+msgid "please perform connection test."
+msgstr "please perform connection test."
+
+msgid "Error 4 - problem with connection to bconsole."
+msgstr "Error 4 - problem with connection to bconsole."
+
+msgid "Please check if Bacula Director service is running."
+msgstr "Please check if Bacula Director service is running."
+
+msgid ""
+"Please check in shell console if bconsole program is able to connect to "
+"Bacula Director service."
+msgstr ""
+"Please check in shell console if bconsole program is able to connect to "
+"Bacula Director service."
+
+msgid ""
+"Please be sure if Web Server user is allowed for executing bconsole program."
+msgstr ""
+"Please be sure if Web Server user is allowed for executing bconsole program."
+
+msgid ""
+"You can login to shell console as Web Server user and try to run bconsole "
+"program."
+msgstr ""
+"You can login to shell console as Web Server user and try to run bconsole "
+"program."
+
+msgid "internal Baculum error."
+msgstr "internal Baculum error."
+
+msgid "TRY AGAIN"
+msgstr "TRY AGAIN"
+
+msgid ""
+"Above administration login and administration password should be the same as "
+"login params defined in Web Server authorization file. They are HTTP Basic "
+"authorization params by using which you have logged in to this wizard."
+msgstr ""
+"Above administration login and administration password should be the same as "
+"login params defined in Web Server authorization file. They are HTTP Basic "
+"authorization params by using which you have logged in to this wizard."
+
+msgid "authorization to Baculum error."
+msgstr "authorization to Baculum error."
+
+msgid "Please check Web Server authorization file if it is correct."
+msgstr "Please check Web Server authorization file if it is correct."
+
+msgid ""
+"and retype authorization login and authorization password for that is used "
+"to login to"
+msgstr ""
+"and retype authorization login and authorization password for that is used "
+"to login to"
+
+msgid ""
+"Please check Web Server authorization file if it is defined and it is "
+"correct."
+msgstr ""
+"Please check Web Server authorization file if it is defined and it is "
+"correct."
+
+msgid ""
+"Please be sure if Web Server authorization is enabled (for Apache it is "
+"option 'AllowOverride All') and if the authorization works properly."
+msgstr ""
+"Please be sure if Web Server authorization is enabled (for Apache it is "
+"option 'AllowOverride All') and if the authorization works properly."
+
+msgid ""
+"please retype authorization login and authorization password to according "
+"Web Server authorization values."
+msgstr ""
+"please retype authorization login and authorization password to according "
+"Web Server authorization values."
+
+msgid "Enable logging"
+msgstr "Enable logging"
+
+msgid "clear bvfs cache"
+msgstr "clear bvfs cache"
+
+msgid ""
+"Output for selected job is not available yet or you do not have enabled "
+"logging job logs to catalog database.\n"
+"\n"
+"For watching job log there is need to add to the job Messages resource next "
+"directive:\n"
+"\n"
+"console = all, !skipped, !saved\n"
+msgstr ""
+"Output for selected job is not available yet or you do not have enabled "
+"logging job logs to catalog database.\n"
+"\n"
+"For watching job log there is need to add to the job Messages resource next "
+"directive:\n"
+"\n"
+"console = all, !skipped, !saved\n"

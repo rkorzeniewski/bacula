@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<application id="baculum" mode="Debug">
+	<paths>
+		<using namespace="Application.Class.*" />
+		<using namespace="System.Data.ActiveRecord.*" />
+		<using namespace="System.I18N.*" />
+	</paths>
+	<modules>
+		<module id="request" class="THttpRequest" EnableCookieValidation="true" />
+		<!-- Url Mapping -->
+		<module id="request" class="THttpRequest" UrlManager="friendly-url" />
+		<module id="friendly-url" class="System.Web.TUrlMapping" EnableCustomUrl="true" UrlPrefix="/">
+			<url ServiceParameter="Home" pattern="/" />
+			<url ServiceParameter="ConfigurationWizard" pattern="wizard/" />
+			<url ServiceParameter="RestoreWizard" pattern="restore/" />
+			<url ServiceParameter="BaculumError" pattern="message/{error}/" parameters.error="\d+" />
+			<!-- START Directors -->
+			<url ServiceParameter="API.Directors" pattern="directors/" />
+			<!-- END Directors -->
+			<!-- START Clients (file daemons) -->
+			<url ServiceParameter="API.Clients" pattern="clients/" />
+			<url ServiceParameter="API.Client" pattern="clients/{id}/" parameters.id="\d+" />
+			<url ServiceParameter="API.Clients" pattern="clients/limit/{limit}/" parameters.limit="\d+" />
+			<url ServiceParameter="API.ClientsShow" pattern="clients/show/" />
+			<url ServiceParameter="API.ClientShow" pattern="clients/show/{id}/" parameters.id="\d+" />
+			<url ServiceParameter="API.ClientStatus" pattern="clients/status/{id}/" parameters.id="\d+" />
+			<!-- END Clients (file daemons) -->
+			<!-- START Storages (storage daemons) -->
+			<url ServiceParameter="API.Storages" pattern="storages/" />
+			<url ServiceParameter="API.Storage" pattern="storages/{id}/" parameters.id="\d+" />
+			<url ServiceParameter="API.Storages" pattern="storages/limit/{limit}/" parameters.limit="\d+" />
+			<url ServiceParameter="API.StoragesShow" pattern="storages/show/" />
+			<url ServiceParameter="API.StorageShow" pattern="storages/show/{id}/" parameters.id="\d+" />
+			<url ServiceParameter="API.StorageStatus" pattern="storages/status/{id}/" parameters.id="\d+" />
+			<url ServiceParameter="API.StorageMount" pattern="storages/mount/{id}/{drive}/{slot}/" parameters.id="\d+" parameters.drive="\d+" parameters.slot="\d+" />
+			<url ServiceParameter="API.StorageUmount" pattern="storages/umount/{id}/{drive}/" parameters.id="\d+" parameters.drive="\d+" />
+			<url ServiceParameter="API.StorageRelease" pattern="storages/release/{id}/" parameters.id="\d+" />
+			<!-- END Storages (storage daemons) -->
+			<!-- START Volumes (media) -->
+			<url ServiceParameter="API.Volumes" pattern="volumes/" />
+			<url ServiceParameter="API.Volume" pattern="volumes/{id}/" parameters.id="\d+" />
+			<url ServiceParameter="API.Volumes" pattern="volumes/limit/{limit}/" parameters.limit="\d+" />
+			<url ServiceParameter="API.VolumePrune" pattern="volumes/prune/{id}/" parameters.id="\d+" />
+			<url ServiceParameter="API.VolumePurge" pattern="volumes/purge/{id}/" parameters.id="\d+" />
+			<!-- END Volumes (media) -->
+			<!-- START Pools -->
+			<url ServiceParameter="API.Pools" pattern="pools/" />
+			<url ServiceParameter="API.Pool" pattern="pools/{id}/" parameters.id="\d+" />
+			<url ServiceParameter="API.Pools" pattern="pools/limit/{limit}/" parameters.limit="\d+" />
+			<url ServiceParameter="API.PoolUpdate" pattern="pools/update/{id}/" parameters.id="\d+" />
+			<url ServiceParameter="API.PoolUpdateVolumes" pattern="pools/update/volumes/{id}/" parameters.id="\d+" />
+			<url ServiceParameter="API.PoolsShow" pattern="pools/show/" />
+			<url ServiceParameter="API.PoolShow" pattern="pools/show/{id}/" parameters.id="\d+" />
+			<!-- END Pools -->
+			<!-- START Jobs -->
+			<url ServiceParameter="API.Jobs" pattern="jobs/" />
+			<url ServiceParameter="API.JobTasks" pattern="jobs/tasks/" />
+			<url ServiceParameter="API.JobTasks" pattern="jobs/tasks/limit/{limit}/" parameters.limit="\d+" />
+			<url ServiceParameter="API.Job" pattern="jobs/{id}/" parameters.id="\d+" />
+			<url ServiceParameter="API.Jobs" pattern="jobs/limit/{limit}/" parameters.limit="\d+" />
+			<url ServiceParameter="API.JobsRecent" pattern="jobs/recent/{name}/{clientid}/" parameters.name=".+" parameters.clientid="\d+" />
+			<url ServiceParameter="API.JobEstimate" pattern="jobs/estimate/" />
+			<url ServiceParameter="API.JobRun" pattern="jobs/run/" />
+			<url ServiceParameter="API.JobCancel" pattern="jobs/cancel/{id}/" parameters.id="\d+"/>
+			<url ServiceParameter="API.RestoreRun" pattern="jobs/restore/" />
+			<!-- END Jobs -->
+			<!-- START BVFS -->
+			<url ServiceParameter="API.BVFSUpdate" pattern="bvfs/update/{id}/" parameters.id="[\d\,]+" />
+			<url ServiceParameter="API.BVFSLsDirs" pattern="bvfs/lsdirs/{id}/" parameters.id="[\d\,]+" parameters.path=".+" />
+			<url ServiceParameter="API.BVFSLsDirs" pattern="bvfs/lsdirs/{id}/limit/{limit}/" parameters.id="[\d\,]+" parameters.path=".+" parameters.limit="\d+" />
+			<url ServiceParameter="API.BVFSLsDirs" pattern="bvfs/lsdirs/{id}/limit/{limit}/{offset}/" parameters.id="[\d\,]+" parameters.path=".+" parameters.limit="\d+" parameters.offset="\d+" />
+			<url ServiceParameter="API.BVFSLsFiles" pattern="bvfs/lsfiles/{id}/" parameters.id="[\d\,]+" parameters.path=".+" />
+			<url ServiceParameter="API.BVFSLsFiles" pattern="bvfs/lsfiles/{id}/limit/{limit}/" parameters.id="[\d\,]+" parameters.path=".+" parameters.limit="\d+" />
+			<url ServiceParameter="API.BVFSLsFiles" pattern="bvfs/lsfiles/{id}/limit/{limit}/{offset}/" parameters.id="[\d\,]+" parameters.path=".+" parameters.limit="\d+" parameters.offset="\d+" />
+			<url ServiceParameter="API.BVFSVersions" pattern="bvfs/versions/{client}/{jobid}/{pathid}/{filenameid}/" parameters.client=".+" parameters.jobid="\d+" parameters.pathid="\d+" parameters.filenameid="\d+" />
+			<url ServiceParameter="API.BVFSGetJobids" pattern="bvfs/getjobids/{id}/" parameters.id="[\d\,]+" />
+			<url ServiceParameter="API.BVFSRestore" pattern="bvfs/restore/" />
+			<url ServiceParameter="API.BVFSClearCache" pattern="bvfs/clear/" />
+			<!-- END BVFS -->
+			<!-- START JobLog -->
+			<url ServiceParameter="API.JobLog" pattern="joblog/{id}/" parameters.id="\d+" />
+			<!-- END JobLog -->
+			<url ServiceParameter="API.FileSets" pattern="filesets/" />
+			<url ServiceParameter="API.FileSet" pattern="filesets/{id}/" parameters.id="\d+" />
+			<url ServiceParameter="API.ConsoleCommand" pattern="console/" />
+		</module>
+		<module class="System.Util.TParameterModule" ParameterFile="Application.Data.Settings" />
+		<module id="globalization" class="TGlobalization">
+			<translation type="gettext" source="Application.Lang" marker="@@" autosave="true" cache="false" DefaultCulture="en" />
+		</module>
+		<module id="Session" class="THttpSession" SessionName="SSID" CookieMode="Allow" UseCustomStorage="false" AutoStart="true" GCProbability="1" UseTransparentSessionID="true" TimeOut="3600" />
+		<module id="log" class="System.Util.TLogRouter">
+			<route class="TFileLogRoute"  Categories="Execute, External, Application, General, Security" LogPath="Application.Data" LogFile="baculum.log" MaxFileSize="1000" MaxLogFiles="5" />
+		</module>
+	</modules>
+	<services>
+		<service id="page" class="TPageService" BasePath="Application.Pages" DefaultPage="Home">
+			<modules>
+				<module id="configuration" class="Application.Class.ConfigurationManager" />
+				<module id="logging" class="Application.Class.Logging" />
+				<module id="api" class="Application.Class.API" />
+				<module id="db" class="Application.Class.Database" />
+				<module id="bconsole" class="Application.Class.Bconsole" />
+				<module id="version" class="Application.Class.VersionManager" />
+				<module id="client" class="Application.Class.ClientManager" />
+				<module id="storage" class="Application.Class.StorageManager" />
+				<module id="volume" class="Application.Class.VolumeManager" />
+				<module id="pool" class="Application.Class.PoolManager" />
+				<module id="job" class="Application.Class.JobManager" />
+				<module id="fileset" class="Application.Class.FileSetManager" />
+				<module id="joblog" class="Application.Class.LogManager" />
+				<module id="misc" class="Application.Class.Miscellaneous" />
+			</modules>
+		</service>
+	</services>
+</application>

@@ -1,0 +1,186 @@
+1. Baculum overview
+2. Baculum operating system environment
+  2.1 General requirements
+  2.2 Linux Fedora
+  2.3 Linux Debian
+3. Preparing Baculum files
+4. Preparing Apache Web Server
+5. Example configuration VirtualHost
+
+=========================================
+
+1. Baculum overview
+
+Baculum is Bacula web based interface. It enables Bacula administration
+functions such as:
+
+- Running backup and restore tasks
+- Monitoring Bacula services by getting status these services
+- Bacula console available via web interface
+- Multiple Directors support
+- Volumes managenment including labeling new volumes
+- Basic storage daemon operations on volumes (mount, umount, release actions)
+- Easy in use configuration and restore wizards
+- other features...
+
+Note!
+This Baculum release does not support Verify kind of jobs. Support for Verify
+jobs will be implemented in next Baculum release.
+
+
+2. Baculum operating system environment
+
+
+2.1 General requirements
+
+
+Environmnent for Baculum installation should have next components:
+
+- Web Server - with mod_rewrite module loaded. Baculum has been
+tested on Apache HTTP Server.
+
+- PHP 5.3 or higher - as web server module. PHP CLI interpreter is not needed.
+PHP should have installed next modules:
+    * PDO PHP support - depending on your catalog database: PDO PostgreSQL,
+PDO MySQL or PDO SQLite.
+    * BCMath PHP module.
+    * cURL PHP module.
+    * MB String PHP module.
+- Bconsole - configured Bacula text based console
+- Access to Bacula catalog database - computer with Baculum installation should be
+able to connection to Bacula catalog database. There is not need to install Baculum
+on server with Bacula DB because Baculum can communicate with Bacula database
+located on remote server.
+
+Above requirements are validated during Baculum start. So if in installation
+environment there lacks some from these components then you will be informed
+about it.
+
+
+2.2 Linux Fedora
+
+
+Packages required for run Baculum in Fedora environemnt can be installed by command:
+
+# yum install httpd \
+php \
+php-common \
+php-pdo \
+php-pgsql \
+php-mysqlnd \
+php-mbstring \
+php-bcmath
+
+In Fedora 20 PHP module for cURL support is compiled in PHP.
+
+In case of using SELinux functionality in Baculum environment, recommended way
+is switching "httpd_t" SELinux security doman to permissive domain like below:
+
+# semanage permissive -a httpd_t
+
+Suggested method for Baculum webGUI access to Bacula Console (bconsole) is using
+"sudo" functionality for that. In this case there is need to add to /etc/sudoers file two
+lines according next template:
+
+Defaults:apache_user	!requiretty
+apache_user ALL= NOPASSWD:	bconsole_path
+
+For example for user called "apache" from that HTTP service working with Baculum
+there is need to add line like below:
+
+Defaults:apache	!requiretty
+apache	ALL= NOPASSWD:	/usr/sbin/bconsole
+
+
+2.3 Linux Debian
+
+
+Packages required for run Baculum in Debian environemnt can be installed by command:
+
+apt-get install apache2 \
+libapache2-mod-php5 \
+php5 \
+php5-pgsql \
+php5-mysql \
+php5-curl
+
+In Debian 7.4.0, PHP modules for BCMath and MultiByte String support are compiled in PHP.
+
+There is need to create symbolic link as below, for enable mod_rewrite module in Apache.
+
+# ln -s /etc/apache2/mods-available/rewrite.load /etc/apache2/mods-enabled/rewrite.load
+
+Suggested method for Baculum webGUI access to Bacula Console (bconsole) is using
+"sudo" functionality for that. In this case there is need to add to /etc/sudoers below
+line according next template:
+
+apache_user ALL= NOPASSWD:	bconsole_path
+
+For example for user called "www-data" from that HTTP service working with Baculum
+there is need to add line like below:
+
+www-data	ALL= NOPASSWD:	/usr/sbin/bconsole
+
+
+3. Preparing Baculum files
+
+
+After downloading and unpacking Baculum sources archive there is need to set write
+permissions for web server for three below directories:
+
+/[files base location]/assets
+/[files base location]/protected/Data
+/[files base location]/protected/runtime
+
+These directories permissions are validated during Baculum start. If web server
+will not be able to write data in some from above directries then you will be
+informed about this fact.
+
+
+4. Preparing Apache Web Server
+
+
+First there is need to configure authentication to Baculum from web server side.
+Baculum supports HTTP Basic authentication from web server.
+
+In Apache web server this authentication method may be realizing by next directives
+declaration in Apache configuration file:
+
+AuthType Basic
+AuthUserFile /etc/apache2/passwords
+Require valid-user
+
+File located in /etc/apache2/passwords is an example file which contains users and
+passwords. For generating passwords file you may use htpasswd binary file in next
+way:
+
+# htpasswd -c /etc/apache2/passwords someuser
+
+You will be asked about inputing password and retype password for user.
+
+NOTE!
+"-c" switcher you should use only for new created passwords file. For existing
+passwords file "-c" switcher should not be inputed.
+
+
+5. Example configuration VirtualHost
+
+
+<VirtualHost *:80>
+	DocumentRoot /var/www/baculum
+	ServerName somehost.example.com
+	<Directory /var/www/baculum>
+		AllowOverride All
+		AuthType Basic
+		AuthName MyPrivateFile
+		AuthUserFile /etc/apache2/passwords
+		Require valid-user
+	</Directory>
+</VirtualHost>
+
+
+Above configuration should be writen in a new Apache configuration file.
+for example, location for that can be put to /etc/apache2/sites-enabled/baculum.conf.
+
+In this way, configuration file baculum.conf will be loaded automaticly during
+Apache server start.

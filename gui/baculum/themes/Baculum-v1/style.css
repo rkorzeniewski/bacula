@@ -1,0 +1,776 @@
+body {
+	background-color: #b5c9d3;
+	background-image: url('/themes/Baculum-v1/background.png');
+	background-repeat: repeat-x;
+	font-family: Arial, Helvetica, sans-serif;
+	color: white;
+}
+
+#message-body {
+	background-color: #832933;
+	background-image: none;
+	background-repeat: repeat-x;
+	font-family: Arial, Helvetica, sans-serif;
+	color: black;
+}
+
+input.invalidate, select.invalidate {
+	border: 1px solid red;
+}
+
+input[type=text], input[type=password], select, textarea {
+		-webkit-border-radius: 4px;
+		-moz-border-radius: 4px;
+		border-radius: 4px;
+		padding: 5px;
+}
+
+input[type=checkbox] {
+		margin: 6px;
+}
+
+input.textbox, select.textbox {
+	width: 260px;
+	border: 1px solid black;
+	font-size: 11pt;
+	display: table-cell;
+}
+
+input.textbox-short, select.textbox-short {
+	width: 80px;
+	border: 1px solid black;
+	font-size: 11pt;
+	display: table-cell;
+}
+
+input.textbox-auto, select.textbox-auto, textarea.textbox-auto {
+	width: 100%;
+	border: 1px solid black;
+	font-size: 14px;
+	display: table-cell;
+}
+
+textarea.textbox-auto {
+	resize: vertical;
+	width: 406px;
+	font-size: 11px;
+}
+
+a {
+	font-size: 12px;
+	color: white;
+	padding: 3px 4px;
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+#container {
+	margin: 0 auto;
+	width: 975px;
+}
+
+#top {
+	width: 975px;
+	height: 51px;
+	background-image: url('/themes/Baculum-v1/bls_top.png');
+	background-repeat: no-repeat;
+	clear: both;
+}
+
+#top img {
+	padding: 11px 0 11px 35px;
+	float: left;
+}
+
+#menu-left {
+	float: left;
+	width: 74px;
+	/*height: 498px;*/
+	height: 600px;
+	background-color: #546e83;
+	border-left: 1px solid black;
+}
+
+#content {
+	float: left;
+	width: 899px;
+	/*height: 498px;*/
+	height: 600px;
+	background-color: #585758;
+	border-right: 1px solid black;
+}
+
+#directors {
+	float: right;
+	font-size: 12px;
+}
+
+#directors select {
+	margin: 15px 20px 0 0;
+	padding: 0;
+	font-size: 12px
+}
+
+div.configuration {
+	width: 443px;
+	/*height: 473px;*/
+	height: 575px;
+	margin: 12px 0;
+	z-index: 5;
+	position: relative;
+	left: 447px;
+	top: 0;
+	background-color: #898889;
+	-webkit-border-radius: 10px;
+	-moz-border-radius: 10px;
+	border-radius: 10px;
+	display: none;
+}
+
+#configuration div.field select {
+	width: 178px;
+}
+
+#configuration div.field input[type=text] {
+	width: 166px;
+}
+
+div.configuration-progress {
+	background: rgba(182,182,182,0.7) url('/themes/Baculum-v1/progress.gif') no-repeat center center;
+	width: 443px;
+	height: 575px;
+	z-index: 10;
+	position: absolute;
+	top: 0;
+	left: 0;
+	display: none;
+	border-radius: 10px;
+}
+
+div.slide-window-progress {
+	background: rgba(182,182,182,0.7) url('/themes/Baculum-v1/progress.gif') no-repeat center center;
+	width: 100%;
+	height: 100%;
+	z-index: 10;
+	position: absolute;
+	top: 0;
+	left: 0;
+	display: none;
+}
+
+#console {
+	clear: left;
+	width: 973px;
+	min-height: 20px;
+	padding: 5px 0;
+	text-align: right;
+	background-color: #686a6c;
+	border-left: 1px solid black;
+	border-right: 1px solid black;
+}
+
+#console a.left {
+	float: left;
+	padding: 0 5px;
+	font-weight: bold;
+}
+
+#console input[type="text"], #console select {
+	width: 255px;
+}
+
+#console select {
+	width: 267px;
+	padding-bottom: 4px;
+}
+
+#console input[type="submit"] {
+	margin: 6px 0;
+}
+
+#console div.button {
+	text-align: right;
+	margin: 3px 9px 5px 0;
+}
+
+#bottom {
+	width: 975px;
+	height: 11px;
+	background: transparent url('/themes/Baculum-v1/bls_bottom.png') no-repeat top left;
+}
+
+#message-box {
+	border: 2px solid #a6ac00;
+	width: 90%;
+	padding: 8px;
+	min-height: 200px;
+	margin: 80px auto;
+	-webkit-border-radius: 8px;
+	-moz-border-radius: 8px;
+	border-radius: 8px;
+	background-color: #faff74;
+}
+
+#message-box h3, #message-box h2 {
+	margin: 20px 10px;
+}
+
+#message-box li {
+	margin: 10px;
+}
+
+#message-box a {
+	font-size: 16px;
+	color: red;
+	font-weight: bold;
+	text-decoration: underline;
+}
+
+.storage-btn, .client-btn, .media-btn, .pool-btn, .setting-btn, .job-btn, .jobrun-btn, .restore-btn {
+	width: 74px;
+	height: 74px;
+	display: block;
+	cursor: pointer;
+	border: 0;
+}
+
+.storage-btn {
+	background: transparent url('/themes/Baculum-v1/storage_icon_inactive.png') no-repeat top left;
+}
+
+.storage-btn:hover {
+	background: transparent url('/themes/Baculum-v1/storage_icon.png') no-repeat top left;
+}
+
+.client-btn {
+	background: transparent url('/themes/Baculum-v1/client_icon_inactive.png') no-repeat top left;
+}
+
+.client-btn:hover {
+	background: transparent url('/themes/Baculum-v1/client_icon.png') no-repeat top left;
+}
+
+.media-btn {
+	background: transparent url('/themes/Baculum-v1/media_icon_inactive.png') no-repeat top left;
+}
+
+.media-btn:hover {
+	background: transparent url('/themes/Baculum-v1/media_icon.png') no-repeat top left;
+}
+
+.pool-btn {
+	background: transparent url('/themes/Baculum-v1/pool_icon_inactive.png') no-repeat top left;
+}
+
+.pool-btn:hover {
+	background: transparent url('/themes/Baculum-v1/pool_icon.png') no-repeat top left;
+}
+
+.job-btn {
+	background: transparent url('/themes/Baculum-v1/job_icon_inactive.png') no-repeat top left;
+}
+
+.job-btn:hover {
+	background: transparent url('/themes/Baculum-v1/job_icon.png') no-repeat top left;
+}
+
+.jobrun-btn {
+	background: transparent url('/themes/Baculum-v1/jobrun_icon_inactive.png') no-repeat top left;
+}
+
+.jobrun-btn:hover {
+	background: transparent url('/themes/Baculum-v1/jobrun_icon.png') no-repeat top left;
+}
+
+.restore-btn {
+	background: transparent url('/themes/Baculum-v1/restore_icon_inactive.png') no-repeat top left;
+}
+
+.restore-btn:hover {
+	background: transparent url('/themes/Baculum-v1/restore_icon.png') no-repeat top left;
+}
+
+.setting-btn {
+	background: transparent url('/themes/Baculum-v1/setting_icon_inactive.png') no-repeat top left;
+}
+
+.setting-btn:hover {
+	background: transparent url('/themes/Baculum-v1/setting_icon.png') no-repeat top left;
+}
+
+.line {
+	height: 35px;
+	clear: both;
+}
+
+.text {
+	width: 240px;
+	display: table-cell;
+	vertical-align: middle;
+	font-size: 15px;
+}
+
+.field {
+	display: table-cell;
+}
+
+.field-full {
+	display: block;
+	min-height: 200px;
+}
+
+.validator, .validate {
+	color: #e3454b !important;
+	font-size: 10pt;
+	/*margin-left: 5px;*/
+}
+
+.validate {
+	color: #96c600 !important;
+}
+
+.bbutton input.button-left, .bbutton input.button-center, .bbutton input.button-right {
+	font-size: 12px;
+	height: 25px;
+	color: black;
+	cursor: pointer;
+	padding: 0;
+	margin: 0;
+	border: 0;
+}
+
+.bbutton input.button-left, .bbutton input.button-right {
+	width: 2px;
+}
+
+.bbutton input.button-left {
+	background: transparent url('/themes/Baculum-v1/button-left.png') no-repeat left 0;
+}
+
+.bbutton input.button-center {
+	padding: 0 7px;
+	min-width: 65px;
+	background: transparent url('/themes/Baculum-v1/button-center.png') repeat-x left 0;
+}
+
+.bbutton input.button-right {
+	background: transparent url('/themes/Baculum-v1/button-right.png') no-repeat left 0;
+}
+
+.bbutton:hover input.button-left {
+	background: transparent url('/themes/Baculum-v1/button-left.png') no-repeat left -25px;
+}
+
+.bbutton:hover input.button-center {
+	background: transparent url('/themes/Baculum-v1/button-center.png') repeat-x left -25px;
+}
+
+.bbutton:hover input.button-right {
+	background: transparent url('/themes/Baculum-v1/button-right.png') no-repeat left -25px;
+}
+
+div.slide-window-container {
+	width: 400px;
+	height: 200px;
+	font-size: 11px;
+	font-weight: bold;
+	background-color: rgba(255,255,255,0.3);
+	z-index: 10;
+	position: absolute;
+}
+
+div.slide-window-content {
+	height: 100%;
+	width: 100%;
+	border-right: 1px solid black;
+	overflow: auto;
+	overflow-y: auto;
+}
+
+div.slide-window-element, div.slide-window-element:hover {
+	float: left;
+	width: 210px;
+	color: white;
+}
+
+div.slide-window-element:hover {
+	text-decoration: underline;
+}
+
+div.slide-window-element:hover, div.slide-window-element-detail:hover {
+	float: left;
+	width: 210px;
+	background-color: #686A6C;
+	cursor: pointer;
+}
+
+tr.slide-window-element {
+	background-color: #7a7a7a;
+}
+
+tr.slide-window-element-alternating {
+	background-color: #686A6C;
+}
+
+tr.slide-window-element td, tr.slide-window-element-alternating td {
+	font-style: italic;
+}
+tr.slide-window-element:hover, tr.slide-window-element-alternating:hover {
+	float: none;
+	cursor: pointer;
+}
+
+tr.slide-window-element:hover td, tr.slide-window-element-alternating:hover td{
+	background-color: #aeb2b6;
+}
+
+table.window-section-detail, table.file-browser-detail {
+	background-color: rgba(0,0,0,0.5);
+	width: 100%;
+	font-size: 11px;
+	font-weight: normal;
+}
+
+table.window-section-detail th, table.file-browser-detail th {
+	background-color: black;
+	color: white;
+}
+
+table.file-browser-detail {
+	border-spacing: 0;
+}
+
+tr.file-browser-element {
+	background-color: white;
+	color: black;
+}
+
+tr.file-browser-element td {
+	font-style: italic;
+	padding: 3px 0;
+	vertical-align: middle;
+}
+
+tr.file-browser-element:hover {
+	cursor: move;
+}
+
+tr.file-browser-element:hover td{
+	background-color: #aeb2b6;
+}
+
+tr.file-browser-header {
+	height: 25px;
+	text-align: left;
+	font-family: monospace;
+	font-size: 9px
+}
+
+tr.file-browser-header th {
+	padding-left: 9px;
+}
+
+.draggable {
+	cursor: move;
+}
+
+div.slide-window-bar {
+	background: transparent url('/themes/Baculum-v1/panel-border-btns.png') no-repeat top right;
+	text-align: center;
+	font-size: 10px;
+	height: 14px;
+	width: 100%;
+	padding-right: 1px;
+	clear: both;
+}
+
+div.slide-window-bar-title {
+	background: transparent url('/themes/Baculum-v1/panel-border-bg.png') repeat-x top left;
+	height: 14px;
+	margin-right: 51px;
+	padding: 0;
+}
+
+div.slide-window-close, div.slide-window-fullsize, div.slide-window-sort {
+	width: 12px;
+	height: 14px;
+	position: relative;
+	top: -14px;
+	float: right;
+}
+
+div.slide-window-close {
+	right: 9px;
+}
+
+div.slide-window-fullsize {
+	right: 10px;
+}
+
+div.slide-window-sort {
+	right: 14px;
+}
+
+div.slide-window-toolbar {
+	height: 90px;
+	width: 240px;
+	z-index: 25;
+	position: absolute;
+	margin: 0;
+	padding: 0;
+	bottom: 0;
+	right: 0;
+	border-top-left-radius: 5px;
+	border-left: 1px solid black;
+	border-top: 1px solid black;
+	background-color: rgba(0,0,0,0.7);
+}
+
+div.slide-window-toolbar table {
+	width: 220px;
+	border-spacing: 6px;
+	font-size: 11px;
+}
+
+div.slide-window-toolbar table td input[type="radio"] {
+	vertical-align: text-bottom;
+}
+
+div.slide-window-toolbar table select,div.slide-window-toolbar table input {
+	font-size: 11px;
+	padding: 0;
+}
+
+div.slide-window-toolbar table input[type="text"] {
+	width: 123px;
+}
+
+div.configuration-window-content {
+	padding: 10px 12px;;
+}
+
+
+div.status-bar-append, div.status-bar-full, div.status-bar-used, div.status-bar-error, div.status-bar-purged, div.status-bar-recycle, div.status-bar-busy, div.status-bar-disabled, div.status-bar-archive, div.status-bar-cleaning, div.status-bar-read-only, div.status-bar-detail-append, div.status-bar-detail-full, div.status-bar-detail-used, div.status-bar-detail-error, div.status-bar-detail-purged, div.status-bar-detail-recycle, div.status-bar-detail-busy, div.status-bar-detail-disabled, div.status-bar-detail-archive, div.status-bar-detail-cleaning, div.status-bar-detail-read-only {
+	position: relative;
+	border: 1px solid black;
+	width: 40px;
+	height: 20px;
+	line-height: 20px;
+	float: right;
+	font-size: 7px;
+	font-weight: bold;
+	margin: 4px 6px 4px 0;
+	-webkit-border-radius: 4px;
+	-moz-border-radius: 4px;
+	border-radius: 4px;
+	text-align: center;
+}
+
+div.status-bar-append, div.status-bar-detail-append {
+	background-color: green;
+}
+
+div.status-bar-full, div.status-bar-used, div.status-bar-detail-full, div.status-bar-detail-used {
+	background-color: orange;
+}
+
+div.status-bar-purged, div.status-bar-recycle, div.status-bar-detail-purged, div.status-bar-detail-recycle {
+	background-color: yellow;
+	color: black;
+}
+
+div.status-bar-error, div.status-bar-detail-error {
+	background-color: red;
+}
+
+div.status-bar-busy, div.status-bar-detail-busy {
+	background-color: pink;
+}
+
+div.status-bar-archive, div.status-bar-disabled, div.status-bar-detail-archive, div.status-bar-detail-disabled {
+	background-color: gray;
+	color: black;
+}
+
+div.status-bar-cleaning, div.status-bar-detail-cleaning {
+	background-color: blue;
+}
+
+div.status-bar-read-only, div.status-bar-detail-read-only {
+	background-color: white;
+	color: black;
+}
+
+div.status-bar-detail-append, div.status-bar-detail-full, div.status-bar-detail-used, div.status-bar-detail-error, div.status-bar-detail-purged, div.status-bar-detail-recycle, div.status-bar-detail-busy, div.status-bar-detail-disabled, div.status-bar-detail-archive, div.status-bar-detail-cleaning, div.status-bar-detail-read-only {
+	float: none;
+	margin: 0 auto;
+}
+
+/* JOB STATES */
+
+div.job-status-C, div.job-status-R, div.job-status-B, div.job-status-T, div.job-status-W, div.job-status-E, div.job-status-e, div.job-status-f, div.job-status-D, div.job-status-A, div.job-status-I, div.job-status-F, div.job-status-S, div.job-status-m, div.job-status-M, div.job-status-s, div.job-status-j, div.job-status-c, div.job-status-d, div.job-status-t, div.job-status-p, div.job-status-i, div.job-status-a, div.job-status-l, div.job-status-L {
+	border: 1px solid black;
+	min-width: 80px;
+	height: 20px;
+	line-height: 20px;
+	font-size: 9px;
+	font-weight: bold;
+	margin: 4px auto;
+	-webkit-border-radius: 4px;
+	-moz-border-radius: 4px;
+	border-radius: 4px;
+	text-align: center;
+	background-color: black;
+	color: white;
+}
+
+div.job-status-C {
+	background-color: #7A5DC7;
+}
+
+div.job-status-A {
+	background-color: yellow;
+	color: black;
+}
+
+div.job-status-R {
+	background-color: #E9AB17;
+	color: black;
+}
+
+div.job-status-B, div.job-status-E, div.job-status-e, div.job-status-f, div.job-status-I {
+	background-color: red;
+}
+
+div.job-status-T {
+	background-color: #347235;
+}
+
+div.job-status-W {
+	background-color: #C68E17;
+}
+
+div.job-status-D {
+	background-color: blue;
+}
+
+/*
+div.job-status-F, div.job-status-S, div.job-status-m, div.job-status-M, div.job-status-s, div.job-status-j, div.job-status-c, div.job-status-d, div.job-status-t, div.job-status-p {
+	background-color: #657383;
+}
+
+div.job-status-i, div.job-status-a, div.job-status-l, div.job-status-L {
+	background-color: #151B54;
+}*/
+
+
+/* END JOB STATES */
+
+div.window-section {
+	border-bottom: 1px solid white;
+	border-top: 1px solid white;
+	background-color: rgba(0,0,0,0.5);
+	width: 100%;
+	height: 25px;
+	clear: both;
+	padding-top: 6px;
+	font-size: 13px;
+}
+
+div.window-section span {
+	padding-left: 12px;
+}
+
+div.button {
+	text-align: right;
+	margin: 3px 2px 5px 0;
+}
+
+div.button-center {
+	text-align: center;
+	margin: 5px 0;
+}
+
+input.validation-error {
+	border-color: red !important;
+}
+
+span.validation-error-summary {
+	font-size: 12px;
+	line-height: 12px;
+	color: rgb(255, 187, 187) !important;
+}
+
+textarea.console {
+	width: 952px;
+	height: 200px;
+	display: block;
+	margin: 5px auto;
+	font-size: 10px;
+}
+
+.bold {
+	font-weight: bold;
+}
+
+.center {
+	text-align: center;
+}
+
+#console_launcher, #volumes_tools_launcher, #logging, #clear_bvfs_cache {
+	padding: 0 5px;
+}
+
+#console_launcher span, #volumes_tools_launcher span, #logging label, #clear_bvfs_cache label {
+	padding: 0 5px;
+	font-family: monospace;
+	font-size: 11px;
+}
+
+#logging input[type="checkbox"], #logging label, #clear_bvfs_cache label{
+	cursor: pointer;
+}
+
+#logging input[type="checkbox"], #clear_bvfs_cache input[type="image"] {
+	vertical-align: middle;
+	border: 0;
+}
+
+fieldset {
+	margin-bottom: 15px;
+	font-size: 14px;
+}
+
+fieldset .line {
+	height: 25px;
+}
+
+fieldset .text {
+	width: 250px;
+}
+
+legend {
+	font-size: 12px;
+	font-weight: bold;
+	color: white;
+}
+
+img {
+		vertical-align: middle;
+		border: none;
+}
+
+div.small {
+	font-size: 12px;
+	text-align: center;
+	width: 130px;
+	background-color: rgb(115, 143, 172);
+	border-top-left-radius: 5px;
+	border-top-right-radius: 5px;
+	border-left: 1px solid black;
+	border-right: 1px solid black;
+	border-top: 1px solid black;
+	margin: 3px 0;
+}

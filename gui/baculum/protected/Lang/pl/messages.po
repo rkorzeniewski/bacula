@@ -1,0 +1,522 @@
+msgid ""
+msgstr ""
+"PO-Revision-Date: 2014-02-02 17:46:20\n"
+"Project-Id-Version: \n"
+"POT-Creation-Date: \n"
+"Last-Translator: Marcin Haba <redakcja@bacula.pl>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 1.5.4\n"
+
+msgid "Licence"
+msgstr "Licencja"
+
+msgid "Database"
+msgstr "Baza danych"
+
+msgid "Authorization"
+msgstr "Autoryzacja"
+
+msgid "Finish"
+msgstr "Podsumowanie"
+
+msgid "&lt; Previous"
+msgstr "&lt; Wstecz"
+
+msgid "Language"
+msgstr "Język"
+
+msgid "Language:"
+msgstr "Język:"
+
+msgid "select language"
+msgstr "wybierz język"
+
+msgid "English"
+msgstr "angielski"
+
+msgid "Polish"
+msgstr "polski"
+
+msgid "Console"
+msgstr "Konsola"
+
+msgid "« Previous"
+msgstr "« Wstecz"
+
+msgid "Next »"
+msgstr "Dalej »"
+
+msgid "&laquo; Previous"
+msgstr "&laquo; Wstecz"
+
+msgid "Next &raquo;"
+msgstr "Dalej &raquo;"
+
+msgid "Step 1 - select language"
+msgstr "Krok 1 - wybieranie języka"
+
+msgid "Step 2 - acceptance of a license"
+msgstr "Krok 2 - akceptacja licencji"
+
+msgid "Step 3 - params of Bacula database connection"
+msgstr "Krok 3 - parametry połączenia z bazą danych Bacula"
+
+msgid "Step 4 - Baculum access to bconsole"
+msgstr "Krok 4 - Dostęp Baculuma do konsoli bconsole"
+
+msgid "Step 5 - authorization params to Baculum"
+msgstr "Krok 5 - parametry autoryzacji do Baculuma"
+
+msgid "Step 6 - Finish"
+msgstr "Krok 6 - Koniec"
+
+msgid "Save"
+msgstr "Zapisz"
+
+msgid "Please select language."
+msgstr "Proszę wybrać język."
+
+msgid "I have read the license terms and agree to"
+msgstr "Przeczytałem licencję i akceptuję jej postanowienia"
+
+msgid "Database type:"
+msgstr "Typ bazy danych:"
+
+msgid "select database"
+msgstr "wybierz bazę danych"
+
+msgid "Database name:"
+msgstr "Nazwa bazy danych:"
+
+msgid "Need to move on to accept the license."
+msgstr "Trzeba zaakceptować licencję."
+
+msgid "Please select database type."
+msgstr "Proszę wybrać typ bazy danych."
+
+msgid "Please enter database name."
+msgstr "Proszę wprowadzić nazwę bazy danych."
+
+msgid "Login:"
+msgstr "Login:"
+
+msgid "Please enter login."
+msgstr "Proszę wprowadzić login."
+
+msgid "Password:"
+msgstr "Hasło:"
+
+msgid "IP address (or hostname):"
+msgstr "Adres IP (lub nazwa hosta):"
+
+msgid "Please enter IP address or hostname."
+msgstr "Proszę wprowadzić adres IP lub host."
+
+msgid "Port:"
+msgstr "Port:"
+
+msgid "Please enter database port."
+msgstr "Proszę wprowadzić numer portu bazy danych."
+
+msgid "SQLite database path:"
+msgstr "Lokalizacja SQLite DB:"
+
+msgid "Please enter database path."
+msgstr "Proszę wprowadzić lokalizację pliku."
+
+msgid "Connection test:"
+msgstr "Test połączenia:"
+
+msgid "Loading..."
+msgstr "Ładowanie..."
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Connection error"
+msgstr "Błąd połączenia"
+
+msgid "test"
+msgstr "test"
+
+msgid "Bconsole binary file path:"
+msgstr "Lokalizacja bconsole:"
+
+msgid "Please enter bconsole path."
+msgstr "Proszę wprowadzić lokalizację bconsole."
+
+msgid "Bconsole config file path:"
+msgstr "Lokalizacja konfiguracji:"
+
+msgid "Please enter bconsole config file path."
+msgstr "Proszę wprowadzić położenie pliku .conf."
+
+msgid "Use sudo:"
+msgstr "Użyj sudo:"
+
+msgid "Bconsole connection test:"
+msgstr "Test połączenia z bconsole:"
+
+msgid "Administration login:"
+msgstr "Login administratora:"
+
+msgid "Administration password:"
+msgstr "Hasło administratora:"
+
+msgid "Please enter password."
+msgstr "Proszę wprowadzić hasło."
+
+msgid "Password must be longer than 4 chars."
+msgstr "Hasło musi być dłuższe niż 4 znaki."
+
+msgid "Retype administration password:"
+msgstr "Powtórz hasło administratora:"
+
+msgid "Please enter retype password."
+msgstr "Proszę wprowadzić hasło."
+
+msgid "Passwords must be the same."
+msgstr "Hasła muszą być takie same."
+
+msgid "Database parameters"
+msgstr "Parametry bazy danych"
+
+msgid "Database port:"
+msgstr "Port bazy danych"
+
+msgid "Bconsole access"
+msgstr "Dostęp do bconsole"
+
+msgid "Use sudo for bconsole requests:"
+msgstr "Użyj sudo dla zapytań bconsole:"
+
+msgid "Authorization to Baculum panel"
+msgstr "Autoryzacja do panelu Baculum"
+
+msgid "Switch the window view (normal/details)"
+msgstr "Przełącz widok okna (normalny/szczegóły)"
+
+msgid "Volume status:"
+msgstr "Status wolumena"
+
+msgid "Retention Period (in sec.):"
+msgstr "Czas retencji (w sek.):"
+
+msgid "Pool:"
+msgstr "Pula wolumenów:"
+
+msgid "Vol. Use Duration (in sec.):"
+msgstr "Vol. Use Duration (in sec.):"
+
+msgid "Max Vol. Jobs:"
+msgstr "Max Vol. Jobs:"
+
+msgid "Max Vol. Files:"
+msgstr "Max Vol. Files:"
+
+msgid "Max Vol. Bytes:"
+msgstr "Max Vol. Bytes:"
+
+msgid "Slot number:"
+msgstr "Numer slotu"
+
+msgid "Recycle:"
+msgstr "Recycle:"
+
+msgid "Enabled:"
+msgstr "Załączony"
+
+msgid "In changer:"
+msgstr "In changer:"
+
+msgid "Purge"
+msgstr "Purge"
+
+msgid "Prune"
+msgstr "Prune"
+
+msgid "Apply"
+msgstr "Zastosuj"
+
+msgid "Close"
+msgstr "Zamknij"
+
+msgid "Drive number:"
+msgstr "Numer napędu:"
+
+msgid "Mount"
+msgstr "Zamontuj"
+
+msgid "Release"
+msgstr "Wydaj"
+
+msgid "Umount"
+msgstr "Odmontuj"
+
+msgid "Status"
+msgstr "Status"
+
+msgid "File retention (in sec.):"
+msgstr "Retencja plików (w sek.):"
+
+msgid "Job retention (in sec.):"
+msgstr "Retencja wolumenów (w sek.):"
+
+msgid "AutoPrune:"
+msgstr "AutoPrune:"
+
+msgid "Maximum volumes:"
+msgstr "Max. ilość wolumenów:"
+
+msgid "Label format:"
+msgstr "Format etykiety:"
+
+msgid "Scratch pool:"
+msgstr "Pula Scratch"
+
+msgid "Recycle pool:"
+msgstr "Recycle pool:"
+
+msgid "Action on purge:"
+msgstr "Action on purge:"
+
+msgid "Restore configuration"
+msgstr "Przywróć konfigurację"
+
+msgid "Update volumes"
+msgstr "Aktualizacja wolumenów"
+
+msgid "Operation is in progress"
+msgstr "Operacja w trakcie"
+
+msgid "Volume name:"
+msgstr "Nazwa wolumena:"
+
+msgid "Storage name:"
+msgstr "Nazwa magazynu:"
+
+msgid "Console status"
+msgstr "Status konsoli"
+
+msgid "Available actions"
+msgstr "Dostępne akcje"
+
+msgid "Client name:"
+msgstr "Nazwa klienta:"
+
+msgid "Pool name:"
+msgstr "Nazwa puli:"
+
+msgid "Cancel"
+msgstr "Anuluj"
+
+msgid "NOTE!"
+msgstr "UWAGA!"
+
+msgid "Baculum needs access to bconsole by the web server."
+msgstr "Baculum wymaga dostępu do konsoli bconsole przez serwer www."
+
+msgid "Database file path (SQLite only):"
+msgstr "Lokalizacja pliku DB (tylko SQLite):"
+
+msgid "Delete job"
+msgstr "Skasuj zadanie"
+
+msgid "Cancel job"
+msgstr "Anuluj zadanie"
+
+msgid "select pool"
+msgstr "wybierz pulę"
+
+msgid "Step 1 - select source backup client"
+msgstr "Krok 1 - wybierz źródłowego klienta backupu"
+
+msgid "Backup from client:"
+msgstr "Backup z klienta:"
+
+msgid "Step 2 - select backup to restore"
+msgstr "Krok 2 - wybierz backup do przywrócenia"
+
+msgid "There is no backup for restore. Please go to previous step and select another client for restore or proceed backups for the client selected in previous step."
+msgstr "Nie ma żadnych backupów do przywrócenia. Proszę przejść do poprzedniego kroku i wybrać innego klienta backupowego do przywrócenia lub wykonać backupy dla klienta wybranego w poprzednim kroku."
+
+msgid "Backup selection method:"
+msgstr "Metoda wyboru backupu:"
+
+msgid "Only selected backup"
+msgstr "Tylko wybrany backup"
+
+msgid "Group most recent backups"
+msgstr "Grupa najaktualniejszych backupów"
+
+msgid "Backup for restore:"
+msgstr "Backup do przywrócenia:"
+
+msgid "FileSet resource:"
+msgstr "Zasób FileSet:"
+
+msgid "Storage resource:"
+msgstr "Zasób Storage:"
+
+msgid "Pool resource:"
+msgstr "Zasób puli:"
+
+msgid "Step 3 - select files to restore"
+msgstr "Krok 3 - wybierz pliki do przywrócenia"
+
+msgid "Step 4 - select destination for restore"
+msgstr "Krok 4 - wybierz cel do przywrócenia danych"
+
+msgid "Restore to client:"
+msgstr "Przywrócenie do klienta:"
+
+msgid "Restore to directory:"
+msgstr "Przywrócenie do katalogu:"
+
+msgid "Step 5 - options for restore"
+msgstr "Krok 5 - opcje dla przywracania"
+
+msgid "Replace files:"
+msgstr "Zastępowanie plików:"
+
+msgid "do not replace files"
+msgstr "nie zastępuj plików"
+
+msgid "if files from restore are older"
+msgstr "jeśli pliki z przywracania są starsze"
+
+msgid "if files from restore are newer"
+msgstr "jeśli pliki z przywracania są nowsze"
+
+msgid "always replace files"
+msgstr "zawsze zastępuj pliki"
+
+msgid "Restore job priority:"
+msgstr "Priorytet zadania przywracania:"
+
+msgid "Run restore"
+msgstr "Uruchom przywracanie"
+
+msgid "Client"
+msgstr "Klient"
+
+msgid "Backup"
+msgstr "Backup"
+
+msgid "Files"
+msgstr "Pliki"
+
+msgid "Where"
+msgstr "Gdzie"
+
+msgid "Options"
+msgstr "Opcje"
+
+msgid "Run"
+msgstr "Uruchom"
+
+msgid "It seems that there is no files for choosing or file records in database for this job has been purged (file retention period expired)"
+msgstr "Wygląda na to, że nie ma żadnych plików do przywrócenia lub rekordy plików w bazie danych dla tego wybranego backupu zostały wyczyszczone (miała zastosowanie retencja plików)"
+
+msgid "For see a file versions please double click file on the left files browser."
+msgstr "Aby zobaczyć wersje pliku proszę podwójnie klinąć plik z przeglądarki plików po lewej stronie."
+
+msgid "For add a file to restore please drag a file from frame on left or from above frame and drop it here"
+msgstr "Aby dodać plik do przywrócenia proszę złapać plik z panelu po lewej lub z panelu powyżej, przeciągnąć go tutaj i upuścić go"
+
+msgid "Source parameters"
+msgstr "Parametry źródła"
+
+msgid "Backup data from client:"
+msgstr "Dane backupu z klienta:"
+
+msgid "Files for restore"
+msgstr "Pliki do przywrócenia"
+
+msgid "Selected directories count:"
+msgstr "Ilość wybranych katalogów:"
+
+msgid "Selected files count:"
+msgstr "Ilość wybranych plików:"
+
+msgid "Destination parameters"
+msgstr "Parametry celu"
+
+msgid "Restore to path:"
+msgstr "Przywróć do lokalizacji:"
+
+msgid "Restore job options"
+msgstr "Opcje zadania przywracania"
+
+msgid "FileSet for restore:"
+msgstr "FIleSet dla przywracania"
+
+msgid "Director:"
+msgstr ""
+
+msgid "Jobs for run"
+msgstr ""
+
+msgid "Job status"
+msgstr ""
+
+msgid "Run job again"
+msgstr ""
+
+msgid "Label name have to contain string value from set [0-9a-zA-Z_-]."
+msgstr ""
+
+msgid "Slots for label have to contain string value from set [0-9-,]."
+msgstr ""
+
+msgid "Drive has to contain digit value from set [0-9]."
+msgstr ""
+
+msgid "Slots for update have to contain string value from set [0-9-,]."
+msgstr ""
+
+msgid "Label volume(s)"
+msgstr ""
+
+msgid "Use barcodes as label:"
+msgstr ""
+
+msgid "Label name:"
+msgstr ""
+
+msgid "Slots for label:"
+msgstr ""
+
+msgid "Label"
+msgstr ""
+
+msgid "Update slots using barcodes"
+msgstr ""
+
+msgid "Slots for update:"
+msgstr ""
+
+msgid "Update barcodes slots"
+msgstr ""
+
+msgid "Update slots without barcodes"
+msgstr ""
+
+msgid "Update slots scan"
+msgstr ""
+
+msgid "volumes tools"
+msgstr ""
+
+msgid "Bacula console"
+msgstr ""
+
+msgid "show console"
+msgstr ""
+
+msgid "hide console"
+msgstr ""
+

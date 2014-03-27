@@ -1,0 +1,4 @@
+assets/*
+protected/Data/baculum.log*
+protected/Data/settings.conf
+protected/runtime/*
