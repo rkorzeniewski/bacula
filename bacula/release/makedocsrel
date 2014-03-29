@@ -95,8 +95,9 @@ tar xfz $base_pkg-$ver.tar.gz
 cd $base_pkg-$ver/
 mv docs $base_pkg-$ver
 cd $base_pkg-$ver
-./configure --with-bacula=$bsrc
-make en
+./update_version
+rm -rf home-page cvt.scr presentations send techlogs upload rss_web.php
+make
 make mini-clean
 cd ${cwd}
 echo "Tarring docs ..."
