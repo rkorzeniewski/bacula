@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bacula 3.0.2\n"
 "Report-Msgid-Bugs-To: bacula-devel@lists.sourceforge.net\n"
-"POT-Creation-Date: 2014-03-23 22:51+0100\n"
+"POT-Creation-Date: 2014-03-30 20:55+0200\n"
 "PO-Revision-Date: 2009-12-01 16:04-0300\n"
 "Last-Translator: Victor Hugo dos Santos <listas.vhs@gmail.com>\n"
 "Language-Team: Bacula Spanish Team <bacula-users-es@lists.sourceforge.net>\n"
@@ -66,7 +66,7 @@ msgstr ""
 "Por favor, consulte http://www.bacula.org/en/rel-manual/"
 "Bacula_Freque_Asked_Questi.html#SECTION003760000000000000000 para ayuda.\n"
 
-#: src/console/console_conf.c:128 src/qt-console/bat_conf.cpp:129
+#: src/console/console_conf.c:128 src/qt-console/bat_conf.cpp:130
 #, c-format
 msgid "No record for %d %s\n"
 msgstr "Ningún registro para %d %s\n"
@@ -76,33 +76,33 @@ msgstr "Ningún registro para %d %s\n"
 msgid "Console: name=%s rcfile=%s histfile=%s\n"
 msgstr "Console: nombre=%s rcfile=%s histfile=%s\n"
 
-#: src/console/console_conf.c:141 src/qt-console/bat_conf.cpp:138
+#: src/console/console_conf.c:141 src/qt-console/bat_conf.cpp:139
 #, c-format
 msgid "Director: name=%s address=%s DIRport=%d\n"
 msgstr "Director: nombre=%s dirección=%s DIRport=%d\n"
 
-#: src/console/console_conf.c:145 src/console/console_conf.c:221
-#: src/console/console_conf.c:266 src/console/console_conf.c:293
+#: src/console/console_conf.c:145 src/console/console_conf.c:224
+#: src/console/console_conf.c:269 src/console/console_conf.c:296
 #: src/stored/stored_conf.c:538 src/stored/stored_conf.c:628
 #: src/stored/stored_conf.c:663 src/filed/filed_conf.c:411
 #: src/filed/filed_conf.c:476 src/filed/filed_conf.c:506
-#: src/qt-console/bat_conf.cpp:149 src/qt-console/bat_conf.cpp:227
-#: src/qt-console/bat_conf.cpp:275 src/qt-console/bat_conf.cpp:305
+#: src/qt-console/bat_conf.cpp:150 src/qt-console/bat_conf.cpp:231
+#: src/qt-console/bat_conf.cpp:279 src/qt-console/bat_conf.cpp:309
 #, c-format
 msgid "Unknown resource type %d\n"
 msgstr "Tipo de recurso desconocido %d\n"
 
-#: src/console/console_conf.c:247 src/dird/dird_conf.c:1425
+#: src/console/console_conf.c:250 src/dird/dird_conf.c:1425
 #: src/dird/dird_conf.c:1440 src/filed/filed_conf.c:439
 #: src/qt-console/tray-monitor/tray_conf.cpp:276
-#: src/qt-console/bat_conf.cpp:253
+#: src/qt-console/bat_conf.cpp:257
 #, c-format
 msgid "%s item is required in %s resource, but not found.\n"
 msgstr "Ítem %s es necesario en recurso %s, pero no se encuentra.\n"
 
-#: src/console/console_conf.c:310 src/dird/dird_conf.c:1664
+#: src/console/console_conf.c:313 src/dird/dird_conf.c:1664
 #: src/filed/filed_conf.c:524 src/qt-console/tray-monitor/tray_conf.cpp:360
-#: src/qt-console/bat_conf.cpp:322
+#: src/qt-console/bat_conf.cpp:326
 #, c-format
 msgid "Attempt to define second %s resource named \"%s\" is not permitted.\n"
 msgstr ""
@@ -209,38 +209,38 @@ msgstr "%s no es un número. Debe introducir un número entre 1 y %d\n"
 msgid "You must enter a number between 1 and %d\n"
 msgstr "Debe de introducir un numero entre 1 y %d\n"
 
-#: src/console/console.c:1095 src/stored/stored.c:215 src/dird/dird.c:267
+#: src/console/console.c:1101 src/stored/stored.c:215 src/dird/dird.c:267
 #: src/filed/filed.c:204 src/qt-console/main.cpp:154
 msgid "Cryptography library initialization failed.\n"
 msgstr "Inicialización de la librería de criptografía ha fallado.\n"
 
-#: src/console/console.c:1099 src/stored/stored.c:219 src/dird/dird.c:271
+#: src/console/console.c:1105 src/stored/stored.c:219 src/dird/dird.c:271
 #: src/dird/dird.c:299 src/dird/dird.c:517 src/dird/dird.c:520
 #: src/filed/filed.c:209 src/qt-console/main.cpp:158
 #, c-format
 msgid "Please correct configuration file: %s\n"
 msgstr "Por favor, corrija el archivo de configuración: %s\n"
 
-#: src/console/console.c:1129
+#: src/console/console.c:1136
 #, c-format
 msgid "Connecting to Director %s:%d\n"
 msgstr "Conectando al Director %s:%d\n"
 
-#: src/console/console.c:1146 src/qt-console/bcomm/dircomm.cpp:118
+#: src/console/console.c:1153 src/qt-console/bcomm/dircomm.cpp:150
 #, c-format
 msgid "Failed to initialize TLS context for Console \"%s\".\n"
 msgstr "Fallo al inicializar el contexto TLS para la consola \"%s\".\n"
 
-#: src/console/console.c:1166 src/qt-console/bcomm/dircomm.cpp:141
+#: src/console/console.c:1173 src/qt-console/bcomm/dircomm.cpp:173
 #, c-format
 msgid "Failed to initialize TLS context for Director \"%s\".\n"
 msgstr "Fallo al inicializar el contexto TLS para el Director \"%s\".\n"
 
-#: src/console/console.c:1198
+#: src/console/console.c:1205
 msgid "Enter a period to cancel a command.\n"
 msgstr "Introduzca un período para cancelar un comando.\n"
 
-#: src/console/console.c:1284 src/console/console.c:1314
+#: src/console/console.c:1291 src/console/console.c:1321
 #: src/stored/stored.c:342 src/dird/dird.c:607 src/dird/dird.c:813
 #: src/dird/dird.c:868 src/dird/dird.c:907 src/filed/filed.c:366
 #: src/filed/filed.c:566 src/qt-console/main.cpp:213
@@ -248,7 +248,7 @@ msgstr "Introduzca un período para cancelar un comando.\n"
 msgid "TLS required but not configured in Bacula.\n"
 msgstr "Se requiere TLS pero no está configurado en Bacula.\n"
 
-#: src/console/console.c:1292 src/qt-console/main.cpp:221
+#: src/console/console.c:1299 src/qt-console/main.cpp:221
 #, c-format
 msgid ""
 "Neither \"TLS CA Certificate\" or \"TLS CA Certificate Dir\" are defined for "
@@ -258,7 +258,7 @@ msgstr ""
 "definidos para Director \"%s\" en %s. Por lo menos un almacén de "
 "Certificados CA es necesario.\n"
 
-#: src/console/console.c:1301 src/qt-console/main.cpp:230
+#: src/console/console.c:1308 src/qt-console/main.cpp:230
 #, c-format
 msgid ""
 "No Director resource defined in %s\n"
@@ -267,7 +267,7 @@ msgstr ""
 "Recurso Director no definido en %s\n"
 "Sin eso no sé cómo hablar con el Director :-(\n"
 
-#: src/console/console.c:1321 src/qt-console/main.cpp:251
+#: src/console/console.c:1328 src/qt-console/main.cpp:251
 #, c-format
 msgid ""
 "Neither \"TLS CA Certificate\" or \"TLS CA Certificate Dir\" are defined for "
@@ -276,39 +276,39 @@ msgstr ""
 "Ni \"Certificado TLS CA\" o \"Directorio de Certificado TLS CA\" están "
 "definidos para Console \"%s\" en %s.\n"
 
-#: src/console/console.c:1347
+#: src/console/console.c:1354
 msgid "Too many arguments on input command.\n"
 msgstr "Demasiados argumentos en comando de entrada.\n"
 
-#: src/console/console.c:1351
+#: src/console/console.c:1358
 msgid "First argument to input command must be a filename.\n"
 msgstr ""
 "Primer argumento para comandos de entrada debe ser un nombre de archivo.\n"
 
-#: src/console/console.c:1357
+#: src/console/console.c:1364
 #, c-format
 msgid "Cannot open file %s for input. ERR=%s\n"
 msgstr "No se puede abrir el archivo %s para entrada. ERR=%s\n"
 
-#: src/console/console.c:1389
+#: src/console/console.c:1396
 msgid "Too many arguments on output/tee command.\n"
 msgstr "Demasiados argumentos en la salida del comando output/tee.\n"
 
-#: src/console/console.c:1406
+#: src/console/console.c:1413
 #, c-format
 msgid "Cannot open file %s for output. ERR=%s\n"
 msgstr "No se puede abrir el archivo %s para salida. ERR=%s\n"
 
-#: src/console/console.c:1425
+#: src/console/console.c:1432
 msgid "Too many arguments. Enclose command in double quotes.\n"
 msgstr "Demasiados argumentos. Incluya comando entre comillas dobles.\n"
 
-#: src/console/console.c:1434
+#: src/console/console.c:1441
 #, c-format
 msgid "Cannot popen(\"%s\", \"r\"): ERR=%s\n"
 msgstr "No puede popen(\"%s\", \"r\"): ERR=%s\n"
 
-#: src/console/console.c:1446 src/stored/autochanger.c:665
+#: src/console/console.c:1453 src/stored/autochanger.c:665
 #, c-format
 msgid "Autochanger error: ERR=%s\n"
 msgstr "Auto-cambiador error: ERR=%s\n"
@@ -4691,7 +4691,7 @@ msgid "Bad storage command: %s"
 msgstr "Malo comando storage: %s"
 
 #: src/stored/dircmd.c:377 src/dird/msgchan.c:121 src/filed/job.c:1880
-#: src/qt-console/tray-monitor/tray-monitor.cpp:363
+#: src/qt-console/tray-monitor/tray-monitor.cpp:372
 msgid "Storage daemon"
 msgstr "Demonio Storage"
 
@@ -5629,17 +5629,17 @@ msgstr "No es posible reservar volumen %s en %s\n"
 msgid "Cannot free Volume \"%s\", because it is reserved by someone else.\n"
 msgstr "No se puede podar Volumen \"%s\", porque el esta archivo.\n"
 
-#: src/stored/vol_mgr.c:512
+#: src/stored/vol_mgr.c:514
 #, c-format
 msgid "Volume %s is busy swapping from %s to %s\n"
 msgstr ""
 
-#: src/stored/vol_mgr.c:515
+#: src/stored/vol_mgr.c:517
 #, fuzzy, c-format
 msgid "Volume %s is busy swapping.\n"
 msgstr "3936 Dispositivo %s está ocupado leyendo.\n"
 
-#: src/stored/vol_mgr.c:519
+#: src/stored/vol_mgr.c:521
 #, fuzzy, c-format
 msgid "%s device %s is busy.\n"
 msgstr "3936 Dispositivo %s está ocupado leyendo.\n"
@@ -7307,17 +7307,17 @@ msgstr "No se pudo iniciar msg_queue mutex. ERR=%s\n"
 msgid "NULL jcr.\n"
 msgstr "NULL jcr.\n"
 
-#: src/lib/jcr.c:496
+#: src/lib/jcr.c:495
 #, c-format
 msgid "JCR use_count=%d JobId=%d\n"
 msgstr "JCR use_count=%d JobId=%d\n"
 
-#: src/lib/jcr.c:601
+#: src/lib/jcr.c:600
 #, c-format
 msgid "pthread_setspecific failed: ERR=%s\n"
 msgstr "fallo pthread_setspecific: ERR=%s\n"
 
-#: src/lib/jcr.c:1082
+#: src/lib/jcr.c:1081
 #, c-format
 msgid ""
 "Watchdog sending kill after %d secs to thread stalled reading Storage "
@@ -7326,7 +7326,7 @@ msgstr ""
 "Watchdog envío kill después de %d segundos para hilo estancado leyendo "
 "demonio Storage.\n"
 
-#: src/lib/jcr.c:1094
+#: src/lib/jcr.c:1093
 #, c-format
 msgid ""
 "Watchdog sending kill after %d secs to thread stalled reading File daemon.\n"
@@ -7334,7 +7334,7 @@ msgstr ""
 "Watchdog envío kill después de %d segundos para hilo estancado leyendo "
 "demonio File.\n"
 
-#: src/lib/jcr.c:1106
+#: src/lib/jcr.c:1105
 #, c-format
 msgid ""
 "Watchdog sending kill after %d secs to thread stalled reading Director.\n"
@@ -7369,7 +7369,7 @@ msgstr "Error de configuración: %s\n"
 msgid "Close of NULL file\n"
 msgstr "Cierre de archivo NULL\n"
 
-#: src/lib/lex.c:212
+#: src/lib/lex.c:215
 msgid ""
 "get_char: called after EOF. You may have a open double quote without the "
 "closing double quote.\n"
@@ -7377,63 +7377,63 @@ msgstr ""
 "get_char: llamado después de EOF. Usted puede tener una comilla doble "
 "abierta sin el cierre de comillas dobles.\n"
 
-#: src/lib/lex.c:254
+#: src/lib/lex.c:257
 #, c-format
 msgid "Config token too long, file: %s, line %d, begins at line %d\n"
 msgstr ""
 "Configuración de señal demasiado largo, archivo: %s, línea %d, se inicia en "
 "la línea %d\n"
 
-#: src/lib/lex.c:278
+#: src/lib/lex.c:281
 msgid "none"
 msgstr "ninguno"
 
-#: src/lib/lex.c:279
+#: src/lib/lex.c:282
 msgid "comment"
 msgstr "comentario"
 
-#: src/lib/lex.c:280
+#: src/lib/lex.c:283
 msgid "number"
 msgstr "numero"
 
-#: src/lib/lex.c:281
+#: src/lib/lex.c:284
 msgid "ip_addr"
 msgstr "ip_addr"
 
-#: src/lib/lex.c:282
+#: src/lib/lex.c:285
 msgid "identifier"
 msgstr "identificar"
 
-#: src/lib/lex.c:283
+#: src/lib/lex.c:286
 msgid "string"
 msgstr "cadena"
 
-#: src/lib/lex.c:284
+#: src/lib/lex.c:287
 msgid "quoted_string"
 msgstr "quoted_string"
 
-#: src/lib/lex.c:285
+#: src/lib/lex.c:288
 msgid "include"
 msgstr "incluir"
 
-#: src/lib/lex.c:286
+#: src/lib/lex.c:289
 msgid "include_quoted_string"
 msgstr "include_quoted_string"
 
-#: src/lib/lex.c:287
+#: src/lib/lex.c:290
 msgid "UTF-8 Byte Order Mark"
 msgstr "Marca de Orden de UTF-8 Byte"
 
-#: src/lib/lex.c:288
+#: src/lib/lex.c:291
 msgid "UTF-16le Byte Order Mark"
 msgstr "Marca de Orden de UTF-16le Byte"
 
-#: src/lib/lex.c:326 src/lib/lex.c:332 src/lib/lex.c:343 src/lib/lex.c:349
+#: src/lib/lex.c:329 src/lib/lex.c:335 src/lib/lex.c:346 src/lib/lex.c:352
 #, c-format
 msgid "expected a positive integer number, got: %s"
 msgstr "esperaba un numero entero positivo, obtuvo: %s"
 
-#: src/lib/lex.c:465
+#: src/lib/lex.c:468
 msgid ""
 "This config file appears to be in an unsupported Unicode format (UTF-16be). "
 "Please resave as UTF-8\n"
@@ -7441,32 +7441,32 @@ msgstr ""
 "Este archivo de configuración parece estar en un formato no compatible con "
 "Unicode (UTF-16be). Por favor, vuelva a guardar como UTF-8\n"
 
-#: src/lib/lex.c:611 src/lib/lex.c:639
+#: src/lib/lex.c:614 src/lib/lex.c:642
 #, c-format
 msgid "Cannot open included config file %s: %s\n"
 msgstr "No se puede abrir el archivo de configuración incluido %s: %s\n"
 
-#: src/lib/lex.c:698 src/lib/lex.c:755
+#: src/lib/lex.c:701 src/lib/lex.c:758
 #, c-format
 msgid "expected an integer or a range, got %s: %s"
 msgstr "esperaba un numero entero o un rango, obtuvo %s: %s"
 
-#: src/lib/lex.c:712 src/lib/lex.c:720 src/lib/lex.c:731 src/lib/lex.c:739
+#: src/lib/lex.c:715 src/lib/lex.c:723 src/lib/lex.c:734 src/lib/lex.c:742
 #, c-format
 msgid "expected an integer number, got %s: %s"
 msgstr "esperaba un numero entero, obtuvo %s: %s"
 
-#: src/lib/lex.c:769
+#: src/lib/lex.c:772
 #, c-format
 msgid "expected a name, got %s: %s"
 msgstr "esperaba un nombre, obtuvo %s: %s"
 
-#: src/lib/lex.c:773
+#: src/lib/lex.c:776
 #, c-format
 msgid "name %s length %d too long, max is %d\n"
 msgstr "nombre %s longitud %d demasiado largo, el máximo es %d\n"
 
-#: src/lib/lex.c:781
+#: src/lib/lex.c:784
 #, c-format
 msgid "expected a string, got %s: %s"
 msgstr "esperaba una cadena, obtuvo %s: %s"
@@ -9103,8 +9103,7 @@ msgstr "No se pudo iniciar la cola de trabajos: ERR=%s\n"
 msgid "Could not add job queue: ERR=%s\n"
 msgstr "No se ha podido añadir la cola de trabajo: ERR=%s\n"
 
-#: src/dird/job.c:121 src/dird/ua_output.c:714 src/dird/xua_output.c:869
-#: src/tools/cats_test.c:363
+#: src/dird/job.c:121 src/dird/ua_output.c:714 src/tools/cats_test.c:363
 #, c-format
 msgid "Could not open database \"%s\".\n"
 msgstr "No se puede abrir la base de datos \"%s\".\n"
@@ -9434,16 +9433,15 @@ msgstr ""
 " Terminación: %s\n"
 "\n"
 
-#: src/dird/ua_output.c:57 src/dird/ua_output.c:81 src/dird/xua_output.c:56
-#: src/dird/xua_output.c:80
+#: src/dird/ua_output.c:57 src/dird/ua_output.c:81
 msgid "ON or OFF keyword missing.\n"
 msgstr "Faltan palabra clave ON u OFF.\n"
 
-#: src/dird/ua_output.c:101 src/dird/xua_output.c:100
+#: src/dird/ua_output.c:101
 msgid "Disabled Jobs:\n"
 msgstr "Jobs Deshabilitados:\n"
 
-#: src/dird/ua_output.c:107 src/dird/xua_output.c:106
+#: src/dird/ua_output.c:107
 msgid "No disabled Jobs.\n"
 msgstr "Ningún Jobs Deshabilitado.\n"
 
@@ -9451,70 +9449,69 @@ msgstr "Ningún Jobs Deshabilitado.\n"
 msgid "disabled"
 msgstr "deshabilitado"
 
-#: src/dird/ua_output.c:199 src/dird/xua_output.c:204
+#: src/dird/ua_output.c:199
 msgid "Keywords for the show command are:\n"
 msgstr "Palabras clave para el comando show son:\n"
 
-#: src/dird/ua_output.c:205 src/dird/xua_output.c:211
+#: src/dird/ua_output.c:205
 #, c-format
 msgid "%s resource %s not found.\n"
 msgstr "%s recurso %s no encontrado.\n"
 
-#: src/dird/ua_output.c:208 src/dird/xua_output.c:215
+#: src/dird/ua_output.c:208
 #, c-format
 msgid "Resource %s not found\n"
 msgstr "Recursos %s no encontrado\n"
 
-#: src/dird/ua_output.c:278 src/dird/xua_output.c:356
+#: src/dird/ua_output.c:278
 msgid "Hey! DB is NULL\n"
 msgstr "Hey! BD esta VACÍA\n"
 
-#: src/dird/ua_output.c:435 src/dird/xua_output.c:590
+#: src/dird/ua_output.c:435
 #, c-format
 msgid "Jobid %d used %d Volume(s): %s\n"
 msgstr "Jobid %d usado %d Volumen(s): %s\n"
 
-#: src/dird/ua_output.c:454 src/dird/xua_output.c:609
+#: src/dird/ua_output.c:454
 msgid "No Pool specified.\n"
 msgstr "Ningún Pool especificado.\n"
 
-#: src/dird/ua_output.c:465 src/dird/ua_select.c:531 src/dird/xua_output.c:620
-#: src/dird/ua_update.c:424
+#: src/dird/ua_output.c:465 src/dird/ua_select.c:531 src/dird/ua_update.c:424
 #, c-format
 msgid "Error obtaining pool ids. ERR=%s\n"
 msgstr "Error al obteniendo pool ids. ERR=%s\n"
 
-#: src/dird/ua_output.c:475 src/dird/xua_output.c:630
+#: src/dird/ua_output.c:475
 #, c-format
 msgid "Pool: %s\n"
 msgstr "Pool: %s\n"
 
-#: src/dird/ua_output.c:491 src/dird/xua_output.c:646
+#: src/dird/ua_output.c:491
 msgid "Ignoring invalid value for days. Max is 50.\n"
 msgstr "Ignorando valor invalido para días. Máximo es 50.\n"
 
-#: src/dird/ua_output.c:513 src/dird/xua_output.c:668
+#: src/dird/ua_output.c:513
 #, c-format
 msgid "Unknown list keyword: %s\n"
 msgstr "Lista de palabras clave desconocida: %s\n"
 
-#: src/dird/ua_output.c:538 src/dird/xua_output.c:693
+#: src/dird/ua_output.c:538
 #, c-format
 msgid "%s is not a job name.\n"
 msgstr "%s no es un nombre de Job.\n"
 
-#: src/dird/ua_output.c:552 src/dird/xua_output.c:707
+#: src/dird/ua_output.c:552
 #, c-format
 msgid "Could not find Pool for Job %s\n"
 msgstr "No se pudo encontrar Pool para Job %s\n"
 
-#: src/dird/ua_output.c:565 src/dird/xua_output.c:720
+#: src/dird/ua_output.c:565
 #, c-format
 msgid "Could not find next Volume for Job %s (Pool=%s, Level=%s).\n"
 msgstr ""
 "No se pudo encontrar el siguiente Volumen para Job %s (Pool=%s, Nivel=%s).\n"
 
-#: src/dird/ua_output.c:569 src/dird/xua_output.c:724
+#: src/dird/ua_output.c:569
 #, c-format
 msgid ""
 "The next Volume to be used by Job \"%s\" (Pool=%s, Level=%s) will be %s\n"
@@ -9522,26 +9519,26 @@ msgstr ""
 "El próximo Volumen que se utilizará por Job \"%s\" (Pool=%s, Nivel=%s) será "
 "%s\n"
 
-#: src/dird/ua_output.c:582 src/dird/xua_output.c:737
+#: src/dird/ua_output.c:582
 #, c-format
 msgid "Could not find next Volume for Job %s.\n"
 msgstr "No se pudo encontrar el siguiente Volumen para Job %s.\n"
 
-#: src/dird/ua_output.c:727 src/dird/xua_output.c:882
+#: src/dird/ua_output.c:727
 #, c-format
 msgid "Pool %s not in database. %s"
 msgstr "Pool %s no creado en la base de datos. %s"
 
-#: src/dird/ua_output.c:735 src/dird/xua_output.c:890
+#: src/dird/ua_output.c:735
 #, c-format
 msgid "Pool %s created in database.\n"
 msgstr "Pool %s creado en la base de datos.\n"
 
-#: src/dird/ua_output.c:788 src/dird/xua_output.c:943
+#: src/dird/ua_output.c:788
 msgid "You have no messages.\n"
 msgstr "Usted no tiene mensajes.\n"
 
-#: src/dird/ua_output.c:868 src/dird/xua_output.c:1023
+#: src/dird/ua_output.c:868
 msgid "Message too long to display.\n"
 msgstr "Mensaje demasiado largo para mostrar.\n"
 
@@ -13966,20 +13963,6 @@ msgstr "No se puede crear hilo de mensaje: %s\n"
 msgid "Director's connection to SD for this Job was lost.\n"
 msgstr ""
 
-#: src/dird/xua_output.c:518
-#, fuzzy
-msgid "Invalid jobid argument\n"
-msgstr "argumento invalido"
-
-#: src/dird/xua_output.c:542
-#, fuzzy, c-format
-msgid "Unknown ObjectType %s\n"
-msgstr "Tipo de base de datos desconocido: %s\n"
-
-#: src/dird/xua_output.c:552
-msgid "list pluginrestoreconf requires jobid argument\n"
-msgstr ""
-
 #: src/dird/getmsg.c:160
 #, c-format
 msgid "bget_dirmsg: unknown bnet signal %d\n"
@@ -18289,7 +18272,7 @@ msgstr ""
 msgid "DROP-Stmt went wrong\n"
 msgstr ""
 
-#: examples/nagios/check_bacula/check_bacula.c:59
+#: examples/nagios/check_bacula/check_bacula.c:57
 #, c-format
 msgid ""
 "Copyright (C) 2005 Christian Masopust\n"
@@ -18307,18 +18290,18 @@ msgstr "===================================================================\n"
 msgid "Failed ASSERT: %s\n"
 msgstr "Fallo ASSERT: %s\n"
 
-#: src/qt-console/bcomm/dircomm.cpp:79
+#: src/qt-console/bcomm/dircomm.cpp:85
 #, c-format
 msgid "Already connected\"%s\".\n"
 msgstr "Ya conectado\"%s\".\n"
 
-#: src/qt-console/bcomm/dircomm.cpp:90
+#: src/qt-console/bcomm/dircomm.cpp:96
 #: src/qt-console/tray-monitor/tray-monitor.cpp:347
 #, c-format
 msgid "Connecting to Director %s:%d"
 msgstr "Conectando con Director %s:%d"
 
-#: src/qt-console/bcomm/dircomm.cpp:92
+#: src/qt-console/bcomm/dircomm.cpp:98
 #, c-format
 msgid ""
 "Connecting to Director %s:%d\n"
@@ -18327,40 +18310,40 @@ msgstr ""
 "Conectando con Director %s:%d\n"
 "\n"
 
-#: src/qt-console/bcomm/dircomm.cpp:163
-#: src/qt-console/tray-monitor/tray-monitor.cpp:349
+#: src/qt-console/bcomm/dircomm.cpp:195
+#: src/qt-console/tray-monitor/tray-monitor.cpp:352
 msgid "Director daemon"
 msgstr "Servicio Director"
 
-#: src/qt-console/bcomm/dircomm.cpp:201
+#: src/qt-console/bcomm/dircomm.cpp:233
 msgid "Initializing ..."
 msgstr "Inicializando ..."
 
-#: src/qt-console/bcomm/dircomm.cpp:217 src/qt-console/console/console.cpp:130
+#: src/qt-console/bcomm/dircomm.cpp:249 src/qt-console/console/console.cpp:130
 msgid "Connected"
 msgstr "Conectado"
 
-#: src/qt-console/bcomm/dircomm.cpp:341
+#: src/qt-console/bcomm/dircomm.cpp:373
 msgid "Command completed ..."
 msgstr "Comando completado ..."
 
-#: src/qt-console/bcomm/dircomm.cpp:348 src/qt-console/console/console.cpp:367
+#: src/qt-console/bcomm/dircomm.cpp:380 src/qt-console/console/console.cpp:367
 msgid "Processing command ..."
 msgstr "Procesando comando ..."
 
-#: src/qt-console/bcomm/dircomm.cpp:355
+#: src/qt-console/bcomm/dircomm.cpp:387
 msgid "At main prompt waiting for input ..."
 msgstr "En prompt principal esperando por una entrada..."
 
-#: src/qt-console/bcomm/dircomm.cpp:362 src/qt-console/bcomm/dircomm.cpp:375
+#: src/qt-console/bcomm/dircomm.cpp:394 src/qt-console/bcomm/dircomm.cpp:407
 msgid "At prompt waiting for input ..."
 msgstr "En prompt esperando por una entrada..."
 
-#: src/qt-console/bcomm/dircomm.cpp:383
+#: src/qt-console/bcomm/dircomm.cpp:415
 msgid "Command failed."
 msgstr "Comando fallido."
 
-#: src/qt-console/bcomm/dircomm.cpp:455
+#: src/qt-console/bcomm/dircomm.cpp:487
 msgid "Director disconnected."
 msgstr "Director desconectado."
 
@@ -18385,7 +18368,7 @@ msgid "Storage: name=%s address=%s SDport=%d\n"
 msgstr "Storage: nombre=%s dirección=%s SDport=%d\n"
 
 #: src/qt-console/tray-monitor/tray_conf.cpp:183
-#: src/qt-console/bat_conf.cpp:145
+#: src/qt-console/bat_conf.cpp:146
 #, c-format
 msgid "ConsoleFont: name=%s font face=%s\n"
 msgstr "ConsoleFont: nombre=%s font face=%s\n"
@@ -18452,52 +18435,52 @@ msgstr ""
 msgid "Error, currentitem is not a Client or a Storage..\n"
 msgstr "Error, CurrentItem no es un Cliente o un Storage ...\n"
 
-#: src/qt-console/tray-monitor/tray-monitor.cpp:354
+#: src/qt-console/tray-monitor/tray-monitor.cpp:357
 #, c-format
 msgid "Connecting to Client %s:%d"
 msgstr "Conectando con Cliente %s:%d"
 
-#: src/qt-console/tray-monitor/tray-monitor.cpp:356
+#: src/qt-console/tray-monitor/tray-monitor.cpp:362
 msgid "File daemon"
 msgstr "demonio File"
 
-#: src/qt-console/tray-monitor/tray-monitor.cpp:361
+#: src/qt-console/tray-monitor/tray-monitor.cpp:367
 #, c-format
 msgid "Connecting to Storage %s:%d"
 msgstr "Conectando con Storage %s:%d"
 
-#: src/qt-console/tray-monitor/tray-monitor.cpp:367
-#: src/qt-console/tray-monitor/tray-monitor.cpp:397
+#: src/qt-console/tray-monitor/tray-monitor.cpp:376
+#: src/qt-console/tray-monitor/tray-monitor.cpp:406
 #, c-format
 msgid "Error, currentitem is not a Client, a Storage or a Director..\n"
 msgstr "Error, currentitem no es un cliente, un Storage o un Director..\n"
 
-#: src/qt-console/tray-monitor/tray-monitor.cpp:372
+#: src/qt-console/tray-monitor/tray-monitor.cpp:381
 msgid "Cannot connect to daemon."
 msgstr "No se puede conectar al demonio"
 
-#: src/qt-console/tray-monitor/tray-monitor.cpp:381
+#: src/qt-console/tray-monitor/tray-monitor.cpp:390
 #, c-format
 msgid "Authentication error : %s"
 msgstr "Error de autenticación : %s"
 
-#: src/qt-console/tray-monitor/tray-monitor.cpp:388
+#: src/qt-console/tray-monitor/tray-monitor.cpp:397
 msgid "Opened connection with Director daemon."
 msgstr "Conexión abierta con demonio Director."
 
-#: src/qt-console/tray-monitor/tray-monitor.cpp:391
+#: src/qt-console/tray-monitor/tray-monitor.cpp:400
 msgid "Opened connection with File daemon."
 msgstr "Conexión abierta con demonio File."
 
-#: src/qt-console/tray-monitor/tray-monitor.cpp:394
+#: src/qt-console/tray-monitor/tray-monitor.cpp:403
 msgid "Opened connection with Storage daemon."
 msgstr "Conexión abierta con demonio Storage."
 
-#: src/qt-console/tray-monitor/tray-monitor.cpp:445
+#: src/qt-console/tray-monitor/tray-monitor.cpp:454
 msgid "Error : BNET_HARDEOF or BNET_ERROR"
 msgstr "Error: BNET_HARDEOF o BNET_ERROR"
 
-#: src/qt-console/tray-monitor/tray-monitor.cpp:454
+#: src/qt-console/tray-monitor/tray-monitor.cpp:463
 msgid "Error : Connection closed."
 msgstr "Error : Conexión cerrada."
 
@@ -18563,10 +18546,18 @@ msgstr ""
 " -? imprimir este mensaje.\n"
 "\n"
 
-#: src/qt-console/bat_conf.cpp:142
+#: src/qt-console/bat_conf.cpp:143
 #, c-format
 msgid "Console: name=%s\n"
 msgstr "Console: nombre=%s\n"
+
+#, fuzzy
+#~ msgid "Invalid jobid argument\n"
+#~ msgstr "argumento invalido"
+
+#, fuzzy
+#~ msgid "Unknown ObjectType %s\n"
+#~ msgstr "Tipo de base de datos desconocido: %s\n"
 
 #~ msgid "No FreeSpace command defined.\n"
 #~ msgstr "Comando FreeSpace no definido.\n"

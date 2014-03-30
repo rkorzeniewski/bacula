@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: bacula-devel@lists.sourceforge.net\n"
-"POT-Creation-Date: 2014-03-23 22:51+0100\n"
+"POT-Creation-Date: 2014-03-30 20:55+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -54,7 +54,7 @@ msgid ""
 "Please see "
 msgstr ""
 
-#: src/console/console_conf.c:128 src/qt-console/bat_conf.cpp:129
+#: src/console/console_conf.c:128 src/qt-console/bat_conf.cpp:130
 #, c-format
 msgid "No record for %d %s\n"
 msgstr ""
@@ -64,33 +64,33 @@ msgstr ""
 msgid "Console: name=%s rcfile=%s histfile=%s\n"
 msgstr ""
 
-#: src/console/console_conf.c:141 src/qt-console/bat_conf.cpp:138
+#: src/console/console_conf.c:141 src/qt-console/bat_conf.cpp:139
 #, c-format
 msgid "Director: name=%s address=%s DIRport=%d\n"
 msgstr ""
 
-#: src/console/console_conf.c:145 src/console/console_conf.c:221
-#: src/console/console_conf.c:266 src/console/console_conf.c:293
+#: src/console/console_conf.c:145 src/console/console_conf.c:224
+#: src/console/console_conf.c:269 src/console/console_conf.c:296
 #: src/stored/stored_conf.c:538 src/stored/stored_conf.c:628
 #: src/stored/stored_conf.c:663 src/filed/filed_conf.c:411
 #: src/filed/filed_conf.c:476 src/filed/filed_conf.c:506
-#: src/qt-console/bat_conf.cpp:149 src/qt-console/bat_conf.cpp:227
-#: src/qt-console/bat_conf.cpp:275 src/qt-console/bat_conf.cpp:305
+#: src/qt-console/bat_conf.cpp:150 src/qt-console/bat_conf.cpp:231
+#: src/qt-console/bat_conf.cpp:279 src/qt-console/bat_conf.cpp:309
 #, c-format
 msgid "Unknown resource type %d\n"
 msgstr ""
 
-#: src/console/console_conf.c:247 src/dird/dird_conf.c:1425
+#: src/console/console_conf.c:250 src/dird/dird_conf.c:1425
 #: src/dird/dird_conf.c:1440 src/filed/filed_conf.c:439
 #: src/qt-console/tray-monitor/tray_conf.cpp:276
-#: src/qt-console/bat_conf.cpp:253
+#: src/qt-console/bat_conf.cpp:257
 #, c-format
 msgid "%s item is required in %s resource, but not found.\n"
 msgstr ""
 
-#: src/console/console_conf.c:310 src/dird/dird_conf.c:1664
+#: src/console/console_conf.c:313 src/dird/dird_conf.c:1664
 #: src/filed/filed_conf.c:524 src/qt-console/tray-monitor/tray_conf.cpp:360
-#: src/qt-console/bat_conf.cpp:322
+#: src/qt-console/bat_conf.cpp:326
 #, c-format
 msgid "Attempt to define second %s resource named \"%s\" is not permitted.\n"
 msgstr ""
@@ -194,38 +194,38 @@ msgstr ""
 msgid "You must enter a number between 1 and %d\n"
 msgstr ""
 
-#: src/console/console.c:1095 src/stored/stored.c:215 src/dird/dird.c:267
+#: src/console/console.c:1101 src/stored/stored.c:215 src/dird/dird.c:267
 #: src/filed/filed.c:204 src/qt-console/main.cpp:154
 msgid "Cryptography library initialization failed.\n"
 msgstr ""
 
-#: src/console/console.c:1099 src/stored/stored.c:219 src/dird/dird.c:271
+#: src/console/console.c:1105 src/stored/stored.c:219 src/dird/dird.c:271
 #: src/dird/dird.c:299 src/dird/dird.c:517 src/dird/dird.c:520
 #: src/filed/filed.c:209 src/qt-console/main.cpp:158
 #, c-format
 msgid "Please correct configuration file: %s\n"
 msgstr ""
 
-#: src/console/console.c:1129
+#: src/console/console.c:1136
 #, c-format
 msgid "Connecting to Director %s:%d\n"
 msgstr ""
 
-#: src/console/console.c:1146 src/qt-console/bcomm/dircomm.cpp:118
+#: src/console/console.c:1153 src/qt-console/bcomm/dircomm.cpp:150
 #, c-format
 msgid "Failed to initialize TLS context for Console \"%s\".\n"
 msgstr ""
 
-#: src/console/console.c:1166 src/qt-console/bcomm/dircomm.cpp:141
+#: src/console/console.c:1173 src/qt-console/bcomm/dircomm.cpp:173
 #, c-format
 msgid "Failed to initialize TLS context for Director \"%s\".\n"
 msgstr ""
 
-#: src/console/console.c:1198
+#: src/console/console.c:1205
 msgid "Enter a period to cancel a command.\n"
 msgstr ""
 
-#: src/console/console.c:1284 src/console/console.c:1314
+#: src/console/console.c:1291 src/console/console.c:1321
 #: src/stored/stored.c:342 src/dird/dird.c:607 src/dird/dird.c:813
 #: src/dird/dird.c:868 src/dird/dird.c:907 src/filed/filed.c:366
 #: src/filed/filed.c:566 src/qt-console/main.cpp:213
@@ -233,59 +233,59 @@ msgstr ""
 msgid "TLS required but not configured in Bacula.\n"
 msgstr ""
 
-#: src/console/console.c:1292 src/qt-console/main.cpp:221
+#: src/console/console.c:1299 src/qt-console/main.cpp:221
 #, c-format
 msgid ""
 "Neither \"TLS CA Certificate\" or \"TLS CA Certificate Dir\" are defined for "
 "Director \"%s\" in %s. At least one CA certificate store is required.\n"
 msgstr ""
 
-#: src/console/console.c:1301 src/qt-console/main.cpp:230
+#: src/console/console.c:1308 src/qt-console/main.cpp:230
 #, c-format
 msgid ""
 "No Director resource defined in %s\n"
 "Without that I don't how to speak to the Director :-(\n"
 msgstr ""
 
-#: src/console/console.c:1321 src/qt-console/main.cpp:251
+#: src/console/console.c:1328 src/qt-console/main.cpp:251
 #, c-format
 msgid ""
 "Neither \"TLS CA Certificate\" or \"TLS CA Certificate Dir\" are defined for "
 "Console \"%s\" in %s.\n"
 msgstr ""
 
-#: src/console/console.c:1347
+#: src/console/console.c:1354
 msgid "Too many arguments on input command.\n"
 msgstr ""
 
-#: src/console/console.c:1351
+#: src/console/console.c:1358
 msgid "First argument to input command must be a filename.\n"
 msgstr ""
 
-#: src/console/console.c:1357
+#: src/console/console.c:1364
 #, c-format
 msgid "Cannot open file %s for input. ERR=%s\n"
 msgstr ""
 
-#: src/console/console.c:1389
+#: src/console/console.c:1396
 msgid "Too many arguments on output/tee command.\n"
 msgstr ""
 
-#: src/console/console.c:1406
+#: src/console/console.c:1413
 #, c-format
 msgid "Cannot open file %s for output. ERR=%s\n"
 msgstr ""
 
-#: src/console/console.c:1425
+#: src/console/console.c:1432
 msgid "Too many arguments. Enclose command in double quotes.\n"
 msgstr ""
 
-#: src/console/console.c:1434
+#: src/console/console.c:1441
 #, c-format
 msgid "Cannot popen(\"%s\", \"r\"): ERR=%s\n"
 msgstr ""
 
-#: src/console/console.c:1446 src/stored/autochanger.c:665
+#: src/console/console.c:1453 src/stored/autochanger.c:665
 #, c-format
 msgid "Autochanger error: ERR=%s\n"
 msgstr ""
@@ -4129,7 +4129,7 @@ msgid "Bad storage command: %s"
 msgstr ""
 
 #: src/stored/dircmd.c:377 src/dird/msgchan.c:121 src/filed/job.c:1880
-#: src/qt-console/tray-monitor/tray-monitor.cpp:363
+#: src/qt-console/tray-monitor/tray-monitor.cpp:372
 msgid "Storage daemon"
 msgstr ""
 
@@ -5004,17 +5004,17 @@ msgstr ""
 msgid "Cannot free Volume \"%s\", because it is reserved by someone else.\n"
 msgstr ""
 
-#: src/stored/vol_mgr.c:512
+#: src/stored/vol_mgr.c:514
 #, c-format
 msgid "Volume %s is busy swapping from %s to %s\n"
 msgstr ""
 
-#: src/stored/vol_mgr.c:515
+#: src/stored/vol_mgr.c:517
 #, c-format
 msgid "Volume %s is busy swapping.\n"
 msgstr ""
 
-#: src/stored/vol_mgr.c:519
+#: src/stored/vol_mgr.c:521
 #, c-format
 msgid "%s device %s is busy.\n"
 msgstr ""
@@ -6600,30 +6600,30 @@ msgstr ""
 msgid "NULL jcr.\n"
 msgstr ""
 
-#: src/lib/jcr.c:496
+#: src/lib/jcr.c:495
 #, c-format
 msgid "JCR use_count=%d JobId=%d\n"
 msgstr ""
 
-#: src/lib/jcr.c:601
+#: src/lib/jcr.c:600
 #, c-format
 msgid "pthread_setspecific failed: ERR=%s\n"
 msgstr ""
 
-#: src/lib/jcr.c:1082
+#: src/lib/jcr.c:1081
 #, c-format
 msgid ""
 "Watchdog sending kill after %d secs to thread stalled reading Storage "
 "daemon.\n"
 msgstr ""
 
-#: src/lib/jcr.c:1094
+#: src/lib/jcr.c:1093
 #, c-format
 msgid ""
 "Watchdog sending kill after %d secs to thread stalled reading File daemon.\n"
 msgstr ""
 
-#: src/lib/jcr.c:1106
+#: src/lib/jcr.c:1105
 #, c-format
 msgid ""
 "Watchdog sending kill after %d secs to thread stalled reading Director.\n"
@@ -6652,98 +6652,98 @@ msgstr ""
 msgid "Close of NULL file\n"
 msgstr ""
 
-#: src/lib/lex.c:212
+#: src/lib/lex.c:215
 msgid ""
 "get_char: called after EOF. You may have a open double quote without the "
 "closing double quote.\n"
 msgstr ""
 
-#: src/lib/lex.c:254
+#: src/lib/lex.c:257
 #, c-format
 msgid "Config token too long, file: %s, line %d, begins at line %d\n"
 msgstr ""
 
-#: src/lib/lex.c:278
+#: src/lib/lex.c:281
 msgid "none"
 msgstr ""
 
-#: src/lib/lex.c:279
+#: src/lib/lex.c:282
 msgid "comment"
 msgstr ""
 
-#: src/lib/lex.c:280
+#: src/lib/lex.c:283
 msgid "number"
 msgstr ""
 
-#: src/lib/lex.c:281
+#: src/lib/lex.c:284
 msgid "ip_addr"
 msgstr ""
 
-#: src/lib/lex.c:282
+#: src/lib/lex.c:285
 msgid "identifier"
 msgstr ""
 
-#: src/lib/lex.c:283
+#: src/lib/lex.c:286
 msgid "string"
 msgstr ""
 
-#: src/lib/lex.c:284
+#: src/lib/lex.c:287
 msgid "quoted_string"
 msgstr ""
 
-#: src/lib/lex.c:285
+#: src/lib/lex.c:288
 msgid "include"
 msgstr ""
 
-#: src/lib/lex.c:286
+#: src/lib/lex.c:289
 msgid "include_quoted_string"
 msgstr ""
 
-#: src/lib/lex.c:287
+#: src/lib/lex.c:290
 msgid "UTF-8 Byte Order Mark"
 msgstr ""
 
-#: src/lib/lex.c:288
+#: src/lib/lex.c:291
 msgid "UTF-16le Byte Order Mark"
 msgstr ""
 
-#: src/lib/lex.c:326 src/lib/lex.c:332 src/lib/lex.c:343 src/lib/lex.c:349
+#: src/lib/lex.c:329 src/lib/lex.c:335 src/lib/lex.c:346 src/lib/lex.c:352
 #, c-format
 msgid "expected a positive integer number, got: %s"
 msgstr ""
 
-#: src/lib/lex.c:465
+#: src/lib/lex.c:468
 msgid ""
 "This config file appears to be in an unsupported Unicode format (UTF-16be). "
 "Please resave as UTF-8\n"
 msgstr ""
 
-#: src/lib/lex.c:611 src/lib/lex.c:639
+#: src/lib/lex.c:614 src/lib/lex.c:642
 #, c-format
 msgid "Cannot open included config file %s: %s\n"
 msgstr ""
 
-#: src/lib/lex.c:698 src/lib/lex.c:755
+#: src/lib/lex.c:701 src/lib/lex.c:758
 #, c-format
 msgid "expected an integer or a range, got %s: %s"
 msgstr ""
 
-#: src/lib/lex.c:712 src/lib/lex.c:720 src/lib/lex.c:731 src/lib/lex.c:739
+#: src/lib/lex.c:715 src/lib/lex.c:723 src/lib/lex.c:734 src/lib/lex.c:742
 #, c-format
 msgid "expected an integer number, got %s: %s"
 msgstr ""
 
-#: src/lib/lex.c:769
+#: src/lib/lex.c:772
 #, c-format
 msgid "expected a name, got %s: %s"
 msgstr ""
 
-#: src/lib/lex.c:773
+#: src/lib/lex.c:776
 #, c-format
 msgid "name %s length %d too long, max is %d\n"
 msgstr ""
 
-#: src/lib/lex.c:781
+#: src/lib/lex.c:784
 #, c-format
 msgid "expected a string, got %s: %s"
 msgstr ""
@@ -8320,8 +8320,7 @@ msgstr ""
 msgid "Could not add job queue: ERR=%s\n"
 msgstr ""
 
-#: src/dird/job.c:121 src/dird/ua_output.c:714 src/dird/xua_output.c:869
-#: src/tools/cats_test.c:363
+#: src/dird/job.c:121 src/dird/ua_output.c:714 src/tools/cats_test.c:363
 #, c-format
 msgid "Could not open database \"%s\".\n"
 msgstr ""
@@ -8611,16 +8610,15 @@ msgid ""
 "\n"
 msgstr ""
 
-#: src/dird/ua_output.c:57 src/dird/ua_output.c:81 src/dird/xua_output.c:56
-#: src/dird/xua_output.c:80
+#: src/dird/ua_output.c:57 src/dird/ua_output.c:81
 msgid "ON or OFF keyword missing.\n"
 msgstr ""
 
-#: src/dird/ua_output.c:101 src/dird/xua_output.c:100
+#: src/dird/ua_output.c:101
 msgid "Disabled Jobs:\n"
 msgstr ""
 
-#: src/dird/ua_output.c:107 src/dird/xua_output.c:106
+#: src/dird/ua_output.c:107
 msgid "No disabled Jobs.\n"
 msgstr ""
 
@@ -8628,94 +8626,93 @@ msgstr ""
 msgid "disabled"
 msgstr ""
 
-#: src/dird/ua_output.c:199 src/dird/xua_output.c:204
+#: src/dird/ua_output.c:199
 msgid "Keywords for the show command are:\n"
 msgstr ""
 
-#: src/dird/ua_output.c:205 src/dird/xua_output.c:211
+#: src/dird/ua_output.c:205
 #, c-format
 msgid "%s resource %s not found.\n"
 msgstr ""
 
-#: src/dird/ua_output.c:208 src/dird/xua_output.c:215
+#: src/dird/ua_output.c:208
 #, c-format
 msgid "Resource %s not found\n"
 msgstr ""
 
-#: src/dird/ua_output.c:278 src/dird/xua_output.c:356
+#: src/dird/ua_output.c:278
 msgid "Hey! DB is NULL\n"
 msgstr ""
 
-#: src/dird/ua_output.c:435 src/dird/xua_output.c:590
+#: src/dird/ua_output.c:435
 #, c-format
 msgid "Jobid %d used %d Volume(s): %s\n"
 msgstr ""
 
-#: src/dird/ua_output.c:454 src/dird/xua_output.c:609
+#: src/dird/ua_output.c:454
 msgid "No Pool specified.\n"
 msgstr ""
 
-#: src/dird/ua_output.c:465 src/dird/ua_select.c:531 src/dird/xua_output.c:620
-#: src/dird/ua_update.c:424
+#: src/dird/ua_output.c:465 src/dird/ua_select.c:531 src/dird/ua_update.c:424
 #, c-format
 msgid "Error obtaining pool ids. ERR=%s\n"
 msgstr ""
 
-#: src/dird/ua_output.c:475 src/dird/xua_output.c:630
+#: src/dird/ua_output.c:475
 #, c-format
 msgid "Pool: %s\n"
 msgstr ""
 
-#: src/dird/ua_output.c:491 src/dird/xua_output.c:646
+#: src/dird/ua_output.c:491
 msgid "Ignoring invalid value for days. Max is 50.\n"
 msgstr ""
 
-#: src/dird/ua_output.c:513 src/dird/xua_output.c:668
+#: src/dird/ua_output.c:513
 #, c-format
 msgid "Unknown list keyword: %s\n"
 msgstr ""
 
-#: src/dird/ua_output.c:538 src/dird/xua_output.c:693
+#: src/dird/ua_output.c:538
 #, c-format
 msgid "%s is not a job name.\n"
 msgstr ""
 
-#: src/dird/ua_output.c:552 src/dird/xua_output.c:707
+#: src/dird/ua_output.c:552
 #, c-format
 msgid "Could not find Pool for Job %s\n"
 msgstr ""
 
-#: src/dird/ua_output.c:565 src/dird/xua_output.c:720
+#: src/dird/ua_output.c:565
 #, c-format
 msgid "Could not find next Volume for Job %s (Pool=%s, Level=%s).\n"
 msgstr ""
 
-#: src/dird/ua_output.c:569 src/dird/xua_output.c:724
+#: src/dird/ua_output.c:569
 #, c-format
 msgid ""
 "The next Volume to be used by Job \"%s\" (Pool=%s, Level=%s) will be %s\n"
 msgstr ""
 
-#: src/dird/ua_output.c:582 src/dird/xua_output.c:737
+#: src/dird/ua_output.c:582
 #, c-format
 msgid "Could not find next Volume for Job %s.\n"
 msgstr ""
 
-#: src/dird/ua_output.c:727 src/dird/xua_output.c:882
+#: src/dird/ua_output.c:727
 #, c-format
 msgid "Pool %s not in database. %s"
 msgstr ""
 
-#: src/dird/ua_output.c:735 src/dird/xua_output.c:890
+#: src/dird/ua_output.c:735
 #, c-format
 msgid "Pool %s created in database.\n"
 msgstr ""
 
-#: src/dird/ua_output.c:788 src/dird/xua_output.c:943
+#: src/dird/ua_output.c:788
 msgid "You have no messages.\n"
 msgstr ""
 
-#: src/dird/ua_output.c:868 src/dird/xua_output.c:1023
+#: src/dird/ua_output.c:868
 msgid "Message too long to display.\n"
 msgstr ""
 
@@ -12707,19 +12704,6 @@ msgstr ""
 msgid "Director's connection to SD for this Job was lost.\n"
 msgstr ""
 
-#: src/dird/xua_output.c:518
-msgid "Invalid jobid argument\n"
-msgstr ""
-
-#: src/dird/xua_output.c:542
-#, c-format
-msgid "Unknown ObjectType %s\n"
-msgstr ""
-
-#: src/dird/xua_output.c:552
-msgid "list pluginrestoreconf requires jobid argument\n"
-msgstr ""
-
 #: src/dird/getmsg.c:160
 #, c-format
 msgid "bget_dirmsg: unknown bnet signal %d\n"
@@ -16668,7 +16652,7 @@ msgstr ""
 msgid "DROP-Stmt went wrong\n"
 msgstr ""
 
-#: examples/nagios/check_bacula/check_bacula.c:59
+#: examples/nagios/check_bacula/check_bacula.c:57
 #, c-format
 msgid ""
 "Copyright (C) 2005 Christian Masopust\n"
@@ -16686,58 +16670,58 @@ msgstr ""
 msgid "Failed ASSERT: %s\n"
 msgstr ""
 
-#: src/qt-console/bcomm/dircomm.cpp:79
+#: src/qt-console/bcomm/dircomm.cpp:85
 #, c-format
 msgid "Already connected\"%s\".\n"
 msgstr ""
 
-#: src/qt-console/bcomm/dircomm.cpp:90
+#: src/qt-console/bcomm/dircomm.cpp:96
 #: src/qt-console/tray-monitor/tray-monitor.cpp:347
 #, c-format
 msgid "Connecting to Director %s:%d"
 msgstr ""
 
-#: src/qt-console/bcomm/dircomm.cpp:92
+#: src/qt-console/bcomm/dircomm.cpp:98
 #, c-format
 msgid ""
 "Connecting to Director %s:%d\n"
 "\n"
 msgstr ""
 
-#: src/qt-console/bcomm/dircomm.cpp:163
-#: src/qt-console/tray-monitor/tray-monitor.cpp:349
+#: src/qt-console/bcomm/dircomm.cpp:195
+#: src/qt-console/tray-monitor/tray-monitor.cpp:352
 msgid "Director daemon"
 msgstr ""
 
-#: src/qt-console/bcomm/dircomm.cpp:201
+#: src/qt-console/bcomm/dircomm.cpp:233
 msgid "Initializing ..."
 msgstr ""
 
-#: src/qt-console/bcomm/dircomm.cpp:217 src/qt-console/console/console.cpp:130
+#: src/qt-console/bcomm/dircomm.cpp:249 src/qt-console/console/console.cpp:130
 msgid "Connected"
 msgstr ""
 
-#: src/qt-console/bcomm/dircomm.cpp:341
+#: src/qt-console/bcomm/dircomm.cpp:373
 msgid "Command completed ..."
 msgstr ""
 
-#: src/qt-console/bcomm/dircomm.cpp:348 src/qt-console/console/console.cpp:367
+#: src/qt-console/bcomm/dircomm.cpp:380 src/qt-console/console/console.cpp:367
 msgid "Processing command ..."
 msgstr ""
 
-#: src/qt-console/bcomm/dircomm.cpp:355
+#: src/qt-console/bcomm/dircomm.cpp:387
 msgid "At main prompt waiting for input ..."
 msgstr ""
 
-#: src/qt-console/bcomm/dircomm.cpp:362 src/qt-console/bcomm/dircomm.cpp:375
+#: src/qt-console/bcomm/dircomm.cpp:394 src/qt-console/bcomm/dircomm.cpp:407
 msgid "At prompt waiting for input ..."
 msgstr ""
 
-#: src/qt-console/bcomm/dircomm.cpp:383
+#: src/qt-console/bcomm/dircomm.cpp:415
 msgid "Command failed."
 msgstr ""
 
-#: src/qt-console/bcomm/dircomm.cpp:455
+#: src/qt-console/bcomm/dircomm.cpp:487
 msgid "Director disconnected."
 msgstr ""
 
@@ -16762,7 +16746,7 @@ msgid "Storage: name=%s address=%s SDport=%d\n"
 msgstr ""
 
 #: src/qt-console/tray-monitor/tray_conf.cpp:183
-#: src/qt-console/bat_conf.cpp:145
+#: src/qt-console/bat_conf.cpp:146
 #, c-format
 msgid "ConsoleFont: name=%s font face=%s\n"
 msgstr ""
@@ -16810,52 +16794,52 @@ msgstr ""
 msgid "Error, currentitem is not a Client or a Storage..\n"
 msgstr ""
 
-#: src/qt-console/tray-monitor/tray-monitor.cpp:354
+#: src/qt-console/tray-monitor/tray-monitor.cpp:357
 #, c-format
 msgid "Connecting to Client %s:%d"
 msgstr ""
 
-#: src/qt-console/tray-monitor/tray-monitor.cpp:356
+#: src/qt-console/tray-monitor/tray-monitor.cpp:362
 msgid "File daemon"
 msgstr ""
 
-#: src/qt-console/tray-monitor/tray-monitor.cpp:361
+#: src/qt-console/tray-monitor/tray-monitor.cpp:367
 #, c-format
 msgid "Connecting to Storage %s:%d"
 msgstr ""
 
-#: src/qt-console/tray-monitor/tray-monitor.cpp:367
-#: src/qt-console/tray-monitor/tray-monitor.cpp:397
+#: src/qt-console/tray-monitor/tray-monitor.cpp:376
+#: src/qt-console/tray-monitor/tray-monitor.cpp:406
 #, c-format
 msgid "Error, currentitem is not a Client, a Storage or a Director..\n"
 msgstr ""
 
-#: src/qt-console/tray-monitor/tray-monitor.cpp:372
+#: src/qt-console/tray-monitor/tray-monitor.cpp:381
 msgid "Cannot connect to daemon."
 msgstr ""
 
-#: src/qt-console/tray-monitor/tray-monitor.cpp:381
+#: src/qt-console/tray-monitor/tray-monitor.cpp:390
 #, c-format
 msgid "Authentication error : %s"
 msgstr ""
 
-#: src/qt-console/tray-monitor/tray-monitor.cpp:388
+#: src/qt-console/tray-monitor/tray-monitor.cpp:397
 msgid "Opened connection with Director daemon."
 msgstr ""
 
-#: src/qt-console/tray-monitor/tray-monitor.cpp:391
+#: src/qt-console/tray-monitor/tray-monitor.cpp:400
 msgid "Opened connection with File daemon."
 msgstr ""
 
-#: src/qt-console/tray-monitor/tray-monitor.cpp:394
+#: src/qt-console/tray-monitor/tray-monitor.cpp:403
 msgid "Opened connection with Storage daemon."
 msgstr ""
 
-#: src/qt-console/tray-monitor/tray-monitor.cpp:445
+#: src/qt-console/tray-monitor/tray-monitor.cpp:454
 msgid "Error : BNET_HARDEOF or BNET_ERROR"
 msgstr ""
 
-#: src/qt-console/tray-monitor/tray-monitor.cpp:454
+#: src/qt-console/tray-monitor/tray-monitor.cpp:463
 msgid "Error : Connection closed."
 msgstr ""
 
@@ -16903,7 +16887,7 @@ msgid ""
 "\n"
 msgstr ""
 
-#: src/qt-console/bat_conf.cpp:142
+#: src/qt-console/bat_conf.cpp:143
 #, c-format
 msgid "Console: name=%s\n"
 msgstr ""
