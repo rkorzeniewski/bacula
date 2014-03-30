@@ -116,7 +116,7 @@ int authenticate_storage_daemon(JCR *jcr, MONITOR *monitor, STORE* store)
    btimer_t *tid = start_bsock_timer(sd, 60 * 5);
    if (!sd->fsend(SDFDhello, dirname)) {
       stop_bsock_timer(tid);
-      Jmsg(jcr, M_FATAL, 0, _("Error sending Hello to Storage daemon. ERR=%s\n"), bnet_strerror(sd));
+      Jmsg(jcr, M_FATAL, 0, _("Error sending Hello to Storage daemon. ERR=%s\n"), sd->bstrerror());
       return 0;
    }
    if (!cram_md5_respond(sd, store->password, &tls_remote_need, &compatible) ||
@@ -162,7 +162,7 @@ int authenticate_file_daemon(JCR *jcr, MONITOR *monitor, CLIENT* client)
    btimer_t *tid = start_bsock_timer(fd, 60 * 5);
    if (!fd->fsend(SDFDhello, dirname)) {
       stop_bsock_timer(tid);
-      Jmsg(jcr, M_FATAL, 0, _("Error sending Hello to File daemon. ERR=%s\n"), bnet_strerror(fd));
+      Jmsg(jcr, M_FATAL, 0, _("Error sending Hello to File daemon. ERR=%s\n"), fd->bstrerror());
       return 0;
    }
    if (!cram_md5_respond(fd, client->password, &tls_remote_need, &compatible) ||
