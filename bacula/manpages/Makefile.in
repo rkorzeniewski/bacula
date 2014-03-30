@@ -10,8 +10,6 @@ MAN8 = bacula.8 bacula-dir.8 bacula-fd.8 bacula-sd.8 \
 
 MAN1 = bsmtp.1 bat.1
       
-# bacula-bgnome-console.1
-
 all:
 
 nothing:
