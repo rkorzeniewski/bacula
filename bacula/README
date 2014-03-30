@@ -52,7 +52,7 @@ To start it (as a developer). This is not appropriate if you
 are installing Bacula.
 
    ./startit
-   ./console (or ./gnome-console)
+   ./console
 
 To stop it:
 

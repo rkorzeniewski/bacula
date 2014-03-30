@@ -162,20 +162,6 @@ extern "C" {
 #include "baconfig.h"
 #include "lib/lib.h"
 
-/*
- * For wx-console compiles, we undo some Bacula defines.
- *  This prevents conflicts between wx-Widgets and Bacula.
- *  In wx-console files that malloc or free() Bacula structures
- *  config/resources and interface to the Bacula libraries,
- *  you must use bmalloc() and bfree().
- */
-#ifdef HAVE_WXCONSOLE
-#undef New
-#undef _
-#undef free
-#undef malloc
-#endif
-
 #if defined(HAVE_WIN32)
 #include "win32/winapi.h"
 #include "winhost.h"

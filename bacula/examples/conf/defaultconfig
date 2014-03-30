@@ -13,7 +13,6 @@ CFLAGS="-g -Wall" \
     --with-pid-dir=$HOME/bacula/bin/working \
     --with-subsys-dir=$HOME/bacula/bin/working \
     --enable-smartalloc \
-    --enable-gnome \
     --enable-static-tools \
     --with-mysql=$HOME/mysql \
     --with-working-dir=$HOME/bacula/bin/working \

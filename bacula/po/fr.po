@@ -18317,10 +18317,6 @@ msgstr "Console connecté à %s\n"
 #~ msgstr "La création de la signature a échouée"
 
 #, fuzzy
-#~ msgid "# Bacula bwx-console Configuration File\n"
-#~ msgstr "Merci de corriger le fichier de configuration : %s\n"
-
-#, fuzzy
 #~ msgid "Close without saving"
 #~ msgstr "Terminé avec des avertissements"
 
@@ -18708,10 +18704,6 @@ msgstr "Console connecté à %s\n"
 #~ msgstr "Les valeurs possibles sont :\n"
 
 #, fuzzy
-#~ msgid "Bacula bwx-console"
-#~ msgstr "Message de Bacula"
-
-#, fuzzy
 #~ msgid "Connect"
 #~ msgstr "Connexion...\n"
 
@@ -18771,10 +18763,6 @@ msgstr "Console connecté à %s\n"
 #, fuzzy
 #~ msgid "Connecting to the director..."
 #~ msgstr "Connexion au Director %s:%d\n"
-
-#, fuzzy
-#~ msgid "About Bacula bwx-console"
-#~ msgstr "Message de Bacula"
 
 #, fuzzy
 #~ msgid "Please choose your default configuration file"
@@ -19142,29 +19130,6 @@ msgstr "Console connecté à %s\n"
 #, fuzzy
 #~ msgid "Select Files"
 #~ msgstr "Saisissez le type"
-
-#, fuzzy
-#~ msgid ""
-#~ "\n"
-#~ "Version: %s (%s) %s %s %s\n"
-#~ "\n"
-#~ "Usage: bgnome-console [-s] [-c config_file] [-d debug_level] "
-#~ "[config_file]\n"
-#~ "       -c <file>   set configuration file to file\n"
-#~ "       -dnn        set debug level to nn\n"
-#~ "       -s          no signals\n"
-#~ "       -t          test - read configuration and exit\n"
-#~ "       -?          print this message.\n"
-#~ "\n"
-#~ msgstr ""
-#~ ") %s %s %s\n"
-#~ "\n"
-#~ "Usage : bconsole [-s] [-c config_file] [-d niveau_debug]\n"
-#~ "       -c <file>   set configuration file to file\n"
-#~ "       -dnn        set debug level to nn\n"
-#~ "       -s          no signals\n"
-#~ "       -t          test - lecture de la configuration et sortie\n"
-#~ "\n"
 
 #, fuzzy
 #~ msgid "Pthread cond init error = %s\n"

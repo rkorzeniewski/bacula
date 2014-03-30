@@ -17255,10 +17255,6 @@ msgstr "Консоль: назва=%s\n"
 #~ msgstr "Погана відповідь на команду Hello: ERR="
 
 #, fuzzy
-#~ msgid "# Bacula bwx-console Configuration File\n"
-#~ msgstr "Будьласка виправте файл конфігурації: %s\n"
-
-#, fuzzy
 #~ msgid "Unable to write to %s\n"
 #~ msgstr "Не можливо встановити власника файлу %s: ERR=%s\n"
 
@@ -17382,9 +17378,6 @@ msgstr "Консоль: назва=%s\n"
 #~ msgid "Unknown command."
 #~ msgstr "Невідомий статус"
 
-#~ msgid "Welcome to bacula bwx-console %s (%s)!\n"
-#~ msgstr "Ласкаво просимо до bacula bwx-console %s (%s)!\n"
-
 #, fuzzy
 #~ msgid "Connect"
 #~ msgstr "З'єднано"
@@ -17428,10 +17421,6 @@ msgstr "Консоль: назва=%s\n"
 #, fuzzy
 #~ msgid "Connecting to the director..."
 #~ msgstr "Приєднуюсь до Керівника %s:%d"
-
-#, fuzzy
-#~ msgid "About Bacula bwx-console"
-#~ msgstr "Ласкаво просимо до bacula bwx-console %s (%s)!\n"
 
 #, fuzzy
 #~ msgid "Please choose your default configuration file"

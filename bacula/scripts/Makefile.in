@@ -107,10 +107,6 @@ distclean: clean
 	@$(RMF) bacula fd btraceback
 	@$(RMF) bacula-ctl-dir bacula-ctl-fd bacula-ctl-sd bacula_config
 	@$(RMF) bconsole logrotate bacula.desktop 
-	@$(RMF) bacula.desktop.gnome1 bacula.desktop.gnome2 mtx-changer dvd-handler
-	@$(RMF) gnome-console.console_apps bacula.desktop.gnome2.xsu
-	@$(RMF) bgnome-console.console_apps
-	@$(RMF) bacula.desktop.gnome2.consolehelper bacula.desktop.gnome1.xsu
-	@$(RMF) bacula.desktop.gnome1.consolehelper
+	@$(RMF) mtx-changer dvd-handler
 
 # ------------------------------------------------------------------------

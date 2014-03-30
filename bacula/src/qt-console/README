@@ -13,10 +13,9 @@ yourself or if your distro does not have it, we have included the source
 in depkgs-qt, which you can download from the Bacula Source Forge        
 download area.
 
-Building and running bat is done much like bconsole, the gnome console,
-or the wxWidgets console.  You add the appropriate options to your   
-./configure, then simply do a make.  Please see the Installation chapter
-of the manual for more details.
+Building and running bat is done much like bconsole.  You add the appropriate
+ options to your ./configure, then simply do a make.  Please see the
+Installation chapter of the manual for more details.
 
 
 Win32 mingw infos for QT4 :
@@ -104,8 +103,7 @@ Design/implementation considerations:
   a tree view, but for the moment does nothing ...  It is a bit
   ugly. Canceling it should get you back to the normal command prompt.
 
-- Implement a restore page that does a directory tree restore selection
-  much like wx-console does.
+- Implement a restore page that does a directory tree restore selection.
 
 Not working:
 - The left selection window and the right window (where the console

@@ -17556,10 +17556,6 @@ msgstr ""
 #~ msgstr "Pool Ressource \"%s\" nicht gefunden.\n"
 
 #, fuzzy
-#~ msgid "# Bacula bwx-console Configuration File\n"
-#~ msgstr "Bitte die Konfigurationsdatei korrigieren: %s\n"
-
-#, fuzzy
 #~ msgid "Close without saving"
 #~ msgstr "%s OK -- mit Warnungen"
 
@@ -17737,10 +17733,6 @@ msgstr ""
 #~ msgstr "unbekannt"
 
 #, fuzzy
-#~ msgid "Bacula bwx-console"
-#~ msgstr "Bitte die Konfigurationsdatei korrigieren: %s\n"
-
-#, fuzzy
 #~ msgid "Change of configuration file"
 #~ msgstr "Bitte die Konfigurationsdatei korrigieren: %s\n"
 
@@ -17848,36 +17840,6 @@ msgstr ""
 #, fuzzy
 #~ msgid "No Catalog resource defined for client %s\n"
 #~ msgstr "Keine Messages resource definiert in %s\n"
-
-#, fuzzy
-#~ msgid ""
-#~ "\n"
-#~ "Version: %s (%s) %s %s %s\n"
-#~ "\n"
-#~ "Usage: bgnome-console [-s] [-c config_file] [-d debug_level] "
-#~ "[config_file]\n"
-#~ "       -c <file>   set configuration file to file\n"
-#~ "       -dnn        set debug level to nn\n"
-#~ "       -s          no signals\n"
-#~ "       -t          test - read configuration and exit\n"
-#~ "       -?          print this message.\n"
-#~ "\n"
-#~ msgstr ""
-#~ "\n"
-#~ "Version: %s (%s)\n"
-#~ "\n"
-#~ "Usage: dird [-f -s] [-c config_file] [-d debug_level] [config_file]\n"
-#~ "       -c <file>   setze Konfigurationsdatei auf Datei\n"
-#~ "       -dnn        setze debug level auf nn\n"
-#~ "       -f          starte im Vordergrund (für debugging Zwecke)\n"
-#~ "       -g          groupid\n"
-#~ "       -r <job>    starte <job> jetzt\n"
-#~ "       -s          no signals\n"
-#~ "       -t          test - Konfiguration Lesen und beenden\n"
-#~ "       -u          userid\n"
-#~ "       -v          ausführliche Benutzer Meldungen\n"
-#~ "       -?          diese Meldung ausgeben.\n"
-#~ "\n"
 
 #~ msgid "pthread_mutex_lock: ERR=%s\n"
 #~ msgstr "pthread_mutex_lock: ERR=%s\n"

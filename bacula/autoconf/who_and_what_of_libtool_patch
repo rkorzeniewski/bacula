@@ -111,9 +111,6 @@ Small walk trough of libtool patch (what in there ...)
       - libtool-install and libtool-uninstall target only called when libtool is used
       - install include files when using libtool
 
-- src/gnome2-console/Makefile.in
-   - added support for libtool
-
 - src/lib/Makefile.in
    - added support for libtool
       - use dynamic generation of names of object files
@@ -160,16 +157,6 @@ Small walk trough of libtool patch (what in there ...)
    - update for python interface change (because of full prototypes we wrap things in #ifdef HAVE_PYTHON)
 
 - src/tools/Makefile.in
-   - added support for libtool
-      - updated to use libtool when defined and have depend on correct archive type
-      - extra libtool-clean target only called when libtool is used
-
-- src/tray-monitor/Makefile.in
-   - added support for libtool
-      - updated to use libtool when defined and have depend on correct archive type
-      - extra libtool-clean target only called when libtool is used
-
-- src/wx-console/Makefile.in
    - added support for libtool
       - updated to use libtool when defined and have depend on correct archive type
       - extra libtool-clean target only called when libtool is used

@@ -7,7 +7,6 @@ CFLAGS="-g -O2 -Wall" ./configure \
     --sysconfdir=$HOME/bacula/bin \
     --with-pid-dir=$HOME/bacula/bin/working \
     --with-subsys-dir=$HOME/bacula/bin/working \
-    --enable-gnome \
     --enable-smartalloc \
     --with-mysql=$HOME/mysql \
     --with-working-dir=$HOME/bacula/working \

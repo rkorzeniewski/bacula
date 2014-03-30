@@ -557,7 +557,7 @@ msgstr ""
 #: src/console/authenticate.c:100 src/dird/authenticate.c:106
 #: src/dird/authenticate.c:206 src/filed/authenticate.c:119
 #: src/filed/authenticate.c:215 src/stored/authenticate.c:128
-#: src/stored/authenticate.c:232 src/wx-console/authenticate.c:106
+#: src/stored/authenticate.c:232
 msgid ""
 "Authorization problem: Remote server did not advertise required TLS "
 "support.\n"
@@ -566,26 +566,24 @@ msgstr ""
 #: src/console/authenticate.c:107 src/dird/authenticate.c:113
 #: src/dird/authenticate.c:213 src/filed/authenticate.c:127
 #: src/filed/authenticate.c:223 src/stored/authenticate.c:136
-#: src/stored/authenticate.c:240 src/wx-console/authenticate.c:112
+#: src/stored/authenticate.c:240
 msgid "Authorization problem: Remote server requires TLS.\n"
 msgstr ""
 
-#: src/console/authenticate.c:117 src/wx-console/authenticate.c:121
+#: src/console/authenticate.c:117
 msgid "TLS negotiation failed\n"
 msgstr ""
 
-#: src/console/authenticate.c:129 src/gnome2-console/authenticate.c:85
-#: src/tray-monitor/authenticate.c:87
+#: src/console/authenticate.c:129
 #, c-format
 msgid "Bad response to Hello command: ERR=%s\n"
 msgstr ""
 
-#: src/console/authenticate.c:136 src/gnome2-console/authenticate.c:95
-#: src/tray-monitor/authenticate.c:94 src/wx-console/authenticate.c:136
+#: src/console/authenticate.c:136
 msgid "Director rejected Hello command\n"
 msgstr ""
 
-#: src/console/authenticate.c:146 src/wx-console/authenticate.c:146
+#: src/console/authenticate.c:146
 msgid ""
 "Director authorization problem.\n"
 "Most likely the passwords do not agree.\n"
@@ -663,12 +661,11 @@ msgid ": is an illegal command\n"
 msgstr ""
 
 #: src/console/console.c:400 src/filed/filed.c:183
-#: src/gnome2-console/console.c:271
 msgid "TLS library initialization failed.\n"
 msgstr ""
 
 #: src/console/console.c:404 src/dird/dird.c:200 src/dird/dird.c:410
-#: src/dird/dird.c:413 src/filed/filed.c:188 src/gnome2-console/console.c:275
+#: src/dird/dird.c:413 src/filed/filed.c:188
 #: src/stored/stored.c:193
 #, c-format
 msgid "Please correct configuration file: %s\n"
@@ -692,19 +689,17 @@ msgstr ""
 msgid "You must enter a number between 1 and %d\n"
 msgstr ""
 
-#: src/console/console.c:455 src/tray-monitor/tray-monitor.c:858
+#: src/console/console.c:455
 #, c-format
 msgid "Connecting to Director %s:%d\n"
 msgstr ""
 
-#: src/console/console.c:471 src/gnome2-console/console.c:504
-#: src/wx-console/console_thread.cpp:370
+#: src/console/console.c:471
 #, c-format
 msgid "Failed to initialize TLS context for Console \"%s\".\n"
 msgstr ""
 
-#: src/console/console.c:492 src/gnome2-console/console.c:526
-#: src/wx-console/console_thread.cpp:391
+#: src/console/console.c:492
 #, c-format
 msgid "Failed to initialize TLS context for Director \"%s\".\n"
 msgstr ""
@@ -716,27 +711,25 @@ msgstr ""
 #: src/console/console.c:582 src/console/console.c:611 src/dird/dird.c:496
 #: src/dird/dird.c:711 src/dird/dird.c:777 src/dird/dird.c:829
 #: src/filed/filed.c:302 src/filed/filed.c:348
-#: src/gnome2-console/console.c:140 src/gnome2-console/console.c:169
-#: src/stored/stored.c:309 src/wx-console/console_thread.cpp:94
-#: src/wx-console/console_thread.cpp:120
+#: src/stored/stored.c:309
 msgid "TLS required but not configured in Bacula.\n"
 msgstr ""
 
-#: src/console/console.c:589 src/gnome2-console/console.c:147
+#: src/console/console.c:589
 #, c-format
 msgid ""
 "Neither \"TLS CA Certificate\" or \"TLS CA Certificate Dir\" are defined for "
 "Director \"%s\" in %s. At least one CA certificate store is required.\n"
 msgstr ""
 
-#: src/console/console.c:598 src/gnome2-console/console.c:156
+#: src/console/console.c:598
 #, c-format
 msgid ""
 "No Director resource defined in %s\n"
 "Without that I don't how to speak to the Director :-(\n"
 msgstr ""
 
-#: src/console/console.c:618 src/gnome2-console/console.c:176
+#: src/console/console.c:618
 #, c-format
 msgid ""
 "Neither \"TLS CA Certificate\" or \"TLS CA Certificate Dir\" are defined for "
@@ -765,19 +758,17 @@ msgstr ""
 msgid "Cannot open file %s for output. ERR=%s\n"
 msgstr ""
 
-#: src/console/console_conf.c:123 src/gnome2-console/console_conf.c:122
-#: src/wx-console/console_conf.c:128
+#: src/console/console_conf.c:123
 #, c-format
 msgid "No record for %d %s\n"
 msgstr ""
 
-#: src/console/console_conf.c:132 src/wx-console/console_conf.c:137
+#: src/console/console_conf.c:132
 #, c-format
 msgid "Console: name=%s rcfile=%s histfile=%s\n"
 msgstr ""
 
-#: src/console/console_conf.c:136 src/gnome2-console/console_conf.c:131
-#: src/wx-console/console_conf.c:141
+#: src/console/console_conf.c:136
 #, c-format
 msgid "Director: name=%s address=%s DIRport=%d\n"
 msgstr ""
@@ -785,27 +776,20 @@ msgstr ""
 #: src/console/console_conf.c:140 src/console/console_conf.c:216
 #: src/console/console_conf.c:261 src/console/console_conf.c:288
 #: src/filed/filed_conf.c:268 src/filed/filed_conf.c:327
-#: src/filed/filed_conf.c:357 src/gnome2-console/console_conf.c:142
-#: src/gnome2-console/console_conf.c:220 src/gnome2-console/console_conf.c:268
-#: src/gnome2-console/console_conf.c:298 src/stored/stored_conf.c:510
+#: src/filed/filed_conf.c:357 src/stored/stored_conf.c:510
 #: src/stored/stored_conf.c:598 src/stored/stored_conf.c:633
-#: src/wx-console/console_conf.c:145 src/wx-console/console_conf.c:220
-#: src/wx-console/console_conf.c:265 src/wx-console/console_conf.c:292
 #, c-format
 msgid "Unknown resource type %d\n"
 msgstr ""
 
 #: src/console/console_conf.c:242 src/dird/dird_conf.c:1112
 #: src/dird/dird_conf.c:1127 src/filed/filed_conf.c:296
-#: src/gnome2-console/console_conf.c:246 src/tray-monitor/tray_conf.c:262
-#: src/wx-console/console_conf.c:246
 #, c-format
 msgid "%s item is required in %s resource, but not found.\n"
 msgstr ""
 
 #: src/console/console_conf.c:304 src/dird/dird_conf.c:1299
-#: src/filed/filed_conf.c:374 src/gnome2-console/console_conf.c:314
-#: src/tray-monitor/tray_conf.c:341 src/wx-console/console_conf.c:308
+#: src/filed/filed_conf.c:374
 #, c-format
 msgid "Attempt to define second %s resource named \"%s\" is not permitted.\n"
 msgstr ""
@@ -855,7 +839,6 @@ msgid ""
 msgstr ""
 
 #: src/dird/authenticate.c:67 src/dird/authenticate.c:68
-#: src/tray-monitor/authenticate.c:121
 #, c-format
 msgid "Error sending Hello to Storage daemon. ERR=%s\n"
 msgstr ""
@@ -881,17 +864,16 @@ msgstr ""
 msgid "TLS negotiation failed.\n"
 msgstr ""
 
-#: src/dird/authenticate.c:132 src/tray-monitor/authenticate.c:134
+#: src/dird/authenticate.c:132
 #, c-format
 msgid "bdird<stored: bad response to Hello command: ERR=%s\n"
 msgstr ""
 
 #: src/dird/authenticate.c:139 src/dird/authenticate.c:140
-#: src/tray-monitor/authenticate.c:141
 msgid "Storage daemon rejected Hello command\n"
 msgstr ""
 
-#: src/dird/authenticate.c:167 src/tray-monitor/authenticate.c:166
+#: src/dird/authenticate.c:167
 #, c-format
 msgid "Error sending Hello to File daemon. ERR=%s\n"
 msgstr ""
@@ -911,13 +893,11 @@ msgid ""
 msgstr ""
 
 #: src/dird/authenticate.c:232 src/dird/authenticate.c:234
-#: src/tray-monitor/authenticate.c:179
 #, c-format
 msgid "Bad response from File daemon to Hello command: ERR=%s\n"
 msgstr ""
 
 #: src/dird/authenticate.c:241 src/dird/authenticate.c:242
-#: src/tray-monitor/authenticate.c:186
 msgid "File daemon rejected Hello command\n"
 msgstr ""
 
@@ -1351,7 +1331,7 @@ msgid ""
 "File daemon \"%s\" in %s.\n"
 msgstr ""
 
-#: src/dird/dird_conf.c:443 src/tray-monitor/tray_conf.c:152
+#: src/dird/dird_conf.c:443
 #, c-format
 msgid "No %s resource defined\n"
 msgstr ""
@@ -1571,18 +1551,17 @@ msgstr ""
 msgid "      opcmd=%s\n"
 msgstr ""
 
-#: src/dird/dird_conf.c:786 src/tray-monitor/tray_conf.c:179
+#: src/dird/dird_conf.c:786
 #, c-format
 msgid "Unknown resource type %d in dump_resource.\n"
 msgstr ""
 
-#: src/dird/dird_conf.c:1080 src/tray-monitor/tray_conf.c:232
+#: src/dird/dird_conf.c:1080
 #, c-format
 msgid "Unknown resource type %d in free_resource.\n"
 msgstr ""
 
 #: src/dird/dird_conf.c:1118 src/lib/parse_conf.c:211
-#: src/tray-monitor/tray_conf.c:268
 #, c-format
 msgid "Too many items in %s resource\n"
 msgstr ""
@@ -1623,12 +1602,12 @@ msgstr ""
 msgid "Cannot find Schedule resource %s\n"
 msgstr ""
 
-#: src/dird/dird_conf.c:1217 src/tray-monitor/tray_conf.c:287
+#: src/dird/dird_conf.c:1217
 #, c-format
 msgid "Unknown resource type %d in save_resource.\n"
 msgstr ""
 
-#: src/dird/dird_conf.c:1277 src/tray-monitor/tray_conf.c:322
+#: src/dird/dird_conf.c:1277
 #, c-format
 msgid "Unknown resource type %d in save_resrouce.\n"
 msgstr ""
@@ -1693,7 +1672,7 @@ msgstr ""
 msgid "Cannot destroy var context: ERR=%s\n"
 msgstr ""
 
-#: src/dird/fd_cmds.c:73 src/tray-monitor/tray-monitor.c:867
+#: src/dird/fd_cmds.c:73
 msgid "File daemon"
 msgstr ""
 
@@ -2068,7 +2047,6 @@ msgid ""
 msgstr ""
 
 #: src/dird/msgchan.c:78 src/filed/job.c:1129
-#: src/tray-monitor/tray-monitor.c:874
 msgid "Storage daemon"
 msgstr ""
 
@@ -3410,7 +3388,7 @@ msgid "Enter a list of directories to restore for found JobIds"
 msgstr ""
 
 #: src/dird/ua_restore.c:297 src/dird/ua_status.c:713 src/filed/status.c:251
-#: src/stored/status.c:412 src/wx-console/wxbconfigpanel.cpp:191
+#: src/stored/status.c:412
 msgid "Cancel"
 msgstr ""
 
@@ -3917,53 +3895,23 @@ msgid "Level"
 msgstr ""
 
 #: src/dird/ua_run.c:642 src/dird/ua_select.c:152
-#: src/wx-console/wxbrestorepanel.cpp:321
-#: src/wx-console/wxbrestorepanel.cpp:337
-#: src/wx-console/wxbrestorepanel.cpp:458
-#: src/wx-console/wxbrestorepanel.cpp:459
-#: src/wx-console/wxbrestorepanel.cpp:469
-#: src/wx-console/wxbrestorepanel.cpp:470
-#: src/wx-console/wxbrestorepanel.cpp:1133
-#: src/wx-console/wxbrestorepanel.cpp:1794
-#: src/wx-console/wxbrestorepanel.cpp:1865
 msgid "Storage"
 msgstr ""
 
 #: src/dird/ua_run.c:645 src/dird/ua_select.c:282 src/dird/ua_select.c:391
-#: src/wx-console/wxbrestorepanel.cpp:318
-#: src/wx-console/wxbrestorepanel.cpp:336
-#: src/wx-console/wxbrestorepanel.cpp:410
-#: src/wx-console/wxbrestorepanel.cpp:411
-#: src/wx-console/wxbrestorepanel.cpp:421
-#: src/wx-console/wxbrestorepanel.cpp:422
-#: src/wx-console/wxbrestorepanel.cpp:669
-#: src/wx-console/wxbrestorepanel.cpp:1103
-#: src/wx-console/wxbrestorepanel.cpp:1190
-#: src/wx-console/wxbrestorepanel.cpp:1787
-#: src/wx-console/wxbrestorepanel.cpp:1789
-#: src/wx-console/wxbrestorepanel.cpp:1863
-#: src/wx-console/wxbrestorepanel.cpp:1918
 msgid "Client"
 msgstr ""
 
-#: src/dird/ua_run.c:646 src/wx-console/wxbrestorepanel.cpp:338
-#: src/wx-console/wxbrestorepanel.cpp:823
-#: src/wx-console/wxbrestorepanel.cpp:1867
+#: src/dird/ua_run.c:646
 msgid "When"
 msgstr ""
 
-#: src/dird/ua_run.c:647 src/wx-console/wxbrestorepanel.cpp:339
-#: src/wx-console/wxbrestorepanel.cpp:1096
-#: src/wx-console/wxbrestorepanel.cpp:1869
+#: src/dird/ua_run.c:647
 msgid "Priority"
 msgstr ""
 
 #: src/dird/ua_run.c:650 src/dird/ua_select.c:476 src/dird/ua_select.c:566
 #: src/dird/ua_update.c:400 src/dird/ua_update.c:475
-#: src/wx-console/wxbrestorepanel.cpp:320
-#: src/wx-console/wxbrestorepanel.cpp:506
-#: src/wx-console/wxbrestorepanel.cpp:516
-#: src/wx-console/wxbrestorepanel.cpp:1783
 msgid "Pool"
 msgstr ""
 
@@ -3971,24 +3919,15 @@ msgstr ""
 msgid "Verify Job"
 msgstr ""
 
-#: src/dird/ua_run.c:655 src/wx-console/wxbrestorepanel.cpp:331
-#: src/wx-console/wxbrestorepanel.cpp:1848
+#: src/dird/ua_run.c:655
 msgid "Bootstrap"
 msgstr ""
 
-#: src/dird/ua_run.c:656 src/wx-console/wxbrestorepanel.cpp:332
-#: src/wx-console/wxbrestorepanel.cpp:1072
-#: src/wx-console/wxbrestorepanel.cpp:1850
+#: src/dird/ua_run.c:656
 msgid "Where"
 msgstr ""
 
-#: src/dird/ua_run.c:657 src/wx-console/wxbrestorepanel.cpp:334
-#: src/wx-console/wxbrestorepanel.cpp:1080
-#: src/wx-console/wxbrestorepanel.cpp:1854
-#: src/wx-console/wxbrestorepanel.cpp:1855
-#: src/wx-console/wxbrestorepanel.cpp:1856
-#: src/wx-console/wxbrestorepanel.cpp:1857
-#: src/wx-console/wxbrestorepanel.cpp:1858
+#: src/dird/ua_run.c:657
 msgid "Replace"
 msgstr ""
 
@@ -4573,7 +4512,6 @@ msgstr ""
 
 #: src/dird/ua_status.c:716 src/filed/status.c:254 src/lib/util.c:187
 #: src/lib/util.c:254 src/stored/btape.c:1158 src/stored/status.c:415
-#: src/wx-console/wxbconfigpanel.cpp:180
 msgid "OK"
 msgstr ""
 
@@ -6253,368 +6191,8 @@ msgstr ""
 msgid "Cannot return to saved working directory: %s\n"
 msgstr ""
 
-#: src/gnome2-console/authenticate.c:74
-#, c-format
-msgid "%s: Director authorization problem.\n"
-msgstr ""
-
-#: src/gnome2-console/authenticate.c:75
-msgid "Director authorization problem.\n"
-msgstr ""
-
-#: src/gnome2-console/authenticate.c:77
-msgid ""
-"Please see http://www.bacula.org/rel-manual/faq.html#AuthorizationErrors for "
-"help.\n"
-msgstr ""
-
-#: src/gnome2-console/authenticate.c:87
-#, c-format
-msgid "%s: Bad response to Hello command: ERR=%s\n"
-msgstr ""
-
-#: src/gnome2-console/authenticate.c:89
-msgid "The Director is probably not running.\n"
-msgstr ""
-
-#: src/gnome2-console/console.c:88
-#, c-format
-msgid ""
-"Copyright (C) 2002-2005 Kern Sibbald\n"
-"\n"
-"Version: %s (%s) %s %s %s\n"
-"\n"
-"Usage: gnome-console [-s] [-c config_file] [-d debug_level] [config_file]\n"
-"       -c <file>   set configuration file to file\n"
-"       -dnn        set debug level to nn\n"
-"       -s          no signals\n"
-"       -t          test - read configuration and exit\n"
-"       -?          print this message.\n"
-"\n"
-msgstr ""
-
-#: src/gnome2-console/console.c:219
-#, c-format
-msgid "Pthread cond init error = %s\n"
-msgstr ""
-
-#: src/gnome2-console/console.c:357
-msgid " Not Connected"
-msgstr ""
-
-#: src/gnome2-console/console.c:478
-#, c-format
-msgid " Connecting to Director %s:%d"
-msgstr ""
-
-#: src/gnome2-console/console.c:479
-#, c-format
-msgid ""
-"Connecting to Director %s:%d\n"
-"\n"
-msgstr ""
-
-#: src/gnome2-console/console.c:494 src/wx-console/console_thread.cpp:360
-#, c-format
-msgid "Passphrase for Console \"%s\" TLS private key: "
-msgstr ""
-
-#: src/gnome2-console/console.c:516 src/wx-console/console_thread.cpp:381
-#, c-format
-msgid "Passphrase for Director \"%s\" TLS private key: "
-msgstr ""
-
-#: src/gnome2-console/console.c:535 src/tray-monitor/tray-monitor.c:860
-#: src/wx-console/console_thread.cpp:399
-msgid "Director daemon"
-msgstr ""
-
-#: src/gnome2-console/console.c:547
-msgid " Initializing ..."
-msgstr ""
-
-#: src/gnome2-console/console.c:583
-msgid " Connected"
-msgstr ""
-
-#: src/gnome2-console/console.c:591
-msgid " Processing command ..."
-msgstr ""
-
-#: src/gnome2-console/console.c:626
-msgid " At prompt waiting for input ..."
-msgstr ""
-
-#: src/gnome2-console/console.c:746
-msgid " Ready"
-msgstr ""
-
-#: src/gnome2-console/console_conf.c:135
-#, c-format
-msgid "Console: name=%s\n"
-msgstr ""
-
-#: src/gnome2-console/console_conf.c:138
-#, c-format
-msgid "ConsoleFont: name=%s font face=%s\n"
-msgstr ""
-
-#: src/gnome2-console/interface.c:32
-msgid "_Connect"
-msgstr ""
-
-#: src/gnome2-console/interface.c:33 src/gnome2-console/interface.c:232
-msgid "Connect to Director"
-msgstr ""
-
-#: src/gnome2-console/interface.c:39
-msgid "_Disconnect"
-msgstr ""
-
-#: src/gnome2-console/interface.c:40
-msgid "Disconnect from Director"
-msgstr ""
-
-#: src/gnome2-console/interface.c:93
-msgid "_Display Messages"
-msgstr ""
-
-#: src/gnome2-console/interface.c:129
-msgid "_File"
-msgstr ""
-
-#: src/gnome2-console/interface.c:136
-msgid "_Edit"
-msgstr ""
-
-#: src/gnome2-console/interface.c:143
-msgid "_View"
-msgstr ""
-
-#: src/gnome2-console/interface.c:144 src/gnome2-console/interface.c:252
-msgid "Display Messages"
-msgstr ""
-
-#: src/gnome2-console/interface.c:150
-msgid "_Settings"
-msgstr ""
-
-#: src/gnome2-console/interface.c:157
-msgid "_Help"
-msgstr ""
-
-#: src/gnome2-console/interface.c:197
-msgid "Bacula Console"
-msgstr ""
-
-#: src/gnome2-console/interface.c:231 src/wx-console/wxbmainframe.cpp:229
-#: src/wx-console/wxbmainframe.cpp:597
-msgid "Connect"
-msgstr ""
-
-#: src/gnome2-console/interface.c:241
-msgid "Run"
-msgstr ""
-
-#: src/gnome2-console/interface.c:242 src/gnome2-console/interface.c:677
-#: src/gnome2-console/interface.c:690
-msgid "Run a Job"
-msgstr ""
-
-#: src/gnome2-console/interface.c:251
-msgid "Msgs"
-msgstr ""
-
-#: src/gnome2-console/interface.c:261 src/lib/util.c:292
-#: src/wx-console/wxbrestorepanel.cpp:384
-#: src/wx-console/wxbrestorepanel.cpp:1949
+#: src/lib/util.c:292
 msgid "Restore"
-msgstr ""
-
-#: src/gnome2-console/interface.c:271
-msgid "Label"
-msgstr ""
-
-#: src/gnome2-console/interface.c:299
-msgid " Command: "
-msgstr ""
-
-#: src/gnome2-console/interface.c:307
-msgid "Enter Commands Here"
-msgstr ""
-
-#: src/gnome2-console/interface.c:318
-msgid " Status: "
-msgstr ""
-
-#: src/gnome2-console/interface.c:326
-msgid "  "
-msgstr ""
-
-#: src/gnome2-console/interface.c:422
-msgid "About Bacula Console"
-msgstr ""
-
-#: src/gnome2-console/interface.c:436
-msgid "Bacula Console\n"
-msgstr ""
-
-#: src/gnome2-console/interface.c:444
-msgid "Copyright (c) 2000 - 2004, Kern Sibbald and John Walker"
-msgstr ""
-
-#: src/gnome2-console/interface.c:450
-msgid "Authors: Kern Sibbald and John Walker"
-msgstr ""
-
-#: src/gnome2-console/interface.c:456
-msgid "The Leading Open Source Backup Solution."
-msgstr ""
-
-#: src/gnome2-console/interface.c:521 src/gnome2-console/interface.c:536
-msgid "Select Director"
-msgstr ""
-
-#: src/gnome2-console/interface.c:708 src/gnome2-console/interface.c:1616
-msgid "Job:"
-msgstr ""
-
-#: src/gnome2-console/interface.c:728
-msgid "   Type:"
-msgstr ""
-
-#: src/gnome2-console/interface.c:757 src/gnome2-console/interface.c:1644
-#: src/wx-console/wxbrestorepanel.cpp:1862
-msgid "Client:"
-msgstr ""
-
-#: src/gnome2-console/interface.c:787 src/gnome2-console/interface.c:1672
-msgid "FileSet: "
-msgstr ""
-
-#: src/gnome2-console/interface.c:813 src/wx-console/wxbrestorepanel.cpp:1868
-msgid "Priority:"
-msgstr ""
-
-#: src/gnome2-console/interface.c:836
-msgid "Level:"
-msgstr ""
-
-#: src/gnome2-console/interface.c:866 src/gnome2-console/interface.c:1418
-#: src/gnome2-console/interface.c:1700
-msgid "Pool:"
-msgstr ""
-
-#: src/gnome2-console/interface.c:895 src/gnome2-console/interface.c:1393
-#: src/gnome2-console/interface.c:1728 src/wx-console/wxbrestorepanel.cpp:1864
-msgid "Storage:"
-msgstr ""
-
-#: src/gnome2-console/interface.c:924
-msgid "Messages:"
-msgstr ""
-
-#: src/gnome2-console/interface.c:952
-msgid "Where: "
-msgstr ""
-
-#: src/gnome2-console/interface.c:970 src/wx-console/wxbrestorepanel.cpp:1866
-msgid "When:"
-msgstr ""
-
-#: src/gnome2-console/interface.c:988 src/wx-console/wxbrestorepanel.cpp:1847
-msgid "Bootstrap:"
-msgstr ""
-
-#: src/gnome2-console/interface.c:1108
-msgid "_New"
-msgstr ""
-
-#: src/gnome2-console/interface.c:1177
-msgid "Restore File Selection"
-msgstr ""
-
-#: src/gnome2-console/interface.c:1226
-msgid "Current dir:"
-msgstr ""
-
-#: src/gnome2-console/interface.c:1252
-msgid "Files Selected: "
-msgstr ""
-
-#: src/gnome2-console/interface.c:1373 src/gnome2-console/interface.c:1383
-msgid "Label a Volume"
-msgstr ""
-
-#: src/gnome2-console/interface.c:1444
-msgid "Volume Name:"
-msgstr ""
-
-#: src/gnome2-console/interface.c:1459
-msgid "Slot:"
-msgstr ""
-
-#: src/gnome2-console/interface.c:1585
-msgid "Restore Files Dialog"
-msgstr ""
-
-#: src/gnome2-console/interface.c:1599
-msgid "Restore Files"
-msgstr ""
-
-#: src/gnome2-console/interface.c:1756
-msgid "Before:"
-msgstr ""
-
-#: src/gnome2-console/interface.c:1799
-msgid "Select Files"
-msgstr ""
-
-#: src/gnome2-console/interface.c:1883
-msgid "Progress"
-msgstr ""
-
-#: src/gnome2-console/restore.c:121
-msgid "Mark"
-msgstr ""
-
-#: src/gnome2-console/restore.c:121
-msgid "File"
-msgstr ""
-
-#: src/gnome2-console/restore.c:121
-msgid "Mode"
-msgstr ""
-
-#: src/gnome2-console/restore.c:121 src/wx-console/wxbrestorepanel.cpp:288
-msgid "User"
-msgstr ""
-
-#: src/gnome2-console/restore.c:121 src/wx-console/wxbrestorepanel.cpp:292
-msgid "Group"
-msgstr ""
-
-#: src/gnome2-console/restore.c:121 src/wx-console/wxbrestorepanel.cpp:276
-msgid "Size"
-msgstr ""
-
-#: src/gnome2-console/restore.c:121 src/wx-console/wxbrestorepanel.cpp:280
-msgid "Date"
-msgstr ""
-
-#: src/gnome2-console/support.c:41
-#, c-format
-msgid "Widget not found: %s"
-msgstr ""
-
-#: src/gnome2-console/support.c:60 src/gnome2-console/support.c:85
-#, c-format
-msgid "Couldn't find pixmap file: %s"
-msgstr ""
-
-#: src/gnome2-console/support.c:92
-#, c-format
-msgid "Failed to load pixbuf file: %s: %s\n"
 msgstr ""
 
 #: src/lib/tls.c:105
@@ -7268,20 +6846,6 @@ msgstr ""
 #, c-format
 msgid ""
 "Watchdog sending kill after %d secs to thread stalled reading Director.\n"
-msgstr ""
-
-#: src/lib/lex.c:79 src/wx-console/console_thread.cpp:186
-#, c-format
-msgid "Problem probably begins at line %d.\n"
-msgstr ""
-
-#: src/lib/lex.c:84 src/wx-console/console_thread.cpp:191
-#, c-format
-msgid ""
-"Config error: %s\n"
-"            : line %d, col %d of file %s\n"
-"%s\n"
-"%s"
 msgstr ""
 
 #: src/lib/lex.c:88
@@ -13196,381 +12760,6 @@ msgstr ""
 msgid "Skip: File system change prohibited. Directory not entered. %s\n"
 msgstr ""
 
-#: src/tray-monitor/authenticate.c:78
-msgid ""
-"Director authorization problem.\n"
-"Most likely the passwords do not agree.\n"
-"Please see http://www.bacula.org/rel-manual/faq.html#AuthorizationErrors "
-"for help.\n"
-msgstr ""
-
-#: src/tray-monitor/authenticate.c:127
-msgid ""
-"Director and Storage daemon passwords or names not the same.\n"
-"Please see http://www.bacula.org/rel-manual/faq.html#AuthorizationErrors "
-"for help.\n"
-msgstr ""
-
-#: src/tray-monitor/authenticate.c:172
-msgid ""
-"Director and File daemon passwords or names not the same.\n"
-"Please see http://www.bacula.org/rel-manual/faq.html#AuthorizationErrors "
-"for help.\n"
-msgstr ""
-
-#: src/tray-monitor/tray-monitor.c:102
-#, c-format
-msgid ""
-"Copyright (C) 2000-2004 Kern Sibbald and John Walker\n"
-"Written by Nicolas Boichat (2004)\n"
-"\n"
-"Version: %s (%s) %s %s %s\n"
-"\n"
-"Usage: tray-monitor [-c config_file] [-d debug_level]\n"
-"       -c <file>     set configuration file to file\n"
-"       -dnn          set debug level to nn\n"
-"       -t            test - read configuration and exit\n"
-"       -?            print this message.\n"
-"\n"
-msgstr ""
-
-#: src/tray-monitor/tray-monitor.c:251
-#, c-format
-msgid ""
-"Error: %d Monitor resource defined in %s. You must define one and only one "
-"Monitor resource.\n"
-msgstr ""
-
-#: src/tray-monitor/tray-monitor.c:282
-#, c-format
-msgid ""
-"No Client, Storage nor Director resource defined in %s\n"
-"Without that I don't how to get status from the File, Storage or Director "
-"Daemon :-(\n"
-msgstr ""
-
-#: src/tray-monitor/tray-monitor.c:304
-#, c-format
-msgid ""
-"Invalid refresh interval defined in %s\n"
-"This value must be greater or equal to 1 second and less or equal to 10 "
-"minutes (read value: %d).\n"
-msgstr ""
-
-#: src/tray-monitor/tray-monitor.c:319
-msgid "Open status window..."
-msgstr ""
-
-#: src/tray-monitor/tray-monitor.c:325
-msgid "Exit"
-msgstr ""
-
-#: src/tray-monitor/tray-monitor.c:337
-msgid "Bacula tray monitor"
-msgstr ""
-
-#: src/tray-monitor/tray-monitor.c:362
-msgid " (DIR)"
-msgstr ""
-
-#: src/tray-monitor/tray-monitor.c:366
-msgid " (FD)"
-msgstr ""
-
-#: src/tray-monitor/tray-monitor.c:370
-msgid " (SD)"
-msgstr ""
-
-#: src/tray-monitor/tray-monitor.c:383
-msgid "Unknown status."
-msgstr ""
-
-#: src/tray-monitor/tray-monitor.c:424
-msgid "Refresh interval in seconds: "
-msgstr ""
-
-#: src/tray-monitor/tray-monitor.c:432
-msgid "Refresh now"
-msgstr ""
-
-#: src/tray-monitor/tray-monitor.c:436
-msgid "About"
-msgstr ""
-
-#: src/tray-monitor/tray-monitor.c:440
-msgid "Close"
-msgstr ""
-
-#: src/tray-monitor/tray-monitor.c:460
-#, c-format
-msgid "Disconnecting from Director %s:%d\n"
-msgstr ""
-
-#: src/tray-monitor/tray-monitor.c:463
-#, c-format
-msgid "Disconnecting from Client %s:%d\n"
-msgstr ""
-
-#: src/tray-monitor/tray-monitor.c:466
-#, c-format
-msgid "Disconnecting from Storage %s:%d\n"
-msgstr ""
-
-#: src/tray-monitor/tray-monitor.c:502 src/tray-monitor/tray-monitor.c:512
-msgid "Bacula Tray Monitor"
-msgstr ""
-
-#: src/tray-monitor/tray-monitor.c:503 src/tray-monitor/tray-monitor.c:513
-msgid ""
-"Copyright (C) 2004-2005 Kern Sibbald\n"
-"Written by Nicolas Boichat\n"
-msgstr ""
-
-#: src/tray-monitor/tray-monitor.c:505 src/tray-monitor/tray-monitor.c:515
-msgid "Version:"
-msgstr ""
-
-#: src/tray-monitor/tray-monitor.c:583
-#, c-format
-msgid "Error, currentitem is not a Client or a Storage..\n"
-msgstr ""
-
-#: src/tray-monitor/tray-monitor.c:656
-#, c-format
-msgid ""
-"Current job: %s\n"
-"Last job: %s"
-msgstr ""
-
-#: src/tray-monitor/tray-monitor.c:668
-#, c-format
-msgid " (%d errors)"
-msgstr ""
-
-#: src/tray-monitor/tray-monitor.c:671
-#, c-format
-msgid " (%d error)"
-msgstr ""
-
-#: src/tray-monitor/tray-monitor.c:708
-msgid "No current job."
-msgstr ""
-
-#: src/tray-monitor/tray-monitor.c:711
-msgid "No last job."
-msgstr ""
-
-#: src/tray-monitor/tray-monitor.c:719
-msgid "Job status: Created"
-msgstr ""
-
-#: src/tray-monitor/tray-monitor.c:724
-msgid "Job status: Running"
-msgstr ""
-
-#: src/tray-monitor/tray-monitor.c:728
-msgid "Job status: Blocked"
-msgstr ""
-
-#: src/tray-monitor/tray-monitor.c:733
-msgid "Job status: Terminated"
-msgstr ""
-
-#: src/tray-monitor/tray-monitor.c:738
-msgid "Job status: Terminated in error"
-msgstr ""
-
-#: src/tray-monitor/tray-monitor.c:744
-msgid "Job status: Error"
-msgstr ""
-
-#: src/tray-monitor/tray-monitor.c:748
-msgid "Job status: Fatal error"
-msgstr ""
-
-#: src/tray-monitor/tray-monitor.c:753
-msgid "Job status: Verify differences"
-msgstr ""
-
-#: src/tray-monitor/tray-monitor.c:758
-msgid "Job status: Canceled"
-msgstr ""
-
-#: src/tray-monitor/tray-monitor.c:763
-msgid "Job status: Waiting on File daemon"
-msgstr ""
-
-#: src/tray-monitor/tray-monitor.c:768
-msgid "Job status: Waiting on the Storage daemon"
-msgstr ""
-
-#: src/tray-monitor/tray-monitor.c:773
-msgid "Job status: Waiting for new media"
-msgstr ""
-
-#: src/tray-monitor/tray-monitor.c:778
-msgid "Job status: Waiting for Mount"
-msgstr ""
-
-#: src/tray-monitor/tray-monitor.c:783
-msgid "Job status: Waiting for storage resource"
-msgstr ""
-
-#: src/tray-monitor/tray-monitor.c:788
-msgid "Job status: Waiting for job resource"
-msgstr ""
-
-#: src/tray-monitor/tray-monitor.c:793
-msgid "Job status: Waiting for Client resource"
-msgstr ""
-
-#: src/tray-monitor/tray-monitor.c:798
-msgid "Job status: Waiting for maximum jobs"
-msgstr ""
-
-#: src/tray-monitor/tray-monitor.c:803
-msgid "Job status: Waiting for start time"
-msgstr ""
-
-#: src/tray-monitor/tray-monitor.c:808
-msgid "Job status: Waiting for higher priority jobs to finish"
-msgstr ""
-
-#: src/tray-monitor/tray-monitor.c:813
-#, c-format
-msgid "Unknown job status %c."
-msgstr ""
-
-#: src/tray-monitor/tray-monitor.c:814
-#, c-format
-msgid "Job status: Unknown(%c)"
-msgstr ""
-
-#: src/tray-monitor/tray-monitor.c:821
-#, c-format
-msgid "Bad scan : '%s' %d\n"
-msgstr ""
-
-#: src/tray-monitor/tray-monitor.c:859
-#, c-format
-msgid "Connecting to Director %s:%d"
-msgstr ""
-
-#: src/tray-monitor/tray-monitor.c:865
-#, c-format
-msgid "Connecting to Client %s:%d\n"
-msgstr ""
-
-#: src/tray-monitor/tray-monitor.c:866
-#, c-format
-msgid "Connecting to Client %s:%d"
-msgstr ""
-
-#: src/tray-monitor/tray-monitor.c:872
-#, c-format
-msgid "Connecting to Storage %s:%d\n"
-msgstr ""
-
-#: src/tray-monitor/tray-monitor.c:873
-#, c-format
-msgid "Connecting to Storage %s:%d"
-msgstr ""
-
-#: src/tray-monitor/tray-monitor.c:878 src/tray-monitor/tray-monitor.c:916
-#, c-format
-msgid "Error, currentitem is not a Client, a Storage or a Director..\n"
-msgstr ""
-
-#: src/tray-monitor/tray-monitor.c:884
-msgid "Cannot connect to daemon.\n"
-msgstr ""
-
-#: src/tray-monitor/tray-monitor.c:885
-msgid "Cannot connect to daemon."
-msgstr ""
-
-#: src/tray-monitor/tray-monitor.c:897
-#, c-format
-msgid "Authentication error : %s"
-msgstr ""
-
-#: src/tray-monitor/tray-monitor.c:904
-msgid "Opened connection with Director daemon.\n"
-msgstr ""
-
-#: src/tray-monitor/tray-monitor.c:905
-msgid "Opened connection with Director daemon."
-msgstr ""
-
-#: src/tray-monitor/tray-monitor.c:908
-msgid "Opened connection with File daemon.\n"
-msgstr ""
-
-#: src/tray-monitor/tray-monitor.c:909
-msgid "Opened connection with File daemon."
-msgstr ""
-
-#: src/tray-monitor/tray-monitor.c:912
-msgid "Opened connection with Storage daemon.\n"
-msgstr ""
-
-#: src/tray-monitor/tray-monitor.c:913
-msgid "Opened connection with Storage daemon."
-msgstr ""
-
-#: src/tray-monitor/tray-monitor.c:948
-msgid "<< Error: BNET_PROMPT signal received. >>\n"
-msgstr ""
-
-#: src/tray-monitor/tray-monitor.c:953 src/wx-console/console_thread.cpp:465
-msgid "<< Heartbeat signal received, answered. >>\n"
-msgstr ""
-
-#: src/tray-monitor/tray-monitor.c:957
-#, c-format
-msgid "<< Unexpected signal received : %s >>\n"
-msgstr ""
-
-#: src/tray-monitor/tray-monitor.c:962
-msgid "<ERROR>\n"
-msgstr ""
-
-#: src/tray-monitor/tray-monitor.c:966
-msgid "Error : BNET_HARDEOF or BNET_ERROR"
-msgstr ""
-
-#: src/tray-monitor/tray-monitor.c:972
-msgid "<STOP>\n"
-msgstr ""
-
-#: src/tray-monitor/tray-monitor.c:976
-msgid "Error : Connection closed."
-msgstr ""
-
-#: src/tray-monitor/tray_conf.c:161
-#, c-format
-msgid "Monitor: name=%s FDtimeout=%s SDtimeout=%s\n"
-msgstr ""
-
-#: src/tray-monitor/tray_conf.c:167
-#, c-format
-msgid "Director: name=%s address=%s FDport=%d\n"
-msgstr ""
-
-#: src/tray-monitor/tray_conf.c:171
-#, c-format
-msgid "Client: name=%s address=%s FDport=%d\n"
-msgstr ""
-
-#: src/tray-monitor/tray_conf.c:175
-#, c-format
-msgid "Storage: name=%s address=%s SDport=%d\n"
-msgstr ""
-
-#: src/wx-console/authenticate.c:129
-msgid "Bad response to Hello command: ERR="
-msgstr ""
-
 #: src/baconfig.h:55
 #, c-format
 msgid "Failed ASSERT: %s\n"
@@ -13751,715 +12940,4 @@ msgstr ""
 
 #: src/filed/win32/winservice.cpp:740
 msgid "Could not lock database"
-msgstr ""
-
-#: src/wx-console/console_thread.cpp:101
-#, c-format
-msgid ""
-"Neither \"TLS CA Certificate\" or \"TLS CA Certificate Dir\" are defined for "
-"Director \"%s\" in config file.\n"
-"At least one CA certificate store is required.\n"
-msgstr ""
-
-#: src/wx-console/console_thread.cpp:108
-msgid ""
-"No Director resource defined in config file.\n"
-"Without that I don't how to speak to the Director :-(\n"
-msgstr ""
-
-#: src/wx-console/console_thread.cpp:127
-#, c-format
-msgid ""
-"Neither \"TLS CA Certificate\" or \"TLS CA Certificate Dir\" are defined for "
-"Console \"%s\" in config file.\n"
-msgstr ""
-
-#: src/wx-console/console_thread.cpp:148
-msgid "Error while initializing windows sockets...\n"
-msgstr ""
-
-#: src/wx-console/console_thread.cpp:163
-msgid "Error while cleaning up windows sockets...\n"
-msgstr ""
-
-#: src/wx-console/console_thread.cpp:201
-msgid "Error while initializing library."
-msgstr ""
-
-#: src/wx-console/console_thread.cpp:227
-msgid "Cryptographic library initialization failed.\n"
-msgstr ""
-
-#: src/wx-console/console_thread.cpp:231
-msgid "Please correct configuration file.\n"
-msgstr ""
-
-#: src/wx-console/console_thread.cpp:273
-msgid "Error : Library not initialized\n"
-msgstr ""
-
-#: src/wx-console/console_thread.cpp:284
-msgid "Error : No configuration file loaded\n"
-msgstr ""
-
-#: src/wx-console/console_thread.cpp:294
-msgid "Connecting...\n"
-msgstr ""
-
-#: src/wx-console/console_thread.cpp:310
-msgid "Error : No director defined in config file.\n"
-msgstr ""
-
-#: src/wx-console/console_thread.cpp:322
-msgid "Multiple directors found in your config file.\n"
-msgstr ""
-
-#: src/wx-console/console_thread.cpp:331
-#, c-format
-msgid "Please choose a director (1-%d): "
-msgstr ""
-
-#: src/wx-console/console_thread.cpp:403
-msgid "Failed to connect to the director\n"
-msgstr ""
-
-#: src/wx-console/console_thread.cpp:413
-msgid "Connected\n"
-msgstr ""
-
-#: src/wx-console/console_thread.cpp:470
-msgid "<< Unexpected signal received : "
-msgstr ""
-
-#: src/wx-console/console_thread.cpp:490
-msgid "Connection terminated\n"
-msgstr ""
-
-#: src/wx-console/main.cpp:101
-msgid "Bacula wx-console"
-msgstr ""
-
-#: src/wx-console/main.cpp:106 src/wx-console/wxbmainframe.cpp:248
-#, c-format
-msgid "Welcome to bacula wx-console %s (%s)!\n"
-msgstr ""
-
-#: src/wx-console/wxbconfigfileeditor.cpp:44
-msgid "Config file editor"
-msgstr ""
-
-#: src/wx-console/wxbconfigfileeditor.cpp:54
-msgid "# Bacula wx-console Configuration File\n"
-msgstr ""
-
-#: src/wx-console/wxbconfigfileeditor.cpp:90
-msgid "Save and close"
-msgstr ""
-
-#: src/wx-console/wxbconfigfileeditor.cpp:91
-msgid "Close without saving"
-msgstr ""
-
-#: src/wx-console/wxbconfigfileeditor.cpp:118
-#, c-format
-msgid "Unable to write to %s\n"
-msgstr ""
-
-#: src/wx-console/wxbconfigfileeditor.cpp:119
-msgid "Error while saving"
-msgstr ""
-
-#: src/wx-console/wxbconfigpanel.cpp:184
-msgid "Apply"
-msgstr ""
-
-#: src/wx-console/wxbhistorytextctrl.cpp:61
-#: src/wx-console/wxbhistorytextctrl.cpp:132
-#: src/wx-console/wxbmainframe.cpp:272
-msgid "Type your command below:"
-msgstr ""
-
-#: src/wx-console/wxbhistorytextctrl.cpp:96
-msgid "Unknown command."
-msgstr ""
-
-#: src/wx-console/wxbhistorytextctrl.cpp:105
-msgid "Possible completions: "
-msgstr ""
-
-#: src/wx-console/wxbmainframe.cpp:227
-msgid "&About...\tF1"
-msgstr ""
-
-#: src/wx-console/wxbmainframe.cpp:227
-msgid "Show about dialog"
-msgstr ""
-
-#: src/wx-console/wxbmainframe.cpp:229 src/wx-console/wxbmainframe.cpp:598
-msgid "Connect to the director"
-msgstr ""
-
-#: src/wx-console/wxbmainframe.cpp:230
-msgid "Disconnect"
-msgstr ""
-
-#: src/wx-console/wxbmainframe.cpp:230
-msgid "Disconnect of the director"
-msgstr ""
-
-#: src/wx-console/wxbmainframe.cpp:232
-msgid "Change of configuration file"
-msgstr ""
-
-#: src/wx-console/wxbmainframe.cpp:232
-msgid "Change your default configuration file"
-msgstr ""
-
-#: src/wx-console/wxbmainframe.cpp:233
-msgid "Edit your configuration file"
-msgstr ""
-
-#: src/wx-console/wxbmainframe.cpp:235
-msgid "E&xit\tAlt-X"
-msgstr ""
-
-#: src/wx-console/wxbmainframe.cpp:235
-msgid "Quit this program"
-msgstr ""
-
-#: src/wx-console/wxbmainframe.cpp:239
-msgid "&File"
-msgstr ""
-
-#: src/wx-console/wxbmainframe.cpp:240
-msgid "&Help"
-msgstr ""
-
-#: src/wx-console/wxbmainframe.cpp:257
-msgid "Console"
-msgstr ""
-
-#: src/wx-console/wxbmainframe.cpp:264
-msgid ""
-"Warning : Unicode is disabled because you are using wxWidgets for GTK+ 1.2.\n"
-msgstr ""
-
-#: src/wx-console/wxbmainframe.cpp:268
-msgid ""
-"Warning : There is a problem with wxWidgets for GTK+ 2.0 without Unicode "
-"support when handling non-ASCII filenames: Every non-ASCII character in such "
-"filenames will be replaced by an interrogation mark.\n"
-"If this behaviour disturbs you, please build wx-console against a Unicode "
-"version of wxWidgets for GTK+ 2.0.\n"
-"---\n"
-msgstr ""
-
-#: src/wx-console/wxbmainframe.cpp:279
-msgid "Send"
-msgstr ""
-
-#: src/wx-console/wxbmainframe.cpp:356 src/wx-console/wxbmainframe.cpp:368
-msgid "Error while parsing command line arguments, using defaults.\n"
-msgstr ""
-
-#: src/wx-console/wxbmainframe.cpp:357 src/wx-console/wxbmainframe.cpp:369
-msgid "Usage: wx-console [-c configfile] [-w tmp]\n"
-msgstr ""
-
-#: src/wx-console/wxbmainframe.cpp:397
-#, c-format
-msgid ""
-"It seems that it is the first time you run wx-console.\n"
-"This file (%s) has been choosen as default configuration file.\n"
-"Do you want to edit it? (if you click No you will have to select another "
-"file)"
-msgstr ""
-
-#: src/wx-console/wxbmainframe.cpp:399
-msgid "First run"
-msgstr ""
-
-#: src/wx-console/wxbmainframe.cpp:416
-#, c-format
-msgid ""
-"Unable to read %s\n"
-"Error: %s\n"
-"Do you want to choose another one? (Press no to edit this file)"
-msgstr ""
-
-#: src/wx-console/wxbmainframe.cpp:418
-msgid "Unable to read configuration file"
-msgstr ""
-
-#: src/wx-console/wxbmainframe.cpp:430
-msgid "Please choose a configuration file to use"
-msgstr ""
-
-#: src/wx-console/wxbmainframe.cpp:443
-msgid "This configuration file has been successfully read, use it as default?"
-msgstr ""
-
-#: src/wx-console/wxbmainframe.cpp:444
-msgid "Configuration file read successfully"
-msgstr ""
-
-#: src/wx-console/wxbmainframe.cpp:454
-#, c-format
-msgid "Using this configuration file: %s\n"
-msgstr ""
-
-#: src/wx-console/wxbmainframe.cpp:459
-msgid "Connecting to the director..."
-msgstr ""
-
-#: src/wx-console/wxbmainframe.cpp:474
-msgid "Failed to unregister a data parser !"
-msgstr ""
-
-#: src/wx-console/wxbmainframe.cpp:482
-msgid "Quitting.\n"
-msgstr ""
-
-#: src/wx-console/wxbmainframe.cpp:497
-msgid ""
-"Welcome to Bacula wx-console.\n"
-"Written by Nicolas Boichat <nicolas@boichat.ch>\n"
-"(C) 2005 Kern Sibbald\n"
-msgstr ""
-
-#: src/wx-console/wxbmainframe.cpp:499
-msgid "About Bacula wx-console"
-msgstr ""
-
-#: src/wx-console/wxbmainframe.cpp:505
-msgid "Please choose your default configuration file"
-msgstr ""
-
-#: src/wx-console/wxbmainframe.cpp:509
-msgid "Use this configuration file as default?"
-msgstr ""
-
-#: src/wx-console/wxbmainframe.cpp:510
-msgid "Configuration file"
-msgstr ""
-
-#: src/wx-console/wxbmainframe.cpp:581
-msgid "Console thread terminated."
-msgstr ""
-
-#: src/wx-console/wxbmainframe.cpp:589
-msgid "Connection to the director lost. Quit program?"
-msgstr ""
-
-#: src/wx-console/wxbmainframe.cpp:590
-msgid "Connection lost"
-msgstr ""
-
-#: src/wx-console/wxbmainframe.cpp:606
-msgid "Connected to the director."
-msgstr ""
-
-#: src/wx-console/wxbmainframe.cpp:629
-msgid "Reconnect"
-msgstr ""
-
-#: src/wx-console/wxbmainframe.cpp:630
-msgid "Reconnect to the director"
-msgstr ""
-
-#: src/wx-console/wxbmainframe.cpp:644
-msgid "Disconnected of the director."
-msgstr ""
-
-#: src/wx-console/wxbmainframe.cpp:663 src/wx-console/wxbrestorepanel.cpp:689
-msgid "Unexpected question has been received.\n"
-msgstr ""
-
-#: src/wx-console/wxbmainframe.cpp:686 src/wx-console/wxbmainframe.cpp:703
-msgid "wx-console: unexpected director's question."
-msgstr ""
-
-#: src/wx-console/wxbrestorepanel.cpp:216
-#: src/wx-console/wxbrestorepanel.cpp:1895
-#: src/wx-console/wxbrestorepanel.cpp:1924
-msgid "Enter restore mode"
-msgstr ""
-
-#: src/wx-console/wxbrestorepanel.cpp:219
-msgid "Cancel restore"
-msgstr ""
-
-#: src/wx-console/wxbrestorepanel.cpp:245
-#: src/wx-console/wxbrestorepanel.cpp:299
-msgid "Add"
-msgstr ""
-
-#: src/wx-console/wxbrestorepanel.cpp:247
-#: src/wx-console/wxbrestorepanel.cpp:301
-msgid "Remove"
-msgstr ""
-
-#: src/wx-console/wxbrestorepanel.cpp:249
-#: src/wx-console/wxbrestorepanel.cpp:303
-msgid "Refresh"
-msgstr ""
-
-#: src/wx-console/wxbrestorepanel.cpp:268
-msgid "M"
-msgstr ""
-
-#: src/wx-console/wxbrestorepanel.cpp:272
-msgid "Filename"
-msgstr ""
-
-#: src/wx-console/wxbrestorepanel.cpp:284
-msgid "Perm."
-msgstr ""
-
-#: src/wx-console/wxbrestorepanel.cpp:317
-#: src/wx-console/wxbrestorepanel.cpp:330
-#: src/wx-console/wxbrestorepanel.cpp:482
-#: src/wx-console/wxbrestorepanel.cpp:492
-#: src/wx-console/wxbrestorepanel.cpp:495
-#: src/wx-console/wxbrestorepanel.cpp:1760
-#: src/wx-console/wxbrestorepanel.cpp:1846
-msgid "Job Name"
-msgstr ""
-
-#: src/wx-console/wxbrestorepanel.cpp:319
-#: src/wx-console/wxbrestorepanel.cpp:335
-#: src/wx-console/wxbrestorepanel.cpp:434
-#: src/wx-console/wxbrestorepanel.cpp:435
-#: src/wx-console/wxbrestorepanel.cpp:445
-#: src/wx-console/wxbrestorepanel.cpp:446
-#: src/wx-console/wxbrestorepanel.cpp:1118
-#: src/wx-console/wxbrestorepanel.cpp:1191
-#: src/wx-console/wxbrestorepanel.cpp:1798
-#: src/wx-console/wxbrestorepanel.cpp:1800
-#: src/wx-console/wxbrestorepanel.cpp:1861
-msgid "Fileset"
-msgstr ""
-
-#: src/wx-console/wxbrestorepanel.cpp:322
-#: src/wx-console/wxbrestorepanel.cpp:1185
-#: src/wx-console/wxbrestorepanel.cpp:1201
-#: src/wx-console/wxbrestorepanel.cpp:1203
-#: src/wx-console/wxbrestorepanel.cpp:1211
-#: src/wx-console/wxbrestorepanel.cpp:1213
-#: src/wx-console/wxbrestorepanel.cpp:1232
-#: src/wx-console/wxbrestorepanel.cpp:1239
-#: src/wx-console/wxbrestorepanel.cpp:1788
-#: src/wx-console/wxbrestorepanel.cpp:1799
-#: src/wx-console/wxbrestorepanel.cpp:1919
-msgid "Before"
-msgstr ""
-
-#: src/wx-console/wxbrestorepanel.cpp:324
-msgid "Please configure parameters concerning files to restore :"
-msgstr ""
-
-#: src/wx-console/wxbrestorepanel.cpp:333
-#: src/wx-console/wxbrestorepanel.cpp:1854
-msgid "always"
-msgstr ""
-
-#: src/wx-console/wxbrestorepanel.cpp:333
-msgid "if newer"
-msgstr ""
-
-#: src/wx-console/wxbrestorepanel.cpp:333
-msgid "if older"
-msgstr ""
-
-#: src/wx-console/wxbrestorepanel.cpp:333
-#: src/wx-console/wxbrestorepanel.cpp:1857
-msgid "never"
-msgstr ""
-
-#: src/wx-console/wxbrestorepanel.cpp:341
-msgid "Please configure parameters concerning files restoration :"
-msgstr ""
-
-#: src/wx-console/wxbrestorepanel.cpp:406
-msgid "Getting parameters list."
-msgstr ""
-
-#: src/wx-console/wxbrestorepanel.cpp:414
-msgid "Error : no clients returned by the director."
-msgstr ""
-
-#: src/wx-console/wxbrestorepanel.cpp:438
-msgid "Error : no filesets returned by the director."
-msgstr ""
-
-#: src/wx-console/wxbrestorepanel.cpp:462
-msgid "Error : no storage returned by the director."
-msgstr ""
-
-#: src/wx-console/wxbrestorepanel.cpp:485
-#: src/wx-console/wxbrestorepanel.cpp:509
-msgid "Error : no jobs returned by the director."
-msgstr ""
-
-#: src/wx-console/wxbrestorepanel.cpp:495
-msgid "RestoreFiles"
-msgstr ""
-
-#: src/wx-console/wxbrestorepanel.cpp:530
-msgid "Please configure your restore parameters."
-msgstr ""
-
-#: src/wx-console/wxbrestorepanel.cpp:541
-msgid "Building restore tree..."
-msgstr ""
-
-#: src/wx-console/wxbrestorepanel.cpp:584
-msgid "Error while starting restore: "
-msgstr ""
-
-#: src/wx-console/wxbrestorepanel.cpp:674
-msgid ""
-"Right click on a file or on a directory, or double-click on its mark to add "
-"it to the restore list."
-msgstr ""
-
-#: src/wx-console/wxbrestorepanel.cpp:711
-#: src/wx-console/wxbrestorepanel.cpp:733
-msgid "wx-console: unexpected restore question."
-msgstr ""
-
-#: src/wx-console/wxbrestorepanel.cpp:744
-msgid " files selected to be restored."
-msgstr ""
-
-#: src/wx-console/wxbrestorepanel.cpp:749
-msgid " file selected to be restored."
-msgstr ""
-
-#: src/wx-console/wxbrestorepanel.cpp:756
-#, c-format
-msgid "Please configure your restore (%ld files selected to be restored)..."
-msgstr ""
-
-#: src/wx-console/wxbrestorepanel.cpp:766
-msgid "Restore failed : no file selected.\n"
-msgstr ""
-
-#: src/wx-console/wxbrestorepanel.cpp:767
-msgid "Restore failed : no file selected."
-msgstr ""
-
-#: src/wx-console/wxbrestorepanel.cpp:777
-msgid "Restoring, please wait..."
-msgstr ""
-
-#: src/wx-console/wxbrestorepanel.cpp:790
-msgid "Job started. JobId="
-msgstr ""
-
-#: src/wx-console/wxbrestorepanel.cpp:792
-msgid "Restore started, jobid="
-msgstr ""
-
-#: src/wx-console/wxbrestorepanel.cpp:796
-msgid "Job failed."
-msgstr ""
-
-#: src/wx-console/wxbrestorepanel.cpp:797
-msgid "Restore failed, please look at messages.\n"
-msgstr ""
-
-#: src/wx-console/wxbrestorepanel.cpp:798
-msgid "Restore failed, please look at messages in console."
-msgstr ""
-
-#: src/wx-console/wxbrestorepanel.cpp:804
-#: src/wx-console/wxbrestorepanel.cpp:805
-msgid "Failed to retrieve jobid.\n"
-msgstr ""
-
-#: src/wx-console/wxbrestorepanel.cpp:831
-msgid ""
-"Restore is scheduled in more than two minutes, wx-console will not wait for "
-"its completion.\n"
-msgstr ""
-
-#: src/wx-console/wxbrestorepanel.cpp:832
-msgid ""
-"Restore is scheduled in more than two minutes, wx-console will not wait for "
-"its completion."
-msgstr ""
-
-#: src/wx-console/wxbrestorepanel.cpp:858
-msgid "Restore job created, but not yet running."
-msgstr ""
-
-#: src/wx-console/wxbrestorepanel.cpp:863
-#, c-format
-msgid "Restore job running, please wait (%ld of %ld files restored)..."
-msgstr ""
-
-#: src/wx-console/wxbrestorepanel.cpp:867
-msgid "Restore job terminated successfully."
-msgstr ""
-
-#: src/wx-console/wxbrestorepanel.cpp:868
-msgid "Restore job terminated successfully.\n"
-msgstr ""
-
-#: src/wx-console/wxbrestorepanel.cpp:873
-msgid "Restore job terminated in error, see messages in console."
-msgstr ""
-
-#: src/wx-console/wxbrestorepanel.cpp:874
-msgid "Restore job terminated in error, see messages.\n"
-msgstr ""
-
-#: src/wx-console/wxbrestorepanel.cpp:879
-msgid "Restore job reported a non-fatal error."
-msgstr ""
-
-#: src/wx-console/wxbrestorepanel.cpp:883
-msgid "Restore job reported a fatal error."
-msgstr ""
-
-#: src/wx-console/wxbrestorepanel.cpp:888
-msgid "Restore job cancelled by user."
-msgstr ""
-
-#: src/wx-console/wxbrestorepanel.cpp:889
-msgid "Restore job cancelled by user.\n"
-msgstr ""
-
-#: src/wx-console/wxbrestorepanel.cpp:894
-msgid "Restore job is waiting on File daemon."
-msgstr ""
-
-#: src/wx-console/wxbrestorepanel.cpp:898
-msgid "Restore job is waiting for new media."
-msgstr ""
-
-#: src/wx-console/wxbrestorepanel.cpp:902
-msgid "Restore job is waiting for storage resource."
-msgstr ""
-
-#: src/wx-console/wxbrestorepanel.cpp:906
-msgid "Restore job is waiting for job resource."
-msgstr ""
-
-#: src/wx-console/wxbrestorepanel.cpp:910
-msgid "Restore job is waiting for Client resource."
-msgstr ""
-
-#: src/wx-console/wxbrestorepanel.cpp:914
-msgid "Restore job is waiting for maximum jobs."
-msgstr ""
-
-#: src/wx-console/wxbrestorepanel.cpp:918
-msgid "Restore job is waiting for start time."
-msgstr ""
-
-#: src/wx-console/wxbrestorepanel.cpp:922
-msgid "Restore job is waiting for higher priority jobs to finish."
-msgstr ""
-
-#: src/wx-console/wxbrestorepanel.cpp:971
-msgid ""
-"The restore job has not been started within one minute, wx-console will not "
-"wait for its completion anymore.\n"
-msgstr ""
-
-#: src/wx-console/wxbrestorepanel.cpp:972
-msgid ""
-"The restore job has not been started within one minute, wx-console will not "
-"wait for its completion anymore."
-msgstr ""
-
-#: src/wx-console/wxbrestorepanel.cpp:982
-msgid "Restore done successfully.\n"
-msgstr ""
-
-#: src/wx-console/wxbrestorepanel.cpp:983
-msgid "Restore done successfully."
-msgstr ""
-
-#: src/wx-console/wxbrestorepanel.cpp:1054
-msgid "Applying restore configuration changes..."
-msgstr ""
-
-#: src/wx-console/wxbrestorepanel.cpp:1105
-msgid "Failed to find the selected client."
-msgstr ""
-
-#: src/wx-console/wxbrestorepanel.cpp:1120
-msgid "Failed to find the selected fileset."
-msgstr ""
-
-#: src/wx-console/wxbrestorepanel.cpp:1135
-msgid "Failed to find the selected storage."
-msgstr ""
-
-#: src/wx-console/wxbrestorepanel.cpp:1152
-#: src/wx-console/wxbrestorepanel.cpp:1835
-msgid "Run Restore job"
-msgstr ""
-
-#: src/wx-console/wxbrestorepanel.cpp:1168
-msgid "Restore configuration changes were applied."
-msgstr ""
-
-#: src/wx-console/wxbrestorepanel.cpp:1177
-msgid "Restore cancelled.\n"
-msgstr ""
-
-#: src/wx-console/wxbrestorepanel.cpp:1178
-msgid "Restore cancelled."
-msgstr ""
-
-#: src/wx-console/wxbrestorepanel.cpp:1200
-msgid "No results to list."
-msgstr ""
-
-#: src/wx-console/wxbrestorepanel.cpp:1202
-msgid "No backup found for this client."
-msgstr ""
-
-#: src/wx-console/wxbrestorepanel.cpp:1209
-msgid "ERROR"
-msgstr ""
-
-#: src/wx-console/wxbrestorepanel.cpp:1210
-msgid "Query failed"
-msgstr ""
-
-#: src/wx-console/wxbrestorepanel.cpp:1212
-msgid "Cannot get previous backups list, see console."
-msgstr ""
-
-#: src/wx-console/wxbrestorepanel.cpp:1845
-msgid "JobName:"
-msgstr ""
-
-#: src/wx-console/wxbrestorepanel.cpp:1849
-msgid "Where:"
-msgstr ""
-
-#: src/wx-console/wxbrestorepanel.cpp:1852
-msgid "Replace:"
-msgstr ""
-
-#: src/wx-console/wxbrestorepanel.cpp:1855
-msgid "ifnewer"
-msgstr ""
-
-#: src/wx-console/wxbrestorepanel.cpp:1856
-msgid "ifolder"
-msgstr ""
-
-#: src/wx-console/wxbrestorepanel.cpp:1860
-msgid "FileSet:"
-msgstr ""
-
-#: src/wx-console/wxbrestorepanel.cpp:1976
-msgid "Restoring..."
 msgstr ""
