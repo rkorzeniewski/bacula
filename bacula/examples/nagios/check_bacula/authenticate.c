@@ -76,7 +76,7 @@ int authenticate_director(BSOCK *dir, char *dirname, char *password)
 
    /* Timeout Hello after 5 mins */
    btimer_t *tid = start_bsock_timer(dir, 60 * 5);
-   bnet_fsend(dir, DIRhello, bashed_name);
+   dir->fsend(DIRhello, bashed_name);
 
    if (!cram_md5_respond(dir, password, &tls_remote_need, &compatible) ||
        !cram_md5_challenge(dir, password, tls_local_need, compatible)) {
@@ -85,7 +85,7 @@ int authenticate_director(BSOCK *dir, char *dirname, char *password)
    }
 
    Dmsg1(6, ">dird: %s", dir->msg);
-   if (bnet_recv(dir) <= 0) {
+   if (dir->recv() <= 0) {
       stop_bsock_timer(tid);
       return 0;
    }
@@ -114,7 +114,7 @@ int authenticate_storage_daemon(BSOCK *sd, char *sdname, char* password)
    bash_spaces(dirname);
    /* Timeout Hello after 5 mins */
    btimer_t *tid = start_bsock_timer(sd, 60 * 5);
-   if (!bnet_fsend(sd, SDFDhello, dirname)) {
+   if (!sd->fsend(SDFDhello, dirname)) {
       stop_bsock_timer(tid);
       return 0;
    }
@@ -124,7 +124,7 @@ int authenticate_storage_daemon(BSOCK *sd, char *sdname, char* password)
       return 0;
    }
    Dmsg1(116, ">stored: %s", sd->msg);
-   if (bnet_recv(sd) <= 0) {
+   if (sd->recv() <= 0) {
       stop_bsock_timer(tid);
       return 0;
    }
@@ -153,7 +153,7 @@ int authenticate_file_daemon(BSOCK *fd, char *fdname, char *password)
    bash_spaces(dirname);
    /* Timeout Hello after 5 mins */
    btimer_t *tid = start_bsock_timer(fd, 60 * 5);
-   if (!bnet_fsend(fd, SDFDhello, dirname)) {
+   if (!fd->fsend(SDFDhello, dirname)) {
       stop_bsock_timer(tid);
       return 0;
    }
@@ -163,7 +163,7 @@ int authenticate_file_daemon(BSOCK *fd, char *fdname, char *password)
       return 0;
    }
    Dmsg1(116, ">filed: %s", fd->msg);
-   if (bnet_recv(fd) <= 0) {
+   if (fd->recv() <= 0) {
       stop_bsock_timer(tid);
       return 0;
    }
