@@ -87,7 +87,7 @@ public:
    void writecmd(const char* command) {
       if (this->D_sock) {
          this->D_sock->msglen = pm_strcpy(&this->D_sock->msg, command);
-         bnet_send(this->D_sock);
+         this->D_sock->send();
       }
    }
 
