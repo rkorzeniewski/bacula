@@ -142,7 +142,7 @@ private slots:
       qDebug() << cmd;
       item->D_sock->fsend("%s", cmd.toUtf8().data());
       QString output;
-      while(bnet_recv(item->D_sock) >= 0) {output += item->D_sock->msg;}
+      while(item->D_sock->recv() >= 0) {output += item->D_sock->msg;}
       QMessageBox msgBox;
       msgBox.setText(output);
       msgBox.exec();
