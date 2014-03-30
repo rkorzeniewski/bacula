@@ -39,7 +39,7 @@ DIRTOOLS = bsmtp dbcheck drivetype fstype testfind testls bregex bwild bbatch br
 TOOLS = $(@DIR_TOOLS@)
 
 INSNODIRTOOLS = bsmtp
-INSDIRTOOLS = bsmtp dbcheck bwild bregex
+INSDIRTOOLS = bsmtp dbcheck bwild bregex bpluginfo
 INSTOOLS = $(INS@DIR_TOOLS@)
 
 .SUFFIXES:	.c .o
