@@ -286,7 +286,7 @@ int docmd(monitoritem* item, const char* command, char *answer) {
       case R_CLIENT:
                  filed = (CLIENT*)item->resource;
                  item->D_sock = new_bsock();
-                 item->D_sock = connect(NULL, 0, 0, 0, "File daemon", filed->address, NULL, filed->FDport, 0);
+                 item->D_sock->connect(NULL, 0, 0, 0, "File daemon", filed->address, NULL, filed->FDport, 0);
                  dname = "FileDaemon";
                  break;
       case R_STORAGE:
