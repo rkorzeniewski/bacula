@@ -84,7 +84,7 @@ void dotest()
 void get_list(monitoritem *item, const char *cmd, QStringList &lst)
 {
    int stat;
-
+   
    doconnect(item);
    item->writecmd(cmd);
    while((stat = item->D_sock->recv()) >= 0) {
@@ -109,7 +109,7 @@ void refresh_item()
          break;
       case R_STORAGE:
          cmd = "status";
-         break;
+         break;          
       default:
          exit(1);
          break;
@@ -124,7 +124,7 @@ void refresh_item()
  *
  */
 int main(int argc, char *argv[])
-{
+{   
    int ch, i, dir_index=-1;
    bool test_config = false;
    DIRRES* dird;
@@ -138,7 +138,7 @@ int main(int argc, char *argv[])
    init_stack_dump();
    my_name_is(argc, argv, "tray-monitor");
    lmgr_init_thread();
-   init_msg(NULL, NULL);
+   init_msg(NULL, NULL, NULL);
    working_directory = "/tmp";
 
    struct sigaction sigignore;
@@ -275,7 +275,7 @@ int main(int argc, char *argv[])
          break;
       case R_STORAGE:
          cmd = "status";
-         break;
+         break;          
       default:
          exit(1);
          break;
@@ -292,14 +292,14 @@ int main(int argc, char *argv[])
          items[i].writecmd("quit");
          if (items[i].D_sock) {
             items[i].D_sock->signal(BNET_TERMINATE); /* send EOF */
-            items[i].D_sock->close();
+            free_bsock(items[i].D_sock);
          }
       }
    }
 
 
    (void)WSACleanup();               /* Cleanup Windows sockets */
-
+   
    config->free_resources();
    free(config);
    config = NULL;
@@ -332,9 +332,9 @@ void changeStatusMessage(monitoritem*, const char *fmt,...) {
    tray->statusbar->showMessage(QString(buf));
 }
 
-int doconnect(monitoritem* item)
+int doconnect(monitoritem* item) 
 {
-   if (!item->D_sock) {
+   if (!is_bsock_open(item->D_sock)) {
       memset(&jcr, 0, sizeof(jcr));
 
       DIRRES* dird;
@@ -345,24 +345,30 @@ int doconnect(monitoritem* item)
       case R_DIRECTOR:
          dird = (DIRRES*)item->resource;
          changeStatusMessage(item, _("Connecting to Director %s:%d"), dird->address, dird->DIRport);
-         item->D_sock = new_bsock();
-         item->D_sock->connect(NULL, monitor->DIRConnectTimeout,
+         if (!item->D_sock) {
+            item->D_sock = new_bsock();
+         }
+         item->D_sock->connect(NULL, monitor->DIRConnectTimeout, 
                                      0, 0, _("Director daemon"), dird->address, NULL, dird->DIRport, 0);
          jcr.dir_bsock = item->D_sock;
          break;
       case R_CLIENT:
          filed = (CLIENT*)item->resource;
          changeStatusMessage(item, _("Connecting to Client %s:%d"), filed->address, filed->FDport);
-         item->D_sock = new_bsock();
-         item->D_sock->connect(NULL, monitor->FDConnectTimeout,
+         if (!item->D_sock) {
+            item->D_sock = new_bsock();
+         }
+         item->D_sock->connect(NULL, monitor->FDConnectTimeout, 
                                      0, 0, _("File daemon"), filed->address, NULL, filed->FDport, 0);
          jcr.file_bsock = item->D_sock;
          break;
       case R_STORAGE:
          stored = (STORE*)item->resource;
          changeStatusMessage(item, _("Connecting to Storage %s:%d"), stored->address, stored->SDport);
-         item->D_sock = new_bsock();
-         item->D_sock->connect(NULL, monitor->SDConnectTimeout,
+         if (!item->D_sock) {
+            item->D_sock = new_bsock();
+         }
+         item->D_sock->connect(NULL, monitor->SDConnectTimeout, 
                                      0, 0, _("Storage daemon"), stored->address, NULL, stored->SDport, 0);
          jcr.store_bsock = item->D_sock;
          break;
@@ -409,7 +415,7 @@ int doconnect(monitoritem* item)
    return 1;
 }
 
-int docmd(monitoritem* item, const char* command)
+int docmd(monitoritem* item, const char* command) 
 {
    int stat;
    //qDebug() << "docmd(" << item->get_name() << "," << command << ")";
