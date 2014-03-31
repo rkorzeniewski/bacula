@@ -1,5 +1,20 @@
-              Changelog on version 7.0.0
+              Changelog on version 7.0.1
 
+Release version 7.0.1
+31Mar14
+ - Remove old plugin-test
+ - Update po files
+ - Enable installation of the bpluginfo utility
+ - More tray-monitor updates
+ - Add Simone Caronii to AUTHORS
+ - Align command line switches in manpages.
+ - Apply upgrade to config.guess
+ - Remove bgnome-console and bwx-console leftovers.
+ - Update tray-monitor header also for new bsock calls
+ - Attempt to fix nagios to use new bsock calls
+ - Update tray-monitor to new bsock calls
+
+==========
 Release version 7.0.0
 
 24Mar14

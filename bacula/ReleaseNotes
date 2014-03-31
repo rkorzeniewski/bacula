@@ -1,5 +1,24 @@
 
-               Release Notes for Bacula 7.0.0
+               Release Notes for Bacula 7.0.1
+
+Release version 7.0.1
+This is a minor update since version 7.0.0 that is mostly cleanup.
+
+31Mar14
+ - Remove old plugin-test
+ - Update po files
+ - Enable installation of the bpluginfo utility
+ - More tray-monitor updates
+ - Add Simone Caronii to AUTHORS
+ - Align command line switches in manpages.
+ - Apply upgrade to config.guess
+ - Remove bgnome-console and bwx-console leftovers.
+ - Update tray-monitor header also for new bsock calls
+ - Attempt to fix nagios to use new bsock calls
+ - Update tray-monitor to new bsock calls
+
+========================================
+Release 7.0.0
 
  Bacula code: Total files = 713 Total lines = 305,722
  The diff between Bacula 5.2.13 and Bacula 7.0.0 is 622,577 lines,
