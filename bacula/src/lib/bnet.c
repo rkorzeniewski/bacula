@@ -439,14 +439,15 @@ static const char *resolv_host(int family, const char *host, dlist * addr_list)
          IPADDR *addr =  New(IPADDR(hp->h_addrtype));
          addr->set_type(IPADDR::R_MULTIPLE);
          if (addr->get_family() == AF_INET) {
-             addr->set_addr4((struct in_addr*)*p);
+            addr->set_addr4((struct in_addr*)*p);
+            addr_list->append(addr);
          }
 #ifdef HAVE_IPV6
-         else {
-             addr->set_addr6((struct in6_addr*)*p);
+         else if (addr->get_family() == AF_INET6) {
+            addr->set_addr6((struct in6_addr*)*p);
+            addr_list->append(addr);
          }
 #endif
-         addr_list->append(addr);
       }
       V(ip_mutex);
    }
