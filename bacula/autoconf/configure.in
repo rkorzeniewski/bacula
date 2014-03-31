@@ -122,7 +122,6 @@ AC_PATH_PROG(OPENSSL, openssl, none)
 AC_PATH_PROG(MTX, mtx, mtx)
 AC_PATH_PROG(DD, dd, dd)
 AC_PATH_PROG(MKISOFS, mkisofs, mkisofs)
-AC_PATH_PROG(PYTHON, python, python)
 AC_PATH_PROG(GROWISOFS, growisofs, growisofs)
 AC_PATH_PROG(DVDRWMEDIAINFO, dvd+rw-mediainfo, dvd+rw-mediainfo)
 AC_PATH_PROG(DVDRWFORMAT, dvd+rw-format, dvd+rw-format)
@@ -365,7 +364,6 @@ support_static_fd=no
 support_static_sd=no
 support_static_dir=no
 support_static_cons=no
-support_python=no
 build_client_only=no
 build_dird=yes
 build_stored=yes
@@ -840,95 +838,6 @@ AC_CHECK_HEADERS(varargs.h)
 
 dnl End of readline/conio stuff
 dnl -----------------------------------------------------------------------
-
-dnl -----------------------------------------------------------------------
-dnl  Check for Python support
-dnl
-AC_MSG_CHECKING(for Python support)
-AC_ARG_WITH(python,
-   AC_HELP_STRING([--with-python@<:@=DIR@:>@], [Include Python support. DIR is the Python base install directory, default is to search through a number of common places for the Python files.]),
-   [
-       PYTHON_INCDIR=
-       PYTHON_LIBS=
-       if test "$withval" != "no"; then
-	  if test "$withval" = "yes"; then
-	     if test -e /usr/bin/python-config ; then
-		PYTHON_INCDIR=`/usr/bin/python-config --includes`
-		PYTHON_LIBS=`/usr/bin/python-config --libs`
-	     else
-		for python_root in /usr /usr/local /usr/sfw; do
-		   for ver in python2.2 python2.3 python2.4 python2.5 python2.6 python2.7 python3; do
-		      if test -f $python_root/include/${ver}/Python.h; then
-			 PYTHON_INCDIR=-I$python_root/include/${ver}
-			 if test -d $python_root/lib64/${ver}/config; then
-			    PYTHON_LIBS="-L$python_root/lib64/${ver}/config -l${ver}"
-			 else
-			    PYTHON_LIBS="-L$python_root/lib/${ver}/config -l${ver}"
-			 fi
-			 break
-		      fi
-		   done
-		done
-
-		if test x$PYTHON_INCDIR = x; then
-		   if test -f $prefix/include/Python.h; then
-		      PYTHON_INCDIR=-I$prefix/include
-		      if test -d $prefix/lib64/config; then
-			 PYTHON_LIBS="-L$prefix/lib64/config -lpython"
-		      else
-			 PYTHON_LIBS="-L$prefix/lib/config -lpython"
-		      fi
-		   else
-		      AC_MSG_RESULT(no)
-		      AC_MSG_ERROR(Unable to find Python.h in standard locations)
-		   fi
-		fi
-	     fi
-	  else
-	     if test -e $withval/bin/python-config ; then
-		PYTHON_INCDIR=`$withval/bin/python-config --includes`
-		PYTHON_LIBS=`$withval/bin/python-config --libs`
-	     elif test -f $withval/Python.h; then
-		PYTHON_INCDIR=-I$withval
-		PYTHON_LIBS="-L$withval/config -lpython"
-	     elif test -f $withval/include/Python.h; then
-		PYTHON_INCDIR=-I$withval/include
-		if test -d $withval/lib64/config; then
-		   PYTHON_LIBS="-L$withval/lib64/config -lpython"
-		else
-		   PYTHON_LIBS="-L$withval/lib/config -lpython"
-		fi
-	     elif test -f $withval/include/python/Python.h; then
-		PYTHON_INCDIR=-I$withval/include/python
-		if test -d $withval/lib64/python/config; then
-		   PYTHON_LIBS="-L$withval/lib64/python/config -lpython"
-		else
-		   PYTHON_LIBS="-L$withval/lib/python/config -lpython"
-		fi
-	     else
-		AC_MSG_RESULT(no)
-		AC_MSG_ERROR(Invalid Python directory $withval - unable to find Python.h under $withval)
-	     fi
-	  fi
-
-	  AC_DEFINE([HAVE_PYTHON], 1)
-	  AC_MSG_RESULT(yes)
-	  support_python=yes
-	  AC_MSG_NOTICE(checking for more Python libs)
-	  saved_LIBS="$LIBS"; LIBS=
-	  AC_SEARCH_LIBS(shm_open, [rt])
-	  AC_CHECK_LIB(util, openpty)
-	  PYTHON_LIBS="$PYTHON_LIBS $LIBS"
-	  LIBS="$saved_LIBS"
-       else
-	  AC_MSG_RESULT(no)
-       fi
-   ],[
-       AC_MSG_RESULT(no)
-   ]
-)
-AC_SUBST(PYTHON_LIBS)
-AC_SUBST(PYTHON_INCDIR)
 
 dnl
 dnl Find where sockets are (especially for Solaris)
@@ -3572,7 +3481,6 @@ Configuration on `date`:
    AFS support: 	    ${have_afs}
    ACL support: 	    ${have_acl}
    XATTR support:	    ${have_xattr}
-   Python support:	    ${support_python} ${PYTHON_LIBS}
    systemd support:	    ${support_systemd} ${SYSTEMD_UNITDIR}
    Batch insert enabled:    ${batch_insert_db_backends}
 

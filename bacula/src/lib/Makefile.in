@@ -5,7 +5,6 @@
 # Define library versions
 LIBBAC_LT_RELEASE = @LIBBAC_LT_RELEASE@
 LIBBACCFG_LT_RELEASE = @LIBBACCFG_LT_RELEASE@
-LIBBACPY_LT_RELEASE = @LIBBACPY_LT_RELEASE@
 
 #
 
@@ -69,12 +68,6 @@ LIBBACCFG_SRCS = ini.c parse_conf.c res.c
 LIBBACCFG_OBJS = $(LIBBACCFG_SRCS:.c=.o)
 LIBBACCFG_LOBJS = $(LIBBACCFG_SRCS:.c=.lo)
 
-#
-# libbacpy (python functions)
-#
-LIBBACPY_SRCS =
-LIBBACPY_OBJS = $(LIBBACPY_SRCS:.c=.o)
-LIBBACPY_LOBJS = $(LIBBACPY_SRCS:.c=.lo)
 
 .SUFFIXES:	.c .cc .o .lo .ch .dvi .pdf .tex .view .w .1
 .PHONY:
@@ -101,7 +94,7 @@ LIBBACPY_LOBJS = $(LIBBACPY_SRCS:.c=.lo)
 
 
 #-------------------------------------------------------------------------
-all: Makefile libbac$(DEFAULT_ARCHIVE_TYPE) libbaccfg$(DEFAULT_ARCHIVE_TYPE) libbacpy$(DEFAULT_ARCHIVE_TYPE) 
+all: Makefile libbac$(DEFAULT_ARCHIVE_TYPE) libbaccfg$(DEFAULT_ARCHIVE_TYPE) 
 	@echo "==== Make of lib is good ===="
 	@echo " "
 
@@ -122,15 +115,6 @@ libbaccfg.a: $(LIBBACCFG_OBJS)
 libbaccfg.la: Makefile $(LIBBACCFG_LOBJS) 
 	@echo "Making $@ ..."
 	$(LIBTOOL_LINK) $(CXX) $(DEFS) $(DEBUG) $(LDFLAGS) -o $@ $(LIBBACCFG_LOBJS) -export-dynamic -rpath $(libdir) -release $(LIBBACCFG_LT_RELEASE) $(OPENSSL_LIBS) $(LIBS)
-
-libbacpy.a: $(LIBBACPY_OBJS) 
-	@echo "Making $@ ..."
-	$(AR) rc  $@ $(LIBBACPY_OBJS)
-	$(RANLIB) $@
-
-libbacpy.la: Makefile $(LIBBACPY_LOBJS) 
-	@echo "Making $@ ..."
-	$(LIBTOOL_LINK) $(CXX) $(DEFS) $(DEBUG) $(LDFLAGS) -o $@ $(LIBBACPY_LOBJS) -export-dynamic -rpath $(libdir) -release $(LIBBACPY_LT_RELEASE) $(OPENSSL_LIBS) $(LIBS)
 
 Makefile: $(srcdir)/Makefile.in $(topdir)/config.status
 	cd $(topdir) \
@@ -224,7 +208,6 @@ libtool-install: all
 	$(RMF) $(DESTDIR)$(libdir)/libbacpy-*.so $(DESTDIR)$(libdir)/libbacpy.la
 	$(LIBTOOL_INSTALL_FINISH) $(INSTALL_LIB) libbac.la $(DESTDIR)$(libdir)
 	$(LIBTOOL_INSTALL_FINISH) $(INSTALL_LIB) libbaccfg.la $(DESTDIR)$(libdir)
-	$(LIBTOOL_INSTALL_FINISH) $(INSTALL_LIB) libbacpy.la $(DESTDIR)$(libdir)
 
 libtool-uninstall:
 	$(LIBTOOL_UNINSTALL) $(RMF) $(DESTDIR)$(libdir)/libbac.la
@@ -260,7 +243,7 @@ depend:
 	@$(MV) Makefile Makefile.bak
 	@$(SED) "/^# DO NOT DELETE:/,$$ d" Makefile.bak > Makefile
 	@$(ECHO) "# DO NOT DELETE: nice dependency list follows" >> Makefile
-	@for src in $(LIBBAC_SRCS) $(LIBBACCFG_SRCS) $(LIBBACPY_SRCS); do \
+	@for src in $(LIBBAC_SRCS) $(LIBBACCFG_SRCS); do \
 	    $(CXX) -S -M -MT `basename $$src .c`$(DEFAULT_OBJECT_TYPE) $(CPPFLAGS) $(XINC) -I$(srcdir) -I$(basedir) $$src >> Makefile; \
 	done
 	@if test -f Makefile ; then \
