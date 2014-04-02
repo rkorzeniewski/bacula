@@ -1,4 +1,14 @@
-              Changelog on version 7.0.1
+              Changelog on version 7.0.2
+
+Release version 7.0.2
+02Apr14
+ - Remove more vestiges of libbacpy
+ - Put back @PYTHON@ path in configure
+ - Fix improper string in parser
+ - Remove libbacpy from rpm spec files
+ - Fix linking check_bacula
+ - Fix new SD login in check_bacula
+ - Tweek docs build process
 
 Release version 7.0.1
 31Mar14

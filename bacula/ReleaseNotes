@@ -1,5 +1,22 @@
 
-               Release Notes for Bacula 7.0.1
+               Release Notes for Bacula 7.0.2
+
+Release version 7.0.2
+This is a minor update since version 7.0.1 that is mostly cleanup.
+However, there is one annoying bug concerning shell expansion of
+config directory names that is fixed, and there is at least one
+syntax error in building the full docs that appears on some systems
+that is also fixed.
+
+02Apr14
+ - Remove more vestiges of libbacpy
+ - Put back @PYTHON@ path in configure
+ - Fix improper string in parser
+ - Remove libbacpy from rpm spec files
+ - Fix linking check_bacula
+ - Fix new SD login in check_bacula
+ - Tweak docs build process
+
 
 Release version 7.0.1
 This is a minor update since version 7.0.0 that is mostly cleanup.
