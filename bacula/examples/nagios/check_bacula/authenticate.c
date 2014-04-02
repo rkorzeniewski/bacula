@@ -50,12 +50,14 @@ static char DIRhello[]    = "Hello %s calling\n";
 /* Response from Director */
 static char DIROKhello[]   = "1000 OK:";
 
-/* Commands sent to Storage daemon and File daemon and received
- *  from the User Agent */
-static char SDFDhello[]    = "Hello Director %s calling\n";
+/* Commands sent to Storage daemon */
+static char SDhello[]     = "Hello SD: Bacula Director %s calling\n";
+
+/* Commands sent to  File daemon */
+static char FDhello[]     = "Hello Director %s calling\n";
 
 /* Response from SD */
-static char SDOKhello[]   = "3000 OK Hello\n";
+static char SDOKhello[]  = "3000 OK Hello";
 /* Response from FD */
 static char FDOKhello[] = "2000 OK Hello";
 
@@ -114,7 +116,7 @@ int authenticate_storage_daemon(BSOCK *sd, char *sdname, char* password)
    bash_spaces(dirname);
    /* Timeout Hello after 5 mins */
    btimer_t *tid = start_bsock_timer(sd, 60 * 5);
-   if (!sd->fsend(SDFDhello, dirname)) {
+   if (!sd->fsend(SDhello, dirname)) {
       stop_bsock_timer(tid);
       return 0;
    }
@@ -130,7 +132,7 @@ int authenticate_storage_daemon(BSOCK *sd, char *sdname, char* password)
    }
    Dmsg1(110, "<stored: %s", sd->msg);
    stop_bsock_timer(tid);
-   if (strncmp(sd->msg, SDOKhello, sizeof(SDOKhello)) != 0) {
+   if (strncmp(sd->msg, SDOKhello, strlen(SDOKhello)) != 0) {
       return 0;
    }
    return 1;
@@ -153,7 +155,7 @@ int authenticate_file_daemon(BSOCK *fd, char *fdname, char *password)
    bash_spaces(dirname);
    /* Timeout Hello after 5 mins */
    btimer_t *tid = start_bsock_timer(fd, 60 * 5);
-   if (!fd->fsend(SDFDhello, dirname)) {
+   if (!fd->fsend(FDhello, dirname)) {
       stop_bsock_timer(tid);
       return 0;
    }
