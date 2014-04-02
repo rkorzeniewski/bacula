@@ -70,7 +70,7 @@ devclean: realclean
 	(cd $(srcdir); $(RMF) Makefile)
 
 install: all
-	$(INSTALL_PROGRAM) check_bacula $(DESTDIR)$(sbindir)/check_bacula
+	$(LIBTOOL_INSTALL) $(INSTALL_PROGRAM) check_bacula $(DESTDIR)$(sbindir)/check_bacula
 
 uninstall:
 	(cd $(DESTDIR)$(sbindir); $(RMF) check_bacula)
