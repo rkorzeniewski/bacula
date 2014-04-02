@@ -1323,7 +1323,6 @@ fi
 %{_libdir}/libbac.*
 %{_libdir}/libbaccfg*
 %{_libdir}/libbacfind*
-%{_libdir}/libbacpy*
 
 %post libs
 /sbin/ldconfig
