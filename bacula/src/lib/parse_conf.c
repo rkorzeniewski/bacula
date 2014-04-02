@@ -417,7 +417,7 @@ void store_dir(LEX *lc, RES_ITEM *item, int index, int pass)
    lex_get_token(lc, T_STRING);
    if (pass == 1) {
       if (lc->str[0] != '|') {
-         do_shell_expansion(lc->str, sizeof(lc->str));
+         do_shell_expansion(lc->str, sizeof_pool_memory(lc->str));
       }
       *(item->value) = bstrdup(lc->str);
    }
@@ -900,7 +900,7 @@ bool CONFIG::parse_config()
             lex_set_default_error_handler(lc);
          }
          lex_set_error_handler_error_type(lc, err_type) ;
-         bstrncpy(lc->str, cf, sizeof(lc->str));
+         bstrncpy(lc->str, cf, sizeof_pool_memory(lc->str));
          lc->fname = lc->str;
          scan_err2(lc, _("Cannot open config file \"%s\": %s\n"),
             lc->str, be.bstrerror());
