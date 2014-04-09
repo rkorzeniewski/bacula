@@ -105,10 +105,6 @@ int64_t sellist::next()
          errmsg = _("Selection items must be be greater than zero.\n");
          goto bail_out;
       }
-      if (end > max) {
-         errmsg = _("Selection item too large.\n");
-         goto bail_out;
-      }
       if (beg <= end) {
          return beg++;
       }

@@ -37,7 +37,6 @@ class sellist : public SMARTALLOC {
    char esave, hsave;
    bool all;
    int64_t beg, end;
-   int64_t max;
    int num_items;
    char *str;
    char *expanded;
@@ -64,7 +63,6 @@ public:
 inline sellist::sellist()
 {
    num_items = 0;
-   max = 99999;
    expanded = NULL;
    str = NULL;
    e = NULL;
