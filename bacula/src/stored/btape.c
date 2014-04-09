@@ -1117,8 +1117,9 @@ static bool write_two_files()
    /*
     * Set big max_file_size so that write_record_to_block
     * doesn't insert any additional EOF marks
+    * Do calculation in 64 bits to avoid overflow.  
     */
-   dev->max_file_size = 2 * num_recs * dev->max_block_size;
+   dev->max_file_size = (uint64_t)2 * (uint64_t)num_recs * (uint64_t)dev->max_block_size;
    Pmsg2(-1, _("\n=== Write, rewind, and re-read test ===\n\n"
       "I'm going to write %d records and an EOF\n"
       "then write %d records and an EOF, then rewind,\n"
