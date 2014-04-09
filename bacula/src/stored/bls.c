@@ -25,8 +25,6 @@
 #include "stored.h"
 #include "findlib/find.h"
 
-/* Dummy functions */
-int generate_daemon_event(JCR *jcr, const char *event) { return 1; }
 extern bool parse_sd_config(CONFIG *config, const char *configfile, int exit_code);
 
 static void do_blocks(char *infname);

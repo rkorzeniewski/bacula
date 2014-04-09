@@ -31,7 +31,6 @@
 #endif
 
 /* Dummy functions */
-int generate_daemon_event(JCR *jcr, const char *event) { return 1; }
 int generate_job_event(JCR *jcr, const char *event) { return 1; }
 void generate_plugin_event(JCR *jcr, bEventType eventType, void *value) { }
 extern bool parse_dir_config(CONFIG *config, const char *configfile, int exit_code);

@@ -30,12 +30,6 @@
 
 extern bool parse_dir_config(CONFIG *config, const char *configfile, int exit_code);
 
-/*
- * Dummy functions
- */
-int generate_daemon_event(JCR *jcr, const char *event)
-   { return 1; }
-
 typedef struct s_id_ctx {
    int64_t *Id;                       /* ids to be modified */
    int num_ids;                       /* ids stored */
