@@ -230,6 +230,7 @@ int bthread_kill(pthread_t thread, int sig,
 # define BTHREAD_MUTEX_NO_PRIORITY      PTHREAD_MUTEX_INITIALIZER
 # define BTHREAD_MUTEX_INITIALIZER      PTHREAD_MUTEX_INITIALIZER
 # define lmgr_mutex_is_locked(m)        (1)
+# define bthread_cond_wait_p(w, x, y, z) pthread_cond_wait(w,x)
 
 #endif  /* _USE_LOCKMGR */
 
