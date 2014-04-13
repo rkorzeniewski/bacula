@@ -56,6 +56,10 @@ class Requirements {
 			$requirements[] = 'Please install <b>MB String PHP module</b> for support for multi-byte string handling to PHP.';
 		}
 
+		if(!function_exists('json_decode')) {
+			$requirements[] = 'Please install <b>Module for JSON functions in PHP scripts</b>.';
+		}
+
 		if(count($requirements) > 0) {
 			echo '<html><body><h2>Baculum - Missing dependencies</h2><ul>';
 			for($i = 0; $i < count($requirements); $i++) {

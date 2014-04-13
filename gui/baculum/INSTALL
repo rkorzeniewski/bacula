@@ -46,6 +46,7 @@ PDO MySQL or PDO SQLite.
     * BCMath PHP module.
     * cURL PHP module.
     * MB String PHP module.
+    * JSON PHP module.
 - Bconsole - configured Bacula text based console
 - Access to Bacula catalog database - computer with Baculum installation should be
 able to connection to Bacula catalog database. There is not need to install Baculum
@@ -71,12 +72,17 @@ php-mysqlnd \
 php-mbstring \
 php-bcmath
 
-In Fedora 20 PHP module for cURL support is compiled in PHP.
+In Fedora 20 PHP module for cURL support and for JSON support are compiled in PHP.
 
 In case of using SELinux functionality in Baculum environment, recommended way
 is switching "httpd_t" SELinux security doman to permissive domain like below:
 
 # semanage permissive -a httpd_t
+
+Please be sure that in PHP configuration file (usually located in /etc/php.ini)
+there is option error_reporting set as below:
+
+error_reporting = E_ALL & ~E_STRICT
 
 Suggested method for Baculum webGUI access to Bacula Console (bconsole) is using
 "sudo" functionality for that. In this case there is need to add to /etc/sudoers file two
@@ -102,13 +108,19 @@ libapache2-mod-php5 \
 php5 \
 php5-pgsql \
 php5-mysql \
-php5-curl
+php5-curl \
+php5-json
 
 In Debian 7.4.0, PHP modules for BCMath and MultiByte String support are compiled in PHP.
 
 There is need to create symbolic link as below, for enable mod_rewrite module in Apache.
 
 # ln -s /etc/apache2/mods-available/rewrite.load /etc/apache2/mods-enabled/rewrite.load
+
+Please be sure that in PHP configuration file (usually located in /etc/php5/apache2/php.ini)
+there is option error_reporting set as below:
+
+error_reporting = E_ALL & ~E_STRICT
 
 Suggested method for Baculum webGUI access to Bacula Console (bconsole) is using
 "sudo" functionality for that. In this case there is need to add to /etc/sudoers below
