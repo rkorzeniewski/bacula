@@ -201,6 +201,10 @@ Source2: Release_Notes-%{version}-%{release}.tar.gz
 %{?build_su111:%define su111 1}
 %define su112 0
 %{?build_su112:%define su112 1}
+%define su120 0
+%{?build_su120:%define su120 1}
+%define su131 0
+%{?build_su131:%define su131 1}
 # Mandrake builds
 %define mdk 0
 %{?build_mdk:%define mdk 1}
@@ -222,7 +226,7 @@ Source2: Release_Notes-%{version}-%{release}.tar.gz
 %define fed 1
 %endif
 %define suse 0
-%if %{su9} || %{su10} || %{su102} || %{su103} || %{su110} || %{su111} || %{su112}
+%if %{su9} || %{su10} || %{su102} || %{su103} || %{su110} || %{su111} || %{su112} || %{su120} || %{su131}
 %define suse 1
 %endif
 %define rhel 0
@@ -328,7 +332,7 @@ BuildRequires: sysconfig
 
 # should we turn on python support
 %define python 0
-%{?build_python:%define python 1}
+%{?build_python:%define python 0}
 
 # should we enable tcp wrappers support
 %define tcpwrappers 1
@@ -787,7 +791,7 @@ rm -f $RPM_BUILD_ROOT%{_mandir}/man8/dbcheck.8.%{manpage_ext}
 rm -f $RPM_BUILD_ROOT%{_mandir}/man8/bregex.8.%{manpage_ext}
 rm -f $RPM_BUILD_ROOT%{_mandir}/man8/bwild.8.%{manpage_ext}
 rm -f $RPM_BUILD_ROOT%{_mandir}/man1/bsmtp.1.%{manpage_ext}
-
+rm -f $RPM_BUILD_ROOT%{_mandir}/man8/bpluginfo.8.gz
 rm -f $RPM_BUILD_ROOT%{script_dir}/bacula
 rm -f $RPM_BUILD_ROOT%{script_dir}/bacula_config
 rm -f $RPM_BUILD_ROOT%{script_dir}/bacula-ctl-dir
@@ -801,6 +805,8 @@ rm -rf $RPM_BUILD_ROOT%{script_dir}/updatedb
 rm -f $RPM_BUILD_ROOT%{script_dir}/bconsole
 rm -f $RPM_BUILD_ROOT%{script_dir}/mtx-changer.conf
 rm -f $RPM_BUILD_ROOT%{_sbindir}/bacula
+rm -f $RPM_BUILD_ROOT%{_sbindir}/bpluginfo
+
 %endif
 
 %clean
@@ -886,6 +892,7 @@ rm -f $RPM_BUILD_DIR/Release_Notes-%{version}-%{release}.txt
 %attr(-, root, %{daemon_group}) /etc/init.d/bacula-dir
 %attr(-, root, %{daemon_group}) /etc/init.d/bacula-fd
 %attr(-, root, %{daemon_group}) %{_sbindir}/dbcheck
+%attr(-, root, %{daemon_group}) %{_sbindir}/bpluginfo
 %attr(-, root, %{storage_daemon_group}) %{script_dir}/dvd-handler
 %attr(-, root, %{storage_daemon_group}) /etc/init.d/bacula-sd
 %attr(-, root, %{storage_daemon_group}) %{script_dir}/mtx-changer
@@ -935,6 +942,8 @@ rm -f $RPM_BUILD_DIR/Release_Notes-%{version}-%{release}.txt
 %{_mandir}/man8/bwild.8.%{manpage_ext}
 %{_mandir}/man1/bsmtp.1.%{manpage_ext}
 %{_mandir}/man1/bat.1.%{manpage_ext}
+%{_mandir}/man8/bpluginfo.8.gz
+
 %_prefix/share/doc/*
 
 # opensuse build service changes the release itself
