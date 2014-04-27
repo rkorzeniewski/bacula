@@ -21,7 +21,6 @@ class PoolUpdateVolumes extends BaculumAPI {
 	public function get() {}
 
 	public function set($id, $params) {
-		file_put_contents('/tmp/kekeks', print_r($id, true));
 		$pool = $this->getModule('pool')->getPoolById($id);
 		if(!is_null($pool)) {
 			$voldata = $this->getModule('volume')->getVolumesByPoolId($pool->poolid);
