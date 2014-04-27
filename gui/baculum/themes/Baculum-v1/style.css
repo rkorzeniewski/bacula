@@ -499,6 +499,7 @@ div.slide-window-close, div.slide-window-fullsize, div.slide-window-sort {
 	position: relative;
 	top: -14px;
 	float: right;
+	cursor: pointer;
 }
 
 div.slide-window-close {
