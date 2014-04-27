@@ -1,0 +1,138 @@
+Baculum - Bacula web interface
+
+Features description:
+
+=== Customized and restricted consoles ===
+
+Baculum supports customized and restricted consoles for each logged in user.
+
+Before using customized and restricted consoles please check location for
+bconsole configuration files for each user. For do it, there is need to run
+on Baculum webGUI configuration wizard and there is need to go to "Console"
+wizard step (fourth step).
+
+In "Console" wizard step there is field defined as:
+
+Bconsole custom config file path: __________________
+
+In this field there is required to define location for restricted consoles.
+In defined path exists one keyword {user}. It will be replaced into current
+logged in username.
+
+For example, if logged is user named "john", keyword {user} will be replaced
+into "john".
+
+
+Example:
+
+"Bconsole custom config file path" is defined as:
+
+/usr/local/bacula/etc/bconsole-{user}.conf
+
+After log in user "john" to Baculum webGUI, for each bconsole request will be
+used file:
+
+/usr/local/bacula/etc/bconsole-john.conf
+
+It makes available to define some specific console access (or restricted access)
+for each Baculum user.
+
+For user named "willy" in above configured path according bconsole configuration
+file will be:
+
+/usr/local/bacula/etc/bconsole-willy.conf
+
+etc...
+
+
+NOTE!
+
+In configuration wizard step "Console" there is also field:
+
+"Bconsole admin config file path:": ___________________
+
+Config file defined in this field will be used by administrator only. For this
+reason the best parctice is define here console configuration file that gives
+full access for administrator.
+
+Administrator user and password will be defined in next configuration wizard
+step named "Authorization" (fifth step).
+
+
+Baculum users are defined on web server level as described in instriction
+in attached to Baculum INSTALL file.
+
+Example:
+
+For creating users "john" and "willy" as Baculum HTTP Basic authorization users
+there is need to create this users for example by:
+
+# htpasswd /some/location/htpasswd/file john
+
+# htpasswd /some/location/htpasswd/file willy
+
+For case using other HTTP Basic authorization backends (for example LDAP) there
+is need to define these users in this specific service.
+
+
+Example of content custom consoles configuration file is below:
+
+Console {
+    Name = "BaculaRestrictedUser"
+    Password = "XXXXXXXXX"
+    CommandACL = show,.client,.jobs,.fileset,.pool,.storage,.jobs,.bvfs_update,
+.bvfs_lsdirs,.bvfs_lsfiles,.bvfs_versions,.bvfs_get_jobids,.bvfs_restore,restore
+    CatalogACL = *all*
+    ClientACL = user-fd
+    JobACL = somejob1,userjob
+    PoolACL = Full-Pool
+    StorageACL = VTL
+    FileSetACL = somejob1-fileset,userjobFileSet3
+    WhereACL = *all*
+}
+
+After defining these ACL there is also need to define the console access to
+Director service in Bacula Director configuration file as Console{} resource.
+
+
+NOTE!
+
+Please note that in above example in CommandACL are shown the most
+essential commands necessary for proper working of Baculum webGUI and
+possibility do to restore action (all .bvfs_* command and "restore"
+command)
+
+Below are the same necessary commands broke one per line:
+
+show
+.client
+.jobs
+.fileset
+.pool
+.storage
+.jobs
+.bvfs_update
+.bvfs_lsdirs
+.bvfs_lsfiles
+.bvfs_versions
+.bvfs_get_jobids
+.bvfs_restore
+restore
+
+
+Catalog Database restriction
+
+Because Baculum in few parts of interface uses data from Bacula Catalog Database,
+for each user who IS NOT administrator there has beed disabled EVERY write to
+Bacula Catalog database by Baculum webGUI. Modification Bacula Catalog Database
+tables is possible ONLY for Baculum administrator.
+
+Additionally because of Console ACL functionality does not support restriction
+on media/volumes level, access to media/volumes has been disabled for all users
+except administrator.
+
+
+Configuration wizard restriction
+
+For security reason there has been disabled access to Configuration Wizard
+function for all users except administrator.

@@ -22,7 +22,7 @@ class VolumePurge extends BaculumAPI {
 		$mediaid = intval($this->Request['id']);
 		$volume = $this->getModule('volume')->getVolumeById($mediaid);
 		if(!is_null($volume)) {
-			$purge = $this->getModule('bconsole')->bconsoleCommand($this->director, array('purge', 'volume="' . $volume->volumename . '"', 'yes'));
+			$purge = $this->getModule('bconsole')->bconsoleCommand($this->director, array('purge', 'volume="' . $volume->volumename . '"', 'yes'), $this->user);
 			$this->output = $purge->output;
 			$this->error = (integer)$purge->exitcode;
 		} else {

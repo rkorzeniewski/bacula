@@ -31,7 +31,7 @@ class Pool extends BaculumAPI {
 	}
 	
 	public function set($id, $params) {
-		$result = $this->getModule('pool')->setPool($id, $params);
+		$result = ($this->user === null) ? $this->getModule('pool')->setPool($id, $params) : true;
 		if($result === true) {
 			$this->output = null;
 			$this->error = PoolError::ERROR_NO_ERRORS;

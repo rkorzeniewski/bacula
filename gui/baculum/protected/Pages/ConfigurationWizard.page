@@ -166,7 +166,7 @@
 					</div>
 				</div>
 				<div class="line">
-					<div class="text"><com:TLabel ForControl="BconsoleConfigPath" Text="<%[ Bconsole config file path: ]%>" /></div>
+					<div class="text"><com:TLabel ForControl="BconsoleConfigPath" Text="<%[ Bconsole admin config file path: ]%>" /></div>
 					<div class="field">
 						<com:TTextBox ID="BconsoleConfigPath" CssClass="textbox" CausesValidation="false" />
 						<com:TRequiredFieldValidator CssClass="validator" Display="Dynamic" ControlCssClass="invalidate" ControlToValidate="BconsoleConfigPath" Text="<%[ Please enter bconsole config file path. ]%>" />
@@ -206,6 +206,23 @@
 				</div>
 				<div class="line">
 					<p><b><%[ NOTE! ]%></b><br /><em><%[ Baculum needs access to bconsole by the web server. ]%></em></p>
+				</div>
+				<hr />
+				<div class="line">
+					<p><%[ For need defining more Baculum users with custom access or restricted console access (Bconsole ACLs) here is possible to determine custom bconsole configuration file format for each user. ]%></p>
+				</div>
+				<div>
+					<p><%[ If there is used only one Baculum user then below field value will be ignored. ]%></p>
+				</div>
+				<div class="line">
+					<div class="text"><com:TLabel ForControl="BconsoleConfigCustomPath" Text="<%[ Bconsole custom config file path: ]%>" /></div>
+					<div class="field">
+						<com:TTextBox ID="BconsoleConfigCustomPath" CssClass="textbox" CausesValidation="false" />
+						<com:TRequiredFieldValidator CssClass="validator" Display="Dynamic" ControlCssClass="invalidate" ControlToValidate="BconsoleConfigCustomPath" Text="<%[ Please enter bconsole custom config file path. ]%>" />
+					</div>
+				</div>
+				<div class="line">
+					<p><b><%[ NOTE! ]%></b><br /><%[ {user} keyword will be replaced for each logged user into according username. ]%></p>
 				</div>
 			</com:TActivePanel>
 		</com:TWizardStep>
@@ -277,8 +294,12 @@
 					<div class="field bold"><%=$this->BconsolePath->Text%></div>
 				</div>
 				<div class="line">
-					<div class="text"><%[ Bconsole config file path: ]%></div>
+					<div class="text"><%[ Bconsole admin config file path: ]%></div>
 					<div class="field bold"><%=$this->BconsoleConfigPath->Text%></div>
+				</div>
+				<div class="line">
+					<div class="text"><%[ Bconsole custom config file path: ]%></div>
+					<div class="field bold"><%=$this->BconsoleConfigCustomPath->Text%></div>
 				</div>
 				<div class="line">
 					<div class="text"><%[ Use sudo for bconsole requests: ]%></div>

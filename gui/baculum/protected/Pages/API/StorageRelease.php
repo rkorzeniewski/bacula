@@ -22,7 +22,7 @@ class StorageRelease extends BaculumAPI {
 		$storageid = intval($this->Request['id']);
 		$storage = $this->getModule('storage')->getStorageById($storageid);
 		if(!is_null($storage)) {
-			$storageRelease = $this->getModule('bconsole')->bconsoleCommand($this->director, array('release', 'storage="' . $storage->name . '"'));
+			$storageRelease = $this->getModule('bconsole')->bconsoleCommand($this->director, array('release', 'storage="' . $storage->name . '"'), $this->user);
 			$this->output = $storageRelease->output;
 			$this->error = (integer)$storageRelease->exitcode;
 		} else {

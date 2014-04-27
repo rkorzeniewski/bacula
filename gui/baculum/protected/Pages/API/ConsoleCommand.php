@@ -23,7 +23,7 @@ class ConsoleCommand extends BaculumAPI {
 
 	public function set($id, $params) {
 		$params = (array)$params;
-		$console = $this->getModule('bconsole')->bconsoleCommand($this->director, $params);
+		$console = $this->getModule('bconsole')->bconsoleCommand($this->director, $params, $this->user);
 		$this->output = $console->output;
 		$this->error = (integer)$console->exitcode;
 	}

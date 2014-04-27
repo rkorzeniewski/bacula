@@ -22,7 +22,14 @@ class Storages extends BaculumAPI {
 	public function get() {
 		$limit = intval($this->Request['limit']);
 		$storages = $this->getModule('storage')->getStorages($limit);
-		$this->output = $storages;
+		$allowedStorages = $this->getModule('bconsole')->bconsoleCommand($this->director, array('.storage'), $this->user)->output;
+		$storagesOutput = array();
+		foreach($storages as $storage) {
+			if(in_array($storage->name, $allowedStorages)) {
+				$storagesOutput[] = $storage;
+			}
+		}
+		$this->output = $storagesOutput;
 		$this->error = StorageError::ERROR_NO_ERRORS;
 	}
 }

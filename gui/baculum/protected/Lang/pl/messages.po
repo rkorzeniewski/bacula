@@ -148,9 +148,6 @@ msgstr "Lokalizacja bconsole:"
 msgid "Please enter bconsole path."
 msgstr "Proszę wprowadzić lokalizację bconsole."
 
-msgid "Bconsole config file path:"
-msgstr "Lokalizacja konfiguracji:"
-
 msgid "Please enter bconsole config file path."
 msgstr "Proszę wprowadzić położenie pliku .conf."
 

@@ -22,7 +22,7 @@ class PoolShow extends BaculumAPI {
 		$poolid = intval($this->Request['id']);
 		$pool = $this->getModule('pool')->getPoolById($poolid);
 		if(!is_null($pool)) {
-			$poolShow = $this->getModule('bconsole')->bconsoleCommand($this->director, array('show', 'pool="' . $pool->name . '"'));
+			$poolShow = $this->getModule('bconsole')->bconsoleCommand($this->director, array('show', 'pool="' . $pool->name . '"'), $this->user);
 			$this->output = $poolShow->output;
 			$this->error = (integer)$poolShow->exitcode;
 		} else {

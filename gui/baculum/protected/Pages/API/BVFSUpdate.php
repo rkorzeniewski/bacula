@@ -33,7 +33,7 @@ class BVFSUpdate extends BaculumAPI {
 		}
 		
 		if($isValid === true) {
-			$result = $this->getModule('bconsole')->bconsoleCommand($this->director, array('.bvfs_update', 'jobid="' . $ids . '"'));
+			$result = $this->getModule('bconsole')->bconsoleCommand($this->director, array('.bvfs_update', 'jobid="' . $ids . '"'), $this->user);
 			$this->output = $result->output;
 			$this->error = (integer)$result->exitcode;
 		} else {

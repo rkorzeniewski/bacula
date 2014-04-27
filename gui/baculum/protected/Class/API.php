@@ -23,6 +23,8 @@ class API extends TModule {
 
 	const API_VERSION = '0.1';
 
+	protected $appCfg;
+
 	private $allowedErrors = array(
 		GenericError::ERROR_NO_ERRORS,
 		BconsoleError::ERROR_INVALID_COMMAND
@@ -41,16 +43,23 @@ class API extends TModule {
 	}
 
 	private function getURL() {
-		$cfg = $this->Application->getModule('configuration')->getApplicationConfig();
+		$this->appCfg = $this->Application->getModule('configuration')->getApplicationConfig();
 		$protocol = !empty($_SERVER['HTTPS']) ? 'https' : 'http';
 		$host = $_SERVER['SERVER_NAME'];
 		$port = $_SERVER['SERVER_PORT'];
-		$url = sprintf('%s://%s:%s@%s:%d/', $protocol, $cfg['baculum']['login'], $cfg['baculum']['password'], $host, $port);
+		$url = sprintf('%s://%s:%s@%s:%d/', $protocol, $this->appCfg['baculum']['login'], $this->appCfg['baculum']['password'], $host, $port);
 		return $url;
 	}
 
-	private function setDirectorToUrl(&$url) {
+	private function setParamsToUrl(&$url) {
 		$url .= (preg_match('/\?/', $url) === 1 ? '&' : '?' ) . 'director=' . ((array_key_exists('director', $_SESSION)) ? $_SESSION['director'] : '');
+		/**
+		 * If user is not equal admin user then it is added to URL,
+		 * then will be used custom console for this user.
+		 */
+		if($this->User->getIsAdmin() === false) {
+			$url .= '&user=' . $this->User->getName();
+		}
 		$this->Application->getModule('logging')->log(__FUNCTION__, PHP_EOL . PHP_EOL . 'EXECUTE URL ==> ' . $url . ' <==' . PHP_EOL . PHP_EOL, Logging::CATEGORY_APPLICATION, __FILE__, __LINE__);
 	}
 
@@ -60,7 +69,7 @@ class API extends TModule {
 
 	public function get(array $params) {
 		$url = $this->getURL() . implode('/', $params);
-		$this->setDirectorToUrl($url);
+		$this->setParamsToUrl($url);
 		$ch = $this->getConnection();
 		curl_setopt($ch, CURLOPT_URL, $url);
 		curl_setopt($ch, CURLOPT_HTTPHEADER, array($this->getAPIHeader(), 'Accept: application/json'));
@@ -71,7 +80,7 @@ class API extends TModule {
 
 	public function set(array $params, array $options) {
 		$url = $this->getURL() . implode('/', $params);
-		$this->setDirectorToUrl($url);
+		$this->setParamsToUrl($url);
 		$data = http_build_query(array('update' => $options));
 		$ch = $this->getConnection();
 		curl_setopt($ch, CURLOPT_URL, $url);
@@ -86,7 +95,7 @@ class API extends TModule {
 
 	public function create(array $params, array $options) {
 		$url = $this->getURL() . implode('/', $params);
-		$this->setDirectorToUrl($url);
+		$this->setParamsToUrl($url);
 		$data = http_build_query(array('create' => $options));
 		$ch = $this->getConnection();
 		curl_setopt($ch, CURLOPT_URL, $url);
@@ -100,7 +109,7 @@ class API extends TModule {
 
 	public function remove(array $params) {
 		$url = $this->getURL() . implode('/', $params);
-		$this->setDirectorToUrl($url);
+		$this->setParamsToUrl($url);
 		$ch = $this->getConnection();
 		curl_setopt($ch, CURLOPT_URL, $url);
 		curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'DELETE');

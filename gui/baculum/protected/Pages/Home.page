@@ -13,7 +13,7 @@
 			<com:TActiveButton ID="JobBtn" CssClass="job-btn" Attributes.onmouseover="javascript:showTip(this, 'Jobs', 'Jobs settings.');" ClientSide.OnLoading="$('<%=$this->JobWindow->Controls[0]->UniqueID%>-slide-window-progress').setStyle({'display': 'block'});" ClientSide.OnComplete="$('<%=$this->JobWindow->Controls[0]->UniqueID%>-slide-window-progress').setStyle({'display': 'none'});" />
 			<com:TActiveButton ID="JobRunBtn" CssClass="jobrun-btn" Attributes.onmouseover="javascript:showTip(this, 'Run job', 'Starting jobs.');" ClientSide.OnLoading="$('<%=$this->JobRunWindow->Controls[0]->UniqueID%>-slide-window-progress').setStyle({'display': 'block'});" ClientSide.OnComplete="$('<%=$this->JobRunWindow->Controls[0]->UniqueID%>-slide-window-progress').setStyle({'display': 'none'});" />
 			<com:TActiveButton CssClass="restore-btn" OnClick="restore" Attributes.onmouseover="javascript:showTip(this, 'Restore', 'Restore wizard.');" />
-			<com:TActiveButton CssClass="setting-btn" OnClick="configuration" Attributes.onmouseover="javascript:showTip(this, 'Settings', 'Management settings wizard.');" />
+			<com:TActiveButton ID="SettingsWizardBtn" CssClass="setting-btn" OnClick="configuration" Attributes.onmouseover="javascript:showTip(this, 'Settings', 'Management settings wizard.');" />
 		</div>
 		<com:TActivePanel ID="Content">
 			<div id="content">

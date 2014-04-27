@@ -22,7 +22,7 @@ class StorageStatus extends BaculumAPI {
 		$storageid = intval($this->Request['id']);
 		$storage = $this->getModule('storage')->getStorageById($storageid);
 		if(!is_null($storage)) {
-			$storageStatus = $this->getModule('bconsole')->bconsoleCommand($this->director, array('status', 'storage="' . $storage->name . '"'));
+			$storageStatus = $this->getModule('bconsole')->bconsoleCommand($this->director, array('status', 'storage="' . $storage->name . '"'), $this->user);
 			$this->output = $storageStatus->output;
 			$this->error = (integer)$storageStatus->exitcode;
 		} else {

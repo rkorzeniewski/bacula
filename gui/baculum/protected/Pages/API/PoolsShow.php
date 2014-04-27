@@ -20,7 +20,7 @@
 class PoolsShow extends BaculumAPI {
 
 	public function get() {
-		$pools = $this->getModule('bconsole')->bconsoleCommand($this->director, array('show', 'pools'));
+		$pools = $this->getModule('bconsole')->bconsoleCommand($this->director, array('show', 'pools'), $this->user);
 		$this->output = $pools->output;
 		$this->error = (integer)$pools->exitcode;
 	}

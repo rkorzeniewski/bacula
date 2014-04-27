@@ -22,7 +22,7 @@ class VolumePrune extends BaculumAPI {
 		$mediaid = intval($this->Request['id']);
 		$volume = $this->getModule('volume')->getVolumeById($mediaid);
 		if(!is_null($volume)) {
-			$prune = $this->getModule('bconsole')->bconsoleCommand($this->director, array('prune', 'volume="' . $volume->volumename . '"', 'yes'));
+			$prune = $this->getModule('bconsole')->bconsoleCommand($this->director, array('prune', 'volume="' . $volume->volumename . '"', 'yes'), $this->user);
 			$this->output = $prune->output;
 			$this->error = (integer)$prune->exitcode;
 		} else {

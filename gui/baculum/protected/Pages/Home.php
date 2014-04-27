@@ -31,6 +31,11 @@ class Home extends BaculumPage
 			$this->goToPage('ConfigurationWizard');
 		}
 
+		$appConfig = $this->getModule('configuration')->getApplicationConfig();
+
+		$this->SettingsWizardBtn->Visible = $this->User->getIsAdmin();
+		$this->MediaBtn->Visible = $this->User->getIsAdmin();
+
 		if(!$this->IsPostBack && !$this->IsCallBack) {
 			$this->Logging->Checked = $this->getModule('logging')->isDebugOn();
 		}

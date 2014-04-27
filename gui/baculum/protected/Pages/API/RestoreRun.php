@@ -36,7 +36,7 @@ class RestoreRun extends BaculumAPI {
 				if(preg_match('/^b2[\d]+$/', $rfile) === 1) {
 					if(!is_null($where)) {
 						if(!is_null($replace)) {
-							$restore = $this->getModule('bconsole')->bconsoleCommand($this->director, array('restore', 'file="?' . $rfile . '"', 'client="' . $client->name . '"', 'where="' . $where . '"', 'replace="' . $replace . '"', 'fileset="' . $fileset . '"', 'priority="' . $priority . '"', 'yes'));
+							$restore = $this->getModule('bconsole')->bconsoleCommand($this->director, array('restore', 'file="?' . $rfile . '"', 'client="' . $client->name . '"', 'where="' . $where . '"', 'replace="' . $replace . '"', 'fileset="' . $fileset . '"', 'priority="' . $priority . '"', 'yes'), $this->user);
 							$this->output = $restore->output;
 							$this->error = (integer)$restore->exitcode;
 						} else {

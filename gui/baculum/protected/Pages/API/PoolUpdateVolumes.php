@@ -26,7 +26,7 @@ class PoolUpdateVolumes extends BaculumAPI {
 		if(!is_null($pool)) {
 			$voldata = $this->getModule('volume')->getVolumesByPoolId($pool->poolid);
 			if(!is_null($voldata)) {
-				$poolUpdateVolumes = $this->getModule('bconsole')->bconsoleCommand($this->director, array('update', 'volume="' .  $voldata->volumename . '"', 'allfrompool="' . $pool->name . '"'));
+				$poolUpdateVolumes = $this->getModule('bconsole')->bconsoleCommand($this->director, array('update', 'volume="' .  $voldata->volumename . '"', 'allfrompool="' . $pool->name . '"'), $this->user);
 				$this->output = $poolUpdateVolumes->output;
 				$this->error = (integer)$poolUpdateVolumes->exitcode;
 			} else {

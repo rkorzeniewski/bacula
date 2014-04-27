@@ -19,6 +19,7 @@
  
 class BaculumPage extends TPage
 {
+
 	public function onPreInit($param) {
 		parent::onPreInit($param);
 		$configuration = $this->getModule('configuration');

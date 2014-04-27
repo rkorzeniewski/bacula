@@ -21,7 +21,14 @@ class Jobs extends BaculumAPI {
 	public function get() {
 		$limit = intval($this->Request['limit']);
 		$jobs = $this->getModule('job')->getJobs($limit);
-		$this->output = $jobs;
+		$allowedJobs = $this->getModule('bconsole')->bconsoleCommand($this->director, array('.jobs'), $this->user)->output;
+		$jobsOutput = array();
+		foreach($jobs as $job) {
+			if(in_array($job->name, $allowedJobs)) {
+				$jobsOutput[] = $job;
+			}
+		}
+		$this->output = $jobsOutput;
 		$this->error = JobError::ERROR_NO_ERRORS;
 	}
 }

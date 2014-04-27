@@ -34,12 +34,16 @@ class ConfigurationWizard extends BaculumPage
 	const DEFAULT_DB_LOGIN = 'bacula';
 	const DEFAULT_BCONSOLE_BIN = '/usr/sbin/bconsole';
 	const DEFAULT_BCONSOLE_CONF = '/etc/bacula/bconsole.conf';
+	const DEFAULT_BCONSOLE_CONF_CUSTOM = '/etc/bacula/bconsole-{user}.conf';
 
 	public function onInit($param) {
 		parent::onInit($param);
 		$this->Lang->SelectedValue = $this->Session['language'];
 		$this->firstRun = !$this->getModule('configuration')->isApplicationConfig();
 		$this->applicationConfig = $this->getModule('configuration')->getApplicationConfig();
+		if($this->firstRun === false && $this->User->getIsAdmin() === false) {
+			die('Access denied.');
+		}
 	}
 
 	public function onLoad($param) {
@@ -52,6 +56,7 @@ class ConfigurationWizard extends BaculumPage
 				$this->Login->Text = self::DEFAULT_DB_LOGIN;
 				$this->BconsolePath->Text = self::DEFAULT_BCONSOLE_BIN;
 				$this->BconsoleConfigPath->Text = self::DEFAULT_BCONSOLE_CONF;
+				$this->BconsoleConfigCustomPath->Text = self::DEFAULT_BCONSOLE_CONF_CUSTOM;
 			} else {
 				$this->DBType->SelectedValue = $this->getPage()->applicationConfig['db']['type'];
 				$this->DBName->Text = $this->applicationConfig['db']['name'];
@@ -63,6 +68,7 @@ class ConfigurationWizard extends BaculumPage
 				$this->DBPath->Text = $this->applicationConfig['db']['path'];
 				$this->BconsolePath->Text = $this->applicationConfig['bconsole']['bin_path'];
 				$this->BconsoleConfigPath->Text = $this->applicationConfig['bconsole']['cfg_path'];
+				$this->BconsoleConfigCustomPath->Text = array_key_exists('cfg_custom_path', $this->applicationConfig['bconsole']) ? $this->applicationConfig['bconsole']['cfg_custom_path'] : self::DEFAULT_BCONSOLE_CONF_CUSTOM;
 				$this->UseSudo->Checked = $this->getPage()->applicationConfig['bconsole']['use_sudo'] == 1;
 				$this->PanelLogin->Text = $this->applicationConfig['baculum']['login'];
 				$this->PanelPassword->Text = $this->applicationConfig['baculum']['password'];
@@ -92,6 +98,7 @@ class ConfigurationWizard extends BaculumPage
 		$cfgData['db']['path'] = $this->Application->getModule('configuration')->isSQLiteType($cfgData['db']['type']) ? $this->DBPath->Text : '';
 		$cfgData['bconsole']['bin_path'] = $this->BconsolePath->Text;
 		$cfgData['bconsole']['cfg_path'] = $this->BconsoleConfigPath->Text;
+		$cfgData['bconsole']['cfg_custom_path'] = $this->BconsoleConfigCustomPath->Text;
 		$cfgData['bconsole']['use_sudo'] = (integer)($this->UseSudo->Checked === true);
 		$cfgData['baculum']['login'] = $this->PanelLogin->Text;
 		$cfgData['baculum']['password'] = $this->PanelPassword->Text;

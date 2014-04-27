@@ -17,6 +17,7 @@ functions such as:
 - Running backup and restore tasks
 - Monitoring Bacula services by getting status these services
 - Bacula console available via web interface
+- Support for customized and restricted consoles (Console ACL functionality)
 - Multiple Directors support
 - Volumes managenment including labeling new volumes
 - Basic storage daemon operations on volumes (mount, umount, release actions)

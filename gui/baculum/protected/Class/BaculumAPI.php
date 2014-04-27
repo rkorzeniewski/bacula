@@ -27,6 +27,8 @@ abstract class BaculumAPI extends TPage
 
 	protected $director;
 
+	protected $user;
+
 	/**
 	 * Actions methods.
 	 */
@@ -38,6 +40,13 @@ abstract class BaculumAPI extends TPage
 	public function onInit($params) {
 		parent::onInit($params);
 		$this->director = isset($this->Request['director']) ? $this->Request['director'] : null;
+		$this->user = isset($this->Request['user']) ? $this->Request['user'] : null;
+		if(is_null($this->user) && $this->Application->getModule('configuration')->isApplicationConfig() === true) {
+			$appConfig = ConfigurationManager::getApplicationConfig();
+			// @TOFIX: Baculum API layer should not use $_SERVER variables.
+			$this->user = isset($_SERVER['PHP_AUTH_USER']) && $_SERVER['PHP_AUTH_USER'] != $appConfig['baculum']['login'] ? $_SERVER['PHP_AUTH_USER'] : null;
+		}
+
 		switch($_SERVER['REQUEST_METHOD']) {
 			case self::PUT_METHOD: {
 				try {

@@ -16,20 +16,23 @@
  *
  * Bacula® is a registered trademark of Kern Sibbald.
  */
- 
-class ClientShow extends BaculumAPI {
-	public function get() {
-		$clientid = intval($this->Request['id']);
-		$client = $this->getModule('client')->getClientById($clientid);
-		if(!is_null($client)) {
-			$clientShow = $this->getModule('bconsole')->bconsoleCommand($this->director, array('show', 'client="' . $client->name . '"'), $this->user);
-			$this->output = $clientShow->output;
-			$this->error = (integer)$clientShow->exitcode;
-		} else {
-			$this->output = ClientError::MSG_ERROR_CLIENT_DOES_NOT_EXISTS;
-			$this->error = ClientError::ERROR_CLIENT_DOES_NOT_EXISTS;
-		}
+
+Prado::using('System.Security.TUser');
+
+class BaculumUser extends TUser {
+
+	private $_id;
+
+	public function getID() {
+		return $this->_id;
+	}
+
+	public function setID($id) {
+		$this->_id = $id;
+	}
+
+	public function getIsAdmin() {
+		return $this->isInRole('admin');
 	}
 }
-
 ?>

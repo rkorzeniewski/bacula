@@ -20,7 +20,7 @@
 class StoragesShow extends BaculumAPI {
 
 	public function get() {
-		$storages = $this->getModule('bconsole')->bconsoleCommand($this->director, array('show', 'storages'));
+		$storages = $this->getModule('bconsole')->bconsoleCommand($this->director, array('show', 'storages'), $this->user);
 		$this->output = $storages->output;
 		$this->error = (integer)$storages->exitcode;
 	}

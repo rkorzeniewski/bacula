@@ -29,7 +29,9 @@ class Bconsole extends TModule {
 
 	const BCONSOLE_DIRECTORS_PATTERN = "%s%s -c %s -l";
 
-	private $availableCommands = array('version', 'status', 'list', 'messages', 'show', 'mount', 'umount', 'release', 'prune', 'purge', 'update', 'estimate', 'run', '.bvfs_update', '.bvfs_lsdirs', '.bvfs_lsfiles', '.bvfs_versions', '.bvfs_get_jobids', '.bvfs_restore', '.bvfs_clear_cache', 'restore', 'cancel', 'delete', '.jobs', 'label', 'reload', '.fileset', '.storage');
+	const BCONSOLE_CFG_USER_KEYWORD = '{user}';
+
+	private $availableCommands = array('version', 'status', 'list', 'messages', 'show', 'mount', 'umount', 'release', 'prune', 'purge', 'update', 'estimate', 'run', '.bvfs_update', '.bvfs_lsdirs', '.bvfs_lsfiles', '.bvfs_versions', '.bvfs_get_jobids', '.bvfs_restore', '.bvfs_clear_cache', 'restore', 'cancel', 'delete', '.jobs', 'label', 'reload', '.fileset', '.storage', '.client', '.pool');
 
 	private $useSudo = false;
 
@@ -37,19 +39,23 @@ class Bconsole extends TModule {
 
 	private $bconsoleCfgPath;
 
+	private $bconsoleCfgCustomPath;
+
 	public function init($config) {
 		if($this->Application->getModule('configuration')->isApplicationConfig() === true) {
 			$params = ConfigurationManager::getApplicationConfig();
 			$useSudo = ((integer)$params['bconsole']['use_sudo'] === 1);
 			$bconsoleCmdPath = $params['bconsole']['bin_path'];
 			$bconsoleCfgPath = $params['bconsole']['cfg_path'];
-			$this->setEnvironmentParams($bconsoleCmdPath, $bconsoleCfgPath, $useSudo);
+			$bconsoleCfgCustomPath = array_key_exists('cfg_custom_path', $params['bconsole']) ? $params['bconsole']['cfg_custom_path'] : null;
+			$this->setEnvironmentParams($bconsoleCmdPath, $bconsoleCfgPath, $bconsoleCfgCustomPath, $useSudo);
 		}
 	}
 
-	private function setEnvironmentParams($bconsoleCmdPath, $bconsoleCfgPath, $useSudo) {
+	private function setEnvironmentParams($bconsoleCmdPath, $bconsoleCfgPath, $bconsoleCfgCustomPath, $useSudo) {
 		$this->bconsoleCmdPath = $bconsoleCmdPath;
 		$this->bconsoleCfgPath = $bconsoleCfgPath;
+		$this->bconsoleCfgCustomPath = $bconsoleCfgCustomPath;
 		$this->useSudo = $useSudo;
 	}
 
@@ -71,17 +77,17 @@ class Bconsole extends TModule {
 		return (object)array('output' => $output, 'exitcode' => $exitcode);
 	}
 
-	public function bconsoleCommand($director, array $command) {
+	public function bconsoleCommand($director, array $command, $user = null) {
 		$baseCommand = count($command) > 0 ? $command[0] : null;
 		if($this->isCommandValid($baseCommand) === true) {
-			$result = $this->execCommand($director, $command);
+			$result = $this->execCommand($director, $command, $user);
 		} else {
 			$result = $this->prepareResult(array(BconsoleError::MSG_ERROR_INVALID_COMMAND, ''), BconsoleError::ERROR_INVALID_COMMAND, ' ');
 		}
 		return $result;
 	}
 
-	private function execCommand($director, array $command) {
+	private function execCommand($director, array $command, $user) {
 		if(!is_null($director) && $this->isValidDirector($director) === false) {
 			$output = array(BconsoleError::MSG_ERROR_INVALID_DIRECTOR, '');
 			$exitcode = BconsoleError::ERROR_INVALID_DIRECTOR;
@@ -90,6 +96,9 @@ class Bconsole extends TModule {
 			$dir = is_null($director) ? '': '-D ' . $director;
 			$sudo = ($this->useSudo === true) ? self::SUDO . ' ' : '';
 			$bconsoleCommand = implode(' ', $command);
+			if(!is_null($this->bconsoleCfgCustomPath) && !is_null($user)) {
+				$this->bconsoleCfgPath = str_replace(self::BCONSOLE_CFG_USER_KEYWORD, $user, $this->bconsoleCfgCustomPath);
+			}
 			$cmd = sprintf(self::BCONSOLE_COMMAND_PATTERN, $sudo, $this->bconsoleCmdPath, $this->bconsoleCfgPath, $dir, $bconsoleCommand);
 			exec($cmd, $output, $exitcode);
 			if($exitcode != 0) {
@@ -123,7 +132,7 @@ class Bconsole extends TModule {
 	}
 
 	public function testBconsoleCommand(array $command, $bconsoleCmdPath, $bconsoleCfgPath, $useSudo) {
-		$this->setEnvironmentParams($bconsoleCmdPath, $bconsoleCfgPath, $useSudo);
+		$this->setEnvironmentParams($bconsoleCmdPath, $bconsoleCfgPath, $useSudo, null);
 		$director = array_shift($this->getDirectors()->output);
 		return $this->bconsoleCommand($director, $command);		
 	}

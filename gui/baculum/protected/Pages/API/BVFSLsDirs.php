@@ -43,7 +43,7 @@ class BVFSLsDirs extends BaculumAPI {
 			if($limit > 0) {
 				array_push($cmd, 'limit="' .  $limit . '"');
 			}
-			$result = $this->getModule('bconsole')->bconsoleCommand($this->director, $cmd);
+			$result = $this->getModule('bconsole')->bconsoleCommand($this->director, $cmd, $this->user);
 			$this->output = $result->output;
 			$this->error = (integer)$result->exitcode;
 		} else {

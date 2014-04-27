@@ -50,7 +50,7 @@ class BVFSRestore extends BaculumAPI {
 					array_push($cmd, 'dirid="' . $dirids . '"');
 				}
 
-				$result = $this->getModule('bconsole')->bconsoleCommand($this->director, $cmd);
+				$result = $this->getModule('bconsole')->bconsoleCommand($this->director, $cmd, $this->user);
 				$this->output = $result->output;
 				$this->error = (integer)$result->exitcode;
 			} else {

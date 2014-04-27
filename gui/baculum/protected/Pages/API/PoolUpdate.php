@@ -23,7 +23,7 @@ class PoolUpdate extends BaculumAPI {
 	public function set($id, $params) {
 		$pool = $this->getModule('pool')->getPoolById($id);
 		if(!is_null($pool)) {
-			$poolUpdate = $this->getModule('bconsole')->bconsoleCommand($this->director, array('update', 'pool="' .  $pool->name . '"'));
+			$poolUpdate = $this->getModule('bconsole')->bconsoleCommand($this->director, array('update', 'pool="' .  $pool->name . '"'), $this->user);
 			$this->output = $poolUpdate->output;
 			$this->error = (integer)$poolUpdate->exitcode;
 		} else {

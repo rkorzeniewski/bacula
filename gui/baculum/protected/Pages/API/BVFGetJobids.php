@@ -24,7 +24,7 @@ class BVFSGetJobids extends BaculumAPI {
 		$job = $this->getModule('job')->getJobById($jobid);
 		if(!is_null($job)) {
 			$cmd = array('.bvfs_get_jobids', 'jobid="' . $job->jobid . '"');
-			$result = $this->getModule('bconsole')->bconsoleCommand($this->director, $cmd);
+			$result = $this->getModule('bconsole')->bconsoleCommand($this->director, $cmd, $this->user);
 			$this->output = $result->output;
 			$this->error = (integer)$result->exitcode;
 		} else {

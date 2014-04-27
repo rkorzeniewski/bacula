@@ -23,7 +23,7 @@ class FileSets extends BaculumAPI {
 		if($directors->exitcode === 0) {
 			$filesets = array();
 			for($i = 0; $i < count($directors->output); $i++) {
-				$filesetsshow = $this->getModule('bconsole')->bconsoleCommand($directors->output[$i], array('show', 'fileset'))->output;
+				$filesetsshow = $this->getModule('bconsole')->bconsoleCommand($directors->output[$i], array('show', 'fileset'), $this->user)->output;
 				$filesets[$directors->output[$i]] = array();
 				
 				for($j = 0; $j < count($filesetsshow); $j++) {

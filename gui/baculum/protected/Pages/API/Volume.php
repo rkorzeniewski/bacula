@@ -31,7 +31,7 @@ class Volume extends BaculumAPI {
 	}
 	
 	public function set($id, $params) {
-		$result = $this->getModule('volume')->setVolume($id, $params);
+		$result = ($this->user === null) ? $this->getModule('volume')->setVolume($id, $params) : true;
 		if($result === true) {
 			$this->output = null;
 			$this->error = VolumeError::ERROR_NO_ERRORS;

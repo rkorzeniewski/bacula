@@ -37,7 +37,7 @@ class JobEstimate extends BaculumAPI {
 				if(!is_null($fileset)) {
 					if(!is_null($client)) {
 						$joblevels  = $this->getModule('misc')->getJobLevels();
-						$estimation = $this->getModule('bconsole')->bconsoleCommand($this->director, array('estimate', 'job="' . $job . '"', 'level="' . $joblevels[$level] . '"', 'fileset="' . $fileset. '"', 'client="' . $client->name . '"', 'accurate="' . $accurate . '"'));
+						$estimation = $this->getModule('bconsole')->bconsoleCommand($this->director, array('estimate', 'job="' . $job . '"', 'level="' . $joblevels[$level] . '"', 'fileset="' . $fileset. '"', 'client="' . $client->name . '"', 'accurate="' . $accurate . '"'), $this->user);
 						$this->output = $estimation->output;
 						$this->error = (integer)$estimation->exitcode;
 					} else {

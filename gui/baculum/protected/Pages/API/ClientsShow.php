@@ -20,7 +20,7 @@
 class ClientsShow extends BaculumAPI {
 
 	public function get() {
-		$clients = $this->getModule('bconsole')->bconsoleCommand($this->director, array('show', 'clients'));
+		$clients = $this->getModule('bconsole')->bconsoleCommand($this->director, array('show', 'clients'), $this->user);
 		$this->output = $clients->output;
 		$this->error = (integer)$clients->exitcode;
 	}

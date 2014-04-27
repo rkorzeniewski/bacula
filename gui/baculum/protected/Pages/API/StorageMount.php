@@ -24,7 +24,7 @@ class StorageMount extends BaculumAPI {
 		$slot = intval($this->Request['slot']);
 		$storage = $this->getModule('storage')->getStorageById($storageid);
 		if(!is_null($storage)) {
-			$storageMount = $this->getModule('bconsole')->bconsoleCommand($this->director, array('mount', 'storage="' . $storage->name . '"', 'drive=' . $drive, 'slot=' . $slot));
+			$storageMount = $this->getModule('bconsole')->bconsoleCommand($this->director, array('mount', 'storage="' . $storage->name . '"', 'drive=' . $drive, 'slot=' . $slot), $this->user);
 			$this->output = $storageMount->output;
 			$this->error = (integer)$storageMount->exitcode;
 		} else {

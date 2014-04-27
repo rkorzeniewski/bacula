@@ -24,8 +24,8 @@ class JobTasks extends BaculumAPI {
 		if($directors->exitcode === 0) {
 			$jobs = array();
 			for($i = 0; $i < count($directors->output); $i++) {
-				$jobsList = $this->getModule('bconsole')->bconsoleCommand($directors->output[$i], array('.jobs'))->output;
-				$jobsshow = $this->getModule('bconsole')->bconsoleCommand($directors->output[$i], array('show', 'jobs'))->output;
+				$jobsList = $this->getModule('bconsole')->bconsoleCommand($directors->output[$i], array('.jobs'), $this->user)->output;
+				$jobsshow = $this->getModule('bconsole')->bconsoleCommand($directors->output[$i], array('show', 'jobs'), $this->user)->output;
 				$jobs[$directors->output[$i]] = array();
 				for($j = 0; $j < count($jobsList); $j++) {
 					/**

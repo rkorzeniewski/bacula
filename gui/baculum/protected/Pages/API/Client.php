@@ -32,7 +32,7 @@ class Client extends BaculumAPI {
 	}
 
 	public function set($id, $params) {
-		$result = $this->getModule('client')->setClient($id, $params);
+		$result = ($this->user === null) ? $this->getModule('client')->setClient($id, $params) : true;
 		if($result === true) {
 			$this->output = null;
 			$this->error = ClientError::ERROR_NO_ERRORS;

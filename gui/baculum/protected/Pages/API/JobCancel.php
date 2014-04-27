@@ -26,7 +26,7 @@ class JobCancel extends BaculumAPI {
 		$job = $this->getModule('job')->getJobById($jobid);
 
 		if(!is_null($job)) {
-			$cancel = $this->getModule('bconsole')->bconsoleCommand($this->director, array('cancel', 'jobid="' . $job->jobid . '"'));
+			$cancel = $this->getModule('bconsole')->bconsoleCommand($this->director, array('cancel', 'jobid="' . $job->jobid . '"'), $this->user);
 			$this->output = $cancel->output;
 			$this->error = (integer)$cancel->exitcode;
 		} else {

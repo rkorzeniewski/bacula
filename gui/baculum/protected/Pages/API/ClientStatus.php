@@ -22,7 +22,7 @@ class ClientStatus extends BaculumAPI {
 		$clientid = intval($this->Request['id']);
 		$client = $this->getModule('client')->getClientById($clientid);
 		if(!is_null($client)) {
-			$clientStatus = $this->getModule('bconsole')->bconsoleCommand($this->director, array('status', 'client="' . $client->name . '"'));
+			$clientStatus = $this->getModule('bconsole')->bconsoleCommand($this->director, array('status', 'client="' . $client->name . '"'), $this->user);
 			$this->output = $clientStatus->output;
 			$this->error = (integer)$clientStatus->exitcode;
 		} else {

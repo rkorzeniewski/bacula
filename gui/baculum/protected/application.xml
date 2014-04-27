@@ -96,6 +96,8 @@
 	<services>
 		<service id="page" class="TPageService" BasePath="Application.Pages" DefaultPage="Home">
 			<modules>
+				<module id="users" class="Application.Class.BaculumUsersManager" />
+				<module id="auth" class="System.Security.TAuthManager" UserManager="users" />
 				<module id="configuration" class="Application.Class.ConfigurationManager" />
 				<module id="logging" class="Application.Class.Logging" />
 				<module id="api" class="Application.Class.API" />

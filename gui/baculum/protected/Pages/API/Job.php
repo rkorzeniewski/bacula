@@ -34,7 +34,7 @@ class Job extends BaculumAPI {
 		$jobid = intval($id);
 		$job = $this->getModule('job')->getJobById($jobid);
 		if(!is_null($job)) {
-			$delete = $this->getModule('bconsole')->bconsoleCommand($this->director, array('delete', 'jobid="' . $job->jobid . '"'));
+			$delete = $this->getModule('bconsole')->bconsoleCommand($this->director, array('delete', 'jobid="' . $job->jobid . '"'), $this->user);
 			$this->output = $delete->output;
 			$this->error = (integer)$delete->exitcode;
 		} else {

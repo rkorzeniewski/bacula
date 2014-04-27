@@ -27,7 +27,7 @@ class BVFSVersions extends BaculumAPI {
 		$job = $this->getModule('job')->getJobById($jobid);
 		if(!is_null($job)) {
 			$cmd = array('.bvfs_versions', 'client="' . $client . '"', 'jobid="' . $job->jobid . '"', 'pathid="' . $pathid . '"', 'fnid="' . $filenameid . '"');
-			$result = $this->getModule('bconsole')->bconsoleCommand($this->director, $cmd);
+			$result = $this->getModule('bconsole')->bconsoleCommand($this->director, $cmd, $this->user);
 			$this->output = $result->output;
 			$this->error = (integer)$result->exitcode;
 		} else {

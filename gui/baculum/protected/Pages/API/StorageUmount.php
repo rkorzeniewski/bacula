@@ -23,7 +23,7 @@ class StorageUmount extends BaculumAPI {
 		$drive = intval($this->Request['drive']);
 		$storage = $this->getModule('storage')->getStorageById($storageid);
 		if(!is_null($storage)) {
-			$storageUmount = $this->getModule('bconsole')->bconsoleCommand($this->director, array('umount', 'storage="' . $storage->name . '"', 'drive=' . $drive));
+			$storageUmount = $this->getModule('bconsole')->bconsoleCommand($this->director, array('umount', 'storage="' . $storage->name . '"', 'drive=' . $drive), $this->user);
 			$this->output = $storageUmount->output;
 			$this->error = (integer)$storageUmount->exitcode;
 		} else {

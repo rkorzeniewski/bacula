@@ -22,7 +22,7 @@ class StorageShow extends BaculumAPI {
 		$storageid = intval($this->Request['id']);
 		$storage = $this->getModule('storage')->getStorageById($storageid);
 		if(!is_null($storage)) {
-			$storageShow = $this->getModule('bconsole')->bconsoleCommand($this->director, array('show', 'storage="' . $storage->name . '"'));
+			$storageShow = $this->getModule('bconsole')->bconsoleCommand($this->director, array('show', 'storage="' . $storage->name . '"'), $this->user);
 			$this->output = $storageShow->output;
 			$this->error = (integer)$storageShow->exitcode;
 		} else {
