@@ -35,6 +35,8 @@ class Home extends BaculumPage
 
 		$this->SettingsWizardBtn->Visible = $this->User->getIsAdmin();
 		$this->MediaBtn->Visible = $this->User->getIsAdmin();
+		$this->ClearBvfsCache->Visible = $this->User->getIsAdmin();
+		$this->Logging->Visible = $this->User->getIsAdmin();
 
 		if(!$this->IsPostBack && !$this->IsCallBack) {
 			$this->Logging->Checked = $this->getModule('logging')->isDebugOn();
@@ -65,11 +67,15 @@ class Home extends BaculumPage
 	}
 
 	public function setDebug($sender, $param) {
-		$this->getModule('logging')->enableDebug($this->Logging->Checked);
+		if($this->User->getIsAdmin() === true) {
+			$this->getModule('logging')->enableDebug($this->Logging->Checked);
+		}
 	}
 
 	public function clearBvfsCache($sender, $param) {
-		$this->getModule('api')->set(array('bvfs', 'clear'), array());
+		if($this->User->getIsAdmin() === true) {
+			$this->getModule('api')->set(array('bvfs', 'clear'), array());
+		}
 	}
 }
 ?>
