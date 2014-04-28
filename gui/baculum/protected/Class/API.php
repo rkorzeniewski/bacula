@@ -35,6 +35,8 @@ class API extends TModule {
 		curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
 		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+		curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_ANY);
+		curl_setopt($ch, CURLOPT_USERPWD, $this->appCfg['baculum']['login'] . ':' . $this->appCfg['baculum']['password']);
 		return $ch;
 	}
 
@@ -42,12 +44,15 @@ class API extends TModule {
 		return 'X-Baculum-API: ' . self::API_VERSION;
 	}
 
-	private function getURL() {
+	public function init($config) {
 		$this->appCfg = $this->Application->getModule('configuration')->getApplicationConfig();
+	}
+
+	private function getURL() {
 		$protocol = !empty($_SERVER['HTTPS']) ? 'https' : 'http';
 		$host = $_SERVER['SERVER_NAME'];
 		$port = $_SERVER['SERVER_PORT'];
-		$url = sprintf('%s://%s:%s@%s:%d/', $protocol, $this->appCfg['baculum']['login'], $this->appCfg['baculum']['password'], $host, $port);
+		$url = sprintf('%s://%s:%d/', $protocol, $host, $port);
 		return $url;
 	}
 
