@@ -21,7 +21,8 @@ class FileSet extends BaculumAPI {
 	public function get() {
 		$filesetid = intval($this->Request['id']);
 		$fileset = $this->getModule('fileset')->getFileSetById($filesetid);
-		if(!is_null($fileset)) {
+		$allowedFileSets = $this->getModule('bconsole')->bconsoleCommand($this->director, array('.fileset'), $this->user)->output;
+		if(!is_null($fileset) && in_array($fileset->fileset, $allowedFileSets)) {
 			$this->output = $fileset;
 			$this->error = FileSetError::ERROR_NO_ERRORS;
 		} else {

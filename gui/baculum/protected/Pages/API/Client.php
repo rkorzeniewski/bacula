@@ -22,7 +22,8 @@ class Client extends BaculumAPI {
 	public function get() {
 		$clientid = intval($this->Request['id']);
 		$client = $this->getModule('client')->getClientById($clientid);
-		if(!is_null($client)) {
+		$allowedClients = $this->getModule('bconsole')->bconsoleCommand($this->director, array('.client'), $this->user)->output;
+		if(!is_null($client) && in_array($client->name, $allowedClients)) {
 			$this->output = $client;
 			$this->error = ClientError::ERROR_NO_ERRORS;
 		} else {

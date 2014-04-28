@@ -21,7 +21,8 @@ class Pool extends BaculumAPI {
 	public function get() {
 		$poolid = intval($this->Request['id']);
 		$pool = $this->getModule('pool')->getPoolById($poolid);
-		if(!is_null($pool)) {
+		$allowedPools = $this->getModule('bconsole')->bconsoleCommand($this->director, array('.pool'), $this->user)->output;
+		if(!is_null($pool) && in_array($pool->name, $allowedPools)) {
 			$this->output = $pool;
 			$this->error = PoolError::ERROR_NO_ERRORS;
 		} else {
