@@ -517,9 +517,12 @@ VOLRES *reserve_volume(DCR *dcr, const char *VolumeName)
                   Mmsg1(jcr->errmsg, _("Volume %s is busy swapping.\n"),
                      vol->vol_name);
                }
-            } else {
-               Mmsg2(jcr->errmsg, _("%s device %s is busy.\n"),
+            } else if (vol->dev) {
+               Mmsg2(jcr->errmsg, _("%s device %s is busy.\n"), 
                   vol->dev->print_type(), vol->dev->print_name());
+            } else {
+               Mmsg1(jcr->errmsg, _("Volume %s is busy swapping.\n"),
+                  vol->vol_name);
             }
             debug_list_volumes("failed swap");
             vol = NULL;                  /* device busy */
