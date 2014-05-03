@@ -488,7 +488,7 @@
 /* Define to 1 if you have the <grp.h> header file. */
 #undef HAVE_GRP_H
 
-/* Define if you have the iconv() function. */
+/* Define to 1 if you have the `iconv()' function. */
 #undef HAVE_ICONV
 
 /* Define to 1 if you have the `inet_ntop' function. */
