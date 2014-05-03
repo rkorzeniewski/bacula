@@ -653,6 +653,11 @@ static bool reschedule_job(JCR *jcr, jobq_t *jq, jobq_item_t *je)
          if (jcr->wasVirtualFull) {
             jcr->setJobLevel(L_VIRTUAL_FULL);
          }
+         /* 
+          * When we are using the same jcr then make sure to reset
+          *   RealEndTime back to zero.  
+          */
+         jcr->jr.RealEndTime = 0;
          jobq_add(jq, jcr);     /* queue the job to run again */
          P(jq->mutex);
          free_jcr(jcr);         /* release jcr */
