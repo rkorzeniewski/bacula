@@ -751,6 +751,9 @@ void do_messages(UAContext *ua, const char *cmd)
    int mlen;
    bool do_truncate = false;
 
+   if (ua->jcr) {
+      dequeue_messages(ua->jcr);
+   }
    Pw(con_lock);
    pthread_cleanup_push(con_lock_release, (void *)NULL);
    rewind(con_fd);
