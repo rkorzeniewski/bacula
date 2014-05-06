@@ -1,3 +1,6 @@
+
+             Last revision: 06 May 2014
+
 Bacula is licensed under the GNU Affero General Public License, version
 3.0 as published by the Free Software Foundation, Inc. ("AGPLv3").
 
@@ -49,13 +52,6 @@ AGPLv3 are as follows:
    distribute the linked executables.  You must follow the requirements of
    the AGPLv3 in all respects for all of the code used other than for the
    Microsoft VSS code.
-
-3. As a special exception to the AGPLv3, the copyright holders gives
-   permission to link the code of its release of the Bacula Win32 File daemon
-   with the Microsoft supplied Volume Shadow Copy (VSS) libraries and
-   distribute the linked executables.  You must follow the AGPLv3 in all
-   respects for all of the code used other than for the Microsoft VSS code.
-
 
 ######################################################################
 The entire AGPL is below, in the manuals distributed with the Bacula
