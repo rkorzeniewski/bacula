@@ -1,7 +1,8 @@
               Changelog on version 7.0.3
 
 Release version 7.0.3
-11May14
+12May14
+ - Fix error handling in do_alist_prompt
  - Tighten error condition handling in sellist
  - Add new cancel test
 

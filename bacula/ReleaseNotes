@@ -6,6 +6,7 @@ This is a bug fix release to version 7.0.2. We recommend that
 everyone using version 7.0.2 upgrade to this version.
 
 12May14
+ - Fix error handling in do_alist_prompt
  - Tighten error condition handling in sellist
  - Add new cancel test
  - Update LICENSE and LICENSE-FAQ
