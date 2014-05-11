@@ -31,11 +31,11 @@
 int64_t sellist::next()
 {
    errmsg = NULL;
-   if (beg <= end) {
+   if (beg <= end) {     /* scan done? */
       return beg++;
    }
    if (e == NULL) {
-      goto bail_out;
+      goto bail_out;      /* nothing to scan */
    }
    /*
     * As we walk the list, we set EOF in
@@ -43,13 +43,12 @@ int64_t sellist::next()
     *   but save and then restore the character.
     */
    for (p=e; p && *p; p=e) {
+      esave = hsave = 0;
       /* Check for list */
       e = strchr(p, ',');
       if (e) {                       /* have list */
          esave = *e;
          *e++ = 0;
-      } else {
-         esave = 0;
       }
       /* Check for range */
       h = strchr(p, '-');             /* range? */
@@ -76,7 +75,6 @@ int64_t sellist::next()
             goto bail_out;
          }
       } else {                           /* not list, not range */
-         hsave = 0;
          skip_spaces(&p);
          /* Check for abort (.) */
          if (*p == '.') {
@@ -110,10 +108,12 @@ int64_t sellist::next()
       }
    }
    /* End of items */
-   errmsg = NULL;      /* No error */
-   return -1;
+   begin();
+   e = NULL;
+   return -1;          /* No error */
 
 bail_out:
+   e = NULL;
    return -1;          /* Error, errmsg set */
 }
 
@@ -125,6 +125,7 @@ bail_out:
  */
 bool sellist::set_string(char *string, bool scan=true)
 {
+   bool OK = true;
    /*
     * Copy string, because we write into it,
     *  then scan through it once to find any
@@ -141,18 +142,17 @@ bool sellist::set_string(char *string, bool scan=true)
    end = 0;
    beg = 1;
    num_items = 0;
+   errmsg = NULL;
    if (scan) {
       while (next() >= 0) {
          num_items++;
       }
-      if (get_errmsg()) {
-         return false;
-      }
+      OK = !get_errmsg();
       e = str;
       end = 0;
       beg = 1;
    }
-   return true;
+   return OK;
 }
 
 /* Get the expanded list of all ids, very useful for SQL queries */
