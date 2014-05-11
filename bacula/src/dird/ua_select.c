@@ -951,6 +951,7 @@ int do_alist_prompt(UAContext *ua, const char *automsg, const char *msg,
    sprintf(pmsg, "%s (1-%d): ", msg, ua->num_prompts-1);
 
    for ( ;; ) {
+      bool ok = true;
       /* Either a . or an @ will get you out of the loop */
       if (ua->api) user->signal(BNET_SELECT_INPUT);
 
@@ -967,13 +968,16 @@ int do_alist_prompt(UAContext *ua, const char *automsg, const char *msg,
          while ( (item = sl.next()) > 0) {
             if (item < 1 || item >= ua->num_prompts) {
                ua->warning_msg(_("Please enter a number between 1 and %d\n"), ua->num_prompts-1);
-               continue;
+               ok = false;
+               break;
             }
             selected->append(bstrdup(ua->prompt[item]));
          }
       }
-      item = selected->size();
-      break;
+      if (ok) {
+         item = selected->size();
+         break;
+      }
    }
 
 done:
