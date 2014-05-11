@@ -1,4 +1,56 @@
-              Changelog on version 7.0.2
+              Changelog on version 7.0.3
+
+Release version 7.0.3
+11May14
+ - Tighten error condition handling in sellist
+ - Add new cancel test
+
+06May14
+ - Update LICENSE and LICENSE-FAQ
+
+03May14
+ - Also update autoconf/aclocal.m4
+ - Reschedule on error caused EndTime to be incorrect -- fixes bug #2029
+ - Flush console queued job messages -- should fix bug #2054
+ - Attempt to fix FreeBSD echo/printf, bug #2048
+ - Update to newer libtool + config.guess
+ - Recompile configure
+ - Apply fix supplied for acl.c in bug #2050
+
+01May14
+ - Fix a SD seg fault that occurs with over committed drives
+
+28Apr14
+ - Clear bvfs cache and set debug options available only for admin
+ - Moved auth params to curl opts
+ - Filtred single results for restricted consoles
+
+27Apr14
+ - Removed unnecessary debug
+ - Changed e-mail address in gettext file
+ - Support for customized and restricted consoles
+
+15Apr14
+ - Misc changes for rpm building (made by Louis)
+
+13Apr14
+ - Updated requirements for Baculum
+
+12Apr14
+ - Apply fix for bug 2049: wrong drive selected
+
+11Apr14
+ - Fix #2047 about bthread_cond_wait_p not declared
+
+09Apr14
+ - Fix Bacula bug #2044 -- fix Makefile for bplugininfo linking
+ - Fix Bacula bug #2046 -- sellist limited to 10000
+ - Fix Bacula bug #2045 -- multiply defined daemon_event
+ - Fix Bacula bug #2020 overflow in btape -- Andreas Koch
+
+Bugs fixed/closed since last release:
+2020 2029 2044 2045 2046 2047 2048 2050 2054
+
 
 Release version 7.0.2
 02Apr14

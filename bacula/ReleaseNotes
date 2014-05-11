@@ -1,6 +1,42 @@
 
-               Release Notes for Bacula 7.0.2
+               Release Notes for Bacula 7.0.3
 
+Release version 7.0.3
+This is a bug fix release to version 7.0.2. We recommend that
+everyone using version 7.0.2 upgrade to this version.
+
+12May14
+ - Tighten error condition handling in sellist
+ - Add new cancel test
+ - Update LICENSE and LICENSE-FAQ
+ - Also update autoconf/aclocal.m4
+ - Reschedule on error caused EndTime to be incorrect -- fixes bug #2029
+ - Flush console queued job messages -- should fix bug #2054
+ - Attempt to fix FreeBSD echo/printf, bug #2048
+ - Update to newer libtool + config.guess
+ - Recompile configure
+ - Apply fix supplied for acl.c in bug #2050
+ - Fix a SD seg fault that occurs with over committed drives
+ - Clear bvfs cache and set debug options available only for admin
+ - Moved auth params to curl opts
+ - Filtred single results for restricted consoles
+ - Removed unnecessary debug
+ - Changed e-mail address in gettext file
+ - Support for customized and restricted consoles
+ - Misc changes for rpm building (made by Louis)
+ - Updated requirements for Baculum
+ - Apply fix for bug 2049: wrong drive selected
+ - Fix #2047 about bthread_cond_wait_p not declared
+ - Fix Bacula bug #2044 -- fix Makefile for bplugininfo linking
+ - Fix Bacula bug #2046 -- sellist limited to 10000
+ - Fix Bacula bug #2045 -- multiply defined daemon_event
+ - Fix Bacula bug #2020 overflow in btape -- Andreas Koch
+
+Bugs fixed/closed since last release:
+2020 2029 2044 2045 2046 2047 2048 2050 2054
+
+
+===================================================================
 Release version 7.0.2
 This is a minor update since version 7.0.1 that is mostly cleanup.
 However, there is one annoying bug concerning shell expansion of
