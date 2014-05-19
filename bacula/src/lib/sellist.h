@@ -43,7 +43,7 @@ class sellist : public SMARTALLOC {
 public:
    sellist();
    ~sellist();
-   bool set_string(char *string, bool scan);
+   bool set_string(const char *string, bool scan);
    bool is_all() { return all; };
    int64_t first();
    int64_t next();

@@ -32,6 +32,7 @@ int64_t sellist::next()
 {
    errmsg = NULL;
    if (beg <= end) {     /* scan done? */
+      //printf("Return %lld\n", beg);
       return beg++;
    }
    if (e == NULL) {
@@ -45,7 +46,7 @@ int64_t sellist::next()
    for (p=e; p && *p; p=e) {
       esave = hsave = 0;
       /* Check for list */
-      e = strchr(p, ',');
+      e = strpbrk(p, ", ");
       if (e) {                       /* have list */
          esave = *e;
          *e++ = 0;
@@ -70,7 +71,8 @@ int64_t sellist::next()
          }
          beg = str_to_int64(p);
          end = str_to_int64(h);
-         if (end < beg) {
+         //printf("beg=%lld end=%lld\n", beg, end);
+         if (end <= beg) {
             errmsg = _("Range end not bigger than start.\n");
             goto bail_out;
          }
@@ -85,6 +87,7 @@ int64_t sellist::next()
          if (strncasecmp(p, "all", 3) == 0) {
             all = true;
             errmsg = NULL;
+            //printf("Return 0 i.e. all\n");
             return 0;
          }
          if (!is_an_integer(p)) {
@@ -104,15 +107,22 @@ int64_t sellist::next()
          goto bail_out;
       }
       if (beg <= end) {
+         //printf("Return %lld\n", beg);
          return beg++;
       }
    }
+   //printf("Rtn=-1. End of items\n");
    /* End of items */
    begin();
    e = NULL;
    return -1;          /* No error */
 
 bail_out:
+   if (errmsg) {
+      //printf("Bail out rtn=-1. p=%c err=%s\n", *p, errmsg);
+   } else {
+      //printf("Rtn=-1. End of items\n");
+   }
    e = NULL;
    return -1;          /* Error, errmsg set */
 }
@@ -123,9 +133,9 @@ bail_out:
  *   returns false on error in string
  *   returns true if OK
  */
-bool sellist::set_string(char *string, bool scan=true)
+bool sellist::set_string(const char *string, bool scan=true)
 {
-   bool OK = true;
+   bool ok = true;
    /*
     * Copy string, because we write into it,
     *  then scan through it once to find any
@@ -138,24 +148,27 @@ bool sellist::set_string(char *string, bool scan=true)
    if (str) {
       free(str);
    }
-   e = str = bstrdup(string);
-   end = 0;
-   beg = 1;
+   str = bstrdup(string);
+   begin();
    num_items = 0;
-   errmsg = NULL;
    if (scan) {
       while (next() >= 0) {
          num_items++;
       }
-      OK = !get_errmsg();
-      e = str;
-      end = 0;
-      beg = 1;
+      ok = get_errmsg() == NULL;
    }
-   return OK;
+   if (ok) {
+      begin();
+   } else {
+      e = NULL;
+   }
+   return ok;
 }
 
-/* Get the expanded list of all ids, very useful for SQL queries */
+/*
+ * Get the expanded list of values separated by commas,
+ * useful for SQL queries
+ */
 char *sellist::get_expanded_list()
 {
    int32_t expandedsize = 512;
@@ -197,50 +210,60 @@ char *sellist::get_expanded_list()
 }
 
 #ifdef TEST_PROGRAM
+
+const char *sin[] = {
+   "1,70",
+   "1",
+   "256",
+   "1-5",
+   "1-5,7",
+   "1 10 20 30",
+   "1-5,7,20 21",
+   "all",
+   "12a",    /* error */
+   "12-11",  /* error */
+   "12-13a", /* error */
+   "a123",   /* error */
+   NULL
+};
+
+const char *sout[] = {
+   "1,70",
+   "1",
+   "256",
+   "1,2,3,4,5",
+   "1,2,3,4,5,7",
+   "1,10,20,30",
+   "1,2,3,4,5,7,20,21",
+   "0",
+   "ERROR",
+   "ERROR",
+   "ERROR",
+   "ERROR",
+   NULL
+};
+
 int main(int argc, char **argv, char **env)
 {
    const char *msg;
    sellist sl;
-   int i;
+   int x;
 
-   if (!argv[1]) {
-      msg = _("No input string given.\n");
-      goto bail_out;
+   for (x=0; sin[x] != NULL; x++) {
+      if (!sl.set_string(sin[x], true)) {
+         printf("ERR: input: %s ERR=%s", sin[x], sl.get_errmsg());
+         continue;
+      }
+      msg = sl.get_expanded_list();
+      if (sl.get_errmsg() == NULL && strcmp(msg, sout[x]) == 0) {
+         printf("OK: input: %s output: %s\n", sin[x], msg);
+      } else {
+         printf("ERR: input: %s gave output: %s ERR=%s\n", sin[x], msg,
+            sl.get_errmsg());
+      }
    }
-   Dmsg1(000, "argv[1]=%s\n", argv[1]);
-
-   strip_trailing_junk(argv[1]);
-   sl.set_string(argv[1]);
-
-   //Dmsg1(000, "get_list=%s\n", sl.get_list());
-
-   /* If the list is very long, Dmsg will truncate it */
-   Dmsg1(000, "get_expanded_list=%s\n", NPRT(sl.get_expanded_list()));
-
-   if ((msg = sl.get_errmsg())) {
-      goto bail_out;
-   }
-   while ((i=sl.next()) > 0) {
-      Dmsg1(000, "rtn=%d\n", i);
-   }
-   if ((msg = sl.get_errmsg())) {
-      goto bail_out;
-   }
-   printf("\nPass 2 argv[1]=%s\n", argv[1]);
-   sl.set_string(argv[1]);
-   while ((i=sl.next()) > 0) {
-      Dmsg1(000, "rtn=%d\n", i);
-   }
-   msg = sl.get_errmsg();
-   Dmsg2(000, "rtn=%d msg=%s\n", i, NPRT(msg));
-   if (msg) {
-      goto bail_out;
-   }
+   printf("\n");
    return 0;
-
-bail_out:
-   Dmsg1(000, "Error: %s\n", NPRT(msg));
-   return 1;
 
 }
 #endif /* TEST_PROGRAM */
