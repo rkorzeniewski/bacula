@@ -86,7 +86,7 @@ bool get_selection_list(UAContext *ua, sellist &sl,
       if (!get_cmd(ua, prompt, subprompt)) {
          return false;
       }
-      if (sl.set_string(ua->cmd, true) < 0 && sl.get_errmsg()) {
+      if (!sl.set_string(ua->cmd, true)) {
          ua->send_msg("%s", sl.get_errmsg());
          continue;
       }

@@ -1454,7 +1454,7 @@ static void delete_job(UAContext *ua)
 
    i = find_arg_with_value(ua, NT_("jobid"));
    if (i >= 0) {
-      if (sl.set_string(ua->argv[i], true) < 0 && sl.get_errmsg()) {
+      if (!sl.set_string(ua->argv[i], true)) {
          ua->warning_msg("%s", sl.get_errmsg());
          return;
       }

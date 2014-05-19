@@ -1241,7 +1241,7 @@ int select_running_jobs(UAContext *ua, alist *jcrs, const char *reason)
          sellist sl;
          int32_t JobId;
 
-         if (sl.set_string(ua->argv[i], true) < 0 && sl.get_errmsg()) {
+         if (!sl.set_string(ua->argv[i], true)) {
             ua->send_msg("%s", sl.get_errmsg());
             break;
          }
