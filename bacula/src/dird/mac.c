@@ -472,10 +472,6 @@ bool do_mac(JCR *jcr)
       wjcr->jr.Name, (int)wjcr->jr.JobId,
       wjcr->jr.JobType, wjcr->jr.JobLevel);
 
-   store = wjcr->wstore;
-   if (store->SDDport == 0) {
-      store->SDDport = store->SDport;
-   }
 
    if (jcr->sd_calls_client) {
       /*
@@ -486,6 +482,11 @@ bool do_mac(JCR *jcr)
          goto bail_out;
       }
 
+      /* Setup the storage address and port */
+      store = wjcr->wstore;
+      if (store->SDDport == 0) {
+         store->SDDport = store->SDport;
+      }
       store_address = store->address;   /* note: store points to wstore */
 
       Dmsg2(200, "Start write message thread jid=%d Job=%s\n", wjcr->JobId, wjcr->Job);
@@ -518,6 +519,10 @@ bool do_mac(JCR *jcr)
        *
        * Send Storage daemon address to the writing SD
        */
+      store = jcr->rstore;
+      if (store->SDDport == 0) {
+         store->SDDport = store->SDport;
+      }
       store_address = get_storage_address(jcr->client, store);
       store_port = store->SDDport;
 
