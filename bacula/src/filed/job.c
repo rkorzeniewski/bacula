@@ -23,10 +23,15 @@
 #include "bacula.h"
 #include "filed.h"
 #include "ch.h"
+#ifdef WIN32_VSS
+#include "vss.h"
+static pthread_mutex_t vss_mutex = PTHREAD_MUTEX_INITIALIZER;
+#endif
 
 /* Globals */
 bool win32decomp = false;
 bool no_win32_write_errors = false;
+static int enable_vss = 0;
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 /*
@@ -1628,6 +1633,10 @@ static int fileset_cmd(JCR *jcr)
    POOL_MEM buf(PM_MESSAGE);
    BSOCK *dir = jcr->dir_bsock;
    int rtnstat;
+   int vss = 0;
+
+   sscanf(dir->msg, "fileset vss=%d", &vss);
+   enable_vss = vss;
 
    if (!init_fileset(jcr)) {
       return 0;
