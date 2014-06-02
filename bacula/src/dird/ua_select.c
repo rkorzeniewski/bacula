@@ -1241,34 +1241,35 @@ int select_running_jobs(UAContext *ua, alist *jcrs, const char *reason)
          sellist sl;
          int32_t JobId;
 
+         if (!ua->argv[i]) {
+            ua->error_msg(_("No value given for \"jobid\".\n"));
+            goto bail_out;
+         }
          if (!sl.set_string(ua->argv[i], true)) {
             ua->send_msg("%s", sl.get_errmsg());
-            break;
+            goto bail_out;
          }
-
          foreach_sellist(JobId, &sl) {
             jcr = get_jcr_by_id(JobId);
             if (jcr && jcr->job && acl_access_ok(ua, Job_ACL, jcr->job->name())) {
                jcrs->append(jcr);
-
             } else if (jcr) {
                ua->error_msg(_("Unauthorized command from this console "
                                "for JobId=%d.\n"), JobId);
                free_jcr(jcr);
-
             } else {
-               if (debug_level > 5) {
-                  ua->warning_msg(_("Warning Job JobId=%d is not running. "
-                                    "Continuing anyway...\n"), JobId);
-               }
+               ua->warning_msg(_("Warning Job JobId=%d is not running.\n"), JobId);
             }
+         }
+         if (jcrs->size() == 0) {
+            goto bail_out;               /* If we did not find specified jobid, get out */
          }
          break;
 
       /* TODO: might want to implement filters (client, status, etc...) */
       } else if (strcasecmp(ua->argk[i], NT_("all")) == 0) {
          foreach_jcr(jcr) {
-            if (jcr->JobId == 0) {      /* this is us */
+            if (jcr->JobId == 0) {      /* Do not cancel consoles */
                continue;
             }
             if (!acl_access_ok(ua, Job_ACL, jcr->job->name())) {
@@ -1279,41 +1280,53 @@ int select_running_jobs(UAContext *ua, alist *jcrs, const char *reason)
          }
          endeach_jcr(jcr);
 
+         /* If we have something and no "yes" on command line, get confirmation */
          if (jcrs->size() > 0 && find_arg(ua, NT_("yes")) < 0) {
             char nbuf[1000];
             bsnprintf(nbuf, sizeof(nbuf),  _("Confirm %s of %d Job%s (yes/no): "),
                       reason, jcrs->size(), jcrs->size()>1?"s":"");
             if (!get_yesno(ua, nbuf) || ua->pint32_val == 0) {
-               return -1;
+               goto bail_out;
             }
+         }
+         if (jcrs->size() == 0) {
+            goto bail_out;               /* If we did not find specified jobid, get out */
          }
          break;
 
       } else if (strcasecmp(ua->argk[i], NT_("job")) == 0) {
          if (!ua->argv[i]) {
-            break;
+            ua->error_msg(_("No value given for \"job\".\n"));
+            goto bail_out;
          }
          if (!(jcr=get_jcr_by_partial_name(ua->argv[i]))) {
-            ua->warning_msg(_("Warning Job %s is not running. Continuing anyway ...\n"), ua->argv[i]);
+            ua->warning_msg(_("Warning Job %s is not running.\n"), ua->argv[i]);
             jcr = new_jcr(sizeof(JCR), dird_free_jcr);
             bstrncpy(jcr->Job, ua->argv[i], sizeof(jcr->Job));
          }
          if (jcr && jcr->job && acl_access_ok(ua, Job_ACL, jcr->job->name())) {
             jcrs->append(jcr);
+         }
+         if (jcrs->size() == 0) {
+            goto bail_out;               /* If we did not find specified jobid, get out */
          }
          break;
 
       } else if (strcasecmp(ua->argk[i], NT_("ujobid")) == 0) {
          if (!ua->argv[i]) {
-            break;
+            ua->error_msg(_("No value given for \"ujobid\".\n"));
+            goto bail_out;
          }
          if (!(jcr=get_jcr_by_full_name(ua->argv[i]))) {
-            ua->warning_msg(_("Warning Job %s is not running. Continuing anyway ...\n"), ua->argv[i]);
+            ua->warning_msg(_("Warning Job %s is not running.\n"), ua->argv[i]);
             jcr = new_jcr(sizeof(JCR), dird_free_jcr);
             bstrncpy(jcr->Job, ua->argv[i], sizeof(jcr->Job));
          }
          if (jcr && jcr->job && acl_access_ok(ua, Job_ACL, jcr->job->name())) {
             jcrs->append(jcr);
+         }
+         if (jcrs->size() == 0) {
+            goto bail_out;               /* If we did not find specified jobid, get out */
          }
          break;
       }

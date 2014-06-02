@@ -211,7 +211,8 @@ char *sellist::get_expanded_list()
 
 #ifdef TEST_PROGRAM
 
-const char *sin[] = {
+/* Test input string */
+const char *sinp[] = {
    "1,70",
    "1",
    "256",
@@ -227,6 +228,7 @@ const char *sin[] = {
    NULL
 };
 
+/* Scanned output string -- or ERROR if input is illegal */
 const char *sout[] = {
    "1,70",
    "1",
@@ -249,16 +251,16 @@ int main(int argc, char **argv, char **env)
    sellist sl;
    int x;
 
-   for (x=0; sin[x] != NULL; x++) {
-      if (!sl.set_string(sin[x], true)) {
-         printf("ERR: input: %s ERR=%s", sin[x], sl.get_errmsg());
+   for (x=0; sinp[x] != NULL; x++) {
+      if (!sl.set_string(sinp[x], true)) {
+         printf("ERR: input: %s ERR=%s", sinp[x], sl.get_errmsg());
          continue;
       }
       msg = sl.get_expanded_list();
       if (sl.get_errmsg() == NULL && strcmp(msg, sout[x]) == 0) {
-         printf("OK: input: %s output: %s\n", sin[x], msg);
+         printf("OK: input: %s output: %s\n", sinp[x], msg);
       } else {
-         printf("ERR: input: %s gave output: %s ERR=%s\n", sin[x], msg,
+         printf("ERR: input: %s gave output: %s ERR=%s\n", sinp[x], msg,
             sl.get_errmsg());
       }
    }
