@@ -1,4 +1,20 @@
-              Changelog on version 7.0.3
+              Changelog on version 7.0.4
+
+Release version 7.0.4
+02Jun14
+ - Better error handling for cancel command
+
+01Jun14
+ - Fix compiler warning + simplify some #ifdefs
+
+22May14
+ - Fix copy/migration to second SD
+
+19May14
+ - Fix calls to sl.set_string()
+ - Improve sellist code
+
+=====
 
 Release version 7.0.3
 12May14

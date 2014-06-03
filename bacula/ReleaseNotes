@@ -1,6 +1,22 @@
 
-               Release Notes for Bacula 7.0.3
+               Release Notes for Bacula 7.0.4
 
+Release version 7.0.4
+This is a bug fix release to version 7.0.3.  We recommend that
+everyone upgrade to this version.
+
+The main fixes are to make copy/migration to a second SD work, and
+to cleanup some of the inconsistencies in the cancel command which 
+could confuse the user.
+
+02Jun14
+ - Better error handling for cancel command
+ - Fix compiler warning + simplify some #ifdefs
+ - Fix copy/migration to second SD
+ - Fix calls to sl.set_string()
+ - Improve sellist code
+
+=============================================================
 Release version 7.0.3
 This is a bug fix release to version 7.0.2. We recommend that
 everyone using version 7.0.2 upgrade to this version.
