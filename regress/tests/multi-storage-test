@@ -33,7 +33,7 @@ sed 's/bacula-sd.conf/bacula-sd2.conf/' $scripts/bacula-ctl-sd \
     > $tmp/bacula-ctl-sd
 chmod +x $tmp/bacula-ctl-sd
 
-disable_pluguins
+disable_plugins
 
 echo "${cwd}/build" >${cwd}/tmp/file-list
 
