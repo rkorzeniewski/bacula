@@ -349,6 +349,7 @@ public:
    int32_t SDVersion;                 /* Storage daemon version number */
    int64_t spool_size;                /* Spool size for this job */
    volatile bool sd_msg_thread_done;  /* Set when Storage message thread done */
+   bool SD_msg_chan_started;          /* Set if message thread started */
    bool wasVirtualFull;               /* set if job was VirtualFull */
    bool IgnoreDuplicateJobChecking;   /* set in migration jobs */
    bool spool_data;                   /* Spool data in SD */

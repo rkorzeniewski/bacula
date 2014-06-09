@@ -783,7 +783,7 @@ void backup_cleanup(JCR *jcr, int TermCode)
          msg_type = M_ERROR;          /* Generate error message */
          if (jcr->store_bsock) {
             jcr->store_bsock->signal(BNET_TERMINATE);
-            if (jcr->SD_msg_chan) {
+            if (jcr->SD_msg_chan_started) {
                pthread_cancel(jcr->SD_msg_chan);
             }
          }
@@ -792,7 +792,7 @@ void backup_cleanup(JCR *jcr, int TermCode)
          term_msg = _("Backup Canceled");
          if (jcr->store_bsock) {
             jcr->store_bsock->signal(BNET_TERMINATE);
-            if (jcr->SD_msg_chan) {
+            if (jcr->SD_msg_chan_started) {
                pthread_cancel(jcr->SD_msg_chan);
             }
          }

@@ -739,13 +739,13 @@ void mac_cleanup(JCR *jcr, int TermCode, int writeTermCode)
          msg_type = M_ERROR;          /* Generate error message */
          if (jcr->store_bsock) {
             jcr->store_bsock->signal(BNET_TERMINATE);
-            if (jcr->SD_msg_chan) {
+            if (jcr->SD_msg_chan_started) {
                pthread_cancel(jcr->SD_msg_chan);
             }
          }
          if (wjcr->store_bsock) {
             wjcr->store_bsock->signal(BNET_TERMINATE);
-            if (wjcr->SD_msg_chan) {
+            if (wjcr->SD_msg_chan_started) {
                pthread_cancel(wjcr->SD_msg_chan);
             }
          }
@@ -754,13 +754,13 @@ void mac_cleanup(JCR *jcr, int TermCode, int writeTermCode)
          term_msg = _("%s Canceled");
          if (jcr->store_bsock) {
             jcr->store_bsock->signal(BNET_TERMINATE);
-            if (jcr->SD_msg_chan) {
+            if (jcr->SD_msg_chan_started) {
                pthread_cancel(jcr->SD_msg_chan);
             }
          }
          if (wjcr->store_bsock) {
             wjcr->store_bsock->signal(BNET_TERMINATE);
-            if (wjcr->SD_msg_chan) {
+            if (wjcr->SD_msg_chan_started) {
                pthread_cancel(wjcr->SD_msg_chan);
             }
          }
