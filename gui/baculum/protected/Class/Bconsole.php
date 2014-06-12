@@ -132,7 +132,7 @@ class Bconsole extends TModule {
 	}
 
 	public function testBconsoleCommand(array $command, $bconsoleCmdPath, $bconsoleCfgPath, $useSudo) {
-		$this->setEnvironmentParams($bconsoleCmdPath, $bconsoleCfgPath, $useSudo, null);
+		$this->setEnvironmentParams($bconsoleCmdPath, $bconsoleCfgPath, null, $useSudo);
 		$director = array_shift($this->getDirectors()->output);
 		return $this->bconsoleCommand($director, $command);		
 	}
