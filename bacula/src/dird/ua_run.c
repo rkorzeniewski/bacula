@@ -269,7 +269,7 @@ static bool get_pool(UAContext *ua, run_ctx &rc)
 static bool get_next_pool(UAContext *ua, run_ctx &rc)
 {
    if (rc.next_pool_name) {
-      Dmsg1(100, "Have next pool override=%s\n", rc.next_pool_name);
+      Dmsg1(100, "Have next pool=%s\n", rc.next_pool_name);
       rc.next_pool = GetPoolResWithName(rc.next_pool_name);
       if (!rc.next_pool) {
          if (*rc.next_pool_name != 0) {
@@ -954,7 +954,7 @@ static bool set_run_context_in_jcr(UAContext *ua, JCR *jcr, run_ctx &rc)
    if (jcr->is_JobType(JT_MIGRATE) || jcr->is_JobType(JT_COPY) ||
       (jcr->is_JobType(JT_BACKUP) && jcr->is_JobLevel(L_VIRTUAL_FULL))) {
       if (!set_mac_wstorage(ua, jcr, rc.pool, rc.next_pool,
-            _("Storage from NextPool override"))) {
+            jcr->next_pool_source)) {
          return false;
       }
    }

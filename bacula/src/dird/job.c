@@ -945,13 +945,13 @@ bool apply_wstorage_overrides(JCR *jcr, POOL *opool)
    if (jcr->run_next_pool_override) {
       pm_strcpy(jcr->next_pool_source, _("Run NextPool override"));
       pm_strcpy(jcr->pool_source, _("Run NextPool override"));
-      source = _("Storage from Run NextPool override");
+      source = _("Run NextPool override");
    } else if (jcr->job->next_pool) {
       /* Use Job Next Pool */
       jcr->next_pool = jcr->job->next_pool;
       pm_strcpy(jcr->next_pool_source, _("Job's NextPool resource"));
       pm_strcpy(jcr->pool_source, _("Job's NextPool resource"));
-      source = _("Storage from Job's NextPool resource");
+      source = _("Job's NextPool resource");
    } else {
       /* Default to original pool->NextPool */
       jcr->next_pool = opool->NextPool;
@@ -961,7 +961,7 @@ bool apply_wstorage_overrides(JCR *jcr, POOL *opool)
       }
       pm_strcpy(jcr->next_pool_source, _("Job Pool's NextPool resource"));
       pm_strcpy(jcr->pool_source, _("Job Pool's NextPool resource"));
-      source = _("Storage from Pool's NextPool resource");
+      source = _("Pool's NextPool resource");
    }
 
    /*
@@ -1353,8 +1353,15 @@ void set_jcr_defaults(JCR *jcr, JOB *job)
    pm_strcpy(jcr->client_name, jcr->client->name());
    jcr->pool = job->pool;
    pm_strcpy(jcr->pool_source, _("Job resource"));
-   jcr->next_pool = job->pool->NextPool;
-   pm_strcpy(jcr->next_pool_source, _("Job's NextPool resource"));
+   if (job->next_pool) {
+      /* Use Job's Next Pool */
+      jcr->next_pool = job->next_pool;
+      pm_strcpy(jcr->next_pool_source, _("Job's NextPool resource"));
+   } else {
+      /* Default to original pool->NextPool */
+      jcr->next_pool = job->pool->NextPool;
+      pm_strcpy(jcr->next_pool_source, _("Job Pool's NextPool resource"));
+   }
    jcr->full_pool = job->full_pool;
    jcr->inc_pool = job->inc_pool;
    jcr->diff_pool = job->diff_pool;
