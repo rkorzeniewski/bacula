@@ -200,13 +200,13 @@ bool run_cmd(JCR *jcr)
          } else {
             break;
          }
-         if (stat <= 0) {
-            berrno be;
-            Jmsg1(jcr, M_FATAL, 0, _("Recv request to Client failed. ERR=%s\n"),
-               be.bstrerror());
-            Dmsg1(050, _("Recv request to Client failed. ERR=%s\n"), be.bstrerror());
-            return false;
-         }
+      }
+      if (stat <= 0) {
+         berrno be;
+         Jmsg1(jcr, M_FATAL, 0, _("Recv request to Client failed. ERR=%s\n"),
+            be.bstrerror());
+         Dmsg1(050, _("Recv request to Client failed. ERR=%s\n"), be.bstrerror());
+         return false;
       }
       Dmsg1(050, "Got from FD: %s\n", cl->msg);
       if (sscanf(cl->msg, "Hello Bacula SD: Start Job %127s %d %d", job_name, &fd_version, &sd_version) != 3) {
