@@ -105,7 +105,16 @@ class ConfigurationWizard extends BaculumPage
 		$cfgData['baculum']['debug'] = isset($this->applicationConfig['baculum']['debug']) ? $this->applicationConfig['baculum']['debug'] : "0";
 		$ret = $this->getModule('configuration')->setApplicationConfig($cfgData);
 		if($ret === true) {
-			$this->goToDefaultPage();
+			if($this->getModule('configuration')->isUsersConfig() === true) { // version with users config file, so next is try to auto-login
+				$previousUser = ($this->firstRun === false) ? $this->applicationConfig['baculum']['login'] : null;
+				$this->getModule('configuration')->setUsersConfig($cfgData['baculum']['login'], $cfgData['baculum']['password'], $this->firstRun, $previousUser);
+				// Automatic login after finish wizard.
+				$http_protocol = isset($_SERVER['HTTPS']) && !empty($_SERVER['HTTPS']) ? 'https' : 'http';
+				$location = sprintf("%s://%s:%s@%s:%d/", $http_protocol, $cfgData['baculum']['login'], $cfgData['baculum']['password'], $_SERVER['SERVER_NAME'], $_SERVER['SERVER_PORT']);
+				header("Location: $location");
+			} else { // standard version (user defined auth method)
+				$this->goToDefaultPage();
+			}
 		}
 	}
 

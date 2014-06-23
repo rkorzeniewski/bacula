@@ -252,7 +252,8 @@
 				</div>
 			</div>
 			<div class="line">
-				<p><b><%[ NOTE! ]%></b><br /><em><%[ Above administration login and administration password should be the same as login params defined in Web Server authorization file. They are HTTP Basic authorization params by using which you have logged in to this wizard. ]%></em></p>
+				<p><b><%[ NOTE! ]%></b><br /><em><%[ Above administration login and administration password will be used for login as administrator to Baculum WebGUI. They are your HTTP Basic authorization params by using which you will be logged in to Baculum. ]%></em></p>
+				<p><b><%[ NOTE! ]%></b><br /><em><%[ In case when you use your selected HTTP Basic auth backend and in particular manual Baculum installation from source tar.gz archive, in above fields you need to provide your defined login and password which you used for access to this wizard. ]%></em></p>
 			</div>
 		</com:TWizardStep>
 		<com:TWizardStep ID="Step6" Title="<%[ Step 6 - Finish ]%>" StepType="Finish">
