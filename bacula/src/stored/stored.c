@@ -60,6 +60,7 @@ static uint32_t VolSessionId = 0;
 uint32_t VolSessionTime;
 char *configfile = NULL;
 bool init_done = false;
+static pthread_t server_tid;
 
 /* Global static variables */
 static bool foreground = 0;
@@ -269,6 +270,7 @@ int main (int argc, char *argv[])
    init_jcr_subsystem();              /* start JCR watchdogs etc. */
 
    /* Single server used for Director and File daemon */
+   server_tid = pthread_self();
    bnet_thread_server(me->sdaddrs, me->max_concurrent_jobs * 2 + 1,
                       &dird_workq, handle_connection_request);
    exit(1);                           /* to keep compiler quiet */
@@ -673,6 +675,7 @@ void terminate_stored(int sig)
       }
    }
 
+   bnet_stop_thread_server(server_tid);
    if (configfile) {
       free(configfile);
       configfile = NULL;
