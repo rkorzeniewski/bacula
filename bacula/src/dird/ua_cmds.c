@@ -706,13 +706,13 @@ static int setbwlimit_cmd(UAContext *ua, const char *cmd)
 
    i = find_arg_with_value(ua, "limit");
    if (i >= 0) {
-      limit = atoi(ua->argv[i]) * 1024L;
+      limit = atoi(ua->argv[i]) * 1024LL;
    }
    if (limit < 0) {
       if (!get_pint(ua, _("Enter new bandwidth limit kb/s: "))) {
          return 1;
       }
-      limit = ua->pint32_val * 1024L; /* kb/s */
+      limit = ua->pint32_val * 1024LL; /* kb/s */
    }
 
    const char *lst[] = { "job", "jobid", "jobname", NULL };
