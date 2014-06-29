@@ -335,7 +335,7 @@ static bool read_open_session(JCR *jcr)
 {
    BSOCK *fd = jcr->file_bsock;
 
-   Dmsg1(120, "%s\n", fd->msg);
+   Dmsg1(120, "%s", fd->msg);
    if (jcr->session_opened) {
       pm_strcpy(jcr->errmsg, _("Attempt to open read on non-open session.\n"));
       fd->fsend(NO_open);
