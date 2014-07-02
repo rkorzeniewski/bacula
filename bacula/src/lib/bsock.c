@@ -904,6 +904,11 @@ int BSOCK::wait_data(int sec, int usec)
          return -1;                /* error return */
       default:
          b_errno = 0;
+#ifdef HAVE_TLS
+         if (this->tls && !tls_bsock_probe(this)) {
+            continue; /* false alarm, maybe a session key negotiation in progress on the socket */
+         }
+#endif
          return 1;
       }
    }
@@ -933,6 +938,15 @@ int BSOCK::wait_data_intr(int sec, int usec)
       return -1;                /* error return */
    default:
       b_errno = 0;
+<<<<<<< HEAD
+=======
+#ifdef HAVE_TLS
+      if (this->tls && !tls_bsock_probe(this)) {
+         /* maybe a session key negotiation waked up the socket */
+         return 0;
+      }
+#endif
+>>>>>>> 625e1f1... Fix compilation of bsock.c when TLS is not available
       break;
    }
    return 1;
