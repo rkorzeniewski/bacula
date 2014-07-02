@@ -3,6 +3,8 @@
 # This is the configuration script for regression testing
 #
 
+set -e
+
 . ${1}/config
 if test "x@db_password@" = "x"; then
   PASSWD=
