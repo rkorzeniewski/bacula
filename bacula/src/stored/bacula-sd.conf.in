@@ -39,8 +39,6 @@ Director {
 #
 # Note, for a list of additional Device templates please
 #  see the directory <bacula-source>/examples/devices
-# Or follow the following link:
-#  http://bacula.svn.sourceforge.net/viewvc/bacula/trunk/bacula/examples/devices/
 #
 
 #
