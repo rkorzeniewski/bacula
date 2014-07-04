@@ -61,6 +61,7 @@ uint32_t VolSessionTime;
 char *configfile = NULL;
 bool init_done = false;
 static pthread_t server_tid;
+static bool server_tid_valid = false;
 
 /* Global static variables */
 static bool foreground = 0;
@@ -271,6 +272,7 @@ int main (int argc, char *argv[])
 
    /* Single server used for Director and File daemon */
    server_tid = pthread_self();
+   server_tid_valid = true;
    bnet_thread_server(me->sdaddrs, me->max_concurrent_jobs * 2 + 1,
                       &dird_workq, handle_connection_request);
    exit(1);                           /* to keep compiler quiet */
@@ -674,8 +676,9 @@ void terminate_stored(int sig)
          Dmsg1(10, "No dev structure %s\n", device->device_name);
       }
    }
-
-   bnet_stop_thread_server(server_tid);
+   if (server_tid_valid) {
+      bnet_stop_thread_server(server_tid);
+   }
    if (configfile) {
       free(configfile);
       configfile = NULL;
