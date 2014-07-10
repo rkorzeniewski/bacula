@@ -848,7 +848,7 @@ char *escape_filename(const char *file_path)
 
 /*
  * For the moment preventing suspensions is only
- *  implement on Windows.
+ *  implemented on Windows.
  */
 #ifndef HAVE_WIN32
 void prevent_os_suspensions()
