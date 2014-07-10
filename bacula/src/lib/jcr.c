@@ -332,6 +332,8 @@ JCR *new_jcr(int size, JCR_free_HANDLER *daemon_free_jcr)
    }
    jcr = (JCR *)malloc(size);
    memset(jcr, 0, size);
+   /* Note for the director, this value is changed in jobq.c */
+   jcr->my_thread_id = pthread_self();
    jcr->msg_queue = New(dlist(item, &item->link));
    if ((status = pthread_mutex_init(&jcr->msg_queue_mutex, NULL)) != 0) {
       berrno be;
