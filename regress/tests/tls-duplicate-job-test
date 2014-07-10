@@ -169,7 +169,7 @@ fi
 
 nb=`grep '^| *[0-9]' $tmp/log9.out | wc -l`
 if [ $nb -lt 10 ]; then
-    print_debug "ERROR: no enough results in $tmp/log9.out"
+    print_debug "ERROR: less than 10 lines of SQL output in $tmp/log9.out"
     print_debug `cat $tmp/log9.out`
     estat=1
 fi
