@@ -109,7 +109,7 @@ void start_heartbeat_monitor(JCR *jcr)
     * it gives a constant stream of TIMEOUT_SIGNAL signals that
     * make debugging impossible.
     */
-   if (!no_signals) {
+   if (!no_signals && (me->heartbeat_interval > 0)) {
       jcr->hb_bsock = NULL;
       jcr->hb_started = false;
       jcr->hb_dir_bsock = NULL;
@@ -182,6 +182,10 @@ extern "C" void *dir_heartbeat_thread(void *arg)
          }
          last_heartbeat = now;
       }
+      /* This should never happen, but it might ... */
+      if (next <= 0) {
+         next = 1;
+      }
       bmicrosleep(next, 0);
    }
    dir->destroy();
@@ -195,7 +199,7 @@ extern "C" void *dir_heartbeat_thread(void *arg)
  */
 void start_dir_heartbeat(JCR *jcr)
 {
-   if (me->heartbeat_interval) {
+   if (!no_signals && (me->heartbeat_interval > 0)) {
       jcr->dir_bsock->set_locking();
       pthread_create(&jcr->heartbeat_id, NULL, dir_heartbeat_thread, (void *)jcr);
    }
@@ -203,7 +207,7 @@ void start_dir_heartbeat(JCR *jcr)
 
 void stop_dir_heartbeat(JCR *jcr)
 {
-   if (me->heartbeat_interval) {
+   if (me->heartbeat_interval > 0) {
       stop_heartbeat_monitor(jcr);
    }
 }
