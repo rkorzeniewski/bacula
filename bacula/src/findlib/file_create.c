@@ -332,6 +332,10 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
          return CF_CREATED;
       } /* End inner switch */
 
+   case FT_REPARSE:
+   case FT_JUNCTION:
+      bfd->reparse_point = true;
+      /* Fall through wanted */
    case FT_DIRBEGIN:
    case FT_DIREND:
       Dmsg2(200, "Make dir mode=%o dir=%s\n", new_mode, attr->ofname);
