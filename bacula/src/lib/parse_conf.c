@@ -894,16 +894,18 @@ bool CONFIG::parse_config()
          /* We must create a lex packet to print the error */
          lc = (LEX *)malloc(sizeof(LEX));
          memset(lc, 0, sizeof(LEX));
+         lc->str = get_memory(5000);
          if (scan_error) {
             lc->scan_error = scan_error;
          } else {
             lex_set_default_error_handler(lc);
          }
          lex_set_error_handler_error_type(lc, err_type) ;
-         bstrncpy(lc->str, cf, sizeof_pool_memory(lc->str));
+         pm_strcpy(lc->str, cf);
          lc->fname = lc->str;
          scan_err2(lc, _("Cannot open config file \"%s\": %s\n"),
             lc->str, be.bstrerror());
+         free_pool_memory(lc->str);
          free(lc);
          return 0;
       }
