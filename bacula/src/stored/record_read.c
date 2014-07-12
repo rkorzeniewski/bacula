@@ -29,7 +29,7 @@
 
 
 static const int read_dbglvl = 200;
-static const int dbgep = 200;         /* debug execution path */
+static const int dbgep = 250;         /* debug execution path */
 
 /*
  * Read the header record
