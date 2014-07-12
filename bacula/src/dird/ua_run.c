@@ -960,7 +960,7 @@ static bool set_run_context_in_jcr(UAContext *ua, JCR *jcr, run_ctx &rc)
    }
    rc.replace = ReplaceOptions[0].name;
    for (i=0; ReplaceOptions[i].name; i++) {
-      if (ReplaceOptions[i].token == (int)jcr->replace) {
+      if ((int)ReplaceOptions[i].token == (int)jcr->replace) {
          rc.replace = ReplaceOptions[i].name;
       }
    }
