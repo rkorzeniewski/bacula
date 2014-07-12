@@ -67,7 +67,7 @@ else
    echo "!!!! Creation of ${db_name} database failed. !!!!"
    echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
 fi
-if psql -l ${dbname} | grep " ${db_name}.*SQL_ASCII" >/dev/null; then 
+if psql -l ${dbname} $* | grep " ${db_name}.*SQL_ASCII" >/dev/null; then 
    echo "Database encoding OK"
 else
    echo " "
