@@ -173,4 +173,6 @@ extern "C" {
 #undef HAVE_LIBZ                      /* no good without headers */
 #endif
 
+#include "dedup.h"
+
 #endif
