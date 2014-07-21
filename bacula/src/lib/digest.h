@@ -13,7 +13,6 @@
 
    Bacula® is a registered trademark of Kern Sibbald.
 */
-
 /*
  * DIGEST is a class which implements SHA Digest handling in area of
  * storage, computation and digest transformation for both binary
@@ -21,8 +20,8 @@
  *
  * The main author of Bacula Deduplication code is Radosław Korzeniewski
  * 
- *  radekk@inteos.pl
- *  http://www.inteos.pl/
+ *  (c) Radosław Korzeniewski, MMXIV
+ *  radoslaw@korzeniewski.net
  *
  */
 
