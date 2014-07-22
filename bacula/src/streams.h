@@ -30,6 +30,8 @@
 #define STREAM_BIT_DELTA              (1<<27)    /* Stream contains delta data */
 #define STREAM_BIT_OFFSETS            (1<<26)    /* Stream has data offset */
 #define STREAM_BIT_PORTABLE_DATA      (1<<25)    /* Data is portable */
+#define STREAM_BIT_DEDUPLICATION_DATA (1<<24)    /* Stream contains block data digest
+                                                    (block level data deduplication) */
 
 /* TYPE represents our current (old) stream types -- e.g. values 0 - 2047 */
 #define STREAMBASE_TYPE                0         /* base for types */

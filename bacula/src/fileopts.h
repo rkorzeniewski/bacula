@@ -60,5 +60,6 @@
 #define FO_DELTA         (1<<28)      /* Delta data -- i.e. all copies returned on restore */
 #define FO_PLUGIN        (1<<29)      /* Plugin data stream -- return to plugin on restore */
 #define FO_OFFSETS       (1<<30)      /* Keep I/O file offsets */
+#define FO_DEDUPLICATION (1<<31)      /* Perform a block level deduplication */
 
 #endif /* __BFILEOPTSS_H */

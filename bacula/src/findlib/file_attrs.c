@@ -171,6 +171,16 @@ int select_data_stream(FF_PKT *ff_pkt)
    /**
     *  Fix all incompatible options
     */
+
+   /** 
+    * No Encryption and compression options
+    * when doing a block level deduplication (currently)
+    */
+   if (ff_pkt->flags & FO_DEDUPLICATION){
+      ff_pkt->flags &= ~FO_ENCRYPT;
+      ff_pkt->flags &= ~FO_COMPRESS;
+   }
+
    /** No sparse option for encrypted data */
    if (ff_pkt->flags & FO_ENCRYPT) {
       ff_pkt->flags &= ~FO_SPARSE;
@@ -280,6 +290,19 @@ int select_data_stream(FF_PKT *ff_pkt)
       }
    }
 #endif
+
+   /** handle deduplication stream */
+   if ( ff_pkt->flags & FO_DEDUPLICATION ){
+      switch (stream) {
+      case STREAM_FILE_DATA:
+      case STREAM_WIN32_DATA:
+         stream |= STREAM_BIT_DEDUPLICATION_DATA;
+         break;
+      default:
+         /* we can't deduplicate other streams so clear a dedup flag */
+         ff_pkt->flags &= ~FO_DEDUPLICATION;
+      }
+   }
 
    return stream;
 }
