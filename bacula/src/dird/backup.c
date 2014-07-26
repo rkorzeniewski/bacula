@@ -464,7 +464,9 @@ bool do_backup(JCR *jcr)
       return false;
    }
    sd = jcr->store_bsock;
-   jcr->sd_calls_client = jcr->client->sd_calls_client;
+   if (jcr->client) {
+      jcr->sd_calls_client = jcr->client->sd_calls_client;
+   }
    /*
     * Note startup sequence of SD/FD is different depending on
     *  whether the SD listens (normal) or the SD calls the FD.

@@ -437,6 +437,7 @@ static int cancel_inactive_job(UAContext *ua, JCR *jcr)
    JOB_DBR    jr;
    int        i;
    USTORE     store;
+   CLIENT     *client;
 
    if (!jcr->client) {
       memset(&cr, 0, sizeof(cr));
@@ -462,7 +463,15 @@ static int cancel_inactive_job(UAContext *ua, JCR *jcr)
       }
 
       if (acl_access_ok(ua, Client_ACL, cr.Name)) {
-         jcr->client = (CLIENT *)GetResWithName(R_CLIENT, cr.Name);
+         client = (CLIENT *)GetResWithName(R_CLIENT, cr.Name);
+         if (client) {
+            jcr->client = client;
+         } else {
+            Jmsg1(jcr, M_FATAL, 0, _("Client resource \"%s\" does not exist.\n"), cr.Name);
+            goto bail_out;
+         }
+      } else {
+         goto bail_out;
       }
    }
 
@@ -1347,6 +1356,7 @@ void set_jcr_defaults(JCR *jcr, JOB *job)
       copy_rwstorage(jcr, job->pool->storage, _("Pool resource"));
    }
    jcr->client = job->client;
+   ASSERT2(jcr->client, "jcr->client==NULL!!!");
    if (!jcr->client_name) {
       jcr->client_name = get_pool_memory(PM_NAME);
    }
