@@ -569,15 +569,6 @@ void restore_cleanup(JCR *jcr, int TermCode)
    Dmsg0(20, "In restore_cleanup\n");
    update_job_end(jcr, TermCode);
 
-   if (jcr->component_fd) {
-      fclose(jcr->component_fd);
-      jcr->component_fd = NULL;
-   }
-   if (jcr->component_fname && *jcr->component_fname) {
-      unlink(jcr->component_fname);
-   }
-   free_and_null_pool_memory(jcr->component_fname);
-
    if (jcr->unlink_bsr && jcr->RestoreBootstrap) {
       unlink(jcr->RestoreBootstrap);
       jcr->unlink_bsr = false;

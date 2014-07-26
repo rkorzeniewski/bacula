@@ -83,9 +83,6 @@ int restore_cmd(UAContext *ua, const char *cmd)
    rx.JobIds = get_pool_memory(PM_FNAME);
    rx.JobIds[0] = 0;
 
-   rx.component_fname = get_pool_memory(PM_FNAME);
-   rx.component_fname[0] = 0;
-
    rx.BaseJobIds = get_pool_memory(PM_FNAME);
    rx.BaseJobIds[0] = 0;
 
