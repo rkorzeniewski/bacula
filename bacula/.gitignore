@@ -440,6 +440,18 @@ src/qt-console/Makefile.mingw32
 src/qt-console/Makefile.mingw32.Debug
 src/qt-console/Makefile.mingw32.Release
 src/qt-console/bat.pro.mingw32
+src/qt-console/Makefile.mingw64
+src/qt-console/Makefile.mingw64.Debug
+src/qt-console/Makefile.mingw64.Release
+src/qt-console/moc64/
+src/qt-console/tray-monitor/Makefile.mingw64
+src/qt-console/tray-monitor/Makefile.mingw64.Debug
+src/qt-console/tray-monitor/Makefile.mingw64.Release
+src/qt-console/tray-monitor/moc32/
+src/qt-console/tray-monitor/moc64/
+src/qt-console/tray-monitor/ui32/
+src/qt-console/tray-monitor/ui64/
+src/qt-console/ui64/
 
 # src/qt-console/clients/
 src/qt-console/clients/.*.swp
