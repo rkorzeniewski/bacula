@@ -508,6 +508,7 @@ static bool cancel_cmd(JCR *cjcr)
          Dmsg1(100, "JobId=%u broadcast wait_device_release\n", (uint32_t)jcr->JobId);
          pthread_cond_broadcast(&wait_device_release);
       }
+      jcr->my_thread_send_signal(TIMEOUT_SIGNAL);
       dir->fsend(_("3000 JobId=%ld Job=\"%s\" marked to be %s.\n"),
          jcr->JobId, jcr->Job, reason);
       free_jcr(jcr);
