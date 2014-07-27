@@ -21,7 +21,7 @@ AC_HELP_STRING([--with-dbi@<:@=DIR@:>@], [Include DBI support. DIR is the DBD ba
            else
               DBI_LIBDIR=/usr/lib
            fi
-           DBI_BINDIR=/usr/bin      
+           DBI_BINDIR=/usr/bin
         elif test -f $prefix/include/dbi/dbi.h; then
            DBI_INCDIR=$prefix/include
            if test -d $prefix/lib64; then
@@ -29,7 +29,7 @@ AC_HELP_STRING([--with-dbi@<:@=DIR@:>@], [Include DBI support. DIR is the DBD ba
            else
               DBI_LIBDIR=$prefix/lib
            fi
-           DBI_BINDIR=$prefix/bin      
+           DBI_BINDIR=$prefix/bin
         else
            AC_MSG_RESULT(no)
            AC_MSG_ERROR(Unable to find dbi.h in standard locations)
@@ -150,7 +150,7 @@ AC_HELP_STRING([--with-dbi@<:@=DIR@:>@], [Include DBI support. DIR is the DBD ba
 AC_SUBST(DBI_LIBS)
 AC_SUBST(DBI_INCLUDE)
 AC_SUBST(DBI_BINDIR)
-AC_SUBST(DBI_DBD_DRIVERDIR)  
+AC_SUBST(DBI_DBD_DRIVERDIR)
 
 ])
 
@@ -176,7 +176,7 @@ AC_HELP_STRING([--with-dbi-driver@<:@=DRIVER@:>@], [Suport for DBI driver. DRIVE
            elif test -f /usr/bin/mysql; then
               MYSQL_BINDIR=/usr/bin
               if test -f /usr/lib64/mysql/libmysqlclient_r.a \
-                  -o -f /usr/lib64/mysql/libmysqlclient_r.so; then  
+                  -o -f /usr/lib64/mysql/libmysqlclient_r.so; then
                   MYSQL_LIBDIR=/usr/lib64/mysql
               elif test -f /usr/lib/mysql/libmysqlclient_r.a \
                   -o -f /usr/lib/mysql/libmysqlclient_r.so; then
@@ -187,7 +187,7 @@ AC_HELP_STRING([--with-dbi-driver@<:@=DRIVER@:>@], [Suport for DBI driver. DRIVE
            elif test -f /usr/local/bin/mysql; then
               MYSQL_BINDIR=/usr/local/bin
               if test -f /usr/local/lib64/mysql/libmysqlclient_r.a \
-                  -o -f /usr/local/lib64/mysql/libmysqlclient_r.so; then  
+                  -o -f /usr/local/lib64/mysql/libmysqlclient_r.so; then
                   MYSQL_LIBDIR=/usr/local/lib64/mysql
               elif test -f /usr/local/lib/mysql/libmysqlclient_r.a \
                   -o -f /usr/local/lib/mysql/libmysqlclient_r.so; then
@@ -208,6 +208,18 @@ AC_HELP_STRING([--with-dbi-driver@<:@=DRIVER@:>@], [Suport for DBI driver. DRIVE
                   MYSQL_LIBDIR=$withval/lib/
               else
                   MYSQL_LIBDIR=$withval/lib/mysql
+              fi
+           elif test -f $prefix/lib/mysql55/bin/mysql; then
+              MYSQL_BINDIR=$prefix/lib/mysql55/bin
+              if test -f $prefix/lib/mysql55/mysql/libmysqlclient_r.a \
+                  -o -f $prefix/lib/mysql55/mysql/libmysqlclient_r.so; then
+                  MYSQL_LIBDIR=$prefix/lib/mysql55/mysql
+              fi
+           elif test -f $prefix/lib/mysql51/bin/mysql; then
+              MYSQL_BINDIR=$prefix/lib/mysql51/bin
+              if test -f $prefix/lib/mysql51/mysql/libmysqlclient_r.a \
+                  -o -f $prefix/lib/mysql51/mysql/libmysqlclient_r.so; then
+                  MYSQL_LIBDIR=$prefix/lib/mysql51/mysql
               fi
            else
               AC_MSG_RESULT(no)
@@ -275,14 +287,14 @@ AC_HELP_STRING([--with-dbi-driver@<:@=DRIVER@:>@], [Suport for DBI driver. DRIVE
                  SQLITE_LIBDIR=/usr/lib64
               else
                  SQLITE_LIBDIR=/usr/lib
-              fi                 
+              fi
            elif test -f $withval/bin/sqlite3; then
               SQLITE_BINDIR=$withval/bin
               if test -d $withval/lib64; then
                  SQLITE_LIBDIR=$withval/lib64
               else
                  SQLITE_LIBDIR=$withval/lib
-              fi                 
+              fi
            else
               AC_MSG_RESULT(no)
               AC_MSG_ERROR(Unable to find sqlite in standard locations)
@@ -292,7 +304,7 @@ AC_HELP_STRING([--with-dbi-driver@<:@=DRIVER@:>@], [Suport for DBI driver. DRIVE
            else
               DB_PROG_LIB=$SQLITE_LIBDIR/libsqlite3.a
            fi
-        ;;                
+        ;;
         *)
            AC_MSG_RESULT(no)
            AC_MSG_ERROR(Unable to set DBI driver. $withval is not supported)
@@ -352,7 +364,7 @@ AC_HELP_STRING([--with-mysql@<:@=DIR@:>@], [Include MySQL support. DIR is the My
            elif test -f /usr/include/mysql/mysql.h; then
               MYSQL_INCDIR=/usr/include/mysql
               if test -f /usr/lib64/mysql/libmysqlclient_r.a \
-                      -o -f /usr/lib64/mysql/libmysqlclient_r.so; then  
+                      -o -f /usr/lib64/mysql/libmysqlclient_r.so; then
                  MYSQL_LIBDIR=/usr/lib64/mysql
               elif test -f /usr/lib64/libmysqlclient_r.a \
                         -o -f /usr/lib64/libmysqlclient_r.so; then
@@ -423,6 +435,36 @@ AC_HELP_STRING([--with-mysql@<:@=DIR@:>@], [Include MySQL support. DIR is the My
                  MYSQL_LIBDIR=$withval/lib
               fi
               MYSQL_BINDIR=$withval/bin
+           elif test -f $withval/mysql.h; then
+              dnl MacPorts on OSX has a special MySQL Layout. See #2079
+              MYSQL_INCDIR=$withval
+              AC_MSG_NOTICE(Got with-mysql variable $MYSQL_INCDIR checking MySQL version)
+              case $MYSQL_INCDIR in
+                 *mysql55*)
+                     AC_MSG_NOTICE(Assuming MacPorts MySQL 5.5 variant installed)
+                     dnl with-mysql given contains mysql55 - assuming OSX MacPorts MySQL55 variant
+                     if test -f $prefix/lib/mysql55/mysql/libmysqlclient_r.a \
+                          -o -f $prefix/lib/mysql55/mysql/libmysqlclient_r.so; then
+                        AC_MSG_NOTICE(Found MySQL 5.5 library in $prefix/lib/mysql55/mysql)
+                        MYSQL_LIBDIR=$prefix/lib/mysql55/mysql
+                     fi
+                     MYSQL_BINDIR=$prefix/lib/mysql55/bin
+                 ;;
+                 *mysql51*)
+                     AC_MSG_NOTICE(Assuming MacPorts MySQL 5.1 variant installed)
+                     dnl with-mysql contains mysql51 - assuming OSX MacPorts MySQL51 variant
+                     if test -f $prefix/lib/mysql51/mysql/libmysqlclient_r.a \
+                          -o -f $prefix/lib/mysql51/mysql/libmysqlclient_r.so; then
+                        AC_MSG_NOTICE(Found MySQL 5.1 library in $prefix/lib/mysql55/mysql)
+                        MYSQL_LIBDIR=$prefix/lib/mysql51/mysql
+                     fi
+                     MYSQL_BINDIR=$prefix/lib/mysql51/bin
+                 ;;
+              esac
+              if test -z "${MYSQL_LIBDIR}" ; then
+                 AC_MSG_RESULT(no)
+                 AC_MSG_ERROR(MySQL $withval - unable to find MySQL libraries)
+              fi
            else
               AC_MSG_RESULT(no)
               AC_MSG_ERROR(Invalid MySQL directory $withval - unable to find mysql.h under $withval)
@@ -613,7 +655,7 @@ AC_HELP_STRING([--with-embedded-mysql@<:@=DIR@:>@], [Include MySQL support. DIR 
 AC_SUBST(MYSQL_LIBS)
 AC_SUBST(MYSQL_INCLUDE)
 AC_SUBST(MYSQL_BINDIR)
-  
+
 ])
 
 AC_DEFUN([BA_CHECK_INGRES_DB],
@@ -631,7 +673,7 @@ AC_HELP_STRING([--with-ingres@<:@=DIR@:>@], [Include Ingres support. DIR is the 
         elif test -f ${II_SYSTEM}/ingres/files/eqdefc.h; then
            INGRES_INCDIR=${II_SYSTEM}/ingres/files
            INGRES_LIBDIR=${II_SYSTEM}/ingres/lib
-           INGRES_BINDIR=${II_SYSTEM}/ingres/bin      
+           INGRES_BINDIR=${II_SYSTEM}/ingres/bin
         else
            AC_MSG_RESULT(no)
            AC_MSG_ERROR(Unable to find eqdefc.h in standard locations)
@@ -701,7 +743,7 @@ AC_HELP_STRING([--with-sqlite3@<:@=DIR@:>@], [Include SQLite3 support. DIR is th
            else
               SQLITE_LIBDIR=/usr/lib
            fi
-           SQLITE_BINDIR=/usr/bin      
+           SQLITE_BINDIR=/usr/bin
         elif test -f $prefix/include/sqlite3.h; then
            SQLITE_INCDIR=$prefix/include
            if test -d $prefix/lib64; then
@@ -709,7 +751,7 @@ AC_HELP_STRING([--with-sqlite3@<:@=DIR@:>@], [Include SQLite3 support. DIR is th
            else
               SQLITE_LIBDIR=$prefix/lib
            fi
-           SQLITE_BINDIR=$prefix/bin      
+           SQLITE_BINDIR=$prefix/bin
         else
            AC_MSG_RESULT(no)
            AC_MSG_ERROR(Unable to find sqlite3.h in standard locations)
@@ -784,7 +826,7 @@ AC_HELP_STRING([--with-sqlite3@<:@=DIR@:>@], [Include SQLite3 support. DIR is th
 AC_SUBST(SQLITE_LIBS)
 AC_SUBST(SQLITE_INCLUDE)
 AC_SUBST(SQLITE_BINDIR)
-  
+
 ])
 
 
