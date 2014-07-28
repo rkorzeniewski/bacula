@@ -48,6 +48,7 @@ static bool filesetscmd(UAContext *ua, const char *cmd);
 static bool clientscmd(UAContext *ua, const char *cmd);
 static bool msgscmd(UAContext *ua, const char *cmd);
 static bool poolscmd(UAContext *ua, const char *cmd);
+static bool schedulescmd(UAContext *ua, const char *cmd);
 static bool storagecmd(UAContext *ua, const char *cmd);
 static bool defaultscmd(UAContext *ua, const char *cmd);
 static bool typescmd(UAContext *ua, const char *cmd);
@@ -98,6 +99,7 @@ static struct cmdstruct commands[] = { /* help */  /* can be used in runscript *
  { NT_(".pools"),      poolscmd,                 NULL,       true},
  { NT_(".quit"),       dot_quit_cmd,             NULL,       false},
  { NT_(".putfile"),    putfile_cmd,              NULL,       false}, /* use @putfile */
+ { NT_(".schedule"),   schedulescmd,             NULL,       false},
  { NT_(".sql"),        sql_cmd,                  NULL,       false},
  { NT_(".status"),     dot_status_cmd,           NULL,       false},
  { NT_(".storage"),    storagecmd,               NULL,       true},
@@ -1152,6 +1154,19 @@ static bool poolscmd(UAContext *ua, const char *cmd)
    foreach_res(pool, R_POOL) {
       if (acl_access_ok(ua, Pool_ACL, pool->name())) {
          ua->send_msg("%s\n", pool->name());
+      }
+   }
+   UnlockRes();
+   return true;
+}
+
+static bool schedulescmd(UAContext *ua, const char *cmd)
+{
+   SCHED *sched;
+   LockRes();
+   foreach_res(sched, R_SCHEDULE) {
+      if (acl_access_ok(ua, Schedule_ACL, sched->name())) {
+         ua->send_msg("%s\n", sched->name());
       }
    }
    UnlockRes();
