@@ -2,7 +2,17 @@
 
 Release version 7.0.5
 
+28Jul14
+ - Fix #547 by adding .schedule command
+
+27Jul14
+ - Update AUTHORS
+ - Fix bug #2079 with patch from Robert Oschwald
+
 26Jul14
+ - Fix orphaned file descriptors during errors
+ - Yet another client==NULL
+ - Improve FD and SD cancel
  - Jim Raney's TLS patch
  - Update AUTHORS
  - Fix bug #1679 pool overrides not shown in manual run display
@@ -77,8 +87,9 @@ Release version 7.0.5
  - Fix bug #180 ERR=success in btape when tape error
 
 Bugs fixed/closed since last release:
-1679 180 2074 2075 2076 2082
+1679 180 2074 2075 2076 2079 2082 547
 
+====
 
 Release version 7.0.4
 02Jun14

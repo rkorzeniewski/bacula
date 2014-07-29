@@ -5,9 +5,14 @@ Release version 7.0.5
 This is an important bug fix release to version 7.0.4.  Since it fixes several
 major problems.  We recommend that everyone upgrade to this version.
 
-26Jul14
- - Jim Raney's TLS patch
+28Jul14
+ - Fix #547 by adding .schedule command
  - Update AUTHORS
+ - Fix bug #2079 with patch from Robert Oschwald
+ - Fix orphaned file descriptors during errors
+ - Yet another client==NULL
+ - Improve FD and SD cancel
+ - Jim Raney's TLS patch
  - Fix bug #1679 pool overrides not shown in manual run display
  - Attempt to avoid client==NULL
  - Fix for bug #2082 (hopefully)
@@ -46,7 +51,7 @@ major problems.  We recommend that everyone upgrade to this version.
  - Fix bug #180 ERR=success in btape when tape error
 
 Bugs fixed/closed since last release:
-1679 180 2074 2075 2076 2082
+1679 180 2074 2075 2076 2079 2082 547
 
 
 Release version 7.0.4
