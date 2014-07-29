@@ -1,0 +1,50 @@
+
+This is the Bacula GUI directory. It contains graphical tools for
+Bacula, and consists of the following subdirectories:
+
+  Directory          Contents
+  bacula-web         A management level tool for reporting Backup
+                     job status. It is a Web based application that
+                     uses php.
+  bimagemgr          A web based tool for managing and burning CD
+                     images of Volumes created by Bacula.
+
+Build instructions:                       
+
+First, you must do:
+
+  cd <gui>
+  ./configure --with-bacula=<path-to-bacula-source>
+
+  This will find the current Bacula version, and create
+  all the Makefiles from Makefile.in  
+
+  Do not edit the Makefiles or your changes will be lost. Always
+  edit Makefile.in
+
+For bacula-web: 
+  cd bacula-web
+  examine the README 
+    or alternatively use the html document released as   
+    bacula-docs-nn.mm.xx.tar.gz
+
+For bimagemgr:
+  There are a number of additional configuration options that
+    you may specify on the ./configure line shown above. To see
+    them enter: ./configure --help
+  cd bimagemgr
+  make
+  make install
+  ...
+
+To create a distribution tar file
+   cd <gui>
+   ./configure --with-bacula=<bacula-source-directory>
+   make clean
+   make
+   make release
+
+   The output will be two .tar.gz files in the current directory
+   with the names bacula-web-<version>.tar.gz and 
+   bimagemgr-<version>.tar.gz
+   It will print the name.

@@ -1,0 +1,35 @@
+#!/bin/sh
+#
+# Cleanup left over files -- both before and after test run
+#
+. scripts/functions
+cwd=`pwd`
+rm -rf ${tmp}/FileVolume*
+rm -rf ${tmp}/TestVolume001 ${tmp}bacula-restores ${tmp}/Small*
+rm -rf ${tmp}/sed_tmp ${tmp}/file-list
+rm -rf ${tmp}/*
+rm -rf ${working}/log ${tmp}/TEST-*
+rm -rf ${working}/log ${tmp}/Backup-*
+rm -rf ${working}/*.bsr ${working}/log*.sd
+rm -rf ${working}/*.trace ${working}/*.traceback ${working}/*.lockdump 
+rm -rf ${working}/@*
+rm -rf ${tmp}disk-changer
+rm -f ${cwd}/bin/plugins/test-plugin-fd.so
+find . -name "gigaslam.gif" -exec rm -f {} \;
+
+
+# bin directory does not always exist
+if [ -d ${bin} ] ; then
+  if [ -f ${bin}/bacula ] ; then
+     ${bin}/bacula stop 2>&1 >/dev/null
+  fi
+  cd ${scripts}
+  ./drop_bacula_tables      >/dev/null 2>&1
+  ./make_bacula_tables      >/dev/null 2>&1
+  ./grant_bacula_privileges >/dev/null 2>&1
+  cd ${cwd}
+fi
+
+if [ x$USE_VTAPE = xyes ]; then
+   rm -rf ${working}/ach
+fi

@@ -1,0 +1,123 @@
+#!/bin/sh
+#
+# test the reload and test command
+#
+TestName="reload-test"
+. scripts/functions
+
+require_linux
+scripts/cleanup
+scripts/copy-confs
+
+bstat=0
+rstat=0
+zstat=0
+
+detect_error()
+{
+    $bin/bacula-dir -t $conf/bacula-dir.conf 2>&1 >> $tmp/testconf.log
+    if [ $? = 0 ]; then
+        estat=1
+        print_debug "Should detect error on bacula-dir.conf"
+    fi
+}
+
+do_reload()
+{
+    cat > $tmp/bcons <<EOF
+reload
+messages
+EOF
+    cat $tmp/bcons | $bin/bconsole -c $conf/bconsole.conf 2>&1 >>$tmp/reload.log
+
+    ps $pid > /dev/null
+    if [ $? != 0 ]; then
+        estat=1
+        print_debug "Bacula shouldn't die with a reload"
+    fi
+
+    ls -l /proc/$pid/fd | grep bacula-dir.conf
+    if [ $? = 0 ]; then
+        estat=1
+        print_debug "Should not have bacula-dir.conf open"
+    fi
+}
+
+start_test
+
+# should be ok
+$bin/bacula-dir -t $conf/bacula-dir.conf
+if [ $? != 0 ]; then
+    estat=1
+    print_debug "Error on bacula-dir.conf"
+fi
+
+$bin/bacula-ctl-dir start >/dev/null
+pid=`cat $working/bacula-dir.$BASEPORT.pid`
+read a
+sleep 2
+
+ls -l /proc/$pid/fd | grep bacula-dir.conf
+if [ $? = 0 ]; then
+    estat=1
+    print_debug "Should not have bacula-dir.conf open"
+fi
+
+# should work well
+do_reload
+
+# backup the configuration
+cp $conf/bacula-dir.conf $tmp/1
+cat >> $conf/bacula-dir.conf<<EOF
+This is an error
+EOF
+
+detect_error
+do_reload
+
+cp $tmp/1 $conf/bacula-dir.conf
+cat >> $conf/bacula-dir.conf<<EOF
+Job {
+}
+EOF
+
+detect_error
+do_reload
+
+cp $tmp/1 $conf/bacula-dir.conf
+cat >> $conf/bacula-dir.conf<<EOF
+Director {
+  Name = second-dir
+  DIRport = 1101                # where we listen for UA connections
+  QueryFile = "/tmp/regress/bin/query.sql"
+  WorkingDirectory = "/tmp/regress/working"
+  PidDirectory = "/tmp/regress/working"
+  Maximum Concurrent Jobs = 1
+  Password = "xxx"         # Console password
+  Messages = Daemon
+}
+EOF
+
+detect_error
+do_reload
+
+cp $tmp/1 $conf/bacula-dir.conf
+cat >> $conf/bacula-dir.conf<<EOF
+Job {
+  Name = "BackupClient1"
+  JobDefs = "DefaultJob"
+  Write Bootstrap = "/tmp/regress/working/Client1.bsr"
+}
+Job {
+  Name = "BackupClient1"
+  JobDefs = "DefaultJob"
+  Write Bootstrap = "/tmp/regress/working/Client1.bsr"
+}
+EOF
+
+detect_error
+do_reload
+
+$bin/bacula-ctl-dir stop >/dev/null
+
+end_test

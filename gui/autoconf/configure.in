@@ -1,0 +1,288 @@
+lal#
+dnl#
+dnl# Process this file with autoconf to produce a configure script.
+dnl#
+AC_INIT(autoconf/configure.in)
+BUILD_DIR=`pwd`
+cd ..
+TOP_DIR=`pwd`
+cd ${BUILD_DIR}
+AC_SUBST(BUILD_DIR)
+AC_CONFIG_AUX_DIR(${BUILD_DIR}/autoconf)
+
+dnl require a recent autoconf
+AC_PREREQ(2.13)
+
+
+# ------------------------------------------
+# Where to get Bacula source
+# ------------------------------------------
+AC_ARG_WITH(bacula,
+   [  --with-bacula=PATH    specify path to Bacula source],
+   [
+       if test "x$withval" != "xno" ; then     
+	  bacula=$withval
+       fi
+   ]
+)
+
+AC_SUBST(bacula)
+if test "x$bacula" = "x" ; then
+   AC_MSG_ERROR(The Bacula source directory must be specified. Use --with-bacula=<path>)
+fi
+
+dnl Bacula version
+VERSION=`sed -n -e 's/^.*VERSION.*"\(.*\)"$/\1/p' ${bacula}/src/version.h`
+DATE=`sed -n -e 's/^.*[ \t]*BDATE.*"\(.*\)"$/\1/p' ${bacula}/src/version.h`
+AC_SUBST(VERSION)dnl
+AC_SUBST(DATE)dnl
+if test "x$VERSION" = "x" ; then
+   AC_MSG_ERROR(Bacula version not found)
+fi
+echo "configuring for Bacula source $VERSION ($DATE)"
+
+
+dnl search for true and false programs.
+AC_PATH_PROGS(TRUEPRG, true, :)
+AC_PATH_PROGS(FALSEPRG, false, :)
+
+AC_PROG_AWK
+# Some AWK programs fail, so test it and warn the user
+if echo xfoo | $AWK 'BEGIN { prog=ARGV[1]; ARGC=1 } 
+      { if ((prog == $2) || (("(" prog ")") == $2) ||
+	   (("[" prog "]") == $2) ||
+	   ((prog ":") == $2)) { print $1 ; exit 0 } }' xfoo>/dev/null; then :;
+else
+  AC_MSG_ERROR([!!!!!!!!! WARNING !!!!!!!!!!!!!!
+   The regex engine of $AWK is too broken to be used you 
+   might want to install GNU AWK.
+   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!])
+fi
+THE_AWK=$AWK
+AC_PATH_PROG(AWK, $THE_AWK, $THE_AWK)
+
+
+dnl -------------------------------------------------------
+dnl# Check for programs.
+dnl ------------------------------------------------------
+AC_PROG_INSTALL
+AC_PATH_PROG(MV, mv, mv)
+AC_PATH_PROG(RM, rm, rm)
+AC_PATH_PROG(CP, cp, cp)
+AC_PATH_PROG(ECHO, echo, echo)
+AC_PATH_PROG(AR, ar, ar)
+
+dnl --------------------------------------------------
+dnl OP Sys determination (see aclocal.m4)
+dnl --------------------------------------------------
+BA_CHECK_OPSYS
+
+# -----------------------------------------------------------
+dnl OPSys Distribution determination (see aclocal.m4)
+# ----------------------------------------------------------
+BA_CHECK_OPSYS_DISTNAME
+
+# -------------------------------------------------------------------------
+#  If the user has not set --exec-prefix, we default to ${prefix}
+# -------------------------------------------------------------------------
+if test x${exec_prefix} = xNONE ; then
+    exec_prefix=${prefix}
+fi
+
+
+dnl# --------------------------------------------------------------------------
+dnl# CHECKING COMMAND LINE OPTIONS
+dnl# --------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------
+#  Set variables for bimagemgr installation
+# -------------------------------------------------------------------------
+bimagemgr_cgidir=/var/www/cgi-bin
+AC_ARG_WITH(bimagemgr-cgidir,
+   [  --with-bimagemgr-cgidir=DIR   specify bimagemgr cgi-bin dir],
+   [
+       if test "x$withval" != "xno" ; then     
+	   bimagemgr_cgidir=$withval
+       fi
+   ]
+)
+
+bimagemgr_docdir=/var/www/html
+AC_ARG_WITH(bimagemgr-docdir,
+   [  --with-bimagemgr-docdir=DIR   specify bimagemgr doc root dir],
+   [
+       if test "x$withval" != "xno" ; then     
+	   bimagemgr_docdir=$withval
+       fi
+   ]
+)
+
+bimagemgr_binowner=root
+AC_ARG_WITH(bimagemgr-binowner,
+   [  --with-bimagemgr-binowner=USER   specify bimagemgr binary file owner],
+   [
+       if test "x$withval" != "xno" ; then     
+	   bimagemgr_binowner=$withval
+       fi
+   ]
+)
+
+bimagemgr_bingroup=root
+AC_ARG_WITH(bimagemgr-bingroup,
+   [  --with-bimagemgr-bingroup=USER   specify bimagemgr binary file group],
+   [
+       if test "x$withval" != "xno" ; then     
+	   bimagemgr_bingroup=$withval
+       fi
+   ]
+)
+
+bimagemgr_dataowner=apache
+AC_ARG_WITH(bimagemgr-dataowner,
+   [  --with-bimagemgr-dataowner=USER	specify bimagemgr data file owner],
+   [
+       if test "x$withval" != "xno" ; then     
+	   bimagemgr_dataowner=$withval
+       fi
+   ]
+)
+
+bimagemgr_datagroup=apache
+AC_ARG_WITH(bimagemgr-datagroup,
+   [  --with-bimagemgr-datagroup=USER	specify bimagemgr data file group],
+   [
+       if test "x$withval" != "xno" ; then     
+	   bimagemgr_datagroup=$withval
+       fi
+   ]
+)
+
+AC_SUBST(bimagemgr_cgidir)
+AC_SUBST(bimagemgr_docdir)
+AC_SUBST(bimagemgr_binowner)
+AC_SUBST(bimagemgr_bingroup)
+AC_SUBST(bimagemgr_dataowner)
+AC_SUBST(bimagemgr_datagroup)
+
+
+AC_SUBST(bacula)
+
+#
+# Finally we set appropriate distribution specific
+#  variables and defaults
+#
+# PFILES are platform specific files
+PFILES=""
+WIN32=
+MACOSX=
+hostname=`uname -n | cut -d '.' -f 1`
+case "$DISTNAME" in
+aix)
+	DISTVER=`uname -r`
+  ;;	  
+alpha)
+	DISTVER=`uname -r`
+  ;;
+bsdi)
+	DISTVER=`uname -a |awk '{print $3}'`
+  ;;
+cygwin)
+	DISTVER=`uname -a |awk '{print $3}'`
+	WIN32=win32
+  ;;
+darwin)
+	DISTVER=`uname -r`
+  ;;
+debian)
+	DISTVER=`cat /etc/debian_version`
+  ;;
+freebsd)
+	DISTVER=`uname -a |awk '{print $3}'`
+  ;;
+hpux)
+	DISTVER=`uname -r`
+  ;;
+irix)
+	DISTVER=`uname -r`
+  ;;
+netbsd)
+	DISTVER=`uname -a |awk '{print $3}'`
+  ;;
+openbsd)
+	DISTVER=`uname -a |awk '{print $3}'`
+  ;;
+redhat)
+	if test -f /etc/whitebox-release ; then
+	   f=/etc/whitebox-release
+	else
+	   f=/etc/redhat-release
+	fi
+	if test `cat $f | grep release |\
+		   cut -f 3 -d ' '`x = "Enterprise"x ; then
+	   DISTVER="Enterprise "`cat $f | grep release |\
+		    cut -f 6 -d ' '`
+	else
+	    DISTVER=`cat /etc/redhat-release | grep release |\
+		     cut -f 5 -d ' '`
+	fi
+	hostname=`hostname -s`
+  ;;
+mandrake)
+	DISTVER=`cat /etc/mandrake-release | grep release |\
+	   cut -f 5 -d ' '`
+  ;;
+gentoo)
+	DISTVER=`awk '/version / {print $5}' < /etc/gentoo-release`
+  ;;
+slackware)
+	DISTVER=`cat /etc/slackware-version`
+  ;;
+solaris)
+	DISTVER=`uname -r`
+  ;;
+suse)
+	DISTVER=`cat /etc/SuSE-release |grep VERSION|\
+	    cut -f 3 -d ' '`
+  ;;
+suse5)
+	DISTNAME=suse
+	DISTVER=5.x
+  ;;
+unknown)
+	DISTVER=unknown
+  ;;
+*)
+  echo " === Something went wrong. Unknown DISTNAME $DISTNAME ==="
+  ;;
+esac  
+
+AC_SUBST(hostname)
+
+AC_SUBST(DISTNAME)
+AC_SUBST(DISTVER)
+
+dnl# common parts of the Makefile
+MCOMMON=./autoconf/Make.common
+AC_SUBST_FILE(MCOMMON)
+
+
+AC_OUTPUT([    \
+	   autoconf/Make.common \
+	   Makefile \
+	   bimagemgr/Makefile \
+	   bacula-gui.spec \
+	   $PFILES ],  
+	  [ ]
+)
+
+
+echo "
+Configuration on `date`:
+
+  Host: 		      $host -- ${DISTNAME} ${DISTVER}
+  Source code location:       ${bacula}
+
+  " > config.out
+
+cat config.out

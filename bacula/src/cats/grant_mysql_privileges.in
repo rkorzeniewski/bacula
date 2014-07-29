@@ -1,0 +1,41 @@
+#!/bin/sh
+#
+# shell script to grant privileges to the bacula database
+#
+#
+#  Bacula® - The Network Backup Solution
+#
+#  Copyright (C) 2000-2014 Free Software Foundation Europe e.V.
+#
+#  The main author of Bacula is Kern Sibbald, with contributions from many
+#  others, a complete list can be found in the file AUTHORS.
+#
+#  You may use this file and others of this release according to the
+#  license defined in the LICENSE file, which includes the Affero General
+#  Public License, v3.0 ("AGPLv3") and some additional permissions and
+#  terms pursuant to its AGPLv3 Section 7.
+#
+#  Bacula® is a registered trademark of Kern Sibbald.
+#
+db_user=${db_user:-@db_user@}
+bindir=@MYSQL_BINDIR@
+db_name=${db_name:-@db_name@}
+db_password=@db_password@
+if [ "$db_password" != "" ]; then
+   pass="identified by '$db_password'"
+fi
+
+if $bindir/mysql $* -u root -f <<END-OF-DATA
+use mysql
+grant all privileges on ${db_name}.* to ${db_user}@localhost ${pass};
+grant all privileges on ${db_name}.* to ${db_user}@"%" ${pass};
+select * from user;
+flush privileges;
+END-OF-DATA
+then
+   echo "Privileges for user ${db_user} granted on database ${db_name}."
+   exit 0
+else
+   echo "Error creating privileges."
+   exit 1
+fi

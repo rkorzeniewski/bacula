@@ -1,0 +1,50 @@
+<%@ MasterClass="Application.Layouts.MessageBox" Theme="Baculum-v1"%>
+<com:TContent ID="Message">
+ <div id="message-box">
+	<h2><%[ Baculum problem ]%></h2>
+	<com:TPanel Visible="<%=$this->error === 2%>">
+		<h3><%[ Error 2 - problem with connection to database. ]%></h3>
+		<hr />
+		<span><strong><%[ What can I do ]%></strong></span>
+		<ul>
+			<li><%[ Please check if Catalog database service is running. ]%></li>
+			<li><%[ Please check if Web Server user is allowed for connection to Catalog database. ]%></li>
+			<li><%[ Please re-run ]%> <a href="<%=$this->Service->constructUrl('ConfigurationWizard')%>"><%[ Baculum Initial Wizard ]%></a> <%[ and on step ]%> <strong>"<%[ Database ]%>"</strong> <%[ please perform connection test. ]%></li>
+		</ul>
+	</com:TPanel>
+	<com:TPanel Visible="<%=$this->error === 4%>">
+		<h3><%[ Error 4 - problem with connection to bconsole. ]%></h3>
+		<hr />
+		<span><strong><%[ What can I do ]%></strong></span>
+		<ul>
+			<li><%[ Please check if Bacula Director service is running. ]%></li>
+			<li><%[ Please check in shell console if bconsole program is able to connect to Bacula Director service. ]%></li>
+			<li><%[ Please be sure if Web Server user is allowed for executing bconsole program. ]%></li>
+			<li><%[ You can login to shell console as Web Server user and try to run bconsole program. ]%></li>
+			<li><%[ Please re-run ]%> <a href="<%=$this->Service->constructUrl('ConfigurationWizard')%>"><%[ Baculum Initial Wizard ]%></a> <%[ and on step ]%> <strong>"<%[ Console ]%>"</strong> <%[ please perform connection test. ]%></li>
+		</ul>
+	</com:TPanel>
+	<com:TPanel Visible="<%=$this->error === 6%>">
+		<h3>Error <%=$this->error%> - <%[ authorization to Baculum error. ]%></h3>
+		<hr />
+		<span><strong><%[ What can I do ]%></strong></span>
+		<ul>
+			<li><%[ Please check Web Server authorization file if it is defined and it is correct. ]%></li>
+			<li><%[ Please be sure if Web Server authorization is enabled (for Apache it is option 'AllowOverride All') and if the authorization works properly. ]%></li>
+			<li><%[ Please re-run ]%> <a href="<%=$this->Service->constructUrl('ConfigurationWizard')%>"><%[ Baculum Initial Wizard ]%></a> <%[ and on step ]%> <strong>"<%[ Authorization ]%>"</strong> <%[ please retype authorization login and authorization password to according Web Server authorization values. ]%></li>
+			<li><%[ If all above steps will not help or if during installation you made mistake in password in Initial Wizard, please remove settings file located in baculum/protected/Data/settings.conf and re-run Initial wizard. ]%>
+		</ul>
+	</com:TPanel>
+	<com:TPanel Visible="<%=$this->error != 2 && $this->error != 4 && $this->error != 6%>">
+		<h3>Error <%=$this->error%> - <%[ internal Baculum error. ]%></h3>
+		<hr />
+		<span><strong><%[ What can I do ]%></strong></span>
+		<ul>
+			<li><%[ Please check Baculum logs if there are some errors. ]%></li>
+			<li><%[ Please check Web Server logs if there are some errors. ]%></li>
+			<li><%[ Please check other system logs if there are some errors. ]%></li>
+		</ul>
+	</com:TPanel>
+	<p class="center"><a href="<%=$this->Service->constructUrl('Home')%>"><%[ TRY AGAIN ]%></a></p>
+ </div>
+</com:TContent>

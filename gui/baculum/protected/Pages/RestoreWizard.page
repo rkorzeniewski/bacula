@@ -1,0 +1,330 @@
+<%@ MasterClass="Application.Layouts.Wizard" Theme="Baculum-v1"%>
+<com:TContent ID="Wizard">
+	<com:TWizard ID="RestoreWizard"
+		CssClass="wizard"
+		StepStyle.CssClass="steps"
+		HeaderStyle.CssClass="header"
+		NavigationStyle.CssClass="navigation"
+		UseDefaultLayout="false"
+		ShowSideBar="false"
+		OnCancelButtonClick="wizardStop"
+		OnCompleteButtonClick="wizardCompleted"
+		>
+		<prop:HeaderTemplate>
+			<div>
+				<div class="step step-<%=($this->Parent->ActiveStepIndex === 0) ? 'first-active' : (($this->Parent->ActiveStepIndex === 1) ? 'first-next-active' : 'first')%>">
+					<div><com:TTranslate Text="Client" /></div>
+				</div>
+				<div class="step step-<%=($this->Parent->ActiveStepIndex === 1) ? 'active' : (($this->Parent->ActiveStepIndex === 2) ? 'prev-active' : 'normal')%>">
+					<div><com:TTranslate Text="Backup" /></div>
+				</div>
+				 <div class="step step-<%=($this->Parent->ActiveStepIndex === 2) ? 'active' : (($this->Parent->ActiveStepIndex === 3) ? 'prev-active' : 'normal')%>">
+					<div><com:TTranslate Text="Files" /></div>
+				</div>
+				<div class="step step-<%=($this->Parent->ActiveStepIndex === 3) ? 'active' : (($this->Parent->ActiveStepIndex === 4) ? 'prev-active' : 'normal')%>">
+					<div><com:TTranslate Text="Where" /></div>
+				</div>
+				<div class="step step-<%=($this->Parent->ActiveStepIndex === 4) ? 'active' : (($this->Parent->ActiveStepIndex === 5) ? 'prev-active' : 'normal')%>">
+					<div><com:TTranslate Text="Options" /></div>
+				</div>
+				<div class="step step-<%=($this->Parent->ActiveStepIndex === 5) ? 'last-active' : (($this->Parent->ActiveStepIndex === 6) ? 'last-prev-active' : 'last')%>">
+					<div><com:TTranslate Text="Run" /></div>
+				</div>
+				<div id="title"><%=$this->Parent->ActiveStep->Title%><div>
+			</div>
+		</prop:HeaderTemplate>
+		<prop:StartNavigationTemplate>
+				<div class="button-cancel"><com:Application.Portlets.BButton CommandName="Cancel" Text="<%[ Cancel ]%>" /></div>
+				<div class="button-prev-next"><com:Application.Portlets.BButton CommandName="NextStep" Text="<%[ Next &raquo; ]%>" /></div>
+		</prop:StartNavigationTemplate>
+
+		<prop:StepNavigationTemplate>
+			<div class="button-cancel"><com:Application.Portlets.BButton CommandName="Cancel" Text="<%[ Cancel ]%>" /></div>
+			<div class="button-prev-next">
+				<com:Application.Portlets.BButton CausesValidation="False" CommandName="PreviousStep" Text="<%[ &laquo; Previous ]%>" />
+				<com:Application.Portlets.BButton ID="NextButton" CommandName="NextStep" Text="<%[ Next &raquo; ]%>" Visible="<%=($this->getPage()->RestoreWizard->ActiveStepIndex != 1 || ($this->getPage()->RestoreWizard->ActiveStepIndex == 1 && $this->getPage()->BackupToRestore->ItemCount > 0))%>" />
+			</div>
+		</prop:StepNavigationTemplate>
+		 
+		<prop:FinishNavigationTemplate>
+			<div class="button-cancel"><com:Application.Portlets.BButton CommandName="Cancel" Text="<%[ Cancel ]%>" /></div>
+			<div class="button-prev-next">
+			<com:Application.Portlets.BButton CausesValidation="False" CommandName="PreviousStep" Text="<%[ &laquo; Previous ]%>" />
+			<com:Application.Portlets.BButton CommandName="Complete" Text="<%[ Run restore ]%>" />
+			</div>
+		</prop:FinishNavigationTemplate>
+		<com:TWizardStep ID="Step1" Title="<%[ Step 1 - select source backup client ]%>" StepType="Auto">
+			<div class="line">
+				<div class="text"><com:TLabel ForControl="BackupClientName" Text="<%[ Backup from client: ]%>" /></div>
+				<div class="field">
+					<com:TActiveDropDownList ID="BackupClientName" CssClass="textbox" Width="350px" OnLoad="setBackupClients" OnTextChanged="setJobs" CausesValidation="false" />
+					<com:TCompareValidator CssClass="validator" Display="Dynamic" ControlToValidate="BackupClientName" DataType="String" ValueToCompare="none" Operator="NotEqual" Text="<%[ Please select language. ]%>" />
+				</div>
+			</div>
+		</com:TWizardStep>
+		<com:TWizardStep ID="Step2" Title="<%[ Step 2 - select backup to restore ]%>" StepType="Auto">
+			<com:TLabel  Text="<%[ There is no backup for restore. Please go to previous step and select another client for restore or proceed backups for the client selected in previous step. ]%>" CssClass="validation-error-summary" Visible="<%=($this->BackupToRestore->ItemCount == 0 && $this->GroupBackupToRestore->ItemCount == 0)%>"/>
+			<div class="line" style="margin-top: 15px">
+				<div class="text"><com:TLabel Text="<%[ Backup selection method: ]%>" /></div>
+				<div class="field">
+					<com:TActiveRadioButton ID="OnlySelectedBackupSelection" GroupName="BackupSelection" Checked="true" OnCheckedChanged="setBackupSelection" /> <com:TLabel ForControl="OnlySelectedBackupSelection" Text="<%[ Only selected backup ]%>" />
+					<com:TActiveRadioButton ID="GroupBackupSelection" GroupName="BackupSelection" OnCheckedChanged="setBackupSelection" /> <com:TLabel ForControl="GroupBackupSelection" Text="<%[ Group most recent backups ]%>" /></div>
+			</div>
+			<com:TActivePanel ID="BackupToRestoreField">
+				<div class="line">
+					<div class="text"><com:TLabel ForControl="BackupToRestore" Text="<%[ Backup for restore: ]%>" /></div>
+					<div class="field">
+						<com:TActiveDropDownList ID="BackupToRestore" CssClass="textbox" Width="350px" CausesValidation="false" OnTextChanged="resetFileBrowser" />
+					</div>
+				</div>
+			</com:TActivePanel>
+			<com:TActivePanel ID="GroupBackupToRestoreField" Display="None">
+				<div class="line">
+					<div class="text"><com:TLabel ForControl="GroupBackupToRestore" Text="<%[ Backup for restore: ]%>" /></div>
+					<div class="field">
+						<com:TActiveDropDownList ID="GroupBackupToRestore" CssClass="textbox" Width="350px" CausesValidation="false" />
+					</div>
+				</div>
+				<div class="line">
+					<div class="text"><com:TLabel ForControl="GroupBackupFileSet" Text="<%[ FileSet resource: ]%>" /></div>
+					<div class="field">
+						<com:TActiveDropDownList ID="GroupBackupFileSet" CssClass="textbox" Width="350px" CausesValidation="false" />
+					</div>
+				</div>
+				<div class="line">
+					<div class="text"><com:TLabel ForControl="GroupBackupStorage" Text="<%[ Storage resource: ]%>" /></div>
+					<div class="field">
+						<com:TActiveDropDownList ID="GroupBackupStorage" OnInit="setStorage" CssClass="textbox" Width="350px" CausesValidation="false" />
+					</div>
+				</div>
+				<div class="line">
+					<div class="text"><com:TLabel ForControl="GroupBackupPool" Text="<%[ Pool resource: ]%>" /></div>
+					<div class="field">
+						<com:TActiveDropDownList ID="GroupBackupPool" OnInit="setPool" CssClass="textbox" Width="350px" CausesValidation="false" />
+					</div>
+				</div>
+			</com:TActivePanel>
+		</com:TWizardStep>
+		<com:TWizardStep ID="Step3" Title="<%[ Step 3 - select files to restore ]%>" StepType="Auto">
+			<table id="restore-browser">
+				<tr>
+					<td rowspan="2">
+						<div id="restore-browser-files">
+							<com:TActiveDataGrid
+								ID="DataGridFiles"
+								AutoGenerateColumns="false"
+								CellPadding="2px"
+								HeaderStyle.CssClass="file-browser-header"
+								CssClass="file-browser-detail"
+								ItemStyle.CssClass="file-browser-element"
+								DataKeyField="fileid">
+									<prop:EmptyTemplate>
+										<div class="file-browser-watermark" style="padding: 150px 10px">
+											<%[ It seems that there is no files for choosing or file records in database for this job has been purged (file retention period expired) ]%>
+										</div>
+									</prop:EmptyTemplate>
+									<com:TActiveTemplateColumn ID="PathField">
+										<prop:ItemTemplate>
+											<com:TDraggable ID="FileElementLeft" Revert="false" Handle="<%=$this->FileElementLeft->ClientID%>" Ghosting="true" CssClass="draggable">
+												<img src="<%=$this->getPage()->getTheme()->getBaseUrl()%>/<%=($this->getParent()->Data['type'] == 'dir' ? 'directory-icon' : 'file-icon')%>.png" alt="<%=$this->getParent()->Data['type'] == 'dir' ? 'directory' : 'file' %>" /> <%=($this->getParent()->Data['name'] != '/') ? preg_replace('/\/$/', '', $this->getParent()->Data['name']) : '/'%>
+											</com:TDraggable>
+											<com:TCallback ID="FileElementCall" OnCallback="Page.getVersions" ActiveControl.CallbackParameter="<%=$this->getParent()->Data['name'] . '|' . @$this->getParent()->Data['pathid'] . '|' . @$this->getParent()->Data['filenameid'] . '|' . @$this->getParent()->Data['jobid']%>">
+												<prop:ClientSide.OnComplete>
+													<%=$this->getPage()->UniqueID%>_lock = false;
+												</prop:ClientSide.OnComplete>
+											</com:TCallback>
+											<script type="text/javascript">
+												$('<%=$this->FileElementLeft->ClientID%>').observe('mouseup', function(event) {
+													event.findElement('div').setStyle({'position' : 'static', 'top' : '0', 'left' : '0'});
+													$('<%=$this->FileElementLeft->ClientID%>').setStyle({'position' : 'static', 'top' : '0', 'left' : '0'});
+												});
+												
+												var <%=$this->getPage()->UniqueID%>_lock;
+												
+												$('<%=$this->FileElementLeft->ClientID%>').up('tr').observe('dblclick', function(event) {
+													if(<%=$this->getPage()->UniqueID%>_lock){
+														event.stop();
+													} else {
+														var request = <%=$this->FileElementCall->ActiveControl->Javascript %>;
+														request.dispatch();
+														<%=$this->getPage()->UniqueID%>_lock = true;
+													}
+												}.bind(<%=$this->getPage()->UniqueID%>_lock));
+											</script>
+										</prop:ItemTemplate>
+									</com:TActiveTemplateColumn>
+							</com:TActiveDataGrid>
+						</div>
+					</td>
+					<td>
+						<div id="restore-browser-versions">
+							<com:TActiveDataGrid
+								ID="VersionsDataGrid"
+								ShowHeader="false"
+								AutoGenerateColumns="false"
+								CellPadding="2px"
+								CssClass="file-browser-detail"
+								ItemStyle.CssClass="file-browser-element"
+								DataKeyField="fileid"
+							>
+								<prop:EmptyTemplate>
+									<div class="file-browser-watermark">
+										<%[ For see a file versions please double click file on the left files browser. ]%>
+									</div>
+								</prop:EmptyTemplate>
+								<com:TActiveTemplateColumn>
+									<prop:ItemTemplate>
+										<com:TDraggable ID="FileElementToRestore" Revert="false" Handle="<%=$this->FileElementToRestore->ClientID%>" Ghosting="true" CssClass="draggable">
+											<img src="<%=$this->getPage()->getTheme()->getBaseUrl()%>/<%=($this->getParent()->Data['type'] == 'dir' ? 'directory-icon' : 'file-icon')%>.png" alt="<%=$this->getParent()->Data['type'] == 'dir' ? 'directory' : 'file'%>" />
+											<com:TLabel Text="<%=$this->getParent()->Data['name']%>" Width="50%" /> <%=is_array($this->getParent()->Data['lstat']) && array_key_exists('mtime', $this->getParent()->Data['lstat']) ? date("Y-m-d H:i:s", $this->getParent()->Data['lstat']['mtime']) : ''%>
+										</com:TDraggable>
+										<script type="text/javascript">
+											$('<%=$this->FileElementToRestore->ClientID%>').observe('mouseup', function(event) {
+												event.findElement('div').setStyle({'position' : 'static', 'top' : '0', 'left' : '0'});
+												$('<%=$this->FileElementToRestore->ClientID%>').setStyle({'position' : 'static', 'top' : '0', 'left' : '0'});
+											});
+										</script>
+									</prop:ItemTemplate>
+								</com:TActiveTemplateColumn>
+							</com:TActiveDataGrid>
+							</div>
+					</td>
+				</tr>
+				<tr>
+					<td style="vertical-align: bottom;">
+						<div id="restore-browser-selected">
+							<com:TDropContainer ID="SelectedVersionsDropper" Height="100%" Width="100%"
+								AcceptCssClass="draggable"
+								OnDrop="addFileToRestore"
+								OnCallback="refreshSelectedFiles"
+								>
+									<com:TActiveDataGrid
+										ID="SelectedVersionsDataGrid"
+										ShowHeader="false"
+										AutoGenerateColumns="false"
+										CellPadding="2px"
+										CssClass="file-browser-detail"
+										ItemStyle.CssClass="file-browser-element"
+										DataKeyField="fileid"
+									>
+									<prop:EmptyTemplate>
+										<div class="file-browser-watermark" style="padding: 50px 10px">
+											<%[ For add a file to restore please drag a file from frame on left or from above frame and drop it here ]%>
+										</div>
+									</prop:EmptyTemplate>
+										<com:TActiveTemplateColumn>
+											<prop:ItemTemplate>
+													<com:TPanel ID="FileElement" Style="clear: both">
+														<com:TActiveImageButton ImageUrl="<%=$this->getPage()->getTheme()->getBaseUrl()%>/icon_close.png" Style="float: right; vertical-align: text-bottom;margin: 3px;" OnCallback="Page.removeSelectedFile" ActiveControl.CallbackParameter="<%=isset($this->getParent()->Data['fileid']) ? $this->getParent()->Data['fileid'] : ''%>"/>
+														<img src="<%=$this->getPage()->getTheme()->getBaseUrl()%>/<%=($this->getParent()->Data['type'] == 'dir' ? 'directory-icon' : 'file-icon')%>.png" alt="<%=$this->getParent()->Data['type'] == 'dir' ? 'directory' : 'file'%>" />
+														<com:TLabel Text="<%=$this->getParent()->Data['name']%>" /> <%=is_array($this->getParent()->Data['lstat']) && array_key_exists('mtime', $this->getParent()->Data['lstat']) ? date("Y-m-d H:i:s", $this->getParent()->Data['lstat']['mtime']) : ''%>
+													</com:TPanel>
+											</prop:ItemTemplate>
+										</com:TActiveTemplateColumn>
+									</com:TActiveDataGrid>
+								</com:TDropContainer>
+						</div>
+					</td>
+				</tr>
+			</table>
+		</com:TWizardStep>
+		<com:TWizardStep ID="Step4" Title="<%[ Step 4 - select destination for restore ]%>" StepType="Auto">
+			<div class="line">
+				<div class="text"><com:TLabel ForControl="RestoreClient" Text="<%[ Restore to client: ]%>" /></div>
+				<div class="field">
+					<com:TActiveDropDownList ID="RestoreClient" CssClass="textbox" OnLoad="setRestoreClients" CausesValidation="false" />
+				</div>
+			</div>
+			<div class="line">
+				<div class="text"><com:TLabel ForControl="RestorePath" Text="<%[ Restore to directory: ]%>" /></div>
+				<div class="field"><com:TTextBox ID="RestorePath" CssClass="textbox" Width="350px" Text="/tmp/restore" /></div>
+			</div>
+		</com:TWizardStep>
+		<com:TWizardStep ID="Step5" Title="<%[ Step 5 - options for restore ]%>" StepType="Auto">
+			<div class="line">
+				<div class="text"><com:TLabel ForControl="ReplaceFiles" Text="<%[ Replace files: ]%>" /></div>
+				<div class="field">
+					<com:TDropDownList ID="ReplaceFiles" CssClass="textbox" Width="350px" OnLoad="setRestoreClients" CausesValidation="false">
+						<com:TListItem Value="never" Text="<%[ do not replace files ]%>" />
+						<com:TListItem Value="ifolder" Text="<%[ if files from restore are older]%>" />
+						<com:TListItem Value="ifnewer" Text="<%[ if files from restore are newer]%>" />
+						<com:TListItem Value="always" Text="<%[ always replace files ]%>" />
+					</com:TDropDownList>
+				</div>
+			</div>
+			<div class="line">
+				<div class="text"><com:TLabel ForControl="RestoreJobPriority" Text="<%[ Restore job priority: ]%>" /></div>
+				<div class="field">
+					<com:TTextBox ID="RestoreJobPriority" CssClass="textbox" CausesValidation="false" Width="60px" MaxLength="5" Text="10" />
+				</div>
+			</div>
+		</com:TWizardStep>
+		<com:TWizardStep ID="Step6" Title="<%[ Step 6 - Finish ]%>" StepType="Finish">
+			<fieldset>
+				<legend><%[ Source parameters ]%></legend>
+				<div class="line">
+					<div class="text"><%[ Backup data from client: ]%></div>
+					<div class="field bold"><%=$this->getModule('api')->get(array('clients', $this->BackupClientName->SelectedValue))->output->name%></div>
+				</div>
+				<div class="line">
+					<div class="text"><%[ Backup selection method: ]%></div>
+					<div class="field bold">
+						<com:TLabel Text="<%[ Only selected backup ]%>" Visible="<%=$this->OnlySelectedBackupSelection->Checked%>" />
+						<com:TLabel Text="<%[ Group most recent backups ]%>" Visible="<%=$this->GroupBackupSelection->Checked%>" />
+					</div>
+				</div>
+				<div class="line">
+					<div class="text"><%[ Backup for restore: ]%></div>
+					<div class="field bold">
+						<com:TLabel Text="<%=@$this->getModule('api')->get(array('jobs', $this->BackupToRestore->SelectedValue))->output->job%>" Visible="<%=$this->OnlySelectedBackupSelection->Checked%>" />
+						<com:TLabel Text="<%=$this->GroupBackupToRestore->SelectedValue%>" Visible="<%=$this->GroupBackupSelection->Checked%>" />
+					</div>
+				</div>
+				<com:TPanel Visible="<%=$this->GroupBackupSelection->Checked%>">
+					<div class="line">
+						<div class="text"><%[ FileSet for restore: ]%></div>
+						<div class="field bold"><%=$this->GroupBackupFileSet->SelectedValue%></div>
+					</div>
+				</com:TPanel>
+			</fieldset>
+			<fieldset>
+				<legend><%[ Files for restore ]%></legend>
+				<div class="line">
+					<div class="text"><%[ Selected directories count: ]%></div>
+					<div class="field bold"><%=isset($this->getRestoreElements(true)->dirid) ? count($this->getRestoreElements(true)->dirid) : '0'%></div>
+				</div>
+				<div class="line">
+					<div class="text"><%[ Selected files count: ]%></div>
+					<div class="field bold"><%=isset($this->getRestoreElements(true)->fileid) ? count($this->getRestoreElements(true)->fileid) : '0'%></div>
+				</div>
+			</fieldset>
+			<fieldset>
+				<legend><%[ Destination parameters ]%></legend>
+				<div class="line">
+					<div class="text"><%[ Restore to client: ]%></div>
+					<div class="field bold"><%=$this->getModule('api')->get(array('clients', $this->RestoreClient->SelectedValue))->output->name%></div>
+				</div>
+				<div class="line">
+					<div class="text"><%[ Restore to path: ]%></div>
+					<div class="field bold"><%=$this->RestorePath->Text%></div>
+				</div>
+			</fieldset>
+			<fieldset>
+				<legend><%[ Restore job options ]%></legend>
+				<div class="line">
+					<div class="text"><%[ Replace files: ]%></div>
+					<div class="field bold">
+						<com:TLabel Visible="<%=$this->ReplaceFiles->SelectedValue == 'never'%>" Text="<%[ do not replace files ]%>"/>
+						<com:TLabel Visible="<%=$this->ReplaceFiles->SelectedValue == 'ifolder'%>" Text="<%[ if files from restore are older]%>"/>
+						<com:TLabel Visible="<%=$this->ReplaceFiles->SelectedValue == 'ifnewer'%>" Text="<%[ if files from restore are newer]%>"/>
+						<com:TLabel Visible="<%=$this->ReplaceFiles->SelectedValue == 'always'%>" Text="<%[ always replace files ]%>"/>
+					</div>
+				</div>
+				<div class="line">
+					<div class="text"><%[ Restore job priority: ]%></div>
+					<div class="field bold"><%=$this->RestoreJobPriority->Text%></div>
+				</div>
+			</fieldset>
+		</com:TWizardStep>
+	</com:TWizard>
+</com:TContent>

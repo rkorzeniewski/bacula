@@ -1,0 +1,15 @@
+#!/bin/sh
+#
+# Make full release
+#
+
+# Source config
+. ./config
+
+echo "Creating release version: ${ver}"
+
+cd $cwd
+
+./makebacularel $bacula $remote $branch $ver
+./makedocsrel $bacula $docs $remote $branch $ver
+

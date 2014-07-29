@@ -1,0 +1,94 @@
+#!/bin/sh
+#
+# Script to setup running Bacula regression tests
+#
+
+check_exit_code()
+{
+   if [ $? != 0 ] ; then
+      echo "Bad exit code giving up"
+      exit 1 
+   fi
+}
+
+. ./config
+
+cwd=`pwd`
+if [ ! -d ${BACULA_SOURCE} ] ; then
+   echo "The BACULA_SOURCE environment variable must be a Bacula release directory, but is not."
+   echo " "
+   exit 1
+fi
+
+MAKEOPTS=${MAKEOPT:-"-j3"}
+
+
+# we build and setup binaries to the $cwd/bin directory not $bin
+rm -rf build bin
+# Copy new source
+echo "Copying source from ${BACULA_SOURCE}"
+cp -rp ${BACULA_SOURCE} build
+which git >/dev/null 2>/dev/null
+if [ $? = 0 ] ; then
+  git show HEAD | grep -m 1 commit | awk '{print $2}' > build/git-version
+else
+  echo "Git not found." >build/git-version
+fi
+scripts/create_sed
+# In default bacula-dir.conf.in, change default file 
+# to backup to be build directory
+echo "s%File = @sbindir@%File = @BUILD_DIR@%g" >tmp/t$$
+sed -f tmp/t$$ build/src/dird/bacula-dir.conf.in >tmp/o$$
+cp tmp/o$$ build/src/dird/bacula-dir.conf.in
+
+# Now turn on DEVELOPER for regression testing
+echo "s%^.*define DEVELOPER 1.*$%#define DEVELOPER 1%g" >tmp/t$$
+sed -f tmp/t$$ build/src/version.h >tmp/o$$
+cp tmp/o$$ build/src/version.h
+
+rm -f tmp/t$$ tmp/o$$
+# remove unneeded directories
+rm -rf build/txt build/src/testprogs
+sed -f tmp/sed_tmp scripts/regress-config.in >scripts/regress-config
+chmod 755 scripts/regress-config
+cp scripts/regress-config build
+cd build
+rm -f Makefile config.*
+# Run Bacula configuration, make, install
+./regress-config ${cwd}
+check_exit_code
+# Cleanup any build in source
+make clean
+make ${MAKEOPT}
+check_exit_code
+make install
+if [ a${KEEP_SOURCE} = a ]; then
+   rm -rf examples patches
+   check_exit_code
+   # eliminate non-essential directories to reduce
+   #   size.  Otherwise regress run too long
+   rm -rf src/win32 examples patches
+fi
+# get all tools -- especially testls
+cd src/tools
+make installall
+check_exit_code
+
+cd ${cwd}
+bin/bacula stop
+
+mkdir -p working
+cd bin
+echo "Running database creation scripts"
+./create_bacula_database
+./drop_bacula_tables
+./make_bacula_tables
+./grant_bacula_privileges
+cd ${cwd}
+# Start and stop Bacula to ensure conf files are OK
+bin/bacula start
+bin/bacula stop
+#
+# Save Bacula default conf files for later use
+#
+cp -f bin/*.conf scripts

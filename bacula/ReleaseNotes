@@ -1,0 +1,270 @@
+
+               Release Notes for Bacula 7.0.5
+
+Release version 7.0.5
+This is an important bug fix release to version 7.0.4.  Since it fixes several
+major problems.  We recommend that everyone upgrade to this version.
+
+26Jul14
+ - Jim Raney's TLS patch
+ - Update AUTHORS
+ - Fix bug #1679 pool overrides not shown in manual run display
+ - Attempt to avoid client==NULL
+ - Fix for bug #2082 (hopefully)
+ - Fix seg fault in jobq.c
+ - make stop after first error
+ - Increase status schedule days from 500 to 3000
+ - Remove bad cherry-pick
+ - Fix compiler warning
+ - Allow options create_postgresql_database from patch in bug #2075 by roos
+ - Fix bug #2074 crashes when no conf file present
+ - Set pthread id in jcr at beginning so the job can be canceled.
+ - Fix possible heartbeat interval timing problems
+ - Fix some errors reported by valgrind. May fix the problem with bsmtp command.
+ - Ensure b_sterror() is using the correct size of input buffer
+ - Fix possible seg fault
+ - Fix segfault when trying to stop the bnet_server thread in terminate_stored()
+ - Fix bad link bug #2076
+ - Fix compilation of bsock.c when TLS is not available
+ - Correct L suffix to be LL
+ - Fix bad copy/migrate data header
+ - On termination shutdown thread server
+ - baculum: Updated README file
+ - baculum: Update English language texts
+ - baculum: Saving auth file for web server HTTP Basic auth
+ - baculum: Added directory for web server logs
+ - baculum: Added example Lighttpd configuration for Baculum and sample web 
+   server auth file
+ - Expanded auth error message
+ - baculum: Support for web servers which do not provide direct info about HTTP 
+   Basic auth
+ - Fix limit bandwidth calculation
+ - Eliminate strcpy() from bsmtp
+ - Fix for configuring sudo option for bconsole access
+ - Display correct NextPool overrides + use Job NextPool in restore if available
+ - Fix Bacula to work with newer Windows pthreads library
+ - Fix bug #180 ERR=success in btape when tape error
+
+Bugs fixed/closed since last release:
+1679 180 2074 2075 2076 2082
+
+
+Release version 7.0.4
+This is a bug fix release to version 7.0.3.  We recommend that
+everyone upgrade to this version.
+
+The main fixes are to make copy/migration to a second SD work, and
+to cleanup some of the inconsistencies in the cancel command which 
+could confuse the user.
+
+02Jun14
+ - Better error handling for cancel command
+ - Fix compiler warning + simplify some #ifdefs
+ - Fix copy/migration to second SD
+ - Fix calls to sl.set_string()
+ - Improve sellist code
+
+=============================================================
+Release version 7.0.3
+This is a bug fix release to version 7.0.2. We recommend that
+everyone using version 7.0.2 upgrade to this version.
+
+12May14
+ - Fix error handling in do_alist_prompt
+ - Tighten error condition handling in sellist
+ - Add new cancel test
+ - Update LICENSE and LICENSE-FAQ
+ - Also update autoconf/aclocal.m4
+ - Reschedule on error caused EndTime to be incorrect -- fixes bug #2029
+ - Flush console queued job messages -- should fix bug #2054
+ - Attempt to fix FreeBSD echo/printf, bug #2048
+ - Update to newer libtool + config.guess
+ - Recompile configure
+ - Apply fix supplied for acl.c in bug #2050
+ - Fix a SD seg fault that occurs with over committed drives
+ - Clear bvfs cache and set debug options available only for admin
+ - Moved auth params to curl opts
+ - Filtred single results for restricted consoles
+ - Removed unnecessary debug
+ - Changed e-mail address in gettext file
+ - Support for customized and restricted consoles
+ - Misc changes for rpm building (made by Louis)
+ - Updated requirements for Baculum
+ - Apply fix for bug 2049: wrong drive selected
+ - Fix #2047 about bthread_cond_wait_p not declared
+ - Fix Bacula bug #2044 -- fix Makefile for bplugininfo linking
+ - Fix Bacula bug #2046 -- sellist limited to 10000
+ - Fix Bacula bug #2045 -- multiply defined daemon_event
+ - Fix Bacula bug #2020 overflow in btape -- Andreas Koch
+
+Bugs fixed/closed since last release:
+2020 2029 2044 2045 2046 2047 2048 2050 2054
+
+
+===================================================================
+Release version 7.0.2
+This is a minor update since version 7.0.1 that is mostly cleanup.
+However, there is one annoying bug concerning shell expansion of
+config directory names that is fixed, and there is at least one
+syntax error in building the full docs that appears on some systems
+that is also fixed.
+
+02Apr14
+ - Remove more vestiges of libbacpy
+ - Put back @PYTHON@ path in configure
+ - Fix improper string in parser
+ - Remove libbacpy from rpm spec files
+ - Fix linking check_bacula
+ - Fix new SD login in check_bacula
+ - Tweak docs build process
+
+
+Release version 7.0.1
+This is a minor update since version 7.0.0 that is mostly cleanup.
+
+31Mar14
+ - Remove old plugin-test
+ - Update po files
+ - Enable installation of the bpluginfo utility
+ - More tray-monitor updates
+ - Add Simone Caronii to AUTHORS
+ - Align command line switches in manpages.
+ - Apply upgrade to config.guess
+ - Remove bgnome-console and bwx-console leftovers.
+ - Update tray-monitor header also for new bsock calls
+ - Attempt to fix nagios to use new bsock calls
+ - Update tray-monitor to new bsock calls
+
+========================================
+Release 7.0.0
+
+ Bacula code: Total files = 713 Total lines = 305,722
+ The diff between Bacula 5.2.13 and Bacula 7.0.0 is 622,577 lines,
+ which represents very large change.
+
+This is a major new release with many new features and a
+number of changes. Please take care to test this code carefully
+before putting it into production.  Although the new features
+have been tested, they have not run in a production environment.
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+For packagers, if you change options, naming, and the way 
+we link our shared object files, as at least one of you does,
+you are creating a situation where the user may not be able
+to run multiple versions of Bacula on the same machine, which
+is often very useful, and in addition, you create a configuration
+that the project cannot properly support.
+
+Please note that the documentation has significantly changed.
+You will need additional packages to build it such as inkscape.
+Please see the README and README.pct files in the docs directory.
+The packages come with pre-build English pdf and html files,
+which are located in the docs/docs/manuals/en/pdf-and-html directory.
+
+Packagers: please note that the Bacula LICENSE has changed, it is still
+AGPLv3 and still open source. A new requirement has been added which
+requires other projects using the source to keep the acreditations.
+
+Packagers: please note that the docs license has changed. It is now 
+licensed: Creative Commons Attribution-ShareAlike 4.0 International
+This is a common open source license.
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+Compatibility:
+--------------
+As always, both the Director and Storage daemon(s) must be upgraded at
+the same time. Any File daemon running on the same machine as a Director
+or Storage daemon must be of the same version.
+
+Older File Daemons should be compatible with the 7.0.0 Director and Storage
+daemons.  There should be no need to upgrade older File Daemons.
+
+The following are new directives, commands and features:
+- New Baculum web GUI interface.  See the gui/baculum directory.
+- Directive fdstorageaddress in Client
+- Directive SD Calls Client in Client
+- Directive Maximum Bandwidth per Job in Client
+- Directive FD Storage Address in Storage
+- Directive Maximum Spawned Jobs in Job
+- setbandwidth command in bconsole
+- Progress meter with FD in status dir
+- LastDay of month in schedule
+- sixth 6th week in month in schedule
+- Improvements in bconsole SQL calls
+- Allow list and ranges in cancel as well as the keyword: all
+- truncate command in bconsole
+- prune expired volumes?
+- New hardlink performance enhancements
+- restart command
+- restore optimizespeed=yes|no for hardlinks default yes
+- PkiCipher and PkiDigest in FD Client item
+ Cipher aes128, aes192, aes256, blowfish
+ Digest md5, sha1, sha256
+- Maximum Bandwidth Per Job in FD Client resource
+- Maximum Bandwidth Per Job in FD Director Resource
+- .bvfs_decode_lstat
+- DisableCommand in FD Director resource
+- DisableCommand in FD Client resource
+- status scheduled bconsole command with the following options:
+   days=nn (0-500 default 10); limit=nn (0-2000 default 100)
+   time=YYYY-MM-DD HH:MM:SS
+   schedule=xxx job=xxx
+- NextPool in Run override
+- Directive NextPool in Job
+
+Please see the New Features chapter of the manual for more
+details.
+
+The following features or directives have been removed:
+- Win32
+- tray-monitor
+- wx_console
+- Removed cats DBI driver
+- Python
+
+Detailed changes:
+=================
+24Mar14
+ - Add Josip Almasi to AUTHORS
+ - [PATCH] Support for restricted consoles in BAT config
+ - [PATCH] Fix for free director directive
+ - [PATCH] Fix auto-select restricted console for director in bconsole
+ - Realign output display
+ - Update ua_output.c from Branch-6.7
+ - Add some missing Branch-6.7 updates
+ - Added needed empty directories to Baculum
+ - Fix for support PostgreSQL, MySQL and SQLite
+ - Framework adjusting to Baculum database connections
+ - Framework fix for lower case tables names in MySQL
+ - Fix for Baculum SQLite support
+ - Initial commit Baculum
+ - Add Marcin to AUTHORS file
+ - Strip trailing blanks
+ - Update copyright year
+ - Update LICENSE and header files
+ - Remove old file
+ - Add new header in misc files
+ - Remove tray-monitor bwx-console manual installation
+ - Remove FD python and examples
+ - Fixup spec files
+ - Remove pythonlib from lib
+ - Update package-list
+ - Fix SDCallsClient daemon synchronization
+ - Add debug code + make 127.0.0.1 same as localhost for tls tests
+ - Fix multiple DIRs in console
+ - Make failure for bat to connect to DIR non-fatal
+ - Fix bat style to one that works
+ - Take disk-changer from Branch-6.7
+ - Simplify Version output
+ - Fix FDVersion for SD Calls Client test
+ - Update accurate test
+ - Update differential test
+ - Add new regress timing scripts
+ - Improve plugin make clean
+ - Implement regress FORCE_SDCALLS
+ - Remove win32 tray-monitor and wx-console directories
+ - Remove regress-config need only regress-config.in
+ - Add configure archivedir
+ - Improve SQL failure reporting
+ - First cut backport BEE to community
+ - Add copyright to mtx-changer.in

@@ -1,0 +1,46 @@
+<%@ MasterClass="Application.Layouts.Main" Theme="Baculum-v1"%>
+<com:TContent ID="Main">
+	<div id="container">
+		<div id="top">
+		<img src="<%=$this->getPage()->getTheme()->getBaseUrl()%>/logo.png" alt="Baculum" />
+		<div id="directors"><com:TLabel ForControl="Director" Text="<%[ Director: ]%>" /> <com:TActiveDropDownList ID="Director" OnTextChanged="director" /></div>
+		</div>
+		<div id="menu-left">
+			<com:TActiveButton ID="StorageBtn" CssClass="storage-btn" Attributes.onmouseover="javascript:showTip(this, 'Storage Daemons', 'Configuration of storage daemons.');" ClientSide.OnLoading="$('<%=$this->StorageWindow->Controls[0]->UniqueID%>-slide-window-progress').setStyle({'display': 'block'});" ClientSide.OnComplete="$('<%=$this->StorageWindow->Controls[0]->UniqueID%>-slide-window-progress').setStyle({'display': 'none'});" />
+			<com:TActiveButton ID="ClientBtn" CssClass="client-btn" Attributes.onmouseover="javascript:showTip(this, 'Clients', 'Configuration of clients daemons.');" ClientSide.OnLoading="$('<%=$this->ClientWindow->Controls[0]->UniqueID%>-slide-window-progress').setStyle({'display': 'block'});" ClientSide.OnComplete="$('<%=$this->ClientWindow->Controls[0]->UniqueID%>-slide-window-progress').setStyle({'display': 'none'});" />
+			<com:TActiveButton ID="MediaBtn" CssClass="media-btn" Attributes.onmouseover="javascript:showTip(this, 'Volumes', 'Management of volumes.');" ClientSide.OnLoading="$('<%=$this->VolumeWindow->Controls[0]->UniqueID%>-slide-window-progress').setStyle({'display': 'block'});" ClientSide.OnComplete="$('<%=$this->VolumeWindow->Controls[0]->UniqueID%>-slide-window-progress').setStyle({'display': 'none'});" />
+			<com:TActiveButton ID="PoolBtn" CssClass="pool-btn" Attributes.onmouseover="javascript:showTip(this, 'Pools', 'Management of volumes pools.');" ClientSide.OnLoading="$('<%=$this->PoolWindow->Controls[0]->UniqueID%>-slide-window-progress').setStyle({'display': 'block'});" ClientSide.OnComplete="$('<%=$this->PoolWindow->Controls[0]->UniqueID%>-slide-window-progress').setStyle({'display': 'none'});" />
+			<com:TActiveButton ID="JobBtn" CssClass="job-btn" Attributes.onmouseover="javascript:showTip(this, 'Jobs', 'Jobs settings.');" ClientSide.OnLoading="$('<%=$this->JobWindow->Controls[0]->UniqueID%>-slide-window-progress').setStyle({'display': 'block'});" ClientSide.OnComplete="$('<%=$this->JobWindow->Controls[0]->UniqueID%>-slide-window-progress').setStyle({'display': 'none'});" />
+			<com:TActiveButton ID="JobRunBtn" CssClass="jobrun-btn" Attributes.onmouseover="javascript:showTip(this, 'Run job', 'Starting jobs.');" ClientSide.OnLoading="$('<%=$this->JobRunWindow->Controls[0]->UniqueID%>-slide-window-progress').setStyle({'display': 'block'});" ClientSide.OnComplete="$('<%=$this->JobRunWindow->Controls[0]->UniqueID%>-slide-window-progress').setStyle({'display': 'none'});" />
+			<com:TActiveButton CssClass="restore-btn" OnClick="restore" Attributes.onmouseover="javascript:showTip(this, 'Restore', 'Restore wizard.');" />
+			<com:TActiveButton ID="SettingsWizardBtn" CssClass="setting-btn" OnClick="configuration" Attributes.onmouseover="javascript:showTip(this, 'Settings', 'Management settings wizard.');" />
+		</div>
+		<com:TActivePanel ID="Content">
+			<div id="content">
+				<com:Application.Portlets.StorageList ID="StorageWindow" ShowID="<%=$this->StorageBtn->ClientID%>" WindowTitle="<%[ Storage Daemons ]%>" />
+				<com:Application.Portlets.ClientList ID="ClientWindow" ShowID="<%=$this->ClientBtn->ClientID%>" WindowTitle="<%[ Clients ]%>" />
+				<com:Application.Portlets.VolumeList ID="VolumeWindow" ShowID="<%=$this->MediaBtn->ClientID%>" WindowTitle="<%[ Volumes ]%>" />
+				<com:Application.Portlets.PoolList ID="PoolWindow" ShowID="<%=$this->PoolBtn->ClientID%>" WindowTitle="<%[ Pools ]%>" />
+				<com:Application.Portlets.JobList ID="JobWindow" ShowID="<%=$this->JobBtn->ClientID%>" WindowTitle="<%[ Jobs ]%>" />
+				<com:Application.Portlets.JobRunList ID="JobRunWindow" ShowID="<%=$this->JobRunBtn->ClientID%>" WindowTitle="<%[ Jobs for run ]%>" />
+				<div id="configuration">
+					<com:Application.Portlets.VolumeConfiguration ID="VolumeConfiguration" />
+					<com:Application.Portlets.StorageConfiguration ID="StorageConfiguration" />
+					<com:Application.Portlets.ClientConfiguration ID="ClientConfiguration" />
+					<com:Application.Portlets.PoolConfiguration ID="PoolConfiguration" />
+					<com:Application.Portlets.JobConfiguration ID="JobConfiguration" />
+					<com:Application.Portlets.JobRunConfiguration ID="JobRunConfiguration" />
+				</div>
+			</div>
+		</com:TActivePanel>
+		<div id="console">
+			<a id="clear_bvfs_cache" href="javascript: void(0)"><com:TActiveImageButton ID="ClearBvfsCache" OnCallback="clearBvfsCache" Attributes.onclick="return confirm('This action will clear bvfs cache that was created during preparing restore files.\n\nPlease note that clear bvfs action does not clear nor remove temporary tables created for restore action purpose. They are tables with prefix b2[0-9]+ which need manual remove.\n\nThere is not recommended use this action during restore job working.\n\nAre you sure?')" ImageUrl="<%=$this->getPage()->getTheme()->getBaseUrl()%>/trash_icon.png" AlternateText="<%[ clear bvfs cache ]%>" /><com:TLabel ForControl="ClearBvfsCache"><%[ clear bvfs cache ]%></com:TLabel></a>
+			<a id="logging" href="javascript:void(0)"><com:TActiveCheckBox ID="Logging" OnCallback="setDebug" Attributes.onclick="return (this.checked === false || confirm('Log files enables possibility to save most of actions executed on Baculum WebGUI.\n\nLogs functionality should be enabled if is happening shomething wrong with Baculum or something that looks like a bug. Logs can be useful for detecting a problems in Baculum working.\n\nAfter confirmation this message Baculum log files will be continuously saving in /protected/Data/ directory.\n\n Are you sure?'));" /><com:TLabel ForControl="Logging"><%[ Enable logging ]%></com:TLabel></a>
+			<a id="volumes_tools_launcher" href="javascript:void(0)"><img src="<%=$this->getPage()->getTheme()->getBaseUrl()%>/tape_tools_icon.png" alt="<%[ volumes tools ]%>" /><span><%[ volumes tools ]%></span></a>
+			<a id="console_launcher" href="javascript:void(0)"><img src="<%=$this->getPage()->getTheme()->getBaseUrl()%>/console_icon.png" alt="<%[ Bacula console ]%>" /><span><%[ show console ]%></span></a>
+			<com:Application.Portlets.VolumesTools ID="VolumesTools" />
+			<com:Application.Portlets.Console ID="Console" />
+		</div>
+		<div id="bottom"></div>
+	</div>
+</com:TContent>

@@ -1,0 +1,323 @@
+<%@ MasterClass="Application.Layouts.Wizard" Theme="Baculum-v1"%>
+<com:TContent ID="Wizard">
+	<com:TWizard ID="InstallWizard"
+		CssClass="wizard"
+		StepStyle.CssClass="steps"
+		HeaderStyle.CssClass="header"
+		NavigationStyle.CssClass="navigation"
+		UseDefaultLayout="false"
+		ShowSideBar="false"
+		OnCancelButtonClick="wizardStop"
+		OnCompleteButtonClick="wizardCompleted"
+		>
+		<prop:HeaderTemplate>
+			<div>
+				<div class="step step-<%=($this->Parent->ActiveStepIndex === 0) ? 'first-active' : (($this->Parent->ActiveStepIndex === 1) ? 'first-next-active' : 'first')%>">
+					<div><com:TTranslate Text="Language" /></div>
+				</div>
+				<div class="step step-<%=($this->Parent->ActiveStepIndex === 1) ? 'active' : (($this->Parent->ActiveStepIndex === 2) ? 'prev-active' : 'normal')%>">
+					<div><com:TTranslate Text="Licence" /></div>
+				</div>
+				 <div class="step step-<%=($this->Parent->ActiveStepIndex === 2) ? 'active' : (($this->Parent->ActiveStepIndex === 3) ? 'prev-active' : 'normal')%>">
+					<div><com:TTranslate Text="Database" /></div>
+				</div>
+				<div class="step step-<%=($this->Parent->ActiveStepIndex === 3) ? 'active' : (($this->Parent->ActiveStepIndex === 4) ? 'prev-active' : 'normal')%>">
+					<div><com:TTranslate Text="Console" /></div>
+				</div>
+				<div class="step step-<%=($this->Parent->ActiveStepIndex === 4) ? 'active' : (($this->Parent->ActiveStepIndex === 5) ? 'prev-active' : 'normal')%>">
+					<div><com:TTranslate Text="Authorization" /></div>
+				</div>
+				<div class="step step-<%=($this->Parent->ActiveStepIndex === 5) ? 'last-active' : (($this->Parent->ActiveStepIndex === 6) ? 'last-prev-active' : 'last')%>">
+					<div><com:TTranslate Text="Finish" /></div>
+				</div>
+				<div id="title"><%=$this->Parent->ActiveStep->Title%><div>
+			</div>
+		</prop:HeaderTemplate>
+		<prop:StartNavigationTemplate>
+				<com:TPanel CssClass="button-cancel" Visible="<%=$this->getPage()->firstRun === false%>"><com:Application.Portlets.BButton CommandName="Cancel" Text="<%[ Cancel ]%>" /></com:TPanel>
+				<div <%=$this->getPage()->firstRun === false ? 'class="button-prev-next"' : ''%>><com:Application.Portlets.BButton CommandName="NextStep" Text="<%[ Next &raquo; ]%>" /></div>
+		</prop:StartNavigationTemplate>
+
+		<prop:StepNavigationTemplate>
+			<com:TPanel CssClass="button-cancel" Visible="<%=$this->getPage()->firstRun === false%>"><com:Application.Portlets.BButton CommandName="Cancel" Text="<%[ Cancel ]%>" /></com:TPanel>
+			<div <%=$this->getPage()->firstRun === false ? 'class="button-prev-next"' : ''%>>
+				<com:Application.Portlets.BButton CausesValidation="False" CommandName="PreviousStep" Text="<%[ &laquo; Previous ]%>" />
+				<com:Application.Portlets.BButton ID="NextButton" CommandName="NextStep" Text="<%[ Next &raquo; ]%>" />
+			</div>
+		</prop:StepNavigationTemplate>
+		 
+		<prop:FinishNavigationTemplate>
+			<com:TPanel CssClass="button-cancel" Visible="<%=$this->getPage()->firstRun === false%>"><com:Application.Portlets.BButton CommandName="Cancel" Text="<%[ Cancel ]%>" /></com:TPanel>
+			<div <%=$this->getPage()->firstRun === false ? 'class="button-prev-next"' : ''%>>
+				<com:Application.Portlets.BButton CausesValidation="False" CommandName="PreviousStep" Text="<%[ &laquo; Previous ]%>" />
+				<com:Application.Portlets.BButton CommandName="Complete" Text="<%[ Save ]%>" />
+			</div>
+		</prop:FinishNavigationTemplate>
+		<com:TWizardStep ID="Step1" Title="<%[ Step 1 - select language ]%>" StepType="Auto">
+			<div class="line">
+				<div class="text"><com:TLabel ForControl="Lang" Text="<%[ Language: ]%>" /></div>
+				<div class="field">
+					<com:TActiveDropDownList ID="Lang" CssClass="textbox" Width="150px" OnTextChanged="setLang" CausesValidation="false">
+						<com:TListItem Value="en" Text="<%[ English ]%>" />
+						<!--com:TListItem Value="pl" Text="<%[ Polish ]%>" /-->
+					</com:TActiveDropDownList>
+					<com:TCompareValidator CssClass="validator" Display="Dynamic" ControlToValidate="Lang" DataType="String" ValueToCompare="none" Operator="NotEqual" Text="<%[ Please select language. ]%>" />
+				</div>
+			</div>
+		</com:TWizardStep>
+		<com:TWizardStep ID="Step2" Title="<%[ Step 2 - acceptance of a license ]%>" StepType="Auto">
+			<div id="licence"><com:TLabel ID="Licence" /></div>
+			<div id="licence-agree">
+				<com:TCheckBox ID="LicenceAgree"  Checked="<%=$this->getPage()->firstRun === false || $this->LicenceAgree->Checked === true%>" />
+				<com:TLabel  ForControl="LicenceAgree" Text="<%[ I have read the license terms and agree to ]%>" /><br />
+				<com:TRequiredFieldValidator CssClass="validator" ControlToValidate="LicenceAgree" FocusOnError="true" Display="Dynamic" Text="<%[ Need to move on to accept the license. ]%>" />
+			</div>
+		</com:TWizardStep>
+		<com:TWizardStep ID="Step3" Title="<%[ Step 3 - params of Bacula database connection ]%>" StepType="Auto">
+			<com:TActivePanel ID="Step2Content">
+				<div class="line">
+					<div class="text"><com:TLabel ForControl="DBType" Text="<%[ Database type: ]%>" /></div>
+					<div class="field">
+						<com:TActiveDropDownList ID="DBType" CssClass="textbox" Width="170px" OnLoad="setDBType" OnTextChanged="setDBType" CausesValidation="false" OnCallback="renderPanel">
+							<com:TListItem Value="none" Text="<%[ select database ]%>" />
+							<com:TListItem Value="pgsql" Text="PostgreSQL" />
+							<com:TListItem Value="mysql" Text="MySQL" />
+							<com:TListItem Value="sqlite" Text="SQLite" />
+						</com:TActiveDropDownList>
+						<com:TCompareValidator CssClass="validator" Display="Dynamic" ControlToValidate="DBType" DataType="String" ValueToCompare="none" Operator="NotEqual" Text="<%[ Please select database type. ]%>" />
+					</div>
+				</div>
+				
+				<div class="line">
+					<div class="text"><com:TLabel ForControl="DBName" Text="<%[ Database name: ]%>" /></div>
+					<div class="field">
+						<com:TTextBox ID="DBName" CssClass="textbox" />
+						<com:TRequiredFieldValidator CssClass="validator" Display="Dynamic" ControlCssClass="invalidate" ControlToValidate="DBName" Text="<%[ Please enter database name. ]%>" />
+					</div>
+				</div>
+				<div class="line">
+					<div class="text"><com:TLabel ForControl="Login" Text="<%[ Login: ]%>" /></div>
+					<div class="field">
+						<com:TActiveTextBox ID="Login" CssClass="textbox" />
+						<com:TRequiredFieldValidator ID="LoginValidator" CssClass="validator" Display="Dynamic" ControlCssClass="invalidate" ControlToValidate="Login" Text="<%[ Please enter login. ]%>" />
+					</div>
+				</div>
+				<div class="line">
+					<div class="text"><com:TLabel ForControl="Password" Text="<%[ Password: ]%>" /></div>
+					<div class="field"><com:TActiveTextBox ID="Password" CssClass="textbox" TextMode="Password" PersistPassword="true" /></div>
+				</div>
+				<div class="line">
+					<div class="text"><com:TLabel ForControl="IP" Text="<%[ IP address (or hostname): ]%>" /></div>
+					<div class="field">
+						<com:TActiveTextBox ID="IP" CssClass="textbox" />
+						<com:TRequiredFieldValidator ID="IPValidator" CssClass="validator" Display="Dynamic" ControlCssClass="invalidate" ControlToValidate="IP" Text="<%[ Please enter IP address or hostname. ]%>" />
+					</div>
+				</div>
+				<div class="line">
+					<div class="text"><com:TLabel ForControl="Port" Text="<%[ Port: ]%>" /></div>
+					<div class="field">
+						<com:TActiveTextBox ID="Port" CssClass="textbox" Width="55px" MaxLength="5" Enabled="false" />
+						<com:TRequiredFieldValidator ID="PortValidator" CssClass="validator" Display="Dynamic" ControlCssClass="invalidate" ControlToValidate="Port" Text="<%[ Please enter database port. ]%>" />
+					</div>
+				</div>
+				<com:TActivePanel ID="DBPathField" CssClass="line" Display="<%=$this->getPage()->firstRun === false && !$this->IsCallBack && $this->getPage()->applicationConfig['db']['type'] == 'sqlite' ? 'Fixed' : $this->DBPathField->Display%>">
+					<div class="text"><com:TLabel ForControl="DBPath" Text="<%[ SQLite database path: ]%>" /></div>
+					<div class="field">
+						<com:TActiveTextBox ID="DBPath" CssClass="textbox" Enabled="false" />
+						<com:TRequiredFieldValidator ID="DBPathValidator" Display="Dynamic" CssClass="validator" ControlCssClass="invalidate" ControlToValidate="DBPath" Text="<%[ Please enter database path. ]%>" />
+					</div>
+				</com:TActivePanel>
+				<div class="line">
+					<div class="text"><com:TLabel ForControl="ConnectionTest" Text="<%[ Connection test: ]%>" /></div>
+					<div class="field">
+						<table border="0" cellpadding="1px">
+							<tr>
+								<td align="center" valign="middle">
+									<com:TActiveButton ID="ConnectionTest" Text="<%[ test ]%>" CausesValidation="false" OnCallback="connectionDBTest">
+										<prop:ClientSide.OnLoading>
+											Element.hide('<%=$this->DbTestResultOk->ClientID%>');
+											Element.hide('<%=$this->DbTestResultErr->ClientID%>');
+											Element.show('<%=$this->DbTestLoader->ClientID%>');
+										</prop:ClientSide.OnLoading>
+										<prop:ClientSide.OnComplete>
+											Element.hide('<%=$this->DbTestLoader->ClientID%>');
+										</prop:ClientSide.OnComplete>
+									</com:TActiveButton>
+								</td>
+								<td align="center" valign="middle">
+									<com:TActiveLabel ID="DbTestLoader" Display="None"><img src="<%=$this->getTheme()->getBaseUrl()%>/ajax-loader.gif" alt="<%[ Loading... ]%>" /></com:TActiveLabel>
+									<com:TActiveLabel ID="DbTestResultOk" Display="None" CssClass="validate"><img src="<%=$this->getTheme()->getBaseUrl()%>/icon_ok.png" alt="Validate" /> <%[ OK ]%></com:TActiveLabel>
+									<com:TActiveLabel ID="DbTestResultErr" Display="None" CssClass="validator"><img src="<%=$this->getTheme()->getBaseUrl()%>/icon_err.png" alt="Invalidate" /> <%[ Connection error ]%></com:TActiveLabel>
+								</td>
+							</tr>
+						</table>
+					</div>
+				</div>
+				<com:TPanel Style="clear: left" />
+			</com:TActivePanel>
+		</com:TWizardStep>
+		<com:TWizardStep ID="Step4" Title="<%[ Step 4 - Baculum access to bconsole ]%>" StepType="Auto">
+			<com:TActivePanel ID="Step4Content">
+				<div class="line">
+					<div class="text"><com:TLabel ForControl="BconsolePath" Text="<%[ Bconsole binary file path: ]%>" /></div>
+					<div class="field">
+						<com:TTextBox ID="BconsolePath" CssClass="textbox" CausesValidation="false" />
+						<com:TRequiredFieldValidator CssClass="validator" Display="Dynamic" ControlCssClass="invalidate" ControlToValidate="BconsolePath" Text="<%[ Please enter bconsole path. ]%>" />
+					</div>
+				</div>
+				<div class="line">
+					<div class="text"><com:TLabel ForControl="BconsoleConfigPath" Text="<%[ Bconsole admin config file path: ]%>" /></div>
+					<div class="field">
+						<com:TTextBox ID="BconsoleConfigPath" CssClass="textbox" CausesValidation="false" />
+						<com:TRequiredFieldValidator CssClass="validator" Display="Dynamic" ControlCssClass="invalidate" ControlToValidate="BconsoleConfigPath" Text="<%[ Please enter bconsole config file path. ]%>" />
+					</div>
+				</div>
+				<div class="line">
+					<div class="text"><com:TLabel ForControl="UseSudo" Text="<%[ Use sudo: ]%>" /></div>
+					<div class="field">
+						<com:TCheckBox ID="UseSudo" />
+					</div>
+				</div>
+				<div class="line">
+					<div class="text"><com:TLabel ForControl="BconsoleConnectionTest" Text="<%[ Bconsole connection test: ]%>" /></div>
+					<div class="field">
+						<table border="0" cellpadding="1px">
+							<tr>
+								<td  align="center" valign="middle">
+									<com:TActiveButton ID="BconsoleConnectionTest" Text="<%[ test ]%>" CausesValidation="false" OnCallback="connectionBconsoleTest">
+										<prop:ClientSide.OnLoading>
+											Element.hide('<%=$this->BconsoleTestResultOk->ClientID%>');
+											Element.hide('<%=$this->BconsoleTestResultErr->ClientID%>');
+											Element.show('<%=$this->BconsoleTestLoader->ClientID%>');
+										</prop:ClientSide.OnLoading>
+										<prop:ClientSide.OnComplete>
+											Element.hide('<%=$this->BconsoleTestLoader->ClientID%>');
+										</prop:ClientSide.OnComplete>
+									</com:TActiveButton>
+								</td>
+								<td align="center" valign="middle">
+									<com:TActiveLabel ID="BconsoleTestLoader" Display="None"><img src="<%=$this->getTheme()->getBaseUrl()%>/ajax-loader.gif" alt="<%[ Loading... ]%>" /></com:TActiveLabel>
+									<com:TActiveLabel ID="BconsoleTestResultOk" Display="None" CssClass="validate"><img src="<%=$this->getTheme()->getBaseUrl()%>/icon_ok.png" alt="Validate" /> <%[ OK ]%></com:TActiveLabel>
+									<com:TActiveLabel ID="BconsoleTestResultErr" Display="None" CssClass="validator"><img src="<%=$this->getTheme()->getBaseUrl()%>/icon_err.png" alt="Invalidate" /> <%[ Connection error ]%></com:TActiveLabel>
+								</td>
+							</tr>
+						</table>
+					</div>
+				</div>
+				<div class="line">
+					<p><b><%[ NOTE! ]%></b><br /><em><%[ Baculum needs access to bconsole by the web server. ]%></em></p>
+				</div>
+				<hr />
+				<div class="line">
+					<p><%[ For need defining more Baculum users with custom access or restricted console access (Bconsole ACLs) here is possible to determine custom bconsole configuration file format for each user. ]%></p>
+				</div>
+				<div>
+					<p><%[ If there is used only one Baculum user then below field value will be ignored. ]%></p>
+				</div>
+				<div class="line">
+					<div class="text"><com:TLabel ForControl="BconsoleConfigCustomPath" Text="<%[ Bconsole custom config file path: ]%>" /></div>
+					<div class="field">
+						<com:TTextBox ID="BconsoleConfigCustomPath" CssClass="textbox" CausesValidation="false" />
+						<com:TRequiredFieldValidator CssClass="validator" Display="Dynamic" ControlCssClass="invalidate" ControlToValidate="BconsoleConfigCustomPath" Text="<%[ Please enter bconsole custom config file path. ]%>" />
+					</div>
+				</div>
+				<div class="line">
+					<p><b><%[ NOTE! ]%></b><br /><%[ {user} keyword will be replaced for each logged user into according username. ]%></p>
+				</div>
+			</com:TActivePanel>
+		</com:TWizardStep>
+		<com:TWizardStep ID="Step5" Title="<%[ Step 5 - authorization params to Baculum ]%>" StepType="Auto">
+			<div class="line">
+				<div class="text"><com:TLabel ForControl="PanelLogin" Text="<%[ Administration login: ]%>" /></div>
+				<div class="field">
+					<com:TTextBox ID="PanelLogin" CssClass="textbox" CausesValidation="false" />
+					<com:TRequiredFieldValidator CssClass="validator" Display="Dynamic" ControlCssClass="invalidate" ControlToValidate="PanelLogin" Text="<%[ Please enter login. ]%>" />
+				</div>
+			</div>
+			<div class="line">
+				<div class="text"><com:TLabel ForControl="PanelPassword" Text="<%[ Administration password: ]%>" /></div>
+				<div class="field">
+					<com:TTextBox ID="PanelPassword" CssClass="textbox" TextMode="Password" MaxLength="30" PersistPassword="true" />
+					<com:TRequiredFieldValidator CssClass="validator" Display="Dynamic" ControlCssClass="invalidate" ControlToValidate="PanelPassword" Text="<%[ Please enter password. ]%>"/>
+					<com:TRegularExpressionValidator CssClass="validator" Display="Dynamic" ControlCssClass="invalidate" ControlToValidate="PanelPassword" RegularExpression="[\w\s]{5,30}" Text="<%[ Password must be longer than 4 chars. ]%>" />
+				</div>
+			</div>
+			<div class="line">
+				<div class="text"><com:TLabel ForControl="RetypePanelPassword" Text="<%[ Retype administration password: ]%>" /></div>
+				<div class="field">
+					<com:TTextBox ID="RetypePanelPassword" CssClass="textbox" TextMode="Password" MaxLength="30" PersistPassword="true" />
+					<com:TRequiredFieldValidator ID="RetypePasswordRequireValidator" CssClass="validator" Display="Dynamic" ControlCssClass="invalidate" ControlToValidate="RetypePanelPassword" Text="<%[ Please enter retype password. ]%>"/>
+					<com:TRegularExpressionValidator ID="RetypePasswordRegexpValidator" CssClass="validator" Display="Dynamic" ControlCssClass="invalidate" ControlToValidate="RetypePanelPassword" RegularExpression="[\w\s]{5,30}" Text="<%[ Password must be longer than 4 chars. ]%>" />
+					<com:TCustomValidator ID="RetypePasswordCustomValidator" CssClass="validator" Display="Dynamic" ControlCssClass="invalidate" ControlToValidate="RetypePanelPassword" OnServerValidate="validateAdministratorPassword" Text="<%[ Passwords must be the same. ]%>" />
+				</div>
+			</div>
+			<div class="line">
+				<p><b><%[ NOTE! ]%></b><br /><em><%[ Above administration login and administration password will be used for login as administrator to Baculum WebGUI. They are your HTTP Basic authorization params by using which you will be logged in to Baculum. ]%></em></p>
+				<p><b><%[ NOTE! ]%></b><br /><em><%[ In case when you use your selected HTTP Basic auth backend and in particular manual Baculum installation from source tar.gz archive, in above fields you need to provide your defined login and password which you used for access to this wizard. ]%></em></p>
+			</div>
+		</com:TWizardStep>
+		<com:TWizardStep ID="Step6" Title="<%[ Step 6 - Finish ]%>" StepType="Finish">
+			<fieldset>
+				<legend><%[ Database parameters ]%></legend>
+				<div class="line">
+					<div class="text"><%[ Database type: ]%></div>
+					<div class="field bold"><%=$this->getModule('configuration')->getDbNameByType($this->DBType->SelectedValue)%></div>
+				</div>
+				<div class="line">
+					<div class="text"><%[ Database name: ]%></div>
+					<div class="field bold"><%=$this->DBName->Text%></div>
+				</div>
+				<div class="line">
+					<div class="text"><%[ Login: ]%></div>
+					<div class="field bold"><%=$this->getModule('configuration')->isSQLiteType($this->DBType->SelectedValue) === false ? $this->Login->Text : '-'%></div>
+				</div>
+				<div class="line">
+					<div class="text"><%[ Password: ]%></div>
+					<div class="field bold"><%=$this->getModule('configuration')->isSQLiteType($this->DBType->SelectedValue) === false ? preg_replace('/.{1}/', '*', $this->Password->Text) : '-'%></div>
+				</div>
+				<div class="line">
+					<div class="text"><%[ IP address (or hostname): ]%></div>
+					<div class="field bold"><%=$this->getModule('configuration')->isSQLiteType($this->DBType->SelectedValue) === false ? $this->IP->Text : '-'%></div>
+				</div>
+				<div class="line">
+					<div class="text"><%[ Database port: ]%></div>
+					<div class="field bold"><%=$this->getModule('configuration')->isSQLiteType($this->DBType->SelectedValue) === false ? $this->Port->Text : '-'%></div>
+				</div>
+				<div class="line">
+					<div class="text"><%[ Database file path (SQLite only): ]%></div>
+					<div class="field bold"><%=$this->getModule('configuration')->isSQLiteType($this->DBType->SelectedValue) === true ? $this->DBPath->Text : '-'%></div>
+				</div>
+			</fieldset>
+			<fieldset>
+				<legend><%[ Bconsole access ]%></legend>
+				<div class="line">
+					<div class="text"><%[ Bconsole binary file path: ]%></div>
+					<div class="field bold"><%=$this->BconsolePath->Text%></div>
+				</div>
+				<div class="line">
+					<div class="text"><%[ Bconsole admin config file path: ]%></div>
+					<div class="field bold"><%=$this->BconsoleConfigPath->Text%></div>
+				</div>
+				<div class="line">
+					<div class="text"><%[ Bconsole custom config file path: ]%></div>
+					<div class="field bold"><%=$this->BconsoleConfigCustomPath->Text%></div>
+				</div>
+				<div class="line">
+					<div class="text"><%[ Use sudo for bconsole requests: ]%></div>
+					<div class="field bold"><%=($this->UseSudo->Checked === true) ? 'yes' : 'no'%></div>
+				</div>
+			</fieldset>
+			<fieldset>
+				<legend><%[ Authorization to Baculum panel ]%></legend>
+				<div class="line">
+					<div class="text"><%[ Administration login: ]%></div>
+					<div class="field bold"><%=$this->PanelLogin->Text%></div>
+				</div>
+				<div class="line">
+					<div class="text"><%[ Administration password: ]%></div>
+					<div class="field bold"><%=preg_replace('/.{1}/', '*', $this->PanelPassword->Text)%></div>
+				</div>
+			</fieldset>
+		</com:TWizardStep>
+	</com:TWizard>
+</com:TContent>
