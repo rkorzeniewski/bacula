@@ -2293,6 +2293,9 @@ AC_CHECK_LIB(intl, gettext, [LIBS="$LIBS -lintl"])
 
 AC_CHECK_LIB(sun, getpwnam)
 
+dnl
+dnl ZLIB check
+dnl
 AC_CHECK_HEADERS(zlib.h)
 AC_CHECK_LIB(z, deflate, [ZLIBS="-lz"])
 have_zlib=no
@@ -2301,6 +2304,20 @@ if test x$ZLIBS = x-lz; then
    have_zlib=yes
 fi
 AC_SUBST(ZLIBS)
+
+dnl
+dnl Tokyo Cabinet
+dnl
+AC_CHECK_HEADERS(tcutil.h)
+AC_CHECK_HEADERS(tchdb.h)
+AC_CHECK_LIB(tokyocabinet, tchdbnew, [TCLIBS="-ltokyocabinet"], [AC_MSG_ERROR(Cannot find Tokyo Cabinet)])
+have_tokyocabinet=no
+if test x$TCLIBS = x-ltokyocabinet; then
+   AC_DEFINE(HAVE_TOKYOCABINET,1)
+   AC_DEFINE(DEDUP_ENABLE,1)
+   have_tokyocabinet=yes
+fi
+AC_SUBST(TCLIBS)
 
 dnl
 dnl Check if we have AFS on this system
@@ -3472,6 +3489,7 @@ Configuration on `date`:
    Encryption support:	    ${support_crypto}
    ZLIB support:	    ${have_zlib}
    LZO support: 	    ${have_lzo}
+   TokyoCabinet support:    ${have_tokyocabinet}
    enable-smartalloc:	    ${support_smartalloc}
    enable-lockmgr:	    ${support_lockmgr}
    bat support: 	    ${support_bat}

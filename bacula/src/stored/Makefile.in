@@ -19,6 +19,7 @@ DEBUG=@DEBUG@
 GETTEXT_LIBS = @LIBINTL@
 
 DB_LIBS=@DB_LIBS@
+TOKYOCABINETLIBS = @TCLIBS@
 
 first_rule: all
 dummy:
@@ -28,7 +29,7 @@ SDOBJS =  stored.o ansi_label.o vtape_dev.o \
 	  autochanger.o acquire.o append.o \
 	  askdir.o authenticate.o \
 	  block.o block_util.o butil.o dev.o os.o file_dev.o tape_dev.o \
-	  device.o dircmd.o ebcdic.o fd_cmds.o job.o \
+	  device.o dircmd.o datastore.o ebcdic.o fd_cmds.o job.o \
 	  label.o lock.o match_bsr.o mount.o parse_bsr.o \
 	  read.o read_records.o \
 	  record_read.o record_write.o record_util.o \
@@ -49,7 +50,7 @@ TAPEOBJS = btape.o block.o block_util.o butil.o \
 # bls
 BLSOBJS = bls.o block.o block_util.o butil.o device.o \
 	  dev.o os.o file_dev.o tape_dev.o label.o match_bsr.o vtape_dev.o \
-	  ansi_label.o ebcdic.o lock.o \
+	  ansi_label.o datastore.o ebcdic.o lock.o \
 	  autochanger.o acquire.o mount.o parse_bsr.o \
 	  record_read.o record_write.o record_util.o \
 	  read_records.o reserve.o scan.o stored_conf.o spool.o \
@@ -58,7 +59,7 @@ BLSOBJS = bls.o block.o block_util.o butil.o device.o \
 # bextract
 BEXTOBJS = bextract.o block.o block_util.o device.o \
 	   dev.o os.o file_dev.o tape_dev.o label.o vtape_dev.o \
-	   ansi_label.o ebcdic.o lock.o \
+	   ansi_label.o datastore.o ebcdic.o lock.o \
 	   autochanger.o acquire.o mount.o match_bsr.o parse_bsr.o butil.o \
 	   read_records.o record_read.o record_write.o record_util.o \
 	   reserve.o scan.o stored_conf.o spool.o \
@@ -67,7 +68,7 @@ BEXTOBJS = bextract.o block.o block_util.o device.o \
 # bscan
 SCNOBJS = bscan.o block.o block_util.o device.o \
 	  dev.o os.o file_dev.o tape_dev.o label.o vtape_dev.o \
-	  ansi_label.o ebcdic.o lock.o \
+	  ansi_label.o datastore.o ebcdic.o lock.o \
 	  autochanger.o acquire.o mount.o \
 	  record_read.o record_write.o read_records.o record_util.o \
 	  match_bsr.o parse_bsr.o \
@@ -77,7 +78,7 @@ SCNOBJS = bscan.o block.o block_util.o device.o \
 # bcopy
 COPYOBJS = bcopy.o block.o block_util.o device.o \
 	   dev.o os.o file_dev.o tape_dev.o label.o vtape_dev.o \
-	   ansi_label.o ebcdic.o lock.o \
+	   ansi_label.o datastore.o ebcdic.o lock.o \
 	   autochanger.o acquire.o mount.o \
 	   record_read.o record_write.o read_records.o record_util.o \
 	   match_bsr.o parse_bsr.o butil.o reserve.o \

@@ -992,6 +992,13 @@
 /* Define to 1 if you have the <zlib.h> header file. */
 #undef HAVE_ZLIB_H
 
+/* Define to 1 if you have the TokyoCabinet library support. */
+#undef HAVE_TOKYOCABINET
+#undef HAVE_TCUTIL_H
+#undef HAVE_TCHDB_H
+/* Define to 1 when we can build deduplication support */
+#undef DEDUP_ENABLE
+
 /* Define to 1 if you have the `__argz_count' function. */
 #undef HAVE___ARGZ_COUNT
 
