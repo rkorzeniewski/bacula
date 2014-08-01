@@ -31,8 +31,8 @@
  * initialize memory
  */
 void digest::init(DigestType t){
-   memset (digest_bin, 0, DIGEST_LEN);
-   memset (digest_text, 0, DIGEST_LEN * 2 + 1);
+   memset (digest_bin, 0, DIGEST_MAX_LEN);
+   memset (digest_text, 0, DIGEST_MAX_LEN * 2 + 1);
    type = t;
 }
 
@@ -71,9 +71,9 @@ digest::digest (const char * digt){
  */
 int digest::len () const{
    int len =
-         (type == DIGEST_256) ? SHA256_DIGEST_LENGTH :
-         (type == DIGEST_384) ? SHA384_DIGEST_LENGTH :
-         (type == DIGEST_512) ? SHA512_DIGEST_LENGTH : DIGEST_LEN;
+         (type == DIGEST_256) ? DIGEST_256_LEN :
+         (type == DIGEST_384) ? DIGEST_384_LEN :
+         (type == DIGEST_512) ? DIGEST_512_LEN : DIGEST_MAX_LEN;
    return len;
 }
 
@@ -165,19 +165,41 @@ void digest::render_text (void){
 }
 
 /*
+ * Operator: Compare-Equal
  *
+ * in:
+ *    this, dig - digests to compare
+ * out:
+ *    false - when not equal
+ *    true - when equal
  */
 bool digest::operator== (const digest &dig) const {
+
+   /* different digests types are not equal */
+   if (type != dig.type){
+      return false;
+   }
    int l = len();
-   return memcmp(digest_bin, dig.digest_bin, l ) == 0 ? true : false;
+   return memcmp (digest_bin, dig.digest_bin, l) == 0 ? true : false;
 }
 
 /*
+ * Operator: Compare-NotEqual
  *
+ * in:
+ *    this, dig - digests to compare
+ * out:
+ *    false - when equal
+ *    true - when not equal
  */
 bool digest::operator!= (const digest &dig) const {
+
+   /* different digests types are not equal */
+   if (type != dig.type){
+      return true;
+   }
    int l = len();
-   return memcmp(digest_bin, dig.digest_bin, l ) == 0 ? false : true;
+   return memcmp (digest_bin, dig.digest_bin, l) == 0 ? false : true;
 }
 
 /*
@@ -189,8 +211,10 @@ bool digest::operator!= (const digest &dig) const {
  *    void
  */
 digest& digest::operator= (const digest &dig){
+
+   int l = dig.len();
    type = dig.type;
-   memcpy (digest_bin, (void*)dig.digest_bin, DIGEST_LEN);
+   memcpy (digest_bin, (void*)dig.digest_bin, l);
    render_text();
    return *this;
 }

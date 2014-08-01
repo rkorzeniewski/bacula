@@ -40,14 +40,16 @@ enum DigestType {
    DIGEST_512,
 };
 
-#define DIGEST_LEN   SHA512_DIGEST_LENGTH
+#define DIGEST_256_LEN   SHA512_DIGEST_LENGTH
+#define DIGEST_384_LEN   SHA512_DIGEST_LENGTH
+#define DIGEST_512_LEN   SHA512_DIGEST_LENGTH
+#define DIGEST_MAX_LEN   DIGEST_512_LEN
 
 class digest : public SMARTALLOC {
    DigestType type;
-   unsigned char digest_bin [DIGEST_LEN];
-   char digest_text [DIGEST_LEN * 2 + 1];
+   unsigned char digest_bin [DIGEST_MAX_LEN];
+   char digest_text [DIGEST_MAX_LEN * 2 + 1];
    void init(DigestType t);
-   int len() const;
 
 public:
    digest ();
@@ -55,6 +57,7 @@ public:
    digest (const char * digt);
    digest (DigestType t, const char * digt);
    ~digest () {};
+   int len() const;
    void render_text ();
    void compute (const unsigned char * buf, unsigned long len);
    unsigned char * get_digest ();

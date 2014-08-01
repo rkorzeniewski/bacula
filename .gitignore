@@ -296,3 +296,6 @@ gui/debian/files
 gui/debian/sched-builder.debhelper.log
 gui/install-arch-stamp
 gui/install-indep-stamp
+
+# other
+bacula/src/lib/digest
