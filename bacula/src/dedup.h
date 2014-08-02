@@ -26,11 +26,13 @@
 #ifndef _DEDUP_H
 #define _DEDUP_H
 
+#if defined (DEDUP_ENABLE)
+
 /**
- * data deduplication buffer
+ * data deduplication block size
  */
-#define DDUP_BUF_MAXLEN    65536
-#define DDUP_BUF_MINLEN    1024
+#define DDUP_BLOCK_MAXLEN        65536
+#define DDUP_BLOCK_MINLEN        1024
 
 /**
  * deduplication block record type mask
@@ -42,8 +44,11 @@
  * deduplication block record type
  * it will be used as lowest 8bit of 32bit record type written to volume
  */
-#define  DBT_RAW        0
-#define  DBT_DEDUP      1
+#define  DBT_RAW_DATA            0
+#define  DBT_DEDUP_DATA          1
+#define  DBT_DEDUP_META          2
+#define  DBT_DEDUP_LZO           3
+#define  DBT_DEDUP_LZ4           4
 
 /**
  * deduplication block record options
@@ -77,4 +82,5 @@
  */
 #define DDUP_RSP_CHECK_UNCHANGE        "3000 OK check unchange\n"
 
+#endif /* DEDUP_ENABLE */
 #endif /* _DEDUP_H */
