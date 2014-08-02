@@ -42,7 +42,8 @@ INCLUDE_FILES = ../baconfig.h ../bacula.h ../bc_types.h \
 		smartall.h status.h tls.h tree.h var.h \
 		waitq.h watchdog.h workq.h \
 		parse_conf.h ini.h \
-		lockmgr.h devlock.h digest.h
+		lockmgr.h devlock.h \
+		digest.h digestcache.h
 
 #
 # libbac
@@ -57,7 +58,8 @@ LIBBAC_SRCS = attr.c base64.c berrno.c bsys.c binflate.c bget_msg.c \
 	      rwlock.c scan.c sellist.c serial.c sha1.c \
 	      signal.c smartall.c rblist.c tls.c tree.c \
 	      util.c var.c watchdog.c workq.c btimers.c \
-	      address_conf.c breg.c htable.c lockmgr.c devlock.c digest.c
+	      address_conf.c breg.c htable.c lockmgr.c devlock.c \
+	      digest.c digestcache.c
 
 LIBBAC_OBJS = $(LIBBAC_SRCS:.c=.o)
 LIBBAC_LOBJS = $(LIBBAC_SRCS:.c=.lo)
@@ -106,7 +108,7 @@ libbac.a: $(LIBBAC_OBJS)
 
 libbac.la: Makefile $(LIBBAC_LOBJS)
 	@echo "Making $@ ..."
-	$(LIBTOOL_LINK) $(CXX) $(DEFS) $(DEBUG) $(LDFLAGS) -o $@ $(LIBBAC_LOBJS) -export-dynamic -rpath $(libdir) -release $(LIBBAC_LT_RELEASE) $(WRAPLIBS) $(CAP_LIBS) $(ZLIBS) $(OPENSSL_LIBS) $(LIBS) $(DLLIBS)
+	$(LIBTOOL_LINK) $(CXX) $(DEFS) $(DEBUG) $(LDFLAGS) -o $@ $(LIBBAC_LOBJS) -export-dynamic -rpath $(libdir) -release $(LIBBAC_LT_RELEASE) $(WRAPLIBS) $(CAP_LIBS) $(ZLIBS) $(OPENSSL_LIBS) $(LIBS) $(DLLIBS) $(TOKYOCABINETLIBS)
 
 libbaccfg.a: $(LIBBACCFG_OBJS) 
 	@echo "Making $@ ..."
@@ -183,6 +185,20 @@ bsnprintf: Makefile bsnprintf.o
 	$(LIBTOOL_LINK) $(CXX) $(LDFLAGS) -L. -o $@ bsnprintf.o $(DLIB) -lbac -lm $(LIBS) $(OPENSSL_LIBS)
 	$(RMF) bsnprintf.o
 	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) bsnprintf.c
+
+digest: Makefile digest.o
+	$(RMF) digest.o
+	$(CXX) -DTEST_PROGRAM $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) -O0 digest.c
+	$(LIBTOOL_LINK) $(CXX) $(LDFLAGS) -L. -o $@ digest.o $(DLIB) -lbac -lm $(LIBS) $(OPENSSL_LIBS)
+#	$(RMF) digest.o
+#	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) digest.c
+
+digestcache: Makefile digestcache.o
+	$(RMF) digestcache.o
+	$(CXX) -DTEST_PROGRAM $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) -O0 digestcache.c
+	$(LIBTOOL_LINK) $(CXX) $(LDFLAGS) -L. -o $@ digestcache.o $(DLIB) -lbac -lm $(LIBS) $(OPENSSL_LIBS) $(TOKYOCABINETLIBS)
+#	$(RMF) digestcache.o
+#	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) digestcache.c
 
 ini: Makefile ini.o
 	$(RMF) ini.o
