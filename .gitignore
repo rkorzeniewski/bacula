@@ -299,3 +299,4 @@ gui/install-indep-stamp
 
 # other
 bacula/src/lib/digest
+bacula/src/lib/digestcache
