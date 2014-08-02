@@ -53,6 +53,97 @@ void pause_msg(const char *file, const char *func, int line, const char *msg)
    }
    MessageBox(NULL, buf, "Pause", MB_OK);
 }
+
+/*
+ * The following code was contributed by Graham Keeling from his
+ *  burp project.  August 2014
+ */
+static int encrypt_bopen(BFILE *bfd, const char *fname, uint64_t flags, mode_t mode)
+{
+#ifdef xxx
+   ULONG ulFlags=0;
+   char *win32_fname=NULL;
+   char *win32_fname_wchar=NULL;
+
+   if(!(p_OpenEncryptedFileRawA || p_OpenEncryptedFileRawW))
+   {
+           logp("no OpenEncryptedFileRaw pointers.\n");
+           return -1;
+   }
+   if(p_OpenEncryptedFileRawW && p_MultiByteToWideChar)
+   {
+           if(!(win32_fname_wchar=make_win32_path_UTF8_2_wchar_w(fname)))
+                   logp("could not get widename!");
+   }
+   if(!(win32_fname=unix_name_to_win32((char *)fname)))
+           return -1;
+
+   if((flags & O_CREAT) /* Create */
+     || (flags & O_WRONLY)) /* Open existing for write */
+   {
+           ulFlags |= CREATE_FOR_IMPORT;
+           ulFlags |= OVERWRITE_HIDDEN;
+           if(bfd->winattr & FILE_ATTRIBUTE_DIRECTORY)
+           {
+                   mkdir(fname, 0777);
+                   ulFlags |= CREATE_FOR_DIR;
+           }
+   }
+   else
+   {
+           /* Open existing for read */
+           ulFlags=CREATE_FOR_EXPORT;
+   }
+
+   if(p_OpenEncryptedFileRawW && p_MultiByteToWideChar)
+   {
+           int ret;
+           // unicode open
+           ret=p_OpenEncryptedFileRawW((LPCWSTR)win32_fname_wchar,
+                   ulFlags, &(bfd->pvContext));
+           if(ret) bfd->mode=BF_CLOSED;
+           else bfd->mode=BF_READ;
+           goto end;
+   }
+   else
+   {
+           int ret;
+           // ascii open
+           ret=p_OpenEncryptedFileRawA(win32_fname,
+                   ulFlags, &(bfd->pvContext));
+           if(ret) bfd->mode=BF_CLOSED;
+           else bfd->mode=BF_READ;
+           goto end;
+   }
+
+end:
+   if(win32_fname_wchar) free(win32_fname_wchar);
+   if(win32_fname) free(win32_fname);
+   return bfd->mode==BF_CLOSED;
+#endif
+   return true;
+}
+
+static int encrypt_bclose(BFILE *bfd)
+{
+#ifdef xxx
+   bfd->fattrs = 0;
+   CloseEncryptedFileRaw(bfd->pvContext);
+   if(bfd->mode==BF_WRITE)
+           attribs_set(asfd,
+                   bfd->path, &bfd->statp, bfd->winattr, bfd->conf);
+   bfd->pvContext=NULL;
+   bfd->mode=BF_CLOSED;
+   if(bfd->path)
+   {
+           free(bfd->path);
+           bfd->path=NULL;
+   }
+   return 0;
+#endif
+   return -1;
+}
+
 #endif
 
 /* ===============================================================
