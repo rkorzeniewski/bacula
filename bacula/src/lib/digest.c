@@ -67,17 +67,6 @@ digest::digest (const char * digt){
 }
 
 /*
- * digest_bin len
- */
-int digest::len () const{
-   int len =
-         (type == DIGEST_256) ? DIGEST_256_LEN :
-         (type == DIGEST_384) ? DIGEST_384_LEN :
-         (type == DIGEST_512) ? DIGEST_512_LEN : DIGEST_MAX_LEN;
-   return len;
-}
-
-/*
  * computes a digest of supplied buffer with length of len
  * in:
  *    buf - a memory buffer to compute
@@ -89,40 +78,20 @@ void digest::compute (const unsigned char *buf, unsigned long len){
 
    if (buf){
       switch (type){
-         case DIGEST_256:
+      case DIGEST_256:
          SHA256 (buf, len, digest_bin);
          break;
-         case DIGEST_384:
+      case DIGEST_384:
          SHA384 (buf, len, digest_bin);
          break;
-         case DIGEST_512:
-         default:
+      case DIGEST_512:
+      default:
          SHA512 (buf, len, digest_bin);
          break;
       }
       render_text();
    }
 }
-
-/*
- * simply returns a binary digest storage area
- * 
- * in:
- *    void
- * out:
- *    pointer to binary digest storage area
- */
-unsigned char * digest::get_digest (){ return digest_bin; }
-
-/*
- * simply returns a text digest storage area
- * 
- * in:
- *    void
- * out:
- *    pointer to text digest storage area
- */
-char * digest::get_digest_text (){ return digest_text; }
 
 /*
  * returns a text digest storage area after rendering a text
@@ -132,7 +101,7 @@ char * digest::get_digest_text (){ return digest_text; }
  * out:
  *    pointer to text digest storage area
  */
-char * digest::get_render_text (){
+char * digest::get_render_text (void){
 
    render_text();
    return digest_text;

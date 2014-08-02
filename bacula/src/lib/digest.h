@@ -57,17 +57,20 @@ public:
    digest (const char * digt);
    digest (DigestType t, const char * digt);
    ~digest () {};
-   int len() const;
    void render_text ();
    void compute (const unsigned char * buf, unsigned long len);
-   unsigned char * get_digest ();
-   char * get_digest_text ();
+   inline unsigned char * get_digest () { return digest_bin; };
+   inline char * get_digest_text () { return digest_text; };
    char * get_render_text ();
    bool operator== (const digest &dig) const;
    bool operator!= (const digest &dig) const;
    digest& operator= (const digest &dig);
    digest& operator= (const char *digt);
-   operator char*() { return digest_text; };
+   inline operator char*() { return digest_text; };
+   inline int len() const {
+         return   (type == DIGEST_256) ? DIGEST_256_LEN :
+                  (type == DIGEST_384) ? DIGEST_384_LEN :
+                  (type == DIGEST_512) ? DIGEST_512_LEN : DIGEST_MAX_LEN; }
 };
 
 std::ostream & operator<< (std::ostream & out, digest & dig);
