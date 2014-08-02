@@ -232,7 +232,7 @@ std::ostream & operator<< (std::ostream & out, digest & dig){
 
 #ifdef TEST_PROGRAM
 using namespace std;
-const char * T = "12345678910";
+const char * T =  "12345678910";
 const char * DT = "63640264849a87c90356129d99ea165e37aa5fabc1fea46906df1a7ca50db492";
 const char * D =  "de2f256064a0af797747c2b97505dc0b9f3df0de4f489eac731c23ae9ca9cc31";
 
@@ -241,22 +241,24 @@ int main (void){
    digest dig;
    char * t;
 
-   cout << "D:  " << DT << endl;
+   cout << "data: " << T << endl << "len:  " << strlen (T) << endl << endl;
+   cout << "DIGEST exemplar: " << DT << endl;
    dig.compute ((unsigned char*)T, strlen(T));
-   cout << "TD: " << dig << endl;
+   cout << "DIGEST computed: " << dig << endl << "digest.len: " << dig.len() << endl;
 
    digest dignew(DT);
-   cout << "DN: " << dignew << endl;
+   cout << "DIGEST created : " << dignew << endl;
 
    if (dig == dignew){
-      printf ("D is the same as DN - good\n");
+      cout << "DIGEST computed is the same as DIGEST created - good" << endl;
    } else {
-      printf ("comparision failed\n");
+      cout << "comparision failed" << endl;
    }
+   cout << endl;
 
-   cout << "D:  " << D << endl;
+   cout << "DIGEST exemplar: " << D << endl;
    dig = D;
-   cout << "DT: " << dig << endl;
+   cout << "DIGEST created : " << dig << endl;
 
    cout << "operator==\t";
    if (dig == dignew){

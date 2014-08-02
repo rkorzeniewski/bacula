@@ -40,8 +40,8 @@ enum DigestType {
    DIGEST_512,
 };
 
-#define DIGEST_256_LEN   SHA512_DIGEST_LENGTH
-#define DIGEST_384_LEN   SHA512_DIGEST_LENGTH
+#define DIGEST_256_LEN   SHA256_DIGEST_LENGTH
+#define DIGEST_384_LEN   SHA384_DIGEST_LENGTH
 #define DIGEST_512_LEN   SHA512_DIGEST_LENGTH
 #define DIGEST_MAX_LEN   DIGEST_512_LEN
 
@@ -67,10 +67,12 @@ public:
    digest& operator= (const digest &dig);
    digest& operator= (const char *digt);
    inline operator char*() { return digest_text; };
-   inline int len() const {
-         return   (type == DIGEST_256) ? DIGEST_256_LEN :
-                  (type == DIGEST_384) ? DIGEST_384_LEN :
-                  (type == DIGEST_512) ? DIGEST_512_LEN : DIGEST_MAX_LEN; }
+   inline int len() const {   /* digest_bin length */
+       return
+         (type == DIGEST_256) ? DIGEST_256_LEN :
+         (type == DIGEST_384) ? DIGEST_384_LEN :
+         (type == DIGEST_512) ? DIGEST_512_LEN : DIGEST_MAX_LEN; }
+   inline int lentext() const { return (len() * 2); }
 };
 
 std::ostream & operator<< (std::ostream & out, digest & dig);
