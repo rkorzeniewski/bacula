@@ -83,8 +83,8 @@ digestcache::digestcache (void){ init (NULL); }
  *    file - a name of the digest cache file to create
  * out: void
  */
-void digestcache::init (const char * file){
-
+void digestcache::init (const char * file)
+{
    /* initialize a mutex */
    pthread_mutex_init(&mutex, NULL );
 
@@ -99,7 +99,6 @@ void digestcache::init (const char * file){
    openrefnr = 0;
 }
 
-
 /*
  * 
  */
@@ -109,6 +108,60 @@ digestcache::~digestcache ()
    pthread_mutex_destroy(&mutex);
 }
 
+/*
+enum _DCStatus {
+   DC_OK = 0,
+   DC_ERROR,            // generic error
+   DC_EXIST,
+   DC_NONEXIST,
+   DC_ENODFILE,         // no digest file set
+   DC_ENODSTORE,        // no digest database available
+   DC_ECREATEDSTORE,    // cannot create dstore object
+   DC_ESETMEMCACHE,     // cannot set a memcache
+   DC_EOPENDSTORE,      // cannot open a digest database
+   DC_EINVAL,           // invlid parameter supplied
+};
+*/
+static const char* DCStatusStrings[] =
+{
+   "Successful",
+   "Generic Error",
+   "Object Exist",
+   "Object Not exist",
+   "Error, no digest file set",
+   "Error, no digest database available",
+   "Error, cannot create dstore object",
+   "Error, cannot set a memcache",
+   "Error, cannot open a digest database",
+   "Error, invlid parameter supplied",
+};
+const char * digestcache::strdcstatus (DCStatus status)
+{
+   switch (status){
+   case DC_OK:
+      return DCStatusStrings[0];
+   case DC_ERROR:
+      return DCStatusStrings[1];
+   case DC_EXIST:
+      return DCStatusStrings[2];
+   case DC_NONEXIST:
+      return DCStatusStrings[3];
+   case DC_ENODFILE:
+      return DCStatusStrings[4];
+   case DC_ENODSTORE:
+      return DCStatusStrings[5];
+   case DC_ECREATEDSTORE:
+      return DCStatusStrings[6];
+   case DC_ESETMEMCACHE:
+      return DCStatusStrings[7];
+   case DC_EOPENDSTORE:
+      return DCStatusStrings[8];
+   case DC_EINVAL:
+      return DCStatusStrings[9];
+   }
+   /* invalid status supplied */
+   return NULL;
+}
 
 /*
  * open perform a data check and opens a digest file if required
@@ -120,11 +173,10 @@ DCStatus digestcache::open (){
    lock();
    /* check if class is initialized properly */
    if (!dfile){
-      out = DC_ERROR;
-   } else
-   /* open a digest file when required */
-   if (opendigestfile() != DC_OK ){
-      out = DC_ERROR;
+      out = DC_ENODFILE;
+   } else {
+      /* open a digest file when required */
+      out = opendigestfile();
    }
    unlock();
 
@@ -141,16 +193,14 @@ DCStatus digestcache::close (){
    DCStatus out = DC_OK;
 
    lock();
-
    if (!dfile){
-      out = DC_ERROR;
+      out = DC_ENODFILE;
    } else
    if (!dstore){
-      out = DC_ERROR;
+      out = DC_ENODSTORE;
    } else {
       out = closedigestfile ();
    }
-
    unlock();
 
    return out;
@@ -185,13 +235,13 @@ DCStatus digestcache::opendigestfile (void){
 
    /* we have no file to open */
    if (!dfile){
-      return DC_ERROR;
+      return DC_ENODFILE;
    }
 
    /* create a new database object */
    dstore = tchdbnew ();
    if (!dstore){
-      return DC_ERROR;
+      return DC_ECREATEDSTORE;
    }
 
    /* set debug output of the TC */
@@ -212,7 +262,7 @@ DCStatus digestcache::opendigestfile (void){
       } else {
          Dmsg2(10, "Error setting extra mapped memory of %s to %sB\n", dfile,
             edit_uint64(memcache, ed1));
-         return DC_ERROR;
+         return DC_ESETMEMCACHE;
       }
    }
 
@@ -231,7 +281,7 @@ DCStatus digestcache::opendigestfile (void){
          err = tchdbecode (dstore);
          Dmsg1 (120,"Error opening DCache index database. Err=%s\n", tchdberrmsg(err));
          tchdbclose (dstore);
-         return DC_ERROR;
+         return DC_EOPENDSTORE;
       }
       chmod (dfile, 0640);
    } else {
@@ -242,7 +292,7 @@ DCStatus digestcache::opendigestfile (void){
          err = tchdbecode ( dstore );
          Dmsg1(120,"Error creating DCache index database. Err=%s\n", tchdberrmsg(err));
          tchdbclose ( dstore );
-         return DC_ERROR;
+         return DC_EOPENDSTORE;
       }
       bnum = tchdbbnum (dstore);
       rnum = tchdbrnum (dstore);
@@ -298,7 +348,7 @@ DCStatus digestcache::put_key_val (const void * key, int keylen, const void * va
    bool out;
 
    if (!dstore){
-      return DC_ERROR;
+      return DC_ENODSTORE;
    }
 
    out = tchdbput (dstore, key, keylen, value, valuelen);
@@ -322,7 +372,7 @@ DCStatus digestcache::set_info (const char * info){
    DCStatus out;
 
    if (!info){
-      return DC_ERROR;
+      return DC_EINVAL;
    }
 
    lock();
@@ -335,9 +385,14 @@ DCStatus digestcache::set_info (const char * info){
 /*
  *
  */ 
-void digestcache::set_memcache ( uint64_t memsize ){
+DCStatus digestcache::set_memcache ( uint64_t memsize ){
+
+   if (memsize < 0){
+      return DC_EINVAL;
+   }
 
    memcache = memsize;
+   return DC_OK;
 }
 
 /*
@@ -353,7 +408,7 @@ DCStatus digestcache::set_invalid_time ( const utime_t time ){
    DCStatus out;
 
    lock();
-   out = put_key_val ( key, strlen(key), &time, sizeof(utime_t) );
+   out = put_key_val (key, strlen(key), &time, sizeof(utime_t));
    unlock ();
 
    return out;
@@ -452,7 +507,7 @@ DCStatus digestcache::remove_key (const char * key, int keylen){
    bool out;
 
    if (!dstore){
-      return DC_ERROR;
+      return DC_ENODSTORE;
    }
 
    out = tchdbout (dstore, key, keylen);
@@ -498,7 +553,7 @@ DCStatus digestcache::check_key (const char * key, int keylen){
    utime_t * ptime;
 
    if (!dstore){
-      return DC_ERROR;
+      return DC_ENODSTORE;
    }
 
    retval = (char*) tchdbget (dstore, key, keylen, &vlen);
@@ -583,15 +638,15 @@ DCStatus digestcache::get_info ( char ** info ){
    const char * key = DCHInfoData;
    char * val;
 
-   if ( !info ){
-      return DC_ERROR;
+   if (!info){
+      return DC_EINVAL;
    }
 
    lock();
    val = get_val ( key, strlen(key), &vlen );
    unlock();
 
-   if ( val ){
+   if (val){
       *info = (char*) malloc (vlen+1);
       memcpy (*info, val, vlen);
       (*info)[vlen] = '\0';
@@ -621,7 +676,7 @@ DCStatus digestcache::get (uint32_t size, digest * dig, utime_t * time, char ** 
    char * pfile;
 
    if (!time || !file || !offset){
-      return DC_ERROR;
+      return DC_EINVAL;
    }
 
    len = produce_key_len (size, dig);
@@ -699,6 +754,7 @@ int main (void){
 
    digestcache * cache;
    digest dig(D);
+   DCStatus out;
 //   struct rusage rus;
 
    cout << "create cache on /tmp/digestcache.tdbm" << endl;
@@ -711,38 +767,38 @@ int main (void){
    cache->set_memcache (1024*1024*1024);
 
    cout << endl << "OPEN/CLOSE:" << endl;
-   if (cache->open() == DC_OK){
-      cout << "open for the first time success" << endl;
+   if ((out = cache->open()) == DC_OK){
+      cout << "open for the first time: " << cache->strdcstatus(out) << endl;
    } else {
-      cout << "open unsuccessful" << endl;
+      cout << "open unsuccessful: " << cache->strdcstatus(out) << endl;
    }
-   if (cache->open() == DC_OK){
-      cout << "open for the second time success" << endl;
+   if ((out = cache->open()) == DC_OK){
+      cout << "open for the second time: " << cache->strdcstatus(out) << endl;
    } else {
-      cout << "second open unsuccessful" << endl;
+      cout << "second open unsuccessful: " << cache->strdcstatus(out) << endl;
    }
-   if (cache->close() == DC_OK){
-      cout << "close success" << endl;
+   if ((out = cache->close()) == DC_OK){
+      cout << "close: " << cache->strdcstatus(out) << endl;
    } else {
-      cout << "close unsuccessful" << endl;
+      cout << "close unsuccessful: " << cache->strdcstatus(out) << endl;
    }
 
    cout << endl << "ADD:" << endl;
    cout << "add to cache ( 1024," << dig << "): ";
-   if (cache->put (1024, &dig, "", 0) == DC_OK){
+   if ((out = cache->put (1024, &dig, "", 0)) == DC_OK){
       cout << "success" << endl;
    } else {
       cout << "error" << endl;
    }
    cout << "add to cache (65536," << dig << "): ";
-   if (cache->put (65536, &dig, "", 0) == DC_OK){
+   if ((out = cache->put (65536, &dig, "", 0)) == DC_OK){
       cout << "success" << endl;
    } else {
       cout << "error" << endl;
    }
    dig = F;
    cout << "add to cache ( 2048," << dig << "): ";
-   if (cache->put (2048, &dig, "", 0) == DC_OK){
+   if ((out = cache->put (2048, &dig, "", 0)) == DC_OK){
       cout << "success" << endl;
    } else {
       cout << "error" << endl;
@@ -750,13 +806,13 @@ int main (void){
 
    cout << endl << "SEARCH:" << endl;
    cout << "search in cache ( 2048," << dig << "): ";
-   if (cache->check (2048, &dig)  == DC_EXIST){
+   if ((out = cache->check (2048, &dig)) == DC_EXIST){
       cout << "found - good" << endl;
    } else {
       cout << "not found" << endl;
    }
    cout << "search in cache (65536," << dig << "): ";
-   if (cache->check (65536, &dig)  == DC_EXIST){
+   if ((out = cache->check (65536, &dig)) == DC_EXIST){
       cout << "found" << endl;
    } else {
       cout << "not found - good" << endl;
@@ -770,15 +826,15 @@ int main (void){
 */
 
    cout << endl << "Check CLOSE:" << endl;
-   if (cache->close() == DC_OK){
-      cout << "close success" << endl;
+   if ((out = cache->close()) == DC_OK){
+      cout << "close: " << cache->strdcstatus(out) << endl;
    } else {
-      cout << "open unsuccessful" << endl;
+      cout << "open unsuccessful: " << cache->strdcstatus(out) << endl;
    }
-   if (cache->close() == DC_ERROR){
-      cout << "check close success" << endl;
+   if ((out = cache->close()) != DC_OK){
+      cout << "check close success (" << cache->strdcstatus(out) << ")" << endl;
    } else {
-      cout << "check close unsuccessful" << endl;
+      cout << "next check close unsuccessful: " << cache->strdcstatus(out) << endl;
    }
 
    return 0;

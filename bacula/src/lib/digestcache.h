@@ -39,14 +39,20 @@
 #include <tchdb.h>
 #endif /* HAVE_TCHDB_H */
 
-/*
+/**
  * Status enum used for return codes
  */
 enum _DCStatus {
    DC_OK = 0,
-   DC_ERROR,
+   DC_ERROR,            // generic error
    DC_EXIST,
    DC_NONEXIST,
+   DC_ENODFILE,         // no digest file set
+   DC_ENODSTORE,        // no digest database available
+   DC_ECREATEDSTORE,    // cannot create dstore object
+   DC_ESETMEMCACHE,     // cannot set a memcache
+   DC_EOPENDSTORE,      // cannot open a digest database
+   DC_EINVAL,           // invlid parameter supplied
 };
 typedef enum _DCStatus DCStatus;
 
@@ -81,11 +87,12 @@ public:
    ~digestcache ();
 
    /* setup methods */
-   void set_memcache (uint64_t memsize);
+   DCStatus set_memcache (uint64_t memsize);
    /* generic methods */
    DCStatus open();
    DCStatus close();
    DCStatus clearall ();
+   const char * strdcstatus (DCStatus status);
    /* information handling */
    DCStatus set_info (const char * info);
    DCStatus get_info (char ** info);
