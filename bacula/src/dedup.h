@@ -37,24 +37,25 @@
 /**
  * deduplication block record type mask
  */
-#define  DBLOCKREC_TYPE_MASK     0x000000ff
-#define  DBLOCKREC_OPTIONS_MASK  0xffffff00
+#define  DBLOCKREC_TYPE_MASK     0x000000FF
+#define  DBLOCKREC_OPTIONS_MASK  0xFFFFFF00
 
 /**
  * deduplication block record type
- * it will be used as lowest 8bit of 32bit record type written to volume
+ * it will be used as lowest 8bit of 32bit deduplication record meta
+ * written to volume
  */
 #define  DBT_RAW_DATA            0
 #define  DBT_DEDUP_DATA          1
-#define  DBT_DEDUP_META          2
-#define  DBT_DEDUP_LZO           3
-#define  DBT_DEDUP_LZ4           4
+#define  DBT_METADATA            2
 
 /**
  * deduplication block record options
- * it will be used as a highest 24bit of 32bit record type written to volume
+ * it will be used as a highest 24bit of 32bit deduplication record meta
+ * written to volume
  */
-/* currently no options, hihi */
+#define  DBT_OPTION_LZO          3
+#define  DBT_OPTION_LZ4          4
 
 /**
  * DDUP metadata block struct 
