@@ -28,44 +28,6 @@
 #define DCHInfoData     "DCHInfoData"
 #define DCHInvalidDate  "DCHInvalidDate"
 
-/**
- * it produces a length of the key based on key source data
- * 
- * in:
- *    size - block size
- *    dig - digest
- * out:
- *    computed length of the produced key
- */
-inline int produce_key_len (uint32_t size, digest * dig){
-
-   int len = sizeof(size);
-
-   if (dig){
-      len += dig->len();
-   }
-   return len;
-}
-
-/**
- * it produces a key by connecting a 32bit size with digest 
- * function is alocating a memory which should be freed when not needed
- */
-char * produce_key (uint32_t size, digest * dig){
-
-   uint32_t * out;
-   int len = produce_key_len (size,dig);
-
-   out = (uint32_t*) malloc (len);
-   memset (out, 0, len);
-   out[0] = size;
-   if (dig){
-      memcpy (&out[1], dig->get_digest(), dig->len());
-   }
-
-   return (char*)out;
-}
-
 /*
  * constructor
  */

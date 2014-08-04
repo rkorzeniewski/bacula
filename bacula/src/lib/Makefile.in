@@ -59,7 +59,7 @@ LIBBAC_SRCS = attr.c base64.c berrno.c bsys.c binflate.c bget_msg.c \
 	      signal.c smartall.c rblist.c tls.c tree.c \
 	      util.c var.c watchdog.c workq.c btimers.c \
 	      address_conf.c breg.c htable.c lockmgr.c devlock.c \
-	      digest.c digestcache.c
+	      digest.c digestcache.c dedup.c
 
 LIBBAC_OBJS = $(LIBBAC_SRCS:.c=.o)
 LIBBAC_LOBJS = $(LIBBAC_SRCS:.c=.lo)

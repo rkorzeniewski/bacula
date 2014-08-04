@@ -28,6 +28,9 @@
 
 #if defined (DEDUP_ENABLE)
 
+/* forward refrence */
+class digest;
+
 /**
  * data deduplication block size
  */
@@ -82,6 +85,12 @@
  * some dedupication response strings
  */
 #define DDUP_RSP_CHECK_UNCHANGE        "3000 OK check unchange\n"
+
+/* generic key produce functions */
+int produce_key_len (uint32_t size, digest * dig);
+char * produce_key (uint32_t size, digest * dig);
+int produce_keyser_len (uint32_t size, digest * dig);
+char * produce_keyser (uint32_t size, digest * dig);
 
 #endif /* DEDUP_ENABLE */
 #endif /* _DEDUP_H */
