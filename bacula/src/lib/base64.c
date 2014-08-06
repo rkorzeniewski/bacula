@@ -237,13 +237,13 @@ int base64_to_bin(char *dest, int dest_size, char *src, int srclen)
 #ifdef BIN_TEST
 int main(int argc, char *argv[])
 {
-   int xx = 0;
    int len;
    char buf[100];
    char junk[100];
    int i;
 
 #ifdef xxxx
+   int xx = 0;
    for (i=0; i < 1000; i++) {
       bin_to_base64(buf, sizeof(buf), (char *)&xx, 4, true);
       printf("xx=%s\n", buf);
