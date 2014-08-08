@@ -110,8 +110,10 @@ class ConfigurationWizard extends BaculumPage
 				$this->getModule('configuration')->setUsersConfig($cfgData['baculum']['login'], $cfgData['baculum']['password'], $this->firstRun, $previousUser);
 				// Automatic login after finish wizard.
 				$http_protocol = isset($_SERVER['HTTPS']) && !empty($_SERVER['HTTPS']) ? 'https' : 'http';
-				$location = sprintf("%s://%s:%s@%s:%d/", $http_protocol, $cfgData['baculum']['login'], $cfgData['baculum']['password'], $_SERVER['SERVER_NAME'], $_SERVER['SERVER_PORT']);
+				$urlPrefix = $this->Application->getModule('friendly-url')->getUrlPrefix();
+				$location = sprintf("%s://%s:%s@%s:%d%s", $http_protocol, $cfgData['baculum']['login'], $cfgData['baculum']['password'], $_SERVER['SERVER_NAME'], $_SERVER['SERVER_PORT'], $urlPrefix);
 				header("Location: $location");
+				exit();
 			} else { // standard version (user defined auth method)
 				$this->goToDefaultPage();
 			}

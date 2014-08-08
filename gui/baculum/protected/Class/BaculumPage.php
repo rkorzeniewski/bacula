@@ -24,6 +24,7 @@ class BaculumPage extends TPage
 		parent::onPreInit($param);
 		$configuration = $this->getModule('configuration');
 		$this->Application->getGlobalization()->Culture = $this->getLanguage();
+		$this->setPrefixForSubdir();
 	}
 
 	public function getLanguage() {
@@ -43,9 +44,33 @@ class BaculumPage extends TPage
 	public function goToPage($pagePath,$getParameters=null) {
 		$this->Response->redirect($this->Service->constructUrl($pagePath,$getParameters,false));
 	}
-	
+
 	public function goToDefaultPage() {
 		$this->goToPage($this->Service->DefaultPage);
+	}
+
+	public function setPrefixForSubdir() {
+		$fullDocumentRoot = preg_replace('#(\/)$#', '', $this->getFullDocumentRoot());
+		$urlPrefix = str_replace($fullDocumentRoot, '', APPLICATION_DIRECTORY);
+		if(!empty($urlPrefix)) {
+			$this->Application->getModule('friendly-url')->setUrlPrefix($urlPrefix);
+		}
+	}
+
+	private function getFullDocumentRoot() {
+		$rootDir = array();
+		$dirs = explode('/', $_SERVER['DOCUMENT_ROOT']);
+		for($i = 0; $i < count($dirs); $i++) {
+			$documentRootPart =  implode('/', $rootDir) . '/' . $dirs[$i];
+			if(is_link($documentRootPart)) {
+				$rootDir = array(readlink($documentRootPart));
+			} else {
+				$rootDir[] = $dirs[$i];
+			}
+		}
+
+		$rootDir = implode('/', $rootDir);
+		return $rootDir;
 	}
 }
 ?>

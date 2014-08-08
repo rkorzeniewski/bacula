@@ -1,6 +1,6 @@
 body {
 	background-color: #b5c9d3;
-	background-image: url('/themes/Baculum-v1/background.png');
+	background-image: url('background.png');
 	background-repeat: repeat-x;
 	font-family: Arial, Helvetica, sans-serif;
 	color: white;
@@ -74,7 +74,7 @@ a:hover {
 #top {
 	width: 975px;
 	height: 51px;
-	background-image: url('/themes/Baculum-v1/bls_top.png');
+	background-image: url('bls_top.png');
 	background-repeat: no-repeat;
 	clear: both;
 }
@@ -138,7 +138,7 @@ div.configuration {
 }
 
 div.configuration-progress {
-	background: rgba(182,182,182,0.7) url('/themes/Baculum-v1/progress.gif') no-repeat center center;
+	background: rgba(182,182,182,0.7) url('progress.gif') no-repeat center center;
 	width: 443px;
 	height: 575px;
 	z-index: 10;
@@ -150,7 +150,7 @@ div.configuration-progress {
 }
 
 div.slide-window-progress {
-	background: rgba(182,182,182,0.7) url('/themes/Baculum-v1/progress.gif') no-repeat center center;
+	background: rgba(182,182,182,0.7) url('progress.gif') no-repeat center center;
 	width: 100%;
 	height: 100%;
 	z-index: 10;
@@ -198,7 +198,7 @@ div.slide-window-progress {
 #bottom {
 	width: 975px;
 	height: 11px;
-	background: transparent url('/themes/Baculum-v1/bls_bottom.png') no-repeat top left;
+	background: transparent url('bls_bottom.png') no-repeat top left;
 }
 
 #message-box {
@@ -237,67 +237,67 @@ div.slide-window-progress {
 }
 
 .storage-btn {
-	background: transparent url('/themes/Baculum-v1/storage_icon_inactive.png') no-repeat top left;
+	background: transparent url('storage_icon_inactive.png') no-repeat top left;
 }
 
 .storage-btn:hover {
-	background: transparent url('/themes/Baculum-v1/storage_icon.png') no-repeat top left;
+	background: transparent url('storage_icon.png') no-repeat top left;
 }
 
 .client-btn {
-	background: transparent url('/themes/Baculum-v1/client_icon_inactive.png') no-repeat top left;
+	background: transparent url('client_icon_inactive.png') no-repeat top left;
 }
 
 .client-btn:hover {
-	background: transparent url('/themes/Baculum-v1/client_icon.png') no-repeat top left;
+	background: transparent url('client_icon.png') no-repeat top left;
 }
 
 .media-btn {
-	background: transparent url('/themes/Baculum-v1/media_icon_inactive.png') no-repeat top left;
+	background: transparent url('media_icon_inactive.png') no-repeat top left;
 }
 
 .media-btn:hover {
-	background: transparent url('/themes/Baculum-v1/media_icon.png') no-repeat top left;
+	background: transparent url('media_icon.png') no-repeat top left;
 }
 
 .pool-btn {
-	background: transparent url('/themes/Baculum-v1/pool_icon_inactive.png') no-repeat top left;
+	background: transparent url('pool_icon_inactive.png') no-repeat top left;
 }
 
 .pool-btn:hover {
-	background: transparent url('/themes/Baculum-v1/pool_icon.png') no-repeat top left;
+	background: transparent url('pool_icon.png') no-repeat top left;
 }
 
 .job-btn {
-	background: transparent url('/themes/Baculum-v1/job_icon_inactive.png') no-repeat top left;
+	background: transparent url('job_icon_inactive.png') no-repeat top left;
 }
 
 .job-btn:hover {
-	background: transparent url('/themes/Baculum-v1/job_icon.png') no-repeat top left;
+	background: transparent url('job_icon.png') no-repeat top left;
 }
 
 .jobrun-btn {
-	background: transparent url('/themes/Baculum-v1/jobrun_icon_inactive.png') no-repeat top left;
+	background: transparent url('jobrun_icon_inactive.png') no-repeat top left;
 }
 
 .jobrun-btn:hover {
-	background: transparent url('/themes/Baculum-v1/jobrun_icon.png') no-repeat top left;
+	background: transparent url('jobrun_icon.png') no-repeat top left;
 }
 
 .restore-btn {
-	background: transparent url('/themes/Baculum-v1/restore_icon_inactive.png') no-repeat top left;
+	background: transparent url('restore_icon_inactive.png') no-repeat top left;
 }
 
 .restore-btn:hover {
-	background: transparent url('/themes/Baculum-v1/restore_icon.png') no-repeat top left;
+	background: transparent url('restore_icon.png') no-repeat top left;
 }
 
 .setting-btn {
-	background: transparent url('/themes/Baculum-v1/setting_icon_inactive.png') no-repeat top left;
+	background: transparent url('setting_icon_inactive.png') no-repeat top left;
 }
 
 .setting-btn:hover {
-	background: transparent url('/themes/Baculum-v1/setting_icon.png') no-repeat top left;
+	background: transparent url('setting_icon.png') no-repeat top left;
 }
 
 .line {
@@ -346,29 +346,29 @@ div.slide-window-progress {
 }
 
 .bbutton input.button-left {
-	background: transparent url('/themes/Baculum-v1/button-left.png') no-repeat left 0;
+	background: transparent url('button-left.png') no-repeat left 0;
 }
 
 .bbutton input.button-center {
 	padding: 0 7px;
 	min-width: 65px;
-	background: transparent url('/themes/Baculum-v1/button-center.png') repeat-x left 0;
+	background: transparent url('button-center.png') repeat-x left 0;
 }
 
 .bbutton input.button-right {
-	background: transparent url('/themes/Baculum-v1/button-right.png') no-repeat left 0;
+	background: transparent url('button-right.png') no-repeat left 0;
 }
 
 .bbutton:hover input.button-left {
-	background: transparent url('/themes/Baculum-v1/button-left.png') no-repeat left -25px;
+	background: transparent url('button-left.png') no-repeat left -25px;
 }
 
 .bbutton:hover input.button-center {
-	background: transparent url('/themes/Baculum-v1/button-center.png') repeat-x left -25px;
+	background: transparent url('button-center.png') repeat-x left -25px;
 }
 
 .bbutton:hover input.button-right {
-	background: transparent url('/themes/Baculum-v1/button-right.png') no-repeat left -25px;
+	background: transparent url('button-right.png') no-repeat left -25px;
 }
 
 div.slide-window-container {
@@ -477,7 +477,7 @@ tr.file-browser-header th {
 }
 
 div.slide-window-bar {
-	background: transparent url('/themes/Baculum-v1/panel-border-btns.png') no-repeat top right;
+	background: transparent url('panel-border-btns.png') no-repeat top right;
 	text-align: center;
 	font-size: 10px;
 	height: 14px;
@@ -487,7 +487,7 @@ div.slide-window-bar {
 }
 
 div.slide-window-bar-title {
-	background: transparent url('/themes/Baculum-v1/panel-border-bg.png') repeat-x top left;
+	background: transparent url('panel-border-bg.png') repeat-x top left;
 	height: 14px;
 	margin-right: 51px;
 	padding: 0;
