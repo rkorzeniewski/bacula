@@ -10,9 +10,6 @@
 				<prop:ClientSide.OnComplete>
 					ConfigurationWindow<%=$this->getPage()->JobConfiguration->getMaster()->ClientID%>.show();
 					ConfigurationWindow<%=$this->getPage()->JobConfiguration->getMaster()->ClientID%>.progress(false);
-					if(<%=$this->getPage()->JobWindow->ShowID%>SlideWindow.isFullSize()) {
-						<%=$this->getPage()->JobWindow->ShowID%>SlideWindow.resetSize();
-					}
 				</prop:ClientSide.OnComplete>
 			</com:TCallback>
 			<script type="text/javascript">
@@ -20,6 +17,9 @@
 					var request = <%= $this->JobElementCall->ActiveControl->Javascript %>;
 					if(ConfigurationWindow<%=$this->getPage()->JobConfiguration->getMaster()->ClientID%>.is_progress() == false) {
 						ConfigurationWindow<%=$this->getPage()->JobConfiguration->getMaster()->ClientID%>.progress(true);
+						if(<%=$this->getPage()->JobWindow->ShowID%>SlideWindow.isFullSize()) {
+							<%=$this->getPage()->JobWindow->ShowID%>SlideWindow.resetSize();
+						}
 						request.dispatch();
 					}
 				});
@@ -51,9 +51,6 @@
 					<prop:ClientSide.OnComplete>
 						ConfigurationWindow<%=$this->getPage()->JobConfiguration->getMaster()->ClientID%>.show();
 						ConfigurationWindow<%=$this->getPage()->JobConfiguration->getMaster()->ClientID%>.progress(false);
-						if(<%=$this->getPage()->JobWindow->ShowID%>SlideWindow.isFullSize()) {
-							<%=$this->getPage()->JobWindow->ShowID%>SlideWindow.resetSize();
-						}
 					</prop:ClientSide.OnComplete>
 				</com:TCallback>
 				<script type="text/javascript">
@@ -61,6 +58,9 @@
 						var request = <%= $this->JobTableElementCall->ActiveControl->Javascript %>;
 						if(ConfigurationWindow<%=$this->getPage()->JobConfiguration->getMaster()->ClientID%>.is_progress() == false) {
 							ConfigurationWindow<%=$this->getPage()->JobConfiguration->getMaster()->ClientID%>.progress(true);
+							if(<%=$this->getPage()->JobWindow->ShowID%>SlideWindow.isFullSize()) {
+								<%=$this->getPage()->JobWindow->ShowID%>SlideWindow.resetSize();
+							}
 							request.dispatch();
 						}
 					});

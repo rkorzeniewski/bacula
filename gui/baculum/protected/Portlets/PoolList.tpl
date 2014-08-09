@@ -10,9 +10,6 @@
 					<prop:ClientSide.OnComplete>
 						ConfigurationWindow<%=$this->getPage()->PoolConfiguration->getMaster()->ClientID%>.show();
 						ConfigurationWindow<%=$this->getPage()->PoolConfiguration->getMaster()->ClientID%>.progress(false);
-						if(<%=$this->getPage()->PoolWindow->ShowID%>SlideWindow.isFullSize()) {
-							<%=$this->getPage()->PoolWindow->ShowID%>SlideWindow.resetSize();
-						}
 					</prop:ClientSide.OnComplete>
 				</com:TCallback>
 				<script type="text/javascript">
@@ -20,6 +17,9 @@
 						var request = <%= $this->PoolElementCall->ActiveControl->Javascript %>;
 						if(ConfigurationWindow<%=$this->getPage()->PoolConfiguration->getMaster()->ClientID%>.is_progress() == false) {
 							ConfigurationWindow<%=$this->getPage()->PoolConfiguration->getMaster()->ClientID%>.progress(true);
+							if(<%=$this->getPage()->PoolWindow->ShowID%>SlideWindow.isFullSize()) {
+								<%=$this->getPage()->PoolWindow->ShowID%>SlideWindow.resetSize();
+							}
 							request.dispatch();
 						}
 					});
@@ -46,9 +46,6 @@
 						<prop:ClientSide.OnComplete>
 							ConfigurationWindow<%=$this->getPage()->PoolConfiguration->getMaster()->ClientID%>.show();
 							ConfigurationWindow<%=$this->getPage()->PoolConfiguration->getMaster()->ClientID%>.progress(false);
-							if(<%=$this->getPage()->PoolWindow->ShowID%>SlideWindow.isFullSize()) {
-								<%=$this->getPage()->PoolWindow->ShowID%>SlideWindow.resetSize();
-							}
 						</prop:ClientSide.OnComplete>
 					</com:TCallback>
 					<script type="text/javascript">
@@ -56,6 +53,9 @@
 							var request = <%= $this->PoolTableElementCall->ActiveControl->Javascript %>;
 							if(ConfigurationWindow<%=$this->getPage()->PoolConfiguration->getMaster()->ClientID%>.is_progress() == false) {
 								ConfigurationWindow<%=$this->getPage()->PoolConfiguration->getMaster()->ClientID%>.progress(true);
+								if(<%=$this->getPage()->PoolWindow->ShowID%>SlideWindow.isFullSize()) {
+									<%=$this->getPage()->PoolWindow->ShowID%>SlideWindow.resetSize();
+								}
 								request.dispatch();
 							}
 						});

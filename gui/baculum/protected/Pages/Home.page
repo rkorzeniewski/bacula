@@ -24,6 +24,9 @@
 				<com:Application.Portlets.JobList ID="JobWindow" ShowID="<%=$this->JobBtn->ClientID%>" WindowTitle="<%[ Jobs ]%>" />
 				<com:Application.Portlets.JobRunList ID="JobRunWindow" ShowID="<%=$this->JobRunBtn->ClientID%>" WindowTitle="<%[ Jobs for run ]%>" />
 				<div id="configuration">
+					<div id="configuration-box">
+						<div id="configuration-progress" class="configuration-progress"></div>
+					</div>
 					<com:Application.Portlets.VolumeConfiguration ID="VolumeConfiguration" />
 					<com:Application.Portlets.StorageConfiguration ID="StorageConfiguration" />
 					<com:Application.Portlets.ClientConfiguration ID="ClientConfiguration" />

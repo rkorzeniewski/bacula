@@ -10,9 +10,6 @@
 					<prop:ClientSide.OnComplete>
 						ConfigurationWindow<%=$this->getPage()->ClientConfiguration->getMaster()->ClientID%>.show();
 						ConfigurationWindow<%=$this->getPage()->ClientConfiguration->getMaster()->ClientID%>.progress(false);
-						if(<%=$this->getPage()->ClientWindow->ShowID%>SlideWindow.isFullSize()) {
-							<%=$this->getPage()->ClientWindow->ShowID%>SlideWindow.resetSize();
-						}
 					</prop:ClientSide.OnComplete>
 				</com:TCallback>
 				<script type="text/javascript">
@@ -20,6 +17,9 @@
 						var request = <%= $this->ClientElementCall->ActiveControl->Javascript %>;
 						if(ConfigurationWindow<%=$this->getPage()->ClientConfiguration->getMaster()->ClientID%>.is_progress() == false) {
 							ConfigurationWindow<%=$this->getPage()->ClientConfiguration->getMaster()->ClientID%>.progress(true);
+							if(<%=$this->getPage()->ClientWindow->ShowID%>SlideWindow.isFullSize()) {
+								<%=$this->getPage()->ClientWindow->ShowID%>SlideWindow.resetSize();
+							}
 							request.dispatch();
 						}
 					});
@@ -45,9 +45,6 @@
 						<prop:ClientSide.OnComplete>
 							ConfigurationWindow<%=$this->getPage()->ClientConfiguration->getMaster()->ClientID%>.show();
 							ConfigurationWindow<%=$this->getPage()->ClientConfiguration->getMaster()->ClientID%>.progress(false);
-							if(<%=$this->getPage()->ClientWindow->ShowID%>SlideWindow.isFullSize()) {
-								<%=$this->getPage()->ClientWindow->ShowID%>SlideWindow.resetSize();
-							}
 						</prop:ClientSide.OnComplete>
 					</com:TCallback>
 					<script type="text/javascript">
@@ -55,6 +52,9 @@
 							var request = <%= $this->ClientTableElementCall->ActiveControl->Javascript %>;
 							if(ConfigurationWindow<%=$this->getPage()->ClientConfiguration->getMaster()->ClientID%>.is_progress() == false) {
 								ConfigurationWindow<%=$this->getPage()->ClientConfiguration->getMaster()->ClientID%>.progress(true);
+								if(<%=$this->getPage()->ClientWindow->ShowID%>SlideWindow.isFullSize()) {
+									<%=$this->getPage()->ClientWindow->ShowID%>SlideWindow.resetSize();
+								}
 								request.dispatch();
 							}
 						});

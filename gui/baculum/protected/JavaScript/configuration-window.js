@@ -1,7 +1,7 @@
 var ConfigurationWindowClass = new Class.create({
 	initialize: function(id) {
 		this.window_id = id + 'configuration';
-		this.progress_id = id + 'configuration-progress';
+		this.progress_id = 'configuration-progress';
 		this.lock = false;
 	},
 

@@ -12,9 +12,6 @@
 				<prop:ClientSide.OnComplete>
 					ConfigurationWindow<%=$this->getPage()->VolumeConfiguration->getMaster()->ClientID%>.show();
 					ConfigurationWindow<%=$this->getPage()->VolumeConfiguration->getMaster()->ClientID%>.progress(false);
-					if(<%=$this->getPage()->VolumeWindow->ShowID%>SlideWindow.isFullSize()) {
-						<%=$this->getPage()->VolumeWindow->ShowID%>SlideWindow.resetSize();
-					}
 				</prop:ClientSide.OnComplete>
 			</com:TCallback>
 			<script type="text/javascript">
@@ -22,6 +19,9 @@
 					var request = <%= $this->VolumeElementCall->ActiveControl->Javascript %>;
 					if(ConfigurationWindow<%=$this->getPage()->VolumeConfiguration->getMaster()->ClientID%>.is_progress() == false) {
 						ConfigurationWindow<%=$this->getPage()->VolumeConfiguration->getMaster()->ClientID%>.progress(true);
+						if(<%=$this->getPage()->VolumeWindow->ShowID%>SlideWindow.isFullSize()) {
+							<%=$this->getPage()->VolumeWindow->ShowID%>SlideWindow.resetSize();
+						}
 						request.dispatch();
 					}
 				});
@@ -48,9 +48,6 @@
 					<prop:ClientSide.OnComplete>
 						ConfigurationWindow<%=$this->getPage()->VolumeConfiguration->getMaster()->ClientID%>.show();
 						ConfigurationWindow<%=$this->getPage()->VolumeConfiguration->getMaster()->ClientID%>.progress(false);
-						if(<%=$this->getPage()->VolumeWindow->ShowID%>SlideWindow.isFullSize()) {
-							<%=$this->getPage()->VolumeWindow->ShowID%>SlideWindow.resetSize();
-						}
 					</prop:ClientSide.OnComplete>
 				</com:TCallback>
 				<script type="text/javascript">
@@ -58,6 +55,9 @@
 						var request = <%= $this->VolumeTableElementCall->ActiveControl->Javascript %>;
 						if(ConfigurationWindow<%=$this->getPage()->VolumeConfiguration->getMaster()->ClientID%>.is_progress() == false) {
 							ConfigurationWindow<%=$this->getPage()->VolumeConfiguration->getMaster()->ClientID%>.progress(true);
+							if(<%=$this->getPage()->VolumeWindow->ShowID%>SlideWindow.isFullSize()) {
+								<%=$this->getPage()->VolumeWindow->ShowID%>SlideWindow.resetSize();
+							}
 							request.dispatch();
 						}
 					});

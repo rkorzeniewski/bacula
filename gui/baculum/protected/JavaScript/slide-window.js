@@ -20,6 +20,7 @@ var SlideWindowClass = Class.create({
 	elements : {
 		containerSuffix : '-slide-window-container',
 		configurationWindows : 'div.configuration',
+		configurationProgress: 'div.configuration-progress',
 		contentItems : 'slide-window-element',
 		contentAlternatingItems : 'slide-window-element-alternating',
 		toolsButtonSuffix : '-slide-window-tools',
@@ -156,7 +157,8 @@ var SlideWindowClass = Class.create({
 
 	isConfigurationOpen: function() {
 		var is_open = false;
-		$$(this.elements.configurationWindows).each(function(el) {
+		$$(this.elements.configurationWindows, this.elements.configurationProgress).each(function(el) {
+			console.log(el);
 			if(el.getStyle('display') == 'block') {
 				is_open = true;
 				throw $break;

@@ -10,9 +10,6 @@
 					<prop:ClientSide.OnComplete>
 						ConfigurationWindow<%=$this->getPage()->StorageConfiguration->getMaster()->ClientID%>.show();
 						ConfigurationWindow<%=$this->getPage()->StorageConfiguration->getMaster()->ClientID%>.progress(false);
-						if(<%=$this->getPage()->StorageWindow->ShowID%>SlideWindow.isFullSize()) {
-							<%=$this->getPage()->StorageWindow->ShowID%>SlideWindow.resetSize();
-						}
 					</prop:ClientSide.OnComplete>
 				</com:TCallback>
 				<script type="text/javascript">
@@ -20,6 +17,9 @@
 						var request = <%= $this->StorageElementCall->ActiveControl->Javascript %>;
 						if(ConfigurationWindow<%=$this->getPage()->StorageConfiguration->getMaster()->ClientID%>.is_progress() == false) {
 							ConfigurationWindow<%=$this->getPage()->StorageConfiguration->getMaster()->ClientID%>.progress(true);
+							if(<%=$this->getPage()->StorageWindow->ShowID%>SlideWindow.isFullSize()) {
+								<%=$this->getPage()->StorageWindow->ShowID%>SlideWindow.resetSize();
+							}
 							request.dispatch();
 						}
 					});
@@ -45,9 +45,6 @@
 						<prop:ClientSide.OnComplete>
 							ConfigurationWindow<%=$this->getPage()->StorageConfiguration->getMaster()->ClientID%>.show();
 							ConfigurationWindow<%=$this->getPage()->StorageConfiguration->getMaster()->ClientID%>.progress(false);
-							if(<%=$this->getPage()->StorageWindow->ShowID%>SlideWindow.isFullSize()) {
-								<%=$this->getPage()->StorageWindow->ShowID%>SlideWindow.resetSize();
-							}
 						</prop:ClientSide.OnComplete>
 					</com:TCallback>
 					<script type="text/javascript">
@@ -55,6 +52,9 @@
 							var request = <%= $this->StorageTableElementCall->ActiveControl->Javascript %>;
 							if(ConfigurationWindow<%=$this->getPage()->StorageConfiguration->getMaster()->ClientID%>.is_progress() == false) {
 								ConfigurationWindow<%=$this->getPage()->StorageConfiguration->getMaster()->ClientID%>.progress(true);
+								if(<%=$this->getPage()->StorageWindow->ShowID%>SlideWindow.isFullSize()) {
+									<%=$this->getPage()->StorageWindow->ShowID%>SlideWindow.resetSize();
+								}
 								request.dispatch();
 							}
 						});

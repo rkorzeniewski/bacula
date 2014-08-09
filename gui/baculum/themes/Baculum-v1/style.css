@@ -120,13 +120,17 @@ div.configuration {
 	margin: 12px 0;
 	z-index: 5;
 	position: relative;
-	left: 447px;
-	top: 0;
+	left: 446px;
+	top: 0px;
 	background-color: #898889;
 	-webkit-border-radius: 10px;
 	-moz-border-radius: 10px;
 	border-radius: 10px;
 	display: none;
+}
+
+#configuration {
+	position: absolute;
 }
 
 #configuration div.field select {
@@ -143,8 +147,8 @@ div.configuration-progress {
 	height: 575px;
 	z-index: 10;
 	position: absolute;
-	top: 0;
-	left: 0;
+	top: 12px;
+	left: 446px;
 	display: none;
 	border-radius: 10px;
 }

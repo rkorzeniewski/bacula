@@ -11,9 +11,6 @@
 				<prop:ClientSide.OnComplete>
 					ConfigurationWindow<%=$this->getPage()->JobRunConfiguration->getMaster()->ClientID%>.show();
 					ConfigurationWindow<%=$this->getPage()->JobRunConfiguration->getMaster()->ClientID%>.progress(false);
-					if(<%=$this->getPage()->JobRunWindow->ShowID%>SlideWindow.isFullSize()) {
-						<%=$this->getPage()->JobRunWindow->ShowID%>SlideWindow.resetSize();
-					}
 				</prop:ClientSide.OnComplete>
 			</com:TCallback>
 			<script type="text/javascript">
@@ -21,6 +18,9 @@
 					var request = <%= $this->JobElementCall->ActiveControl->Javascript %>;
 					if(ConfigurationWindow<%=$this->getPage()->JobRunConfiguration->getMaster()->ClientID%>.is_progress() == false) {
 						ConfigurationWindow<%=$this->getPage()->JobRunConfiguration->getMaster()->ClientID%>.progress(true);
+						if(<%=$this->getPage()->JobRunWindow->ShowID%>SlideWindow.isFullSize()) {
+							<%=$this->getPage()->JobRunWindow->ShowID%>SlideWindow.resetSize();
+						}
 						request.dispatch();
 					}
 				});
@@ -47,9 +47,6 @@
 					<prop:ClientSide.OnComplete>
 						ConfigurationWindow<%=$this->getPage()->JobRunConfiguration->getMaster()->ClientID%>.show();
 						ConfigurationWindow<%=$this->getPage()->JobRunConfiguration->getMaster()->ClientID%>.progress(false);
-						if(<%=$this->getPage()->JobRunWindow->ShowID%>SlideWindow.isFullSize()) {
-							<%=$this->getPage()->JobRunWindow->ShowID%>SlideWindow.resetSize();
-						}
 					</prop:ClientSide.OnComplete>
 				</com:TCallback>
 				<script type="text/javascript">
@@ -57,6 +54,9 @@
 						var request = <%= $this->JobTableElementCall->ActiveControl->Javascript %>;
 						if(ConfigurationWindow<%=$this->getPage()->JobRunConfiguration->getMaster()->ClientID%>.is_progress() == false) {
 							ConfigurationWindow<%=$this->getPage()->JobRunConfiguration->getMaster()->ClientID%>.progress(true);
+							if(<%=$this->getPage()->JobRunWindow->ShowID%>SlideWindow.isFullSize()) {
+								<%=$this->getPage()->JobRunWindow->ShowID%>SlideWindow.resetSize();
+							}
 							request.dispatch();
 						}
 					});
