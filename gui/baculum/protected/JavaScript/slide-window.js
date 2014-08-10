@@ -158,7 +158,6 @@ var SlideWindowClass = Class.create({
 	isConfigurationOpen: function() {
 		var is_open = false;
 		$$(this.elements.configurationWindows, this.elements.configurationProgress).each(function(el) {
-			console.log(el);
 			if(el.getStyle('display') == 'block') {
 				is_open = true;
 				throw $break;
