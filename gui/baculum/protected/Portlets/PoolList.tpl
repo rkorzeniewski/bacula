@@ -1,6 +1,12 @@
 <%@ MasterClass="Application.Portlets.SlideWindow"%>
 <com:TContent ID="SlideWindowContent">
 	<com:TActivePanel ID="RepeaterShow">
+		<script type="text/javascript">
+			document.observe("dom:loaded", function() {
+				poolConfigurationWindow = ConfigurationWindow<%=$this->getPage()->PoolConfiguration->getMaster()->ClientID%>;
+				poolSlideWindowObj = <%=$this->getPage()->PoolWindow->ShowID%>SlideWindow;
+			});
+		</script>
 		<com:TActiveRepeater ID="Repeater">
 			<prop:ItemTemplate>
 				<com:TPanel ID="PoolElement" CssClass="slide-window-element">
@@ -8,20 +14,14 @@
 				</com:TPanel>
 				<com:TCallback ID="PoolElementCall" OnCallback="Page.PoolWindow.configure" ActiveControl.CallbackParameter="<%=@$this->DataItem->poolid%>">
 					<prop:ClientSide.OnComplete>
-						ConfigurationWindow<%=$this->getPage()->PoolConfiguration->getMaster()->ClientID%>.show();
-						ConfigurationWindow<%=$this->getPage()->PoolConfiguration->getMaster()->ClientID%>.progress(false);
+						poolConfigurationWindow.show();
+						poolConfigurationWindow.progress(false);
 					</prop:ClientSide.OnComplete>
 				</com:TCallback>
 				<script type="text/javascript">
 					$('<%=$this->PoolElement->ClientID%>').observe('click', function() {
 						var request = <%= $this->PoolElementCall->ActiveControl->Javascript %>;
-						if(ConfigurationWindow<%=$this->getPage()->PoolConfiguration->getMaster()->ClientID%>.is_progress() == false) {
-							ConfigurationWindow<%=$this->getPage()->PoolConfiguration->getMaster()->ClientID%>.progress(true);
-							if(<%=$this->getPage()->PoolWindow->ShowID%>SlideWindow.isFullSize()) {
-								<%=$this->getPage()->PoolWindow->ShowID%>SlideWindow.resetSize();
-							}
-							request.dispatch();
-						}
+						poolConfigurationWindow.openConfigurationWindow(request, poolSlideWindowObj);
 					});
 				</script>
 			</prop:ItemTemplate>
@@ -44,20 +44,14 @@
 					<com:TPanel ID="PoolTableElement"><%=$this->getParent()->Data['name']%></com:TPanel>
 					<com:TCallback ID="PoolTableElementCall" OnCallback="Page.PoolWindow.configure" ActiveControl.CallbackParameter="<%=$this->getParent()->Data['poolid']%>">
 						<prop:ClientSide.OnComplete>
-							ConfigurationWindow<%=$this->getPage()->PoolConfiguration->getMaster()->ClientID%>.show();
-							ConfigurationWindow<%=$this->getPage()->PoolConfiguration->getMaster()->ClientID%>.progress(false);
+							poolConfigurationWindow.show();
+							poolConfigurationWindow.progress(false);
 						</prop:ClientSide.OnComplete>
 					</com:TCallback>
 					<script type="text/javascript">
 						$('<%=$this->PoolTableElement->ClientID%>').up('tr').observe('click', function() {
 							var request = <%= $this->PoolTableElementCall->ActiveControl->Javascript %>;
-							if(ConfigurationWindow<%=$this->getPage()->PoolConfiguration->getMaster()->ClientID%>.is_progress() == false) {
-								ConfigurationWindow<%=$this->getPage()->PoolConfiguration->getMaster()->ClientID%>.progress(true);
-								if(<%=$this->getPage()->PoolWindow->ShowID%>SlideWindow.isFullSize()) {
-									<%=$this->getPage()->PoolWindow->ShowID%>SlideWindow.resetSize();
-								}
-								request.dispatch();
-							}
+							poolConfigurationWindow.openConfigurationWindow(request, poolSlideWindowObj);
 						});
 					</script>
 				</prop:ItemTemplate>

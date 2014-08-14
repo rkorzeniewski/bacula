@@ -1,6 +1,12 @@
 <%@ MasterClass="Application.Portlets.SlideWindow" %>
 <com:TContent ID="SlideWindowContent">
 	<com:TActivePanel ID="RepeaterShow">
+	<script type="text/javascript">
+		document.observe("dom:loaded", function() {
+			volumeConfigurationWindow = ConfigurationWindow<%=$this->getPage()->VolumeConfiguration->getMaster()->ClientID%>;
+			volumeSlideWindowObj = <%=$this->getPage()->VolumeWindow->ShowID%>SlideWindow;
+		});
+	</script>
 	<com:TActiveRepeater ID="Repeater">
 		<prop:ItemTemplate>
 			<%=(isset($this->DataItem->pool->name) && $this->getPage()->VolumeWindow->oldPool != $this->DataItem->pool->name) ? '<div class="window-section"><span>Pool: ' . $this->DataItem->pool->name  . '<span></div>': ''%>
@@ -10,20 +16,14 @@
 			</com:TPanel>
 			<com:TCallback ID="VolumeElementCall" OnCallback="Page.VolumeWindow.configure" ActiveControl.CallbackParameter="<%=@$this->DataItem->mediaid%>">
 				<prop:ClientSide.OnComplete>
-					ConfigurationWindow<%=$this->getPage()->VolumeConfiguration->getMaster()->ClientID%>.show();
-					ConfigurationWindow<%=$this->getPage()->VolumeConfiguration->getMaster()->ClientID%>.progress(false);
+					volumeConfigurationWindow.show();
+					volumeConfigurationWindow.progress(false);
 				</prop:ClientSide.OnComplete>
 			</com:TCallback>
 			<script type="text/javascript">
 				$('<%=$this->VolumeElement->ClientID%>').observe('click', function() {
 					var request = <%= $this->VolumeElementCall->ActiveControl->Javascript %>;
-					if(ConfigurationWindow<%=$this->getPage()->VolumeConfiguration->getMaster()->ClientID%>.is_progress() == false) {
-						ConfigurationWindow<%=$this->getPage()->VolumeConfiguration->getMaster()->ClientID%>.progress(true);
-						if(<%=$this->getPage()->VolumeWindow->ShowID%>SlideWindow.isFullSize()) {
-							<%=$this->getPage()->VolumeWindow->ShowID%>SlideWindow.resetSize();
-						}
-						request.dispatch();
-					}
+					volumeConfigurationWindow.openConfigurationWindow(request, volumeSlideWindowObj);
 				});
 			</script>
 			<%=!(isset($this->DataItem->pool->name) ? ($this->getPage()->VolumeWindow->oldPool = $this->DataItem->pool->name) : false)%>
@@ -46,20 +46,14 @@
 				<com:TPanel ID="VolumeTableElement"><%=$this->getParent()->Data['volumename']%></com:TPanel>
 				<com:TCallback ID="VolumeTableElementCall" OnCallback="Page.VolumeWindow.configure" ActiveControl.CallbackParameter="<%=$this->getParent()->Data['mediaid']%>">
 					<prop:ClientSide.OnComplete>
-						ConfigurationWindow<%=$this->getPage()->VolumeConfiguration->getMaster()->ClientID%>.show();
-						ConfigurationWindow<%=$this->getPage()->VolumeConfiguration->getMaster()->ClientID%>.progress(false);
+						volumeConfigurationWindow.show();
+						volumeConfigurationWindow.progress(false);
 					</prop:ClientSide.OnComplete>
 				</com:TCallback>
 				<script type="text/javascript">
 					$('<%=$this->VolumeTableElement->ClientID%>').up('tr').observe('click', function() {
 						var request = <%= $this->VolumeTableElementCall->ActiveControl->Javascript %>;
-						if(ConfigurationWindow<%=$this->getPage()->VolumeConfiguration->getMaster()->ClientID%>.is_progress() == false) {
-							ConfigurationWindow<%=$this->getPage()->VolumeConfiguration->getMaster()->ClientID%>.progress(true);
-							if(<%=$this->getPage()->VolumeWindow->ShowID%>SlideWindow.isFullSize()) {
-								<%=$this->getPage()->VolumeWindow->ShowID%>SlideWindow.resetSize();
-							}
-							request.dispatch();
-						}
+						volumeConfigurationWindow.openConfigurationWindow(request, volumeSlideWindowObj);
 					});
 				</script>
 			</prop:ItemTemplate>

@@ -1,6 +1,12 @@
 <%@ MasterClass="Application.Portlets.SlideWindow"%>
 <com:TContent ID="SlideWindowContent">
 	<com:TActivePanel ID="RepeaterShow">
+		<script type="text/javascript">
+			document.observe("dom:loaded", function() {
+				clientConfigurationWindow = ConfigurationWindow<%=$this->getPage()->ClientConfiguration->getMaster()->ClientID%>;
+				clientSlideWindowObj = <%=$this->getPage()->ClientWindow->ShowID%>SlideWindow;
+			});
+		</script>
 		<com:TActiveRepeater ID="Repeater">
 			<prop:ItemTemplate>
 				<com:TPanel ID="ClientElement" CssClass="slide-window-element" ToolTip="<%=@$this->DataItem['uname']%>">
@@ -8,20 +14,14 @@
 				</com:TPanel>
 				<com:TCallback ID="ClientElementCall" OnCallback="Page.ClientWindow.configure" ActiveControl.CallbackParameter="<%=@$this->DataItem['clientid']%>">
 					<prop:ClientSide.OnComplete>
-						ConfigurationWindow<%=$this->getPage()->ClientConfiguration->getMaster()->ClientID%>.show();
-						ConfigurationWindow<%=$this->getPage()->ClientConfiguration->getMaster()->ClientID%>.progress(false);
+						clientConfigurationWindow.show();
+						clientConfigurationWindow.progress(false);
 					</prop:ClientSide.OnComplete>
 				</com:TCallback>
 				<script type="text/javascript">
 					$('<%=$this->ClientElement->ClientID%>').observe('click', function() {
 						var request = <%= $this->ClientElementCall->ActiveControl->Javascript %>;
-						if(ConfigurationWindow<%=$this->getPage()->ClientConfiguration->getMaster()->ClientID%>.is_progress() == false) {
-							ConfigurationWindow<%=$this->getPage()->ClientConfiguration->getMaster()->ClientID%>.progress(true);
-							if(<%=$this->getPage()->ClientWindow->ShowID%>SlideWindow.isFullSize()) {
-								<%=$this->getPage()->ClientWindow->ShowID%>SlideWindow.resetSize();
-							}
-							request.dispatch();
-						}
+						clientConfigurationWindow.openConfigurationWindow(request, clientSlideWindowObj);
 					});
 				</script>
 			</prop:ItemTemplate>
@@ -43,20 +43,14 @@
 					<com:TPanel ID="ClientTableElement"><%=$this->getParent()->Data['name']%></com:TPanel>
 					<com:TCallback ID="ClientTableElementCall" OnCallback="Page.ClientWindow.configure" ActiveControl.CallbackParameter="<%=$this->getParent()->Data['clientid']%>">
 						<prop:ClientSide.OnComplete>
-							ConfigurationWindow<%=$this->getPage()->ClientConfiguration->getMaster()->ClientID%>.show();
-							ConfigurationWindow<%=$this->getPage()->ClientConfiguration->getMaster()->ClientID%>.progress(false);
+							clientConfigurationWindow.show();
+							clientConfigurationWindow.progress(false);
 						</prop:ClientSide.OnComplete>
 					</com:TCallback>
 					<script type="text/javascript">
 						$('<%=$this->ClientTableElement->ClientID%>').up('tr').observe('click', function() {
 							var request = <%= $this->ClientTableElementCall->ActiveControl->Javascript %>;
-							if(ConfigurationWindow<%=$this->getPage()->ClientConfiguration->getMaster()->ClientID%>.is_progress() == false) {
-								ConfigurationWindow<%=$this->getPage()->ClientConfiguration->getMaster()->ClientID%>.progress(true);
-								if(<%=$this->getPage()->ClientWindow->ShowID%>SlideWindow.isFullSize()) {
-									<%=$this->getPage()->ClientWindow->ShowID%>SlideWindow.resetSize();
-								}
-								request.dispatch();
-							}
+							clientConfigurationWindow.openConfigurationWindow(request, clientSlideWindowObj);
 						});
 					</script>
 				</prop:ItemTemplate>

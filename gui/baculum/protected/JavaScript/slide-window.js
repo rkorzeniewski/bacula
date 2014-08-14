@@ -24,11 +24,11 @@ var SlideWindowClass = Class.create({
 		contentItems : 'slide-window-element',
 		contentAlternatingItems : 'slide-window-element-alternating',
 		toolsButtonSuffix : '-slide-window-tools',
-		toolbarSuffix : '-slide-window-toolbar'
+		toolbarSuffix : '-slide-window-toolbar',
+		titleSuffix : '-slide-window-title'
 	},
 
 	initialize: function(windowId, data) {
-
 		this.windowId = windowId;
 		this.window = $(this.windowId + this.elements.containerSuffix);
 		this.tools = $(this.windowId + this.elements.toolsButtonSuffix);
@@ -60,7 +60,6 @@ var SlideWindowClass = Class.create({
 			alert('slide-window.js - "search" property does not exists.');
 			return false;
 		}
-
 		this.setEvents();
 	},
 
@@ -168,7 +167,7 @@ var SlideWindowClass = Class.create({
 
 	setSearch: function() {
 		var search_pattern = new RegExp(this.search.value)
-		$$('div[id=' + this.windowId + this.elements.containerSuffix + '] div.' + this.elements.contentItems).each(function(value){
+		$$('div[id="' + this.windowId + this.elements.containerSuffix + '"] div.' + this.elements.contentItems).each(function(value){
 				
 				if(search_pattern.match(value.childNodes[2].textContent) == false) {
 					value.setStyle({'display' : 'none'});
@@ -177,7 +176,7 @@ var SlideWindowClass = Class.create({
 				}
 			}.bind(search_pattern));
 			
-			$$('div[id=' + this.windowId + this.elements.containerSuffix + '] tr.' + this.elements.contentItems + ', div[id=' + this.windowId + this.elements.containerSuffix + '] tr.' + this.elements.contentAlternatingItems).each(function(value){
+			$$('div[id="' + this.windowId + this.elements.containerSuffix + '"] tr.' + this.elements.contentItems + ', div[id="' + this.windowId + this.elements.containerSuffix + '"] tr.' + this.elements.contentAlternatingItems).each(function(value){
 				if(search_pattern.match(value.down('div').innerHTML) == false) {
 					value.setStyle({'display' : 'none'});
 				} else {
@@ -185,7 +184,12 @@ var SlideWindowClass = Class.create({
 				}
 			}.bind(search_pattern));
 	},
-
+	setElementsCount : function() {
+		var title_el = $(this.windowId + this.elements.titleSuffix);
+		var elements_count = $$('div[id="' + this.windowId + this.elements.containerSuffix + '"] div.' + this.elements.contentItems).length || $$('div[id="' + this.windowId + this.elements.containerSuffix + '"] tr.' + this.elements.contentItems + ', div[id="' + this.windowId + this.elements.containerSuffix + '"] tr.' + this.elements.contentAlternatingItems).length;
+		var count_el = $(this.windowId + this.elements.titleSuffix).getElementsByTagName('span')[0];
+		$(count_el).update(' (' + elements_count + ')');
+	},
 	toggleToolbar: function() {
 		Effect.toggle($(this.windowId + this.elements.toolbarSuffix), 'slide', { duration: 0.2});
 	}

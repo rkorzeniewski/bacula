@@ -1,6 +1,12 @@
 <%@ MasterClass="Application.Portlets.SlideWindow" %>
 <com:TContent ID="SlideWindowContent">
 	<com:TActivePanel ID="RepeaterShow">
+		<script type="text/javascript">
+			document.observe("dom:loaded", function() {
+				jobConfigurationWindow = ConfigurationWindow<%=$this->getPage()->JobConfiguration->getMaster()->ClientID%>;
+				jobSlideWindowObj = <%=$this->getPage()->JobWindow->ShowID%>SlideWindow;
+			});
+		</script>
 	<com:TActiveRepeater ID="Repeater">
 		<prop:ItemTemplate>
 			<com:TPanel ID="JobElement" CssClass="slide-window-element">
@@ -8,20 +14,14 @@
 			</com:TPanel>
 			<com:TCallback ID="JobElementCall" OnCallback="Page.JobWindow.configure" ActiveControl.CallbackParameter="<%=@$this->DataItem->jobid%>">
 				<prop:ClientSide.OnComplete>
-					ConfigurationWindow<%=$this->getPage()->JobConfiguration->getMaster()->ClientID%>.show();
-					ConfigurationWindow<%=$this->getPage()->JobConfiguration->getMaster()->ClientID%>.progress(false);
+					jobConfigurationWindow.show();
+					jobConfigurationWindow.progress(false);
 				</prop:ClientSide.OnComplete>
 			</com:TCallback>
 			<script type="text/javascript">
 				$('<%=$this->JobElement->ClientID%>').observe('click', function() {
 					var request = <%= $this->JobElementCall->ActiveControl->Javascript %>;
-					if(ConfigurationWindow<%=$this->getPage()->JobConfiguration->getMaster()->ClientID%>.is_progress() == false) {
-						ConfigurationWindow<%=$this->getPage()->JobConfiguration->getMaster()->ClientID%>.progress(true);
-						if(<%=$this->getPage()->JobWindow->ShowID%>SlideWindow.isFullSize()) {
-							<%=$this->getPage()->JobWindow->ShowID%>SlideWindow.resetSize();
-						}
-						request.dispatch();
-					}
+					jobConfigurationWindow.openConfigurationWindow(request, jobSlideWindowObj);
 				});
 			</script>
 		</prop:ItemTemplate>
@@ -49,20 +49,14 @@
 				<com:TPanel ID="JobTableElement"><%=$this->getParent()->Data['name']%></com:TPanel>
 				<com:TCallback ID="JobTableElementCall" OnCallback="Page.JobWindow.configure" ActiveControl.CallbackParameter="<%=$this->getParent()->Data['jobid']%>">
 					<prop:ClientSide.OnComplete>
-						ConfigurationWindow<%=$this->getPage()->JobConfiguration->getMaster()->ClientID%>.show();
-						ConfigurationWindow<%=$this->getPage()->JobConfiguration->getMaster()->ClientID%>.progress(false);
+						jobConfigurationWindow.show();
+						jobConfigurationWindow.progress(false);
 					</prop:ClientSide.OnComplete>
 				</com:TCallback>
 				<script type="text/javascript">
 					$('<%=$this->JobTableElement->ClientID%>').up('tr').observe('click', function() {
 						var request = <%= $this->JobTableElementCall->ActiveControl->Javascript %>;
-						if(ConfigurationWindow<%=$this->getPage()->JobConfiguration->getMaster()->ClientID%>.is_progress() == false) {
-							ConfigurationWindow<%=$this->getPage()->JobConfiguration->getMaster()->ClientID%>.progress(true);
-							if(<%=$this->getPage()->JobWindow->ShowID%>SlideWindow.isFullSize()) {
-								<%=$this->getPage()->JobWindow->ShowID%>SlideWindow.resetSize();
-							}
-							request.dispatch();
-						}
+						jobConfigurationWindow.openConfigurationWindow(request, jobSlideWindowObj);
 					});
 				</script>
 			</prop:ItemTemplate>

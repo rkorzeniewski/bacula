@@ -6,7 +6,7 @@
 			<com:TImageButton ImageUrl="<%=$this->getPage()->getTheme()->getBaseUrl()%>/close.png" Style="margin: 5px 5px 0 0;float: right;" Attributes.onclick="<%=$this->ShowID%>SlideWindow.toggleToolbar(); return false;" Attributes.alt="<%[ Close ]%>" ToolTip="<%[ Close ]%>" />
 			<table>
 				<tr>
-					<td><%[ Limit: ]%></td><td><com:TActiveDropDownList ID="Limit" /></td>
+					<td><%[ Limit: ]%></td><td><com:TActiveDropDownList ID="Limit" ClientSide.OnComplete="<%=$this->ShowID%>SlideWindow.setElementsCount();" /></td>
 				</tr>
 				<tr>
 					<td><%[ Search: ]%></td><td><com:TActiveTextBox ID="Search" /></td>
@@ -18,7 +18,7 @@
 		</div>
 	</div>
 	<div class="slide-window-bar">
-		<div class="slide-window-bar-title"><%=$this->getParent()->windowTitle%></div>
+		<div id="<%=$this->UniqueID%>-slide-window-title" class="slide-window-bar-title"><%=$this->getParent()->windowTitle%><span></span></div>
 		<div id="<%=$this->UniqueID%>-slide-window-close" title="Close the window" class="slide-window-close"></div>
 		<div id="<%=$this->UniqueID%>-slide-window-fullsize" title="Change the window size" class="slide-window-fullsize"></div>
 		<div id="<%=$this->UniqueID%>-slide-window-tools" title="<%[ Switch the window view (normal/details) ]%>" class="slide-window-sort"></div>

@@ -1,6 +1,12 @@
 <%@ MasterClass="Application.Portlets.SlideWindow" %>
 <com:TContent ID="SlideWindowContent">
 	<com:TActivePanel ID="RepeaterShow">
+		<script type="text/javascript">
+			document.observe("dom:loaded", function() {
+				storageConfigurationWindow = ConfigurationWindow<%=$this->getPage()->StorageConfiguration->getMaster()->ClientID%>;
+				storageSlideWindowObj = <%=$this->getPage()->StorageWindow->ShowID%>SlideWindow;
+			});
+		</script>
 		<com:TActiveRepeater ID="Repeater">
 			<prop:ItemTemplate>
 				<com:TPanel ID="StorageElement" CssClass="slide-window-element">
@@ -8,20 +14,14 @@
 				</com:TPanel>
 				<com:TCallback ID="StorageElementCall" OnCallback="Page.StorageWindow.configure" ActiveControl.CallbackParameter="<%=@$this->DataItem->storageid%>">
 					<prop:ClientSide.OnComplete>
-						ConfigurationWindow<%=$this->getPage()->StorageConfiguration->getMaster()->ClientID%>.show();
-						ConfigurationWindow<%=$this->getPage()->StorageConfiguration->getMaster()->ClientID%>.progress(false);
+						storageConfigurationWindow.show();
+						storageConfigurationWindow.progress(false);
 					</prop:ClientSide.OnComplete>
 				</com:TCallback>
 				<script type="text/javascript">
 					$('<%=$this->StorageElement->ClientID%>').observe('click', function() {
 						var request = <%= $this->StorageElementCall->ActiveControl->Javascript %>;
-						if(ConfigurationWindow<%=$this->getPage()->StorageConfiguration->getMaster()->ClientID%>.is_progress() == false) {
-							ConfigurationWindow<%=$this->getPage()->StorageConfiguration->getMaster()->ClientID%>.progress(true);
-							if(<%=$this->getPage()->StorageWindow->ShowID%>SlideWindow.isFullSize()) {
-								<%=$this->getPage()->StorageWindow->ShowID%>SlideWindow.resetSize();
-							}
-							request.dispatch();
-						}
+						storageConfigurationWindow.openConfigurationWindow(request, storageSlideWindowObj);
 					});
 				</script>
 			</prop:ItemTemplate>
@@ -43,20 +43,14 @@
 					<com:TPanel ID="StorageTableElement"><%=$this->getParent()->Data['name']%></com:TPanel>
 					<com:TCallback ID="StorageTableElementCall" OnCallback="Page.StorageWindow.configure" ActiveControl.CallbackParameter="<%=$this->getParent()->Data['storageid']%>">
 						<prop:ClientSide.OnComplete>
-							ConfigurationWindow<%=$this->getPage()->StorageConfiguration->getMaster()->ClientID%>.show();
-							ConfigurationWindow<%=$this->getPage()->StorageConfiguration->getMaster()->ClientID%>.progress(false);
+							storageConfigurationWindow.show();
+							storageConfigurationWindow.progress(false);
 						</prop:ClientSide.OnComplete>
 					</com:TCallback>
 					<script type="text/javascript">
 						$('<%=$this->StorageTableElement->ClientID%>').up('tr').observe('click', function() {
 							var request = <%= $this->StorageTableElementCall->ActiveControl->Javascript %>;
-							if(ConfigurationWindow<%=$this->getPage()->StorageConfiguration->getMaster()->ClientID%>.is_progress() == false) {
-								ConfigurationWindow<%=$this->getPage()->StorageConfiguration->getMaster()->ClientID%>.progress(true);
-								if(<%=$this->getPage()->StorageWindow->ShowID%>SlideWindow.isFullSize()) {
-									<%=$this->getPage()->StorageWindow->ShowID%>SlideWindow.resetSize();
-								}
-								request.dispatch();
-							}
+							storageConfigurationWindow.openConfigurationWindow(request, storageSlideWindowObj);
 						});
 					</script>
 				</prop:ItemTemplate>
