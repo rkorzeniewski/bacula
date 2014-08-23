@@ -59,7 +59,7 @@ static RES_ITEM store_items[] = {
    {"plugindirectory",       store_dir,  ITEM(res_store.plugin_directory), 0, 0, 0},
    {"scriptsdirectory",      store_dir,  ITEM(res_store.scripts_directory), 0, 0, 0},
    {"maximumconcurrentjobs", store_pint32, ITEM(res_store.max_concurrent_jobs), 0, ITEM_DEFAULT, 20},
-   {"heartbeatinterval",     store_time, ITEM(res_store.heartbeat_interval), 0, ITEM_DEFAULT, 0},
+   {"heartbeatinterval",     store_time, ITEM(res_store.heartbeat_interval), 0, ITEM_DEFAULT, 5 * 60},
    {"tlsauthenticate",       store_bool,    ITEM(res_store.tls_authenticate), 0, 0, 0},
    {"tlsenable",             store_bool,    ITEM(res_store.tls_enable), 0, 0, 0},
    {"tlsrequire",            store_bool,    ITEM(res_store.tls_require), 0, 0, 0},

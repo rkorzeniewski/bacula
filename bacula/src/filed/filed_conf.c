@@ -92,7 +92,7 @@ static RES_ITEM cli_items[] = {
    {"maximumconcurrentjobs", store_pint32,  ITEM(res_client.MaxConcurrentJobs), 0, ITEM_DEFAULT, 20},
    {"messages",      store_res, ITEM(res_client.messages), R_MSGS, 0, 0},
    {"sdconnecttimeout", store_time,ITEM(res_client.SDConnectTimeout), 0, ITEM_DEFAULT, 60 * 30},
-   {"heartbeatinterval", store_time, ITEM(res_client.heartbeat_interval), 0, ITEM_DEFAULT, 0},
+   {"heartbeatinterval", store_time, ITEM(res_client.heartbeat_interval), 0, ITEM_DEFAULT, 5 * 60},
    {"maximumnetworkbuffersize", store_pint32, ITEM(res_client.max_network_buffer_size), 0, 0, 0},
 #ifdef DATA_ENCRYPTION
    {"pkisignatures",         store_bool,    ITEM(res_client.pki_sign), 0, ITEM_DEFAULT, 0},
