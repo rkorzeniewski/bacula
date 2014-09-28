@@ -16,7 +16,7 @@
  *
  * Bacula® is a registered trademark of Kern Sibbald.
  */
- 
+
 Prado::using('System.Web.UI.ActiveControls.TActiveRepeater');
 Prado::using('Application.Portlets.Portlets');
 
@@ -49,7 +49,7 @@ class PoolList extends Portlets {
 			}
 		}
 	}
- 
+
     public function sortDataGrid($sender, $param) {
 		$params = $this->getUrlParams('pools', $this->getPage()->PoolWindow->ID);
 		$data = $this->Application->getModule('api')->get($params)->output;

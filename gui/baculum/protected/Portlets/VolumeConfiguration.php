@@ -16,7 +16,7 @@
  *
  * Bacula® is a registered trademark of Kern Sibbald.
  */
- 
+
 Prado::using('System.Web.UI.ActiveControls.TActiveDropDownList');
 Prado::using('System.Web.UI.ActiveControls.TActiveLabel');
 Prado::using('System.Web.UI.ActiveControls.TActiveTextBox');
@@ -114,7 +114,7 @@ class VolumeConfiguration extends Portlets {
 		$isValid = preg_match('/^\d+$/', $this->RetentionPeriod->Text) && $this->RetentionPeriod->Text >= 0;
 		$param->setIsValid($isValid);
 	}
-	
+
 	public function useDurationValidator($sender, $param) {
 		$isValid = preg_match('/^\d+$/', $this->UseDuration->Text) && $this->UseDuration->Text >= 0;
 		$param->setIsValid($isValid);

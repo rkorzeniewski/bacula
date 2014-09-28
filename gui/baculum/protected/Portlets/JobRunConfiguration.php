@@ -16,7 +16,7 @@
  *
  * Bacula® is a registered trademark of Kern Sibbald.
  */
- 
+
 Prado::using('Application.Portlets.Portlets');
 
 class JobRunConfiguration extends Portlets {
@@ -35,7 +35,7 @@ class JobRunConfiguration extends Portlets {
 
 		$this->Level->dataSource = $this->Application->getModule('misc')->getJobLevels();
 		$this->Level->dataBind();
-		
+
 		$clients = $this->Application->getModule('api')->get(array('clients'))->output;
 		$clientsList = array();
 		foreach($clients as $client) {

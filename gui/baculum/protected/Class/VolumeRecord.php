@@ -16,7 +16,7 @@
  *
  * Bacula® is a registered trademark of Kern Sibbald.
  */
- 
+
 class VolumeRecord extends ActiveRecord {
 	const TABLE = 'Media';
 

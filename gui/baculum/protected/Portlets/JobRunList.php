@@ -16,7 +16,7 @@
  *
  * Bacula® is a registered trademark of Kern Sibbald.
  */
- 
+
 Prado::using('System.Web.UI.ActiveControls.TActiveDataGrid');
 Prado::using('System.Web.UI.ActiveControls.TActiveRepeater');
 Prado::using('System.Web.UI.ActiveControls.TActiveLinkButton');
@@ -31,7 +31,7 @@ class JobRunList extends Portlets {
 	private $jobTypes = array('B' => 'Backup', 'M' => 'Migrated', 'V' => 'Verify', 'R' => 'Restore', 'I' => 'Internal', 'D' => 'Admin', 'A' => 'Archive', 'C' => 'Copy', 'g' => 'Migration');
 
 	private $jobStates;
-	
+
 	public function onLoad($param) {
 		parent::onLoad($param);
 		$this->prepareData();
@@ -58,7 +58,7 @@ class JobRunList extends Portlets {
 			}
 		}
 	}
- 
+
 	private function prepareJobs($jobTasks) {
 		$jobs = array();
 		foreach($jobTasks as $director => $tasks) {
@@ -68,7 +68,7 @@ class JobRunList extends Portlets {
 		}
 		return $jobs;
 	}
- 
+
     public function sortDataGrid($sender, $param) {
 		$params = $this->getUrlParams(array('jobs', 'tasks'), $this->getPage()->JobRunWindow->ID);
 		$data = $this->Application->getModule('api')->get($params)->output;

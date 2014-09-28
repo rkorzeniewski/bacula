@@ -16,7 +16,7 @@
  *
  * Bacula® is a registered trademark of Kern Sibbald.
  */
- 
+
 class PoolRecord extends ActiveRecord {
 	const TABLE = 'Pool';
 
@@ -45,7 +45,7 @@ class PoolRecord extends ActiveRecord {
 	public $migrationhighbytes;
 	public $migrationlowbytes;
 	public $migrationtime;
-	
+
 	public static function finder($className = __CLASS__) {
 		return parent::finder($className);
 	}

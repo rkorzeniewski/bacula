@@ -16,7 +16,7 @@
  *
  * Bacula® is a registered trademark of Kern Sibbald.
  */
- 
+
 class FileSetRecord extends ActiveRecord {
 	const TABLE = 'FileSet';
 
@@ -24,7 +24,7 @@ class FileSetRecord extends ActiveRecord {
 	public $fileset;
 	public $md5;
 	public $createtime;
-	
+
 	public static function finder($className = __CLASS__) {
 		return parent::finder($className);
 	}
