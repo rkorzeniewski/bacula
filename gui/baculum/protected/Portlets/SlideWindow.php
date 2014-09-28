@@ -39,9 +39,9 @@ class SlideWindow extends Portlets {
 
 	public function onInit($param) {
 		parent::onInit($param);
-		if(empty($this->Session['view' . $this->getParent()->ID]) && empty($this->Session['limit' . $this->getParent()->ID])) {
-			$this->Session['view' . $this->getParent()->ID] = self::NORMAL_VIEW;
-			$this->Session['limit' . $this->getParent()->ID] = 'unlimited';
+		if(empty($_SESSION['view' . $this->getParent()->ID]) && empty($_SESSION['limit' . $this->getParent()->ID])) {
+			$_SESSION['view' . $this->getParent()->ID] = self::NORMAL_VIEW;
+			$_SESSION['limit' . $this->getParent()->ID] = 'unlimited';
 		}
 	}
 
@@ -49,16 +49,16 @@ class SlideWindow extends Portlets {
 		parent::onLoad($param);
 		if(!$this->getPage()->IsPostBack) {
 			$this->Limit->dataSource = array_combine($this->elementsLimits, $this->elementsLimits);
-			$this->Limit->SelectedValue = $this->Session['limit' . $this->getParent()->ID];
+			$this->Limit->SelectedValue = $_SESSION['limit' . $this->getParent()->ID];
 			$this->Limit->dataBind();
-			$this->Simple->Checked = ($this->Session['view' . $this->getParent()->ID] == self::NORMAL_VIEW);
-			$this->Details->Checked = ($this->Session['view' . $this->getParent()->ID] == self::DETAIL_VIEW);
+			$this->Simple->Checked = ($_SESSION['view' . $this->getParent()->ID] == self::NORMAL_VIEW);
+			$this->Details->Checked = ($_SESSION['view' . $this->getParent()->ID] == self::DETAIL_VIEW);
 		}
 	}
 
 	public function switchView($sender, $param) {
-		$this->Session['view' . $this->getParent()->ID] = ($this->Simple->Checked === true) ? self::NORMAL_VIEW : self::DETAIL_VIEW;
-		$this->Session['limit' . $this->getParent()->ID] = $this->Limit->SelectedValue;
+		$_SESSION['view' . $this->getParent()->ID] = ($this->Simple->Checked === true) ? self::NORMAL_VIEW : self::DETAIL_VIEW;
+		$_SESSION['limit' . $this->getParent()->ID] = $this->Limit->SelectedValue;
 		$this->getParent()->prepareData(true);
 	}
 }

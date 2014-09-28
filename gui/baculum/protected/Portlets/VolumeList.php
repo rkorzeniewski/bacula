@@ -44,7 +44,7 @@ class VolumeList extends Portlets {
 				$params = $this->getUrlParams('volumes', $this->getPage()->VolumeWindow->ID);
 				array_push($params, '?showpools=1');
 				$volumes = $this->Application->getModule('api')->get($params);
-				$isDetailView = $this->Session['view' . $this->getPage()->VolumeWindow->ID] == 'details';
+				$isDetailView = $_SESSION['view' . $this->getPage()->VolumeWindow->ID] == 'details';
 				$this->RepeaterShow->Visible = !$isDetailView;
 				$this->Repeater->DataSource = $volumes->output;
 				$this->Repeater->dataBind();

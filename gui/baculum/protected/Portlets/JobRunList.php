@@ -48,7 +48,7 @@ class JobRunList extends Portlets {
 				$params = $this->getUrlParams(array('jobs', 'tasks'), $this->getPage()->JobRunWindow->ID);
 				$jobTasks = $this->Application->getModule('api')->get($params)->output;
 				$jobs = $this->prepareJobs($jobTasks);
-				$isDetailView = $this->Session['view' . $this->getPage()->JobRunWindow->ID] == 'details';
+				$isDetailView = $_SESSION['view' . $this->getPage()->JobRunWindow->ID] == 'details';
 				$this->RepeaterShow->Visible = !$isDetailView;
 				$this->Repeater->DataSource = $isDetailView === false ? $jobs : array();
 				$this->Repeater->dataBind();

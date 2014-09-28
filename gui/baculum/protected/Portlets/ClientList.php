@@ -40,7 +40,7 @@ class ClientList extends Portlets {
 			if(in_array($this->getPage()->CallBackEventTarget->ID, $allowedButtons) || $forceReload) {
 				$params = $this->getUrlParams('clients', $this->getPage()->ClientWindow->ID);
 				$clients = $this->Application->getModule('api')->get($params);
-				$isDetailView = $this->Session['view' . $this->getPage()->ClientWindow->ID] == 'details';
+				$isDetailView = $_SESSION['view' . $this->getPage()->ClientWindow->ID] == 'details';
 				$clientsList = $this->Application->getModule('misc')->objectToArray($clients->output);
 				$this->RepeaterShow->Visible = !$isDetailView;
 				$this->Repeater->DataSource = $isDetailView === false ? $clientsList : array();

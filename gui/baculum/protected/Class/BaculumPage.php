@@ -28,11 +28,11 @@ class BaculumPage extends TPage
 	}
 
 	public function getLanguage() {
-		if(isset($this->Session['language']) && !empty($this->Session['language'])) {
-			$language =  $this->Session['language'];
+		if(isset($_SESSION['language']) && !empty($_SESSION['language'])) {
+			$language =  $_SESSION['language'];
 		} else {
 			$language = $this->getModule('configuration')->getLanguage();
-			$this->Session['language'] = $language;
+			$_SESSION['language'] = $language;
 		}
 		return $language;
 	}

@@ -23,7 +23,7 @@ class Portlets extends TTemplateControl {
 	const SORT_DESC = 'desc';
 
 	protected function getUrlParams($section, $id) {
-		$limit = $this->Session['limit' . $id];
+		$limit = $_SESSION['limit' . $id];
 		if(is_numeric($limit)) {
 			if(is_array($section)) {
 				array_push($section, 'limit', $limit);

@@ -85,7 +85,7 @@ class JobList extends Portlets {
 			if(in_array($this->getPage()->CallBackEventTarget->ID, $allowedButtons) || $forceReload) {
 				$params = $this->getUrlParams('jobs', $this->getPage()->JobWindow->ID);
 				$jobs = $this->Application->getModule('api')->get($params);
-				$isDetailView = $this->Session['view' . $this->getPage()->JobWindow->ID] == 'details';
+				$isDetailView = $_SESSION['view' . $this->getPage()->JobWindow->ID] == 'details';
 				$this->RepeaterShow->Visible = !$isDetailView;
 				$this->Repeater->DataSource = $isDetailView == false ? $jobs->output : array();
 				$this->Repeater->dataBind();

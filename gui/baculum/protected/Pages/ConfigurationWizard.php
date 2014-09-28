@@ -38,7 +38,7 @@ class ConfigurationWizard extends BaculumPage
 
 	public function onInit($param) {
 		parent::onInit($param);
-		$this->Lang->SelectedValue = $this->Session['language'];
+		$this->Lang->SelectedValue = $_SESSION['language'];
 		$this->firstRun = !$this->getModule('configuration')->isApplicationConfig();
 		$this->applicationConfig = $this->getModule('configuration')->getApplicationConfig();
 		if($this->firstRun === false && $this->User->getIsAdmin() === false) {
@@ -175,7 +175,7 @@ class ConfigurationWizard extends BaculumPage
 	}
 
 	public function setLang($sender, $param) {
-		$this->Session['language'] = $sender->SelectedValue;
+		$_SESSION['language'] = $sender->SelectedValue;
 		$this->goToPage('ConfigurationWizard');
 	}
 

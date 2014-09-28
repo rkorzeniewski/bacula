@@ -39,7 +39,7 @@ class StorageList extends Portlets {
 			if(in_array($this->getPage()->CallBackEventTarget->ID, $allowedButtons) || $forceReload) {
 				$params = $this->getUrlParams('storages', $this->getPage()->StorageWindow->ID);
 				$storages = $this->Application->getModule('api')->get($params);
-				$isDetailView = $this->Session['view' . $this->getPage()->StorageWindow->ID] == 'details';
+				$isDetailView = $_SESSION['view' . $this->getPage()->StorageWindow->ID] == 'details';
 				$this->RepeaterShow->Visible = !$isDetailView;
 				$this->Repeater->DataSource = $isDetailView === false ? $storages->output : array();
 				$this->Repeater->dataBind();

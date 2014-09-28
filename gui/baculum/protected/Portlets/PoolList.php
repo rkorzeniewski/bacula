@@ -39,7 +39,7 @@ class PoolList extends Portlets {
 			if(in_array($this->getPage()->CallBackEventTarget->ID, $allowedButtons) || $forceReload) {
 				$params = $this->getUrlParams('pools', $this->getPage()->PoolWindow->ID);
 				$pools = $this->Application->getModule('api')->get($params);
-				$isDetailView = $this->Session['view' . $this->getPage()->PoolWindow->ID] == 'details';
+				$isDetailView = $_SESSION['view' . $this->getPage()->PoolWindow->ID] == 'details';
 				$this->RepeaterShow->Visible = !$isDetailView;
 				$this->Repeater->DataSource = $isDetailView === false ? $pools->output : array();
 				$this->Repeater->dataBind();
