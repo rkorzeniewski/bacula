@@ -1,5 +1,6 @@
 <%@ MasterClass="Application.Portlets.ConfigurationPanel"%>
 <com:TContent ID="ConfigurationWindowContent">
+	<com:TActivePanel DefaultButton="Run.ApplyChanges">
 		<strong><%[ Job name: ]%> <com:TActiveLabel ID="JobName" /><com:TActiveLabel ID="JobID" Visible="false" /></strong>
 		<hr />
 		<com:TValidationSummary
@@ -70,4 +71,5 @@
 		<div class="button">
 			<com:Application.Portlets.BActiveButton ID="Estimate" Text="<%[ Estimate job ]%>" />
 		</div>
+	</com:TActivePanel>
 </com:TContent>

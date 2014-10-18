@@ -1,5 +1,6 @@
 <%@ MasterClass="Application.Portlets.ConfigurationPanel"%>
 <com:TContent ID="ConfigurationWindowContent">
+	<com:TActivePanel DefaultButton="Apply.ApplyChanges">
 		<strong><%[ Volume name: ]%> <com:TActiveLabel ID="VolumeName" /><com:TActiveLabel ID="VolumeID" Visible="false" /></strong>
 		<hr />
 		<com:TValidationSummary
@@ -88,4 +89,5 @@
 		<div class="button">
 			<com:Application.Portlets.BActiveButton ID="Purge" Text="<%[ Purge ]%>" />&nbsp;<com:Application.Portlets.BActiveButton ID="Prune" Text="<%[ Prune ]%>" />&nbsp;<com:Application.Portlets.BActiveButton ValidationGroup="VolumeGroup" CausesValidation="true" ID="Apply" Text="<%[ Apply ]%>" />
 		</div>
+	</com:TActivePanel>
 </com:TContent>

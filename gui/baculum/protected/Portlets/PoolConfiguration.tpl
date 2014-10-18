@@ -1,5 +1,6 @@
 <%@ MasterClass="Application.Portlets.ConfigurationPanel"%>
 <com:TContent ID="ConfigurationWindowContent">
+	<com:TActivePanel DefaultButton="Apply.ApplyChanges">
 		<strong><%[ Pool name: ]%> <com:TActiveLabel ID="PoolName" /><com:TActiveLabel ID="PoolID" Visible="false" /></strong><br />
 		<hr />
 		<com:TValidationSummary
@@ -94,4 +95,5 @@
 			<com:Application.Portlets.BActiveButton ID="UpdateVolumes" Text="<%[ Update volumes ]%>" />&nbsp;
 			<com:Application.Portlets.BActiveButton ID="Apply" ValidationGroup="PoolGroup" CausesValidation="true" Text="<%[ Apply ]%>" />
 		</div>
+	</com:TActivePanel>
 </com:TContent>

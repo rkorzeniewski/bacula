@@ -1,5 +1,6 @@
 <%@ MasterClass="Application.Portlets.ConfigurationPanel"%>
 <com:TContent ID="ConfigurationWindowContent">
+	<com:TActivePanel DefaultButton="Apply.ApplyChanges">
 		<strong><%[ Client name: ]%> <com:TActiveLabel ID="ClientName" /><com:TActiveLabel ID="ClientIdentifier" Visible="false" /></strong><br />
 		<com:TActiveLabel ID="ClientDescription" Style="font-style: italic; font-size: 12px"/>
 		<hr />
@@ -48,4 +49,5 @@
 		<div class="button">
 			<com:Application.Portlets.BActiveButton ValidationGroup="ClientGroup" CausesValidation="true" ID="Apply" Text="<%[ Apply ]%>" />
 		</div>
+	</com:TActivePanel>
 </com:TContent>
