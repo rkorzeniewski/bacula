@@ -4,9 +4,8 @@
  *
  * @author Wei Zhuo <weizhuo[at]gmail[dot]com>
  * @link http://www.pradosoft.com/
- * @copyright Copyright &copy; 2005-2013 PradoSoft
+ * @copyright Copyright &copy; 2005-2014 PradoSoft
  * @license http://www.pradosoft.com/license/
- * @version $Id: TActiveRecordGateway.php 3245 2013-01-07 20:23:32Z ctrlaltca $
  * @package System.Data.ActiveRecord
  */
 
@@ -15,7 +14,6 @@
  * record as arrays (for most finder methods).
  *
  * @author Wei Zhuo <weizho[at]gmail[dot]com>
- * @version $Id: TActiveRecordGateway.php 3245 2013-01-07 20:23:32Z ctrlaltca $
  * @package System.Data.ActiveRecord
  * @since 3.1
  */
@@ -62,7 +60,6 @@ class TActiveRecordGateway extends TComponent
 	protected function getRecordTableName(TActiveRecord $record)
 	{
 		$class = new ReflectionClass($record);
-
 		if($class->hasConstant(self::TABLE_CONST))
 		{
 			$value = $class->getConstant(self::TABLE_CONST);
@@ -106,11 +103,12 @@ class TActiveRecordGateway extends TComponent
 		$connection->setActive(true);
 		$driver = $connection->getDriverName();
 		if($driver == 'pgsql') {
-		    $tableName = strtolower($tableName);
+			$tableName = strtolower($tableName);
 		}
 		$key = $connStr.$tableName;
 		if(!isset($this->_tables[$key]))
 		{
+
 			//call this first to ensure that unserializing the cache
 			//will find the correct driver dependent classes.
 			if(!isset($this->_meta[$connStr]))
