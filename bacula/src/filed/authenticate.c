@@ -34,6 +34,8 @@ const int dbglvl = 50;
  *   3 03Sep10 - added the restore object command for vss plugin 4.0
  *   4 25Nov10 - added bandwidth command 5.1
  *   5 01Jan14 - added SD Calls Client and api version to status command
+ *
+ *   Next version should be 1000
  */
 #define FD_VERSION 5
 
