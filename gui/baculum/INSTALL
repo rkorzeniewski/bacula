@@ -84,6 +84,7 @@ Please be sure that in PHP configuration file (usually located in /etc/php.ini)
 there is option error_reporting set as below:
 
 error_reporting = E_ALL & ~E_STRICT
+memory_limit = 256M
 
 Suggested method for Baculum webGUI access to Bacula Console (bconsole) is using
 "sudo" functionality for that. In this case there is need to add to /etc/sudoers file two
@@ -122,6 +123,7 @@ Please be sure that in PHP configuration file (usually located in /etc/php5/apac
 there is option error_reporting set as below:
 
 error_reporting = E_ALL & ~E_STRICT
+memory_limit = 256M
 
 Suggested method for Baculum webGUI access to Bacula Console (bconsole) is using
 "sudo" functionality for that. In this case there is need to add to /etc/sudoers below

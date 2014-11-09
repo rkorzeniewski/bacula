@@ -1,9 +1,10 @@
 Baculum - Bacula web interface
 
-Features description:
+Table of content:
 
 1. Customized and restricted consoles
 2. Baculum users configuration file
+3. FAQ
 
 ================================================================================
 
@@ -196,3 +197,17 @@ for Apache.
 NOTE!
 Functionality has been tested with Lighttpd. It has not been tested with other
 web servers that supports plain text stored password.
+
+
+================================================================================
+
+=== 3. FAQ ===
+
+a) Why Jobs list and/or Media list windows do not show any content?
+
+   In case when in Bacula Catalog database exist a lot of finished Jobs or Media
+records, for example more than 2000, and window with Jobs or Media list do not
+show any content, then please consider increase "memory_limit" option in php.ini
+PHP configuration file to higher value than 256M. There is also possible to set
+limit window list elements on webGUI in window tools option (on window bottom
+bar), without changing "memory_limit" value.
