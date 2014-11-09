@@ -36,7 +36,7 @@ class JobConfiguration extends Portlets {
 
 	public function configure($jobId) {
 		$jobdata = $this->Application->getModule('api')->get(array('jobs', $jobId))->output;
-		$this->JobName->Text = $jobdata->name;
+		$this->JobName->Text = $jobdata->job;
 		$this->JobID->Text = $jobdata->jobid;
 		$joblog = $this->Application->getModule('api')->get(array('joblog', $jobdata->jobid))->output;
 		$this->Estimation->Text = is_array($joblog) ? implode(PHP_EOL, $joblog) : Prado::localize("Output for selected job is not available yet or you do not have enabled logging job logs to catalog database."  . PHP_EOL . PHP_EOL .  "For watching job log there is need to add to the job Messages resource next directive:" . PHP_EOL . PHP_EOL . "console = all, !skipped, !saved" . PHP_EOL);
