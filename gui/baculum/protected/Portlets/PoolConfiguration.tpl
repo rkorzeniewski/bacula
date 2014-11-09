@@ -80,7 +80,7 @@
 			<div class="text"><com:TLabel ForControl="ActionOnPurge" Text="<%[ Action on purge: ]%>" /></div>
 			<div class="field"><com:TActiveCheckBox ID="ActionOnPurge" AutoPostBack="false" /></div>
 		</div>
-		<com:TCallback ID="ReloadPools" OnCallback="Page.PoolWindow.prepareData" />
+		<com:TCallback ID="ReloadPools" OnCallback="Page.PoolWindow.prepareData" ClientSide.OnComplete="poolSlideWindowObj.setLoadRequest();" />
 		<script type="text/javascript">
 				function <%=$this->getPage()->PoolConfiguration->getMaster()->ClientID%>reloadWindow() {
 					var callback = <%= $this->ReloadPools->ActiveControl->Javascript %>;

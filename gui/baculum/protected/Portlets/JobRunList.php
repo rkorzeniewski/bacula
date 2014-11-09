@@ -49,12 +49,18 @@ class JobRunList extends Portlets {
 				$jobTasks = $this->Application->getModule('api')->get($params)->output;
 				$jobs = $this->prepareJobs($jobTasks);
 				$isDetailView = $_SESSION['view' . $this->getPage()->JobRunWindow->ID] == 'details';
-				$this->RepeaterShow->Visible = !$isDetailView;
-				$this->Repeater->DataSource = $isDetailView === false ? $jobs : array();
-				$this->Repeater->dataBind();
-				$this->DataGridShow->Visible = $isDetailView;
-				$this->DataGrid->DataSource = $isDetailView === true ? $jobs : array();
-				$this->DataGrid->dataBind();
+
+				if($isDetailView === true) {
+					$this->RepeaterShow->Visible = false;
+					$this->DataGridShow->Visible = true;
+					$this->DataGrid->DataSource = $jobs;
+					$this->DataGrid->dataBind();
+				} else {
+					$this->RepeaterShow->Visible = true;
+					$this->DataGridShow->Visible = false;
+					$this->Repeater->DataSource = $jobs;
+					$this->Repeater->dataBind();
+				}
 			}
 		}
 	}

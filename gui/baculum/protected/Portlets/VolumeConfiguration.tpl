@@ -76,7 +76,7 @@
 			<div class="text"><com:TLabel ForControl="InChanger" Text="<%[ In changer: ]%>" /></div>
 			<div class="field"><com:TActiveCheckBox ID="InChanger" AutoPostBack="false" /></div>
 		</div>
-		<com:TCallback ID="ReloadVolumes" OnCallback="Page.VolumeWindow.prepareData" />
+		<com:TCallback ID="ReloadVolumes" OnCallback="Page.VolumeWindow.prepareData" ClientSide.OnComplete="volumeSlideWindowObj.setLoadRequest();" />
 		<script type="text/javascript">
 				function <%=$this->getPage()->VolumeConfiguration->getMaster()->ClientID%>reloadWindow() {
 					if(typeof(IsInvalid<%=$this->getPage()->VolumeConfiguration->getMaster()->ClientID%>) == 'undefined') {

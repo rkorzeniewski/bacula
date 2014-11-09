@@ -41,13 +41,17 @@ class ClientList extends Portlets {
 				$params = $this->getUrlParams('clients', $this->getPage()->ClientWindow->ID);
 				$clients = $this->Application->getModule('api')->get($params);
 				$isDetailView = $_SESSION['view' . $this->getPage()->ClientWindow->ID] == 'details';
-				$clientsList = $this->Application->getModule('misc')->objectToArray($clients->output);
-				$this->RepeaterShow->Visible = !$isDetailView;
-				$this->Repeater->DataSource = $isDetailView === false ? $clientsList : array();
-				$this->Repeater->dataBind();
-				$this->DataGridShow->Visible = $isDetailView;
-				$this->DataGrid->DataSource = $isDetailView === true ?  $clientsList : array();
-				$this->DataGrid->dataBind();
+				if($isDetailView === true) {
+					$this->RepeaterShow->Visible = false;
+					$this->DataGridShow->Visible = true;
+					$this->DataGrid->DataSource = $this->Application->getModule('misc')->objectToArray($clients->output);
+					$this->DataGrid->dataBind();
+				} else {
+					$this->RepeaterShow->Visible = true;
+					$this->DataGridShow->Visible = false;
+					$this->Repeater->DataSource = $clients->output;
+					$this->Repeater->dataBind();
+				}
 			}
 		}
 	}

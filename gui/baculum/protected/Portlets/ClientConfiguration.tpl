@@ -36,7 +36,7 @@
 			<div class="text"><com:TLabel ForControl="AutoPrune" Text="<%[ AutoPrune: ]%>" /></div>
 			<div class="field"><com:TActiveCheckBox ID="AutoPrune" AutoPostBack="false" /></div>
 		</div>
-		<com:TCallback ID="ReloadClients" OnCallback="Page.ClientWindow.prepareData" />
+		<com:TCallback ID="ReloadClients" OnCallback="Page.ClientWindow.prepareData" ClientSide.OnComplete="clientSlideWindowObj.setLoadRequest();" />
 		<script type="text/javascript">
 				function <%=$this->getPage()->ClientConfiguration->getMaster()->ClientID%>reloadWindow() {
 					var callback = <%= $this->ReloadClients->ActiveControl->Javascript %>;

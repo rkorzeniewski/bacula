@@ -86,17 +86,22 @@ class JobList extends Portlets {
 				$params = $this->getUrlParams('jobs', $this->getPage()->JobWindow->ID);
 				$jobs = $this->Application->getModule('api')->get($params);
 				$isDetailView = $_SESSION['view' . $this->getPage()->JobWindow->ID] == 'details';
-				$this->RepeaterShow->Visible = !$isDetailView;
-				$this->Repeater->DataSource = $isDetailView == false ? $jobs->output : array();
-				$this->Repeater->dataBind();
-				$this->DataGridShow->Visible = $isDetailView;
-				$this->DataGrid->DataSource = $isDetailView === true ? $this->Application->getModule('misc')->objectToArray($jobs->output) : array();
-				$this->DataGrid->dataBind();
+				if($isDetailView === true) {
+					$this->RepeaterShow->Visible = false;
+					$this->DataGridShow->Visible = true;
+					$this->DataGrid->DataSource = $this->Application->getModule('misc')->objectToArray($jobs->output);
+					$this->DataGrid->dataBind();
+				} else {
+					$this->RepeaterShow->Visible = true;
+					$this->DataGridShow->Visible = false;
+					$this->Repeater->DataSource = $jobs->output;
+					$this->Repeater->dataBind();
+				}
 			}
 		}
 	}
 
-    public function sortDataGrid($sender, $param) {
+	public function sortDataGrid($sender, $param) {
 		$params = $this->getUrlParams('jobs', $this->getPage()->JobWindow->ID);
 		$data = $this->Application->getModule('api')->get($params)->output;
 		$data = $this->Application->getModule('misc')->objectToArray($data);

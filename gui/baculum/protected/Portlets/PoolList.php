@@ -40,12 +40,17 @@ class PoolList extends Portlets {
 				$params = $this->getUrlParams('pools', $this->getPage()->PoolWindow->ID);
 				$pools = $this->Application->getModule('api')->get($params);
 				$isDetailView = $_SESSION['view' . $this->getPage()->PoolWindow->ID] == 'details';
-				$this->RepeaterShow->Visible = !$isDetailView;
-				$this->Repeater->DataSource = $isDetailView === false ? $pools->output : array();
-				$this->Repeater->dataBind();
-				$this->DataGridShow->Visible = $isDetailView;
-				$this->DataGrid->DataSource = $isDetailView === true ? $this->Application->getModule('misc')->objectToArray($pools->output) : array();
-				$this->DataGrid->dataBind();
+				if($isDetailView === true) {
+					$this->RepeaterShow->Visible = false;
+					$this->DataGridShow->Visible = true;
+					$this->DataGrid->DataSource = $this->Application->getModule('misc')->objectToArray($pools->output);
+					$this->DataGrid->dataBind();
+				} else {
+					$this->RepeaterShow->Visible = true;
+					$this->DataGridShow->Visible = false;
+					$this->Repeater->DataSource = $pools->output;
+					$this->Repeater->dataBind();
+				}
 			}
 		}
 	}

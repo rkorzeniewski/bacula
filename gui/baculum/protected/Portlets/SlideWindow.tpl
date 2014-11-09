@@ -28,6 +28,7 @@
 			</prop:ClientSide.OnLoading>
 			<prop:ClientSide.OnComplete>
 				$('<%=$this->UniqueID%>-slide-window-progress').setStyle({'display': 'none'});
+				<%=$this->ShowID%>SlideWindow.setLoadRequest();
 			</prop:ClientSide.OnComplete>
 		</com:TCallback>
 			<script type="text/javascript">

@@ -40,17 +40,22 @@ class StorageList extends Portlets {
 				$params = $this->getUrlParams('storages', $this->getPage()->StorageWindow->ID);
 				$storages = $this->Application->getModule('api')->get($params);
 				$isDetailView = $_SESSION['view' . $this->getPage()->StorageWindow->ID] == 'details';
-				$this->RepeaterShow->Visible = !$isDetailView;
-				$this->Repeater->DataSource = $isDetailView === false ? $storages->output : array();
-				$this->Repeater->dataBind();
-				$this->DataGridShow->Visible = $isDetailView;
-				$this->DataGrid->DataSource = $isDetailView === true ? $this->Application->getModule('misc')->objectToArray($storages->output) : array();
-				$this->DataGrid->dataBind();
+				if($isDetailView === true) {
+					$this->RepeaterShow->Visible = false;
+					$this->DataGridShow->Visible = true;
+					$this->DataGrid->DataSource = $this->Application->getModule('misc')->objectToArray($storages->output);
+					$this->DataGrid->dataBind();
+				} else {
+					$this->RepeaterShow->Visible = true;
+					$this->DataGridShow->Visible = false;
+					$this->Repeater->DataSource = $storages->output;
+					$this->Repeater->dataBind();
+				}
 			}
 		}
 	}
 
-    public function sortDataGrid($sender, $param) {
+	public function sortDataGrid($sender, $param) {
 		$params = $this->getUrlParams('storages', $this->getPage()->StorageWindow->ID);
 		$data = $this->Application->getModule('api')->get($params)->output;
 		$data = $this->Application->getModule('misc')->objectToArray($data);

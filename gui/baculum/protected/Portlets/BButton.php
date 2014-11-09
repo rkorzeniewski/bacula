@@ -45,7 +45,7 @@ class BButton extends Portlets{
 		$this->Visible = $param;
 	}
 
-	public function getVisible() {
+	public function getVisible($checkParents = true) {
 		return $this->Visible;
 	}
 }

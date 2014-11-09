@@ -1,31 +1,21 @@
 <%@ MasterClass="Application.Portlets.SlideWindow" %>
 <com:TContent ID="SlideWindowContent">
-	<com:TActivePanel ID="RepeaterShow">
 	<script type="text/javascript">
 		document.observe("dom:loaded", function() {
 			volumeConfigurationWindow = ConfigurationWindow<%=$this->getPage()->VolumeConfiguration->getMaster()->ClientID%>;
 			volumeSlideWindowObj = <%=$this->getPage()->VolumeWindow->ShowID%>SlideWindow;
+			volumeSlideWindowObj.setConfigurationObj(volumeConfigurationWindow);
 		});
 	</script>
+	<com:TActivePanel ID="RepeaterShow">
 	<com:TActiveRepeater ID="Repeater">
 		<prop:ItemTemplate>
 			<%=(isset($this->DataItem->pool->name) && $this->getPage()->VolumeWindow->oldPool != $this->DataItem->pool->name) ? '<div class="window-section"><span>Pool: ' . $this->DataItem->pool->name  . '<span></div>': ''%>
 			<com:TPanel ID="VolumeElement" CssClass="slide-window-element" ToolTip="<%=(isset($this->DataItem->recycle) && $this->DataItem->recycle == 1 && !empty($this->DataItem->lastwritten) && in_array($this->DataItem->volstatus, array('Full', 'Used'))) ? 'When expire: ' . date( 'Y-m-d H:i:s', (strtotime($this->DataItem->lastwritten) + $this->DataItem->volretention)) : ''%> Last written: <%=!empty($this->DataItem->lastwritten) ? $this->DataItem->lastwritten : 'never written'%>">
 				<img src="<%=$this->getPage()->getTheme()->getBaseUrl()%>/media-icon.png" alt="" /><%=@$this->DataItem->volumename%>
 				<div id="<%=isset($this->DataItem->volumename) ? $this->DataItem->volumename : ''%>_sizebar" class="status-bar-<%=isset($this->DataItem->volstatus) ? strtolower($this->DataItem->volstatus) : ''%>"><%=isset($this->DataItem->volstatus) ? $this->DataItem->volstatus : ''%></div>
+				<input type="hidden" name="<%=$this->ClientID%>" value="<%=isset($this->DataItem->mediaid) ? $this->DataItem->mediaid : ''%>" />
 			</com:TPanel>
-			<com:TCallback ID="VolumeElementCall" OnCallback="Page.VolumeWindow.configure" ActiveControl.CallbackParameter="<%=@$this->DataItem->mediaid%>">
-				<prop:ClientSide.OnComplete>
-					volumeConfigurationWindow.show();
-					volumeConfigurationWindow.progress(false);
-				</prop:ClientSide.OnComplete>
-			</com:TCallback>
-			<script type="text/javascript">
-				$('<%=$this->VolumeElement->ClientID%>').observe('click', function() {
-					var request = <%= $this->VolumeElementCall->ActiveControl->Javascript %>;
-					volumeConfigurationWindow.openConfigurationWindow(request, volumeSlideWindowObj);
-				});
-			</script>
 			<%=!(isset($this->DataItem->pool->name) ? ($this->getPage()->VolumeWindow->oldPool = $this->DataItem->pool->name) : false)%>
 		</prop:ItemTemplate>
 	</com:TActiveRepeater>
@@ -34,7 +24,7 @@
 	<com:TActiveDataGrid
 		ID="DataGrid"
 		AutoGenerateColumns="false"
-		AllowSorting="true"
+		AllowSorting="false"
 		OnSortCommand="sortDataGrid"
 		CellPadding="5px"
 		CssClass="window-section-detail"
@@ -43,19 +33,8 @@
 	>
 		<com:TActiveTemplateColumn HeaderText="Volume name" SortExpression="volumename">
 			<prop:ItemTemplate>
-				<com:TPanel ID="VolumeTableElement"><%=$this->getParent()->Data['volumename']%></com:TPanel>
-				<com:TCallback ID="VolumeTableElementCall" OnCallback="Page.VolumeWindow.configure" ActiveControl.CallbackParameter="<%=$this->getParent()->Data['mediaid']%>">
-					<prop:ClientSide.OnComplete>
-						volumeConfigurationWindow.show();
-						volumeConfigurationWindow.progress(false);
-					</prop:ClientSide.OnComplete>
-				</com:TCallback>
-				<script type="text/javascript">
-					$('<%=$this->VolumeTableElement->ClientID%>').up('tr').observe('click', function() {
-						var request = <%= $this->VolumeTableElementCall->ActiveControl->Javascript %>;
-						volumeConfigurationWindow.openConfigurationWindow(request, volumeSlideWindowObj);
-					});
-				</script>
+				<div><%=$this->getParent()->Data['volumename']%></div>
+				<input type="hidden" name="<%=$this->getParent()->ClientID%>" value="<%=$this->getParent()->Data['mediaid']%>" />
 			</prop:ItemTemplate>
 		</com:TActiveTemplateColumn>
 		<com:TActiveBoundColumn
@@ -81,4 +60,7 @@
 		/>
 	</com:TActiveDataGrid>
 	</com:TActivePanel>
+	<com:TCallback ID="DataElementCall" OnCallback="Page.VolumeWindow.configure">
+		<prop:ClientSide OnComplete="volumeConfigurationWindow.show();volumeConfigurationWindow.progress(false);" />
+	</com:TCallback>
 </com:TContent>

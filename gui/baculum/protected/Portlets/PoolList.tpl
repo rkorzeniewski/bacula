@@ -1,29 +1,19 @@
 <%@ MasterClass="Application.Portlets.SlideWindow"%>
 <com:TContent ID="SlideWindowContent">
+	<script type="text/javascript">
+		document.observe("dom:loaded", function() {
+			poolConfigurationWindow = ConfigurationWindow<%=$this->getPage()->PoolConfiguration->getMaster()->ClientID%>;
+			poolSlideWindowObj = <%=$this->getPage()->PoolWindow->ShowID%>SlideWindow;
+			poolSlideWindowObj.setConfigurationObj(poolConfigurationWindow);
+		});
+	</script>
 	<com:TActivePanel ID="RepeaterShow">
-		<script type="text/javascript">
-			document.observe("dom:loaded", function() {
-				poolConfigurationWindow = ConfigurationWindow<%=$this->getPage()->PoolConfiguration->getMaster()->ClientID%>;
-				poolSlideWindowObj = <%=$this->getPage()->PoolWindow->ShowID%>SlideWindow;
-			});
-		</script>
 		<com:TActiveRepeater ID="Repeater">
 			<prop:ItemTemplate>
 				<com:TPanel ID="PoolElement" CssClass="slide-window-element">
 					<img src="<%=$this->getPage()->getTheme()->getBaseUrl()%>/pool.png" alt="" /><%=@$this->DataItem->name%>
+					<input type="hidden" name="<%=$this->ClientID%>" value="<%=isset($this->DataItem->poolid) ? $this->DataItem->poolid : ''%>" />
 				</com:TPanel>
-				<com:TCallback ID="PoolElementCall" OnCallback="Page.PoolWindow.configure" ActiveControl.CallbackParameter="<%=@$this->DataItem->poolid%>">
-					<prop:ClientSide.OnComplete>
-						poolConfigurationWindow.show();
-						poolConfigurationWindow.progress(false);
-					</prop:ClientSide.OnComplete>
-				</com:TCallback>
-				<script type="text/javascript">
-					$('<%=$this->PoolElement->ClientID%>').observe('click', function() {
-						var request = <%= $this->PoolElementCall->ActiveControl->Javascript %>;
-						poolConfigurationWindow.openConfigurationWindow(request, poolSlideWindowObj);
-					});
-				</script>
 			</prop:ItemTemplate>
 		</com:TActiveRepeater>
 	</com:TActivePanel>
@@ -32,7 +22,7 @@
 		<com:TActiveDataGrid
 			ID="DataGrid"
 			AutoGenerateColumns="false"
-			AllowSorting="true"
+			AllowSorting="false"
 			OnSortCommand="sortDataGrid"
 			CellPadding="5px"
 			CssClass="window-section-detail"
@@ -41,19 +31,8 @@
 		>
 			<com:TActiveTemplateColumn HeaderText="Pool name" SortExpression="name">
 				<prop:ItemTemplate>
-					<com:TPanel ID="PoolTableElement"><%=$this->getParent()->Data['name']%></com:TPanel>
-					<com:TCallback ID="PoolTableElementCall" OnCallback="Page.PoolWindow.configure" ActiveControl.CallbackParameter="<%=$this->getParent()->Data['poolid']%>">
-						<prop:ClientSide.OnComplete>
-							poolConfigurationWindow.show();
-							poolConfigurationWindow.progress(false);
-						</prop:ClientSide.OnComplete>
-					</com:TCallback>
-					<script type="text/javascript">
-						$('<%=$this->PoolTableElement->ClientID%>').up('tr').observe('click', function() {
-							var request = <%= $this->PoolTableElementCall->ActiveControl->Javascript %>;
-							poolConfigurationWindow.openConfigurationWindow(request, poolSlideWindowObj);
-						});
-					</script>
+					<div><%=$this->getParent()->Data['name']%></div>
+					<input type="hidden" name="<%=$this->getParent()->ClientID%>" value="<%=$this->getParent()->Data['poolid']%>" />
 				</prop:ItemTemplate>
 			</com:TActiveTemplateColumn>
 			<com:TActiveBoundColumn
@@ -79,4 +58,7 @@
 			</com:TActiveTemplateColumn>
 		</com:TActiveDataGrid>
 	</com:TActivePanel>
+	<com:TCallback ID="DataElementCall" OnCallback="Page.PoolWindow.configure">
+		<prop:ClientSide OnComplete="poolConfigurationWindow.show();poolConfigurationWindow.progress(false);" />
+	</com:TCallback>
 </com:TContent>

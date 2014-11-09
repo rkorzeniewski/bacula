@@ -1,29 +1,19 @@
 <%@ MasterClass="Application.Portlets.SlideWindow"%>
 <com:TContent ID="SlideWindowContent">
+	<script type="text/javascript">
+		document.observe("dom:loaded", function() {
+			clientConfigurationWindow = ConfigurationWindow<%=$this->getPage()->ClientConfiguration->getMaster()->ClientID%>;
+			clientSlideWindowObj = <%=$this->getPage()->ClientWindow->ShowID%>SlideWindow;
+			clientSlideWindowObj.setConfigurationObj(clientConfigurationWindow);
+		});
+	</script>
 	<com:TActivePanel ID="RepeaterShow">
-		<script type="text/javascript">
-			document.observe("dom:loaded", function() {
-				clientConfigurationWindow = ConfigurationWindow<%=$this->getPage()->ClientConfiguration->getMaster()->ClientID%>;
-				clientSlideWindowObj = <%=$this->getPage()->ClientWindow->ShowID%>SlideWindow;
-			});
-		</script>
 		<com:TActiveRepeater ID="Repeater">
 			<prop:ItemTemplate>
-				<com:TPanel ID="ClientElement" CssClass="slide-window-element" ToolTip="<%=@$this->DataItem['uname']%>">
-					<img src="<%=$this->getPage()->getTheme()->getBaseUrl()%>/client-icon.png" alt="" /><%=@$this->DataItem['name']%>
+				<com:TPanel ID="ClientElement" CssClass="slide-window-element" ToolTip="<%=@$this->DataItem->uname%>">
+					<img src="<%=$this->getPage()->getTheme()->getBaseUrl()%>/client-icon.png" alt="" /><%=@$this->DataItem->name%>
+					<input type="hidden" name="<%=$this->ClientID%>" value="<%=isset($this->DataItem->clientid) ? $this->DataItem->clientid : ''%>" />
 				</com:TPanel>
-				<com:TCallback ID="ClientElementCall" OnCallback="Page.ClientWindow.configure" ActiveControl.CallbackParameter="<%=@$this->DataItem['clientid']%>">
-					<prop:ClientSide.OnComplete>
-						clientConfigurationWindow.show();
-						clientConfigurationWindow.progress(false);
-					</prop:ClientSide.OnComplete>
-				</com:TCallback>
-				<script type="text/javascript">
-					$('<%=$this->ClientElement->ClientID%>').observe('click', function() {
-						var request = <%= $this->ClientElementCall->ActiveControl->Javascript %>;
-						clientConfigurationWindow.openConfigurationWindow(request, clientSlideWindowObj);
-					});
-				</script>
 			</prop:ItemTemplate>
 		</com:TActiveRepeater>
 	</com:TActivePanel>
@@ -31,7 +21,7 @@
 		<com:TActiveDataGrid
 			ID="DataGrid"
 			AutoGenerateColumns="false"
-			AllowSorting="true"
+			AllowSorting="false"
 			OnSortCommand="sortDataGrid"
 			CellPadding="5px"
 			CssClass="window-section-detail"
@@ -40,19 +30,8 @@
 		>
 			<com:TActiveTemplateColumn HeaderText="Client name" SortExpression="name">
 				<prop:ItemTemplate>
-					<com:TPanel ID="ClientTableElement"><%=$this->getParent()->Data['name']%></com:TPanel>
-					<com:TCallback ID="ClientTableElementCall" OnCallback="Page.ClientWindow.configure" ActiveControl.CallbackParameter="<%=$this->getParent()->Data['clientid']%>">
-						<prop:ClientSide.OnComplete>
-							clientConfigurationWindow.show();
-							clientConfigurationWindow.progress(false);
-						</prop:ClientSide.OnComplete>
-					</com:TCallback>
-					<script type="text/javascript">
-						$('<%=$this->ClientTableElement->ClientID%>').up('tr').observe('click', function() {
-							var request = <%= $this->ClientTableElementCall->ActiveControl->Javascript %>;
-							clientConfigurationWindow.openConfigurationWindow(request, clientSlideWindowObj);
-						});
-					</script>
+					<div><%=$this->getParent()->Data['name']%></div>
+					<input type="hidden" name="<%=$this->getParent()->ClientID%>" value="<%=$this->getParent()->Data['clientid']%>" />
 				</prop:ItemTemplate>
 			</com:TActiveTemplateColumn>
 			<com:TActiveTemplateColumn ItemStyle.HorizontalAlign="Center" HeaderText="AutoPrune" SortExpression="autoprune">
@@ -72,4 +51,7 @@
 			</com:TActiveTemplateColumn>
 		</com:TActiveDataGrid>
 	</com:TActivePanel>
+	<com:TCallback ID="DataElementCall" OnCallback="Page.ClientWindow.configure">
+		<prop:ClientSide OnComplete="clientConfigurationWindow.show();clientConfigurationWindow.progress(false);" />
+	</com:TCallback>
 </com:TContent>

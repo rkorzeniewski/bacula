@@ -7,6 +7,10 @@ var SlideWindowClass = Class.create({
 	fullSizeEl : null,
 	search: null,
 	toolbar: null,
+	configurationObj: null,
+	loadRequest : null,
+	repeaterEl: null,
+	gridEl: null,
 
 	size: {
 		widthNormal : '437px',
@@ -154,6 +158,39 @@ var SlideWindowClass = Class.create({
 		}.bind(this));
 	},
 
+	setConfigurationObj: function(obj) {
+		this.configurationObj = obj;
+	},
+
+	setWindowElementsEvent: function(repeaterEl, gridEl, requestObj) {
+		this.repeaterEl = repeaterEl;
+		this.gridEl = gridEl;
+		this.loadRequest = requestObj;
+		this.setLoadRequest();
+	},
+
+	setLoadRequest: function() {
+		var dataList = [];
+		if($(this.gridEl)) {
+			dataList = $(this.gridEl).select('tr');
+			this.makeSortable();
+		} else if ($(this.repeaterEl + '_Container')) {
+			dataList = $(this.repeaterEl + '_Container').select('div.slide-window-element');
+		}
+
+		dataList.each(function(tr) {
+			$(tr).observe('click', function() {
+				var el = $(tr).down('input')
+				if(el) {
+					var val = el.getValue();
+					this.loadRequest.ActiveControl.CallbackParameter = val;
+					this.loadRequest.dispatch();
+					this.configurationObj.openConfigurationWindow(this);
+				}
+			}.bind(this, tr));
+		}.bind(this));
+	},
+
 	isConfigurationOpen: function() {
 		var is_open = false;
 		$$(this.elements.configurationWindows, this.elements.configurationProgress).each(function(el) {
@@ -163,6 +200,43 @@ var SlideWindowClass = Class.create({
 			}
 		}.bind(is_open));
 		return is_open;
+	},
+
+	sortTable: function (col, reverse) {
+		var table = document.getElementById(this.gridEl);
+		var tb = table.tBodies[0], tr = Array.prototype.slice.call(tb.rows, 0), i;
+		reverse = -((+reverse) || -1);
+		tr = tr.sort(function (a, b) {
+			var val;
+			var val_a = a.cells[col].textContent.trim();
+			var val_b = b.cells[col].textContent.trim();
+			if (!isNaN(parseFloat(val_a)) && isFinite(val_a) && !isNaN(parseFloat(val_b)) && isFinite(val_b)) {
+				val = val_a - val_b
+			} else {
+				val = val_a.localeCompare(val_b);
+			}
+			return reverse * (val);
+		});
+		for(i = 0; i < tr.length; ++i) tb.appendChild(tr[i]);
+	},
+
+	makeSortable: function () {
+		var self = this;
+		var table = document.getElementById(this.gridEl);
+		table.tHead.style.cursor = 'pointer';
+		var th = table.tHead, i;
+		th && (th = th.rows[0]) && (th = th.cells);
+		if (th) {
+			i = th.length;
+		} else {
+			return;
+		}
+		while (--i >= 0) (function (i) {
+			var dir = 1;
+			th[i].addEventListener('click', function () {
+				self.sortTable(i, (dir = 1 - dir));
+			});
+		}(i));
 	},
 
 	setSearch: function() {

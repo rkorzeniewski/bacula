@@ -47,7 +47,7 @@
 				<com:TActiveCustomValidator ID="PriorityValidator" ValidationGroup="JobRunGroup" ControlToValidate="Priority" ErrorMessage="<%[ Priority value must be integer greather than 0. ]%>" ControlCssClass="validation-error" Display="None" OnServerValidate="priorityValidator" ClientSide.OnValidationError="IsInvalid<%=$this->getPage()->JobRunConfiguration->ClientID%> = true" />
 			</div>
 		</div>
-		<com:TCallback ID="ReloadJobs" OnCallback="Page.JobRunWindow.prepareData" />
+		<com:TCallback ID="ReloadJobs" OnCallback="Page.JobRunWindow.prepareData" ClientSide.OnComplete="jobRunSlideWindowObj.setLoadRequest();" />
 		<script type="text/javascript">
 				function <%=$this->getPage()->JobRunConfiguration->ClientID%>reloadWindow() {
 					var callback = <%= $this->ReloadJobs->ActiveControl->Javascript %>;

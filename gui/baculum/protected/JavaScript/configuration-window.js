@@ -36,13 +36,12 @@ var ConfigurationWindowClass = new Class.create({
 	is_progress: function() {
 		return $(this.progress_id).getStyle('display') == 'block';
 	},
-	openConfigurationWindow: function(request, slideWindowObj) {
+	openConfigurationWindow: function(slideWindowObj) {
 		if(this.is_progress() === false) {
 			this.progress(true);
 			if(slideWindowObj.isFullSize() === true) {
 				slideWindowObj.resetSize();
 			}
-			request.dispatch();
 		}
 	}
 });

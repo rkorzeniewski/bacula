@@ -1,29 +1,19 @@
 <%@ MasterClass="Application.Portlets.SlideWindow" %>
 <com:TContent ID="SlideWindowContent">
+	<script type="text/javascript">
+		document.observe("dom:loaded", function() {
+			jobConfigurationWindow = ConfigurationWindow<%=$this->getPage()->JobConfiguration->getMaster()->ClientID%>;
+			jobSlideWindowObj = <%=$this->getPage()->JobWindow->ShowID%>SlideWindow;
+			jobSlideWindowObj.setConfigurationObj(jobConfigurationWindow);
+		});
+	</script>
 	<com:TActivePanel ID="RepeaterShow">
-		<script type="text/javascript">
-			document.observe("dom:loaded", function() {
-				jobConfigurationWindow = ConfigurationWindow<%=$this->getPage()->JobConfiguration->getMaster()->ClientID%>;
-				jobSlideWindowObj = <%=$this->getPage()->JobWindow->ShowID%>SlideWindow;
-			});
-		</script>
 	<com:TActiveRepeater ID="Repeater">
 		<prop:ItemTemplate>
 			<com:TPanel ID="JobElement" CssClass="slide-window-element">
 				<img src="<%=$this->getPage()->getTheme()->getBaseUrl()%>/job-icon.png" alt="" /> [<%=@$this->DataItem->jobid%>] <%=@$this->DataItem->name%>
+				<input type="hidden" name="<%=$this->ClientID%>" value="<%=isset($this->DataItem->jobid) ? $this->DataItem->jobid : ''%>" />
 			</com:TPanel>
-			<com:TCallback ID="JobElementCall" OnCallback="Page.JobWindow.configure" ActiveControl.CallbackParameter="<%=@$this->DataItem->jobid%>">
-				<prop:ClientSide.OnComplete>
-					jobConfigurationWindow.show();
-					jobConfigurationWindow.progress(false);
-				</prop:ClientSide.OnComplete>
-			</com:TCallback>
-			<script type="text/javascript">
-				$('<%=$this->JobElement->ClientID%>').observe('click', function() {
-					var request = <%= $this->JobElementCall->ActiveControl->Javascript %>;
-					jobConfigurationWindow.openConfigurationWindow(request, jobSlideWindowObj);
-				});
-			</script>
 		</prop:ItemTemplate>
 	</com:TActiveRepeater>
 	</com:TActivePanel>
@@ -31,7 +21,7 @@
 	<com:TActiveDataGrid
 		ID="DataGrid"
 		AutoGenerateColumns="false"
-		AllowSorting="true"
+		AllowSorting="false"
 		OnSortCommand="sortDataGrid"
 		CellPadding="5px"
 		CssClass="window-section-detail"
@@ -46,19 +36,8 @@
 		/>
 		<com:TActiveTemplateColumn HeaderText="Job name" SortExpression="name">
 			<prop:ItemTemplate>
-				<com:TPanel ID="JobTableElement"><%=$this->getParent()->Data['name']%></com:TPanel>
-				<com:TCallback ID="JobTableElementCall" OnCallback="Page.JobWindow.configure" ActiveControl.CallbackParameter="<%=$this->getParent()->Data['jobid']%>">
-					<prop:ClientSide.OnComplete>
-						jobConfigurationWindow.show();
-						jobConfigurationWindow.progress(false);
-					</prop:ClientSide.OnComplete>
-				</com:TCallback>
-				<script type="text/javascript">
-					$('<%=$this->JobTableElement->ClientID%>').up('tr').observe('click', function() {
-						var request = <%= $this->JobTableElementCall->ActiveControl->Javascript %>;
-						jobConfigurationWindow.openConfigurationWindow(request, jobSlideWindowObj);
-					});
-				</script>
+				<div><%=$this->getParent()->Data['name']%></div>
+                                <input type="hidden" name="<%=$this->getParent()->ClientID%>" value="<%=$this->getParent()->Data['jobid']%>" />
 			</prop:ItemTemplate>
 		</com:TActiveTemplateColumn>
 		<com:TActiveTemplateColumn ItemTemplate="<%=$this->getPage()->JobWindow->getJobType($this->getParent()->Data['type'])%>" SortExpression="type">
@@ -83,4 +62,7 @@
 		/>
 	</com:TActiveDataGrid>
 	</com:TActivePanel>
+	<com:TCallback ID="DataElementCall" OnCallback="Page.JobWindow.configure">
+		<prop:ClientSide OnComplete="jobConfigurationWindow.show();jobConfigurationWindow.progress(false);" />
+	</com:TCallback>
 </com:TContent>

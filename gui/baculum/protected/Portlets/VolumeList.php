@@ -45,12 +45,18 @@ class VolumeList extends Portlets {
 				array_push($params, '?showpools=1');
 				$volumes = $this->Application->getModule('api')->get($params);
 				$isDetailView = $_SESSION['view' . $this->getPage()->VolumeWindow->ID] == 'details';
-				$this->RepeaterShow->Visible = !$isDetailView;
-				$this->Repeater->DataSource = $volumes->output;
-				$this->Repeater->dataBind();
-				$this->DataGridShow->Visible = $isDetailView;
-				$this->DataGrid->DataSource = $this->Application->getModule('misc')->objectToArray($volumes->output);
-				$this->DataGrid->dataBind();
+				if($isDetailView === true) {
+					$this->RepeaterShow->Visible = false;
+					$this->DataGridShow->Visible = true;
+					$this->DataGrid->DataSource = $this->Application->getModule('misc')->objectToArray($volumes->output);
+					$this->DataGrid->dataBind();
+
+				} else {
+					$this->Repeater->DataSource = $volumes->output;
+					$this->Repeater->dataBind();
+					$this->RepeaterShow->Visible = true;
+					$this->DataGridShow->Visible = false;
+				}
 			}
 		}
 	}
@@ -75,7 +81,7 @@ class VolumeList extends Portlets {
 		return $data;
 	}
 
-    public function sortDataGrid($sender, $param) {
+	public function sortDataGrid($sender, $param) {
 		$params = $this->getUrlParams('volumes', $this->getPage()->VolumeWindow->ID);
 		array_push($params, '?showpools=1');
 		$data = $this->Application->getModule('api')->get($params)->output;
