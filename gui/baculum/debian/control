@@ -1,0 +1,13 @@
+Source: baculum
+Section: base
+Priority: optional
+Maintainer: Marcin Haba <marcin.haba@bacula.pl>
+Build-Depends: debhelper (>= 4.0.0)
+Standards-Version: 3.6.1
+
+Package: baculum
+Section: base
+Architecture: all
+Depends: php5-cgi, php5-curl, php5-mysql, php5-pgsql, php5-sqlite, php5-json, lighttpd
+Description: Baculum WebGUI tool for Bacula Community program
+

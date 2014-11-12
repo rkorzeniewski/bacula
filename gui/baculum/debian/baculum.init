@@ -1,0 +1,95 @@
+#!/bin/sh
+### BEGIN INIT INFO
+# Provides:          baculum
+# Required-Start:    $local_fs $remote_fs $network $syslog $named
+# Required-Stop:     $local_fs $remote_fs $network $syslog $named
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Start/stop Baculum
+# Description:       Start the Baculum WebGUI Bacula Community tool.
+#  This script uses Lighttpd web server for working Baculum WebGUI tool.
+### END INIT INFO
+
+DESC="Baculum WebGUI Bacula Community tool"
+NAME=baculum
+SCRIPTNAME=/etc/init.d/$NAME
+DAEMON=/usr/sbin/lighttpd
+DAEMON_OPTS="-f /etc/baculum/baculum.lighttpd.conf"
+PIDFILE="/var/run/$NAME.pid"
+
+test -x $DAEMON || exit 0
+
+set -e
+
+check_syntax()
+{
+    $DAEMON -t $DAEMON_OPTS > /dev/null || exit $?
+}
+
+. /lib/lsb/init-functions
+
+case "$1" in
+    start)
+        check_syntax
+        log_daemon_msg "Starting $DESC" $NAME
+        if ! start-stop-daemon --start --oknodo --quiet \
+            --pidfile $PIDFILE --exec $DAEMON -- $DAEMON_OPTS
+        then
+            log_end_msg 1
+        else
+            log_end_msg 0
+        fi
+        ;;
+    stop)
+        log_daemon_msg "Stopping $DESC" $NAME
+        if start-stop-daemon --stop --retry 30 --oknodo --quiet \
+            --pidfile $PIDFILE --exec $DAEMON
+        then
+            rm -f $PIDFILE
+            log_end_msg 0
+        else
+            log_end_msg 1
+        fi
+        ;;
+    reload|force-reload)
+        check_syntax
+        log_daemon_msg "Reloading $DESC configuration" $NAME
+        if start-stop-daemon --stop --signal INT --quiet \
+            --pidfile $PIDFILE --exec $DAEMON
+        then
+            rm $PIDFILE
+            if start-stop-daemon --start --quiet  \
+                --pidfile $PIDFILE --exec $DAEMON -- $DAEMON_OPTS ; then
+                log_end_msg 0
+            else
+                log_end_msg 1
+            fi
+        else
+            log_end_msg 1
+        fi
+        ;;
+    reopen-logs)
+        log_daemon_msg "Reopening $DESC logs" $NAME
+        if start-stop-daemon --stop --signal HUP --oknodo --quiet \
+            --pidfile $PIDFILE --exec $DAEMON
+        then
+            log_end_msg 0
+        else
+            log_end_msg 1
+        fi
+        ;;
+    restart)
+        check_syntax
+        $0 stop
+        $0 start
+        ;;
+    status)
+        status_of_proc -p "$PIDFILE" "$DAEMON" lighttpd && exit 0 || exit $?
+        ;;
+    *)
+        echo "Usage: $SCRIPTNAME {start|stop|restart|reload|force-reload|status}" >&2
+        exit 1
+        ;;
+esac
+
+exit 0
