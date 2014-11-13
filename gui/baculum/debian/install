@@ -6,5 +6,5 @@ index.php  /var/www/baculum/
 LICENSE    /var/www/baculum/
 protected  /var/www/baculum/
 themes     /var/www/baculum/
-examples/baculum.users /var/www/baculum/protected/Data
-examples/baculum.lighttpd.conf /etc/baculum
+examples/deb/baculum.users /var/www/baculum/protected/Data
+examples/deb/baculum.lighttpd.conf /etc/baculum
