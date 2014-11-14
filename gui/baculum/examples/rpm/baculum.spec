@@ -6,16 +6,16 @@ License:	AGPLv3
 Group:		Applications/Internet
 Source:		%{name}-%{version}.tar.gz
 URL:		http://bacula.org
-BuildRequires:	lighttpd
-BuildRequires:	lighttpd-fastcgi
-BuildRequires:	php
-BuildRequires:	php-bcmath
-BuildRequires:	php-common
-BuildRequires:	php-mbstring
-BuildRequires:	php-mysqlnd
-BuildRequires:	php-pdo
-BuildRequires:	php-pgsql
-BuildRequires:	php-xml
+Requires:	lighttpd
+Requires:	lighttpd-fastcgi
+Requires:	php
+Requires:	php-bcmath
+Requires:	php-common
+Requires:	php-mbstring
+Requires:	php-mysqlnd
+Requires:	php-pdo
+Requires:	php-pgsql
+Requires:	php-xml
 Requires(post):	chkconfig
 Requires(preun):chkconfig
 
