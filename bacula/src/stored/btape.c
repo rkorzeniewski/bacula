@@ -2522,6 +2522,7 @@ static bool do_unfill()
 
    dev->close();
    dev->num_writers = 0;
+   dcr->clear_writing();
    if (!acquire_device_for_read(dcr)) {
       Pmsg1(-1, "%s", dev->print_errmsg());
       goto bail_out;
@@ -2585,6 +2586,7 @@ static bool do_unfill()
    }
 
    dev->clear_read();
+   dcr->clear_writing();
    if (!acquire_device_for_read(dcr)) {
       Pmsg1(-1, "%s", dev->print_errmsg());
       goto bail_out;
