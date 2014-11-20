@@ -367,16 +367,20 @@ void sd_msg_thread_send_signal(JCR *jcr, int sig)
    jcr->unlock();
 }
 
-static int cancel_file_daemon_job(UAContext *ua, const char *cmd, JCR *jcr)
+static bool cancel_file_daemon_job(UAContext *ua, const char *cmd, JCR *jcr)
 {
+   CLIENT *old_client;
+
    if (!jcr->client) {
       Dmsg0(100, "No client to cancel\n");
-      return 0;
+      return false;
    }
+   old_client = ua->jcr->client;
    ua->jcr->client = jcr->client;
    if (!connect_to_file_daemon(ua->jcr, 10, FDConnectTimeout, 1)) {
       ua->error_msg(_("Failed to connect to File daemon.\n"));
-      return 0;
+      ua->jcr->client = old_client;
+      return false;
    }
    Dmsg0(100, "Connected to file daemon\n");
    BSOCK *fd = ua->jcr->file_bsock;
@@ -386,8 +390,8 @@ static int cancel_file_daemon_job(UAContext *ua, const char *cmd, JCR *jcr)
    }
    fd->signal(BNET_TERMINATE);
    free_bsock(ua->jcr->file_bsock);
-   ua->jcr->client = NULL;
-   return 1;
+   ua->jcr->client = old_client;
+   return true;
 }
 
 static bool cancel_sd_job(UAContext *ua, const char *cmd, JCR *jcr)
