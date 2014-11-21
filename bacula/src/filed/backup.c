@@ -660,7 +660,7 @@ int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
          if (ff_pkt->hfsinfo.rsrclength > 0) {
             int flags;
             int rsrc_stream;
-            if (!bopen_rsrc(&ff_pkt->bfd, ff_pkt->fname, O_RDONLY | O_BINARY, 0) < 0) {
+            if (bopen_rsrc(&ff_pkt->bfd, ff_pkt->fname, O_RDONLY | O_BINARY, 0) < 0) {
                ff_pkt->ff_errno = errno;
                berrno be;
                Jmsg(jcr, M_NOTSAVED, -1, _("     Cannot open resource fork for \"%s\": ERR=%s.\n"),
