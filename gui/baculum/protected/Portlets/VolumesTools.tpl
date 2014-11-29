@@ -44,7 +44,7 @@
 			<div class="field"><com:TActiveDropDownList ID="PoolLabel" CssClass="textbox" /></div>
 		</div>
 		<div class="button" style="margin-top: 10px;">
-				<com:BActiveButton ID="LabelButton" Text="<%[ Label ]%>" CausesValidation="true" ValidationGroup="VolumesActionGroup" />
+				<com:BActiveButton ID="LabelButton" Text="<%[ Label ]%>" CausesValidation="true" ValidationGroup="VolumesActionGroup" OnClick="labelVolume" />
 		</div>
 	</com:TActivePanel>
 	<div class="line"><com:TActiveRadioButton ID="UpdateSlots" GroupName="VolumeAction" OnCallback="setUpdateSlots" ActiveControl.ClientSide.OnComplete="window.scrollTo(0, document.body.scrollHeight);" /><com:TLabel ForControl="UpdateSlots" Text="<%[ Update slots using barcodes ]%>" /></div>
@@ -62,7 +62,7 @@
 				<div class="field"><com:TActiveTextBox ID="SlotsUpdateSlots" CssClass="textbox" /></div>
 			</div>
 			<div class="button" style="margin-top: 10px;">
-				<com:BActiveButton ID="UpdateSlotsButton" Text="<%[ Update barcodes slots ]%>" CausesValidation="true" ValidationGroup="VolumesActionGroup" />
+				<com:BActiveButton ID="UpdateSlotsButton" Text="<%[ Update barcodes slots ]%>" CausesValidation="true" ValidationGroup="VolumesActionGroup" OnClick="updateSlots" />
 		</div>
 	</com:TActivePanel>
 	<div class="line"><com:TActiveRadioButton ID="UpdateSlotsScan" GroupName="VolumeAction" OnCallback="setUpdateSlotsScan" ActiveControl.ClientSide.OnComplete="window.scrollTo(0, document.body.scrollHeight);" /><com:TLabel ForControl="UpdateSlotsScan" Text="<%[ Update slots without barcodes ]%>" /></div>
@@ -80,7 +80,7 @@
 				<div class="field"><com:TActiveTextBox ID="SlotsUpdateSlotsScan" CssClass="textbox" /></div>
 			</div>
 			<div class="button" style="margin-top: 10px;">
-				<com:BActiveButton ID="UpdateSlotsScanButton" Text="<%[ Update slots scan ]%>" CausesValidation="true" ValidationGroup="VolumesActionGroup" />
+				<com:BActiveButton ID="UpdateSlotsScanButton" Text="<%[ Update slots scan ]%>" CausesValidation="true" ValidationGroup="VolumesActionGroup" OnClick="updateSlotsScan" />
 		</div>
 	</com:TActivePanel>
 </com:TActivePanel>
