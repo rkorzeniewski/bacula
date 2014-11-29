@@ -273,7 +273,12 @@ var SlideWindowClass = Class.create({
 		} else {
 			return;
 		}
-		while (--i >= 1) (function (i) {
+		var downCounter = 0;
+		// skip first column if in column header is input (checkbox for elements mark)
+		if (th[0].childNodes[0].nodeName == "INPUT") {
+			downCounter = 1;
+		}
+		while (--i >= downCounter) (function (i) {
 			var dir = 1;
 			th[i].addEventListener('click', function () {
 				self.sortTable(i, (dir = 1 - dir));
