@@ -7,6 +7,8 @@ var SlideWindowClass = Class.create({
 	fullSizeEl : null,
 	search: null,
 	toolbar: null,
+	tools: null,
+	options: null,
 	configurationObj: null,
 	loadRequest : null,
 	repeaterEl: null,
@@ -30,6 +32,7 @@ var SlideWindowClass = Class.create({
 		contentItems : 'slide-window-element',
 		contentAlternatingItems : 'slide-window-element-alternating',
 		toolsButtonSuffix : '-slide-window-tools',
+		optionsButtonSuffix : '-slide-window-options',
 		actionsSuffix : '-slide-window-actions',
 		toolbarSuffix : '-slide-window-toolbar',
 		titleSuffix : '-slide-window-title'
@@ -43,6 +46,7 @@ var SlideWindowClass = Class.create({
 		this.windowId = windowId;
 		this.window = $(this.windowId + this.elements.containerSuffix);
 		this.tools = $(this.windowId + this.elements.toolsButtonSuffix);
+		this.options = $(this.windowId + this.elements.optionsButtonSuffix);
 		
 		if(data.hasOwnProperty('showId')) {
 				this.showEl = $(data.showId);
@@ -110,6 +114,10 @@ var SlideWindowClass = Class.create({
 		}.bind(this));
 
 		this.tools.observe('click', function() {
+			this.toggleToolbar();
+		}.bind(this));
+
+		this.options.observe('click', function() {
 			this.toggleToolbar();
 		}.bind(this));
 	},

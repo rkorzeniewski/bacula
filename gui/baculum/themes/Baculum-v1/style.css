@@ -549,7 +549,23 @@ div.configuration-window-content {
 	padding: 10px 12px;;
 }
 
+div.slide-window-options {
+	height: 36px;
+	width: 36px;
+	z-index: 20;
+	position: absolute;
+	margin: 0;
+	padding: 0;
+	bottom: 0;
+	right: 0;
+	border: 0;
+	background: transparent url('gear-icon-alpha.png') no-repeat left 0;
+}
 
+div.slide-window-options:hover {
+	cursor: pointer;
+	background: transparent url('gear-icon.png') no-repeat left 0;
+}
 div.status-bar-append, div.status-bar-full, div.status-bar-used, div.status-bar-error, div.status-bar-purged, div.status-bar-recycle, div.status-bar-busy, div.status-bar-disabled, div.status-bar-archive, div.status-bar-cleaning, div.status-bar-read-only, div.status-bar-detail-append, div.status-bar-detail-full, div.status-bar-detail-used, div.status-bar-detail-error, div.status-bar-detail-purged, div.status-bar-detail-recycle, div.status-bar-detail-busy, div.status-bar-detail-disabled, div.status-bar-detail-archive, div.status-bar-detail-cleaning, div.status-bar-detail-read-only {
 	position: relative;
 	border: 1px solid black;

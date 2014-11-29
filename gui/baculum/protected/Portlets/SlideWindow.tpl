@@ -2,6 +2,7 @@
 	<div id="<%=$this->getParent()->getID()%>-slide-window-progress" class="slide-window-progress"></div>
 	<div class="slide-window-content">
 		<com:TContentPlaceHolder ID="SlideWindowContent" />
+		<div id="<%=$this->getParent()->getID()%>-slide-window-options" class="slide-window-options"></div>
 		<div id="<%=$this->getParent()->getID()%>-slide-window-toolbar" class="slide-window-toolbar" style="display: none">
 			<com:TImageButton ImageUrl="<%=$this->getPage()->getTheme()->getBaseUrl()%>/close.png" Style="margin: 5px 5px 0 0;float: right;" Attributes.onclick="SlideWindow.getObj('<%=$this->getParent()->getID()%>').toggleToolbar(); return false;" Attributes.alt="<%[ Close ]%>" ToolTip="<%[ Close ]%>" />
 			<table>
@@ -74,15 +75,15 @@
 				SlideWindow.getObj('<%=$this->getParent()->getID()%>').setLoadRequest();
 			</prop:ClientSide.OnComplete>
 		</com:TCallback>
-			<script type="text/javascript">
-				<%=$this->getParent()->getID()%>_refresh_window_func = function() {
-						var request = <%= $this->DetailView->ActiveControl->Javascript %>;
-						request.dispatch();
-					}
-				$$('input[id=<%=$this->Simple->ClientID%>], input[id=<%=$this->Details->ClientID%>], select[id=<%=$this->Limit->ClientID%>]').each(function(el) {
-					el.observe('change', <%=$this->getParent()->getID()%>_refresh_window_func);
-				});
-			</script>
+		<script type="text/javascript">
+			<%=$this->getParent()->getID()%>_refresh_window_func = function() {
+					var request = <%= $this->DetailView->ActiveControl->Javascript %>;
+					request.dispatch();
+				}
+			$$('input[id=<%=$this->Simple->ClientID%>], input[id=<%=$this->Details->ClientID%>], select[id=<%=$this->Limit->ClientID%>]').each(function(el) {
+				el.observe('change', <%=$this->getParent()->getID()%>_refresh_window_func);
+			});
+		</script>
 	</div>
 </div>
 <script type="text/javascript">
