@@ -109,7 +109,16 @@ abstract class BaculumAPI extends TPage
 			$params = (object)$this->Request['update'];
 			$this->set($id, $params);
 		} else {
-			parse_str(file_get_contents("php://input"),$responseData);
+			$inputstr = file_get_contents("php://input");
+			$chunks = explode('&', $inputstr);
+			$responseData = array();
+			for($i = 0; $i<count($chunks); $i++) {
+				parse_str($chunks[$i], $responseEl);
+				if(is_array($responseEl) && array_key_exists('update', $responseEl) && is_array($responseEl['update'])) {
+					$key = key($responseEl['update']);
+					$responseData['update'][$key] = $responseEl['update'][$key];
+				}
+			}
 			if(is_array($responseData) && array_key_exists('update', $responseData)) {
 				$params = (object)$responseData['update'];
 				$this->set($id, $params);
