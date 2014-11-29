@@ -44,7 +44,7 @@
 			<div class="field"><com:TActiveDropDownList ID="PoolLabel" CssClass="textbox" /></div>
 		</div>
 		<div class="button" style="margin-top: 10px;">
-				<com:Application.Portlets.BActiveButton ID="LabelButton" Text="<%[ Label ]%>" CausesValidation="true" ValidationGroup="VolumesActionGroup" />
+				<com:BActiveButton ID="LabelButton" Text="<%[ Label ]%>" CausesValidation="true" ValidationGroup="VolumesActionGroup" />
 		</div>
 	</com:TActivePanel>
 	<div class="line"><com:TActiveRadioButton ID="UpdateSlots" GroupName="VolumeAction" OnCallback="setUpdateSlots" ActiveControl.ClientSide.OnComplete="window.scrollTo(0, document.body.scrollHeight);" /><com:TLabel ForControl="UpdateSlots" Text="<%[ Update slots using barcodes ]%>" /></div>
@@ -62,7 +62,7 @@
 				<div class="field"><com:TActiveTextBox ID="SlotsUpdateSlots" CssClass="textbox" /></div>
 			</div>
 			<div class="button" style="margin-top: 10px;">
-				<com:Application.Portlets.BActiveButton ID="UpdateSlotsButton" Text="<%[ Update barcodes slots ]%>" CausesValidation="true" ValidationGroup="VolumesActionGroup" />
+				<com:BActiveButton ID="UpdateSlotsButton" Text="<%[ Update barcodes slots ]%>" CausesValidation="true" ValidationGroup="VolumesActionGroup" />
 		</div>
 	</com:TActivePanel>
 	<div class="line"><com:TActiveRadioButton ID="UpdateSlotsScan" GroupName="VolumeAction" OnCallback="setUpdateSlotsScan" ActiveControl.ClientSide.OnComplete="window.scrollTo(0, document.body.scrollHeight);" /><com:TLabel ForControl="UpdateSlotsScan" Text="<%[ Update slots without barcodes ]%>" /></div>
@@ -80,12 +80,12 @@
 				<div class="field"><com:TActiveTextBox ID="SlotsUpdateSlotsScan" CssClass="textbox" /></div>
 			</div>
 			<div class="button" style="margin-top: 10px;">
-				<com:Application.Portlets.BActiveButton ID="UpdateSlotsScanButton" Text="<%[ Update slots scan ]%>" CausesValidation="true" ValidationGroup="VolumesActionGroup" />
+				<com:BActiveButton ID="UpdateSlotsScanButton" Text="<%[ Update slots scan ]%>" CausesValidation="true" ValidationGroup="VolumesActionGroup" />
 		</div>
 	</com:TActivePanel>
 </com:TActivePanel>
 <script type="text/javascript">
-	$$('#volumes_tools_launcher', '#<%=$this->LabelButton->ApplyChanges->ClientID%>', '#<%=$this->UpdateSlotsButton->ApplyChanges->ClientID%>', '#<%=$this->UpdateSlotsScanButton->ApplyChanges->ClientID%>').each(function(el){
+	$$('#volumes_tools_launcher', '#<%=$this->LabelButton->ClientID%>', '#<%=$this->UpdateSlotsButton->ClientID%>', '#<%=$this->UpdateSlotsScanButton->ClientID%>').each(function(el){
 		el.observe('click', function(){
 			if(VolumesToolsValidation(el) === true) {
 				$('<%=$this->getPage()->Console->ConsoleContainer->ClientID%>').hide();
@@ -108,7 +108,7 @@
 		var slotsPattern = new RegExp("<%=$this->slotsPattern%>");
 		var drivePattern = new RegExp("<%=$this->drivePattern%>");
 		var labelNamePattern = new RegExp("<%=$this->labelVolumePattern%>");
-		if(el.id == '<%=$this->LabelButton->ApplyChanges->ClientID%>') {
+		if(el.id == '<%=$this->LabelButton->ClientID%>') {
 			if($('<%=$this->Barcodes->ClientID%>').checked === true) {
 				if(slotsPattern.test($('<%=$this->SlotsLabel->ClientID%>').value) === false) {
 					var validation = false;
@@ -121,11 +121,11 @@
 			if(drivePattern.test($('<%=$this->DriveLabel->ClientID%>').value) === false) {
 				var validation = false;
 			}
-		} else if(el.id == '<%=$this->UpdateSlotsButton->ApplyChanges->ClientID%>') {
+		} else if(el.id == '<%=$this->UpdateSlotsButton->ClientID%>') {
 			if(drivePattern.test($('<%=$this->DriveUpdateSlots->ClientID%>').value) === false || slotsPattern.test($('<%=$this->SlotsUpdateSlots->ClientID%>').value) === false) {
 				var validation = false;
 			}
-		} else if(el.id == '<%=$this->UpdateSlotsScanButton->ApplyChanges->ClientID%>') {
+		} else if(el.id == '<%=$this->UpdateSlotsScanButton->ClientID%>') {
 			if(drivePattern.test($('<%=$this->DriveUpdateSlotsScan->ClientID%>').value) === false || slotsPattern.test($('<%=$this->SlotsUpdateSlotsScan->ClientID%>').value) === false) {
 				var validation = false;
 			}

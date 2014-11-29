@@ -34,23 +34,23 @@
 			</div>
 		</prop:HeaderTemplate>
 		<prop:StartNavigationTemplate>
-				<div class="button-cancel"><com:Application.Portlets.BButton CommandName="Cancel" Text="<%[ Cancel ]%>" /></div>
-				<div class="button-prev-next"><com:Application.Portlets.BButton CommandName="NextStep" Text="<%[ Next &raquo; ]%>" /></div>
+				<div class="button-cancel"><com:BButton CommandName="Cancel" Text="<%[ Cancel ]%>" /></div>
+				<div class="button-prev-next"><com:BButton CommandName="NextStep" Text="<%[ Next &raquo; ]%>" /></div>
 		</prop:StartNavigationTemplate>
 
 		<prop:StepNavigationTemplate>
-			<div class="button-cancel"><com:Application.Portlets.BButton CommandName="Cancel" Text="<%[ Cancel ]%>" /></div>
+			<div class="button-cancel"><com:BButton CommandName="Cancel" Text="<%[ Cancel ]%>" /></div>
 			<div class="button-prev-next">
-				<com:Application.Portlets.BButton CausesValidation="False" CommandName="PreviousStep" Text="<%[ &laquo; Previous ]%>" />
-				<com:Application.Portlets.BButton ID="NextButton" CommandName="NextStep" Text="<%[ Next &raquo; ]%>" Visible="<%=($this->getPage()->RestoreWizard->ActiveStepIndex != 1 || ($this->getPage()->RestoreWizard->ActiveStepIndex == 1 && $this->getPage()->BackupToRestore->ItemCount > 0))%>" />
+				<com:BButton CausesValidation="False" CssClass="bbutton" CommandName="PreviousStep" Text="<%[ &laquo; Previous ]%>" />
+				<com:BButton ID="NextButton" CommandName="NextStep" Text="<%[ Next &raquo; ]%>" Visible="<%=($this->getPage()->RestoreWizard->ActiveStepIndex != 1 || ($this->getPage()->RestoreWizard->ActiveStepIndex == 1 && $this->getPage()->BackupToRestore->ItemCount > 0))%>" />
 			</div>
 		</prop:StepNavigationTemplate>
 		 
 		<prop:FinishNavigationTemplate>
-			<div class="button-cancel"><com:Application.Portlets.BButton CommandName="Cancel" Text="<%[ Cancel ]%>" /></div>
+			<div class="button-cancel"><com:BButton CommandName="Cancel" Text="<%[ Cancel ]%>" /></div>
 			<div class="button-prev-next">
-			<com:Application.Portlets.BButton CausesValidation="False" CommandName="PreviousStep" Text="<%[ &laquo; Previous ]%>" />
-			<com:Application.Portlets.BButton CommandName="Complete" Text="<%[ Run restore ]%>" />
+			<com:BButton CausesValidation="False" CssClass="bbutton" CommandName="PreviousStep" Text="<%[ &laquo; Previous ]%>" />
+			<com:BButton CommandName="Complete" Text="<%[ Run restore ]%>" />
 			</div>
 		</prop:FinishNavigationTemplate>
 		<com:TWizardStep ID="Step1" Title="<%[ Step 1 - select source backup client ]%>" StepType="Auto">

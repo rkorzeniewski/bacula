@@ -34,23 +34,23 @@
 			</div>
 		</prop:HeaderTemplate>
 		<prop:StartNavigationTemplate>
-				<com:TPanel CssClass="button-cancel" Visible="<%=$this->getPage()->firstRun === false%>"><com:Application.Portlets.BButton CommandName="Cancel" Text="<%[ Cancel ]%>" /></com:TPanel>
-				<div <%=$this->getPage()->firstRun === false ? 'class="button-prev-next"' : ''%>><com:Application.Portlets.BButton CommandName="NextStep" Text="<%[ Next &raquo; ]%>" /></div>
+				<com:TPanel CssClass="button-cancel" Visible="<%=$this->getPage()->firstRun === false%>"><com:BButton CommandName="Cancel" Text="<%[ Cancel ]%>" /></com:TPanel>
+				<div <%=$this->getPage()->firstRun === false ? 'class="button-prev-next"' : ''%>><com:BButton CommandName="NextStep" Text="<%[ Next &raquo; ]%>" /></div>
 		</prop:StartNavigationTemplate>
 
 		<prop:StepNavigationTemplate>
-			<com:TPanel CssClass="button-cancel" Visible="<%=$this->getPage()->firstRun === false%>"><com:Application.Portlets.BButton CommandName="Cancel" Text="<%[ Cancel ]%>" /></com:TPanel>
+			<com:TPanel CssClass="button-cancel" Visible="<%=$this->getPage()->firstRun === false%>"><com:BButton CommandName="Cancel" Text="<%[ Cancel ]%>" /></com:TPanel>
 			<div <%=$this->getPage()->firstRun === false ? 'class="button-prev-next"' : ''%>>
-				<com:Application.Portlets.BButton CausesValidation="False" CommandName="PreviousStep" Text="<%[ &laquo; Previous ]%>" />
-				<com:Application.Portlets.BButton ID="NextButton" CommandName="NextStep" Text="<%[ Next &raquo; ]%>" />
+				<com:BButton CausesValidation="False" CssClass="bbutton" CommandName="PreviousStep" Text="<%[ &laquo; Previous ]%>" />
+				<com:BButton ID="NextButton" CommandName="NextStep" Text="<%[ Next &raquo; ]%>" />
 			</div>
 		</prop:StepNavigationTemplate>
 		 
 		<prop:FinishNavigationTemplate>
-			<com:TPanel CssClass="button-cancel" Visible="<%=$this->getPage()->firstRun === false%>"><com:Application.Portlets.BButton CommandName="Cancel" Text="<%[ Cancel ]%>" /></com:TPanel>
+			<com:TPanel CssClass="button-cancel" Visible="<%=$this->getPage()->firstRun === false%>"><com:BButton CommandName="Cancel" Text="<%[ Cancel ]%>" /></com:TPanel>
 			<div <%=$this->getPage()->firstRun === false ? 'class="button-prev-next"' : ''%>>
-				<com:Application.Portlets.BButton CausesValidation="False" CommandName="PreviousStep" Text="<%[ &laquo; Previous ]%>" />
-				<com:Application.Portlets.BButton CommandName="Complete" Text="<%[ Save ]%>" />
+				<com:BButton CausesValidation="False" CssClass="bbutton" CommandName="PreviousStep" Text="<%[ &laquo; Previous ]%>" />
+				<com:BButton CommandName="Complete" Text="<%[ Save ]%>" />
 			</div>
 		</prop:FinishNavigationTemplate>
 		<com:TWizardStep ID="Step1" Title="<%[ Step 1 - select language ]%>" StepType="Auto">
