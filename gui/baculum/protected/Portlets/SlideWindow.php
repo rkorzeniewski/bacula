@@ -16,7 +16,9 @@
  *
  * Bacula® is a registered trademark of Kern Sibbald.
  */
+
  
+Prado::using('System.Web.UI.WebControls.TCompareValidator');
 Prado::using('System.Web.UI.ActiveControls.TActiveLabel');
 Prado::using('System.Web.UI.ActiveControls.TActivePanel');
 Prado::using('System.Web.UI.ActiveControls.TActiveDropDownList');
@@ -29,10 +31,18 @@ Prado::using('Application.Portlets.Portlets');
 class SlideWindow extends Portlets {
 
 	public $elementsLimits = array(10, 25, 50, 100, 200, 500, 1000, 'unlimited');
-
-	public $ShowID;
-	public $Title;
-	public $WindowTitle;
+        public $actions = array(
+		'VolumeWindow' => array(
+			'NoAction' => 'select action',
+			'delete' => 'Delete',
+			'prune' => 'Prune',
+			'purge' => 'Purge'
+		),
+		'JobWindow' => array(
+			'NoAction' => 'select action',
+			'delete' => 'Delete'
+		)
+	);
 
 	const NORMAL_VIEW = 'simple';
 	const DETAIL_VIEW = 'details';
@@ -53,6 +63,9 @@ class SlideWindow extends Portlets {
 			$this->Limit->dataBind();
 			$this->Simple->Checked = ($_SESSION['view' . $this->getParent()->ID] == self::NORMAL_VIEW);
 			$this->Details->Checked = ($_SESSION['view' . $this->getParent()->ID] == self::DETAIL_VIEW);
+			$actions = array_key_exists($this->getParent()->ID, $this->actions) ? $this->actions[$this->getParent()->ID] : array();
+			$this->Actions->dataSource = $actions;
+			$this->Actions->dataBind();
 		}
 	}
 
@@ -60,6 +73,12 @@ class SlideWindow extends Portlets {
 		$_SESSION['view' . $this->getParent()->ID] = ($this->Simple->Checked === true) ? self::NORMAL_VIEW : self::DETAIL_VIEW;
 		$_SESSION['limit' . $this->getParent()->ID] = $this->Limit->SelectedValue;
 		$this->getParent()->prepareData(true);
+	}
+
+	public function action($sender, $param) {
+		if(method_exists($this->getParent(), 'executeAction')) {
+			$this->getParent()->executeAction($this->Actions->SelectedValue, $sender, $param);
+		}
 	}
 }
 ?>

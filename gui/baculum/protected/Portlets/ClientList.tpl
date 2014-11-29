@@ -1,12 +1,5 @@
 <%@ MasterClass="Application.Portlets.SlideWindow"%>
 <com:TContent ID="SlideWindowContent">
-	<script type="text/javascript">
-		document.observe("dom:loaded", function() {
-			clientConfigurationWindow = ConfigurationWindow<%=$this->getPage()->ClientConfiguration->getMaster()->ClientID%>;
-			clientSlideWindowObj = <%=$this->getPage()->ClientWindow->ShowID%>SlideWindow;
-			clientSlideWindowObj.setConfigurationObj(clientConfigurationWindow);
-		});
-	</script>
 	<com:TActivePanel ID="RepeaterShow">
 		<com:TActiveRepeater ID="Repeater">
 			<prop:ItemTemplate>
@@ -52,6 +45,9 @@
 		</com:TActiveDataGrid>
 	</com:TActivePanel>
 	<com:TCallback ID="DataElementCall" OnCallback="Page.ClientWindow.configure">
-		<prop:ClientSide OnComplete="clientConfigurationWindow.show();clientConfigurationWindow.progress(false);" />
+		<prop:ClientSide.OnComplete>
+			ConfigurationWindow.getObj('ClientWindow').show();
+			ConfigurationWindow.getObj('ClientWindow').progress(false);
+		</prop:ClientSide.OnComplete>
 	</com:TCallback>
 </com:TContent>

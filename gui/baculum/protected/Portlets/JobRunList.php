@@ -22,23 +22,55 @@ Prado::using('System.Web.UI.ActiveControls.TActiveRepeater');
 Prado::using('System.Web.UI.ActiveControls.TActiveLinkButton');
 Prado::using('System.Web.UI.ActiveControls.TActivePanel');
 Prado::using('System.Web.UI.ActiveControls.TCallback');
+Prado::using('Application.Portlets.ISlideWindow');
 Prado::using('Application.Portlets.Portlets');
 
-class JobRunList extends Portlets {
+class JobRunList extends Portlets implements ISlideWindow {
 
-	public $ShowID, $windowTitle, $oldDirector;
-
-	private $jobTypes = array('B' => 'Backup', 'M' => 'Migrated', 'V' => 'Verify', 'R' => 'Restore', 'I' => 'Internal', 'D' => 'Admin', 'A' => 'Archive', 'C' => 'Copy', 'g' => 'Migration');
-
+	public $ID;
+	public $buttonID;
+	public $windowTitle;
+	public $oldDirector;
 	private $jobStates;
+	private $jobTypes = array(
+		'B' => 'Backup',
+		'M' => 'Migrated',
+		'V' => 'Verify',
+		'R' => 'Restore',
+		'I' => 'Internal',
+		'D' => 'Admin',
+		'A' => 'Archive',
+		'C' => 'Copy',
+		'g' => 'Migration'
+	);
 
-	public function onLoad($param) {
-		parent::onLoad($param);
-		$this->prepareData();
+	public function setID($id) {
+		$this->ID = $id;
+	}
+
+	public function getID($hideAutoID = true) {
+		return $this->ID;
+	}
+
+	public function setButtonID($id) {
+		$this->buttonID = $id;
+	}
+
+	public function getButtonID() {
+		return $this->buttonID;
 	}
 
 	public function setWindowTitle($param) {
 		$this->windowTitle = $param;
+	}
+
+	public function getWindowTitle() {
+		return $this->windowTitle;
+	}
+
+	public function onLoad($param) {
+		parent::onLoad($param);
+		$this->prepareData();
 	}
 
 	public function prepareData($forceReload = false) {
@@ -75,20 +107,12 @@ class JobRunList extends Portlets {
 		return $jobs;
 	}
 
-    public function sortDataGrid($sender, $param) {
+	public function sortDataGrid($sender, $param) {
 		$params = $this->getUrlParams(array('jobs', 'tasks'), $this->getPage()->JobRunWindow->ID);
 		$data = $this->Application->getModule('api')->get($params)->output;
 		$data = $this->prepareJobs($data);
 		$this->DataGrid->DataSource = $this->sortData($data, $param->SortExpression, $sender->UniqueID);
 		$this->DataGrid->dataBind();
-	}
-
-	public function setShowID($ShowID) {
-		$this->ShowID = $this->getMaster()->ShowID = $ShowID;
-	}
-
-	public function getShowID() {
-		return $this->ShowID;
 	}
 
 	public function configure($sender, $param) {

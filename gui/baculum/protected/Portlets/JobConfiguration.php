@@ -25,15 +25,6 @@ class JobConfiguration extends Portlets {
 
 	private $runningJobStates = array('C', 'R');
 
-	public function onInit($param) {
-		parent::onInit($param);
-		$this->Run->setActionClass($this);
-		$this->Status->setActionClass($this);
-		$this->Cancel->setActionClass($this);
-		$this->Delete->setActionClass($this);
-		$this->Estimate->setActionClass($this);
-	}
-
 	public function configure($jobId) {
 		$jobdata = $this->Application->getModule('api')->get(array('jobs', $jobId))->output;
 		$this->JobName->Text = $jobdata->job;
@@ -88,51 +79,46 @@ class JobConfiguration extends Portlets {
 		$this->CancelButton->Visible = in_array($jobdata->jobstatus, $this->runningJobStates);
 	}
 
-	public function save($sender, $param) {
-		switch($sender->getParent()->ID) {
-			case $this->Estimate->ID: {
-				$params = array();
-				$params['id'] = $this->JobID->Text;
-				$params['level'] = $this->Level->SelectedValue;
-				$params['fileset'] = $this->FileSet->SelectedValue;
-				$params['clientid'] = $this->Client->SelectedValue;
-				$params['accurate'] = (integer)$this->Accurate->Checked;
-				$result = $this->Application->getModule('api')->create(array('jobs', 'estimate'), $params)->output;
-				$this->Estimation->Text = implode(PHP_EOL, $result);
-				break;
-			}
-			case $this->Run->ID: {
-				if($this->PriorityValidator->IsValid === false) {
-					return false;
-				}
-				$params = array();
-				$params['id'] = $this->JobID->Text;
-				$params['level'] = $this->Level->SelectedValue;
-				$params['fileset'] = $this->FileSet->SelectedValue;
-				$params['clientid'] = $this->Client->SelectedValue;
-				$params['storageid'] = $this->Storage->SelectedValue;
-				$params['poolid'] = $this->Pool->SelectedValue;
-				$params['priority'] = $this->Priority->Text;
-				$result = $this->Application->getModule('api')->create(array('jobs', 'run'), $params)->output;
-				$this->Estimation->Text = implode(PHP_EOL, $result);
-				break;
-			}
-			case $this->Delete->ID: {
-				$this->Application->getModule('api')->remove(array('jobs', $this->JobID->Text));
-				$this->DeleteButton->Visible = false;
-				break;
-			}
-			case $this->Cancel->ID: {
-				$this->Application->getModule('api')->set(array('jobs', 'cancel', $this->JobID->Text), array('a' => 'b'));
-				$this->CancelButton->Visible = false;
-				break;
-			}
-			case $this->Status->ID: {
-				$joblog = $this->Application->getModule('api')->get(array('joblog', $this->JobID->Text))->output;
-				$this->Estimation->Text = is_array($joblog) ? implode(PHP_EOL, $joblog) : Prado::localize("Output for selected job is not available yet or you do not have enabled logging job logs to catalog database."  . PHP_EOL . PHP_EOL .  "For watching job log there is need to add to the job Messages resource next directive:" . PHP_EOL . PHP_EOL . "console = all, !skipped, !saved" . PHP_EOL);
-				break;
-			}
+	public function status($sender, $param) {
+		$joblog = $this->Application->getModule('api')->get(array('joblog', $this->JobID->Text))->output;
+		$this->Estimation->Text = is_array($joblog) ? implode(PHP_EOL, $joblog) : Prado::localize("Output for selected job is not available yet or you do not have enabled logging job logs to catalog database."  . PHP_EOL . PHP_EOL .  "For watching job log there is need to add to the job Messages resource next directive:" . PHP_EOL . PHP_EOL . "console = all, !skipped, !saved" . PHP_EOL);
+	}
+
+	public function delete($sender, $param) {
+		$this->Application->getModule('api')->remove(array('jobs', $this->JobID->Text));
+		$this->DeleteButton->Visible = false;
+	}
+
+	public function cancel($sender, $param) {
+		$this->Application->getModule('api')->set(array('jobs', 'cancel', $this->JobID->Text), array('a' => 'b'));
+		$this->CancelButton->Visible = false;
+	}
+
+	public function run_again($sender, $param) {
+		if($this->PriorityValidator->IsValid === false) {
+			return false;
 		}
+		$params = array();
+		$params['id'] = $this->JobID->Text;
+		$params['level'] = $this->Level->SelectedValue;
+		$params['fileset'] = $this->FileSet->SelectedValue;
+		$params['clientid'] = $this->Client->SelectedValue;
+		$params['storageid'] = $this->Storage->SelectedValue;
+		$params['poolid'] = $this->Pool->SelectedValue;
+		$params['priority'] = $this->Priority->Text;
+		$result = $this->Application->getModule('api')->create(array('jobs', 'run'), $params)->output;
+		$this->Estimation->Text = implode(PHP_EOL, $result);
+	}
+
+	public function estimate($sender, $param) {
+		$params = array();
+		$params['id'] = $this->JobID->Text;
+		$params['level'] = $this->Level->SelectedValue;
+		$params['fileset'] = $this->FileSet->SelectedValue;
+		$params['clientid'] = $this->Client->SelectedValue;
+		$params['accurate'] = (integer)$this->Accurate->Checked;
+		$result = $this->Application->getModule('api')->create(array('jobs', 'estimate'), $params)->output;
+		$this->Estimation->Text = implode(PHP_EOL, $result);
 	}
 
 	public function priorityValidator($sender, $param) {

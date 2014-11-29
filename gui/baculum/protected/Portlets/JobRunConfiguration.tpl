@@ -1,6 +1,6 @@
 <%@ MasterClass="Application.Portlets.ConfigurationPanel"%>
 <com:TContent ID="ConfigurationWindowContent">
-	<com:TActivePanel DefaultButton="Run.ApplyChanges">
+	<com:TActivePanel DefaultButton="Run">
 		<strong><%[ Job name: ]%> <com:TActiveLabel ID="JobName" /><com:TActiveLabel ID="JobID" Visible="false" /></strong>
 		<hr />
 		<com:TValidationSummary
@@ -44,21 +44,21 @@
 			<div class="text"><com:TLabel ForControl="Priority" Text="<%[ Priority: ]%>" /></div>
 			<div class="field">
 				<com:TActiveTextBox ID="Priority" CssClass="textbox-auto" AutoPostBack="false" />
-				<com:TActiveCustomValidator ID="PriorityValidator" ValidationGroup="JobRunGroup" ControlToValidate="Priority" ErrorMessage="<%[ Priority value must be integer greather than 0. ]%>" ControlCssClass="validation-error" Display="None" OnServerValidate="priorityValidator" ClientSide.OnValidationError="IsInvalid<%=$this->getPage()->JobRunConfiguration->ClientID%> = true" />
+				<com:TActiveCustomValidator ID="PriorityValidator" ValidationGroup="JobRunGroup" ControlToValidate="Priority" ErrorMessage="<%[ Priority value must be integer greather than 0. ]%>" ControlCssClass="validation-error" Display="None" OnServerValidate="priorityValidator" />
 			</div>
 		</div>
-		<com:TCallback ID="ReloadJobs" OnCallback="Page.JobRunWindow.prepareData" ClientSide.OnComplete="jobRunSlideWindowObj.setLoadRequest();" />
+		<com:TCallback ID="ReloadRunJobs" OnCallback="Page.JobRunWindow.prepareData" ClientSide.OnComplete="RunSlideWindow.getObj('JobRunWindow').setLoadRequest();" />
 		<script type="text/javascript">
-				function <%=$this->getPage()->JobRunConfiguration->ClientID%>reloadWindow() {
-					var callback = <%= $this->ReloadJobs->ActiveControl->Javascript %>;
-					if(typeof(IsInvalid<%=$this->getPage()->JobRunConfiguration->ClientID%>) == 'undefined') {
-						callback.dispatch();
-					}
-					delete IsInvalid<%=$this->getPage()->JobRunConfiguration->ClientID%>;
+			var jobrun_callback_func = function() {
+				var mainForm = Prado.Validation.getForm();
+				var callback = <%=$this->ReloadRunJobs->ActiveControl->Javascript%>;
+				if (Prado.Validation.managers[mainForm].getValidatorsWithError('JobRunGroup').length == 0) {
+					callback.dispatch();
 				}
+			}
 		</script>
 		<div class="button">
-			<com:Application.Portlets.BActiveButton ID="Run" Text="<%[ Run job ]%>" ValidationGroup="JobRunGroup" CausesValidation="true" />
+			<com:BActiveButton ID="Run" Text="<%[ Run job ]%>" ValidationGroup="JobRunGroup" CausesValidation="true" OnClick="run_job" ClientSide.OnSuccess="ConfigurationWindow.getObj('JobRunWindow').progress(false);jobrun_callback_func();"/>
 		</div>
 		<div class="text small"><%[ Console status ]%></div>
 		<div class="field-full" style="min-height: 90px">
@@ -69,7 +69,7 @@
 			<div class="field"><com:TActiveCheckBox ID="Accurate" AutoPostBack="false" /></div>
 		</div>
 		<div class="button">
-			<com:Application.Portlets.BActiveButton ID="Estimate" Text="<%[ Estimate job ]%>" />
+			<com:Application.Portlets.BActiveButton ID="Estimate" Text="<%[ Estimate job ]%>" OnClick="estimate"  ClientSide.OnSuccess="ConfigurationWindow.getObj('JobRunWindow').progress(false);jobrun_callback_func();" />
 		</div>
 	</com:TActivePanel>
 </com:TContent>

@@ -30,13 +30,6 @@ class VolumeConfiguration extends Portlets {
 
 	private $volumeStatesForSet = array('Append', 'Archive', 'Disabled', 'Full', 'Used', 'Cleaning', 'Read-Only');
 
-	public function onInit($param) {
-		parent::onInit($param);
-		$this->Apply->setActionClass($this);
-		$this->Prune->setActionClass($this);
-		$this->Purge->setActionClass($this);
-	}
-
 	public function configure($mediaId) {
 		$voldata = $this->Application->getModule('api')->get(array('volumes', $mediaId))->output;
 		$this->VolumeID->Text = $voldata->mediaid;
@@ -71,38 +64,33 @@ class VolumeConfiguration extends Portlets {
 		$this->Pool->dataBind();
 	}
 
-	public function save($sender, $param) {
-		switch($sender->getParent()->ID) {
-			case $this->Apply->ID: {
-				$isInvalid = $this->RetentionPeriodValidator->IsValid === false || $this->UseDurationValidator->IsValid === false || $this->MaxVolJobsValidator->IsValid === false || $this->MaxVolFilesValidator->IsValid === false || $this->MaxVolBytesValidator->IsValid === false || $this->SlotValidator->IsValid === false;
-				if($isInvalid) {
-					return false;
-				}
-				$voldata = array();
-				$voldata['mediaid'] = $this->VolumeID->Text;
-				$voldata['volstatus'] = $this->VolumeStatus->SelectedValue;
-				$voldata['poolid'] = $this->Pool->SelectedValue;
-				$voldata['volretention'] = $this->RetentionPeriod->Text * 3600; // conversion to seconds
-				$voldata['voluseduration'] = $this->UseDuration->Text * 3600;  // conversion to seconds
-				$voldata['maxvoljobs'] = $this->MaxVolJobs->Text;
-				$voldata['maxvolfiles'] = $this->MaxVolFiles->Text;
-				$voldata['maxvolbytes'] = $this->MaxVolBytes->Text;
-				$voldata['slot'] = $this->Slot->Text;
-				$voldata['recycle'] = (integer)$this->Recycle->Checked;
-				$voldata['enabled'] = (integer)$this->Enabled->Checked;
-				$voldata['inchanger'] = (integer)$this->InChanger->Checked;
-				$this->Application->getModule('api')->set(array('volumes', $voldata['mediaid']), $voldata);
-				break;
-			}
-			case $this->Prune->ID: {
-				$this->Application->getModule('api')->get(array('volumes', 'prune', $this->VolumeID->Text));
-				break;
-			}
-			case $this->Purge->ID: {
-				$this->Application->getModule('api')->get(array('volumes', 'purge', $this->VolumeID->Text));
-				break;
-			}
+	public function prune($sender, $param) {
+		$this->Application->getModule('api')->get(array('volumes', 'prune', $this->VolumeID->Text));
+	}
+
+	public function purge($sender, $param) {
+		$this->Application->getModule('api')->get(array('volumes', 'purge', $this->VolumeID->Text));
+	}
+
+	public function apply($sender, $param) {
+		$isInvalid = $this->RetentionPeriodValidator->IsValid === false || $this->UseDurationValidator->IsValid === false || $this->MaxVolJobsValidator->IsValid === false || $this->MaxVolFilesValidator->IsValid === false || $this->MaxVolBytesValidator->IsValid === false || $this->SlotValidator->IsValid === false;
+		if($isInvalid) {
+			return false;
 		}
+		$voldata = array();
+		$voldata['mediaid'] = $this->VolumeID->Text;
+		$voldata['volstatus'] = $this->VolumeStatus->SelectedValue;
+		$voldata['poolid'] = $this->Pool->SelectedValue;
+		$voldata['volretention'] = $this->RetentionPeriod->Text * 3600; // conversion to seconds
+		$voldata['voluseduration'] = $this->UseDuration->Text * 3600;  // conversion to seconds
+		$voldata['maxvoljobs'] = $this->MaxVolJobs->Text;
+		$voldata['maxvolfiles'] = $this->MaxVolFiles->Text;
+		$voldata['maxvolbytes'] = $this->MaxVolBytes->Text;
+		$voldata['slot'] = $this->Slot->Text;
+		$voldata['recycle'] = (integer)$this->Recycle->Checked;
+		$voldata['enabled'] = (integer)$this->Enabled->Checked;
+		$voldata['inchanger'] = (integer)$this->InChanger->Checked;
+		$this->Application->getModule('api')->set(array('volumes', $voldata['mediaid']), $voldata);
 	}
 
 	public function getVolumeStates($forSetOnly = false) {

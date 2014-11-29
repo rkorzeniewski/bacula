@@ -22,14 +22,6 @@ Prado::using('Application.Portlets.Portlets');
 
 class StorageConfiguration extends Portlets {
 
-	public function onInit($param) {
-		parent::onInit($param);
-		$this->Mount->setActionClass($this);
-		$this->Release->setActionClass($this);
-		$this->Umount->setActionClass($this);
-		$this->Status->setActionClass($this);
-	}
-
 	public function configure($storageId) {
 		$storagedata = $this->Application->getModule('api')->get(array('storages', 'show', $storageId))->output;
 		$this->ShowStorage->Text = implode(PHP_EOL, $storagedata);
@@ -39,39 +31,36 @@ class StorageConfiguration extends Portlets {
 		$this->AutoChanger->Visible = (boolean)$storage->autochanger;
 	}
 
-	public function save($sender, $param) {
+	public function mount($sender, $param) {
 		$isValid = $this->DriveValidator->IsValid === true && $this->SlotValidator->IsValid === true;
-		switch($sender->getParent()->ID) {
-			case $this->Status->ID: {
-				$status = $this->Application->getModule('api')->get(array('storages', 'status', $this->StorageID->Text))->output;
-				$this->ShowStorage->Text = implode(PHP_EOL, $status);
-				break;
-			}
-			case $this->Mount->ID: {
-				if($isValid === false) {
-					return;
-				}
-				$drive = ($this->AutoChanger->Visible === true) ? intval($this->Drive->Text) : 0;
-				$slot = ($this->AutoChanger->Visible === true) ? intval($this->Slot->Text) : 0;
-				$mount = $this->Application->getModule('api')->get(array('storages', 'mount', $this->StorageID->Text, $drive, $slot))->output;
-				$this->ShowStorage->Text = implode(PHP_EOL, $mount);
-				break;
-			}
-			case $this->Umount->ID: {
-				if($isValid === false) {
-					return;
-				}
-				$drive = ($this->AutoChanger->Visible === true) ? intval($this->Drive->Text) : 0;
-				$umount = $this->Application->getModule('api')->get(array('storages', 'umount', $this->StorageID->Text, $drive))->output;
-				$this->ShowStorage->Text = implode(PHP_EOL, $umount);
-				break;
-			}
-			case $this->Release->ID: {
-				$release = $this->Application->getModule('api')->get(array('storages', 'release', $this->StorageID->Text))->output;
-				$this->ShowStorage->Text = implode(PHP_EOL, $release);
-				break;
-			}
+		if($isValid === false) {
+			return;
 		}
+		$drive = ($this->AutoChanger->Visible === true) ? intval($this->Drive->Text) : 0;
+		$slot = ($this->AutoChanger->Visible === true) ? intval($this->Slot->Text) : 0;
+		$mount = $this->Application->getModule('api')->get(array('storages', 'mount', $this->StorageID->Text, $drive, $slot))->output;
+		$this->ShowStorage->Text = implode(PHP_EOL, $mount);
+	}
+
+	public function umount($sender, $param) {
+		$isValid = $this->DriveValidator->IsValid === true && $this->SlotValidator->IsValid === true;
+		if($isValid === false) {
+			return;
+		}
+		$drive = ($this->AutoChanger->Visible === true) ? intval($this->Drive->Text) : 0;
+		$umount = $this->Application->getModule('api')->get(array('storages', 'umount', $this->StorageID->Text, $drive))->output;
+		$this->ShowStorage->Text = implode(PHP_EOL, $umount);
+
+	}
+
+	public function release($sender, $param) {
+		$release = $this->Application->getModule('api')->get(array('storages', 'release', $this->StorageID->Text))->output;
+		$this->ShowStorage->Text = implode(PHP_EOL, $release);
+	}
+
+	public function status($sender, $param) {
+		$status = $this->Application->getModule('api')->get(array('storages', 'status', $this->StorageID->Text))->output;
+		$this->ShowStorage->Text = implode(PHP_EOL, $status);
 	}
 
 	public function driveValidator($sender, $param) {

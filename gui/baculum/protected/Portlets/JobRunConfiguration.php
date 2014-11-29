@@ -23,12 +23,6 @@ class JobRunConfiguration extends Portlets {
 
 	const DEFAULT_JOB_PRIORITY = 10;
 
-	public function onInit($param) {
-		parent::onInit($param);
-		$this->Run->setActionClass($this);
-		$this->Estimate->setActionClass($this);
-	}
-
 	public function configure($jobname) {
 		$this->JobName->Text = $jobname;
 		$this->Estimation->Text = '';
@@ -71,37 +65,31 @@ class JobRunConfiguration extends Portlets {
 		$this->Priority->Text = self::DEFAULT_JOB_PRIORITY;
 	}
 
-	public function save($sender, $param) {
-		switch($sender->getParent()->ID) {
-			case $this->Estimate->ID: {
-				$params = array();
-				$params['name'] = $this->JobName->Text;
-				$params['level'] = $this->Level->SelectedValue;
-				$params['fileset'] = $this->FileSet->SelectedValue;
-				$params['clientid'] = $this->Client->SelectedValue;
-				$params['accurate'] = (integer)$this->Accurate->Checked;
-				var_dump($params);
-				$result = $this->Application->getModule('api')->create(array('jobs', 'estimate'), $params)->output;
-				$this->Estimation->Text = implode(PHP_EOL, $result);
-				break;
-			}
-			case $this->Run->ID: {
-				if($this->PriorityValidator->IsValid === false) {
-					return false;
-				}
-				$params = array();
-				$params['name'] = $this->JobName->Text;
-				$params['level'] = $this->Level->SelectedValue;
-				$params['fileset'] = $this->FileSet->SelectedValue;
-				$params['clientid'] = $this->Client->SelectedValue;
-				$params['storageid'] = $this->Storage->SelectedValue;
-				$params['poolid'] = $this->Pool->SelectedValue;
-				$params['priority'] = $this->Priority->Text;
-				$result = $this->Application->getModule('api')->create(array('jobs', 'run'), $params)->output;
-				$this->Estimation->Text = implode(PHP_EOL, $result);
-				break;
-			}
+	public function run_job($sender, $param) {
+		if($this->PriorityValidator->IsValid === false) {
+			return false;
 		}
+		$params = array();
+		$params['name'] = $this->JobName->Text;
+		$params['level'] = $this->Level->SelectedValue;
+		$params['fileset'] = $this->FileSet->SelectedValue;
+		$params['clientid'] = $this->Client->SelectedValue;
+		$params['storageid'] = $this->Storage->SelectedValue;
+		$params['poolid'] = $this->Pool->SelectedValue;
+		$params['priority'] = $this->Priority->Text;
+		$result = $this->Application->getModule('api')->create(array('jobs', 'run'), $params)->output;
+		$this->Estimation->Text = implode(PHP_EOL, $result);
+	}
+
+	public function estimate($sender, $param) {
+		$params = array();
+		$params['name'] = $this->JobName->Text;
+		$params['level'] = $this->Level->SelectedValue;
+		$params['fileset'] = $this->FileSet->SelectedValue;
+		$params['clientid'] = $this->Client->SelectedValue;
+		$params['accurate'] = (integer)$this->Accurate->Checked;
+		$result = $this->Application->getModule('api')->create(array('jobs', 'estimate'), $params)->output;
+		$this->Estimation->Text = implode(PHP_EOL, $result);
 	}
 
 	public function priorityValidator($sender, $param) {

@@ -11,6 +11,8 @@ var SlideWindowClass = Class.create({
 	loadRequest : null,
 	repeaterEl: null,
 	gridEl: null,
+	checked: [],
+	objects: {},
 
 	size: {
 		widthNormal : '437px',
@@ -28,11 +30,16 @@ var SlideWindowClass = Class.create({
 		contentItems : 'slide-window-element',
 		contentAlternatingItems : 'slide-window-element-alternating',
 		toolsButtonSuffix : '-slide-window-tools',
+		actionsSuffix : '-slide-window-actions',
 		toolbarSuffix : '-slide-window-toolbar',
 		titleSuffix : '-slide-window-title'
 	},
 
 	initialize: function(windowId, data) {
+		if(typeof(windowId) == "undefined") {
+			return;
+		}
+
 		this.windowId = windowId;
 		this.window = $(this.windowId + this.elements.containerSuffix);
 		this.tools = $(this.windowId + this.elements.toolsButtonSuffix);
@@ -65,6 +72,24 @@ var SlideWindowClass = Class.create({
 			return false;
 		}
 		this.setEvents();
+	},
+
+	objectExists: function(key) {
+		return this.objects.hasOwnProperty(key);
+	},
+
+	registerObj: function(key, obj) {
+		if(this.objectExists(key) === false) {
+			this.objects[key] = obj;
+		}
+	},
+
+	getObj: function(key) {
+		var obj = null;
+		if(this.objectExists(key) === true) {
+			obj = this.objects[key];
+		}
+		return obj;
 	},
 
 	setEvents: function() {
@@ -166,7 +191,9 @@ var SlideWindowClass = Class.create({
 		this.repeaterEl = repeaterEl;
 		this.gridEl = gridEl;
 		this.loadRequest = requestObj;
+		this.markAllChecked(false);
 		this.setLoadRequest();
+		this.postWindowOpen();
 	},
 
 	setLoadRequest: function() {
@@ -179,8 +206,15 @@ var SlideWindowClass = Class.create({
 		}
 
 		dataList.each(function(tr) {
-			$(tr).observe('click', function() {
-				var el = $(tr).down('input')
+			$(tr).observe('click', function(index, clickedEl) {
+				var target = clickedEl.target || clickedEl.srcElement;
+				var clicked = $(target.id);
+				// for element selection action (clicked checkbox) configuration window is not open
+				if(clicked && clicked.hasAttribute('type') && clicked.readAttribute('type') == 'checkbox') {
+					return;
+				}
+
+				var el = $(tr).down('input[type=hidden]')
 				if(el) {
 					var val = el.getValue();
 					this.loadRequest.ActiveControl.CallbackParameter = val;
@@ -231,7 +265,7 @@ var SlideWindowClass = Class.create({
 		} else {
 			return;
 		}
-		while (--i >= 0) (function (i) {
+		while (--i >= 1) (function (i) {
 			var dir = 1;
 			th[i].addEventListener('click', function () {
 				self.sortTable(i, (dir = 1 - dir));
@@ -265,9 +299,119 @@ var SlideWindowClass = Class.create({
 		$(count_el).update(' (' + elements_count + ')');
 	},
 	toggleToolbar: function() {
+		if (this.isToolbarOpen() === false) {
+			this.markAllChecked(false);
+		}
 		Effect.toggle($(this.windowId + this.elements.toolbarSuffix), 'slide', { duration: 0.2});
+	},
+	isToolbarOpen: function() {
+		return $(this.windowId + this.elements.toolbarSuffix).visible();
+	},
+	setActions: function() {
+		var table = $(this.window).down('table');
+		var checkboxes = table.select('input[name="actions_checkbox"]');
+		checkboxes.each(function(el) {
+			el.observe('change', function() {
+				var is_checked = this.is_any_checked(checkboxes);
+				if(is_checked === true && !this.areActionsOpen()) {
+					this.showActions();
+				} else if (is_checked === false && this.areActionsOpen()) {
+					this.hideActions();
+				}
+			}.bind(this));
+                }.bind(this));
+	},
+	is_any_checked: function(checkboxes) {
+		var is_checked = false;
+		checkboxes.each(function(ch) {
+			if(ch.checked == true) {
+				is_checked = true;
+				throw $break;
+			}
+		});
+		return is_checked;
+	},
+
+	markAllChecked: function(check) {
+		this.checked = [];
+		var table = $(this.window).down('table');
+		var checkboxes = table.select('input[name="actions_checkbox"]');
+		var containerId;
+		if(checkboxes.length > 0) {
+			checkboxes.each(function(ch, index) {
+				if (ch.up('tr').visible()) {
+					containerId = ch.getAttribute('rel');
+					if (ch.checked == false && check == true) {
+						ch.checked = true;
+					} else if (ch.checked == true && check == false) {
+						ch.checked = false;
+					}
+					this.markChecked(containerId, ch.checked, ch.value);
+				}
+			}.bind(this));
+			this.packChecked(containerId);
+		}
+
+		if(check) {
+			this.showActions();
+		} else {
+			this.hideActions();
+		}
+	},
+	markChecked: function(containerId, checked, param, pack) {
+		if (this.checked.length == 0) {
+			if(checked == true) {
+				this.checked.push(param);
+			}
+		} else {
+			index = this.checked.indexOf(param);
+			if(checked === true && index == -1) {
+				this.checked.push(param);
+			} else if (checked === false && index > -1) {
+				this.checked.splice(index, 1);
+			}
+		}
+
+		if(checked == true) {
+			this.showActions();
+		} else if(this.checked.length == 0) {
+			this.hideActions();
+		}
+
+		if (pack === true) {
+			this.packChecked(containerId);
+		}
+	},
+	packChecked: function(containerId) {
+		var values_packed = this.checked.join(';');
+		$(containerId).setValue(values_packed);
+	},
+	showActions: function() {
+		if (this.areActionsOpen()) {
+			return;
+		}
+		if (this.isToolbarOpen()) {
+			this.toggleToolbar();
+		}
+		Effect.toggle($(this.windowId + this.elements.actionsSuffix), 'slide', { duration: 0.2});
+	},
+	hideActions: function() {
+		if (!this.areActionsOpen()) {
+			return;
+		}
+		this.checked = [];
+		Effect.toggle($(this.windowId + this.elements.actionsSuffix), 'slide', { duration: 0.2});
+	},
+	areActionsOpen: function() {
+		return $(this.windowId + this.elements.actionsSuffix).visible();
+	},
+	postWindowOpen: function() {
+		this.setActions();
+		this.setElementsCount();
 	}
 });
+
+var SlideWindow = new SlideWindowClass()
 
 document.observe("dom:loaded", function() {
 	if(Prototype.Browser.IE  || Prototype.Browser.Gecko) {

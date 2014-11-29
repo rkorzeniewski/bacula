@@ -18,19 +18,41 @@
  */
 
 Prado::using('System.Web.UI.ActiveControls.TActiveRepeater');
+Prado::using('Application.Portlets.ISlideWindow');
 Prado::using('Application.Portlets.Portlets');
 
-class PoolList extends Portlets {
+class PoolList extends Portlets implements ISlideWindow {
 
-	public $ShowID, $windowTitle;
+	public $ID;
+	public $buttonID;
+	public $windowTitle;
 
-	public function onLoad($param) {
-		parent::onLoad($param);
-		$this->prepareData();
+	public function setID($id) {
+		$this->ID = $id;
+	}
+
+	public function getID($hideAutoID = true) {
+		return $this->ID;
+	}
+
+	public function setButtonID($id) {
+		$this->buttonID = $id;
+	}
+
+	public function getButtonID() {
+		return $this->buttonID;
 	}
 
 	public function setWindowTitle($param) {
 		$this->windowTitle = $param;
+	}
+
+	public function getWindowTitle() {
+		return $this->windowTitle;
+	}
+	public function onLoad($param) {
+		parent::onLoad($param);
+		$this->prepareData();
 	}
 
 	public function prepareData($forceReload = false) {

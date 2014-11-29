@@ -19,19 +19,42 @@
 
 Prado::using('System.Web.UI.ActiveControls.TActiveRepeater');
 Prado::using('System.Web.UI.ActiveControls.TActiveDataGrid');
+Prado::using('Application.Portlets.ISlideWindow');
 Prado::using('Application.Portlets.Portlets');
 
-class ClientList extends Portlets {
+class ClientList extends Portlets implements ISlideWindow {
 
-	public $ShowID, $windowTitle;
+	public $ID;
+	public $buttonID;
+	public $windowTitle;
 
-	public function onLoad($param) {
-		parent::onLoad($param);
-		$this->prepareData();
+	public function setID($id) {
+		$this->ID = $id;
+	}
+
+	public function getID($hideAutoID = true) {
+		return $this->ID;
+	}
+
+	public function setButtonID($id) {
+		$this->buttonID = $id;
+	}
+
+	public function getButtonID() {
+		return $this->buttonID;
 	}
 
 	public function setWindowTitle($param) {
 		$this->windowTitle = $param;
+	}
+
+	public function getWindowTitle() {
+		return $this->windowTitle;
+	}
+
+	public function onLoad($param) {
+		parent::onLoad($param);
+		$this->prepareData();
 	}
 
 	public function prepareData($forceReload = false) {
@@ -62,15 +85,6 @@ class ClientList extends Portlets {
 		$data = $this->Application->getModule('misc')->objectToArray($data);
 		$this->DataGrid->DataSource = $this->sortData($data, $param->SortExpression, $sender->UniqueID);
 		$this->DataGrid->dataBind();
-	}
-
-
-	public function setShowID($ShowID) {
-		$this->ShowID = $this->getMaster()->ShowID = $ShowID;
-	}
-
-	public function getShowID() {
-		return $this->ShowID;
 	}
 
 	public function configure($sender, $param) {

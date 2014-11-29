@@ -1,12 +1,5 @@
 <%@ MasterClass="Application.Portlets.SlideWindow" %>
 <com:TContent ID="SlideWindowContent">
-	<script type="text/javascript">
-		document.observe("dom:loaded", function() {
-			jobConfigurationWindow = ConfigurationWindow<%=$this->getPage()->JobConfiguration->getMaster()->ClientID%>;
-			jobSlideWindowObj = <%=$this->getPage()->JobWindow->ShowID%>SlideWindow;
-			jobSlideWindowObj.setConfigurationObj(jobConfigurationWindow);
-		});
-	</script>
 	<com:TActivePanel ID="RepeaterShow">
 	<com:TActiveRepeater ID="Repeater">
 		<prop:ItemTemplate>
@@ -28,6 +21,11 @@
 		ItemStyle.CssClass="slide-window-element"
 		AlternatingItemStyle.CssClass="slide-window-element-alternating"
 	>
+		<com:TActiveTemplateColumn HeaderText="<input type='checkbox' name='actions_checkbox' onclick=SlideWindow.getObj('JobWindow').markAllChecked(this.checked)>">
+			<prop:ItemTemplate>
+				<input type="checkbox" name="actions_checkbox" value="<%=$this->getParent()->Data['jobid']%>" id="<%=$this->getPage()->JobWindow->CheckedValues->ClientID%><%=$this->getParent()->Data['jobid']%>" rel="<%=$this->getPage()->JobWindow->CheckedValues->ClientID%>" onclick="SlideWindow.getObj('JobWindow').markChecked(this.getAttribute('rel'), this.checked, this.value, true);" />
+			</prop:ItemTemplate>
+                </com:TActiveTemplateColumn>
 		<com:TActiveBoundColumn
 			SortExpression="jobid"
 			HeaderText="ID"
@@ -61,8 +59,12 @@
 			DataField="endtime"
 		/>
 	</com:TActiveDataGrid>
+	<com:TActiveHiddenField ID="CheckedValues" />
 	</com:TActivePanel>
 	<com:TCallback ID="DataElementCall" OnCallback="Page.JobWindow.configure">
-		<prop:ClientSide OnComplete="jobConfigurationWindow.show();jobConfigurationWindow.progress(false);" />
+		<prop:ClientSide.OnComplete>
+			ConfigurationWindow.getObj('JobWindow').show();
+			ConfigurationWindow.getObj('JobWindow').progress(false);
+		</prop:ClientSide.OnComplete>
 	</com:TCallback>
 </com:TContent>

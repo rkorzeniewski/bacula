@@ -40,26 +40,21 @@ class ClientConfiguration extends Portlets {
 		$this->AutoPrune->Checked = $client->autoprune == 1;
 	}
 
-	public function save($sender, $param) {
-		switch($sender->getParent()->ID) {
-			case $this->Status->ID: {
-				$status = $this->Application->getModule('api')->get(array('clients', 'status', $this->ClientIdentifier->Text))->output;
-				$this->ShowClient->Text = implode(PHP_EOL, $status);
-				break;
-			}
-			case $this->Apply->ID: {
-				if($this->JobRetentionValidator->IsValid === false || $this->FileRetentionValidator->IsValid === false) {
-					return false;
-				}
-				$client = array();
-				$client['clientid'] = $this->ClientIdentifier->Text;
-				$client['fileretention'] = $this->FileRetention->Text * 86400; // conversion to seconds
-				$client['jobretention'] = $this->JobRetention->Text * 86400; // conversion to seconds
-				$client['autoprune'] = (integer)$this->AutoPrune->Checked;
-				$this->Application->getModule('api')->set(array('clients', $client['clientid']), $client);
-				break;
-			}
+	public function status($sender, $param) {
+		$status = $this->Application->getModule('api')->get(array('clients', 'status', $this->ClientIdentifier->Text))->output;
+		$this->ShowClient->Text = implode(PHP_EOL, $status);
+	}
+
+	public function apply($sender, $param) {
+		if($this->JobRetentionValidator->IsValid === false || $this->FileRetentionValidator->IsValid === false) {
+			return false;
 		}
+		$client = array();
+		$client['clientid'] = $this->ClientIdentifier->Text;
+		$client['fileretention'] = $this->FileRetention->Text * 86400; // conversion to seconds
+		$client['jobretention'] = $this->JobRetention->Text * 86400; // conversion to seconds
+		$client['autoprune'] = (integer)$this->AutoPrune->Checked;
+		$this->Application->getModule('api')->set(array('clients', $client['clientid']), $client);
 	}
 
 	public function fileRetentionValidator($sender, $param) {

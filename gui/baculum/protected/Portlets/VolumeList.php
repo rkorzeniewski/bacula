@@ -21,20 +21,47 @@ Prado::using('System.Web.UI.ActiveControls.TActiveDataGrid');
 Prado::using('System.Web.UI.ActiveControls.TActiveRepeater');
 Prado::using('System.Web.UI.ActiveControls.TActiveLinkButton');
 Prado::using('System.Web.UI.ActiveControls.TActivePanel');
+Prado::using('System.Web.UI.ActiveControls.TActiveHiddenField');
 Prado::using('System.Web.UI.ActiveControls.TCallback');
+Prado::using('Application.Portlets.ISlideWindow');
 Prado::using('Application.Portlets.Portlets');
 
-class VolumeList extends Portlets {
+class VolumeList extends Portlets implements ISlideWindow {
 
-	public $ShowID, $pools, $oldPool, $view, $windowTitle;
+	public $ID;
+	public $buttonID;
+	public $windowTitle;
+	public $pools;
+	public $oldPool;
+	public $view;
 
-	public function onLoad($param) {
-		parent::onLoad($param);
-		$this->prepareData();
+	public function setID($id) {
+		$this->ID = $id;
+	}
+
+	public function getID($hideAutoID = true) {
+		return $this->ID;
+	}
+
+	public function setButtonID($id) {
+		$this->buttonID = $id;
+	}
+
+	public function getButtonID() {
+		return $this->buttonID;
 	}
 
 	public function setWindowTitle($param) {
 		$this->windowTitle = $param;
+	}
+
+	public function getWindowTitle() {
+		return $this->windowTitle;
+	}
+
+	public function onLoad($param) {
+		parent::onLoad($param);
+		$this->prepareData();
 	}
 
 	public function prepareData($forceReload = false) {
@@ -90,18 +117,54 @@ class VolumeList extends Portlets {
 		$this->DataGrid->dataBind();
 	}
 
-	public function setShowID($ShowID) {
-		$this->ShowID = $this->getMaster()->ShowID = $ShowID;
-	}
-
-	public function getShowID() {
-		return $this->ShowID;
-	}
-
 	public function configure($sender, $param) {
 		if($this->Page->IsCallBack) {
 			$this->getPage()->VolumeConfiguration->configure($param->CallbackParameter);
 		}
+	}
+
+	public function executeAction($action) {
+		$params = explode(';', $this->CheckedValues->Value);
+		$commands = array();
+		switch($action) {
+			case 'prune': {
+				for($i = 0; $i < count($params); $i++) {
+					$cmd = array('prune');
+					$cmd[] = 'volume="' . $params[$i] . '"';
+					$cmd[] = 'yes';
+					$cmd[] = PHP_EOL;
+					$commands[] = implode(' ', $cmd);
+				}
+				$this->getPage()->Console->CommandLine->Text = implode(' ', $commands);
+				$this->getPage()->Console->sendCommand(null, null);
+				break;
+			}
+			case 'purge': {
+				for($i = 0; $i < count($params); $i++) {
+					$cmd = array('purge');
+					$cmd[] = 'volume="' . $params[$i] . '"';
+					$cmd[] = 'yes';
+					$cmd[] = PHP_EOL;
+					$commands[] = implode(' ', $cmd);
+				}
+				$this->getPage()->Console->CommandLine->Text = implode(' ', $commands);
+				$this->getPage()->Console->sendCommand(null, null);
+				break;
+			}
+			case 'delete': {
+				for($i = 0; $i < count($params); $i++) {
+					$cmd = array('delete');
+					$cmd[] = 'volume="' . $params[$i] . '"';
+					$cmd[] = 'yes';
+					$cmd[] = PHP_EOL;
+					$commands[] = implode(' ', $cmd);
+				}
+				$this->getPage()->Console->CommandLine->Text = implode(' ', $commands);
+				$this->getPage()->Console->sendCommand(null, null);
+				break;
+			}
+		}
+		$this->CheckedValues->Value = "";
 	}
 }
 ?>

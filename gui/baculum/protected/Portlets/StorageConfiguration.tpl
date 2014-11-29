@@ -30,6 +30,9 @@
 			</div>
 		</com:TActivePanel>
 		<div class="button-center">
-			<com:Application.Portlets.BActiveButton ID="Mount" ValidationGroup="AutoChangerGroup" CausesValidation="true" Text="<%[ Mount ]%>" />&nbsp;&nbsp;<com:Application.Portlets.BActiveButton ID="Release" Text="<%[ Release ]%>" />&nbsp;&nbsp;<com:Application.Portlets.BActiveButton ID="Umount" ValidationGroup="AutoChangerGroup" CausesValidation="true" Text="<%[ Umount ]%>" />&nbsp;&nbsp;<com:Application.Portlets.BActiveButton ID="Status" Text="<%[ Status ]%>" />
+			<com:BActiveButton ID="Mount" OnClick="mount" ValidationGroup="AutoChangerGroup" CausesValidation="true" Text="<%[ Mount ]%>" ClientSide.OnSuccess="ConfigurationWindow.getObj('StorageWindow').progress(false);" />
+			<com:BActiveButton ID="Release" OnClick="release" Text="<%[ Release ]%>" ClientSide.OnSuccess="ConfigurationWindow.getObj('StorageWindow').progress(false);" />
+			<com:BActiveButton ID="Umount" OnClick="umount" ValidationGroup="AutoChangerGroup" CausesValidation="true" Text="<%[ Umount ]%>" ClientSide.OnSuccess="ConfigurationWindow.getObj('StorageWindow').progress(false);" />
+			<com:BActiveButton ID="Status" OnClick="status" Text="<%[ Status ]%>" ClientSide.OnSuccess="ConfigurationWindow.getObj('StorageWindow').progress(false);" />
 		</div>
 </com:TContent>

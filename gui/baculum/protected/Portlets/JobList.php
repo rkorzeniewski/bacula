@@ -22,26 +22,56 @@ Prado::using('System.Web.UI.ActiveControls.TActiveRepeater');
 Prado::using('System.Web.UI.ActiveControls.TActiveLinkButton');
 Prado::using('System.Web.UI.ActiveControls.TActivePanel');
 Prado::using('System.Web.UI.ActiveControls.TCallback');
+Prado::using('Application.Portlets.ISlideWindow');
 Prado::using('Application.Portlets.Portlets');
 
-class JobList extends Portlets {
+class JobList extends Portlets implements ISlideWindow {
 
-	public $ShowID, $windowTitle;
-
-	private $jobTypes = array('B' => 'Backup', 'M' => 'Migrated', 'V' => 'Verify', 'R' => 'Restore', 'I' => 'Internal', 'D' => 'Admin', 'A' => 'Archive', 'C' => 'Copy', 'g' => 'Migration');
-
-	private $jobStates;
-
+	public $ID;
+	public $buttonID;
+	public $windowTitle;
 	public $jobLevels;
+	private $jobStates;
+	private $jobTypes = array(
+		'B' => 'Backup',
+		'M' => 'Migrated',
+		'V' => 'Verify',
+		'R' => 'Restore',
+		'I' => 'Internal',
+		'D' => 'Admin',
+		'A' => 'Archive',
+		'C' => 'Copy',
+		'g' => 'Migration'
+	);
+
+	public function setID($id) {
+		$this->ID = $id;
+	}
+
+	public function getID($hideAutoID = true) {
+		return $this->ID;
+	}
+
+	public function setButtonID($id) {
+		$this->buttonID = $id;
+	}
+
+	public function getButtonID() {
+		return $this->buttonID;
+	}
+
+	public function setWindowTitle($param) {
+		$this->windowTitle = $param;
+	}
+
+	public function getWindowTitle() {
+		return $this->windowTitle;
+	}
 
 	public function onLoad($param) {
 		parent::onLoad($param);
 		$this->prepareData();
 		$this->jobLevels = $this->Application->getModule('misc')->getJobLevels();
-	}
-
-	public function setWindowTitle($param) {
-		$this->windowTitle = $param;
 	}
 
 	public function getJobType($jobLetter) {
@@ -109,18 +139,30 @@ class JobList extends Portlets {
 		$this->DataGrid->dataBind();
 	}
 
-	public function setShowID($ShowID) {
-		$this->ShowID = $this->getMaster()->ShowID = $ShowID;
-	}
-
-	public function getShowID() {
-		return $this->ShowID;
-	}
-
 	public function configure($sender, $param) {
 		if($this->Page->IsCallBack) {
 			$this->getPage()->JobConfiguration->configure($param->CallbackParameter);
 		}
+	}
+
+	public function executeAction($action) {
+		$params = explode(';', $this->CheckedValues->Value);
+		$commands = array();
+		switch($action) {
+			case 'delete': {
+				for($i = 0; $i < count($params); $i++) {
+					$cmd = array('delete');
+					$cmd[] = 'jobid="' . $params[$i] . '"';
+					$cmd[] = 'yes';
+					$cmd[] = PHP_EOL;
+					$commands[] = implode(' ', $cmd);
+				}
+				$this->getPage()->Console->CommandLine->Text = implode(' ', $commands);
+				$this->getPage()->Console->sendCommand(null, null);
+				break;
+			}
+		}
+		$this->CheckedValues->Value = "";
 	}
 }
 ?>

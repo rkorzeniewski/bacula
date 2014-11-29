@@ -1,12 +1,5 @@
 <%@ MasterClass="Application.Portlets.SlideWindow" %>
 <com:TContent ID="SlideWindowContent">
-	<script type="text/javascript">
-		document.observe("dom:loaded", function() {
-			volumeConfigurationWindow = ConfigurationWindow<%=$this->getPage()->VolumeConfiguration->getMaster()->ClientID%>;
-			volumeSlideWindowObj = <%=$this->getPage()->VolumeWindow->ShowID%>SlideWindow;
-			volumeSlideWindowObj.setConfigurationObj(volumeConfigurationWindow);
-		});
-	</script>
 	<com:TActivePanel ID="RepeaterShow">
 	<com:TActiveRepeater ID="Repeater">
 		<prop:ItemTemplate>
@@ -31,6 +24,11 @@
 		ItemStyle.CssClass="slide-window-element"
 		AlternatingItemStyle.CssClass="slide-window-element-alternating"
 	>
+		<com:TActiveTemplateColumn HeaderText="<input type='checkbox' name='actions_checkbox' onclick=SlideWindow.getObj('VolumeWindow').markAllChecked(this.checked)>">
+			<prop:ItemTemplate>
+				<input type="checkbox" name="actions_checkbox" value="<%=$this->getParent()->Data['volumename']%>" id="<%=$this->getPage()->VolumeWindow->CheckedValues->ClientID%><%=$this->getParent()->Data['volumename']%>" rel="<%=$this->getPage()->VolumeWindow->CheckedValues->ClientID%>" onclick="SlideWindow.getObj('VolumeWindow').markChecked(this.getAttribute('rel'), this.checked, this.value, true);" />
+			</prop:ItemTemplate>
+                </com:TActiveTemplateColumn>
 		<com:TActiveTemplateColumn HeaderText="Volume name" SortExpression="volumename">
 			<prop:ItemTemplate>
 				<div><%=$this->getParent()->Data['volumename']%></div>
@@ -59,8 +57,12 @@
 			DataField="whenexpire"
 		/>
 	</com:TActiveDataGrid>
+	<com:TActiveHiddenField ID="CheckedValues" />
 	</com:TActivePanel>
 	<com:TCallback ID="DataElementCall" OnCallback="Page.VolumeWindow.configure">
-		<prop:ClientSide OnComplete="volumeConfigurationWindow.show();volumeConfigurationWindow.progress(false);" />
+		<prop:ClientSide.OnComplete>
+			ConfigurationWindow.getObj('VolumeWindow').show();
+			ConfigurationWindow.getObj('VolumeWindow').progress(false);
+		</prop:ClientSide.OnComplete>
 	</com:TCallback>
 </com:TContent>
