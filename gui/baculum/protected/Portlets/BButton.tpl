@@ -1,3 +1,0 @@
-<span class="bbutton" <%=$this->Visible === false ? 'style="display: none"' : ''%>>
-<com:TButton CssClass="button-left" Text="&nbsp;" CommandName="<%=$this->commandName%>" CausesValidation="<%=$this->causesValidation%>" Visible="<%=$this->Visible%>" /><com:TButton CssClass="button-center" Text="<%=$this->text%>" CommandName="<%=$this->commandName%>" CausesValidation="<%=$this->causesValidation%>" Visible="<%=$this->Visible%>" /><com:TButton CssClass="button-right"  Text="&nbsp;" CommandName="<%=$this->commandName%>" CausesValidation="<%=$this->causesValidation%>" Visible="<%=$this->Visible%>" />
-</span>

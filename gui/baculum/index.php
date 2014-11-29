@@ -28,6 +28,9 @@ define('APPLICATION_DIRECTORY', __DIR__);
 require_once('./protected/Pages/Requirements.php');
 new Requirements(__DIR__);
 require_once('./framework/prado.php');
+
 $application=new TApplication;
+Prado::using('Application.Portlets.BButton');
+Prado::using('Application.Portlets.BActiveButton');
 $application->run();
 ?>

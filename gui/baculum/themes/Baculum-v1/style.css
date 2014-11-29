@@ -26,7 +26,8 @@ input[type=text], input[type=password], select, textarea {
 }
 
 input[type=checkbox] {
-		margin: 6px;
+		height: 16px;
+		width: 16px;
 }
 
 input.textbox, select.textbox {
@@ -335,44 +336,25 @@ div.slide-window-progress {
 	color: #96c600 !important;
 }
 
-.bbutton input.button-left, .bbutton input.button-center, .bbutton input.button-right {
+input.bbutton {
 	font-size: 12px;
-	height: 25px;
 	color: black;
+	height: 25px;
 	cursor: pointer;
 	padding: 0;
-	margin: 0;
+	margin: 0 8px;
 	border: 0;
-}
-
-.bbutton input.button-left, .bbutton input.button-right {
-	width: 2px;
-}
-
-.bbutton input.button-left {
-	background: transparent url('button-left.png') no-repeat left 0;
-}
-
-.bbutton input.button-center {
-	padding: 0 7px;
+	padding: 0 9px;
 	min-width: 65px;
+        border: 0;
+	border-radius: 3px;
 	background: transparent url('button-center.png') repeat-x left 0;
 }
 
-.bbutton input.button-right {
-	background: transparent url('button-right.png') no-repeat left 0;
-}
-
-.bbutton:hover input.button-left {
-	background: transparent url('button-left.png') no-repeat left -25px;
-}
-
-.bbutton:hover input.button-center {
+input.bbutton:hover {
+	border: 1px solid red;
+	padding: 0 8px;
 	background: transparent url('button-center.png') repeat-x left -25px;
-}
-
-.bbutton:hover input.button-right {
-	background: transparent url('button-right.png') no-repeat left -25px;
 }
 
 div.slide-window-container {
@@ -420,6 +402,7 @@ tr.slide-window-element-alternating {
 
 tr.slide-window-element td, tr.slide-window-element-alternating td {
 	font-style: italic;
+	word-break: break-all;
 }
 tr.slide-window-element:hover, tr.slide-window-element-alternating:hover {
 	float: none;
@@ -518,7 +501,7 @@ div.slide-window-sort {
 	right: 14px;
 }
 
-div.slide-window-toolbar {
+div.slide-window-toolbar, div.slide-window-actions {
 	height: 90px;
 	width: 240px;
 	z-index: 25;
@@ -550,6 +533,16 @@ div.slide-window-toolbar table select,div.slide-window-toolbar table input {
 
 div.slide-window-toolbar table input[type="text"] {
 	width: 123px;
+}
+div.slide-window-actions {
+	width: 220px;
+	height: 110px;
+}
+
+div.slide-window-actions table {
+	width: 100%;
+	font-size: 12px;
+	padding: 10px;
 }
 
 div.configuration-window-content {
@@ -763,8 +756,8 @@ legend {
 }
 
 img {
-		vertical-align: middle;
-		border: none;
+	vertical-align: middle;
+	border: none;
 }
 
 div.small {

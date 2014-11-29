@@ -17,41 +17,66 @@
  * Bacula® is a registered trademark of Kern Sibbald.
  */
  
-Prado::using('System.Web.UI.ActiveControls.TActiveButton');
-Prado::using('Application.Portlets.Portlets');
+Prado::using('System.Web.UI.ActiveControls.TActiveControlAdapter');
 
-class BActiveButton extends Portlets{
+class BActiveButton extends TButton implements ICallbackEventHandler, IActiveControl
+{
+	public function __construct()
+	{
+		parent::__construct();
+		$this->setAdapter(new TActiveControlAdapter($this));
+	}
 
-	public $actionClass, $text, $validationGroup;
-	public $causesValidation = true;
+	public function getActiveControl()
+	{
+		return $this->getAdapter()->getBaseActiveControl();
+	}
 
-	public function onInit($param) {
-		parent::onInit($param);
+	public function getClientSide()
+	{
+		return $this->getAdapter()->getBaseActiveControl()->getClientSide();
+	}
+
+	public function raiseCallbackEvent($param)
+	{
+		$this->raisePostBackEvent($param);
+		$this->onCallback($param);
+	}
+
+	public function onCallback($param)
+	{
+		$this->raiseEvent('OnCallback', $this, $param);
+	}
+
+	public function setText($value)
+	{
+		parent::setText($value);
+		if($this->getActiveControl()->canUpdateClientSide())
+			$this->getPage()->getCallbackClient()->setAttribute($this, 'value', $value);
+	}
+
+	protected function renderClientControlScript($writer)
+	{
+		$this->CssClass = "bbutton";
+	}
+
+	protected function addAttributesToRender($writer)
+	{
+		parent::addAttributesToRender($writer);
+		$writer->addAttribute('id',$this->getClientID());
+		$this->getActiveControl()->registerCallbackClientScript(
+			$this->getClientClassName(), $this->getPostBackOptions());
+	}
+
+	protected function getClientClassName()
+	{
+		return 'Prado.WebUI.TActiveButton';
 	}
 
 	public function setActionClass($param) {
-		$this->actionClass = $param;
 	}
 
-	public function save($sender, $param) {
-		$this->actionClass->save($sender, $param);
-	}
 
-	public function setCommandName($param) {
-		$this->commandName = $param;
-	}
-
-	public function setText($param) {
-		$this->text = $param;
-	}
-
-	public function setCausesValidation($param) {
-		$this->causesValidation = $param;
-	}
-
-	public function setValidationGroup($param) {
-		$this->validationGroup = $param;
-	}
 }
 
 ?>

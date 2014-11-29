@@ -19,34 +19,11 @@
  
 Prado::using('Application.Portlets.Portlets');
 
-class BButton extends Portlets{
+class BButton extends TButton {
 
-	public $commandName, $text;
-	public $causesValidation = true;
-	public $Visible = true;
-
-	public function onInit($param) {
-		parent::onInit($param);
-	}
-
-	public function setCommandName($param) {
-		$this->commandName = $param;
-	}
-
-	public function setText($param) {
-		$this->text = $param;
-	}
-
-	public function setCausesValidation($param) {
-		$this->causesValidation = $param;
-	}
-
-	public function setVisible($param) {
-		$this->Visible = $param;
-	}
-
-	public function getVisible($checkParents = true) {
-		return $this->Visible;
+	protected function renderClientControlScript($writer)
+	{
+		$this->CssClass = "bbutton";
 	}
 }
 
