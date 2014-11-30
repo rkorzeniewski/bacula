@@ -1,4 +1,7 @@
 #
+# Author: Kern Sibbald
+# License: LGPLv3
+#
 # Bacula Tools Makefile
 #
 @MCOMMON@

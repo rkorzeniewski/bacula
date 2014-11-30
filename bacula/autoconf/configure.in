@@ -2,6 +2,9 @@ dnl
 dnl
 dnl Process this file with autoconf to produce a configure script.
 dnl
+dnl Author: Kern Sibbald
+dnl License: LGPLv2
+dnl
 dnl require a recent autoconf
 AC_PREREQ(2.61)
 AC_INIT([bacula], m4_esyscmd([sed -n -e 's/^#define VERSION.*"\(.*\)"$/\1/p' ../src/version.h src/version.h 2> /dev/null | tr -d '\n']))

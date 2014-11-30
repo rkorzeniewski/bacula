@@ -2,7 +2,9 @@
 # Bacula Makefile for the File daemon
 #
 #
-
+# Author: Kern Sibbald
+# License: LGPLv3
+#
 @MCOMMON@
 
 srcdir =	.

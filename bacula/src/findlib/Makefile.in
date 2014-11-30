@@ -1,4 +1,7 @@
 #
+# Author: Kern Sibbald
+# License: LGPLv3
+#
 #  Find files library Makefile
 #
 @MCOMMON@

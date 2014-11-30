@@ -1,7 +1,9 @@
 #
 #  Bacula Director Makefile
 #
-#  
+# Author: Kern Sibbald
+# License: LGPLv3
+#
 @MCOMMON@
 
 srcdir =	.
