@@ -1,7 +1,7 @@
 # Swedish translations for PACKAGE package.
 # Copyright (C) 2007-2014 Kern Sibbald
 # This file is distributed under the same license as the PACKAGE package.
-# Kern Sibbald <kern@bacula.org>, 2007.
+# Kern Sibbald <kern@sibbald.com>, 2007.
 #
 msgid ""
 msgstr ""

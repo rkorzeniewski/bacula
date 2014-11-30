@@ -2,6 +2,8 @@
 # Traduction anglaise du package Bacula.
 # Copyright (C) 2005-2014 Free Software Foundation Europe e.V.
 # Nicolas Boichat <nicolas@boichat.ch>, 2005.
+# Copyright (C) 2005-2014 Kern Sibbald <kern@sibbald.com>
+# License: LGPL version 3
 #
 msgid ""
 msgstr ""

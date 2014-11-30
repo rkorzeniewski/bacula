@@ -1,7 +1,8 @@
 # bacula translations
 # Copyright (C) 2010 Inteos Sp. z o.o.
+# Copyright (C) 2010-2014 Kern Sibbald <kern@sibbald.com>
 # Translated by Inteos Translation Team: pl@inteos.pl
-# This file is distributed under the same license as the bacula package.
+# License: LGPL version 3
 #
 msgid ""
 msgstr ""
