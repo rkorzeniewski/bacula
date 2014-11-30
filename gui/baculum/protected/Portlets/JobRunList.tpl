@@ -3,7 +3,7 @@
 	<com:TActivePanel ID="RepeaterShow">
 	<com:TActiveRepeater ID="Repeater">
 		<prop:ItemTemplate>
-			<%=($this->getPage()->JobRunWindow->oldDirector != $this->DataItem['director']) ? '<div class="window-section"><span>Director: ' . $this->DataItem['director']  . '<span></div>': ''%>
+			<%=($this->getPage()->JobRunWindow->oldDirector != $this->DataItem['director']) ? '<div class="window-section"><span>' . Prado::localize('Director:') . ' ' . $this->DataItem['director']  . '<span></div>': ''%>
 			<com:TPanel ID="JobRunElement" CssClass="slide-window-element" >
 				<img src="<%=$this->getPage()->getTheme()->getBaseUrl()%>/job-icon.png" alt="" /> <%=@$this->DataItem['name']%>
 				<input type="hidden" name="<%=$this->ClientID%>" value="<%=isset($this->DataItem['name']) ? $this->DataItem['name'] : ''%>" />
@@ -24,7 +24,7 @@
 		ItemStyle.CssClass="slide-window-element"
 		AlternatingItemStyle.CssClass="slide-window-element-alternating"
 	>
-		<com:TActiveTemplateColumn HeaderText="Job name" SortExpression="name">
+		<com:TActiveTemplateColumn HeaderText="<%[ Job name ]%>" SortExpression="name">
 			<prop:ItemTemplate>
 				<div><%=$this->getParent()->DataItem['name']%></div>
                                 <input type="hidden" name="<%=$this->getParent()->ClientID%>" value="<%=$this->getParent()->DataItem['name']%>" />
@@ -32,7 +32,7 @@
 		</com:TActiveTemplateColumn>
 		<com:TActiveBoundColumn
 				SortExpression="director"
-				HeaderText="Director"
+				HeaderText="<%[ Director ]%>"
 				DataField="director"
 				ItemStyle.HorizontalAlign="Center"
 			/>

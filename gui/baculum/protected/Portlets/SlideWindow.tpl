@@ -40,7 +40,7 @@
 				<tr>
 					<td></td>
 					<td>
-						<com:BActiveButton ID="ApplyAction" Text="<%[ Apply ]%>" OnClick="action" ValidationGroup="ActionsGroup<%=$this->ApplyAction->ClientID%>" Attributes.onclick="return SlideWindow.getObj('<%=$this->getParent()->getID()%>').checked.length > 50 ? confirm('Warning!\n\nYou checked over 50 elements.\nPlease note, that in case more time consuming actions, web browser request may timed out after 30 seconds. It this case action will be canceled and in consequence the action may not touch all selected elements.\n\nAre you sure you want to continue?') : true;" ClientSide.OnSuccess="<%=$this->getParent()->getID()%>_refresh_window_func();" />
+						<com:BActiveButton ID="ApplyAction" Text="<%[ Apply ]%>" OnClick="action" ValidationGroup="ActionsGroup<%=$this->ApplyAction->ClientID%>" Attributes.onclick="return SlideWindow.getObj('<%=$this->getParent()->getID()%>').checked.length > 50 ? confirm('<%=Prado::localize('Warning! You checked over 50 elements. Please note, that in case more time consuming actions, web browser request may timed out after 30 seconds. It this case action will be canceled and in consequence the action may not touch all selected elements. Are you sure you want to continue?')%>') : true;" ClientSide.OnSuccess="<%=$this->getParent()->getID()%>_refresh_window_func();" />
 						<script type="text/javascript">
 							var <%=$this->ApplyAction->ClientID%>_actions_func = function() {
 								var console_visible = $('<%=$this->getPage()->Console->ConsoleContainer->ClientID%>').visible();
@@ -55,16 +55,15 @@
 					</td>
 				</tr>
 				<tr>
-					<td></td>
-					<td><a href="javascript:SlideWindow.getObj('<%=$this->getParent()->getID()%>').markAllChecked(false);"><%[ unmark all and close ]%></a></td>
+					<td colspan="2" class="center"><a href="javascript:SlideWindow.getObj('<%=$this->getParent()->getID()%>').markAllChecked(false);"><%[ unmark all and close ]%></a></td>
 				</tr>
 			</table>
 		</div>
 	</div>
 	<div class="slide-window-bar">
 		<div id="<%=$this->getParent()->getID()%>-slide-window-title" class="slide-window-bar-title"><%=$this->getParent()->getWindowTitle()%><span></span></div>
-		<div id="<%=$this->getParent()->getID()%>-slide-window-close" title="Close the window" class="slide-window-close"></div>
-		<div id="<%=$this->getParent()->getID()%>-slide-window-fullsize" title="Change the window size" class="slide-window-fullsize"></div>
+		<div id="<%=$this->getParent()->getID()%>-slide-window-close" title="<%[ Close the window ]%>" class="slide-window-close"></div>
+		<div id="<%=$this->getParent()->getID()%>-slide-window-fullsize" title="<%[ Change the window size ]%>" class="slide-window-fullsize"></div>
 		<div id="<%=$this->getParent()->getID()%>-slide-window-tools" title="<%[ Switch the window view (normal/details) ]%>" class="slide-window-sort"></div>
 		<com:TCallback ID="DetailView" OnCallback="switchView">
 			<prop:ClientSide.OnLoading>

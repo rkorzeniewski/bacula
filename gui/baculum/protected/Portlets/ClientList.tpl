@@ -21,7 +21,7 @@
 			ItemStyle.CssClass="slide-window-element"
 			AlternatingItemStyle.CssClass="slide-window-element-alternating"
 		>
-			<com:TActiveTemplateColumn HeaderText="Client name" SortExpression="name">
+			<com:TActiveTemplateColumn HeaderText="<%[ Client name ]%>" SortExpression="name">
 				<prop:ItemTemplate>
 					<div><%=$this->getParent()->Data['name']%></div>
 					<input type="hidden" name="<%=$this->getParent()->ClientID%>" value="<%=$this->getParent()->Data['clientid']%>" />
@@ -29,17 +29,17 @@
 			</com:TActiveTemplateColumn>
 			<com:TActiveTemplateColumn ItemStyle.HorizontalAlign="Center" HeaderText="AutoPrune" SortExpression="autoprune">
 				<prop:ItemTemplate>
-					<%=$this->getParent()->Data['autoprune'] == 1 ? 'Yes' : 'No'%>
+					<%=$this->getParent()->Data['autoprune'] == 1 ? Prado::localize('Yes') : Prado::localize('No')%>
 				</prop:ItemTemplate>
 			</com:TActiveTemplateColumn>
-			<com:TActiveTemplateColumn HeaderText="File Retention" SortExpression="fileretention">
+			<com:TActiveTemplateColumn HeaderText="<%[ File Retention ]%>" SortExpression="fileretention">
 				<prop:ItemTemplate>
-					<%=(integer)($this->getParent()->Data['fileretention'] / 3600 / 24)%> <%=$this->getParent()->Data['fileretention'] < 172800 ? 'day' : 'days'%>
+					<%=(integer)($this->getParent()->Data['fileretention'] / 3600 / 24)%> <%=$this->getParent()->Data['fileretention'] < 172800 ? Prado::localize('day') : Prado::localize('days')%>
 				</prop:ItemTemplate>
 			</com:TActiveTemplateColumn>
-			<com:TActiveTemplateColumn HeaderText="Job Retention" SortExpression="jobretention">
+			<com:TActiveTemplateColumn HeaderText="<%[ Job Retention ]%>" SortExpression="jobretention">
 				<prop:ItemTemplate>
-					<%=(integer)($this->getParent()->Data['jobretention'] / 3600 / 24)%> <%=$this->getParent()->Data['jobretention'] < 172800 ? 'day' : 'days'%>
+					<%=(integer)($this->getParent()->Data['jobretention'] / 3600 / 24)%> <%=$this->getParent()->Data['jobretention'] < 172800 ? Prado::localize('day') : Prado::localize('days')%>
 				</prop:ItemTemplate>
 			</com:TActiveTemplateColumn>
 		</com:TActiveDataGrid>

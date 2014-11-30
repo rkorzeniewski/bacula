@@ -84,7 +84,6 @@
 			<url ServiceParameter="API.FileSet" pattern="filesets/{id}/" parameters.id="\d+" />
 			<url ServiceParameter="API.ConsoleCommand" pattern="console/" />
 		</module>
-		<module class="System.Util.TParameterModule" ParameterFile="Application.Data.Settings" />
 		<module id="globalization" class="TGlobalization">
 			<translation type="gettext" source="Application.Lang" marker="@@" autosave="true" cache="false" DefaultCulture="en" />
 		</module>

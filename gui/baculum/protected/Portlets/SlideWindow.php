@@ -30,7 +30,16 @@ Prado::using('Application.Portlets.Portlets');
 
 class SlideWindow extends Portlets {
 
-	public $elementsLimits = array(10, 25, 50, 100, 200, 500, 1000, 'unlimited');
+	public $elementsLimit = array(
+		10 => '10 elements',
+		25 => '25 elements',
+		50 => '50 elements',
+		100 => '100 elements',
+		200 => '200 elements',
+		500 => '500 elements',
+		1000 => '1000 elements',
+		'unlimited' => 'unlimited'
+	);
         public $actions = array(
 		'VolumeWindow' => array(
 			'NoAction' => 'select action',
@@ -51,14 +60,19 @@ class SlideWindow extends Portlets {
 		parent::onInit($param);
 		if(empty($_SESSION['view' . $this->getParent()->ID]) && empty($_SESSION['limit' . $this->getParent()->ID])) {
 			$_SESSION['view' . $this->getParent()->ID] = self::NORMAL_VIEW;
-			$_SESSION['limit' . $this->getParent()->ID] = 'unlimited';
+			$_SESSION['limit' . $this->getParent()->ID] = $this->elementsLimit['unlimited'];
 		}
 	}
 
 	public function onLoad($param) {
 		parent::onLoad($param);
 		if(!$this->getPage()->IsPostBack) {
-			$this->Limit->dataSource = array_combine($this->elementsLimits, $this->elementsLimits);
+			$limitKeys = array_keys($this->elementsLimit);
+			$limitValues = array();
+			foreach($this->elementsLimit as $val) {
+				$limitValues[] = Prado::localize($val);
+			}
+			$this->Limit->dataSource = array_combine($limitKeys, $limitValues);
 			$this->Limit->SelectedValue = $_SESSION['limit' . $this->getParent()->ID];
 			$this->Limit->dataBind();
 			$this->Simple->Checked = ($_SESSION['view' . $this->getParent()->ID] == self::NORMAL_VIEW);

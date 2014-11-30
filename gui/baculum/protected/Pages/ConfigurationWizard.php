@@ -103,6 +103,7 @@ class ConfigurationWizard extends BaculumPage
 		$cfgData['baculum']['login'] = $this->PanelLogin->Text;
 		$cfgData['baculum']['password'] = $this->PanelPassword->Text;
 		$cfgData['baculum']['debug'] = isset($this->applicationConfig['baculum']['debug']) ? $this->applicationConfig['baculum']['debug'] : "0";
+		$cfgData['baculum']['lang'] = $_SESSION['language'];
 		$ret = $this->getModule('configuration')->setApplicationConfig($cfgData);
 		if($ret === true) {
 			if($this->getModule('configuration')->isUsersConfig() === true) { // version with users config file, so next is try to auto-login

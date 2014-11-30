@@ -21,15 +21,15 @@
 			ItemStyle.CssClass="slide-window-element"
 			AlternatingItemStyle.CssClass="slide-window-element-alternating"
 		>
-			<com:TActiveTemplateColumn HeaderText="Storage name" SortExpression="name">
+			<com:TActiveTemplateColumn HeaderText="<%[ Storage name ]%>" SortExpression="name">
 				<prop:ItemTemplate>
 					<div><%=$this->getParent()->Data['name']%></div>
 					<input type="hidden" name="<%=$this->getParent()->ClientID%>" value="<%=$this->getParent()->Data['storageid']%>" />
 				</prop:ItemTemplate>
 			</com:TActiveTemplateColumn>
-			<com:TActiveTemplateColumn HeaderText="Autochanger" SortExpression="autochanger" ItemStyle.HorizontalAlign="Center">
+			<com:TActiveTemplateColumn HeaderText="<%[ Autochanger ]%>" SortExpression="autochanger" ItemStyle.HorizontalAlign="Center">
 				<prop:ItemTemplate>
-					<%=$this->getParent()->Data['autochanger'] == 1 ? 'Yes' : 'No'%>
+					<%=$this->getParent()->Data['autochanger'] == 1 ? Prado::localize('Yes') : Prado::localize('No')%>
 				</prop:ItemTemplate>
 			</com:TActiveTemplateColumn>
 		</com:TActiveDataGrid>

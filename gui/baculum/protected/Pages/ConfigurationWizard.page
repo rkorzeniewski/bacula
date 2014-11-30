@@ -59,7 +59,7 @@
 				<div class="field">
 					<com:TActiveDropDownList ID="Lang" CssClass="textbox" Width="150px" OnTextChanged="setLang" CausesValidation="false">
 						<com:TListItem Value="en" Text="<%[ English ]%>" />
-						<!--com:TListItem Value="pl" Text="<%[ Polish ]%>" /-->
+						<com:TListItem Value="pl" Text="<%[ Polish ]%>" />
 					</com:TActiveDropDownList>
 					<com:TCompareValidator CssClass="validator" Display="Dynamic" ControlToValidate="Lang" DataType="String" ValueToCompare="none" Operator="NotEqual" Text="<%[ Please select language. ]%>" />
 				</div>

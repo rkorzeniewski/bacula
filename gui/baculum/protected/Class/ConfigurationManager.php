@@ -93,7 +93,14 @@ class ConfigurationManager extends TModule
 	}
 
 	public function getLanguage() {
-		return $this->Application->Parameters['language'];
+		$language = self::DEFAULT_LANGUAGE;
+		if ($this->isApplicationConfig() === true) {
+			$config = $this->getApplicationConfig();
+			if (array_key_exists('lang', $config['baculum'])) {
+				$language = $config['baculum']['lang'];
+			}
+		}
+		return $language;
 	}
 
 	public function setLanguage($language) {
