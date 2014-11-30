@@ -1,3 +1,7 @@
+#
+# Author: Kern Sibbald
+# License: LGPLv3
+#
 AC_DEFUN([BA_CHECK_DBI_DB],
 [
 AC_MSG_CHECKING(for DBI support)

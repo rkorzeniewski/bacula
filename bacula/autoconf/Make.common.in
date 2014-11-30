@@ -1,4 +1,7 @@
 #
+# Author: Kern Sibbald
+# License: LGPLv3
+#
 # This file is pulled in by all the Unix Bacula Makefiles
 #   so it has all the "common" definitions
 #

@@ -1,5 +1,7 @@
-# 
-# 
+#
+# Author: Kern Sibbald
+# License: LGPLv3
+#
 @MCOMMON@
 
 working_dir=@working_dir@
