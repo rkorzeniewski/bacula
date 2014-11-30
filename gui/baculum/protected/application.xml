@@ -85,7 +85,7 @@
 			<url ServiceParameter="API.ConsoleCommand" pattern="console/" />
 		</module>
 		<module id="globalization" class="TGlobalization">
-			<translation type="gettext" source="Application.Lang" marker="@@" autosave="true" cache="false" DefaultCulture="en" />
+			<translation type="gettext" source="Application.Lang" marker="@@" autosave="false" cache="false" DefaultCulture="en" />
 		</module>
 		<module id="log" class="System.Util.TLogRouter">
 			<route class="TFileLogRoute"  Categories="Execute, External, Application, General, Security" LogPath="Application.Data" LogFile="baculum.log" MaxFileSize="1000" MaxLogFiles="5" />
