@@ -1,6 +1,6 @@
 msgid ""
 msgstr ""
-"PO-Revision-Date: 2014-11-30 20:04:21\n"
+"PO-Revision-Date: 2014-11-30 22:43:34\n"
 "Project-Id-Version: \n"
 "POT-Creation-Date: \n"
 "Last-Translator: Marcin Haba <marcin.haba@bacula.pl>\n"
@@ -715,19 +715,6 @@ msgstr "Enable logging"
 msgid "clear bvfs cache"
 msgstr "clear bvfs cache"
 
-msgid "Output for selected job is not available yet or you do not have enabled logging job logs to catalog database.\n"
-"\n"
-"For watching job log there is need to add to the job Messages resource next directive:\n"
-"\n"
-"console = all, !skipped, !saved\n"
-""
-msgstr "Output for selected job is not available yet or you do not have enabled logging job logs to catalog database.\n"
-"\n"
-"For watching job log there is need to add to the job Messages resource next directive:\n"
-"\n"
-"console = all, !skipped, !saved\n"
-""
-
 msgid "Bconsole admin config file path:"
 msgstr "Bconsole admin config file path:"
 
@@ -898,4 +885,13 @@ msgstr "Enter"
 
 msgid "Clear"
 msgstr "Clear"
+
+msgid "select action"
+msgstr "select action"
+
+msgid "Delete"
+msgstr "Delete"
+
+msgid "Output for selected job is not available yet or you do not have enabled logging job logs to catalog database. For watching job log there is need to add to the job Messages resource next directive: console = all, !skipped, !saved"
+msgstr "Output for selected job is not available yet or you do not have enabled logging job logs to catalog database.\n\nFor watching job log there is need to add to the job Messages resource next directive:\n\nconsole = all, !skipped, !saved"
 

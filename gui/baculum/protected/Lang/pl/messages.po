@@ -1,6 +1,6 @@
 msgid ""
 msgstr ""
-"PO-Revision-Date: 2014-11-30 20:04:11\n"
+"PO-Revision-Date: 2014-11-30 22:45:33\n"
 "Project-Id-Version: \n"
 "POT-Creation-Date: \n"
 "Last-Translator: Marcin Haba <marcin.haba@bacula.pl>\n"
@@ -650,7 +650,7 @@ msgid "View mode:"
 msgstr "Widok:"
 
 msgid "Action:"
-msgstr "Akacja:"
+msgstr "Akcja:"
 
 msgid "unmark all and close"
 msgstr "Odznacz elementy i zamknij"
@@ -816,4 +816,13 @@ msgstr "Wykonaj"
 
 msgid "Clear"
 msgstr "Wyczyść"
+
+msgid "select action"
+msgstr "wybierz akcję"
+
+msgid "Delete"
+msgstr "Usuń"
+
+msgid "Output for selected job is not available yet or you do not have enabled logging job logs to catalog database. For watching job log there is need to add to the job Messages resource next directive: console = all, !skipped, !saved"
+msgstr "Listing dla wybranego zadania nie jest jeszcze dostępny lub nie masz włączonego logowania statusów zadań do bazy katalogowej.\n\nW celu oglądania listingów ze statusami zadań potrzeba włączyć w zasobie Messages następującą dyrektywę:\n\nconsole = all, !skipped, !saved."
 

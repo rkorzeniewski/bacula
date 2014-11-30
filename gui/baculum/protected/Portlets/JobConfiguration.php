@@ -30,7 +30,7 @@ class JobConfiguration extends Portlets {
 		$this->JobName->Text = $jobdata->job;
 		$this->JobID->Text = $jobdata->jobid;
 		$joblog = $this->Application->getModule('api')->get(array('joblog', $jobdata->jobid))->output;
-		$this->Estimation->Text = is_array($joblog) ? implode(PHP_EOL, $joblog) : Prado::localize("Output for selected job is not available yet or you do not have enabled logging job logs to catalog database."  . PHP_EOL . PHP_EOL .  "For watching job log there is need to add to the job Messages resource next directive:" . PHP_EOL . PHP_EOL . "console = all, !skipped, !saved" . PHP_EOL);
+		$this->Estimation->Text = is_array($joblog) ? implode(PHP_EOL, $joblog) : Prado::localize("Output for selected job is not available yet or you do not have enabled logging job logs to catalog database. For watching job log there is need to add to the job Messages resource next directive: console = all, !skipped, !saved");
 
 		$this->Level->dataSource = $this->Application->getModule('misc')->getJobLevels();
 		$this->Level->SelectedValue = $jobdata->level;
@@ -81,7 +81,7 @@ class JobConfiguration extends Portlets {
 
 	public function status($sender, $param) {
 		$joblog = $this->Application->getModule('api')->get(array('joblog', $this->JobID->Text))->output;
-		$this->Estimation->Text = is_array($joblog) ? implode(PHP_EOL, $joblog) : Prado::localize("Output for selected job is not available yet or you do not have enabled logging job logs to catalog database."  . PHP_EOL . PHP_EOL .  "For watching job log there is need to add to the job Messages resource next directive:" . PHP_EOL . PHP_EOL . "console = all, !skipped, !saved" . PHP_EOL);
+		$this->Estimation->Text = is_array($joblog) ? implode(PHP_EOL, $joblog) : Prado::localize("Output for selected job is not available yet or you do not have enabled logging job logs to catalog database. For watching job log there is need to add to the job Messages resource next directive: console = all, !skipped, !saved");
 	}
 
 	public function delete($sender, $param) {

@@ -78,7 +78,11 @@ class SlideWindow extends Portlets {
 			$this->Simple->Checked = ($_SESSION['view' . $this->getParent()->ID] == self::NORMAL_VIEW);
 			$this->Details->Checked = ($_SESSION['view' . $this->getParent()->ID] == self::DETAIL_VIEW);
 			$actions = array_key_exists($this->getParent()->ID, $this->actions) ? $this->actions[$this->getParent()->ID] : array();
-			$this->Actions->dataSource = $actions;
+			$actionsLang = array();
+			foreach($actions as $key => $val) {
+				$actionsLang[$key] = Prado::localize($val);
+			}
+			$this->Actions->dataSource = $actionsLang;
 			$this->Actions->dataBind();
 		}
 	}
