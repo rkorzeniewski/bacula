@@ -9,6 +9,9 @@
 			<com:TClientScript ScriptUrl=<%~ ../JavaScript/tooltip.js %> />
 			<com:TClientScript ScriptUrl=<%~ ../JavaScript/slide-window.js %> />
 			<com:TClientScript ScriptUrl=<%~ ../JavaScript/configuration-window.js %> />
+			<com:TClientScript ScriptUrl=<%~ ../JavaScript/panel-window.js %> />
+			<com:TClientScript ScriptUrl=<%~ ../JavaScript/flotr2.js %> />
+			<com:TClientScript ScriptUrl=<%~ ../JavaScript/graph.js %> />
 			<com:TContentPlaceHolder ID="Main" />
 		</com:TForm>
 	</body>

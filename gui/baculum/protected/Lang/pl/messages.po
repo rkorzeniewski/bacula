@@ -826,3 +826,70 @@ msgstr "Usuń"
 msgid "Output for selected job is not available yet or you do not have enabled logging job logs to catalog database. For watching job log there is need to add to the job Messages resource next directive: console = all, !skipped, !saved"
 msgstr "Listing dla wybranego zadania nie jest jeszcze dostępny lub nie masz włączonego logowania statusów zadań do bazy katalogowej.\n\nW celu oglądania listingów ze statusami zadań potrzeba włączyć w zasobie Messages następującą dyrektywę:\n\nconsole = all, !skipped, !saved."
 
+msgid "Workspace"
+msgstr "Panel główny"
+
+msgid "Graphs"
+msgstr "Grafy"
+
+msgid "select job"
+msgstr "wybierz zadanie"
+
+msgid "Last 6 hours"
+msgstr "Ostatnie 6 godzin"
+
+msgid "Last 12 hours"
+msgstr "Ostatnie 12 godzin"
+
+msgid "Today"
+msgstr "Dzisiaj"
+
+msgid "Two days"
+msgstr "Dwa dni"
+
+msgid "Last week"
+msgstr "Ostatni tydzień"
+
+msgid "Last two weeks"
+msgstr "Ostatnie dwa tygodnie"
+
+msgid "Last month"
+msgstr "Ostatni miesiąc"
+
+msgid "Last three months"
+msgstr "Ostatnie trzy miesiące"
+
+msgid "Last six months"
+msgstr "Ostatnie sześć miesięcy"
+
+msgid "Last year"
+msgstr "Ostatni rok"
+
+msgid "Date From:"
+msgstr "Data od:"
+
+msgid "Date To:"
+msgstr "Data do:"
+
+msgid "Legend:"
+msgstr "Legenda:"
+
+msgid "select client"
+msgstr "wybierz klienta"
+
+
+msgid "Graph: Jobs size / Time"
+msgstr "Graf: Rozmiar zadania / Czas"
+
+msgid "Jobs size (GiB)"
+msgstr "Rozmiar zadania (GiB)"
+
+msgid "Time"
+msgstr "Czas"
+
+msgid "Tip: for getting zoom, please mark area on graph."
+msgstr "Porada: Aby użyć zbliżenia proszę zaznaczyć obszar na grafie."
+
+msgid "Tip 2: for back from zoom, please click somewhere on graph."
+msgstr "Porada 2: aby powrócić ze zbliżenia, proszę kliknąć gdzieś na grafie."
+

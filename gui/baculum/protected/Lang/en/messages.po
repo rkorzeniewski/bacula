@@ -895,3 +895,69 @@ msgstr "Delete"
 msgid "Output for selected job is not available yet or you do not have enabled logging job logs to catalog database. For watching job log there is need to add to the job Messages resource next directive: console = all, !skipped, !saved"
 msgstr "Output for selected job is not available yet or you do not have enabled logging job logs to catalog database.\n\nFor watching job log there is need to add to the job Messages resource next directive:\n\nconsole = all, !skipped, !saved"
 
+msgid "Workspace"
+msgstr "Workspace"
+
+msgid "Graphs"
+msgstr "Graphs"
+
+msgid "select job"
+msgstr "select job"
+
+msgid "Last 6 hours"
+msgstr "Last 6 hours"
+
+msgid "Last 12 hours"
+msgstr "Last 12 hours"
+
+msgid "Today"
+msgstr "Today"
+
+msgid "Two days"
+msgstr "Two days"
+
+msgid "Last week"
+msgstr "Last week"
+
+msgid "Last two weeks"
+msgstr "Last two weeks"
+
+msgid "Last month"
+msgstr "Last month"
+
+msgid "Last three months"
+msgstr "Last three months"
+
+msgid "Last six months"
+msgstr "Last six months"
+
+msgid "Last year"
+msgstr "Last year"
+
+msgid "Date From:"
+msgstr "Date From:"
+
+msgid "Date To:"
+msgstr "Date To:"
+
+msgid "Legend:"
+msgstr "Legend:"
+
+msgid "select client"
+msgstr "select client"
+
+msgid "Graph: Jobs size / Time"
+msgstr "Graph: Jobs size / Time"
+
+msgid "Jobs size (GiB)"
+msgstr "Jobs size (GiB)"
+
+msgid "Time"
+msgstr "Time"
+
+msgid "Tip: for getting zoom, please mark area on graph."
+msgstr "Tip: for getting zoom, please mark area on graph."
+
+msgid "Tip 2: for back from zoom, please click somewhere on graph."
+msgstr "Tip 2: for back from zoom, please click somewhere on graph."
+

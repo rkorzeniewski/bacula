@@ -1,10 +1,16 @@
 <%@ MasterClass="Application.Layouts.Main" Theme="Baculum-v1"%>
 <com:TContent ID="Main">
-	<div id="container">
-		<div id="top">
+	<div id="top">
 		<img src="<%=$this->getPage()->getTheme()->getBaseUrl()%>/logo.png" alt="Baculum" />
-		<div id="directors"><com:TLabel ForControl="Director" Text="<%[ Director: ]%>" /> <com:TActiveDropDownList ID="Director" OnTextChanged="director" /></div>
+		<div id="directors"><com:TLabel ForControl="Director" Text="<%[ Director: ]%>" />
+			<com:TActiveDropDownList ID="Director" OnTextChanged="director" />
 		</div>
+		<div id="panel_switcher">
+			<com:TActiveLinkButton ID="Workspace" Text="<%[ Workspace ]%>" Attributes.onclick="PanelWindow.show('container');" />
+			<com:TActiveLinkButton ID="Graphs" Text="<%[ Graphs ]%>" Attributes.onclick="PanelWindow.show('graphs');" />
+		</div>
+	</div>
+	<div id="container">
 		<div id="menu-left">
 			<com:TActiveButton ID="StorageBtn" CssClass="storage-btn" Attributes.onmouseover="javascript:showTip(this, '<%=Prado::localize('Storage Daemons')%>', '<%=Prado::localize('Configuration of storage daemons.')%>');" ClientSide.OnLoading="$('StorageWindow-slide-window-progress').setStyle({'display': 'block'});" ClientSide.OnComplete="$('StorageWindow-slide-window-progress').setStyle({'display': 'none'});SlideWindow.getObj('StorageWindow').setWindowElementsEvent('<%=$this->StorageWindow->Repeater->ClientID%>', '<%=$this->StorageWindow->DataGrid->ClientID%>', <%=$this->StorageWindow->DataElementCall->ActiveControl->Javascript%>);" />
 			<com:TActiveButton ID="ClientBtn" CssClass="client-btn" Attributes.onmouseover="javascript:showTip(this, '<%=Prado::localize('Clients')%>', '<%=Prado::localize('Configuration of clients daemons.')%>');" ClientSide.OnLoading="$('ClientWindow-slide-window-progress').setStyle({'display': 'block'});" ClientSide.OnComplete="$('ClientWindow-slide-window-progress').setStyle({'display': 'none'});SlideWindow.getObj('ClientWindow').setWindowElementsEvent('<%=$this->ClientWindow->Repeater->ClientID%>', '<%=$this->ClientWindow->DataGrid->ClientID%>', <%=$this->ClientWindow->DataElementCall->ActiveControl->Javascript%>);" />
@@ -37,14 +43,60 @@
 				</div>
 			</div>
 		</com:TActivePanel>
-		<div id="console">
-			<a id="clear_bvfs_cache" href="javascript: void(0)"><com:TActiveImageButton ID="ClearBvfsCache" OnCallback="clearBvfsCache" Attributes.onclick="return (confirm('<%=Prado::localize('This action will clear bvfs cache that was created during preparing restore files. Please note that clear bvfs action does not clear nor remove temporary tables created for restore action purpose. They are tables with prefix b2[0-9]+ which need manual remove. There is not recommended use this action during restore job working. Are you sure?')%>'));" ImageUrl="<%=$this->getPage()->getTheme()->getBaseUrl()%>/trash_icon.png" AlternateText="<%[ clear bvfs cache ]%>" /><com:TLabel ForControl="ClearBvfsCache"><%[ clear bvfs cache ]%></com:TLabel></a>
-			<a id="logging" href="javascript:void(0)"><com:TActiveCheckBox ID="Logging" OnCallback="setDebug" Attributes.onclick="return (this.checked === false || confirm('<%=Prado::localize('Log files enables possibility to save most of actions executed on Baculum WebGUI. Logs functionality should be enabled if is happening shomething wrong with Baculum or something that looks like a bug. Logs can be useful for detecting a problems in Baculum working. After confirmation this message Baculum log files will be continuously saving in /protected/Data/ directory. Are you sure?')%>'));" /><com:TLabel ForControl="Logging"><%[ Enable logging ]%></com:TLabel></a>
-			<a id="volumes_tools_launcher" href="javascript:void(0)"><img src="<%=$this->getPage()->getTheme()->getBaseUrl()%>/tape_tools_icon.png" alt="<%[ volumes tools ]%>" /><span><%[ volumes tools ]%></span></a>
-			<a id="console_launcher" href="javascript:void(0)"><img src="<%=$this->getPage()->getTheme()->getBaseUrl()%>/console_icon.png" alt="<%[ Bacula console ]%>" /><span><%[ show console ]%></span></a>
-			<com:Application.Portlets.VolumesTools ID="VolumesTools" />
-			<com:Application.Portlets.Console ID="Console" />
-		</div>
-		<div id="bottom"></div>
 	</div>
+	<div id="graphs" style="display: none;">
+		<select id="time_range" name="time_range">
+			<option value="23400"><%[ Last 6 hours ]%></option>
+			<option value="43200"><%[ Last 12 hours ]%></option>
+			<option value="86400" selected="selected"><%[ Today ]%></option>
+			<option value="172800"><%[ Two days ]%></option>
+			<option value="604800"><%[ Last week ]%></option>
+			<option value="1209600"><%[ Last two weeks ]%></option>
+			<option value="2592000"><%[ Last month ]%></option>
+			<option value="7776000"><%[ Last three months ]%></option>
+			<option value="15768000"><%[ Last six months ]%></option>
+			<option value="31536000"><%[ Last year ]%></option>
+		</select>
+		<span>
+			<%[ Date From: ]%> <com:TDatePicker ID="DateFrom" DateFormat="yyyy-MM-dd" Width="80px" />
+			<%[ Date To: ]%> <com:TDatePicker ID="DateTo" DateFormat="yyyy-MM-dd" Width="80px" />
+		</span>
+		<span><%[ Client: ]%></span>
+		<com:TActiveDropDownList ID="Clients" CssClass="textbox" AutoPostBack="false" Width="160px" />
+		<span><%[ Job name: ]%></span>
+		<com:TActiveDropDownList ID="Jobs" CssClass="textbox" AutoPostBack="false" Width="160px" />
+		<p><%[ Legend: ]%></p>
+		<div id="legend"></div>
+		<div id="graphs_content">
+			<script type="text/javascript">
+				var jobs = <%=$this->getJobs()%>;
+			</script>
+		</div>
+		<script type="text/javascript">
+			var graph_lang = {
+				"graph_title": "<%[ Graph: Jobs size / Time ]%>",
+				"xaxis_title": "<%[ Time ]%>",
+				"yaxis_title": "<%[ Jobs size (GiB) ]%>"
+			};
+			var graph;
+			document.observe("dom:loaded", function() {
+				PanelWindow.onShow = function() {
+					if(typeof(graph) == "undefined") {
+						graph = new GraphClass(jobs, graph_lang, 'graphs_content', 'legend', 'time_range', '<%=$this->DateFrom->ClientID%>', '<%=$this->DateTo->ClientID%>', '<%=$this->Clients->ClientID%>', '<%=$this->Jobs->ClientID%>');
+					}
+				};
+			});
+		</script>
+		<p class="right bold italic"><%[ Tip: for getting zoom, please mark area on graph. ]%></p>
+		<p class="right bold italic"><%[ Tip 2: for back from zoom, please click somewhere on graph. ]%></p>
+	</div>
+	<div id="console">
+		<a id="clear_bvfs_cache" href="javascript: void(0)"><com:TActiveImageButton ID="ClearBvfsCache" OnCallback="clearBvfsCache" Attributes.onclick="return (confirm('<%=Prado::localize('This action will clear bvfs cache that was created during preparing restore files. Please note that clear bvfs action does not clear nor remove temporary tables created for restore action purpose. They are tables with prefix b2[0-9]+ which need manual remove. There is not recommended use this action during restore job working. Are you sure?')%>'));" ImageUrl="<%=$this->getPage()->getTheme()->getBaseUrl()%>/trash_icon.png" AlternateText="<%[ clear bvfs cache ]%>" /><com:TLabel ForControl="ClearBvfsCache"><%[ clear bvfs cache ]%></com:TLabel></a>
+		<a id="logging" href="javascript:void(0)"><com:TActiveCheckBox ID="Logging" OnCallback="setDebug" Attributes.onclick="return (this.checked === false || confirm('<%=Prado::localize('Log files enables possibility to save most of actions executed on Baculum WebGUI. Logs functionality should be enabled if is happening shomething wrong with Baculum or something that looks like a bug. Logs can be useful for detecting a problems in Baculum working. After confirmation this message Baculum log files will be continuously saving in /protected/Data/ directory. Are you sure?')%>'));" /><com:TLabel ForControl="Logging"><%[ Enable logging ]%></com:TLabel></a>
+		<a id="volumes_tools_launcher" href="javascript:void(0)"><img src="<%=$this->getPage()->getTheme()->getBaseUrl()%>/tape_tools_icon.png" alt="<%[ volumes tools ]%>" /><span><%[ volumes tools ]%></span></a>
+		<a id="console_launcher" href="javascript:void(0)"><img src="<%=$this->getPage()->getTheme()->getBaseUrl()%>/console_icon.png" alt="<%[ Bacula console ]%>" /><span><%[ show console ]%></span></a>
+		<com:Application.Portlets.VolumesTools ID="VolumesTools" />
+		<com:Application.Portlets.Console ID="Console" />
+	</div>
+	<div id="bottom"></div>
 </com:TContent>

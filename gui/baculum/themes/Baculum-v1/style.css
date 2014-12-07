@@ -73,6 +73,7 @@ a:hover {
 }
 
 #top {
+	margin: 0 auto;
 	width: 975px;
 	height: 51px;
 	background-image: url('bls_top.png');
@@ -103,7 +104,7 @@ a:hover {
 	border-right: 1px solid black;
 }
 
-#directors {
+#directors, #panel_switcher {
 	float: right;
 	font-size: 12px;
 }
@@ -112,6 +113,11 @@ a:hover {
 	margin: 15px 20px 0 0;
 	padding: 0;
 	font-size: 12px
+}
+
+#panel_switcher {
+	margin: 17px 20px 0 0;
+	font-weight: bold;
 }
 
 div.configuration {
@@ -169,6 +175,7 @@ div.slide-window-progress {
 	clear: left;
 	width: 973px;
 	min-height: 20px;
+	margin: 0 auto;
 	padding: 5px 0;
 	text-align: right;
 	background-color: #686a6c;
@@ -203,6 +210,7 @@ div.slide-window-progress {
 #bottom {
 	width: 975px;
 	height: 11px;
+	margin: 0 auto;
 	background: transparent url('bls_bottom.png') no-repeat top left;
 }
 
@@ -729,8 +737,16 @@ textarea.console {
 	font-weight: bold;
 }
 
+.italic {
+	font-style: italic;
+}
+
 .center {
 	text-align: center;
+}
+
+.right {
+	text-align: right;
 }
 
 #console_launcher, #volumes_tools_launcher, #logging, #clear_bvfs_cache {
@@ -788,3 +804,51 @@ div.small {
 	border-top: 1px solid black;
 	margin: 3px 0;
 }
+
+#graphs {
+	height: 600px;
+	width: 954px;
+	padding: 10px;
+	margin: 0 auto;
+	font-size: 11px;
+	background-color: #585758;
+	border-right: 1px solid black;
+}
+
+#graphs span {
+	margin: 0 3px;
+}
+
+#legend {
+	border: 1px solid white;
+	margin: 7px;
+	padding: 8px;
+}
+
+#legend table td {
+	color: white;
+}
+
+#graphs_content {
+	margin: 0 auto;
+	width: 906px;
+	height: 425px;
+}
+
+/* Overwrite date picker classes */
+.TDatePicker_default {
+	z-index: 20;
+}
+.TDatePicker_default .date {
+	color: blue;
+}
+.TDatePicker_default .selected {
+	color: white;
+}
+
+th.weekDayHead {
+	color: black;
+	border: 1px solid #919EA9;
+}
+
+/* END - Overwrite date picker classes */

@@ -75,7 +75,7 @@
 			</prop:ClientSide.OnComplete>
 		</com:TCallback>
 		<script type="text/javascript">
-			<%=$this->getParent()->getID()%>_refresh_window_func = function() {
+			var <%=$this->getParent()->getID()%>_refresh_window_func = function() {
 					var request = <%= $this->DetailView->ActiveControl->Javascript %>;
 					request.dispatch();
 				}

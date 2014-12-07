@@ -21,9 +21,12 @@ Prado::using('System.Web.UI.ActiveControls.TActiveButton');
 Prado::using('System.Web.UI.ActiveControls.TActivePanel');
 Prado::using('System.Web.UI.ActiveControls.TActiveDropDownList');
 Prado::using('System.Web.UI.ActiveControls.TActiveCheckBox');
+Prado::using('System.Web.UI.ActiveControls.TActiveLinkButton');
 
 class Home extends BaculumPage
 {
+	public $jobs;
+
 	public function onInit($param) {
 		parent::onInit($param);
 		$isConfigExists = $this->getModule('configuration')->isApplicationConfig();
@@ -51,6 +54,8 @@ class Home extends BaculumPage
 			$this->Director->dataSource = array_combine($directors, $directors);
 			$this->Director->SelectedValue = $_SESSION['director'];
 			$this->Director->dataBind();
+			$this->setJobs();
+			$this->setClients();
 		}
 	}
 
@@ -76,6 +81,31 @@ class Home extends BaculumPage
 		if($this->User->getIsAdmin() === true) {
 			$this->getModule('api')->set(array('bvfs', 'clear'), array());
 		}
+	}
+
+	public function getJobs() {
+		return json_encode($this->jobs);
+	}
+
+	public function setJobs() {
+		$this->jobs = $this->getModule('api')->get(array('jobs'));
+		$jobs = array('@' => Prado::localize('select job'));
+		foreach($this->jobs->output as $key => $job) {
+			$jobs[$job->name] = $job->name;
+		}
+		$this->Jobs->dataSource = $jobs;
+		$this->Jobs->dataBind();
+	}
+
+	public function setClients() {
+		$clients_obj = $this->getModule('api')->get(array('clients'));
+		$clients = array('@' => Prado::localize('select client'));
+		foreach($clients_obj->output as $key => $client) {
+			$clients[$client->clientid] = $client->name;
+		}
+		$this->Clients->dataSource = $clients;
+		$this->Clients->dataBind();
+
 	}
 }
 ?>
