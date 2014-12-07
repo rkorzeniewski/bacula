@@ -959,3 +959,30 @@ msgstr "Tip: for getting zoom, please mark area on graph."
 msgid "Tip 2: for back from zoom, please click somewhere on graph."
 msgstr "Tip 2: for back from zoom, please click somewhere on graph."
 
+msgid "File retention (in sec.):"
+msgstr "File retention (in sec.):"
+
+msgid "Job retention (in sec.):"
+msgstr "Job retention (in sec.):"
+
+msgid "Max Vol. Bytes:"
+msgstr "Max Vol. Bytes:"
+
+msgid "Max Vol. Files:"
+msgstr "Max Vol. Files:"
+
+msgid "Max Vol. Jobs:"
+msgstr "Max Vol. Jobs:"
+
+msgid "Retention Period (in sec.):"
+msgstr "Retention Period (in sec.):"
+
+msgid "Storage Daemons."
+msgstr "Storage Daemons."
+
+msgid "Vol. Use Duration (in sec.):"
+msgstr "Vol. Use Duration (in sec.):"
+
+msgid "Yes"
+msgstr "Yes"
+

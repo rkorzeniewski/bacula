@@ -969,3 +969,21 @@ msgstr "proszę wpisać ponownie login i hasło autoryzacji zgodne z danymi auto
 msgid "If all above steps will not help or if during installation you made mistake in password in Initial Wizard, please remove settings file located in baculum/protected/Data/settings.conf and re-run Initial wizard."
 msgstr "Jeśli żaden z powyższych kroków nie pomoże lub jeśli podczas instalacji zrobiłeś pomyłkę w haśle w Kreatorze Konfiguracji, proszę usunąć plik ustawień Baculum w lokalizacji baculum/protected/Data/settings.conf a następnie proszę uruchomić ponownie Kreatora Konfiguracji."
 
+msgid "File retention value must be integer."
+msgstr "Retencja plików musi być liczbą całkowitą."
+
+msgid "If there is used only one Baculum user then below field value will be ignored"
+msgstr "Jeśli jest użyty tylko jeden użytkownik Baculum, wtedy poniższa wartość pola będzie ignorowana"
+
+msgid "Information about version"
+msgstr "Informacja o wersji"
+
+msgid "Job retention value must be integer."
+msgstr "Retencja zadań musi być wartością całkowitą."
+
+msgid "Job to restore:"
+msgstr "Zadanie do przywrócenia:"
+
+msgid "Step 7 - Finish"
+msgstr "Krok 7 - Podsumowanie"
+
