@@ -146,6 +146,9 @@ var GraphClass = Class.create({
 			if (jobs.hasOwnProperty('output')) {
 				var job;
 				for (var i = 0; i<jobs.output.length; i++) {
+					if(jobs.output[i].jobstatus == 'R' || jobs.output[i].jobstatus == 'C' || jobs.output[i].endtime == null) {
+						continue;
+					}
 					job = new JobClass(jobs.output[i]);
 					this.jobs.push(job);
 				}
