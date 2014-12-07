@@ -5,6 +5,7 @@ msgstr ""
 "POT-Creation-Date: \n"
 "Last-Translator: Marcin Haba <marcin.haba@bacula.pl>\n"
 "Language-Team: \n"
+"Language: pl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=iso-8859-1\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -892,4 +893,79 @@ msgstr "Porada: Aby użyć zbliżenia proszę zaznaczyć obszar na grafie."
 
 msgid "Tip 2: for back from zoom, please click somewhere on graph."
 msgstr "Porada 2: aby powrócić ze zbliżenia, proszę kliknąć gdzieś na grafie."
+
+msgid "Baculum problem"
+msgstr "Baculum zgłosił problem"
+
+msgid "What can I do"
+msgstr "Co mogę zrobić"
+
+msgid "Please check Baculum logs if there are some errors."
+msgstr "Proszę sprawdzić dzienniki (logi) Baculum czy są tam jakieś błędy."
+
+msgid "Please check Web Server logs if there are some errors."
+msgstr "Proszę sprawdzić dzienniki (logi) serwera WWW czy są tam jakieś błędy."
+
+msgid "Please check other system logs if there are some errors."
+msgstr "Proszę sprawdzić inne dzienniki (logi) systemowe czy są tam jakieś błędy."
+
+msgid "Error 2 - problem with connection to database."
+msgstr "Błąd 2 - problem z połączeniem do bazy danych."
+
+msgid "Please check if Catalog database service is running."
+msgstr "Proszę sprawdzić czy baza katalogowa Bacula jest uruchomiona."
+
+msgid "Please check if Web Server user is allowed for connection to Catalog database."
+msgstr "Proszę sprawdzić czy użytkownik serwera WWW jest dopuszczony do połączeń z bazą danych."
+
+msgid "Please re-run"
+msgstr "Proszę uruchomić ponownie"
+
+msgid "Baculum Initial Wizard"
+msgstr "Kreator konfiguracji Baculum"
+
+msgid "and on step"
+msgstr "i w kroku"
+
+msgid "please perform connection test."
+msgstr "proszę wykonać test połączenia."
+
+msgid "Error 4 - problem with connection to bconsole."
+msgstr "Error 4 - problem z połączeniem do Bconsole."
+
+msgid "Please check if Bacula Director service is running."
+msgstr "Proszę sprawdzić czy serwis Zarządcy Bacula (bacula-dir) jest uruchomiony."
+
+msgid "Please check in shell console if bconsole program is able to connect to Bacula Director service."
+msgstr "Proszę sprawdzić w konsoli systemowej czy jest możliwe połączenie do serwisu Zarządcy Bacula przez program Bconsole."
+
+msgid "Please be sure if Web Server user is allowed for executing bconsole program."
+msgstr "Proszę upewnić się, że użytkownik serwera WWW jest dopuszczony do wykonywania programu Bconsole."
+
+msgid "You can login to shell console as Web Server user and try to run bconsole program."
+msgstr "Możesz zalogować się do konsoli systemowej jako uzytkownik serwera WWW i spróbować uruchomić program Bconsole."
+
+msgid "internal Baculum error."
+msgstr "wewnętrzny błąd Baculum."
+
+msgid "TRY AGAIN"
+msgstr "SPRÓBUJ PONOWNIE"
+
+msgid "authorization to Baculum error."
+msgstr "błąd autoryzacji do Baculum."
+
+msgid "Please check Web Server authorization file if it is correct."
+msgstr "Proszę sprawdzić czy plik autoryzacji serwer WWW jest poprawny."
+
+msgid "Please check Web Server authorization file if it is defined and it is correct."
+msgstr "Proszę sprawdzić plik autoryzacji do serwera WWW, czy jest zdefiniowany oraz poprawny."
+
+msgid "Please be sure if Web Server authorization is enabled (for Apache it is option 'AllowOverride All') and if the authorization works properly."
+msgstr "Proszę upewnić się czy autoryzacja do servera WWW jest skonfigurowana (dla  serwera Apache jest to opcja 'AllowOverride All') oraz czy autoryzacja działa poprawnie."
+
+msgid "please retype authorization login and authorization password to according Web Server authorization values."
+msgstr "proszę wpisać ponownie login i hasło autoryzacji zgodne z danymi autoryzacji do serwera WWW."
+
+msgid "If all above steps will not help or if during installation you made mistake in password in Initial Wizard, please remove settings file located in baculum/protected/Data/settings.conf and re-run Initial wizard."
+msgstr "Jeśli żaden z powyższych kroków nie pomoże lub jeśli podczas instalacji zrobiłeś pomyłkę w haśle w Kreatorze Konfiguracji, proszę usunąć plik ustawień Baculum w lokalizacji baculum/protected/Data/settings.conf a następnie proszę uruchomić ponownie Kreatora Konfiguracji."
 
