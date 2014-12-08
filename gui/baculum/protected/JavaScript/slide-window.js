@@ -362,7 +362,9 @@ var SlideWindowClass = Class.create({
 					this.markChecked(containerId, ch.checked, ch.value);
 				}
 			}.bind(this));
-			this.packChecked(containerId);
+			if (containerId) {
+				this.packChecked(containerId);
+			}
 		}
 
 		if(check) {
