@@ -424,7 +424,7 @@ tr.slide-window-element:hover td, tr.slide-window-element-alternating:hover td{
 table.window-section-detail, table.file-browser-detail {
 	background-color: rgba(0,0,0,0.5);
 	width: 100%;
-	font-size: 11px;
+	font-size: 10px;
 	font-weight: normal;
 }
 
@@ -675,7 +675,7 @@ div.job-status-W {
 }
 
 div.job-status-D {
-	background-color: blue;
+	background-color: #CB4A2C;
 }
 
 /*

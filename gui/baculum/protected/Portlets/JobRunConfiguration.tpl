@@ -13,9 +13,73 @@
 		<div class="line">
 			<div class="text"><com:TLabel ForControl="Level" Text="<%[ Level: ]%>" /></div>
 			<div class="field">
-				<com:TActiveDropDownList ID="Level" AutoPostBack="false" CssClass="textbox-auto" />
+				<com:TActiveDropDownList ID="Level" AutoPostBack="false" CssClass="textbox-auto">
+					<prop:Attributes.onchange>
+						var job_to_verify = $('<%=$this->JobToVerifyOptionsLine->ClientID%>');
+						var verify_options = $('<%=$this->JobToVerifyOptionsLine->ClientID%>');
+						var verify_by_job_name = $('<%=$this->JobToVerifyJobNameLine->ClientID%>');
+						var verify_by_jobid = $('<%=$this->JobToVerifyJobIdLine->ClientID%>');
+						var accurate = $('<%=$this->AccurateLine->ClientID%>');
+						var estimate = $('<%=$this->EstimateLine->ClientID%>');
+						var verify_current_opt = $('<%=$this->JobToVerifyOptions->ClientID%>').value;
+						if(/^(<%=implode('|', $this->jobToVerify)%>)$/.test(this.value)) {
+							accurate.hide();
+							estimate.hide();
+							verify_options.show();
+							job_to_verify.show();
+							if (verify_current_opt == 'jobid') {
+								verify_by_job_name.hide();
+								verify_by_jobid.show();
+							} else if (verify_current_opt == 'jobname') {
+								verify_by_job_name.show();
+								verify_by_jobid.hide();
+							}
+						} else if (job_to_verify.visible()) {
+							job_to_verify.hide();
+							verify_options.hide();
+							verify_by_job_name.hide();
+							verify_by_jobid.hide();
+							accurate.show();
+							estimate.show();
+						}
+					</prop:Attributes.onchange>
+				</com:TActiveDropDownList>
 			</div>
 		</div>
+		<com:TActivePanel ID="JobToVerifyOptionsLine" CssClass="line">
+			<div class="text"><com:TLabel ForControl="JobToVerifyOptions" Text="<%[ Verify option: ]%>" /></div>
+			<div class="field">
+				<com:TActiveDropDownList ID="JobToVerifyOptions" AutoPostBack="false" CssClass="textbox-auto">
+					<prop:Attributes.onchange>
+						var verify_by_job_name = $('<%=$this->JobToVerifyJobNameLine->ClientID%>');
+						var verify_by_jobid = $('<%=$this->JobToVerifyJobIdLine->ClientID%>');
+						if (this.value == 'jobname') {
+							verify_by_jobid.hide();
+							verify_by_job_name.show();
+						} else if (this.value == 'jobid') {
+							verify_by_job_name.hide();
+							verify_by_jobid.show();
+						} else {
+							verify_by_job_name.hide();
+							verify_by_jobid.hide();
+						}
+					</prop:Attributes.onchange>
+				</com:TActiveDropDownList>
+			</div>
+		</com:TActivePanel>
+		<com:TActivePanel ID="JobToVerifyJobNameLine" CssClass="line">
+			<div class="text"><com:TLabel ForControl="JobToVerifyJobName" Text="<%[ Job to Verify: ]%>" /></div>
+			<div class="field">
+				<com:TActiveDropDownList ID="JobToVerifyJobName" AutoPostBack="false" CssClass="textbox-auto" />
+			</div>
+		</com:TActivePanel>
+		<com:TActivePanel ID="JobToVerifyJobIdLine" CssClass="line">
+			<div class="text"><com:TLabel ForControl="JobToVerifyJobId" Text="<%[ JobId to Verify: ]%>" /></div>
+			<div class="field">
+				<com:TActiveTextBox ID="JobToVerifyJobId" CssClass="textbox-auto" AutoPostBack="false" />
+				<com:TActiveCustomValidator ID="JobToVerifyJobIdValidator" ValidationGroup="JobRunGroup" ControlToValidate="JobToVerifyJobId" ErrorMessage="<%[ JobId to Verify value must be integer greather than 0. ]%>" ControlCssClass="validation-error" Display="None" OnServerValidate="jobIdToVerifyValidator" />
+			</div>
+		</com:TActivePanel>
 		<div class="line">
 			<div class="text"><com:TLabel ForControl="Client" Text="<%[ Client: ]%>" /></div>
 			<div class="field">
@@ -64,12 +128,12 @@
 		<div class="field-full" style="min-height: 90px">
 			<com:TActiveTextBox ID="Estimation" TextMode="MultiLine" CssClass="textbox-auto" Style="height: 116px; font-size: 11px;" ReadOnly="true" />
 		</div>
-		<div class="line">
+		<com:TPanel ID="AccurateLine" CssClass="line">
 			<div class="text"><com:TLabel ForControl="Accurate" Text="<%[ Accurate: ]%>" /></div>
 			<div class="field"><com:TActiveCheckBox ID="Accurate" AutoPostBack="false" /></div>
-		</div>
-		<div class="button">
+		</com:TPanel>
+		<com:TPanel ID="EstimateLine" CssClass="button">
 			<com:Application.Portlets.BActiveButton ID="Estimate" Text="<%[ Estimate job ]%>" OnClick="estimate"  ClientSide.OnSuccess="ConfigurationWindow.getObj('JobRunWindow').progress(false);jobrun_callback_func();" />
-		</div>
+		</com:TPanel>
 	</com:TActivePanel>
 </com:TContent>

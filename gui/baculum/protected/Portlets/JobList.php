@@ -31,18 +31,8 @@ class JobList extends Portlets implements ISlideWindow {
 	public $buttonID;
 	public $windowTitle;
 	public $jobLevels;
-	private $jobStates;
-	private $jobTypes = array(
-		'B' => 'Backup',
-		'M' => 'Migrated',
-		'V' => 'Verify',
-		'R' => 'Restore',
-		'I' => 'Internal',
-		'D' => 'Admin',
-		'A' => 'Archive',
-		'C' => 'Copy',
-		'g' => 'Migration'
-	);
+	public $jobStates;
+	public $jobTypes;
 
 	public function setID($id) {
 		$this->ID = $id;
@@ -71,42 +61,10 @@ class JobList extends Portlets implements ISlideWindow {
 	public function onLoad($param) {
 		parent::onLoad($param);
 		$this->prepareData();
-		$this->jobLevels = $this->Application->getModule('misc')->getJobLevels();
-	}
-
-	public function getJobType($jobLetter) {
-		return array_key_exists($jobLetter, $this->jobTypes) ? $this->jobTypes[$jobLetter] : null;
-	}
-
-	public function getJobState($jobStateLetter) {
-		$jobstates =  array(
-		'C' => (object)array('value' => 'Created', 'description' =>'Created but not yet running'),
-		'R' => (object)array('value' => 'Running', 'description' => 'Running'),
-		'B' => (object)array('value' => 'Blocked', 'description' => 'Blocked'),
-		'T' => (object)array('value' => 'Terminated', 'description' =>'Terminated normally'),
-		'W' => (object)array('value' => 'Terminated with warnings', 'description' =>'Terminated normally with warnings'),
-		'E' => (object)array('value' => 'Error', 'description' =>'Terminated in Error'),
-		'e' => (object)array('value' => 'Non-fatal error', 'description' =>'Non-fatal error'),
-		'f' => (object)array('value' => 'Fatal error', 'description' =>'Fatal error'),
-		'D' => (object)array('value' => 'Verify', 'description' =>'Verify Differences'),
-		'A' => (object)array('value' => 'Canceled by user', 'description' =>'Canceled by the user'),
-		'I' => (object)array('value' => 'Incomplete', 'description' =>'Incomplete Job'),
-		'F' => (object)array('value' => 'Waiting on FD', 'description' =>'Waiting on the File daemon'),
-		'S' => (object)array('value' => 'Waiting on SD', 'description' =>'Waiting on the Storage daemon'),
-		'm' => (object)array('value' => 'Waiting for new vol.', 'description' =>'Waiting for a new Volume to be mounted'),
-		'M' => (object)array('value' => 'Waiting for mount', 'description' =>'Waiting for a Mount'),
-		's' => (object)array('value' => 'Waiting for storage', 'description' =>'Waiting for Storage resource'),
-		'j' => (object)array('value' => 'Waiting for job', 'description' =>'Waiting for Job resource'),
-		'c' => (object)array('value' => 'Waiting for client', 'description' =>'Waiting for Client resource'),
-		'd' => (object)array('value' => 'Waiting for Max. jobs', 'description' =>'Wating for Maximum jobs'),
-		't' => (object)array('value' => 'Waiting for start', 'description' =>'Waiting for Start Time'),
-		'p' => (object)array('value' => 'Waiting for higher priority', 'description' =>'Waiting for higher priority job to finish'),
-		'i' => (object)array('value' => 'Batch insert', 'description' =>'Doing batch insert file records'),
-		'a' => (object)array('value' => 'Despooling attributes', 'description' =>'SD despooling attributes'),
-		'l' => (object)array('value' => 'Data despooling', 'description' =>'Doing data despooling'),
-		'L' => (object)array('value' => 'Commiting data', 'description' =>'Committing data (last despool)')
-	);
-		return array_key_exists($jobStateLetter, $jobstates) ? $jobstates[$jobStateLetter] : null;
+		$misc = $this->Application->getModule('misc');
+		$this->jobLevels = $misc->getJobLevels();
+		$this->jobStates = $misc->getJobState();
+		$this->jobTypes = $misc->getJobType();
 	}
 
 	public function prepareData($forceReload = false) {

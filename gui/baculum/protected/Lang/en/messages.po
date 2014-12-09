@@ -986,3 +986,20 @@ msgstr "Vol. Use Duration (in sec.):"
 msgid "Yes"
 msgstr "Yes"
 
+msgid "JobId to Verify:"
+msgstr "JobId to Verify:"
+
+msgid "JobId to Verify value must be integer greather than 0."
+msgstr "JobId to Verify value must be integer greather than 0."
+
+msgid "Job to Verify:"
+msgstr "Job to Verify:"
+
+msgid "Verify by Job Name"
+msgstr "Verify by Job Name"
+
+msgid "Verify by JobId"
+msgstr "Verify by JobId"
+
+msgid "Verify option:"
+msgstr "Verify option:"

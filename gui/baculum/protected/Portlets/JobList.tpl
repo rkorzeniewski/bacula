@@ -38,19 +38,19 @@
                                 <input type="hidden" name="<%=$this->getParent()->ClientID%>" value="<%=$this->getParent()->Data['jobid']%>" />
 			</prop:ItemTemplate>
 		</com:TActiveTemplateColumn>
-		<com:TActiveTemplateColumn ItemTemplate="<%=$this->getPage()->JobWindow->getJobType($this->getParent()->Data['type'])%>" SortExpression="type">
+		<com:TActiveTemplateColumn ItemTemplate="<%=isset($this->getPage()->JobWindow->jobTypes[$this->getParent()->Data['type']]) ? $this->getPage()->JobWindow->jobTypes[$this->getParent()->Data['type']] : ''%>" SortExpression="type">
 			<prop:HeaderText>
 				<span title="<%=Prado::localize('Type')%>" style="cursor: help">T</span>
 			</prop:HeaderText>
 		</com:TActiveTemplateColumn>
-		<com:TActiveTemplateColumn ItemTemplate="<%=array_key_exists($this->getParent()->Data['level'], $this->getPage()->JobWindow->jobLevels) ? mb_substr($this->getPage()->JobWindow->jobLevels[$this->getParent()->Data['level']], 0, 4) : ''%>" SortExpression="level">
+		<com:TActiveTemplateColumn ItemTemplate="<%=array_key_exists($this->getParent()->Data['level'], $this->getPage()->JobWindow->jobLevels) ? $this->getPage()->JobWindow->jobLevels[$this->getParent()->Data['level']] : ''%>" SortExpression="level">
 			<prop:HeaderText>
 				<span title="<%=Prado::localize('Level')%>" style="cursor: help">L</span>
 			</prop:HeaderText>
 		</com:TActiveTemplateColumn>
 		<com:TActiveTemplateColumn HeaderText="<%[ Job status ]%>" SortExpression="jobstatus">
 			<prop:ItemTemplate>
-				<div class="job-status-<%=$this->getParent()->Data['jobstatus']%>" title="<%=isset($this->getPage()->JobWindow->getJobState($this->getParent()->Data['jobstatus'])->description) ? $this->getPage()->JobWindow->getJobState($this->getParent()->Data['jobstatus'])->description : ''%>"><%=isset($this->getPage()->JobWindow->getJobState($this->getParent()->Data['jobstatus'])->value) ? $this->getPage()->JobWindow->getJobState($this->getParent()->Data['jobstatus'])->value : ''%></div>
+				<div class="job-status-<%=isset($this->getParent()->Data['jobstatus']) ? $this->getParent()->Data['jobstatus'] : ''%>" title="<%=isset($this->getPage()->JobWindow->jobStates[$this->getParent()->Data['jobstatus']]['description']) ? $this->getPage()->JobWindow->jobStates[$this->getParent()->Data['jobstatus']]['description'] : ''%>"><%=isset($this->getPage()->JobWindow->jobStates[$this->getParent()->Data['jobstatus']]['value']) ? $this->getPage()->JobWindow->jobStates[$this->getParent()->Data['jobstatus']]['value'] : ''%></div>
 			</prop:ItemTemplate>
 		</com:TActiveTemplateColumn>
 		<com:TActiveBoundColumn

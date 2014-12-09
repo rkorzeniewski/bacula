@@ -17,11 +17,16 @@
  * Bacula® is a registered trademark of Kern Sibbald.
  */
 
+Prado::using('System.Web.UI.ActiveControls.TActivePanel');
 Prado::using('Application.Portlets.Portlets');
 
 class JobRunConfiguration extends Portlets {
 
 	const DEFAULT_JOB_PRIORITY = 10;
+
+	public $jobToVerify = array('C', 'O', 'd');
+
+	public $verifyOptions = array('jobname' => 'Verify by Job Name', 'jobid' => 'Verify by JobId');
 
 	public function configure($jobname) {
 		$this->JobName->Text = $jobname;
@@ -29,6 +34,31 @@ class JobRunConfiguration extends Portlets {
 
 		$this->Level->dataSource = $this->Application->getModule('misc')->getJobLevels();
 		$this->Level->dataBind();
+
+		$this->JobToVerifyOptionsLine->Display = 'None';
+		$this->JobToVerifyJobNameLine->Display = 'None';
+		$this->JobToVerifyJobIdLine->Display = 'None';
+		$this->AccurateLine->Display = 'Dynamic';
+		$this->EstimateLine->Display = 'Dynamic';
+
+		$verifyValues = array();
+
+		foreach($this->verifyOptions as $value => $text) {
+			$verifyValues[$value] = Prado::localize($text);
+		}
+
+		$this->JobToVerifyOptions->dataSource = $verifyValues;
+		$this->JobToVerifyOptions->dataBind();
+
+		$jobTasks = $this->Application->getModule('api')->get(array('jobs', 'tasks'))->output;
+
+		$jobsAllDirs = array();
+		foreach($jobTasks as $director => $tasks) {
+			$jobsAllDirs = array_merge($jobsAllDirs, $tasks);
+		}
+
+		$this->JobToVerifyJobName->dataSource = array_combine($jobsAllDirs, $jobsAllDirs);
+		$this->JobToVerifyJobName->dataBind();
 
 		$clients = $this->Application->getModule('api')->get(array('clients'))->output;
 		$clientsList = array();
@@ -77,6 +107,16 @@ class JobRunConfiguration extends Portlets {
 		$params['storageid'] = $this->Storage->SelectedValue;
 		$params['poolid'] = $this->Pool->SelectedValue;
 		$params['priority'] = $this->Priority->Text;
+
+		if (in_array($this->Level->SelectedItem->Value, $this->jobToVerify)) {
+			$verifyVals = $this->getVerifyVals();
+			if ($this->JobToVerifyOptions->SelectedItem->Value == $verifyVals['jobname']) {
+				$params['verifyjob'] = $this->JobToVerifyJobName->SelectedValue;
+			} elseif ($this->JobToVerifyOptions->SelectedItem->Value == $verifyVals['jobid']) {
+				$params['jobid'] = $this->JobToVerifyJobId->Text;
+			}
+		}
+
 		$result = $this->Application->getModule('api')->create(array('jobs', 'run'), $params)->output;
 		$this->Estimation->Text = implode(PHP_EOL, $result);
 	}
@@ -95,6 +135,23 @@ class JobRunConfiguration extends Portlets {
 	public function priorityValidator($sender, $param) {
 		$isValid = preg_match('/^[0-9]+$/', $this->Priority->Text) === 1 && $this->Priority->Text > 0;
 		$param->setIsValid($isValid);
+	}
+
+	public function jobIdToVerifyValidator($sender, $param) {
+		$verifyVals = $this->getVerifyVals();
+		if(in_array($this->Level->SelectedValue, $this->jobToVerify) && $this->JobToVerifyOptions->SelectedItem->Value == $verifyVals['jobid']) {
+			$isValid = preg_match('/^[0-9]+$/',$this->JobToVerifyJobId->Text) === 1 && $this->JobToVerifyJobId->Text > 0;
+		} else {
+			$isValid = true;
+		}
+		$param->setIsValid($isValid);
+		return $isValid;
+	}
+
+	private function getVerifyVals() {
+		$verifyOpt = array_keys($this->verifyOptions);
+		$verifyVals = array_combine($verifyOpt, $verifyOpt);
+		return $verifyVals;
 	}
 }
 ?>

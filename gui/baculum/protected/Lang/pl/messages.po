@@ -321,10 +321,10 @@ msgid "Database file path (SQLite only):"
 msgstr "Lokalizacja pliku DB (tylko SQLite):"
 
 msgid "Delete job"
-msgstr "Usuń zadanie"
+msgstr "Usuń"
 
 msgid "Cancel job"
-msgstr "Anuluj zadanie"
+msgstr "Przerwij"
 
 msgid "select pool"
 msgstr "wybierz pulę"
@@ -459,7 +459,7 @@ msgid "Jobs for run"
 msgstr "Zadania do uruchomienia"
 
 msgid "Job status"
-msgstr "Status zadania"
+msgstr "Status"
 
 msgid "Run job again"
 msgstr "Uruchom ponownie"
@@ -986,4 +986,22 @@ msgstr "Zadanie do przywrócenia:"
 
 msgid "Step 7 - Finish"
 msgstr "Krok 7 - Podsumowanie"
+
+msgid "JobId to Verify:"
+msgstr "JobId do weryfikacji:"
+
+msgid "JobId to Verify value must be integer greather than 0."
+msgstr "JobId do weryfikacji musi być liczbą całkowitą większą od 0."
+
+msgid "Job to Verify:"
+msgstr "Zadanie do weryfikacji:"
+
+msgid "Verify by Job Name"
+msgstr "Weryfikuj na podstawie nazwy zadania"
+
+msgid "Verify by JobId"
+msgstr "Weryfikuj na podstawie JobId"
+
+msgid "Verify option:"
+msgstr "Opcja weryfikacji:"
 
