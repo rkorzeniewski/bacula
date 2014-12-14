@@ -1,5 +1,8 @@
 #!/bin/sh
 #
+# License: LGPLv2
+# Author: Kern Sibbald
+#
 # Cleanup left over files -- both before and after test run
 #
 . scripts/functions
