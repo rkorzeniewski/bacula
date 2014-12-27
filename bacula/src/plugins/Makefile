@@ -1,6 +1,9 @@
 #
 # Simple Makefile for building test plugins for Bacula
 #
+# Author: Kern Sibbald
+# License: LGPLv3
+#
 
 first_rule: all
 dummy:

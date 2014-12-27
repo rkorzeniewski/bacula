@@ -1,6 +1,9 @@
 #
 # Simple Makefile for building test FD plugins for Bacula
 #
+# Author: Kern Sibbald
+# License: LGPLv3
+#
 #
 @MCOMMON@
 
