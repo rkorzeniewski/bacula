@@ -1,6 +1,11 @@
 /* ------------------------------------------------------------------------- */
 /* --                     CONFIGURE SPECIFIED FEATURES                    -- */
 /* ------------------------------------------------------------------------- */
+
+/*
+ * Author: Kern Sibbald, 2002
+ * License: LGPLv3
+ */
    
 /* Define if you want to use MySQL as Catalog database */
 #undef USE_MYSQL_DB

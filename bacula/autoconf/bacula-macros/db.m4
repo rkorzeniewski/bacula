@@ -1,5 +1,5 @@
 #
-# Author: Kern Sibbald
+# Author: Kern Sibbald, 2008
 # License: LGPLv3
 #
 AC_DEFUN([BA_CHECK_DBI_DB],

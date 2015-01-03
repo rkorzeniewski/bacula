@@ -1,6 +1,9 @@
 #!/bin/sh
-# 
+#
 # Script to do a stackdump of a Bacula daemon/program.
+#
+# Author: Kern Sibbald, 2002
+# License: LGPLv3
 #
 # We attempt to attach to running program
 #

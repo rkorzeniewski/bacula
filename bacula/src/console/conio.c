@@ -51,8 +51,8 @@
 #include <curses.h>
 #include <term.h>
 
-#if defined(HAVE_SUN_OS)
-#if !defined(_TERM_H)
+#ifdef HAVE_SUN_OS
+#ifndef _TERM_H
 extern "C" int tgetent(void *, const char *);
 extern "C" int tgetnum(const char *);
 extern "C" char *tgetstr (const char*, char**);

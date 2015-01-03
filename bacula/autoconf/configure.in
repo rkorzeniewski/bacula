@@ -3,7 +3,7 @@ dnl
 dnl Process this file with autoconf to produce a configure script.
 dnl
 dnl Author: Kern Sibbald
-dnl License: LGPLv2
+dnl License: LGPLv3
 dnl
 dnl require a recent autoconf
 AC_PREREQ(2.61)
