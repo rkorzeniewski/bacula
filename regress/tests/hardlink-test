@@ -1,5 +1,8 @@
 #!/bin/sh
 #
+# Author: Kern Sibbald, 2006
+# License: AGPLv3
+#
 # Run a simple backup of the Bacula build directory
 #   then restore it.
 #

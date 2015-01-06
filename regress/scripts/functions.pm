@@ -478,10 +478,10 @@ sub check_prune_list
     close(FP);
     foreach my $jobid (keys %to_check) {
         if (!$seen{$jobid}) {
-            print "******* listing of $f *********\n";
+            print "******** listing of $f *********\n";
             system("cat $f");
-            print "******* end listing of $f *********\n";
-            print "ERROR: in $f, JobId=$jobid should not but is still present in the 2nd 'list jobs'\n";
+            print "******** end listing of $f *********\n";
+            print "ERROR: in $f, JobId=$jobid should not be, but is still present in the 2nd 'list jobs'\n";
             exit 1;
         }
     }

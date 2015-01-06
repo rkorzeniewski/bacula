@@ -1,5 +1,8 @@
 #!/bin/sh
 #
+# Author: Eric Bollengier, 2009
+# License: AGPLv3
+#
 # shell script to update SQLite from version 1.38 to 2.0
 #
 echo " "

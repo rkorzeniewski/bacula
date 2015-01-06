@@ -2,6 +2,9 @@
 #
 # Script to setup running Bacula regression tests
 #
+# Author: Kern Sibbald, 2003
+# License: LGPLv3
+#
 
 check_exit_code()
 {

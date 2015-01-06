@@ -1,5 +1,7 @@
 #!@PYTHON@
 #
+# License: AGPLv3
+#
 # Check the free space available on a writable DVD
 # Should always exit with 0 status, otherwise it indicates a serious error.
 # (wrong number of arguments, Python exception...)
@@ -88,7 +90,7 @@ class disk:
 #		 This method should also prepare a blank disk so that a
 #		 certain part of the disk is used to allow detection of a
 #		 used disk by all / more disk drives.
-# prepare 	 Blank the device
+# prepare	 Blank the device
 #
 ###############################################################################
    def __init__(self, devicename):

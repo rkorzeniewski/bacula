@@ -1,5 +1,8 @@
 #!/bin/sh
 #
+# Author: Eric Bollengier, 2009
+# License: AGPLv3
+#
 # Run a simple backup of the Bacula build directory using the compressed option
 #   then backup a second time and finally restore it
 #
