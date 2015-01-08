@@ -62,14 +62,19 @@ typedef enum _DCStatus DCStatus;
  */
 class digestcache : public SMARTALLOC {
    TCHDB * dstore;
+   TCHDB * dstoresnap;
    pthread_mutex_t mutex;
+   int snap;
    char * dfile;
+   char * dfilesnap;
    utime_t invalid_date;
    uint64_t memcache;
    int openrefnr;
 
    void init (const char * file);
+   DCStatus closecache ();
    DCStatus closedigestfile ();
+   DCStatus opencache ();
    DCStatus opendigestfile ();
    DCStatus put_key_val (const void * key, int keylen, const void * value, int valuelen);
    DCStatus remove_key (const char * key, int keylen);
@@ -99,6 +104,9 @@ public:
    /* validation handling */
    DCStatus set_invalid_time (const utime_t time);
    DCStatus get_invalid_time (const utime_t time);
+   /* snapshot support */
+   DCStatus snapshot();
+   DCStatus commit();
    /* KEY: size(4B) + digest(variable); VAL: utime_t(8B) + offset(8B) + char[](variable) */
    /* standard methods */
    DCStatus remove (uint32_t size, digest * dig);

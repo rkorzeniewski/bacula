@@ -17,13 +17,16 @@
  * Digest Cache is a fast key->value storage used for information caching
  *
  * The main author of Bacula Deduplication code is Radoslaw Korzeniewski
- * 
+ *
  *  (c) Radosław Korzeniewski, MMXIV
  *  radoslaw@korzeniewski.net
- * 
+ *
  */
 
 #include "digestcache.h"
+
+/* We need a HashDatabase library support available */
+#if defined(HAVE_TOKYOCABINET)
 
 #define DCHInfoData     "DCHInfoData"
 #define DCHInvalidDate  "DCHInvalidDate"
@@ -47,13 +50,21 @@ digestcache::digestcache (void){ init (NULL); }
  */
 void digestcache::init (const char * file)
 {
+   char * dfs;
+
    /* initialize a mutex */
    pthread_mutex_init(&mutex, NULL );
 
    if (file) {
       dfile = bstrdup(file);
+      dfs = (char*)malloc(PATH_MAX);
+      snprintf(dfs,PATH_MAX,"%s.snap",file);
+      dfilesnap = bstrdup(dfs);
+      free(dfs);
+      snap=0;
    } else {
       dfile = NULL;
+      dfilesnap = NULL;
    }
 
    invalid_date = 0;
@@ -62,7 +73,7 @@ void digestcache::init (const char * file)
 }
 
 /*
- * 
+ *
  */
 digestcache::~digestcache ()
 {
@@ -133,12 +144,51 @@ DCStatus digestcache::open (){
    DCStatus out = DC_OK;
 
    lock();
+   if (openrefnr > 0){
+      openrefnr++;
+   } else
+   if ((out = opencache()) == DC_OK){
+      openrefnr=1;
+   }
+   unlock();
+
+   return out;
+}
+
+/*
+ * open perform a data check and opens a digest file if required
+ */
+DCStatus digestcache::opencache (){
+
+   DCStatus out;
+
    /* check if class is initialized properly */
    if (!dfile){
-      out = DC_ENODFILE;
+      return DC_ENODFILE;
    } else {
       /* open a digest file when required */
       out = opendigestfile();
+   }
+
+   return out;
+}
+
+/*
+ * general close function, perform a real close only when no more
+ * threads is using it based on openrefne counter
+ *
+ */
+DCStatus digestcache::close (){
+
+   DCStatus out = DC_OK;
+
+   lock();
+   if (openrefnr > 1){
+      openrefnr--;
+   } else
+   if (openrefnr == 1){
+      openrefnr = 0;
+      out = closecache();
    }
    unlock();
 
@@ -148,19 +198,21 @@ DCStatus digestcache::open (){
 /*
  * general close function, perform a real close only when no more
  * threads is using it based on openrefne counter
- * 
+ *
  */
-DCStatus digestcache::close (){
+DCStatus digestcache::closecache (){
 
-   DCStatus out = DC_OK;
+   DCStatus out;
 
-   lock();
    if (!dfile){
-      out = DC_ENODFILE;
+      return DC_ENODFILE;
    } else
    if (!dstore){
-      out = DC_ENODSTORE;
+      return DC_ENODSTORE;
    } else {
+      if (snap){
+         //closesnapshot();
+      }
       out = closedigestfile ();
    }
    unlock();
@@ -179,7 +231,7 @@ inline void digestcache::lock (void){ pthread_mutex_lock (&mutex); }
 inline void digestcache::unlock (void){ pthread_mutex_unlock (&mutex); }
 
 /*
- * 
+ *
  */
 DCStatus digestcache::opendigestfile (void){
 
@@ -280,7 +332,7 @@ DCStatus digestcache::opendigestfile (void){
 }
 
 /*
- * 
+ *
  */
 DCStatus digestcache::closedigestfile (){
 
@@ -324,9 +376,9 @@ DCStatus digestcache::put_key_val (const void * key, int keylen, const void * va
 /*
  * set_info
  * in:
- * 
+ *
  * Generic Value: utime_t(8) + offset(8) + char[](variable)
- * 
+ *
  */
 DCStatus digestcache::set_info (const char * info){
 
@@ -346,12 +398,8 @@ DCStatus digestcache::set_info (const char * info){
 
 /*
  *
- */ 
+ */
 DCStatus digestcache::set_memcache ( uint64_t memsize ){
-
-   if (memsize < 0){
-      return DC_EINVAL;
-   }
 
    memcache = memsize;
    return DC_OK;
@@ -360,9 +408,9 @@ DCStatus digestcache::set_memcache ( uint64_t memsize ){
 /*
  * set_invalid_time
  * in:
- * 
+ *
  * Generic Value: utime_t(8) + offset(8) + char[](variable)
- * 
+ *
  */
 DCStatus digestcache::set_invalid_time ( const utime_t time ){
 
@@ -462,7 +510,7 @@ DCStatus digestcache::put (uint32_t size, digest * dig, const char * file, const
 }
 
 /*
- * 
+ *
  */
 DCStatus digestcache::remove_key (const char * key, int keylen){
 
@@ -482,7 +530,7 @@ DCStatus digestcache::remove_key (const char * key, int keylen){
 }
 
 /*
- * 
+ *
  */
 DCStatus digestcache::remove (uint32_t size, digest * dig){
 
@@ -542,7 +590,7 @@ DCStatus digestcache::check_key (const char * key, int keylen){
 }
 
 /*
- * check - 
+ * check -
  * input:
  *    digest
  *    size
@@ -572,7 +620,7 @@ DCStatus digestcache::check (uint32_t size, digest * dig){
 }
 
 /*
- * 
+ *
  */
 char * digestcache::get_val (const char * key, int keylen, int * vlen){
 
@@ -690,7 +738,7 @@ DCStatus digestcache::get (uint32_t size, digest * dig, char ** file, uint64_t *
 }
 
 /*
- * 
+ *
  */
 DCStatus digestcache::clearall (void){
 
@@ -803,3 +851,4 @@ int main (void){
 }
 
 #endif /* TEST_PROGRAM */
+#endif /* HAVE_TOKYOCABINET */
