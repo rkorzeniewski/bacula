@@ -53,6 +53,7 @@ enum _DCStatus {
    DC_ESETMEMCACHE,     // cannot set a memcache
    DC_EOPENDSTORE,      // cannot open a digest database
    DC_EINVAL,           // invlid parameter supplied
+   DC_ENOTOPEN,         // digest cache not open
 };
 typedef enum _DCStatus DCStatus;
 
@@ -73,8 +74,10 @@ class digestcache : public SMARTALLOC {
 
    void init (const char * file);
    DCStatus closecache ();
+   DCStatus closesnapshot ();
    DCStatus closedigestfile ();
    DCStatus opencache ();
+   DCStatus opensnapshot ();
    DCStatus opendigestfile ();
    DCStatus put_key_val (const void * key, int keylen, const void * value, int valuelen);
    DCStatus remove_key (const char * key, int keylen);

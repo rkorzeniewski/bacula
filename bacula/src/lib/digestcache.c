@@ -93,6 +93,7 @@ enum _DCStatus {
    DC_ESETMEMCACHE,     // cannot set a memcache
    DC_EOPENDSTORE,      // cannot open a digest database
    DC_EINVAL,           // invlid parameter supplied
+   DC_ENOTOPEN,         // digest cache not open
 };
 */
 static const char* DCStatusStrings[] =
@@ -107,6 +108,7 @@ static const char* DCStatusStrings[] =
    "Error, cannot set a memcache",
    "Error, cannot open a digest database",
    "Error, invlid parameter supplied",
+   "Error, Digest Cache not open",
 };
 const char * digestcache::strdcstatus (DCStatus status)
 {
@@ -131,6 +133,8 @@ const char * digestcache::strdcstatus (DCStatus status)
       return DCStatusStrings[8];
    case DC_EINVAL:
       return DCStatusStrings[9];
+   case DC_ENOTOPEN:
+      return DCStatusStrings[10];
    }
    /* invalid status supplied */
    return NULL;
@@ -148,7 +152,7 @@ DCStatus digestcache::open (){
       openrefnr++;
    } else
    if ((out = opencache()) == DC_OK){
-      openrefnr=1;
+      openrefnr = 1;
    }
    unlock();
 
@@ -211,7 +215,7 @@ DCStatus digestcache::closecache (){
       return DC_ENODSTORE;
    } else {
       if (snap){
-         //closesnapshot();
+         closesnapshot();
       }
       out = closedigestfile ();
    }
@@ -239,13 +243,6 @@ DCStatus digestcache::opendigestfile (void){
    uint64_t bnum;
    uint64_t rnum;
    uint64_t fsize;
-
-   /* already opened */
-   if (dstore){
-      /* bump ref number */
-      openrefnr++;
-      return DC_OK;
-   }
 
    /* we have no file to open */
    if (!dfile){
@@ -334,24 +331,164 @@ DCStatus digestcache::opendigestfile (void){
 /*
  *
  */
-DCStatus digestcache::closedigestfile (){
+DCStatus digestcache::opensnapshot(void){
+
+   int err;
+
+   /* we have no file to open */
+   if (!dfilesnap){
+      return DC_ENODFILE;
+   }
+
+   /* create a new database object */
+   dstoresnap = tchdbnew ();
+   if (!dstoresnap){
+      return DC_ECREATEDSTORE;
+   }
+
+   /* set debug output of the TC */
+   const char *ebuf = getenv("TCDBGFD");
+   int dbgfd = 0;
+   if (ebuf){
+      dbgfd = tcatoix(ebuf);
+   }
+   if (dbgfd > 0){
+      tchdbsetdbgfd(dstoresnap, dbgfd);
+   }
+
+   /* set a mmaped memory buffer half size of main database */
+   if (memcache > 0){
+      char ed1[50];
+      if (tchdbsetxmsiz (dstoresnap, memcache/2)) {
+         Dmsg2(120, "extra mapped memory of %s set to %sB\n", dfile, edit_uint64(memcache/2, ed1));
+      } else {
+         Dmsg2(10, "Error setting extra mapped memory of %s to %sB\n", dfile,
+            edit_uint64(memcache/2, ed1));
+         return DC_ESETMEMCACHE;
+      }
+   }
+
+   /* allow multithread access */
+   tchdbsetmutex (dstoresnap);
+
+   err = access (dfilesnap, F_OK);
+   if (!err){
+      unlink(dfilesnap);
+   }
+   Dmsg0 (120,"Creating New DCache snapshot database\n");
+   /* apow=6 => 64bytes record aligment */
+   //tchdbtune (dstoresnap, 16777216, 6, -1, HDBTLARGE);
+   err = tchdbopen (dstoresnap, dfilesnap, HDBOWRITER|HDBOCREAT|HDBOREADER);
+   if (!err){
+      /* error while opening a database file */
+      err = tchdbecode (dstoresnap);
+      Dmsg1 (120,"Error opening DCache index database. Err=%s\n", tchdberrmsg(err));
+      tchdbclose (dstoresnap);
+      return DC_EOPENDSTORE;
+   }
+   chmod (dfilesnap, 0640);
+
+   snap = 1;
+
+   return DC_OK;
+}
+
+/*
+ *
+ */
+DCStatus digestcache::closedigestfile(){
+
+   if (dstore){
+      tchdbdel (dstore);
+      dstore = NULL;
+      openrefnr = 0;
+      return DC_OK;
+   } else {
+      return DC_EINVAL;
+   }
+}
+
+/*
+ * for proper function require a lock
+ */
+DCStatus digestcache::closesnapshot(){
+
+   if (dstoresnap){
+      // delete a snapshot database and file
+      tchdbdel (dstoresnap);
+      dstoresnap = NULL;
+      snap = 0;
+      if (dfilesnap){
+         unlink(dfilesnap);
+      }
+   }
+
+   return DC_OK;
+}
+
+/*
+ * 
+ */
+DCStatus digestcache::snapshot(){
 
    DCStatus out = DC_OK;
 
-   if (dstore){
-      switch (openrefnr){
+   lock();
+   if (openrefnr){
+      if (snap > 0){
+         snap++;
+      } else
+      if ((out = opensnapshot()) == DC_OK){
+         snap = 1;
+      }
+   } else {
+      out = DC_ENOTOPEN;
+   }
+   unlock();
+
+   return out;
+}
+
+DCStatus digestcache::commit(){
+
+   DCStatus out = DC_OK;
+   char * key;
+   int klen;
+   int vlen;
+   char * retval;
+
+   if (dstoresnap){
+      switch (snap){
       case 0:
-      case 1:
-         tchdbdel (dstore);
-         dstore = NULL;
-         openrefnr = 0;
+         // no snapshot, strange, try to clean up
+         closesnapshot();
          break;
+      case 1:
+         // move snapshot data into main cache
+         if (!tchdbiterinit(dstoresnap)){
+            return DC_ERROR;
+         }
+         // we have an iterator 
+         while ((key = (char*)tchdbiternext(dstoresnap, &klen)) != NULL){
+            // we have a next key in snapshot to move into main database
+            retval = (char*) tchdbget (dstoresnap, key, klen, &vlen);
+            if (!retval){
+               return DC_ERROR;
+            }
+            if (!tchdbput (dstore, key, klen, retval, vlen)){
+               // error
+               return DC_ERROR;
+            }
+         }
+         // delete a snapshot
+         closesnapshot();
       default:
-         openrefnr--;
+         snap--;
       }
    }
 
    return out;
+   
 }
 
 /*
@@ -365,7 +502,12 @@ DCStatus digestcache::put_key_val (const void * key, int keylen, const void * va
       return DC_ENODSTORE;
    }
 
-   out = tchdbput (dstore, key, keylen, value, valuelen);
+   if (snap){
+      // we have a snapshot vailable, so put a data into snapshot
+      out = tchdbput (dstoresnap, key, keylen, value, valuelen);
+   } else {
+      out = tchdbput (dstore, key, keylen, value, valuelen);
+   }
 
    if (!out){
       return DC_ERROR;
@@ -557,16 +699,23 @@ DCStatus digestcache::remove (uint32_t size, digest * dig){
  */
 DCStatus digestcache::check_key (const char * key, int keylen){
 
-   char * retval;
+   char * retval = NULL;
    int vlen;
    DCStatus out;
    utime_t * ptime;
 
-   if (!dstore){
-      return DC_ENODSTORE;
+   if (snap){
+      if (!dstoresnap){
+         return DC_ENODSTORE;
+      }
+      retval = (char*) tchdbget (dstoresnap, key, keylen, &vlen);
    }
-
-   retval = (char*) tchdbget (dstore, key, keylen, &vlen);
+   if (!dstore){
+         return DC_ENODSTORE;
+   }
+   if (!retval){
+      retval = (char*) tchdbget (dstore, key, keylen, &vlen);
+   }
 
    if (retval){
       if (invalid_date && vlen > (int)(sizeof(utime_t))){
@@ -628,6 +777,14 @@ char * digestcache::get_val (const char * key, int keylen, int * vlen){
 
    if (!dstore || !vlen || !key){
       return NULL;
+   }
+
+   if (snap){
+      // we have a snapshot active, so check on snapshot data first
+      retval = (char*) tchdbget (dstoresnap, key, keylen, vlen);
+      if (retval){
+         return retval;
+      }
    }
 
    retval = (char*) tchdbget (dstore, key, keylen, vlen);
@@ -793,6 +950,13 @@ int main (void){
       cout << "close unsuccessful: " << cache->strdcstatus(out) << endl;
    }
 
+   cout << endl << "SNAPSHOT:" << endl;
+   if ((out = cache->snapshot()) == DC_OK){
+      cout << "snapshot for the first time: " << cache->strdcstatus(out) << endl;
+   } else {
+      cout << "snapshot unsuccessful: " << cache->strdcstatus(out) << endl;
+   }
+
    cout << endl << "ADD:" << endl;
    cout << "add to cache ( 1024," << dig << "): ";
    if ((out = cache->put (1024, &dig, "", 0)) == DC_OK){
@@ -819,11 +983,11 @@ int main (void){
    if ((out = cache->check (2048, &dig)) == DC_EXIST){
       cout << "found - good" << endl;
    } else {
-      cout << "not found" << endl;
+      cout << "not found - not good" << endl;
    }
    cout << "search in cache (65536," << dig << "): ";
    if ((out = cache->check (65536, &dig)) == DC_EXIST){
-      cout << "found" << endl;
+      cout << "found - not good" << endl;
    } else {
       cout << "not found - good" << endl;
    }
@@ -834,6 +998,13 @@ int main (void){
    }
    cout << "memory: " << rus.ru_maxrss << "kB" << endl;
 */
+
+   cout << endl << "COMMIT:" << endl;
+   if ((out = cache->commit()) == DC_OK){
+      cout << "commit for the first time: " << cache->strdcstatus(out) << endl;
+   } else {
+      cout << "commit unsuccessful: " << cache->strdcstatus(out) << endl;
+   }
 
    cout << endl << "Check CLOSE:" << endl;
    if ((out = cache->close()) == DC_OK){
