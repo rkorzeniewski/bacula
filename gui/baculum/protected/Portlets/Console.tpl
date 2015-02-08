@@ -10,7 +10,7 @@
 </script>
 <com:TActivePanel ID="ConsoleContainer" DefaultButton="Enter" Style="text-align: left; display: none;">
 	<com:TActiveTextBox ID="OutputListing" TextMode="MultiLine" CssClass="console" ReadOnly="true" />
-	<com:TActiveTextBox ID="CommandLine" TextMode="SingleLine" CssClass="textbox" Width="760px" Style="margin: 3px 5px; float: left" />
+	<com:TActiveTextBox ID="CommandLine" TextMode="SingleLine" CssClass="textbox" Width="760px" Style="margin: 3px 7px; float: left" />
 	<com:TActiveButton ID="Enter" Text="<%[ Enter ]%>" OnCallback="sendCommand">
 		<prop:ClientSide.OnLoading>
 			$('<%=$this->CommandLine->ClientID%>').disabled = true;

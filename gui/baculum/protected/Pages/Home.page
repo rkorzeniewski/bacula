@@ -62,9 +62,9 @@
 			<%[ Date To: ]%> <com:TDatePicker ID="DateTo" DateFormat="yyyy-MM-dd" Width="80px" />
 		</span>
 		<span><%[ Client: ]%></span>
-		<com:TActiveDropDownList ID="Clients" CssClass="textbox" AutoPostBack="false" Width="160px" />
+		<com:TActiveDropDownList ID="Clients" CssClass="textbox" AutoPostBack="false" Width="160px" Style="display: inline" />
 		<span><%[ Job name: ]%></span>
-		<com:TActiveDropDownList ID="Jobs" CssClass="textbox" AutoPostBack="false" Width="160px" />
+		<com:TActiveDropDownList ID="Jobs" CssClass="textbox" AutoPostBack="false" Width="160px" Style="display: inline" />
 		<p><%[ Legend: ]%></p>
 		<div id="legend"></div>
 		<div id="graphs_content">

@@ -15,14 +15,16 @@ var SlideWindowClass = Class.create({
 	gridEl: null,
 	checked: [],
 	objects: {},
+	windowSize: null,
 
 	size: {
-		widthNormal : '437px',
+		widthNormal : '53%',
 		heightNormal : '325px',
-		widthHalf : '437px',
+		widthHalf : '53%',
 		heightHalf : '586px',
-		widthFull : '899px',
-		heightFull : '586px'
+		widthFull : '100%',
+		heightFull : '586px',
+		menuWidth: '75px'
 	},
 
 	elements : {
@@ -47,7 +49,7 @@ var SlideWindowClass = Class.create({
 		this.window = $(this.windowId + this.elements.containerSuffix);
 		this.tools = $(this.windowId + this.elements.toolsButtonSuffix);
 		this.options = $(this.windowId + this.elements.optionsButtonSuffix);
-		
+
 		if(data.hasOwnProperty('showId')) {
 				this.showEl = $(data.showId);
 		} else {
@@ -158,27 +160,30 @@ var SlideWindowClass = Class.create({
 	},
 
 	isNormalSize: function() {
-		return (this.window.getWidth()  + 'px' == this.size.widthNormal && this.window.getHeight()  + 'px' == this.size.heightNormal);
+		return (this.windowSize == this.size.widthNormal && this.window.getHeight()  + 'px' == this.size.heightNormal);
 	},
 
 	isHalfSize: function() {
-		return (this.window.getWidth()  + 'px' == this.size.widthHalf && this.window.getHeight()  + 'px' == this.size.heightHalf);
+		return (this.windowSize == this.size.widthHalf && this.window.getHeight()  + 'px' == this.size.heightHalf);
 	},
 
 	isFullSize: function() {
-		return (this.window.getWidth()  + 'px' == this.size.widthFull && this.window.getHeight()  + 'px' == this.size.heightFull);
+		return (this.windowSize  == this.size.widthFull && this.window.getHeight()  + 'px' == this.size.heightFull);
 	},
 
 	normalSizeWindow: function() {
 			new Effect.Morph(this.window, {style : 'width: ' + this.size.widthNormal + '; height: ' + this.size.heightNormal + ';', duration : 0.4});
+			this.windowSize = this.size.widthNormal;
 	},
 	
 	halfSizeWindow: function() {
 			new Effect.Morph(this.window, {style : 'width: ' + this.size.widthHalf + '; height: ' + this.size.heightHalf + ';', duration : 0.4});
+			this.windowSize = this.size.widthHalf;
 	},
 	
 	fullSizeWindow: function() {
 			new Effect.Morph(this.window, {style : 'width: ' + this.size.widthFull + '; height: ' + this.size.heightFull + ';', duration : 0.4});
+			this.windowSize = this.size.widthFull;
 	},
 
 	hideOtherWindows: function() {
@@ -436,4 +441,18 @@ document.observe("dom:loaded", function() {
 			}.bind(el));
 		});
 	}
+});
+
+function setContentWidth() {
+	var content_width = $('container').getWidth() - $('menu-left').getWidth() - 1;
+	$('content').setStyle({'width': content_width + 'px'});
+}
+
+
+Event.observe(window, 'resize', function() {
+	setContentWidth();
+});
+
+document.observe("dom:loaded", function() {
+	setContentWidth();
 });
