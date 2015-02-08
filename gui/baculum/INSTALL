@@ -44,6 +44,8 @@ tested on Apache HTTP Server.
 PHP should have installed next modules:
     * PDO PHP support - depending on your catalog database: PDO PostgreSQL,
 PDO MySQL or PDO SQLite.
+      Note, in case using MySQL database required is using MySQL native driver.
+      It is php-mysqlnd for PHP, not php-mysql.
     * BCMath PHP module.
     * cURL PHP module.
     * MB String PHP module.
