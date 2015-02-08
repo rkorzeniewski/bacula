@@ -21,7 +21,7 @@
 		ItemStyle.CssClass="slide-window-element"
 		AlternatingItemStyle.CssClass="slide-window-element-alternating"
 	>
-		<com:TActiveTemplateColumn HeaderText="<input type='checkbox' name='actions_checkbox' onclick=SlideWindow.getObj('JobWindow').markAllChecked(this.checked)>">
+		<com:TActiveTemplateColumn HeaderText="<input type='checkbox' name='actions_checkbox' onclick=SlideWindow.getObj('JobWindow').markAllChecked(this.checked)>" ItemStyle.HorizontalAlign="Center">
 			<prop:ItemTemplate>
 				<input type="checkbox" name="actions_checkbox" value="<%=$this->getParent()->Data['jobid']%>" id="<%=$this->getPage()->JobWindow->CheckedValues->ClientID%><%=$this->getParent()->Data['jobid']%>" rel="<%=$this->getPage()->JobWindow->CheckedValues->ClientID%>" onclick="SlideWindow.getObj('JobWindow').markChecked(this.getAttribute('rel'), this.checked, this.value, true);" />
 			</prop:ItemTemplate>

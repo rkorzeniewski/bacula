@@ -434,7 +434,7 @@ var SlideWindowClass = Class.create({
 var SlideWindow = new SlideWindowClass()
 
 document.observe("dom:loaded", function() {
-	if(Prototype.Browser.IE  || Prototype.Browser.Gecko) {
+	if(Prototype.Browser.IE  || Prototype.Browser.Gecko || Prototype.Browser.WebKit) {
 		$$('input[type=checkbox], input[type=submit], input[type=radio], a').each(function(el) {
 			el.observe('focus', function() {
 				el.blur();

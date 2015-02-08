@@ -18,6 +18,7 @@
 		<prop:ClientSide.OnComplete>
 			$('<%=$this->OutputListing->ClientID%>').scrollTop = $('<%=$this->OutputListing->ClientID%>').scrollHeight;
 			$('<%=$this->CommandLine->ClientID%>').disabled = false;
+			$('<%=$this->CommandLine->ClientID%>').select();
 		</prop:ClientSide.OnComplete>
 	</com:TActiveButton>
 	 <com:TActiveButton ID="Clear" Text="<%[ Clear ]%>" OnCallback="clearConsole" Style="margin: auto 5px; " />
