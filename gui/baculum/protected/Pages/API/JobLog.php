@@ -23,7 +23,8 @@ class JobLog extends BaculumAPI {
 		$job = $this->getModule('job')->getJobById($jobid);
 		if(!is_null($job)) {
 			$log = $this->getModule('joblog')->getLogByJobId($job->jobid);
-			$this->output = $log;
+			// Output may contain national characters.
+			$this->output = array_map('utf8_encode', $log);
 			$this->error = JobError::ERROR_NO_ERRORS;
 		} else {
 			$this->output = JobError::MSG_ERROR_JOB_DOES_NOT_EXISTS;
