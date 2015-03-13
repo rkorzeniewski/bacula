@@ -1,13 +1,16 @@
 Source: baculum
-Section: base
+Section: web
 Priority: optional
 Maintainer: Marcin Haba <marcin.haba@bacula.pl>
 Build-Depends: debhelper (>= 4.0.0)
-Standards-Version: 3.6.1
+Standards-Version: 3.9.6
 
 Package: baculum
-Section: base
+Section: web
 Architecture: all
-Depends: php5-cgi, php5-curl, php5-mysql, php5-pgsql, php5-sqlite, php5-json, lighttpd
-Description: Baculum WebGUI tool for Bacula Community program
-
+Depends: ${misc:Depends}, php5-cgi, php5-curl, php5-mysql, php5-pgsql, php5-sqlite, php5-json, lighttpd, libjs-excanvas
+Description: WebGUI tool for Bacula Community program
+ Baculum is web based tool to manage, administrate and monitor Bacula services.
+ From server side Baculum is written in PHP and works basing on PRADO Framework.
+ Baculum interface enables e.g. to run Bacula backup and restore actions, take
+ access to Bacula console via web, watch backup graphs and others.
