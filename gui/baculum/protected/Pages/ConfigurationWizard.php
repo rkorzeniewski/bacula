@@ -114,7 +114,7 @@ class ConfigurationWizard extends BaculumPage
 				$urlPrefix = $this->Application->getModule('friendly-url')->getUrlPrefix();
 				$location = sprintf("%s://%s:%s@%s:%d%s", $http_protocol, $cfgData['baculum']['login'], $cfgData['baculum']['password'], $_SERVER['SERVER_NAME'], $_SERVER['SERVER_PORT'], $urlPrefix);
 				header("Location: $location");
-				exit();
+				return;
 			} else { // standard version (user defined auth method)
 				$this->goToDefaultPage();
 			}

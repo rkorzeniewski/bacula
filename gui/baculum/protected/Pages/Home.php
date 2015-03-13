@@ -45,9 +45,8 @@ class Home extends BaculumPage
 			$this->Logging->Checked = $this->getModule('logging')->isDebugOn();
 		}
 
-		$directors = $this->getModule('api')->get(array('directors'))->output;
-
 		if(!$this->IsPostBack && !$this->IsCallBack) {
+			$directors = $this->getModule('api')->get(array('directors'))->output;
 			if(!array_key_exists('director', $_SESSION)) {
 				$_SESSION['director'] = $directors[0];
 			}
