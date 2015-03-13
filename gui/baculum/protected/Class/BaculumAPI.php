@@ -39,6 +39,12 @@ abstract class BaculumAPI extends TPage
 
 	public function onInit($params) {
 		parent::onInit($params);
+		/*
+		 * Workaround to bug in PHP 5.6 by FastCGI that caused general protection error.
+		 * TODO: Check on newer PHP if it is already fixed.
+		 */
+		$db = new ActiveRecord();
+		$db->getDbConnection();
 		$this->director = isset($this->Request['director']) ? $this->Request['director'] : null;
 		$this->user = isset($this->Request['user']) ? $this->Request['user'] : null;
 		if(is_null($this->user) && $this->Application->getModule('configuration')->isApplicationConfig() === true) {
