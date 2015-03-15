@@ -24,10 +24,6 @@ functions such as:
 - Easy in use configuration and restore wizards
 - other features...
 
-Note!
-This Baculum release does not support Verify kind of jobs. Support for Verify
-jobs will be implemented in next Baculum release.
-
 
 2. Baculum operating system environment
 
