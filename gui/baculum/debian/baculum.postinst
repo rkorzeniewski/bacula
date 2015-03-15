@@ -2,16 +2,13 @@
 
 set -e
 
-if [ "$1" = "configure" ] ; then
- chown -R www-data:www-data      /etc/baculum
- chown -R www-data:www-data      /usr/share/baculum/htdocs
- chmod 750                       /etc/baculum
- chmod 750                       /usr/share/baculum/htdocs/protected/Data
- ln -s -f /usr/share/javascript/excanvas/excanvas.js /usr/share/baculum/htdocs/protected/JavaScript/excanvas.js
- ln -s /etc/baculum/baculum.users /usr/share/baculum/htdocs/protected/Data/baculum.users
- ln -s /usr/share/doc/baculum/copyright   /usr/share/baculum/htdocs/LICENSE
-fi
+case "$1" in
+    configure)
+	chown -R www-data:www-data /etc/baculum
+	chown -R www-data:www-data /usr/share/baculum/htdocs
+	chmod 750 /etc/baculum
+	chmod 750 /usr/share/baculum/htdocs/protected/Data
+    ;;
+esac
 
 #DEBHELPER#
-
-exit 0
