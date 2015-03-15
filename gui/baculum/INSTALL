@@ -32,7 +32,7 @@ functions such as:
 2.1 General requirements
 
 
-Environmnent for Baculum installation should have following components:
+Environment for Baculum installation should have following components:
 
 - Web Server - with mod_rewrite module loaded. Baculum has been
 tested on Apache HTTP Server and Lighttpd.
