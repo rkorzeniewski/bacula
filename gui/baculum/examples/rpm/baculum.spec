@@ -1,6 +1,6 @@
 Summary:	Baculum WebGUI tool for Bacula Community program
-Name:		bacula-gui
-Version:	7.0.5
+Name:		baculum
+Version:	7.0.20150315git
 Release:	1%{?dist}
 License:	AGPLv3
 Group:		Applications/Internet
@@ -32,21 +32,23 @@ console that communicates with Bacula bconsole program.
 
 %files
 %defattr(-,lighttpd,lighttpd)
-%attr(-,lighttpd,lighttpd) /var/www/baculum
-%attr(-,root,root) /etc/baculum
+%attr(-,lighttpd,lighttpd) /usr/share/baculum/htdocs
+%attr(-,lighttpd,lighttpd) /etc/baculum
 %attr(755,root,root) /etc/rc.d/init.d/baculum
 
 %install
-mkdir -p %{buildroot}/var/www/baculum
+mkdir -p %{buildroot}/usr/share/baculum/htdocs
 mkdir -p %{buildroot}/etc/baculum
 mkdir -p %{buildroot}/etc/rc.d/init.d
 
-cp -ra baculum %{buildroot}/var/www/
-install -m 750 baculum/examples/rpm/baculum.lighttpd.conf %{buildroot}/etc/baculum/
-install -m 755 baculum/examples/rpm/baculum.startup %{buildroot}/etc/rc.d/init.d/baculum
-install -m 600 baculum/examples/rpm/baculum.users %{buildroot}/var/www/baculum/protected/Data/
+cp -ra . %{buildroot}/usr/share/baculum/htdocs
+install -m 640 examples/rpm/baculum.lighttpd.conf %{buildroot}/etc/baculum/
+install -m 600 examples/rpm/baculum.users %{buildroot}/etc/baculum/
+install -m 755 examples/rpm/baculum.startup %{buildroot}/etc/rc.d/init.d/baculum
+
 
 %post
+ln -s /etc/baculum/baculum.users /usr/share/baculum/htdocs/protected/Data/baculum.users
 /sbin/chkconfig --add /etc/rc.d/init.d/baculum
 
 %preun
@@ -54,4 +56,3 @@ if [ $1 -eq 0 ] ; then
     /sbin/service baculum stop
     /sbin/chkconfig --del baculum
 fi
-
