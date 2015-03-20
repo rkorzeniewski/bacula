@@ -1,4 +1,10 @@
 #!/bin/sh
+#
+# chkconfig: 2345 91 9
+# description: This script uses Lighttpd web server for \
+#              working Baculum WebGUI tool.
+#
+
 ### BEGIN INIT INFO
 # Provides:          baculum
 # Required-Start:    $local_fs $remote_fs $network $syslog $named
@@ -7,7 +13,6 @@
 # Default-Stop:      0 1 6
 # Short-Description: Start/stop Baculum
 # Description:       Start the Baculum WebGUI Bacula Community tool.
-#  This script uses Lighttpd web server for working Baculum WebGUI tool.
 ### END INIT INFO
 
 DESC="Baculum WebGUI Bacula Community tool"
@@ -15,7 +20,8 @@ NAME=baculum
 SCRIPTNAME=/etc/init.d/$NAME
 DAEMON=/usr/sbin/lighttpd
 DAEMON_OPTS="-f /etc/baculum/baculum.lighttpd.conf"
-PIDFILE="/var/run/$NAME.pid"
+PIDFILE=/var/run/$NAME.pid
+LOCKFILE=/var/lock/subsys/$NAME
 
 test -x $DAEMON || exit 0
 
@@ -35,6 +41,10 @@ log_end_msg()
     logger ${RES:=FAIL}
 }
 
+rh_status() {
+    status $prog
+}
+
 if test -f /lib/lsb/init-functions; then
 . /lib/lsb/init-functions
 fi
@@ -50,6 +60,7 @@ case "$1" in
             log_end_msg 1
         else
             log_end_msg 0
+            touch $LOCKFILE
         fi
         ;;
     stop)
@@ -57,10 +68,14 @@ case "$1" in
         if kill -TERM `<$PIDFILE`
         then
             rm -f $PIDFILE
+            rm -f $LOCKFILE
             log_end_msg 0
         else
             log_end_msg 1
         fi
+        ;;
+    status)
+        rh_status
         ;;
     restart)
         check_syntax
@@ -68,7 +83,7 @@ case "$1" in
         $0 start
         ;;
     *)
-        echo "Usage: $SCRIPTNAME {start|stop|restart}" >&2
+        echo "Usage: $SCRIPTNAME {start|stop|restart|status}" >&2
         exit 1
         ;;
 esac
