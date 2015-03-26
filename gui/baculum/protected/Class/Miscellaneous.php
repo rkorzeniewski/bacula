@@ -1,5 +1,10 @@
 <?php
- 
+
+// small sorting callback function to sort by name
+function sortListByName($a, $b) {
+	return strcasecmp($a['name'], $b['name']);
+}
+
 class Miscellaneous extends TModule {
 
 	const LICENCE_FILE = 'LICENSE';
@@ -205,6 +210,7 @@ class Miscellaneous extends TModule {
 				$elements[] = array('pathid' => $match['pathid'], 'filenameid' => $match['filenameid'], 'fileid' => $match['fileid'], 'jobid' => $match['jobid'], 'lstat' => $match['lstat'], 'name' => $match['name'], 'type' => 'file'); 
 			}
 		}
+		usort($elements, 'sortListByName');
 		return $elements;
 	}
 
