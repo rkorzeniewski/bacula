@@ -41,12 +41,12 @@ class BaculumPage extends TPage
 		return $this->Application->getModule($name);
 	}
 
-	public function goToPage($pagePath,$getParameters=null) {
+	public function goToPage($pagePath,$getParameters = null) {
 		$this->Response->redirect($this->Service->constructUrl($pagePath,$getParameters,false));
 	}
 
-	public function goToDefaultPage() {
-		$this->goToPage($this->Service->DefaultPage);
+	public function goToDefaultPage($getParameters = null) {
+		$this->goToPage($this->Service->DefaultPage, $getParameters);
 	}
 
 	public function setPrefixForSubdir() {

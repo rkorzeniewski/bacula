@@ -27,6 +27,10 @@ class Home extends BaculumPage
 {
 	public $jobs;
 
+	public $openWindow = null;
+
+	public $windowIds = array('Storage', 'Client', 'Media', 'Pool', 'Job', 'JobRun');
+
 	public function onInit($param) {
 		parent::onInit($param);
 		$isConfigExists = $this->getModule('configuration')->isApplicationConfig();
@@ -55,6 +59,7 @@ class Home extends BaculumPage
 			$this->Director->dataBind();
 			$this->setJobs();
 			$this->setClients();
+			$this->setWindowOpen();
 		}
 	}
 
@@ -105,6 +110,13 @@ class Home extends BaculumPage
 		$this->Clients->dataSource = $clients;
 		$this->Clients->dataBind();
 
+	}
+
+	public function setWindowOpen() {
+		if (isset($this->Request['open']) && in_array($this->Request['open'], $this->windowIds)) {
+			$btn = $this->Request['open'] . 'Btn';
+			$this->openWindow = $this->{$btn}->ClientID;
+		}
 	}
 }
 ?>

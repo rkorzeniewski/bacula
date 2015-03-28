@@ -410,7 +410,7 @@ class RestoreWizard extends BaculumPage
 		$restoreProps['replace'] = $this->ReplaceFiles->SelectedValue;
 		
 		$ret = $this->getModule('api')->create(array('jobs', 'restore'), $restoreProps);
-		$this->goToDefaultPage();
+		$this->goToDefaultPage(array('open' => 'Job'));
 	}
 }
 ?>

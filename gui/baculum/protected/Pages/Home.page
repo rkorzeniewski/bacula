@@ -99,4 +99,11 @@
 		<com:Application.Portlets.Console ID="Console" />
 	</div>
 	<div id="bottom"></div>
+	<script type="text/javascript">
+		document.observe("dom:loaded", function() {
+			<%=(!is_null($this->openWindow) ?
+				'$("' . $this->openWindow . '").click(); window.history.pushState("", "", "/");'
+			 : '')%>
+		});
+	</script>
 </com:TContent>
