@@ -304,8 +304,8 @@ class RestoreWizard extends BaculumPage
 				}
 			}
 		} else {
-			$jobsRecent = $this->getModule('api')->get(array('jobs', 'recent', $this->GroupBackupToRestore->SelectedValue, $this->BackupClientName->SelectedValue));
-			if(isset($jobsRecent->output)) {
+			$jobsRecent = $this->getModule('api')->get(array('jobs', 'recent', urlencode($this->GroupBackupToRestore->SelectedValue), $this->BackupClientName->SelectedValue));
+			if(isset($jobsRecent->output) && count($jobsRecent->output) > 0) {
 				$ids = $jobsRecent->output;
 				$jobids = implode(',', $ids);
 			}
