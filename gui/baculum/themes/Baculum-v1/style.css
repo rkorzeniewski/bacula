@@ -113,7 +113,7 @@ a:hover {
 	z-index: 100;
 }
 
-#directors, #panel_switcher {
+#directors, #panel_switcher, #tray_bar {
 	float: right;
 	font-size: 12px;
 }
@@ -127,6 +127,20 @@ a:hover {
 #panel_switcher {
 	margin: 17px 20px 0 0;
 	font-weight: bold;
+}
+
+#tray_bar {
+	margin: 2px 30px 2px 0;
+}
+
+#tray_bar img {
+	float: none;
+	margin: 0;
+	padding: auto 12px;
+}
+
+#tray_bar span{
+	font-size: 14px;
 }
 
 div.configuration {

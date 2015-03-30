@@ -114,11 +114,17 @@
 		<com:TCallback ID="ReloadJobs" OnCallback="Page.JobWindow.prepareData" ClientSide.OnComplete="SlideWindow.getObj('JobWindow').setLoadRequest();" />
 		<script type="text/javascript">
 			var job_callback_func = function() {
-				var mainForm = Prado.Validation.getForm();
-				var callback = <%=$this->ReloadJobs->ActiveControl->Javascript%>;
-				if (Prado.Validation.managers[mainForm].getValidatorsWithError('JobGroup').length == 0) {
-					SlideWindow.getObj('JobWindow').markAllChecked(false);
-					callback.dispatch();
+				/*
+				 * Check if Job list window is open and if any checkbox from actions is not checked.
+				 * If yes, then is possible to refresh Job list window.
+				 */
+				if(SlideWindow.getObj('JobWindow').isWindowOpen() === true && SlideWindow.getObj('JobWindow').areActionsOpen() === false) {
+					var mainForm = Prado.Validation.getForm();
+					var callback = <%=$this->ReloadJobs->ActiveControl->Javascript%>;
+					if (Prado.Validation.managers[mainForm].getValidatorsWithError('JobGroup').length == 0) {
+						SlideWindow.getObj('JobWindow').markAllChecked(false);
+						callback.dispatch();
+					}
 				}
 			}
 		</script>
@@ -126,8 +132,27 @@
 			<com:BActiveButton ID="Status" Text="<%[ Job status ]%>" CausesValidation="false" OnClick="status" ClientSide.OnSuccess="ConfigurationWindow.getObj('JobWindow').progress(false);job_callback_func();" CssClass="bbutton" />
 			<com:TActiveLabel ID="DeleteButton"><com:BActiveButton ID="Delete" Text="<%[ Delete job ]%>" CausesValidation="false" OnClick="delete" ClientSide.OnSuccess="ConfigurationWindow.getObj('JobWindow').progress(false);job_callback_func();" CssClass="bbutton" /> </com:TActiveLabel>
 			<com:TActiveLabel ID="CancelButton"><com:BActiveButton ID="Cancel" Text="<%[ Cancel job ]%>" CausesValidation="false" OnClick="cancel" ClientSide.OnSuccess="ConfigurationWindow.getObj('JobWindow').progress(false);job_callback_func();" CssClass="bbutton" /> </com:TActiveLabel>
-			<com:BActiveButton ID="Run" Text="<%[ Run job again ]%>" ValidationGroup="JobGroup" CausesValidation="true" OnClick="run_again" ClientSide.OnSuccess="ConfigurationWindow.getObj('JobWindow').progress(false);job_callback_func();"/>
+			<com:BActiveButton ID="Run" Text="<%[ Run job again ]%>" ValidationGroup="JobGroup" CausesValidation="true" OnClick="run_again" ClientSide.OnSuccess="ConfigurationWindow.getObj('JobWindow').progress(false);job_callback_func();oMonitor();"/>
 		</div>
+		<com:TCallback ID="RefreshStatus" OnCallback="status" ClientSide.OnComplete="status_callback_timeout = setTimeout('status_callback_func()', 10000);" />
+		<script type="text/javascript">
+			var status_callback_timeout;
+			var status_prev = false;
+			var status_callback_func = function() {
+				if(status_callback_timeout) {
+					clearTimeout(status_callback_timeout);
+				}
+				if($('<%=$this->getID()%>configuration').visible() && ($('<%=$this->RefreshStart->ClientID%>').value === 'true' || status_prev === true)) {
+					status_prev = ($('<%=$this->RefreshStart->ClientID%>').value === 'true');
+					var callback = <%=$this->RefreshStatus->ActiveControl->Javascript%>;
+					oMonitor();
+					callback.dispatch();
+				} else {
+					status_prev = false;
+				}
+			}
+		</script>
+		<com:TActiveHiddenField ID="RefreshStart" />
 		<div class="text small"><%[ Console status ]%></div>
 		<div class="field-full" style="min-height: 166px">
 			<com:TActiveTextBox ID="Estimation" TextMode="MultiLine" CssClass="textbox-auto" Style="height: 145px" ReadOnly="true" />

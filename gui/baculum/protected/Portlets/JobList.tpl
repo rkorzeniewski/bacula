@@ -65,6 +65,7 @@
 		<prop:ClientSide.OnComplete>
 			ConfigurationWindow.getObj('JobWindow').show();
 			ConfigurationWindow.getObj('JobWindow').progress(false);
+			status_callback_func();
 		</prop:ClientSide.OnComplete>
 	</com:TCallback>
 </com:TContent>

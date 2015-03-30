@@ -138,6 +138,10 @@ var SlideWindowClass = Class.create({
 			}.bind(this)
 		});
 	},
+
+	isWindowOpen: function() {
+		return !(this.window.style.display === 'none');
+	},
 	
 	resetSize : function() {
 		if(this.isConfigurationOpen()) {

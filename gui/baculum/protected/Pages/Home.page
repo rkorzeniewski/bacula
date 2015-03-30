@@ -9,6 +9,7 @@
 			<com:TActiveLinkButton ID="Workspace" Text="<%[ Workspace ]%>" Attributes.onclick="PanelWindow.show('container');" />
 			<com:TActiveLinkButton ID="Graphs" Text="<%[ Graphs ]%>" Attributes.onclick="PanelWindow.show('graphs');" />
 		</div>
+		<com:Application.Portlets.TrayBar ID="TrayBar" />
 	</div>
 	<div id="container">
 		<div id="menu-left">
@@ -100,6 +101,7 @@
 	</div>
 	<div id="bottom"></div>
 	<script type="text/javascript">
+		var oMonitor;
 		document.observe("dom:loaded", function() {
 			<%=(!is_null($this->openWindow) ?
 				'$("' . $this->openWindow . '").click(); window.history.pushState("", "", "/");'

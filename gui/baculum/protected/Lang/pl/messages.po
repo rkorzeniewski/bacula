@@ -1005,3 +1005,9 @@ msgstr "Weryfikuj na podstawie JobId"
 msgid "Verify option:"
 msgstr "Opcja weryfikacji:"
 
+msgid "Running jobs:"
+msgstr "Uruchomione zadania:"
+
+msgid "Finished jobs:"
+msgstr "Zakończone zadania:"
+

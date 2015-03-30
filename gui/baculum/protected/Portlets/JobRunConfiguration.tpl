@@ -133,7 +133,7 @@
 			<div class="field"><com:TActiveCheckBox ID="Accurate" AutoPostBack="false" /></div>
 		</com:TPanel>
 		<com:TPanel ID="EstimateLine" CssClass="button">
-			<com:Application.Portlets.BActiveButton ID="Estimate" Text="<%[ Estimate job ]%>" OnClick="estimate"  ClientSide.OnSuccess="ConfigurationWindow.getObj('JobRunWindow').progress(false);jobrun_callback_func();" />
+			<com:Application.Portlets.BActiveButton ID="Estimate" Text="<%[ Estimate job ]%>" OnClick="estimate"  ClientSide.OnSuccess="ConfigurationWindow.getObj('JobRunWindow').progress(false);jobrun_callback_func();oMonitor();" />
 		</com:TPanel>
 	</com:TActivePanel>
 </com:TContent>

@@ -14,6 +14,7 @@
 			<url ServiceParameter="ConfigurationWizard" pattern="wizard/" />
 			<url ServiceParameter="RestoreWizard" pattern="restore/" />
 			<url ServiceParameter="BaculumError" pattern="message/{error}/" parameters.error="\d+" />
+			<url ServiceParameter="Monitor" pattern="monitor/" />
 			<!-- START Directors -->
 			<url ServiceParameter="API.Directors" pattern="directors/" />
 			<!-- END Directors -->

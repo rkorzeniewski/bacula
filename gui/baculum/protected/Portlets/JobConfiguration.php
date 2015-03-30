@@ -17,6 +17,7 @@
  * Bacula® is a registered trademark of Kern Sibbald.
  */
 
+Prado::using('System.Web.UI.ActiveControls.TActiveHiddenField');
 Prado::using('System.Web.UI.ActiveControls.TActivePanel');
 Prado::using('Application.Portlets.Portlets');
 
@@ -108,10 +109,19 @@ class JobConfiguration extends Portlets {
 
 		$this->Priority->Text = ($jobdata->priorjobid == 0) ? self::DEFAULT_JOB_PRIORITY : $jobdata->priorjobid;
 		$this->DeleteButton->Visible = true;
-		$this->CancelButton->Visible = in_array($jobdata->jobstatus, $runningJobStates);
+		$this->CancelButton->Visible = $this->RefreshStart->Value = in_array($jobdata->jobstatus, $runningJobStates);
 	}
 
 	public function status($sender, $param) {
+		$refreshStart = false;
+		for ($i = 0; $i < count($_SESSION['monitor_data']['running_jobs']); $i++) {
+			if ($_SESSION['monitor_data']['running_jobs'][$i]->jobid == $this->JobID->Text) {
+				$refreshStart = true;
+				break;
+			}
+		}
+		$this->RefreshStart->Value = $refreshStart;
+
 		$joblog = $this->Application->getModule('api')->get(array('joblog', $this->JobID->Text))->output;
 		$this->Estimation->Text = is_array($joblog) ? implode(PHP_EOL, $joblog) : Prado::localize("Output for selected job is not available yet or you do not have enabled logging job logs to catalog database. For watching job log there is need to add to the job Messages resource next directive: console = all, !skipped, !saved");
 	}
