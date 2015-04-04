@@ -527,6 +527,7 @@ div.slide-window-bar-title {
 	-moz-user-select: none;
 	-ms-user-select: none;
 	user-select: none;
+	cursor: default;
 }
 
 div.slide-window-close, div.slide-window-fullsize, div.slide-window-sort {
