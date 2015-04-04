@@ -8,6 +8,7 @@ var SlideWindowClass = Class.create({
 	search: null,
 	toolbar: null,
 	tools: null,
+	titlebar: null,
 	options: null,
 	configurationObj: null,
 	loadRequest : null,
@@ -49,6 +50,7 @@ var SlideWindowClass = Class.create({
 		this.window = $(this.windowId + this.elements.containerSuffix);
 		this.tools = $(this.windowId + this.elements.toolsButtonSuffix);
 		this.options = $(this.windowId + this.elements.optionsButtonSuffix);
+		this.titlebar = $(this.windowId + this.elements.titleSuffix);
 
 		if(data.hasOwnProperty('showId')) {
 				this.showEl = $(data.showId);
@@ -108,6 +110,10 @@ var SlideWindowClass = Class.create({
 		}.bind(this));
 		
 		this.fullSizeEl.observe('click', function(){
+			this.resetSize();
+		}.bind(this));
+
+		this.titlebar.observe('dblclick', function() {
 			this.resetSize();
 		}.bind(this));
 
@@ -315,7 +321,6 @@ var SlideWindowClass = Class.create({
 			}.bind(search_pattern));
 	},
 	setElementsCount : function() {
-		var title_el = $(this.windowId + this.elements.titleSuffix);
 		var elements_count = $$('div[id="' + this.windowId + this.elements.containerSuffix + '"] div.' + this.elements.contentItems).length || $$('div[id="' + this.windowId + this.elements.containerSuffix + '"] tr.' + this.elements.contentItems + ', div[id="' + this.windowId + this.elements.containerSuffix + '"] tr.' + this.elements.contentAlternatingItems).length;
 		var count_el = $(this.windowId + this.elements.titleSuffix).getElementsByTagName('span')[0];
 		$(count_el).update(' (' + elements_count + ')');
