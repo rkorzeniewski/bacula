@@ -293,24 +293,22 @@ void Pages::consoleCommand(QString &command)
 void Pages::consoleCommand(QString &command, bool setCurrent)
 {
    int conn;
-   bool donotify = false;
-   if (m_console->getDirComm(conn))  {
-      if (m_console->is_notify_enabled(conn)) {
-         donotify = true;
-         m_console->notify(conn, false);
-      }
-      consoleCommand(command, conn, setCurrent);
-      if (donotify) { m_console->notify(conn, true); }
+   if (m_console->getDirComm(conn)) {
+      consoleCommand(command, conn, setCurrent, true);
    }
 }
 
-void Pages::consoleCommand(QString &command, int conn)
+/*
+ * Lowest level of console command method.
+ * "notify" parameter default is set to true by higher level console command call.
+ * In most cases "notify" parameter should be set to true value because after console
+ * command sent, notifier should be always enabled for catch all Director responses.
+ */
+void Pages::consoleCommand(QString &command, int conn, bool setCurrent, bool notify)
 {
-   consoleCommand(command, conn, true);
-}
-
-void Pages::consoleCommand(QString &command, int conn, bool setCurrent)
-{
+   if (notify) {
+      m_console->notify(conn, true);
+   }
    /* Bring this director's console to the front of the stack */
    if (setCurrent) { setConsoleCurrent(); }
    QString displayhtml("<font color=\"blue\">");

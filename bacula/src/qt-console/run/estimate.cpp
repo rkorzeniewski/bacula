@@ -74,7 +74,7 @@ void estimatePage::okButtonPushed()
       Pmsg1(000, "command : %s\n", cmd.toUtf8().data());
    }
 
-   consoleCommand(cmd, m_conn);
+   consoleCommand(cmd, m_conn, true, true);
    m_console->notify(m_conn, true);
    closeStackPage();
    mainWin->resetFocus();
