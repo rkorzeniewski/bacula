@@ -79,6 +79,9 @@ GPLv2 or later license:
    *      The Regents of the University of California.  All rights reserved.
 
 Permissive licenses:
+ Most Makefile.in, *.in, and script files are copyright LGPLv3 as noted
+ in each individual file.
+
  src/lib/crc32.c
    Copyright (C) 2010 Joakim Tjernlund
    Under LGPLv3 or later
