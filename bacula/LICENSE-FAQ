@@ -1,3 +1,11 @@
+       
+                Bacula License FAQ
+
+Note: This file is not the Bacula Community (bacula.org) license,
+which you will find in the LICENSE file. This is a FAQ about the
+the Bacula AGPLv3 and the other third-party licenses used in certain
+source code files of the Bacula software.
+
 
              Affero General Public License
 History:
@@ -5,7 +13,10 @@ The original Bacula code was Copyright Kern Sibbald and John Walker.
 After November 2004, it became Copyright Kern Sibbald, and finally,
 the copyright was transferred to the Free Software Foundation Europe
 on 15 November 2006. The license was changed from GPLv2 to AGPLv3
-on 24 July 2010.
+on 24 July 2010. The copyright Fiduciary License Agreement signed 
+with Kern Sibbald and the FSFE 15 November 2006 was terminated as
+of 3 March 2015.  Code subsequent to that date is 
+Copyright, Kern Sibbald.
 
 Trademark:
 The name Bacula is a registered trademark of Kern Sibbald.
@@ -68,6 +79,10 @@ GPLv2 or later license:
    *      The Regents of the University of California.  All rights reserved.
 
 Permissive licenses:
+ src/lib/crc32.c
+   Copyright (C) 2010 Joakim Tjernlund
+   Under LGPLv3 or later
+
  src/lib/var.c/h
    **  OSSP var - Variable Expansion
    **  Copyright (c) 2001-2002 Ralf S. Engelschall <rse@engelschall.com>
