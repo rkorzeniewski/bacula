@@ -59,7 +59,7 @@ class SlideWindow extends Portlets {
 	public function onInit($param) {
 		parent::onInit($param);
 		if(empty($_SESSION['view' . $this->getParent()->ID]) && empty($_SESSION['limit' . $this->getParent()->ID])) {
-			$_SESSION['view' . $this->getParent()->ID] = self::NORMAL_VIEW;
+			$_SESSION['view' . $this->getParent()->ID] = self::DETAIL_VIEW;
 			$_SESSION['limit' . $this->getParent()->ID] = $this->elementsLimit['unlimited'];
 		}
 	}
