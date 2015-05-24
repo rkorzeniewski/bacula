@@ -274,7 +274,15 @@ var SlideWindowClass = Class.create({
 			}
 			return reverse * (val);
 		});
-		for(i = 0; i < tr.length; ++i) tb.appendChild(tr[i]);
+		for(i = 0; i < tr.length; i++) {
+			var even = ((i % 2) == 0);
+			if (even) {
+				tr[i].className = this.elements.contentItems;
+			} else {
+				tr[i].className = this.elements.contentAlternatingItems;
+			}
+			tb.appendChild(tr[i]);
+		}
 	},
 
 	makeSortable: function () {
