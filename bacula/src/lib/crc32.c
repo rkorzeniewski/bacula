@@ -1,27 +1,41 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2010 Joakim Tjernlund
+   Copyright (c) 2010-2015, Joakim Tjernlund
+   All rights reserved.
 
-   This file is free software: you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
-   License as published by the Free Software Foundation, either
-   version 3 of the License, or (at your option) any later
-   version.
+   Redistribution and use in source and binary forms, with or without
+   modification, are permitted provided that the following conditions are
+   met:
 
-   This file is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU Lesser Affero General Public License for more details.
+   1.  Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+
+   2.  Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+
+   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
+   IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+   TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+   PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+   HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+   SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED
+   TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+   PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+   LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+   NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+   SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
 */
 /*
  *  Original 32 bit CRC.  Algorithm from RFC 2083 (png format)
  *
  *   By Kern Sibbald, January 2001
  *
- *   Inproved, faster version
+ *   Improved, faster version
  *
- *   By Joakim Tjernlunc, 2010
+ *   By Joakim Tjernlund, 2010
  */
 
 
@@ -359,7 +373,7 @@ tole(0xccb0a91fL), tole(0x740cce7aL), tole(0x66b96194L), tole(0xde0506f1L)},
  */
 uint32_t bcrc32(unsigned char*buf, int len)
 {
-# ifdef HAVE_LITTLE_ENDIAN
+# if defined(HAVE_LITTLE_ENDIAN)
 #  define DO_CRC(x) crc = tab[0][(crc ^ (x)) & 255 ] ^ (crc >> 8)
 #  define DO_CRC4 crc = tab[3][(crc) & 255 ] ^ \
                 tab[2][(crc >> 8) & 255 ] ^ \
@@ -456,3 +470,4 @@ int main(int argc, char *argv[])
    fclose(fd);
 }
 #endif
+
