@@ -1,4 +1,8 @@
 #
+# Copyright (C) 2000-2015, Kern Sibbald
+# License: BSD 2-Clause
+#
+#
 # If you are appending to a log file (default), to
 #   have your log file compressed, rotated, and after a time
 #   deleted, after possibly editing the values below,	  

@@ -2,8 +2,9 @@
 #
 # Script to do a stackdump of a Bacula daemon/program.
 #
-# Author: Kern Sibbald, 2002
-# License: LGPLv3
+#
+# Copyright (C) 2000-2015, Kern Sibbald
+# License: BSD 2-Clause
 #
 # We attempt to attach to running program
 #

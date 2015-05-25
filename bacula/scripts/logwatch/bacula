@@ -5,8 +5,8 @@
 # Mon Jan 03 2005
 # D. Scott Barninger and Karl Cunningham
 #
-# Copyright 2005-2006 Free Software Foundation Europe e.V.
-# licensed under GPL-v2
+# Copyright Kern Sibbald 2005-2015
+# License: BSD 2-Clause
 
 use strict;
 use POSIX qw(strftime);
@@ -63,4 +63,3 @@ if (scalar(keys(%data))) {
 }
 
 exit(0);
-

@@ -1,6 +1,7 @@
 #!@PYTHON@
 #
-# License: AGPLv3
+# Copyright (C) 2000-2015, Kern Sibbald
+# License: BSD 2-Clause
 #
 # Check the free space available on a writable DVD
 # Should always exit with 0 status, otherwise it indicates a serious error.
@@ -35,9 +36,6 @@
 #	       non-Bacula data on a medium, and you want to use
 #	       it with Bacula. Don't run this on blank media, it
 #	       is useless.
-#
-# 
-# $Id$
 #
 
 import popen2

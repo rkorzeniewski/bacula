@@ -1,23 +1,9 @@
 #
 # Author: Kern Sibbald, 2002
-# License: LGPLv3
+# License: BSD 2-Clause
 #
 # This file is pulled in by all the Unix Bacula Makefiles
 #   so it has all the "common" definitions
-#
-#  Bacula® - The Network Backup Solution
-#
-#  Copyright (C) 2000-2014 Free Software Foundation Europe e.V.
-#
-#  The main author of Bacula is Kern Sibbald, with contributions from many
-#  others, a complete list can be found in the file AUTHORS.
-#
-#  You may use this file and others of this release according to the
-#  license defined in the LICENSE file, which includes the Affero General
-#  Public License, v3.0 ("AGPLv3") and some additional permissions and
-#  terms pursuant to its AGPLv3 Section 7.
-#
-#  Bacula® is a registered trademark of Kern Sibbald.
 #
 
 DATE="@DATE@"
@@ -48,6 +34,7 @@ includedir = @includedir@
 sysconfdir = @sysconfdir@
 plugindir = @plugindir@
 scriptdir = @scriptdir@
+logdir = @logdir@
 archivedir = @archivedir@
 mandir = @mandir@
 manext = 8
@@ -74,10 +61,11 @@ MKDIR = @BUILD_DIR@/autoconf/mkinstalldirs
 INSTALL = @INSTALL@
 # add the -s to the following in PRODUCTION mode
 INSTALL_PROGRAM = $(INSTALL) -m @SBINPERM@
+INSTALL_PROGRAM_ALL = $(INSTALL) -m 755
 INSTALL_LIB = $(INSTALL) -m 755
 INSTALL_DATA = $(INSTALL) -m 644
 INSTALL_SCRIPT = $(INSTALL) -m @SBINPERM@
-INSTALL_CONFIG = $(INSTALL) -m 640
+INSTALL_CONFIG = $(INSTALL) -m 660
 
 #
 # Libtool specific settings
@@ -99,7 +87,6 @@ CFLAGS = @CFLAGS@ @OPENSSL_INC@
 CPPFLAGS = @CPPFLAGS@ @OPENSSL_INC@
 LDFLAGS = @LDFLAGS@
 TTOOL_LDFLAGS = @TTOOL_LDFLAGS@
-#DEFS = @DEFS@ @LOCAL_DEFS@
 LIBS = @LIBS@
 WRAPLIBS = @WRAPLIBS@
 DINCLUDE = @DINCLUDE@
@@ -107,16 +94,9 @@ DLIB = @DLIB@
 OPENSSL_LIBS = @OPENSSL_LIBS@
 DLLIBS = @LIBADD_DLOPEN@
 
-
 # Windows (cygwin) flags 
 WCFLAGS = @WCFLAGS@
 WLDFLAGS = @WLDFLAGS@
-
-# X Include directory
-#XINC = @X_CFLAGS@ @XPM_CFLAGS@
-
-# extra libraries needed by X on some systems, X library location
-#XLIB = @X_LIBS@ @XPM_LIBS@ -lX11 @X_EXTRA_LIBS@
 
 # End of common section of the Makefile
 #-------------------------------------------------------------------------

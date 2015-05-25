@@ -1,6 +1,6 @@
 #
 # Author: Kern Sibbald, 2008
-# License: LGPLv3
+# License: BSD 2-Clause
 #
 AC_DEFUN([BA_CHECK_DBI_DB],
 [
@@ -352,10 +352,11 @@ AC_HELP_STRING([--with-mysql@<:@=DIR@:>@], [Include MySQL support. DIR is the My
 #                 MYSQL_LIBDIR=`${MYSQL_CONFIG} --variable=pkglibdir`
 #                 MYSQL_INCDIR=`${MYSQL_CONFIG} --variable=pkgincludedir`
 #              else
-#                 MYSQL_LIBDIR=`${MYSQL_CONFIG} --libs | sed -e 's/.*-L//' -e 's/ .*//'`
+#                 MYSQL_LIBDIR=`${MYSQL_CONFIG} --libs_r | sed -e 's/.*-L//' -e 's/ .*//'`
 #                 MYSQL_INCDIR=`${MYSQL_CONFIG} --include | sed -e 's/-I//'`
 #              fi
-#           elif test -f /usr/local/mysql/include/mysql/mysql.h; then
+#           fi
+#           if [ "x${MYSQL_LIB}" = x -o "x${MYSQL_INCDIR}" = x ]; then
            if test -f /usr/local/mysql/include/mysql/mysql.h; then
               MYSQL_INCDIR=/usr/local/mysql/include/mysql
               if test -f /usr/local/mysql/lib64/mysql/libmysqlclient_r.a \

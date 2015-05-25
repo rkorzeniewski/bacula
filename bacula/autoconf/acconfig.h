@@ -4,7 +4,7 @@
 
 /*
  * Author: Kern Sibbald, 2002
- * License: LGPLv3
+ * License: BSD 2-Clause
  */
    
 /* Define if you want to use MySQL as Catalog database */
@@ -155,7 +155,6 @@
 #undef llu
 
 #undef HAVE_READLINE 
-#undef HAVE_PYTHON
 
 #undef HAVE_GMP
 
