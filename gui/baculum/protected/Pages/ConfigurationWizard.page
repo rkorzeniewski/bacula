@@ -239,7 +239,7 @@
 				<div class="field">
 					<com:TTextBox ID="PanelPassword" CssClass="textbox" TextMode="Password" MaxLength="30" PersistPassword="true" />
 					<com:TRequiredFieldValidator CssClass="validator" Display="Dynamic" ControlCssClass="invalidate" ControlToValidate="PanelPassword" Text="<%[ Please enter password. ]%>"/>
-					<com:TRegularExpressionValidator CssClass="validator" Display="Dynamic" ControlCssClass="invalidate" ControlToValidate="PanelPassword" RegularExpression="[\w\s]{5,30}" Text="<%[ Password must be longer than 4 chars. ]%>" />
+					<com:TRegularExpressionValidator CssClass="validator" Display="Dynamic" ControlCssClass="invalidate" ControlToValidate="PanelPassword" RegularExpression="[\S\s]{5,30}" Text="<%[ Password must be longer than 4 chars. ]%>" />
 				</div>
 			</div>
 			<div class="line">
@@ -247,7 +247,7 @@
 				<div class="field">
 					<com:TTextBox ID="RetypePanelPassword" CssClass="textbox" TextMode="Password" MaxLength="30" PersistPassword="true" />
 					<com:TRequiredFieldValidator ID="RetypePasswordRequireValidator" CssClass="validator" Display="Dynamic" ControlCssClass="invalidate" ControlToValidate="RetypePanelPassword" Text="<%[ Please enter retype password. ]%>"/>
-					<com:TRegularExpressionValidator ID="RetypePasswordRegexpValidator" CssClass="validator" Display="Dynamic" ControlCssClass="invalidate" ControlToValidate="RetypePanelPassword" RegularExpression="[\w\s]{5,30}" Text="<%[ Password must be longer than 4 chars. ]%>" />
+					<com:TRegularExpressionValidator ID="RetypePasswordRegexpValidator" CssClass="validator" Display="Dynamic" ControlCssClass="invalidate" ControlToValidate="RetypePanelPassword" RegularExpression="[\S\s]{5,30}" Text="<%[ Password must be longer than 4 chars. ]%>" />
 					<com:TCustomValidator ID="RetypePasswordCustomValidator" CssClass="validator" Display="Dynamic" ControlCssClass="invalidate" ControlToValidate="RetypePanelPassword" OnServerValidate="validateAdministratorPassword" Text="<%[ Passwords must be the same. ]%>" />
 				</div>
 			</div>
