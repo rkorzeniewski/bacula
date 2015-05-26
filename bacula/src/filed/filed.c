@@ -197,6 +197,11 @@ int main (int argc, char *argv[])
       configfile = bstrdup(CONFIG_FILE);
    }
 
+   if (!foreground) {
+      daemon_start();
+      init_stack_dump();              /* set new pid */
+   }
+
    config = new_config_parser();
    parse_fd_config(config, configfile, M_ERROR_TERM);
 
@@ -214,11 +219,6 @@ int main (int argc, char *argv[])
 
    if (test_config) {
       terminate_filed(0);
-   }
-
-   if (!foreground) {
-      daemon_start();
-      init_stack_dump();              /* set new pid */
    }
 
    set_thread_concurrency(me->MaxConcurrentJobs + 10);
