@@ -108,8 +108,27 @@ TLS_CONTEXT *new_tls_context(const char *ca_certfile, const char *ca_certdir,
 
    ctx = (TLS_CONTEXT *)malloc(sizeof(TLS_CONTEXT));
 
-   /* Allocate our OpenSSL TLSv1 Context */
+   /* Allocate our OpenSSL TLS Context */
+#if (OPENSSL_VERSION_NUMBER >= 0x10100000L)
+   /* Allows SSLv3, TLSv1, TLSv1.1 and TLSv1.2 protocols */
+   ctx->openssl = SSL_CTX_new(TLS_method());
+
+#elif (OPENSSL_VERSION_NUMBER >= 0x10000000L)
+   /* Allows most all protocols */
+   ctx->openssl = SSL_CTX_new(SSLv23_method());
+
+#else
+   /* Older method only understands TLSv1 */
    ctx->openssl = SSL_CTX_new(TLSv1_method());
+#endif
+
+   /* Use SSL_OP_ALL to turn on all "rather harmless" workarounds that
+    * OpenSSL offers 
+    */
+   SSL_CTX_set_options(ctx->openssl, SSL_OP_ALL);
+
+   /* Now disable old broken SSLv3 and SSLv2 protocols */
+   SSL_CTX_set_options(ctx->openssl, SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3);
 
    if (!ctx->openssl) {
       openssl_post_errors(M_FATAL, _("Error initializing SSL context"));
