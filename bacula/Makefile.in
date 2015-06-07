@@ -1,8 +1,7 @@
-# 
 # Master Makefile
 #
-# Author: Kern Sibbald
-# License: LGPLv3
+# Author: Kern Sibbald, Copyright 2000-2015
+# License: BSD 2-Clause
 #
 @MCOMMON@
 
@@ -35,8 +34,8 @@ DIST_CFG = autoconf/aclocal.m4 autoconf/configure.in \
 	autoconf/config.h.in  autoconf/acconfig.h  autoconf/Make.common.in \
 	autoconf/install-sh autoconf/mkinstalldirs
 
-doc_files = VERIFYING technotes ChangeLog README ReleaseNotes LICENSE \
-	    INSTALL
+doc_files = VERIFYING ChangeLog README ReleaseNotes LICENSE \
+	    LICENSE-FAQ INSTALL
 
 MKDIR = $(srcdir)/autoconf/mkinstalldirs
 LIBTOOL_DEPS = @LIBTOOL_DEPS@
