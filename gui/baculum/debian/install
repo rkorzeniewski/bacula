@@ -1,6 +1,5 @@
 .htaccess  /usr/share/baculum/htdocs/
 AUTHORS    /usr/share/baculum/htdocs/
-assets     /usr/share/baculum/htdocs/
 framework  /usr/share/baculum/htdocs/
 index.php  /usr/share/baculum/htdocs/
 protected  /usr/share/baculum/htdocs/

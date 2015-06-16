@@ -1,2 +1,4 @@
 etc/baculum
 usr/share/baculum/htdocs
+var/cache/baculum
+var/log/baculum
