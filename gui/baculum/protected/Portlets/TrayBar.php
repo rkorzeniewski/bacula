@@ -1,4 +1,3 @@
-
 <?php
 /**
  * Bacula® - The Network Backup Solution
