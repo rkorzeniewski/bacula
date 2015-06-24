@@ -1,5 +1,8 @@
 #! /bin/sh
 #
+# Copyright (C) Kern Sibbald 2000-2015
+# License: BSD 2-Clause
+#
 # bacula       This shell script takes care of starting and stopping
 #	       the bacula File daemon.
 #
@@ -12,6 +15,8 @@
 # Source function library
 . /etc/rc.d/init.d/functions
 
+DAEMON_OPTIONS=''
+DAEMON_USER='yes'
 FD_USER=@fd_user@
 FD_GROUP=@fd_group@
 FD_OPTIONS=''
@@ -41,8 +46,19 @@ case "$1" in
        if [ "${FD_GROUP}" != '' ]; then
 	  FD_OPTIONS="${FD_OPTIONS} -g ${FD_GROUP}"
        fi
+
+       if [ "${DAEMON_USER}" != '' -a "${FD_USER}" != '' ]; then
+	  FD_OPTIONS=""
+	  if [ "${FD_GROUP}" != '' ]; then
+	     chown ${FD_USER}:${FD_GROUP} @working_dir@/bacula-fd* 2> /dev/null
+	  else 
+	     chown ${FD_USER} @working_dir@/bacula-fd* 2> /dev/null
+	  fi
+	  DAEMON_OPTIONS="--user ${FD_USER}"
+       fi
+
        echo -n "Starting Bacula File services: "
-       daemon @sbindir@/bacula-fd $2 ${FD_OPTIONS} -c @sysconfdir@/bacula-fd.conf
+       daemon ${DAEMON_OPTIONS} @sbindir@/bacula-fd $2 ${FD_OPTIONS} -c @sysconfdir@/bacula-fd.conf
        RETVAL=$?
        echo
        [ $RETVAL -eq 0 ] && touch @subsysdir@/bacula-fd
@@ -58,6 +74,7 @@ case "$1" in
        $0 stop
        sleep 5
        $0 start
+       RETVAL=$?
        ;;
     status)
        status @sbindir@/bacula-fd

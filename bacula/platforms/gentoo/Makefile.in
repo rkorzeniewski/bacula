@@ -1,4 +1,7 @@
-# 
+#
+# Copyright (C) Kern Sibbald 2003-2015
+# License: BSD 2-Clause
+#
 # This file is used as the template to create the
 # Makefile for the Gentoo specific installation.
 #

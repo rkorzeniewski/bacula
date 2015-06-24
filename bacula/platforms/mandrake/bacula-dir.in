@@ -1,5 +1,8 @@
 #! /bin/sh
 #
+# Copyright (C) Kern Sibbald 2000-2015
+# License: BSD 2-Clause
+#
 # bacula       This shell script takes care of starting and stopping
 #	       the bacula Director daemon
 #
@@ -32,6 +35,7 @@ case "$1" in
        $0 stop
        sleep 5
        $0 start
+       RETVAL=$?
        ;;
     status)
        status @sbindir@/bacula-dir
@@ -41,4 +45,4 @@ case "$1" in
        exit 1
        ;;
 esac
-exit 0
+exit $RETVAL

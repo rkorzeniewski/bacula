@@ -1,5 +1,8 @@
 #! /bin/sh
 #
+# Copyright (C) Kern Sibbald 2000-2015
+# License: BSD 2-Clause
+#
 # bacula       This shell script takes care of starting and stopping
 #	       the bacula Storage daemon.
 #
@@ -12,6 +15,8 @@
 # Source function library
 . /etc/rc.d/init.d/functions
 
+DAEMON_OPTIONS=''
+DAEMON_USER=yes
 SD_USER=@sd_user@
 SD_GROUP=@sd_group@
 SD_OPTIONS=''
@@ -22,7 +27,7 @@ if [ -d "/lib/tls" -a $OS = "Linux" -a `uname -r | cut -c1-3` = "2.4" ] ; then
      export LD_ASSUME_KERNEL=2.4.19
 fi
 
-# pull in any user defined SD_OPTIONS, SD_USER, or SD_GROUP
+# pull in any user defined SD_OPTIONS, SD_USER, SD_GROUP or DAEMON_USER
 [ -f /etc/sysconfig/bacula ] && . /etc/sysconfig/bacula
 
 #
@@ -41,9 +46,19 @@ case "$1" in
        if [ "${SD_GROUP}" != '' ]; then
 	  SD_OPTIONS="${SD_OPTIONS} -g ${SD_GROUP}"
        fi
-										      
+
+       if [ "${DAEMON_USER}" != '' -a "${SD_USER}" != '' ]; then
+	  SD_OPTIONS=""
+	  if [ "${SD_GROUP}" != '' ]; then
+	     chown ${SD_USER}:${SD_GROUP} @working_dir@/bacula-sd* 2> /dev/null
+	  else 
+	     chown ${SD_USER} @working_dir@/bacula-sd* 2> /dev/null
+	  fi
+	  DAEMON_OPTIONS="--user ${SD_USER}"
+       fi
+
        echo -n "Starting Bacula Storage services: "
-       daemon @sbindir@/bacula-sd $2 ${SD_OPTIONS} -c @sysconfdir@/bacula-sd.conf
+       daemon $DAEMON_OPTIONS @sbindir@/bacula-sd $2 ${SD_OPTIONS} -c @sysconfdir@/bacula-sd.conf
        RETVAL=$?
        echo
        [ $RETVAL -eq 0 ] && touch @subsysdir@/bacula-sd
@@ -59,6 +74,7 @@ case "$1" in
        $0 stop
        sleep 5
        $0 start
+       RETVAL=$?
        ;;
     status)
        status @sbindir@/bacula-sd

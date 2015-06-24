@@ -1,3 +1,6 @@
+#
+# Copyright (C) Kern Sibbald 2001-2015
+# License: BSD 2-Clause
 # 
 # This file is used as the template to create the
 # Makefile for the RedHat specific installation.

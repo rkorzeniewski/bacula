@@ -1,5 +1,8 @@
 #! /bin/sh
 #
+# Copyright (C) Kern Sibbald 2008-2015
+# License: BSD 2-Clause
+#
 # bacula  This shell script takes care of starting and stopping
 #	  the bacula Director daemon on Debian/Ubuntu/Kubuntu 
 #	  systems. 
@@ -48,6 +51,7 @@ if [ "x${BUSER}" != "x" ]; then
    fi
 fi
 
+RETVAL=0
 case "$1" in
    start)
       echo -n "Starting ${DESC}: "
@@ -65,6 +69,7 @@ case "$1" in
       $0 stop
       sleep 5
       $0 start
+      RETVAL=$?
       ;;
    *)
       echo "Usage: /etc/init.d/${NAME} {start|stop|restart|force-reload}" >&2

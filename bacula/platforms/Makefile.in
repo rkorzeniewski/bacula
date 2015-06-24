@@ -1,3 +1,5 @@
+# Copyright (C) Kern Sibbald 2001-2015
+# License: BSD 2-Clause
 #
 # This is the makefile template for the platform directory
 # which contains general platform installation.

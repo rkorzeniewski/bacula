@@ -1,3 +1,4 @@
+#
 # Master Makefile
 #
 # Author: Kern Sibbald, Copyright 2000-2015
@@ -12,8 +13,8 @@ dir_user=@dir_user@
 srcdir =	@srcdir@
 VPATH = 	@srcdir@
 .PATH:		@srcdir@
-topdir = .
-thisdir = .
+topdir = @BUILD_DIR@
+thisdir = @BUILD_DIR@
 
 
 first_rule: all
@@ -53,7 +54,7 @@ depend:
 	@for I in ${all_subdirs}; \
 	  do (cd $$I; echo "==>Entering directory `pwd`"; $(MAKE) DESTDIR=$(DESTDIR) $@ || exit 1); done
 	
-bacula-fd: Makefile	   
+bacula-fd: Makefile	
 	@for I in ${fd_subdirs}; \
 	  do (cd $$I; echo "==>Entering directory `pwd`"; \
 	      $(MAKE) DESTDIR=$(DESTDIR) all || \
@@ -106,15 +107,19 @@ installdirs:
 	$(MKDIR) $(DESTDIR)$(scriptdir)
 	$(MKDIR) $(DESTDIR)$(docdir)
 	$(MKDIR) $(DESTDIR)$(archivedir)
+	$(MKDIR) $(DESTDIR)$(bsrdir)
+	$(MKDIR) $(DESTDIR)${logdir}
 	-if test ! -d $(DESTDIR)$(working_dir) ; then \
 	   $(MKDIR) $(DESTDIR)$(working_dir); \
 	   chmod 770 $(DESTDIR)$(working_dir); \
 	fi
 	-if test "x$(dir_user)" != "x" ; then \
 	   chown $(dir_user) $(DESTDIR)$(working_dir); \
+	   chown $(dir_user) $(DESTDIR)$(logdir); \
 	fi
 	-if test "x$(dir_group)" != "x" ; then \
 	   chgrp $(dir_group) $(DESTDIR)$(working_dir); \
+	   chgrp $(dir_group) $(DESTDIR)$(logdir); \
 	fi
 
 install: installdirs
@@ -125,16 +130,16 @@ uninstall:
 	@for I in $(all_subdirs); do (cd $$I && $(MAKE) DESTDIR=$(DESTDIR) $@ || exit 1); done
 
 install-autostart:
-	(cd platforms && $(MAKE) DESTDIR=$(DESTDIR) $@ || exit 1) 
+	(cd platforms && $(MAKE) DESTDIR=$(DESTDIR) $@ || exit 1)
 
 install-autostart-dir:
-	(cd platforms && $(MAKE) DESTDIR=$(DESTDIR) $@ || exit 1) 
+	(cd platforms && $(MAKE) DESTDIR=$(DESTDIR) $@ || exit 1)
 
 install-autostart-fd:
-	(cd platforms && $(MAKE) DESTDIR=$(DESTDIR) $@ || exit 1) 
+	(cd platforms && $(MAKE) DESTDIR=$(DESTDIR) $@ || exit 1)
 
 install-autostart-sd:
-	(cd platforms && $(MAKE) DESTDIR=$(DESTDIR) $@ || exit 1) 
+	(cd platforms && $(MAKE) DESTDIR=$(DESTDIR) $@ || exit 1)
 
 uninstall-autostart:
 	(cd platforms && $(MAKE) DESTDIR=$(DESTDIR) $@ || exit 1)
@@ -190,7 +195,7 @@ distclean:
 	@$(RMF) bacula fd Makefile startmysql stopmysql startit stopit btraceback
 	@$(RMF) bconsole gconsole
 	@$(RMF) *~ 1 2 3 core core.* config.guess console.log console.sum
-	@$(RMF) working/* kerns-* 
+	@$(RMF) working/* kerns-*
 	@$(RMF) -rf txt diff src/python src/testprogs
 	@$(RMF) libtool
 
@@ -216,23 +221,5 @@ distcopy:
 	@for I in $(all_subdirs); do (cd $$I && $(MAKE) DESTDIR=$(DESTDIR) $@ || exit 1); done
 
 distrib: configure autoconf/config.h.in distdirs distcopy
-
-test:
-
-
-tar.gz:  ../$(VERNAME).tar.gz
-../$(VERNAME).tar.gz:
-	(cd ..; tar cvf - $(VERNAME) | gzip -f9 > $(VERNAME).tar.gz)
-
-tar.Z: ../$(VERNAME).tar.Z
-../$(VERNAME).tar.Z:
-	(cd ..; tar cvf - $(VERNAME) | compress > $(VERNAME).tar.Z)
-
-tar.bz2: ../$(VERNAME).tar.bz2
-../$(VERNAME).tar.bz2:
-	(cd ..; tar cvf - $(VERNAME) | bzip2 -f9 > $(VERNAME).tar.bz2)
-
-uuencode: tar.gz
-	uuencode ../$(VERNAME).tar.gz $(VERNAME).tar.gz > ../$(VERNAME).tgz.uu
 
 # ------------------------------------------------------------------------

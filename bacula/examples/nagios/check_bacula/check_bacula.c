@@ -345,7 +345,7 @@ int docmd(monitoritem* item, const char* command, char *answer) {
             item->D_sock->signal(BNET_HB_RESPONSE);
          }
          else {
-                sprintf(answer, "BACULA WARNING - Unexpected signal received : %s ", bnet_sig_to_ascii(item->D_sock));
+                sprintf(answer, "BACULA WARNING - Unexpected signal received : %s ", bnet_sig_to_ascii(item->D_sock->msglen));
          }
       }
       else { /* BNET_HARDEOF || BNET_ERROR */

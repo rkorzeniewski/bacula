@@ -1,5 +1,8 @@
 #!/sbin/runscript
 #
+# Copyright (C) Kern Sibbald 2000-2015
+# License: BSD 2-Clause
+#
 # bacula       This shell script takes care of starting and stopping
 #	       the bacula File daemon for the Gentoo release.
 #

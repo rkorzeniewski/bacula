@@ -1,5 +1,8 @@
 #!/bin/sh
 #
+# Copyright (C) Kern Sibbald 2000-2015
+# License: BSD 2-Clause
+#
 # bacula       This shell script takes care of starting and stopping
 #	       the bacula Director daemon
 #
@@ -15,12 +18,12 @@ DIR_OPTIONS=''
 case "$1" in
     start)
        if [ ! -z "${DIR_USER}" ]; then
-          [ -z "${DIR_OPTIONS}" ] && DIR_OPTIONS="-u ${DIR_USER}" || \
-                                     DIR_OPTIONS="${DIR_OPTIONS} -u ${DIR_USER}"
+	  [ -z "${DIR_OPTIONS}" ] && DIR_OPTIONS="-u ${DIR_USER}" || \
+				     DIR_OPTIONS="${DIR_OPTIONS} -u ${DIR_USER}"
        fi
        if [ ! -z "${DIR_GROUP}" ]; then
-          [ -z "${DIR_OPTIONS}" ] && DIR_OPTIONS="-g ${DIR_GROUP}" || \
-                                     DIR_OPTIONS="${DIR_OPTIONS} -g ${DIR_GROUP}"
+	  [ -z "${DIR_OPTIONS}" ] && DIR_OPTIONS="-g ${DIR_GROUP}" || \
+				     DIR_OPTIONS="${DIR_OPTIONS} -g ${DIR_GROUP}"
        fi
 
        echo "Starting the Bacula Director: "
@@ -29,16 +32,16 @@ case "$1" in
     stop)
        echo "Stopping the Director daemon: "
        if [ -x /usr/bin/zonename ]; then
-          case `/usr/bin/zonename` in
-             global)
-                pkill -z global -x bacula-dir
-                ;;
-             *)
-                pkill -x bacula-dir
-                ;;
-          esac
+	  case `/usr/bin/zonename` in
+	     global)
+		pkill -z global -x bacula-dir
+		;;
+	     *)
+		pkill -x bacula-dir
+		;;
+	  esac
        else
-          pkill -x bacula-dir
+	  pkill -x bacula-dir
        fi
        ;;
     restart)
