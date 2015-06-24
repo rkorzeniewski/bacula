@@ -3,7 +3,7 @@
 # shell script to grant privileges to the bacula database
 #
 #  Author:  Kern Sibbald
-#  License: LGPLv3
+#  License: BSD 2-Clause; see file LICENSE-FOSS
 #
 db_user=${db_user:-@db_user@}
 bindir=@MYSQL_BINDIR@

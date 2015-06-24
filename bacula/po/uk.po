@@ -1,7 +1,7 @@
 # Ukrainian translations for bacula package
 # Український переклад bacula.
-# Copyright (C) 2000-2015 Kern Sibbald
-# License: BSD 2-Clause
+# Copyright (C) 2000-2015 by Kern Sibbald
+# License: BSD 2-Clause; see file LICENSE-FOSS
 # Vitaliy Kosharskiy <vkosharskiy@ukrcard.com.ua>, 2010.
 #
 msgid ""

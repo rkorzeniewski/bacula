@@ -1,7 +1,7 @@
 # Systemd Bacula Enterprise service file
 #
-# Copyright (C) Kern Sibbald 2011-2015
-# License: BSD 2-Clause
+# Copyright (C) 2000-2015 by Kern Sibbald
+# License: BSD 2-Clause; see file LICENSE-FOSS
 #
 # /lib/systemd/system/bacula-sd.service
 #

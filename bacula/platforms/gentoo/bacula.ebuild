@@ -1,6 +1,6 @@
 # Copyright 2004 D. Scott Barninger
-# Copyright Kern Sibbald 2004-2015
-# License: BSD 2-Clause
+# Copyright (C) 2000-2015 by Kern Sibbald
+# License: BSD 2-Clause; see file LICENSE-FOSS
 #
 #
 # Modified from bacula-1.34.5.ebuild for 1.36.0 release

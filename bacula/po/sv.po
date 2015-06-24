@@ -1,6 +1,6 @@
 # Swedish translations for PACKAGE package.
-# Copyright (C) 2000-1015 Kern Sibbald
-# License: BSD 2-Clause
+# Copyright (C) 2000-2015 by Kern Sibbald
+# License: BSD 2-Clause; see file LICENSE-FOSS
 #
 msgid ""
 msgstr ""

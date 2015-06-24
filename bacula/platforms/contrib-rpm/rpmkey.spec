@@ -1,7 +1,7 @@
 # rpm public key package
 #
-# Copyright Kern Sibbald 2000-2015
-# License: BSD 2-Clause
+# Copyright (C) 2000-2015 by Kern Sibbald
+# License: BSD 2-Clause; see file LICENSE-FOSS
 #
 
 # replace the string yournam with your name
@@ -15,7 +15,7 @@ Summary: The %{pubkeyname} rpm public key
 Name: rpmkey-%{pubkeyname}
 Version: 0.1
 Release: 1
-License: BSD 2-Clause
+License: BSD 2-Clause; see file LICENSE-FOSS
 Group: System/Packages
 Source0: %{pubkeyname}.asc
 BuildArch: noarch

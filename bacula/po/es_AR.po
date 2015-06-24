@@ -1,7 +1,7 @@
 # Spanish translations for branch package
 # Traducciones al español para el paquete branch.
-# Copyright (C) 2000-1015 Kern Sibbald
-# License: BSD 2-Clause
+# Copyright (C) 2000-2015 by Kern Sibbald
+# License: BSD 2-Clause; see file LICENSE-FOSS
 #
 msgid ""
 msgstr ""
@@ -597,7 +597,7 @@ msgstr ""
 #: src/console/console.c:102
 #, c-format
 msgid ""
-"Copyright (C) 2000-2005 Kern Sibbald\n"
+"Copyright (C) 2000-2015 by Kern Sibbald
 "\n"
 "Version: "
 msgstr ""
@@ -1204,7 +1204,7 @@ msgstr ""
 #: src/dird/dird.c:71
 #, c-format
 msgid ""
-"Copyright (C) 2000-2005 Kern Sibbald.\n"
+"Copyright (C) 2000-2015 by Kern Sibbald
 "\n"
 "Version: %s (%s)\n"
 "\n"
@@ -5443,7 +5443,7 @@ msgstr ""
 #: src/filed/filed.c:62
 #, c-format
 msgid ""
-"Copyright (C) 2000-2005 Kern Sibbald\n"
+"Copyright (C) 2000-2015 by Kern Sibbald
 "\n"
 "Version: %s (%s)\n"
 "\n"
@@ -8923,7 +8923,7 @@ msgstr ""
 #: src/stored/bextract.c:70
 #, c-format
 msgid ""
-"Copyright (C) 2000-2005 Kern Sibbald.\n"
+"Copyright (C) 2000-2015 by Kern Sibbald
 "\n"
 "Version: %s (%s)\n"
 "\n"
@@ -9170,7 +9170,7 @@ msgstr ""
 #: src/stored/bls.c:68
 #, c-format
 msgid ""
-"Copyright (C) 2000-2005 Kern Sibbald.\n"
+"Copyright (C) 2000-2015 by Kern Sibbald
 "\n"
 "Version: %s (%s)\n"
 "\n"
@@ -10883,7 +10883,7 @@ msgstr ""
 #: src/stored/btape.c:2596
 #, c-format
 msgid ""
-"Copyright (C) 2000-2005 Kern Sibbald.\n"
+"Copyright (C) 2000-2015 by Kern Sibbald
 "\n"
 "Version: %s (%s)\n"
 "\n"
@@ -12489,7 +12489,7 @@ msgstr ""
 #: src/stored/stored.c:65
 #, c-format
 msgid ""
-"Copyright (C) 2000-2005 Kern Sibbald.\n"
+"Copyright (C) 2000-2015 by Kern Sibbald
 "\n"
 "Version: %s (%s)\n"
 "\n"
@@ -13220,7 +13220,7 @@ msgstr ""
 #: src/tray-monitor/tray-monitor.c:102
 #, c-format
 msgid ""
-"Copyright (C) 2000-2004 Kern Sibbald and John Walker\n"
+"Copyright (C) 2000-2015 by Kern Sibbald
 "Written by Nicolas Boichat (2004)\n"
 "\n"
 "Version: %s (%s) %s %s %s\n"

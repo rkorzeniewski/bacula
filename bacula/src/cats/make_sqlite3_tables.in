@@ -3,7 +3,7 @@
 # shell script to create Bacula SQLite tables
 #
 #  Author:  Kern Sibbald
-#  License: LGPLv3
+#  License: BSD 2-Clause; see file LICENSE-FOSS
 #
 
 bindir=@SQLITE_BINDIR@

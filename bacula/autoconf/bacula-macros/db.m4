@@ -1,6 +1,6 @@
 #
-# Author: Kern Sibbald, 2008
-# License: BSD 2-Clause
+# Copyright (C) 2000-2015 by Kern Sibbald
+# License: BSD 2-Clause; see file LICENSE-FOSS
 #
 AC_DEFUN([BA_CHECK_DBI_DB],
 [

@@ -4,17 +4,9 @@
 #
 #  Written by Kern Sibbald
 #
-#  Bacula® - The Network Backup Solution
+# Copyright (C) 2000-2015 by Kern Sibbald
+# License: BSD 2-Clause; see file LICENSE-FOSS
 #
-#  Copyright (C) 2000-2014 Free Software Foundation Europe e.V.
-#
-#  The main author of Bacula is Kern Sibbald, with contributions from many
-#  others, a complete list can be found in the file AUTHORS.
-#
-#  You may use this file and others of this release according to the
-#  license defined in the LICENSE file, which includes the GNU Lesser
-#  General Public License, v3.0 ("LGPLv3") and some additional permissions and
-#  terms pursuant to its LGPLv3 Section 7.
 #
 #  Bacula® is a registered trademark of Kern Sibbald.
 #

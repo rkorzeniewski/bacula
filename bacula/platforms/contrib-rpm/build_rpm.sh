@@ -4,8 +4,8 @@
 # copy this script into a working directory with the src rpm to build and execute
 # 19 Aug 2006 D. Scott Barninger
 #
-# Copyright Kern Sibbald 2006-2015
-# License: BSD 2-Clause
+# Copyright (C) 2000-2015 by Kern Sibbald
+# License: BSD 2-Clause; see file LICENSE-FOSS
 
 
 # signing rpms

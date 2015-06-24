@@ -4,7 +4,7 @@
 # using PostgreSQL, Ingres, MySQL, or SQLite.
 #
 #  Author:  Kern Sibbald
-#  License: LGPLv3
+#  License: BSD 2-Clause; see file LICENSE-FOSS
 #
 
 default_db_type=@DEFAULT_DB_TYPE@

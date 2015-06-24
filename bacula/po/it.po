@@ -1,9 +1,9 @@
 # Italian translations for Bacula package
 # Traduzioni italiane per il pacchetto Bacula..
 # Copyright 2000-2015, Kern Sibbald
-# License: BSD 2-Clause
+# License: BSD 2-Clause; see file LICENSE-FOSS
 #  <fparacchini@alteanet.it>, 2005.
-# License: BSD 2-Clause
+# License: BSD 2-Clause; see file LICENSE-FOSS
 msgid ""
 msgstr ""
 "Project-Id-Version: Bacula 1.38\n"

@@ -3,7 +3,7 @@
 # shell script to create Bacula database(s)
 #
 #  Author:  Kern Sibbald
-#  License: LGPLv3
+#  License: BSD 2-Clause; see file LICENSE-FOSS
 #
 
 PATH="@POSTGRESQL_BINDIR@:$PATH"

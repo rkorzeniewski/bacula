@@ -1,8 +1,8 @@
 # French translations for Bacula package
 # Traduction anglaise du package Bacula.
-# Copyright (C) 2000-2015 Kern Sibbald
+# Copyright (C) 2000-2015 by Kern Sibbald
 # Nicolas Boichat <nicolas@boichat.ch>, 2005.
-# License: BSD 2-Clause
+# License: BSD 2-Clause; see file LICENSE-FOSS
 #
 msgid ""
 msgstr ""
@@ -14065,7 +14065,7 @@ msgid ""
 "       -?              print this message\n"
 "\n"
 msgstr ""
-"Copyright (C) 2000-2005 Kern Sibbald.\n"
+"Copyright (C) 2000-2015 by Kern Sibbald
 "\n"
 "Version : %s (%s)\n"
 "\n"
@@ -14449,7 +14449,7 @@ msgid ""
 "       -?              print this message\n"
 "\n"
 msgstr ""
-"Copyright (C) 2000-2005 Kern Sibbald.\n"
+"Copyright (C) 2000-2015 by Kern Sibbald
 "\n"
 "Version : %s (%s)\n"
 "\n"
@@ -14553,7 +14553,7 @@ msgid ""
 "       -?                print this message\n"
 "\n"
 msgstr ""
-"Copyright (C) 2000-2005 Kern Sibbald.\n"
+"Copyright (C) 2000-2015 by Kern Sibbald
 "\n"
 "Version : %s (%s)\n"
 "\n"
@@ -18980,7 +18980,7 @@ msgid ""
 "       -?                print this message\n"
 "\n"
 msgstr ""
-"Copyright (C) 2000-2005 Kern Sibbald.\n"
+"Copyright (C) 2000-2015 by Kern Sibbald
 "\n"
 "Version : %s (%s)\n"
 "\n"
@@ -19183,7 +19183,7 @@ msgid ""
 "       -?                print this message\n"
 "\n"
 msgstr ""
-"Copyright (C) 2000-2005 Kern Sibbald.\n"
+"Copyright (C) 2000-2015 by Kern Sibbald
 "\n"
 "Version : %s (%s)\n"
 "\n"
@@ -19220,7 +19220,7 @@ msgid ""
 "       -?                print this message\n"
 "\n"
 msgstr ""
-"Copyright (C) 2000-2005 Kern Sibbald.\n"
+"Copyright (C) 2000-2015 by Kern Sibbald
 "\n"
 "Version : %s (%s)\n"
 "\n"
@@ -21074,7 +21074,7 @@ msgstr "Impossible d'ouvrir la base de données \"%s\".\n"
 #, fuzzy
 #~ msgid "Copyright (c) 2000 - 2004, Kern Sibbald and John Walker"
 #~ msgstr ""
-#~ "Copyright (C) 2000-2005 Kern Sibbald\n"
+#~ "Copyright (C) 2000-2015 by Kern Sibbald
 #~ "\n"
 #~ "Version : "
 
@@ -21484,7 +21484,7 @@ msgstr "Impossible d'ouvrir la base de données \"%s\".\n"
 #~ "       -?          print this message.\n"
 #~ "\n"
 #~ msgstr ""
-#~ "Copyright (C) 2000-2005 Kern Sibbald.\n"
+#~ "Copyright (C) 2000-2015 by Kern Sibbald
 #~ "\n"
 #~ "Version : %s (%s)\n"
 #~ "\n"
@@ -21509,7 +21509,7 @@ msgstr "Impossible d'ouvrir la base de données \"%s\".\n"
 #~ "Copyright (C) 2004-2006 Kern Sibbald\n"
 #~ "Written by Nicolas Boichat\n"
 #~ msgstr ""
-#~ "Copyright (C) 2000-2005 Kern Sibbald\n"
+#~ "Copyright (C) 2000-2015 by Kern Sibbald
 #~ "\n"
 #~ "Version : "
 

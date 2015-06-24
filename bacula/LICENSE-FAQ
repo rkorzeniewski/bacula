@@ -15,7 +15,7 @@ the copyright was transferred to the Free Software Foundation Europe
 on 15 November 2006. The license was changed from GPLv2 to AGPLv3
 on 24 July 2010. The copyright Fiduciary License Agreement signed 
 with Kern Sibbald and the FSFE 15 November 2006 was terminated as
-of 3 March 2015.  Code subsequent to that date is 
+of 3 March 2015.  Code subsequent to 3 March 2015 is 
 Copyright, Kern Sibbald.
 
 Trademark:
@@ -79,12 +79,12 @@ GPLv2 or later license:
    *      The Regents of the University of California.  All rights reserved.
 
 Permissive licenses:
- Most Makefile.in, *.in, and script files are copyright LGPLv3 as noted
+ Most Makefile.in, *.in, and script files are copyright BSD 2-Clause as noted
  in each individual file.
 
  src/lib/crc32.c
-   Copyright (C) 2010 Joakim Tjernlund
-   Under LGPLv3 or later
+   Copyright (C) 2010-2015 Joakim Tjernlund
+   Under BSD 2-Clause
 
  src/lib/var.c/h
    **  OSSP var - Variable Expansion
@@ -115,7 +115,7 @@ that contains cryptographic software written by Eric Young
 (eay@cryptsoft.com) and also software written by Tim Hudson
 (tjh@cryptsoft.com).
 
-There are parts of Bacula that are licensed under the LGPL so
+There are parts of Bacula that are licensed under the BSD 2-Clause so
 that those files may be used in proprietary code to interface with
 Bacula.
 

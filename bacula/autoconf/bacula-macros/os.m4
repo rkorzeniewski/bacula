@@ -1,7 +1,7 @@
 dnl Check type of signal routines (posix, 4.2bsd, 4.1bsd or v7)
 
 dln Author:  Nicolas Boichat
-dnl License: BSD 2-Clause
+dnl License: BSD 2-Clause; see file LICENSE-FOSS
 
 AC_DEFUN([SIGNAL_CHECK],
  [AC_REQUIRE([AC_TYPE_SIGNAL])

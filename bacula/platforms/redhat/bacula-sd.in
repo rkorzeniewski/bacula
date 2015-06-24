@@ -1,7 +1,7 @@
 #! /bin/sh
 #
-# Copyright (C) Kern Sibbald 2000-2015
-# License: BSD 2-Clause
+# Copyright (C) 2000-2015 by Kern Sibbald
+# License: BSD 2-Clause; see file LICENSE-FOSS
 #
 # bacula       This shell script takes care of starting and stopping
 #	       the bacula Storage daemon.

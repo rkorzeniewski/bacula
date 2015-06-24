@@ -2,8 +2,8 @@ dnl
 dnl
 dnl Process this file with autoconf to produce a configure script.
 dnl
-dnl Author: Kern Sibbald, Copyright, 2000-2015
-dnl License: BSD 2-Clause
+dnl Copyright (C) 2000-2015 by Kern Sibbald
+dnl License: BSD 2-Clause; see file LICENSE-FOSS
 dnl
 dnl require a recent autoconf
 AC_PREREQ(2.61)

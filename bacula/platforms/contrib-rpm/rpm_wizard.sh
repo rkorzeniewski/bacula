@@ -4,8 +4,8 @@
 # requires zenity to be installed
 # 30 Jul 2006 D. Scott Barninger
 #
-# Copyright Kern Sibbald 2006-2015
-# License: BSD 2-Clause
+# Copyright (C) 2000-2015 by Kern Sibbald
+# License: BSD 2-Clause; see file LICENSE-FOSS
 
 
 # usage ./rpm_wizard.sh
