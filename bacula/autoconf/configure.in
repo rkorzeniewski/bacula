@@ -3358,7 +3358,7 @@ chmod 755 install_conf_file build-depkgs-qt-console
 cd ${BUILD_DIR}
 
 cd scripts
-chmod 755 bacula btraceback mtx-changer storage-ctl bsg_persist
+chmod 755 bacula btraceback mtx-changer
 chmod 755 dvd-handler dvd-simulator
 chmod 755 bconsole disk-changer devel_bacula logrotate
 cd ..
