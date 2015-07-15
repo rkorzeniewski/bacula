@@ -1,0 +1,34 @@
+#!/bin/sh
+# 
+# Upload to File Release System on server
+#
+. ./config
+
+ver="7.0.5"
+RSYNC="rsync -av --no-g --progress $upload_opt"
+
+do_upload()
+{
+where=$1
+echo "Creating ${where}:/home/src/$ver"
+ssh ${where} <<EOF
+cd /home/src
+mkdir -p $ver
+EOF
+
+echo "Uploading source"
+for i in bacula-*-$ver*; do \
+   echo "Uplod $i to ${where}:/home/src/$ver"
+   $RSYNC $i ${where}:/home/src/$ver/; \
+done
+
+# Upload release notes
+echo "Uplod ReleaseNote to ${where}:/home/src/$ver"
+$RSYNC ReleaseNotes ${where}:/home/src/$ver/
+echo "Uplod ChangeLog to ${where}:/home/src/$ver"
+$RSYNC ChangeLog ${where}:/home/src/$ver/
+
+
+}
+
+do_upload bacula
