@@ -3,7 +3,7 @@
  * Bacula® - The Network Backup Solution
  * Baculum - Bacula web interface
  *
- * Copyright (C) 2013-2014 Marcin Haba
+ * Copyright (C) 2013-2015 Marcin Haba
  *
  * The main author of Baculum is Marcin Haba.
  * The main author of Bacula is Kern Sibbald, with contributions from many
@@ -304,8 +304,8 @@ class RestoreWizard extends BaculumPage
 				}
 			}
 		} else {
-			$jobsRecent = $this->getModule('api')->get(array('jobs', 'recent', $this->GroupBackupToRestore->SelectedValue, $this->BackupClientName->SelectedValue));
-			if(isset($jobsRecent->output)) {
+			$jobsRecent = $this->getModule('api')->get(array('jobs', 'recent', urlencode($this->GroupBackupToRestore->SelectedValue), $this->BackupClientName->SelectedValue));
+			if(isset($jobsRecent->output) && count($jobsRecent->output) > 0) {
 				$ids = $jobsRecent->output;
 				$jobids = implode(',', $ids);
 			}
@@ -410,7 +410,7 @@ class RestoreWizard extends BaculumPage
 		$restoreProps['replace'] = $this->ReplaceFiles->SelectedValue;
 		
 		$ret = $this->getModule('api')->create(array('jobs', 'restore'), $restoreProps);
-		$this->goToDefaultPage();
+		$this->goToDefaultPage(array('open' => 'Job'));
 	}
 }
 ?>

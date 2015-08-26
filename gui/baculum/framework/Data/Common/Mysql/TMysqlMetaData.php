@@ -4,9 +4,8 @@
  *
  * @author Wei Zhuo <weizhuo[at]gmail[dot]com>
  * @link http://www.pradosoft.com/
- * @copyright Copyright &copy; 2005-2013 PradoSoft
+ * @copyright Copyright &copy; 2005-2014 PradoSoft
  * @license http://www.pradosoft.com/license/
- * @version $Id: TMysqlMetaData.php 3245 2013-01-07 20:23:32Z ctrlaltca $
  * @package System.Data.Common.Mysql
  */
 
@@ -23,7 +22,6 @@ Prado::using('System.Data.Common.Mysql.TMysqlTableInfo');
  * See http://netevil.org/node.php?nid=795&SC=1
  *
  * @author Wei Zhuo <weizho[at]gmail[dot]com>
- * @version $Id: TMysqlMetaData.php 3245 2013-01-07 20:23:32Z ctrlaltca $
  * @package System.Data.Common.Mysql
  * @since 3.1
  */
@@ -78,6 +76,9 @@ class TMysqlMetaData extends TDbMetaData
 	{
 		list($schemaName,$tableName) = $this->getSchemaTableName($table);
 		$find = $schemaName===null ? "`{$tableName}`" : "`{$schemaName}`.`{$tableName}`";
+		$colCase = $this->getDbConnection()->getColumnCase();
+		if($colCase != TDbColumnCaseMode::Preserved)
+			$this->getDbConnection()->setColumnCase('Preserved');
 		$this->getDbConnection()->setActive(true);
 		$sql = "SHOW FULL FIELDS FROM {$find}";
 		$command = $this->getDbConnection()->createCommand($sql);
@@ -90,6 +91,8 @@ class TMysqlMetaData extends TDbMetaData
 		}
 		if($index===0)
 			throw new TDbException('dbmetadata_invalid_table_view', $table);
+		if($colCase != TDbColumnCaseMode::Preserved)
+			$this->getDbConnection()->setColumnCase($colCase);
 		return $tableInfo;
 	}
 
@@ -114,29 +117,29 @@ class TMysqlMetaData extends TDbMetaData
 	 */
 	protected function processColumn($tableInfo, $col)
 	{
-		$columnId = $col['field'];
+		$columnId = $col['Field'];
 
 		$info['ColumnName'] = "`$columnId`"; //quote the column names!
 		$info['ColumnId'] = $columnId;
 		$info['ColumnIndex'] = $col['index'];
-		if($col['null']==='YES')
+		if($col['Null']==='YES')
 			$info['AllowNull'] = true;
-		if(is_int(strpos(strtolower($col['extra']), 'auto_increment')))
+		if(is_int(strpos(strtolower($col['Extra']), 'auto_increment')))
 			$info['AutoIncrement']=true;
-		if($col['default']!=="")
-			$info['DefaultValue'] = $col['default'];
+		if($col['Default']!=="")
+			$info['DefaultValue'] = $col['Default'];
 
-		if($col['key']==='PRI' || in_array($columnId, $tableInfo->getPrimaryKeys()))
+		if($col['Key']==='PRI' || in_array($columnId, $tableInfo->getPrimaryKeys()))
 			$info['IsPrimaryKey'] = true;
 		if($this->isForeignKeyColumn($columnId, $tableInfo))
 			$info['IsForeignKey'] = true;
 
-		$info['DbType'] = $col['type'];
+		$info['DbType'] = $col['Type'];
 		$match=array();
 		//find SET/ENUM values, column size, precision, and scale
-		if(preg_match('/\((.*)\)/', $col['type'], $match))
+		if(preg_match('/\((.*)\)/', $col['Type'], $match))
 		{
-			$info['DbType']= preg_replace('/\(.*\)/', '', $col['type']);
+			$info['DbType']= preg_replace('/\(.*\)/', '', $col['Type']);
 
 			//find SET/ENUM values
 			if($this->isEnumSetType($info['DbType']))
@@ -250,7 +253,7 @@ class TMysqlMetaData extends TDbMetaData
 		$command->bindValue(':table', $tableName);
 		try
 		{
-			return count($result = $command->queryRow()) > 0 && $result['table_type']==='VIEW';
+			return count($result = $command->queryRow()) > 0 && $result['Table_type']==='VIEW';
 		}
 		catch(TDbException $e)
 		{
@@ -273,8 +276,8 @@ class TMysqlMetaData extends TDbMetaData
 		$primary = array();
 		foreach($command->query() as $row)
 		{
-			if($row['key_name']==='PRIMARY')
-				$primary[] = $row['column_name'];
+			if($row['Key_name']==='PRIMARY')
+				$primary[] = $row['Column_name'];
 		}
 				// MySQL version was increased to >=5.1.21 instead of 5.x
 				// due to a MySQL bug (http://bugs.mysql.com/bug.php?id=19588)
@@ -381,6 +384,22 @@ EOD;
 				return true;
 		}
 		return false;
+	}
+        
+        /**
+	 * Returns all table names in the database.
+	 * @param string $schema the schema of the tables. Defaults to empty string, meaning the current or default schema.
+	 * If not empty, the returned table names will be prefixed with the schema name.
+	 * @return array all table names in the database.
+	 */
+	public function findTableNames($schema='')
+	{
+		if($schema==='')
+			return $this->getDbConnection()->createCommand('SHOW TABLES')->queryColumn();
+		$names=$this->getDbConnection()->createCommand('SHOW TABLES FROM '.$this->quoteTableName($schema))->queryColumn();
+		foreach($names as &$name)
+			$name=$schema.'.'.$name;
+		return $names;
 	}
 }
 

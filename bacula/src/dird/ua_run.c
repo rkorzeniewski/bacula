@@ -653,6 +653,10 @@ int modify_job_parameters(UAContext *ua, JCR *jcr, run_ctx &rc)
       case 0:
          /* Level */
          select_job_level(ua, jcr);
+         if (jcr->is_JobType(JT_BACKUP) && !jcr->is_JobLevel(L_VIRTUAL_FULL)) {
+            apply_pool_overrides(jcr);
+            rc.pool = jcr->pool;
+         }
          goto try_again;
       case 1:
          /* Storage */
@@ -721,12 +725,12 @@ int modify_job_parameters(UAContext *ua, JCR *jcr, run_ctx &rc)
              jcr->getJobType() == JT_MIGRATE ||
              jcr->getJobType() == JT_VERIFY) {      /* Pool */
             rc.pool = select_pool_resource(ua);
-            if (rc.pool) {
+            if (rc.pool && rc.pool != jcr->pool) {
                jcr->pool = rc.pool;
+               pm_strcpy(jcr->pool_source, _("User input"));
                Dmsg1(100, "Set new pool=%s\n", jcr->pool->name());
-               goto try_again;
             }
-            break;
+            goto try_again;
          }
 
          /* Bootstrap */
@@ -846,8 +850,6 @@ static bool set_run_context_in_jcr(UAContext *ua, JCR *jcr, run_ctx &rc)
    jcr->next_pool = rc.next_pool;
    if (rc.pool_name) {
       pm_strcpy(jcr->pool_source, _("Command input"));
-   } else if (jcr->pool != jcr->job->pool) {
-      pm_strcpy(jcr->pool_source, _("User input"));
    }
    if (rc.next_pool_name) {
       pm_strcpy(jcr->next_pool_source, _("Command input"));

@@ -53,6 +53,78 @@ void pause_msg(const char *file, const char *func, int line, const char *msg)
    }
    MessageBox(NULL, buf, "Pause", MB_OK);
 }
+
+/*
+ * The following code was contributed by Graham Keeling from his
+ *  burp project.  August 2014
+ */
+static int encrypt_bopen(BFILE *bfd, const char *fname, uint64_t flags, mode_t mode)
+{
+   ULONG ulFlags = 0;
+   POOLMEM *win32_fname;
+   POOLMEM *win32_fname_wchar;
+
+   bfd->mode = BF_CLOSED;
+   bfd->fid = -1;
+
+   if (!(p_OpenEncryptedFileRawA || p_OpenEncryptedFileRawW)) {
+      Dmsg0(50, "No OpenEncryptedFileRawA and no OpenEncryptedFileRawW APIs!!!\n");
+      return -1;
+   }
+
+   /* Convert to Windows path format */
+   win32_fname = get_pool_memory(PM_FNAME);
+   win32_fname_wchar = get_pool_memory(PM_FNAME);
+
+   unix_name_to_win32(&win32_fname, (char *)fname);
+
+   if (p_CreateFileW && p_MultiByteToWideChar) {
+      make_win32_path_UTF8_2_wchar(&win32_fname_wchar, fname);
+   }
+
+   if ((flags & O_CREAT) || (flags & O_WRONLY)) {
+      ulFlags = CREATE_FOR_IMPORT | OVERWRITE_HIDDEN;
+      if (bfd->fattrs & FILE_ATTRIBUTE_DIRECTORY) {
+         mkdir(fname, 0777);
+         ulFlags |= CREATE_FOR_DIR;
+      }
+      bfd->mode = BF_WRITE;
+   } else {
+      /* Open existing for read */
+      ulFlags = CREATE_FOR_EXPORT;
+      bfd->mode = BF_READ;
+   }
+
+   if (p_OpenEncryptedFileRawW && p_MultiByteToWideChar) {
+      /* unicode open */
+      if (p_OpenEncryptedFileRawW((LPCWSTR)win32_fname_wchar,
+                   ulFlags, &(bfd->pvContext))) {
+         bfd->mode = BF_CLOSED;
+      }
+   } else {
+      /* ascii open */
+      if (p_OpenEncryptedFileRawA(win32_fname, ulFlags, &(bfd->pvContext))) {
+         bfd->mode = BF_CLOSED;
+      }
+   }
+   free_pool_memory(win32_fname_wchar);
+   free_pool_memory(win32_fname);
+   bfd->fid = (bfd->mode == BF_CLOSED) ? -1 : 0;
+   return bfd->mode==BF_CLOSED ? -1: 1;
+}
+
+static int encrypt_bclose(BFILE *bfd)
+{
+   if (p_CloseEncryptedFileRaw) {
+      p_CloseEncryptedFileRaw(bfd->pvContext);
+   }
+   bfd->pvContext = NULL;
+   bfd->mode = BF_CLOSED;
+   bfd->fattrs = 0;
+   bfd->fid = -1;
+   return 0;
+}
+
 #endif
 
 /* ===============================================================

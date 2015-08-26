@@ -2,8 +2,10 @@
 
 dbxenv language_mode c++
 
+echo "fail_time ==> \c"; print -l (char *)fail_time
 echo "exename ==> \c"; print -l (char *)exename
 echo "exepath ==> \c"; print -l (char *)exepath
+echo "assert_msg ==> \c"; print -l (char *)assert_msg
 echo "catalog_db ==> \c"; print -l (char *)catalog_db
 echo "version ==> \c"; print -l (char *)version
 echo "host_os ==> \c"; print -l (char *)host_os

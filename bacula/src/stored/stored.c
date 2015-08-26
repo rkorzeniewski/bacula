@@ -202,6 +202,11 @@ int main (int argc, char *argv[])
    if (argc)
       usage();
 
+   if (!foreground) {
+      daemon_start();                 /* become daemon */
+      init_stack_dump();              /* pick up new pid */
+   }
+
    if (!no_signals) {
       init_signals(terminate_stored);
    }
@@ -229,10 +234,6 @@ int main (int argc, char *argv[])
 
    my_name_is(0, (char **)NULL, me->hdr.name);     /* Set our real name */
 
-   if (!foreground) {
-      daemon_start();                 /* become daemon */
-      init_stack_dump();              /* pick up new pid */
-   }
 
    create_pid_file(me->pid_directory, "bacula-sd",
                    get_first_port_host_order(me->sdaddrs));

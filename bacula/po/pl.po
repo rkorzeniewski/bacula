@@ -1,7 +1,9 @@
 # bacula translations
 # Copyright (C) 2010 Inteos Sp. z o.o.
+# Copyright (C) 2000-2015 by Kern Sibbald
+# License: BSD 2-Clause; see file LICENSE-FOSS
+#
 # Translated by Inteos Translation Team: pl@inteos.pl
-# This file is distributed under the same license as the bacula package.
 #
 msgid ""
 msgstr ""
@@ -15,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: src/dird/authenticate.c:127
+#: src/wx-console/authenticate.c:127 src/dird/authenticate.c:127
 #: src/console/authenticate.c:125
 msgid ""
 "Authorization problem: Remote server did not advertise required TLS "
@@ -24,22 +26,27 @@ msgstr ""
 "Problem autoryzacji: Zdalny serwer nie zadeklarował wymaganego wsparcia dla "
 "TLS.\n"
 
-#: src/filed/authenticate.c:159
+#: src/wx-console/authenticate.c:133 src/filed/authenticate.c:159
 #: src/filed/authenticate.c:278 src/dird/authenticate.c:134
 #: src/console/authenticate.c:132 src/stored/authenticate.c:147
 #: src/stored/authenticate.c:258
 msgid "Authorization problem: Remote server requires TLS.\n"
 msgstr "Problem autoryzacji: Zdalny serwer wymaga TLS.\n"
 
-#: src/console/authenticate.c:141
+#: src/wx-console/authenticate.c:142 src/console/authenticate.c:141
 msgid "TLS negotiation failed\n"
 msgstr "Negocjacja TLS nie powiodła się\n"
 
+#: src/wx-console/authenticate.c:150
+msgid "Bad response to Hello command: ERR="
+msgstr "Zła odpowiedź na komend Hello: ERR="
+
+#: src/wx-console/authenticate.c:157 src/tray-monitor/authenticate.c:104
 #: src/console/authenticate.c:162
 msgid "Director rejected Hello command\n"
 msgstr "Director odrzucił komendę Hello\n"
 
-#: src/console/authenticate.c:172
+#: src/wx-console/authenticate.c:167 src/console/authenticate.c:172
 msgid ""
 "Director authorization problem.\n"
 "Most likely the passwords do not agree.\n"
@@ -55,23 +62,25 @@ msgstr ""
 "Zobacz http://www.bacula.org/en/rel-manual/Bacula_Freque_Asked_Questi."
 "html#SECTION003760000000000000000 w celu uzyskania pomocy.\n"
 
-#: src/console/console_conf.c:140
+#: src/wx-console/console_conf.c:147 src/console/console_conf.c:140
 #: src/qt-console/bat_conf.cpp:141
 #, c-format
 msgid "No record for %d %s\n"
 msgstr "Brak rekordu dla %d %s\n"
 
-#: src/console/console_conf.c:149
+#: src/wx-console/console_conf.c:156 src/console/console_conf.c:149
 #, c-format
 msgid "Console: name=%s rcfile=%s histfile=%s\n"
 msgstr "Konsola: nazwa=%s plikrc=%s plikhist=%s\n"
 
-#: src/console/console_conf.c:153
+#: src/wx-console/console_conf.c:160 src/console/console_conf.c:153
 #: src/qt-console/bat_conf.cpp:150
 #, c-format
 msgid "Director: name=%s address=%s DIRport=%d\n"
 msgstr "Director: nazwa=%s adres=%s DIRport=%d\n"
 
+#: src/wx-console/console_conf.c:164 src/wx-console/console_conf.c:239
+#: src/wx-console/console_conf.c:284 src/wx-console/console_conf.c:311
 #: src/filed/filed_conf.c:333 src/filed/filed_conf.c:398
 #: src/filed/filed_conf.c:428 src/console/console_conf.c:157
 #: src/console/console_conf.c:233 src/console/console_conf.c:278
@@ -83,16 +92,16 @@ msgstr "Director: nazwa=%s adres=%s DIRport=%d\n"
 msgid "Unknown resource type %d\n"
 msgstr "Nieznany rodzaj zasobu %d\n"
 
-#: src/filed/filed_conf.c:361
-#: src/dird/dird_conf.c:1371
+#: src/wx-console/console_conf.c:265 src/filed/filed_conf.c:361
+#: src/tray-monitor/tray_conf.c:288 src/dird/dird_conf.c:1371
 #: src/dird/dird_conf.c:1386 src/console/console_conf.c:259
 #: src/qt-console/bat_conf.cpp:265
 #, c-format
 msgid "%s item is required in %s resource, but not found.\n"
 msgstr "Element %s jest wymagany w zasobie %s, lecz nie został znaleziony.\n"
 
-#: src/filed/filed_conf.c:446
-#: src/dird/dird_conf.c:1609
+#: src/wx-console/console_conf.c:328 src/filed/filed_conf.c:446
+#: src/tray-monitor/tray_conf.c:372 src/dird/dird_conf.c:1609
 #: src/console/console_conf.c:322 src/qt-console/bat_conf.cpp:334
 #, c-format
 msgid "Attempt to define second %s resource named \"%s\" is not permitted.\n"
@@ -1077,7 +1086,7 @@ msgstr "Za komenda session: %s"
 msgid "Bad storage command: %s"
 msgstr "Za komenda storage: %s"
 
-#: src/filed/job.c:1479
+#: src/filed/job.c:1479 src/tray-monitor/tray-monitor.c:952
 #: src/dird/msgchan.c:106
 msgid "Storage daemon"
 msgstr "Demon Skadowania"
@@ -1363,12 +1372,13 @@ msgid "Diffs"
 msgstr "Rnice"
 
 #: src/filed/status.c:296 src/dird/ua_status.c:868 src/dird/ua_restore.c:430
-#: src/stored/status.c:547
+#: src/stored/status.c:547 src/wx-console/wxbconfigpanel.cpp:220
 msgid "Cancel"
 msgstr "Anulowane"
 
 #: src/filed/status.c:299 src/lib/util.c:189 src/lib/util.c:321
 #: src/dird/ua_status.c:871 src/stored/btape.c:1514 src/stored/status.c:550
+#: src/wx-console/wxbconfigpanel.cpp:209
 msgid "OK"
 msgstr "OK"
 
@@ -1631,8 +1641,8 @@ msgstr "Brak definicji zasobu Messages w %s\n"
 #: src/filed/filed.c:355 src/filed/filed.c:514 src/dird/dird.c:625
 #: src/dird/dird.c:831 src/dird/dird.c:886 src/dird/dird.c:1044
 #: src/console/console.c:1291 src/console/console.c:1321
-#: src/stored/stored.c:381
-#: src/qt-console/main.cpp:212
+#: src/stored/stored.c:381 src/wx-console/console_thread.cpp:118
+#: src/wx-console/console_thread.cpp:144 src/qt-console/main.cpp:212
 #: src/qt-console/main.cpp:242
 msgid "TLS required but not configured in Bacula.\n"
 msgstr "Wymagane TLS lecz nie zostao skonfigurowane w Baculi.\n"
@@ -1735,66 +1745,487 @@ msgstr ""
 msgid "Failed to initialize TLS context for Director \"%s\" in %s.\n"
 msgstr "Nieudana inicjalizacja kontekstu TLS dla Dyrektora \"%s\" w %s.\n"
 
-#: src/dird/dird_conf.c:558
+#: src/tray-monitor/tray_conf.c:168 src/dird/dird_conf.c:558
 #, c-format
 msgid "No %s resource defined\n"
 msgstr "Nie zdefiniowano zasobu %s\n"
 
-#: src/qt-console/bat_conf.cpp:157
+#: src/tray-monitor/tray_conf.c:177
+#, c-format
+msgid "Monitor: name=%s FDtimeout=%s SDtimeout=%s\n"
+msgstr "Monitor: nazwa=%s FDtimeout=%s SDtimeout=%s\n"
+
+#: src/tray-monitor/tray_conf.c:183
+#, c-format
+msgid "Director: name=%s address=%s FDport=%d\n"
+msgstr "Dyrektor: nazwa=%s adres=%s FDport=%d\n"
+
+#: src/tray-monitor/tray_conf.c:187
+#, c-format
+msgid "Client: name=%s address=%s FDport=%d\n"
+msgstr "Klient: nazwa=%s adres=%s FDport=%d\n"
+
+#: src/tray-monitor/tray_conf.c:191
+#, c-format
+msgid "Storage: name=%s address=%s SDport=%d\n"
+msgstr "Storage: nazwa=%s adres=%s SDport=%d\n"
+
+#: src/tray-monitor/tray_conf.c:195 src/qt-console/bat_conf.cpp:157
 #, c-format
 msgid "ConsoleFont: name=%s font face=%s\n"
 msgstr "ConsoleFont: nazwa=%s krj czcionki=%s\n"
 
-#: src/dird/dird_conf.c:1008
+#: src/tray-monitor/tray_conf.c:199 src/dird/dird_conf.c:1008
 #, c-format
 msgid "Unknown resource type %d in dump_resource.\n"
 msgstr "Nieznany typ zasobu %d w dump_resource.\n"
 
-#: src/dird/dird_conf.c:1339
+#: src/tray-monitor/tray_conf.c:257 src/dird/dird_conf.c:1339
 #, c-format
 msgid "Unknown resource type %d in free_resource.\n"
 msgstr "Nieznany typ zasobu %d w free_resource.\n"
 
-#: src/lib/parse_conf.c:224
+#: src/tray-monitor/tray_conf.c:294 src/lib/parse_conf.c:224
 #: src/dird/dird_conf.c:1377
 #, c-format
 msgid "Too many items in %s resource\n"
 msgstr "Zbyt duo elementw w zasobie %s\n"
 
+#: src/tray-monitor/tray_conf.c:314 src/tray-monitor/tray_conf.c:352
 #: src/dird/dird_conf.c:1526 src/dird/dird_conf.c:1586
 #, c-format
 msgid "Unknown resource type %d in save_resource.\n"
 msgstr "Nieznany typ zasobu %d w save_resource.\n"
 
-#: src/console/authenticate.c:155
+#: src/tray-monitor/authenticate.c:88
+msgid ""
+"Director authorization problem.\n"
+"Most likely the passwords do not agree.\n"
+"Please see http://www.bacula.org/en/rel-manual/Bacula_Freque_Asked_Questi."
+"html#SECTION003760000000000000000 for help.\n"
+msgstr ""
+"Problem autoryzacji Dyrektora.\n"
+"Najprawdopodobniej nie zgadzaj się hasa.\n"
+"Proszę zobacz http://www.bacula.org/en/rel-manual/Bacula_Freque_Asked_Questi."
+"html#SECTION003760000000000000000 dla uzyskania pomocy.\n"
+
+#: src/tray-monitor/authenticate.c:97 src/console/authenticate.c:155
 #, c-format
 msgid "Bad response to Hello command: ERR=%s\n"
 msgstr "Za odpowiedź na komend Hello: ERR=%s\n"
 
-#: src/dird/authenticate.c:83
+#: src/tray-monitor/authenticate.c:132 src/dird/authenticate.c:83
 #: src/dird/authenticate.c:84
 #, c-format
 msgid "Error sending Hello to Storage daemon. ERR=%s\n"
 msgstr "Błąd w wysyaniu Hello do demona Przechowywania. ERR=%s\n"
 
-#: src/dird/authenticate.c:266
+#: src/tray-monitor/authenticate.c:138
+msgid ""
+"Director and Storage daemon passwords or names not the same.\n"
+"Please see http://www.bacula.org/en/rel-manual/Bacula_Freque_Asked_Questi."
+"html#SECTION003760000000000000000 for help.\n"
+msgstr ""
+"Hasła demonów Dyrektora i Przechowywania nie s takie same.\n"
+"Proszę zobacz http://www.bacula.org/en/rel-manual/Bacula_Freque_Asked_Questi."
+"html#SECTION003760000000000000000 dla uzyskania pomocy.\n"
+
+#: src/tray-monitor/authenticate.c:145
+msgid "bdird<stored: bad response to Hello command: ERR=%s\n"
+msgstr "bdird<stored: zła odpowiedź na komendę Hello: ERR=%s\n"
+
+#: src/tray-monitor/authenticate.c:152 src/dird/authenticate.c:162
+msgid "Storage daemon rejected Hello command\n"
+msgstr "Demon Przechowywania odrzuci komend Hello\n"
+
+#: src/tray-monitor/authenticate.c:178
+#, c-format
+msgid "Error sending Hello to File daemon. ERR=%s\n"
+msgstr "Błąd w wysyaniu Hello do demona Plików. ERR=%s\n"
+
+#: src/tray-monitor/authenticate.c:184
+msgid ""
+"Director and File daemon passwords or names not the same.\n"
+"Please see http://www.bacula.org/en/rel-manual/Bacula_Freque_Asked_Questi."
+"html#SECTION003760000000000000000 for help.\n"
+msgstr ""
+"Hasła demonów Dyrektora i Plików nie s takie same.\n"
+"Proszę zobacz http://www.bacula.org/en/rel-manual/Bacula_Freque_Asked_Questi."
+"html#SECTION003760000000000000000 dla uzyskania pomocy.\n"
+
+#: src/tray-monitor/authenticate.c:191 src/dird/authenticate.c:266
 #, c-format
 msgid "Bad response from File daemon to Hello command: ERR=%s\n"
 msgstr "Za odpowiedź z demona Plików na komend Hello: ERR=%s\n"
 
-#: src/dird/authenticate.c:277
+#: src/tray-monitor/authenticate.c:198 src/dird/authenticate.c:277
 msgid "File daemon rejected Hello command\n"
 msgstr "Demona Plików odrzuci komend Hello\n"
 
-#: src/console/console.c:1138
+#: src/tray-monitor/tray-monitor.c:114
+msgid ""
+"Written by Nicolas Boichat (2004)\n"
+"\n"
+"Version: %s (%s) %s %s %s\n"
+"\n"
+"Usage: tray-monitor [-c config_file] [-d debug_level]\n"
+"       -c <file>     set configuration file to file\n"
+"       -d <nn>       set debug level to <nn>\n"
+"       -dt           print timestamp in debug output\n"
+"       -t            test - read configuration and exit\n"
+"       -?            print this message.\n"
+"\n"
+msgstr ""
+"Napisany przez Nicolas Boichat (2004)\n"
+"\n"
+"Wersja: %s (%s) %s %s %s\n"
+"\n"
+"Użycie: tray-monitor [-c config_file] [-d debug_level]\n"
+"       -c <file>     ustaw plik konfiguracyjny na <file>\n"
+"       -d <nn>       ustaw poziom debugowania na <nn>\n"
+"       -dt           wyświetla znaczniki czasowe w debugingu\n"
+"       -t            test - odczytuje konfigurację i kończy działanie\n"
+"       -?            wyświetla ten komunikat.\n"
+"\n"
+
+#: src/tray-monitor/tray-monitor.c:270
+#, c-format
+msgid ""
+"Error: %d Monitor resources defined in %s. You must define one and only one "
+"Monitor resource.\n"
+msgstr ""
+"Bd: zdefiniowano %d zasoby Monitor w %s. Musisz zdefiniowa wycznie jeden i "
+"tylko jeden zasób Monitora.\n"
+
+#: src/tray-monitor/tray-monitor.c:301
+#, c-format
+msgid ""
+"No Client, Storage or Director resource defined in %s\n"
+"Without that I don't how to get status from the File, Storage or Director "
+"Daemon :-(\n"
+msgstr ""
+"Brak definicji zasobu Klienta, Przechowywania lub Dyrektora w %s\n"
+"Bez tego nie wiem jak mam otrzyma status z demonów Plików, Przechowywania i "
+"Dyrektora. :-(\n"
+
+#: src/tray-monitor/tray-monitor.c:323
+#, c-format
+msgid ""
+"Invalid refresh interval defined in %s\n"
+"This value must be greater or equal to 1 second and less or equal to 10 "
+"minutes (read value: %d).\n"
+msgstr ""
+"Niepoprawny interwa czasu zdefiniowany w %s\n"
+"Warto ta musi by wiksza lub rwna 1 sekundzie i mniejsza lub rwna 10 minutom "
+"(odczytana warto: %d).\n"
+
+#: src/tray-monitor/tray-monitor.c:330
+msgid "Bacula daemon status monitor"
+msgstr "Monitor statusu demona Bacula"
+
+#: src/tray-monitor/tray-monitor.c:339
+msgid "Open status window..."
+msgstr "Otwrz okno statusu..."
+
+#: src/tray-monitor/tray-monitor.c:345
+msgid "Exit"
+msgstr "Wyjcie"
+
+# Tray to tacka - nie do końca mi to pasuje: "Tackowy Monitor Baculi"
+#: src/tray-monitor/tray-monitor.c:357
+msgid "Bacula tray monitor"
+msgstr "Tackowy monitor Baculi"
+
+#: src/tray-monitor/tray-monitor.c:382
+msgid " (DIR)"
+msgstr " (DIR)"
+
+#: src/tray-monitor/tray-monitor.c:386
+msgid " (FD)"
+msgstr " (FD)"
+
+#: src/tray-monitor/tray-monitor.c:390
+msgid " (SD)"
+msgstr " (SD)"
+
+#: src/tray-monitor/tray-monitor.c:403
+msgid "Unknown status."
+msgstr "Nieznany status."
+
+#: src/tray-monitor/tray-monitor.c:477
+msgid "Refresh interval in seconds: "
+msgstr "Interwa odwierzania w sekundach: "
+
+#: src/tray-monitor/tray-monitor.c:485
+msgid "Refresh now"
+msgstr "Odwierz teraz"
+
+#: src/tray-monitor/tray-monitor.c:489
+msgid "About"
+msgstr "O Programie"
+
+#: src/tray-monitor/tray-monitor.c:493
+msgid "Close"
+msgstr "Zamknij"
+
+#: src/tray-monitor/tray-monitor.c:513
+#, c-format
+msgid "Disconnecting from Director %s:%d\n"
+msgstr "Rozłączanie od Dyrektora %s:%d\n"
+
+#: src/tray-monitor/tray-monitor.c:516
+#, c-format
+msgid "Disconnecting from Client %s:%d\n"
+msgstr "Rozłączanie od Klienta %s:%d\n"
+
+#: src/tray-monitor/tray-monitor.c:519
+#, c-format
+msgid "Disconnecting from Storage %s:%d\n"
+msgstr "Rozłączanie od Storage %s:%d\n"
+
+#: src/tray-monitor/tray-monitor.c:560 src/tray-monitor/tray-monitor.c:571
+msgid "Bacula Tray Monitor"
+msgstr "Monitor programu Bacula"
+
+#: src/tray-monitor/tray-monitor.c:562 src/tray-monitor/tray-monitor.c:573
+msgid "Written by Nicolas Boichat\n"
+msgstr "Napisany przez Nicolas Boichat\n"
+
+#: src/tray-monitor/tray-monitor.c:563 src/tray-monitor/tray-monitor.c:574
+msgid "Version"
+msgstr "Wersja"
+
+#: src/tray-monitor/tray-monitor.c:656
+#, c-format
+msgid "Error, currentitem is not a Client or a Storage..\n"
+msgstr "Bd, currentitem nie jest ani Klientem ani Storage...\n"
+
+#: src/tray-monitor/tray-monitor.c:730
+#, c-format
+msgid ""
+"Current job: %s\n"
+"Last job: %s"
+msgstr ""
+"Aktualne zadanie: %s\n"
+"Ostatnie zadanie: %s"
+
+#: src/tray-monitor/tray-monitor.c:742
+#, c-format
+msgid " (%d errors)"
+msgstr " (%d bdw)"
+
+#: src/tray-monitor/tray-monitor.c:745
+#, c-format
+msgid " (%d error)"
+msgstr " (%d bd)"
+
+#: src/tray-monitor/tray-monitor.c:783
+msgid "No current job."
+msgstr "Brak aktualnego zadania."
+
+#: src/tray-monitor/tray-monitor.c:786
+msgid "No last job."
+msgstr "Brak ostatniego zadania."
+
+#: src/tray-monitor/tray-monitor.c:794
+msgid "Job status: Created"
+msgstr "Status zadania: Stworzone"
+
+#: src/tray-monitor/tray-monitor.c:799
+msgid "Job status: Running"
+msgstr "Status zadania: Uruchomione"
+
+#: src/tray-monitor/tray-monitor.c:803
+msgid "Job status: Blocked"
+msgstr "Status zadania: Zablokowane"
+
+#: src/tray-monitor/tray-monitor.c:808
+msgid "Job status: Terminated"
+msgstr "Status zadania: Zakoczone"
+
+#: src/tray-monitor/tray-monitor.c:813
+msgid "Job status: Terminated in error"
+msgstr "Status zadania: Zakoczone przez bd"
+
+#: src/tray-monitor/tray-monitor.c:819
+msgid "Job status: Error"
+msgstr "Status zadania: Bd"
+
+#: src/tray-monitor/tray-monitor.c:823
+msgid "Job status: Fatal error"
+msgstr "Status zadania: Błąd krytyczny"
+
+#: src/tray-monitor/tray-monitor.c:828
+msgid "Job status: Verify differences"
+msgstr "Status zadania: Rnice przy weryfikacji"
+
+#: src/tray-monitor/tray-monitor.c:833
+msgid "Job status: Canceled"
+msgstr "Status zadania: Anulowane"
+
+#: src/tray-monitor/tray-monitor.c:838
+msgid "Job status: Waiting on File daemon"
+msgstr "Status zadania: Oczekiwanie na demon Plików"
+
+#: src/tray-monitor/tray-monitor.c:843
+msgid "Job status: Waiting on the Storage daemon"
+msgstr "Status zadania: Oczekiwanie na demon Przechowywania"
+
+#: src/tray-monitor/tray-monitor.c:848
+msgid "Job status: Waiting for new media"
+msgstr "Status zadania: Oczekiwanie na nowe media"
+
+#: src/tray-monitor/tray-monitor.c:853
+msgid "Job status: Waiting for Mount"
+msgstr "Status zadania: Oczekiwanie na Zamontowanie"
+
+#: src/tray-monitor/tray-monitor.c:858
+msgid "Job status: Waiting for storage resource"
+msgstr "Status zadania: Oczekiwanie na zasoby przechowywania"
+
+#: src/tray-monitor/tray-monitor.c:863
+msgid "Job status: Waiting for job resource"
+msgstr "Status zadania: Oczekiwanie na zasoby zadania"
+
+#: src/tray-monitor/tray-monitor.c:868
+msgid "Job status: Waiting for Client resource"
+msgstr "Status zadania: Oczekiwanie na zasoby Klienta"
+
+#: src/tray-monitor/tray-monitor.c:873
+msgid "Job status: Waiting for maximum jobs"
+msgstr "Status zadania: Oczekiwanie ze wzgldu na maksymaln ilo zada"
+
+#: src/tray-monitor/tray-monitor.c:878
+msgid "Job status: Waiting for start time"
+msgstr "Status zadania: Oczekiwanie na czas uruchomienia"
+
+#: src/tray-monitor/tray-monitor.c:883
+msgid "Job status: Waiting for higher priority jobs to finish"
+msgstr "Status zadania: Oczekiwanie na zakoczenie zadań o wyszym priorytecie"
+
+#: src/tray-monitor/tray-monitor.c:888
+#, c-format
+msgid "Unknown job status %c."
+msgstr "Nieznany status zadania %c."
+
+#: src/tray-monitor/tray-monitor.c:889
+#, c-format
+msgid "Job status: Unknown(%c)"
+msgstr "Status zadania: Nieznany(%c)"
+
+#: src/tray-monitor/tray-monitor.c:896
+#, c-format
+msgid "Bad scan : '%s' %d\n"
+msgstr "Ze skanowanie : '%s' %d\n"
+
+#: src/tray-monitor/tray-monitor.c:936 src/console/console.c:1138
 #, c-format
 msgid "Connecting to Director %s:%d\n"
 msgstr "Podłączenie do Dyrektora %s:%d\n"
 
-#: src/qt-console/bcomm/dircomm.cpp:102
+#: src/tray-monitor/tray-monitor.c:937 src/qt-console/bcomm/dircomm.cpp:102
 #, c-format
 msgid "Connecting to Director %s:%d"
 msgstr "Podłączenie do Dyrektora %s:%d"
+
+#: src/tray-monitor/tray-monitor.c:938 src/wx-console/console_thread.cpp:428
+#: src/qt-console/bcomm/dircomm.cpp:170
+msgid "Director daemon"
+msgstr "Demon Dyrektora"
+
+#: src/tray-monitor/tray-monitor.c:943
+#, c-format
+msgid "Connecting to Client %s:%d\n"
+msgstr "Podłączenie do Klienta %s:%d\n"
+
+#: src/tray-monitor/tray-monitor.c:944
+#, c-format
+msgid "Connecting to Client %s:%d"
+msgstr "Podłączenie do Klienta %s:%d"
+
+#: src/tray-monitor/tray-monitor.c:945
+msgid "File daemon"
+msgstr "Demon Plików"
+
+#: src/tray-monitor/tray-monitor.c:950
+#, c-format
+msgid "Connecting to Storage %s:%d\n"
+msgstr "Podłączenie do Storage %s:%d\n"
+
+#: src/tray-monitor/tray-monitor.c:951
+#, c-format
+msgid "Connecting to Storage %s:%d"
+msgstr "Podłączenie do Storage %s:%d"
+
+#: src/tray-monitor/tray-monitor.c:956 src/tray-monitor/tray-monitor.c:994
+#, c-format
+msgid "Error, currentitem is not a Client, a Storage or a Director..\n"
+msgstr "Błąd currentitem nie jest Klientem, Storage ani Dyrektorem..\n"
+
+#: src/tray-monitor/tray-monitor.c:962
+msgid "Cannot connect to daemon.\n"
+msgstr "Nie można połączyć się do demona.\n"
+
+#: src/tray-monitor/tray-monitor.c:963
+msgid "Cannot connect to daemon."
+msgstr "Nie można połączyć się do demona."
+
+#: src/tray-monitor/tray-monitor.c:975
+#, c-format
+msgid "Authentication error : %s"
+msgstr "Bad autentykacji : %s"
+
+#: src/tray-monitor/tray-monitor.c:982
+msgid "Opened connection with Director daemon.\n"
+msgstr "Otwarte poczenie z demonem Dyrektora.\n"
+
+#: src/tray-monitor/tray-monitor.c:983
+msgid "Opened connection with Director daemon."
+msgstr "Otwarte poczenie z demonem Dyrektora."
+
+#: src/tray-monitor/tray-monitor.c:986
+msgid "Opened connection with File daemon.\n"
+msgstr "Otwarte poczenie z demonem plikw.\n"
+
+#: src/tray-monitor/tray-monitor.c:987
+msgid "Opened connection with File daemon."
+msgstr "Otwarte poczenie z demonem plikw."
+
+#: src/tray-monitor/tray-monitor.c:990
+msgid "Opened connection with Storage daemon.\n"
+msgstr "Otwarte poczenie z demonem Przechowywania.\n"
+
+#: src/tray-monitor/tray-monitor.c:991
+msgid "Opened connection with Storage daemon."
+msgstr "Otwarte poczenie z demonem Przechowywania."
+
+#: src/tray-monitor/tray-monitor.c:1028
+msgid "<< Error: BNET_PROMPT signal received. >>\n"
+msgstr "<< Błąd: otrzymano sygnał BNET_PROMPT. >>\n"
+
+#: src/tray-monitor/tray-monitor.c:1033 src/wx-console/console_thread.cpp:494
+msgid "<< Heartbeat signal received, answered. >>\n"
+msgstr "<< Otrzymano sygnał Heartbeat, odpowiedziano. >>\n"
+
+#: src/tray-monitor/tray-monitor.c:1037
+msgid "<< Unexpected signal received : %s >>\n"
+msgstr "<< Otrzymano nieoczekiwany sygnał : %s >>\n"
+
+#: src/tray-monitor/tray-monitor.c:1042
+msgid "<ERROR>\n"
+msgstr "<BŁĄD>\n"
+
+#: src/tray-monitor/tray-monitor.c:1046
+msgid "Error : BNET_HARDEOF or BNET_ERROR"
+msgstr "Błąd : BNET_HARDEOF lub BNET_ERROR"
+
+#: src/tray-monitor/tray-monitor.c:1052
+msgid "<STOP>\n"
+msgstr "<STOP>\n"
+
+#: src/tray-monitor/tray-monitor.c:1056
+msgid "Error : Connection closed."
+msgstr "Błąd : Połączenie zamknięte."
 
 #: src/cats/mysql.c:81
 msgid "A user name for MySQL must be supplied.\n"
@@ -3372,12 +3803,12 @@ msgstr "Nie można stworzyć pliku stanu. %s ERR=%s\n"
 msgid "Write final hdr error: ERR=%s\n"
 msgstr "Błąd zapisu . ERR=%s\n"
 
-#: src/lib/lex.c:93
+#: src/lib/lex.c:93 src/wx-console/console_thread.cpp:212
 #, c-format
 msgid "Problem probably begins at line %d.\n"
 msgstr "Problem najprawdopodobniej zaczyna się od linii %d.\n"
 
-#: src/lib/lex.c:98
+#: src/lib/lex.c:98 src/wx-console/console_thread.cpp:217
 msgid ""
 "Config error: %s\n"
 "            : line %d, col %d of file %s\n"
@@ -4577,12 +5008,13 @@ msgstr ""
 msgid "Verify"
 msgstr "Weryfikacja OK"
 
-#: src/lib/util.c:365
+#: src/lib/util.c:365 src/wx-console/wxbrestorepanel.cpp:404
+#: src/wx-console/wxbrestorepanel.cpp:2000
 #, fuzzy
 msgid "Restore"
 msgstr "Odtwarzanie Anulowane"
 
-#: src/lib/util.c:368
+#: src/lib/util.c:368 src/wx-console/wxbmainframe.cpp:276
 #, fuzzy
 msgid "Console"
 msgstr "Zamknij"
@@ -5190,7 +5622,16 @@ msgid "Level"
 msgstr "nigdy"
 
 #: src/dird/ua_run.c:210 src/dird/ua_select.c:167 src/dird/ua_cmds.c:1095
-#: src/dird/ua_dotcmds.c:478
+#: src/dird/ua_dotcmds.c:478 src/wx-console/wxbrestorepanel.cpp:339
+#: src/wx-console/wxbrestorepanel.cpp:355
+#: src/wx-console/wxbrestorepanel.cpp:479
+#: src/wx-console/wxbrestorepanel.cpp:480
+#: src/wx-console/wxbrestorepanel.cpp:490
+#: src/wx-console/wxbrestorepanel.cpp:491
+#: src/wx-console/wxbrestorepanel.cpp:1173
+#: src/wx-console/wxbrestorepanel.cpp:1176
+#: src/wx-console/wxbrestorepanel.cpp:1845
+#: src/wx-console/wxbrestorepanel.cpp:1916
 #, fuzzy
 msgid "Storage"
 msgstr "Demon Skadowania"
@@ -5213,22 +5654,43 @@ msgstr "Odtwarzanie Anulowane"
 
 #: src/dird/ua_run.c:216 src/dird/ua_select.c:337 src/dird/ua_select.c:446
 #: src/dird/ua_cmds.c:1096 src/dird/ua_dotcmds.c:479
+#: src/wx-console/wxbrestorepanel.cpp:336
+#: src/wx-console/wxbrestorepanel.cpp:354
+#: src/wx-console/wxbrestorepanel.cpp:431
+#: src/wx-console/wxbrestorepanel.cpp:432
+#: src/wx-console/wxbrestorepanel.cpp:442
+#: src/wx-console/wxbrestorepanel.cpp:443
+#: src/wx-console/wxbrestorepanel.cpp:700
+#: src/wx-console/wxbrestorepanel.cpp:1133
+#: src/wx-console/wxbrestorepanel.cpp:1136
+#: src/wx-console/wxbrestorepanel.cpp:1238
+#: src/wx-console/wxbrestorepanel.cpp:1838
+#: src/wx-console/wxbrestorepanel.cpp:1840
+#: src/wx-console/wxbrestorepanel.cpp:1914
+#: src/wx-console/wxbrestorepanel.cpp:1970
 #, fuzzy
 msgid "Client"
 msgstr "Klient:"
 
-#: src/dird/ua_run.c:218
+#: src/dird/ua_run.c:218 src/wx-console/wxbrestorepanel.cpp:356
+#: src/wx-console/wxbrestorepanel.cpp:854
+#: src/wx-console/wxbrestorepanel.cpp:1918
 #, fuzzy
 msgid "When"
 msgstr "Kiedy:"
 
-#: src/dird/ua_run.c:219
+#: src/dird/ua_run.c:219 src/wx-console/wxbrestorepanel.cpp:357
+#: src/wx-console/wxbrestorepanel.cpp:1128
+#: src/wx-console/wxbrestorepanel.cpp:1921
 #, fuzzy
 msgid "Priority"
 msgstr "Priorytet:"
 
 #: src/dird/ua_run.c:224 src/dird/ua_update.c:616 src/dird/ua_select.c:535
-#: src/dird/ua_select.c:633
+#: src/dird/ua_select.c:633 src/wx-console/wxbrestorepanel.cpp:338
+#: src/wx-console/wxbrestorepanel.cpp:527
+#: src/wx-console/wxbrestorepanel.cpp:537
+#: src/wx-console/wxbrestorepanel.cpp:1834
 msgid "Pool"
 msgstr ""
 
@@ -5237,12 +5699,15 @@ msgstr ""
 msgid "Verify Job"
 msgstr "Weryfikacja OK"
 
-#: src/dird/ua_run.c:229
+#: src/dird/ua_run.c:229 src/wx-console/wxbrestorepanel.cpp:349
+#: src/wx-console/wxbrestorepanel.cpp:1899
 #, fuzzy
 msgid "Bootstrap"
 msgstr "Bootstrap:"
 
-#: src/dird/ua_run.c:230
+#: src/dird/ua_run.c:230 src/wx-console/wxbrestorepanel.cpp:350
+#: src/wx-console/wxbrestorepanel.cpp:1104
+#: src/wx-console/wxbrestorepanel.cpp:1901
 #, fuzzy
 msgid "Where"
 msgstr "Gdzie:"
@@ -5252,7 +5717,13 @@ msgstr "Gdzie:"
 msgid "File Relocation"
 msgstr "Demon Plików"
 
-#: src/dird/ua_run.c:232
+#: src/dird/ua_run.c:232 src/wx-console/wxbrestorepanel.cpp:352
+#: src/wx-console/wxbrestorepanel.cpp:1112
+#: src/wx-console/wxbrestorepanel.cpp:1905
+#: src/wx-console/wxbrestorepanel.cpp:1906
+#: src/wx-console/wxbrestorepanel.cpp:1907
+#: src/wx-console/wxbrestorepanel.cpp:1908
+#: src/wx-console/wxbrestorepanel.cpp:1909
 #, fuzzy
 msgid "Replace"
 msgstr "Zamiana:"
@@ -10993,13 +11464,13 @@ msgstr "%s nie jest liczbą. Musisz wybrać liczbę między 1 a %d\n"
 msgid "You must enter a number between 1 and %d\n"
 msgstr "Musisz wybrać liczbę między 1 a %d\n"
 
-#: src/console/console.c:1155
+#: src/console/console.c:1155 src/wx-console/console_thread.cpp:399
 #: src/qt-console/bcomm/dircomm.cpp:130
 #, fuzzy, c-format
 msgid "Failed to initialize TLS context for Console \"%s\".\n"
 msgstr "Nieudana inicjalizacja kontekstu TLS dla Dyrektora \"%s\" w %s.\n"
 
-#: src/console/console.c:1175
+#: src/console/console.c:1175 src/wx-console/console_thread.cpp:420
 #: src/qt-console/bcomm/dircomm.cpp:152
 #, fuzzy, c-format
 msgid "Failed to initialize TLS context for Director \"%s\".\n"
@@ -17046,6 +17517,797 @@ msgstr ""
 "\n"
 "\n"
 "BŁĄD Bacula: "
+
+#: src/wx-console/wxbmainframe.cpp:246
+msgid "&About...\tF1"
+msgstr "&About...\tF1"
+
+#: src/wx-console/wxbmainframe.cpp:246
+msgid "Show about dialog"
+msgstr "Pokaż dialog o"
+
+#: src/wx-console/wxbmainframe.cpp:248 src/wx-console/wxbmainframe.cpp:619
+msgid "Connect"
+msgstr "Połącz"
+
+#: src/wx-console/wxbmainframe.cpp:248 src/wx-console/wxbmainframe.cpp:620
+msgid "Connect to the director"
+msgstr "Połącz do Dyrektora"
+
+#: src/wx-console/wxbmainframe.cpp:249
+msgid "Disconnect"
+msgstr "Rozłącz"
+
+#: src/wx-console/wxbmainframe.cpp:249
+msgid "Disconnect of the director"
+msgstr "Rozłączanie dyrektora"
+
+#: src/wx-console/wxbmainframe.cpp:251
+msgid "Change of configuration file"
+msgstr "Zmiana pliku konfiguracyjnego"
+
+#: src/wx-console/wxbmainframe.cpp:251
+msgid "Change your default configuration file"
+msgstr "Zmień swój domyślny plik konfiguracyjny"
+
+#: src/wx-console/wxbmainframe.cpp:252
+msgid "Edit your configuration file"
+msgstr "Wyedytuj swój plik konfiguracyjny"
+
+#: src/wx-console/wxbmainframe.cpp:254
+msgid "E&xit\tAlt-X"
+msgstr "&Wyjście\tAlt-X"
+
+#: src/wx-console/wxbmainframe.cpp:254
+msgid "Quit this program"
+msgstr "Zamknij ten program"
+
+#: src/wx-console/wxbmainframe.cpp:258
+msgid "&File"
+msgstr "&Pliki"
+
+#: src/wx-console/wxbmainframe.cpp:259
+msgid "&Help"
+msgstr "&Pomoc"
+
+#: src/wx-console/wxbmainframe.cpp:267 src/wx-console/main.cpp:124
+#, c-format
+msgid "Welcome to bacula bwx-console %s (%s)!\n"
+msgstr "Witamy w konsoli baculi bwx-console %s (%s)!\n"
+
+#: src/wx-console/wxbmainframe.cpp:283
+msgid ""
+"Warning : Unicode is disabled because you are using wxWidgets for GTK+ 1.2.\n"
+msgstr ""
+"Ostrzeżenie : Unicode jest wyłączony ponieważ używane jest wxWidgets dla GTK+ 1.2.\n"
+
+#: src/wx-console/wxbmainframe.cpp:287
+msgid ""
+"Warning : There is a problem with wxWidgets for GTK+ 2.0 without Unicode "
+"support when handling non-ASCII filenames: Every non-ASCII character in such "
+"filenames will be replaced by an interrogation mark.\n"
+"If this behaviour disturbs you, please build bwx-console against a Unicode "
+"version of wxWidgets for GTK+ 2.0.\n"
+"---\n"
+msgstr ""
+
+#: src/wx-console/wxbmainframe.cpp:291
+#: src/wx-console/wxbhistorytextctrl.cpp:82
+#: src/wx-console/wxbhistorytextctrl.cpp:153
+msgid "Type your command below:"
+msgstr "Napisz swoje polecenie poniżej:"
+
+#: src/wx-console/wxbmainframe.cpp:298
+msgid "Send"
+msgstr "Wysłano"
+
+#: src/wx-console/wxbmainframe.cpp:375 src/wx-console/wxbmainframe.cpp:387
+msgid "Error while parsing command line arguments, using defaults.\n"
+msgstr "Błąd podczas parsowania argumentów lini komend, używam domyślnych.\n"
+
+#: src/wx-console/wxbmainframe.cpp:376 src/wx-console/wxbmainframe.cpp:388
+msgid "Usage: bwx-console [-c configfile] [-w tmp]\n"
+msgstr "Użycie: bwx-console [-c configfile] [-w tmp]\n"
+
+#: src/wx-console/wxbmainframe.cpp:417
+#, c-format
+msgid ""
+"It seems that it is the first time you run bwx-console.\n"
+"This file (%s) has been choosen as default configuration file.\n"
+"Do you want to edit it? (if you click No you will have to select another "
+"file)"
+msgstr ""
+"wydaje się że to twoje pierwsze uruchomienie konsoli bwx.\n"
+"Ten plik (%s) został wybrany jako domyślny plik konfiguracyjny.\n"
+"Czy chcesz go edytować? (jeśli wybierzesz 'No' będziesz musiał wybrać inny "
+"plik)"
+
+#: src/wx-console/wxbmainframe.cpp:419
+msgid "First run"
+msgstr "Pierwsze uruchomienie"
+
+#: src/wx-console/wxbmainframe.cpp:436
+#, c-format
+msgid ""
+"Unable to read %s\n"
+"Error: %s\n"
+"Do you want to choose another one? (Press no to edit this file)"
+msgstr ""
+"Nie można odczytać %s\n"
+"Błąd: %s\n"
+"Czy chcesz wybrać inny? (Wybierz 'no' by edytowac ten plik)"
+
+#: src/wx-console/wxbmainframe.cpp:438
+msgid "Unable to read configuration file"
+msgstr "Nie można odczytać pliku konfiguracyjnego"
+
+#: src/wx-console/wxbmainframe.cpp:450
+msgid "Please choose a configuration file to use"
+msgstr "Proszę wybierz używany plik konfiguracyjny"
+
+#: src/wx-console/wxbmainframe.cpp:463
+msgid "This configuration file has been successfully read, use it as default?"
+msgstr "Ten plik konfiguracyjny został z powodzeniem odczytany, czy użyć go jako domyślny?"
+
+#: src/wx-console/wxbmainframe.cpp:464
+msgid "Configuration file read successfully"
+msgstr "Plik konfiguracyjny odczytany z powodzeniem"
+
+#: src/wx-console/wxbmainframe.cpp:474
+msgid "Using this configuration file: %s\n"
+msgstr "Użyj tego pliku konfiguracyjnego: %s\n"
+
+#: src/wx-console/wxbmainframe.cpp:479
+msgid "Connecting to the director..."
+msgstr "Podłączenie do dyrektora..."
+
+#: src/wx-console/wxbmainframe.cpp:494
+msgid "Failed to unregister a data parser !"
+msgstr "Niepowodzenie przy wyrejestrowaniu parsera danych!"
+
+#: src/wx-console/wxbmainframe.cpp:502
+msgid "Quitting.\n"
+msgstr "Wychodzenie.\n"
+
+#: src/wx-console/wxbmainframe.cpp:517
+msgid ""
+"Welcome to Bacula bwx-console.\n"
+"Written by Nicolas Boichat <nicolas@boichat.ch>\n"
+"Copyright (C), 2005-2007 Free Software Foundation Europe, e.V.\n"
+msgstr ""
+"Witamy w Bacula bwx-console.\n"
+"Napisane przez Nicolas Boichat <nicolas@boichat.ch>\n"
+"Copyright (C), 2005-2007 Free Software Foundation Europe, e.V.\n"
+
+#: src/wx-console/wxbmainframe.cpp:521
+msgid "About Bacula bwx-console"
+msgstr "O Bacula bwx-console"
+
+#: src/wx-console/wxbmainframe.cpp:527
+msgid "Please choose your default configuration file"
+msgstr "Proszę wybierz swój plik konfiguracyjny"
+
+#: src/wx-console/wxbmainframe.cpp:531
+msgid "Use this configuration file as default?"
+msgstr "Użyć tego pliku konfiguracyjnego jako domyślnego?"
+
+#: src/wx-console/wxbmainframe.cpp:532
+msgid "Configuration file"
+msgstr "Plik konfiguracyjny"
+
+#: src/wx-console/wxbmainframe.cpp:603
+msgid "Console thread terminated."
+msgstr "Zakończono wątek konsoli."
+
+#: src/wx-console/wxbmainframe.cpp:611
+msgid "Connection to the director lost. Quit program?"
+msgstr "Podłączenie do dyrektora utracone. Zkończyć program?"
+
+#: src/wx-console/wxbmainframe.cpp:612
+msgid "Connection lost"
+msgstr "Połączenie utracone."
+
+#: src/wx-console/wxbmainframe.cpp:628
+msgid "Connected to the director."
+msgstr "Podłączony do dyrektora."
+
+#: src/wx-console/wxbmainframe.cpp:651
+#, fuzzy
+msgid "Reconnect"
+msgstr "Utworzone"
+
+#: src/wx-console/wxbmainframe.cpp:652
+#, fuzzy
+msgid "Reconnect to the director"
+msgstr "Podłączenie do Dyrektora %s:%d"
+
+#: src/wx-console/wxbmainframe.cpp:666
+msgid "Disconnected of the director."
+msgstr "Rozłączanie dyrektora."
+
+#: src/wx-console/wxbmainframe.cpp:685 src/wx-console/wxbrestorepanel.cpp:720
+msgid "Unexpected question has been received.\n"
+msgstr "Otrzymano nieoczekiwane pytanie.\n"
+
+#: src/wx-console/wxbmainframe.cpp:708 src/wx-console/wxbmainframe.cpp:725
+msgid "bwx-console: unexpected director's question."
+msgstr "bwx-console: nieoczekiwane zapytanie Dyrektora."
+
+#: src/wx-console/wxbconfigpanel.cpp:213
+msgid "Apply"
+msgstr "Zastosuj"
+
+#: src/wx-console/console_thread.cpp:125
+msgid ""
+"Neither \"TLS CA Certificate\" or \"TLS CA Certificate Dir\" are defined for "
+"Director \"%s\" in config file.\n"
+"At least one CA certificate store is required.\n"
+msgstr ""
+"Ani \"TLS CA Certificate\", ani \"TLS CA Certificate Dir\" nie są "
+"zdefiniowane dla Dyrektora \"%s\" w pliku konfiguracyjnym.\n"
+" Co najmniej jedno skadowanie certyfikatu CA jest wymagane.\n"
+
+#: src/wx-console/console_thread.cpp:132
+msgid ""
+"No Director resource defined in config file.\n"
+"Without that I don't how to speak to the Director :-(\n"
+msgstr ""
+"Brak definicji zasobu Dyrektora w pliku konfiguracyjnym\n"
+"Bez tego nie wiem jak rozmawiać z Dyrektorem :-(\n"
+
+#: src/wx-console/console_thread.cpp:151
+msgid ""
+"Neither \"TLS CA Certificate\" or \"TLS CA Certificate Dir\" are defined for "
+"Console \"%s\" in config file.\n"
+msgstr ""
+"Ani \"TLS CA Certificate\", ani \"TLS CA Certificate Dir\" nie zostały "
+"zdefiniowane dla Konsoli \"%s\" w pliku konfiguracyjnym.\n"
+
+#: src/wx-console/console_thread.cpp:173
+msgid "Error while initializing windows sockets...\n"
+msgstr "Błąd w trakcie inicjalizacji gniazd windows...\n"
+
+#: src/wx-console/console_thread.cpp:189
+msgid "Error while cleaning up windows sockets...\n"
+msgstr "Błąd w trakcie czyszczenia gniazd windows...\n"
+
+#: src/wx-console/console_thread.cpp:228
+msgid "Error while initializing library."
+msgstr "Błąd w trakcie inicjalizacji biblioteki."
+
+#: src/wx-console/console_thread.cpp:256
+msgid "Cryptographic library initialization failed.\n"
+msgstr "Nieudana inicjalizacja biblioteki kryptograficznej.\n"
+
+#: src/wx-console/console_thread.cpp:260
+msgid "Please correct configuration file.\n"
+msgstr "Proszę popraw plik konfiguracyjny.\n"
+
+#: src/wx-console/console_thread.cpp:302
+msgid "Error : Library not initialized\n"
+msgstr "Błąd : Nie zainicjalizowana biblioteka\n"
+
+#: src/wx-console/console_thread.cpp:313
+msgid "Error : No configuration file loaded\n"
+msgstr "Błąd : Nie załadowano pliku konfiguracyjnego\n"
+
+#: src/wx-console/console_thread.cpp:323
+msgid "Connecting...\n"
+msgstr "Łączenie...\n"
+
+#: src/wx-console/console_thread.cpp:339
+msgid "Error : No director defined in config file.\n"
+msgstr "Błąd : Brak definicji dyrektora w pliku konfiguracyjnym.\n"
+
+#: src/wx-console/console_thread.cpp:351
+msgid "Multiple directors found in your config file.\n"
+msgstr "Znaleziono wielu dyrektorów w twoim pliku konfiguracyjnym.\n"
+
+#: src/wx-console/console_thread.cpp:360
+#, c-format
+msgid "Please choose a director (1-%d): "
+msgstr "Proszę wybierz dyrektora (1-%d): "
+
+#: src/wx-console/console_thread.cpp:389
+#, c-format
+msgid "Passphrase for Console \"%s\" TLS private key: "
+msgstr "Hasło dla klucza prywatnego TLS Konsoli \"%s\": "
+
+#: src/wx-console/console_thread.cpp:410
+#, c-format
+msgid "Passphrase for Director \"%s\" TLS private key: "
+msgstr "Hasło dla klucza prywatnego TLS Dyrektora \"%s\": "
+
+#: src/wx-console/console_thread.cpp:432
+msgid "Failed to connect to the director\n"
+msgstr "Nieudane podłączenie do dyrektora\n"
+
+#: src/wx-console/console_thread.cpp:442
+msgid "Connected\n"
+msgstr "Podłączony\n"
+
+#: src/wx-console/console_thread.cpp:499
+msgid "<< Unexpected signal received : "
+msgstr "<< Otrzymano nieoczekiwany sygnał : "
+
+#: src/wx-console/console_thread.cpp:519
+msgid "Connection terminated\n"
+msgstr "Podłączenie zakończone\n"
+
+#: src/wx-console/wxbconfigfileeditor.cpp:65
+msgid "Config file editor"
+msgstr "Edytor pliku konfiguracyjnego"
+
+#: src/wx-console/wxbconfigfileeditor.cpp:75
+msgid "# Bacula bwx-console Configuration File\n"
+msgstr "# Plik Konfiguracyjny Bacula bwx-console\n"
+
+#: src/wx-console/wxbconfigfileeditor.cpp:111
+msgid "Save and close"
+msgstr "Zapisz i zamknij"
+
+#: src/wx-console/wxbconfigfileeditor.cpp:112
+msgid "Close without saving"
+msgstr "Zamknij bez zapisywania"
+
+#: src/wx-console/wxbconfigfileeditor.cpp:139
+msgid "Unable to write to %s\n"
+msgstr "Nie mogę pisać do %s\n"
+
+#: src/wx-console/wxbconfigfileeditor.cpp:140
+msgid "Error while saving"
+msgstr "Błąd w trakcie zapisywania"
+
+#: src/wx-console/main.cpp:119
+msgid "Bacula bwx-console"
+msgstr "Bacula bwx-console"
+
+#: src/wx-console/wxbrestorepanel.cpp:234
+#: src/wx-console/wxbrestorepanel.cpp:1947
+#: src/wx-console/wxbrestorepanel.cpp:1976
+msgid "Enter restore mode"
+msgstr "Wprowadź tryb odtwarzania"
+
+#: src/wx-console/wxbrestorepanel.cpp:237
+msgid "Cancel restore"
+msgstr "Anuluj odtwarzanie"
+
+#: src/wx-console/wxbrestorepanel.cpp:263
+#: src/wx-console/wxbrestorepanel.cpp:317
+msgid "Add"
+msgstr "Dodaj"
+
+#: src/wx-console/wxbrestorepanel.cpp:265
+#: src/wx-console/wxbrestorepanel.cpp:319
+msgid "Remove"
+msgstr "Usuń"
+
+#: src/wx-console/wxbrestorepanel.cpp:267
+#: src/wx-console/wxbrestorepanel.cpp:321
+msgid "Refresh"
+msgstr "Odwierz"
+
+#: src/wx-console/wxbrestorepanel.cpp:286
+msgid "M"
+msgstr "M"
+
+#: src/wx-console/wxbrestorepanel.cpp:290
+msgid "Filename"
+msgstr "Nazwa pliku"
+
+#: src/wx-console/wxbrestorepanel.cpp:294
+msgid "Size"
+msgstr "Rozmiar"
+
+#: src/wx-console/wxbrestorepanel.cpp:298
+msgid "Date"
+msgstr "Data"
+
+#: src/wx-console/wxbrestorepanel.cpp:302
+msgid "Perm."
+msgstr "Prawa"
+
+#: src/wx-console/wxbrestorepanel.cpp:306
+msgid "User"
+msgstr "Użytkownik"
+
+#: src/wx-console/wxbrestorepanel.cpp:310
+msgid "Group"
+msgstr "Grupa"
+
+#: src/wx-console/wxbrestorepanel.cpp:335
+#: src/wx-console/wxbrestorepanel.cpp:348
+#: src/wx-console/wxbrestorepanel.cpp:503
+#: src/wx-console/wxbrestorepanel.cpp:513
+#: src/wx-console/wxbrestorepanel.cpp:516
+#: src/wx-console/wxbrestorepanel.cpp:1811
+#: src/wx-console/wxbrestorepanel.cpp:1897
+msgid "Job Name"
+msgstr "Nazwa Zadania"
+
+#: src/wx-console/wxbrestorepanel.cpp:337
+#: src/wx-console/wxbrestorepanel.cpp:353
+#: src/wx-console/wxbrestorepanel.cpp:455
+#: src/wx-console/wxbrestorepanel.cpp:456
+#: src/wx-console/wxbrestorepanel.cpp:466
+#: src/wx-console/wxbrestorepanel.cpp:467
+#: src/wx-console/wxbrestorepanel.cpp:1153
+#: src/wx-console/wxbrestorepanel.cpp:1156
+#: src/wx-console/wxbrestorepanel.cpp:1239
+#: src/wx-console/wxbrestorepanel.cpp:1849
+#: src/wx-console/wxbrestorepanel.cpp:1851
+#: src/wx-console/wxbrestorepanel.cpp:1912
+msgid "Fileset"
+msgstr "Zestaw plików"
+
+#: src/wx-console/wxbrestorepanel.cpp:340
+#: src/wx-console/wxbrestorepanel.cpp:1233
+#: src/wx-console/wxbrestorepanel.cpp:1249
+#: src/wx-console/wxbrestorepanel.cpp:1251
+#: src/wx-console/wxbrestorepanel.cpp:1259
+#: src/wx-console/wxbrestorepanel.cpp:1261
+#: src/wx-console/wxbrestorepanel.cpp:1280
+#: src/wx-console/wxbrestorepanel.cpp:1287
+#: src/wx-console/wxbrestorepanel.cpp:1839
+#: src/wx-console/wxbrestorepanel.cpp:1850
+#: src/wx-console/wxbrestorepanel.cpp:1971
+msgid "Before"
+msgstr "Przed"
+
+#: src/wx-console/wxbrestorepanel.cpp:342
+msgid "Please configure parameters concerning files to restore :"
+msgstr "Proszę skonfiguruj parametry związane z plikami do odtwarzania :"
+
+#: src/wx-console/wxbrestorepanel.cpp:351
+#: src/wx-console/wxbrestorepanel.cpp:1905
+msgid "always"
+msgstr "zawsze"
+
+#: src/wx-console/wxbrestorepanel.cpp:351
+msgid "if newer"
+msgstr "jeśli nowszy"
+
+#: src/wx-console/wxbrestorepanel.cpp:351
+msgid "if older"
+msgstr "jeśli starszy"
+
+#: src/wx-console/wxbrestorepanel.cpp:351
+#: src/wx-console/wxbrestorepanel.cpp:1908
+msgid "never"
+msgstr "nigdy"
+
+#: src/wx-console/wxbrestorepanel.cpp:359
+msgid "Please configure parameters concerning files restoration :"
+msgstr "Proszę skonfigurować parametry dotyczących odtwarzania plików :"
+
+#: src/wx-console/wxbrestorepanel.cpp:427
+msgid "Getting parameters list."
+msgstr "Pobieranie listy parametrów."
+
+#: src/wx-console/wxbrestorepanel.cpp:435
+msgid "Error : no clients returned by the director."
+msgstr "Błąd : dyrektor nie zwrócił klientów."
+
+#: src/wx-console/wxbrestorepanel.cpp:459
+msgid "Error : no filesets returned by the director."
+msgstr "Błąd : dyrektor nie zwrócił żadnych fileset'ów."
+
+#: src/wx-console/wxbrestorepanel.cpp:483
+msgid "Error : no storage returned by the director."
+msgstr "Błąd : dyrektor nie zwrócił storage."
+
+#: src/wx-console/wxbrestorepanel.cpp:506
+#: src/wx-console/wxbrestorepanel.cpp:530
+msgid "Error : no jobs returned by the director."
+msgstr "Błąd : dyrektor nie zwrócił zadań."
+
+#: src/wx-console/wxbrestorepanel.cpp:516
+msgid "RestoreFiles"
+msgstr "RestoreFiles"
+
+#: src/wx-console/wxbrestorepanel.cpp:551
+msgid "Please configure your restore parameters."
+msgstr "Proszę skonfiguruj swoje parametry odtwarzania."
+
+#: src/wx-console/wxbrestorepanel.cpp:556
+msgid "Please select a client."
+msgstr "Proszę zaznacz klienta."
+
+#: src/wx-console/wxbrestorepanel.cpp:560
+msgid "Please select a restore date."
+msgstr "Proszę wskaż datę odtwarzania."
+
+#: src/wx-console/wxbrestorepanel.cpp:565
+msgid "Building restore tree..."
+msgstr "Budowanie drzewa odtwarzania..."
+
+#: src/wx-console/wxbrestorepanel.cpp:613
+msgid "Error while starting restore: "
+msgstr "Błąd w trakcie uruchamiania odtwarzania: "
+
+#: src/wx-console/wxbrestorepanel.cpp:705
+msgid ""
+"Right click on a file or on a directory, or double-click on its mark to add "
+"it to the restore list."
+msgstr ""
+"Kliknięcie prawym przyciskiem myszy na pliku lub katalogu, lub podwójne "
+"kliknięcie na nich zaznacza je i dodaje do listy odtwarzania."
+
+#: src/wx-console/wxbrestorepanel.cpp:742
+#: src/wx-console/wxbrestorepanel.cpp:764
+msgid "bwx-console: unexpected restore question."
+msgstr "bwx-console: niespodziewane pytanie o odtwarzanie."
+
+#: src/wx-console/wxbrestorepanel.cpp:775
+msgid " files selected to be restored."
+msgstr " pliki zaznaczone do odtworzenia."
+
+#: src/wx-console/wxbrestorepanel.cpp:780
+msgid " file selected to be restored."
+msgstr " plik zaznaczony do odtworzenia."
+
+#: src/wx-console/wxbrestorepanel.cpp:787
+#, c-format
+msgid "Please configure your restore (%ld files selected to be restored)..."
+msgstr ""
+"Proszę skonfiguruj swoje odtwarzanie (%ld plików zaznaczonych do "
+"odtwarzania)..."
+
+#: src/wx-console/wxbrestorepanel.cpp:797
+msgid "Restore failed : no file selected.\n"
+msgstr "Nieudane odtwarzanie, nie wskazano pliku.\n"
+
+#: src/wx-console/wxbrestorepanel.cpp:798
+msgid "Restore failed : no file selected."
+msgstr "Nieudane odtwarzanie, nie wskazano pliku."
+
+#: src/wx-console/wxbrestorepanel.cpp:808
+msgid "Restoring, please wait..."
+msgstr "Odtwarzanie, proszę czekać..."
+
+#: src/wx-console/wxbrestorepanel.cpp:821
+msgid "Job queued. JobId="
+msgstr "Zadanie zakolejkowane. JobId="
+
+#: src/wx-console/wxbrestorepanel.cpp:823
+msgid "Restore queued, jobid="
+msgstr "Odtwarzanie zakolejkowane, jobid="
+
+#: src/wx-console/wxbrestorepanel.cpp:827
+msgid "Job failed."
+msgstr "Zadanie nieudane."
+
+#: src/wx-console/wxbrestorepanel.cpp:828
+msgid "Restore failed, please look at messages.\n"
+msgstr "Nieudane odtwarzanie, proszę zweryfikuj komunikaty.\n"
+
+#: src/wx-console/wxbrestorepanel.cpp:829
+msgid "Restore failed, please look at messages in console."
+msgstr "Odtwarzanie nieudane, proszę spojrzeć na komunikaty na konsoli."
+
+#: src/wx-console/wxbrestorepanel.cpp:835
+#: src/wx-console/wxbrestorepanel.cpp:836
+msgid "Failed to retrieve jobid.\n"
+msgstr "Nieudane pobranie jobid.\n"
+
+#: src/wx-console/wxbrestorepanel.cpp:862
+msgid ""
+"Restore is scheduled to run. bwx-console will not wait for its completion.\n"
+msgstr ""
+"Zadanie odtwarzania zaplanowane do uruchomienia. bwx-console nie będzie "
+"czekać na jego zakończenie.\n"
+
+#: src/wx-console/wxbrestorepanel.cpp:863
+msgid ""
+"Restore is scheduled to run. bwx-console will not wait for its completion."
+msgstr ""
+"Zadanie odtwarzania zaplanowane do uruchomienia. bwx-console nie będzie "
+"czekać na jego zakończenie."
+
+#: src/wx-console/wxbrestorepanel.cpp:889
+msgid "Restore job created, but not yet running."
+msgstr "Zadanie odtwarzania stworzone, lecz jeszcze nie uruchomione."
+
+#: src/wx-console/wxbrestorepanel.cpp:894
+msgid "Restore job running, please wait (%ld of %ld files restored)..."
+msgstr "Zadanie odtwarzania w trakcie, proszę czekać (%ld z %ld plików odtworzonych)..."
+
+#: src/wx-console/wxbrestorepanel.cpp:898
+msgid "Restore job terminated successfully."
+msgstr "Zadanie odtwarzania zakończone poprawnie."
+
+#: src/wx-console/wxbrestorepanel.cpp:899
+msgid "Restore job terminated successfully.\n"
+msgstr "Zadanie odtwarzania zakończone poprawnie.\n"
+
+#: src/wx-console/wxbrestorepanel.cpp:904
+msgid "Restore job terminated in error, see messages in console."
+msgstr "Zadanie odtwarzania zakończone z błędem, zobacz komunikaty na konsoli."
+
+#: src/wx-console/wxbrestorepanel.cpp:905
+msgid "Restore job terminated in error, see messages.\n"
+msgstr "Zadanie odtwarzania zakończone z błędem, zobacz komunikaty.\n"
+
+#: src/wx-console/wxbrestorepanel.cpp:910
+msgid "Restore job reported a non-fatal error."
+msgstr "Zadanie odtwarzania zaraportowało niekrytyczny błąd."
+
+#: src/wx-console/wxbrestorepanel.cpp:914
+msgid "Restore job reported a fatal error."
+msgstr "Zadanie odtwarzania zaraportowało błąd krytyczny."
+
+#: src/wx-console/wxbrestorepanel.cpp:919
+msgid "Restore job cancelled by user."
+msgstr "Zadanie odtwarzania anulowane przez użytkownika."
+
+#: src/wx-console/wxbrestorepanel.cpp:920
+msgid "Restore job cancelled by user.\n"
+msgstr "Zadanie odtwarzania anulowane przez użytkownika.\n"
+
+#: src/wx-console/wxbrestorepanel.cpp:925
+msgid "Restore job is waiting on File daemon."
+msgstr "Zadanie odtwarzania oczekuje na Demon Plików."
+
+#: src/wx-console/wxbrestorepanel.cpp:929
+msgid "Restore job is waiting for new media."
+msgstr "Zadanie odtwarzania oczekuje na nowe medium."
+
+#: src/wx-console/wxbrestorepanel.cpp:933
+msgid "Restore job is waiting for storage resource."
+msgstr "Zadanie odtwarzania oczekuje na zasoby storage."
+
+#: src/wx-console/wxbrestorepanel.cpp:937
+msgid "Restore job is waiting for job resource."
+msgstr "Zadanie odtwarzania oczekuje na zasoby dadania."
+
+#: src/wx-console/wxbrestorepanel.cpp:941
+msgid "Restore job is waiting for Client resource."
+msgstr "Zadanie odtwarzania oczekuje na zasoby Klienta."
+
+#: src/wx-console/wxbrestorepanel.cpp:945
+msgid "Restore job is waiting for maximum jobs."
+msgstr "Zadanie odtwarzania oczekuje z powodu maksymalnej iloiści zadań."
+
+#: src/wx-console/wxbrestorepanel.cpp:949
+msgid "Restore job is waiting for start time."
+msgstr "Zadanie odtwarzania oczekuje na czas uruchomienia."
+
+#: src/wx-console/wxbrestorepanel.cpp:953
+msgid "Restore job is waiting for higher priority jobs to finish."
+msgstr "Zadanie odtwarzania oczekuje na zakończenie zadań o wyższym priorytecie."
+
+#: src/wx-console/wxbrestorepanel.cpp:1002
+msgid ""
+"The restore job has not been started within one minute, bwx-console will not "
+"wait for its completion anymore.\n"
+msgstr ""
+"Zadanie odtwarzania nie wystartowało w ciągu minuty, bwx-console nie będzie "
+"już więcej czekać na jego zakończenie.\n"
+
+#: src/wx-console/wxbrestorepanel.cpp:1003
+msgid ""
+"The restore job has not been started within one minute, bwx-console will not "
+"wait for its completion anymore."
+msgstr ""
+"Zadanie odtwarzania nie wystartowało w ciągu minuty, bwx-console nie będzie "
+"już więcej czekać na jego zakończenie."
+
+#: src/wx-console/wxbrestorepanel.cpp:1013
+msgid "Restore done successfully.\n"
+msgstr "Odtwarzanie wykonane poprawnie.\n"
+
+#: src/wx-console/wxbrestorepanel.cpp:1014
+msgid "Restore done successfully."
+msgstr "Odtwarzanie wykonane poprawnie."
+
+#: src/wx-console/wxbrestorepanel.cpp:1086
+msgid "Applying restore configuration changes..."
+msgstr "Zastosowanie zmian konfiguracyjnych odtwarzania..."
+
+#: src/wx-console/wxbrestorepanel.cpp:1138
+msgid "Failed to find the selected client."
+msgstr "Nie można znaleźć wskazanego klienta."
+
+#: src/wx-console/wxbrestorepanel.cpp:1158
+msgid "Failed to find the selected fileset."
+msgstr "Nie można znaleźć wskazanego fileset."
+
+#: src/wx-console/wxbrestorepanel.cpp:1178
+msgid "Failed to find the selected storage."
+msgstr "Nie można znaleźć wskazanego storage."
+
+#: src/wx-console/wxbrestorepanel.cpp:1199
+#: src/wx-console/wxbrestorepanel.cpp:1886
+msgid "Run Restore job"
+msgstr "Uruchom zadanie Odtwarzania"
+
+#: src/wx-console/wxbrestorepanel.cpp:1216
+msgid "Restore configuration changes were applied."
+msgstr "Odtworzenie zmian konfiguracji zostało zastosowane."
+
+#: src/wx-console/wxbrestorepanel.cpp:1225
+msgid "Restore cancelled.\n"
+msgstr "Odtwarzanie anulowane.\n"
+
+#: src/wx-console/wxbrestorepanel.cpp:1226
+msgid "Restore cancelled."
+msgstr "Odtwarzanie anulowane."
+
+#: src/wx-console/wxbrestorepanel.cpp:1248
+msgid "No results to list."
+msgstr "Brak rezultatów do wylistowania."
+
+#: src/wx-console/wxbrestorepanel.cpp:1250
+msgid "No backup found for this client."
+msgstr "Nie znaleziono backupu dla tego klienta."
+
+#: src/wx-console/wxbrestorepanel.cpp:1257
+msgid "ERROR"
+msgstr "BŁĄD"
+
+#: src/wx-console/wxbrestorepanel.cpp:1258
+msgid "Query failed"
+msgstr "Nieudane zapytanie"
+
+#: src/wx-console/wxbrestorepanel.cpp:1260
+msgid "Cannot get previous backups list, see console."
+msgstr "Nie moąna otrzymać listy poprzednich backupów, zobacz konsolę."
+
+#: src/wx-console/wxbrestorepanel.cpp:1896
+msgid "JobName:"
+msgstr "Nazwa Zadania:"
+
+#: src/wx-console/wxbrestorepanel.cpp:1898
+msgid "Bootstrap:"
+msgstr "Bootstrap:"
+
+#: src/wx-console/wxbrestorepanel.cpp:1900
+msgid "Where:"
+msgstr "Gdzie:"
+
+#: src/wx-console/wxbrestorepanel.cpp:1903
+msgid "Replace:"
+msgstr "Zamiana:"
+
+#: src/wx-console/wxbrestorepanel.cpp:1906
+msgid "ifnewer"
+msgstr "ifnewer"
+
+#: src/wx-console/wxbrestorepanel.cpp:1907
+msgid "ifolder"
+msgstr "ifolder"
+
+#: src/wx-console/wxbrestorepanel.cpp:1911
+msgid "FileSet:"
+msgstr "FileSet:"
+
+#: src/wx-console/wxbrestorepanel.cpp:1913
+msgid "Client:"
+msgstr "Klient:"
+
+#: src/wx-console/wxbrestorepanel.cpp:1915
+msgid "Storage:"
+msgstr "Storage:"
+
+#: src/wx-console/wxbrestorepanel.cpp:1917
+msgid "When:"
+msgstr "Kiedy:"
+
+#: src/wx-console/wxbrestorepanel.cpp:1920
+msgid "Priority:"
+msgstr "Priorytet:"
+
+#: src/wx-console/wxbrestorepanel.cpp:2028
+msgid "Restoring..."
+msgstr "Odtwarzanie..."
+
+#: src/wx-console/wxbhistorytextctrl.cpp:117
+msgid "Unknown command."
+msgstr "Nieznana komenda."
+
+#: src/wx-console/wxbhistorytextctrl.cpp:126
+msgid "Possible completions: "
+msgstr "Możliwe uzupełnienia: "
 
 #: src/qt-console/bat_conf.cpp:154
 msgid "Console: name=%s\n"

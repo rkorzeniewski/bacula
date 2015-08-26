@@ -1,0 +1,91 @@
+#!/bin/sh
+#
+# chkconfig: 2345 91 9
+# description: This script uses Lighttpd web server for \
+#              working Baculum WebGUI tool.
+#
+
+### BEGIN INIT INFO
+# Provides:          baculum
+# Required-Start:    $local_fs $remote_fs $network $syslog $named
+# Required-Stop:     $local_fs $remote_fs $network $syslog $named
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Start/stop Baculum
+# Description:       Start the Baculum WebGUI Bacula Community tool.
+### END INIT INFO
+
+DESC="Baculum WebGUI Bacula Community tool"
+NAME=baculum
+SCRIPTNAME=/etc/init.d/$NAME
+DAEMON=/usr/sbin/lighttpd
+DAEMON_OPTS="-f /etc/baculum/baculum.lighttpd.conf"
+PIDFILE=/var/run/$NAME.pid
+LOCKFILE=/var/lock/subsys/$NAME
+
+test -x $DAEMON || exit 0
+
+check_syntax()
+{
+    $DAEMON -t $DAEMON_OPTS > /dev/null || exit $?
+}
+
+log_daemon_msg()
+{
+    logger "$@"
+}
+
+log_end_msg()
+{
+    [ $1 -eq 0 ] && RES=OK
+    logger ${RES:=FAIL}
+}
+
+rh_status() {
+    status $prog
+}
+
+if test -f /lib/lsb/init-functions; then
+. /lib/lsb/init-functions
+fi
+
+. /etc/init.d/functions
+
+case "$1" in
+    start)
+        check_syntax
+        log_daemon_msg "Starting $DESC" $NAME
+        if ! ${DAEMON} $DAEMON_OPTS
+        then
+            log_end_msg 1
+        else
+            log_end_msg 0
+            touch $LOCKFILE
+        fi
+        ;;
+    stop)
+        log_daemon_msg "Stopping $DESC" $NAME
+        if kill -TERM `<$PIDFILE`
+        then
+            rm -f $PIDFILE
+            rm -f $LOCKFILE
+            log_end_msg 0
+        else
+            log_end_msg 1
+        fi
+        ;;
+    status)
+        rh_status
+        ;;
+    restart)
+        check_syntax
+        $0 stop
+        $0 start
+        ;;
+    *)
+        echo "Usage: $SCRIPTNAME {start|stop|restart|status}" >&2
+        exit 1
+        ;;
+esac
+
+exit 0

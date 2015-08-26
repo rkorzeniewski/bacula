@@ -2,10 +2,10 @@ Bacula file daemon package builder for Mac OS X
 ===============================================
 
 This package build script lets you download, compile and package the bacula
-file daemon easily with a single command line. Beside the bacula file daemon
+file daemon easily with a single command line. In addition to the Bacula file daemon
 the resulting installer package contains a short ReadMe file with instructions
 on how to install and use the software. Also a basic launchd property list is
-included along with preugrade and postflight installer scripts to stop and
+included along with preupgrade and postflight installer scripts to stop and
 restart the daemon while upgrading. To ensure the security of the users the
 passwords in the configuration files are generated during a first time
 installation and file permissions are checked and corrected on upgrades.
@@ -14,7 +14,7 @@ Requirements:
 * Mac OS X 10.5 or later (building/packaging), 10.4 or later (deployment)
 * Mac OS X developer tools installed
 
-Example (compile and create package from within bacula source tree):
+Example (compile and create package from within Bacula source tree):
 $ ./configure --enable-client-only
 $ make -C platforms/osx
 

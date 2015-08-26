@@ -1,10 +1,67 @@
 <?php
- 
+
+// small sorting callback function to sort by name
+function sortListByName($a, $b) {
+	return strcasecmp($a['name'], $b['name']);
+}
+
 class Miscellaneous extends TModule {
 
 	const LICENCE_FILE = 'LICENSE';
 
-	private $jobLevels = array('F' => 'Full', 'I' => 'Incremental', 'D'=> 'Differential', 'B' => 'Base', 'f' => 'VirtualFull');
+	private $jobTypes = array(
+		'B' => 'Backup',
+		'M' => 'Migrated',
+		'V' => 'Verify',
+		'R' => 'Restore',
+		'I' => 'Internal',
+		'D' => 'Admin',
+		'A' => 'Archive',
+		'C' => 'Copy',
+		'g' => 'Migration'
+	);
+
+	private $jobLevels = array(
+		'F' => 'Full',
+		'I' => 'Incremental',
+		'D' => 'Differential',
+		'B' => 'Base',
+		'f' => 'VirtualFull',
+		'V' => 'InitCatalog',
+		'C' => 'Catalog',
+		'O' => 'VolumeToCatalog',
+		'd' => 'DiskToCatalog'
+	);
+
+	private $jobStates =  array(
+		'C' => array('value' => 'Created', 'description' =>'Created but not yet running'),
+		'R' => array('value' => 'Running', 'description' => 'Running'),
+		'B' => array('value' => 'Blocked', 'description' => 'Blocked'),
+		'T' => array('value' => 'Terminated', 'description' =>'Terminated normally'),
+		'W' => array('value' => 'Terminated with warnings', 'description' =>'Terminated normally with warnings'),
+		'E' => array('value' => 'Error', 'description' =>'Terminated in Error'),
+		'e' => array('value' => 'Non-fatal error', 'description' =>'Non-fatal error'),
+		'f' => array('value' => 'Fatal error', 'description' =>'Fatal error'),
+		'D' => array('value' => 'Verify Diff.', 'description' =>'Verify Differences'),
+		'A' => array('value' => 'Canceled by user', 'description' =>'Canceled by the user'),
+		'I' => array('value' => 'Incomplete', 'description' =>'Incomplete Job'),
+		'F' => array('value' => 'Waiting on FD', 'description' =>'Waiting on the File daemon'),
+		'S' => array('value' => 'Waiting on SD', 'description' =>'Waiting on the Storage daemon'),
+		'm' => array('value' => 'Waiting for new vol.', 'description' =>'Waiting for a new Volume to be mounted'),
+		'M' => array('value' => 'Waiting for mount', 'description' =>'Waiting for a Mount'),
+		's' => array('value' => 'Waiting for storage', 'description' =>'Waiting for Storage resource'),
+		'j' => array('value' => 'Waiting for job', 'description' =>'Waiting for Job resource'),
+		'c' => array('value' => 'Waiting for client', 'description' =>'Waiting for Client resource'),
+		'd' => array('value' => 'Waiting for Max. jobs', 'description' =>'Wating for Maximum jobs'),
+		't' => array('value' => 'Waiting for start', 'description' =>'Waiting for Start Time'),
+		'p' => array('value' => 'Waiting for higher priority', 'description' =>'Waiting for higher priority job to finish'),
+		'i' => array('value' => 'Batch insert', 'description' =>'Doing batch insert file records'),
+		'a' => array('value' => 'Despooling attributes', 'description' =>'SD despooling attributes'),
+		'l' => array('value' => 'Data despooling', 'description' =>'Doing data despooling'),
+		'L' => array('value' => 'Commiting data', 'description' =>'Committing data (last despool)')
+	);
+
+	private $runningJobStates = array('C', 'R');
 
 	/**
 	 * Getting the licence from file.
@@ -18,6 +75,32 @@ class Miscellaneous extends TModule {
 
 	public function getJobLevels() {
 		return $this->jobLevels;
+	}
+
+	public function getJobState($jobStateLetter = null) {
+		$state;
+		if(is_null($jobStateLetter)) {
+			$state = $this->jobStates;
+		} else {
+			$state = array_key_exists($jobStateLetter, $this->jobStates) ? $this->jobStates[$jobStateLetter] : null;
+		}
+		return $state;
+	}
+
+	public function getRunningJobStates() {
+		return $this->runningJobStates;
+	}
+
+
+	public function getJobType($jobTypeLetter = null) {
+		$type;
+		if(is_null($jobTypeLetter)) {
+			$type = $this->jobTypes;
+		} else {
+			$type = array_key_exists($jobTypeLetter, $this->jobTypes) ? $this->jobTypes[$jobTypeLetter] : null;
+		}
+		return $type;
+
 	}
 
 	public function isValidJobLevel($jobLevel) {
@@ -127,6 +210,7 @@ class Miscellaneous extends TModule {
 				$elements[] = array('pathid' => $match['pathid'], 'filenameid' => $match['filenameid'], 'fileid' => $match['fileid'], 'jobid' => $match['jobid'], 'lstat' => $match['lstat'], 'name' => $match['name'], 'type' => 'file'); 
 			}
 		}
+		usort($elements, 'sortListByName');
 		return $elements;
 	}
 

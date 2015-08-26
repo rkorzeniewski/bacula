@@ -3,27 +3,10 @@
 	<com:TActivePanel ID="RepeaterShow">
 		<com:TActiveRepeater ID="Repeater">
 			<prop:ItemTemplate>
-				<com:TPanel ID="ClientElement" CssClass="slide-window-element" ToolTip="<%=@$this->DataItem['uname']%>">
-					<img src="<%=$this->getPage()->getTheme()->getBaseUrl()%>/client-icon.png" alt="" /><%=@$this->DataItem['name']%>
+				<com:TPanel ID="ClientElement" CssClass="slide-window-element" ToolTip="<%=@$this->DataItem->uname%>">
+					<img src="<%=$this->getPage()->getTheme()->getBaseUrl()%>/client-icon.png" alt="" /><%=@$this->DataItem->name%>
+					<input type="hidden" name="<%=$this->ClientID%>" value="<%=isset($this->DataItem->clientid) ? $this->DataItem->clientid : ''%>" />
 				</com:TPanel>
-				<com:TCallback ID="ClientElementCall" OnCallback="Page.ClientWindow.configure" ActiveControl.CallbackParameter="<%=@$this->DataItem['clientid']%>">
-					<prop:ClientSide.OnComplete>
-						ConfigurationWindow<%=$this->getPage()->ClientConfiguration->getMaster()->ClientID%>.show();
-						ConfigurationWindow<%=$this->getPage()->ClientConfiguration->getMaster()->ClientID%>.progress(false);
-						if(<%=$this->getPage()->ClientWindow->ShowID%>SlideWindow.isFullSize()) {
-							<%=$this->getPage()->ClientWindow->ShowID%>SlideWindow.resetSize();
-						}
-					</prop:ClientSide.OnComplete>
-				</com:TCallback>
-				<script type="text/javascript">
-					$('<%=$this->ClientElement->ClientID%>').observe('click', function() {
-						var request = <%= $this->ClientElementCall->ActiveControl->Javascript %>;
-						if(ConfigurationWindow<%=$this->getPage()->ClientConfiguration->getMaster()->ClientID%>.is_progress() == false) {
-							ConfigurationWindow<%=$this->getPage()->ClientConfiguration->getMaster()->ClientID%>.progress(true);
-							request.dispatch();
-						}
-					});
-				</script>
 			</prop:ItemTemplate>
 		</com:TActiveRepeater>
 	</com:TActivePanel>
@@ -31,51 +14,40 @@
 		<com:TActiveDataGrid
 			ID="DataGrid"
 			AutoGenerateColumns="false"
-			AllowSorting="true"
+			AllowSorting="false"
 			OnSortCommand="sortDataGrid"
 			CellPadding="5px"
 			CssClass="window-section-detail"
 			ItemStyle.CssClass="slide-window-element"
 			AlternatingItemStyle.CssClass="slide-window-element-alternating"
 		>
-			<com:TActiveTemplateColumn HeaderText="Client name" SortExpression="name">
+			<com:TActiveTemplateColumn HeaderText="<%[ Client name ]%>" SortExpression="name">
 				<prop:ItemTemplate>
-					<com:TPanel ID="ClientTableElement"><%=$this->getParent()->Data['name']%></com:TPanel>
-					<com:TCallback ID="ClientTableElementCall" OnCallback="Page.ClientWindow.configure" ActiveControl.CallbackParameter="<%=$this->getParent()->Data['clientid']%>">
-						<prop:ClientSide.OnComplete>
-							ConfigurationWindow<%=$this->getPage()->ClientConfiguration->getMaster()->ClientID%>.show();
-							ConfigurationWindow<%=$this->getPage()->ClientConfiguration->getMaster()->ClientID%>.progress(false);
-							if(<%=$this->getPage()->ClientWindow->ShowID%>SlideWindow.isFullSize()) {
-								<%=$this->getPage()->ClientWindow->ShowID%>SlideWindow.resetSize();
-							}
-						</prop:ClientSide.OnComplete>
-					</com:TCallback>
-					<script type="text/javascript">
-						$('<%=$this->ClientTableElement->ClientID%>').up('tr').observe('click', function() {
-							var request = <%= $this->ClientTableElementCall->ActiveControl->Javascript %>;
-							if(ConfigurationWindow<%=$this->getPage()->ClientConfiguration->getMaster()->ClientID%>.is_progress() == false) {
-								ConfigurationWindow<%=$this->getPage()->ClientConfiguration->getMaster()->ClientID%>.progress(true);
-								request.dispatch();
-							}
-						});
-					</script>
+					<div><%=$this->getParent()->Data['name']%></div>
+					<input type="hidden" name="<%=$this->getParent()->ClientID%>" value="<%=$this->getParent()->Data['clientid']%>" />
 				</prop:ItemTemplate>
 			</com:TActiveTemplateColumn>
 			<com:TActiveTemplateColumn ItemStyle.HorizontalAlign="Center" HeaderText="AutoPrune" SortExpression="autoprune">
 				<prop:ItemTemplate>
-					<%=$this->getParent()->Data['autoprune'] == 1 ? 'Yes' : 'No'%>
+					<%=$this->getParent()->Data['autoprune'] == 1 ? Prado::localize('Yes') : Prado::localize('No')%>
 				</prop:ItemTemplate>
 			</com:TActiveTemplateColumn>
-			<com:TActiveTemplateColumn HeaderText="File Retention" SortExpression="fileretention">
+			<com:TActiveTemplateColumn HeaderText="<%[ File Retention ]%>" SortExpression="fileretention">
 				<prop:ItemTemplate>
-					<%=(integer)($this->getParent()->Data['fileretention'] / 3600 / 24)%> <%=$this->getParent()->Data['fileretention'] < 172800 ? 'day' : 'days'%>
+					<%=(integer)($this->getParent()->Data['fileretention'] / 3600 / 24)%> <%=$this->getParent()->Data['fileretention'] < 172800 ? Prado::localize('day') : Prado::localize('days')%>
 				</prop:ItemTemplate>
 			</com:TActiveTemplateColumn>
-			<com:TActiveTemplateColumn HeaderText="Job Retention" SortExpression="jobretention">
+			<com:TActiveTemplateColumn HeaderText="<%[ Job Retention ]%>" SortExpression="jobretention">
 				<prop:ItemTemplate>
-					<%=(integer)($this->getParent()->Data['jobretention'] / 3600 / 24)%> <%=$this->getParent()->Data['jobretention'] < 172800 ? 'day' : 'days'%>
+					<%=(integer)($this->getParent()->Data['jobretention'] / 3600 / 24)%> <%=$this->getParent()->Data['jobretention'] < 172800 ? Prado::localize('day') : Prado::localize('days')%>
 				</prop:ItemTemplate>
 			</com:TActiveTemplateColumn>
 		</com:TActiveDataGrid>
 	</com:TActivePanel>
+	<com:TCallback ID="DataElementCall" OnCallback="Page.ClientWindow.configure">
+		<prop:ClientSide.OnComplete>
+			ConfigurationWindow.getObj('ClientWindow').show();
+			ConfigurationWindow.getObj('ClientWindow').progress(false);
+		</prop:ClientSide.OnComplete>
+	</com:TCallback>
 </com:TContent>

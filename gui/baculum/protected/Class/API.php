@@ -3,7 +3,7 @@
  * Bacula® - The Network Backup Solution
  * Baculum - Bacula web interface
  *
- * Copyright (C) 2013-2014 Marcin Haba
+ * Copyright (C) 2013-2015 Marcin Haba
  *
  * The main author of Baculum is Marcin Haba.
  * The main author of Bacula is Kern Sibbald, with contributions from many
@@ -52,7 +52,8 @@ class API extends TModule {
 		$protocol = !empty($_SERVER['HTTPS']) ? 'https' : 'http';
 		$host = $_SERVER['SERVER_NAME'];
 		$port = $_SERVER['SERVER_PORT'];
-		$url = sprintf('%s://%s:%d/', $protocol, $host, $port);
+		$urlPrefix = $this->Application->getModule('friendly-url')->getUrlPrefix();
+		$url = sprintf('%s://%s:%d%s/', $protocol, $host, $port, $urlPrefix);
 		return $url;
 	}
 

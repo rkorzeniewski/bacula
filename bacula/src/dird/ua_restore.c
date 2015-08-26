@@ -75,11 +75,20 @@ int restore_cmd(UAContext *ua, const char *cmd)
 
    memset(&rx, 0, sizeof(rx));
    rx.path = get_pool_memory(PM_FNAME);
+   rx.path[0] = 0;
+
    rx.fname = get_pool_memory(PM_FNAME);
+   rx.fname[0] = 0;
+
    rx.JobIds = get_pool_memory(PM_FNAME);
    rx.JobIds[0] = 0;
+
    rx.BaseJobIds = get_pool_memory(PM_FNAME);
+   rx.BaseJobIds[0] = 0;
+
    rx.query = get_pool_memory(PM_FNAME);
+   rx.query[0] = 0;
+
    rx.bsr = new_bsr();
    rx.hardlinks_in_mem = true;
 

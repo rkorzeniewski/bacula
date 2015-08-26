@@ -1,4 +1,95 @@
-              Changelog on version 7.0.4
+              Changelog on version 7.0.5
+
+Release version 7.0.5
+
+28Jul14
+ - Fix #547 by adding .schedule command
+
+27Jul14
+ - Update AUTHORS
+ - Fix bug #2079 with patch from Robert Oschwald
+
+26Jul14
+ - Fix orphaned file descriptors during errors
+ - Yet another client==NULL
+ - Improve FD and SD cancel
+ - Jim Raney's TLS patch
+ - Update AUTHORS
+ - Fix bug #1679 pool overrides not shown in manual run display
+ - Attempt to avoid client==NULL
+
+23Jul14
+ - Fix for bug #2082 (hopefully)
+
+22Jul14
+ - Fix seg fault in jobq.c
+
+14Jul14
+ - make stop after first error
+
+12Jul14
+ - Increase status schedule days from 500 to 3000
+ - Remove bad cherry-pick
+ - Fix compiler warning
+ - Allow options create_postgresql_database from patch in bug #2075 by roos
+ - Fix bug #2074 crashes when no conf file present
+
+10Jul14
+ - Set pthread id in jcr at beginning so the job can be canceled.
+ - Fix possible heartbeat interval timing problems
+
+08Jul14
+ - Fix some errors reported by valgrind. May fix the problem with bsmtp command.
+ - Ensure b_sterror() is using the correct size of input buffer
+
+07Jul14
+ - Fix possible seg fault
+
+04Jul14
+ - Fix segfault when trying to stop the bnet_server thread in terminate_stored()
+
+03Jul14
+ - Fix bad link bug #2076
+
+02Jul14
+ - Fix compilation of bsock.c when TLS is not available
+
+27Jun14
+ - Correct L suffix to be LL
+ - Fix bad copy/migrate data header
+
+26Jun14
+ - On termination shutdown thread server
+
+23Jun14
+ - baculum: Updated README file
+ - baculum: Update English language texts
+ - baculum: Saving auth file for web server HTTP Basic auth
+ - baculum: Added directory for web server logs
+ - baculum: Added example Lighttpd configuration for Baculum and sample web 
+  server auth file
+ - Expanded auth error message
+ - baculum: Support for web servers which do not provide direct info about HTTP 
+  Basic auth
+
+15Jun14
+ - Fix limit bandwidth calculation
+ - Eliminate strcpy() from bsmtp
+
+12Jun14
+ - Fix for configuring sudo option for bconsole access
+ - Display correct NextPool overrides + use Job NextPool in restore if available
+
+09Jun14
+ - Fix Bacula to work with newer Windows pthreads library
+
+17May14
+ - Fix bug #180 ERR=success in btape when tape error
+
+Bugs fixed/closed since last release:
+1679 180 2074 2075 2076 2079 2082 547
+
+====
 
 Release version 7.0.4
 02Jun14

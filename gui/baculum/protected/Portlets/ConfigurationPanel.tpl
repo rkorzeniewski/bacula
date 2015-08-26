@@ -1,12 +1,8 @@
-<div id="<%=$this->ClientID%>configuration" class="configuration">
-	<div id="<%=$this->ClientID%>configuration-progress" class="configuration-progress"></div>
-	<div id="<%=$this->ClientID%>configuration-window-container" class="configuration-window-container">
-		<com:TActivePanel DefaultButton="ApplyChanges" CssClass="configuration-window-content">
-			<com:TImageButton ImageUrl="<%=$this->getPage()->getTheme()->getBaseUrl()%>/icon_close.png" ImageAlign="right" Attributes.onclick="ConfigurationWindow<%=$this->ClientID%>.hide(); return false;" ToolTip="<%[ Close]%>" />
+<div id="<%=$this->getParent()->getID()%>configuration" class="configuration">
+	<div id="configuration-window-container" class="configuration-window-container">
+		<com:TActivePanel ID="ConfigurationWindowBox" CssClass="configuration-window-content">
+			<com:TImageButton ImageUrl="<%=$this->getPage()->getTheme()->getBaseUrl()%>/icon_close.png" ImageAlign="right" Attributes.onclick="$('<%=$this->getParent()->getID()%>configuration').hide(); return false;" ToolTip="<%[ Close ]%>" />
 			<com:TContentPlaceHolder ID="ConfigurationWindowContent" />
 		</com:TActivePanel>
 	</div>
 </div>
-<script type="text/javascript">
-	var ConfigurationWindow<%=$this->ClientID%> = new ConfigurationWindowClass('<%=$this->ClientID%>');
-</script>

@@ -367,16 +367,20 @@ void sd_msg_thread_send_signal(JCR *jcr, int sig)
    jcr->unlock();
 }
 
-static int cancel_file_daemon_job(UAContext *ua, const char *cmd, JCR *jcr)
+static bool cancel_file_daemon_job(UAContext *ua, const char *cmd, JCR *jcr)
 {
+   CLIENT *old_client;
+
    if (!jcr->client) {
       Dmsg0(100, "No client to cancel\n");
-      return 0;
+      return false;
    }
+   old_client = ua->jcr->client;
    ua->jcr->client = jcr->client;
    if (!connect_to_file_daemon(ua->jcr, 10, FDConnectTimeout, 1)) {
       ua->error_msg(_("Failed to connect to File daemon.\n"));
-      return 0;
+      ua->jcr->client = old_client;
+      return false;
    }
    Dmsg0(100, "Connected to file daemon\n");
    BSOCK *fd = ua->jcr->file_bsock;
@@ -386,8 +390,8 @@ static int cancel_file_daemon_job(UAContext *ua, const char *cmd, JCR *jcr)
    }
    fd->signal(BNET_TERMINATE);
    free_bsock(ua->jcr->file_bsock);
-   ua->jcr->client = NULL;
-   return 1;
+   ua->jcr->client = old_client;
+   return true;
 }
 
 static bool cancel_sd_job(UAContext *ua, const char *cmd, JCR *jcr)
@@ -437,6 +441,7 @@ static int cancel_inactive_job(UAContext *ua, JCR *jcr)
    JOB_DBR    jr;
    int        i;
    USTORE     store;
+   CLIENT     *client;
 
    if (!jcr->client) {
       memset(&cr, 0, sizeof(cr));
@@ -462,7 +467,15 @@ static int cancel_inactive_job(UAContext *ua, JCR *jcr)
       }
 
       if (acl_access_ok(ua, Client_ACL, cr.Name)) {
-         jcr->client = (CLIENT *)GetResWithName(R_CLIENT, cr.Name);
+         client = (CLIENT *)GetResWithName(R_CLIENT, cr.Name);
+         if (client) {
+            jcr->client = client;
+         } else {
+            Jmsg1(jcr, M_FATAL, 0, _("Client resource \"%s\" does not exist.\n"), cr.Name);
+            goto bail_out;
+         }
+      } else {
+         goto bail_out;
       }
    }
 
@@ -1347,6 +1360,7 @@ void set_jcr_defaults(JCR *jcr, JOB *job)
       copy_rwstorage(jcr, job->pool->storage, _("Pool resource"));
    }
    jcr->client = job->client;
+   ASSERT2(jcr->client, "jcr->client==NULL!!!");
    if (!jcr->client_name) {
       jcr->client_name = get_pool_memory(PM_NAME);
    }

@@ -1,5 +1,8 @@
 #!/bin/sh
 #
+# Author: Eric Bollengier, 2010
+# License: AGPLv3
+#
 # This script will test prune algo
 #
 

@@ -3,9 +3,10 @@
 # shell script to build bacula rpm release
 # copy this script into a working directory with the src rpm to build and execute
 # 19 Aug 2006 D. Scott Barninger
+#
+# Copyright (C) 2000-2015 by Kern Sibbald
+# License: BSD 2-Clause; see file LICENSE-FOSS
 
-# Copyright (C) 2006 Free Software Foundation Europe e.V.
-# licensed under GPL-v2
 
 # signing rpms
 # Make sure you have a .rpmmacros file in your home directory containing the following:
@@ -115,10 +116,10 @@ rpmbuild --rebuild --define "build_${PLATFORM} 1" \
 rm -rf ${RPMBUILD}/*
 
 if [ "$BUILDBAT" = "1" ]; then
-	echo Building Bat package for "$PLATFORM"...
-	sleep 2
-	rpmbuild --rebuild ${SRPM2}
-	rm -rf ${RPMBUILD}/*
+        echo Building Bat package for "$PLATFORM"...
+        sleep 2
+        rpmbuild --rebuild ${SRPM2}
+        rm -rf ${RPMBUILD}/*
 fi
 
 echo Building Docs package for "$PLATFORM"...
@@ -127,10 +128,10 @@ rpmbuild --rebuild ${SRPM3}
 rm -rf ${RPMBUILD}/*
 
 if [ "$BUILDMTX" = "1" ]; then
-	echo Building mtx package for "$PLATFORM"...
-	sleep 2
-	rpmbuild --rebuild ${SRPM4}
-	rm -rf ${RPMBUILD}/*
+        echo Building mtx package for "$PLATFORM"...
+        sleep 2
+        rpmbuild --rebuild ${SRPM4}
+        rm -rf ${RPMBUILD}/*
 fi
 
 # delete the updatedb package and any debuginfo packages built
@@ -153,8 +154,8 @@ mv -f ${RPMDIR}/bacula-sqlite-${VERSION}-${RELEASE}.${ARCH}.rpm \
 ./bacula-sqlite-${VERSION}-${RELEASE}.${FILENAME}.${ARCH}.rpm
 
 if [ "$BUILDMTX" = "1" ]; then
-	mv -f ${RPMDIR}/bacula-mtx-${VERSION}-${RELEASE}.${ARCH}.rpm \
-	./bacula-mtx-${VERSION}-${RELEASE}.${FILENAME}.${ARCH}.rpm
+        mv -f ${RPMDIR}/bacula-mtx-${VERSION}-${RELEASE}.${ARCH}.rpm \
+        ./bacula-mtx-${VERSION}-${RELEASE}.${FILENAME}.${ARCH}.rpm
 fi
 
 mv -f ${RPMDIR}/bacula-client-${VERSION}-${RELEASE}.${ARCH}.rpm \
@@ -164,8 +165,8 @@ mv -f ${RPMDIR}/bacula-libs-${VERSION}-${RELEASE}.${ARCH}.rpm \
 ./bacula-libs-${VERSION}-${RELEASE}.${FILENAME}.${ARCH}.rpm
 
 if [ "$BUILDBAT" = "1" ]; then
-	mv -f ${RPMDIR}/bacula-bat-${VERSION}-${RELEASE}.${ARCH}.rpm \
-	./bacula-bat-${VERSION}-${RELEASE}.${FILENAME}.${ARCH}.rpm
+        mv -f ${RPMDIR}/bacula-bat-${VERSION}-${RELEASE}.${ARCH}.rpm \
+        ./bacula-bat-${VERSION}-${RELEASE}.${FILENAME}.${ARCH}.rpm
 fi
 
 mv -f ${RPMDIR2}/bacula-docs-${VERSION}-${RELEASE}.noarch.rpm .

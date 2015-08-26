@@ -1,5 +1,8 @@
 #! /bin/sh
 #
+# Copyright (C) 2000-2015 by Kern Sibbald
+# License: BSD 2-Clause; see file LICENSE-FOSS
+#
 # bacula       This shell script takes care of starting and stopping
 #	       the bacula Director daemon
 #
@@ -12,6 +15,8 @@
 # Source function library
 . /etc/rc.d/init.d/functions
 
+DAEMON_OPTIONS=''
+DAEMON_USER='yes'
 DIR_USER=@dir_user@
 DIR_GROUP=@dir_group@
 DIR_OPTIONS=''
@@ -22,7 +27,7 @@ if [ -d "/lib/tls" -a $OS = "Linux" -a `uname -r | cut -c1-3` = "2.4" ] ; then
      export LD_ASSUME_KERNEL=2.4.19
 fi
 
-# pull in any user defined DIR_DIR_OPTIONS, DIR_USER, or DIR_GROUP
+# pull in any user defined DIR_DIR_OPTIONS, DIR_USER, DIR_GROUP or DAEMON_USER
 [ -f /etc/sysconfig/bacula ] && . /etc/sysconfig/bacula
 
 #
@@ -41,8 +46,18 @@ case "$1" in
        if [ "${DIR_GROUP}" != '' ]; then
 	  DIR_OPTIONS="${DIR_OPTIONS} -g ${DIR_GROUP}"
        fi
+
+       if [ "${DAEMON_USER}" != '' -a "${DIR_USER}" != '' ]; then
+	  DIR_OPTIONS=""
+	  if [ "${DIR_GROUP}" != '' ]; then
+	     chown ${DIR_USER}:${DIR_GROUP} @working_dir@/bacula-dir* 2> /dev/null
+	  else 
+	     chown ${DIR_USER} @working_dir@/bacula-dir* 2> /dev/null
+	  fi
+	  DAEMON_OPTIONS="--user ${DIR_USER}"
+       fi
        echo -n "Starting Bacula Director services: "
-       daemon @sbindir@/bacula-dir $2 ${DIR_OPTIONS} -c @sysconfdir@/bacula-dir.conf
+       daemon $DAEMON_OPTIONS @sbindir@/bacula-dir $2 ${DIR_OPTIONS} -c @sysconfdir@/bacula-dir.conf
        RETVAL=$?
        echo
        [ $RETVAL -eq 0 ] && touch @subsysdir@/bacula-dir
@@ -58,6 +73,7 @@ case "$1" in
        $0 stop
        sleep 5
        $0 start
+       RETVAL=$?
        ;;
     status)
        status @sbindir@/bacula-dir

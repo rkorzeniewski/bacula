@@ -619,7 +619,7 @@ int select_media_dbr(UAContext *ua, MEDIA_DBR *mr)
       }
       mr->PoolId = pr.PoolId;
       db_list_media_records(ua->jcr, ua->db, mr, prtit, ua, HORZ_LIST);
-      if (!get_cmd(ua, _("Enter *MediaId or Volume name: "))) {
+      if (!get_cmd(ua, _("Enter a Volume name or *MediaId: "))) {
          goto bail_out;
       }
       if (ua->cmd[0] == '*' && is_a_number(ua->cmd+1)) {

@@ -1091,10 +1091,10 @@ bool db_get_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
          }
       } else {
          if (mr->MediaId != 0) {
-            Mmsg1(mdb->errmsg, _("Media record MediaId=%s not found.\n"),
+            Mmsg1(mdb->errmsg, _("Media record with MediaId=%s not found.\n"),
                edit_int64(mr->MediaId, ed1));
          } else {
-            Mmsg1(mdb->errmsg, _("Media record for Volume \"%s\" not found.\n"),
+            Mmsg1(mdb->errmsg, _("Media record for Volume name \"%s\" not found.\n"),
                   mr->VolumeName);
          }
       }
@@ -1104,7 +1104,7 @@ bool db_get_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
          Mmsg(mdb->errmsg, _("Media record for MediaId=%u not found in Catalog.\n"),
             mr->MediaId);
        } else {
-         Mmsg(mdb->errmsg, _("Media record for Vol=%s not found in Catalog.\n"),
+         Mmsg(mdb->errmsg, _("Media record for Volume Name \"%s\" not found in Catalog.\n"),
             mr->VolumeName);
    }   }
    db_unlock(mdb);

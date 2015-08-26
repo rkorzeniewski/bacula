@@ -3,7 +3,7 @@
  * Bacula® - The Network Backup Solution
  * Baculum - Bacula web interface
  *
- * Copyright (C) 2013-2014 Marcin Haba
+ * Copyright (C) 2013-2015 Marcin Haba
  *
  * The main author of Baculum is Marcin Haba.
  * The main author of Bacula is Kern Sibbald, with contributions from many
@@ -38,7 +38,7 @@ class ConfigurationWizard extends BaculumPage
 
 	public function onInit($param) {
 		parent::onInit($param);
-		$this->Lang->SelectedValue = $this->Session['language'];
+		$this->Lang->SelectedValue = $_SESSION['language'];
 		$this->firstRun = !$this->getModule('configuration')->isApplicationConfig();
 		$this->applicationConfig = $this->getModule('configuration')->getApplicationConfig();
 		if($this->firstRun === false && $this->User->getIsAdmin() === false) {
@@ -103,6 +103,7 @@ class ConfigurationWizard extends BaculumPage
 		$cfgData['baculum']['login'] = $this->PanelLogin->Text;
 		$cfgData['baculum']['password'] = $this->PanelPassword->Text;
 		$cfgData['baculum']['debug'] = isset($this->applicationConfig['baculum']['debug']) ? $this->applicationConfig['baculum']['debug'] : "0";
+		$cfgData['baculum']['lang'] = $_SESSION['language'];
 		$ret = $this->getModule('configuration')->setApplicationConfig($cfgData);
 		if($ret === true) {
 			if($this->getModule('configuration')->isUsersConfig() === true) { // version with users config file, so next is try to auto-login
@@ -110,8 +111,10 @@ class ConfigurationWizard extends BaculumPage
 				$this->getModule('configuration')->setUsersConfig($cfgData['baculum']['login'], $cfgData['baculum']['password'], $this->firstRun, $previousUser);
 				// Automatic login after finish wizard.
 				$http_protocol = isset($_SERVER['HTTPS']) && !empty($_SERVER['HTTPS']) ? 'https' : 'http';
-				$location = sprintf("%s://%s:%s@%s:%d/", $http_protocol, $cfgData['baculum']['login'], $cfgData['baculum']['password'], $_SERVER['SERVER_NAME'], $_SERVER['SERVER_PORT']);
+				$urlPrefix = $this->Application->getModule('friendly-url')->getUrlPrefix();
+				$location = sprintf("%s://%s:%s@%s:%d%s", $http_protocol, $cfgData['baculum']['login'], $cfgData['baculum']['password'], $_SERVER['SERVER_NAME'], $_SERVER['SERVER_PORT'], $urlPrefix);
 				header("Location: $location");
+				return;
 			} else { // standard version (user defined auth method)
 				$this->goToDefaultPage();
 			}
@@ -173,7 +176,7 @@ class ConfigurationWizard extends BaculumPage
 	}
 
 	public function setLang($sender, $param) {
-		$this->Session['language'] = $sender->SelectedValue;
+		$_SESSION['language'] = $sender->SelectedValue;
 		$this->goToPage('ConfigurationWizard');
 	}
 

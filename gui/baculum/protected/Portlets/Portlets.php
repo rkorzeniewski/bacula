@@ -3,7 +3,7 @@
  * Bacula® - The Network Backup Solution
  * Baculum - Bacula web interface
  *
- * Copyright (C) 2013-2014 Marcin Haba
+ * Copyright (C) 2013-2015 Marcin Haba
  *
  * The main author of Baculum is Marcin Haba.
  * The main author of Bacula is Kern Sibbald, with contributions from many
@@ -23,7 +23,7 @@ class Portlets extends TTemplateControl {
 	const SORT_DESC = 'desc';
 
 	protected function getUrlParams($section, $id) {
-		$limit = $this->Session['limit' . $id];
+		$limit = $_SESSION['limit' . $id];
 		if(is_numeric($limit)) {
 			if(is_array($section)) {
 				array_push($section, 'limit', $limit);

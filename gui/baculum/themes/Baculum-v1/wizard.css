@@ -9,14 +9,14 @@
 .steps {
 	padding: 20px;
 	height: 435px;
-	background-image: url('/themes/Baculum-v1/wizard-content.png');
+	background-image: url('wizard-content.png');
 	background-repeat: repeat-y;
  }
  
 .navigation {
 	text-align: center;
-	padding: 11px 0;
-	background-image: url('/themes/Baculum-v1/wizard-bottom.png');
+	padding: 10px 0;
+	background-image: url('wizard-bottom.png');
 	background-repeat: no-repeat;
  }
  
@@ -39,44 +39,44 @@
  
   .step-first {
 	width: 126px;
-	background-image: url('/themes/Baculum-v1/step-first.png');
+	background-image: url('step-first.png');
  }
  
  .step-first-active {
 	width: 126px;
-	background-image: url('/themes/Baculum-v1/step-first-active.png');
+	background-image: url('step-first-active.png');
  }
  
  .step-first-next-active{
 	width: 126px;
-	background-image: url('/themes/Baculum-v1/step-first-next-active.png');
+	background-image: url('step-first-next-active.png');
  }
 
 .step-last {
 	width: 130px;
-	background-image: url('/themes/Baculum-v1/step-last.png');
+	background-image: url('step-last.png');
  }
 
  .step-last-active {
 	width: 130px;
-	background-image: url('/themes/Baculum-v1/step-last-active.png');
+	background-image: url('step-last-active.png');
  }
  
  .step-last-next-active{
 	width: 130px;
-	background-image: url('/themes/Baculum-v1/step-last-next-active.png');
+	background-image: url('step-last-next-active.png');
  }
 
 .step-normal, .step-prev-active {
-	background-image: url('/themes/Baculum-v1/step.png');
+	background-image: url('step.png');
  }
  
 .step-active{
-	background-image: url('/themes/Baculum-v1/step-active.png');
+	background-image: url('step-active.png');
  }
  
 .step-prev-active {
-	background-image: url('/themes/Baculum-v1/step-prev-active.png');
+	background-image: url('step-prev-active.png');
  }
  
 #licence {
@@ -92,7 +92,7 @@
 	clear: left;
 	font-size: 14px;
 	font-weight: bold;
-	background-image: url('/themes/Baculum-v1/wizard-header.png');
+	background-image: url('wizard-header.png');
 	background-repeat: no-repeat;
 	padding: 4px;
 }

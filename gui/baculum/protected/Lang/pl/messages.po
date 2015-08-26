@@ -1,12 +1,13 @@
 msgid ""
 msgstr ""
-"PO-Revision-Date: 2014-02-02 17:46:20\n"
+"PO-Revision-Date: 2014-11-30 22:45:33\n"
 "Project-Id-Version: \n"
 "POT-Creation-Date: \n"
-"Last-Translator: Marcin Haba <redakcja@bacula.pl>\n"
+"Last-Translator: Marcin Haba <marcin.haba@bacula.pl>\n"
 "Language-Team: \n"
+"Language: pl\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Type: text/plain; charset=iso-8859-1\n"
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: Poedit 1.5.4\n"
 
@@ -56,7 +57,7 @@ msgid "Next &raquo;"
 msgstr "Dalej &raquo;"
 
 msgid "Step 1 - select language"
-msgstr "Krok 1 - wybieranie języka"
+msgstr "Krok 1 - wybierz język"
 
 msgid "Step 2 - acceptance of a license"
 msgstr "Krok 2 - akceptacja licencji"
@@ -197,7 +198,7 @@ msgid "Switch the window view (normal/details)"
 msgstr "Przełącz widok okna (normalny/szczegóły)"
 
 msgid "Volume status:"
-msgstr "Status wolumena"
+msgstr "Status wolumenu:"
 
 msgid "Retention Period (in sec.):"
 msgstr "Czas retencji (w sek.):"
@@ -218,16 +219,16 @@ msgid "Max Vol. Bytes:"
 msgstr "Max Vol. Bytes:"
 
 msgid "Slot number:"
-msgstr "Numer slotu"
+msgstr "Numer slotu:"
 
 msgid "Recycle:"
-msgstr "Recycle:"
+msgstr "Recykling (atrybut Recycle):"
 
 msgid "Enabled:"
-msgstr "Załączony"
+msgstr "Załączony (atrybut Enable)"
 
 msgid "In changer:"
-msgstr "In changer:"
+msgstr "W urządzeniu (atrybut In Changer):"
 
 msgid "Purge"
 msgstr "Purge"
@@ -248,7 +249,7 @@ msgid "Mount"
 msgstr "Zamontuj"
 
 msgid "Release"
-msgstr "Wydaj"
+msgstr "Odłącz"
 
 msgid "Umount"
 msgstr "Odmontuj"
@@ -266,7 +267,7 @@ msgid "AutoPrune:"
 msgstr "AutoPrune:"
 
 msgid "Maximum volumes:"
-msgstr "Max. ilość wolumenów:"
+msgstr "Maximum volumes:"
 
 msgid "Label format:"
 msgstr "Format etykiety:"
@@ -275,7 +276,7 @@ msgid "Scratch pool:"
 msgstr "Pula Scratch"
 
 msgid "Recycle pool:"
-msgstr "Recycle pool:"
+msgstr "Pula recycle:"
 
 msgid "Action on purge:"
 msgstr "Action on purge:"
@@ -290,7 +291,7 @@ msgid "Operation is in progress"
 msgstr "Operacja w trakcie"
 
 msgid "Volume name:"
-msgstr "Nazwa wolumena:"
+msgstr "Nazwa wolumenu:"
 
 msgid "Storage name:"
 msgstr "Nazwa magazynu:"
@@ -320,10 +321,10 @@ msgid "Database file path (SQLite only):"
 msgstr "Lokalizacja pliku DB (tylko SQLite):"
 
 msgid "Delete job"
-msgstr "Skasuj zadanie"
+msgstr "Usuń"
 
 msgid "Cancel job"
-msgstr "Anuluj zadanie"
+msgstr "Przerwij"
 
 msgid "select pool"
 msgstr "wybierz pulę"
@@ -452,68 +453,561 @@ msgid "FileSet for restore:"
 msgstr "FIleSet dla przywracania"
 
 msgid "Director:"
-msgstr ""
+msgstr "Zarządca:"
 
 msgid "Jobs for run"
-msgstr ""
+msgstr "Zadania do uruchomienia"
 
 msgid "Job status"
-msgstr ""
+msgstr "Status"
 
 msgid "Run job again"
-msgstr ""
+msgstr "Uruchom ponownie"
 
 msgid "Label name have to contain string value from set [0-9a-zA-Z_-]."
-msgstr ""
+msgstr "Nazwa etykiety musi zawierać ciąg znaków ze zbioru [0-9a-zA-Z_-]."
 
 msgid "Slots for label have to contain string value from set [0-9-,]."
-msgstr ""
+msgstr "Sloty do etykietowania muszą zawierać ciąg znaków ze zbioru [0-9-,]"
 
 msgid "Drive has to contain digit value from set [0-9]."
-msgstr ""
+msgstr "Napęd musi zawierać cyfry z zakresu [0-9]"
 
 msgid "Slots for update have to contain string value from set [0-9-,]."
-msgstr ""
+msgstr "Sloty do aktualizacji muszą zawierać ciąg znaków ze zbioru [0-9-,]."
 
 msgid "Label volume(s)"
-msgstr ""
+msgstr "Etykietuj wolumen(y)"
 
 msgid "Use barcodes as label:"
-msgstr ""
+msgstr "Użyj barcode jako etykiet"
 
 msgid "Label name:"
-msgstr ""
+msgstr "Nazwa etykiety:"
 
 msgid "Slots for label:"
-msgstr ""
+msgstr "Sloty do etykietowania:"
 
 msgid "Label"
-msgstr ""
+msgstr "Etykieta"
 
 msgid "Update slots using barcodes"
-msgstr ""
+msgstr "Aktualizuj sloty używając barcode"
 
 msgid "Slots for update:"
-msgstr ""
+msgstr "Sloty do aktualizacji"
 
 msgid "Update barcodes slots"
-msgstr ""
+msgstr "Aktualizuj sloty z etykietami barcode"
 
 msgid "Update slots without barcodes"
-msgstr ""
+msgstr "Aktualizuj sloty bez etykiet barcode"
 
 msgid "Update slots scan"
-msgstr ""
+msgstr "Aktualizuj sloty poprzez skanowanie"
 
 msgid "volumes tools"
-msgstr ""
+msgstr "narzędzia volumenów"
 
 msgid "Bacula console"
-msgstr ""
+msgstr "Konsola Bacula"
 
 msgid "show console"
-msgstr ""
+msgstr "pokaż konsolę"
 
 msgid "hide console"
-msgstr ""
+msgstr "ukryj konsolę"
+
+msgid "Bconsole admin config file path:"
+msgstr "Lokalizacja pliku konf. bconsole:"
+
+msgid "Bconsole custom config file path:"
+msgstr "Lokalizacja konf. dla użytkowników:"
+
+msgid "Please enter bconsole custom config file path."
+msgstr "Proszę wprowadzić lokalizację pliku konfiguracyjnego dla użytkowników"
+
+msgid "Storage Daemons"
+msgstr "Magazyny danych - Storage"
+
+msgid "Clients"
+msgstr "Klienci"
+
+msgid "Volumes"
+msgstr "Wolumeny"
+
+msgid "Pools"
+msgstr "Pule wolumenów"
+
+msgid "Jobs"
+msgstr "Zadania"
+
+msgid "clear bvfs cache"
+msgstr "Wyczyść bvfs cache"
+
+msgid "simple"
+msgstr "prosty"
+
+msgid "details"
+msgstr "szczegółowy"
+
+msgid "There is not possible to run selected action because:"
+msgstr "Nie jest możliwe uruchomienie wybranej akcji ponieważ:"
+
+msgid "Retention period (in hours):"
+msgstr "Czas retencji wolumenu (w godz.):"
+
+msgid "Retention period value must be integer."
+msgstr "Czas retencji wolumenu musi być liczbą całkowitą."
+
+msgid "Vol. use duration (in hours):"
+msgstr "Vol. use duration (w godz.):"
+
+msgid "Vol. use duration value must be integer."
+msgstr "Vol. use duration musi być liczbą całkowitą."
+
+msgid "Max vol. jobs:"
+msgstr "Max vol. jobs:"
+
+msgid "Max vol. jobs value must be integer."
+msgstr "Max vol. jobs musi być liczbą całkowitą."
+
+msgid "Max vol. files:"
+msgstr "Max vol. files:"
+
+msgid "Max vol. files value must be integer."
+msgstr "Max vol. files musi być liczbą całkowitą."
+
+msgid "Max vol. bytes:"
+msgstr "Max vol. bytes:"
+
+msgid "Max vol. bytes value must be integer."
+msgstr "Max vol. bytes musi być liczbą całkowitą."
+
+msgid "Slot value must be integer."
+msgstr "Slot musi być liczbą całkowitą."
+
+msgid "Drive number must be integer."
+msgstr "Numer napędu musi być liczbą całkowitą."
+
+msgid "Slot number must be integer."
+msgstr "Numer slotu musi być liczbą całkowitą."
+
+msgid "File retention (in days):"
+msgstr "Retencja plików (w dniach):"
+
+msgid "File retention value must be positive integer or zero."
+msgstr "Retencja plików musi być liczbą całkowitą."
+
+msgid "Job retention (in days):"
+msgstr "Retencja zadań (w dniach):"
+
+msgid "Job retention value must be positive integer or zero."
+msgstr "Retencja zadań musi być liczbą całkowitą."
+
+msgid "Max volumes value must be integer."
+msgstr "Max volumes musi być liczbą całkowitą."
+
+msgid "Use duration value must be integer."
+msgstr "Vol. use duration musi być liczbą całkowitą."
+
+msgid "Label format value must not be empty."
+msgstr "Format etykiety nie może być pusty."
+
+msgid "Level:"
+msgstr "Typ kopii:"
+
+msgid "Client:"
+msgstr "Klient:"
+
+msgid "FileSet:"
+msgstr "FileSet:"
+
+msgid "Storage:"
+msgstr "Magazyn składowania danych:"
+
+msgid "Priority:"
+msgstr "Priorytet:"
+
+msgid "Priority value must be integer greather than 0."
+msgstr "Priorytet musi być liczbą większą niż 0."
+
+msgid "Accurate:"
+msgstr "Dokładna kopia (Accurate):"
+
+msgid "Estimate job"
+msgstr "Estymacja zadania"
+
+msgid "Run job"
+msgstr "Uruchom zadanie"
+
+msgid "Limit:"
+msgstr "Limit:"
+
+msgid "Search:"
+msgstr "Szukaj:"
+
+msgid "View mode:"
+msgstr "Widok:"
+
+msgid "Action:"
+msgstr "Akcja:"
+
+msgid "unmark all and close"
+msgstr "Odznacz elementy i zamknij"
+
+msgid "Job name:"
+msgstr "Nazwa zadania:"
+
+msgid "Enable logging"
+msgstr "Włącz tryb logowania"
+
+msgid "For need defining more Baculum users with custom access or restricted console access (Bconsole ACLs) here is possible to determine custom bconsole configuration file format for each user."
+msgstr "Jeżeli potrzebujesz zdefiniować użytkowników z ograniczonym dostępem (np. do zadań, akcji, zasobów, kopii zapasowych...itp), to tutaj jest możliwość określenia formatu nazwy plików konfiguracyjnych Bconsole, które będą używa konsolowych list dostępu (tzw. Bconsole ACLs)."
+
+msgid "If there is used only one Baculum user then below field value will be ignored."
+msgstr "Jeśli zamierzasz używać tylko jednego użytkownika Baculum (administrator), wtedy poniższa wartość pola będzie ignorowana."
+
+msgid "{user} keyword will be replaced for each logged user into according username."
+msgstr "Słowo kluczowe {user}  będzie zamieniane na nazwę każdego użytkownika zalogowanego do Baculum."
+
+msgid "Above administration login and administration password will be used for login as administrator to Baculum WebGUI. They are your HTTP Basic authorization params by using which you will be logged in to Baculum."
+msgstr "Powyższy login administratora i hasło administratora będą używane do logowania jako administrator Baculum WebGUI. To są Twoje dane autoryzacyjne HTTP Basic, przy pomocy których będziesz logować się do Baculum."
+
+msgid "In case when you use your selected HTTP Basic auth backend and in particular manual Baculum installation from source tar.gz archive, in above fields you need to provide your defined login and password which you used for access to this wizard."
+msgstr "W przypadku gdy używasz swojego backend'u HTTP Basic oraz w szczególności gdy instalujesz Baculum z pakietu źródłowego tar.gz, W POWYŻSZE POLA potrzeba wprowadzić TE SAME DANE LOGOWANIA, przy pomocy których zalogowałeś się do tego instalatora Baculum."
+
+msgid "This action will clear bvfs cache that was created during preparing restore files. Please note that clear bvfs action does not clear nor remove temporary tables created for restore action purpose. They are tables with prefix b2[0-9]+ which need manual remove. There is not recommended use this action during restore job working. Are you sure?"
+msgstr "Ta akcja wyczyści bvfs cache który był stworzony podczas przygotowania każdej akcji przywracania danych.\\n\\nProszę mieć na uwadze, że akcja clear bvfs nie czyści ani nie usuwa tymaczowych tabel SQL stworzonych na potrzeby akcji przywracania danych. Są to tabele z prefiksem b2[0-9]+ które można usunąć samodzielnie.\\n\\nNie jest zalecane używanie tej akcji podczas gdy jest uruchomione zadanie przywracania danych.\\n\\nCzy chcesz kontynuować?"
+
+msgid "Log files enables possibility to save most of actions executed on Baculum WebGUI. Logs functionality should be enabled if is happening shomething wrong with Baculum or something that looks like a bug. Logs can be useful for detecting a problems in Baculum working. After confirmation this message Baculum log files will be continuously saving in /protected/Data/ directory. Are you sure?"
+msgstr "Pliki dzienników programu (tzw. logów programu) umożliwiają zapisywanie akcji wykonywanych na interfejsie Baculum.\\n\\nFunkcjonalność dzienników programu powinna być załączana jeśli wydarzy się coś złego z interfejsem Baculum lub coś co wygląda jak błąd.\\n\\nDzienniki programu mogą być użyteczne przy wykrywaniu problemów w działaniu Baculum. Po potwierdzeniu tej wiadomości dzienniki Baculum będą zapisywany w lokalizacji /protected/Data/.\\n\\nCzy chcesz kontynuować?"
+
+msgid "unlimited"
+msgstr "bez limitu"
+
+msgid "10 elements"
+msgstr "10 elementów"
+
+msgid "25 elements"
+msgstr "25 elementów"
+
+msgid "50 elements"
+msgstr "50 elementów"
+
+msgid "100 elements"
+msgstr "100 elementów"
+
+msgid "200 elements"
+msgstr "200 elementów"
+
+msgid "500 elements"
+msgstr "500 elementów"
+
+msgid "1000 elements"
+msgstr "1000 elementów"
+
+msgid "Volume name"
+msgstr "Nazwa wolumenu"
+
+msgid "Slot"
+msgstr "Slot"
+
+msgid "Pool"
+msgstr "Pula"
+
+msgid "When expire"
+msgstr "Kiedy wygasa"
+
+msgid "Storage name"
+msgstr "Nazwa magazynu"
+
+msgid "Autochanger"
+msgstr "Urządzenie Autochanger"
+
+msgid "Yes"
+msgstr "Tak"
+
+msgid "No"
+msgstr "Nie"
+
+msgid "days"
+msgstr "dni"
+
+msgid "day"
+msgstr "dzień"
+
+msgid "Warning! You checked over 50 elements. Please note, that in case more time consuming actions, web browser request may timed out after 30 seconds. It this case action will be canceled and in consequence the action may not touch all selected elements. Are you sure you want to continue?"
+msgstr "Uwaga!\\n\\nZaznaczyłeś ponad 50 elementów.\\n\\nProszę mieć na uwadze fakt, że w przypadku czasochłonnych operacji żądanie z przeglądarka internetowej może zostać anulowane po 30 sekundach. W takim przypadku akcja będzie przerwana i w konsekwencji może nie wykonać się dla wszystkich zaznaczonych elementów.\\n\\nCzy jesteś pewien, że chcesz kontynuować?"
+
+msgid "Close the window"
+msgstr "Zamknij okno"
+
+msgid "Change the window size"
+msgstr "Zmień rozmiar okna"
+
+msgid "Storage Daemons."
+msgstr "Magazyny danych."
+
+msgid "Configuration of storage daemons."
+msgstr "Konfiguracja magazynów danych."
+
+msgid "Configuration of clients daemons."
+msgstr "Konfiguracja klientów."
+
+msgid "Restore"
+msgstr "Przywracanie danych"
+
+msgid "Restore wizard."
+msgstr "Kreator przywracania danych."
+
+msgid "Settings"
+msgstr "Ustawienia"
+
+msgid "Management of volumes."
+msgstr "Zarządzanie wolumenami."
+
+msgid "Management of volumes pools."
+msgstr "Zarządzanie pulami wolumenów."
+
+msgid "Jobs settings."
+msgstr "Ustawienia zadań."
+
+msgid "Starting jobs."
+msgstr "Uruchamianie zadań."
+
+msgid "Management settings wizard."
+msgstr "Kreator ustawień Baculum."
+
+msgid "Client name"
+msgstr "Nazwa klienta"
+
+msgid "File Retention"
+msgstr "Retencja plików"
+
+msgid "Job Retention"
+msgstr "Retencja zadań"
+
+msgid "never written"
+msgstr "nie dotyczy"
+
+msgid "When expire:"
+msgstr "Kiedy wygasa:"
+
+msgid "Last written:"
+msgstr "Ostatnio zapisany:"
+
+msgid "Job name"
+msgstr "Nazwa zadania"
+
+msgid "Type"
+msgstr "Typ zadania"
+
+msgid "Level"
+msgstr "Typ kopii"
+
+msgid "End time"
+msgstr "Czas zakończenia"
+
+msgid "Director"
+msgstr "Zarządca"
+
+msgid "Enter"
+msgstr "Wykonaj"
+
+msgid "Clear"
+msgstr "Wyczyść"
+
+msgid "select action"
+msgstr "wybierz akcję"
+
+msgid "Delete"
+msgstr "Usuń"
+
+msgid "Output for selected job is not available yet or you do not have enabled logging job logs to catalog database. For watching job log there is need to add to the job Messages resource next directive: console = all, !skipped, !saved"
+msgstr "Listing dla wybranego zadania nie jest jeszcze dostępny lub nie masz włączonego logowania statusów zadań do bazy katalogowej.\n\nW celu oglądania listingów ze statusami zadań potrzeba włączyć w zasobie Messages następującą dyrektywę:\n\nconsole = all, !skipped, !saved."
+
+msgid "Workspace"
+msgstr "Panel główny"
+
+msgid "Graphs"
+msgstr "Grafy"
+
+msgid "select job"
+msgstr "wybierz zadanie"
+
+msgid "Last 6 hours"
+msgstr "Ostatnie 6 godzin"
+
+msgid "Last 12 hours"
+msgstr "Ostatnie 12 godzin"
+
+msgid "Today"
+msgstr "Dzisiaj"
+
+msgid "Two days"
+msgstr "Dwa dni"
+
+msgid "Last week"
+msgstr "Ostatni tydzień"
+
+msgid "Last two weeks"
+msgstr "Ostatnie dwa tygodnie"
+
+msgid "Last month"
+msgstr "Ostatni miesiąc"
+
+msgid "Last three months"
+msgstr "Ostatnie trzy miesiące"
+
+msgid "Last six months"
+msgstr "Ostatnie sześć miesięcy"
+
+msgid "Last year"
+msgstr "Ostatni rok"
+
+msgid "Date From:"
+msgstr "Data od:"
+
+msgid "Date To:"
+msgstr "Data do:"
+
+msgid "Legend:"
+msgstr "Legenda:"
+
+msgid "select client"
+msgstr "wybierz klienta"
+
+
+msgid "Graph: Jobs size / Time"
+msgstr "Graf: Rozmiar zadania / Czas"
+
+msgid "Jobs size (GiB)"
+msgstr "Rozmiar zadania (GiB)"
+
+msgid "Time"
+msgstr "Czas"
+
+msgid "Tip: for getting zoom, please mark area on graph."
+msgstr "Porada: Aby użyć zbliżenia proszę zaznaczyć obszar na grafie."
+
+msgid "Tip 2: for back from zoom, please click somewhere on graph."
+msgstr "Porada 2: aby powrócić ze zbliżenia, proszę kliknąć gdzieś na grafie."
+
+msgid "Baculum problem"
+msgstr "Baculum zgłosił problem"
+
+msgid "What can I do"
+msgstr "Co mogę zrobić"
+
+msgid "Please check Baculum logs if there are some errors."
+msgstr "Proszę sprawdzić dzienniki (logi) Baculum czy są tam jakieś błędy."
+
+msgid "Please check Web Server logs if there are some errors."
+msgstr "Proszę sprawdzić dzienniki (logi) serwera WWW czy są tam jakieś błędy."
+
+msgid "Please check other system logs if there are some errors."
+msgstr "Proszę sprawdzić inne dzienniki (logi) systemowe czy są tam jakieś błędy."
+
+msgid "Error 2 - problem with connection to database."
+msgstr "Błąd 2 - problem z połączeniem do bazy danych."
+
+msgid "Please check if Catalog database service is running."
+msgstr "Proszę sprawdzić czy baza katalogowa Bacula jest uruchomiona."
+
+msgid "Please check if Web Server user is allowed for connection to Catalog database."
+msgstr "Proszę sprawdzić czy użytkownik serwera WWW jest dopuszczony do połączeń z bazą danych."
+
+msgid "Please re-run"
+msgstr "Proszę uruchomić ponownie"
+
+msgid "Baculum Initial Wizard"
+msgstr "Kreator konfiguracji Baculum"
+
+msgid "and on step"
+msgstr "i w kroku"
+
+msgid "please perform connection test."
+msgstr "proszę wykonać test połączenia."
+
+msgid "Error 4 - problem with connection to bconsole."
+msgstr "Error 4 - problem z połączeniem do Bconsole."
+
+msgid "Please check if Bacula Director service is running."
+msgstr "Proszę sprawdzić czy serwis Zarządcy Bacula (bacula-dir) jest uruchomiony."
+
+msgid "Please check in shell console if bconsole program is able to connect to Bacula Director service."
+msgstr "Proszę sprawdzić w konsoli systemowej czy jest możliwe połączenie do serwisu Zarządcy Bacula przez program Bconsole."
+
+msgid "Please be sure if Web Server user is allowed for executing bconsole program."
+msgstr "Proszę upewnić się, że użytkownik serwera WWW jest dopuszczony do wykonywania programu Bconsole."
+
+msgid "You can login to shell console as Web Server user and try to run bconsole program."
+msgstr "Możesz zalogować się do konsoli systemowej jako uzytkownik serwera WWW i spróbować uruchomić program Bconsole."
+
+msgid "internal Baculum error."
+msgstr "wewnętrzny błąd Baculum."
+
+msgid "TRY AGAIN"
+msgstr "SPRÓBUJ PONOWNIE"
+
+msgid "authorization to Baculum error."
+msgstr "błąd autoryzacji do Baculum."
+
+msgid "Please check Web Server authorization file if it is correct."
+msgstr "Proszę sprawdzić czy plik autoryzacji serwer WWW jest poprawny."
+
+msgid "Please check Web Server authorization file if it is defined and it is correct."
+msgstr "Proszę sprawdzić plik autoryzacji do serwera WWW, czy jest zdefiniowany oraz poprawny."
+
+msgid "Please be sure if Web Server authorization is enabled (for Apache it is option 'AllowOverride All') and if the authorization works properly."
+msgstr "Proszę upewnić się czy autoryzacja do servera WWW jest skonfigurowana (dla  serwera Apache jest to opcja 'AllowOverride All') oraz czy autoryzacja działa poprawnie."
+
+msgid "please retype authorization login and authorization password to according Web Server authorization values."
+msgstr "proszę wpisać ponownie login i hasło autoryzacji zgodne z danymi autoryzacji do serwera WWW."
+
+msgid "If all above steps will not help or if during installation you made mistake in password in Initial Wizard, please remove settings file located in baculum/protected/Data/settings.conf and re-run Initial wizard."
+msgstr "Jeśli żaden z powyższych kroków nie pomoże lub jeśli podczas instalacji zrobiłeś pomyłkę w haśle w Kreatorze Konfiguracji, proszę usunąć plik ustawień Baculum w lokalizacji baculum/protected/Data/settings.conf a następnie proszę uruchomić ponownie Kreatora Konfiguracji."
+
+msgid "File retention value must be integer."
+msgstr "Retencja plików musi być liczbą całkowitą."
+
+msgid "If there is used only one Baculum user then below field value will be ignored"
+msgstr "Jeśli jest użyty tylko jeden użytkownik Baculum, wtedy poniższa wartość pola będzie ignorowana"
+
+msgid "Information about version"
+msgstr "Informacja o wersji"
+
+msgid "Job retention value must be integer."
+msgstr "Retencja zadań musi być wartością całkowitą."
+
+msgid "Job to restore:"
+msgstr "Zadanie do przywrócenia:"
+
+msgid "Step 7 - Finish"
+msgstr "Krok 7 - Podsumowanie"
+
+msgid "JobId to Verify:"
+msgstr "JobId do weryfikacji:"
+
+msgid "JobId to Verify value must be integer greather than 0."
+msgstr "JobId do weryfikacji musi być liczbą całkowitą większą od 0."
+
+msgid "Job to Verify:"
+msgstr "Zadanie do weryfikacji:"
+
+msgid "Verify by Job Name"
+msgstr "Weryfikuj na podstawie nazwy zadania"
+
+msgid "Verify by JobId"
+msgstr "Weryfikuj na podstawie JobId"
+
+msgid "Verify option:"
+msgstr "Opcja weryfikacji:"
+
+msgid "Running jobs:"
+msgstr "Uruchomione zadania:"
+
+msgid "Finished jobs:"
+msgstr "Zakończone zadania:"
 

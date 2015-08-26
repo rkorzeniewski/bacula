@@ -1,6 +1,11 @@
 /* ------------------------------------------------------------------------- */
 /* --                     CONFIGURE SPECIFIED FEATURES                    -- */
 /* ------------------------------------------------------------------------- */
+
+/*
+ * Copyright (C) 2000-2015 by Kern Sibbald
+ * License: BSD 2-Clause; see file LICENSE-FOSS
+ */
    
 /* Define if you want to use MySQL as Catalog database */
 #undef USE_MYSQL_DB
@@ -150,7 +155,6 @@
 #undef llu
 
 #undef HAVE_READLINE 
-#undef HAVE_PYTHON
 
 #undef HAVE_GMP
 

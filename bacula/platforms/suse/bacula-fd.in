@@ -1,5 +1,8 @@
 #! /bin/sh
 #
+# Copyright (C) 2000-2015 by Kern Sibbald
+# License: BSD 2-Clause; see file LICENSE-FOSS
+#
 # bacula       This shell script takes care of starting and stopping
 #	       the bacula File daemon.
 #
@@ -7,17 +10,15 @@
 # description: The Leading Open Source Backup Solution.
 #
 #  For Bacula release @VERSION@ (@DATE@) -- @DISTNAME@
-# Copyright (C) 2011 Free Software Foundation Europe e.V.
 # Modified to work on SuSE 1/31/2004 D. Scott Barninger <barninger at fairfieldcomputers.com>
 # Added rc.status functions 3/13/2004 D. Scott Barninger <barninger at fairfieldcomputers.com>
 # Added LSB init info 10/14/2004 D. Scott Barninger <barninger at fairfieldcomputers.com>
-# Added $remote_fs, add bacula specific daemon user & group Bruno Friedmann <bruno@ioda-net.ch>
 #
 ### BEGIN INIT INFO
 # Provides:			bacula-fd
-# Required-Start:	$local_fs $remote_fs $network
-# Required-Stop:	$local_fs $remote_fs $network
-# Default-Start:	3 5
+# Required-Start:		$local_fs $network
+# Required-Stop:		$local_fs $network
+# Default-Start:		3 5
 # Default-Stop: 	0 1 2 6
 # Short-Description:	bacula file daemon
 # Description:			Bacula network backup system file daemon
@@ -27,10 +28,11 @@
 # this gives us funtion rc_status -v to tell us if we succeed or fail
 . /etc/rc.status
 
+RETVAL=0
 case "$1" in
     start)
        echo -n "Starting the Bacula File daemon: "
-       /sbin/startproc @sbindir@/bacula-fd $2 -u @fd_user@  -g @fd_group@  -c @sysconfdir@/bacula-fd.conf
+       /sbin/startproc @sbindir@/bacula-fd $2 -c @sysconfdir@/bacula-fd.conf
        RETVAL=$?
        rc_status -v
        echo
@@ -48,6 +50,7 @@ case "$1" in
        $0 stop
        sleep 5
        $0 start
+       RETVAL=$?
        ;;
     status)
        /sbin/checkproc @sbindir@/bacula-fd

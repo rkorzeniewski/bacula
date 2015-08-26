@@ -1450,7 +1450,7 @@ static int execcmd(FILE *input, BSOCK *UA_sock)
    if (stat != 0) {
       berrno be;
       be.set_errno(stat);
-     senditf(_("Autochanger error: ERR=%s\n"), be.bstrerror());
+      senditf(_("@exec error: ERR=%s\n"), be.bstrerror());
    }
    return 1;
 }

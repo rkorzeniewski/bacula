@@ -3,7 +3,7 @@
  * Bacula® - The Network Backup Solution
  * Baculum - Bacula web interface
  *
- * Copyright (C) 2013-2014 Marcin Haba
+ * Copyright (C) 2013-2015 Marcin Haba
  *
  * The main author of Baculum is Marcin Haba.
  * The main author of Bacula is Kern Sibbald, with contributions from many
@@ -93,7 +93,14 @@ class ConfigurationManager extends TModule
 	}
 
 	public function getLanguage() {
-		return $this->Application->Parameters['language'];
+		$language = self::DEFAULT_LANGUAGE;
+		if ($this->isApplicationConfig() === true) {
+			$config = $this->getApplicationConfig();
+			if (array_key_exists('lang', $config['baculum'])) {
+				$language = $config['baculum']['lang'];
+			}
+		}
+		return $language;
 	}
 
 	public function setLanguage($language) {

@@ -3,7 +3,7 @@
  * Bacula® - The Network Backup Solution
  * Baculum - Bacula web interface
  *
- * Copyright (C) 2013-2014 Marcin Haba
+ * Copyright (C) 2013-2015 Marcin Haba
  *
  * The main author of Baculum is Marcin Haba.
  * The main author of Bacula is Kern Sibbald, with contributions from many
@@ -16,29 +16,61 @@
  *
  * Bacula® is a registered trademark of Kern Sibbald.
  */
- 
+
 Prado::using('System.Web.UI.ActiveControls.TActiveDataGrid');
 Prado::using('System.Web.UI.ActiveControls.TActiveRepeater');
 Prado::using('System.Web.UI.ActiveControls.TActiveLinkButton');
 Prado::using('System.Web.UI.ActiveControls.TActivePanel');
 Prado::using('System.Web.UI.ActiveControls.TCallback');
+Prado::using('Application.Portlets.ISlideWindow');
 Prado::using('Application.Portlets.Portlets');
 
-class JobRunList extends Portlets {
+class JobRunList extends Portlets implements ISlideWindow {
 
-	public $ShowID, $windowTitle, $oldDirector;
-
-	private $jobTypes = array('B' => 'Backup', 'M' => 'Migrated', 'V' => 'Verify', 'R' => 'Restore', 'I' => 'Internal', 'D' => 'Admin', 'A' => 'Archive', 'C' => 'Copy', 'g' => 'Migration');
-
+	public $ID;
+	public $buttonID;
+	public $windowTitle;
+	public $oldDirector;
 	private $jobStates;
-	
-	public function onLoad($param) {
-		parent::onLoad($param);
-		$this->prepareData();
+	private $jobTypes = array(
+		'B' => 'Backup',
+		'M' => 'Migrated',
+		'V' => 'Verify',
+		'R' => 'Restore',
+		'I' => 'Internal',
+		'D' => 'Admin',
+		'A' => 'Archive',
+		'C' => 'Copy',
+		'g' => 'Migration'
+	);
+
+	public function setID($id) {
+		$this->ID = $id;
+	}
+
+	public function getID($hideAutoID = true) {
+		return $this->ID;
+	}
+
+	public function setButtonID($id) {
+		$this->buttonID = $id;
+	}
+
+	public function getButtonID() {
+		return $this->buttonID;
 	}
 
 	public function setWindowTitle($param) {
 		$this->windowTitle = $param;
+	}
+
+	public function getWindowTitle() {
+		return $this->windowTitle;
+	}
+
+	public function onLoad($param) {
+		parent::onLoad($param);
+		$this->prepareData();
 	}
 
 	public function prepareData($forceReload = false) {
@@ -48,17 +80,23 @@ class JobRunList extends Portlets {
 				$params = $this->getUrlParams(array('jobs', 'tasks'), $this->getPage()->JobRunWindow->ID);
 				$jobTasks = $this->Application->getModule('api')->get($params)->output;
 				$jobs = $this->prepareJobs($jobTasks);
-				$isDetailView = $this->Session['view' . $this->getPage()->JobRunWindow->ID] == 'details';
-				$this->RepeaterShow->Visible = !$isDetailView;
-				$this->Repeater->DataSource = $isDetailView === false ? $jobs : array();
-				$this->Repeater->dataBind();
-				$this->DataGridShow->Visible = $isDetailView;
-				$this->DataGrid->DataSource = $isDetailView === true ? $jobs : array();
-				$this->DataGrid->dataBind();
+				$isDetailView = $_SESSION['view' . $this->getPage()->JobRunWindow->ID] == 'details';
+
+				if($isDetailView === true) {
+					$this->RepeaterShow->Visible = false;
+					$this->DataGridShow->Visible = true;
+					$this->DataGrid->DataSource = $jobs;
+					$this->DataGrid->dataBind();
+				} else {
+					$this->RepeaterShow->Visible = true;
+					$this->DataGridShow->Visible = false;
+					$this->Repeater->DataSource = $jobs;
+					$this->Repeater->dataBind();
+				}
 			}
 		}
 	}
- 
+
 	private function prepareJobs($jobTasks) {
 		$jobs = array();
 		foreach($jobTasks as $director => $tasks) {
@@ -68,21 +106,13 @@ class JobRunList extends Portlets {
 		}
 		return $jobs;
 	}
- 
-    public function sortDataGrid($sender, $param) {
+
+	public function sortDataGrid($sender, $param) {
 		$params = $this->getUrlParams(array('jobs', 'tasks'), $this->getPage()->JobRunWindow->ID);
 		$data = $this->Application->getModule('api')->get($params)->output;
 		$data = $this->prepareJobs($data);
 		$this->DataGrid->DataSource = $this->sortData($data, $param->SortExpression, $sender->UniqueID);
 		$this->DataGrid->dataBind();
-	}
-
-	public function setShowID($ShowID) {
-		$this->ShowID = $this->getMaster()->ShowID = $ShowID;
-	}
-
-	public function getShowID() {
-		return $this->ShowID;
 	}
 
 	public function configure($sender, $param) {

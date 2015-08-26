@@ -3,7 +3,7 @@
  * Bacula® - The Network Backup Solution
  * Baculum - Bacula web interface
  *
- * Copyright (C) 2013-2014 Marcin Haba
+ * Copyright (C) 2013-2015 Marcin Haba
  *
  * The main author of Baculum is Marcin Haba.
  * The main author of Bacula is Kern Sibbald, with contributions from many
@@ -39,6 +39,12 @@ abstract class BaculumAPI extends TPage
 
 	public function onInit($params) {
 		parent::onInit($params);
+		/*
+		 * Workaround to bug in PHP 5.6 by FastCGI that caused general protection error.
+		 * TODO: Check on newer PHP if it is already fixed.
+		 */
+		$db = new ActiveRecord();
+		$db->getDbConnection();
 		$this->director = isset($this->Request['director']) ? $this->Request['director'] : null;
 		$this->user = isset($this->Request['user']) ? $this->Request['user'] : null;
 		if(is_null($this->user) && $this->Application->getModule('configuration')->isApplicationConfig() === true) {
@@ -109,7 +115,16 @@ abstract class BaculumAPI extends TPage
 			$params = (object)$this->Request['update'];
 			$this->set($id, $params);
 		} else {
-			parse_str(file_get_contents("php://input"),$responseData);
+			$inputstr = file_get_contents("php://input");
+			$chunks = explode('&', $inputstr);
+			$responseData = array();
+			for($i = 0; $i<count($chunks); $i++) {
+				parse_str($chunks[$i], $responseEl);
+				if(is_array($responseEl) && array_key_exists('update', $responseEl) && is_array($responseEl['update'])) {
+					$key = key($responseEl['update']);
+					$responseData['update'][$key] = $responseEl['update'][$key];
+				}
+			}
 			if(is_array($responseData) && array_key_exists('update', $responseData)) {
 				$params = (object)$responseData['update'];
 				$this->set($id, $params);

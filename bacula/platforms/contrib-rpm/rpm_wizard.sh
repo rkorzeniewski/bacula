@@ -3,9 +3,10 @@
 # shell script wizard to build bacula rpm using gnome dialogs
 # requires zenity to be installed
 # 30 Jul 2006 D. Scott Barninger
+#
+# Copyright (C) 2000-2015 by Kern Sibbald
+# License: BSD 2-Clause; see file LICENSE-FOSS
 
-# Copyright (C) 2006 Free Software Foundation Europe e.V.
-# licensed under GPL-v2
 
 # usage ./rpm_wizard.sh
 

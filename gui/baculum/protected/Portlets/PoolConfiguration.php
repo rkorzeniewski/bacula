@@ -3,7 +3,7 @@
  * Bacula® - The Network Backup Solution
  * Baculum - Bacula web interface
  *
- * Copyright (C) 2013-2014 Marcin Haba
+ * Copyright (C) 2013-2015 Marcin Haba
  *
  * The main author of Baculum is Marcin Haba.
  * The main author of Bacula is Kern Sibbald, with contributions from many
@@ -16,19 +16,12 @@
  *
  * Bacula® is a registered trademark of Kern Sibbald.
  */
- 
+
 Prado::using('System.Web.UI.ActiveControls.TActiveLabel');
 Prado::using('System.Web.UI.ActiveControls.TActiveTextBox');
 Prado::using('Application.Portlets.Portlets');
 
 class PoolConfiguration extends Portlets {
-
-	public function onInit($param) {
-		parent::onInit($param);
-		$this->Apply->setActionClass($this);
-		$this->RestoreConfiguration->setActionClass($this);
-		$this->UpdateVolumes->setActionClass($this);
-	}
 
 	public function configure($poolId) {
 		$pooldata = $this->Application->getModule('api')->get(array('pools', $poolId))->output;
@@ -57,8 +50,33 @@ class PoolConfiguration extends Portlets {
 		$this->ActionOnPurge->Checked = $pooldata->actiononpurge == 1;
 	}
 
-	public function save($sender, $param) {
-		if(($sender->getParent()->ID == $this->Apply->ID) || ($sender->getParent()->ID == $this->UpdateVolumes->ID)) {
+	public function restore_configuration($sender, $param) {
+		$this->Application->getModule('api')->set(array('pools', 'update', $this->PoolID->Text),  array(''));
+	}
+
+	public function update_volumes($sender, $param) {
+		if($this->MaxVolumesValidator->IsValid === false || $this->MaxVolJobsValidator->IsValid === false || $this->MaxVolBytesValidator->IsValid === false || $this->UseDurationValidator->IsValid === false || $this->RetentionPeriodValidator->IsValid === false || $this->LabelFormatValidator->IsValid === false) {
+			return false;
+		}
+		$pooldata = array();
+		$pooldata['poolid'] = $this->PoolID->Text;
+		$pooldata['enabled'] = (integer)$this->Enabled->Checked;
+		$pooldata['maxvols'] = $this->MaxVolumes->Text;
+		$pooldata['maxvoljobs'] = $this->MaxVolJobs->Text;
+		$pooldata['maxvolbytes'] = $this->MaxVolBytes->Text;
+		$pooldata['voluseduration'] = $this->UseDuration->Text * 3600; // conversion to seconds
+		$pooldata['volretention'] = $this->RetentionPeriod->Text * 3600; // conversion to seconds
+		$pooldata['labelformat'] = $this->LabelFormat->Text;
+		$pooldata['scratchpoolid'] = (integer)$this->ScratchPool->SelectedValue;
+		$pooldata['recyclepoolid'] = (integer)$this->RecyclePool->SelectedValue;
+		$pooldata['recycle'] = (integer)$this->Recycle->Checked;
+		$pooldata['autoprune'] = (integer)$this->AutoPrune->Checked;
+		$pooldata['actiononpurge'] = (integer)$this->ActionOnPurge->Checked;
+		$this->Application->getModule('api')->set(array('pools', $this->PoolID->Text), $pooldata);
+		$this->Application->getModule('api')->set(array('pools', 'update', 'volumes', $this->PoolID->Text),  array(''));
+	}
+
+	public function apply($sender, $param) {
 			if($this->MaxVolumesValidator->IsValid === false || $this->MaxVolJobsValidator->IsValid === false || $this->MaxVolBytesValidator->IsValid === false || $this->UseDurationValidator->IsValid === false || $this->RetentionPeriodValidator->IsValid === false || $this->LabelFormatValidator->IsValid === false) {
 				return false;
 			}
@@ -77,13 +95,7 @@ class PoolConfiguration extends Portlets {
 			$pooldata['autoprune'] = (integer)$this->AutoPrune->Checked;
 			$pooldata['actiononpurge'] = (integer)$this->ActionOnPurge->Checked;
 			$this->Application->getModule('api')->set(array('pools', $this->PoolID->Text), $pooldata);
-			if($sender->getParent()->ID == $this->UpdateVolumes->ID) {
-				$this->Application->getModule('api')->set(array('pools', 'update', 'volumes', $this->PoolID->Text),  array(''));
-			}
-		} elseif($sender->getParent()->ID == $this->RestoreConfiguration->ID) {
-			$this->Application->getModule('api')->set(array('pools', 'update', $this->PoolID->Text),  array(''));
-			//@TOFIX $this->configure($this->PoolID->Text);
-		}
+
 	}
 
 	public function maxVolumesValidator($sender, $param) {

@@ -87,16 +87,6 @@ bool set_mod_own_time(JCR *jcr, BFILE *ofd, ATTR *attr)
        * The #ifdefing is a bit ugly, but it is the only
        *  way we can ensure this works on older systems.
        */
-#ifdef HAVE_FCHMOD
-      if (fchmod(ofd->fid, attr->statp.st_mode) < 0 && print_error) {
-#else
-      if (lchmod(attr->ofname, attr->statp.st_mode) < 0 && print_error) {
-#endif
-         berrno be;
-         Jmsg2(jcr, M_ERROR, 0, _("Unable to set file modes %s: ERR=%s\n"),
-            attr->ofname, be.bstrerror());
-         ok = false;
-      }
 #ifdef HAVE_FCHOWN
       if (fchown(ofd->fid, attr->statp.st_uid, attr->statp.st_gid) < 0 && print_error) {
 #else
@@ -104,6 +94,16 @@ bool set_mod_own_time(JCR *jcr, BFILE *ofd, ATTR *attr)
 #endif
          berrno be;
          Jmsg2(jcr, M_ERROR, 0, _("Unable to set file owner %s: ERR=%s\n"),
+            attr->ofname, be.bstrerror());
+         ok = false;
+      }
+#ifdef HAVE_FCHMOD
+      if (fchmod(ofd->fid, attr->statp.st_mode) < 0 && print_error) {
+#else
+      if (lchmod(attr->ofname, attr->statp.st_mode) < 0 && print_error) {
+#endif
+         berrno be;
+         Jmsg2(jcr, M_ERROR, 0, _("Unable to set file modes %s: ERR=%s\n"),
             attr->ofname, be.bstrerror());
          ok = false;
       }

@@ -5,25 +5,8 @@
 			<prop:ItemTemplate>
 				<com:TPanel ID="PoolElement" CssClass="slide-window-element">
 					<img src="<%=$this->getPage()->getTheme()->getBaseUrl()%>/pool.png" alt="" /><%=@$this->DataItem->name%>
+					<input type="hidden" name="<%=$this->ClientID%>" value="<%=isset($this->DataItem->poolid) ? $this->DataItem->poolid : ''%>" />
 				</com:TPanel>
-				<com:TCallback ID="PoolElementCall" OnCallback="Page.PoolWindow.configure" ActiveControl.CallbackParameter="<%=@$this->DataItem->poolid%>">
-					<prop:ClientSide.OnComplete>
-						ConfigurationWindow<%=$this->getPage()->PoolConfiguration->getMaster()->ClientID%>.show();
-						ConfigurationWindow<%=$this->getPage()->PoolConfiguration->getMaster()->ClientID%>.progress(false);
-						if(<%=$this->getPage()->PoolWindow->ShowID%>SlideWindow.isFullSize()) {
-							<%=$this->getPage()->PoolWindow->ShowID%>SlideWindow.resetSize();
-						}
-					</prop:ClientSide.OnComplete>
-				</com:TCallback>
-				<script type="text/javascript">
-					$('<%=$this->PoolElement->ClientID%>').observe('click', function() {
-						var request = <%= $this->PoolElementCall->ActiveControl->Javascript %>;
-						if(ConfigurationWindow<%=$this->getPage()->PoolConfiguration->getMaster()->ClientID%>.is_progress() == false) {
-							ConfigurationWindow<%=$this->getPage()->PoolConfiguration->getMaster()->ClientID%>.progress(true);
-							request.dispatch();
-						}
-					});
-				</script>
 			</prop:ItemTemplate>
 		</com:TActiveRepeater>
 	</com:TActivePanel>
@@ -32,7 +15,7 @@
 		<com:TActiveDataGrid
 			ID="DataGrid"
 			AutoGenerateColumns="false"
-			AllowSorting="true"
+			AllowSorting="false"
 			OnSortCommand="sortDataGrid"
 			CellPadding="5px"
 			CssClass="window-section-detail"
@@ -41,25 +24,8 @@
 		>
 			<com:TActiveTemplateColumn HeaderText="Pool name" SortExpression="name">
 				<prop:ItemTemplate>
-					<com:TPanel ID="PoolTableElement"><%=$this->getParent()->Data['name']%></com:TPanel>
-					<com:TCallback ID="PoolTableElementCall" OnCallback="Page.PoolWindow.configure" ActiveControl.CallbackParameter="<%=$this->getParent()->Data['poolid']%>">
-						<prop:ClientSide.OnComplete>
-							ConfigurationWindow<%=$this->getPage()->PoolConfiguration->getMaster()->ClientID%>.show();
-							ConfigurationWindow<%=$this->getPage()->PoolConfiguration->getMaster()->ClientID%>.progress(false);
-							if(<%=$this->getPage()->PoolWindow->ShowID%>SlideWindow.isFullSize()) {
-								<%=$this->getPage()->PoolWindow->ShowID%>SlideWindow.resetSize();
-							}
-						</prop:ClientSide.OnComplete>
-					</com:TCallback>
-					<script type="text/javascript">
-						$('<%=$this->PoolTableElement->ClientID%>').up('tr').observe('click', function() {
-							var request = <%= $this->PoolTableElementCall->ActiveControl->Javascript %>;
-							if(ConfigurationWindow<%=$this->getPage()->PoolConfiguration->getMaster()->ClientID%>.is_progress() == false) {
-								ConfigurationWindow<%=$this->getPage()->PoolConfiguration->getMaster()->ClientID%>.progress(true);
-								request.dispatch();
-							}
-						});
-					</script>
+					<div><%=$this->getParent()->Data['name']%></div>
+					<input type="hidden" name="<%=$this->getParent()->ClientID%>" value="<%=$this->getParent()->Data['poolid']%>" />
 				</prop:ItemTemplate>
 			</com:TActiveTemplateColumn>
 			<com:TActiveBoundColumn
@@ -85,4 +51,10 @@
 			</com:TActiveTemplateColumn>
 		</com:TActiveDataGrid>
 	</com:TActivePanel>
+	<com:TCallback ID="DataElementCall" OnCallback="Page.PoolWindow.configure">
+		<prop:ClientSide.OnComplete>
+			ConfigurationWindow.getObj('PoolWindow').show();
+			ConfigurationWindow.getObj('PoolWindow').progress(false);
+		</prop:ClientSide.OnComplete>
+	</com:TCallback>
 </com:TContent>

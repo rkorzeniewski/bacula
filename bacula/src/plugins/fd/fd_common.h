@@ -1,5 +1,4 @@
 /*
-/*
    Bacula® - The Network Backup Solution
 
    Copyright (C) 2010-2014 Free Software Foundation Europe e.V.

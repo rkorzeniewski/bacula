@@ -14,6 +14,7 @@
 			<url ServiceParameter="ConfigurationWizard" pattern="wizard/" />
 			<url ServiceParameter="RestoreWizard" pattern="restore/" />
 			<url ServiceParameter="BaculumError" pattern="message/{error}/" parameters.error="\d+" />
+			<url ServiceParameter="Monitor" pattern="monitor/" />
 			<!-- START Directors -->
 			<url ServiceParameter="API.Directors" pattern="directors/" />
 			<!-- END Directors -->
@@ -84,11 +85,9 @@
 			<url ServiceParameter="API.FileSet" pattern="filesets/{id}/" parameters.id="\d+" />
 			<url ServiceParameter="API.ConsoleCommand" pattern="console/" />
 		</module>
-		<module class="System.Util.TParameterModule" ParameterFile="Application.Data.Settings" />
 		<module id="globalization" class="TGlobalization">
-			<translation type="gettext" source="Application.Lang" marker="@@" autosave="true" cache="false" DefaultCulture="en" />
+			<translation type="gettext" source="Application.Lang" marker="@@" autosave="false" cache="false" DefaultCulture="en" />
 		</module>
-		<module id="Session" class="THttpSession" SessionName="SSID" CookieMode="Allow" UseCustomStorage="false" AutoStart="true" GCProbability="1" UseTransparentSessionID="true" TimeOut="3600" />
 		<module id="log" class="System.Util.TLogRouter">
 			<route class="TFileLogRoute"  Categories="Execute, External, Application, General, Security" LogPath="Application.Data" LogFile="baculum.log" MaxFileSize="1000" MaxLogFiles="5" />
 		</module>

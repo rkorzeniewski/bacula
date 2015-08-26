@@ -1,5 +1,8 @@
 #! /bin/sh
 #
+# Copyright (C) 2000-2015 by Kern Sibbald
+# License: BSD 2-Clause; see file LICENSE-FOSS
+#
 # bacula       This shell script takes care of starting and stopping
 #	       the bacula Storage daemon.
 #
@@ -12,6 +15,7 @@
 # Source function library
 . /etc/rc.d/init.d/functions
 
+RETVAL=0
 case "$1" in
     start)
        echo -n "Starting the Bacula Storage daemon: "
@@ -31,6 +35,7 @@ case "$1" in
        $0 stop
        sleep 5
        $0 start
+       RETVAL=$?
        ;;
     status)
        status @sbindir@/bacula-sd
@@ -40,4 +45,4 @@ case "$1" in
        exit 1
        ;;
 esac
-exit 0
+exit $RETVAL

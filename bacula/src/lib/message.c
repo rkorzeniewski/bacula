@@ -45,7 +45,7 @@ char *exepath = (char *)NULL;
 char *exename = (char *)NULL;
 char *catalog_db = NULL;              /* database type */
 char con_fname[500];                  /* Console filename */
-char my_name[30] = {0};               /* daemon name is stored here */
+char my_name[MAX_NAME_LENGTH] = {0};  /* daemon name is stored here */
 char host_name[50] = {0};             /* host machine name */
 char fail_time[30] = {0};             /* Time of failure */
 int verbose = 0;                      /* increase User messages */

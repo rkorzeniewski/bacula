@@ -1,5 +1,8 @@
 #!@PYTHON@
 #
+# Copyright (C) 2000-2015 by Kern Sibbald
+# License: BSD 2-Clause; see file LICENSE-FOSS
+#
 # Check the free space available on a writable DVD
 # Should always exit with 0 status, otherwise it indicates a serious error.
 # (wrong number of arguments, Python exception...)
@@ -33,9 +36,6 @@
 #	       non-Bacula data on a medium, and you want to use
 #	       it with Bacula. Don't run this on blank media, it
 #	       is useless.
-#
-# 
-# $Id$
 #
 
 import popen2
@@ -88,7 +88,7 @@ class disk:
 #		 This method should also prepare a blank disk so that a
 #		 certain part of the disk is used to allow detection of a
 #		 used disk by all / more disk drives.
-# prepare 	 Blank the device
+# prepare	 Blank the device
 #
 ###############################################################################
    def __init__(self, devicename):

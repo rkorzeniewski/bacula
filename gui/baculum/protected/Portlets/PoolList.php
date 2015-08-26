@@ -3,7 +3,7 @@
  * Bacula® - The Network Backup Solution
  * Baculum - Bacula web interface
  *
- * Copyright (C) 2013-2014 Marcin Haba
+ * Copyright (C) 2013-2015 Marcin Haba
  *
  * The main author of Baculum is Marcin Haba.
  * The main author of Bacula is Kern Sibbald, with contributions from many
@@ -16,21 +16,43 @@
  *
  * Bacula® is a registered trademark of Kern Sibbald.
  */
- 
+
 Prado::using('System.Web.UI.ActiveControls.TActiveRepeater');
+Prado::using('Application.Portlets.ISlideWindow');
 Prado::using('Application.Portlets.Portlets');
 
-class PoolList extends Portlets {
+class PoolList extends Portlets implements ISlideWindow {
 
-	public $ShowID, $windowTitle;
+	public $ID;
+	public $buttonID;
+	public $windowTitle;
 
-	public function onLoad($param) {
-		parent::onLoad($param);
-		$this->prepareData();
+	public function setID($id) {
+		$this->ID = $id;
+	}
+
+	public function getID($hideAutoID = true) {
+		return $this->ID;
+	}
+
+	public function setButtonID($id) {
+		$this->buttonID = $id;
+	}
+
+	public function getButtonID() {
+		return $this->buttonID;
 	}
 
 	public function setWindowTitle($param) {
 		$this->windowTitle = $param;
+	}
+
+	public function getWindowTitle() {
+		return $this->windowTitle;
+	}
+	public function onLoad($param) {
+		parent::onLoad($param);
+		$this->prepareData();
 	}
 
 	public function prepareData($forceReload = false) {
@@ -39,17 +61,22 @@ class PoolList extends Portlets {
 			if(in_array($this->getPage()->CallBackEventTarget->ID, $allowedButtons) || $forceReload) {
 				$params = $this->getUrlParams('pools', $this->getPage()->PoolWindow->ID);
 				$pools = $this->Application->getModule('api')->get($params);
-				$isDetailView = $this->Session['view' . $this->getPage()->PoolWindow->ID] == 'details';
-				$this->RepeaterShow->Visible = !$isDetailView;
-				$this->Repeater->DataSource = $isDetailView === false ? $pools->output : array();
-				$this->Repeater->dataBind();
-				$this->DataGridShow->Visible = $isDetailView;
-				$this->DataGrid->DataSource = $isDetailView === true ? $this->Application->getModule('misc')->objectToArray($pools->output) : array();
-				$this->DataGrid->dataBind();
+				$isDetailView = $_SESSION['view' . $this->getPage()->PoolWindow->ID] == 'details';
+				if($isDetailView === true) {
+					$this->RepeaterShow->Visible = false;
+					$this->DataGridShow->Visible = true;
+					$this->DataGrid->DataSource = $this->Application->getModule('misc')->objectToArray($pools->output);
+					$this->DataGrid->dataBind();
+				} else {
+					$this->RepeaterShow->Visible = true;
+					$this->DataGridShow->Visible = false;
+					$this->Repeater->DataSource = $pools->output;
+					$this->Repeater->dataBind();
+				}
 			}
 		}
 	}
- 
+
     public function sortDataGrid($sender, $param) {
 		$params = $this->getUrlParams('pools', $this->getPage()->PoolWindow->ID);
 		$data = $this->Application->getModule('api')->get($params)->output;

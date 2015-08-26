@@ -256,6 +256,13 @@ int main (int argc, char *argv[])
       usage();
    }
 
+   if (!test_config) {                /* we don't need to do this block in test mode */
+      if (background) {
+         daemon_start();
+         init_stack_dump();              /* grab new pid */
+      }
+   }
+
    if (configfile == NULL) {
       configfile = bstrdup(CONFIG_FILE);
    }
@@ -271,11 +278,7 @@ int main (int argc, char *argv[])
       Jmsg((JCR *)NULL, M_ERROR_TERM, 0, _("Please correct configuration file: %s\n"), configfile);
    }
 
-   if (!test_config) {                /* we don't need to do this block in test mode */
-      if (background) {
-         daemon_start();
-         init_stack_dump();              /* grab new pid */
-      }
+   if (!test_config) {
       /* Create pid must come after we are a daemon -- so we have our final pid */
       create_pid_file(director->pid_directory, "bacula-dir",
                       get_first_port_host_order(director->DIRaddrs));

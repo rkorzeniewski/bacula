@@ -44,7 +44,6 @@ runCmdPage::runCmdPage(int conn) : Pages()
    m_console->notify(conn, false);
 
    fill();
-   m_console->discardToPrompt(m_conn);
 
    connect(okButton, SIGNAL(pressed()), this, SLOT(okButtonPushed()));
    connect(cancelButton, SIGNAL(pressed()), this, SLOT(cancelButtonPushed()));
@@ -159,12 +158,11 @@ void runCmdPage::okButtonPushed()
 
 void runCmdPage::cancelButtonPushed()
 {
-   m_console->displayToPrompt(m_conn);
-   m_console->write_dir(".");
-   m_console->displayToPrompt(m_conn);
-   mainWin->set_status(tr(" Canceled"));
    this->hide();
+   m_console->write_dir(m_conn, "no");
+   m_console->displayToPrompt(m_conn);
    m_console->notify(m_conn, true);
+   mainWin->set_status(tr(" Canceled"));
    closeStackPage();
    mainWin->resetFocus();
 }

@@ -3,7 +3,7 @@
  * Bacula® - The Network Backup Solution
  * Baculum - Bacula web interface
  *
- * Copyright (C) 2013-2014 Marcin Haba
+ * Copyright (C) 2013-2015 Marcin Haba
  *
  * The main author of Baculum is Marcin Haba.
  * The main author of Bacula is Kern Sibbald, with contributions from many
@@ -16,25 +16,52 @@
  *
  * Bacula® is a registered trademark of Kern Sibbald.
  */
- 
+
 Prado::using('System.Web.UI.ActiveControls.TActiveDataGrid');
 Prado::using('System.Web.UI.ActiveControls.TActiveRepeater');
 Prado::using('System.Web.UI.ActiveControls.TActiveLinkButton');
 Prado::using('System.Web.UI.ActiveControls.TActivePanel');
+Prado::using('System.Web.UI.ActiveControls.TActiveHiddenField');
 Prado::using('System.Web.UI.ActiveControls.TCallback');
+Prado::using('Application.Portlets.ISlideWindow');
 Prado::using('Application.Portlets.Portlets');
 
-class VolumeList extends Portlets {
+class VolumeList extends Portlets implements ISlideWindow {
 
-	public $ShowID, $pools, $oldPool, $view, $windowTitle;
+	public $ID;
+	public $buttonID;
+	public $windowTitle;
+	public $pools;
+	public $oldPool;
+	public $view;
 
-	public function onLoad($param) {
-		parent::onLoad($param);
-		$this->prepareData();
+	public function setID($id) {
+		$this->ID = $id;
+	}
+
+	public function getID($hideAutoID = true) {
+		return $this->ID;
+	}
+
+	public function setButtonID($id) {
+		$this->buttonID = $id;
+	}
+
+	public function getButtonID() {
+		return $this->buttonID;
 	}
 
 	public function setWindowTitle($param) {
 		$this->windowTitle = $param;
+	}
+
+	public function getWindowTitle() {
+		return $this->windowTitle;
+	}
+
+	public function onLoad($param) {
+		parent::onLoad($param);
+		$this->prepareData();
 	}
 
 	public function prepareData($forceReload = false) {
@@ -44,13 +71,19 @@ class VolumeList extends Portlets {
 				$params = $this->getUrlParams('volumes', $this->getPage()->VolumeWindow->ID);
 				array_push($params, '?showpools=1');
 				$volumes = $this->Application->getModule('api')->get($params);
-				$isDetailView = $this->Session['view' . $this->getPage()->VolumeWindow->ID] == 'details';
-				$this->RepeaterShow->Visible = !$isDetailView;
-				$this->Repeater->DataSource = $volumes->output;
-				$this->Repeater->dataBind();
-				$this->DataGridShow->Visible = $isDetailView;
-				$this->DataGrid->DataSource = $this->Application->getModule('misc')->objectToArray($volumes->output);
-				$this->DataGrid->dataBind();
+				$isDetailView = $_SESSION['view' . $this->getPage()->VolumeWindow->ID] == 'details';
+				if($isDetailView === true) {
+					$this->RepeaterShow->Visible = false;
+					$this->DataGridShow->Visible = true;
+					$this->DataGrid->DataSource = $this->Application->getModule('misc')->objectToArray($volumes->output);
+					$this->DataGrid->dataBind();
+
+				} else {
+					$this->Repeater->DataSource = $volumes->output;
+					$this->Repeater->dataBind();
+					$this->RepeaterShow->Visible = true;
+					$this->DataGridShow->Visible = false;
+				}
 			}
 		}
 	}
@@ -74,8 +107,8 @@ class VolumeList extends Portlets {
 		usort($data,$compare);
 		return $data;
 	}
- 
-    public function sortDataGrid($sender, $param) {
+
+	public function sortDataGrid($sender, $param) {
 		$params = $this->getUrlParams('volumes', $this->getPage()->VolumeWindow->ID);
 		array_push($params, '?showpools=1');
 		$data = $this->Application->getModule('api')->get($params)->output;
@@ -84,18 +117,54 @@ class VolumeList extends Portlets {
 		$this->DataGrid->dataBind();
 	}
 
-	public function setShowID($ShowID) {
-		$this->ShowID = $this->getMaster()->ShowID = $ShowID;
-	}
-
-	public function getShowID() {
-		return $this->ShowID;
-	}
-
 	public function configure($sender, $param) {
 		if($this->Page->IsCallBack) {
 			$this->getPage()->VolumeConfiguration->configure($param->CallbackParameter);
 		}
+	}
+
+	public function executeAction($action) {
+		$params = explode(';', $this->CheckedValues->Value);
+		$commands = array();
+		switch($action) {
+			case 'prune': {
+				for($i = 0; $i < count($params); $i++) {
+					$cmd = array('prune');
+					$cmd[] = 'volume="' . $params[$i] . '"';
+					$cmd[] = 'yes';
+					$cmd[] = PHP_EOL;
+					$commands[] = implode(' ', $cmd);
+				}
+				$this->getPage()->Console->CommandLine->Text = implode(' ', $commands);
+				$this->getPage()->Console->sendCommand(null, null);
+				break;
+			}
+			case 'purge': {
+				for($i = 0; $i < count($params); $i++) {
+					$cmd = array('purge');
+					$cmd[] = 'volume="' . $params[$i] . '"';
+					$cmd[] = 'yes';
+					$cmd[] = PHP_EOL;
+					$commands[] = implode(' ', $cmd);
+				}
+				$this->getPage()->Console->CommandLine->Text = implode(' ', $commands);
+				$this->getPage()->Console->sendCommand(null, null);
+				break;
+			}
+			case 'delete': {
+				for($i = 0; $i < count($params); $i++) {
+					$cmd = array('delete');
+					$cmd[] = 'volume="' . $params[$i] . '"';
+					$cmd[] = 'yes';
+					$cmd[] = PHP_EOL;
+					$commands[] = implode(' ', $cmd);
+				}
+				$this->getPage()->Console->CommandLine->Text = implode(' ', $commands);
+				$this->getPage()->Console->sendCommand(null, null);
+				break;
+			}
+		}
+		$this->CheckedValues->Value = "";
 	}
 }
 ?>

@@ -1,5 +1,8 @@
 #!@PYTHON@
 #
+# Copyright (C) 2000-2015 by Kern Sibbald
+# License: BSD 2-Clause; see file LICENSE-FOSS
+#
 #  Modified version of dvd-handler used to simulate reading/writing
 #    to a DVD but using disk storage. This is a pretty crude implementation
 #    and a lot of the old code is still here and just sort of blunders
@@ -38,8 +41,6 @@
 # If an error occurs, prints a negative number (-errno), followed,
 # on the second line, by an error message.
 # 
-# $Id$
-#
 
 import popen2
 import os

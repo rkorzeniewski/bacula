@@ -650,11 +650,14 @@ extern char *configfile;
 
 static int setbwlimit_client(UAContext *ua, CLIENT *client, char *Job, int64_t limit)
 {
+   CLIENT *old_client;
+
    if (!client) {
       return 1;
    }
 
    /* Connect to File daemon */
+   old_client = ua->jcr->client;
    ua->jcr->client = client;
    ua->jcr->max_bandwidth = limit;
 
@@ -663,7 +666,7 @@ static int setbwlimit_client(UAContext *ua, CLIENT *client, char *Job, int64_t l
       client->name(), client->address, client->FDport);
    if (!connect_to_file_daemon(ua->jcr, 1, 15, 0)) {
       ua->error_msg(_("Failed to connect to Client.\n"));
-      return 1;
+      goto bail_out;
    }
    Dmsg0(120, "Connected to file daemon\n");
 
@@ -671,14 +674,17 @@ static int setbwlimit_client(UAContext *ua, CLIENT *client, char *Job, int64_t l
       ua->error_msg(_("Failed to set bandwidth limit to Client.\n"));
 
    } else {
+      /* Note, we add 2000 OK that was sent by FD to us to message */
       ua->info_msg(_("2000 OK Limiting bandwidth to %lldkb/s %s\n"),
                    limit/1024, *Job?Job:_("on running and future jobs"));
    }
 
    ua->jcr->file_bsock->signal(BNET_TERMINATE);
    free_bsock(ua->jcr->file_bsock);
-   ua->jcr->client = NULL;
    ua->jcr->max_bandwidth = 0;
+
+bail_out:
+   ua->jcr->client = old_client;
    return 1;
 }
 
@@ -866,16 +872,19 @@ static void do_storage_setdebug(UAContext *ua, STORE *store,
 static void do_client_setdebug(UAContext *ua, CLIENT *client,
                                int64_t level, int trace, int hangup, char *options, char *tags)
 {
+   CLIENT *old_client;
    BSOCK *fd;
 
    /* Connect to File daemon */
 
+   old_client = ua->jcr->client;
    ua->jcr->client = client;
    /* Try to connect for 15 seconds */
    ua->send_msg(_("Connecting to Client %s at %s:%d\n"),
       client->name(), client->address, client->FDport);
    if (!connect_to_file_daemon(ua->jcr, 1, 15, 0)) {
       ua->error_msg(_("Failed to connect to Client.\n"));
+      ua->jcr->client = old_client;
       return;
    }
    Dmsg0(120, "Connected to file daemon\n");
@@ -893,6 +902,7 @@ static void do_client_setdebug(UAContext *ua, CLIENT *client,
    }
    fd->signal(BNET_TERMINATE);
    free_bsock(ua->jcr->file_bsock);
+   ua->jcr->client = old_client;
    return;
 }
 

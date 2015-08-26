@@ -1,39 +1,35 @@
-# This file is part of package Bacula Director Daemon
+# Systemd Bacula Enterprise service file
 #
-# Copyright (c) 2011 Free Software Foundation Europe e.V.
-# Bacula Community
-# Author: Bruno Friedmann
+# Copyright (C) 2000-2015 by Kern Sibbald
+# License: BSD 2-Clause; see file LICENSE-FOSS
+#
+# /lib/systemd/system/bacula-dir.service
+#
 # Description:
-#    Used to start the bacula director daemon service (bacula-dir)
-#     will be installed as /lib/systemd/system/bacula-dir.service
-#    enable : systemctl enable bacula-dir.service
-#	 start : systemctl start bacula-dir.service
+#    Used to start/stop/reload the bacula director daemon service (bacula-dir)
 #
-# Bacula Director Daemon service
+#    enable : systemctl enable bacula-dir
+#    start : systemctl start bacula-dir
 #
-[Unit]
-Description=Bacula Director Daemon service
-Alias=bacula-dir
-Requires=var-run.mount nss-lookup.target network.target remote-fs.target syslog.target time-sync.target
-After=var-run.mount nss-lookup.target network.target remote-fs.target syslog.target time-sync.target
-# Dependency about the database
-# We let administrators decide if they need it (if local db instance)
-# Wants=@DEFAULT_DB_TYPE@.service
-# Check if working dir exist and is a directory
-ConditionPathIsDirectory=@working_dir@
-# Before=
-# Conflicts=
+#
 
+# From http://www.freedesktop.org/software/systemd/man/systemd.unit.html
+[Unit]
+Description=Bacula Enterprise Director Daemon service
+Requires=network.target
+After=network.target
+RequiresMountsFor=@working_dir@ @sysconfdir@ @sbindir@ @piddir@
+
+# From http://www.freedesktop.org/software/systemd/man/systemd.service.html
 [Service]
 Type=forking
 User=@dir_user@
 Group=@dir_group@
-PIDFile=@piddir@/bacula-dir.@dir_port@.pid
-# EnvironmentFile=-/etc/sysconfig/bacula-dir
-StandardOutput=syslog
 ExecStart=@sbindir@/bacula-dir -c @sysconfdir@/bacula-dir.conf
-# This daemon should be able to reload the conf file
-#ExecReload=/sbin/killproc -p @piddir@/bacula-dir.pid -HUP @sbindir@/bacula-dir
+PIDFile=@piddir@/bacula-dir.@dir_port@.pid
+ExecReload=@sbindir@/bacula-dir -t -c @sysconfdir@/bacula-dir.conf
+ExecReload=/bin/kill -HUP $MAINPID
+StandardError=syslog
 
 [Install]
 WantedBy=multi-user.target

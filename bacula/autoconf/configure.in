@@ -2,6 +2,9 @@ dnl
 dnl
 dnl Process this file with autoconf to produce a configure script.
 dnl
+dnl Copyright (C) 2000-2015 by Kern Sibbald
+dnl License: BSD 2-Clause; see file LICENSE-FOSS
+dnl
 dnl require a recent autoconf
 AC_PREREQ(2.61)
 AC_INIT([bacula], m4_esyscmd([sed -n -e 's/^#define VERSION.*"\(.*\)"$/\1/p' ../src/version.h src/version.h 2> /dev/null | tr -d '\n']))
@@ -3402,7 +3405,7 @@ chmod 755 install_conf_file build-depkgs-qt-console
 cd ${BUILD_DIR}
 
 cd scripts
-chmod 755 bacula btraceback mtx-changer storage-ctl bsg_persist
+chmod 755 bacula btraceback mtx-changer
 chmod 755 dvd-handler dvd-simulator
 chmod 755 bconsole disk-changer devel_bacula logrotate
 cd ..
@@ -3427,10 +3430,6 @@ chmod 755 $c/grant_sqlite3_privileges  $c/drop_sqlite3_tables	 $c/drop_sqlite3_d
 
 chmod 755 $c/create_postgresql_database  $c/update_postgresql_tables $c/make_postgresql_tables
 chmod 755 $c/grant_postgresql_privileges $c/drop_postgresql_tables   $c/drop_postgresql_database
-
-#chmod 755 $c/create_ingres_database  $c/update_ingres_tables $c/make_ingres_tables
-#chmod 755 $c/grant_ingres_privileges $c/drop_ingres_tables   $c/drop_ingres_database
-
 
 chmod 755 $c/make_catalog_backup $c/delete_catalog_backup  $c/make_catalog_backup.pl
 chmod 755 $c/sqlite

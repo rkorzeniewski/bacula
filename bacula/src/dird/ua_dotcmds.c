@@ -48,6 +48,7 @@ static bool filesetscmd(UAContext *ua, const char *cmd);
 static bool clientscmd(UAContext *ua, const char *cmd);
 static bool msgscmd(UAContext *ua, const char *cmd);
 static bool poolscmd(UAContext *ua, const char *cmd);
+static bool schedulescmd(UAContext *ua, const char *cmd);
 static bool storagecmd(UAContext *ua, const char *cmd);
 static bool defaultscmd(UAContext *ua, const char *cmd);
 static bool typescmd(UAContext *ua, const char *cmd);
@@ -98,6 +99,7 @@ static struct cmdstruct commands[] = { /* help */  /* can be used in runscript *
  { NT_(".pools"),      poolscmd,                 NULL,       true},
  { NT_(".quit"),       dot_quit_cmd,             NULL,       false},
  { NT_(".putfile"),    putfile_cmd,              NULL,       false}, /* use @putfile */
+ { NT_(".schedule"),   schedulescmd,             NULL,       false},
  { NT_(".sql"),        sql_cmd,                  NULL,       false},
  { NT_(".status"),     dot_status_cmd,           NULL,       false},
  { NT_(".storage"),    storagecmd,               NULL,       true},
@@ -1158,6 +1160,19 @@ static bool poolscmd(UAContext *ua, const char *cmd)
    return true;
 }
 
+static bool schedulescmd(UAContext *ua, const char *cmd)
+{
+   SCHED *sched;
+   LockRes();
+   foreach_res(sched, R_SCHEDULE) {
+      if (acl_access_ok(ua, Schedule_ACL, sched->name())) {
+         ua->send_msg("%s\n", sched->name());
+      }
+   }
+   UnlockRes();
+   return true;
+}
+
 static bool storagecmd(UAContext *ua, const char *cmd)
 {
    STORE *store;
@@ -1412,7 +1427,7 @@ static bool defaultscmd(UAContext *ua, const char *cmd)
          ua->send_msg("job=%s", job->name());
          ua->send_msg("pool=%s", job->pool->name());
          ua->send_msg("messages=%s", job->messages->name());
-         ua->send_msg("client=%s", job->client->name());
+         ua->send_msg("client=%s", job->client?job->client->name():_("*None*"));
          get_job_storage(&store, job, NULL);
          ua->send_msg("storage=%s", store.store->name());
          ua->send_msg("where=%s", job->RestoreWhere?job->RestoreWhere:"");
@@ -1420,7 +1435,7 @@ static bool defaultscmd(UAContext *ua, const char *cmd)
          ua->send_msg("type=%s", job_type_to_str(job->JobType));
          ua->send_msg("fileset=%s", job->fileset->name());
          ua->send_msg("enabled=%d", job->enabled);
-         ua->send_msg("catalog=%s", job->client->catalog->name());
+         ua->send_msg("catalog=%s", job->client?job->client->catalog->name():_("*None*"));
       }
    }
    /* Client defaults */

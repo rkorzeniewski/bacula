@@ -1,11 +1,8 @@
 /*
- *
  *  Program to test batch mode
  *
  *   Eric Bollengier, March 2007
  *
- *
- *   Version $Id$
  */
 /*
    Bacula® - The Network Backup Solution

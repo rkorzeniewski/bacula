@@ -1,5 +1,8 @@
 #!/bin/sh
 #
+# License: LGPLv2
+# Author: Kern Sibbald
+#
 # This is the configuration script for regression testing
 #
 

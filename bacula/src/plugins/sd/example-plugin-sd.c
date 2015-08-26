@@ -19,8 +19,8 @@
  *  Kern Sibbald, October 2007
  *
  */
-#include "bacula.h"
-#include "stored.h"
+#include "bacula.h"         /* General Bacula headers */
+#include "stored.h"         /* Pull in storage daemon headers */
 
 #ifdef __cplusplus
 extern "C" {

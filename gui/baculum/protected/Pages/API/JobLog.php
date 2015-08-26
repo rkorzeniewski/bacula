@@ -3,7 +3,7 @@
  * Bacula® - The Network Backup Solution
  * Baculum - Bacula web interface
  *
- * Copyright (C) 2013-2014 Marcin Haba
+ * Copyright (C) 2013-2015 Marcin Haba
  *
  * The main author of Baculum is Marcin Haba.
  * The main author of Bacula is Kern Sibbald, with contributions from many
@@ -23,7 +23,9 @@ class JobLog extends BaculumAPI {
 		$job = $this->getModule('job')->getJobById($jobid);
 		if(!is_null($job)) {
 			$log = $this->getModule('joblog')->getLogByJobId($job->jobid);
-			$this->output = $log;
+			$log = array_map('trim', $log);
+			// Output may contain national characters.
+			$this->output = array_map('utf8_encode', $log);
 			$this->error = JobError::ERROR_NO_ERRORS;
 		} else {
 			$this->output = JobError::MSG_ERROR_JOB_DOES_NOT_EXISTS;

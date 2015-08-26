@@ -3,7 +3,7 @@
  * Bacula® - The Network Backup Solution
  * Baculum - Bacula web interface
  *
- * Copyright (C) 2013-2014 Marcin Haba
+ * Copyright (C) 2013-2015 Marcin Haba
  *
  * The main author of Baculum is Marcin Haba.
  * The main author of Bacula is Kern Sibbald, with contributions from many
@@ -16,22 +16,45 @@
  *
  * Bacula® is a registered trademark of Kern Sibbald.
  */
- 
+
 Prado::using('System.Web.UI.ActiveControls.TActiveRepeater');
 Prado::using('System.Web.UI.ActiveControls.TActiveDataGrid');
+Prado::using('Application.Portlets.ISlideWindow');
 Prado::using('Application.Portlets.Portlets');
 
-class ClientList extends Portlets {
+class ClientList extends Portlets implements ISlideWindow {
 
-	public $ShowID, $windowTitle;
+	public $ID;
+	public $buttonID;
+	public $windowTitle;
 
-	public function onLoad($param) {
-		parent::onLoad($param);
-		$this->prepareData();
+	public function setID($id) {
+		$this->ID = $id;
+	}
+
+	public function getID($hideAutoID = true) {
+		return $this->ID;
+	}
+
+	public function setButtonID($id) {
+		$this->buttonID = $id;
+	}
+
+	public function getButtonID() {
+		return $this->buttonID;
 	}
 
 	public function setWindowTitle($param) {
 		$this->windowTitle = $param;
+	}
+
+	public function getWindowTitle() {
+		return $this->windowTitle;
+	}
+
+	public function onLoad($param) {
+		parent::onLoad($param);
+		$this->prepareData();
 	}
 
 	public function prepareData($forceReload = false) {
@@ -40,14 +63,18 @@ class ClientList extends Portlets {
 			if(in_array($this->getPage()->CallBackEventTarget->ID, $allowedButtons) || $forceReload) {
 				$params = $this->getUrlParams('clients', $this->getPage()->ClientWindow->ID);
 				$clients = $this->Application->getModule('api')->get($params);
-				$isDetailView = $this->Session['view' . $this->getPage()->ClientWindow->ID] == 'details';
-				$clientsList = $this->Application->getModule('misc')->objectToArray($clients->output);
-				$this->RepeaterShow->Visible = !$isDetailView;
-				$this->Repeater->DataSource = $isDetailView === false ? $clientsList : array();
-				$this->Repeater->dataBind();
-				$this->DataGridShow->Visible = $isDetailView;
-				$this->DataGrid->DataSource = $isDetailView === true ?  $clientsList : array();
-				$this->DataGrid->dataBind();
+				$isDetailView = $_SESSION['view' . $this->getPage()->ClientWindow->ID] == 'details';
+				if($isDetailView === true) {
+					$this->RepeaterShow->Visible = false;
+					$this->DataGridShow->Visible = true;
+					$this->DataGrid->DataSource = $this->Application->getModule('misc')->objectToArray($clients->output);
+					$this->DataGrid->dataBind();
+				} else {
+					$this->RepeaterShow->Visible = true;
+					$this->DataGridShow->Visible = false;
+					$this->Repeater->DataSource = $clients->output;
+					$this->Repeater->dataBind();
+				}
 			}
 		}
 	}
@@ -58,15 +85,6 @@ class ClientList extends Portlets {
 		$data = $this->Application->getModule('misc')->objectToArray($data);
 		$this->DataGrid->DataSource = $this->sortData($data, $param->SortExpression, $sender->UniqueID);
 		$this->DataGrid->dataBind();
-	}
-
-
-	public function setShowID($ShowID) {
-		$this->ShowID = $this->getMaster()->ShowID = $ShowID;
-	}
-
-	public function getShowID() {
-		return $this->ShowID;
 	}
 
 	public function configure($sender, $param) {

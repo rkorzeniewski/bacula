@@ -108,8 +108,27 @@ TLS_CONTEXT *new_tls_context(const char *ca_certfile, const char *ca_certdir,
 
    ctx = (TLS_CONTEXT *)malloc(sizeof(TLS_CONTEXT));
 
-   /* Allocate our OpenSSL TLSv1 Context */
+   /* Allocate our OpenSSL TLS Context */
+#if (OPENSSL_VERSION_NUMBER >= 0x10100000L)
+   /* Allows SSLv3, TLSv1, TLSv1.1 and TLSv1.2 protocols */
+   ctx->openssl = SSL_CTX_new(TLS_method());
+
+#elif (OPENSSL_VERSION_NUMBER >= 0x10000000L)
+   /* Allows most all protocols */
+   ctx->openssl = SSL_CTX_new(SSLv23_method());
+
+#else
+   /* Older method only understands TLSv1 */
    ctx->openssl = SSL_CTX_new(TLSv1_method());
+#endif
+
+   /* Use SSL_OP_ALL to turn on all "rather harmless" workarounds that
+    * OpenSSL offers 
+    */
+   SSL_CTX_set_options(ctx->openssl, SSL_OP_ALL);
+
+   /* Now disable old broken SSLv3 and SSLv2 protocols */
+   SSL_CTX_set_options(ctx->openssl, SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3);
 
    if (!ctx->openssl) {
       openssl_post_errors(M_FATAL, _("Error initializing SSL context"));
@@ -281,6 +300,7 @@ bool tls_postconnect_verify_host(JCR *jcr, TLS_CONNECTION *tls, const char *host
    bool auth_success = false;
    int extensions;
    int i, j;
+   const char *pval, *phost;
 
    int cnLastPos = -1;
    X509_NAME_ENTRY *neCN;
@@ -351,7 +371,15 @@ bool tls_postconnect_verify_host(JCR *jcr, TLS_CONNECTION *tls, const char *host
             for (j = 0; j < sk_CONF_VALUE_num(val); j++) {
                nval = sk_CONF_VALUE_value(val, j);
                if (strcmp(nval->name, "DNS") == 0) {
-                  if (strcasecmp(nval->value, host) == 0) {
+                  if (strncasecmp(nval->value, "*.", 2) == 0) {
+                     Dmsg0(250, "Wildcard Certificate\n");
+                     pval = strstr(nval->value, ".");
+                     phost = strstr(host, ".");
+                     if (pval && phost && (strcasecmp(pval, phost) == 0)) {
+                        auth_success = true;
+                        goto success;
+                     }
+                  } else if (strcasecmp(nval->value, host) == 0) {
                      auth_success = true;
                      goto success;
                   }
@@ -374,7 +402,16 @@ bool tls_postconnect_verify_host(JCR *jcr, TLS_CONNECTION *tls, const char *host
             }
             neCN = X509_NAME_get_entry(subject, cnLastPos);
             asn1CN = X509_NAME_ENTRY_get_data(neCN);
-            if (strcasecmp((const char*)asn1CN->data, host) == 0) {
+            if (strncasecmp((const char*)asn1CN->data, "*.", 2) == 0) {
+               /* wildcard certificate */
+               Dmsg0(250, "Wildcard Certificate\n");
+               pval = strstr((const char*)asn1CN->data, ".");
+               phost = strstr(host, ".");
+               if (pval && phost && (strcasecmp(pval, phost) == 0)) {
+                  auth_success = true;
+                  goto success;
+               }
+            } else if (strcasecmp((const char*)asn1CN->data, host) == 0) {
                auth_success = true;
                break;
             }

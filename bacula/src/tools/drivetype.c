@@ -3,8 +3,6 @@
  *
  *   Written by Robert Nelson, June 2006
  *
- *   Version $Id$
- *
  */
 /*
    Bacula® - The Network Backup Solution

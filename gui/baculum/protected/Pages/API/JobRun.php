@@ -3,7 +3,7 @@
  * Bacula® - The Network Backup Solution
  * Baculum - Bacula web interface
  *
- * Copyright (C) 2013-2014 Marcin Haba
+ * Copyright (C) 2013-2015 Marcin Haba
  *
  * The main author of Baculum is Marcin Haba.
  * The main author of Bacula is Kern Sibbald, with contributions from many
@@ -33,6 +33,9 @@ class JobRun extends BaculumAPI {
 		$poolid = property_exists($params, 'poolid') ? intval($params->poolid) : null;
 		$pool = $this->getModule('pool')->getPoolById($poolid);
 		$priority = property_exists($params, 'priority') ? intval($params->priority) : 10; // default priority is set to 10
+		$jobid = property_exists($params, 'jobid') ? 'jobid="' . intval($params->jobid) . '"' : '';
+		// @TODO: Move Job name pattern in more appropriate place
+		$verifyjob = property_exists($params, 'verifyjob')  && preg_match('/^[\w\d\.\-\s]+$/', $params->verifyjob) === 1 ? 'verifyjob="' . ($params->verifyjob) . '"' : '';
 		
 		if(!is_null($job)) {
 			$isValidLevel = $this->getModule('misc')->isValidJobLevel($params->level);
@@ -42,7 +45,7 @@ class JobRun extends BaculumAPI {
 						if(!is_null($storage)) {
 							if(!is_null($pool)) {
 								$joblevels  = $this->getModule('misc')->getJobLevels();
-								$run = $this->getModule('bconsole')->bconsoleCommand($this->director, array('run', 'job="' . $job . '"', 'level="' . $joblevels[$level] . '"', 'fileset="' . $fileset . '"', 'client="' . $client->name . '"', 'storage="' . $storage->name . '"', 'pool="' . $pool->name . '"' , 'priority="' . $priority . '"', 'yes'), $this->user);
+								$run = $this->getModule('bconsole')->bconsoleCommand($this->director, array('run', 'job="' . $job . '"', 'level="' . $joblevels[$level] . '"', 'fileset="' . $fileset . '"', 'client="' . $client->name . '"', 'storage="' . $storage->name . '"', 'pool="' . $pool->name . '"' , 'priority="' . $priority . '"',  $jobid , $verifyjob, 'yes'), $this->user);
 								$this->output = $run->output;
 								$this->error = (integer)$run->exitcode;
 							} else {

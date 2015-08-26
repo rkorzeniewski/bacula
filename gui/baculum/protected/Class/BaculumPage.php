@@ -3,7 +3,7 @@
  * Bacula® - The Network Backup Solution
  * Baculum - Bacula web interface
  *
- * Copyright (C) 2013-2014 Marcin Haba
+ * Copyright (C) 2013-2015 Marcin Haba
  *
  * The main author of Baculum is Marcin Haba.
  * The main author of Bacula is Kern Sibbald, with contributions from many
@@ -24,14 +24,15 @@ class BaculumPage extends TPage
 		parent::onPreInit($param);
 		$configuration = $this->getModule('configuration');
 		$this->Application->getGlobalization()->Culture = $this->getLanguage();
+		$this->setPrefixForSubdir();
 	}
 
 	public function getLanguage() {
-		if(isset($this->Session['language']) && !empty($this->Session['language'])) {
-			$language =  $this->Session['language'];
+		if(isset($_SESSION['language']) && !empty($_SESSION['language'])) {
+			$language =  $_SESSION['language'];
 		} else {
 			$language = $this->getModule('configuration')->getLanguage();
-			$this->Session['language'] = $language;
+			$_SESSION['language'] = $language;
 		}
 		return $language;
 	}
@@ -40,12 +41,36 @@ class BaculumPage extends TPage
 		return $this->Application->getModule($name);
 	}
 
-	public function goToPage($pagePath,$getParameters=null) {
+	public function goToPage($pagePath,$getParameters = null) {
 		$this->Response->redirect($this->Service->constructUrl($pagePath,$getParameters,false));
 	}
-	
-	public function goToDefaultPage() {
-		$this->goToPage($this->Service->DefaultPage);
+
+	public function goToDefaultPage($getParameters = null) {
+		$this->goToPage($this->Service->DefaultPage, $getParameters);
+	}
+
+	public function setPrefixForSubdir() {
+		$fullDocumentRoot = preg_replace('#(\/)$#', '', $this->getFullDocumentRoot());
+		$urlPrefix = str_replace($fullDocumentRoot, '', APPLICATION_DIRECTORY);
+		if(!empty($urlPrefix)) {
+			$this->Application->getModule('friendly-url')->setUrlPrefix($urlPrefix);
+		}
+	}
+
+	private function getFullDocumentRoot() {
+		$rootDir = array();
+		$dirs = explode('/', $_SERVER['DOCUMENT_ROOT']);
+		for($i = 0; $i < count($dirs); $i++) {
+			$documentRootPart =  implode('/', $rootDir) . '/' . $dirs[$i];
+			if(is_link($documentRootPart)) {
+				$rootDir = array(readlink($documentRootPart));
+			} else {
+				$rootDir[] = $dirs[$i];
+			}
+		}
+
+		$rootDir = implode('/', $rootDir);
+		return $rootDir;
 	}
 }
 ?>

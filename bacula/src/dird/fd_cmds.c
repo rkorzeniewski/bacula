@@ -509,6 +509,7 @@ static bool send_list_item(JCR *jcr, const char *code, char *item, BSOCK *fd)
          fd->msglen = Mmsg(fd->msg, "%s", buf);
          Dmsg2(500, "Inc/exc len=%d: %s", fd->msglen, fd->msg);
          if (!fd->send()) {
+            close_bpipe(bpipe);
             Jmsg(jcr, M_FATAL, 0, _(">filed: write error on socket\n"));
             return false;
          }
@@ -534,6 +535,7 @@ static bool send_list_item(JCR *jcr, const char *code, char *item, BSOCK *fd)
       while (fgets(buf+optlen, sizeof(buf)-optlen, ffd)) {
          fd->msglen = Mmsg(fd->msg, "%s", buf);
          if (!fd->send()) {
+            fclose(ffd);
             Jmsg(jcr, M_FATAL, 0, _(">filed: write error on socket\n"));
             return false;
          }

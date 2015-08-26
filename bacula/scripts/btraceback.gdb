@@ -1,6 +1,8 @@
+print fail_time
 print my_name
 print exename
 print exepath
+print assert_msg
 print catalog_db
 print version
 print host_os

@@ -1,4 +1,7 @@
 #
+# Copyright (C) 2000-2015 by Kern Sibbald
+# License: BSD 2-Clause; see file LICENSE-FOSS
+#
 # This file is used as the template to create the
 # Makefile for the systemd specific installation.
 #
@@ -17,7 +20,7 @@ nothing:
 
 install: install-dir install-conf install-autostart
 
-install-dir: $(DESTDIR)/$(SYSTEMD_UNITDIR)
+install-dir:
 	mkdir -p $(DESTDIR)/$(SYSTEMD_UNITDIR) $(DESTDIR)/$(SYSTEMD_TMPFILES)
 
 install-conf:
@@ -25,6 +28,10 @@ install-conf:
 
 install-autostart: install-autostart-fd install-autostart-sd install-autostart-dir
 
+install-service:
+	@$(INSTALL_PROGRAM) -m 644 bacula-fd.service $(DESTDIR)/$(SYSTEMD_UNITDIR)
+	@$(INSTALL_PROGRAM) -m 644 bacula-dir.service $(DESTDIR)/$(SYSTEMD_UNITDIR)
+	@$(INSTALL_PROGRAM) -m 644 bacula-sd.service $(DESTDIR)/$(SYSTEMD_UNITDIR)
 
 install-autostart-fd:
 	@if test x$(DESTDIR) = x -a  -f $(SYSTEMD_UNITDIR)/bacula-fd.service; then \
@@ -104,4 +111,3 @@ distclean: clean
 devclean: clean
 	@rm -f Makefile bacula-*.spec bacula.*.spec bacula.spec
 	@rm -f bacula.conf bacula-sd.service bacula-fd.service bacula-dir.service
-

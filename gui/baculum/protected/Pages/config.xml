@@ -2,7 +2,7 @@
 <configuration>
   <authorization>
     <allow pages="BaculumError,Requirements" users="*" />
-    <allow pages="Home,RestoreWizard,API.*" roles="admin,user" />
+    <allow pages="Home,RestoreWizard,API.*,Monitor" roles="admin,user" />
     <allow pages="ConfigurationWizard" roles="admin" />
     <deny users="*" />
   </authorization>

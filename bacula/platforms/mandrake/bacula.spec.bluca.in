@@ -20,7 +20,7 @@ Name: %{name}
 Version: %{version}
 Release: %{release}
 Group: Archiving/Backup
-License: GPL
+License: BSD 2-Clause; see file LICENSE-FOSS
 Source: http://www.prdownloads.sourceforge.net/bacula/%{name}-%{version}.tar.bz2
 Source1: %{name}-icons.tar.bz2
 BuildRoot: %{_tmppath}/%{name}-root

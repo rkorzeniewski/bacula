@@ -14,19 +14,16 @@
 Baculum is Bacula web based interface. It enables Bacula administration
 functions such as:
 
-- Running backup and restore tasks
+- Running Bacula jobs (backup, restore, verify...)
 - Monitoring Bacula services by getting status these services
 - Bacula console available via web interface
 - Support for customized and restricted consoles (Console ACL functionality)
 - Multiple Directors support
 - Volumes managenment including labeling new volumes
+- User friendly graphs
 - Basic storage daemon operations on volumes (mount, umount, release actions)
 - Easy in use configuration and restore wizards
 - other features...
-
-Note!
-This Baculum release does not support Verify kind of jobs. Support for Verify
-jobs will be implemented in next Baculum release.
 
 
 2. Baculum operating system environment
@@ -35,27 +32,29 @@ jobs will be implemented in next Baculum release.
 2.1 General requirements
 
 
-Environmnent for Baculum installation should have next components:
+Environment for Baculum installation should have following components:
 
 - Web Server - with mod_rewrite module loaded. Baculum has been
-tested on Apache HTTP Server.
+tested on Apache HTTP Server and Lighttpd.
 
 - PHP 5.3 or higher - as web server module. PHP CLI interpreter is not needed.
 PHP should have installed next modules:
     * PDO PHP support - depending on your catalog database: PDO PostgreSQL,
 PDO MySQL or PDO SQLite.
+      Note, in case using MySQL database required is to use MySQL native driver.
+      It is php-mysqlnd for PHP, not php-mysql.
     * BCMath PHP module.
     * cURL PHP module.
     * MB String PHP module.
     * JSON PHP module.
 - Bconsole - configured Bacula text based console
 - Access to Bacula catalog database - computer with Baculum installation should be
-able to connection to Bacula catalog database. There is not need to install Baculum
-on server with Bacula DB because Baculum can communicate with Bacula database
+able to connect to Bacula catalog database. There is not need to install Baculum
+on server with Bacula Catalog DB because Baculum can communicate with Bacula database
 located on remote server.
 
 Above requirements are validated during Baculum start. So if in installation
-environment there lacks some from these components then you will be informed
+environment there lacks some from these components then you be informed
 about it.
 
 
@@ -84,6 +83,7 @@ Please be sure that in PHP configuration file (usually located in /etc/php.ini)
 there is option error_reporting set as below:
 
 error_reporting = E_ALL & ~E_STRICT
+memory_limit = 256M
 
 Suggested method for Baculum webGUI access to Bacula Console (bconsole) is using
 "sudo" functionality for that. In this case there is need to add to /etc/sudoers file two
@@ -122,6 +122,7 @@ Please be sure that in PHP configuration file (usually located in /etc/php5/apac
 there is option error_reporting set as below:
 
 error_reporting = E_ALL & ~E_STRICT
+memory_limit = 256M
 
 Suggested method for Baculum webGUI access to Bacula Console (bconsole) is using
 "sudo" functionality for that. In this case there is need to add to /etc/sudoers below
@@ -146,7 +147,7 @@ permissions for web server for three below directories:
 /[files base location]/protected/runtime
 
 These directories permissions are validated during Baculum start. If web server
-will not be able to write data in some from above directries then you will be
+will not be able to write data in some from above directries then you be
 informed about this fact.
 
 

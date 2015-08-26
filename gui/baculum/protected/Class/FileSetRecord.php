@@ -3,7 +3,7 @@
  * Bacula® - The Network Backup Solution
  * Baculum - Bacula web interface
  *
- * Copyright (C) 2013-2014 Marcin Haba
+ * Copyright (C) 2013-2015 Marcin Haba
  *
  * The main author of Baculum is Marcin Haba.
  * The main author of Bacula is Kern Sibbald, with contributions from many
@@ -16,7 +16,7 @@
  *
  * Bacula® is a registered trademark of Kern Sibbald.
  */
- 
+
 class FileSetRecord extends ActiveRecord {
 	const TABLE = 'FileSet';
 
@@ -24,7 +24,7 @@ class FileSetRecord extends ActiveRecord {
 	public $fileset;
 	public $md5;
 	public $createtime;
-	
+
 	public static function finder($className = __CLASS__) {
 		return parent::finder($className);
 	}

@@ -3,7 +3,7 @@
  * Bacula® - The Network Backup Solution
  * Baculum - Bacula web interface
  *
- * Copyright (C) 2013-2014 Marcin Haba
+ * Copyright (C) 2013-2015 Marcin Haba
  *
  * The main author of Baculum is Marcin Haba.
  * The main author of Bacula is Kern Sibbald, with contributions from many
@@ -16,7 +16,7 @@
  *
  * Bacula® is a registered trademark of Kern Sibbald.
  */
- 
+
 Prado::using('System.Web.UI.ActiveControls.TActiveDropDownList');
 Prado::using('System.Web.UI.ActiveControls.TActiveLabel');
 Prado::using('System.Web.UI.ActiveControls.TActiveTextBox');
@@ -29,13 +29,6 @@ class VolumeConfiguration extends Portlets {
 	private $volumeStatesByDirectorOnly = array('Recycle', 'Purged', 'Error', 'Busy');
 
 	private $volumeStatesForSet = array('Append', 'Archive', 'Disabled', 'Full', 'Used', 'Cleaning', 'Read-Only');
-
-	public function onInit($param) {
-		parent::onInit($param);
-		$this->Apply->setActionClass($this);
-		$this->Prune->setActionClass($this);
-		$this->Purge->setActionClass($this);
-	}
 
 	public function configure($mediaId) {
 		$voldata = $this->Application->getModule('api')->get(array('volumes', $mediaId))->output;
@@ -71,38 +64,33 @@ class VolumeConfiguration extends Portlets {
 		$this->Pool->dataBind();
 	}
 
-	public function save($sender, $param) {
-		switch($sender->getParent()->ID) {
-			case $this->Apply->ID: {
-				$isInvalid = $this->RetentionPeriodValidator->IsValid === false || $this->UseDurationValidator->IsValid === false || $this->MaxVolJobsValidator->IsValid === false || $this->MaxVolFilesValidator->IsValid === false || $this->MaxVolBytesValidator->IsValid === false || $this->SlotValidator->IsValid === false;
-				if($isInvalid) {
-					return false;
-				}
-				$voldata = array();
-				$voldata['mediaid'] = $this->VolumeID->Text;
-				$voldata['volstatus'] = $this->VolumeStatus->SelectedValue;
-				$voldata['poolid'] = $this->Pool->SelectedValue;
-				$voldata['volretention'] = $this->RetentionPeriod->Text * 3600; // conversion to seconds
-				$voldata['voluseduration'] = $this->UseDuration->Text * 3600;  // conversion to seconds
-				$voldata['maxvoljobs'] = $this->MaxVolJobs->Text;
-				$voldata['maxvolfiles'] = $this->MaxVolFiles->Text;
-				$voldata['maxvolbytes'] = $this->MaxVolBytes->Text;
-				$voldata['slot'] = $this->Slot->Text;
-				$voldata['recycle'] = (integer)$this->Recycle->Checked;
-				$voldata['enabled'] = (integer)$this->Enabled->Checked;
-				$voldata['inchanger'] = (integer)$this->InChanger->Checked;
-				$this->Application->getModule('api')->set(array('volumes', $voldata['mediaid']), $voldata);
-				break;
-			}
-			case $this->Prune->ID: {
-				$this->Application->getModule('api')->get(array('volumes', 'prune', $this->VolumeID->Text));
-				break;
-			}
-			case $this->Purge->ID: {
-				$this->Application->getModule('api')->get(array('volumes', 'purge', $this->VolumeID->Text));
-				break;
-			}
+	public function prune($sender, $param) {
+		$this->Application->getModule('api')->get(array('volumes', 'prune', $this->VolumeID->Text));
+	}
+
+	public function purge($sender, $param) {
+		$this->Application->getModule('api')->get(array('volumes', 'purge', $this->VolumeID->Text));
+	}
+
+	public function apply($sender, $param) {
+		$isInvalid = $this->RetentionPeriodValidator->IsValid === false || $this->UseDurationValidator->IsValid === false || $this->MaxVolJobsValidator->IsValid === false || $this->MaxVolFilesValidator->IsValid === false || $this->MaxVolBytesValidator->IsValid === false || $this->SlotValidator->IsValid === false;
+		if($isInvalid) {
+			return false;
 		}
+		$voldata = array();
+		$voldata['mediaid'] = $this->VolumeID->Text;
+		$voldata['volstatus'] = $this->VolumeStatus->SelectedValue;
+		$voldata['poolid'] = $this->Pool->SelectedValue;
+		$voldata['volretention'] = $this->RetentionPeriod->Text * 3600; // conversion to seconds
+		$voldata['voluseduration'] = $this->UseDuration->Text * 3600;  // conversion to seconds
+		$voldata['maxvoljobs'] = $this->MaxVolJobs->Text;
+		$voldata['maxvolfiles'] = $this->MaxVolFiles->Text;
+		$voldata['maxvolbytes'] = $this->MaxVolBytes->Text;
+		$voldata['slot'] = $this->Slot->Text;
+		$voldata['recycle'] = (integer)$this->Recycle->Checked;
+		$voldata['enabled'] = (integer)$this->Enabled->Checked;
+		$voldata['inchanger'] = (integer)$this->InChanger->Checked;
+		$this->Application->getModule('api')->set(array('volumes', $voldata['mediaid']), $voldata);
 	}
 
 	public function getVolumeStates($forSetOnly = false) {
@@ -114,7 +102,7 @@ class VolumeConfiguration extends Portlets {
 		$isValid = preg_match('/^\d+$/', $this->RetentionPeriod->Text) && $this->RetentionPeriod->Text >= 0;
 		$param->setIsValid($isValid);
 	}
-	
+
 	public function useDurationValidator($sender, $param) {
 		$isValid = preg_match('/^\d+$/', $this->UseDuration->Text) && $this->UseDuration->Text >= 0;
 		$param->setIsValid($isValid);

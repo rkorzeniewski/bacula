@@ -3,7 +3,7 @@
  * Bacula® - The Network Backup Solution
  * Baculum - Bacula web interface
  *
- * Copyright (C) 2013-2014 Marcin Haba
+ * Copyright (C) 2013-2015 Marcin Haba
  *
  * The main author of Baculum is Marcin Haba.
  * The main author of Bacula is Kern Sibbald, with contributions from many
@@ -23,9 +23,14 @@ if(!isset($_SERVER['PHP_AUTH_USER']) && !isset($_SERVER['PHP_AUTH_PW'])) {
     list($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']) = explode(':', base64_decode(substr($_SERVER['HTTP_AUTHORIZATION'], 6)));
 }
 
+define('APPLICATION_DIRECTORY', __DIR__);
+
 require_once('./protected/Pages/Requirements.php');
 new Requirements(__DIR__);
 require_once('./framework/prado.php');
+
 $application=new TApplication;
+Prado::using('Application.Portlets.BButton');
+Prado::using('Application.Portlets.BActiveButton');
 $application->run();
 ?>

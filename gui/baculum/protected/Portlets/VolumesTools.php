@@ -3,7 +3,7 @@
  * Bacula® - The Network Backup Solution
  * Baculum - Bacula web interface
  *
- * Copyright (C) 2013-2014 Marcin Haba
+ * Copyright (C) 2013-2015 Marcin Haba
  *
  * The main author of Baculum is Marcin Haba.
  * The main author of Bacula is Kern Sibbald, with contributions from many
@@ -28,13 +28,6 @@ class VolumesTools extends Portlets {
 	public $labelVolumePattern = '^[0-9a-zA-Z\-_]+$';
 	public $slotsPattern = '^[0-9\-\,]+$';
 	public $drivePattern = '^[0-9]+$';
-
-	public function onInit($param) {
-		parent::onInit($param);
-		$this->LabelButton->setActionClass($this);
-		$this->UpdateSlotsButton->setActionClass($this);
-		$this->UpdateSlotsScanButton->setActionClass($this);
-	}
 
 	public function onLoad($param) {
 		parent::onLoad($param);
@@ -61,46 +54,41 @@ class VolumesTools extends Portlets {
 		}
 	}
 
-	public function save($sender, $param) {
-		switch($sender->getParent()->ID) {
-			case $this->LabelButton->ID: {
-				if($this->LabelNameValidator->isValid === false) {
-					return;
-				}
-				$cmd = array('label');
-				if($this->Barcodes->Checked == true) {
-					$cmd[] = 'barcodes';
-					$cmd[] = 'slots="' . $this->SlotsLabel->Text . '"';
-				} else {
-					$cmd[] = 'volume="' . $this->LabelName->Text . '"';
-				}
-				$cmd[] = 'drive="' . $this->DriveLabel->Text . '"';
-				$cmd[] = 'storage="'. $this->StorageLabel->SelectedItem->Text . '"';
-				$cmd[] = 'pool="'. $this->PoolLabel->SelectedItem->Text . '"';
-				$this->getPage()->Console->CommandLine->Text = implode(' ', $cmd);
-				$this->getPage()->Console->sendCommand($sender, $param);
-				break;
-			}
-			case $this->UpdateSlotsButton->ID: {
-				$cmd = array('update');
-				$cmd[] = 'slots="' . $this->SlotsUpdateSlots->Text . '"';
-				$cmd[] = 'drive="' . $this->DriveUpdateSlots->Text . '"';
-				$cmd[] = 'storage="'. $this->StorageUpdateSlots->SelectedItem->Text . '"';
-				$this->getPage()->Console->CommandLine->Text = implode(' ', $cmd);
-				$this->getPage()->Console->sendCommand($sender, $param);
-				break;
-			}
-			case $this->UpdateSlotsScanButton->ID: {
-				$cmd = array('update');
-				$cmd[] = 'slots="' . $this->SlotsUpdateSlotsScan->Text . '"';
-				$cmd[] = 'scan';
-				$cmd[] = 'drive="' . $this->DriveUpdateSlotsScan->Text . '"';
-				$cmd[] = 'storage="'. $this->StorageUpdateSlotsScan->SelectedItem->Text . '"';
-				$this->getPage()->Console->CommandLine->Text = implode(' ', $cmd);
-				$this->getPage()->Console->sendCommand($sender, $param);
-				break;
-			}
+	public function labelVolume($sender, $param) {
+		if($this->LabelNameValidator->isValid === false) {
+			return;
 		}
+		$cmd = array('label');
+		if($this->Barcodes->Checked == true) {
+			$cmd[] = 'barcodes';
+			$cmd[] = 'slots="' . $this->SlotsLabel->Text . '"';
+		} else {
+			$cmd[] = 'volume="' . $this->LabelName->Text . '"';
+		}
+		$cmd[] = 'drive="' . $this->DriveLabel->Text . '"';
+		$cmd[] = 'storage="'. $this->StorageLabel->SelectedItem->Text . '"';
+		$cmd[] = 'pool="'. $this->PoolLabel->SelectedItem->Text . '"';
+		$this->getPage()->Console->CommandLine->Text = implode(' ', $cmd);
+		$this->getPage()->Console->sendCommand($sender, $param);
+	}
+
+	public function updateSlots($sender, $param) {
+		$cmd = array('update');
+		$cmd[] = 'slots="' . $this->SlotsUpdateSlots->Text . '"';
+		$cmd[] = 'drive="' . $this->DriveUpdateSlots->Text . '"';
+		$cmd[] = 'storage="'. $this->StorageUpdateSlots->SelectedItem->Text . '"';
+		$this->getPage()->Console->CommandLine->Text = implode(' ', $cmd);
+		$this->getPage()->Console->sendCommand($sender, $param);
+	}
+
+	public function updateSlotsScan($sender, $param) {
+		$cmd = array('update');
+		$cmd[] = 'slots="' . $this->SlotsUpdateSlotsScan->Text . '"';
+		$cmd[] = 'scan';
+		$cmd[] = 'drive="' . $this->DriveUpdateSlotsScan->Text . '"';
+		$cmd[] = 'storage="'. $this->StorageUpdateSlotsScan->SelectedItem->Text . '"';
+		$this->getPage()->Console->CommandLine->Text = implode(' ', $cmd);
+		$this->getPage()->Console->sendCommand($sender, $param);
 	}
 
 	public function setBarcodes($sender, $param) {

@@ -3,7 +3,7 @@
  * Bacula® - The Network Backup Solution
  * Baculum - Bacula web interface
  *
- * Copyright (C) 2013-2014 Marcin Haba
+ * Copyright (C) 2013-2015 Marcin Haba
  *
  * The main author of Baculum is Marcin Haba.
  * The main author of Bacula is Kern Sibbald, with contributions from many
@@ -19,34 +19,11 @@
  
 Prado::using('Application.Portlets.Portlets');
 
-class BButton extends Portlets{
+class BButton extends TButton {
 
-	public $commandName, $text;
-	public $causesValidation = true;
-	public $Visible = true;
-
-	public function onInit($param) {
-		parent::onInit($param);
-	}
-
-	public function setCommandName($param) {
-		$this->commandName = $param;
-	}
-
-	public function setText($param) {
-		$this->text = $param;
-	}
-
-	public function setCausesValidation($param) {
-		$this->causesValidation = $param;
-	}
-
-	public function setVisible($param) {
-		$this->Visible = $param;
-	}
-
-	public function getVisible() {
-		return $this->Visible;
+	protected function renderClientControlScript($writer)
+	{
+		$this->CssClass = "bbutton";
 	}
 }
 

@@ -5,30 +5,17 @@ use strict;
 
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2009 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2014 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
 
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version two of the GNU General Public
-   License as published by the Free Software Foundation plus additions
-   that are listed in the file LICENSE.
+   You may use this file and others of this release according to the
+   license defined in the LICENSE file, which includes the Affero General
+   Public License, v3.0 ("AGPLv3") and some additional permissions and
+   terms pursuant to its AGPLv3 Section 7.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
-
-   Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zurich,
-   Switzerland, email:ftf@fsfeurope.org.
+   BaculaÂ® is a registered trademark of Kern Sibbald.
 
 =cut
 
@@ -454,7 +441,7 @@ sub check_prune_list
             if ($nb_list_job == 2) {
                 foreach my $jobid (keys %to_check) {
                     if (!$seen{$jobid}) {
-                        print "ERROR: in $f, can't find $jobid in first 'list jobs'\n";
+                        print "ERROR: in $f, can't find JobId=$jobid in first 'list jobs'\n";
                         exit 1;
                     }
                 }
@@ -491,10 +478,10 @@ sub check_prune_list
     close(FP);
     foreach my $jobid (keys %to_check) {
         if (!$seen{$jobid}) {
-            print "******* listing of $f *********\n";
+            print "******** listing of $f *********\n";
             system("cat $f");
-            print "******* end listing of $f *********\n";
-            print "ERROR: in $f, $jobid is still present in the 2nd 'list jobs'\n";
+            print "******** end listing of $f *********\n";
+            print "ERROR: in $f, JobId=$jobid should not be, but is still present in the 2nd 'list jobs'\n";
             exit 1;
         }
     }
