@@ -2308,16 +2308,46 @@ AC_SUBST(ZLIBS)
 dnl
 dnl Tokyo Cabinet
 dnl
-AC_CHECK_HEADERS(tcutil.h)
-AC_CHECK_HEADERS(tchdb.h)
-AC_CHECK_LIB(tokyocabinet, tchdbnew, [TCLIBS="-ltokyocabinet"], [AC_MSG_ERROR(Cannot find Tokyo Cabinet)])
 have_tokyocabinet=no
-if test x$TCLIBS = x-ltokyocabinet; then
-   AC_DEFINE(HAVE_TOKYOCABINET,1)
-   AC_DEFINE(DEDUP_ENABLE,1)
-   have_tokyocabinet=yes
-fi
-AC_SUBST(TCLIBS)
+AC_ARG_WITH([tokyocabinet], 
+AS_HELP_STRING([--with-tokyocabinet@<:@=DIR@:>@], 
+[Build with the TokyoCabinet library. DIR is the TokyoCabinet base install directory, default is to search through a number of common places including pkg-config data.]))
+AS_IF([test "$withval" != "no"],[
+   AS_IF([test "$withval" = "yes"],[
+dnl      AS_ECHO("defult $withval")
+      AC_CHECK_HEADERS(tcutil.h tchdb.h)
+      AC_CHECK_LIB(tokyocabinet, tchdbnew, [TCLIBS="-ltokyocabinet"])
+      if test x$TCLIBS = x-ltokyocabinet; then
+         AC_DEFINE(HAVE_TOKYOCABINET,1)
+         AC_DEFINE(DEDUP_ENABLE,1)
+         have_tokyocabinet=yes
+         AC_DEFINE(HAVE_TOKYOCABINET,1)
+         AC_DEFINE(DEDUP_ENABLE,1)
+         AC_SUBST(TCFLAGS)
+         AC_SUBST(TCLIBS)
+      fi
+   ],[
+dnl      AS_ECHO("directory $withval")
+      CFLAGS=${CFLAGS}" -I$withval/include"
+      AC_CHECK_HEADERS(tcutil.h tchdb.h)
+      LDFLAGS=${LDFLAGS}" -L$withval/lib"
+      AC_CHECK_LIB(tokyocabinet, tchdbnew, [TCLIBS="-ltokyocabinet"], [AC_MSG_ERROR(Cannot find Tokyo Cabinet)])
+      have_tokyocabinet=yes
+      AC_DEFINE(HAVE_TOKYOCABINET,1)
+      AC_DEFINE(DEDUP_ENABLE,1)
+      AC_SUBST(TCFLAGS)
+      AC_SUBST(TCLIBS)
+   ])
+])
+
+dnl PKG_CHECK_MODULES([TC], [tokyocabinet], [have_tokyocabinet=yes])
+
+dnl if test x$TC_LIBS = x-ltokyocabinet; then
+dnl    AC_DEFINE(HAVE_TOKYOCABINET,1)
+dnl    AC_DEFINE(DEDUP_ENABLE,1)
+dnl    have_tokyocabinet=yes
+dnl fi
+dnl AC_SUBST(TCLIBS)
 
 dnl
 dnl Check if we have AFS on this system
